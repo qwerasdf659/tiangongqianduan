@@ -30,8 +30,12 @@
         </view>
       </view>
       
-      <button class="auth-btn" bindtap="onRequestAuth">
-        申请商家权限
+      <button 
+        class="auth-btn"
+        bindtap="onRequestAuth"
+        disabled="{{authRequesting}}"
+      >
+        {{authRequesting ? '申请中...' : '申请商家权限'}}
       </button>
     </view>
   </view>
@@ -246,6 +250,9 @@
         <button class="tool-btn batch-edit-btn" bindtap="{{hasPermission ? 'onBatchEdit' : 'onLockedTap'}}">
           📝 批量编辑
         </button>
+        <button class="tool-btn select-all-btn" bindtap="{{hasPermission ? 'onSelectAllProducts' : 'onLockedTap'}}">
+          📋 全选
+        </button>
         <button class="tool-btn refresh-btn" bindtap="{{hasPermission ? 'refreshProducts' : 'onLockedTap'}}">
           🔄 刷新
         </button>
@@ -259,10 +266,19 @@
         
         <view class="product-list">
           <view 
-            class="product-item"
+            class="product-item {{item.selected ? 'selected' : ''}}"
             wx:for="{{productList}}" 
             wx:key="id"
           >
+            <!-- 选择框 -->
+            <view class="product-select">
+              <checkbox 
+                checked="{{item.selected}}"
+                bindchange="{{hasPermission ? 'onProductSelect' : 'onLockedTap'}}"
+                data-id="{{item.id}}"
+              />
+            </view>
+
             <!-- 商品图片 -->
             <view class="product-image-container">
               <image 
@@ -273,12 +289,14 @@
               <view class="product-status {{item.status === 'active' ? 'active' : 'offline'}}">
                 {{item.status === 'active' ? '在售' : '下架'}}
               </view>
+              <view class="product-hot" wx:if="{{item.is_hot}}">🔥</view>
             </view>
 
             <!-- 商品信息 -->
             <view class="product-info">
               <view class="product-name">{{item.name}}</view>
               <view class="product-desc">{{item.description}}</view>
+              <view class="product-category">{{item.category || '实物商品'}}</view>
               <view class="product-price">
                 <text class="price-icon">💰</text>
                 <text class="price-text">{{item.exchange_points}}积分</text>
@@ -300,7 +318,7 @@
               </button>
               <button 
                 class="product-btn stock-btn"
-                bindtap="{{hasPermission ? 'onAdjustStock' : 'onLockedTap'}}"
+                bindtap="{{hasPermission ? 'onManageStock' : 'onLockedTap'}}"
                 data-product="{{item}}"
               >
                 📦 调库存
@@ -312,8 +330,24 @@
               >
                 {{item.status === 'active' ? '📴 下架' : '📱 上架'}}
               </button>
+              <button 
+                class="product-btn delete-btn"
+                bindtap="{{hasPermission ? 'onDeleteProduct' : 'onLockedTap'}}"
+                data-product="{{item}}"
+              >
+                🗑️ 删除
+              </button>
             </view>
           </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view class="empty-state" wx:if="{{productList.length === 0}}">
+          <view class="empty-icon">📦</view>
+          <text class="empty-text">暂无商品</text>
+          <button class="empty-action-btn" bindtap="{{hasPermission ? 'onAddProduct' : 'onLockedTap'}}">
+            ➕ 新增第一个商品
+          </button>
         </view>
       </view>
     </view>
@@ -327,6 +361,344 @@
     bind:success="onAuthSuccess"
     bind:cancel="onAuthCancel"
   />
+
+  <!-- 商品新增/编辑弹窗 -->
+  <view class="modal-overlay product-modal" wx:if="{{showProductModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">{{editingProduct ? '编辑商品' : '新增商品'}}</text>
+        <button class="close-btn" bindtap="onCancelProduct">✕</button>
+      </view>
+      
+      <view class="modal-body">
+        <scroll-view scroll-y class="form-container">
+          <!-- 商品名称 -->
+          <view class="form-item">
+            <text class="form-label">商品名称 *</text>
+            <input 
+              class="form-input"
+              value="{{productForm.name}}"
+              placeholder="请输入商品名称"
+              bindinput="onProductNameInput"
+              maxlength="50"
+            />
+          </view>
+
+          <!-- 商品描述 -->
+          <view class="form-item">
+            <text class="form-label">商品描述 *</text>
+            <textarea 
+              class="form-textarea"
+              value="{{productForm.description}}"
+              placeholder="请输入商品描述"
+              bindinput="onProductDescInput"
+              maxlength="200"
+            />
+          </view>
+
+          <!-- 商品分类 -->
+          <view class="form-item">
+            <text class="form-label">商品分类</text>
+            <picker 
+              range="{{['实物商品', '优惠券', '虚拟物品']}}"
+              value="{{productForm.category}}"
+              bindchange="onProductCategoryChange"
+            >
+              <view class="form-input picker-input">
+                {{productForm.category || '选择分类'}}
+              </view>
+            </picker>
+          </view>
+
+          <!-- 积分价格 -->
+          <view class="form-item">
+            <text class="form-label">积分价格 *</text>
+            <input 
+              class="form-input"
+              type="number"
+              value="{{productForm.exchange_points}}"
+              placeholder="请输入兑换所需积分"
+              bindinput="onProductPointsInput"
+            />
+          </view>
+
+          <!-- 库存数量 -->
+          <view class="form-item">
+            <text class="form-label">库存数量 *</text>
+            <input 
+              class="form-input"
+              type="number"
+              value="{{productForm.stock}}"
+              placeholder="请输入库存数量"
+              bindinput="onProductStockInput"
+            />
+          </view>
+
+          <!-- 商品图片 -->
+          <view class="form-item">
+            <text class="form-label">商品图片</text>
+            <view class="image-upload-container">
+              <view class="image-preview" wx:if="{{productForm.image}}">
+                <image 
+                  class="preview-img" 
+                  src="{{productForm.image}}" 
+                  mode="aspectFill"
+                />
+                <button class="delete-img-btn" bindtap="onDeleteProductImage">✕</button>
+              </view>
+              <button class="upload-img-btn" bindtap="onUploadProductImage" wx:else>
+                📷 上传图片
+              </button>
+            </view>
+          </view>
+
+          <!-- 是否热门 -->
+          <view class="form-item">
+            <view class="form-switch">
+              <text class="form-label">设为热门商品</text>
+              <switch 
+                checked="{{productForm.is_hot}}"
+                bindchange="onProductHotChange"
+              />
+            </view>
+          </view>
+
+          <!-- 排序权重 -->
+          <view class="form-item">
+            <text class="form-label">排序权重</text>
+            <input 
+              class="form-input"
+              type="number"
+              value="{{productForm.sort_order}}"
+              placeholder="数值越大排序越靠前"
+              bindinput="onProductSortInput"
+            />
+          </view>
+        </scroll-view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="onCancelProduct">取消</button>
+        <button 
+          class="modal-btn confirm-btn {{productSubmitting ? 'loading' : ''}}"
+          bindtap="onConfirmProduct"
+          disabled="{{productSubmitting}}"
+        >
+          {{productSubmitting ? '保存中...' : (editingProduct ? '更新' : '新增')}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 库存管理弹窗 -->
+  <view class="modal-overlay stock-modal" wx:if="{{showStockModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">库存管理 - {{currentProduct.name}}</text>
+        <button class="close-btn" bindtap="onCancelStock">✕</button>
+      </view>
+      
+      <view class="modal-body">
+        <view class="stock-info">
+          <text class="current-stock">当前库存：{{currentProduct.stock}}件</text>
+        </view>
+        
+        <view class="stock-adjustment">
+          <text class="adjustment-label">调整数量：</text>
+          <view class="quantity-controls">
+            <button class="quantity-btn" bindtap="onQuantityChange" data-change="-10">-10</button>
+            <button class="quantity-btn" bindtap="onQuantityChange" data-change="-1">-1</button>
+            <input 
+              class="quantity-input"
+              type="number"
+              value="{{stockAdjustment}}"
+              bindinput="onStockAdjustmentInput"
+            />
+            <button class="quantity-btn" bindtap="onQuantityChange" data-change="1">+1</button>
+            <button class="quantity-btn" bindtap="onQuantityChange" data-change="10">+10</button>
+          </view>
+        </view>
+        
+        <view class="new-stock">
+          <text class="new-stock-label">调整后库存：</text>
+          <text class="new-stock-value {{currentProduct.stock + stockAdjustment < 0 ? 'error' : ''}}">
+            {{currentProduct.stock + stockAdjustment}}件
+          </text>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="onCancelStock">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="onConfirmStock">确认调整</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 批量编辑弹窗 -->
+  <view class="modal-overlay batch-modal" wx:if="{{showBatchEditModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">批量编辑 (已选{{selectedProducts.length}}个商品)</text>
+        <button class="close-btn" bindtap="onCancelBatchEdit">✕</button>
+      </view>
+      
+      <view class="modal-body">
+        <view class="batch-options">
+          <!-- 批量修改分类 -->
+          <view class="batch-option">
+            <view class="option-header">
+              <checkbox 
+                checked="{{batchEditForm.updateCategory}}"
+                bindchange="onBatchCategoryToggle"
+              />
+              <text class="option-label">修改分类</text>
+            </view>
+            <picker 
+              range="{{['实物商品', '优惠券', '虚拟物品']}}"
+              value="{{batchEditForm.category}}"
+              bindchange="onBatchCategoryChange"
+              disabled="{{!batchEditForm.updateCategory}}"
+            >
+              <view class="batch-input {{!batchEditForm.updateCategory ? 'disabled' : ''}}">
+                {{batchEditForm.category || '选择分类'}}
+              </view>
+            </picker>
+          </view>
+
+          <!-- 批量调整积分 -->
+          <view class="batch-option">
+            <view class="option-header">
+              <checkbox 
+                checked="{{batchEditForm.updatePoints}}"
+                bindchange="onBatchPointsToggle"
+              />
+              <text class="option-label">调整积分价格</text>
+            </view>
+            <view class="adjustment-controls">
+              <input 
+                class="batch-input {{!batchEditForm.updatePoints ? 'disabled' : ''}}"
+                type="number"
+                value="{{batchEditForm.pointsAdjustment}}"
+                placeholder="调整数量（正数增加，负数减少）"
+                bindinput="onBatchPointsInput"
+                disabled="{{!batchEditForm.updatePoints}}"
+              />
+            </view>
+          </view>
+
+          <!-- 批量调整库存 -->
+          <view class="batch-option">
+            <view class="option-header">
+              <checkbox 
+                checked="{{batchEditForm.updateStock}}"
+                bindchange="onBatchStockToggle"
+              />
+              <text class="option-label">调整库存</text>
+            </view>
+            <view class="adjustment-controls">
+              <input 
+                class="batch-input {{!batchEditForm.updateStock ? 'disabled' : ''}}"
+                type="number"
+                value="{{batchEditForm.stockAdjustment}}"
+                placeholder="调整数量（正数增加，负数减少）"
+                bindinput="onBatchStockInput"
+                disabled="{{!batchEditForm.updateStock}}"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="onCancelBatchEdit">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="onConfirmBatchEdit">应用更改</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 审核弹窗 -->
+  <view class="modal-overlay review-modal" wx:if="{{showReviewModal}}">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">
+          {{reviewAction === 'approve' ? '通过审核' : '拒绝审核'}}
+        </text>
+        <button class="close-btn" bindtap="onCancelReview">✕</button>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 用户信息 -->
+        <view class="review-user-info">
+          <text class="user-phone">{{currentReview.user_phone}}</text>
+          <text class="upload-time">{{currentReview.upload_time}}</text>
+        </view>
+        
+        <!-- 小票预览 -->
+        <view class="review-image">
+          <image 
+            class="receipt-preview" 
+            src="{{currentReview.image_url}}" 
+            mode="aspectFit"
+          />
+        </view>
+        
+        <!-- 金额信息 -->
+        <view class="review-amount">
+          <text class="amount-text">消费金额：¥{{currentReview.amount}}</text>
+          <text class="expected-points">建议积分：{{currentReview.expected_points}}分</text>
+        </view>
+        
+        <!-- 审核表单 -->
+        <view class="review-form">
+          <!-- 通过审核 - 积分输入 -->
+          <view class="form-item" wx:if="{{reviewAction === 'approve'}}">
+            <text class="form-label">实际给予积分 *</text>
+            <input 
+              class="form-input"
+              type="number"
+              value="{{reviewPoints}}"
+              placeholder="请输入实际给予的积分"
+              bindinput="onPointsInput"
+            />
+          </view>
+          
+          <!-- 拒绝审核 - 理由输入 -->
+          <view class="form-item" wx:if="{{reviewAction === 'reject'}}">
+            <text class="form-label">拒绝理由 *</text>
+            <textarea 
+              class="form-textarea"
+              value="{{reviewReason}}"
+              placeholder="请输入拒绝理由"
+              bindinput="onReasonInput"
+              maxlength="200"
+            />
+          </view>
+          
+          <!-- 可选备注 -->
+          <view class="form-item">
+            <text class="form-label">备注说明</text>
+            <textarea 
+              class="form-textarea"
+              value="{{reviewReason}}"
+              placeholder="可选的审核备注"
+              bindinput="onReasonInput"
+              maxlength="200"
+            />
+          </view>
+        </view>
+      </view>
+      
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="onCancelReview">取消</button>
+        <button 
+          class="modal-btn confirm-btn {{reviewAction === 'approve' ? 'approve' : 'reject'}}"
+          bindtap="onConfirmReview"
+        >
+          {{reviewAction === 'approve' ? '✅ 确认通过' : '❌ 确认拒绝'}}
+        </button>
+      </view>
+    </view>
+  </view>
 
   <!-- 加载状态 -->
   <view class="loading-overlay" wx:if="{{loading}}">

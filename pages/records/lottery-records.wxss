@@ -1,0 +1,347 @@
+/* pages/records/lottery-records.wxss */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 20rpx;
+}
+
+/* 页面头部 */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  padding: 20rpx;
+  margin: 20rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.back-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.back-icon {
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  margin: 0 20rpx;
+}
+
+.title-text {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+}
+
+.title-desc {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 8rpx;
+  display: block;
+}
+
+.header-actions {
+  width: 80rpx;
+  text-align: center;
+}
+
+.total-count {
+  font-size: 24rpx;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* 统计卡片 */
+.statistics-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10rpx);
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.stat-item {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #667eea;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.best-prize .stat-number {
+  font-size: 24rpx;
+  color: #ff6b35;
+}
+
+/* 筛选标签 */
+.filter-tabs {
+  display: flex;
+  margin: 20rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  padding: 8rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.filter-tab {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+/* 记录列表 */
+.records-list {
+  margin: 20rpx;
+}
+
+.record-item {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  backdrop-filter: blur(10rpx);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.record-item:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+}
+
+.record-left {
+  min-width: 160rpx;
+}
+
+.record-type {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.type-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.type-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.record-time {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.record-center {
+  flex: 1;
+  margin: 0 20rpx;
+}
+
+.prize-info {
+  text-align: center;
+}
+
+.prize-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.prize-name.has-prize {
+  color: #ff6b35;
+}
+
+.prize-name.no-prize {
+  color: #999;
+}
+
+.prize-value {
+  font-size: 22rpx;
+  color: #667eea;
+}
+
+.record-right {
+  text-align: right;
+  min-width: 120rpx;
+}
+
+.points-cost {
+  margin-bottom: 8rpx;
+}
+
+.cost-label {
+  font-size: 22rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.cost-value {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.detail-arrow {
+  font-size: 24rpx;
+  color: #ccc;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 120rpx 40rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  display: block;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+.goto-lottery-btn {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 24rpx 48rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+}
+
+/* 加载更多 */
+.load-more {
+  text-align: center;
+  padding: 40rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16rpx;
+  margin-top: 20rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.load-text {
+  font-size: 28rpx;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.no-more {
+  text-align: center;
+  padding: 40rpx;
+}
+
+.no-more-text {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 加载状态 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 60rpx;
+  text-align: center;
+  backdrop-filter: blur(10rpx);
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 6rpx solid #f3f3f3;
+  border-top: 6rpx solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+} 

@@ -89,6 +89,54 @@
   box-shadow: 0 10rpx 40rpx rgba(0, 0, 0, 0.2);
 }
 
+/* 转盘中央单抽按钮 */
+.center-draw-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b35, #ff8a65);
+  color: white;
+  border: 4rpx solid #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.4);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.center-draw-btn:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 12rpx 28rpx rgba(255, 107, 53, 0.5);
+}
+
+.center-draw-btn.disabled {
+  background: #cccccc;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.center-btn-text {
+  font-size: 26rpx;
+  font-weight: 700;
+  margin-bottom: 4rpx;
+  line-height: 1;
+}
+
+.center-btn-cost {
+  font-size: 20rpx;
+  opacity: 0.9;
+  font-weight: 500;
+  line-height: 1;
+}
+
 .wheel-overlay {
   position: absolute;
   top: 0;
@@ -101,6 +149,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  z-index: 20;
 }
 
 .loading-spinner {
@@ -123,27 +172,28 @@
   margin-top: 20rpx;
 }
 
-/* 抽奖按钮组 - 优化2×2网格布局 */
-.draw-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 24rpx;
-  max-width: 600rpx;
+/* 多连抽按钮组 - 一行三个按钮布局 */
+.multi-draw-buttons {
+  display: flex;
+  gap: 20rpx;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 700rpx;
   margin: 0 auto;
 }
 
-.draw-btn {
+.multi-draw-btn {
   position: relative;
+  flex: 1;
+  min-width: 200rpx;
   background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 20rpx;
-  padding: 32rpx 20rpx;
-  font-size: 28rpx;
+  padding: 28rpx 16rpx;
+  font-size: 26rpx;
   font-weight: 600;
   transition: all 0.3s ease;
-  min-height: 140rpx;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -151,27 +201,29 @@
   box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.3);
 }
 
-.draw-btn:hover {
+.multi-draw-btn:hover {
   transform: translateY(-4rpx);
   box-shadow: 0 10rpx 24rpx rgba(255, 107, 53, 0.4);
 }
 
-.draw-btn.disabled {
+.multi-draw-btn.disabled {
   background: #cccccc;
   transform: none;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .btn-text {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 700;
   margin-bottom: 8rpx;
+  line-height: 1;
 }
 
 .btn-cost {
-  font-size: 24rpx;
+  font-size: 22rpx;
   opacity: 0.9;
   font-weight: 500;
+  line-height: 1;
 }
 
 .btn-guarantee {
@@ -180,18 +232,14 @@
   right: -8rpx;
   background: #ff4444;
   color: white;
-  font-size: 20rpx;
-  padding: 6rpx 12rpx;
+  font-size: 18rpx;
+  padding: 4rpx 10rpx;
   border-radius: 20rpx;
   font-weight: 600;
   box-shadow: 0 2rpx 8rpx rgba(255, 68, 68, 0.4);
 }
 
 /* 不同抽奖按钮的特殊样式 */
-.single-btn {
-  background: linear-gradient(135deg, #ff6b35, #ff8a65);
-}
-
 .triple-btn {
   background: linear-gradient(135deg, #667eea, #764ba2);
 }
@@ -279,14 +327,14 @@
   box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
 }
 
-/* 抽奖结果弹窗 */
+/* 抽奖结果弹窗 - 修复层级问题 */
 .result-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1000;
+  z-index: 9999; /* 提高z-index，确保在转盘之上 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -296,7 +344,8 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.8); /* 增加遮罩透明度 */
+  z-index: 9990;
 }
 
 .modal-content {
@@ -307,6 +356,8 @@
   border-radius: 20rpx;
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
+  z-index: 9999; /* 确保内容在最上层 */
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3); /* 增加阴影效果 */
 }
 
 @keyframes modalSlideIn {
@@ -425,12 +476,47 @@
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .draw-buttons {
-    grid-template-columns: 1fr;
+  .multi-draw-buttons {
+    flex-direction: column;
+    gap: 16rpx;
   }
   
-  .ten-btn {
-    grid-column: span 1;
+  .multi-draw-btn {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .center-draw-btn {
+    width: 80rpx;
+    height: 80rpx;
+  }
+  
+  .center-btn-text {
+    font-size: 22rpx;
+  }
+  
+  .center-btn-cost {
+    font-size: 18rpx;
+  }
+}
+
+/* 小屏幕适配 */
+@media (max-width: 750rpx) {
+  .multi-draw-buttons {
+    gap: 16rpx;
+  }
+  
+  .multi-draw-btn {
+    min-width: 180rpx;
+    padding: 24rpx 12rpx;
+  }
+  
+  .btn-text {
+    font-size: 28rpx;
+  }
+  
+  .btn-cost {
+    font-size: 20rpx;
   }
 }
 

@@ -43,10 +43,25 @@ Page({
       description: '',
       exchange_points: '',
       stock: '',
-      image: ''
+      image: '',
+      category: '实物商品',
+      is_hot: false,
+      sort_order: 0
     },
     stockAdjustment: 0,
     productSubmitting: false,
+    
+    // 批量编辑相关
+    showBatchEditModal: false,
+    selectedProducts: [],
+    batchEditForm: {
+      category: '',
+      pointsAdjustment: 0,
+      stockAdjustment: 0,
+      updateCategory: false,
+      updatePoints: false,
+      updateStock: false
+    },
     
     // 页面状态
     loading: true,
@@ -313,47 +328,112 @@ Page({
    */
   onRequestAuth() {
     console.log('点击申请商家权限')
-    this.setData({ showAuthModal: true })
+    
+    // 显示确认对话框
+    wx.showModal({
+      title: '申请商家权限',
+      content: '您确定要申请商家权限吗？申请通过后您将可以管理商品和审核小票。',
+      success: (res) => {
+        if (res.confirm) {
+          this.confirmAuthRequest()
+        }
+      }
+    })
   },
 
   /**
    * 确认申请商家权限
    */
-  async onConfirmAuth() {
+  async confirmAuthRequest() {
     // 防止重复提交
-    if (this.data.authRequesting) return
+    if (this.data.authRequesting) {
+      console.log('正在申请中，跳过重复请求')
+      return
+    }
+    
     this.setData({ authRequesting: true })
 
     try {
       console.log('🔧 开始申请商家权限')
       wx.showLoading({ title: '申请中...' })
-      await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // 申请成功，更新状态
-      this.setData({
-        isMerchant: true,
-        showAuthModal: false,
-        hasPermission: true // 添加权限状态
-      })
-      
-      // 更新全局数据
-      if (app.globalData.mockUser) {
-        app.globalData.mockUser.is_merchant = true
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟申请过程
+        console.log('🔧 模拟商家权限申请')
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        
+        // 模拟申请成功
+        this.setData({
+          isMerchant: true,
+          hasPermission: true
+        })
+        
+        // 更新全局数据
+        if (app.globalData.mockUser) {
+          app.globalData.mockUser.is_merchant = true
+        }
+        if (app.globalData.userInfo) {
+          app.globalData.userInfo.is_merchant = true
+        }
+        
+        wx.hideLoading()
+        wx.showToast({
+          title: '商家权限申请成功',
+          icon: 'success',
+          duration: 2000
+        })
+        
+        // 加载商家数据
+        setTimeout(() => {
+          this.loadData()
+        }, 500)
+        
+      } else {
+        // 生产环境调用真实接口
+        console.log('📡 请求商家权限申请接口...')
+        
+        try {
+          const result = await merchantAPI.auth({
+            store_name: '餐厅名称',
+            business_license: '营业执照号',
+            contact_person: '联系人',
+            contact_phone: '联系电话'
+          })
+          
+          if (result.code === 0) {
+            this.setData({
+              isMerchant: true,
+              hasPermission: true
+            })
+            
+            // 更新全局数据
+            if (app.globalData.userInfo) {
+              app.globalData.userInfo.is_merchant = true
+            }
+            
+            wx.hideLoading()
+            wx.showToast({
+              title: '商家权限申请成功',
+              icon: 'success'
+            })
+            
+            // 加载商家数据
+            await this.loadData()
+            
+          } else {
+            throw new Error(result.msg || '申请失败')
+          }
+          
+        } catch (apiError) {
+          wx.hideLoading()
+          console.error('❌ 申请商家权限API调用失败:', apiError)
+          
+          wx.showToast({
+            title: apiError.message || '申请失败，请重试',
+            icon: 'none'
+          })
+        }
       }
-      if (app.globalData.userInfo) {
-        app.globalData.userInfo.is_merchant = true
-      }
-      
-      wx.hideLoading()
-      wx.showToast({
-        title: '商家权限申请成功',
-        icon: 'success'
-      })
-      
-      console.log('✅ 商家权限申请成功')
-      
-      // 加载商家数据
-      await this.loadData()
 
     } catch (error) {
       wx.hideLoading()
@@ -366,13 +446,6 @@ Page({
     } finally {
       this.setData({ authRequesting: false })
     }
-  },
-
-  /**
-   * 取消申请
-   */
-  onCancelAuth() {
-    this.setData({ showAuthModal: false })
   },
 
   /**
@@ -850,9 +923,22 @@ Page({
   },
 
   /**
-   * 新增商品
+   * 新增商品 - 完善实现
+   * TODO: 后端对接 - 新增商品接口
+   * 
+   * 对接说明：
+   * 接口：POST /api/merchant/products
+   * 请求体：商品信息（名称、描述、积分价格、库存、图片等）
+   * 认证：需要Bearer Token，且用户需要有商家权限
+   * 返回：新增商品的完整信息
    */
   onAddProduct() {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    console.log('🛍️ 新增商品操作')
     this.setData({
       showProductModal: true,
       editingProduct: null,
@@ -861,16 +947,26 @@ Page({
         description: '',
         exchange_points: '',
         stock: '',
-        image: ''
+        image: '',
+        category: '实物商品', // 默认分类
+        is_hot: false, // 是否热门
+        sort_order: 0 // 排序权重
       }
     })
   },
 
   /**
-   * 编辑商品
+   * 编辑商品 - 增强实现
    */
   onEditProduct(e) {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
     const product = e.currentTarget.dataset.product
+    console.log('✏️ 编辑商品:', product.name)
+    
     this.setData({
       showProductModal: true,
       editingProduct: product,
@@ -879,7 +975,10 @@ Page({
         description: product.description,
         exchange_points: product.exchange_points.toString(),
         stock: product.stock.toString(),
-        image: product.image
+        image: product.image,
+        category: product.category || '实物商品',
+        is_hot: product.is_hot || false,
+        sort_order: product.sort_order || 0
       }
     })
   },
@@ -993,14 +1092,52 @@ Page({
   },
 
   /**
-   * 确认保存商品
+   * 确认保存商品 - 增强实现，支持与兑换页面数据同步
+   * TODO: 后端对接 - 商品CRUD接口
+   * 
+   * 对接说明：
+   * 新增：POST /api/merchant/products
+   * 编辑：PUT /api/merchant/products/{id}
+   * 认证：需要Bearer Token，且用户需要有商家权限
+   * 返回：操作结果和更新后的商品信息
+   * 
+   * 重要：商家管理的商品变更需要同步到兑换页面显示
+   * 实现方式：
+   * 1. 通过全局事件通知兑换页面刷新
+   * 2. 或通过全局数据缓存实现同步
+   * 3. 后端数据库层面保证数据一致性
    */
   async onConfirmProduct() {
     const form = this.data.productForm
     
+    // 表单验证
     if (!form.name.trim()) {
       wx.showToast({
         title: '请输入商品名称',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (!form.exchange_points || parseInt(form.exchange_points) <= 0) {
+      wx.showToast({
+        title: '请输入有效的积分价格',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (!form.stock || parseInt(form.stock) < 0) {
+      wx.showToast({
+        title: '请输入有效的库存数量',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (!form.description.trim()) {
+      wx.showToast({
+        title: '请输入商品描述',
         icon: 'none'
       })
       return
@@ -1009,40 +1146,77 @@ Page({
     this.setData({ productSubmitting: true })
     
     try {
-      // 这里应该调用后端接口保存商品
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      let result
+      const productData = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        exchange_points: parseInt(form.exchange_points),
+        stock: parseInt(form.stock),
+        image: form.image,
+        category: form.category || '实物商品',
+        is_hot: form.is_hot || false,
+        sort_order: form.sort_order || 0
+      }
+
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟
+        console.log('🔧 模拟保存商品:', productData)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        result = { 
+          code: 0, 
+          data: { 
+            id: this.data.editingProduct?.id || Date.now(),
+            ...productData,
+            status: 'active',
+            created_time: new Date().toISOString()
+          } 
+        }
+      } else {
+        // 生产环境调用真实接口
+        if (this.data.editingProduct) {
+          console.log('📡 更新商品:', this.data.editingProduct.id)
+          result = await merchantAPI.updateProduct(this.data.editingProduct.id, productData)
+        } else {
+          console.log('📡 新增商品')
+          result = await merchantAPI.createProduct(productData)
+        }
+      }
       
+      // 更新本地商品列表
       if (this.data.editingProduct) {
-        // 编辑模式
+        // 编辑模式 - 更新现有商品
         const productList = this.data.productList.map(item => {
           if (item.id === this.data.editingProduct.id) {
             return {
               ...item,
-              name: form.name,
-              description: form.description,
-              exchange_points: parseInt(form.exchange_points),
-              stock: parseInt(form.stock),
-              image: form.image
+              ...productData,
+              updated_time: new Date().toISOString()
             }
           }
           return item
         })
         this.setData({ productList })
+        console.log('✅ 商品更新成功:', productData.name)
       } else {
-        // 新增模式
+        // 新增模式 - 添加新商品
         const newProduct = {
-          id: Date.now(),
-          name: form.name,
-          description: form.description,
-          exchange_points: parseInt(form.exchange_points),
-          stock: parseInt(form.stock),
+          id: result.data.id,
+          ...productData,
           status: 'active',
-          image: form.image || 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=📦'
+          created_time: result.data.created_time || new Date().toISOString(),
+          updated_time: new Date().toISOString()
         }
         this.setData({
           productList: [...this.data.productList, newProduct]
         })
+        console.log('✅ 商品新增成功:', productData.name)
       }
+
+      // 重要：通知兑换页面数据已更新
+      this.notifyExchangePageUpdate()
+      
+      // 更新商品统计
+      this.updateProductStats()
       
       this.setData({
         showProductModal: false,
@@ -1050,17 +1224,58 @@ Page({
       })
       
       wx.showToast({
-        title: '保存成功',
+        title: this.data.editingProduct ? '更新成功' : '新增成功',
         icon: 'success'
       })
       
     } catch (error) {
       this.setData({ productSubmitting: false })
+      console.error('❌ 保存商品失败:', error)
       wx.showToast({
-        title: '保存失败',
+        title: '保存失败，请重试',
         icon: 'none'
       })
     }
+  },
+
+  /**
+   * 通知兑换页面数据更新
+   * 实现商家管理与兑换页面的数据联动
+   */
+  notifyExchangePageUpdate() {
+    try {
+      // 方法1: 通过全局事件通知
+      if (typeof getApp().globalData.updateExchangeProducts === 'function') {
+        getApp().globalData.updateExchangeProducts()
+        console.log('📢 已通知兑换页面更新商品数据')
+      }
+
+      // 方法2: 更新全局商品缓存
+      getApp().globalData.merchantProductsLastUpdate = Date.now()
+      
+      // 方法3: 设置刷新标志
+      getApp().globalData.needRefreshExchangeProducts = true
+      
+      console.log('🔄 商品数据联动更新完成')
+    } catch (error) {
+      console.warn('⚠️ 通知兑换页面更新失败:', error)
+    }
+  },
+
+  /**
+   * 更新商品统计数据
+   */
+  updateProductStats() {
+    const products = this.data.productList
+    const stats = {
+      totalCount: products.length,
+      activeCount: products.filter(p => p.status === 'active').length,
+      offlineCount: products.filter(p => p.status === 'offline').length,
+      lowStockCount: products.filter(p => p.stock < 10).length
+    }
+    
+    this.setData({ productStats: stats })
+    console.log('📊 商品统计更新:', stats)
   },
 
   /**
@@ -1135,11 +1350,264 @@ Page({
   },
 
   /**
-   * 批量编辑
+   * 批量编辑 - 完整实现
+   * TODO: 后端对接 - 批量编辑商品接口
+   * 
+   * 对接说明：
+   * 接口：PUT /api/merchant/products/batch
+   * 请求体：{ product_ids: [1,2,3], updates: { category: "优惠券", is_hot: true } }
+   * 认证：需要Bearer Token，且用户需要有商家权限
+   * 返回：批量更新结果
    */
   onBatchEdit() {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    console.log('📝 批量编辑商品')
+    
+    // 检查是否有选中的商品
+    const selectedProducts = this.data.productList.filter(product => product.selected)
+    
+    if (selectedProducts.length === 0) {
+      wx.showModal({
+        title: '批量编辑',
+        content: '请先选择要批量编辑的商品',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+      return
+    }
+
+    // 显示批量编辑选项
+    wx.showActionSheet({
+      itemList: [
+        `批量上架 (已选${selectedProducts.length}个商品)`,
+        `批量下架 (已选${selectedProducts.length}个商品)`,
+        `批量设为热门 (已选${selectedProducts.length}个商品)`,
+        `批量取消热门 (已选${selectedProducts.length}个商品)`,
+        `批量删除 (已选${selectedProducts.length}个商品)`,
+        '高级批量编辑...'
+      ],
+      success: (res) => {
+        switch (res.tapIndex) {
+          case 0:
+            this.batchUpdateStatus(selectedProducts, 'active')
+            break
+          case 1:
+            this.batchUpdateStatus(selectedProducts, 'offline')
+            break
+          case 2:
+            this.batchUpdateHotStatus(selectedProducts, true)
+            break
+          case 3:
+            this.batchUpdateHotStatus(selectedProducts, false)
+            break
+          case 4:
+            this.batchDeleteProducts(selectedProducts)
+            break
+          case 5:
+            this.showAdvancedBatchEdit(selectedProducts)
+            break
+        }
+      }
+    })
+  },
+
+  /**
+   * 批量更新商品状态
+   */
+  async batchUpdateStatus(products, status) {
+    const statusText = status === 'active' ? '上架' : '下架'
+    
+    try {
+      wx.showLoading({ title: `批量${statusText}中...` })
+      
+      // TODO: 调用后端批量更新接口
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      } else {
+        // 生产环境调用真实接口
+        const productIds = products.map(p => p.id)
+        await merchantAPI.batchUpdateProducts(productIds, { status })
+      }
+
+      // 更新本地数据
+      const productList = this.data.productList.map(item => {
+        if (products.find(p => p.id === item.id)) {
+          return { ...item, status, selected: false }
+        }
+        return item
+      })
+
+      this.setData({ productList })
+      wx.hideLoading()
+      
+      wx.showToast({
+        title: `批量${statusText}成功`,
+        icon: 'success'
+      })
+      
+      console.log(`✅ 批量${statusText}完成，影响商品:`, products.length)
+
+    } catch (error) {
+      wx.hideLoading()
+      console.error(`❌ 批量${statusText}失败:`, error)
+      wx.showToast({
+        title: `批量${statusText}失败`,
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 批量更新热门状态
+   */
+  async batchUpdateHotStatus(products, isHot) {
+    const actionText = isHot ? '设为热门' : '取消热门'
+    
+    try {
+      wx.showLoading({ title: `批量${actionText}中...` })
+      
+      // TODO: 调用后端批量更新接口
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟
+        await new Promise(resolve => setTimeout(resolve, 800))
+      } else {
+        // 生产环境调用真实接口
+        const productIds = products.map(p => p.id)
+        await merchantAPI.batchUpdateProducts(productIds, { is_hot: isHot })
+      }
+
+      // 更新本地数据
+      const productList = this.data.productList.map(item => {
+        if (products.find(p => p.id === item.id)) {
+          return { ...item, is_hot: isHot, selected: false }
+        }
+        return item
+      })
+
+      this.setData({ productList })
+      wx.hideLoading()
+      
+      wx.showToast({
+        title: `批量${actionText}成功`,
+        icon: 'success'
+      })
+
+    } catch (error) {
+      wx.hideLoading()
+      console.error(`❌ 批量${actionText}失败:`, error)
+      wx.showToast({
+        title: `批量${actionText}失败`,
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 批量删除商品
+   */
+  batchDeleteProducts(products) {
+    wx.showModal({
+      title: '批量删除确认',
+      content: `确定要删除选中的 ${products.length} 个商品吗？删除后不可恢复。`,
+      confirmText: '删除',
+      confirmColor: '#ff4444',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '删除中...' })
+            
+            // TODO: 调用后端批量删除接口
+            if (app.globalData.isDev && !app.globalData.needAuth) {
+              // 开发环境模拟
+              await new Promise(resolve => setTimeout(resolve, 1000))
+            } else {
+              // 生产环境调用真实接口
+              const productIds = products.map(p => p.id)
+              await merchantAPI.batchDeleteProducts(productIds)
+            }
+
+            // 更新本地数据
+            const productList = this.data.productList.filter(item => 
+              !products.find(p => p.id === item.id)
+            )
+
+            this.setData({ productList })
+            wx.hideLoading()
+            
+            wx.showToast({
+              title: '批量删除成功',
+              icon: 'success'
+            })
+
+          } catch (error) {
+            wx.hideLoading()
+            console.error('❌ 批量删除失败:', error)
+            wx.showToast({
+              title: '批量删除失败',
+              icon: 'none'
+            })
+          }
+        }
+      }
+    })
+  },
+
+  /**
+   * 显示高级批量编辑弹窗
+   */
+  showAdvancedBatchEdit(products) {
+    this.setData({
+      showBatchEditModal: true,
+      selectedProducts: products,
+      batchEditForm: {
+        category: '',
+        pointsAdjustment: 0,
+        stockAdjustment: 0,
+        updateCategory: false,
+        updatePoints: false,
+        updateStock: false
+      }
+    })
+  },
+
+  /**
+   * 商品选择状态切换
+   */
+  onProductSelect(e) {
+    const productId = e.currentTarget.dataset.id
+    const productList = this.data.productList.map(item => {
+      if (item.id === productId) {
+        return { ...item, selected: !item.selected }
+      }
+      return item
+    })
+    
+    this.setData({ productList })
+    
+    // 统计选中数量
+    const selectedCount = productList.filter(item => item.selected).length
+    console.log('📋 已选中商品数量:', selectedCount)
+  },
+
+  /**
+   * 全选/取消全选
+   */
+  onSelectAllProducts() {
+    const allSelected = this.data.productList.every(item => item.selected)
+    const productList = this.data.productList.map(item => ({
+      ...item,
+      selected: !allSelected
+    }))
+    
+    this.setData({ productList })
+    
     wx.showToast({
-      title: '功能开发中',
+      title: allSelected ? '已取消全选' : '已全选商品',
       icon: 'none'
     })
   },
@@ -1208,5 +1676,208 @@ Page({
         } 
       } 
     })
+  },
+
+  /**
+   * 商品分类选择
+   */
+  onProductCategoryChange(e) {
+    const categories = ['实物商品', '优惠券', '虚拟物品']
+    this.setData({
+      'productForm.category': categories[e.detail.value]
+    })
+  },
+
+  /**
+   * 商品热门状态切换
+   */
+  onProductHotChange(e) {
+    this.setData({
+      'productForm.is_hot': e.detail.value
+    })
+  },
+
+  /**
+   * 商品排序权重输入
+   */
+  onProductSortInput(e) {
+    this.setData({
+      'productForm.sort_order': parseInt(e.detail.value) || 0
+    })
+  },
+
+  /**
+   * 批量编辑分类开关
+   */
+  onBatchCategoryToggle(e) {
+    this.setData({
+      'batchEditForm.updateCategory': e.detail.value
+    })
+  },
+
+  /**
+   * 批量编辑分类选择
+   */
+  onBatchCategoryChange(e) {
+    const categories = ['实物商品', '优惠券', '虚拟物品']
+    this.setData({
+      'batchEditForm.category': categories[e.detail.value]
+    })
+  },
+
+  /**
+   * 批量编辑积分开关
+   */
+  onBatchPointsToggle(e) {
+    this.setData({
+      'batchEditForm.updatePoints': e.detail.value
+    })
+  },
+
+  /**
+   * 批量编辑积分输入
+   */
+  onBatchPointsInput(e) {
+    this.setData({
+      'batchEditForm.pointsAdjustment': parseInt(e.detail.value) || 0
+    })
+  },
+
+  /**
+   * 批量编辑库存开关
+   */
+  onBatchStockToggle(e) {
+    this.setData({
+      'batchEditForm.updateStock': e.detail.value
+    })
+  },
+
+  /**
+   * 批量编辑库存输入
+   */
+  onBatchStockInput(e) {
+    this.setData({
+      'batchEditForm.stockAdjustment': parseInt(e.detail.value) || 0
+    })
+  },
+
+  /**
+   * 取消批量编辑
+   */
+  onCancelBatchEdit() {
+    this.setData({
+      showBatchEditModal: false,
+      selectedProducts: [],
+      batchEditForm: {
+        category: '',
+        pointsAdjustment: 0,
+        stockAdjustment: 0,
+        updateCategory: false,
+        updatePoints: false,
+        updateStock: false
+      }
+    })
+  },
+
+  /**
+   * 确认批量编辑
+   */
+  async onConfirmBatchEdit() {
+    const { batchEditForm, selectedProducts } = this.data
+
+    // 检查是否有选择要更新的项目
+    if (!batchEditForm.updateCategory && !batchEditForm.updatePoints && !batchEditForm.updateStock) {
+      wx.showToast({
+        title: '请选择要批量修改的项目',
+        icon: 'none'
+      })
+      return
+    }
+
+    try {
+      wx.showLoading({ title: '批量更新中...' })
+
+      // 构建更新数据
+      const updateData = {}
+      if (batchEditForm.updateCategory) {
+        updateData.category = batchEditForm.category
+      }
+      if (batchEditForm.updatePoints) {
+        updateData.pointsAdjustment = batchEditForm.pointsAdjustment
+      }
+      if (batchEditForm.updateStock) {
+        updateData.stockAdjustment = batchEditForm.stockAdjustment
+      }
+
+      // TODO: 调用后端批量更新接口
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟
+        await new Promise(resolve => setTimeout(resolve, 1500))
+      } else {
+        // 生产环境调用真实接口
+        const productIds = selectedProducts.map(p => p.id)
+        await merchantAPI.batchUpdateProducts(productIds, updateData)
+      }
+
+      // 更新本地数据
+      const productList = this.data.productList.map(item => {
+        const selectedProduct = selectedProducts.find(p => p.id === item.id)
+        if (selectedProduct) {
+          const updatedItem = { ...item, selected: false }
+          
+          if (batchEditForm.updateCategory) {
+            updatedItem.category = batchEditForm.category
+          }
+          if (batchEditForm.updatePoints) {
+            updatedItem.exchange_points = Math.max(1, updatedItem.exchange_points + batchEditForm.pointsAdjustment)
+          }
+          if (batchEditForm.updateStock) {
+            updatedItem.stock = Math.max(0, updatedItem.stock + batchEditForm.stockAdjustment)
+          }
+          
+          return updatedItem
+        }
+        return item
+      })
+
+      this.setData({ 
+        productList,
+        showBatchEditModal: false,
+        selectedProducts: []
+      })
+
+      wx.hideLoading()
+      wx.showToast({
+        title: '批量更新成功',
+        icon: 'success'
+      })
+
+      // 通知兑换页面数据更新
+      this.notifyExchangePageUpdate()
+      this.updateProductStats()
+
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 批量编辑失败:', error)
+      wx.showToast({
+        title: '批量更新失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 项目选择（用于审核列表）
+   */
+  onItemSelect(e) {
+    const id = e.currentTarget.dataset.id
+    const pendingList = this.data.pendingList.map(item => {
+      if (item.id === id) {
+        return { ...item, selected: !item.selected }
+      }
+      return item
+    })
+    
+    this.setData({ pendingList })
   }
 })

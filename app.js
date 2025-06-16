@@ -70,7 +70,23 @@ App({
       nickname: '测试用户',
       avatar: '/images/default-avatar.png',
       created_at: '2024-01-01 00:00:00'
-    }
+    },
+
+    // 商品数据联动相关
+    needRefreshExchangeProducts: false, // 是否需要刷新兑换页面商品
+    merchantProductsLastUpdate: 0, // 商家管理页面最后更新时间戳
+    
+    // 全局商品缓存
+    productsCache: [],
+    productsCacheTime: 0,
+    
+    // 页面间数据同步回调
+    updateExchangeProducts: null, // 兑换页面更新回调函数
+    
+    // WebSocket连接状态
+    wsConnected: false,
+    wsReconnectCount: 0,
+    wsHeartbeatTimer: null
   },
 
   /**

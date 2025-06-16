@@ -55,16 +55,41 @@ Page({
     this.initPage()
   },
 
+  /**
+   * 生命周期函数--监听页面显示
+   */
   onShow() {
-    this.refreshUserInfo()
+    console.log('兑换页面显示')
+    
+    // 检查商品数据是否需要同步更新
+    this.checkAndRefreshProducts()
+    
+    // 设置兑换页面更新回调（用于接收商家管理的数据更新通知）
+    const app = getApp()
+    app.globalData.setExchangeUpdateCallback(() => {
+      console.log('📢 收到商家管理数据更新通知，刷新商品列表')
+      this.refreshProductsFromMerchant()
+    })
   },
 
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
   onHide() {
-    // 页面隐藏
+    console.log('兑换页面隐藏')
+    this.disconnectWebSocket()
   },
 
+  /**
+   * 生命周期函数--监听页面卸载
+   */
   onUnload() {
-    // 页面卸载
+    console.log('兑换页面卸载')
+    this.disconnectWebSocket()
+    
+    // 清理兑换页面更新回调
+    const app = getApp()
+    app.globalData.clearExchangeUpdateCallback()
   },
 
   onPullDownRefresh() {
@@ -1111,5 +1136,89 @@ Page({
    */
   applyFilters() {
     this.filterProducts()
-  }
+  },
+
+  /**
+   * 检查并刷新商品数据
+   * 实现与商家管理页面的数据联动
+   */
+  checkAndRefreshProducts() {
+    try {
+      const app = getApp()
+      
+      // 检查全局刷新标志
+      if (app.globalData.needRefreshExchangeProducts) {
+        console.log('🔄 检测到商品数据更新，刷新商品列表')
+        this.refreshProductsFromMerchant()
+        app.globalData.needRefreshExchangeProducts = false
+      }
+      
+      // 检查商品更新时间戳
+      const lastUpdate = app.globalData.merchantProductsLastUpdate || 0
+      const currentTime = Date.now()
+      if (currentTime - lastUpdate < 5000) { // 5秒内的更新
+        console.log('🔄 检测到最近的商品更新，刷新商品列表')
+        this.refreshProductsFromMerchant()
+      }
+    } catch (error) {
+      console.warn('⚠️ 检查商品更新失败:', error)
+    }
+  },
+
+  /**
+   * 从商家管理同步刷新商品数据
+   * TODO: 后端对接 - 商品同步接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/exchange/products/sync
+   * 认证：需要Bearer Token
+   * 返回：最新的商品列表，与商家管理页面保持一致
+   * 
+   * 数据一致性保证：
+   * 1. 商家新增/编辑的商品会立即在兑换页面显示
+   * 2. 商家下架的商品会在兑换页面隐藏
+   * 3. 库存变更会实时同步
+   */
+  async refreshProductsFromMerchant() {
+    try {
+      console.log('📡 同步商家管理的商品数据...')
+      
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境：模拟从商家管理同步数据
+        console.log('🔧 模拟同步商家商品数据')
+        
+        // 这里可以模拟获取商家管理页面最新的商品数据
+        // 实际实现中，应该调用统一的商品接口
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // 重新生成商品数据以模拟同步
+        this.generateMockProducts()
+        this.filterProducts()
+        
+        console.log('✅ 商品数据同步完成')
+        
+        wx.showToast({
+          title: '商品数据已更新',
+          icon: 'none',
+          duration: 2000
+        })
+      } else {
+        // 生产环境：调用商品同步接口
+        const syncData = await exchangeAPI.syncProducts()
+        
+        if (syncData && syncData.data) {
+          this.setData({
+            products: syncData.data.products || [],
+            totalProducts: syncData.data.total || 0,
+            totalPages: Math.ceil((syncData.data.total || 0) / this.data.pageSize)
+          })
+          
+          this.filterProducts()
+          console.log('✅ 商品数据同步完成，商品数量:', syncData.data.total)
+        }
+      }
+    } catch (error) {
+      console.error('❌ 同步商品数据失败:', error)
+    }
+  },
 }) 

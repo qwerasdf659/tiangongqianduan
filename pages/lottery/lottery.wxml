@@ -25,6 +25,16 @@
         style="width: 300px; height: 300px;"
       ></canvas>
       
+      <!-- 转盘中央单抽按钮 -->
+      <button 
+        class="center-draw-btn {{isDrawing ? 'disabled' : ''}}"
+        disabled="{{isDrawing || totalPoints < costPoints}}"
+        bindtap="onSingleDraw"
+      >
+        <text class="center-btn-text">单抽</text>
+        <text class="center-btn-cost">{{costPoints}}积分</text>
+      </button>
+      
       <!-- 转盘遮罩（抽奖中） -->
       <view class="wheel-overlay" wx:if="{{isDrawing}}">
         <view class="loading-spinner"></view>
@@ -32,20 +42,10 @@
       </view>
     </view>
 
-    <!-- 抽奖按钮组 - 2×2网格布局 -->
-    <view class="draw-buttons">
-      <!-- 第一行 -->
+    <!-- 多连抽按钮组 - 一行三个按钮 -->
+    <view class="multi-draw-buttons">
       <button 
-        class="draw-btn single-btn {{isDrawing ? 'disabled' : ''}}"
-        disabled="{{isDrawing || totalPoints < costPoints}}"
-        bindtap="onSingleDraw"
-      >
-        <text class="btn-text">单抽</text>
-        <text class="btn-cost">{{costPoints}}积分</text>
-      </button>
-
-      <button 
-        class="draw-btn triple-btn {{isDrawing ? 'disabled' : ''}}"
+        class="multi-draw-btn triple-btn {{isDrawing ? 'disabled' : ''}}"
         disabled="{{isDrawing || totalPoints < costPoints * 3}}"
         bindtap="onTripleDraw"
       >
@@ -53,9 +53,8 @@
         <text class="btn-cost">{{costPoints * 3}}积分</text>
       </button>
 
-      <!-- 第二行 -->
       <button 
-        class="draw-btn five-btn {{isDrawing ? 'disabled' : ''}}"
+        class="multi-draw-btn five-btn {{isDrawing ? 'disabled' : ''}}"
         disabled="{{isDrawing || totalPoints < costPoints * 5}}"
         bindtap="onFiveDraw"
       >
@@ -64,7 +63,7 @@
       </button>
 
       <button 
-        class="draw-btn ten-btn {{isDrawing ? 'disabled' : ''}}"
+        class="multi-draw-btn ten-btn {{isDrawing ? 'disabled' : ''}}"
         disabled="{{isDrawing || totalPoints < costPoints * 10}}"
         bindtap="onTenDraw"
       >

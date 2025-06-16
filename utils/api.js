@@ -355,6 +355,30 @@ const exchangeAPI = {
   },
 
   /**
+   * 同步商品数据（与商家管理页面联动）
+   * 
+   * 后端接口规范:
+   * GET /api/exchange/products/sync
+   * 请求头: Authorization: Bearer {access_token}
+   * 返回: { 
+   *   code: 0, 
+   *   msg: "success", 
+   *   data: { 
+   *     products: [...], // 最新的商品列表
+   *     total: 100,      // 总商品数
+   *     last_update: "2024-01-01 12:00:00", // 最后更新时间
+   *     sync_source: "merchant_management"   // 同步来源
+   *   } 
+   * }
+   */
+  syncProducts() {
+    return request({
+      url: '/api/exchange/products/sync',
+      method: 'GET'
+    })
+  },
+
+  /**
    * 兑换商品
    * @param {Number} productId 商品ID
    * @param {Number} quantity 兑换数量
@@ -879,6 +903,202 @@ const merchantAPI = {
         reason
       }
     })
+  },
+
+  /**
+   * 获取商品列表
+   * @param {Number} page 页码
+   * @param {Number} pageSize 每页数量
+   * 
+   * 后端接口规范:
+   * GET /api/merchant/products?page=1&page_size=20
+   * 请求头: Authorization: Bearer {access_token}
+   * 返回: { 
+   *   code: 0, 
+   *   msg: "success", 
+   *   data: { 
+   *     list: [
+   *       {
+   *         id: 1,
+   *         name: "商品名称",
+   *         description: "商品描述",
+   *         category: "优惠券",
+   *         exchange_points: 1000,
+   *         stock: 50,
+   *         status: "active",  // active在售/offline下架
+   *         is_hot: false,
+   *         image: "商品图片URL",
+   *         created_time: "2024-01-01 12:00:00",
+   *         updated_time: "2024-01-01 12:00:00"
+   *       }
+   *     ],
+   *     total: 100,
+   *     page: 1,
+   *     page_size: 20
+   *   } 
+   * }
+   */
+  getProducts(page = 1, pageSize = 20) {
+    return request({
+      url: '/api/merchant/products',
+      method: 'GET',
+      data: { page, page_size: pageSize }
+    })
+  },
+
+  /**
+   * 新增商品
+   * @param {Object} productData 商品数据
+   * 
+   * 后端接口规范:
+   * POST /api/merchant/products
+   * 请求体: { 
+   *   name: "商品名称",
+   *   description: "商品描述",
+   *   category: "优惠券",
+   *   exchange_points: 1000,
+   *   stock: 50,
+   *   image: "商品图片URL",
+   *   is_hot: false,
+   *   sort_order: 0
+   * }
+   * 请求头: Authorization: Bearer {access_token}
+   * 返回: { 
+   *   code: 0, 
+   *   msg: "新增成功", 
+   *   data: { 
+   *     id: 1,
+   *     name: "商品名称",
+   *     status: "active",
+   *     created_time: "2024-01-01 12:00:00"
+   *   } 
+   * }
+   */
+  createProduct(productData) {
+    return request({
+      url: '/api/merchant/products',
+      method: 'POST',
+      data: productData
+    })
+  },
+
+  /**
+   * 更新商品
+   * @param {Number} productId 商品ID
+   * @param {Object} updateData 更新数据
+   * 
+   * 后端接口规范:
+   * PUT /api/merchant/products/{id}
+   * 请求体: { 
+   *   name: "新商品名称",
+   *   description: "新商品描述",
+   *   exchange_points: 1200,
+   *   stock: 80
+   * }
+   * 请求头: Authorization: Bearer {access_token}
+   * 返回: { 
+   *   code: 0, 
+   *   msg: "更新成功", 
+   *   data: { 
+   *     id: 1,
+   *     updated_time: "2024-01-01 13:00:00"
+   *   } 
+   * }
+   */
+  updateProduct(productId, updateData) {
+    return request({
+      url: `/api/merchant/products/${productId}`,
+      method: 'PUT',
+      data: updateData
+    })
+  },
+
+  /**
+   * 删除商品
+   * @param {Number} productId 商品ID
+   * 
+   * 后端接口规范:
+   * DELETE /api/merchant/products/{id}
+   * 请求头: Authorization: Bearer {access_token}
+   * 返回: { 
+   *   code: 0, 
+   *   msg: "删除成功", 
+   *   data: { 
+   *     deleted_id: 1,
+   *     deleted_time: "2024-01-01 13:00:00"
+   *   } 
+   * }
+   */
+  deleteProduct(productId) {
+    return request({
+      url: `/api/merchant/products/${productId}`,
+      method: 'DELETE'
+    })
+  },
+
+  /**
+   * 批量更新商品
+   * @param {Array} productIds 商品ID列表
+   * @param {Object} updateData 更新数据
+   * 
+   * 后端接口规范:
+   * PUT /api/merchant/products/batch
+   * 请求体: { 
+   *   product_ids: [1, 2, 3],
+   *   updates: {
+   *     status: "active",
+   *     is_hot: true
+   *   }
+   * }
+   * 请求头: Authorization: Bearer {access_token}
+   * 返回: { 
+   *   code: 0, 
+   *   msg: "批量更新成功", 
+   *   data: { 
+   *     success_count: 3,
+   *     failed_count: 0,
+   *     updated_time: "2024-01-01 13:00:00"
+   *   } 
+   * }
+   */
+  batchUpdateProducts(productIds, updateData) {
+    return request({
+      url: '/api/merchant/products/batch',
+      method: 'PUT',
+      data: {
+        product_ids: productIds,
+        updates: updateData
+      }
+    })
+  },
+
+  /**
+   * 批量删除商品
+   * @param {Array} productIds 商品ID列表
+   * 
+   * 后端接口规范:
+   * DELETE /api/merchant/products/batch
+   * 请求体: { 
+   *   product_ids: [1, 2, 3]
+   * }
+   * 请求头: Authorization: Bearer {access_token}
+   * 返回: { 
+   *   code: 0, 
+   *   msg: "批量删除成功", 
+   *   data: { 
+   *     deleted_count: 3,
+   *     deleted_time: "2024-01-01 13:00:00"
+   *   } 
+   * }
+   */
+  batchDeleteProducts(productIds) {
+    return request({
+      url: '/api/merchant/products/batch',
+      method: 'DELETE',
+      data: {
+        product_ids: productIds
+      }
+    })
   }
 }
 
@@ -1008,6 +1228,17 @@ const mockRequest = (url, data = {}) => {
           case '/api/lottery/draw':
             const prizes = mockData.lotteryConfig.data.prizes
             const randomPrize = prizes[Math.floor(Math.random() * prizes.length)]
+            
+            // 模拟积分扣除
+            const currentPoints = app.globalData.mockUser?.total_points || 1500
+            const costPoints = data.count * 100 // 假设每次100积分
+            const remainingPoints = Math.max(0, currentPoints - costPoints)
+            
+            // 更新全局积分
+            if (app.globalData.mockUser) {
+              app.globalData.mockUser.total_points = remainingPoints
+            }
+            
             resolve({
               code: 0,
               msg: '抽奖成功',
@@ -1015,12 +1246,14 @@ const mockRequest = (url, data = {}) => {
                 results: [{
                   prize_id: randomPrize.id,
                   prize_name: randomPrize.name,
-                  prize_type: randomPrize.type,
-                  prize_value: randomPrize.value,
-                  is_winning: true
+                  prize_type: randomPrize.type || 'points',
+                  prize_value: randomPrize.value || 50,
+                  angle: randomPrize.angle || (Math.floor(Math.random() * 8) * 45),
+                  is_winning: Math.random() > 0.3, // 70%中奖率
+                  is_near_miss: Math.random() > 0.8 // 20%差点中奖
                 }],
-                cost_points: 100,
-                remaining_points: app.globalData.mockUser.total_points - 100,
+                cost_points: costPoints,
+                remaining_points: remainingPoints,
                 today_draw_count: Math.floor(Math.random() * 5) + 1
               }
             })

@@ -352,14 +352,19 @@ Page({
       // 执行特定动作
       this[item.action]()
     } else if (item.path) {
-      // 检查页面是否存在
+      // 检查页面是否存在 - 包含所有新增的功能页面
       const existingPages = [
         '/pages/lottery/lottery',
         '/pages/exchange/exchange',
         '/pages/camera/camera',
         '/pages/user/user',
         '/pages/merchant/merchant',
-        '/pages/auth/auth'
+        '/pages/auth/auth',
+        '/pages/records/lottery-records',
+        '/pages/records/exchange-records',
+        '/pages/records/upload-records',
+        '/pages/settings/settings',
+        '/pages/about/about'
       ]
       
       if (existingPages.includes(item.path)) {

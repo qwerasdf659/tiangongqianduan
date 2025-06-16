@@ -157,38 +157,44 @@ Page({
         configData = await lotteryAPI.getConfig()
       }
 
-      // 更新抽奖配置
-      this.setData({
-        prizes: configData.data.prizes,
-        costPoints: configData.data.cost_points,
-        dailyLimit: configData.data.daily_limit || 10,
-        lotteryRules: configData.data.rules || '每次抽奖消耗积分，获得随机奖品'
-      })
+      // 验证和处理配置数据
+      if (configData && configData.data) {
+        const prizes = configData.data.prizes || []
+        
+        // 确保奖品数据有效
+        if (prizes.length > 0) {
+          this.setData({
+            prizes: prizes,
+            costPoints: configData.data.cost_points || 100,
+            dailyLimit: configData.data.daily_limit || 10,
+            lotteryRules: configData.data.rules || '每次抽奖消耗积分，获得随机奖品'
+          })
+          
+          console.log('✅ 抽奖配置加载成功，奖品数量:', prizes.length)
+        } else {
+          console.warn('⚠️ 服务器返回的奖品数据为空，使用默认配置')
+          this.setDefaultLotteryConfig()
+        }
+      } else {
+        console.warn('⚠️ 服务器返回数据格式异常，使用默认配置')
+        this.setDefaultLotteryConfig()
+      }
 
-      console.log('✅ 抽奖配置加载成功，奖品数量:', configData.data.prizes.length)
-
-      // 绘制转盘
-      this.drawWheel()
+      // 安全绘制转盘
+      setTimeout(() => {
+        this.drawWheel()
+      }, 100)
       
     } catch (error) {
       console.error('❌ 加载抽奖配置失败:', error)
       
       // 使用默认配置确保页面正常显示
-      const defaultPrizes = [
-        { id: 1, name: '谢谢参与', angle: 0, color: '#FF6B35', type: 'none', value: 0, probability: 40 },
-        { id: 2, name: '积分奖励', angle: 45, color: '#4ECDC4', type: 'points', value: 50, probability: 30 },
-        { id: 3, name: '优惠券', angle: 90, color: '#FFD93D', type: 'coupon', value: 0.9, probability: 20 },
-        { id: 4, name: '小礼品', angle: 135, color: '#6BCF7F', type: 'physical', value: 10, probability: 10 }
-      ]
+      this.setDefaultLotteryConfig()
       
-      this.setData({
-        prizes: defaultPrizes,
-        costPoints: 100,
-        dailyLimit: 10,
-        lotteryRules: '抽奖配置加载失败，使用默认配置'
-      })
-      
-      this.drawWheel()
+      // 安全绘制转盘
+      setTimeout(() => {
+        this.drawWheel()
+      }, 100)
       
       wx.showToast({
         title: '抽奖配置加载失败',
@@ -198,66 +204,206 @@ Page({
   },
 
   /**
-   * 初始化Canvas
+   * 设置默认抽奖配置
    */
-  initCanvas() {
-    const ctx = wx.createCanvasContext('wheelCanvas', this)
-    this.canvasCtx = ctx
+  setDefaultLotteryConfig() {
+    const defaultPrizes = [
+      { id: 1, name: '谢谢参与', angle: 0, color: '#FF6B35', type: 'none', value: 0, probability: 40 },
+      { id: 2, name: '积分奖励', angle: 45, color: '#4ECDC4', type: 'points', value: 50, probability: 30 },
+      { id: 3, name: '优惠券', angle: 90, color: '#FFD93D', type: 'coupon', value: 0.9, probability: 20 },
+      { id: 4, name: '小礼品', angle: 135, color: '#6BCF7F', type: 'physical', value: 10, probability: 10 },
+      { id: 5, name: '再来一次', angle: 180, color: '#FF6B6B', type: 'retry', value: 0, probability: 25 },
+      { id: 6, name: '特别奖', angle: 225, color: '#4DABF7', type: 'special', value: 100, probability: 15 },
+      { id: 7, name: '惊喜奖', angle: 270, color: '#9775FA', type: 'surprise', value: 200, probability: 10 },
+      { id: 8, name: '幸运奖', angle: 315, color: '#FFB84D', type: 'lucky', value: 500, probability: 5 }
+    ]
+    
+    this.setData({
+      prizes: defaultPrizes,
+      costPoints: 100,
+      dailyLimit: 10,
+      lotteryRules: '抽奖配置加载失败，使用默认配置'
+    })
+    
+    console.log('🔧 已设置默认抽奖配置')
   },
 
   /**
-   * 绘制转盘
+   * 初始化Canvas - 微信小程序兼容版本
+   */
+  initCanvas() {
+    try {
+      // 尝试使用新版Canvas API (微信小程序基础库 2.7.0+)
+      if (wx.createCanvasContext) {
+        const ctx = wx.createCanvasContext('wheelCanvas', this)
+        this.canvasCtx = ctx
+        console.log('✅ Canvas初始化成功（兼容模式）')
+      } else {
+        console.error('❌ Canvas API不可用')
+        wx.showToast({
+          title: 'Canvas不支持',
+          icon: 'none'
+        })
+      }
+    } catch (error) {
+      console.error('❌ Canvas初始化失败:', error)
+      wx.showToast({
+        title: 'Canvas初始化失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 绘制转盘 - 增强版本
    */
   drawWheel() {
-    const ctx = this.canvasCtx
-    const centerX = 150 // Canvas中心X
-    const centerY = 150 // Canvas中心Y
-    const radius = 140 // 转盘半径
-    const prizes = this.data.prizes
+    if (!this.canvasCtx) {
+      console.warn('Canvas上下文未初始化')
+      return
+    }
 
-    // 清空画布
-    ctx.clearRect(0, 0, 300, 300)
+    try {
+      const ctx = this.canvasCtx
+      const centerX = 150 // Canvas中心X
+      const centerY = 150 // Canvas中心Y
+      const radius = 140 // 转盘半径
+      const prizes = this.data.prizes
 
-    // 绘制转盘背景
-    ctx.save()
-    ctx.translate(centerX, centerY)
-    ctx.rotate(this.data.currentAngle * Math.PI / 180)
+      // 验证奖品数据
+      if (!prizes || prizes.length === 0) {
+        console.warn('奖品数据为空，使用默认数据')
+        this.setDefaultPrizes()
+        return
+      }
 
-    // 绘制奖品扇形
-    prizes.forEach((prize, index) => {
-      const startAngle = (index * 45) * Math.PI / 180
-      const endAngle = ((index + 1) * 45) * Math.PI / 180
+      // 清空画布
+      ctx.clearRect(0, 0, 300, 300)
 
-      // 绘制扇形
-      ctx.beginPath()
-      ctx.moveTo(0, 0)
-      ctx.arc(0, 0, radius, startAngle, endAngle)
-      ctx.closePath()
-      ctx.fillStyle = prize.color
-      ctx.fill()
-
-      // 绘制边框
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
-      // 绘制文字
+      // 绘制转盘背景
       ctx.save()
-      ctx.rotate(startAngle + (endAngle - startAngle) / 2)
-      ctx.textAlign = 'center'
-      ctx.fillStyle = '#ffffff'
-      ctx.font = '12px Arial'
-      ctx.fillText(prize.name, radius * 0.7, 0)
+      ctx.translate(centerX, centerY)
+      ctx.rotate(this.data.currentAngle * Math.PI / 180)
+
+      // 计算每个扇形的角度
+      const anglePerPrize = 360 / prizes.length
+
+      // 绘制奖品扇形
+      prizes.forEach((prize, index) => {
+        try {
+          const startAngle = (index * anglePerPrize) * Math.PI / 180
+          const endAngle = ((index + 1) * anglePerPrize) * Math.PI / 180
+          const midAngle = startAngle + (endAngle - startAngle) / 2
+
+          // 绘制扇形
+          ctx.beginPath()
+          ctx.moveTo(0, 0)
+          ctx.arc(0, 0, radius, startAngle, endAngle)
+          ctx.closePath()
+          ctx.fillStyle = prize.color || '#FF6B35'
+          ctx.fill()
+
+          // 绘制边框
+          ctx.strokeStyle = '#ffffff'
+          ctx.lineWidth = 2
+          ctx.stroke()
+
+          // 绘制文字 - 修复文字方向问题
+          this.drawPrizeText(ctx, prize, midAngle, radius * 0.7)
+
+        } catch (error) {
+          console.warn(`绘制奖品${index}失败:`, error)
+        }
+      })
+
       ctx.restore()
+
+      // 绘制指针
+      this.drawPointer(ctx, centerX, centerY)
+
+      // 绘制到屏幕
+      ctx.draw()
+
+    } catch (error) {
+      console.error('❌ 绘制转盘失败:', error)
+      // 降级处理：显示静态提示
+      this.showStaticFallback()
+    }
+  },
+
+  /**
+   * 绘制奖品文字 - 修复文字方向，确保始终水平显示
+   */
+  drawPrizeText(ctx, prize, midAngle, textRadius) {
+    try {
+      ctx.save()
+      
+      // 计算文字位置
+      const textX = Math.cos(midAngle) * textRadius
+      const textY = Math.sin(midAngle) * textRadius
+      
+      // 移动到文字位置
+      ctx.translate(textX, textY)
+      
+      // 重要修改：文字始终保持水平方向，不进行任何旋转
+      // 移除所有旋转逻辑，确保文字从左到右、从上到下显示
+      
+      // 设置文字样式
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 14px Arial'  // 增大字体以提高可读性
+      ctx.strokeStyle = '#000000'
+      ctx.lineWidth = 0.8  // 加粗描边提高对比度
+      
+      // 绘制文字描边和填充
+      const text = prize.name || '未知奖品'
+      ctx.strokeText(text, 0, 0)
+      ctx.fillText(text, 0, 0)
+      
+      ctx.restore()
+    } catch (error) {
+      console.warn('绘制文字失败:', error)
+    }
+  },
+
+  /**
+   * 设置默认奖品数据
+   */
+  setDefaultPrizes() {
+    const defaultPrizes = [
+      { id: 1, name: '谢谢参与', color: '#FF6B35' },
+      { id: 2, name: '积分奖励', color: '#4ECDC4' },
+      { id: 3, name: '优惠券', color: '#FFD93D' },
+      { id: 4, name: '小礼品', color: '#6BCF7F' },
+      { id: 5, name: '再来一次', color: '#FF6B6B' },
+      { id: 6, name: '特别奖', color: '#4DABF7' },
+      { id: 7, name: '惊喜奖', color: '#9775FA' },
+      { id: 8, name: '幸运奖', color: '#FFB84D' }
+    ]
+    
+    this.setData({ prizes: defaultPrizes })
+    this.drawWheel()
+  },
+
+  /**
+   * 静态降级显示
+   */
+  showStaticFallback() {
+    wx.showModal({
+      title: '转盘显示异常',
+      content: '转盘渲染遇到问题，但抽奖功能正常。是否继续？',
+      confirmText: '继续抽奖',
+      cancelText: '刷新页面',
+      success: (res) => {
+        if (res.cancel) {
+          // 刷新页面
+          wx.redirectTo({
+            url: '/pages/lottery/lottery'
+          })
+        }
+      }
     })
-
-    ctx.restore()
-
-    // 绘制指针
-    this.drawPointer(ctx, centerX, centerY)
-
-    // 绘制到屏幕
-    ctx.draw()
   },
 
   /**
@@ -391,26 +537,34 @@ Page({
       // 执行转盘动画
       if (drawResult.data.results && drawResult.data.results.length > 0) {
         await this.playAnimation(drawResult.data.results[0])
+      } else {
+        // 如果没有结果数据，使用默认动画
+        const defaultResult = {
+          angle: Math.floor(Math.random() * 360),
+          is_near_miss: false
+        }
+        await this.playAnimation(defaultResult)
       }
 
       // 更新用户积分和抽奖次数
       this.setData({
-        totalPoints: drawResult.data.remaining_points,
+        totalPoints: drawResult.data.remaining_points || (this.data.totalPoints - needPoints),
         todayDrawCount: drawResult.data.today_draw_count || (this.data.todayDrawCount + count)
       })
 
       // 更新全局用户积分
+      const newPoints = drawResult.data.remaining_points || (this.data.totalPoints - needPoints)
       if (app.globalData.userInfo) {
-        app.globalData.userInfo.total_points = drawResult.data.remaining_points
+        app.globalData.userInfo.total_points = newPoints
       }
       if (app.globalData.mockUser) {
-        app.globalData.mockUser.total_points = drawResult.data.remaining_points
+        app.globalData.mockUser.total_points = newPoints
       }
 
       // 显示抽奖结果
-      this.showDrawResult(drawResult.data.results)
+      this.showDrawResult(drawResult.data.results || [])
 
-      console.log('🎉 抽奖完成，剩余积分:', drawResult.data.remaining_points)
+      console.log('🎉 抽奖完成，剩余积分:', newPoints)
 
     } catch (error) {
       wx.hideLoading()
@@ -447,17 +601,20 @@ Page({
   },
 
   /**
-   * 播放转盘动画
+   * 播放转盘动画 - 微信小程序兼容版本
    */
   playAnimation(result) {
     return new Promise((resolve) => {
-      const targetAngle = result.angle
-      const isNearMiss = result.is_near_miss
+      const targetAngle = result.angle || 0
+      const isNearMiss = result.is_near_miss || false
       const totalRotation = 5 * 360 + targetAngle // 5圈 + 目标角度
       const duration = 3000 // 动画时长3秒
+      const frameRate = 60 // 帧率
+      const frameDuration = 1000 / frameRate // 每帧间隔
       
       let startTime = Date.now()
       let startAngle = this.data.currentAngle
+      let animationTimer = null
 
       const animate = () => {
         const elapsed = Date.now() - startTime
@@ -477,18 +634,29 @@ Page({
         }
 
         this.setData({ currentAngle: currentAngle % 360 })
-        this.drawWheel()
+        
+        // 安全绘制转盘
+        try {
+          this.drawWheel()
+        } catch (error) {
+          console.warn('转盘绘制警告:', error)
+        }
 
         if (progress < 1) {
-          requestAnimationFrame(animate)
+          // 使用setTimeout替代requestAnimationFrame以兼容微信小程序
+          animationTimer = setTimeout(animate, frameDuration)
         } else {
           // 动画结束
+          if (animationTimer) {
+            clearTimeout(animationTimer)
+          }
           setTimeout(() => {
             resolve()
           }, 500)
         }
       }
 
+      // 开始动画
       animate()
     })
   },
