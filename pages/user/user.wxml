@@ -1,0 +1,143 @@
+<!--pages/user/user.wxml-->
+<view class="user-container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <view class="user-avatar" bindtap="onAvatarTap">
+      <image class="avatar-image" src="/images/default-avatar.png" mode="aspectFill"/>
+      <view class="avatar-edit">
+        <text class="edit-icon">📷</text>
+      </view>
+    </view>
+    
+    <view class="user-info">
+      <view class="user-name" bindtap="onPhoneTap">
+        <text class="name-text">{{userInfo.phone || '点击登录'}}</text>
+        <text class="edit-phone">✏️</text>
+      </view>
+      <view class="user-id">ID: {{userInfo.user_id || '未登录'}}</view>
+    </view>
+
+    <view class="user-actions">
+      <button class="action-item" bindtap="onCheckIn">
+        <text class="action-icon">📅</text>
+        <text class="action-text">签到</text>
+      </button>
+      <button class="action-item" bindtap="onInviteFriend">
+        <text class="action-icon">👥</text>
+        <text class="action-text">邀请</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 积分余额 -->
+  <view class="points-card" bindtap="onPointsTap">
+    <view class="points-header">
+      <text class="points-title">我的积分</text>
+      <text class="points-tips">点击查看明细 👇</text>
+    </view>
+    <view class="points-amount">
+      <text class="points-number">{{totalPoints}}</text>
+      <text class="points-unit">分</text>
+    </view>
+    <view class="points-actions">
+      <button class="points-btn" bindtap="onCopyInviteCode">
+        <text class="btn-icon">🔗</text>
+        <text class="btn-text">邀请码</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 积分明细 -->
+  <view class="points-detail" wx:if="{{showPointsDetail}}">
+    <view class="detail-header">
+      <text class="detail-title">💰 积分明细</text>
+      <text class="close-btn" bindtap="togglePointsDetail">×</text>
+    </view>
+    <view class="detail-list">
+      <view 
+        class="detail-item"
+        wx:for="{{pointsRecords}}" 
+        wx:key="id"
+      >
+        <view class="item-info">
+          <text class="item-desc">{{item.description}}</text>
+          <text class="item-time">{{item.created_at}}</text>
+        </view>
+        <view class="item-points {{item.type === 'earn' ? 'earn' : 'consume'}}">
+          <text class="points-change">{{item.points > 0 ? '+' : ''}}{{item.points}}</text>
+          <text class="points-balance">余额:{{item.balance}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 统计数据 -->
+  <view class="statistics-section" wx:if="{{!loading}}">
+    <view class="section-title">
+      <text>📊 我的统计</text>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.totalLottery}}</text>
+        <text class="stat-label">抽奖次数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.totalExchange}}</text>
+        <text class="stat-label">兑换次数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.totalUpload}}</text>
+        <text class="stat-label">上传次数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.thisMonthPoints}}</text>
+        <text class="stat-label">本月积分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <view class="section-title">
+      <text>🔧 功能菜单</text>
+    </view>
+    <view class="menu-grid">
+      <view 
+        class="menu-item"
+        wx:for="{{menuItems}}" 
+        wx:key="id"
+        bindtap="onMenuItemTap"
+        data-item="{{item}}"
+        style="border-left: 4rpx solid {{item.color}}"
+      >
+        <view class="menu-icon" style="color: {{item.color}}">{{item.icon}}</view>
+        <text class="menu-name">{{item.name}}</text>
+        <text class="menu-arrow">▶</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions">
+    <button class="quick-btn service-btn" bindtap="onContactService">
+      📞 联系客服
+    </button>
+    <button class="quick-btn logout-btn" bindtap="onLogout">
+      🚪 退出登录
+    </button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <text class="version-text">餐厅积分抽奖系统 v1.0.0</text>
+    <text class="copyright">© 2024 All Rights Reserved</text>
+  </view>
+</view>

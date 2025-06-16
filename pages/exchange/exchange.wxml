@@ -1,0 +1,186 @@
+<!-- pages/exchange/exchange.wxml - 商品兑换页面模板 -->
+<view class="exchange-container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="user-info">
+      <text class="welcome">🎁 商品兑换</text>
+      <view class="points-info">
+        <text class="points-label">可用积分：</text>
+        <text class="points-value">{{totalPoints}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 商品网格 -->
+  <view class="products-section" wx:else>
+    <view class="section-title">
+      <text>📦 全部商品 ({{products.length}}/20)</text>
+      <text class="tips">按积分排序 • 实时库存同步</text>
+    </view>
+
+    <!-- 2×10网格布局展示20件商品 -->
+    <view class="products-grid">
+      <view 
+        class="product-item {{item.stock <= 0 ? 'sold-out' : ''}} {{totalPoints < item.exchange_points ? 'insufficient-points' : ''}}"
+        wx:for="{{products}}" 
+        wx:key="id"
+        bindtap="onProductTap"
+        data-product="{{item}}"
+      >
+        <!-- 商品图片 -->
+        <view class="product-image-container">
+          <image 
+            class="product-image" 
+            src="{{item.image}}" 
+            mode="aspectFill"
+            bindtap="onPreviewImage"
+            data-url="{{item.image}}"
+          />
+          
+          <!-- 库存标签 -->
+          <view class="stock-badge {{item.stock <= 5 ? 'low-stock' : ''}}">
+            剩余{{item.stock}}
+          </view>
+          
+          <!-- 售罄遮罩 -->
+          <view class="sold-out-overlay" wx:if="{{item.stock <= 0}}">
+            <text>已售罄</text>
+          </view>
+          
+          <!-- 积分不足遮罩 -->
+          <view class="insufficient-overlay" wx:if="{{totalPoints < item.exchange_points && item.stock > 0}}">
+            <text>积分不足</text>
+          </view>
+        </view>
+
+        <!-- 商品信息 -->
+        <view class="product-info">
+          <view class="product-name">{{item.name}}</view>
+          <view class="product-desc">{{item.description}}</view>
+          <view class="product-points">
+            <text class="points-icon">💰</text>
+            <text class="points-text">{{item.exchange_points}}积分</text>
+          </view>
+        </view>
+
+        <!-- 兑换按钮 -->
+        <view class="exchange-btn-container">
+          <button 
+            class="exchange-btn {{item.stock <= 0 || totalPoints < item.exchange_points ? 'disabled' : ''}}"
+            disabled="{{item.stock <= 0 || totalPoints < item.exchange_points}}"
+          >
+            {{item.stock <= 0 ? '已售罄' : (totalPoints < item.exchange_points ? '积分不足' : '立即兑换')}}
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && products.length === 0}}">
+      <view class="empty-icon">📦</view>
+      <text class="empty-text">暂无商品</text>
+      <button class="retry-btn" bindtap="loadProducts">重新加载</button>
+    </view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions" wx:if="{{!loading}}">
+    <button class="action-btn" bindtap="onViewRecords">
+      📋 兑换记录
+    </button>
+    <button class="action-btn" open-type="share">
+      🔗 分享好友
+    </button>
+  </view>
+
+  <!-- 兑换确认弹窗 -->
+  <view class="confirm-modal" wx:if="{{showConfirm}}">
+    <view class="modal-mask" bindtap="onCancelExchange"></view>
+    <view class="modal-content">
+      <view class="confirm-header">
+        <text class="confirm-title">确认兑换</text>
+        <view class="close-btn" bindtap="onCancelExchange">×</view>
+      </view>
+      
+      <view class="product-preview" wx:if="{{selectedProduct}}">
+        <image class="preview-image" src="{{selectedProduct.image}}" mode="aspectFill"/>
+        <view class="preview-info">
+          <text class="preview-name">{{selectedProduct.name}}</text>
+          <text class="preview-desc">{{selectedProduct.description}}</text>
+          <view class="preview-cost">
+            <text class="cost-label">兑换消耗：</text>
+            <text class="cost-points">{{selectedProduct.exchange_points}}积分</text>
+          </view>
+          <view class="remaining-info">
+            <text class="remaining-label">兑换后剩余：</text>
+            <text class="remaining-points">{{totalPoints - selectedProduct.exchange_points}}积分</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="confirm-footer">
+        <button class="cancel-btn" bindtap="onCancelExchange">取消</button>
+        <button class="confirm-btn" bindtap="onConfirmExchange">确认兑换</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 兑换结果弹窗 -->
+  <view class="result-modal" wx:if="{{showResult}}">
+    <view class="modal-mask" bindtap="onCloseResult"></view>
+    <view class="modal-content">
+      <view class="result-header">
+        <text class="result-title">🎉 兑换成功</text>
+        <view class="close-btn" bindtap="onCloseResult">×</view>
+      </view>
+      
+      <view class="result-content" wx:if="{{resultData}}">
+        <view class="success-icon">✅</view>
+        <text class="success-text">恭喜您成功兑换</text>
+        <text class="product-name">{{resultData.product.name}}</text>
+        
+        <view class="result-details">
+          <view class="detail-item">
+            <text class="detail-label">订单编号：</text>
+            <text class="detail-value">{{resultData.orderId}}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">消耗积分：</text>
+            <text class="detail-value">-{{resultData.pointsDeducted}}</text>
+          </view>
+          <view class="detail-item">
+            <text class="detail-label">剩余积分：</text>
+            <text class="detail-value">{{resultData.remainingPoints}}</text>
+          </view>
+        </view>
+
+        <text class="pickup-notice">📍 请凭订单编号到店领取商品</text>
+      </view>
+
+      <view class="result-footer">
+        <button class="continue-btn" bindtap="onCloseResult">继续兑换</button>
+        <button class="record-btn" bindtap="onViewRecords">查看记录</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 规则说明 -->
+  <view class="rules-section" wx:if="{{!loading}}">
+    <view class="section-title">
+      <text>📋 兑换规则</text>
+    </view>
+    <view class="rules-content">
+      <view class="rule-item">• 商品按积分值从低到高排序（800-2000分）</view>
+      <view class="rule-item">• 总共20件限量商品，售完即止</view>
+      <view class="rule-item">• 库存实时同步，先到先得</view>
+      <view class="rule-item">• 兑换成功后请凭订单编号到店领取</view>
+      <view class="rule-item">• 积分一经兑换不可退回</view>
+    </view>
+  </view>
+</view> 

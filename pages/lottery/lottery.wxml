@@ -1,0 +1,149 @@
+<!-- pages/lottery/lottery.wxml - 抽奖页面模板 -->
+<view class="lottery-container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="user-info">
+      <text class="welcome">欢迎，{{userInfo.phone || '用户'}}</text>
+      <view class="points-info">
+        <text class="points-label">当前积分：</text>
+        <text class="points-value">{{totalPoints}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 转盘区域 -->
+  <view class="wheel-section">
+    <view class="wheel-container">
+      <!-- Canvas转盘 -->
+      <canvas 
+        canvas-id="wheelCanvas" 
+        class="wheel-canvas"
+        style="width: 300px; height: 300px;"
+      ></canvas>
+      
+      <!-- 转盘遮罩（抽奖中） -->
+      <view class="wheel-overlay" wx:if="{{isDrawing}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">抽奖中...</text>
+      </view>
+    </view>
+
+    <!-- 抽奖按钮组 -->
+    <view class="draw-buttons">
+      <button 
+        class="draw-btn single-btn {{isDrawing ? 'disabled' : ''}}"
+        disabled="{{isDrawing || totalPoints < costPoints}}"
+        bindtap="onSingleDraw"
+      >
+        <text class="btn-text">单抽</text>
+        <text class="btn-cost">{{costPoints}}积分</text>
+      </button>
+
+      <button 
+        class="draw-btn triple-btn {{isDrawing ? 'disabled' : ''}}"
+        disabled="{{isDrawing || totalPoints < costPoints * 3}}"
+        bindtap="onTripleDraw"
+      >
+        <text class="btn-text">三连抽</text>
+        <text class="btn-cost">{{costPoints * 3}}积分</text>
+      </button>
+
+      <button 
+        class="draw-btn five-btn {{isDrawing ? 'disabled' : ''}}"
+        disabled="{{isDrawing || totalPoints < costPoints * 5}}"
+        bindtap="onFiveDraw"
+      >
+        <text class="btn-text">五连抽</text>
+        <text class="btn-cost">{{costPoints * 5}}积分</text>
+      </button>
+
+      <button 
+        class="draw-btn ten-btn {{isDrawing ? 'disabled' : ''}}"
+        disabled="{{isDrawing || totalPoints < costPoints * 10}}"
+        bindtap="onTenDraw"
+      >
+        <text class="btn-text">十连抽</text>
+        <text class="btn-cost">{{costPoints * 10}}积分</text>
+        <text class="btn-guarantee">保底</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 奖品列表 -->
+  <view class="prizes-section">
+    <view class="section-title">
+      <text>🎁 奖品一览</text>
+    </view>
+    <view class="prizes-grid">
+      <view 
+        class="prize-item" 
+        wx:for="{{prizes}}" 
+        wx:key="id"
+        style="background-color: {{item.color}}20;"
+      >
+        <view class="prize-name">{{item.name}}</view>
+        <view class="prize-type">
+          {{item.is_activity ? '限定' : '常规'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions">
+    <button class="action-btn" bindtap="onViewRecords">
+      📊 抽奖记录
+    </button>
+    <button class="action-btn" open-type="share">
+      🔗 分享好友
+    </button>
+  </view>
+
+  <!-- 抽奖结果弹窗 -->
+  <view class="result-modal" wx:if="{{showResult}}">
+    <view class="modal-mask" bindtap="onCloseResult"></view>
+    <view class="modal-content">
+      <view class="result-header">
+        <text class="result-title">🎉 抽奖结果</text>
+        <view class="close-btn" bindtap="onCloseResult">×</view>
+      </view>
+      
+      <view class="result-list">
+        <view 
+          class="result-item" 
+          wx:for="{{resultData}}" 
+          wx:key="prize_id"
+        >
+          <view class="prize-icon">🎁</view>
+          <view class="prize-info">
+            <text class="prize-name">{{item.prize_name}}</text>
+            <text class="prize-desc">
+              {{item.is_near_miss ? '差一点就中了！' : '恭喜中奖！'}}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <view class="result-footer">
+        <text class="remaining-points">剩余积分：{{totalPoints}}</text>
+        <button class="continue-btn" bindtap="onCloseResult">
+          继续抽奖
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 规则说明 -->
+  <view class="rules-section">
+    <view class="section-title">
+      <text>📋 抽奖规则</text>
+    </view>
+    <view class="rules-content">
+      <view class="rule-item">• 每次抽奖消耗{{costPoints}}积分</view>
+      <view class="rule-item">• 十连抽保底获得九八折券</view>
+      <view class="rule-item">• 活动限定奖品需要当日消费≥500元</view>
+      <view class="rule-item">• 高频操作将触发安全验证</view>
+      <view class="rule-item">• 单日积分消耗上限5000分</view>
+    </view>
+  </view>
+</view> 

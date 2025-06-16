@@ -1,0 +1,264 @@
+<!--pages/merchant/merchant.wxml-->
+<view class="merchant-container">
+  <!-- 非商家用户 - 权限申请 -->
+  <view class="auth-request" wx:if="{{!isMerchant && !loading}}">
+    <view class="auth-card">
+      <view class="auth-icon">🏪</view>
+      <text class="auth-title">申请商家权限</text>
+      <text class="auth-desc">成为商家后，您可以审核用户上传的小票并管理积分发放</text>
+      
+      <view class="auth-features">
+        <view class="feature-item">
+          <text class="feature-icon">✅</text>
+          <text class="feature-text">审核小票上传</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">💰</text>
+          <text class="feature-text">管理积分发放</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">📊</text>
+          <text class="feature-text">查看审核统计</text>
+        </view>
+        <view class="feature-item">
+          <text class="feature-icon">📞</text>
+          <text class="feature-text">联系用户</text>
+        </view>
+      </view>
+      
+      <button class="auth-btn" bindtap="onRequestAuth">
+        申请商家权限
+      </button>
+    </view>
+  </view>
+
+  <!-- 商家管理界面 -->
+  <view class="merchant-main" wx:if="{{isMerchant && !loading}}">
+    <!-- 页面头部 -->
+    <view class="header">
+      <view class="user-info">
+        <text class="welcome">🏪 商家管理</text>
+        <text class="merchant-badge">商家</text>
+      </view>
+    </view>
+
+    <!-- 审核统计 -->
+    <view class="statistics-section">
+      <view class="section-title">
+        <text>📊 审核统计</text>
+      </view>
+      <view class="stats-grid">
+        <view class="stat-item pending">
+          <text class="stat-number">{{statistics.pendingCount}}</text>
+          <text class="stat-label">待审核</text>
+        </view>
+        <view class="stat-item approved">
+          <text class="stat-number">{{statistics.todayApproved}}</text>
+          <text class="stat-label">今日通过</text>
+        </view>
+        <view class="stat-item rejected">
+          <text class="stat-number">{{statistics.todayRejected}}</text>
+          <text class="stat-label">今日拒绝</text>
+        </view>
+        <view class="stat-item total">
+          <text class="stat-number">{{statistics.totalProcessed}}</text>
+          <text class="stat-label">累计处理</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作工具栏 -->
+    <view class="toolbar">
+      <button class="tool-btn refresh-btn" bindtap="refreshData">
+        🔄 刷新
+      </button>
+      <button class="tool-btn batch-btn" bindtap="onBatchOperation">
+        📝 批量操作
+      </button>
+    </view>
+
+    <!-- 待审核列表 -->
+    <view class="pending-section">
+      <view class="section-title">
+        <text>📋 待审核列表 ({{pendingList.length}})</text>
+      </view>
+      
+      <view class="pending-list">
+        <view 
+          class="pending-item"
+          wx:for="{{pendingList}}" 
+          wx:key="id"
+        >
+          <!-- 用户信息 -->
+          <view class="item-header">
+            <view class="user-info">
+              <text class="user-phone">{{item.user_phone}}</text>
+              <text class="user-id">ID: {{item.user_id}}</text>
+            </view>
+            <view class="upload-time">
+              <text class="time-label">上传时间</text>
+              <text class="time-value">{{item.upload_time}}</text>
+            </view>
+          </view>
+
+          <!-- 小票信息 -->
+          <view class="item-content">
+            <image 
+              class="receipt-image" 
+              src="{{item.image_url}}" 
+              mode="aspectFill"
+              bindtap="onPreviewImage"
+              data-url="{{item.image_url}}"
+            />
+            <view class="receipt-info">
+              <view class="amount-info">
+                <text class="amount-label">消费金额：</text>
+                <text class="amount-value">{{item.amount}}元</text>
+              </view>
+              <view class="points-info">
+                <text class="points-label">预计积分：</text>
+                <text class="points-value">{{item.expected_points}}分</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 操作按钮 -->
+          <view class="item-actions">
+            <button 
+              class="action-btn contact-btn"
+              bindtap="onContactUser"
+              data-phone="{{item.user_phone}}"
+            >
+              📞 联系
+            </button>
+            <button 
+              class="action-btn reject-btn"
+              bindtap="onStartReview"
+              data-item="{{item}}"
+              data-action="reject"
+            >
+              ❌ 拒绝
+            </button>
+            <button 
+              class="action-btn approve-btn"
+              bindtap="onStartReview"
+              data-item="{{item}}"
+              data-action="approve"
+            >
+              ✅ 通过
+            </button>
+          </view>
+        </view>
+
+        <!-- 列表为空 -->
+        <view class="empty-list" wx:if="{{pendingList.length === 0}}">
+          <view class="empty-icon">📋</view>
+          <text class="empty-text">暂无待审核项目</text>
+          <button class="refresh-btn" bindtap="refreshData">刷新数据</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 权限申请弹窗 -->
+  <view class="auth-modal" wx:if="{{showAuthModal}}">
+    <view class="modal-mask" bindtap="onCancelAuth"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">申请商家权限</text>
+        <view class="close-btn" bindtap="onCancelAuth">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <view class="confirm-text">
+          申请成为商家后，您将获得以下权限：
+        </view>
+        <view class="permission-list">
+          <view class="permission-item">• 审核用户上传的小票</view>
+          <view class="permission-item">• 决定积分发放数量</view>
+          <view class="permission-item">• 查看审核统计数据</view>
+          <view class="permission-item">• 联系相关用户</view>
+        </view>
+        <view class="warning-text">
+          请确保您有足够的时间处理审核事务
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="onCancelAuth">取消</button>
+        <button 
+          class="confirm-btn {{authRequesting ? 'loading' : ''}}"
+          disabled="{{authRequesting}}"
+          bindtap="onConfirmAuth"
+        >
+          {{authRequesting ? '申请中...' : '确认申请'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 审核操作弹窗 -->
+  <view class="review-modal" wx:if="{{showReviewModal}}">
+    <view class="modal-mask" bindtap="onCancelReview"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">
+          {{reviewAction === 'approve' ? '审核通过' : '审核拒绝'}}
+        </text>
+        <view class="close-btn" bindtap="onCancelReview">×</view>
+      </view>
+      
+      <view class="modal-body" wx:if="{{currentReview}}">
+        <!-- 用户信息 -->
+        <view class="review-info">
+          <text class="info-label">用户：</text>
+          <text class="info-value">{{currentReview.user_phone}}</text>
+        </view>
+        <view class="review-info">
+          <text class="info-label">金额：</text>
+          <text class="info-value">{{currentReview.amount}}元</text>
+        </view>
+
+        <!-- 审核通过 - 积分输入 -->
+        <view class="input-section" wx:if="{{reviewAction === 'approve'}}">
+          <text class="input-label">发放积分：</text>
+          <input 
+            class="points-input"
+            type="number"
+            placeholder="请输入积分数量"
+            value="{{reviewPoints}}"
+            bindinput="onPointsInput"
+          />
+          <text class="input-tips">建议：{{currentReview.expected_points}}分</text>
+        </view>
+
+        <!-- 审核拒绝 - 理由输入 -->
+        <view class="input-section" wx:if="{{reviewAction === 'reject'}}">
+          <text class="input-label">拒绝理由：</text>
+          <textarea 
+            class="reason-input"
+            placeholder="请输入拒绝理由，用户将收到此信息"
+            value="{{reviewReason}}"
+            bindinput="onReasonInput"
+            maxlength="200"
+          />
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="onCancelReview">取消</button>
+        <button class="confirm-btn" bindtap="onConfirmReview">
+          确认{{reviewAction === 'approve' ? '通过' : '拒绝'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+</view>

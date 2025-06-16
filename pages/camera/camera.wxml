@@ -1,0 +1,196 @@
+<!--pages/camera/camera.wxml-->
+<view class="camera-container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="user-info">
+      <text class="welcome">📸 拍照上传</text>
+      <view class="points-info">
+        <text class="points-label">当前积分：</text>
+        <text class="points-value">{{totalPoints}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 上传表单 -->
+  <view class="upload-section">
+    <!-- 图片上传区域 -->
+    <view class="image-upload">
+      <view class="section-title">
+        <text>📷 上传小票照片</text>
+      </view>
+      
+      <!-- 图片预览/选择区域 -->
+      <view class="image-preview-container">
+        <view class="image-preview" wx:if="{{imagePreview}}">
+          <image 
+            class="preview-image" 
+            src="{{imagePreview}}" 
+            mode="aspectFill"
+            bindtap="onPreviewImage"
+          />
+          <view class="image-actions">
+            <button class="action-btn preview-btn" bindtap="onPreviewImage">
+              👁️ 预览
+            </button>
+            <button class="action-btn delete-btn" bindtap="onDeleteImage">
+              🗑️ 删除
+            </button>
+          </view>
+        </view>
+        
+        <view class="image-placeholder" wx:else>
+          <view class="placeholder-icon">📷</view>
+          <text class="placeholder-text">请拍照或选择小票图片</text>
+          <view class="upload-buttons">
+            <button class="upload-btn camera-btn" bindtap="onTakePhoto">
+              📸 拍照
+            </button>
+            <button class="upload-btn album-btn" bindtap="onChooseImage">
+              🖼️ 相册
+            </button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 消费金额输入 -->
+    <view class="amount-input">
+      <view class="section-title">
+        <text>💰 消费金额</text>
+      </view>
+      
+      <view class="input-container">
+        <input 
+          class="amount-field {{formErrors.amount ? 'error' : ''}}"
+          type="digit"
+          placeholder="请输入消费金额"
+          value="{{consumeAmount}}"
+          bindinput="onAmountInput"
+        />
+        <text class="currency-unit">元</text>
+      </view>
+      
+      <view class="error-message" wx:if="{{formErrors.amount}}">
+        {{formErrors.amount}}
+      </view>
+      
+      <view class="points-preview" wx:if="{{expectedPoints > 0}}">
+        <text class="preview-label">预计获得积分：</text>
+        <text class="preview-points">{{expectedPoints}}分</text>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-section">
+      <button 
+        class="submit-btn {{uploading ? 'loading' : ''}}"
+        disabled="{{uploading || !selectedImage || !consumeAmount}}"
+        bindtap="onSubmitUpload"
+      >
+        {{uploading ? '上传中...' : '提交审核'}}
+      </button>
+      
+      <!-- 上传进度 -->
+      <view class="upload-progress" wx:if="{{uploading}}">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{uploadProgress}}%"></view>
+        </view>
+        <text class="progress-text">{{uploadProgress}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分说明 -->
+  <view class="points-info-section">
+    <view class="section-title">
+      <text>💡 积分规则说明</text>
+    </view>
+    <view class="info-content">
+      <view class="info-item">
+        <text class="info-icon">📈</text>
+        <text class="info-text">消费1元 = 10积分</text>
+      </view>
+      <view class="info-item">
+        <text class="info-icon">🔍</text>
+        <text class="info-text">上传后需要人工审核</text>
+      </view>
+      <view class="info-item">
+        <text class="info-icon">⏰</text>
+        <text class="info-text">审核时间：1-24小时</text>
+      </view>
+      <view class="info-item">
+        <text class="info-icon">💳</text>
+        <text class="info-text">单次上传积分范围：50-2000分</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 上传历史 -->
+  <view class="history-section">
+    <view class="section-title" bindtap="onToggleHistory">
+      <text>📋 上传历史 ({{uploadHistory.length}})</text>
+      <text class="toggle-icon">{{showHistory ? '🔽' : '▶️'}}</text>
+    </view>
+    
+    <view class="history-list" wx:if="{{showHistory}}">
+      <view 
+        class="history-item"
+        wx:for="{{uploadHistory}}" 
+        wx:key="id"
+        bindtap="onViewUploadDetail"
+        data-item="{{item}}"
+      >
+        <image 
+          class="history-image" 
+          src="{{item.image_url}}" 
+          mode="aspectFill"
+          bindtap="onPreviewHistoryImage"
+          data-url="{{item.image_url}}"
+        />
+        <view class="history-info">
+          <view class="history-amount">
+            <text class="amount-label">消费金额：</text>
+            <text class="amount-value">{{item.amount}}元</text>
+          </view>
+          <view class="history-points">
+            <text class="points-label">积分：</text>
+            <text class="points-value">{{item.points_awarded}}分</text>
+          </view>
+          <view class="history-time">
+            <text class="time-label">上传时间：</text>
+            <text class="time-value">{{item.created_at}}</text>
+          </view>
+        </view>
+        <view class="history-status">
+          <view 
+            class="status-badge"
+            style="background-color: {{statusMap[item.status].color}}"
+          >
+            <text class="status-icon">{{statusMap[item.status].icon}}</text>
+            <text class="status-text">{{statusMap[item.status].text}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 历史记录为空 -->
+      <view class="empty-history" wx:if="{{uploadHistory.length === 0}}">
+        <view class="empty-icon">📋</view>
+        <text class="empty-text">暂无上传记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 上传须知 -->
+  <view class="notice-section">
+    <view class="section-title">
+      <text>⚠️ 上传须知</text>
+    </view>
+    <view class="notice-content">
+      <view class="notice-item">• 请确保小票图片清晰可见，包含完整的消费信息</view>
+      <view class="notice-item">• 请输入准确的消费金额，与小票金额保持一致</view>
+      <view class="notice-item">• 审核通过后积分将自动发放到您的账户</view>
+      <view class="notice-item">• 如有问题请联系客服处理</view>
+      <view class="notice-item">• 同一张小票不可重复上传</view>
+    </view>
+  </view>
+</view>
