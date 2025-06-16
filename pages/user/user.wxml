@@ -3,7 +3,7 @@
   <!-- 用户信息卡片 -->
   <view class="user-card">
     <view class="user-avatar" bindtap="onAvatarTap">
-      <image class="avatar-image" src="/images/default-avatar.png" mode="aspectFill"/>
+      <image class="avatar-image" src="https://via.placeholder.com/120x120/FF6B35/ffffff?text=👤" mode="aspectFill"/>
       <view class="avatar-edit">
         <text class="edit-icon">📷</text>
       </view>

@@ -65,9 +65,17 @@ Page({
    */
   async initPage() {
     // 初始化用户信息
+    const userInfo = app.globalData.userInfo || app.globalData.mockUser || {
+      user_id: 1001,
+      phone: '138****8000',
+      total_points: 1500,
+      is_merchant: false,
+      nickname: '测试用户'
+    }
+    
     this.setData({
-      userInfo: app.globalData.userInfo || app.globalData.mockUser,
-      totalPoints: app.globalData.userInfo?.total_points || app.globalData.mockUser.total_points
+      userInfo: userInfo,
+      totalPoints: userInfo.total_points || 1500
     })
 
     // 初始化滑块验证

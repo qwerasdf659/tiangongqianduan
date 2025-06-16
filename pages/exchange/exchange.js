@@ -153,6 +153,8 @@ Page({
    * 返回：可兑换商品列表，包括分类、库存、价格等信息
    */
   async loadProducts() {
+    this.setData({ loading: true })
+    
     try {
       let productsData
 
@@ -172,8 +174,10 @@ Page({
 
       this.setData({
         categories: ['全部'].concat(categories),
+        products: products,
         allProducts: products,
-        filteredProducts: products
+        filteredProducts: products,
+        loading: false
       })
 
       console.log('✅ 商品列表加载成功，共', products.length, '件商品')
@@ -189,20 +193,56 @@ Page({
           description: '满50元可用',
           category: '优惠券',
           points_cost: 1000,
+          exchange_points: 1000,
           stock: 100,
           image: 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=10元券',
+          status: 'available'
+        },
+        {
+          id: 2,
+          name: '20元优惠券',
+          description: '满100元可用',
+          category: '优惠券',
+          points_cost: 1800,
+          exchange_points: 1800,
+          stock: 50,
+          image: 'https://via.placeholder.com/200x200/4ECDC4/ffffff?text=20元券',
+          status: 'available'
+        },
+        {
+          id: 3,
+          name: '小海鲜拼盘',
+          description: '新鲜海鲜拼盘',
+          category: '实物商品',
+          points_cost: 2500,
+          exchange_points: 2500,
+          stock: 20,
+          image: 'https://via.placeholder.com/200x200/FFD93D/000000?text=海鲜',
+          status: 'available'
+        },
+        {
+          id: 4,
+          name: '会员月卡',
+          description: '30天会员特权',
+          category: '虚拟物品',
+          points_cost: 3000,
+          exchange_points: 3000,
+          stock: 999,
+          image: 'https://via.placeholder.com/200x200/9775FA/ffffff?text=会员卡',
           status: 'available'
         }
       ]
       
       this.setData({
-        categories: ['全部', '优惠券'],
+        categories: ['全部', '优惠券', '实物商品', '虚拟物品'],
+        products: defaultProducts,
         allProducts: defaultProducts,
-        filteredProducts: defaultProducts
+        filteredProducts: defaultProducts,
+        loading: false
       })
       
       wx.showToast({
-        title: '商品加载失败',
+        title: '使用默认商品数据',
         icon: 'none'
       })
     }

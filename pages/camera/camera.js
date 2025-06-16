@@ -13,32 +13,33 @@ Page({
     userInfo: {},
     totalPoints: 0,
     
-    // 上传状态
-    uploading: false,
-    uploadProgress: 0,
-    
-    // 拍照/选择图片
+    // 上传表单
     selectedImage: null,
     imagePreview: null,
-    
-    // 消费金额
     consumeAmount: '',
     expectedPoints: 0,
     
     // 表单验证
-    formValidator: null,
     formErrors: {},
+    
+    // 上传状态
+    uploading: false,
+    uploadProgress: 0,
     
     // 上传历史
     uploadHistory: [],
     showHistory: false,
     
-    // 审核状态说明
+    // 状态映射
     statusMap: {
-      'pending': { text: '审核中', color: '#ff9800', icon: '⏳' },
-      'approved': { text: '已通过', color: '#4caf50', icon: '✅' },
-      'rejected': { text: '已拒绝', color: '#f44336', icon: '❌' }
-    }
+      'pending': { text: '待审核', icon: '⏳', color: '#FFC107' },
+      'approved': { text: '已通过', icon: '✅', color: '#4CAF50' },
+      'rejected': { text: '已拒绝', icon: '❌', color: '#F44336' },
+      'processing': { text: '审核中', icon: '🔄', color: '#2196F3' }
+    },
+    
+    // 表单验证器
+    formValidator: null
   },
 
   /**
@@ -98,9 +99,17 @@ Page({
    */
   async initPage() {
     // 初始化用户信息
+    const userInfo = app.globalData.userInfo || app.globalData.mockUser || {
+      user_id: 1001,
+      phone: '138****8000',
+      total_points: 1500,
+      is_merchant: false,
+      nickname: '测试用户'
+    }
+    
     this.setData({
-      userInfo: app.globalData.userInfo || app.globalData.mockUser,
-      totalPoints: app.globalData.userInfo?.total_points || app.globalData.mockUser.total_points
+      userInfo: userInfo,
+      totalPoints: userInfo.total_points || 1500
     })
 
     // 初始化表单验证器
@@ -111,6 +120,9 @@ Page({
     validator.addRule('amount', commonRules.max(9999))
     
     this.data.formValidator = validator
+    
+    // 初始化上传历史
+    this.loadUploadHistory()
   },
 
   /**
