@@ -12,67 +12,46 @@ Page({
     userInfo: {},
     totalPoints: 0,
     
+    // 签到系统
+    hasCheckedIn: false,
+    checkInBonus: 50,
+    
+    // 积分趋势
+    todayEarned: 0,
+    todayConsumed: 0,
+    
+    // 积分明细
+    showPointsDetail: false,
+    pointsRecords: [],
+    filteredPointsRecords: [],
+    pointsFilter: 'all', // 'all', 'earn', 'consume'
+    hasMoreRecords: true,
+    
+    // 成就系统
+    achievements: [],
+    unlockedAchievements: 0,
+    totalAchievements: 6,
+    
     // 统计数据
     statistics: {
       totalLottery: 0,
       totalExchange: 0,
       totalUpload: 0,
-      thisMonthPoints: 0
+      thisMonthPoints: 0,
+      lotteryTrend: '↑',
+      exchangeTrend: '→',
+      uploadTrend: '↑',
+      pointsTrend: '↑'
     },
     
-    // 积分明细
-    pointsRecords: [],
-    showPointsDetail: false,
+    // 菜单项
+    menuItems: [],
     
     // 页面状态
-    loading: true,
-    refreshing: false,
+    loading: false,
     
-    // 功能菜单
-    menuItems: [
-      { 
-        id: 'lottery-records', 
-        name: '抽奖记录', 
-        icon: '🎰', 
-        path: '/pages/records/lottery-records',
-        color: '#FF6B35'
-      },
-      { 
-        id: 'exchange-records', 
-        name: '兑换记录', 
-        icon: '🛍️', 
-        path: '/pages/records/exchange-records',
-        color: '#4ECDC4'
-      },
-      { 
-        id: 'upload-records', 
-        name: '上传记录', 
-        icon: '📸', 
-        path: '/pages/records/upload-records',
-        color: '#9C27B0'
-      },
-      { 
-        id: 'points-detail', 
-        name: '积分明细', 
-        icon: '💰', 
-        action: 'togglePointsDetail',
-        color: '#FFC107'
-      },
-      { 
-        id: 'settings', 
-        name: '设置', 
-        icon: '⚙️', 
-        path: '/pages/settings/settings',
-        color: '#607D8B'
-      },
-      { 
-        id: 'about', 
-        name: '关于我们', 
-        icon: 'ℹ️', 
-        path: '/pages/about/about',
-        color: '#795548'
-      }
-    ]
+    // 版本信息
+    lastUpdateTime: '2024-01-15 10:30'
   },
 
   /**
@@ -138,26 +117,22 @@ Page({
    * 初始化页面
    */
   async initPage() {
-    // 初始化用户信息
-    const userInfo = app.globalData.userInfo || app.globalData.mockUser || {
-      user_id: 1001,
-      phone: '138****8000',
-      total_points: 1500,
-      is_merchant: false,
-      nickname: '测试用户'
-    }
+    // 初始化数据
+    this.initMenuItems()
+    this.initAchievements()
     
-    this.setData({
-      userInfo: userInfo,
-      totalPoints: userInfo.total_points || 1500,
-      loading: false
-    })
-
-    // 加载统计数据
-    await this.loadStatistics()
+    // 加载用户信息和统计数据
+    await Promise.all([
+      this.loadUserInfo(),
+      this.loadStatistics(),
+      this.loadPointsRecords()
+    ])
     
-    // 加载积分记录
-    await this.loadPointsRecords()
+    // 检查今日是否已签到
+    this.checkTodayCheckIn()
+    
+    // 计算今日积分趋势
+    this.calculateTodayTrend()
   },
 
   /**
@@ -309,12 +284,12 @@ Page({
 
   /**
    * 加载积分明细
-   * TODO: 后端对接 - 积分记录接口
+   * TODO: 后端对接 - 积分明细接口
    * 
    * 对接说明：
-   * 接口：GET /api/user/points-records?page=1&page_size=20
-   * 认证：需要Bearer Token  
-   * 返回：积分变动记录列表，支持分页
+   * 接口：GET /api/user/points-records?page=1&page_size=20&type=all
+   * 认证：需要Bearer Token
+   * 返回：积分收支记录列表
    */
   async loadPointsRecords() {
     try {
@@ -322,57 +297,55 @@ Page({
 
       if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境使用模拟数据
-        console.log('🔧 生成模拟积分明细数据')
-        recordsData = {
-          code: 0,
-          data: {
-            list: this.generateMockPointsRecords(),
-            total: 50,
-            page: 1,
-            page_size: 20
-          }
-        }
-        await new Promise(resolve => setTimeout(resolve, 200))
+        console.log('🔧 生成模拟积分记录数据')
+        recordsData = this.generateMockPointsRecords()
       } else {
-        console.log('📡 请求积分明细接口...')
-        recordsData = await userAPI.getPointsRecords(1, 20)
+        // 生产环境调用真实接口
+        console.log('📡 请求积分记录接口...')
+        recordsData = await userAPI.getPointsRecords()
       }
 
       this.setData({
-        pointsRecords: recordsData.data.list
+        pointsRecords: recordsData
       })
       
-      console.log('✅ 积分明细加载成功，共', recordsData.data.list.length, '条记录')
+      // 初始化筛选结果
+      this.filterPointsRecords()
+
+      console.log('✅ 积分记录加载成功，共', recordsData.length, '条记录')
 
     } catch (error) {
-      console.error('❌ 获取积分明细失败:', error)
+      console.error('❌ 获取积分记录失败:', error)
       this.setData({ pointsRecords: [] })
     }
   },
 
   /**
-   * 生成模拟积分明细
+   * 生成模拟积分记录
    */
-  generateMockPointsRecords() {
-    const types = [
-      { type: 'earn', name: '小票审核通过', points: 500 },
-      { type: 'consume', name: '抽奖消费', points: -100 },
-      { type: 'consume', name: '商品兑换', points: -800 },
-      { type: 'earn', name: '小票审核通过', points: 300 },
-      { type: 'consume', name: '抽奖消费', points: -100 },
-      { type: 'earn', name: '小票审核通过', points: 700 },
-      { type: 'consume', name: '商品兑换', points: -1200 },
-      { type: 'consume', name: '抽奖消费', points: -300 }
-    ]
+  generateMockPointsRecords(count = 10) {
+    const types = ['earn', 'consume']
+    const descriptions = {
+      earn: ['签到奖励', '拍照上传', '邀请好友', '活动奖励', '系统赠送'],
+      consume: ['抽奖消费', '商品兑换', '活动参与']
+    }
 
-    return types.map((item, index) => ({
-      id: index + 1,
-      type: item.type,
-      description: item.name,
-      points: item.points,
-      created_at: new Date(Date.now() - index * 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-      balance: this.data.totalPoints + (types.length - index - 1) * 100
-    }))
+    return Array.from({ length: count }, (_, i) => {
+      const type = types[Math.floor(Math.random() * types.length)]
+      const isEarn = type === 'earn'
+      const points = isEarn ? 
+        Math.floor(Math.random() * 100) + 10 : 
+        -(Math.floor(Math.random() * 200) + 50)
+      
+      return {
+        id: i + 1,
+        type: type,
+        points: points,
+        description: descriptions[type][Math.floor(Math.random() * descriptions[type].length)],
+        balance: 1500 - i * 20, // 模拟余额
+        created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleDateString()
+      }
+    })
   },
 
   /**
@@ -553,113 +526,304 @@ Page({
   },
 
   /**
-   * 签到功能
-   * TODO: 后端对接 - 签到接口
-   * 
-   * 对接说明：
-   * 接口：POST /api/user/check-in
-   * 认证：需要Bearer Token
-   * 返回：签到结果，包括获得积分、连续签到天数等
+   * 积分明细筛选切换
    */
-  async onCheckIn() {
-    // 防重复点击
-    if (this.checkingIn) return
-    this.checkingIn = true
+  onPointsFilterChange(e) {
+    const filter = e.currentTarget.dataset.filter
+    this.setData({
+      pointsFilter: filter
+    })
+    this.filterPointsRecords()
+  },
+
+  /**
+   * 筛选积分记录
+   */
+  filterPointsRecords() {
+    let filtered = [...this.data.pointsRecords]
     
-    try {
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟签到
-        console.log('🔧 模拟用户签到')
-        
-        wx.showModal({
-          title: '每日签到',
-          content: '签到可获得10积分，是否立即签到？',
-          success: async (res) => {
-            if (res.confirm) {
-              wx.showLoading({ title: '签到中...' })
-              
-              // 模拟网络延迟
-              await new Promise(resolve => setTimeout(resolve, 1000))
-              
-              const checkInReward = 10 + Math.floor(Math.random() * 10) // 10-20积分随机奖励
-              const newPoints = this.data.totalPoints + checkInReward
-              const consecutiveDays = Math.floor(Math.random() * 7) + 1
-              
-              // 更新页面数据
-              this.setData({ totalPoints: newPoints })
-              
-              // 更新全局数据
-              if (app.globalData.mockUser) {
-                app.globalData.mockUser.total_points = newPoints
-              }
-              
-              wx.hideLoading()
-              wx.showModal({
-                title: '签到成功！',
-                content: `获得${checkInReward}积分\n连续签到${consecutiveDays}天`,
-                showCancel: false,
-                confirmText: '太棒了'
-              })
-              
-              // 刷新积分明细
-              this.loadPointsRecords()
-            }
-          }
-        })
-        
-      } else {
-        // 生产环境调用真实签到接口
-        console.log('📡 请求签到接口...')
-        
-        wx.showLoading({ title: '签到中...' })
-        const checkInResult = await userAPI.checkIn()
-        wx.hideLoading()
-        
-        // 更新页面积分显示
-        this.setData({
-          totalPoints: checkInResult.data.total_points
-        })
-        
-        // 更新全局用户信息
-        if (app.globalData.userInfo) {
-          app.globalData.userInfo.total_points = checkInResult.data.total_points
-        }
-        
-        // 显示签到成功信息
-        wx.showModal({
-          title: '签到成功！',
-          content: `获得${checkInResult.data.points_earned}积分\n连续签到${checkInResult.data.consecutive_days}天`,
-          showCancel: false,
-          confirmText: '太棒了'
-        })
-        
-        console.log('✅ 签到成功，获得积分:', checkInResult.data.points_earned)
-        
-        // 刷新相关数据
-        this.loadUserInfo()
-        this.loadStatistics()
-        this.loadPointsRecords()
-      }
-      
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 签到失败:', error)
-      
-      // 错误处理
-      if (error.code === 1001) {
-        wx.showToast({
-          title: '今日已签到',
-          icon: 'none'
-        })
-      } else {
-        wx.showToast({
-          title: error.msg || '签到失败，请稍后重试',
-          icon: 'none'
-        })
-      }
-    } finally {
-      this.checkingIn = false
+    switch (this.data.pointsFilter) {
+      case 'earn':
+        filtered = filtered.filter(record => record.points > 0)
+        break
+      case 'consume':
+        filtered = filtered.filter(record => record.points < 0)
+        break
+      default:
+        // 'all' - 不过滤
+        break
     }
+    
+    this.setData({
+      filteredPointsRecords: filtered
+    })
+  },
+
+  /**
+   * 加载更多积分记录
+   */
+  onLoadMoreRecords() {
+    wx.showLoading({ title: '加载中...' })
+    
+    // 模拟加载更多数据
+    setTimeout(() => {
+      const newRecords = this.generateMockPointsRecords(5)
+      const allRecords = [...this.data.pointsRecords, ...newRecords]
+      
+      this.setData({
+        pointsRecords: allRecords,
+        hasMoreRecords: allRecords.length < 50 // 假设最多50条记录
+      })
+      
+      this.filterPointsRecords()
+      wx.hideLoading()
+    }, 1000)
+  },
+
+  /**
+   * 签到功能
+   */
+  onCheckIn() {
+    if (this.data.hasCheckedIn) {
+      wx.showToast({
+        title: '今日已签到',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 执行签到
+    const bonus = this.data.checkInBonus
+    const newPoints = this.data.totalPoints + bonus
+    const today = new Date().toDateString()
+    
+    this.setData({
+      hasCheckedIn: true,
+      totalPoints: newPoints,
+      todayEarned: this.data.todayEarned + bonus
+    })
+
+    // 保存签到记录到本地存储
+    wx.setStorageSync('lastCheckIn', today)
+
+    // 更新全局数据
+    if (app.globalData.mockUser) {
+      app.globalData.mockUser.total_points = newPoints
+    }
+
+    wx.showModal({
+      title: '签到成功！',
+      content: `恭喜您获得${bonus}积分奖励！`,
+      showCancel: false,
+      confirmText: '太棒了'
+    })
+
+    // 刷新成就进度
+    this.updateAchievements()
+    
+    // 添加积分记录
+    const newRecord = {
+      id: Date.now(),
+      type: 'earn',
+      points: bonus,
+      description: '签到奖励',
+      balance: newPoints,
+      created_at: new Date().toLocaleDateString()
+    }
+    
+    const updatedRecords = [newRecord, ...this.data.pointsRecords]
+    this.setData({
+      pointsRecords: updatedRecords
+    })
+    this.filterPointsRecords()
+  },
+
+  /**
+   * 刷新统计数据
+   */
+  onRefreshStats() {
+    wx.showLoading({ title: '刷新中...' })
+    
+    // 模拟数据刷新
+    setTimeout(() => {
+      this.loadStatistics()
+      wx.hideLoading()
+      wx.showToast({
+        title: '刷新完成',
+        icon: 'success'
+      })
+    }, 1000)
+  },
+
+  /**
+   * 意见反馈
+   */
+  onFeedback() {
+    wx.navigateTo({
+      url: '/pages/feedback/feedback'
+    })
+  },
+
+  /**
+   * 初始化成就系统
+   */
+  initAchievements() {
+    const achievements = [
+      {
+        id: 1,
+        name: '新手上路',
+        icon: '🌟',
+        progress: 1,
+        target: 1,
+        unlocked: true,
+        description: '完成首次登录'
+      },
+      {
+        id: 2,
+        name: '积分达人',
+        icon: '💎',
+        progress: this.data.totalPoints,
+        target: 1000,
+        unlocked: this.data.totalPoints >= 1000,
+        description: '累计获得1000积分'
+      },
+      {
+        id: 3,
+        name: '抽奖狂人',
+        icon: '🎰',
+        progress: this.data.statistics.totalLottery,
+        target: 10,
+        unlocked: this.data.statistics.totalLottery >= 10,
+        description: '累计抽奖10次'
+      },
+      {
+        id: 4,
+        name: '兑换专家',
+        icon: '🛍️',
+        progress: this.data.statistics.totalExchange,
+        target: 5,
+        unlocked: this.data.statistics.totalExchange >= 5,
+        description: '累计兑换5次'
+      },
+      {
+        id: 5,
+        name: '拍照能手',
+        icon: '📸',
+        progress: this.data.statistics.totalUpload,
+        target: 20,
+        unlocked: this.data.statistics.totalUpload >= 20,
+        description: '上传小票20次'
+      },
+      {
+        id: 6,
+        name: '忠实用户',
+        icon: '👑',
+        progress: 15, // 假设使用天数
+        target: 30,
+        unlocked: false,
+        description: '连续使用30天'
+      }
+    ]
+
+    const unlockedCount = achievements.filter(a => a.unlocked).length
+
+    this.setData({
+      achievements,
+      unlockedAchievements: unlockedCount,
+      totalAchievements: achievements.length
+    })
+  },
+
+  /**
+   * 更新成就进度
+   */
+  updateAchievements() {
+    const achievements = this.data.achievements.map(achievement => {
+      switch (achievement.id) {
+        case 2: // 积分达人
+          achievement.progress = this.data.totalPoints
+          achievement.unlocked = this.data.totalPoints >= achievement.target
+          break
+        case 3: // 抽奖狂人
+          achievement.progress = this.data.statistics.totalLottery
+          achievement.unlocked = this.data.statistics.totalLottery >= achievement.target
+          break
+        case 4: // 兑换专家
+          achievement.progress = this.data.statistics.totalExchange
+          achievement.unlocked = this.data.statistics.totalExchange >= achievement.target
+          break
+        case 5: // 拍照能手
+          achievement.progress = this.data.statistics.totalUpload
+          achievement.unlocked = this.data.statistics.totalUpload >= achievement.target
+          break
+      }
+      return achievement
+    })
+
+    const unlockedCount = achievements.filter(a => a.unlocked).length
+
+    this.setData({
+      achievements,
+      unlockedAchievements: unlockedCount
+    })
+  },
+
+  /**
+   * 初始化菜单项
+   */
+  initMenuItems() {
+    const menuItems = [
+      { 
+        id: 'lottery-records', 
+        name: '抽奖记录', 
+        description: '查看所有抽奖历史',
+        icon: '🎰', 
+        path: '/pages/records/lottery-records',
+        color: '#FF6B35'
+      },
+      { 
+        id: 'exchange-records', 
+        name: '兑换记录', 
+        description: '查看商品兑换历史',
+        icon: '🛍️', 
+        path: '/pages/records/exchange-records',
+        color: '#4ECDC4'
+      },
+      { 
+        id: 'upload-records', 
+        name: '上传记录', 
+        description: '查看小票上传历史',
+        icon: '📸', 
+        path: '/pages/records/upload-records',
+        color: '#9C27B0'
+      },
+      { 
+        id: 'points-detail', 
+        name: '积分明细', 
+        description: '详细的积分收支记录',
+        icon: '💰', 
+        action: 'togglePointsDetail',
+        color: '#FFC107'
+      },
+      { 
+        id: 'settings', 
+        name: '设置', 
+        description: '个人偏好设置',
+        icon: '⚙️', 
+        path: '/pages/settings/settings',
+        color: '#607D8B'
+      },
+      { 
+        id: 'about', 
+        name: '关于我们', 
+        description: '了解更多信息',
+        icon: 'ℹ️', 
+        path: '/pages/about/about',
+        color: '#795548'
+      }
+    ]
+
+    this.setData({ menuItems })
   },
 
   /**
@@ -739,5 +903,41 @@ Page({
       title: '餐厅积分抽奖 - 我已经赚了' + this.data.totalPoints + '积分',
       imageUrl: '/images/share-user.jpg'
     }
+  },
+
+  /**
+   * 检查今日是否已签到
+   */
+  checkTodayCheckIn() {
+    // 从本地存储检查今日是否已签到
+    const today = new Date().toDateString()
+    const lastCheckIn = wx.getStorageSync('lastCheckIn')
+    
+    this.setData({
+      hasCheckedIn: lastCheckIn === today
+    })
+  },
+
+  /**
+   * 计算今日积分趋势
+   */
+  calculateTodayTrend() {
+    const today = new Date().toDateString()
+    const todayRecords = this.data.pointsRecords.filter(record => 
+      new Date(record.created_at).toDateString() === today
+    )
+
+    const earned = todayRecords
+      .filter(record => record.points > 0)
+      .reduce((sum, record) => sum + record.points, 0)
+
+    const consumed = Math.abs(todayRecords
+      .filter(record => record.points < 0)
+      .reduce((sum, record) => sum + record.points, 0))
+
+    this.setData({
+      todayEarned: earned,
+      todayConsumed: consumed
+    })
   }
 })

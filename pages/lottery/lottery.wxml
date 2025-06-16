@@ -32,8 +32,9 @@
       </view>
     </view>
 
-    <!-- 抽奖按钮组 -->
+    <!-- 抽奖按钮组 - 2×2网格布局 -->
     <view class="draw-buttons">
+      <!-- 第一行 -->
       <button 
         class="draw-btn single-btn {{isDrawing ? 'disabled' : ''}}"
         disabled="{{isDrawing || totalPoints < costPoints}}"
@@ -52,6 +53,7 @@
         <text class="btn-cost">{{costPoints * 3}}积分</text>
       </button>
 
+      <!-- 第二行 -->
       <button 
         class="draw-btn five-btn {{isDrawing ? 'disabled' : ''}}"
         disabled="{{isDrawing || totalPoints < costPoints * 5}}"

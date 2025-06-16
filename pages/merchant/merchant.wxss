@@ -1098,3 +1098,387 @@
   font-weight: 600;
   color: #4caf50;
 }
+
+/* 权限锁定遮罩 */
+.permission-lock {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 500;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8rpx);
+}
+
+.lock-content {
+  background: white;
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx;
+  text-align: center;
+  max-width: 600rpx;
+  width: 90%;
+  position: relative;
+  animation: lockShow 0.4s ease-out;
+}
+
+@keyframes lockShow {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-50rpx);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.lock-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.lock-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.lock-desc {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+  line-height: 1.5;
+  display: block;
+}
+
+.unlock-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 16rpx;
+  padding: 32rpx 60rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 40rpx;
+  transition: all 0.3s ease;
+}
+
+.unlock-btn:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.4);
+}
+
+.lock-tips {
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.lock-tips text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.lock-tips text:last-child {
+  margin-bottom: 0;
+}
+
+/* 锁定状态样式 */
+.locked {
+  filter: grayscale(0.8);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.merchant-badge {
+  background: linear-gradient(45deg, #ff6a88, #ff99ac);
+  color: white;
+  padding: 8rpx 20rpx;
+  border-radius: 50rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+/* 权限状态指示器 */
+.permission-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.permission-indicator.verified {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+  border: 2rpx solid #4CAF50;
+}
+
+.permission-indicator.locked {
+  background: rgba(244, 67, 54, 0.1);
+  color: #F44336;
+  border: 2rpx solid #F44336;
+}
+
+.indicator-icon {
+  font-size: 28rpx;
+}
+
+.indicator-text {
+  font-size: 22rpx;
+}
+
+/* 锁定状态下的按钮样式 */
+.locked .tool-btn,
+.locked .action-btn,
+.locked .product-btn,
+.locked .tab-item {
+  background: #f5f5f5 !important;
+  color: #ccc !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.locked .stat-item {
+  background: #f9f9f9 !important;
+  color: #ccc !important;
+  border-color: #e0e0e0 !important;
+}
+
+.locked .stat-number {
+  color: #ccc !important;
+}
+
+/* 选择框样式 */
+.item-select {
+  padding: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-select checkbox {
+  transform: scale(1.2);
+}
+
+/* 审核项目样式优化 */
+.pending-item {
+  background: white;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.pending-item:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.15);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 30rpx 30rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.item-content {
+  display: flex;
+  padding: 20rpx 30rpx;
+  gap: 20rpx;
+}
+
+.receipt-image {
+  width: 200rpx;
+  height: 150rpx;
+  border-radius: 12rpx;
+  background: var(--bg-color);
+}
+
+.receipt-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+.amount-info,
+.points-info,
+.remarks-info {
+  display: flex;
+  align-items: center;
+}
+
+.amount-label,
+.points-label,
+.remarks-label {
+  font-size: 24rpx;
+  color: #666;
+  margin-right: 12rpx;
+  min-width: 120rpx;
+}
+
+.amount-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ff6a88;
+}
+
+.points-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.remarks-value {
+  font-size: 24rpx;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* 操作按钮样式 */
+.item-actions {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 30rpx 30rpx;
+}
+
+.action-btn {
+  flex: 1;
+  border: none;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.approve-btn {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+}
+
+.reject-btn {
+  background: linear-gradient(135deg, #F44336, #D32F2F);
+  color: white;
+}
+
+.action-btn:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 商品操作按钮样式 */
+.product-actions {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.product-btn {
+  flex: 1;
+  border: none;
+  border-radius: 12rpx;
+  padding: 20rpx 16rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+}
+
+.stock-btn {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+  color: white;
+}
+
+.toggle-btn.offline {
+  background: linear-gradient(135deg, #9E9E9E, #757575);
+  color: white;
+}
+
+.toggle-btn.online {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+}
+
+.product-btn:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 80rpx 40rpx;
+  color: #999;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  margin-bottom: 40rpx;
+  display: block;
+}
+
+/* 响应式适配优化 */
+@media (max-width: 400px) {
+  .lock-content {
+    width: 95%;
+    padding: 40rpx 30rpx;
+  }
+  
+  .item-content {
+    flex-direction: column;
+  }
+  
+  .receipt-image {
+    width: 100%;
+    height: 200rpx;
+  }
+  
+  .item-actions {
+    flex-direction: column;
+  }
+  
+  .product-actions {
+    flex-direction: column;
+  }
+  
+  .permission-indicator {
+    flex-direction: column;
+    gap: 4rpx;
+  }
+}

@@ -15,17 +15,22 @@
         <text class="edit-phone">✏️</text>
       </view>
       <view class="user-id">ID: {{userInfo.user_id || '未登录'}}</view>
+      <view class="user-level">
+        <text class="level-icon">👑</text>
+        <text class="level-text">{{userInfo.level || 'VIP1'}} 会员</text>
+      </view>
     </view>
 
     <view class="user-actions">
       <button class="action-item" bindtap="onCheckIn">
         <text class="action-icon">📅</text>
-        <text class="action-text">签到</text>
+        <text class="action-text">{{hasCheckedIn ? '已签到' : '签到'}}</text>
+        <text class="sign-bonus" wx:if="{{!hasCheckedIn}}">+{{checkInBonus}}分</text>
       </button>
     </view>
   </view>
 
-  <!-- 积分余额 -->
+  <!-- 积分余额卡片 -->
   <view class="points-card" bindtap="onPointsTap">
     <view class="points-header">
       <text class="points-title">我的积分</text>
@@ -35,6 +40,18 @@
       <text class="points-number">{{totalPoints}}</text>
       <text class="points-unit">分</text>
     </view>
+    
+    <!-- 积分趋势 -->
+    <view class="points-trend">
+      <view class="trend-item">
+        <text class="trend-label">今日获得</text>
+        <text class="trend-value earned">+{{todayEarned || 0}}</text>
+      </view>
+      <view class="trend-item">
+        <text class="trend-label">今日消费</text>
+        <text class="trend-value consumed">-{{todayConsumed || 0}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 积分明细 -->
@@ -43,10 +60,36 @@
       <text class="detail-title">💰 积分明细</text>
       <text class="close-btn" bindtap="togglePointsDetail">×</text>
     </view>
+    
+    <!-- 筛选选项 -->
+    <view class="detail-filters">
+      <button 
+        class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}"
+        bindtap="onPointsFilterChange"
+        data-filter="all"
+      >
+        全部
+      </button>
+      <button 
+        class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}"
+        bindtap="onPointsFilterChange"
+        data-filter="earn"
+      >
+        获得
+      </button>
+      <button 
+        class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}"
+        bindtap="onPointsFilterChange"
+        data-filter="consume"
+      >
+        消费
+      </button>
+    </view>
+    
     <view class="detail-list">
       <view 
         class="detail-item"
-        wx:for="{{pointsRecords}}" 
+        wx:for="{{filteredPointsRecords}}" 
         wx:key="id"
       >
         <view class="item-info">
@@ -58,6 +101,30 @@
           <text class="points-balance">余额:{{item.balance}}</text>
         </view>
       </view>
+      
+      <!-- 加载更多 -->
+      <view class="load-more" wx:if="{{hasMoreRecords}}" bindtap="onLoadMoreRecords">
+        <text>加载更多记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 成就系统 -->
+  <view class="achievements-section" wx:if="{{!loading}}">
+    <view class="section-title">
+      <text>🏆 我的成就</text>
+      <text class="achievement-count">({{unlockedAchievements}}/{{totalAchievements}})</text>
+    </view>
+    <view class="achievements-grid">
+      <view 
+        class="achievement-item {{item.unlocked ? 'unlocked' : 'locked'}}"
+        wx:for="{{achievements}}" 
+        wx:key="id"
+      >
+        <text class="achievement-icon">{{item.icon}}</text>
+        <text class="achievement-name">{{item.name}}</text>
+        <text class="achievement-progress">{{item.progress}}/{{item.target}}</text>
+      </view>
     </view>
   </view>
 
@@ -65,23 +132,28 @@
   <view class="statistics-section" wx:if="{{!loading}}">
     <view class="section-title">
       <text>📊 我的统计</text>
+      <button class="refresh-stats" bindtap="onRefreshStats">🔄</button>
     </view>
     <view class="stats-grid">
       <view class="stat-item">
         <text class="stat-number">{{statistics.totalLottery}}</text>
         <text class="stat-label">抽奖次数</text>
+        <text class="stat-trend {{statistics.lotteryTrend === '↑' ? 'up' : (statistics.lotteryTrend === '↓' ? 'down' : 'stable')}}">{{statistics.lotteryTrend}}</text>
       </view>
       <view class="stat-item">
         <text class="stat-number">{{statistics.totalExchange}}</text>
         <text class="stat-label">兑换次数</text>
+        <text class="stat-trend {{statistics.exchangeTrend === '↑' ? 'up' : (statistics.exchangeTrend === '↓' ? 'down' : 'stable')}}">{{statistics.exchangeTrend}}</text>
       </view>
       <view class="stat-item">
         <text class="stat-number">{{statistics.totalUpload}}</text>
         <text class="stat-label">上传次数</text>
+        <text class="stat-trend {{statistics.uploadTrend === '↑' ? 'up' : (statistics.uploadTrend === '↓' ? 'down' : 'stable')}}">{{statistics.uploadTrend}}</text>
       </view>
       <view class="stat-item">
         <text class="stat-number">{{statistics.thisMonthPoints}}</text>
         <text class="stat-label">本月积分</text>
+        <text class="stat-trend {{statistics.pointsTrend === '↑' ? 'up' : (statistics.pointsTrend === '↓' ? 'down' : 'stable')}}">{{statistics.pointsTrend}}</text>
       </view>
     </view>
   </view>
@@ -101,7 +173,10 @@
         style="border-left: 4rpx solid {{item.color}}"
       >
         <view class="menu-icon" style="color: {{item.color}}">{{item.icon}}</view>
-        <text class="menu-name">{{item.name}}</text>
+        <view class="menu-content">
+          <text class="menu-name">{{item.name}}</text>
+          <text class="menu-desc">{{item.description}}</text>
+        </view>
         <text class="menu-arrow">▶</text>
       </view>
     </view>
@@ -111,6 +186,9 @@
   <view class="quick-actions">
     <button class="quick-btn service-btn" bindtap="onContactService">
       📞 联系客服
+    </button>
+    <button class="quick-btn feedback-btn" bindtap="onFeedback">
+      💬 意见反馈
     </button>
     <button class="quick-btn logout-btn" bindtap="onLogout">
       🚪 退出登录
@@ -127,7 +205,8 @@
 
   <!-- 版本信息 -->
   <view class="version-info">
-    <text class="version-text">餐厅积分抽奖系统 v1.0.0</text>
+    <text class="version-text">餐厅积分抽奖系统 v1.2.0</text>
     <text class="copyright">© 2024 All Rights Reserved</text>
+    <text class="update-time">最后更新：{{lastUpdateTime}}</text>
   </view>
 </view>

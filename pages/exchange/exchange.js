@@ -12,6 +12,7 @@ Page({
     
     // 商品列表
     products: [],
+    filteredProducts: [],
     
     // 页面状态
     loading: true,
@@ -30,7 +31,24 @@ Page({
 
     // 新增的兑换相关数据
     exchangeQuantity: 1,
-    exchanging: false
+    exchanging: false,
+
+    // 搜索和筛选
+    searchKeyword: '',
+    currentFilter: 'all', // 'all', 'available', 'low-price'
+    
+    // 分页功能
+    currentPage: 1,
+    totalPages: 5,
+    pageSize: 20,
+    totalProducts: 100,
+    
+    // 高级筛选
+    showAdvancedFilter: false,
+    categoryFilter: 'all', // 'all', '优惠券', '实物商品', '虚拟物品'
+    pointsRange: 'all', // 'all', '0-500', '500-1000', '1000-2000', '2000+'
+    stockFilter: 'all', // 'all', 'in-stock', 'low-stock'
+    sortBy: 'default', // 'default', 'points-asc', 'points-desc', 'stock-desc', 'rating-desc'
   },
 
   onLoad() {
@@ -80,21 +98,73 @@ Page({
    */
   generateMockProducts() {
     const productNames = [
+      // 优惠券类 (1-20)
       '品牌钥匙扣', '限定保温杯', '定制餐具套装', '定制围裙',
       '精美马克杯', '竹制餐具', '环保购物袋', '品牌帽子',
       '定制T恤', '保鲜盒套装', '咖啡杯', '餐垫套装',
       '调料瓶套装', '厨房工具', '隔热手套', '切菜板',
-      '保温饭盒', '水杯套装', '餐具收纳', '厨房围裙'
+      '保温饭盒', '水杯套装', '餐具收纳', '厨房围裙',
+      
+      // 实物商品类 (21-60)
+      '蓝牙耳机', '充电宝', '数据线', '手机支架',
+      '桌面音响', '无线充电器', '车载充电器', '移动硬盘',
+      '鼠标垫', '键盘', '办公笔记本', '文具套装',
+      '护肤套装', '洗护用品', '香薰蜡烛', '精油',
+      '运动毛巾', '瑜伽垫', '运动水杯', '健身手套',
+      '背包', '钱包', '皮带', '围巾',
+      '太阳镜', '手表', '项链', '耳环',
+      '茶叶礼盒', '咖啡豆', '巧克力', '坚果礼盒',
+      '红酒', '白酒', '啤酒', '果汁',
+      '小家电', '炖煮锅', '榨汁机', '咖啡机',
+      
+      // 虚拟物品类 (61-100)
+      '会员月卡', '会员季卡', '会员年卡', 'VIP特权',
+      '免费停车券', '洗车券', '按摩券', '美容券',
+      '电影票', '演唱会票', '话剧票', '体验券',
+      '健身房月卡', '游泳馆次卡', '瑜伽课程', '舞蹈课程',
+      '在线课程', '知识付费', '电子书', '音乐VIP',
+      '视频VIP', '游戏充值', '话费充值', '流量包',
+      '外卖红包', '打车券', '快递券', '购物券',
+      '生日蛋糕券', '下午茶券', '火锅券', '自助餐券',
+      'KTV券', '桌游券', '密室逃脱', '剧本杀',
+      '旅游券', '酒店券', '民宿券', '景点票',
+      '摄影服务', '设计服务', '维修服务', '清洁服务'
     ]
 
-    this.data.mockProducts = productNames.map((name, index) => ({
-      id: index + 1,
-      name: name,
-      image: 'https://via.placeholder.com/200x200/4ECDC4/ffffff?text=' + encodeURIComponent(name),
-      exchange_points: 800 + index * 100,
-      stock: Math.floor(Math.random() * 20) + 1,
-      description: `${name}的详细描述，优质材料制作，限量供应。`
-    }))
+    const categories = ['优惠券', '实物商品', '虚拟物品']
+    
+    // 生成100个商品
+    this.data.mockProducts = Array.from({ length: 100 }, (_, index) => {
+      const name = productNames[index] || `商品${index + 1}`
+      let category
+      
+      if (index < 20) {
+        category = '优惠券'
+      } else if (index < 60) {
+        category = '实物商品'
+      } else {
+        category = '虚拟物品'
+      }
+
+      return {
+        id: index + 1,
+        name: name,
+        image: `https://via.placeholder.com/200x200/4ECDC4/ffffff?text=${encodeURIComponent(name)}`,
+        exchange_points: 300 + Math.floor(index / 10) * 200 + (index % 10) * 50,
+        stock: Math.floor(Math.random() * 50) + 1,
+        description: `${name}的详细描述，优质材料制作，${category === '优惠券' ? '限时优惠' : category === '实物商品' ? '限量供应' : '虚拟兑换'}。`,
+        is_hot: index < 5 || (index % 15 === 0), // 前5个商品和每15个商品标记为热门
+        rating: (3.5 + Math.random() * 1.5).toFixed(1), // 3.5-5.0的评分
+        category: category,
+        created_time: new Date(Date.now() - index * 60 * 60 * 1000).toISOString()
+      }
+    })
+
+    // 设置总商品数
+    this.setData({
+      totalProducts: this.data.mockProducts.length,
+      totalPages: Math.ceil(this.data.mockProducts.length / this.data.pageSize)
+    })
   },
 
   /**
@@ -176,9 +246,11 @@ Page({
         categories: ['全部'].concat(categories),
         products: products,
         allProducts: products,
-        filteredProducts: products,
         loading: false
       })
+
+      // 初始化筛选结果
+      this.filterProducts()
 
       console.log('✅ 商品列表加载成功，共', products.length, '件商品')
 
@@ -196,7 +268,9 @@ Page({
           exchange_points: 1000,
           stock: 100,
           image: 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=10元券',
-          status: 'available'
+          status: 'available',
+          is_hot: true,
+          rating: '4.8'
         },
         {
           id: 2,
@@ -207,7 +281,9 @@ Page({
           exchange_points: 1800,
           stock: 50,
           image: 'https://via.placeholder.com/200x200/4ECDC4/ffffff?text=20元券',
-          status: 'available'
+          status: 'available',
+          is_hot: true,
+          rating: '4.6'
         },
         {
           id: 3,
@@ -218,7 +294,9 @@ Page({
           exchange_points: 2500,
           stock: 20,
           image: 'https://via.placeholder.com/200x200/FFD93D/000000?text=海鲜',
-          status: 'available'
+          status: 'available',
+          is_hot: false,
+          rating: '4.9'
         },
         {
           id: 4,
@@ -229,7 +307,9 @@ Page({
           exchange_points: 3000,
           stock: 999,
           image: 'https://via.placeholder.com/200x200/9775FA/ffffff?text=会员卡',
-          status: 'available'
+          status: 'available',
+          is_hot: false,
+          rating: '4.7'
         }
       ]
       
@@ -237,9 +317,11 @@ Page({
         categories: ['全部', '优惠券', '实物商品', '虚拟物品'],
         products: defaultProducts,
         allProducts: defaultProducts,
-        filteredProducts: defaultProducts,
         loading: false
       })
+      
+      // 初始化筛选结果
+      this.filterProducts()
       
       wx.showToast({
         title: '使用默认商品数据',
@@ -676,6 +758,336 @@ Page({
         //   url: '/pages/records/exchange-records'
         // })
       }
+    })
+  },
+
+  /**
+   * 搜索输入处理
+   */
+  onSearchInput(e) {
+    const keyword = e.detail.value.trim()
+    this.setData({
+      searchKeyword: keyword
+    })
+    this.filterProducts()
+  },
+
+  /**
+   * 筛选切换
+   */
+  onFilterChange(e) {
+    const filter = e.currentTarget.dataset.filter
+    this.setData({
+      currentFilter: filter
+    })
+    this.filterProducts()
+  },
+
+  /**
+   * 筛选商品
+   */
+  filterProducts() {
+    let filtered = [...this.data.mockProducts] // 使用全部商品作为基础数据
+    
+    // 搜索关键词筛选
+    if (this.data.searchKeyword) {
+      filtered = filtered.filter(product => 
+        product.name.toLowerCase().includes(this.data.searchKeyword.toLowerCase()) ||
+        product.description.toLowerCase().includes(this.data.searchKeyword.toLowerCase())
+      )
+    }
+    
+    // 基础筛选条件
+    switch (this.data.currentFilter) {
+      case 'available':
+        filtered = filtered.filter(product => 
+          product.stock > 0 && this.data.totalPoints >= product.exchange_points
+        )
+        break
+      case 'low-price':
+        filtered = filtered.filter(product => product.exchange_points <= 1000)
+        break
+      default:
+        // 'all' - 不过滤
+        break
+    }
+    
+    // 高级筛选 - 分类
+    if (this.data.categoryFilter !== 'all') {
+      filtered = filtered.filter(product => product.category === this.data.categoryFilter)
+    }
+    
+    // 高级筛选 - 积分范围
+    switch (this.data.pointsRange) {
+      case '0-500':
+        filtered = filtered.filter(product => product.exchange_points >= 0 && product.exchange_points <= 500)
+        break
+      case '500-1000':
+        filtered = filtered.filter(product => product.exchange_points > 500 && product.exchange_points <= 1000)
+        break
+      case '1000-2000':
+        filtered = filtered.filter(product => product.exchange_points > 1000 && product.exchange_points <= 2000)
+        break
+      case '2000+':
+        filtered = filtered.filter(product => product.exchange_points > 2000)
+        break
+      default:
+        // 'all' - 不过滤
+        break
+    }
+    
+    // 高级筛选 - 库存状态
+    switch (this.data.stockFilter) {
+      case 'in-stock':
+        filtered = filtered.filter(product => product.stock > 5)
+        break
+      case 'low-stock':
+        filtered = filtered.filter(product => product.stock <= 5 && product.stock > 0)
+        break
+      default:
+        // 'all' - 不过滤
+        break
+    }
+    
+    // 排序
+    switch (this.data.sortBy) {
+      case 'points-asc':
+        filtered.sort((a, b) => a.exchange_points - b.exchange_points)
+        break
+      case 'points-desc':
+        filtered.sort((a, b) => b.exchange_points - a.exchange_points)
+        break
+      case 'stock-desc':
+        filtered.sort((a, b) => b.stock - a.stock)
+        break
+      case 'rating-desc':
+        filtered.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+        break
+      default:
+        // 'default' - 按创建时间排序
+        filtered.sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
+        break
+    }
+    
+    // 分页处理
+    const startIndex = (this.data.currentPage - 1) * this.data.pageSize
+    const endIndex = startIndex + this.data.pageSize
+    const paginatedProducts = filtered.slice(startIndex, endIndex)
+    
+    // 更新总页数
+    const totalPages = Math.ceil(filtered.length / this.data.pageSize)
+    
+    this.setData({
+      filteredProducts: paginatedProducts,
+      products: filtered, // 保存全部筛选结果用于统计
+      totalPages,
+      totalProducts: filtered.length
+    })
+  },
+
+  /**
+   * 页码变更
+   */
+  onPageChange(e) {
+    const page = parseInt(e.currentTarget.dataset.page)
+    
+    if (page >= 1 && page <= this.data.totalPages) {
+      this.setData({
+        currentPage: page
+      })
+      this.filterProducts()
+      
+      // 滚动到顶部
+      wx.pageScrollTo({
+        scrollTop: 0,
+        duration: 300
+      })
+    }
+  },
+
+  /**
+   * 上一页
+   */
+  onPrevPage() {
+    if (this.data.currentPage > 1) {
+      this.setData({
+        currentPage: this.data.currentPage - 1
+      })
+      this.filterProducts()
+      
+      wx.pageScrollTo({
+        scrollTop: 0,
+        duration: 300
+      })
+    }
+  },
+
+  /**
+   * 下一页
+   */
+  onNextPage() {
+    if (this.data.currentPage < this.data.totalPages) {
+      this.setData({
+        currentPage: this.data.currentPage + 1
+      })
+      this.filterProducts()
+      
+      wx.pageScrollTo({
+        scrollTop: 0,
+        duration: 300
+      })
+    }
+  },
+
+  /**
+   * 显示/隐藏高级筛选
+   */
+  onToggleAdvancedFilter() {
+    this.setData({
+      showAdvancedFilter: !this.data.showAdvancedFilter
+    })
+  },
+
+  /**
+   * 分类筛选变更
+   */
+  onCategoryFilterChange(e) {
+    const category = e.currentTarget.dataset.category
+    this.setData({
+      categoryFilter: category,
+      currentPage: 1 // 重置到第一页
+    })
+    this.filterProducts()
+  },
+
+  /**
+   * 积分范围筛选变更
+   */
+  onPointsRangeChange(e) {
+    const range = e.currentTarget.dataset.range
+    this.setData({
+      pointsRange: range,
+      currentPage: 1
+    })
+    this.filterProducts()
+  },
+
+  /**
+   * 库存状态筛选变更
+   */
+  onStockFilterChange(e) {
+    const filter = e.currentTarget.dataset.filter
+    this.setData({
+      stockFilter: filter,
+      currentPage: 1
+    })
+    this.filterProducts()
+  },
+
+  /**
+   * 排序方式变更
+   */
+  onSortByChange(e) {
+    const sortBy = e.currentTarget.dataset.sort
+    this.setData({
+      sortBy: sortBy,
+      currentPage: 1
+    })
+    this.filterProducts()
+  },
+
+  /**
+   * 重置筛选条件
+   */
+  onResetFilters() {
+    this.setData({
+      searchKeyword: '',
+      currentFilter: 'all',
+      categoryFilter: 'all',
+      pointsRange: 'all',
+      stockFilter: 'all',
+      sortBy: 'default',
+      currentPage: 1
+    })
+    this.filterProducts()
+    
+    wx.showToast({
+      title: '筛选条件已重置',
+      icon: 'success'
+    })
+  },
+
+  /**
+   * 页面跳转输入变更
+   */
+  onPageInputChange(e) {
+    this.setData({
+      jumpPageNumber: e.detail.value
+    })
+  },
+
+  /**
+   * 页面跳转确认
+   */
+  onPageInputConfirm(e) {
+    const pageNumber = parseInt(e.detail.value)
+    
+    if (pageNumber >= 1 && pageNumber <= this.data.totalPages) {
+      this.setData({
+        currentPage: pageNumber
+      })
+      this.filterProducts()
+      
+      wx.pageScrollTo({
+        scrollTop: 0,
+        duration: 300
+      })
+    } else {
+      wx.showToast({
+        title: '页码超出范围',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 清除搜索
+   */
+  onClearSearch() {
+    this.setData({
+      searchKeyword: '',
+      currentPage: 1
+    })
+    this.filterProducts()
+  },
+
+  /**
+   * 刷新商品列表
+   */
+  onRefreshProducts() {
+    wx.showLoading({ title: '刷新中...' })
+    this.loadProducts().finally(() => {
+      wx.hideLoading()
+      wx.showToast({
+        title: '刷新完成',
+        icon: 'success'
+      })
+    })
+  },
+
+  /**
+   * 按积分排序
+   */
+  onSortByPoints() {
+    this.setData({
+      sortBy: 'points-asc',
+      currentPage: 1
+    })
+    this.filterProducts()
+    
+    wx.showToast({
+      title: '按积分排序完成',
+      icon: 'success'
     })
   }
 }) 

@@ -81,6 +81,10 @@
     <view class="info-content">
       <view class="info-item">
         <text class="info-icon">📈</text>
+        <text class="info-text">系统会根据小票自动识别消费金额</text>
+      </view>
+      <view class="info-item">
+        <text class="info-icon">🎯</text>
         <text class="info-text">消费1元 = 10积分</text>
       </view>
       <view class="info-item">
@@ -122,11 +126,11 @@
         />
         <view class="history-info">
           <view class="history-amount">
-            <text class="amount-label">消费金额：</text>
+            <text class="amount-label">识别金额：</text>
             <text class="amount-value">{{item.amount}}元</text>
           </view>
           <view class="history-points">
-            <text class="points-label">积分：</text>
+            <text class="points-label">获得积分：</text>
             <text class="points-value">{{item.points_awarded}}分</text>
           </view>
           <view class="history-time">
@@ -160,7 +164,7 @@
     </view>
     <view class="notice-content">
       <view class="notice-item">• 请确保小票图片清晰可见，包含完整的消费信息</view>
-      <view class="notice-item">• 请输入准确的消费金额，与小票金额保持一致</view>
+      <view class="notice-item">• 系统会自动识别小票上的消费金额</view>
       <view class="notice-item">• 审核通过后积分将自动发放到您的账户</view>
       <view class="notice-item">• 如有问题请联系客服处理</view>
       <view class="notice-item">• 同一张小票不可重复上传</view>

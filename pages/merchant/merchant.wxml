@@ -38,26 +38,50 @@
 
   <!-- 商家管理界面 -->
   <view class="merchant-main" wx:if="{{isMerchant && !loading}}">
+    <!-- 权限锁定遮罩 -->
+    <view class="permission-lock" wx:if="{{!hasPermission}}">
+      <view class="lock-overlay"></view>
+      <view class="lock-content">
+        <view class="lock-icon">🔐</view>
+        <text class="lock-title">商家功能已锁定</text>
+        <text class="lock-desc">为保护您的账户安全，请先完成身份验证</text>
+        <button class="unlock-btn" bindtap="onUnlockPermission">
+          🔓 解锁功能
+        </button>
+        <view class="lock-tips">
+          <text>• 支持手机验证码验证</text>
+          <text>• 支持账号密码验证</text>
+          <text>• 验证成功后自动解锁</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 页面头部 -->
-    <view class="header">
+    <view class="header {{!hasPermission ? 'locked' : ''}}">
       <view class="user-info">
         <text class="welcome">🏪 商家管理</text>
-        <text class="merchant-badge">商家</text>
+        <text class="merchant-badge">{{hasPermission ? '已验证' : '未验证'}}</text>
+      </view>
+      
+      <!-- 权限状态指示器 -->
+      <view class="permission-indicator {{hasPermission ? 'verified' : 'locked'}}">
+        <text class="indicator-icon">{{hasPermission ? '🔓' : '🔐'}}</text>
+        <text class="indicator-text">{{hasPermission ? '已解锁' : '已锁定'}}</text>
       </view>
     </view>
 
     <!-- 管理选项卡 -->
-    <view class="tab-bar">
+    <view class="tab-bar {{!hasPermission ? 'locked' : ''}}">
       <view 
         class="tab-item {{currentTab === 'review' ? 'active' : ''}}"
-        bindtap="onTabChange"
+        bindtap="{{hasPermission ? 'onTabChange' : 'onLockedTap'}}"
         data-tab="review"
       >
         📋 审核管理
       </view>
       <view 
         class="tab-item {{currentTab === 'product' ? 'active' : ''}}"
-        bindtap="onTabChange"
+        bindtap="{{hasPermission ? 'onTabChange' : 'onLockedTap'}}"
         data-tab="product"
       >
         🛍️ 商品管理
@@ -65,7 +89,7 @@
     </view>
 
     <!-- 审核管理页面 -->
-    <view class="review-tab" wx:if="{{currentTab === 'review'}}">
+    <view class="review-tab {{!hasPermission ? 'locked' : ''}}" wx:if="{{currentTab === 'review'}}">
       <!-- 审核统计 -->
       <view class="statistics-section">
         <view class="section-title">
@@ -93,10 +117,10 @@
 
       <!-- 操作工具栏 -->
       <view class="toolbar">
-        <button class="tool-btn refresh-btn" bindtap="refreshData">
+        <button class="tool-btn refresh-btn" bindtap="{{hasPermission ? 'refreshData' : 'onLockedTap'}}">
           🔄 刷新
         </button>
-        <button class="tool-btn batch-btn" bindtap="onBatchOperation">
+        <button class="tool-btn batch-btn" bindtap="{{hasPermission ? 'onBatchOperation' : 'onLockedTap'}}">
           📝 批量操作
         </button>
       </view>
@@ -113,7 +137,16 @@
             wx:for="{{pendingList}}" 
             wx:key="id"
           >
-            <!-- 用户信息 -->
+            <!-- 选择框 -->
+            <view class="item-select">
+              <checkbox 
+                checked="{{item.selected}}"
+                bindchange="{{hasPermission ? 'onItemSelect' : 'onLockedTap'}}"
+                data-id="{{item.id}}"
+              />
+            </view>
+
+            <!-- 审核项头部 -->
             <view class="item-header">
               <view class="user-info">
                 <text class="user-phone">{{item.user_phone}}</text>
@@ -125,23 +158,27 @@
               </view>
             </view>
 
-            <!-- 小票信息 -->
+            <!-- 审核内容 -->
             <view class="item-content">
               <image 
                 class="receipt-image" 
-                src="{{item.image_url}}" 
+                src="{{item.receipt_image}}" 
                 mode="aspectFill"
-                bindtap="onPreviewImage"
-                data-url="{{item.image_url}}"
+                bindtap="{{hasPermission ? 'onPreviewImage' : 'onLockedTap'}}"
+                data-url="{{item.receipt_image}}"
               />
               <view class="receipt-info">
                 <view class="amount-info">
                   <text class="amount-label">消费金额：</text>
-                  <text class="amount-value">{{item.amount}}元</text>
+                  <text class="amount-value">¥{{item.amount}}</text>
                 </view>
                 <view class="points-info">
-                  <text class="points-label">预计积分：</text>
-                  <text class="points-value">{{item.expected_points}}分</text>
+                  <text class="points-label">建议积分：</text>
+                  <text class="points-value">{{item.suggested_points}}分</text>
+                </view>
+                <view class="remarks-info" wx:if="{{item.user_remarks}}">
+                  <text class="remarks-label">用户备注：</text>
+                  <text class="remarks-value">{{item.user_remarks}}</text>
                 </view>
               </view>
             </view>
@@ -149,43 +186,33 @@
             <!-- 操作按钮 -->
             <view class="item-actions">
               <button 
-                class="action-btn contact-btn"
-                bindtap="onContactUser"
-                data-phone="{{item.user_phone}}"
-              >
-                📞 联系
-              </button>
-              <button 
-                class="action-btn reject-btn"
-                bindtap="onStartReview"
-                data-item="{{item}}"
-                data-action="reject"
-              >
-                ❌ 拒绝
-              </button>
-              <button 
                 class="action-btn approve-btn"
-                bindtap="onStartReview"
+                bindtap="{{hasPermission ? 'onApprove' : 'onLockedTap'}}"
                 data-item="{{item}}"
-                data-action="approve"
               >
                 ✅ 通过
               </button>
+              <button 
+                class="action-btn reject-btn"
+                bindtap="{{hasPermission ? 'onReject' : 'onLockedTap'}}"
+                data-item="{{item}}"
+              >
+                ❌ 拒绝
+              </button>
             </view>
           </view>
+        </view>
 
-          <!-- 列表为空 -->
-          <view class="empty-list" wx:if="{{pendingList.length === 0}}">
-            <view class="empty-icon">📋</view>
-            <text class="empty-text">暂无待审核项目</text>
-            <button class="refresh-btn" bindtap="refreshData">刷新数据</button>
-          </view>
+        <!-- 空状态 -->
+        <view class="empty-state" wx:if="{{pendingList.length === 0}}">
+          <view class="empty-icon">📝</view>
+          <text class="empty-text">暂无待审核记录</text>
         </view>
       </view>
     </view>
 
     <!-- 商品管理页面 -->
-    <view class="product-tab" wx:if="{{currentTab === 'product'}}">
+    <view class="product-tab {{!hasPermission ? 'locked' : ''}}" wx:if="{{currentTab === 'product'}}">
       <!-- 商品统计 -->
       <view class="product-statistics">
         <view class="section-title">
@@ -213,13 +240,13 @@
 
       <!-- 商品操作工具栏 -->
       <view class="product-toolbar">
-        <button class="tool-btn add-btn" bindtap="onAddProduct">
+        <button class="tool-btn add-btn" bindtap="{{hasPermission ? 'onAddProduct' : 'onLockedTap'}}">
           ➕ 新增商品
         </button>
-        <button class="tool-btn batch-edit-btn" bindtap="onBatchEdit">
+        <button class="tool-btn batch-edit-btn" bindtap="{{hasPermission ? 'onBatchEdit' : 'onLockedTap'}}">
           📝 批量编辑
         </button>
-        <button class="tool-btn refresh-btn" bindtap="refreshProducts">
+        <button class="tool-btn refresh-btn" bindtap="{{hasPermission ? 'refreshProducts' : 'onLockedTap'}}">
           🔄 刷新
         </button>
       </view>
@@ -262,271 +289,44 @@
               </view>
             </view>
 
-            <!-- 操作按钮 -->
+            <!-- 商品操作 -->
             <view class="product-actions">
               <button 
                 class="product-btn edit-btn"
-                bindtap="onEditProduct"
+                bindtap="{{hasPermission ? 'onEditProduct' : 'onLockedTap'}}"
                 data-product="{{item}}"
               >
                 ✏️ 编辑
               </button>
               <button 
                 class="product-btn stock-btn"
-                bindtap="onManageStock"
+                bindtap="{{hasPermission ? 'onAdjustStock' : 'onLockedTap'}}"
                 data-product="{{item}}"
               >
-                📦 库存
+                📦 调库存
               </button>
               <button 
-                class="product-btn status-btn {{item.status === 'active' ? 'offline' : 'online'}}"
-                bindtap="onToggleStatus"
+                class="product-btn toggle-btn {{item.status === 'active' ? 'offline' : 'online'}}"
+                bindtap="{{hasPermission ? 'onToggleStatus' : 'onLockedTap'}}"
                 data-product="{{item}}"
               >
-                {{item.status === 'active' ? '🔽 下架' : '🔼 上架'}}
-              </button>
-              <button 
-                class="product-btn delete-btn"
-                bindtap="onDeleteProduct"
-                data-product="{{item}}"
-              >
-                🗑️ 删除
+                {{item.status === 'active' ? '📴 下架' : '📱 上架'}}
               </button>
             </view>
           </view>
-
-          <!-- 商品列表为空 -->
-          <view class="empty-products" wx:if="{{productList.length === 0}}">
-            <view class="empty-icon">🛍️</view>
-            <text class="empty-text">暂无商品</text>
-            <button class="add-product-btn" bindtap="onAddProduct">添加第一个商品</button>
-          </view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 权限申请弹窗 -->
-  <view class="auth-modal" wx:if="{{showAuthModal}}">
-    <view class="modal-mask" bindtap="onCancelAuth"></view>
-    <view class="modal-content">
-      <view class="modal-header">
-        <text class="modal-title">申请商家权限</text>
-        <view class="close-btn" bindtap="onCancelAuth">×</view>
-      </view>
-      
-      <view class="modal-body">
-        <view class="confirm-text">
-          申请成为商家后，您将获得以下权限：
-        </view>
-        <view class="permission-list">
-          <view class="permission-item">• 审核用户上传的小票</view>
-          <view class="permission-item">• 决定积分发放数量</view>
-          <view class="permission-item">• 查看审核统计数据</view>
-          <view class="permission-item">• 联系相关用户</view>
-        </view>
-        <view class="warning-text">
-          请确保您有足够的时间处理审核事务
-        </view>
-      </view>
-
-      <view class="modal-footer">
-        <button class="cancel-btn" bindtap="onCancelAuth">取消</button>
-        <button 
-          class="confirm-btn {{authRequesting ? 'loading' : ''}}"
-          disabled="{{authRequesting}}"
-          bindtap="onConfirmAuth"
-        >
-          {{authRequesting ? '申请中...' : '确认申请'}}
-        </button>
-      </view>
-    </view>
-  </view>
-
-  <!-- 审核操作弹窗 -->
-  <view class="review-modal" wx:if="{{showReviewModal}}">
-    <view class="modal-mask" bindtap="onCancelReview"></view>
-    <view class="modal-content">
-      <view class="modal-header">
-        <text class="modal-title">
-          {{reviewAction === 'approve' ? '审核通过' : '审核拒绝'}}
-        </text>
-        <view class="close-btn" bindtap="onCancelReview">×</view>
-      </view>
-      
-      <view class="modal-body" wx:if="{{currentReview}}">
-        <!-- 用户信息 -->
-        <view class="review-info">
-          <text class="info-label">用户：</text>
-          <text class="info-value">{{currentReview.user_phone}}</text>
-        </view>
-        <view class="review-info">
-          <text class="info-label">金额：</text>
-          <text class="info-value">{{currentReview.amount}}元</text>
-        </view>
-
-        <!-- 审核通过 - 积分输入 -->
-        <view class="input-section" wx:if="{{reviewAction === 'approve'}}">
-          <text class="input-label">发放积分：</text>
-          <input 
-            class="points-input"
-            type="number"
-            placeholder="请输入积分数量"
-            value="{{reviewPoints}}"
-            bindinput="onPointsInput"
-          />
-          <text class="input-tips">建议：{{currentReview.expected_points}}分</text>
-        </view>
-
-        <!-- 审核拒绝 - 理由输入 -->
-        <view class="input-section" wx:if="{{reviewAction === 'reject'}}">
-          <text class="input-label">拒绝理由：</text>
-          <textarea 
-            class="reason-input"
-            placeholder="请输入拒绝理由，用户将收到此信息"
-            value="{{reviewReason}}"
-            bindinput="onReasonInput"
-            maxlength="200"
-          />
-        </view>
-      </view>
-
-      <view class="modal-footer">
-        <button class="cancel-btn" bindtap="onCancelReview">取消</button>
-        <button class="confirm-btn" bindtap="onConfirmReview">
-          确认{{reviewAction === 'approve' ? '通过' : '拒绝'}}
-        </button>
-      </view>
-    </view>
-  </view>
-
-  <!-- 新增/编辑商品弹窗 -->
-  <view class="product-modal" wx:if="{{showProductModal}}">
-    <view class="modal-mask" bindtap="onCancelProduct"></view>
-    <view class="modal-content">
-      <view class="modal-header">
-        <text class="modal-title">{{editingProduct ? '编辑商品' : '新增商品'}}</text>
-        <view class="close-btn" bindtap="onCancelProduct">×</view>
-      </view>
-      
-      <view class="modal-body">
-        <!-- 商品名称 -->
-        <view class="form-item">
-          <text class="form-label">商品名称：</text>
-          <input 
-            class="form-input"
-            placeholder="请输入商品名称"
-            value="{{productForm.name}}"
-            bindinput="onProductNameInput"
-          />
-        </view>
-
-        <!-- 商品描述 -->
-        <view class="form-item">
-          <text class="form-label">商品描述：</text>
-          <textarea 
-            class="form-textarea"
-            placeholder="请输入商品描述"
-            value="{{productForm.description}}"
-            bindinput="onProductDescInput"
-          />
-        </view>
-
-        <!-- 兑换积分 -->
-        <view class="form-item">
-          <text class="form-label">兑换积分：</text>
-          <input 
-            class="form-input"
-            type="number"
-            placeholder="请输入兑换所需积分"
-            value="{{productForm.exchange_points}}"
-            bindinput="onProductPointsInput"
-          />
-        </view>
-
-        <!-- 库存数量 -->
-        <view class="form-item">
-          <text class="form-label">库存数量：</text>
-          <input 
-            class="form-input"
-            type="number"
-            placeholder="请输入库存数量"
-            value="{{productForm.stock}}"
-            bindinput="onProductStockInput"
-          />
-        </view>
-
-        <!-- 商品图片 -->
-        <view class="form-item">
-          <text class="form-label">商品图片：</text>
-          <view class="image-upload-container">
-            <view class="image-preview" wx:if="{{productForm.image}}">
-              <image class="preview-img" src="{{productForm.image}}" mode="aspectFill"/>
-              <button class="delete-img-btn" bindtap="onDeleteProductImage">删除</button>
-            </view>
-            <button class="upload-img-btn" wx:else bindtap="onUploadProductImage">
-              📷 上传图片
-            </button>
-          </view>
-        </view>
-      </view>
-
-      <view class="modal-footer">
-        <button class="cancel-btn" bindtap="onCancelProduct">取消</button>
-        <button 
-          class="confirm-btn {{productSubmitting ? 'loading' : ''}}"
-          disabled="{{productSubmitting}}"
-          bindtap="onConfirmProduct"
-        >
-          {{productSubmitting ? '保存中...' : '确认保存'}}
-        </button>
-      </view>
-    </view>
-  </view>
-
-  <!-- 库存管理弹窗 -->
-  <view class="stock-modal" wx:if="{{showStockModal}}">
-    <view class="modal-mask" bindtap="onCancelStock"></view>
-    <view class="modal-content">
-      <view class="modal-header">
-        <text class="modal-title">库存管理</text>
-        <view class="close-btn" bindtap="onCancelStock">×</view>
-      </view>
-      
-      <view class="modal-body" wx:if="{{currentProduct}}">
-        <view class="product-info">
-          <text class="product-name">{{currentProduct.name}}</text>
-          <text class="current-stock">当前库存：{{currentProduct.stock}}件</text>
-        </view>
-
-        <view class="stock-operations">
-          <view class="operation-item">
-            <text class="operation-label">调整数量：</text>
-            <view class="quantity-controls">
-              <button class="quantity-btn minus" bindtap="onQuantityChange" data-change="-1">-</button>
-              <input 
-                class="quantity-input"
-                type="number"
-                value="{{stockAdjustment}}"
-                bindinput="onStockAdjustmentInput"
-              />
-              <button class="quantity-btn plus" bindtap="onQuantityChange" data-change="1">+</button>
-            </view>
-          </view>
-
-          <view class="operation-item">
-            <text class="operation-label">调整后库存：</text>
-            <text class="new-stock">{{currentProduct.stock + stockAdjustment}}件</text>
-          </view>
-        </view>
-      </view>
-
-      <view class="modal-footer">
-        <button class="cancel-btn" bindtap="onCancelStock">取消</button>
-        <button class="confirm-btn" bindtap="onConfirmStock">确认调整</button>
-      </view>
-    </view>
-  </view>
+  <!-- 权限验证弹窗 -->
+  <auth-modal 
+    visible="{{showAuthModal}}"
+    title="商家功能解锁"
+    isFirstUse="{{isFirstUse}}"
+    bind:success="onAuthSuccess"
+    bind:cancel="onAuthCancel"
+  />
 
   <!-- 加载状态 -->
   <view class="loading-overlay" wx:if="{{loading}}">

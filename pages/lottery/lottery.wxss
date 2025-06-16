@@ -123,12 +123,14 @@
   margin-top: 20rpx;
 }
 
-/* 抽奖按钮组 - 修改为2x2网格布局 */
+/* 抽奖按钮组 - 优化2×2网格布局 */
 .draw-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 20rpx;
+  grid-template-rows: 1fr 1fr;
+  gap: 24rpx;
+  max-width: 600rpx;
+  margin: 0 auto;
 }
 
 .draw-btn {
@@ -136,38 +138,40 @@
   background: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 16rpx;
-  padding: 24rpx 20rpx;
+  border-radius: 20rpx;
+  padding: 32rpx 20rpx;
   font-size: 28rpx;
   font-weight: 600;
   transition: all 0.3s ease;
-  min-height: 120rpx;
+  min-height: 140rpx;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.3);
 }
 
 .draw-btn:hover {
   transform: translateY(-4rpx);
-  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.4);
+  box-shadow: 0 10rpx 24rpx rgba(255, 107, 53, 0.4);
 }
 
 .draw-btn.disabled {
   background: #cccccc;
   transform: none;
-  box-shadow: none;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .btn-text {
-  font-size: 28rpx;
-  font-weight: 600;
+  font-size: 32rpx;
+  font-weight: 700;
   margin-bottom: 8rpx;
 }
 
 .btn-cost {
-  font-size: 22rpx;
+  font-size: 24rpx;
   opacity: 0.9;
+  font-weight: 500;
 }
 
 .btn-guarantee {
@@ -176,14 +180,28 @@
   right: -8rpx;
   background: #ff4444;
   color: white;
-  font-size: 18rpx;
-  padding: 4rpx 8rpx;
+  font-size: 20rpx;
+  padding: 6rpx 12rpx;
   border-radius: 20rpx;
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(255, 68, 68, 0.4);
 }
 
-/* 十连抽按钮特殊样式 */
+/* 不同抽奖按钮的特殊样式 */
+.single-btn {
+  background: linear-gradient(135deg, #ff6b35, #ff8a65);
+}
+
+.triple-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.five-btn {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
 .ten-btn {
-  background: linear-gradient(45deg, var(--primary-color), #ff8a65);
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
 }
 
 /* 奖品列表 */

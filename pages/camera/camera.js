@@ -16,7 +16,6 @@ Page({
     // 上传表单
     selectedImage: null,
     imagePreview: null,
-    consumeAmount: '',
     expectedPoints: 0,
     
     // 表单验证
@@ -261,7 +260,7 @@ Page({
   },
 
   /**
-   * 删除选择的图片
+   * 删除图片
    */
   onDeleteImage() {
     this.setData({
@@ -271,42 +270,14 @@ Page({
   },
 
   /**
-   * 输入消费金额
-   */
-  onAmountInput(e) {
-    const amount = e.detail.value
-    this.setData({
-      consumeAmount: amount,
-      expectedPoints: amount ? Math.floor(parseFloat(amount) * 10) : 0
-    })
-
-    // 实时验证
-    this.validateAmount(amount)
-  },
-
-  /**
-   * 验证金额
-   */
-  validateAmount(amount) {
-    const isValid = this.data.formValidator.validateField('amount', amount)
-    const errors = this.data.formValidator.getErrors()
-    
-    this.setData({
-      formErrors: errors
-    })
-    
-    return isValid
-  },
-
-  /**
-   * 上传照片
+   * 上传照片 - 自动识别模式
    * TODO: 后端对接 - 图片上传和识别接口
    * 
    * 对接说明：
    * 接口：POST /api/photo/upload (multipart/form-data)
-   * 请求体：file=图片文件, amount=用户输入金额
+   * 请求体：file=图片文件（无需用户输入金额）
    * 认证：需要Bearer Token
-   * 返回：上传结果，包括AI识别金额、匹配状态、获得积分等
+   * 返回：上传结果，包括AI自动识别金额、获得积分等
    */
   async onSubmitUpload() {
     // 验证表单
@@ -318,69 +289,55 @@ Page({
       return
     }
 
-    if (!this.data.consumeAmount || parseFloat(this.data.consumeAmount) <= 0) {
-      wx.showToast({
-        title: '请输入正确的消费金额',
-        icon: 'none'
-      })
-      return
-    }
-
     // 防止重复提交
     if (this.data.uploading) return
     this.setData({ uploading: true })
 
     try {
-      const amount = parseFloat(this.data.consumeAmount)
-      
       if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟上传
-        console.log('🔧 模拟图片上传和识别，金额:', amount)
-        wx.showLoading({ title: '上传识别中...' })
+        // 开发环境模拟自动识别上传
+        console.log('🔧 模拟图片自动识别上传')
+        wx.showLoading({ title: '智能识别中...' })
         
         // 模拟上传和识别过程
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise(resolve => setTimeout(resolve, 3000))
         
-        // 模拟识别结果
-        const recognizedAmount = amount + (Math.random() - 0.5) * 5 // 模拟识别误差
-        const matchStatus = Math.abs(recognizedAmount - amount) <= 2 ? 'matched' : 'mismatched'
-        const pointsEarned = Math.floor(amount * 10) // 1元=10积分
+        // 模拟AI自动识别结果
+        const recognizedAmount = (Math.random() * 150 + 20).toFixed(2) // 随机生成20-170元
+        const pointsEarned = Math.floor(recognizedAmount * 10) // 1元=10积分
         
         const uploadResult = {
           code: 0,
-          msg: '上传成功',
+          msg: '识别上传成功',
           data: {
             upload_id: 'UP' + Date.now(),
             image_url: this.data.selectedImage,
-            recognized_amount: recognizedAmount.toFixed(2),
-            input_amount: amount.toFixed(2),
-            match_status: matchStatus,
+            recognized_amount: recognizedAmount,
             points_earned: pointsEarned,
-            review_status: matchStatus === 'matched' ? 'auto_approved' : 'pending',
-            upload_time: new Date().toLocaleString()
+            review_status: 'auto_approved', // AI识别结果直接通过
+            upload_time: new Date().toLocaleString(),
+            confidence: (Math.random() * 0.3 + 0.7).toFixed(2) // 70%-100%识别置信度
           }
         }
         
         wx.hideLoading()
         this.showUploadResult(uploadResult.data)
         
-        // 更新用户积分（仅自动通过的情况）
-        if (uploadResult.data.review_status === 'auto_approved') {
-          const newPoints = this.data.totalPoints + pointsEarned
-          this.setData({ totalPoints: newPoints })
-          
-          if (app.globalData.mockUser) {
-            app.globalData.mockUser.total_points = newPoints
-          }
+        // 更新用户积分
+        const newPoints = this.data.totalPoints + pointsEarned
+        this.setData({ totalPoints: newPoints })
+        
+        if (app.globalData.mockUser) {
+          app.globalData.mockUser.total_points = newPoints
         }
         
-        console.log('✅ 模拟上传完成，识别金额:', recognizedAmount.toFixed(2))
+        console.log('✅ 模拟自动识别完成，识别金额:', recognizedAmount)
         
       } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求图片上传接口，金额:', amount)
+        // 生产环境调用真实AI识别接口
+        console.log('📡 请求AI图片识别接口')
         
-        const uploadResult = await photoAPI.upload(this.data.selectedImage, amount)
+        const uploadResult = await photoAPI.uploadAndRecognize(this.data.selectedImage)
         
         this.showUploadResult(uploadResult.data)
         
@@ -396,22 +353,21 @@ Page({
           }
         }
         
-        console.log('✅ 图片上传成功，识别金额:', uploadResult.data.recognized_amount)
+        console.log('✅ AI识别上传成功，识别金额:', uploadResult.data.recognized_amount)
       }
 
       // 重置表单
       this.setData({
         selectedImage: null,
         imagePreview: null,
-        consumeAmount: '',
         expectedPoints: 0
       })
 
     } catch (error) {
       wx.hideLoading()
-      console.error('❌ 图片上传失败:', error)
+      console.error('❌ 图片识别上传失败:', error)
       
-      let errorMsg = '上传失败，请重试'
+      let errorMsg = '识别上传失败，请重试'
       
       // 根据错误码显示不同的错误信息
       switch (error.code) {
@@ -422,10 +378,13 @@ Page({
           errorMsg = '图片太大，请选择小于5MB的图片'
           break
         case 1003:
-          errorMsg = '图片识别失败，请重新拍照'
+          errorMsg = '小票内容识别失败，请重新拍照'
           break
         case 1004:
           errorMsg = '今日上传次数已达上限'
+          break
+        case 1005:
+          errorMsg = '图片不清晰，请重新拍照'
           break
         default:
           errorMsg = error.msg || error.message || errorMsg
