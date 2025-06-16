@@ -308,7 +308,7 @@ Page({
    * 认证：需要Bearer Token
    * 返回：上传结果，包括AI识别金额、匹配状态、获得积分等
    */
-  async onUploadPhoto() {
+  async onSubmitUpload() {
     // 验证表单
     if (!this.data.selectedImage) {
       wx.showToast({
@@ -318,7 +318,7 @@ Page({
       return
     }
 
-    if (!this.data.inputAmount || parseFloat(this.data.inputAmount) <= 0) {
+    if (!this.data.consumeAmount || parseFloat(this.data.consumeAmount) <= 0) {
       wx.showToast({
         title: '请输入正确的消费金额',
         icon: 'none'
@@ -331,7 +331,7 @@ Page({
     this.setData({ uploading: true })
 
     try {
-      const amount = parseFloat(this.data.inputAmount)
+      const amount = parseFloat(this.data.consumeAmount)
       
       if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境模拟上传
@@ -401,9 +401,10 @@ Page({
 
       // 重置表单
       this.setData({
-        selectedImage: '',
-        inputAmount: '',
-        showCamera: false
+        selectedImage: null,
+        imagePreview: null,
+        consumeAmount: '',
+        expectedPoints: 0
       })
 
     } catch (error) {
