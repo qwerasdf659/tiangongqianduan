@@ -8,9 +8,8 @@ App({
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
     
-    // TODO: 上线时需要替换为实际API地址
-    this.globalData.baseUrl = 'https://your-backend-api.com'
-    this.globalData.wsUrl = 'wss://your-websocket-server.com'
+    // 初始化环境配置
+    this.initEnvironmentConfig()
     
     // 初始化认证检查
     this.checkAuthStatus()
@@ -22,15 +21,36 @@ App({
   },
 
   globalData: {
-    // TODO: 上线时需要替换为实际服务地址
-    baseUrl: 'https://your-backend-api.com',  // 后端API地址
-    wsUrl: 'wss://your-websocket-server.com', // WebSocket地址
+    // 环境配置 - 生产环境时需要修改为false
+    isDev: true,  // 开发环境标志，生产环境设为false
+    needAuth: false,  // 是否需要强制认证，生产环境设为true
+    
+    // API服务地址配置
+    // 生产环境部署时需要替换以下地址为实际的后端服务地址
+    api: {
+      // 开发环境和生产环境的API地址
+      dev: {
+        baseUrl: 'https://dev-api.restaurant-points.com',  // 开发环境API地址
+        wsUrl: 'wss://dev-ws.restaurant-points.com'        // 开发环境WebSocket地址
+      },
+      prod: {
+        baseUrl: 'https://api.restaurant-points.com',      // 生产环境API地址 - 需要后端提供
+        wsUrl: 'wss://ws.restaurant-points.com'            // 生产环境WebSocket地址 - 需要后端提供
+      }
+    },
+    
+    // 当前使用的API地址 - 在initEnvironmentConfig中设置
+    baseUrl: '',
+    wsUrl: '',
     
     // Sealos对象存储配置
-    // TODO: 配置实际的Sealos存储服务
+    // 生产环境部署时需要配置实际的Sealos存储服务参数
     sealosConfig: {
-      endpoint: 'https://your-sealos-endpoint.com',
-      bucket: 'restaurant-points-system'
+      endpoint: 'https://objectstorageapi.sealos.io',     // Sealos存储API端点 - 需要运维配置
+      bucket: 'restaurant-points-system',                  // 存储桶名称 - 需要运维创建
+      region: 'cn-east-1',                                // 存储区域 - 根据实际部署确定
+      accessKeyId: '',                                     // 访问密钥ID - 需要运维提供
+      secretAccessKey: ''                                  // 访问密钥 - 需要运维提供
     },
     
     // 用户信息
@@ -42,49 +62,108 @@ App({
     refreshToken: null,
     tokenExpireTime: null,
     
-    // 开发环境配置
-    isDev: true,  // TODO: 生产环境设为false
-    needAuth: false,  // TODO: 生产环境设为true，开发时跳过认证
-    
-    // 模拟用户数据（开发用）
-    // TODO: 生产环境删除此部分
+    // 开发环境模拟用户数据
+    // 生产环境时此部分数据不会被使用
     mockUser: {
       user_id: 1001,
       phone: '138****8000',
       total_points: 1500,
-      is_merchant: false
+      is_merchant: false,
+      nickname: '测试用户',
+      avatar: '/images/default-avatar.png',
+      created_at: '2024-01-01 00:00:00'
     }
+  },
+
+  /**
+   * 初始化环境配置
+   * 根据isDev标志设置相应的API地址
+   */
+  initEnvironmentConfig() {
+    const config = this.globalData.isDev ? this.globalData.api.dev : this.globalData.api.prod
+    this.globalData.baseUrl = config.baseUrl
+    this.globalData.wsUrl = config.wsUrl
+    
+    console.log(`当前环境: ${this.globalData.isDev ? '开发' : '生产'}`)
+    console.log(`API地址: ${this.globalData.baseUrl}`)
+    console.log(`WebSocket地址: ${this.globalData.wsUrl}`)
   },
 
   // 检查认证状态
   checkAuthStatus() {
-    // TODO: 生产环境恢复认证检查
-    if (this.globalData.isDev) {
-      console.log('开发环境，跳过认证检查')
+    if (this.globalData.isDev && !this.globalData.needAuth) {
+      // 开发环境且不需要强制认证时，使用模拟用户数据
+      console.log('开发环境，跳过认证检查，使用模拟用户数据')
       this.globalData.isLoggedIn = true
       this.globalData.userInfo = this.globalData.mockUser
       return
     }
     
+    // 生产环境或需要强制认证时，检查本地存储的Token
     const token = wx.getStorageSync('access_token')
     const refreshToken = wx.getStorageSync('refresh_token')
+    const tokenExpireTime = wx.getStorageSync('token_expire_time')
     
     if (token && refreshToken) {
       this.globalData.accessToken = token
       this.globalData.refreshToken = refreshToken
+      this.globalData.tokenExpireTime = tokenExpireTime
       this.globalData.isLoggedIn = true
-      // TODO: 验证Token有效性
+      
+      // TODO: 后端对接 - 验证Token有效性
+      // 这里需要调用后端接口验证Token是否仍然有效
+      // 后端接口: GET /api/auth/verify-token
+      // 请求头: Authorization: Bearer {access_token}
+      // 返回: { code: 0, data: { valid: true, user_info: {...} } }
+      this.verifyToken()
     } else {
-      // 跳转到认证页面
-      wx.navigateTo({
-        url: '/pages/auth/auth'
-      })
+      // 没有Token时跳转到认证页面
+      this.redirectToAuth()
     }
+  },
+
+  /**
+   * 验证Token有效性
+   * TODO: 后端对接 - 需要后端提供Token验证接口
+   */
+  async verifyToken() {
+    if (this.globalData.isDev && !this.globalData.needAuth) return
+    
+    try {
+      // TODO: 后端对接点
+      // const res = await wx.request({
+      //   url: this.globalData.baseUrl + '/api/auth/verify-token',
+      //   method: 'GET',
+      //   header: {
+      //     'Authorization': `Bearer ${this.globalData.accessToken}`
+      //   }
+      // })
+      // 
+      // if (res.data.code === 0 && res.data.data.valid) {
+      //   this.globalData.userInfo = res.data.data.user_info
+      // } else {
+      //   this.logout()
+      // }
+      
+      console.log('Token验证功能需要后端接口支持')
+    } catch (error) {
+      console.error('Token验证失败:', error)
+      this.logout()
+    }
+  },
+
+  /**
+   * 跳转到认证页面
+   */
+  redirectToAuth() {
+    wx.navigateTo({
+      url: '/pages/auth/auth'
+    })
   },
 
   // 刷新Token
   refreshTokenIfNeeded() {
-    if (!this.globalData.isLoggedIn || this.globalData.isDev) return
+    if (!this.globalData.isLoggedIn || (this.globalData.isDev && !this.globalData.needAuth)) return
     
     const now = Date.now()
     if (this.globalData.tokenExpireTime && now >= this.globalData.tokenExpireTime - 300000) {
@@ -93,30 +172,60 @@ App({
     }
   },
 
-  // TODO: 对接后端Token刷新接口
-  refreshToken() {
+  /**
+   * 刷新Token
+   * TODO: 后端对接 - Token刷新接口
+   */
+  async refreshToken() {
     const that = this
-    wx.request({
-      url: this.globalData.baseUrl + '/api/auth/refresh',
-      method: 'POST',
-      header: {
-        'Authorization': 'Bearer ' + this.globalData.refreshToken
-      },
-      success(res) {
-        if (res.data.code === 0) {
-          that.globalData.accessToken = res.data.data.access_token
-          that.globalData.refreshToken = res.data.data.refresh_token
-          wx.setStorageSync('access_token', res.data.data.access_token)
-          wx.setStorageSync('refresh_token', res.data.data.refresh_token)
-        } else {
-          // 刷新失败，重新登录
-          that.logout()
-        }
-      },
-      fail() {
+    
+    try {
+      // TODO: 后端对接点 - Token刷新接口
+      // 后端接口规范:
+      // POST /api/auth/refresh
+      // 请求头: Authorization: Bearer {refresh_token}
+      // 返回: {
+      //   code: 0,
+      //   data: {
+      //     access_token: "new_access_token",
+      //     refresh_token: "new_refresh_token", 
+      //     expires_in: 7200
+      //   }
+      // }
+      
+      const res = await new Promise((resolve, reject) => {
+        wx.request({
+          url: this.globalData.baseUrl + '/api/auth/refresh',
+          method: 'POST',
+          header: {
+            'Authorization': 'Bearer ' + this.globalData.refreshToken,
+            'Content-Type': 'application/json'
+          },
+          success: resolve,
+          fail: reject
+        })
+      })
+
+      if (res.data.code === 0) {
+        // 更新Token信息
+        that.globalData.accessToken = res.data.data.access_token
+        that.globalData.refreshToken = res.data.data.refresh_token
+        that.globalData.tokenExpireTime = Date.now() + res.data.data.expires_in * 1000
+        
+        // 本地存储更新
+        wx.setStorageSync('access_token', res.data.data.access_token)
+        wx.setStorageSync('refresh_token', res.data.data.refresh_token)
+        wx.setStorageSync('token_expire_time', that.globalData.tokenExpireTime)
+        
+        console.log('Token刷新成功')
+      } else {
+        // 刷新失败，重新登录
         that.logout()
       }
-    })
+    } catch (error) {
+      console.error('Token刷新失败:', error)
+      that.logout()
+    }
   },
 
   // 退出登录
@@ -125,10 +234,23 @@ App({
     this.globalData.accessToken = null
     this.globalData.refreshToken = null
     this.globalData.userInfo = null
-    wx.clearStorageSync()
+    this.globalData.tokenExpireTime = null
     
-    wx.navigateTo({
-      url: '/pages/auth/auth'
+    // 清除本地存储
+    wx.removeStorageSync('access_token')
+    wx.removeStorageSync('refresh_token')
+    wx.removeStorageSync('token_expire_time')
+    wx.removeStorageSync('user_info')
+    
+    wx.showToast({
+      title: '已退出登录',
+      icon: 'none'
     })
+    
+    setTimeout(() => {
+      wx.navigateTo({
+        url: '/pages/auth/auth'
+      })
+    }, 1000)
   }
 })

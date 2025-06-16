@@ -82,10 +82,17 @@ Page({
 
   /**
    * 刷新用户信息
+   * TODO: 后端对接 - 用户信息接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/user/info
+   * 认证：需要Bearer Token
+   * 返回：用户详细信息，主要获取最新的积分余额
    */
   async refreshUserInfo() {
-    if (app.globalData.isDev) {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
       // 开发环境使用模拟数据
+      console.log('🔧 使用模拟用户数据')
       this.setData({
         userInfo: app.globalData.mockUser,
         totalPoints: app.globalData.mockUser.total_points
@@ -93,49 +100,92 @@ Page({
       return
     }
 
-    // TODO: 对接用户信息接口
     try {
+      console.log('📡 刷新用户信息...')
       const res = await userAPI.getUserInfo()
+      
       this.setData({
         userInfo: res.data,
         totalPoints: res.data.total_points
       })
+      
+      // 更新全局用户信息
       app.globalData.userInfo = res.data
+      console.log('✅ 用户信息刷新成功，当前积分:', res.data.total_points)
+      
     } catch (error) {
-      console.error('获取用户信息失败:', error)
+      console.error('❌ 获取用户信息失败:', error)
+      
+      // 错误处理：使用全局缓存数据
+      if (app.globalData.userInfo) {
+        this.setData({
+          userInfo: app.globalData.userInfo,
+          totalPoints: app.globalData.userInfo.total_points
+        })
+      }
     }
   },
 
   /**
    * 加载抽奖配置
+   * TODO: 后端对接 - 抽奖配置接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/lottery/config
+   * 认证：需要Bearer Token
+   * 返回：抽奖配置信息，包括奖品列表、消耗积分、抽奖规则等
    */
   async loadLotteryConfig() {
     try {
       let configData
       
-      if (app.globalData.isDev) {
+      if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境使用模拟数据
+        console.log('🔧 使用模拟抽奖配置')
         configData = await mockRequest('/api/lottery/config')
       } else {
-        // TODO: 对接真实抽奖配置接口
+        // 生产环境调用真实接口
+        console.log('📡 请求抽奖配置接口...')
         configData = await lotteryAPI.getConfig()
       }
 
+      // 更新抽奖配置
       this.setData({
         prizes: configData.data.prizes,
-        costPoints: configData.data.cost_points
+        costPoints: configData.data.cost_points,
+        dailyLimit: configData.data.daily_limit || 10,
+        lotteryRules: configData.data.rules || '每次抽奖消耗积分，获得随机奖品'
       })
+
+      console.log('✅ 抽奖配置加载成功，奖品数量:', configData.data.prizes.length)
 
       // 绘制转盘
       this.drawWheel()
+      
     } catch (error) {
-      console.error('加载抽奖配置失败:', error)
-      // 使用默认配置
+      console.error('❌ 加载抽奖配置失败:', error)
+      
+      // 使用默认配置确保页面正常显示
+      const defaultPrizes = [
+        { id: 1, name: '谢谢参与', angle: 0, color: '#FF6B35', type: 'none', value: 0, probability: 40 },
+        { id: 2, name: '积分奖励', angle: 45, color: '#4ECDC4', type: 'points', value: 50, probability: 30 },
+        { id: 3, name: '优惠券', angle: 90, color: '#FFD93D', type: 'coupon', value: 0.9, probability: 20 },
+        { id: 4, name: '小礼品', angle: 135, color: '#6BCF7F', type: 'physical', value: 10, probability: 10 }
+      ]
+      
       this.setData({
-        prizes: this.data.mockPrizes,
-        costPoints: 100
+        prizes: defaultPrizes,
+        costPoints: 100,
+        dailyLimit: 10,
+        lotteryRules: '抽奖配置加载失败，使用默认配置'
       })
+      
       this.drawWheel()
+      
+      wx.showToast({
+        title: '抽奖配置加载失败',
+        icon: 'none'
+      })
     }
   },
 
@@ -260,6 +310,13 @@ Page({
 
   /**
    * 处理抽奖
+   * TODO: 后端对接 - 抽奖接口
+   * 
+   * 对接说明：
+   * 接口：POST /api/lottery/draw
+   * 请求体：{ draw_type: "single", count: 1 }
+   * 认证：需要Bearer Token
+   * 返回：抽奖结果，包括中奖信息、剩余积分等
    */
   async handleDraw(drawType, count) {
     // 检查是否正在抽奖
@@ -275,16 +332,27 @@ Page({
     const needPoints = this.data.costPoints * count
     if (this.data.totalPoints < needPoints) {
       wx.showToast({
-        title: '积分不足',
+        title: `积分不足，需要${needPoints}积分`,
         icon: 'none'
       })
       return
     }
 
-    // 检查是否需要滑块验证
+    // 检查每日抽奖次数限制
+    if (this.data.todayDrawCount >= this.data.dailyLimit) {
+      wx.showToast({
+        title: '今日抽奖次数已用完',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 检查是否需要滑块验证（抽奖次数较多时）
     if (this.data.todayDrawCount >= 3) {
       try {
-        await this.data.sliderVerify.show()
+        // TODO: 实现滑块验证组件
+        // await this.data.sliderVerify.show()
+        console.log('🔐 滑块验证暂未实现，跳过验证')
       } catch (error) {
         console.log('滑块验证取消:', error)
         return
@@ -293,36 +361,78 @@ Page({
 
     // 开始抽奖
     this.setData({ isDrawing: true })
+    wx.showLoading({ title: '抽奖中...' })
 
     try {
       let drawResult
       
-      if (app.globalData.isDev) {
+      if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境使用模拟数据
+        console.log('🔧 模拟抽奖，类型:', drawType, '次数:', count)
         drawResult = await mockRequest('/api/lottery/draw', { draw_type: drawType, count })
+        console.log('🎰 模拟抽奖结果:', drawResult)
       } else {
-        // TODO: 对接真实抽奖接口
+        // 生产环境调用真实接口
+        console.log('📡 请求抽奖接口，类型:', drawType, '次数:', count)
         drawResult = await lotteryAPI.draw(drawType, count)
+        console.log('✅ 抽奖接口调用成功')
       }
 
-      // 执行转盘动画
-      await this.playAnimation(drawResult.data.results[0])
+      wx.hideLoading()
 
-      // 更新用户积分
+      // 执行转盘动画
+      if (drawResult.data.results && drawResult.data.results.length > 0) {
+        await this.playAnimation(drawResult.data.results[0])
+      }
+
+      // 更新用户积分和抽奖次数
       this.setData({
         totalPoints: drawResult.data.remaining_points,
-        todayDrawCount: this.data.todayDrawCount + 1
+        todayDrawCount: drawResult.data.today_draw_count || (this.data.todayDrawCount + count)
       })
+
+      // 更新全局用户积分
+      if (app.globalData.userInfo) {
+        app.globalData.userInfo.total_points = drawResult.data.remaining_points
+      }
+      if (app.globalData.mockUser) {
+        app.globalData.mockUser.total_points = drawResult.data.remaining_points
+      }
 
       // 显示抽奖结果
       this.showDrawResult(drawResult.data.results)
 
+      console.log('🎉 抽奖完成，剩余积分:', drawResult.data.remaining_points)
+
     } catch (error) {
-      console.error('抽奖失败:', error)
+      wx.hideLoading()
+      console.error('❌ 抽奖失败:', error)
+      
+      let errorMsg = '抽奖失败，请重试'
+      
+      // 根据错误码显示不同的错误信息
+      switch (error.code) {
+        case 1001:
+          errorMsg = '积分不足'
+          break
+        case 1002:
+          errorMsg = '今日抽奖次数已达上限'
+          break
+        case 1003:
+          errorMsg = '抽奖活动已结束'
+          break
+        case 1004:
+          errorMsg = '系统繁忙，请稍后重试'
+          break
+        default:
+          errorMsg = error.msg || error.message || errorMsg
+      }
+      
       wx.showToast({
-        title: error.msg || '抽奖失败',
+        title: errorMsg,
         icon: 'none'
       })
+      
     } finally {
       this.setData({ isDrawing: false })
     }

@@ -179,10 +179,17 @@ Page({
 
   /**
    * 加载用户信息
+   * TODO: 后端对接 - 用户信息接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/user/info
+   * 认证：需要Bearer Token
+   * 返回：用户详细信息，包括积分、等级等
    */
   async loadUserInfo() {
-    if (app.globalData.isDev) {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
       // 开发环境使用模拟数据
+      console.log('🔧 使用模拟用户数据')
       this.setData({
         userInfo: app.globalData.mockUser,
         totalPoints: app.globalData.mockUser.total_points
@@ -190,41 +197,71 @@ Page({
       return
     }
 
-    // TODO: 对接用户信息接口
     try {
+      console.log('📡 请求用户信息接口...')
       const res = await userAPI.getUserInfo()
+      
+      // 更新页面数据
       this.setData({
         userInfo: res.data,
         totalPoints: res.data.total_points
       })
+      
+      // 更新全局用户信息
       app.globalData.userInfo = res.data
+      console.log('✅ 用户信息加载成功')
+      
     } catch (error) {
-      console.error('获取用户信息失败:', error)
+      console.error('❌ 获取用户信息失败:', error)
+      
+      // 错误处理：使用缓存数据或显示错误信息
+      const cachedUserInfo = wx.getStorageSync('user_info')
+      if (cachedUserInfo) {
+        console.log('📦 使用缓存的用户信息')
+        this.setData({
+          userInfo: cachedUserInfo,
+          totalPoints: cachedUserInfo.total_points
+        })
+      } else {
+        wx.showToast({
+          title: '获取用户信息失败',
+          icon: 'none'
+        })
+      }
     }
   },
 
   /**
    * 加载统计数据
+   * TODO: 后端对接 - 用户统计接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/user/statistics  
+   * 认证：需要Bearer Token
+   * 返回：用户活动统计数据（抽奖、兑换、上传次数等）
    */
   async loadStatistics() {
     try {
       let statisticsData
 
-      if (app.globalData.isDev) {
+      if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境模拟数据
+        console.log('🔧 使用模拟统计数据')
         statisticsData = {
           code: 0,
           data: {
             total_lottery: 25,
             total_exchange: 8,
             total_upload: 12,
-            this_month_points: 2400
+            this_month_points: 2400,
+            total_earned_points: 15000,
+            total_spent_points: 8500
           }
         }
         // 模拟网络延迟
         await new Promise(resolve => setTimeout(resolve, 300))
       } else {
-        // TODO: 对接真实统计接口
+        console.log('📡 请求用户统计接口...')
         statisticsData = await userAPI.getStatistics()
       }
 
@@ -233,37 +270,71 @@ Page({
           totalLottery: statisticsData.data.total_lottery,
           totalExchange: statisticsData.data.total_exchange,
           totalUpload: statisticsData.data.total_upload,
-          thisMonthPoints: statisticsData.data.this_month_points
+          thisMonthPoints: statisticsData.data.this_month_points,
+          totalEarnedPoints: statisticsData.data.total_earned_points || 0,
+          totalSpentPoints: statisticsData.data.total_spent_points || 0
         }
       })
+      
+      console.log('✅ 用户统计数据加载成功')
 
     } catch (error) {
-      console.error('获取统计数据失败:', error)
+      console.error('❌ 获取统计数据失败:', error)
+      
+      // 使用默认数据，避免页面空白
+      this.setData({
+        statistics: {
+          totalLottery: 0,
+          totalExchange: 0, 
+          totalUpload: 0,
+          thisMonthPoints: 0,
+          totalEarnedPoints: 0,
+          totalSpentPoints: 0
+        }
+      })
     }
   },
 
   /**
    * 加载积分明细
+   * TODO: 后端对接 - 积分记录接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/user/points-records?page=1&page_size=20
+   * 认证：需要Bearer Token  
+   * 返回：积分变动记录列表，支持分页
    */
   async loadPointsRecords() {
     try {
       let recordsData
 
-      if (app.globalData.isDev) {
-        // 开发环境模拟数据
-        recordsData = this.generateMockPointsRecords()
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境使用模拟数据
+        console.log('🔧 生成模拟积分明细数据')
+        recordsData = {
+          code: 0,
+          data: {
+            list: this.generateMockPointsRecords(),
+            total: 50,
+            page: 1,
+            page_size: 20
+          }
+        }
+        await new Promise(resolve => setTimeout(resolve, 200))
       } else {
-        // TODO: 对接真实积分明细接口
-        const res = await userAPI.getPointsRecords()
-        recordsData = res.data.list
+        console.log('📡 请求积分明细接口...')
+        recordsData = await userAPI.getPointsRecords(1, 20)
       }
 
       this.setData({
-        pointsRecords: recordsData
+        pointsRecords: recordsData.data.list
       })
+      
+      console.log('✅ 积分明细加载成功，共', recordsData.data.list.length, '条记录')
 
     } catch (error) {
-      console.error('获取积分明细失败:', error)
+      console.error('❌ 获取积分明细失败:', error)
+      this.setData({ pointsRecords: [] })
     }
   },
 
@@ -328,25 +399,118 @@ Page({
 
   /**
    * 头像点击 - 更换头像
+   * TODO: 后端对接 - 头像上传功能
+   * 
+   * 对接说明：
+   * 1. 选择图片后需要上传到服务器
+   * 2. 接口：POST /api/user/upload-avatar (multipart/form-data)
+   * 3. 认证：需要Bearer Token
+   * 4. 返回：新的头像URL，需要更新用户信息
    */
   onAvatarTap() {
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        // TODO: 上传头像到服务器
-        console.log('选择的头像:', res.tempFilePaths[0])
-        wx.showToast({
-          title: '头像上传功能开发中',
-          icon: 'none'
-        })
+      success: async (res) => {
+        const tempFilePath = res.tempFilePaths[0]
+        console.log('选择的头像:', tempFilePath)
+        
+        if (app.globalData.isDev && !app.globalData.needAuth) {
+          // 开发环境模拟上传
+          console.log('🔧 模拟头像上传')
+          wx.showLoading({ title: '上传中...' })
+          
+          setTimeout(() => {
+            wx.hideLoading()
+            // 模拟更新头像
+            const mockAvatarUrl = 'https://via.placeholder.com/100x100/4ECDC4/ffffff?text=头像'
+            this.setData({
+              'userInfo.avatar': mockAvatarUrl
+            })
+            
+            // 更新全局数据
+            if (app.globalData.mockUser) {
+              app.globalData.mockUser.avatar = mockAvatarUrl
+            }
+            
+            wx.showToast({
+              title: '头像更新成功',
+              icon: 'success'
+            })
+          }, 1500)
+          
+        } else {
+          // 生产环境真实上传
+          try {
+            wx.showLoading({ title: '上传中...' })
+            
+            // TODO: 后端对接点 - 头像上传接口
+            const uploadResult = await new Promise((resolve, reject) => {
+              wx.uploadFile({
+                url: app.globalData.baseUrl + '/api/user/upload-avatar',
+                filePath: tempFilePath,
+                name: 'avatar',
+                header: {
+                  'Authorization': `Bearer ${app.globalData.accessToken}`
+                },
+                success: (res) => {
+                  const data = JSON.parse(res.data)
+                  if (data.code === 0) {
+                    resolve(data)
+                  } else {
+                    reject(new Error(data.msg || '上传失败'))
+                  }
+                },
+                fail: reject
+              })
+            })
+            
+            wx.hideLoading()
+            
+            // 更新页面显示的头像
+            this.setData({
+              'userInfo.avatar': uploadResult.data.avatar_url
+            })
+            
+            // 更新全局用户信息
+            if (app.globalData.userInfo) {
+              app.globalData.userInfo.avatar = uploadResult.data.avatar_url
+            }
+            
+            // 更新本地缓存
+            wx.setStorageSync('user_info', app.globalData.userInfo)
+            
+            wx.showToast({
+              title: '头像更新成功',
+              icon: 'success'
+            })
+            
+          } catch (error) {
+            wx.hideLoading()
+            console.error('❌ 头像上传失败:', error)
+            wx.showToast({
+              title: error.message || '头像上传失败',
+              icon: 'none'
+            })
+          }
+        }
+      },
+      fail: (error) => {
+        console.error('选择图片失败:', error)
       }
     })
   },
 
   /**
    * 手机号点击 - 更换手机号
+   * TODO: 后端对接 - 手机号更换功能
+   * 
+   * 对接说明：
+   * 需要实现手机号更换页面和相关接口
+   * 1. 验证当前手机号
+   * 2. 发送新手机号验证码
+   * 3. 确认更换手机号
    */
   onPhoneTap() {
     wx.showModal({
@@ -354,9 +518,16 @@ Page({
       content: '此功能需要验证身份，是否继续？',
       success: (res) => {
         if (res.confirm) {
-          wx.navigateTo({
-            url: '/pages/auth/change-phone'
+          // TODO: 实现手机号更换页面
+          wx.showToast({
+            title: '手机号更换功能开发中',
+            icon: 'none'
           })
+          
+          // 生产环境时跳转到手机号更换页面
+          // wx.navigateTo({
+          //   url: '/pages/auth/change-phone'
+          // })
         }
       }
     })
@@ -371,30 +542,112 @@ Page({
 
   /**
    * 签到功能
+   * TODO: 后端对接 - 签到接口
+   * 
+   * 对接说明：
+   * 接口：POST /api/user/check-in
+   * 认证：需要Bearer Token
+   * 返回：签到结果，包括获得积分、连续签到天数等
    */
-  onCheckIn() {
-    // TODO: 对接签到接口
-    wx.showModal({
-      title: '每日签到',
-      content: '签到可获得10积分，是否立即签到？',
-      success: (res) => {
-        if (res.confirm) {
-          // 模拟签到
-          const newPoints = this.data.totalPoints + 10
-          this.setData({ totalPoints: newPoints })
-          
-          wx.showToast({
-            title: '签到成功，获得10积分',
-            icon: 'success'
-          })
-          
-          // 更新全局数据
-          if (app.globalData.mockUser) {
-            app.globalData.mockUser.total_points = newPoints
+  async onCheckIn() {
+    // 防重复点击
+    if (this.checkingIn) return
+    this.checkingIn = true
+    
+    try {
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟签到
+        console.log('🔧 模拟用户签到')
+        
+        wx.showModal({
+          title: '每日签到',
+          content: '签到可获得10积分，是否立即签到？',
+          success: async (res) => {
+            if (res.confirm) {
+              wx.showLoading({ title: '签到中...' })
+              
+              // 模拟网络延迟
+              await new Promise(resolve => setTimeout(resolve, 1000))
+              
+              const checkInReward = 10 + Math.floor(Math.random() * 10) // 10-20积分随机奖励
+              const newPoints = this.data.totalPoints + checkInReward
+              const consecutiveDays = Math.floor(Math.random() * 7) + 1
+              
+              // 更新页面数据
+              this.setData({ totalPoints: newPoints })
+              
+              // 更新全局数据
+              if (app.globalData.mockUser) {
+                app.globalData.mockUser.total_points = newPoints
+              }
+              
+              wx.hideLoading()
+              wx.showModal({
+                title: '签到成功！',
+                content: `获得${checkInReward}积分\n连续签到${consecutiveDays}天`,
+                showCancel: false,
+                confirmText: '太棒了'
+              })
+              
+              // 刷新积分明细
+              this.loadPointsRecords()
+            }
           }
+        })
+        
+      } else {
+        // 生产环境调用真实签到接口
+        console.log('📡 请求签到接口...')
+        
+        wx.showLoading({ title: '签到中...' })
+        const checkInResult = await userAPI.checkIn()
+        wx.hideLoading()
+        
+        // 更新页面积分显示
+        this.setData({
+          totalPoints: checkInResult.data.total_points
+        })
+        
+        // 更新全局用户信息
+        if (app.globalData.userInfo) {
+          app.globalData.userInfo.total_points = checkInResult.data.total_points
         }
+        
+        // 显示签到成功信息
+        wx.showModal({
+          title: '签到成功！',
+          content: `获得${checkInResult.data.points_earned}积分\n连续签到${checkInResult.data.consecutive_days}天`,
+          showCancel: false,
+          confirmText: '太棒了'
+        })
+        
+        console.log('✅ 签到成功，获得积分:', checkInResult.data.points_earned)
+        
+        // 刷新相关数据
+        this.loadUserInfo()
+        this.loadStatistics()
+        this.loadPointsRecords()
       }
-    })
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 签到失败:', error)
+      
+      // 错误处理
+      if (error.code === 1001) {
+        wx.showToast({
+          title: '今日已签到',
+          icon: 'none'
+        })
+      } else {
+        wx.showToast({
+          title: error.msg || '签到失败，请稍后重试',
+          icon: 'none'
+        })
+      }
+    } finally {
+      this.checkingIn = false
+    }
   },
 
   /**

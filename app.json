@@ -20,33 +20,23 @@
     "list": [
       {
         "pagePath": "pages/lottery/lottery",
-        "text": "抽奖",
-        "iconPath": "images/lottery.png",
-        "selectedIconPath": "images/lottery-active.png"
+        "text": "🎰抽奖"
       },
       {
         "pagePath": "pages/exchange/exchange",
-        "text": "兑换",
-        "iconPath": "images/exchange.png",
-        "selectedIconPath": "images/exchange-active.png"
+        "text": "🎁兑换"
       },
       {
         "pagePath": "pages/camera/camera",
-        "text": "拍照",
-        "iconPath": "images/camera.png",
-        "selectedIconPath": "images/camera-active.png"
+        "text": "📷拍照"
       },
       {
         "pagePath": "pages/user/user",
-        "text": "我的",
-        "iconPath": "images/user.png",
-        "selectedIconPath": "images/user-active.png"
+        "text": "👤我的"
       },
       {
         "pagePath": "pages/merchant/merchant",
-        "text": "商家",
-        "iconPath": "images/merchant.png",
-        "selectedIconPath": "images/merchant-active.png"
+        "text": "🏪商家"
       }
     ]
   },

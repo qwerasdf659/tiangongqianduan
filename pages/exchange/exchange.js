@@ -26,7 +26,11 @@ Page({
     resultData: null,
     
     // 开发环境模拟数据
-    mockProducts: []
+    mockProducts: [],
+
+    // 新增的兑换相关数据
+    exchangeQuantity: 1,
+    exchanging: false
   },
 
   onLoad() {
@@ -95,10 +99,17 @@ Page({
 
   /**
    * 刷新用户信息
+   * TODO: 后端对接 - 用户信息接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/user/info
+   * 认证：需要Bearer Token
+   * 返回：用户详细信息，主要获取最新的积分余额
    */
   async refreshUserInfo() {
-    if (app.globalData.isDev) {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
       // 开发环境使用模拟数据
+      console.log('🔧 使用模拟用户数据')
       this.setData({
         userInfo: app.globalData.mockUser,
         totalPoints: app.globalData.mockUser.total_points
@@ -106,62 +117,92 @@ Page({
       return
     }
 
-    // TODO: 对接用户信息接口
     try {
+      console.log('📡 刷新用户信息...')
       const res = await userAPI.getUserInfo()
+      
       this.setData({
         userInfo: res.data,
         totalPoints: res.data.total_points
       })
+      
+      // 更新全局用户信息
       app.globalData.userInfo = res.data
+      console.log('✅ 用户信息刷新成功，当前积分:', res.data.total_points)
+      
     } catch (error) {
-      console.error('获取用户信息失败:', error)
+      console.error('❌ 获取用户信息失败:', error)
+      
+      // 错误处理：使用全局缓存数据
+      if (app.globalData.userInfo) {
+        this.setData({
+          userInfo: app.globalData.userInfo,
+          totalPoints: app.globalData.userInfo.total_points
+        })
+      }
     }
   },
 
   /**
    * 加载商品列表
+   * TODO: 后端对接 - 商品列表接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/exchange/products
+   * 认证：需要Bearer Token
+   * 返回：可兑换商品列表，包括分类、库存、价格等信息
    */
   async loadProducts() {
-    this.setData({ loading: true })
-
     try {
       let productsData
 
-      if (app.globalData.isDev) {
+      if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境使用模拟数据
-        productsData = {
-          code: 0,
-          msg: 'success',
-          data: {
-            products: this.data.mockProducts
-          }
-        }
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 800))
+        console.log('🔧 使用模拟商品数据')
+        productsData = await mockRequest('/api/exchange/products')
       } else {
-        // TODO: 对接真实商品列表接口
+        // 生产环境调用真实接口
+        console.log('📡 请求商品列表接口...')
         productsData = await exchangeAPI.getProducts()
       }
 
-      // 按积分值排序（从低到高）
-      const sortedProducts = productsData.data.products.sort((a, b) => 
-        a.exchange_points - b.exchange_points
-      )
+      // 处理分类数据
+      const categories = productsData.data.categories || ['全部']
+      const products = productsData.data.products || []
 
       this.setData({
-        products: sortedProducts,
-        loading: false
+        categories: ['全部'].concat(categories),
+        allProducts: products,
+        filteredProducts: products
       })
 
+      console.log('✅ 商品列表加载成功，共', products.length, '件商品')
+
     } catch (error) {
-      console.error('加载商品列表失败:', error)
-      this.setData({ 
-        loading: false,
-        products: this.data.mockProducts
+      console.error('❌ 获取商品列表失败:', error)
+      
+      // 使用默认商品数据，避免页面空白
+      const defaultProducts = [
+        {
+          id: 1,
+          name: '10元优惠券',
+          description: '满50元可用',
+          category: '优惠券',
+          points_cost: 1000,
+          stock: 100,
+          image: 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=10元券',
+          status: 'available'
+        }
+      ]
+      
+      this.setData({
+        categories: ['全部', '优惠券'],
+        allProducts: defaultProducts,
+        filteredProducts: defaultProducts
       })
+      
       wx.showToast({
-        title: '加载失败，使用模拟数据',
+        title: '商品加载失败',
         icon: 'none'
       })
     }
@@ -396,5 +437,205 @@ Page({
       title: '餐厅积分兑换 - 精美商品等你来',
       imageUrl: '/images/share-exchange.jpg'
     }
+  },
+
+  /**
+   * 兑换商品
+   * TODO: 后端对接 - 商品兑换接口
+   * 
+   * 对接说明：
+   * 接口：POST /api/exchange/redeem
+   * 请求体：{ product_id: 1, quantity: 1 }
+   * 认证：需要Bearer Token
+   * 返回：兑换结果，包括订单信息、剩余积分等
+   */
+  async onExchangeProduct() {
+    const { selectedProduct, exchangeQuantity } = this.data
+    
+    if (!selectedProduct || exchangeQuantity <= 0) {
+      wx.showToast({
+        title: '请选择商品和数量',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 检查积分是否足够
+    const totalCost = selectedProduct.points_cost * exchangeQuantity
+    if (this.data.totalPoints < totalCost) {
+      wx.showToast({
+        title: '积分不足',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 检查库存
+    if (selectedProduct.stock < exchangeQuantity) {
+      wx.showToast({
+        title: '库存不足',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 确认兑换
+    const confirmResult = await this.showExchangeConfirm(selectedProduct, exchangeQuantity, totalCost)
+    if (!confirmResult) return
+
+    // 防止重复提交
+    if (this.data.exchanging) return
+    this.setData({ exchanging: true })
+
+    try {
+      let exchangeResult
+
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟兑换
+        console.log('🔧 模拟商品兑换，商品ID:', selectedProduct.id, '数量:', exchangeQuantity)
+        wx.showLoading({ title: '兑换中...' })
+        
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        
+        exchangeResult = {
+          code: 0,
+          msg: '兑换成功',
+          data: {
+            order_id: 'ORD' + Date.now(),
+            product_name: selectedProduct.name,
+            quantity: exchangeQuantity,
+            points_cost: totalCost,
+            remaining_points: this.data.totalPoints - totalCost,
+            redeem_time: new Date().toLocaleString(),
+            delivery_info: selectedProduct.category === '优惠券' ? 
+              '兑换码：COUPON' + Math.random().toString(36).substr(2, 8).toUpperCase() :
+              '请到店出示此信息领取'
+          }
+        }
+        
+        wx.hideLoading()
+        
+        // 更新用户积分
+        const newPoints = this.data.totalPoints - totalCost
+        this.setData({ totalPoints: newPoints })
+        
+        if (app.globalData.mockUser) {
+          app.globalData.mockUser.total_points = newPoints
+        }
+        
+        console.log('✅ 模拟兑换完成，剩余积分:', newPoints)
+        
+      } else {
+        // 生产环境调用真实接口
+        console.log('📡 请求商品兑换接口，商品ID:', selectedProduct.id)
+        
+        exchangeResult = await exchangeAPI.redeem(selectedProduct.id, exchangeQuantity)
+        
+        // 更新用户积分
+        this.setData({
+          totalPoints: exchangeResult.data.remaining_points
+        })
+        
+        // 更新全局用户信息
+        if (app.globalData.userInfo) {
+          app.globalData.userInfo.total_points = exchangeResult.data.remaining_points
+        }
+        
+        console.log('✅ 商品兑换成功，订单号:', exchangeResult.data.order_id)
+      }
+
+      // 显示兑换成功结果
+      this.showExchangeResult(exchangeResult.data)
+
+      // 关闭兑换弹窗
+      this.setData({
+        showExchangeModal: false,
+        selectedProduct: null,
+        exchangeQuantity: 1
+      })
+
+      // 刷新商品列表（更新库存）
+      this.loadProducts()
+
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 商品兑换失败:', error)
+      
+      let errorMsg = '兑换失败，请重试'
+      
+      // 根据错误码显示不同的错误信息
+      switch (error.code) {
+        case 1001:
+          errorMsg = '商品不存在或已下架'
+          break
+        case 1002:
+          errorMsg = '积分不足'
+          break
+        case 1003:
+          errorMsg = '库存不足'
+          break
+        case 1004:
+          errorMsg = '兑换数量超过限制'
+          break
+        case 1005:
+          errorMsg = '今日兑换次数已达上限'
+          break
+        default:
+          errorMsg = error.msg || error.message || errorMsg
+      }
+      
+      wx.showToast({
+        title: errorMsg,
+        icon: 'none'
+      })
+      
+    } finally {
+      this.setData({ exchanging: false })
+    }
+  },
+
+  /**
+   * 显示兑换确认对话框
+   * @param {Object} product 商品信息
+   * @param {Number} quantity 兑换数量
+   * @param {Number} totalCost 总积分消耗
+   */
+  showExchangeConfirm(product, quantity, totalCost) {
+    return new Promise((resolve) => {
+      wx.showModal({
+        title: '确认兑换',
+        content: `商品：${product.name}\n数量：${quantity}件\n消耗积分：${totalCost}分\n剩余积分：${this.data.totalPoints - totalCost}分`,
+        confirmText: '确认兑换',
+        cancelText: '取消',
+        success: (res) => {
+          resolve(res.confirm)
+        }
+      })
+    })
+  },
+
+  /**
+   * 显示兑换成功结果
+   * @param {Object} result 兑换结果数据
+   */
+  showExchangeResult(result) {
+    let content = `订单号：${result.order_id}\n商品：${result.product_name}\n数量：${result.quantity}件\n`
+    
+    if (result.delivery_info) {
+      content += `\n${result.delivery_info}`
+    }
+    
+    wx.showModal({
+      title: '兑换成功！',
+      content,
+      showCancel: false,
+      confirmText: '查看订单',
+      success: () => {
+        // 可以跳转到兑换记录页面
+        // wx.navigateTo({
+        //   url: '/pages/records/exchange-records'
+        // })
+      }
+    })
   }
 }) 
