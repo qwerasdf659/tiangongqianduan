@@ -1,6 +1,6 @@
 // pages/camera/camera.js - 拍照上传页面逻辑
 const app = getApp()
-const { photoAPI, mockRequest } = require('../../utils/api')
+const { photoAPI, userAPI, mockRequest } = require('../../utils/api')
 const { validateImage, compressImage, validateAmount, FormValidator, commonRules } = require('../../utils/validate')
 
 Page({
@@ -314,7 +314,7 @@ Page({
             image_url: this.data.selectedImage,
             recognized_amount: recognizedAmount,
             points_earned: pointsEarned,
-            review_status: 'auto_approved', // AI识别结果直接通过
+            review_status: 'pending', // 改为待审核状态，需要人工审核
             upload_time: new Date().toLocaleString(),
             confidence: (Math.random() * 0.3 + 0.7).toFixed(2) // 70%-100%识别置信度
           }
@@ -323,15 +323,8 @@ Page({
         wx.hideLoading()
         this.showUploadResult(uploadResult.data)
         
-        // 更新用户积分
-        const newPoints = this.data.totalPoints + pointsEarned
-        this.setData({ totalPoints: newPoints })
-        
-        if (app.globalData.mockUser) {
-          app.globalData.mockUser.total_points = newPoints
-        }
-        
-        console.log('✅ 模拟自动识别完成，识别金额:', recognizedAmount)
+        // 不再自动更新用户积分，需要等待审核通过
+        console.log('✅ 模拟识别完成，识别金额:', recognizedAmount, '等待人工审核')
         
       } else {
         // 生产环境调用真实AI识别接口
@@ -407,12 +400,16 @@ Page({
   showUploadResult(result) {
     const isMatched = result.match_status === 'matched'
     const isAutoApproved = result.review_status === 'auto_approved'
+    const isPending = result.review_status === 'pending'
     
     let title, content
     
     if (isAutoApproved) {
       title = '上传成功！'
       content = `识别金额：¥${result.recognized_amount}\n获得积分：${result.points_earned}分\n已自动通过审核`
+    } else if (isPending) {
+      title = '上传成功，等待审核'
+      content = `识别金额：¥${result.recognized_amount}\n预计积分：${result.points_earned}分\n已提交审核，请等待商家人工审核通过后获得积分`
     } else {
       title = '上传成功，等待审核'
       content = `识别金额：¥${result.recognized_amount}\n输入金额：¥${result.input_amount}\n${isMatched ? '金额匹配，等待商家审核' : '金额不匹配，需要人工审核'}`
@@ -567,8 +564,11 @@ Page({
    */
   onViewUploadDetail(e) {
     const item = e.currentTarget.dataset.item
-    wx.navigateTo({
-      url: `/pages/upload/upload-detail?id=${item.id}`
+    wx.showModal({
+      title: '上传详情',
+      content: `小票ID：${item.id}\n识别金额：¥${item.amount}\n获得积分：${item.points_awarded}分\n状态：${this.data.statusMap[item.status].text}\n上传时间：${item.created_at}`,
+      showCancel: false,
+      confirmText: '知道了'
     })
   },
 
@@ -577,9 +577,8 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '拍照上传小票，轻松获取积分！',
-      path: '/pages/camera/camera',
-      imageUrl: '/images/share-camera.jpg'
+      title: '拍照赚积分，快来试试！',
+      path: '/pages/camera/camera'
     }
   }
 })

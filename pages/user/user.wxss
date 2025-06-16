@@ -784,3 +784,65 @@
   color: var(--text-secondary);
   display: block;
 }
+
+/* 商家入口样式 */
+.merchant-entrance {
+  background: linear-gradient(135deg, #FF6B35, #F7931E);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin: 30rpx 0 20rpx 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.merchant-entrance::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10rpx,
+    rgba(255, 255, 255, 0.1) 10rpx,
+    rgba(255, 255, 255, 0.1) 20rpx
+  );
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%); }
+  100% { transform: translateX(100%) translateY(100%); }
+}
+
+.merchant-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 16rpx;
+  padding: 20rpx 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  backdrop-filter: blur(10rpx);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.merchant-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.2);
+}
+
+.merchant-desc {
+  display: block;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 22rpx;
+  margin-top: 12rpx;
+  position: relative;
+  z-index: 1;
+}

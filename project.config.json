@@ -1,6 +1,6 @@
 {
   "compileType": "miniprogram",
-  "libVersion": "3.8.7",
+  "libVersion": "3.5.7",
   "packOptions": {
     "ignore": [],
     "include": []
@@ -9,7 +9,7 @@
     "coverView": true,
     "es6": true,
     "postcss": true,
-    "minified": true,
+    "minified": false,
     "enhance": true,
     "showShadowRootInWxmlPanel": true,
     "packNpmRelationList": [],
@@ -29,7 +29,8 @@
     "swc": false,
     "disableSWC": true,
     "disableUseStrict": false,
-    "useCompilerPlugins": false
+    "useCompilerPlugins": false,
+    "lazyCodeLoading": "requiredComponents"
   },
   "condition": {},
   "editorSetting": {

@@ -12,10 +12,6 @@ Page({
     userInfo: {},
     totalPoints: 0,
     
-    // 签到系统
-    hasCheckedIn: false,
-    checkInBonus: 50,
-    
     // 积分趋势
     todayEarned: 0,
     todayConsumed: 0,
@@ -110,7 +106,10 @@ Page({
    * 用户点击右上角分享
    */
   onShareAppMessage() {
-
+    return {
+      title: '餐厅积分系统 - 我的积分中心',
+      path: '/pages/user/user'
+    }
   },
 
   /**
@@ -127,12 +126,6 @@ Page({
       this.loadStatistics(),
       this.loadPointsRecords()
     ])
-    
-    // 检查今日是否已签到
-    this.checkTodayCheckIn()
-    
-    // 计算今日积分趋势
-    this.calculateTodayTrend()
   },
 
   /**
@@ -359,17 +352,37 @@ Page({
       // 执行特定动作
       this[item.action]()
     } else if (item.path) {
-      // 跳转页面
-      wx.navigateTo({
-        url: item.path,
-        fail: (error) => {
-          console.error('页面跳转失败:', error)
-          wx.showToast({
-            title: '功能开发中',
-            icon: 'none'
-          })
-        }
-      })
+      // 检查页面是否存在
+      const existingPages = [
+        '/pages/lottery/lottery',
+        '/pages/exchange/exchange',
+        '/pages/camera/camera',
+        '/pages/user/user',
+        '/pages/merchant/merchant',
+        '/pages/auth/auth'
+      ]
+      
+      if (existingPages.includes(item.path)) {
+        // 跳转到存在的页面
+        wx.navigateTo({
+          url: item.path,
+          fail: (error) => {
+            console.error('页面跳转失败:', error)
+            wx.showToast({
+              title: '跳转失败',
+              icon: 'none'
+            })
+          }
+        })
+      } else {
+        // 显示功能开发中提示
+        wx.showModal({
+          title: item.name,
+          content: `${item.description}\n\n该功能正在开发中，敬请期待！`,
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      }
     }
   },
 
@@ -581,64 +594,6 @@ Page({
   },
 
   /**
-   * 签到功能
-   */
-  onCheckIn() {
-    if (this.data.hasCheckedIn) {
-      wx.showToast({
-        title: '今日已签到',
-        icon: 'none'
-      })
-      return
-    }
-
-    // 执行签到
-    const bonus = this.data.checkInBonus
-    const newPoints = this.data.totalPoints + bonus
-    const today = new Date().toDateString()
-    
-    this.setData({
-      hasCheckedIn: true,
-      totalPoints: newPoints,
-      todayEarned: this.data.todayEarned + bonus
-    })
-
-    // 保存签到记录到本地存储
-    wx.setStorageSync('lastCheckIn', today)
-
-    // 更新全局数据
-    if (app.globalData.mockUser) {
-      app.globalData.mockUser.total_points = newPoints
-    }
-
-    wx.showModal({
-      title: '签到成功！',
-      content: `恭喜您获得${bonus}积分奖励！`,
-      showCancel: false,
-      confirmText: '太棒了'
-    })
-
-    // 刷新成就进度
-    this.updateAchievements()
-    
-    // 添加积分记录
-    const newRecord = {
-      id: Date.now(),
-      type: 'earn',
-      points: bonus,
-      description: '签到奖励',
-      balance: newPoints,
-      created_at: new Date().toLocaleDateString()
-    }
-    
-    const updatedRecords = [newRecord, ...this.data.pointsRecords]
-    this.setData({
-      pointsRecords: updatedRecords
-    })
-    this.filterPointsRecords()
-  },
-
-  /**
    * 刷新统计数据
    */
   onRefreshStats() {
@@ -659,8 +614,16 @@ Page({
    * 意见反馈
    */
   onFeedback() {
-    wx.navigateTo({
-      url: '/pages/feedback/feedback'
+    wx.showModal({
+      title: '意见反馈',
+      content: '感谢您的反馈！\n\n请通过以下方式联系我们：\n• 客服热线：400-8888-888\n• 在线客服：工作日9:00-18:00',
+      confirmText: '联系客服',
+      cancelText: '知道了',
+      success: (res) => {
+        if (res.confirm) {
+          this.onContactService()
+        }
+      }
     })
   },
 
@@ -869,6 +832,22 @@ Page({
   },
 
   /**
+   * 商家管理入口
+   */
+  onMerchantEntrance() {
+    wx.navigateTo({
+      url: '/pages/merchant/merchant',
+      fail: (error) => {
+        console.error('跳转商家页面失败:', error)
+        wx.showToast({
+          title: '跳转失败',
+          icon: 'none'
+        })
+      }
+    })
+  },
+
+  /**
    * 复制邀请码
    */
   onCopyInviteCode() {
@@ -885,37 +864,12 @@ Page({
   },
 
   /**
-   * 分享功能
-   */
-  onShareAppMessage() {
-    return {
-      title: '快来餐厅积分系统赚积分！',
-      path: '/pages/lottery/lottery',
-      imageUrl: '/images/share-user.jpg'
-    }
-  },
-
-  /**
    * 分享到朋友圈
    */
   onShareTimeline() {
     return {
-      title: '餐厅积分抽奖 - 我已经赚了' + this.data.totalPoints + '积分',
-      imageUrl: '/images/share-user.jpg'
+      title: '餐厅积分系统 - 赚积分兑好礼'
     }
-  },
-
-  /**
-   * 检查今日是否已签到
-   */
-  checkTodayCheckIn() {
-    // 从本地存储检查今日是否已签到
-    const today = new Date().toDateString()
-    const lastCheckIn = wx.getStorageSync('lastCheckIn')
-    
-    this.setData({
-      hasCheckedIn: lastCheckIn === today
-    })
   },
 
   /**

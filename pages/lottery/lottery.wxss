@@ -432,4 +432,33 @@
   .ten-btn {
     grid-column: span 1;
   }
+}
+
+/* 页面头部样式 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.header-service-btn {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  border-radius: 16rpx;
+  padding: 16rpx 24rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.3);
+}
+
+.header-service-btn:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.4);
 } 

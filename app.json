@@ -1,21 +1,23 @@
 {
   "pages": [
     "pages/lottery/lottery",
-    "pages/exchange/exchange", 
     "pages/camera/camera",
+    "pages/exchange/exchange",
     "pages/user/user",
     "pages/merchant/merchant",
     "pages/auth/auth"
   ],
   "window": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "餐厅积分抽奖",
-    "navigationBarBackgroundColor": "#ffffff"
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FF6B35",
+    "navigationBarTitleText": "餐厅积分系统",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
   },
   "tabBar": {
-    "color": "#999999",
+    "color": "#666",
     "selectedColor": "#FF6B35",
-    "backgroundColor": "#ffffff",
+    "backgroundColor": "#fff",
     "borderStyle": "black",
     "list": [
       {
@@ -23,31 +25,24 @@
         "text": "🎰抽奖"
       },
       {
-        "pagePath": "pages/exchange/exchange",
-        "text": "🎁兑换"
-      },
-      {
         "pagePath": "pages/camera/camera",
         "text": "📷拍照"
       },
       {
-        "pagePath": "pages/user/user",
-        "text": "👤我的"
+        "pagePath": "pages/exchange/exchange",
+        "text": "🎁兑换"
       },
       {
-        "pagePath": "pages/merchant/merchant",
-        "text": "🏪商家"
+        "pagePath": "pages/user/user",
+        "text": "👤我的"
       }
     ]
   },
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "debug": false,
   "style": "v2",
-  "componentFramework": "glass-easel",
-  "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents",
-  "requiredBackgroundModes": ["audio"],
-  "permission": {
-    "scope.userLocation": {
-      "desc": "您的位置信息将用于小程序位置接口的效果展示"
-    }
-  }
+  "sitemapLocation": "sitemap.json"
 }

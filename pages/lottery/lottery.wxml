@@ -9,9 +9,9 @@
         <text class="points-value">{{totalPoints}}</text>
       </view>
     </view>
-    <!-- 添加分享按钮到右上角 -->
-    <button class="header-share-btn" open-type="share">
-      🔗 分享
+    <!-- 联系客服按钮 -->
+    <button class="header-service-btn" bindtap="onContactService">
+      📞 客服
     </button>
   </view>
 

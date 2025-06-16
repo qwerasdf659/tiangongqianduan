@@ -1,6 +1,6 @@
 // pages/exchange/exchange.js - 商品兑换页面逻辑
 const app = getApp()
-const { exchangeAPI, mockRequest } = require('../../utils/api')
+const { exchangeAPI, userAPI, mockRequest } = require('../../utils/api')
 const { wsManager } = require('../../utils/ws')
 const { debounce } = require('../../utils/validate')
 
@@ -52,23 +52,19 @@ Page({
   },
 
   onLoad() {
-    console.log('商品兑换页面加载')
     this.initPage()
   },
 
   onShow() {
-    console.log('商品兑换页面显示')
     this.refreshUserInfo()
-    this.connectWebSocket()
   },
 
   onHide() {
-    console.log('商品兑换页面隐藏')
+    // 页面隐藏
   },
 
   onUnload() {
-    console.log('商品兑换页面卸载')
-    this.disconnectWebSocket()
+    // 页面卸载
   },
 
   onPullDownRefresh() {
@@ -80,17 +76,34 @@ Page({
    * 初始化页面
    */
   async initPage() {
-    // 初始化用户信息
-    this.setData({
-      userInfo: app.globalData.userInfo || app.globalData.mockUser,
-      totalPoints: app.globalData.userInfo?.total_points || app.globalData.mockUser.total_points
-    })
+    try {
+      // 初始化用户信息
+      const userInfo = app.globalData.userInfo || app.globalData.mockUser || {
+        user_id: 1001,
+        phone: '138****8000',
+        total_points: 1500,
+        is_merchant: false
+      }
+      
+      this.setData({
+        userInfo: userInfo,
+        totalPoints: userInfo.total_points || 1500
+      })
 
-    // 生成模拟商品数据
-    this.generateMockProducts()
+      // 生成模拟商品数据
+      this.generateMockProducts()
 
-    // 加载商品列表
-    await this.loadProducts()
+      // 初始化筛选结果
+      this.filterProducts()
+
+      this.setData({ loading: false })
+    } catch (error) {
+      console.error('页面初始化失败:', error)
+      this.setData({ 
+        loading: false,
+        totalPoints: 1500
+      })
+    }
   },
 
   /**
@@ -514,8 +527,18 @@ Page({
    * 查看兑换记录
    */
   onViewRecords() {
-    wx.navigateTo({
-      url: '/pages/records/exchange-records'
+    wx.showModal({
+      title: '兑换记录',
+      content: '兑换记录功能正在开发中...\n\n您可以在个人中心查看积分明细了解兑换消费记录',
+      confirmText: '去个人中心',
+      cancelText: '知道了',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({
+            url: '/pages/user/user'
+          })
+        }
+      }
     })
   },
 
@@ -546,8 +569,7 @@ Page({
   onShareAppMessage() {
     return {
       title: '精美商品等你兑换！',
-      path: '/pages/exchange/exchange',
-      imageUrl: '/images/share-exchange.jpg'
+      path: '/pages/exchange/exchange'
     }
   },
 
@@ -556,8 +578,7 @@ Page({
    */
   onShareTimeline() {
     return {
-      title: '餐厅积分兑换 - 精美商品等你来',
-      imageUrl: '/images/share-exchange.jpg'
+      title: '餐厅积分兑换 - 精美商品等你来'
     }
   },
 
@@ -1056,23 +1077,17 @@ Page({
   onClearSearch() {
     this.setData({
       searchKeyword: '',
-      currentPage: 1
+      currentFilter: 'all'
     })
-    this.filterProducts()
+    this.applyFilters()
   },
 
   /**
    * 刷新商品列表
    */
   onRefreshProducts() {
-    wx.showLoading({ title: '刷新中...' })
-    this.loadProducts().finally(() => {
-      wx.hideLoading()
-      wx.showToast({
-        title: '刷新完成',
-        icon: 'success'
-      })
-    })
+    this.setData({ loading: true })
+    this.loadProducts()
   },
 
   /**
@@ -1089,5 +1104,12 @@ Page({
       title: '按积分排序完成',
       icon: 'success'
     })
+  },
+
+  /**
+   * 筛选商品
+   */
+  applyFilters() {
+    this.filterProducts()
   }
 }) 

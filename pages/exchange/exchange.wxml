@@ -260,8 +260,11 @@
     <view class="empty-state" wx:if="{{!loading && filteredProducts.length === 0}}">
       <view class="empty-icon">📦</view>
       <text class="empty-text">{{searchKeyword ? '没有找到相关商品' : '暂无商品'}}</text>
-      <button class="retry-btn" bindtap="{{searchKeyword ? 'onClearSearch' : 'loadProducts'}}">
-        {{searchKeyword ? '清除搜索' : '重新加载'}}
+      <button class="retry-btn" bindtap="onClearSearch" wx:if="{{searchKeyword}}">
+        清除搜索
+      </button>
+      <button class="retry-btn" bindtap="onRefreshProducts" wx:else>
+        重新加载
       </button>
     </view>
     
@@ -283,37 +286,50 @@
         
         <!-- 页码列表 -->
         <view class="page-numbers">
-          <!-- 第一页 -->
-          <button 
-            class="page-number {{currentPage === 1 ? 'active' : ''}}"
-            bindtap="onPageChange"
-            data-page="1"
-            wx:if="{{totalPages > 1}}"
-          >1</button>
-          
-          <!-- 省略号 -->
-          <text class="page-ellipsis" wx:if="{{currentPage > 3 && totalPages > 5}}">...</text>
-          
-          <!-- 当前页附近的页码 -->
-          <block wx:for="{{totalPages}}" wx:key="*this">
-            <button 
-              class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
-              bindtap="onPageChange"
-              data-page="{{item + 1}}"
-              wx:if="{{(item + 1) > 1 && (item + 1) < totalPages && Math.abs((item + 1) - currentPage) <= 1}}"
-            >{{item + 1}}</button>
+          <!-- 当总页数小于等于7时，显示所有页码 -->
+          <block wx:if="{{totalPages <= 7}}">
+            <block wx:for="{{totalPages}}" wx:key="*this">
+              <button 
+                class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
+                bindtap="onPageChange"
+                data-page="{{item + 1}}"
+              >{{item + 1}}</button>
+            </block>
           </block>
           
-          <!-- 省略号 -->
-          <text class="page-ellipsis" wx:if="{{currentPage < totalPages - 2 && totalPages > 5}}">...</text>
-          
-          <!-- 最后一页 -->
-          <button 
-            class="page-number {{currentPage === totalPages ? 'active' : ''}}"
-            bindtap="onPageChange"
-            data-page="{{totalPages}}"
-            wx:if="{{totalPages > 1}}"
-          >{{totalPages}}</button>
+          <!-- 当总页数大于7时，使用省略号显示 -->
+          <block wx:else>
+            <!-- 第一页 -->
+            <button 
+              class="page-number {{currentPage === 1 ? 'active' : ''}}"
+              bindtap="onPageChange"
+              data-page="1"
+            >1</button>
+            
+            <!-- 左侧省略号 -->
+            <text class="page-ellipsis" wx:if="{{currentPage > 4}}">...</text>
+            
+            <!-- 当前页附近的页码 -->
+            <block wx:for="{{totalPages}}" wx:key="*this">
+              <button 
+                class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
+                bindtap="onPageChange"
+                data-page="{{item + 1}}"
+                wx:if="{{(item + 1) > 1 && (item + 1) < totalPages && (item + 1) >= (currentPage - 2) && (item + 1) <= (currentPage + 2)}}"
+              >{{item + 1}}</button>
+            </block>
+            
+            <!-- 右侧省略号 -->
+            <text class="page-ellipsis" wx:if="{{currentPage < totalPages - 3}}">...</text>
+            
+            <!-- 最后一页 -->
+            <button 
+              class="page-number {{currentPage === totalPages ? 'active' : ''}}"
+              bindtap="onPageChange"
+              data-page="{{totalPages}}"
+              wx:if="{{totalPages > 1}}"
+            >{{totalPages}}</button>
+          </block>
         </view>
         
         <!-- 下一页 -->
@@ -428,7 +444,7 @@
   <!-- 规则说明 -->
   <view class="rules-section" wx:if="{{!loading}}">
     <view class="section-title">
-      <text>�� 兑换规则</text>
+      <text>兑换规则</text>
     </view>
     <view class="rules-content">
       <view class="rule-item">• 商品按积分值从低到高排序（800-2000分）</view>

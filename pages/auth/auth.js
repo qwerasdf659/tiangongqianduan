@@ -82,13 +82,12 @@ Page({
   },
 
   /**
-   * 用户点击右上角分享
+   * 分享功能
    */
   onShareAppMessage() {
     return {
-      title: '餐厅积分抽奖 - 快来注册赚积分！',
-      path: '/pages/auth/auth',
-      imageUrl: '/images/share-auth.jpg'
+      title: '餐厅积分系统 - 快速登录',
+      path: '/pages/auth/auth'
     }
   },
 

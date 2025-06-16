@@ -1,8 +1,6 @@
 // app.js - 餐厅积分抽奖系统全局配置
 App({
   onLaunch() {
-    console.log('餐厅积分抽奖系统启动')
-    
     // 初始化日志
     const logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
@@ -83,17 +81,12 @@ App({
     const config = this.globalData.isDev ? this.globalData.api.dev : this.globalData.api.prod
     this.globalData.baseUrl = config.baseUrl
     this.globalData.wsUrl = config.wsUrl
-    
-    console.log(`当前环境: ${this.globalData.isDev ? '开发' : '生产'}`)
-    console.log(`API地址: ${this.globalData.baseUrl}`)
-    console.log(`WebSocket地址: ${this.globalData.wsUrl}`)
   },
 
   // 检查认证状态
   checkAuthStatus() {
     if (this.globalData.isDev && !this.globalData.needAuth) {
       // 开发环境且不需要强制认证时，使用模拟用户数据
-      console.log('开发环境，跳过认证检查，使用模拟用户数据')
       this.globalData.isLoggedIn = true
       this.globalData.userInfo = this.globalData.mockUser
       return

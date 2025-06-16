@@ -1,6 +1,6 @@
 // pages/lottery/lottery.js - 抽奖页面逻辑
 const app = getApp()
-const { lotteryAPI, mockRequest } = require('../../utils/api')
+const { lotteryAPI, userAPI, mockRequest } = require('../../utils/api')
 const { wsManager } = require('../../utils/ws')
 const { SliderVerify, throttle } = require('../../utils/validate')
 
@@ -519,8 +519,43 @@ Page({
    * 查看抽奖记录
    */
   onViewRecords() {
-    wx.navigateTo({
-      url: '/pages/records/lottery-records'
+    wx.showModal({
+      title: '抽奖记录',
+      content: '抽奖记录功能正在开发中...\n\n您可以在个人中心查看积分明细了解抽奖消费记录',
+      confirmText: '去个人中心',
+      cancelText: '知道了',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({
+            url: '/pages/user/user'
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 联系客服
+   */
+  onContactService() {
+    wx.showModal({
+      title: '联系客服',
+      content: '客服热线：400-8888-888\n在线时间：9:00-21:00\n\n您也可以通过微信直接联系我们的客服人员',
+      confirmText: '拨打电话',
+      cancelText: '知道了',
+      success: (res) => {
+        if (res.confirm) {
+          wx.makePhoneCall({
+            phoneNumber: '4008888888',
+            fail: () => {
+              wx.showToast({
+                title: '拨号失败',
+                icon: 'none'
+              })
+            }
+          })
+        }
+      }
     })
   },
 
@@ -529,9 +564,8 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '餐厅积分抽奖，快来试试手气！',
-      path: '/pages/lottery/lottery',
-      imageUrl: '/images/share-lottery.jpg'
+      title: '餐厅积分抽奖 - 天天有惊喜！',
+      path: '/pages/lottery/lottery'
     }
   }
 }) 

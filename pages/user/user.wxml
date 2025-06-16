@@ -20,14 +20,6 @@
         <text class="level-text">{{userInfo.level || 'VIP1'}} 会员</text>
       </view>
     </view>
-
-    <view class="user-actions">
-      <button class="action-item" bindtap="onCheckIn">
-        <text class="action-icon">📅</text>
-        <text class="action-text">{{hasCheckedIn ? '已签到' : '签到'}}</text>
-        <text class="sign-bonus" wx:if="{{!hasCheckedIn}}">+{{checkInBonus}}分</text>
-      </button>
-    </view>
   </view>
 
   <!-- 积分余额卡片 -->
@@ -201,6 +193,14 @@
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
     </view>
+  </view>
+
+  <!-- 商家入口 -->
+  <view class="merchant-entrance">
+    <button class="merchant-btn" bindtap="onMerchantEntrance">
+      🏪 商家管理
+    </button>
+    <text class="merchant-desc">商家权限申请与管理</text>
   </view>
 
   <!-- 版本信息 -->

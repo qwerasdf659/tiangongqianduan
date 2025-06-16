@@ -61,7 +61,8 @@ Page({
     
     // 权限申请
     showAuthModal: false,
-    authRequesting: false
+    authRequesting: false,
+    hasPermission: false
   },
 
   /**
@@ -121,9 +122,8 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '餐厅积分系统 - 商家管理',
-      path: '/pages/merchant/merchant',
-      imageUrl: '/images/share-merchant.jpg'
+      title: '商家管理后台，高效审核',
+      path: '/pages/merchant/merchant'
     }
   },
 
@@ -310,15 +310,9 @@ Page({
 
   /**
    * 申请商家权限
-   * TODO: 后端对接 - 商家权限申请接口
-   * 
-   * 对接说明：
-   * 接口：POST /api/merchant/auth
-   * 请求体：{ store_name: "餐厅名称", business_license: "营业执照号", ... }
-   * 认证：需要Bearer Token
-   * 返回：申请结果，包括申请ID和审核状态
    */
   onRequestAuth() {
+    console.log('点击申请商家权限')
     this.setData({ showAuthModal: true })
   },
 
@@ -331,103 +325,42 @@ Page({
     this.setData({ authRequesting: true })
 
     try {
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟申请
-        console.log('🔧 模拟商家权限申请')
-        wx.showLoading({ title: '申请中...' })
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        // 模拟申请成功
-        this.setData({
-          isMerchant: true,
-          showAuthModal: false
-        })
-        
-        // 更新全局数据
-        if (app.globalData.mockUser) {
-          app.globalData.mockUser.is_merchant = true
-        }
-        if (app.globalData.userInfo) {
-          app.globalData.userInfo.is_merchant = true
-        }
-        
-        wx.hideLoading()
-        wx.showToast({
-          title: '商家权限申请成功',
-          icon: 'success'
-        })
-        
-        console.log('✅ 商家权限申请成功')
-        
-        // 加载商家数据
-        await this.loadData()
-        
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求商家权限申请接口...')
-        wx.showLoading({ title: '申请中...' })
-        
-        // TODO: 收集申请信息（店铺名称、营业执照等）
-        const authInfo = {
-          store_name: '测试餐厅', // 实际应用中需要用户输入
-          business_license: '123456789',
-          contact_person: app.globalData.userInfo?.nickname || '商家',
-          contact_phone: app.globalData.userInfo?.phone || ''
-        }
-        
-        const result = await merchantAPI.auth(authInfo)
-        
-        wx.hideLoading()
-        
-        if (result.data.status === 'approved') {
-          // 立即通过
-          this.setData({
-            isMerchant: true,
-            showAuthModal: false
-          })
-          
-          wx.showToast({
-            title: '商家权限申请成功',
-            icon: 'success'
-          })
-          
-          await this.loadData()
-        } else {
-          // 需要等待审核
-          this.setData({ showAuthModal: false })
-          
-          wx.showModal({
-            title: '申请已提交',
-            content: '您的商家权限申请已提交，请等待审核',
-            showCancel: false
-          })
-        }
-        
-        console.log('✅ 商家权限申请提交成功')
+      console.log('🔧 开始申请商家权限')
+      wx.showLoading({ title: '申请中...' })
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // 申请成功，更新状态
+      this.setData({
+        isMerchant: true,
+        showAuthModal: false,
+        hasPermission: true // 添加权限状态
+      })
+      
+      // 更新全局数据
+      if (app.globalData.mockUser) {
+        app.globalData.mockUser.is_merchant = true
       }
+      if (app.globalData.userInfo) {
+        app.globalData.userInfo.is_merchant = true
+      }
+      
+      wx.hideLoading()
+      wx.showToast({
+        title: '商家权限申请成功',
+        icon: 'success'
+      })
+      
+      console.log('✅ 商家权限申请成功')
+      
+      // 加载商家数据
+      await this.loadData()
 
     } catch (error) {
       wx.hideLoading()
       console.error('❌ 申请商家权限失败:', error)
       
-      let errorMsg = '申请失败，请重试'
-      
-      switch (error.code) {
-        case 1001:
-          errorMsg = '用户信息不完整'
-          break
-        case 1002:
-          errorMsg = '已提交申请，请勿重复提交'
-          break
-        case 1003:
-          errorMsg = '申请信息不符合要求'
-          break
-        default:
-          errorMsg = error.msg || errorMsg
-      }
-      
       wx.showToast({
-        title: errorMsg,
+        title: '申请失败，请重试',
         icon: 'none'
       })
     } finally {
@@ -614,11 +547,13 @@ Page({
     const phone = e.currentTarget.dataset.phone
     wx.showModal({
       title: '联系用户',
-      content: `用户手机号：${phone}\n\n是否拨打电话？`,
+      content: `用户手机号：${phone}\n\n您可以直接拨打电话联系用户`,
+      confirmText: '拨打电话',
+      cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
           wx.makePhoneCall({
-            phoneNumber: phone.replace(/\*/g, ''),
+            phoneNumber: phone,
             fail: () => {
               wx.showToast({
                 title: '拨号失败',
@@ -1206,6 +1141,72 @@ Page({
     wx.showToast({
       title: '功能开发中',
       icon: 'none'
+    })
+  },
+
+  /**
+   * 解锁权限
+   */
+  onUnlockPermission() {
+    wx.showModal({
+      title: '身份验证',
+      content: '为保护您的账户安全，请输入手机验证码进行身份验证',
+      confirmText: '验证',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          // 模拟验证过程
+          wx.showLoading({ title: '验证中...' })
+          setTimeout(() => {
+            wx.hideLoading()
+            this.setData({ hasPermission: true })
+            wx.showToast({
+              title: '验证成功，功能已解锁',
+              icon: 'success'
+            })
+          }, 2000)
+        }
+      }
+    })
+  },
+
+  /**
+   * 功能锁定提示
+   */
+  onLockedTap() {
+    wx.showToast({
+      title: '功能已锁定，请先完成身份验证',
+      icon: 'none'
+    })
+  },
+
+  /**
+   * 审核通过
+   */
+  onApprove(e) {
+    const item = e.currentTarget.dataset.item
+    this.onStartReview({ 
+      currentTarget: { 
+        dataset: { 
+          item: item, 
+          action: 'approve' 
+        } 
+      } 
+    })
+  },
+
+  /**
+   * 审核拒绝
+   */
+  onReject(e) {
+    const item = e.currentTarget.dataset.item
+    this.onStartReview({ 
+      currentTarget: { 
+        dataset: { 
+          item: item, 
+          action: 'reject' 
+        } 
+      } 
     })
   }
 })
