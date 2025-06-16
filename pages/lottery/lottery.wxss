@@ -8,6 +8,7 @@
 
 /* 页面头部 */
 .header {
+  position: relative;
   background: rgba(255, 255, 255, 0.9);
   border-radius: 20rpx;
   padding: 30rpx;
@@ -45,6 +46,26 @@
   font-size: 28rpx;
   font-weight: 600;
   color: white;
+}
+
+/* 右上角分享按钮 */
+.header-share-btn {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 16rpx 24rpx;
+  font-size: 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  transition: all 0.3s ease;
+}
+
+.header-share-btn:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.4);
 }
 
 /* 转盘区域 */
@@ -102,10 +123,11 @@
   margin-top: 20rpx;
 }
 
-/* 抽奖按钮组 */
+/* 抽奖按钮组 - 修改为2x2网格布局 */
 .draw-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
   gap: 20rpx;
 }
 
@@ -159,8 +181,8 @@
   border-radius: 20rpx;
 }
 
+/* 十连抽按钮特殊样式 */
 .ten-btn {
-  grid-column: span 2;
   background: linear-gradient(45deg, var(--primary-color), #ff8a65);
 }
 

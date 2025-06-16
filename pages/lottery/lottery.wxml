@@ -9,6 +9,10 @@
         <text class="points-value">{{totalPoints}}</text>
       </view>
     </view>
+    <!-- 添加分享按钮到右上角 -->
+    <button class="header-share-btn" open-type="share">
+      🔗 分享
+    </button>
   </view>
 
   <!-- 转盘区域 -->
@@ -69,33 +73,10 @@
     </view>
   </view>
 
-  <!-- 奖品列表 -->
-  <view class="prizes-section">
-    <view class="section-title">
-      <text>🎁 奖品一览</text>
-    </view>
-    <view class="prizes-grid">
-      <view 
-        class="prize-item" 
-        wx:for="{{prizes}}" 
-        wx:key="id"
-        style="background-color: {{item.color}}20;"
-      >
-        <view class="prize-name">{{item.name}}</view>
-        <view class="prize-type">
-          {{item.is_activity ? '限定' : '常规'}}
-        </view>
-      </view>
-    </view>
-  </view>
-
   <!-- 快捷操作 -->
   <view class="quick-actions">
     <button class="action-btn" bindtap="onViewRecords">
       📊 抽奖记录
-    </button>
-    <button class="action-btn" open-type="share">
-      🔗 分享好友
     </button>
   </view>
 

@@ -53,38 +53,11 @@
       </view>
     </view>
 
-    <!-- 消费金额输入 -->
-    <view class="amount-input">
-      <view class="section-title">
-        <text>💰 消费金额</text>
-      </view>
-      
-      <view class="input-container">
-        <input 
-          class="amount-field {{formErrors.amount ? 'error' : ''}}"
-          type="digit"
-          placeholder="请输入消费金额"
-          value="{{consumeAmount}}"
-          bindinput="onAmountInput"
-        />
-        <text class="currency-unit">元</text>
-      </view>
-      
-      <view class="error-message" wx:if="{{formErrors.amount}}">
-        {{formErrors.amount}}
-      </view>
-      
-      <view class="points-preview" wx:if="{{expectedPoints > 0}}">
-        <text class="preview-label">预计获得积分：</text>
-        <text class="preview-points">{{expectedPoints}}分</text>
-      </view>
-    </view>
-
     <!-- 提交按钮 -->
     <view class="submit-section">
       <button 
         class="submit-btn {{uploading ? 'loading' : ''}}"
-        disabled="{{uploading || !selectedImage || !consumeAmount}}"
+        disabled="{{uploading || !selectedImage}}"
         bindtap="onSubmitUpload"
       >
         {{uploading ? '上传中...' : '提交审核'}}

@@ -94,9 +94,6 @@
     <button class="action-btn" bindtap="onViewRecords">
       📋 兑换记录
     </button>
-    <button class="action-btn" open-type="share">
-      🔗 分享好友
-    </button>
   </view>
 
   <!-- 兑换确认弹窗 -->

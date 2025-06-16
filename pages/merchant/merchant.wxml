@@ -24,6 +24,10 @@
           <text class="feature-icon">📞</text>
           <text class="feature-text">联系用户</text>
         </view>
+        <view class="feature-item">
+          <text class="feature-icon">🛍️</text>
+          <text class="feature-text">商品管理</text>
+        </view>
       </view>
       
       <button class="auth-btn" bindtap="onRequestAuth">
@@ -42,119 +46,261 @@
       </view>
     </view>
 
-    <!-- 审核统计 -->
-    <view class="statistics-section">
-      <view class="section-title">
-        <text>📊 审核统计</text>
+    <!-- 管理选项卡 -->
+    <view class="tab-bar">
+      <view 
+        class="tab-item {{currentTab === 'review' ? 'active' : ''}}"
+        bindtap="onTabChange"
+        data-tab="review"
+      >
+        📋 审核管理
       </view>
-      <view class="stats-grid">
-        <view class="stat-item pending">
-          <text class="stat-number">{{statistics.pendingCount}}</text>
-          <text class="stat-label">待审核</text>
+      <view 
+        class="tab-item {{currentTab === 'product' ? 'active' : ''}}"
+        bindtap="onTabChange"
+        data-tab="product"
+      >
+        🛍️ 商品管理
+      </view>
+    </view>
+
+    <!-- 审核管理页面 -->
+    <view class="review-tab" wx:if="{{currentTab === 'review'}}">
+      <!-- 审核统计 -->
+      <view class="statistics-section">
+        <view class="section-title">
+          <text>📊 审核统计</text>
         </view>
-        <view class="stat-item approved">
-          <text class="stat-number">{{statistics.todayApproved}}</text>
-          <text class="stat-label">今日通过</text>
+        <view class="stats-grid">
+          <view class="stat-item pending">
+            <text class="stat-number">{{statistics.pendingCount}}</text>
+            <text class="stat-label">待审核</text>
+          </view>
+          <view class="stat-item approved">
+            <text class="stat-number">{{statistics.todayApproved}}</text>
+            <text class="stat-label">今日通过</text>
+          </view>
+          <view class="stat-item rejected">
+            <text class="stat-number">{{statistics.todayRejected}}</text>
+            <text class="stat-label">今日拒绝</text>
+          </view>
+          <view class="stat-item total">
+            <text class="stat-number">{{statistics.totalProcessed}}</text>
+            <text class="stat-label">累计处理</text>
+          </view>
         </view>
-        <view class="stat-item rejected">
-          <text class="stat-number">{{statistics.todayRejected}}</text>
-          <text class="stat-label">今日拒绝</text>
+      </view>
+
+      <!-- 操作工具栏 -->
+      <view class="toolbar">
+        <button class="tool-btn refresh-btn" bindtap="refreshData">
+          🔄 刷新
+        </button>
+        <button class="tool-btn batch-btn" bindtap="onBatchOperation">
+          📝 批量操作
+        </button>
+      </view>
+
+      <!-- 待审核列表 -->
+      <view class="pending-section">
+        <view class="section-title">
+          <text>📋 待审核列表 ({{pendingList.length}})</text>
         </view>
-        <view class="stat-item total">
-          <text class="stat-number">{{statistics.totalProcessed}}</text>
-          <text class="stat-label">累计处理</text>
+        
+        <view class="pending-list">
+          <view 
+            class="pending-item"
+            wx:for="{{pendingList}}" 
+            wx:key="id"
+          >
+            <!-- 用户信息 -->
+            <view class="item-header">
+              <view class="user-info">
+                <text class="user-phone">{{item.user_phone}}</text>
+                <text class="user-id">ID: {{item.user_id}}</text>
+              </view>
+              <view class="upload-time">
+                <text class="time-label">上传时间</text>
+                <text class="time-value">{{item.upload_time}}</text>
+              </view>
+            </view>
+
+            <!-- 小票信息 -->
+            <view class="item-content">
+              <image 
+                class="receipt-image" 
+                src="{{item.image_url}}" 
+                mode="aspectFill"
+                bindtap="onPreviewImage"
+                data-url="{{item.image_url}}"
+              />
+              <view class="receipt-info">
+                <view class="amount-info">
+                  <text class="amount-label">消费金额：</text>
+                  <text class="amount-value">{{item.amount}}元</text>
+                </view>
+                <view class="points-info">
+                  <text class="points-label">预计积分：</text>
+                  <text class="points-value">{{item.expected_points}}分</text>
+                </view>
+              </view>
+            </view>
+
+            <!-- 操作按钮 -->
+            <view class="item-actions">
+              <button 
+                class="action-btn contact-btn"
+                bindtap="onContactUser"
+                data-phone="{{item.user_phone}}"
+              >
+                📞 联系
+              </button>
+              <button 
+                class="action-btn reject-btn"
+                bindtap="onStartReview"
+                data-item="{{item}}"
+                data-action="reject"
+              >
+                ❌ 拒绝
+              </button>
+              <button 
+                class="action-btn approve-btn"
+                bindtap="onStartReview"
+                data-item="{{item}}"
+                data-action="approve"
+              >
+                ✅ 通过
+              </button>
+            </view>
+          </view>
+
+          <!-- 列表为空 -->
+          <view class="empty-list" wx:if="{{pendingList.length === 0}}">
+            <view class="empty-icon">📋</view>
+            <text class="empty-text">暂无待审核项目</text>
+            <button class="refresh-btn" bindtap="refreshData">刷新数据</button>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 操作工具栏 -->
-    <view class="toolbar">
-      <button class="tool-btn refresh-btn" bindtap="refreshData">
-        🔄 刷新
-      </button>
-      <button class="tool-btn batch-btn" bindtap="onBatchOperation">
-        📝 批量操作
-      </button>
-    </view>
-
-    <!-- 待审核列表 -->
-    <view class="pending-section">
-      <view class="section-title">
-        <text>📋 待审核列表 ({{pendingList.length}})</text>
-      </view>
-      
-      <view class="pending-list">
-        <view 
-          class="pending-item"
-          wx:for="{{pendingList}}" 
-          wx:key="id"
-        >
-          <!-- 用户信息 -->
-          <view class="item-header">
-            <view class="user-info">
-              <text class="user-phone">{{item.user_phone}}</text>
-              <text class="user-id">ID: {{item.user_id}}</text>
-            </view>
-            <view class="upload-time">
-              <text class="time-label">上传时间</text>
-              <text class="time-value">{{item.upload_time}}</text>
-            </view>
+    <!-- 商品管理页面 -->
+    <view class="product-tab" wx:if="{{currentTab === 'product'}}">
+      <!-- 商品统计 -->
+      <view class="product-statistics">
+        <view class="section-title">
+          <text>🛍️ 商品统计</text>
+        </view>
+        <view class="stats-grid">
+          <view class="stat-item active">
+            <text class="stat-number">{{productStats.activeCount}}</text>
+            <text class="stat-label">在售商品</text>
           </view>
-
-          <!-- 小票信息 -->
-          <view class="item-content">
-            <image 
-              class="receipt-image" 
-              src="{{item.image_url}}" 
-              mode="aspectFill"
-              bindtap="onPreviewImage"
-              data-url="{{item.image_url}}"
-            />
-            <view class="receipt-info">
-              <view class="amount-info">
-                <text class="amount-label">消费金额：</text>
-                <text class="amount-value">{{item.amount}}元</text>
-              </view>
-              <view class="points-info">
-                <text class="points-label">预计积分：</text>
-                <text class="points-value">{{item.expected_points}}分</text>
-              </view>
-            </view>
+          <view class="stat-item offline">
+            <text class="stat-number">{{productStats.offlineCount}}</text>
+            <text class="stat-label">已下架</text>
           </view>
-
-          <!-- 操作按钮 -->
-          <view class="item-actions">
-            <button 
-              class="action-btn contact-btn"
-              bindtap="onContactUser"
-              data-phone="{{item.user_phone}}"
-            >
-              📞 联系
-            </button>
-            <button 
-              class="action-btn reject-btn"
-              bindtap="onStartReview"
-              data-item="{{item}}"
-              data-action="reject"
-            >
-              ❌ 拒绝
-            </button>
-            <button 
-              class="action-btn approve-btn"
-              bindtap="onStartReview"
-              data-item="{{item}}"
-              data-action="approve"
-            >
-              ✅ 通过
-            </button>
+          <view class="stat-item low-stock">
+            <text class="stat-number">{{productStats.lowStockCount}}</text>
+            <text class="stat-label">库存不足</text>
+          </view>
+          <view class="stat-item total">
+            <text class="stat-number">{{productStats.totalCount}}</text>
+            <text class="stat-label">总计</text>
           </view>
         </view>
+      </view>
 
-        <!-- 列表为空 -->
-        <view class="empty-list" wx:if="{{pendingList.length === 0}}">
-          <view class="empty-icon">📋</view>
-          <text class="empty-text">暂无待审核项目</text>
-          <button class="refresh-btn" bindtap="refreshData">刷新数据</button>
+      <!-- 商品操作工具栏 -->
+      <view class="product-toolbar">
+        <button class="tool-btn add-btn" bindtap="onAddProduct">
+          ➕ 新增商品
+        </button>
+        <button class="tool-btn batch-edit-btn" bindtap="onBatchEdit">
+          📝 批量编辑
+        </button>
+        <button class="tool-btn refresh-btn" bindtap="refreshProducts">
+          🔄 刷新
+        </button>
+      </view>
+
+      <!-- 商品列表 -->
+      <view class="product-list-section">
+        <view class="section-title">
+          <text>📦 商品列表 ({{productList.length}}/20)</text>
+        </view>
+        
+        <view class="product-list">
+          <view 
+            class="product-item"
+            wx:for="{{productList}}" 
+            wx:key="id"
+          >
+            <!-- 商品图片 -->
+            <view class="product-image-container">
+              <image 
+                class="product-image" 
+                src="{{item.image}}" 
+                mode="aspectFill"
+              />
+              <view class="product-status {{item.status === 'active' ? 'active' : 'offline'}}">
+                {{item.status === 'active' ? '在售' : '下架'}}
+              </view>
+            </view>
+
+            <!-- 商品信息 -->
+            <view class="product-info">
+              <view class="product-name">{{item.name}}</view>
+              <view class="product-desc">{{item.description}}</view>
+              <view class="product-price">
+                <text class="price-icon">💰</text>
+                <text class="price-text">{{item.exchange_points}}积分</text>
+              </view>
+              <view class="product-stock {{item.stock <= 5 ? 'low-stock' : ''}}">
+                <text class="stock-label">库存：</text>
+                <text class="stock-value">{{item.stock}}件</text>
+              </view>
+            </view>
+
+            <!-- 操作按钮 -->
+            <view class="product-actions">
+              <button 
+                class="product-btn edit-btn"
+                bindtap="onEditProduct"
+                data-product="{{item}}"
+              >
+                ✏️ 编辑
+              </button>
+              <button 
+                class="product-btn stock-btn"
+                bindtap="onManageStock"
+                data-product="{{item}}"
+              >
+                📦 库存
+              </button>
+              <button 
+                class="product-btn status-btn {{item.status === 'active' ? 'offline' : 'online'}}"
+                bindtap="onToggleStatus"
+                data-product="{{item}}"
+              >
+                {{item.status === 'active' ? '🔽 下架' : '🔼 上架'}}
+              </button>
+              <button 
+                class="product-btn delete-btn"
+                bindtap="onDeleteProduct"
+                data-product="{{item}}"
+              >
+                🗑️ 删除
+              </button>
+            </view>
+          </view>
+
+          <!-- 商品列表为空 -->
+          <view class="empty-products" wx:if="{{productList.length === 0}}">
+            <view class="empty-icon">🛍️</view>
+            <text class="empty-text">暂无商品</text>
+            <button class="add-product-btn" bindtap="onAddProduct">添加第一个商品</button>
+          </view>
         </view>
       </view>
     </view>
@@ -250,6 +396,134 @@
         <button class="confirm-btn" bindtap="onConfirmReview">
           确认{{reviewAction === 'approve' ? '通过' : '拒绝'}}
         </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 新增/编辑商品弹窗 -->
+  <view class="product-modal" wx:if="{{showProductModal}}">
+    <view class="modal-mask" bindtap="onCancelProduct"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">{{editingProduct ? '编辑商品' : '新增商品'}}</text>
+        <view class="close-btn" bindtap="onCancelProduct">×</view>
+      </view>
+      
+      <view class="modal-body">
+        <!-- 商品名称 -->
+        <view class="form-item">
+          <text class="form-label">商品名称：</text>
+          <input 
+            class="form-input"
+            placeholder="请输入商品名称"
+            value="{{productForm.name}}"
+            bindinput="onProductNameInput"
+          />
+        </view>
+
+        <!-- 商品描述 -->
+        <view class="form-item">
+          <text class="form-label">商品描述：</text>
+          <textarea 
+            class="form-textarea"
+            placeholder="请输入商品描述"
+            value="{{productForm.description}}"
+            bindinput="onProductDescInput"
+          />
+        </view>
+
+        <!-- 兑换积分 -->
+        <view class="form-item">
+          <text class="form-label">兑换积分：</text>
+          <input 
+            class="form-input"
+            type="number"
+            placeholder="请输入兑换所需积分"
+            value="{{productForm.exchange_points}}"
+            bindinput="onProductPointsInput"
+          />
+        </view>
+
+        <!-- 库存数量 -->
+        <view class="form-item">
+          <text class="form-label">库存数量：</text>
+          <input 
+            class="form-input"
+            type="number"
+            placeholder="请输入库存数量"
+            value="{{productForm.stock}}"
+            bindinput="onProductStockInput"
+          />
+        </view>
+
+        <!-- 商品图片 -->
+        <view class="form-item">
+          <text class="form-label">商品图片：</text>
+          <view class="image-upload-container">
+            <view class="image-preview" wx:if="{{productForm.image}}">
+              <image class="preview-img" src="{{productForm.image}}" mode="aspectFill"/>
+              <button class="delete-img-btn" bindtap="onDeleteProductImage">删除</button>
+            </view>
+            <button class="upload-img-btn" wx:else bindtap="onUploadProductImage">
+              📷 上传图片
+            </button>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="onCancelProduct">取消</button>
+        <button 
+          class="confirm-btn {{productSubmitting ? 'loading' : ''}}"
+          disabled="{{productSubmitting}}"
+          bindtap="onConfirmProduct"
+        >
+          {{productSubmitting ? '保存中...' : '确认保存'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 库存管理弹窗 -->
+  <view class="stock-modal" wx:if="{{showStockModal}}">
+    <view class="modal-mask" bindtap="onCancelStock"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">库存管理</text>
+        <view class="close-btn" bindtap="onCancelStock">×</view>
+      </view>
+      
+      <view class="modal-body" wx:if="{{currentProduct}}">
+        <view class="product-info">
+          <text class="product-name">{{currentProduct.name}}</text>
+          <text class="current-stock">当前库存：{{currentProduct.stock}}件</text>
+        </view>
+
+        <view class="stock-operations">
+          <view class="operation-item">
+            <text class="operation-label">调整数量：</text>
+            <view class="quantity-controls">
+              <button class="quantity-btn minus" bindtap="onQuantityChange" data-change="-1">-</button>
+              <input 
+                class="quantity-input"
+                type="number"
+                value="{{stockAdjustment}}"
+                bindinput="onStockAdjustmentInput"
+              />
+              <button class="quantity-btn plus" bindtap="onQuantityChange" data-change="1">+</button>
+            </view>
+          </view>
+
+          <view class="operation-item">
+            <text class="operation-label">调整后库存：</text>
+            <text class="new-stock">{{currentProduct.stock + stockAdjustment}}件</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="onCancelStock">取消</button>
+        <button class="confirm-btn" bindtap="onConfirmStock">确认调整</button>
       </view>
     </view>
   </view>

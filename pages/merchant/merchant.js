@@ -12,6 +12,9 @@ Page({
     userInfo: {},
     isMerchant: false,
     
+    // 选项卡管理
+    currentTab: 'review',
+    
     // 审核统计
     statistics: {
       pendingCount: 0,
@@ -22,6 +25,28 @@ Page({
     
     // 待审核列表
     pendingList: [],
+    
+    // 商品管理相关
+    productStats: {
+      activeCount: 0,
+      offlineCount: 0,
+      lowStockCount: 0,
+      totalCount: 0
+    },
+    productList: [],
+    showProductModal: false,
+    showStockModal: false,
+    editingProduct: null,
+    currentProduct: null,
+    productForm: {
+      name: '',
+      description: '',
+      exchange_points: '',
+      stock: '',
+      image: ''
+    },
+    stockAdjustment: 0,
+    productSubmitting: false,
     
     // 页面状态
     loading: true,
@@ -817,5 +842,370 @@ Page({
         icon: 'none'
       })
     }
+  },
+
+  /**
+   * 选项卡切换
+   */
+  onTabChange(e) {
+    const tab = e.currentTarget.dataset.tab
+    this.setData({ currentTab: tab })
+    
+    if (tab === 'product') {
+      this.loadProductData()
+    }
+  },
+
+  /**
+   * 加载商品数据
+   */
+  async loadProductData() {
+    try {
+      await Promise.all([
+        this.loadProductStats(),
+        this.loadProductList()
+      ])
+    } catch (error) {
+      console.error('加载商品数据失败:', error)
+    }
+  },
+
+  /**
+   * 加载商品统计
+   */
+  async loadProductStats() {
+    // 模拟商品统计数据
+    const mockStats = {
+      activeCount: 12,
+      offlineCount: 3,
+      lowStockCount: 5,
+      totalCount: 15
+    }
+    
+    this.setData({ productStats: mockStats })
+  },
+
+  /**
+   * 加载商品列表
+   */
+  async loadProductList() {
+    // 模拟商品列表数据
+    const mockProducts = [
+      {
+        id: 1,
+        name: '八八折券',
+        description: '全场商品八八折优惠',
+        exchange_points: 800,
+        stock: 50,
+        status: 'active',
+        image: 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=🎫'
+      },
+      {
+        id: 2,
+        name: '九九折券',
+        description: '全场商品九九折优惠',
+        exchange_points: 500,
+        stock: 100,
+        status: 'active',
+        image: 'https://via.placeholder.com/200x200/667eea/ffffff?text=🎫'
+      }
+    ]
+    
+    this.setData({ productList: mockProducts })
+  },
+
+  /**
+   * 新增商品
+   */
+  onAddProduct() {
+    this.setData({
+      showProductModal: true,
+      editingProduct: null,
+      productForm: {
+        name: '',
+        description: '',
+        exchange_points: '',
+        stock: '',
+        image: ''
+      }
+    })
+  },
+
+  /**
+   * 编辑商品
+   */
+  onEditProduct(e) {
+    const product = e.currentTarget.dataset.product
+    this.setData({
+      showProductModal: true,
+      editingProduct: product,
+      productForm: {
+        name: product.name,
+        description: product.description,
+        exchange_points: product.exchange_points.toString(),
+        stock: product.stock.toString(),
+        image: product.image
+      }
+    })
+  },
+
+  /**
+   * 库存管理
+   */
+  onManageStock(e) {
+    const product = e.currentTarget.dataset.product
+    this.setData({
+      showStockModal: true,
+      currentProduct: product,
+      stockAdjustment: 0
+    })
+  },
+
+  /**
+   * 切换商品状态
+   */
+  async onToggleStatus(e) {
+    const product = e.currentTarget.dataset.product
+    const newStatus = product.status === 'active' ? 'offline' : 'active'
+    
+    // 更新商品状态（这里应该调用后端接口）
+    const productList = this.data.productList.map(item => {
+      if (item.id === product.id) {
+        return { ...item, status: newStatus }
+      }
+      return item
+    })
+    
+    this.setData({ productList })
+    
+    wx.showToast({
+      title: newStatus === 'active' ? '商品已上架' : '商品已下架',
+      icon: 'success'
+    })
+  },
+
+  /**
+   * 删除商品
+   */
+  onDeleteProduct(e) {
+    const product = e.currentTarget.dataset.product
+    
+    wx.showModal({
+      title: '删除商品',
+      content: `确定要删除商品"${product.name}"吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          const productList = this.data.productList.filter(item => item.id !== product.id)
+          this.setData({ productList })
+          
+          wx.showToast({
+            title: '删除成功',
+            icon: 'success'
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 商品表单输入处理
+   */
+  onProductNameInput(e) {
+    this.setData({
+      'productForm.name': e.detail.value
+    })
+  },
+
+  onProductDescInput(e) {
+    this.setData({
+      'productForm.description': e.detail.value
+    })
+  },
+
+  onProductPointsInput(e) {
+    this.setData({
+      'productForm.exchange_points': e.detail.value
+    })
+  },
+
+  onProductStockInput(e) {
+    this.setData({
+      'productForm.stock': e.detail.value
+    })
+  },
+
+  /**
+   * 上传商品图片
+   */
+  onUploadProductImage() {
+    wx.chooseImage({
+      count: 1,
+      success: (res) => {
+        this.setData({
+          'productForm.image': res.tempFilePaths[0]
+        })
+      }
+    })
+  },
+
+  /**
+   * 删除商品图片
+   */
+  onDeleteProductImage() {
+    this.setData({
+      'productForm.image': ''
+    })
+  },
+
+  /**
+   * 确认保存商品
+   */
+  async onConfirmProduct() {
+    const form = this.data.productForm
+    
+    if (!form.name.trim()) {
+      wx.showToast({
+        title: '请输入商品名称',
+        icon: 'none'
+      })
+      return
+    }
+    
+    this.setData({ productSubmitting: true })
+    
+    try {
+      // 这里应该调用后端接口保存商品
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      if (this.data.editingProduct) {
+        // 编辑模式
+        const productList = this.data.productList.map(item => {
+          if (item.id === this.data.editingProduct.id) {
+            return {
+              ...item,
+              name: form.name,
+              description: form.description,
+              exchange_points: parseInt(form.exchange_points),
+              stock: parseInt(form.stock),
+              image: form.image
+            }
+          }
+          return item
+        })
+        this.setData({ productList })
+      } else {
+        // 新增模式
+        const newProduct = {
+          id: Date.now(),
+          name: form.name,
+          description: form.description,
+          exchange_points: parseInt(form.exchange_points),
+          stock: parseInt(form.stock),
+          status: 'active',
+          image: form.image || 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=📦'
+        }
+        this.setData({
+          productList: [...this.data.productList, newProduct]
+        })
+      }
+      
+      this.setData({
+        showProductModal: false,
+        productSubmitting: false
+      })
+      
+      wx.showToast({
+        title: '保存成功',
+        icon: 'success'
+      })
+      
+    } catch (error) {
+      this.setData({ productSubmitting: false })
+      wx.showToast({
+        title: '保存失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 取消商品操作
+   */
+  onCancelProduct() {
+    this.setData({ showProductModal: false })
+  },
+
+  /**
+   * 库存调整
+   */
+  onQuantityChange(e) {
+    const change = parseInt(e.currentTarget.dataset.change)
+    this.setData({
+      stockAdjustment: this.data.stockAdjustment + change
+    })
+  },
+
+  onStockAdjustmentInput(e) {
+    this.setData({
+      stockAdjustment: parseInt(e.detail.value) || 0
+    })
+  },
+
+  /**
+   * 确认库存调整
+   */
+  onConfirmStock() {
+    const { currentProduct, stockAdjustment } = this.data
+    const newStock = currentProduct.stock + stockAdjustment
+    
+    if (newStock < 0) {
+      wx.showToast({
+        title: '库存不能为负数',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 更新商品库存
+    const productList = this.data.productList.map(item => {
+      if (item.id === currentProduct.id) {
+        return { ...item, stock: newStock }
+      }
+      return item
+    })
+    
+    this.setData({
+      productList,
+      showStockModal: false
+    })
+    
+    wx.showToast({
+      title: '库存调整成功',
+      icon: 'success'
+    })
+  },
+
+  /**
+   * 取消库存操作
+   */
+  onCancelStock() {
+    this.setData({ showStockModal: false })
+  },
+
+  /**
+   * 刷新商品数据
+   */
+  refreshProducts() {
+    this.loadProductData()
+  },
+
+  /**
+   * 批量编辑
+   */
+  onBatchEdit() {
+    wx.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    })
   }
 })

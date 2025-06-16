@@ -22,10 +22,6 @@
         <text class="action-icon">📅</text>
         <text class="action-text">签到</text>
       </button>
-      <button class="action-item" bindtap="onInviteFriend">
-        <text class="action-icon">👥</text>
-        <text class="action-text">邀请</text>
-      </button>
     </view>
   </view>
 
@@ -38,12 +34,6 @@
     <view class="points-amount">
       <text class="points-number">{{totalPoints}}</text>
       <text class="points-unit">分</text>
-    </view>
-    <view class="points-actions">
-      <button class="points-btn" bindtap="onCopyInviteCode">
-        <text class="btn-icon">🔗</text>
-        <text class="btn-text">邀请码</text>
-      </button>
     </view>
   </view>
 
