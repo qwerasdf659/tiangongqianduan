@@ -87,10 +87,10 @@
         </button>
       </view>
 
-      <!-- 第二行：十连抽（特殊处理） + 快捷操作 -->
+      <!-- 第二行：十连抽（特殊处理） -->
       <view class="grid-row">
         <button 
-          class="grid-draw-btn ten-btn special {{isDrawing ? 'disabled' : ''}}"
+          class="grid-draw-btn ten-btn special full-width {{isDrawing ? 'disabled' : ''}}"
           disabled="{{isDrawing || totalPoints < (costPoints || 100) * 10}}"
           bindtap="onTenDraw"
         >
@@ -98,16 +98,6 @@
             <text class="btn-main-text">十连抽</text>
             <text class="btn-sub-text">{{(costPoints || 100) * 10}}积分</text>
             <text class="btn-guarantee">保底好礼</text>
-          </view>
-        </button>
-
-        <button 
-          class="grid-action-btn records-btn"
-          bindtap="onViewRecords"
-        >
-          <view class="btn-content">
-            <text class="btn-main-text">📊</text>
-            <text class="btn-sub-text">抽奖记录</text>
           </view>
         </button>
       </view>

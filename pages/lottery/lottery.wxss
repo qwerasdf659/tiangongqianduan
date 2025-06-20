@@ -414,6 +414,12 @@ text {
   color: white;
 }
 
+/* 全宽按钮样式 */
+.grid-draw-btn.full-width {
+  flex: none;
+  width: 100%;
+}
+
 /* 记录按钮 */
 .grid-action-btn.records-btn {
   background: linear-gradient(135deg, #a8edea, #fed6e3);

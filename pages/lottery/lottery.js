@@ -266,12 +266,13 @@ Page({
       })
     }, 100)
     
-    wx.showModal({
-      title: '按钮显示问题检测',
-      content: '检测到转盘中央按钮显示异常。\n\n已启用多个备用按钮方案，请查看：\n1. 转盘中央区域（多个位置）\n2. 转盘下方的可见抽奖按钮\n3. 页面底部的应急抽奖按钮\n\n这些按钮都具有相同的抽奖功能。',
-      showCancel: false,
-      confirmText: '知道了'
-    })
+    // 注释掉弹窗显示
+    // wx.showModal({
+    //   title: '按钮显示问题检测',
+    //   content: '检测到转盘中央按钮显示异常。\n\n已启用多个备用按钮方案，请查看：\n1. 转盘中央区域（多个位置）\n2. 转盘下方的可见抽奖按钮\n3. 页面底部的应急抽奖按钮\n\n这些按钮都具有相同的抽奖功能。',
+    //   showCancel: false,
+    //   confirmText: '知道了'
+    // })
   },
 
   /**
@@ -1050,22 +1051,24 @@ Page({
   },
 
   /**
-   * 查看抽奖记录
+   * 查看抽奖记录 - 已禁用
    */
   onViewRecords() {
-    wx.showModal({
-      title: '抽奖记录',
-      content: '抽奖记录功能正在开发中...\n\n您可以在个人中心查看积分明细了解抽奖消费记录',
-      confirmText: '去个人中心',
-      cancelText: '知道了',
-      success: (res) => {
-        if (res.confirm) {
-          wx.switchTab({
-            url: '/pages/user/user'
-          })
-        }
-      }
-    })
+    // 抽奖记录功能已被移除
+    console.log('抽奖记录功能已禁用')
+    // wx.showModal({
+    //   title: '抽奖记录',
+    //   content: '抽奖记录功能正在开发中...\n\n您可以在个人中心查看积分明细了解抽奖消费记录',
+    //   confirmText: '去个人中心',
+    //   cancelText: '知道了',
+    //   success: (res) => {
+    //     if (res.confirm) {
+    //       wx.switchTab({
+    //         url: '/pages/user/user'
+    //       })
+    //     }
+    //   }
+    // })
   },
 
   /**
@@ -1212,12 +1215,13 @@ Page({
           this.enableEmergencyButton()
         }
         
-        wx.showModal({
-          title: '转盘中央按钮检查',
-          content: message,
-          showCancel: false,
-          confirmText: '知道了'
-        })
+        // 注释掉弹窗显示
+        // wx.showModal({
+        //   title: '转盘中央按钮检查',
+        //   content: message,
+        //   showCancel: false,
+        //   confirmText: '知道了'
+        // })
       }
     })
     
