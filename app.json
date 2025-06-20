@@ -48,6 +48,5 @@
     "downloadFile": 10000
   },
   "debug": false,
-  "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

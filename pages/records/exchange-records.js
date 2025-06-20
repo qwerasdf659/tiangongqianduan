@@ -77,32 +77,39 @@ Page({
   /**
    * 初始化页面
    */
-  async initPage() {
+  initPage() {
     this.setData({ loading: true })
-    await Promise.all([
+    Promise.all([
       this.loadRecords(),
       this.loadStatistics()
-    ])
-    this.setData({ loading: false })
+    ]).then(() => {
+      this.setData({ loading: false })
+    }).catch(error => {
+      console.error('❌ 页面初始化失败:', error)
+      this.setData({ loading: false })
+    })
   },
 
   /**
    * 刷新数据
    */
-  async refreshData() {
+  refreshData() {
     this.setData({ 
       refreshing: true,
       currentPage: 1,
-      records: []
+      hasMore: true
     })
-    
-    await Promise.all([
+    Promise.all([
       this.loadRecords(),
       this.loadStatistics()
-    ])
-    
-    this.setData({ refreshing: false })
-    wx.stopPullDownRefresh()
+    ]).then(() => {
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    }).catch(error => {
+      console.error('❌ 刷新数据失败:', error)
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    })
   },
 
   /**
@@ -110,44 +117,49 @@ Page({
    * TODO: 后端对接 - 兑换记录接口
    * 
    * 对接说明：
-   * 接口：GET /api/exchange/records
+   * 接口：GET /api/exchange/records?page=1&page_size=20&status=all
    * 认证：需要Bearer Token
-   * 参数：page, page_size, status（可选筛选状态）
-   * 返回：兑换记录列表
+   * 返回：兑换记录列表，包括商品、状态、物流等信息
    */
-  async loadRecords() {
-    try {
-      let recordsData
-
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟数据
-        console.log('🔧 使用模拟兑换记录数据')
-        recordsData = this.generateMockRecords()
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 300))
-      } else {
-        console.log('📡 请求兑换记录接口...')
-        const res = await exchangeAPI.getRecords(this.data.currentPage, this.data.pageSize)
-        recordsData = res.data
-      }
-
-      const newRecords = this.data.currentPage === 1 ? 
-        recordsData.list : 
-        [...this.data.records, ...recordsData.list]
-
+  loadRecords() {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境使用模拟数据
+      console.log('🔧 生成模拟兑换记录数据')
+      const mockRecords = this.generateMockRecords()
+      
       this.setData({
-        records: newRecords,
-        total: recordsData.total,
-        hasMore: newRecords.length < recordsData.total
+        records: this.data.currentPage === 1 ? mockRecords : [...this.data.records, ...mockRecords],
+        hasMore: mockRecords.length === this.data.pageSize
       })
-
-      console.log('✅ 兑换记录加载成功，共', recordsData.list.length, '条')
-
-    } catch (error) {
-      console.error('❌ 获取兑换记录失败:', error)
-      wx.showToast({
-        title: '加载失败',
-        icon: 'none'
+      
+      console.log('✅ 兑换记录加载成功，共', mockRecords.length, '条记录')
+      return Promise.resolve()
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求兑换记录接口...')
+      
+      // 模拟网络延迟
+      return new Promise(resolve => setTimeout(resolve, 300)).then(() => {
+        return exchangeAPI.getRecords(this.data.currentPage, this.data.pageSize)
+      }).then((res) => {
+        const newRecords = res.data.records || []
+        this.setData({
+          records: this.data.currentPage === 1 ? newRecords : [...this.data.records, ...newRecords],
+          hasMore: newRecords.length === this.data.pageSize,
+          totalRecords: res.data.total || 0
+        })
+        
+        console.log('✅ 兑换记录加载成功，共', newRecords.length, '条记录')
+      }).catch((error) => {
+        console.error('❌ 获取兑换记录失败:', error)
+        
+        // 使用默认数据，避免页面空白
+        if (this.data.currentPage === 1) {
+          this.setData({
+            records: [],
+            hasMore: false
+          })
+        }
       })
     }
   },
@@ -155,38 +167,38 @@ Page({
   /**
    * 加载更多记录
    */
-  async loadMoreRecords() {
+  loadMoreRecords() {
+    if (!this.data.hasMore || this.data.loadingMore) return
+    
     this.setData({ 
-      loading: true,
+      loadingMore: true,
       currentPage: this.data.currentPage + 1
     })
     
-    await this.loadRecords()
-    this.setData({ loading: false })
+    this.loadRecords().then(() => {
+      this.setData({ loadingMore: false })
+    }).catch(error => {
+      console.error('❌ 加载更多失败:', error)
+      this.setData({ loadingMore: false })
+    })
   },
 
   /**
    * 加载统计数据
    */
-  async loadStatistics() {
-    try {
-      // 基于记录计算统计数据
-      const records = this.data.records
-      
-      const statistics = {
-        totalCount: records.length,
-        totalPoints: records.reduce((sum, record) => {
-          return sum + (record.points_cost || 0)
-        }, 0),
-        pendingCount: records.filter(r => r.status === 'pending').length,
-        completedCount: records.filter(r => r.status === 'completed').length
-      }
-
-      this.setData({ statistics })
-
-    } catch (error) {
-      console.error('❌ 计算统计数据失败:', error)
+  loadStatistics() {
+    // 模拟统计数据
+    const statistics = {
+      totalExchanges: 28,
+      totalPointsSpent: 22400,
+      completedCount: 25,
+      pendingCount: 2,
+      failedCount: 1,
+      favoriteCategory: '饮品券'
     }
+    
+    this.setData({ statistics })
+    return Promise.resolve()
   },
 
   /**

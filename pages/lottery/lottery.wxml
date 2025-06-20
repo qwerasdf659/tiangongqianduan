@@ -1,12 +1,13 @@
 <!-- pages/lottery/lottery.wxml - 抽奖页面模板 -->
-<view class="lottery-container">
+<view class="lottery-container {{showResult ? 'showing-result' : ''}}" bindtap="onPageTap">
+  
   <!-- 页面头部 -->
   <view class="header">
     <view class="user-info">
-      <text class="welcome">欢迎，{{userInfo.phone || '用户'}}</text>
+      <text class="welcome">欢迎，{{userInfo.phone || userInfo.nickname || '用户'}}</text>
       <view class="points-info">
         <text class="points-label">当前积分：</text>
-        <text class="points-value">{{totalPoints}}</text>
+        <text class="points-value">{{totalPoints || 0}}</text>
       </view>
     </view>
     <!-- 联系客服按钮 -->
@@ -16,69 +17,101 @@
   </view>
 
   <!-- 转盘区域 -->
-  <view class="wheel-section">
-    <view class="wheel-container">
-      <!-- Canvas转盘 -->
+  <view class="wheel-section {{showResult ? 'result-showing' : ''}}" style="position: relative;">
+    <!-- 转盘容器 -->
+    <view style="position: relative; width: 260px; height: 260px; margin: 20rpx auto; display: block;">
+      <!-- Canvas转盘背景 - 降低层级 -->
       <canvas 
         canvas-id="wheelCanvas" 
         class="wheel-canvas"
-        style="width: 300px; height: 300px;"
+        style="position: absolute; top: 0; left: 0; width: 260px; height: 260px; border-radius: 50%; z-index: 1; pointer-events: none;"
       ></canvas>
       
-      <!-- 转盘中央单抽按钮 -->
-      <button 
-        class="center-draw-btn {{isDrawing ? 'disabled' : ''}}"
-        disabled="{{isDrawing || totalPoints < costPoints}}"
-        bindtap="onSingleDraw"
-      >
-        <text class="center-btn-text">单抽</text>
-        <text class="center-btn-cost">{{costPoints}}积分</text>
-      </button>
-      
-      <!-- 转盘遮罩（抽奖中） -->
-      <view class="wheel-overlay" wx:if="{{isDrawing}}">
-        <view class="loading-spinner"></view>
-        <text class="loading-text">抽奖中...</text>
+      <!-- 🎯 转盘中央按钮 - 确保在Canvas之上 -->
+      <view style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; pointer-events: none;">
+        <!-- 中央按钮定位容器 -->
+        <view style="position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; margin-left: -40px; margin-top: -40px; z-index: 1000; pointer-events: auto;">
+          <view 
+            style="width: 80px; height: 80px; background: #FF6B35; color: white; border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.8); position: relative; z-index: 1001;"
+            bindtap="onSingleDraw"
+          >
+            <text style="color: white; font-size: 12px; font-weight: bold;">{{isDrawing ? '抽奖中' : '开始抽奖'}}</text>
+          </view>
+        </view>
       </view>
     </view>
+    
+    <!-- 转盘加载提示 -->
+    <view class="wheel-loading" wx:if="{{!wheelReady}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">转盘加载中...</text>
+    </view>
 
-    <!-- 多连抽按钮组 - 一行三个按钮 -->
-    <view class="multi-draw-buttons">
-      <button 
-        class="multi-draw-btn triple-btn {{isDrawing ? 'disabled' : ''}}"
-        disabled="{{isDrawing || totalPoints < costPoints * 3}}"
-        bindtap="onTripleDraw"
-      >
-        <text class="btn-text">三连抽</text>
-        <text class="btn-cost">{{costPoints * 3}}积分</text>
-      </button>
-
-      <button 
-        class="multi-draw-btn five-btn {{isDrawing ? 'disabled' : ''}}"
-        disabled="{{isDrawing || totalPoints < costPoints * 5}}"
-        bindtap="onFiveDraw"
-      >
-        <text class="btn-text">五连抽</text>
-        <text class="btn-cost">{{costPoints * 5}}积分</text>
-      </button>
-
-      <button 
-        class="multi-draw-btn ten-btn {{isDrawing ? 'disabled' : ''}}"
-        disabled="{{isDrawing || totalPoints < costPoints * 10}}"
-        bindtap="onTenDraw"
-      >
-        <text class="btn-text">十连抽</text>
-        <text class="btn-cost">{{costPoints * 10}}积分</text>
-        <text class="btn-guarantee">保底</text>
-      </button>
+    <!-- 抽奖中的遮罩层 -->
+    <view class="drawing-overlay" wx:if="{{isDrawing}}">
+      <view class="overlay-content">
+        <view class="spinner-large"></view>
+        <text class="overlay-text">抽奖中...</text>
+      </view>
     </view>
   </view>
 
-  <!-- 快捷操作 -->
-  <view class="quick-actions">
-    <button class="action-btn" bindtap="onViewRecords">
-      📊 抽奖记录
-    </button>
+  <!-- 多连抽按钮组 - 优化为2x2网格布局 -->
+  <view class="multi-draw-section">
+    <view class="section-title-small">
+      <text>⚡ 连抽选项</text>
+    </view>
+    <view class="multi-draw-grid">
+      <!-- 第一行：三连抽 + 五连抽 -->
+      <view class="grid-row">
+        <button 
+          class="grid-draw-btn triple-btn {{isDrawing ? 'disabled' : ''}}"
+          disabled="{{isDrawing || totalPoints < (costPoints || 100) * 3}}"
+          bindtap="onTripleDraw"
+        >
+          <view class="btn-content">
+            <text class="btn-main-text">三连抽</text>
+            <text class="btn-sub-text">{{(costPoints || 100) * 3}}积分</text>
+          </view>
+        </button>
+
+        <button 
+          class="grid-draw-btn five-btn {{isDrawing ? 'disabled' : ''}}"
+          disabled="{{isDrawing || totalPoints < (costPoints || 100) * 5}}"
+          bindtap="onFiveDraw"
+        >
+          <view class="btn-content">
+            <text class="btn-main-text">五连抽</text>
+            <text class="btn-sub-text">{{(costPoints || 100) * 5}}积分</text>
+          </view>
+        </button>
+      </view>
+
+      <!-- 第二行：十连抽（特殊处理） + 快捷操作 -->
+      <view class="grid-row">
+        <button 
+          class="grid-draw-btn ten-btn special {{isDrawing ? 'disabled' : ''}}"
+          disabled="{{isDrawing || totalPoints < (costPoints || 100) * 10}}"
+          bindtap="onTenDraw"
+        >
+          <view class="btn-content">
+            <text class="btn-main-text">十连抽</text>
+            <text class="btn-sub-text">{{(costPoints || 100) * 10}}积分</text>
+            <text class="btn-guarantee">保底好礼</text>
+          </view>
+        </button>
+
+        <button 
+          class="grid-action-btn records-btn"
+          bindtap="onViewRecords"
+        >
+          <view class="btn-content">
+            <text class="btn-main-text">📊</text>
+            <text class="btn-sub-text">抽奖记录</text>
+          </view>
+        </button>
+      </view>
+    </view>
   </view>
 
   <!-- 抽奖结果弹窗 -->
@@ -121,7 +154,7 @@
       <text>📋 抽奖规则</text>
     </view>
     <view class="rules-content">
-      <view class="rule-item">• 每次抽奖消耗{{costPoints}}积分</view>
+      <view class="rule-item">• 每次抽奖消耗{{costPoints || 100}}积分</view>
       <view class="rule-item">• 十连抽保底获得九八折券</view>
       <view class="rule-item">• 活动限定奖品需要当日消费≥500元</view>
       <view class="rule-item">• 高频操作将触发安全验证</view>

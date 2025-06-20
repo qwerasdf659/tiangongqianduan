@@ -71,7 +71,7 @@ Page({
   /**
    * 初始化页面
    */
-  async initPage() {
+  initPage() {
     this.loadUserInfo()
     this.loadSettings()
     this.calculateCacheSize()
@@ -193,11 +193,12 @@ Page({
   /**
    * 更新昵称
    */
-  async updateNickname(nickname) {
-    try {
-      // TODO: 调用后端接口更新昵称
-      // await userAPI.updateUserInfo({ nickname })
-      
+  updateNickname(nickname) {
+    // TODO: 调用后端接口更新昵称
+    // return userAPI.updateUserInfo({ nickname }).then(() => {
+    
+    // 模拟更新成功
+    Promise.resolve().then(() => {
       // 更新本地数据
       const updatedUserInfo = { ...this.data.userInfo, nickname }
       this.setData({ userInfo: updatedUserInfo })
@@ -207,14 +208,13 @@ Page({
         title: '昵称修改成功',
         icon: 'success'
       })
-      
-    } catch (error) {
+    }).catch((error) => {
       console.error('修改昵称失败:', error)
       wx.showToast({
         title: '修改失败',
         icon: 'none'
       })
-    }
+    })
   },
 
   /**
@@ -234,13 +234,17 @@ Page({
   /**
    * 上传头像
    */
-  async uploadAvatar(filePath) {
+  uploadAvatar(filePath) {
     wx.showLoading({ title: '上传中...' })
     
-    try {
-      // TODO: 调用后端接口上传头像
-      // const res = await userAPI.uploadAvatar(filePath)
-      
+    // TODO: 调用后端接口上传头像
+    // return userAPI.uploadAvatar(filePath).then((res) => {
+    
+    // 模拟上传过程
+    Promise.resolve().then(() => {
+      // 模拟网络延迟
+      return new Promise(resolve => setTimeout(resolve, 1500))
+    }).then(() => {
       // 模拟上传成功
       const updatedUserInfo = { ...this.data.userInfo, avatar: filePath }
       this.setData({ userInfo: updatedUserInfo })
@@ -251,15 +255,14 @@ Page({
         title: '头像更新成功',
         icon: 'success'
       })
-      
-    } catch (error) {
+    }).catch((error) => {
       console.error('上传头像失败:', error)
       wx.hideLoading()
       wx.showToast({
         title: '上传失败',
         icon: 'none'
       })
-    }
+    })
   },
 
   /**

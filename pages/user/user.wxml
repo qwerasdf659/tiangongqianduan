@@ -90,7 +90,7 @@
         </view>
         <view class="item-points {{item.type === 'earn' ? 'earn' : 'consume'}}">
           <text class="points-change">{{item.points > 0 ? '+' : ''}}{{item.points}}</text>
-          <text class="points-balance">余额:{{item.balance}}</text>
+          <text class="points-balance">余额:{{item.balance_after}}</text>
         </view>
       </view>
       

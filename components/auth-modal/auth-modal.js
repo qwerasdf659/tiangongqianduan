@@ -167,58 +167,56 @@ Component({
     /**
      * 发送验证码
      */
-    async onSendCode() {
-      const { phoneNumber } = this.data
+    onSendCode() {
+      const phoneNumber = this.data.phoneNumber.trim()
       
-      // 验证手机号
-      if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
-        wx.showToast({
-          title: '请输入正确的手机号',
-          icon: 'none'
-        })
+      if (!phoneNumber || !/^1[3-9]\d{9}$/.test(phoneNumber)) {
+        this.showError('请输入正确的手机号码')
         return
       }
 
-      this.setData({ codeSending: true })
+      if (this.data.countdown > 0) {
+        return
+      }
 
-      try {
-        if (app.globalData.isDev) {
-          // 开发环境模拟发送验证码
-          console.log('🔧 模拟发送验证码到:', phoneNumber)
-          await new Promise(resolve => setTimeout(resolve, 1000))
-          
-          wx.showToast({
-            title: '验证码已发送',
-            icon: 'success'
-          })
-          
-          // 开发模式下自动填入验证码
+      this.setData({ sendingCode: true })
+
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        // 开发环境模拟发送
+        console.log('🔧 模拟发送验证码到:', phoneNumber)
+        
+        new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
           this.setData({
-            verificationCode: '123456'
+            sendingCode: false,
+            countdown: 60,
+            verificationCode: '123456' // 开发环境自动填入测试验证码
           })
+          this.startCountdown()
           
-        } else {
-          // 生产环境调用真实接口
-          const { authAPI } = require('../../utils/api')
-          await authAPI.sendSmsCode(phoneNumber)
+          wx.showToast({
+            title: '验证码已发送（测试：123456）',
+            icon: 'success'
+          })
+        }).catch((error) => {
+          this.setData({ sendingCode: false })
+          this.showError('发送失败，请重试')
+        })
+      } else {
+        authAPI.sendSmsCode(phoneNumber).then(() => {
+          this.setData({
+            sendingCode: false,
+            countdown: 60
+          })
+          this.startCountdown()
           
           wx.showToast({
             title: '验证码已发送',
             icon: 'success'
           })
-        }
-
-        // 开始倒计时
-        this.startCountdown()
-
-      } catch (error) {
-        console.error('发送验证码失败:', error)
-        wx.showToast({
-          title: error.message || '发送失败，请重试',
-          icon: 'none'
+        }).catch((error) => {
+          this.setData({ sendingCode: false })
+          this.showError(error.msg || '发送验证码失败')
         })
-      } finally {
-        this.setData({ codeSending: false })
       }
     },
 
@@ -259,96 +257,141 @@ Component({
     /**
      * 确认验证
      */
-    async onConfirm() {
-      if (!this.canSubmit() || this.data.submitting) return
+    onConfirm() {
+      if (this.data.verifying) return
 
-      this.setData({ submitting: true })
-
-      try {
-        const { authType } = this.data
-        let result
-
-        if (authType === 'phone') {
-          result = await this.verifyByPhone()
-        } else {
-          result = await this.verifyByPassword()
-        }
-
-        // 验证成功
-        this.triggerEvent('success', {
-          authType,
-          result,
-          phoneNumber: this.data.phoneNumber
-        })
-
-        // 关闭弹窗
-        this.onCancel()
-
-      } catch (error) {
-        console.error('验证失败:', error)
-        wx.showToast({
-          title: error.message || '验证失败，请重试',
-          icon: 'none'
-        })
-      } finally {
-        this.setData({ submitting: false })
+      this.setData({ verifying: true })
+      
+      let verifyPromise
+      
+      if (this.data.verifyType === 'phone') {
+        verifyPromise = this.verifyByPhone()
+      } else {
+        verifyPromise = this.verifyByPassword()
       }
+
+      verifyPromise.then((result) => {
+        this.setData({ verifying: false })
+        
+        if (result.success) {
+          this.triggerEvent('success', result)
+          this.hideModal()
+        } else {
+          this.showError(result.error || '验证失败')
+        }
+      }).catch((error) => {
+        this.setData({ verifying: false })
+        this.showError(error.msg || '验证失败，请重试')
+      })
     },
 
     /**
      * 手机验证码验证
      */
-    async verifyByPhone() {
-      const { phoneNumber, verificationCode } = this.data
+    verifyByPhone() {
+      const phoneNumber = this.data.phoneNumber.trim()
+      const verificationCode = this.data.verificationCode.trim()
 
-      if (app.globalData.isDev) {
+      if (!phoneNumber || !/^1[3-9]\d{9}$/.test(phoneNumber)) {
+        this.showError('请输入正确的手机号码')
+        return Promise.reject(new Error('手机号格式错误'))
+      }
+
+      if (!verificationCode || verificationCode.length !== 6) {
+        this.showError('请输入6位验证码')
+        return Promise.reject(new Error('验证码格式错误'))
+      }
+
+      if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境模拟验证
-        console.log('🔧 模拟手机验证码验证:', phoneNumber, verificationCode)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('🔧 模拟手机验证码验证')
         
-        if (verificationCode !== '123456') {
-          throw new Error('验证码错误')
-        }
-        
-        return {
-          success: true,
-          phone: phoneNumber,
-          verified: true
-        }
-        
+        return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+          if (verificationCode === '123456') {
+            return {
+              success: true,
+              data: {
+                phone: phoneNumber,
+                verified: true,
+                method: 'phone'
+              }
+            }
+          } else {
+            return {
+              success: false,
+              error: '验证码错误（开发环境请使用123456）'
+            }
+          }
+        })
       } else {
-        // 生产环境调用真实接口
-        const { authAPI } = require('../../utils/api')
-        return await authAPI.verifySmsCode(phoneNumber, verificationCode)
+        return authAPI.verifySmsCode(phoneNumber, verificationCode).then((result) => {
+          if (result.code === 0) {
+            return {
+              success: true,
+              data: result.data
+            }
+          } else {
+            return {
+              success: false,
+              error: result.msg || '验证失败'
+            }
+          }
+        })
       }
     },
 
     /**
      * 密码验证
      */
-    async verifyByPassword() {
-      const { username, password } = this.data
+    verifyByPassword() {
+      const username = this.data.username.trim()
+      const password = this.data.password.trim()
 
-      if (app.globalData.isDev) {
+      if (!username) {
+        this.showError('请输入用户名')
+        return Promise.reject(new Error('用户名不能为空'))
+      }
+
+      if (!password) {
+        this.showError('请输入密码')
+        return Promise.reject(new Error('密码不能为空'))
+      }
+
+      if (app.globalData.isDev && !app.globalData.needAuth) {
         // 开发环境模拟验证
-        console.log('🔧 模拟密码验证:', username, password)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('🔧 模拟密码验证')
         
-        // 简单的演示验证逻辑
-        if (username === 'admin' && password === '123456') {
-          return {
-            success: true,
-            username,
-            verified: true
+        return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+          if (username === 'admin' && password === '123456') {
+            return {
+              success: true,
+              data: {
+                username: username,
+                verified: true,
+                method: 'password'
+              }
+            }
+          } else {
+            return {
+              success: false,
+              error: '用户名或密码错误'
+            }
           }
-        } else {
-          throw new Error('账号或密码错误')
-        }
-        
+        })
       } else {
-        // 生产环境调用真实接口
-        const { authAPI } = require('../../utils/api')
-        return await authAPI.login(username, password)
+        return authAPI.login(username, password).then((result) => {
+          if (result.code === 0) {
+            return {
+              success: true,
+              data: result.data
+            }
+          } else {
+            return {
+              success: false,
+              error: result.msg || '验证失败'
+            }
+          }
+        })
       }
     },
 

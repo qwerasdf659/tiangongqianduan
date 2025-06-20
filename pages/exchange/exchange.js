@@ -1,7 +1,6 @@
 // pages/exchange/exchange.js - 商品兑换页面逻辑
 const app = getApp()
 const { exchangeAPI, userAPI, mockRequest } = require('../../utils/api')
-const { wsManager } = require('../../utils/ws')
 const { debounce } = require('../../utils/validate')
 
 Page({
@@ -61,6 +60,9 @@ Page({
   onShow() {
     console.log('兑换页面显示')
     
+    // 连接WebSocket监听库存变化
+    this.connectWebSocket()
+    
     // 检查商品数据是否需要同步更新
     this.checkAndRefreshProducts()
     
@@ -100,35 +102,79 @@ Page({
   /**
    * 初始化页面
    */
-  async initPage() {
-    try {
-      // 初始化用户信息
-      const userInfo = app.globalData.userInfo || app.globalData.mockUser || {
-        user_id: 1001,
-        phone: '138****8000',
-        total_points: 1500,
-        is_merchant: false
-      }
-      
-      this.setData({
-        userInfo: userInfo,
-        totalPoints: userInfo.total_points || 1500
-      })
-
-      // 生成模拟商品数据
+  initPage() {
+    // 获取用户信息
+    this.refreshUserInfo()
+    
+    // 生成模拟商品数据（开发环境）
+    if (app.globalData.isDev && !app.globalData.needAuth) {
       this.generateMockProducts()
-
-      // 初始化筛选结果
-      this.filterProducts()
-
-      this.setData({ loading: false })
-    } catch (error) {
-      console.error('页面初始化失败:', error)
-      this.setData({ 
-        loading: false,
-        totalPoints: 1500
-      })
     }
+    
+    // 加载商品数据
+    this.loadProducts()
+    
+    // 初始化筛选条件
+    this.initFilters()
+  },
+
+  /**
+   * 初始化筛选条件
+   */
+  initFilters() {
+    // 设置默认筛选和排序
+    this.setData({
+      currentFilter: 'all',
+      categoryFilter: 'all',
+      pointsRange: 'all',
+      stockFilter: 'all',
+      sortBy: 'default',
+      searchKeyword: '',
+      currentPage: 1
+    })
+  },
+
+  /**
+   * 刷新用户信息
+   * TODO: 后端对接 - 用户信息接口
+   * 
+   * 对接说明：
+   * 接口：GET /api/user/info
+   * 认证：需要Bearer Token
+   * 返回：用户详细信息，主要获取最新的积分余额
+   */
+  refreshUserInfo() {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境使用模拟数据
+      console.log('🔧 使用模拟用户数据')
+      this.setData({
+        userInfo: app.globalData.mockUser,
+        totalPoints: app.globalData.mockUser.total_points
+      })
+      return Promise.resolve()
+    }
+
+    console.log('📡 刷新用户信息...')
+    return userAPI.getUserInfo().then((res) => {
+      this.setData({
+        userInfo: res.data,
+        totalPoints: res.data.total_points
+      })
+      
+      // 更新全局用户信息
+      app.globalData.userInfo = res.data
+      console.log('✅ 用户信息刷新成功，当前积分:', res.data.total_points)
+    }).catch((error) => {
+      console.error('❌ 获取用户信息失败:', error)
+      
+      // 错误处理：使用全局缓存数据
+      if (app.globalData.userInfo) {
+        this.setData({
+          userInfo: app.globalData.userInfo,
+          totalPoints: app.globalData.userInfo.total_points
+        })
+      }
+    })
   },
 
   /**
@@ -206,186 +252,113 @@ Page({
   },
 
   /**
-   * 刷新用户信息
-   * TODO: 后端对接 - 用户信息接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/user/info
-   * 认证：需要Bearer Token
-   * 返回：用户详细信息，主要获取最新的积分余额
-   */
-  async refreshUserInfo() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 使用模拟用户数据')
-      this.setData({
-        userInfo: app.globalData.mockUser,
-        totalPoints: app.globalData.mockUser.total_points
-      })
-      return
-    }
-
-    try {
-      console.log('📡 刷新用户信息...')
-      const res = await userAPI.getUserInfo()
-      
-      this.setData({
-        userInfo: res.data,
-        totalPoints: res.data.total_points
-      })
-      
-      // 更新全局用户信息
-      app.globalData.userInfo = res.data
-      console.log('✅ 用户信息刷新成功，当前积分:', res.data.total_points)
-      
-    } catch (error) {
-      console.error('❌ 获取用户信息失败:', error)
-      
-      // 错误处理：使用全局缓存数据
-      if (app.globalData.userInfo) {
-        this.setData({
-          userInfo: app.globalData.userInfo,
-          totalPoints: app.globalData.userInfo.total_points
-        })
-      }
-    }
-  },
-
-  /**
-   * 加载商品列表
+   * 加载商品数据
    * TODO: 后端对接 - 商品列表接口
    * 
    * 对接说明：
-   * 接口：GET /api/exchange/products
+   * 接口：GET /api/exchange/products?page=1&page_size=20&category=all&sort=points
    * 认证：需要Bearer Token
-   * 返回：可兑换商品列表，包括分类、库存、价格等信息
+   * 返回：商品列表，支持分页和筛选
    */
-  async loadProducts() {
+  loadProducts() {
     this.setData({ loading: true })
+
+    let productsPromise
     
-    try {
-      let productsData
-
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境使用模拟数据
-        console.log('🔧 使用模拟商品数据')
-        productsData = await mockRequest('/api/exchange/products')
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求商品列表接口...')
-        productsData = await exchangeAPI.getProducts()
-      }
-
-      // 处理分类数据
-      const categories = productsData.data.categories || ['全部']
-      const products = productsData.data.products || []
-
-      this.setData({
-        categories: ['全部'].concat(categories),
-        products: products,
-        allProducts: products,
-        loading: false
-      })
-
-      // 初始化筛选结果
-      this.filterProducts()
-
-      console.log('✅ 商品列表加载成功，共', products.length, '件商品')
-
-    } catch (error) {
-      console.error('❌ 获取商品列表失败:', error)
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境使用模拟数据
+      console.log('🔧 使用模拟商品数据')
       
-      // 使用默认商品数据，避免页面空白
-      const defaultProducts = [
-        {
-          id: 1,
-          name: '10元优惠券',
-          description: '满50元可用',
-          category: '优惠券',
-          points_cost: 1000,
-          exchange_points: 1000,
-          stock: 100,
-          image: 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=10元券',
-          status: 'available',
-          is_hot: true,
-          rating: '4.8'
-        },
-        {
-          id: 2,
-          name: '20元优惠券',
-          description: '满100元可用',
-          category: '优惠券',
-          points_cost: 1800,
-          exchange_points: 1800,
-          stock: 50,
-          image: 'https://via.placeholder.com/200x200/4ECDC4/ffffff?text=20元券',
-          status: 'available',
-          is_hot: true,
-          rating: '4.6'
-        },
-        {
-          id: 3,
-          name: '小海鲜拼盘',
-          description: '新鲜海鲜拼盘',
-          category: '实物商品',
-          points_cost: 2500,
-          exchange_points: 2500,
-          stock: 20,
-          image: 'https://via.placeholder.com/200x200/FFD93D/000000?text=海鲜',
-          status: 'available',
-          is_hot: false,
-          rating: '4.9'
-        },
-        {
-          id: 4,
-          name: '会员月卡',
-          description: '30天会员特权',
-          category: '虚拟物品',
-          points_cost: 3000,
-          exchange_points: 3000,
-          stock: 999,
-          image: 'https://via.placeholder.com/200x200/9775FA/ffffff?text=会员卡',
-          status: 'available',
-          is_hot: false,
-          rating: '4.7'
+      // 直接使用已生成的模拟数据
+      productsPromise = Promise.resolve({
+        code: 0,
+        data: {
+          products: this.data.mockProducts,
+          total: this.data.mockProducts.length,
+          page: 1,
+          pageSize: this.data.pageSize,
+          totalPages: Math.ceil(this.data.mockProducts.length / this.data.pageSize)
         }
-      ]
-      
-      this.setData({
-        categories: ['全部', '优惠券', '实物商品', '虚拟物品'],
-        products: defaultProducts,
-        allProducts: defaultProducts,
-        loading: false
       })
-      
-      // 初始化筛选结果
-      this.filterProducts()
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求商品列表接口...')
+      productsPromise = exchangeAPI.getProducts()
+    }
+
+    return productsPromise.then((productsData) => {
+      // 检查数据有效性
+      if (productsData && productsData.data && productsData.data.products) {
+        this.setData({
+          products: productsData.data.products,
+          totalCount: productsData.data.total || productsData.data.products.length,
+          loading: false
+        })
+        
+        // 应用筛选和分页
+        this.filterProducts()
+        
+        console.log('✅ 商品列表加载成功，共', productsData.data.products.length, '个商品')
+      } else {
+        console.warn('⚠️ 商品数据格式异常，使用默认数据')
+        this.setDefaultProducts()
+      }
+    }).catch((error) => {
+      console.error('❌ 加载商品失败:', error)
+      this.setDefaultProducts()
       
       wx.showToast({
-        title: '使用默认商品数据',
+        title: '商品加载失败',
         icon: 'none'
       })
+    })
+  },
+
+  /**
+   * 设置默认商品数据
+   */
+  setDefaultProducts() {
+    // 如果还没有模拟数据，则生成
+    if (!this.data.mockProducts || this.data.mockProducts.length === 0) {
+      this.generateMockProducts()
     }
+    
+    this.setData({
+      products: this.data.mockProducts,
+      totalCount: this.data.mockProducts.length,
+      loading: false
+    })
+    
+    // 应用筛选和分页
+    this.filterProducts()
   },
 
   /**
    * 连接WebSocket监听库存变化
    */
   connectWebSocket() {
-    wsManager.connect()
+    const wsManager = app.globalData.wsManager
+    if (wsManager && !app.globalData.wsConnected) {
+      wsManager.connect()
+    }
     
     // 监听库存更新
-    wsManager.on('stock_update', (data) => {
-      console.log('收到库存更新:', data)
-      this.updateProductStock(data.data.product_id, data.data.stock)
-    })
+    if (wsManager) {
+      wsManager.on('stock_update', (data) => {
+        console.log('📦 收到库存更新:', data)
+        this.updateProductStock(data.data.product_id, data.data.stock)
+      })
+    }
   },
 
   /**
    * 断开WebSocket连接
    */
   disconnectWebSocket() {
-    wsManager.off('stock_update')
+    const wsManager = app.globalData.wsManager
+    if (wsManager) {
+      wsManager.off('stock_update')
+    }
   },
 
   /**
@@ -409,16 +382,22 @@ Page({
   },
 
   /**
-   * 刷新页面
+   * 刷新页面数据
    */
-  async refreshPage() {
+  refreshPage() {
     this.setData({ refreshing: true })
-    await Promise.all([
+    
+    return Promise.all([
       this.refreshUserInfo(),
       this.loadProducts()
-    ])
-    this.setData({ refreshing: false })
-    wx.stopPullDownRefresh()
+    ]).then(() => {
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    }).catch(error => {
+      console.error('❌ 刷新页面失败:', error)
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    })
   },
 
   /**
@@ -456,77 +435,113 @@ Page({
   /**
    * 确认兑换
    */
-  onConfirmExchange: debounce(async function() {
-    const product = this.data.selectedProduct
-    
-    if (!product) return
+  onConfirmExchange() {
+    const selectedProduct = this.data.selectedProduct
+    if (!selectedProduct) {
+      wx.showToast({
+        title: '未选择商品',
+        icon: 'none'
+      })
+      return
+    }
 
-    this.setData({ showConfirm: false })
+    // 再次检查积分和库存
+    if (this.data.totalPoints < selectedProduct.exchange_points) {
+      wx.showToast({
+        title: '积分不足',
+        icon: 'none'
+      })
+      return
+    }
 
-    wx.showLoading({
-      title: '兑换中...',
-      mask: true
+    if (selectedProduct.stock <= 0) {
+      wx.showToast({
+        title: '商品已售罄',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 关闭确认弹窗
+    this.setData({
+      showConfirm: false,
+      exchanging: true
     })
 
-    try {
-      let exchangeResult
+    // 执行兑换
+    this.performExchange(selectedProduct)
+  },
 
-      if (app.globalData.isDev) {
-        // 开发环境模拟兑换
-        exchangeResult = {
-          code: 0,
-          msg: '兑换成功',
-          data: {
-            order_id: 'EX' + Date.now(),
-            points_deducted: product.exchange_points,
-            remaining_points: this.data.totalPoints - product.exchange_points,
-            remaining_stock: product.stock - 1
-          }
-        }
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      } else {
-        // TODO: 对接真实兑换接口
-        exchangeResult = await exchangeAPI.redeem(product.id, 1)
+  /**
+   * 执行兑换操作
+   */
+  performExchange(product) {
+    wx.showLoading({ title: '兑换中...' })
+
+    let exchangePromise
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟兑换
+      exchangePromise = new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            code: 0,
+            data: {
+              order_id: 'EX' + Date.now(),
+              product_id: product.id,
+              remaining_points: this.data.totalPoints - product.exchange_points,
+              status: 'success'
+            }
+          })
+        }, 1500)
+      })
+    } else {
+      // 生产环境调用真实接口
+      exchangePromise = exchangeAPI.redeem(product.id, 1)
+    }
+
+    exchangePromise.then((result) => {
+      wx.hideLoading()
+      
+      // 更新用户积分
+      const newPoints = result.data.remaining_points
+      this.setData({
+        totalPoints: newPoints,
+        exchanging: false
+      })
+      
+      // 更新全局积分
+      if (app.globalData.userInfo) {
+        app.globalData.userInfo.total_points = newPoints
       }
-
+      if (app.globalData.mockUser) {
+        app.globalData.mockUser.total_points = newPoints
+      }
+      
+      // 更新商品库存（模拟）
+      if (app.globalData.isDev && !app.globalData.needAuth) {
+        this.updateProductStock(product.id, product.stock - 1)
+      }
+      
+      // 显示成功提示
+      wx.showToast({
+        title: '兑换成功',
+        icon: 'success'
+      })
+      
+      // 刷新商品列表
+      this.filterProducts()
+      
+    }).catch((error) => {
       wx.hideLoading()
-
-      // 更新本地数据
-      this.setData({
-        totalPoints: exchangeResult.data.remaining_points
-      })
-
-      // 更新商品库存
-      this.updateProductStock(product.id, exchangeResult.data.remaining_stock)
-
-      // 显示兑换结果
-      this.setData({
-        showResult: true,
-        resultData: {
-          product: product,
-          orderId: exchangeResult.data.order_id,
-          pointsDeducted: exchangeResult.data.points_deducted,
-          remainingPoints: exchangeResult.data.remaining_points
-        }
-      })
-
-      // 发送兑换成功的统计事件
-      wx.reportAnalytics('exchange_success', {
-        product_id: product.id,
-        product_name: product.name,
-        points_cost: product.exchange_points
-      })
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('兑换失败:', error)
+      this.setData({ exchanging: false })
+      console.error('❌ 商品兑换失败:', error)
+      
       wx.showToast({
         title: error.msg || '兑换失败',
         icon: 'none'
       })
-    }
-  }, 1000),
+    })
+  },
 
   /**
    * 取消兑换
@@ -608,158 +623,84 @@ Page({
   },
 
   /**
-   * 兑换商品
-   * TODO: 后端对接 - 商品兑换接口
-   * 
-   * 对接说明：
-   * 接口：POST /api/exchange/redeem
-   * 请求体：{ product_id: 1, quantity: 1 }
-   * 认证：需要Bearer Token
-   * 返回：兑换结果，包括订单信息、剩余积分等
+   * 商品兑换流程 - 增强版实现
    */
-  async onExchangeProduct() {
-    const { selectedProduct, exchangeQuantity } = this.data
-    
-    if (!selectedProduct || exchangeQuantity <= 0) {
-      wx.showToast({
-        title: '请选择商品和数量',
-        icon: 'none'
+  onExchangeProduct() {
+    const selectedProduct = this.data.selectedProduct
+    const exchangeQuantity = this.data.exchangeQuantity || 1
+    const totalCost = selectedProduct.exchange_points * exchangeQuantity
+
+    // 最终确认
+    this.showExchangeConfirm(selectedProduct, exchangeQuantity, totalCost).then((confirmResult) => {
+      if (!confirmResult.confirmed) {
+        console.log('用户取消兑换')
+        return
+      }
+
+      this.setData({ 
+        exchanging: true,
+        exchangeProgress: 0 
       })
-      return
-    }
+      
+      // 显示兑换进度
+      this.showExchangeProgress()
 
-    // 检查积分是否足够
-    const totalCost = selectedProduct.points_cost * exchangeQuantity
-    if (this.data.totalPoints < totalCost) {
-      wx.showToast({
-        title: '积分不足',
-        icon: 'none'
-      })
-      return
-    }
-
-    // 检查库存
-    if (selectedProduct.stock < exchangeQuantity) {
-      wx.showToast({
-        title: '库存不足',
-        icon: 'none'
-      })
-      return
-    }
-
-    // 确认兑换
-    const confirmResult = await this.showExchangeConfirm(selectedProduct, exchangeQuantity, totalCost)
-    if (!confirmResult) return
-
-    // 防止重复提交
-    if (this.data.exchanging) return
-    this.setData({ exchanging: true })
-
-    try {
-      let exchangeResult
-
+      let exchangePromise
+      
       if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟兑换
-        console.log('🔧 模拟商品兑换，商品ID:', selectedProduct.id, '数量:', exchangeQuantity)
-        wx.showLoading({ title: '兑换中...' })
-        
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        
-        exchangeResult = {
+        // 开发环境模拟兑换过程
+        console.log('🔧 模拟商品兑换流程')
+        exchangePromise = new Promise(resolve => setTimeout(resolve, 1500)).then(() => ({
           code: 0,
-          msg: '兑换成功',
           data: {
-            order_id: 'ORD' + Date.now(),
+            order_id: 'ORDER_' + Date.now(),
             product_name: selectedProduct.name,
             quantity: exchangeQuantity,
             points_cost: totalCost,
             remaining_points: this.data.totalPoints - totalCost,
-            redeem_time: new Date().toLocaleString(),
-            delivery_info: selectedProduct.category === '优惠券' ? 
-              '兑换码：COUPON' + Math.random().toString(36).substr(2, 8).toUpperCase() :
-              '请到店出示此信息领取'
+            delivery_info: {
+              status: 'processing',
+              estimated_time: '3-5个工作日',
+              tracking_number: null
+            }
           }
-        }
-        
-        wx.hideLoading()
+        }))
+      } else {
+        exchangePromise = exchangeAPI.redeem(selectedProduct.id, exchangeQuantity)
+      }
+
+      exchangePromise.then((exchangeResult) => {
+        console.log('🎉 商品兑换成功:', exchangeResult.data)
         
         // 更新用户积分
-        const newPoints = this.data.totalPoints - totalCost
-        this.setData({ totalPoints: newPoints })
+        const newPoints = exchangeResult.data.remaining_points
+        this.setData({
+          totalPoints: newPoints,
+          exchanging: false,
+          showExchangeModal: false,
+          exchangeProgress: 100
+        })
         
+        // 更新全局积分
+        if (app.globalData.userInfo) {
+          app.globalData.userInfo.total_points = newPoints
+        }
         if (app.globalData.mockUser) {
           app.globalData.mockUser.total_points = newPoints
         }
         
-        console.log('✅ 模拟兑换完成，剩余积分:', newPoints)
+        // 显示成功结果
+        this.showExchangeSuccess(exchangeResult.data)
         
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求商品兑换接口，商品ID:', selectedProduct.id)
-        
-        exchangeResult = await exchangeAPI.redeem(selectedProduct.id, exchangeQuantity)
-        
-        // 更新用户积分
-        this.setData({
-          totalPoints: exchangeResult.data.remaining_points
+      }).catch((error) => {
+        this.setData({ 
+          exchanging: false,
+          exchangeProgress: 0 
         })
-        
-        // 更新全局用户信息
-        if (app.globalData.userInfo) {
-          app.globalData.userInfo.total_points = exchangeResult.data.remaining_points
-        }
-        
-        console.log('✅ 商品兑换成功，订单号:', exchangeResult.data.order_id)
-      }
-
-      // 显示兑换成功结果
-      this.showExchangeResult(exchangeResult.data)
-
-      // 关闭兑换弹窗
-      this.setData({
-        showExchangeModal: false,
-        selectedProduct: null,
-        exchangeQuantity: 1
+        console.error('❌ 商品兑换失败:', error)
+        this.showExchangeError(error)
       })
-
-      // 刷新商品列表（更新库存）
-      this.loadProducts()
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 商品兑换失败:', error)
-      
-      let errorMsg = '兑换失败，请重试'
-      
-      // 根据错误码显示不同的错误信息
-      switch (error.code) {
-        case 1001:
-          errorMsg = '商品不存在或已下架'
-          break
-        case 1002:
-          errorMsg = '积分不足'
-          break
-        case 1003:
-          errorMsg = '库存不足'
-          break
-        case 1004:
-          errorMsg = '兑换数量超过限制'
-          break
-        case 1005:
-          errorMsg = '今日兑换次数已达上限'
-          break
-        default:
-          errorMsg = error.msg || error.message || errorMsg
-      }
-      
-      wx.showToast({
-        title: errorMsg,
-        icon: 'none'
-      })
-      
-    } finally {
-      this.setData({ exchanging: false })
-    }
+    })
   },
 
   /**
@@ -833,7 +774,25 @@ Page({
    * 筛选商品
    */
   filterProducts() {
-    let filtered = [...this.data.mockProducts] // 使用全部商品作为基础数据
+    // 使用正确的数据源：如果是开发环境用mockProducts，否则用products
+    let sourceProducts = []
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      sourceProducts = [...this.data.mockProducts]
+    } else {
+      sourceProducts = [...this.data.products]
+    }
+    
+    // 如果没有商品数据，直接返回
+    if (!sourceProducts || sourceProducts.length === 0) {
+      this.setData({
+        filteredProducts: [],
+        totalProducts: 0,
+        totalPages: 1
+      })
+      return
+    }
+    
+    let filtered = [...sourceProducts]
     
     // 搜索关键词筛选
     if (this.data.searchKeyword) {
@@ -911,23 +870,37 @@ Page({
         break
       default:
         // 'default' - 按创建时间排序
-        filtered.sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
+        filtered.sort((a, b) => new Date(b.created_time || Date.now()) - new Date(a.created_time || Date.now()))
         break
     }
     
+    // 计算总页数
+    const totalPages = Math.ceil(filtered.length / this.data.pageSize)
+    
+    // 确保当前页码有效
+    let currentPage = this.data.currentPage
+    if (currentPage > totalPages) {
+      currentPage = Math.max(1, totalPages)
+      this.setData({ currentPage })
+    }
+    
     // 分页处理
-    const startIndex = (this.data.currentPage - 1) * this.data.pageSize
+    const startIndex = (currentPage - 1) * this.data.pageSize
     const endIndex = startIndex + this.data.pageSize
     const paginatedProducts = filtered.slice(startIndex, endIndex)
     
-    // 更新总页数
-    const totalPages = Math.ceil(filtered.length / this.data.pageSize)
-    
     this.setData({
       filteredProducts: paginatedProducts,
-      products: filtered, // 保存全部筛选结果用于统计
       totalPages,
       totalProducts: filtered.length
+    })
+    
+    console.log('📦 商品筛选完成:', {
+      total: sourceProducts.length,
+      filtered: filtered.length,
+      displayed: paginatedProducts.length,
+      currentPage,
+      totalPages
     })
   },
 
@@ -1166,59 +1139,43 @@ Page({
   },
 
   /**
-   * 从商家管理同步刷新商品数据
-   * TODO: 后端对接 - 商品同步接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/exchange/products/sync
-   * 认证：需要Bearer Token
-   * 返回：最新的商品列表，与商家管理页面保持一致
-   * 
-   * 数据一致性保证：
-   * 1. 商家新增/编辑的商品会立即在兑换页面显示
-   * 2. 商家下架的商品会在兑换页面隐藏
-   * 3. 库存变更会实时同步
+   * 从商家管理同步商品数据
+   * 当商家管理页面更新商品时，通过此方法同步最新数据
    */
-  async refreshProductsFromMerchant() {
-    try {
-      console.log('📡 同步商家管理的商品数据...')
-      
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境：模拟从商家管理同步数据
-        console.log('🔧 模拟同步商家商品数据')
-        
-        // 这里可以模拟获取商家管理页面最新的商品数据
-        // 实际实现中，应该调用统一的商品接口
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        // 重新生成商品数据以模拟同步
-        this.generateMockProducts()
-        this.filterProducts()
-        
+  refreshProductsFromMerchant() {
+    console.log('🔄 从商家管理同步商品数据...')
+    
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟同步
+      console.log('🔧 模拟商家数据同步')
+      return new Promise(resolve => setTimeout(resolve, 500)).then(() => {
+        // 重新加载商品列表
+        return this.loadProducts()
+      }).then(() => {
         console.log('✅ 商品数据同步完成')
-        
         wx.showToast({
           title: '商品数据已更新',
-          icon: 'none',
-          duration: 2000
+          icon: 'success'
         })
-      } else {
-        // 生产环境：调用商品同步接口
-        const syncData = await exchangeAPI.syncProducts()
+      })
+    } else {
+      // 生产环境从后端同步
+      return exchangeAPI.syncProducts().then((syncData) => {
+        this.setData({
+          products: syncData.data.products,
+          totalCount: syncData.data.total
+        })
         
-        if (syncData && syncData.data) {
-          this.setData({
-            products: syncData.data.products || [],
-            totalProducts: syncData.data.total || 0,
-            totalPages: Math.ceil((syncData.data.total || 0) / this.data.pageSize)
-          })
-          
-          this.filterProducts()
-          console.log('✅ 商品数据同步完成，商品数量:', syncData.data.total)
-        }
-      }
-    } catch (error) {
-      console.error('❌ 同步商品数据失败:', error)
+        console.log('✅ 商品数据同步完成，共', syncData.data.products.length, '个商品')
+        wx.showToast({
+          title: '商品数据已更新',
+          icon: 'success'
+        })
+      }).catch((error) => {
+        console.error('❌ 商品数据同步失败:', error)
+        // 降级方案：重新加载本地数据
+        return this.loadProducts()
+      })
     }
   },
 }) 

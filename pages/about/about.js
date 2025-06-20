@@ -27,24 +27,24 @@ Page({
     // 功能特色
     features: [
       {
-        icon: '📸',
-        title: '智能小票识别',
-        description: '先进的OCR技术，快速识别小票信息获得积分'
+        icon: '��',
+        title: '拍照上传小票',
+        description: '简单拍照上传消费小票，人工审核确认后获得积分'
       },
       {
         icon: '🎰',
         title: '趣味抽奖系统',
-        description: '多样化的抽奖方式，让积分消费更有趣'
+        description: '使用积分参与抽奖，赢取优惠券和实物奖品'
       },
       {
-        icon: '🛍️',
-        title: '丰富积分商城',
-        description: '精选商品兑换，让积分更有价值'
+        icon: '🎁',
+        title: '丰富积分兑换',
+        description: '积分可兑换各种商品和服务，让消费更有价值'
       },
       {
         icon: '📊',
-        title: '数据统计分析',
-        description: '详细的消费和积分记录，清晰掌握账户动态'
+        title: '完整记录管理',
+        description: '详细的积分明细和消费记录，让每一笔都清晰可见'
       },
       {
         icon: '🏪',

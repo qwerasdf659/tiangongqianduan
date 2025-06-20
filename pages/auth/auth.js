@@ -164,21 +164,25 @@ Page({
 
   /**
    * 发送验证码
-   * TODO: 后端对接 - 发送验证码接口
+   * TODO: 后端对接 - 发送短信验证码接口
    * 
    * 对接说明：
    * 接口：POST /api/auth/send-code
    * 请求体：{ phone: "13800138000" }
-   * 返回：{ code: 0, msg: "验证码已发送", data: { expire_time: 300 } }
-   * 
-   * 注意事项：
-   * 1. 需要验证手机号格式
-   * 2. 需要防刷验证（图形验证码或滑块验证）
-   * 3. 需要限制发送频率（60秒间隔）
+   * 认证：无需认证（公开接口）
+   * 返回：发送结果，成功时不返回验证码内容（安全考虑）
    */
-  async onSendCode() {
+  onSendCode() {
     // 验证手机号
     const phone = this.data.phone.trim()
+    if (!phone) {
+      wx.showToast({
+        title: '请输入手机号',
+        icon: 'none'
+      })
+      return
+    }
+    
     if (!this.validatePhone(phone)) {
       wx.showToast({
         title: '请输入正确的手机号',
@@ -188,85 +192,88 @@ Page({
     }
 
     // 防止重复发送
-    if (this.data.codeDisabled) {
-      wx.showToast({
-        title: `${this.data.countdown}秒后可重新发送`,
-        icon: 'none'
-      })
+    if (this.data.sending || this.data.countdown > 0) {
       return
     }
 
-    // 开始倒计时
-    this.startCountdown()
+    this.setData({ sending: true })
 
-    try {
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟发送
-        console.log('🔧 模拟发送验证码到:', phone)
-        wx.showLoading({ title: '发送中...' })
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟发送验证码
+      console.log('🔧 模拟发送验证码到:', phone)
+      
+      new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+        this.setData({ 
+          sending: false,
+          countdown: 60,
+          code: '123456' // 开发环境自动填入测试验证码
+        })
         
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // 开始倒计时
+        this.startCountdown()
         
-        wx.hideLoading()
         wx.showToast({
-          title: '验证码已发送（开发环境）',
+          title: '验证码已发送（测试：123456）',
           icon: 'success'
         })
         
-        // 开发环境提示验证码
-        setTimeout(() => {
-          wx.showModal({
-            title: '开发环境提示',
-            content: '验证码：123456（开发环境固定验证码）',
-            showCancel: false
-          })
-        }, 1500)
+        console.log('✅ 模拟验证码发送成功，测试验证码: 123456')
+      }).catch((error) => {
+        this.setData({ sending: false })
+        console.error('❌ 模拟发送验证码失败:', error)
         
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求发送验证码接口...')
-        wx.showLoading({ title: '发送中...' })
+        wx.showToast({
+          title: '发送失败，请重试',
+          icon: 'none'
+        })
+      })
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求发送验证码接口，手机号:', phone)
+      
+      authAPI.sendCode(phone).then((result) => {
+        this.setData({ 
+          sending: false,
+          countdown: 60 
+        })
         
-        const result = await authAPI.sendCode(phone)
+        // 开始倒计时
+        this.startCountdown()
         
-        wx.hideLoading()
         wx.showToast({
           title: '验证码已发送',
           icon: 'success'
         })
         
-        console.log('✅ 验证码发送成功，有效期:', result.data.expire_time, '秒')
-      }
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 发送验证码失败:', error)
-      
-      let errorMsg = '发送失败，请稍后重试'
-      
-      // 根据错误码显示不同的错误信息
-      switch (error.code) {
-        case 1001:
-          errorMsg = '手机号格式不正确'
-          break
-        case 1002:
-          errorMsg = '发送过于频繁，请稍后再试'
-          break
-        case 1003:
-          errorMsg = '今日验证码发送次数已达上限'
-          break
-        default:
-          errorMsg = error.msg || errorMsg
-      }
-      
-      wx.showToast({
-        title: errorMsg,
-        icon: 'none'
+        console.log('✅ 验证码发送成功')
+      }).catch((error) => {
+        this.setData({ sending: false })
+        console.error('❌ 发送验证码失败:', error)
+        
+        let errorMsg = '发送失败，请重试'
+        
+        switch (error.code) {
+          case 1001:
+            errorMsg = '手机号格式不正确'
+            break
+          case 1002:
+            errorMsg = '发送过于频繁，请稍后再试'
+            break
+          case 1003:
+            errorMsg = '今日发送次数已达上限'
+            break
+          case 1004:
+            errorMsg = '短信服务暂时不可用'
+            break
+          default:
+            errorMsg = error.msg || error.message || errorMsg
+        }
+        
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none'
+        })
       })
-      
-      // 发送失败时重置倒计时
-      this.clearCountdown()
     }
   },
 
@@ -330,166 +337,218 @@ Page({
 
   /**
    * 提交登录
-   * TODO: 后端对接 - 登录接口
+   * TODO: 后端对接 - 用户登录接口
    * 
    * 对接说明：
    * 接口：POST /api/auth/login
-   * 请求体：{ phone: "13800138000", code: "123456" }
-   * 返回：{ 
-   *   code: 0, 
-   *   msg: "登录成功", 
-   *   data: { 
-   *     access_token: "jwt_token",
-   *     refresh_token: "refresh_token",
-   *     expires_in: 7200,
-   *     user_info: { ... }
-   *   } 
-   * }
-   * 
-   * 注意事项：
-   * 1. 需要验证验证码有效性
-   * 2. 首次登录自动注册用户
-   * 3. 返回JWT Token，需要保存到本地存储
-   * 4. 需要处理Token过期时间
+   * 请求体：{ phone: "13800138000", code: "123456", nickname: "用户昵称" }
+   * 认证：无需认证（公开接口）
+   * 返回：登录结果，包括用户信息和access_token
    */
-  async onSubmitLogin() {
-    // 验证表单
-    const formData = {
-      phone: this.data.phone.trim(),
-      code: this.data.code.trim()
-    }
-
-    // 使用现有的表单验证器
-    if (!this.data.formValidator.validate(formData)) {
-      const firstError = this.data.formValidator.getFirstError()
+  onSubmitLogin() {
+    // 表单验证
+    const { phone, code, nickname } = this.data
+    
+    if (!phone.trim()) {
       wx.showToast({
-        title: firstError || '请填写正确信息',
+        title: '请输入手机号',
         icon: 'none'
-      })
-      
-      this.setData({
-        formErrors: this.data.formValidator.getErrors()
       })
       return
     }
-
-    // 检查协议勾选
-    if (!this.data.agreementChecked) {
+    
+    if (!this.validatePhone(phone)) {
       wx.showToast({
-        title: '请同意用户协议',
+        title: '请输入正确的手机号',
+        icon: 'none'
+      })
+      return
+    }
+    
+    if (!code.trim()) {
+      wx.showToast({
+        title: '请输入验证码',
+        icon: 'none'
+      })
+      return
+    }
+    
+    if (code.length !== 6) {
+      wx.showToast({
+        title: '验证码应为6位数字',
+        icon: 'none'
+      })
+      return
+    }
+    
+    if (!nickname.trim()) {
+      wx.showToast({
+        title: '请输入昵称',
         icon: 'none'
       })
       return
     }
 
     // 防止重复提交
-    if (this.data.submitting) return
-    this.setData({ submitting: true })
+    if (this.data.logging) {
+      return
+    }
 
-    try {
-      let loginResult
+    this.setData({ logging: true })
+    wx.showLoading({ title: '登录中...' })
 
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟登录
-        console.log('🔧 模拟用户登录，手机号:', formData.phone)
-        wx.showLoading({ title: '登录中...' })
-        
-        // 开发环境验证码检查（可选）
-        if (formData.code !== '123456' && formData.code !== '000000') {
-          throw new Error('验证码错误（开发环境请使用123456）')
+    const formData = {
+      phone: phone.trim(),
+      code: code.trim(),
+      nickname: nickname.trim()
+    }
+
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟登录
+      console.log('🔧 模拟用户登录:', formData)
+      
+      new Promise(resolve => setTimeout(resolve, 1500)).then(() => {
+        // 生成模拟用户数据
+        const mockUser = {
+          user_id: Date.now(),
+          phone: formData.phone,
+          nickname: formData.nickname,
+          avatar: 'https://via.placeholder.com/100x100/FF6B35/ffffff?text=' + encodeURIComponent(formData.nickname.charAt(0)),
+          total_points: 1500,
+          is_merchant: false,
+          is_vip: false,
+          register_time: new Date().toISOString(),
+          last_login_time: new Date().toISOString()
         }
         
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        
-        loginResult = {
+        const loginResult = {
           code: 0,
-          msg: '登录成功',
           data: {
-            access_token: 'dev_access_token_' + Date.now(),
-            refresh_token: 'dev_refresh_token_' + Date.now(),
-            expires_in: 7200,
-            user_info: {
-              user_id: 1001,
-              phone: formData.phone,
-              nickname: '测试用户',
-              avatar: 'https://via.placeholder.com/100x100/4ECDC4/ffffff?text=用户',
-              total_points: 1500,
-              is_merchant: false,
-              created_at: new Date().toISOString()
-            }
+            user_info: mockUser,
+            access_token: 'mock_token_' + Date.now(),
+            refresh_token: 'mock_refresh_' + Date.now(),
+            expires_in: 86400 // 24小时
           }
         }
         
-      } else {
-        // 生产环境调用真实登录接口
-        console.log('📡 请求登录接口，手机号:', formData.phone)
-        wx.showLoading({ title: '登录中...' })
+        wx.hideLoading()
         
-        loginResult = await authAPI.login(formData.phone, formData.code)
-        console.log('✅ 登录接口调用成功')
-      }
-
-      wx.hideLoading()
-
-      // 保存登录信息到全局状态
-      app.globalData.isLoggedIn = true
-      app.globalData.accessToken = loginResult.data.access_token
-      app.globalData.refreshToken = loginResult.data.refresh_token
-      app.globalData.userInfo = loginResult.data.user_info
-      app.globalData.tokenExpireTime = Date.now() + loginResult.data.expires_in * 1000
-
-      // 保存到本地存储
-      wx.setStorageSync('access_token', loginResult.data.access_token)
-      wx.setStorageSync('refresh_token', loginResult.data.refresh_token)
-      wx.setStorageSync('token_expire_time', app.globalData.tokenExpireTime)
-      wx.setStorageSync('user_info', loginResult.data.user_info)
-
-      console.log('💾 用户信息已保存到本地存储')
-
-      wx.showToast({
-        title: '登录成功',
-        icon: 'success'
-      })
-
-      // 登录成功后跳转到首页
-      setTimeout(() => {
-        wx.reLaunch({
-          url: '/pages/lottery/lottery'
+        // 保存用户信息到全局
+        app.globalData.userInfo = mockUser
+        app.globalData.mockUser = mockUser
+        app.globalData.token = loginResult.data.access_token
+        
+        // 保存到本地存储
+        try {
+          wx.setStorageSync('userInfo', mockUser)
+          wx.setStorageSync('token', loginResult.data.access_token)
+        } catch (error) {
+          console.warn('保存用户信息到本地失败:', error)
+        }
+        
+        this.setData({ logging: false })
+        
+        wx.showToast({
+          title: '登录成功！',
+          icon: 'success'
         })
-      }, 1500)
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 登录失败:', error)
-      
-      let errorMsg = '登录失败，请重试'
-      
-      // 根据错误码显示不同的错误信息
-      switch (error.code) {
-        case 1001:
-          errorMsg = '手机号格式不正确'
-          break
-        case 1002:
-          errorMsg = '验证码错误'
-          break
-        case 1003:
-          errorMsg = '验证码已过期，请重新获取'
-          break
-        case 1004:
-          errorMsg = '用户已被禁用，请联系客服'
-          break
-        default:
-          errorMsg = error.message || error.msg || errorMsg
-      }
-      
-      wx.showToast({
-        title: errorMsg,
-        icon: 'none'
+        
+        console.log('✅ 模拟登录成功，用户ID:', mockUser.user_id)
+        
+        // 延迟跳转，让用户看到成功提示
+        setTimeout(() => {
+          // 跳转到主页或返回上一页
+          const pages = getCurrentPages()
+          if (pages.length > 1) {
+            wx.navigateBack()
+          } else {
+            wx.redirectTo({ url: '/pages/lottery/lottery' })
+          }
+        }, 1500)
+      }).catch((error) => {
+        wx.hideLoading()
+        this.setData({ logging: false })
+        console.error('❌ 模拟登录失败:', error)
+        
+        wx.showToast({
+          title: '登录失败，请重试',
+          icon: 'none'
+        })
       })
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求登录接口:', { phone: formData.phone, nickname: formData.nickname })
       
-    } finally {
-      this.setData({ submitting: false })
+      authAPI.login(formData.phone, formData.code).then((loginResult) => {
+        wx.hideLoading()
+        
+        if (loginResult.code === 0) {
+          console.log('✅ 登录成功，用户ID:', loginResult.data.user_info.user_id)
+          
+          // 保存用户信息到全局
+          app.globalData.userInfo = loginResult.data.user_info
+          app.globalData.token = loginResult.data.access_token
+          
+          // 保存到本地存储
+          try {
+            wx.setStorageSync('userInfo', loginResult.data.user_info)
+            wx.setStorageSync('token', loginResult.data.access_token)
+          } catch (error) {
+            console.warn('保存用户信息到本地失败:', error)
+          }
+          
+          this.setData({ logging: false })
+          
+          wx.showToast({
+            title: '登录成功！',
+            icon: 'success'
+          })
+          
+          // 延迟跳转
+          setTimeout(() => {
+            const pages = getCurrentPages()
+            if (pages.length > 1) {
+              wx.navigateBack()
+            } else {
+              wx.redirectTo({ url: '/pages/lottery/lottery' })
+            }
+          }, 1500)
+          
+        } else {
+          throw new Error(loginResult.msg || '登录失败')
+        }
+      }).catch((error) => {
+        wx.hideLoading()
+        this.setData({ logging: false })
+        console.error('❌ 登录失败:', error)
+        
+        let errorMsg = '登录失败，请重试'
+        
+        switch (error.code) {
+          case 1001:
+            errorMsg = '手机号不存在'
+            break
+          case 1002:
+            errorMsg = '验证码错误或已过期'
+            break
+          case 1003:
+            errorMsg = '验证码输入次数过多'
+            break
+          case 1004:
+            errorMsg = '用户账号被禁用'
+            break
+          case 1005:
+            errorMsg = '昵称包含敏感词汇'
+            break
+          default:
+            errorMsg = error.msg || error.message || errorMsg
+        }
+        
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none'
+        })
+      })
     }
   },
 

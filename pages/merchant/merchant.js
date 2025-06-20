@@ -145,7 +145,7 @@ Page({
   /**
    * 初始化页面
    */
-  async initPage() {
+  initPage() {
     // 初始化用户信息
     this.setData({
       userInfo: app.globalData.userInfo || app.globalData.mockUser,
@@ -159,33 +159,41 @@ Page({
     }
 
     // 加载数据
-    await this.loadData()
+    this.loadData()
   },
 
   /**
    * 刷新数据
    */
-  async refreshData() {
+  refreshData() {
     if (!this.data.isMerchant) return
     
     this.setData({ refreshing: true })
-    await this.loadData()
-    this.setData({ refreshing: false })
-    wx.stopPullDownRefresh()
+    this.loadData().then(() => {
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    }).catch(error => {
+      console.error('❌ 刷新数据失败:', error)
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    })
   },
 
   /**
    * 加载数据
    */
-  async loadData() {
+  loadData() {
     this.setData({ loading: true })
     
-    await Promise.all([
+    return Promise.all([
       this.loadStatistics(),
       this.loadPendingList()
-    ])
-    
-    this.setData({ loading: false })
+    ]).then(() => {
+      this.setData({ loading: false })
+    }).catch(error => {
+      console.error('❌ 加载数据失败:', error)
+      this.setData({ loading: false })
+    })
   },
 
   /**
@@ -197,58 +205,70 @@ Page({
    * 认证：需要Bearer Token，且用户需要有商家权限
    * 返回：审核统计数据，包括待审核数量、今日处理数量等
    */
-  async loadStatistics() {
-    try {
-      let statisticsData
-
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟数据
-        console.log('🔧 使用模拟商家统计数据')
-        statisticsData = {
-          code: 0,
-          data: {
-            pending_count: 8,
-            today_approved: 15,
-            today_rejected: 3,
-            total_processed: 256,
-            this_week_processed: 89,
-            average_processing_time: 5.2 // 平均处理时间（分钟）
-          }
+  loadStatistics() {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟数据
+      console.log('🔧 使用模拟商家统计数据')
+      const statisticsData = {
+        code: 0,
+        data: {
+          pending_count: 8,
+          today_approved: 15,
+          today_rejected: 3,
+          total_processed: 256,
+          this_week_processed: 89,
+          average_processing_time: 5.2 // 平均处理时间（分钟）
         }
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 300))
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求商家统计接口...')
-        statisticsData = await merchantAPI.getStatistics()
       }
-
-      this.setData({
-        statistics: {
-          pendingCount: statisticsData.data.pending_count,
-          todayApproved: statisticsData.data.today_approved,
-          todayRejected: statisticsData.data.today_rejected,
-          totalProcessed: statisticsData.data.total_processed,
-          thisWeekProcessed: statisticsData.data.this_week_processed || 0,
-          averageProcessingTime: statisticsData.data.average_processing_time || 0
-        }
-      })
-
-      console.log('✅ 商家统计数据加载成功，待审核:', statisticsData.data.pending_count)
-
-    } catch (error) {
-      console.error('❌ 获取审核统计失败:', error)
       
-      // 使用默认数据，避免页面异常
-      this.setData({
-        statistics: {
-          pendingCount: 0,
-          todayApproved: 0,
-          todayRejected: 0,
-          totalProcessed: 0,
-          thisWeekProcessed: 0,
-          averageProcessingTime: 0
-        }
+      // 模拟网络延迟
+      return new Promise(resolve => {
+        setTimeout(() => {
+          this.setData({
+            statistics: {
+              pendingCount: statisticsData.data.pending_count,
+              todayApproved: statisticsData.data.today_approved,
+              todayRejected: statisticsData.data.today_rejected,
+              totalProcessed: statisticsData.data.total_processed,
+              thisWeekProcessed: statisticsData.data.this_week_processed || 0,
+              averageProcessingTime: statisticsData.data.average_processing_time || 0
+            }
+          })
+          
+          console.log('✅ 商家统计数据加载成功，待审核:', statisticsData.data.pending_count)
+          resolve()
+        }, 300)
+      })
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求商家统计接口...')
+      return merchantAPI.getStatistics().then((statisticsData) => {
+        this.setData({
+          statistics: {
+            pendingCount: statisticsData.data.pending_count,
+            todayApproved: statisticsData.data.today_approved,
+            todayRejected: statisticsData.data.today_rejected,
+            totalProcessed: statisticsData.data.total_processed,
+            thisWeekProcessed: statisticsData.data.this_week_processed || 0,
+            averageProcessingTime: statisticsData.data.average_processing_time || 0
+          }
+        })
+
+        console.log('✅ 商家统计数据加载成功，待审核:', statisticsData.data.pending_count)
+      }).catch((error) => {
+        console.error('❌ 获取审核统计失败:', error)
+        
+        // 使用默认数据，避免页面异常
+        this.setData({
+          statistics: {
+            pendingCount: 0,
+            todayApproved: 0,
+            todayRejected: 0,
+            totalProcessed: 0,
+            thisWeekProcessed: 0,
+            averageProcessingTime: 0
+          }
+        })
       })
     }
   },
@@ -262,42 +282,47 @@ Page({
    * 认证：需要Bearer Token，且用户需要有商家权限
    * 返回：待审核的小票上传记录列表，支持分页
    */
-  async loadPendingList() {
-    try {
-      let listData
-
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟数据
-        console.log('🔧 生成模拟待审核列表数据')
-        listData = {
-          code: 0,
-          data: {
-            list: this.generateMockPendingList(),
-            total: 8,
-            page: 1,
-            page_size: 20
-          }
+  loadPendingList() {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟数据
+      console.log('🔧 生成模拟待审核列表数据')
+      const listData = {
+        code: 0,
+        data: {
+          list: this.generateMockPendingList(),
+          total: 8,
+          page: 1,
+          page_size: 20
         }
-        await new Promise(resolve => setTimeout(resolve, 200))
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求待审核列表接口...')
-        const res = await merchantAPI.getPendingReviews(1, 20)
-        listData = res
       }
+      
+      return new Promise(resolve => {
+        setTimeout(() => {
+          this.setData({
+            pendingList: listData.data.list,
+            totalPending: listData.data.total
+          })
 
-      this.setData({
-        pendingList: listData.data.list,
-        totalPending: listData.data.total
+          console.log('✅ 待审核列表加载成功，共', listData.data.list.length, '条记录')
+          resolve()
+        }, 200)
       })
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求待审核列表接口...')
+      return merchantAPI.getPendingReviews(1, 20).then((listData) => {
+        this.setData({
+          pendingList: listData.data.list,
+          totalPending: listData.data.total
+        })
 
-      console.log('✅ 待审核列表加载成功，共', listData.data.list.length, '条记录')
-
-    } catch (error) {
-      console.error('❌ 获取待审核列表失败:', error)
-      this.setData({ 
-        pendingList: [],
-        totalPending: 0
+        console.log('✅ 待审核列表加载成功，共', listData.data.list.length, '条记录')
+      }).catch((error) => {
+        console.error('❌ 获取待审核列表失败:', error)
+        this.setData({ 
+          pendingList: [],
+          totalPending: 0
+        })
       })
     }
   },
@@ -344,7 +369,7 @@ Page({
   /**
    * 确认申请商家权限
    */
-  async confirmAuthRequest() {
+  confirmAuthRequest() {
     // 防止重复提交
     if (this.data.authRequesting) {
       console.log('正在申请中，跳过重复请求')
@@ -353,15 +378,14 @@ Page({
     
     this.setData({ authRequesting: true })
 
-    try {
-      console.log('🔧 开始申请商家权限')
-      wx.showLoading({ title: '申请中...' })
+    console.log('🔧 开始申请商家权限')
+    wx.showLoading({ title: '申请中...' })
+    
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟申请过程
+      console.log('🔧 模拟商家权限申请')
       
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟申请过程
-        console.log('🔧 模拟商家权限申请')
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
+      new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
         // 模拟申请成功
         this.setData({
           isMerchant: true,
@@ -387,64 +411,61 @@ Page({
         setTimeout(() => {
           this.loadData()
         }, 500)
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 申请商家权限失败:', error)
         
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求商家权限申请接口...')
-        
-        try {
-          const result = await merchantAPI.auth({
-            store_name: '餐厅名称',
-            business_license: '营业执照号',
-            contact_person: '联系人',
-            contact_phone: '联系电话'
+        wx.showToast({
+          title: '申请失败，请重试',
+          icon: 'none'
+        })
+      }).finally(() => {
+        this.setData({ authRequesting: false })
+      })
+      
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求商家权限申请接口...')
+      
+      merchantAPI.apply({
+        store_name: '餐厅名称',
+        business_license: '营业执照号',
+        contact_person: '联系人',
+        contact_phone: '联系电话'
+      }).then((result) => {
+        if (result.code === 0) {
+          this.setData({
+            isMerchant: true,
+            hasPermission: true
           })
           
-          if (result.code === 0) {
-            this.setData({
-              isMerchant: true,
-              hasPermission: true
-            })
-            
-            // 更新全局数据
-            if (app.globalData.userInfo) {
-              app.globalData.userInfo.is_merchant = true
-            }
-            
-            wx.hideLoading()
-            wx.showToast({
-              title: '商家权限申请成功',
-              icon: 'success'
-            })
-            
-            // 加载商家数据
-            await this.loadData()
-            
-          } else {
-            throw new Error(result.msg || '申请失败')
+          // 更新全局数据
+          if (app.globalData.userInfo) {
+            app.globalData.userInfo.is_merchant = true
           }
           
-        } catch (apiError) {
           wx.hideLoading()
-          console.error('❌ 申请商家权限API调用失败:', apiError)
-          
           wx.showToast({
-            title: apiError.message || '申请失败，请重试',
-            icon: 'none'
+            title: '商家权限申请成功',
+            icon: 'success'
           })
+          
+          // 加载商家数据
+          return this.loadData()
+        } else {
+          throw new Error(result.msg || '申请失败')
         }
-      }
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 申请商家权限失败:', error)
-      
-      wx.showToast({
-        title: '申请失败，请重试',
-        icon: 'none'
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 申请商家权限失败:', error)
+        
+        wx.showToast({
+          title: error.message || '申请失败，请重试',
+          icon: 'none'
+        })
+      }).finally(() => {
+        this.setData({ authRequesting: false })
       })
-    } finally {
-      this.setData({ authRequesting: false })
     }
   },
 
@@ -503,7 +524,7 @@ Page({
    * 认证：需要Bearer Token，且用户需要有商家权限
    * 返回：审核结果
    */
-  async onConfirmReview() {
+  onConfirmReview() {
     const { currentReview, reviewAction, reviewPoints, reviewReason } = this.data
 
     // 验证输入
@@ -523,79 +544,77 @@ Page({
       return
     }
 
-    wx.showLoading({
-      title: '处理中...',
-      mask: true
-    })
+    wx.showLoading({ title: '审核中...' })
 
-    try {
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟审核
-        console.log('🔧 模拟审核操作，ID:', currentReview.id, '动作:', reviewAction)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        console.log('✅ 模拟审核完成')
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求审核接口，ID:', currentReview.id, '动作:', reviewAction)
-        await merchantAPI.review(
-          currentReview.id,
-          reviewAction,
-          parseInt(reviewPoints) || 0,
-          reviewReason
-        )
-        console.log('✅ 审核接口调用成功')
-      }
+    const requestData = {
+      review_id: currentReview.id,
+      action: reviewAction,
+      points: reviewAction === 'approve' ? parseInt(reviewPoints) : 0,
+      reason: reviewReason
+    }
 
-      wx.hideLoading()
-
-      // 更新本地列表
-      const pendingList = this.data.pendingList.filter(item => item.id !== currentReview.id)
-      this.setData({
-        pendingList,
-        showReviewModal: false,
-        totalPending: this.data.totalPending - 1
-      })
-
-      // 更新统计数据
-      const statistics = { ...this.data.statistics }
-      statistics.pendingCount = Math.max(0, statistics.pendingCount - 1)
-      if (reviewAction === 'approve') {
-        statistics.todayApproved++
-      } else {
-        statistics.todayRejected++
-      }
-      statistics.totalProcessed++
-      this.setData({ statistics })
-
-      wx.showToast({
-        title: reviewAction === 'approve' ? '审核通过' : '已拒绝',
-        icon: 'success'
-      })
-
-      console.log('🎉 审核操作完成，结果:', reviewAction)
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 审核失败:', error)
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟审核
+      console.log('🔧 模拟审核操作:', requestData)
       
-      let errorMsg = '审核失败'
-      switch (error.code) {
-        case 1001:
-          errorMsg = '审核记录不存在'
-          break
-        case 1002:
-          errorMsg = '该记录已被处理'
-          break
-        case 1003:
-          errorMsg = '积分数量不合法'
-          break
-        default:
-          errorMsg = error.msg || errorMsg
-      }
+      new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+        // 模拟审核成功
+        wx.hideLoading()
+        
+        // 关闭模态框
+        this.setData({ showReviewModal: false })
+        
+        wx.showToast({
+          title: reviewAction === 'approve' ? '审核通过' : '审核拒绝',
+          icon: 'success'
+        })
+        
+        // 从待审核列表中移除
+        const pendingList = this.data.pendingList.filter(item => item.id !== currentReview.id)
+        this.setData({ pendingList })
+        
+        // 更新统计数据
+        this.updateStatisticsAfterReview(reviewAction)
+        
+        console.log('✅ 审核完成')
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 审核失败:', error)
+        
+        wx.showToast({
+          title: '审核失败，请重试',
+          icon: 'none'
+        })
+      })
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求审核接口...')
       
-      wx.showToast({
-        title: errorMsg,
-        icon: 'none'
+      merchantAPI.review(requestData.review_id, requestData.action, requestData.points, requestData.reason).then((result) => {
+        wx.hideLoading()
+        
+        if (result.code === 0) {
+          // 关闭模态框
+          this.setData({ showReviewModal: false })
+          
+          wx.showToast({
+            title: reviewAction === 'approve' ? '审核通过' : '审核拒绝',
+            icon: 'success'
+          })
+          
+          // 刷新数据
+          return this.loadData()
+        } else {
+          throw new Error(result.msg || '审核失败')
+        }
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 审核失败:', error)
+        
+        wx.showToast({
+          title: error.message || '审核失败，请重试',
+          icon: 'none'
+        })
       })
     }
   },
@@ -664,14 +683,8 @@ Page({
   /**
    * 批量通过
    * TODO: 后端对接 - 批量审核接口
-   * 
-   * 对接说明：
-   * 接口：POST /api/merchant/batch-review
-   * 请求体：{ review_ids: [1,2,3], action: "approve", reason: "批量通过" }
-   * 认证：需要Bearer Token，且用户需要有商家权限
-   * 返回：批量处理结果
    */
-  async onBatchApprove() {
+  onBatchApprove() {
     const selectedItems = this.data.pendingList.filter(item => item.selected)
     
     if (selectedItems.length === 0) {
@@ -685,9 +698,9 @@ Page({
     wx.showModal({
       title: '批量通过',
       content: `确定要批量通过选中的 ${selectedItems.length} 条记录吗？`,
-      success: async (res) => {
+      success: (res) => {
         if (res.confirm) {
-          await this.performBatchAction(selectedItems, 'approve', '批量通过审核')
+          this.performBatchAction(selectedItems, 'approve', '批量通过审核')
         }
       }
     })
@@ -697,7 +710,7 @@ Page({
    * 批量拒绝
    * TODO: 后端对接 - 批量审核接口
    */
-  async onBatchReject() {
+  onBatchReject() {
     const selectedItems = this.data.pendingList.filter(item => item.selected)
     
     if (selectedItems.length === 0) {
@@ -711,9 +724,9 @@ Page({
     wx.showModal({
       title: '批量拒绝',
       content: `确定要批量拒绝选中的 ${selectedItems.length} 条记录吗？`,
-      success: async (res) => {
+      success: (res) => {
         if (res.confirm) {
-          await this.performBatchAction(selectedItems, 'reject', '批量拒绝，请重新上传')
+          this.performBatchAction(selectedItems, 'reject', '批量拒绝，请重新上传')
         }
       }
     })
@@ -725,7 +738,7 @@ Page({
    * @param {String} action 操作类型
    * @param {String} reason 操作理由
    */
-  async performBatchAction(selectedItems, action, reason) {
+  performBatchAction(selectedItems, action, reason) {
     const reviewIds = selectedItems.map(item => item.id)
     
     wx.showLoading({
@@ -733,65 +746,101 @@ Page({
       mask: true
     })
 
-    try {
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟批量操作
-        console.log('🔧 模拟批量操作，IDs:', reviewIds, '动作:', action)
-        await new Promise(resolve => setTimeout(resolve, 2000))
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟批量操作
+      console.log('🔧 模拟批量操作，IDs:', reviewIds, '动作:', action)
+      
+      new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
         console.log('✅ 模拟批量操作完成')
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求批量审核接口，IDs:', reviewIds, '动作:', action)
-        const result = await merchantAPI.batchReview(reviewIds, action, reason)
+        
+        wx.hideLoading()
+
+        // 更新本地列表，移除已处理的项目
+        const newPendingList = this.data.pendingList.filter(item => !reviewIds.includes(item.id))
+        this.setData({
+          pendingList: newPendingList,
+          totalPending: this.data.totalPending - selectedItems.length
+        })
+
+        // 更新统计数据
+        const statistics = { ...this.data.statistics }
+        statistics.pendingCount = Math.max(0, statistics.pendingCount - selectedItems.length)
+        if (action === 'approve') {
+          statistics.todayApproved += selectedItems.length
+        } else {
+          statistics.todayRejected += selectedItems.length
+        }
+        statistics.totalProcessed += selectedItems.length
+        this.setData({ statistics })
+
+        wx.showToast({
+          title: `批量${action === 'approve' ? '通过' : '拒绝'}成功`,
+          icon: 'success'
+        })
+
+        console.log('🎉 批量操作完成，处理数量:', selectedItems.length)
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 批量操作失败:', error)
+        
+        wx.showToast({
+          title: '批量操作失败',
+          icon: 'none'
+        })
+      })
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求批量审核接口，IDs:', reviewIds, '动作:', action)
+      
+      merchantAPI.batchReview(reviewIds, action, reason).then((result) => {
         console.log('✅ 批量审核接口调用成功，成功数量:', result.data.success_count)
-      }
+        
+        wx.hideLoading()
 
-      wx.hideLoading()
+        // 更新本地列表，移除已处理的项目
+        const newPendingList = this.data.pendingList.filter(item => !reviewIds.includes(item.id))
+        this.setData({
+          pendingList: newPendingList,
+          totalPending: this.data.totalPending - selectedItems.length
+        })
 
-      // 更新本地列表，移除已处理的项目
-      const newPendingList = this.data.pendingList.filter(item => !reviewIds.includes(item.id))
-      this.setData({
-        pendingList: newPendingList,
-        totalPending: this.data.totalPending - selectedItems.length
-      })
+        // 更新统计数据
+        const statistics = { ...this.data.statistics }
+        statistics.pendingCount = Math.max(0, statistics.pendingCount - selectedItems.length)
+        if (action === 'approve') {
+          statistics.todayApproved += selectedItems.length
+        } else {
+          statistics.todayRejected += selectedItems.length
+        }
+        statistics.totalProcessed += selectedItems.length
+        this.setData({ statistics })
 
-      // 更新统计数据
-      const statistics = { ...this.data.statistics }
-      statistics.pendingCount = Math.max(0, statistics.pendingCount - selectedItems.length)
-      if (action === 'approve') {
-        statistics.todayApproved += selectedItems.length
-      } else {
-        statistics.todayRejected += selectedItems.length
-      }
-      statistics.totalProcessed += selectedItems.length
-      this.setData({ statistics })
+        wx.showToast({
+          title: `批量${action === 'approve' ? '通过' : '拒绝'}成功`,
+          icon: 'success'
+        })
 
-      wx.showToast({
-        title: `批量${action === 'approve' ? '通过' : '拒绝'}成功`,
-        icon: 'success'
-      })
-
-      console.log('🎉 批量操作完成，处理数量:', selectedItems.length)
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 批量操作失败:', error)
-      
-      let errorMsg = '批量操作失败'
-      switch (error.code) {
-        case 1001:
-          errorMsg = '部分记录不存在或已被处理'
-          break
-        case 1002:
-          errorMsg = '批量操作数量超过限制'
-          break
-        default:
-          errorMsg = error.msg || errorMsg
-      }
-      
-      wx.showToast({
-        title: errorMsg,
-        icon: 'none'
+        console.log('🎉 批量操作完成，处理数量:', selectedItems.length)
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 批量操作失败:', error)
+        
+        let errorMsg = '批量操作失败'
+        switch (error.code) {
+          case 1001:
+            errorMsg = '部分记录不存在或已被处理'
+            break
+          case 1002:
+            errorMsg = '批量操作数量超过限制'
+            break
+          default:
+            errorMsg = error.msg || errorMsg
+        }
+        
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none'
+        })
       })
     }
   },
@@ -805,49 +854,56 @@ Page({
    * 认证：需要Bearer Token，且用户需要有商家权限
    * 返回：Excel文件下载链接或直接返回文件流
    */
-  async onExportData() {
-    try {
-      wx.showLoading({
-        title: '生成导出文件...',
-        mask: true
-      })
+  onExportData() {
+    wx.showLoading({
+      title: '生成导出文件...',
+      mask: true
+    })
 
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟导出
-        console.log('🔧 模拟数据导出功能')
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟导出
+      console.log('🔧 模拟数据导出功能')
+      
+      new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
         wx.hideLoading()
         wx.showModal({
           title: '导出成功',
           content: '开发环境模拟导出，实际部署时会生成Excel文件',
           showCancel: false
         })
-      } else {
-        // 生产环境实现数据导出
-        console.log('📡 请求数据导出接口...')
-        
-        // TODO: 实现日期选择和数据导出
-        const startDate = '2024-01-01'  // 实际应用中需要用户选择
-        const endDate = '2024-01-31'
-        
-        // 这里需要根据实际后端接口实现
-        // const exportUrl = `${app.globalData.baseUrl}/api/merchant/export-data?start_date=${startDate}&end_date=${endDate}`
-        
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 数据导出失败:', error)
+        wx.showToast({
+          title: '导出失败',
+          icon: 'none'
+        })
+      })
+    } else {
+      // 生产环境实现数据导出
+      console.log('📡 请求数据导出接口...')
+      
+      // TODO: 实现日期选择和数据导出
+      const startDate = '2024-01-01'  // 实际应用中需要用户选择
+      const endDate = '2024-01-31'
+      
+      // 这里需要根据实际后端接口实现
+      // const exportUrl = `${app.globalData.baseUrl}/api/merchant/export-data?start_date=${startDate}&end_date=${endDate}`
+      
+      Promise.resolve().then(() => {
         wx.hideLoading()
         wx.showModal({
           title: '功能开发中',
           content: '数据导出功能正在开发中，敬请期待',
           showCancel: false
         })
-      }
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 数据导出失败:', error)
-      wx.showToast({
-        title: error.msg || '导出失败',
-        icon: 'none'
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 数据导出失败:', error)
+        wx.showToast({
+          title: error.msg || '导出失败',
+          icon: 'none'
+        })
       })
     }
   },
@@ -867,21 +923,19 @@ Page({
   /**
    * 加载商品数据
    */
-  async loadProductData() {
-    try {
-      await Promise.all([
-        this.loadProductStats(),
-        this.loadProductList()
-      ])
-    } catch (error) {
+  loadProductData() {
+    Promise.all([
+      this.loadProductStats(),
+      this.loadProductList()
+    ]).catch(error => {
       console.error('加载商品数据失败:', error)
-    }
+    })
   },
 
   /**
    * 加载商品统计
    */
-  async loadProductStats() {
+  loadProductStats() {
     // 模拟商品统计数据
     const mockStats = {
       activeCount: 12,
@@ -891,12 +945,13 @@ Page({
     }
     
     this.setData({ productStats: mockStats })
+    return Promise.resolve()
   },
 
   /**
    * 加载商品列表
    */
-  async loadProductList() {
+  loadProductList() {
     // 模拟商品列表数据
     const mockProducts = [
       {
@@ -920,6 +975,7 @@ Page({
     ]
     
     this.setData({ productList: mockProducts })
+    return Promise.resolve()
   },
 
   /**
@@ -998,7 +1054,7 @@ Page({
   /**
    * 切换商品状态
    */
-  async onToggleStatus(e) {
+  onToggleStatus(e) {
     const product = e.currentTarget.dataset.product
     const newStatus = product.status === 'active' ? 'offline' : 'active'
     
@@ -1016,6 +1072,8 @@ Page({
       title: newStatus === 'active' ? '商品已上架' : '商品已下架',
       icon: 'success'
     })
+    
+    return Promise.resolve()
   },
 
   /**
@@ -1092,22 +1150,15 @@ Page({
   },
 
   /**
-   * 确认保存商品 - 增强实现，支持与兑换页面数据同步
-   * TODO: 后端对接 - 商品CRUD接口
+   * 确认新增/编辑商品
+   * TODO: 后端对接 - 商品管理接口
    * 
-   * 对接说明：
-   * 新增：POST /api/merchant/products
-   * 编辑：PUT /api/merchant/products/{id}
-   * 认证：需要Bearer Token，且用户需要有商家权限
-   * 返回：操作结果和更新后的商品信息
-   * 
-   * 重要：商家管理的商品变更需要同步到兑换页面显示
-   * 实现方式：
+   * 重要实现细节：
    * 1. 通过全局事件通知兑换页面刷新
    * 2. 或通过全局数据缓存实现同步
    * 3. 后端数据库层面保证数据一致性
    */
-  async onConfirmProduct() {
+  onConfirmProduct() {
     const form = this.data.productForm
     
     // 表单验证
@@ -1145,24 +1196,23 @@ Page({
     
     this.setData({ productSubmitting: true })
     
-    try {
-      let result
-      const productData = {
-        name: form.name.trim(),
-        description: form.description.trim(),
-        exchange_points: parseInt(form.exchange_points),
-        stock: parseInt(form.stock),
-        image: form.image,
-        category: form.category || '实物商品',
-        is_hot: form.is_hot || false,
-        sort_order: form.sort_order || 0
-      }
+    const productData = {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      exchange_points: parseInt(form.exchange_points),
+      stock: parseInt(form.stock),
+      image: form.image,
+      category: form.category || '实物商品',
+      is_hot: form.is_hot || false,
+      sort_order: form.sort_order || 0
+    }
 
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟
-        console.log('🔧 模拟保存商品:', productData)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        result = { 
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟
+      console.log('🔧 模拟保存商品:', productData)
+      
+      new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+        const result = { 
           code: 0, 
           data: { 
             id: this.data.editingProduct?.id || Date.now(),
@@ -1171,69 +1221,125 @@ Page({
             created_time: new Date().toISOString()
           } 
         }
-      } else {
-        // 生产环境调用真实接口
+        
+        // 更新本地商品列表
         if (this.data.editingProduct) {
-          console.log('📡 更新商品:', this.data.editingProduct.id)
-          result = await merchantAPI.updateProduct(this.data.editingProduct.id, productData)
-        } else {
-          console.log('📡 新增商品')
-          result = await merchantAPI.createProduct(productData)
-        }
-      }
-      
-      // 更新本地商品列表
-      if (this.data.editingProduct) {
-        // 编辑模式 - 更新现有商品
-        const productList = this.data.productList.map(item => {
-          if (item.id === this.data.editingProduct.id) {
-            return {
-              ...item,
-              ...productData,
-              updated_time: new Date().toISOString()
+          // 编辑模式 - 更新现有商品
+          const productList = this.data.productList.map(item => {
+            if (item.id === this.data.editingProduct.id) {
+              return {
+                ...item,
+                ...productData,
+                updated_time: new Date().toISOString()
+              }
             }
+            return item
+          })
+          this.setData({ productList })
+          console.log('✅ 商品更新成功:', productData.name)
+        } else {
+          // 新增模式 - 添加新商品
+          const newProduct = {
+            id: result.data.id,
+            ...productData,
+            status: 'active',
+            created_time: result.data.created_time || new Date().toISOString(),
+            updated_time: new Date().toISOString()
           }
-          return item
-        })
-        this.setData({ productList })
-        console.log('✅ 商品更新成功:', productData.name)
-      } else {
-        // 新增模式 - 添加新商品
-        const newProduct = {
-          id: result.data.id,
-          ...productData,
-          status: 'active',
-          created_time: result.data.created_time || new Date().toISOString(),
-          updated_time: new Date().toISOString()
+          this.setData({
+            productList: [...this.data.productList, newProduct]
+          })
+          console.log('✅ 商品新增成功:', productData.name)
         }
-        this.setData({
-          productList: [...this.data.productList, newProduct]
-        })
-        console.log('✅ 商品新增成功:', productData.name)
-      }
 
-      // 重要：通知兑换页面数据已更新
-      this.notifyExchangePageUpdate()
-      
-      // 更新商品统计
-      this.updateProductStats()
-      
-      this.setData({
-        showProductModal: false,
-        productSubmitting: false
+        // 重要：通知兑换页面数据已更新
+        this.notifyExchangePageUpdate()
+        
+        // 更新商品统计
+        this.updateProductStats()
+        
+        this.setData({
+          showProductModal: false,
+          productSubmitting: false
+        })
+        
+        wx.showToast({
+          title: this.data.editingProduct ? '更新成功' : '新增成功',
+          icon: 'success'
+        })
+      }).catch((error) => {
+        this.setData({ productSubmitting: false })
+        console.error('❌ 保存商品失败:', error)
+        wx.showToast({
+          title: '保存失败，请重试',
+          icon: 'none'
+        })
       })
+    } else {
+      // 生产环境调用真实接口
+      let apiPromise
       
-      wx.showToast({
-        title: this.data.editingProduct ? '更新成功' : '新增成功',
-        icon: 'success'
-      })
+      if (this.data.editingProduct) {
+        console.log('📡 更新商品:', this.data.editingProduct.id)
+        apiPromise = merchantAPI.updateProduct(this.data.editingProduct.id, productData)
+      } else {
+        console.log('📡 新增商品')
+        apiPromise = merchantAPI.createProduct(productData)
+      }
       
-    } catch (error) {
-      this.setData({ productSubmitting: false })
-      console.error('❌ 保存商品失败:', error)
-      wx.showToast({
-        title: '保存失败，请重试',
-        icon: 'none'
+      apiPromise.then((result) => {
+        // 更新本地商品列表
+        if (this.data.editingProduct) {
+          // 编辑模式 - 更新现有商品
+          const productList = this.data.productList.map(item => {
+            if (item.id === this.data.editingProduct.id) {
+              return {
+                ...item,
+                ...productData,
+                updated_time: new Date().toISOString()
+              }
+            }
+            return item
+          })
+          this.setData({ productList })
+          console.log('✅ 商品更新成功:', productData.name)
+        } else {
+          // 新增模式 - 添加新商品
+          const newProduct = {
+            id: result.data.id,
+            ...productData,
+            status: 'active',
+            created_time: result.data.created_time || new Date().toISOString(),
+            updated_time: new Date().toISOString()
+          }
+          this.setData({
+            productList: [...this.data.productList, newProduct]
+          })
+          console.log('✅ 商品新增成功:', productData.name)
+        }
+
+        // 重要：通知兑换页面数据已更新
+        this.notifyExchangePageUpdate()
+        
+        // 更新商品统计
+        this.updateProductStats()
+        
+        this.setData({
+          showProductModal: false,
+          productSubmitting: false
+        })
+        
+        wx.showToast({
+          title: this.data.editingProduct ? '更新成功' : '新增成功',
+          icon: 'success'
+        })
+      }).catch((error) => {
+        this.setData({ productSubmitting: false })
+        console.error('❌ 保存商品失败:', error)
+        wx.showToast({
+          title: '保存失败，请重试',
+          icon: 'none'
+        })
       })
     }
   },
@@ -1418,46 +1524,68 @@ Page({
   /**
    * 批量更新商品状态
    */
-  async batchUpdateStatus(products, status) {
+  batchUpdateStatus(products, status) {
     const statusText = status === 'active' ? '上架' : '下架'
     
-    try {
-      wx.showLoading({ title: `批量${statusText}中...` })
-      
-      // TODO: 调用后端批量更新接口
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      } else {
-        // 生产环境调用真实接口
-        const productIds = products.map(p => p.id)
-        await merchantAPI.batchUpdateProducts(productIds, { status })
-      }
+    wx.showLoading({ title: `批量${statusText}中...` })
+    
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟
+      new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+        // 更新本地数据
+        const productList = this.data.productList.map(item => {
+          if (products.find(p => p.id === item.id)) {
+            return { ...item, status, selected: false }
+          }
+          return item
+        })
 
-      // 更新本地数据
-      const productList = this.data.productList.map(item => {
-        if (products.find(p => p.id === item.id)) {
-          return { ...item, status, selected: false }
-        }
-        return item
+        this.setData({ productList })
+        wx.hideLoading()
+        
+        wx.showToast({
+          title: `批量${statusText}成功`,
+          icon: 'success'
+        })
+        
+        console.log(`✅ 批量${statusText}完成，影响商品:`, products.length)
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error(`❌ 批量${statusText}失败:`, error)
+        wx.showToast({
+          title: `批量${statusText}失败`,
+          icon: 'none'
+        })
       })
-
-      this.setData({ productList })
-      wx.hideLoading()
+    } else {
+      // 生产环境调用真实接口
+      const productIds = products.map(p => p.id)
       
-      wx.showToast({
-        title: `批量${statusText}成功`,
-        icon: 'success'
-      })
-      
-      console.log(`✅ 批量${statusText}完成，影响商品:`, products.length)
+      merchantAPI.batchUpdateProducts(productIds, { status }).then(() => {
+        // 更新本地数据
+        const productList = this.data.productList.map(item => {
+          if (products.find(p => p.id === item.id)) {
+            return { ...item, status, selected: false }
+          }
+          return item
+        })
 
-    } catch (error) {
-      wx.hideLoading()
-      console.error(`❌ 批量${statusText}失败:`, error)
-      wx.showToast({
-        title: `批量${statusText}失败`,
-        icon: 'none'
+        this.setData({ productList })
+        wx.hideLoading()
+        
+        wx.showToast({
+          title: `批量${statusText}成功`,
+          icon: 'success'
+        })
+        
+        console.log(`✅ 批量${statusText}完成，影响商品:`, products.length)
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error(`❌ 批量${statusText}失败:`, error)
+        wx.showToast({
+          title: `批量${statusText}失败`,
+          icon: 'none'
+        })
       })
     }
   },
@@ -1465,44 +1593,64 @@ Page({
   /**
    * 批量更新热门状态
    */
-  async batchUpdateHotStatus(products, isHot) {
+  batchUpdateHotStatus(products, isHot) {
     const actionText = isHot ? '设为热门' : '取消热门'
     
-    try {
-      wx.showLoading({ title: `批量${actionText}中...` })
-      
-      // TODO: 调用后端批量更新接口
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟
-        await new Promise(resolve => setTimeout(resolve, 800))
-      } else {
-        // 生产环境调用真实接口
-        const productIds = products.map(p => p.id)
-        await merchantAPI.batchUpdateProducts(productIds, { is_hot: isHot })
-      }
+    wx.showLoading({ title: `批量${actionText}中...` })
+    
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟
+      new Promise(resolve => setTimeout(resolve, 800)).then(() => {
+        // 更新本地数据
+        const productList = this.data.productList.map(item => {
+          if (products.find(p => p.id === item.id)) {
+            return { ...item, is_hot: isHot, selected: false }
+          }
+          return item
+        })
 
-      // 更新本地数据
-      const productList = this.data.productList.map(item => {
-        if (products.find(p => p.id === item.id)) {
-          return { ...item, is_hot: isHot, selected: false }
-        }
-        return item
+        this.setData({ productList })
+        wx.hideLoading()
+        
+        wx.showToast({
+          title: `批量${actionText}成功`,
+          icon: 'success'
+        })
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error(`❌ 批量${actionText}失败:`, error)
+        wx.showToast({
+          title: `批量${actionText}失败`,
+          icon: 'none'
+        })
       })
-
-      this.setData({ productList })
-      wx.hideLoading()
+    } else {
+      // 生产环境调用真实接口
+      const productIds = products.map(p => p.id)
       
-      wx.showToast({
-        title: `批量${actionText}成功`,
-        icon: 'success'
-      })
+      merchantAPI.batchUpdateProducts(productIds, { is_hot: isHot }).then(() => {
+        // 更新本地数据
+        const productList = this.data.productList.map(item => {
+          if (products.find(p => p.id === item.id)) {
+            return { ...item, is_hot: isHot, selected: false }
+          }
+          return item
+        })
 
-    } catch (error) {
-      wx.hideLoading()
-      console.error(`❌ 批量${actionText}失败:`, error)
-      wx.showToast({
-        title: `批量${actionText}失败`,
-        icon: 'none'
+        this.setData({ productList })
+        wx.hideLoading()
+        
+        wx.showToast({
+          title: `批量${actionText}成功`,
+          icon: 'success'
+        })
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error(`❌ 批量${actionText}失败:`, error)
+        wx.showToast({
+          title: `批量${actionText}失败`,
+          icon: 'none'
+        })
       })
     }
   },
@@ -1516,40 +1664,57 @@ Page({
       content: `确定要删除选中的 ${products.length} 个商品吗？删除后不可恢复。`,
       confirmText: '删除',
       confirmColor: '#ff4444',
-      success: async (res) => {
+      success: (res) => {
         if (res.confirm) {
-          try {
-            wx.showLoading({ title: '删除中...' })
-            
-            // TODO: 调用后端批量删除接口
-            if (app.globalData.isDev && !app.globalData.needAuth) {
-              // 开发环境模拟
-              await new Promise(resolve => setTimeout(resolve, 1000))
-            } else {
-              // 生产环境调用真实接口
-              const productIds = products.map(p => p.id)
-              await merchantAPI.batchDeleteProducts(productIds)
-            }
+          wx.showLoading({ title: '删除中...' })
+          
+          if (app.globalData.isDev && !app.globalData.needAuth) {
+            // 开发环境模拟
+            new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+              // 更新本地数据
+              const productList = this.data.productList.filter(item => 
+                !products.find(p => p.id === item.id)
+              )
 
-            // 更新本地数据
-            const productList = this.data.productList.filter(item => 
-              !products.find(p => p.id === item.id)
-            )
-
-            this.setData({ productList })
-            wx.hideLoading()
-            
-            wx.showToast({
-              title: '批量删除成功',
-              icon: 'success'
+              this.setData({ productList })
+              wx.hideLoading()
+              
+              wx.showToast({
+                title: '批量删除成功',
+                icon: 'success'
+              })
+            }).catch((error) => {
+              wx.hideLoading()
+              console.error('❌ 批量删除失败:', error)
+              wx.showToast({
+                title: '批量删除失败',
+                icon: 'none'
+              })
             })
+          } else {
+            // 生产环境调用真实接口
+            const productIds = products.map(p => p.id)
+            
+            merchantAPI.batchDeleteProducts(productIds).then(() => {
+              // 更新本地数据
+              const productList = this.data.productList.filter(item => 
+                !products.find(p => p.id === item.id)
+              )
 
-          } catch (error) {
-            wx.hideLoading()
-            console.error('❌ 批量删除失败:', error)
-            wx.showToast({
-              title: '批量删除失败',
-              icon: 'none'
+              this.setData({ productList })
+              wx.hideLoading()
+              
+              wx.showToast({
+                title: '批量删除成功',
+                icon: 'success'
+              })
+            }).catch((error) => {
+              wx.hideLoading()
+              console.error('❌ 批量删除失败:', error)
+              wx.showToast({
+                title: '批量删除失败',
+                icon: 'none'
+              })
             })
           }
         }
@@ -1782,7 +1947,7 @@ Page({
   /**
    * 确认批量编辑
    */
-  async onConfirmBatchEdit() {
+  onConfirmBatchEdit() {
     const { batchEditForm, selectedProducts } = this.data
 
     // 检查是否有选择要更新的项目
@@ -1794,74 +1959,115 @@ Page({
       return
     }
 
-    try {
-      wx.showLoading({ title: '批量更新中...' })
+    wx.showLoading({ title: '批量更新中...' })
 
-      // 构建更新数据
-      const updateData = {}
-      if (batchEditForm.updateCategory) {
-        updateData.category = batchEditForm.category
-      }
-      if (batchEditForm.updatePoints) {
-        updateData.pointsAdjustment = batchEditForm.pointsAdjustment
-      }
-      if (batchEditForm.updateStock) {
-        updateData.stockAdjustment = batchEditForm.stockAdjustment
-      }
+    // 构建更新数据
+    const updateData = {}
+    if (batchEditForm.updateCategory) {
+      updateData.category = batchEditForm.category
+    }
+    if (batchEditForm.updatePoints) {
+      updateData.pointsAdjustment = batchEditForm.pointsAdjustment
+    }
+    if (batchEditForm.updateStock) {
+      updateData.stockAdjustment = batchEditForm.stockAdjustment
+    }
 
-      // TODO: 调用后端批量更新接口
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟
-        await new Promise(resolve => setTimeout(resolve, 1500))
-      } else {
-        // 生产环境调用真实接口
-        const productIds = selectedProducts.map(p => p.id)
-        await merchantAPI.batchUpdateProducts(productIds, updateData)
-      }
-
-      // 更新本地数据
-      const productList = this.data.productList.map(item => {
-        const selectedProduct = selectedProducts.find(p => p.id === item.id)
-        if (selectedProduct) {
-          const updatedItem = { ...item, selected: false }
-          
-          if (batchEditForm.updateCategory) {
-            updatedItem.category = batchEditForm.category
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟
+      new Promise(resolve => setTimeout(resolve, 1500)).then(() => {
+        // 更新本地数据
+        const productList = this.data.productList.map(item => {
+          const selectedProduct = selectedProducts.find(p => p.id === item.id)
+          if (selectedProduct) {
+            const updatedItem = { ...item, selected: false }
+            
+            if (batchEditForm.updateCategory) {
+              updatedItem.category = batchEditForm.category
+            }
+            if (batchEditForm.updatePoints) {
+              updatedItem.exchange_points = Math.max(1, updatedItem.exchange_points + batchEditForm.pointsAdjustment)
+            }
+            if (batchEditForm.updateStock) {
+              updatedItem.stock = Math.max(0, updatedItem.stock + batchEditForm.stockAdjustment)
+            }
+            
+            return updatedItem
           }
-          if (batchEditForm.updatePoints) {
-            updatedItem.exchange_points = Math.max(1, updatedItem.exchange_points + batchEditForm.pointsAdjustment)
+          return item
+        })
+
+        this.setData({ 
+          productList,
+          showBatchEditModal: false,
+          selectedProducts: []
+        })
+
+        wx.hideLoading()
+        wx.showToast({
+          title: '批量更新成功',
+          icon: 'success'
+        })
+
+        // 通知兑换页面数据更新
+        this.notifyExchangePageUpdate()
+        this.updateProductStats()
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 批量编辑失败:', error)
+        wx.showToast({
+          title: '批量更新失败',
+          icon: 'none'
+        })
+      })
+    } else {
+      // 生产环境调用真实接口
+      const productIds = selectedProducts.map(p => p.id)
+      
+      merchantAPI.batchUpdateProducts(productIds, updateData).then(() => {
+        // 更新本地数据
+        const productList = this.data.productList.map(item => {
+          const selectedProduct = selectedProducts.find(p => p.id === item.id)
+          if (selectedProduct) {
+            const updatedItem = { ...item, selected: false }
+            
+            if (batchEditForm.updateCategory) {
+              updatedItem.category = batchEditForm.category
+            }
+            if (batchEditForm.updatePoints) {
+              updatedItem.exchange_points = Math.max(1, updatedItem.exchange_points + batchEditForm.pointsAdjustment)
+            }
+            if (batchEditForm.updateStock) {
+              updatedItem.stock = Math.max(0, updatedItem.stock + batchEditForm.stockAdjustment)
+            }
+            
+            return updatedItem
           }
-          if (batchEditForm.updateStock) {
-            updatedItem.stock = Math.max(0, updatedItem.stock + batchEditForm.stockAdjustment)
-          }
-          
-          return updatedItem
-        }
-        return item
-      })
+          return item
+        })
 
-      this.setData({ 
-        productList,
-        showBatchEditModal: false,
-        selectedProducts: []
-      })
+        this.setData({ 
+          productList,
+          showBatchEditModal: false,
+          selectedProducts: []
+        })
 
-      wx.hideLoading()
-      wx.showToast({
-        title: '批量更新成功',
-        icon: 'success'
-      })
+        wx.hideLoading()
+        wx.showToast({
+          title: '批量更新成功',
+          icon: 'success'
+        })
 
-      // 通知兑换页面数据更新
-      this.notifyExchangePageUpdate()
-      this.updateProductStats()
-
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 批量编辑失败:', error)
-      wx.showToast({
-        title: '批量更新失败',
-        icon: 'none'
+        // 通知兑换页面数据更新
+        this.notifyExchangePageUpdate()
+        this.updateProductStats()
+      }).catch((error) => {
+        wx.hideLoading()
+        console.error('❌ 批量编辑失败:', error)
+        wx.showToast({
+          title: '批量更新失败',
+          icon: 'none'
+        })
       })
     }
   },
@@ -1879,5 +2085,16 @@ Page({
     })
     
     this.setData({ pendingList })
+  },
+
+  updateStatisticsAfterReview(action) {
+    const statistics = { ...this.data.statistics }
+    if (action === 'approve') {
+      statistics.todayApproved++
+    } else {
+      statistics.todayRejected++
+    }
+    statistics.totalProcessed++
+    this.setData({ statistics })
   }
 })

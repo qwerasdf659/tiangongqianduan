@@ -80,8 +80,8 @@
     </view>
     <view class="info-content">
       <view class="info-item">
-        <text class="info-icon">📈</text>
-        <text class="info-text">系统会根据小票自动识别消费金额</text>
+        <text class="info-icon">📋</text>
+        <text class="info-text">上传小票后由商家人工审核</text>
       </view>
       <view class="info-item">
         <text class="info-icon">🎯</text>
@@ -89,7 +89,7 @@
       </view>
       <view class="info-item">
         <text class="info-icon">🔍</text>
-        <text class="info-text">上传后需要人工审核</text>
+        <text class="info-text">审核通过后自动发放积分</text>
       </view>
       <view class="info-item">
         <text class="info-icon">⏰</text>
@@ -126,7 +126,7 @@
         />
         <view class="history-info">
           <view class="history-amount">
-            <text class="amount-label">识别金额：</text>
+            <text class="amount-label">审核金额：</text>
             <text class="amount-value">{{item.amount}}元</text>
           </view>
           <view class="history-points">
@@ -164,7 +164,7 @@
     </view>
     <view class="notice-content">
       <view class="notice-item">• 请确保小票图片清晰可见，包含完整的消费信息</view>
-      <view class="notice-item">• 系统会自动识别小票上的消费金额</view>
+      <view class="notice-item">• 商家将人工审核确认消费金额</view>
       <view class="notice-item">• 审核通过后积分将自动发放到您的账户</view>
       <view class="notice-item">• 如有问题请联系客服处理</view>
       <view class="notice-item">• 同一张小票不可重复上传</view>

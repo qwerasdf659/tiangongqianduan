@@ -113,101 +113,164 @@ Page({
   },
 
   /**
-   * 初始化页面
+   * 初始化页面 - 增强错误处理
    */
-  async initPage() {
+  initPage() {
     // 初始化数据
     this.initMenuItems()
-    this.initAchievements()
     
-    // 加载用户信息和统计数据
-    await Promise.all([
+    // 设置默认数据防止页面显示异常
+    this.setData({
+      totalPoints: 0,
+      userInfo: { nickname: '加载中...', avatar: '/images/default-avatar.png' },
+      statistics: {},
+      pointsRecords: [],
+      achievements: []
+    })
+    
+    // 加载用户信息和统计数据，完成后初始化成就系统
+    Promise.allSettled([
       this.loadUserInfo(),
       this.loadStatistics(),
       this.loadPointsRecords()
-    ])
+    ]).then((results) => {
+      // 检查各个请求的结果
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const functionNames = ['loadUserInfo', 'loadStatistics', 'loadPointsRecords']
+          console.warn(`${functionNames[index]}加载失败:`, result.reason)
+        }
+      })
+      
+      // 无论是否有错误，都初始化成就系统
+      this.initAchievements()
+      
+      console.log('✅ 页面初始化完成')
+    }).catch(error => {
+      console.error('❌ 页面初始化失败:', error)
+      // 即使加载失败也初始化成就系统，使用默认值
+      this.initAchievements()
+      
+      // 显示友好的错误提示
+      wx.showModal({
+        title: '数据加载异常',
+        content: '部分数据加载失败，功能可能受限。请检查网络连接后下拉刷新。',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    })
   },
 
   /**
    * 刷新用户数据
    */
-  async refreshUserData() {
+  refreshUserData() {
     this.setData({ refreshing: true })
-    await Promise.all([
+    Promise.all([
       this.loadUserInfo(),
       this.loadStatistics(),
       this.loadPointsRecords()
-    ])
-    this.setData({ refreshing: false })
-    wx.stopPullDownRefresh()
+    ]).then(() => {
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    }).catch(error => {
+      console.error('❌ 刷新数据失败:', error)
+      this.setData({ refreshing: false })
+      wx.stopPullDownRefresh()
+    })
   },
 
   /**
    * 加载用户数据
    */
-  async loadUserData() {
+  loadUserData() {
     this.setData({ loading: true })
     
-    await Promise.all([
+    Promise.all([
       this.loadUserInfo(),
       this.loadStatistics(),
       this.loadPointsRecords()
-    ])
-    
-    this.setData({ loading: false })
+    ]).then(() => {
+      this.setData({ loading: false })
+    }).catch(error => {
+      console.error('❌ 加载用户数据失败:', error)
+      this.setData({ loading: false })
+    })
   },
 
   /**
-   * 加载用户信息
+   * 加载用户信息 - 增强版本
    * TODO: 后端对接 - 用户信息接口
    * 
    * 对接说明：
    * 接口：GET /api/user/info
    * 认证：需要Bearer Token
-   * 返回：用户详细信息，包括积分、等级等
+   * 返回：用户详细信息，包括积分余额、基本信息等
    */
-  async loadUserInfo() {
+  loadUserInfo() {
     if (app.globalData.isDev && !app.globalData.needAuth) {
       // 开发环境使用模拟数据
       console.log('🔧 使用模拟用户数据')
-      this.setData({
-        userInfo: app.globalData.mockUser,
-        totalPoints: app.globalData.mockUser.total_points
-      })
-      return
-    }
-
-    try {
-      console.log('📡 请求用户信息接口...')
-      const res = await userAPI.getUserInfo()
-      
-      // 更新页面数据
-      this.setData({
-        userInfo: res.data,
-        totalPoints: res.data.total_points
-      })
-      
-      // 更新全局用户信息
-      app.globalData.userInfo = res.data
-      console.log('✅ 用户信息加载成功')
-      
-    } catch (error) {
-      console.error('❌ 获取用户信息失败:', error)
-      
-      // 错误处理：使用缓存数据或显示错误信息
-      const cachedUserInfo = wx.getStorageSync('user_info')
-      if (cachedUserInfo) {
-        console.log('📦 使用缓存的用户信息')
-        this.setData({
-          userInfo: cachedUserInfo,
-          totalPoints: cachedUserInfo.total_points
-        })
-      } else {
-        wx.showToast({
-          title: '获取用户信息失败',
-          icon: 'none'
-        })
+      const mockUser = app.globalData.mockUser || {
+        user_id: 1001,
+        nickname: '测试用户',
+        avatar: '/images/default-avatar.png',
+        total_points: 1500,
+        phone: '138****8000',
+        is_merchant: false
       }
+      
+      this.setData({
+        userInfo: mockUser,
+        totalPoints: mockUser.total_points || 0
+      })
+      
+      return Promise.resolve(mockUser)
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求用户信息接口...')
+      return userAPI.getUserInfo().then((res) => {
+        // 安全检查返回数据
+        if (!res || !res.data) {
+          throw new Error('用户信息数据格式异常')
+        }
+        
+        const userInfo = res.data
+        this.setData({
+          userInfo: userInfo,
+          totalPoints: userInfo.total_points || 0
+        })
+        
+        // 更新全局用户信息
+        app.globalData.userInfo = userInfo
+        console.log('✅ 用户信息加载成功')
+        
+        return userInfo
+      }).catch((error) => {
+        console.error('❌ 获取用户信息失败:', error)
+        
+        // 使用全局缓存数据作为降级方案
+        if (app.globalData.userInfo) {
+          this.setData({
+            userInfo: app.globalData.userInfo,
+            totalPoints: app.globalData.userInfo.total_points || 0
+          })
+          console.log('🔄 使用缓存用户信息')
+        } else {
+          // 设置默认用户信息
+          this.setData({
+            userInfo: {
+              nickname: '加载失败',
+              avatar: '/images/default-avatar.png',
+              phone: '未知',
+              total_points: 0
+            },
+            totalPoints: 0
+          })
+        }
+        
+        throw error
+      })
     }
   },
 
@@ -220,57 +283,67 @@ Page({
    * 认证：需要Bearer Token
    * 返回：用户活动统计数据（抽奖、兑换、上传次数等）
    */
-  async loadStatistics() {
-    try {
-      let statisticsData
-
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟数据
-        console.log('🔧 使用模拟统计数据')
-        statisticsData = {
-          code: 0,
-          data: {
-            total_lottery: 25,
-            total_exchange: 8,
-            total_upload: 12,
-            this_month_points: 2400,
-            total_earned_points: 15000,
-            total_spent_points: 8500
-          }
+  loadStatistics() {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境模拟数据
+      console.log('🔧 使用模拟统计数据')
+      const statisticsData = {
+        code: 0,
+        data: {
+          total_lottery: 25,
+          total_exchange: 8,
+          total_upload: 12,
+          this_month_points: 2400,
+          total_earned_points: 15000,
+          total_spent_points: 8500
         }
-        // 模拟网络延迟
-        await new Promise(resolve => setTimeout(resolve, 300))
-      } else {
-        console.log('📡 请求用户统计接口...')
-        statisticsData = await userAPI.getStatistics()
       }
-
-      this.setData({
-        statistics: {
-          totalLottery: statisticsData.data.total_lottery,
-          totalExchange: statisticsData.data.total_exchange,
-          totalUpload: statisticsData.data.total_upload,
-          thisMonthPoints: statisticsData.data.this_month_points,
-          totalEarnedPoints: statisticsData.data.total_earned_points || 0,
-          totalSpentPoints: statisticsData.data.total_spent_points || 0
-        }
+      
+      // 模拟网络延迟
+      return new Promise(resolve => {
+        setTimeout(() => {
+          this.setData({
+            statistics: {
+              totalLottery: statisticsData.data.total_lottery,
+              totalExchange: statisticsData.data.total_exchange,
+              totalUpload: statisticsData.data.total_upload,
+              thisMonthPoints: statisticsData.data.this_month_points,
+              totalEarnedPoints: statisticsData.data.total_earned_points || 0,
+              totalSpentPoints: statisticsData.data.total_spent_points || 0
+            }
+          })
+          resolve()
+        }, 300)
       })
-      
-      console.log('✅ 用户统计数据加载成功')
-
-    } catch (error) {
-      console.error('❌ 获取统计数据失败:', error)
-      
-      // 使用默认数据，避免页面空白
-      this.setData({
-        statistics: {
-          totalLottery: 0,
-          totalExchange: 0, 
-          totalUpload: 0,
-          thisMonthPoints: 0,
-          totalEarnedPoints: 0,
-          totalSpentPoints: 0
-        }
+    } else {
+      console.log('📡 请求用户统计接口...')
+      return userAPI.getStatistics().then((statisticsData) => {
+        this.setData({
+          statistics: {
+            totalLottery: statisticsData.data.total_lottery,
+            totalExchange: statisticsData.data.total_exchange,
+            totalUpload: statisticsData.data.total_upload,
+            thisMonthPoints: statisticsData.data.this_month_points,
+            totalEarnedPoints: statisticsData.data.total_earned_points || 0,
+            totalSpentPoints: statisticsData.data.total_spent_points || 0
+          }
+        })
+        
+        console.log('✅ 用户统计数据加载成功')
+      }).catch((error) => {
+        console.error('❌ 获取统计数据失败:', error)
+        
+        // 使用默认数据，避免页面空白
+        this.setData({
+          statistics: {
+            totalLottery: 0,
+            totalExchange: 0, 
+            totalUpload: 0,
+            thisMonthPoints: 0,
+            totalEarnedPoints: 0,
+            totalSpentPoints: 0
+          }
+        })
       })
     }
   },
@@ -284,32 +357,49 @@ Page({
    * 认证：需要Bearer Token
    * 返回：积分收支记录列表
    */
-  async loadPointsRecords() {
-    try {
-      let recordsData
-
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境使用模拟数据
-        console.log('🔧 生成模拟积分记录数据')
-        recordsData = this.generateMockPointsRecords()
-      } else {
-        // 生产环境调用真实接口
-        console.log('📡 请求积分记录接口...')
-        recordsData = await userAPI.getPointsRecords()
-      }
-
+  loadPointsRecords() {
+    if (app.globalData.isDev && !app.globalData.needAuth) {
+      // 开发环境使用模拟数据
+      console.log('🔧 生成模拟积分记录数据')
+      const recordsData = this.generateMockPointsRecords()
+      
       this.setData({
         pointsRecords: recordsData
       })
       
       // 初始化筛选结果
       this.filterPointsRecords()
-
+      
+      // 计算今日积分趋势
+      this.calculateTodayTrend()
+      
       console.log('✅ 积分记录加载成功，共', recordsData.length, '条记录')
+      return Promise.resolve()
+    } else {
+      // 生产环境调用真实接口
+      console.log('📡 请求积分记录接口...')
+      return userAPI.getPointsRecords().then((recordsData) => {
+        this.setData({
+          pointsRecords: recordsData
+        })
+        
+        // 初始化筛选结果
+        this.filterPointsRecords()
 
-    } catch (error) {
-      console.error('❌ 获取积分记录失败:', error)
-      this.setData({ pointsRecords: [] })
+        // 计算今日积分趋势
+        this.calculateTodayTrend()
+
+        console.log('✅ 积分记录加载成功，共', recordsData.length, '条记录')
+      }).catch((error) => {
+        console.error('❌ 获取积分记录失败:', error)
+        
+        // 使用默认数据，避免页面空白
+        this.setData({
+          pointsRecords: []
+        })
+        
+        this.filterPointsRecords()
+      })
     }
   },
 
@@ -323,22 +413,43 @@ Page({
       consume: ['抽奖消费', '商品兑换', '活动参与']
     }
 
-    return Array.from({ length: count }, (_, i) => {
+    let currentBalance = this.data.totalPoints || 1500 // 使用当前积分或默认1500
+    const records = []
+
+    for (let i = 0; i < count; i++) {
       const type = types[Math.floor(Math.random() * types.length)]
       const isEarn = type === 'earn'
-      const points = isEarn ? 
-        Math.floor(Math.random() * 100) + 10 : 
-        -(Math.floor(Math.random() * 200) + 50)
       
-      return {
-        id: i + 1,
-        type: type,
-        points: points,
-        description: descriptions[type][Math.floor(Math.random() * descriptions[type].length)],
-        balance: 1500 - i * 20, // 模拟余额
-        created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleDateString()
+      let points
+      if (isEarn) {
+        points = Math.floor(Math.random() * 100) + 10 // 获得10-110积分
+      } else {
+        // 消费时确保不会导致余额为负
+        const maxConsume = Math.min(200, currentBalance - 100) // 最多消费200积分，但保留100积分
+        points = -(Math.floor(Math.random() * Math.max(50, maxConsume)) + 50) // 至少消费50积分
       }
-    })
+      
+      // 更新余额
+      currentBalance += points
+      
+      // 确保余额不为负
+      if (currentBalance < 0) {
+        currentBalance = Math.abs(points) // 如果会为负，则调整为正数
+        points = Math.abs(points) // 将消费改为获得
+      }
+      
+      records.push({
+        id: i + 1,
+        type: points > 0 ? 'earn' : 'consume',
+        points: points,
+        description: descriptions[points > 0 ? 'earn' : 'consume'][Math.floor(Math.random() * descriptions[points > 0 ? 'earn' : 'consume'].length)],
+        balance_after: currentBalance, // 使用操作后的余额
+        created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleDateString()
+      })
+    }
+
+    // 按时间倒序排列（最新的在前）
+    return records.reverse()
   },
 
   /**
@@ -401,21 +512,20 @@ Page({
   },
 
   /**
-   * 头像点击 - 更换头像
-   * TODO: 后端对接 - 头像上传功能
+   * 点击头像 - 更换头像
+   * TODO: 后端对接 - 头像上传接口
    * 
    * 对接说明：
-   * 1. 选择图片后需要上传到服务器
-   * 2. 接口：POST /api/user/upload-avatar (multipart/form-data)
-   * 3. 认证：需要Bearer Token
-   * 4. 返回：新的头像URL，需要更新用户信息
+   * 接口：POST /api/user/upload-avatar (multipart/form-data)
+   * 认证：需要Bearer Token
+   * 返回：新的头像URL
    */
   onAvatarTap() {
     wx.chooseImage({
       count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: async (res) => {
+      success: (res) => {
         const tempFilePath = res.tempFilePaths[0]
         console.log('选择的头像:', tempFilePath)
         
@@ -445,30 +555,28 @@ Page({
           
         } else {
           // 生产环境真实上传
-          try {
-            wx.showLoading({ title: '上传中...' })
-            
-            // TODO: 后端对接点 - 头像上传接口
-            const uploadResult = await new Promise((resolve, reject) => {
-              wx.uploadFile({
-                url: app.globalData.baseUrl + '/api/user/upload-avatar',
-                filePath: tempFilePath,
-                name: 'avatar',
-                header: {
-                  'Authorization': `Bearer ${app.globalData.accessToken}`
-                },
-                success: (res) => {
-                  const data = JSON.parse(res.data)
-                  if (data.code === 0) {
-                    resolve(data)
-                  } else {
-                    reject(new Error(data.msg || '上传失败'))
-                  }
-                },
-                fail: reject
-              })
+          wx.showLoading({ title: '上传中...' })
+          
+          // TODO: 后端对接点 - 头像上传接口
+          new Promise((resolve, reject) => {
+            wx.uploadFile({
+              url: app.globalData.baseUrl + '/api/user/upload-avatar',
+              filePath: tempFilePath,
+              name: 'avatar',
+              header: {
+                'Authorization': `Bearer ${app.globalData.accessToken}`
+              },
+              success: (res) => {
+                const data = JSON.parse(res.data)
+                if (data.code === 0) {
+                  resolve(data)
+                } else {
+                  reject(new Error(data.msg || '上传失败'))
+                }
+              },
+              fail: reject
             })
-            
+          }).then((uploadResult) => {
             wx.hideLoading()
             
             // 更新页面显示的头像
@@ -488,15 +596,14 @@ Page({
               title: '头像更新成功',
               icon: 'success'
             })
-            
-          } catch (error) {
+          }).catch((error) => {
             wx.hideLoading()
             console.error('❌ 头像上传失败:', error)
             wx.showToast({
               title: error.message || '头像上传失败',
               icon: 'none'
             })
-          }
+          })
         }
       },
       fail: (error) => {
@@ -636,6 +743,9 @@ Page({
    * 初始化成就系统
    */
   initAchievements() {
+    const currentPoints = this.data.totalPoints || 0
+    const currentStats = this.data.statistics || {}
+    
     const achievements = [
       {
         id: 1,
@@ -650,36 +760,36 @@ Page({
         id: 2,
         name: '积分达人',
         icon: '💎',
-        progress: this.data.totalPoints,
+        progress: currentPoints,
         target: 1000,
-        unlocked: this.data.totalPoints >= 1000,
+        unlocked: currentPoints >= 1000,
         description: '累计获得1000积分'
       },
       {
         id: 3,
         name: '抽奖狂人',
         icon: '🎰',
-        progress: this.data.statistics.totalLottery,
+        progress: currentStats.totalLottery || 0,
         target: 10,
-        unlocked: this.data.statistics.totalLottery >= 10,
+        unlocked: (currentStats.totalLottery || 0) >= 10,
         description: '累计抽奖10次'
       },
       {
         id: 4,
         name: '兑换专家',
         icon: '🛍️',
-        progress: this.data.statistics.totalExchange,
+        progress: currentStats.totalExchange || 0,
         target: 5,
-        unlocked: this.data.statistics.totalExchange >= 5,
+        unlocked: (currentStats.totalExchange || 0) >= 5,
         description: '累计兑换5次'
       },
       {
         id: 5,
         name: '拍照能手',
         icon: '📸',
-        progress: this.data.statistics.totalUpload,
+        progress: currentStats.totalUpload || 0,
         target: 20,
-        unlocked: this.data.statistics.totalUpload >= 20,
+        unlocked: (currentStats.totalUpload || 0) >= 20,
         description: '上传小票20次'
       },
       {
@@ -700,29 +810,34 @@ Page({
       unlockedAchievements: unlockedCount,
       totalAchievements: achievements.length
     })
+    
+    console.log('🏆 成就系统初始化完成:', { unlockedCount, total: achievements.length })
   },
 
   /**
    * 更新成就进度
    */
   updateAchievements() {
+    const currentPoints = this.data.totalPoints || 0
+    const currentStats = this.data.statistics || {}
+    
     const achievements = this.data.achievements.map(achievement => {
       switch (achievement.id) {
         case 2: // 积分达人
-          achievement.progress = this.data.totalPoints
-          achievement.unlocked = this.data.totalPoints >= achievement.target
+          achievement.progress = currentPoints
+          achievement.unlocked = currentPoints >= achievement.target
           break
         case 3: // 抽奖狂人
-          achievement.progress = this.data.statistics.totalLottery
-          achievement.unlocked = this.data.statistics.totalLottery >= achievement.target
+          achievement.progress = currentStats.totalLottery || 0
+          achievement.unlocked = (currentStats.totalLottery || 0) >= achievement.target
           break
         case 4: // 兑换专家
-          achievement.progress = this.data.statistics.totalExchange
-          achievement.unlocked = this.data.statistics.totalExchange >= achievement.target
+          achievement.progress = currentStats.totalExchange || 0
+          achievement.unlocked = (currentStats.totalExchange || 0) >= achievement.target
           break
         case 5: // 拍照能手
-          achievement.progress = this.data.statistics.totalUpload
-          achievement.unlocked = this.data.statistics.totalUpload >= achievement.target
+          achievement.progress = currentStats.totalUpload || 0
+          achievement.unlocked = (currentStats.totalUpload || 0) >= achievement.target
           break
       }
       return achievement
@@ -734,6 +849,8 @@ Page({
       achievements,
       unlockedAchievements: unlockedCount
     })
+    
+    console.log('🏆 成就进度已更新:', { unlockedCount, total: achievements.length })
   },
 
   /**
@@ -898,5 +1015,7 @@ Page({
       todayEarned: earned,
       todayConsumed: consumed
     })
+    
+    console.log('📊 今日积分趋势:', { earned, consumed })
   }
 })
