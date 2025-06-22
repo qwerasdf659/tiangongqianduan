@@ -256,13 +256,13 @@ Page({
 
   /**
    * 提交上传
-   * TODO: 后端对接 - 图片上传接口
+   * 🔴 后端对接 - 图片上传接口（根据后端文档更新）
    * 
    * 对接说明：
    * 接口：POST /api/photo/upload
    * 认证：需要Bearer Token
-   * 文件：multipart/form-data格式上传图片
-   * 返回：上传结果，包括人工审核获得的积分等
+   * 文件：multipart/form-data格式上传图片到Sealos存储
+   * 返回：上传结果，提交人工审核，不再进行OCR识别
    */
   onSubmitUpload() {
     // 验证是否已选择图片
@@ -292,20 +292,23 @@ Page({
       })
       
       new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
-        // 模拟人工审核流程 - 不再有OCR识别
-        const estimatedAmount = 50 + Math.random() * 200 // 随机估算消费金额50-250元
-        const points = Math.floor(estimatedAmount * 10) // 1元=10积分
-        
+        // 🔴 根据后端文档：直接提交人工审核，不进行OCR识别
         const uploadResult = {
           code: 0,
+          msg: 'success',
           data: {
             upload_id: 'UP' + Date.now(),
-            image_url: this.data.selectedImage.tempPath,
-            estimated_amount: estimatedAmount.toFixed(2),
-            points_awarded: 0, // 上传时不直接给积分，需要人工审核
-            review_status: 'pending',
+            image_url: `https://objectstorageapi.bja.sealos.run/tiangong/upload_${Date.now()}.jpg`,
+            user_amount: this.data.inputAmount || null,  // 用户输入金额（可选）
+            recognized_amount: null,  // 🔴 不再进行OCR识别
+            points_awarded: 0,  // 🔴 上传时不直接给积分，需要商家人工审核
+            review_status: 'pending',  // 🔴 审核状态：pending, approved, rejected
             review_reason: '已提交人工审核，请等待商家确认消费金额',
-            upload_time: new Date().toISOString()
+            upload_time: new Date().toISOString(),
+            // 🔴 符合后端文档的额外字段
+            file_size: this.data.selectedImage.size || 0,
+            file_type: 'image/jpeg',
+            storage_path: `uploads/${Date.now()}.jpg`
           }
         }
         
@@ -318,7 +321,8 @@ Page({
         this.setData({
           uploading: false,
           selectedImage: null,
-          showImagePreview: false
+          showImagePreview: false,
+          inputAmount: null
         })
         
         // 刷新上传记录
@@ -339,7 +343,8 @@ Page({
       // 生产环境调用真实上传接口
       console.log('📡 请求图片上传接口...')
       
-      photoAPI.upload(this.data.selectedImage.tempPath).then((uploadResult) => {
+      // 🔴 调用符合后端文档格式的上传接口
+      photoAPI.upload(this.data.selectedImage.tempPath, this.data.inputAmount || 0).then((uploadResult) => {
         wx.hideLoading()
         
         if (uploadResult.code === 0) {
@@ -352,7 +357,8 @@ Page({
           this.setData({
             uploading: false,
             selectedImage: null,
-            showImagePreview: false
+            showImagePreview: false,
+            inputAmount: null
           })
           
           // 刷新上传记录
@@ -368,22 +374,25 @@ Page({
         
         let errorMsg = '上传失败，请重试'
         
-        // 根据错误码显示不同的错误信息
+        // 🔴 根据后端文档的错误码显示不同的错误信息
         switch (error.code) {
           case 1001:
-            errorMsg = '图片格式不支持'
+            errorMsg = '图片格式不支持，请选择JPG或PNG格式'
             break
           case 1002:
-            errorMsg = '图片大小超过限制'
+            errorMsg = '图片大小超过限制，请选择小于5MB的图片'
             break
           case 1003:
-            errorMsg = '图片内容不清晰'
+            errorMsg = '图片内容不清晰，请重新拍摄'
             break
           case 1004:
-            errorMsg = '小票内容需要人工审核'
+            errorMsg = '图片上传到Sealos存储失败'
             break
           case 1005:
             errorMsg = '今日上传次数已达上限'
+            break
+          case 1006:
+            errorMsg = '文件存储路径创建失败'
             break
           default:
             errorMsg = error.msg || error.message || errorMsg
@@ -391,7 +400,8 @@ Page({
         
         wx.showToast({
           title: errorMsg,
-          icon: 'none'
+          icon: 'none',
+          duration: 3000
         })
       })
     }
@@ -399,31 +409,44 @@ Page({
 
   /**
    * 显示上传结果
+   * 🔴 根据后端文档的审核状态显示相应内容
    * @param {Object} result 上传结果数据
    */
   showUploadResult(result) {
-    const isPending = result.review_status === 'pending'
+    const status = result.review_status
     
     let title, content
     
-    if (isPending) {
-      title = '上传成功！'
-      content = `小票已成功上传\n预估金额：¥${result.estimated_amount}\n请等待商家人工审核确认消费金额后获得相应积分`
-    } else {
-      title = '上传成功，等待审核'
-      content = `小票已提交审核\n请等待商家确认后获得积分`
+    switch (status) {
+      case 'pending':
+        title = '上传成功！'
+        content = `小票已成功上传到Sealos存储\n上传ID：${result.upload_id}\n状态：等待商家审核\n\n请耐心等待商家确认消费金额后获得相应积分`
+        break
+      case 'approved':
+        title = '审核通过！'
+        content = `恭喜！您获得了 ${result.points_awarded} 积分\n审核理由：${result.review_reason || '消费记录真实有效'}`
+        break
+      case 'rejected':
+        title = '审核未通过'
+        content = `很抱歉，您的上传未通过审核\n审核理由：${result.review_reason || '消费记录不符合要求'}\n请重新上传清晰的小票图片`
+        break
+      default:
+        title = '上传完成'
+        content = '小票已提交，请等待处理结果'
     }
     
     wx.showModal({
       title,
       content,
       showCancel: false,
-      confirmText: '确定',
+      confirmText: status === 'approved' ? '太好了' : '知道了',
       success: () => {
-        // 可以跳转到上传记录页面
-        // wx.navigateTo({
-        //   url: '/pages/records/upload-records'
-        // })
+        // 如果审核通过，可以跳转到积分记录页面
+        if (status === 'approved') {
+          // wx.navigateTo({
+          //   url: '/pages/records/points-records'
+          // })
+        }
       }
     })
   },

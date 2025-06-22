@@ -1,8 +1,8 @@
 <!-- pages/lottery/lottery.wxml - 抽奖页面模板 -->
 <view class="lottery-container {{showResult ? 'showing-result' : ''}}" bindtap="onPageTap">
   
-  <!-- 页面头部 -->
-  <view class="header">
+  <!-- 页面头部 - 确保始终可见 -->
+  <view class="header" style="position: relative; z-index: 10;">
     <view class="user-info">
       <text class="welcome">欢迎，{{userInfo.phone || userInfo.nickname || '用户'}}</text>
       <view class="points-info">
@@ -17,7 +17,7 @@
   </view>
 
   <!-- 转盘区域 -->
-  <view class="wheel-section {{showResult ? 'result-showing' : ''}}" style="position: relative;">
+  <view class="wheel-section {{showResult ? 'result-showing' : ''}} {{hideWheel ? 'hidden' : ''}}" style="position: relative;" wx:if="{{!hideWheel}}">
     <!-- 转盘容器 -->
     <view style="position: relative; width: 260px; height: 260px; margin: 20rpx auto; display: block;">
       <!-- Canvas转盘背景 - 降低层级 -->
@@ -57,7 +57,7 @@
   </view>
 
   <!-- 多连抽按钮组 - 优化为2x2网格布局 -->
-  <view class="multi-draw-section">
+  <view class="multi-draw-section" wx:if="{{!hideWheel}}">
     <view class="section-title-small">
       <text>⚡ 连抽选项</text>
     </view>
@@ -138,8 +138,8 @@
     </view>
   </view>
 
-  <!-- 规则说明 -->
-  <view class="rules-section">
+  <!-- 规则说明 - 确保始终可见 -->
+  <view class="rules-section" style="position: relative; z-index: 10;" wx:if="{{!showResult}}">
     <view class="section-title">
       <text>📋 抽奖规则</text>
     </view>
@@ -150,5 +150,10 @@
       <view class="rule-item">• 高频操作将触发安全验证</view>
       <view class="rule-item">• 单日积分消耗上限5000分</view>
     </view>
+  </view>
+  
+  <!-- 🔴 调试信息 - 开发环境可见 -->
+  <view wx:if="{{false}}" style="position: fixed; bottom: 20rpx; left: 20rpx; background: rgba(0,0,0,0.8); color: white; padding: 20rpx; border-radius: 10rpx; font-size: 20rpx; z-index: 9999;">
+    <text>调试: hideWheel={{hideWheel}}, showResult={{showResult}}</text>
   </view>
 </view> 

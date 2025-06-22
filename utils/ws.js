@@ -26,7 +26,7 @@ class WSManager {
 
   /**
    * 🔴 连接WebSocket - 根据后端文档格式
-   * @param {String} url WebSocket地址，格式：wss://domain:8080?token=xxx&version=1.0
+   * @param {String} url WebSocket地址，格式：wss://domain/ws?token=xxx&client_type=miniprogram
    */
   connect(url = null) {
     // 开发环境可选择跳过WebSocket连接
@@ -69,7 +69,6 @@ class WSManager {
   buildWebSocketUrl() {
     const baseUrl = getApp().globalData.wsUrl
     const token = getApp().globalData.accessToken
-    const version = '1.0'
     
     if (!baseUrl) {
       throw new Error('WebSocket服务地址未配置')
@@ -79,8 +78,21 @@ class WSManager {
       throw new Error('访问令牌未配置')
     }
     
-    // 构建符合后端规范的WebSocket URL
-    return `${baseUrl}?token=${token}&version=${version}`
+    // 🔴 构建符合后端规范的WebSocket URL 
+    // 格式：ws://localhost:8080?token=xxx&client_type=miniprogram
+    // 或生产环境：wss://domain/ws?token=xxx&client_type=miniprogram
+    let wsUrl = baseUrl
+    
+    // 确保URL格式正确
+    if (baseUrl.includes('/ws')) {
+      // 如果已包含/ws路径，直接使用
+      wsUrl = `${baseUrl}?token=${token}&client_type=miniprogram`
+    } else {
+      // 如果是纯域名端口格式，添加查询参数
+      wsUrl = `${baseUrl}?token=${token}&client_type=miniprogram`
+    }
+    
+    return wsUrl
   }
 
   /**
@@ -130,27 +142,25 @@ class WSManager {
    * @param {Object} data 消息数据
    */
   handleMessage(data) {
-    const { type, data: payload, timestamp, message_id } = data
+    const { type, data: payload, timestamp } = data
 
-    // 记录消息接收时间和ID
-    if (message_id) {
-      console.log(`📨 处理消息 [${message_id}]:`, type)
-    }
+    // 记录消息接收
+    console.log(`📨 处理消息:`, type, payload)
 
     switch (type) {
       case 'pong':
-        // 🔴 心跳响应 - 更新服务器时间
+        // 🔴 心跳响应
         this.handlePong(payload)
-        break
-        
-      case 'stock_update':
-        // 🔴 库存更新推送 - 根据后端文档格式
-        this.handleStockUpdate(payload)
         break
         
       case 'points_update':
         // 🔴 积分更新推送 - 根据后端文档格式
         this.handlePointsUpdate(payload)
+        break
+        
+      case 'stock_update':
+        // 🔴 库存更新推送 - 根据后端文档格式
+        this.handleStockUpdate(payload)
         break
         
       case 'review_result':
@@ -175,50 +185,18 @@ class WSManager {
   }
 
   /**
-   * 🔴 处理库存更新推送 - 根据后端文档实现
-   */
-  handleStockUpdate(payload) {
-    const { product_id, stock, operation, timestamp } = payload
-    
-    console.log('📦 库存更新:', {
-      productId: product_id,
-      newStock: stock,
-      operation,
-      timestamp
-    })
-    
-    // 通知应用层处理库存更新
-    this.emit('stock_update', {
-      data: {
-        product_id,
-        stock,
-        operation,
-        timestamp
-      }
-    })
-    
-    // 显示库存变更提示（仅在有意义的变更时）
-    if (operation === 'purchase' && stock <= 5) {
-      wx.showToast({
-        title: `商品库存不足(${stock})`,
-        icon: 'none',
-        duration: 2000
-      })
-    }
-  }
-
-  /**
    * 🔴 处理积分更新推送 - 根据后端文档实现
    */
   handlePointsUpdate(payload) {
-    const { user_id, total_points, change_points, reason, operation_id } = payload
+    const { user_id, total_points, change_points, reason, reason_text, timestamp } = payload
     
     console.log('💰 积分更新:', {
       userId: user_id,
       totalPoints: total_points,
       changePoints: change_points,
       reason,
-      operationId: operation_id
+      reasonText: reason_text,
+      timestamp
     })
     
     // 通知应用层处理积分更新
@@ -228,33 +206,73 @@ class WSManager {
         total_points,
         change_points,
         reason,
-        operation_id
+        reason_text,
+        timestamp
       }
     })
+  }
+
+  /**
+   * 🔴 处理库存更新推送 - 根据后端文档实现
+   */
+  handleStockUpdate(payload) {
+    const { product_id, stock, product_name, timestamp } = payload
+    
+    console.log('📦 库存更新:', {
+      productId: product_id,
+      newStock: stock,
+      productName: product_name,
+      timestamp
+    })
+    
+    // 通知应用层处理库存更新
+    this.emit('stock_update', {
+      data: {
+        product_id,
+        stock,
+        product_name,
+        timestamp
+      }
+    })
+    
+    // 显示库存变更提示（仅在库存较少时）
+    if (stock <= 5 && stock > 0) {
+      wx.showToast({
+        title: `${product_name} 库存不足`,
+        icon: 'none',
+        duration: 2000
+      })
+    } else if (stock === 0) {
+      wx.showToast({
+        title: `${product_name} 已售罄`,
+        icon: 'none',
+        duration: 2000
+      })
+    }
   }
 
   /**
    * 🔴 处理审核结果推送 - 根据后端文档实现
    */
   handleReviewResult(payload) {
-    const { upload_id, user_id, status, points_awarded, review_reason } = payload
+    const { upload_id, status, points_awarded, review_reason, timestamp } = payload
     
     console.log('📋 审核结果:', {
       uploadId: upload_id,
-      userId: user_id,
       status,
       pointsAwarded: points_awarded,
-      reason: review_reason
+      reviewReason: review_reason,
+      timestamp
     })
     
     // 通知应用层处理审核结果
     this.emit('review_result', {
       data: {
         upload_id,
-        user_id,
         status,
         points_awarded,
-        review_reason
+        review_reason,
+        timestamp
       }
     })
   }
@@ -263,16 +281,16 @@ class WSManager {
    * 处理心跳响应
    */
   handlePong(payload) {
-    const { timestamp, server_time } = payload || {}
+    console.log('💓 收到心跳响应')
     
-    if (server_time) {
-      // 可以用于同步服务器时间
-      const serverTime = new Date(server_time)
-      const localTime = new Date()
-      const timeDiff = serverTime.getTime() - localTime.getTime()
+    // 如果服务器返回时间，可以用来同步时间
+    if (payload && payload.server_time) {
+      const serverTime = new Date(payload.server_time)
+      const clientTime = new Date()
+      const timeDiff = Math.abs(serverTime.getTime() - clientTime.getTime())
       
-      if (Math.abs(timeDiff) > 5000) { // 时间差超过5秒
-        console.warn('⏰ 本地时间与服务器时间差异较大:', timeDiff, 'ms')
+      if (timeDiff > 30000) { // 时间差超过30秒
+        console.warn('⚠️ 客户端与服务器时间差较大:', timeDiff / 1000, '秒')
       }
     }
   }
@@ -283,47 +301,44 @@ class WSManager {
   handleSystemNotice(payload) {
     const { title, content, type = 'info' } = payload
     
-    console.log('📢 系统通知:', { title, content, type })
+    console.log('🔔 系统通知:', { title, content, type })
     
     // 显示系统通知
-    if (title && content) {
-      wx.showModal({
-        title: title,
-        content: content,
-        showCancel: type !== 'info',
-        confirmText: '知道了'
-      })
-    }
+    wx.showModal({
+      title: title || '系统通知',
+      content: content || '收到系统消息',
+      showCancel: false,
+      confirmText: '知道了'
+    })
     
     this.emit('system_notice', { data: payload })
   }
 
   /**
-   * 🔴 发送消息 - 根据后端文档的消息格式
-   * @param {Object} data 消息数据
+   * 发送消息到服务器
    */
   send(data) {
-    const message = {
-      ...data,
-      timestamp: Date.now(),
-      message_id: this.generateMessageId()
-    }
-
     if (!this.isConnected || !this.ws) {
-      console.warn('⚠️ WebSocket未连接，消息已缓存')
-      this.messageQueue.push(message)
+      console.warn('⚠️ WebSocket未连接，消息加入队列:', data)
+      this.messageQueue.push(data)
       return false
     }
 
     try {
-      this.ws.send({
-        data: JSON.stringify(message)
+      const message = JSON.stringify({
+        ...data,
+        timestamp: new Date().toISOString(),
+        message_id: this.generateMessageId()
       })
-      console.log('📤 发送WebSocket消息:', message)
+      
+      this.ws.send({
+        data: message
+      })
+      
+      console.log('📤 发送WebSocket消息:', data)
       return true
     } catch (error) {
       console.error('❌ 发送WebSocket消息失败:', error)
-      this.messageQueue.push(message) // 发送失败时缓存消息
       return false
     }
   }
@@ -340,24 +355,24 @@ class WSManager {
    */
   flushMessageQueue() {
     if (this.messageQueue.length === 0) return
-
-    console.log(`📤 发送缓存的${this.messageQueue.length}条消息`)
     
-    const messages = [...this.messageQueue]
-    this.messageQueue = []
+    console.log(`📤 发送缓存消息 ${this.messageQueue.length} 条`)
     
-    messages.forEach(message => {
+    while (this.messageQueue.length > 0) {
+      const message = this.messageQueue.shift()
       this.send(message)
-    })
+    }
   }
 
   /**
-   * 🔴 发送心跳 - 根据后端文档格式
+   * 发送心跳
    */
   sendHeartbeat() {
     this.send({
       type: 'ping',
-      timestamp: Date.now()
+      data: {
+        client_time: new Date().toISOString()
+      }
     })
   }
 
@@ -365,14 +380,15 @@ class WSManager {
    * 开始心跳
    */
   startHeartbeat() {
-    this.stopHeartbeat()
+    this.stopHeartbeat() // 先停止现有心跳
+    
     this.heartbeatTimer = setInterval(() => {
       if (this.isConnected) {
         this.sendHeartbeat()
       }
     }, this.heartbeatInterval)
     
-    console.log('💓 WebSocket心跳已启动，间隔:', this.heartbeatInterval, 'ms')
+    console.log('💓 开始心跳检测')
   }
 
   /**
@@ -382,7 +398,7 @@ class WSManager {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer)
       this.heartbeatTimer = null
-      console.log('💔 WebSocket心跳已停止')
+      console.log('💓 停止心跳检测')
     }
   }
 
@@ -390,138 +406,133 @@ class WSManager {
    * 处理连接错误
    */
   handleConnectionError(error) {
-    this.isConnected = false
-    this.emit('error', error)
+    console.error('❌ WebSocket连接错误:', error)
     
-    // 根据错误类型显示不同提示
-    if (error && error.errMsg) {
-      if (error.errMsg.includes('timeout')) {
-        console.log('⏰ WebSocket连接超时')
-      } else if (error.errMsg.includes('fail')) {
-        console.log('🔌 WebSocket连接失败')
-      }
-    }
+    this.isConnected = false
+    this.stopHeartbeat()
+    
+    // 发送错误事件
+    this.emit('error', error)
   }
 
   /**
-   * 安排重连
+   * 计划重连
    */
   scheduleReconnect() {
     if (this.reconnectCount >= this.maxReconnectCount) {
-      console.log('❌ WebSocket重连次数超限，停止重连')
+      console.error('❌ 达到最大重连次数，停止重连')
       this.emit('max_reconnect_reached')
       return
     }
 
-    // 清除之前的重连定时器
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-    }
-
-    const delay = this.reconnectInterval * Math.pow(2, this.reconnectCount) // 指数退避
-    this.reconnectCount++
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectCount), 30000) // 指数退避，最大30秒
     
-    console.log(`🔄 将在 ${delay}ms 后进行第 ${this.reconnectCount} 次重连`)
+    console.log(`🔄 计划 ${delay/1000} 秒后进行第 ${this.reconnectCount + 1} 次重连`)
     
     this.reconnectTimer = setTimeout(() => {
-      if (!this.isConnected) {
-        this.connect(this.connectionUrl)
-      }
+      this.reconnectCount++
+      console.log(`🔄 执行第 ${this.reconnectCount} 次重连`)
+      this.connect()
     }, delay)
   }
 
   /**
-   * 断开WebSocket连接
+   * 断开连接
    */
   disconnect() {
     console.log('🔌 断开WebSocket连接')
     
-    // 停止心跳
-    this.stopHeartbeat()
-    
-    // 停止重连
+    // 清理定时器
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
     }
     
-    // 断开连接
+    this.stopHeartbeat()
+    
+    // 关闭连接
     if (this.ws) {
-      this.ws.close()
+      try {
+        this.ws.close({
+          code: 1000,
+          reason: 'Client disconnect'
+        })
+      } catch (error) {
+        console.warn('关闭WebSocket时出错:', error)
+      }
       this.ws = null
     }
     
     this.isConnected = false
     this.reconnectCount = 0
+    
+    this.emit('disconnected')
   }
 
   /**
-   * 🔴 订阅商品库存更新 - 用于兑换页面
-   * @param {Array} productIds 商品ID列表
+   * 订阅商品更新（可用于特定商品的库存监听）
    */
   subscribeProducts(productIds) {
-    if (!Array.isArray(productIds) || productIds.length === 0) {
-      console.warn('⚠️ 商品ID列表为空，跳过订阅')
-      return
+    if (!Array.isArray(productIds)) {
+      productIds = [productIds]
     }
     
     this.send({
-      type: 'subscribe_product',
-      product_ids: productIds
+      type: 'subscribe',
+      data: {
+        target: 'products',
+        product_ids: productIds
+      }
     })
-    
-    console.log('📦 已订阅商品库存更新:', productIds)
   }
 
   /**
-   * 监听事件
-   * @param {String} event 事件名
-   * @param {Function} handler 处理函数
+   * 事件监听
    */
   on(event, handler) {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, [])
     }
+    
     this.eventHandlers.get(event).push(handler)
   }
 
   /**
-   * 取消监听事件
-   * @param {String} event 事件名
-   * @param {Function} handler 处理函数（可选）
+   * 移除事件监听
    */
   off(event, handler = null) {
-    if (!this.eventHandlers.has(event)) {
-      return
-    }
-
-    if (handler) {
+    if (!this.eventHandlers.has(event)) return
+    
+    if (handler === null) {
+      // 移除所有监听器
+      this.eventHandlers.delete(event)
+    } else {
+      // 移除特定监听器
       const handlers = this.eventHandlers.get(event)
       const index = handlers.indexOf(handler)
       if (index > -1) {
         handlers.splice(index, 1)
       }
-    } else {
-      this.eventHandlers.delete(event)
+      
+      // 如果没有监听器了，删除事件
+      if (handlers.length === 0) {
+        this.eventHandlers.delete(event)
+      }
     }
   }
 
   /**
    * 触发事件
-   * @param {String} event 事件名
-   * @param {*} data 事件数据
    */
   emit(event, data = null) {
-    if (!this.eventHandlers.has(event)) {
-      return
-    }
-
+    if (!this.eventHandlers.has(event)) return
+    
     const handlers = this.eventHandlers.get(event)
     handlers.forEach(handler => {
       try {
         handler(data)
       } catch (error) {
-        console.error(`事件处理器错误 [${event}]:`, error)
+        console.error(`❌ 执行事件处理器失败 [${event}]:`, error)
       }
     })
   }
@@ -530,7 +541,7 @@ class WSManager {
    * 检查连接状态
    */
   isConnectionActive() {
-    return this.isConnected && this.ws
+    return this.isConnected && this.ws !== null
   }
 
   /**
@@ -540,23 +551,19 @@ class WSManager {
     return {
       isConnected: this.isConnected,
       reconnectCount: this.reconnectCount,
-      maxReconnectCount: this.maxReconnectCount,
       messageQueueLength: this.messageQueue.length,
-      hasHeartbeat: !!this.heartbeatTimer,
-      connectionUrl: this.connectionUrl
+      hasHeartbeat: this.heartbeatTimer !== null
     }
   }
 
   /**
-   * 手动触发重连
+   * 强制重连
    */
   forceReconnect() {
-    console.log('🔄 手动触发WebSocket重连')
+    console.log('🔄 强制重连WebSocket')
     this.disconnect()
-    setTimeout(() => {
-      this.reconnectCount = 0 // 重置重连计数
-      this.connect(this.connectionUrl)
-    }, 1000)
+    this.reconnectCount = 0
+    this.connect()
   }
 }
 

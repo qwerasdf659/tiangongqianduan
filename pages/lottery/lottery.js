@@ -38,17 +38,17 @@ Page({
     isButtonVisible: true, // 强制设为true
     forceUpdate: 0, // 强制更新标识
     
-    // 开发环境模拟数据
-    mockPrizes: [
-      { id: 1, name: '八八折券', angle: 0, color: '#FF6B35', is_activity: true },
-      { id: 2, name: '九八折券', angle: 45, color: '#4ECDC4', is_activity: false },
-      { id: 3, name: '甜品1份', angle: 90, color: '#FFD93D', is_activity: false },
-      { id: 4, name: '青菜1份', angle: 135, color: '#6BCF7F', is_activity: false },
-      { id: 5, name: '虾1份', angle: 180, color: '#FF6B6B', is_activity: false },
-      { id: 6, name: '花甲1份', angle: 225, color: '#4DABF7', is_activity: false },
-      { id: 7, name: '鱿鱼1份', angle: 270, color: '#9775FA', is_activity: false },
-      { id: 8, name: '生腌拼盘', angle: 315, color: '#FFB84D', is_activity: true }
-    ]
+    // 开发环境模拟数据 - 统一奖品配置
+    standardPrizes: [
+      { id: 1, name: '八八折券', angle: 0, color: '#FF6B35', is_activity: true, type: 'coupon', value: 0.88, probability: 0.15 },
+      { id: 2, name: '九八折券', angle: 45, color: '#4ECDC4', is_activity: false, type: 'coupon', value: 0.98, probability: 0.20 },
+      { id: 3, name: '甜品1份', angle: 90, color: '#FFD93D', is_activity: false, type: 'physical', value: 0, probability: 0.25 },
+      { id: 4, name: '青菜1份', angle: 135, color: '#6BCF7F', is_activity: false, type: 'physical', value: 0, probability: 0.15 },
+      { id: 5, name: '虾1份', angle: 180, color: '#FF6B6B', is_activity: false, type: 'physical', value: 0, probability: 0.10 },
+      { id: 6, name: '花甲1份', angle: 225, color: '#4DABF7', is_activity: false, type: 'physical', value: 0, probability: 0.08 },
+      { id: 7, name: '鱿鱼1份', angle: 270, color: '#9775FA', is_activity: false, type: 'physical', value: 0, probability: 0.05 },
+      { id: 8, name: '生腌拼盘', angle: 315, color: '#FFB84D', is_activity: true, type: 'physical', value: 0, probability: 0.02 }
+    ],
   },
 
   onLoad() {
@@ -293,7 +293,7 @@ Page({
       totalPoints: userInfo.total_points || 1500,
       wheelReady: true,  // 立即设置为true，确保按钮显示
       // 先设置默认奖品确保有数据
-      prizes: this.data.mockPrizes,
+      prizes: this.data.standardPrizes,
       costPoints: 100
     })
 
@@ -413,25 +413,17 @@ Page({
    * 设置默认抽奖配置
    */
   setDefaultLotteryConfig() {
-    const defaultPrizes = [
-      { id: 1, name: '谢谢参与', angle: 0, color: '#FF6B35', type: 'none', value: 0, probability: 40 },
-      { id: 2, name: '积分奖励', angle: 45, color: '#4ECDC4', type: 'points', value: 50, probability: 30 },
-      { id: 3, name: '优惠券', angle: 90, color: '#FFD93D', type: 'coupon', value: 0.9, probability: 20 },
-      { id: 4, name: '小礼品', angle: 135, color: '#6BCF7F', type: 'physical', value: 10, probability: 10 },
-      { id: 5, name: '再来一次', angle: 180, color: '#FF6B6B', type: 'retry', value: 0, probability: 25 },
-      { id: 6, name: '特别奖', angle: 225, color: '#4DABF7', type: 'special', value: 100, probability: 15 },
-      { id: 7, name: '惊喜奖', angle: 270, color: '#9775FA', type: 'surprise', value: 200, probability: 10 },
-      { id: 8, name: '幸运奖', angle: 315, color: '#FFB84D', type: 'lucky', value: 500, probability: 5 }
-    ]
+    // 🔴 使用统一的奖品配置数据源，确保一致性
+    console.log('🔧 设置默认抽奖配置（使用统一数据源）')
     
     this.setData({
-      prizes: defaultPrizes,
-      costPoints: 100,
-      dailyLimit: 10,
-      lotteryRules: '抽奖配置加载失败，使用默认配置'
+      prizes: this.data.standardPrizes, // 🔴 使用统一的奖品配置
+      costPoints: 100,  // 🔴 根据后端文档，单次抽奖消耗100积分
+      dailyLimit: 10,   // 🔴 每日抽奖次数限制
+      lotteryRules: '🔴 每次抽奖消耗100积分，奖品配置已统一标准化'
     })
     
-    console.log('🔧 已设置默认抽奖配置')
+    console.log('✅ 已设置统一抽奖配置，奖品数量:', this.data.standardPrizes.length)
   },
 
   /**
@@ -1016,38 +1008,134 @@ Page({
       return
     }
 
+    // 🔴 修复：显示结果时完全隐藏转盘并重置状态
     this.setData({
       showResult: true,
       resultData: results,
-      isDrawing: false // 显示结果时重置抽奖状态
+      isDrawing: false, // 显示结果时重置抽奖状态
+      // 🔴 新增：强制隐藏转盘相关元素
+      hideWheel: true,
+      // 🔴 更新用户积分显示（从抽奖结果中获取）
+      totalPoints: results[0]?.remaining_points || this.data.totalPoints
+    })
+
+    // 🔴 在下一帧隐藏转盘区域（避免视觉闪烁）
+    wx.nextTick(() => {
+      this.setData({
+        wheelVisible: false
+      })
     })
 
     // 5秒后自动关闭结果弹窗
     setTimeout(() => {
       if (this.data.showResult) {
         console.log('⏰ 自动关闭结果弹窗')
-        this.setData({ showResult: false })
+        this.closeResultModal()
       }
     }, 5000)
   },
 
   /**
-   * 关闭抽奖结果弹窗
+   * 关闭抽奖结果弹窗 - 优化版本
    */
   onCloseResult() {
-    console.log('🔄 关闭抽奖结果弹窗')
+    console.log('🔄 用户主动关闭抽奖结果弹窗')
+    this.closeResultModal()
+  },
+
+  /**
+   * 统一的关闭结果弹窗方法
+   */
+  closeResultModal() {
+    console.log('🔄 关闭抽奖结果弹窗并恢复转盘')
+    
+    // 🔴 修复：完整恢复页面状态
     this.setData({ 
       showResult: false,
-      isDrawing: false // 确保重置抽奖状态
+      isDrawing: false,
+      // 🔴 恢复转盘显示
+      hideWheel: false,
+      wheelVisible: true,
+      resultData: null,
+      // 🔴 新增：确保所有关键状态正确
+      wheelReady: true,
+      canvasFallback: false,
+      showStaticWheel: false,
+      canvasError: false,
+      // 🔴 强制更新页面
+      forceUpdate: Date.now()
     })
     
-    // 额外确保状态重置
+    // 🔴 延迟执行完整恢复流程
     setTimeout(() => {
+      console.log('🔧 执行完整页面恢复流程')
+      
+      // 确保抽奖状态完全重置
       if (this.data.isDrawing) {
         console.log('🔧 强制重置抽奖状态')
         this.setData({ isDrawing: false })
       }
+      
+      // 🔴 重新初始化Canvas转盘
+      if (this.data.prizes && this.data.prizes.length > 0) {
+        console.log('🎨 重新初始化Canvas转盘')
+        this.initCanvas()
+      }
+      
+      // 🔴 刷新用户信息确保积分同步
+      this.refreshUserInfo()
+      
+      // 🔴 强制检查页面完整性
+      setTimeout(() => {
+        this.checkPageStatus()
+        
+        // 如果页面状态异常，强制修复
+        if (!this.data.wheelReady || this.data.hideWheel) {
+          console.log('⚠️ 检测到页面状态异常，执行强制修复')
+          this.setData({
+            wheelReady: true,
+            hideWheel: false,
+            wheelVisible: true,
+            showResult: false,
+            isDrawing: false,
+            forceUpdate: Date.now()
+          })
+        }
+      }, 200)
+      
     }, 100)
+    
+    // 🔴 额外保险：再次延迟检查页面状态
+    setTimeout(() => {
+      console.log('🔍 最终状态检查')
+      const finalStatus = {
+        wheelReady: this.data.wheelReady,
+        hideWheel: this.data.hideWheel,
+        showResult: this.data.showResult,
+        isDrawing: this.data.isDrawing,
+        wheelVisible: this.data.wheelVisible
+      }
+      console.log('📊 最终页面状态:', finalStatus)
+      
+      // 如果仍有问题，进行最后的强制修复
+      if (this.data.hideWheel || this.data.showResult || !this.data.wheelReady) {
+        console.log('🚨 执行最终强制修复')
+        this.setData({
+          wheelReady: true,
+          hideWheel: false,
+          wheelVisible: true,
+          showResult: false,
+          isDrawing: false,
+          // 强制重绘转盘
+          forceUpdate: Date.now()
+        })
+        
+        // 重新绘制转盘
+        if (this.canvasCtx) {
+          this.drawWheel()
+        }
+      }
+    }, 500)
   },
 
   /**

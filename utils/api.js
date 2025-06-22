@@ -60,11 +60,11 @@ const request = (options) => {
           status: res.statusCode
         })
 
-        // 统一错误处理
+        // 🔴 根据后端文档统一错误处理
         if (res.statusCode === 200) {
           if (res.data.code === 0) {
             resolve(res.data)
-          } else if (res.data.code === 1002 || res.data.code === 2001) {
+          } else if (res.data.code === 401) {
             // Token过期或无效，尝试刷新
             if (retryCount < maxRetry) {
               app.refreshToken().then(() => {
@@ -80,25 +80,60 @@ const request = (options) => {
               reject(res.data)
             }
           } else {
-            // 其他业务错误
+            // 其他业务错误 - 统一错误提示
+            const errorMessage = res.data.msg || res.data.message || '操作失败'
             if (showLoading) {
               wx.showToast({
-                title: res.data.msg || '操作失败',
+                title: errorMessage,
                 icon: 'none',
                 duration: 2000
               })
             }
-            reject(res.data)
-          }
-        } else {
-          // HTTP状态码错误
-          if (showLoading) {
-            wx.showToast({
-              title: `网络错误 ${res.statusCode}`,
-              icon: 'none'
+            reject({
+              code: res.data.code,
+              msg: errorMessage,
+              data: res.data.data || null
             })
           }
-          reject({ code: res.statusCode, msg: `网络错误 ${res.statusCode}` })
+        } else {
+          // HTTP状态码错误 - 根据状态码给出具体提示
+          let errorMessage = '网络错误'
+          
+          switch (res.statusCode) {
+            case 400:
+              errorMessage = '请求参数错误'
+              break
+            case 403:
+              errorMessage = '权限不足'
+              break
+            case 404:
+              errorMessage = '接口不存在'
+              break
+            case 500:
+              errorMessage = '服务器内部错误'
+              break
+            case 502:
+              errorMessage = '网关错误'
+              break
+            case 503:
+              errorMessage = '服务暂不可用'
+              break
+            default:
+              errorMessage = `网络错误 ${res.statusCode}`
+          }
+          
+          if (showLoading) {
+            wx.showToast({
+              title: errorMessage,
+              icon: 'none',
+              duration: 2000
+            })
+          }
+          reject({ 
+            code: res.statusCode, 
+            msg: errorMessage,
+            data: null
+          })
         }
       },
       fail(err) {
@@ -156,7 +191,7 @@ const request = (options) => {
           // 返回标准化的错误对象
           reject({ 
             code: errorCode, 
-            msg: errorMsg, 
+            message: errorMsg, 
             error: err,
             url: url,
             method: method
@@ -177,7 +212,7 @@ const smartApiCall = (realApiCall, mockData = {}) => {
       setTimeout(() => {
         resolve({
           code: 0,
-          msg: 'success',
+          message: 'success',
           data: mockData
         })
       }, Math.random() * 1000 + 200) // 模拟网络延迟
@@ -186,6 +221,85 @@ const smartApiCall = (realApiCall, mockData = {}) => {
     // 生产环境调用真实API
     return realApiCall()
   }
+}
+
+/**
+ * 🔴 Mock请求函数 - 用于开发环境模拟API调用
+ */
+const mockRequest = (url, data = {}) => {
+  console.log('🔧 Mock请求:', url, data)
+  
+  // 根据URL返回不同的Mock数据
+  let mockData = {}
+  
+  if (url.includes('/lottery/config')) {
+    mockData = {
+      prizes: [
+        { id: 1, name: '八八折券', angle: 0, color: '#FF6B35', probability: 0.1500, is_activity: true, type: 'coupon', value: 0.88 },
+        { id: 2, name: '九八折券', angle: 45, color: '#4ECDC4', probability: 0.2000, is_activity: false, type: 'coupon', value: 0.98 },
+        { id: 3, name: '甜品1份', angle: 90, color: '#FFD93D', probability: 0.2500, is_activity: false, type: 'physical', value: 0 },
+        { id: 4, name: '青菜1份', angle: 135, color: '#6BCF7F', probability: 0.1500, is_activity: false, type: 'physical', value: 0 },
+        { id: 5, name: '虾1份', angle: 180, color: '#FF6B6B', probability: 0.1000, is_activity: false, type: 'physical', value: 0 },
+        { id: 6, name: '花甲1份', angle: 225, color: '#4DABF7', probability: 0.0800, is_activity: false, type: 'physical', value: 0 },
+        { id: 7, name: '鱿鱼1份', angle: 270, color: '#9775FA', probability: 0.0500, is_activity: false, type: 'physical', value: 0 },
+        { id: 8, name: '生腌拼盘', angle: 315, color: '#FFB84D', probability: 0.0200, is_activity: true, type: 'physical', value: 0 }
+      ],
+      cost_points: 100,
+      daily_limit: 10,
+      rules: '每次抽奖消耗100积分，每日最多可抽奖10次'
+    }
+  } else if (url.includes('/lottery/draw')) {
+    // 🔴 模拟真实的抽奖逻辑，根据配置的奖品返回结果
+    const prizes = [
+      { id: 1, name: '八八折券', angle: 0, probability: 0.15 },
+      { id: 2, name: '九八折券', angle: 45, probability: 0.20 },
+      { id: 3, name: '甜品1份', angle: 90, probability: 0.25 },
+      { id: 4, name: '青菜1份', angle: 135, probability: 0.15 },
+      { id: 5, name: '虾1份', angle: 180, probability: 0.10 },
+      { id: 6, name: '花甲1份', angle: 225, probability: 0.08 },
+      { id: 7, name: '鱿鱼1份', angle: 270, probability: 0.05 },
+      { id: 8, name: '生腌拼盘', angle: 315, probability: 0.02 }
+    ]
+    
+    // 按概率抽奖
+    const random = Math.random()
+    let cumulative = 0
+    let selectedPrize = prizes[2] // 默认甜品1份
+    
+    for (const prize of prizes) {
+      cumulative += prize.probability
+      if (random <= cumulative) {
+        selectedPrize = prize
+        break
+      }
+    }
+    
+    mockData = {
+      results: [
+        {
+          prize_id: selectedPrize.id,
+          prize_name: selectedPrize.name,
+          angle: selectedPrize.angle + Math.random() * 10 - 5, // 添加随机偏移
+          is_near_miss: false,
+          prize_value: 0
+        }
+      ],
+      remaining_points: 1400, // 模拟扣除积分后的余额
+      today_draw_count: 3
+    }
+  } else {
+    mockData = { message: 'Mock data for ' + url }
+  }
+  
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        code: 0,
+        message: 'success',
+        data: mockData
+      })
+    }, Math.random() * 800 + 300) // 模拟网络延迟
+  })
 }
 
 /**
@@ -198,48 +312,50 @@ const authAPI = {
    */
   sendCode(phone) {
     const realApiCall = () => request({
-      url: '/api/auth/send-code',
+      url: '/auth/send-code',
       method: 'POST',
       data: { phone },
-      needAuth: false
+      needAuth: false,
+      showLoading: true
     })
 
+    // Mock数据
     const mockData = {
-      expire_time: 300,
-      can_resend_after: 60
+      phone: phone,
+      expires_in: 300,
+      verification_code: '123456'
     }
 
     return smartApiCall(realApiCall, mockData)
   },
 
   /**
-   * 手机号登录/注册
+   * 登录注册
    * 后端接口: POST /api/auth/login
    */
   login(phone, code) {
     const realApiCall = () => request({
-      url: '/api/auth/login',
+      url: '/auth/login',
       method: 'POST',
       data: { phone, code },
-      needAuth: false
+      needAuth: false,
+      showLoading: true
     })
 
+    // Mock数据 - 根据后端文档格式
     const mockData = {
-      access_token: 'mock_access_token_' + Date.now(),
-      refresh_token: 'mock_refresh_token_' + Date.now(),
+      access_token: 'mock_access_token_123456',
+      refresh_token: 'mock_refresh_token_123456',
       expires_in: 7200,
+      token_type: 'Bearer',
       user_info: {
         user_id: 1001,
-        mobile: phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
-        nickname: `用户${phone.slice(-4)}`,
-        avatar: '/images/default-avatar.png',
-        total_points: 1000,
+        phone: phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+        total_points: 1500,
         is_merchant: false,
-        wx_openid: 'mock_openid_' + Date.now(),
-        device_info: {},
-        last_login: new Date().toISOString(),
-        status: 'active',
-        created_at: new Date().toISOString()
+        nickname: '测试用户',
+        avatar: '/images/default-avatar.png',
+        status: 'active'
       }
     }
 
@@ -247,23 +363,22 @@ const authAPI = {
   },
 
   /**
-   * Token刷新
+   * 刷新Token
    * 后端接口: POST /api/auth/refresh
    */
   refresh(refreshToken) {
     const realApiCall = () => request({
-      url: '/api/auth/refresh',
+      url: '/auth/refresh',
       method: 'POST',
-      data: {},
-      header: {
-        'Authorization': `Bearer ${refreshToken}`
-      },
-      needAuth: false
+      data: { refresh_token: refreshToken },
+      needAuth: false,
+      showLoading: false
     })
 
+    // Mock数据
     const mockData = {
-      access_token: 'new_mock_access_token_' + Date.now(),
-      refresh_token: 'new_mock_refresh_token_' + Date.now(),
+      access_token: 'new_mock_access_token_123456',
+      refresh_token: 'new_mock_refresh_token_123456',
       expires_in: 7200
     }
 
@@ -271,16 +386,18 @@ const authAPI = {
   },
 
   /**
-   * 验证Token有效性
-   * 后端接口: GET /api/auth/verify-token
+   * 验证Token
+   * 后端接口: GET /api/auth/verify
    */
   verifyToken() {
     const realApiCall = () => request({
-      url: '/api/auth/verify-token',
+      url: '/auth/verify',
       method: 'GET',
-      needAuth: true
+      needAuth: true,
+      showLoading: false
     })
 
+    // Mock数据
     const mockData = {
       valid: true,
       user_info: app.globalData.mockUser
@@ -295,14 +412,13 @@ const authAPI = {
    */
   logout() {
     const realApiCall = () => request({
-      url: '/api/auth/logout',
+      url: '/auth/logout',
       method: 'POST',
-      needAuth: true
+      needAuth: true,
+      showLoading: false
     })
 
-    const mockData = { success: true }
-
-    return smartApiCall(realApiCall, mockData)
+    return smartApiCall(realApiCall, {})
   }
 }
 
@@ -316,23 +432,26 @@ const lotteryAPI = {
    */
   getConfig() {
     const realApiCall = () => request({
-      url: '/api/lottery/config',
+      url: '/lottery/config',
       method: 'GET',
       needAuth: true
     })
 
+    // Mock数据 - 根据后端文档格式
     const mockData = {
-      cost_points: 100,
       prizes: [
-        { id: 1, name: '八八折券', type: 'coupon', value: 88, angle: 0, color: '#FF6B6B', probability: 0.05, is_activity: true },
-        { id: 2, name: '50积分', type: 'points', value: 50, angle: 45, color: '#4ECDC4', probability: 0.20, is_activity: false },
-        { id: 3, name: '九九折券', type: 'coupon', value: 99, angle: 90, color: '#45B7D1', probability: 0.10, is_activity: false },
-        { id: 4, name: '100积分', type: 'points', value: 100, angle: 135, color: '#96CEB4', probability: 0.15, is_activity: false },
-        { id: 5, name: '免费咖啡', type: 'physical', value: 25, angle: 180, color: '#FFEAA7', probability: 0.08, is_activity: true },
-        { id: 6, name: '30积分', type: 'points', value: 30, angle: 225, color: '#DDA0DD', probability: 0.25, is_activity: false },
-        { id: 7, name: '神秘大奖', type: 'physical', value: 500, angle: 270, color: '#FF7675', probability: 0.02, is_activity: true },
-        { id: 8, name: '谢谢参与', type: 'empty', value: 0, angle: 315, color: '#74B9FF', probability: 0.15, is_activity: false }
-      ]
+        { id: 1, name: '八八折券', angle: 0, color: '#FF6B35', probability: 0.1500, is_activity: true, type: 'coupon', value: 0.88 },
+        { id: 2, name: '九八折券', angle: 45, color: '#4ECDC4', probability: 0.2000, is_activity: false, type: 'coupon', value: 0.98 },
+        { id: 3, name: '甜品1份', angle: 90, color: '#FFD93D', probability: 0.2500, is_activity: false, type: 'physical', value: 0 },
+        { id: 4, name: '青菜1份', angle: 135, color: '#6BCF7F', probability: 0.1500, is_activity: false, type: 'physical', value: 0 },
+        { id: 5, name: '虾1份', angle: 180, color: '#FF6B6B', probability: 0.1000, is_activity: false, type: 'physical', value: 0 },
+        { id: 6, name: '花甲1份', angle: 225, color: '#4DABF7', probability: 0.0800, is_activity: false, type: 'physical', value: 0 },
+        { id: 7, name: '鱿鱼1份', angle: 270, color: '#9775FA', probability: 0.0500, is_activity: false, type: 'physical', value: 0 },
+        { id: 8, name: '生腌拼盘', angle: 315, color: '#FFB84D', probability: 0.0200, is_activity: true, type: 'physical', value: 0 }
+      ],
+      cost_points: 100,
+      daily_limit: 10,
+      rules: '每次抽奖消耗100积分，每日最多可抽奖10次'
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -344,32 +463,50 @@ const lotteryAPI = {
    */
   draw(drawType = 'single', count = 1) {
     const realApiCall = () => request({
-      url: '/api/lottery/draw',
+      url: '/lottery/draw',
       method: 'POST',
       data: { draw_type: drawType, count },
       needAuth: true
     })
 
-    // Mock抽奖结果
+    // Mock数据 - 根据后端文档格式，使用统一的奖品配置
     const prizes = [
-      { id: 2, name: '50积分', type: 'points', value: 50, angle: 45 },
-      { id: 6, name: '30积分', type: 'points', value: 30, angle: 225 },
-      { id: 8, name: '谢谢参与', type: 'empty', value: 0, angle: 315 }
+      { id: 1, name: '八八折券', angle: 0, probability: 0.15 },
+      { id: 2, name: '九八折券', angle: 45, probability: 0.20 },
+      { id: 3, name: '甜品1份', angle: 90, probability: 0.25 },
+      { id: 4, name: '青菜1份', angle: 135, probability: 0.15 },
+      { id: 5, name: '虾1份', angle: 180, probability: 0.10 },
+      { id: 6, name: '花甲1份', angle: 225, probability: 0.08 },
+      { id: 7, name: '鱿鱼1份', angle: 270, probability: 0.05 },
+      { id: 8, name: '生腌拼盘', angle: 315, probability: 0.02 }
     ]
     
-    const results = []
-    for (let i = 0; i < count; i++) {
-      const randomPrize = prizes[Math.floor(Math.random() * prizes.length)]
-      results.push({
-        ...randomPrize,
-        is_near_miss: Math.random() < 0.1 // 10%概率触发差点中奖
-      })
+    // 按概率抽奖
+    const random = Math.random()
+    let cumulative = 0
+    let selectedPrize = prizes[2] // 默认甜品1份
+    
+    for (const prize of prizes) {
+      cumulative += prize.probability
+      if (random <= cumulative) {
+        selectedPrize = prize
+        break
+      }
     }
-
+    
     const mockData = {
-      results,
-      points_cost: count * 100,
-      remaining_points: (app.globalData.userInfo?.total_points || 1000) - count * 100
+      results: [
+        {
+          prize_id: selectedPrize.id,
+          prize_name: selectedPrize.name,
+          angle: selectedPrize.angle,
+          is_near_miss: false,
+          prize_value: 0,
+          remaining_points: 1400 // 🔴 确保返回剩余积分
+        }
+      ],
+      remaining_points: 1400,
+      today_draw_count: 3
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -381,7 +518,7 @@ const lotteryAPI = {
    */
   getRecords(page = 1, pageSize = 20) {
     const realApiCall = () => request({
-      url: `/api/lottery/records?page=${page}&size=${pageSize}`,
+      url: `/lottery/records?page=${page}&size=${pageSize}`,
       method: 'GET',
       needAuth: true
     })
@@ -390,17 +527,17 @@ const lotteryAPI = {
       records: [
         {
           id: 1,
-          prize_name: '50积分',
-          prize_type: 'points',
-          prize_value: 50,
-          points_cost: 100,
-          created_at: '2024-12-19 14:30:00'
+          prize_name: '100积分',
+          prize_value: 100,
+          created_at: '2024-12-19T14:30:00Z'
         }
       ],
-      total: 1,
-      page,
-      pageSize,
-      totalPages: 1
+      pagination: {
+        page: 1,
+        size: 20,
+        total: 1,
+        has_more: false
+      }
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -412,18 +549,17 @@ const lotteryAPI = {
    */
   getStatistics() {
     const realApiCall = () => request({
-      url: '/api/lottery/statistics',
+      url: '/lottery/statistics',
       method: 'GET',
       needAuth: true
     })
 
     const mockData = {
-      total_draws: 50,
-      total_points_spent: 5000,
-      total_points_won: 2500,
-      win_rate: 0.6,
-      favorite_prize: '50积分',
-      recent_draws: 5
+      total_draws: 10,
+      total_prizes: 8,
+      total_points_won: 560,
+      today_draws: 3,
+      win_rate: 0.8
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -431,7 +567,7 @@ const lotteryAPI = {
 }
 
 /**
- * 🔴 商品兑换API接口 - 根据后端文档实现
+ * 🔴 商品兑换相关API接口 - 根据后端文档实现
  */
 const exchangeAPI = {
   /**
@@ -440,19 +576,17 @@ const exchangeAPI = {
    */
   getCategories() {
     const realApiCall = () => request({
-      url: '/api/exchange/categories',
+      url: '/exchange/categories',
       method: 'GET',
-      needAuth: false
+      needAuth: true
     })
 
     const mockData = {
       categories: [
-        { id: 'all', name: '全部商品', count: 100 },
-        { id: 'drinks', name: '饮品', count: 25 },
-        { id: 'food', name: '美食', count: 30 },
-        { id: 'snacks', name: '零食', count: 20 },
-        { id: 'digital', name: '数码', count: 15 },
-        { id: 'lifestyle', name: '生活用品', count: 10 }
+        { id: 'all', name: '全部', count: 50 },
+        { id: 'coupon', name: '优惠券', count: 20 },
+        { id: 'physical', name: '实物商品', count: 15 },
+        { id: 'virtual', name: '虚拟商品', count: 15 }
       ]
     }
 
@@ -465,75 +599,50 @@ const exchangeAPI = {
    */
   getProducts(page = 1, pageSize = 20, category = 'all', sort = 'points') {
     const realApiCall = () => request({
-      url: `/api/exchange/products?page=${page}&size=${pageSize}&category=${category}&sort=${sort}`,
+      url: `/exchange/products?page=${page}&size=${pageSize}&category=${category}&sort=${sort}`,
       method: 'GET',
       needAuth: true
     })
 
-    // 模拟商品数据
+    // 生成Mock商品数据
     const generateMockProducts = () => {
-      const products = []
-      const categories = ['drinks', 'food', 'snacks', 'digital', 'lifestyle']
-      const names = {
-        drinks: ['星巴克拿铁', '喜茶芝芝莓莓', '瑞幸咖啡', '奈雪的茶', '茶百道'],
-        food: ['肯德基全家桶', '麦当劳套餐', '必胜客披萨', '海底捞火锅', '西贝莜面村'],
-        snacks: ['三只松鼠坚果', '良品铺子零食', '百草味干果', '来伊份小食', '盐津铺子'],
-        digital: ['华为蓝牙耳机', '小米充电宝', '苹果数据线', '罗技鼠标', '键盘'],
-        lifestyle: ['洗发水套装', '面膜套装', '保温杯', '雨伞', '毛巾套装']
-      }
+      const categories = ['优惠券', '实物商品', '虚拟商品']
+      const productNames = [
+        '星巴克50元券', '麦当劳套餐券', '肯德基全家桶', '喜茶饮品券',
+        '小米手机壳', '无线耳机', 'iPad保护套', '充电宝',
+        '腾讯视频会员', '爱奇艺会员', '网易云音乐会员', 'QQ音乐绿钻'
+      ]
       
-      for (let i = 1; i <= 100; i++) {
-        const cat = categories[Math.floor(Math.random() * categories.length)]
-        const nameList = names[cat]
-        const name = nameList[Math.floor(Math.random() * nameList.length)]
+      const products = []
+      for (let i = 1; i <= 20; i++) {
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)]
+        const randomName = productNames[Math.floor(Math.random() * productNames.length)]
+        const basePoints = Math.floor(Math.random() * 5000) + 500
         
         products.push({
           commodity_id: i,
-          name: `${name} #${i}`,
-          description: `精品${name}，品质保证`,
-          category: cat,
-          exchange_points: Math.floor(Math.random() * 2000) + 200,
-          stock: Math.floor(Math.random() * 100) + 1,
-          image: `/images/products/${cat}/${i % 5 + 1}.jpg`,
+          name: `${randomName} #${i}`,
+          description: `这是一个${randomCategory}商品，具有很高的性价比和实用价值。`,
+          category: randomCategory,
+          exchange_points: basePoints,
+          stock: Math.floor(Math.random() * 100) + 10,
+          image: `/images/products/product-${i % 8 + 1}.jpg`,
           status: 'active',
-          is_hot: Math.random() < 0.2,
-          sort_order: i,
-          rating: (Math.random() * 2 + 3).toFixed(1),
-          sales_count: Math.floor(Math.random() * 500)
+          is_hot: Math.random() > 0.7,
+          sort_order: Math.floor(Math.random() * 1000)
         })
       }
-      
       return products
     }
 
-    const allProducts = generateMockProducts()
-    let filteredProducts = allProducts
-
-    // 分类筛选
-    if (category !== 'all') {
-      filteredProducts = allProducts.filter(p => p.category === category)
-    }
-
-    // 排序
-    if (sort === 'points') {
-      filteredProducts.sort((a, b) => a.exchange_points - b.exchange_points)
-    } else if (sort === 'sales') {
-      filteredProducts.sort((a, b) => b.sales_count - a.sales_count)
-    } else if (sort === 'rating') {
-      filteredProducts.sort((a, b) => b.rating - a.rating)
-    }
-
-    // 分页
-    const start = (page - 1) * pageSize
-    const end = start + pageSize
-    const pagedProducts = filteredProducts.slice(start, end)
-
     const mockData = {
-      products: pagedProducts,
-      total: filteredProducts.length,
-      page,
-      pageSize,
-      totalPages: Math.ceil(filteredProducts.length / pageSize)
+      products: generateMockProducts(),
+      pagination: {
+        page: 1,
+        size: 20,
+        total: 100,
+        has_more: true
+      }
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -543,26 +652,20 @@ const exchangeAPI = {
    * 商品兑换
    * 后端接口: POST /api/exchange/redeem
    */
-  redeem(productId, quantity = 1, deliveryInfo = {}) {
+  redeem(productId, quantity = 1) {
     const realApiCall = () => request({
-      url: '/api/exchange/redeem',
+      url: '/exchange/redeem',
       method: 'POST',
-      data: {
-        product_id: productId,
-        quantity,
-        delivery_address: deliveryInfo
-      },
+      data: { product_id: productId, quantity },
       needAuth: true
     })
 
     const mockData = {
-      order_id: 'ORD' + Date.now(),
-      product_id: productId,
-      quantity,
-      points_cost: quantity * 500,
-      status: 'processing',
-      estimated_delivery: '3-5个工作日',
-      tracking_number: null
+      record_id: `EX${Date.now()}`,
+      product_name: '星巴克50元券',
+      points_cost: 4500,
+      remaining_points: 1000,
+      exchange_time: new Date().toISOString()
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -574,7 +677,7 @@ const exchangeAPI = {
    */
   getRecords(page = 1, pageSize = 20, status = 'all') {
     const realApiCall = () => request({
-      url: `/api/exchange/records?page=${page}&size=${pageSize}&status=${status}`,
+      url: `/exchange/records?page=${page}&size=${pageSize}&status=${status}`,
       method: 'GET',
       needAuth: true
     })
@@ -583,19 +686,18 @@ const exchangeAPI = {
       records: [
         {
           id: 1,
-          order_id: 'ORD202412190001',
-          product_name: '星巴克拿铁',
-          quantity: 1,
-          points_cost: 800,
+          product_name: '星巴克50元券',
+          points_cost: 4500,
           status: 'completed',
-          created_at: '2024-12-19 14:30:00',
-          completed_at: '2024-12-20 10:00:00'
+          created_at: '2024-12-19T14:30:00Z'
         }
       ],
-      total: 1,
-      page,
-      pageSize,
-      totalPages: 1
+      pagination: {
+        page: 1,
+        size: 20,
+        total: 1,
+        has_more: false
+      }
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -603,60 +705,60 @@ const exchangeAPI = {
 }
 
 /**
- * 🔴 拍照上传API接口 - 根据后端文档实现
+ * 🔴 图片上传相关API接口 - 根据后端文档实现
  */
 const photoAPI = {
   /**
-   * 图片上传
+   * 上传图片
    * 后端接口: POST /api/photo/upload
    */
-  upload(filePath) {
-    if (shouldUseMock()) {
-      // 开发环境模拟上传
-      return new Promise((resolve) => {
+  upload(filePath, userAmount) {
+    return new Promise((resolve, reject) => {
+      if (shouldUseMock()) {
+        // Mock数据
         setTimeout(() => {
           resolve({
             code: 0,
-            msg: 'success',
+            message: '上传成功',
             data: {
-              upload_id: 'UP' + Date.now(),
-              image_url: filePath,
-              estimated_amount: (50 + Math.random() * 200).toFixed(2), // 预估金额
-              points_awarded: 0, // 上传时不给积分，需要审核
-              review_status: 'pending',
-              estimated_review_time: '1-24小时'
+              upload_id: `UP${Date.now()}`,
+              image_url: 'https://mock-image-url.com/image.jpg',
+              amount: userAmount,
+              status: 'pending'
             }
           })
         }, 2000)
-      })
-    } else {
-      // 生产环境真实上传
-      return new Promise((resolve, reject) => {
-        wx.uploadFile({
-          url: app.globalData.baseUrl + '/api/photo/upload',
-          filePath: filePath,
-          name: 'file',
-          header: {
-            'Authorization': `Bearer ${app.globalData.accessToken}`
-          },
-          success(res) {
-            try {
-              const data = JSON.parse(res.data)
-              if (data.code === 0) {
-                resolve(data)
-              } else {
-                reject(data)
-              }
-            } catch (error) {
-              reject({ code: -1, msg: '响应解析失败' })
+        return
+      }
+
+      // 真实上传
+      wx.uploadFile({
+        url: app.globalData.baseUrl + '/photo/upload',
+        filePath,
+        name: 'image',
+        formData: {
+          user_amount: userAmount
+        },
+        header: {
+          'Authorization': `Bearer ${app.globalData.accessToken}`
+        },
+        success(res) {
+          try {
+            const data = JSON.parse(res.data)
+            if (data.code === 0) {
+              resolve(data)
+            } else {
+              reject(data)
             }
-          },
-          fail(err) {
-            reject({ code: -1, msg: '上传失败', error: err })
+          } catch (error) {
+            reject({ code: -1, message: '响应解析失败' })
           }
-        })
+        },
+        fail(err) {
+          reject({ code: -1, message: '上传失败', error: err })
+        }
       })
-    }
+    })
   },
 
   /**
@@ -665,7 +767,7 @@ const photoAPI = {
    */
   getRecords(page = 1, pageSize = 20, status = 'all') {
     const realApiCall = () => request({
-      url: `/api/photo/records?page=${page}&size=${pageSize}&status=${status}`,
+      url: `/photo/records?page=${page}&size=${pageSize}&status=${status}`,
       method: 'GET',
       needAuth: true
     })
@@ -673,22 +775,22 @@ const photoAPI = {
     const mockData = {
       records: [
         {
-          id: 1,
-          upload_id: 'UP202412190001',
-          image_url: '/temp/upload_image.jpg',
-          estimated_amount: 58.50,
-          actual_amount: 58.50,
+          upload_id: 'UP123456789',
+          image_url: 'https://mock-image-url.com/image.jpg',
+          amount: 58.5,
+          user_amount: 60.0,
           points_awarded: 585,
           review_status: 'approved',
-          review_reason: '小票清晰，审核通过',
-          upload_time: '2024-12-19 14:30:00',
-          review_time: '2024-12-19 16:00:00'
+          review_reason: '审核通过',
+          created_at: '2024-12-19T14:30:00Z'
         }
       ],
-      total: 1,
-      page,
-      pageSize,
-      totalPages: 1
+      pagination: {
+        page: 1,
+        size: 20,
+        total: 1,
+        has_more: false
+      }
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -705,7 +807,7 @@ const userAPI = {
    */
   getUserInfo() {
     const realApiCall = () => request({
-      url: '/api/user/info',
+      url: '/user/info',
       method: 'GET',
       needAuth: true
     })
@@ -721,17 +823,13 @@ const userAPI = {
    */
   updateUserInfo(userInfo) {
     const realApiCall = () => request({
-      url: '/api/user/info',
+      url: '/user/info',
       method: 'PUT',
       data: userInfo,
       needAuth: true
     })
 
-    const mockData = {
-      ...app.globalData.mockUser,
-      ...userInfo,
-      updated_at: new Date().toISOString()
-    }
+    const mockData = { ...app.globalData.mockUser, ...userInfo }
 
     return smartApiCall(realApiCall, mockData)
   },
@@ -742,20 +840,20 @@ const userAPI = {
    */
   getStatistics() {
     const realApiCall = () => request({
-      url: '/api/user/statistics',
+      url: '/user/statistics',
       method: 'GET',
       needAuth: true
     })
 
     const mockData = {
+      total_points: 1500,
+      total_draws: 25,
+      total_exchanges: 5,
+      total_uploads: 10,
       total_points_earned: 5000,
       total_points_spent: 3500,
-      current_points: 1500,
-      total_draws: 35,
-      total_exchanges: 7,
-      total_uploads: 12,
-      member_days: 365,
-      achievement_count: 8
+      level: 3,
+      next_level_points: 2000
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -763,11 +861,11 @@ const userAPI = {
 
   /**
    * 获取积分记录
-   * 后端接口: GET /api/points/records
+   * 后端接口: GET /api/user/points-records
    */
   getPointsRecords(page = 1, pageSize = 20, type = 'all') {
     const realApiCall = () => request({
-      url: `/api/points/records?page=${page}&size=${pageSize}&type=${type}`,
+      url: `/user/points-records?page=${page}&size=${pageSize}&type=${type}`,
       method: 'GET',
       needAuth: true
     })
@@ -776,27 +874,27 @@ const userAPI = {
       records: [
         {
           id: 1,
-          type: 'earn',
-          points: 585,
-          description: '拍照上传奖励',
-          source: 'photo_upload',
-          balance_after: 1585,
-          created_at: '2024-12-19 14:30:00'
+          change_points: -100,
+          reason: 'lottery_draw',
+          reason_text: '抽奖消费',
+          balance_after: 1400,
+          created_at: '2024-12-19T14:30:00Z'
         },
         {
           id: 2,
-          type: 'spend',
-          points: -100,
-          description: '单次抽奖',
-          source: 'lottery',
-          balance_after: 1485,
-          created_at: '2024-12-19 15:00:00'
+          change_points: 585,
+          reason: 'photo_upload',
+          reason_text: '图片上传奖励',
+          balance_after: 1500,
+          created_at: '2024-12-19T13:30:00Z'
         }
       ],
-      total: 2,
-      page,
-      pageSize,
-      totalPages: 1
+      pagination: {
+        page: 1,
+        size: 20,
+        total: 2,
+        has_more: false
+      }
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -804,21 +902,20 @@ const userAPI = {
 
   /**
    * 签到
-   * 后端接口: POST /api/points/check-in
+   * 后端接口: POST /api/user/check-in
    */
   checkIn() {
     const realApiCall = () => request({
-      url: '/api/points/check-in',
+      url: '/user/check-in',
       method: 'POST',
       needAuth: true
     })
 
     const mockData = {
-      success: true,
-      points_awarded: 10,
-      consecutive_days: 5,
-      next_reward_points: 20,
-      next_reward_days: 7
+      points_awarded: 50,
+      continuous_days: 3,
+      is_double_reward: false,
+      total_points: 1550
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -826,7 +923,7 @@ const userAPI = {
 }
 
 /**
- * 🔴 商家管理API接口 - 根据后端文档实现
+ * 🔴 商家相关API接口 - 根据后端文档实现
  */
 const merchantAPI = {
   /**
@@ -835,23 +932,16 @@ const merchantAPI = {
    */
   apply(authInfo = {}) {
     const realApiCall = () => request({
-      url: '/api/merchant/apply',
+      url: '/merchant/apply',
       method: 'POST',
-      data: {
-        store_name: authInfo.storeName || '测试餐厅',
-        business_license: authInfo.businessLicense || '123456789',
-        contact_person: authInfo.contactPerson || '张经理',
-        contact_phone: authInfo.contactPhone || '13800138000',
-        description: authInfo.description || '申请商家权限'
-      },
+      data: authInfo,
       needAuth: true
     })
 
     const mockData = {
-      application_id: 'APP' + Date.now(),
+      application_id: `APP${Date.now()}`,
       status: 'pending',
-      estimated_review_time: '1-3个工作日',
-      submitted_at: new Date().toISOString()
+      estimated_review_time: '3-5个工作日'
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -863,18 +953,17 @@ const merchantAPI = {
    */
   getStatistics() {
     const realApiCall = () => request({
-      url: '/api/merchant/statistics',
+      url: '/merchant/statistics',
       method: 'GET',
       needAuth: true
     })
 
     const mockData = {
-      pending_reviews: 15,
+      pending_reviews: 5,
       approved_today: 8,
       rejected_today: 2,
-      total_reviews: 156,
-      avg_review_time: 2.5,
-      approval_rate: 0.85
+      total_reviews: 150,
+      total_points_awarded: 50000
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -886,7 +975,7 @@ const merchantAPI = {
    */
   getPendingReviews(page = 1, pageSize = 20) {
     const realApiCall = () => request({
-      url: `/api/merchant/pending-reviews?page=${page}&size=${pageSize}`,
+      url: `/merchant/pending-reviews?page=${page}&size=${pageSize}`,
       method: 'GET',
       needAuth: true
     })
@@ -894,51 +983,47 @@ const merchantAPI = {
     const mockData = {
       reviews: [
         {
-          review_id: 1,
+          upload_id: 'UP123456789',
           user_id: 1001,
-          upload_id: 'UP202412190001',
-          image_url: '/temp/receipt1.jpg',
-          input_amount: 58.50,
-          recognized_amount: 58.00,
-          match_status: 'matched',
-          upload_time: '2024-12-19 14:30:00',
-          user_info: {
-            nickname: '用户8000',
-            avatar: '/images/default-avatar.png'
-          }
+          image_url: 'https://mock-image-url.com/image.jpg',
+          amount: 58.5,
+          user_amount: 60.0,
+          created_at: '2024-12-19T14:30:00Z'
         }
       ],
-      total: 1,
-      page,
-      pageSize,
-      totalPages: 1
+      pagination: {
+        page: 1,
+        size: 20,
+        total: 5,
+        has_more: false
+      }
     }
 
     return smartApiCall(realApiCall, mockData)
   },
 
   /**
-   * 执行审核
+   * 审核上传
    * 后端接口: POST /api/merchant/review
    */
-  review(reviewId, action, points = 0, reason = '') {
+  review(uploadId, action, points = 0, reason = '') {
     const realApiCall = () => request({
-      url: '/api/merchant/review',
+      url: '/merchant/review',
       method: 'POST',
-      data: {
-        review_id: reviewId,
-        action,
-        points,
-        reason
+      data: { 
+        upload_id: uploadId, 
+        action, 
+        points_awarded: points, 
+        review_reason: reason 
       },
       needAuth: true
     })
 
     const mockData = {
-      success: true,
-      review_id: reviewId,
+      upload_id: uploadId,
       action,
       points_awarded: points,
+      review_reason: reason,
       review_time: new Date().toISOString()
     }
 
@@ -949,23 +1034,22 @@ const merchantAPI = {
    * 批量审核
    * 后端接口: POST /api/merchant/batch-review
    */
-  batchReview(reviewIds, action, reason = '') {
+  batchReview(uploadIds, action, reason = '') {
     const realApiCall = () => request({
-      url: '/api/merchant/batch-review',
+      url: '/merchant/batch-review',
       method: 'POST',
-      data: {
-        review_ids: reviewIds,
-        action,
-        reason
+      data: { 
+        upload_ids: uploadIds, 
+        action, 
+        review_reason: reason 
       },
       needAuth: true
     })
 
     const mockData = {
-      success: true,
-      processed_count: reviewIds.length,
-      failed_count: 0,
-      total_points_awarded: reviewIds.length * (action === 'approve' ? 500 : 0)
+      processed_count: uploadIds.length,
+      success_count: uploadIds.length,
+      failed_count: 0
     }
 
     return smartApiCall(realApiCall, mockData)
@@ -981,5 +1065,5 @@ module.exports = {
   merchantAPI,
   request,
   smartApiCall,
-  mockRequest: smartApiCall
+  mockRequest
 } 

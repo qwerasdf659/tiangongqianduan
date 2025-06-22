@@ -25,6 +25,9 @@ App({
     // 初始化全局数据
     this.initGlobalData()
     
+    // 初始化环境配置
+    this.initEnvironmentConfig()
+    
     // 初始化WebSocket管理器
     this.initWebSocket()
     
@@ -41,23 +44,49 @@ App({
    * 初始化全局数据
    */
   initGlobalData() {
+    // 引入环境配置
+    const ENV_CONFIG = require('./config/env.js')
+    const envConfig = ENV_CONFIG.getConfig()
+    
     // 确保全局数据结构完整
     this.globalData = {
       ...this.globalData,
+      // 环境配置
+      ...envConfig,
       // 确保关键字段有默认值
-      isDev: this.globalData.isDev || false,
-      needAuth: this.globalData.needAuth !== false, // 默认需要认证
       userInfo: this.globalData.userInfo || null,
       mockUser: this.globalData.mockUser || {
         user_id: 1001,
         nickname: '测试用户',
         avatar: '/images/default-avatar.png',
         total_points: 1500,
-        phone: '138****8000',
+        mobile: '138****8000',
         is_merchant: false,
         created_at: new Date().toISOString()
       }
     }
+  },
+
+  /**
+   * 初始化环境配置
+   */
+  initEnvironmentConfig() {
+    const ENV_CONFIG = require('./config/env.js')
+    const envConfig = ENV_CONFIG.getConfig()
+    
+    // 设置API地址
+    this.globalData.baseUrl = envConfig.baseUrl
+    this.globalData.wsUrl = envConfig.wsUrl
+    this.globalData.sealosConfig = envConfig.sealosConfig
+    this.globalData.isDev = envConfig.isDev
+    this.globalData.needAuth = envConfig.needAuth
+    
+    console.log('🔧 环境配置初始化完成:', {
+      env: require('./config/env.js').getCurrentEnv(),
+      isDev: this.globalData.isDev,
+      baseUrl: this.globalData.baseUrl,
+      wsUrl: this.globalData.wsUrl
+    })
   },
 
   /**
@@ -140,37 +169,6 @@ App({
   },
 
   globalData: {
-    // 🔴 环境配置 - 生产环境时需要修改
-    isDev: true,        // 开发环境标志，生产环境设为false
-    needAuth: false,    // 是否需要强制认证，生产环境设为true
-    
-    // 🔴 API服务地址配置 - 根据后端文档配置
-    api: {
-      dev: {
-        // 开发环境使用mock数据
-        baseUrl: 'https://dev-api.restaurant-points.com',
-        wsUrl: 'wss://dev-ws.restaurant-points.com'
-      },
-      prod: {
-        // 🔴 生产环境API地址 - 根据后端文档配置
-        baseUrl: 'https://rqchrlqndora.sealosbja.site',     // 后端服务地址
-        wsUrl: 'wss://rqchrlqndora.sealosbja.site:8080'     // WebSocket地址
-      }
-    },
-    
-    // 当前使用的API地址
-    baseUrl: '',
-    wsUrl: '',
-    
-    // 🔴 Sealos对象存储配置 - 根据后端文档配置
-    sealosConfig: {
-      endpoint: 'https://objectstorageapi.bja.sealos.run',  // 后端文档中的真实地址
-      bucket: 'tiangong',                                    // 后端文档中的存储桶
-      accessKeyId: 'br0za7uc',                              // 后端文档中的访问密钥
-      secretAccessKey: 'skxg8mk5gqfhf9xz',                  // 后端文档中的密钥
-      region: 'bja'                                          // 区域配置
-    },
-    
     // 用户信息
     userInfo: null,
     isLoggedIn: false,
@@ -180,7 +178,7 @@ App({
     refreshToken: null,
     tokenExpireTime: null,
     
-    // 🔴 数据库字段映射 - 根据后端文档的数据库设计
+    // 🔴 数据库字段映射 - 根据后端文档的8张核心表设计
     dbFieldMapping: {
       user: {
         id: 'user_id',
@@ -190,7 +188,6 @@ App({
         nickname: 'nickname',
         avatar: 'avatar',
         wxOpenid: 'wx_openid',
-        deviceInfo: 'device_info',
         lastLogin: 'last_login',
         status: 'status',
         createdAt: 'created_at',
@@ -208,7 +205,7 @@ App({
         costPoints: 'cost_points',
         status: 'status'
       },
-      commodity: {
+      product: {
         id: 'commodity_id',
         name: 'name',
         description: 'description',
@@ -219,8 +216,20 @@ App({
         status: 'status',
         isHot: 'is_hot',
         sortOrder: 'sort_order',
-        rating: 'rating',
         salesCount: 'sales_count'
+      },
+      uploadReview: {
+        uploadId: 'upload_id',
+        userId: 'user_id',
+        imageUrl: 'image_url',
+        amount: 'amount',
+        userAmount: 'user_amount',
+        pointsAwarded: 'points_awarded',
+        reviewStatus: 'review_status',
+        reviewerId: 'reviewer_id',
+        reviewReason: 'review_reason',
+        reviewTime: 'review_time',
+        createdAt: 'created_at'
       }
     },
     
@@ -233,7 +242,6 @@ App({
       nickname: '测试用户',
       avatar: '/images/default-avatar.png',
       wx_openid: 'mock_openid_123',
-      device_info: {},
       last_login: new Date().toISOString(),
       status: 'active',
       created_at: '2024-01-01 00:00:00'
@@ -253,21 +261,6 @@ App({
   },
 
   /**
-   * 初始化环境配置
-   */
-  initEnvironmentConfig() {
-    const config = this.globalData.isDev ? this.globalData.api.dev : this.globalData.api.prod
-    this.globalData.baseUrl = config.baseUrl
-    this.globalData.wsUrl = config.wsUrl
-    
-    console.log('🔧 环境配置初始化完成:', {
-      isDev: this.globalData.isDev,
-      baseUrl: this.globalData.baseUrl,
-      wsUrl: this.globalData.wsUrl
-    })
-  },
-
-  /**
    * 初始化WebSocket管理器
    */
   initWebSocket() {
@@ -279,73 +272,126 @@ App({
   },
 
   /**
-   * 设置WebSocket事件监听
+   * 🔴 设置WebSocket事件监听 - 根据后端文档实现
    */
   setupWebSocketListeners() {
-    const wsManager = this.globalData.wsManager
-    
-    // 连接成功
-    wsManager.on('connected', () => {
-      this.globalData.wsConnected = true
+    if (!this.globalData.wsManager) {
+      console.warn('WebSocket管理器未初始化')
+      return
+    }
+
+    // 监听连接事件
+    this.globalData.wsManager.on('connected', () => {
       console.log('✅ WebSocket连接成功')
+      this.globalData.wsConnected = true
     })
-    
-    // 连接断开
-    wsManager.on('disconnected', () => {
-      this.globalData.wsConnected = false
+
+    this.globalData.wsManager.on('disconnected', () => {
       console.log('🔌 WebSocket连接断开')
+      this.globalData.wsConnected = false
     })
-    
-    // 🔴 库存更新推送 - 根据后端文档实现
-    wsManager.on('stock_update', (event) => {
-      const { product_id, stock, operation } = event.data
-      console.log('📦 收到库存更新:', { product_id, stock, operation })
+
+    // 🔴 监听积分更新推送 - 根据后端文档实现
+    this.globalData.wsManager.on('points_update', (event) => {
+      console.log('💰 收到积分更新推送:', event)
       
-      // 更新本地缓存
-      this.updateProductStock(product_id, stock)
+      const { user_id, total_points, change_points, reason_text } = event.data
       
-      // 通知兑换页面更新
-      if (this.globalData.updateExchangeProducts) {
-        this.globalData.updateExchangeProducts()
-      }
-    })
-    
-    // 🔴 积分更新推送 - 根据后端文档实现
-    wsManager.on('points_update', (event) => {
-      const { user_id, total_points, change_points, reason } = event.data
-      console.log('💰 收到积分更新:', { user_id, total_points, change_points, reason })
-      
-      // 更新用户积分
+      // 更新全局用户积分
       if (this.globalData.userInfo && this.globalData.userInfo.user_id === user_id) {
         this.globalData.userInfo.total_points = total_points
         
-        // 显示积分变动提示
-        const title = change_points > 0 ? `+${change_points}积分` : `${change_points}积分`
+        // 显示积分变更提示
+        if (change_points !== 0) {
+          const changeText = change_points > 0 ? `+${change_points}` : `${change_points}`
+          wx.showToast({
+            title: `积分${changeText} (${reason_text})`,
+            icon: 'none',
+            duration: 3000
+          })
+        }
+      }
+      
+      // 通知所有页面更新积分显示
+      this.notifyAllPages('onPointsUpdate', { total_points, change_points, reason_text })
+    })
+
+    // 🔴 监听库存更新推送 - 根据后端文档实现
+    this.globalData.wsManager.on('stock_update', (event) => {
+      console.log('📦 收到库存更新推送:', event)
+      
+      const { product_id, stock, product_name } = event.data
+      
+      // 更新本地商品库存缓存
+      this.updateProductStock(product_id, stock)
+      
+      // 通知所有页面更新库存显示
+      this.notifyAllPages('onStockUpdate', { product_id, stock, product_name })
+      
+      // 显示库存变更提示
+      if (stock <= 5 && stock > 0) {
         wx.showToast({
-          title,
+          title: `${product_name} 库存不足`,
+          icon: 'none',
+          duration: 2000
+        })
+      } else if (stock === 0) {
+        wx.showToast({
+          title: `${product_name} 已售罄`,
           icon: 'none',
           duration: 2000
         })
       }
     })
-    
-    // 🔴 审核结果推送 - 根据后端文档实现
-    wsManager.on('review_result', (event) => {
-      const { upload_id, status, points_awarded, review_reason } = event.data
-      console.log('📋 收到审核结果:', { upload_id, status, points_awarded, review_reason })
+
+    // 🔴 监听审核结果推送 - 根据后端文档实现
+    this.globalData.wsManager.on('review_result', (event) => {
+      console.log('📋 收到审核结果推送:', event)
       
-      // 显示审核结果通知
-      const title = status === 'approved' ? '审核通过' : '审核未通过'
-      const content = `上传ID: ${upload_id}\n${review_reason}`
-      if (points_awarded > 0) {
-        content += `\n获得积分: ${points_awarded}`
+      const { upload_id, status, points_awarded, review_reason } = event.data
+      
+      // 显示审核结果弹窗
+      let title, content
+      
+      if (status === 'approved') {
+        title = '审核通过！'
+        content = `恭喜！您的小票审核通过\n获得积分：${points_awarded}分\n审核说明：${review_reason}`
+        
+        // 更新用户积分
+        if (this.globalData.userInfo) {
+          this.globalData.userInfo.total_points += points_awarded
+        }
+      } else if (status === 'rejected') {
+        title = '审核未通过'
+        content = `很抱歉，您的小票审核未通过\n审核说明：${review_reason}\n请重新上传清晰的小票图片`
+      } else {
+        title = '审核状态更新'
+        content = `上传ID：${upload_id}\n状态：${status}\n说明：${review_reason}`
       }
       
       wx.showModal({
         title,
         content,
-        showCancel: false
+        showCancel: false,
+        confirmText: status === 'approved' ? '太好了' : '知道了'
       })
+      
+      // 通知所有页面更新审核状态
+      this.notifyAllPages('onReviewResult', { upload_id, status, points_awarded, review_reason })
+    })
+
+    console.log('✅ WebSocket事件监听已设置完成')
+  },
+
+  /**
+   * 通知所有页面更新数据
+   */
+  notifyAllPages(eventName, data) {
+    const pages = getCurrentPages()
+    pages.forEach(page => {
+      if (page[eventName] && typeof page[eventName] === 'function') {
+        page[eventName](data)
+      }
     })
   },
 
@@ -401,11 +447,12 @@ App({
   },
 
   /**
-   * 连接WebSocket
+   * 连接WebSocket - 根据后端文档格式
    */
   connectWebSocket() {
     if (this.globalData.wsManager && this.globalData.accessToken) {
-      const wsUrl = `${this.globalData.wsUrl}?token=${this.globalData.accessToken}&version=1.0`
+      // 🔴 根据后端文档，直接使用wsUrl + token参数
+      const wsUrl = `${this.globalData.wsUrl}?token=${this.globalData.accessToken}&client_type=miniprogram`
       this.globalData.wsManager.connect(wsUrl)
     }
   },
@@ -420,7 +467,11 @@ App({
     API.authAPI.verifyToken().then((res) => {
       if (res.code === 0 && res.data.valid) {
         this.globalData.userInfo = res.data.user_info
+        this.globalData.isLoggedIn = true
         console.log('✅ Token验证成功')
+        
+        // 连接WebSocket
+        this.connectWebSocket()
       } else {
         console.log('❌ Token验证失败，重新登录')
         this.logout()
@@ -475,6 +526,9 @@ App({
         wx.setStorageSync('token_expire_time', this.globalData.tokenExpireTime)
         
         console.log('✅ Token刷新成功')
+        
+        // 重新连接WebSocket
+        this.connectWebSocket()
       } else {
         console.log('❌ Token刷新失败，重新登录')
         this.logout()
@@ -536,6 +590,6 @@ App({
       url: '/pages/auth/auth'
     })
     
-    console.log('�� 用户已退出登录')
+    console.log('✅ 用户已退出登录')
   }
 })

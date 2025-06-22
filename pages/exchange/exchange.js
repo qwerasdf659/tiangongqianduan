@@ -335,49 +335,57 @@ Page({
 
   /**
    * 连接WebSocket监听库存变化
+   * 🔴 根据后端文档实现库存实时同步
    */
   connectWebSocket() {
-    const wsManager = app.globalData.wsManager
-    if (wsManager && !app.globalData.wsConnected) {
-      wsManager.connect()
+    if (!app.globalData.wsManager) {
+      console.log('WebSocket管理器未初始化')
+      return
     }
-    
-    // 监听库存更新
-    if (wsManager) {
-      wsManager.on('stock_update', (data) => {
-        console.log('📦 收到库存更新:', data)
-        this.updateProductStock(data.data.product_id, data.data.stock)
-      })
-    }
+
+    // 监听库存更新推送
+    app.globalData.wsManager.on('stock_update', (data) => {
+      console.log('📦 收到库存更新推送:', data)
+      this.updateProductStock(data.data.product_id, data.data.stock)
+    })
+
+    console.log('✅ 已连接WebSocket，监听库存变化')
   },
 
   /**
    * 断开WebSocket连接
    */
   disconnectWebSocket() {
-    const wsManager = app.globalData.wsManager
-    if (wsManager) {
-      wsManager.off('stock_update')
+    if (app.globalData.wsManager) {
+      app.globalData.wsManager.off('stock_update')
+      console.log('🔌 已断开WebSocket库存监听')
     }
   },
 
   /**
    * 更新商品库存
+   * 🔴 根据后端WebSocket推送更新库存
+   * @param {Number} productId 商品ID
+   * @param {Number} newStock 新库存数量
    */
   updateProductStock(productId, newStock) {
     const products = this.data.products
-    const productIndex = products.findIndex(p => p.id === productId)
+    const productIndex = products.findIndex(p => p.id === productId || p.commodity_id === productId)
     
     if (productIndex !== -1) {
       products[productIndex].stock = newStock
       this.setData({ products })
       
-      // 显示库存更新提示
-      wx.showToast({
-        title: `${products[productIndex].name}库存已更新`,
-        icon: 'none',
-        duration: 1500
-      })
+      console.log(`📦 商品库存已更新: ID${productId} -> ${newStock}`)
+      
+      // 如果库存为0，显示缺货提示
+      if (newStock === 0) {
+        wx.showToast({
+          title: `${products[productIndex].name} 已售罄`,
+          icon: 'none',
+          duration: 2000
+        })
+      }
     }
   },
 

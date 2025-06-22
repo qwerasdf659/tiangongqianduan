@@ -132,15 +132,44 @@ text {
   padding: 15rpx;
 }
 
-/* 显示结果时的全局状态 */
+/* 显示结果时的全局状态 - 修复版本 */
 .lottery-container.showing-result .wheel-section,
 .lottery-container.showing-result .wheel-container,
 .lottery-container.showing-result .wheel-canvas,
 .lottery-container.showing-result .center-single-draw-btn,
 .lottery-container.showing-result .multi-draw-buttons,
-.lottery-container.showing-result .quick-actions,
-.lottery-container.showing-result .rules-section {
+.lottery-container.showing-result .quick-actions {
   z-index: -1 !important;
+}
+
+/* 🔴 修复：规则说明区域不应该被隐藏，移除z-index设置 */
+.lottery-container.showing-result .rules-section {
+  /* 移除 z-index: -1，让规则说明保持可见 */
+}
+
+/* 🔴 新增：转盘隐藏样式 */
+.wheel-section.hidden,
+.multi-draw-section.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* 🔴 抽奖结果显示时的背景优化 */
+.lottery-container.showing-result {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.lottery-container.showing-result::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  pointer-events: none;
 }
 
 /* 页面头部 */
