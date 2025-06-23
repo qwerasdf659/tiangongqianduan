@@ -427,7 +427,7 @@ Page({
   },
 
   /**
-   * 初始化Canvas - 确保按钮显示
+   * 初始化Canvas - 确保按钮显示，优化性能
    */
   initCanvas() {
     console.log('🎨 开始初始化Canvas...')
@@ -452,8 +452,8 @@ Page({
     // 立即设置为就绪，确保按钮显示
     this.setData({ wheelReady: true })
     
-    // 延迟初始化Canvas，但不影响按钮显示
-    setTimeout(() => {
+    // 🎯 优化：立即初始化Canvas，减少延迟
+    wx.nextTick(() => {
       try {
         const ctx = wx.createCanvasContext('wheelCanvas', this)
         if (!ctx) {
@@ -471,7 +471,7 @@ Page({
         console.error('❌ Canvas初始化失败:', error)
         // 即使失败也不影响功能使用
       }
-    }, 100)
+    })
   },
 
   /**
@@ -1044,98 +1044,54 @@ Page({
   },
 
   /**
-   * 统一的关闭结果弹窗方法
+   * 统一的关闭结果弹窗方法 - 优化版本：减少延迟，提升用户体验
    */
   closeResultModal() {
     console.log('🔄 关闭抽奖结果弹窗并恢复转盘')
     
-    // 🔴 修复：完整恢复页面状态
+    // 🎯 立即恢复页面状态，避免空白页面
     this.setData({ 
       showResult: false,
       isDrawing: false,
-      // 🔴 恢复转盘显示
       hideWheel: false,
       wheelVisible: true,
       resultData: null,
-      // 🔴 新增：确保所有关键状态正确
       wheelReady: true,
       canvasFallback: false,
       showStaticWheel: false,
       canvasError: false,
-      // 🔴 强制更新页面
       forceUpdate: Date.now()
     })
     
-    // 🔴 延迟执行完整恢复流程
-    setTimeout(() => {
-      console.log('🔧 执行完整页面恢复流程')
+    // 🎯 确保状态重置完成后再执行恢复操作
+    wx.nextTick(() => {
+      console.log('🔧 执行页面恢复流程')
       
-      // 确保抽奖状态完全重置
-      if (this.data.isDrawing) {
-        console.log('🔧 强制重置抽奖状态')
-        this.setData({ isDrawing: false })
-      }
+      // 刷新用户信息确保积分同步
+      this.refreshUserInfo()
       
-      // 🔴 重新初始化Canvas转盘
-      if (this.data.prizes && this.data.prizes.length > 0) {
+      // 重新初始化Canvas转盘（如果需要）
+      if (this.data.prizes && this.data.prizes.length > 0 && this.canvasCtx) {
+        console.log('🎨 重新绘制Canvas转盘')
+        this.drawWheel()
+      } else if (this.data.prizes && this.data.prizes.length > 0) {
         console.log('🎨 重新初始化Canvas转盘')
         this.initCanvas()
       }
       
-      // 🔴 刷新用户信息确保积分同步
-      this.refreshUserInfo()
-      
-      // 🔴 强制检查页面完整性
+      // 最终状态验证（仅在需要时修复）
       setTimeout(() => {
-        this.checkPageStatus()
-        
-        // 如果页面状态异常，强制修复
-        if (!this.data.wheelReady || this.data.hideWheel) {
-          console.log('⚠️ 检测到页面状态异常，执行强制修复')
+        if (this.data.hideWheel || this.data.showResult) {
+          console.log('⚠️ 执行最终状态修复')
           this.setData({
-            wheelReady: true,
             hideWheel: false,
-            wheelVisible: true,
             showResult: false,
-            isDrawing: false,
-            forceUpdate: Date.now()
+            wheelReady: true,
+            isDrawing: false
           })
         }
-      }, 200)
-      
-    }, 100)
-    
-    // 🔴 额外保险：再次延迟检查页面状态
-    setTimeout(() => {
-      console.log('🔍 最终状态检查')
-      const finalStatus = {
-        wheelReady: this.data.wheelReady,
-        hideWheel: this.data.hideWheel,
-        showResult: this.data.showResult,
-        isDrawing: this.data.isDrawing,
-        wheelVisible: this.data.wheelVisible
-      }
-      console.log('📊 最终页面状态:', finalStatus)
-      
-      // 如果仍有问题，进行最后的强制修复
-      if (this.data.hideWheel || this.data.showResult || !this.data.wheelReady) {
-        console.log('🚨 执行最终强制修复')
-        this.setData({
-          wheelReady: true,
-          hideWheel: false,
-          wheelVisible: true,
-          showResult: false,
-          isDrawing: false,
-          // 强制重绘转盘
-          forceUpdate: Date.now()
-        })
-        
-        // 重新绘制转盘
-        if (this.canvasCtx) {
-          this.drawWheel()
-        }
-      }
-    }, 500)
+      }, 50) // 大幅减少延迟时间
+    })
   },
 
   /**

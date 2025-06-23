@@ -16,8 +16,8 @@
     </button>
   </view>
 
-  <!-- 转盘区域 -->
-  <view class="wheel-section {{showResult ? 'result-showing' : ''}} {{hideWheel ? 'hidden' : ''}}" style="position: relative;" wx:if="{{!hideWheel}}">
+  <!-- 转盘区域 - 优化：使用CSS控制显隐，避免DOM重建 -->
+  <view class="wheel-section {{showResult ? 'result-showing' : ''}} {{hideWheel ? 'hidden' : ''}}" style="position: relative;">
     <!-- 转盘容器 -->
     <view style="position: relative; width: 260px; height: 260px; margin: 20rpx auto; display: block;">
       <!-- Canvas转盘背景 - 降低层级 -->
@@ -56,8 +56,8 @@
     </view>
   </view>
 
-  <!-- 多连抽按钮组 - 优化为2x2网格布局 -->
-  <view class="multi-draw-section" wx:if="{{!hideWheel}}">
+  <!-- 多连抽按钮组 - 优化：使用CSS控制显隐 -->
+  <view class="multi-draw-section {{hideWheel ? 'hidden' : ''}}">
     <view class="section-title-small">
       <text>⚡ 连抽选项</text>
     </view>
