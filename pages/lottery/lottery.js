@@ -127,6 +127,21 @@ Page({
     this.pointerAnimationPhase = 0
     this.pointerAnimationTimer = null
     
+    // 🚀 科技感粒子系统初始化
+    this.particleSystem = {
+      particles: [], // 粒子数组
+      maxParticles: 8, // 最大粒子数量
+      particleSpeed: 0.02, // 粒子运动速度
+      lastParticleTime: 0 // 上次生成粒子的时间
+    }
+    
+    // 🎯 3D立体效果配置
+    this.pointer3DConfig = {
+      depth: 6, // 指针厚度
+      shadowIntensity: 0.4, // 阴影强度
+      lightAngle: -Math.PI / 4 // 光照角度
+    }
+    
     // 添加调试信息
     setTimeout(() => {
       console.log('🎯 页面加载完成，当前数据状态:', {
@@ -717,8 +732,28 @@ Page({
           this.pointerAnimationPhase = 0
         }
         
-        // 每隔一定时间重绘指针（低频率，避免性能问题）
-        if (Math.floor(this.pointerAnimationPhase * 10) % 8 === 0) {
+        // 🚀 科技商务风：确保粒子系统持续更新
+        if (this.particleSystem) {
+          // 在待机状态下保持适量粒子
+          if (this.particleSystem.particles.length < 2) {
+            const currentTime = Date.now()
+            if (currentTime - this.particleSystem.lastParticleTime > 1000) {
+              this.particleSystem.particles.push({
+                progress: Math.random(),
+                life: 4.0 + Math.random() * 2.0, // 待机时粒子寿命更长
+                size: 0.8 + Math.random() * 0.4, // 待机时粒子更小更优雅
+                speed: this.particleSystem.particleSpeed * 0.3, // 待机时速度更慢
+                alpha: 0.3 + Math.random() * 0.2, // 待机时更透明
+                color: Math.random() > 0.5 ? '#00CCCC' : '#0088AA', // 柔和蓝色
+                trail: []
+              })
+              this.particleSystem.lastParticleTime = currentTime
+            }
+          }
+        }
+        
+        // 每隔一定时间重绘指针（提高频率以支持粒子动画）
+        if (Math.floor(this.pointerAnimationPhase * 10) % 6 === 0) {
           try {
             this.drawWheel()
           } catch (error) {
@@ -726,7 +761,9 @@ Page({
           }
         }
       }
-    }, 100) // 每100ms检查一次
+    }, 80) // 稍微提升频率以支持粒子效果
+    
+    console.log('🎯 指针待机动画已启动（科技商务风增强版）')
   },
 
   /**
@@ -759,9 +796,194 @@ Page({
    * 4. 优化动画和发光效果
    * 5. 提升整体美学品质
    */
+  /**
+   * 🚀 科技感粒子系统 - 更新粒子状态
+   */
+  updateParticles() {
+    const currentTime = Date.now()
+    const particles = this.particleSystem.particles
+    const config = this.particleSystem
+    
+    // 清理过期粒子
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const particle = particles[i]
+      particle.life -= 0.016 // 假设60FPS
+      particle.progress += config.particleSpeed
+      
+      // 更新粒子位置（沿指针轮廓运动）
+      if (particle.progress > 1) {
+        particle.progress = 0 // 重新开始循环
+      }
+      
+      // 移除生命值耗尽的粒子
+      if (particle.life <= 0) {
+        particles.splice(i, 1)
+      }
+    }
+    
+    // 生成新粒子（限制生成频率，抽奖时加速生成）
+    const isDrawing = this.data.isDrawing
+    const generateInterval = isDrawing ? 100 : 200 // 抽奖时粒子生成更频繁
+    const maxParticles = isDrawing ? config.maxParticles * 2 : config.maxParticles // 抽奖时更多粒子
+    
+    if (currentTime - config.lastParticleTime > generateInterval && particles.length < maxParticles) {
+      particles.push({
+        progress: Math.random(), // 随机起始位置
+        life: 2.0 + Math.random() * 1.0, // 生命值 (2-3秒)
+        size: (1.5 + Math.random() * 1.0) * (isDrawing ? 1.3 : 1), // 抽奖时粒子更大
+        speed: (config.particleSpeed + Math.random() * 0.01) * (isDrawing ? 2 : 1), // 抽奖时速度加倍
+        alpha: 0.6 + Math.random() * 0.4, // 透明度
+        color: isDrawing ? 
+          (Math.random() > 0.5 ? '#00FFFF' : '#00CCFF') : // 抽奖时：科技蓝
+          (Math.random() > 0.5 ? '#00DDDD' : '#0099BB'), // 待机时：柔和蓝
+        trail: [] // 拖尾轨迹
+      })
+      config.lastParticleTime = currentTime
+    }
+  },
+
+  /**
+   * 🚀 绘制科技感粒子
+   */
+  drawTechParticles(ctx, compatibility) {
+    const particles = this.particleSystem.particles
+    
+    particles.forEach(particle => {
+      // 计算粒子在指针轮廓上的位置
+      const angle = particle.progress * Math.PI * 2
+      let x, y
+      
+      // 根据进度计算沿指针轮廓的位置（适配缩小50%+向下移动）
+      const offsetY = 12  // 向下移动偏移量
+      if (particle.progress < 0.3) {
+        // 指针尖端到左侧的路径（缩小50%）
+        const t = particle.progress / 0.3
+        x = -4 * t  // -8 * 0.5
+        y = -71 + 8.5 * t + offsetY  // (-142 + 17) * 0.5 + offsetY
+      } else if (particle.progress < 0.5) {
+        // 左侧到底部的路径（缩小50%）
+        const t = (particle.progress - 0.3) / 0.2
+        x = -4 + (-5) * t  // (-8 + -10) * 0.5
+        y = -62.5 + 13.5 * t + offsetY  // (-125 + 27) * 0.5 + offsetY
+      } else if (particle.progress < 0.7) {
+        // 底部到右侧的路径（缩小50%）
+        const t = (particle.progress - 0.5) / 0.2
+        x = -9 + 13 * t  // (-18 + 26) * 0.5
+        y = -49 + 0 * t + offsetY  // -98 * 0.5 + offsetY
+      } else {
+        // 右侧回到尖端的路径（缩小50%）
+        const t = (particle.progress - 0.7) / 0.3
+        x = 4 + (-4) * t  // (8 + -8) * 0.5
+        y = -62.5 + (-8.5) * t + offsetY  // (-125 + -17) * 0.5 + offsetY
+      }
+      
+      // 添加轻微的随机扰动，营造能量感
+      x += (Math.random() - 0.5) * 2
+      y += (Math.random() - 0.5) * 2
+      
+      // 绘制粒子本体
+      ctx.save()
+      ctx.globalAlpha = particle.alpha * (particle.life / 3.0)
+      
+      // 绘制粒子发光效果
+      ctx.shadowColor = particle.color
+      ctx.shadowBlur = 8
+      ctx.beginPath()
+      ctx.arc(x, y, particle.size, 0, 2 * Math.PI)
+      ctx.fillStyle = particle.color
+      ctx.fill()
+      
+      // 绘制粒子核心
+      ctx.shadowBlur = 0
+      ctx.beginPath()
+      ctx.arc(x, y, particle.size * 0.6, 0, 2 * Math.PI)
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fill()
+      
+      // 更新拖尾轨迹
+      particle.trail.unshift({ x, y, alpha: particle.alpha })
+      if (particle.trail.length > 5) {
+        particle.trail.pop()
+      }
+      
+      // 绘制拖尾效果
+      for (let i = 1; i < particle.trail.length; i++) {
+        const trail = particle.trail[i]
+        const trailAlpha = trail.alpha * (1 - i / particle.trail.length) * 0.5
+        ctx.globalAlpha = trailAlpha
+        ctx.beginPath()
+        ctx.arc(trail.x, trail.y, particle.size * (1 - i / particle.trail.length), 0, 2 * Math.PI)
+        ctx.fillStyle = particle.color
+        ctx.fill()
+      }
+      
+      ctx.restore()
+    })
+  },
+
+  /**
+   * 🎯 绘制3D立体指针底座（支持缩放和位置偏移）
+   */
+  draw3DPointerBase(ctx, centerX, centerY, compatibility, scale = 1, offsetY = 0) {
+    const config = this.pointer3DConfig
+    
+    // 绘制指针的3D厚度效果
+    ctx.save()
+    
+    // 计算3D偏移（适配缩放）
+    const offsetX = Math.cos(config.lightAngle) * config.depth * scale
+    const offsetYAdjusted = Math.sin(config.lightAngle) * config.depth * scale + offsetY
+    
+    // 绘制指针侧面（营造厚度感，缩小版）
+    ctx.translate(offsetX, offsetYAdjusted)
+    ctx.beginPath()
+    ctx.moveTo(0, -71 * scale + offsetY)  // 适配缩放（-142 * 0.5 = -71）
+    
+    if (compatibility.quadraticCurveTo) {
+      // 使用贝塞尔曲线绘制3D侧面（缩小版）
+      ctx.quadraticCurveTo(-1.5 * scale, -67.5 * scale + offsetY, -4 * scale, -62.5 * scale + offsetY)
+      ctx.lineTo(-9 * scale, -49 * scale + offsetY)
+      ctx.quadraticCurveTo(-6 * scale, -46 * scale + offsetY, -3 * scale, -44 * scale + offsetY)
+      ctx.quadraticCurveTo(-1 * scale, -45 * scale + offsetY, 0, -46 * scale + offsetY)
+      ctx.quadraticCurveTo(1 * scale, -45 * scale + offsetY, 3 * scale, -44 * scale + offsetY)
+      ctx.quadraticCurveTo(6 * scale, -46 * scale + offsetY, 9 * scale, -49 * scale + offsetY)
+      ctx.lineTo(4 * scale, -62.5 * scale + offsetY)
+      ctx.quadraticCurveTo(1.5 * scale, -67.5 * scale + offsetY, 0, -71 * scale + offsetY)
+    } else {
+      // 兼容模式的3D侧面（缩小版）
+      ctx.lineTo(-4 * scale, -62.5 * scale + offsetY)
+      ctx.lineTo(-9 * scale, -49 * scale + offsetY)
+      ctx.lineTo(-3 * scale, -44 * scale + offsetY)
+      ctx.lineTo(0, -46 * scale + offsetY)
+      ctx.lineTo(3 * scale, -44 * scale + offsetY)
+      ctx.lineTo(9 * scale, -49 * scale + offsetY)
+      ctx.lineTo(4 * scale, -62.5 * scale + offsetY)
+      ctx.lineTo(0, -71 * scale + offsetY)
+    }
+    ctx.closePath()
+    
+    // 3D侧面渐变色（适配缩放）
+    const sideGradient = ctx.createLinearGradient(0, -71 * scale + offsetY, 0, -44 * scale + offsetY)  // 缩小50%
+    sideGradient.addColorStop(0, '#AA1111')
+    sideGradient.addColorStop(0.5, '#881111')
+    sideGradient.addColorStop(1, '#660000')
+    ctx.fillStyle = sideGradient
+    ctx.fill()
+    
+    // 侧面边框
+    ctx.strokeStyle = '#440000'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    
+    ctx.restore()
+  },
+
   drawBeautifulPointer(ctx, centerX, centerY) {
     ctx.save()
     ctx.translate(centerX, centerY)
+    
+    // 🚀 更新粒子系统
+    this.updateParticles()
     
     // 🔍 获取兼容性检查结果，确保API使用安全
     const compatibility = this.data.canvasCompatibility || {
@@ -801,44 +1023,56 @@ Page({
       ctx.scale(animationScale, animationScale)
     }
     
-    // 🌟 绘制增强的多层阴影系统 - 5层阴影营造极致立体感
+    // 🎯 指针缩小和位置调整：缩小50%，向下移动12像素
+    const pointerScale = 0.5  // 缩小一半
+    const pointerOffsetY = 12 // 向下移动12像素
+    
+    // 🎯 指针保持固定不动，不跟随转盘旋转（只有转盘背景旋转）
+    // 注意：转盘背景在drawWheel()中通过currentAngle旋转，指针保持静止
+    
+    // 🎯 首先绘制3D立体底座（调整尺寸，固定位置）
+    this.draw3DPointerBase(ctx, centerX, centerY, compatibility, pointerScale, pointerOffsetY)
+    
+    // 🌟 绘制增强的多层阴影系统 - 7层阴影营造科技商务立体感（缩小版）
     const shadowLayers = [
-      { offset: [6, 8], alpha: 0.35, blur: 8 },      // 最外层深阴影
-      { offset: [4, 6], alpha: 0.25, blur: 6 },      // 外层阴影
-      { offset: [3, 4], alpha: 0.2, blur: 4 },       // 中外层阴影
-      { offset: [2, 3], alpha: 0.15, blur: 2 },      // 中层阴影
-      { offset: [1, 1], alpha: 0.1, blur: 1 }        // 内层柔和阴影
+      { offset: [4, 5], alpha: 0.45, blur: 6 },      // 最外层深阴影（缩小50%）
+      { offset: [3, 4], alpha: 0.35, blur: 4 },      // 外层深阴影（缩小50%）
+      { offset: [2, 3], alpha: 0.25, blur: 3 },      // 外层阴影（缩小50%）
+      { offset: [1.5, 2], alpha: 0.2, blur: 2 },     // 中外层阴影（缩小50%）
+      { offset: [1, 1.5], alpha: 0.15, blur: 1 },    // 中层阴影（缩小50%）
+      { offset: [0.5, 0.5], alpha: 0.1, blur: 0.5 }, // 内层柔和阴影（缩小50%）
+      { offset: [0.25, 0.25], alpha: 0.05, blur: 0.25 } // 超精细阴影（缩小50%）
     ]
     
          shadowLayers.forEach(shadow => {
        ctx.save()
-       ctx.translate(shadow.offset[0], shadow.offset[1])
+       ctx.translate(shadow.offset[0], shadow.offset[1] + pointerOffsetY)
        // 移除ctx.filter以确保兼容性
        
-       // 根据兼容性绘制指针形状阴影
+       // 根据兼容性绘制指针形状阴影（缩小50%并向下移动）
        ctx.beginPath()
-       ctx.moveTo(0, -142)         // 尖端更尖锐
+       ctx.moveTo(0, -71 + pointerOffsetY)         // 尖端更尖锐（-142缩小50% = -71）
        
        if (compatibility.quadraticCurveTo) {
-         // ✅ 支持贝塞尔曲线 - 使用流线型阴影
-         ctx.quadraticCurveTo(-3, -135, -8, -125)    // 左侧优雅曲线
-         ctx.lineTo(-18, -98)        // 左下角
-         ctx.quadraticCurveTo(-12, -92, -6, -88)     // 左侧内凹曲线
-         ctx.quadraticCurveTo(-2, -90, 0, -92)       // 中间收腰
-         ctx.quadraticCurveTo(2, -90, 6, -88)        // 右侧内凹曲线
-         ctx.quadraticCurveTo(12, -92, 18, -98)      // 右侧内凹曲线
-         ctx.lineTo(8, -125)         // 右下角
-         ctx.quadraticCurveTo(3, -135, 0, -142)      // 右侧优雅曲线
+         // ✅ 支持贝塞尔曲线 - 使用流线型阴影（缩小50%）
+         ctx.quadraticCurveTo(-1.5, -67.5 + pointerOffsetY, -4, -62.5 + pointerOffsetY)    // 左侧优雅曲线（缩小50%）
+         ctx.lineTo(-9, -49 + pointerOffsetY)        // 左下角（缩小50%）
+         ctx.quadraticCurveTo(-6, -46 + pointerOffsetY, -3, -44 + pointerOffsetY)     // 左侧内凹曲线（缩小50%）
+         ctx.quadraticCurveTo(-1, -45 + pointerOffsetY, 0, -46 + pointerOffsetY)       // 中间收腰（缩小50%）
+         ctx.quadraticCurveTo(1, -45 + pointerOffsetY, 3, -44 + pointerOffsetY)        // 右侧内凹曲线（缩小50%）
+         ctx.quadraticCurveTo(6, -46 + pointerOffsetY, 9, -49 + pointerOffsetY)      // 右侧内凹曲线（缩小50%）
+         ctx.lineTo(4, -62.5 + pointerOffsetY)         // 右下角（缩小50%）
+         ctx.quadraticCurveTo(1.5, -67.5 + pointerOffsetY, 0, -71 + pointerOffsetY)      // 右侧优雅曲线（缩小50%）
        } else {
-         // ⚠️ 不支持贝塞尔曲线 - 使用直线阴影
-         ctx.lineTo(-8, -125)        // 左侧直线
-         ctx.lineTo(-18, -98)        // 左下角
-         ctx.lineTo(-6, -88)         // 左侧内凹
-         ctx.lineTo(0, -92)          // 中间收腰
-         ctx.lineTo(6, -88)          // 右侧内凹
-         ctx.lineTo(18, -98)         // 右下角
-         ctx.lineTo(8, -125)         // 右侧直线
-         ctx.lineTo(0, -142)         // 回到尖端
+         // ⚠️ 不支持贝塞尔曲线 - 使用直线阴影（缩小50%）
+         ctx.lineTo(-4, -62.5 + pointerOffsetY)        // 左侧直线（缩小50%）
+         ctx.lineTo(-9, -49 + pointerOffsetY)        // 左下角（缩小50%）
+         ctx.lineTo(-3, -44 + pointerOffsetY)         // 左侧内凹（缩小50%）
+         ctx.lineTo(0, -46 + pointerOffsetY)          // 中间收腰（缩小50%）
+         ctx.lineTo(3, -44 + pointerOffsetY)          // 右侧内凹（缩小50%）
+         ctx.lineTo(9, -49 + pointerOffsetY)         // 右下角（缩小50%）
+         ctx.lineTo(4, -62.5 + pointerOffsetY)         // 右侧直线（缩小50%）
+         ctx.lineTo(0, -71 + pointerOffsetY)         // 回到尖端（缩小50%）
        }
        ctx.closePath()
        
@@ -847,40 +1081,40 @@ Page({
        ctx.restore()
      })
     
-    // 🔥 绘制主指针 - 根据兼容性选择绘制方式
+    // 🔥 绘制主指针 - 根据兼容性选择绘制方式（缩小50%并向下移动）
     ctx.beginPath()
-    ctx.moveTo(0, -142)                           // 指针尖端，更加尖锐
+    ctx.moveTo(0, -71 + pointerOffsetY)                           // 指针尖端，更加尖锐（缩小50%）
     
     if (compatibility.quadraticCurveTo) {
-      // ✅ 支持贝塞尔曲线 - 使用极致流线型设计
-      ctx.quadraticCurveTo(-3, -135, -8, -125)      // 左侧优雅曲线过渡
-      ctx.lineTo(-18, -98)                          // 左下角扩展
-      ctx.quadraticCurveTo(-14, -94, -10, -90)      // 左侧圆润过渡
-      ctx.quadraticCurveTo(-6, -88, -3, -89)        // 左侧内凹细节
-      ctx.quadraticCurveTo(-1, -91, 0, -92)         // 中间精致收腰
-      ctx.quadraticCurveTo(1, -91, 3, -89)          // 右侧内凹细节
-      ctx.quadraticCurveTo(6, -88, 10, -90)         // 右侧内凹细节
-      ctx.quadraticCurveTo(14, -94, 18, -98)        // 右侧圆润过渡
-      ctx.lineTo(8, -125)                           // 右下角扩展
-      ctx.quadraticCurveTo(3, -135, 0, -142)        // 右侧优雅曲线过渡
+      // ✅ 支持贝塞尔曲线 - 使用极致流线型设计（缩小50%）
+      ctx.quadraticCurveTo(-1.5, -67.5 + pointerOffsetY, -4, -62.5 + pointerOffsetY)      // 左侧优雅曲线过渡（缩小50%）
+      ctx.lineTo(-9, -49 + pointerOffsetY)                          // 左下角扩展（缩小50%）
+      ctx.quadraticCurveTo(-7, -47 + pointerOffsetY, -5, -45 + pointerOffsetY)      // 左侧圆润过渡（缩小50%）
+      ctx.quadraticCurveTo(-3, -44 + pointerOffsetY, -1.5, -44.5 + pointerOffsetY)        // 左侧内凹细节（缩小50%）
+      ctx.quadraticCurveTo(-0.5, -45.5 + pointerOffsetY, 0, -46 + pointerOffsetY)         // 中间精致收腰（缩小50%）
+      ctx.quadraticCurveTo(0.5, -45.5 + pointerOffsetY, 1.5, -44.5 + pointerOffsetY)          // 右侧内凹细节（缩小50%）
+      ctx.quadraticCurveTo(3, -44 + pointerOffsetY, 5, -45 + pointerOffsetY)         // 右侧内凹细节（缩小50%）
+      ctx.quadraticCurveTo(7, -47 + pointerOffsetY, 9, -49 + pointerOffsetY)        // 右侧圆润过渡（缩小50%）
+      ctx.lineTo(4, -62.5 + pointerOffsetY)                           // 右下角扩展（缩小50%）
+      ctx.quadraticCurveTo(1.5, -67.5 + pointerOffsetY, 0, -71 + pointerOffsetY)        // 右侧优雅曲线过渡（缩小50%）
     } else {
-      // ⚠️ 不支持贝塞尔曲线 - 使用兼容的直线设计
-      console.log('💡 使用兼容模式绘制指针（直线版本）')
-      ctx.lineTo(-8, -125)                          // 左侧直线
-      ctx.lineTo(-18, -98)                          // 左下角
-      ctx.lineTo(-10, -90)                          // 左侧收腰
-      ctx.lineTo(-3, -89)                           // 左侧内凹
-      ctx.lineTo(0, -92)                            // 中间收腰
-      ctx.lineTo(3, -89)                            // 右侧内凹
-      ctx.lineTo(10, -90)                           // 右侧收腰
-      ctx.lineTo(18, -98)                           // 右下角
-      ctx.lineTo(8, -125)                           // 右侧直线
-      ctx.lineTo(0, -142)                           // 回到尖端
+      // ⚠️ 不支持贝塞尔曲线 - 使用兼容的直线设计（缩小50%）
+      console.log('💡 使用兼容模式绘制指针（直线版本-缩小50%）')
+      ctx.lineTo(-4, -62.5 + pointerOffsetY)                          // 左侧直线（缩小50%）
+      ctx.lineTo(-9, -49 + pointerOffsetY)                          // 左下角（缩小50%）
+      ctx.lineTo(-5, -45 + pointerOffsetY)                          // 左侧收腰（缩小50%）
+      ctx.lineTo(-1.5, -44.5 + pointerOffsetY)                           // 左侧内凹（缩小50%）
+      ctx.lineTo(0, -46 + pointerOffsetY)                            // 中间收腰（缩小50%）
+      ctx.lineTo(1.5, -44.5 + pointerOffsetY)                            // 右侧内凹（缩小50%）
+      ctx.lineTo(5, -45 + pointerOffsetY)                           // 右侧收腰（缩小50%）
+      ctx.lineTo(9, -49 + pointerOffsetY)                           // 右下角（缩小50%）
+      ctx.lineTo(4, -62.5 + pointerOffsetY)                           // 右侧直线（缩小50%）
+      ctx.lineTo(0, -71 + pointerOffsetY)                           // 回到尖端（缩小50%）
     }
     ctx.closePath()
     
-    // 🌈 创建精致渐变填充 - 6层渐变营造丰富色彩层次
-    const gradient = ctx.createLinearGradient(0, -142, 0, -88)
+    // 🌈 创建精致渐变填充 - 6层渐变营造丰富色彩层次（适配缩小后的指针）
+    const gradient = ctx.createLinearGradient(0, -71 + pointerOffsetY, 0, -44 + pointerOffsetY)  // 适配缩小50%
     if (glowIntensity > 0) {
       // 抽奖时的动态发光渐变
       const glowR = Math.floor(255)
@@ -928,23 +1162,23 @@ Page({
       ctx.restore()
     }
     
-    // ✨ 增强高光效果系统 - 根据兼容性选择高光绘制方式
+    // ✨ 增强高光效果系统 - 根据兼容性选择高光绘制方式（缩小50%）
     // 主高光
     ctx.save()
     ctx.beginPath()
-    ctx.moveTo(-2, -135)
+    ctx.moveTo(-1, -67.5 + pointerOffsetY)  // 缩小50%
     if (compatibility.quadraticCurveTo) {
-      // ✅ 支持贝塞尔曲线 - 使用流畅高光
-      ctx.quadraticCurveTo(-1, -130, -4, -120)
-      ctx.quadraticCurveTo(-8, -115, -6, -108)
-      ctx.quadraticCurveTo(-3, -110, 0, -115)
-      ctx.quadraticCurveTo(1, -125, -2, -135)
+      // ✅ 支持贝塞尔曲线 - 使用流畅高光（缩小50%）
+      ctx.quadraticCurveTo(-0.5, -65 + pointerOffsetY, -2, -60 + pointerOffsetY)
+      ctx.quadraticCurveTo(-4, -57.5 + pointerOffsetY, -3, -54 + pointerOffsetY)
+      ctx.quadraticCurveTo(-1.5, -55 + pointerOffsetY, 0, -57.5 + pointerOffsetY)
+      ctx.quadraticCurveTo(0.5, -62.5 + pointerOffsetY, -1, -67.5 + pointerOffsetY)
     } else {
-      // ⚠️ 不支持贝塞尔曲线 - 使用直线高光
-      ctx.lineTo(-4, -120)
-      ctx.lineTo(-6, -108)
-      ctx.lineTo(0, -115)
-      ctx.lineTo(-2, -135)
+      // ⚠️ 不支持贝塞尔曲线 - 使用直线高光（缩小50%）
+      ctx.lineTo(-2, -60 + pointerOffsetY)
+      ctx.lineTo(-3, -54 + pointerOffsetY)
+      ctx.lineTo(0, -57.5 + pointerOffsetY)
+      ctx.lineTo(-1, -67.5 + pointerOffsetY)
     }
     ctx.closePath()
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
@@ -952,30 +1186,31 @@ Page({
     ctx.restore()
     
     // 次高光
+    // 次高光（缩小50%）
     ctx.save()
     ctx.beginPath()
-    ctx.moveTo(2, -128)
+    ctx.moveTo(1, -64 + pointerOffsetY)  // 缩小50%
     if (compatibility.quadraticCurveTo) {
-      // ✅ 支持贝塞尔曲线 - 使用流畅高光
-      ctx.quadraticCurveTo(4, -125, 6, -118)
-      ctx.quadraticCurveTo(8, -115, 5, -112)
-      ctx.quadraticCurveTo(3, -115, 2, -128)
+      // ✅ 支持贝塞尔曲线 - 使用流畅高光（缩小50%）
+      ctx.quadraticCurveTo(2, -62.5 + pointerOffsetY, 3, -59 + pointerOffsetY)
+      ctx.quadraticCurveTo(4, -57.5 + pointerOffsetY, 2.5, -56 + pointerOffsetY)
+      ctx.quadraticCurveTo(1.5, -57.5 + pointerOffsetY, 1, -64 + pointerOffsetY)
     } else {
-      // ⚠️ 不支持贝塞尔曲线 - 使用直线高光
-      ctx.lineTo(6, -118)
-      ctx.lineTo(5, -112)
-      ctx.lineTo(2, -128)
+      // ⚠️ 不支持贝塞尔曲线 - 使用直线高光（缩小50%）
+      ctx.lineTo(3, -59 + pointerOffsetY)
+      ctx.lineTo(2.5, -56 + pointerOffsetY)
+      ctx.lineTo(1, -64 + pointerOffsetY)
     }
     ctx.closePath()
     ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
     ctx.fill()
     ctx.restore()
     
-    // 细节高光点
+    // 细节高光点（缩小50%并向下移动）
     const highlights = [
-      { x: -4, y: -125, r: 1.5, alpha: 0.6 },
-      { x: 3, y: -120, r: 1, alpha: 0.4 },
-      { x: -1, y: -115, r: 0.8, alpha: 0.5 }
+      { x: -2, y: -62.5 + pointerOffsetY, r: 0.75, alpha: 0.6 },  // 缩小50%
+      { x: 1.5, y: -60 + pointerOffsetY, r: 0.5, alpha: 0.4 },    // 缩小50%
+      { x: -0.5, y: -57.5 + pointerOffsetY, r: 0.4, alpha: 0.5 }  // 缩小50%
     ]
     
     highlights.forEach(light => {
@@ -1120,6 +1355,27 @@ Page({
       ctx.lineWidth = 2
       ctx.stroke()
       ctx.restore()
+    }
+    
+    // 🚀 绘制科技感粒子系统（最后绘制，确保在最顶层）
+    this.drawTechParticles(ctx, compatibility)
+    
+    // 🎯 科技商务风：添加能量脉冲环
+    if (this.data.isDrawing) {
+      const pulseTime = Date.now() * 0.005
+      for (let i = 0; i < 3; i++) {
+        const radius = 25 + i * 8 + Math.sin(pulseTime + i) * 3
+        const alpha = (0.3 - i * 0.08) * (0.5 + Math.sin(pulseTime * 2) * 0.3)
+        
+        ctx.save()
+        ctx.globalAlpha = alpha
+        ctx.strokeStyle = i % 2 === 0 ? '#00FFFF' : '#0099FF'
+        ctx.lineWidth = 2 - i * 0.3
+        ctx.beginPath()
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI)
+        ctx.stroke()
+        ctx.restore()
+      }
     }
     
     ctx.restore()
