@@ -233,33 +233,18 @@ const mockRequest = (url, data = {}) => {
   let mockData = {}
   
   if (url.includes('/lottery/config')) {
+    // 🔴 使用统一的奖品配置，避免重复数据源
+    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
     mockData = {
-      prizes: [
-        { id: 1, name: '八八折券', angle: 0, color: '#FF6B35', probability: 0.1500, is_activity: true, type: 'coupon', value: 0.88 },
-        { id: 2, name: '九八折券', angle: 45, color: '#4ECDC4', probability: 0.2000, is_activity: false, type: 'coupon', value: 0.98 },
-        { id: 3, name: '甜品1份', angle: 90, color: '#FFD93D', probability: 0.2500, is_activity: false, type: 'physical', value: 0 },
-        { id: 4, name: '青菜1份', angle: 135, color: '#6BCF7F', probability: 0.1500, is_activity: false, type: 'physical', value: 0 },
-        { id: 5, name: '虾1份', angle: 180, color: '#FF6B6B', probability: 0.1000, is_activity: false, type: 'physical', value: 0 },
-        { id: 6, name: '花甲1份', angle: 225, color: '#4DABF7', probability: 0.0800, is_activity: false, type: 'physical', value: 0 },
-        { id: 7, name: '鱿鱼1份', angle: 270, color: '#9775FA', probability: 0.0500, is_activity: false, type: 'physical', value: 0 },
-        { id: 8, name: '生腌拼盘', angle: 315, color: '#FFB84D', probability: 0.0200, is_activity: true, type: 'physical', value: 0 }
-      ],
+      prizes: getStandardPrizes(),
       cost_points: 100,
       daily_limit: 10,
       rules: '每次抽奖消耗100积分，每日最多可抽奖10次'
     }
   } else if (url.includes('/lottery/draw')) {
-    // 🔴 模拟真实的抽奖逻辑，根据配置的奖品返回结果
-    const prizes = [
-      { id: 1, name: '八八折券', angle: 0, probability: 0.15 },
-      { id: 2, name: '九八折券', angle: 45, probability: 0.20 },
-      { id: 3, name: '甜品1份', angle: 90, probability: 0.25 },
-      { id: 4, name: '青菜1份', angle: 135, probability: 0.15 },
-      { id: 5, name: '虾1份', angle: 180, probability: 0.10 },
-      { id: 6, name: '花甲1份', angle: 225, probability: 0.08 },
-      { id: 7, name: '鱿鱼1份', angle: 270, probability: 0.05 },
-      { id: 8, name: '生腌拼盘', angle: 315, probability: 0.02 }
-    ]
+    // 🔴 使用统一的奖品配置进行抽奖逻辑
+    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
+    const prizes = getStandardPrizes()
     
     // 按概率抽奖
     const random = Math.random()
@@ -437,18 +422,10 @@ const lotteryAPI = {
       needAuth: true
     })
 
-    // Mock数据 - 根据后端文档格式
+    // Mock数据 - 使用统一的奖品配置
+    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
     const mockData = {
-      prizes: [
-        { id: 1, name: '八八折券', angle: 0, color: '#FF6B35', probability: 0.1500, is_activity: true, type: 'coupon', value: 0.88 },
-        { id: 2, name: '九八折券', angle: 45, color: '#4ECDC4', probability: 0.2000, is_activity: false, type: 'coupon', value: 0.98 },
-        { id: 3, name: '甜品1份', angle: 90, color: '#FFD93D', probability: 0.2500, is_activity: false, type: 'physical', value: 0 },
-        { id: 4, name: '青菜1份', angle: 135, color: '#6BCF7F', probability: 0.1500, is_activity: false, type: 'physical', value: 0 },
-        { id: 5, name: '虾1份', angle: 180, color: '#FF6B6B', probability: 0.1000, is_activity: false, type: 'physical', value: 0 },
-        { id: 6, name: '花甲1份', angle: 225, color: '#4DABF7', probability: 0.0800, is_activity: false, type: 'physical', value: 0 },
-        { id: 7, name: '鱿鱼1份', angle: 270, color: '#9775FA', probability: 0.0500, is_activity: false, type: 'physical', value: 0 },
-        { id: 8, name: '生腌拼盘', angle: 315, color: '#FFB84D', probability: 0.0200, is_activity: true, type: 'physical', value: 0 }
-      ],
+      prizes: getStandardPrizes(),
       cost_points: 100,
       daily_limit: 10,
       rules: '每次抽奖消耗100积分，每日最多可抽奖10次'
@@ -469,17 +446,9 @@ const lotteryAPI = {
       needAuth: true
     })
 
-    // Mock数据 - 根据后端文档格式，使用统一的奖品配置
-    const prizes = [
-      { id: 1, name: '八八折券', angle: 0, probability: 0.15 },
-      { id: 2, name: '九八折券', angle: 45, probability: 0.20 },
-      { id: 3, name: '甜品1份', angle: 90, probability: 0.25 },
-      { id: 4, name: '青菜1份', angle: 135, probability: 0.15 },
-      { id: 5, name: '虾1份', angle: 180, probability: 0.10 },
-      { id: 6, name: '花甲1份', angle: 225, probability: 0.08 },
-      { id: 7, name: '鱿鱼1份', angle: 270, probability: 0.05 },
-      { id: 8, name: '生腌拼盘', angle: 315, probability: 0.02 }
-    ]
+    // Mock数据 - 使用统一的奖品配置
+    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
+    const prizes = getStandardPrizes()
     
     // 按概率抽奖
     const random = Math.random()

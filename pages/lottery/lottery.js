@@ -2,6 +2,7 @@
 const app = getApp()
 const { lotteryAPI, userAPI, mockRequest } = require('../../utils/api')
 const { SliderVerify, throttle } = require('../../utils/validate')
+const { getStandardPrizes, getFallbackPrizes, getLotteryConfig } = require('./lottery-config')
 
 Page({
   data: {
@@ -38,22 +39,17 @@ Page({
     isButtonVisible: true, // 强制设为true
     forceUpdate: 0, // 强制更新标识
     
-    // 开发环境模拟数据 - 统一奖品配置
-    standardPrizes: [
-      { id: 1, name: '八八折券', angle: 0, color: '#FF6B35', is_activity: true, type: 'coupon', value: 0.88, probability: 0.15 },
-      { id: 2, name: '九八折券', angle: 45, color: '#4ECDC4', is_activity: false, type: 'coupon', value: 0.98, probability: 0.20 },
-      { id: 3, name: '甜品1份', angle: 90, color: '#FFD93D', is_activity: false, type: 'physical', value: 0, probability: 0.25 },
-      { id: 4, name: '青菜1份', angle: 135, color: '#6BCF7F', is_activity: false, type: 'physical', value: 0, probability: 0.15 },
-      { id: 5, name: '虾1份', angle: 180, color: '#FF6B6B', is_activity: false, type: 'physical', value: 0, probability: 0.10 },
-      { id: 6, name: '花甲1份', angle: 225, color: '#4DABF7', is_activity: false, type: 'physical', value: 0, probability: 0.08 },
-      { id: 7, name: '鱿鱼1份', angle: 270, color: '#9775FA', is_activity: false, type: 'physical', value: 0, probability: 0.05 },
-      { id: 8, name: '生腌拼盘', angle: 315, color: '#FFB84D', is_activity: true, type: 'physical', value: 0, probability: 0.02 }
-    ],
+    // 🔴 使用统一的奖品配置，避免重复数据源
+    standardPrizes: getStandardPrizes(),
   },
 
   onLoad() {
     console.log('抽奖页面加载')
     this.initPage()
+    
+    // 初始化指针动画状态
+    this.pointerAnimationPhase = 0
+    this.pointerAnimationTimer = null
     
     // 添加调试信息
     setTimeout(() => {
@@ -72,6 +68,9 @@ Page({
         十连抽功能: typeof this.onTenDraw === 'function',
         中央按钮已优化: '按钮现在位于转盘红圈中心，尺寸适配美观'
       })
+      
+      // 🎯 启动指针待机动画
+      this.startPointerIdleAnimation()
     }, 1000)
   },
 
@@ -144,10 +143,14 @@ Page({
 
   onHide() {
     console.log('抽奖页面隐藏')
+    // 停止指针动画，节省资源
+    this.stopPointerIdleAnimation()
   },
 
   onUnload() {
     console.log('抽奖页面卸载')
+    // 清理所有动画定时器
+    this.stopPointerIdleAnimation()
   },
 
   onReady() {
@@ -416,11 +419,12 @@ Page({
     // 🔴 使用统一的奖品配置数据源，确保一致性
     console.log('🔧 设置默认抽奖配置（使用统一数据源）')
     
+    const lotteryConfig = getLotteryConfig()
     this.setData({
       prizes: this.data.standardPrizes, // 🔴 使用统一的奖品配置
-      costPoints: 100,  // 🔴 根据后端文档，单次抽奖消耗100积分
-      dailyLimit: 10,   // 🔴 每日抽奖次数限制
-      lotteryRules: '🔴 每次抽奖消耗100积分，奖品配置已统一标准化'
+      costPoints: lotteryConfig.costPoints,
+      dailyLimit: lotteryConfig.dailyLimit,
+      lotteryRules: lotteryConfig.rules
     })
     
     console.log('✅ 已设置统一抽奖配置，奖品数量:', this.data.standardPrizes.length)
@@ -434,18 +438,9 @@ Page({
     
     // 确保有奖品数据
     if (!this.data.prizes || this.data.prizes.length === 0) {
-      console.log('🔧 设置默认奖品数据')
+      console.log('🔧 设置后备奖品数据')
       this.setData({
-        prizes: [
-          { id: 1, name: '积分奖励', color: '#4ECDC4' },
-          { id: 2, name: '优惠券', color: '#FFD93D' },
-          { id: 3, name: '三连抽', color: '#6BCF7F' },
-          { id: 4, name: '再来一次', color: '#FF6B6B' },
-          { id: 5, name: '神秘大奖', color: '#9775FA' },
-          { id: 6, name: '条件券', color: '#4DABF7' },
-          { id: 7, name: '体验券', color: '#FFB84D' },
-          { id: 8, name: '谢谢参与', color: '#FF7675' }
-        ]
+        prizes: getFallbackPrizes()
       })
     }
     
@@ -519,17 +514,8 @@ Page({
     console.log('🏆 奖品数据检查:', prizes)
     
     if (!prizes || !Array.isArray(prizes) || prizes.length === 0) {
-      console.warn('奖品数据无效，使用内置默认数据')
-      prizes = [
-        { id: 1, name: '积分奖励', color: '#4ECDC4' },
-        { id: 2, name: '优惠券', color: '#FFD93D' },
-        { id: 3, name: '三连抽', color: '#6BCF7F' },
-        { id: 4, name: '再来一次', color: '#FF6B6B' },
-        { id: 5, name: '神秘大奖', color: '#9775FA' },
-        { id: 6, name: '条件券', color: '#4DABF7' },
-        { id: 7, name: '体验券', color: '#FFB84D' },
-        { id: 8, name: '谢谢参与', color: '#FF7675' }
-      ]
+      console.warn('奖品数据无效，使用统一的后备数据')
+      prizes = getFallbackPrizes()
       this.setData({ prizes })
     }
 
@@ -599,8 +585,8 @@ Page({
       // 恢复变换
       ctx.restore()
 
-      // 绘制美化的指针
-      this.drawBeautifulPointer(ctx, centerX, centerY)
+          // 绘制美化的指针 - 添加动态效果
+    this.drawBeautifulPointer(ctx, centerX, centerY)
 
       // 🎯 重要：绘制中央透明区域确保按钮可见
       ctx.save()
@@ -626,54 +612,237 @@ Page({
   },
 
   /**
-   * 绘制美化指针
+   * 启动指针待机动画 - 轻微脉冲效果
+   */
+  startPointerIdleAnimation() {
+    if (this.pointerAnimationTimer) {
+      clearInterval(this.pointerAnimationTimer)
+    }
+    
+    this.pointerAnimationTimer = setInterval(() => {
+      // 只在非抽奖状态下执行动画
+      if (!this.data.isDrawing && this.data.wheelReady) {
+        this.pointerAnimationPhase += 0.1
+        if (this.pointerAnimationPhase > Math.PI * 2) {
+          this.pointerAnimationPhase = 0
+        }
+        
+        // 每隔一定时间重绘指针（低频率，避免性能问题）
+        if (Math.floor(this.pointerAnimationPhase * 10) % 8 === 0) {
+          try {
+            this.drawWheel()
+          } catch (error) {
+            console.warn('指针动画绘制警告:', error)
+          }
+        }
+      }
+    }, 100) // 每100ms检查一次
+  },
+
+  /**
+   * 停止指针待机动画
+   */
+  stopPointerIdleAnimation() {
+    if (this.pointerAnimationTimer) {
+      clearInterval(this.pointerAnimationTimer)
+      this.pointerAnimationTimer = null
+    }
+    this.pointerAnimationPhase = 0
+  },
+
+  /**
+   * 绘制美化指针 - 优化版本
+   * 🎯 优化内容：
+   * 1. 增强渐变效果和立体感
+   * 2. 优化指针形状和尺寸比例
+   * 3. 增加多层阴影效果
+   * 4. 添加高光和细节装饰
+   * 5. 提升视觉冲击力和现代感
+   * 6. 添加待机时的轻微脉冲动画
    */
   drawBeautifulPointer(ctx, centerX, centerY) {
     ctx.save()
     ctx.translate(centerX, centerY)
     
-    // 绘制指针阴影
+    // 🎯 添加动画效果
+    let animationScale = 1.0
+    let glowIntensity = 0.0
+    
+    if (this.data.isDrawing && this.pointerSpinPhase !== undefined) {
+      // 抽奖时：快速脉冲 + 发光效果
+      animationScale = 1.0 + Math.sin(this.pointerSpinPhase) * 0.08
+      glowIntensity = Math.sin(this.pointerSpinPhase) * 0.3 + 0.3
+      ctx.scale(animationScale, animationScale)
+    } else if (!this.data.isDrawing && this.pointerAnimationPhase !== undefined) {
+      // 待机时：轻微脉冲
+      animationScale = 1.0 + Math.sin(this.pointerAnimationPhase) * 0.02
+      ctx.scale(animationScale, animationScale)
+    }
+    
+    // 🎨 绘制多层阴影效果，增强立体感
+    // 外层深阴影
     ctx.save()
-    ctx.translate(3, 3)
+    ctx.translate(4, 6)
     ctx.beginPath()
-    ctx.moveTo(0, -135)
-    ctx.lineTo(-15, -100)
-    ctx.lineTo(15, -100)
+    ctx.moveTo(0, -140)
+    ctx.lineTo(-18, -95)
+    ctx.lineTo(18, -95)
+    ctx.closePath()
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 中层阴影
+    ctx.save()
+    ctx.translate(2, 3)
+    ctx.beginPath()
+    ctx.moveTo(0, -138)
+    ctx.lineTo(-16, -97)
+    ctx.lineTo(16, -97)
     ctx.closePath()
     ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
     ctx.fill()
     ctx.restore()
     
-    // 绘制主指针
+    // 内层柔和阴影
+    ctx.save()
+    ctx.translate(1, 1)
     ctx.beginPath()
-    ctx.moveTo(0, -135)  // 指针顶部
-    ctx.lineTo(-15, -100) // 左下角
-    ctx.lineTo(15, -100)  // 右下角
+    ctx.moveTo(0, -136)
+    ctx.lineTo(-15, -98)
+    ctx.lineTo(15, -98)
+    ctx.closePath()
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 🔥 绘制主指针 - 优化形状和渐变
+    ctx.beginPath()
+    ctx.moveTo(0, -138)    // 指针尖端，稍微延长
+    ctx.lineTo(-16, -98)   // 左下角，稍微加宽
+    ctx.lineTo(-8, -90)    // 左侧内凹
+    ctx.lineTo(0, -95)     // 中间收腰
+    ctx.lineTo(8, -90)     // 右侧内凹
+    ctx.lineTo(16, -98)    // 右下角
     ctx.closePath()
     
-    // 指针填充
-    ctx.fillStyle = '#ff3333'
+    // 🌈 创建线性渐变填充 - 根据状态调整颜色
+    const gradient = ctx.createLinearGradient(0, -138, 0, -90)
+    if (glowIntensity > 0) {
+      // 抽奖时的发光效果
+      gradient.addColorStop(0, `rgba(255, ${68 + Math.floor(glowIntensity * 50)}, ${68 + Math.floor(glowIntensity * 50)}, 1)`)
+      gradient.addColorStop(0.3, `rgba(255, ${51 + Math.floor(glowIntensity * 40)}, ${51 + Math.floor(glowIntensity * 40)}, 1)`)
+      gradient.addColorStop(0.7, '#CC2222')
+      gradient.addColorStop(1, '#AA1111')
+    } else {
+      // 正常状态
+      gradient.addColorStop(0, '#FF4444')    // 顶部亮红色
+      gradient.addColorStop(0.3, '#FF3333')  // 中上部标准红色
+      gradient.addColorStop(0.7, '#CC2222')  // 中下部深红色
+      gradient.addColorStop(1, '#AA1111')    // 底部深红色
+    }
+    ctx.fillStyle = gradient
     ctx.fill()
     
-    // 指针边框
+    // 🔥 抽奖时添加外发光效果
+    if (glowIntensity > 0) {
+      ctx.save()
+      ctx.shadowColor = '#FF3333'
+      ctx.shadowBlur = 20 * glowIntensity
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
+      ctx.strokeStyle = `rgba(255, 51, 51, ${glowIntensity})`
+      ctx.lineWidth = 8
+      ctx.stroke()
+      ctx.restore()
+    }
+    
+    // ✨ 添加高光效果
+    ctx.save()
+    ctx.beginPath()
+    ctx.moveTo(-2, -130)
+    ctx.lineTo(-8, -110)
+    ctx.lineTo(-4, -105)
+    ctx.lineTo(2, -125)
+    ctx.closePath()
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 🖼️ 指针边框 - 双层边框效果
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = 4
+    ctx.stroke()
+    
+    // 内层金色边框
+    ctx.strokeStyle = '#FFD700'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    
+    // 🎯 指针圆心底座 - 多层设计
+    // 外圆阴影
+    ctx.save()
+    ctx.translate(1, 2)
+    ctx.beginPath()
+    ctx.arc(0, 0, 16, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 主圆底座
+    ctx.beginPath()
+    ctx.arc(0, 0, 15, 0, 2 * Math.PI)
+    const baseGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 15)
+    baseGradient.addColorStop(0, '#FF5555')
+    baseGradient.addColorStop(0.7, '#FF3333')
+    baseGradient.addColorStop(1, '#CC2222')
+    ctx.fillStyle = baseGradient
+    ctx.fill()
+    
+    // 底座边框
     ctx.strokeStyle = '#ffffff'
     ctx.lineWidth = 3
     ctx.stroke()
     
-    // 指针圆心
+    // 🔘 中心装饰圆
     ctx.beginPath()
-    ctx.arc(0, 0, 12, 0, 2 * Math.PI)
-    ctx.fillStyle = '#ff3333'
+    ctx.arc(0, 0, 8, 0, 2 * Math.PI)
+    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 8)
+    centerGradient.addColorStop(0, '#ffffff')
+    centerGradient.addColorStop(0.6, '#FFE4E4')
+    centerGradient.addColorStop(1, '#FFCCCC')
+    ctx.fillStyle = centerGradient
     ctx.fill()
-    ctx.strokeStyle = '#ffffff'
-    ctx.lineWidth = 2
+    
+    // 中心圆边框
+    ctx.strokeStyle = '#FF3333'
+    ctx.lineWidth = 1
     ctx.stroke()
     
-    // 内圆装饰
+    // ⭐ 中心亮点
     ctx.beginPath()
-    ctx.arc(0, 0, 6, 0, 2 * Math.PI)
-    ctx.fillStyle = '#ffffff'
+    ctx.arc(-2, -2, 2, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
     ctx.fill()
+    
+    // 🎨 添加装饰性小元素
+    // 左侧小装饰
+    ctx.save()
+    ctx.rotate(-Math.PI / 6)
+    ctx.beginPath()
+    ctx.arc(12, 0, 2, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.6)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 右侧小装饰
+    ctx.save()
+    ctx.rotate(Math.PI / 6)
+    ctx.beginPath()
+    ctx.arc(12, 0, 2, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.6)'
+    ctx.fill()
+    ctx.restore()
     
     ctx.restore()
   },
@@ -784,6 +953,10 @@ Page({
    */
   startDrawing(drawType, count, needPoints) {
     console.log('🎰 开始抽奖流程:', { drawType, count, needPoints })
+    
+    // 停止指针待机动画
+    this.stopPointerIdleAnimation()
+    
     this.setData({ isDrawing: true })
     wx.showLoading({ title: '抽奖中...' })
 
@@ -853,6 +1026,11 @@ Page({
       // 确保重置抽奖状态
       console.log('🔄 重置抽奖状态')
       this.setData({ isDrawing: false })
+      
+      // 重新启动指针待机动画
+      setTimeout(() => {
+        this.startPointerIdleAnimation()
+      }, 1000)
     })
   },
 
@@ -938,7 +1116,7 @@ Page({
   },
 
   /**
-   * 播放转盘动画 - 性能优化版本
+   * 播放转盘动画 - 性能优化版本 + 指针特效
    */
   playAnimation(result) {
     return new Promise((resolve) => {
@@ -951,6 +1129,9 @@ Page({
       let startTime = Date.now()
       let startAngle = this.data.currentAngle
       let animationTimer = null
+      
+      // 🎯 指针抽奖动画状态
+      this.pointerSpinPhase = 0
 
       const animate = () => {
         const elapsed = Date.now() - startTime
@@ -962,6 +1143,9 @@ Page({
         let currentAngle = startAngle + totalRotation * easeProgress
 
         this.setData({ currentAngle: currentAngle % 360 })
+        
+        // 🎯 更新指针动画状态
+        this.pointerSpinPhase = progress * Math.PI * 6 // 抽奖时指针有快速脉冲
         
         // 每3帧绘制一次，减少绘制频率
         if (Math.floor(elapsed / frameDuration) % 3 === 0) {
@@ -976,6 +1160,7 @@ Page({
           animationTimer = setTimeout(animate, frameDuration)
         } else {
           // 动画结束，最后绘制一次
+          this.pointerSpinPhase = 0 // 重置指针动画状态
           this.drawWheel()
           if (animationTimer) {
             clearTimeout(animationTimer)
