@@ -108,7 +108,7 @@ onHide() {
 #### Canvas 2D API 高级特性
 - **多重阴影**: `translate` + 多次绘制
 - **线性渐变**: `createLinearGradient`
-- **径向渐变**: `createRadialGradient`  
+- **兼容性优化**: 使用纯色填充替代不兼容的径向渐变  
 - **阴影特效**: `shadowColor` + `shadowBlur`
 - **复合操作**: `globalCompositeOperation`
 

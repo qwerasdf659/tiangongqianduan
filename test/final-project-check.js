@@ -490,7 +490,7 @@ const technicalHighlights = {
   'Canvas高级特性': [
     'shadowColor/shadowBlur - 多重阴影',
     'createLinearGradient - 线性渐变',
-    'createRadialGradient - 径向渐变',
+    '兼容性优化 - 纯色填充替代径向渐变',
     'globalCompositeOperation - 混合模式'
   ],
   '动画优化技术': [
