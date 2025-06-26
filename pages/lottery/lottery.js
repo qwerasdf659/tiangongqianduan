@@ -3,6 +3,48 @@ const app = getApp()
 const { lotteryAPI, userAPI, mockRequest } = require('../../utils/api')
 const { SliderVerify, throttle } = require('../../utils/validate')
 const { getStandardPrizes, getFallbackPrizes, getLotteryConfig } = require('./lottery-config')
+// 🔧 修复模块导入路径问题
+// const { quickCompatibilityCheck, getCompatibilityAdvice } = require('../../utils/compatibility-check')
+
+// 临时使用内联兼容性检查，避免模块导入问题
+function quickCompatibilityCheck() {
+  try {
+    // 创建临时Canvas上下文进行检查
+    const canvas = wx.createCanvasContext('temp-check')
+    
+    const keyAPIs = {
+      createLinearGradient: typeof canvas.createLinearGradient === 'function',
+      createRadialGradient: typeof canvas.createRadialGradient === 'function',
+      quadraticCurveTo: typeof canvas.quadraticCurveTo === 'function',
+      filter: 'filter' in canvas
+    }
+    
+    console.log('🔍 Canvas兼容性检查结果:', keyAPIs)
+    return keyAPIs
+  } catch (error) {
+    console.error('❌ 兼容性检查失败:', error)
+    // 返回保守的兼容性配置
+    return {
+      createLinearGradient: true,
+      createRadialGradient: false,
+      quadraticCurveTo: true,
+      filter: false
+    }
+  }
+}
+
+function getCompatibilityAdvice() {
+  return {
+    alternatives: {
+      createRadialGradient: '使用createLinearGradient或纯色填充',
+      filter: '移除滤镜效果或使用多层绘制模拟'
+    },
+    bestPractices: [
+      '优先使用基础Canvas API',
+      '在使用高级API前先检查兼容性'
+    ]
+  }
+}
 
 Page({
   data: {
@@ -35,6 +77,14 @@ Page({
     showStaticWheel: false,
     canvasError: false,
     
+    // Canvas兼容性检查结果
+    canvasCompatibility: {
+      createRadialGradient: true,
+      filter: true,
+      quadraticCurveTo: true,
+      createLinearGradient: true
+    },
+    
     // 真机调试相关 - 确保按钮始终可见
     isButtonVisible: true, // 强制设为true
     forceUpdate: 0, // 强制更新标识
@@ -45,6 +95,32 @@ Page({
 
   onLoad() {
     console.log('抽奖页面加载')
+    
+    // 🔍 首先进行Canvas兼容性检查
+    console.log('🔧 开始Canvas兼容性检查...')
+    try {
+      const compatibility = quickCompatibilityCheck()
+      this.setData({ canvasCompatibility: compatibility })
+      
+      // 根据兼容性结果调整绘制策略
+      if (!compatibility.createRadialGradient || !compatibility.filter) {
+        console.log('⚠️ 检测到兼容性问题，已自动启用兼容模式')
+      } else {
+        console.log('✅ Canvas兼容性检查通过，可以使用高级特性')
+      }
+    } catch (error) {
+      console.error('❌ 兼容性检查失败:', error)
+      // 设置保守的兼容性配置
+      this.setData({
+        canvasCompatibility: {
+          createRadialGradient: false,
+          filter: false,
+          quadraticCurveTo: true,
+          createLinearGradient: true
+        }
+      })
+    }
+    
     this.initPage()
     
     // 初始化指针动画状态
@@ -156,13 +232,14 @@ Page({
   onReady() {
     console.log('抽奖页面准备就绪 - 真机调试模式')
     
-    // 获取系统信息进行真机检测
-    const systemInfo = wx.getSystemInfoSync()
-    console.log('📱 设备信息:', {
-      platform: systemInfo.platform,
-      version: systemInfo.version,
-      model: systemInfo.model,
-      pixelRatio: systemInfo.pixelRatio,
+    // 获取系统信息进行真机检测 - 使用新API避免警告
+    try {
+      const systemInfo = wx.getDeviceInfo ? wx.getDeviceInfo() : wx.getSystemInfoSync()
+      console.log('📱 设备信息:', {
+        platform: systemInfo.platform,
+        version: systemInfo.version,
+        model: systemInfo.model,
+        pixelRatio: systemInfo.pixelRatio,
       windowWidth: systemInfo.windowWidth,
       windowHeight: systemInfo.windowHeight
     })
@@ -244,6 +321,19 @@ Page({
         })
       }
     }, 2000)
+    
+    } catch (error) {
+      console.error('❌ 获取设备信息失败:', error)
+      // 设置默认值确保程序继续运行
+      this.setData({
+        isButtonVisible: true,
+        wheelReady: true,
+        isDrawing: false,
+        totalPoints: this.data.totalPoints || 1500,
+        costPoints: 100,
+        isRealDevice: false
+      })
+    }
   },
 
   /**
@@ -660,127 +750,272 @@ Page({
    * 5. 提升视觉冲击力和现代感
    * 6. 添加待机时的轻微脉冲动画
    */
+  /**
+   * 🎨 绘制极致美学指针 - 大幅提升视觉美感和细节精致度
+   * 优化内容：
+   * 1. 更加流线型的指针形状设计
+   * 2. 精细化渐变和阴影系统
+   * 3. 增强装饰元素和细节
+   * 4. 优化动画和发光效果
+   * 5. 提升整体美学品质
+   */
   drawBeautifulPointer(ctx, centerX, centerY) {
     ctx.save()
     ctx.translate(centerX, centerY)
     
-    // 🎯 添加动画效果
+    // 🔍 获取兼容性检查结果，确保API使用安全
+    const compatibility = this.data.canvasCompatibility || {
+      createRadialGradient: false,
+      filter: false,
+      quadraticCurveTo: true,
+      createLinearGradient: true
+    }
+    
+    // 📊 输出当前兼容性状态（仅在开发模式下）
+    if (typeof __wxConfig !== 'undefined' && __wxConfig.debug) {
+      console.log('🎨 指针绘制兼容性状态:', {
+        径向渐变: compatibility.createRadialGradient ? '✅' : '❌',
+        滤镜效果: compatibility.filter ? '✅' : '❌',
+        贝塞尔曲线: compatibility.quadraticCurveTo ? '✅' : '❌',
+        线性渐变: compatibility.createLinearGradient ? '✅' : '❌'
+      })
+    }
+    
+    // 🎯 动画效果优化 - 更流畅的动画曲线
     let animationScale = 1.0
     let glowIntensity = 0.0
+    let rotationOffset = 0
     
     if (this.data.isDrawing && this.pointerSpinPhase !== undefined) {
-      // 抽奖时：快速脉冲 + 发光效果
-      animationScale = 1.0 + Math.sin(this.pointerSpinPhase) * 0.08
-      glowIntensity = Math.sin(this.pointerSpinPhase) * 0.3 + 0.3
+      // 抽奖时：增强的脉冲和发光效果
+      const pulseCurve = Math.sin(this.pointerSpinPhase * 2) * 0.5 + 0.5
+      animationScale = 1.0 + pulseCurve * 0.12
+      glowIntensity = pulseCurve * 0.5 + 0.3
+      rotationOffset = Math.sin(this.pointerSpinPhase * 0.5) * 0.02
       ctx.scale(animationScale, animationScale)
+      ctx.rotate(rotationOffset)
     } else if (!this.data.isDrawing && this.pointerAnimationPhase !== undefined) {
-      // 待机时：轻微脉冲
-      animationScale = 1.0 + Math.sin(this.pointerAnimationPhase) * 0.02
+      // 待机时：优雅的呼吸效果
+      const breathCurve = Math.sin(this.pointerAnimationPhase * 0.8) * 0.5 + 0.5
+      animationScale = 1.0 + breathCurve * 0.03
       ctx.scale(animationScale, animationScale)
     }
     
-    // 🎨 绘制多层阴影效果，增强立体感
-    // 外层深阴影
-    ctx.save()
-    ctx.translate(4, 6)
-    ctx.beginPath()
-    ctx.moveTo(0, -140)
-    ctx.lineTo(-18, -95)
-    ctx.lineTo(18, -95)
-    ctx.closePath()
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
-    ctx.fill()
-    ctx.restore()
+    // 🌟 绘制增强的多层阴影系统 - 5层阴影营造极致立体感
+    const shadowLayers = [
+      { offset: [6, 8], alpha: 0.35, blur: 8 },      // 最外层深阴影
+      { offset: [4, 6], alpha: 0.25, blur: 6 },      // 外层阴影
+      { offset: [3, 4], alpha: 0.2, blur: 4 },       // 中外层阴影
+      { offset: [2, 3], alpha: 0.15, blur: 2 },      // 中层阴影
+      { offset: [1, 1], alpha: 0.1, blur: 1 }        // 内层柔和阴影
+    ]
     
-    // 中层阴影
-    ctx.save()
-    ctx.translate(2, 3)
-    ctx.beginPath()
-    ctx.moveTo(0, -138)
-    ctx.lineTo(-16, -97)
-    ctx.lineTo(16, -97)
-    ctx.closePath()
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
-    ctx.fill()
-    ctx.restore()
+         shadowLayers.forEach(shadow => {
+       ctx.save()
+       ctx.translate(shadow.offset[0], shadow.offset[1])
+       // 移除ctx.filter以确保兼容性
+       
+       // 根据兼容性绘制指针形状阴影
+       ctx.beginPath()
+       ctx.moveTo(0, -142)         // 尖端更尖锐
+       
+       if (compatibility.quadraticCurveTo) {
+         // ✅ 支持贝塞尔曲线 - 使用流线型阴影
+         ctx.quadraticCurveTo(-3, -135, -8, -125)    // 左侧优雅曲线
+         ctx.lineTo(-18, -98)        // 左下角
+         ctx.quadraticCurveTo(-12, -92, -6, -88)     // 左侧内凹曲线
+         ctx.quadraticCurveTo(-2, -90, 0, -92)       // 中间收腰
+         ctx.quadraticCurveTo(2, -90, 6, -88)        // 右侧内凹曲线
+         ctx.quadraticCurveTo(12, -92, 18, -98)      // 右侧内凹曲线
+         ctx.lineTo(8, -125)         // 右下角
+         ctx.quadraticCurveTo(3, -135, 0, -142)      // 右侧优雅曲线
+       } else {
+         // ⚠️ 不支持贝塞尔曲线 - 使用直线阴影
+         ctx.lineTo(-8, -125)        // 左侧直线
+         ctx.lineTo(-18, -98)        // 左下角
+         ctx.lineTo(-6, -88)         // 左侧内凹
+         ctx.lineTo(0, -92)          // 中间收腰
+         ctx.lineTo(6, -88)          // 右侧内凹
+         ctx.lineTo(18, -98)         // 右下角
+         ctx.lineTo(8, -125)         // 右侧直线
+         ctx.lineTo(0, -142)         // 回到尖端
+       }
+       ctx.closePath()
+       
+       ctx.fillStyle = `rgba(0, 0, 0, ${shadow.alpha})`
+       ctx.fill()
+       ctx.restore()
+     })
     
-    // 内层柔和阴影
-    ctx.save()
-    ctx.translate(1, 1)
+    // 🔥 绘制主指针 - 根据兼容性选择绘制方式
     ctx.beginPath()
-    ctx.moveTo(0, -136)
-    ctx.lineTo(-15, -98)
-    ctx.lineTo(15, -98)
-    ctx.closePath()
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
-    ctx.fill()
-    ctx.restore()
+    ctx.moveTo(0, -142)                           // 指针尖端，更加尖锐
     
-    // 🔥 绘制主指针 - 优化形状和渐变
-    ctx.beginPath()
-    ctx.moveTo(0, -138)    // 指针尖端，稍微延长
-    ctx.lineTo(-16, -98)   // 左下角，稍微加宽
-    ctx.lineTo(-8, -90)    // 左侧内凹
-    ctx.lineTo(0, -95)     // 中间收腰
-    ctx.lineTo(8, -90)     // 右侧内凹
-    ctx.lineTo(16, -98)    // 右下角
-    ctx.closePath()
-    
-    // 🌈 创建线性渐变填充 - 根据状态调整颜色
-    const gradient = ctx.createLinearGradient(0, -138, 0, -90)
-    if (glowIntensity > 0) {
-      // 抽奖时的发光效果
-      gradient.addColorStop(0, `rgba(255, ${68 + Math.floor(glowIntensity * 50)}, ${68 + Math.floor(glowIntensity * 50)}, 1)`)
-      gradient.addColorStop(0.3, `rgba(255, ${51 + Math.floor(glowIntensity * 40)}, ${51 + Math.floor(glowIntensity * 40)}, 1)`)
-      gradient.addColorStop(0.7, '#CC2222')
-      gradient.addColorStop(1, '#AA1111')
+    if (compatibility.quadraticCurveTo) {
+      // ✅ 支持贝塞尔曲线 - 使用极致流线型设计
+      ctx.quadraticCurveTo(-3, -135, -8, -125)      // 左侧优雅曲线过渡
+      ctx.lineTo(-18, -98)                          // 左下角扩展
+      ctx.quadraticCurveTo(-14, -94, -10, -90)      // 左侧圆润过渡
+      ctx.quadraticCurveTo(-6, -88, -3, -89)        // 左侧内凹细节
+      ctx.quadraticCurveTo(-1, -91, 0, -92)         // 中间精致收腰
+      ctx.quadraticCurveTo(1, -91, 3, -89)          // 右侧内凹细节
+      ctx.quadraticCurveTo(6, -88, 10, -90)         // 右侧内凹细节
+      ctx.quadraticCurveTo(14, -94, 18, -98)        // 右侧圆润过渡
+      ctx.lineTo(8, -125)                           // 右下角扩展
+      ctx.quadraticCurveTo(3, -135, 0, -142)        // 右侧优雅曲线过渡
     } else {
-      // 正常状态
-      gradient.addColorStop(0, '#FF4444')    // 顶部亮红色
-      gradient.addColorStop(0.3, '#FF3333')  // 中上部标准红色
-      gradient.addColorStop(0.7, '#CC2222')  // 中下部深红色
-      gradient.addColorStop(1, '#AA1111')    // 底部深红色
+      // ⚠️ 不支持贝塞尔曲线 - 使用兼容的直线设计
+      console.log('💡 使用兼容模式绘制指针（直线版本）')
+      ctx.lineTo(-8, -125)                          // 左侧直线
+      ctx.lineTo(-18, -98)                          // 左下角
+      ctx.lineTo(-10, -90)                          // 左侧收腰
+      ctx.lineTo(-3, -89)                           // 左侧内凹
+      ctx.lineTo(0, -92)                            // 中间收腰
+      ctx.lineTo(3, -89)                            // 右侧内凹
+      ctx.lineTo(10, -90)                           // 右侧收腰
+      ctx.lineTo(18, -98)                           // 右下角
+      ctx.lineTo(8, -125)                           // 右侧直线
+      ctx.lineTo(0, -142)                           // 回到尖端
+    }
+    ctx.closePath()
+    
+    // 🌈 创建精致渐变填充 - 6层渐变营造丰富色彩层次
+    const gradient = ctx.createLinearGradient(0, -142, 0, -88)
+    if (glowIntensity > 0) {
+      // 抽奖时的动态发光渐变
+      const glowR = Math.floor(255)
+      const glowG = Math.floor(68 + glowIntensity * 60)
+      const glowB = Math.floor(68 + glowIntensity * 60)
+      gradient.addColorStop(0, `rgba(${glowR}, ${glowG + 20}, ${glowB + 20}, 1)`)    // 顶部超亮
+      gradient.addColorStop(0.15, `rgba(${glowR}, ${glowG}, ${glowB}, 1)`)           // 次亮区
+      gradient.addColorStop(0.35, '#FF4444')                                         // 标准亮红
+      gradient.addColorStop(0.55, '#FF3333')                                         // 中部红色
+      gradient.addColorStop(0.75, '#DD2222')                                         // 中深红
+      gradient.addColorStop(0.9, '#BB1111')                                          // 深红
+      gradient.addColorStop(1, '#990000')                                            // 底部深红
+    } else {
+      // 正常状态的精致渐变
+      gradient.addColorStop(0, '#FF5555')      // 顶部亮红，更鲜艳
+      gradient.addColorStop(0.15, '#FF4444')   // 次亮区
+      gradient.addColorStop(0.35, '#FF3333')   // 标准红色
+      gradient.addColorStop(0.55, '#EE2222')   // 中部稍深
+      gradient.addColorStop(0.75, '#DD1111')   // 中深红
+      gradient.addColorStop(0.9, '#CC0000')    // 深红
+      gradient.addColorStop(1, '#AA0000')      // 底部深红
     }
     ctx.fillStyle = gradient
     ctx.fill()
     
-    // 🔥 抽奖时添加外发光效果
+    // 🔥 增强外发光效果
     if (glowIntensity > 0) {
       ctx.save()
-      ctx.shadowColor = '#FF3333'
-      ctx.shadowBlur = 20 * glowIntensity
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
-      ctx.strokeStyle = `rgba(255, 51, 51, ${glowIntensity})`
-      ctx.lineWidth = 8
-      ctx.stroke()
+      // 多层发光效果
+      const glowLayers = [
+        { color: '#FF6666', blur: 25, alpha: glowIntensity * 0.8, width: 12 },
+        { color: '#FF4444', blur: 15, alpha: glowIntensity * 0.6, width: 8 },
+        { color: '#FF3333', blur: 8, alpha: glowIntensity * 0.4, width: 4 }
+      ]
+      
+      glowLayers.forEach(glow => {
+        ctx.shadowColor = glow.color
+        ctx.shadowBlur = glow.blur
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+        ctx.strokeStyle = `rgba(255, 51, 51, ${glow.alpha})`
+        ctx.lineWidth = glow.width
+        ctx.stroke()
+      })
       ctx.restore()
     }
     
-    // ✨ 添加高光效果
+    // ✨ 增强高光效果系统 - 根据兼容性选择高光绘制方式
+    // 主高光
     ctx.save()
     ctx.beginPath()
-    ctx.moveTo(-2, -130)
-    ctx.lineTo(-8, -110)
-    ctx.lineTo(-4, -105)
-    ctx.lineTo(2, -125)
+    ctx.moveTo(-2, -135)
+    if (compatibility.quadraticCurveTo) {
+      // ✅ 支持贝塞尔曲线 - 使用流畅高光
+      ctx.quadraticCurveTo(-1, -130, -4, -120)
+      ctx.quadraticCurveTo(-8, -115, -6, -108)
+      ctx.quadraticCurveTo(-3, -110, 0, -115)
+      ctx.quadraticCurveTo(1, -125, -2, -135)
+    } else {
+      // ⚠️ 不支持贝塞尔曲线 - 使用直线高光
+      ctx.lineTo(-4, -120)
+      ctx.lineTo(-6, -108)
+      ctx.lineTo(0, -115)
+      ctx.lineTo(-2, -135)
+    }
     ctx.closePath()
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
     ctx.fill()
     ctx.restore()
     
-    // 🖼️ 指针边框 - 双层边框效果
+    // 次高光
+    ctx.save()
+    ctx.beginPath()
+    ctx.moveTo(2, -128)
+    if (compatibility.quadraticCurveTo) {
+      // ✅ 支持贝塞尔曲线 - 使用流畅高光
+      ctx.quadraticCurveTo(4, -125, 6, -118)
+      ctx.quadraticCurveTo(8, -115, 5, -112)
+      ctx.quadraticCurveTo(3, -115, 2, -128)
+    } else {
+      // ⚠️ 不支持贝塞尔曲线 - 使用直线高光
+      ctx.lineTo(6, -118)
+      ctx.lineTo(5, -112)
+      ctx.lineTo(2, -128)
+    }
+    ctx.closePath()
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 细节高光点
+    const highlights = [
+      { x: -4, y: -125, r: 1.5, alpha: 0.6 },
+      { x: 3, y: -120, r: 1, alpha: 0.4 },
+      { x: -1, y: -115, r: 0.8, alpha: 0.5 }
+    ]
+    
+    highlights.forEach(light => {
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(light.x, light.y, light.r, 0, 2 * Math.PI)
+      ctx.fillStyle = `rgba(255, 255, 255, ${light.alpha})`
+      ctx.fill()
+      ctx.restore()
+    })
+    
+    // 🖼️ 精致边框系统 - 三层边框营造精细质感
+    // 外层白色主边框
     ctx.strokeStyle = '#ffffff'
     ctx.lineWidth = 4
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
     ctx.stroke()
     
-    // 内层金色边框
+    // 中层金色装饰边框
     ctx.strokeStyle = '#FFD700'
-    ctx.lineWidth = 1
+    ctx.lineWidth = 2
     ctx.stroke()
     
-    // 🎯 指针圆心底座 - 多层设计
-    // 外圆阴影
+    // 内层细节边框
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'
+    ctx.lineWidth = 0.8
+    ctx.stroke()
+    
+    // 🎯 指针圆心底座 - 极致多层设计
+    // 最外层阴影
+    ctx.save()
+    ctx.translate(2, 3)
+    ctx.beginPath()
+    ctx.arc(0, 0, 18, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 外层阴影
     ctx.save()
     ctx.translate(1, 2)
     ctx.beginPath()
@@ -789,52 +1024,103 @@ Page({
     ctx.fill()
     ctx.restore()
     
-    // 主圆底座 - 使用兼容的纯色填充
+    // 主圆底座 - 兼容性优化，使用纯色填充
     ctx.beginPath()
     ctx.arc(0, 0, 15, 0, 2 * Math.PI)
-    ctx.fillStyle = '#FF3333'  // 使用纯色替代径向渐变
+    ctx.fillStyle = '#FF3333'  // 使用纯色替代径向渐变，确保兼容性
     ctx.fill()
     
-    // 底座边框
+    // 底座多层边框
     ctx.strokeStyle = '#ffffff'
     ctx.lineWidth = 3
     ctx.stroke()
     
-    // 🔘 中心装饰圆 - 使用兼容的纯色填充
+    ctx.strokeStyle = '#FFD700'
+    ctx.lineWidth = 1.5
+    ctx.stroke()
+    
+    // 🔘 中心装饰圆系统 - 兼容性优化
+    // 外层装饰圆 - 使用纯色替代径向渐变
     ctx.beginPath()
-    ctx.arc(0, 0, 8, 0, 2 * Math.PI)
-    ctx.fillStyle = '#FFE4E4'  // 使用纯色替代径向渐变
+    ctx.arc(0, 0, 10, 0, 2 * Math.PI)
+    ctx.fillStyle = '#FFD0D0'  // 使用中间色调，保持美观
     ctx.fill()
     
-    // 中心圆边框
+    // 中层装饰圆 - 使用纯色替代径向渐变
+    ctx.beginPath()
+    ctx.arc(0, 0, 6, 0, 2 * Math.PI)
+    ctx.fillStyle = '#FFE0E0'  // 使用浅色调，保持层次感
+    ctx.fill()
+    
+    // 装饰圆边框
     ctx.strokeStyle = '#FF3333'
     ctx.lineWidth = 1
     ctx.stroke()
     
-    // ⭐ 中心亮点
-    ctx.beginPath()
-    ctx.arc(-2, -2, 2, 0, 2 * Math.PI)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
-    ctx.fill()
-    
-    // 🎨 添加装饰性小元素
-    // 左侧小装饰
+    // ⭐ 多重中心亮点系统
+    // 主亮点
     ctx.save()
-    ctx.rotate(-Math.PI / 6)
     ctx.beginPath()
-    ctx.arc(12, 0, 2, 0, 2 * Math.PI)
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.6)'
+    ctx.arc(-2, -2, 2.5, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
     ctx.fill()
     ctx.restore()
     
-    // 右侧小装饰
+    // 次亮点
     ctx.save()
-    ctx.rotate(Math.PI / 6)
     ctx.beginPath()
-    ctx.arc(12, 0, 2, 0, 2 * Math.PI)
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.6)'
+    ctx.arc(1, 1, 1.5, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
     ctx.fill()
     ctx.restore()
+    
+    // 细节亮点
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(-1, 2, 0.8, 0, 2 * Math.PI)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    ctx.fill()
+    ctx.restore()
+    
+    // 🎨 增强装饰元素系统 - 8个方向的精致装饰
+    const decorations = [
+      { angle: -Math.PI / 4, distance: 12, size: 2.2, color: 'rgba(255, 215, 0, 0.8)' },
+      { angle: Math.PI / 4, distance: 12, size: 2.2, color: 'rgba(255, 215, 0, 0.8)' },
+      { angle: -Math.PI / 2, distance: 11, size: 1.8, color: 'rgba(255, 255, 255, 0.6)' },
+      { angle: Math.PI / 2, distance: 11, size: 1.8, color: 'rgba(255, 255, 255, 0.6)' },
+      { angle: -3 * Math.PI / 4, distance: 10, size: 1.5, color: 'rgba(255, 165, 0, 0.7)' },
+      { angle: 3 * Math.PI / 4, distance: 10, size: 1.5, color: 'rgba(255, 165, 0, 0.7)' },
+      { angle: 0, distance: 13, size: 1.2, color: 'rgba(255, 255, 255, 0.5)' },
+      { angle: Math.PI, distance: 13, size: 1.2, color: 'rgba(255, 255, 255, 0.5)' }
+    ]
+    
+    decorations.forEach(decor => {
+      ctx.save()
+      ctx.rotate(decor.angle)
+      ctx.beginPath()
+      ctx.arc(decor.distance, 0, decor.size, 0, 2 * Math.PI)
+      ctx.fillStyle = decor.color
+      ctx.fill()
+      // 添加细微边框
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+      ctx.lineWidth = 0.5
+      ctx.stroke()
+      ctx.restore()
+    })
+    
+    // 🌟 添加微妙的光晕效果
+    if (!this.data.isDrawing) {
+      ctx.save()
+      ctx.globalAlpha = 0.3
+      ctx.shadowColor = '#FF3333'
+      ctx.shadowBlur = 15
+      ctx.beginPath()
+      ctx.arc(0, 0, 18, 0, 2 * Math.PI)
+      ctx.strokeStyle = 'rgba(255, 51, 51, 0.2)'
+      ctx.lineWidth = 2
+      ctx.stroke()
+      ctx.restore()
+    }
     
     ctx.restore()
   },
