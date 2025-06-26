@@ -789,14 +789,10 @@ Page({
     ctx.fill()
     ctx.restore()
     
-    // 主圆底座
+    // 主圆底座 - 使用兼容的纯色填充
     ctx.beginPath()
     ctx.arc(0, 0, 15, 0, 2 * Math.PI)
-    const baseGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 15)
-    baseGradient.addColorStop(0, '#FF5555')
-    baseGradient.addColorStop(0.7, '#FF3333')
-    baseGradient.addColorStop(1, '#CC2222')
-    ctx.fillStyle = baseGradient
+    ctx.fillStyle = '#FF3333'  // 使用纯色替代径向渐变
     ctx.fill()
     
     // 底座边框
@@ -804,14 +800,10 @@ Page({
     ctx.lineWidth = 3
     ctx.stroke()
     
-    // 🔘 中心装饰圆
+    // 🔘 中心装饰圆 - 使用兼容的纯色填充
     ctx.beginPath()
     ctx.arc(0, 0, 8, 0, 2 * Math.PI)
-    const centerGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 8)
-    centerGradient.addColorStop(0, '#ffffff')
-    centerGradient.addColorStop(0.6, '#FFE4E4')
-    centerGradient.addColorStop(1, '#FFCCCC')
-    ctx.fillStyle = centerGradient
+    ctx.fillStyle = '#FFE4E4'  // 使用纯色替代径向渐变
     ctx.fill()
     
     // 中心圆边框
