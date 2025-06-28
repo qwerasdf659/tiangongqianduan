@@ -12,7 +12,7 @@
     <!-- Logo和标题 -->
     <view class="header">
       <view class="logo">🎰</view>
-      <text class="title">餐厅积分抽奖</text>
+      <text class="title" bindtap="onTitleTap" data-tap-count="{{titleTapCount}}">餐厅积分抽奖</text>
       <text class="subtitle">立即注册赚积分，精彩奖品等你拿</text>
     </view>
 
@@ -172,6 +172,90 @@
 
       <view class="modal-footer">
         <button class="modal-btn" bindtap="onCloseAgreement">我已了解</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 管理员登录弹窗 -->
+  <view class="admin-login-modal" wx:if="{{showAdminLogin}}">
+    <view class="modal-mask" bindtap="onCloseAdminLogin"></view>
+    <view class="admin-modal-content">
+      <view class="admin-modal-header">
+        <text class="admin-modal-title">🔒 管理员登录</text>
+        <view class="admin-close-btn" bindtap="onCloseAdminLogin">×</view>
+      </view>
+      
+      <view class="admin-modal-body">
+        <!-- 管理员账号输入 -->
+        <view class="admin-input-group">
+          <view class="admin-input-label">
+            <text class="admin-label-text">管理员账号</text>
+            <text class="required">*</text>
+          </view>
+          <view class="admin-input-wrapper {{adminFormErrors.username ? 'error' : ''}}">
+            <view class="admin-input-prefix">👤</view>
+            <input 
+              class="admin-form-input"
+              type="text"
+              placeholder="请输入管理员账号"
+              value="{{adminForm.username}}"
+              bindinput="onAdminUsernameInput"
+            />
+          </view>
+          <text class="admin-error-tip" wx:if="{{adminFormErrors.username}}">{{adminFormErrors.username}}</text>
+        </view>
+
+        <!-- 管理员密码输入 -->
+        <view class="admin-input-group">
+          <view class="admin-input-label">
+            <text class="admin-label-text">登录密码</text>
+            <text class="required">*</text>
+          </view>
+          <view class="admin-input-wrapper {{adminFormErrors.password ? 'error' : ''}}">
+            <view class="admin-input-prefix">🔐</view>
+            <input 
+              class="admin-form-input"
+              type="{{showAdminPassword ? 'text' : 'password'}}"
+              placeholder="请输入登录密码"
+              value="{{adminForm.password}}"
+              bindinput="onAdminPasswordInput"
+            />
+            <view class="admin-password-toggle" bindtap="onToggleAdminPassword">
+              {{showAdminPassword ? '🙈' : '👁'}}
+            </view>
+          </view>
+          <text class="admin-error-tip" wx:if="{{adminFormErrors.password}}">{{adminFormErrors.password}}</text>
+        </view>
+
+        <!-- 登录选项 -->
+        <view class="admin-options">
+          <checkbox-group bindchange="onAdminRememberChange">
+            <label class="admin-checkbox">
+              <checkbox value="remember" checked="{{adminForm.rememberLogin}}"/>
+              <text class="admin-checkbox-text">记住登录状态（7天）</text>
+            </label>
+          </checkbox-group>
+          
+          <view class="admin-dev-notice">
+            <text class="dev-notice-text">🚧 开发阶段：跳过短信验证</text>
+          </view>
+        </view>
+
+        <!-- 登录按钮 -->
+        <button 
+          class="admin-submit-btn {{adminSubmitting ? 'loading' : ''}}"
+          disabled="{{adminSubmitting}}"
+          bindtap="onAdminLogin"
+        >
+          <text wx:if="{{!adminSubmitting}}">登录管理后台</text>
+          <text wx:if="{{adminSubmitting}}">登录中...</text>
+        </button>
+
+        <!-- 安全提示 -->
+        <view class="admin-security-tips">
+          <text class="security-tip">💡 提示：登录失败3次将锁定30分钟</text>
+          <text class="security-tip">🛡️ 管理员登录受到严格的安全保护</text>
+        </view>
       </view>
     </view>
   </view>

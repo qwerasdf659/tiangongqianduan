@@ -2,14 +2,8 @@
 const app = getApp()
 
 /**
- * 🔴 智能API调用机制 - 根据环境自动切换Mock/真实接口
- */
-const shouldUseMock = () => {
-  return app.globalData.isDev && !app.globalData.needAuth
-}
-
-/**
- * 🔴 统一网络请求封装 - 支持自动重试和错误处理
+ * 🔴 统一网络请求封装 - 仅支持真实后端API调用
+ * 🚨 严禁使用Mock数据 - 违反项目安全规则
  */
 const request = (options) => {
   return new Promise((resolve, reject) => {
@@ -179,12 +173,14 @@ const request = (options) => {
             request(newOptions).then(resolve).catch(reject)
           }, 1000 * (retryCount + 1))
         } else {
-          // 显示用户友好的错误提示
+          // 🚨 显示后端服务异常提示
           if (showLoading && retryCount === 0) {
-            wx.showToast({
-              title: errorMsg,
-              icon: 'none',
-              duration: 3000
+            wx.showModal({
+              title: '🚨 后端服务异常',
+              content: `无法连接到后端服务！\n\n可能原因：\n1. 后端API服务未启动\n2. 网络连接问题\n3. 服务器维护中\n\n请立即检查后端服务状态！`,
+              showCancel: false,
+              confirmText: '知道了',
+              confirmColor: '#ff4444'
             })
           }
           
@@ -203,513 +199,203 @@ const request = (options) => {
 }
 
 /**
- * 🔴 智能API调用 - 开发环境Mock，生产环境真实接口
+ * 🚨 已删除的违规函数（严禁使用）：
+ * ❌ shouldUseMock() - 违规：Mock数据判断
+ * ❌ smartApiCall() - 违规：Mock/真实API切换  
+ * ❌ mockRequest() - 违规：模拟请求数据
+ * ❌ generateMockProducts() - 违规：生成模拟商品
+ * 
+ * 所有业务数据必须从真实后端API获取！
  */
-const smartApiCall = (realApiCall, mockData = {}) => {
-  if (shouldUseMock()) {
-    // 开发环境返回Mock数据
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          code: 0,
-          message: 'success',
-          data: mockData
-        })
-      }, Math.random() * 1000 + 200) // 模拟网络延迟
-    })
-  } else {
-    // 生产环境调用真实API
-    return realApiCall()
-  }
-}
 
-/**
- * 🔴 Mock请求函数 - 用于开发环境模拟API调用
- */
-const mockRequest = (url, data = {}) => {
-  console.log('🔧 Mock请求:', url, data)
-  
-  // 根据URL返回不同的Mock数据
-  let mockData = {}
-  
-  if (url.includes('/lottery/config')) {
-    // 🔴 使用统一的奖品配置，避免重复数据源
-    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
-    mockData = {
-      prizes: getStandardPrizes(),
-      cost_points: 100,
-      daily_limit: 10,
-      rules: '每次抽奖消耗100积分，每日最多可抽奖10次'
-    }
-  } else if (url.includes('/lottery/draw')) {
-    // 🔴 使用统一的奖品配置进行抽奖逻辑
-    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
-    const prizes = getStandardPrizes()
-    
-    // 按概率抽奖
-    const random = Math.random()
-    let cumulative = 0
-    let selectedPrize = prizes[2] // 默认甜品1份
-    
-    for (const prize of prizes) {
-      cumulative += prize.probability
-      if (random <= cumulative) {
-        selectedPrize = prize
-        break
-      }
-    }
-    
-    mockData = {
-      results: [
-        {
-          prize_id: selectedPrize.id,
-          prize_name: selectedPrize.name,
-          angle: selectedPrize.angle + Math.random() * 10 - 5, // 添加随机偏移
-          is_near_miss: false,
-          prize_value: 0
-        }
-      ],
-      remaining_points: 1400, // 模拟扣除积分后的余额
-      today_draw_count: 3
-    }
-  } else {
-    mockData = { message: 'Mock data for ' + url }
-  }
-  
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        code: 0,
-        message: 'success',
-        data: mockData
-      })
-    }, Math.random() * 800 + 300) // 模拟网络延迟
-  })
-}
-
-/**
- * 🔴 认证相关API接口 - 根据后端文档实现
- */
+// 🔴 用户认证API - 必须调用真实后端接口
 const authAPI = {
-  /**
-   * 发送验证码
-   * 后端接口: POST /api/auth/send-code
-   */
+  // 发送验证码
   sendCode(phone) {
-    const realApiCall = () => request({
+    return request({
       url: '/auth/send-code',
       method: 'POST',
       data: { phone },
       needAuth: false,
       showLoading: true
+    }).catch(error => {
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法发送验证码！请检查后端API服务状态。',
+        showCancel: false
+      })
+      throw error
     })
-
-    // Mock数据
-    const mockData = {
-      phone: phone,
-      expires_in: 300,
-      verification_code: '123456'
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 登录注册
-   * 后端接口: POST /api/auth/login
-   */
+  // 用户登录
   login(phone, code) {
-    const realApiCall = () => request({
+    return request({
       url: '/auth/login',
       method: 'POST',
       data: { phone, code },
       needAuth: false,
       showLoading: true
+    }).catch(error => {
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法完成登录！请检查后端API服务状态。',
+        showCancel: false
+      })
+      throw error
     })
-
-    // Mock数据 - 根据后端文档格式
-    const mockData = {
-      access_token: 'mock_access_token_123456',
-      refresh_token: 'mock_refresh_token_123456',
-      expires_in: 7200,
-      token_type: 'Bearer',
-      user_info: {
-        user_id: 1001,
-        phone: phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
-        total_points: 1500,
-        is_merchant: false,
-        nickname: '测试用户',
-        avatar: '/images/default-avatar.png',
-        status: 'active'
-      }
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 刷新Token
-   * 后端接口: POST /api/auth/refresh
-   */
+  // 刷新Token
   refresh(refreshToken) {
-    const realApiCall = () => request({
+    return request({
       url: '/auth/refresh',
       method: 'POST',
       data: { refresh_token: refreshToken },
       needAuth: false,
       showLoading: false
     })
-
-    // Mock数据
-    const mockData = {
-      access_token: 'new_mock_access_token_123456',
-      refresh_token: 'new_mock_refresh_token_123456',
-      expires_in: 7200
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 验证Token
-   * 后端接口: GET /api/auth/verify
-   */
+  // 验证Token
   verifyToken() {
-    const realApiCall = () => request({
+    return request({
       url: '/auth/verify',
       method: 'GET',
       needAuth: true,
       showLoading: false
     })
-
-    // Mock数据
-    const mockData = {
-      valid: true,
-      user_info: app.globalData.mockUser
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 退出登录
-   * 后端接口: POST /api/auth/logout
-   */
+  // 登出
   logout() {
-    const realApiCall = () => request({
+    return request({
       url: '/auth/logout',
       method: 'POST',
       needAuth: true,
       showLoading: false
     })
-
-    return smartApiCall(realApiCall, {})
   }
 }
 
-/**
- * 🔴 抽奖相关API接口 - 根据后端文档实现
- */
+// 🔴 抽奖API - 必须调用真实后端接口
 const lotteryAPI = {
-  /**
-   * 获取抽奖配置
-   * 后端接口: GET /api/lottery/config
-   */
+  // 获取抽奖配置
   getConfig() {
-    const realApiCall = () => request({
+    return request({
       url: '/lottery/config',
       method: 'GET',
       needAuth: true
+    }).catch(error => {
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取抽奖配置！\n\n可能原因：\n1. 后端lottery服务未启动\n2. /lottery/config接口异常\n\n请立即检查后端服务状态！',
+        showCancel: false,
+        confirmColor: '#ff4444'
+      })
+      throw error
     })
-
-    // Mock数据 - 使用统一的奖品配置
-    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
-    const mockData = {
-      prizes: getStandardPrizes(),
-      cost_points: 100,
-      daily_limit: 10,
-      rules: '每次抽奖消耗100积分，每日最多可抽奖10次'
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 执行抽奖
-   * 后端接口: POST /api/lottery/draw
-   */
+  // 执行抽奖
   draw(drawType = 'single', count = 1) {
-    const realApiCall = () => request({
+    return request({
       url: '/lottery/draw',
       method: 'POST',
       data: { draw_type: drawType, count },
       needAuth: true
+    }).catch(error => {
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法执行抽奖！\n\n可能原因：\n1. 后端lottery服务未启动\n2. /lottery/draw接口异常\n3. 数据库连接问题\n\n请立即检查后端服务状态！',
+        showCancel: false,
+        confirmColor: '#ff4444'
+      })
+      throw error
     })
-
-    // Mock数据 - 使用统一的奖品配置
-    const { getStandardPrizes } = require('../pages/lottery/lottery-config')
-    const prizes = getStandardPrizes()
-    
-    // 按概率抽奖
-    const random = Math.random()
-    let cumulative = 0
-    let selectedPrize = prizes[2] // 默认甜品1份
-    
-    for (const prize of prizes) {
-      cumulative += prize.probability
-      if (random <= cumulative) {
-        selectedPrize = prize
-        break
-      }
-    }
-    
-    const mockData = {
-      results: [
-        {
-          prize_id: selectedPrize.id,
-          prize_name: selectedPrize.name,
-          angle: selectedPrize.angle,
-          is_near_miss: false,
-          prize_value: 0,
-          remaining_points: 1400 // 🔴 确保返回剩余积分
-        }
-      ],
-      remaining_points: 1400,
-      today_draw_count: 3
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取抽奖记录
-   * 后端接口: GET /api/lottery/records
-   */
+  // 获取抽奖记录
   getRecords(page = 1, pageSize = 20) {
-    const realApiCall = () => request({
-      url: `/lottery/records?page=${page}&size=${pageSize}`,
+    return request({
+      url: '/lottery/records',
       method: 'GET',
+      data: { page, page_size: pageSize },
       needAuth: true
     })
-
-    const mockData = {
-      records: [
-        {
-          id: 1,
-          prize_name: '100积分',
-          prize_value: 100,
-          created_at: '2024-12-19T14:30:00Z'
-        }
-      ],
-      pagination: {
-        page: 1,
-        size: 20,
-        total: 1,
-        has_more: false
-      }
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取抽奖统计
-   * 后端接口: GET /api/lottery/statistics
-   */
+  // 获取抽奖统计
   getStatistics() {
-    const realApiCall = () => request({
+    return request({
       url: '/lottery/statistics',
       method: 'GET',
       needAuth: true
     })
-
-    const mockData = {
-      total_draws: 10,
-      total_prizes: 8,
-      total_points_won: 560,
-      today_draws: 3,
-      win_rate: 0.8
-    }
-
-    return smartApiCall(realApiCall, mockData)
   }
 }
 
-/**
- * 🔴 商品兑换相关API接口 - 根据后端文档实现
- */
+// 🔴 商品兑换API - 必须调用真实后端接口
 const exchangeAPI = {
-  /**
-   * 获取商品分类
-   * 后端接口: GET /api/exchange/categories
-   */
+  // 获取商品分类
   getCategories() {
-    const realApiCall = () => request({
+    return request({
       url: '/exchange/categories',
       method: 'GET',
       needAuth: true
     })
-
-    const mockData = {
-      categories: [
-        { id: 'all', name: '全部', count: 50 },
-        { id: 'coupon', name: '优惠券', count: 20 },
-        { id: 'physical', name: '实物商品', count: 15 },
-        { id: 'virtual', name: '虚拟商品', count: 15 }
-      ]
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取商品列表
-   * 后端接口: GET /api/exchange/products
-   */
+  // 获取商品列表
   getProducts(page = 1, pageSize = 20, category = 'all', sort = 'points') {
-    const realApiCall = () => request({
-      url: `/exchange/products?page=${page}&size=${pageSize}&category=${category}&sort=${sort}`,
+    return request({
+      url: '/exchange/products',
       method: 'GET',
+      data: { page, page_size: pageSize, category, sort },
       needAuth: true
+    }).catch(error => {
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取商品列表！请检查后端API服务状态。',
+        showCancel: false
+      })
+      throw error
     })
-
-    // 生成Mock商品数据
-    const generateMockProducts = () => {
-      const categories = ['优惠券', '实物商品', '虚拟商品']
-      const productNames = [
-        '星巴克50元券', '麦当劳套餐券', '肯德基全家桶', '喜茶饮品券',
-        '小米手机壳', '无线耳机', 'iPad保护套', '充电宝',
-        '腾讯视频会员', '爱奇艺会员', '网易云音乐会员', 'QQ音乐绿钻'
-      ]
-      
-      const products = []
-      for (let i = 1; i <= 20; i++) {
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)]
-        const randomName = productNames[Math.floor(Math.random() * productNames.length)]
-        const basePoints = Math.floor(Math.random() * 5000) + 500
-        
-        products.push({
-          commodity_id: i,
-          name: `${randomName} #${i}`,
-          description: `这是一个${randomCategory}商品，具有很高的性价比和实用价值。`,
-          category: randomCategory,
-          exchange_points: basePoints,
-          stock: Math.floor(Math.random() * 100) + 10,
-          image: `/images/products/product-${i % 8 + 1}.jpg`,
-          status: 'active',
-          is_hot: Math.random() > 0.7,
-          sort_order: Math.floor(Math.random() * 1000)
-        })
-      }
-      return products
-    }
-
-    const mockData = {
-      products: generateMockProducts(),
-      pagination: {
-        page: 1,
-        size: 20,
-        total: 100,
-        has_more: true
-      }
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 商品兑换
-   * 后端接口: POST /api/exchange/redeem
-   */
+  // 兑换商品
   redeem(productId, quantity = 1) {
-    const realApiCall = () => request({
+    return request({
       url: '/exchange/redeem',
       method: 'POST',
       data: { product_id: productId, quantity },
       needAuth: true
     })
-
-    const mockData = {
-      record_id: `EX${Date.now()}`,
-      product_name: '星巴克50元券',
-      points_cost: 4500,
-      remaining_points: 1000,
-      exchange_time: new Date().toISOString()
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取兑换记录
-   * 后端接口: GET /api/exchange/records
-   */
+  // 获取兑换记录
   getRecords(page = 1, pageSize = 20, status = 'all') {
-    const realApiCall = () => request({
-      url: `/exchange/records?page=${page}&size=${pageSize}&status=${status}`,
+    return request({
+      url: '/exchange/records',
       method: 'GET',
+      data: { page, page_size: pageSize, status },
       needAuth: true
     })
-
-    const mockData = {
-      records: [
-        {
-          id: 1,
-          product_name: '星巴克50元券',
-          points_cost: 4500,
-          status: 'completed',
-          created_at: '2024-12-19T14:30:00Z'
-        }
-      ],
-      pagination: {
-        page: 1,
-        size: 20,
-        total: 1,
-        has_more: false
-      }
-    }
-
-    return smartApiCall(realApiCall, mockData)
   }
 }
 
-/**
- * 🔴 图片上传相关API接口 - 根据后端文档实现
- */
-const photoAPI = {
-  /**
-   * 上传图片
-   * 后端接口: POST /api/photo/upload
-   */
+// 🔴 上传API - 必须调用真实后端接口
+const uploadAPI = {
+  // 上传文件
   upload(filePath, userAmount) {
     return new Promise((resolve, reject) => {
-      if (shouldUseMock()) {
-        // Mock数据
-        setTimeout(() => {
-          resolve({
-            code: 0,
-            message: '上传成功',
-            data: {
-              upload_id: `UP${Date.now()}`,
-              image_url: 'https://mock-image-url.com/image.jpg',
-              amount: userAmount,
-              status: 'pending'
-            }
-          })
-        }, 2000)
-        return
-      }
-
-      // 真实上传
       wx.uploadFile({
-        url: app.globalData.baseUrl + '/photo/upload',
+        url: app.globalData.baseUrl + '/upload',
         filePath,
-        name: 'image',
+        name: 'file',
         formData: {
-          user_amount: userAmount
-        },
-        header: {
-          'Authorization': `Bearer ${app.globalData.accessToken}`
+          user_amount: userAmount.toString(),
+          access_token: app.globalData.accessToken
         },
         success(res) {
           try {
@@ -719,320 +405,185 @@ const photoAPI = {
             } else {
               reject(data)
             }
-          } catch (error) {
+          } catch (err) {
             reject({ code: -1, message: '响应解析失败' })
           }
         },
         fail(err) {
-          reject({ code: -1, message: '上传失败', error: err })
+          wx.showModal({
+            title: '🚨 后端服务异常',
+            content: '无法上传文件！请检查后端API服务状态。',
+            showCancel: false
+          })
+          reject(err)
         }
       })
     })
   },
 
-  /**
-   * 获取上传记录
-   * 后端接口: GET /api/photo/records
-   */
+  // 获取上传记录
   getRecords(page = 1, pageSize = 20, status = 'all') {
-    const realApiCall = () => request({
-      url: `/photo/records?page=${page}&size=${pageSize}&status=${status}`,
+    return request({
+      url: '/upload/records',
       method: 'GET',
+      data: { page, page_size: pageSize, status },
       needAuth: true
     })
-
-    const mockData = {
-      records: [
-        {
-          upload_id: 'UP123456789',
-          image_url: 'https://mock-image-url.com/image.jpg',
-          amount: 58.5,
-          user_amount: 60.0,
-          points_awarded: 585,
-          review_status: 'approved',
-          review_reason: '审核通过',
-          created_at: '2024-12-19T14:30:00Z'
-        }
-      ],
-      pagination: {
-        page: 1,
-        size: 20,
-        total: 1,
-        has_more: false
-      }
-    }
-
-    return smartApiCall(realApiCall, mockData)
   }
 }
 
-/**
- * 🔴 用户相关API接口 - 根据后端文档实现
- */
+// 🔴 用户API - 必须调用真实后端接口
 const userAPI = {
-  /**
-   * 获取用户信息
-   * 后端接口: GET /api/user/info
-   */
+  // 获取用户信息
   getUserInfo() {
-    const realApiCall = () => request({
+    return request({
       url: '/user/info',
       method: 'GET',
       needAuth: true
+    }).catch(error => {
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取用户信息！请检查后端API服务状态。',
+        showCancel: false
+      })
+      throw error
     })
-
-    const mockData = app.globalData.mockUser
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 更新用户信息
-   * 后端接口: PUT /api/user/info
-   */
+  // 更新用户信息
   updateUserInfo(userInfo) {
-    const realApiCall = () => request({
+    return request({
       url: '/user/info',
       method: 'PUT',
       data: userInfo,
       needAuth: true
     })
-
-    const mockData = { ...app.globalData.mockUser, ...userInfo }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取用户统计
-   * 后端接口: GET /api/user/statistics
-   */
+  // 获取用户统计
   getStatistics() {
-    const realApiCall = () => request({
+    return request({
       url: '/user/statistics',
       method: 'GET',
       needAuth: true
     })
-
-    const mockData = {
-      total_points: 1500,
-      total_draws: 25,
-      total_exchanges: 5,
-      total_uploads: 10,
-      total_points_earned: 5000,
-      total_points_spent: 3500,
-      level: 3,
-      next_level_points: 2000
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取积分记录
-   * 后端接口: GET /api/user/points-records
-   */
+  // 获取积分记录
   getPointsRecords(page = 1, pageSize = 20, type = 'all') {
-    const realApiCall = () => request({
-      url: `/user/points-records?page=${page}&size=${pageSize}&type=${type}`,
+    return request({
+      url: '/user/points-records',
       method: 'GET',
+      data: { page, page_size: pageSize, type },
       needAuth: true
     })
-
-    const mockData = {
-      records: [
-        {
-          id: 1,
-          change_points: -100,
-          reason: 'lottery_draw',
-          reason_text: '抽奖消费',
-          balance_after: 1400,
-          created_at: '2024-12-19T14:30:00Z'
-        },
-        {
-          id: 2,
-          change_points: 585,
-          reason: 'photo_upload',
-          reason_text: '图片上传奖励',
-          balance_after: 1500,
-          created_at: '2024-12-19T13:30:00Z'
-        }
-      ],
-      pagination: {
-        page: 1,
-        size: 20,
-        total: 2,
-        has_more: false
-      }
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 签到
-   * 后端接口: POST /api/user/check-in
-   */
+  // 签到
   checkIn() {
-    const realApiCall = () => request({
+    return request({
       url: '/user/check-in',
       method: 'POST',
       needAuth: true
     })
-
-    const mockData = {
-      points_awarded: 50,
-      continuous_days: 3,
-      is_double_reward: false,
-      total_points: 1550
-    }
-
-    return smartApiCall(realApiCall, mockData)
   }
 }
 
-/**
- * 🔴 商家相关API接口 - 根据后端文档实现
- */
+// 🔴 商家API - 必须调用真实后端接口
 const merchantAPI = {
-  /**
-   * 申请商家权限
-   * 后端接口: POST /api/merchant/apply
-   */
+  // 申请商家权限
   apply(authInfo = {}) {
-    const realApiCall = () => request({
+    return request({
       url: '/merchant/apply',
       method: 'POST',
       data: authInfo,
       needAuth: true
     })
-
-    const mockData = {
-      application_id: `APP${Date.now()}`,
-      status: 'pending',
-      estimated_review_time: '3-5个工作日'
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取商家统计
-   * 后端接口: GET /api/merchant/statistics
-   */
+  // 获取商家统计
   getStatistics() {
-    const realApiCall = () => request({
+    return request({
       url: '/merchant/statistics',
       method: 'GET',
       needAuth: true
     })
-
-    const mockData = {
-      pending_reviews: 5,
-      approved_today: 8,
-      rejected_today: 2,
-      total_reviews: 150,
-      total_points_awarded: 50000
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 获取待审核列表
-   * 后端接口: GET /api/merchant/pending-reviews
-   */
+  // 获取待审核上传
   getPendingReviews(page = 1, pageSize = 20) {
-    const realApiCall = () => request({
-      url: `/merchant/pending-reviews?page=${page}&size=${pageSize}`,
+    return request({
+      url: '/merchant/pending-reviews',
+      method: 'GET',
+      data: { page, page_size: pageSize },
+      needAuth: true
+    })
+  },
+
+  // 审核上传
+  review(uploadId, action, points = 0, reason = '') {
+    return request({
+      url: '/merchant/review',
+      method: 'POST',
+      data: { upload_id: uploadId, action, points, reason },
+      needAuth: true
+    })
+  },
+
+  // 批量审核
+  batchReview(uploadIds, action, reason = '') {
+    return request({
+      url: '/merchant/batch-review',
+      method: 'POST',
+      data: { upload_ids: uploadIds, action, reason },
+      needAuth: true
+    })
+  },
+
+  // 获取抽奖配置（商家管理）
+  getLotteryConfig() {
+    return request({
+      url: '/merchant/lottery-config',
       method: 'GET',
       needAuth: true
     })
-
-    const mockData = {
-      reviews: [
-        {
-          upload_id: 'UP123456789',
-          user_id: 1001,
-          image_url: 'https://mock-image-url.com/image.jpg',
-          amount: 58.5,
-          user_amount: 60.0,
-          created_at: '2024-12-19T14:30:00Z'
-        }
-      ],
-      pagination: {
-        page: 1,
-        size: 20,
-        total: 5,
-        has_more: false
-      }
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 审核上传
-   * 后端接口: POST /api/merchant/review
-   */
-  review(uploadId, action, points = 0, reason = '') {
-    const realApiCall = () => request({
-      url: '/merchant/review',
-      method: 'POST',
-      data: { 
-        upload_id: uploadId, 
-        action, 
-        points_awarded: points, 
-        review_reason: reason 
-      },
+  // 获取抽奖统计（商家管理）
+  getLotteryStats() {
+    return request({
+      url: '/merchant/lottery-stats',
+      method: 'GET',
       needAuth: true
     })
-
-    const mockData = {
-      upload_id: uploadId,
-      action,
-      points_awarded: points,
-      review_reason: reason,
-      review_time: new Date().toISOString()
-    }
-
-    return smartApiCall(realApiCall, mockData)
   },
 
-  /**
-   * 批量审核
-   * 后端接口: POST /api/merchant/batch-review
-   */
-  batchReview(uploadIds, action, reason = '') {
-    const realApiCall = () => request({
-      url: '/merchant/batch-review',
+  // 保存抽奖概率设置
+  saveLotteryProbabilities(prizes) {
+    return request({
+      url: '/merchant/lottery-probabilities',
       method: 'POST',
-      data: { 
-        upload_ids: uploadIds, 
-        action, 
-        review_reason: reason 
-      },
+      data: { prizes },
       needAuth: true
     })
+  },
 
-    const mockData = {
-      processed_count: uploadIds.length,
-      success_count: uploadIds.length,
-      failed_count: 0
-    }
-
-    return smartApiCall(realApiCall, mockData)
+  // 重置抽奖概率
+  resetLotteryProbabilities() {
+    return request({
+      url: '/merchant/reset-lottery-probabilities',
+      method: 'POST',
+      needAuth: true
+    })
   }
 }
 
 module.exports = {
+  request,
   authAPI,
   lotteryAPI,
   exchangeAPI,
-  photoAPI,
+  uploadAPI,
   userAPI,
-  merchantAPI,
-  request,
-  smartApiCall,
-  mockRequest
+  merchantAPI
 } 

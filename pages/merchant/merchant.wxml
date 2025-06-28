@@ -84,6 +84,13 @@
         📋 审核管理
       </view>
       <view 
+        class="tab-item {{currentTab === 'lottery' ? 'active' : ''}}"
+        bindtap="{{hasPermission ? 'onTabChange' : 'onLockedTap'}}"
+        data-tab="lottery"
+      >
+        🎰 抽奖控制
+      </view>
+      <view 
         class="tab-item {{currentTab === 'product' ? 'active' : ''}}"
         bindtap="{{hasPermission ? 'onTabChange' : 'onLockedTap'}}"
         data-tab="product"
@@ -211,6 +218,236 @@
         <view class="empty-state" wx:if="{{pendingList.length === 0}}">
           <view class="empty-icon">📝</view>
           <text class="empty-text">暂无待审核记录</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 🎰 抽奖控制页面 -->
+    <view class="lottery-tab {{!hasPermission ? 'locked' : ''}}" wx:if="{{currentTab === 'lottery'}}">
+      <!-- 抽奖状态指示器 -->
+      <view class="lottery-status-section">
+        <view class="section-title">
+          <text>🎯 抽奖系统状态</text>
+        </view>
+        <view class="status-indicator {{lotteryConfig.isActive ? 'active' : 'maintenance'}}">
+          <view class="status-icon">{{lotteryConfig.isActive ? '🟢' : '🔴'}}</view>
+          <view class="status-info">
+            <text class="status-text">{{lotteryConfig.isActive ? '正常运行' : '维护暂停'}}</text>
+            <text class="status-desc">{{lotteryConfig.isActive ? '用户可正常参与抽奖' : '抽奖功能已暂停'}}</text>
+          </view>
+          <button 
+            class="status-toggle-btn {{lotteryConfig.isActive ? 'pause' : 'resume'}}"
+            bindtap="{{hasPermission ? 'onToggleLotteryStatus' : 'onLockedTap'}}"
+          >
+            {{lotteryConfig.isActive ? '⏸️ 暂停抽奖' : '▶️ 恢复抽奖'}}
+          </button>
+        </view>
+      </view>
+
+      <!-- 抽奖概率设置 -->
+      <view class="probability-section">
+        <view class="section-title">
+          <text>🎲 抽奖概率设置</text>
+          <button 
+            class="reset-btn"
+            bindtap="{{hasPermission ? 'onResetProbabilities' : 'onLockedTap'}}"
+          >
+            🔄 重置默认
+          </button>
+        </view>
+        
+        <view class="probability-grid">
+          <view 
+            class="probability-item"
+            wx:for="{{lotteryConfig.prizes}}" 
+            wx:key="id"
+          >
+            <view class="prize-info">
+              <text class="prize-name">{{item.name}}</text>
+              <text class="prize-type">{{item.type}}</text>
+            </view>
+            <view class="probability-control">
+              <button 
+                class="prob-btn minus"
+                bindtap="{{hasPermission ? 'onAdjustProbability' : 'onLockedTap'}}"
+                data-prize-id="{{item.id}}"
+                data-action="minus"
+              >
+                −
+              </button>
+              <input 
+                class="prob-input"
+                type="number"
+                value="{{item.probability}}"
+                bindinput="onProbabilityInput"
+                data-prize-id="{{item.id}}"
+                disabled="{{!hasPermission}}"
+                min="0"
+                max="100"
+              />
+              <text class="prob-unit">%</text>
+              <button 
+                class="prob-btn plus"
+                bindtap="{{hasPermission ? 'onAdjustProbability' : 'onLockedTap'}}"
+                data-prize-id="{{item.id}}"
+                data-action="plus"
+              >
+                +
+              </button>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 概率总和检查 -->
+        <view class="probability-summary">
+          <view class="total-probability {{probabilityTotal === 100 ? 'valid' : 'invalid'}}">
+            <text class="total-label">总概率：</text>
+            <text class="total-value">{{probabilityTotal}}%</text>
+            <text class="total-status">{{probabilityTotal === 100 ? '✅ 有效' : '❌ 必须等于100%'}}</text>
+          </view>
+          <button 
+            class="save-probability-btn {{probabilityTotal === 100 ? '' : 'disabled'}}"
+            bindtap="{{hasPermission && probabilityTotal === 100 ? 'onSaveProbabilities' : 'onLockedTap'}}"
+            disabled="{{probabilityTotal !== 100 || !hasPermission}}"
+          >
+            💾 保存设置
+          </button>
+        </view>
+      </view>
+
+      <!-- 活动暂停设置 -->
+      <view class="maintenance-section">
+        <view class="section-title">
+          <text>🔧 活动暂停设置</text>
+        </view>
+        
+        <view class="maintenance-config">
+          <!-- 预设暂停时间段 -->
+          <view class="preset-maintenance">
+            <text class="config-label">快速设置</text>
+            <view class="preset-buttons">
+              <button 
+                class="preset-btn"
+                bindtap="{{hasPermission ? 'onPresetMaintenance' : 'onLockedTap'}}"
+                data-hours="1"
+              >
+                1小时
+              </button>
+              <button 
+                class="preset-btn"
+                bindtap="{{hasPermission ? 'onPresetMaintenance' : 'onLockedTap'}}"
+                data-hours="6"
+              >
+                6小时
+              </button>
+              <button 
+                class="preset-btn"
+                bindtap="{{hasPermission ? 'onPresetMaintenance' : 'onLockedTap'}}"
+                data-hours="24"
+              >
+                24小时
+              </button>
+            </view>
+          </view>
+
+          <!-- 自定义暂停时间 -->
+          <view class="custom-maintenance">
+            <view class="time-config">
+              <view class="time-item">
+                <text class="time-label">开始时间</text>
+                <picker 
+                  mode="multiSelector"
+                  range="{{maintenanceTimeRange}}"
+                  value="{{maintenanceConfig.startTime}}"
+                  bindchange="onMaintenanceStartTimeChange"
+                  disabled="{{!hasPermission}}"
+                >
+                  <view class="time-picker">
+                    {{maintenanceConfig.startTimeText || '选择开始时间'}}
+                  </view>
+                </picker>
+              </view>
+              
+              <view class="time-item">
+                <text class="time-label">结束时间</text>
+                <picker 
+                  mode="multiSelector"
+                  range="{{maintenanceTimeRange}}"
+                  value="{{maintenanceConfig.endTime}}"
+                  bindchange="onMaintenanceEndTimeChange"
+                  disabled="{{!hasPermission}}"
+                >
+                  <view class="time-picker">
+                    {{maintenanceConfig.endTimeText || '选择结束时间'}}
+                  </view>
+                </picker>
+              </view>
+            </view>
+            
+            <view class="maintenance-reason">
+              <text class="reason-label">暂停原因</text>
+              <textarea 
+                class="reason-input"
+                value="{{maintenanceConfig.reason}}"
+                placeholder="请输入暂停原因（可选）"
+                bindinput="onMaintenanceReasonInput"
+                disabled="{{!hasPermission}}"
+                maxlength="100"
+              />
+            </view>
+            
+            <button 
+              class="schedule-maintenance-btn"
+              bindtap="{{hasPermission ? 'onScheduleMaintenance' : 'onLockedTap'}}"
+              disabled="{{!hasPermission}}"
+            >
+              📅 设置定时暂停
+            </button>
+          </view>
+        </view>
+
+        <!-- 当前维护状态 -->
+        <view class="current-maintenance" wx:if="{{maintenanceConfig.isScheduled}}">
+          <view class="maintenance-info">
+            <text class="maintenance-title">⏰ 计划维护</text>
+            <text class="maintenance-time">
+              {{maintenanceConfig.startTimeText}} - {{maintenanceConfig.endTimeText}}
+            </text>
+            <text class="maintenance-reason-text" wx:if="{{maintenanceConfig.reason}}">
+              原因：{{maintenanceConfig.reason}}
+            </text>
+          </view>
+          <button 
+            class="cancel-maintenance-btn"
+            bindtap="{{hasPermission ? 'onCancelMaintenance' : 'onLockedTap'}}"
+          >
+            ❌ 取消维护
+          </button>
+        </view>
+      </view>
+
+      <!-- 抽奖统计 -->
+      <view class="lottery-statistics">
+        <view class="section-title">
+          <text>📊 抽奖统计</text>
+        </view>
+        <view class="stats-grid">
+          <view class="stat-item">
+            <text class="stat-number">{{lotteryStats.todayCount}}</text>
+            <text class="stat-label">今日抽奖</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-number">{{lotteryStats.totalCount}}</text>
+            <text class="stat-label">总抽奖次数</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-number">{{lotteryStats.activeUsers}}</text>
+            <text class="stat-label">活跃用户</text>
+          </view>
+          <view class="stat-item">
+            <text class="stat-number">{{lotteryStats.totalPrizes}}</text>
+            <text class="stat-label">发放奖品</text>
+          </view>
         </view>
       </view>
     </view>

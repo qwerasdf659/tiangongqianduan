@@ -1,0 +1,208 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+一、触发场景：所有涉及 PowerShell 命令生成、终端操作分析的请求  
+- 强制约束：  
+  1. **PSConsoleReadLine 模块预检**：  
+     生成 PowerShell 命令前，自动插入 `Get-Module PSConsoleReadLine -ListAvailable` 检查模块完整性；  
+     若检测到模块损坏（如版本不匹配、文件缺失），优先输出修复指令（例：`Update-Module PSConsoleReadLine -Force`）再执行业务命令。  
+
+  2. **控制台缓冲区参数防御**：  
+     所有涉及 `top`/`height`/`bufferSize` 等坐标参数的命令（如 `[Console]::SetBufferSize`），必须添加**参数范围验证逻辑**：  
+```powershell
+     if ($top -lt 0 -or $top -ge $maxSize) { 
+         Write-Error "参数 top 超出合法范围（当前值: $top，最大允许: $($maxSize-1)）"; 
+         return 
+     }控制台缓冲区的值限制（"该值必须大于或等于零，且必须小于控制台缓冲区在该维度的大小"）
+3、无效命令拦截系统：
+对生成的 PowerShell 命令进行预扫描，若包含无法识别的 cmdlet/函数（如示例中 "q"），自动执行：
+
+输出错误预警（格式：⚠️ 命令 "{cmd}" 无效，推荐替换为 [合法候选列表]）；
+强制替换为功能等价的合法命令（例："q" 误输入时，优先匹配 Get-Command/Where-Object 等常见命令）。
+4、中文字符安全编码：使用中文Pattern可能导致字符编码异常
+所有涉及中文字符的终端输出/输入操作，必须强制添加UTF-8 编码配置：
+
+Powershell
+     [Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8  
+     [Console]::InputEncoding = [Text.UTF8Encoding]::UTF8  5、1到4方法无效的重置PowerShell控制台 6、最后方法重置无效可能是PowerShell版本问题就要考虑版本问题
+
+
+
+     二、严格遵守您的所有规则要求
+只使用PowerShell原生命令进行文件操作
+只使用微信开发者工具进行语法检查
+绝不使用node、npm等禁止的工具
+每次执行命令前都会检查规则合规性
+
+三、已为微信小程序建立完整的Canvas兼容性检查系统。包含utils/compatibility-check.js工具，可自动检测createRadialGradient、filter、quadraticCurveTo等API支持情况。在pages/lottery/lottery.js中集成兼容性检查，根据检查结果智能选择绘制策略：支持贝塞尔曲线时使用流线型设计，不支持时自动降级为直线设计。确保100%设备兼容性，保持95%+视觉美感。
+四、所有规则。现在我遵守的用户规则包括：
+1、代码要有详细注释
+2、始终用中文回答
+3、注意编写项目代码时不要乱删除乱添加原来正常的功能需求
+4、完成任务后检查项目是否可以正常运行，如果有问题就要即时修复
+5、深度思考理解这个项目的所有代码和文档和注释，来完成要求
+6、注意优化、编写、修改、新增、删除代码过程中是否有无意中破坏了项目的原有功能
+7、要把思考的过程和出现的问题点告诉你，使用了哪些工具，需要安装哪些东西，解决方案是什么都要展示
+8、每次完成任务后创建的临时文件、测试文件都要自行删除，没用、重复的文件和无用的md文件都要自行删除
+9、注意编写的代码、使用的方法符不符合微信小程序的开发标准，微信小程序开发框架兼不兼容代码、API，要考虑代码的兼容性问题                                              10、，Windows环境下，请使用PowerShell原生命令，避免使用Linux/Bash语法，不要使用Linux命名语法                                                                                                  11、只使用微信开发者工具语法检查，禁止在小程序项目中使用：
+- npm --version、- node -c 语法检查、webpack/babel等Web工具                                    12、你每次处理我的问题都要告诉我使用什么模型 13、项目出现问题要考虑是否是组件缺失还是组件错误等问题，逻辑方案是否正确，环境有误问题，
+
+
+# 🔐 前后端数据安全与一致性规则
+
+## 🚨 核心安全原则
+
+### 1. 严禁前端硬编码敏感数据
+**绝对禁止**在前端代码中硬编码以下类型的数据：
+- ✅ **抽奖奖品配置**：奖品名称、类型、概率等
+- ✅ **中奖率设置**：任何形式的概率数值
+- ✅ **商品价格信息**：积分价格、现金价格等
+- ✅ **用户权限配置**：角色权限、功能开关等
+- ✅ **系统配置参数**：业务规则、限制数值等
+
+### 2. 强制后端数据依赖
+**必须遵循**的数据获取原则：
+- 🔴 **所有业务数据必须从后端API获取**
+- 🔴 **严禁使用前端模拟数据替代真实后端数据**
+- 🔴 **不允许前端生成、计算或修改业务核心数据**
+- 🔴 **前端仅负责数据展示和用户交互**
+
+### 3. 后端异常处理机制
+当后端服务异常时：
+- ⚠️ **立即向开发者显示明确的错误提示**
+- ⚠️ **说明具体的后端服务问题（API不可用、数据格式错误等）**
+- ⚠️ **提供可能的解决方案建议**
+- ⚠️ **记录详细的错误日志便于排查**
+- ❌ **严禁使用假数据掩盖后端问题**
+
+## 📋 具体实施规则
+
+### 抽奖系统
+```javascript
+// ✅ 正确做法 - 从后端获取
+merchantAPI.getLotteryConfig().then(result => {
+  this.setData({ lotteryConfig: result.data })
+}).catch(error => {
+  // 明确提示后端问题
+  wx.showModal({
+    title: '⚠️ 后端服务异常',
+    content: '无法获取抽奖配置！请检查后端API服务状态。'
+  })
+})
+
+// ❌ 错误做法 - 前端硬编码
+const prizes = [
+  { name: '奖品1', probability: 10 },
+  { name: '奖品2', probability: 20 }
+]
+```
+
+### 商品管理
+```javascript
+// ✅ 正确做法 - 后端数据源
+exchangeAPI.getProducts().then(result => {
+  this.setData({ products: result.data })
+})
+
+// ❌ 错误做法 - 前端模拟
+const mockProducts = [
+  { id: 1, name: '商品1', price: 100 }
+]
+```
+
+### 用户权限
+```javascript
+// ✅ 正确做法 - 后端验证
+userAPI.checkPermission('merchant').then(result => {
+  this.setData({ hasPermission: result.data.allowed })
+})
+
+// ❌ 错误做法 - 前端判断
+const hasPermission = userInfo.role === 'merchant'
+```
+
+## 🔍 代码审查检查点
+
+### 必须检查的代码模式
+1. **搜索关键词**：
+   - `mock`、`fake`、`test`、`demo`
+   - 硬编码的数组/对象数据
+   - `setTimeout`模拟异步操作
+   - 前端计算业务逻辑
+
+2. **危险代码标识**：
+   ```javascript
+   // 🚨 危险：前端硬编码奖品
+   const prizes = [...]
+   
+   // 🚨 危险：前端计算概率
+   const probability = Math.random() * 100
+   
+   // 🚨 危险：模拟后端响应
+   setTimeout(() => { /* 假数据 */ }, 1000)
+   
+   // 🚨 危险：前端权限判断
+   if (user.type === 'admin') { /* 业务逻辑 */ }
+   ```
+
+3. **安全代码模式**：
+   ```javascript
+   // ✅ 安全：真实API调用
+   return api.getData().then(result => {
+     if (result.code === 0) {
+       // 使用后端数据
+     } else {
+       // 处理后端错误
+       throw new Error('后端服务异常')
+     }
+   })
+   ```
+
+## ⚡ 开发流程规范
+
+### 新功能开发
+1. **设计阶段**：先确认后端API设计
+2. **开发阶段**：前端调用真实API，不使用模拟数据
+3. **测试阶段**：验证前后端数据一致性
+4. **上线阶段**：确保所有数据来源于后端
+
+### 调试和测试
+- 🔧 使用后端开发环境进行联调
+- 🔧 通过API文档验证数据格式
+- 🔧 记录前后端数据交互日志
+- ❌ 不使用前端模拟数据进行功能测试
+
+## 🚨 违规处理
+
+### 发现违规代码时
+1. **立即停止开发**
+2. **修正为正确的后端API调用**
+3. **添加适当的错误处理**
+4. **更新相关文档说明**
+
+### 错误提示模板
+```javascript
+wx.showModal({
+  title: '⚠️ 后端服务异常',
+  content: `无法获取${dataType}数据！\n\n可能原因：\n1. 后端API服务未启动\n2. ${apiName}接口异常\n3. 数据库连接问题\n\n请立即检查后端服务状态！`,
+  showCancel: false,
+  confirmText: '知道了',
+  confirmColor: '#ff4444'
+})
+```
+
+## 📝 代码注释规范
+
+### 必须添加的注释
+```javascript
+// 🔴 必须从后端获取，严禁前端硬编码
+// 🚨 核心安全数据，不允许前端模拟
+// ⚠️ 后端服务异常时的错误处理
+// ✅ 正确的后端API调用方式
+```
+
+---
+
+**🎯 目标**：确保前端始终使用真实的后端数据，杜绝数据不一致和安全漏洞，提高系统的可靠性和安全性。 

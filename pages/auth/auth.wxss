@@ -431,6 +431,310 @@
   font-weight: 600;
 }
 
+/* ==================== 🔐 管理员登录样式 ==================== */
+
+/* 管理员登录弹窗 */
+.admin-login-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.admin-modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 650rpx;
+  max-height: 85vh;
+  background: white;
+  border-radius: 32rpx;
+  overflow: hidden;
+  animation: adminModalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 30rpx 80rpx rgba(0, 0, 0, 0.3);
+}
+
+@keyframes adminModalSlideIn {
+  from {
+    transform: scale(0.9) translateY(40rpx);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.admin-modal-header {
+  background: linear-gradient(135deg, #FF6B35, #F7931E);
+  color: white;
+  padding: 50rpx 40rpx;
+  text-align: center;
+  position: relative;
+}
+
+.admin-modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="30" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+  opacity: 0.3;
+}
+
+.admin-modal-title {
+  font-size: 42rpx;
+  font-weight: 700;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+.admin-close-btn {
+  position: absolute;
+  top: 20rpx;
+  right: 30rpx;
+  font-size: 50rpx;
+  cursor: pointer;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.admin-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.admin-modal-body {
+  padding: 50rpx 40rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* 管理员输入组 */
+.admin-input-group {
+  margin-bottom: 45rpx;
+}
+
+.admin-input-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.admin-label-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.admin-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border: 3rpx solid #e9ecef;
+  border-radius: 24rpx;
+  padding: 28rpx 24rpx;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.admin-input-wrapper:focus-within {
+  border-color: #FF6B35;
+  background: #fff;
+  box-shadow: 0 0 0 8rpx rgba(255, 107, 53, 0.1);
+  transform: translateY(-2rpx);
+}
+
+.admin-input-wrapper.error {
+  border-color: #dc3545;
+  background: rgba(220, 53, 69, 0.05);
+  animation: inputShake 0.5s ease-in-out;
+}
+
+@keyframes inputShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4rpx); }
+  75% { transform: translateX(4rpx); }
+}
+
+.admin-input-prefix {
+  font-size: 36rpx;
+  margin-right: 24rpx;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40rpx;
+}
+
+.admin-form-input {
+  flex: 1;
+  font-size: 32rpx;
+  color: #333;
+  background: transparent;
+  font-weight: 500;
+}
+
+.admin-password-toggle {
+  font-size: 36rpx;
+  cursor: pointer;
+  color: #6c757d;
+  margin-left: 20rpx;
+  transition: all 0.3s ease;
+  padding: 8rpx;
+  border-radius: 50%;
+}
+
+.admin-password-toggle:hover {
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+}
+
+.admin-error-tip {
+  font-size: 24rpx;
+  color: #dc3545;
+  margin-top: 12rpx;
+  margin-left: 8rpx;
+  animation: errorFadeIn 0.3s ease-out;
+}
+
+@keyframes errorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 管理员选项 */
+.admin-options {
+  margin: 40rpx 0;
+  padding: 30rpx;
+  background: rgba(255, 107, 53, 0.03);
+  border-radius: 20rpx;
+  border-left: 6rpx solid #FF6B35;
+}
+
+.admin-checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.admin-checkbox-text {
+  font-size: 28rpx;
+  color: #495057;
+  margin-left: 16rpx;
+  font-weight: 500;
+}
+
+.admin-dev-notice {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background: rgba(255, 193, 7, 0.1);
+  border-radius: 16rpx;
+  border: 2rpx solid rgba(255, 193, 7, 0.3);
+}
+
+.dev-notice-text {
+  font-size: 26rpx;
+  color: #856404;
+  font-weight: 600;
+  text-align: center;
+  display: block;
+}
+
+/* 管理员登录按钮 */
+.admin-submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #FF6B35, #F7931E);
+  color: white;
+  border: none;
+  border-radius: 24rpx;
+  padding: 35rpx 28rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8rpx 25rpx rgba(255, 107, 53, 0.3);
+  margin: 40rpx 0;
+}
+
+.admin-submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.admin-submit-btn:not([disabled]):hover {
+  transform: translateY(-4rpx);
+  box-shadow: 0 15rpx 40rpx rgba(255, 107, 53, 0.4);
+}
+
+.admin-submit-btn:not([disabled]):hover::before {
+  left: 100%;
+}
+
+.admin-submit-btn:not([disabled]):active {
+  transform: translateY(-2rpx);
+}
+
+.admin-submit-btn.loading {
+  background: #6c757d;
+  opacity: 0.8;
+  transform: none;
+  box-shadow: none;
+}
+
+.admin-submit-btn.loading::before {
+  display: none;
+}
+
+/* 安全提示 */
+.admin-security-tips {
+  margin-top: 30rpx;
+  padding: 25rpx;
+  background: rgba(23, 162, 184, 0.05);
+  border-radius: 16rpx;
+  border: 2rpx solid rgba(23, 162, 184, 0.2);
+}
+
+.security-tip {
+  font-size: 24rpx;
+  color: #17a2b8;
+  line-height: 1.8;
+  display: block;
+  margin-bottom: 8rpx;
+  font-weight: 500;
+}
+
+.security-tip:last-child {
+  margin-bottom: 0;
+}
+
 /* 响应式适配 */
 @media (max-width: 400px) {
   .auth-form {
@@ -454,5 +758,23 @@
   
   .modal-content {
     width: 95%;
+  }
+  
+  .admin-modal-content {
+    width: 95%;
+    margin: 20rpx;
+  }
+  
+  .admin-modal-body {
+    padding: 40rpx 30rpx;
+  }
+  
+  .admin-modal-title {
+    font-size: 38rpx;
+  }
+  
+  .admin-submit-btn {
+    font-size: 32rpx;
+    padding: 32rpx 24rpx;
   }
 }

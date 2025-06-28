@@ -1,6 +1,6 @@
 // pages/records/upload-records.js - 上传记录页面
 const app = getApp()
-const { photoAPI, mockRequest } = require('../../utils/api')
+const { uploadAPI } = require('../../utils/api')
 
 Page({
   
@@ -141,7 +141,7 @@ Page({
       
       // 模拟网络延迟
       return new Promise(resolve => setTimeout(resolve, 300)).then(() => {
-        return photoAPI.getRecords(this.data.currentPage, this.data.pageSize)
+        return uploadAPI.getRecords(this.data.currentPage, this.data.pageSize)
       }).then((res) => {
         const newRecords = res.data.records || []
         this.setData({

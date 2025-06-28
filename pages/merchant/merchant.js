@@ -1,6 +1,6 @@
 // pages/merchant/merchant.js - 商家管理页面逻辑
 const app = getApp()
-const { merchantAPI, mockRequest } = require('../../utils/api')
+const { merchantAPI } = require('../../utils/api')
 
 Page({
 
@@ -77,7 +77,38 @@ Page({
     // 权限申请
     showAuthModal: false,
     authRequesting: false,
-    hasPermission: false
+    hasPermission: false,
+    
+    // 🎰 抽奖控制相关 - 🔴 严禁前端硬编码奖品配置
+    lotteryConfig: {
+      isActive: false, // 抽奖系统状态，必须从后端获取
+      prizes: [] // 🚨 奖品配置严禁前端定义，必须从后端API获取
+    },
+    probabilityTotal: 100, // 概率总和
+    
+    // 维护配置
+    maintenanceConfig: {
+      isScheduled: false,
+      startTime: [0, 0], // [日期索引, 时间索引]
+      endTime: [0, 0],
+      startTimeText: '',
+      endTimeText: '',
+      reason: ''
+    },
+    maintenanceTimeRange: [
+      // 日期范围（今天开始7天）
+      [],
+      // 时间范围（0-23小时）
+      []
+    ],
+    
+    // 抽奖统计
+    lotteryStats: {
+      todayCount: 0,
+      totalCount: 0,
+      activeUsers: 0,
+      totalPrizes: 0
+    }
   },
 
   /**
@@ -152,6 +183,9 @@ Page({
       isMerchant: app.globalData.userInfo?.is_merchant || app.globalData.mockUser.is_merchant
     })
 
+    // 初始化维护时间范围
+    this.initMaintenanceTimeRange()
+
     // 检查商家权限
     if (!this.data.isMerchant) {
       this.setData({ loading: false })
@@ -185,10 +219,19 @@ Page({
   loadData() {
     this.setData({ loading: true })
     
-    return Promise.all([
+    const loadPromises = [
       this.loadStatistics(),
       this.loadPendingList()
-    ]).then(() => {
+    ]
+    
+    // 根据当前选项卡加载对应数据
+    if (this.data.currentTab === 'lottery') {
+      loadPromises.push(this.loadLotteryData())
+    } else if (this.data.currentTab === 'product') {
+      loadPromises.push(this.loadProductData())
+    }
+    
+    return Promise.all(loadPromises).then(() => {
       this.setData({ loading: false })
     }).catch(error => {
       console.error('❌ 加载数据失败:', error)
@@ -917,6 +960,8 @@ Page({
     
     if (tab === 'product') {
       this.loadProductData()
+    } else if (tab === 'lottery') {
+      this.loadLotteryData()
     }
   },
 
@@ -2096,5 +2141,500 @@ Page({
     }
     statistics.totalProcessed++
     this.setData({ statistics })
+  },
+
+  /* ==================== 🎰 抽奖控制功能 ==================== */
+
+  /**
+   * 初始化维护时间范围
+   */
+  initMaintenanceTimeRange() {
+    const today = new Date()
+    const dateRange = []
+    const timeRange = []
+    
+    // 生成日期范围（今天开始7天）
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() + i)
+      const dateStr = `${date.getMonth() + 1}月${date.getDate()}日`
+      dateRange.push(dateStr)
+    }
+    
+    // 生成时间范围（0-23小时）
+    for (let i = 0; i < 24; i++) {
+      timeRange.push(`${i.toString().padStart(2, '0')}:00`)
+    }
+    
+    this.setData({
+      maintenanceTimeRange: [dateRange, timeRange]
+    })
+  },
+
+  /**
+   * 加载抽奖数据 - 🔴 必须从后端获取，严禁前端模拟
+   */
+  loadLotteryData() {
+    console.log('🎰 加载抽奖数据')
+    
+    wx.showLoading({ title: '加载中...' })
+    
+    // 🔴 必须从后端获取抽奖配置和统计数据
+    return Promise.all([
+      this.loadLotteryConfig(),
+      this.loadLotteryStats()
+    ]).then(() => {
+      wx.hideLoading()
+      console.log('✅ 抽奖数据加载完成')
+    }).catch(error => {
+      wx.hideLoading()
+      console.error('❌ 抽奖数据加载失败:', error)
+      
+      // 🚨 后端数据获取失败时的错误处理
+      wx.showModal({
+        title: '数据加载失败',
+        content: '无法从后端获取抽奖配置数据，请检查后端服务是否正常运行。',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      
+      throw error
+    })
+  },
+
+  /**
+   * 从后端加载抽奖配置 - 🔴 核心安全方法
+   */
+  loadLotteryConfig() {
+    // 🔴 调用后端API获取抽奖配置
+    return merchantAPI.getLotteryConfig().then(result => {
+      if (result.code === 0 && result.data) {
+        this.setData({
+          lotteryConfig: {
+            isActive: result.data.isActive || false,
+            prizes: result.data.prizes || []
+          }
+        })
+        
+        // 计算概率总和
+        this.calculateProbabilityTotal()
+        
+        console.log('✅ 抽奖配置加载成功:', result.data)
+      } else {
+        throw new Error('后端返回的抽奖配置数据格式错误')
+      }
+    }).catch(error => {
+      console.error('❌ 获取抽奖配置失败:', error)
+      
+      // 🚨 关键错误：无法获取抽奖配置
+      wx.showModal({
+        title: '⚠️ 后端服务异常',
+        content: '无法获取抽奖配置数据！\n\n可能原因：\n1. 后端API服务未启动\n2. 抽奖配置接口异常\n3. 数据库连接问题\n\n请立即检查后端服务状态！',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      
+      throw error
+    })
+  },
+
+  /**
+   * 从后端加载抽奖统计数据
+   */
+  loadLotteryStats() {
+    return merchantAPI.getLotteryStats().then(result => {
+      if (result.code === 0 && result.data) {
+        this.setData({
+          lotteryStats: result.data
+        })
+        console.log('✅ 抽奖统计数据加载成功')
+      } else {
+        // 统计数据不是核心功能，可以使用默认值
+        console.warn('⚠️ 抽奖统计数据获取失败，使用默认值')
+        this.setData({
+          lotteryStats: {
+            todayCount: 0,
+            totalCount: 0,
+            activeUsers: 0,
+            totalPrizes: 0
+          }
+        })
+      }
+    }).catch(error => {
+      console.warn('⚠️ 抽奖统计数据加载失败:', error)
+      // 使用默认统计数据
+      this.setData({
+        lotteryStats: {
+          todayCount: 0,
+          totalCount: 0,
+          activeUsers: 0,
+          totalPrizes: 0
+        }
+      })
+    })
+  },
+
+  /**
+   * 计算概率总和
+   */
+  calculateProbabilityTotal() {
+    const total = this.data.lotteryConfig.prizes.reduce((sum, prize) => {
+      return sum + (prize.probability || 0)
+    }, 0)
+    
+    this.setData({ probabilityTotal: total })
+  },
+
+  /**
+   * 切换抽奖系统状态
+   */
+  onToggleLotteryStatus() {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    const currentActive = this.data.lotteryConfig.isActive
+    const newStatus = !currentActive
+    
+    wx.showModal({
+      title: newStatus ? '恢复抽奖系统' : '暂停抽奖系统',
+      content: newStatus ? 
+        '确定要恢复抽奖系统吗？用户将可以正常参与抽奖。' : 
+        '确定要暂停抽奖系统吗？暂停期间用户无法参与抽奖。',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({
+            'lotteryConfig.isActive': newStatus
+          })
+          
+          wx.showToast({
+            title: newStatus ? '抽奖系统已恢复' : '抽奖系统已暂停',
+            icon: 'success'
+          })
+          
+          console.log(`🎯 抽奖系统状态已切换为: ${newStatus ? '激活' : '暂停'}`)
+          
+          // 🔮 生产环境：调用后端接口保存状态
+          // this.saveLotteryConfig()
+        }
+      }
+    })
+  },
+
+  /**
+   * 调整奖品概率
+   */
+  onAdjustProbability(e) {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    const { prizeId, action } = e.currentTarget.dataset
+    const prizes = [...this.data.lotteryConfig.prizes]
+    const prizeIndex = prizes.findIndex(p => p.id == prizeId)
+    
+    if (prizeIndex === -1) return
+    
+    let newProbability = prizes[prizeIndex].probability
+    
+    if (action === 'plus') {
+      newProbability = Math.min(100, newProbability + 1)
+    } else if (action === 'minus') {
+      newProbability = Math.max(0, newProbability - 1)
+    }
+    
+    prizes[prizeIndex].probability = newProbability
+    
+    this.setData({
+      'lotteryConfig.prizes': prizes
+    })
+    
+    this.calculateProbabilityTotal()
+  },
+
+  /**
+   * 概率输入处理
+   */
+  onProbabilityInput(e) {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    const { prizeId } = e.currentTarget.dataset
+    const value = parseInt(e.detail.value) || 0
+    const clampedValue = Math.max(0, Math.min(100, value))
+    
+    const prizes = [...this.data.lotteryConfig.prizes]
+    const prizeIndex = prizes.findIndex(p => p.id == prizeId)
+    
+    if (prizeIndex !== -1) {
+      prizes[prizeIndex].probability = clampedValue
+      
+      this.setData({
+        'lotteryConfig.prizes': prizes
+      })
+      
+      this.calculateProbabilityTotal()
+    }
+  },
+
+  /**
+   * 重置概率为默认值 - 🔴 必须从后端获取默认配置
+   */
+  onResetProbabilities() {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    wx.showModal({
+      title: '重置概率',
+      content: '确定要重置所有奖品概率为后端默认值吗？',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({ title: '重置中...' })
+          
+          // 🔴 调用后端API重置为默认配置
+          merchantAPI.resetLotteryProbabilities().then(result => {
+            wx.hideLoading()
+            
+            if (result.code === 0) {
+              wx.showToast({
+                title: '概率已重置',
+                icon: 'success'
+              })
+              
+              // 重新加载配置
+              this.loadLotteryConfig()
+            } else {
+              throw new Error(result.msg || '重置失败')
+            }
+          }).catch(error => {
+            wx.hideLoading()
+            console.error('❌ 重置概率失败:', error)
+            
+            wx.showModal({
+              title: '重置失败',
+              content: '无法从后端重置概率配置，请检查后端服务状态。\n\n错误信息：' + (error.msg || error.message || '未知错误'),
+              showCancel: false,
+              confirmText: '知道了',
+              confirmColor: '#ff4444'
+            })
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 保存概率设置 - 🔴 必须调用后端API
+   */
+  onSaveProbabilities() {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    if (this.data.probabilityTotal !== 100) {
+      wx.showToast({
+        title: '概率总和必须等于100%',
+        icon: 'none'
+      })
+      return
+    }
+    
+    wx.showLoading({ title: '保存中...' })
+    
+    // 🔴 必须调用后端API保存概率设置
+    merchantAPI.saveLotteryProbabilities(this.data.lotteryConfig.prizes).then(result => {
+      wx.hideLoading()
+      
+      if (result.code === 0) {
+        wx.showToast({
+          title: '概率设置已保存',
+          icon: 'success'
+        })
+        
+        console.log('💾 抽奖概率设置已保存到后端')
+        
+        // 重新加载配置确保前后端同步
+        this.loadLotteryConfig()
+      } else {
+        throw new Error(result.msg || '保存失败')
+      }
+    }).catch(error => {
+      wx.hideLoading()
+      console.error('❌ 保存概率设置失败:', error)
+      
+      wx.showModal({
+        title: '保存失败',
+        content: '无法保存概率设置到后端，请检查后端服务状态。\n\n错误信息：' + (error.msg || error.message || '未知错误'),
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+    })
+  },
+
+  /**
+   * 预设维护时间
+   */
+  onPresetMaintenance(e) {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    const hours = parseInt(e.currentTarget.dataset.hours)
+    const now = new Date()
+    const endTime = new Date(now.getTime() + hours * 60 * 60 * 1000)
+    
+    const startTimeText = `${now.getMonth() + 1}月${now.getDate()}日 ${now.getHours().toString().padStart(2, '0')}:00`
+    const endTimeText = `${endTime.getMonth() + 1}月${endTime.getDate()}日 ${endTime.getHours().toString().padStart(2, '0')}:00`
+    
+    wx.showModal({
+      title: '预设维护时间',
+      content: `确定要设置 ${hours} 小时的维护时间吗？\n开始：${startTimeText}\n结束：${endTimeText}`,
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({
+            'maintenanceConfig.isScheduled': true,
+            'maintenanceConfig.startTimeText': startTimeText,
+            'maintenanceConfig.endTimeText': endTimeText,
+            'maintenanceConfig.reason': `系统维护 ${hours} 小时`
+          })
+          
+          // 同时暂停抽奖系统
+          this.setData({
+            'lotteryConfig.isActive': false
+          })
+          
+          wx.showToast({
+            title: '维护时间已设置',
+            icon: 'success'
+          })
+          
+          console.log(`⏰ 设置维护时间: ${hours}小时`)
+        }
+      }
+    })
+  },
+
+  /**
+   * 维护开始时间变更
+   */
+  onMaintenanceStartTimeChange(e) {
+    const [dateIndex, timeIndex] = e.detail.value
+    const dateRange = this.data.maintenanceTimeRange[0]
+    const timeRange = this.data.maintenanceTimeRange[1]
+    
+    const startTimeText = `${dateRange[dateIndex]} ${timeRange[timeIndex]}`
+    
+    this.setData({
+      'maintenanceConfig.startTime': e.detail.value,
+      'maintenanceConfig.startTimeText': startTimeText
+    })
+  },
+
+  /**
+   * 维护结束时间变更
+   */
+  onMaintenanceEndTimeChange(e) {
+    const [dateIndex, timeIndex] = e.detail.value
+    const dateRange = this.data.maintenanceTimeRange[0]
+    const timeRange = this.data.maintenanceTimeRange[1]
+    
+    const endTimeText = `${dateRange[dateIndex]} ${timeRange[timeIndex]}`
+    
+    this.setData({
+      'maintenanceConfig.endTime': e.detail.value,
+      'maintenanceConfig.endTimeText': endTimeText
+    })
+  },
+
+  /**
+   * 维护原因输入
+   */
+  onMaintenanceReasonInput(e) {
+    this.setData({
+      'maintenanceConfig.reason': e.detail.value
+    })
+  },
+
+  /**
+   * 安排维护
+   */
+  onScheduleMaintenance() {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    const { startTimeText, endTimeText, reason } = this.data.maintenanceConfig
+    
+    if (!startTimeText || !endTimeText) {
+      wx.showToast({
+        title: '请选择维护时间',
+        icon: 'none'
+      })
+      return
+    }
+    
+    wx.showModal({
+      title: '确认维护安排',
+      content: `维护时间：${startTimeText} - ${endTimeText}\n${reason ? '原因：' + reason : ''}`,
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({
+            'maintenanceConfig.isScheduled': true,
+            'lotteryConfig.isActive': false
+          })
+          
+          wx.showToast({
+            title: '维护已安排',
+            icon: 'success'
+          })
+          
+          console.log('📅 维护时间已安排:', this.data.maintenanceConfig)
+        }
+      }
+    })
+  },
+
+  /**
+   * 取消维护
+   */
+  onCancelMaintenance() {
+    if (!this.data.hasPermission) {
+      this.onLockedTap()
+      return
+    }
+
+    wx.showModal({
+      title: '取消维护',
+      content: '确定要取消计划的维护吗？',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({
+            'maintenanceConfig.isScheduled': false,
+            'maintenanceConfig.startTimeText': '',
+            'maintenanceConfig.endTimeText': '',
+            'maintenanceConfig.reason': '',
+            'lotteryConfig.isActive': true
+          })
+          
+          wx.showToast({
+            title: '维护已取消',
+            icon: 'success'
+          })
+          
+          console.log('❌ 维护计划已取消')
+        }
+      }
+    })
   }
 })

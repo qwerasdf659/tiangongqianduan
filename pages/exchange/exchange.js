@@ -1,6 +1,6 @@
 // pages/exchange/exchange.js - 商品兑换页面逻辑
 const app = getApp()
-const { exchangeAPI, userAPI, mockRequest } = require('../../utils/api')
+const { exchangeAPI, userAPI } = require('../../utils/api')
 const { debounce } = require('../../utils/validate')
 
 Page({

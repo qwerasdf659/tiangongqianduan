@@ -1,6 +1,6 @@
 // pages/user/user.js - 用户中心页面逻辑
 const app = getApp()
-const { userAPI, mockRequest } = require('../../utils/api')
+const { userAPI } = require('../../utils/api')
 
 Page({
 

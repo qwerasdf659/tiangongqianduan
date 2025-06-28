@@ -1,6 +1,6 @@
 // pages/camera/camera.js - 拍照上传页面逻辑
 const app = getApp()
-const { photoAPI, userAPI, mockRequest } = require('../../utils/api')
+const { uploadAPI, userAPI } = require('../../utils/api')
 const { validateImage, compressImage, validateAmount, FormValidator, commonRules } = require('../../utils/validate')
 
 Page({
@@ -344,7 +344,7 @@ Page({
       console.log('📡 请求图片上传接口...')
       
       // 🔴 调用符合后端文档格式的上传接口
-      photoAPI.upload(this.data.selectedImage.tempPath, this.data.inputAmount || 0).then((uploadResult) => {
+      uploadAPI.upload(this.data.selectedImage.tempPath, this.data.inputAmount || 0).then((uploadResult) => {
         wx.hideLoading()
         
         if (uploadResult.code === 0) {
@@ -477,7 +477,7 @@ Page({
       // 生产环境调用真实接口
       console.log('📡 请求上传记录接口...')
       
-      return photoAPI.getRecords(1, 10).then((res) => {
+      return uploadAPI.getRecords(1, 10).then((res) => {
         this.setData({
           uploadRecords: res.data.records || [],
           totalRecords: res.data.total || 0
@@ -553,7 +553,7 @@ Page({
       return Promise.resolve()
     } else {
       // 生产环境调用真实接口
-      return photoAPI.getRecords().then((res) => {
+      return uploadAPI.getRecords().then((res) => {
         this.setData({
           uploadHistory: res.data.list ? res.data.list.slice(0, 5) : []
         })

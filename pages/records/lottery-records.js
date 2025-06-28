@@ -1,6 +1,6 @@
 // pages/records/lottery-records.js - 抽奖记录页面
 const app = getApp()
-const { lotteryAPI, mockRequest } = require('../../utils/api')
+const { lotteryAPI } = require('../../utils/api')
 
 Page({
   

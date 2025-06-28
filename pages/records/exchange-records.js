@@ -1,6 +1,6 @@
 // pages/records/exchange-records.js - 兑换记录页面
 const app = getApp()
-const { exchangeAPI, mockRequest } = require('../../utils/api')
+const { exchangeAPI } = require('../../utils/api')
 
 Page({
   
