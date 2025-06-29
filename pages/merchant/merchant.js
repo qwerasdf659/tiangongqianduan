@@ -179,8 +179,8 @@ Page({
   initPage() {
     // 初始化用户信息
     this.setData({
-      userInfo: app.globalData.userInfo || app.globalData.mockUser,
-      isMerchant: app.globalData.userInfo?.is_merchant || app.globalData.mockUser.is_merchant
+      userInfo: app.globalData.userInfo || null,
+      isMerchant: app.globalData.userInfo?.is_merchant || false
     })
 
     // 初始化维护时间范围
@@ -332,7 +332,7 @@ Page({
       const listData = {
         code: 0,
         data: {
-          list: this.generateMockPendingList(),
+          // 🚨 已删除：generateMockPendingList()违规调用
           total: 8,
           page: 1,
           page_size: 20
@@ -371,25 +371,10 @@ Page({
   },
 
   /**
-   * 生成模拟待审核列表
+   * 🚨 已删除违规函数：generateMockPendingList()
+   * 🔴 原因：违反项目安全规则 - 严禁前端硬编码敏感业务数据
+   * ✅ 正确做法：使用merchantAPI.getPendingReviews()获取真实数据
    */
-  generateMockPendingList() {
-    const users = [
-      '138****1001', '139****2002', '158****3003', '188****4004',
-      '137****5005', '159****6006', '177****7007', '185****8008'
-    ]
-
-    return users.map((phone, index) => ({
-      id: index + 1,
-      user_id: 1000 + index + 1,
-      user_phone: phone,
-      image_url: `https://via.placeholder.com/300x400/f44336/ffffff?text=小票${index + 1}`,
-      amount: (50 + Math.random() * 200).toFixed(2),
-      expected_points: Math.floor((50 + Math.random() * 200) * 10),
-      upload_time: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toLocaleString(),
-      status: 'pending'
-    }))
-  },
 
   /**
    * 申请商家权限
@@ -436,9 +421,8 @@ Page({
         })
         
         // 更新全局数据
-        if (app.globalData.mockUser) {
-          app.globalData.mockUser.is_merchant = true
-        }
+              // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
+      // ✅ 商家权限必须通过后端API同步
         if (app.globalData.userInfo) {
           app.globalData.userInfo.is_merchant = true
         }
@@ -996,31 +980,36 @@ Page({
   /**
    * 加载商品列表
    */
+  /**
+   * 🔴 加载商品列表 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止硬编码商品数据
+   */
   loadProductList() {
-    // 模拟商品列表数据
-    const mockProducts = [
-      {
-        id: 1,
-        name: '八八折券',
-        description: '全场商品八八折优惠',
-        exchange_points: 800,
-        stock: 50,
-        status: 'active',
-        image: 'https://via.placeholder.com/200x200/FF6B35/ffffff?text=🎫'
-      },
-      {
-        id: 2,
-        name: '九九折券',
-        description: '全场商品九九折优惠',
-        exchange_points: 500,
-        stock: 100,
-        status: 'active',
-        image: 'https://via.placeholder.com/200x200/667eea/ffffff?text=🎫'
-      }
-    ]
+    console.log('📡 请求商家商品列表接口...')
     
-    this.setData({ productList: mockProducts })
-    return Promise.resolve()
+    return merchantAPI.getProducts().then((result) => {
+      if (result.code === 0) {
+        this.setData({ 
+          productList: result.data.products || []
+        })
+        console.log('✅ 商品列表加载成功')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + result.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取商品列表失败:', error)
+      
+      // 🚨 显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取商品列表！\n\n请检查后端API服务状态：\nGET /api/merchant/products',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      
+      this.setData({ productList: [] })
+    })
   },
 
   /**

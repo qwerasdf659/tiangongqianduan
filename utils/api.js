@@ -210,70 +210,133 @@ const request = (options) => {
 
 // 🔴 用户认证API - 必须调用真实后端接口
 const authAPI = {
-  // 发送验证码
+  /**
+   * 🔴 发送验证码 - 必须调用真实API
+   * 🚧 开发阶段：API返回成功但不实际发送短信
+   * 🔮 生产环境：调用真实短信服务
+   * @param {string} phone - 手机号
+   */
   sendCode(phone) {
     return request({
       url: '/auth/send-code',
       method: 'POST',
-      data: { phone },
+      data: { 
+        phone,
+        dev_mode: app.globalData.isDev || false, // 🚧 开发模式标识
+        skip_sms: app.globalData.isDev || false  // 🚧 开发阶段跳过真实短信
+      },
       needAuth: false,
       showLoading: true
-    }).catch(error => {
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法发送验证码！请检查后端API服务状态。',
-        showCancel: false
-      })
-      throw error
     })
   },
 
-  // 用户登录
+  /**
+   * 🔴 用户登录 - 必须调用真实API
+   * 🚧 开发阶段：验证码可以使用任意6位数字
+   * 🔮 生产环境：验证真实短信验证码
+   * @param {string} phone - 手机号
+   * @param {string} code - 验证码
+   */
   login(phone, code) {
     return request({
       url: '/auth/login',
       method: 'POST',
-      data: { phone, code },
+      data: { 
+        phone, 
+        verify_code: code,
+        dev_mode: app.globalData.isDev || false,    // 🚧 开发模式标识
+        skip_sms_verify: app.globalData.isDev || false // 🚧 开发阶段跳过短信验证
+      },
       needAuth: false,
       showLoading: true
-    }).catch(error => {
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法完成登录！请检查后端API服务状态。',
-        showCancel: false
-      })
-      throw error
     })
   },
 
-  // 刷新Token
+  /**
+   * 🔐 管理员登录 - 新增功能
+   * 🚧 开发阶段：跳过短信二次验证
+   * 🔮 生产环境：完整的账号密码+短信二次验证
+   * @param {Object} loginData - 登录数据
+   * @param {string} loginData.username - 管理员账号
+   * @param {string} loginData.password - 登录密码
+   * @param {boolean} loginData.skip_sms - 是否跳过短信验证（开发阶段使用）
+   * @param {Object} loginData.device_info - 设备信息
+   */
+  adminLogin(loginData) {
+    console.log('🔐 管理员登录API调用:', {
+      username: loginData.username,
+      skip_sms: loginData.skip_sms,
+      dev_mode: loginData.dev_mode
+    })
+    
+    return request({
+      url: '/auth/admin-login',
+      method: 'POST',
+      data: {
+        username: loginData.username,
+        password: loginData.password,
+        skip_sms: loginData.skip_sms || false,       // 🚧 开发阶段跳过短信验证
+        dev_mode: loginData.dev_mode || false,       // 🚧 开发模式标识
+        device_info: loginData.device_info || {},    // 设备信息
+        timestamp: Date.now(),                       // 时间戳
+        client_type: 'miniprogram'                   // 客户端类型
+      },
+      needAuth: false,
+      showLoading: false // 登录界面自行控制loading状态
+    })
+  },
+
+  /**
+   * 🔐 管理员短信二次验证 - 生产环境使用
+   * 🚧 开发阶段：此接口暂停调用
+   * @param {string} admin_token - 临时管理员token
+   * @param {string} sms_code - 短信验证码
+   */
+  adminSmsVerify(admin_token, sms_code) {
+    return request({
+      url: '/auth/admin-sms-verify',
+      method: 'POST',
+      data: {
+        admin_token,
+        sms_code,
+        timestamp: Date.now()
+      },
+      needAuth: false,
+      showLoading: true
+    })
+  },
+
+  /**
+   * 刷新Token
+   */
   refresh(refreshToken) {
     return request({
       url: '/auth/refresh',
       method: 'POST',
       data: { refresh_token: refreshToken },
-      needAuth: false,
-      showLoading: false
+      needAuth: false
     })
   },
 
-  // 验证Token
+  /**
+   * 验证Token有效性
+   */
   verifyToken() {
     return request({
       url: '/auth/verify',
       method: 'GET',
-      needAuth: true,
-      showLoading: false
+      needAuth: true
     })
   },
 
-  // 登出
+  /**
+   * 用户退出登录
+   */
   logout() {
     return request({
       url: '/auth/logout',
       method: 'POST',
-      needAuth: true,
-      showLoading: false
+      needAuth: true
     })
   }
 }

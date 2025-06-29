@@ -208,25 +208,10 @@ Page({
    * 返回：用户详细信息，包括积分余额、基本信息等
    */
   loadUserInfo() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 使用模拟用户数据')
-      const mockUser = app.globalData.mockUser || {
-        user_id: 1001,
-        nickname: '测试用户',
-        avatar: '/images/default-avatar.png',
-        total_points: 1500,
-        phone: '138****8000',
-        is_merchant: false
-      }
-      
-      this.setData({
-        userInfo: mockUser,
-        totalPoints: mockUser.total_points || 0
-      })
-      
-      return Promise.resolve(mockUser)
-    } else {
+    // 🚨 已删除：开发环境Mock数据 - 违反项目安全规则
+    // ✅ 必须使用真实后端API获取用户信息
+    
+    {
       // 生产环境调用真实接口
       console.log('📡 请求用户信息接口...')
       return userAPI.getUserInfo().then((res) => {
@@ -357,30 +342,16 @@ Page({
    * 认证：需要Bearer Token
    * 返回：积分收支记录列表
    */
+  /**
+   * 🔴 加载积分记录 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据
+   */
   loadPointsRecords() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 生成模拟积分记录数据')
-      const recordsData = this.generateMockPointsRecords()
-      
-      this.setData({
-        pointsRecords: recordsData
-      })
-      
-      // 初始化筛选结果
-      this.filterPointsRecords()
-      
-      // 计算今日积分趋势
-      this.calculateTodayTrend()
-      
-      console.log('✅ 积分记录加载成功，共', recordsData.length, '条记录')
-      return Promise.resolve()
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求积分记录接口...')
-      return userAPI.getPointsRecords().then((recordsData) => {
+    console.log('📡 请求积分记录接口...')
+    return userAPI.getPointsRecords().then((result) => {
+      if (result.code === 0) {
         this.setData({
-          pointsRecords: recordsData
+          pointsRecords: result.data || []
         })
         
         // 初始化筛选结果
@@ -389,67 +360,29 @@ Page({
         // 计算今日积分趋势
         this.calculateTodayTrend()
 
-        console.log('✅ 积分记录加载成功，共', recordsData.length, '条记录')
-      }).catch((error) => {
-        console.error('❌ 获取积分记录失败:', error)
-        
-        // 使用默认数据，避免页面空白
-        this.setData({
-          pointsRecords: []
-        })
-        
-        this.filterPointsRecords()
-      })
-    }
-  },
-
-  /**
-   * 生成模拟积分记录
-   */
-  generateMockPointsRecords(count = 10) {
-    const types = ['earn', 'consume']
-    const descriptions = {
-      earn: ['签到奖励', '拍照上传', '邀请好友', '活动奖励', '系统赠送'],
-      consume: ['抽奖消费', '商品兑换', '活动参与']
-    }
-
-    let currentBalance = this.data.totalPoints || 1500 // 使用当前积分或默认1500
-    const records = []
-
-    for (let i = 0; i < count; i++) {
-      const type = types[Math.floor(Math.random() * types.length)]
-      const isEarn = type === 'earn'
-      
-      let points
-      if (isEarn) {
-        points = Math.floor(Math.random() * 100) + 10 // 获得10-110积分
+        console.log('✅ 积分记录加载成功，共', result.data?.length || 0, '条记录')
       } else {
-        // 消费时确保不会导致余额为负
-        const maxConsume = Math.min(200, currentBalance - 100) // 最多消费200积分，但保留100积分
-        points = -(Math.floor(Math.random() * Math.max(50, maxConsume)) + 50) // 至少消费50积分
+        throw new Error('⚠️ 后端服务异常：' + result.msg)
       }
+    }).catch((error) => {
+      console.error('❌ 获取积分记录失败:', error)
       
-      // 更新余额
-      currentBalance += points
-      
-      // 确保余额不为负
-      if (currentBalance < 0) {
-        currentBalance = Math.abs(points) // 如果会为负，则调整为正数
-        points = Math.abs(points) // 将消费改为获得
-      }
-      
-      records.push({
-        id: i + 1,
-        type: points > 0 ? 'earn' : 'consume',
-        points: points,
-        description: descriptions[points > 0 ? 'earn' : 'consume'][Math.floor(Math.random() * descriptions[points > 0 ? 'earn' : 'consume'].length)],
-        balance_after: currentBalance, // 使用操作后的余额
-        created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleDateString()
+      // 🚨 显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取积分记录！\n\n请检查后端API服务状态：\nGET /api/user/points-records',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
       })
-    }
-
-    // 按时间倒序排列（最新的在前）
-    return records.reverse()
+      
+      // 使用空数据，避免页面崩溃
+      this.setData({
+        pointsRecords: []
+      })
+      
+      this.filterPointsRecords()
+    })
   },
 
   /**
@@ -543,9 +476,8 @@ Page({
             })
             
             // 更新全局数据
-            if (app.globalData.mockUser) {
-              app.globalData.mockUser.avatar = mockAvatarUrl
-            }
+                  // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
+      // ✅ 头像更新必须通过后端API同步
             
             wx.showToast({
               title: '头像更新成功',
@@ -692,8 +624,11 @@ Page({
     
     // 模拟加载更多数据
     setTimeout(() => {
-      const newRecords = this.generateMockPointsRecords(5)
-      const allRecords = [...this.data.pointsRecords, ...newRecords]
+      // 🚨 已删除：generateMockPointsRecords()违规调用
+      // ✅ 必须从后端API获取：userAPI.getPointsRecords()
+              // 🚨 已删除：newRecords违规引用
+        // ✅ 必须从后端API获取更多记录
+        const allRecords = [...this.data.pointsRecords]
       
       this.setData({
         pointsRecords: allRecords,

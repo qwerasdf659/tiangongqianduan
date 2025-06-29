@@ -116,8 +116,8 @@ Page({
       // 开发环境使用模拟数据
       console.log('🔧 使用模拟用户数据')
       this.setData({
-        userInfo: app.globalData.mockUser,
-        totalPoints: app.globalData.mockUser.total_points
+              userInfo: app.globalData.userInfo || null,
+      totalPoints: app.globalData.userInfo?.total_points || 0
       })
       return Promise.resolve()
     }
@@ -460,63 +460,47 @@ Page({
    * 认证：需要Bearer Token
    * 返回：用户的上传记录列表，包括审核状态、积分等信息
    */
+  /**
+   * 🔴 加载上传记录 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据
+   */
   loadUploadRecords() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境生成模拟记录
-      console.log('🔧 生成模拟上传记录')
-      const mockRecords = this.generateMockRecords()
+    console.log('📡 请求上传记录接口...')
+    
+    return uploadAPI.getRecords(1, 10).then((result) => {
+      if (result.code === 0) {
+        this.setData({
+          uploadRecords: result.data.records || [],
+          totalRecords: result.data.total || 0
+        })
+        console.log('✅ 上传记录加载成功，共', result.data.total || 0, '条记录')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + result.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取上传记录失败:', error)
       
-      new Promise(resolve => setTimeout(resolve, 300)).then(() => {
-        this.setData({
-          uploadRecords: mockRecords,
-          totalRecords: mockRecords.length
-        })
-        console.log('✅ 上传记录加载成功，共', mockRecords.length, '条记录')
+      // 🚨 显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取上传记录！\n\n请检查后端API服务状态：\nGET /api/photo/records',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
       })
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求上传记录接口...')
       
-      return uploadAPI.getRecords(1, 10).then((res) => {
-        this.setData({
-          uploadRecords: res.data.records || [],
-          totalRecords: res.data.total || 0
-        })
-        console.log('✅ 上传记录加载成功，共', res.data.total, '条记录')
-      }).catch((error) => {
-        console.error('❌ 获取上传记录失败:', error)
-        this.setData({
-          uploadRecords: [],
-          totalRecords: 0
-        })
+      this.setData({
+        uploadRecords: [],
+        totalRecords: 0
       })
-    }
+    })
   },
 
   /**
-   * 生成模拟上传记录
+   * 🚨 已删除违规函数：generateMockRecords()
+   * 🔴 原因：违反项目安全规则 - 严禁使用模拟数据替代后端API
+   * ✅ 正确做法：使用uploadAPI.getRecords()获取真实数据
    */
-  generateMockRecords() {
-    const statuses = ['approved', 'pending', 'rejected']
-    const statusTexts = { approved: '已通过', pending: '待审核', rejected: '已拒绝' }
-    
-    return Array.from({ length: 5 }, (_, i) => {
-      const status = statuses[Math.floor(Math.random() * statuses.length)]
-      const amount = (Math.random() * 200 + 20).toFixed(2)
-      
-      return {
-        id: i + 1,
-        upload_id: 'UP' + (Date.now() - i * 86400000),
-        image_url: `https://via.placeholder.com/300x400/f44336/ffffff?text=小票${i + 1}`,
-        amount: parseFloat(amount),
-        points_earned: status === 'approved' ? Math.floor(amount * 10) : 0,
-        review_status: status,
-        status_text: statusTexts[status],
-        upload_time: new Date(Date.now() - i * 86400000).toLocaleDateString(),
-        review_time: status !== 'pending' ? new Date(Date.now() - i * 86400000 + 3600000).toLocaleDateString() : null
-      }
-    })
-  },
 
   /**
    * 加载上传历史

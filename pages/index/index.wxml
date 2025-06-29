@@ -1,0 +1,57 @@
+<!--pages/index/index.wxml - 项目首页模板-->
+<view class="container">
+  <!-- 顶部状态栏 -->
+  <view class="status-bar">
+    <view class="status-item {{systemReady ? 'ready' : 'error'}}">
+      <text class="status-icon">{{systemReady ? '✅' : '❌'}}</text>
+      <text class="status-text">系统{{systemReady ? '正常' : '异常'}}</text>
+    </view>
+    <view class="status-item {{backendConnected ? 'ready' : 'error'}}">
+      <text class="status-icon">{{backendConnected ? '🔗' : '⚠️'}}</text>
+      <text class="status-text">后端{{backendConnected ? '已连接' : '未连接'}}</text>
+    </view>
+  </view>
+
+  <!-- 用户信息卡片 -->
+  <view class="user-card" wx:if="{{isLoggedIn}}">
+    <image class="avatar" src="{{userInfo.avatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+    <view class="user-info">
+      <text class="nickname">{{userInfo.nickname || '用户'}}</text>
+      <text class="points">积分：{{userInfo.total_points || 0}}</text>
+    </view>
+  </view>
+
+  <!-- 未登录提示 -->
+  <view class="login-prompt" wx:if="{{!isLoggedIn}}">
+    <text class="prompt-text">🔐 请先登录享受完整功能</text>
+    <button class="login-btn" bindtap="navigateToLogin">立即登录</button>
+  </view>
+
+  <!-- 快捷功能入口 -->
+  <view class="quick-actions">
+    <text class="section-title">🚀 快捷功能</text>
+    <view class="actions-grid">
+      <view 
+        class="action-item"
+        wx:for="{{quickActions}}" 
+        wx:key="name"
+        data-action="{{item}}"
+        bindtap="onQuickActionTap"
+      >
+        <text class="action-icon">{{item.name}}</text>
+        <text class="action-desc">{{item.description}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 系统公告 -->
+  <view class="system-notice">
+    <text class="notice-title">📢 系统公告</text>
+    <text class="notice-content">
+      🎯 餐厅积分抽奖系统已上线！
+      📸 拍照上传获得积分
+      🎰 每日抽奖赢取好礼
+      🎁 积分兑换精美商品
+    </text>
+  </view>
+</view> 

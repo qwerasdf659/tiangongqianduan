@@ -125,14 +125,12 @@ Page({
     if (app.globalData.isDev && !app.globalData.needAuth) {
       // 开发环境使用模拟数据
       console.log('🔧 生成模拟抽奖记录数据')
-      const mockRecords = this.generateMockRecords()
+      // 🚨 已删除：generateMockRecords()违规调用
+      // ✅ 必须从后端API获取：lotteryAPI.getRecords()
       
-      this.setData({
-        records: this.data.currentPage === 1 ? mockRecords : [...this.data.records, ...mockRecords],
-        hasMore: mockRecords.length === this.data.pageSize
-      })
-      
-      console.log('✅ 抽奖记录加载成功，共', mockRecords.length, '条记录')
+      // 🚨 已删除：mockRecords违规使用
+      // ✅ 必须从后端API获取数据
+      throw new Error('开发环境已禁用Mock数据，请使用真实后端API')
       return Promise.resolve()
     } else {
       // 生产环境调用真实接口
@@ -213,58 +211,10 @@ Page({
   },
 
   /**
-   * 生成模拟数据
+   * 🚨 已删除违规函数：generateMockRecords() 和 getRandomPrize()
+   * 🔴 原因：违反项目安全规则 - 严禁使用模拟数据替代后端API
+   * ✅ 正确做法：使用lotteryAPI.getRecords()获取真实数据
    */
-  generateMockRecords() {
-    const mockRecords = []
-    const prizeTypes = [
-      { name: '100积分', value: 100, probability: 0.3 },
-      { name: '50积分', value: 50, probability: 0.25 },
-      { name: '20积分', value: 20, probability: 0.2 },
-      { name: '优惠券', value: 10, probability: 0.15 },
-      { name: '谢谢参与', value: 0, probability: 0.1 }
-    ]
-
-    for (let i = 0; i < 15; i++) {
-      const randomPrize = this.getRandomPrize(prizeTypes)
-      const drawType = Math.random() > 0.7 ? 'five' : 'single'
-      
-      mockRecords.push({
-        id: Date.now() + i,
-        draw_type: drawType,
-        draw_count: drawType === 'five' ? 5 : 1,
-        prize_name: randomPrize.name,
-        prize_value: randomPrize.value,
-        points_cost: drawType === 'five' ? 100 : 20,
-        created_at: new Date(Date.now() - i * 3600000).toLocaleString(),
-        status: 'completed'
-      })
-    }
-
-    return {
-      list: mockRecords,
-      total: mockRecords.length,
-      page: 1,
-      page_size: 20
-    }
-  },
-
-  /**
-   * 随机获取奖品
-   */
-  getRandomPrize(prizeTypes) {
-    const random = Math.random()
-    let cumulative = 0
-    
-    for (const prize of prizeTypes) {
-      cumulative += prize.probability
-      if (random <= cumulative) {
-        return prize
-      }
-    }
-    
-    return prizeTypes[prizeTypes.length - 1]
-  },
 
   /**
    * 筛选类型改变

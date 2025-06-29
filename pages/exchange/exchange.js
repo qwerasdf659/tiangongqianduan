@@ -25,8 +25,7 @@ Page({
     showResult: false,
     resultData: null,
     
-    // 开发环境模拟数据
-    mockProducts: [],
+    // 🚨 已删除：mockProducts违规字段
 
     // 新增的兑换相关数据
     exchangeQuantity: 1,
@@ -106,10 +105,7 @@ Page({
     // 获取用户信息
     this.refreshUserInfo()
     
-    // 生成模拟商品数据（开发环境）
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      this.generateMockProducts()
-    }
+    // 🚨 已删除：generateMockProducts()违规调用
     
     // 加载商品数据
     this.loadProducts()
@@ -144,16 +140,6 @@ Page({
    * 返回：用户详细信息，主要获取最新的积分余额
    */
   refreshUserInfo() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 使用模拟用户数据')
-      this.setData({
-        userInfo: app.globalData.mockUser,
-        totalPoints: app.globalData.mockUser.total_points
-      })
-      return Promise.resolve()
-    }
-
     console.log('📡 刷新用户信息...')
     return userAPI.getUserInfo().then((res) => {
       this.setData({
@@ -178,84 +164,17 @@ Page({
   },
 
   /**
-   * 生成模拟商品数据（开发环境）
+   * 🚨 已删除违规函数：generateMockProducts()
+   * 🔴 原因：违反项目安全规则 - 严禁前端硬编码敏感业务数据
+   * ✅ 正确做法：所有商品数据必须从后端API获取
+   * 
+   * 使用方式：exchangeAPI.getProducts()
    */
-  generateMockProducts() {
-    const productNames = [
-      // 优惠券类 (1-20)
-      '品牌钥匙扣', '限定保温杯', '定制餐具套装', '定制围裙',
-      '精美马克杯', '竹制餐具', '环保购物袋', '品牌帽子',
-      '定制T恤', '保鲜盒套装', '咖啡杯', '餐垫套装',
-      '调料瓶套装', '厨房工具', '隔热手套', '切菜板',
-      '保温饭盒', '水杯套装', '餐具收纳', '厨房围裙',
-      
-      // 实物商品类 (21-60)
-      '蓝牙耳机', '充电宝', '数据线', '手机支架',
-      '桌面音响', '无线充电器', '车载充电器', '移动硬盘',
-      '鼠标垫', '键盘', '办公笔记本', '文具套装',
-      '护肤套装', '洗护用品', '香薰蜡烛', '精油',
-      '运动毛巾', '瑜伽垫', '运动水杯', '健身手套',
-      '背包', '钱包', '皮带', '围巾',
-      '太阳镜', '手表', '项链', '耳环',
-      '茶叶礼盒', '咖啡豆', '巧克力', '坚果礼盒',
-      '红酒', '白酒', '啤酒', '果汁',
-      '小家电', '炖煮锅', '榨汁机', '咖啡机',
-      
-      // 虚拟物品类 (61-100)
-      '会员月卡', '会员季卡', '会员年卡', 'VIP特权',
-      '免费停车券', '洗车券', '按摩券', '美容券',
-      '电影票', '演唱会票', '话剧票', '体验券',
-      '健身房月卡', '游泳馆次卡', '瑜伽课程', '舞蹈课程',
-      '在线课程', '知识付费', '电子书', '音乐VIP',
-      '视频VIP', '游戏充值', '话费充值', '流量包',
-      '外卖红包', '打车券', '快递券', '购物券',
-      '生日蛋糕券', '下午茶券', '火锅券', '自助餐券',
-      'KTV券', '桌游券', '密室逃脱', '剧本杀',
-      '旅游券', '酒店券', '民宿券', '景点票',
-      '摄影服务', '设计服务', '维修服务', '清洁服务'
-    ]
-
-    const categories = ['优惠券', '实物商品', '虚拟物品']
-    
-    // 生成100个商品
-    this.data.mockProducts = Array.from({ length: 100 }, (_, index) => {
-      const name = productNames[index] || `商品${index + 1}`
-      let category
-      
-      if (index < 20) {
-        category = '优惠券'
-      } else if (index < 60) {
-        category = '实物商品'
-      } else {
-        category = '虚拟物品'
-      }
-
-      return {
-        id: index + 1,
-        name: name,
-        image: `https://via.placeholder.com/200x200/4ECDC4/ffffff?text=${encodeURIComponent(name)}`,
-        exchange_points: 300 + Math.floor(index / 10) * 200 + (index % 10) * 50,
-        stock: Math.floor(Math.random() * 50) + 1,
-        description: `${name}的详细描述，优质材料制作，${category === '优惠券' ? '限时优惠' : category === '实物商品' ? '限量供应' : '虚拟兑换'}。`,
-        is_hot: index < 5 || (index % 15 === 0), // 前5个商品和每15个商品标记为热门
-        rating: (3.5 + Math.random() * 1.5).toFixed(1), // 3.5-5.0的评分
-        category: category,
-        created_time: new Date(Date.now() - index * 60 * 60 * 1000).toISOString()
-      }
-    })
-
-    // 设置总商品数
-    this.setData({
-      totalProducts: this.data.mockProducts.length,
-      totalPages: Math.ceil(this.data.mockProducts.length / this.data.pageSize)
-    })
-  },
 
   /**
-   * 加载商品数据
-   * TODO: 后端对接 - 商品列表接口
+   * 🔴 加载商品数据 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
    * 
-   * 对接说明：
    * 接口：GET /api/exchange/products?page=1&page_size=20&category=all&sort=points
    * 认证：需要Bearer Token
    * 返回：商品列表，支持分页和筛选
@@ -263,75 +182,56 @@ Page({
   loadProducts() {
     this.setData({ loading: true })
 
-    let productsPromise
-    
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 使用模拟商品数据')
-      
-      // 直接使用已生成的模拟数据
-      productsPromise = Promise.resolve({
-        code: 0,
-        data: {
-          products: this.data.mockProducts,
-          total: this.data.mockProducts.length,
-          page: 1,
-          pageSize: this.data.pageSize,
-          totalPages: Math.ceil(this.data.mockProducts.length / this.data.pageSize)
+    console.log('📡 请求商品列表接口...')
+    return exchangeAPI.getProducts().then((result) => {
+      if (result.code === 0) {
+        // 检查数据有效性
+        if (result.data && result.data.products) {
+          this.setData({
+            products: result.data.products,
+            totalCount: result.data.total || result.data.products.length,
+            loading: false
+          })
+          
+          // 应用筛选和分页
+          this.filterProducts()
+          
+          console.log('✅ 商品列表加载成功，共', result.data.products.length, '个商品')
+        } else {
+          throw new Error('商品数据格式异常')
         }
-      })
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求商品列表接口...')
-      productsPromise = exchangeAPI.getProducts()
-    }
-
-    return productsPromise.then((productsData) => {
-      // 检查数据有效性
-      if (productsData && productsData.data && productsData.data.products) {
-        this.setData({
-          products: productsData.data.products,
-          totalCount: productsData.data.total || productsData.data.products.length,
-          loading: false
-        })
-        
-        // 应用筛选和分页
-        this.filterProducts()
-        
-        console.log('✅ 商品列表加载成功，共', productsData.data.products.length, '个商品')
       } else {
-        console.warn('⚠️ 商品数据格式异常，使用默认数据')
-        this.setDefaultProducts()
+        throw new Error('⚠️ 后端服务异常：' + result.msg)
       }
     }).catch((error) => {
       console.error('❌ 加载商品失败:', error)
-      this.setDefaultProducts()
       
-      wx.showToast({
-        title: '商品加载失败',
-        icon: 'none'
+      this.setData({ loading: false })
+      
+      // 🚨 显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取商品列表！\n\n请检查后端API服务状态：\nGET /api/exchange/products',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
       })
+      
+      // 使用空数据，避免页面崩溃
+      this.setData({
+        products: [],
+        totalCount: 0
+      })
+      
+      this.filterProducts()
     })
   },
 
   /**
-   * 设置默认商品数据
+   * 🚨 已删除违规函数：setDefaultProducts()
+   * 🔴 原因：使用Mock数据违反项目安全规则
+   * ✅ 正确做法：出错时显示明确的后端服务异常提示
    */
-  setDefaultProducts() {
-    // 如果还没有模拟数据，则生成
-    if (!this.data.mockProducts || this.data.mockProducts.length === 0) {
-      this.generateMockProducts()
-    }
-    
-    this.setData({
-      products: this.data.mockProducts,
-      totalCount: this.data.mockProducts.length,
-      loading: false
-    })
-    
-    // 应用筛选和分页
-    this.filterProducts()
-  },
 
   /**
    * 连接WebSocket监听库存变化
@@ -521,9 +421,8 @@ Page({
       if (app.globalData.userInfo) {
         app.globalData.userInfo.total_points = newPoints
       }
-      if (app.globalData.mockUser) {
-        app.globalData.mockUser.total_points = newPoints
-      }
+      // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
+      // ✅ 积分更新必须通过后端API同步
       
       // 更新商品库存（模拟）
       if (app.globalData.isDev && !app.globalData.needAuth) {
@@ -693,9 +592,8 @@ Page({
         if (app.globalData.userInfo) {
           app.globalData.userInfo.total_points = newPoints
         }
-        if (app.globalData.mockUser) {
-          app.globalData.mockUser.total_points = newPoints
-        }
+        // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
+        // ✅ 积分更新必须通过后端API同步
         
         // 显示成功结果
         this.showExchangeSuccess(exchangeResult.data)
@@ -782,13 +680,9 @@ Page({
    * 筛选商品
    */
   filterProducts() {
-    // 使用正确的数据源：如果是开发环境用mockProducts，否则用products
-    let sourceProducts = []
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      sourceProducts = [...this.data.mockProducts]
-    } else {
-      sourceProducts = [...this.data.products]
-    }
+    // 🚨 已删除：mockProducts违规引用
+    // ✅ 统一数据源：仅使用从后端API获取的products
+    let sourceProducts = [...this.data.products]
     
     // 如果没有商品数据，直接返回
     if (!sourceProducts || sourceProducts.length === 0) {

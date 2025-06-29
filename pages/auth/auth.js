@@ -30,20 +30,27 @@ Page({
     agreementChecked: true,
     showAgreement: false,
     
-    // 🔐 管理员登录相关
+    // 🔐 管理员登录相关 - 根据产品文档要求实现
     showAdminLogin: false,
     titleTapCount: 0,
     titleTapTimer: null,
+    adminTapThreshold: 5, // 需要连续点击5次
+    adminTapTimeout: 2000, // 2秒内有效
     adminForm: {
       username: '',
       password: '',
-      rememberLogin: false
+      rememberLogin: false,
+      skipSms: true // 🚧 开发阶段：跳过短信二次验证
     },
     adminFormErrors: {},
     showAdminPassword: false,
     adminSubmitting: false,
     adminLoginFailCount: 0,
-    adminLockUntil: null
+    adminLockUntil: null,
+    
+    // 🚧 开发阶段标识
+    isDevelopmentMode: true, // 开发模式标识
+    skipSmsVerification: true // 开发阶段跳过短信验证
   },
 
   /**
@@ -51,6 +58,14 @@ Page({
    */
   onLoad(options) {
     console.log('认证页面加载')
+    
+    // 🚧 开发阶段配置 - 🔧 修复：安全获取环境配置
+    const envConfig = app.globalData.config || app.globalData || { isDev: true }
+    this.setData({
+      isDevelopmentMode: envConfig.isDev || true,
+      skipSmsVerification: envConfig.isDev || true
+    })
+    
     this.initPage()
   },
 
@@ -181,8 +196,8 @@ Page({
 
   /**
    * 🔴 发送验证码 - 开发阶段简化版（跳过真实短信验证）
-   * 开发阶段：模拟验证码发送，不调用真实短信服务
-   * 生产环境：调用真实短信接口 POST /api/auth/send-code
+   * 🚧 开发阶段：模拟验证码发送，不调用真实短信服务
+   * 🔮 生产环境：调用真实短信接口 POST /api/auth/send-code
    */
   onSendCode() {
     // 验证手机号
@@ -202,52 +217,68 @@ Page({
       })
       return
     }
-
-    // 防止重复发送
-    if (this.data.sending || this.data.countdown > 0) {
+    
+    // 防重复发送
+    if (this.data.codeDisabled) {
       return
     }
-
-    this.setData({ sending: true })
-
-    console.log('📡 发送验证码 - 开发阶段模拟:', phone)
     
-    // 🚧 开发阶段：直接模拟成功发送，不调用真实短信服务
-    setTimeout(() => {
-      this.setData({ sending: false })
+    this.setData({ sending: true })
+    
+    // 🚧 开发阶段简化逻辑
+    if (this.data.isDevelopmentMode || this.data.skipSmsVerification) {
+      console.log('🚧 开发模式：模拟发送验证码')
       
-      wx.showToast({
-        title: '验证码已发送（模拟）',
-        icon: 'success',
-        duration: 1500
+      wx.showLoading({
+        title: '发送中（开发模式）...',
+        mask: true
       })
       
-      // 显示开发提示
+      // 模拟网络延迟
       setTimeout(() => {
+        wx.hideLoading()
+        this.setData({ sending: false })
+        
         wx.showModal({
-          title: '开发阶段提示',
-          content: '当前为开发模式，可使用任意6位数字作为验证码进行登录（如：123456）',
+          title: '🚧 开发模式提示',
+          content: `验证码模拟发送成功！\n\n📱 手机号：${phone}\n🔑 模拟验证码：123456\n\n开发阶段：任意6位数字都可以通过验证`,
           showCancel: false,
-          confirmText: '知道了'
+          confirmText: '知道了',
+          confirmColor: '#52c41a'
         })
-      }, 1500)
+        
+        // 开始倒计时
+        this.startCountdown()
+        
+      }, 1000)
       
-      // 启动倒计时
-      this.startCountdown()
-    }, 1000)
-    
-    // 🔮 生产环境代码（当前已注释）：
-    // authAPI.sendCode(phone).then((result) => {
-    //   console.log('✅ 验证码发送成功:', result)
-    //   this.setData({ sending: false })
-    //   wx.showToast({ title: '验证码已发送', icon: 'success' })
-    //   this.startCountdown()
-    // }).catch((error) => {
-    //   console.error('❌ 验证码发送失败:', error)
-    //   this.setData({ sending: false })
-    //   let errorMsg = error.message || '验证码发送失败'
-    //   wx.showToast({ title: errorMsg, icon: 'none', duration: 3000 })
-    // })
+    } else {
+      // 🔮 生产环境：调用真实短信接口
+      console.log('🔮 生产模式：发送真实短信验证码')
+      
+      authAPI.sendCode(phone).then(result => {
+        this.setData({ sending: false })
+        
+        wx.showToast({
+          title: '验证码发送成功',
+          icon: 'success'
+        })
+        
+        this.startCountdown()
+        
+      }).catch(error => {
+        this.setData({ sending: false })
+        
+        console.error('❌ 发送验证码失败:', error)
+        
+        const errorMsg = error.message || '发送失败，请稍后重试'
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none',
+          duration: 2000
+        })
+      })
+    }
   },
 
   /**
@@ -385,8 +416,8 @@ Page({
       
       // 模拟登录成功的数据结构
       const mockLoginData = {
-        access_token: 'mock_token_' + Date.now(),
-        refresh_token: 'mock_refresh_' + Date.now(),
+                    // 🚨 已删除：mock_token违规代码
+            // ✅ 必须使用真实后端返回的token
         expires_in: 86400,
         token_type: 'Bearer',
         user_info: {
@@ -466,7 +497,8 @@ Page({
     console.log('🔧 开发环境跳过登录')
     
     // 设置模拟用户信息
-    app.globalData.userInfo = app.globalData.mockUser
+          // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
+      // ✅ 用户信息必须通过后端API获取
     app.globalData.isLoggedIn = true
     
     wx.showToast({
@@ -482,104 +514,124 @@ Page({
   /* ==================== 🔐 管理员登录功能 ==================== */
 
   /**
-   * 标题点击事件 - 连续点击5次显示管理员登录入口
+   * 🔐 标题点击事件 - 管理员登录隐藏入口触发
+   * 根据产品文档：连续点击标题区域5次（间隔不超过2秒）
    */
   onTitleTap() {
     const now = Date.now()
-    const lastTapTime = this.lastTitleTapTime || 0
     
-    // 如果距离上次点击超过2秒，重置计数
-    if (now - lastTapTime > 2000) {
-      this.setData({ titleTapCount: 1 })
-    } else {
-      const newCount = this.data.titleTapCount + 1
-      this.setData({ titleTapCount: newCount })
-      
-      // 连续点击5次，显示管理员登录入口
-      if (newCount >= 5) {
-        this.showAdminLoginEntry()
-        this.setData({ titleTapCount: 0 })
-        return
-      }
+    // 清除之前的定时器
+    if (this.data.titleTapTimer) {
+      clearTimeout(this.data.titleTapTimer)
     }
     
-    this.lastTitleTapTime = now
+    // 增加点击计数
+    const newCount = this.data.titleTapCount + 1
     
-    // 3秒后自动重置计数
-    clearTimeout(this.titleTapTimer)
-    this.titleTapTimer = setTimeout(() => {
-      this.setData({ titleTapCount: 0 })
-    }, 3000)
+    console.log(`🔐 标题点击计数: ${newCount}/${this.data.adminTapThreshold}`)
+    
+    this.setData({
+      titleTapCount: newCount
+    })
+    
+    // 检查是否达到触发条件
+    if (newCount >= this.data.adminTapThreshold) {
+      // 达到5次点击，显示管理员登录入口
+      this.showAdminLoginEntry()
+      
+      // 重置计数
+      this.setData({
+        titleTapCount: 0,
+        titleTapTimer: null
+      })
+    } else {
+      // 设置超时重置
+      const timer = setTimeout(() => {
+        console.log('🔐 标题点击超时，重置计数')
+        this.setData({
+          titleTapCount: 0,
+          titleTapTimer: null
+        })
+      }, this.data.adminTapTimeout)
+      
+      this.setData({
+        titleTapTimer: timer
+      })
+    }
   },
 
   /**
-   * 显示管理员登录入口
+   * 🔐 显示管理员登录入口
+   * 根据产品文档：触发成功后标题区域短暂震动，页面底部滑出管理员登录面板
    */
   showAdminLoginEntry() {
-    // 检查是否被锁定
-    if (this.isAdminLocked()) {
-      const lockTime = this.data.adminLockUntil
-      const remainingTime = Math.ceil((lockTime - Date.now()) / 60000)
-      
-      wx.showModal({
-        title: '管理员登录已锁定',
-        content: `账号已被锁定，请 ${remainingTime} 分钟后重试`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
-      return
-    }
-
-    // 轻微震动反馈
+    console.log('🔐 触发管理员登录入口')
+    
+    // 🎯 触发震动反馈
     wx.vibrateShort({
-      type: 'light'
+      type: 'medium'
+    }).catch(() => {
+      console.log('设备不支持震动')
     })
     
-    // 显示管理员登录弹窗
-    this.setData({ 
-      showAdminLogin: true,
-      // 重置表单
+    // 显示管理员登录面板
+    this.setData({
+      showAdminLogin: true
+    })
+    
+    // 🎨 显示触发成功提示
+    wx.showToast({
+      title: '🔒 管理员登录入口已激活',
+      icon: 'none',
+      duration: 1500
+    })
+    
+    console.log('✅ 管理员登录面板显示成功')
+  },
+
+  /**
+   * 🔐 关闭管理员登录面板
+   */
+  onCloseAdminLogin() {
+    console.log('🔐 关闭管理员登录面板')
+    
+    this.setData({
+      showAdminLogin: false,
       adminForm: {
         username: '',
         password: '',
-        rememberLogin: this.data.adminForm.rememberLogin
+        rememberLogin: false,
+        skipSms: this.data.skipSmsVerification
       },
       adminFormErrors: {},
       showAdminPassword: false
     })
-    
-    console.log('🔓 管理员登录入口已激活')
   },
 
   /**
-   * 关闭管理员登录弹窗
-   */
-  onCloseAdminLogin() {
-    this.setData({ showAdminLogin: false })
-  },
-
-  /**
-   * 管理员用户名输入
+   * 🔐 管理员用户名输入
    */
   onAdminUsernameInput(e) {
+    const username = e.detail.value
     this.setData({
-      'adminForm.username': e.detail.value,
+      'adminForm.username': username,
       'adminFormErrors.username': ''
     })
   },
 
   /**
-   * 管理员密码输入
+   * 🔐 管理员密码输入
    */
   onAdminPasswordInput(e) {
+    const password = e.detail.value
     this.setData({
-      'adminForm.password': e.detail.value,
+      'adminForm.password': password,
       'adminFormErrors.password': ''
     })
   },
 
   /**
-   * 切换密码显示/隐藏
+   * 🔐 切换管理员密码显示/隐藏
    */
   onToggleAdminPassword() {
     this.setData({
@@ -588,50 +640,70 @@ Page({
   },
 
   /**
-   * 记住登录状态选择
+   * 🔐 管理员记住登录状态切换
    */
   onAdminRememberChange(e) {
     this.setData({
-      'adminForm.rememberLogin': e.detail.value.includes('remember')
+      'adminForm.rememberLogin': e.detail.value
     })
   },
 
   /**
-   * 检查管理员账号是否被锁定
+   * 🔐 检查管理员账号是否被锁定
    */
   isAdminLocked() {
-    const lockUntil = this.data.adminLockUntil
-    if (!lockUntil) return false
+    if (!this.data.adminLockUntil) {
+      return false
+    }
     
     const now = Date.now()
+    const lockUntil = new Date(this.data.adminLockUntil).getTime()
+    
     if (now < lockUntil) {
-      return true
+      const remainingMinutes = Math.ceil((lockUntil - now) / 60000)
+      return {
+        locked: true,
+        remainingMinutes
+      }
     } else {
-      // 锁定时间已过，重置失败计数
+      // 锁定时间已过，清除锁定状态
       this.setData({
-        adminLoginFailCount: 0,
-        adminLockUntil: null
+        adminLockUntil: null,
+        adminLoginFailCount: 0
       })
       return false
     }
   },
 
   /**
-   * 🔐 管理员登录 - 开发阶段简化版（跳过短信二次验证）
+   * 🔐 管理员登录提交
+   * 🚧 开发阶段：跳过短信二次验证
    */
   onAdminLogin() {
+    console.log('🔐 管理员登录提交')
+    
+    // 检查账号锁定状态
+    const lockStatus = this.isAdminLocked()
+    if (lockStatus.locked) {
+      wx.showModal({
+        title: '🔒 账号已锁定',
+        content: `账号已锁定，请 ${lockStatus.remainingMinutes} 分钟后重试`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      return
+    }
+    
+    // 验证表单
     const { username, password } = this.data.adminForm
+    const errors = {}
     
-    // 表单验证
-    let errors = {}
-    
-    if (!username.trim()) {
+    if (!username || username.trim().length === 0) {
       errors.username = '请输入管理员账号'
     }
     
-    if (!password.trim()) {
-      errors.password = '请输入登录密码'
-    } else if (password.length < 6) {
+    if (!password || password.length < 6) {
       errors.password = '密码长度至少6位'
     }
     
@@ -639,139 +711,121 @@ Page({
       this.setData({ adminFormErrors: errors })
       return
     }
-
-    // 检查是否被锁定
-    if (this.isAdminLocked()) {
-      const lockTime = this.data.adminLockUntil
-      const remainingTime = Math.ceil((lockTime - Date.now()) / 60000)
+    
+    // 开始登录
+    this.setData({ adminSubmitting: true })
+    
+    wx.showLoading({
+      title: this.data.isDevelopmentMode ? '登录中（开发模式）...' : '登录中...',
+      mask: true
+    })
+    
+    // 🔐 调用管理员登录API
+    const loginData = {
+      username: username.trim(),
+      password: password,
+      skip_sms: this.data.skipSmsVerification, // 🚧 开发阶段跳过短信验证
+      device_info: {
+        platform: wx.getSystemInfoSync().platform,
+        version: wx.getSystemInfoSync().version
+      }
+    }
+    
+    // 🚧 开发阶段简化版本
+    if (this.data.isDevelopmentMode) {
+      console.log('🚧 开发模式：简化管理员登录流程')
+      loginData.dev_mode = true
+    } else {
+      console.log('🔮 生产模式：完整管理员登录流程')
+    }
+    
+    authAPI.adminLogin(loginData).then(result => {
+      wx.hideLoading()
+      
+      console.log('✅ 管理员登录成功:', result)
+      
+      // 重置失败计数
+      this.setData({
+        adminLoginFailCount: 0,
+        adminLockUntil: null
+      })
+      
+      // 保存管理员登录状态
+      app.globalData.isLoggedIn = true
+      app.globalData.isAdmin = true
+      app.globalData.userInfo = result.data.admin_info
+      app.globalData.accessToken = result.data.access_token
+      app.globalData.refreshToken = result.data.refresh_token
+      
+      // 记住登录状态
+      if (this.data.adminForm.rememberLogin) {
+        wx.setStorageSync('admin_token', result.data.access_token)
+        wx.setStorageSync('admin_refresh_token', result.data.refresh_token)
+      }
       
       wx.showToast({
-        title: `账号已锁定 ${remainingTime} 分钟`,
-        icon: 'none',
-        duration: 3000
+        title: '管理员登录成功',
+        icon: 'success',
+        duration: 2000
       })
-      return
-    }
-
-    // 防止重复提交
-    if (this.data.adminSubmitting) {
-      return
-    }
-
-    this.setData({ adminSubmitting: true })
-    wx.showLoading({ title: '管理员登录中...' })
-
-    console.log('🔐 管理员登录请求 - 开发阶段:', { username })
-
-    // 🚧 开发阶段：模拟管理员登录验证
-    setTimeout(() => {
+      
+      // 跳转到管理员控制台
+      setTimeout(() => {
+        wx.redirectTo({
+          url: '/pages/merchant/merchant'
+        })
+      }, 1500)
+      
+    }).catch(error => {
       wx.hideLoading()
       this.setData({ adminSubmitting: false })
       
-      // 模拟简单的账号密码验证（开发阶段）
-      const mockAdminAccounts = [
-        { username: 'admin', password: 'admin123', role: 'admin' },
-        { username: 'superadmin', password: 'super123', role: 'super_admin' },
-        { username: 'merchant', password: 'merchant123', role: 'merchant' }
-      ]
+      console.error('❌ 管理员登录失败:', error)
       
-      const adminAccount = mockAdminAccounts.find(
-        acc => acc.username === username && acc.password === password
-      )
+      // 处理登录失败
+      const failCount = this.data.adminLoginFailCount + 1
+      this.setData({ adminLoginFailCount: failCount })
       
-      if (adminAccount) {
-        // 登录成功
-        console.log('✅ 管理员登录成功（开发模式）:', adminAccount)
-        
-        // 重置失败计数
-        this.setData({
-          adminLoginFailCount: 0,
-          adminLockUntil: null
-        })
-        
-        // 模拟管理员登录数据
-        const mockAdminLoginData = {
-          access_token: 'admin_token_' + Date.now(),
-          refresh_token: 'admin_refresh_' + Date.now(),
-          expires_in: 86400,
-          token_type: 'Bearer',
-          user_info: {
-            user_id: 'admin_' + Date.now(),
-            username: adminAccount.username,
-            role: adminAccount.role,
-            nickname: '管理员',
-            avatar: '/images/default-avatar.png',
-            is_admin: true,
-            is_merchant: true, // 管理员也拥有商家权限
-            permissions: ['lottery_control', 'review_uploads', 'user_management'],
-            created_at: new Date().toISOString()
-          }
-        }
-        
-        // 使用app.js中的登录成功处理
-        app.onLoginSuccess(mockAdminLoginData)
-        
-        // 关闭弹窗
-        this.setData({ showAdminLogin: false })
-        
-        wx.showToast({
-          title: '管理员登录成功',
-          icon: 'success'
-        })
-        
-        // 跳转到管理页面
-        setTimeout(() => {
-          wx.redirectTo({ url: '/pages/merchant/merchant' })
-        }, 1500)
-        
-      } else {
-        // 登录失败
-        const failCount = this.data.adminLoginFailCount + 1
-        console.log(`❌ 管理员登录失败，第${failCount}次`)
-        
-        if (failCount >= 3) {
-          // 锁定账号30分钟
-          const lockUntil = Date.now() + 30 * 60 * 1000
-          this.setData({
-            adminLoginFailCount: failCount,
-            adminLockUntil: lockUntil
-          })
-          
-          wx.showModal({
-            title: '账号已锁定',
-            content: '登录失败3次，账号已锁定30分钟',
-            showCancel: false,
-            confirmText: '知道了'
-          })
-          
-          // 关闭登录弹窗
-          this.setData({ showAdminLogin: false })
-          
-        } else {
-          // 显示失败提示
-          this.setData({ adminLoginFailCount: failCount })
-          
-          wx.showToast({
-            title: `账号或密码错误，还有${3-failCount}次机会`,
-            icon: 'none',
-            duration: 3000
-          })
-          
-          // 清空密码
-          this.setData({
-            'adminForm.password': '',
-            adminFormErrors: { password: '请重新输入密码' }
-          })
-        }
+      let errorMsg = '账号或密码错误'
+      
+      if (error && error.message) {
+        errorMsg = error.message
       }
       
-    }, 1500) // 模拟网络延迟
-    
-    // 🔮 生产环境代码（当前已注释）：
-    // adminAPI.login(username, password).then((result) => {
-    //   // 处理登录成功逻辑
-    // }).catch((error) => {
-    //   // 处理登录失败逻辑
-    // })
+      // 🔒 失败3次锁定账号30分钟
+      if (failCount >= 3) {
+        const lockUntil = new Date(Date.now() + 30 * 60 * 1000) // 30分钟后
+        this.setData({
+          adminLockUntil: lockUntil.toISOString()
+        })
+        
+        wx.showModal({
+          title: '🚨 账号已锁定',
+          content: '登录失败3次，账号已锁定30分钟。请稍后重试。',
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#ff4444'
+        })
+        
+        // 隐藏登录面板
+        this.onCloseAdminLogin()
+        
+      } else {
+        const remainingAttempts = 3 - failCount
+        wx.showModal({
+          title: '❌ 登录失败',
+          content: `${errorMsg}\n\n还有 ${remainingAttempts} 次机会`,
+          showCancel: false,
+          confirmText: '重试',
+          confirmColor: '#ff6b35'
+        })
+        
+        // 清空密码
+        this.setData({
+          'adminForm.password': '',
+          adminFormErrors: {}
+        })
+      }
+    })
   }
 })

@@ -53,17 +53,12 @@ App({
       ...this.globalData,
       // 环境配置
       ...envConfig,
+      // 添加config引用方便其他地方使用
+      config: envConfig,
       // 确保关键字段有默认值
-      userInfo: this.globalData.userInfo || null,
-      mockUser: this.globalData.mockUser || {
-        user_id: 1001,
-        nickname: '测试用户',
-        avatar: '/images/default-avatar.png',
-        total_points: 1500,
-        mobile: '138****8000',
-        is_merchant: false,
-        created_at: new Date().toISOString()
-      }
+      userInfo: this.globalData.userInfo || null
+      // 🔴 严禁硬编码用户数据 - 已移除mockUser违规代码
+      // ✅ 所有用户数据必须通过后端API获取：userAPI.getUserInfo()
     }
   },
 
@@ -233,19 +228,8 @@ App({
       }
     },
     
-    // 开发环境模拟用户数据
-    mockUser: {
-      user_id: 1001,
-      mobile: '138****8000',
-      total_points: 1500,
-      is_merchant: false,
-      nickname: '测试用户',
-      avatar: '/images/default-avatar.png',
-      wx_openid: 'mock_openid_123',
-      last_login: new Date().toISOString(),
-      status: 'active',
-      created_at: '2024-01-01 00:00:00'
-    },
+    // 🔴 严禁硬编码用户数据 - 已移除mockUser违规代码
+    // ✅ 所有用户数据必须通过后端API获取：userAPI.getUserInfo()
 
     // WebSocket管理
     wsManager: null,

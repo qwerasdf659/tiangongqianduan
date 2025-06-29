@@ -71,7 +71,7 @@ Component({
      */
     initData() {
       // 如果用户已有手机号，自动填入
-      const userInfo = app.globalData.userInfo || app.globalData.mockUser
+      const userInfo = app.globalData.userInfo || null
       if (userInfo && userInfo.phone) {
         this.setData({
           phoneNumber: userInfo.phone

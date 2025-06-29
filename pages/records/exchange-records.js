@@ -125,14 +125,12 @@ Page({
     if (app.globalData.isDev && !app.globalData.needAuth) {
       // 开发环境使用模拟数据
       console.log('🔧 生成模拟兑换记录数据')
-      const mockRecords = this.generateMockRecords()
+      // 🚨 已删除：generateMockRecords()违规调用
+      // ✅ 必须从后端API获取：exchangeAPI.getRecords()
       
-      this.setData({
-        records: this.data.currentPage === 1 ? mockRecords : [...this.data.records, ...mockRecords],
-        hasMore: mockRecords.length === this.data.pageSize
-      })
-      
-      console.log('✅ 兑换记录加载成功，共', mockRecords.length, '条记录')
+      // 🚨 已删除：mockRecords违规使用
+      // ✅ 必须从后端API获取数据
+      throw new Error('开发环境已禁用Mock数据，请使用真实后端API')
       return Promise.resolve()
     } else {
       // 生产环境调用真实接口
@@ -202,44 +200,10 @@ Page({
   },
 
   /**
-   * 生成模拟数据
+   * 🚨 已删除违规函数：generateMockRecords()
+   * 🔴 原因：违反项目安全规则 - 严禁前端硬编码敏感业务数据
+   * ✅ 正确做法：使用exchangeAPI.getRecords()获取真实数据
    */
-  generateMockRecords() {
-    const mockRecords = []
-    const products = [
-      { name: '星巴克咖啡券', points: 500, image: 'https://via.placeholder.com/120x120/4ECDC4/ffffff?text=☕' },
-      { name: '优惠券10元', points: 200, image: 'https://via.placeholder.com/120x120/FF6B35/ffffff?text=💰' },
-      { name: '免费甜品券', points: 300, image: 'https://via.placeholder.com/120x120/9C27B0/ffffff?text=🍰' },
-      { name: '会员升级卡', points: 800, image: 'https://via.placeholder.com/120x120/FFC107/ffffff?text=⭐' },
-      { name: '积分双倍卡', points: 600, image: 'https://via.placeholder.com/120x120/795548/ffffff?text=2️⃣' }
-    ]
-
-    const statuses = ['pending', 'shipped', 'completed']
-
-    for (let i = 0; i < 12; i++) {
-      const randomProduct = products[Math.floor(Math.random() * products.length)]
-      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
-      
-      mockRecords.push({
-        id: Date.now() + i,
-        product_name: randomProduct.name,
-        product_image: randomProduct.image,
-        quantity: Math.floor(Math.random() * 3) + 1,
-        points_cost: randomProduct.points,
-        status: randomStatus,
-        order_no: 'EX' + String(Date.now() + i).slice(-8),
-        created_at: new Date(Date.now() - i * 3600000).toLocaleString(),
-        address: '北京市朝阳区xxx街道xxx号'
-      })
-    }
-
-    return {
-      list: mockRecords,
-      total: mockRecords.length,
-      page: 1,
-      page_size: 20
-    }
-  },
 
   /**
    * 筛选状态改变

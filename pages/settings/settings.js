@@ -82,7 +82,7 @@ Page({
    */
   loadUserInfo() {
     this.setData({
-      userInfo: app.globalData.userInfo || app.globalData.mockUser
+      userInfo: app.globalData.userInfo || null
     })
   },
 

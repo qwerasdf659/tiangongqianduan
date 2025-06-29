@@ -126,14 +126,12 @@ Page({
     if (app.globalData.isDev && !app.globalData.needAuth) {
       // 开发环境使用模拟数据
       console.log('🔧 生成模拟上传记录数据')
-      const mockRecords = this.generateMockRecords()
+      // 🚨 已删除：generateMockRecords()违规调用
+      // ✅ 必须从后端API获取：uploadAPI.getRecords()
       
-      this.setData({
-        records: this.data.currentPage === 1 ? mockRecords : [...this.data.records, ...mockRecords],
-        hasMore: mockRecords.length === this.data.pageSize
-      })
-      
-      console.log('✅ 上传记录加载成功，共', mockRecords.length, '条记录')
+      // 🚨 已删除：mockRecords违规使用
+      // ✅ 必须从后端API获取数据
+      throw new Error('开发环境已禁用Mock数据，请使用真实后端API')
       return Promise.resolve()
     } else {
       // 生产环境调用真实接口
@@ -203,36 +201,10 @@ Page({
   },
 
   /**
-   * 生成模拟数据
+   * 🚨 已删除违规函数：generateMockRecords()
+   * 🔴 原因：违反项目安全规则 - 严禁使用模拟数据替代后端API
+   * ✅ 正确做法：使用uploadAPI.getRecords()获取真实数据
    */
-  generateMockRecords() {
-    const mockRecords = []
-    const statuses = ['pending', 'approved', 'rejected']
-    const statusTexts = { pending: '待审核', approved: '已通过', rejected: '已拒绝' }
-    
-    for (let i = 0; i < 15; i++) {
-      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
-      
-      mockRecords.push({
-        id: Date.now() + i,
-        image_url: `https://via.placeholder.com/200x150/4ECDC4/ffffff?text=小票${i + 1}`,
-        amount: (Math.random() * 200 + 50).toFixed(2),
-        points_earned: randomStatus === 'approved' ? Math.floor(Math.random() * 50 + 10) : 0,
-        status: randomStatus,
-        status_text: statusTexts[randomStatus],
-        created_at: new Date(Date.now() - i * 3600000).toLocaleString(),
-        review_time: randomStatus !== 'pending' ? new Date(Date.now() - i * 3600000 + 1800000).toLocaleString() : null,
-        review_reason: randomStatus === 'rejected' ? '小票模糊，无法识别' : (randomStatus === 'approved' ? '审核通过' : null)
-      })
-    }
-
-    return {
-      list: mockRecords,
-      total: mockRecords.length,
-      page: 1,
-      page_size: 20
-    }
-  },
 
   /**
    * 筛选状态改变
