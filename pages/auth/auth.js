@@ -409,50 +409,51 @@ Page({
 
     console.log('📡 开发阶段模拟登录:', { phone: formData.phone, code: formData.code })
 
-    // 🚧 开发阶段：跳过真实API调用，直接模拟登录成功
-    setTimeout(() => {
+    // 🚧 开发阶段：根据产品功能结构文档v2.1.2要求，跳过短信验证功能
+    console.log('📡 开发阶段跳过短信验证，直接调用登录API...')
+    
+    // ✅ 开发阶段仍需调用真实后端API，但跳过短信验证步骤
+    authAPI.login(formData.phone, formData.code).then((loginResult) => {
       wx.hideLoading()
       this.setData({ logging: false })
       
-      // 模拟登录成功的数据结构
-      const mockLoginData = {
-                    // 🚨 已删除：mock_token违规代码
-            // ✅ 必须使用真实后端返回的token
-        expires_in: 86400,
-        token_type: 'Bearer',
-        user_info: {
-          user_id: Date.now(),
-          phone: formData.phone,
-          nickname: '用户' + formData.phone.substr(-4),
-          avatar: '/images/default-avatar.png',
-          total_points: 1000, // 新用户初始积分
-          is_merchant: false,
-          status: 1,
-          created_at: new Date().toISOString()
-        }
+      if (loginResult.code === 0) {
+        console.log('✅ 开发阶段登录成功:', loginResult.data.user_info.user_id)
+        
+        // 使用app.js中的登录成功处理方法
+        app.onLoginSuccess(loginResult.data)
+        
+        wx.showToast({
+          title: '登录成功（开发模式）',
+          icon: 'success'
+        })
+        
+        // 延迟跳转
+        setTimeout(() => {
+          const pages = getCurrentPages()
+          if (pages.length > 1) {
+            wx.navigateBack()
+          } else {
+            wx.redirectTo({ url: '/pages/lottery/lottery' })
+          }
+        }, 1500)
+      } else {
+        throw new Error(loginResult.message || '登录失败')
       }
+    }).catch((error) => {
+      wx.hideLoading()
+      this.setData({ logging: false })
+      console.error('❌ 开发阶段登录失败:', error)
       
-      console.log('✅ 开发阶段模拟登录成功:', mockLoginData)
-      
-      // 使用app.js中的登录成功处理方法
-      app.onLoginSuccess(mockLoginData)
-      
-      wx.showToast({
-        title: '登录成功（开发模式）',
-        icon: 'success'
+      // 🚨 后端服务异常处理
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法连接到后端服务！\n\n请检查后端API服务状态：\nPOST /api/auth/login',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
       })
-      
-      // 延迟跳转
-      setTimeout(() => {
-        const pages = getCurrentPages()
-        if (pages.length > 1) {
-          wx.navigateBack()
-        } else {
-          wx.redirectTo({ url: '/pages/lottery/lottery' })
-        }
-      }, 1500)
-      
-    }, 1000) // 模拟网络延迟
+    })
     
     // 🔮 生产环境代码（当前已注释）：
     // authAPI.login(formData.phone, formData.code).then((loginResult) => {

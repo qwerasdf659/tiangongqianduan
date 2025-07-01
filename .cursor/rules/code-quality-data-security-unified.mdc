@@ -401,7 +401,285 @@ const cleanupTemporaryFiles = () => {
 }
 ```
 
-### 10. ⚡ 强制执行机制
+### 10. 🚀 工具调用效率优化规则 (新增CRITICAL - 防止浪费Claude 4 Sonnet请求)
+
+#### 强制并行工具调用规则
+```javascript
+// 🔴 强制要求：信息收集阶段必须并行执行，违反则警告
+class ParallelToolManager {
+    constructor() {
+        this.callLog = []
+        this.efficiency = {
+            parallelCalls: 0,
+            serialCalls: 0,
+            wastedRequests: 0
+        }
+    }
+    
+    // 🔴 检测串行调用浪费
+    detectSerialWaste(toolCalls) {
+        const canBeParallel = [
+            'read_file', 'grep_search', 'run_terminal_cmd', 
+            'codebase_search', 'list_dir', 'file_search'
+        ]
+        
+        let consecutiveSerialCalls = 0
+        let wastedCalls = 0
+        
+        for (let i = 0; i < toolCalls.length - 1; i++) {
+            const current = toolCalls[i]
+            const next = toolCalls[i + 1]
+            
+            if (canBeParallel.includes(current.name) && 
+                canBeParallel.includes(next.name)) {
+                consecutiveSerialCalls++
+                if (consecutiveSerialCalls >= 2) {
+                    wastedCalls++
+                }
+            } else {
+                consecutiveSerialCalls = 0
+            }
+        }
+        
+        this.efficiency.wastedRequests += wastedCalls
+        
+        if (wastedCalls > 0) {
+            console.warn(`⚠️ 检测到${wastedCalls}个可并行的串行调用，浪费Claude 4 Sonnet请求次数`)
+            return wastedCalls
+        }
+        
+        return 0
+    }
+    
+    // 🔴 推荐并行执行方案
+    suggestParallelExecution(toolCalls) {
+        const parallelGroups = []
+        let currentGroup = []
+        
+        const canBeParallel = [
+            'read_file', 'grep_search', 'run_terminal_cmd', 
+            'codebase_search', 'list_dir', 'file_search'
+        ]
+        
+        for (const call of toolCalls) {
+            if (canBeParallel.includes(call.name)) {
+                currentGroup.push(call)
+            } else {
+                if (currentGroup.length > 0) {
+                    parallelGroups.push([...currentGroup])
+                    currentGroup = []
+                }
+                parallelGroups.push([call])
+            }
+        }
+        
+        if (currentGroup.length > 0) {
+            parallelGroups.push(currentGroup)
+        }
+        
+        return parallelGroups
+    }
+    
+    // 🔴 生成并行执行代码
+    generateParallelCode(toolCalls) {
+        const parallelGroups = this.suggestParallelExecution(toolCalls)
+        let code = '// 🔴 推荐的并行执行方案:\n'
+        
+        for (let i = 0; i < parallelGroups.length; i++) {
+            const group = parallelGroups[i]
+            
+            if (group.length === 1) {
+                code += `const result${i} = await ${group[0].name}(${JSON.stringify(group[0].params)})\n`
+            } else {
+                code += `const [${group.map((_, idx) => `result${i}_${idx}`).join(', ')}] = await Promise.all([\n`
+                for (const call of group) {
+                    code += `    ${call.name}(${JSON.stringify(call.params)}),\n`
+                }
+                code += '])\n'
+            }
+        }
+        
+        return code
+    }
+}
+
+// 🔴 全局并行工具管理器
+const parallelManager = new ParallelToolManager()
+
+// 🔴 强制使用方式示例
+const efficientToolExecution = async () => {
+    // ❌ 错误：串行执行浪费请求次数
+    // const file1 = await read_file('file1.js')
+    // const file2 = await read_file('file2.js')
+    // const cmdResult = await run_terminal_cmd('Get-ChildItem')
+    
+    // ✅ 正确：并行执行节省50-80%时间
+    const [file1, file2, cmdResult] = await Promise.all([
+        read_file('file1.js'),
+        read_file('file2.js'),
+        run_terminal_cmd('Get-ChildItem')
+    ])
+    
+    parallelManager.efficiency.parallelCalls += 3
+    return { file1, file2, cmdResult }
+}
+```
+
+#### search_replace工具精确匹配改进规则
+```javascript
+// 🔴 search_replace工具安全使用规则
+class SearchReplaceValidator {
+    constructor() {
+        this.minContextLines = 3
+        this.maxAttempts = 3
+    }
+    
+    // 🔴 验证匹配字符串准确性
+    validateMatchString(oldString, filePath) {
+        const warnings = []
+        
+        // 检查上下文行数
+        const lines = oldString.split('\n')
+        if (lines.length < this.minContextLines) {
+            warnings.push(`⚠️ 上下文不足，建议至少包含${this.minContextLines}行上下文`)
+        }
+        
+        // 检查特殊字符
+        const specialChars = /['"\\]/g
+        if (specialChars.test(oldString)) {
+            warnings.push('⚠️ 包含特殊字符，可能导致匹配失败')
+        }
+        
+        // 检查空白字符
+        if (oldString.includes('\t') || oldString.includes('    ')) {
+            warnings.push('⚠️ 包含制表符或多空格，注意空白字符匹配')
+        }
+        
+        return warnings
+    }
+    
+    // 🔴 生成安全的匹配字符串
+    createSafeMatchString(targetContent, startMarker, endMarker) {
+        const lines = targetContent.split('\n')
+        const startIndex = lines.findIndex(line => line.includes(startMarker))
+        const endIndex = lines.findIndex((line, idx) => 
+            idx > startIndex && line.includes(endMarker)
+        )
+        
+        if (startIndex === -1 || endIndex === -1) {
+            throw new Error('无法找到匹配的开始或结束标记')
+        }
+        
+        // 包含足够的上下文
+        const contextStart = Math.max(0, startIndex - 2)
+        const contextEnd = Math.min(lines.length - 1, endIndex + 2)
+        
+        return lines.slice(contextStart, contextEnd + 1).join('\n')
+    }
+    
+    // 🔴 自动重试机制
+    async attemptSearchReplace(filePath, oldString, newString) {
+        for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
+            try {
+                console.log(`🔄 search_replace 尝试 ${attempt}/${this.maxAttempts}`)
+                
+                const warnings = this.validateMatchString(oldString, filePath)
+                if (warnings.length > 0) {
+                    console.warn('search_replace 警告:', warnings.join('\n'))
+                }
+                
+                return await search_replace(filePath, oldString, newString)
+                
+            } catch (error) {
+                console.error(`❌ search_replace 第${attempt}次尝试失败:`, error.message)
+                
+                if (attempt === this.maxAttempts) {
+                    console.error('🚨 search_replace 所有尝试失败，建议：')
+                    console.error('1. 使用 read_file 确认文件内容')
+                    console.error('2. 增加更多上下文行')
+                    console.error('3. 检查空白字符和特殊字符')
+                    console.error('4. 考虑使用 edit_file 替代')
+                    throw error
+                }
+                
+                // 等待后重试
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+            }
+        }
+    }
+}
+
+// 🔴 全局search_replace验证器
+const searchReplaceValidator = new SearchReplaceValidator()
+
+// 🔴 安全使用方式
+const safeSearchReplace = async (filePath, oldString, newString) => {
+    return await searchReplaceValidator.attemptSearchReplace(filePath, oldString, newString)
+}
+```
+
+#### 正则表达式特殊字符安全处理
+```javascript
+// 🔴 自动转义emoji和特殊字符
+class RegexSafetyProcessor {
+    constructor() {
+        this.emojiMap = {
+            '🔧': '\\u{1F527}',
+            '🔗': '\\u{1F517}', 
+            '📨': '\\u{1F4E8}',
+            '❌': '\\u{274C}',
+            '✅': '\\u{2705}',
+            '⚠️': '\\u{26A0}\\u{FE0F}',
+            '🚨': '\\u{1F6A8}'
+        }
+        
+        this.specialCharsPattern = /[\\^$.*+?()[\]{}|]/g
+    }
+    
+    // 🔴 自动处理emoji字符
+    escapeEmojiPattern(pattern) {
+        let safePattern = pattern
+        
+        for (const [emoji, unicode] of Object.entries(this.emojiMap)) {
+            const emojiRegex = new RegExp(
+                emoji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 
+                'g'
+            )
+            safePattern = safePattern.replace(emojiRegex, unicode)
+        }
+        
+        return safePattern
+    }
+    
+    // 🔴 转义特殊字符
+    escapeSpecialChars(pattern) {
+        return pattern.replace(this.specialCharsPattern, '\\$&')
+    }
+    
+    // 🔴 综合安全处理
+    createSafePattern(unsafePattern) {
+        console.log(`🔧 处理不安全的正则表达式: ${unsafePattern}`)
+        
+        let safePattern = unsafePattern
+        safePattern = this.escapeEmojiPattern(safePattern)
+        safePattern = this.escapeSpecialChars(safePattern)
+        
+        console.log(`✅ 转换为安全的正则表达式: ${safePattern}`)
+        return safePattern
+    }
+}
+
+// 🔴 全局正则安全处理器
+const regexProcessor = new RegexSafetyProcessor()
+
+// 🔴 安全使用方式
+const safeGrepSearch = async (unsafePattern, includePattern) => {
+    const safePattern = regexProcessor.createSafePattern(unsafePattern)
+    return await grep_search(safePattern, includePattern)
+}
+```
+
+### 11. ⚡ 强制执行机制
 
 #### 发现违规代码时必须执行的操作
 1. **立即停止所有开发工作**
