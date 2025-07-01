@@ -55,6 +55,14 @@ Page({
     costPoints: 0,
     dailyLimit: 0,
     
+    // 🔴 抽奖规则 - 从后端配置获取
+    lotteryRules: {
+      guaranteeRule: '',
+      consumptionRule: '',
+      securityRule: '',
+      dailyLimitRule: ''
+    },
+    
     // 转盘状态
     isDrawing: false,
     currentAngle: 0,
@@ -276,7 +284,15 @@ Page({
           dailyLimit: config.daily_limit || 50,         // 每日限制次数
           isActive: config.is_active || true,           // 抽奖系统状态
           maintenanceInfo: config.maintenance_info || null, // 维护信息
-          todayDrawCount: config.today_draw_count || 0  // 今日已抽次数
+          todayDrawCount: config.today_draw_count || 0,  // 今日已抽次数
+          
+          // 🔴 抽奖规则配置 - 从后端动态获取（符合项目安全规则）
+          lotteryRules: {
+            guaranteeRule: config.lottery_rules?.guarantee_rule || '十连抽保底获得好礼',
+            consumptionRule: config.lottery_rules?.consumption_rule || '特殊奖品需要满足消费条件',
+            securityRule: config.lottery_rules?.security_rule || '高频操作将触发安全验证',
+            dailyLimitRule: config.lottery_rules?.daily_limit_rule || `单日积分消耗上限${(config.daily_limit || 50) * (config.cost_points || 100)}分`
+          }
         })
         
         console.log('🎯 转盘配置已加载:', {

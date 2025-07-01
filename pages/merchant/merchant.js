@@ -962,19 +962,41 @@ Page({
   },
 
   /**
-   * 加载商品统计
+   * 🔴 加载商品统计 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
    */
   loadProductStats() {
-    // 模拟商品统计数据
-    const mockStats = {
-      activeCount: 12,
-      offlineCount: 3,
-      lowStockCount: 5,
-      totalCount: 15
-    }
+    console.log('📡 请求商品统计接口...')
     
-    this.setData({ productStats: mockStats })
-    return Promise.resolve()
+    return merchantAPI.getProductStats().then((result) => {
+      if (result.code === 0) {
+        this.setData({ productStats: result.data })
+        console.log('✅ 商品统计加载成功')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + result.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取商品统计失败:', error)
+      
+      // 🚨 显示后端服务异常提示 - 严禁使用Mock数据
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取商品统计！\n\n请检查后端API服务状态：\nGET /api/merchant/product-stats',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      
+      // 设置安全的空数据
+      this.setData({ 
+        productStats: {
+          activeCount: 0,
+          offlineCount: 0,
+          lowStockCount: 0,
+          totalCount: 0
+        }
+      })
+    })
   },
 
   /**

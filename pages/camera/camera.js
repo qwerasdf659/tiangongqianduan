@@ -511,41 +511,36 @@ Page({
    * 认证：需要Bearer Token
    * 返回：最近的上传记录，用于首页展示
    */
+  /**
+   * 🔴 加载上传历史 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
+   */
   loadUploadHistory() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      const mockHistory = [
-        {
-          id: 1,
-          image_url: 'https://via.placeholder.com/200x300/FF6B35/ffffff?text=小票1',
-          amount: 58.50,
-          points: 585,
-          status: 'approved',
-          upload_time: '2024-12-19 14:30:00'
-        },
-        {
-          id: 2,
-          image_url: 'https://via.placeholder.com/200x300/4ECDC4/ffffff?text=小票2',
-          amount: 23.80,
-          points: 238,
-          status: 'pending',
-          upload_time: '2024-12-19 10:15:00'
-        }
-      ]
-      
-      this.setData({ uploadHistory: mockHistory })
-      return Promise.resolve()
-    } else {
-      // 生产环境调用真实接口
-      return uploadAPI.getRecords().then((res) => {
+    console.log('📡 请求上传历史接口...')
+    
+    return uploadAPI.getRecords().then((result) => {
+      if (result.code === 0) {
         this.setData({
-          uploadHistory: res.data.list ? res.data.list.slice(0, 5) : []
+          uploadHistory: result.data.list ? result.data.list.slice(0, 5) : []
         })
-      }).catch((error) => {
-        console.error('❌ 获取上传历史失败:', error)
-        this.setData({ uploadHistory: [] })
+        console.log('✅ 上传历史加载成功')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + result.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取上传历史失败:', error)
+      
+      // 🚨 显示后端服务异常提示 - 严禁使用Mock数据
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取上传历史！\n\n请检查后端API服务状态：\nGET /api/photo/history',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
       })
-    }
+      
+      this.setData({ uploadHistory: [] })
+    })
   },
 
   /**

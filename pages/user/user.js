@@ -388,16 +388,28 @@ Page({
   /**
    * 菜单项点击
    */
+  /**
+   * 菜单项点击处理 - 根据产品功能结构文档调整
+   */
   onMenuItemTap(e) {
     const item = e.currentTarget.dataset.item
     console.log('点击菜单项:', item)
 
     if (item.action) {
       // 执行特定动作
-      this[item.action]()
+      if (typeof this[item.action] === 'function') {
+        this[item.action]()
+      } else {
+        console.error(`❌ 菜单项动作不存在: ${item.action}`)
+        wx.showToast({
+          title: '功能暂未开放',
+          icon: 'none'
+        })
+      }
     } else if (item.path) {
-      // 检查页面是否存在 - 包含所有新增的功能页面
+      // 检查页面是否存在 - 仅包含符合产品功能结构的页面
       const existingPages = [
+        '/pages/index/index',
         '/pages/lottery/lottery',
         '/pages/exchange/exchange',
         '/pages/camera/camera',
@@ -406,9 +418,7 @@ Page({
         '/pages/auth/auth',
         '/pages/records/lottery-records',
         '/pages/records/exchange-records',
-        '/pages/records/upload-records',
-        '/pages/settings/settings',
-        '/pages/about/about'
+        '/pages/records/upload-records'
       ]
       
       if (existingPages.includes(item.path)) {
@@ -462,31 +472,10 @@ Page({
         const tempFilePath = res.tempFilePaths[0]
         console.log('选择的头像:', tempFilePath)
         
-        if (app.globalData.isDev && !app.globalData.needAuth) {
-          // 开发环境模拟上传
-          console.log('🔧 模拟头像上传')
-          wx.showLoading({ title: '上传中...' })
-          
-          setTimeout(() => {
-            wx.hideLoading()
-            // 模拟更新头像
-            const mockAvatarUrl = 'https://via.placeholder.com/100x100/4ECDC4/ffffff?text=头像'
-            this.setData({
-              'userInfo.avatar': mockAvatarUrl
-            })
-            
-            // 更新全局数据
-                  // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
-      // ✅ 头像更新必须通过后端API同步
-            
-            wx.showToast({
-              title: '头像更新成功',
-              icon: 'success'
-            })
-          }, 1500)
-          
-        } else {
-          // 生产环境真实上传
+        // 🔴 必须使用真实的头像上传API - 符合项目安全规则
+        {
+          // 🚨 已删除：开发环境Mock数据违规代码
+          // ✅ 所有环境都使用真实后端API
           wx.showLoading({ title: '上传中...' })
           
           // TODO: 后端对接点 - 头像上传接口
@@ -617,27 +606,45 @@ Page({
   },
 
   /**
-   * 加载更多积分记录
+   * 🔴 加载更多积分记录 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
    */
   onLoadMoreRecords() {
     wx.showLoading({ title: '加载中...' })
     
-    // 模拟加载更多数据
-    setTimeout(() => {
-      // 🚨 已删除：generateMockPointsRecords()违规调用
-      // ✅ 必须从后端API获取：userAPI.getPointsRecords()
-              // 🚨 已删除：newRecords违规引用
-        // ✅ 必须从后端API获取更多记录
-        const allRecords = [...this.data.pointsRecords]
-      
-      this.setData({
-        pointsRecords: allRecords,
-        hasMoreRecords: allRecords.length < 50 // 假设最多50条记录
-      })
-      
-      this.filterPointsRecords()
+    // 🔴 必须从后端API获取更多记录
+    const currentPage = Math.floor(this.data.pointsRecords.length / 20) + 1
+    
+    userAPI.getPointsRecords(currentPage, 20).then((result) => {
       wx.hideLoading()
-    }, 1000)
+      
+      if (result.code === 0) {
+        const newRecords = result.data.records || []
+        const allRecords = [...this.data.pointsRecords, ...newRecords]
+        
+        this.setData({
+          pointsRecords: allRecords,
+          hasMoreRecords: allRecords.length < result.data.total
+        })
+        
+        this.filterPointsRecords()
+        console.log('✅ 积分记录加载成功')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + result.msg)
+      }
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 获取积分记录失败:', error)
+      
+      // 🚨 显示后端服务异常提示 - 严禁使用Mock数据
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取积分记录！\n\n请检查后端API服务状态：\nGET /api/user/points-records',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+    })
   },
 
   /**
@@ -789,7 +796,7 @@ Page({
   },
 
   /**
-   * 初始化菜单项
+   * 初始化菜单项 - 根据产品功能结构文档调整
    */
   initMenuItems() {
     const menuItems = [
@@ -826,19 +833,19 @@ Page({
         color: '#FFC107'
       },
       { 
-        id: 'settings', 
-        name: '设置', 
-        description: '个人偏好设置',
-        icon: '⚙️', 
-        path: '/pages/settings/settings',
+        id: 'contact-service', 
+        name: '联系客服', 
+        description: '获取帮助和支持',
+        icon: '💬', 
+        action: 'onContactService',
         color: '#607D8B'
       },
       { 
-        id: 'about', 
-        name: '关于我们', 
-        description: '了解更多信息',
-        icon: 'ℹ️', 
-        path: '/pages/about/about',
+        id: 'feedback', 
+        name: '意见反馈', 
+        description: '提交建议和问题反馈',
+        icon: '📝', 
+        action: 'onFeedback',
         color: '#795548'
       }
     ]

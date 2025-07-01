@@ -9,9 +9,7 @@
     "pages/auth/auth",
     "pages/records/lottery-records",
     "pages/records/exchange-records",
-    "pages/records/upload-records",
-    "pages/settings/settings",
-    "pages/about/about"
+    "pages/records/upload-records"
   ],
   "window": {
     "backgroundTextStyle": "light",

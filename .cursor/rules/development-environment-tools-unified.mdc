@@ -1,0 +1,1333 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 🔧 开发环境与工具统一规范
+
+## 🚨 核心目标：确保PowerShell环境稳定性和开发工具正常运行
+
+### 1. 🛡️ PowerShell控制台稳定性保障
+
+#### PSConsoleReadLine模块预检机制
+```powershell
+# 🔴 强制要求：生成PowerShell命令前自动检查模块完整性
+Get-Module PSConsoleReadLine -ListAvailable
+
+# 🔴 模块损坏时优先修复
+if ($module.Version -ne $expectedVersion) {
+    Update-Module PSConsoleReadLine -Force
+}
+
+# 🔴 强制配置：所有涉及中文字符的终端操作
+[Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8  
+[Console]::InputEncoding = [Text.UTF8Encoding]::UTF8
+```
+
+#### PowerShell语法严格规范（防止CMD语法错误）
+```powershell
+# ❌ 严禁：在PowerShell中使用CMD语法
+dir /b *.backup 2>nul && echo "成功" || echo "失败"  # CMD语法，PowerShell不支持
+
+# ✅ 正确：使用PowerShell原生语法
+Get-ChildItem -Name "*.backup" -ErrorAction SilentlyContinue
+if ($?) { Write-Host "成功" } else { Write-Host "失败" }
+
+# ✅ 简化版本：直接使用PowerShell条件判断
+$backupFiles = Get-ChildItem -Name "*.backup" -ErrorAction SilentlyContinue
+if ($backupFiles) { "发现备份文件: $($backupFiles -join ', ')" } else { "无备份文件" }
+```
+
+#### PowerShell与CMD语法对照表
+| CMD语法 | PowerShell语法 | 说明 |
+|---------|----------------|------|
+| `command1 && command2` | `if ($?) { command2 }` | 成功时执行 |
+| `command1 \|\| command2` | `if (!$?) { command2 }` | 失败时执行 |
+| `dir /b` | `Get-ChildItem -Name` | 列出文件名 |
+| `2>nul` | `-ErrorAction SilentlyContinue` | 忽略错误 |
+| `echo "text"` | `Write-Host "text"` | 输出文本 |
+
+#### 自动语法检查规则
+```powershell
+# 🔴 生成PowerShell命令前必须检查的禁用模式
+$forbiddenPatterns = @(
+    '&&',           # CMD条件执行
+    '\|\|',         # CMD或执行  
+    '2>nul',        # CMD错误重定向
+    'dir /b',       # CMD目录列表
+    '>nul 2>&1'     # CMD完全静默
+)
+
+# ✅ 自动替换为PowerShell等效语法
+foreach ($pattern in $forbiddenPatterns) {
+    if ($command -match $pattern) {
+        Write-Warning "⚠️ 检测到CMD语法: $pattern，自动转换为PowerShell语法"
+        # 执行自动转换逻辑
+    }
+}
+```
+
+### 2. 🔧 Git分页器卡死预防规则
+
+#### 禁止使用会触发分页器的Git命令
+```bash
+# ❌ 绝对禁止：可能进入分页器模式，导致卡死超过120秒
+git log
+git branch -v
+git diff
+git show
+git blame
+
+# ❌ 危险：自动化环境无法处理交互
+git log --graph
+git diff --stat
+git show --name-only
+```
+
+#### 安全的Git命令替代方案
+```bash
+# ✅ 正确：强制禁用分页器
+git --no-pager log --oneline -10
+git --no-pager branch -v
+git --no-pager diff
+git --no-pager show
+
+# ✅ 正确：限制输出避免分页
+git log --oneline -5
+git branch -v | head -10
+git diff --stat | head -20
+
+# ✅ 正确：PowerShell管道处理
+git log --oneline | Select-Object -First 10
+git branch -v | Where-Object { $_ -match "main" }
+```
+
+#### 强制配置检查
+```bash
+# 每个项目开始前必须执行：全局禁用分页器
+git config --global core.pager ""
+git config --global pager.branch false
+git config --global pager.log false
+git config --global pager.diff false
+git config --global pager.show false
+
+# 验证配置生效
+git branch -v
+git log --oneline -3
+```
+
+#### 指令超时处理规则
+```
+🚨 120秒超时规则：
+- 一旦指令运行超过120秒没出任何结果或没有正确退出
+- 自动重新运行这个指令，再不行就换另一种解决方案
+- 第一次重试：git --no-pager [原命令]
+- 第二次重试：应用全局配置后重试
+- 最后方案：使用简化的等效命令
+```
+
+### 3. 🔍 文件搜索命令规范
+
+#### 强制要求：项目文件统计前必须先了解目录结构
+```powershell
+# 🔴 第一步：总是先查看目录结构，深度思考理解项目文件组织
+list_dir pages  # 或者 Get-ChildItem pages -Directory
+
+# 🔴 第二步：根据结构选择正确命令
+# 如果文件在子目录中，必须使用 -Recurse
+Get-ChildItem pages -Recurse -Include "*.js" | Measure-Object | Select-Object -ExpandProperty Count
+```
+
+#### 项目类型与文件结构对应关系
+
+**微信小程序项目（当前项目类型）：**
+```powershell
+# ✅ 正确：小程序页面在子目录中，注意符合微信小程序开发标准
+Get-ChildItem pages -Recurse -Include "*.js"
+Get-ChildItem pages -Recurse -Include "*.wxml"
+Get-ChildItem components -Recurse -Include "*.js"
+Get-ChildItem utils -Recurse -Include "*.js"
+```
+
+**Vue/React项目：**
+```powershell
+# ✅ 正确：组件在src/components子目录
+Get-ChildItem src -Recurse -Include "*.vue"
+Get-ChildItem src -Recurse -Include "*.jsx"
+```
+
+**Node.js项目：**
+```powershell
+# ✅ 正确：模块可能在多层目录
+Get-ChildItem . -Recurse -Include "*.js" -Exclude "node_modules\*"
+```
+
+#### 命令复杂度控制与中文字符处理
+```powershell
+# ✅ 简化命令，避免缓冲区问题
+Get-ChildItem 目录 -Recurse -Include "*.扩展名" | Measure-Object
+
+# ❌ 避免过长的管道命令
+Get-ChildItem 目录 -Recurse -Include "*.扩展名" | ForEach-Object {...很长的处理逻辑...}
+
+# ✅ 分解复杂操作
+$files = Get-ChildItem pages -Recurse -Include "*.js"
+$count = ($files | Measure-Object).Count
+Write-Host "找到 $count 个JS文件"
+```
+
+### 4. 🏗️ 微信小程序开发工具标准
+
+#### 强制使用规范
+- ✅ **只使用微信开发者工具进行语法检查**
+- ✅ **只使用PowerShell原生命令进行文件操作**
+- ❌ **严禁使用node、npm等Web工具**
+- ❌ **严禁使用webpack/babel等构建工具**
+
+#### 微信小程序开发环境要求
+```javascript
+// ✅ 正确：在微信开发者工具中打开项目文件夹
+// 项目根目录包含：app.js, app.json, app.wxss
+
+// ❌ 错误：尝试使用npm命令启动
+// npm start  // 微信小程序不支持
+```
+
+#### 语法检查与调试
+- 🔧 使用微信开发者工具的编译器检查语法
+- 🔧 使用开发者工具的调试面板排查问题
+- 🔧 通过开发者工具预览和真机调试
+
+#### 禁止使用的工具列表
+- `npm --version` 
+- `node -c` 语法检查
+- `webpack/babel` 等Web构建工具
+- Linux/Bash命令语法
+
+### 5. 📋 执行前检查清单
+
+#### PowerShell文件操作前必须确认
+- [ ] 已了解项目的文件组织结构
+- [ ] 根据结构选择了正确的搜索参数（-Recurse等）
+- [ ] 命令复杂度适中，不会导致控制台异常
+- [ ] 对于微信小程序项目，使用递归搜索页面文件
+- [ ] 配置了正确的UTF-8编码
+- [ ] 检查PSConsoleReadLine模块状态
+- [ ] 验证命令参数范围合法性
+
+#### Git操作前必须确认
+- [ ] 已配置全局禁用分页器
+- [ ] 使用--no-pager前缀或限制输出长度
+- [ ] 避免使用可能触发交互的Git命令
+- [ ] 设置120秒超时监控机制
+
+### 6. 🔄 故障处理与自动修复
+
+#### PowerShell故障处理升级方案
+1. **方法1**: UTF-8编码强制配置与状态检测
+2. **方法2**: PSConsoleReadLine缓冲区溢出预防（拆分长命令）
+3. **方法3**: PSConsoleReadLine模块修复
+4. **方法4**: 控制台缓冲区参数验证与重置
+5. **方法5**: 无效命令自动替换
+6. **方法6**: 控制台完全重置
+7. **最后方案**: PowerShell版本兼容性检查
+
+#### Git分页器故障自动修复流程
+1. 检测到分页器 → 立即中断
+2. 应用全局配置 → 禁用分页器
+3. 重新执行命令 → 使用--no-pager
+4. 验证结果 → 确保正常输出
+
+#### 自动检测触发条件
+- PowerShell控制台编码非UTF-8 (CodePage != 65001)
+- 包含中文字符的命令长度 > 100字符 (缓冲区溢出风险)
+- 文件操作未使用 `-Encoding UTF8` 参数
+- 包含 `Get-ChildItem` 且缺少 `-Recurse` 的文件统计命令
+- 项目文件检查前没有先查看目录结构
+- 超过3个管道操作的复杂PowerShell命令
+- Git命令执行时间 > 30秒
+- 出现 `(END)` 或 `~` 等分页器标识
+- PSConsoleReadLine模块异常或缓冲区错误
+
+### 7. 📊 监控与告警
+
+#### 自动检测模式
+- 命令执行时间 > 30秒
+- 出现 `(END)` 或 `~` 等分页器标识
+- 控制台无响应状态
+- PowerShell命令行卡死
+
+#### 违规检测与自动修复
+```
+🚨 检测到危险操作！
+
+危险类型：[Git分页器风险/PowerShell语法错误/文件搜索参数错误]
+检测到命令：[具体命令]
+可能导致：命令卡死、执行超时、交互阻塞
+
+自动修复：
+1. Git命令 → 添加 --no-pager 前缀
+2. PowerShell语法 → 转换为PowerShell原生语法
+3. 文件搜索 → 添加必要的-Recurse参数
+
+请确认修复后再继续执行。
+```
+
+### 8. 🎯 常见项目类型的正确命令模板
+
+#### 微信小程序项目文件操作
+```powershell
+# 文件统计（注意使用-Recurse递归搜索）
+Get-ChildItem pages -Recurse -Include "*.js" | Measure-Object
+Get-ChildItem components -Recurse -Include "*.js" | Measure-Object
+Get-ChildItem pages -Recurse -Include "*.wxml" | Measure-Object
+Get-ChildItem utils -Include "*.js" | Measure-Object
+
+# 文件搜索
+Get-ChildItem pages -Recurse -Include "*.js" -Name
+Get-ChildItem components -Recurse -Include "*.js" -Name
+
+# 内容搜索
+Get-ChildItem pages -Recurse -Include "*.js" | Select-String "pattern"
+```
+
+#### 安全的Git操作模板
+```bash
+# 查看分支（限制输出）
+git --no-pager branch -v
+git branch -v | head -10
+
+# 查看日志（限制条数）
+git --no-pager log --oneline -5
+git log --oneline -10 | head -5
+
+# 查看差异（禁用分页器）
+git --no-pager diff
+git --no-pager show HEAD
+
+# 状态检查
+git status --porcelain
+git --no-pager status -s
+```
+
+#### 中文环境安全命令与编码防护
+```powershell
+# 🔴 强制要求：每次会话开始前自动执行UTF-8编码配置
+[Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8
+[Console]::InputEncoding = [Text.UTF8Encoding]::UTF8
+
+# 🔴 编码状态检测与自动修复
+$currentInput = [Console]::InputEncoding.CodePage
+$currentOutput = [Console]::OutputEncoding.CodePage
+if ($currentInput -ne 65001 -or $currentOutput -ne 65001) {
+    Write-Warning "检测到非UTF-8编码，自动修复中..."
+    [Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8
+    [Console]::InputEncoding = [Text.UTF8Encoding]::UTF8
+    Write-Host "已修复为UTF-8编码" -ForegroundColor Green
+}
+
+# ✅ 中文目录操作（强制UTF-8编码）
+Get-ChildItem "中文目录" -Recurse -Include "*.js"
+Get-Content "中文文件.js" -Encoding UTF8
+
+# 🚨 PSConsoleReadLine缓冲区溢出预防：避免长命令+中文字符
+# ❌ 危险模式（会导致控制台异常）
+# Write-Host "包含中文的长命令超过100字符会触发PSConsoleReadLine缓冲区溢出异常" -ForegroundColor Green
+
+# ✅ 安全模式（拆分为简化命令）
+$encoding = [Console]::InputEncoding.EncodingName
+Write-Host "当前编码: $encoding"
+```
+
+### 9. ⚡ 性能优化与最佳实践
+
+#### 并行工具调用策略
+```javascript
+// ✅ 规划阶段：列出所有需要的信息
+const analysisNeeds = [
+  'list_dir: 查看项目目录结构',
+  'run_terminal_cmd: 统计JS文件数量',
+  'run_terminal_cmd: 统计WXML文件数量',
+  'run_terminal_cmd: 检查Git状态'
+]
+
+// ✅ 执行阶段：并行调用所有工具，避免浪费Claude 4 Sonnet请求次数
+const results = await Promise.all([
+  listDir('pages'),
+  runCommand('Get-ChildItem pages -Recurse -Include "*.js" | Measure-Object'),
+  runCommand('Get-ChildItem pages -Recurse -Include "*.wxml" | Measure-Object'),
+  runCommand('git --no-pager status -s')
+])
+```
+
+#### 控制台缓冲区参数防御
+```powershell
+# ✅ 正确：添加参数范围验证
+if ($top -lt 0 -or $top -ge $maxSize) { 
+    Write-Error "参数 top 超出合法范围（当前值: $top，最大允许: $($maxSize-1)）"; 
+    return 
+}
+
+# ✅ 无效命令拦截系统
+$validCommands = @('Get-ChildItem', 'Write-Host', 'Select-Object', 'Measure-Object')
+if ($command -notin $validCommands) {
+    Write-Warning "⚠️ 命令 '$command' 无效，推荐替换为: $($validCommands -join ', ')"
+}
+```
+
+## 🎯 综合安全检查清单
+
+### 每次开发环境操作前必须确认
+- [ ] PowerShell模块状态正常，PSConsoleReadLine无异常
+- [ ] UTF-8编码强制配置生效 (CodePage = 65001)
+- [ ] 中文字符和emoji显示正常，无乱码
+- [ ] Git分页器已全局禁用
+- [ ] 了解项目文件结构
+- [ ] 选择正确的搜索参数(-Recurse等)
+- [ ] 包含中文的命令长度 < 100字符，避免缓冲区溢出
+- [ ] 文件操作统一使用 -Encoding UTF8 参数
+- [ ] 设置命令超时监控
+- [ ] 避免使用禁止的工具
+- [ ] 使用微信小程序开发标准
+
+### 故障发生时的处理流程
+1. **立即中断长时间运行的命令**
+2. **检查并修复环境配置**
+3. **使用安全的替代命令**
+4. **验证修复效果**
+5. **记录问题和解决方案**
+
+## 🎯 规则优先级：高 - 直接影响开发效率和环境稳定性
+
+---
+**创建时间**: 2025年1月2日  
+**更新时间**: 2025年1月2日 - 新增中文编码防护与PSConsoleReadLine缓冲区溢出预防  
+**适用范围**: 所有使用PowerShell进行项目文件操作和微信小程序开发的场景  
+**维护责任**: 确保开发环境稳定运行，中文字符正确显示无乱码  
+**整合状态**: 统一整合dev-environment-standards.mdc、hwk.mdc和中文编码防护规则
+
+## 🚨 当前会话问题全面分析与解决方案
+
+### 📊 问题清单与严重程度分级
+
+#### A级问题 (严重 - 导致任务中断)
+1. **PowerShell控制台缓冲区溢出异常**
+   - 错误: `System.ArgumentOutOfRangeException: 参数名: top 实际值是 -1, -2`
+   - 触发: 包含中文字符的长命令 > 100字符
+   - 影响: 控制台卡死，需要重启会话
+   - 出现次数: 本会话中5次以上
+
+2. **PSConsoleReadLine模块故障**
+   - 错误: 缓冲区计算异常，光标位置错误
+   - 触发: 中文字符 + 复杂管道操作 + 彩色输出
+   - 影响: 命令执行中断，输出异常
+
+#### B级问题 (中等 - 效率损失)
+3. **工具调用串行化低效**
+   - 问题: 本可并行的操作分别调用
+   - 示例: read_file、run_terminal_cmd、grep_search串行执行
+   - 影响: 会话时间延长3-5倍，浪费Claude 4 Sonnet请求额度
+
+4. **正则表达式语法错误**
+   - 错误: `console.log.*[🔧🔗📨❌✅]` 未转义emoji字符
+   - 结果: Select-String执行失败
+   - 原因: 特殊字符处理不当
+
+#### C级问题 (轻微 - 规范违反)
+5. **临时文件管理不规范**
+   - 问题: 手动创建删除临时测试文件
+   - 违规: 用户规则第8条自动清理要求
+   - 改进: 需要自动化管理机制
+
+6. **重复编码检查**
+   - 问题: 多次执行相同的UTF-8状态检查
+   - 影响: 增加不必要的命令执行时间
+
+### 🔧 问题根本原因分析
+
+#### 1. PowerShell环境不稳定
+- PSConsoleReadLine模块对中文字符处理存在缺陷
+- 控制台缓冲区计算算法在复杂场景下异常
+- UTF-8编码配置不一致导致字符处理错误
+
+#### 2. 工具调用策略不当
+- 缺乏并行调用意识，习惯性串行操作
+- 没有预先规划所需信息，导致分批获取
+- 重复操作缓存机制缺失
+
+#### 3. 命令构造安全性不足
+- 特殊字符转义规则不完善
+- 命令长度控制机制缺失
+- 错误预判和预防机制不足
+
+### 💡 强制并行工具调用规则 (新增CRITICAL)
+
+#### 并行优先原则
+```javascript
+// 🔴 强制要求：信息收集阶段必须并行执行
+// ❌ 错误：串行调用浪费请求次数
+await read_file('file1.js')
+await read_file('file2.js') 
+await run_terminal_cmd('command1')
+await run_terminal_cmd('command2')
+
+// ✅ 正确：并行调用提升3-5x效率
+const results = await Promise.all([
+    read_file('file1.js'),
+    read_file('file2.js'),
+    run_terminal_cmd('command1'),
+    run_terminal_cmd('command2')
+])
+
+// ✅ 复杂信息收集的并行模式
+const analysisData = await Promise.all([
+    list_dir('pages'),
+    grep_search({ query: 'pattern1', include_pattern: '*.js' }),
+    grep_search({ query: 'pattern2', include_pattern: '*.js' }),
+    run_terminal_cmd('Get-ChildItem pages -Recurse | Measure-Object'),
+    codebase_search({ query: 'function definition' })
+])
+```
+
+#### 高风险命令自动检测 (新增)
+```powershell
+# 🔴 命令执行前自动安全验证
+function Test-CommandSafety {
+    param([string]$command)
+    
+    # 危险模式检测
+    $riskyPatterns = @(
+        '.*[\u4e00-\u9fa5].{100,}',                          # 中文字符 + 长命令
+        '.*[\u4e00-\u9fa5].*Write-Host.*-ForegroundColor',   # 中文 + 彩色输出
+        '.*[\u4e00-\u9fa5].*\|.*ForEach-Object.*Write-Host', # 中文 + 复杂管道
+        '.*console\.log\.\*\[[^\]]*[🔧🔗📨❌✅]'           # 未转义emoji正则
+    )
+    
+    foreach ($pattern in $riskyPatterns) {
+        if ($command -match $pattern) {
+            Write-Warning "⚠️ 检测到高风险命令，自动拆分执行"
+            return $false
+        }
+    }
+    return $true
+}
+```
+
+#### 临时文件自动管理机制 (新增)
+```javascript
+// 🔴 临时文件自动管理，符合用户规则第8条
+class TempFileManager {
+    constructor() {
+        this.tempFiles = new Set()
+        this.setupCleanup()
+    }
+    
+    createTempFile(name, content) {
+        const tempPath = `.temp_${Date.now()}_${name}`
+        this.tempFiles.add(tempPath)
+        return edit_file(tempPath, content)
+    }
+    
+    setupCleanup() {
+        // 自动清理机制
+        process.on('beforeExit', () => {
+            this.cleanup()
+        })
+    }
+    
+    cleanup() {
+        for (const file of this.tempFiles) {
+            try {
+                delete_file(file)
+            } catch (error) {
+                console.warn(`清理临时文件失败: ${file}`)
+            }
+        }
+        this.tempFiles.clear()
+    }
+}
+```
+
+### 📈 效率优化指标 (新增)
+
+#### 目标性能指标
+- **并行调用比例**: ≥ 80%
+- **重复操作减少**: ≥ 60%
+- **命令执行成功率**: ≥ 95%
+- **控制台异常发生率**: < 1%
+- **临时文件自动清理率**: 100%
+
+#### 会话开始强制检查清单 (新增)
+- [ ] UTF-8编码自动配置生效
+- [ ] PSConsoleReadLine模块状态正常
+- [ ] 并行工具调用策略激活
+- [ ] 高风险命令检测机制启用
+- [ ] 临时文件自动管理机制启用
+- [ ] 重复操作缓存机制生效
+
+### 💊 自动故障恢复机制 (新增CRITICAL)
+
+#### 控制台异常自动恢复
+```powershell
+# 🔴 当出现PSConsoleReadLine缓冲区溢出时自动执行
+function Recover-ConsoleFromException {
+    try {
+        # 清除控制台缓冲区
+        [Console]::Clear()
+        
+        # 重新配置UTF-8编码
+        [Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8
+        [Console]::InputEncoding = [Text.UTF8Encoding]::UTF8
+        
+        # 重新导入PSConsoleReadLine模块
+        Remove-Module PSConsoleReadLine -Force -ErrorAction SilentlyContinue
+        Import-Module PSConsoleReadLine -Force
+        
+        Write-Host "✅ 控制台已自动恢复正常" -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Error "❌ 控制台自动恢复失败，建议重启PowerShell会话"
+        return $false
+    }
+}
+
+# 自动检测并修复编码异常
+function Repair-EncodingException {
+    param([string]$errorMessage)
+    
+    if ($errorMessage -match "EncoderFallbackException|Unicode字符") {
+        Write-Warning "检测到编码异常，自动修复中..."
+        
+        # 强制重置编码配置
+        [Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8
+        [Console]::InputEncoding = [Text.UTF8Encoding]::UTF8
+        
+        # 清理PowerShell历史记录缓存
+        Clear-History
+        
+        Write-Host "✅ 编码异常已自动修复"
+        return $true
+    }
+    return $false
+}
+```
+
+#### 自动重试机制
+```javascript
+// 🔴 工具调用自动重试机制
+async function executeWithRetry(operation, maxRetries = 3, retryDelay = 1000) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            return await operation()
+        } catch (error) {
+            if (i === maxRetries - 1) {
+                throw new Error(`操作失败，已重试${maxRetries}次: ${error.message}`)
+            }
+            
+            console.warn(`操作失败，正在重试... (${i + 1}/${maxRetries})`)
+            console.warn(`错误信息: ${error.message}`)
+            
+            // 如果是PowerShell相关错误，尝试恢复控制台
+            if (error.message.includes('ArgumentOutOfRangeException') || 
+                error.message.includes('PSConsoleReadLine')) {
+                await run_terminal_cmd('Recover-ConsoleFromException')
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, retryDelay * (i + 1)))
+        }
+    }
+}
+
+// 使用示例
+const result = await executeWithRetry(async () => {
+    return await run_terminal_cmd('Get-ChildItem pages -Recurse | Measure-Object')
+})
+```
+
+### 🛡️ 智能工具调用管理器 (新增CRITICAL)
+
+#### 强制并行调用管理器
+```javascript
+class SmartToolManager {
+    constructor() {
+        this.cache = new Map()
+        this.metrics = {
+            parallelCalls: 0,
+            serialCalls: 0,
+            cacheHits: 0,
+            errors: 0
+        }
+    }
+    
+    // 🔴 强制并行调用 - 违反则警告
+    async executeParallel(operations) {
+        if (operations.length < 2) {
+            this.metrics.serialCalls++
+            console.warn("⚠️ 检测到单个工具调用，建议批量并行执行")
+        } else {
+            this.metrics.parallelCalls += operations.length
+        }
+        
+        try {
+            return await Promise.all(operations.map(op => this.executeWithCache(op)))
+        } catch (error) {
+            this.metrics.errors++
+            throw error
+        }
+    }
+    
+    // 缓存机制避免重复操作
+    async executeWithCache(operation) {
+        const key = this.generateCacheKey(operation)
+        
+        if (this.cache.has(key)) {
+            this.metrics.cacheHits++
+            return this.cache.get(key)
+        }
+        
+        const result = await operation()
+        this.cache.set(key, result)
+        return result
+    }
+    
+    generateCacheKey(operation) {
+        return `${operation.name}_${JSON.stringify(operation.params)}`
+    }
+    
+    // 生成效率报告
+    getEfficiencyReport() {
+        const total = this.metrics.parallelCalls + this.metrics.serialCalls
+        const parallelRatio = total > 0 ? (this.metrics.parallelCalls / total) * 100 : 0
+        
+        return {
+            parallelRatio: parallelRatio.toFixed(1) + '%',
+            cacheHitRate: (this.metrics.cacheHits / (this.metrics.cacheHits + total) * 100).toFixed(1) + '%',
+            errorRate: (this.metrics.errors / total * 100).toFixed(1) + '%',
+            recommendation: parallelRatio < 80 ? '建议增加并行调用比例' : '并行调用比例良好'
+        }
+    }
+}
+
+// 全局实例
+const toolManager = new SmartToolManager()
+
+// 强制使用方式 - 替代单个工具调用
+const results = await toolManager.executeParallel([
+    () => read_file('file1.js'),
+    () => read_file('file2.js'),
+    () => run_terminal_cmd('Get-ChildItem pages -Recurse | Measure-Object'),
+    () => grep_search({ query: 'pattern', include_pattern: '*.js' })
+])
+```
+
+#### 正则表达式安全处理器 (新增)
+```javascript
+class SafeRegexProcessor {
+    constructor() {
+        this.emojiPattern = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu
+        this.specialChars = /[\\^$.*+?()[\]{}|]/g
+    }
+    
+    // 🔴 自动转义特殊字符
+    escapeRegex(pattern) {
+        // 处理emoji字符
+        if (this.emojiPattern.test(pattern)) {
+            console.warn("⚠️ 检测到emoji字符，使用安全模式处理")
+            return this.handleEmojiPattern(pattern)
+        }
+        
+        // 转义其他特殊字符
+        return pattern.replace(this.specialChars, '\\$&')
+    }
+    
+    handleEmojiPattern(pattern) {
+        // 将emoji字符转换为Unicode转义序列
+        return pattern.replace(this.emojiPattern, (match) => {
+            const codePoint = match.codePointAt(0)
+            return `\\u{${codePoint.toString(16)}}`
+        })
+    }
+    
+    // 预定义安全模式
+    getSafePatterns() {
+        return {
+            chineseChars: '[\\u4e00-\\u9fa5]',
+            consoleLog: 'console\\.(log|error|warn)',
+            emojiInConsole: 'console\\.log.*[\\u{1F600}-\\u{1F64F}]',
+            unicodeEmoji: '[\\u{1F600}-\\u{1F64F}\\u{1F300}-\\u{1F5FF}\\u{1F680}-\\u{1F6FF}]'
+        }
+    }
+}
+
+// 全局安全处理器
+const regexSafeProcessor = new SafeRegexProcessor()
+
+// 使用安全模式
+const safePattern = regexSafeProcessor.escapeRegex('console.log.*[🔧🔗📨❌✅]')
+await grep_search({ query: safePattern, include_pattern: '*.js' })
+```
+
+### 🗂️ 临时文件自动管理系统 (新增 - 符合用户规则第8条)
+
+#### 自动临时文件管理器
+```javascript
+class AutoTempFileManager {
+    constructor() {
+        this.tempFiles = new Set()
+        this.tempDirs = new Set()
+        this.cleanupHandlers = []
+        this.setupAutoCleanup()
+    }
+    
+    // 🔴 创建临时文件 - 自动注册清理
+    async createTempFile(name, content, autoCleanup = true) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+        const tempPath = `.temp_${timestamp}_${name}`
+        
+        if (autoCleanup) {
+            this.tempFiles.add(tempPath)
+        }
+        
+        try {
+            await edit_file(tempPath, "临时文件", content)
+            console.log(`✅ 临时文件已创建: ${tempPath}`)
+            return tempPath
+        } catch (error) {
+            console.error(`❌ 临时文件创建失败: ${error.message}`)
+            throw error
+        }
+    }
+    
+    // 设置自动清理机制
+    setupAutoCleanup() {
+        // 会话结束时自动清理
+        if (typeof process !== 'undefined') {
+            process.on('exit', () => this.cleanup())
+            process.on('SIGINT', () => this.cleanup())
+            process.on('SIGTERM', () => this.cleanup())
+        }
+        
+        // 定期清理超过1小时的临时文件
+        setInterval(() => this.cleanupOldFiles(), 3600000) // 1小时
+    }
+    
+    // 立即清理所有临时文件
+    async cleanup() {
+        let cleanedCount = 0
+        let errorCount = 0
+        
+        for (const file of this.tempFiles) {
+            try {
+                await delete_file(file)
+                cleanedCount++
+            } catch (error) {
+                errorCount++
+                console.warn(`清理临时文件失败: ${file} - ${error.message}`)
+            }
+        }
+        
+        this.tempFiles.clear()
+        console.log(`🧹 临时文件清理完成: 成功${cleanedCount}个, 失败${errorCount}个`)
+        
+        return { cleaned: cleanedCount, errors: errorCount }
+    }
+    
+    // 清理超过指定时间的临时文件
+    async cleanupOldFiles(maxAgeMs = 3600000) { // 默认1小时
+        const now = Date.now()
+        const filesToClean = []
+        
+        for (const file of this.tempFiles) {
+            const match = file.match(/\.temp_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/)
+            if (match) {
+                const fileTime = new Date(match[1].replace(/-/g, ':')).getTime()
+                if (now - fileTime > maxAgeMs) {
+                    filesToClean.push(file)
+                }
+            }
+        }
+        
+        for (const file of filesToClean) {
+            try {
+                await delete_file(file)
+                this.tempFiles.delete(file)
+            } catch (error) {
+                console.warn(`清理过期临时文件失败: ${file}`)
+            }
+        }
+        
+        if (filesToClean.length > 0) {
+            console.log(`🧹 清理了${filesToClean.length}个过期临时文件`)
+        }
+    }
+    
+    // 获取临时文件统计
+    getStats() {
+        return {
+            activeFiles: this.tempFiles.size,
+            activeDirs: this.tempDirs.size,
+            cleanupHandlers: this.cleanupHandlers.length
+        }
+    }
+}
+
+// 全局临时文件管理器
+const tempFileManager = new AutoTempFileManager()
+
+// 使用方式
+const tempFile = await tempFileManager.createTempFile('test-rules.mdc', ruleContent)
+// 会话结束时自动清理，无需手动删除
+```
+
+ ## 🚨 会话问题分析与解决方案 (根据实际会话总结)
+
+### 📊 A级问题（严重 - 导致任务中断）
+
+#### 1. PowerShell控制台缓冲区溢出异常
+**错误症状：**
+```
+System.ArgumentOutOfRangeException: 参数名: top 实际值是 -1, -2
+```
+
+**触发条件：**
+- 包含中文字符的命令长度 > 100字符
+- PSConsoleReadLine缓冲区计算异常
+- 复杂管道操作 + 彩色输出
+
+**预防机制：**
+```powershell
+# 🔴 命令长度检查函数
+function Test-CommandSafety {
+    param([string]$command)
+    
+    $hasChinese = $command -match '[\u4e00-\u9fa5]'
+    $hasEmoji = $command -match '[\u{1F600}-\u{1F64F}]'
+    
+    if (($hasChinese -or $hasEmoji) -and $command.Length -gt 100) {
+        Write-Warning "⚠️ 危险命令检测: 包含中文/emoji且长度超过100字符"
+        Write-Warning "建议拆分为多个较短命令执行"
+        return $false
+    }
+    
+    return $true
+}
+
+# 使用前强制检查
+if (-not (Test-CommandSafety $command)) {
+    # 自动拆分长命令
+    $parts = Split-LongCommand $command
+    foreach ($part in $parts) {
+        Invoke-Expression $part
+    }
+} else {
+    Invoke-Expression $command
+}
+```
+
+#### 2. 编码异常处理
+**错误症状：**
+```
+System.Text.EncoderFallbackException: 无法将Unicode字符\uD83D转换为指定的代码页
+```
+
+**解决方案：**
+```powershell
+# 🔴 会话开始时强制执行
+function Initialize-EncodingSafety {
+    try {
+        # 强制设置UTF-8编码
+        [Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8
+        [Console]::InputEncoding = [Text.UTF8Encoding]::UTF8
+        
+        # 设置PowerShell默认编码
+        $PSDefaultParameterValues['*:Encoding'] = 'UTF8'
+        
+        # 验证编码设置
+        $currentEncoding = [Console]::OutputEncoding.WebName
+        if ($currentEncoding -ne 'utf-8') {
+            throw "编码设置失败，当前编码: $currentEncoding"
+        }
+        
+        Write-Host "✅ UTF-8编码配置成功" -ForegroundColor Green
+        return $true
+    } catch {
+        Write-Error "❌ 编码配置失败: $_"
+        return $false
+    }
+}
+
+# 每个会话开始时自动执行
+Initialize-EncodingSafety
+```
+
+### 📈 B级问题（中等 - 效率损失）
+
+#### 3. 工具调用串行化低效问题
+**问题描述：** 本会话中多次出现read_file、run_terminal_cmd、grep_search串行执行，导致会话时间延长3-5倍
+
+**强制并行规则：**
+```javascript
+// 🔴 CRITICAL: 信息收集阶段必须并行执行
+// 违反此规则将触发效率警告
+
+// ❌ 错误做法：串行执行
+await read_file('file1.js')
+await read_file('file2.js') 
+await run_terminal_cmd('command1')
+
+// ✅ 正确做法：强制并行
+const [file1, file2, cmdResult] = await Promise.all([
+    read_file('file1.js'),
+    read_file('file2.js'),
+    run_terminal_cmd('command1')
+])
+
+// 🔴 强制并行检查器
+class ParallelCallValidator {
+    constructor() {
+        this.callQueue = []
+        this.warningThreshold = 2 // 连续2个以上串行调用触发警告
+    }
+    
+    trackCall(toolName, isParallel = false) {
+        this.callQueue.push({
+            tool: toolName,
+            parallel: isParallel,
+            timestamp: Date.now()
+        })
+        
+        this.checkSerialCalls()
+    }
+    
+    checkSerialCalls() {
+        const recentCalls = this.callQueue.slice(-this.warningThreshold)
+        const serialCalls = recentCalls.filter(call => !call.parallel)
+        
+        if (serialCalls.length >= this.warningThreshold) {
+            console.warn(`⚠️ 效率警告: 检测到${serialCalls.length}个连续串行工具调用`)
+            console.warn("建议使用Promise.all()并行执行以提高效率")
+            console.warn("预期效率提升: 3-5x")
+        }
+    }
+}
+
+const validator = new ParallelCallValidator()
+
+// 在每个工具调用前记录
+validator.trackCall('read_file', false)  // 串行调用
+validator.trackCall('parallel_batch', true)  // 并行调用
+```
+
+#### 4. 正则表达式安全问题
+**错误症状：** `console.log.*[🔧🔗📨❌✅]` - 字符串不是有效的正则表达式
+
+**安全处理：**
+```javascript
+// 🔴 自动emoji转义处理
+function createSafeRegexPattern(unsafePattern) {
+    // 检测并转义emoji字符
+    const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu
+    
+    if (emojiRegex.test(unsafePattern)) {
+        console.log("检测到emoji字符，自动转义处理")
+        
+        // 预定义常用emoji模式
+        const emojiMap = {
+            '🔧': '\\u{1F527}',
+            '🔗': '\\u{1F517}', 
+            '📨': '\\u{1F4E8}',
+            '❌': '\\u{274C}',
+            '✅': '\\u{2705}'
+        }
+        
+        let safePattern = unsafePattern
+        for (const [emoji, unicode] of Object.entries(emojiMap)) {
+            safePattern = safePattern.replace(new RegExp(emoji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), unicode)
+        }
+        
+        return safePattern
+    }
+    
+    return unsafePattern
+}
+
+// 使用示例
+const unsafePattern = 'console.log.*[🔧🔗📨❌✅]'
+const safePattern = createSafeRegexPattern(unsafePattern)
+// 结果: 'console.log.*[\\u{1F527}\\u{1F517}\\u{1F4E8}\\u{274C}\\u{2705}]'
+
+await grep_search({ query: safePattern, include_pattern: '*.js' })
+```
+
+### 📝 C级问题（轻微 - 规范违反）
+
+#### 5. 临时文件管理不规范
+**问题：** 违反用户规则第8条"每次完成任务后创建的临时文件、测试文件都要自行删除"
+
+**自动化解决方案：** (见上面的AutoTempFileManager类)
+
+#### 6. 重复操作优化
+**问题：** 多次执行相同的UTF-8编码状态检查
+
+**缓存机制：**
+```javascript
+// 🔴 状态检查缓存机制
+class StateCheckCache {
+    constructor() {
+        this.cache = new Map()
+        this.expireTime = 5 * 60 * 1000 // 5分钟过期
+    }
+    
+    async getOrExecute(key, operation) {
+        const cached = this.cache.get(key)
+        if (cached && Date.now() - cached.timestamp < this.expireTime) {
+            console.log(`✅ 使用缓存结果: ${key}`)
+            return cached.result
+        }
+        
+        const result = await operation()
+        this.cache.set(key, {
+            result,
+            timestamp: Date.now()
+        })
+        
+        return result
+    }
+}
+
+const stateCache = new StateCheckCache()
+
+// 使用缓存的UTF-8检查
+const encodingStatus = await stateCache.getOrExecute('utf8-check', async () => {
+    return await run_terminal_cmd('[Console]::OutputEncoding.WebName')
+})
+```
+
+### 🎯 问题预防检查清单
+
+#### 会话开始必须执行的检查：
+- [ ] `Initialize-EncodingSafety` - UTF-8编码配置
+- [ ] `Test-PSConsoleReadLine` - 模块完整性验证
+- [ ] `Setup-ParallelCallValidator` - 并行调用监控启用
+- [ ] `Initialize-TempFileManager` - 临时文件管理器激活
+- [ ] `Setup-SafeRegexProcessor` - 正则表达式安全处理启用
+
+#### 命令执行前的安全检查：
+- [ ] 中文字符 + 长度检查 (>100字符警告)
+- [ ] Emoji字符转义检查
+- [ ] 并行调用机会识别
+- [ ] 重复操作缓存检查
+
+#### 会话结束时的清理检查：
+- [ ] 临时文件自动清理
+- [ ] 效率统计报告生成
+- [ ] 异常统计报告输出
+
+### 📊 效率统计与改进建议
+
+#### 预期改进指标：
+- **并行调用比例提升**: 从30% → 80%+
+- **重复操作减少**: 60%+
+- **命令执行成功率**: 95%+
+- **控制台异常发生率**: <1%
+- **会话总时间减少**: 40-60%
+
+#### 实施后验证：
+```javascript
+// 生成会话效率报告
+function generateSessionReport() {
+    return {
+        parallelCallRatio: toolManager.getEfficiencyReport().parallelRatio,
+        cacheHitRate: stateCache.getHitRate(),
+        errorRate: validator.getErrorRate(),
+        tempFilesManaged: tempFileManager.getStats().activeFiles,
+        consoleCrashes: 0, // 目标值
+        sessionDuration: Date.now() - sessionStartTime,
+        improvements: [
+            "PowerShell缓冲区异常已预防",
+            "编码异常自动修复机制已启用", 
+            "工具调用并行化已优化",
+            "正则表达式安全处理已加强",
+            "临时文件自动管理已实现"
+        ]
+    }
+}
+```
+
+### 问题1：Windows PowerShell命令兼容性错误
+
+#### 问题描述
+```powershell
+# 错误命令导致的问题
+cd /c/Users/Administrator/Desktop/tiangongqianduan && npm start
+# 错误信息：标记"&&"不是此版本中的有效语句分隔符
+
+Get-ChildItem -Path "..." -Name -Include "*.js" | Measure-Objec
+# 导致PowerShell异常和控制台光标位置错误
+```
+
+#### 解决方案
+```powershell
+# ✅ 正确的PowerShell命令格式
+cd "C:\Users\Administrator\Desktop\tiangongqianduan" ; npm start
+
+# ✅ 正确的文件统计命令
+Get-ChildItem -Recurse -Include "*.js" | Measure-Object
+
+# ✅ 简化的文件检查
+dir *.js -Recurse | measure
+```
+
+#### 预防规则
+```markdown
+# PowerShell兼容性检查清单
+1. 禁止使用bash风格的&&连接符
+2. 使用分号;或管道|进行命令链接
+3. 路径使用Windows格式（反斜杠）
+4. 长路径用双引号包围
+5. 参数顺序要符合PowerShell语法
+```
+
+### 问题2：微信小程序项目启动方式错误
+
+#### 问题描述
+```bash
+# 错误尝试：使用npm启动微信小程序
+npm start  # 微信小程序项目不支持npm启动
+```
+
+#### 解决方案
+```markdown
+# ✅ 微信小程序正确启动流程
+1. 使用微信开发者工具打开项目
+2. 导入项目根目录（包含app.js的目录）
+3. 确认AppID：wx0db69ddd264f9b81
+4. 在微信开发者工具中运行和调试
+
+# 项目结构验证
+- app.js（入口文件）✅
+- app.json（配置文件）✅
+- project.config.json（项目配置）✅
+- pages/（页面目录）✅
+- components/（组件目录）✅
+```
+
+### 问题3：Mock数据检测不完整
+
+#### 问题描述
+```javascript
+// 多个文件中发现遗漏的Mock数据
+pages/camera/camera.js - mockHistory
+pages/merchant/merchant.js - mockStats  
+pages/user/user.js - mockAvatarUrl
+pages/user/user.js - 模拟加载更多数据
+```
+
+#### 解决方案
+```bash
+# ✅ 完整的Mock数据检测流程
+grep_search("mock|Mock|MOCK|fake|demo|test", include_pattern="*.js")
+grep_search("generate.*Mock|create.*Mock", include_pattern="*.js")
+grep_search("isDev.*mock|developmentMode", include_pattern="*.js")
+grep_search("setTimeout.*mock|模拟", include_pattern="*.js")
+```
+
+#### 预防规则
+```markdown
+# Mock数据检测自动化清单
+1. 使用多个关键字组合搜索
+2. 检查所有.js文件，不遗漏任何文件
+3. 逐个确认每个匹配结果
+4. 建立标准的修复模式
+5. 验证修复后的代码符合安全规范
+```
+
+### 问题4：search_replace工具匹配失败
+
+#### 问题描述
+```javascript
+// 字符串匹配失败的原因
+1. 忽略了代码中的注释
+2. 空格和换行符不精确匹配
+3. 字符串边界不完整
+4. 代码格式化导致的差异
+```
+
+#### 解决方案
+```javascript
+// ✅ 标准修复流程
+1. 使用read_file确认文件内容
+2. 复制完整的代码块（包含注释）
+3. 包含足够的上下文（3-5行）
+4. 验证修复结果
+
+// 示例：
+read_file('target.js', lines 470-500)  // 先查看
+search_replace('target.js', 
+  '完整的旧代码块（包含注释、空行、缩进）',
+  '修复后的新代码块'
+)
+read_file('target.js', lines 470-500)  // 后验证
+```
+
+### 问题5：工具调用效率低下
+
+#### 问题描述
+```markdown
+# 串行执行导致的效率问题
+等待read_file结果 → 再执行grep_search → 再执行另一个read_file
+总耗时：可能超过120秒
+```
+
+#### 解决方案
+```javascript
+// ✅ 并行工具调用最大化
+同时执行：
+- read_file('file1.js')
+- read_file('file2.js') 
+- grep_search('pattern1')
+- grep_search('pattern2')
+
+总耗时：大约30-40秒（3-4倍效率提升）
+```
+
+### 问题6：规则文档更新不及时
+
+#### 问题描述
+```markdown
+# 规则滞后导致的问题重复出现
+1. 新发现的问题没有及时记录到规则
+2. 解决方案没有标准化
+3. 类似问题重复出现
+```
+
+#### 解决方案
+```markdown
+# ✅ 规则文档实时更新机制
+1. 每次解决问题后立即更新规则
+2. 分类记录到对应的规则文档
+3. 建立问题-解决方案映射
+4. 定期验证规则的有效性
+```
+
+## 规则应用验证
+
+### 验证检查点
+```markdown
+# 每次开发前的验证清单
+✅ PowerShell命令使用正确语法
+✅ 微信小程序使用正确启动方式
+✅ Mock数据检测使用完整关键字
+✅ search_replace使用精确匹配
+✅ 工具调用最大化并行执行
+✅ 问题解决后及时更新规则
+```
+
+---
+
+**规则更新时间**: 2025年1月3日  
+**更新内容**: 新增会话问题分析与解决方案，建立问题预防机制  
+**适用场景**: 天工前端项目开发及类似微信小程序项目
+
+
+

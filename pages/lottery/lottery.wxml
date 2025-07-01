@@ -144,11 +144,14 @@
       <text>📋 抽奖规则</text>
     </view>
     <view class="rules-content">
+      <!-- 🔴 规则从后端配置动态获取 - 符合项目安全规则 -->
       <view class="rule-item">• 每次抽奖消耗{{costPoints || 100}}积分</view>
-      <view class="rule-item">• 十连抽保底获得九八折券</view>
-      <view class="rule-item">• 活动限定奖品需要当日消费≥500元</view>
-      <view class="rule-item">• 高频操作将触发安全验证</view>
-      <view class="rule-item">• 单日积分消耗上限5000分</view>
+      <view class="rule-item" wx:if="{{lotteryRules.guaranteeRule}}">• {{lotteryRules.guaranteeRule}}</view>
+      <view class="rule-item" wx:if="{{lotteryRules.consumptionRule}}">• {{lotteryRules.consumptionRule}}</view>
+      <view class="rule-item" wx:if="{{lotteryRules.securityRule}}">• {{lotteryRules.securityRule}}</view>
+      <view class="rule-item" wx:if="{{lotteryRules.dailyLimitRule}}">• {{lotteryRules.dailyLimitRule}}</view>
+      <!-- 🚧 开发阶段：如果后端规则未配置，显示基础提示 -->
+      <view class="rule-item" wx:if="{{!lotteryRules || !lotteryRules.guaranteeRule}}">• 抽奖规则加载中...</view>
     </view>
   </view>
   
