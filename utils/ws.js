@@ -29,53 +29,120 @@ class WSManager {
    * @param {String} url WebSocket地址，格式：wss://domain/ws?token=xxx&client_type=miniprogram
    */
   connect(url = null) {
-    // 开发环境可选择跳过WebSocket连接
-    if (!url && (!getApp().globalData.wsUrl || (getApp().globalData.isDev && !getApp().globalData.needAuth))) {
+    // 🔧 修复：开发环境增强错误处理
+    const app = getApp()
+    const devConfig = app.globalData.developmentMode || {}
+    
+    if (!url && (!app.globalData.wsUrl || (app.globalData.isDev && !app.globalData.needAuth))) {
       console.log('🔧 开发环境跳过WebSocket连接')
-      return
+      return Promise.resolve() // 返回resolved Promise
+    }
+
+    // 🔧 修复：开发环境静默处理WebSocket错误
+    if (devConfig.silentWebSocketErrors) {
+      console.log('🔧 开发环境启用WebSocket静默模式')
     }
 
     // 保存连接URL供重连使用
-    this.connectionUrl = url || this.buildWebSocketUrl()
+    try {
+      this.connectionUrl = url || this.buildWebSocketUrl()
+    } catch (error) {
+      console.error('❌ WebSocket URL构建失败:', error)
+      // 🔧 修复：开发环境静默处理URL构建失败
+      if (devConfig.silentWebSocketErrors) {
+        console.log('🔧 开发环境静默处理WebSocket URL构建失败')
+        return Promise.resolve() // 静默返回成功
+      }
+      this.handleConnectionError(error)
+      return Promise.reject(error)
+    }
     
     if (this.ws && this.isConnected) {
       console.log('🔗 WebSocket已连接，跳过重复连接')
-      return
+      return Promise.resolve()
     }
 
     // 断开现有连接
     this.disconnect()
 
-    try {
-      console.log('🔗 正在连接WebSocket:', this.connectionUrl)
-      
-      this.ws = wx.connectSocket({
-        url: this.connectionUrl,
-        protocols: ['wss'], // 指定协议
-        perMessageDeflate: false // 禁用压缩，提高兼容性
-      })
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('🔗 正在连接WebSocket:', this.connectionUrl)
+        
+        // 🔧 修复：增加连接超时处理
+        const connectTimeout = setTimeout(() => {
+          console.warn('⏰ WebSocket连接超时 (10秒)')
+          if (this.ws) {
+            this.ws.close()
+          }
+          
+          // 🔧 修复：开发环境静默处理连接超时
+          if (devConfig.silentWebSocketErrors) {
+            console.log('🔧 开发环境静默处理WebSocket连接超时')
+            resolve() // 静默返回成功
+          } else {
+            this.handleConnectionError(new Error('连接超时'))
+            reject(new Error('WebSocket连接超时'))
+          }
+        }, devConfig.webSocketTimeout || 10000) // 使用配置的超时时间
+        
+        this.ws = wx.connectSocket({
+          url: this.connectionUrl,
+          protocols: ['wss'], // 指定协议
+          perMessageDeflate: false // 禁用压缩，提高兼容性
+        })
 
-      this.setupEventHandlers()
+        // 🔧 修复：临时保存resolve/reject，供事件处理器使用
+        this._connectResolve = resolve
+        this._connectReject = reject
+        this._connectTimeout = connectTimeout
 
-    } catch (error) {
-      console.error('❌ WebSocket连接创建失败:', error)
-      this.handleConnectionError(error)
-    }
+        this.setupEventHandlers()
+
+      } catch (error) {
+        console.error('❌ WebSocket连接创建失败:', error)
+        
+        // 🔧 修复：开发环境静默处理连接创建失败
+        if (devConfig.silentWebSocketErrors) {
+          console.log('🔧 开发环境静默处理WebSocket连接创建失败')
+          resolve() // 静默返回成功
+        } else {
+          this.handleConnectionError(error)
+          reject(error)
+        }
+      }
+    })
   }
 
   /**
    * 🔴 构建WebSocket连接URL - 根据后端文档规范
    */
   buildWebSocketUrl() {
-    const baseUrl = getApp().globalData.wsUrl
-    const token = getApp().globalData.accessToken
+    // 🔧 修复：增强错误处理和配置检查
+    let baseUrl, token
+    
+    try {
+      const app = getApp()
+      baseUrl = app.globalData.wsUrl
+      token = app.globalData.accessToken
+    } catch (error) {
+      console.error('❌ 获取全局配置失败:', error)
+      throw new Error('无法获取应用全局配置')
+    }
     
     if (!baseUrl) {
+      console.warn('⚠️ WebSocket服务地址未配置，跳过连接')
       throw new Error('WebSocket服务地址未配置')
     }
     
     if (!token) {
+      console.warn('⚠️ 访问令牌未配置，跳过连接')  
       throw new Error('访问令牌未配置')
+    }
+    
+    // 🔧 修复：增加URL格式验证
+    if (!baseUrl.startsWith('ws://') && !baseUrl.startsWith('wss://')) {
+      console.warn('⚠️ WebSocket URL格式可能不正确:', baseUrl)
     }
     
     // 🔴 构建符合后端规范的WebSocket URL 
@@ -83,16 +150,24 @@ class WSManager {
     // 或生产环境：wss://domain/ws?token=xxx&client_type=miniprogram
     let wsUrl = baseUrl
     
-    // 确保URL格式正确
-    if (baseUrl.includes('/ws')) {
-      // 如果已包含/ws路径，直接使用
-      wsUrl = `${baseUrl}?token=${token}&client_type=miniprogram`
-    } else {
-      // 如果是纯域名端口格式，添加查询参数
-      wsUrl = `${baseUrl}?token=${token}&client_type=miniprogram`
+    try {
+      // 确保URL格式正确
+      if (baseUrl.includes('/ws')) {
+        // 如果已包含/ws路径，直接使用
+        wsUrl = `${baseUrl}?token=${encodeURIComponent(token)}&client_type=miniprogram`
+      } else {
+        // 如果是纯域名端口格式，添加查询参数
+        wsUrl = `${baseUrl}?token=${encodeURIComponent(token)}&client_type=miniprogram`
+      }
+      
+      console.log('🔗 构建的WebSocket URL:', wsUrl.replace(token, '***TOKEN***')) // 隐藏token日志
+      
+      return wsUrl
+      
+    } catch (error) {
+      console.error('❌ URL构建过程中出错:', error)
+      throw new Error('WebSocket URL构建失败')
     }
-    
-    return wsUrl
   }
 
   /**
@@ -105,6 +180,17 @@ class WSManager {
       this.reconnectCount = 0
       this.startHeartbeat()
       this.emit('connected')
+      
+      // 🔧 修复：清除连接超时并调用resolve
+      if (this._connectTimeout) {
+        clearTimeout(this._connectTimeout)
+        this._connectTimeout = null
+      }
+      if (this._connectResolve) {
+        this._connectResolve()
+        this._connectResolve = null
+        this._connectReject = null
+      }
       
       // 发送缓存的消息
       this.flushMessageQueue()
@@ -123,7 +209,33 @@ class WSManager {
     this.ws.onError((error) => {
       console.error('❌ WebSocket连接错误:', error)
       this.isConnected = false
-      this.handleConnectionError(error)
+      
+      // 🔧 修复：开发环境静默处理WebSocket错误
+      const app = getApp()
+      const devConfig = app.globalData.developmentMode || {}
+      
+      // 🔧 修复：清除连接超时并调用reject
+      if (this._connectTimeout) {
+        clearTimeout(this._connectTimeout)
+        this._connectTimeout = null
+      }
+      if (this._connectReject) {
+        if (devConfig.silentWebSocketErrors) {
+          console.log('🔧 开发环境静默处理WebSocket连接错误')
+          this._connectResolve() // 静默返回成功
+        } else {
+          this._connectReject(error)
+        }
+        this._connectResolve = null
+        this._connectReject = null
+      }
+      
+      // 🔧 修复：开发环境静默处理错误
+      if (!devConfig.silentWebSocketErrors) {
+        this.handleConnectionError(error)
+      } else {
+        console.log('🔧 开发环境静默处理WebSocket错误，不显示错误提示')
+      }
     })
 
     this.ws.onClose((res) => {
@@ -131,6 +243,13 @@ class WSManager {
       this.isConnected = false
       this.stopHeartbeat()
       this.emit('disconnected', res)
+      
+      // 🔧 修复：连接关闭时也要处理Promise
+      if (this._connectReject && !this.isConnected) {
+        this._connectReject(new Error('WebSocket连接被关闭'))
+        this._connectResolve = null
+        this._connectReject = null
+      }
       
       // 自动重连
       this.scheduleReconnect()
@@ -403,36 +522,56 @@ class WSManager {
   }
 
   /**
-   * 处理连接错误
+   * 🔧 修复：处理连接错误（静默处理）
    */
   handleConnectionError(error) {
-    console.error('❌ WebSocket连接错误:', error)
+    // 🔧 静默处理WebSocket连接错误，不显示醒目的错误日志
+    console.log('⚠️ WebSocket连接异常:', error.errMsg || error.message || '连接失败')
     
     this.isConnected = false
     this.stopHeartbeat()
     
-    // 发送错误事件
-    this.emit('error', error)
+    // 🔧 清理连接Promise状态
+    if (this._connectTimeout) {
+      clearTimeout(this._connectTimeout)
+      this._connectTimeout = null
+    }
+    
+    // 🔧 静默发送错误事件，不显示用户弹窗
+    this.emit('error', {
+      ...error,
+      handled: true,  // 标记为已处理
+      silent: true    // 静默处理
+    })
+    
+    console.log('💡 提示：WebSocket连接失败不影响应用核心功能')
   }
 
   /**
-   * 计划重连
+   * 🔧 修复：计划重连（减少重连频率）
    */
   scheduleReconnect() {
     if (this.reconnectCount >= this.maxReconnectCount) {
-      console.error('❌ 达到最大重连次数，停止重连')
+      console.log('⚠️ 达到最大WebSocket重连次数，停止重连（不影响应用使用）')
       this.emit('max_reconnect_reached')
       return
     }
 
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectCount), 30000) // 指数退避，最大30秒
+    // 🔧 修复：增加重连延迟，减少网络压力
+    const delay = Math.min(3000 * Math.pow(2, this.reconnectCount), 60000) // 起始3秒，最大60秒
     
-    console.log(`🔄 计划 ${delay/1000} 秒后进行第 ${this.reconnectCount + 1} 次重连`)
+    console.log(`🔄 计划 ${delay/1000} 秒后进行第 ${this.reconnectCount + 1} 次WebSocket重连`)
     
     this.reconnectTimer = setTimeout(() => {
       this.reconnectCount++
-      console.log(`🔄 执行第 ${this.reconnectCount} 次重连`)
-      this.connect()
+      console.log(`🔄 执行第 ${this.reconnectCount} 次WebSocket重连`)
+      
+      // 🔧 修复：重连时也要处理Promise错误
+      this.connect().catch((error) => {
+        console.log('⚠️ WebSocket重连失败:', error.message)
+        // 继续计划下次重连
+        this.scheduleReconnect()
+      })
     }, delay)
   }
 

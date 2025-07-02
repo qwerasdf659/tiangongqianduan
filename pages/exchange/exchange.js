@@ -198,32 +198,45 @@ Page({
           
           console.log('✅ 商品列表加载成功，共', result.data.products.length, '个商品')
         } else {
-          throw new Error('商品数据格式异常')
+          throw new Error('⚠️ 后端返回数据格式不正确')
         }
       } else {
         throw new Error('⚠️ 后端服务异常：' + result.msg)
       }
     }).catch((error) => {
-      console.error('❌ 加载商品失败:', error)
+      console.error('❌ 获取商品列表失败:', error)
       
-      this.setData({ loading: false })
-      
-      // 🚨 显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法获取商品列表！\n\n请检查后端API服务状态：\nGET /api/exchange/products',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
-      
-      // 使用空数据，避免页面崩溃
-      this.setData({
+      this.setData({ 
+        loading: false,
         products: [],
         totalCount: 0
       })
       
-      this.filterProducts()
+      // 🔧 优化：显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `无法获取商品列表！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/exchange/products\n\n商品兑换功能需要后端服务支持。`,
+        showCancel: true,
+        cancelText: '返回首页',
+        confirmText: '重试',
+        confirmColor: '#FF6B35',
+        success: (res) => {
+          if (res.confirm) {
+            // 重新加载商品
+            this.loadProducts()
+          } else {
+            // 返回首页
+            wx.switchTab({
+              url: '/pages/index/index'
+            })
+          }
+        }
+      })
+      
+      // 设置安全的默认值
+      this.setData({
+        filteredProducts: []
+      })
     })
   },
 

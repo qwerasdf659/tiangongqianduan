@@ -43,6 +43,7 @@ const request = (options) => {
       method,
       data,
       header,
+      timeout: 10000, // 🔧 增加超时时间到10秒，提升连接成功率
       success(res) {
         if (showLoading) {
           wx.hideLoading()

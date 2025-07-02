@@ -962,33 +962,39 @@ Page({
   },
 
   /**
-   * 🔴 加载商品统计 - 必须从后端API获取
+   * 🔴 加载商品统计数据 - 必须从后端API获取
    * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
+   * 
+   * 接口：GET /api/merchant/product-stats
+   * 认证：需要Bearer Token，且用户需要有商家权限
+   * 返回：商品统计信息，包括上架数量、下架数量、低库存数量等
    */
   loadProductStats() {
-    console.log('📡 请求商品统计接口...')
+    console.log('📊 请求商品统计接口...')
     
     return merchantAPI.getProductStats().then((result) => {
       if (result.code === 0) {
-        this.setData({ productStats: result.data })
-        console.log('✅ 商品统计加载成功')
+        this.setData({
+          productStats: result.data
+        })
+        console.log('✅ 商品统计加载成功:', result.data)
       } else {
         throw new Error('⚠️ 后端服务异常：' + result.msg)
       }
     }).catch((error) => {
       console.error('❌ 获取商品统计失败:', error)
       
-      // 🚨 显示后端服务异常提示 - 严禁使用Mock数据
+      // 🔧 优化：显示后端服务异常提示
       wx.showModal({
         title: '🚨 后端服务异常',
-        content: '无法获取商品统计！\n\n请检查后端API服务状态：\nGET /api/merchant/product-stats',
+        content: `无法获取商品统计数据！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/merchant/product-stats`,
         showCancel: false,
         confirmText: '知道了',
         confirmColor: '#ff4444'
       })
       
-      // 设置安全的空数据
-      this.setData({ 
+      // 设置安全的默认值
+      this.setData({
         productStats: {
           activeCount: 0,
           offlineCount: 0,

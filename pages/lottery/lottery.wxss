@@ -560,6 +560,39 @@ text {
 .prize-desc {
   font-size: 24rpx;
   color: var(--gray-color);
+  margin-bottom: 8rpx;
+}
+
+.prize-extra {
+  font-size: 24rpx;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.prize-status {
+  margin-left: 15rpx;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  text-align: center;
+  min-width: 60rpx;
+}
+
+.status-badge.win {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.3);
+}
+
+.status-badge.near-miss {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+  color: white;
+  box-shadow: 0 2rpx 8rpx rgba(255, 152, 0, 0.3);
 }
 
 .result-footer {

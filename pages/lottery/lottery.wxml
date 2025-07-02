@@ -121,9 +121,15 @@
         >
           <view class="prize-icon">🎁</view>
           <view class="prize-info">
-            <text class="prize-name">{{item.prize_name}}</text>
-            <text class="prize-desc">
-              {{item.is_near_miss ? '差一点就中了！' : '恭喜中奖！'}}
+            <text class="prize-name">{{item.display_name}}</text>
+            <text class="prize-desc">{{item.display_desc}}</text>
+            <text class="prize-extra" wx:if="{{item.points > 0}}">
+              +{{item.points}}积分
+            </text>
+          </view>
+          <view class="prize-status">
+            <text class="status-badge {{item.is_near_miss ? 'near-miss' : 'win'}}">
+              {{item.is_near_miss ? '差一点' : '中奖了'}}
             </text>
           </view>
         </view>

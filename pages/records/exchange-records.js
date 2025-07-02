@@ -113,53 +113,80 @@ Page({
   },
 
   /**
-   * 加载兑换记录
-   * TODO: 后端对接 - 兑换记录接口
+   * 🔴 加载兑换记录 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
    * 
-   * 对接说明：
    * 接口：GET /api/exchange/records?page=1&page_size=20&status=all
    * 认证：需要Bearer Token
-   * 返回：兑换记录列表，包括商品、状态、物流等信息
+   * 返回：用户兑换记录列表，包含商品信息和兑换状态
    */
   loadRecords() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 生成模拟兑换记录数据')
-      // 🚨 已删除：generateMockRecords()违规调用
-      // ✅ 必须从后端API获取：exchangeAPI.getRecords()
-      
-      // 🚨 已删除：mockRecords违规使用
-      // ✅ 必须从后端API获取数据
-      throw new Error('开发环境已禁用Mock数据，请使用真实后端API')
-      return Promise.resolve()
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求兑换记录接口...')
-      
-      // 模拟网络延迟
-      return new Promise(resolve => setTimeout(resolve, 300)).then(() => {
-        return exchangeAPI.getRecords(this.data.currentPage, this.data.pageSize)
-      }).then((res) => {
+    console.log('📡 请求兑换记录接口...')
+    
+    return exchangeAPI.getRecords(this.data.currentPage, this.data.pageSize, this.data.filterStatus).then((res) => {
+      if (res.code === 0) {
         const newRecords = res.data.records || []
+        
+        // 处理兑换记录数据
+        const processedRecords = newRecords.map(record => ({
+          ...record,
+          // 格式化时间显示
+          created_at_formatted: this.formatTime(record.created_at),
+          delivery_time_formatted: record.delivery_time ? this.formatTime(record.delivery_time) : null,
+          // 商品显示信息
+          product_display: record.product_name || '未知商品',
+          // 积分消耗显示
+          cost_display: `-${record.points_cost || 0}`,
+          // 状态文本
+          status_text: this.getStatusText(record.status),
+          status_class: this.getStatusClass(record.status),
+          // 配送信息
+          delivery_info: record.delivery_address || '待填写'
+        }))
+        
         this.setData({
-          records: this.data.currentPage === 1 ? newRecords : [...this.data.records, ...newRecords],
-          hasMore: newRecords.length === this.data.pageSize,
+          records: this.data.currentPage === 1 ? processedRecords : [...this.data.records, ...processedRecords],
+          hasMore: processedRecords.length === this.data.pageSize,
           totalRecords: res.data.total || 0
         })
         
-        console.log('✅ 兑换记录加载成功，共', newRecords.length, '条记录')
-      }).catch((error) => {
-        console.error('❌ 获取兑换记录失败:', error)
-        
-        // 使用默认数据，避免页面空白
-        if (this.data.currentPage === 1) {
-          this.setData({
-            records: [],
-            hasMore: false
-          })
+        console.log('✅ 兑换记录加载成功，共', processedRecords.length, '条记录')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取兑换记录失败:', error)
+      
+      // 🔧 优化：显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `无法获取兑换记录！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/exchange/records\n\n商品兑换记录功能需要后端服务支持。`,
+        showCancel: true,
+        cancelText: '返回首页',
+        confirmText: '重试',
+        confirmColor: '#FF6B35',
+        success: (res) => {
+          if (res.confirm) {
+            // 重新加载记录
+            this.loadRecords()
+          } else {
+            // 返回首页
+            wx.switchTab({
+              url: '/pages/index/index'
+            })
+          }
         }
       })
-    }
+      
+      // 设置安全的默认值
+      if (this.data.currentPage === 1) {
+        this.setData({
+          records: [],
+          hasMore: false,
+          totalRecords: 0
+        })
+      }
+    })
   },
 
   /**
@@ -182,28 +209,90 @@ Page({
   },
 
   /**
-   * 加载统计数据
+   * 🔴 加载统计数据 - 必须从后端API获取
+   * 接口：GET /api/exchange/statistics
+   * 认证：需要Bearer Token
+   * 返回：用户兑换统计信息
    */
   loadStatistics() {
-    // 模拟统计数据
-    const statistics = {
-      totalExchanges: 28,
-      totalPointsSpent: 22400,
-      completedCount: 25,
-      pendingCount: 2,
-      failedCount: 1,
-      favoriteCategory: '饮品券'
-    }
+    console.log('📊 加载兑换统计数据...')
     
-    this.setData({ statistics })
-    return Promise.resolve()
+    return exchangeAPI.getStatistics().then((res) => {
+      if (res.code === 0) {
+        this.setData({
+          statistics: {
+            totalExchanges: res.data.total_exchanges || 0,
+            totalPointsSpent: res.data.total_points_spent || 0,
+            completedCount: res.data.completed_count || 0,
+            pendingCount: res.data.pending_count || 0,
+            failedCount: res.data.failed_count || 0,
+            favoriteCategory: res.data.favorite_category || '暂无'
+          }
+        })
+        console.log('✅ 兑换统计数据加载成功')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取兑换统计失败:', error)
+      
+      // 设置安全的默认值
+      this.setData({
+        statistics: {
+          totalExchanges: 0,
+          totalPointsSpent: 0,
+          completedCount: 0,
+          pendingCount: 0,
+          failedCount: 0,
+          favoriteCategory: '暂无'
+        }
+      })
+    })
   },
 
   /**
-   * 🚨 已删除违规函数：generateMockRecords()
-   * 🔴 原因：违反项目安全规则 - 严禁前端硬编码敏感业务数据
-   * ✅ 正确做法：使用exchangeAPI.getRecords()获取真实数据
+   * 获取状态文本
    */
+  getStatusText(status) {
+    const statusMap = {
+      'pending': '待发货',
+      'shipped': '已发货',
+      'delivered': '已收货',
+      'completed': '已完成',
+      'cancelled': '已取消',
+      'failed': '兑换失败'
+    }
+    return statusMap[status] || '未知状态'
+  },
+
+  /**
+   * 获取状态样式类
+   */
+  getStatusClass(status) {
+    const classMap = {
+      'pending': 'status-pending',
+      'shipped': 'status-shipped',
+      'delivered': 'status-delivered',
+      'completed': 'status-completed',
+      'cancelled': 'status-cancelled',
+      'failed': 'status-failed'
+    }
+    return classMap[status] || 'status-unknown'
+  },
+
+  /**
+   * 格式化时间显示
+   */
+  formatTime(timeString) {
+    if (!timeString) return '未知时间'
+    
+    try {
+      const date = new Date(timeString)
+      return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
+    } catch (error) {
+      return '时间格式错误'
+    }
+  },
 
   /**
    * 筛选状态改变

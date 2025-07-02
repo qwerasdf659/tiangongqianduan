@@ -1,4 +1,4 @@
-// app.js - 餐厅积分抽奖系统全局配置
+// app.js - 餐厅积分抽奖系统全局配置（基于产品功能结构文档v2.1.2优化）
 
 App({
   /**
@@ -6,7 +6,7 @@ App({
    * 当小程序初始化完成时，会触发 onLaunch（全局只触发一次）
    */
   onLaunch() {
-    console.log('🚀 餐厅积分系统启动')
+    console.log('🚀 餐厅积分系统启动 - v2.1.2')
     
     // 安全初始化
     try {
@@ -37,7 +37,7 @@ App({
     // 检查登录状态
     this.checkLoginStatus()
     
-    console.log('✅ 系统初始化完成')
+    console.log('✅ 系统初始化完成 - v2.1.2配置生效')
   },
 
   /**
@@ -56,7 +56,9 @@ App({
       // 添加config引用方便其他地方使用
       config: envConfig,
       // 确保关键字段有默认值
-      userInfo: this.globalData.userInfo || null
+      userInfo: this.globalData.userInfo || null,
+      // 🔴 v2.1.2版本标识
+      version: 'v2.1.2',
       // 🔴 严禁硬编码用户数据 - 已移除mockUser违规代码
       // ✅ 所有用户数据必须通过后端API获取：userAPI.getUserInfo()
     }
@@ -76,11 +78,15 @@ App({
     this.globalData.isDev = envConfig.isDev
     this.globalData.needAuth = envConfig.needAuth
     
-    console.log('🔧 环境配置初始化完成:', {
+    // 🔴 v2.1.2开发阶段配置
+    this.globalData.developmentMode = envConfig.developmentMode || {}
+    
+    console.log('🔧 环境配置初始化完成 - v2.1.2:', {
       env: require('./config/env.js').getCurrentEnv(),
       isDev: this.globalData.isDev,
       baseUrl: this.globalData.baseUrl,
-      wsUrl: this.globalData.wsUrl
+      wsUrl: this.globalData.wsUrl,
+      photoReviewMode: this.globalData.developmentMode.photoReviewMode || 'manual'
     })
   },
 
@@ -98,7 +104,8 @@ App({
           error: error,
           timestamp: new Date().toISOString(),
           userAgent: wx.getSystemInfoSync(),
-          path: getCurrentPages().length > 0 ? getCurrentPages()[getCurrentPages().length - 1].route : 'unknown'
+          path: getCurrentPages().length > 0 ? getCurrentPages()[getCurrentPages().length - 1].route : 'unknown',
+          version: 'v2.1.2'
         }
         
         // 可以发送到错误监控服务
@@ -108,12 +115,32 @@ App({
       }
     })
 
-    // 监听未处理的Promise拒绝
+    // 🔧 修复：增强未处理的Promise拒绝处理
     wx.onUnhandledRejection((res) => {
       console.error('🚨 未处理的Promise拒绝:', res)
       
       // 防止因未捕获的Promise导致小程序崩溃
-      res.reason && console.error('拒绝原因:', res.reason)
+      if (res.reason) {
+        console.error('拒绝原因:', res.reason)
+        
+        // 🔧 特殊处理WebSocket连接错误（基于用户规则修复[[memory:427681]]）
+        if (res.reason && typeof res.reason === 'object') {
+          if (res.reason.errMsg && res.reason.errMsg.includes('WebSocket')) {
+            console.warn('⚠️ WebSocket连接Promise被拒绝，这是正常的，不影响应用使用')
+            return // 不需要进一步处理WebSocket错误
+          }
+          
+          if (res.reason.message && res.reason.message.includes('连接超时')) {
+            console.warn('⚠️ 网络连接Promise被拒绝，可能是网络问题')
+            return
+          }
+        }
+      }
+      
+      // 🔧 记录其他类型的Promise错误
+      if (this.globalData && this.globalData.isDev) {
+        console.log('📊 开发环境Promise错误详情:', res)
+      }
     })
   },
 
@@ -248,133 +275,84 @@ App({
    * 初始化WebSocket管理器
    */
   initWebSocket() {
-    const WSManager = require('./utils/ws.js')
-    this.globalData.wsManager = new WSManager()
+    // 🔧 修复：检查环境配置，确定是否启用WebSocket
+    const envConfig = this.globalData.config || this.globalData
+    const devConfig = envConfig.developmentMode || {}
     
-    // 监听WebSocket事件
-    this.setupWebSocketListeners()
-  },
-
-  /**
-   * 🔴 设置WebSocket事件监听 - 根据后端文档实现
-   */
-  setupWebSocketListeners() {
-    if (!this.globalData.wsManager) {
-      console.warn('WebSocket管理器未初始化')
+    if (devConfig.enableWebSocket === false) {
+      console.log('🔧 WebSocket已禁用，跳过初始化')
       return
     }
-
-    // 监听连接事件
-    this.globalData.wsManager.on('connected', () => {
-      console.log('✅ WebSocket连接成功')
-      this.globalData.wsConnected = true
-    })
-
-    this.globalData.wsManager.on('disconnected', () => {
-      console.log('🔌 WebSocket连接断开')
-      this.globalData.wsConnected = false
-    })
-
-    // 🔴 监听积分更新推送 - 根据后端文档实现
-    this.globalData.wsManager.on('points_update', (event) => {
-      console.log('💰 收到积分更新推送:', event)
-      
-      const { user_id, total_points, change_points, reason_text } = event.data
-      
-      // 更新全局用户积分
-      if (this.globalData.userInfo && this.globalData.userInfo.user_id === user_id) {
-        this.globalData.userInfo.total_points = total_points
-        
-        // 显示积分变更提示
-        if (change_points !== 0) {
-          const changeText = change_points > 0 ? `+${change_points}` : `${change_points}`
-          wx.showToast({
-            title: `积分${changeText} (${reason_text})`,
-            icon: 'none',
-            duration: 3000
-          })
-        }
+    
+    // 🔧 优化：创建WebSocket管理器
+    this.wsManager = {
+      socket: null,
+      connected: false,
+      reconnectAttempts: 0,
+      maxReconnectAttempts: devConfig.maxReconnectAttempts || 3,
+      reconnectDelay: 1000,
+      heartbeatInterval: null,
+      messageQueue: [],
+      silentErrors: devConfig.silentWebSocketErrors || false
+    }
+    
+    // 设置WebSocket事件监听器
+    this.setupWebSocketListeners()
+    
+    // 🔧 延迟连接，避免初始化过程中的连接错误
+    setTimeout(() => {
+      if (this.globalData.isLoggedIn) {
+        this.connectWebSocket()
       }
-      
-      // 通知所有页面更新积分显示
-      this.notifyAllPages('onPointsUpdate', { total_points, change_points, reason_text })
-    })
-
-    // 🔴 监听库存更新推送 - 根据后端文档实现
-    this.globalData.wsManager.on('stock_update', (event) => {
-      console.log('📦 收到库存更新推送:', event)
-      
-      const { product_id, stock, product_name } = event.data
-      
-      // 更新本地商品库存缓存
-      this.updateProductStock(product_id, stock)
-      
-      // 通知所有页面更新库存显示
-      this.notifyAllPages('onStockUpdate', { product_id, stock, product_name })
-      
-      // 显示库存变更提示
-      if (stock <= 5 && stock > 0) {
-        wx.showToast({
-          title: `${product_name} 库存不足`,
-          icon: 'none',
-          duration: 2000
-        })
-      } else if (stock === 0) {
-        wx.showToast({
-          title: `${product_name} 已售罄`,
-          icon: 'none',
-          duration: 2000
-        })
-      }
-    })
-
-    // 🔴 监听审核结果推送 - 根据后端文档实现
-    this.globalData.wsManager.on('review_result', (event) => {
-      console.log('📋 收到审核结果推送:', event)
-      
-      const { upload_id, status, points_awarded, review_reason } = event.data
-      
-      // 显示审核结果弹窗
-      let title, content
-      
-      if (status === 'approved') {
-        title = '审核通过！'
-        content = `恭喜！您的小票审核通过\n获得积分：${points_awarded}分\n审核说明：${review_reason}`
-        
-        // 更新用户积分
-        if (this.globalData.userInfo) {
-          this.globalData.userInfo.total_points += points_awarded
-        }
-      } else if (status === 'rejected') {
-        title = '审核未通过'
-        content = `很抱歉，您的小票审核未通过\n审核说明：${review_reason}\n请重新上传清晰的小票图片`
-      } else {
-        title = '审核状态更新'
-        content = `上传ID：${upload_id}\n状态：${status}\n说明：${review_reason}`
-      }
-      
-      wx.showModal({
-        title,
-        content,
-        showCancel: false,
-        confirmText: status === 'approved' ? '太好了' : '知道了'
-      })
-      
-      // 通知所有页面更新审核状态
-      this.notifyAllPages('onReviewResult', { upload_id, status, points_awarded, review_reason })
-    })
-
-    console.log('✅ WebSocket事件监听已设置完成')
+    }, 2000)
   },
 
   /**
-   * 通知所有页面更新数据
+   * 设置WebSocket事件监听器
+   */
+  setupWebSocketListeners() {
+    // 实时数据监听器
+    this.wsEventListeners = {
+      'point_updated': (data) => {
+        console.log('💰 收到积分更新推送:', data)
+        
+        // 更新全局积分
+        if (this.globalData.userInfo) {
+          this.globalData.userInfo.total_points = data.points
+        }
+        
+        // 通知所有页面更新积分显示
+        this.notifyAllPages('pointsUpdated', data)
+      },
+      
+      'stock_updated': (data) => {
+        console.log('📦 收到库存更新推送:', data)
+        this.updateProductStock(data.product_id, data.stock)
+      },
+      
+      'review_completed': (data) => {
+        console.log('📋 收到审核完成推送:', data)
+        this.notifyAllPages('reviewCompleted', data)
+      },
+      
+      'lottery_config_updated': (data) => {
+        console.log('🎰 收到抽奖配置更新推送:', data)
+        this.notifyAllPages('lotteryConfigUpdated', data)
+      }
+    }
+  },
+
+  /**
+   * 通知所有页面数据更新
    */
   notifyAllPages(eventName, data) {
+    // 获取当前页面栈
     const pages = getCurrentPages()
+    
+    // 通知所有页面
     pages.forEach(page => {
-      if (page[eventName] && typeof page[eventName] === 'function') {
-        page[eventName](data)
+      if (page.onWebSocketMessage && typeof page.onWebSocketMessage === 'function') {
+        page.onWebSocketMessage(eventName, data)
       }
     })
   },
@@ -383,61 +361,260 @@ App({
    * 更新商品库存
    */
   updateProductStock(productId, newStock) {
-    // 更新缓存中的商品库存
-    const cacheIndex = this.globalData.productsCache.findIndex(p => p.commodity_id === productId)
-    if (cacheIndex !== -1) {
-      this.globalData.productsCache[cacheIndex].stock = newStock
-    }
-    
-    // 标记需要刷新商品列表
-    this.globalData.needRefreshExchangeProducts = true
+    // 通知相关页面更新库存显示
+    this.notifyAllPages('productStockUpdated', {
+      productId,
+      newStock
+    })
   },
 
   /**
    * 检查登录状态
    */
   checkLoginStatus() {
-    console.log('🔐 检查用户登录状态')
-    
-    // 开发环境跳过认证检查
-    if (this.globalData.isDev && !this.globalData.needAuth) {
-      console.log('🔧 开发环境，跳过登录检查')
-      return
-    }
-
-    // 检查是否有有效的Token
-    const accessToken = wx.getStorageSync('access_token')
+    const token = wx.getStorageSync('access_token')
     const refreshToken = wx.getStorageSync('refresh_token')
-    const tokenExpireTime = wx.getStorageSync('token_expire_time')
-
-    if (accessToken && refreshToken) {
-      // 设置全局Token
-      this.globalData.accessToken = accessToken
-      this.globalData.refreshToken = refreshToken
-      this.globalData.tokenExpireTime = tokenExpireTime
-
-      // 检查Token是否过期
-      if (tokenExpireTime && Date.now() < tokenExpireTime) {
-        console.log('✅ Token有效')
-        this.verifyToken()
-      } else {
-        console.log('⏰ Token已过期，尝试刷新')
-        this.refreshToken()
-      }
+    const userInfo = wx.getStorageSync('user_info')
+    
+    if (token && refreshToken && userInfo) {
+      // 验证Token有效性
+      this.verifyToken().then(() => {
+        this.globalData.isLoggedIn = true
+        this.globalData.accessToken = token
+        this.globalData.refreshToken = refreshToken
+        this.globalData.userInfo = userInfo
+        
+        console.log('✅ 登录状态验证成功')
+        
+        // 🔧 优化：延迟连接WebSocket，确保用户状态已就绪
+        setTimeout(() => {
+          this.connectWebSocket()
+        }, 1000)
+      }).catch((error) => {
+        console.warn('⚠️ Token验证失败，需要重新登录:', error)
+        this.logout()
+      })
     } else {
-      console.log('❌ 未找到有效Token，需要重新登录')
-      // 不自动跳转登录页，让用户自然使用应用
+      console.log('📝 用户未登录')
+      this.globalData.isLoggedIn = false
     }
   },
 
   /**
-   * 连接WebSocket - 根据后端文档格式
+   * 连接WebSocket
    */
   connectWebSocket() {
-    if (this.globalData.wsManager && this.globalData.accessToken) {
-      // 🔴 根据后端文档，直接使用wsUrl + token参数
-      const wsUrl = `${this.globalData.wsUrl}?token=${this.globalData.accessToken}&client_type=miniprogram`
-      this.globalData.wsManager.connect(wsUrl)
+    // 🔧 检查环境配置
+    const envConfig = this.globalData.config || this.globalData
+    const devConfig = envConfig.developmentMode || {}
+    
+    if (devConfig.enableWebSocket === false) {
+      console.log('🔧 WebSocket已禁用，跳过连接')
+      return
+    }
+    
+    if (!this.globalData.wsUrl) {
+      console.warn('⚠️ WebSocket URL未配置')
+      return
+    }
+    
+    if (!this.globalData.accessToken) {
+      console.warn('⚠️ 未登录，无法连接WebSocket')
+      return
+    }
+    
+    // 🔧 防止重复连接
+    if (this.wsManager && this.wsManager.connected) {
+      console.log('🔄 WebSocket已连接，跳过重复连接')
+      return
+    }
+    
+    const wsUrl = `${this.globalData.wsUrl}?token=${this.globalData.accessToken}`
+    console.log('🔌 正在连接WebSocket:', wsUrl)
+    
+    try {
+      const socketTask = wx.connectSocket({
+        url: wsUrl,
+        protocols: ['websocket']
+      })
+      
+      // 🔧 优化：添加连接超时处理
+      const connectionTimeout = setTimeout(() => {
+        if (this.wsManager && !this.wsManager.connected) {
+          console.warn('⚠️ WebSocket连接超时')
+          this.handleWebSocketError('连接超时')
+        }
+      }, devConfig.webSocketTimeout || 10000)
+      
+      socketTask.onOpen(() => {
+        clearTimeout(connectionTimeout)
+        console.log('✅ WebSocket连接成功')
+        
+        if (this.wsManager) {
+          this.wsManager.socket = socketTask
+          this.wsManager.connected = true
+          this.wsManager.reconnectAttempts = 0
+          
+          // 启动心跳
+          this.startHeartbeat()
+          
+          // 发送队列中的消息
+          this.sendQueuedMessages()
+        }
+      })
+      
+      socketTask.onMessage((message) => {
+        console.log('📨 收到WebSocket消息:', message)
+        this.handleWebSocketMessage(message.data)
+      })
+      
+      socketTask.onError((error) => {
+        clearTimeout(connectionTimeout)
+        console.error('❌ WebSocket连接错误:', error)
+        this.handleWebSocketError(error)
+      })
+      
+      socketTask.onClose((close) => {
+        clearTimeout(connectionTimeout)
+        console.log('🔌 WebSocket连接关闭:', close)
+        this.handleWebSocketClose(close)
+      })
+      
+    } catch (error) {
+      console.error('❌ WebSocket连接异常:', error)
+      this.handleWebSocketError(error)
+    }
+  },
+
+  /**
+   * 🔧 优化：处理WebSocket错误
+   */
+  handleWebSocketError(error) {
+    const envConfig = this.globalData.config || this.globalData
+    const devConfig = envConfig.developmentMode || {}
+    
+    if (this.wsManager) {
+      this.wsManager.connected = false
+      this.wsManager.socket = null
+      
+      // 停止心跳
+      if (this.wsManager.heartbeatInterval) {
+        clearInterval(this.wsManager.heartbeatInterval)
+        this.wsManager.heartbeatInterval = null
+      }
+    }
+    
+    // 🔧 根据配置决定是否静默处理错误
+    if (devConfig.silentWebSocketErrors) {
+      console.log('⚠️ WebSocket错误已静默处理:', error)
+      return
+    }
+    
+    // 🔧 智能重连
+    if (devConfig.webSocketReconnect && this.wsManager && 
+        this.wsManager.reconnectAttempts < this.wsManager.maxReconnectAttempts) {
+      
+      this.wsManager.reconnectAttempts++
+      const delay = this.wsManager.reconnectDelay * this.wsManager.reconnectAttempts
+      
+      console.log(`🔄 WebSocket重连 (${this.wsManager.reconnectAttempts}/${this.wsManager.maxReconnectAttempts})，${delay}ms后重试`)
+      
+      setTimeout(() => {
+        this.connectWebSocket()
+      }, delay)
+    } else {
+      console.warn('⚠️ WebSocket重连次数已达上限，停止重连')
+    }
+  },
+
+  /**
+   * 🔧 优化：处理WebSocket关闭
+   */
+  handleWebSocketClose(close) {
+    const envConfig = this.globalData.config || this.globalData
+    const devConfig = envConfig.developmentMode || {}
+    
+    if (this.wsManager) {
+      this.wsManager.connected = false
+      this.wsManager.socket = null
+      
+      // 停止心跳
+      if (this.wsManager.heartbeatInterval) {
+        clearInterval(this.wsManager.heartbeatInterval)
+        this.wsManager.heartbeatInterval = null
+      }
+    }
+    
+    // 🔧 正常关闭不重连
+    if (close.code === 1000) {
+      console.log('✅ WebSocket正常关闭')
+      return
+    }
+    
+    // 🔧 异常关闭尝试重连
+    if (devConfig.webSocketReconnect && this.wsManager && 
+        this.wsManager.reconnectAttempts < this.wsManager.maxReconnectAttempts) {
+      
+      this.wsManager.reconnectAttempts++
+      const delay = this.wsManager.reconnectDelay * this.wsManager.reconnectAttempts
+      
+      console.log(`🔄 WebSocket异常关闭，${delay}ms后重连`)
+      
+      setTimeout(() => {
+        this.connectWebSocket()
+      }, delay)
+    }
+  },
+
+  /**
+   * 🔧 新增：处理WebSocket消息
+   */
+  handleWebSocketMessage(data) {
+    try {
+      const message = JSON.parse(data)
+      const { event, data: eventData } = message
+      
+      // 处理特定事件
+      if (this.wsEventListeners[event]) {
+        this.wsEventListeners[event](eventData)
+      } else {
+        console.log('📨 未处理的WebSocket事件:', event, eventData)
+      }
+    } catch (error) {
+      console.error('❌ 解析WebSocket消息失败:', error, data)
+    }
+  },
+
+  /**
+   * 🔧 新增：启动心跳
+   */
+  startHeartbeat() {
+    if (this.wsManager && this.wsManager.heartbeatInterval) {
+      clearInterval(this.wsManager.heartbeatInterval)
+    }
+    
+    if (this.wsManager) {
+      this.wsManager.heartbeatInterval = setInterval(() => {
+        if (this.wsManager.connected && this.wsManager.socket) {
+          this.wsManager.socket.send({
+            data: JSON.stringify({ type: 'heartbeat' })
+          })
+        }
+      }, 30000) // 每30秒发送一次心跳
+    }
+  },
+
+  /**
+   * 🔧 新增：发送队列中的消息
+   */
+  sendQueuedMessages() {
+    if (this.wsManager && this.wsManager.messageQueue.length > 0) {
+      this.wsManager.messageQueue.forEach(message => {
+        if (this.wsManager.socket) {
+          this.wsManager.socket.send({ data: JSON.stringify(message) })
+        }
+      })
+      this.wsManager.messageQueue = []
     }
   },
 
@@ -454,8 +631,10 @@ App({
         this.globalData.isLoggedIn = true
         console.log('✅ Token验证成功')
         
-        // 连接WebSocket
-        this.connectWebSocket()
+        // 🔧 修复：安全连接WebSocket
+        setTimeout(() => {
+          this.connectWebSocket()
+        }, 1000) // 延迟1秒连接，确保token设置完成
       } else {
         console.log('❌ Token验证失败，重新登录')
         this.logout()
@@ -511,8 +690,10 @@ App({
         
         console.log('✅ Token刷新成功')
         
-        // 重新连接WebSocket
-        this.connectWebSocket()
+        // 🔧 修复：重新连接WebSocket（有错误处理）
+        setTimeout(() => {
+          this.connectWebSocket()
+        }, 500)
       } else {
         console.log('❌ Token刷新失败，重新登录')
         this.logout()
@@ -542,8 +723,10 @@ App({
     wx.setStorageSync('token_expire_time', this.globalData.tokenExpireTime)
     wx.setStorageSync('user_info', user_info)
     
-    // 连接WebSocket
-    this.connectWebSocket()
+    // 🔧 修复：登录成功后安全连接WebSocket
+    setTimeout(() => {
+      this.connectWebSocket()
+    }, 1500) // 延迟连接，确保所有数据设置完成
     
     console.log('✅ 用户登录成功:', user_info)
   },

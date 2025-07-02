@@ -113,53 +113,65 @@ Page({
   },
 
   /**
-   * 加载抽奖记录
-   * TODO: 后端对接 - 抽奖记录接口
+   * 🔴 加载抽奖记录 - 必须从后端API获取
+   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
    * 
-   * 对接说明：
-   * 接口：GET /api/lottery/records?page=1&page_size=20
+   * 接口：GET /api/lottery/records?page=1&page_size=20&type=all
    * 认证：需要Bearer Token
-   * 返回：抽奖记录列表，包括奖品、积分消耗等信息
+   * 返回：用户抽奖记录列表，包含奖品信息和状态
    */
   loadRecords() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 生成模拟抽奖记录数据')
-      // 🚨 已删除：generateMockRecords()违规调用
-      // ✅ 必须从后端API获取：lotteryAPI.getRecords()
-      
-      // 🚨 已删除：mockRecords违规使用
-      // ✅ 必须从后端API获取数据
-      throw new Error('开发环境已禁用Mock数据，请使用真实后端API')
-      return Promise.resolve()
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求抽奖记录接口...')
-      
-      // 模拟网络延迟
-      return new Promise(resolve => setTimeout(resolve, 300)).then(() => {
-        return lotteryAPI.getRecords(this.data.currentPage, this.data.pageSize)
-      }).then((res) => {
+    console.log('📡 请求抽奖记录接口...')
+    
+    return lotteryAPI.getRecords(this.data.currentPage, this.data.pageSize, this.data.filterType).then((res) => {
+      if (res.code === 0) {
         const newRecords = res.data.records || []
+        
+        // 处理抽奖记录数据
+        const processedRecords = newRecords.map(record => ({
+          ...record,
+          // 格式化时间显示
+          created_at_formatted: this.formatTime(record.created_at),
+          // 奖品显示名称
+          prize_display: record.prize_name || '未知奖品',
+          // 积分消耗显示
+          cost_display: `-${record.cost_points || 0}`,
+          // 状态文本
+          status_text: this.getStatusText(record.status),
+          status_class: this.getStatusClass(record.status)
+        }))
+        
         this.setData({
-          records: this.data.currentPage === 1 ? newRecords : [...this.data.records, ...newRecords],
-          hasMore: newRecords.length === this.data.pageSize,
+          records: this.data.currentPage === 1 ? processedRecords : [...this.data.records, ...processedRecords],
+          hasMore: processedRecords.length === this.data.pageSize,
           totalRecords: res.data.total || 0
         })
         
-        console.log('✅ 抽奖记录加载成功，共', newRecords.length, '条记录')
-      }).catch((error) => {
-        console.error('❌ 获取抽奖记录失败:', error)
-        
-        // 使用默认数据，避免页面空白
-        if (this.data.currentPage === 1) {
-          this.setData({
-            records: [],
-            hasMore: false
-          })
-        }
+        console.log('✅ 抽奖记录加载成功，共', processedRecords.length, '条记录')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取抽奖记录失败:', error)
+      
+      // 🔧 优化：显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `无法获取抽奖记录！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/lottery/records`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
       })
-    }
+      
+      // 设置安全的默认值
+      if (this.data.currentPage === 1) {
+        this.setData({
+          records: [],
+          hasMore: false,
+          totalRecords: 0
+        })
+      }
+    })
   },
 
   /**
@@ -182,21 +194,72 @@ Page({
   },
 
   /**
-   * 加载统计数据
+   * 🔴 加载统计数据 - 必须从后端API获取
+   * 接口：GET /api/lottery/statistics
+   * 认证：需要Bearer Token
+   * 返回：用户抽奖统计信息
    */
   loadStatistics() {
-    // 模拟统计数据
-    const statistics = {
-      totalDraws: 156,
-      totalPointsSpent: 15600,
-      totalPointsWon: 8750,
-      winRate: 0.68,
-      favoriteTime: '20:00-22:00',
-      luckiestDay: '星期三'
-    }
+    console.log('📊 加载抽奖统计数据...')
     
-    this.setData({ statistics })
-    return Promise.resolve()
+    return lotteryAPI.getStatistics().then((res) => {
+      if (res.code === 0) {
+        this.setData({
+          statistics: {
+            totalDraws: res.data.total_draws || 0,
+            totalPointsSpent: res.data.total_points_spent || 0,
+            totalPointsWon: res.data.total_points_won || 0,
+            winRate: res.data.win_rate || 0,
+            favoriteTime: res.data.favorite_time || '未知',
+            luckiestDay: res.data.luckiest_day || '未知'
+          }
+        })
+        console.log('✅ 抽奖统计数据加载成功')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取抽奖统计失败:', error)
+      
+      // 设置安全的默认值
+      this.setData({
+        statistics: {
+          totalDraws: 0,
+          totalPointsSpent: 0,
+          totalPointsWon: 0,
+          winRate: 0,
+          favoriteTime: '未知',
+          luckiestDay: '未知'
+        }
+      })
+    })
+  },
+
+  /**
+   * 获取抽奖类型文本
+   */
+  getDrawTypeText(type) {
+    const typeMap = {
+      'single': '单抽',
+      'triple': '三连抽',
+      'five': '五连抽',
+      'ten': '十连抽'
+    }
+    return typeMap[type] || '未知'
+  },
+
+  /**
+   * 获取奖品等级样式
+   */
+  getPrizeClass(level) {
+    const classMap = {
+      '1': 'prize-legendary',  // 传说
+      '2': 'prize-epic',       // 史诗
+      '3': 'prize-rare',       // 稀有
+      '4': 'prize-common',     // 普通
+      '5': 'prize-none'        // 谢谢参与
+    }
+    return classMap[level] || 'prize-unknown'
   },
 
   /**
@@ -211,10 +274,18 @@ Page({
   },
 
   /**
-   * 🚨 已删除违规函数：generateMockRecords() 和 getRandomPrize()
-   * 🔴 原因：违反项目安全规则 - 严禁使用模拟数据替代后端API
-   * ✅ 正确做法：使用lotteryAPI.getRecords()获取真实数据
+   * 格式化时间显示
    */
+  formatTime(timeString) {
+    if (!timeString) return '未知时间'
+    
+    try {
+      const date = new Date(timeString)
+      return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
+    } catch (error) {
+      return '时间格式错误'
+    }
+  },
 
   /**
    * 筛选类型改变

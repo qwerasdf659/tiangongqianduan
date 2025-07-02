@@ -104,24 +104,11 @@ Page({
 
   /**
    * 刷新用户信息
-   * TODO: 后端对接 - 用户信息接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/user/info
+   * 🔴 后端对接 - 用户信息接口 GET /api/user/info
    * 认证：需要Bearer Token
    * 返回：用户详细信息，主要获取最新的积分余额
    */
   refreshUserInfo() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境使用模拟数据
-      console.log('🔧 使用模拟用户数据')
-      this.setData({
-              userInfo: app.globalData.userInfo || null,
-      totalPoints: app.globalData.userInfo?.total_points || 0
-      })
-      return Promise.resolve()
-    }
-
     console.log('📡 刷新用户信息...')
     return userAPI.getUserInfo().then((res) => {
       this.setData({
@@ -134,6 +121,15 @@ Page({
       console.log('✅ 用户信息刷新成功，当前积分:', res.data.total_points)
     }).catch((error) => {
       console.error('❌ 获取用户信息失败:', error)
+      
+      // 🔧 优化：显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '无法获取用户信息！\n\n请检查后端API服务状态。',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
       
       // 错误处理：使用全局缓存数据
       if (app.globalData.userInfo) {
@@ -197,39 +193,42 @@ Page({
   handleImageSelected(file) {
     console.log('🖼️ 处理选择的图片:', file)
     
-    // 图片验证和压缩
-    return validateImage(file.tempFilePath).then(() => {
-      return compressImage(file.tempFilePath, 0.8)
-    }).then((compressedPath) => {
-      const imageData = {
-        tempPath: compressedPath,
-        originalPath: file.tempFilePath,
-        size: file.size
+    // 🔴 v2.1.2图片验证和处理 - 纯人工审核模式
+    try {
+      // 基础图片验证
+      const validation = validateImage(file)
+      if (!validation.isValid) {
+        wx.showToast({
+          title: validation.error,
+          icon: 'none',
+          duration: 2000
+        })
+        return
       }
       
+      // 设置预览图片
       this.setData({
-        selectedImage: imageData,
-        showImagePreview: true
+        selectedImage: file.tempFilePath,
+        imagePreview: file.tempFilePath
       })
       
-      console.log('✅ 图片处理完成')
-    }).catch((error) => {
+      console.log('✅ 图片选择成功')
+      
+      // 🔴 v2.1.2提示：需要用户手动输入消费金额
+      wx.showModal({
+        title: '📋 v2.1.2纯人工审核模式',
+        content: '请在下方手动输入您的消费金额，\n商家将人工审核您的小票并确认实际金额。',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      
+    } catch (error) {
       console.error('❌ 图片处理失败:', error)
-      
-      let errorMsg = '图片处理失败'
-      if (error.code === 'INVALID_FORMAT') {
-        errorMsg = '请选择JPG或PNG格式的图片'
-      } else if (error.code === 'SIZE_TOO_LARGE') {
-        errorMsg = '图片大小不能超过5MB'
-      } else if (error.code === 'COMPRESS_FAILED') {
-        errorMsg = '图片压缩失败，请重试'
-      }
-      
       wx.showToast({
-        title: errorMsg,
+        title: '图片处理失败',
         icon: 'none'
       })
-    })
+    }
   },
 
   /**
@@ -255,292 +254,195 @@ Page({
   },
 
   /**
-   * 提交上传
-   * 🔴 后端对接 - 图片上传接口（根据后端文档更新）
-   * 
-   * 对接说明：
-   * 接口：POST /api/photo/upload
-   * 认证：需要Bearer Token
-   * 文件：multipart/form-data格式上传图片到Sealos存储
-   * 返回：上传结果，提交人工审核，不再进行OCR识别
+   * 🔴 v2.1.2 提交上传 - 纯人工审核模式
+   * 后端对接：POST /api/photo/upload
+   * 参数：image文件 + amount(用户手动输入的消费金额)
+   * 返回：upload_id, 等待人工审核
    */
   onSubmitUpload() {
-    // 验证是否已选择图片
+    // 基础验证
     if (!this.data.selectedImage) {
       wx.showToast({
-        title: '请先选择小票图片',
+        title: '请先选择图片',
         icon: 'none'
       })
       return
     }
-
-    // 防止重复提交
-    if (this.data.uploading) {
-      console.log('正在上传中，跳过重复提交')
+    
+    // 🔴 v2.1.2 关键验证：用户必须手动输入消费金额
+    if (!this.data.userAmount || this.data.userAmount <= 0) {
+      wx.showToast({
+        title: '请输入消费金额',
+        icon: 'none'
+      })
       return
     }
-
-    this.setData({ uploading: true })
-    wx.showLoading({ title: '上传中...' })
-
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟上传过程
-      console.log('🔧 模拟图片上传和人工审核过程')
-      console.log('📤 上传参数:', {
-        imagePath: this.data.selectedImage.tempPath,
-        timestamp: new Date().toISOString()
+    
+    // 金额验证
+    if (!validateAmount(this.data.userAmount)) {
+      wx.showToast({
+        title: '金额格式不正确',
+        icon: 'none'
       })
-      
-      new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
-        // 🔴 根据后端文档：直接提交人工审核，不进行OCR识别
-        const uploadResult = {
-          code: 0,
-          msg: 'success',
-          data: {
-            upload_id: 'UP' + Date.now(),
-            image_url: `https://objectstorageapi.bja.sealos.run/tiangong/upload_${Date.now()}.jpg`,
-            user_amount: this.data.inputAmount || null,  // 用户输入金额（可选）
-            recognized_amount: null,  // 🔴 不再进行OCR识别
-            points_awarded: 0,  // 🔴 上传时不直接给积分，需要商家人工审核
-            review_status: 'pending',  // 🔴 审核状态：pending, approved, rejected
-            review_reason: '已提交人工审核，请等待商家确认消费金额',
-            upload_time: new Date().toISOString(),
-            // 🔴 符合后端文档的额外字段
-            file_size: this.data.selectedImage.size || 0,
-            file_type: 'image/jpeg',
-            storage_path: `uploads/${Date.now()}.jpg`
-          }
-        }
+      return
+    }
+    
+    console.log('📤 开始提交上传，v2.1.2纯人工审核模式')
+    
+    this.setData({ uploading: true, uploadProgress: 0 })
+    
+    // 🔴 v2.1.2上传逻辑：图片+用户输入金额
+    uploadAPI.upload(this.data.selectedImage, this.data.userAmount)
+      .then((result) => {
+        console.log('✅ 上传成功:', result)
         
-        wx.hideLoading()
-        
-        // 显示上传结果
-        this.showUploadResult(uploadResult.data)
-        
-        // 重置上传状态
         this.setData({
           uploading: false,
-          selectedImage: null,
-          showImagePreview: false,
-          inputAmount: null
+          uploadProgress: 100
         })
         
-        // 刷新上传记录
+        // 显示上传成功结果
+        this.showUploadResult(result.data)
+        
+        // 清空表单
+        this.clearForm()
+        
+        // 刷新上传历史
         this.loadUploadHistory()
         
-        console.log('✅ 模拟上传完成:', uploadResult.data)
-      }).catch((error) => {
-        wx.hideLoading()
-        this.setData({ uploading: false })
-        console.error('❌ 模拟上传失败:', error)
-        
+        // 🔴 v2.1.2成功提示
         wx.showToast({
-          title: '上传失败，请重试',
-          icon: 'none'
+          title: '提交成功，等待审核',
+          icon: 'success',
+          duration: 2000
         })
       })
-    } else {
-      // 生产环境调用真实上传接口
-      console.log('📡 请求图片上传接口...')
-      
-      // 🔴 调用符合后端文档格式的上传接口
-      uploadAPI.upload(this.data.selectedImage.tempPath, this.data.inputAmount || 0).then((uploadResult) => {
-        wx.hideLoading()
+      .catch((error) => {
+        console.error('❌ 上传失败:', error)
         
-        if (uploadResult.code === 0) {
-          console.log('✅ 图片上传成功:', uploadResult.data)
-          
-          // 显示上传结果
-          this.showUploadResult(uploadResult.data)
-          
-          // 重置上传状态
-          this.setData({
-            uploading: false,
-            selectedImage: null,
-            showImagePreview: false,
-            inputAmount: null
-          })
-          
-          // 刷新上传记录
-          this.loadUploadHistory()
-          
-        } else {
-          throw new Error(uploadResult.msg || '上传失败')
-        }
-      }).catch((error) => {
-        wx.hideLoading()
-        this.setData({ uploading: false })
-        console.error('❌ 图片上传失败:', error)
+        this.setData({
+          uploading: false,
+          uploadProgress: 0
+        })
         
-        let errorMsg = '上传失败，请重试'
-        
-        // 🔴 根据后端文档的错误码显示不同的错误信息
-        switch (error.code) {
-          case 1001:
-            errorMsg = '图片格式不支持，请选择JPG或PNG格式'
-            break
-          case 1002:
-            errorMsg = '图片大小超过限制，请选择小于5MB的图片'
-            break
-          case 1003:
-            errorMsg = '图片内容不清晰，请重新拍摄'
-            break
-          case 1004:
-            errorMsg = '图片上传到Sealos存储失败'
-            break
-          case 1005:
-            errorMsg = '今日上传次数已达上限'
-            break
-          case 1006:
-            errorMsg = '文件存储路径创建失败'
-            break
-          default:
-            errorMsg = error.msg || error.message || errorMsg
-        }
-        
-        wx.showToast({
-          title: errorMsg,
-          icon: 'none',
-          duration: 3000
+        // 🔧 优化：显示后端服务异常提示
+        wx.showModal({
+          title: '🚨 后端服务异常',
+          content: `上传失败！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态。`,
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#ff4444'
         })
       })
-    }
+  },
+  
+  /**
+   * 🔴 v2.1.2 用户金额输入处理
+   */
+  onAmountInput(e) {
+    const amount = parseFloat(e.detail.value)
+    this.setData({ userAmount: amount })
+    
+    // 计算预期积分 (1元=10积分)
+    const expectedPoints = Math.floor(amount * 10)
+    this.setData({ expectedPoints })
+    
+    console.log('💰 用户输入金额:', amount, '预期积分:', expectedPoints)
+  },
+  
+  /**
+   * 清空表单
+   */
+  clearForm() {
+    this.setData({
+      selectedImage: null,
+      imagePreview: null,
+      userAmount: 0,
+      expectedPoints: 0,
+      formErrors: {}
+    })
   },
 
   /**
-   * 显示上传结果
-   * 🔴 根据后端文档的审核状态显示相应内容
-   * @param {Object} result 上传结果数据
+   * 🔴 v2.1.2 显示上传结果 - 纯人工审核模式
    */
   showUploadResult(result) {
-    const status = result.review_status
-    
-    let title, content
-    
-    switch (status) {
-      case 'pending':
-        title = '上传成功！'
-        content = `小票已成功上传到Sealos存储\n上传ID：${result.upload_id}\n状态：等待商家审核\n\n请耐心等待商家确认消费金额后获得相应积分`
-        break
-      case 'approved':
-        title = '审核通过！'
-        content = `恭喜！您获得了 ${result.points_awarded} 积分\n审核理由：${result.review_reason || '消费记录真实有效'}`
-        break
-      case 'rejected':
-        title = '审核未通过'
-        content = `很抱歉，您的上传未通过审核\n审核理由：${result.review_reason || '消费记录不符合要求'}\n请重新上传清晰的小票图片`
-        break
-      default:
-        title = '上传完成'
-        content = '小票已提交，请等待处理结果'
-    }
+    const { upload_id, image_url, amount, status } = result
     
     wx.showModal({
-      title,
-      content,
+      title: '📋 上传成功',
+      content: `上传ID：${upload_id}\n消费金额：￥${amount}\n当前状态：等待人工审核\n\n商家将查看您的小票照片并确认实际消费金额，请耐心等待审核结果。`,
       showCancel: false,
-      confirmText: status === 'approved' ? '太好了' : '知道了',
-      success: () => {
-        // 如果审核通过，可以跳转到积分记录页面
-        if (status === 'approved') {
-          // wx.navigateTo({
-          //   url: '/pages/records/points-records'
-          // })
-        }
-      }
+      confirmText: '知道了'
     })
   },
 
   /**
-   * 加载上传记录
-   * TODO: 后端对接 - 上传记录接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/photo/records?page=1&page_size=10&status=all
-   * 认证：需要Bearer Token
-   * 返回：用户的上传记录列表，包括审核状态、积分等信息
-   */
-  /**
-   * 🔴 加载上传记录 - 必须从后端API获取
-   * ✅ 符合项目安全规则：禁止Mock数据
-   */
-  loadUploadRecords() {
-    console.log('📡 请求上传记录接口...')
-    
-    return uploadAPI.getRecords(1, 10).then((result) => {
-      if (result.code === 0) {
-        this.setData({
-          uploadRecords: result.data.records || [],
-          totalRecords: result.data.total || 0
-        })
-        console.log('✅ 上传记录加载成功，共', result.data.total || 0, '条记录')
-      } else {
-        throw new Error('⚠️ 后端服务异常：' + result.msg)
-      }
-    }).catch((error) => {
-      console.error('❌ 获取上传记录失败:', error)
-      
-      // 🚨 显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法获取上传记录！\n\n请检查后端API服务状态：\nGET /api/photo/records',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
-      
-      this.setData({
-        uploadRecords: [],
-        totalRecords: 0
-      })
-    })
-  },
-
-  /**
-   * 🚨 已删除违规函数：generateMockRecords()
-   * 🔴 原因：违反项目安全规则 - 严禁使用模拟数据替代后端API
-   * ✅ 正确做法：使用uploadAPI.getRecords()获取真实数据
-   */
-
-  /**
-   * 加载上传历史
-   * TODO: 后端对接 - 上传历史接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/photo/history?limit=5
-   * 认证：需要Bearer Token
-   * 返回：最近的上传记录，用于首页展示
-   */
-  /**
-   * 🔴 加载上传历史 - 必须从后端API获取
-   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
+   * 🔴 v2.1.2 加载上传历史记录 - 纯人工审核模式
+   * 后端对接：GET /api/photo/history
+   * 参数：limit, status
+   * 返回：上传历史列表，包含审核状态和结果
    */
   loadUploadHistory() {
-    console.log('📡 请求上传历史接口...')
+    console.log('📋 加载上传历史记录...')
     
-    return uploadAPI.getRecords().then((result) => {
-      if (result.code === 0) {
+    uploadAPI.getRecords(1, 10, 'all')
+      .then((res) => {
+        console.log('✅ 上传历史加载成功:', res.data)
+        
+        const records = res.data.list || []
+        
+        // 🔴 v2.1.2数据处理：纯人工审核模式字段映射
+        const processedRecords = records.map(record => ({
+          ...record,
+          // 确保状态映射正确
+          statusInfo: this.data.statusMap[record.status] || {
+            text: '未知状态',
+            icon: '❓',
+            color: '#666'
+          },
+          // 格式化时间显示
+          upload_time_formatted: this.formatTime(record.created_at),
+          review_time_formatted: record.review_time ? this.formatTime(record.review_time) : '未审核'
+        }))
+        
         this.setData({
-          uploadHistory: result.data.list ? result.data.list.slice(0, 5) : []
+          uploadHistory: processedRecords
         })
-        console.log('✅ 上传历史加载成功')
-      } else {
-        throw new Error('⚠️ 后端服务异常：' + result.msg)
-      }
-    }).catch((error) => {
-      console.error('❌ 获取上传历史失败:', error)
-      
-      // 🚨 显示后端服务异常提示 - 严禁使用Mock数据
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法获取上传历史！\n\n请检查后端API服务状态：\nGET /api/photo/history',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
+        
+        console.log('✅ 上传历史处理完成，记录数:', processedRecords.length)
       })
-      
-      this.setData({ uploadHistory: [] })
-    })
+      .catch((error) => {
+        console.error('❌ 加载上传历史失败:', error)
+        
+        // 🔧 优化：显示后端服务异常提示
+        wx.showModal({
+          title: '🚨 后端服务异常',
+          content: `无法获取上传历史！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态。`,
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#ff4444'
+        })
+        
+        // 设置安全的默认值
+        this.setData({
+          uploadHistory: []
+        })
+      })
+  },
+  
+  /**
+   * 格式化时间显示
+   */
+  formatTime(timeString) {
+    if (!timeString) return '未知时间'
+    
+    try {
+      const date = new Date(timeString)
+      return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
+    } catch (error) {
+      return '时间格式错误'
+    }
   },
 
   /**

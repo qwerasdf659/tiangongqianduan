@@ -9,45 +9,54 @@ Page({
    */
   data: {
     // 用户信息
-    userInfo: {},
+    userInfo: null,
     totalPoints: 0,
     
-    // 积分趋势
-    todayEarned: 0,
-    todayConsumed: 0,
-    
-    // 积分明细
-    showPointsDetail: false,
-    pointsRecords: [],
-    filteredPointsRecords: [],
-    pointsFilter: 'all', // 'all', 'earn', 'consume'
-    hasMoreRecords: true,
-    
-    // 成就系统
-    achievements: [],
-    unlockedAchievements: 0,
-    totalAchievements: 6,
-    
-    // 统计数据
-    statistics: {
-      totalLottery: 0,
-      totalExchange: 0,
-      totalUpload: 0,
-      thisMonthPoints: 0,
-      lotteryTrend: '↑',
-      exchangeTrend: '→',
-      uploadTrend: '↑',
-      pointsTrend: '↑'
+    // 统计信息
+    userStats: {
+      totalUploads: 0,
+      approvedUploads: 0,
+      totalLotteries: 0,
+      totalExchanges: 0,
+      joinDays: 0
     },
     
-    // 菜单项
-    menuItems: [],
+    // 积分记录
+    pointsRecords: [],
+    showPointsHistory: false,
     
     // 页面状态
-    loading: false,
+    loading: true,
+    refreshing: false,
     
-    // 版本信息
-    lastUpdateTime: '2024-01-15 10:30'
+    // 设置相关
+    settings: {
+      notifications: true,
+      soundEffects: true,
+      autoRefresh: true
+    },
+    
+    // 功能快捷入口
+    quickActions: [
+      {
+        id: 'lottery-records',
+        name: '抽奖记录',
+        icon: '🎰',
+        url: '/pages/records/lottery-records'
+      },
+      {
+        id: 'exchange-records',
+        name: '兑换记录',
+        icon: '🎁',
+        url: '/pages/records/exchange-records'
+      },
+      {
+        id: 'upload-records',
+        name: '上传记录',
+        icon: '📷',
+        url: '/pages/records/upload-records'
+      }
+    ]
   },
 
   /**
@@ -92,7 +101,9 @@ Page({
    */
   onPullDownRefresh() {
     console.log('下拉刷新')
-    this.refreshUserData()
+    this.refreshUserData().finally(() => {
+      wx.stopPullDownRefresh()
+    })
   },
 
   /**
@@ -113,50 +124,209 @@ Page({
   },
 
   /**
-   * 初始化页面 - 增强错误处理
+   * 初始化页面
    */
   initPage() {
-    // 初始化数据
-    this.initMenuItems()
+    // 从全局获取用户信息
+    const globalUserInfo = app.globalData.userInfo
+    if (globalUserInfo) {
+      this.setData({
+        userInfo: globalUserInfo,
+        totalPoints: globalUserInfo.total_points || 0
+      })
+    }
     
-    // 设置默认数据防止页面显示异常
-    this.setData({
-      totalPoints: 0,
-      userInfo: { nickname: '加载中...', avatar: '/images/default-avatar.png' },
-      statistics: {},
-      pointsRecords: [],
-      achievements: []
+    // 加载完整用户数据
+    this.loadUserData()
+  },
+
+  /**
+   * 🔴 加载用户数据 - 必须从后端API获取
+   * 接口：GET /api/user/info, GET /api/user/statistics
+   * 认证：需要Bearer Token
+   * 返回：用户详细信息和统计数据
+   */
+  loadUserData() {
+    this.setData({ loading: true })
+    
+    Promise.all([
+      this.refreshUserInfo(),
+      this.loadUserStatistics(),
+      this.loadRecentPointsRecords()
+    ]).then(() => {
+      console.log('✅ 用户数据加载完成')
+      this.setData({ loading: false })
+    }).catch((error) => {
+      console.error('❌ 用户数据加载失败:', error)
+      this.setData({ loading: false })
     })
+  },
+
+  /**
+   * 🔴 刷新用户信息 - 从后端API获取
+   */
+  refreshUserInfo() {
+    console.log('📡 刷新用户信息...')
     
-    // 加载用户信息和统计数据，完成后初始化成就系统
-    Promise.allSettled([
-      this.loadUserInfo(),
-      this.loadStatistics(),
-      this.loadPointsRecords()
-    ]).then((results) => {
-      // 检查各个请求的结果
-      results.forEach((result, index) => {
-        if (result.status === 'rejected') {
-          const functionNames = ['loadUserInfo', 'loadStatistics', 'loadPointsRecords']
-          console.warn(`${functionNames[index]}加载失败:`, result.reason)
+    return userAPI.getUserInfo().then((res) => {
+      console.log('✅ 用户信息API响应:', res)
+      
+      // 🔧 增强数据安全验证 - 处理后端返回null或错误数据的情况
+      if (!res || res.code !== 0) {
+        throw new Error(`后端API返回错误: code=${res?.code}, msg=${res?.msg}`)
+      }
+      
+      const userInfo = res.data
+      
+      // 🔧 严格验证数据完整性
+      if (!userInfo || typeof userInfo !== 'object') {
+        throw new Error('后端返回的用户数据为空或格式不正确')
+      }
+      
+      // 🔧 修复undefined问题：确保totalPoints总是有有效值
+      const totalPoints = (userInfo.total_points !== undefined && userInfo.total_points !== null && typeof userInfo.total_points === 'number') 
+        ? userInfo.total_points 
+        : 0
+      
+      console.log('💰 用户页面数据验证结果:', { 
+        originalPoints: userInfo.total_points,
+        validatedPoints: totalPoints,
+        userInfoValid: !!userInfo
+      })
+      
+      this.safeSetData({
+        userInfo: userInfo,
+        totalPoints: totalPoints
+      })
+      
+      // 更新全局用户信息
+      app.globalData.userInfo = {
+        ...userInfo,
+        total_points: totalPoints  // 确保全局数据也是安全的
+      }
+      console.log('✅ 用户信息刷新成功，当前积分:', totalPoints)
+      
+    }).catch((error) => {
+      console.error('❌ 获取用户信息失败:', error)
+      
+      // 🔧 优化：显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 数据加载失败',
+        content: `用户信息获取失败！\n\n可能原因：\n1. 用户未登录或令牌过期\n2. 后端API服务异常\n3. 网络连接问题\n\n错误详情：${error.message || error.msg || '未知错误'}`,
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新登录',
+        confirmColor: '#FF6B35',
+        success: (res) => {
+          if (res.confirm) {
+            // 跳转到登录页面
+            wx.navigateTo({
+              url: '/pages/auth/auth'
+            })
+          }
         }
       })
       
-      // 无论是否有错误，都初始化成就系统
-      this.initAchievements()
+      // 错误处理：使用全局缓存数据
+      if (app.globalData.userInfo) {
+        const cachedPoints = (app.globalData.userInfo.total_points !== undefined && app.globalData.userInfo.total_points !== null && typeof app.globalData.userInfo.total_points === 'number') 
+          ? app.globalData.userInfo.total_points 
+          : 0
+          
+        this.safeSetData({
+          userInfo: app.globalData.userInfo,
+          totalPoints: cachedPoints
+        })
+      } else {
+        // 设置安全的默认值
+        this.safeSetData({
+          userInfo: {
+            nickname: '加载失败',
+            mobile: '请重试',
+            avatar: '/images/default-avatar.png'
+          },
+          totalPoints: 0
+        })
+      }
+    })
+  },
+
+  /**
+   * 🔴 加载用户统计数据 - 从后端API获取
+   * 接口：GET /api/user/statistics
+   * 认证：需要Bearer Token
+   * 返回：用户统计信息，包括上传次数、抽奖次数、兑换次数等
+   */
+  loadUserStatistics() {
+    console.log('📊 加载用户统计数据...')
+    
+    return userAPI.getStatistics().then((res) => {
+      if (res.code === 0) {
+        this.setData({
+          userStats: res.data
+        })
+        console.log('✅ 用户统计数据加载成功:', res.data)
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取用户统计数据失败:', error)
       
-      console.log('✅ 页面初始化完成')
-    }).catch(error => {
-      console.error('❌ 页面初始化失败:', error)
-      // 即使加载失败也初始化成就系统，使用默认值
-      this.initAchievements()
-      
-      // 显示友好的错误提示
+      // 🔧 优化：显示后端服务异常提示
       wx.showModal({
-        title: '数据加载异常',
-        content: '部分数据加载失败，功能可能受限。请检查网络连接后下拉刷新。',
+        title: '🚨 后端服务异常',
+        content: `无法获取统计数据！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/user/statistics`,
         showCancel: false,
-        confirmText: '知道了'
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      
+      // 设置安全的默认值
+      this.setData({
+        userStats: {
+          totalUploads: 0,
+          approvedUploads: 0,
+          totalLotteries: 0,
+          totalExchanges: 0,
+          joinDays: 0
+        }
+      })
+    })
+  },
+
+  /**
+   * 🔴 加载最近积分记录 - 从后端API获取
+   * 接口：GET /api/user/points-records?page=1&pageSize=10
+   * 认证：需要Bearer Token
+   * 返回：最近的积分变动记录
+   */
+  loadRecentPointsRecords() {
+    console.log('💰 加载积分记录...')
+    
+    return userAPI.getPointsRecords(1, 10, 'all').then((res) => {
+      if (res.code === 0) {
+        this.setData({
+          pointsRecords: res.data.records || []
+        })
+        console.log('✅ 积分记录加载成功，共', res.data.records?.length || 0, '条记录')
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
+      }
+    }).catch((error) => {
+      console.error('❌ 获取积分记录失败:', error)
+      
+      // 🔧 优化：显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `无法获取积分记录！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/user/points-records`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      
+      // 设置安全的默认值
+      this.setData({
+        pointsRecords: []
       })
     })
   },
@@ -166,223 +336,24 @@ Page({
    */
   refreshUserData() {
     this.setData({ refreshing: true })
-    Promise.all([
-      this.loadUserInfo(),
-      this.loadStatistics(),
-      this.loadPointsRecords()
-    ]).then(() => {
-      this.setData({ refreshing: false })
-      wx.stopPullDownRefresh()
-    }).catch(error => {
-      console.error('❌ 刷新数据失败:', error)
-      this.setData({ refreshing: false })
-      wx.stopPullDownRefresh()
-    })
-  },
-
-  /**
-   * 加载用户数据
-   */
-  loadUserData() {
-    this.setData({ loading: true })
     
-    Promise.all([
-      this.loadUserInfo(),
-      this.loadStatistics(),
-      this.loadPointsRecords()
-    ]).then(() => {
-      this.setData({ loading: false })
-    }).catch(error => {
-      console.error('❌ 加载用户数据失败:', error)
-      this.setData({ loading: false })
+    return this.loadUserData().finally(() => {
+      this.setData({ refreshing: false })
     })
   },
 
   /**
-   * 加载用户信息 - 增强版本
-   * TODO: 后端对接 - 用户信息接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/user/info
-   * 认证：需要Bearer Token
-   * 返回：用户详细信息，包括积分余额、基本信息等
+   * 格式化时间显示
    */
-  loadUserInfo() {
-    // 🚨 已删除：开发环境Mock数据 - 违反项目安全规则
-    // ✅ 必须使用真实后端API获取用户信息
+  formatTime(timeString) {
+    if (!timeString) return '未知时间'
     
-    {
-      // 生产环境调用真实接口
-      console.log('📡 请求用户信息接口...')
-      return userAPI.getUserInfo().then((res) => {
-        // 安全检查返回数据
-        if (!res || !res.data) {
-          throw new Error('用户信息数据格式异常')
-        }
-        
-        const userInfo = res.data
-        this.setData({
-          userInfo: userInfo,
-          totalPoints: userInfo.total_points || 0
-        })
-        
-        // 更新全局用户信息
-        app.globalData.userInfo = userInfo
-        console.log('✅ 用户信息加载成功')
-        
-        return userInfo
-      }).catch((error) => {
-        console.error('❌ 获取用户信息失败:', error)
-        
-        // 使用全局缓存数据作为降级方案
-        if (app.globalData.userInfo) {
-          this.setData({
-            userInfo: app.globalData.userInfo,
-            totalPoints: app.globalData.userInfo.total_points || 0
-          })
-          console.log('🔄 使用缓存用户信息')
-        } else {
-          // 设置默认用户信息
-          this.setData({
-            userInfo: {
-              nickname: '加载失败',
-              avatar: '/images/default-avatar.png',
-              phone: '未知',
-              total_points: 0
-            },
-            totalPoints: 0
-          })
-        }
-        
-        throw error
-      })
+    try {
+      const date = new Date(timeString)
+      return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`
+    } catch (error) {
+      return '时间格式错误'
     }
-  },
-
-  /**
-   * 加载统计数据
-   * TODO: 后端对接 - 用户统计接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/user/statistics  
-   * 认证：需要Bearer Token
-   * 返回：用户活动统计数据（抽奖、兑换、上传次数等）
-   */
-  loadStatistics() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟数据
-      console.log('🔧 使用模拟统计数据')
-      const statisticsData = {
-        code: 0,
-        data: {
-          total_lottery: 25,
-          total_exchange: 8,
-          total_upload: 12,
-          this_month_points: 2400,
-          total_earned_points: 15000,
-          total_spent_points: 8500
-        }
-      }
-      
-      // 模拟网络延迟
-      return new Promise(resolve => {
-        setTimeout(() => {
-          this.setData({
-            statistics: {
-              totalLottery: statisticsData.data.total_lottery,
-              totalExchange: statisticsData.data.total_exchange,
-              totalUpload: statisticsData.data.total_upload,
-              thisMonthPoints: statisticsData.data.this_month_points,
-              totalEarnedPoints: statisticsData.data.total_earned_points || 0,
-              totalSpentPoints: statisticsData.data.total_spent_points || 0
-            }
-          })
-          resolve()
-        }, 300)
-      })
-    } else {
-      console.log('📡 请求用户统计接口...')
-      return userAPI.getStatistics().then((statisticsData) => {
-        this.setData({
-          statistics: {
-            totalLottery: statisticsData.data.total_lottery,
-            totalExchange: statisticsData.data.total_exchange,
-            totalUpload: statisticsData.data.total_upload,
-            thisMonthPoints: statisticsData.data.this_month_points,
-            totalEarnedPoints: statisticsData.data.total_earned_points || 0,
-            totalSpentPoints: statisticsData.data.total_spent_points || 0
-          }
-        })
-        
-        console.log('✅ 用户统计数据加载成功')
-      }).catch((error) => {
-        console.error('❌ 获取统计数据失败:', error)
-        
-        // 使用默认数据，避免页面空白
-        this.setData({
-          statistics: {
-            totalLottery: 0,
-            totalExchange: 0, 
-            totalUpload: 0,
-            thisMonthPoints: 0,
-            totalEarnedPoints: 0,
-            totalSpentPoints: 0
-          }
-        })
-      })
-    }
-  },
-
-  /**
-   * 加载积分明细
-   * TODO: 后端对接 - 积分明细接口
-   * 
-   * 对接说明：
-   * 接口：GET /api/user/points-records?page=1&page_size=20&type=all
-   * 认证：需要Bearer Token
-   * 返回：积分收支记录列表
-   */
-  /**
-   * 🔴 加载积分记录 - 必须从后端API获取
-   * ✅ 符合项目安全规则：禁止Mock数据
-   */
-  loadPointsRecords() {
-    console.log('📡 请求积分记录接口...')
-    return userAPI.getPointsRecords().then((result) => {
-      if (result.code === 0) {
-        this.setData({
-          pointsRecords: result.data || []
-        })
-        
-        // 初始化筛选结果
-        this.filterPointsRecords()
-
-        // 计算今日积分趋势
-        this.calculateTodayTrend()
-
-        console.log('✅ 积分记录加载成功，共', result.data?.length || 0, '条记录')
-      } else {
-        throw new Error('⚠️ 后端服务异常：' + result.msg)
-      }
-    }).catch((error) => {
-      console.error('❌ 获取积分记录失败:', error)
-      
-      // 🚨 显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法获取积分记录！\n\n请检查后端API服务状态：\nGET /api/user/points-records',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
-      
-      // 使用空数据，避免页面崩溃
-      this.setData({
-        pointsRecords: []
-      })
-      
-      this.filterPointsRecords()
-    })
   },
 
   /**
@@ -450,86 +421,91 @@ Page({
    */
   togglePointsDetail() {
     this.setData({
-      showPointsDetail: !this.data.showPointsDetail
+      showPointsHistory: !this.data.showPointsHistory
     })
   },
 
   /**
-   * 点击头像 - 更换头像
-   * TODO: 后端对接 - 头像上传接口
-   * 
-   * 对接说明：
-   * 接口：POST /api/user/upload-avatar (multipart/form-data)
+   * 🔴 头像上传功能 - 使用真实API
+   * 接口：POST /api/user/avatar
    * 认证：需要Bearer Token
    * 返回：新的头像URL
    */
   onAvatarTap() {
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
+    console.log('📸 点击头像上传')
+    
+    wx.showActionSheet({
+      itemList: ['拍照', '从相册选择'],
       success: (res) => {
-        const tempFilePath = res.tempFilePaths[0]
-        console.log('选择的头像:', tempFilePath)
+        const sourceType = res.tapIndex === 0 ? ['camera'] : ['album']
         
-        // 🔴 必须使用真实的头像上传API - 符合项目安全规则
-        {
-          // 🚨 已删除：开发环境Mock数据违规代码
-          // ✅ 所有环境都使用真实后端API
-          wx.showLoading({ title: '上传中...' })
-          
-          // TODO: 后端对接点 - 头像上传接口
-          new Promise((resolve, reject) => {
-            wx.uploadFile({
-              url: app.globalData.baseUrl + '/api/user/upload-avatar',
-              filePath: tempFilePath,
-              name: 'avatar',
-              header: {
-                'Authorization': `Bearer ${app.globalData.accessToken}`
-              },
-              success: (res) => {
-                const data = JSON.parse(res.data)
-                if (data.code === 0) {
-                  resolve(data)
-                } else {
-                  reject(new Error(data.msg || '上传失败'))
-                }
-              },
-              fail: reject
-            })
-          }).then((uploadResult) => {
-            wx.hideLoading()
-            
-            // 更新页面显示的头像
-            this.setData({
-              'userInfo.avatar': uploadResult.data.avatar_url
-            })
-            
-            // 更新全局用户信息
-            if (app.globalData.userInfo) {
-              app.globalData.userInfo.avatar = uploadResult.data.avatar_url
-            }
-            
-            // 更新本地缓存
-            wx.setStorageSync('user_info', app.globalData.userInfo)
-            
+        wx.chooseMedia({
+          count: 1,
+          mediaType: ['image'],
+          sourceType: sourceType,
+          success: (res) => {
+            const tempFilePath = res.tempFiles[0].tempFilePath
+            this.uploadAvatar(tempFilePath)
+          },
+          fail: (error) => {
+            console.error('选择图片失败:', error)
             wx.showToast({
-              title: '头像更新成功',
-              icon: 'success'
-            })
-          }).catch((error) => {
-            wx.hideLoading()
-            console.error('❌ 头像上传失败:', error)
-            wx.showToast({
-              title: error.message || '头像上传失败',
+              title: '选择图片失败',
               icon: 'none'
             })
-          })
-        }
-      },
-      fail: (error) => {
-        console.error('选择图片失败:', error)
+          }
+        })
       }
+    })
+  },
+
+  /**
+   * 🔴 上传头像到后端 - 使用真实API
+   */
+  uploadAvatar(filePath) {
+    wx.showLoading({
+      title: '上传中...'
+    })
+    
+    console.log('📡 请求头像上传接口...')
+    
+    userAPI.uploadAvatar(filePath).then((res) => {
+      wx.hideLoading()
+      
+      if (res.code === 0) {
+        // 更新头像URL
+        const newAvatarUrl = res.data.avatarUrl
+        
+        this.setData({
+          'userInfo.avatar': newAvatarUrl
+        })
+        
+        // 更新全局用户信息
+        if (app.globalData.userInfo) {
+          app.globalData.userInfo.avatar = newAvatarUrl
+        }
+        
+        wx.showToast({
+          title: '头像更新成功',
+          icon: 'success'
+        })
+        
+        console.log('✅ 头像上传成功:', newAvatarUrl)
+      } else {
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
+      }
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 头像上传失败:', error)
+      
+      // 🔧 优化：显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `头像上传失败！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nPOST /api/user/avatar`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
     })
   },
 
@@ -606,40 +582,59 @@ Page({
   },
 
   /**
-   * 🔴 加载更多积分记录 - 必须从后端API获取
-   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
+   * 🔴 加载更多积分记录 - 使用真实API
+   * 接口：GET /api/user/points-records?page={page}&pageSize=20&type={type}
+   * 认证：需要Bearer Token
+   * 返回：分页的积分记录数据
    */
   onLoadMoreRecords() {
-    wx.showLoading({ title: '加载中...' })
+    console.log('📋 加载更多积分记录...')
     
-    // 🔴 必须从后端API获取更多记录
-    const currentPage = Math.floor(this.data.pointsRecords.length / 20) + 1
+    // 计算下一页页码
+    const currentRecords = this.data.pointsRecords || []
+    const nextPage = Math.floor(currentRecords.length / 20) + 1
     
-    userAPI.getPointsRecords(currentPage, 20).then((result) => {
+    wx.showLoading({
+      title: '加载中...'
+    })
+    
+    userAPI.getPointsRecords(nextPage, 20, 'all').then((res) => {
       wx.hideLoading()
       
-      if (result.code === 0) {
-        const newRecords = result.data.records || []
-        const allRecords = [...this.data.pointsRecords, ...newRecords]
+      if (res.code === 0) {
+        const newRecords = res.data.records || []
         
-        this.setData({
-          pointsRecords: allRecords,
-          hasMoreRecords: allRecords.length < result.data.total
-        })
-        
-        this.filterPointsRecords()
-        console.log('✅ 积分记录加载成功')
+        if (newRecords.length > 0) {
+          // 合并新记录到现有记录
+          const allRecords = [...currentRecords, ...newRecords]
+          
+          this.setData({
+            pointsRecords: allRecords
+          })
+          
+          wx.showToast({
+            title: `加载了${newRecords.length}条记录`,
+            icon: 'success'
+          })
+          
+          console.log('✅ 积分记录加载成功，新增', newRecords.length, '条，总计', allRecords.length, '条')
+        } else {
+          wx.showToast({
+            title: '没有更多记录了',
+            icon: 'none'
+          })
+        }
       } else {
-        throw new Error('⚠️ 后端服务异常：' + result.msg)
+        throw new Error('⚠️ 后端服务异常：' + res.msg)
       }
     }).catch((error) => {
       wx.hideLoading()
-      console.error('❌ 获取积分记录失败:', error)
+      console.error('❌ 加载更多积分记录失败:', error)
       
-      // 🚨 显示后端服务异常提示 - 严禁使用Mock数据
+      // 🔧 优化：显示后端服务异常提示
       wx.showModal({
         title: '🚨 后端服务异常',
-        content: '无法获取积分记录！\n\n请检查后端API服务状态：\nGET /api/user/points-records',
+        content: `无法加载更多积分记录！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/user/points-records`,
         showCancel: false,
         confirmText: '知道了',
         confirmColor: '#ff4444'
@@ -959,5 +954,53 @@ Page({
     })
     
     console.log('📊 今日积分趋势:', { earned, consumed })
+  },
+
+  /**
+   * 🔧 安全的setData方法 - 防止undefined值导致小程序崩溃
+   */
+  safeSetData(data) {
+    const safeData = {}
+    
+    // 递归清理所有undefined值
+    const cleanUndefined = (obj) => {
+      if (obj === null || obj === undefined) {
+        return null
+      }
+      
+      if (typeof obj === 'object' && !Array.isArray(obj)) {
+        const cleaned = {}
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            const value = obj[key]
+            if (value !== undefined) {
+              cleaned[key] = cleanUndefined(value)
+            }
+          }
+        }
+        return cleaned
+      }
+      
+      if (Array.isArray(obj)) {
+        return obj.filter(item => item !== undefined).map(item => cleanUndefined(item))
+      }
+      
+      return obj
+    }
+    
+    // 清理输入数据
+    for (const key in data) {
+      if (data.hasOwnProperty(key)) {
+        const value = data[key]
+        if (value !== undefined) {
+          safeData[key] = cleanUndefined(value)
+        } else {
+          console.warn(`⚠️ 跳过undefined字段: ${key}`)
+        }
+      }
+    }
+    
+    console.log('🔧 用户页面安全数据设置:', safeData)
+    this.setData(safeData)
   }
 })

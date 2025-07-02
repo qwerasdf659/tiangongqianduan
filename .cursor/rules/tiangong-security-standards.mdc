@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-# 🔐 代码质量与数据安全统一规范
+# 🔐 天工项目安全与质量标准规范
 
 ## 🚨 核心安全原则 - 违反则立即停止开发
 
