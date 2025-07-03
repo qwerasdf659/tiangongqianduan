@@ -351,11 +351,54 @@ Page({
         
         // 🔴 设置抽奖配置（严格按照产品文档）
         this.safeSetData({
-          prizes: config.prizes.map((prize, index) => ({
+          prizes: config.prizes.map((prize, index) => {
+            // 🔧 修复：增强字段映射兼容性，处理后端返回的各种字段格式
+            const standardizedPrize = {
+              // 原始数据保留
             ...prize,
+              
+              // 🔧 奖品ID标准化
+              prize_id: prize.prize_id || prize.id || prize.prizeId || (index + 1),
+              
+              // 🔧 奖品名称标准化 - 支持多种字段格式
+              prize_name: prize.prize_name || prize.name || prize.title || prize.prizeName || `奖品${index + 1}`,
+              
+              // 🔧 奖品描述标准化
+              prize_desc: prize.prize_desc || prize.desc || prize.description || prize.prizeDesc || '',
+              
+              // 🔧 奖品类型标准化
+              prize_type: prize.prize_type || prize.type || prize.prizeType || 'points',
+              
+              // 🔧 奖品价值标准化
+              prize_value: prize.prize_value || prize.value || prize.prizeValue || prize.points || 0,
+              
+              // 🔧 中奖概率标准化
+              probability: prize.probability || prize.prob || 0.125, // 8等分默认概率
+              
+              // 🔧 转盘绘制配置
             angle: index * 45, // 8区域转盘，每个区域45度
-            color: getTechnicalConfig().fallbackColors[index % 8] // 🔧 修复：直接调用导入函数
-          })),
+              color: getTechnicalConfig().fallbackColors[index % 8]
+            }
+            
+            console.log(`🔧 奖品${index + 1}数据标准化:`, {
+              原始数据: {
+                name: prize.name,
+                prize_name: prize.prize_name,
+                title: prize.title,
+                id: prize.id,
+                type: prize.type,
+                value: prize.value
+              },
+              标准化后: {
+                prize_id: standardizedPrize.prize_id,
+                prize_name: standardizedPrize.prize_name,
+                prize_type: standardizedPrize.prize_type,
+                prize_value: standardizedPrize.prize_value
+              }
+            })
+            
+            return standardizedPrize
+          }),
           costPoints: config.cost_points || 100,        // 抽奖消耗积分
           dailyLimit: config.daily_limit || 50,         // 每日限制次数
           isActive: config.is_active || true,           // 抽奖系统状态
@@ -586,15 +629,51 @@ Page({
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       
+      // 🔧 修复：使用标准化后的奖品名称，并优化显示逻辑
+      const prizeName = prize.prize_name || prize.name || `奖品${index + 1}`
+      const prizeValue = prize.prize_value || prize.value || prize.points || ''
+      
+      // 🔧 修复：优先使用原始奖品名称，不要自动转换格式
+      let displayText = prizeName
+      
+      // 🔧 只有在以下特殊情况下才使用数值格式：
+      // 1. 原始名称为空或无意义（如"奖品1"、"未知奖品"等）
+      // 2. 原始名称是纯数字
+      const isGenericName = prizeName.includes('奖品') || prizeName.includes('未知') || /^\d+$/.test(prizeName)
+      const isEmptyName = !prizeName || prizeName.trim() === ''
+      
+      if ((isGenericName || isEmptyName) && prizeValue) {
+        // 只有在名称无意义时，才根据类型生成显示文字
+        if (prize.prize_type === 'points' || prize.type === 'points') {
+          displayText = `${prizeValue}积分`
+        } else if (prize.prize_type === 'coupon' || prize.type === 'coupon') {
+          displayText = `${prizeValue}折扣`
+        } else {
+          displayText = `${prizeValue}奖励`
+        }
+      }
+      // 如果原始名称有意义，直接使用原始名称
+      else {
+        displayText = prizeName
+      }
+      
+      console.log(`🎨 绘制奖品${index + 1}:`, {
+        原始名称: prizeName,
+        是否通用名称: isGenericName,
+        是否空名称: isEmptyName,
+        最终显示: displayText,
+        奖品类型: prize.prize_type || prize.type,
+        奖品价值: prizeValue
+      })
+      
       // 分行显示奖品名称（防止文字过长）
-      const prizeName = prize.prize_name || `奖品${index + 1}`
-      if (prizeName.length > 4) {
-        const firstLine = prizeName.substring(0, 3)
-        const secondLine = prizeName.substring(3)
+      if (displayText.length > 4) {
+        const firstLine = displayText.substring(0, 3)
+        const secondLine = displayText.substring(3)
         ctx.fillText(firstLine, 0, -8)
         ctx.fillText(secondLine, 0, 8)
       } else {
-        ctx.fillText(prizeName, 0, 0)
+        ctx.fillText(displayText, 0, 0)
       }
       
       ctx.restore()
@@ -721,6 +800,10 @@ Page({
   handleDraw(drawType, count) {
     console.log(`🎯 处理${drawType}抽奖, 数量:${count}`)
     
+    // 🔧 记录抽奖前的完整状态
+    const currentPoints = this.data.totalPoints
+    const needPoints = (this.data.costPoints || 100) * count
+    
     // 🔴 检查后端连接状态
     if (!this.data.backendConnected) {
       wx.showModal({
@@ -744,7 +827,6 @@ Page({
     }
     
     // 🔴 验证积分余额
-    const needPoints = (this.data.costPoints || 100) * count
     if (this.data.totalPoints < needPoints) {
       wx.showModal({
         title: '积分不足',
@@ -777,6 +859,9 @@ Page({
   startDrawing(drawType, count, needPoints) {
     console.log(`🎯 开始${drawType}抽奖...`)
     
+    // 🔧 记录抽奖前的积分状态
+    const beforePoints = this.data.totalPoints
+    
     this.safeSetData({ isDrawing: true })
     
     // 🔧 使用安全的Loading管理器
@@ -787,7 +872,6 @@ Page({
       loadingManager.hide()
       
       console.log('✅ 抽奖API响应:', result)
-      console.log('✅ 抽奖成功，响应数据结构:', result.data)
       
       // 🔧 增强数据结构验证和兼容性处理
       if (!result || !result.data) {
@@ -799,21 +883,59 @@ Page({
       // 🔧 支持多种可能的数据结构
       let results, user_points, today_count
       
+      // 🔍 先尝试所有可能的积分字段
+      const possiblePointFields = [
+        'user_points', 'userPoints', 'points', 'total_points', 'totalPoints',
+        'remaining_points', 'remainingPoints', 'current_points', 'currentPoints',
+        'balance', 'score', 'credits'
+      ]
+      
+      // 🔍 查找可用的积分字段
+      let foundPointsField = null
+      for (const field of possiblePointFields) {
+        if (responseData[field] !== undefined && responseData[field] !== null) {
+          foundPointsField = field
+          user_points = responseData[field]
+          break
+        }
+      }
+      
+
+      
       if (responseData.results || responseData.data) {
         // 标准格式: {results: [...], user_points: 100, today_count: 5}
         results = responseData.results || responseData.data
-        user_points = responseData.user_points || responseData.userPoints || responseData.points
+        // user_points 已经在上面处理了
         today_count = responseData.today_count || responseData.todayCount || responseData.count
       } else if (Array.isArray(responseData)) {
         // 简单格式: 直接返回结果数组
         results = responseData
-        user_points = this.data.totalPoints // 保持当前积分
+        // 如果没有找到积分字段，保持当前积分
+        if (!foundPointsField) {
+          user_points = this.data.totalPoints
+        }
         today_count = this.data.todayDrawCount + count // 增加抽奖次数
       } else {
         // 其他格式的兼容处理
         results = [responseData] // 单个结果包装成数组
-        user_points = responseData.user_points || this.data.totalPoints
+        // 如果没有找到积分字段，保持当前积分
+        if (!foundPointsField) {
+          user_points = this.data.totalPoints
+        }
         today_count = responseData.today_count || (this.data.todayDrawCount + count)
+      }
+      
+      // 🚨 最终兜底处理：如果积分还是undefined，使用当前积分
+      if (user_points === undefined || user_points === null) {
+        console.warn('⚠️ 积分字段解析失败，使用当前积分作为兜底')
+        user_points = this.data.totalPoints
+        
+        // 🔧 如果后端没有返回积分，前端主动扣除积分
+        if (results && results.length > 0) {
+          // 抽奖成功，扣除积分
+          user_points = this.data.totalPoints - needPoints
+          console.warn('⚠️ 后端API未返回积分，前端临时扣除积分')
+        }
       }
       
       console.log('🔍 解析后的抽奖数据:', {
@@ -832,6 +954,8 @@ Page({
       
       // 🔴 更新全局积分
       this.updateGlobalUserPoints(user_points)
+      
+
       
       // 🎮 播放转盘动画
       if (results && results.length > 0) {
@@ -1352,7 +1476,5 @@ Page({
     
     console.log('🔧 安全数据设置:', safeData)
     this.setData(safeData)
-  },
-
-  // ... existing helper methods ...
+  }
 }) 

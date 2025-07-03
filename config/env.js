@@ -3,7 +3,7 @@ const ENV = {
   // 🚧 开发环境 - v2.1.2开发阶段配置（完全符合最新产品功能结构文档）
   development: {
     baseUrl: 'http://localhost:3000/api',  // 🔧 恢复3000端口，按用户要求配置
-    wsUrl: 'ws://localhost:8080/ws',
+    wsUrl: 'ws://localhost:3000/ws',        // 🔧 修复：与HTTP服务器共享3000端口
     sealosConfig: {
       endpoint: 'https://objectstorageapi.bja.sealos.run',
       bucket: 'tiangong',

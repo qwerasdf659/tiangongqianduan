@@ -128,18 +128,31 @@ Page({
         const newRecords = res.data.records || []
         
         // 处理抽奖记录数据
-        const processedRecords = newRecords.map(record => ({
-          ...record,
-          // 格式化时间显示
-          created_at_formatted: this.formatTime(record.created_at),
-          // 奖品显示名称
-          prize_display: record.prize_name || '未知奖品',
-          // 积分消耗显示
-          cost_display: `-${record.cost_points || 0}`,
-          // 状态文本
-          status_text: this.getStatusText(record.status),
-          status_class: this.getStatusClass(record.status)
-        }))
+        const processedRecords = newRecords.map(record => {
+          // 🔧 增强字段映射兼容性，处理后端返回的各种字段格式
+          const prize_name = record.prize_name || record.name || record.title || record.prizeName || '未知奖品'
+          const cost_points = record.cost_points || record.points || record.cost || 0
+          
+          console.log('🔧 处理抽奖记录:', {
+            原始奖品名: record.prize_name,
+            后备奖品名: record.name,
+            最终显示: prize_name,
+            消耗积分: cost_points
+          })
+          
+          return {
+            ...record,
+            // 格式化时间显示
+            created_at_formatted: this.formatTime(record.created_at),
+            // 🔧 奖品显示名称 - 支持多种字段格式
+            prize_display: prize_name,
+            // 🔧 积分消耗显示 - 支持多种字段格式
+            cost_display: `-${cost_points}`,
+            // 状态文本
+            status_text: this.getStatusText(record.status),
+            status_class: this.getStatusClass(record.status)
+          }
+        })
         
         this.setData({
           records: this.data.currentPage === 1 ? processedRecords : [...this.data.records, ...processedRecords],

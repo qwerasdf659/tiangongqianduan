@@ -33,10 +33,25 @@ const request = (options) => {
     // 添加认证头
     if (needAuth && app.globalData.accessToken) {
       header['Authorization'] = `Bearer ${app.globalData.accessToken}`
+      console.log('🔐 已添加认证头部:', `Bearer ${app.globalData.accessToken.substring(0, 20)}...`)
+    } else if (needAuth && !app.globalData.accessToken) {
+      console.warn('⚠️ 需要认证但缺少访问令牌!', { 
+        needAuth, 
+        hasToken: !!app.globalData.accessToken,
+        globalData: app.globalData
+      })
     }
 
     // 构建完整URL地址
     const fullUrl = app.globalData.baseUrl + url
+
+    console.log('📡 发起API请求:', { 
+      url: fullUrl, 
+      method, 
+      needAuth, 
+      hasAuthHeader: !!header['Authorization'],
+      headers: header
+    })
 
     wx.request({
       url: fullUrl,
@@ -74,9 +89,55 @@ const request = (options) => {
               app.logout()
               reject(res.data)
             }
+          } else if (res.data.code === 2001) {
+            // 🔧 新增：专门处理2001错误码（访问令牌不能为空）
+            console.error('🚨 认证错误 2001:', {
+              error: '访问令牌不能为空',
+              url: url,
+              method: method,
+              hasGlobalToken: !!app.globalData.accessToken,
+              hasAuthHeader: !!header['Authorization'],
+              requestHeaders: header,
+              globalData: {
+                isLoggedIn: app.globalData.isLoggedIn,
+                accessToken: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : null,
+                userInfo: app.globalData.userInfo
+              }
+            })
+            
+            // 显示认证错误提示
+            if (showLoading) {
+              wx.showModal({
+                title: '🔐 认证错误',
+                content: '访问令牌缺失或无效！\n\n可能原因：\n1. 用户未正确登录\n2. Token设置时机错误\n3. 认证头部未正确发送\n\n请重新登录！',
+                showCancel: true,
+                cancelText: '稍后重试',
+                confirmText: '重新登录',
+                confirmColor: '#ff4444',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    app.logout()
+                  }
+                }
+              })
+            }
+            
+            reject({
+              code: 2001,
+              msg: '访问令牌不能为空',
+              data: res.data.data || null,
+              debug: '前端认证流程存在问题'
+            })
           } else {
             // 其他业务错误 - 统一错误提示
             const errorMessage = res.data.msg || res.data.message || '操作失败'
+            console.log('📝 业务错误:', {
+              code: res.data.code,
+              message: errorMessage,
+              url: url,
+              method: method
+            })
+            
             if (showLoading) {
               wx.showToast({
                 title: errorMessage,

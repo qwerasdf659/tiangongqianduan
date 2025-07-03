@@ -377,12 +377,16 @@ App({
     const userInfo = wx.getStorageSync('user_info')
     
     if (token && refreshToken && userInfo) {
+      // 🔧 修复：在验证之前先设置token，确保API请求有Authorization头部
+      this.globalData.accessToken = token
+      this.globalData.refreshToken = refreshToken
+      this.globalData.userInfo = userInfo
+      
+      console.log('🔧 已预设认证信息，开始验证Token有效性')
+      
       // 验证Token有效性
       this.verifyToken().then(() => {
         this.globalData.isLoggedIn = true
-        this.globalData.accessToken = token
-        this.globalData.refreshToken = refreshToken
-        this.globalData.userInfo = userInfo
         
         console.log('✅ 登录状态验证成功')
         
@@ -392,11 +396,15 @@ App({
         }, 1000)
       }).catch((error) => {
         console.warn('⚠️ Token验证失败，需要重新登录:', error)
+        // 🔧 验证失败时清除预设的认证信息
         this.logout()
       })
     } else {
       console.log('📝 用户未登录')
       this.globalData.isLoggedIn = false
+      this.globalData.accessToken = null
+      this.globalData.refreshToken = null
+      this.globalData.userInfo = null
     }
   },
 
@@ -622,26 +630,31 @@ App({
    * 验证Token有效性
    */
   verifyToken() {
-    if (this.globalData.isDev && !this.globalData.needAuth) return
+    // 🔧 修复：开发环境跳过认证时返回resolved Promise
+    if (this.globalData.isDev && !this.globalData.needAuth) {
+      console.log('🔧 开发环境跳过Token验证')
+      return Promise.resolve({ code: 0, data: { valid: true, user_info: this.globalData.userInfo } })
+    }
     
+    // 🔧 修复：正确返回Promise
     const API = require('./utils/api.js')
-    API.authAPI.verifyToken().then((res) => {
+    return API.authAPI.verifyToken().then((res) => {
       if (res.code === 0 && res.data.valid) {
+        // 🔧 更新用户信息
+        if (res.data.user_info) {
         this.globalData.userInfo = res.data.user_info
+        }
         this.globalData.isLoggedIn = true
         console.log('✅ Token验证成功')
         
-        // 🔧 修复：安全连接WebSocket
-        setTimeout(() => {
-          this.connectWebSocket()
-        }, 1000) // 延迟1秒连接，确保token设置完成
+        return res // 返回成功结果
       } else {
-        console.log('❌ Token验证失败，重新登录')
-        this.logout()
+        console.log('❌ Token验证失败，后端返回无效状态')
+        throw new Error('Token验证失败')
       }
     }).catch((error) => {
-      console.error('Token验证失败:', error)
-      this.logout()
+      console.error('❌ Token验证失败:', error)
+      throw error // 重新抛出错误，让调用者处理
     })
   },
 
