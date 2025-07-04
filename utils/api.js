@@ -15,7 +15,7 @@ const request = (options) => {
       showLoading = true,
       retryCount = 0,
       maxRetry = 2,
-      timeout = 10000  // 🔧 修复：允许自定义超时时间
+      timeout = 12000  // 🔧 修复：调整默认超时时间为12秒，与登录逻辑保持一致
     } = options
 
     // 显示加载框
@@ -106,11 +106,11 @@ const request = (options) => {
               }
             })
             
-            // 显示认证错误提示
+            // 🔴 统一后端服务异常提示 - 符合最新接口对接规范
             if (showLoading) {
               wx.showModal({
-                title: '🔐 认证错误',
-                content: '访问令牌缺失或无效！\n\n可能原因：\n1. 用户未正确登录\n2. Token设置时机错误\n3. 认证头部未正确发送\n\n请重新登录！',
+                title: '🚨 后端服务异常',
+                content: `访问令牌缺失或无效！\n\n🔗 API端点：${fullUrl}\n\n可能原因：\n• 用户未正确登录\n• Token设置时机错误\n• 认证头部未正确发送\n\n请重新登录后再试！`,
                 showCancel: true,
                 cancelText: '稍后重试',
                 confirmText: '重新登录',
@@ -127,10 +127,11 @@ const request = (options) => {
               code: 2001,
               msg: '访问令牌不能为空',
               data: res.data.data || null,
-              debug: '前端认证流程存在问题'
+              debug: '前端认证流程存在问题',
+              isBackendError: true
             })
           } else {
-            // 其他业务错误 - 统一错误提示
+            // 🔴 其他业务错误 - 增强后端服务异常提示
             const errorMessage = res.data.msg || res.data.message || '操作失败'
             console.log('📝 业务错误:', {
               code: res.data.code,
@@ -140,20 +141,25 @@ const request = (options) => {
             })
             
             if (showLoading) {
-              wx.showToast({
-                title: errorMessage,
-                icon: 'none',
-                duration: 2000
+              // 🔴 根据最新接口对接规范，显示详细的后端服务异常信息
+              wx.showModal({
+                title: '🚨 后端服务异常',
+                content: `${errorMessage}\n\n🔗 API端点：${fullUrl}\n错误码：${res.data.code}\n\n请检查后端API服务状态！`,
+                showCancel: false,
+                confirmText: '知道了',
+                confirmColor: '#ff4444'
               })
             }
+            
             reject({
               code: res.data.code,
               msg: errorMessage,
-              data: res.data.data || null
+              data: res.data.data || null,
+              isBackendError: true
             })
           }
         } else {
-          // HTTP状态码错误 - 根据状态码给出具体提示
+          // 🔴 HTTP状态码错误 - 增强后端服务异常提示
           let errorMessage = '网络错误'
           
           switch (res.statusCode) {
@@ -180,16 +186,22 @@ const request = (options) => {
           }
           
           if (showLoading) {
-            wx.showToast({
-              title: errorMessage,
-              icon: 'none',
-              duration: 2000
+            // 🔴 根据最新接口对接规范，显示详细的HTTP错误信息
+            wx.showModal({
+              title: '🚨 后端服务异常',
+              content: `${errorMessage}\n\n🔗 API端点：${fullUrl}\nHTTP状态码：${res.statusCode}\n\n请检查后端API服务状态！`,
+              showCancel: false,
+              confirmText: '知道了',
+              confirmColor: '#ff4444'
             })
           }
+          
           reject({ 
             code: res.statusCode, 
             msg: errorMessage,
-            data: null
+            data: null,
+            isBackendError: true,
+            httpStatus: res.statusCode
           })
         }
       },
@@ -198,101 +210,33 @@ const request = (options) => {
           wx.hideLoading()
         }
         
-        console.error(`❌ API请求失败 ${method} ${url}:`, err)
-        
-        // 🔧 修复：提供更详细的错误信息，帮助前端识别错误类型
-        let errorMessage = '网络请求失败'
-        let networkErrorCode = 'NETWORK_ERROR'
-        
-        // 根据微信小程序的错误码分类
-        if (err.errMsg) {
-          if (err.errMsg.includes('timeout')) {
-            errorMessage = '请求超时，请检查网络连接'
-            networkErrorCode = 'TIMEOUT'
-          } else if (err.errMsg.includes('fail')) {
-            errorMessage = '网络连接失败，请检查网络状态'
-            networkErrorCode = 'CONNECTION_FAILED'
-          } else if (err.errMsg.includes('abort')) {
-            errorMessage = '请求被中断'
-            networkErrorCode = 'REQUEST_ABORTED'
-          } else {
-            errorMessage = err.errMsg
-            networkErrorCode = 'UNKNOWN_ERROR'
-          }
-        }
-        
-        // 🔧 修复：统一错误格式，便于前端识别和处理
-        reject({
-          code: networkErrorCode,
-          msg: errorMessage,
-          data: null,
-          isNetworkError: true, // 标记为网络错误，便于重试逻辑判断
-          originalError: err    // 保留原始错误信息用于调试
+        // 🔴 网络错误处理 - 增强后端服务异常提示
+        const errorMessage = '网络连接失败'
+        console.error('❌ 网络错误:', { 
+          error: err, 
+          url: fullUrl, 
+          method: method,
+          timeout: timeout
         })
         
-        // 增强错误处理，防止小程序崩溃
-        let errorCode = -1
-        let errorMsg = '网络连接失败'
-        
-        // 安全解析错误信息
-        try {
-          if (err && typeof err === 'object') {
-            if (err.errMsg) {
-              if (err.errMsg.includes('timeout')) {
-                errorMsg = '请求超时，请检查网络连接'
-                errorCode = -2
-              } else if (err.errMsg.includes('fail')) {
-                errorMsg = '网络连接失败，请稍后重试'
-                errorCode = -3
-              } else if (err.errMsg.includes('abort')) {
-                errorMsg = '请求被取消'
-                errorCode = -4
-              }
-            }
-          }
-        } catch (parseError) {
-          console.warn('解析错误信息失败:', parseError)
-        }
-        
-        // 🔧 修复：网络错误重试机制 - 更精确的重试条件
-        const shouldRetry = retryCount < maxRetry && (
-          errorCode === -2 || // 超时
-          errorCode === -3 || // 连接失败
-          networkErrorCode === 'TIMEOUT' ||
-          networkErrorCode === 'CONNECTION_FAILED'
-        )
-        
-        if (shouldRetry) {
-          console.log(`🔄 第${retryCount + 1}次重试请求: ${method} ${url}`)
-          setTimeout(() => {
-            const newOptions = { 
-              ...options, 
-              retryCount: retryCount + 1, 
-              showLoading: false // 🔧 修复：重试时不显示loading
-            }
-            request(newOptions).then(resolve).catch(reject)
-          }, 1000 * (retryCount + 1))
-        } else {
-          // 🚨 显示后端服务异常提示
-          if (showLoading && retryCount === 0) {
-            wx.showModal({
-              title: '🚨 后端服务异常',
-              content: `无法连接到后端服务！\n\n可能原因：\n1. 后端API服务未启动\n2. 网络连接问题\n3. 服务器维护中\n\n请立即检查后端服务状态！`,
-              showCancel: false,
-              confirmText: '知道了',
-              confirmColor: '#ff4444'
-            })
-          }
-          
-          // 返回标准化的错误对象
-          reject({ 
-            code: errorCode, 
-            message: errorMsg, 
-            error: err,
-            url: url,
-            method: method
+        // 🔴 根据最新接口对接规范，显示详细的网络错误信息
+        if (showLoading) {
+          wx.showModal({
+            title: '🚨 后端服务异常',
+            content: `网络连接失败！\n\n🔗 API端点：${fullUrl}\n错误详情：${err.errMsg || '未知网络错误'}\n\n请检查：\n• 网络连接是否正常\n• 后端API服务是否启动\n• 服务器地址是否正确`,
+            showCancel: false,
+            confirmText: '知道了',
+            confirmColor: '#ff4444'
           })
         }
+        
+        reject({ 
+          code: -1, 
+          msg: errorMessage,
+          data: null,
+          isNetworkError: true,
+          originalError: err
+        })
       }
     })
   })
@@ -464,19 +408,59 @@ const lotteryAPI = {
 
   // 执行抽奖
   draw(drawType = 'single', count = 1) {
+    // 🔧 修复：中文参数转英文映射，后端只支持英文参数
+    const drawTypeMapping = {
+      '单抽': 'single',
+      '三连抽': 'triple', 
+      '五连抽': 'five',
+      '十连抽': 'ten',
+      'single': 'single',
+      'triple': 'triple',
+      'five': 'five', 
+      'ten': 'ten'
+    }
+    
+    const mappedDrawType = drawTypeMapping[drawType] || drawType
+    
+    console.log('🔧 抽奖参数映射:', {
+      '原始参数': drawType,
+      '映射后参数': mappedDrawType,
+      '抽奖数量': count
+    })
+    
     return request({
       url: '/lottery/draw',
       method: 'POST',
-      data: { draw_type: drawType, count },
+      data: { draw_type: mappedDrawType, count },
       needAuth: true
     }).catch(error => {
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法执行抽奖！\n\n可能原因：\n1. 后端lottery服务未启动\n2. /lottery/draw接口异常\n3. 数据库连接问题\n\n请立即检查后端服务状态！',
-        showCancel: false,
-        confirmColor: '#ff4444'
-      })
-      throw error
+      console.error('🚨 抽奖API调用失败:', error)
+      
+      // 🔧 修复：区分网络错误和业务错误，避免重复错误提示
+      // 只有真正的网络错误才显示通用错误提示
+      // 业务错误（如每日限制、积分不足等）由业务逻辑层处理
+      
+      if (error && typeof error.code === 'number' && error.code >= 1000) {
+        // 业务错误码（1000+），不显示通用错误，直接抛出让业务逻辑处理
+        console.log('📝 业务错误，由业务逻辑层处理:', error)
+        throw error
+      } else if (error && (error.code === 'NETWORK_ERROR' || error.code < 0 || 
+                         (typeof error.code === 'number' && (error.code >= 500 || error.code === 0)))) {
+        // 网络错误或服务器错误，显示通用错误提示
+        wx.showModal({
+          title: '🚨 网络连接异常',
+          content: '网络连接出现问题，请检查网络后重试。\n\n可能原因：\n1. 网络连接不稳定\n2. 服务器暂时无法访问\n3. 请求超时',
+          showCancel: true,
+          cancelText: '稍后重试',
+          confirmText: '知道了',
+          confirmColor: '#ff4444'
+        })
+        throw error
+      } else {
+        // 其他未知错误，显示通用提示但不阻断业务流程
+        console.warn('⚠️ 未知错误类型，由业务逻辑层处理:', error)
+        throw error
+      }
     })
   },
 
@@ -594,6 +578,34 @@ const uploadAPI = {
       data: { page, page_size: pageSize, status },
       needAuth: true
     })
+  },
+
+  // 🔴 新增：获取上传历史记录 - 符合接口规范v2.1.3
+  getHistory(page = 1, pageSize = 10, status = 'all') {
+    console.log('📡 获取上传历史请求:', { page, pageSize, status })
+    
+    return request({
+      url: '/photo/history',
+      method: 'GET',
+      data: { page, limit: pageSize, status },
+      needAuth: true,
+      showLoading: false
+    }).catch(error => {
+      // 🔴 确保上传历史API错误也有完整的后端服务异常提示
+      console.error('❌ 获取上传历史失败:', error)
+      
+      if (!error.isBackendError && !error.isNetworkError) {
+        wx.showModal({
+          title: '🚨 后端服务异常',
+          content: `无法获取上传历史！\n\n🔗 API端点：${app.globalData.baseUrl}/photo/history\n\n请检查后端API服务状态！`,
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#ff4444'
+        })
+      }
+      
+      throw error
+    })
   }
 }
 
@@ -634,13 +646,114 @@ const userAPI = {
     })
   },
 
-  // 获取积分记录
-  getPointsRecords(page = 1, pageSize = 20, type = 'all') {
+  // 获取积分记录 - 🔴 更新接口路径符合规范v2.1.3
+  getPointsRecords(page = 1, pageSize = 20, type = 'all', source = '') {
+    console.log('📡 获取积分记录请求:', { page, pageSize, type, source })
+    
     return request({
-      url: '/user/points-records',
+      url: '/user/points/records',
       method: 'GET',
-      data: { page, page_size: pageSize, type },
-      needAuth: true
+      data: {
+        page,
+        limit: pageSize,
+        type,
+        source
+      },
+      needAuth: true,
+      showLoading: false
+    }).catch(error => {
+      // 🔴 确保积分记录API错误也有完整的后端服务异常提示
+      console.error('❌ 获取积分记录失败:', error)
+      
+      if (!error.isBackendError && !error.isNetworkError) {
+        wx.showModal({
+          title: '🚨 后端服务异常',
+          content: `无法获取积分记录！\n\n🔗 API端点：${app.globalData.baseUrl}/user/points/records\n\n请检查后端API服务状态！`,
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#ff4444'
+        })
+      }
+      
+      throw error
+    })
+  },
+
+  // 🔴 新增：头像上传 - 符合接口规范v2.1.3
+  uploadAvatar(filePath) {
+    console.log('📡 上传头像请求:', filePath)
+    
+    return new Promise((resolve, reject) => {
+      const header = {
+        'Content-Type': 'multipart/form-data'
+      }
+      
+      // 添加认证头
+      if (app.globalData.accessToken) {
+        header['Authorization'] = `Bearer ${app.globalData.accessToken}`
+      }
+      
+      wx.uploadFile({
+        url: app.globalData.baseUrl + '/user/avatar',
+        filePath: filePath,
+        name: 'avatar',
+        header: header,
+        success(res) {
+          console.log('📡 头像上传响应:', res)
+          
+          try {
+            const data = JSON.parse(res.data)
+            if (data.code === 0) {
+              resolve(data)
+            } else {
+              // 🔴 后端服务异常提示
+              wx.showModal({
+                title: '🚨 后端服务异常',
+                content: `头像上传失败！\n\n🔗 API端点：${app.globalData.baseUrl}/user/avatar\n错误信息：${data.msg || '未知错误'}\n\n请检查后端API服务状态！`,
+                showCancel: false,
+                confirmText: '知道了',
+                confirmColor: '#ff4444'
+              })
+              reject({
+                code: data.code,
+                msg: data.msg || '头像上传失败',
+                isBackendError: true
+              })
+            }
+          } catch (parseError) {
+            console.error('❌ 解析上传响应失败:', parseError)
+            wx.showModal({
+              title: '🚨 后端服务异常',
+              content: `头像上传响应解析失败！\n\n🔗 API端点：${app.globalData.baseUrl}/user/avatar\n响应内容：${res.data}\n\n请检查后端API服务状态！`,
+              showCancel: false,
+              confirmText: '知道了',
+              confirmColor: '#ff4444'
+            })
+            reject({
+              code: -1,
+              msg: '响应解析失败',
+              isBackendError: true
+            })
+          }
+        },
+        fail(err) {
+          console.error('❌ 头像上传失败:', err)
+          // 🔴 网络错误提示
+          wx.showModal({
+            title: '🚨 后端服务异常',
+            content: `头像上传失败！\n\n🔗 API端点：${app.globalData.baseUrl}/user/avatar\n错误详情：${err.errMsg || '未知网络错误'}\n\n请检查后端API服务状态！`,
+            showCancel: false,
+            confirmText: '知道了',
+            confirmColor: '#ff4444'
+          })
+          reject({
+            code: -1,
+            msg: '头像上传失败',
+            isNetworkError: true,
+            originalError: err
+          })
+        }
+      })
     })
   },
 
@@ -672,6 +785,33 @@ const merchantAPI = {
       url: '/merchant/statistics',
       method: 'GET',
       needAuth: true
+    })
+  },
+
+  // 🔴 新增：获取商品统计 - 符合接口规范v2.1.3
+  getProductStats() {
+    console.log('📡 获取商品统计请求')
+    
+    return request({
+      url: '/merchant/product-stats',
+      method: 'GET',
+      needAuth: true,
+      showLoading: false
+    }).catch(error => {
+      // 🔴 确保商品统计API错误也有完整的后端服务异常提示
+      console.error('❌ 获取商品统计失败:', error)
+      
+      if (!error.isBackendError && !error.isNetworkError) {
+        wx.showModal({
+          title: '🚨 后端服务异常',
+          content: `无法获取商品统计！\n\n🔗 API端点：${app.globalData.baseUrl}/merchant/product-stats\n\n请检查后端API服务状态！`,
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#ff4444'
+        })
+      }
+      
+      throw error
     })
   },
 

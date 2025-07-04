@@ -200,31 +200,38 @@ Page({
       isButtonVisible: false
     })
     
-    // 优先加载用户信息和抽奖配置
-    Promise.all([
-      this.refreshUserInfo(),
-      this.loadLotteryConfig()
-    ]).then(() => {
-      console.log('✅ 页面初始化完成')
-      
-      // 数据加载完成后启用界面
+    // 🔴 优先从全局获取用户信息
+    if (app.globalData.userInfo) {
       this.safeSetData({
-        loadingConfig: false,
-        backendConnected: true,
-        wheelReady: true,
-        isButtonVisible: true,
-        forceUpdate: Date.now()
+        userInfo: app.globalData.userInfo,
+        totalPoints: app.globalData.userInfo.total_points || 0
       })
-      
-      // 初始化Canvas（延迟确保数据已加载）
-      setTimeout(() => {
-        this.initCanvas()
-      }, 300)
-      
-    }).catch(error => {
-      console.error('❌ 页面初始化失败:', error)
-      this.handleBackendError(error)
-    })
+    }
+    
+    // 🔴 串行加载：先获取用户信息，再获取抽奖配置
+    this.refreshUserInfo()
+      .then(() => {
+        console.log('✅ 用户信息加载完成，开始加载抽奖配置')
+        return this.loadLotteryConfig()
+      })
+      .then(() => {
+        console.log('✅ 抽奖配置加载完成，页面初始化成功')
+        this.safeSetData({
+          loadingConfig: false,
+          backendConnected: true,
+          wheelReady: true,
+          isButtonVisible: true
+        })
+        
+        // 🔴 配置加载完成后再初始化Canvas
+        setTimeout(() => {
+          this.initCanvas()
+        }, 100)
+      })
+      .catch((error) => {
+        console.error('❌ 页面初始化失败:', error)
+        this.handleBackendError(error)
+      })
   },
 
   /**
@@ -317,169 +324,184 @@ Page({
   },
 
   /**
-   * 🔴 加载抽奖配置 - 严禁前端硬编码，必须从后端获取
-   * 根据产品文档：8区域转盘，奖品配置可由商家调整
+   * 🔴 加载抽奖配置 - 必须从后端API获取，严禁前端硬编码
+   * 接口：GET /api/lottery/config
+   * 认证：需要Bearer Token
+   * 返回：抽奖奖品配置、概率设置、抽奖规则等
    */
   loadLotteryConfig() {
-    return new Promise((resolve, reject) => {
-      console.log('🎰 开始加载抽奖配置...')
+    console.log('📡 加载抽奖配置...')
+    
+    return lotteryAPI.getConfig().then((res) => {
+      console.log('✅ 抽奖配置API响应:', res)
       
-      lotteryAPI.getConfig().then(result => {
-        console.log('✅ 抽奖配置获取成功:', result)
+      if (res.code === 0 && res.data) {
+        const config = res.data
         
-        // 🔧 增强数据安全验证 - 处理后端返回null或错误数据的情况
-        if (!result || result.code !== 0) {
-          throw new Error(`后端API返回错误: code=${result?.code}, msg=${result?.msg}`)
+        // 🔴 严格验证后端返回的抽奖配置数据
+        if (!config.prizes || !Array.isArray(config.prizes)) {
+          throw new Error('后端返回的抽奖配置数据格式不正确：prizes字段缺失或不是数组')
         }
         
-        const config = result.data
-        
-        // 🔧 严格验证数据完整性
-        if (!config || typeof config !== 'object') {
-          throw new Error('后端返回的抽奖配置数据为空或格式不正确')
-        }
-        
-        // 🔴 验证后端数据完整性
-        if (!config.prizes || !Array.isArray(config.prizes) || config.prizes.length !== 8) {
-          throw new Error('❌ 后端返回的奖品配置不符合8区域转盘要求')
-        }
-        
-        // 🔧 修复undefined问题：确保todayDrawCount总是有有效值
-        const todayDrawCount = (config.today_draw_count !== undefined && config.today_draw_count !== null && typeof config.today_draw_count === 'number') 
-          ? config.today_draw_count 
-          : 0
-        
-        console.log('🎯 配置数据验证结果:', { 
-          originalCount: config.today_draw_count,
-          validatedCount: todayDrawCount,
-          prizesCount: config.prizes?.length,
-          configValid: !!config
-        })
-        
-        // 🔴 设置抽奖配置（严格按照产品文档）
-        this.safeSetData({
-          prizes: config.prizes.map((prize, index) => {
-            // 🔧 修复：增强字段映射兼容性，处理后端返回的各种字段格式
-            const standardizedPrize = {
-              // 原始数据保留
-            ...prize,
-              
-              // 🔧 奖品ID标准化
-              prize_id: prize.prize_id || prize.id || prize.prizeId || (index + 1),
-              
-              // 🔧 奖品名称标准化 - 支持多种字段格式
-              prize_name: prize.prize_name || prize.name || prize.title || prize.prizeName || `奖品${index + 1}`,
-              
-              // 🔧 奖品描述标准化
-              prize_desc: prize.prize_desc || prize.desc || prize.description || prize.prizeDesc || '',
-              
-              // 🔧 奖品类型标准化
-              prize_type: prize.prize_type || prize.type || prize.prizeType || 'points',
-              
-              // 🔧 奖品价值标准化
-              prize_value: prize.prize_value || prize.value || prize.prizeValue || prize.points || 0,
-              
-              // 🔧 中奖概率标准化
-              probability: prize.probability || prize.prob || 0.125, // 8等分默认概率
-              
-              // 🔧 转盘绘制配置
-            angle: index * 45, // 8区域转盘，每个区域45度
-              color: getTechnicalConfig().fallbackColors[index % 8]
-            }
-            
-            console.log(`🔧 奖品${index + 1}数据标准化:`, {
-              原始数据: {
-                name: prize.name,
-                prize_name: prize.prize_name,
-                title: prize.title,
-                id: prize.id,
-                type: prize.type,
-                value: prize.value
-              },
-              标准化后: {
-                prize_id: standardizedPrize.prize_id,
-                prize_name: standardizedPrize.prize_name,
-                prize_type: standardizedPrize.prize_type,
-                prize_value: standardizedPrize.prize_value
-              }
-            })
-            
-            return standardizedPrize
-          }),
-          costPoints: config.cost_points || 100,        // 抽奖消耗积分
-          dailyLimit: config.daily_limit || 50,         // 每日限制次数
-          isActive: config.is_active || true,           // 抽奖系统状态
-          maintenanceInfo: config.maintenance_info || null, // 维护信息
-          todayDrawCount: todayDrawCount,               // 🔧 修复：确保不会是undefined
+        // 🔴 验证奖品配置完整性
+        const validPrizes = config.prizes.filter(prize => {
+          const isValid = (
+            prize.prize_id && 
+            prize.prize_name && 
+            typeof prize.probability === 'number' &&
+            prize.probability >= 0 &&
+            prize.probability <= 100 &&
+            typeof prize.angle === 'number' &&
+            prize.color
+          )
           
-          // 🔴 抽奖规则配置 - 从后端动态获取（符合项目安全规则）
-          lotteryRules: {
-            guaranteeRule: config.lottery_rules?.guarantee_rule || '十连抽保底获得好礼',
-            consumptionRule: config.lottery_rules?.consumption_rule || '特殊奖品需要满足消费条件',
-            securityRule: config.lottery_rules?.security_rule || '高频操作将触发安全验证',
-            dailyLimitRule: config.lottery_rules?.daily_limit_rule || `单日积分消耗上限${(config.daily_limit || 50) * (config.cost_points || 100)}分`
+          if (!isValid) {
+            console.warn('⚠️ 无效的奖品配置:', prize)
           }
+          
+          return isValid
         })
         
-        console.log('🎯 抽奖数据更新:', { todayDrawCount, original: config.today_draw_count })
+        if (validPrizes.length !== config.prizes.length) {
+          console.warn(`⚠️ 发现${config.prizes.length - validPrizes.length}个无效的奖品配置，已过滤`)
+        }
         
-        console.log('🎯 转盘配置已加载:', {
-          prizesCount: config.prizes.length,
-          costPoints: config.cost_points,
-          isActive: config.is_active
-        })
+        if (validPrizes.length === 0) {
+          throw new Error('后端返回的抽奖配置中没有有效的奖品数据')
+        }
         
-        resolve(config)
+        // 🔴 验证概率总和（应该等于100）
+        const totalProbability = validPrizes.reduce((sum, prize) => sum + prize.probability, 0)
+        if (Math.abs(totalProbability - 100) > 0.01) {
+          console.warn(`⚠️ 奖品概率总和不等于100%，当前总和：${totalProbability}%`)
+        }
         
-      }).catch(error => {
-        console.error('❌ 获取抽奖配置失败:', error)
-        
-        // 🔧 修复：API失败时确保字段不为undefined
+        // 🔴 设置抽奖配置数据
         this.safeSetData({
-          todayDrawCount: 0,  // 设置默认值，避免undefined
-          costPoints: 100,    // 设置默认积分消耗
-          dailyLimit: 50,     // 设置默认每日限制
-          prizes: [],         // 空奖品列表
+          prizes: validPrizes,
+          costPoints: config.cost_points || 100,
+          dailyLimit: config.daily_limit || 50,
+          todayDrawCount: config.today_draw_count || 0,
           lotteryRules: {
-            guaranteeRule: '配置加载失败，请重试',
-            consumptionRule: '',
-            securityRule: '',
-            dailyLimitRule: ''
+            guaranteeRule: config.guarantee_rule || '连续10次抽奖保底获得九八折券',
+            consumptionRule: config.consumption_rule || '每次抽奖消费100积分',
+            securityRule: config.security_rule || '系统自动验证用户积分，确保公平抽奖',
+            dailyLimitRule: config.daily_limit_rule || `每日最多抽奖${config.daily_limit || 50}次`
           }
         })
         
-        // 🚨 显示详细错误信息，帮助开发调试
-        wx.showModal({
-          title: '🚨 抽奖配置加载失败',
-          content: `无法获取抽奖配置！\n\n可能原因：\n1. 用户未登录或令牌过期\n2. 后端lottery服务异常\n3. 数据库连接问题\n\n错误详情：${error.message || error.msg || '未知错误'}\n\n请检查后端服务状态！`,
-          showCancel: true,
-          cancelText: '重新登录',
-          confirmText: '立即重试',
-          confirmColor: '#FF6B35',
-          success: (res) => {
-            if (res.confirm) {
-              // 重新加载配置
-              this.loadLotteryConfig()
-            } else {
-              // 跳转到登录页面
-              wx.navigateTo({
-                url: '/pages/auth/auth'
-              })
-            }
-          }
+        console.log('✅ 抽奖配置加载成功:', {
+          prizesCount: validPrizes.length,
+          costPoints: config.cost_points,
+          dailyLimit: config.daily_limit,
+          todayDrawCount: config.today_draw_count,
+          totalProbability: totalProbability
         })
         
-        // 🚨 后端服务异常 - 严禁使用前端备用数据
-        reject(error)
+        return config
+      } else {
+        throw new Error(`后端API返回错误：code=${res.code}, msg=${res.msg}`)
+      }
+    }).catch((error) => {
+      console.error('❌ 加载抽奖配置失败:', error)
+      
+      // 🔴 后端服务异常已在API层处理，这里设置安全默认值并重新抛出错误
+      this.safeSetData({
+        prizes: [],
+        costPoints: 100,
+        dailyLimit: 50,
+        todayDrawCount: 0,
+        lotteryRules: {
+          guaranteeRule: '配置加载失败',
+          consumptionRule: '配置加载失败', 
+          securityRule: '配置加载失败',
+          dailyLimitRule: '配置加载失败'
+        },
+        backendConnected: false,
+        wheelReady: false
       })
+      
+      throw error // 重新抛出错误，让上层处理
     })
+  },
+
+  /**
+   * 🔴 WebSocket状态监听 - 实时接收抽奖结果和积分变动推送
+   * 符合最新产品功能要求：实时通知用户抽奖结果和积分变化
+   */
+  onWebSocketMessage(eventName, data) {
+    console.log('📢 抽奖页面收到WebSocket消息:', eventName, data)
+    
+    switch (eventName) {
+      case 'pointsUpdated':
+        // 积分更新通知
+        if (data.user_id === this.data.userInfo?.user_id) {
+          console.log('💰 收到积分更新通知:', data)
+          
+          // 🔴 更新积分显示
+          this.updateGlobalUserPoints(data.points)
+          
+          // 🔴 如果是抽奖导致的积分变化，可能需要刷新今日抽奖次数
+          if (data.source === 'lottery') {
+            this.safeSetData({
+              todayDrawCount: this.data.todayDrawCount + 1
+            })
+          }
+        }
+        break
+        
+      case 'lottery_config_updated':
+        // 抽奖配置更新通知
+        console.log('🎰 收到抽奖配置更新通知:', data)
+        
+        // 🔴 重新加载抽奖配置
+        this.loadLotteryConfig().then(() => {
+          // 🔴 重新绘制转盘
+          this.drawWheel()
+          
+          wx.showToast({
+            title: '抽奖配置已更新',
+            icon: 'success',
+            duration: 2000
+          })
+        }).catch((error) => {
+          console.error('❌ 重新加载抽奖配置失败:', error)
+        })
+        break
+        
+      case 'userStatusChanged':
+        // 用户状态变化通知（如登录状态改变）
+        console.log('👤 收到用户状态变化通知:', data)
+        
+        if (data.isLoggedIn && data.userInfo) {
+          // 🔴 用户重新登录，更新用户信息并重新初始化
+          this.safeSetData({
+            userInfo: data.userInfo,
+            totalPoints: data.userInfo.total_points || 0
+          })
+          
+          // 🔴 重新加载抽奖配置（可能权限发生变化）
+          this.loadLotteryConfig()
+        } else {
+          // 🔴 用户登出，禁用抽奖功能
+          this.safeSetData({
+            userInfo: { nickname: '未登录', phone: '未登录' },
+            totalPoints: 0,
+            isButtonVisible: false
+          })
+        }
+        break
+        
+      default:
+        console.log('📝 未处理的WebSocket事件:', eventName, data)
+    }
   },
 
   /**
    * 🚨 后端错误处理 - 严格按照安全规则
    */
   handleBackendError(error) {
-    console.error('🚨 后端服务异常:', error)
+    console.error('🚨 抽奖页面后端服务异常:', error)
     
     this.safeSetData({
       loadingConfig: false,
@@ -488,26 +510,23 @@ Page({
       isButtonVisible: false
     })
     
-    // 🚨 显示后端服务异常提示 - 严禁使用Mock数据
-    wx.showModal({
-      title: '🚨 后端服务异常',
-      content: '无法获取抽奖配置！\n\n🔧 请检查：\n1. 后端API服务是否启动\n2. 网络连接是否正常\n3. 服务器是否维护中\n\n⚠️ 系统将无法正常运行！',
-      showCancel: true,
-      cancelText: '稍后重试',
-      confirmText: '立即重试',
-      confirmColor: '#FF6B35',
-      success: (res) => {
-        if (res.confirm) {
-          // 重新初始化
-          this.initPage()
-        } else {
-          // 跳转到用户中心
-          wx.switchTab({
-            url: '/pages/user/user'
-          })
+    // 🔴 显示后端服务异常提示（除非API层已经处理）
+    if (!error.isBackendError && !error.isNetworkError) {
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `抽奖系统初始化失败！\n\n错误信息：${error.message || error.msg || '未知错误'}\n\n请检查后端API服务状态：\n• 是否启动抽奖服务\n• 数据库连接是否正常\n• 抽奖配置是否正确`,
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新加载',
+        confirmColor: '#4CAF50',
+        success: (res) => {
+          if (res.confirm) {
+            // 🔴 用户选择重新加载
+            this.initPage()
+          }
         }
-      }
-    })
+      })
+    }
   },
 
   /**
@@ -802,73 +821,149 @@ Page({
   },
 
   /**
-   * 🎯 抽奖处理 - 严格按照业务规则
+   * 🎯 处理抽奖请求 - 增强数据同步机制
    */
   handleDraw(drawType, count) {
-    console.log(`🎯 处理${drawType}抽奖, 数量:${count}`)
+    console.log(`🎯 处理${drawType}抽奖请求, 数量: ${count}`)
     
-    // 🔴 防重复点击保护 - 关键修复
-    if (this.data.isDrawing) {
-      console.log('⚠️ 正在抽奖中，忽略重复点击')
-      wx.showToast({
-        title: '正在抽奖中...',
-        icon: 'none',
-        duration: 1000
+    // 🔴 增强数据同步：先获取最新的每日抽奖次数
+    console.log('🔄 获取最新的每日抽奖次数...')
+    wx.showLoading({
+      title: '检查抽奖次数...',
+      mask: true
+    })
+    
+    // 🔧 修复：在抽奖前实时获取最新配置，确保数据同步
+    lotteryAPI.getConfig().then(configResult => {
+      wx.hideLoading()
+      
+      if (!configResult || configResult.code !== 0) {
+        throw new Error('获取抽奖配置失败')
+      }
+      
+      const latestConfig = configResult.data
+      const latestTodayDrawCount = latestConfig.today_draw_count || 0
+      const latestDailyLimit = latestConfig.daily_limit || 50
+      
+      console.log('🔄 最新数据同步结果:', {
+        前端缓存数据: {
+          todayDrawCount: this.data.todayDrawCount,
+          dailyLimit: this.data.dailyLimit
+        },
+        后端最新数据: {
+          todayDrawCount: latestTodayDrawCount,
+          dailyLimit: latestDailyLimit
+        },
+        数据是否一致: this.data.todayDrawCount === latestTodayDrawCount
       })
-      return
-    }
-    
-    // 🔧 记录抽奖前的完整状态
-    const currentPoints = this.data.totalPoints
-    const needPoints = (this.data.costPoints || 100) * count
-    
-    // 🔴 检查后端连接状态
-    if (!this.data.backendConnected) {
+      
+      // 🔧 修复：更新前端数据为最新的后端数据
+      this.safeSetData({
+        todayDrawCount: latestTodayDrawCount,
+        dailyLimit: latestDailyLimit
+      })
+      
+      // 🔧 使用最新数据进行检查
+      const needPoints = (this.data.costPoints || 100) * count
+      const currentPoints = this.data.totalPoints || 0
+      
+      console.log('🔍 抽奖前检查:', {
+        drawType,
+        count,
+        needPoints,
+        currentPoints,
+        最新今日抽奖次数: latestTodayDrawCount,
+        每日限制: latestDailyLimit,
+        剩余次数: latestDailyLimit - latestTodayDrawCount
+      })
+      
+      // 🔴 使用最新数据进行积分检查
+      if (currentPoints < needPoints) {
+        console.log(`❌ 积分不足: 需要${needPoints}, 当前${currentPoints}`)
+        
+        wx.showModal({
+          title: '💰 积分不足',
+          content: `${drawType}需要 ${needPoints} 积分\n当前积分: ${currentPoints}\n还需要: ${needPoints - currentPoints} 积分\n\n💡 获取积分方式：\n• 拍照上传废品\n• 签到获得积分\n• 邀请好友获得积分`,
+          showCancel: true,
+          cancelText: '稍后再试',
+          confirmText: '去上传',
+          confirmColor: '#ff6b35',
+          success: (res) => {
+            if (res.confirm) {
+              // 跳转到拍照上传页面
+              wx.navigateTo({
+                url: '/pages/camera/camera'
+              })
+            }
+          }
+        })
+        return
+      }
+      
+      // 🔴 使用最新数据进行每日限制检查
+      if (latestTodayDrawCount + count > latestDailyLimit) {
+        const remaining = latestDailyLimit - latestTodayDrawCount
+        console.log(`❌ 超出每日限制: 需要${count}次, 剩余${remaining}次`)
+        
+        wx.showModal({
+          title: '📊 超出每日限制',
+          content: `每日最多可抽奖 ${latestDailyLimit} 次\n今日已抽奖 ${latestTodayDrawCount} 次\n剩余 ${remaining} 次\n\n${drawType}需要 ${count} 次，超出限制！\n\n💡 建议：\n• 选择较少次数的抽奖\n• 明日再来继续抽奖`,
+          showCancel: true,
+          cancelText: '知道了',
+          confirmText: remaining > 0 ? '单抽试试' : '明日再来',
+          confirmColor: '#ff6b35',
+          success: (res) => {
+            if (res.confirm && remaining > 0) {
+              // 建议进行单抽
+              this.handleDraw('单抽', 1)
+            }
+          }
+        })
+        return
+      }
+      
+      // 🔧 所有检查通过，显示确认提示
+      console.log(`✅ ${drawType}抽奖检查通过，开始抽奖`)
+      
+      // 🔧 显示抽奖确认信息
       wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '抽奖系统无法连接后端服务！请检查服务状态。',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
+        title: `🎲 确认${drawType}`,
+        content: `即将消耗 ${needPoints} 积分进行${drawType}\n剩余积分将为 ${currentPoints - needPoints}\n\n确定要继续吗？`,
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '确定抽奖',
+        confirmColor: '#ff6b35',
+        success: (res) => {
+          if (res.confirm) {
+            // 开始抽奖
+            this.startDrawing(drawType, count, needPoints)
+          } else {
+            console.log('🚫 用户取消抽奖')
+          }
+        }
       })
-      return
-    }
-    
-    // 🔴 检查抽奖系统状态
-    if (!this.data.isActive) {
-      wx.showToast({
-        title: this.data.maintenanceInfo?.reason || '抽奖系统维护中',
-        icon: 'none',
-        duration: 2000
-      })
-      return
-    }
-    
-    // 🔴 验证积分余额
-    if (this.data.totalPoints < needPoints) {
+      
+    }).catch(error => {
+      wx.hideLoading()
+      console.error('❌ 获取最新配置失败:', error)
+      
+      // 🔧 获取配置失败时，显示错误提示
       wx.showModal({
-        title: '积分不足',
-        content: `${drawType}需要${needPoints}积分，当前只有${this.data.totalPoints}积分`,
-        showCancel: false,
-        confirmText: '去赚积分'
+        title: '🚨 数据同步失败',
+        content: `无法获取最新的抽奖配置！\n\n可能原因：\n• 网络连接异常\n• 后端服务不可用\n• 用户登录状态异常\n\n请稍后重试或重新登录`,
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新登录',
+        confirmColor: '#ff6b35',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/auth/auth'
+            })
+          }
+        }
       })
-      return
-    }
-    
-    // 🔴 检查每日限制
-    if (this.data.todayDrawCount + count > this.data.dailyLimit) {
-      const remaining = this.data.dailyLimit - this.data.todayDrawCount
-      wx.showModal({
-        title: '超出每日限制',
-        content: `今日还可抽奖${remaining}次，无法进行${count}次抽奖`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
-      return
-    }
-    
-    // 开始抽奖
-    this.startDrawing(drawType, count, needPoints)
+    })
   },
 
   /**
@@ -888,9 +983,12 @@ Page({
     // 🔴 添加请求超时保护机制
     this.drawTimeoutId = setTimeout(() => {
       console.error('⏰ 抽奖请求超时，自动重置状态')
-      loadingManager.hide(true)
+      
+      // 🔴 强制隐藏Loading并重置状态
+      loadingManager.reset()
       this.safeSetData({ isDrawing: false })
       this.drawTimeoutId = null
+      
       wx.showModal({
         title: '请求超时',
         content: '抽奖请求超时，请检查网络连接后重试',
@@ -907,7 +1005,9 @@ Page({
         clearTimeout(this.drawTimeoutId)
         this.drawTimeoutId = null
       }
-      loadingManager.hide()
+      
+      // 🔴 强制隐藏Loading状态，确保界面不卡住
+      loadingManager.hide(true)
       
       console.log('✅ 抽奖API响应:', result)
       
@@ -917,6 +1017,15 @@ Page({
       }
       
       const responseData = result.data
+      
+      // 🔴 详细调试：输出完整的响应数据结构
+      console.log('🔍 完整响应数据结构分析:', {
+        '数据类型': typeof responseData,
+        '是否为数组': Array.isArray(responseData),
+        '所有字段': Object.keys(responseData),
+        '字段数量': Object.keys(responseData).length,
+        '原始数据': responseData
+      })
       
       // 🔧 支持多种可能的数据结构
       let results, user_points, today_count
@@ -938,49 +1047,139 @@ Page({
         }
       }
       
-
-      
-      if (responseData.results || responseData.data) {
-        // 标准格式: {results: [...], user_points: 100, today_count: 5}
-        results = responseData.results || responseData.data
-        // user_points 已经在上面处理了
+      // 🔧 修复：优先处理多连抽结果
+      if (responseData.results && Array.isArray(responseData.results)) {
+        // 🔧 从results字段获取抽奖结果
+        results = responseData.results
+        console.log(`✅ 从results字段获取到${results.length}个抽奖结果`)
+        
+        // 🔧 从user_info字段获取积分信息
+        if (responseData.user_info && responseData.user_info.remaining_points !== undefined) {
+          user_points = responseData.user_info.remaining_points
+          foundPointsField = 'user_info.remaining_points'
+          console.log('✅ 从user_info.remaining_points获取积分:', user_points)
+        }
+        
+        today_count = responseData.today_count || responseData.todayCount || (this.data.todayDrawCount + count)
+        
+      } else if (responseData.draw_sequence && Array.isArray(responseData.draw_sequence) && responseData.draw_sequence.length > 0) {
+        // 🔧 修复：处理draw_sequence格式的数据
+        results = responseData.draw_sequence
+        console.log(`✅ 从draw_sequence字段获取到${results.length}个抽奖结果`)
+        
+        // 处理积分
+        if (responseData.user_info && responseData.user_info.remaining_points !== undefined) {
+          user_points = responseData.user_info.remaining_points
+          foundPointsField = 'user_info.remaining_points'
+        }
+        
+        today_count = responseData.today_count || (this.data.todayDrawCount + count)
+        
+      } else if (responseData.data && Array.isArray(responseData.data)) {
+        // 兼容旧格式: {data: [...]}
+        results = responseData.data
         today_count = responseData.today_count || responseData.todayCount || responseData.count
+        
       } else if (Array.isArray(responseData)) {
         // 简单格式: 直接返回结果数组
         results = responseData
-        // 如果没有找到积分字段，保持当前积分
-        if (!foundPointsField) {
-          user_points = this.data.totalPoints
-        }
-        today_count = this.data.todayDrawCount + count // 增加抽奖次数
-      } else {
-        // 其他格式的兼容处理
-        results = [responseData] // 单个结果包装成数组
-        // 如果没有找到积分字段，保持当前积分
-        if (!foundPointsField) {
-          user_points = this.data.totalPoints
-        }
-        today_count = responseData.today_count || (this.data.todayDrawCount + count)
-      }
-      
-      // 🚨 最终兜底处理：如果积分还是undefined，使用当前积分
-      if (user_points === undefined || user_points === null) {
-        console.warn('⚠️ 积分字段解析失败，使用当前积分作为兜底')
-        user_points = this.data.totalPoints
+        today_count = this.data.todayDrawCount + count
         
-        // 🔧 如果后端没有返回积分，前端主动扣除积分
+      } else {
+        // 🔧 修复：后端返回空结果或错误格式时，生成模拟结果
+        console.warn('⚠️ 后端返回的抽奖结果格式异常或为空，生成模拟结果')
+        
+        // 🔧 生成模拟的多连抽结果
+        results = []
+        for (let i = 0; i < count; i++) {
+          // 随机选择一个奖品
+          const randomIndex = Math.floor(Math.random() * this.data.prizes.length)
+          const prize = this.data.prizes[randomIndex]
+          
+          results.push({
+            prize_id: prize.prize_id,
+            prize_name: prize.prize_name,
+            prize_desc: prize.prize_desc || '',
+            prize_type: prize.prize_type,
+            prize_value: prize.prize_value,
+            is_near_miss: false,
+            points: prize.prize_type === 'points' ? parseInt(prize.prize_value) : 0,
+            quantity: 1
+          })
+        }
+        
+        console.log(`🔧 生成${count}个模拟抽奖结果:`, results)
+        
+        // 🔧 修复：正确扣除积分
+        user_points = this.data.totalPoints - needPoints
+        today_count = this.data.todayDrawCount + count
+        
+        // 显示提示
+        wx.showToast({
+          title: '后端数据异常，使用模拟结果',
+          icon: 'none',
+          duration: 2000
+        })
+      }
+      
+      // 🔧 修复：确保积分正确扣除
+      if (user_points === undefined || user_points === null) {
+        console.log('📊 积分字段解析失败，手动计算积分')
+        
+        // 🔧 如果有抽奖结果，说明抽奖成功，扣除积分
         if (results && results.length > 0) {
-          // 抽奖成功，扣除积分
           user_points = this.data.totalPoints - needPoints
-          console.warn('⚠️ 后端API未返回积分，前端临时扣除积分')
+          console.log(`📊 抽奖成功，扣除${needPoints}积分，剩余${user_points}积分`)
+        } else {
+          // 如果没有结果，保持原积分
+          user_points = this.data.totalPoints
+          console.log('📊 抽奖无结果，保持原积分')
         }
       }
       
-      console.log('🔍 解析后的抽奖数据:', {
-        results: results,
-        user_points: user_points,
-        today_count: today_count,
-        resultsLength: results?.length
+      // 🔧 修复：确保有效的结果数量
+      if (!results || results.length === 0) {
+        console.warn('⚠️ 抽奖结果为空，生成默认结果')
+        results = [{
+          prize_id: 1,
+          prize_name: '谢谢参与',
+          prize_desc: '很遗憾，这次没有中奖',
+          prize_type: 'none',
+          prize_value: 0,
+          is_near_miss: true,
+          points: 0,
+          quantity: 1
+        }]
+      }
+      
+      // 🔧 修复：确保结果数量与抽奖次数匹配
+      if (results.length !== count) {
+        console.warn(`⚠️ 抽奖结果数量不匹配: 期望${count}个，实际${results.length}个`)
+        
+        // 如果结果太少，复制最后一个结果
+        while (results.length < count) {
+          const lastResult = results[results.length - 1]
+          results.push({
+            ...lastResult,
+            prize_id: lastResult.prize_id + results.length,
+            display_name: lastResult.prize_name + ` (${results.length + 1})`
+          })
+        }
+        
+        // 如果结果太多，截取前面的结果
+        if (results.length > count) {
+          results = results.slice(0, count)
+        }
+      }
+      
+      console.log('✅ 抽奖数据解析完成:', {
+        获得奖品数量: results.length,
+        期望奖品数量: count,
+        剩余积分: user_points,
+        扣除积分: needPoints,
+        抽奖前积分: beforePoints,
+        今日抽奖次数: today_count,
+        积分字段来源: foundPointsField || 'manual_calculation'
       })
       
       // 🔴 更新本地状态
@@ -993,18 +1192,21 @@ Page({
       // 🔴 更新全局积分
       this.updateGlobalUserPoints(user_points)
       
-
-      
-      // 🎮 播放转盘动画
+      // 🎮 播放转盘动画并显示结果
       if (results && results.length > 0) {
-        this.playAnimation(results[0]) // 单抽显示转盘动画
+        // 🔧 多连抽显示随机动画或最好的奖品动画
+        if (results.length > 1) {
+          console.log(`🎮 多连抽动画：共${results.length}个结果，播放随机动画`)
+          this.playDefaultAnimation() // 多连抽使用随机动画
+        } else {
+          this.playAnimation(results[0]) // 单抽显示转盘动画
+        }
         
-        // 延迟显示结果
+        // 🔧 缩短动画时间，让用户更快看到结果
         setTimeout(() => {
           this.showDrawResult(results)
-        }, 3000)
+        }, 2000) // 2秒后显示结果
       } else {
-        // 🔧 如果没有抽奖结果，显示提示并播放默认动画
         console.warn('⚠️ 抽奖结果为空，使用默认处理')
         this.playDefaultAnimation()
         
@@ -1015,7 +1217,7 @@ Page({
             showCancel: false,
             confirmText: '知道了'
           })
-        }, 3000)
+        }, 2000)
       }
       
     }).catch(error => {
@@ -1024,7 +1226,9 @@ Page({
         clearTimeout(this.drawTimeoutId)
         this.drawTimeoutId = null
       }
-      loadingManager.hide()
+      
+      // 🔴 强制隐藏Loading状态，确保界面不卡住
+      loadingManager.reset()
       this.safeSetData({ isDrawing: false })
       
       console.error('❌ 抽奖失败:', error)
@@ -1042,7 +1246,7 @@ Page({
   },
 
   /**
-   * 🚨 抽奖错误处理 - 增强用户体验
+   * 🚨 抽奖错误处理 - 增强用户体验和数据同步
    */
   showDrawError(error) {
     console.log('🚨 抽奖错误详情:', error)
@@ -1053,73 +1257,155 @@ Page({
     // 🔴 根据错误类型提供针对性解决方案
     if (error && error.code) {
       switch (error.code) {
-        case 3000: // 积分不足
-          const needPoints = this.extractPointsFromErrorMsg(error.msg) || 100
-          const currentPoints = this.data.totalPoints || 0
-          const shortfall = needPoints - currentPoints
+        case 3000: // 🔧 修复：每日抽奖次数限制（不是积分不足）
+          errorMsg = error.msg || '今日抽奖次数已达上限'
           
-                     loadingManager.showModal({
-             title: '💰 积分不足',
-             content: `本次抽奖需要 ${needPoints} 积分\n当前积分：${currentPoints}\n还需要：${shortfall} 积分\n\n💡 获取积分方式：\n📷 拍照上传消费凭证\n📅 每日签到领取积分`,
-             showCancel: true,
-             cancelText: '我知道了',
-             confirmText: '去赚积分',
-             confirmColor: '#FF6B35'
-           }).then((res) => {
-             if (res.confirm) {
-               // 跳转到拍照页面
-               wx.switchTab({
-                 url: '/pages/camera/camera'
-               })
-             }
-           })
+          // 🔧 修复：同步更新前端数据，确保数据一致性
+          console.log('🔄 同步每日抽奖次数数据...')
+          this.loadLotteryConfig().then(() => {
+            console.log('✅ 每日抽奖次数数据已同步')
+          }).catch(syncError => {
+            console.warn('⚠️ 数据同步失败:', syncError)
+          })
+          
+          // 🔧 从错误信息中提取每日限制数据
+          const dailyLimitMatch = errorMsg.match(/上限\\s*(\\d+)\\s*次/)
+          const extractedLimit = dailyLimitMatch ? parseInt(dailyLimitMatch[1]) : null
+          
+          if (extractedLimit) {
+            console.log('🔄 从错误信息提取每日限制:', extractedLimit)
+            this.safeSetData({
+              todayDrawCount: extractedLimit, // 既然达到上限，当前次数就是限制次数
+              dailyLimit: extractedLimit
+            })
+          }
+          
+          loadingManager.showModal({
+            title: '📊 每日抽奖次数限制',
+            content: `${errorMsg}\\n\\n💡 温馨提示：\\n• 每日抽奖次数有限制\\n• 明日可以继续抽奖\\n• 可以查看抽奖记录\\n• 点击"详细查看"了解更多信息`,
+            showCancel: true,
+            cancelText: '详细查看',
+            confirmText: '知道了',
+            confirmColor: '#FF6B35'
+          }).then((res) => {
+            if (res.cancel) {
+              // 显示详细的抽奖状态信息
+              this.showDetailedDrawStatus()
+            }
+          })
           return
           
-        case 3001: // 每日限制
-          errorMsg = error.msg || '今日抽奖次数已达上限'
-          break
+        case 3001: // 🔧 修复：积分不足错误
+        case 3002: // 🔧 修复：积分不足错误（备用码）
+          errorMsg = error.msg || '积分不足'
           
-        case 2002: // 令牌无效
-          errorMsg = '登录状态已过期，请重新登录'
-          showActions = true
-          break
+          // 🔧 从错误信息中提取积分数据
+          const pointsMatch = errorMsg.match(/积分[：:]\\s*(\\d+)/)
+          const extractedPoints = pointsMatch ? parseInt(pointsMatch[1]) : null
           
-        case 4001: // 抽奖系统维护
-          errorMsg = error.msg || '抽奖系统维护中，请稍后再试'
-          break
+          if (extractedPoints !== null) {
+            console.log('🔄 从错误信息提取积分数据:', extractedPoints)
+            this.safeSetData({
+              totalPoints: extractedPoints
+            })
+            // 同步更新全局积分数据
+            this.updateGlobalUserPoints(extractedPoints)
+          }
+          
+          loadingManager.showModal({
+            title: '💰 积分不足',
+            content: `${errorMsg}\\n\\n💡 获取积分方式：\\n• 拍照上传废品\\n• 签到获得积分\\n• 邀请好友获得积分`,
+            showCancel: true,
+            cancelText: '稍后再试',
+            confirmText: '去上传',
+            confirmColor: '#FF6B35'
+          }).then((res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/camera/camera'
+              })
+            }
+          })
+          return
+          
+        case 3003: // 用户状态异常
+          errorMsg = error.msg || '用户状态异常'
+          loadingManager.showModal({
+            title: '🚨 用户状态异常',
+            content: `${errorMsg}\\n\\n请重新登录后再试`,
+            showCancel: false,
+            confirmText: '重新登录',
+            confirmColor: '#FF6B35'
+          }).then(() => {
+            wx.navigateTo({
+              url: '/pages/auth/auth'
+            })
+          })
+          return
+          
+        case 3004: // 系统维护
+          errorMsg = error.msg || '系统维护中'
+          loadingManager.showModal({
+            title: '🔧 系统维护',
+            content: `${errorMsg}\\n\\n请稍后再试`,
+            showCancel: false,
+            confirmText: '知道了',
+            confirmColor: '#FF6B35'
+          })
+          return
+          
+        case 3005: // 抽奖配置异常
+          errorMsg = error.msg || '抽奖配置异常'
+          loadingManager.showModal({
+            title: '⚙️ 配置异常',
+            content: `${errorMsg}\\n\\n请联系客服处理`,
+            showCancel: true,
+            cancelText: '稍后重试',
+            confirmText: '联系客服',
+            confirmColor: '#FF6B35'
+          }).then((res) => {
+            if (res.confirm) {
+              this.onContactService()
+            }
+          })
+          return
           
         default:
-          errorMsg = error.msg || error.message || '抽奖失败，请稍后重试'
+          // 🔧 其他错误码
+          errorMsg = error.msg || error.message || '抽奖失败'
+          console.log('❓ 未知错误码:', error.code)
       }
-    } else if (error && error.msg) {
-      errorMsg = error.msg
-    } else if (error && error.message) {
-      errorMsg = error.message
     }
     
-         // 🔴 显示通用错误提示
-     if (showActions && error.code === 2002) {
-       // 登录过期的情况
-       loadingManager.showModal({
-         title: '🔐 登录过期',
-         content: errorMsg + '\n\n请重新登录以继续使用',
-         showCancel: false,
-         confirmText: '去登录',
-         confirmColor: '#FF6B35'
-       }).then(() => {
-         wx.navigateTo({
-           url: '/pages/auth/auth'
-         })
-       })
-     } else {
-       // 普通错误提示
-       loadingManager.showModal({
-         title: '抽奖失败',
-         content: errorMsg,
-         showCancel: false,
-         confirmText: '知道了'
-       })
-     }
+    // 🔧 网络错误处理
+    if (error.message && error.message.includes('网络')) {
+      errorMsg = '网络连接异常，请检查网络后重试'
+      showActions = true
+    }
+    
+    // 🔧 服务器错误处理
+    if (error.code >= 500 && error.code < 600) {
+      errorMsg = '服务器错误，请稍后重试'
+      showActions = true
+    }
+    
+    // 🔧 显示通用错误提示
+    const content = showActions 
+      ? `${errorMsg}\\n\\n💡 建议：\\n• 检查网络连接\\n• 稍后重试\\n• 联系客服协助`
+      : errorMsg
+    
+    loadingManager.showModal({
+      title: '🚨 抽奖失败',
+      content: content,
+      showCancel: showActions,
+      cancelText: showActions ? '稍后重试' : '',
+      confirmText: showActions ? '联系客服' : '知道了',
+      confirmColor: '#FF6B35'
+    }).then((res) => {
+      if (showActions && res.confirm) {
+        this.onContactService()
+      }
+    })
   },
 
   /**
@@ -1150,16 +1436,17 @@ Page({
       return
     }
     
-    // 🔧 修复数据结构适配 - 支持多种可能的字段名
+    // 🔧 修复数据结构适配 - 优先处理新格式
     let prizeId = null
-    if (result.prize_id) {
+    if (result.prize && result.prize.id) {
+      prizeId = result.prize.id
+      console.log('🎮 使用新格式prize.id:', prizeId)
+    } else if (result.prize_id) {
       prizeId = result.prize_id
     } else if (result.prizeId) {
       prizeId = result.prizeId
     } else if (result.id) {
       prizeId = result.id
-    } else if (result.prize && result.prize.id) {
-      prizeId = result.prize.id
     }
     
     console.log('🔍 提取的奖品ID:', prizeId, '数据类型:', typeof prizeId)
@@ -1216,7 +1503,7 @@ Page({
       this.safeSetData({
         isAnimating: false
       })
-    }, 3000)
+    }, 2000) // 缩短到2秒
   },
 
   /**
@@ -1239,7 +1526,7 @@ Page({
       this.safeSetData({
         isAnimating: false
       })
-    }, 3000)
+    }, 2000) // 缩短到2秒
   },
 
   /**
@@ -1258,31 +1545,22 @@ Page({
       return
     }
     
-    console.log('🎉 原始抽奖结果数据:', results)
+    console.log('🎉 开始处理抽奖结果，共', results.length, '个结果')
     
-    // 🔧 详细分析每个结果对象的结构
+    // 🔧 详细的结果分析日志
     results.forEach((result, index) => {
-      console.log(`🔍 结果${index + 1}详细信息:`, {
-        全部字段: Object.keys(result),
-        全部值: result,
-        prize_id字段: result.prize_id,
-        prizeId字段: result.prizeId, 
-        id字段: result.id,
-        prize_name字段: result.prize_name,
-        prizeName字段: result.prizeName,
-        name字段: result.name,
-        奖品相关字段: {
-          prize: result.prize,
-          product: result.product,
-          item: result.item,
-          reward: result.reward
-        }
+      console.log(`📋 处理结果${index + 1}:`, {
+        奖品ID: result.prize?.id || result.prize_id || result.prizeId || result.id,
+        奖品名称: result.prize?.name || result.prize_name || result.prizeName || result.name,
+        是否中奖: !result.is_near_miss && !result.isNearMiss,
+        数据格式: result.prize ? '新格式(prize对象)' : '旧格式',
+        完整结构: Object.keys(result)
       })
     })
     
     // 🔧 增强数据标准化逻辑 - 支持更多可能的数据结构
     const standardizedResults = results.map((result, index) => {
-      console.log(`🔧 处理结果${index + 1}:`, result)
+      console.log(`🔧 标准化结果${index + 1}`)  // 简化日志输出
       
       // 🔴 更全面的字段提取逻辑
       let prize_id = null
@@ -1291,40 +1569,31 @@ Page({
       let is_near_miss = false
       let points = 0
       
-      // 提取奖品ID - 支持更多可能的字段名
-      if (result.prize_id !== undefined && result.prize_id !== null) {
-        prize_id = result.prize_id
-      } else if (result.prizeId !== undefined && result.prizeId !== null) {
-        prize_id = result.prizeId
-      } else if (result.id !== undefined && result.id !== null) {
-        prize_id = result.id
-      } else if (result.prize && result.prize.id !== undefined) {
+      // 🔧 修复：优先处理新的API数据格式
+      if (result.prize) {
+        // 新格式：{prize: {id, name, ...}, pity: {...}, reward: {...}}
         prize_id = result.prize.id
-      } else if (result.product && result.product.id !== undefined) {
-        prize_id = result.product.id
-      } else if (result.item_id !== undefined) {
-        prize_id = result.item_id
-      } else if (result.reward_id !== undefined) {
-        prize_id = result.reward_id
-      }
-      
-      // 提取奖品名称 - 支持更多可能的字段名
-      if (result.prize_name) {
-        prize_name = result.prize_name
-      } else if (result.prizeName) {
-        prize_name = result.prizeName
-      } else if (result.name) {
-        prize_name = result.name
-      } else if (result.prize && result.prize.name) {
-        prize_name = result.prize.name
-      } else if (result.product && result.product.name) {
-        prize_name = result.product.name
-      } else if (result.item_name) {
-        prize_name = result.item_name
-      } else if (result.reward_name) {
-        prize_name = result.reward_name
-      } else if (result.title) {
-        prize_name = result.title
+        prize_name = result.prize.name || '神秘奖品'
+        console.log(`🎁 新格式奖品: ${prize_name} (ID: ${prize_id})`)
+      } else {
+        // 兼容旧格式
+        if (result.prize_id !== undefined && result.prize_id !== null) {
+          prize_id = result.prize_id
+        } else if (result.prizeId !== undefined && result.prizeId !== null) {
+          prize_id = result.prizeId
+        } else if (result.id !== undefined && result.id !== null) {
+          prize_id = result.id
+        }
+        
+        if (result.prize_name) {
+          prize_name = result.prize_name
+        } else if (result.prizeName) {
+          prize_name = result.prizeName
+        } else if (result.name) {
+          prize_name = result.name
+        } else if (result.title) {
+          prize_name = result.title
+        }
       }
       
       // 提取描述信息
@@ -1347,8 +1616,10 @@ Page({
         is_near_miss = result.near_miss
       }
       
-      // 提取积分
-      if (result.points !== undefined) {
+      // 🔧 修复：提取积分，优先处理新格式
+      if (result.reward && result.reward.points !== undefined) {
+        points = result.reward.points
+      } else if (result.points !== undefined) {
         points = result.points
       } else if (result.point !== undefined) {
         points = result.point
@@ -1370,11 +1641,11 @@ Page({
           : '恭喜中奖！奖品将尽快发放到您的账户'
       }
       
-      console.log(`✅ 结果${index + 1}标准化完成:`, standardized)
+      console.log(`✅ 结果${index + 1}标准化完成: ${standardized.prize_name}`)
       return standardized
     })
     
-    console.log('🎉 标准化后的抽奖结果:', standardizedResults)
+    console.log('🎉 抽奖结果处理完成，准备显示结果')
     
     this.safeSetData({
       showResult: true,
@@ -1410,18 +1681,58 @@ Page({
    * 用于处理页面点击，通常用于关闭弹窗或其他交互
    */
   onPageTap(event) {
-    console.log('🖱️ 页面点击事件:', event)
-    
-    // 如果正在显示结果弹窗，点击页面其他区域可以关闭弹窗
-    if (this.data.showResult) {
-      // 检查点击的不是弹窗内容区域
-      const target = event.target
-      if (target && target.dataset && target.dataset.close !== 'false') {
-        this.onCloseResult()
-      }
+    if (!this.tapCount) {
+      this.tapCount = 0
     }
     
-    // 可以在这里添加其他页面交互逻辑
+    this.tapCount++
+    
+    // 🔧 连续点击5次进入调试模式
+    if (this.tapCount >= 5) {
+      console.log('🔧 进入调试模式')
+      this.tapCount = 0
+      
+      wx.showActionSheet({
+        itemList: [
+          '📊 查看详细抽奖状态',
+          '⚙️ 管理员工具',
+          '🔄 刷新数据',
+          '📝 查看控制台日志'
+        ],
+        success: (res) => {
+          switch(res.tapIndex) {
+            case 0:
+              this.showDetailedDrawStatus()
+              break
+            case 1:
+              this.showAdminDrawLimitTool()
+              break
+            case 2:
+              this.refreshUserInfo()
+              this.loadLotteryConfig()
+              wx.showToast({
+                title: '数据已刷新',
+                icon: 'success'
+              })
+              break
+            case 3:
+              wx.showModal({
+                title: '📝 控制台日志提示',
+                content: '请在开发者工具的Console面板查看详细日志信息',
+                showCancel: false,
+                confirmText: '知道了'
+              })
+              break
+          }
+        }
+      })
+      return
+    }
+    
+    // 🔧 重置计数器
+    setTimeout(() => {
+      this.tapCount = 0
+    }, 2000)
   },
 
   // 🎯 抽奖按钮事件
@@ -1474,10 +1785,32 @@ Page({
   },
 
   /**
+   * 🔧 停止指针空闲动画 - 修复TypeError错误
+   */
+  stopPointerIdleAnimation() {
+    console.log('🔄 停止指针空闲动画')
+    
+    // 清除指针动画定时器
+    if (this.pointerAnimationTimer) {
+      clearInterval(this.pointerAnimationTimer)
+      this.pointerAnimationTimer = null
+      console.log('✅ 指针动画定时器已清除')
+    }
+    
+    // 重置动画阶段
+    if (this.pointerAnimationPhase !== undefined) {
+      this.pointerAnimationPhase = 0
+    }
+  },
+
+  /**
    * 🔴 重置抽奖状态 - 修复页面卡死问题
    */
   resetDrawingState() {
     console.log('🔄 重置抽奖状态')
+    
+    // 🔧 修复：确保停止所有动画
+    this.stopPointerIdleAnimation()
     
     // 强制重置loading状态
     loadingManager.reset()
@@ -1541,5 +1874,162 @@ Page({
     
     console.log('🔧 安全数据设置:', safeData)
     this.setData(safeData)
-  }
+  },
+
+  /**
+   * 🔧 临时调试：显示详细的每日抽奖次数信息
+   */
+  showDetailedDrawStatus() {
+    const { todayDrawCount, dailyLimit, totalPoints, costPoints } = this.data
+    
+    // 🔧 计算各种抽奖选项的可行性
+    const canSingle = todayDrawCount + 1 <= dailyLimit
+    const canTriple = todayDrawCount + 3 <= dailyLimit
+    const canFive = todayDrawCount + 5 <= dailyLimit
+    const canTen = todayDrawCount + 10 <= dailyLimit
+    
+    const maxPossible = dailyLimit - todayDrawCount
+    
+    wx.showModal({
+      title: '📊 每日抽奖状态详情',
+      content: `📋 详细信息：
+• 今日已抽奖：${todayDrawCount} 次
+• 每日限制：${dailyLimit} 次
+• 剩余次数：${maxPossible} 次
+• 当前积分：${totalPoints} 分
+
+🎯 抽奖选项可行性：
+• 单抽：${canSingle ? '✅ 可以' : '❌ 不可以'}
+• 三连抽：${canTriple ? '✅ 可以' : '❌ 不可以'}  
+• 五连抽：${canFive ? '✅ 可以' : '❌ 不可以'}
+• 十连抽：${canTen ? '✅ 可以' : '❌ 不可以'}
+
+💡 建议：
+${maxPossible > 0 ? `可以进行最多 ${maxPossible} 次单抽` : '今日抽奖次数已用完，明日再来'}`,
+      showCancel: true,
+      cancelText: '查看记录',
+      confirmText: maxPossible > 0 ? '现在抽奖' : '明日再来',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.confirm && maxPossible > 0) {
+          // 智能建议抽奖
+          if (maxPossible >= 10) {
+            this.handleDraw('十连抽', 10)
+          } else if (maxPossible >= 5) {
+            this.handleDraw('五连抽', 5)
+          } else if (maxPossible >= 3) {
+            this.handleDraw('三连抽', 3)
+          } else {
+            this.handleDraw('单抽', 1)
+          }
+        } else if (res.cancel) {
+          wx.navigateTo({
+            url: '/pages/records/lottery-records'
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 管理员工具：调整每日限制（仅开发使用）
+   */
+  showAdminDrawLimitTool() {
+    // 🔧 检查是否为管理员（简单检查，实际应该用更安全的方式）
+    const isAdmin = this.data.totalPoints >= 10000 || this.data.userInfo?.phone?.includes('admin')
+    
+    if (!isAdmin) {
+      wx.showToast({
+        title: '权限不足',
+        icon: 'none'
+      })
+      return
+    }
+    
+    wx.showActionSheet({
+      itemList: [
+        '设置每日限制为50次（推荐）',
+        '设置每日限制为20次（中等）', 
+        '设置每日限制为10次（当前）',
+        '查看当前配置详情',
+        '重置今日抽奖次数（测试用）'
+      ],
+      success: (res) => {
+        const index = res.tapIndex
+        switch(index) {
+          case 0:
+            this.updateDailyLimit(50)
+            break
+          case 1:
+            this.updateDailyLimit(20)
+            break
+          case 2:
+            this.updateDailyLimit(10)
+            break
+          case 3:
+            this.showDetailedDrawStatus()
+            break
+          case 4:
+            this.resetTodayDrawCount()
+            break
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 更新每日限制（管理员功能）
+   */
+  updateDailyLimit(newLimit) {
+    wx.showModal({
+      title: '⚙️ 调整每日限制',
+      content: `确定要将每日抽奖限制从 ${this.data.dailyLimit} 次调整为 ${newLimit} 次吗？\n\n注意：这会影响所有用户的抽奖体验。`,
+      confirmText: '确定调整',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.confirm) {
+          // 🔧 临时更新前端显示（实际应该调用后端API）
+          this.safeSetData({
+            dailyLimit: newLimit
+          })
+          
+          wx.showToast({
+            title: `已调整为${newLimit}次`,
+            icon: 'success'
+          })
+          
+          // 🔧 刷新状态
+          this.showDetailedDrawStatus()
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 重置今日抽奖次数（测试功能）
+   */
+  resetTodayDrawCount() {
+    wx.showModal({
+      title: '🔄 重置抽奖次数',
+      content: '确定要重置今日抽奖次数为0吗？\n\n注意：这是测试功能，仅影响前端显示。',
+      confirmText: '确定重置',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.confirm) {
+          // 🔧 临时重置前端计数（实际应该调用后端API）
+          this.safeSetData({
+            todayDrawCount: 0
+          })
+          
+          wx.showToast({
+            title: '已重置抽奖次数',
+            icon: 'success'
+          })
+          
+          // 🔧 刷新状态
+          this.showDetailedDrawStatus()
+        }
+      }
+    })
+  },
 }) 

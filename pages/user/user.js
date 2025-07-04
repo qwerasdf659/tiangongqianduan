@@ -426,86 +426,79 @@ Page({
   },
 
   /**
-   * 🔴 头像上传功能 - 使用真实API
-   * 接口：POST /api/user/avatar
-   * 认证：需要Bearer Token
-   * 返回：新的头像URL
+   * 🔴 头像点击事件 - 符合最新接口对接规范
+   * 支持头像上传到Sealos云存储
    */
   onAvatarTap() {
-    console.log('📸 点击头像上传')
-    
-    wx.showActionSheet({
-      itemList: ['拍照', '从相册选择'],
+    const that = this
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['camera', 'album'],
       success: (res) => {
-        const sourceType = res.tapIndex === 0 ? ['camera'] : ['album']
-        
-        wx.chooseMedia({
-          count: 1,
-          mediaType: ['image'],
-          sourceType: sourceType,
-          success: (res) => {
-            const tempFilePath = res.tempFiles[0].tempFilePath
-            this.uploadAvatar(tempFilePath)
-          },
-          fail: (error) => {
-            console.error('选择图片失败:', error)
-            wx.showToast({
-              title: '选择图片失败',
-              icon: 'none'
-            })
-          }
+        const filePath = res.tempFiles[0].tempFilePath
+        that.uploadAvatar(filePath)
+      },
+      fail: (error) => {
+        console.error('❌ 选择头像失败:', error)
+        wx.showToast({
+          title: '选择图片失败',
+          icon: 'none'
         })
       }
     })
   },
 
   /**
-   * 🔴 上传头像到后端 - 使用真实API
+   * 🔴 上传头像 - 必须使用后端API
+   * 接口：POST /api/user/avatar
+   * 认证：需要Bearer Token
+   * 存储：Sealos云存储
    */
   uploadAvatar(filePath) {
+    console.log('📡 开始上传头像...')
+    
     wx.showLoading({
-      title: '上传中...'
+      title: '上传中...',
+      mask: true
     })
     
-    console.log('📡 请求头像上传接口...')
-    
-    userAPI.uploadAvatar(filePath).then((res) => {
+    return userAPI.uploadAvatar(filePath).then((result) => {
       wx.hideLoading()
+      console.log('✅ 头像上传成功:', result)
       
-      if (res.code === 0) {
-        // 更新头像URL
-        const newAvatarUrl = res.data.avatarUrl
+      if (result.code === 0 && result.data && result.data.avatarUrl) {
+        // 🔴 更新本地用户信息
+        const updatedUserInfo = {
+          ...this.data.userInfo,
+          avatar: result.data.avatarUrl
+        }
         
         this.setData({
-          'userInfo.avatar': newAvatarUrl
+          userInfo: updatedUserInfo
         })
         
-        // 更新全局用户信息
-        if (app.globalData.userInfo) {
-          app.globalData.userInfo.avatar = newAvatarUrl
-        }
+        // 🔴 更新全局用户信息
+        app.globalData.userInfo = updatedUserInfo
         
         wx.showToast({
           title: '头像更新成功',
           icon: 'success'
         })
-        
-        console.log('✅ 头像上传成功:', newAvatarUrl)
       } else {
-        throw new Error('⚠️ 后端服务异常：' + res.msg)
+        throw new Error('头像上传响应数据异常')
       }
     }).catch((error) => {
       wx.hideLoading()
       console.error('❌ 头像上传失败:', error)
       
-      // 🔧 优化：显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: `头像上传失败！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nPOST /api/user/avatar`,
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
+      // 🔴 后端服务异常已在API层处理，这里只显示简要提示
+      if (!error.isBackendError && !error.isNetworkError) {
+        wx.showToast({
+          title: '头像上传失败',
+          icon: 'none'
+        })
+      }
     })
   },
 
@@ -582,30 +575,35 @@ Page({
   },
 
   /**
-   * 🔴 加载更多积分记录 - 使用真实API
-   * 接口：GET /api/user/points-records?page={page}&pageSize=20&type={type}
-   * 认证：需要Bearer Token
-   * 返回：分页的积分记录数据
+   * 🔴 加载更多积分记录 - 符合最新接口对接规范
+   * 接口：GET /api/user/points/records
+   * 支持分页查询和类型筛选
    */
   onLoadMoreRecords() {
-    console.log('📋 加载更多积分记录...')
+    console.log('📡 加载更多积分记录...')
     
-    // 计算下一页页码
+    // 🔴 计算下一页页码
     const currentRecords = this.data.pointsRecords || []
     const nextPage = Math.floor(currentRecords.length / 20) + 1
     
+    // 🔴 获取当前筛选条件
+    const currentFilter = this.data.pointsFilter || 'all'
+    const typeFilter = currentFilter === 'all' ? 'all' : currentFilter
+    
     wx.showLoading({
-      title: '加载中...'
+      title: '加载中...',
+      mask: true
     })
     
-    userAPI.getPointsRecords(nextPage, 20, 'all').then((res) => {
+    return userAPI.getPointsRecords(nextPage, 20, typeFilter, '').then((result) => {
       wx.hideLoading()
+      console.log('✅ 积分记录加载成功:', result)
       
-      if (res.code === 0) {
-        const newRecords = res.data.records || []
+      if (result.code === 0 && result.data && result.data.records) {
+        const newRecords = result.data.records
         
         if (newRecords.length > 0) {
-          // 合并新记录到现有记录
+          // 🔴 追加新记录到现有列表
           const allRecords = [...currentRecords, ...newRecords]
           
           this.setData({
@@ -617,29 +615,119 @@ Page({
             icon: 'success'
           })
           
-          console.log('✅ 积分记录加载成功，新增', newRecords.length, '条，总计', allRecords.length, '条')
+          console.log('✅ 积分记录追加成功，总记录数:', allRecords.length)
         } else {
           wx.showToast({
             title: '没有更多记录了',
             icon: 'none'
           })
         }
+        
+        // 🔴 如果有总页数信息，检查是否还有更多页
+        if (result.data.totalPages && nextPage >= result.data.totalPages) {
+          console.log('📝 已加载所有积分记录')
+        }
       } else {
-        throw new Error('⚠️ 后端服务异常：' + res.msg)
+        throw new Error('积分记录数据格式异常')
       }
     }).catch((error) => {
       wx.hideLoading()
       console.error('❌ 加载更多积分记录失败:', error)
       
-      // 🔧 优化：显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: `无法加载更多积分记录！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/user/points-records`,
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
+      // 🔴 后端服务异常已在API层处理，这里只显示简要提示
+      if (!error.isBackendError && !error.isNetworkError) {
+        wx.showToast({
+          title: '加载失败',
+          icon: 'none'
+        })
+      }
     })
+  },
+
+  /**
+   * 🔴 WebSocket状态监听 - 实时接收积分变动推送
+   * 符合最新产品功能要求：实时更新用户积分和统计数据
+   */
+  onWebSocketMessage(eventName, data) {
+    console.log('📢 用户中心页面收到WebSocket消息:', eventName, data)
+    
+    switch (eventName) {
+      case 'pointsUpdated':
+        // 积分更新通知
+        if (data.user_id === this.data.userInfo?.user_id) {
+          console.log('💰 收到积分更新通知:', data)
+          
+          // 🔴 更新积分显示
+          this.setData({
+            totalPoints: data.points
+          })
+          
+          // 🔴 更新全局用户信息
+          if (app.globalData.userInfo) {
+            app.globalData.userInfo.total_points = data.points
+          }
+          
+          // 🔴 刷新积分记录（最新的积分变动）
+          this.loadRecentPointsRecords()
+          
+          // 🔴 显示积分变动通知
+          const changeAmount = data.change || 0
+          const changeText = changeAmount > 0 ? `+${changeAmount}` : `${changeAmount}`
+          
+          wx.showToast({
+            title: `积分${changeText}`,
+            icon: changeAmount > 0 ? 'success' : 'none',
+            duration: 2000
+          })
+        }
+        break
+        
+      case 'reviewCompleted':
+        // 审核完成通知
+        if (data.user_id === this.data.userInfo?.user_id) {
+          console.log('📋 收到审核完成通知:', data)
+          
+          // 🔴 刷新用户统计数据
+          this.loadUserStatistics()
+          
+          // 🔴 如果审核通过，刷新积分记录
+          if (data.status === 'approved') {
+            this.loadRecentPointsRecords()
+          }
+          
+          // 🔴 显示审核结果通知
+          const statusText = data.status === 'approved' ? '审核通过' : '审核拒绝'
+          const statusIcon = data.status === 'approved' ? '✅' : '❌'
+          
+          wx.showToast({
+            title: `${statusIcon} ${statusText}`,
+            icon: data.status === 'approved' ? 'success' : 'none',
+            duration: 2000
+          })
+        }
+        break
+        
+      case 'userStatusChanged':
+        // 用户状态变化通知（如登录状态改变）
+        console.log('👤 收到用户状态变化通知:', data)
+        
+        if (data.isLoggedIn) {
+          // 🔴 用户重新登录，刷新所有数据
+          this.refreshUserData()
+        } else {
+          // 🔴 用户登出，清空数据
+          this.setData({
+            userInfo: null,
+            totalPoints: 0,
+            pointsRecords: [],
+            userStats: {}
+          })
+        }
+        break
+        
+      default:
+        console.log('📝 未处理的WebSocket事件:', eventName, data)
+    }
   },
 
   /**
@@ -960,47 +1048,32 @@ Page({
    * 🔧 安全的setData方法 - 防止undefined值导致小程序崩溃
    */
   safeSetData(data) {
-    const safeData = {}
-    
-    // 递归清理所有undefined值
+    // 🔴 递归清理undefined值
     const cleanUndefined = (obj) => {
       if (obj === null || obj === undefined) {
         return null
       }
       
-      if (typeof obj === 'object' && !Array.isArray(obj)) {
-        const cleaned = {}
-        for (const key in obj) {
-          if (obj.hasOwnProperty(key)) {
-            const value = obj[key]
-            if (value !== undefined) {
-              cleaned[key] = cleanUndefined(value)
-            }
-          }
-        }
-        return cleaned
+      if (Array.isArray(obj)) {
+        return obj.map(cleanUndefined).filter(item => item !== undefined)
       }
       
-      if (Array.isArray(obj)) {
-        return obj.filter(item => item !== undefined).map(item => cleanUndefined(item))
+      if (typeof obj === 'object') {
+        const cleaned = {}
+        Object.keys(obj).forEach(key => {
+          const value = cleanUndefined(obj[key])
+          if (value !== undefined) {
+            cleaned[key] = value
+          }
+        })
+        return cleaned
       }
       
       return obj
     }
     
-    // 清理输入数据
-    for (const key in data) {
-      if (data.hasOwnProperty(key)) {
-        const value = data[key]
-        if (value !== undefined) {
-          safeData[key] = cleanUndefined(value)
-        } else {
-          console.warn(`⚠️ 跳过undefined字段: ${key}`)
-        }
-      }
-    }
-    
-    console.log('🔧 用户页面安全数据设置:', safeData)
-    this.setData(safeData)
+    const cleanedData = cleanUndefined(data)
+    console.log('🔧 用户页面安全数据设置:', cleanedData)
+    this.setData(cleanedData)
   }
 })

@@ -378,57 +378,88 @@ Page({
   },
 
   /**
-   * 🔴 v2.1.2 加载上传历史记录 - 纯人工审核模式
-   * 后端对接：GET /api/photo/history
-   * 参数：limit, status
-   * 返回：上传历史列表，包含审核状态和结果
+   * 🔴 加载上传历史记录 - 必须从后端API获取
+   * 接口：GET /api/photo/history?page=1&limit=10&status=all
+   * 认证：需要Bearer Token
+   * 返回：用户的上传历史记录列表
    */
   loadUploadHistory() {
-    console.log('📋 加载上传历史记录...')
+    console.log('📡 加载上传历史记录...')
     
-    uploadAPI.getRecords(1, 10, 'all')
-      .then((res) => {
-        console.log('✅ 上传历史加载成功:', res.data)
-        
-        const records = res.data.list || []
-        
-        // 🔴 v2.1.2数据处理：纯人工审核模式字段映射
-        const processedRecords = records.map(record => ({
-          ...record,
-          // 确保状态映射正确
-          statusInfo: this.data.statusMap[record.status] || {
-            text: '未知状态',
-            icon: '❓',
-            color: '#666'
-          },
-          // 格式化时间显示
-          upload_time_formatted: this.formatTime(record.created_at),
-          review_time_formatted: record.review_time ? this.formatTime(record.review_time) : '未审核'
-        }))
-        
+    return uploadAPI.getHistory(1, 10, 'all').then((res) => {
+      console.log('✅ 上传历史记录API响应:', res)
+      
+      if (res.code === 0 && res.data && res.data.records) {
         this.setData({
-          uploadHistory: processedRecords
+          uploadHistory: res.data.records
         })
-        
-        console.log('✅ 上传历史处理完成，记录数:', processedRecords.length)
-      })
-      .catch((error) => {
-        console.error('❌ 加载上传历史失败:', error)
-        
-        // 🔧 优化：显示后端服务异常提示
-        wx.showModal({
-          title: '🚨 后端服务异常',
-          content: `无法获取上传历史！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态。`,
-          showCancel: false,
-          confirmText: '知道了',
-          confirmColor: '#ff4444'
-        })
-        
-        // 设置安全的默认值
+        console.log('✅ 上传历史记录加载成功，共', res.data.records.length, '条记录')
+      } else {
+        console.warn('⚠️ 上传历史记录数据为空')
         this.setData({
           uploadHistory: []
         })
+      }
+    }).catch((error) => {
+      console.error('❌ 加载上传历史失败:', error)
+      
+      // 🔴 后端服务异常已在API层处理，这里只需要设置安全默认值
+      this.setData({
+        uploadHistory: []
       })
+    })
+  },
+
+  /**
+   * 🔴 WebSocket状态监听 - 实时接收审核结果推送
+   * 符合最新产品功能要求：实时通知用户审核结果
+   */
+  onWebSocketMessage(eventName, data) {
+    console.log('📢 拍照上传页面收到WebSocket消息:', eventName, data)
+    
+    switch (eventName) {
+      case 'reviewCompleted':
+        // 审核完成通知
+        if (data.user_id === this.data.userInfo.user_id) {
+          console.log('✅ 收到审核完成通知:', data)
+          
+          // 刷新上传历史
+          this.loadUploadHistory()
+          
+          // 刷新用户积分
+          this.refreshUserInfo()
+          
+          // 显示审核结果通知
+          const statusText = data.status === 'approved' ? '已通过' : '已拒绝'
+          const statusIcon = data.status === 'approved' ? '✅' : '❌'
+          
+          wx.showModal({
+            title: `${statusIcon} 审核完成`,
+            content: `您的照片审核${statusText}！\n\n${data.status === 'approved' ? `获得积分：${data.points_awarded}` : `拒绝原因：${data.review_reason || '未提供原因'}`}`,
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }
+        break
+        
+      case 'pointsUpdated':
+        // 积分更新通知
+        if (data.user_id === this.data.userInfo.user_id) {
+          console.log('💰 收到积分更新通知:', data)
+          this.setData({
+            totalPoints: data.points
+          })
+          
+          // 更新全局积分
+          if (app.globalData.userInfo) {
+            app.globalData.userInfo.total_points = data.points
+          }
+        }
+        break
+        
+      default:
+        console.log('📝 未处理的WebSocket事件:', eventName, data)
+    }
   },
   
   /**

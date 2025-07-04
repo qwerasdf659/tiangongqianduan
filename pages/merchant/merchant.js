@@ -963,37 +963,41 @@ Page({
 
   /**
    * 🔴 加载商品统计数据 - 必须从后端API获取
-   * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
-   * 
    * 接口：GET /api/merchant/product-stats
-   * 认证：需要Bearer Token，且用户需要有商家权限
-   * 返回：商品统计信息，包括上架数量、下架数量、低库存数量等
+   * 认证：需要Bearer Token
+   * 返回：商品统计信息（上架、下架、低库存等）
    */
   loadProductStats() {
-    console.log('📊 请求商品统计接口...')
+    console.log('📡 加载商品统计数据...')
     
-    return merchantAPI.getProductStats().then((result) => {
-      if (result.code === 0) {
+    return merchantAPI.getProductStats().then((res) => {
+      console.log('✅ 商品统计数据API响应:', res)
+      
+      if (res.code === 0 && res.data) {
         this.setData({
-          productStats: result.data
+          productStats: {
+            activeCount: res.data.activeCount || 0,
+            offlineCount: res.data.offlineCount || 0,
+            lowStockCount: res.data.lowStockCount || 0,
+            totalCount: res.data.totalCount || 0
+          }
         })
-        console.log('✅ 商品统计加载成功:', result.data)
+        console.log('✅ 商品统计数据加载成功:', res.data)
       } else {
-        throw new Error('⚠️ 后端服务异常：' + result.msg)
+        console.warn('⚠️ 商品统计数据为空')
+        this.setData({
+          productStats: {
+            activeCount: 0,
+            offlineCount: 0,
+            lowStockCount: 0,
+            totalCount: 0
+          }
+        })
       }
     }).catch((error) => {
-      console.error('❌ 获取商品统计失败:', error)
+      console.error('❌ 加载商品统计失败:', error)
       
-      // 🔧 优化：显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: `无法获取商品统计数据！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/merchant/product-stats`,
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
-      
-      // 设置安全的默认值
+      // 🔴 后端服务异常已在API层处理，这里只需要设置安全默认值
       this.setData({
         productStats: {
           activeCount: 0,
@@ -1006,8 +1010,74 @@ Page({
   },
 
   /**
-   * 加载商品列表
+   * 🔴 WebSocket状态监听 - 实时接收库存变化和审核状态推送
+   * 符合最新产品功能要求：实时同步商品库存变化
    */
+  onWebSocketMessage(eventName, data) {
+    console.log('📢 商家管理页面收到WebSocket消息:', eventName, data)
+    
+    switch (eventName) {
+      case 'stock_updated':
+        // 库存更新通知
+        console.log('📦 收到库存更新通知:', data)
+        
+        // 刷新商品统计
+        this.loadProductStats()
+        
+        // 如果在商品管理标签页，刷新商品列表
+        if (this.data.currentTab === 'product') {
+          this.loadProductList()
+        }
+        
+        // 显示库存变化通知
+        wx.showToast({
+          title: `商品库存已更新`,
+          icon: 'success',
+          duration: 2000
+        })
+        break
+        
+      case 'review_completed':
+        // 审核完成通知
+        console.log('📋 收到审核完成通知:', data)
+        
+        // 刷新审核统计
+        this.loadStatistics()
+        
+        // 如果在审核标签页，刷新待审核列表
+        if (this.data.currentTab === 'review') {
+          this.loadPendingList()
+        }
+        
+        // 显示审核完成通知
+        wx.showToast({
+          title: '审核任务已完成',
+          icon: 'success',
+          duration: 2000
+        })
+        break
+        
+      case 'lottery_config_updated':
+        // 抽奖配置更新通知
+        console.log('🎰 收到抽奖配置更新通知:', data)
+        
+        // 如果在抽奖控制标签页，刷新抽奖数据
+        if (this.data.currentTab === 'lottery') {
+          this.loadLotteryData()
+        }
+        
+        wx.showToast({
+          title: '抽奖配置已更新',
+          icon: 'success',
+          duration: 2000
+        })
+        break
+        
+      default:
+        console.log('📝 未处理的WebSocket事件:', eventName, data)
+    }
+  },
+
   /**
    * 🔴 加载商品列表 - 必须从后端API获取
    * ✅ 符合项目安全规则：禁止硬编码商品数据
@@ -2220,39 +2290,63 @@ Page({
   },
 
   /**
-   * 从后端加载抽奖配置 - 🔴 核心安全方法
+   * 🔴 加载抽奖配置 - 必须从后端API获取，严禁前端硬编码
+   * 接口：GET /api/merchant/lottery/config
+   * 认证：需要Bearer Token + 商家权限
+   * 返回：抽奖奖品配置和概率设置
    */
   loadLotteryConfig() {
-    // 🔴 调用后端API获取抽奖配置
-    return merchantAPI.getLotteryConfig().then(result => {
-      if (result.code === 0 && result.data) {
+    console.log('📡 加载抽奖配置...')
+    
+    return merchantAPI.getLotteryConfig().then((res) => {
+      console.log('✅ 抽奖配置API响应:', res)
+      
+      if (res.code === 0 && res.data) {
+        // 🔴 严格验证后端返回的配置数据
+        const config = res.data
+        
+        if (!config.prizes || !Array.isArray(config.prizes)) {
+          throw new Error('后端返回的抽奖配置数据格式不正确')
+        }
+        
+        // 🔴 验证奖品配置完整性
+        const validPrizes = config.prizes.filter(prize => 
+          prize.prize_id && 
+          prize.prize_name && 
+          typeof prize.probability === 'number' &&
+          prize.probability >= 0 &&
+          prize.probability <= 100
+        )
+        
+        if (validPrizes.length !== config.prizes.length) {
+          console.warn('⚠️ 部分抽奖奖品配置数据不完整，已过滤')
+        }
+        
         this.setData({
           lotteryConfig: {
-            isActive: result.data.isActive || false,
-            prizes: result.data.prizes || []
+            isActive: config.is_active || false,
+            prizes: validPrizes
           }
         })
         
-        // 计算概率总和
+        // 🔴 计算概率总和
         this.calculateProbabilityTotal()
         
-        console.log('✅ 抽奖配置加载成功:', result.data)
+        console.log('✅ 抽奖配置加载成功，共', validPrizes.length, '个奖品')
       } else {
-        throw new Error('后端返回的抽奖配置数据格式错误')
+        throw new Error('后端返回的抽奖配置数据为空')
       }
-    }).catch(error => {
-      console.error('❌ 获取抽奖配置失败:', error)
+    }).catch((error) => {
+      console.error('❌ 加载抽奖配置失败:', error)
       
-      // 🚨 关键错误：无法获取抽奖配置
-      wx.showModal({
-        title: '⚠️ 后端服务异常',
-        content: '无法获取抽奖配置数据！\n\n可能原因：\n1. 后端API服务未启动\n2. 抽奖配置接口异常\n3. 数据库连接问题\n\n请立即检查后端服务状态！',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
+      // 🔴 后端服务异常已在API层处理，这里只需要设置安全默认值
+      this.setData({
+        lotteryConfig: {
+          isActive: false,
+          prizes: []
+        },
+        probabilityTotal: 0
       })
-      
-      throw error
     })
   },
 
@@ -2301,6 +2395,7 @@ Page({
     }, 0)
     
     this.setData({ probabilityTotal: total })
+    return total
   },
 
   /**
@@ -2448,48 +2543,60 @@ Page({
   },
 
   /**
-   * 保存概率设置 - 🔴 必须调用后端API
+   * 🔴 保存抽奖概率设置 - 必须提交到后端API
+   * 接口：POST /api/merchant/lottery/probabilities
+   * 认证：需要Bearer Token + 商家权限
+   * 数据：奖品ID和对应的概率设置
    */
   onSaveProbabilities() {
-    if (!this.data.hasPermission) {
-      this.onLockedTap()
-      return
-    }
-
-    if (this.data.probabilityTotal !== 100) {
-      wx.showToast({
-        title: '概率总和必须等于100%',
-        icon: 'none'
+    console.log('💾 保存抽奖概率设置...')
+    
+    // 🔴 验证概率总和
+    const total = this.calculateProbabilityTotal()
+    if (total !== 100) {
+      wx.showModal({
+        title: '⚠️ 概率设置错误',
+        content: `所有奖品的概率总和必须等于100%！\n\n当前总和：${total}%`,
+        showCancel: false,
+        confirmText: '知道了'
       })
       return
     }
     
-    wx.showLoading({ title: '保存中...' })
+    // 🔴 构建提交数据
+    const prizes = this.data.lotteryConfig.prizes.map(prize => ({
+      prize_id: prize.prize_id,
+      probability: prize.probability
+    }))
     
-    // 🔴 必须调用后端API保存概率设置
-    merchantAPI.saveLotteryProbabilities(this.data.lotteryConfig.prizes).then(result => {
+    wx.showLoading({
+      title: '保存中...',
+      mask: true
+    })
+    
+    // 🔴 调用后端API保存设置
+    merchantAPI.saveLotteryProbabilities(prizes).then((result) => {
       wx.hideLoading()
-      
-      if (result.code === 0) {
-        wx.showToast({
-          title: '概率设置已保存',
-          icon: 'success'
-        })
-        
-        console.log('💾 抽奖概率设置已保存到后端')
-        
-        // 重新加载配置确保前后端同步
-        this.loadLotteryConfig()
-      } else {
-        throw new Error(result.msg || '保存失败')
-      }
-    }).catch(error => {
-      wx.hideLoading()
-      console.error('❌ 保存概率设置失败:', error)
+      console.log('✅ 抽奖概率保存成功:', result)
       
       wx.showModal({
-        title: '保存失败',
-        content: '无法保存概率设置到后端，请检查后端服务状态。\n\n错误信息：' + (error.msg || error.message || '未知错误'),
+        title: '✅ 保存成功',
+        content: '抽奖概率设置已保存！\n\n新的概率设置将立即生效。',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      
+      // 🔴 刷新抽奖统计数据
+      this.loadLotteryStats()
+      
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 保存抽奖概率失败:', error)
+      
+      // 🔴 后端服务异常已在API层处理，这里只需要显示失败提示
+      wx.showModal({
+        title: '❌ 保存失败',
+        content: `无法保存抽奖概率设置！\n\n错误信息：${error.msg || '网络错误'}\n\n请检查后端服务状态。`,
         showCancel: false,
         confirmText: '知道了',
         confirmColor: '#ff4444'
