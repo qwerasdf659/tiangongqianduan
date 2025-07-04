@@ -346,6 +346,19 @@ App({
    * 通知所有页面数据更新
    */
   notifyAllPages(eventName, data) {
+    console.log(`📢 全局通知事件: ${eventName}`, data)
+    
+    // 🔧 修复：通知注册的状态监听器
+    if (this.statusListeners && this.statusListeners.length > 0) {
+      this.statusListeners.forEach(listener => {
+        try {
+          listener(data)
+        } catch (error) {
+          console.warn('⚠️ 状态监听器执行失败:', error)
+        }
+      })
+    }
+    
     // 获取当前页面栈
     const pages = getCurrentPages()
     
@@ -736,6 +749,13 @@ App({
     wx.setStorageSync('token_expire_time', this.globalData.tokenExpireTime)
     wx.setStorageSync('user_info', user_info)
     
+    // 🔧 修复：登录成功后通知所有页面更新状态
+    this.notifyAllPages('userStatusChanged', {
+      isLoggedIn: true,
+      userInfo: user_info,
+      accessToken: access_token
+    })
+    
     // 🔧 修复：登录成功后安全连接WebSocket
     setTimeout(() => {
       this.connectWebSocket()
@@ -764,6 +784,13 @@ App({
     wx.removeStorageSync('refresh_token')
     wx.removeStorageSync('token_expire_time')
     wx.removeStorageSync('user_info')
+    
+    // 🔧 修复：退出登录时通知所有页面更新状态
+    this.notifyAllPages('userStatusChanged', {
+      isLoggedIn: false,
+      userInfo: null,
+      accessToken: null
+    })
     
     // 跳转到认证页面
     wx.reLaunch({

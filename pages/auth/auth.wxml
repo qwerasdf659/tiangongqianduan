@@ -80,12 +80,12 @@
 
       <!-- 提交按钮 -->
       <button 
-        class="submit-btn {{submitting ? 'loading' : ''}}"
-        disabled="{{submitting}}"
+        class="submit-btn {{logging ? 'loading' : ''}}"
+        disabled="{{logging}}"
         bindtap="onSubmitLogin"
       >
-        <text wx:if="{{!submitting}}">立即登录</text>
-        <text wx:if="{{submitting}}">登录中...</text>
+        <text wx:if="{{!logging}}">立即登录</text>
+        <text wx:if="{{logging}}">登录中...</text>
       </button>
 
       <!-- 开发环境跳过登录 -->

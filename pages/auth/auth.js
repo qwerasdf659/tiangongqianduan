@@ -81,6 +81,12 @@ Page({
    */
   onShow() {
     console.log('认证页面显示')
+    
+    // 🔧 修复：重置登录状态，防止卡在登录中状态
+    this.setData({
+      logging: false,
+      submitting: false
+    })
   },
 
   /**
@@ -97,6 +103,12 @@ Page({
   onUnload() {
     console.log('认证页面卸载')
     this.clearCountdown()
+    
+    // 🔧 修复：清理登录超时定时器
+    if (this.loginTimeoutId) {
+      clearTimeout(this.loginTimeoutId)
+      this.loginTimeoutId = null
+    }
   },
 
   /**
@@ -396,16 +408,42 @@ Page({
 
     // 防止重复提交
     if (this.data.logging) {
+      console.log('⚠️ 登录请求正在处理中，请稍候...')
       return
     }
 
     this.setData({ logging: true })
     wx.showLoading({ title: '登录中...' })
 
+    // 🔧 修复：添加登录超时保护
+    const loginTimeout = setTimeout(() => {
+      console.error('⏰ 登录超时，自动重置状态')
+      wx.hideLoading()
+      this.setData({ logging: false })
+      wx.showModal({
+        title: '登录超时',
+        content: '登录请求超时，请重试',
+        showCancel: true,
+        cancelText: '重试',
+        confirmText: '知道了',
+        success: (res) => {
+          if (res.cancel) {
+            // 用户选择重试
+            setTimeout(() => {
+              this.onSubmitLogin()
+            }, 500)
+          }
+        }
+      })
+    }, 20000) // 20秒超时保护
+
     const formData = {
       phone: phone.trim(),
       code: code.trim()
     }
+
+    // 🔧 修复：保存超时定时器ID，用于清理
+    this.loginTimeoutId = loginTimeout
 
     console.log('📡 开发阶段模拟登录:', { phone: formData.phone, code: formData.code })
 
@@ -413,47 +451,8 @@ Page({
     console.log('📡 开发阶段跳过短信验证，直接调用登录API...')
     
     // ✅ 开发阶段仍需调用真实后端API，但跳过短信验证步骤
-    authAPI.login(formData.phone, formData.code).then((loginResult) => {
-      wx.hideLoading()
-      this.setData({ logging: false })
-      
-      if (loginResult.code === 0) {
-        console.log('✅ 开发阶段登录成功:', loginResult.data.user_info.user_id)
-        
-        // 使用app.js中的登录成功处理方法
-        app.onLoginSuccess(loginResult.data)
-        
-        wx.showToast({
-          title: '登录成功（开发模式）',
-          icon: 'success'
-        })
-        
-        // 延迟跳转
-        setTimeout(() => {
-          const pages = getCurrentPages()
-          if (pages.length > 1) {
-            wx.navigateBack()
-          } else {
-            wx.redirectTo({ url: '/pages/lottery/lottery' })
-          }
-        }, 1500)
-      } else {
-        throw new Error(loginResult.message || '登录失败')
-      }
-    }).catch((error) => {
-      wx.hideLoading()
-      this.setData({ logging: false })
-      console.error('❌ 开发阶段登录失败:', error)
-      
-      // 🚨 后端服务异常处理
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法连接到后端服务！\n\n请检查后端API服务状态：\nPOST /api/auth/login',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
-    })
+    // 🔧 修复：添加重试机制和更好的错误处理
+    this.performLogin(formData, 0) // 开始登录，重试次数为0
     
     // 🔮 生产环境代码（当前已注释）：
     // authAPI.login(formData.phone, formData.code).then((loginResult) => {
@@ -481,6 +480,214 @@ Page({
     //   let errorMsg = error.message || '登录失败，请重试'
     //   wx.showToast({ title: errorMsg, icon: 'none', duration: 3000 })
     // })
+  },
+
+  /**
+   * 🔧 新增：执行登录（带重试机制）
+   * 修复间歇性登录失败问题
+   */
+  performLogin(formData, retryCount = 0) {
+    const maxRetries = 3 // 🔧 修复：增加最大重试次数
+    
+    console.log(`📡 执行登录请求 (第${retryCount + 1}次)`, { phone: formData.phone, code: formData.code })
+    
+    // 🔧 修复：防止重复请求
+    if (this.data.logging && retryCount === 0) {
+      console.log('⚠️ 已有登录请求在进行中，忽略重复请求')
+      return
+    }
+    
+    authAPI.login(formData.phone, formData.code).then((loginResult) => {
+      // 🔧 修复：清除超时定时器
+      if (this.loginTimeoutId) {
+        clearTimeout(this.loginTimeoutId)
+        this.loginTimeoutId = null
+      }
+      
+      // 🔧 修复：确保成功时才清除loading状态
+      if (loginResult.code === 0) {
+        console.log('✅ 开发阶段登录成功:', loginResult.data.user_info.user_id)
+        
+        // 隐藏loading
+        wx.hideLoading()
+        
+        // 使用app.js中的登录成功处理方法
+        app.onLoginSuccess(loginResult.data)
+        
+        // 显示成功提示
+        wx.showToast({
+          title: '登录成功（开发模式）',
+          icon: 'success'
+        })
+        
+        // 🔧 修复：成功后才重置logging状态
+        this.setData({ logging: false })
+        
+        // 延迟跳转
+        setTimeout(() => {
+          const pages = getCurrentPages()
+          if (pages.length > 1) {
+            wx.navigateBack()
+          } else {
+            wx.redirectTo({ url: '/pages/lottery/lottery' })
+          }
+        }, 1500)
+      } else {
+        // 业务错误，不重试
+        throw new Error(loginResult.message || '登录失败')
+      }
+    }).catch((error) => {
+      // 🔧 修复：清除超时定时器
+      if (this.loginTimeoutId) {
+        clearTimeout(this.loginTimeoutId)
+        this.loginTimeoutId = null
+      }
+      
+      console.error(`❌ 登录失败 (第${retryCount + 1}次):`, error)
+      
+      // 🔧 修复：网络错误时进行重试
+      if (retryCount < maxRetries && this.shouldRetryLogin(error)) {
+        console.log(`🔄 准备重试登录 (${retryCount + 1}/${maxRetries})`)
+        
+        // 🔧 修复：智能延迟重试，避免过于频繁的请求
+        const delayMs = Math.min(1000 * Math.pow(2, retryCount), 5000) // 指数退避：1秒、2秒、4秒，最大5秒
+        setTimeout(() => {
+          this.performLogin(formData, retryCount + 1)
+        }, delayMs)
+      } else {
+        // 重试次数用完或不应该重试的错误
+        wx.hideLoading()
+        this.setData({ logging: false })
+        
+        // 🔧 修复：区分不同类型的错误
+        if (error.code === 2001) {
+          // 认证错误，显示具体提示
+          wx.showModal({
+            title: '🔐 认证错误',
+            content: '访问令牌缺失或无效！\n\n请重新登录或检查网络连接。',
+            showCancel: true,
+            cancelText: '重试',
+            confirmText: '知道了',
+            confirmColor: '#ff4444',
+            success: (res) => {
+              if (res.cancel) {
+                // 用户选择重试
+                setTimeout(() => {
+                  this.onSubmitLogin()
+                }, 500)
+              }
+            }
+          })
+        } else if (this.isNetworkError(error)) {
+          // 网络错误
+          wx.showModal({
+            title: '📡 网络连接异常',
+            content: '网络连接出现问题，请检查网络后重试。\n\n如果问题持续，请联系技术支持。',
+            showCancel: true,
+            cancelText: '重试',
+            confirmText: '知道了',
+            confirmColor: '#ff4444',
+            success: (res) => {
+              if (res.cancel) {
+                // 用户选择重试
+                setTimeout(() => {
+                  this.onSubmitLogin()
+                }, 500)
+              }
+            }
+          })
+        } else {
+          // 🔧 修复：其他错误，提供更好的用户体验
+          const errorMsg = error.message || error.msg || '未知错误'
+          wx.showModal({
+            title: '🚨 登录失败',
+            content: `登录过程中遇到问题：\n${errorMsg}\n\n💡 提示：第一次登录失败是正常的，请点击"重试"再次尝试。`,
+            showCancel: true,
+            cancelText: '重试',
+            confirmText: '知道了',
+            confirmColor: '#ff4444',
+            success: (res) => {
+              if (res.cancel) {
+                // 用户选择重试
+                setTimeout(() => {
+                  this.onSubmitLogin()
+                }, 500)
+              }
+            }
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 新增：判断是否应该重试登录
+   */
+  shouldRetryLogin(error) {
+    // 🔧 修复：网络错误应该重试
+    if (this.isNetworkError(error)) {
+      return true
+    }
+    
+    // 🔧 修复：超时错误应该重试
+    if (error.message && error.message.includes('timeout')) {
+      return true
+    }
+    
+    // 🔧 修复：连接错误应该重试
+    if (error.message && error.message.includes('连接')) {
+      return true
+    }
+    
+    // 🔧 修复：微信小程序网络错误码
+    if (error.code && ['TIMEOUT', 'CONNECTION_FAILED', 'NETWORK_ERROR'].includes(error.code)) {
+      return true
+    }
+    
+    // 🔧 修复：业务错误（如验证码错误）不应该重试
+    if (error.code && typeof error.code === 'number' && error.code > 1000) {
+      return false
+    }
+    
+    // 🔧 修复：认证错误需要用户重新输入，不自动重试
+    if (error.code === 2001) {
+      return false
+    }
+    
+    return false
+  },
+
+  /**
+   * 🔧 新增：判断是否为网络错误
+   */
+  isNetworkError(error) {
+    if (!error) return false
+    
+    // 🔧 修复：优先检查API统一返回的网络错误标记
+    if (error.isNetworkError === true) {
+      return true
+    }
+    
+    // 🔧 修复：检查错误码（包括数字和字符串）
+    if (error.code) {
+      const networkErrorCodes = ['NETWORK_ERROR', 'TIMEOUT', 'CONNECTION_FAILED', 'REQUEST_ABORTED']
+      if (networkErrorCodes.includes(error.code)) {
+        return true
+      }
+      
+      // 🔧 修复：检查数字错误码（微信小程序网络错误通常是负数）
+      if (typeof error.code === 'number' && error.code < 0) {
+        return true
+      }
+    }
+    
+    // 🔧 修复：检查错误消息
+    const errorMsg = error.message || error.msg || ''
+    const networkKeywords = ['网络', 'network', 'timeout', '连接', 'connection', 'failed', '超时', '连接失败', 'request:fail']
+    
+    return networkKeywords.some(keyword => 
+      errorMsg.toLowerCase().includes(keyword.toLowerCase())
+    )
   },
 
   /**

@@ -70,8 +70,8 @@ const ENV = {
   
   // 测试环境
   testing: {
-    baseUrl: 'https://rqchrlqndora.sealosbja.site/api',
-    wsUrl: 'wss://rqchrlqndora.sealosbja.site/ws',
+    baseUrl: 'https://gynjeecyhgvo.sealoshzh.site/api',
+    wsUrl: 'wss://gynjeecyhgvo.sealoshzh.site/ws',
     sealosConfig: {
       endpoint: 'https://objectstorageapi.bja.sealos.run',
       bucket: 'tiangong',
@@ -105,8 +105,8 @@ const ENV = {
   
   // 🔴 生产环境 - 完整功能
   production: {
-    baseUrl: 'https://rqchrlqndora.sealosbja.site/api',
-    wsUrl: 'wss://rqchrlqndora.sealosbja.site/ws',
+    baseUrl: 'https://gynjeecyhgvo.sealoshzh.site/api',
+    wsUrl: 'wss://gynjeecyhgvo.sealoshzh.site/ws',
     sealosConfig: {
       endpoint: 'https://objectstorageapi.bja.sealos.run',
       bucket: 'tiangong',
@@ -143,7 +143,7 @@ const ENV = {
 }
 
 // 🚨 部署时必须修改此处 - 根据产品功能结构文档要求
-let CURRENT_ENV = 'development'  // 🔧 恢复开发环境，需要启动本地后端服务
+let CURRENT_ENV = 'testing'  // �� 修改为测试环境，使用线上API服务
 
 module.exports = {
   // 获取当前环境配置

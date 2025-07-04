@@ -156,6 +156,10 @@ Page({
 
   onShow() {
     console.log('抽奖页面显示')
+    
+    // 🔴 重置异常状态 - 防止页面卡死
+    this.resetDrawingState()
+    
     this.refreshUserInfo()
     
     // 重新加载配置，确保数据最新
@@ -170,6 +174,9 @@ Page({
   onUnload() {
     console.log('抽奖页面卸载')
     this.stopPointerIdleAnimation()
+    
+    // 🔴 页面卸载时重置状态
+    this.resetDrawingState()
   },
 
   onReady() {
@@ -800,6 +807,17 @@ Page({
   handleDraw(drawType, count) {
     console.log(`🎯 处理${drawType}抽奖, 数量:${count}`)
     
+    // 🔴 防重复点击保护 - 关键修复
+    if (this.data.isDrawing) {
+      console.log('⚠️ 正在抽奖中，忽略重复点击')
+      wx.showToast({
+        title: '正在抽奖中...',
+        icon: 'none',
+        duration: 1000
+      })
+      return
+    }
+    
     // 🔧 记录抽奖前的完整状态
     const currentPoints = this.data.totalPoints
     const needPoints = (this.data.costPoints || 100) * count
@@ -867,8 +885,28 @@ Page({
     // 🔧 使用安全的Loading管理器
     loadingManager.show('抽奖中...', true)
     
+    // 🔴 添加请求超时保护机制
+    this.drawTimeoutId = setTimeout(() => {
+      console.error('⏰ 抽奖请求超时，自动重置状态')
+      loadingManager.hide(true)
+      this.safeSetData({ isDrawing: false })
+      this.drawTimeoutId = null
+      wx.showModal({
+        title: '请求超时',
+        content: '抽奖请求超时，请检查网络连接后重试',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+    }, 15000) // 15秒超时
+    
     // 🔴 调用后端抽奖API
     lotteryAPI.draw(drawType, count).then(result => {
+      // 🔧 清除超时定时器
+      if (this.drawTimeoutId) {
+        clearTimeout(this.drawTimeoutId)
+        this.drawTimeoutId = null
+      }
       loadingManager.hide()
       
       console.log('✅ 抽奖API响应:', result)
@@ -981,6 +1019,11 @@ Page({
       }
       
     }).catch(error => {
+      // 🔧 清除超时定时器
+      if (this.drawTimeoutId) {
+        clearTimeout(this.drawTimeoutId)
+        this.drawTimeoutId = null
+      }
       loadingManager.hide()
       this.safeSetData({ isDrawing: false })
       
@@ -1427,6 +1470,28 @@ Page({
       title: '餐厅积分抽奖，豪华奖品等你拿！',
       path: '/pages/lottery/lottery',
       imageUrl: '/images/share-lottery.jpg'
+    }
+  },
+
+  /**
+   * 🔴 重置抽奖状态 - 修复页面卡死问题
+   */
+  resetDrawingState() {
+    console.log('🔄 重置抽奖状态')
+    
+    // 强制重置loading状态
+    loadingManager.reset()
+    
+    // 重置抽奖状态
+    this.safeSetData({ 
+      isDrawing: false,
+      showResult: false 
+    })
+    
+    // 清除可能存在的定时器
+    if (this.drawTimeoutId) {
+      clearTimeout(this.drawTimeoutId)
+      this.drawTimeoutId = null
     }
   },
 

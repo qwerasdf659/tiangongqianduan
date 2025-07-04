@@ -14,7 +14,8 @@ const request = (options) => {
       needAuth = true,
       showLoading = true,
       retryCount = 0,
-      maxRetry = 2
+      maxRetry = 2,
+      timeout = 10000  // 🔧 修复：允许自定义超时时间
     } = options
 
     // 显示加载框
@@ -58,7 +59,7 @@ const request = (options) => {
       method,
       data,
       header,
-      timeout: 10000, // 🔧 增加超时时间到10秒，提升连接成功率
+      timeout: timeout, // 🔧 修复：使用动态超时时间
       success(res) {
         if (showLoading) {
           wx.hideLoading()
@@ -199,6 +200,36 @@ const request = (options) => {
         
         console.error(`❌ API请求失败 ${method} ${url}:`, err)
         
+        // 🔧 修复：提供更详细的错误信息，帮助前端识别错误类型
+        let errorMessage = '网络请求失败'
+        let networkErrorCode = 'NETWORK_ERROR'
+        
+        // 根据微信小程序的错误码分类
+        if (err.errMsg) {
+          if (err.errMsg.includes('timeout')) {
+            errorMessage = '请求超时，请检查网络连接'
+            networkErrorCode = 'TIMEOUT'
+          } else if (err.errMsg.includes('fail')) {
+            errorMessage = '网络连接失败，请检查网络状态'
+            networkErrorCode = 'CONNECTION_FAILED'
+          } else if (err.errMsg.includes('abort')) {
+            errorMessage = '请求被中断'
+            networkErrorCode = 'REQUEST_ABORTED'
+          } else {
+            errorMessage = err.errMsg
+            networkErrorCode = 'UNKNOWN_ERROR'
+          }
+        }
+        
+        // 🔧 修复：统一错误格式，便于前端识别和处理
+        reject({
+          code: networkErrorCode,
+          msg: errorMessage,
+          data: null,
+          isNetworkError: true, // 标记为网络错误，便于重试逻辑判断
+          originalError: err    // 保留原始错误信息用于调试
+        })
+        
         // 增强错误处理，防止小程序崩溃
         let errorCode = -1
         let errorMsg = '网络连接失败'
@@ -223,14 +254,21 @@ const request = (options) => {
           console.warn('解析错误信息失败:', parseError)
         }
         
-        // 网络错误重试机制 - 增强版本
-        if (retryCount < maxRetry && errorCode === -2) {
+        // 🔧 修复：网络错误重试机制 - 更精确的重试条件
+        const shouldRetry = retryCount < maxRetry && (
+          errorCode === -2 || // 超时
+          errorCode === -3 || // 连接失败
+          networkErrorCode === 'TIMEOUT' ||
+          networkErrorCode === 'CONNECTION_FAILED'
+        )
+        
+        if (shouldRetry) {
           console.log(`🔄 第${retryCount + 1}次重试请求: ${method} ${url}`)
           setTimeout(() => {
             const newOptions = { 
               ...options, 
               retryCount: retryCount + 1, 
-              showLoading: retryCount === 0 // 重试时不显示loading
+              showLoading: false // 🔧 修复：重试时不显示loading
             }
             request(newOptions).then(resolve).catch(reject)
           }, 1000 * (retryCount + 1))
@@ -310,7 +348,9 @@ const authAPI = {
         skip_sms_verify: app.globalData.isDev || false // 🚧 开发阶段跳过短信验证
       },
       needAuth: false,
-      showLoading: true
+      showLoading: false, // 🔧 修复：登录页面自行控制loading状态
+      timeout: 15000,     // 🔧 修复：增加超时时间到15秒
+      maxRetry: 3         // 🔧 修复：增加重试次数到3次
     })
   },
 
