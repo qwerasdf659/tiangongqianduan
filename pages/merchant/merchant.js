@@ -2310,7 +2310,25 @@ Page({
         }
         
         // 🔴 验证奖品配置完整性
-        const validPrizes = config.prizes.filter(prize => 
+        const validPrizes = config.prizes.map((prize, index) => {
+          console.log(`🎁 商户端奖品${index + 1}原始数据:`, prize)
+          
+          // 🔧 修复：智能概率解析 - 与lottery.js保持一致
+          let rawProbability = prize.probability || 0
+          let probability = Number(rawProbability)
+          
+          // 如果概率是小数格式（0-1之间），转换为百分比格式（0-100）
+          if (probability > 0 && probability <= 1) {
+            probability = probability * 100
+            console.log(`🔧 商户端概率格式转换: 小数${rawProbability} → 百分比${probability}%`)
+          }
+          
+          return {
+            ...prize,
+            probability: probability, // 使用转换后的概率
+            originalProbability: rawProbability // 记录原始概率
+          }
+        }).filter(prize => 
           prize.prize_id && 
           prize.prize_name && 
           typeof prize.probability === 'number' &&
@@ -2320,6 +2338,15 @@ Page({
         
         if (validPrizes.length !== config.prizes.length) {
           console.warn('⚠️ 部分抽奖奖品配置数据不完整，已过滤')
+          console.log('📊 商户端概率验证结果:', {
+            '原始奖品数': config.prizes.length,
+            '有效奖品数': validPrizes.length,
+            '概率详情': validPrizes.map(p => ({
+              name: p.prize_name,
+              originalProbability: p.originalProbability,
+              convertedProbability: p.probability
+            }))
+          })
         }
         
         this.setData({

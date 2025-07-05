@@ -275,26 +275,68 @@ const authAPI = {
   },
 
   /**
-   * 🔴 用户登录 - 必须调用真实API
-   * 🚧 开发阶段：验证码可以使用任意6位数字
+   * 📱 用户登录
+   * 🚧 开发阶段：跳过短信验证码，任意6位数字都通过验证
    * 🔮 生产环境：验证真实短信验证码
    * @param {string} phone - 手机号
    * @param {string} code - 验证码
    */
-  login(phone, code) {
+  login(formData) {
+    // 🔧 修复：统一处理formData对象，提取phone和code
+    const phone = formData.phone || formData.phoneNumber
+    const code = formData.code || formData.verificationCode || formData.verify_code
+    
+    // 🔧 修复：添加详细的调试信息
+    console.log('📡 登录API调用 - 参数验证:', {
+      formData: formData,
+      phone: phone,
+      code: code,
+      phoneType: typeof phone,
+      codeType: typeof code,
+      phoneLength: phone ? phone.length : 0,
+      codeLength: code ? code.length : 0,
+      phoneValid: /^1[3-9]\d{9}$/.test(phone),
+      codeValid: /^\d{4,6}$/.test(code)
+    })
+    
+    // 🔧 修复：确保参数格式正确
+    const requestData = { 
+      phone: String(phone).trim(), // 确保是字符串格式
+      verify_code: String(code).trim(), // 确保是字符串格式
+      dev_mode: app.globalData.isDev || false,
+      skip_sms_verify: app.globalData.isDev || false
+    }
+    
+    console.log('📡 登录API调用 - 请求数据:', requestData)
+    
     return request({
       url: '/auth/login',
       method: 'POST',
-      data: { 
-        phone, 
-        verify_code: code,
-        dev_mode: app.globalData.isDev || false,    // 🚧 开发模式标识
-        skip_sms_verify: app.globalData.isDev || false // 🚧 开发阶段跳过短信验证
-      },
+      data: requestData,
       needAuth: false,
       showLoading: false, // 🔧 修复：登录页面自行控制loading状态
       timeout: 15000,     // 🔧 修复：增加超时时间到15秒
       maxRetry: 3         // 🔧 修复：增加重试次数到3次
+    }).then((response) => {
+      // 🔧 修复：详细记录后端返回的数据结构
+      console.log('📡 登录API响应 - 完整数据结构:', {
+        response: response,
+        responseType: typeof response,
+        hasCode: response.hasOwnProperty('code'),
+        hasData: response.hasOwnProperty('data'),
+        hasMsg: response.hasOwnProperty('msg'),
+        code: response.code,
+        msg: response.msg,
+        data: response.data,
+        dataType: typeof response.data,
+        dataKeys: response.data ? Object.keys(response.data) : []
+      })
+      
+      // 🔧 修复：返回完整的响应数据，让调用者处理
+      return response
+    }).catch((error) => {
+      console.error('📡 登录API调用失败:', error)
+      throw error
     })
   },
 

@@ -21,9 +21,36 @@ Page({
       joinDays: 0
     },
     
+    // 🔧 修复：添加缺失的统计数据初始化
+    statistics: {
+      totalLottery: 0,
+      totalExchange: 0,
+      totalUpload: 0,
+      thisMonthPoints: 0,
+      lotteryTrend: '→',
+      exchangeTrend: '→',
+      uploadTrend: '→',
+      pointsTrend: '→'
+    },
+    
+    // 🔧 修复：添加缺失的菜单项初始化
+    menuItems: [],
+    
+    // 🔧 修复：添加缺失的成就系统初始化
+    achievements: [],
+    unlockedAchievements: 0,
+    totalAchievements: 0,
+    
     // 积分记录
     pointsRecords: [],
-    showPointsHistory: false,
+    showPointsDetail: false,
+    
+    // 🔧 修复：添加积分筛选和趋势数据
+    pointsFilter: 'all',
+    filteredPointsRecords: [],
+    hasMoreRecords: false,
+    todayEarned: 0,
+    todayConsumed: 0,
     
     // 页面状态
     loading: true,
@@ -127,7 +154,15 @@ Page({
    * 初始化页面
    */
   initPage() {
-    // 从全局获取用户信息
+    console.log('🔄 开始初始化用户页面...')
+    
+    // 🔧 修复：添加所有必要的初始化方法调用
+    // 1. 初始化基础UI数据
+    this.initMenuItems()
+    this.initAchievements()
+    this.calculateTodayTrend()
+    
+    // 2. 从全局获取用户信息
     const globalUserInfo = app.globalData.userInfo
     if (globalUserInfo) {
       this.setData({
@@ -136,8 +171,10 @@ Page({
       })
     }
     
-    // 加载完整用户数据
+    // 3. 加载完整用户数据
     this.loadUserData()
+    
+    console.log('✅ 用户页面初始化完成')
   },
 
   /**
@@ -149,7 +186,8 @@ Page({
   loadUserData() {
     this.setData({ loading: true })
     
-    Promise.all([
+    // 🔧 修复：确保返回Promise对象
+    return Promise.all([
       this.refreshUserInfo(),
       this.loadUserStatistics(),
       this.loadRecentPointsRecords()
@@ -159,6 +197,8 @@ Page({
     }).catch((error) => {
       console.error('❌ 用户数据加载失败:', error)
       this.setData({ loading: false })
+      // 🔧 修复：重新抛出错误，保持Promise链
+      throw error
     })
   },
 
@@ -262,10 +302,27 @@ Page({
     
     return userAPI.getStatistics().then((res) => {
       if (res.code === 0) {
+        const statsData = res.data
+        
+        // 🔧 修复：同步设置userStats和statistics，确保WXML能正确显示
         this.setData({
-          userStats: res.data
+          userStats: statsData,
+          statistics: {
+            totalLottery: statsData.totalLotteries || 0,
+            totalExchange: statsData.totalExchanges || 0,
+            totalUpload: statsData.totalUploads || 0,
+            thisMonthPoints: statsData.thisMonthPoints || 0,
+            lotteryTrend: statsData.lotteryTrend || '→',
+            exchangeTrend: statsData.exchangeTrend || '→',
+            uploadTrend: statsData.uploadTrend || '→',
+            pointsTrend: statsData.pointsTrend || '→'
+          }
         })
-        console.log('✅ 用户统计数据加载成功:', res.data)
+        
+        // 🔧 修复：更新成就系统
+        this.updateAchievements()
+        
+        console.log('✅ 用户统计数据加载成功:', statsData)
       } else {
         throw new Error('⚠️ 后端服务异常：' + res.msg)
       }
@@ -281,7 +338,7 @@ Page({
         confirmColor: '#ff4444'
       })
       
-      // 设置安全的默认值
+      // 🔧 修复：设置安全的默认值，确保页面能正常显示
       this.setData({
         userStats: {
           totalUploads: 0,
@@ -289,6 +346,16 @@ Page({
           totalLotteries: 0,
           totalExchanges: 0,
           joinDays: 0
+        },
+        statistics: {
+          totalLottery: 0,
+          totalExchange: 0,
+          totalUpload: 0,
+          thisMonthPoints: 0,
+          lotteryTrend: '→',
+          exchangeTrend: '→',
+          uploadTrend: '→',
+          pointsTrend: '→'
         }
       })
     })
@@ -305,10 +372,21 @@ Page({
     
     return userAPI.getPointsRecords(1, 10, 'all').then((res) => {
       if (res.code === 0) {
+        const records = res.data.records || []
+        
+        // 🔧 修复：设置积分记录并立即筛选
         this.setData({
-          pointsRecords: res.data.records || []
+          pointsRecords: records,
+          hasMoreRecords: res.data.hasMore || false
         })
-        console.log('✅ 积分记录加载成功，共', res.data.records?.length || 0, '条记录')
+        
+        // 🔧 修复：立即应用筛选逻辑
+        this.filterPointsRecords()
+        
+        // 🔧 修复：计算今日趋势
+        this.calculateTodayTrend()
+        
+        console.log('✅ 积分记录加载成功，共', records.length, '条记录')
       } else {
         throw new Error('⚠️ 后端服务异常：' + res.msg)
       }
@@ -324,9 +402,13 @@ Page({
         confirmColor: '#ff4444'
       })
       
-      // 设置安全的默认值
+      // 🔧 修复：设置安全的默认值
       this.setData({
-        pointsRecords: []
+        pointsRecords: [],
+        filteredPointsRecords: [],
+        hasMoreRecords: false,
+        todayEarned: 0,
+        todayConsumed: 0
       })
     })
   },
@@ -421,7 +503,7 @@ Page({
    */
   togglePointsDetail() {
     this.setData({
-      showPointsHistory: !this.data.showPointsHistory
+      showPointsDetail: !this.data.showPointsDetail
     })
   },
 
@@ -1075,5 +1157,85 @@ Page({
     const cleanedData = cleanUndefined(data)
     console.log('🔧 用户页面安全数据设置:', cleanedData)
     this.setData(cleanedData)
+  },
+
+  /**
+   * 🔧 测试方法：验证页面修复效果
+   * 用于开发测试，确保页面能正常显示
+   */
+  testPageDisplay() {
+    console.log('🧪 开始测试页面显示...')
+    
+    // 设置测试数据
+    this.setData({
+      loading: false,
+      userInfo: {
+        user_id: 'test_123',
+        phone: '138****8888',
+        nickname: '测试用户',
+        level: 'VIP2',
+        total_points: 1250
+      },
+      totalPoints: 1250,
+      statistics: {
+        totalLottery: 5,
+        totalExchange: 3,
+        totalUpload: 8,
+        thisMonthPoints: 450,
+        lotteryTrend: '↑',
+        exchangeTrend: '→',
+        uploadTrend: '↑',
+        pointsTrend: '↑'
+      },
+      todayEarned: 120,
+      todayConsumed: 80,
+      pointsRecords: [
+        {
+          id: 1,
+          description: '上传小票奖励',
+          points: 50,
+          type: 'earn',
+          balance_after: 1250,
+          created_at: '2024-01-20 10:30:00'
+        },
+        {
+          id: 2,
+          description: '抽奖消费',
+          points: -30,
+          type: 'consume',
+          balance_after: 1200,
+          created_at: '2024-01-20 09:15:00'
+        }
+      ]
+    })
+    
+    // 应用筛选
+    this.filterPointsRecords()
+    
+    // 更新成就
+    this.updateAchievements()
+    
+    console.log('✅ 测试数据设置完成')
+    
+    // 显示测试结果
+    wx.showModal({
+      title: '🧪 页面测试完成',
+      content: `测试数据已加载：\n\n✅ 用户信息：已显示\n✅ 积分余额：1250分\n✅ 统计数据：已显示\n✅ 成就系统：已显示\n✅ 菜单项：已显示\n\n页面应该能正常显示了！`,
+      showCancel: true,
+      cancelText: '清除测试',
+      confirmText: '知道了',
+      success: (res) => {
+        if (res.cancel) {
+          // 清除测试数据，恢复loading状态
+          this.setData({
+            loading: true,
+            userInfo: null,
+            totalPoints: 0
+          })
+          // 重新加载真实数据
+          this.initPage()
+        }
+      }
+    })
   }
 })

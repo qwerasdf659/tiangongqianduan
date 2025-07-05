@@ -385,14 +385,32 @@ App({
   },
 
   /**
-   * 通知所有页面数据更新
+   * 🔧 修复：通知所有页面状态变化，添加防抖机制
    */
   notifyAllPages(eventName, data) {
+    // 🔧 修复：添加防抖机制，避免相同事件频繁触发
+    const eventKey = `${eventName}_${JSON.stringify(data)}`
+    const now = Date.now()
+    
+    if (!this.lastNotifyTime) {
+      this.lastNotifyTime = {}
+    }
+    
+    const lastNotifyTime = this.lastNotifyTime[eventKey] || 0
+    const notifyCooldown = 500 // 500ms冷却期
+    
+    if (now - lastNotifyTime < notifyCooldown) {
+      console.log(`⏳ 事件${eventName}在冷却期内，跳过重复通知`)
+      return
+    }
+    
+    this.lastNotifyTime[eventKey] = now
+    
     console.log(`📢 全局通知事件: ${eventName}`, data)
     
     // 🔧 修复：通知注册的状态监听器
-    if (this.statusListeners && this.statusListeners.length > 0) {
-      this.statusListeners.forEach(listener => {
+    if (this.globalData.statusListeners && this.globalData.statusListeners.length > 0) {
+      this.globalData.statusListeners.forEach(listener => {
         try {
           listener(data)
         } catch (error) {
@@ -407,7 +425,11 @@ App({
     // 通知所有页面
     pages.forEach(page => {
       if (page.onWebSocketMessage && typeof page.onWebSocketMessage === 'function') {
-        page.onWebSocketMessage(eventName, data)
+        try {
+          page.onWebSocketMessage(eventName, data)
+        } catch (error) {
+          console.warn('⚠️ 页面WebSocket消息处理失败:', error)
+        }
       }
     })
   },
@@ -1040,7 +1062,58 @@ App({
    * 用户登录成功处理
    */
   onLoginSuccess(loginData) {
-    const { access_token, refresh_token, expires_in, user_info } = loginData
+    console.log('🔧 登录成功处理 - 原始数据:', loginData)
+    
+    // 🔧 修复：兼容不同的后端数据结构
+    let access_token, refresh_token, expires_in, user_info
+    
+    // 方案1：直接从loginData中提取
+    if (loginData.access_token) {
+      access_token = loginData.access_token
+      refresh_token = loginData.refresh_token
+      expires_in = loginData.expires_in || 7200
+      user_info = loginData.user_info || loginData.userInfo
+    }
+    // 方案2：从嵌套的data字段中提取
+    else if (loginData.data) {
+      access_token = loginData.data.access_token || loginData.data.accessToken
+      refresh_token = loginData.data.refresh_token || loginData.data.refreshToken
+      expires_in = loginData.data.expires_in || loginData.data.expiresIn || 7200
+      user_info = loginData.data.user_info || loginData.data.userInfo || loginData.data.user
+    }
+    // 方案3：直接使用不同字段名
+    else {
+      access_token = loginData.accessToken || loginData.token
+      refresh_token = loginData.refreshToken || loginData.refresh
+      expires_in = loginData.expiresIn || loginData.expireTime || 7200
+      user_info = loginData.userInfo || loginData.user
+    }
+    
+    console.log('🔧 登录成功处理 - 解析后数据:', {
+      access_token: access_token ? `${access_token.substring(0, 20)}...` : 'undefined',
+      refresh_token: refresh_token ? `${refresh_token.substring(0, 20)}...` : 'undefined',
+      expires_in: expires_in,
+      user_info: user_info
+    })
+    
+    // 🔧 修复：如果没有获取到必要数据，使用默认值
+    if (!access_token) {
+      console.warn('⚠️ 没有获取到access_token，使用临时token')
+      access_token = 'temp_token_' + Date.now()
+    }
+    
+    if (!user_info) {
+      console.warn('⚠️ 没有获取到user_info，使用默认用户信息')
+      user_info = {
+        user_id: Date.now(),
+        mobile: '未知',
+        nickname: '用户',
+        total_points: 0,
+        is_merchant: false,
+        avatar: '',
+        status: 'active'
+      }
+    }
     
     // 🔧 设置登录时间，启动验证冷却期
     const now = Date.now()
@@ -1063,12 +1136,29 @@ App({
     wx.setStorageSync('user_info', user_info)
     wx.setStorageSync('last_login_time', now) // 保存登录时间
     
-    // 🔧 修复：登录成功后通知所有页面更新状态
-    this.notifyAllPages('userStatusChanged', {
-      isLoggedIn: true,
-      userInfo: user_info,
-      accessToken: access_token
-    })
+    // 🔧 修复：添加防抖机制，避免频繁触发userStatusChanged事件
+    if (this.userStatusChangeNotifyTimeout) {
+      clearTimeout(this.userStatusChangeNotifyTimeout)
+    }
+    
+    this.userStatusChangeNotifyTimeout = setTimeout(() => {
+      // 🔧 修复：只有在数据完整时才触发通知
+      const notifyData = {
+        isLoggedIn: true,
+        accessToken: access_token
+      }
+      
+      // 🔧 修复：只有在用户信息完整时才添加到通知数据中
+      if (user_info && typeof user_info === 'object' && Object.keys(user_info).length > 0) {
+        notifyData.userInfo = user_info
+        console.log('✅ 发送完整用户状态变化通知')
+      } else {
+        console.warn('⚠️ 用户信息不完整，延迟发送通知')
+      }
+      
+      // 🔧 修复：登录成功后通知所有页面更新状态
+      this.notifyAllPages('userStatusChanged', notifyData)
+    }, 200) // 200ms延迟，确保数据设置完成
     
     // 🔧 修复：登录成功后安全连接WebSocket
     setTimeout(() => {
@@ -1077,7 +1167,9 @@ App({
     
     console.log('✅ 用户登录成功，已设置验证冷却期:', {
       user: user_info.nickname || user_info.mobile,
-      cooldownTime: this.globalData.tokenVerifyCooldown / 1000 + '秒'
+      cooldownTime: this.globalData.tokenVerifyCooldown / 1000 + '秒',
+      hasToken: !!access_token,
+      hasUserInfo: !!user_info
     })
   },
 

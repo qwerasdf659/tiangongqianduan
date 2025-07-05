@@ -285,7 +285,23 @@ Page({
    * 手机号输入
    */
   onPhoneInput(e) {
-    const phone = e.detail.value
+    let phone = e.detail.value
+    
+    // 🔧 修复：清理输入数据，确保只包含数字
+    phone = phone.replace(/\D/g, '') // 移除所有非数字字符
+    
+    // 🔧 修复：限制最大长度
+    if (phone.length > 11) {
+      phone = phone.substring(0, 11)
+    }
+    
+    console.log('📱 手机号输入处理:', {
+      原始输入: e.detail.value,
+      处理后: phone,
+      长度: phone.length,
+      格式验证: /^1[3-9]\d{9}$/.test(phone)
+    })
+    
     this.setData({ phone })
     
     // 实时验证
@@ -310,7 +326,23 @@ Page({
    * 验证码输入
    */
   onCodeInput(e) {
-    const code = e.detail.value
+    let code = e.detail.value
+    
+    // 🔧 修复：清理输入数据，确保只包含数字
+    code = code.replace(/\D/g, '') // 移除所有非数字字符
+    
+    // 🔧 修复：限制最大长度
+    if (code.length > 6) {
+      code = code.substring(0, 6)
+    }
+    
+    console.log('🔑 验证码输入处理:', {
+      原始输入: e.detail.value,
+      处理后: code,
+      长度: code.length,
+      格式验证: /^\d{4,6}$/.test(code)
+    })
+    
     this.setData({ code })
     
     // 实时验证
@@ -485,6 +517,18 @@ Page({
       return
     }
 
+    // 🔧 修复：添加详细的前端数据验证
+    console.log('📱 提交登录 - 数据验证:', {
+      phone: this.data.phone,
+      code: this.data.code,
+      phoneType: typeof this.data.phone,
+      codeType: typeof this.data.code,
+      phoneLength: this.data.phone ? this.data.phone.length : 0,
+      codeLength: this.data.code ? this.data.code.length : 0,
+      phoneRaw: JSON.stringify(this.data.phone),
+      codeRaw: JSON.stringify(this.data.code)
+    })
+
     // 验证表单
     if (!this.validatePhone(this.data.phone)) {
       wx.showToast({
@@ -546,11 +590,13 @@ Page({
       mask: true
     })
 
-    // 准备登录数据
+    // 🔧 修复：确保数据格式正确
     const formData = {
-      phone: this.data.phone,
-      code: this.data.code
+      phone: String(this.data.phone).trim(),
+      code: String(this.data.code).trim()
     }
+
+    console.log('📱 提交登录 - 最终数据:', formData)
 
     // 🔧 修复：带重试机制的登录
     this.performLogin(formData).then(() => {
@@ -585,6 +631,7 @@ Page({
         // 不在这里处理超时，让外层统一处理
       }, 10000)
       
+      // 🔧 修复：正确传递参数 - 传递整个formData对象，让API方法内部处理
       authAPI.login(formData).then((res) => {
         clearTimeout(singleRequestTimeout)
         
@@ -654,22 +701,140 @@ Page({
     
     wx.hideLoading()
     
-    // 🔧 修复：调用全局登录成功处理
-    app.onLoginSuccess(loginData)
+    // 🔧 修复：先调用全局登录成功处理，等待数据设置完成
+    try {
+      app.onLoginSuccess(loginData)
+      
+      // 🔧 修复：验证必要数据是否设置成功
+      const hasValidToken = app.globalData.accessToken && app.globalData.accessToken !== 'undefined'
+      const hasValidUserInfo = app.globalData.userInfo && typeof app.globalData.userInfo === 'object' && Object.keys(app.globalData.userInfo).length > 0
+      
+      console.log('🔧 登录数据验证结果:', {
+        hasValidToken,
+        hasValidUserInfo,
+        tokenPreview: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : 'undefined',
+        userInfo: app.globalData.userInfo,
+        userInfoKeys: app.globalData.userInfo ? Object.keys(app.globalData.userInfo) : []
+      })
+      
+      // 🔧 修复：只要有有效token就允许跳转，用户信息可以后续获取
+      if (hasValidToken) {
+        console.log('✅ 检测到有效token，准备跳转')
+        
+        if (hasValidUserInfo) {
+          wx.showToast({
+            title: '登录成功！',
+            icon: 'success',
+            duration: 1000
+          })
+          
+          setTimeout(() => {
+            this.performPageRedirect()
+          }, 1000)
+        } else {
+          console.warn('⚠️ 用户信息缺失，但token有效，直接跳转')
+          
+          wx.showToast({
+            title: '登录成功！正在加载...',
+            icon: 'loading',
+            duration: 1000
+          })
+          
+          setTimeout(() => {
+            this.performPageRedirect()
+          }, 1000)
+        }
+      } else {
+        console.error('❌ 没有有效的访问令牌，无法跳转')
+        
+        wx.showModal({
+          title: '登录异常',
+          content: '登录过程中未获取到有效的访问令牌，请重新登录',
+          showCancel: false,
+          confirmText: '重新登录',
+          success: () => {
+            this.setData({
+              phone: '',
+              code: '',
+              logging: false,
+              submitting: false
+            })
+          }
+        })
+      }
+      
+    } catch (error) {
+      console.error('❌ 登录成功处理出错:', error)
+      
+      // 🔧 修复：处理失败时的降级处理
+      wx.showModal({
+        title: '登录异常',
+        content: '登录过程中出现异常，请重新登录',
+        showCancel: false,
+        confirmText: '重新登录',
+        success: () => {
+          this.setData({
+            phone: '',
+            code: '',
+            logging: false,
+            submitting: false
+          })
+        }
+      })
+    }
     
-    // 🔧 修复：显示成功提示
-    wx.showToast({
-      title: '登录成功！',
-      icon: 'success',
-      duration: 1500
+    // 🔧 修复：添加备用强制跳转机制，确保登录成功一定能跳转
+    setTimeout(() => {
+      if (app.globalData.isLoggedIn && app.globalData.accessToken && app.globalData.accessToken !== 'undefined') {
+        console.log('🔧 备用跳转机制触发 - 强制跳转到抽奖页面')
+        
+        wx.reLaunch({
+          url: '/pages/lottery/lottery'
+        })
+      }
+    }, 3000) // 3秒后强制检查并跳转
+  },
+
+  /**
+   * 🔧 修复：执行页面跳转
+   */
+  performPageRedirect() {
+    console.log('🔧 执行页面跳转')
+    
+    // 🔧 修复：只验证最关键的登录状态和token
+    const hasValidLogin = app.globalData.isLoggedIn && app.globalData.accessToken && app.globalData.accessToken !== 'undefined'
+    
+    console.log('🔧 跳转前最终验证:', {
+      isLoggedIn: app.globalData.isLoggedIn,
+      hasToken: !!app.globalData.accessToken,
+      tokenPreview: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : 'none',
+      hasValidLogin: hasValidLogin
     })
     
-    // 🔧 修复：延迟跳转，确保toast显示
-    setTimeout(() => {
+    if (hasValidLogin) {
+      console.log('✅ 登录状态验证通过，跳转到抽奖页面')
+      
       wx.reLaunch({
         url: '/pages/lottery/lottery'
       })
-    }, 1500)
+    } else {
+      console.error('❌ 登录状态验证失败，无法跳转')
+      
+      wx.showModal({
+        title: '登录状态异常',
+        content: '登录状态验证失败，请重新登录',
+        showCancel: false,
+        confirmText: '重新登录',
+        success: () => {
+          this.setData({
+            phone: '',
+            code: '',
+            logging: false,
+            submitting: false
+          })
+        }
+      })
+    }
   },
 
   /**
@@ -691,15 +856,27 @@ Page({
     
     // 🔴 v2.1.3：增强错误处理
     if (error.isBackendError) {
-      errorMessage = '🚨 后端服务异常：' + error.message
+      errorMessage = '🚨 后端服务异常：' + (error.msg || error.message)
     } else if (error.isNetworkError) {
       errorMessage = '🌐 网络连接异常，请检查网络'
+    } else if (error.code === 1001) {
+      // 🔧 修复：专门处理1001错误码（手机号格式不正确）
+      errorMessage = '手机号格式不正确，请检查输入'
+      console.error('🚨 1001错误 - 手机号格式问题:', {
+        inputPhone: this.data.phone,
+        phoneType: typeof this.data.phone,
+        phoneLength: this.data.phone ? this.data.phone.length : 0,
+        phoneValid: /^1[3-9]\d{9}$/.test(this.data.phone),
+        error: error
+      })
     } else if (error.code === 2001) {
       errorMessage = '请提供有效的访问令牌'
     } else if (error.code === 401) {
       errorMessage = '验证码错误或已过期'
     } else if (error.code === 429) {
       errorMessage = '请求过于频繁，请稍后再试'
+    } else if (error.msg) {
+      errorMessage = error.msg
     } else if (error.message) {
       errorMessage = error.message
     }

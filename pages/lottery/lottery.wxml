@@ -66,7 +66,7 @@
       <view class="grid-row">
         <button 
           class="grid-draw-btn triple-btn {{isDrawing ? 'disabled' : ''}}"
-          disabled="{{isDrawing || totalPoints < (costPoints || 100) * 3}}"
+          disabled="{{isDrawing}}"
           bindtap="onTripleDraw"
         >
           <view class="btn-content">
@@ -77,7 +77,7 @@
 
         <button 
           class="grid-draw-btn five-btn {{isDrawing ? 'disabled' : ''}}"
-          disabled="{{isDrawing || totalPoints < (costPoints || 100) * 5}}"
+          disabled="{{isDrawing}}"
           bindtap="onFiveDraw"
         >
           <view class="btn-content">
@@ -91,7 +91,7 @@
       <view class="grid-row">
         <button 
           class="grid-draw-btn ten-btn special full-width {{isDrawing ? 'disabled' : ''}}"
-          disabled="{{isDrawing || totalPoints < (costPoints || 100) * 10}}"
+          disabled="{{isDrawing}}"
           bindtap="onTenDraw"
         >
           <view class="btn-content">

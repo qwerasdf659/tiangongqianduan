@@ -157,13 +157,77 @@ Page({
   onShow() {
     console.log('抽奖页面显示')
     
+    // 🔧 修复：检查关键的登录状态和token
+    const hasValidLogin = app.globalData.isLoggedIn && app.globalData.accessToken && app.globalData.accessToken !== 'undefined'
+    
+    if (!hasValidLogin) {
+      console.error('❌ 登录状态或访问令牌无效:', {
+        isLoggedIn: app.globalData.isLoggedIn,
+        hasToken: !!app.globalData.accessToken,
+        tokenPreview: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : 'none'
+      })
+      
+      wx.showModal({
+        title: '登录状态异常',
+        content: '检测到登录状态异常，请重新登录以确保正常使用。',
+        showCancel: false,
+        confirmText: '重新登录',
+        confirmColor: '#ff4444',
+        success: () => {
+          wx.reLaunch({
+            url: '/pages/auth/auth'
+          })
+        }
+      })
+      return
+    }
+    
+    // 🔧 修复：如果用户信息缺失，记录警告但不阻止页面加载
+    if (!app.globalData.userInfo || Object.keys(app.globalData.userInfo).length === 0) {
+      console.warn('⚠️ 用户信息缺失，将在页面加载时获取:', {
+        userInfo: app.globalData.userInfo
+      })
+    }
+    
     // 🔴 重置异常状态 - 防止页面卡死
     this.resetDrawingState()
     
-    this.refreshUserInfo()
+    // 🔧 修复：添加防重复调用机制
+    const now = Date.now()
+    const lastRefreshTime = this.lastRefreshTime || 0
+    const refreshCooldown = 2000 // 2秒冷却期
     
-    // 重新加载配置，确保数据最新
-    this.loadLotteryConfig()
+    if (now - lastRefreshTime > refreshCooldown) {
+      console.log('🔄 执行数据刷新（冷却期已过）')
+      this.lastRefreshTime = now
+      
+      // 🔧 修复：优先刷新用户信息，如果用户信息缺失
+      if (!this.data.userInfo || this.data.userInfo.nickname === '加载中...' || 
+          !app.globalData.userInfo || Object.keys(app.globalData.userInfo).length === 0) {
+        this.refreshUserInfo().then(() => {
+          // 用户信息获取成功后再加载抽奖配置
+          if (!this.data.prizes || this.data.prizes.length === 0) {
+            this.loadLotteryConfig()
+          }
+        }).catch((error) => {
+          console.error('❌ 刷新用户信息失败:', error)
+          // 即使用户信息获取失败，也尝试加载抽奖配置
+          if (!this.data.prizes || this.data.prizes.length === 0) {
+            this.loadLotteryConfig()
+          }
+        })
+      } else {
+        // 用户信息已存在，只在必要时加载抽奖配置
+        if (!this.data.prizes || this.data.prizes.length === 0) {
+          console.log('🎰 用户信息完整，加载抽奖配置')
+          this.loadLotteryConfig()
+        } else {
+          console.log('📊 数据已完整，跳过重复加载')
+        }
+      }
+    } else {
+      console.log('⏳ 刷新冷却期内，跳过重复刷新')
+    }
   },
 
   onHide() {
@@ -338,64 +402,171 @@ Page({
       if (res.code === 0 && res.data) {
         const config = res.data
         
-        // 🔴 严格验证后端返回的抽奖配置数据
-        if (!config.prizes || !Array.isArray(config.prizes)) {
+        // 🔧 修复：添加详细的数据结构调试信息
+        console.log('📊 后端返回的完整配置数据:', {
+          config: config,
+          configKeys: Object.keys(config),
+          prizesField: config.prizes,
+          prizesType: typeof config.prizes,
+          prizesIsArray: Array.isArray(config.prizes),
+          prizesLength: config.prizes ? config.prizes.length : 0
+        })
+        
+        // 🔴 验证prizes字段存在性，支持多种字段名
+        let prizes = config.prizes || config.prize_list || config.items || []
+        
+        if (!Array.isArray(prizes)) {
+          console.error('❌ 后端返回的奖品数据不是数组:', prizes)
           throw new Error('后端返回的抽奖配置数据格式不正确：prizes字段缺失或不是数组')
         }
         
-        // 🔴 验证奖品配置完整性
-        const validPrizes = config.prizes.filter(prize => {
+        if (prizes.length === 0) {
+          console.error('❌ 后端返回的奖品数组为空')
+          throw new Error('后端返回的抽奖配置中没有奖品数据')
+        }
+        
+        // 🔧 修复：增强数据兼容性，支持多种字段名格式
+        const validPrizes = prizes.map((prize, index) => {
+          // 📊 详细记录每个奖品的原始数据
+          console.log(`🎁 奖品${index + 1}原始数据:`, prize)
+          
+          // 🔧 修复：智能概率解析 - 兼容小数和百分比格式
+          let rawProbability = prize.probability || prize.rate || prize.chance || 0
+          
+          // 🔧 修复：检测概率格式并自动转换
+          let probability = Number(rawProbability)
+          
+          // 如果概率是小数格式（0-1之间），转换为百分比格式（0-100）
+          if (probability > 0 && probability <= 1) {
+            probability = probability * 100
+            console.log(`🔧 概率格式转换: 小数${rawProbability} → 百分比${probability}%`)
+          }
+          
+          // 🔧 兼容多种字段名格式
+          const mappedPrize = {
+            prize_id: prize.prize_id || prize.id || prize.prizeId || `prize_${index + 1}`,
+            prize_name: prize.prize_name || prize.name || prize.prizeName || prize.title || `奖品${index + 1}`,
+            probability: probability, // 使用转换后的概率
+            angle: Number(prize.angle || prize.rotation || (360 / prizes.length * index)),
+            color: prize.color || prize.bg_color || prize.background || '#FF6B6B',
+            type: prize.type || prize.prize_type || 'physical',
+            value: prize.value || prize.prize_value || '',
+            description: prize.description || prize.desc || '',
+            // 🔧 新增：记录原始概率值用于调试
+            originalProbability: rawProbability
+          }
+          
+          console.log(`🎁 奖品${index + 1}映射后数据:`, mappedPrize)
+          
+          // 🔧 修复：更新验证逻辑，支持概率格式转换
           const isValid = (
-            prize.prize_id && 
-            prize.prize_name && 
-            typeof prize.probability === 'number' &&
-            prize.probability >= 0 &&
-            prize.probability <= 100 &&
-            typeof prize.angle === 'number' &&
-            prize.color
+            mappedPrize.prize_id && 
+            mappedPrize.prize_name && 
+            typeof mappedPrize.probability === 'number' &&
+            mappedPrize.probability >= 0 &&
+            mappedPrize.probability <= 100 &&
+            typeof mappedPrize.angle === 'number' &&
+            mappedPrize.color
           )
           
           if (!isValid) {
-            console.warn('⚠️ 无效的奖品配置:', prize)
+            console.warn('⚠️ 奖品验证失败:', {
+              prize: mappedPrize,
+              validation: {
+                hasPrizeId: !!mappedPrize.prize_id,
+                hasPrizeName: !!mappedPrize.prize_name,
+                probabilityValid: typeof mappedPrize.probability === 'number' && mappedPrize.probability >= 0 && mappedPrize.probability <= 100,
+                angleValid: typeof mappedPrize.angle === 'number',
+                hasColor: !!mappedPrize.color
+              }
+            })
           }
           
-          return isValid
-        })
+          return { ...mappedPrize, isValid }
+        }).filter(prize => prize.isValid)
         
-        if (validPrizes.length !== config.prizes.length) {
-          console.warn(`⚠️ 发现${config.prizes.length - validPrizes.length}个无效的奖品配置，已过滤`)
-        }
+        console.log(`🎁 奖品验证结果: 原始${prizes.length}个, 有效${validPrizes.length}个`)
         
         if (validPrizes.length === 0) {
+          console.error('❌ 所有奖品验证都失败了:', {
+            originalPrizes: prizes,
+            validationResults: prizes.map(prize => ({
+              prize: prize,
+              issues: []
+            }))
+          })
           throw new Error('后端返回的抽奖配置中没有有效的奖品数据')
         }
         
-        // 🔴 验证概率总和（应该等于100）
+        // 🔧 修复：精确概率验证和智能调整
         const totalProbability = validPrizes.reduce((sum, prize) => sum + prize.probability, 0)
-        if (Math.abs(totalProbability - 100) > 0.01) {
-          console.warn(`⚠️ 奖品概率总和不等于100%，当前总和：${totalProbability}%`)
+        const roundedTotalProbability = Math.round(totalProbability * 100) / 100 // 保留2位小数
+        
+        console.log(`📊 概率验证详情:`, {
+          '奖品概率': validPrizes.map(p => ({
+            name: p.prize_name,
+            originalProbability: p.originalProbability,
+            convertedProbability: p.probability
+          })),
+          '概率总和': roundedTotalProbability,
+          '是否合法': Math.abs(roundedTotalProbability - 100) <= 0.01
+        })
+        
+        if (Math.abs(roundedTotalProbability - 100) > 0.01) {
+          console.warn(`⚠️ 奖品概率总和不等于100%，当前总和：${roundedTotalProbability}%`)
+          
+          // 🔧 智能调整概率
+          if (roundedTotalProbability === 0) {
+            console.log('🔧 检测到概率总和为0，自动平均分配概率')
+            const avgProbability = 100 / validPrizes.length
+            validPrizes.forEach(prize => {
+              prize.probability = Number(avgProbability.toFixed(2))
+            })
+          } else if (roundedTotalProbability > 0 && roundedTotalProbability < 100) {
+            // 🔧 如果概率总和小于100%，按比例缩放到100%
+            console.log('🔧 概率总和小于100%，按比例调整至100%')
+            const scaleFactor = 100 / roundedTotalProbability
+            validPrizes.forEach(prize => {
+              prize.probability = Number((prize.probability * scaleFactor).toFixed(2))
+            })
+            console.log(`🔧 概率调整完成，缩放因子: ${scaleFactor.toFixed(4)}`)
+          }
+        } else {
+          console.log(`✅ 概率验证通过，总和: ${roundedTotalProbability}%`)
         }
         
-        // 🔴 设置抽奖配置数据
+        // 🔧 修复：增强配置字段兼容性
+        const costPoints = Number(config.cost_points || config.costPoints || config.cost || 100)
+        const dailyLimit = Number(config.daily_limit || config.dailyLimit || config.limit || 50)
+        const todayDrawCount = Number(config.today_draw_count || config.todayDrawCount || config.draw_count || 0)
+        
+        // 🔧 设置抽奖配置数据
         this.safeSetData({
           prizes: validPrizes,
-          costPoints: config.cost_points || 100,
-          dailyLimit: config.daily_limit || 50,
-          todayDrawCount: config.today_draw_count || 0,
+          costPoints: costPoints,
+          dailyLimit: dailyLimit,
+          todayDrawCount: todayDrawCount,
           lotteryRules: {
-            guaranteeRule: config.guarantee_rule || '连续10次抽奖保底获得九八折券',
-            consumptionRule: config.consumption_rule || '每次抽奖消费100积分',
-            securityRule: config.security_rule || '系统自动验证用户积分，确保公平抽奖',
-            dailyLimitRule: config.daily_limit_rule || `每日最多抽奖${config.daily_limit || 50}次`
+            guaranteeRule: config.guarantee_rule || config.guaranteeRule || '连续10次抽奖保底获得九八折券',
+            consumptionRule: config.consumption_rule || config.consumptionRule || `每次抽奖消费${costPoints}积分`,
+            securityRule: config.security_rule || config.securityRule || '系统自动验证用户积分，确保公平抽奖',
+            dailyLimitRule: config.daily_limit_rule || config.dailyLimitRule || `每日最多抽奖${dailyLimit}次`
           }
         })
         
         console.log('✅ 抽奖配置加载成功:', {
           prizesCount: validPrizes.length,
-          costPoints: config.cost_points,
-          dailyLimit: config.daily_limit,
-          todayDrawCount: config.today_draw_count,
-          totalProbability: totalProbability
+          costPoints: costPoints,
+          dailyLimit: dailyLimit,
+          todayDrawCount: todayDrawCount,
+          totalProbability: roundedTotalProbability, // 使用修复后的概率总和
+          finalPrizes: validPrizes.map(p => ({
+            name: p.prize_name,
+            probability: p.probability,
+            color: p.color,
+            // 🔧 新增：显示原始概率和转换后概率的对比
+            originalProbability: p.originalProbability
+          }))
         })
         
         return config
@@ -405,7 +576,7 @@ Page({
     }).catch((error) => {
       console.error('❌ 加载抽奖配置失败:', error)
       
-      // 🔴 后端服务异常已在API层处理，这里设置安全默认值并重新抛出错误
+      // 🔧 修复：设置安全默认值并提供友好的错误提示
       this.safeSetData({
         prizes: [],
         costPoints: 100,
@@ -421,7 +592,27 @@ Page({
         wheelReady: false
       })
       
-      throw error // 重新抛出错误，让上层处理
+      // 🔧 修复：显示详细的错误信息，帮助诊断问题
+      if (error.message && error.message.includes('后端返回的抽奖配置中没有有效的奖品数据')) {
+        console.error('🔧 数据兼容性问题，建议检查后端返回的数据格式')
+        
+        wx.showModal({
+          title: '🔧 数据格式问题',
+          content: '抽奖配置数据格式不兼容。\n\n可能原因：\n• 后端返回的字段名与前端期望不一致\n• 奖品数据缺少必要字段\n• 数据类型不匹配\n\n请检查控制台日志获取详细信息，或联系技术支持。',
+          showCancel: true,
+          cancelText: '查看日志',
+          confirmText: '重新加载',
+          success: (res) => {
+            if (res.confirm) {
+              // 重新加载配置
+              this.loadLotteryConfig()
+            }
+          }
+        })
+      } else {
+        // 其他错误由API层处理
+        throw error // 重新抛出错误，让上层处理
+      }
     })
   },
 
@@ -470,30 +661,71 @@ Page({
         break
         
       case 'userStatusChanged':
-        // 用户状态变化通知（如登录状态改变）
-        console.log('👤 收到用户状态变化通知:', data)
-        
-        if (data.isLoggedIn && data.userInfo) {
-          // 🔴 用户重新登录，更新用户信息并重新初始化
-          this.safeSetData({
-            userInfo: data.userInfo,
-            totalPoints: data.userInfo.total_points || 0
-          })
-          
-          // 🔴 重新加载抽奖配置（可能权限发生变化）
-          this.loadLotteryConfig()
-        } else {
-          // 🔴 用户登出，禁用抽奖功能
-          this.safeSetData({
-            userInfo: { nickname: '未登录', phone: '未登录' },
-            totalPoints: 0,
-            isButtonVisible: false
-          })
+        // 🔧 修复：添加防抖机制，避免频繁处理
+        if (this.userStatusChangeTimeout) {
+          clearTimeout(this.userStatusChangeTimeout)
         }
+        
+        this.userStatusChangeTimeout = setTimeout(() => {
+          this.handleUserStatusChange(data)
+        }, 100) // 100ms防抖
         break
         
       default:
         console.log('📝 未处理的WebSocket事件:', eventName, data)
+    }
+  },
+
+  /**
+   * 🔧 修复：处理用户状态变化，避免循环触发
+   */
+  handleUserStatusChange(data) {
+    console.log('👤 处理用户状态变化:', {
+      isLoggedIn: data.isLoggedIn,
+      hasUserInfo: !!data.userInfo,
+      hasAccessToken: !!data.accessToken,
+      userInfoKeys: data.userInfo ? Object.keys(data.userInfo) : []
+    })
+    
+    // 🔧 修复：只有在明确登录且有完整数据时才更新
+    if (data.isLoggedIn && data.accessToken) {
+      // 🔧 修复：即使userInfo为空，也不进入登出逻辑，而是触发数据获取
+      if (data.userInfo && typeof data.userInfo === 'object' && Object.keys(data.userInfo).length > 0) {
+        console.log('✅ 收到完整用户状态，更新界面')
+        
+        this.safeSetData({
+          userInfo: {
+            nickname: data.userInfo.nickname || '用户',
+            phone: data.userInfo.mobile || data.userInfo.phone || '未知',
+            avatar: data.userInfo.avatar || '/images/default-avatar.png'
+          },
+          totalPoints: data.userInfo.total_points || 0
+        })
+        
+        // 🔧 修复：只在必要时重新加载配置，避免频繁调用
+        if (!this.data.prizes || this.data.prizes.length === 0) {
+          console.log('📡 用户状态更新后重新加载抽奖配置')
+          this.loadLotteryConfig()
+        }
+      } else {
+        console.warn('⚠️ 用户已登录但信息不完整，主动获取用户信息')
+        
+        // 🔧 修复：主动获取用户信息，而不是进入登出逻辑
+        this.refreshUserInfo().catch((error) => {
+          console.error('❌ 获取用户信息失败:', error)
+        })
+      }
+    } else if (data.isLoggedIn === false) {
+      // 🔧 修复：只有在明确登出时才处理登出逻辑
+      console.log('👋 用户已登出，更新界面状态')
+      
+      this.safeSetData({
+        userInfo: { nickname: '未登录', phone: '未登录' },
+        totalPoints: 0,
+        isButtonVisible: false
+      })
+    } else {
+      console.log('📝 用户状态变化数据不完整，忽略处理')
     }
   },
 
@@ -1737,19 +1969,132 @@ Page({
 
   // 🎯 抽奖按钮事件
   onSingleDraw() {
-    this.handleDraw('单抽', 1)
+    this.handleDrawWithImmediateCheck('单抽', 1)
   },
 
   onTripleDraw() {
-    this.handleDraw('三连抽', 3)
+    this.handleDrawWithImmediateCheck('三连抽', 3)
   },
 
   onFiveDraw() {
-    this.handleDraw('五连抽', 5)
+    this.handleDrawWithImmediateCheck('五连抽', 5)
   },
 
   onTenDraw() {
-    this.handleDraw('十连抽', 10)
+    this.handleDrawWithImmediateCheck('十连抽', 10)
+  },
+
+  /**
+   * 🔧 新增：立即检查积分和次数的抽奖处理
+   */
+  handleDrawWithImmediateCheck(drawType, count) {
+    console.log(`🎯 ${drawType}按钮点击，立即检查积分和次数...`)
+    
+    // 🔧 防止重复点击
+    if (this.data.isDrawing) {
+      console.log('⚠️ 正在抽奖中，忽略重复点击')
+      wx.showToast({
+        title: '正在抽奖中...',
+        icon: 'loading',
+        duration: 1000
+      })
+      return
+    }
+    
+    // 🔧 立即检查基础数据
+    const { costPoints = 100, totalPoints = 0, todayDrawCount = 0, dailyLimit = 50 } = this.data
+    const needPoints = costPoints * count
+    const remainingDraws = dailyLimit - todayDrawCount
+    
+    // 🔧 增强调试信息，确保数据正确
+    console.log(`🔍 ${drawType}立即检查详情:`, {
+      原始数据: {
+        costPoints: this.data.costPoints,
+        totalPoints: this.data.totalPoints,
+        todayDrawCount: this.data.todayDrawCount,
+        dailyLimit: this.data.dailyLimit
+      },
+      计算结果: {
+        需要积分: needPoints,
+        当前积分: totalPoints,
+        积分充足: totalPoints >= needPoints,
+        需要次数: count,
+        剩余次数: remainingDraws,
+        次数充足: remainingDraws >= count
+      },
+      数据类型检查: {
+        costPoints类型: typeof this.data.costPoints,
+        totalPoints类型: typeof this.data.totalPoints,
+        needPoints类型: typeof needPoints,
+        totalPoints值: totalPoints
+      }
+    })
+    
+    // 🔧 立即检查积分是否充足 - 使用严格比较
+    if (totalPoints < needPoints) {
+      console.log(`❌ ${drawType}积分不足，立即显示弹窗`)
+      console.log(`详细比较: ${totalPoints} < ${needPoints} = ${totalPoints < needPoints}`)
+      
+      wx.showModal({
+        title: '💰 积分不足',
+        content: `${drawType}需要 ${needPoints} 积分\n当前积分: ${totalPoints}\n还需要: ${needPoints - totalPoints} 积分\n\n💡 获取积分方式：\n• 拍照上传废品\n• 签到获得积分\n• 邀请好友获得积分`,
+        showCancel: true,
+        cancelText: '稍后再试',
+        confirmText: '去上传',
+        confirmColor: '#ff6b35',
+        success: (res) => {
+          if (res.confirm) {
+            // 跳转到拍照上传页面
+            wx.navigateTo({
+              url: '/pages/camera/camera'
+            })
+          }
+        }
+      })
+      return
+    }
+    
+    // 🔧 立即检查每日次数是否充足
+    if (remainingDraws < count) {
+      console.log(`❌ ${drawType}次数不足，立即显示弹窗`)
+      
+      wx.showModal({
+        title: '📊 超出每日限制',
+        content: `每日最多可抽奖 ${dailyLimit} 次\n今日已抽奖 ${todayDrawCount} 次\n剩余 ${remainingDraws} 次\n\n${drawType}需要 ${count} 次，超出限制！\n\n💡 建议：\n• 选择较少次数的抽奖\n• 明日再来继续抽奖`,
+        showCancel: true,
+        cancelText: '知道了',
+        confirmText: remainingDraws > 0 ? '单抽试试' : '明日再来',
+        confirmColor: '#ff6b35',
+        success: (res) => {
+          if (res.confirm && remainingDraws > 0) {
+            // 建议进行单抽
+            this.handleDrawWithImmediateCheck('单抽', 1)
+          }
+        }
+      })
+      return
+    }
+    
+    // 🔧 基础检查通过，显示确认弹窗
+    console.log(`✅ ${drawType}检查通过，显示确认弹窗`)
+    
+    wx.showModal({
+      title: `🎲 确认${drawType}`,
+      content: `即将消耗 ${needPoints} 积分进行${drawType}\n剩余积分将为 ${totalPoints - needPoints}\n\n确定要继续吗？`,
+      showCancel: true,
+      cancelText: '取消',
+      confirmText: '确定抽奖',
+      confirmColor: '#ff6b35',
+      success: (res) => {
+        if (res.confirm) {
+          // 🔧 修复：直接调用startDrawing，避免重复弹窗
+          console.log(`🎯 用户确认${drawType}，直接开始抽奖`)
+          this.startDrawing(drawType, count, needPoints)
+        } else {
+          console.log('🚫 用户取消抽奖')
+        }
+      }
+    })
   },
 
   /**
@@ -1897,34 +2242,28 @@ Page({
 • 每日限制：${dailyLimit} 次
 • 剩余次数：${maxPossible} 次
 • 当前积分：${totalPoints} 分
+• 单次抽奖消耗：${costPoints} 分
 
 🎯 抽奖选项可行性：
 • 单抽：${canSingle ? '✅ 可以' : '❌ 不可以'}
-• 三连抽：${canTriple ? '✅ 可以' : '❌ 不可以'}  
-• 五连抽：${canFive ? '✅ 可以' : '❌ 不可以'}
-• 十连抽：${canTen ? '✅ 可以' : '❌ 不可以'}
-
-💡 建议：
-${maxPossible > 0 ? `可以进行最多 ${maxPossible} 次单抽` : '今日抽奖次数已用完，明日再来'}`,
+• 三连抽：${canTriple ? '✅ 可以' : '❌ 不可以'}
+• 五连抽：${canFive ? '✅ 可以' : '❌ 不可以'}  
+• 十连抽：${canTen ? '✅ 可以' : '❌ 不可以'}`,
       showCancel: true,
-      cancelText: '查看记录',
-      confirmText: maxPossible > 0 ? '现在抽奖' : '明日再来',
-      confirmColor: '#FF6B35',
+      cancelText: '关闭',
+      confirmText: '测试积分不足',
+      confirmColor: '#ff6b35',
       success: (res) => {
-        if (res.confirm && maxPossible > 0) {
-          // 智能建议抽奖
-          if (maxPossible >= 10) {
-            this.handleDraw('十连抽', 10)
-          } else if (maxPossible >= 5) {
-            this.handleDraw('五连抽', 5)
-          } else if (maxPossible >= 3) {
-            this.handleDraw('三连抽', 3)
-          } else {
-            this.handleDraw('单抽', 1)
-          }
-        } else if (res.cancel) {
-          wx.navigateTo({
-            url: '/pages/records/lottery-records'
+        if (res.confirm) {
+          // 🔧 临时测试：设置积分不足的状态
+          console.log('🧪 测试模式：设置积分不足状态')
+          this.safeSetData({
+            totalPoints: 50  // 设置为50积分，测试积分不足情况
+          })
+          wx.showToast({
+            title: '积分已设为50，可测试积分不足',
+            icon: 'success',
+            duration: 3000
           })
         }
       }

@@ -192,6 +192,12 @@
     <view class="loading-content">
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
+      
+      <!-- 🔧 测试按钮：用于验证页面修复效果 -->
+      <button class="test-display-btn" bindtap="testPageDisplay">
+        🧪 测试页面显示
+      </button>
+      <text class="test-tips">如果页面一直加载，点击测试按钮验证修复效果</text>
     </view>
   </view>
 
