@@ -193,42 +193,41 @@ Page({
   handleImageSelected(file) {
     console.log('🖼️ 处理选择的图片:', file)
     
+    // 🔧 修复：检查file对象结构
+    if (!file || !file.tempFilePath) {
+      console.error('❌ 文件对象无效:', file)
+      wx.showToast({
+        title: '选择的文件无效',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+    
     // 🔴 v2.1.2图片验证和处理 - 纯人工审核模式
-    try {
-      // 基础图片验证
-      const validation = validateImage(file)
-      if (!validation.isValid) {
+    console.log('🔧 开始验证图片:', file.tempFilePath)
+    
+    // 🔧 修复：正确使用Promise调用validateImage
+    validateImage(file.tempFilePath)
+      .then((imageInfo) => {
+        console.log('✅ 图片验证成功:', imageInfo)
+        
+        // 设置预览图片
+        this.setData({
+          selectedImage: file.tempFilePath,
+          imagePreview: file.tempFilePath
+        })
+        
+        console.log('✅ 图片选择成功')
+      })
+      .catch((error) => {
+        console.error('❌ 图片验证失败:', error)
         wx.showToast({
-          title: validation.error,
+          title: error.msg || '图片验证失败',
           icon: 'none',
           duration: 2000
         })
-        return
-      }
-      
-      // 设置预览图片
-      this.setData({
-        selectedImage: file.tempFilePath,
-        imagePreview: file.tempFilePath
       })
-      
-      console.log('✅ 图片选择成功')
-      
-      // 🔴 v2.1.2提示：需要用户手动输入消费金额
-      wx.showModal({
-        title: '📋 v2.1.2纯人工审核模式',
-        content: '请在下方手动输入您的消费金额，\n商家将人工审核您的小票并确认实际金额。',
-        showCancel: false,
-        confirmText: '知道了'
-      })
-      
-    } catch (error) {
-      console.error('❌ 图片处理失败:', error)
-      wx.showToast({
-        title: '图片处理失败',
-        icon: 'none'
-      })
-    }
   },
 
   /**
@@ -260,7 +259,7 @@ Page({
    * 返回：upload_id, 等待人工审核
    */
   onSubmitUpload() {
-    // 基础验证
+    // 🔧 修复：增强基础验证
     if (!this.data.selectedImage) {
       wx.showToast({
         title: '请先选择图片',
@@ -269,30 +268,70 @@ Page({
       return
     }
     
-    // 🔴 v2.1.2 关键验证：用户必须手动输入消费金额
-    if (!this.data.userAmount || this.data.userAmount <= 0) {
-      wx.showToast({
-        title: '请输入消费金额',
-        icon: 'none'
+    // 🔧 修复：检查用户登录状态
+    if (!app.globalData.accessToken) {
+      wx.showModal({
+        title: '🚨 请先登录',
+        content: '您还未登录，请先登录后再上传图片！',
+        showCancel: true,
+        confirmText: '去登录',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/auth/auth'
+            })
+          }
+        }
       })
       return
     }
     
-    // 金额验证
-    if (!validateAmount(this.data.userAmount)) {
-      wx.showToast({
-        title: '金额格式不正确',
-        icon: 'none'
-      })
-      return
-    }
-    
-    console.log('📤 开始提交上传，v2.1.2纯人工审核模式')
+    // 🔧 修复：检查网络状态
+    wx.getNetworkType({
+      success: (res) => {
+        if (res.networkType === 'none') {
+          wx.showModal({
+            title: '🚨 网络错误',
+            content: '当前无网络连接，请检查网络设置！',
+            showCancel: false
+          })
+          return
+        }
+        
+        // 网络正常，继续上传
+        this.performUpload()
+      },
+      fail: () => {
+        // 获取网络状态失败，但仍尝试上传
+        this.performUpload()
+      }
+    })
+  },
+
+  /**
+   * 🔧 修复：执行上传操作
+   */
+  performUpload() {
+    console.log('📤 开始提交上传，使用默认消费金额')
     
     this.setData({ uploading: true, uploadProgress: 0 })
     
-    // 🔴 v2.1.2上传逻辑：图片+用户输入金额
-    uploadAPI.upload(this.data.selectedImage, this.data.userAmount)
+    // 🔧 修复：设置默认消费金额为1元，满足后端API要求
+    // 商家将在审核时确认实际消费金额
+    const submitAmount = 1.0
+    console.log('📤 准备调用上传API:', {
+      selectedImage: this.data.selectedImage,
+      submitAmount: submitAmount,
+      类型: typeof submitAmount,
+      用户信息: this.data.userInfo ? '已获取' : '未获取',
+      全局配置: {
+        baseUrl: app.globalData.baseUrl,
+        hasToken: !!app.globalData.accessToken
+      }
+    })
+    
+    uploadAPI.upload(this.data.selectedImage, submitAmount)
       .then((result) => {
         console.log('✅ 上传成功:', result)
         
@@ -310,7 +349,10 @@ Page({
         // 刷新上传历史
         this.loadUploadHistory()
         
-        // 🔴 v2.1.2成功提示
+        // 刷新用户信息（可能积分有变化）
+        this.refreshUserInfo()
+        
+        // 🔧 修复：成功提示
         wx.showToast({
           title: '提交成功，等待审核',
           icon: 'success',
@@ -325,53 +367,105 @@ Page({
           uploadProgress: 0
         })
         
-        // 🔧 优化：显示后端服务异常提示
-        wx.showModal({
-          title: '🚨 后端服务异常',
-          content: `上传失败！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态。`,
-          showCancel: false,
-          confirmText: '知道了',
-          confirmColor: '#ff4444'
-        })
+        // 🔧 修复：详细的错误处理和用户指导
+        this.handleUploadError(error)
       })
   },
-  
+
   /**
-   * 🔴 v2.1.2 用户金额输入处理
+   * 🔧 修复：处理上传错误
    */
-  onAmountInput(e) {
-    const amount = parseFloat(e.detail.value)
-    this.setData({ userAmount: amount })
+  handleUploadError(error) {
+    console.error('📊 上传错误详情:', error)
     
-    // 计算预期积分 (1元=10积分)
-    const expectedPoints = Math.floor(amount * 10)
-    this.setData({ expectedPoints })
+    let errorTitle = '🚨 上传失败'
+    let errorContent = '上传失败，请重试'
+    let showRetry = true
     
-    console.log('💰 用户输入金额:', amount, '预期积分:', expectedPoints)
+    // 🔧 修复：根据错误类型提供不同的处理方案
+    if (error.isNetworkError) {
+      errorTitle = '🚨 网络错误'
+      errorContent = `网络连接失败！\n\n错误详情：${error.errMsg || '未知网络错误'}\n\n请检查：\n1. 网络连接是否正常\n2. 服务器是否可访问\n3. 稍后重试`
+      
+      if (error.uploadUrl) {
+        errorContent += `\n\n上传地址：${error.uploadUrl}`
+      }
+    } else if (error.isBusinessError) {
+      errorTitle = '🚨 业务错误'
+      
+      if (error.code === 1002) {
+        errorContent = '系统错误：消费金额参数异常\n\n这可能是系统配置问题，请联系技术支持！'
+        showRetry = false
+      } else if (error.code === 1003) {
+        errorContent = '系统错误：消费金额超出范围\n\n这可能是系统配置问题，请联系技术支持！'
+        showRetry = false
+      } else if (error.code === 1004) {
+        errorContent = '系统配置错误：API地址未设置\n\n这是系统配置问题，请联系技术支持！'
+        showRetry = false
+      } else if (error.code === 1005) {
+        errorContent = '用户未登录，请先登录！'
+        showRetry = false
+        
+        // 直接跳转到登录页
+        setTimeout(() => {
+          wx.navigateTo({
+            url: '/pages/auth/auth'
+          })
+        }, 1500)
+      } else if (error.msg) {
+        errorContent = error.msg
+      } else {
+        errorContent = `业务错误：${error.code || '未知错误'}`
+      }
+    } else if (error.code === 1001) {
+      errorTitle = '🚨 参数错误'
+      errorContent = '文件路径不能为空\n\n这可能是程序bug，请重新选择图片！'
+    } else {
+      // 其他未知错误
+      errorContent = `未知错误：${error.msg || error.message || '请重试'}\n\n错误码：${error.code || '未知'}`
+    }
+    
+    // 🔧 修复：显示错误对话框
+    wx.showModal({
+      title: errorTitle,
+      content: errorContent,
+      showCancel: showRetry,
+      cancelText: showRetry ? '重试' : '取消',
+      confirmText: '知道了',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.cancel && showRetry) {
+          // 用户选择重试
+          this.onSubmitUpload()
+        }
+      }
+    })
   },
-  
+
   /**
-   * 清空表单
+   * 🔧 修复：清空表单
    */
   clearForm() {
     this.setData({
       selectedImage: null,
       imagePreview: null,
-      userAmount: 0,
       expectedPoints: 0,
       formErrors: {}
     })
   },
-
+  
   /**
-   * 🔴 v2.1.2 显示上传结果 - 纯人工审核模式
+   * 🔧 修复：显示上传结果 - 使用默认金额，商家审核时确认实际消费金额
    */
   showUploadResult(result) {
-    const { upload_id, image_url, amount, status } = result
+    const { upload_id, image_url, status } = result
+    
+    // 🔧 修复：说明商家将确认实际消费金额
+    let content = `上传ID：${upload_id}\n当前状态：等待人工审核\n\n商家将查看您的小票照片并确认实际消费金额，请耐心等待审核结果。`
     
     wx.showModal({
       title: '📋 上传成功',
-      content: `上传ID：${upload_id}\n消费金额：￥${amount}\n当前状态：等待人工审核\n\n商家将查看您的小票照片并确认实际消费金额，请耐心等待审核结果。`,
+      content: content,
       showCancel: false,
       confirmText: '知道了'
     })

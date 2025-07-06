@@ -329,7 +329,10 @@ App({
       filterUndefinedValues: true,
       validateApiResponseFormat: true,
       strictFieldMapping: true
-    }
+    },
+
+    // 🔧 修复：添加兑换页面更新回调管理函数
+    exchangeUpdateCallback: null
   },
 
   /**
@@ -1226,5 +1229,46 @@ App({
     })
     
     console.log('✅ 用户已退出登录')
+  },
+
+  /**
+   * 🔧 修复：添加兑换页面更新回调管理函数
+   * 用于商家管理页面向兑换页面推送数据更新通知
+   */
+  
+  /**
+   * 设置兑换页面更新回调
+   * @param {Function} callback - 更新回调函数
+   */
+  setExchangeUpdateCallback(callback) {
+    if (typeof callback === 'function') {
+      this.globalData.exchangeUpdateCallback = callback
+      console.log('✅ 兑换页面更新回调已设置')
+    } else {
+      console.warn('⚠️ 兑换页面更新回调必须是函数')
+    }
+  },
+
+  /**
+   * 清除兑换页面更新回调
+   */
+  clearExchangeUpdateCallback() {
+    this.globalData.exchangeUpdateCallback = null
+    console.log('✅ 兑换页面更新回调已清除')
+  },
+
+  /**
+   * 触发兑换页面更新回调
+   * @param {Object} data - 更新数据
+   */
+  triggerExchangeUpdate(data) {
+    if (this.globalData.exchangeUpdateCallback && typeof this.globalData.exchangeUpdateCallback === 'function') {
+      try {
+        this.globalData.exchangeUpdateCallback(data)
+        console.log('✅ 兑换页面更新回调已触发')
+      } catch (error) {
+        console.error('❌ 兑换页面更新回调执行失败:', error)
+      }
+    }
   }
 })

@@ -652,6 +652,165 @@ text {
   margin-top: 20rpx;
 }
 
+/* 积分不足弹窗样式 */
+.points-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.points-modal .modal-mask {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100010;
+}
+
+.points-modal .modal-content {
+  position: relative;
+  width: 85%;
+  max-width: 650rpx;
+  background: white;
+  border-radius: 20rpx;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+  z-index: 100020;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.5);
+  border: 3rpx solid #ff6b35;
+}
+
+.points-header {
+  background: linear-gradient(135deg, #ff6b35, #ff8a65);
+  color: white;
+  padding: 35rpx 30rpx;
+  text-align: center;
+  position: relative;
+  z-index: 100030;
+}
+
+.points-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+.points-content {
+  padding: 40rpx 30rpx;
+  background: linear-gradient(180deg, #f8f9fa, #ffffff);
+}
+
+.points-info {
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.points-text {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 12rpx;
+  line-height: 1.4;
+}
+
+.points-text:first-child {
+  font-weight: 600;
+  color: #ff6b35;
+  font-size: 30rpx;
+}
+
+.points-tips {
+  background: #fff3e0;
+  border-radius: 15rpx;
+  padding: 25rpx;
+  border-left: 4rpx solid #ff6b35;
+}
+
+.tips-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #ff6b35;
+  margin-bottom: 15rpx;
+}
+
+.tips-item {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+  line-height: 1.5;
+}
+
+.points-footer {
+  padding: 25rpx 30rpx 35rpx;
+  display: flex;
+  gap: 20rpx;
+  background: #f8f9fa;
+  border-top: 1rpx solid #e9ecef;
+}
+
+.points-btn {
+  flex: 1;
+  height: 80rpx;
+  border: none;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+}
+
+.cancel-btn:active {
+  background: linear-gradient(135deg, #5a6268, #495057);
+  transform: translateY(1rpx);
+}
+
+.upload-btn {
+  background: linear-gradient(135deg, #ff6b35, #ff8a65);
+  color: white;
+}
+
+.upload-btn:active {
+  background: linear-gradient(135deg, #e55a2b, #ff6b35);
+  transform: translateY(1rpx);
+}
+
+/* 积分不足弹窗的关闭按钮 */
+.points-modal .close-btn {
+  position: absolute;
+  top: 20rpx;
+  right: 30rpx;
+  font-size: 40rpx;
+  color: white;
+  cursor: pointer;
+  z-index: 100040;
+  width: 50rpx;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.points-modal .close-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.9);
+}
+
 .wheel-loading-hint .hint-text {
   color: #999;
   font-size: 26rpx;

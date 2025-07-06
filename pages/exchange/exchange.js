@@ -67,7 +67,7 @@ Page({
     
     // 设置兑换页面更新回调（用于接收商家管理的数据更新通知）
     const app = getApp()
-    app.globalData.setExchangeUpdateCallback(() => {
+    app.setExchangeUpdateCallback(() => {
       console.log('📢 收到商家管理数据更新通知，刷新商品列表')
       this.refreshProductsFromMerchant()
     })
@@ -90,7 +90,7 @@ Page({
     
     // 清理兑换页面更新回调
     const app = getApp()
-    app.globalData.clearExchangeUpdateCallback()
+    app.clearExchangeUpdateCallback()
   },
 
   onPullDownRefresh() {

@@ -411,7 +411,7 @@ const authAPI = {
    */
   verifyToken() {
     return request({
-      url: '/auth/verify',
+      url: '/auth/verify-token',
       method: 'GET',
       needAuth: true
     })
@@ -602,33 +602,151 @@ const uploadAPI = {
   // 上传文件
   upload(filePath, userAmount) {
     return new Promise((resolve, reject) => {
+      // 🔧 修复：参数验证和处理
+      if (!filePath) {
+        const error = { code: 1001, msg: '文件路径不能为空' }
+        console.error('❌ 上传参数错误:', error)
+        reject(error)
+        return
+      }
+      
+      // 🔧 修复：确保金额参数有效
+      const validAmount = userAmount || 1.0
+      console.log('📤 上传API调用参数:', {
+        filePath: filePath,
+        原始金额: userAmount,
+        处理后金额: validAmount,
+        金额类型: typeof validAmount,
+        转为字符串: validAmount.toString(),
+        baseUrl: app.globalData.baseUrl,
+        hasToken: !!app.globalData.accessToken
+      })
+      
+      // 🔧 修复：检查必需的全局配置
+      if (!app.globalData.baseUrl) {
+        const error = { code: 1004, msg: '系统配置错误：API地址未设置' }
+        console.error('❌ 系统配置错误:', error)
+        wx.showModal({
+          title: '🚨 系统配置错误',
+          content: 'API地址未设置，请检查环境配置！',
+          showCancel: false
+        })
+        reject(error)
+        return
+      }
+      
+      if (!app.globalData.accessToken) {
+        const error = { code: 1005, msg: '用户未登录，请先登录' }
+        console.error('❌ 认证错误:', error)
+        wx.showModal({
+          title: '🚨 认证错误',
+          content: '用户未登录，请先登录！',
+          showCancel: false
+        })
+        reject(error)
+        return
+      }
+      
+      const header = {
+        'Authorization': `Bearer ${app.globalData.accessToken}`
+      }
+      
+      // 🔧 修复：构建完整的上传URL
+      const uploadUrl = `${app.globalData.baseUrl}/photo/upload`
+      console.log('📤 上传URL:', uploadUrl)
+      
       wx.uploadFile({
-        url: app.globalData.baseUrl + '/upload',
-        filePath,
-        name: 'file',
+        url: uploadUrl,
+        filePath: filePath,
+        name: 'photo',
+        header: header,
         formData: {
-          user_amount: userAmount.toString(),
-          access_token: app.globalData.accessToken
+          amount: validAmount.toString()
         },
         success(res) {
+          console.log('📤 上传API响应:', res)
+          
+          // 🔧 修复：详细的响应处理
+          if (res.statusCode !== 200) {
+            const networkError = { 
+              code: res.statusCode, 
+              msg: `网络错误：HTTP ${res.statusCode}`,
+              isNetworkError: true
+            }
+            console.error('❌ 网络错误:', networkError)
+            wx.showModal({
+              title: '🚨 网络错误',
+              content: `HTTP状态码：${res.statusCode}\n\n请检查网络连接或联系技术支持！`,
+              showCancel: false
+            })
+            reject(networkError)
+            return
+          }
+          
           try {
             const data = JSON.parse(res.data)
+            console.log('📤 解析后的响应数据:', data)
+            
             if (data.code === 0) {
               resolve(data)
             } else {
-              reject(data)
+              console.error('❌ 上传API业务错误:', data)
+              // 🔧 修复：业务错误也需要详细提示
+              const businessError = {
+                ...data,
+                isBusinessError: true
+              }
+              reject(businessError)
             }
           } catch (err) {
-            reject({ code: -1, message: '响应解析失败' })
+            console.error('❌ 上传API响应解析失败:', err)
+            console.error('❌ 原始响应数据:', res.data)
+            
+            const parseError = { 
+              code: -1, 
+              msg: '响应数据解析失败',
+              originalData: res.data,
+              parseError: err.message
+            }
+            
+            wx.showModal({
+              title: '🚨 数据解析错误',
+              content: `响应数据格式异常！\n\n原始数据：${res.data}\n\n请联系技术支持！`,
+              showCancel: false
+            })
+            
+            reject(parseError)
           }
         },
         fail(err) {
+          console.error('❌ 上传API网络错误:', err)
+          
+          // 🔧 修复：区分不同类型的网络错误
+          let errorMessage = '上传失败，请重试'
+          
+          if (err.errMsg) {
+            if (err.errMsg.includes('timeout')) {
+              errorMessage = '网络超时，请检查网络连接'
+            } else if (err.errMsg.includes('fail')) {
+              errorMessage = '网络连接失败，请稍后重试'
+            } else if (err.errMsg.includes('abort')) {
+              errorMessage = '上传被中断'
+            }
+          }
+          
           wx.showModal({
-            title: '🚨 后端服务异常',
-            content: '无法上传文件！请检查后端API服务状态。',
+            title: '🚨 上传失败',
+            content: `${errorMessage}\n\n错误详情：${err.errMsg || '未知错误'}\n\n上传地址：${uploadUrl}\n\n请检查：\n1. 网络连接\n2. 服务器状态\n3. 联系技术支持`,
             showCancel: false
           })
-          reject(err)
+          
+          const networkError = {
+            ...err,
+            isNetworkError: true,
+            uploadUrl: uploadUrl
+          }
+          
+          reject(networkError)
         }
       })
     })
@@ -637,9 +755,9 @@ const uploadAPI = {
   // 获取上传记录
   getRecords(page = 1, pageSize = 20, status = 'all') {
     return request({
-      url: '/upload/records',
+      url: '/photo/history',
       method: 'GET',
-      data: { page, page_size: pageSize, status },
+      data: { page, limit: pageSize, status },
       needAuth: true
     })
   },
@@ -675,7 +793,7 @@ const uploadAPI = {
   // 🔧 修复：添加缺失的getStatistics方法
   getStatistics() {
     return request({
-      url: '/upload/statistics',
+      url: '/photo/statistics',
       method: 'GET',
       needAuth: true
     }).catch(error => {
@@ -684,7 +802,7 @@ const uploadAPI = {
       // 🔴 显示后端服务异常提示
       wx.showModal({
         title: '🚨 后端服务异常',
-        content: `无法获取上传统计数据！\n\n🔗 API端点：${getApp().globalData.baseUrl}/upload/statistics\n\n请检查后端API服务状态！`,
+        content: `无法获取上传统计数据！\n\n🔗 API端点：${getApp().globalData.baseUrl}/photo/statistics\n\n请检查后端API服务状态！`,
         showCancel: false,
         confirmText: '知道了',
         confirmColor: '#ff4444'

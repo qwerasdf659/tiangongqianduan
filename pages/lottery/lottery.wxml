@@ -104,6 +104,41 @@
     </view>
   </view>
 
+  <!-- 积分不足弹窗 -->
+  <view class="points-modal" wx:if="{{showPointsModal}}">
+    <view class="modal-mask" bindtap="onClosePointsModal"></view>
+    <view class="modal-content">
+      <view class="points-header">
+        <text class="points-title">💰 积分不足</text>
+        <view class="close-btn" bindtap="onClosePointsModal">×</view>
+      </view>
+      
+      <view class="points-content">
+        <view class="points-info">
+          <text class="points-text">{{pointsModalData.drawType}}需要 {{pointsModalData.needPoints}} 积分</text>
+          <text class="points-text">当前积分：{{pointsModalData.currentPoints}}</text>
+          <text class="points-text">还需要：{{pointsModalData.needPoints - pointsModalData.currentPoints}} 积分</text>
+        </view>
+        
+        <view class="points-tips">
+          <text class="tips-title">💡 获取积分方式：</text>
+          <text class="tips-item">• 拍照上传废品</text>
+          <text class="tips-item">• 签到获得积分</text>
+          <text class="tips-item">• 邀请好友获得积分</text>
+        </view>
+      </view>
+
+      <view class="points-footer">
+        <button class="points-btn cancel-btn" bindtap="onClosePointsModal">
+          稍后再试
+        </button>
+        <button class="points-btn upload-btn" bindtap="onGoUpload">
+          去上传
+        </button>
+      </view>
+    </view>
+  </view>
+
   <!-- 抽奖结果弹窗 -->
   <view class="result-modal" wx:if="{{showResult}}">
     <view class="modal-mask" bindtap="onCloseResult"></view>

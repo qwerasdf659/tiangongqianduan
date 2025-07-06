@@ -73,6 +73,14 @@ Page({
     showResult: false,
     resultData: null,
     
+    // 积分不足弹窗
+    showPointsModal: false,
+    pointsModalData: {
+      drawType: '',
+      needPoints: 0,
+      currentPoints: 0
+    },
+    
     // 统计信息
     todayDrawCount: 0,
     
@@ -1113,22 +1121,8 @@ Page({
       if (currentPoints < needPoints) {
         console.log(`❌ 积分不足: 需要${needPoints}, 当前${currentPoints}`)
         
-        wx.showModal({
-          title: '💰 积分不足',
-          content: `${drawType}需要 ${needPoints} 积分\n当前积分: ${currentPoints}\n还需要: ${needPoints - currentPoints} 积分\n\n💡 获取积分方式：\n• 拍照上传废品\n• 签到获得积分\n• 邀请好友获得积分`,
-          showCancel: true,
-          cancelText: '稍后再试',
-          confirmText: '去上传',
-          confirmColor: '#ff6b35',
-          success: (res) => {
-            if (res.confirm) {
-              // 跳转到拍照上传页面
-              wx.navigateTo({
-                url: '/pages/camera/camera'
-              })
-            }
-          }
-        })
+        // 🔧 显示自定义积分不足弹窗（带×关闭按钮）
+        this.showPointsInsufficientModal(drawType, needPoints, currentPoints)
         return
       }
       
@@ -2035,22 +2029,8 @@ Page({
       console.log(`❌ ${drawType}积分不足，立即显示弹窗`)
       console.log(`详细比较: ${totalPoints} < ${needPoints} = ${totalPoints < needPoints}`)
       
-      wx.showModal({
-        title: '💰 积分不足',
-        content: `${drawType}需要 ${needPoints} 积分\n当前积分: ${totalPoints}\n还需要: ${needPoints - totalPoints} 积分\n\n💡 获取积分方式：\n• 拍照上传废品\n• 签到获得积分\n• 邀请好友获得积分`,
-        showCancel: true,
-        cancelText: '稍后再试',
-        confirmText: '去上传',
-        confirmColor: '#ff6b35',
-        success: (res) => {
-          if (res.confirm) {
-            // 跳转到拍照上传页面
-            wx.navigateTo({
-              url: '/pages/camera/camera'
-            })
-          }
-        }
-      })
+      // 🔧 显示自定义积分不足弹窗（带×关闭按钮）
+      this.showPointsInsufficientModal(drawType, needPoints, totalPoints)
       return
     }
     
@@ -2371,4 +2351,64 @@ Page({
       }
     })
   },
+
+  /**
+   * 🔧 显示积分不足弹窗
+   * @param {string} drawType - 抽奖类型
+   * @param {number} needPoints - 需要的积分
+   * @param {number} currentPoints - 当前积分
+   */
+  showPointsInsufficientModal(drawType, needPoints, currentPoints) {
+    console.log('💰 显示积分不足弹窗:', { drawType, needPoints, currentPoints })
+    
+    this.safeSetData({
+      showPointsModal: true,
+      pointsModalData: {
+        drawType: drawType,
+        needPoints: needPoints,
+        currentPoints: currentPoints
+      }
+    })
+  },
+
+  /**
+   * 🔧 关闭积分不足弹窗
+   */
+  onClosePointsModal() {
+    console.log('✅ 关闭积分不足弹窗')
+    this.safeSetData({
+      showPointsModal: false,
+      pointsModalData: {
+        drawType: '',
+        needPoints: 0,
+        currentPoints: 0
+      }
+    })
+  },
+
+  /**
+   * 🔧 点击去上传按钮
+   */
+  onGoUpload() {
+    console.log('📸 点击去上传按钮')
+    
+    // 关闭弹窗
+    this.onClosePointsModal()
+    
+    // 跳转到拍照上传页面
+    wx.navigateTo({
+      url: '/pages/camera/camera',
+      success: () => {
+        console.log('✅ 跳转到拍照上传页面成功')
+      },
+      fail: (error) => {
+        console.error('❌ 跳转到拍照上传页面失败:', error)
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'error',
+          duration: 2000
+        })
+      }
+    })
+  }
 }) 

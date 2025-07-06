@@ -84,6 +84,10 @@
         <text class="info-text">上传小票后由商家人工审核</text>
       </view>
       <view class="info-item">
+        <text class="info-icon">💰</text>
+        <text class="info-text">商家确认实际消费金额</text>
+      </view>
+      <view class="info-item">
         <text class="info-icon">🎯</text>
         <text class="info-text">消费1元 = 10积分</text>
       </view>
@@ -164,7 +168,7 @@
     </view>
     <view class="notice-content">
       <view class="notice-item">• 请确保小票图片清晰可见，包含完整的消费信息</view>
-      <view class="notice-item">• 商家将人工审核确认消费金额</view>
+      <view class="notice-item">• 商家将根据小票内容确认实际消费金额</view>
       <view class="notice-item">• 审核通过后积分将自动发放到您的账户</view>
       <view class="notice-item">• 如有问题请联系客服处理</view>
       <view class="notice-item">• 同一张小票不可重复上传</view>
