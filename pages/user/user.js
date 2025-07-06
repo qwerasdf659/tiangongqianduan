@@ -43,12 +43,8 @@ Page({
     
     // 积分记录
     pointsRecords: [],
-    showPointsDetail: false,
     
-    // 🔧 修复：添加积分筛选和趋势数据
-    pointsFilter: 'all',
-    filteredPointsRecords: [],
-    hasMoreRecords: false,
+    // 积分趋势数据
     todayEarned: 0,
     todayConsumed: 0,
     
@@ -157,7 +153,7 @@ Page({
     console.log('🔄 开始初始化用户页面...')
     
     // 🔧 修复：添加所有必要的初始化方法调用
-    // 1. 初始化基础UI数据
+    // 1. 初始化基础UI数据（这些不会失败）
     this.initMenuItems()
     this.initAchievements()
     this.calculateTodayTrend()
@@ -171,8 +167,14 @@ Page({
       })
     }
     
-    // 3. 加载完整用户数据
-    this.loadUserData()
+    // 3. 加载完整用户数据（添加错误处理）
+    this.loadUserData().catch((error) => {
+      console.error('❌ 页面初始化失败:', error)
+      
+      // 🔧 修复：即使数据加载失败，也要确保页面能正常使用
+      // 页面已经有了基础UI（菜单、成就等），用户可以正常使用
+      console.log('✅ 页面基础功能已可用，数据加载失败不影响核心功能')
+    })
     
     console.log('✅ 用户页面初始化完成')
   },
@@ -186,19 +188,73 @@ Page({
   loadUserData() {
     this.setData({ loading: true })
     
-    // 🔧 修复：确保返回Promise对象
-    return Promise.all([
-      this.refreshUserInfo(),
-      this.loadUserStatistics(),
-      this.loadRecentPointsRecords()
+    // 🔧 修复：添加超时机制，防止loading一直为true
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('数据加载超时'))
+      }, 10000) // 10秒超时
+    })
+    
+    // 🔧 修复：确保返回Promise对象，添加超时保护
+    return Promise.race([
+      Promise.all([
+        this.refreshUserInfo(),
+        this.loadUserStatistics(),
+        this.loadRecentPointsRecords()
+      ]),
+      timeoutPromise
     ]).then(() => {
       console.log('✅ 用户数据加载完成')
       this.setData({ loading: false })
     }).catch((error) => {
       console.error('❌ 用户数据加载失败:', error)
+      
+      // 🔧 修复：确保loading状态被正确设置为false
       this.setData({ loading: false })
-      // 🔧 修复：重新抛出错误，保持Promise链
-      throw error
+      
+      // 🔧 修复：显示友好的错误提示
+      if (error.message === '数据加载超时') {
+        wx.showModal({
+          title: '⏱️ 加载超时',
+          content: '数据加载时间过长，已自动取消。\n\n页面将显示默认状态，您可以：\n1. 点击功能菜单正常使用\n2. 下拉刷新重新加载数据\n3. 检查网络连接',
+          showCancel: true,
+          cancelText: '稍后重试',
+          confirmText: '继续使用',
+          success: (res) => {
+            if (res.cancel) {
+              // 用户选择重试
+              setTimeout(() => {
+                this.refreshUserData()
+              }, 1000)
+            }
+          }
+        })
+      }
+      
+      // 🔧 修复：设置安全的默认值，确保页面能正常使用
+      this.safeSetData({
+        userInfo: {
+          user_id: 'loading_failed',
+          phone: '数据加载失败',
+          nickname: '点击重试',
+          level: 'VIP1',
+          avatar: '/images/default-avatar.png'
+        },
+        totalPoints: 0,
+        statistics: {
+          totalLottery: 0,
+          totalExchange: 0,
+          totalUpload: 0,
+          thisMonthPoints: 0,
+          lotteryTrend: '→',
+          exchangeTrend: '→',
+          uploadTrend: '→',
+          pointsTrend: '→'
+        },
+        todayEarned: 0,
+        todayConsumed: 0,
+        pointsRecords: []
+      })
     })
   },
 
@@ -380,9 +436,6 @@ Page({
           hasMoreRecords: res.data.hasMore || false
         })
         
-        // 🔧 修复：立即应用筛选逻辑
-        this.filterPointsRecords()
-        
         // 🔧 修复：计算今日趋势
         this.calculateTodayTrend()
         
@@ -402,14 +455,15 @@ Page({
         confirmColor: '#ff4444'
       })
       
-      // 🔧 修复：设置安全的默认值
+      // 🔧 修复：设置安全的默认值并立即筛选
       this.setData({
         pointsRecords: [],
-        filteredPointsRecords: [],
         hasMoreRecords: false,
         todayEarned: 0,
         todayConsumed: 0
       })
+      
+      // 🔧 设置安全的默认值
     })
   },
 
@@ -419,7 +473,15 @@ Page({
   refreshUserData() {
     this.setData({ refreshing: true })
     
-    return this.loadUserData().finally(() => {
+    return this.loadUserData().catch((error) => {
+      console.error('❌ 刷新用户数据失败:', error)
+      // 🔧 修复：刷新失败不影响页面正常使用
+      wx.showToast({
+        title: '刷新失败，请检查网络',
+        icon: 'none',
+        duration: 2000
+      })
+    }).finally(() => {
       this.setData({ refreshing: false })
     })
   },
@@ -469,6 +531,7 @@ Page({
         '/pages/user/user',
         '/pages/merchant/merchant',
         '/pages/auth/auth',
+        '/pages/points-detail/points-detail',
         '/pages/records/lottery-records',
         '/pages/records/exchange-records',
         '/pages/records/upload-records'
@@ -501,11 +564,7 @@ Page({
   /**
    * 切换积分明细显示
    */
-  togglePointsDetail() {
-    this.setData({
-      showPointsDetail: !this.data.showPointsDetail
-    })
-  },
+
 
   /**
    * 🔴 头像点击事件 - 符合最新接口对接规范
@@ -616,45 +675,26 @@ Page({
   },
 
   /**
-   * 积分余额点击
+   * 积分余额点击 - 跳转到积分明细页面
    */
   onPointsTap() {
-    this.togglePointsDetail()
-  },
-
-  /**
-   * 积分明细筛选切换
-   */
-  onPointsFilterChange(e) {
-    const filter = e.currentTarget.dataset.filter
-    this.setData({
-      pointsFilter: filter
-    })
-    this.filterPointsRecords()
-  },
-
-  /**
-   * 筛选积分记录
-   */
-  filterPointsRecords() {
-    let filtered = [...this.data.pointsRecords]
-    
-    switch (this.data.pointsFilter) {
-      case 'earn':
-        filtered = filtered.filter(record => record.points > 0)
-        break
-      case 'consume':
-        filtered = filtered.filter(record => record.points < 0)
-        break
-      default:
-        // 'all' - 不过滤
-        break
-    }
-    
-    this.setData({
-      filteredPointsRecords: filtered
+    console.log('💰 跳转到积分明细页面')
+    wx.navigateTo({
+      url: '/pages/points-detail/points-detail',
+      success: () => {
+        console.log('✅ 积分明细页面跳转成功')
+      },
+      fail: (error) => {
+        console.error('❌ 积分明细页面跳转失败:', error)
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
+        })
+      }
     })
   },
+
+
 
   /**
    * 🔴 加载更多积分记录 - 符合最新接口对接规范
@@ -816,17 +856,24 @@ Page({
    * 刷新统计数据
    */
   onRefreshStats() {
+    console.log('🔄 刷新统计数据...')
     wx.showLoading({ title: '刷新中...' })
     
-    // 模拟数据刷新
-    setTimeout(() => {
-      this.loadStatistics()
+    // 🔧 修复：调用正确的方法名 loadUserStatistics
+    this.loadUserStatistics().then(() => {
       wx.hideLoading()
       wx.showToast({
         title: '刷新完成',
         icon: 'success'
       })
-    }, 1000)
+    }).catch((error) => {
+      console.error('❌ 刷新统计数据失败:', error)
+      wx.hideLoading()
+      wx.showToast({
+        title: '刷新失败',
+        icon: 'none'
+      })
+    })
   },
 
   /**
@@ -994,7 +1041,7 @@ Page({
         name: '积分明细', 
         description: '详细的积分收支记录',
         icon: '💰', 
-        action: 'togglePointsDetail',
+        path: '/pages/points-detail/points-detail',
         color: '#FFC107'
       },
       { 
@@ -1159,6 +1206,58 @@ Page({
     this.setData(cleanedData)
   },
 
+
+
+  /**
+   * 🔧 紧急修复方法：立即解除loading状态
+   * 用于用户紧急使用功能菜单
+   */
+  emergencyFixLoading() {
+    console.log('🚨 用户触发紧急修复loading状态')
+    
+    // 立即设置loading为false
+    this.setData({ loading: false })
+    
+    // 设置基础数据，确保页面能正常显示
+    this.safeSetData({
+      userInfo: {
+        user_id: 'emergency_user',
+        phone: '紧急修复模式',
+        nickname: '点击重新加载',
+        level: 'VIP1',
+        avatar: '/images/default-avatar.png'
+      },
+      totalPoints: 0,
+      statistics: {
+        totalLottery: 0,
+        totalExchange: 0,
+        totalUpload: 0,
+        thisMonthPoints: 0,
+        lotteryTrend: '→',
+        exchangeTrend: '→',
+        uploadTrend: '→',
+        pointsTrend: '→'
+      },
+      todayEarned: 0,
+      todayConsumed: 0,
+      pointsRecords: []
+    })
+    
+    wx.showModal({
+      title: '✅ 功能菜单已可用',
+      content: '页面已进入紧急修复模式！\n\n✅ 所有功能菜单现在都可以正常点击使用\n✅ 抽奖记录、兑换记录、上传记录、积分明细都可以访问\n\n💡 稍后可以下拉刷新重新加载完整数据',
+      showCancel: true,
+      cancelText: '重新加载',
+      confirmText: '开始使用',
+      success: (res) => {
+        if (res.cancel) {
+          // 用户选择重新加载
+          this.refreshUserData()
+        }
+      }
+    })
+  },
+
   /**
    * 🔧 测试方法：验证页面修复效果
    * 用于开发测试，确保页面能正常显示
@@ -1208,9 +1307,6 @@ Page({
         }
       ]
     })
-    
-    // 应用筛选
-    this.filterPointsRecords()
     
     // 更新成就
     this.updateAchievements()

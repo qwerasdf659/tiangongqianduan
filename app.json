@@ -7,6 +7,7 @@
     "pages/user/user",
     "pages/merchant/merchant",
     "pages/auth/auth",
+    "pages/points-detail/points-detail",
     "pages/records/lottery-records",
     "pages/records/exchange-records",
     "pages/records/upload-records"

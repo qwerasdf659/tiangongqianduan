@@ -249,6 +249,34 @@ Page({
   },
 
   /**
+   * 获取状态文本
+   */
+  getStatusText(status) {
+    const statusMap = {
+      'pending': '待开奖',
+      'completed': '已开奖',
+      'expired': '已过期',
+      'processing': '处理中',
+      'failed': '失败'
+    }
+    return statusMap[status] || '未知状态'
+  },
+
+  /**
+   * 获取状态样式类
+   */
+  getStatusClass(status) {
+    const classMap = {
+      'pending': 'status-pending',
+      'completed': 'status-completed',
+      'expired': 'status-expired',
+      'processing': 'status-processing',
+      'failed': 'status-failed'
+    }
+    return classMap[status] || 'status-unknown'
+  },
+
+  /**
    * 获取抽奖类型文本
    */
   getDrawTypeText(type) {

@@ -3,7 +3,7 @@
   <!-- 用户信息卡片 -->
   <view class="user-card">
     <view class="user-avatar" bindtap="onAvatarTap">
-      <image class="avatar-image" src="https://via.placeholder.com/120x120/FF6B35/ffffff?text=👤" mode="aspectFill"/>
+      <image class="avatar-image" src="{{userInfo.avatar || '/images/default-avatar.png'}}" mode="aspectFill"/>
       <view class="avatar-edit">
         <text class="edit-icon">📷</text>
       </view>
@@ -26,7 +26,10 @@
   <view class="points-card" bindtap="onPointsTap">
     <view class="points-header">
       <text class="points-title">我的积分</text>
-      <text class="points-tips">点击查看明细 👇</text>
+      <view class="header-tips">
+        <text class="points-tips">点击查看明细 👇</text>
+        <button class="test-points-card-btn" bindtap="testPointsDetail" size="mini" catchtap="true">🧪</button>
+      </view>
     </view>
     <view class="points-amount">
       <text class="points-number">{{totalPoints}}</text>
@@ -41,65 +44,12 @@
       </view>
       <view class="trend-item">
         <text class="trend-label">今日消费</text>
-        <text class="trend-value consumed">-{{todayConsumed || 0}}</text>
+        <text class="trend-value consumed">{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 积分明细 -->
-  <view class="points-detail" wx:if="{{showPointsDetail}}">
-    <view class="detail-header">
-      <text class="detail-title">💰 积分明细</text>
-      <text class="close-btn" bindtap="togglePointsDetail">×</text>
-    </view>
-    
-    <!-- 筛选选项 -->
-    <view class="detail-filters">
-      <button 
-        class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}"
-        bindtap="onPointsFilterChange"
-        data-filter="all"
-      >
-        全部
-      </button>
-      <button 
-        class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}"
-        bindtap="onPointsFilterChange"
-        data-filter="earn"
-      >
-        获得
-      </button>
-      <button 
-        class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}"
-        bindtap="onPointsFilterChange"
-        data-filter="consume"
-      >
-        消费
-      </button>
-    </view>
-    
-    <view class="detail-list">
-      <view 
-        class="detail-item"
-        wx:for="{{filteredPointsRecords}}" 
-        wx:key="id"
-      >
-        <view class="item-info">
-          <text class="item-desc">{{item.description}}</text>
-          <text class="item-time">{{item.created_at}}</text>
-        </view>
-        <view class="item-points {{item.type === 'earn' ? 'earn' : 'consume'}}">
-          <text class="points-change">{{item.points > 0 ? '+' : ''}}{{item.points}}</text>
-          <text class="points-balance">余额:{{item.balance_after}}</text>
-        </view>
-      </view>
-      
-      <!-- 加载更多 -->
-      <view class="load-more" wx:if="{{hasMoreRecords}}" bindtap="onLoadMoreRecords">
-        <text>加载更多记录</text>
-      </view>
-    </view>
-  </view>
+  
 
   <!-- 成就系统 -->
   <view class="achievements-section" wx:if="{{!loading}}">
@@ -193,11 +143,17 @@
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
       
+      <!-- 🔧 紧急修复按钮：立即解除loading状态 -->
+      <button class="emergency-fix-btn" bindtap="emergencyFixLoading">
+        🚨 立即使用菜单
+      </button>
+      <text class="emergency-tips">如果加载时间过长，点击此按钮立即使用功能菜单</text>
+      
       <!-- 🔧 测试按钮：用于验证页面修复效果 -->
       <button class="test-display-btn" bindtap="testPageDisplay">
         🧪 测试页面显示
       </button>
-      <text class="test-tips">如果页面一直加载，点击测试按钮验证修复效果</text>
+      <text class="test-tips">开发测试用，验证页面修复效果</text>
     </view>
   </view>
 

@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-# 🔐 天工项目安全与质量标准规范
+# 🔐 天工项目安全与质量标准规范 - 核心安全规则集
 
 ## 🚨 核心安全原则 - 违反则立即停止开发
 
@@ -45,13 +45,11 @@ setTimeout(() => {
 // ✅ 正确：真实API调用 + 完整错误处理
 api.getData().then(result => {
   if (result.code === 0) {
-    // 使用后端数据，添加详细注释说明数据用途
     this.setData({ data: result.data })
   } else {
     throw new Error('⚠️ 后端服务异常：' + result.msg)
   }
 }).catch(error => {
-  // 增强错误处理：提供明确的错误信息和解决建议
   wx.showModal({
     title: '🚨 后端服务问题',
     content: `无法获取数据！\n\n可能原因：\n1. 后端API服务未启动\n2. 接口异常\n3. 数据库连接问题\n\n请立即检查后端服务状态！`
@@ -69,14 +67,9 @@ const { getTechnicalConfig } = require('./config')
 this.getTechnicalConfig()  // TypeError: this.getTechnicalConfig is not a function
 
 // ✅ 正确：直接调用导入函数，添加详细注释
-// 获取技术配置信息，用于初始化系统参数
-const config = getTechnicalConfig()
-
-// 验证用户输入表单数据的完整性和格式
-const isValid = validateForm(formData)
-
-// 格式化时间戳为可读的日期格式
-const displayDate = formatDate(timestamp)
+const config = getTechnicalConfig()  // 获取技术配置信息
+const isValid = validateForm(formData)  // 验证用户输入表单数据
+const displayDate = formatDate(timestamp)  // 格式化时间戳
 ```
 
 #### 模块导入一致性检查
@@ -92,7 +85,6 @@ if (!app.globalData) {
 }
 
 if (!app.globalData.userInfo) {
-  // 跳转到登录页面或显示登录提示
   wx.navigateTo({ url: '/pages/auth/auth' })
   return
 }
@@ -116,7 +108,6 @@ const avatarUrl = user?.profile?.avatar?.url || '/images/default-avatar.png'
 const userInfo = app.globalData.userInfo
 if (userInfo && userInfo.profile) {
   const avatar = userInfo.profile.avatar || '/images/default-avatar.png'
-  // 安全使用用户头像数据
 }
 ```
 
@@ -145,10 +136,10 @@ if (compatibility.createLinearGradient && typeof ctx.createLinearGradient === 'f
     ctx.fillStyle = gradient
   } catch (error) {
     console.warn('线性渐变不支持，使用降级方案:', error)
-    ctx.fillStyle = '#ff0000'  // 降级为纯色
+    ctx.fillStyle = '#ff0000'
   }
 } else {
-  ctx.fillStyle = '#ff0000'  // 直接使用降级方案
+  ctx.fillStyle = '#ff0000'
 }
 ```
 
@@ -157,14 +148,11 @@ if (compatibility.createLinearGradient && typeof ctx.createLinearGradient === 'f
 // ✅ 根据兼容性检查结果智能选择策略
 const drawWithCompatibility = (ctx, compatibility) => {
   if (compatibility.createRadialGradient && compatibility.quadraticCurveTo) {
-    // 高级绘制：渐变 + 曲线，视觉美感 95%+
-    drawAdvancedStyle(ctx)
+    drawAdvancedStyle(ctx)  // 高级绘制：渐变 + 曲线，视觉美感 95%+
   } else if (compatibility.createLinearGradient) {
-    // 中级绘制：线性渐变，视觉美感 80%+
-    drawMediumStyle(ctx)
+    drawMediumStyle(ctx)    // 中级绘制：线性渐变，视觉美感 80%+
   } else {
-    // 基础绘制：纯色填充，视觉美感 60%+，确保100%兼容性
-    drawBasicStyle(ctx)
+    drawBasicStyle(ctx)     // 基础绘制：纯色填充，视觉美感 60%+，确保100%兼容性
   }
 }
 ```
@@ -210,7 +198,6 @@ const handleError = (error, context) => {
   console.error(`🚨 ${context}发生错误:`, error)
   console.warn(`💡 建议解决方案: ${suggestion}`)
   
-  // 显示用户友好的错误提示
   wx.showToast({
     title: '功能暂时不可用',
     icon: 'none',
@@ -232,7 +219,6 @@ const handleError = (error, context) => {
 // 获取抽奖配置信息，包含奖品列表和消耗积分
 lotteryAPI.getConfig().then(result => {
   if (result.code === 0) {
-    // 设置抽奖奖品数据到页面状态中
     this.setData({ 
       prizes: result.data.prizes,        // 奖品列表
       costPoints: result.data.cost_points // 抽奖消耗积分
@@ -248,81 +234,404 @@ lotteryAPI.getConfig().then(result => {
 })
 ```
 
-#### 统一测试数据管理配置
-```javascript
-// ✅ 统一测试数据管理 - 开发阶段使用
-const initTestData = () => {
-  // 与后端API数据结构保持一致的测试数据
-  // 注意：仅用于结构参考，不能替代真实API调用
-  return {
-    prizes: [],           // 结构占位，实际数据来自后端
-    costPoints: 0,        // 结构占位，实际数据来自后端
-    userPoints: 0         // 结构占位，实际数据来自后端
-  }
-}
+### 7. 🔍 Mock数据安全检测与防护
 
-// ✅ 测试数据同步机制：修改初始化脚本时同步更新测试脚本
-const testConfig = {
-  dataStructure: 'consistent_with_backend',
-  syncMechanism: 'auto_update',
-  errorHandling: 'comprehensive'
+#### Mock数据检测器 - 完善版
+```javascript
+// 🔴 Mock数据检测器
+class MockDataDetector {
+    constructor() {
+        this.mockKeywords = [
+            'mock', 'Mock', 'MOCK', 'fake', 'Fake', 'FAKE',
+            'test', 'Test', 'TEST', 'demo', 'Demo', 'DEMO',
+            'sample', 'Sample', 'SAMPLE', 'dummy', 'Dummy', 'DUMMY',
+            'mockData', 'mockAPI', 'mockResponse',
+            'fakeData', 'fakeAPI', 'fakeResponse',
+            'testData', 'testAPI', 'testResponse',
+            'shouldUseMock', 'useMockData', 'isMockMode'
+        ]
+        
+        this.mockPatterns = [
+            /const\s+mock\w+\s*=/gi,
+            /function\s+mock\w+/gi,
+            /if\s*\(\s*\w*mock\w*/gi,
+            /setTimeout\s*\(\s*\(\)\s*=>\s*{[\s\S]*?callback/gi,
+            /const\s+\w+\s*=\s*\[[\s\S]*?\]/gi
+        ]
+    }
+    
+    // 🔴 全面检测Mock数据
+    detectMockData(fileContent, filePath) {
+        const violations = []
+        
+        // 检测关键词
+        for (const keyword of this.mockKeywords) {
+            if (fileContent.includes(keyword)) {
+                const lines = this.findLinesWithKeyword(fileContent, keyword)
+                violations.push({
+                    type: 'MOCK_KEYWORD',
+                    keyword: keyword,
+                    file: filePath,
+                    lines: lines,
+                    severity: 'HIGH'
+                })
+            }
+        }
+        
+        // 检测模式
+        for (const pattern of this.mockPatterns) {
+            const matches = fileContent.match(pattern)
+            if (matches) {
+                violations.push({
+                    type: 'MOCK_PATTERN',
+                    pattern: pattern.toString(),
+                    matches: matches,
+                    file: filePath,
+                    severity: 'CRITICAL'
+                })
+            }
+        }
+        
+        return violations
+    }
+    
+    // 🔴 生成修复建议
+    generateFixSuggestions(violations) {
+        const suggestions = []
+        
+        for (const violation of violations) {
+            switch (violation.type) {
+                case 'MOCK_KEYWORD':
+                    suggestions.push({
+                        file: violation.file,
+                        lines: violation.lines,
+                        suggestion: `移除Mock关键词"${violation.keyword}"，使用真实API调用`,
+                        example: 'api.getData().then(result => { /* 使用真实数据 */ })'
+                    })
+                    break
+                    
+                case 'MOCK_PATTERN':
+                    suggestions.push({
+                        file: violation.file,
+                        suggestion: '移除Mock函数/条件判断，直接调用后端API',
+                        example: '直接使用：userAPI.login(params) 替代 mockLogin(params)'
+                    })
+                    break
+            }
+        }
+        
+        return suggestions
+    }
+    
+    findLinesWithKeyword(content, keyword) {
+        const lines = content.split('\n')
+        const matchingLines = []
+        
+        lines.forEach((line, index) => {
+            if (line.includes(keyword)) {
+                matchingLines.push(index + 1)
+            }
+        })
+        
+        return matchingLines
+    }
 }
 ```
 
-### 7. 🔍 违规代码自动检测规则
+#### 生产环境Mock数据零容忍
+```javascript
+// ✅ 建立Mock数据检测机制
+const mockDetector = new MockDataDetector()
+
+// 🔴 批量检测项目中的Mock数据
+const scanProjectForMockData = async (projectPath) => {
+    const jsFiles = await getAllJSFiles(projectPath)
+    const results = []
+    
+    for (const filePath of jsFiles) {
+        const content = await fs.readFile(filePath, 'utf8')
+        const detection = mockDetector.detectMockData(content, filePath)
+        
+        if (detection.length > 0) {
+            results.push({ filePath, violations: detection })
+        }
+    }
+    
+    return {
+        totalFiles: jsFiles.length,
+        violationFiles: results.length,
+        totalViolations: results.reduce((sum, r) => sum + r.violations.length, 0),
+        results: results
+    }
+}
+```
+
+### 8. 🔐 认证与权限安全强化
+
+#### Token管理安全标准
+```javascript
+// ✅ JWT Token自动刷新机制
+const tokenManager = {
+    // 检查Token是否即将过期（30秒内）
+    checkTokenExpiry() {
+        const token = app.globalData.accessToken
+        if (!token) return false
+        
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]))
+            const expiryTime = payload.exp * 1000
+            const currentTime = Date.now()
+            
+            return (expiryTime - currentTime) < 30000 // 30秒内过期
+        } catch (error) {
+            console.error('Token解析失败:', error)
+            return true // 解析失败视为过期
+        }
+    },
+    
+    // 自动刷新Token
+    async refreshTokenIfNeeded() {
+        if (this.checkTokenExpiry()) {
+            console.log('🔄 Token即将过期，自动刷新...')
+            try {
+                const result = await authAPI.refresh(app.globalData.refreshToken)
+                if (result.code === 0) {
+                    app.globalData.accessToken = result.data.access_token
+                    app.globalData.refreshToken = result.data.refresh_token
+                    console.log('✅ Token刷新成功')
+                } else {
+                    throw new Error('Token刷新失败')
+                }
+            } catch (error) {
+                console.error('❌ Token刷新失败，需要重新登录:', error)
+                app.logout()
+            }
+        }
+    }
+}
+```
+
+#### 权限验证增强
+```javascript
+// ✅ 每个API调用前验证Token有效性
+const secureAPICall = async (apiFunction, params) => {
+    // 检查并刷新Token
+    await tokenManager.refreshTokenIfNeeded()
+    
+    // 验证用户权限
+    if (!app.globalData.accessToken) {
+        throw new Error('用户未登录')
+    }
+    
+    try {
+        return await apiFunction(params)
+    } catch (error) {
+        if (error.code === 401) {
+            console.log('🔐 认证失败，尝试刷新Token...')
+            await tokenManager.refreshTokenIfNeeded()
+            return await apiFunction(params) // 重试一次
+        }
+        throw error
+    }
+}
+```
+
+### 9. 🛡️ 数据传输与存储安全
+
+#### API通信安全标准
+```javascript
+// ✅ 强制HTTPS传输检查
+const secureRequest = (options) => {
+    const { url } = options
+    
+    // 检查HTTPS
+    if (!url.startsWith('https://') && !url.startsWith('wss://')) {
+        console.warn('⚠️ 检测到非HTTPS传输，存在安全风险')
+        
+        // 生产环境强制HTTPS
+        if (!app.globalData.isDev) {
+            throw new Error('生产环境必须使用HTTPS传输')
+        }
+    }
+    
+    // 添加安全头
+    const secureHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Client-Type': 'miniprogram',
+        'X-Client-Version': app.globalData.version,
+        'X-Request-ID': generateRequestId(),
+        'X-Timestamp': Date.now().toString()
+    }
+    
+    return {
+        ...options,
+        header: { ...secureHeaders, ...options.header }
+    }
+}
+```
+
+#### 本地数据安全存储
+```javascript
+// ✅ 敏感数据加密存储
+const secureStorage = {
+    // 加密存储敏感数据
+    setSecureItem(key, value) {
+        try {
+            const encryptedValue = this.encrypt(JSON.stringify(value))
+            wx.setStorageSync(key, encryptedValue)
+        } catch (error) {
+            console.error('加密存储失败:', error)
+        }
+    },
+    
+    // 解密读取敏感数据
+    getSecureItem(key) {
+        try {
+            const encryptedValue = wx.getStorageSync(key)
+            if (!encryptedValue) return null
+            
+            const decryptedValue = this.decrypt(encryptedValue)
+            return JSON.parse(decryptedValue)
+        } catch (error) {
+            console.error('解密读取失败:', error)
+            return null
+        }
+    },
+    
+    // 简单加密（实际项目中应使用更强的加密算法）
+    encrypt(text) {
+        return btoa(encodeURIComponent(text))
+    },
+    
+    // 简单解密
+    decrypt(encryptedText) {
+        return decodeURIComponent(atob(encryptedText))
+    }
+}
+```
+
+### 10. 🚨 错误状态下数据安全处理
+
+#### 严禁生成模拟数据
+```javascript
+// ✅ 错误降级机制：显示空状态而非虚假数据
+const handleDataLoadError = (error, context) => {
+    console.error(`❌ ${context}数据加载失败:`, error)
+    
+    // 🚨 严禁生成模拟数据
+    // ❌ 错误做法：return { data: mockData }
+    
+    // ✅ 正确做法：明确告知错误来源和类型
+    let errorSource = '未知'
+    let errorType = '数据获取失败'
+    
+    if (error.code >= 1000 && error.code < 2000) {
+        errorSource = '业务逻辑'
+        errorType = '业务规则验证失败'
+    } else if (error.code >= 2000 && error.code < 3000) {
+        errorSource = '后端服务'
+        errorType = '服务器处理异常'
+    } else if (error.code >= 3000) {
+        errorSource = '数据库'
+        errorType = '数据查询失败'
+    } else if (error.name === 'NetworkError') {
+        errorSource = '网络连接'
+        errorType = '网络连接中断'
+    }
+    
+    // 显示明确的错误提示
+    wx.showModal({
+        title: `🚨 ${errorSource}错误`,
+        content: `❌ 错误来源：${errorSource}\n📝 错误类型：${errorType}\n🔗 错误详情：${error.message || '未知错误'}\n\n🚨 严禁生成模拟结果！\n请联系技术人员检查${errorSource}问题。`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+    })
+    
+    // 返回空状态，明确标识数据来源
+    return {
+        data: null,
+        error: true,
+        errorSource: errorSource,
+        errorType: errorType,
+        message: `${errorSource}服务异常，无法获取数据`
+    }
+}
+```
+
+### 11. 🔍 违规代码自动检测规则
 
 #### 必须拒绝的危险代码模式
-```regex
-# 检查方法调用错误
-this\.[a-zA-Z]+Config\(\)
-this\.[a-zA-Z]+Util\(\)
-this\.[a-zA-Z]+API\(\)
-
-# 检查不安全属性访问
-globalData\.[a-zA-Z]+\.[a-zA-Z]+(?!\s*(\|\||&&|\?\.))
-app\.[a-zA-Z]+\.[a-zA-Z]+\.[a-zA-Z]+(?!\s*(\|\||&&|\?\.))
-
-# 检查Canvas API调用缺少兼容性检查
-(createLinearGradient|createRadialGradient|quadraticCurveTo)(?!.*typeof)(?!.*compatibility)
-
-# 检查硬编码数据
-(const|let|var)\s+(PRIZES|PRODUCTS|CONFIG)\s*=\s*\[
-(const|let|var)\s+\w+\s*=\s*\[.*probability.*\]
-
-# 检查Mock标识
-(mock|fake|test|demo)(Data|Request|Api|Function)
-setTimeout\(\s*\(\)\s*=>\s*{.*callback.*mockData.*}
-
-# 检查前端业务逻辑计算
-Math\.random\(\)\s*\*\s*\d+
-user\.(role|type)\s*===\s*['"]
+```javascript
+// 🔴 代码安全检测器
+class CodeSecurityDetector {
+    constructor() {
+        this.dangerousPatterns = [
+            // 方法调用错误
+            /this\.[a-zA-Z]+Config\(\)/g,
+            /this\.[a-zA-Z]+Util\(\)/g,
+            /this\.[a-zA-Z]+API\(\)/g,
+            
+            // 不安全属性访问
+            /globalData\.[a-zA-Z]+\.[a-zA-Z]+(?!\s*(\|\||&&|\?\.))/g,
+            /app\.[a-zA-Z]+\.[a-zA-Z]+\.[a-zA-Z]+(?!\s*(\|\||&&|\?\.))/g,
+            
+            // Canvas API调用缺少兼容性检查
+            /(createLinearGradient|createRadialGradient|quadraticCurveTo)(?!.*typeof)(?!.*compatibility)/g,
+            
+            // 硬编码数据
+            /(const|let|var)\s+(PRIZES|PRODUCTS|CONFIG)\s*=\s*\[/g,
+            /(const|let|var)\s+\w+\s*=\s*\[.*probability.*\]/g,
+            
+            // Mock标识
+            /(mock|fake|test|demo)(Data|Request|Api|Function)/gi,
+            /setTimeout\(\s*\(\)\s*=>\s*{.*callback.*mockData.*}/g,
+            
+            // 前端业务逻辑计算
+            /Math\.random\(\)\s*\*\s*\d+/g,
+            /user\.(role|type)\s*===\s*['"]/g
+        ]
+    }
+    
+    // 检测危险代码模式
+    detectDangerousCode(code) {
+        const violations = []
+        
+        this.dangerousPatterns.forEach((pattern, index) => {
+            const matches = code.match(pattern)
+            if (matches) {
+                violations.push({
+                    patternIndex: index,
+                    pattern: pattern.source,
+                    matches: matches,
+                    severity: this.getSeverity(index)
+                })
+            }
+        })
+        
+        return violations
+    }
+    
+    getSeverity(patternIndex) {
+        if (patternIndex < 6) return 'CRITICAL'
+        if (patternIndex < 10) return 'HIGH'
+        return 'MEDIUM'
+    }
+}
 ```
 
-#### 必须通过的安全代码模式
-- [ ] 导入函数直接调用：`函数名()`，不使用`this.函数名()`
-- [ ] 安全属性访问：`obj?.prop || defaultValue` 或 `obj.prop || defaultValue`
-- [ ] 双重API检查：`if (compatibility.api && typeof ctx.api === 'function')`
-- [ ] 完整错误处理：`try-catch` + 降级方案
-- [ ] 数据存在性验证：调用前检查对象是否存在
-- [ ] 详细代码注释：说明函数用途和参数含义
-- [ ] 所有业务数据来源于后端API
-- [ ] 包含完整的后端异常处理机制
-
-### 8. 🎯 项目运行状态检查机制
+### 12. 🎯 项目运行状态检查机制
 
 #### 完成任务后的项目运行检查
 ```javascript
 // ✅ 完成全部任务后检查项目是否可以正常运行
 const checkProjectHealth = () => {
   const checks = {
-    // 检查核心组件是否正常
-    components: checkComponentsStatus(),
-    // 检查API连接状态
-    apiConnection: checkAPIStatus(),
-    // 检查数据完整性
-    dataIntegrity: checkDataIntegrity(),
-    // 检查兼容性支持
-    compatibility: checkCompatibility()
+    components: checkComponentsStatus(),     // 检查核心组件
+    apiConnection: checkAPIStatus(),        // 检查API连接状态
+    dataIntegrity: checkDataIntegrity(),    // 检查数据完整性
+    compatibility: checkCompatibility()     // 检查兼容性支持
   }
   
   const issues = []
@@ -338,17 +647,13 @@ const checkProjectHealth = () => {
   
   if (issues.length > 0) {
     console.error('🚨 项目运行检查发现问题:', issues)
-    // 如果有问题就要马上修复
-    fixProjectIssues(issues)
+    fixProjectIssues(issues)  // 如果有问题就要马上修复
   } else {
     console.log('✅ 项目运行状态良好')
   }
 }
-```
 
-#### 问题类型分析与解决
-```javascript
-// ✅ 项目出现问题要考虑组件缺失、组件错误、逻辑方案、环境问题等
+// 问题类型分析与解决
 const analyzeAndSolve = (error) => {
   const problemTypes = {
     'Component Missing': {
@@ -376,7 +681,7 @@ const analyzeAndSolve = (error) => {
 }
 ```
 
-### 9. 🧹 代码清理与文件管理
+### 13. 🧹 代码清理与文件管理
 
 #### 自动清理临时文件规则
 ```javascript
@@ -395,1787 +700,484 @@ const cleanupTemporaryFiles = () => {
     console.log(`🧹 清理临时文件: ${pattern}`)
   })
   
-  // 删除无用的重复文件和无用的md文件
   cleanupDuplicateFiles()
   cleanupUnusedMarkdownFiles()
 }
 ```
 
-### 10. 🚀 工具调用效率优化规则 (新增CRITICAL - 防止浪费Claude 4 Sonnet请求)
+## 📚 相关规则文档引用
 
-#### 强制并行工具调用规则
+- **PowerShell控制台稳定性**: 详见 `development-automation-unified.mdc`
+- **工具调用参数验证**: 详见 `1.mdc` - 工具调用参数验证规则
+- **并行工具调用优化**: 详见 `1.mdc` - 并行工具调用强制优化规则
+- **微信小程序项目识别**: 详见 `development-automation-unified.mdc`
+- **信息收集策略**: 详见 `development-automation-unified.mdc`
+
+---
+
+**规则创建时间**: 2025年01月03日  
+**最后更新时间**: 2025年01月03日  
+**更新内容**: 整理合并重复内容，保留核心安全规则，优化Mock数据检测系统  
+**适用范围**: 天工项目所有开发活动  
+**维护状态**: ✅ 已整理 - 重复内容已合并，安全规则完整性已保证
+
+## 🚨 2025年01月03日会话问题分析新增安全规则
+
+### 7. 🌐 域名配置安全规则
 ```javascript
-// 🔴 强制要求：信息收集阶段必须并行执行，违反则警告
-class ParallelToolManager {
+// 🔴 域名配置安全检查 - 预防域名拼写错误导致的安全问题
+class DomainSecurityChecker {
     constructor() {
-        this.callLog = []
-        this.efficiency = {
-            parallelCalls: 0,
-            serialCalls: 0,
-            wastedRequests: 0
+        this.trustedDomains = {
+            'rqchrlqndora.sealosbja.site': {
+                environment: 'production',
+                ssl: true,
+                protocols: ['https', 'wss'],
+                verified: true
+            }
         }
-    }
-    
-    // 🔴 检测串行调用浪费
-    detectSerialWaste(toolCalls) {
-        const canBeParallel = [
-            'read_file', 'grep_search', 'run_terminal_cmd', 
-            'codebase_search', 'list_dir', 'file_search'
+        
+        this.suspiciousDomains = [
+            'rqchrlandora.sealoshqja.site',    // 钓鱼域名可能性
+            'rqchrlqndora.sealoshqja.site',    // 拼写错误域名
+            'rqchrlandora.sealosbja.site'      // 类似域名
         ]
+    }
+    
+    // 🔴 检查域名是否安全
+    checkDomainSecurity(domain) {
+        const securityIssues = []
         
-        let consecutiveSerialCalls = 0
-        let wastedCalls = 0
+        // 检查是否是可疑域名
+        if (this.suspiciousDomains.includes(domain)) {
+            securityIssues.push({
+                type: 'SUSPICIOUS_DOMAIN',
+                severity: 'CRITICAL',
+                message: `检测到可疑域名: ${domain}`,
+                risk: '可能是钓鱼网站或拼写错误',
+                action: '立即停止使用，验证正确域名'
+            })
+        }
         
-        for (let i = 0; i < toolCalls.length - 1; i++) {
-            const current = toolCalls[i]
-            const next = toolCalls[i + 1]
+        // 检查是否使用HTTPS
+        if (!domain.includes('https://') && !domain.includes('wss://')) {
+            securityIssues.push({
+                type: 'INSECURE_PROTOCOL',
+                severity: 'HIGH',
+                message: `域名未使用安全协议: ${domain}`,
+                risk: '数据传输可能被窃听',
+                action: '强制使用HTTPS/WSS协议'
+            })
+        }
+        
+        return securityIssues
+    }
+    
+    // 🔴 验证域名证书
+    async validateDomainCertificate(domain) {
+        try {
+            const response = await fetch(`https://${domain}`, {
+                method: 'HEAD',
+                timeout: 5000
+            })
             
-            if (canBeParallel.includes(current.name) && 
-                canBeParallel.includes(next.name)) {
-                consecutiveSerialCalls++
-                if (consecutiveSerialCalls >= 2) {
-                    wastedCalls++
-                }
-            } else {
-                consecutiveSerialCalls = 0
-            }
-        }
-        
-        this.efficiency.wastedRequests += wastedCalls
-        
-        if (wastedCalls > 0) {
-            console.warn(`⚠️ 检测到${wastedCalls}个可并行的串行调用，浪费Claude 4 Sonnet请求次数`)
-            return wastedCalls
-        }
-        
-        return 0
-    }
-    
-    // 🔴 推荐并行执行方案
-    suggestParallelExecution(toolCalls) {
-        const parallelGroups = []
-        let currentGroup = []
-        
-        const canBeParallel = [
-            'read_file', 'grep_search', 'run_terminal_cmd', 
-            'codebase_search', 'list_dir', 'file_search'
-        ]
-        
-        for (const call of toolCalls) {
-            if (canBeParallel.includes(call.name)) {
-                currentGroup.push(call)
-            } else {
-                if (currentGroup.length > 0) {
-                    parallelGroups.push([...currentGroup])
-                    currentGroup = []
-                }
-                parallelGroups.push([call])
-            }
-        }
-        
-        if (currentGroup.length > 0) {
-            parallelGroups.push(currentGroup)
-        }
-        
-        return parallelGroups
-    }
-    
-    // 🔴 生成并行执行代码
-    generateParallelCode(toolCalls) {
-        const parallelGroups = this.suggestParallelExecution(toolCalls)
-        let code = '// 🔴 推荐的并行执行方案:\n'
-        
-        for (let i = 0; i < parallelGroups.length; i++) {
-            const group = parallelGroups[i]
+            const securityHeaders = [
+                'strict-transport-security',
+                'x-content-type-options',
+                'x-frame-options',
+                'x-xss-protection'
+            ]
             
-            if (group.length === 1) {
-                code += `const result${i} = await ${group[0].name}(${JSON.stringify(group[0].params)})\n`
-            } else {
-                code += `const [${group.map((_, idx) => `result${i}_${idx}`).join(', ')}] = await Promise.all([\n`
-                for (const call of group) {
-                    code += `    ${call.name}(${JSON.stringify(call.params)}),\n`
+            const missingHeaders = securityHeaders.filter(header => 
+                !response.headers.get(header)
+            )
+            
+            if (missingHeaders.length > 0) {
+                return {
+                    valid: false,
+                    issues: missingHeaders.map(header => ({
+                        type: 'MISSING_SECURITY_HEADER',
+                        header,
+                        severity: 'MEDIUM'
+                    }))
                 }
-                code += '])\n'
+            }
+            
+            return { valid: true, issues: [] }
+            
+        } catch (error) {
+            return {
+                valid: false,
+                issues: [{
+                    type: 'CERTIFICATE_ERROR',
+                    error: error.message,
+                    severity: 'HIGH'
+                }]
             }
         }
-        
-        return code
     }
-}
-
-// 🔴 全局并行工具管理器
-const parallelManager = new ParallelToolManager()
-
-// 🔴 强制使用方式示例
-const efficientToolExecution = async () => {
-    // ❌ 错误：串行执行浪费请求次数
-    // const file1 = await read_file('file1.js')
-    // const file2 = await read_file('file2.js')
-    // const cmdResult = await run_terminal_cmd('Get-ChildItem')
-    
-    // ✅ 正确：并行执行节省50-80%时间
-    const [file1, file2, cmdResult] = await Promise.all([
-        read_file('file1.js'),
-        read_file('file2.js'),
-        run_terminal_cmd('Get-ChildItem')
-    ])
-    
-    parallelManager.efficiency.parallelCalls += 3
-    return { file1, file2, cmdResult }
 }
 ```
 
-#### search_replace工具精确匹配改进规则
+### 8. 🔧 API调用安全规则
 ```javascript
-// 🔴 search_replace工具安全使用规则
-class SearchReplaceValidator {
+// 🔴 API调用安全验证 - 预防API调用错误导致的安全问题
+class APISecurityValidator {
     constructor() {
-        this.minContextLines = 3
-        this.maxAttempts = 3
+        this.secureAPIs = {
+            'authAPI': {
+                methods: ['verifyToken', 'login', 'refresh', 'logout'],
+                requiresAuth: true,
+                sensitive: true
+            },
+            'userAPI': {
+                methods: ['getUserInfo', 'updateUserInfo', 'getPointsRecords'],
+                requiresAuth: true,
+                sensitive: true
+            },
+            'lotteryAPI': {
+                methods: ['getConfig', 'draw', 'getRecords'],
+                requiresAuth: true,
+                sensitive: false
+            }
+        }
+        
+        this.dangerousCallPatterns = [
+            'userAPI.verifyToken',    // 错误的API调用
+            'eval(',                  // 代码注入风险
+            'innerHTML =',            // XSS风险
+            'document.write('         // XSS风险
+        ]
     }
     
-    // 🔴 验证匹配字符串准确性
-    validateMatchString(oldString, filePath) {
-        const warnings = []
+    // 🔴 检查API调用是否安全
+    checkAPICallSecurity(apiObject, method, context) {
+        const securityIssues = []
         
-        // 检查上下文行数
-        const lines = oldString.split('\n')
-        if (lines.length < this.minContextLines) {
-            warnings.push(`⚠️ 上下文不足，建议至少包含${this.minContextLines}行上下文`)
+        // 检查是否是危险的调用模式
+        const callPattern = `${apiObject}.${method}`
+        if (this.dangerousCallPatterns.includes(callPattern)) {
+            securityIssues.push({
+                type: 'DANGEROUS_API_CALL',
+                severity: 'HIGH',
+                message: `危险的API调用: ${callPattern}`,
+                risk: 'API调用错误，可能导致功能失效',
+                action: '检查API对象和方法是否正确'
+            })
         }
         
-        // 检查特殊字符
-        const specialChars = /['"\\]/g
-        if (specialChars.test(oldString)) {
-            warnings.push('⚠️ 包含特殊字符，可能导致匹配失败')
+        // 检查是否需要认证
+        const apiConfig = this.secureAPIs[apiObject]
+        if (apiConfig && apiConfig.requiresAuth) {
+            if (!context.hasAuthHeader) {
+                securityIssues.push({
+                    type: 'MISSING_AUTH_HEADER',
+                    severity: 'CRITICAL',
+                    message: `敏感API调用缺少认证: ${callPattern}`,
+                    risk: '未认证的API调用可能被拒绝',
+                    action: '确保请求包含Authorization头'
+                })
+            }
         }
         
-        // 检查空白字符
-        if (oldString.includes('\t') || oldString.includes('    ')) {
-            warnings.push('⚠️ 包含制表符或多空格，注意空白字符匹配')
+        // 检查是否是敏感数据操作
+        if (apiConfig && apiConfig.sensitive) {
+            if (!context.useHTTPS) {
+                securityIssues.push({
+                    type: 'INSECURE_SENSITIVE_DATA',
+                    severity: 'HIGH',
+                    message: `敏感数据未使用HTTPS传输: ${callPattern}`,
+                    risk: '敏感数据可能被窃听',
+                    action: '强制使用HTTPS传输敏感数据'
+                })
+            }
         }
         
-        return warnings
+        return securityIssues
     }
     
-    // 🔴 生成安全的匹配字符串
-    createSafeMatchString(targetContent, startMarker, endMarker) {
-        const lines = targetContent.split('\n')
-        const startIndex = lines.findIndex(line => line.includes(startMarker))
-        const endIndex = lines.findIndex((line, idx) => 
-            idx > startIndex && line.includes(endMarker)
+    // 🔴 生成安全调用建议
+    generateSecureCallSuggestion(apiObject, method) {
+        const apiConfig = this.secureAPIs[apiObject]
+        
+        if (!apiConfig) {
+            return {
+                message: `未知的API对象: ${apiObject}`,
+                suggestion: '请检查API对象是否正确导入'
+            }
+        }
+        
+        if (!apiConfig.methods.includes(method)) {
+            return {
+                message: `${apiObject}不包含${method}方法`,
+                suggestion: `可用方法: ${apiConfig.methods.join(', ')}`,
+                possibleCorrection: this.findPossibleCorrection(method)
+            }
+        }
+        
+        return {
+            message: `${apiObject}.${method}()调用正确`,
+            securityRequirements: {
+                requiresAuth: apiConfig.requiresAuth,
+                sensitive: apiConfig.sensitive,
+                useHTTPS: apiConfig.requiresAuth || apiConfig.sensitive
+            }
+        }
+    }
+}
+```
+
+### 9. 🔄 批量操作安全规则
+```javascript
+// 🔴 批量操作安全检查 - 预防批量操作导致的安全问题
+class BatchOperationSecurity {
+    constructor() {
+        this.maxBatchSize = 10        // 最大批量操作数量
+        this.maxConcurrency = 5       // 最大并发数
+        this.operationTimeout = 30000 // 操作超时时间
+        
+        this.sensitiveOperations = [
+            'domain_config_change',
+            'api_path_modification',
+            'security_header_update',
+            'authentication_change'
+        ]
+    }
+    
+    // 🔴 检查批量操作是否安全
+    checkBatchOperationSecurity(operation) {
+        const securityIssues = []
+        
+        // 检查批量大小
+        if (operation.batchSize > this.maxBatchSize) {
+            securityIssues.push({
+                type: 'EXCESSIVE_BATCH_SIZE',
+                severity: 'MEDIUM',
+                message: `批量操作过大: ${operation.batchSize} > ${this.maxBatchSize}`,
+                risk: '可能导致系统过载或操作失败',
+                action: '分批处理，每批不超过10个操作'
+            })
+        }
+        
+        // 检查并发数
+        if (operation.concurrency > this.maxConcurrency) {
+            securityIssues.push({
+                type: 'EXCESSIVE_CONCURRENCY',
+                severity: 'MEDIUM',
+                message: `并发数过高: ${operation.concurrency} > ${this.maxConcurrency}`,
+                risk: '可能导致系统资源耗尽',
+                action: '限制并发数，避免系统过载'
+            })
+        }
+        
+        // 检查是否是敏感操作
+        if (this.sensitiveOperations.includes(operation.type)) {
+            securityIssues.push({
+                type: 'SENSITIVE_BATCH_OPERATION',
+                severity: 'HIGH',
+                message: `敏感批量操作: ${operation.type}`,
+                risk: '批量修改敏感配置可能导致系统故障',
+                action: '逐个验证每个操作，确保正确性'
+            })
+        }
+        
+        return securityIssues
+    }
+    
+    // 🔴 生成安全批处理计划
+    generateSecureBatchPlan(operations) {
+        const plan = {
+            operations: [],
+            phases: [],
+            safeguards: []
+        }
+        
+        // 按敏感程度分组
+        const sensitiveOps = operations.filter(op => 
+            this.sensitiveOperations.includes(op.type)
+        )
+        const normalOps = operations.filter(op => 
+            !this.sensitiveOperations.includes(op.type)
         )
         
-        if (startIndex === -1 || endIndex === -1) {
-            throw new Error('无法找到匹配的开始或结束标记')
+        // 敏感操作串行处理
+        if (sensitiveOps.length > 0) {
+            plan.phases.push({
+                type: 'SENSITIVE_SEQUENTIAL',
+                operations: sensitiveOps,
+                concurrency: 1,
+                validation: 'MANUAL'
+            })
         }
         
-        // 包含足够的上下文
-        const contextStart = Math.max(0, startIndex - 2)
-        const contextEnd = Math.min(lines.length - 1, endIndex + 2)
-        
-        return lines.slice(contextStart, contextEnd + 1).join('\n')
-    }
-    
-    // 🔴 自动重试机制
-    async attemptSearchReplace(filePath, oldString, newString) {
-        for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
-            try {
-                console.log(`🔄 search_replace 尝试 ${attempt}/${this.maxAttempts}`)
-                
-                const warnings = this.validateMatchString(oldString, filePath)
-                if (warnings.length > 0) {
-                    console.warn('search_replace 警告:', warnings.join('\n'))
-                }
-                
-                return await search_replace(filePath, oldString, newString)
-                
-            } catch (error) {
-                console.error(`❌ search_replace 第${attempt}次尝试失败:`, error.message)
-                
-                if (attempt === this.maxAttempts) {
-                    console.error('🚨 search_replace 所有尝试失败，建议：')
-                    console.error('1. 使用 read_file 确认文件内容')
-                    console.error('2. 增加更多上下文行')
-                    console.error('3. 检查空白字符和特殊字符')
-                    console.error('4. 考虑使用 edit_file 替代')
-                    throw error
-                }
-                
-                // 等待后重试
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
-            }
+        // 普通操作并行处理
+        if (normalOps.length > 0) {
+            const batches = this.splitIntoBatches(normalOps, this.maxBatchSize)
+            batches.forEach((batch, index) => {
+                plan.phases.push({
+                    type: 'NORMAL_PARALLEL',
+                    operations: batch,
+                    concurrency: Math.min(batch.length, this.maxConcurrency),
+                    validation: 'AUTOMATIC'
+                })
+            })
         }
+        
+        // 添加安全措施
+        plan.safeguards = [
+            '每个阶段完成后验证结果',
+            '发现错误立即停止后续操作',
+            '保留操作前状态备份',
+            '提供回滚机制'
+        ]
+        
+        return plan
     }
-}
-
-// 🔴 全局search_replace验证器
-const searchReplaceValidator = new SearchReplaceValidator()
-
-// 🔴 安全使用方式
-const safeSearchReplace = async (filePath, oldString, newString) => {
-    return await searchReplaceValidator.attemptSearchReplace(filePath, oldString, newString)
 }
 ```
 
-#### 正则表达式特殊字符安全处理
+### 10. 📊 安全监控规则
 ```javascript
-// 🔴 自动转义emoji和特殊字符
-class RegexSafetyProcessor {
+// 🔴 安全监控系统 - 实时监控安全问题
+class SecurityMonitor {
     constructor() {
-        this.emojiMap = {
-            '🔧': '\\u{1F527}',
-            '🔗': '\\u{1F517}', 
-            '📨': '\\u{1F4E8}',
-            '❌': '\\u{274C}',
-            '✅': '\\u{2705}',
-            '⚠️': '\\u{26A0}\\u{FE0F}',
-            '🚨': '\\u{1F6A8}'
+        this.securityEvents = []
+        this.alertThresholds = {
+            'SUSPICIOUS_DOMAIN': 1,       // 可疑域名立即告警
+            'DANGEROUS_API_CALL': 1,      // 危险API调用立即告警
+            'EXCESSIVE_BATCH_SIZE': 3,    // 批量操作过大3次告警
+            'MISSING_AUTH_HEADER': 1      // 缺少认证头立即告警
         }
         
-        this.specialCharsPattern = /[\\^$.*+?()[\]{}|]/g
+        this.alertCounts = new Map()
     }
     
-    // 🔴 自动处理emoji字符
-    escapeEmojiPattern(pattern) {
-        let safePattern = pattern
-        
-        for (const [emoji, unicode] of Object.entries(this.emojiMap)) {
-            const emojiRegex = new RegExp(
-                emoji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 
-                'g'
-            )
-            safePattern = safePattern.replace(emojiRegex, unicode)
-        }
-        
-        return safePattern
-    }
-    
-    // 🔴 转义特殊字符
-    escapeSpecialChars(pattern) {
-        return pattern.replace(this.specialCharsPattern, '\\$&')
-    }
-    
-    // 🔴 综合安全处理
-    createSafePattern(unsafePattern) {
-        console.log(`🔧 处理不安全的正则表达式: ${unsafePattern}`)
-        
-        let safePattern = unsafePattern
-        safePattern = this.escapeEmojiPattern(safePattern)
-        safePattern = this.escapeSpecialChars(safePattern)
-        
-        console.log(`✅ 转换为安全的正则表达式: ${safePattern}`)
-        return safePattern
-    }
-}
-
-// 🔴 全局正则安全处理器
-const regexProcessor = new RegexSafetyProcessor()
-
-// 🔴 安全使用方式
-const safeGrepSearch = async (unsafePattern, includePattern) => {
-    const safePattern = regexProcessor.createSafePattern(unsafePattern)
-    return await grep_search(safePattern, includePattern)
-}
-```
-
-### 11. ⚡ 强制执行机制
-
-#### 发现违规代码时必须执行的操作
-1. **立即停止所有开发工作**
-2. **显示具体违规项和规则编号**
-3. **提供正确的后端API调用示例**
-4. **要求开发者确认后端服务状态**
-
-#### 违规错误提示模板
-```
-🚨 严重违规！违反天工项目核心安全规则
-
-违规类型：[前端硬编码敏感数据/使用模拟数据/方法调用错误/不安全属性访问]
-违规位置：文件名:行号
-违规内容：具体代码片段
-
-## 🔧 会话问题解决方案安全扩展 - 2025年7月4日
-
-### Mock数据检测优化规则 (新增 - 2025年7月4日)
-
-#### 1. 增强Mock数据检测系统
-```javascript
-// 🔴 增强Mock数据检测器
-class EnhancedMockDataDetector {
-    constructor() {
-        this.mockPatterns = {
-            basic: [/mock.*data/gi, /fake.*data/gi, /test.*data/gi],
-            advanced: [/const.*=.*\[.*\{.*name.*:.*'.*'.*\}.*\]/gi, /setData.*\{.*:.*\[.*\{/gi],
-            hidden: [/resolve.*\{.*code.*:.*0/gi, /setTimeout.*resolve/gi],
-            miniprogram: [/wx\.showToast.*mock/gi, /success.*res.*data.*=.*\{/gi]
-        }
-    }
-    
-    // 🔴 全面扫描Mock数据
-    async scanForMockData(projectPath) {
-        console.log('🔍 开始增强Mock数据检测...')
-        
-        const results = {
-            totalFiles: 0,
-            violationFiles: [],
-            totalViolations: 0,
-            patternMatches: {},
-            severity: 'UNKNOWN'
-        }
-        
-        // 并行扫描所有模式
-        const scanResults = await Promise.all([
-            this.scanPattern(projectPath, 'basic'),
-            this.scanPattern(projectPath, 'advanced'),
-            this.scanPattern(projectPath, 'hidden'),
-            this.scanPattern(projectPath, 'miniprogram')
-        ])
-        
-        scanResults.forEach((result, index) => {
-            const patternType = ['basic', 'advanced', 'hidden', 'miniprogram'][index]
-            results.patternMatches[patternType] = result
-            results.totalViolations += result.violations.length
-        })
-        
-        results.severity = results.totalViolations === 0 ? 'CLEAN' : 
-                          results.totalViolations <= 5 ? 'LOW' : 
-                          results.totalViolations <= 15 ? 'MEDIUM' : 'HIGH'
-        
-        return results
-    }
-}
-
-// 🔴 全局增强Mock检测器
-const enhancedMockDetector = new EnhancedMockDataDetector()
-```
-
-#### 2. 任务验证完整性检查系统
-```javascript
-// 🔴 任务验证完整性检查系统
-class TaskCompletionValidator {
-    constructor() {
-        this.validationRules = {
-            'code_modification': ['syntax_validation', 'functionality_test', 'integration_check'],
-            'security_compliance': ['mock_data_removal', 'sensitive_data_check', 'api_security_validation'],
-            'project_health': ['build_success', 'runtime_errors', 'component_integrity']
-        }
-    }
-    
-    // 🔴 全面任务验证
-    async validateTaskCompletion(taskType, modifiedFiles, projectPath) {
-        console.log(`🔍 开始任务完成验证：${taskType}`)
-        
-        const validationResults = {
-            taskType,
+    // 🔴 记录安全事件
+    recordSecurityEvent(event) {
+        const securityEvent = {
+            ...event,
             timestamp: new Date().toISOString(),
-            results: {},
-            overallScore: 0,
-            passed: false,
-            issues: [],
-            recommendations: []
+            id: this.generateEventId()
         }
         
-        // 并行执行所有验证规则
-        const validationPromises = Object.entries(this.validationRules).map(
-            async ([category, rules]) => {
-                const categoryResults = await this.validateCategory(category, rules, modifiedFiles, projectPath)
-                validationResults.results[category] = categoryResults
-                return categoryResults
-            }
-        )
+        this.securityEvents.push(securityEvent)
         
-        await Promise.all(validationPromises)
+        // 检查是否需要告警
+        this.checkAlertThreshold(event.type)
         
-        // 计算总体评分
-        const scores = Object.values(validationResults.results).map(r => r.score)
-        validationResults.overallScore = scores.reduce((sum, score) => sum + score, 0) / scores.length
-        validationResults.passed = validationResults.overallScore >= 80
-        
-        return validationResults
-    }
-}
-
-// 🔴 全局任务验证器
-const taskCompletionValidator = new TaskCompletionValidator()
-```
-
----
-
-**更新时间**: 2025年7月4日  
-**新增功能**: 增强Mock数据检测、任务验证完整性检查  
-**安全等级**: CRITICAL - 防止数据安全违规
-
-必须修正为：
-1. 移除所有硬编码数据
-2. 改为真实后端API调用
-3. 添加后端异常处理机制
-4. 修复方法调用错误
-5. 添加属性安全访问检查
-
-在修正违规问题前，禁止继续开发！
-```
-
-## 🎯 开发流程安全检查清单
-
-### 每次代码提交前必须确认
-- [ ] 无任何硬编码业务数据
-- [ ] 无任何mock/模拟数据使用
-- [ ] 所有数据来源于真实后端API
-- [ ] 包含完整的后端异常处理
-- [ ] 方法调用安全（导入函数直接调用）
-- [ ] 属性访问安全（提供后备值）
-- [ ] API兼容性检查已实施
-- [ ] 包含详细代码注释
-- [ ] 强制数据存在性检查已实施
-- [ ] 测试数据与生产数据结构同步
-- [ ] 项目可以正常运行
-- [ ] 临时文件已清理
-
-## 🎯 规则优先级：最高 - 违反任何一条规则，立即停止开发并修正！
-
----
-**创建时间**: 2025年1月2日  
-**适用项目**: 天工前端项目（微信小程序）  
-**维护责任**: 必须严格执行，不允许任何例外  
-**整合状态**: 统一整合code-quality-runtime-safety.mdc和tiangong-data-security-core.mdc
-
-## 🎯 Mock数据检测与修复规则
-
-### 🔴 Mock数据自动检测规则 - 2025年1月3日新增
-
-#### 检测关键字列表
-```javascript
-// 需要自动检测的Mock数据关键字
-const MOCK_DETECTION_KEYWORDS = [
-  // 直接Mock关键字
-  'mock', 'Mock', 'MOCK',
-  'fake', 'Fake', 'FAKE',
-  'test', 'Test', 'TEST',
-  'demo', 'Demo', 'DEMO',
-  
-  // Mock函数模式
-  'mockUser', 'mockData', 'mockList',
-  'generateMock', 'createMock', 'mockResponse',
-  'shouldUseMock', 'smartApiCall', 'mockRequest',
-  
-  // 模拟数据模式
-  'mockHistory', 'mockStats', 'mockAvatarUrl',
-  'mockLoginData', 'mockProducts', 'mockRecords',
-  
-  // 开发环境判断
-  'if (app.globalData.isDev)', 'isDevelopmentMode',
-  'developmentMode', 'skipSmsVerification'
-]
-```
-
-#### 🛠️ 修复标准模式
-```javascript
-// 修复前：违规的Mock数据使用
-loadUploadHistory() {
-  if (app.globalData.isDev) {
-    const mockHistory = [...]
-    this.setData({ uploadHistory: mockHistory })
-  } else {
-    // 真实API调用
-  }
-}
-
-// 修复后：完全使用后端API
-loadUploadHistory() {
-  console.log('📡 请求上传历史接口...')
-  
-  return uploadAPI.getRecords().then((result) => {
-    if (result.code === 0) {
-      this.setData({ uploadHistory: result.data.list })
-      console.log('✅ 上传历史加载成功')
-    } else {
-      throw new Error('⚠️ 后端服务异常：' + result.msg)
-    }
-  }).catch((error) => {
-    console.error('❌ 获取上传历史失败:', error)
-    
-    wx.showModal({
-      title: '🚨 后端服务异常',
-      content: '无法获取上传历史！\n\n请检查后端API服务状态：\nGET /api/photo/history',
-      showCancel: false,
-      confirmText: '知道了',
-      confirmColor: '#ff4444'
-    })
-    
-    this.setData({ uploadHistory: [] })
-  })
-}
-```
-
-### 🔴 Mock数据修复检查清单
-
-#### 修复验证标准
-```markdown
-# Mock数据修复完成验证清单
-
-✅ 删除所有Mock数据声明
-✅ 删除所有Mock函数定义
-✅ 删除所有开发环境判断分支
-✅ 统一使用后端API调用
-✅ 添加完整的错误处理机制
-✅ 添加用户友好的错误提示
-✅ 设置安全的默认数据
-✅ 添加API调用日志记录
-
-# 修复后的代码特征
-- 无任何Mock关键字
-- 100%使用真实API
-- 完整的错误处理
-- 清晰的日志记录
-```
-
-## 🎯 代码质量控制规则
-
-### 🔴 代码修复工具使用规范 - 2025年1月3日新增
-
-#### search_replace工具精确匹配规则
-```markdown
-# 使用search_replace工具的精确匹配要求
-
-1. 必须包含完整的上下文（3-5行）
-2. 精确匹配所有空格、换行符
-3. 包含完整的注释内容
-4. 匹配失败时先使用read_file确认内容
-5. 对于复杂的代码块，分步骤修复
-
-# 常见匹配失败原因
-- 忽略了代码中的注释
-- 空格和换行符不匹配
-- 字符串边界不完整
-- 代码格式化差异
-```
-
-#### 🛠️ 代码修复最佳实践
-```javascript
-// 修复前：先确认代码结构
-read_file('target.js', lines 100-150)
-
-// 修复中：使用精确的字符串匹配
-search_replace('target.js', 
-  '完整的旧代码块（包含注释和空行）',
-  '修复后的新代码块'
-)
-
-// 修复后：验证修复结果
-read_file('target.js', lines 100-150)
-```
-
-## 🎯 安全审计规则
-
-### 🔴 项目安全审计流程 - 2025年1月3日新增
-
-#### 安全审计检查点
-```markdown
-# 完整的安全审计检查清单
-
-## 第一阶段：Mock数据检测
-1. 使用grep_search搜索所有Mock关键字
-2. 检查每个匹配结果的上下文
-3. 确认是否违反数据安全规则
-4. 记录需要修复的文件和行数
-
-## 第二阶段：API调用验证
-1. 检查所有API调用是否使用真实后端
-2. 验证错误处理机制是否完整
-3. 确认用户提示是否友好
-4. 检查默认数据是否安全
-
-## 第三阶段：代码质量检查
-1. 验证代码注释是否完整
-2. 检查函数命名是否规范
-3. 确认代码结构是否清晰
-4. 验证性能是否优化
-
-## 第四阶段：功能完整性验证
-1. 检查所有页面功能是否正常
-2. 验证用户操作流程是否顺畅
-3. 确认数据同步是否及时
-4. 检查异常情况处理是否完善
-```
-
-#### 🛠️ 安全审计工具使用
-```bash
-# 批量检测Mock数据
-grep_search("mock|Mock|MOCK|fake|demo|test", include_pattern="*.js")
-
-# 检测硬编码数据
-grep_search("const.*=.*\\[.*\\]", include_pattern="*.js")
-
-# 检测开发环境判断
-grep_search("isDev|developmentMode|globalData\\.isDev", include_pattern="*.js")
-
-# 检测模拟数据函数
-grep_search("generate.*Mock|create.*Mock|mock.*Data", include_pattern="*.js")
-```
-
-## 🎯 规则执行与监控
-
-### 🔴 规则执行自动化 - 2025年1月3日新增
-
-#### 自动化检查脚本
-```javascript
-// 自动化安全检查脚本示例
-const securityCheck = {
-  async checkMockData() {
-    const results = await grep_search("mock|Mock|MOCK", "*.js")
-    return results.length === 0 ? '✅ 通过' : '❌ 发现Mock数据'
-  },
-  
-  async checkApiCalls() {
-    const results = await grep_search("api\\.", "*.js")
-    return results.length > 0 ? '✅ 通过' : '❌ 缺少API调用'
-  },
-  
-  async checkErrorHandling() {
-    const results = await grep_search("catch.*error", "*.js")
-    return results.length > 0 ? '✅ 通过' : '❌ 缺少错误处理'
-  }
-}
-```
-
-#### 规则遵循验证
-```markdown
-# 规则遵循验证方法
-
-1. 定期执行安全审计检查
-2. 验证所有修复是否符合标准
-3. 确认新增代码是否遵循规则
-4. 检查规则文档是否及时更新
-
-# 规则违反处理流程
-1. 立即停止相关开发工作
-2. 详细记录违规内容和位置
-3. 按照标准模式进行修复
-4. 验证修复结果符合要求
-5. 更新相关文档和规则
-```
-
----
-
-**最终更新时间**: 2025年7月4日  
-**最终更新内容**: 完成前端聊天规则整理问题分析，新增Mock数据检测完善、WebSocket错误处理优化、代码质量检查强化规则  
-**维护状态**: 完成 - 所有规则已生效，项目修复完毕
-
-## 🆕 2025年7月4日新增规则 - 基于前端聊天规则整理问题分析
-
-### 7. 🕵️ Mock数据检测完善规则
-
-#### 全面Mock数据检测系统
-```javascript
-// 🔴 Mock数据检测器 - 完善版
-class MockDataDetector {
-    constructor() {
-        this.mockKeywords = [
-            // 基础Mock关键词
-            'mock', 'Mock', 'MOCK',
-            'fake', 'Fake', 'FAKE',
-            'test', 'Test', 'TEST',
-            'demo', 'Demo', 'DEMO',
-            'sample', 'Sample', 'SAMPLE',
-            'dummy', 'Dummy', 'DUMMY',
-            
-            // 模拟函数关键词
-            'mockData', 'mockAPI', 'mockResponse',
-            'fakeData', 'fakeAPI', 'fakeResponse',
-            'testData', 'testAPI', 'testResponse',
-            'demoData', 'demoAPI', 'demoResponse',
-            'sampleData', 'sampleAPI', 'sampleResponse',
-            
-            // 模拟对象关键词
-            'mockUser', 'mockConfig', 'mockResult',
-            'fakeUser', 'fakeConfig', 'fakeResult',
-            'testUser', 'testConfig', 'testResult',
-            
-            // 条件判断关键词
-            'shouldUseMock', 'useMockData', 'isMockMode',
-            'shouldUseFake', 'useFakeData', 'isFakeMode',
-            'shouldUseTest', 'useTestData', 'isTestMode',
-            
-            // setTimeout模拟异步
-            'setTimeout.*callback', 'setTimeout.*resolve',
-            'setTimeout.*mockData', 'setTimeout.*fakeData'
-        ]
-        
-        this.mockPatterns = [
-            // 函数定义模式
-            /const\s+mock\w+\s*=/gi,
-            /function\s+mock\w+/gi,
-            /const\s+fake\w+\s*=/gi,
-            /function\s+fake\w+/gi,
-            
-            // 条件判断模式
-            /if\s*\(\s*\w*mock\w*/gi,
-            /if\s*\(\s*\w*fake\w*/gi,
-            /if\s*\(\s*\w*test\w*/gi,
-            
-            // 三元运算符模式
-            /\?\s*mock\w+\s*:/gi,
-            /\?\s*fake\w+\s*:/gi,
-            /:\s*mock\w+/gi,
-            /:\s*fake\w+/gi,
-            
-            // setTimeout模拟异步模式
-            /setTimeout\s*\(\s*\(\)\s*=>\s*{[\s\S]*?callback/gi,
-            /setTimeout\s*\(\s*function\s*\(\)\s*{[\s\S]*?callback/gi,
-            
-            // 硬编码数据模式
-            /const\s+\w+\s*=\s*\[[\s\S]*?\]/gi,  // 数组硬编码
-            /const\s+\w+\s*=\s*{[\s\S]*?}/gi,   // 对象硬编码
-        ]
-        
-        this.violations = []
+        console.log(`🔒 安全事件记录: ${event.type} - ${event.message}`)
     }
     
-    // 🔴 全面检测Mock数据
-    detectMockData(fileContent, filePath) {
-        console.log(`🔍 检测Mock数据：${filePath}`)
+    // 🔴 检查告警阈值
+    checkAlertThreshold(eventType) {
+        const currentCount = this.alertCounts.get(eventType) || 0
+        const newCount = currentCount + 1
+        this.alertCounts.set(eventType, newCount)
         
-        const violations = []
+        const threshold = this.alertThresholds[eventType] || 5
         
-        // 检测关键词
-        for (const keyword of this.mockKeywords) {
-            if (fileContent.includes(keyword)) {
-                const lines = this.findLinesWithKeyword(fileContent, keyword)
-                violations.push({
-                    type: 'MOCK_KEYWORD',
-                    keyword: keyword,
-                    file: filePath,
-                    lines: lines,
-                    severity: 'HIGH'
-                })
+        if (newCount >= threshold) {
+            this.triggerSecurityAlert(eventType, newCount)
+        }
+    }
+    
+    // 🔴 触发安全告警
+    triggerSecurityAlert(eventType, count) {
+        const alert = {
+            type: 'SECURITY_ALERT',
+            eventType,
+            count,
+            timestamp: new Date().toISOString(),
+            severity: this.getAlertSeverity(eventType),
+            message: `安全告警: ${eventType} 发生${count}次`,
+            recommendedAction: this.getRecommendedAction(eventType)
+        }
+        
+        console.error(`🚨 安全告警: ${alert.message}`)
+        console.error(`🔧 建议行动: ${alert.recommendedAction}`)
+        
+        // 严重告警时停止操作
+        if (alert.severity === 'CRITICAL') {
+            console.error('🛑 检测到严重安全问题，建议立即停止操作！')
+            
+            return {
+                stopOperation: true,
+                alert
             }
         }
         
-        // 检测模式
-        for (const pattern of this.mockPatterns) {
-            const matches = fileContent.match(pattern)
-            if (matches) {
-                violations.push({
-                    type: 'MOCK_PATTERN',
-                    pattern: pattern.toString(),
-                    matches: matches,
-                    file: filePath,
-                    severity: 'CRITICAL'
-                })
-            }
-        }
-        
-        // 检测硬编码数据
-        const hardcodedData = this.detectHardcodedData(fileContent, filePath)
-        violations.push(...hardcodedData)
-        
-        return violations
-    }
-    
-    // 🔴 生成修复建议
-    generateFixSuggestions(violations) {
-        const suggestions = []
-        
-        for (const violation of violations) {
-            switch (violation.type) {
-                case 'MOCK_KEYWORD':
-                    suggestions.push({
-                        file: violation.file,
-                        lines: violation.lines,
-                        suggestion: `移除Mock关键词"${violation.keyword}"，使用真实API调用`,
-                        example: 'api.getData().then(result => { /* 使用真实数据 */ })'
-                    })
-                    break
-                    
-                case 'MOCK_PATTERN':
-                    suggestions.push({
-                        file: violation.file,
-                        suggestion: '移除Mock函数/条件判断，直接调用后端API',
-                        example: '直接使用：userAPI.login(params) 替代 mockLogin(params)'
-                    })
-                    break
-                    
-                case 'HARDCODED_DATA':
-                    suggestions.push({
-                        file: violation.file,
-                        lines: `${violation.startLine}-${violation.endLine}`,
-                        suggestion: '移除硬编码数据，从后端API获取',
-                        example: 'api.getConfig().then(config => { this.setData(config) })'
-                    })
-                    break
-            }
-        }
-        
-        return suggestions
-    }
-}
-
-// 🔴 全局Mock数据检测器
-const mockDataDetector = new MockDataDetector()
-```
-
-### 8. 🔄 WebSocket连接错误处理优化规则
-
-#### WebSocket错误处理安全管理器
-```javascript
-// 🔴 WebSocket错误处理管理器
-class WebSocketErrorManager {
-    constructor() {
-        this.connectionState = {
-            isConnected: false,
-            isConnecting: false,
-            reconnectAttempts: 0,
-            lastError: null,
-            silentMode: false
-        }
-        
-        this.config = {
-            maxReconnectAttempts: 3,
-            reconnectInterval: 5000,
-            connectionTimeout: 10000,
-            heartbeatInterval: 30000,
-            developmentMode: this.isDevelopmentEnvironment()
-        }
-        
-        this.errorTypes = {
-            CONNECTION_FAILED: 'connection_failed',
-            CONNECTION_TIMEOUT: 'connection_timeout', 
-            AUTHENTICATION_FAILED: 'authentication_failed',
-            NETWORK_ERROR: 'network_error',
-            SERVER_ERROR: 'server_error'
+        return {
+            stopOperation: false,
+            alert
         }
     }
     
-    // 🔴 检测是否为开发环境
-    isDevelopmentEnvironment() {
-        try {
-            const config = require('../config/env').getConfig()
-            return config.isDev === true || config.developmentMode?.silentWebSocketErrors === true
-        } catch (error) {
-            return false
+    // 🔴 生成安全报告
+    generateSecurityReport() {
+        const report = {
+            reportTime: new Date().toISOString(),
+            totalEvents: this.securityEvents.length,
+            eventsByType: this.groupEventsByType(),
+            alertHistory: Array.from(this.alertCounts.entries()),
+            recommendations: this.generateSecurityRecommendations()
         }
+        
+        return report
     }
     
-    // 🔴 智能错误处理
-    handleConnectionError(error, context = '') {
-        this.connectionState.lastError = error
-        const errorType = this.classifyError(error)
+    // 🔴 生成安全建议
+    generateSecurityRecommendations() {
+        const recommendations = []
         
-        console.log(`🔍 WebSocket错误分类：${errorType}`)
+        // 基于事件类型生成建议
+        const eventTypes = this.groupEventsByType()
         
-        if (this.config.developmentMode) {
-            // 开发环境静默处理
-            this.handleDevelopmentError(error, errorType, context)
-        } else {
-            // 生产环境显示错误
-            this.handleProductionError(error, errorType, context)
-        }
-        
-        // 根据错误类型决定是否重连
-        if (this.shouldReconnect(errorType)) {
-            this.scheduleReconnect()
-        }
-    }
-    
-    // 🔴 开发环境错误处理
-    handleDevelopmentError(error, errorType, context) {
-        console.log(`🔧 开发环境WebSocket错误（静默处理）: ${errorType}`)
-        console.log(`📍 错误上下文: ${context}`)
-        console.log(`📝 错误详情: ${error.message}`)
-        
-        this.connectionState.silentMode = true
-        
-        // 开发环境提示（非阻断）
-        if (typeof wx !== 'undefined') {
-            wx.showToast({
-                title: '后端服务检查中',
-                icon: 'loading',
-                duration: 1000,
-                mask: false
-            })
-        }
-    }
-    
-    // 🔴 智能重连机制
-    scheduleReconnect() {
-        if (this.connectionState.reconnectAttempts >= this.config.maxReconnectAttempts) {
-            console.warn('⚠️ WebSocket重连次数已达上限，停止重连')
-            return
-        }
-        
-        this.connectionState.reconnectAttempts++
-        
-        // 指数退避重连间隔
-        const reconnectDelay = this.config.reconnectInterval * Math.pow(2, this.connectionState.reconnectAttempts - 1)
-        
-        console.log(`🔄 WebSocket将在${reconnectDelay}ms后进行第${this.connectionState.reconnectAttempts}次重连`)
-        
-        setTimeout(() => {
-            this.attemptReconnect()
-        }, reconnectDelay)
-    }
-    
-    // 🔴 连接成功处理
-    handleConnectionSuccess() {
-        this.connectionState.isConnected = true
-        this.connectionState.isConnecting = false
-        this.connectionState.reconnectAttempts = 0
-        this.connectionState.lastError = null
-        this.connectionState.silentMode = false
-        
-        console.log('✅ WebSocket连接成功')
-        
-        // 开始心跳检测
-        this.startHeartbeat()
-        
-        // 通知连接成功
-        if (!this.config.developmentMode && typeof wx !== 'undefined') {
-            wx.showToast({
-                title: '连接成功',
-                icon: 'success',
-                duration: 1000
-            })
-        }
-    }
-}
-
-// 🔴 全局WebSocket错误管理器
-const wsErrorManager = new WebSocketErrorManager()
-```
-
-### 9. 🔍 代码质量检查强化规则
-
-#### 代码质量自动检查器
-```javascript
-// 🔴 代码质量检查器
-class CodeQualityChecker {
-    constructor() {
-        this.qualityRules = {
-            COMMENT_COVERAGE: {
-                threshold: 0.8, // 80%的函数需要注释
-                severity: 'MEDIUM'
-            },
-            FUNCTION_COMPLEXITY: {
-                maxLines: 50, // 单个函数最大行数
-                severity: 'HIGH'
-            },
-            ERROR_HANDLING: {
-                requiredPatterns: ['try', 'catch', '.catch('], 
-                severity: 'HIGH'
-            },
-            SECURITY_COMPLIANCE: {
-                prohibitedPatterns: ['mock', 'fake', 'hardcode'],
-                severity: 'CRITICAL'
-            }
-        }
-    }
-    
-    // 🔴 全面代码质量检查
-    performQualityCheck(fileContent, filePath) {
-        const results = {
-            file: filePath,
-            score: 100,
-            issues: [],
-            warnings: [],
-            suggestions: []
-        }
-        
-        // 检查注释覆盖率
-        const commentCoverage = this.checkCommentCoverage(fileContent)
-        if (commentCoverage < this.qualityRules.COMMENT_COVERAGE.threshold) {
-            results.issues.push({
-                type: 'COMMENT_COVERAGE',
-                severity: 'MEDIUM',
-                message: `注释覆盖率过低：${(commentCoverage * 100).toFixed(1)}%`,
-                suggestion: '为函数和关键逻辑添加详细的中文注释'
-            })
-            results.score -= 15
-        }
-        
-        // 检查函数复杂度
-        const complexFunctions = this.checkFunctionComplexity(fileContent)
-        if (complexFunctions.length > 0) {
-            results.issues.push({
-                type: 'FUNCTION_COMPLEXITY',
-                severity: 'HIGH',
-                message: `发现${complexFunctions.length}个复杂函数`,
-                functions: complexFunctions,
-                suggestion: '将复杂函数拆分为多个小函数'
-            })
-            results.score -= complexFunctions.length * 10
-        }
-        
-        return results
-    }
-    
-    // 🔴 检查注释覆盖率
-    checkCommentCoverage(content) {
-        const lines = content.split('\n')
-        const functions = this.extractFunctions(content)
-        const commentedFunctions = functions.filter(func => 
-            this.hasMeaningfulComment(func, lines)
-        )
-        
-        return functions.length > 0 ? commentedFunctions.length / functions.length : 1
-    }
-    
-    // 🔴 提取函数定义
-    extractFunctions(content) {
-        const functionPatterns = [
-            /function\s+(\w+)\s*\(/g,           // function name()
-            /(\w+)\s*:\s*function\s*\(/g,      // name: function()
-            /(\w+)\s*\(\s*.*?\s*\)\s*{/g,      // name() { (箭头函数简化形式)
-            /const\s+(\w+)\s*=\s*\(.*?\)\s*=>/g // const name = () =>
-        ]
-        
-        const functions = []
-        
-        for (const pattern of functionPatterns) {
-            let match
-            while ((match = pattern.exec(content)) !== null) {
-                functions.push({
-                    name: match[1],
-                    start: match.index,
-                    pattern: match[0]
-                })
-            }
-        }
-        
-        return functions
-    }
-}
-
-// 🔴 全局代码质量检查器
-const codeQualityChecker = new CodeQualityChecker()
-```
-
----
-
-## 🆕 2025年7月4日新增规则 - 基于前端聊天规则整理问题分析
-
-### 7. 🕵️ Mock数据检测完善规则
-
-#### 全面Mock数据检测系统
-```javascript
-// 🔴 Mock数据检测器 - 完善版
-class MockDataDetector {
-    constructor() {
-        this.mockKeywords = [
-            // 基础Mock关键词
-            'mock', 'Mock', 'MOCK',
-            'fake', 'Fake', 'FAKE',
-            'test', 'Test', 'TEST',
-            'demo', 'Demo', 'DEMO',
-            'sample', 'Sample', 'SAMPLE',
-            'dummy', 'Dummy', 'DUMMY',
-            
-            // 模拟函数关键词
-            'mockData', 'mockAPI', 'mockResponse',
-            'fakeData', 'fakeAPI', 'fakeResponse',
-            'testData', 'testAPI', 'testResponse',
-            'demoData', 'demoAPI', 'demoResponse',
-            'sampleData', 'sampleAPI', 'sampleResponse',
-            
-            // 模拟对象关键词
-            'mockUser', 'mockConfig', 'mockResult',
-            'fakeUser', 'fakeConfig', 'fakeResult',
-            'testUser', 'testConfig', 'testResult',
-            
-            // 条件判断关键词
-            'shouldUseMock', 'useMockData', 'isMockMode',
-            'shouldUseFake', 'useFakeData', 'isFakeMode',
-            'shouldUseTest', 'useTestData', 'isTestMode',
-            
-            // setTimeout模拟异步
-            'setTimeout.*callback', 'setTimeout.*resolve',
-            'setTimeout.*mockData', 'setTimeout.*fakeData'
-        ]
-        
-        this.mockPatterns = [
-            // 函数定义模式
-            /const\s+mock\w+\s*=/gi,
-            /function\s+mock\w+/gi,
-            /const\s+fake\w+\s*=/gi,
-            /function\s+fake\w+/gi,
-            
-            // 条件判断模式
-            /if\s*\(\s*\w*mock\w*/gi,
-            /if\s*\(\s*\w*fake\w*/gi,
-            /if\s*\(\s*\w*test\w*/gi,
-            
-            // 三元运算符模式
-            /\?\s*mock\w+\s*:/gi,
-            /\?\s*fake\w+\s*:/gi,
-            /:\s*mock\w+/gi,
-            /:\s*fake\w+/gi,
-            
-            // setTimeout模拟异步模式
-            /setTimeout\s*\(\s*\(\)\s*=>\s*{[\s\S]*?callback/gi,
-            /setTimeout\s*\(\s*function\s*\(\)\s*{[\s\S]*?callback/gi,
-            
-            // 硬编码数据模式
-            /const\s+\w+\s*=\s*\[[\s\S]*?\]/gi,  // 数组硬编码
-            /const\s+\w+\s*=\s*{[\s\S]*?}/gi,   // 对象硬编码
-        ]
-        
-        this.violations = []
-    }
-    
-    // 🔴 全面检测Mock数据
-    detectMockData(fileContent, filePath) {
-        console.log(`🔍 检测Mock数据：${filePath}`)
-        
-        const violations = []
-        
-        // 检测关键词
-        for (const keyword of this.mockKeywords) {
-            if (fileContent.includes(keyword)) {
-                const lines = this.findLinesWithKeyword(fileContent, keyword)
-                violations.push({
-                    type: 'MOCK_KEYWORD',
-                    keyword: keyword,
-                    file: filePath,
-                    lines: lines,
-                    severity: 'HIGH'
-                })
-            }
-        }
-        
-        // 检测模式
-        for (const pattern of this.mockPatterns) {
-            const matches = fileContent.match(pattern)
-            if (matches) {
-                violations.push({
-                    type: 'MOCK_PATTERN',
-                    pattern: pattern.toString(),
-                    matches: matches,
-                    file: filePath,
-                    severity: 'CRITICAL'
-                })
-            }
-        }
-        
-        // 检测硬编码数据
-        const hardcodedData = this.detectHardcodedData(fileContent, filePath)
-        violations.push(...hardcodedData)
-        
-        return violations
-    }
-    
-    // 🔴 检测硬编码数据
-    detectHardcodedData(fileContent, filePath) {
-        const violations = []
-        
-        // 检测大型数组/对象硬编码
-        const lines = fileContent.split('\n')
-        let inDataStructure = false
-        let dataStructureStart = -1
-        let bracketCount = 0
-        
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]
-            
-            // 检测数据结构开始
-            if (/const\s+\w+\s*=\s*[\[{]/.test(line)) {
-                inDataStructure = true
-                dataStructureStart = i
-                bracketCount = (line.match(/[\[{]/g) || []).length - (line.match(/[\]}]/g) || []).length
-            }
-            
-            if (inDataStructure) {
-                bracketCount += (line.match(/[\[{]/g) || []).length - (line.match(/[\]}]/g) || []).length
-                
-                if (bracketCount === 0) {
-                    // 数据结构结束
-                    const structureSize = i - dataStructureStart + 1
-                    
-                    if (structureSize > 10) { // 超过10行的数据结构
-                        violations.push({
-                            type: 'HARDCODED_DATA',
-                            file: filePath,
-                            startLine: dataStructureStart + 1,
-                            endLine: i + 1,
-                            size: structureSize,
-                            severity: 'HIGH'
+        for (const [eventType, events] of Object.entries(eventTypes)) {
+            if (events.length > 0) {
+                switch (eventType) {
+                    case 'SUSPICIOUS_DOMAIN':
+                        recommendations.push({
+                            type: 'DOMAIN_SECURITY',
+                            priority: 'HIGH',
+                            message: '检测到可疑域名使用',
+                            action: '立即验证所有域名配置的正确性和安全性'
                         })
-                    }
-                    
-                    inDataStructure = false
+                        break
+                        
+                    case 'DANGEROUS_API_CALL':
+                        recommendations.push({
+                            type: 'API_SECURITY',
+                            priority: 'HIGH',
+                            message: '检测到危险API调用',
+                            action: '审查所有API调用，确保使用正确的方法'
+                        })
+                        break
+                        
+                    case 'EXCESSIVE_BATCH_SIZE':
+                        recommendations.push({
+                            type: 'BATCH_SECURITY',
+                            priority: 'MEDIUM',
+                            message: '检测到过大批量操作',
+                            action: '优化批量操作策略，分批处理大量数据'
+                        })
+                        break
                 }
             }
         }
         
-        return violations
-    }
-    
-    // 🔴 生成修复建议
-    generateFixSuggestions(violations) {
-        const suggestions = []
-        
-        for (const violation of violations) {
-            switch (violation.type) {
-                case 'MOCK_KEYWORD':
-                    suggestions.push({
-                        file: violation.file,
-                        lines: violation.lines,
-                        suggestion: `移除Mock关键词"${violation.keyword}"，使用真实API调用`,
-                        example: 'api.getData().then(result => { /* 使用真实数据 */ })'
-                    })
-                    break
-                    
-                case 'MOCK_PATTERN':
-                    suggestions.push({
-                        file: violation.file,
-                        suggestion: '移除Mock函数/条件判断，直接调用后端API',
-                        example: '直接使用：userAPI.login(params) 替代 mockLogin(params)'
-                    })
-                    break
-                    
-                case 'HARDCODED_DATA':
-                    suggestions.push({
-                        file: violation.file,
-                        lines: `${violation.startLine}-${violation.endLine}`,
-                        suggestion: '移除硬编码数据，从后端API获取',
-                        example: 'api.getConfig().then(config => { this.setData(config) })'
-                    })
-                    break
-            }
-        }
-        
-        return suggestions
+        return recommendations
     }
 }
-
-// 🔴 全局Mock数据检测器
-const mockDataDetector = new MockDataDetector()
-
-// 🔴 强制Mock数据检查
-const performMockDataCheck = async (projectPath) => {
-    console.log('🚨 开始全面Mock数据检查...')
-    
-    const jsFiles = await findJSFiles(projectPath)
-    const allViolations = []
-    
-    for (const file of jsFiles) {
-        const content = await read_file(file)
-        const violations = mockDataDetector.detectMockData(content, file)
-        allViolations.push(...violations)
-    }
-    
-    if (allViolations.length > 0) {
-        console.error(`🚨 发现${allViolations.length}个Mock数据违规！`)
-        
-        const suggestions = mockDataDetector.generateFixSuggestions(allViolations)
-        console.log('💡 修复建议：')
-        suggestions.forEach(suggestion => {
-            console.log(`  - ${suggestion.file}: ${suggestion.suggestion}`)
-        })
-        
-        return {
-            hasViolations: true,
-            violations: allViolations,
-            suggestions: suggestions
-        }
-    }
-    
-    console.log('✅ Mock数据检查通过')
-    return {
-        hasViolations: false,
-        violations: [],
-        suggestions: []
-    }
-}
-```
-
-### 8. 🔄 WebSocket连接错误处理优化规则
-
-#### WebSocket错误处理安全管理器
-```javascript
-// 🔴 WebSocket错误处理管理器
-class WebSocketErrorManager {
-    constructor() {
-        this.connectionState = {
-            isConnected: false,
-            isConnecting: false,
-            reconnectAttempts: 0,
-            lastError: null,
-            silentMode: false
-        }
-        
-        this.config = {
-            maxReconnectAttempts: 3,
-            reconnectInterval: 5000,
-            connectionTimeout: 10000,
-            heartbeatInterval: 30000,
-            developmentMode: this.isDevelopmentEnvironment()
-        }
-        
-        this.errorTypes = {
-            CONNECTION_FAILED: 'connection_failed',
-            CONNECTION_TIMEOUT: 'connection_timeout', 
-            AUTHENTICATION_FAILED: 'authentication_failed',
-            NETWORK_ERROR: 'network_error',
-            SERVER_ERROR: 'server_error'
-        }
-    }
-    
-    // 🔴 检测是否为开发环境
-    isDevelopmentEnvironment() {
-        try {
-            const config = require('../config/env').getConfig()
-            return config.isDev === true || config.developmentMode?.silentWebSocketErrors === true
-        } catch (error) {
-            return false
-        }
-    }
-    
-    // 🔴 智能错误处理
-    handleConnectionError(error, context = '') {
-        this.connectionState.lastError = error
-        const errorType = this.classifyError(error)
-        
-        console.log(`🔍 WebSocket错误分类：${errorType}`)
-        
-        if (this.config.developmentMode) {
-            // 开发环境静默处理
-            this.handleDevelopmentError(error, errorType, context)
-        } else {
-            // 生产环境显示错误
-            this.handleProductionError(error, errorType, context)
-        }
-        
-        // 根据错误类型决定是否重连
-        if (this.shouldReconnect(errorType)) {
-            this.scheduleReconnect()
-        }
-    }
-    
-    // 🔴 错误分类
-    classifyError(error) {
-        const errorMessage = error.message || error.toString()
-        
-        if (errorMessage.includes('timeout')) {
-            return this.errorTypes.CONNECTION_TIMEOUT
-        } else if (errorMessage.includes('authentication') || errorMessage.includes('auth')) {
-            return this.errorTypes.AUTHENTICATION_FAILED
-        } else if (errorMessage.includes('network') || errorMessage.includes('ECONNREFUSED')) {
-            return this.errorTypes.NETWORK_ERROR
-        } else if (errorMessage.includes('server') || errorMessage.includes('5')) {
-            return this.errorTypes.SERVER_ERROR
-        } else {
-            return this.errorTypes.CONNECTION_FAILED
-        }
-    }
-    
-    // 🔴 开发环境错误处理
-    handleDevelopmentError(error, errorType, context) {
-        console.log(`🔧 开发环境WebSocket错误（静默处理）: ${errorType}`)
-        console.log(`📍 错误上下文: ${context}`)
-        console.log(`📝 错误详情: ${error.message}`)
-        
-        this.connectionState.silentMode = true
-        
-        // 开发环境提示（非阻断）
-        if (typeof wx !== 'undefined') {
-            wx.showToast({
-                title: '后端服务检查中',
-                icon: 'loading',
-                duration: 1000,
-                mask: false
-            })
-        }
-    }
-    
-    // 🔴 生产环境错误处理
-    handleProductionError(error, errorType, context) {
-        console.error(`🚨 WebSocket连接错误: ${errorType}`)
-        console.error(`📍 错误上下文: ${context}`)
-        console.error(`📝 错误详情:`, error)
-        
-        // 生产环境用户友好提示
-        const userMessage = this.generateUserFriendlyMessage(errorType)
-        
-        if (typeof wx !== 'undefined') {
-            wx.showModal({
-                title: '连接异常',
-                content: userMessage,
-                showCancel: true,
-                cancelText: '稍后重试',
-                confirmText: '立即重试',
-                success: (res) => {
-                    if (res.confirm) {
-                        this.forceReconnect()
-                    }
-                }
-            })
-        }
-    }
-    
-    // 🔴 生成用户友好错误消息
-    generateUserFriendlyMessage(errorType) {
-        const messages = {
-            [this.errorTypes.CONNECTION_FAILED]: '无法连接到服务器，请检查网络状态',
-            [this.errorTypes.CONNECTION_TIMEOUT]: '连接超时，请稍后重试',
-            [this.errorTypes.AUTHENTICATION_FAILED]: '身份验证失败，请重新登录',
-            [this.errorTypes.NETWORK_ERROR]: '网络连接异常，请检查网络设置',
-            [this.errorTypes.SERVER_ERROR]: '服务器暂时不可用，请稍后重试'
-        }
-        
-        return messages[errorType] || '连接异常，请稍后重试'
-    }
-    
-    // 🔴 判断是否应该重连
-    shouldReconnect(errorType) {
-        // 认证失败不重连
-        if (errorType === this.errorTypes.AUTHENTICATION_FAILED) {
-            return false
-        }
-        
-        // 超过最大重连次数不重连
-        if (this.connectionState.reconnectAttempts >= this.config.maxReconnectAttempts) {
-            return false
-        }
-        
-        return true
-    }
-    
-    // 🔴 智能重连机制
-    scheduleReconnect() {
-        if (this.connectionState.reconnectAttempts >= this.config.maxReconnectAttempts) {
-            console.warn('⚠️ WebSocket重连次数已达上限，停止重连')
-            return
-        }
-        
-        this.connectionState.reconnectAttempts++
-        
-        // 指数退避重连间隔
-        const reconnectDelay = this.config.reconnectInterval * Math.pow(2, this.connectionState.reconnectAttempts - 1)
-        
-        console.log(`🔄 WebSocket将在${reconnectDelay}ms后进行第${this.connectionState.reconnectAttempts}次重连`)
-        
-        setTimeout(() => {
-            this.attemptReconnect()
-        }, reconnectDelay)
-    }
-    
-    // 🔴 重连尝试
-    attemptReconnect() {
-        if (this.connectionState.isConnected) {
-            console.log('✅ WebSocket已连接，取消重连')
-            return
-        }
-        
-        console.log(`🔄 开始第${this.connectionState.reconnectAttempts}次WebSocket重连...`)
-        
-        this.connectionState.isConnecting = true
-        
-        try {
-            // 尝试重新连接
-            this.connect()
-        } catch (error) {
-            console.error('❌ WebSocket重连失败:', error)
-            this.connectionState.isConnecting = false
-            
-            if (this.connectionState.reconnectAttempts < this.config.maxReconnectAttempts) {
-                this.scheduleReconnect()
-            } else {
-                this.handleMaxReconnectAttemptsReached()
-            }
-        }
-    }
-    
-    // 🔴 达到最大重连次数处理
-    handleMaxReconnectAttemptsReached() {
-        console.error('🚨 WebSocket重连次数已达上限')
-        
-        if (this.config.developmentMode) {
-            console.log('🔧 开发环境：WebSocket连接失败，继续使用HTTP API')
-        } else {
-            console.error('🚨 生产环境：WebSocket连接失败，请联系技术支持')
-            
-            if (typeof wx !== 'undefined') {
-                wx.showModal({
-                    title: '连接失败',
-                    content: '无法建立实时连接，部分功能可能受影响。请检查网络或联系技术支持。',
-                    showCancel: false,
-                    confirmText: '知道了'
-                })
-            }
-        }
-    }
-    
-    // 🔴 连接成功处理
-    handleConnectionSuccess() {
-        this.connectionState.isConnected = true
-        this.connectionState.isConnecting = false
-        this.connectionState.reconnectAttempts = 0
-        this.connectionState.lastError = null
-        this.connectionState.silentMode = false
-        
-        console.log('✅ WebSocket连接成功')
-        
-        // 开始心跳检测
-        this.startHeartbeat()
-        
-        // 通知连接成功
-        if (!this.config.developmentMode && typeof wx !== 'undefined') {
-            wx.showToast({
-                title: '连接成功',
-                icon: 'success',
-                duration: 1000
-            })
-        }
-    }
-    
-    // 🔴 心跳检测
-    startHeartbeat() {
-        if (this.heartbeatTimer) {
-            clearInterval(this.heartbeatTimer)
-        }
-        
-        this.heartbeatTimer = setInterval(() => {
-            if (this.connectionState.isConnected) {
-                this.sendHeartbeat()
-            }
-        }, this.config.heartbeatInterval)
-    }
-    
-    // 🔴 发送心跳
-    sendHeartbeat() {
-        try {
-            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                this.socket.send(JSON.stringify({
-                    type: 'heartbeat',
-                    timestamp: Date.now()
-                }))
-            }
-        } catch (error) {
-            console.warn('⚠️ 心跳发送失败:', error)
-            this.handleConnectionError(error, 'heartbeat')
-        }
-    }
-    
-    // 🔴 获取连接状态报告
-    getConnectionStatusReport() {
-        return {
-            ...this.connectionState,
-            config: this.config,
-            lastUpdateTime: new Date().toISOString()
-        }
-    }
-}
-
-// 🔴 全局WebSocket错误管理器
-const wsErrorManager = new WebSocketErrorManager()
-
-// 🔴 优化的WebSocket连接实现
-const createOptimizedWebSocket = (url) => {
-    console.log('🔌 创建优化的WebSocket连接...')
-    
-    const socket = new WebSocket(url)
-    
-    socket.onopen = () => {
-        wsErrorManager.handleConnectionSuccess()
-    }
-    
-    socket.onerror = (error) => {
-        wsErrorManager.handleConnectionError(error, 'socket_error')
-    }
-    
-    socket.onclose = (event) => {
-        wsErrorManager.connectionState.isConnected = false
-        console.log(`🔌 WebSocket连接已关闭 (code: ${event.code})`)
-        
-        // 如果不是主动关闭，尝试重连
-        if (!wsErrorManager.connectionState.intentionalClose) {
-            wsErrorManager.scheduleReconnect()
-        }
-    }
-    
-    socket.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data)
-            handleWebSocketMessage(data)
-        } catch (error) {
-            console.error('❌ WebSocket消息解析失败:', error)
-            wsErrorManager.handleConnectionError(error, 'message_parsing')
-        }
-    }
-    
-    // 连接超时检测
-    const connectionTimeout = setTimeout(() => {
-        if (socket.readyState === WebSocket.CONNECTING) {
-            socket.close()
-            wsErrorManager.handleConnectionError(
-                new Error('Connection timeout'),
-                'connection_timeout'
-            )
-        }
-    }, wsErrorManager.config.connectionTimeout)
-    
-    socket.addEventListener('open', () => {
-        clearTimeout(connectionTimeout)
-    })
-    
-    return socket
-}
-```
-
-### 9. 🔍 代码质量检查强化规则
-
-#### 代码质量自动检查器
-```javascript
-// 🔴 代码质量检查器
-class CodeQualityChecker {
-    constructor() {
-        this.qualityRules = {
-            COMMENT_COVERAGE: {
-                threshold: 0.8, // 80%的函数需要注释
-                severity: 'MEDIUM'
-            },
-            FUNCTION_COMPLEXITY: {
-                maxLines: 50, // 单个函数最大行数
-                severity: 'HIGH'
-            },
-            ERROR_HANDLING: {
-                requiredPatterns: ['try', 'catch', '.catch('], 
-                severity: 'HIGH'
-            },
-            SECURITY_COMPLIANCE: {
-                prohibitedPatterns: ['mock', 'fake', 'hardcode'],
-                severity: 'CRITICAL'
-            }
-        }
-    }
-    
-    // 🔴 全面代码质量检查
-    performQualityCheck(fileContent, filePath) {
-        const results = {
-            file: filePath,
-            score: 100,
-            issues: [],
-            warnings: [],
-            suggestions: []
-        }
-        
-        // 检查注释覆盖率
-        const commentCoverage = this.checkCommentCoverage(fileContent)
-        if (commentCoverage < this.qualityRules.COMMENT_COVERAGE.threshold) {
-            results.issues.push({
-                type: 'COMMENT_COVERAGE',
-                severity: 'MEDIUM',
-                message: `注释覆盖率过低：${(commentCoverage * 100).toFixed(1)}%`,
-                suggestion: '为函数和关键逻辑添加详细的中文注释'
-            })
-            results.score -= 15
-        }
-        
-        // 检查函数复杂度
-        const complexFunctions = this.checkFunctionComplexity(fileContent)
-        if (complexFunctions.length > 0) {
-            results.issues.push({
-                type: 'FUNCTION_COMPLEXITY',
-                severity: 'HIGH',
-                message: `发现${complexFunctions.length}个复杂函数`,
-                functions: complexFunctions,
-                suggestion: '将复杂函数拆分为多个小函数'
-            })
-            results.score -= complexFunctions.length * 10
-        }
-        
-        // 检查错误处理
-        const errorHandling = this.checkErrorHandling(fileContent)
-        if (!errorHandling.adequate) {
-            results.issues.push({
-                type: 'ERROR_HANDLING',
-                severity: 'HIGH',
-                message: '错误处理不充分',
-                details: errorHandling.details,
-                suggestion: '为API调用和关键操作添加完整的错误处理'
-            })
-            results.score -= 20
-        }
-        
-        return results
-    }
-    
-    // 🔴 检查注释覆盖率
-    checkCommentCoverage(content) {
-        const lines = content.split('\n')
-        const functions = this.extractFunctions(content)
-        const commentedFunctions = functions.filter(func => 
-            this.hasMeaningfulComment(func, lines)
-        )
-        
-        return functions.length > 0 ? commentedFunctions.length / functions.length : 1
-    }
-    
-    // 🔴 提取函数定义
-    extractFunctions(content) {
-        const functionPatterns = [
-            /function\s+(\w+)\s*\(/g,           // function name()
-            /(\w+)\s*:\s*function\s*\(/g,      // name: function()
-            /(\w+)\s*\(\s*.*?\s*\)\s*{/g,      // name() { (箭头函数简化形式)
-            /const\s+(\w+)\s*=\s*\(.*?\)\s*=>/g // const name = () =>
-        ]
-        
-        const functions = []
-        
-        for (const pattern of functionPatterns) {
-            let match
-            while ((match = pattern.exec(content)) !== null) {
-                functions.push({
-                    name: match[1],
-                    start: match.index,
-                    pattern: match[0]
-                })
-            }
-        }
-        
-        return functions
-    }
-    
-    // 🔴 检查是否有有意义的注释
-    hasMeaningfulComment(func, lines) {
-        const lineIndex = this.getLineNumber(func.start, lines)
-        
-        // 检查函数前3行是否有注释
-        for (let i = Math.max(0, lineIndex - 3); i < lineIndex; i++) {
-            const line = lines[i].trim()
-            if (line.startsWith('//') || line.startsWith('/*') || line.startsWith('*')) {
-                // 检查注释是否有意义（长度大于10且包含中文或详细描述）
-                if (line.length > 10 && (/[\u4e00-\u9fa5]/.test(line) || line.includes('param') || line.includes('return'))) {
-                    return true
-                }
-            }
-        }
-        
-        return false
-    }
-    
-    // 🔴 获取行号
-    getLineNumber(position, lines) {
-        let currentPos = 0
-        for (let i = 0; i < lines.length; i++) {
-            currentPos += lines[i].length + 1 // +1 for newline
-            if (currentPos > position) {
-                return i
-            }
-        }
-        return lines.length - 1
-    }
-}
-
-// 🔴 全局代码质量检查器
-const codeQualityChecker = new CodeQualityChecker()
 ```
 
 ---
 
-**更新时间**: 2025年7月4日  
-**新增规则**: Mock数据检测完善、WebSocket错误处理优化、代码质量检查强化  
-**目标**: 提升项目安全性和代码质量，防止常见问题重复出现
+**新增安全规则创建时间**: 2025年01月03日  
+**基于安全事件**: 域名配置错误、API调用错误等安全问题  
+**安全等级**: 高级安全规则，违反时立即停止操作  
+**适用范围**: 所有涉及域名、API、批量操作的开发会话  
+**维护责任**: 核心开发团队，定期审查和更新
+```
 
 
 

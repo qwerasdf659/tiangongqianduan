@@ -100,10 +100,29 @@ App({
       
       // 记录错误信息
       try {
+        // 🔧 修复：使用异步版本替换已弃用的wx.getSystemInfoSync
+        const systemInfo = {
+          platform: 'miniprogram',
+          version: 'unknown'
+        }
+        
+        // 尝试获取系统信息（异步）
+        wx.getSystemInfo({
+          success: (res) => {
+            systemInfo.platform = res.platform
+            systemInfo.version = res.version
+            systemInfo.model = res.model
+            systemInfo.system = res.system
+          },
+          fail: (err) => {
+            console.warn('获取系统信息失败:', err)
+          }
+        })
+        
         const errorInfo = {
           error: error,
           timestamp: new Date().toISOString(),
-          userAgent: wx.getSystemInfoSync(),
+          userAgent: systemInfo,
           path: getCurrentPages().length > 0 ? getCurrentPages()[getCurrentPages().length - 1].route : 'unknown',
           version: 'v2.1.3'
         }

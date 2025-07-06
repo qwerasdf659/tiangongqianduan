@@ -1,0 +1,118 @@
+<!--pages/points-detail/points-detail.wxml-->
+<view class="points-detail-container">
+  <!-- 页面头部 -->
+  <view class="header-section">
+    <view class="user-points">
+      <text class="points-label">当前积分</text>
+      <text class="points-value">{{totalPoints || 0}}</text>
+      <text class="points-unit">分</text>
+    </view>
+    <view class="last-update" wx:if="{{lastUpdateTime}}">
+      <text>最后更新：{{lastUpdateTime}}</text>
+    </view>
+  </view>
+
+  <!-- 筛选选项 -->
+  <view class="filter-section">
+    <view class="filter-tabs">
+      <button 
+        class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}"
+        bindtap="onPointsFilterChange"
+        data-filter="all"
+      >
+        全部记录
+      </button>
+      <button 
+        class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}"
+        bindtap="onPointsFilterChange"
+        data-filter="earn"
+      >
+        积分获得
+      </button>
+      <button 
+        class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}"
+        bindtap="onPointsFilterChange"
+        data-filter="consume"
+      >
+        积分消费
+      </button>
+    </view>
+  </view>
+
+  <!-- 积分记录列表 -->
+  <view class="records-section">
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading && filteredPointsRecords.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:elif="{{!loading && (!filteredPointsRecords || filteredPointsRecords.length === 0)}}">
+      <view class="empty-icon">📝</view>
+      <text class="empty-title">暂无积分记录</text>
+      <text class="empty-desc">快去参与活动获取积分吧！</text>
+      <button class="test-btn" bindtap="onTestTap">🧪 生成测试数据</button>
+    </view>
+
+    <!-- 记录列表 -->
+    <view class="records-list" wx:else>
+      <view 
+        class="record-item"
+        wx:for="{{filteredPointsRecords}}" 
+        wx:key="id"
+      >
+        <view class="record-info">
+          <view class="record-desc">{{item.description || '积分变动'}}</view>
+          <view class="record-time">{{item.created_at || '未知时间'}}</view>
+        </view>
+        <view class="record-points {{item.points > 0 ? 'earn' : 'consume'}}">
+          <view class="points-change">
+            {{item.points > 0 ? '+' : ''}}{{item.points || 0}}
+          </view>
+          <view class="points-balance">余额: {{item.balance_after || 0}}</view>
+        </view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view class="load-more-section" wx:if="{{hasMoreRecords}}">
+        <view class="load-more-btn" wx:if="{{!loading}}" bindtap="loadMoreRecords">
+          <text>点击加载更多</text>
+        </view>
+        <view class="loading-more" wx:else>
+          <view class="loading-spinner small"></view>
+          <text>加载中...</text>
+        </view>
+      </view>
+
+      <!-- 没有更多了 -->
+      <view class="no-more-section" wx:elif="{{filteredPointsRecords.length > 0}}">
+        <text class="no-more-text">— 没有更多记录了 —</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-actions">
+    <button class="action-btn refresh-btn" bindtap="onPullDownRefresh">
+      🔄 刷新记录
+    </button>
+    <button class="action-btn test-btn" bindtap="onTestTap">
+      🧪 测试数据
+    </button>
+  </view>
+
+  <!-- 统计信息 -->
+  <view class="stats-section" wx:if="{{filteredPointsRecords.length > 0}}">
+    <view class="stats-item">
+      <text class="stats-label">记录总数</text>
+      <text class="stats-value">{{filteredPointsRecords.length}}</text>
+    </view>
+    <view class="stats-item">
+      <text class="stats-label">当前筛选</text>
+      <text class="stats-value">
+        {{pointsFilter === 'all' ? '全部' : (pointsFilter === 'earn' ? '获得' : '消费')}}
+      </text>
+    </view>
+  </view>
+</view> 

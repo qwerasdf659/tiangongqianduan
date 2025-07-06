@@ -2,6 +2,16 @@
 
 /* pages/user/user.wxss - 用户中心页面样式 */
 
+/* 🔧 修复：定义CSS变量 - 解决积分明细不显示问题 */
+page {
+  --text-color: #333333;
+  --gray-color: #666666;
+  --bg-color: #f5f5f5;
+  --border-color: #e0e0e0;
+  --blue-start: #667eea;
+  --blue-end: #764ba2;
+}
+
 .user-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -136,6 +146,26 @@
   margin-bottom: 20rpx;
 }
 
+.header-tips {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.test-points-card-btn {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 16rpx;
+  width: 48rpx;
+  height: 48rpx;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .points-title {
   font-size: 28rpx;
   font-weight: 600;
@@ -193,6 +223,27 @@
   margin-bottom: 30rpx;
   backdrop-filter: blur(10rpx);
   animation: slideDown 0.3s ease-out;
+  /* 🔧 修复：确保积分明细可见 */
+  position: relative;
+  z-index: 10;
+  min-height: 200rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  border: 2rpx solid #667eea;
+}
+
+/* 🔧 强制显示积分明细 - 调试模式 */
+.points-detail-debug {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 20rpx !important;
+  margin-bottom: 30rpx !important;
+  position: relative !important;
+  z-index: 999 !important;
+  min-height: 200rpx !important;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1) !important;
+  border: 5rpx solid #ff0000 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 @keyframes slideDown {
@@ -212,6 +263,20 @@
   align-items: center;
   padding: 30rpx;
   border-bottom: 1rpx solid var(--border-color);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.test-points-btn {
+  background: var(--blue-start);
+  color: white;
+  border: none;
+  border-radius: 8rpx;
+  font-size: 20rpx;
 }
 
 .detail-title {
@@ -281,6 +346,67 @@
 .points-balance {
   font-size: 20rpx;
   color: var(--gray-color);
+}
+
+/* 🔧 修复：添加筛选选项样式 */
+.detail-filters {
+  display: flex;
+  padding: 20rpx 30rpx;
+  background: #f8f9fa;
+  border-bottom: 1rpx solid var(--border-color);
+  gap: 16rpx;
+}
+
+.filter-tab {
+  flex: 1;
+  background: transparent;
+  border: 1rpx solid var(--border-color);
+  border-radius: 8rpx;
+  padding: 12rpx 20rpx;
+  font-size: 24rpx;
+  color: var(--gray-color);
+  text-align: center;
+}
+
+.filter-tab.active {
+  background: var(--blue-start);
+  color: white;
+  border-color: var(--blue-start);
+}
+
+.load-more {
+  text-align: center;
+  padding: 30rpx;
+  color: var(--blue-start);
+  font-size: 28rpx;
+  border-top: 1rpx solid var(--border-color);
+}
+
+/* 🔧 修复：空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 80rpx 40rpx;
+  color: var(--gray-color);
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  display: block;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 12rpx;
+  color: var(--text-color);
+}
+
+.empty-desc {
+  font-size: 24rpx;
+  opacity: 0.8;
 }
 
 /* 统计数据 */
@@ -450,6 +576,32 @@
 .loading-text {
   font-size: 28rpx;
   color: var(--text-color);
+}
+
+.emergency-fix-btn {
+  background: #FF5722;
+  color: white;
+  border: none;
+  border-radius: 16rpx;
+  padding: 24rpx 40rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-top: 40rpx;
+  transition: all 0.3s ease;
+}
+
+.emergency-fix-btn:hover {
+  background: #E64A19;
+  transform: scale(1.05);
+}
+
+.emergency-tips {
+  font-size: 22rpx;
+  color: var(--gray-color);
+  margin-top: 16rpx;
+  margin-bottom: 20rpx;
+  text-align: center;
+  line-height: 1.5;
 }
 
 /* 版本信息 */

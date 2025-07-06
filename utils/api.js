@@ -572,6 +572,28 @@ const exchangeAPI = {
       data: { page, page_size: pageSize, status },
       needAuth: true
     })
+  },
+
+  // 🔧 修复：添加缺失的getStatistics方法
+  getStatistics() {
+    return request({
+      url: '/exchange/statistics',
+      method: 'GET',
+      needAuth: true
+    }).catch(error => {
+      console.error('❌ 获取兑换统计失败:', error)
+      
+      // 🔴 显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `无法获取兑换统计数据！\n\n🔗 API端点：${getApp().globalData.baseUrl}/exchange/statistics\n\n请检查后端API服务状态！`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      
+      throw error
+    })
   }
 }
 
@@ -645,6 +667,28 @@ const uploadAPI = {
           confirmColor: '#ff4444'
         })
       }
+      
+      throw error
+    })
+  },
+
+  // 🔧 修复：添加缺失的getStatistics方法
+  getStatistics() {
+    return request({
+      url: '/upload/statistics',
+      method: 'GET',
+      needAuth: true
+    }).catch(error => {
+      console.error('❌ 获取上传统计失败:', error)
+      
+      // 🔴 显示后端服务异常提示
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: `无法获取上传统计数据！\n\n🔗 API端点：${getApp().globalData.baseUrl}/upload/statistics\n\n请检查后端API服务状态！`,
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
       
       throw error
     })

@@ -3,7 +3,7 @@ description:
 globs: 
 alwaysApply: true
 ---
-# 🔧 开发自动化与环境统一规范
+# 🔧 开发自动化与环境统一规范 - 核心自动化规则集
 
 ## 🚨 核心目标：确保开发环境稳定性和规则自动化执行
 
@@ -183,861 +183,25 @@ function Test-PowerShellCommandSafety($command) {
 
 #### 🛡️ Claude 4 Sonnet 综合规则预防检查系统
 
-##### 规则理解确认清单 - 2025年7月4日最新更新
+##### 规则理解确认清单
 
-###### 🚨 全局规则理解确认 (新增会话问题分析规则)
+###### 🚨 全局规则理解确认
 
-**1. 会话问题分析与解决方案规则 (新增 - 2025年7月4日)**
+**1. 会话问题分析与解决方案规则**
 - ✅ **A级问题（严重）**: 工具调用参数验证错误、微信小程序启动方式错误、PowerShell控制台异常
 - ✅ **B级问题（中等）**: 并行工具调用利用不充分、大文件编辑策略选择不当、信息收集策略不完整
 - ✅ **C级问题（轻微）**: Mock数据检测不完整、搜索策略过度细分、任务验证不完整
 - ✅ **预防机制**: 工具调用参数验证、并行执行强制优化、搜索策略优化、微信小程序项目识别
-- 🆕 **2025年7月4日新增**: 12项问题解决方案和强制预防规则
 
-**2. 开发自动化核心规则 (更新)**
+**2. 开发自动化核心规则**
 - ✅ **PowerShell命令安全**: 中文字符+长命令检查、控制台稳定性保障、120秒超时切换
 - ✅ **Git分页器预防**: 强制禁用分页器、安全替代方案、指令超时处理
 - ✅ **微信小程序识别**: 项目类型自动识别、启动方式规范、工具兼容性检查
-- 🆕 **2025年7月4日新增**: 微信小程序项目自动识别系统
 
-##### 🔧 微信小程序项目自动识别与启动规范 (新增 - 2025年7月4日)
+##### 🔧 微信小程序项目自动识别与启动规范
 
 ```javascript
 // 🔴 微信小程序项目检测器
-class WechatMiniProgramDetector {
-    constructor() {
-        this.requiredFiles = [
-            'app.js',      // 主应用逻辑
-            'app.json',    // 应用配置
-            'app.wxss',    // 全局样式
-            'project.config.json', // 项目配置
-            'pages/',      // 页面目录
-            'components/', // 组件目录
-            'utils/'       // 工具库目录
-        ]
-        
-        this.prohibitedCommands = [
-            'npm start',
-            'npm run dev',
-            'node server.js',
-            'webpack-dev-server',
-            'vite',
-            'yarn start'
-        ]
-    }
-    
-    // 🔴 项目类型检测
-    detectProjectType(projectPath) {
-        const detectedFiles = this.requiredFiles.filter(file => 
-            fs.existsSync(path.join(projectPath, file))
-        )
-        
-        const confidence = detectedFiles.length / this.requiredFiles.length
-        
-        return {
-            isMiniProgram: confidence >= 0.7, // 70%以上特征匹配
-            confidence: confidence,
-            detectedFeatures: detectedFiles,
-            missingFeatures: this.requiredFiles.filter(file => 
-                !detectedFiles.includes(file)
-            ),
-            startupMethod: confidence >= 0.7 ? 'wechat_devtools' : 'standard_web'
-        }
-    }
-    
-    // 🔴 启动指令验证
-    validateStartupCommand(command) {
-        const isProhibited = this.prohibitedCommands.some(prohibited => 
-            command.toLowerCase().includes(prohibited)
-        )
-        
-        if (isProhibited) {
-            return {
-                valid: false,
-                error: '微信小程序项目不支持此启动方式',
-                suggestion: '请使用微信开发者工具打开项目',
-                prohibitedCommand: command
-            }
-        }
-        
-        return { valid: true }
-    }
-    
-    // 🔴 生成启动指南
-    generateStartupGuide(projectPath) {
-        const detection = this.detectProjectType(projectPath)
-        
-        if (detection.isMiniProgram) {
-            return {
-                projectType: '微信小程序',
-                startupMethod: '微信开发者工具',
-                steps: [
-                    '1. 确保已安装微信开发者工具',
-                    '2. 打开微信开发者工具',
-                    '3. 选择"导入项目"或"打开目录"',
-                    '4. 选择项目根目录',
-                    '5. 填写AppID（可使用测试号）',
-                    '6. 点击"确定"开始开发'
-                ],
-                prohibited: [
-                    '❌ 禁止使用 npm start',
-                    '❌ 禁止使用 node 命令',
-                    '❌ 禁止使用 webpack 等构建工具',
-                    '❌ 禁止使用任何Web开发服务器'
-                ],
-                requirements: [
-                    '✅ 微信开发者工具 (必需)',
-                    '✅ 微信小程序AppID (建议)',
-                    '✅ 项目配置文件完整'
-                ]
-            }
-        }
-        
-        return {
-            projectType: '标准Web项目',
-            startupMethod: '标准启动方式',
-            steps: ['npm install', 'npm start'],
-            prohibited: [],
-            requirements: ['Node.js', 'npm或yarn']
-        }
-    }
-}
-
-// 🔴 全局项目检测器
-const projectDetector = new WechatMiniProgramDetector()
-
-// 🔴 强制使用示例
-const checkProjectAndStart = (projectPath) => {
-    console.log('🔍 检测项目类型...')
-    const detection = projectDetector.detectProjectType(projectPath)
-    
-    if (detection.isMiniProgram) {
-        console.log('✅ 检测到微信小程序项目')
-        console.log(`📊 置信度: ${(detection.confidence * 100).toFixed(1)}%`)
-        console.log('🔧 检测到的特征:', detection.detectedFeatures.join(', '))
-        
-        const guide = projectDetector.generateStartupGuide(projectPath)
-        console.log('📋 启动指南:')
-        guide.steps.forEach(step => console.log(`   ${step}`))
-        console.log('🚨 禁止操作:')
-        guide.prohibited.forEach(prohibition => console.log(`   ${prohibition}`))
-        
-        return guide
-    }
-    
-    console.log('📱 标准Web项目，可使用npm start等方式启动')
-    return projectDetector.generateStartupGuide(projectPath)
-}
-```
-
-##### 🔧 Mock数据检测与清除自动化规则 (新增 - 2025年7月4日)
-
-```javascript
-// 🔴 Mock数据检测器
-class MockDataDetector {
-    constructor() {
-        this.mockPatterns = {
-            // 函数名模式
-            functions: [
-                /mock\w*/gi,                    // mock开头的函数
-                /\w*mock\w*/gi,                 // 包含mock的函数
-                /fake\w*/gi,                    // fake开头的函数
-                /simulate\w*/gi,                // simulate开头的函数
-                /dummy\w*/gi,                   // dummy开头的函数
-                /stub\w*/gi,                    // stub开头的函数
-                /test\w*data/gi,                // test data相关
-                /sample\w*data/gi               // sample data相关
-            ],
-            
-            // 变量名模式
-            variables: [
-                /const\s+\w*mock\w*/gi,         // const mock变量
-                /let\s+\w*mock\w*/gi,           // let mock变量
-                /var\s+\w*mock\w*/gi,           // var mock变量
-                /\w*MockData\w*/gi,             // MockData变量
-                /\w*FakeData\w*/gi,             // FakeData变量
-                /\w*TestData\w*/gi,             // TestData变量
-                /\w*SampleData\w*/gi            // SampleData变量
-            ],
-            
-            // 硬编码数据模式
-            hardcoded: [
-                /\[\s*\{[\s\S]*?\}\s*\]/g,      // 硬编码数组对象
-                /setTimeout\s*\(\s*\(\s*\)\s*=>\s*\{[\s\S]*?\}\s*,\s*\d+\s*\)/g, // setTimeout模拟异步
-                /Promise\.resolve\s*\(\s*\{[\s\S]*?\}\s*\)/g, // Promise.resolve模拟
-                /return\s+\{[\s\S]*?total_points\s*:\s*\d+[\s\S]*?\}/g // 硬编码积分返回
-            ],
-            
-            // 条件判断模式
-            conditionals: [
-                /if\s*\(\s*\w*mock\w*/gi,       // if(mock条件)
-                /\w*mock\w*\s*\?\s*\w+\s*:\s*\w+/gi, // mock三元运算符
-                /shouldUseMock/gi,              // shouldUseMock条件
-                /enableMock/gi,                 // enableMock条件
-                /mockMode/gi,                   // mockMode条件
-                /isDev.*mock/gi                 // isDev && mock条件
-            ]
-        }
-        
-        this.approvedPatterns = [
-            /console\.log.*mock/gi,             // 调试日志中的mock (允许)
-            /\/\*[\s\S]*?mock[\s\S]*?\*\//gi,   // 注释中的mock (允许)
-            /\/\/.*mock.*/gi,                   // 单行注释中的mock (允许)
-            /import.*mock.*from.*test/gi       // 测试文件导入 (允许)
-        ]
-    }
-    
-    // 🔴 检测文件中的Mock数据
-    detectMockData(filePath, fileContent) {
-        const violations = []
-        
-        // 检查各种Mock模式
-        for (const [category, patterns] of Object.entries(this.mockPatterns)) {
-            patterns.forEach((pattern, index) => {
-                const matches = fileContent.match(pattern)
-                if (matches) {
-                    // 检查是否为允许的模式
-                    const isApproved = this.approvedPatterns.some(approvedPattern => 
-                        matches.some(match => match.match(approvedPattern))
-                    )
-                    
-                    if (!isApproved) {
-                        violations.push({
-                            category: category,
-                            pattern: pattern.source,
-                            matches: matches,
-                            severity: this.getSeverity(category),
-                            line: this.getLineNumber(fileContent, matches[0])
-                        })
-                    }
-                }
-            })
-        }
-        
-        return {
-            filePath: filePath,
-            hasViolations: violations.length > 0,
-            violations: violations,
-            totalViolations: violations.length,
-            severityBreakdown: this.getSeverityBreakdown(violations)
-        }
-    }
-    
-    // 🔴 获取违规严重程度
-    getSeverity(category) {
-        const severityMap = {
-            'hardcoded': 'CRITICAL',        // 硬编码数据最严重
-            'functions': 'HIGH',            // Mock函数高严重
-            'variables': 'MEDIUM',          // Mock变量中等严重
-            'conditionals': 'LOW'           // 条件判断低严重
-        }
-        return severityMap[category] || 'MEDIUM'
-    }
-    
-    // 🔴 获取行号
-    getLineNumber(content, match) {
-        const beforeMatch = content.substring(0, content.indexOf(match))
-        return beforeMatch.split('\n').length
-    }
-    
-    // 🔴 统计严重程度分布
-    getSeverityBreakdown(violations) {
-        const breakdown = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 }
-        violations.forEach(violation => {
-            breakdown[violation.severity]++
-        })
-        return breakdown
-    }
-    
-    // 🔴 生成修复建议
-    generateFixSuggestions(violations) {
-        const suggestions = []
-        
-        violations.forEach(violation => {
-            switch (violation.severity) {
-                case 'CRITICAL':
-                    suggestions.push({
-                        type: 'IMMEDIATE_ACTION',
-                        message: '立即删除硬编码数据，使用真实API调用',
-                        code: violation.matches[0],
-                        fix: 'api.getData().then(result => { /* 使用真实数据 */ })'
-                    })
-                    break
-                case 'HIGH':
-                    suggestions.push({
-                        type: 'REPLACE_FUNCTION',
-                        message: '删除Mock函数，替换为真实API调用',
-                        code: violation.matches[0],
-                        fix: '删除此函数，直接调用真实API'
-                    })
-                    break
-                case 'MEDIUM':
-                    suggestions.push({
-                        type: 'REMOVE_VARIABLE',
-                        message: '删除Mock变量，使用后端数据',
-                        code: violation.matches[0],
-                        fix: '从后端API获取数据'
-                    })
-                    break
-                case 'LOW':
-                    suggestions.push({
-                        type: 'REMOVE_CONDITION',
-                        message: '删除Mock条件判断，简化逻辑',
-                        code: violation.matches[0],
-                        fix: '直接使用真实API，无需条件判断'
-                    })
-                    break
-            }
-        })
-        
-        return suggestions
-    }
-}
-
-// 🔴 全局Mock数据检测器
-const mockDetector = new MockDataDetector()
-
-// 🔴 批量检测项目中的Mock数据
-const scanProjectForMockData = async (projectPath) => {
-    const jsFiles = await getAllJSFiles(projectPath)
-    const results = []
-    
-    for (const filePath of jsFiles) {
-        const content = await fs.readFile(filePath, 'utf8')
-        const detection = mockDetector.detectMockData(filePath, content)
-        
-        if (detection.hasViolations) {
-            results.push(detection)
-        }
-    }
-    
-    return {
-        totalFiles: jsFiles.length,
-        violationFiles: results.length,
-        totalViolations: results.reduce((sum, r) => sum + r.totalViolations, 0),
-        results: results,
-        summary: generateMockDataSummary(results)
-    }
-}
-
-// 🔴 生成Mock数据检测报告
-const generateMockDataSummary = (results) => {
-    const summary = {
-        CRITICAL: 0,
-        HIGH: 0,
-        MEDIUM: 0,
-        LOW: 0
-    }
-    
-    results.forEach(result => {
-        Object.keys(summary).forEach(severity => {
-            summary[severity] += result.severityBreakdown[severity] || 0
-        })
-    })
-    
-    return {
-        severityBreakdown: summary,
-        requiresImmediateAction: summary.CRITICAL > 0 || summary.HIGH > 0,
-        complianceScore: Math.max(0, 100 - (summary.CRITICAL * 25 + summary.HIGH * 15 + summary.MEDIUM * 10 + summary.LOW * 5)),
-        recommendations: generateComplianceRecommendations(summary)
-    }
-}
-
-// 🔴 生成合规建议
-const generateComplianceRecommendations = (summary) => {
-    const recommendations = []
-    
-    if (summary.CRITICAL > 0) {
-        recommendations.push('🚨 立即修复: 发现硬编码数据违规，必须立即删除')
-    }
-    
-    if (summary.HIGH > 0) {
-        recommendations.push('⚠️ 高优先级: 删除Mock函数，使用真实API')
-    }
-    
-    if (summary.MEDIUM > 0) {
-        recommendations.push('📋 中优先级: 清理Mock变量，统一数据来源')
-    }
-    
-    if (summary.LOW > 0) {
-        recommendations.push('🔧 低优先级: 简化条件判断，去除Mock逻辑')
-    }
-    
-    return recommendations
-}
-```
-
-##### 🔧 任务验证自动化规则 (新增 - 2025年7月4日)
-
-```javascript
-// 🔴 任务验证自动化系统
-class TaskValidationAutomation {
-    constructor() {
-        this.validationRules = {
-            // 代码质量检查
-            code_quality: [
-                'syntax_check',           // 语法检查
-                'style_consistency',      // 风格一致性
-                'comment_coverage',       // 注释覆盖率
-                'error_handling',         // 错误处理
-                'performance_check'       // 性能检查
-            ],
-            
-            // 功能完整性检查
-            functionality: [
-                'feature_completeness',   // 功能完整性
-                'api_integration',        // API集成
-                'data_validation',        // 数据验证
-                'user_experience',        // 用户体验
-                'compatibility'           // 兼容性
-            ],
-            
-            // 安全规则检查
-            security: [
-                'mock_data_removal',      // Mock数据清除
-                'sensitive_data_check',   // 敏感数据检查
-                'authorization_check',    // 授权检查
-                'input_validation',       // 输入验证
-                'secure_communication'    // 安全通信
-            ],
-            
-            // 项目配置检查
-            project_config: [
-                'environment_setup',      // 环境设置
-                'dependency_check',       // 依赖检查
-                'build_configuration',    // 构建配置
-                'deployment_readiness',   // 部署就绪
-                'documentation_update'    // 文档更新
-            ]
-        }
-        
-        this.validationResults = {}
-    }
-    
-    // 🔴 执行全面任务验证
-    async executeFullValidation(projectPath, taskType) {
-        console.log(`🔍 开始执行${taskType}任务验证...`)
-        
-        const validationPlan = this.createValidationPlan(taskType)
-        const results = {}
-        
-        for (const [category, rules] of Object.entries(validationPlan)) {
-            console.log(`📋 验证类别: ${category}`)
-            results[category] = await this.validateCategory(projectPath, category, rules)
-        }
-        
-        const summary = this.generateValidationSummary(results)
-        return {
-            taskType: taskType,
-            validationResults: results,
-            summary: summary,
-            passed: summary.overallScore >= 80, // 80分以上通过
-            recommendations: this.generateRecommendations(results)
-        }
-    }
-    
-    // 🔴 创建验证计划
-    createValidationPlan(taskType) {
-        const basePlan = {
-            code_quality: this.validationRules.code_quality,
-            security: this.validationRules.security
-        }
-        
-        switch (taskType) {
-            case 'frontend_development':
-                return {
-                    ...basePlan,
-                    functionality: this.validationRules.functionality,
-                    project_config: this.validationRules.project_config
-                }
-            case 'api_integration':
-                return {
-                    ...basePlan,
-                    functionality: ['api_integration', 'data_validation'],
-                    project_config: ['environment_setup', 'dependency_check']
-                }
-            case 'security_audit':
-                return {
-                    security: this.validationRules.security,
-                    code_quality: ['syntax_check', 'error_handling']
-                }
-            default:
-                return basePlan
-        }
-    }
-    
-    // 🔴 验证特定类别
-    async validateCategory(projectPath, category, rules) {
-        const results = {}
-        
-        for (const rule of rules) {
-            results[rule] = await this.executeValidationRule(projectPath, category, rule)
-        }
-        
-        return {
-            category: category,
-            rules: results,
-            passed: Object.values(results).every(r => r.passed),
-            score: this.calculateCategoryScore(results)
-        }
-    }
-    
-    // 🔴 执行具体验证规则
-    async executeValidationRule(projectPath, category, rule) {
-        switch (rule) {
-            case 'mock_data_removal':
-                const mockScan = await scanProjectForMockData(projectPath)
-                return {
-                    passed: mockScan.totalViolations === 0,
-                    score: mockScan.summary.complianceScore,
-                    details: mockScan.results,
-                    message: mockScan.totalViolations === 0 ? 
-                        '✅ 未发现Mock数据违规' : 
-                        `❌ 发现${mockScan.totalViolations}个Mock数据违规`
-                }
-                
-            case 'project_type_detection':
-                const detection = projectDetector.detectProjectType(projectPath)
-                return {
-                    passed: detection.confidence > 0.8,
-                    score: detection.confidence * 100,
-                    details: detection,
-                    message: detection.isMiniProgram ? 
-                        '✅ 微信小程序项目识别正确' : 
-                        '✅ 标准Web项目识别正确'
-                }
-                
-            case 'syntax_check':
-                // 执行语法检查
-                return await this.performSyntaxCheck(projectPath)
-                
-            case 'api_integration':
-                // 执行API集成检查
-                return await this.checkAPIIntegration(projectPath)
-                
-            default:
-                return {
-                    passed: true,
-                    score: 100,
-                    message: `✅ ${rule} 验证通过`
-                }
-        }
-    }
-    
-    // 🔴 计算类别评分
-    calculateCategoryScore(results) {
-        const scores = Object.values(results).map(r => r.score)
-        return scores.reduce((sum, score) => sum + score, 0) / scores.length
-    }
-    
-    // 🔴 生成验证摘要
-    generateValidationSummary(results) {
-        const categoryScores = Object.entries(results).map(([category, result]) => ({
-            category: category,
-            score: result.score,
-            passed: result.passed
-        }))
-        
-        const overallScore = categoryScores.reduce((sum, c) => sum + c.score, 0) / categoryScores.length
-        const allPassed = categoryScores.every(c => c.passed)
-        
-        return {
-            overallScore: overallScore,
-            allPassed: allPassed,
-            categoryScores: categoryScores,
-            grade: this.getGrade(overallScore),
-            status: allPassed ? 'PASSED' : 'FAILED'
-        }
-    }
-    
-    // 🔴 获取等级
-    getGrade(score) {
-        if (score >= 95) return 'A+'
-        if (score >= 90) return 'A'
-        if (score >= 80) return 'B'
-        if (score >= 70) return 'C'
-        return 'F'
-    }
-    
-    // 🔴 生成改进建议
-    generateRecommendations(results) {
-        const recommendations = []
-        
-        Object.entries(results).forEach(([category, result]) => {
-            if (!result.passed) {
-                recommendations.push({
-                    category: category,
-                    priority: result.score < 50 ? 'HIGH' : 'MEDIUM',
-                    message: `${category}需要改进，当前得分: ${result.score.toFixed(1)}`,
-                    actions: this.getCategoryActions(category, result)
-                })
-            }
-        })
-        
-        return recommendations
-    }
-    
-    // 🔴 获取类别改进行动
-    getCategoryActions(category, result) {
-        const actions = {
-            'code_quality': [
-                '检查代码语法和风格',
-                '增加代码注释',
-                '优化错误处理',
-                '提升性能'
-            ],
-            'security': [
-                '清除Mock数据',
-                '检查敏感数据',
-                '验证授权逻辑',
-                '加强输入验证'
-            ],
-            'functionality': [
-                '完善功能实现',
-                '集成API接口',
-                '验证数据流程',
-                '优化用户体验'
-            ],
-            'project_config': [
-                '检查环境配置',
-                '更新依赖项',
-                '完善构建配置',
-                '准备部署'
-            ]
-        }
-        
-        return actions[category] || ['需要进一步检查和优化']
-    }
-}
-
-// 🔴 全局任务验证器
-const taskValidator = new TaskValidationAutomation()
-
-// 🔴 使用示例
-const validateTask = async (projectPath, taskType) => {
-    console.log(`🚀 开始验证任务: ${taskType}`)
-    
-    const validation = await taskValidator.executeFullValidation(projectPath, taskType)
-    
-    console.log(`📊 验证结果: ${validation.summary.status}`)
-    console.log(`📈 总体得分: ${validation.summary.overallScore.toFixed(1)} (${validation.summary.grade})`)
-    
-    if (!validation.passed) {
-        console.log('🔧 改进建议:')
-        validation.recommendations.forEach(rec => {
-            console.log(`   ${rec.priority}: ${rec.message}`)
-        })
-    }
-    
-    return validation
-}
-```
-
-#### 🎯 自动化规则执行流程
-
-##### 标准任务执行模板
-```javascript
-// 🔴 强制使用的任务执行模板
-async function executeTaskWithRuleCompliance(taskDescription, taskFunction) {
-    // Phase 1: 任务开始前检查
-    console.log('🤖 使用模型: Claude 4 Sonnet') // 用户规则第10条
-    console.log(`📅 当前日期: ${rulePreventionSystem.getCurrentDate()}`)
-    
-    // 数据安全预检查
-    const securityViolations = await rulePreventionSystem.checkDataSecurityRules(taskDescription)
-    if (securityViolations.length > 0) {
-        throw new Error(`🚨 数据安全规则违规: ${securityViolations.join(', ')}`)
-    }
-    
-    // Phase 2: 执行任务（带实时监控）
-    let result
-    try {
-        result = await rulePreventionSystem.setupTimeoutPrevention(taskFunction())
-    } catch (error) {
-        console.error('❌ 任务执行失败:', error.message)
-        
-        // 用户规则第12条：120秒超时自动重试
-        if (error.message.includes('超时')) {
-            console.log('🔄 检测到超时，执行自动重试...')
-            result = await taskFunction() // 重试机制
-        } else {
-            throw error
-        }
-    }
-    
-    // Phase 3: 任务完成后验证
-    const validationPassed = await taskValidator.runFinalValidation()
-    if (!validationPassed) {
-        throw new Error('❌ 任务完成验证失败，需要修复后再继续')
-    }
-    
-    console.log('✅ 任务执行完成，所有规则验证通过')
-    return result
-}
-```
-
-#### 📊 效率优化指标与监控
-
-##### Claude 4 Sonnet 请求次数优化目标
-```javascript
-// 🔴 请求次数优化监控
-class EfficiencyOptimizer {
-    constructor() {
-        this.metrics = {
-            totalRequests: 0,
-            parallelRequests: 0,
-            wastedRequests: 0,
-            timeoutViolations: 0,
-            ruleViolations: 0
-        }
-        this.optimizationTarget = {
-            parallelRatio: 0.8,        // 80%并行调用率
-            wasteReduction: 0.6,       // 60%浪费减少
-            timeoutPrevention: 0.95,   // 95%超时预防
-            ruleCompliance: 1.0        // 100%规则遵循
-        }
-    }
-    
-    // 🔴 效率报告生成
-    generateEfficiencyReport() {
-        const parallelRatio = this.metrics.parallelRequests / this.metrics.totalRequests
-        const wasteRatio = this.metrics.wastedRequests / this.metrics.totalRequests
-        const complianceRatio = 1 - (this.metrics.ruleViolations / this.metrics.totalRequests)
-        
-        return {
-            summary: {
-                totalRequests: this.metrics.totalRequests,
-                parallelRatio: (parallelRatio * 100).toFixed(1) + '%',
-                wasteRatio: (wasteRatio * 100).toFixed(1) + '%',
-                complianceRate: (complianceRatio * 100).toFixed(1) + '%'
-            },
-            recommendations: this.generateOptimizationRecommendations(parallelRatio, wasteRatio, complianceRatio)
-        }
-    }
-}
-
-// 🔴 全局效率优化器
-const efficiencyOptimizer = new EfficiencyOptimizer()
-```
-
-#### 🚨 违规预警与处理机制
-
-##### 实时违规检测
-```javascript
-// 🔴 违规实时检测与处理
-class RuleViolationHandler {
-    constructor() {
-        this.violationTypes = {
-            DATA_SECURITY: '数据安全违规',
-            EFFICIENCY_WASTE: '效率浪费',
-            TIMEOUT_VIOLATION: '超时违规', 
-            STANDARD_VIOLATION: '标准违规',
-            CLEANUP_VIOLATION: '清理违规'
-        }
-        this.violationLog = []
-    }
-    
-    // 🔴 违规处理流程
-    async handleViolation(violationType, details) {
-        const violation = {
-            type: violationType,
-            details: details,
-            timestamp: new Date().toISOString(),
-            resolved: false
-        }
-        
-        this.violationLog.push(violation)
-        
-        // 立即停止操作
-        console.error(`🚨 检测到规则违规: ${violationType}`)
-        console.error(`详细信息: ${details}`)
-        
-        // 根据违规类型执行对应处理
-        switch (violationType) {
-            case this.violationTypes.DATA_SECURITY:
-                await this.handleDataSecurityViolation(details)
-                break
-            case this.violationTypes.EFFICIENCY_WASTE:
-                await this.handleEfficiencyViolation(details)
-                break
-            case this.violationTypes.TIMEOUT_VIOLATION:
-                await this.handleTimeoutViolation(details)
-                break
-            default:
-                await this.handleGenericViolation(details)
-        }
-        
-        violation.resolved = true
-        return violation
-    }
-    
-    // 🔴 数据安全违规处理
-    async handleDataSecurityViolation(details) {
-        console.error('🔐 数据安全违规处理:')
-        console.error('1. 立即停止所有开发工作')
-        console.error('2. 移除所有硬编码数据')
-        console.error('3. 改为真实后端API调用')
-        console.error('4. 添加后端异常处理机制')
-        
-        throw new Error('🚨 严重违规！违反天工项目核心安全规则，禁止继续开发！')
-    }
-}
-
-// 🔴 全局违规处理器
-const violationHandler = new RuleViolationHandler()
-```
-
-## 📋 完整执行检查清单
-
-### ✅ 任务开始前必须确认
-- [ ] 已声明使用Claude 4 Sonnet模型
-- [ ] 已获取当前准确日期（2025年07月02日）
-- [ ] 已进行数据安全规则预检查
-- [ ] 已规划并行工具调用策略
-- [ ] 已设置120秒超时监控
-- [ ] 已确认微信小程序开发标准
-- [ ] 已准备临时文件自动清理机制
-
-### ✅ 任务执行中必须监控
-- [ ] 实时监控工具调用效率
-- [ ] 检测Mock数据使用情况
-- [ ] 监控超时风险
-- [ ] 验证代码兼容性
-- [ ] 确保功能完整性
-
-### ✅ 任务完成后必须验证
-- [ ] 项目运行状态健康检查
-- [ ] 临时文件自动清理
-- [ ] 数据安全规则验证
-- [ ] 代码质量标准检查
-- [ ] 用户规则遵循验证
-- [ ] 效率优化报告生成
-
-## 🎯 规则预防系统启用确认
-
-**所有规则理解确认**: ✅ 完成  
-**预防检查机制**: ✅ 已生成  
-**自动化验证流程**: ✅ 已建立  
-**违规处理机制**: ✅ 已部署  
-**效率优化监控**: ✅ 已激活  
-
----
-
-**创建时间**: 2025年07月02日  
-**适用范围**: 所有Claude 4 Sonnet开发任务  
-**维护状态**: ✅ 激活中 - 开发自动化与环境规范已全面部署  
-**使用模型**: Claude 4 Sonnet  
-**优化目标**: 零违规、高效率、完全合规、环境稳定
-
-# 🔧 会话问题解决方案扩展 - 2025年7月4日
-
-## 🚨 新增自动化规范
-
-### 微信小程序项目自动识别系统 (新增 - 2025年7月4日)
-
-#### 1. 微信小程序项目检测器
-```javascript
-// 🔴 微信小程序项目自动检测器
 class WechatMiniProgramDetector {
     constructor() {
         this.requiredFiles = [
@@ -1228,7 +392,7 @@ class StartupMethodCorrector {
 const startupCorrector = new StartupMethodCorrector()
 ```
 
-### 信息收集策略规范 (新增 - 2025年7月4日)
+### 信息收集策略规范
 
 #### 2. 三阶段信息收集策略
 ```javascript
@@ -1272,588 +436,47 @@ class InformationGatheringStrategy {
         }
     }
     
-    // 🔴 完整信息收集流程
-    async executeComprehensiveGathering(projectPath, requirements) {
-        console.log('🚀 开始三阶段信息收集策略')
-        
-        try {
-            // Phase 1: 项目概览
-            const phase1Results = await this.phase1_ProjectOverview(projectPath)
-            console.log('✅ Phase 1 完成')
-            
-            // Phase 2: 详细分析
-            const phase2Results = await this.phase2_DetailedAnalysis(phase1Results, requirements.analysisTargets)
-            console.log('✅ Phase 2 完成')
-            
-            // Phase 3: 特定目标
-            const phase3Results = await this.phase3_SpecificTargeting(phase2Results, requirements.specificTargets)
-            console.log('✅ Phase 3 完成')
-            
-            return {
-                phase1: phase1Results,
-                phase2: phase2Results,
-                phase3: phase3Results,
-                status: 'complete'
-            }
-            
-        } catch (error) {
-            console.error('❌ 信息收集失败:', error)
-            throw error
-        }
-    }
-}
-
-// 🔴 全局信息收集策略管理器
-const informationGatherer = new InformationGatheringStrategy()
-```
-
----
-
-**更新时间**: 2025年7月4日  
-**新增功能**: 微信小程序项目自动识别、三阶段信息收集策略  
-**适用场景**: 所有微信小程序开发项目和Web项目
-
-# 🚀 工具调用效率与并行处理规范 (新增 - 2025年1月3日)
-
-## 📊 工具调用效率问题分析
-
-### 🔴 问题1：串行执行效率低下
-```javascript
-// ❌ 错误：串行执行，浪费时间
-await readFile1()
-await readFile2()
-await readFile3()
-// 总时间：3x单次时间
-
-// ✅ 正确：并行执行，显著提升效率
-const [result1, result2, result3] = await Promise.all([
-    readFile1(),
-    readFile2(),
-    readFile3()
-])
-// 总时间：max(单次时间) ≈ 单次时间
-```
-
-### 🔴 问题2：工具调用参数验证错误
-```javascript
-// ❌ 错误：参数验证失败
-read_file({
-    target_file: 'file.js',
-    start_line_one_indexed: 100,
-    end_line_one_indexed_inclusive: 50  // 错误：结束行小于开始行
-})
-
-// ✅ 正确：参数验证通过
-read_file({
-    target_file: 'file.js',
-    start_line_one_indexed: 50,
-    end_line_one_indexed_inclusive: 100,  // 正确：结束行大于开始行
-    should_read_entire_file: false
-})
-```
-
-### 🔴 问题3：search_replace字符串匹配失败
-```javascript
-// ❌ 错误：上下文不足，匹配失败
-const old_string = `const result = api.call()`
-
-// ✅ 正确：包含足够上下文，确保唯一匹配
-const old_string = `
-// 调用API获取数据
-const result = api.call()
-if (!result.success) {
-    console.error('API调用失败')
-}
-`
-```
-
-## 🎯 强制并行工具调用规范
-
-### 1. 🔴 多文件读取必须并行
-```javascript
-// 🔴 强制规则：读取多个文件必须并行执行
-const readMultipleFiles = async (filePaths) => {
-    // ❌ 禁止：串行读取
-    const results = []
-    for (const path of filePaths) {
-        results.push(await readFile(path))
-    }
-    
-    // ✅ 强制：并行读取
-    const results = await Promise.all(
-        filePaths.map(path => readFile(path))
-    )
-    
-    return results
-}
-```
-
-### 2. 🔴 信息收集必须并行
-```javascript
-// 🔴 信息收集阶段强制并行
-const gatherProjectInfo = async () => {
-    // ✅ 所有信息收集工具必须并行调用
-    const [
-        projectStructure,
-        packageInfo,
-        configInfo,
-        dependencyInfo
-    ] = await Promise.all([
-        listDirectory('./'),
-        readFile('./package.json'),
-        readFile('./project.config.json'),
-        grepSearch('import.*from', '*.js')
-    ])
-    
-    return {
-        projectStructure,
-        packageInfo,
-        configInfo,
-        dependencyInfo
-    }
-}
-```
-
-### 3. 🔴 搜索操作必须并行
-```javascript
-// 🔴 多重搜索必须并行执行
-const comprehensiveSearch = async (searchTerms) => {
-    // ✅ 所有搜索必须并行
-    const searchResults = await Promise.all([
-        codebaseSearch(searchTerms.semantic),
-        grepSearch(searchTerms.exact),
-        fileSearch(searchTerms.fileName)
-    ])
-    
-    return {
-        semantic: searchResults[0],
-        exact: searchResults[1],
-        fileName: searchResults[2]
-    }
-}
-```
-
-## 🔧 工具调用参数验证增强规则
-
-### 1. 🔴 read_file参数强制验证
-```javascript
-const validateReadFileParams = (params) => {
-    const errors = []
-    
-    // 检查必要参数
-    if (!params.target_file) {
-        errors.push('❌ target_file 参数不能为空')
-    }
-    
-    // 检查行号参数
-    if (params.start_line_one_indexed && params.end_line_one_indexed_inclusive) {
-        if (params.start_line_one_indexed > params.end_line_one_indexed_inclusive) {
-            errors.push('❌ start_line_one_indexed 不能大于 end_line_one_indexed_inclusive')
-        }
-        
-        if (params.start_line_one_indexed < 1) {
-            errors.push('❌ start_line_one_indexed 必须大于等于1')
-        }
-        
-        const lineRange = params.end_line_one_indexed_inclusive - params.start_line_one_indexed + 1
-        if (lineRange < 200) {
-            errors.push(`⚠️ 行范围太小 (${lineRange}行)，建议至少200行`)
-        }
-        
-        if (lineRange > 250) {
-            errors.push(`❌ 行范围太大 (${lineRange}行)，最多250行`)
-        }
-    }
-    
-    if (errors.length > 0) {
-        throw new Error('read_file参数验证失败:\n' + errors.join('\n'))
-    }
-    
-    return true
-}
-```
-
-### 2. 🔴 search_replace安全匹配规则
-```javascript
-const createSafeSearchReplace = (targetContent, newContent, contextLines = 5) => {
-    // 🔴 强制包含足够上下文
-    const lines = targetContent.split('\n')
-    const targetIndex = lines.findIndex(line => line.includes(targetContent))
-    
-    if (targetIndex === -1) {
-        throw new Error('❌ 目标内容不存在')
-    }
-    
-    // 包含上下文行
-    const startIndex = Math.max(0, targetIndex - contextLines)
-    const endIndex = Math.min(lines.length - 1, targetIndex + contextLines)
-    
-    const safeOldString = lines.slice(startIndex, endIndex + 1).join('\n')
-    
-    // 验证唯一性
-    const occurrences = (targetContent.match(new RegExp(safeOldString, 'g')) || []).length
-    if (occurrences > 1) {
-        throw new Error('❌ 匹配字符串不唯一，请增加更多上下文')
-    }
-    
-    return {
-        old_string: safeOldString,
-        new_string: newContent,
-        confidence: 100
-    }
-}
-```
-
-## 🎯 命令兼容性处理规范
-
-### 1. 🔴 Windows PowerShell兼容性
-```javascript
-// 🔴 Windows命令兼容性处理
-const getCompatibleCommand = (command, platform = 'win32') => {
-    if (platform === 'win32') {
-        // Windows PowerShell不支持 && 连接符
-        return command.replace(/\s*&&\s*/g, '; ')
-    }
-    return command
-}
-
-// 🔴 微信小程序项目启动命令修正
-const getWechatStartCommand = () => {
-    // ❌ 错误：npm start (微信小程序不支持)
-    // ✅ 正确：使用微信开发者工具启动
-    return '请使用微信开发者工具打开项目目录启动小程序'
-}
-```
-
-### 2. 🔴 Mock数据检测增强
-```javascript
-// 🔴 Mock数据完整性检测
-const detectMockData = (codeContent) => {
-    const mockPatterns = [
-        /mock.*data/gi,
-        /setTimeout.*callback/gi,
-        /Math\.random\(\)/gi,
-        /const.*=.*\{.*test.*\}/gi,
-        /shouldUseMock/gi,
-        /smartApiCall/gi
-    ]
-    
-    const detectedMocks = []
-    
-    mockPatterns.forEach((pattern, index) => {
-        const matches = codeContent.match(pattern)
-        if (matches) {
-            detectedMocks.push({
-                pattern: pattern.source,
-                matches: matches,
-                severity: 'HIGH'
-            })
-        }
-    })
-    
-    return {
-        hasMockData: detectedMocks.length > 0,
-        mockCount: detectedMocks.length,
-        details: detectedMocks
-    }
-}
-```
-
-## 📈 效率提升目标
-
-- **并行工具调用**: 减少执行时间70%+
-- **参数验证**: 减少调用失败率90%+
-- **搜索匹配**: 提升成功率95%+
-- **命令兼容**: 消除平台错误100%
-
-## 🔴 强制执行检查清单
-
-### 每次工具调用前必须确认：
-- [ ] 多个只读操作是否已并行执行
-- [ ] read_file参数是否已验证
-- [ ] search_replace是否包含足够上下文
-- [ ] 命令是否兼容当前平台
-- [ ] Mock数据是否已完全清除
-
-**📅 创建时间**: 2025年1月3日  
-**🎯 解决问题**: 工具调用效率、参数验证、命令兼容性  
-**📊 预期效果**: 整体开发效率提升60%+，错误率降低85%+
-
-# 🔧 会话问题解决方案扩展 - 2025年7月4日
-
-## 🚨 新增自动化规范
-
-### 微信小程序项目自动识别系统 (新增 - 2025年7月4日)
-
-#### 1. 微信小程序项目检测器
-```javascript
-// 🔴 微信小程序项目自动检测器
-class WechatMiniProgramDetector {
-    constructor() {
-        this.requiredFiles = [
-            'app.js',      // 主应用逻辑
-            'app.json',    // 应用配置
-            'app.wxss',    // 全局样式
-            'project.config.json', // 项目配置
-            'pages/',      // 页面目录
-            'components/', // 组件目录
-            'utils/'       // 工具库目录
-        ]
-        
-        this.prohibitedCommands = [
-            'npm start',
-            'npm run dev',
-            'node server.js',
-            'webpack-dev-server',
-            'vite',
-            'yarn start'
-        ]
-    }
-    
-    // 🔴 项目类型检测
-    detectProjectType(projectPath) {
-        const detectedFiles = this.requiredFiles.filter(file => 
-            fs.existsSync(path.join(projectPath, file))
-        )
-        
-        const confidence = detectedFiles.length / this.requiredFiles.length
-        
-        return {
-            isMiniProgram: confidence >= 0.7, // 70%以上特征匹配
-            confidence: confidence,
-            detectedFeatures: detectedFiles,
-            missingFeatures: this.requiredFiles.filter(file => 
-                !detectedFiles.includes(file)
-            ),
-            startupMethod: confidence >= 0.7 ? 'wechat_devtools' : 'standard_web'
-        }
-    }
-    
-    // 🔴 启动指令验证
-    validateStartupCommand(command) {
-        const isProhibited = this.prohibitedCommands.some(prohibited => 
-            command.toLowerCase().includes(prohibited)
-        )
-        
-        if (isProhibited) {
-            return {
-                valid: false,
-                error: '微信小程序项目不支持此启动方式',
-                suggestion: '请使用微信开发者工具打开项目',
-                prohibitedCommand: command
-            }
-        }
-        
-        return { valid: true }
-    }
-    
-    // 🔴 生成启动指南
-    generateStartupGuide(projectPath) {
-        const detection = this.detectProjectType(projectPath)
-        
-        if (detection.isMiniProgram) {
-            return {
-                projectType: '微信小程序',
-                startupMethod: '微信开发者工具',
-                steps: [
-                    '1. 确保已安装微信开发者工具',
-                    '2. 打开微信开发者工具',
-                    '3. 选择"导入项目"或"打开目录"',
-                    '4. 选择项目根目录',
-                    '5. 填写AppID（可使用测试号）',
-                    '6. 点击"确定"开始开发'
-                ],
-                prohibited: [
-                    '❌ 禁止使用 npm start',
-                    '❌ 禁止使用 node 命令',
-                    '❌ 禁止使用 webpack 等构建工具',
-                    '❌ 禁止使用任何Web开发服务器'
-                ],
-                requirements: [
-                    '✅ 微信开发者工具 (必需)',
-                    '✅ 微信小程序AppID (建议)',
-                    '✅ 项目配置文件完整'
-                ]
-            }
-        }
-        
-        return {
-            projectType: '标准Web项目',
-            startupMethod: '标准启动方式',
-            steps: ['npm install', 'npm start'],
-            prohibited: [],
-            requirements: ['Node.js', 'npm或yarn']
-        }
-    }
-}
-
-// 🔴 全局项目检测器
-const projectDetector = new WechatMiniProgramDetector()
-```
-
-#### 2. 启动方式自动纠正系统
-```javascript
-// 🔴 启动方式自动纠正系统
-class StartupMethodCorrector {
-    constructor() {
-        this.corrections = {
-            'npm start': {
-                webProject: 'npm start',
-                miniProgram: 'wechat_devtools',
-                message: '微信小程序项目请使用微信开发者工具启动'
-            },
-            'npm run dev': {
-                webProject: 'npm run dev',
-                miniProgram: 'wechat_devtools',
-                message: '微信小程序项目请使用微信开发者工具启动'
-            },
-            'yarn start': {
-                webProject: 'yarn start',
-                miniProgram: 'wechat_devtools',
-                message: '微信小程序项目请使用微信开发者工具启动'
-            }
-        }
-    }
-    
-    // 🔴 自动纠正启动方式
-    correctStartupMethod(command, projectType) {
-        const correction = this.corrections[command]
-        
-        if (!correction) {
-            return { needsCorrection: false, originalCommand: command }
-        }
-        
-        const correctMethod = projectType.isMiniProgram ? 
-            correction.miniProgram : 
-            correction.webProject
-        
-        if (correctMethod !== command) {
-            return {
-                needsCorrection: true,
-                originalCommand: command,
-                correctMethod: correctMethod,
-                message: correction.message,
-                projectType: projectType.isMiniProgram ? 'miniProgram' : 'webProject'
-            }
-        }
-        
-        return { needsCorrection: false, originalCommand: command }
-    }
-    
-    // 🔴 生成纠正提示
-    generateCorrectionPrompt(correction) {
-        if (correction.projectType === 'miniProgram') {
-            return `
-⚠️ 启动方式错误检测
-
-❌ 错误命令: ${correction.originalCommand}
-✅ 正确方式: ${correction.correctMethod}
-📝 说明: ${correction.message}
-
-🔧 微信小程序正确启动步骤:
-1. 打开微信开发者工具
-2. 选择"导入项目"
-3. 选择当前项目目录
-4. 填写AppID（可使用测试号）
-5. 点击"导入"开始开发
-
-❌ 禁止使用的命令:
-- npm start
-- npm run dev
-- yarn start
-- node server.js
-- webpack-dev-server
-            `
-        } else {
-            return `
-✅ Web项目启动方式正确
-命令: ${correction.originalCommand}
-类型: 标准Web项目
-            `
-        }
-    }
-}
-
-// 🔴 全局启动方式纠正器
-const startupCorrector = new StartupMethodCorrector()
-```
-
-### 信息收集策略规范 (新增 - 2025年7月4日)
-
-#### 3. 三阶段信息收集策略
-```javascript
-// 🔴 信息收集策略管理器
-class InformationGatheringStrategy {
-    constructor() {
-        this.phases = {
-            phase1: 'project_overview',     // 项目概览阶段
-            phase2: 'detailed_analysis',    // 详细分析阶段
-            phase3: 'specific_targeting'    // 特定目标阶段
-        }
-    }
-    
-    // 🔴 Phase 1: 项目概览并行收集
-    async phase1_ProjectOverview(projectPath) {
-        console.log('📊 Phase 1: 项目概览信息收集（并行执行）')
-        
-        // 并行执行基础信息收集
-        const [
-            projectStructure,
-            configFiles,
-            packageInfo,
-            readmeInfo
-        ] = await Promise.all([
-            this.getProjectStructure(projectPath),
-            this.findConfigFiles(projectPath),
-            this.getPackageInfo(projectPath),
-            this.getReadmeInfo(projectPath)
-        ])
-        
-        // 项目类型检测
-        const projectType = await projectDetector.detectProjectType(projectPath)
-        
-        return {
-            projectStructure,
-            configFiles,
-            packageInfo,
-            readmeInfo,
-            projectType,
-            phase: 'overview_complete'
-        }
-    }
-    
     // 🔴 Phase 2: 详细分析并行收集
-    async phase2_DetailedAnalysis(phase1Results, analysisTargets) {
+    async phase2_DetailedAnalysis(overviewData, requirements) {
         console.log('🔍 Phase 2: 详细分析信息收集（并行执行）')
         
-        // 根据Phase1结果确定分析目标
-        const analysisGroups = this.planAnalysisGroups(phase1Results, analysisTargets)
+        const analysisTargets = this.identifyAnalysisTargets(overviewData, requirements)
         
         // 并行执行详细分析
-        const detailedResults = await Promise.all(
-            analysisGroups.map(group => this.executeAnalysisGroup(group))
-        )
+        const [
+            coreFiles,
+            configDetails,
+            dependencyAnalysis,
+            businessLogic
+        ] = await Promise.all([
+            this.analyzeCoreFiles(analysisTargets.coreFiles),
+            this.analyzeConfigurations(analysisTargets.configFiles),
+            this.analyzeDependencies(analysisTargets.dependencies),
+            this.analyzeBusinessLogic(analysisTargets.businessFiles)
+        ])
         
         return {
-            detailedResults,
+            coreFiles,
+            configDetails,
+            dependencyAnalysis,
+            businessLogic,
             phase: 'analysis_complete'
         }
     }
     
     // 🔴 Phase 3: 特定目标并行收集
-    async phase3_SpecificTargeting(phase2Results, specificTargets) {
+    async phase3_SpecificTargeting(analysisData, specificRequirements) {
         console.log('🎯 Phase 3: 特定目标信息收集（并行执行）')
         
-        // 基于前两个阶段的结果，精确定位特定信息
-        const targetingGroups = this.planTargetingGroups(phase2Results, specificTargets)
+        const targetFiles = this.identifyTargetFiles(analysisData, specificRequirements)
         
-        // 并行执行特定目标收集
-        const specificResults = await Promise.all(
-            targetingGroups.map(group => this.executeTargetingGroup(group))
+        // 并行执行特定目标分析
+        const results = await Promise.all(
+            targetFiles.map(file => this.analyzeSpecificFile(file))
         )
         
         return {
-            specificResults,
+            targetAnalysis: results,
             phase: 'targeting_complete'
         }
     }
@@ -1864,487 +487,1116 @@ class InformationGatheringStrategy {
         
         try {
             // Phase 1: 项目概览
-            const phase1Results = await this.phase1_ProjectOverview(projectPath)
+            const overviewData = await this.phase1_ProjectOverview(projectPath)
             console.log('✅ Phase 1 完成')
             
             // Phase 2: 详细分析
-            const phase2Results = await this.phase2_DetailedAnalysis(phase1Results, requirements.analysisTargets)
+            const analysisData = await this.phase2_DetailedAnalysis(overviewData, requirements)
             console.log('✅ Phase 2 完成')
             
             // Phase 3: 特定目标
-            const phase3Results = await this.phase3_SpecificTargeting(phase2Results, requirements.specificTargets)
+            const targetingData = await this.phase3_SpecificTargeting(analysisData, requirements)
             console.log('✅ Phase 3 完成')
             
             return {
-                phase1: phase1Results,
-                phase2: phase2Results,
-                phase3: phase3Results,
+                overview: overviewData,
+                analysis: analysisData,
+                targeting: targetingData,
                 status: 'complete',
                 efficiency: this.calculateEfficiency()
             }
             
         } catch (error) {
-            console.error('❌ 信息收集失败:', error)
+            console.error('❌ 信息收集策略执行失败:', error)
             throw error
         }
     }
     
-    // 🔴 效率计算
-    calculateEfficiency() {
-        const totalCalls = this.phases.length * 3 // 3个阶段
-        const actualCalls = this.getActualCallCount()
-        const efficiency = (totalCalls - actualCalls) / totalCalls * 100
-        
+    // 辅助方法
+    getProjectStructure(projectPath) {
+        // 获取项目目录结构
+        return new Promise(resolve => {
+            // 实现项目结构分析
+            resolve({ directories: [], files: [] })
+        })
+    }
+    
+    findConfigFiles(projectPath) {
+        // 查找配置文件
+        return new Promise(resolve => {
+            resolve(['app.json', 'project.config.json'])
+        })
+    }
+    
+    getPackageInfo(projectPath) {
+        // 获取包信息
+        return new Promise(resolve => {
+            resolve({ dependencies: [], devDependencies: [] })
+        })
+    }
+    
+    getReadmeInfo(projectPath) {
+        // 获取README信息
+        return new Promise(resolve => {
+            resolve({ content: '', hasReadme: false })
+        })
+    }
+    
+    identifyAnalysisTargets(overviewData, requirements) {
+        // 识别分析目标
         return {
-            totalPossibleCalls: totalCalls,
-            actualCalls: actualCalls,
-            efficiency: efficiency,
-            timeSaved: (totalCalls - actualCalls) * 3000 // 估算节省时间
+            coreFiles: ['app.js', 'utils/api.js'],
+            configFiles: ['app.json'],
+            dependencies: [],
+            businessFiles: ['pages/index/index.js']
+        }
+    }
+    
+    analyzeCoreFiles(files) {
+        // 分析核心文件
+        return Promise.resolve({ analysis: 'core files analyzed' })
+    }
+    
+    analyzeConfigurations(files) {
+        // 分析配置文件
+        return Promise.resolve({ analysis: 'config analyzed' })
+    }
+    
+    analyzeDependencies(deps) {
+        // 分析依赖关系
+        return Promise.resolve({ analysis: 'dependencies analyzed' })
+    }
+    
+    analyzeBusinessLogic(files) {
+        // 分析业务逻辑
+        return Promise.resolve({ analysis: 'business logic analyzed' })
+    }
+    
+    identifyTargetFiles(analysisData, requirements) {
+        // 识别目标文件
+        return ['specific-file1.js', 'specific-file2.js']
+    }
+    
+    analyzeSpecificFile(file) {
+        // 分析特定文件
+        return Promise.resolve({ file, analysis: 'specific analysis' })
+    }
+    
+    calculateEfficiency() {
+        // 计算效率指标
+        return {
+            parallelCallsUsed: 15,
+            timeSaved: '60%',
+            requestsOptimized: 10
         }
     }
 }
 
 // 🔴 全局信息收集策略管理器
-const informationGatherer = new InformationGatheringStrategy()
+const infoGatheringStrategy = new InformationGatheringStrategy()
 ```
 
-#### 4. 任务验证自动化系统
+### 工具调用参数验证系统
+
+#### 3. 工具调用参数安全验证
 ```javascript
-// 🔴 任务验证自动化系统
-class TaskValidationSystem {
+// 🔴 工具调用参数验证系统
+class ToolCallParameterValidator {
     constructor() {
-        this.validationCategories = {
-            'code_quality': ['syntax_check', 'style_check', 'comment_check'],
-            'functionality': ['api_integration', 'data_flow', 'error_handling'],
-            'security': ['mock_data_check', 'sensitive_data_check', 'auth_check'],
-            'performance': ['load_time', 'memory_usage', 'network_calls'],
-            'compatibility': ['browser_support', 'device_support', 'api_compatibility']
+        this.validators = {
+            read_file: this.validateReadFileParams,
+            search_replace: this.validateSearchReplaceParams,
+            edit_file: this.validateEditFileParams,
+            grep_search: this.validateGrepSearchParams,
+            run_terminal_cmd: this.validateTerminalCmdParams
         }
     }
     
-    // 🔴 全面任务验证
-    async validateTaskCompletion(taskType, projectPath, modifiedFiles) {
-        console.log(`🔍 开始任务验证：${taskType}`)
+    // 🔴 read_file参数验证
+    validateReadFileParams(params) {
+        const errors = []
+        const {
+            target_file,
+            should_read_entire_file,
+            start_line_one_indexed,
+            end_line_one_indexed_inclusive
+        } = params
         
-        // 并行执行验证检查
-        const validationResults = await Promise.all([
-            this.validateCodeQuality(modifiedFiles),
-            this.validateFunctionality(projectPath),
-            this.validateSecurity(projectPath),
-            this.validatePerformance(projectPath),
-            this.validateCompatibility(projectPath)
-        ])
-        
-        // 综合验证结果
-        const overallResult = this.synthesizeResults(validationResults)
-        
-        return {
-            taskType,
-            validationResults,
-            overallResult,
-            passed: overallResult.score >= 80,
-            recommendations: this.generateRecommendations(overallResult)
-        }
-    }
-    
-    // 🔴 生成改进建议
-    generateRecommendations(overallResult) {
-        const recommendations = []
-        
-        if (overallResult.codeQuality < 80) {
-            recommendations.push({
-                priority: 'HIGH',
-                category: 'code_quality',
-                message: '代码质量需要改进',
-                actions: ['增加代码注释', '优化代码结构', '处理潜在错误']
-            })
+        // 必需参数检查
+        if (!target_file) {
+            errors.push('target_file参数是必需的')
         }
         
-        if (overallResult.security < 90) {
-            recommendations.push({
-                priority: 'CRITICAL',
-                category: 'security',
-                message: '安全性需要加强',
-                actions: ['移除Mock数据', '加强数据验证', '完善认证机制']
-            })
+        if (should_read_entire_file === undefined) {
+            errors.push('should_read_entire_file参数是必需的')
         }
         
-        return recommendations
-    }
-}
-
-// 🔴 全局任务验证系统
-const taskValidator = new TaskValidationSystem()
-```
-
----
-
-**更新时间**: 2025年7月4日  
-**新增功能**: 微信小程序项目自动识别、启动方式纠正、三阶段信息收集、任务验证自动化  
-**适用场景**: 所有微信小程序开发项目和Web项目  
-**效率提升**: 预计减少50-80%的重复性工作和错误纠正时间
-
----
-
-**更新时间**: 2025年7月4日  
-**新增规则**: 微信小程序项目识别、并行工具调用优化、PowerShell命令安全检查、120秒超时处理  
-**目标**: 解决会话中的所有效率问题，防止重复出现
-
-## 🆕 2025年7月4日新增规则 - 基于前端聊天规则整理问题分析
-
-### 第三部分：微信小程序项目识别与启动规范
-
-#### 🔍 微信小程序项目自动识别系统
-```javascript
-// 🔴 微信小程序项目检测器
-class WechatMiniProgramDetector {
-    constructor() {
-        this.requiredFiles = [
-            'app.js',                 // 主应用逻辑
-            'app.json',               // 应用配置
-            'app.wxss',               // 全局样式
-            'project.config.json',    // 项目配置
-            'pages/',                 // 页面目录
-            'components/',            // 组件目录
-            'utils/'                  // 工具库目录
-        ]
-        
-        this.prohibitedCommands = [
-            'npm start',              // Web项目启动方式
-            'npm run dev',            // Web项目开发模式
-            'node server.js',         // Node.js服务器启动
-            'webpack-dev-server',     // Webpack开发服务器
-            'vite',                   // Vite构建工具
-            'yarn start',             // Yarn包管理器启动
-            'ng serve',               // Angular开发服务器
-            'vue-cli-service serve'   // Vue CLI开发服务器
-        ]
-        
-        this.wechatSpecificFiles = [
-            'sitemap.json',           // 微信小程序配置
-            'project.private.config.json', // 私有配置
-            'pages/index/index.js',   // 默认首页
-            'pages/index/index.wxml', // 默认首页模板
-            'pages/index/index.wxss', // 默认首页样式
-            'pages/index/index.json'  // 默认首页配置
-        ]
-    }
-    
-    // 🔴 项目类型检测
-    detectProjectType(projectPath) {
-        const detectedFiles = this.requiredFiles.filter(file => 
-            this.fileExists(path.join(projectPath, file))
-        )
-        
-        const wechatFiles = this.wechatSpecificFiles.filter(file => 
-            this.fileExists(path.join(projectPath, file))
-        )
-        
-        const basicConfidence = detectedFiles.length / this.requiredFiles.length
-        const wechatConfidence = wechatFiles.length / this.wechatSpecificFiles.length
-        
-        const totalConfidence = (basicConfidence * 0.7) + (wechatConfidence * 0.3)
-        
-        return {
-            isMiniProgram: totalConfidence >= 0.6, // 60%以上特征匹配
-            confidence: totalConfidence,
-            basicFeatures: detectedFiles,
-            wechatFeatures: wechatFiles,
-            missingFeatures: this.requiredFiles.filter(file => 
-                !detectedFiles.includes(file)
-            ),
-            startupMethod: totalConfidence >= 0.6 ? 'wechat_devtools' : 'standard_web',
-            projectType: this.determineProjectType(totalConfidence)
-        }
-    }
-    
-    // 🔴 启动指令验证
-    validateStartupCommand(command, projectType) {
-        const lowerCommand = command.toLowerCase()
-        
-        const isProhibited = this.prohibitedCommands.some(prohibited => 
-            lowerCommand.includes(prohibited)
-        )
-        
-        if (isProhibited && projectType.startsWith('wechat_miniprogram')) {
-            return {
-                isValid: false,
-                error: 'MINIPROGRAM_STARTUP_ERROR',
-                message: '微信小程序项目不能使用Web项目启动方式',
-                correctMethod: 'wechat_developer_tools',
-                suggestions: [
-                    '1. 打开微信开发者工具',
-                    '2. 导入项目目录',
-                    '3. 在开发者工具中预览和调试',
-                    '4. 使用开发者工具的编译功能'
-                ]
+        // 行号范围检查
+        if (!should_read_entire_file) {
+            if (!start_line_one_indexed || start_line_one_indexed < 1) {
+                errors.push('start_line_one_indexed必须大于等于1')
+            }
+            
+            if (!end_line_one_indexed_inclusive || end_line_one_indexed_inclusive < start_line_one_indexed) {
+                errors.push('end_line_one_indexed_inclusive必须大于等于start_line_one_indexed')
+            }
+            
+            // 范围合理性检查
+            const rangeSize = end_line_one_indexed_inclusive - start_line_one_indexed + 1
+            if (rangeSize > 1000) {
+                errors.push('单次读取行数不应超过1000行，建议分批读取或使用should_read_entire_file=true')
             }
         }
         
         return {
-            isValid: true,
-            message: '启动指令验证通过'
+            isValid: errors.length === 0,
+            errors: errors,
+            correctedParams: this.correctReadFileParams(params, errors)
+        }
+    }
+    
+    // 🔴 search_replace参数验证
+    validateSearchReplaceParams(params) {
+        const errors = []
+        const { file_path, old_string, new_string } = params
+        
+        if (!file_path) {
+            errors.push('file_path参数是必需的')
+        }
+        
+        if (!old_string) {
+            errors.push('old_string参数是必需的')
+        }
+        
+        if (new_string === undefined) {
+            errors.push('new_string参数是必需的（可以为空字符串）')
+        }
+        
+        if (old_string === new_string) {
+            errors.push('old_string和new_string不能相同')
+        }
+        
+        // 检查old_string是否足够具体
+        if (old_string && old_string.length < 10) {
+            errors.push('old_string可能过于简短，建议包含更多上下文以确保唯一性')
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors,
+            suggestions: this.generateSearchReplaceAdvice(params)
+        }
+    }
+    
+    // 🔴 edit_file参数验证
+    validateEditFileParams(params) {
+        const errors = []
+        const { target_file, instructions, code_edit } = params
+        
+        if (!target_file) {
+            errors.push('target_file参数是必需的')
+        }
+        
+        if (!instructions) {
+            errors.push('instructions参数是必需的')
+        }
+        
+        if (!code_edit) {
+            errors.push('code_edit参数是必需的')
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        }
+    }
+    
+    // 🔴 grep_search参数验证
+    validateGrepSearchParams(params) {
+        const errors = []
+        const { query } = params
+        
+        if (!query) {
+            errors.push('query参数是必需的')
+        }
+        
+        // 检查特殊字符是否需要转义
+        if (query && /[.*+?^${}()|[\]\\]/.test(query)) {
+            // 检查是否已经转义
+            const needsEscaping = this.checkRegexEscaping(query)
+            if (needsEscaping.length > 0) {
+                errors.push(`以下字符可能需要转义: ${needsEscaping.join(', ')}`)
+            }
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors,
+            escapedQuery: this.escapeRegexCharacters(query)
+        }
+    }
+    
+    // 🔴 run_terminal_cmd参数验证
+    validateTerminalCmdParams(params) {
+        const errors = []
+        const { command } = params
+        
+        if (!command) {
+            errors.push('command参数是必需的')
+        }
+        
+        // PowerShell命令安全检查
+        if (command) {
+            const safetyCheck = this.checkPowerShellCommandSafety(command)
+            if (!safetyCheck.isSafe) {
+                errors.push(...safetyCheck.warnings)
+            }
+        }
+        
+        return {
+            isValid: errors.length === 0,
+            errors: errors,
+            safeCommand: this.generateSafeCommand(command)
+        }
+    }
+    
+    // 🔴 通用验证入口
+    validateToolCall(toolName, params) {
+        const validator = this.validators[toolName]
+        
+        if (!validator) {
+            return {
+                isValid: false,
+                errors: [`未知工具: ${toolName}`]
+            }
+        }
+        
+        return validator.call(this, params)
+    }
+    
+    // 辅助方法
+    correctReadFileParams(params, errors) {
+        const corrected = { ...params }
+        
+        if (corrected.start_line_one_indexed < 1) {
+            corrected.start_line_one_indexed = 1
+        }
+        
+        if (corrected.end_line_one_indexed_inclusive < corrected.start_line_one_indexed) {
+            corrected.end_line_one_indexed_inclusive = corrected.start_line_one_indexed + 100
+        }
+        
+        return corrected
+    }
+    
+    generateSearchReplaceAdvice(params) {
+        return [
+            '建议在old_string前后添加更多上下文行',
+            '确保old_string在文件中是唯一的',
+            '对于大文件(>2500行)，考虑使用edit_file工具'
+        ]
+    }
+    
+    checkRegexEscaping(query) {
+        const specialChars = ['[', ']', '(', ')', '{', '}', '*', '+', '?', '^', '$', '|', '.', '\\']
+        const needsEscaping = []
+        
+        for (const char of specialChars) {
+            if (query.includes(char) && !query.includes('\\' + char)) {
+                needsEscaping.push(char)
+            }
+        }
+        
+        return needsEscaping
+    }
+    
+    escapeRegexCharacters(query) {
+        if (!query) return query
+        return query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    }
+    
+    checkPowerShellCommandSafety(command) {
+        const warnings = []
+        
+        // 检查命令长度
+        if (command.length > 80) {
+            warnings.push('命令过长，可能触发PowerShell缓冲区问题')
+        }
+        
+        // 检查中文字符
+        if (/[\u4e00-\u9fa5]/.test(command)) {
+            warnings.push('包含中文字符，可能导致编码问题')
+        }
+        
+        // 检查管道数量
+        const pipeCount = (command.match(/\|/g) || []).length
+        if (pipeCount > 3) {
+            warnings.push('管道过多，建议分解为多个简单命令')
+        }
+        
+        // 检查危险组合
+        if (command.includes('Select-Object') && command.includes('ExpandProperty')) {
+            warnings.push('检测到危险的Select-Object组合，建议使用简化命令')
+        }
+        
+        return {
+            isSafe: warnings.length === 0,
+            warnings: warnings
+        }
+    }
+    
+    generateSafeCommand(command) {
+        if (!command) return command
+        
+        // 如果命令过于复杂，生成简化版本
+        if (command.length > 80 || /[\u4e00-\u9fa5]/.test(command)) {
+            // 提供简化的等效命令
+            if (command.includes('Get-ChildItem') && command.includes('Measure-Object')) {
+                return 'ls'  // 简化为基础命令
+            }
+        }
+        
+        return command
+    }
+}
+
+// 🔴 全局工具调用参数验证器
+const toolValidator = new ToolCallParameterValidator()
+
+// 🔴 安全的工具调用包装器
+const safeToolCall = async (toolName, params) => {
+    const validation = toolValidator.validateToolCall(toolName, params)
+    
+    if (!validation.isValid) {
+        console.error(`❌ 工具调用参数验证失败 (${toolName}):`, validation.errors)
+        
+        // 尝试使用修正后的参数
+        if (validation.correctedParams) {
+            console.log('🔧 使用修正后的参数重试...')
+            params = validation.correctedParams
+        } else {
+            throw new Error(`工具调用参数验证失败: ${validation.errors.join(', ')}`)
+        }
+    }
+    
+    // 执行实际的工具调用
+    return await executeToolCall(toolName, params)
+}
+```
+
+### 120秒超时强制切换机制
+
+#### 4. 超时管理系统
+```javascript
+// 🔴 120秒超时强制切换机制
+class TimeoutManager {
+    constructor() {
+        this.defaultTimeout = 120000 // 120秒
+        this.retryCount = 0
+        this.maxRetries = 2
+        this.operationHistory = []
+    }
+    
+    async executeWithTimeout(operation, fallbackOperation, timeoutMs = this.defaultTimeout) {
+        const startTime = Date.now()
+        const operationId = this.generateOperationId()
+        
+        console.log(`⏱️ 开始执行操作 ${operationId}，超时限制: ${timeoutMs/1000}秒`)
+        
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => {
+                const elapsed = (Date.now() - startTime) / 1000
+                console.error(`🚨 操作超时 ${elapsed}秒，违反120秒规则`)
+                reject(new Error(`操作超时${elapsed}秒，违反120秒规则`))
+            }, timeoutMs)
+        })
+        
+        try {
+            const result = await Promise.race([operation(), timeoutPromise])
+            const elapsed = (Date.now() - startTime) / 1000
+            console.log(`✅ 操作完成，耗时: ${elapsed}秒`)
+            
+            this.recordSuccess(operationId, elapsed)
+            return result
+            
+        } catch (error) {
+            this.retryCount++
+            const elapsed = (Date.now() - startTime) / 1000
+            
+            console.error(`❌ 第${this.retryCount}次操作失败，耗时: ${elapsed}秒`)
+            console.error(`错误信息: ${error.message}`)
+            
+            this.recordFailure(operationId, elapsed, error.message)
+            
+            if (this.retryCount <= this.maxRetries && fallbackOperation) {
+                console.log(`🔄 立即切换到备用方案 (重试 ${this.retryCount}/${this.maxRetries})...`)
+                return await this.executeWithTimeout(fallbackOperation, null, timeoutMs)
+            } else {
+                console.error(`🚨 所有重试方案失败，需要手动干预`)
+                throw new Error(`所有重试方案失败: ${error.message}`)
+            }
+        }
+    }
+    
+    // 🔴 工具调用超时处理
+    async safeToolCall(toolFunction, fallbackFunction) {
+        return await this.executeWithTimeout(
+            toolFunction,
+            fallbackFunction,
+            this.defaultTimeout
+        )
+    }
+    
+    // 🔴 PowerShell命令超时处理
+    async safePowerShellCommand(command, fallbackCommand) {
+        const primaryOperation = () => run_terminal_cmd(command)
+        const fallbackOperation = fallbackCommand ? 
+            () => run_terminal_cmd(fallbackCommand) : 
+            null
+        
+        return await this.executeWithTimeout(
+            primaryOperation,
+            fallbackOperation,
+            this.defaultTimeout
+        )
+    }
+    
+    // 🔴 Git命令超时处理
+    async safeGitCommand(gitCommand) {
+        const primaryOperation = () => run_terminal_cmd(gitCommand)
+        const fallbackOperation = () => run_terminal_cmd(`git --no-pager ${gitCommand.replace('git ', '')}`)
+        const finalFallback = () => run_terminal_cmd('git status --short')
+        
+        try {
+            return await this.executeWithTimeout(primaryOperation, fallbackOperation)
+        } catch (error) {
+            console.log('🔄 使用最终备用方案...')
+            return await this.executeWithTimeout(finalFallback, null)
+        }
+    }
+    
+    // 辅助方法
+    generateOperationId() {
+        return `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    }
+    
+    recordSuccess(operationId, elapsed) {
+        this.operationHistory.push({
+            id: operationId,
+            status: 'success',
+            elapsed: elapsed,
+            timestamp: new Date().toISOString()
+        })
+    }
+    
+    recordFailure(operationId, elapsed, error) {
+        this.operationHistory.push({
+            id: operationId,
+            status: 'failure',
+            elapsed: elapsed,
+            error: error,
+            timestamp: new Date().toISOString()
+        })
+    }
+    
+    getOperationStats() {
+        const total = this.operationHistory.length
+        const successful = this.operationHistory.filter(op => op.status === 'success').length
+        const failed = this.operationHistory.filter(op => op.status === 'failure').length
+        const avgElapsed = this.operationHistory.reduce((sum, op) => sum + op.elapsed, 0) / total
+        
+        return {
+            total: total,
+            successful: successful,
+            failed: failed,
+            successRate: (successful / total * 100).toFixed(2) + '%',
+            averageTime: avgElapsed.toFixed(2) + '秒',
+            violatedTimeouts: failed
         }
     }
 }
 
-// 🔴 全局微信小程序检测器
-const miniProgramDetector = new WechatMiniProgramDetector()
+// 🔴 全局超时管理器
+const timeoutManager = new TimeoutManager()
 ```
 
-#### 🚨 微信小程序启动方式错误预防规则
-```bash
-# ❌ 绝对禁止：在微信小程序项目中使用这些命令
-npm start                    # Web项目启动方式
-npm run dev                  # Web项目开发模式  
-node server.js               # Node.js服务器启动
-webpack-dev-server          # Webpack开发服务器
-vite                        # Vite构建工具
-yarn start                  # Yarn包管理器启动
-ng serve                    # Angular开发服务器
-vue-cli-service serve       # Vue CLI开发服务器
+## 📚 相关规则文档引用
 
-# ✅ 正确：微信小程序项目操作方式
-# 1. 使用微信开发者工具打开项目
-# 2. 使用PowerShell进行文件操作
-# 3. 使用Git进行版本控制
-# 4. 使用Windows资源管理器管理文件
-```
+- **会话问题分析**: 详见 `1.mdc` - 会话问题分析与解决方案
+- **安全标准规范**: 详见 `tiangong-security-standards (1).mdc` - 核心安全规则
+- **Mock数据检测**: 详见 `tiangong-security-standards (1).mdc` - Mock数据安全检测与防护
+- **代码注释规范**: 详见 `tiangong-security-standards (1).mdc` - 代码注释与文档规范
 
-### 第四部分：并行工具调用强制优化规范
+---
 
-#### 🚀 并行工具调用检测与优化系统
+**规则创建时间**: 2025年01月03日  
+**最后更新时间**: 2025年01月03日  
+**更新内容**: 整理合并重复内容，保留核心开发自动化规则，优化项目识别和超时管理系统  
+**适用范围**: 所有开发自动化场景  
+**维护状态**: ✅ 已整理 - 重复内容已合并，自动化规则完整性已保证
+
+## 🚨 2025年01月03日会话问题分析新增规则
+
+### 🌐 域名配置错误自动检测规则
 ```javascript
-// 🔴 并行工具调用优化管理器
-class ParallelToolCallOptimizer {
+// 🔴 域名配置问题自动检测系统
+class DomainConfigurationValidator {
     constructor() {
-        this.readOnlyTools = [
+        this.correctDomains = {
+            production: 'rqchrlqndora.sealosbja.site',
+            testing: 'rqchrlqndora.sealosbja.site'
+        }
+        
+        this.commonErrors = [
+            'rqchrlandora.sealoshqja.site',    // 缺少"n"，多了"h"和"q"
+            'rqchrlandora.sealosbja.site',     // 缺少"n"
+            'rqchrlqndora.sealoshqja.site'     // 多了"h"和"q"
+        ]
+        
+        this.filesToCheck = [
+            'config/env.js',
+            'project.private.config.json',
+            '前端技术规范文档标准.md',
+            '接口对接规范文档标准.md',
+            '后端技术规范文档标准.md'
+        ]
+    }
+    
+    // 🔴 强制在每次修改配置前检查
+    async validateAllDomainConfigs() {
+        console.log('🔍 开始域名配置全面检查...')
+        
+        const results = []
+        
+        // 🔴 并行检查所有配置文件
+        const checkPromises = this.filesToCheck.map(async file => {
+            const content = await this.readFileContent(file)
+            const domains = this.extractDomains(content)
+            const errors = this.validateDomains(domains)
+            
+            return {
+                file,
+                domains,
+                errors,
+                hasErrors: errors.length > 0
+            }
+        })
+        
+        const checkResults = await Promise.all(checkPromises)
+        
+        // 🔴 生成修复建议
+        const hasAnyErrors = checkResults.some(result => result.hasErrors)
+        
+        if (hasAnyErrors) {
+            console.error('🚨 发现域名配置错误：')
+            checkResults.forEach(result => {
+                if (result.hasErrors) {
+                    console.error(`  文件: ${result.file}`)
+                    result.errors.forEach(error => {
+                        console.error(`    错误: ${error.message}`)
+                        console.error(`    建议: ${error.suggestion}`)
+                    })
+                }
+            })
+            
+            return {
+                hasErrors: true,
+                checkResults,
+                batchFixSuggestion: this.generateBatchFixSuggestion(checkResults)
+            }
+        }
+        
+        console.log('✅ 所有域名配置检查通过')
+        return {
+            hasErrors: false,
+            checkResults
+        }
+    }
+    
+    // 🔴 生成批量修复建议
+    generateBatchFixSuggestion(checkResults) {
+        const filesToFix = checkResults.filter(result => result.hasErrors)
+        
+        return {
+            description: '批量修复域名配置错误',
+            files: filesToFix.map(result => result.file),
+            operations: filesToFix.flatMap(result => 
+                result.errors.map(error => ({
+                    file: result.file,
+                    type: 'replace',
+                    from: error.incorrectDomain,
+                    to: error.correctDomain
+                }))
+            ),
+            estimatedTimeSaving: filesToFix.length * 2000 // 2秒每个文件
+        }
+    }
+}
+```
+
+### 🔧 API路径错误自动检测规则
+```javascript
+// 🔴 API路径错误自动检测系统
+class APIPathValidator {
+    constructor() {
+        this.correctPaths = {
+            'auth': {
+                'verify': '/api/auth/verify-token',     // 不是 /api/auth/verify
+                'login': '/api/auth/login',
+                'refresh': '/api/auth/refresh',
+                'logout': '/api/auth/logout'
+            },
+            'user': {
+                'info': '/api/user/info',
+                'update': '/api/user/update',
+                'points': '/api/user/points'
+            },
+            'lottery': {
+                'config': '/api/lottery/config',
+                'draw': '/api/lottery/draw',
+                'records': '/api/lottery/records'
+            }
+        }
+        
+        this.commonErrors = [
+            { incorrect: '/api/auth/verify', correct: '/api/auth/verify-token' },
+            { incorrect: '/api/user/userinfo', correct: '/api/user/info' },
+            { incorrect: '/api/lottery/getconfig', correct: '/api/lottery/config' }
+        ]
+    }
+    
+    // 🔴 检查API路径是否正确
+    validateAPIPath(path) {
+        const errors = []
+        
+        // 检查是否是已知的错误路径
+        const knownError = this.commonErrors.find(error => error.incorrect === path)
+        if (knownError) {
+            errors.push({
+                type: 'INCORRECT_API_PATH',
+                message: `API路径错误: ${path}`,
+                suggestion: `正确路径: ${knownError.correct}`,
+                severity: 'HIGH'
+            })
+        }
+        
+        // 检查路径格式
+        if (!path.startsWith('/api/')) {
+            errors.push({
+                type: 'MISSING_API_PREFIX',
+                message: `API路径缺少前缀: ${path}`,
+                suggestion: `应该以/api/开头`,
+                severity: 'MEDIUM'
+            })
+        }
+        
+        return errors
+    }
+    
+    // 🔴 自动扫描所有API调用
+    async scanAllAPIUsages() {
+        console.log('🔍 开始API路径全面扫描...')
+        
+        const filesToScan = [
+            'utils/api.js',
+            'pages/*/index.js',
+            'components/*/index.js'
+        ]
+        
+        const results = []
+        
+        // 并行扫描所有文件
+        const scanPromises = filesToScan.map(async pattern => {
+            const files = await this.findFiles(pattern)
+            const fileResults = await Promise.all(
+                files.map(file => this.scanFileForAPIPaths(file))
+            )
+            return fileResults.flat()
+        })
+        
+        const scanResults = await Promise.all(scanPromises)
+        const allResults = scanResults.flat()
+        
+        // 过滤出有错误的结果
+        const errorsFound = allResults.filter(result => result.errors.length > 0)
+        
+        if (errorsFound.length > 0) {
+            console.error('🚨 发现API路径错误：')
+            errorsFound.forEach(result => {
+                console.error(`  文件: ${result.file}`)
+                result.errors.forEach(error => {
+                    console.error(`    ${error.message}`)
+                    console.error(`    建议: ${error.suggestion}`)
+                })
+            })
+        }
+        
+        return {
+            totalFiles: allResults.length,
+            errorFiles: errorsFound.length,
+            results: allResults,
+            batchFixSuggestion: errorsFound.length > 0 ? 
+                this.generateBatchAPIFixSuggestion(errorsFound) : null
+        }
+    }
+}
+```
+
+### ⚡ 并行工具调用强制优化规则
+```javascript
+// 🔴 并行工具调用强制优化系统
+class ParallelToolCallForcer {
+    constructor() {
+        this.parallelableTools = [
             'read_file',
             'grep_search', 
             'list_dir',
             'file_search',
-            'codebase_search',
-            'run_terminal_cmd' // 只读命令
+            'codebase_search'
         ]
         
-        this.statistics = {
+        this.executionStats = {
             totalCalls: 0,
             parallelCalls: 0,
             serialCalls: 0,
             timeSaved: 0,
-            efficiencyGain: 0
+            opportunities: 0
         }
     }
     
-    // 🔴 检测可并行的工具调用
-    detectParallelOpportunities(toolCalls) {
-        const opportunities = []
-        
-        // 按工具类型分组
-        const readOnlyGroup = toolCalls.filter(call => 
-            this.readOnlyTools.includes(call.toolName)
+    // 🔴 强制检查是否可以并行执行
+    checkParallelOpportunity(plannedCalls) {
+        const parallelable = plannedCalls.filter(call => 
+            this.parallelableTools.includes(call.tool) && 
+            !call.dependsOnPrevious
         )
         
-        // 只读操作可以完全并行
-        if (readOnlyGroup.length > 1) {
-            opportunities.push({
-                type: 'readonly_parallel',
-                tools: readOnlyGroup,
-                estimatedTimeSaving: (readOnlyGroup.length - 1) * 3000, // 3秒/工具
-                riskLevel: 'low'
-            })
-        }
-        
-        return opportunities
-    }
-    
-    // 🔴 执行并行工具调用
-    async executeParallelToolCalls(opportunities) {
-        console.log(`🚀 开始并行工具调用优化，发现${opportunities.length}个优化机会`)
-        
-        const results = []
-        
-        for (const opportunity of opportunities) {
-            const startTime = Date.now()
+        if (parallelable.length > 1) {
+            const timeSavingPotential = (parallelable.length - 1) * 3000 // 3秒每个调用
             
-            console.log(`⚡ 并行执行${opportunity.type}：${opportunity.tools.length}个工具`)
+            console.warn(`⚠️ 并行执行机会检测到：`)
+            console.warn(`  可并行调用: ${parallelable.length}个`)
+            console.warn(`  预计节省时间: ${timeSavingPotential}ms`)
+            console.warn(`  建议: 使用Promise.all()并行执行`)
             
-            try {
-                const parallelResults = await Promise.all(
-                    opportunity.tools.map(tool => this.executeTool(tool))
-                )
-                
-                const endTime = Date.now()
-                const actualTimeSaving = endTime - startTime
-                
-                results.push({
-                    type: opportunity.type,
-                    success: true,
-                    results: parallelResults,
-                    timeSaving: actualTimeSaving,
-                    toolCount: opportunity.tools.length
-                })
-                
-                // 更新统计信息
-                this.updateStatistics(opportunity.tools.length, actualTimeSaving)
-                
-                console.log(`✅ ${opportunity.type}完成，耗时${actualTimeSaving}ms`)
-                
-            } catch (error) {
-                console.error(`❌ ${opportunity.type}执行失败:`, error)
-                results.push({
-                    type: opportunity.type,
-                    success: false,
-                    error: error.message
-                })
+            this.executionStats.opportunities++
+            
+            return {
+                canParallelize: true,
+                calls: parallelable,
+                timeSavingPotential,
+                recommendation: this.generateParallelRecommendation(parallelable)
             }
         }
         
-        return results
+        return { canParallelize: false }
     }
     
-    // 🔴 生成效率报告
-    generateEfficiencyReport() {
-        const report = {
-            ...this.statistics,
-            averageTimeSaving: this.statistics.timeSaved / this.statistics.parallelCalls,
-            efficiencyPercentage: (this.statistics.efficiencyGain * 100).toFixed(1)
+    // 🔴 生成并行执行建议
+    generateParallelRecommendation(calls) {
+        const callDescriptions = calls.map(call => 
+            `${call.tool}(${call.target || call.query || 'unknown'})`
+        ).join(', ')
+        
+        return {
+            description: `并行执行${calls.length}个工具调用`,
+            calls: callDescriptions,
+            estimatedTime: Math.max(...calls.map(call => call.estimatedTime || 3000)),
+            serialTime: calls.reduce((sum, call) => sum + (call.estimatedTime || 3000), 0),
+            timeSaved: calls.reduce((sum, call) => sum + (call.estimatedTime || 3000), 0) - Math.max(...calls.map(call => call.estimatedTime || 3000)),
+            
+            implementation: `
+// 🔴 推荐的并行执行代码
+const parallelCalls = [
+${calls.map(call => `  ${call.tool}(${JSON.stringify(call.params || {})})`).join(',\n')}
+]
+
+const results = await Promise.all(parallelCalls)
+console.log('✅ 并行执行完成，节省时间:', timeSaved + 'ms')
+            `
+        }
+    }
+    
+    // 🔴 记录执行统计
+    recordExecution(callType, count = 1) {
+        this.executionStats.totalCalls += count
+        
+        if (callType === 'parallel') {
+            this.executionStats.parallelCalls += count
+            this.executionStats.timeSaved += (count - 1) * 3000
+        } else {
+            this.executionStats.serialCalls += count
         }
         
-        console.log('📊 并行工具调用效率报告：')
-        console.log(`  - 总工具调用：${report.totalCalls}`)
-        console.log(`  - 并行调用：${report.parallelCalls}`)
-        console.log(`  - 时间节省：${report.timeSaved}ms`)
-        console.log(`  - 效率提升：${report.efficiencyPercentage}%`)
+        this.updateEfficiencyScore()
+    }
+    
+    // 🔴 更新效率评分
+    updateEfficiencyScore() {
+        const parallelEfficiency = this.executionStats.totalCalls > 0 ? 
+            (this.executionStats.parallelCalls / this.executionStats.totalCalls) * 100 : 0
+            
+        console.log(`📊 并行执行效率: ${Math.round(parallelEfficiency)}%`)
         
-        return report
+        if (parallelEfficiency < 50) {
+            console.warn(`⚠️ 并行效率过低，建议增加并行工具调用`)
+        }
+        
+        return parallelEfficiency
     }
 }
-
-// 🔴 全局并行工具调用优化器
-const parallelToolOptimizer = new ParallelToolCallOptimizer()
 ```
 
-### 第五部分：PowerShell命令安全强化规范
-
-#### 🛡️ PowerShell命令安全检查系统
+### 🔄 重复问题预防规则
 ```javascript
-// 🔴 PowerShell命令安全检查器
-class PowerShellSafetyChecker {
+// 🔴 重复问题预防系统
+class DuplicationPreventer {
     constructor() {
-        this.dangerousPatterns = [
-            {
-                pattern: /.*\|.*\|.*\|.*/,  // 多重管道
-                risk: 'high',
-                message: '多重管道操作可能导致控制台异常'
+        this.processedIssues = new Set()
+        this.issuePatterns = {
+            'DOMAIN_CONFIG': {
+                pattern: /域名.*配置.*错误/,
+                relatedFiles: ['config/env.js', 'project.private.config.json', '*.md'],
+                batchStrategy: 'replace_all_occurrences'
             },
-            {
-                pattern: /.*Select-Object.*ExpandProperty.*/,  // 危险的Select-Object组合
-                risk: 'high', 
-                message: 'Select-Object -ExpandProperty组合已知会导致缓冲区异常'
+            'API_PATH': {
+                pattern: /API.*路径.*错误/,
+                relatedFiles: ['utils/api.js', 'pages/*/index.js'],
+                batchStrategy: 'targeted_replacement'
             },
-            {
-                pattern: /.*Get-ChildItem.*Measure-Object.*Select-Object.*/,  // 危险的三重组合
-                risk: 'critical',
-                message: 'Get-ChildItem + Measure-Object + Select-Object组合会导致控制台崩溃'
-            },
-            {
-                pattern: /.*[\u4e00-\u9fa5].*\|.*\|.*/,  // 中文字符 + 多重管道
-                risk: 'critical',
-                message: '中文字符与多重管道组合会导致PSConsoleReadLine异常'
-            }
-        ]
-        
-        this.safeModes = {
-            'file_listing': {
-                dangerous: 'Get-ChildItem pages -Directory | Measure-Object | Select-Object -ExpandProperty Count',
-                safe: 'ls pages',
-                alternative: '(Get-ChildItem pages -Directory).Count'
-            },
-            'file_counting': {
-                dangerous: 'Get-ChildItem -Recurse -Include "*.js" | Measure-Object | Select-Object -ExpandProperty Count',
-                safe: 'Get-ChildItem -Recurse -Include "*.js" | Measure-Object',
-                alternative: '(Get-ChildItem -Recurse -Include "*.js").Count'
+            'METHOD_CALL': {
+                pattern: /方法.*调用.*错误/,
+                relatedFiles: ['pages/*/index.js', 'components/*/index.js'],
+                batchStrategy: 'import_and_call_fix'
             }
         }
     }
     
-    // 🔴 检查命令安全性
-    checkCommandSafety(command) {
-        const results = {
-            isSafe: true,
-            riskLevel: 'low',
-            warnings: [],
-            errors: [],
-            alternatives: []
+    // 🔴 检查是否是重复问题
+    checkDuplication(issue) {
+        const issueKey = this.generateIssueKey(issue)
+        
+        if (this.processedIssues.has(issueKey)) {
+            return {
+                isDuplicate: true,
+                message: `重复问题检测: ${issue.description}`,
+                recommendation: '建议使用批处理策略一次性解决所有相关问题'
+            }
         }
         
-        // 检查危险模式
-        for (const pattern of this.dangerousPatterns) {
-            if (pattern.pattern.test(command)) {
-                results.isSafe = false
-                results.riskLevel = pattern.risk
-                results.errors.push(pattern.message)
-                
-                // 寻找安全替代方案
-                const alternative = this.findSafeAlternative(command)
-                if (alternative) {
-                    results.alternatives.push(alternative)
+        // 检查是否是已知模式
+        for (const [patternType, config] of Object.entries(this.issuePatterns)) {
+            if (config.pattern.test(issue.description)) {
+                return {
+                    isDuplicate: false,
+                    patternType,
+                    batchStrategy: config.batchStrategy,
+                    relatedFiles: config.relatedFiles,
+                    recommendation: `检测到${patternType}问题，建议批量处理${config.relatedFiles.length}个相关文件`
                 }
             }
         }
         
-        return results
+        return { isDuplicate: false }
     }
     
-    // 🔴 生成安全命令建议
-    generateSafeCommand(unsafeCommand) {
-        const safetyCheck = this.checkCommandSafety(unsafeCommand)
+    // 🔴 生成批处理计划
+    generateBatchPlan(issue, patternType) {
+        const config = this.issuePatterns[patternType]
         
-        if (safetyCheck.isSafe) {
-            return {
-                command: unsafeCommand,
-                isSafe: true,
-                message: '命令安全性检查通过'
-            }
-        }
-        
-        // 生成简化命令
-        const simplifiedCommand = this.simplifyCommand(unsafeCommand)
         return {
-            command: simplifiedCommand,
-            isSafe: true,
-            message: `使用简化命令：${simplifiedCommand}`,
-            originalCommand: unsafeCommand,
-            reason: '原命令存在安全风险'
+            type: 'BATCH_PROCESSING',
+            patternType,
+            strategy: config.batchStrategy,
+            files: config.relatedFiles,
+            operations: this.generateBatchOperations(issue, config),
+            estimatedTime: config.relatedFiles.length * 2000, // 2秒每个文件
+            parallelizable: true
         }
     }
     
-    // 🔴 简化命令
-    simplifyCommand(command) {
-        // 移除复杂的管道操作
-        const baseCommand = command.split('|')[0].trim()
+    // 🔴 执行批处理
+    async executeBatchPlan(plan) {
+        console.log(`🔄 开始批处理: ${plan.patternType}`)
         
-        // 移除危险的参数组合
-        const simplifiedCommand = baseCommand
-            .replace(/\s+\|\s+Measure-Object.*/, '')
-            .replace(/\s+\|\s+Select-Object.*/, '')
-            .replace(/\s+\|\s+Where-Object.*/, '')
+        const results = []
         
-        return simplifiedCommand || 'ls'
+        // 并行处理所有文件
+        const processPromises = plan.files.map(async filePattern => {
+            const files = await this.findFiles(filePattern)
+            const fileResults = await Promise.all(
+                files.map(file => this.applyBatchOperations(file, plan.operations))
+            )
+            return fileResults.flat()
+        })
+        
+        const allResults = await Promise.all(processPromises)
+        const flatResults = allResults.flat()
+        
+        // 统计结果
+        const successCount = flatResults.filter(r => r.success).length
+        const errorCount = flatResults.filter(r => !r.success).length
+        
+        console.log(`✅ 批处理完成: ${successCount}个成功，${errorCount}个失败`)
+        
+        return {
+            planType: plan.patternType,
+            totalFiles: flatResults.length,
+            successCount,
+            errorCount,
+            results: flatResults,
+            timeSaved: plan.estimatedTime * 0.7 // 估算节省70%时间
+        }
     }
 }
+```
 
-// 🔴 全局PowerShell安全检查器
-const powershellSafetyChecker = new PowerShellSafetyChecker()
+### 🎯 任务优先级管理规则
+```javascript
+// 🔴 任务优先级管理系统
+class TaskPriorityManager {
+    constructor() {
+        this.priorityLevels = {
+            'CRITICAL': { weight: 10, maxWaitTime: 0 },      // 立即处理
+            'HIGH': { weight: 8, maxWaitTime: 300000 },      // 5分钟内处理
+            'MEDIUM': { weight: 5, maxWaitTime: 900000 },    // 15分钟内处理
+            'LOW': { weight: 2, maxWaitTime: 1800000 }       // 30分钟内处理
+        }
+        
+        this.taskQueue = []
+        this.processingQueue = []
+        this.completedTasks = []
+    }
+    
+    // 🔴 添加任务并自动排序
+    addTask(task) {
+        const taskWithPriority = {
+            ...task,
+            id: this.generateTaskId(),
+            createdAt: Date.now(),
+            priority: this.calculatePriority(task),
+            weight: this.priorityLevels[task.severity || 'MEDIUM'].weight
+        }
+        
+        this.taskQueue.push(taskWithPriority)
+        
+        // 按优先级排序
+        this.taskQueue.sort((a, b) => {
+            if (a.priority !== b.priority) {
+                return b.weight - a.weight // 高优先级在前
+            }
+            return a.createdAt - b.createdAt // 同优先级按时间排序
+        })
+        
+        console.log(`📋 任务已添加: ${task.description} (优先级: ${taskWithPriority.priority})`)
+        this.printTaskQueue()
+        
+        return taskWithPriority.id
+    }
+    
+    // 🔴 计算任务优先级
+    calculatePriority(task) {
+        // 基于问题类型和影响范围计算优先级
+        const severityMap = {
+            'DOMAIN_CONFIG_ERROR': 'CRITICAL',    // 域名错误影响所有功能
+            'API_PATH_ERROR': 'HIGH',            // API错误影响具体功能
+            'METHOD_CALL_ERROR': 'HIGH',         // 方法调用错误影响具体功能
+            'NETWORK_CONFIG': 'MEDIUM',          // 网络配置影响用户体验
+            'DOCUMENTATION': 'LOW'               // 文档问题影响维护
+        }
+        
+        const impactMap = {
+            'SYSTEM_WIDE': 'CRITICAL',           // 系统级影响
+            'FEATURE_BREAKING': 'HIGH',          // 功能级影响
+            'USER_EXPERIENCE': 'MEDIUM',         // 用户体验影响
+            'MAINTENANCE': 'LOW'                 // 维护级影响
+        }
+        
+        const calculatedSeverity = severityMap[task.type] || 'MEDIUM'
+        const calculatedImpact = impactMap[task.impact] || 'MEDIUM'
+        
+        // 取最高优先级
+        const priorities = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
+        const severityIndex = priorities.indexOf(calculatedSeverity)
+        const impactIndex = priorities.indexOf(calculatedImpact)
+        
+        return priorities[Math.min(severityIndex, impactIndex)]
+    }
+    
+    // 🔴 获取下一个要处理的任务
+    getNextTask() {
+        if (this.taskQueue.length === 0) {
+            return null
+        }
+        
+        const nextTask = this.taskQueue.shift()
+        this.processingQueue.push(nextTask)
+        
+        console.log(`🎯 开始处理任务: ${nextTask.description}`)
+        return nextTask
+    }
+    
+    // 🔴 完成任务
+    completeTask(taskId, result) {
+        const taskIndex = this.processingQueue.findIndex(t => t.id === taskId)
+        
+        if (taskIndex === -1) {
+            console.error(`❌ 任务未找到: ${taskId}`)
+            return false
+        }
+        
+        const task = this.processingQueue.splice(taskIndex, 1)[0]
+        task.completedAt = Date.now()
+        task.processingTime = task.completedAt - task.createdAt
+        task.result = result
+        
+        this.completedTasks.push(task)
+        
+        console.log(`✅ 任务完成: ${task.description} (耗时: ${task.processingTime}ms)`)
+        
+        // 检查是否所有任务完成
+        if (this.taskQueue.length === 0 && this.processingQueue.length === 0) {
+            console.log('🎉 所有任务已完成！')
+            this.generateCompletionReport()
+        }
+        
+        return true
+    }
+    
+    // 🔴 生成完成报告
+    generateCompletionReport() {
+        const totalTasks = this.completedTasks.length
+        const totalTime = this.completedTasks.reduce((sum, task) => sum + task.processingTime, 0)
+        const avgTime = totalTime / totalTasks
+        
+        const priorityStats = this.completedTasks.reduce((stats, task) => {
+            stats[task.priority] = (stats[task.priority] || 0) + 1
+            return stats
+        }, {})
+        
+        console.log(`📊 任务完成报告:`)
+        console.log(`  总任务数: ${totalTasks}`)
+        console.log(`  总耗时: ${totalTime}ms`)
+        console.log(`  平均耗时: ${Math.round(avgTime)}ms`)
+        console.log(`  优先级分布:`, priorityStats)
+        
+        return {
+            totalTasks,
+            totalTime,
+            avgTime,
+            priorityStats,
+            completedTasks: this.completedTasks
+        }
+    }
+}
 ```
 
 ---
 
-**更新时间**: 2025年7月4日  
-**新增功能**: 微信小程序项目自动识别、启动方式纠正、三阶段信息收集、任务验证自动化  
-**适用场景**: 所有微信小程序开发项目和Web项目  
-**效率提升**: 预计减少50-80%的重复性工作和错误纠正时间
+**新增规则创建时间**: 2025年01月03日  
+**基于问题**: 天工项目域名配置错误、API调用错误、并行执行不足等问题  
+**预期效果**: 预防重复问题，提升60%以上开发效率  
+**适用场景**: 所有涉及配置修改、API调用、批量操作的开发会话
 
 
 
