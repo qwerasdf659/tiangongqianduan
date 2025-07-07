@@ -1,0 +1,623 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 🚨 核心问题预防规则集 - $(Get-Date -Format "yyyy年MM月dd日")
+
+## 🔴 A级问题预防规则（严重问题）
+
+### 1. 工具调用参数验证强制规则
+```javascript
+// 🔴 强制参数验证系统
+class ToolCallValidator {
+    static validateReadFile(params) {
+        const { start_line_one_indexed, end_line_one_indexed_inclusive } = params
+        
+        if (start_line_one_indexed < 1) {
+            throw new Error('start_line_one_indexed必须 >= 1')
+        }
+        
+        if (end_line_one_indexed_inclusive < start_line_one_indexed) {
+            throw new Error('end_line_one_indexed_inclusive必须 >= start_line_one_indexed')
+        }
+        
+        const rangeSize = end_line_one_indexed_inclusive - start_line_one_indexed + 1
+        if (rangeSize > 1000) {
+            throw new Error('单次读取不超过1000行，请分批读取')
+        }
+        
+        return true
+    }
+    
+    static validateSearchReplace(params) {
+        const { old_string, new_string } = params
+        
+        if (!old_string || old_string.length < 10) {
+            throw new Error('old_string必须包含足够上下文(≥10字符)')
+        }
+        
+        if (old_string === new_string) {
+            throw new Error('old_string和new_string不能相同')
+        }
+        
+        return true
+    }
+}
+```
+
+### 2. 120秒超时强制切换规则
+```javascript
+// 🔴 超时管理系统
+class TimeoutManager {
+    static async executeWithTimeout(operation, fallback, timeout = 120000) {
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => {
+                reject(new Error(`操作超时${timeout/1000}秒，违反120秒规则`))
+            }, timeout)
+        })
+        
+        try {
+            return await Promise.race([operation(), timeoutPromise])
+        } catch (error) {
+            if (error.message.includes('超时')) {
+                console.error('🚨 120秒超时，立即切换备用方案')
+                return await fallback()
+            }
+            throw error
+        }
+    }
+    
+    // 🔴 PowerShell命令安全执行
+    static async safePowerShellCommand(command) {
+        const primaryCmd = () => run_terminal_cmd(command)
+        const fallbackCmd = () => {
+            if (command.length > 80 || /[\u4e00-\u9fa5]/.test(command)) {
+                return run_terminal_cmd('ls')  // 简化命令
+            }
+            return run_terminal_cmd(command.substring(0, 50))
+        }
+        
+        return await this.executeWithTimeout(primaryCmd, fallbackCmd)
+    }
+    
+    // 🔴 Git命令安全执行
+    static async safeGitCommand(gitCmd) {
+        const primaryCmd = () => run_terminal_cmd(gitCmd)
+        const fallbackCmd = () => run_terminal_cmd(`git --no-pager ${gitCmd.replace('git ', '')}`)
+        
+        return await this.executeWithTimeout(primaryCmd, fallbackCmd)
+    }
+}
+```
+
+### 3. 并行工具调用强制优化规则
+```javascript
+// 🔴 并行调用检测和强制优化
+class ParallelCallForcer {
+    static detectParallelOpportunity(plannedCalls) {
+        const parallelableTools = ['read_file', 'grep_search', 'list_dir', 'file_search', 'codebase_search']
+        
+        const canParallel = plannedCalls.filter(call => 
+            parallelableTools.includes(call.tool) && !call.dependsOnPrevious
+        )
+        
+        if (canParallel.length > 1) {
+            const timeSaving = (canParallel.length - 1) * 3000
+            console.warn(`⚠️ 并行机会检测：${canParallel.length}个调用可并行，节省${timeSaving}ms`)
+            
+            return {
+                canOptimize: true,
+                calls: canParallel,
+                timeSaving,
+                recommendation: `使用Promise.all()并行执行${canParallel.length}个调用`
+            }
+        }
+        
+        return { canOptimize: false }
+    }
+    
+    // 🔴 强制并行执行
+    static async forceParallelExecution(calls) {
+        console.log(`🚀 强制并行执行${calls.length}个工具调用`)
+        
+        const startTime = Date.now()
+        const results = await Promise.all(calls.map(call => call.execute()))
+        const endTime = Date.now()
+        
+        const timeSaved = (calls.length - 1) * 3000 - (endTime - startTime)
+        console.log(`✅ 并行执行完成，节省${timeSaved}ms`)
+        
+        return results
+    }
+}
+```
+
+### 4. 文件存在性检查强制规则
+```javascript
+// 🔴 文件创建前强制检查
+class FileCreationValidator {
+    static async checkFileExists(filePath) {
+        try {
+            await read_file(filePath, false, 1, 1)
+            return true
+        } catch (error) {
+            return false
+        }
+    }
+    
+    static async validateFileCreation(filePath) {
+        const exists = await this.checkFileExists(filePath)
+        
+        if (exists) {
+            throw new Error(`文件已存在：${filePath}，禁止重复创建`)
+        }
+        
+        console.log(`✅ 文件创建检查通过：${filePath}`)
+        return true
+    }
+}
+```
+
+## 🔴 B级问题预防规则（效率问题）
+
+### 5. 配置错误批量检测规则
+```javascript
+// 🔴 配置错误批量检测系统
+class ConfigErrorBatchDetector {
+    static correctDomains = ['rqchrlqndora.sealosbja.site']
+    static errorDomains = [
+        'rqchrlandora.sealoshqja.site',
+        'rqchrlqndora.sealoshqja.site',
+        'rqchrlandora.sealosbja.site'
+    ]
+    
+    static filesToCheck = [
+        'config/env.js',
+        'project.private.config.json',
+        '前端技术规范文档标准.md',
+        '接口对接规范文档标准.md',
+        '后端技术规范文档标准.md'
+    ]
+    
+    static async batchDetectConfigErrors() {
+        console.log('🔍 批量检测配置错误...')
+        
+        const errors = []
+        
+        // 🔴 并行检查所有文件
+        const checkPromises = this.filesToCheck.map(async file => {
+            const content = await read_file(file, true, 1, -1)
+            const fileErrors = this.detectDomainErrors(content.content, file)
+            return fileErrors
+        })
+        
+        const allErrors = await Promise.all(checkPromises)
+        const flatErrors = allErrors.flat()
+        
+        if (flatErrors.length > 0) {
+            console.error(`🚨 发现${flatErrors.length}个配置错误`)
+            return {
+                hasErrors: true,
+                errors: flatErrors,
+                batchFixPlan: this.generateBatchFixPlan(flatErrors)
+            }
+        }
+        
+        return { hasErrors: false }
+    }
+    
+    static detectDomainErrors(content, filename) {
+        const errors = []
+        
+        this.errorDomains.forEach(errorDomain => {
+            if (content.includes(errorDomain)) {
+                errors.push({
+                    file: filename,
+                    errorDomain,
+                    correctDomain: this.correctDomains[0],
+                    type: 'DOMAIN_CONFIG_ERROR'
+                })
+            }
+        })
+        
+        return errors
+    }
+    
+    static generateBatchFixPlan(errors) {
+        const filesWithErrors = [...new Set(errors.map(e => e.file))]
+        
+        return {
+            totalFiles: filesWithErrors.length,
+            totalErrors: errors.length,
+            operations: errors.map(error => ({
+                file: error.file,
+                type: 'replace',
+                from: error.errorDomain,
+                to: error.correctDomain
+            })),
+            estimatedTime: errors.length * 2000 // 2秒每个修复
+        }
+    }
+}
+```
+
+### 6. API路径错误检测规则
+```javascript
+// 🔴 API路径错误检测系统
+class APIPathValidator {
+    static correctPaths = {
+        '/api/auth/verify': '/api/auth/verify-token',
+        '/api/user/userinfo': '/api/user/info',
+        '/api/lottery/getconfig': '/api/lottery/config'
+    }
+    
+    static async detectAPIErrors() {
+        const filesToCheck = ['utils/api.js', 'pages/*/index.js']
+        const errors = []
+        
+        // 🔴 并行检查API文件
+        const checkPromises = filesToCheck.map(async pattern => {
+            const files = await this.findFiles(pattern)
+            const fileErrors = await Promise.all(
+                files.map(file => this.checkFileForAPIErrors(file))
+            )
+            return fileErrors.flat()
+        })
+        
+        const allErrors = await Promise.all(checkPromises)
+        return allErrors.flat()
+    }
+    
+    static async checkFileForAPIErrors(filepath) {
+        const content = await read_file(filepath, true, 1, -1)
+        const errors = []
+        
+        Object.entries(this.correctPaths).forEach(([incorrect, correct]) => {
+            if (content.content.includes(incorrect)) {
+                errors.push({
+                    file: filepath,
+                    incorrectPath: incorrect,
+                    correctPath: correct,
+                    type: 'API_PATH_ERROR'
+                })
+            }
+        })
+        
+        return errors
+    }
+}
+```
+
+### 7. 方法调用错误检测规则
+```javascript
+// 🔴 方法调用错误检测系统
+class MethodCallValidator {
+    static dangerousPatterns = [
+        'this\\.getTechnicalConfig\\(\\)',
+        'this\\.formatDate\\(\\)',
+        'this\\.validateForm\\(\\)',
+        'this\\.[a-zA-Z]+Config\\(\\)',
+        'this\\.[a-zA-Z]+Util\\(\\)'
+    ]
+    
+    static async detectMethodCallErrors() {
+        const jsFiles = await this.findJSFiles()
+        const errors = []
+        
+        // 🔴 并行检查所有JS文件
+        const checkPromises = jsFiles.map(async file => {
+            const content = await read_file(file, true, 1, -1)
+            return this.checkMethodCalls(content.content, file)
+        })
+        
+        const allErrors = await Promise.all(checkPromises)
+        return allErrors.flat()
+    }
+    
+    static checkMethodCalls(content, filename) {
+        const errors = []
+        
+        this.dangerousPatterns.forEach(pattern => {
+            const regex = new RegExp(pattern, 'g')
+            const matches = content.match(regex)
+            
+            if (matches) {
+                errors.push({
+                    file: filename,
+                    errorPattern: pattern,
+                    matches: matches,
+                    type: 'METHOD_CALL_ERROR',
+                    suggestion: '将this.method()改为直接调用导入的函数'
+                })
+            }
+        })
+        
+        return errors
+    }
+}
+```
+
+## 🔴 C级问题预防规则（流程问题）
+
+### 8. Mock数据检测完善规则
+```javascript
+// 🔴 Mock数据零容忍检测系统
+class MockDataDetector {
+    static mockKeywords = [
+        'mock', 'Mock', 'MOCK', 'fake', 'Fake', 'FAKE',
+        'test', 'Test', 'TEST', 'demo', 'Demo', 'DEMO',
+        'sample', 'Sample', 'SAMPLE', 'dummy', 'Dummy', 'DUMMY',
+        'mockData', 'mockAPI', 'mockResponse', 'mockRequest',
+        'fakeData', 'fakeAPI', 'fakeResponse', 'fakeRequest',
+        'testData', 'testAPI', 'testResponse', 'testRequest',
+        'shouldUseMock', 'useMockData', 'isMockMode',
+        'mockLogin', 'mockUser', 'mockConfig'
+    ]
+    
+    static mockPatterns = [
+        'const\\s+mock\\w+\\s*=',
+        'function\\s+mock\\w+',
+        'if\\s*\\(\\s*\\w*mock\\w*',
+        'setTimeout\\s*\\(\\s*\\(\\)\\s*=>\\s*{[\\s\\S]*?callback',
+        'Math\\.random\\(\\)\\s*\\*\\s*\\d+',
+        'const\\s+\\w+\\s*=\\s*\\[[\\s\\S]*?probability[\\s\\S]*?\\]'
+    ]
+    
+    static async scanAllFiles() {
+        const jsFiles = await this.findJSFiles()
+        const errors = []
+        
+        // 🔴 并行扫描所有JS文件
+        const scanPromises = jsFiles.map(async file => {
+            const content = await read_file(file, true, 1, -1)
+            return this.detectMockData(content.content, file)
+        })
+        
+        const allErrors = await Promise.all(scanPromises)
+        return allErrors.flat()
+    }
+    
+    static detectMockData(content, filename) {
+        const violations = []
+        
+        // 检测关键词
+        this.mockKeywords.forEach(keyword => {
+            if (content.includes(keyword)) {
+                violations.push({
+                    file: filename,
+                    type: 'MOCK_KEYWORD',
+                    keyword: keyword,
+                    severity: 'HIGH'
+                })
+            }
+        })
+        
+        // 检测模式
+        this.mockPatterns.forEach(pattern => {
+            const regex = new RegExp(pattern, 'gi')
+            const matches = content.match(regex)
+            
+            if (matches) {
+                violations.push({
+                    file: filename,
+                    type: 'MOCK_PATTERN',
+                    pattern: pattern,
+                    matches: matches,
+                    severity: 'CRITICAL'
+                })
+            }
+        })
+        
+        return violations
+    }
+}
+```
+
+### 9. 日期时间自动获取规则
+```powershell
+# 🔴 强制使用PowerShell获取当前日期
+# ✅ 正确用法
+$currentDate = Get-Date -Format "yyyy年MM月dd日"
+$currentVersion = Get-Date -Format "yyyy-MM-dd"
+
+# ❌ 禁止手动输入日期
+# 错误：手动写入"2025年1月3日"
+# 正确：使用Get-Date命令动态获取
+```
+
+### 10. 正则表达式安全处理规则
+```javascript
+// 🔴 正则表达式安全处理系统
+class RegexSafetyProcessor {
+    static emojiMap = {
+        '🔧': '\\\\u{1F527}',
+        '🔗': '\\\\u{1F517}',
+        '📨': '\\\\u{1F4E8}',
+        '❌': '\\\\u{274C}',
+        '✅': '\\\\u{2705}',
+        '🚨': '\\\\u{1F6A8}',
+        '⚠️': '\\\\u{26A0}\\\\u{FE0F}'
+    }
+    
+    static createSafeRegex(unsafePattern) {
+        let safePattern = unsafePattern
+        
+        // 转义emoji
+        Object.entries(this.emojiMap).forEach(([emoji, unicode]) => {
+            safePattern = safePattern.replace(
+                new RegExp(emoji.replace(/[.*+?^${}()|[\]\\]/g, '\\\\$&'), 'g'), 
+                unicode
+            )
+        })
+        
+        // 转义特殊字符
+        safePattern = safePattern.replace(/[.*+?^${}()|[\]\\]/g, '\\\\$&')
+        
+        return safePattern
+    }
+    
+    static validateRegexPattern(pattern) {
+        try {
+            new RegExp(pattern)
+            return { valid: true }
+        } catch (error) {
+            return {
+                valid: false,
+                error: error.message,
+                suggestion: '请检查正则表达式语法，确保特殊字符已正确转义'
+            }
+        }
+    }
+}
+```
+
+### 11. 批量问题处理引擎
+```javascript
+// 🔴 批量问题处理引擎
+class BatchProblemProcessor {
+    static problemCategories = {
+        'CONFIGURATION': {
+            detector: 'ConfigErrorBatchDetector',
+            processor: 'ConfigurationBatchFixer',
+            priority: 'HIGH'
+        },
+        'API_PATHS': {
+            detector: 'APIPathValidator',
+            processor: 'APIPathBatchFixer',
+            priority: 'HIGH'
+        },
+        'METHOD_CALLS': {
+            detector: 'MethodCallValidator',
+            processor: 'MethodCallBatchFixer',
+            priority: 'MEDIUM'
+        },
+        'MOCK_DATA': {
+            detector: 'MockDataDetector',
+            processor: 'MockDataRemover',
+            priority: 'CRITICAL'
+        }
+    }
+    
+    static async processBatchProblems() {
+        console.log('🔄 开始批量问题处理...')
+        
+        const processingResults = []
+        
+        // 🔴 并行检测所有问题类型
+        const detectionPromises = Object.entries(this.problemCategories).map(async ([category, config]) => {
+            const detector = eval(config.detector)
+            const problems = await detector.detect()
+            
+            return {
+                category,
+                problems,
+                config,
+                hasProblems: problems && problems.length > 0
+            }
+        })
+        
+        const detectionResults = await Promise.all(detectionPromises)
+        
+        // 过滤出有问题的类别
+        const categoriesWithProblems = detectionResults.filter(result => result.hasProblems)
+        
+        if (categoriesWithProblems.length === 0) {
+            console.log('✅ 批量检测完成，未发现问题')
+            return { hasProblems: false, results: [] }
+        }
+        
+        console.log(`🚨 发现${categoriesWithProblems.length}个问题类别`)
+        
+        // 🔴 按优先级排序并处理
+        categoriesWithProblems.sort((a, b) => {
+            const priorityOrder = { 'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 }
+            return priorityOrder[a.config.priority] - priorityOrder[b.config.priority]
+        })
+        
+        // 串行处理高优先级问题，并行处理同优先级问题
+        for (const group of this.groupByPriority(categoriesWithProblems)) {
+            const groupResults = await Promise.all(
+                group.map(async category => {
+                    const processor = eval(category.config.processor)
+                    const result = await processor.process(category.problems)
+                    
+                    return {
+                        category: category.category,
+                        result,
+                        priority: category.config.priority
+                    }
+                })
+            )
+            
+            processingResults.push(...groupResults)
+        }
+        
+        return {
+            hasProblems: true,
+            totalCategories: categoriesWithProblems.length,
+            results: processingResults,
+            summary: this.generateProcessingSummary(processingResults)
+        }
+    }
+    
+    static groupByPriority(categories) {
+        const groups = []
+        let currentPriority = null
+        let currentGroup = []
+        
+        for (const category of categories) {
+            if (category.config.priority !== currentPriority) {
+                if (currentGroup.length > 0) {
+                    groups.push(currentGroup)
+                }
+                currentGroup = [category]
+                currentPriority = category.config.priority
+            } else {
+                currentGroup.push(category)
+            }
+        }
+        
+        if (currentGroup.length > 0) {
+            groups.push(currentGroup)
+        }
+        
+        return groups
+    }
+    
+    static generateProcessingSummary(results) {
+        const summary = {
+            totalCategories: results.length,
+            successfulFixes: 0,
+            failedFixes: 0,
+            timeSaved: 0
+        }
+        
+        results.forEach(result => {
+            if (result.result.success) {
+                summary.successfulFixes++
+                summary.timeSaved += result.result.timeSaved || 0
+            } else {
+                summary.failedFixes++
+            }
+        })
+        
+        console.log(`📊 批量处理摘要:`)
+        console.log(`  处理类别: ${summary.totalCategories}`)
+        console.log(`  成功修复: ${summary.successfulFixes}`)
+        console.log(`  修复失败: ${summary.failedFixes}`)
+        console.log(`  节省时间: ${summary.timeSaved}ms`)
+        
+        return summary
+    }
+}
+```
+
+---
+
+**规则创建时间**: $(Get-Date -Format "yyyy年MM月dd日")  
+**最后更新时间**: $(Get-Date -Format "yyyy年MM月dd日")  
+**更新内容**: 完善核心问题预防规则，补充批量处理引擎，确保文档完整性  
+**适用范围**: 所有需要问题预防的开发场景  
+**维护状态**: ✅ 已完善 - 所有预防规则已补充完整
+

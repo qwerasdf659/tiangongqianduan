@@ -37,7 +37,7 @@ const ENV = {
       mockSmsResponse: true,              // 模拟短信发送成功响应
       
       // 🔧 WebSocket连接优化 - 基于用户规则修复
-      enableWebSocket: true,              // 启用WebSocket连接
+      enableWebSocket: false,             // 🔧 暂时禁用WebSocket连接，避免503错误
       webSocketReconnect: true,           // 启用自动重连
       silentWebSocketErrors: true,        // 静默处理WebSocket错误，避免不必要的错误提示
       webSocketTimeout: 10000,            // WebSocket连接超时10秒
@@ -56,7 +56,7 @@ const ENV = {
       
       // 💡 开发建议实现 - v2.1.3优化
       mockResponseDelay: 300,             // 模拟响应延迟（优化到300ms）
-      showDevelopmentTips: true,          // 显示开发阶段提示
+      showDevelopmentTips: false,         // 🔧 已关闭开发阶段提示（根据用户要求）
       enableDevelopmentTools: true,       // 启用开发工具
       
       // 📸 v2.1.3拍照上传系统 - 纯人工审核模式
@@ -90,7 +90,13 @@ const ENV = {
       enableDataSafety: true,             // 启用数据安全处理
       strictFieldMapping: true,           // 严格字段映射
       filterUndefinedValues: true,        // 过滤undefined值
-      validateApiResponseFormat: true     // 验证API响应格式
+      validateApiResponseFormat: true,    // 验证API响应格式
+      
+      // 🔴 503错误处理优化 - 新增
+      handle503Errors: true,              // 启用503错误特殊处理
+      show503ErrorDetails: true,          // 显示503错误详细信息
+      backend503RetryDelay: 5000,         // 503错误重试延迟5秒
+      maxBackendRetries: 2                // 最大后端重试次数
     }
   },
   
@@ -187,7 +193,7 @@ const ENV = {
 }
 
 // 🚨 部署时必须修改此处 - 根据产品功能结构文档要求
-let CURRENT_ENV = 'testing'  // 修改为测试环境，使用线上API服务
+let CURRENT_ENV = 'testing'  // 🔧 修复：切换到测试环境，连接线上API服务
 
 module.exports = {
   // 获取当前环境配置
@@ -198,6 +204,11 @@ module.exports = {
       return ENV.development // 降级到开发环境
     }
     return config
+  },
+  
+  // 获取当前环境名称
+  getCurrentEnv: () => {
+    return CURRENT_ENV
   },
   
   // 设置环境

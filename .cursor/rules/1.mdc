@@ -369,21 +369,351 @@ const COMMUNICATION_QUALITY_METRICS = {
 ✅ 重复任务必须100%重新执行
 ```
 
-## 📚 相关规则文档引用
+## 🚀 2025年01月03日新增问题模式识别规则
 
-- **PowerShell控制台稳定性**: 详见 `development-automation-unified.mdc`
-- **Mock数据安全检测**: 详见 `tiangong-security-standards (1).mdc`
-- **微信小程序项目识别**: 详见 `development-automation-unified.mdc`
-- **WebSocket错误处理**: 详见 `tiangong-security-standards (1).mdc`
-- **代码注释规范**: 详见 `tiangong-security-standards (1).mdc`
+### 7. 问题模式识别系统
+```javascript
+// 🔴 问题模式识别与分类系统
+class ProblemPatternRecognizer {
+    constructor() {
+        this.patterns = {
+            'CONFIGURATION_ERROR': {
+                keywords: ['域名', '配置', '错误', 'domain', 'config'],
+                severity: 'HIGH',
+                autoFixable: true,
+                relatedFiles: ['config/env.js', '*.md'],
+                solution: 'BatchConfigurationFix'
+            },
+            'API_CALLING_ERROR': {
+                keywords: ['API', '路径', '错误', 'path', 'endpoint'],
+                severity: 'HIGH',
+                autoFixable: true,
+                relatedFiles: ['utils/api.js', 'pages/*/index.js'],
+                solution: 'APIPathCorrection'
+            },
+            'METHOD_INVOCATION_ERROR': {
+                keywords: ['方法', '调用', '错误', 'this.', 'function'],
+                severity: 'MEDIUM',
+                autoFixable: true,
+                relatedFiles: ['pages/*/index.js', 'components/*/index.js'],
+                solution: 'MethodCallFix'
+            },
+            'TIMEOUT_VIOLATION': {
+                keywords: ['超时', '120秒', 'timeout', '卡住'],
+                severity: 'CRITICAL',
+                autoFixable: true,
+                relatedFiles: ['*'],
+                solution: 'TimeoutManagement'
+            },
+            'PARALLEL_OPPORTUNITY': {
+                keywords: ['串行', '并行', '效率', 'parallel', 'serial'],
+                severity: 'MEDIUM',
+                autoFixable: true,
+                relatedFiles: ['*'],
+                solution: 'ParallelOptimization'
+            }
+        }
+        
+        this.recognitionHistory = []
+    }
+    
+    // 🔴 识别问题模式
+    recognizePattern(description, context = {}) {
+        const recognizedPatterns = []
+        
+        Object.entries(this.patterns).forEach(([patternType, config]) => {
+            const matchScore = this.calculateMatchScore(description, config.keywords)
+            
+            if (matchScore > 0.5) { // 匹配度超过50%
+                recognizedPatterns.push({
+                    type: patternType,
+                    matchScore,
+                    severity: config.severity,
+                    autoFixable: config.autoFixable,
+                    relatedFiles: config.relatedFiles,
+                    solution: config.solution,
+                    confidence: this.calculateConfidence(matchScore, context)
+                })
+            }
+        })
+        
+        // 按匹配度排序
+        recognizedPatterns.sort((a, b) => b.matchScore - a.matchScore)
+        
+        // 记录识别历史
+        this.recognitionHistory.push({
+            timestamp: Date.now(),
+            description,
+            patterns: recognizedPatterns
+        })
+        
+        return recognizedPatterns
+    }
+    
+    // 🔴 计算匹配分数
+    calculateMatchScore(description, keywords) {
+        const lowerDescription = description.toLowerCase()
+        const matchedKeywords = keywords.filter(keyword => 
+            lowerDescription.includes(keyword.toLowerCase())
+        )
+        
+        return matchedKeywords.length / keywords.length
+    }
+    
+    // 🔴 计算置信度
+    calculateConfidence(matchScore, context) {
+        let confidence = matchScore
+        
+        // 基于上下文调整置信度
+        if (context.hasErrorDetails) confidence += 0.1
+        if (context.hasStackTrace) confidence += 0.1
+        if (context.hasReproductionSteps) confidence += 0.1
+        
+        return Math.min(1.0, confidence)
+    }
+    
+    // 🔴 生成解决方案建议
+    generateSolutionRecommendation(recognizedPatterns) {
+        if (recognizedPatterns.length === 0) {
+            return {
+                recommendation: 'MANUAL_ANALYSIS',
+                message: '未识别到已知问题模式，需要手动分析',
+                priority: 'MEDIUM'
+            }
+        }
+        
+        const topPattern = recognizedPatterns[0]
+        
+        return {
+            recommendation: topPattern.solution,
+            message: `识别到${topPattern.type}问题模式，建议使用${topPattern.solution}解决`,
+            priority: topPattern.severity,
+            confidence: topPattern.confidence,
+            autoFixable: topPattern.autoFixable,
+            relatedFiles: topPattern.relatedFiles
+        }
+    }
+}
+```
+
+### 8. 责任边界检查系统
+```javascript
+// 🔴 责任边界检查系统
+class ResponsibilityBoundaryChecker {
+    constructor() {
+        this.boundaries = {
+            'FRONTEND': {
+                responsibilities: [
+                    '用户界面显示',
+                    '用户交互处理',
+                    '数据展示格式化',
+                    '客户端验证',
+                    '页面路由管理'
+                ],
+                prohibitions: [
+                    '业务逻辑计算',
+                    '数据权限验证',
+                    '抽奖概率计算',
+                    '支付处理',
+                    '用户认证'
+                ],
+                dataSource: 'BACKEND_API_ONLY'
+            },
+            'BACKEND': {
+                responsibilities: [
+                    '业务逻辑处理',
+                    '数据权限验证',
+                    'API接口提供',
+                    '数据库操作',
+                    '用户认证授权'
+                ],
+                prohibitions: [
+                    '界面渲染',
+                    '用户交互',
+                    '前端状态管理'
+                ],
+                dataSource: 'DATABASE_AND_BUSINESS_LOGIC'
+            },
+            'DATABASE': {
+                responsibilities: [
+                    '数据存储',
+                    '数据查询',
+                    '数据完整性',
+                    '事务管理'
+                ],
+                prohibitions: [
+                    '业务逻辑',
+                    '数据格式化',
+                    '用户界面'
+                ],
+                dataSource: 'PERSISTENT_STORAGE'
+            }
+        }
+    }
+    
+    // 🔴 检查责任边界违规
+    checkBoundaryViolation(component, action, context) {
+        const boundary = this.boundaries[component.toUpperCase()]
+        
+        if (!boundary) {
+            return {
+                violation: true,
+                type: 'UNKNOWN_COMPONENT',
+                message: `未知组件: ${component}`,
+                severity: 'HIGH'
+            }
+        }
+        
+        // 检查是否是禁止的操作
+        const isProhibited = boundary.prohibitions.some(prohibition => 
+            action.toLowerCase().includes(prohibition.toLowerCase())
+        )
+        
+        if (isProhibited) {
+            return {
+                violation: true,
+                type: 'RESPONSIBILITY_VIOLATION',
+                component,
+                action,
+                message: `${component}不应该执行: ${action}`,
+                severity: 'CRITICAL',
+                correctComponent: this.findCorrectComponent(action),
+                suggestion: this.generateBoundarySuggestion(component, action)
+            }
+        }
+        
+        // 检查是否是正确的责任范围
+        const isResponsible = boundary.responsibilities.some(responsibility => 
+            action.toLowerCase().includes(responsibility.toLowerCase())
+        )
+        
+        if (!isResponsible) {
+            return {
+                violation: true,
+                type: 'UNCLEAR_RESPONSIBILITY',
+                component,
+                action,
+                message: `${component}对${action}的责任不明确`,
+                severity: 'MEDIUM',
+                suggestion: '请明确责任归属或重新设计架构'
+            }
+        }
+        
+        return {
+            violation: false,
+            message: `${component}执行${action}符合责任边界`,
+            component,
+            action
+        }
+    }
+    
+    // 🔴 查找正确的组件
+    findCorrectComponent(action) {
+        for (const [component, boundary] of Object.entries(this.boundaries)) {
+            const isResponsible = boundary.responsibilities.some(responsibility => 
+                action.toLowerCase().includes(responsibility.toLowerCase())
+            )
+            
+            if (isResponsible) {
+                return component
+            }
+        }
+        
+        return 'UNKNOWN'
+    }
+    
+    // 🔴 生成边界建议
+    generateBoundarySuggestion(component, action) {
+        const correctComponent = this.findCorrectComponent(action)
+        
+        if (correctComponent !== 'UNKNOWN') {
+            return {
+                currentComponent: component,
+                correctComponent,
+                action,
+                suggestion: `将${action}从${component}移至${correctComponent}`,
+                architectureChange: true
+            }
+        }
+        
+        return {
+            currentComponent: component,
+            action,
+            suggestion: '重新评估架构设计，明确责任分工',
+            architectureChange: true
+        }
+    }
+    
+    // 🔴 检查数据流向
+    checkDataFlow(source, target, dataType) {
+        const sourceComponent = this.boundaries[source.toUpperCase()]
+        const targetComponent = this.boundaries[target.toUpperCase()]
+        
+        if (!sourceComponent || !targetComponent) {
+            return {
+                violation: true,
+                type: 'INVALID_COMPONENT',
+                message: `无效的数据流: ${source} -> ${target}`
+            }
+        }
+        
+        // 检查数据流向是否合理
+        const validFlows = {
+            'DATABASE_TO_BACKEND': true,
+            'BACKEND_TO_FRONTEND': true,
+            'FRONTEND_TO_BACKEND': true,
+            'BACKEND_TO_DATABASE': true,
+            'FRONTEND_TO_DATABASE': false,  // 直接访问数据库违规
+            'DATABASE_TO_FRONTEND': false   // 直接访问数据库违规
+        }
+        
+        const flowKey = `${source.toUpperCase()}_TO_${target.toUpperCase()}`
+        const isValidFlow = validFlows[flowKey]
+        
+        if (isValidFlow === false) {
+            return {
+                violation: true,
+                type: 'INVALID_DATA_FLOW',
+                source,
+                target,
+                dataType,
+                message: `禁止的数据流: ${source} -> ${target}`,
+                severity: 'CRITICAL',
+                suggestion: '前端必须通过后端API访问数据，禁止直接访问数据库'
+            }
+        }
+        
+        return {
+            violation: false,
+            message: `合法的数据流: ${source} -> ${target}`,
+            source,
+            target,
+            dataType
+        }
+    }
+}
+```
 
 ---
 
-**规则创建时间**: 2025年07月02日  
-**最后更新时间**: 2025年01月03日  
-**更新内容**: 整理合并重复内容，建立文档间引用关系，保留核心会话问题分析规则  
-**适用范围**: 所有Claude AI开发会话  
-**维护状态**: ✅ 已整理 - 重复内容已合并，规则完整性已保证
+## 📚 相关规则文档引用
+
+- **PowerShell控制台稳定性**: 详见 `development-automation-unified.mdc`
+- **工具调用参数验证**: 详见 `1.mdc` - 工具调用参数验证规则
+- **并行工具调用优化**: 详见 `1.mdc` - 并行工具调用强制优化规则
+- **微信小程序项目识别**: 详见 `development-automation-unified.mdc`
+- **信息收集策略**: 详见 `development-automation-unified.mdc`
+- **安全标准规范**: 详见 `tiangong-security-standards (1).mdc`
+- **高级优化规则**: 详见 `advanced-optimization.mdc`
+- **核心问题预防**: 详见 `problem-prevention-core.mdc`
+
+---
+
+**规则创建时间**: $(Get-Date -Format "yyyy年MM月dd日")  
+**最后更新时间**: $(Get-Date -Format "yyyy年MM月dd日")  
+**更新内容**: 新增问题模式识别系统和责任边界检查系统，完善问题分析能力  
+**适用范围**: 所有会话问题分析和解决场景  
+**维护状态**: ✅ 已完善 - 问题分析规则完整性已保证
 
 
 

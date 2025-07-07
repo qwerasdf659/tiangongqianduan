@@ -537,6 +537,29 @@ class WSManager {
       this._connectTimeout = null
     }
     
+    // 🔴 503错误特殊处理 - 明确提示这是后端问题
+    const errorMessage = error.errMsg || error.message || '连接失败'
+    if (errorMessage.includes('503')) {
+      console.error('🚨 WebSocket 503错误 - 后端服务不可用')
+      wx.showModal({
+        title: '🚨 后端服务异常',
+        content: '后端WebSocket服务暂不可用！\n\n可能原因：\n• 服务器维护中\n• WebSocket服务未启动\n• 网络连接问题\n\n请联系后端程序员检查服务器状态！',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: '#ff4444'
+      })
+      
+      // 503错误不进行重连，避免无意义的重试
+      this.emit('error', {
+        ...error,
+        handled: true,
+        silent: false,  // 503错误不静默处理
+        isBackendError: true,
+        errorType: '503_service_unavailable'
+      })
+      return
+    }
+    
     // 🔧 静默发送错误事件，不显示用户弹窗
     this.emit('error', {
       ...error,

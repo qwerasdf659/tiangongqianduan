@@ -2,6 +2,8 @@
 const app = getApp()
 const { uploadAPI, userAPI } = require('../../utils/api')
 const { validateImage, compressImage, validateAmount, FormValidator, commonRules } = require('../../utils/validate')
+const ApiHealthCheck = require('../../utils/api-health-check') // 🔧 临时调试工具
+const TokenRepair = require('../../utils/token-repair') // 🔧 Token修复工具
 
 Page({
 
@@ -497,11 +499,49 @@ Page({
     }).catch((error) => {
       console.error('❌ 加载上传历史失败:', error)
       
-      // 🔴 后端服务异常已在API层处理，这里只需要设置安全默认值
-      this.setData({
-        uploadHistory: []
-      })
+      // 🔧 增强：Token问题的智能处理
+      if (error.code === 2001 || error.code === 401 || error.needsRelogin) {
+        console.log('🔧 检测到Token问题，启动修复流程...')
+        this.handleTokenError(error)
+      } else {
+        // 🔴 其他错误，后端服务异常已在API层处理
+        this.setData({
+          uploadHistory: []
+        })
+      }
     })
+  },
+
+  /**
+   * 🔧 处理Token错误
+   */
+  async handleTokenError(error) {
+    console.log('🔧 处理Token错误:', error)
+    
+    try {
+      const repairResult = await TokenRepair.showRepairDialog()
+      
+      if (repairResult.success) {
+        // Token修复成功，重新加载数据
+        console.log('✅ Token修复成功，重新加载数据')
+        this.loadUploadHistory()
+        this.refreshUserInfo()
+      }
+    } catch (repairError) {
+      console.error('❌ Token修复失败:', repairError)
+      
+      wx.showModal({
+        title: '登录状态异常',
+        content: '检测到登录状态异常，请重新登录以查看上传记录',
+        showCancel: false,
+        confirmText: '重新登录',
+        success: () => {
+          wx.reLaunch({
+            url: '/pages/auth/auth'
+          })
+        }
+      })
+    }
   },
 
   /**
@@ -610,6 +650,98 @@ Page({
     return {
       title: '拍照赚积分，快来试试！',
       path: '/pages/camera/camera'
+    }
+  },
+
+  /**
+   * 🔧 临时调试功能：API健康检查
+   */
+  onDebugApiCheck() {
+    console.log('🔍 开始API健康检查...')
+    ApiHealthCheck.quickCheck()
+  },
+
+  /**
+   * 🔧 临时调试功能：强制刷新上传历史
+   */
+  onDebugRefreshHistory() {
+    console.log('🔄 强制刷新上传历史...')
+    wx.showLoading({ title: '刷新中...', mask: true })
+    
+    this.loadUploadHistory().then(() => {
+      wx.hideLoading()
+      wx.showToast({
+        title: '刷新完成',
+        icon: 'success'
+      })
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 刷新失败:', error)
+      wx.showToast({
+        title: '刷新失败',
+        icon: 'none'
+      })
+    })
+  },
+
+  /**
+   * 🔧 临时调试功能：显示当前环境信息
+   */
+  onDebugShowEnvironment() {
+    const envConfig = require('../../config/env.js')
+    const config = envConfig.getConfig()
+    
+    const envInfo = `当前环境：${envConfig.getCurrentEnv()}\n\nAPI地址：${config.baseUrl}\n\nWebSocket：${config.wsUrl}\n\n认证状态：${app.globalData.accessToken ? '已登录' : '未登录'}\n\n用户ID：${app.globalData.userInfo?.user_id || '未知'}`
+    
+    wx.showModal({
+      title: '🔧 环境信息',
+      content: envInfo,
+      showCancel: false,
+      confirmText: '知道了'
+    })
+  },
+
+  /**
+   * 🔧 临时调试功能：Token修复
+   */
+  async onDebugTokenRepair() {
+    console.log('🔧 手动触发Token修复...')
+    wx.showLoading({ title: '修复中...', mask: true })
+    
+    try {
+      const result = await TokenRepair.repairUploadHistory()
+      wx.hideLoading()
+      
+      if (result.success) {
+        wx.showToast({
+          title: '修复成功',
+          icon: 'success'
+        })
+        
+        // 刷新页面数据
+        this.loadUploadHistory()
+        this.refreshUserInfo()
+      } else {
+        throw new Error(result.message || '修复失败')
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 手动修复失败:', error)
+      
+      wx.showModal({
+        title: '修复失败',
+        content: `Token修复失败：${error.message || '未知错误'}\n\n建议重新登录解决问题`,
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新登录',
+        success: (res) => {
+          if (res.confirm) {
+            wx.reLaunch({
+              url: '/pages/auth/auth'
+            })
+          }
+        }
+      })
     }
   }
 })

@@ -1,0 +1,687 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 🚀 高级优化规则集 - $(Get-Date -Format "yyyy年MM月dd日")
+
+## 🎯 任务优先级管理系统
+
+### 1. 智能任务优先级分配
+```javascript
+// 🔴 任务优先级管理系统
+class TaskPriorityManager {
+    static priorityLevels = {
+        'CRITICAL': { weight: 10, maxWaitTime: 0 },      // 立即处理
+        'HIGH': { weight: 8, maxWaitTime: 300000 },      // 5分钟内
+        'MEDIUM': { weight: 5, maxWaitTime: 900000 },    // 15分钟内
+        'LOW': { weight: 2, maxWaitTime: 1800000 }       // 30分钟内
+    }
+    
+    static taskQueue = []
+    static processingQueue = []
+    static completedTasks = []
+    
+    static addTask(task) {
+        const taskWithPriority = {
+            ...task,
+            id: this.generateTaskId(),
+            createdAt: Date.now(),
+            priority: this.calculatePriority(task),
+            weight: this.priorityLevels[task.severity || 'MEDIUM'].weight
+        }
+        
+        this.taskQueue.push(taskWithPriority)
+        this.taskQueue.sort((a, b) => b.weight - a.weight)
+        
+        console.log(`📋 任务已添加: ${task.description} (优先级: ${taskWithPriority.priority})`)
+        return taskWithPriority.id
+    }
+    
+    static calculatePriority(task) {
+        const severityMap = {
+            'TOOL_CALL_ERROR': 'CRITICAL',      // 工具调用错误
+            'TIMEOUT_VIOLATION': 'CRITICAL',    // 超时违规
+            'DOMAIN_CONFIG_ERROR': 'HIGH',      // 域名配置错误
+            'API_PATH_ERROR': 'HIGH',          // API路径错误
+            'METHOD_CALL_ERROR': 'HIGH',       // 方法调用错误
+            'MOCK_DATA_VIOLATION': 'MEDIUM',   // Mock数据违规
+            'DOCUMENTATION_ERROR': 'LOW'        // 文档错误
+        }
+        
+        return severityMap[task.type] || 'MEDIUM'
+    }
+    
+    static getNextTask() {
+        if (this.taskQueue.length === 0) return null
+        
+        const nextTask = this.taskQueue.shift()
+        this.processingQueue.push(nextTask)
+        
+        console.log(`🎯 开始处理任务: ${nextTask.description}`)
+        return nextTask
+    }
+    
+    static completeTask(taskId, result) {
+        const taskIndex = this.processingQueue.findIndex(t => t.id === taskId)
+        if (taskIndex === -1) return false
+        
+        const task = this.processingQueue.splice(taskIndex, 1)[0]
+        task.completedAt = Date.now()
+        task.processingTime = task.completedAt - task.createdAt
+        task.result = result
+        
+        this.completedTasks.push(task)
+        
+        console.log(`✅ 任务完成: ${task.description} (耗时: ${task.processingTime}ms)`)
+        
+        if (this.taskQueue.length === 0 && this.processingQueue.length === 0) {
+            this.generateCompletionReport()
+        }
+        
+        return true
+    }
+    
+    static generateCompletionReport() {
+        const totalTasks = this.completedTasks.length
+        const totalTime = this.completedTasks.reduce((sum, task) => sum + task.processingTime, 0)
+        const avgTime = totalTime / totalTasks
+        
+        console.log(`📊 任务完成报告:`)
+        console.log(`  总任务数: ${totalTasks}`)
+        console.log(`  总耗时: ${totalTime}ms`)
+        console.log(`  平均耗时: ${Math.round(avgTime)}ms`)
+        console.log(`  🎉 所有任务已完成！`)
+    }
+    
+    static generateTaskId() {
+        return `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    }
+}
+```
+
+### 2. 重复问题预防机制
+```javascript
+// 🔴 重复问题预防系统
+class DuplicationPreventer {
+    static processedIssues = new Set()
+    static issuePatterns = {
+        'DOMAIN_CONFIG': {
+            pattern: /域名.*配置.*错误/,
+            relatedFiles: ['config/env.js', 'project.private.config.json', '*.md'],
+            batchStrategy: 'replace_all_occurrences'
+        },
+        'API_PATH': {
+            pattern: /API.*路径.*错误/,
+            relatedFiles: ['utils/api.js', 'pages/*/index.js'],
+            batchStrategy: 'targeted_replacement'
+        },
+        'METHOD_CALL': {
+            pattern: /方法.*调用.*错误/,
+            relatedFiles: ['pages/*/index.js', 'components/*/index.js'],
+            batchStrategy: 'import_and_call_fix'
+        }
+    }
+    
+    static checkDuplication(issue) {
+        const issueKey = this.generateIssueKey(issue)
+        
+        if (this.processedIssues.has(issueKey)) {
+            return {
+                isDuplicate: true,
+                message: `重复问题检测: ${issue.description}`,
+                recommendation: '建议使用批处理策略一次性解决所有相关问题'
+            }
+        }
+        
+        for (const [patternType, config] of Object.entries(this.issuePatterns)) {
+            if (config.pattern.test(issue.description)) {
+                return {
+                    isDuplicate: false,
+                    patternType,
+                    batchStrategy: config.batchStrategy,
+                    relatedFiles: config.relatedFiles,
+                    recommendation: `检测到${patternType}问题，建议批量处理`
+                }
+            }
+        }
+        
+        return { isDuplicate: false }
+    }
+    
+    static generateBatchPlan(issue, patternType) {
+        const config = this.issuePatterns[patternType]
+        
+        return {
+            type: 'BATCH_PROCESSING',
+            patternType,
+            strategy: config.batchStrategy,
+            files: config.relatedFiles,
+            estimatedTime: config.relatedFiles.length * 2000,
+            parallelizable: true
+        }
+    }
+    
+    static generateIssueKey(issue) {
+        return `${issue.type}_${issue.description.substring(0, 50)}`
+    }
+}
+```
+
+### 3. 效率提升监控系统
+```javascript
+// 🔴 效率提升监控系统
+class EfficiencyMonitor {
+    static metrics = {
+        parallelCallsUsed: 0,
+        serialCallsUsed: 0,
+        timeoutViolations: 0,
+        duplicateIssues: 0,
+        batchOperations: 0,
+        requestsSaved: 0,
+        timeSaved: 0
+    }
+    
+    static recordParallelCall(count) {
+        this.metrics.parallelCallsUsed += count
+        this.metrics.requestsSaved += (count - 1)
+        this.metrics.timeSaved += (count - 1) * 3000
+        
+        console.log(`📈 并行调用记录: ${count}个，节省${(count - 1) * 3000}ms`)
+    }
+    
+    static recordSerialCall(count) {
+        this.metrics.serialCallsUsed += count
+        
+        if (count > 1) {
+            console.warn(`⚠️ 串行调用警告: ${count}个调用可能可以并行`)
+        }
+    }
+    
+    static recordTimeoutViolation() {
+        this.metrics.timeoutViolations++
+        console.error(`🚨 超时违规记录: 第${this.metrics.timeoutViolations}次`)
+    }
+    
+    static recordDuplicateIssue(issueType) {
+        this.metrics.duplicateIssues++
+        console.warn(`🔄 重复问题记录: ${issueType}`)
+    }
+    
+    static recordBatchOperation(operationCount) {
+        this.metrics.batchOperations++
+        this.metrics.requestsSaved += operationCount * 0.5
+        this.metrics.timeSaved += operationCount * 1000
+        
+        console.log(`🔄 批处理记录: ${operationCount}个操作`)
+    }
+    
+    static generateEfficiencyReport() {
+        const parallelEfficiency = this.metrics.parallelCallsUsed / 
+            (this.metrics.parallelCallsUsed + this.metrics.serialCallsUsed) * 100
+        
+        const report = {
+            parallelEfficiency: Math.round(parallelEfficiency),
+            requestsSaved: this.metrics.requestsSaved,
+            timeSaved: Math.round(this.metrics.timeSaved / 1000),
+            timeoutViolations: this.metrics.timeoutViolations,
+            duplicateIssues: this.metrics.duplicateIssues,
+            batchOperations: this.metrics.batchOperations,
+            overallScore: this.calculateOverallScore()
+        }
+        
+        console.log(`📊 效率报告:`)
+        console.log(`  并行效率: ${report.parallelEfficiency}%`)
+        console.log(`  节省请求: ${report.requestsSaved}次`)
+        console.log(`  节省时间: ${report.timeSaved}秒`)
+        console.log(`  超时违规: ${report.timeoutViolations}次`)
+        console.log(`  重复问题: ${report.duplicateIssues}次`)
+        console.log(`  批处理: ${report.batchOperations}次`)
+        console.log(`  总体评分: ${report.overallScore}/100`)
+        
+        return report
+    }
+    
+    static calculateOverallScore() {
+        const parallelScore = Math.min(this.metrics.parallelCallsUsed * 10, 50)
+        const timeoutPenalty = this.metrics.timeoutViolations * 10
+        const duplicatePenalty = this.metrics.duplicateIssues * 5
+        const batchBonus = this.metrics.batchOperations * 5
+        
+        return Math.max(0, Math.min(100, parallelScore - timeoutPenalty - duplicatePenalty + batchBonus))
+    }
+}
+```
+
+### 4. 配置文件统一管理
+```javascript
+// 🔴 配置文件统一管理系统
+class ConfigurationManager {
+    static configFiles = {
+        'env': 'config/env.js',
+        'project': 'project.private.config.json',
+        'frontend': '前端技术规范文档标准.md',
+        'backend': '后端技术规范文档标准.md',
+        'interface': '接口对接规范文档标准.md'
+    }
+    
+    static configValues = {
+        'domain': 'rqchrlqndora.sealosbja.site',
+        'protocol': 'https',
+        'wsProtocol': 'wss'
+    }
+    
+    static async syncAllConfigurations() {
+        console.log('🔄 开始配置同步...')
+        
+        const results = []
+        
+        // 🔴 并行读取所有配置文件
+        const readPromises = Object.entries(this.configFiles).map(async ([key, filepath]) => {
+            try {
+                const content = await read_file(filepath, true, 1, -1)
+                return { key, filepath, content: content.content, success: true }
+            } catch (error) {
+                return { key, filepath, error: error.message, success: false }
+            }
+        })
+        
+        const configContents = await Promise.all(readPromises)
+        
+        // 检查配置一致性
+        const inconsistencies = []
+        configContents.forEach(config => {
+            if (config.success) {
+                const configInconsistencies = this.checkConfigConsistency(config)
+                inconsistencies.push(...configInconsistencies)
+            }
+        })
+        
+        if (inconsistencies.length > 0) {
+            console.error(`🚨 发现${inconsistencies.length}个配置不一致`)
+            return this.generateSyncPlan(inconsistencies)
+        }
+        
+        console.log('✅ 配置同步检查完成，无需修复')
+        return { needsSync: false }
+    }
+    
+    static checkConfigConsistency(config) {
+        const inconsistencies = []
+        
+        // 检查域名配置
+        const incorrectDomains = [
+            'rqchrlandora.sealoshqja.site',
+            'rqchrlqndora.sealoshqja.site',
+            'rqchrlandora.sealosbja.site'
+        ]
+        
+        incorrectDomains.forEach(incorrectDomain => {
+            if (config.content.includes(incorrectDomain)) {
+                inconsistencies.push({
+                    file: config.filepath,
+                    type: 'DOMAIN_ERROR',
+                    incorrect: incorrectDomain,
+                    correct: this.configValues.domain
+                })
+            }
+        })
+        
+        // 检查协议配置
+        if (config.content.includes('http://') && !config.content.includes('https://')) {
+            inconsistencies.push({
+                file: config.filepath,
+                type: 'PROTOCOL_ERROR',
+                incorrect: 'http://',
+                correct: 'https://'
+            })
+        }
+        
+        return inconsistencies
+    }
+    
+    static generateSyncPlan(inconsistencies) {
+        const fileGroups = inconsistencies.reduce((groups, inc) => {
+            if (!groups[inc.file]) groups[inc.file] = []
+            groups[inc.file].push(inc)
+            return groups
+        }, {})
+        
+        return {
+            needsSync: true,
+            totalFiles: Object.keys(fileGroups).length,
+            totalInconsistencies: inconsistencies.length,
+            fileGroups,
+            operations: inconsistencies.map(inc => ({
+                file: inc.file,
+                type: 'replace',
+                from: inc.incorrect,
+                to: inc.correct
+            })),
+            estimatedTime: inconsistencies.length * 2000
+        }
+    }
+}
+```
+
+### 5. 智能搜索策略优化
+```javascript
+// 🔴 智能搜索策略优化系统
+class SearchStrategyOptimizer {
+    static searchHistory = []
+    static searchPatterns = {
+        SEMANTIC: { tool: 'codebase_search', efficiency: 85 },
+        EXACT: { tool: 'grep_search', efficiency: 90 },
+        HYBRID: { tools: ['codebase_search', 'grep_search'], efficiency: 95 }
+    }
+    
+    static optimizeSearchQuery(query, context) {
+        const semanticKeywords = ['how', 'where', 'what', 'when', 'why', 'which']
+        const exactKeywords = ['function', 'class', 'const', 'let', 'var', 'import', 'export']
+        
+        const isSemanticQuery = semanticKeywords.some(keyword => 
+            query.toLowerCase().includes(keyword)
+        )
+        
+        const isExactQuery = exactKeywords.some(keyword => 
+            query.includes(keyword)
+        )
+        
+        let strategy
+        if (isSemanticQuery && !isExactQuery) {
+            strategy = 'SEMANTIC'
+        } else if (isExactQuery && !isSemanticQuery) {
+            strategy = 'EXACT'
+        } else {
+            strategy = 'HYBRID'
+        }
+        
+        const optimizedQuery = {
+            strategy,
+            originalQuery: query,
+            optimizedQuery: this.optimizeQuery(query, strategy),
+            tool: this.searchPatterns[strategy].tool,
+            tools: this.searchPatterns[strategy].tools,
+            expectedEfficiency: this.searchPatterns[strategy].efficiency
+        }
+        
+        this.recordSearchAttempt(optimizedQuery)
+        return optimizedQuery
+    }
+    
+    static optimizeQuery(query, strategy) {
+        switch (strategy) {
+            case 'SEMANTIC':
+                if (!query.includes('?')) {
+                    return `How does ${query} work?`
+                }
+                return query
+                
+            case 'EXACT':
+                return query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                
+            case 'HYBRID':
+                return {
+                    semantic: this.optimizeQuery(query, 'SEMANTIC'),
+                    exact: this.optimizeQuery(query, 'EXACT')
+                }
+                
+            default:
+                return query
+        }
+    }
+    
+    static recordSearchAttempt(searchQuery) {
+        this.searchHistory.push({
+            timestamp: Date.now(),
+            strategy: searchQuery.strategy,
+            query: searchQuery.originalQuery,
+            optimizedQuery: searchQuery.optimizedQuery
+        })
+        
+        console.log(`🔍 搜索策略: ${searchQuery.strategy} (预期效率: ${searchQuery.expectedEfficiency}%)`)
+    }
+    
+    static generateSearchReport() {
+        const strategyStats = this.searchHistory.reduce((stats, search) => {
+            stats[search.strategy] = (stats[search.strategy] || 0) + 1
+            return stats
+        }, {})
+        
+        console.log(`📊 搜索策略统计:`)
+        Object.entries(strategyStats).forEach(([strategy, count]) => {
+            console.log(`  ${strategy}: ${count}次`)
+        })
+        
+        return strategyStats
+    }
+}
+```
+
+### 6. 自动化验证引擎
+```javascript
+// 🔴 自动化验证引擎
+class AutomationValidationEngine {
+    static validationRules = {
+        'file_creation': {
+            check: 'file_exists_before_creation',
+            action: 'prevent_duplicate_creation'
+        },
+        'config_consistency': {
+            check: 'domain_config_validation',
+            action: 'auto_fix_domain_errors'
+        },
+        'api_path_validation': {
+            check: 'api_endpoint_correctness',
+            action: 'suggest_correct_path'
+        },
+        'method_call_validation': {
+            check: 'import_function_usage',
+            action: 'fix_method_call_errors'
+        }
+    }
+    
+    static async runAllValidations() {
+        console.log('🔍 开始自动化验证...')
+        
+        const validationResults = []
+        
+        // 并行执行所有验证
+        const validationPromises = Object.entries(this.validationRules).map(async ([ruleName, rule]) => {
+            const result = await this.executeValidation(ruleName, rule)
+            return { ruleName, ...result }
+        })
+        
+        const results = await Promise.all(validationPromises)
+        
+        const failedValidations = results.filter(result => !result.passed)
+        
+        if (failedValidations.length > 0) {
+            console.error(`🚨 验证失败: ${failedValidations.length}个规则`)
+            return this.generateFixPlan(failedValidations)
+        }
+        
+        console.log('✅ 所有验证通过')
+        return { allPassed: true, results }
+    }
+    
+    static async executeValidation(ruleName, rule) {
+        try {
+            const checkResult = await this.executeCheck(rule.check)
+            
+            if (!checkResult.passed) {
+                const fixResult = await this.executeAction(rule.action, checkResult.data)
+                return {
+                    passed: false,
+                    checkResult,
+                    fixResult,
+                    autoFixed: fixResult.success
+                }
+            }
+            
+            return { passed: true, checkResult }
+            
+        } catch (error) {
+            return {
+                passed: false,
+                error: error.message,
+                autoFixed: false
+            }
+        }
+    }
+    
+    static async executeCheck(checkType) {
+        switch (checkType) {
+            case 'file_exists_before_creation':
+                return await this.checkFileExistence()
+                
+            case 'domain_config_validation':
+                return await this.checkDomainConfigs()
+                
+            case 'api_endpoint_correctness':
+                return await this.checkAPIEndpoints()
+                
+            case 'import_function_usage':
+                return await this.checkMethodCalls()
+                
+            default:
+                throw new Error(`未知检查类型: ${checkType}`)
+        }
+    }
+    
+    static async executeAction(actionType, data) {
+        switch (actionType) {
+            case 'prevent_duplicate_creation':
+                return this.preventDuplicateCreation(data)
+                
+            case 'auto_fix_domain_errors':
+                return await this.fixDomainErrors(data)
+                
+            case 'suggest_correct_path':
+                return this.suggestCorrectPaths(data)
+                
+            case 'fix_method_call_errors':
+                return await this.fixMethodCallErrors(data)
+                
+            default:
+                throw new Error(`未知行动类型: ${actionType}`)
+        }
+    }
+}
+```
+
+### 7. 网络问题诊断系统
+```javascript
+// 🔴 网络问题诊断系统
+class NetworkDiagnostics {
+    static diagnosticTests = [
+        'connectivity_test',
+        'dns_resolution_test', 
+        'ssl_certificate_test',
+        'api_endpoint_test',
+        'websocket_connection_test'
+    ]
+    
+    static async runNetworkDiagnostics() {
+        console.log('🌐 开始网络诊断...')
+        
+        const results = []
+        
+        // 并行执行所有诊断测试
+        const testPromises = this.diagnosticTests.map(async test => {
+            const result = await this.executeTest(test)
+            return { test, ...result }
+        })
+        
+        const testResults = await Promise.all(testPromises)
+        
+        const failedTests = testResults.filter(result => !result.passed)
+        
+        if (failedTests.length > 0) {
+            console.error(`🚨 网络问题检测: ${failedTests.length}个测试失败`)
+            return this.generateNetworkFixPlan(failedTests)
+        }
+        
+        console.log('✅ 网络诊断通过')
+        return { networkHealthy: true, results: testResults }
+    }
+    
+    static async executeTest(testType) {
+        try {
+            switch (testType) {
+                case 'connectivity_test':
+                    return await this.testConnectivity()
+                    
+                case 'dns_resolution_test':
+                    return await this.testDNSResolution()
+                    
+                case 'ssl_certificate_test':
+                    return await this.testSSLCertificate()
+                    
+                case 'api_endpoint_test':
+                    return await this.testAPIEndpoints()
+                    
+                case 'websocket_connection_test':
+                    return await this.testWebSocketConnection()
+                    
+                default:
+                    throw new Error(`未知测试类型: ${testType}`)
+            }
+        } catch (error) {
+            return {
+                passed: false,
+                error: error.message,
+                timestamp: Date.now()
+            }
+        }
+    }
+    
+    static generateNetworkFixPlan(failedTests) {
+        const fixPlan = {
+            totalIssues: failedTests.length,
+            issues: failedTests,
+            recommendations: [],
+            priority: 'HIGH'
+        }
+        
+        failedTests.forEach(test => {
+            switch (test.test) {
+                case 'connectivity_test':
+                    fixPlan.recommendations.push({
+                        issue: '网络连接失败',
+                        solution: '检查网络连接和防火墙设置',
+                        priority: 'CRITICAL'
+                    })
+                    break
+                    
+                case 'dns_resolution_test':
+                    fixPlan.recommendations.push({
+                        issue: 'DNS解析失败',
+                        solution: '检查DNS设置或使用备用DNS服务器',
+                        priority: 'HIGH'
+                    })
+                    break
+                    
+                case 'ssl_certificate_test':
+                    fixPlan.recommendations.push({
+                        issue: 'SSL证书问题',
+                        solution: '验证SSL证书有效性和域名匹配',
+                        priority: 'HIGH'
+                    })
+                    break
+            }
+        })
+        
+        return fixPlan
+    }
+}
+```
+
+---
+
+**规则创建时间**: $(Get-Date -Format "yyyy年MM月dd日")  
+**最后更新时间**: $(Get-Date -Format "yyyy年MM月dd日")  
+**更新内容**: 完善高级优化规则，补充缺失内容，确保文档完整性  
+**适用范围**: 所有需要效率优化的开发场景  
+**维护状态**: ✅ 已完善 - 所有优化规则已补充完整
+

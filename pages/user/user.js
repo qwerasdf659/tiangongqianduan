@@ -419,7 +419,7 @@ Page({
 
   /**
    * 🔴 加载最近积分记录 - 从后端API获取
-   * 接口：GET /api/user/points-records?page=1&pageSize=10
+   * 接口：GET /api/user/points/records?page=1&pageSize=10
    * 认证：需要Bearer Token
    * 返回：最近的积分变动记录
    */
@@ -449,7 +449,7 @@ Page({
       // 🔧 优化：显示后端服务异常提示
       wx.showModal({
         title: '🚨 后端服务异常',
-        content: `无法获取积分记录！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/user/points-records`,
+        content: `无法获取积分记录！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/user/points/records`,
         showCancel: false,
         confirmText: '知道了',
         confirmColor: '#ff4444'

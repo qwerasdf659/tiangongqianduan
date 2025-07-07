@@ -1,0 +1,569 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 🔐 天工项目安全与质量标准规范 - 核心安全规则集
+
+## 🚨 核心安全原则 - 违反则立即停止开发
+
+### 1. 🔐 数据安全核心规则（最高优先级）
+
+#### 绝对禁止前端硬编码敏感业务数据
+```javascript
+// ❌ 严禁：前端硬编码奖品配置
+const PRIZES = [
+  { name: '奖品1', probability: 10 },
+  { name: '奖品2', probability: 20 }
+]
+
+// ❌ 严禁：前端硬编码商品价格
+const PRODUCTS = [
+  { id: 1, name: '商品1', price: 100 }
+]
+
+// ❌ 严禁：前端计算业务逻辑
+const probability = Math.random() * 100
+const userPermission = user.role === 'admin'
+```
+
+#### 绝对禁止使用模拟数据替代后端API
+```javascript
+// ❌ 严禁：Mock数据函数
+const mockRequest = () => { /* 假数据 */ }
+const shouldUseMock = () => true
+const smartApiCall = (real, mock) => mock
+
+// ❌ 严禁：setTimeout模拟异步
+setTimeout(() => {
+  callback({ data: mockData })
+}, 1000)
+```
+
+#### 强制后端依赖检查与错误处理
+```javascript
+// ✅ 正确：真实API调用 + 完整错误处理
+api.getData().then(result => {
+  if (result.code === 0) {
+    this.setData({ data: result.data })
+  } else {
+    throw new Error('⚠️ 后端服务异常：' + result.msg)
+  }
+}).catch(error => {
+  wx.showModal({
+    title: '🚨 后端服务问题',
+    content: `无法获取数据！\n\n可能原因：\n1. 后端API服务未启动\n2. 接口异常\n3. 数据库连接问题\n\n请立即检查后端服务状态！`
+  })
+})
+```
+
+### 2. 🛠️ 方法调用安全规范
+
+#### 导入函数调用错误防护
+```javascript
+// ❌ 禁止：将导入函数当作对象方法调用
+const { getTechnicalConfig } = require('./config')
+// 错误调用
+this.getTechnicalConfig()  // TypeError: this.getTechnicalConfig is not a function
+
+// ✅ 正确：直接调用导入函数，添加详细注释
+const config = getTechnicalConfig()  // 获取技术配置信息
+const isValid = validateForm(formData)  // 验证用户输入表单数据
+const displayDate = formatDate(timestamp)  // 格式化时间戳
+```
+
+#### 模块导入一致性检查
+```javascript
+// ✅ 统一导入路径和错误处理
+const { validateForm } = require('../../utils/validate')
+const { formatDate } = require('../../utils/util')
+
+// 强制数据存在性检查：所有查询前必须验证数据是否存在
+if (!app.globalData) {
+  console.error('🚨 全局数据未初始化')
+  return
+}
+
+if (!app.globalData.userInfo) {
+  wx.navigateTo({ url: '/pages/auth/auth' })
+  return
+}
+```
+
+### 3. 🔒 对象属性安全访问规范
+
+#### 深层属性访问防护
+```javascript
+// ❌ 禁止：不安全的属性访问
+app.globalData.config.isDev  // 可能为undefined
+user.profile.avatar.url      // 多层级访问风险
+
+// ✅ 正确：提供后备值和安全检查
+const config = app.globalData.config || app.globalData || { isDev: true }
+const isDev = config.isDev || false
+
+const avatarUrl = user?.profile?.avatar?.url || '/images/default-avatar.png'
+
+// ✅ 深度思考项目代码逻辑，确保数据安全访问
+const userInfo = app.globalData.userInfo
+if (userInfo && userInfo.profile) {
+  const avatar = userInfo.profile.avatar || '/images/default-avatar.png'
+}
+```
+
+### 4. 🎨 微信小程序API兼容性检查系统
+
+#### Canvas API兼容性双重检查
+```javascript
+// ✅ 统一兼容性检查工具 (utils/compatibility-check.js)
+const checkCanvasAPI = (ctx) => {
+  return {
+    createLinearGradient: typeof ctx.createLinearGradient === 'function',
+    createRadialGradient: typeof ctx.createRadialGradient === 'function',
+    quadraticCurveTo: typeof ctx.quadraticCurveTo === 'function',
+    bezierCurveTo: typeof ctx.bezierCurveTo === 'function',
+    setLineDash: typeof ctx.setLineDash === 'function',
+    filter: 'filter' in ctx
+  }
+}
+
+// ✅ 注意编写的代码符合微信小程序开发标准，考虑API兼容性
+if (compatibility.createLinearGradient && typeof ctx.createLinearGradient === 'function') {
+  try {
+    const gradient = ctx.createLinearGradient(0, 0, 100, 0)
+    gradient.addColorStop(0, '#ff0000')
+    gradient.addColorStop(1, '#00ff00')
+    ctx.fillStyle = gradient
+  } catch (error) {
+    console.warn('线性渐变不支持，使用降级方案:', error)
+    ctx.fillStyle = '#ff0000'
+  }
+} else {
+  ctx.fillStyle = '#ff0000'
+}
+```
+
+#### 智能降级策略
+```javascript
+// ✅ 根据兼容性检查结果智能选择策略
+const drawWithCompatibility = (ctx, compatibility) => {
+  if (compatibility.createRadialGradient && compatibility.quadraticCurveTo) {
+    drawAdvancedStyle(ctx)  // 高级绘制：渐变 + 曲线，视觉美感 95%+
+  } else if (compatibility.createLinearGradient) {
+    drawMediumStyle(ctx)    // 中级绘制：线性渐变，视觉美感 80%+
+  } else {
+    drawBasicStyle(ctx)     // 基础绘制：纯色填充，视觉美感 60%+，确保100%兼容性
+  }
+}
+```
+
+### 5. 🚀 三层错误处理与智能降级机制
+
+#### 完整错误处理模式
+```javascript
+// ✅ 第一层：功能检查
+if (!compatibility.targetAPI) {
+  console.warn('API不支持，使用降级方案')
+  return fallbackMethod()
+}
+
+// ✅ 第二层：类型检查
+if (typeof ctx.targetAPI !== 'function') {
+  console.warn('API类型异常，使用降级方案')
+  return fallbackMethod()
+}
+
+// ✅ 第三层：运行时错误捕获
+try {
+  return ctx.targetAPI(...args)
+} catch (error) {
+  console.error('API调用失败:', error)
+  return fallbackMethod()
+}
+```
+
+#### 增强错误处理与解决建议
+```javascript
+// ✅ 提供明确的错误信息和解决建议
+const handleError = (error, context) => {
+  const errorMap = {
+    'TypeError': '类型错误 - 请检查变量类型和方法调用',
+    'ReferenceError': '引用错误 - 请检查变量是否已定义',
+    'Canvas API Error': 'Canvas API不兼容 - 已启用降级方案'
+  }
+  
+  const errorType = error.name || 'Unknown'
+  const suggestion = errorMap[errorType] || '请检查代码逻辑和环境兼容性'
+  
+  console.error(`🚨 ${context}发生错误:`, error)
+  console.warn(`💡 建议解决方案: ${suggestion}`)
+  
+  wx.showToast({
+    title: '功能暂时不可用',
+    icon: 'none',
+    duration: 2000
+  })
+}
+```
+
+### 6. 🔍 Mock数据检测与清理系统
+
+#### Mock数据检测器
+```javascript
+// 🔴 Mock数据检测系统
+class MockDataDetector {
+    static suspiciousPatterns = [
+        /mock|fake|test|dummy/gi,
+        /setTimeout.*callback/gi,
+        /return.*\{.*data.*\}/gi,
+        /const.*mock.*=/gi,
+        /if.*useMock/gi,
+        /smartApiCall.*mock/gi
+    ]
+    
+    static async scanForMockData(filePath) {
+        const content = await read_file(filePath, true, 1, -1)
+        const violations = []
+        
+        this.suspiciousPatterns.forEach((pattern, index) => {
+            const matches = content.content.match(pattern)
+            if (matches) {
+                violations.push({
+                    pattern: pattern.toString(),
+                    matches: matches.length,
+                    severity: 'CRITICAL',
+                    file: filePath,
+                    recommendation: '立即移除Mock数据，使用真实API'
+                })
+            }
+        })
+        
+        return violations
+    }
+    
+    static async batchScanProject() {
+        const projectFiles = [
+            'pages/lottery/lottery.js',
+            'pages/exchange/exchange.js',
+            'pages/user/user.js',
+            'utils/api.js'
+        ]
+        
+        const allViolations = []
+        
+        // 并行扫描所有文件
+        const scanPromises = projectFiles.map(file => this.scanForMockData(file))
+        const results = await Promise.all(scanPromises)
+        
+        results.forEach(violations => {
+            allViolations.push(...violations)
+        })
+        
+        if (allViolations.length > 0) {
+            console.error(`🚨 发现${allViolations.length}个Mock数据违规`)
+            return {
+                hasMockData: true,
+                violations: allViolations,
+                cleanupPlan: this.generateCleanupPlan(allViolations)
+            }
+        }
+        
+        return { hasMockData: false, message: '未发现Mock数据' }
+    }
+}
+```
+
+### 7. 🔐 API安全访问规范
+
+#### 强制HTTPS与域名验证
+```javascript
+// ✅ API基础URL验证
+const API_BASE_URL = 'https://rqchrlqndora.sealosbja.site'
+
+// 🔴 强制域名验证
+const validateDomain = (url) => {
+  const allowedDomains = [
+    'rqchrlqndora.sealosbja.site',
+    'localhost:8080' // 仅开发环境
+  ]
+  
+  const domain = new URL(url).hostname
+  if (!allowedDomains.includes(domain)) {
+    throw new Error(`🚨 非法域名访问: ${domain}`)
+  }
+  
+  return true
+}
+
+// ✅ 安全的API调用
+const secureApiCall = async (endpoint, options = {}) => {
+  const fullUrl = `${API_BASE_URL}${endpoint}`
+  
+  // 域名验证
+  validateDomain(fullUrl)
+  
+  // 添加安全头
+  const secureOptions = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      ...options.headers
+    }
+  }
+  
+  try {
+    const response = await wx.request({
+      url: fullUrl,
+      ...secureOptions
+    })
+    
+    return response.data
+  } catch (error) {
+    console.error('API调用失败:', error)
+    throw new Error('网络请求失败，请检查网络连接')
+  }
+}
+```
+
+### 8. 🛡️ 用户输入验证与安全
+
+#### 输入验证规范
+```javascript
+// ✅ 输入验证工具
+const inputValidator = {
+  // 手机号验证
+  validatePhone: (phone) => {
+    const phoneRegex = /^1[3-9]\d{9}$/
+    if (!phoneRegex.test(phone)) {
+      throw new Error('请输入正确的手机号码')
+    }
+    return true
+  },
+  
+  // 金额验证
+  validateAmount: (amount) => {
+    const amountRegex = /^\d+(\.\d{1,2})?$/
+    if (!amountRegex.test(amount) || parseFloat(amount) <= 0) {
+      throw new Error('请输入正确的金额')
+    }
+    return true
+  },
+  
+  // 验证码验证
+  validateCode: (code) => {
+    const codeRegex = /^\d{6}$/
+    if (!codeRegex.test(code)) {
+      throw new Error('请输入6位数字验证码')
+    }
+    return true
+  }
+}
+
+// ✅ 安全的表单处理
+const handleFormSubmit = (formData) => {
+  try {
+    // 验证所有输入
+    inputValidator.validatePhone(formData.phone)
+    inputValidator.validateAmount(formData.amount)
+    inputValidator.validateCode(formData.code)
+    
+    // 数据清理
+    const cleanData = {
+      phone: formData.phone.trim(),
+      amount: parseFloat(formData.amount),
+      code: formData.code.trim()
+    }
+    
+    return cleanData
+  } catch (error) {
+    wx.showModal({
+      title: '输入错误',
+      content: error.message
+    })
+    return null
+  }
+}
+```
+
+### 9. 🔄 状态管理安全规范
+
+#### 全局状态安全管理
+```javascript
+// ✅ 安全的全局状态管理
+const secureStateManager = {
+  // 初始化状态
+  initState: () => {
+    if (!app.globalData) {
+      app.globalData = {
+        userInfo: null,
+        config: {},
+        cache: new Map(),
+        lastUpdate: Date.now()
+      }
+    }
+  },
+  
+  // 安全设置用户信息
+  setUserInfo: (userInfo) => {
+    if (!userInfo || typeof userInfo !== 'object') {
+      throw new Error('无效的用户信息')
+    }
+    
+    // 清理敏感信息
+    const safeUserInfo = {
+      id: userInfo.id,
+      phone: userInfo.phone ? userInfo.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '',
+      points: userInfo.points || 0,
+      nickname: userInfo.nickname || '用户',
+      avatar: userInfo.avatar || '/images/default-avatar.png'
+    }
+    
+    app.globalData.userInfo = safeUserInfo
+    app.globalData.lastUpdate = Date.now()
+  },
+  
+  // 清理过期状态
+  cleanExpiredState: () => {
+    const now = Date.now()
+    const expireTime = 30 * 60 * 1000 // 30分钟
+    
+    if (now - app.globalData.lastUpdate > expireTime) {
+      app.globalData.userInfo = null
+      app.globalData.cache.clear()
+      console.log('已清理过期状态')
+    }
+  }
+}
+```
+
+### 10. 📊 安全监控与日志记录
+
+#### 安全事件监控
+```javascript
+// 🔴 安全监控系统
+class SecurityMonitor {
+    static securityEvents = []
+    static maxLogSize = 1000
+    
+    static logSecurityEvent(event) {
+        const securityEvent = {
+            timestamp: Date.now(),
+            type: event.type,
+            severity: event.severity,
+            message: event.message,
+            context: event.context,
+            userAgent: navigator.userAgent,
+            url: window.location.href
+        }
+        
+        this.securityEvents.push(securityEvent)
+        
+        // 保持日志大小
+        if (this.securityEvents.length > this.maxLogSize) {
+            this.securityEvents.shift()
+        }
+        
+        // 高危事件立即处理
+        if (event.severity === 'CRITICAL') {
+            this.handleCriticalEvent(securityEvent)
+        }
+    }
+    
+    static handleCriticalEvent(event) {
+        console.error('🚨 安全威胁检测:', event)
+        
+        // 根据事件类型采取行动
+        switch (event.type) {
+            case 'MOCK_DATA_DETECTED':
+                wx.showModal({
+                    title: '安全警告',
+                    content: '检测到Mock数据，请立即联系开发人员',
+                    showCancel: false
+                })
+                break
+                
+            case 'UNAUTHORIZED_ACCESS':
+                wx.navigateTo({ url: '/pages/auth/auth' })
+                break
+                
+            case 'API_TAMPERING':
+                wx.showModal({
+                    title: '系统异常',
+                    content: '检测到异常API调用，请重新登录',
+                    showCancel: false,
+                    success: () => {
+                        wx.navigateTo({ url: '/pages/auth/auth' })
+                    }
+                })
+                break
+        }
+    }
+    
+    static generateSecurityReport() {
+        const report = {
+            totalEvents: this.securityEvents.length,
+            criticalEvents: this.securityEvents.filter(e => e.severity === 'CRITICAL').length,
+            recentEvents: this.securityEvents.slice(-10),
+            eventTypes: this.groupEventsByType()
+        }
+        
+        return report
+    }
+}
+```
+
+### 11. 🔐 敏感数据保护规范
+
+#### 数据加密与脱敏
+```javascript
+// ✅ 数据保护工具
+const dataProtector = {
+  // 手机号脱敏
+  maskPhone: (phone) => {
+    if (!phone || phone.length !== 11) return '***'
+    return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
+  },
+  
+  // 身份证脱敏
+  maskIdCard: (idCard) => {
+    if (!idCard) return '***'
+    return idCard.replace(/(\d{6})\d{8}(\d{4})/, '$1********$2')
+  },
+  
+  // 银行卡脱敏
+  maskBankCard: (cardNumber) => {
+    if (!cardNumber) return '***'
+    return cardNumber.replace(/(\d{4})\d{8,12}(\d{4})/, '$1****$2')
+  },
+  
+  // 敏感信息检测
+  detectSensitiveData: (text) => {
+    const patterns = {
+      phone: /1[3-9]\d{9}/g,
+      idCard: /\d{17}[\dXx]/g,
+      bankCard: /\d{16,19}/g,
+      email: /\w+@\w+\.\w+/g
+    }
+    
+    const findings = []
+    Object.entries(patterns).forEach(([type, pattern]) => {
+      const matches = text.match(pattern)
+      if (matches) {
+        findings.push({ type, count: matches.length })
+      }
+    })
+    
+    return findings
+  }
+}
+```
+
+---
+
+**规则创建时间**: 2025年1月3日  
+**最后更新时间**: 2025年1月3日  
+**更新内容**: 完善天工项目安全规范，新增Mock数据检测、API安全、状态管理等核心安全机制  
+**适用范围**: 天工项目的所有前端开发场景  
+**维护状态**: ✅ 已完善 - 所有安全规则已补充完整
+

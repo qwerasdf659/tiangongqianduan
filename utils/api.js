@@ -17,6 +17,14 @@ const request = (options) => {
       maxRetry = 2,
       timeout = 12000  // 🔧 修复：调整默认超时时间为12秒，与登录逻辑保持一致
     } = options
+    const app = getApp()
+    
+    // 🔧 修复：确保app已初始化
+    if (!app || !app.globalData) {
+      console.error('❌ App未初始化，无法发起请求')
+      reject({ code: -1, msg: '应用未初始化', data: null })
+      return
+    }
 
     // 显示加载框
     if (showLoading) {
@@ -59,7 +67,7 @@ const request = (options) => {
       method,
       data,
       header,
-      timeout: timeout, // 🔧 修复：使用动态超时时间
+      timeout: timeout,
       success(res) {
         if (showLoading) {
           wx.hideLoading()
@@ -91,7 +99,7 @@ const request = (options) => {
               reject(res.data)
             }
           } else if (res.data.code === 2001) {
-            // 🔧 新增：专门处理2001错误码（访问令牌不能为空）
+            // 🔧 增强：2001错误码的智能处理
             console.error('🚨 认证错误 2001:', {
               error: '访问令牌不能为空',
               url: url,
@@ -106,18 +114,53 @@ const request = (options) => {
               }
             })
             
-            // 🔴 统一后端服务异常提示 - 符合最新接口对接规范
+            // 🔧 新增：自动Token修复机制
+            if (retryCount < maxRetry) {
+              console.log('🔄 检测到Token问题，尝试自动修复...')
+              
+              try {
+                const TokenRepair = require('./token-repair.js')
+                TokenRepair.smartRepair().then((repairResult) => {
+                  if (repairResult.success && repairResult.action !== 'redirect') {
+                    console.log('✅ Token修复成功，重新发起请求')
+                    // 重新发起请求
+                    const newOptions = { ...options, retryCount: retryCount + 1 }
+                    request(newOptions).then(resolve).catch(reject)
+                    return
+                  }
+                }).catch((repairError) => {
+                  console.error('❌ Token自动修复失败:', repairError)
+                })
+              } catch (repairError) {
+                console.error('❌ Token自动修复失败:', repairError)
+              }
+            }
+            
+            // 🔴 Token修复失败或重试次数用完，显示用户友好提示
             if (showLoading) {
               wx.showModal({
-                title: '🚨 后端服务异常',
-                content: `访问令牌缺失或无效！\n\n🔗 API端点：${fullUrl}\n\n可能原因：\n• 用户未正确登录\n• Token设置时机错误\n• 认证头部未正确发送\n\n请重新登录后再试！`,
+                title: '🔑 登录状态异常',
+                content: `Token已过期或无效！\n\n🔗 API：${fullUrl}\n\n解决方案：\n• 点击"重新登录"清理缓存\n• 或稍后重试让系统自动修复`,
                 showCancel: true,
                 cancelText: '稍后重试',
                 confirmText: '重新登录',
                 confirmColor: '#ff4444',
                 success: (modalRes) => {
                   if (modalRes.confirm) {
-                    app.logout()
+                    // 清理所有认证信息并跳转登录
+                    app.globalData.accessToken = null
+                    app.globalData.refreshToken = null
+                    app.globalData.userInfo = null
+                    app.globalData.isLoggedIn = false
+                    
+                    wx.removeStorageSync('access_token')
+                    wx.removeStorageSync('refresh_token')
+                    wx.removeStorageSync('user_info')
+                    wx.removeStorageSync('token_expire_time')
+                    
+                    wx.reLaunch({
+                      url: '/pages/auth/auth'
+                    })
                   }
                 }
               })
@@ -125,10 +168,11 @@ const request = (options) => {
             
             reject({
               code: 2001,
-              msg: '访问令牌不能为空',
+              msg: '访问令牌无效，请重新登录',
               data: res.data.data || null,
-              debug: '前端认证流程存在问题',
-              isBackendError: true
+              debug: 'Token过期或无效',
+              isBackendError: true,
+              needsRelogin: true
             })
           } else {
             // 🔴 其他业务错误 - 增强后端服务异常提示
@@ -179,7 +223,7 @@ const request = (options) => {
               errorMessage = '网关错误'
               break
             case 503:
-              errorMessage = '服务暂不可用'
+              errorMessage = '🚨 后端服务暂不可用\n\n可能原因：\n• 服务器维护中\n• 服务器过载\n• 后端API服务未启动\n\n请联系后端程序员检查服务器状态！'
               break
             default:
               errorMessage = `网络错误 ${res.statusCode}`
@@ -242,23 +286,10 @@ const request = (options) => {
   })
 }
 
-/**
- * 🚨 已删除的违规函数（严禁使用）：
- * ❌ shouldUseMock() - 违规：Mock数据判断
- * ❌ smartApiCall() - 违规：Mock/真实API切换  
- * ❌ mockRequest() - 违规：模拟请求数据
- * ❌ generateMockProducts() - 违规：生成模拟商品
- * 
- * 所有业务数据必须从真实后端API获取！
- */
-
 // 🔴 用户认证API - 必须调用真实后端接口
 const authAPI = {
   /**
    * 🔴 发送验证码 - 必须调用真实API
-   * 🚧 开发阶段：API返回成功但不实际发送短信
-   * 🔮 生产环境：调用真实短信服务
-   * @param {string} phone - 手机号
    */
   sendCode(phone) {
     return request({
@@ -266,8 +297,8 @@ const authAPI = {
       method: 'POST',
       data: { 
         phone,
-        dev_mode: app.globalData.isDev || false, // 🚧 开发模式标识
-        skip_sms: app.globalData.isDev || false  // 🚧 开发阶段跳过真实短信
+        dev_mode: app.globalData.isDev || false,
+        skip_sms: app.globalData.isDev || false
       },
       needAuth: false,
       showLoading: true
@@ -276,121 +307,26 @@ const authAPI = {
 
   /**
    * 📱 用户登录
-   * 🚧 开发阶段：跳过短信验证码，任意6位数字都通过验证
-   * 🔮 生产环境：验证真实短信验证码
-   * @param {string} phone - 手机号
-   * @param {string} code - 验证码
    */
   login(formData) {
-    // 🔧 修复：统一处理formData对象，提取phone和code
     const phone = formData.phone || formData.phoneNumber
     const code = formData.code || formData.verificationCode || formData.verify_code
     
-    // 🔧 修复：添加详细的调试信息
-    console.log('📡 登录API调用 - 参数验证:', {
-      formData: formData,
-      phone: phone,
-      code: code,
-      phoneType: typeof phone,
-      codeType: typeof code,
-      phoneLength: phone ? phone.length : 0,
-      codeLength: code ? code.length : 0,
-      phoneValid: /^1[3-9]\d{9}$/.test(phone),
-      codeValid: /^\d{4,6}$/.test(code)
-    })
-    
-    // 🔧 修复：确保参数格式正确
     const requestData = { 
-      phone: String(phone).trim(), // 确保是字符串格式
-      verify_code: String(code).trim(), // 确保是字符串格式
+      phone: String(phone).trim(),
+      verify_code: String(code).trim(),
       dev_mode: app.globalData.isDev || false,
       skip_sms_verify: app.globalData.isDev || false
     }
-    
-    console.log('📡 登录API调用 - 请求数据:', requestData)
     
     return request({
       url: '/auth/login',
       method: 'POST',
       data: requestData,
       needAuth: false,
-      showLoading: false, // 🔧 修复：登录页面自行控制loading状态
-      timeout: 15000,     // 🔧 修复：增加超时时间到15秒
-      maxRetry: 3         // 🔧 修复：增加重试次数到3次
-    }).then((response) => {
-      // 🔧 修复：详细记录后端返回的数据结构
-      console.log('📡 登录API响应 - 完整数据结构:', {
-        response: response,
-        responseType: typeof response,
-        hasCode: response.hasOwnProperty('code'),
-        hasData: response.hasOwnProperty('data'),
-        hasMsg: response.hasOwnProperty('msg'),
-        code: response.code,
-        msg: response.msg,
-        data: response.data,
-        dataType: typeof response.data,
-        dataKeys: response.data ? Object.keys(response.data) : []
-      })
-      
-      // 🔧 修复：返回完整的响应数据，让调用者处理
-      return response
-    }).catch((error) => {
-      console.error('📡 登录API调用失败:', error)
-      throw error
-    })
-  },
-
-  /**
-   * 🔐 管理员登录 - 新增功能
-   * 🚧 开发阶段：跳过短信二次验证
-   * 🔮 生产环境：完整的账号密码+短信二次验证
-   * @param {Object} loginData - 登录数据
-   * @param {string} loginData.username - 管理员账号
-   * @param {string} loginData.password - 登录密码
-   * @param {boolean} loginData.skip_sms - 是否跳过短信验证（开发阶段使用）
-   * @param {Object} loginData.device_info - 设备信息
-   */
-  adminLogin(loginData) {
-    console.log('🔐 管理员登录API调用:', {
-      username: loginData.username,
-      skip_sms: loginData.skip_sms,
-      dev_mode: loginData.dev_mode
-    })
-    
-    return request({
-      url: '/auth/admin-login',
-      method: 'POST',
-      data: {
-        username: loginData.username,
-        password: loginData.password,
-        skip_sms: loginData.skip_sms || false,       // 🚧 开发阶段跳过短信验证
-        dev_mode: loginData.dev_mode || false,       // 🚧 开发模式标识
-        device_info: loginData.device_info || {},    // 设备信息
-        timestamp: Date.now(),                       // 时间戳
-        client_type: 'miniprogram'                   // 客户端类型
-      },
-      needAuth: false,
-      showLoading: false // 登录界面自行控制loading状态
-    })
-  },
-
-  /**
-   * 🔐 管理员短信二次验证 - 生产环境使用
-   * 🚧 开发阶段：此接口暂停调用
-   * @param {string} admin_token - 临时管理员token
-   * @param {string} sms_code - 短信验证码
-   */
-  adminSmsVerify(admin_token, sms_code) {
-    return request({
-      url: '/auth/admin-sms-verify',
-      method: 'POST',
-      data: {
-        admin_token,
-        sms_code,
-        timestamp: Date.now()
-      },
-      needAuth: false,
-      showLoading: true
+      showLoading: false,
+      timeout: 15000,
+      maxRetry: 3
     })
   },
 
@@ -429,84 +365,25 @@ const authAPI = {
   }
 }
 
-// 🔴 抽奖API - 必须调用真实后端接口
+// 🔴 抽奖API
 const lotteryAPI = {
-  // 获取抽奖配置
   getConfig() {
     return request({
       url: '/lottery/config',
       method: 'GET',
       needAuth: true
-    }).catch(error => {
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法获取抽奖配置！\n\n可能原因：\n1. 后端lottery服务未启动\n2. /lottery/config接口异常\n\n请立即检查后端服务状态！',
-        showCancel: false,
-        confirmColor: '#ff4444'
-      })
-      throw error
     })
   },
 
-  // 执行抽奖
   draw(drawType = 'single', count = 1) {
-    // 🔧 修复：中文参数转英文映射，后端只支持英文参数
-    const drawTypeMapping = {
-      '单抽': 'single',
-      '三连抽': 'triple', 
-      '五连抽': 'five',
-      '十连抽': 'ten',
-      'single': 'single',
-      'triple': 'triple',
-      'five': 'five', 
-      'ten': 'ten'
-    }
-    
-    const mappedDrawType = drawTypeMapping[drawType] || drawType
-    
-    console.log('🔧 抽奖参数映射:', {
-      '原始参数': drawType,
-      '映射后参数': mappedDrawType,
-      '抽奖数量': count
-    })
-    
     return request({
       url: '/lottery/draw',
       method: 'POST',
-      data: { draw_type: mappedDrawType, count },
+      data: { type: drawType, count },
       needAuth: true
-    }).catch(error => {
-      console.error('🚨 抽奖API调用失败:', error)
-      
-      // 🔧 修复：区分网络错误和业务错误，避免重复错误提示
-      // 只有真正的网络错误才显示通用错误提示
-      // 业务错误（如每日限制、积分不足等）由业务逻辑层处理
-      
-      if (error && typeof error.code === 'number' && error.code >= 1000) {
-        // 业务错误码（1000+），不显示通用错误，直接抛出让业务逻辑处理
-        console.log('📝 业务错误，由业务逻辑层处理:', error)
-        throw error
-      } else if (error && (error.code === 'NETWORK_ERROR' || error.code < 0 || 
-                         (typeof error.code === 'number' && (error.code >= 500 || error.code === 0)))) {
-        // 网络错误或服务器错误，显示通用错误提示
-        wx.showModal({
-          title: '🚨 网络连接异常',
-          content: '网络连接出现问题，请检查网络后重试。\n\n可能原因：\n1. 网络连接不稳定\n2. 服务器暂时无法访问\n3. 请求超时',
-          showCancel: true,
-          cancelText: '稍后重试',
-          confirmText: '知道了',
-          confirmColor: '#ff4444'
-        })
-        throw error
-      } else {
-        // 其他未知错误，显示通用提示但不阻断业务流程
-        console.warn('⚠️ 未知错误类型，由业务逻辑层处理:', error)
-        throw error
-      }
     })
   },
 
-  // 获取抽奖记录
   getRecords(page = 1, pageSize = 20) {
     return request({
       url: '/lottery/records',
@@ -516,7 +393,6 @@ const lotteryAPI = {
     })
   },
 
-  // 获取抽奖统计
   getStatistics() {
     return request({
       url: '/lottery/statistics',
@@ -526,9 +402,8 @@ const lotteryAPI = {
   }
 }
 
-// 🔴 商品兑换API - 必须调用真实后端接口
+// 🔴 兑换API
 const exchangeAPI = {
-  // 获取商品分类
   getCategories() {
     return request({
       url: '/exchange/categories',
@@ -537,24 +412,15 @@ const exchangeAPI = {
     })
   },
 
-  // 获取商品列表
   getProducts(page = 1, pageSize = 20, category = 'all', sort = 'points') {
     return request({
       url: '/exchange/products',
       method: 'GET',
       data: { page, page_size: pageSize, category, sort },
       needAuth: true
-    }).catch(error => {
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法获取商品列表！请检查后端API服务状态。',
-        showCancel: false
-      })
-      throw error
     })
   },
 
-  // 兑换商品
   redeem(productId, quantity = 1) {
     return request({
       url: '/exchange/redeem',
@@ -564,7 +430,6 @@ const exchangeAPI = {
     })
   },
 
-  // 获取兑换记录
   getRecords(page = 1, pageSize = 20, status = 'all') {
     return request({
       url: '/exchange/records',
@@ -574,195 +439,92 @@ const exchangeAPI = {
     })
   },
 
-  // 🔧 修复：添加缺失的getStatistics方法
   getStatistics() {
     return request({
       url: '/exchange/statistics',
       method: 'GET',
       needAuth: true
-    }).catch(error => {
-      console.error('❌ 获取兑换统计失败:', error)
-      
-      // 🔴 显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: `无法获取兑换统计数据！\n\n🔗 API端点：${getApp().globalData.baseUrl}/exchange/statistics\n\n请检查后端API服务状态！`,
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
-      
-      throw error
     })
   }
 }
 
-// 🔴 上传API - 必须调用真实后端接口
+// 🔴 上传API
 const uploadAPI = {
-  // 上传文件
   upload(filePath, userAmount) {
     return new Promise((resolve, reject) => {
-      // 🔧 修复：参数验证和处理
-      if (!filePath) {
-        const error = { code: 1001, msg: '文件路径不能为空' }
-        console.error('❌ 上传参数错误:', error)
-        reject(error)
-        return
-      }
-      
-      // 🔧 修复：确保金额参数有效
-      const validAmount = userAmount || 1.0
-      console.log('📤 上传API调用参数:', {
-        filePath: filePath,
-        原始金额: userAmount,
-        处理后金额: validAmount,
-        金额类型: typeof validAmount,
-        转为字符串: validAmount.toString(),
-        baseUrl: app.globalData.baseUrl,
-        hasToken: !!app.globalData.accessToken
-      })
-      
-      // 🔧 修复：检查必需的全局配置
-      if (!app.globalData.baseUrl) {
-        const error = { code: 1004, msg: '系统配置错误：API地址未设置' }
-        console.error('❌ 系统配置错误:', error)
-        wx.showModal({
-          title: '🚨 系统配置错误',
-          content: 'API地址未设置，请检查环境配置！',
-          showCancel: false
-        })
-        reject(error)
-        return
-      }
+      const app = getApp()
       
       if (!app.globalData.accessToken) {
-        const error = { code: 1005, msg: '用户未登录，请先登录' }
-        console.error('❌ 认证错误:', error)
-        wx.showModal({
-          title: '🚨 认证错误',
-          content: '用户未登录，请先登录！',
-          showCancel: false
+        reject({
+          code: 2001,
+          msg: '访问令牌缺失，请重新登录',
+          needsRelogin: true
         })
-        reject(error)
         return
       }
-      
-      const header = {
-        'Authorization': `Bearer ${app.globalData.accessToken}`
+
+      const header = {}
+      if (app.globalData.accessToken) {
+        header['Authorization'] = `Bearer ${app.globalData.accessToken}`
       }
-      
-      // 🔧 修复：构建完整的上传URL
-      const uploadUrl = `${app.globalData.baseUrl}/photo/upload`
-      console.log('📤 上传URL:', uploadUrl)
-      
+
       wx.uploadFile({
-        url: uploadUrl,
+        url: app.globalData.baseUrl + '/photo/upload',
         filePath: filePath,
         name: 'photo',
-        header: header,
         formData: {
-          amount: validAmount.toString()
+          amount: userAmount
         },
+        header: header,
         success(res) {
-          console.log('📤 上传API响应:', res)
-          
-          // 🔧 修复：详细的响应处理
-          if (res.statusCode !== 200) {
-            const networkError = { 
-              code: res.statusCode, 
-              msg: `网络错误：HTTP ${res.statusCode}`,
-              isNetworkError: true
-            }
-            console.error('❌ 网络错误:', networkError)
-            wx.showModal({
-              title: '🚨 网络错误',
-              content: `HTTP状态码：${res.statusCode}\n\n请检查网络连接或联系技术支持！`,
-              showCancel: false
-            })
-            reject(networkError)
-            return
-          }
-          
           try {
             const data = JSON.parse(res.data)
-            console.log('📤 解析后的响应数据:', data)
-            
             if (data.code === 0) {
               resolve(data)
             } else {
-              console.error('❌ 上传API业务错误:', data)
-              // 🔧 修复：业务错误也需要详细提示
-              const businessError = {
-                ...data,
-                isBusinessError: true
-              }
-              reject(businessError)
+              reject({
+                code: data.code,
+                msg: data.msg || '上传失败',
+                isBackendError: true
+              })
             }
-          } catch (err) {
-            console.error('❌ 上传API响应解析失败:', err)
-            console.error('❌ 原始响应数据:', res.data)
-            
-            const parseError = { 
-              code: -1, 
-              msg: '响应数据解析失败',
-              originalData: res.data,
-              parseError: err.message
-            }
-            
-            wx.showModal({
-              title: '🚨 数据解析错误',
-              content: `响应数据格式异常！\n\n原始数据：${res.data}\n\n请联系技术支持！`,
-              showCancel: false
+          } catch (parseError) {
+            reject({
+              code: -1,
+              msg: '响应解析失败',
+              isBackendError: true
             })
-            
-            reject(parseError)
           }
         },
         fail(err) {
-          console.error('❌ 上传API网络错误:', err)
-          
-          // 🔧 修复：区分不同类型的网络错误
-          let errorMessage = '上传失败，请重试'
-          
-          if (err.errMsg) {
-            if (err.errMsg.includes('timeout')) {
-              errorMessage = '网络超时，请检查网络连接'
-            } else if (err.errMsg.includes('fail')) {
-              errorMessage = '网络连接失败，请稍后重试'
-            } else if (err.errMsg.includes('abort')) {
-              errorMessage = '上传被中断'
-            }
-          }
-          
-          wx.showModal({
-            title: '🚨 上传失败',
-            content: `${errorMessage}\n\n错误详情：${err.errMsg || '未知错误'}\n\n上传地址：${uploadUrl}\n\n请检查：\n1. 网络连接\n2. 服务器状态\n3. 联系技术支持`,
-            showCancel: false
-          })
-          
-          const networkError = {
-            ...err,
+          reject({
+            code: -1,
+            msg: '上传失败',
             isNetworkError: true,
-            uploadUrl: uploadUrl
-          }
-          
-          reject(networkError)
+            originalError: err
+          })
         }
       })
     })
   },
 
-  // 获取上传记录
-  getRecords(page = 1, pageSize = 20, status = 'all') {
+  getRecords(page = 1, pageSize = 20, status = 'all', forceRefresh = false) {
     return request({
       url: '/photo/history',
       method: 'GET',
-      data: { page, limit: pageSize, status },
-      needAuth: true
+      data: { 
+        page, 
+        limit: pageSize, 
+        status,
+        // 🔧 新增：添加时间戳强制刷新缓存
+        _t: forceRefresh ? Date.now() : undefined
+      },
+      needAuth: true,
+      // 🔧 修复：强制显示加载，避免缓存问题
+      showLoading: true
     })
   },
 
-  // 🔴 新增：获取上传历史记录 - 符合接口规范v2.1.3
   getHistory(page = 1, pageSize = 10, status = 'all') {
     console.log('📡 获取上传历史请求:', { page, pageSize, status })
     
@@ -773,7 +535,6 @@ const uploadAPI = {
       needAuth: true,
       showLoading: false
     }).catch(error => {
-      // 🔴 确保上传历史API错误也有完整的后端服务异常提示
       console.error('❌ 获取上传历史失败:', error)
       
       if (!error.isBackendError && !error.isNetworkError) {
@@ -790,48 +551,25 @@ const uploadAPI = {
     })
   },
 
-  // 🔧 修复：添加缺失的getStatistics方法
   getStatistics() {
     return request({
       url: '/photo/statistics',
       method: 'GET',
       needAuth: true
-    }).catch(error => {
-      console.error('❌ 获取上传统计失败:', error)
-      
-      // 🔴 显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: `无法获取上传统计数据！\n\n🔗 API端点：${getApp().globalData.baseUrl}/photo/statistics\n\n请检查后端API服务状态！`,
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#ff4444'
-      })
-      
-      throw error
     })
   }
 }
 
-// 🔴 用户API - 必须调用真实后端接口
+// 🔴 用户API
 const userAPI = {
-  // 获取用户信息
   getUserInfo() {
     return request({
       url: '/user/info',
       method: 'GET',
       needAuth: true
-    }).catch(error => {
-      wx.showModal({
-        title: '🚨 后端服务异常',
-        content: '无法获取用户信息！请检查后端API服务状态。',
-        showCancel: false
-      })
-      throw error
     })
   },
 
-  // 更新用户信息
   updateUserInfo(userInfo) {
     return request({
       url: '/user/info',
@@ -841,7 +579,6 @@ const userAPI = {
     })
   },
 
-  // 获取用户统计
   getStatistics() {
     return request({
       url: '/user/statistics',
@@ -850,74 +587,45 @@ const userAPI = {
     })
   },
 
-  // 获取积分记录 - 🔴 更新接口路径符合规范v2.1.3
   getPointsRecords(page = 1, pageSize = 20, type = 'all', source = '') {
-    console.log('📡 获取积分记录请求:', { page, pageSize, type, source })
-    
     return request({
       url: '/user/points/records',
       method: 'GET',
-      data: {
-        page,
-        limit: pageSize,
-        type,
-        source
-      },
-      needAuth: true,
-      showLoading: false
-    }).catch(error => {
-      // 🔴 确保积分记录API错误也有完整的后端服务异常提示
-      console.error('❌ 获取积分记录失败:', error)
-      
-      if (!error.isBackendError && !error.isNetworkError) {
-        wx.showModal({
-          title: '🚨 后端服务异常',
-          content: `无法获取积分记录！\n\n🔗 API端点：${app.globalData.baseUrl}/user/points/records\n\n请检查后端API服务状态！`,
-          showCancel: false,
-          confirmText: '知道了',
-          confirmColor: '#ff4444'
-        })
-      }
-      
-      throw error
+      data: { page, page_size: pageSize, type, source },
+      needAuth: true
     })
   },
 
-  // 🔴 新增：头像上传 - 符合接口规范v2.1.3
+  // 🔧 修复：添加缺失的uploadAvatar方法
   uploadAvatar(filePath) {
-    console.log('📡 上传头像请求:', filePath)
-    
     return new Promise((resolve, reject) => {
-      const header = {
-        'Content-Type': 'multipart/form-data'
-      }
+      const app = getApp()
       
-      // 添加认证头
+      if (!app.globalData.accessToken) {
+        reject({
+          code: 2001,
+          msg: '访问令牌缺失，请重新登录',
+          needsRelogin: true
+        })
+        return
+      }
+
+      const header = {}
       if (app.globalData.accessToken) {
         header['Authorization'] = `Bearer ${app.globalData.accessToken}`
       }
-      
+
       wx.uploadFile({
         url: app.globalData.baseUrl + '/user/avatar',
         filePath: filePath,
         name: 'avatar',
         header: header,
         success(res) {
-          console.log('📡 头像上传响应:', res)
-          
           try {
             const data = JSON.parse(res.data)
             if (data.code === 0) {
               resolve(data)
             } else {
-              // 🔴 后端服务异常提示
-              wx.showModal({
-                title: '🚨 后端服务异常',
-                content: `头像上传失败！\n\n🔗 API端点：${app.globalData.baseUrl}/user/avatar\n错误信息：${data.msg || '未知错误'}\n\n请检查后端API服务状态！`,
-                showCancel: false,
-                confirmText: '知道了',
-                confirmColor: '#ff4444'
-              })
               reject({
                 code: data.code,
                 msg: data.msg || '头像上传失败',
@@ -925,14 +633,6 @@ const userAPI = {
               })
             }
           } catch (parseError) {
-            console.error('❌ 解析上传响应失败:', parseError)
-            wx.showModal({
-              title: '🚨 后端服务异常',
-              content: `头像上传响应解析失败！\n\n🔗 API端点：${app.globalData.baseUrl}/user/avatar\n响应内容：${res.data}\n\n请检查后端API服务状态！`,
-              showCancel: false,
-              confirmText: '知道了',
-              confirmColor: '#ff4444'
-            })
             reject({
               code: -1,
               msg: '响应解析失败',
@@ -941,15 +641,6 @@ const userAPI = {
           }
         },
         fail(err) {
-          console.error('❌ 头像上传失败:', err)
-          // 🔴 网络错误提示
-          wx.showModal({
-            title: '🚨 后端服务异常',
-            content: `头像上传失败！\n\n🔗 API端点：${app.globalData.baseUrl}/user/avatar\n错误详情：${err.errMsg || '未知网络错误'}\n\n请检查后端API服务状态！`,
-            showCancel: false,
-            confirmText: '知道了',
-            confirmColor: '#ff4444'
-          })
           reject({
             code: -1,
             msg: '头像上传失败',
@@ -961,7 +652,6 @@ const userAPI = {
     })
   },
 
-  // 签到
   checkIn() {
     return request({
       url: '/user/check-in',
@@ -971,9 +661,8 @@ const userAPI = {
   }
 }
 
-// 🔴 商家API - 必须调用真实后端接口
+// 🔴 商家API
 const merchantAPI = {
-  // 申请商家权限
   apply(authInfo = {}) {
     return request({
       url: '/merchant/apply',
@@ -983,105 +672,10 @@ const merchantAPI = {
     })
   },
 
-  // 获取商家统计
   getStatistics() {
     return request({
       url: '/merchant/statistics',
       method: 'GET',
-      needAuth: true
-    })
-  },
-
-  // 🔴 新增：获取商品统计 - 符合接口规范v2.1.3
-  getProductStats() {
-    console.log('📡 获取商品统计请求')
-    
-    return request({
-      url: '/merchant/product-stats',
-      method: 'GET',
-      needAuth: true,
-      showLoading: false
-    }).catch(error => {
-      // 🔴 确保商品统计API错误也有完整的后端服务异常提示
-      console.error('❌ 获取商品统计失败:', error)
-      
-      if (!error.isBackendError && !error.isNetworkError) {
-        wx.showModal({
-          title: '🚨 后端服务异常',
-          content: `无法获取商品统计！\n\n🔗 API端点：${app.globalData.baseUrl}/merchant/product-stats\n\n请检查后端API服务状态！`,
-          showCancel: false,
-          confirmText: '知道了',
-          confirmColor: '#ff4444'
-        })
-      }
-      
-      throw error
-    })
-  },
-
-  // 获取待审核上传
-  getPendingReviews(page = 1, pageSize = 20) {
-    return request({
-      url: '/merchant/pending-reviews',
-      method: 'GET',
-      data: { page, page_size: pageSize },
-      needAuth: true
-    })
-  },
-
-  // 审核上传
-  review(uploadId, action, points = 0, reason = '') {
-    return request({
-      url: '/merchant/review',
-      method: 'POST',
-      data: { upload_id: uploadId, action, points, reason },
-      needAuth: true
-    })
-  },
-
-  // 批量审核
-  batchReview(uploadIds, action, reason = '') {
-    return request({
-      url: '/merchant/batch-review',
-      method: 'POST',
-      data: { upload_ids: uploadIds, action, reason },
-      needAuth: true
-    })
-  },
-
-  // 获取抽奖配置（商家管理）
-  getLotteryConfig() {
-    return request({
-      url: '/merchant/lottery-config',
-      method: 'GET',
-      needAuth: true
-    })
-  },
-
-  // 获取抽奖统计（商家管理）
-  getLotteryStats() {
-    return request({
-      url: '/merchant/lottery-stats',
-      method: 'GET',
-      needAuth: true
-    })
-  },
-
-  // 保存抽奖概率设置
-  saveLotteryProbabilities(prizes) {
-    return request({
-      url: '/merchant/lottery-probabilities',
-      method: 'POST',
-      data: { prizes },
-      needAuth: true
-    })
-  },
-
-  // 重置抽奖概率
-  resetLotteryProbabilities() {
-    return request({
-      url: '/merchant/reset-lottery-probabilities',
-      method: 'POST',
       needAuth: true
     })
   }
