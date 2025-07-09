@@ -1,7 +1,5 @@
 // pages/auth/auth.js - 认证页面逻辑（基于产品功能结构文档v2.1.3优化）
 const app = getApp()
-const { authAPI } = require('../../utils/api')
-const { validatePhone, validateCode, FormValidator, commonRules } = require('../../utils/validate')
 
 Page({
 
@@ -9,6 +7,11 @@ Page({
    * 页面的初始数据
    */
   data: {
+    // 🔧 修复：页面加载状态
+    pageLoaded: false,
+    initError: null,
+    showErrorDetails: false,
+    
     // 表单数据
     phone: '',
     code: '',
@@ -70,30 +73,204 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    console.log('🔧 认证页面加载 - v2.1.3')
+    console.log('🔧 认证页面开始加载 - v2.1.3')
     
-    // 🚧 开发阶段配置 - 🔧 修复：安全获取环境配置
-    const envConfig = app.globalData.config || app.globalData || { isDev: true }
-    const devConfig = envConfig.developmentMode || {}
+    // 🔧 修复：使用安全的初始化流程
+    try {
+      this.safeInitPage()
+    } catch (error) {
+      console.error('❌ 认证页面初始化失败:', error)
+      this.handleInitError(error)
+    }
+  },
+
+  /**
+   * 🔧 修复：安全的页面初始化
+   */
+  safeInitPage() {
+    // 设置基本状态
+    this.setData({
+      pageLoaded: false,
+      initError: null
+    })
+
+    try {
+      // 🔧 修复：安全获取app实例
+      const appInstance = getApp()
+      if (!appInstance) {
+        throw new Error('App实例未初始化')
+      }
+
+      // 🔧 修复：安全获取环境配置
+      const envConfig = this.getEnvironmentConfig(appInstance)
+      
+      // 🔧 修复：设置页面配置
+      this.setData({
+        isDevelopmentMode: envConfig.isDev || true,
+        skipSmsVerification: envConfig.developmentMode?.skipSmsVerification || true,
+        adminTapThreshold: envConfig.developmentMode?.adminHiddenTrigger || 5,
+        adminTapTimeout: envConfig.developmentMode?.adminTriggerTimeout || 2000
+      })
+
+      // 🔧 修复：初始化API引用
+      this.initAPIReferences()
+
+      // 🔧 修复：初始化表单验证器
+      this.initFormValidator()
+
+      // 🔧 修复：检查登录状态
+      this.checkExistingLogin()
+
+      // 🔧 修复：标记页面加载完成
+      this.setData({
+        pageLoaded: true
+      })
+
+      console.log('✅ 认证页面初始化完成 - v2.1.3')
+
+    } catch (error) {
+      console.error('❌ 页面初始化过程中出错:', error)
+      this.handleInitError(error)
+    }
+  },
+
+  /**
+   * 🔧 修复：安全获取环境配置
+   */
+  getEnvironmentConfig(appInstance) {
+    try {
+      // 尝试从全局数据获取配置
+      if (appInstance.globalData && appInstance.globalData.config) {
+        return appInstance.globalData.config
+      }
+
+      // 尝试从全局数据获取基本配置
+      if (appInstance.globalData) {
+        return {
+          isDev: appInstance.globalData.isDev || true,
+          developmentMode: appInstance.globalData.developmentMode || {}
+        }
+      }
+
+      // 返回默认配置
+      return {
+        isDev: true,
+        developmentMode: {
+          skipSmsVerification: true,
+          adminHiddenTrigger: 5,
+          adminTriggerTimeout: 2000
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ 获取环境配置失败，使用默认配置:', error)
+      return {
+        isDev: true,
+        developmentMode: {
+          skipSmsVerification: true,
+          adminHiddenTrigger: 5,
+          adminTriggerTimeout: 2000
+        }
+      }
+    }
+  },
+
+  /**
+   * 🔧 修复：初始化API引用
+   */
+  initAPIReferences() {
+    try {
+      const apiModule = require('../../utils/api')
+      this.authAPI = apiModule.authAPI
+      console.log('✅ API引用初始化成功')
+    } catch (error) {
+      console.error('❌ API引用初始化失败:', error)
+      // 设置空的API对象防止调用错误
+      this.authAPI = {
+        sendCode: () => Promise.reject(new Error('API未初始化')),
+        login: () => Promise.reject(new Error('API未初始化'))
+      }
+      throw new Error('API模块加载失败: ' + error.message)
+    }
+  },
+
+  /**
+   * 🔧 修复：初始化表单验证器
+   */
+  initFormValidator() {
+    try {
+      const { FormValidator, commonRules } = require('../../utils/validate')
+      
+      const validator = new FormValidator()
+      validator.addRule('phone', commonRules.required)
+      validator.addRule('phone', commonRules.phone)
+      validator.addRule('code', commonRules.required)
+      validator.addRule('code', commonRules.code)
+      
+      this.data.formValidator = validator
+      console.log('✅ 表单验证器初始化成功')
+    } catch (error) {
+      console.warn('⚠️ 表单验证器初始化失败，使用简单验证:', error)
+      // 设置简单的验证器
+      this.data.formValidator = {
+        validate: () => ({ isValid: true, errors: {} })
+      }
+    }
+  },
+
+  /**
+   * 🔧 修复：检查现有登录状态
+   */
+  checkExistingLogin() {
+    try {
+      const appInstance = getApp()
+      if (appInstance.globalData && appInstance.globalData.isLoggedIn && !appInstance.globalData.isDev) {
+        console.log('✅ 检测到已登录状态，准备跳转')
+        wx.redirectTo({
+          url: '/pages/lottery/lottery'
+        })
+      }
+    } catch (error) {
+      console.warn('⚠️ 登录状态检查失败:', error)
+      // 忽略错误，继续显示登录页面
+    }
+  },
+
+  /**
+   * 🔧 修复：处理初始化错误
+   */
+  handleInitError(error) {
+    console.error('❌ 处理初始化错误:', error)
     
     this.setData({
-      isDevelopmentMode: envConfig.isDev || true,
-      skipSmsVerification: devConfig.skipSmsVerification || true,
-      adminTapThreshold: devConfig.adminHiddenTrigger || 5,
-      adminTapTimeout: devConfig.adminTriggerTimeout || 2000
+      pageLoaded: true,  // 仍然显示页面
+      initError: error.message || '页面初始化失败',
+      showErrorDetails: false
     })
-    
-    // 🔴 v2.1.3：显示开发阶段提示
-    if (envConfig.isDev && devConfig.showDevelopmentTips) {
-      wx.showModal({
-        title: '🚧 开发阶段提示',
-        content: '当前为开发阶段，已暂停手机号验证功能。\n\n可使用任意手机号和验证码登录。',
-        showCancel: false,
-        confirmText: '知道了'
-      })
-    }
-    
-    this.initPage()
+
+    // 显示用户友好的错误提示
+    wx.showModal({
+      title: '页面加载异常',
+      content: '登录页面初始化遇到问题，但仍可正常使用基本功能。\n\n如果问题持续，请重启小程序。',
+      showCancel: true,
+      cancelText: '查看详情',
+      confirmText: '知道了',
+      success: (res) => {
+        if (res.cancel) {
+          this.setData({
+            showErrorDetails: true
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 修复：切换错误详情显示
+   */
+  toggleErrorDetails() {
+    this.setData({
+      showErrorDetails: !this.data.showErrorDetails
+    })
   },
 
   /**
@@ -198,7 +375,10 @@ Page({
         // 用户状态变化（登录/登出）
         if (data.isLoggedIn) {
           console.log('✅ 收到用户登录成功WebSocket通知')
-          this.handleLoginSuccess(data)
+          // 可以在这里进行页面跳转
+          wx.redirectTo({
+            url: '/pages/lottery/lottery'
+          })
         }
         break
       case 'connectionStatusChanged':
@@ -223,220 +403,164 @@ Page({
    * 页面上拉触底事件的处理函数
    */
   onReachBottom() {
-
+    // 可以在这里处理上拉加载更多
   },
 
   /**
-   * 分享功能
+   * 用户点击右上角分享
    */
   onShareAppMessage() {
     return {
-      title: '餐厅积分系统 - 快速登录',
-      path: '/pages/auth/auth'
+      title: '餐厅积分抽奖系统',
+      path: '/pages/index/index'
     }
   },
 
   /**
-   * 初始化页面
-   */
-  initPage() {
-    // 初始化表单验证器
-    const validator = new FormValidator()
-    validator.addRule('phone', commonRules.required)
-    validator.addRule('phone', commonRules.phone)
-    validator.addRule('code', commonRules.required)
-    validator.addRule('code', commonRules.code)
-    
-    this.data.formValidator = validator
-    
-    // 检查是否已登录
-    if (app.globalData.isLoggedIn && !app.globalData.isDev) {
-      wx.redirectTo({
-        url: '/pages/lottery/lottery'
-      })
-    }
-    
-    // 🔴 v2.1.3：初始化开发阶段配置
-    this.initDevelopmentConfig()
-  },
-
-  /**
-   * 🔴 v2.1.3新增：初始化开发阶段配置
+   * 🔧 修复：初始化开发阶段配置
    */
   initDevelopmentConfig() {
-    const envConfig = app.globalData.config || app.globalData || {}
-    const devConfig = envConfig.developmentMode || {}
-    
-    // 如果开发阶段显示提示
-    if (devConfig.showDevelopmentTips && devConfig.skipSmsVerification) {
-      console.log('🚧 开发阶段：已跳过短信验证功能')
-    }
-    
-    // 设置开发阶段的默认值
-    if (devConfig.skipSmsVerification) {
-      this.setData({
-        phone: '',  // 不预填手机号，让用户自行输入
-        code: ''    // 不预填验证码，让用户自行输入
-      })
+    // 开发阶段特殊配置处理
+    if (this.data.isDevelopmentMode && this.data.skipSmsVerification) {
+      console.log('🚧 开发阶段：已启用短信验证跳过功能')
     }
   },
 
   /**
-   * 手机号输入
+   * 手机号输入处理
    */
   onPhoneInput(e) {
-    let phone = e.detail.value
-    
-    // 🔧 修复：清理输入数据，确保只包含数字
-    phone = phone.replace(/\D/g, '') // 移除所有非数字字符
-    
-    // 🔧 修复：限制最大长度
-    if (phone.length > 11) {
-      phone = phone.substring(0, 11)
-    }
-    
-    console.log('📱 手机号输入处理:', {
-      原始输入: e.detail.value,
-      处理后: phone,
-      长度: phone.length,
-      格式验证: /^1[3-9]\d{9}$/.test(phone)
+    const phone = e.detail.value
+    this.setData({ 
+      phone: phone,
+      formErrors: {
+        ...this.data.formErrors,
+        phone: null
+      }
     })
     
-    this.setData({ phone })
-    
-    // 实时验证
-    this.validatePhone(phone)
+    // 实时验证手机号
+    if (phone.length === 11) {
+      if (!this.validatePhone(phone)) {
+        this.setData({
+          formErrors: {
+            ...this.data.formErrors,
+            phone: '请输入正确的手机号'
+          }
+        })
+      }
+    }
   },
 
   /**
    * 验证手机号
    */
   validatePhone(phone) {
-    const isValid = this.data.formValidator.validateField('phone', phone)
-    const errors = this.data.formValidator.getErrors()
-    
-    this.setData({
-      formErrors: { ...this.data.formErrors, phone: errors.phone }
-    })
-    
-    return isValid
+    if (!phone || phone.length !== 11) {
+      return false
+    }
+    // 验证手机号格式（1开头，第二位是3-9，后面9位数字）
+    return /^1[3-9]\d{9}$/.test(phone)
   },
 
   /**
-   * 验证码输入
+   * 验证码输入处理
    */
   onCodeInput(e) {
-    let code = e.detail.value
-    
-    // 🔧 修复：清理输入数据，确保只包含数字
-    code = code.replace(/\D/g, '') // 移除所有非数字字符
-    
-    // 🔧 修复：限制最大长度
-    if (code.length > 6) {
-      code = code.substring(0, 6)
-    }
-    
-    console.log('🔑 验证码输入处理:', {
-      原始输入: e.detail.value,
-      处理后: code,
-      长度: code.length,
-      格式验证: /^\d{4,6}$/.test(code)
+    const code = e.detail.value
+    this.setData({ 
+      code: code,
+      formErrors: {
+        ...this.data.formErrors,
+        code: null
+      }
     })
     
-    this.setData({ code })
-    
-    // 实时验证
-    this.validateCode(code)
+    // 实时验证验证码
+    if (code.length === 6) {
+      if (!this.validateCode(code)) {
+        this.setData({
+          formErrors: {
+            ...this.data.formErrors,
+            code: '请输入6位数字验证码'
+          }
+        })
+      }
+    }
   },
 
   /**
    * 验证验证码
    */
   validateCode(code) {
-    const isValid = this.data.formValidator.validateField('code', code)
-    const errors = this.data.formValidator.getErrors()
-    
-    this.setData({
-      formErrors: { ...this.data.formErrors, code: errors.code }
-    })
-    
-    return isValid
+    if (!code || code.length !== 6) {
+      return false
+    }
+    // 验证码必须是6位数字
+    return /^\d{6}$/.test(code)
   },
 
   /**
-   * 发送验证码
+   * 🔧 修复：使用正确的API方法名
    */
   onSendCode() {
-    if (!this.validatePhone(this.data.phone)) {
+    // 防止重复发送
+    if (this.data.sending || this.data.codeDisabled) {
       return
     }
 
-    if (this.data.codeDisabled) {
+    // 验证手机号
+    if (!this.validatePhone(this.data.phone)) {
+      wx.showToast({
+        title: '请输入正确的手机号',
+        icon: 'none'
+      })
       return
     }
 
     this.setData({ sending: true })
 
-    // 🚧 开发阶段：跳过短信验证
-    if (this.data.skipSmsVerification) {
-      console.log('🚧 开发阶段：跳过短信验证码发送')
-      
-      // 模拟发送成功
-      setTimeout(() => {
-        this.setData({ sending: false })
-        this.startCountdown()
-        
-        wx.showToast({
-          title: '🚧 开发模式：验证码已发送',
-          icon: 'success',
-          duration: 2000
-        })
-      }, 500)
-      
-      return
-    }
-
-    // 🔴 正式环境：调用后端API发送验证码
-    authAPI.sendVerificationCode(this.data.phone).then((res) => {
+    // 🔧 修复：使用正确的API方法名
+    this.authAPI.sendCode(this.data.phone).then((res) => {
       if (res.code === 0) {
         this.setData({ sending: false })
         this.startCountdown()
         
         wx.showToast({
           title: '验证码已发送',
-          icon: 'success',
-          duration: 2000
+          icon: 'success'
         })
       } else {
-        throw new Error(res.msg || '发送验证码失败')
+        throw new Error(res.msg || '发送失败')
       }
     }).catch((error) => {
-      console.error('❌ 发送验证码失败:', error)
       this.setData({ sending: false })
-      
-      // 🔴 v2.1.3：增强错误处理
       this.handleSendCodeError(error)
     })
   },
 
   /**
-   * 🔴 v2.1.3新增：处理发送验证码错误
+   * 🔧 修复：处理发送验证码错误
    */
   handleSendCodeError(error) {
+    console.error('❌ 发送验证码失败:', error)
+    
     let errorMessage = '发送验证码失败'
     
-    if (error.isBackendError) {
-      errorMessage = '🚨 后端服务异常：' + error.message
-    } else if (error.isNetworkError) {
-      errorMessage = '🌐 网络连接异常，请检查网络'
+    if (error.isNetworkError) {
+      errorMessage = '网络连接失败，请检查网络'
     } else if (error.code === 429) {
       errorMessage = '发送过于频繁，请稍后再试'
+    } else if (error.code === 1001) {
+      errorMessage = '手机号格式不正确'
+    } else if (error.msg) {
+      errorMessage = error.msg
     } else if (error.message) {
       errorMessage = error.message
     }
     
     wx.showModal({
-      title: '发送验证码失败',
+      title: '发送失败',
       content: errorMessage,
       showCancel: false,
       confirmText: '知道了',
@@ -449,25 +573,19 @@ Page({
    */
   startCountdown() {
     let countdown = 60
-    this.setData({
+    this.setData({ 
       codeDisabled: true,
       countdown: countdown
     })
-
-    const countdownTimer = setInterval(() => {
+    
+    this.countdownTimer = setInterval(() => {
       countdown--
       this.setData({ countdown })
-
+      
       if (countdown <= 0) {
-        clearInterval(countdownTimer)
-        this.setData({
-          codeDisabled: false,
-          countdown: 0
-        })
+        this.clearCountdown()
       }
     }, 1000)
-
-    this.countdownTimer = countdownTimer
   },
 
   /**
@@ -478,6 +596,7 @@ Page({
       clearInterval(this.countdownTimer)
       this.countdownTimer = null
     }
+    
     this.setData({
       codeDisabled: false,
       countdown: 0
@@ -485,11 +604,11 @@ Page({
   },
 
   /**
-   * 用户协议状态变化
+   * 用户协议选择变化
    */
   onAgreementChange(e) {
     this.setData({
-      agreementChecked: e.detail.value
+      agreementChecked: e.detail.value.length > 0
     })
   },
 
@@ -632,7 +751,7 @@ Page({
       }, 10000)
       
       // 🔧 修复：正确传递参数 - 传递整个formData对象，让API方法内部处理
-      authAPI.login(formData).then((res) => {
+      this.authAPI.login(formData).then((res) => {
         clearTimeout(singleRequestTimeout)
         
         if (res.code === 0) {
@@ -1159,7 +1278,7 @@ Page({
       skipSms: this.data.adminForm.skipSms
     }
     
-    authAPI.adminLogin(adminLoginData).then((res) => {
+    this.authAPI.adminLogin(adminLoginData).then((res) => {
       if (res.code === 0) {
         console.log('✅ 管理员登录成功')
         

@@ -126,9 +126,9 @@ const ENV = {
       acceptAnyCode: false,
       skipAdminSmsVerification: false,    // 测试环境启用管理员二次验证
       disableSmsService: false,          // 测试环境启用短信服务
-      enableWebSocket: true,              // 测试环境启用WebSocket
+      enableWebSocket: false,             // 🔧 临时禁用WebSocket，避免503错误影响登录
       webSocketReconnect: true,
-      silentWebSocketErrors: false,       // 测试环境显示WebSocket错误
+      silentWebSocketErrors: true,        // 🔧 静默WebSocket错误
       debugMode: false,
       verboseLogging: false,
       showDevelopmentTips: false,

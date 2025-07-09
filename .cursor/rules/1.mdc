@@ -695,7 +695,7 @@ class ResponsibilityBoundaryChecker {
 ```
 
 ---
-
+1、PowerShell语法错误  标记“&&”不是此版本中的有效语句分隔符 不要使用“&&”
 ## 📚 相关规则文档引用
 
 - **PowerShell控制台稳定性**: 详见 `development-automation-unified.mdc`

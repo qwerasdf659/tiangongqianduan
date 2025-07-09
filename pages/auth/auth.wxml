@@ -1,110 +1,144 @@
 <!--pages/auth/auth.wxml-->
 <view class="auth-container">
-  <!-- 背景装饰 -->
-  <view class="bg-decoration">
-    <view class="decoration-circle circle-1"></view>
-    <view class="decoration-circle circle-2"></view>
-    <view class="decoration-circle circle-3"></view>
+  <!-- 🔧 页面加载状态 -->
+  <view class="loading-container" wx:if="{{!pageLoaded}}">
+    <view class="loading-content">
+      <view class="loading-spinner">⏳</view>
+      <text class="loading-text">页面加载中...</text>
+    </view>
   </view>
 
-  <!-- 登录表单 -->
-  <view class="auth-form">
-    <!-- Logo和标题 -->
-    <view class="header">
-      <view class="logo">🎰</view>
-      <text class="title" bindtap="onTitleTap" data-tap-count="{{titleTapCount}}">餐厅积分抽奖</text>
-      <text class="subtitle">立即注册赚积分，精彩奖品等你拿</text>
+  <!-- 🔧 初始化错误提示 -->
+  <view class="error-container" wx:if="{{pageLoaded && initError}}">
+    <view class="error-content">
+      <view class="error-icon">⚠️</view>
+      <text class="error-title">页面初始化异常</text>
+      <text class="error-message">{{initError}}</text>
+      <view class="error-actions">
+        <button class="error-btn retry-btn" bindtap="safeInitPage">重试</button>
+        <button class="error-btn details-btn" wx:if="{{!showErrorDetails}}" bindtap="toggleErrorDetails">查看详情</button>
+        <button class="error-btn details-btn" wx:if="{{showErrorDetails}}" bindtap="toggleErrorDetails">隐藏详情</button>
+      </view>
+      <view class="error-details" wx:if="{{showErrorDetails}}">
+        <text class="error-details-text">
+          可能的解决方案：
+          1. 检查网络连接
+          2. 重启小程序
+          3. 检查后端服务状态
+          4. 联系技术支持
+        </text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 🔧 主要内容 - 只在页面加载完成且无严重错误时显示 -->
+  <view class="main-content" wx:if="{{pageLoaded && !initError}}">
+    <!-- 背景装饰 -->
+    <view class="bg-decoration">
+      <view class="decoration-circle circle-1"></view>
+      <view class="decoration-circle circle-2"></view>
+      <view class="decoration-circle circle-3"></view>
     </view>
 
-    <!-- 表单内容 -->
-    <view class="form-content">
-      <!-- 手机号输入 -->
-      <view class="input-group">
-        <view class="input-label">
-          <text class="label-text">手机号</text>
-          <text class="required">*</text>
-        </view>
-        <view class="input-wrapper {{formErrors.phone ? 'error' : ''}}">
-          <view class="input-prefix">📱</view>
-          <input 
-            class="form-input"
-            type="number"
-            placeholder="请输入手机号"
-            value="{{phone}}"
-            bindinput="onPhoneInput"
-            maxlength="11"
-          />
-        </view>
-        <text class="error-tip" wx:if="{{formErrors.phone}}">{{formErrors.phone}}</text>
+    <!-- 登录表单 -->
+    <view class="auth-form">
+      <!-- Logo和标题 -->
+      <view class="header">
+        <view class="logo">🎰</view>
+        <text class="title" bindtap="onTitleTap" data-tap-count="{{titleTapCount}}">餐厅积分抽奖</text>
+        <text class="subtitle">立即注册赚积分，精彩奖品等你拿</text>
       </view>
 
-      <!-- 验证码输入 -->
-      <view class="input-group">
-        <view class="input-label">
-          <text class="label-text">验证码</text>
-          <text class="required">*</text>
+      <!-- 表单内容 -->
+      <view class="form-content">
+        <!-- 手机号输入 -->
+        <view class="input-group">
+          <view class="input-label">
+            <text class="label-text">手机号</text>
+            <text class="required">*</text>
+          </view>
+          <view class="input-wrapper {{formErrors.phone ? 'error' : ''}}">
+            <view class="input-prefix">📱</view>
+            <input 
+              class="form-input"
+              type="number"
+              placeholder="请输入手机号"
+              value="{{phone}}"
+              bindinput="onPhoneInput"
+              maxlength="11"
+            />
+          </view>
+          <text class="error-tip" wx:if="{{formErrors.phone}}">{{formErrors.phone}}</text>
         </view>
-        <view class="input-wrapper {{formErrors.code ? 'error' : ''}}">
-          <view class="input-prefix">🔑</view>
-          <input 
-            class="form-input"
-            type="number"
-            placeholder="请输入验证码"
-            value="{{code}}"
-            bindinput="onCodeInput"
-            maxlength="6"
-          />
-          <button 
-            class="code-btn {{codeDisabled ? 'disabled' : ''}}"
-            disabled="{{codeDisabled}}"
-            bindtap="onSendCode"
-          >
-            {{countdown > 0 ? countdown + 's' : '获取验证码'}}
-          </button>
+
+        <!-- 验证码输入 -->
+        <view class="input-group">
+          <view class="input-label">
+            <text class="label-text">验证码</text>
+            <text class="required">*</text>
+          </view>
+          <view class="input-wrapper {{formErrors.code ? 'error' : ''}}">
+            <view class="input-prefix">🔑</view>
+            <input 
+              class="form-input"
+              type="number"
+              placeholder="请输入验证码"
+              value="{{code}}"
+              bindinput="onCodeInput"
+              maxlength="6"
+            />
+            <button 
+              class="code-btn {{codeDisabled ? 'disabled' : ''}}"
+              disabled="{{codeDisabled}}"
+              bindtap="onSendCode"
+            >
+              {{countdown > 0 ? countdown + 's' : '获取验证码'}}
+            </button>
+          </view>
+          <text class="error-tip" wx:if="{{formErrors.code}}">{{formErrors.code}}</text>
         </view>
-        <text class="error-tip" wx:if="{{formErrors.code}}">{{formErrors.code}}</text>
+
+        <!-- 用户协议 -->
+        <view class="agreement-section">
+          <checkbox-group bindchange="onAgreementChange">
+            <label class="agreement-checkbox">
+              <checkbox value="agreed" checked="{{agreementChecked}}"/>
+              <text class="agreement-text">
+                我已阅读并同意
+                <text class="agreement-link" bindtap="onViewAgreement">《用户协议》</text>
+              </text>
+            </label>
+          </checkbox-group>
+        </view>
+
+        <!-- 提交按钮 -->
+        <button 
+          class="submit-btn {{logging ? 'loading' : ''}}"
+          disabled="{{logging}}"
+          bindtap="onSubmitLogin"
+        >
+          <text wx:if="{{!logging}}">立即登录</text>
+          <text wx:if="{{logging}}">登录中...</text>
+        </button>
+
+        <!-- 开发环境跳过登录 -->
+        <button 
+          class="skip-btn" 
+          wx:if="{{isDevelopmentMode}}"
+          bindtap="onSkipLogin"
+        >
+          跳过登录（开发环境）
+        </button>
       </view>
 
-      <!-- 用户协议 -->
-      <view class="agreement-section">
-        <checkbox-group bindchange="onAgreementChange">
-          <label class="agreement-checkbox">
-            <checkbox value="agreed" checked="{{agreementChecked}}"/>
-            <text class="agreement-text">
-              我已阅读并同意
-              <text class="agreement-link" bindtap="onViewAgreement">《用户协议》</text>
-            </text>
-          </label>
-        </checkbox-group>
-      </view>
-
-      <!-- 提交按钮 -->
-      <button 
-        class="submit-btn {{logging ? 'loading' : ''}}"
-        disabled="{{logging}}"
-        bindtap="onSubmitLogin"
-      >
-        <text wx:if="{{!logging}}">立即登录</text>
-        <text wx:if="{{logging}}">登录中...</text>
-      </button>
-
-      <!-- 开发环境跳过登录 -->
-      <button 
-        class="skip-btn" 
-        wx:if="{{false}}"
-        bindtap="onSkipLogin"
-      >
-        跳过登录（开发环境）
-      </button>
-    </view>
-
-    <!-- 底部说明 -->
-    <view class="footer">
-      <text class="tips">首次登录即为注册，登录即可开始赚积分</text>
-      <view class="features">
-        <view class="feature-tag">🎮 趣味抽奖</view>
-        <view class="feature-tag">🎁 丰厚奖品</view>
-        <view class="feature-tag">💰 积分兑换</view>
+      <!-- 底部说明 -->
+      <view class="footer">
+        <text class="tips">首次登录即为注册，登录即可开始赚积分</text>
+        <view class="features">
+          <view class="feature-tag">🎮 趣味抽奖</view>
+          <view class="feature-tag">🎁 丰厚奖品</view>
+          <view class="feature-tag">💰 积分兑换</view>
+        </view>
       </view>
     </view>
   </view>

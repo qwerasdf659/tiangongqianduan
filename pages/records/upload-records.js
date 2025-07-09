@@ -185,23 +185,93 @@ Page({
           code: res.code,
           dataKeys: Object.keys(res.data || {}),
           recordsLength: newRecords.length,
-          fullData: res.data
+          fullData: res.data,
+          sampleRecord: newRecords.length > 0 ? newRecords[0] : null
         })
         
-        // 🔴 v2.1.2数据处理：纯人工审核模式
-        const processedRecords = newRecords.map(record => ({
-          ...record,
-          // 格式化时间显示
-          created_at_formatted: this.formatTime(record.created_at),
-          review_time_formatted: record.review_time ? this.formatTime(record.review_time) : null,
-          // 状态文本映射
-          status_text: this.getStatusText(record.status),
-          status_class: this.getStatusClass(record.status),
-          // 金额显示
-          amount_display: `￥${record.amount || 0}`,
-          // 积分显示
-          points_display: record.points_earned > 0 ? `+${record.points_earned}` : '0'
-        }))
+        // 🔴 v2.1.2数据处理：纯人工审核模式 - 修复状态显示问题
+        const processedRecords = newRecords.map(record => {
+          // 🔧 修复：统一状态字段名（兼容多种后端字段格式）
+          let status = record.status || record.review_status || record.audit_status || 'pending'
+          
+          // 🔧 修复：标准化状态值（确保状态值一致性）
+          if (typeof status === 'string') {
+            status = status.toLowerCase().trim()
+          }
+          
+          // 🔧 修复：状态值映射（处理各种可能的状态值）
+          const statusMapping = {
+            'pending': 'pending',
+            'wait': 'pending',
+            'waiting': 'pending',
+            'review': 'pending',
+            'reviewing': 'pending',
+            'approved': 'approved',
+            'passed': 'approved',
+            'success': 'approved',
+            'accept': 'approved',
+            'rejected': 'rejected',
+            'failed': 'rejected',
+            'refuse': 'rejected',
+            'deny': 'rejected'
+          }
+          
+          const normalizedStatus = statusMapping[status] || 'pending'
+          
+          // 🔧 修复：状态文本和样式映射
+          const statusInfo = this.getStatusInfo(normalizedStatus)
+          
+          console.log('🔧 状态处理结果:', {
+            原始状态: record.status || record.review_status,
+            标准化状态: normalizedStatus,
+            显示文本: statusInfo.text,
+            样式类: statusInfo.class
+          })
+          
+          return {
+            ...record,
+            // 🔧 修复：统一状态字段
+            status: normalizedStatus,
+            original_status: record.status || record.review_status,
+            
+            // 🔧 修复：时间格式化
+            created_at_formatted: this.formatTime(record.created_at || record.upload_time || record.create_time),
+            review_time_formatted: record.review_time ? this.formatTime(record.review_time) : null,
+            
+            // 🔧 修复：状态显示
+            status_text: statusInfo.text,
+            status_class: statusInfo.class,
+            status_icon: statusInfo.icon,
+            
+            // 🔧 修复：金额显示（兼容多种字段格式）
+            amount: record.amount || record.user_amount || record.money || 0,
+            amount_display: `￥${record.amount || record.user_amount || record.money || 0}`,
+            
+            // 🔧 修复：积分显示（兼容多种字段格式）
+            points_earned: record.points_earned || record.points_awarded || record.points || 0,
+            points_display: (record.points_earned || record.points_awarded || record.points || 0) > 0 
+              ? `+${record.points_earned || record.points_awarded || record.points || 0}` 
+              : '0',
+              
+            // 🔧 修复：图片URL处理
+            image_url: record.image_url || record.imageUrl || record.photo_url || '',
+            
+            // 🔧 修复：审核信息
+            review_reason: record.review_reason || record.reason || record.note || '',
+            reviewer_id: record.reviewer_id || record.reviewer || null
+          }
+        })
+        
+        // 🔧 修复：状态筛选验证
+        if (this.data.filterStatus !== 'all') {
+          const filteredRecords = processedRecords.filter(record => record.status === this.data.filterStatus)
+          console.log('📊 状态筛选结果:', {
+            筛选条件: this.data.filterStatus,
+            原始记录数: processedRecords.length,
+            筛选后记录数: filteredRecords.length,
+            不符合条件的记录: processedRecords.filter(record => record.status !== this.data.filterStatus).length
+          })
+        }
         
         this.setData({
           records: this.data.currentPage === 1 ? processedRecords : [...this.data.records, ...processedRecords],
@@ -209,18 +279,11 @@ Page({
           totalRecords: res.data.total || res.data.total_count || processedRecords.length
         })
         
-        console.log('✅ 上传记录加载成功，共', processedRecords.length, '条记录')
-        
-        // 🔧 新增：如果还是没有数据，显示详细诊断信息
-        if (processedRecords.length === 0 && this.data.currentPage === 1) {
-          console.warn('⚠️ 前端数据解析结果为空，进行诊断...')
-          wx.showModal({
-            title: '🔍 数据诊断信息',
-            content: `后端响应正常但前端解析为空！\n\n后端响应结构：\n${JSON.stringify(res.data, null, 2).substring(0, 500)}\n\n请检查字段名是否匹配。`,
-            showCancel: false,
-            confirmText: '知道了'
-          })
-        }
+        console.log('✅ 上传记录加载成功，共', processedRecords.length, '条记录，状态分布:', {
+          pending: processedRecords.filter(r => r.status === 'pending').length,
+          approved: processedRecords.filter(r => r.status === 'approved').length,
+          rejected: processedRecords.filter(r => r.status === 'rejected').length
+        })
       } else {
         throw new Error('⚠️ 后端服务异常：' + res.msg)
       }
@@ -276,6 +339,59 @@ Page({
   },
 
   /**
+   * 🔧 修复：获取状态信息（文本、样式、图标）
+   */
+  getStatusInfo(status) {
+    const statusMap = {
+      'pending': {
+        text: '待审核',
+        class: 'status-pending',
+        icon: '⏳',
+        color: '#FFC107'
+      },
+      'approved': {
+        text: '已通过',
+        class: 'status-approved', 
+        icon: '✅',
+        color: '#4CAF50'
+      },
+      'rejected': {
+        text: '已拒绝',
+        class: 'status-rejected',
+        icon: '❌', 
+        color: '#F44336'
+      },
+      'processing': {
+        text: '审核中',
+        class: 'status-processing',
+        icon: '🔄',
+        color: '#2196F3'
+      }
+    }
+    
+    return statusMap[status] || {
+      text: '未知状态',
+      class: 'status-unknown',
+      icon: '❓',
+      color: '#757575'
+    }
+  },
+
+  /**
+   * 获取状态文本 - 兼容原有方法
+   */
+  getStatusText(status) {
+    return this.getStatusInfo(status).text
+  },
+
+  /**
+   * 获取状态样式类 - 兼容原有方法
+   */
+  getStatusClass(status) {
+    return this.getStatusInfo(status).class
+  },
+
+  /**
    * 加载更多记录
    */
   loadMoreRecords() {
@@ -305,16 +421,26 @@ Page({
     
     return uploadAPI.getStatistics().then((res) => {
       if (res.code === 0) {
+        // 🔧 修复：兼容多种后端统计数据字段格式
+        const statsData = res.data || {}
+        
         this.setData({
           statistics: {
-            totalCount: res.data.total_count || 0,
-            totalPoints: res.data.total_points || 0,
-            pendingCount: res.data.pending_count || 0,
-            approvedCount: res.data.approved_count || 0,
-            rejectedCount: res.data.rejected_count || 0
+            totalCount: statsData.total_uploads || statsData.total_count || statsData.totalUploads || 0,
+            totalPoints: statsData.total_points_earned || statsData.total_points || statsData.totalPoints || 0,
+            pendingCount: statsData.pending_uploads || statsData.pending_count || statsData.pendingCount || 0,
+            approvedCount: statsData.approved_uploads || statsData.approved_count || statsData.approvedCount || 0,
+            rejectedCount: statsData.rejected_uploads || statsData.rejected_count || statsData.rejectedCount || 0,
+            approvalRate: statsData.approval_rate || statsData.approvalRate || 0
           }
         })
-        console.log('✅ 统计数据加载成功:', res.data)
+        
+        console.log('✅ 统计数据加载成功:', {
+          totalCount: this.data.statistics.totalCount,
+          approvedCount: this.data.statistics.approvedCount,
+          rejectedCount: this.data.statistics.rejectedCount,
+          pendingCount: this.data.statistics.pendingCount
+        })
       } else {
         throw new Error('⚠️ 后端服务异常：' + res.msg)
       }
@@ -337,36 +463,11 @@ Page({
           totalPoints: 0,
           pendingCount: 0,
           approvedCount: 0,
-          rejectedCount: 0
+          rejectedCount: 0,
+          approvalRate: 0
         }
       })
     })
-  },
-
-  /**
-   * 获取状态文本
-   */
-  getStatusText(status) {
-    const statusMap = {
-      'pending': '待审核',
-      'approved': '已通过',
-      'rejected': '已拒绝',
-      'processing': '审核中'
-    }
-    return statusMap[status] || '未知状态'
-  },
-
-  /**
-   * 获取状态样式类
-   */
-  getStatusClass(status) {
-    const classMap = {
-      'pending': 'status-pending',
-      'approved': 'status-approved',
-      'rejected': 'status-rejected',
-      'processing': 'status-processing'
-    }
-    return classMap[status] || 'status-unknown'
   },
 
   /**

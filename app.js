@@ -1118,45 +1118,110 @@ App({
       user_info: user_info
     })
     
-    // 🔧 修复：如果没有获取到必要数据，使用默认值
-    if (!access_token) {
-      console.warn('⚠️ 没有获取到access_token，使用临时token')
-      access_token = 'temp_token_' + Date.now()
+    // 🔧 修复：Token验证和处理
+    if (!access_token || typeof access_token !== 'string' || access_token.trim() === '') {
+      console.error('❌ 登录响应中没有有效的access_token!')
+      wx.showModal({
+        title: '🔑 登录异常',
+        content: '后端返回的访问令牌无效！\n\n可能原因：\n• 后端JWT配置问题\n• 用户认证流程异常\n• Token生成失败\n\n请联系技术支持。',
+        showCancel: false,
+        confirmText: '重试登录',
+        success: () => {
+          wx.reLaunch({
+            url: '/pages/auth/auth'
+          })
+        }
+      })
+      return
     }
     
-    if (!user_info) {
-      console.warn('⚠️ 没有获取到user_info，使用默认用户信息')
-      user_info = {
-        user_id: Date.now(),
-        mobile: '未知',
-        nickname: '用户',
-        total_points: 0,
-        is_merchant: false,
-        avatar: '',
-        status: 'active'
-      }
+    // 🔧 修复：用户信息验证和ID管理
+    if (!user_info || typeof user_info !== 'object') {
+      console.error('❌ 登录响应中没有有效的用户信息!')
+      wx.showModal({
+        title: '🔑 登录异常',
+        content: '后端返回的用户信息无效！\n\n可能原因：\n• 后端用户信息格式错误\n• 数据库查询异常\n• 用户数据不完整\n\n请联系技术支持。',
+        showCancel: false,
+        confirmText: '重试登录',
+        success: () => {
+          wx.reLaunch({
+            url: '/pages/auth/auth'
+          })
+        }
+      })
+      return
     }
+    
+    // 🔧 修复：确保用户ID正确性
+    let user_id = user_info.user_id || user_info.userId || user_info.id
+    if (!user_id || (typeof user_id !== 'number' && typeof user_id !== 'string')) {
+      console.error('❌ 登录响应中没有有效的用户ID!', user_info)
+      wx.showModal({
+        title: '🔑 用户ID异常',
+        content: `后端返回的用户ID无效！\n\n当前用户ID: ${user_id}\n类型: ${typeof user_id}\n\n请确保后端返回正确的用户标识符。`,
+        showCancel: false,
+        confirmText: '重试登录',
+        success: () => {
+          wx.reLaunch({
+            url: '/pages/auth/auth'
+          })
+        }
+      })
+      return
+    }
+    
+    // 🔧 修复：标准化用户信息字段
+    const standardizedUserInfo = {
+      user_id: user_id,
+      mobile: user_info.mobile || user_info.phone || '未知',
+      nickname: user_info.nickname || user_info.nickName || user_info.name || `用户${user_id}`,
+      total_points: parseInt(user_info.total_points || user_info.totalPoints || user_info.points || 0),
+      is_merchant: Boolean(user_info.is_merchant || user_info.isMerchant || false),
+      avatar: user_info.avatar || user_info.avatarUrl || user_info.avatar_url || '',
+      status: user_info.status || 'active',
+      last_login: user_info.last_login || user_info.lastLogin || new Date().toISOString(),
+      created_at: user_info.created_at || user_info.createdAt || user_info.createTime || new Date().toISOString()
+    }
+    
+    console.log('🔧 标准化用户信息:', {
+      user_id: standardizedUserInfo.user_id,
+      mobile: standardizedUserInfo.mobile,
+      nickname: standardizedUserInfo.nickname,
+      total_points: standardizedUserInfo.total_points,
+      is_merchant: standardizedUserInfo.is_merchant
+    })
     
     // 🔧 设置登录时间，启动验证冷却期
     const now = Date.now()
     
-    // 保存认证信息
-    this.globalData.accessToken = access_token
-    this.globalData.refreshToken = refresh_token
+    // 🔧 修复：清理和设置认证信息
+    this.globalData.accessToken = access_token.trim()
+    this.globalData.refreshToken = refresh_token || null
     this.globalData.tokenExpireTime = now + expires_in * 1000
-    this.globalData.userInfo = user_info
+    this.globalData.userInfo = standardizedUserInfo
     this.globalData.isLoggedIn = true
     
     // 🔧 新增：设置登录冷却期，防止立即验证Token
     this.globalData.lastLoginTime = now
     this.globalData.lastTokenVerifyTime = null // 重置验证时间
     
-    // 保存到本地存储
-    wx.setStorageSync('access_token', access_token)
-    wx.setStorageSync('refresh_token', refresh_token)
-    wx.setStorageSync('token_expire_time', this.globalData.tokenExpireTime)
-    wx.setStorageSync('user_info', user_info)
-    wx.setStorageSync('last_login_time', now) // 保存登录时间
+    // 🔧 修复：安全保存到本地存储
+    try {
+      wx.setStorageSync('access_token', access_token.trim())
+      wx.setStorageSync('refresh_token', refresh_token || '')
+      wx.setStorageSync('token_expire_time', this.globalData.tokenExpireTime)
+      wx.setStorageSync('user_info', standardizedUserInfo)
+      wx.setStorageSync('last_login_time', now)
+      
+      console.log('✅ 用户登录信息已安全保存到本地存储')
+    } catch (storageError) {
+      console.error('❌ 保存登录信息到本地存储失败:', storageError)
+      wx.showToast({
+        title: '本地存储异常',
+        icon: 'none',
+        duration: 2000
+      })
+    }
     
     // 🔧 修复：添加防抖机制，避免频繁触发userStatusChanged事件
     if (this.userStatusChangeNotifyTimeout) {
@@ -1167,16 +1232,15 @@ App({
       // 🔧 修复：只有在数据完整时才触发通知
       const notifyData = {
         isLoggedIn: true,
-        accessToken: access_token
+        accessToken: access_token.trim(),
+        userInfo: standardizedUserInfo
       }
       
-      // 🔧 修复：只有在用户信息完整时才添加到通知数据中
-      if (user_info && typeof user_info === 'object' && Object.keys(user_info).length > 0) {
-        notifyData.userInfo = user_info
-        console.log('✅ 发送完整用户状态变化通知')
-      } else {
-        console.warn('⚠️ 用户信息不完整，延迟发送通知')
-      }
+      console.log('✅ 发送完整用户状态变化通知:', {
+        user_id: standardizedUserInfo.user_id,
+        nickname: standardizedUserInfo.nickname,
+        hasToken: !!access_token
+      })
       
       // 🔧 修复：登录成功后通知所有页面更新状态
       this.notifyAllPages('userStatusChanged', notifyData)
@@ -1188,10 +1252,18 @@ App({
     }, 1500) // 延迟连接，确保所有数据设置完成
     
     console.log('✅ 用户登录成功，已设置验证冷却期:', {
-      user: user_info.nickname || user_info.mobile,
+      user_id: standardizedUserInfo.user_id,
+      user: standardizedUserInfo.nickname || standardizedUserInfo.mobile,
       cooldownTime: this.globalData.tokenVerifyCooldown / 1000 + '秒',
       hasToken: !!access_token,
-      hasUserInfo: !!user_info
+      tokenLength: access_token.length
+    })
+    
+    // 🔧 新增：登录成功提示
+    wx.showToast({
+      title: `欢迎，${standardizedUserInfo.nickname}!`,
+      icon: 'success',
+      duration: 2000
     })
   },
 

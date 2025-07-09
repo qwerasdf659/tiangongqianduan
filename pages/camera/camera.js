@@ -3,7 +3,6 @@ const app = getApp()
 const { uploadAPI, userAPI } = require('../../utils/api')
 const { validateImage, compressImage, validateAmount, FormValidator, commonRules } = require('../../utils/validate')
 const ApiHealthCheck = require('../../utils/api-health-check') // 🔧 临时调试工具
-const TokenRepair = require('../../utils/token-repair') // 🔧 Token修复工具
 
 Page({
 
@@ -702,35 +701,31 @@ Page({
   },
 
   /**
-   * 🔧 临时调试功能：Token修复
+   * 🔧 临时调试功能：刷新数据
    */
   async onDebugTokenRepair() {
-    console.log('🔧 手动触发Token修复...')
-    wx.showLoading({ title: '修复中...', mask: true })
+    console.log('🔧 手动刷新数据...')
+    wx.showLoading({ title: '刷新中...', mask: true })
     
     try {
-      const result = await TokenRepair.repairUploadHistory()
-      wx.hideLoading()
-      
-      if (result.success) {
-        wx.showToast({
-          title: '修复成功',
-          icon: 'success'
-        })
-        
-        // 刷新页面数据
+      // 刷新用户信息和上传历史
+      await Promise.all([
+        this.refreshUserInfo(),
         this.loadUploadHistory()
-        this.refreshUserInfo()
-      } else {
-        throw new Error(result.message || '修复失败')
-      }
+      ])
+      
+      wx.hideLoading()
+      wx.showToast({
+        title: '刷新成功',
+        icon: 'success'
+      })
     } catch (error) {
       wx.hideLoading()
-      console.error('❌ 手动修复失败:', error)
+      console.error('❌ 刷新失败:', error)
       
       wx.showModal({
-        title: '修复失败',
-        content: `Token修复失败：${error.message || '未知错误'}\n\n建议重新登录解决问题`,
+        title: '刷新失败',
+        content: `数据刷新失败：${error.message || '未知错误'}\n\n请检查网络连接或重新登录`,
         showCancel: true,
         cancelText: '稍后重试',
         confirmText: '重新登录',

@@ -15,7 +15,7 @@ const request = (options) => {
       showLoading = true,
       retryCount = 0,
       maxRetry = 2,
-      timeout = 12000  // 🔧 修复：调整默认超时时间为12秒，与登录逻辑保持一致
+      timeout = 12000
     } = options
     const app = getApp()
     
@@ -34,21 +34,68 @@ const request = (options) => {
       })
     }
 
-    // 构建请求头
+    // 🔧 修复：构建标准请求头，确保Bearer Token格式正确
     const header = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Client-Version': '2.1.4',
+      'X-Platform': 'wechat-miniprogram'
     }
 
-    // 添加认证头
-    if (needAuth && app.globalData.accessToken) {
-      header['Authorization'] = `Bearer ${app.globalData.accessToken}`
-      console.log('🔐 已添加认证头部:', `Bearer ${app.globalData.accessToken.substring(0, 20)}...`)
-    } else if (needAuth && !app.globalData.accessToken) {
-      console.warn('⚠️ 需要认证但缺少访问令牌!', { 
-        needAuth, 
-        hasToken: !!app.globalData.accessToken,
-        globalData: app.globalData
-      })
+    // 🔧 修复：增强Token认证处理，确保格式严格符合后端要求
+    if (needAuth) {
+      const token = app.globalData.accessToken
+      if (token && typeof token === 'string' && token.trim() !== '') {
+        // 🔴 确保Bearer Token格式严格正确
+        header['Authorization'] = `Bearer ${token.trim()}`
+        console.log('🔐 已添加认证头部:', `Bearer ${token.substring(0, 20)}...`)
+      } else {
+        console.error('⚠️ 需要认证但Token无效!', { 
+          needAuth, 
+          hasToken: !!token,
+          tokenType: typeof token,
+          tokenLength: token ? token.length : 0,
+          isLoggedIn: app.globalData.isLoggedIn
+        })
+        
+        // 🔧 修复：Token无效时立即提示用户
+        if (showLoading) {
+          wx.hideLoading()
+        }
+        
+        wx.showModal({
+          title: '🔑 认证状态异常',
+          content: '当前用户认证Token无效！\n\n可能原因：\n• Token已过期\n• 登录状态异常\n• 应用缓存问题\n\n建议立即重新登录。',
+          showCancel: true,
+          cancelText: '稍后处理',
+          confirmText: '重新登录',
+          confirmColor: '#ff4444',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              // 清理认证信息并跳转登录
+              app.globalData.accessToken = null
+              app.globalData.refreshToken = null
+              app.globalData.userInfo = null
+              app.globalData.isLoggedIn = false
+              
+              wx.removeStorageSync('access_token')
+              wx.removeStorageSync('refresh_token')
+              wx.removeStorageSync('user_info')
+              
+              wx.reLaunch({
+                url: '/pages/auth/auth'
+              })
+            }
+          }
+        })
+        
+        reject({
+          code: 2001,
+          msg: '访问令牌不能为空',
+          data: null,
+          needsRelogin: true
+        })
+        return
+      }
     }
 
     // 构建完整URL地址
@@ -59,7 +106,11 @@ const request = (options) => {
       method, 
       needAuth, 
       hasAuthHeader: !!header['Authorization'],
-      headers: header
+      headers: header,
+      tokenInfo: needAuth ? {
+        hasToken: !!app.globalData.accessToken,
+        tokenLength: app.globalData.accessToken ? app.globalData.accessToken.length : 0
+      } : null
     })
 
     wx.request({
@@ -99,81 +150,62 @@ const request = (options) => {
               reject(res.data)
             }
           } else if (res.data.code === 2001) {
-            // 🔧 增强：2001错误码的智能处理
-            console.error('🚨 认证错误 2001:', {
-              error: '访问令牌不能为空',
+            // 🔧 修复：2001错误码的精确处理
+            console.error('🚨 认证错误 2001 - 访问令牌不能为空:', {
               url: url,
               method: method,
-              hasGlobalToken: !!app.globalData.accessToken,
-              hasAuthHeader: !!header['Authorization'],
               requestHeaders: header,
-              globalData: {
+              hasGlobalToken: !!app.globalData.accessToken,
+              globalTokenInfo: {
+                token: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 30)}...` : null,
                 isLoggedIn: app.globalData.isLoggedIn,
-                accessToken: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : null,
-                userInfo: app.globalData.userInfo
+                userInfo: app.globalData.userInfo ? {
+                  user_id: app.globalData.userInfo.user_id,
+                  mobile: app.globalData.userInfo.mobile
+                } : null
               }
             })
             
-            // 🔧 新增：自动Token修复机制
+            // 🔧 增强：智能Token修复机制
             if (retryCount < maxRetry) {
-              console.log('🔄 检测到Token问题，尝试自动修复...')
+              console.log('🔄 检测到2001错误，尝试Token自动修复...')
               
-              try {
-                const TokenRepair = require('./token-repair.js')
-                TokenRepair.smartRepair().then((repairResult) => {
-                  if (repairResult.success && repairResult.action !== 'redirect') {
-                    console.log('✅ Token修复成功，重新发起请求')
-                    // 重新发起请求
-                    const newOptions = { ...options, retryCount: retryCount + 1 }
-                    request(newOptions).then(resolve).catch(reject)
-                    return
-                  }
-                }).catch((repairError) => {
-                  console.error('❌ Token自动修复失败:', repairError)
+              // 检查本地存储中的Token
+              const storedToken = wx.getStorageSync('access_token')
+              const storedUserInfo = wx.getStorageSync('user_info')
+              
+              if (storedToken && storedToken !== app.globalData.accessToken) {
+                console.log('🔧 发现本地存储Token与全局Token不一致，尝试修复...')
+                app.globalData.accessToken = storedToken
+                if (storedUserInfo) {
+                  app.globalData.userInfo = storedUserInfo
+                  app.globalData.isLoggedIn = true
+                }
+                
+                // 重新发起请求
+                const newOptions = { ...options, retryCount: retryCount + 1 }
+                request(newOptions).then(resolve).catch(reject)
+                return
+              }
+              
+              // 尝试Token刷新
+              const refreshToken = app.globalData.refreshToken || wx.getStorageSync('refresh_token')
+              if (refreshToken) {
+                console.log('🔄 尝试使用refresh token重新获取访问令牌...')
+                app.refreshToken().then(() => {
+                  const newOptions = { ...options, retryCount: retryCount + 1 }
+                  request(newOptions).then(resolve).catch(reject)
+                }).catch((refreshError) => {
+                  console.error('❌ Refresh token失败:', refreshError)
+                  this.handleTokenFailure(fullUrl, reject)
                 })
-              } catch (repairError) {
-                console.error('❌ Token自动修复失败:', repairError)
+                return
               }
             }
             
-            // 🔴 Token修复失败或重试次数用完，显示用户友好提示
-            if (showLoading) {
-              wx.showModal({
-                title: '🔑 登录状态异常',
-                content: `Token已过期或无效！\n\n🔗 API：${fullUrl}\n\n解决方案：\n• 点击"重新登录"清理缓存\n• 或稍后重试让系统自动修复`,
-                showCancel: true,
-                cancelText: '稍后重试',
-                confirmText: '重新登录',
-                confirmColor: '#ff4444',
-                success: (modalRes) => {
-                  if (modalRes.confirm) {
-                    // 清理所有认证信息并跳转登录
-                    app.globalData.accessToken = null
-                    app.globalData.refreshToken = null
-                    app.globalData.userInfo = null
-                    app.globalData.isLoggedIn = false
-                    
-                    wx.removeStorageSync('access_token')
-                    wx.removeStorageSync('refresh_token')
-                    wx.removeStorageSync('user_info')
-                    wx.removeStorageSync('token_expire_time')
-                    
-                    wx.reLaunch({
-                      url: '/pages/auth/auth'
-                    })
-                  }
-                }
-              })
-            }
+            // 🔴 修复失败，显示用户友好提示
+            this.handleTokenFailure(fullUrl, reject)
             
-            reject({
-              code: 2001,
-              msg: '访问令牌无效，请重新登录',
-              data: res.data.data || null,
-              debug: 'Token过期或无效',
-              isBackendError: true,
-              needsRelogin: true
-            })
           } else {
             // 🔴 其他业务错误 - 增强后端服务异常提示
             const errorMessage = res.data.msg || res.data.message || '操作失败'
@@ -203,68 +235,55 @@ const request = (options) => {
             })
           }
         } else {
-          // 🔴 HTTP状态码错误 - 增强后端服务异常提示
-          let errorMessage = '网络错误'
-          
-          switch (res.statusCode) {
-            case 400:
-              errorMessage = '请求参数错误'
-              break
-            case 403:
-              errorMessage = '权限不足'
-              break
-            case 404:
-              errorMessage = '接口不存在'
-              break
-            case 500:
-              errorMessage = '服务器内部错误'
-              break
-            case 502:
-              errorMessage = '网关错误'
-              break
-            case 503:
-              errorMessage = '🚨 后端服务暂不可用\n\n可能原因：\n• 服务器维护中\n• 服务器过载\n• 后端API服务未启动\n\n请联系后端程序员检查服务器状态！'
-              break
-            default:
-              errorMessage = `网络错误 ${res.statusCode}`
-          }
+          // HTTP状态码非200
+          const statusMessage = `HTTP ${res.statusCode} 错误`
+          console.error('❌ HTTP状态错误:', {
+            statusCode: res.statusCode,
+            url: fullUrl,
+            response: res.data
+          })
           
           if (showLoading) {
-            // 🔴 根据最新接口对接规范，显示详细的HTTP错误信息
             wx.showModal({
-              title: '🚨 后端服务异常',
-              content: `${errorMessage}\n\n🔗 API端点：${fullUrl}\nHTTP状态码：${res.statusCode}\n\n请检查后端API服务状态！`,
+              title: '🚨 网络请求失败',
+              content: `${statusMessage}\n\n🔗 API端点：${fullUrl}\n\n请检查网络连接和后端服务状态！`,
               showCancel: false,
               confirmText: '知道了',
               confirmColor: '#ff4444'
             })
           }
           
-          reject({ 
-            code: res.statusCode, 
-            msg: errorMessage,
-            data: null,
-            isBackendError: true,
-            httpStatus: res.statusCode
+          reject({
+            code: res.statusCode,
+            msg: statusMessage,
+            data: res.data || null,
+            isNetworkError: true
           })
         }
       },
+      
       fail(err) {
         if (showLoading) {
           wx.hideLoading()
         }
-        
-        // 🔴 网络错误处理 - 增强后端服务异常提示
-        const errorMessage = '网络连接失败'
-        console.error('❌ 网络错误:', { 
-          error: err, 
-          url: fullUrl, 
-          method: method,
-          timeout: timeout
+
+        console.error('❌ API请求失败:', {
+          url: fullUrl,
+          method,
+          error: err,
+          needAuth,
+          hasToken: !!app.globalData.accessToken
         })
-        
-        // 🔴 根据最新接口对接规范，显示详细的网络错误信息
-        if (showLoading) {
+
+        // 🔧 修复：网络错误重试机制
+        if (retryCount < maxRetry) {
+          console.log(`🔄 网络错误重试 ${retryCount + 1}/${maxRetry}:`, fullUrl)
+          setTimeout(() => {
+            const newOptions = { ...options, retryCount: retryCount + 1 }
+            request(newOptions).then(resolve).catch(reject)
+          }, 1000 * (retryCount + 1))
+        } else {
+          // 🔴 重试次数用完，显示网络错误提示
           wx.showModal({
             title: '🚨 后端服务异常',
             content: `网络连接失败！\n\n🔗 API端点：${fullUrl}\n错误详情：${err.errMsg || '未知网络错误'}\n\n请检查：\n• 网络连接是否正常\n• 后端API服务是否启动\n• 服务器地址是否正确`,
@@ -272,17 +291,57 @@ const request = (options) => {
             confirmText: '知道了',
             confirmColor: '#ff4444'
           })
+          
+          reject({ 
+            code: -1, 
+            msg: '网络连接失败',
+            data: null,
+            isNetworkError: true,
+            originalError: err
+          })
         }
-        
-        reject({ 
-          code: -1, 
-          msg: errorMessage,
-          data: null,
-          isNetworkError: true,
-          originalError: err
-        })
       }
     })
+  })
+}
+
+// 🔧 新增：Token失败处理方法
+request.handleTokenFailure = function(apiUrl, reject) {
+  console.error('🚨 Token认证彻底失败')
+  
+  wx.showModal({
+    title: '🔑 登录状态已失效',
+    content: `您的登录状态已过期或无效！\n\n🔗 API：${apiUrl}\n\n为了继续使用应用，请重新登录获取新的访问令牌。`,
+    showCancel: true,
+    cancelText: '稍后重试',
+    confirmText: '重新登录',
+    confirmColor: '#ff4444',
+    success: (modalRes) => {
+      if (modalRes.confirm) {
+        // 清理所有认证信息并跳转登录
+        const app = getApp()
+        app.globalData.accessToken = null
+        app.globalData.refreshToken = null
+        app.globalData.userInfo = null
+        app.globalData.isLoggedIn = false
+        
+        wx.removeStorageSync('access_token')
+        wx.removeStorageSync('refresh_token')
+        wx.removeStorageSync('user_info')
+        wx.removeStorageSync('token_expire_time')
+        
+        wx.reLaunch({
+          url: '/pages/auth/auth'
+        })
+      }
+    }
+  })
+  
+  reject({
+    code: 2001,
+    msg: '访问令牌已失效，请重新登录',
+    data: null,
+    needsRelogin: true
   })
 }
 
