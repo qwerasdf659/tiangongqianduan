@@ -998,3 +998,26 @@ page {
   position: relative;
   z-index: 1;
 }
+
+/* 🔐 管理员徽章样式 */
+.admin-badge {
+  position: absolute;
+  top: 10rpx;
+  right: 20rpx;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  border-radius: 20rpx;
+  padding: 8rpx 16rpx;
+  box-shadow: 0 4rpx 8rpx rgba(76, 175, 80, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.admin-text {
+  font-size: 20rpx;
+  color: white;
+  font-weight: 600;
+}

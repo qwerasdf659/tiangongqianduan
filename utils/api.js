@@ -737,6 +737,132 @@ const merchantAPI = {
       method: 'GET',
       needAuth: true
     })
+  },
+
+  // 🔧 新增：获取待审核列表
+  getPendingReviews(page = 1, pageSize = 20) {
+    return request({
+      url: '/merchant/pending-reviews',
+      method: 'GET',
+      data: { page, page_size: pageSize },
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：审核单个小票
+  review(reviewId, action, points = 0, reason = '') {
+    return request({
+      url: `/merchant/review/${reviewId}`,
+      method: 'POST',
+      data: { action, points, reason },
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：批量审核小票
+  batchReview(reviewIds, action, reason = '') {
+    return request({
+      url: '/merchant/batch-review',
+      method: 'POST',
+      data: { review_ids: reviewIds, action, reason },
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：获取商品统计
+  getProductStats() {
+    return request({
+      url: '/merchant/product-stats',
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：获取商品列表
+  getProducts(page = 1, pageSize = 20, category = 'all', status = 'all') {
+    return request({
+      url: '/merchant/products',
+      method: 'GET',
+      data: { page, page_size: pageSize, category, status },
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：创建商品
+  createProduct(productData) {
+    return request({
+      url: '/merchant/products',
+      method: 'POST',
+      data: productData,
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：更新商品
+  updateProduct(productId, productData) {
+    return request({
+      url: `/merchant/products/${productId}`,
+      method: 'PUT',
+      data: productData,
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：批量更新商品
+  batchUpdateProducts(productIds, updateData) {
+    return request({
+      url: '/merchant/products/batch-update',
+      method: 'POST',
+      data: { product_ids: productIds, ...updateData },
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：批量删除商品
+  batchDeleteProducts(productIds) {
+    return request({
+      url: '/merchant/products/batch-delete',
+      method: 'POST',
+      data: { product_ids: productIds },
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：获取抽奖配置
+  getLotteryConfig() {
+    return request({
+      url: '/merchant/lottery/config',
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：获取抽奖统计
+  getLotteryStats() {
+    return request({
+      url: '/merchant/lottery/stats',
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：重置抽奖概率
+  resetLotteryProbabilities() {
+    return request({
+      url: '/merchant/lottery/reset-probabilities',
+      method: 'POST',
+      needAuth: true
+    })
+  },
+
+  // 🔧 新增：保存抽奖概率配置
+  saveLotteryProbabilities(prizes) {
+    return request({
+      url: '/merchant/lottery/probabilities',
+      method: 'POST',
+      data: { prizes },
+      needAuth: true
+    })
   }
 }
 

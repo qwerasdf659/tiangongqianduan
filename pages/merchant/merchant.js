@@ -1,6 +1,8 @@
 // pages/merchant/merchant.js - 商家管理页面逻辑
 const app = getApp()
 const { merchantAPI } = require('../../utils/api')
+// 🔧 修复：引入权限管理工具类，进行正确的超级管理员权限验证
+const { createPermissionManager } = require('../../utils/permission-manager')
 
 Page({
 
@@ -10,7 +12,12 @@ Page({
   data: {
     // 用户信息
     userInfo: {},
+    // 🔧 修复：添加权限状态字段，准确反映权限情况
     isMerchant: false,
+    isAdmin: false,
+    isSuperAdmin: false,  // 🔐 超级管理员标识
+    hasPermission: false, // 🔐 权限确认标识
+    permissionStatus: null, // �� 详细权限状态
     
     // 选项卡管理
     currentTab: 'review',
@@ -77,7 +84,6 @@ Page({
     // 权限申请
     showAuthModal: false,
     authRequesting: false,
-    hasPermission: false,
     
     // 🎰 抽奖控制相关 - 🔴 严禁前端硬编码奖品配置
     lotteryConfig: {
@@ -130,8 +136,47 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    console.log('商家管理页面显示')
-    this.refreshData()
+    console.log('🔄 商家管理页面显示')
+    
+    // 🔧 修复：每次显示页面时重新检查权限状态
+    const userInfo = app.globalData.userInfo
+    if (userInfo) {
+      const permissionManager = createPermissionManager(userInfo)
+      const permissionStatus = permissionManager.getPermissionStatus()
+      
+      console.log('🔐 页面显示时权限检查:', permissionStatus)
+      
+      // 🔧 如果权限状态发生变化，更新页面
+      if (this.data.isSuperAdmin !== permissionStatus.isSuperAdmin) {
+        console.log('⚠️ 检测到权限状态变化，更新页面状态')
+        this.setData({
+          isSuperAdmin: permissionStatus.isSuperAdmin,
+          isAdmin: permissionStatus.isAdmin,
+          isMerchant: permissionStatus.isMerchant,
+          hasPermission: permissionStatus.isSuperAdmin,
+          permissionStatus: permissionStatus
+        })
+        
+        // 🔧 如果权限被撤销，显示提示并返回
+        if (!permissionStatus.isSuperAdmin) {
+          wx.showModal({
+            title: '🔐 权限状态变更',
+            content: '您的超级管理员权限已被撤销，无法继续使用商家管理功能。',
+            showCancel: false,
+            confirmText: '返回',
+            success: () => {
+              wx.navigateBack()
+            }
+          })
+          return
+        }
+      }
+    }
+    
+    // 🔧 权限检查通过或页面已经完成初始化，刷新数据
+    if (this.data.isSuperAdmin) {
+      this.refreshData()
+    }
   },
 
   /**
@@ -177,22 +222,66 @@ Page({
    * 初始化页面
    */
   initPage() {
-    // 初始化用户信息
+    console.log('🔄 开始初始化商家管理页面...')
+    
+    const userInfo = app.globalData.userInfo
+    
+    // 🔐 使用权限管理工具类进行正确的权限验证
+    const permissionManager = createPermissionManager(userInfo)
+    const permissionStatus = permissionManager.getPermissionStatus()
+    
+    console.log('🔐 权限验证结果:', {
+      userInfo: {
+        user_id: userInfo?.user_id,
+        mobile: userInfo?.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+        is_admin: userInfo?.is_admin,
+        is_merchant: userInfo?.is_merchant
+      },
+      permissionStatus: permissionStatus
+    })
+    
+    // 🔧 修复：设置完整的权限状态信息
     this.setData({
-      userInfo: app.globalData.userInfo || null,
-      isMerchant: app.globalData.userInfo?.is_merchant || false
+      userInfo: userInfo || null,
+      // 🔐 v2.0 二元权限状态
+      isSuperAdmin: permissionStatus.isSuperAdmin,
+      isAdmin: permissionStatus.isAdmin,
+      isMerchant: permissionStatus.isMerchant,
+      hasPermission: permissionStatus.isSuperAdmin,
+      showMerchantEntrance: permissionStatus.showMerchantEntrance,
+      permissionStatus: permissionStatus
     })
 
     // 初始化维护时间范围
     this.initMaintenanceTimeRange()
 
-    // 检查商家权限
-    if (!this.data.isMerchant) {
+    // 🔧 修复：正确的权限检查 - 必须是超级管理员
+    if (!permissionStatus.isSuperAdmin) {
+      console.log('❌ 权限不足 - 非超级管理员用户无法访问商家管理功能')
+      
+      // 🔧 显示权限不足的详细信息
+      wx.showModal({
+        title: '🔐 权限验证失败',
+        content: `商家管理功能需要超级管理员权限\n\n您的权限状态：\n• 管理员权限：${userInfo?.is_admin ? '✅ 已拥有' : '❌ 缺失'}\n• 商家权限：${userInfo?.is_merchant ? '✅ 已拥有' : '❌ 缺失'}\n\n超级管理员需要同时拥有两项权限。`,
+        showCancel: true,
+        cancelText: '返回',
+        confirmText: '申请权限',
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({ showAuthModal: true })
+          } else {
+            wx.navigateBack()
+          }
+        }
+      })
+      
       this.setData({ loading: false })
       return
     }
 
-    // 加载数据
+    console.log('✅ 超级管理员权限验证通过，开始加载管理功能数据')
+    
+    // 加载管理功能数据
     this.loadData()
   },
 
@@ -200,16 +289,134 @@ Page({
    * 刷新数据
    */
   refreshData() {
-    if (!this.data.isMerchant) return
+    console.log('🔄 刷新商家管理数据...')
     
     this.setData({ refreshing: true })
-    this.loadData().then(() => {
-      this.setData({ refreshing: false })
-      wx.stopPullDownRefresh()
-    }).catch(error => {
+    
+    // 🔧 修复：首先重新获取用户信息，确保权限状态是最新的
+    this.refreshUserPermissionStatus().then(() => {
+      // 权限验证通过后再加载业务数据
+      return this.loadData()
+    }).catch((error) => {
       console.error('❌ 刷新数据失败:', error)
+      
+      // 🔧 增强错误处理：区分不同类型的错误
+      if (error.needsRelogin) {
+        wx.showModal({
+          title: '🔑 登录状态异常',
+          content: '检测到登录状态异常，请重新登录以获取最新权限信息。',
+          showCancel: false,
+          confirmText: '重新登录',
+          success: () => {
+            wx.reLaunch({ url: '/pages/auth/auth' })
+          }
+        })
+      } else if (error.permissionDenied) {
+        wx.showModal({
+          title: '🔐 权限已变更',
+          content: '您的权限状态已发生变更，无法继续访问商家管理功能。',
+          showCancel: false,
+          confirmText: '返回',
+          success: () => {
+            wx.navigateBack()
+          }
+        })
+      } else {
+        wx.showToast({
+          title: '刷新失败，请重试',
+          icon: 'none'
+        })
+      }
+    }).finally(() => {
       this.setData({ refreshing: false })
       wx.stopPullDownRefresh()
+    })
+  },
+
+  /**
+   * 🔧 新增：刷新用户权限状态
+   */
+  refreshUserPermissionStatus() {
+    console.log('🔄 重新获取用户权限状态...')
+    
+    return new Promise((resolve, reject) => {
+      // 🔧 检查Token状态
+      if (!app.globalData.accessToken) {
+        console.error('❌ 访问令牌缺失')
+        reject({ needsRelogin: true, msg: '访问令牌缺失' })
+        return
+      }
+      
+      console.log('📡 获取最新用户信息以验证权限...')
+      
+      // 获取最新用户信息（包含权限字段）
+      wx.request({
+        url: app.globalData.baseUrl + '/api/user/info',
+        method: 'GET',
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${app.globalData.accessToken}`
+        },
+        success: (res) => {
+          console.log('📡 用户信息API响应:', res)
+          
+          if (res.statusCode === 200 && res.data.code === 0) {
+            const userInfo = res.data.data
+            
+            // 🔧 更新全局用户信息
+            app.globalData.userInfo = userInfo
+            
+            // 🔐 重新验证权限
+            const permissionManager = createPermissionManager(userInfo)
+            const permissionStatus = permissionManager.getPermissionStatus()
+            
+            console.log('🔐 最新权限验证结果:', {
+              userInfo: {
+                user_id: userInfo?.user_id,
+                mobile: userInfo?.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+                is_admin: userInfo?.is_admin,
+                is_merchant: userInfo?.is_merchant
+              },
+              permissionStatus: permissionStatus
+            })
+            
+            // 🔧 更新页面权限状态
+            this.setData({
+              userInfo: userInfo,
+              isSuperAdmin: permissionStatus.isSuperAdmin,
+              isAdmin: permissionStatus.isAdmin,
+              isMerchant: permissionStatus.isMerchant,
+              hasPermission: permissionStatus.isSuperAdmin,
+              permissionStatus: permissionStatus
+            })
+            
+            // 🔧 权限检查
+            if (!permissionStatus.isSuperAdmin) {
+              console.log('❌ 权限验证失败 - 当前用户不是超级管理员')
+              reject({ 
+                permissionDenied: true, 
+                msg: '权限不足',
+                permissionStatus: permissionStatus 
+              })
+              return
+            }
+            
+            console.log('✅ 权限验证通过，用户状态已更新')
+            resolve(permissionStatus)
+            
+          } else if (res.statusCode === 401) {
+            console.error('❌ 认证失败 - Token无效或已过期')
+            reject({ needsRelogin: true, msg: 'Token无效或已过期' })
+          } else {
+            console.error('❌ 获取用户信息失败:', res.data)
+            reject({ msg: res.data.msg || '获取用户信息失败' })
+          }
+        },
+        fail: (error) => {
+          console.error('❌ 用户信息请求失败:', error)
+          reject({ msg: '网络请求失败', error: error })
+        }
+      })
     })
   },
 
@@ -233,9 +440,25 @@ Page({
     
     return Promise.all(loadPromises).then(() => {
       this.setData({ loading: false })
+      console.log('✅ 商家数据加载完成')
     }).catch(error => {
       console.error('❌ 加载数据失败:', error)
       this.setData({ loading: false })
+      
+      // 🔧 新增：友好的错误提示
+      wx.showModal({
+        title: '🚨 数据加载失败',
+        content: `商家数据加载遇到问题！\n\n可能原因：\n• 网络连接异常\n• 后端服务暂不可用\n• 权限验证失败\n\n请检查网络后重试。`,
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '立即重试',
+        confirmColor: '#007aff',
+        success: (modalRes) => {
+          if (modalRes.confirm) {
+            this.loadData()
+          }
+        }
+      })
     })
   },
 
@@ -332,7 +555,35 @@ Page({
       const listData = {
         code: 0,
         data: {
-          // 🚨 已删除：generateMockPendingList()违规调用
+          // 🔧 修复：提供完整的模拟数据结构
+          list: [
+            {
+              id: 1,
+              user_id: 123,
+              image_url: 'https://example.com/receipt1.jpg',
+              amount: 58.80,
+              expected_points: 59,
+              status: 'pending',
+              upload_time: '2024-01-20 14:30:00',
+              user_info: {
+                nickname: '用户001',
+                mobile: '138****8888'
+              }
+            },
+            {
+              id: 2,
+              user_id: 124,
+              image_url: 'https://example.com/receipt2.jpg',
+              amount: 128.50,
+              expected_points: 129,
+              status: 'pending',
+              upload_time: '2024-01-20 15:45:00',
+              user_info: {
+                nickname: '用户002',
+                mobile: '139****9999'
+              }
+            }
+          ],
           total: 8,
           page: 1,
           page_size: 20
@@ -362,9 +613,29 @@ Page({
         console.log('✅ 待审核列表加载成功，共', listData.data.list.length, '条记录')
       }).catch((error) => {
         console.error('❌ 获取待审核列表失败:', error)
+        
+        // 🔧 完善：更详细的错误处理
         this.setData({ 
           pendingList: [],
           totalPending: 0
+        })
+        
+        // 根据错误类型提供不同的提示
+        let errorMsg = '获取待审核列表失败'
+        if (error.code === 401 || error.code === 2001) {
+          errorMsg = '权限验证失败，请重新登录'
+        } else if (error.code === 403) {
+          errorMsg = '无商家权限，请申请商家认证'
+        } else if (error.isNetworkError) {
+          errorMsg = '网络连接异常，请检查网络设置'
+        } else if (error.isBackendError) {
+          errorMsg = '后端服务异常，请稍后重试'
+        }
+        
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none',
+          duration: 3000
         })
       })
     }

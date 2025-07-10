@@ -1,6 +1,7 @@
 // pages/user/user.js - 用户中心页面逻辑
 const app = getApp()
 const { userAPI } = require('../../utils/api')
+const { createPermissionManager } = require('../../utils/permission-manager')
 
 Page({
 
@@ -11,6 +12,11 @@ Page({
     // 用户信息
     userInfo: null,
     totalPoints: 0,
+    
+    // 🔐 权限控制 - 新增管理员权限判断
+    isAdmin: false,        // 管理员权限标识
+    isMerchant: false,     // 商家权限标识
+    showMerchantEntrance: false, // 是否显示商家管理入口
     
     // 统计信息
     userStats: {
@@ -147,7 +153,7 @@ Page({
   },
 
   /**
-   * 初始化页面
+   * 🔧 修复：正确的页面初始化 - 使用权限管理工具类
    */
   initPage() {
     console.log('🔄 开始初始化用户页面...')
@@ -158,13 +164,33 @@ Page({
     this.initAchievements()
     this.calculateTodayTrend()
     
-    // 2. 从全局获取用户信息
+    // 2. 从全局获取用户信息并进行权限判断
     const globalUserInfo = app.globalData.userInfo
     if (globalUserInfo) {
+      const permissionManager = createPermissionManager(globalUserInfo)
+      const permissionStatus = permissionManager.getPermissionStatus()
+      
+      console.log('🔐 用户页面权限判断结果:', {
+        userInfo: {
+          user_id: globalUserInfo?.user_id,
+          mobile: globalUserInfo?.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+          is_admin: globalUserInfo?.is_admin,
+          is_merchant: globalUserInfo?.is_merchant,
+          total_points: globalUserInfo?.total_points
+        },
+        permissionStatus: permissionStatus
+      })
+      
       this.setData({
         userInfo: globalUserInfo,
-        totalPoints: globalUserInfo.total_points || 0
+        totalPoints: globalUserInfo.total_points || 0,
+        // 🔐 v2.0 权限状态
+        isAdmin: permissionStatus.isAdmin,
+        isMerchant: permissionStatus.isMerchant,
+        showMerchantEntrance: permissionStatus.showMerchantEntrance
       })
+      
+      console.log('🔐 初始化权限判断 v2.0 (工具类):', permissionStatus)
     }
     
     // 3. 加载完整用户数据（添加错误处理）
@@ -284,6 +310,21 @@ Page({
         ? userInfo.total_points 
         : 0
       
+      // 🔐 v2.0 使用权限管理工具类
+      const permissionManager = createPermissionManager(userInfo)
+      const permissionStatus = permissionManager.getPermissionStatus()
+      
+      console.log('🔐 用户信息刷新 - 权限判断结果:', {
+        userInfo: {
+          user_id: userInfo?.user_id,
+          mobile: userInfo?.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+          is_admin: userInfo?.is_admin,
+          is_merchant: userInfo?.is_merchant,
+          total_points: totalPoints
+        },
+        permissionStatus: permissionStatus
+      })
+      
       console.log('💰 用户页面数据验证结果:', { 
         originalPoints: userInfo.total_points,
         validatedPoints: totalPoints,
@@ -292,58 +333,32 @@ Page({
       
       this.safeSetData({
         userInfo: userInfo,
-        totalPoints: totalPoints
+        totalPoints: totalPoints,
+        // 🔐 更新权限状态
+        isAdmin: permissionStatus.isAdmin,
+        isMerchant: permissionStatus.isMerchant,
+        showMerchantEntrance: permissionStatus.showMerchantEntrance
       })
       
-      // 更新全局用户信息
+      // 🔧 更新全局数据
       app.globalData.userInfo = {
-        ...userInfo,
-        total_points: totalPoints  // 确保全局数据也是安全的
+        ...app.globalData.userInfo,
+        ...userInfo
       }
-      console.log('✅ 用户信息刷新成功，当前积分:', totalPoints)
       
+      console.log('✅ 用户信息刷新完成，权限状态已更新')
+      
+      return userInfo
     }).catch((error) => {
-      console.error('❌ 获取用户信息失败:', error)
+      console.error('❌ 刷新用户信息失败:', error)
       
-      // 🔧 优化：显示后端服务异常提示
-      wx.showModal({
-        title: '🚨 数据加载失败',
-        content: `用户信息获取失败！\n\n可能原因：\n1. 用户未登录或令牌过期\n2. 后端API服务异常\n3. 网络连接问题\n\n错误详情：${error.message || error.msg || '未知错误'}`,
-        showCancel: true,
-        cancelText: '稍后重试',
-        confirmText: '重新登录',
-        confirmColor: '#FF6B35',
-        success: (res) => {
-          if (res.confirm) {
-            // 跳转到登录页面
-            wx.navigateTo({
-              url: '/pages/auth/auth'
-            })
-          }
-        }
+      // 🔧 增强错误处理 - 保留现有数据，只显示错误提示
+      wx.showToast({
+        title: '用户信息更新失败',
+        icon: 'none'
       })
       
-      // 错误处理：使用全局缓存数据
-      if (app.globalData.userInfo) {
-        const cachedPoints = (app.globalData.userInfo.total_points !== undefined && app.globalData.userInfo.total_points !== null && typeof app.globalData.userInfo.total_points === 'number') 
-          ? app.globalData.userInfo.total_points 
-          : 0
-          
-        this.safeSetData({
-          userInfo: app.globalData.userInfo,
-          totalPoints: cachedPoints
-        })
-      } else {
-        // 设置安全的默认值
-        this.safeSetData({
-          userInfo: {
-            nickname: '加载失败',
-            mobile: '请重试',
-            avatar: '/images/default-avatar.png'
-          },
-          totalPoints: 0
-        })
-      }
+      throw error
     })
   },
 
@@ -1108,9 +1123,46 @@ Page({
   },
 
   /**
+   * 🔐 检查超级管理员权限
+   * v2.0 二元权限模型：必须同时拥有is_admin=true和is_merchant=true
+   */
+  checkAdminPermission(userInfo) {
+    if (!userInfo) {
+      console.log('❌ 用户信息为空，拒绝权限')
+      return false
+    }
+    
+    // 🔐 二元权限验证：必须同时拥有管理员和商家权限
+    const isSuperAdmin = (userInfo.is_admin === true && userInfo.is_merchant === true)
+    
+    if (isSuperAdmin) {
+      console.log('✅ 超级管理员权限确认 - 同时拥有is_admin和is_merchant权限')
+      return true
+    }
+    
+    // 🔐 权限不足：记录详细的权限状态
+    console.log('❌ 权限不足，二元权限验证失败:', {
+      user_id: userInfo.user_id,
+      is_admin: userInfo.is_admin,
+      is_merchant: userInfo.is_merchant,
+      isSuperAdmin: isSuperAdmin,
+      mobile: userInfo.mobile ? userInfo.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '无',
+      permissionModel: 'v2.0_binary_permission'
+    })
+    return false
+  },
+
+  /**
    * 商家管理入口
    */
   onMerchantEntrance() {
+    // 🔐 v2.0 使用权限管理工具类进行权限检查
+    const permissionManager = createPermissionManager(this.data.userInfo)
+    
+    if (!permissionManager.checkFeatureAccess('商家管理')) {
+      return
+    }
+    
     wx.navigateTo({
       url: '/pages/merchant/merchant',
       fail: (error) => {

@@ -130,31 +130,6 @@
       </button>
     </view>
 
-    <!-- 🔧 临时：调试工具面板 -->
-    <view class="debug-panel" style="margin: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
-      <text style="font-size: 14px; color: #666; display: block; margin-bottom: 10px;">🔧 临时调试工具（修复完成后会移除）</text>
-      <view style="display: flex; flex-wrap: wrap; gap: 10px;">
-        <button class="mini-btn" style="margin-right: 10px; font-size: 12px;" bindtap="onDebugDiagnose">诊断问题</button>
-        <button class="mini-btn" style="margin-right: 10px; font-size: 12px;" bindtap="onDebugForceRefresh">强制刷新</button>
-        <button class="mini-btn" style="font-size: 12px;" bindtap="onDebugShowToken">查看Token</button>
-      </view>
-    </view>
-
-    <!-- 🔧 新增：状态筛选测试面板 -->
-    <view class="debug-panel" style="margin: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffeaa7;">
-      <text style="font-size: 14px; color: #856404; display: block; margin-bottom: 10px;">🧪 状态筛选功能测试</text>
-      <view style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
-        <button class="mini-btn" style="margin-right: 10px; font-size: 12px; background: #28a745; color: white;" bindtap="onTestSpecificStatus" data-status="approved">测试已通过</button>
-        <button class="mini-btn" style="margin-right: 10px; font-size: 12px; background: #dc3545; color: white;" bindtap="onTestSpecificStatus" data-status="rejected">测试已拒绝</button>
-        <button class="mini-btn" style="margin-right: 10px; font-size: 12px; background: #ffc107; color: #212529;" bindtap="onTestSpecificStatus" data-status="pending">测试待审核</button>
-        <button class="mini-btn" style="font-size: 12px; background: #6c757d; color: white;" bindtap="onTestSpecificStatus" data-status="all">测试全部</button>
-      </view>
-      <view style="display: flex; flex-wrap: wrap; gap: 10px;">
-        <button class="mini-btn" style="margin-right: 10px; font-size: 12px; background: #007bff; color: white;" bindtap="onTestStatusFilter">完整诊断</button>
-        <button class="mini-btn" style="font-size: 12px; background: #17a2b8; color: white;" bindtap="onQuickFix">一键修复</button>
-      </view>
-    </view>
-
     <!-- 加载更多 -->
     <view class="load-more" wx:if="{{hasMore && records.length > 0}}" bindtap="loadMoreRecords">
       <text class="load-text">{{loading ? '加载中...' : '加载更多'}}</text>

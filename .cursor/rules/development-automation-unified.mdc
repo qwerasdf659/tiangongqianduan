@@ -40,6 +40,29 @@ $backupFiles = Get-ChildItem -Name "*.backup" -ErrorAction SilentlyContinue
 if ($backupFiles) { "发现备份文件: $($backupFiles -join ', ')" } else { "无备份文件" }
 ```
 
+##### 🚨 强制执行：run_terminal_cmd前语法检查
+```javascript
+// 🔴 每次调用run_terminal_cmd前必须执行此检查
+const POWERSHELL_SYNTAX_VIOLATIONS = [
+    { pattern: /&&/, name: '命令连接符&&', fix: '使用分号(;)' },
+    { pattern: /\|\|/, name: '或操作符||', fix: '使用if (-not $?)' },
+    { pattern: /^echo\s/, name: 'echo命令', fix: '使用Write-Host' },
+    { pattern: /`[^`]*`/, name: '反引号', fix: '使用双引号' }
+];
+
+function validatePowerShellCommand(command) {
+    for (const violation of POWERSHELL_SYNTAX_VIOLATIONS) {
+        if (violation.pattern.test(command)) {
+            throw new Error(`🚨 PowerShell语法违规: ${violation.name}\n命令: "${command}"\n解决方案: ${violation.fix}`);
+        }
+    }
+    return true;
+}
+
+// 🔴 强制要求：所有run_terminal_cmd调用必须先验证
+// validatePowerShellCommand(command) 必须在执行前调用
+```
+
 #### 2. 🔧 Git分页器卡死预防规则
 
 ##### 禁止使用会触发分页器的Git命令

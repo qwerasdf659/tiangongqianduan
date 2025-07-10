@@ -1,8 +1,9 @@
 // pages/records/upload-records.js - 上传记录页面
 const app = getApp()
 const { uploadAPI } = require('../../utils/api')
-const UploadRecordsDebug = require('../../utils/upload-records-debug') // 🔧 临时：添加诊断工具
-const UploadStatusDiagnostic = require('../../utils/upload-status-diagnostic') // 🔧 新增：状态筛选诊断工具
+// 🔧 修复：删除对不存在模块的引用，避免模块加载错误
+// const UploadRecordsDebug = require('../../utils/upload-records-debug') // 🔧 临时：添加诊断工具
+// const UploadStatusDiagnostic = require('../../utils/upload-status-diagnostic') // 🔧 新增：状态筛选诊断工具
 
 Page({
   
@@ -93,15 +94,57 @@ Page({
    */
   initPage() {
     this.setData({ loading: true })
-    Promise.all([
+    
+    // 🔧 新增：添加强制超时保护，防止后端服务无响应导致无限loading
+    const timeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('🚨 后端API服务响应超时！请联系后端程序员检查服务状态。'))
+      }, 15000) // 15秒强制超时
+    })
+    
+    const loadDataPromise = Promise.all([
       this.loadRecords(),
       this.loadStatistics()
-    ]).then(() => {
-      this.setData({ loading: false })
-    }).catch(error => {
-      console.error('❌ 页面初始化失败:', error)
-      this.setData({ loading: false })
-    })
+    ])
+    
+    // 使用Promise.race确保15秒内必须有响应
+    Promise.race([loadDataPromise, timeoutPromise])
+      .then(() => {
+        this.setData({ loading: false })
+      }).catch(error => {
+        console.error('❌ 页面初始化失败:', error)
+        this.setData({ loading: false })
+        
+        // 🔧 新增：区分超时错误和其他错误
+        if (error.message && error.message.includes('响应超时')) {
+          wx.showModal({
+            title: '🚨 后端服务异常',
+            content: `API响应超时！\n\n🔗 问题接口：/api/photo/history\n🌐 服务器：${getApp().globalData.baseUrl}\n\n这是后端服务问题，请联系后端程序员：\n• 检查服务器状态\n• 检查数据库连接\n• 查看接口日志`,
+            showCancel: true,
+            cancelText: '稍后重试',
+            confirmText: '联系技术',
+            confirmColor: '#ff4444',
+            success: (res) => {
+              if (res.confirm) {
+                wx.showModal({
+                  title: '📞 联系信息',
+                  content: '请将以下信息发送给后端程序员：\n\n❌ API接口：GET /api/photo/history\n🌐 服务器：' + getApp().globalData.baseUrl + '\n⏰ 时间：' + new Date().toLocaleString() + '\n🔍 问题：请求超时无响应',
+                  showCancel: false,
+                  confirmText: '已复制'
+                })
+              }
+            }
+          })
+        } else {
+          // 其他错误的处理
+          wx.showModal({
+            title: '❌ 加载失败',
+            content: error.message || '页面初始化失败，请检查网络连接',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }
+      })
   },
 
   /**
@@ -136,34 +179,67 @@ Page({
       records: []  // 🔧 清空现有数据，强制重新获取
     })
     
-    // 🔧 修复：添加强制刷新标志，避免缓存问题
-    Promise.all([
+    // 🔧 新增：添加刷新超时保护
+    const refreshTimeoutPromise = new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error('🚨 刷新超时！后端API服务无响应。'))
+      }, 20000) // 刷新给20秒超时时间
+    })
+    
+    const refreshDataPromise = Promise.all([
       this.loadRecords(true), // 传递强制刷新参数
       this.loadStatistics()
-    ]).then(() => {
-      this.setData({ refreshing: false })
-      wx.stopPullDownRefresh()
-      console.log('✅ 数据刷新完成')
-    }).catch(error => {
-      console.error('❌ 刷新数据失败:', error)
-      this.setData({ refreshing: false })
-      wx.stopPullDownRefresh()
-      
-      // 🔧 新增：刷新失败时的智能处理
-      if (error.code === 2001 || error.needsRelogin) {
-        wx.showModal({
-          title: '🔑 认证失败',
-          content: 'Token已过期，请重新登录以继续使用。',
-          showCancel: false,
-          confirmText: '重新登录',
-          success: () => {
-            wx.reLaunch({
-              url: '/pages/auth/auth'
-            })
-          }
-        })
-      }
-    })
+    ])
+    
+    // 🔧 修复：添加强制刷新标志，避免缓存问题
+    Promise.race([refreshDataPromise, refreshTimeoutPromise])
+      .then(() => {
+        this.setData({ refreshing: false })
+        wx.stopPullDownRefresh()
+        console.log('✅ 数据刷新完成')
+      }).catch(error => {
+        console.error('❌ 刷新数据失败:', error)
+        this.setData({ refreshing: false })
+        wx.stopPullDownRefresh()
+        
+        // 🔧 新增：刷新失败时的智能处理
+        if (error.message && error.message.includes('刷新超时')) {
+          wx.showModal({
+            title: '🚨 后端服务异常',
+            content: `数据刷新超时！\n\n后端API服务无响应，这不是前端问题。\n\n请联系后端程序员检查：\n• 服务器状态\n• 数据库性能\n• /api/photo/history接口`,
+            showCancel: true,
+            cancelText: '知道了',
+            confirmText: '重试',
+            success: (res) => {
+              if (res.confirm) {
+                // 用户选择重试
+                setTimeout(() => {
+                  this.refreshData()
+                }, 2000)
+              }
+            }
+          })
+        } else if (error.code === 2001 || error.needsRelogin) {
+          wx.showModal({
+            title: '🔑 认证失败',
+            content: 'Token已过期，请重新登录以继续使用。',
+            showCancel: false,
+            confirmText: '重新登录',
+            success: () => {
+              wx.reLaunch({
+                url: '/pages/auth/auth'
+              })
+            }
+          })
+        } else {
+          wx.showModal({
+            title: '❌ 刷新失败',
+            content: error.message || '数据刷新失败，请稍后重试',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }
+      })
   },
 
   /**
@@ -550,206 +626,5 @@ Page({
    */
   onBack() {
     wx.navigateBack()
-  },
-
-  // 🔧 临时：诊断工具方法
-  async onDebugDiagnose() {
-    console.log('🔍 用户触发诊断...')
-    await UploadRecordsDebug.runFullDiagnosis()
-  },
-
-  async onDebugForceRefresh() {
-    console.log('🔄 用户触发强制刷新...')
-    this.setData({ records: [], currentPage: 1 })
-    await this.loadRecords(true)
-  },
-
-  onDebugShowToken() {
-    const app = getApp()
-    wx.showModal({
-      title: '🔑 当前Token状态',
-      content: `Token: ${app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 50)}...` : '无'}\n\n登录状态: ${app.globalData.isLoggedIn ? '已登录' : '未登录'}\n\nAPI地址: ${app.globalData.baseUrl}`,
-      showCancel: false,
-      confirmText: '知道了'
-    })
-  },
-
-  // 🔧 新增：状态筛选功能诊断
-  async onTestStatusFilter() {
-    console.log('🧪 用户触发状态筛选功能测试...')
-    
-    wx.showLoading({
-      title: '测试中...',
-      mask: true
-    })
-    
-    try {
-      const results = await UploadStatusDiagnostic.runFullDiagnosis()
-      
-      wx.hideLoading()
-      
-      // 显示测试结果
-      const summary = results.summary
-      const successRate = ((summary.passedTests / summary.totalTests) * 100).toFixed(1)
-      
-      let content = `📊 测试完成！\n\n`
-      content += `✅ 通过: ${summary.passedTests}/${summary.totalTests} (${successRate}%)\n`
-      content += `❌ 失败: ${summary.failedTests}\n\n`
-      
-      if (summary.issues.length > 0) {
-        content += `🚨 发现问题:\n`
-        summary.issues.forEach((issue, index) => {
-          content += `${index + 1}. ${issue}\n`
-        })
-      } else {
-        content += `🎉 所有功能正常！`
-      }
-      
-      wx.showModal({
-        title: '🔍 状态筛选测试结果',
-        content: content,
-        showCancel: summary.issues.length > 0,
-        cancelText: '一键修复',
-        confirmText: '知道了',
-        success: (res) => {
-          if (res.cancel && summary.issues.length > 0) {
-            // 触发一键修复
-            this.onQuickFix()
-          }
-        }
-      })
-      
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 状态筛选测试失败:', error)
-      
-      wx.showModal({
-        title: '❌ 测试失败',
-        content: `无法完成状态筛选测试！\n\n错误: ${error.message || '未知错误'}\n\n这可能是后端API服务问题。`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
-    }
-  },
-
-  // 🔧 新增：一键修复功能
-  async onQuickFix() {
-    console.log('🚀 用户触发一键修复...')
-    
-    wx.showLoading({
-      title: '修复中...',
-      mask: true
-    })
-    
-    try {
-      await UploadStatusDiagnostic.quickFix()
-      
-      wx.hideLoading()
-      
-      wx.showModal({
-        title: '🎯 修复完成',
-        content: '已尝试修复常见问题：\n\n• 清理了缓存数据\n• 刷新了访问令牌\n\n请重新测试功能！',
-        showCancel: false,
-        confirmText: '重新测试',
-        success: () => {
-          // 重新加载数据
-          this.refreshData()
-        }
-      })
-      
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 一键修复失败:', error)
-      
-      wx.showModal({
-        title: '❌ 修复失败',
-        content: `自动修复失败！\n\n错误: ${error.message || '未知错误'}\n\n建议手动检查网络和登录状态。`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
-    }
-  },
-
-  // 🔧 新增：测试特定状态筛选
-  async onTestSpecificStatus(e) {
-    const status = e.currentTarget.dataset.status
-    const statusNames = {
-      'approved': '已通过',
-      'rejected': '已拒绝',
-      'pending': '待审核',
-      'all': '全部'
-    }
-    
-    const statusName = statusNames[status] || status
-    
-    console.log(`🧪 测试 ${statusName} 状态筛选...`)
-    
-    wx.showLoading({
-      title: `测试${statusName}...`,
-      mask: true
-    })
-    
-    try {
-      const response = await uploadAPI.getRecords(1, 20, status, true)
-      
-      wx.hideLoading()
-      
-      if (response.code === 0) {
-        const records = response.data.records || response.data.history || response.data.recent_uploads || response.data.data || []
-        
-        // 检查筛选准确性
-        let accuracyMessage = ''
-        if (status !== 'all') {
-          const wrongRecords = records.filter(record => record.status !== status)
-          if (wrongRecords.length === 0) {
-            accuracyMessage = '\n✅ 筛选结果准确'
-          } else {
-            accuracyMessage = `\n⚠️ 发现${wrongRecords.length}条不符合条件的记录`
-          }
-        }
-        
-        wx.showModal({
-          title: `🧪 ${statusName} 测试结果`,
-          content: `✅ 测试成功！\n\n📊 返回记录: ${records.length}条${accuracyMessage}\n\n数据结构: ${Object.keys(response.data).join(', ')}`,
-          showCancel: false,
-          confirmText: '知道了'
-        })
-      } else {
-        wx.showModal({
-          title: `❌ ${statusName} 测试失败`,
-          content: `后端返回错误！\n\n错误码: ${response.code}\n错误信息: ${response.msg}\n\n这是后端问题，请联系后端程序员。`,
-          showCancel: false,
-          confirmText: '知道了'
-        })
-      }
-      
-    } catch (error) {
-      wx.hideLoading()
-      console.error(`❌ ${statusName} 测试异常:`, error)
-      
-      let errorType = '未知错误'
-      let responsibility = '需要进一步诊断'
-      
-      if (error.code === 2001 || error.needsRelogin) {
-        errorType = '认证问题'
-        responsibility = '前端Token处理问题'
-      } else if (error.code === 404) {
-        errorType = 'API路径错误'
-        responsibility = '后端API路由问题'
-      } else if (error.code >= 500) {
-        errorType = '后端服务错误'
-        responsibility = '后端服务问题'
-      } else if (error.isNetworkError) {
-        errorType = '网络连接问题'
-        responsibility = '网络或后端服务问题'
-      }
-      
-      wx.showModal({
-        title: `❌ ${statusName} 测试异常`,
-        content: `${errorType}\n\n错误: ${error.msg || error.message}\n\n🏷️ 责任方: ${responsibility}`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
-    }
   }
 }) 

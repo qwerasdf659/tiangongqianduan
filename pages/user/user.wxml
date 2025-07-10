@@ -157,12 +157,15 @@
     </view>
   </view>
 
-  <!-- 商家入口 -->
-  <view class="merchant-entrance">
+  <!-- 商家入口 - 🔐 仅管理员可见 -->
+  <view class="merchant-entrance" wx:if="{{showMerchantEntrance}}">
     <button class="merchant-btn" bindtap="onMerchantEntrance">
       🏪 商家管理
     </button>
     <text class="merchant-desc">商家权限申请与管理</text>
+    <view class="admin-badge">
+      <text class="admin-text">🔐 管理员专用</text>
+    </view>
   </view>
 
   <!-- 版本信息 -->

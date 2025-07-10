@@ -54,6 +54,18 @@ Page({
    */
   onShow() {
     console.log('🏠 首页显示')
+    
+    // 🔧 新增：检查是否从登录相关页面返回
+    const pages = getCurrentPages()
+    const prevPage = pages.length > 1 ? pages[pages.length - 2] : null
+    const isFromAuthPage = prevPage && (prevPage.route.includes('auth') || prevPage.route.includes('login'))
+    
+    if (isFromAuthPage) {
+      console.log('🔄 从登录页面返回，重置登录提示标记')
+      // 从登录页面返回时，重置标记，允许重新检查
+      this.loginPromptShown = false
+    }
+    
     this.checkUserStatus()
     
     // 🔧 修复：注册状态变化监听
@@ -172,37 +184,36 @@ Page({
       userInfo: userInfo || null
     })
     
-    // 🔧 修复：只有确实未登录时才提示，避免重复提示
+    // 🔧 修复：立即检查登录状态，与页面加载同步
     if (!actuallyLoggedIn && !this.loginPromptShown) {
       this.loginPromptShown = true // 标记已显示过提示
       
-      setTimeout(() => {
-        // 🔧 修复：再次确认状态，避免登录成功后误提示
-        const currentLoginStatus = app.globalData.isLoggedIn && app.globalData.userInfo && app.globalData.accessToken
-        
-        if (!currentLoginStatus) {
-          wx.showModal({
-            title: '登录提示',
-            content: '请先登录以享受完整功能',
-            confirmText: '去登录',
-            cancelText: '稍后',
-            success: (res) => {
-              if (res.confirm) {
-                wx.navigateTo({
-                  url: '/pages/auth/auth'
-                })
-              }
-            }
-          })
-        } else {
-          console.log('✅ 登录状态已更新，取消提示')
-          // 重新更新页面状态
-          this.setData({
-            isLoggedIn: true,
-            userInfo: app.globalData.userInfo
-          })
+      // 🔧 新增：检查当前页面路径，避免在登录相关页面弹出提示
+      const pages = getCurrentPages()
+      const currentPage = pages[pages.length - 1]
+      const currentRoute = currentPage ? currentPage.route : ''
+      
+      // 如果当前在登录、注册相关页面，则不弹出提示框
+      if (currentRoute.includes('auth') || currentRoute.includes('login')) {
+        console.log('🚫 当前在登录页面，跳过登录提示框')
+        return
+      }
+      
+      // �� 修复：立即显示登录提示框，不再延迟
+      console.log('📋 立即显示登录提示框')
+      wx.showModal({
+        title: '登录提示',
+        content: '请先登录以享受完整功能',
+        confirmText: '去登录',
+        cancelText: '稍后',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/auth/auth'
+            })
+          }
         }
-      }, 1500) // 🔧 修复：延长等待时间，确保状态同步完成
+      })
     } else if (actuallyLoggedIn) {
       // 🔧 修复：已登录时重置提示标记
       this.loginPromptShown = false
@@ -253,8 +264,24 @@ Page({
    * 登录按钮点击
    */
   navigateToLogin() {
+    // 🔧 新增：用户主动点击登录时，设置标记避免重复弹框
+    this.loginPromptShown = true
+    console.log('👆 用户主动点击登录按钮，跳转到登录页面')
+    
     wx.navigateTo({
-      url: '/pages/auth/auth'
+      url: '/pages/auth/auth',
+      success: () => {
+        console.log('✅ 成功跳转到登录页面')
+      },
+      fail: (error) => {
+        console.error('❌ 跳转登录页面失败:', error)
+        // 跳转失败时重置标记
+        this.loginPromptShown = false
+        wx.showToast({
+          title: '跳转失败，请重试',
+          icon: 'none'
+        })
+      }
     })
   },
 
