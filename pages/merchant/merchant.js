@@ -121,15 +121,28 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    console.log('商家管理页面加载')
-    this.initPage()
+    console.log('🔄 商家管理页面开始加载...')
+    
+    // 🔧 修复：只进行基础初始化，防止页面跳转超时
+    this.setData({ 
+      loading: true,
+      currentTab: 'review'
+    })
+    
+    console.log('✅ 商家页面基础加载完成，等待页面渲染...')
   },
 
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady() {
-
+    console.log('🎨 商家页面渲染完成，开始初始化业务逻辑...')
+    
+    // 🔧 修复：在页面渲染完成后再执行复杂的初始化逻辑
+    // 使用 setTimeout 确保页面完全渲染后再执行
+    setTimeout(() => {
+      this.initPage()
+    }, 100)
   },
 
   /**
@@ -226,6 +239,13 @@ Page({
     
     const userInfo = app.globalData.userInfo
     
+    // 🔧 修复：先检查基础用户信息
+    if (!userInfo) {
+      console.log('❌ 用户信息缺失，引导用户重新登录')
+      this.handleUserInfoMissing()
+      return
+    }
+    
     // 🔐 使用权限管理工具类进行正确的权限验证
     const permissionManager = createPermissionManager(userInfo)
     const permissionStatus = permissionManager.getPermissionStatus()
@@ -259,21 +279,10 @@ Page({
     if (!permissionStatus.isSuperAdmin) {
       console.log('❌ 权限不足 - 非超级管理员用户无法访问商家管理功能')
       
-      // 🔧 显示权限不足的详细信息
-      wx.showModal({
-        title: '🔐 权限验证失败',
-        content: `商家管理功能需要超级管理员权限\n\n您的权限状态：\n• 管理员权限：${userInfo?.is_admin ? '✅ 已拥有' : '❌ 缺失'}\n• 商家权限：${userInfo?.is_merchant ? '✅ 已拥有' : '❌ 缺失'}\n\n超级管理员需要同时拥有两项权限。`,
-        showCancel: true,
-        cancelText: '返回',
-        confirmText: '申请权限',
-        success: (res) => {
-          if (res.confirm) {
-            this.setData({ showAuthModal: true })
-          } else {
-            wx.navigateBack()
-          }
-        }
-      })
+      // 🔧 优化：延迟显示权限不足对话框，确保页面先渲染
+      setTimeout(() => {
+        this.showPermissionDeniedDialog(userInfo)
+      }, 300)
       
       this.setData({ loading: false })
       return
@@ -281,8 +290,68 @@ Page({
 
     console.log('✅ 超级管理员权限验证通过，开始加载管理功能数据')
     
-    // 加载管理功能数据
-    this.loadData()
+    // 🔧 优化：异步加载管理功能数据，不阻塞页面
+    this.loadDataAsync()
+  },
+
+  /**
+   * 🔧 新增：处理用户信息缺失的情况
+   */
+  handleUserInfoMissing() {
+    this.setData({ loading: false })
+    
+    wx.showModal({
+      title: '🔑 登录状态异常',
+      content: '检测到用户信息缺失，请重新登录以获取权限信息。',
+      showCancel: false,
+      confirmText: '重新登录',
+      success: () => {
+        wx.reLaunch({ url: '/pages/auth/auth' })
+      }
+    })
+  },
+
+  /**
+   * 🔧 新增：显示权限不足对话框
+   */
+  showPermissionDeniedDialog(userInfo) {
+    wx.showModal({
+      title: '🔐 权限验证失败',
+      content: `商家管理功能需要超级管理员权限\n\n您的权限状态：\n• 管理员权限：${userInfo?.is_admin ? '✅ 已拥有' : '❌ 缺失'}\n• 商家权限：${userInfo?.is_merchant ? '✅ 已拥有' : '❌ 缺失'}\n\n超级管理员需要同时拥有两项权限。`,
+      showCancel: true,
+      cancelText: '返回',
+      confirmText: '申请权限',
+      success: (res) => {
+        if (res.confirm) {
+          this.setData({ showAuthModal: true })
+        } else {
+          wx.navigateBack()
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 新增：异步加载数据，不阻塞页面渲染
+   */
+  loadDataAsync() {
+    // 先设置loading状态
+    this.setData({ loading: true })
+    
+    // 异步加载数据
+    setTimeout(() => {
+      this.loadData().catch(error => {
+        console.error('❌ 异步加载数据失败:', error)
+        this.setData({ loading: false })
+        
+        // 显示友好的错误提示
+        wx.showToast({
+          title: '数据加载失败，请下拉刷新',
+          icon: 'none',
+          duration: 3000
+        })
+      })
+    }, 50)
   },
 
   /**
@@ -351,7 +420,7 @@ Page({
       
       // 获取最新用户信息（包含权限字段）
       wx.request({
-        url: app.globalData.baseUrl + '/api/user/info',
+        url: app.globalData.baseUrl + '/user/info',
         method: 'GET',
         header: {
           'Content-Type': 'application/json',

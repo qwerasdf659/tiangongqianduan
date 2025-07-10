@@ -1156,23 +1156,104 @@ Page({
    * 商家管理入口
    */
   onMerchantEntrance() {
+    console.log('🏪 用户点击商家管理入口')
+    
     // 🔐 v2.0 使用权限管理工具类进行权限检查
     const permissionManager = createPermissionManager(this.data.userInfo)
     
     if (!permissionManager.checkFeatureAccess('商家管理')) {
+      console.log('❌ 商家管理权限检查失败')
       return
     }
     
+    console.log('✅ 商家管理权限检查通过，开始跳转...')
+    
+    // 🔧 添加loading提示，改善用户体验
+    wx.showLoading({
+      title: '正在进入商家管理...',
+      mask: true
+    })
+    
+    // 🔧 优化：设置较长的超时时间，并添加更详细的错误处理
     wx.navigateTo({
       url: '/pages/merchant/merchant',
+      success: () => {
+        wx.hideLoading()
+        console.log('✅ 成功跳转到商家管理页面')
+      },
       fail: (error) => {
-        console.error('跳转商家页面失败:', error)
-        wx.showToast({
-          title: '跳转失败',
-          icon: 'none'
+        wx.hideLoading()
+        console.error('❌ 跳转商家页面失败:', error)
+        
+        // 🔧 根据不同错误类型提供不同的解决方案
+        let errorMsg = '跳转失败，请重试'
+        let retryAction = null
+        
+        if (error.errMsg.includes('timeout')) {
+          errorMsg = '页面加载超时，可能是因为商家页面数据较多'
+          retryAction = () => {
+            // 延迟重试，给页面更多时间
+            setTimeout(() => {
+              this.retryMerchantNavigation()
+            }, 1000)
+          }
+        } else if (error.errMsg.includes('fail')) {
+          errorMsg = '页面跳转失败，请检查网络连接'
+        }
+        
+        wx.showModal({
+          title: '🚨 跳转商家管理失败',
+          content: `${errorMsg}\n\n详细错误：${error.errMsg}\n\n建议：\n• 检查网络连接状态\n• 稍后重试\n• 如果持续失败，请联系技术支持`,
+          showCancel: !!retryAction,
+          cancelText: '稍后重试',
+          confirmText: retryAction ? '立即重试' : '知道了',
+          success: (res) => {
+            if (res.confirm && retryAction) {
+              retryAction()
+            }
+          }
         })
       }
     })
+  },
+
+  /**
+   * 🔧 新增：重试商家页面跳转
+   */
+  retryMerchantNavigation() {
+    console.log('🔄 重试跳转商家管理页面...')
+    
+    wx.showLoading({
+      title: '重试中...',
+      mask: true
+    })
+    
+    // 给商家页面更多加载时间
+    setTimeout(() => {
+      wx.navigateTo({
+        url: '/pages/merchant/merchant',
+        success: () => {
+          wx.hideLoading()
+          console.log('✅ 重试成功，已进入商家管理页面')
+          
+          wx.showToast({
+            title: '跳转成功',
+            icon: 'success'
+          })
+        },
+        fail: (error) => {
+          wx.hideLoading()
+          console.error('❌ 重试跳转仍然失败:', error)
+          
+          wx.showModal({
+            title: '❌ 重试失败',
+            content: '多次尝试跳转商家管理页面均失败。\n\n可能原因：\n• 页面代码存在问题\n• 设备性能不足\n• 网络环境不稳定\n\n请联系技术支持解决。',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }
+      })
+    }, 500)
   },
 
   /**
