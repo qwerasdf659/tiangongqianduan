@@ -550,7 +550,7 @@ const uploadAPI = {
         return
       }
 
-      const uploadUrl = app.globalData.baseUrl + '/api/photo/upload'
+      const uploadUrl = app.globalData.baseUrl + '/photo/upload'
       console.log('📤 简化上传API地址:', uploadUrl)
 
       wx.uploadFile({
@@ -863,12 +863,19 @@ const merchantAPI = {
     })
   },
 
-  // 🔧 新增：获取商品列表
-  getProducts(page = 1, pageSize = 20, category = 'all', status = 'all') {
+  // 🔧 修正：获取商品列表 - 严格按照接口文档参数规范
+  getProducts(page = 1, pageSize = 20, category = 'all', status = 'all', sortBy = 'sort_order', sortOrder = 'ASC') {
     return request({
       url: '/merchant/products',
       method: 'GET',
-      data: { page, page_size: pageSize, category, status },
+      data: { 
+        page, 
+        page_size: pageSize, 
+        category, 
+        status,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      },
       needAuth: true
     })
   },
@@ -893,25 +900,18 @@ const merchantAPI = {
     })
   },
 
-  // 🔧 新增：批量更新商品
-  batchUpdateProducts(productIds, updateData) {
+  // 🔧 修正：批量更新商品 - 严格按照接口文档数据结构
+  batchUpdateProducts(products) {
     return request({
       url: '/merchant/products/batch-update',
       method: 'POST',
-      data: { product_ids: productIds, ...updateData },
+      data: { products: products },
       needAuth: true
     })
   },
 
-  // 🔧 新增：批量删除商品
-  batchDeleteProducts(productIds) {
-    return request({
-      url: '/merchant/products/batch-delete',
-      method: 'POST',
-      data: { product_ids: productIds },
-      needAuth: true
-    })
-  },
+  // 🔴 已删除：批量删除接口 - 接口文档中未定义此接口
+  // batchDeleteProducts() 接口在当前接口规范中不存在
 
   // 🔧 新增：获取抽奖配置
   getLotteryConfig() {
@@ -948,7 +948,10 @@ const merchantAPI = {
       data: { prizes },
       needAuth: true
     })
-  }
+  },
+
+  // 🔍 注释：管理员查看所有用户上传记录的API需要后端实现
+  // getAllUploadRecords() - 此接口需要后端程序员实现
 }
 
 module.exports = {

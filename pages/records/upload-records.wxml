@@ -1,70 +1,78 @@
-<!--pages/records/upload-records.wxml-->
-<view class="container">
+<!--pages/records/upload-records.wxml - 上传记录页面-->
+<view class="upload-records-container">
   <!-- 页面头部 -->
   <view class="header">
-    <view class="header-content">
-      <view class="back-btn" bindtap="onBack">
-        <text class="back-icon">◀</text>
+    <view class="title-section">
+      <text class="page-title">📷 上传记录</text>
+    </view>
+    
+    <!-- 🔍 调试：13612227930问题排查信息 -->
+    <view class="debug-info" wx:if="{{debugInfo}}">
+      <text class="debug-title">🔍 调试信息（13612227930问题排查）</text>
+      <view class="debug-detail">
+        <text>当前用户：{{debugInfo.currentUser ? debugInfo.currentUser.mobile : '未登录'}}</text>
       </view>
-      <view class="header-title">
-        <text class="title-text">上传记录</text>
-        <text class="title-desc">我的小票上传历史</text>
+      <view class="debug-detail">
+        <text>Token状态：{{debugInfo.hasToken ? '有效' : '无效'}}</text>
       </view>
-      <view class="header-actions">
-        <text class="total-count">共{{total}}次</text>
+      <view class="debug-detail">
+        <text>是否登录：{{debugInfo.isLoggedIn ? '是' : '否'}}</text>
       </view>
+      <button class="debug-refresh-btn" bindtap="onManualRefresh">🔄 强制刷新数据</button>
     </view>
   </view>
 
-  <!-- 统计卡片 -->
-  <view class="statistics-card" wx:if="{{!loading}}">
+  <!-- 统计信息 -->
+  <view class="statistics" wx:if="{{!loading}}">
     <view class="stat-item">
       <text class="stat-number">{{statistics.totalCount}}</text>
-      <text class="stat-label">上传次数</text>
+      <text class="stat-label">总记录</text>
     </view>
     <view class="stat-item">
-      <text class="stat-number">{{statistics.totalPoints}}</text>
-      <text class="stat-label">获得积分</text>
+      <text class="stat-number">{{statistics.pendingCount}}</text>
+      <text class="stat-label">待审核</text>
     </view>
     <view class="stat-item">
       <text class="stat-number">{{statistics.approvedCount}}</text>
       <text class="stat-label">已通过</text>
     </view>
     <view class="stat-item">
-      <text class="stat-number">{{statistics.pendingCount}}</text>
-      <text class="stat-label">待审核</text>
+      <text class="stat-number">{{statistics.rejectedCount}}</text>
+      <text class="stat-label">已拒绝</text>
     </view>
   </view>
 
-  <!-- 筛选标签 -->
-  <view class="filter-tabs">
-    <view 
-      class="filter-tab {{filterStatus === 'all' ? 'active' : ''}}"
-      bindtap="onFilterChange"
-      data-status="all"
-    >
-      <text>全部</text>
-    </view>
-    <view 
-      class="filter-tab {{filterStatus === 'pending' ? 'active' : ''}}"
-      bindtap="onFilterChange"
-      data-status="pending"
-    >
-      <text>待审核</text>
-    </view>
-    <view 
-      class="filter-tab {{filterStatus === 'approved' ? 'active' : ''}}"
-      bindtap="onFilterChange"
-      data-status="approved"
-    >
-      <text>已通过</text>
-    </view>
-    <view 
-      class="filter-tab {{filterStatus === 'rejected' ? 'active' : ''}}"
-      bindtap="onFilterChange"
-      data-status="rejected"
-    >
-      <text>已拒绝</text>
+  <!-- 筛选器 -->
+  <view class="filter-section">
+    <view class="filter-tabs">
+      <view 
+        class="filter-tab {{filterStatus === 'all' ? 'active' : ''}}"
+        bindtap="onFilterChange"
+        data-status="all"
+      >
+        全部
+      </view>
+      <view 
+        class="filter-tab {{filterStatus === 'pending' ? 'active' : ''}}"
+        bindtap="onFilterChange"
+        data-status="pending"
+      >
+        待审核
+      </view>
+      <view 
+        class="filter-tab {{filterStatus === 'approved' ? 'active' : ''}}"
+        bindtap="onFilterChange"
+        data-status="approved"
+      >
+        已通过
+      </view>
+      <view 
+        class="filter-tab {{filterStatus === 'rejected' ? 'active' : ''}}"
+        bindtap="onFilterChange"
+        data-status="rejected"
+      >
+        已拒绝
+      </view>
     </view>
   </view>
 

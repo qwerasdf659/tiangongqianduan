@@ -27,6 +27,9 @@ Page({
     // 筛选条件
     filterStatus: 'all', // all全部/pending待审核/approved已通过/rejected已拒绝
     
+    // 🔧 调试13612227930问题
+    debugInfo: null,
+    
     // 统计数据
     statistics: {
       totalCount: 0,
@@ -53,11 +56,27 @@ Page({
     
     // 🔧 新增：每次显示页面时强制刷新数据，解决缓存问题
     const app = getApp()
-    console.log('🔍 当前Token状态:', {
+    
+    // 🔍 调试13612227930问题：详细记录当前状态
+    const userInfo = app.globalData.userInfo
+    const debugInfo = {
       hasToken: !!app.globalData.accessToken,
       isLoggedIn: app.globalData.isLoggedIn,
-      tokenPreview: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : null
-    })
+      currentUser: userInfo ? {
+        user_id: userInfo.user_id,
+        mobile: userInfo.mobile,
+        is_admin: userInfo.is_admin,
+        nickname: userInfo.nickname
+      } : null,
+      tokenPreview: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : null,
+      baseUrl: app.globalData.baseUrl,
+      timestamp: new Date().toLocaleString()
+    }
+    
+    console.log('🔍 13612227930问题排查 - 页面显示时状态:', debugInfo)
+    
+    // 保存调试信息到页面数据
+    this.setData({ debugInfo })
     
     // 强制刷新数据
     this.refreshData()
@@ -244,25 +263,46 @@ Page({
 
   /**
    * 🔴 加载上传记录 - 必须从后端API获取
-   * 接口：GET /api/photo/records?page=1&page_size=20&status=all
+   * 接口：GET /api/photo/history
    * 认证：需要Bearer Token
-   * 返回：v2.1.2纯人工审核模式的上传记录列表
+   * 🔧 调试：专门为13612227930账号排查问题
    */
   loadRecords(forceRefresh = false) {
-    console.log('📡 请求上传记录接口...')
+    console.log('📡 🔍 调试上传记录接口...', {
+      当前用户: app.globalData.userInfo,
+      Token状态: !!app.globalData.accessToken,
+      是否登录: app.globalData.isLoggedIn,
+      筛选状态: this.data.filterStatus,
+      强制刷新: forceRefresh
+    })
     
-    // 🔧 修复：使用强制刷新机制，避免缓存问题
+    // 🔧 调试：检查当前登录用户是否是13612227930
+    if (app.globalData.userInfo && app.globalData.userInfo.mobile) {
+      console.log('🔍 当前登录用户手机号:', app.globalData.userInfo.mobile)
+      console.log('🔍 是否为13612227930:', app.globalData.userInfo.mobile === '13612227930')
+    }
+    
     return uploadAPI.getRecords(this.data.currentPage, this.data.pageSize, this.data.filterStatus, forceRefresh).then((res) => {
       if (res.code === 0) {
         // 🔧 修复：支持多种后端数据字段名
         const newRecords = res.data.records || res.data.history || res.data.recent_uploads || res.data.data || []
         
-        console.log('📊 后端返回的数据结构:', {
+        console.log('📊 🔍 后端返回的数据结构详细分析:', {
           code: res.code,
+          message: res.msg,
           dataKeys: Object.keys(res.data || {}),
           recordsLength: newRecords.length,
           fullData: res.data,
-          sampleRecord: newRecords.length > 0 ? newRecords[0] : null
+          sampleRecord: newRecords.length > 0 ? newRecords[0] : null,
+          '🔍 13612227930问题排查': {
+            '数据是否为空': newRecords.length === 0,
+            '可能的原因': newRecords.length === 0 ? [
+              '1. 当前登录用户不是13612227930',
+              '2. 13612227930还没有上传记录',
+              '3. 后端API返回了错误的用户数据',
+              '4. Token认证有问题'
+            ] : '有数据，问题可能在其他地方'
+          }
         })
         
         // 🔴 v2.1.2数据处理：纯人工审核模式 - 修复状态显示问题
@@ -412,6 +452,23 @@ Page({
         })
       }
     })
+  },
+
+  /**
+   * 🔍 调试：手动刷新数据（专门为13612227930问题排查）
+   */
+  onManualRefresh() {
+    console.log('🔍 手动刷新数据 - 13612227930问题排查')
+    
+    // 强制清空数据重新加载
+    this.setData({
+      records: [],
+      currentPage: 1,
+      hasMore: true
+    })
+    
+    // 强制刷新
+    this.loadRecords(true)
   },
 
   /**

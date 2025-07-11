@@ -1545,14 +1545,13 @@ Page({
       return
     }
 
-    // 显示批量编辑选项
+    // 显示批量编辑选项（移除批量删除功能）
     wx.showActionSheet({
       itemList: [
         `批量上架 (已选${selectedProducts.length}个商品)`,
         `批量下架 (已选${selectedProducts.length}个商品)`,
         `批量设为热门 (已选${selectedProducts.length}个商品)`,
         `批量取消热门 (已选${selectedProducts.length}个商品)`,
-        `批量删除 (已选${selectedProducts.length}个商品)`,
         '高级批量编辑...'
       ],
       success: (res) => {
@@ -1570,9 +1569,6 @@ Page({
             this.batchUpdateHotStatus(selectedProducts, false)
             break
           case 4:
-            this.batchDeleteProducts(selectedProducts)
-            break
-          case 5:
             this.showAdvancedBatchEdit(selectedProducts)
             break
         }
@@ -1617,10 +1613,13 @@ Page({
         })
       })
     } else {
-      // 生产环境调用真实接口
-      const productIds = products.map(p => p.id)
+      // 生产环境调用真实接口 - 按照接口文档规范调用
+      const productsToUpdate = products.map(p => ({
+        commodity_id: p.id,
+        status: status
+      }))
       
-      merchantAPI.batchUpdateProducts(productIds, { status }).then(() => {
+      merchantAPI.batchUpdateProducts(productsToUpdate).then(() => {
         // 更新本地数据
         const productList = this.data.productList.map(item => {
           if (products.find(p => p.id === item.id)) {
@@ -1657,10 +1656,13 @@ Page({
     
     wx.showLoading({ title: `批量${actionText}中...` })
     
-    // 🔴 删除违规代码：严禁使用模拟数据，所有商品批量操作均通过后端真实API
-    const productIds = products.map(p => p.id)
+    // 🔴 符合接口规范：所有商品批量操作均通过后端真实API
+    const productsToUpdate = products.map(p => ({
+      commodity_id: p.id,
+      is_hot: isHot
+    }))
     
-    merchantAPI.batchUpdateProducts(productIds, { is_hot: isHot }).then(() => {
+    merchantAPI.batchUpdateProducts(productsToUpdate).then(() => {
       // 更新本地数据
       const productList = this.data.productList.map(item => {
         if (products.find(p => p.id === item.id)) {
@@ -1689,50 +1691,8 @@ Page({
     })
   },
 
-  /**
-   * 批量删除商品
-   */
-  batchDeleteProducts(products) {
-    wx.showModal({
-      title: '批量删除确认',
-      content: `确定要删除选中的 ${products.length} 个商品吗？删除后不可恢复。`,
-      confirmText: '删除',
-      confirmColor: '#ff4444',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '删除中...' })
-          
-          // 🔴 删除违规代码：严禁使用模拟数据，所有商品删除操作均通过后端真实API
-          const productIds = products.map(p => p.id)
-          
-          merchantAPI.batchDeleteProducts(productIds).then(() => {
-            // 更新本地数据
-            const productList = this.data.productList.filter(item => 
-              !products.find(p => p.id === item.id)
-            )
-
-            this.setData({ productList })
-            wx.hideLoading()
-            
-            wx.showToast({
-              title: '批量删除成功',
-              icon: 'success'
-            })
-          }).catch((error) => {
-            wx.hideLoading()
-            console.error('❌ 批量删除失败:', error)
-            
-            wx.showModal({
-              title: '🚨 批量删除失败',
-              content: '【问题诊断】批量删除API调用失败\n\n【具体原因】\n• 后端API服务异常 (最可能)\n• 网络连接问题\n• 商品ID无效或已被删除\n\n【解决方案】\n如果是后端问题请联系后端程序员检查API服务',
-              showCancel: false,
-              confirmText: '知道了'
-            })
-          })
-        }
-      }
-    })
-  },
+  // 🔴 已删除：批量删除功能 - 接口文档中未定义批量删除API
+  // batchDeleteProducts() 方法已移除，因为后端接口规范中不包含批量删除API
 
   /**
    * 显示高级批量编辑弹窗
@@ -2033,10 +1993,24 @@ Page({
         })
       })
     } else {
-      // 生产环境调用真实接口
-      const productIds = selectedProducts.map(p => p.id)
+      // 生产环境调用真实接口 - 按照接口文档规范调用
+      const productsToUpdate = selectedProducts.map(p => {
+        const productUpdate = { commodity_id: p.id }
+        
+        if (batchEditForm.updateCategory) {
+          productUpdate.category = batchEditForm.category
+        }
+        if (batchEditForm.updatePoints) {
+          productUpdate.exchange_points = Math.max(1, p.exchange_points + batchEditForm.pointsAdjustment)
+        }
+        if (batchEditForm.updateStock) {
+          productUpdate.stock = Math.max(0, p.stock + batchEditForm.stockAdjustment)
+        }
+        
+        return productUpdate
+      })
       
-      merchantAPI.batchUpdateProducts(productIds, updateData).then(() => {
+      merchantAPI.batchUpdateProducts(productsToUpdate).then(() => {
         // 更新本地数据
         const productList = this.data.productList.map(item => {
           const selectedProduct = selectedProducts.find(p => p.id === item.id)
