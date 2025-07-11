@@ -134,6 +134,9 @@
         <button class="tool-btn batch-btn" bindtap="{{hasPermission ? 'onBatchOperation' : 'onLockedTap'}}">
           📝 批量操作
         </button>
+        <button class="tool-btn diagnostic-btn" bindtap="onRunDiagnostic">
+          🔍 诊断
+        </button>
       </view>
 
       <!-- 待审核列表 -->

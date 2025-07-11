@@ -399,26 +399,8 @@ Page({
   performExchange(product) {
     wx.showLoading({ title: '兑换中...' })
 
-    let exchangePromise
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟兑换
-      exchangePromise = new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            code: 0,
-            data: {
-              order_id: 'EX' + Date.now(),
-              product_id: product.id,
-              remaining_points: this.data.totalPoints - product.exchange_points,
-              status: 'success'
-            }
-          })
-        }, 1500)
-      })
-    } else {
-      // 生产环境调用真实接口
-      exchangePromise = exchangeAPI.redeem(product.id, 1)
-    }
+    // 🔴 删除违规代码：严禁使用模拟数据，所有兑换操作均通过后端真实API
+    const exchangePromise = exchangeAPI.redeem(product.id, 1)
 
     exchangePromise.then((result) => {
       wx.hideLoading()
@@ -437,10 +419,7 @@ Page({
       // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
       // ✅ 积分更新必须通过后端API同步
       
-      // 更新商品库存（模拟）
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        this.updateProductStock(product.id, product.stock - 1)
-      }
+      // 🔴 删除违规代码：商品库存更新由后端API处理，前端不进行模拟操作
       
       // 显示成功提示
       wx.showToast({
@@ -565,29 +544,8 @@ Page({
       // 显示兑换进度
       this.showExchangeProgress()
 
-      let exchangePromise
-      
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟兑换过程
-        console.log('🔧 模拟商品兑换流程')
-        exchangePromise = new Promise(resolve => setTimeout(resolve, 1500)).then(() => ({
-          code: 0,
-          data: {
-            order_id: 'ORDER_' + Date.now(),
-            product_name: selectedProduct.name,
-            quantity: exchangeQuantity,
-            points_cost: totalCost,
-            remaining_points: this.data.totalPoints - totalCost,
-            delivery_info: {
-              status: 'processing',
-              estimated_time: '3-5个工作日',
-              tracking_number: null
-            }
-          }
-        }))
-      } else {
-        exchangePromise = exchangeAPI.redeem(selectedProduct.id, exchangeQuantity)
-      }
+      // 🔴 删除违规代码：严禁使用模拟数据，所有商品兑换均通过后端真实API
+      const exchangePromise = exchangeAPI.redeem(selectedProduct.id, exchangeQuantity)
 
       exchangePromise.then((exchangeResult) => {
         console.log('🎉 商品兑换成功:', exchangeResult.data)

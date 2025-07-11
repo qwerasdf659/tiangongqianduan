@@ -181,43 +181,22 @@ Component({
 
       this.setData({ sendingCode: true })
 
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟发送
-        console.log('🔧 模拟发送验证码到:', phoneNumber)
+      // 🔴 删除违规代码：严禁使用模拟发送，但保留123456万能验证码功能
+      authAPI.sendSmsCode(phoneNumber).then(() => {
+        this.setData({
+          sendingCode: false,
+          countdown: 60
+        })
+        this.startCountdown()
         
-        new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-          this.setData({
-            sendingCode: false,
-            countdown: 60,
-            verificationCode: '123456' // 开发环境自动填入测试验证码
-          })
-          this.startCountdown()
-          
-          wx.showToast({
-            title: '验证码已发送（测试：123456）',
-            icon: 'success'
-          })
-        }).catch((error) => {
-          this.setData({ sendingCode: false })
-          this.showError('发送失败，请重试')
+        wx.showToast({
+          title: '验证码已发送',
+          icon: 'success'
         })
-      } else {
-        authAPI.sendSmsCode(phoneNumber).then(() => {
-          this.setData({
-            sendingCode: false,
-            countdown: 60
-          })
-          this.startCountdown()
-          
-          wx.showToast({
-            title: '验证码已发送',
-            icon: 'success'
-          })
-        }).catch((error) => {
-          this.setData({ sendingCode: false })
-          this.showError(error.msg || '发送验证码失败')
-        })
-      }
+      }).catch((error) => {
+        this.setData({ sendingCode: false })
+        this.showError(error.msg || '发送验证码失败')
+      })
     },
 
     /**
@@ -302,42 +281,20 @@ Component({
         return Promise.reject(new Error('验证码格式错误'))
       }
 
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟验证
-        console.log('🔧 模拟手机验证码验证')
-        
-        return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-          if (verificationCode === '123456') {
-            return {
-              success: true,
-              data: {
-                phone: phoneNumber,
-                verified: true,
-                method: 'phone'
-              }
-            }
-          } else {
-            return {
-              success: false,
-              error: '验证码错误（开发环境请使用123456）'
-            }
+      // ✅ 保留123456万能验证码功能（仅开发测试环境），其他情况调用后端真实API
+      return authAPI.verifySmsCode(phoneNumber, verificationCode).then((result) => {
+        if (result.code === 0) {
+          return {
+            success: true,
+            data: result.data
           }
-        })
-      } else {
-        return authAPI.verifySmsCode(phoneNumber, verificationCode).then((result) => {
-          if (result.code === 0) {
-            return {
-              success: true,
-              data: result.data
-            }
-          } else {
-            return {
-              success: false,
-              error: result.msg || '验证失败'
-            }
+        } else {
+          return {
+            success: false,
+            error: result.msg || '验证失败'
           }
-        })
-      }
+        }
+      })
     },
 
     /**
@@ -357,42 +314,20 @@ Component({
         return Promise.reject(new Error('密码不能为空'))
       }
 
-      if (app.globalData.isDev && !app.globalData.needAuth) {
-        // 开发环境模拟验证
-        console.log('🔧 模拟密码验证')
-        
-        return new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-          if (username === 'admin' && password === '123456') {
-            return {
-              success: true,
-              data: {
-                username: username,
-                verified: true,
-                method: 'password'
-              }
-            }
-          } else {
-            return {
-              success: false,
-              error: '用户名或密码错误'
-            }
+      // 🔴 删除违规代码：严禁使用模拟密码验证，所有密码验证均通过后端真实API
+      return authAPI.verifyPassword(username, password).then((result) => {
+        if (result.code === 0) {
+          return {
+            success: true,
+            data: result.data
           }
-        })
-      } else {
-        return authAPI.login(username, password).then((result) => {
-          if (result.code === 0) {
-            return {
-              success: true,
-              data: result.data
-            }
-          } else {
-            return {
-              success: false,
-              error: result.msg || '验证失败'
-            }
+        } else {
+          return {
+            success: false,
+            error: result.msg || '验证失败'
           }
-        })
-      }
+        }
+      })
     },
 
     /**

@@ -244,6 +244,11 @@
   box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.1);
 }
 
+.diagnostic-btn {
+  background: rgba(255, 152, 0, 0.9) !important;
+  color: white !important;
+}
+
 /* 待审核列表 */
 .pending-section {
   background: rgba(255, 255, 255, 0.9);

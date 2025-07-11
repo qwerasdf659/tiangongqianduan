@@ -75,12 +75,26 @@ Page({
   onLoad(options) {
     console.log('🔧 认证页面开始加载 - v2.1.3')
     
-    // 🔧 修复：使用安全的初始化流程
+    // 🚨 立即修复：强制超时保护，防止页面永久loading
+    setTimeout(() => {
+      if (!this.data.pageLoaded) {
+        console.warn('🚨 认证页面loading超时，强制设置为完成状态')
+        this.setData({ 
+          pageLoaded: true,
+          initError: null
+        })
+      }
+    }, 5000) // 5秒强制超时
+    
+    // 🔧 修复：使用安全的初始化方法
     try {
       this.safeInitPage()
     } catch (error) {
-      console.error('❌ 认证页面初始化失败:', error)
-      this.handleInitError(error)
+      console.error('❌ 页面加载异常:', error)
+      this.setData({ 
+        pageLoaded: true,
+        initError: '页面初始化异常：' + (error.message || error)
+      })
     }
   },
 
@@ -1071,11 +1085,11 @@ Page({
   },
 
   /**
-   * 🔧 修复：跳过登录（开发模式）
+   * 🚧 跳过登录（开发模式）
    */
   onSkipLogin() {
-    // 🔧 修复：只在开发模式下允许跳过登录
-    if (!this.data.isDevelopmentMode) {
+    // 🚨 严禁跳过登录 - 必须使用真实后端认证
+    if (!app.globalData.isDev) {
       wx.showToast({
         title: '当前环境不支持跳过登录',
         icon: 'none'
@@ -1083,28 +1097,13 @@ Page({
       return
     }
     
-    console.log('🚧 开发模式：跳过登录')
-    
-    // 🔧 修复：设置开发模式登录状态
-    const mockUserInfo = {
-      user_id: 999,
-      mobile: '138****0000',
-      nickname: '开发用户',
-      total_points: 1000,
-      is_merchant: false,
-      avatar: '',
-      status: 'active'
-    }
-    
-    const mockLoginData = {
-      access_token: 'dev_token_' + Date.now(),
-      refresh_token: 'dev_refresh_' + Date.now(),
-      expires_in: 7200,
-      user_info: mockUserInfo
-    }
-    
-    // 🔧 修复：处理开发模式登录成功
-    this.handleLoginSuccess(mockLoginData)
+    // 🔴 删除违规代码：严禁使用Mock用户数据
+    wx.showModal({
+      title: '开发模式提示',
+      content: '当前为开发模式，但根据项目安全规则，必须使用真实后端认证数据。\n\n请使用手机号码登录功能（支持123456万能验证码）。',
+      showCancel: false,
+      confirmText: '知道了'
+    })
   },
 
   /**

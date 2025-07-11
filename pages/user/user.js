@@ -158,6 +158,51 @@ Page({
   initPage() {
     console.log('🔄 开始初始化用户页面...')
     
+    // 🚨 立即修复：强制超时保护，防止页面永久loading
+    setTimeout(() => {
+      if (this.data.loading === true) {
+        console.warn('🚨 检测到页面loading超时，强制设置为完成状态')
+        this.setData({ loading: false })
+        
+        // 设置安全的默认数据，确保页面能正常显示
+        if (!this.data.userInfo || this.data.userInfo.nickname === '加载中...') {
+          this.safeSetData({
+            userInfo: {
+              user_id: 'timeout_user',
+              phone: '数据加载超时',
+              nickname: '点击下拉刷新',
+              level: 'VIP1',
+              avatar: '/images/default-avatar.png'
+            },
+            totalPoints: 0,
+            statistics: {
+              totalLottery: 0,
+              totalExchange: 0,
+              totalUpload: 0,
+              thisMonthPoints: 0,
+              lotteryTrend: '→',
+              exchangeTrend: '→',
+              uploadTrend: '→',
+              pointsTrend: '→'
+            }
+          })
+        }
+        
+        wx.showModal({
+          title: '🚨 前端页面加载超时',
+          content: '【问题诊断】用户页面数据加载超时\n\n【具体原因】\n1. 后端API服务异常 (主要原因)\n2. 网络连接超时\n3. 前端请求卡住\n\n【解决方案】\n• 立即可用：点击"继续使用"正常操作\n• 重新加载：下拉刷新页面\n• 联系支持：如果是后端API问题请联系后端程序员',
+          showCancel: true,
+          cancelText: '重新加载',
+          confirmText: '继续使用',
+          success: (res) => {
+            if (res.cancel) {
+              this.refreshUserData()
+            }
+          }
+        })
+      }
+    }, 8000) // 8秒强制超时
+
     // 🔧 修复：添加所有必要的初始化方法调用
     // 1. 初始化基础UI数据（这些不会失败）
     this.initMenuItems()
@@ -193,8 +238,16 @@ Page({
       console.log('🔐 初始化权限判断 v2.0 (工具类):', permissionStatus)
     }
     
-    // 3. 加载完整用户数据（添加错误处理）
-    this.loadUserData().catch((error) => {
+    // 3. 🚨 修复：限制API调用超时时间，加载完整用户数据（添加错误处理）
+    const loadDataTimeout = setTimeout(() => {
+      console.warn('🚨 API调用超时，停止loading状态')
+      this.setData({ loading: false })
+    }, 6000) // 6秒API超时
+    
+    this.loadUserData().then(() => {
+      clearTimeout(loadDataTimeout)
+    }).catch((error) => {
+      clearTimeout(loadDataTimeout)
       console.error('❌ 页面初始化失败:', error)
       
       // 🔧 修复：即使数据加载失败，也要确保页面能正常使用
@@ -241,10 +294,10 @@ Page({
       // 🔧 修复：显示友好的错误提示
       if (error.message === '数据加载超时') {
         wx.showModal({
-          title: '⏱️ 加载超时',
-          content: '数据加载时间过长，已自动取消。\n\n页面将显示默认状态，您可以：\n1. 点击功能菜单正常使用\n2. 下拉刷新重新加载数据\n3. 检查网络连接',
+          title: '🚨 后端API请求超时',
+          content: '【问题诊断】用户数据API请求超时\n\n【具体原因】\n• 后端API服务不可用 (最可能)\n• 网络连接断开\n• API响应时间过长\n\n【当前状态】\n✅ 页面功能菜单可正常使用\n⚠️ 用户数据显示默认值\n\n【解决方案】\n如果是后端问题请联系后端程序员检查API服务',
           showCancel: true,
-          cancelText: '稍后重试',
+          cancelText: '重新请求',
           confirmText: '继续使用',
           success: (res) => {
             if (res.cancel) {
@@ -1396,73 +1449,19 @@ Page({
    * 用于开发测试，确保页面能正常显示
    */
   testPageDisplay() {
-    console.log('🧪 开始测试页面显示...')
+    // 🔴 删除违规代码：严禁设置测试数据
+    console.log('🚨 测试功能已禁用 - 根据项目安全规则，严禁使用Mock数据')
     
-    // 设置测试数据
-    this.setData({
-      loading: false,
-      userInfo: {
-        user_id: 'test_123',
-        phone: '138****8888',
-        nickname: '测试用户',
-        level: 'VIP2',
-        total_points: 1250
-      },
-      totalPoints: 1250,
-      statistics: {
-        totalLottery: 5,
-        totalExchange: 3,
-        totalUpload: 8,
-        thisMonthPoints: 450,
-        lotteryTrend: '↑',
-        exchangeTrend: '→',
-        uploadTrend: '↑',
-        pointsTrend: '↑'
-      },
-      todayEarned: 120,
-      todayConsumed: 80,
-      pointsRecords: [
-        {
-          id: 1,
-          description: '上传小票奖励',
-          points: 50,
-          type: 'earn',
-          balance_after: 1250,
-          created_at: '2024-01-20 10:30:00'
-        },
-        {
-          id: 2,
-          description: '抽奖消费',
-          points: -30,
-          type: 'consume',
-          balance_after: 1200,
-          created_at: '2024-01-20 09:15:00'
-        }
-      ]
-    })
-    
-    // 更新成就
-    this.updateAchievements()
-    
-    console.log('✅ 测试数据设置完成')
-    
-    // 显示测试结果
     wx.showModal({
-      title: '🧪 页面测试完成',
-      content: `测试数据已加载：\n\n✅ 用户信息：已显示\n✅ 积分余额：1250分\n✅ 统计数据：已显示\n✅ 成就系统：已显示\n✅ 菜单项：已显示\n\n页面应该能正常显示了！`,
+      title: '功能已禁用',
+      content: '根据项目安全规则，已禁用测试数据功能。\n\n所有用户数据均来自后端真实API。\n\n如需获取数据，请下拉刷新页面。',
       showCancel: true,
-      cancelText: '清除测试',
-      confirmText: '知道了',
+      cancelText: '返回',
+      confirmText: '刷新数据',
       success: (res) => {
-        if (res.cancel) {
-          // 清除测试数据，恢复loading状态
-          this.setData({
-            loading: true,
-            userInfo: null,
-            totalPoints: 0
-          })
+        if (res.confirm) {
           // 重新加载真实数据
-          this.initPage()
+          this.refreshUserData()
         }
       }
     })

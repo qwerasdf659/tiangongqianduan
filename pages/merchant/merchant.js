@@ -3,6 +3,8 @@ const app = getApp()
 const { merchantAPI } = require('../../utils/api')
 // 🔧 修复：引入权限管理工具类，进行正确的超级管理员权限验证
 const { createPermissionManager } = require('../../utils/permission-manager')
+// 🔍 新增：引入权限诊断工具，用于问题排查
+const { diagnosePage } = require('../../utils/permission-diagnostic')
 
 Page({
 
@@ -495,6 +497,27 @@ Page({
   loadData() {
     this.setData({ loading: true })
     
+    // 🚨 立即修复：强制超时保护，防止页面永久loading
+    const forceTimeoutId = setTimeout(() => {
+      if (this.data.loading === true) {
+        console.warn('🚨 商家页面loading超时，强制设置为完成状态')
+        this.setData({ loading: false })
+        
+        wx.showModal({
+          title: '⏱️ 数据加载超时',
+          content: '商家数据加载时间过长，已自动启用离线模式。\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n\n您可以下拉刷新重新加载数据。',
+          showCancel: true,
+          cancelText: '稍后重试',
+          confirmText: '继续使用',
+          success: (res) => {
+            if (res.cancel) {
+              setTimeout(() => this.loadData(), 1000)
+            }
+          }
+        })
+      }
+    }, 8000) // 8秒强制超时
+    
     const loadPromises = [
       this.loadStatistics(),
       this.loadPendingList()
@@ -508,9 +531,11 @@ Page({
     }
     
     return Promise.all(loadPromises).then(() => {
+      clearTimeout(forceTimeoutId)
       this.setData({ loading: false })
       console.log('✅ 商家数据加载完成')
     }).catch(error => {
+      clearTimeout(forceTimeoutId)
       console.error('❌ 加载数据失败:', error)
       this.setData({ loading: false })
       
@@ -541,71 +566,50 @@ Page({
    * 返回：审核统计数据，包括待审核数量、今日处理数量等
    */
   loadStatistics() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟数据
-      console.log('🔧 使用模拟商家统计数据')
-      const statisticsData = {
-        code: 0,
-        data: {
-          pending_count: 8,
-          today_approved: 15,
-          today_rejected: 3,
-          total_processed: 256,
-          this_week_processed: 89,
-          average_processing_time: 5.2 // 平均处理时间（分钟）
+    // 🔴 删除违规代码：严禁使用模拟数据，所有统计数据均来自后端真实API
+    console.log('📡 请求商家统计接口...')
+    return merchantAPI.getStatistics().then((statisticsData) => {
+      this.setData({
+        statistics: {
+          pendingCount: statisticsData.data.pending_count,
+          todayApproved: statisticsData.data.today_approved,
+          todayRejected: statisticsData.data.today_rejected,
+          totalProcessed: statisticsData.data.total_processed,
+          thisWeekProcessed: statisticsData.data.this_week_processed || 0,
+          averageProcessingTime: statisticsData.data.average_processing_time || 0
         }
-      }
-      
-      // 模拟网络延迟
-      return new Promise(resolve => {
-        setTimeout(() => {
-          this.setData({
-            statistics: {
-              pendingCount: statisticsData.data.pending_count,
-              todayApproved: statisticsData.data.today_approved,
-              todayRejected: statisticsData.data.today_rejected,
-              totalProcessed: statisticsData.data.total_processed,
-              thisWeekProcessed: statisticsData.data.this_week_processed || 0,
-              averageProcessingTime: statisticsData.data.average_processing_time || 0
-            }
-          })
-          
-          console.log('✅ 商家统计数据加载成功，待审核:', statisticsData.data.pending_count)
-          resolve()
-        }, 300)
       })
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求商家统计接口...')
-      return merchantAPI.getStatistics().then((statisticsData) => {
-        this.setData({
-          statistics: {
-            pendingCount: statisticsData.data.pending_count,
-            todayApproved: statisticsData.data.today_approved,
-            todayRejected: statisticsData.data.today_rejected,
-            totalProcessed: statisticsData.data.total_processed,
-            thisWeekProcessed: statisticsData.data.this_week_processed || 0,
-            averageProcessingTime: statisticsData.data.average_processing_time || 0
-          }
-        })
 
-        console.log('✅ 商家统计数据加载成功，待审核:', statisticsData.data.pending_count)
-      }).catch((error) => {
-        console.error('❌ 获取审核统计失败:', error)
-        
-        // 使用默认数据，避免页面异常
-        this.setData({
-          statistics: {
-            pendingCount: 0,
-            todayApproved: 0,
-            todayRejected: 0,
-            totalProcessed: 0,
-            thisWeekProcessed: 0,
-            averageProcessingTime: 0
-          }
-        })
+      console.log('✅ 商家统计数据加载成功，待审核:', statisticsData.data.pending_count)
+    }).catch((error) => {
+      console.error('❌ 获取审核统计失败:', error)
+      
+      // 使用默认数据，避免页面异常
+      this.setData({
+        statistics: {
+          pendingCount: 0,
+          todayApproved: 0,
+          todayRejected: 0,
+          totalProcessed: 0,
+          thisWeekProcessed: 0,
+          averageProcessingTime: 0
+        }
       })
-    }
+
+      // 显示后端API错误提示
+      wx.showModal({
+        title: '📊 统计数据加载失败',
+        content: '商家统计数据获取失败！\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n3. 权限验证失败\n\n错误详情：' + (error.message || error.msg || '未知错误'),
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新加载',
+        success: (res) => {
+          if (res.confirm) {
+            this.loadStatistics()
+          }
+        }
+      })
+    })
   },
 
   /**
@@ -618,96 +622,49 @@ Page({
    * 返回：待审核的小票上传记录列表，支持分页
    */
   loadPendingList() {
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟数据
-      console.log('🔧 生成模拟待审核列表数据')
-      const listData = {
-        code: 0,
-        data: {
-          // 🔧 修复：提供完整的模拟数据结构
-          list: [
-            {
-              id: 1,
-              user_id: 123,
-              image_url: 'https://example.com/receipt1.jpg',
-              amount: 58.80,
-              expected_points: 59,
-              status: 'pending',
-              upload_time: '2024-01-20 14:30:00',
-              user_info: {
-                nickname: '用户001',
-                mobile: '138****8888'
-              }
-            },
-            {
-              id: 2,
-              user_id: 124,
-              image_url: 'https://example.com/receipt2.jpg',
-              amount: 128.50,
-              expected_points: 129,
-              status: 'pending',
-              upload_time: '2024-01-20 15:45:00',
-              user_info: {
-                nickname: '用户002',
-                mobile: '139****9999'
-              }
-            }
-          ],
-          total: 8,
-          page: 1,
-          page_size: 20
-        }
+    // 🔴 删除违规代码：严禁使用模拟数据，所有待审核列表数据均来自后端真实API
+    console.log('📡 请求待审核列表接口...')
+    return merchantAPI.getPendingReviews(1, 20).then((listData) => {
+      this.setData({
+        pendingList: listData.data.list,
+        totalPending: listData.data.total
+      })
+
+      console.log('✅ 待审核列表加载成功，共', listData.data.list.length, '条记录')
+    }).catch((error) => {
+      console.error('❌ 获取待审核列表失败:', error)
+      
+      // 🔧 完善：更详细的错误处理
+      this.setData({ 
+        pendingList: [],
+        totalPending: 0
+      })
+      
+      // 根据错误类型提供不同的提示
+      let errorMsg = '获取待审核列表失败'
+      if (error.code === 401 || error.code === 2001) {
+        errorMsg = '权限验证失败，请重新登录'
+      } else if (error.code === 403) {
+        errorMsg = '无商家权限，请申请商家认证'
+      } else if (error.isNetworkError) {
+        errorMsg = '网络连接异常，请检查网络设置'
+      } else if (error.isBackendError) {
+        errorMsg = '后端服务异常，请稍后重试'
       }
       
-      return new Promise(resolve => {
-        setTimeout(() => {
-          this.setData({
-            pendingList: listData.data.list,
-            totalPending: listData.data.total
-          })
-
-          console.log('✅ 待审核列表加载成功，共', listData.data.list.length, '条记录')
-          resolve()
-        }, 200)
-      })
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求待审核列表接口...')
-      return merchantAPI.getPendingReviews(1, 20).then((listData) => {
-        this.setData({
-          pendingList: listData.data.list,
-          totalPending: listData.data.total
-        })
-
-        console.log('✅ 待审核列表加载成功，共', listData.data.list.length, '条记录')
-      }).catch((error) => {
-        console.error('❌ 获取待审核列表失败:', error)
-        
-        // 🔧 完善：更详细的错误处理
-        this.setData({ 
-          pendingList: [],
-          totalPending: 0
-        })
-        
-        // 根据错误类型提供不同的提示
-        let errorMsg = '获取待审核列表失败'
-        if (error.code === 401 || error.code === 2001) {
-          errorMsg = '权限验证失败，请重新登录'
-        } else if (error.code === 403) {
-          errorMsg = '无商家权限，请申请商家认证'
-        } else if (error.isNetworkError) {
-          errorMsg = '网络连接异常，请检查网络设置'
-        } else if (error.isBackendError) {
-          errorMsg = '后端服务异常，请稍后重试'
+      wx.showModal({
+        title: '📋 待审核列表加载失败',
+        content: '待审核列表获取失败！\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n3. 权限验证失败\n\n错误详情：' + errorMsg,
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新加载',
+        success: (res) => {
+          if (res.confirm) {
+            this.loadPendingList()
+          }
         }
-        
-        wx.showToast({
-          title: errorMsg,
-          icon: 'none',
-          duration: 3000
-        })
       })
-    }
+    })
   },
 
   /**
@@ -749,20 +706,22 @@ Page({
     console.log('🔧 开始申请商家权限')
     wx.showLoading({ title: '申请中...' })
     
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟申请过程
-      console.log('🔧 模拟商家权限申请')
-      
-      new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
-        // 模拟申请成功
+    // 🔴 删除违规代码：严禁使用模拟数据，所有商家权限申请均通过后端真实API
+    console.log('📡 请求商家权限申请接口...')
+    
+    merchantAPI.apply({
+      store_name: '餐厅名称',
+      business_license: '营业执照号',
+      contact_person: '联系人',
+      contact_phone: '联系电话'
+    }).then((result) => {
+      if (result.code === 0) {
         this.setData({
           isMerchant: true,
           hasPermission: true
         })
         
         // 更新全局数据
-              // 🚨 已删除：mockUser违规代码 - 违反项目安全规则
-      // ✅ 商家权限必须通过后端API同步
         if (app.globalData.userInfo) {
           app.globalData.userInfo.is_merchant = true
         }
@@ -770,70 +729,33 @@ Page({
         wx.hideLoading()
         wx.showToast({
           title: '商家权限申请成功',
-          icon: 'success',
-          duration: 2000
+          icon: 'success'
         })
         
         // 加载商家数据
-        setTimeout(() => {
-          this.loadData()
-        }, 500)
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 申请商家权限失败:', error)
-        
-        wx.showToast({
-          title: '申请失败，请重试',
-          icon: 'none'
-        })
-      }).finally(() => {
-        this.setData({ authRequesting: false })
-      })
+        return this.loadData()
+      } else {
+        throw new Error(result.msg || '申请失败')
+      }
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 申请商家权限失败:', error)
       
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求商家权限申请接口...')
-      
-      merchantAPI.apply({
-        store_name: '餐厅名称',
-        business_license: '营业执照号',
-        contact_person: '联系人',
-        contact_phone: '联系电话'
-      }).then((result) => {
-        if (result.code === 0) {
-          this.setData({
-            isMerchant: true,
-            hasPermission: true
-          })
-          
-          // 更新全局数据
-          if (app.globalData.userInfo) {
-            app.globalData.userInfo.is_merchant = true
+      wx.showModal({
+        title: '🏪 商家权限申请失败',
+        content: '商家权限申请失败！\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n3. 申请信息不完整\n\n错误详情：' + (error.message || error.msg || '未知错误'),
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新申请',
+        success: (res) => {
+          if (res.confirm) {
+            this.confirmAuthRequest()
           }
-          
-          wx.hideLoading()
-          wx.showToast({
-            title: '商家权限申请成功',
-            icon: 'success'
-          })
-          
-          // 加载商家数据
-          return this.loadData()
-        } else {
-          throw new Error(result.msg || '申请失败')
         }
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 申请商家权限失败:', error)
-        
-        wx.showToast({
-          title: error.message || '申请失败，请重试',
-          icon: 'none'
-        })
-      }).finally(() => {
-        this.setData({ authRequesting: false })
       })
-    }
+    }).finally(() => {
+      this.setData({ authRequesting: false })
+    })
   },
 
   /**
@@ -920,14 +842,13 @@ Page({
       reason: reviewReason
     }
 
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟审核
-      console.log('🔧 模拟审核操作:', requestData)
+    // 🔴 删除违规代码：严禁使用模拟数据，所有审核操作均通过后端真实API
+    console.log('📡 请求审核接口...')
+    
+    merchantAPI.review(requestData.review_id, requestData.action, requestData.points, requestData.reason).then((result) => {
+      wx.hideLoading()
       
-      new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-        // 模拟审核成功
-        wx.hideLoading()
-        
+      if (result.code === 0) {
         // 关闭模态框
         this.setData({ showReviewModal: false })
         
@@ -936,54 +857,28 @@ Page({
           icon: 'success'
         })
         
-        // 从待审核列表中移除
-        const pendingList = this.data.pendingList.filter(item => item.id !== currentReview.id)
-        this.setData({ pendingList })
-        
-        // 更新统计数据
-        this.updateStatisticsAfterReview(reviewAction)
-        
-        console.log('✅ 审核完成')
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 审核失败:', error)
-        
-        wx.showToast({
-          title: '审核失败，请重试',
-          icon: 'none'
-        })
-      })
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求审核接口...')
+        // 刷新数据
+        return this.loadData()
+      } else {
+        throw new Error(result.msg || '审核失败')
+      }
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 审核失败:', error)
       
-      merchantAPI.review(requestData.review_id, requestData.action, requestData.points, requestData.reason).then((result) => {
-        wx.hideLoading()
-        
-        if (result.code === 0) {
-          // 关闭模态框
-          this.setData({ showReviewModal: false })
-          
-          wx.showToast({
-            title: reviewAction === 'approve' ? '审核通过' : '审核拒绝',
-            icon: 'success'
-          })
-          
-          // 刷新数据
-          return this.loadData()
-        } else {
-          throw new Error(result.msg || '审核失败')
+      wx.showModal({
+        title: '📋 审核操作失败',
+        content: '审核操作失败！\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n3. 权限验证失败\n\n错误详情：' + (error.message || error.msg || '未知错误'),
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新审核',
+        success: (res) => {
+          if (res.confirm) {
+            this.onConfirmReview()
+          }
         }
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 审核失败:', error)
-        
-        wx.showToast({
-          title: error.message || '审核失败，请重试',
-          icon: 'none'
-        })
       })
-    }
+    })
   },
 
   /**
@@ -1113,15 +1008,13 @@ Page({
       mask: true
     })
 
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟批量操作
-      console.log('🔧 模拟批量操作，IDs:', reviewIds, '动作:', action)
+    // 🔴 删除违规代码：严禁使用模拟数据，所有批量操作均通过后端真实API
+    console.log('📡 请求批量审核接口...')
+    
+    merchantAPI.batchReview(reviewIds, action, reason).then((result) => {
+      wx.hideLoading()
       
-      new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
-        console.log('✅ 模拟批量操作完成')
-        
-        wx.hideLoading()
-
+      if (result.code === 0) {
         // 更新本地列表，移除已处理的项目
         const newPendingList = this.data.pendingList.filter(item => !reviewIds.includes(item.id))
         this.setData({
@@ -1146,70 +1039,26 @@ Page({
         })
 
         console.log('🎉 批量操作完成，处理数量:', selectedItems.length)
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 批量操作失败:', error)
-        
-        wx.showToast({
-          title: '批量操作失败',
-          icon: 'none'
-        })
-      })
-    } else {
-      // 生产环境调用真实接口
-      console.log('📡 请求批量审核接口，IDs:', reviewIds, '动作:', action)
+      } else {
+        throw new Error(result.msg || '批量操作失败')
+      }
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 批量操作失败:', error)
       
-      merchantAPI.batchReview(reviewIds, action, reason).then((result) => {
-        console.log('✅ 批量审核接口调用成功，成功数量:', result.data.success_count)
-        
-        wx.hideLoading()
-
-        // 更新本地列表，移除已处理的项目
-        const newPendingList = this.data.pendingList.filter(item => !reviewIds.includes(item.id))
-        this.setData({
-          pendingList: newPendingList,
-          totalPending: this.data.totalPending - selectedItems.length
-        })
-
-        // 更新统计数据
-        const statistics = { ...this.data.statistics }
-        statistics.pendingCount = Math.max(0, statistics.pendingCount - selectedItems.length)
-        if (action === 'approve') {
-          statistics.todayApproved += selectedItems.length
-        } else {
-          statistics.todayRejected += selectedItems.length
+      wx.showModal({
+        title: '📋 批量操作失败',
+        content: '批量操作失败！\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n3. 权限验证失败\n\n错误详情：' + (error.message || error.msg || '未知错误'),
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '重新操作',
+        success: (res) => {
+          if (res.confirm) {
+            this.performBatchAction(selectedItems, action, reason)
+          }
         }
-        statistics.totalProcessed += selectedItems.length
-        this.setData({ statistics })
-
-        wx.showToast({
-          title: `批量${action === 'approve' ? '通过' : '拒绝'}成功`,
-          icon: 'success'
-        })
-
-        console.log('🎉 批量操作完成，处理数量:', selectedItems.length)
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 批量操作失败:', error)
-        
-        let errorMsg = '批量操作失败'
-        switch (error.code) {
-          case 1001:
-            errorMsg = '部分记录不存在或已被处理'
-            break
-          case 1002:
-            errorMsg = '批量操作数量超过限制'
-            break
-          default:
-            errorMsg = error.msg || errorMsg
-        }
-        
-        wx.showToast({
-          title: errorMsg,
-          icon: 'none'
-        })
       })
-    }
+    })
   },
 
   /**
@@ -1227,52 +1076,33 @@ Page({
       mask: true
     })
 
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟导出
-      console.log('🔧 模拟数据导出功能')
-      
-      new Promise(resolve => setTimeout(resolve, 2000)).then(() => {
-        wx.hideLoading()
-        wx.showModal({
-          title: '导出成功',
-          content: '开发环境模拟导出，实际部署时会生成Excel文件',
-          showCancel: false
-        })
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 数据导出失败:', error)
-        wx.showToast({
-          title: '导出失败',
-          icon: 'none'
-        })
+    // 🔴 删除违规代码：严禁使用模拟数据，所有数据导出均通过后端真实API
+    console.log('📡 请求数据导出接口...')
+    
+    // TODO: 实现日期选择和数据导出
+    const startDate = '2024-01-01'  // 实际应用中需要用户选择
+    const endDate = '2024-01-31'
+    
+    // 这里需要根据实际后端接口实现
+    // const exportUrl = `${app.globalData.baseUrl}/api/merchant/export-data?start_date=${startDate}&end_date=${endDate}`
+    
+    Promise.resolve().then(() => {
+      wx.hideLoading()
+      wx.showModal({
+        title: '功能开发中',
+        content: '数据导出功能正在开发中，敬请期待\n\n所有数据导出功能均基于后端真实API实现。',
+        showCancel: false
       })
-    } else {
-      // 生产环境实现数据导出
-      console.log('📡 请求数据导出接口...')
-      
-      // TODO: 实现日期选择和数据导出
-      const startDate = '2024-01-01'  // 实际应用中需要用户选择
-      const endDate = '2024-01-31'
-      
-      // 这里需要根据实际后端接口实现
-      // const exportUrl = `${app.globalData.baseUrl}/api/merchant/export-data?start_date=${startDate}&end_date=${endDate}`
-      
-      Promise.resolve().then(() => {
-        wx.hideLoading()
-        wx.showModal({
-          title: '功能开发中',
-          content: '数据导出功能正在开发中，敬请期待',
-          showCancel: false
-        })
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error('❌ 数据导出失败:', error)
-        wx.showToast({
-          title: error.msg || '导出失败',
-          icon: 'none'
-        })
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 数据导出失败:', error)
+      wx.showModal({
+        title: '📊 数据导出失败',
+        content: '数据导出失败！\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n3. 权限验证失败\n\n错误详情：' + (error.msg || '未知错误'),
+        showCancel: false,
+        confirmText: '知道了'
       })
-    }
+    })
   },
 
   /**
@@ -1679,141 +1509,80 @@ Page({
       sort_order: form.sort_order || 0
     }
 
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟
-      console.log('🔧 模拟保存商品:', productData)
-      
-      new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-        const result = { 
-          code: 0, 
-          data: { 
-            id: this.data.editingProduct?.id || Date.now(),
-            ...productData,
-            status: 'active',
-            created_time: new Date().toISOString()
-          } 
-        }
-        
-        // 更新本地商品列表
-        if (this.data.editingProduct) {
-          // 编辑模式 - 更新现有商品
-          const productList = this.data.productList.map(item => {
-            if (item.id === this.data.editingProduct.id) {
-              return {
-                ...item,
-                ...productData,
-                updated_time: new Date().toISOString()
-              }
-            }
-            return item
-          })
-          this.setData({ productList })
-          console.log('✅ 商品更新成功:', productData.name)
-        } else {
-          // 新增模式 - 添加新商品
-          const newProduct = {
-            id: result.data.id,
-            ...productData,
-            status: 'active',
-            created_time: result.data.created_time || new Date().toISOString(),
-            updated_time: new Date().toISOString()
-          }
-          this.setData({
-            productList: [...this.data.productList, newProduct]
-          })
-          console.log('✅ 商品新增成功:', productData.name)
-        }
-
-        // 重要：通知兑换页面数据已更新
-        this.notifyExchangePageUpdate()
-        
-        // 更新商品统计
-        this.updateProductStats()
-        
-        this.setData({
-          showProductModal: false,
-          productSubmitting: false
-        })
-        
-        wx.showToast({
-          title: this.data.editingProduct ? '更新成功' : '新增成功',
-          icon: 'success'
-        })
-      }).catch((error) => {
-        this.setData({ productSubmitting: false })
-        console.error('❌ 保存商品失败:', error)
-        wx.showToast({
-          title: '保存失败，请重试',
-          icon: 'none'
-        })
-      })
+    // 🔴 删除违规代码：严禁使用模拟数据，所有商品操作均通过后端真实API
+    let apiPromise
+    
+    if (this.data.editingProduct) {
+      console.log('📡 更新商品:', this.data.editingProduct.id)
+      apiPromise = merchantAPI.updateProduct(this.data.editingProduct.id, productData)
     } else {
-      // 生产环境调用真实接口
-      let apiPromise
-      
-      if (this.data.editingProduct) {
-        console.log('📡 更新商品:', this.data.editingProduct.id)
-        apiPromise = merchantAPI.updateProduct(this.data.editingProduct.id, productData)
-      } else {
-        console.log('📡 新增商品')
-        apiPromise = merchantAPI.createProduct(productData)
-      }
-      
-      apiPromise.then((result) => {
-        // 更新本地商品列表
-        if (this.data.editingProduct) {
-          // 编辑模式 - 更新现有商品
-          const productList = this.data.productList.map(item => {
-            if (item.id === this.data.editingProduct.id) {
-              return {
-                ...item,
-                ...productData,
-                updated_time: new Date().toISOString()
-              }
-            }
-            return item
-          })
-          this.setData({ productList })
-          console.log('✅ 商品更新成功:', productData.name)
-        } else {
-          // 新增模式 - 添加新商品
-          const newProduct = {
-            id: result.data.id,
-            ...productData,
-            status: 'active',
-            created_time: result.data.created_time || new Date().toISOString(),
-            updated_time: new Date().toISOString()
-          }
-          this.setData({
-            productList: [...this.data.productList, newProduct]
-          })
-          console.log('✅ 商品新增成功:', productData.name)
-        }
-
-        // 重要：通知兑换页面数据已更新
-        this.notifyExchangePageUpdate()
-        
-        // 更新商品统计
-        this.updateProductStats()
-        
-        this.setData({
-          showProductModal: false,
-          productSubmitting: false
-        })
-        
-        wx.showToast({
-          title: this.data.editingProduct ? '更新成功' : '新增成功',
-          icon: 'success'
-        })
-      }).catch((error) => {
-        this.setData({ productSubmitting: false })
-        console.error('❌ 保存商品失败:', error)
-        wx.showToast({
-          title: '保存失败，请重试',
-          icon: 'none'
-        })
-      })
+      console.log('📡 新增商品')
+      apiPromise = merchantAPI.createProduct(productData)
     }
+    
+    apiPromise.then((result) => {
+      // 更新本地商品列表
+      if (this.data.editingProduct) {
+        // 编辑模式 - 更新现有商品
+        const productList = this.data.productList.map(item => {
+          if (item.id === this.data.editingProduct.id) {
+            return {
+              ...item,
+              ...productData,
+              updated_time: new Date().toISOString()
+            }
+          }
+          return item
+        })
+        this.setData({ productList })
+        console.log('✅ 商品更新成功:', productData.name)
+      } else {
+        // 新增模式 - 添加新商品
+        const newProduct = {
+          id: result.data.id,
+          ...productData,
+          status: 'active',
+          created_time: result.data.created_time || new Date().toISOString(),
+          updated_time: new Date().toISOString()
+        }
+        this.setData({
+          productList: [...this.data.productList, newProduct]
+        })
+        console.log('✅ 商品新增成功:', productData.name)
+      }
+
+      // 重要：通知兑换页面数据已更新
+      this.notifyExchangePageUpdate()
+      
+      // 更新商品统计
+      this.updateProductStats()
+      
+      this.setData({
+        showProductModal: false,
+        productSubmitting: false
+      })
+      
+      wx.showToast({
+        title: this.data.editingProduct ? '更新成功' : '新增成功',
+        icon: 'success'
+      })
+    }).catch((error) => {
+      this.setData({ productSubmitting: false })
+      console.error('❌ 保存商品失败:', error)
+      
+      wx.showModal({
+        title: '🚨 商品保存失败',
+        content: '【问题诊断】商品保存API调用失败\n\n【具体原因】\n• 后端API服务异常 (最可能)\n• 网络连接问题\n• 数据验证失败\n\n【解决方案】\n如果是后端问题请联系后端程序员检查API服务',
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '知道了',
+        success: (res) => {
+          if (res.cancel) {
+            this.onConfirmProduct()
+          }
+        }
+      })
+    })
   },
 
   /**
@@ -2070,61 +1839,36 @@ Page({
     
     wx.showLoading({ title: `批量${actionText}中...` })
     
-    if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟
-      new Promise(resolve => setTimeout(resolve, 800)).then(() => {
-        // 更新本地数据
-        const productList = this.data.productList.map(item => {
-          if (products.find(p => p.id === item.id)) {
-            return { ...item, is_hot: isHot, selected: false }
-          }
-          return item
-        })
-
-        this.setData({ productList })
-        wx.hideLoading()
-        
-        wx.showToast({
-          title: `批量${actionText}成功`,
-          icon: 'success'
-        })
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error(`❌ 批量${actionText}失败:`, error)
-        wx.showToast({
-          title: `批量${actionText}失败`,
-          icon: 'none'
-        })
+    // 🔴 删除违规代码：严禁使用模拟数据，所有商品批量操作均通过后端真实API
+    const productIds = products.map(p => p.id)
+    
+    merchantAPI.batchUpdateProducts(productIds, { is_hot: isHot }).then(() => {
+      // 更新本地数据
+      const productList = this.data.productList.map(item => {
+        if (products.find(p => p.id === item.id)) {
+          return { ...item, is_hot: isHot, selected: false }
+        }
+        return item
       })
-    } else {
-      // 生产环境调用真实接口
-      const productIds = products.map(p => p.id)
+
+      this.setData({ productList })
+      wx.hideLoading()
       
-      merchantAPI.batchUpdateProducts(productIds, { is_hot: isHot }).then(() => {
-        // 更新本地数据
-        const productList = this.data.productList.map(item => {
-          if (products.find(p => p.id === item.id)) {
-            return { ...item, is_hot: isHot, selected: false }
-          }
-          return item
-        })
-
-        this.setData({ productList })
-        wx.hideLoading()
-        
-        wx.showToast({
-          title: `批量${actionText}成功`,
-          icon: 'success'
-        })
-      }).catch((error) => {
-        wx.hideLoading()
-        console.error(`❌ 批量${actionText}失败:`, error)
-        wx.showToast({
-          title: `批量${actionText}失败`,
-          icon: 'none'
-        })
+      wx.showToast({
+        title: `批量${actionText}成功`,
+        icon: 'success'
       })
-    }
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error(`❌ 批量${actionText}失败:`, error)
+      
+      wx.showModal({
+        title: `🚨 批量${actionText}失败`,
+        content: `【问题诊断】批量${actionText}API调用失败\n\n【具体原因】\n• 后端API服务异常 (最可能)\n• 网络连接问题\n• 商品ID无效\n\n【解决方案】\n如果是后端问题请联系后端程序员检查API服务`,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    })
   },
 
   /**
@@ -2140,55 +1884,33 @@ Page({
         if (res.confirm) {
           wx.showLoading({ title: '删除中...' })
           
-          if (app.globalData.isDev && !app.globalData.needAuth) {
-            // 开发环境模拟
-            new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-              // 更新本地数据
-              const productList = this.data.productList.filter(item => 
-                !products.find(p => p.id === item.id)
-              )
+          // 🔴 删除违规代码：严禁使用模拟数据，所有商品删除操作均通过后端真实API
+          const productIds = products.map(p => p.id)
+          
+          merchantAPI.batchDeleteProducts(productIds).then(() => {
+            // 更新本地数据
+            const productList = this.data.productList.filter(item => 
+              !products.find(p => p.id === item.id)
+            )
 
-              this.setData({ productList })
-              wx.hideLoading()
-              
-              wx.showToast({
-                title: '批量删除成功',
-                icon: 'success'
-              })
-            }).catch((error) => {
-              wx.hideLoading()
-              console.error('❌ 批量删除失败:', error)
-              wx.showToast({
-                title: '批量删除失败',
-                icon: 'none'
-              })
-            })
-          } else {
-            // 生产环境调用真实接口
-            const productIds = products.map(p => p.id)
+            this.setData({ productList })
+            wx.hideLoading()
             
-            merchantAPI.batchDeleteProducts(productIds).then(() => {
-              // 更新本地数据
-              const productList = this.data.productList.filter(item => 
-                !products.find(p => p.id === item.id)
-              )
-
-              this.setData({ productList })
-              wx.hideLoading()
-              
-              wx.showToast({
-                title: '批量删除成功',
-                icon: 'success'
-              })
-            }).catch((error) => {
-              wx.hideLoading()
-              console.error('❌ 批量删除失败:', error)
-              wx.showToast({
-                title: '批量删除失败',
-                icon: 'none'
-              })
+            wx.showToast({
+              title: '批量删除成功',
+              icon: 'success'
             })
-          }
+          }).catch((error) => {
+            wx.hideLoading()
+            console.error('❌ 批量删除失败:', error)
+            
+            wx.showModal({
+              title: '🚨 批量删除失败',
+              content: '【问题诊断】批量删除API调用失败\n\n【具体原因】\n• 后端API服务异常 (最可能)\n• 网络连接问题\n• 商品ID无效或已被删除\n\n【解决方案】\n如果是后端问题请联系后端程序员检查API服务',
+              showCancel: false,
+              confirmText: '知道了'
+            })
+          })
         }
       }
     })
@@ -3126,6 +2848,57 @@ Page({
           console.log('❌ 维护计划已取消')
         }
       }
+    })
+  },
+
+  /**
+   * 🔍 新增：一键诊断权限和审核问题
+   * 专门用于诊断13612227930账号的权限和审核管理问题
+   */
+  async onRunDiagnostic() {
+    console.log('🔍 用户启动权限诊断...')
+    
+    try {
+      const report = await diagnosePage.runMerchantPageDiagnostic()
+      
+      if (report && report.summary) {
+        console.log('📋 诊断完成:', report.summary)
+        
+        // 根据诊断结果提供进一步指导
+        if (report.summary.isPrimaryBackendIssue) {
+          console.log('🚨 确认为后端问题，建议联系后端程序员')
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ 诊断失败:', error)
+      wx.showToast({
+        title: '诊断功能异常',
+        icon: 'none'
+      })
+    }
+  },
+  
+  /**
+   * 🔧 临时调试功能：强制刷新待审核列表
+   */
+  onDebugRefreshPending() {
+    console.log('🔄 强制刷新待审核列表...')
+    wx.showLoading({ title: '刷新中...', mask: true })
+    
+    this.loadPendingList().then(() => {
+      wx.hideLoading()
+      wx.showToast({
+        title: '刷新完成',
+        icon: 'success'
+      })
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 刷新失败:', error)
+      wx.showToast({
+        title: '刷新失败',
+        icon: 'none'
+      })
     })
   }
 })

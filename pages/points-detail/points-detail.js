@@ -162,8 +162,8 @@ Page({
           if (res.confirm) {
             wx.navigateBack()
           } else {
-            // 生成测试数据
-            this.generateTestData()
+            // 🔴 删除违规代码：严禁生成测试数据
+            console.log('用户选择稍后重试，保持当前状态')
           }
         }
       })
@@ -254,64 +254,6 @@ Page({
   },
 
   /**
-   * 生成测试数据
-   */
-  generateTestData() {
-    const testRecords = [
-      {
-        id: 'test_' + Date.now(),
-        description: '上传小票奖励',
-        points: 50,
-        balance_after: 1250,
-        created_at: '2024-01-20 10:30:00'
-      },
-      {
-        id: 'test_' + (Date.now() + 1),
-        description: '抽奖消费',
-        points: -30,
-        balance_after: 1220,
-        created_at: '2024-01-20 09:15:00'
-      },
-      {
-        id: 'test_' + (Date.now() + 2),
-        description: '新用户注册奖励',
-        points: 100,
-        balance_after: 1320,
-        created_at: '2024-01-20 08:00:00'
-      },
-      {
-        id: 'test_' + (Date.now() + 3),
-        description: '商品兑换',
-        points: -80,
-        balance_after: 1240,
-        created_at: '2024-01-19 16:45:00'
-      },
-      {
-        id: 'test_' + (Date.now() + 4),
-        description: '邀请好友奖励',
-        points: 200,
-        balance_after: 1440,
-        created_at: '2024-01-19 14:20:00'
-      }
-    ]
-    
-    this.setData({
-      pointsRecords: testRecords,
-      hasMoreRecords: false,
-      lastUpdateTime: new Date().toLocaleString()
-    })
-    
-    this.filterPointsRecords()
-    
-    wx.showToast({
-      title: '已生成测试数据',
-      icon: 'success'
-    })
-    
-    console.log('✅ 测试数据生成完成:', testRecords.length, '条记录')
-  },
-
-  /**
    * 格式化时间显示
    */
   formatTime(timeString) {
@@ -347,6 +289,7 @@ Page({
    * 测试功能
    */
   onTestTap() {
-    this.generateTestData()
+    // 🔴 删除违规代码：严禁生成测试数据
+    console.log('测试功能已禁用，所有积分记录数据均来自后端API')
   }
 }) 

@@ -1,7 +1,7 @@
 ---
-description:
-globs:
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 # 🚨 PowerShell语法强制检查器 - 核心执行规则
 

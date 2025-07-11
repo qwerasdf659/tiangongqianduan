@@ -272,6 +272,34 @@ Page({
       isButtonVisible: false
     })
     
+    // 🚨 立即修复：强制超时保护，防止页面永久loading
+    const forceTimeoutId = setTimeout(() => {
+      if (this.data.loadingConfig === true) {
+        console.warn('🚨 抽奖页面loading超时，强制设置为完成状态')
+        this.safeSetData({
+          loadingConfig: false,
+          backendConnected: false,
+          wheelReady: false,
+          isButtonVisible: true
+        })
+        
+        wx.showModal({
+          title: '⏱️ 抽奖配置加载超时',
+          content: '抽奖配置加载时间过长，已启用离线模式。\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n\n抽奖功能需要后端支持，请检查后端服务状态。',
+          showCancel: true,
+          cancelText: '返回首页',
+          confirmText: '重试加载',
+          success: (res) => {
+            if (res.confirm) {
+              this.initPage()
+            } else {
+              wx.switchTab({ url: '/pages/index/index' })
+            }
+          }
+        })
+      }
+    }, 10000) // 10秒强制超时
+    
     // 🔴 优先从全局获取用户信息
     if (app.globalData.userInfo) {
       this.safeSetData({
@@ -287,6 +315,7 @@ Page({
         return this.loadLotteryConfig()
       })
       .then(() => {
+        clearTimeout(forceTimeoutId)
         console.log('✅ 抽奖配置加载完成，页面初始化成功')
         this.safeSetData({
           loadingConfig: false,
@@ -301,6 +330,7 @@ Page({
         }, 100)
       })
       .catch((error) => {
+        clearTimeout(forceTimeoutId)
         console.error('❌ 页面初始化失败:', error)
         this.handleBackendError(error)
       })
@@ -1312,40 +1342,25 @@ Page({
         today_count = this.data.todayDrawCount + count
         
       } else {
-        // 🔧 修复：后端返回空结果或错误格式时，生成模拟结果
-        console.warn('⚠️ 后端返回的抽奖结果格式异常或为空，生成模拟结果')
+        // 🔴 删除违规代码：严禁生成模拟抽奖结果
+        console.error('❌ 后端返回的抽奖结果格式异常或为空，无法继续')
         
-        // 🔧 生成模拟的多连抽结果
-        results = []
-        for (let i = 0; i < count; i++) {
-          // 随机选择一个奖品
-          const randomIndex = Math.floor(Math.random() * this.data.prizes.length)
-          const prize = this.data.prizes[randomIndex]
-          
-          results.push({
-            prize_id: prize.prize_id,
-            prize_name: prize.prize_name,
-            prize_desc: prize.prize_desc || '',
-            prize_type: prize.prize_type,
-            prize_value: prize.prize_value,
-            is_near_miss: false,
-            points: prize.prize_type === 'points' ? parseInt(prize.prize_value) : 0,
-            quantity: 1
-          })
-        }
+        // 🔧 恢复抽奖状态，允许用户重试
+        this.safeSetData({ isDrawing: false })
         
-        console.log(`🔧 生成${count}个模拟抽奖结果:`, results)
-        
-        // 🔧 修复：正确扣除积分
-        user_points = this.data.totalPoints - needPoints
-        today_count = this.data.todayDrawCount + count
-        
-        // 显示提示
-        wx.showToast({
-          title: '后端数据异常，使用模拟结果',
-          icon: 'none',
-          duration: 2000
+        wx.showModal({
+          title: '抽奖数据异常',
+          content: '后端返回的抽奖结果格式异常，请稍后重试。\n\n如果问题持续存在，请联系客服。',
+          showCancel: true,
+          cancelText: '稍后重试',
+          confirmText: '联系客服',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              this.onContactService()
+            }
+          }
         })
+        return
       }
       
       // 🔧 修复：确保积分正确扣除
