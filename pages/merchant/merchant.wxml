@@ -1,13 +1,13 @@
 <!--pages/merchant/merchant.wxml-->
 <view class="merchant-container">
-  <!-- 非商家用户 - 权限申请 -->
-  <view class="auth-request" wx:if="{{!isMerchant && !loading}}">
-    <view class="auth-card">
-      <view class="auth-icon">🏪</view>
-      <text class="auth-title">申请商家权限</text>
-      <text class="auth-desc">成为商家后，您可以审核用户上传的小票并管理积分发放</text>
+  <!-- 🔴 权限简化v2.2.0：权限不足提示 -->
+  <view class="permission-denied" wx:if="{{!isAdmin && !loading}}">
+    <view class="denied-card">
+      <view class="denied-icon">🔐</view>
+      <text class="denied-title">需要管理员权限</text>
+      <text class="denied-desc">此功能仅限管理员使用，如需管理员权限请联系系统管理员</text>
       
-      <view class="auth-features">
+      <view class="denied-features">
         <view class="feature-item">
           <text class="feature-icon">✅</text>
           <text class="feature-text">审核小票上传</text>
@@ -21,8 +21,8 @@
           <text class="feature-text">查看审核统计</text>
         </view>
         <view class="feature-item">
-          <text class="feature-icon">📞</text>
-          <text class="feature-text">联系用户</text>
+          <text class="feature-icon">🎰</text>
+          <text class="feature-text">抽奖配置管理</text>
         </view>
         <view class="feature-item">
           <text class="feature-icon">🛍️</text>
@@ -31,23 +31,22 @@
       </view>
       
       <button 
-        class="auth-btn"
-        bindtap="onRequestAuth"
-        disabled="{{authRequesting}}"
+        class="back-btn"
+        bindtap="onNavigateBack"
       >
-        {{authRequesting ? '申请中...' : '申请商家权限'}}
+        返回首页
       </button>
     </view>
   </view>
 
-  <!-- 商家管理界面 -->
-  <view class="merchant-main" wx:if="{{isMerchant && !loading}}">
+  <!-- 管理员功能界面 -->
+  <view class="merchant-main" wx:if="{{isAdmin && !loading}}">
     <!-- 权限锁定遮罩 -->
     <view class="permission-lock" wx:if="{{!hasPermission}}">
       <view class="lock-overlay"></view>
       <view class="lock-content">
         <view class="lock-icon">🔐</view>
-        <text class="lock-title">商家功能已锁定</text>
+        <text class="lock-title">管理功能已锁定</text>
         <text class="lock-desc">为保护您的账户安全，请先完成身份验证</text>
         <button class="unlock-btn" bindtap="onUnlockPermission">
           🔓 解锁功能
@@ -63,8 +62,8 @@
     <!-- 页面头部 -->
     <view class="header {{!hasPermission ? 'locked' : ''}}">
       <view class="user-info">
-        <text class="welcome">🏪 商家管理</text>
-        <text class="merchant-badge">{{hasPermission ? '已验证' : '未验证'}}</text>
+        <text class="welcome">⚙️ 管理员功能</text>
+        <text class="admin-badge">{{hasPermission ? '已验证' : '未验证'}}</text>
       </view>
       
       <!-- 权限状态指示器 -->

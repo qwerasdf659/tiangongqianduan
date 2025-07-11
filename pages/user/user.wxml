@@ -1,4 +1,4 @@
-<!--pages/user/user.wxml-->
+<!--pages/user/user.wxml - 权限简化版v2.2.0-->
 <view class="user-container">
   <!-- 用户信息卡片 -->
   <view class="user-card">
@@ -48,8 +48,6 @@
       </view>
     </view>
   </view>
-
-  
 
   <!-- 成就系统 -->
   <view class="achievements-section" wx:if="{{!loading}}">
@@ -154,15 +152,21 @@
         🧪 测试页面显示
       </button>
       <text class="test-tips">开发测试用，验证页面修复效果</text>
+      
+      <!-- 🔧 权限诊断按钮：用于诊断管理员权限问题 -->
+      <button class="permission-diagnostic-btn" bindtap="diagnosePermissionStatus">
+        🔐 权限状态诊断
+      </button>
+      <text class="diagnostic-tips">诊断管理员功能按钮显示问题</text>
     </view>
   </view>
 
-  <!-- 商家入口 - 🔐 仅管理员可见 -->
-  <view class="merchant-entrance" wx:if="{{showMerchantEntrance}}">
-    <button class="merchant-btn" bindtap="onMerchantEntrance">
-      🏪 商家管理
+  <!-- 🔴 权限简化v2.2.0：管理员功能入口 - 仅管理员可见 -->
+  <view class="admin-entrance" wx:if="{{showAdminEntrance}}">
+    <button class="admin-btn" bindtap="onAdminEntrance">
+      ⚙️ 管理员功能
     </button>
-    <text class="merchant-desc">商家权限申请与管理</text>
+    <text class="admin-desc">系统管理、审核管理、数据统计</text>
     <view class="admin-badge">
       <text class="admin-text">🔐 管理员专用</text>
     </view>
@@ -170,8 +174,8 @@
 
   <!-- 版本信息 -->
   <view class="version-info">
-    <text class="version-text">餐厅积分抽奖系统 v1.2.0</text>
+    <text class="version-text">餐厅积分抽奖系统 v2.2.0</text>
     <text class="copyright">© 2024 All Rights Reserved</text>
-    <text class="update-time">最后更新：{{lastUpdateTime}}</text>
+    <text class="update-time">权限简化版 - 最后更新：{{lastUpdateTime}}</text>
   </view>
 </view>

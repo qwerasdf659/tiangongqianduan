@@ -1,4 +1,4 @@
-<!--pages/camera/camera.wxml-->
+<!--pages/camera/camera.wxml - 权限简化版v2.2.0-->
 <view class="camera-container">
   <!-- 页面头部 -->
   <view class="header">
@@ -11,7 +11,7 @@
     </view>
   </view>
 
-  <!-- 上传表单 -->
+  <!-- 🔴 权限简化v2.2.0：简化上传表单 -->
   <view class="upload-section">
     <!-- 图片上传区域 -->
     <view class="image-upload">
@@ -73,7 +73,7 @@
     </view>
   </view>
 
-  <!-- 积分说明 -->
+  <!-- 🔴 权限简化v2.2.0：更新积分说明 -->
   <view class="points-info-section">
     <view class="section-title">
       <text>💡 积分规则说明</text>
@@ -81,11 +81,11 @@
     <view class="info-content">
       <view class="info-item">
         <text class="info-icon">📋</text>
-        <text class="info-text">上传小票后由商家人工审核</text>
+        <text class="info-text">上传小票后由管理员人工审核</text>
       </view>
       <view class="info-item">
         <text class="info-icon">💰</text>
-        <text class="info-text">商家确认实际消费金额</text>
+        <text class="info-text">管理员确认实际消费金额</text>
       </view>
       <view class="info-item">
         <text class="info-icon">🎯</text>
@@ -172,14 +172,14 @@
     </view>
   </view>
 
-  <!-- 上传须知 -->
+  <!-- 🔴 权限简化v2.2.0：更新上传须知 -->
   <view class="notice-section">
     <view class="section-title">
       <text>⚠️ 上传须知</text>
     </view>
     <view class="notice-content">
       <view class="notice-item">• 请确保小票图片清晰可见，包含完整的消费信息</view>
-      <view class="notice-item">• 商家将根据小票内容确认实际消费金额</view>
+      <view class="notice-item">• 管理员将根据小票内容确认实际消费金额</view>
       <view class="notice-item">• 审核通过后积分将自动发放到您的账户</view>
       <view class="notice-item">• 如有问题请联系客服处理</view>
       <view class="notice-item">• 同一张小票不可重复上传</view>

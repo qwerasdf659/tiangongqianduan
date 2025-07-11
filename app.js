@@ -225,13 +225,13 @@ App({
     lastTokenVerifyTime: null,
     tokenVerifyInterval: 30000, // Token验证间隔30秒
     
-    // 🔴 数据库字段映射 - 根据数据库设计规范文档v2.1.3的7张核心表设计
+    // 🔴 数据库字段映射 - 根据权限简化v2.2.0的核心表设计
     dbFieldMapping: {
       user: {
         id: 'user_id',
         mobile: 'mobile',
         points: 'total_points',
-        isMerchant: 'is_merchant',
+        isAdmin: 'is_admin',    // 🔴 权限简化：只保留管理员权限字段
         nickname: 'nickname',
         avatar: 'avatar',
         wxOpenid: 'wx_openid',
@@ -1170,25 +1170,26 @@ App({
       return
     }
     
-    // 🔧 修复：标准化用户信息字段
+    // 🔧 修复：标准化用户信息字段（权限简化版v2.2.0）
     const standardizedUserInfo = {
       user_id: user_id,
       mobile: user_info.mobile || user_info.phone || '未知',
       nickname: user_info.nickname || user_info.nickName || user_info.name || `用户${user_id}`,
       total_points: parseInt(user_info.total_points || user_info.totalPoints || user_info.points || 0),
-      is_merchant: Boolean(user_info.is_merchant || user_info.isMerchant || false),
+      is_admin: Boolean(user_info.is_admin || user_info.isAdmin || false),  // 🔴 权限简化：只保留管理员权限
       avatar: user_info.avatar || user_info.avatarUrl || user_info.avatar_url || '',
       status: user_info.status || 'active',
       last_login: user_info.last_login || user_info.lastLogin || new Date().toISOString(),
       created_at: user_info.created_at || user_info.createdAt || user_info.createTime || new Date().toISOString()
     }
     
-    console.log('🔧 标准化用户信息:', {
+    console.log('🔧 标准化用户信息（权限简化版）:', {
       user_id: standardizedUserInfo.user_id,
       mobile: standardizedUserInfo.mobile,
       nickname: standardizedUserInfo.nickname,
       total_points: standardizedUserInfo.total_points,
-      is_merchant: standardizedUserInfo.is_merchant
+      is_admin: standardizedUserInfo.is_admin,
+      userType: standardizedUserInfo.is_admin ? '管理员' : '普通用户'
     })
     
     // 🔧 设置登录时间，启动验证冷却期

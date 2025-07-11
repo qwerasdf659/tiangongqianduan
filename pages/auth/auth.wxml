@@ -1,4 +1,4 @@
-<!--pages/auth/auth.wxml-->
+<!--pages/auth/auth.wxml - 权限简化版v2.2.0-->
 <view class="auth-container">
   <!-- 🔧 页面加载状态 -->
   <view class="loading-container" wx:if="{{!pageLoaded}}">
@@ -40,13 +40,13 @@
       <view class="decoration-circle circle-3"></view>
     </view>
 
-    <!-- 登录表单 -->
+    <!-- 🔴 权限简化v2.2.0：统一登录表单 -->
     <view class="auth-form">
       <!-- Logo和标题 -->
       <view class="header">
         <view class="logo">🎰</view>
-        <text class="title" bindtap="onTitleTap" data-tap-count="{{titleTapCount}}">餐厅积分抽奖</text>
-        <text class="subtitle">立即注册赚积分，精彩奖品等你拿</text>
+        <text class="title">餐厅积分抽奖</text>
+        <text class="subtitle">统一登录入口 - 支持用户和管理员</text>
       </view>
 
       <!-- 表单内容 -->
@@ -71,7 +71,7 @@
           <text class="error-tip" wx:if="{{formErrors.phone}}">{{formErrors.phone}}</text>
         </view>
 
-        <!-- 验证码输入 -->
+        <!-- 🔴 权限简化：验证码输入（支持万能验证码123456） -->
         <view class="input-group">
           <view class="input-label">
             <text class="label-text">验证码</text>
@@ -82,7 +82,7 @@
             <input 
               class="form-input"
               type="number"
-              placeholder="请输入验证码"
+              placeholder="开发环境请输入123456"
               value="{{code}}"
               bindinput="onCodeInput"
               maxlength="6"
@@ -96,6 +96,8 @@
             </button>
           </view>
           <text class="error-tip" wx:if="{{formErrors.code}}">{{formErrors.code}}</text>
+          <!-- 🔴 开发阶段提示 -->
+          <text class="dev-tip" wx:if="{{isDevelopmentMode}}">开发环境万能验证码：123456</text>
         </view>
 
         <!-- 用户协议 -->
@@ -111,7 +113,7 @@
           </checkbox-group>
         </view>
 
-        <!-- 提交按钮 -->
+        <!-- 🔴 权限简化：统一登录按钮 -->
         <button 
           class="submit-btn {{logging ? 'loading' : ''}}"
           disabled="{{logging}}"
@@ -120,6 +122,12 @@
           <text wx:if="{{!logging}}">立即登录</text>
           <text wx:if="{{logging}}">登录中...</text>
         </button>
+
+        <!-- 🔴 权限简化说明 -->
+        <view class="login-tips">
+          <text class="tips-text">💡 登录后根据权限自动识别用户类型</text>
+          <text class="tips-text">🔐 管理员用户将自动获得管理功能权限</text>
+        </view>
 
         <!-- 开发环境跳过登录 -->
         <button 
@@ -166,7 +174,7 @@
             <text class="section-content">
               用户通过上传消费小票可获得相应积分，积分可用于抽奖和商品兑换。积分获取规则如下：
               • 每消费1元可获得10积分
-              • 小票需通过商家审核
+              • 小票需通过管理员审核
               • 审核周期为1-3个工作日
             </text>
           </view>
@@ -210,87 +218,6 @@
     </view>
   </view>
 
-  <!-- 管理员登录弹窗 -->
-  <view class="admin-login-modal" wx:if="{{showAdminLogin}}">
-    <view class="modal-mask" bindtap="onCloseAdminLogin"></view>
-    <view class="admin-modal-content">
-      <view class="admin-modal-header">
-        <text class="admin-modal-title">🔒 管理员登录</text>
-        <view class="admin-close-btn" bindtap="onCloseAdminLogin">×</view>
-      </view>
-      
-      <view class="admin-modal-body">
-        <!-- 管理员账号输入 -->
-        <view class="admin-input-group">
-          <view class="admin-input-label">
-            <text class="admin-label-text">管理员账号</text>
-            <text class="required">*</text>
-          </view>
-          <view class="admin-input-wrapper {{adminFormErrors.username ? 'error' : ''}}">
-            <view class="admin-input-prefix">👤</view>
-            <input 
-              class="admin-form-input"
-              type="text"
-              placeholder="请输入管理员账号"
-              value="{{adminForm.username}}"
-              bindinput="onAdminUsernameInput"
-            />
-          </view>
-          <text class="admin-error-tip" wx:if="{{adminFormErrors.username}}">{{adminFormErrors.username}}</text>
-        </view>
-
-        <!-- 管理员密码输入 -->
-        <view class="admin-input-group">
-          <view class="admin-input-label">
-            <text class="admin-label-text">登录密码</text>
-            <text class="required">*</text>
-          </view>
-          <view class="admin-input-wrapper {{adminFormErrors.password ? 'error' : ''}}">
-            <view class="admin-input-prefix">🔐</view>
-            <input 
-              class="admin-form-input"
-              type="{{showAdminPassword ? 'text' : 'password'}}"
-              placeholder="请输入登录密码"
-              value="{{adminForm.password}}"
-              bindinput="onAdminPasswordInput"
-            />
-            <view class="admin-password-toggle" bindtap="onToggleAdminPassword">
-              {{showAdminPassword ? '🙈' : '👁'}}
-            </view>
-          </view>
-          <text class="admin-error-tip" wx:if="{{adminFormErrors.password}}">{{adminFormErrors.password}}</text>
-        </view>
-
-        <!-- 登录选项 -->
-        <view class="admin-options">
-          <checkbox-group bindchange="onAdminRememberChange">
-            <label class="admin-checkbox">
-              <checkbox value="remember" checked="{{adminForm.rememberLogin}}"/>
-              <text class="admin-checkbox-text">记住登录状态（7天）</text>
-            </label>
-          </checkbox-group>
-          
-          <view class="admin-dev-notice">
-            <text class="dev-notice-text">🚧 开发阶段：跳过短信验证</text>
-          </view>
-        </view>
-
-        <!-- 登录按钮 -->
-        <button 
-          class="admin-submit-btn {{adminSubmitting ? 'loading' : ''}}"
-          disabled="{{adminSubmitting}}"
-          bindtap="onAdminLogin"
-        >
-          <text wx:if="{{!adminSubmitting}}">登录管理后台</text>
-          <text wx:if="{{adminSubmitting}}">登录中...</text>
-        </button>
-
-        <!-- 安全提示 -->
-        <view class="admin-security-tips">
-          <text class="security-tip">💡 提示：登录失败3次将锁定30分钟</text>
-          <text class="security-tip">🛡️ 管理员登录受到严格的安全保护</text>
-        </view>
-      </view>
-    </view>
-  </view>
+  <!-- 🔴 权限简化v2.2.0：删除管理员独立登录弹窗 -->
+  <!-- 原有的admin-login-modal已删除，改为统一登录方式 -->
 </view>

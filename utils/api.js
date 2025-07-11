@@ -507,64 +507,143 @@ const exchangeAPI = {
   }
 }
 
-// 🔴 上传API
+/**
+ * 拍照上传相关API
+ */
 const uploadAPI = {
-  upload(filePath, userAmount) {
+  /**
+   * 🔴 权限简化v2.2.0：简化上传方法
+   * 用户只需上传照片，管理员审核时设置消费金额
+   */
+  uploadSimplified(filePath) {
     return new Promise((resolve, reject) => {
-      const app = getApp()
-      
-      if (!app.globalData.accessToken) {
+      if (!filePath) {
         reject({
-          code: 2001,
-          msg: '访问令牌缺失，请重新登录',
-          needsRelogin: true
+          code: 1001,
+          msg: '文件路径不能为空',
+          data: null
         })
         return
       }
 
-      const header = {}
-      if (app.globalData.accessToken) {
-        header['Authorization'] = `Bearer ${app.globalData.accessToken}`
+      const app = getApp()
+      
+      // 🔧 修复：检查基础配置
+      if (!app.globalData.baseUrl) {
+        reject({
+          code: 1004,
+          msg: '系统配置错误：API地址未设置',
+          data: null,
+          isBusinessError: true
+        })
+        return
       }
 
+      // 🔧 修复：检查用户登录状态
+      if (!app.globalData.accessToken) {
+        reject({
+          code: 1005,
+          msg: '用户未登录，请先登录',
+          data: null,
+          isBusinessError: true
+        })
+        return
+      }
+
+      const uploadUrl = app.globalData.baseUrl + '/api/photo/upload'
+      console.log('📤 简化上传API地址:', uploadUrl)
+
       wx.uploadFile({
-        url: app.globalData.baseUrl + '/photo/upload',
+        url: uploadUrl,
         filePath: filePath,
         name: 'photo',
-        formData: {
-          amount: userAmount
+        header: {
+          'Authorization': `Bearer ${app.globalData.accessToken}`,
+          'X-Client-Version': '2.2.0',
+          'X-Platform': 'wechat-miniprogram'
         },
-        header: header,
+        // 🔴 权限简化：不再发送amount参数
+        formData: {
+          // 可以添加其他非金额相关的参数
+        },
         success(res) {
-          try {
-            const data = JSON.parse(res.data)
-            if (data.code === 0) {
-              resolve(data)
-            } else {
+          console.log('📱 简化上传文件响应:', {
+            statusCode: res.statusCode,
+            data: res.data
+          })
+
+          if (res.statusCode === 200) {
+            try {
+              const responseData = JSON.parse(res.data)
+              
+              if (responseData.code === 0) {
+                console.log('✅ 简化上传成功:', responseData)
+                resolve(responseData)
+              } else {
+                console.error('❌ 简化上传业务错误:', responseData)
+                reject({
+                  code: responseData.code,
+                  msg: responseData.msg || '上传失败',
+                  data: responseData.data,
+                  isBusinessError: true
+                })
+              }
+            } catch (parseError) {
+              console.error('❌ 简化上传响应解析失败:', parseError)
               reject({
-                code: data.code,
-                msg: data.msg || '上传失败',
-                isBackendError: true
+                code: 1006,
+                msg: '服务器响应格式错误',
+                data: null,
+                isBusinessError: true
               })
             }
-          } catch (parseError) {
+          } else {
+            console.error('❌ 简化上传HTTP状态错误:', res.statusCode)
             reject({
-              code: -1,
-              msg: '响应解析失败',
-              isBackendError: true
+              code: res.statusCode,
+              msg: `HTTP ${res.statusCode} 错误`,
+              data: null,
+              isBusinessError: true
             })
           }
         },
         fail(err) {
+          console.error('❌ 简化上传请求失败:', err)
+          
+          // 🔧 修复：增强网络错误处理
+          let errorMessage = '网络请求失败'
+          let isNetworkError = true
+          
+          if (err.errMsg) {
+            if (err.errMsg.includes('timeout')) {
+              errorMessage = '上传超时，请检查网络连接'
+            } else if (err.errMsg.includes('fail')) {
+              errorMessage = '网络连接失败，请重试'
+            } else {
+              errorMessage = err.errMsg
+            }
+          }
+          
           reject({
             code: -1,
-            msg: '上传失败',
-            isNetworkError: true,
-            originalError: err
+            msg: errorMessage,
+            data: null,
+            isNetworkError: isNetworkError,
+            errMsg: err.errMsg,
+            uploadUrl: uploadUrl
           })
         }
       })
     })
+  },
+
+  /**
+   * 🔴 保留原有上传方法（向后兼容）
+   */
+  upload(filePath, userAmount) {
+    // 🔴 权限简化：重定向到简化上传方法
+    console.warn('⚠️ 使用了已废弃的upload方法，自动重定向到简化上传')
+    return this.uploadSimplified(filePath)
   },
 
   getRecords(page = 1, pageSize = 20, status = 'all', forceRefresh = false) {
@@ -731,40 +810,46 @@ const merchantAPI = {
     })
   },
 
-  getStatistics() {
+  getStatistics(period = 'today') {
     return request({
       url: '/merchant/statistics',
       method: 'GET',
+      data: { period },
       needAuth: true
     })
   },
 
-  // 🔧 新增：获取待审核列表
-  getPendingReviews(page = 1, pageSize = 20) {
+  // 🔧 修正：获取待审核列表 - 严格按照接口文档规范
+  getPendingReviews(page = 1, limit = 20, status = 'pending') {
     return request({
       url: '/merchant/pending-reviews',
       method: 'GET',
-      data: { page, page_size: pageSize },
+      data: { page, limit, status },
       needAuth: true
     })
   },
 
-  // 🔧 新增：审核单个小票
-  review(reviewId, action, points = 0, reason = '') {
+  // 🔧 修正：审核单个小票 - 严格按照接口文档规范
+  review(upload_id, action, amount = 0, review_reason = '') {
     return request({
-      url: `/merchant/review/${reviewId}`,
+      url: '/merchant/review',
       method: 'POST',
-      data: { action, points, reason },
+      data: { 
+        upload_id: upload_id,
+        action: action,
+        amount: amount,
+        review_reason: review_reason
+      },
       needAuth: true
     })
   },
 
-  // 🔧 新增：批量审核小票
-  batchReview(reviewIds, action, reason = '') {
+  // 🔧 修正：批量审核小票 - 严格按照接口文档规范
+  batchReview(reviews) {
     return request({
       url: '/merchant/batch-review',
       method: 'POST',
-      data: { review_ids: reviewIds, action, reason },
+      data: { reviews: reviews },
       needAuth: true
     })
   },

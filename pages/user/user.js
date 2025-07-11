@@ -1,7 +1,6 @@
-// pages/user/user.js - 用户中心页面逻辑
+// pages/user/user.js - 用户中心页面逻辑（权限简化版v2.2.0）
 const app = getApp()
 const { userAPI } = require('../../utils/api')
-const { createPermissionManager } = require('../../utils/permission-manager')
 
 Page({
 
@@ -13,10 +12,9 @@ Page({
     userInfo: null,
     totalPoints: 0,
     
-    // 🔐 权限控制 - 新增管理员权限判断
-    isAdmin: false,        // 管理员权限标识
-    isMerchant: false,     // 商家权限标识
-    showMerchantEntrance: false, // 是否显示商家管理入口
+    // 🔴 权限简化v2.2.0：简化权限控制字段
+    isAdmin: false,               // 🔴 唯一权限标识
+    showAdminEntrance: false,     // 🔴 是否显示管理员功能入口
     
     // 统计信息
     userStats: {
@@ -92,7 +90,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    console.log('用户中心页面加载')
+    console.log('用户中心页面加载 - 权限简化版v2.2.0')
     this.initPage()
   },
 
@@ -107,7 +105,14 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    console.log('用户中心页面显示')
+    console.log('用户中心页面显示 - 权限简化版v2.2.0')
+    
+    // 🔴 权限简化：每次页面显示时检查权限状态
+    const userInfo = app.globalData.userInfo
+    if (userInfo) {
+      this.checkAdminPermission(userInfo)
+    }
+    
     this.refreshUserData()
   },
 
@@ -153,10 +158,10 @@ Page({
   },
 
   /**
-   * 🔧 修复：正确的页面初始化 - 使用权限管理工具类
+   * 🔴 权限简化v2.2.0：修复页面初始化逻辑
    */
   initPage() {
-    console.log('🔄 开始初始化用户页面...')
+    console.log('🔄 开始初始化用户页面 - 权限简化版v2.2.0')
     
     // 🚨 立即修复：强制超时保护，防止页面永久loading
     setTimeout(() => {
@@ -201,61 +206,9 @@ Page({
           }
         })
       }
-    }, 8000) // 8秒强制超时
-
-    // 🔧 修复：添加所有必要的初始化方法调用
-    // 1. 初始化基础UI数据（这些不会失败）
-    this.initMenuItems()
-    this.initAchievements()
-    this.calculateTodayTrend()
+    }, 8000) // 8秒超时保护
     
-    // 2. 从全局获取用户信息并进行权限判断
-    const globalUserInfo = app.globalData.userInfo
-    if (globalUserInfo) {
-      const permissionManager = createPermissionManager(globalUserInfo)
-      const permissionStatus = permissionManager.getPermissionStatus()
-      
-      console.log('🔐 用户页面权限判断结果:', {
-        userInfo: {
-          user_id: globalUserInfo?.user_id,
-          mobile: globalUserInfo?.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
-          is_admin: globalUserInfo?.is_admin,
-          is_merchant: globalUserInfo?.is_merchant,
-          total_points: globalUserInfo?.total_points
-        },
-        permissionStatus: permissionStatus
-      })
-      
-      this.setData({
-        userInfo: globalUserInfo,
-        totalPoints: globalUserInfo.total_points || 0,
-        // 🔐 v2.0 权限状态
-        isAdmin: permissionStatus.isAdmin,
-        isMerchant: permissionStatus.isMerchant,
-        showMerchantEntrance: permissionStatus.showMerchantEntrance
-      })
-      
-      console.log('🔐 初始化权限判断 v2.0 (工具类):', permissionStatus)
-    }
-    
-    // 3. 🚨 修复：限制API调用超时时间，加载完整用户数据（添加错误处理）
-    const loadDataTimeout = setTimeout(() => {
-      console.warn('🚨 API调用超时，停止loading状态')
-      this.setData({ loading: false })
-    }, 6000) // 6秒API超时
-    
-    this.loadUserData().then(() => {
-      clearTimeout(loadDataTimeout)
-    }).catch((error) => {
-      clearTimeout(loadDataTimeout)
-      console.error('❌ 页面初始化失败:', error)
-      
-      // 🔧 修复：即使数据加载失败，也要确保页面能正常使用
-      // 页面已经有了基础UI（菜单、成就等），用户可以正常使用
-      console.log('✅ 页面基础功能已可用，数据加载失败不影响核心功能')
-    })
-    
-    console.log('✅ 用户页面初始化完成')
+    this.loadUserData()
   },
 
   /**
@@ -364,18 +317,18 @@ Page({
         : 0
       
       // 🔐 v2.0 使用权限管理工具类
-      const permissionManager = createPermissionManager(userInfo)
-      const permissionStatus = permissionManager.getPermissionStatus()
+      // const permissionManager = createPermissionManager(userInfo) // Removed as per v2.2.0
+      // const permissionStatus = permissionManager.getPermissionStatus() // Removed as per v2.2.0
       
       console.log('🔐 用户信息刷新 - 权限判断结果:', {
         userInfo: {
           user_id: userInfo?.user_id,
           mobile: userInfo?.mobile?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
           is_admin: userInfo?.is_admin,
-          is_merchant: userInfo?.is_merchant,
+          // is_merchant: userInfo?.is_merchant, // Removed as per v2.2.0
           total_points: totalPoints
         },
-        permissionStatus: permissionStatus
+        // permissionStatus: permissionStatus // Removed as per v2.2.0
       })
       
       console.log('💰 用户页面数据验证结果:', { 
@@ -384,14 +337,19 @@ Page({
         userInfoValid: !!userInfo
       })
       
+      // 🔴 权限简化v2.2.0：检查管理员权限
+      const isAdmin = userInfo.is_admin || false
+      
       this.safeSetData({
         userInfo: userInfo,
         totalPoints: totalPoints,
-        // 🔐 更新权限状态
-        isAdmin: permissionStatus.isAdmin,
-        isMerchant: permissionStatus.isMerchant,
-        showMerchantEntrance: permissionStatus.showMerchantEntrance
+        // 🔴 权限简化：更新权限状态
+        isAdmin: isAdmin,
+        showAdminEntrance: isAdmin
       })
+      
+      // 🔴 权限简化：更新菜单项
+      this.initMenuItems()
       
       // 🔧 更新全局数据
       app.globalData.userInfo = {
@@ -1076,61 +1034,64 @@ Page({
   },
 
   /**
-   * 初始化菜单项 - 根据产品功能结构文档调整
+   * 🔴 权限简化v2.2.0：初始化菜单项
    */
   initMenuItems() {
+    const userInfo = app.globalData.userInfo
+    const isAdmin = userInfo ? (userInfo.is_admin || false) : false
+    
+    console.log('🔧 初始化菜单项 - 权限简化版:', { isAdmin })
+    
     const menuItems = [
-      { 
-        id: 'lottery-records', 
-        name: '抽奖记录', 
-        description: '查看所有抽奖历史',
-        icon: '🎰', 
-        path: '/pages/records/lottery-records',
-        color: '#FF6B35'
+      {
+        id: 'lottery-records',
+        title: '抽奖记录',
+        icon: '🎰',
+        desc: '查看我的抽奖历史',
+        url: '/pages/records/lottery-records',
+        isVisible: true
       },
-      { 
-        id: 'exchange-records', 
-        name: '兑换记录', 
-        description: '查看商品兑换历史',
-        icon: '🛍️', 
-        path: '/pages/records/exchange-records',
-        color: '#4ECDC4'
+      {
+        id: 'exchange-records',
+        title: '兑换记录',
+        icon: '🎁',
+        desc: '查看我的兑换历史',
+        url: '/pages/records/exchange-records',
+        isVisible: true
       },
-      { 
-        id: 'upload-records', 
-        name: '上传记录', 
-        description: '查看小票上传历史',
-        icon: '📸', 
-        path: '/pages/records/upload-records',
-        color: '#9C27B0'
+      {
+        id: 'upload-records',
+        title: '上传记录',
+        icon: '📷',
+        desc: '查看我的上传历史',
+        url: '/pages/records/upload-records',
+        isVisible: true
       },
-      { 
-        id: 'points-detail', 
-        name: '积分明细', 
-        description: '详细的积分收支记录',
-        icon: '💰', 
-        path: '/pages/points-detail/points-detail',
-        color: '#FFC107'
-      },
-      { 
-        id: 'contact-service', 
-        name: '联系客服', 
-        description: '获取帮助和支持',
-        icon: '💬', 
-        action: 'onContactService',
-        color: '#607D8B'
-      },
-      { 
-        id: 'feedback', 
-        name: '意见反馈', 
-        description: '提交建议和问题反馈',
-        icon: '📝', 
-        action: 'onFeedback',
-        color: '#795548'
+      {
+        id: 'points-detail',
+        title: '积分明细',
+        icon: '💎',
+        desc: '查看积分收支详情',
+        url: '/pages/points-detail/points-detail',
+        isVisible: true
       }
     ]
-
+    
+    // 🔴 权限简化：如果是管理员，添加管理功能入口
+    if (isAdmin) {
+      menuItems.push({
+        id: 'admin-management',
+        title: '管理员功能',
+        icon: '⚙️',
+        desc: '审核管理、系统配置',
+        url: '/pages/merchant/merchant',
+        isVisible: true,
+        isAdmin: true
+      })
+    }
+    
     this.setData({ menuItems })
+    console.log('✅ 菜单项初始化完成，共', menuItems.length, '个菜单项')
   },
 
   /**
@@ -1176,137 +1137,108 @@ Page({
   },
 
   /**
-   * 🔐 检查超级管理员权限
-   * v2.0 二元权限模型：必须同时拥有is_admin=true和is_merchant=true
+   * 🔴 权限简化v2.2.0：简化权限检查逻辑
    */
   checkAdminPermission(userInfo) {
     if (!userInfo) {
-      console.log('❌ 用户信息为空，拒绝权限')
+      console.log('⚠️ 用户信息为空，无法进行权限检查')
       return false
     }
+
+    // 🔴 权限简化：只检查is_admin字段
+    const isAdmin = userInfo.is_admin || false
     
-    // 🔐 二元权限验证：必须同时拥有管理员和商家权限
-    const isSuperAdmin = (userInfo.is_admin === true && userInfo.is_merchant === true)
-    
-    if (isSuperAdmin) {
-      console.log('✅ 超级管理员权限确认 - 同时拥有is_admin和is_merchant权限')
-      return true
-    }
-    
-    // 🔐 权限不足：记录详细的权限状态
-    console.log('❌ 权限不足，二元权限验证失败:', {
+    console.log('🔐 用户权限检查 - 权限简化版:', {
       user_id: userInfo.user_id,
-      is_admin: userInfo.is_admin,
-      is_merchant: userInfo.is_merchant,
-      isSuperAdmin: isSuperAdmin,
-      mobile: userInfo.mobile ? userInfo.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '无',
-      permissionModel: 'v2.0_binary_permission'
+      mobile: userInfo.mobile,
+      is_admin: isAdmin,
+      userType: isAdmin ? '管理员' : '普通用户'
     })
-    return false
+
+    // 🔴 权限简化：设置页面权限状态
+    this.setData({
+      isAdmin: isAdmin,
+      showAdminEntrance: isAdmin
+    })
+
+    return isAdmin
   },
 
   /**
-   * 商家管理入口
+   * 🔴 权限简化v2.2.0：管理员功能入口
    */
-  onMerchantEntrance() {
-    console.log('🏪 用户点击商家管理入口')
+  onAdminEntrance() {
+    const userInfo = app.globalData.userInfo
     
-    // 🔐 v2.0 使用权限管理工具类进行权限检查
-    const permissionManager = createPermissionManager(this.data.userInfo)
-    
-    if (!permissionManager.checkFeatureAccess('商家管理')) {
-      console.log('❌ 商家管理权限检查失败')
+    if (!userInfo) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      })
       return
     }
+
+    // 🔴 权限简化：检查管理员权限
+    const isAdmin = userInfo.is_admin || false
     
-    console.log('✅ 商家管理权限检查通过，开始跳转...')
+    if (!isAdmin) {
+      wx.showModal({
+        title: '🔐 权限不足',
+        content: '您没有管理员权限，无法访问管理功能。\n\n如需管理员权限，请联系系统管理员。',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      return
+    }
+
+    console.log('🔐 管理员权限验证通过，跳转到管理页面')
     
-    // 🔧 添加loading提示，改善用户体验
-    wx.showLoading({
-      title: '正在进入商家管理...',
-      mask: true
-    })
-    
-    // 🔧 优化：设置较长的超时时间，并添加更详细的错误处理
     wx.navigateTo({
       url: '/pages/merchant/merchant',
       success: () => {
-        wx.hideLoading()
-        console.log('✅ 成功跳转到商家管理页面')
+        console.log('✅ 成功跳转到管理员页面')
       },
       fail: (error) => {
-        wx.hideLoading()
-        console.error('❌ 跳转商家页面失败:', error)
-        
-        // 🔧 根据不同错误类型提供不同的解决方案
-        let errorMsg = '跳转失败，请重试'
-        let retryAction = null
-        
-        if (error.errMsg.includes('timeout')) {
-          errorMsg = '页面加载超时，可能是因为商家页面数据较多'
-          retryAction = () => {
-            // 延迟重试，给页面更多时间
-            setTimeout(() => {
-              this.retryMerchantNavigation()
-            }, 1000)
-          }
-        } else if (error.errMsg.includes('fail')) {
-          errorMsg = '页面跳转失败，请检查网络连接'
-        }
-        
-        wx.showModal({
-          title: '🚨 跳转商家管理失败',
-          content: `${errorMsg}\n\n详细错误：${error.errMsg}\n\n建议：\n• 检查网络连接状态\n• 稍后重试\n• 如果持续失败，请联系技术支持`,
-          showCancel: !!retryAction,
-          cancelText: '稍后重试',
-          confirmText: retryAction ? '立即重试' : '知道了',
-          success: (res) => {
-            if (res.confirm && retryAction) {
-              retryAction()
-            }
-          }
-        })
+        console.error('❌ 跳转管理员页面失败:', error)
+        this.retryAdminNavigation()
       }
     })
   },
 
   /**
-   * 🔧 新增：重试商家页面跳转
+   * 🔴 权限简化v2.2.0：重试管理员导航
    */
-  retryMerchantNavigation() {
-    console.log('🔄 重试跳转商家管理页面...')
+  retryAdminNavigation() {
+    console.log('🔄 重试跳转管理员页面...')
     
-    wx.showLoading({
-      title: '重试中...',
-      mask: true
-    })
-    
-    // 给商家页面更多加载时间
-    setTimeout(() => {
-      wx.navigateTo({
-        url: '/pages/merchant/merchant',
-        success: () => {
-          wx.hideLoading()
-          console.log('✅ 重试成功，已进入商家管理页面')
-          
-          wx.showToast({
-            title: '跳转成功',
-            icon: 'success'
-          })
-        },
-        fail: (error) => {
-          wx.hideLoading()
-          console.error('❌ 重试跳转仍然失败:', error)
-          
-          wx.showModal({
-            title: '❌ 重试失败',
-            content: '多次尝试跳转商家管理页面均失败。\n\n可能原因：\n• 页面代码存在问题\n• 设备性能不足\n• 网络环境不稳定\n\n请联系技术支持解决。',
-            showCancel: false,
-            confirmText: '知道了'
+    wx.showModal({
+      title: '🚨 页面跳转失败',
+      content: '跳转到管理员页面失败！\n\n可能原因：\n1. 页面路径错误\n2. 小程序页面栈限制\n3. 系统异常\n\n是否重试？',
+      showCancel: true,
+      cancelText: '取消',
+      confirmText: '重试',
+      success: (res) => {
+        if (res.confirm) {
+          // 使用redirectTo尝试跳转
+          wx.redirectTo({
+            url: '/pages/merchant/merchant',
+            success: () => {
+              console.log('✅ 重试跳转成功（使用redirectTo）')
+            },
+            fail: (error) => {
+              console.error('❌ 重试跳转仍然失败:', error)
+              
+              wx.showModal({
+                title: '跳转失败',
+                content: '管理员页面跳转失败，请尝试从其他入口进入或联系技术支持。',
+                showCancel: false,
+                confirmText: '知道了'
+              })
+            }
           })
         }
-      })
-    }, 500)
+      }
+    })
   },
 
   /**
@@ -1462,6 +1394,77 @@ Page({
         if (res.confirm) {
           // 重新加载真实数据
           this.refreshUserData()
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 新增：权限状态诊断方法
+   */
+  diagnosePermissionStatus() {
+    console.log('🔐 开始权限状态诊断...')
+    
+    const userInfo = app.globalData.userInfo
+    const pageIsAdmin = this.data.isAdmin
+    const pageShowAdminEntrance = this.data.showAdminEntrance
+    
+    const diagnosis = {
+      globalUserInfo: userInfo ? '✅ 存在' : '❌ 缺失',
+      backendIsAdmin: userInfo?.is_admin || false,
+      pageIsAdmin: pageIsAdmin,
+      pageShowAdminEntrance: pageShowAdminEntrance,
+      menuItemsCount: this.data.menuItems?.length || 0,
+      hasAdminMenuItem: this.data.menuItems?.some(item => item.id === 'admin-management') || false
+    }
+    
+    console.log('🔐 权限状态诊断结果:', diagnosis)
+    
+    const diagnosisText = `权限状态诊断报告：
+
+📋 基础信息：
+• 用户ID: ${userInfo?.user_id || '未知'}
+• 手机号: ${userInfo?.mobile || '未知'}
+
+🔐 权限字段检查：
+• 后端is_admin字段: ${diagnosis.backendIsAdmin}
+• 页面isAdmin状态: ${diagnosis.pageIsAdmin}  
+• 管理员入口显示: ${diagnosis.pageShowAdminEntrance}
+
+📝 菜单检查：
+• 菜单项总数: ${diagnosis.menuItemsCount}
+• 包含管理员菜单: ${diagnosis.hasAdminMenuItem}
+
+🎯 诊断结论：
+${diagnosis.backendIsAdmin && diagnosis.pageIsAdmin && diagnosis.pageShowAdminEntrance ? 
+  '✅ 权限状态正常，管理员功能应该可见' : 
+  '❌ 权限状态异常，需要修复'}`
+
+    wx.showModal({
+      title: '🔐 权限状态诊断',
+      content: diagnosisText,
+      showCancel: true,
+      cancelText: '强制修复',
+      confirmText: '知道了',
+      success: (res) => {
+        if (res.cancel) {
+          // 强制修复权限状态
+          if (userInfo?.is_admin) {
+            this.setData({
+              isAdmin: true,
+              showAdminEntrance: true
+            })
+            this.initMenuItems()
+            wx.showToast({
+              title: '✅ 权限状态已修复',
+              icon: 'success'
+            })
+          } else {
+            wx.showToast({
+              title: '❌ 后端无管理员权限，无法修复',
+              icon: 'none'
+            })
+          }
         }
       }
     })

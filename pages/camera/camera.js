@@ -1,7 +1,7 @@
-// pages/camera/camera.js - 拍照上传页面逻辑
+// pages/camera/camera.js - 拍照上传页面逻辑（权限简化版v2.2.0）
 const app = getApp()
 const { uploadAPI, userAPI } = require('../../utils/api')
-const { validateImage, compressImage, validateAmount, FormValidator, commonRules } = require('../../utils/validate')
+const { validateImage, compressImage, FormValidator, commonRules } = require('../../utils/validate')
 const ApiHealthCheck = require('../../utils/api-health-check') // 🔧 临时调试工具
 
 Page({
@@ -14,10 +14,10 @@ Page({
     userInfo: {},
     totalPoints: 0,
     
-    // 上传表单
+    // 🔴 权限简化v2.2.0：简化上传表单，删除金额相关字段
     selectedImage: null,
     imagePreview: null,
-    expectedPoints: 0,
+    // 删除：expectedPoints（因为用户不再输入金额）
     
     // 表单验证
     formErrors: {},
@@ -46,7 +46,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    console.log('拍照上传页面加载')
+    console.log('拍照上传页面加载 - 权限简化版v2.2.0')
     this.initPage()
   },
 
@@ -61,7 +61,7 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    console.log('拍照上传页面显示')
+    console.log('拍照上传页面显示 - 权限简化版v2.2.0')
     this.refreshUserInfo()
     this.loadUploadHistory()
   },
@@ -98,7 +98,7 @@ Page({
    * 初始化页面
    */
   initPage() {
-    console.log('📷 拍照上传页面初始化')
+    console.log('📷 拍照上传页面初始化 - 权限简化版v2.2.0')
     this.refreshUserInfo()
     this.loadUploadHistory()
   },
@@ -205,7 +205,7 @@ Page({
       return
     }
     
-    // 🔴 v2.1.2图片验证和处理 - 纯人工审核模式
+    // 🔴 v2.2.0权限简化：纯人工审核模式，用户只需上传照片
     console.log('🔧 开始验证图片:', file.tempFilePath)
     
     // 🔧 修复：正确使用Promise调用validateImage
@@ -219,7 +219,7 @@ Page({
           imagePreview: file.tempFilePath
         })
         
-        console.log('✅ 图片选择成功')
+        console.log('✅ 图片选择成功，用户可直接提交审核')
       })
       .catch((error) => {
         console.error('❌ 图片验证失败:', error)
@@ -254,10 +254,10 @@ Page({
   },
 
   /**
-   * 🔴 v2.1.2 提交上传 - 纯人工审核模式
+   * 🔴 权限简化v2.2.0：简化提交上传逻辑
    * 后端对接：POST /api/photo/upload
-   * 参数：image文件 + amount(用户手动输入的消费金额)
-   * 返回：upload_id, 等待人工审核
+   * 参数：仅需要image文件，不需要amount参数
+   * 返回：upload_id, 等待管理员审核并设置消费金额
    */
   onSubmitUpload() {
     // 🔧 修复：增强基础验证
@@ -301,30 +301,25 @@ Page({
         }
         
         // 网络正常，继续上传
-        this.performUpload()
+        this.performSimplifiedUpload()
       },
       fail: () => {
         // 获取网络状态失败，但仍尝试上传
-        this.performUpload()
+        this.performSimplifiedUpload()
       }
     })
   },
 
   /**
-   * 🔧 修复：执行上传操作
+   * 🔴 权限简化v2.2.0：执行简化上传操作
    */
-  performUpload() {
-    console.log('📤 开始提交上传，使用默认消费金额')
+  performSimplifiedUpload() {
+    console.log('📤 开始简化上传流程 - 仅上传照片，管理员审核时设置金额')
     
     this.setData({ uploading: true, uploadProgress: 0 })
     
-    // 🔧 修复：设置默认消费金额为1元，满足后端API要求
-    // 商家将在审核时确认实际消费金额
-    const submitAmount = 1.0
-    console.log('📤 准备调用上传API:', {
+    console.log('📤 准备调用简化上传API:', {
       selectedImage: this.data.selectedImage,
-      submitAmount: submitAmount,
-      类型: typeof submitAmount,
       用户信息: this.data.userInfo ? '已获取' : '未获取',
       全局配置: {
         baseUrl: app.globalData.baseUrl,
@@ -332,9 +327,10 @@ Page({
       }
     })
     
-    uploadAPI.upload(this.data.selectedImage, submitAmount)
+    // 🔴 权限简化：调用简化上传API，不传递金额参数
+    uploadAPI.uploadSimplified(this.data.selectedImage)
       .then((result) => {
-        console.log('✅ 上传成功:', result)
+        console.log('✅ 简化上传成功:', result)
         
         this.setData({
           uploading: false,
@@ -342,7 +338,7 @@ Page({
         })
         
         // 显示上传成功结果
-        this.showUploadResult(result.data)
+        this.showSimplifiedUploadResult(result.data)
         
         // 清空表单
         this.clearForm()
@@ -361,7 +357,7 @@ Page({
         })
       })
       .catch((error) => {
-        console.error('❌ 上传失败:', error)
+        console.error('❌ 简化上传失败:', error)
         
         this.setData({
           uploading: false,
@@ -450,22 +446,22 @@ Page({
     this.setData({
       selectedImage: null,
       imagePreview: null,
-      expectedPoints: 0,
       formErrors: {}
+      // 删除：expectedPoints 相关字段
     })
   },
   
   /**
-   * 🔧 修复：显示上传结果 - 使用默认金额，商家审核时确认实际消费金额
+   * 🔴 权限简化v2.2.0：显示简化上传结果
    */
-  showUploadResult(result) {
+  showSimplifiedUploadResult(result) {
     const { upload_id, image_url, status } = result
     
-    // 🔧 修复：说明商家将确认实际消费金额
-    let content = `上传ID：${upload_id}\n当前状态：等待人工审核\n\n商家将查看您的小票照片并确认实际消费金额，请耐心等待审核结果。`
+    // 🔴 权限简化：说明管理员将设置消费金额
+    let content = `上传ID：${upload_id}\n当前状态：等待管理员审核\n\n管理员将查看您的小票照片并设置实际消费金额，审核通过后您将获得相应积分奖励。\n\n积分规则：消费金额 × 10 = 获得积分`
     
     wx.showModal({
-      title: '📋 上传成功',
+      title: '📋 照片上传成功',
       content: content,
       showCancel: false,
       confirmText: '知道了'

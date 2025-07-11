@@ -47,7 +47,8 @@ const ENV = {
       // 🗄️ 数据库设计预留 - v2.1.3规范要求
       preserveSmsFields: true,            // 保留短信验证相关字段结构
       autoCreateUser: true,               // 自动创建新用户
-      mockInitialPoints: 1000,            // 新用户初始积分（符合产品文档）
+      // 🔴 删除违规配置：新用户初始积分应由后端决定，不应在前端配置
+      // mockInitialPoints: 1000,         // 已删除：违反项目安全规则
       
       // 🔌 接口预留配置 - 便于后续集成
       reserveProductionApis: true,        // 预留生产环境接口

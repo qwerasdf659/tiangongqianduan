@@ -2269,13 +2269,16 @@ Page({
    * 🔧 管理员工具：调整每日限制（仅开发使用）
    */
   showAdminDrawLimitTool() {
-    // 🔧 检查是否为管理员（简单检查，实际应该用更安全的方式）
-    const isAdmin = this.data.totalPoints >= 10000 || this.data.userInfo?.phone?.includes('admin')
+    // 🔴 修复：使用安全的管理员权限检查
+    const userInfo = app.globalData.userInfo
+    const isAdmin = userInfo ? (userInfo.is_admin || false) : false
     
     if (!isAdmin) {
-      wx.showToast({
-        title: '权限不足',
-        icon: 'none'
+      wx.showModal({
+        title: '🔐 权限不足', 
+        content: '此功能仅限管理员使用。\n\n您没有管理员权限，无法访问管理工具。',
+        showCancel: false,
+        confirmText: '知道了'
       })
       return
     }
