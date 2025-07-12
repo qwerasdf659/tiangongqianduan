@@ -222,21 +222,24 @@
 /* 操作工具栏 */
 .toolbar {
   display: flex;
-  gap: 20rpx;
+  gap: 10rpx;
   margin-bottom: 30rpx;
+  flex-wrap: wrap;
 }
 
 .tool-btn {
   flex: 1;
+  min-width: 120rpx;
   background: rgba(255, 255, 255, 0.9);
   color: var(--text-color);
   border: none;
   border-radius: 16rpx;
-  padding: 24rpx;
-  font-size: 28rpx;
+  padding: 18rpx 12rpx;
+  font-size: 22rpx;
   font-weight: 600;
   backdrop-filter: blur(10rpx);
   transition: all 0.3s ease;
+  text-align: center;
 }
 
 .tool-btn:hover {
@@ -246,6 +249,16 @@
 
 .diagnostic-btn {
   background: rgba(255, 152, 0, 0.9) !important;
+  color: white !important;
+}
+
+.verify-btn {
+  background: rgba(76, 175, 80, 0.9) !important;
+  color: white !important;
+}
+
+.test-mapping-btn {
+  background: rgba(156, 39, 176, 0.9) !important;
   color: white !important;
 }
 
@@ -343,11 +356,31 @@
 }
 
 .amount-label,
-.points-label {
+.points-label,
+.remarks-label,
+.upload-id-label {
   font-size: 26rpx;
   color: var(--gray-color);
   margin-right: 12rpx;
   min-width: 140rpx;
+}
+
+.amount-placeholder {
+  font-size: 26rpx;
+  color: #ff9500;
+  font-weight: 600;
+}
+
+.upload-id-info {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.upload-id-value {
+  font-size: 22rpx;
+  color: var(--gray-color);
+  font-family: monospace;
 }
 
 .amount-value {
@@ -2505,4 +2538,243 @@
   .preset-buttons {
     justify-content: center;
   }
+}
+
+/* 统计诊断按钮样式 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  position: relative;
+}
+
+.section-title-group {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 时间范围选择器样式 */
+.period-selector-container {
+  position: relative;
+}
+
+.period-selector {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 16rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12rpx;
+  color: white;
+  font-size: 26rpx;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.period-selector:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.4);
+}
+
+.period-label {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.period-arrow {
+  font-size: 20rpx;
+  transition: transform 0.3s ease;
+}
+
+.period-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 12rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  margin-top: 8rpx;
+  min-width: 120rpx;
+  opacity: 0;
+  transform: translateY(-10rpx);
+  transition: all 0.3s ease;
+}
+
+.period-dropdown.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.period-option {
+  padding: 24rpx 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.period-option:last-child {
+  border-bottom: none;
+}
+
+.period-option:hover {
+  background: #f8f9ff;
+  color: #667eea;
+}
+
+.period-option.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.period-option.active:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  color: white;
+}
+
+/* 遮罩层样式 */
+.dropdown-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  background: transparent;
+}
+
+/* 空状态提示样式 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 40rpx;
+  text-align: center;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  margin-top: 20rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: #999;
+  line-height: 1.5;
+}
+
+.diagnostic-actions {
+  display: flex;
+  gap: 10rpx;
+}
+
+.diagnostic-btn {
+  font-size: 26rpx;
+  color: #007aff;
+  background: #f0f8ff;
+  border: 2rpx solid #007aff;
+  border-radius: 10rpx;
+  padding: 10rpx 16rpx;
+  line-height: 1;
+  min-height: auto;
+}
+
+.diagnostic-btn:hover {
+  background: #007aff;
+  color: white;
+}
+
+.diagnostic-btn::after {
+  border: none;
+}
+
+.statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+/* 时间范围提示样式 */
+.period-hint {
+  text-align: center;
+  margin-bottom: 20rpx;
+  padding: 12rpx 24rpx;
+  background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+  border-radius: 20rpx;
+  border: 1rpx solid #cce7ff;
+}
+
+.hint-text {
+  font-size: 24rpx;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.diagnostic-btn.quick-check {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 107, 0.3);
+}
+
+.diagnostic-btn.quick-check:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 107, 0.4);
+}
+
+.diagnostic-btn.fix-test {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.3);
+}
+
+.diagnostic-btn.fix-test:hover {
+  background: linear-gradient(135deg, #45a049 0%, #388e3c 100%);
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 24rpx rgba(76, 175, 80, 0.4);
+}
+
+.diagnostic-btn.refresh-stats {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(33, 150, 243, 0.3);
+}
+
+.diagnostic-btn.refresh-stats:hover {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  transform: translateY(-2rpx);
+  box-shadow: 0 8rpx 24rpx rgba(33, 150, 243, 0.4);
 }

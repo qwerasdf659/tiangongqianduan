@@ -3,7 +3,7 @@
   <!-- 用户信息卡片 -->
   <view class="user-card">
     <view class="user-avatar" bindtap="onAvatarTap">
-      <image class="avatar-image" src="{{userInfo.avatar || '/images/default-avatar.png'}}" mode="aspectFill"/>
+      <image class="avatar-image" src="{{userInfo.avatar_url || userInfo.avatar || '/images/default-avatar.png'}}" mode="aspectFill"/>
       <view class="avatar-edit">
         <text class="edit-icon">📷</text>
       </view>
@@ -11,7 +11,7 @@
     
     <view class="user-info">
       <view class="user-name" bindtap="onPhoneTap">
-        <text class="name-text">{{userInfo.phone || '点击登录'}}</text>
+        <text class="name-text">{{userInfo.mobile || userInfo.phone || '点击登录'}}</text>
         <text class="edit-phone">✏️</text>
       </view>
       <view class="user-id">ID: {{userInfo.user_id || '未登录'}}</view>

@@ -65,7 +65,7 @@ const ENV = {
       disableOCR: true,                   // 禁用OCR功能
       disableAI: true,                    // 禁用AI自动识别
       manualAmountInput: true,            // 用户手动输入消费金额
-      merchantManualReview: true,         // 商家人工审核确认
+      merchantManualReview: true,         // 管理员人工审核确认
       
       // 🔴 v2.1.3新增API接口支持 - 基于接口对接规范文档
       supportNewApis: true,               // 支持新增API接口

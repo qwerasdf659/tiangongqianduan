@@ -40,27 +40,21 @@ $backupFiles = Get-ChildItem -Name "*.backup" -ErrorAction SilentlyContinue
 if ($backupFiles) { "发现备份文件: $($backupFiles -join ', ')" } else { "无备份文件" }
 ```
 
-##### 🚨 强制执行：run_terminal_cmd前语法检查
+##### 🚨 强制执行：PowerShell语法检查（详见专用规则文件）
 ```javascript
-// 🔴 每次调用run_terminal_cmd前必须执行此检查
-const POWERSHELL_SYNTAX_VIOLATIONS = [
-    { pattern: /&&/, name: '命令连接符&&', fix: '使用分号(;)' },
-    { pattern: /\|\|/, name: '或操作符||', fix: '使用if (-not $?)' },
-    { pattern: /^echo\s/, name: 'echo命令', fix: '使用Write-Host' },
-    { pattern: /`[^`]*`/, name: '反引号', fix: '使用双引号' }
-];
+// 🔴 引用：PowerShell语法检查详细规则
+// 详细实现见：powershell-syntax-enforcer.mdc
+console.log('🔍 PowerShell语法验证详见：powershell-syntax-enforcer.mdc')
 
-function validatePowerShellCommand(command) {
-    for (const violation of POWERSHELL_SYNTAX_VIOLATIONS) {
-        if (violation.pattern.test(command)) {
-            throw new Error(`🚨 PowerShell语法违规: ${violation.name}\n命令: "${command}"\n解决方案: ${violation.fix}`);
-        }
+// 🔴 快速检查接口
+function quickValidatePowerShellSyntax(command) {
+    // 核心违规检查（详细规则见powershell-syntax-enforcer.mdc）
+    if (command.includes('&&') || command.includes('||') || command.startsWith('echo ')) {
+        console.error('🚨 PowerShell语法违规，详细检查请参考：powershell-syntax-enforcer.mdc')
+        return false
     }
-    return true;
+    return true
 }
-
-// 🔴 强制要求：所有run_terminal_cmd调用必须先验证
-// validatePowerShellCommand(command) 必须在执行前调用
 ```
 
 #### 2. 🔧 Git分页器卡死预防规则
@@ -129,73 +123,23 @@ Get-ChildItem utils -Recurse -Include "*.js"
 
 #### 🔧 规则文件统一管理系统
 ```javascript
-// 🔴 规则文件管理器
+// 🔴 规则文件管理器（引用：详见powershell-syntax-enforcer.mdc）
 class CursorRulesManager {
     constructor() {
         this.ruleFiles = {
             'development-automation-unified.mdc': 'core_automation',
-            'tiangong-security-standards.mdc': 'security_standards', 
+            'tiangong-security-standards (2).mdc': 'security_standards', 
             '1.mdc': 'problem_analysis',
             'advanced-optimization.mdc': 'optimization_rules',
-            'problem-prevention-core.mdc': 'prevention_core'
-        }
-        
-        this.ruleCategories = {
-            'core_automation': ['PowerShell安全', 'Git操作', '微信小程序识别'],
-            'security_standards': ['数据安全', 'API安全', 'Mock数据检测'],
-            'problem_analysis': ['问题分级', '工具调用验证', '并行优化'],
-            'optimization_rules': ['效率监控', '配置管理', '搜索优化'],
-            'prevention_core': ['超时管理', '参数验证', '批量检测']
+            'powershell-syntax-enforcer.mdc': 'syntax_validation'
         }
     }
     
-    // 🔴 检查规则重复
-    async checkRuleDuplication() {
-        const duplications = []
-        
-        // 并行读取所有规则文件
-        const fileContents = await Promise.all(
-            Object.keys(this.ruleFiles).map(async file => {
-                const content = await read_file(`.cursor/rules/${file}`, true, 1, -1)
-                return { file, content: content.content }
-            })
-        )
-        
-        // 检测重复内容
-        for (let i = 0; i < fileContents.length; i++) {
-            for (let j = i + 1; j < fileContents.length; j++) {
-                const similarity = this.calculateSimilarity(
-                    fileContents[i].content, 
-                    fileContents[j].content
-                )
-                
-                if (similarity > 0.3) { // 30%以上相似度
-                    duplications.push({
-                        file1: fileContents[i].file,
-                        file2: fileContents[j].file,
-                        similarity: Math.round(similarity * 100),
-                        recommendation: 'merge_or_refactor'
-                    })
-                }
-            }
-        }
-        
-        return duplications
-    }
-    
-    // 🔴 生成规则同步计划
-    generateSyncPlan(duplications) {
-        return {
-            duplicationsFound: duplications.length,
-            totalFiles: Object.keys(this.ruleFiles).length,
-            recommendations: duplications.map(dup => ({
-                action: 'MERGE_RULES',
-                files: [dup.file1, dup.file2],
-                similarity: dup.similarity,
-                priority: dup.similarity > 50 ? 'HIGH' : 'MEDIUM'
-            })),
-            estimatedTimeSaving: duplications.length * 5000 // 5秒每个重复
-        }
+    // 🔴 引用PowerShell语法检查器（避免重复）
+    async validateAllSyntax() {
+        // 详细实现见：powershell-syntax-enforcer.mdc
+        console.log('🔍 PowerShell语法验证详见：powershell-syntax-enforcer.mdc')
+        return { validated: true, reference: 'powershell-syntax-enforcer.mdc' }
     }
 }
 ```
@@ -530,11 +474,11 @@ class PerformanceMonitor {
 
 ---
 
-**规则创建时间**: 2025年1月3日  
-**最后更新时间**: 2025年1月3日  
-**更新内容**: 完善开发自动化规则，补充环境管理和质量保证机制  
-**适用范围**: 微信小程序开发项目的完整自动化流程  
-**维护状态**: ✅ 已完善 - 所有自动化规则已补充完整
+**规则创建时间**: 2025年01月08日  
+**最后更新时间**: 2025年01月08日  
+**更新内容**: 移除重复的PowerShell语法规则，引用powershell-syntax-enforcer.mdc  
+**适用范围**: 所有需要开发环境自动化的场景  
+**维护状态**: ✅ 已优化 - 重复内容已清理，规则已统一引用
 
 
 

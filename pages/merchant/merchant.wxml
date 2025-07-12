@@ -100,29 +100,67 @@
 
     <!-- 审核管理页面 -->
     <view class="review-tab {{!hasPermission ? 'locked' : ''}}" wx:if="{{currentTab === 'review'}}">
-      <!-- 审核统计 -->
-      <view class="statistics-section">
-        <view class="section-title">
-          <text>📊 审核统计</text>
-        </view>
-        <view class="stats-grid">
-          <view class="stat-item pending">
-            <text class="stat-number">{{statistics.pendingCount}}</text>
-            <text class="stat-label">待审核</text>
+              <!-- 审核统计 -->
+        <view class="statistics-section">
+          <view class="section-header">
+            <view class="section-title-group">
+              <text class="section-title">📊 审核统计</text>
+              <view class="period-selector-container">
+                <view class="period-selector" bindtap="onTogglePeriodSelector">
+                  <text class="period-label">{{currentPeriodLabel}}</text>
+                  <text class="period-arrow">{{showPeriodSelector ? '▲' : '▼'}}</text>
+                </view>
+                <view class="period-dropdown {{showPeriodSelector ? 'show' : ''}}" wx:if="{{showPeriodSelector}}">
+                  <view class="period-option {{item.key === currentPeriod ? 'active' : ''}}" 
+                        wx:for="{{periodOptions}}" 
+                        wx:key="key"
+                        data-period="{{item.key}}"
+                        bindtap="onSelectPeriod">
+                    {{item.label}}
+                  </view>
+                </view>
+                <!-- 点击外部关闭选择器的遮罩层 -->
+                <view class="dropdown-mask" wx:if="{{showPeriodSelector}}" bindtap="onCloseDropdown"></view>
+              </view>
+            </view>
+            <view class="diagnostic-actions">
+              <button class="diagnostic-btn" bindtap="onDiagnoseStatistics">🔍 统计诊断</button>
+              <button class="diagnostic-btn quick-check" bindtap="onQuickDataCheck">⚡ 快速验证</button>
+              <button class="diagnostic-btn fix-test" bindtap="onTestFieldMappingFix">🔧 验证修复</button>
+              <button class="diagnostic-btn refresh-stats" bindtap="onForceRefreshStats">🔄 刷新统计</button>
+            </view>
+                    </view>
+          
+          <!-- 时间范围提示 -->
+          <view class="period-hint">
+            <text class="hint-text">正在查看 {{currentPeriodLabel}} 的数据</text>
           </view>
-          <view class="stat-item approved">
-            <text class="stat-number">{{statistics.todayApproved}}</text>
-            <text class="stat-label">今日通过</text>
+          
+          <view class="statistics-grid">
+            <view class="stat-item pending">
+              <text class="stat-number">{{statistics.pendingCount}}</text>
+              <text class="stat-label">待审核</text>
+            </view>
+            <view class="stat-item approved">
+              <text class="stat-number">{{statistics.todayApproved}}</text>
+              <text class="stat-label">{{currentPeriod === 'today' ? '今日通过' : (currentPeriod === 'week' ? '本周通过' : (currentPeriod === 'month' ? '本月通过' : '总通过数'))}}</text>
+            </view>
+            <view class="stat-item rejected">
+              <text class="stat-number">{{statistics.todayRejected}}</text>
+              <text class="stat-label">{{currentPeriod === 'today' ? '今日拒绝' : (currentPeriod === 'week' ? '本周拒绝' : (currentPeriod === 'month' ? '本月拒绝' : '总拒绝数'))}}</text>
+            </view>
+            <view class="stat-item total">
+              <text class="stat-number">{{statistics.totalProcessed}}</text>
+              <text class="stat-label">{{currentPeriod === 'today' ? '今日处理' : (currentPeriod === 'week' ? '本周处理' : (currentPeriod === 'month' ? '本月处理' : '总处理数'))}}</text>
+            </view>
           </view>
-          <view class="stat-item rejected">
-            <text class="stat-number">{{statistics.todayRejected}}</text>
-            <text class="stat-label">今日拒绝</text>
+          
+          <!-- 空状态提示 -->
+          <view class="empty-state" wx:if="{{statistics.pendingCount === 0 && statistics.todayApproved === 0 && statistics.todayRejected === 0 && statistics.totalProcessed === 0}}">
+            <text class="empty-icon">📊</text>
+            <text class="empty-title">{{currentPeriodLabel}}暂无数据</text>
+            <text class="empty-desc">可以尝试切换到其他时间范围查看数据</text>
           </view>
-          <view class="stat-item total">
-            <text class="stat-number">{{statistics.totalProcessed}}</text>
-            <text class="stat-label">累计处理</text>
-          </view>
-        </view>
       </view>
 
       <!-- 操作工具栏 -->
@@ -136,6 +174,12 @@
         <button class="tool-btn diagnostic-btn" bindtap="onRunDiagnostic">
           🔍 诊断
         </button>
+        <button class="tool-btn verify-btn" bindtap="onVerifyDataMapping">
+          ✅ 验证修复
+        </button>
+        <button class="tool-btn test-mapping-btn" bindtap="onTestFieldMapping">
+          🧪 测试映射
+        </button>
       </view>
 
       <!-- 待审核列表 -->
@@ -148,14 +192,14 @@
           <view 
             class="pending-item"
             wx:for="{{pendingList}}" 
-            wx:key="id"
+            wx:key="upload_id"
           >
             <!-- 选择框 -->
             <view class="item-select">
               <checkbox 
                 checked="{{item.selected}}"
                 bindchange="{{hasPermission ? 'onItemSelect' : 'onLockedTap'}}"
-                data-id="{{item.id}}"
+                data-id="{{item.upload_id}}"
               />
             </view>
 
@@ -163,7 +207,7 @@
             <view class="item-header">
               <view class="user-info">
                 <text class="user-phone">{{item.user_phone}}</text>
-                <text class="user-id">ID: {{item.user_id}}</text>
+                <text class="user-id">ID: {{item.user_id}} | {{item.nickname}}</text>
               </view>
               <view class="upload-time">
                 <text class="time-label">上传时间</text>
@@ -181,9 +225,13 @@
                 data-url="{{item.receipt_image}}"
               />
               <view class="receipt-info">
-                <view class="amount-info">
+                <view class="amount-info" wx:if="{{item.amount > 0}}">
                   <text class="amount-label">消费金额：</text>
                   <text class="amount-value">¥{{item.amount}}</text>
+                </view>
+                <view class="amount-info" wx:else>
+                  <text class="amount-label">消费金额：</text>
+                  <text class="amount-placeholder">待管理员设置</text>
                 </view>
                 <view class="points-info">
                   <text class="points-label">建议积分：</text>
@@ -193,6 +241,10 @@
                   <text class="remarks-label">用户备注：</text>
                   <text class="remarks-value">{{item.user_remarks}}</text>
                 </view>
+                <view class="upload-id-info">
+                  <text class="upload-id-label">上传ID：</text>
+                  <text class="upload-id-value">{{item.upload_id}}</text>
+                </view>
               </view>
             </view>
 
@@ -200,15 +252,17 @@
             <view class="item-actions">
               <button 
                 class="action-btn approve-btn"
-                bindtap="{{hasPermission ? 'onApprove' : 'onLockedTap'}}"
+                bindtap="{{hasPermission ? 'onStartReview' : 'onLockedTap'}}"
                 data-item="{{item}}"
+                data-action="approve"
               >
                 ✅ 通过
               </button>
               <button 
                 class="action-btn reject-btn"
-                bindtap="{{hasPermission ? 'onReject' : 'onLockedTap'}}"
+                bindtap="{{hasPermission ? 'onStartReview' : 'onLockedTap'}}"
                 data-item="{{item}}"
+                data-action="reject"
               >
                 ❌ 拒绝
               </button>

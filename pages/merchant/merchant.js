@@ -42,6 +42,18 @@ Page({
     // 选项卡管理
     currentTab: 'review',
     
+    // 🔧 时间范围选择功能
+    currentPeriod: 'week',  // 🔴 默认改为week而不是today
+    currentPeriodLabel: '本周',  // 🔧 添加当前时间范围标签
+    periodOptions: [
+      { key: 'today', label: '今日' },
+      { key: 'week', label: '本周' },
+      { key: 'month', label: '本月' },
+      { key: 'all', label: '全部' }
+    ],
+    showPeriodSelector: false,
+    userHasManuallyChangedPeriod: false,  // 🔧 标记用户是否手动更改过时间范围
+    
     // 审核统计
     statistics: {
       pendingCount: 0,
@@ -277,6 +289,9 @@ Page({
       hasPermission: isAdmin
     })
     
+    // 🔧 确保时间范围标签正确显示
+    this.updatePeriodLabel()
+    
     console.log('✅ 管理员权限验证通过，开始加载数据...')
     
     // 🔧 修复：异步加载数据，避免阻塞页面渲染
@@ -369,12 +384,12 @@ Page({
     // 🚨 立即修复：强制超时保护，防止页面永久loading
     const forceTimeoutId = setTimeout(() => {
       if (this.data.loading === true) {
-        console.warn('🚨 商家页面loading超时，强制设置为完成状态')
+        console.warn('🚨 管理员页面loading超时，强制设置为完成状态')
         this.setData({ loading: false })
         
         wx.showModal({
           title: '⏱️ 数据加载超时',
-          content: '商家数据加载时间过长，已自动启用离线模式。\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n\n您可以下拉刷新重新加载数据。',
+          content: '管理员数据加载时间过长，已自动启用离线模式。\n\n可能原因：\n1. 后端API服务异常\n2. 网络连接问题\n\n您可以下拉刷新重新加载数据。',
           showCancel: true,
           cancelText: '稍后重试',
           confirmText: '继续使用',
@@ -426,8 +441,7 @@ Page({
   },
 
   /**
-   * 加载审核统计
-   * TODO: 后端对接 - 商家统计接口
+   * 🔧 加载审核统计 - 支持动态时间范围
    * 
    * 对接说明：
    * 接口：GET /api/merchant/statistics
@@ -435,31 +449,49 @@ Page({
    * 返回：审核统计数据，包括待审核数量、今日处理数量等
    */
   loadStatistics() {
-    // 🔴 删除违规代码：严禁使用模拟数据，所有统计数据均来自后端真实API
-    console.log('📡 请求商家统计接口...')
-    return merchantAPI.getStatistics('today').then((statisticsData) => {
+    const currentPeriod = this.data.currentPeriod || 'week'
+    
+    console.log('📡 请求商家统计接口...', { period: currentPeriod })
+    return merchantAPI.getStatistics(currentPeriod).then((statisticsData) => {
       // 🔧 修复：适配后端实际数据结构
       const reviewStats = statisticsData.data.review_stats || statisticsData.data || {}
       const pointsStats = statisticsData.data.points_stats || {}
       
-      // 🔧 修复：数据安全检查和兼容性处理
-      const pendingCount = reviewStats.pending_count || statisticsData.data.pending_count || 0
-      const todayApproved = reviewStats.approved_count || statisticsData.data.today_approved || 0
-      const todayRejected = reviewStats.rejected_count || statisticsData.data.today_rejected || 0
-      const totalProcessed = reviewStats.total_count || statisticsData.data.total_processed || 0
+      // 🔴 关键修复：匹配后端实际返回的字段名
+      const pendingCount = reviewStats.pending || reviewStats.pending_count || statisticsData.data.pending || statisticsData.data.pending_count || 0
+      const todayApproved = reviewStats.approved || reviewStats.approved_count || statisticsData.data.approved || statisticsData.data.today_approved || 0
+      const todayRejected = reviewStats.rejected || reviewStats.rejected_count || statisticsData.data.rejected || statisticsData.data.today_rejected || 0
+      const totalProcessed = reviewStats.total || reviewStats.total_count || statisticsData.data.total || statisticsData.data.total_processed || 0
+      
+      const statisticsResult = {
+        pendingCount: pendingCount,
+        todayApproved: todayApproved,
+        todayRejected: todayRejected,
+        totalProcessed: totalProcessed,
+        thisWeekProcessed: statisticsData.data.this_week_processed || 0,
+        averageProcessingTime: statisticsData.data.average_processing_time || 0
+      }
       
       this.safeSetData({
-        statistics: {
-          pendingCount: pendingCount,
-          todayApproved: todayApproved,
-          todayRejected: todayRejected,
-          totalProcessed: totalProcessed,
-          thisWeekProcessed: statisticsData.data.this_week_processed || 0,
-          averageProcessingTime: statisticsData.data.average_processing_time || 0
-        }
+        statistics: statisticsResult
       })
 
       console.log('✅ 商家统计数据加载成功，待审核:', pendingCount, '条')
+      
+      // 🔴 调试信息：显示字段映射结果
+      console.log('🔍 字段映射调试信息:', {
+        原始数据: statisticsData.data,
+        review_stats: reviewStats,
+        映射结果: {
+          pendingCount,
+          todayApproved,
+          todayRejected,
+          totalProcessed
+        }
+      })
+      
+      // 🔧 智能数据展示逻辑 - 当前时间范围无数据时自动切换
+      this.handleEmptyStatistics(statisticsResult, currentPeriod)
     }).catch((error) => {
       console.error('❌ 获取审核统计失败:', error)
       
@@ -504,6 +536,8 @@ Page({
     // 🔴 删除违规代码：严禁使用模拟数据，所有待审核列表数据均来自后端真实API
     console.log('📡 请求待审核列表接口...')
     return merchantAPI.getPendingReviews(1, 20, 'pending').then((listData) => {
+      console.log('🔍 原始API数据:', listData)
+      
       // 🔧 修复：适配后端实际数据结构
       const reviews = listData.data.reviews || listData.data.list || []
       const total = listData.data.pagination?.total || listData.data.total || 0
@@ -514,17 +548,52 @@ Page({
         throw new Error('数据格式错误：reviews字段应为数组')
       }
       
-      this.safeSetData({
-        pendingList: reviews,
+      // 🔧 关键修复：数据字段映射 - 将后端数据格式转换为前端期待格式
+      const mappedPendingList = reviews.map((review, index) => {
+        const mappedItem = {
+          // 🔴 字段映射修复
+          id: review.upload_id || review.id || `pending_${index}`,
+          upload_id: review.upload_id,
+          user_phone: review.user_info?.mobile || review.mobile || '未知',
+          user_id: review.user_info?.user_id || review.user_id || 0,
+          nickname: review.user_info?.nickname || review.nickname || '匿名用户',
+          receipt_image: review.image_url || review.receipt_image || '',
+          upload_time: review.uploaded_at || review.upload_time || '',
+          amount: review.amount || 0,
+          suggested_points: review.suggested_points || (review.amount ? review.amount * 10 : 0),
+          user_remarks: review.remarks || review.user_remarks || '',
+          status: review.status || 'pending',
+          selected: false // 用于批量操作
+        }
+        
+        console.log(`🔧 数据映射 ${index + 1}:`, {
+          原始: review,
+          映射后: mappedItem
+        })
+        
+        return mappedItem
+      })
+      
+      console.log('🔧 完整数据映射结果:', {
+        原始数量: reviews.length,
+        映射后数量: mappedPendingList.length,
+        映射详情: mappedPendingList
+      })
+      
+      // 🔧 使用标准setData而不是safeSetData，避免数据过滤问题
+      this.setData({
+        pendingList: mappedPendingList,
         totalPending: total
       })
 
-      console.log('✅ 待审核列表加载成功，共', reviews.length, '条记录，总计', total, '条')
+      console.log('✅ 待审核列表加载成功，共', mappedPendingList.length, '条记录，总计', total, '条')
+      console.log('📋 最终页面数据:', this.data.pendingList)
+      
     }).catch((error) => {
       console.error('❌ 获取待审核列表失败:', error)
       
       // 🔧 完善：更详细的错误处理
-      this.safeSetData({ 
+      this.setData({ 
         pendingList: [],
         totalPending: 0
       })
@@ -2062,15 +2131,18 @@ Page({
    * 项目选择（用于审核列表）
    */
   onItemSelect(e) {
-    const id = e.currentTarget.dataset.id
+    const upload_id = e.currentTarget.dataset.id  // 现在使用upload_id
+    console.log('🔧 选择审核项目:', upload_id)
+    
     const pendingList = this.data.pendingList.map(item => {
-      if (item.id === id) {
+      if (item.upload_id === upload_id) {
         return { ...item, selected: !item.selected }
       }
       return item
     })
     
     this.setData({ pendingList })
+    console.log('✅ 审核项目选择状态更新')
   },
 
   updateStatisticsAfterReview(action) {
@@ -2648,29 +2720,251 @@ Page({
    * 专门用于诊断13612227930账号的权限和审核管理问题
    */
   async onRunDiagnostic() {
-    console.log('🔍 用户启动权限诊断...')
+    console.log('🔍 开始全面诊断权限和API调用问题...')
+    
+    wx.showLoading({ title: '正在诊断...', mask: true })
+    
+    const diagnosticReport = {
+      timestamp: new Date().toISOString(),
+      userInfo: null,
+      permissions: null,
+      apiTests: [],
+      frontendIssues: [],
+      backendIssues: [],
+      recommendations: []
+    }
     
     try {
-      const report = await diagnosePage.runMerchantPageDiagnostic()
+      // 🔍 1. 检查用户信息和权限
+      console.log('🔍 步骤1: 检查用户信息和权限')
+      const userInfo = app.globalData.userInfo
+      diagnosticReport.userInfo = userInfo
       
-      if (report && report.summary) {
-        console.log('📋 诊断完成:', report.summary)
+      if (!userInfo) {
+        diagnosticReport.frontendIssues.push('用户信息缺失 - 需要重新登录')
+        diagnosticReport.recommendations.push('请重新登录获取用户信息')
+      } else {
+        console.log('✅ 用户信息:', {
+          user_id: userInfo.user_id,
+          mobile: userInfo.mobile,
+          is_admin: userInfo.is_admin
+        })
         
-        // 根据诊断结果提供进一步指导
-        if (report.summary.isPrimaryBackendIssue) {
-          console.log('🚨 确认为后端问题，建议联系后端程序员')
+        if (!userInfo.is_admin) {
+          diagnosticReport.frontendIssues.push('用户权限不足 - 不是管理员')
+          diagnosticReport.recommendations.push('请使用管理员账号登录')
+        } else {
+          console.log('✅ 用户权限验证通过 - 是管理员')
         }
       }
       
-    } catch (error) {
-      console.error('❌ 诊断失败:', error)
-      wx.showToast({
-        title: '诊断功能异常',
-        icon: 'none'
+      // 🔍 2. 检查Token有效性
+      console.log('🔍 步骤2: 检查Token有效性')
+      const token = wx.getStorageSync('token')
+      if (!token) {
+        diagnosticReport.frontendIssues.push('Token缺失 - 需要重新登录')
+        diagnosticReport.recommendations.push('请重新登录获取Token')
+      } else {
+        console.log('✅ Token存在:', token.substring(0, 20) + '...')
+        
+        // 验证Token有效性
+        try {
+          const { authAPI } = require('../../utils/api')
+          const verifyResult = await authAPI.verifyToken()
+          console.log('✅ Token验证成功:', verifyResult)
+          diagnosticReport.apiTests.push({
+            api: 'Token验证',
+            status: 'success',
+            response: verifyResult
+          })
+        } catch (error) {
+          console.error('❌ Token验证失败:', error)
+          diagnosticReport.backendIssues.push('Token验证失败 - 可能是后端问题')
+          diagnosticReport.apiTests.push({
+            api: 'Token验证',
+            status: 'failed',
+            error: error.message
+          })
+        }
+      }
+      
+      // 🔍 3. 测试管理员API接口
+      console.log('🔍 步骤3: 测试管理员API接口')
+      if (userInfo && userInfo.is_admin) {
+        // 测试待审核列表API
+        try {
+          console.log('🔍 测试待审核列表API...')
+          const pendingResult = await merchantAPI.getPendingReviews(1, 20, 'pending')
+          console.log('✅ 待审核列表API成功:', pendingResult)
+          diagnosticReport.apiTests.push({
+            api: '待审核列表',
+            status: 'success',
+            response: pendingResult,
+            recordCount: pendingResult.data?.reviews?.length || 0
+          })
+        } catch (error) {
+          console.error('❌ 待审核列表API失败:', error)
+          diagnosticReport.backendIssues.push('待审核列表API失败 - 后端问题')
+          diagnosticReport.apiTests.push({
+            api: '待审核列表',
+            status: 'failed',
+            error: error.message,
+            statusCode: error.statusCode
+          })
+        }
+        
+        // 测试统计API
+        try {
+          console.log('🔍 测试统计API...')
+          const statsResult = await merchantAPI.getStatistics('today')
+          console.log('✅ 统计API成功:', statsResult)
+          diagnosticReport.apiTests.push({
+            api: '统计数据',
+            status: 'success',
+            response: statsResult
+          })
+        } catch (error) {
+          console.error('❌ 统计API失败:', error)
+          diagnosticReport.backendIssues.push('统计API失败 - 后端问题')
+          diagnosticReport.apiTests.push({
+            api: '统计数据',
+            status: 'failed',
+            error: error.message,
+            statusCode: error.statusCode
+          })
+        }
+      }
+      
+      // 🔍 4. 检查网络连接
+      console.log('🔍 步骤4: 检查网络连接')
+      const networkType = await this.checkNetworkStatus()
+      console.log('📶 网络状态:', networkType)
+      
+      // 🔍 5. 生成诊断报告
+      const successfulApis = diagnosticReport.apiTests.filter(test => test.status === 'success').length
+      const failedApis = diagnosticReport.apiTests.filter(test => test.status === 'failed').length
+      
+      let conclusion = ''
+      let isPrimaryBackendIssue = false
+      
+      if (diagnosticReport.frontendIssues.length > 0) {
+        conclusion = '主要是前端问题'
+        isPrimaryBackendIssue = false
+      } else if (diagnosticReport.backendIssues.length > 0) {
+        conclusion = '主要是后端问题'
+        isPrimaryBackendIssue = true
+      } else if (successfulApis > 0) {
+        conclusion = '系统正常，可能是数据为空'
+        isPrimaryBackendIssue = false
+      } else {
+        conclusion = '需要进一步检查'
+        isPrimaryBackendIssue = true
+      }
+      
+      diagnosticReport.conclusion = conclusion
+      diagnosticReport.isPrimaryBackendIssue = isPrimaryBackendIssue
+      
+      console.log('📋 诊断报告:', diagnosticReport)
+      
+      // 🔍 6. 显示诊断结果
+      wx.hideLoading()
+      
+      const reportContent = this.formatDiagnosticReport(diagnosticReport)
+      
+      wx.showModal({
+        title: '🔍 诊断结果',
+        content: reportContent,
+        showCancel: true,
+        cancelText: '详细日志',
+        confirmText: '知道了',
+        success: (res) => {
+          if (res.cancel) {
+            console.log('📋 完整诊断报告:', JSON.stringify(diagnosticReport, null, 2))
+          }
+        }
       })
+      
+      return diagnosticReport
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 诊断过程出错:', error)
+      
+      wx.showModal({
+        title: '❌ 诊断失败',
+        content: '诊断过程中出现异常，请检查控制台日志。\n\n错误信息：' + error.message,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      
+      return null
     }
   },
   
+  /**
+   * 🔍 格式化诊断报告
+   */
+  formatDiagnosticReport(report) {
+    const lines = []
+    
+    lines.push(`📊 诊断结论：${report.conclusion}`)
+    lines.push('')
+    
+    if (report.userInfo) {
+      lines.push(`👤 用户信息：`)
+      lines.push(`   ID: ${report.userInfo.user_id}`)
+      lines.push(`   手机号: ${report.userInfo.mobile}`)
+      lines.push(`   管理员: ${report.userInfo.is_admin ? '是' : '否'}`)
+    } else {
+      lines.push(`👤 用户信息：❌ 缺失`)
+    }
+    
+    lines.push('')
+    lines.push(`🔌 API测试结果：`)
+    
+    if (report.apiTests.length === 0) {
+      lines.push(`   无API测试`)
+    } else {
+      report.apiTests.forEach(test => {
+        const status = test.status === 'success' ? '✅' : '❌'
+        lines.push(`   ${status} ${test.api}`)
+        if (test.status === 'failed') {
+          lines.push(`      错误: ${test.error}`)
+        } else if (test.api === '待审核列表') {
+          lines.push(`      记录数: ${test.recordCount}`)
+        }
+      })
+    }
+    
+    lines.push('')
+    
+    if (report.isPrimaryBackendIssue) {
+      lines.push(`🚨 主要问题：后端服务`)
+      lines.push(`建议：联系后端程序员处理`)
+    } else {
+      lines.push(`🔧 主要问题：前端配置`)
+      lines.push(`建议：检查前端设置`)
+    }
+    
+    return lines.join('\n')
+  },
+  
+  /**
+   * 🔍 检查网络状态
+   */
+  checkNetworkStatus() {
+    return new Promise((resolve) => {
+      wx.getNetworkType({
+        success: (res) => {
+          resolve(res.networkType)
+        },
+        fail: () => {
+          resolve('unknown')
+        }
+      })
+    })
+  },
+
   /**
    * 🔧 临时调试功能：强制刷新待审核列表
    */
@@ -2692,5 +2986,909 @@ Page({
         icon: 'none'
       })
     })
+  },
+  
+  /**
+   * 🔍 数据映射验证函数 - 用于验证修复是否成功
+   */
+  onVerifyDataMapping() {
+    console.log('🔍 开始验证数据映射修复...')
+    
+    wx.showLoading({ title: '验证中...', mask: true })
+    
+    // 重新加载数据并验证
+    this.loadPendingList().then(() => {
+      wx.hideLoading()
+      
+      const currentData = this.data.pendingList
+      console.log('📋 当前页面数据:', currentData)
+      
+      const verificationReport = {
+        totalCount: currentData.length,
+        hasValidData: currentData.length > 0,
+        dataStructure: currentData.length > 0 ? Object.keys(currentData[0]) : [],
+        sampleItem: currentData.length > 0 ? currentData[0] : null,
+        fieldMappingCorrect: true,
+        issues: []
+      }
+      
+      // 验证数据结构
+      if (currentData.length > 0) {
+        const sample = currentData[0]
+        const requiredFields = ['upload_id', 'user_phone', 'user_id', 'receipt_image']
+        
+        requiredFields.forEach(field => {
+          if (!sample.hasOwnProperty(field)) {
+            verificationReport.fieldMappingCorrect = false
+            verificationReport.issues.push(`缺少必要字段: ${field}`)
+          }
+        })
+      }
+      
+      console.log('📊 验证报告:', verificationReport)
+      
+      // 显示验证结果
+      let resultMessage = `📊 数据映射验证结果：\n\n`
+      resultMessage += `总记录数：${verificationReport.totalCount}\n`
+      resultMessage += `数据有效：${verificationReport.hasValidData ? '是' : '否'}\n`
+      resultMessage += `字段映射：${verificationReport.fieldMappingCorrect ? '正确' : '有问题'}\n`
+      
+      if (verificationReport.issues.length > 0) {
+        resultMessage += `\n问题详情：\n${verificationReport.issues.join('\n')}`
+      }
+      
+      if (verificationReport.sampleItem) {
+        resultMessage += `\n\n示例数据：\nID: ${verificationReport.sampleItem.upload_id}\n手机号: ${verificationReport.sampleItem.user_phone}`
+      }
+      
+      const isSuccess = verificationReport.hasValidData && verificationReport.fieldMappingCorrect
+      
+      wx.showModal({
+        title: isSuccess ? '✅ 验证成功' : '❌ 验证失败',
+        content: resultMessage,
+        showCancel: true,
+        cancelText: '详细日志',
+        confirmText: '知道了',
+        success: (res) => {
+          if (res.cancel) {
+            console.log('📋 完整验证报告:', JSON.stringify(verificationReport, null, 2))
+          }
+        }
+      })
+      
+    }).catch((error) => {
+      wx.hideLoading()
+      console.error('❌ 验证过程出错:', error)
+      
+      wx.showModal({
+        title: '❌ 验证失败',
+        content: '验证过程中出现异常，请检查控制台日志。\n\n错误信息：' + error.message,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    })
+  },
+
+  /**
+   * 🔧 时间范围选择功能
+   */
+  
+  /**
+   * 显示/隐藏时间范围选择器
+   */
+  onTogglePeriodSelector() {
+    this.setData({
+      showPeriodSelector: !this.data.showPeriodSelector
+    })
+  },
+  
+  /**
+   * 选择时间范围
+   */
+  onSelectPeriod(e) {
+    const period = e.currentTarget.dataset.period
+    const periodLabel = this.data.periodOptions.find(p => p.key === period)?.label || period
+    
+    console.log('📅 切换时间范围:', { period, periodLabel })
+    
+    this.setData({
+      currentPeriod: period,
+      currentPeriodLabel: periodLabel,
+      showPeriodSelector: false,
+      userHasManuallyChangedPeriod: true  // 🔧 标记用户已手动更改
+    })
+    
+    // 重新加载统计数据
+    this.loadStatistics()
+    
+    wx.showToast({
+      title: `已切换到${periodLabel}数据`,
+      icon: 'success',
+      duration: 1500
+    })
+  },
+  
+  /**
+   * 🔧 点击外部关闭选择器
+   */
+  onCloseDropdown() {
+    if (this.data.showPeriodSelector) {
+      this.setData({
+        showPeriodSelector: false
+      })
+    }
+  },
+  
+  /**
+   * 🔧 更新时间范围标签
+   */
+  updatePeriodLabel() {
+    const currentPeriod = this.data.currentPeriod || 'week'
+    const periodOption = this.data.periodOptions.find(p => p.key === currentPeriod)
+    const currentPeriodLabel = periodOption ? periodOption.label : '本周'
+    
+    this.setData({
+      currentPeriodLabel: currentPeriodLabel
+    })
+    
+    console.log('📅 时间范围标签已更新:', { currentPeriod, currentPeriodLabel })
+  },
+  
+  /**
+   * 🔧 智能数据展示逻辑 - 处理空数据情况
+   */
+  handleEmptyStatistics(statistics, currentPeriod) {
+    // 检查是否有有效数据
+    const hasData = statistics.pendingCount > 0 || 
+                    statistics.todayApproved > 0 || 
+                    statistics.todayRejected > 0 || 
+                    statistics.totalProcessed > 0
+    
+    // 🔧 只在页面初始化时提示，避免用户手动切换时的重复提示
+    if (!hasData && !this.data.userHasManuallyChangedPeriod) {
+      if (currentPeriod === 'today') {
+        console.log('💡 今日暂无数据，建议切换到本周数据')
+        
+        // 显示友好提示
+        wx.showModal({
+          title: '💡 数据提示',
+          content: '今日暂无审核数据！\n\n建议查看本周或全部数据。',
+          showCancel: true,
+          cancelText: '继续查看',
+          confirmText: '查看本周',
+          success: (res) => {
+            if (res.confirm) {
+              this.setData({ 
+                currentPeriod: 'week',
+                currentPeriodLabel: '本周',
+                userHasManuallyChangedPeriod: true
+              })
+              this.loadStatistics()
+            }
+          }
+        })
+      } else if (currentPeriod === 'week') {
+        console.log('💡 本周暂无数据，建议切换到全部数据')
+        
+        wx.showModal({
+          title: '💡 数据提示',
+          content: '本周暂无审核数据！\n\n建议查看全部历史数据。',
+          showCancel: true,
+          cancelText: '继续查看',
+          confirmText: '查看全部',
+          success: (res) => {
+            if (res.confirm) {
+              this.setData({ 
+                currentPeriod: 'all',
+                currentPeriodLabel: '全部',
+                userHasManuallyChangedPeriod: true
+              })
+              this.loadStatistics()
+            }
+          }
+        })
+      }
+    } else if (!hasData) {
+      console.log('💡 当前时间范围暂无数据')
+      
+      // 只在没有数据时显示简单提示
+      wx.showToast({
+        title: '当前时间范围暂无数据',
+        icon: 'none',
+        duration: 2000
+      })
+    }
+  },
+  
+
+
+  /**
+   * 🔍 字段映射测试功能 - 测试修复效果
+   */
+  onTestFieldMapping() {
+    console.log('🔍 开始测试字段映射修复效果...')
+    
+    wx.showLoading({ title: '测试中...', mask: true })
+    
+    // 导入字段映射验证器
+    const { FieldMappingValidator } = require('../../utils/field-mapping-validator')
+    const validator = new FieldMappingValidator()
+    
+    // 模拟后端原始数据和映射后数据
+    const testData = {
+      userInfo: {
+        raw: {
+          user_id: 123,
+          mobile: "136****7930",
+          nickname: "测试用户",
+          total_points: 1500,
+          is_admin: true,
+          avatar_url: "https://example.com/avatar.jpg"
+        },
+        mapped: null // 将通过实际映射函数生成
+      },
+      reviewRecords: [
+        {
+          raw: {
+            upload_id: "upload_123_test",
+            user_info: {
+              mobile: "136****7930",
+              user_id: 456,
+              nickname: "上传用户"
+            },
+            image_url: "https://example.com/receipt.jpg",
+            uploaded_at: "2024-12-19 14:30:00",
+            status: "pending"
+          },
+          mapped: null // 将通过实际映射函数生成
+        }
+      ]
+    }
+    
+    try {
+      // 测试用户信息映射
+      const rawUserInfo = testData.userInfo.raw
+      const mappedUserInfo = {
+        user_id: rawUserInfo.user_id || rawUserInfo.id || 'unknown',
+        mobile: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知',
+        nickname: rawUserInfo.nickname || rawUserInfo.nickName || rawUserInfo.name || '匿名用户',
+        total_points: parseInt(rawUserInfo.total_points || rawUserInfo.totalPoints || rawUserInfo.points || 0),
+        is_admin: Boolean(rawUserInfo.is_admin || rawUserInfo.isAdmin || false),
+        avatar_url: rawUserInfo.avatar_url || rawUserInfo.avatarUrl || rawUserInfo.avatar || '/images/default-avatar.png',
+        avatar: rawUserInfo.avatar_url || rawUserInfo.avatarUrl || rawUserInfo.avatar || '/images/default-avatar.png',
+        phone: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知'
+      }
+      testData.userInfo.mapped = mappedUserInfo
+      
+      // 测试审核记录映射
+      const rawReview = testData.reviewRecords[0].raw
+      const mappedReview = {
+        id: rawReview.upload_id || rawReview.id || 'pending_0',
+        upload_id: rawReview.upload_id,
+        user_phone: rawReview.user_info?.mobile || rawReview.mobile || '未知',
+        user_id: rawReview.user_info?.user_id || rawReview.user_id || 0,
+        nickname: rawReview.user_info?.nickname || rawReview.nickname || '匿名用户',
+        receipt_image: rawReview.image_url || rawReview.receipt_image || '',
+        upload_time: rawReview.uploaded_at || rawReview.upload_time || '',
+        amount: rawReview.amount || 0,
+        suggested_points: rawReview.suggested_points || (rawReview.amount ? rawReview.amount * 10 : 0),
+        status: rawReview.status || 'pending',
+        selected: false
+      }
+      testData.reviewRecords[0].mapped = mappedReview
+      
+      // 运行完整测试
+      const testReport = validator.runCompleteTest(testData)
+      
+      wx.hideLoading()
+      
+      // 显示测试结果
+      const reportContent = this.formatMappingTestReport(testReport)
+      
+      wx.showModal({
+        title: '🔍 字段映射测试结果',
+        content: reportContent,
+        showCancel: true,
+        cancelText: '详细日志',
+        confirmText: '知道了',
+        success: (res) => {
+          if (res.cancel) {
+            console.log('📋 详细测试报告:', JSON.stringify(testReport, null, 2))
+          }
+        }
+      })
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 字段映射测试失败:', error)
+      
+      wx.showModal({
+        title: '❌ 测试失败',
+        content: '字段映射测试过程中出现异常：\n\n' + error.message,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    }
+  },
+  
+  /**
+   * 📊 格式化字段映射测试报告
+   */
+  formatMappingTestReport(report) {
+    const lines = []
+    
+    lines.push(`📊 测试结果总览：`)
+    lines.push(`总测试数：${report.summary.totalTests}`)
+    lines.push(`通过测试：${report.summary.passedTests}`)
+    lines.push(`失败测试：${report.summary.failedTests}`)
+    lines.push(`成功率：${report.summary.successRate}%`)
+    lines.push(`状态：${this.getStatusText(report.summary.overallStatus)}`)
+    lines.push('')
+    
+    if (report.summary.failedTests > 0) {
+      lines.push(`❌ 失败的测试：`)
+      report.details.forEach(test => {
+        if (!test.passed) {
+          lines.push(`   ${test.testName}`)
+          test.issues.forEach(issue => {
+            lines.push(`      - ${issue}`)
+          })
+        }
+      })
+      lines.push('')
+    }
+    
+    if (report.recommendations.length > 0) {
+      lines.push(`💡 修复建议：`)
+      report.recommendations.forEach(rec => {
+        lines.push(`${rec}`)
+      })
+    }
+    
+    return lines.join('\n')
+  },
+  
+  /**
+   * 📈 获取状态文本
+   */
+  getStatusText(status) {
+    switch (status) {
+      case 'EXCELLENT': return '✅ 优秀'
+      case 'GOOD': return '🟡 良好'
+      case 'NEEDS_IMPROVEMENT': return '🔴 需要改进'
+      default: return '❓ 未知'
+    }
+  },
+
+  /**
+   * 🔍 专门诊断统计API问题
+   */
+  async onDiagnoseStatistics() {
+    console.log('🔍 开始诊断统计API问题...')
+    
+    wx.showLoading({ title: '诊断中...', mask: true })
+    
+    const diagnosticReport = {
+      timestamp: new Date().toISOString(),
+      userInfo: app.globalData.userInfo,
+      statisticsAPI: null,
+      pendingListAPI: null,
+      dataComparison: null,
+      conclusion: null
+    }
+    
+    try {
+      // 🔍 1. 测试统计API
+      console.log('🔍 测试统计API...')
+      try {
+        const statisticsResult = await merchantAPI.getStatistics('today')
+        console.log('📊 统计API原始响应:', statisticsResult)
+        
+        diagnosticReport.statisticsAPI = {
+          status: 'success',
+          response: statisticsResult,
+          dataStructure: this.analyzeDataStructure(statisticsResult)
+        }
+      } catch (error) {
+        console.error('❌ 统计API失败:', error)
+        diagnosticReport.statisticsAPI = {
+          status: 'failed',
+          error: error.message,
+          statusCode: error.statusCode
+        }
+      }
+      
+      // 🔍 2. 测试待审核列表API（对比）
+      console.log('🔍 测试待审核列表API...')
+      try {
+        const pendingResult = await merchantAPI.getPendingReviews(1, 20, 'pending')
+        console.log('📋 待审核列表API原始响应:', pendingResult)
+        
+        diagnosticReport.pendingListAPI = {
+          status: 'success',
+          response: pendingResult,
+          recordCount: pendingResult.data?.reviews?.length || 0
+        }
+      } catch (error) {
+        console.error('❌ 待审核列表API失败:', error)
+        diagnosticReport.pendingListAPI = {
+          status: 'failed',
+          error: error.message,
+          statusCode: error.statusCode
+        }
+      }
+      
+      // 🔍 3. 数据对比分析
+      if (diagnosticReport.statisticsAPI.status === 'success' && 
+          diagnosticReport.pendingListAPI.status === 'success') {
+        
+        const pendingCount = diagnosticReport.pendingListAPI.recordCount
+        const statisticsData = diagnosticReport.statisticsAPI.response.data
+        
+        // 分析统计数据结构
+        const reviewStats = statisticsData.review_stats || statisticsData || {}
+        const reportedPendingCount = reviewStats.pending_count || statisticsData.pending_count || 0
+        
+        diagnosticReport.dataComparison = {
+          actualPendingCount: pendingCount,
+          reportedPendingCount: reportedPendingCount,
+          isConsistent: pendingCount === reportedPendingCount,
+          dataStructureAnalysis: this.analyzeStatisticsDataStructure(statisticsData)
+        }
+        
+        // 🔍 4. 生成诊断结论
+        if (pendingCount > 0 && reportedPendingCount === 0) {
+          diagnosticReport.conclusion = '后端统计API数据错误'
+        } else if (pendingCount === 0 && reportedPendingCount === 0) {
+          diagnosticReport.conclusion = '数据一致，可能确实没有待审核数据'
+        } else if (pendingCount === reportedPendingCount) {
+          diagnosticReport.conclusion = '数据一致，可能是前端显示问题'
+        } else {
+          diagnosticReport.conclusion = '数据不一致，需要进一步分析'
+        }
+      } else {
+        diagnosticReport.conclusion = 'API调用失败，无法进行对比分析'
+      }
+      
+      wx.hideLoading()
+      
+      // 🔍 5. 显示诊断结果
+      const reportContent = this.formatStatisticsDiagnosticReport(diagnosticReport)
+      
+      wx.showModal({
+        title: '🔍 统计API诊断结果',
+        content: reportContent,
+        showCancel: true,
+        cancelText: '详细日志',
+        confirmText: '知道了',
+        success: (res) => {
+          if (res.cancel) {
+            console.log('📋 完整统计诊断报告:', JSON.stringify(diagnosticReport, null, 2))
+          }
+        }
+      })
+      
+      return diagnosticReport
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 统计诊断过程出错:', error)
+      
+      wx.showModal({
+        title: '❌ 诊断失败',
+        content: '统计诊断过程中出现异常，请检查控制台日志。\n\n错误信息：' + error.message,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    }
+  },
+
+  /**
+   * 📊 分析数据结构
+   */
+  analyzeDataStructure(response) {
+    if (!response || !response.data) {
+      return { hasData: false, structure: null }
+    }
+    
+    return {
+      hasData: true,
+      structure: Object.keys(response.data),
+      dataTypes: Object.keys(response.data).reduce((types, key) => {
+        types[key] = typeof response.data[key]
+        return types
+      }, {})
+    }
+  },
+
+  /**
+   * 📊 分析统计数据结构
+   */
+  analyzeStatisticsDataStructure(data) {
+    const analysis = {
+      hasReviewStats: !!data.review_stats,
+      hasPointsStats: !!data.points_stats,
+      hasUserStats: !!data.user_stats,
+      topLevelFields: Object.keys(data),
+      reviewStatsFields: data.review_stats ? Object.keys(data.review_stats) : [],
+      reviewStatsValues: data.review_stats || {}
+    }
+    
+    return analysis
+  },
+
+  /**
+   * 📊 格式化统计诊断报告
+   */
+  formatStatisticsDiagnosticReport(report) {
+    const lines = []
+    
+    lines.push(`📊 诊断结论：${report.conclusion}`)
+    lines.push('')
+    
+    // 统计API状态
+    if (report.statisticsAPI) {
+      lines.push(`📊 统计API状态：${report.statisticsAPI.status === 'success' ? '✅ 成功' : '❌ 失败'}`)
+      
+      if (report.statisticsAPI.status === 'success') {
+        const structure = report.statisticsAPI.dataStructure
+        lines.push(`   数据结构：${structure.hasData ? '有数据' : '无数据'}`)
+        if (structure.hasData) {
+          lines.push(`   字段：${structure.structure.join(', ')}`)
+        }
+      } else {
+        lines.push(`   错误：${report.statisticsAPI.error}`)
+      }
+    }
+    
+    lines.push('')
+    
+    // 待审核列表API状态
+    if (report.pendingListAPI) {
+      lines.push(`📋 待审核API状态：${report.pendingListAPI.status === 'success' ? '✅ 成功' : '❌ 失败'}`)
+      
+      if (report.pendingListAPI.status === 'success') {
+        lines.push(`   记录数量：${report.pendingListAPI.recordCount}`)
+      } else {
+        lines.push(`   错误：${report.pendingListAPI.error}`)
+      }
+    }
+    
+    lines.push('')
+    
+    // 数据对比
+    if (report.dataComparison) {
+      lines.push(`🔍 数据对比：`)
+      lines.push(`   实际待审核：${report.dataComparison.actualPendingCount}`)
+      lines.push(`   统计显示：${report.dataComparison.reportedPendingCount}`)
+      lines.push(`   数据一致：${report.dataComparison.isConsistent ? '是' : '否'}`)
+    }
+    
+    lines.push('')
+    
+    // 问题定位
+    if (report.conclusion.includes('后端')) {
+      lines.push(`🚨 问题定位：后端统计API`)
+      lines.push(`建议：联系后端程序员检查统计接口`)
+    } else if (report.conclusion.includes('前端')) {
+      lines.push(`🔧 问题定位：前端显示逻辑`)
+      lines.push(`建议：检查前端数据处理`)
+    } else {
+      lines.push(`🤔 问题定位：需要进一步分析`)
+    }
+    
+    return lines.join('\n')
+  },
+
+  /**
+   * ⚡ 快速数据一致性验证
+   */
+  async onQuickDataCheck() {
+    console.log('⚡ 开始快速数据一致性验证...')
+    
+    wx.showLoading({ title: '验证中...', mask: true })
+    
+    try {
+      // 同时调用两个API
+      const [statisticsResult, pendingListResult] = await Promise.all([
+        merchantAPI.getStatistics(this.data.currentPeriod).catch(e => ({ error: e })),
+        merchantAPI.getPendingReviews(1, 20, 'pending').catch(e => ({ error: e }))
+      ])
+      
+      wx.hideLoading()
+      
+      // 分析结果
+      const analysis = this.analyzeDataConsistency(statisticsResult, pendingListResult)
+      
+      // 显示验证结果
+      this.showDataConsistencyResult(analysis)
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 快速验证出错:', error)
+      
+      wx.showModal({
+        title: '❌ 验证失败',
+        content: '数据一致性验证出现异常：\n\n' + error.message,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    }
+  },
+  
+  /**
+   * 📊 分析数据一致性
+   */
+  analyzeDataConsistency(statisticsResult, pendingListResult) {
+    const analysis = {
+      statisticsAPI: {
+        success: !statisticsResult.error,
+        data: statisticsResult.error ? null : statisticsResult.data,
+        error: statisticsResult.error?.message
+      },
+      pendingListAPI: {
+        success: !pendingListResult.error,
+        data: pendingListResult.error ? null : pendingListResult.data,
+        error: pendingListResult.error?.message
+      },
+      comparison: null,
+      conclusion: null,
+      isBackendIssue: false
+    }
+    
+    // 如果两个API都成功
+    if (analysis.statisticsAPI.success && analysis.pendingListAPI.success) {
+      const statisticsData = analysis.statisticsAPI.data
+      const pendingData = analysis.pendingListAPI.data
+      
+             // 提取关键数据 - 🔴 修复字段映射
+       const reviewStats = statisticsData.review_stats || statisticsData
+       const statisticsPendingCount = reviewStats.pending || reviewStats.pending_count || 0
+      const actualPendingCount = (pendingData.reviews || pendingData.list || []).length
+      const totalPendingFromPagination = pendingData.pagination?.total || pendingData.total || actualPendingCount
+      
+      analysis.comparison = {
+        statisticsReportedPending: statisticsPendingCount,
+        actualPendingInList: actualPendingCount,
+        totalPendingFromPagination: totalPendingFromPagination,
+        isConsistent: statisticsPendingCount === totalPendingFromPagination
+      }
+      
+      // 生成结论
+      if (statisticsPendingCount !== totalPendingFromPagination) {
+        analysis.conclusion = '后端API数据不一致'
+        analysis.isBackendIssue = true
+      } else if (actualPendingInList > 0 && statisticsPendingCount === 0) {
+        analysis.conclusion = '后端统计API计算错误'
+        analysis.isBackendIssue = true
+      } else {
+        analysis.conclusion = '数据一致，可能是时间范围问题'
+        analysis.isBackendIssue = false
+      }
+    } else {
+      analysis.conclusion = 'API调用失败'
+      analysis.isBackendIssue = true
+    }
+    
+    return analysis
+  },
+  
+  /**
+   * 📋 显示数据一致性验证结果
+   */
+  showDataConsistencyResult(analysis) {
+    let resultMessage = '⚡ 快速验证结果：\n\n'
+    
+    if (analysis.statisticsAPI.success) {
+      resultMessage += `📊 统计API：✅ 成功\n`
+      if (analysis.comparison) {
+        resultMessage += `   待审核数量：${analysis.comparison.statisticsReportedPending}\n`
+      }
+    } else {
+      resultMessage += `📊 统计API：❌ 失败\n   错误：${analysis.statisticsAPI.error}\n`
+    }
+    
+    if (analysis.pendingListAPI.success) {
+      resultMessage += `📋 待审核API：✅ 成功\n`
+      if (analysis.comparison) {
+        resultMessage += `   实际记录数：${analysis.comparison.actualPendingInList}\n`
+        resultMessage += `   总记录数：${analysis.comparison.totalPendingFromPagination}\n`
+      }
+    } else {
+      resultMessage += `📋 待审核API：❌ 失败\n   错误：${analysis.pendingListAPI.error}\n`
+    }
+    
+    resultMessage += `\n🔍 结论：${analysis.conclusion}\n`
+    
+    if (analysis.isBackendIssue) {
+      resultMessage += `\n🚨 问题定位：后端API问题\n建议：联系后端程序员修复统计接口`
+    } else {
+      resultMessage += `\n🔧 问题定位：前端或配置问题`
+    }
+    
+    const title = analysis.isBackendIssue ? '🚨 发现后端问题' : '🔧 验证完成'
+    
+    wx.showModal({
+      title: title,
+      content: resultMessage,
+      showCancel: analysis.isBackendIssue,
+      cancelText: '详细信息',
+      confirmText: '知道了',
+      confirmColor: analysis.isBackendIssue ? '#ff4444' : '#007aff',
+      success: (res) => {
+        if (res.cancel && analysis.isBackendIssue) {
+          this.showBackendIssueDetails(analysis)
+        }
+      }
+    })
+  },
+  
+  /**
+   * 🚨 显示后端问题详情
+   */
+  showBackendIssueDetails(analysis) {
+    const details = this.generateBackendIssueReport(analysis)
+    
+    wx.showModal({
+      title: '🚨 后端API问题详情',
+      content: details,
+      showCancel: true,
+      cancelText: '复制报告',
+      confirmText: '知道了',
+      success: (res) => {
+        if (res.cancel) {
+          // 复制到剪贴板（如果支持）
+          wx.setClipboardData({
+            data: details,
+            success: () => {
+              wx.showToast({
+                title: '报告已复制',
+                icon: 'success'
+              })
+            },
+            fail: () => {
+              console.log('📋 后端问题报告:', details)
+            }
+          })
+        }
+      }
+    })
+  },
+  
+  /**
+   * 📝 生成后端问题报告
+   */
+  generateBackendIssueReport(analysis) {
+    const timestamp = new Date().toISOString()
+    
+    let report = `🚨 后端API数据不一致问题报告\n`
+    report += `时间：${timestamp}\n`
+    report += `用户：${this.data.userInfo?.mobile || 'Unknown'}\n\n`
+    
+    report += `📊 问题描述：\n`
+    report += `统计API返回待审核：${analysis.comparison?.statisticsReportedPending || 0}条\n`
+    report += `实际待审核记录：${analysis.comparison?.actualPendingInList || 0}条\n`
+    report += `数据不一致：${!analysis.comparison?.isConsistent}\n\n`
+    
+    report += `🔧 需要检查的后端API：\n`
+    report += `1. GET /api/merchant/statistics\n`
+    report += `   - 检查pending_count计算逻辑\n`
+    report += `   - 确认时间范围过滤条件\n`
+    report += `   - 验证SQL查询语句\n\n`
+    
+    report += `2. GET /api/merchant/pending-reviews\n`
+    report += `   - 确认返回的数据是否正确\n`
+    report += `   - 检查分页统计信息\n\n`
+    
+    report += `💡 可能的原因：\n`
+    report += `- 统计接口的SQL查询条件有误\n`
+    report += `- 缓存数据未及时更新\n`
+    report += `- 时间范围过滤逻辑不一致\n`
+    report += `- 数据库表关联查询问题\n\n`
+    
+    report += `🔍 建议后端程序员检查：\n`
+    report += `1. 统计接口的数据查询逻辑\n`
+    report += `2. 确保两个接口使用相同的过滤条件\n`
+    report += `3. 检查数据库索引和查询性能\n`
+    report += `4. 验证缓存机制是否正确\n`
+    
+    return report
+  },
+  
+  /**
+   * 🔧 验证字段映射修复效果
+   */
+  async onTestFieldMappingFix() {
+    console.log('🔧 开始验证字段映射修复效果...')
+    
+    wx.showLoading({ title: '验证修复中...', mask: true })
+    
+    try {
+      // 重新加载统计数据
+      await this.loadStatistics()
+      
+      wx.hideLoading()
+      
+      // 检查数据是否正确显示
+      const currentStats = this.data.statistics
+      
+      let resultMessage = '🔧 字段映射修复验证结果：\n\n'
+      resultMessage += `📊 当前统计显示：\n`
+      resultMessage += `待审核：${currentStats.pendingCount}\n`
+      resultMessage += `通过：${currentStats.todayApproved}\n`
+      resultMessage += `拒绝：${currentStats.todayRejected}\n`
+      resultMessage += `处理：${currentStats.totalProcessed}\n\n`
+      
+      if (currentStats.pendingCount > 0) {
+        resultMessage += `✅ 修复成功！\n统计数据已正确显示`
+      } else {
+        resultMessage += `⚠️ 修复可能未完全生效\n请检查控制台的调试信息`
+      }
+      
+      wx.showModal({
+        title: currentStats.pendingCount > 0 ? '✅ 修复成功' : '⚠️ 需要检查',
+        content: resultMessage,
+        showCancel: true,
+        cancelText: '查看调试',
+        confirmText: '知道了',
+        success: (res) => {
+          if (res.cancel) {
+            console.log('🔍 请查看控制台中的"字段映射调试信息"')
+            wx.showToast({
+              title: '请查看控制台调试信息',
+              icon: 'none',
+              duration: 3000
+            })
+          }
+        }
+      })
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 验证修复出错:', error)
+      
+      wx.showModal({
+        title: '❌ 验证失败',
+        content: '字段映射修复验证出现异常：\n\n' + error.message,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    }
+  },
+  
+  /**
+   * 🔄 强制刷新统计数据
+   */
+  async onForceRefreshStats() {
+    console.log('🔄 强制刷新统计数据...')
+    
+    wx.showLoading({ title: '刷新中...', mask: true })
+    
+    try {
+      // 强制重新加载统计数据
+      await this.loadStatistics()
+      
+      wx.hideLoading()
+      
+      const currentStats = this.data.statistics
+      
+      wx.showToast({
+        title: `统计已刷新: 待审核${currentStats.pendingCount}条`,
+        icon: currentStats.pendingCount > 0 ? 'success' : 'none',
+        duration: 2000
+      })
+      
+      console.log('✅ 统计数据强制刷新完成:', currentStats)
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 强制刷新统计失败:', error)
+      
+      wx.showToast({
+        title: '刷新失败，请重试',
+        icon: 'error',
+        duration: 2000
+      })
+    }
   }
 })

@@ -104,7 +104,7 @@ Page({
   },
 
   /**
-   * 刷新用户信息
+   * 刷新用户信息 - 修复字段映射问题
    * 🔴 后端对接 - 用户信息接口 GET /api/user/info
    * 认证：需要Bearer Token
    * 返回：用户详细信息，主要获取最新的积分余额
@@ -112,14 +112,42 @@ Page({
   refreshUserInfo() {
     console.log('📡 刷新用户信息...')
     return userAPI.getUserInfo().then((res) => {
+      console.log('🔍 相机页面原始用户数据:', res.data)
+      
+      const rawUserInfo = res.data
+      
+      // 🔧 关键修复：统一字段映射 - 将后端数据格式转换为前端期待格式
+      const mappedUserInfo = {
+        // 🔴 基础字段映射
+        user_id: rawUserInfo.user_id || rawUserInfo.id || 'unknown',
+        mobile: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知',
+        nickname: rawUserInfo.nickname || rawUserInfo.nickName || rawUserInfo.name || '用户',
+        total_points: parseInt(rawUserInfo.total_points || rawUserInfo.totalPoints || rawUserInfo.points || 0),
+        
+        // 🔴 头像字段映射
+        avatar_url: rawUserInfo.avatar_url || rawUserInfo.avatarUrl || rawUserInfo.avatar || '/images/default-avatar.png',
+        avatar: rawUserInfo.avatar_url || rawUserInfo.avatarUrl || rawUserInfo.avatar || '/images/default-avatar.png',
+        
+        // 🔴 兼容字段
+        phone: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知',
+        
+        // 🔴 权限字段映射
+        is_admin: Boolean(rawUserInfo.is_admin || rawUserInfo.isAdmin || false)
+      }
+      
+      console.log('🔧 相机页面字段映射结果:', {
+        原始: rawUserInfo,
+        映射后: mappedUserInfo
+      })
+      
       this.setData({
-        userInfo: res.data,
-        totalPoints: res.data.total_points
+        userInfo: mappedUserInfo,
+        totalPoints: mappedUserInfo.total_points
       })
       
       // 更新全局用户信息
-      app.globalData.userInfo = res.data
-      console.log('✅ 用户信息刷新成功，当前积分:', res.data.total_points)
+      app.globalData.userInfo = mappedUserInfo
+      console.log('✅ 用户信息刷新成功，当前积分:', mappedUserInfo.total_points)
     }).catch((error) => {
       console.error('❌ 获取用户信息失败:', error)
       

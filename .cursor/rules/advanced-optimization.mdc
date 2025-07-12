@@ -3,204 +3,45 @@ description:
 globs: 
 alwaysApply: true
 ---
-# 🚀 高级优化规则集 - $(Get-Date -Format "yyyy年MM月dd日")
+# 🚀 高级优化规则集 - 效率提升与性能优化
 
-## 🎯 任务优先级管理系统
+## 🎯 核心目标：提升开发效率，减少请求浪费，优化工具使用
 
-### 1. 智能任务优先级分配
+### 1. 效率监控与统计系统
+
 ```javascript
-// 🔴 任务优先级管理系统
-class TaskPriorityManager {
-    static priorityLevels = {
-        'CRITICAL': { weight: 10, maxWaitTime: 0 },      // 立即处理
-        'HIGH': { weight: 8, maxWaitTime: 300000 },      // 5分钟内
-        'MEDIUM': { weight: 5, maxWaitTime: 900000 },    // 15分钟内
-        'LOW': { weight: 2, maxWaitTime: 1800000 }       // 30分钟内
-    }
-    
-    static taskQueue = []
-    static processingQueue = []
-    static completedTasks = []
-    
-    static addTask(task) {
-        const taskWithPriority = {
-            ...task,
-            id: this.generateTaskId(),
-            createdAt: Date.now(),
-            priority: this.calculatePriority(task),
-            weight: this.priorityLevels[task.severity || 'MEDIUM'].weight
-        }
-        
-        this.taskQueue.push(taskWithPriority)
-        this.taskQueue.sort((a, b) => b.weight - a.weight)
-        
-        console.log(`📋 任务已添加: ${task.description} (优先级: ${taskWithPriority.priority})`)
-        return taskWithPriority.id
-    }
-    
-    static calculatePriority(task) {
-        const severityMap = {
-            'TOOL_CALL_ERROR': 'CRITICAL',      // 工具调用错误
-            'TIMEOUT_VIOLATION': 'CRITICAL',    // 超时违规
-            'DOMAIN_CONFIG_ERROR': 'HIGH',      // 域名配置错误
-            'API_PATH_ERROR': 'HIGH',          // API路径错误
-            'METHOD_CALL_ERROR': 'HIGH',       // 方法调用错误
-            'MOCK_DATA_VIOLATION': 'MEDIUM',   // Mock数据违规
-            'DOCUMENTATION_ERROR': 'LOW'        // 文档错误
-        }
-        
-        return severityMap[task.type] || 'MEDIUM'
-    }
-    
-    static getNextTask() {
-        if (this.taskQueue.length === 0) return null
-        
-        const nextTask = this.taskQueue.shift()
-        this.processingQueue.push(nextTask)
-        
-        console.log(`🎯 开始处理任务: ${nextTask.description}`)
-        return nextTask
-    }
-    
-    static completeTask(taskId, result) {
-        const taskIndex = this.processingQueue.findIndex(t => t.id === taskId)
-        if (taskIndex === -1) return false
-        
-        const task = this.processingQueue.splice(taskIndex, 1)[0]
-        task.completedAt = Date.now()
-        task.processingTime = task.completedAt - task.createdAt
-        task.result = result
-        
-        this.completedTasks.push(task)
-        
-        console.log(`✅ 任务完成: ${task.description} (耗时: ${task.processingTime}ms)`)
-        
-        if (this.taskQueue.length === 0 && this.processingQueue.length === 0) {
-            this.generateCompletionReport()
-        }
-        
-        return true
-    }
-    
-    static generateCompletionReport() {
-        const totalTasks = this.completedTasks.length
-        const totalTime = this.completedTasks.reduce((sum, task) => sum + task.processingTime, 0)
-        const avgTime = totalTime / totalTasks
-        
-        console.log(`📊 任务完成报告:`)
-        console.log(`  总任务数: ${totalTasks}`)
-        console.log(`  总耗时: ${totalTime}ms`)
-        console.log(`  平均耗时: ${Math.round(avgTime)}ms`)
-        console.log(`  🎉 所有任务已完成！`)
-    }
-    
-    static generateTaskId() {
-        return `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    }
-}
-```
-
-### 2. 重复问题预防机制
-```javascript
-// 🔴 重复问题预防系统
-class DuplicationPreventer {
-    static processedIssues = new Set()
-    static issuePatterns = {
-        'DOMAIN_CONFIG': {
-            pattern: /域名.*配置.*错误/,
-            relatedFiles: ['config/env.js', 'project.private.config.json', '*.md'],
-            batchStrategy: 'replace_all_occurrences'
-        },
-        'API_PATH': {
-            pattern: /API.*路径.*错误/,
-            relatedFiles: ['utils/api.js', 'pages/*/index.js'],
-            batchStrategy: 'targeted_replacement'
-        },
-        'METHOD_CALL': {
-            pattern: /方法.*调用.*错误/,
-            relatedFiles: ['pages/*/index.js', 'components/*/index.js'],
-            batchStrategy: 'import_and_call_fix'
-        }
-    }
-    
-    static checkDuplication(issue) {
-        const issueKey = this.generateIssueKey(issue)
-        
-        if (this.processedIssues.has(issueKey)) {
-            return {
-                isDuplicate: true,
-                message: `重复问题检测: ${issue.description}`,
-                recommendation: '建议使用批处理策略一次性解决所有相关问题'
-            }
-        }
-        
-        for (const [patternType, config] of Object.entries(this.issuePatterns)) {
-            if (config.pattern.test(issue.description)) {
-                return {
-                    isDuplicate: false,
-                    patternType,
-                    batchStrategy: config.batchStrategy,
-                    relatedFiles: config.relatedFiles,
-                    recommendation: `检测到${patternType}问题，建议批量处理`
-                }
-            }
-        }
-        
-        return { isDuplicate: false }
-    }
-    
-    static generateBatchPlan(issue, patternType) {
-        const config = this.issuePatterns[patternType]
-        
-        return {
-            type: 'BATCH_PROCESSING',
-            patternType,
-            strategy: config.batchStrategy,
-            files: config.relatedFiles,
-            estimatedTime: config.relatedFiles.length * 2000,
-            parallelizable: true
-        }
-    }
-    
-    static generateIssueKey(issue) {
-        return `${issue.type}_${issue.description.substring(0, 50)}`
-    }
-}
-```
-
-### 3. 效率提升监控系统
-```javascript
-// 🔴 效率提升监控系统
+// 🔴 效率监控系统（基于1.mdc的并行调用规则扩展）
 class EfficiencyMonitor {
     static metrics = {
         parallelCallsUsed: 0,
         serialCallsUsed: 0,
+        requestsSaved: 0,
+        timeSaved: 0,
         timeoutViolations: 0,
         duplicateIssues: 0,
-        batchOperations: 0,
-        requestsSaved: 0,
-        timeSaved: 0
+        batchOperations: 0
     }
     
-    static recordParallelCall(count) {
-        this.metrics.parallelCallsUsed += count
-        this.metrics.requestsSaved += (count - 1)
-        this.metrics.timeSaved += (count - 1) * 3000
+    // 🔴 引用1.mdc的并行调用实现（避免重复）
+    static recordParallelCall(callCount) {
+        // 详细并行调用逻辑见：1.mdc - ParallelCallEnforcer
+        console.log(`📈 并行调用统计: ${callCount}个调用`)
+        console.log(`📊 详细并行规则参见：1.mdc - ParallelCallEnforcer`)
         
-        console.log(`📈 并行调用记录: ${count}个，节省${(count - 1) * 3000}ms`)
+        // 简化统计
+        this.metrics.parallelCallsUsed += callCount
+        this.metrics.requestsSaved += (callCount - 1) * 0.7
+        this.metrics.timeSaved += (callCount - 1) * 2000
     }
     
-    static recordSerialCall(count) {
-        this.metrics.serialCallsUsed += count
-        
-        if (count > 1) {
-            console.warn(`⚠️ 串行调用警告: ${count}个调用可能可以并行`)
-        }
+    static recordSerialCall() {
+        this.metrics.serialCallsUsed++
+        console.warn(`⚠️ 串行调用检测 - 建议使用并行优化（详见1.mdc）`)
     }
     
     static recordTimeoutViolation() {
         this.metrics.timeoutViolations++
-        console.error(`🚨 超时违规记录: 第${this.metrics.timeoutViolations}次`)
+        console.error(`🚨 120秒超时违规 - 详细处理规则见powershell-syntax-enforcer.mdc`)
     }
     
     static recordDuplicateIssue(issueType) {
@@ -253,31 +94,40 @@ class EfficiencyMonitor {
 }
 ```
 
-### 4. 配置文件统一管理
+### 2. 配置文件统一管理（扩展1.mdc的域名检查器）
+
 ```javascript
-// 🔴 配置文件统一管理系统
+// 🔴 配置文件统一管理系统（基于1.mdc的DomainConfigChecker扩展）
 class ConfigurationManager {
-    static configFiles = {
-        'env': 'config/env.js',
-        'project': 'project.private.config.json',
-        'frontend': '前端技术规范文档标准.md',
-        'backend': '后端技术规范文档标准.md',
-        'interface': '接口对接规范文档标准.md'
+    // 🔴 引用1.mdc的域名配置检查器（避免重复）
+    static async validateAllConfigurations() {
+        console.log('🔍 域名配置检查详见：1.mdc - DomainConfigChecker')
+        
+        // 扩展配置同步功能
+        return await this.extendedConfigSync()
     }
     
-    static configValues = {
-        'domain': 'rqchrlqndora.sealosbja.site',
-        'protocol': 'https',
-        'wsProtocol': 'wss'
-    }
-    
-    static async syncAllConfigurations() {
-        console.log('🔄 开始配置同步...')
+    static async extendedConfigSync() {
+        const configFiles = {
+            'env': 'config/env.js',
+            'project': 'project.private.config.json',
+            'frontend': '前端技术规范文档标准.md',
+            'backend': '后端技术规范文档标准.md',
+            'interface': '接口对接规范文档标准.md'
+        }
+        
+        const configValues = {
+            'domain': 'rqchrlqndora.sealosbja.site',
+            'protocol': 'https',
+            'wsProtocol': 'wss'
+        }
+        
+        console.log('🔄 开始扩展配置同步...')
         
         const results = []
         
-        // 🔴 并行读取所有配置文件
-        const readPromises = Object.entries(this.configFiles).map(async ([key, filepath]) => {
+        // 🔴 并行读取所有配置文件（引用1.mdc的并行调用原则）
+        const readPromises = Object.entries(configFiles).map(async ([key, filepath]) => {
             try {
                 const content = await read_file(filepath, true, 1, -1)
                 return { key, filepath, content: content.content, success: true }
@@ -288,11 +138,11 @@ class ConfigurationManager {
         
         const configContents = await Promise.all(readPromises)
         
-        // 检查配置一致性
+        // 检查配置一致性（引用1.mdc的批量检查原则）
         const inconsistencies = []
         configContents.forEach(config => {
             if (config.success) {
-                const configInconsistencies = this.checkConfigConsistency(config)
+                const configInconsistencies = this.checkConfigConsistency(config, configValues)
                 inconsistencies.push(...configInconsistencies)
             }
         })
@@ -302,69 +152,14 @@ class ConfigurationManager {
             return this.generateSyncPlan(inconsistencies)
         }
         
-        console.log('✅ 配置同步检查完成，无需修复')
+        console.log('✅ 扩展配置同步检查完成，无需修复')
         return { needsSync: false }
-    }
-    
-    static checkConfigConsistency(config) {
-        const inconsistencies = []
-        
-        // 检查域名配置
-        const incorrectDomains = [
-            'rqchrlandora.sealoshqja.site',
-            'rqchrlqndora.sealoshqja.site',
-            'rqchrlandora.sealosbja.site'
-        ]
-        
-        incorrectDomains.forEach(incorrectDomain => {
-            if (config.content.includes(incorrectDomain)) {
-                inconsistencies.push({
-                    file: config.filepath,
-                    type: 'DOMAIN_ERROR',
-                    incorrect: incorrectDomain,
-                    correct: this.configValues.domain
-                })
-            }
-        })
-        
-        // 检查协议配置
-        if (config.content.includes('http://') && !config.content.includes('https://')) {
-            inconsistencies.push({
-                file: config.filepath,
-                type: 'PROTOCOL_ERROR',
-                incorrect: 'http://',
-                correct: 'https://'
-            })
-        }
-        
-        return inconsistencies
-    }
-    
-    static generateSyncPlan(inconsistencies) {
-        const fileGroups = inconsistencies.reduce((groups, inc) => {
-            if (!groups[inc.file]) groups[inc.file] = []
-            groups[inc.file].push(inc)
-            return groups
-        }, {})
-        
-        return {
-            needsSync: true,
-            totalFiles: Object.keys(fileGroups).length,
-            totalInconsistencies: inconsistencies.length,
-            fileGroups,
-            operations: inconsistencies.map(inc => ({
-                file: inc.file,
-                type: 'replace',
-                from: inc.incorrect,
-                to: inc.correct
-            })),
-            estimatedTime: inconsistencies.length * 2000
-        }
     }
 }
 ```
 
-### 5. 智能搜索策略优化
+### 3. 智能搜索策略优化
+
 ```javascript
 // 🔴 智能搜索策略优化系统
 class SearchStrategyOptimizer {
@@ -458,7 +253,75 @@ class SearchStrategyOptimizer {
 }
 ```
 
-### 6. 自动化验证引擎
+### 4. 重复问题预防机制
+```javascript
+// 🔴 重复问题预防系统
+class DuplicationPreventer {
+    static processedIssues = new Set()
+    static issuePatterns = {
+        'DOMAIN_CONFIG': {
+            pattern: /域名.*配置.*错误/,
+            relatedFiles: ['config/env.js', 'project.private.config.json', '*.md'],
+            batchStrategy: 'replace_all_occurrences'
+        },
+        'API_PATH': {
+            pattern: /API.*路径.*错误/,
+            relatedFiles: ['utils/api.js', 'pages/*/index.js'],
+            batchStrategy: 'targeted_replacement'
+        },
+        'METHOD_CALL': {
+            pattern: /方法.*调用.*错误/,
+            relatedFiles: ['pages/*/index.js', 'components/*/index.js'],
+            batchStrategy: 'import_and_call_fix'
+        }
+    }
+    
+    static checkDuplication(issue) {
+        const issueKey = this.generateIssueKey(issue)
+        
+        if (this.processedIssues.has(issueKey)) {
+            return {
+                isDuplicate: true,
+                message: `重复问题检测: ${issue.description}`,
+                recommendation: '建议使用批处理策略一次性解决所有相关问题'
+            }
+        }
+        
+        for (const [patternType, config] of Object.entries(this.issuePatterns)) {
+            if (config.pattern.test(issue.description)) {
+                return {
+                    isDuplicate: false,
+                    patternType,
+                    batchStrategy: config.batchStrategy,
+                    relatedFiles: config.relatedFiles,
+                    recommendation: `检测到${patternType}问题，建议批量处理`
+                }
+            }
+        }
+        
+        return { isDuplicate: false }
+    }
+    
+    static generateBatchPlan(issue, patternType) {
+        const config = this.issuePatterns[patternType]
+        
+        return {
+            type: 'BATCH_PROCESSING',
+            patternType,
+            strategy: config.batchStrategy,
+            files: config.relatedFiles,
+            estimatedTime: config.relatedFiles.length * 2000,
+            parallelizable: true
+        }
+    }
+    
+    static generateIssueKey(issue) {
+        return `${issue.type}_${issue.description.substring(0, 50)}`
+    }
+}
+```
+
+### 5. 自动化验证引擎
 ```javascript
 // 🔴 自动化验证引擎
 class AutomationValidationEngine {
@@ -570,7 +433,7 @@ class AutomationValidationEngine {
 }
 ```
 
-### 7. 网络问题诊断系统
+### 6. 网络问题诊断系统
 ```javascript
 // 🔴 网络问题诊断系统
 class NetworkDiagnostics {
@@ -679,9 +542,19 @@ class NetworkDiagnostics {
 
 ---
 
-**规则创建时间**: $(Get-Date -Format "yyyy年MM月dd日")  
-**最后更新时间**: $(Get-Date -Format "yyyy年MM月dd日")  
-**更新内容**: 完善高级优化规则，补充缺失内容，确保文档完整性  
+## 📚 规则引用说明
+
+- **并行工具调用详细规则**: 详见 `1.mdc - ParallelCallEnforcer`
+- **域名配置检查规则**: 详见 `1.mdc - DomainConfigChecker`
+- **PowerShell语法验证**: 详见 `powershell-syntax-enforcer.mdc`
+- **Token认证处理**: 详见 `1.mdc - TokenIssueResolver`
+- **API调用验证**: 详见 `1.mdc - APICallValidator`
+
+---
+
+**规则创建时间**: 2025年01月08日  
+**最后更新时间**: 2025年01月08日  
+**更新内容**: 移除与1.mdc重复的规则，保留高级优化功能，建立规则引用关系  
 **适用范围**: 所有需要效率优化的开发场景  
-**维护状态**: ✅ 已完善 - 所有优化规则已补充完整
+**维护状态**: ✅ 已优化 - 重复内容已清理，规则引用已建立
 

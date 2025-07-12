@@ -57,18 +57,18 @@
             <text class="label-text">手机号</text>
             <text class="required">*</text>
           </view>
-          <view class="input-wrapper {{formErrors.phone ? 'error' : ''}}">
+          <view class="input-wrapper {{formErrors.mobile ? 'error' : ''}}">
             <view class="input-prefix">📱</view>
             <input 
               class="form-input"
               type="number"
               placeholder="请输入手机号"
-              value="{{phone}}"
-              bindinput="onPhoneInput"
+              value="{{mobile}}"
+              bindinput="onMobileInput"
               maxlength="11"
             />
           </view>
-          <text class="error-tip" wx:if="{{formErrors.phone}}">{{formErrors.phone}}</text>
+          <text class="error-tip" wx:if="{{formErrors.mobile}}">{{formErrors.mobile}}</text>
         </view>
 
         <!-- 🔴 权限简化：验证码输入（支持万能验证码123456） -->

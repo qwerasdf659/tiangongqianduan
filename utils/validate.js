@@ -114,9 +114,26 @@ function compressImage(filePath, quality = 0.8) {
  * 表单验证器类
  */
 class FormValidator {
-  constructor() {
+  constructor(rules = {}) {
     this.rules = {}
     this.errors = {}
+    
+    // 🔧 如果传入了规则对象，则设置规则
+    if (rules && typeof rules === 'object') {
+      this.setRules(rules)
+    }
+  }
+
+  /**
+   * 🔧 设置验证规则
+   * @param {Object} rules 规则对象
+   */
+  setRules(rules) {
+    for (const field in rules) {
+      if (Array.isArray(rules[field])) {
+        this.rules[field] = rules[field]
+      }
+    }
   }
 
   /**
@@ -174,6 +191,19 @@ class FormValidator {
   }
 
   /**
+   * 🔧 验证表单数据（兼容auth.js中的调用方式）
+   * @param {Object} data 表单数据
+   * @returns {Object} 验证结果
+   */
+  validate(data) {
+    const isValid = this.validateAll(data)
+    return {
+      isValid,
+      errors: this.getErrors()
+    }
+  }
+
+  /**
    * 获取错误信息
    * @returns {Object} 错误信息对象
    */
@@ -194,33 +224,41 @@ class FormValidator {
  */
 const commonRules = {
   // 必填验证
-  required: (value) => {
+  required: (message = '此项为必填项') => (value) => {
     if (!value || (typeof value === 'string' && value.trim() === '')) {
-      return '此项为必填项'
+      return message
     }
     return true
   },
 
   // 手机号验证
-  phone: (value) => {
+  phone: (message = '请输入正确的手机号') => (value) => {
     if (!validatePhone(value)) {
-      return '请输入正确的手机号'
+      return message
+    }
+    return true
+  },
+
+  // 🔧 手机号验证（兼容mobile字段名）
+  mobile: (message = '请输入正确的手机号') => (value) => {
+    if (!validatePhone(value)) {
+      return message
     }
     return true
   },
 
   // 验证码验证
-  code: (value) => {
+  code: (message = '请输入4-6位数字验证码') => (value) => {
     if (!validateCode(value)) {
-      return '请输入4-6位数字验证码'
+      return message
     }
     return true
   },
 
   // 金额验证
-  amount: (value) => {
+  amount: (message = '请输入正确的金额') => (value) => {
     if (!validateAmount(value)) {
-      return '请输入正确的金额'
+      return message
     }
     return true
   },
@@ -242,10 +280,10 @@ const commonRules = {
   },
 
   // 长度验证
-  length: (minLen, maxLen) => (value) => {
+  length: (expectedLen, message) => (value) => {
     const len = value ? value.toString().length : 0
-    if (len < minLen || len > maxLen) {
-      return `长度应在${minLen}-${maxLen}之间`
+    if (len !== expectedLen) {
+      return message || `长度必须是${expectedLen}位`
     }
     return true
   }

@@ -337,61 +337,85 @@ Page({
   },
 
   /**
-   * 🔴 刷新用户信息 - 必须从后端获取
+   * 🔴 刷新用户信息 - 修复字段映射问题
    */
   refreshUserInfo() {
     return new Promise((resolve, reject) => {
       userAPI.getUserInfo().then(result => {
         console.log('✅ 用户信息获取成功:', result)
+        console.log('🔍 抽奖页面原始用户数据:', result.data)
         
         // 🔧 增强数据安全验证 - 处理后端返回null或错误数据的情况
         if (!result || result.code !== 0) {
           throw new Error(`后端API返回错误: code=${result?.code}, msg=${result?.msg}`)
         }
         
-        const userInfo = result.data
+        const rawUserInfo = result.data
         
         // 🔧 严格验证数据完整性
-        if (!userInfo || typeof userInfo !== 'object') {
+        if (!rawUserInfo || typeof rawUserInfo !== 'object') {
           throw new Error('后端返回的用户数据为空或格式不正确')
         }
         
-        // 🔧 修复undefined问题：确保totalPoints总是有有效值
-        const totalPoints = (userInfo.total_points !== undefined && userInfo.total_points !== null && typeof userInfo.total_points === 'number') 
-          ? userInfo.total_points 
-          : 0
+        // 🔧 关键修复：统一字段映射 - 将后端数据格式转换为前端期待格式
+        const mappedUserInfo = {
+          // 🔴 基础字段映射
+          user_id: rawUserInfo.user_id || rawUserInfo.id || 'unknown',
+          mobile: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知',
+          nickname: rawUserInfo.nickname || rawUserInfo.nickName || rawUserInfo.name || '用户',
+          total_points: parseInt(rawUserInfo.total_points || rawUserInfo.totalPoints || rawUserInfo.points || 0),
+          
+          // 🔴 头像字段映射
+          avatar_url: rawUserInfo.avatar_url || rawUserInfo.avatarUrl || rawUserInfo.avatar || '/images/default-avatar.png',
+          avatar: rawUserInfo.avatar_url || rawUserInfo.avatarUrl || rawUserInfo.avatar || '/images/default-avatar.png',
+          
+          // 🔴 兼容字段
+          phone: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知',
+          
+          // 🔴 权限字段映射
+          is_admin: Boolean(rawUserInfo.is_admin || rawUserInfo.isAdmin || false)
+        }
         
-        console.log('💰 数据验证结果:', { 
-          originalPoints: userInfo.total_points,
-          validatedPoints: totalPoints,
-          userInfoValid: !!userInfo
+        console.log('🔧 抽奖页面字段映射结果:', {
+          原始: rawUserInfo,
+          映射后: mappedUserInfo
         })
         
-        this.safeSetData({
+        // 🔧 修复undefined问题：确保totalPoints总是有有效值
+        const totalPoints = mappedUserInfo.total_points
+        
+        console.log('💰 数据验证结果:', { 
+          originalPoints: rawUserInfo.total_points,
+          validatedPoints: totalPoints,
+          userInfoValid: !!rawUserInfo
+        })
+        
+        // 🔧 使用标准setData，避免数据过滤问题
+        this.setData({
           userInfo: {
-            nickname: userInfo.nickname || '用户',
-            phone: userInfo.mobile || '',
-            avatar: userInfo.avatar || '/images/default-avatar.png'
+            nickname: mappedUserInfo.nickname,
+            phone: mappedUserInfo.phone,
+            avatar: mappedUserInfo.avatar
           },
           totalPoints: totalPoints  // 确保不会是undefined
         })
         
-        console.log('💰 积分数据更新:', { totalPoints, original: userInfo.total_points })
+        console.log('💰 积分数据更新:', { totalPoints, original: rawUserInfo.total_points })
         
         // 更新全局用户信息
         app.globalData.userInfo = {
           ...app.globalData.userInfo,
-          ...userInfo,
+          ...mappedUserInfo,
           total_points: totalPoints  // 确保全局数据也是安全的
         }
         
-        resolve(userInfo)
+        resolve(mappedUserInfo)
         
-      }).catch(error => {
+              }).catch(error => {
         console.error('❌ 获取用户信息失败:', error)
         
-        // 🔧 修复：API失败时确保字段不为undefined
-        this.safeSetData({
+        // 🔧 修复：API失败时确保字段不为undefined，使用标准setData
+        this.setData({
           totalPoints: 0,  // 设置默认值，避免undefined
           userInfo: {
             nickname: '加载失败',
