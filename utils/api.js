@@ -706,6 +706,17 @@ const userAPI = {
   },
 
   /**
+   * 🔧 获取今日积分趋势 - 修复：支持真实的今日积分数据获取
+   */
+  getTodayPointsTrend() {
+    return request({
+      url: '/user/points/today-trend',
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  /**
    * 🔧 获取积分记录 - 修复API路径符合接口对接规范文档
    */
   getPointsRecords(page = 1, pageSize = 20, type = 'all', source = '') {

@@ -1182,16 +1182,40 @@ Page({
   },
 
   /**
-   * 🔧 计算今日趋势
+   * 🔧 计算今日趋势 - 修复：从后端获取真实数据
    */
   calculateTodayTrend() {
     console.log('📊 计算今日趋势')
     
-    // 🔧 这里可以根据实际数据计算趋势
-    // 目前使用示例数据
-    this.safeSetData({
-      todayEarned: 150,
-      todayConsumed: 80
+    // 🔴 修复：从后端API获取真实的今日积分数据，而不是使用硬编码示例数据
+    return userAPI.getTodayPointsTrend().then(result => {
+      console.log('✅ 今日积分趋势获取成功:', result)
+      
+      if (result.code === 0 && result.data) {
+        const trendData = result.data
+        
+        this.safeSetData({
+          todayEarned: trendData.today_earned || 0,
+          todayConsumed: trendData.today_consumed || 0
+        })
+        
+        console.log('✅ 今日积分趋势已更新:', {
+          todayEarned: trendData.today_earned || 0,
+          todayConsumed: trendData.today_consumed || 0
+        })
+      } else {
+        throw new Error(result.msg || '今日积分趋势获取失败')
+      }
+    }).catch(error => {
+      console.error('❌ 获取今日积分趋势失败:', error)
+      
+      // 🔧 API调用失败时设置为0，确保显示正确
+      this.safeSetData({
+        todayEarned: 0,
+        todayConsumed: 0
+      })
+      
+      console.log('⚠️ 今日积分趋势设置为默认值（API调用失败）')
     })
   },
 
