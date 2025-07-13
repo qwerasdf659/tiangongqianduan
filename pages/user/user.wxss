@@ -937,7 +937,18 @@ page {
   display: block;
 }
 
-/* 商家入口样式 */
+/* 🔴 权限简化v2.2.0：管理员功能入口样式 */
+.admin-entrance {
+  background: linear-gradient(135deg, #FF6B35, #F7931E);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin: 30rpx 0 20rpx 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 保持原有的商家入口样式兼容 */
 .merchant-entrance {
   background: linear-gradient(135deg, #FF6B35, #F7931E);
   border-radius: 20rpx;
@@ -948,6 +959,7 @@ page {
   overflow: hidden;
 }
 
+.admin-entrance::before,
 .merchant-entrance::before {
   content: '';
   position: absolute;
@@ -970,6 +982,7 @@ page {
   100% { transform: translateX(100%) translateY(100%); }
 }
 
+.admin-btn,
 .merchant-btn {
   background: rgba(255, 255, 255, 0.2);
   color: white;
@@ -984,12 +997,14 @@ page {
   z-index: 1;
 }
 
+.admin-btn:hover,
 .merchant-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2rpx);
   box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.2);
 }
 
+.admin-desc,
 .merchant-desc {
   display: block;
   color: rgba(255, 255, 255, 0.9);

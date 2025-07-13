@@ -361,8 +361,8 @@ Page({
     
     this.setData({ refreshing: true })
     
-    // 🔴 权限简化：直接加载数据，不需要复杂的权限刷新
-    this.loadData().catch((error) => {
+    // 🔴 权限简化：直接加载数据，不需要复杂的权限刷新 - 修复：正确返回Promise
+    return this.loadData().catch((error) => {
       console.error('❌ 刷新数据失败:', error)
       
       wx.showToast({

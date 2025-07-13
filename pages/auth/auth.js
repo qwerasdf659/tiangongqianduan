@@ -41,9 +41,9 @@ Page({
     // 删除了管理员独立登录相关字段
     
     // 🚧 开发阶段标识 - v2.2.0权限简化版
-    isDevelopmentMode: true, // 开发模式标识
+    isDevelopmentMode: false, // 🔴 开发模式标识已关闭 - 根据用户需求清除开发环境功能
     skipSmsVerification: true, // 开发阶段跳过短信验证
-    developmentVerifyCode: '123456', // 🔴 万能验证码
+    // 🔴 万能验证码已移除 - 根据用户需求清除开发环境万能验证码
     
     // 🔴 v2.2.0新增：增强错误处理
     lastErrorTime: null,
@@ -106,9 +106,9 @@ Page({
       
       // 🔧 设置页面配置（权限简化版）
       this.setData({
-        isDevelopmentMode: envConfig.isDev || true,
+        isDevelopmentMode: false, // 🔴 开发环境功能已禁用
         skipSmsVerification: envConfig.developmentMode?.skipSmsVerification || true,
-        developmentVerifyCode: '123456' // 🔴 万能验证码
+        // 🔴 万能验证码已移除 - 根据用户需求清除开发环境万能验证码
       })
 
       // 🔧 初始化API引用
@@ -527,20 +527,7 @@ Page({
 
     this.setData({ sending: true })
 
-    // 🔴 开发环境：跳过实际短信发送
-    if (this.data.isDevelopmentMode && this.data.skipSmsVerification) {
-      console.log('🚧 开发环境：跳过短信验证码发送')
-      
-      wx.showToast({
-        title: '验证码：123456',
-        icon: 'none',
-        duration: 3000
-      })
-      
-      this.setData({ sending: false })
-      this.startCountdown()
-      return
-    }
+    // 🔴 开发环境短信发送已禁用 - 根据用户需求清除开发环境功能
 
     // 🔴 生产环境：调用真实API
     this.authAPI.sendCode(this.data.mobile)
@@ -1010,42 +997,5 @@ Page({
         url: '/pages/lottery/lottery'
       })
     }
-  },
-
-  /**
-   * 🔧 开发环境跳过登录
-   */
-  onSkipLogin() {
-    if (!this.data.isDevelopmentMode) {
-      console.log('⚠️ 非开发环境，跳过登录功能不可用')
-      return
-    }
-    
-    console.log('🚧 开发环境：跳过登录流程')
-    
-    wx.showModal({
-      title: '开发环境',
-      content: '是否跳过登录流程？\n\n注意：这将使用模拟用户数据。',
-      showCancel: true,
-      cancelText: '取消',
-      confirmText: '跳过',
-      success: (res) => {
-        if (res.confirm) {
-          // 设置模拟登录数据
-          const app = getApp()
-          app.globalData.isLoggedIn = true
-          app.globalData.userInfo = {
-            user_id: 'dev_user_001',
-            mobile: '138****0000',
-            nickname: '开发测试用户',
-            is_admin: false
-          }
-          
-          wx.switchTab({
-            url: '/pages/lottery/lottery'
-          })
-        }
-      }
-    })
   }
 })

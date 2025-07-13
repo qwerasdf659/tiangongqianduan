@@ -223,8 +223,8 @@ Page({
     // 🔧 显示加载状态
     this.setData({ loading: true })
     
-    // 🔧 并行加载多个数据源
-    Promise.all([
+    // 🔧 并行加载多个数据源 - 修复：正确返回Promise
+    return Promise.all([
       this.refreshUserInfo(),
       this.loadUserStatistics(),
       this.loadRecentPointsRecords(),
@@ -460,8 +460,8 @@ Page({
     // 🔧 设置刷新状态
     this.setData({ refreshing: true })
     
-    // 🔧 重新加载所有数据
-    this.loadUserData().finally(() => {
+    // 🔧 重新加载所有数据 - 修复：正确返回Promise
+    return this.loadUserData().finally(() => {
       this.setData({ refreshing: false })
     })
   },
@@ -983,16 +983,7 @@ Page({
       }
     ]
     
-    // 🔴 权限简化：如果是管理员，添加管理员入口
-    if (this.data.isAdmin) {
-      menuItems.unshift({
-        id: 'admin-entrance',
-        name: '管理员功能',
-        icon: '👑',
-        type: 'action',
-        action: 'onAdminEntrance'
-      })
-    }
+    // 🔴 功能菜单中的管理员入口已移除 - 保留底部单独的管理员功能入口
     
     this.safeSetData({
       menuItems: menuItems

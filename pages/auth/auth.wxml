@@ -46,7 +46,7 @@
       <view class="header">
         <view class="logo">🎰</view>
         <text class="title">餐厅积分抽奖</text>
-        <text class="subtitle">统一登录入口 - 支持用户和管理员</text>
+        <text class="subtitle">欢迎使用积分抽奖系统</text>
       </view>
 
       <!-- 表单内容 -->
@@ -82,7 +82,7 @@
             <input 
               class="form-input"
               type="number"
-              placeholder="开发环境请输入123456"
+              placeholder="请输入验证码"
               value="{{code}}"
               bindinput="onCodeInput"
               maxlength="6"
@@ -96,8 +96,7 @@
             </button>
           </view>
           <text class="error-tip" wx:if="{{formErrors.code}}">{{formErrors.code}}</text>
-          <!-- 🔴 开发阶段提示 -->
-          <text class="dev-tip" wx:if="{{isDevelopmentMode}}">开发环境万能验证码：123456</text>
+          <!-- 🔴 开发阶段提示已移除 - 根据用户需求清除开发环境提示 -->
         </view>
 
         <!-- 用户协议 -->
@@ -123,20 +122,9 @@
           <text wx:if="{{logging}}">登录中...</text>
         </button>
 
-        <!-- 🔴 权限简化说明 -->
-        <view class="login-tips">
-          <text class="tips-text">💡 登录后根据权限自动识别用户类型</text>
-          <text class="tips-text">🔐 管理员用户将自动获得管理功能权限</text>
-        </view>
+        <!-- 🔴 权限提示已移除 - 根据用户需求清除管理员权限相关提示 -->
 
-        <!-- 开发环境跳过登录 -->
-        <button 
-          class="skip-btn" 
-          wx:if="{{isDevelopmentMode}}"
-          bindtap="onSkipLogin"
-        >
-          跳过登录（开发环境）
-        </button>
+        <!-- 🔴 开发环境跳过登录按钮已移除 - 根据用户需求清除开发环境按钮 -->
       </view>
 
       <!-- 底部说明 -->
