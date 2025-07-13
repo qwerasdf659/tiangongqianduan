@@ -693,14 +693,22 @@ Page({
           pointsRecords: newRecords
         })
         
-        wx.showToast({
-          title: `加载了${result.data.records.length}条记录`,
-          icon: 'none'
-        })
+        // 🔧 修复：优化用户体验，仅在加载较多记录时显示提示
+        if (result.data.records.length >= 5) {
+          wx.showToast({
+            title: `加载了${result.data.records.length}条记录`,
+            icon: 'none',
+            duration: 1500
+          })
+        } else {
+          // 🔧 少量记录时使用更友好的提示
+          console.log(`✅ 已加载${result.data.records.length}条积分记录`)
+        }
       } else {
         wx.showToast({
           title: '没有更多记录了',
-          icon: 'none'
+          icon: 'none',
+          duration: 1500
         })
       }
     }).catch(error => {
