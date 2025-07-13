@@ -264,10 +264,6 @@ Page({
   initPage() {
     console.log('🔧 开始初始化页面...')
     
-    // 🔧 修复：重置Canvas初始化状态
-    this.canvasInitializing = false
-    this.canvasRetryCount = 0
-    
     // 显示加载状态
     this.safeSetData({ 
       loadingConfig: true,
@@ -833,48 +829,21 @@ Page({
   initCanvas() {
     console.log('🎨 开始初始化Canvas转盘...')
     
-    // 🔧 修复：防止重复初始化
-    if (this.canvasInitializing) {
-      console.log('⏳ Canvas正在初始化中，跳过重复调用')
-      return
-    }
-    
-    // 🔧 修复：限制重试次数
-    if (!this.canvasRetryCount) {
-      this.canvasRetryCount = 0
-    }
-    
     // 检查数据是否已加载
     if (!this.data.prizes || this.data.prizes.length !== 8) {
-      if (this.canvasRetryCount >= 5) {
-        console.error('❌ Canvas初始化重试次数超限，使用降级方案')
-        this.useCanvasFallback()
-        return
-      }
-      
-      console.warn(`⚠️ 抽奖配置未加载完成，延迟初始化Canvas (重试${this.canvasRetryCount + 1}/5)`)
-      this.canvasRetryCount++
-      this.canvasInitializing = true
-      
+      console.warn('⚠️ 抽奖配置未加载完成，延迟初始化Canvas')
       setTimeout(() => {
-        this.canvasInitializing = false
         this.initCanvas()
-      }, 1000)
+      }, 500)
       return
     }
     
-    // 🔧 重置重试计数
-    this.canvasRetryCount = 0
-    
     try {
-      this.canvasInitializing = true
-      
       // 获取Canvas上下文
       const ctx = wx.createCanvasContext('wheelCanvas', this)
       
       if (!ctx) {
         console.error('❌ Canvas上下文创建失败')
-        this.canvasInitializing = false
         this.useCanvasFallback()
         return
       }
@@ -882,12 +851,10 @@ Page({
       // 绘制8区域转盘
       this.drawWheel()
       
-      this.canvasInitializing = false
       console.log('✅ Canvas转盘初始化完成')
       
     } catch (error) {
       console.error('❌ Canvas初始化失败:', error)
-      this.canvasInitializing = false
       this.useCanvasFallback()
     }
   },
@@ -897,11 +864,6 @@ Page({
    */
   useCanvasFallback() {
     console.log('🔄 启用Canvas降级方案')
-    
-    // 🔧 修复：清除初始化状态
-    this.canvasInitializing = false
-    this.canvasRetryCount = 0
-    
     this.safeSetData({
       canvasFallback: true,
       showStaticWheel: true,
