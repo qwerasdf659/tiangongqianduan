@@ -1185,25 +1185,40 @@ Page({
    * 🔧 计算今日趋势 - 修复：从后端获取真实数据
    */
   calculateTodayTrend() {
-    console.log('📊 计算今日趋势')
+    console.log('📊 计算今日趋势 - 开始调用API')
     
     // 🔴 修复：从后端API获取真实的今日积分数据，而不是使用硬编码示例数据
     return userAPI.getTodayPointsTrend().then(result => {
-      console.log('✅ 今日积分趋势获取成功:', result)
+      console.log('✅ 今日积分趋势API响应:', JSON.stringify(result, null, 2))
       
       if (result.code === 0 && result.data) {
         const trendData = result.data
         
-        this.safeSetData({
-          todayEarned: trendData.today_earned || 0,
-          todayConsumed: trendData.today_consumed || 0
+        console.log('🔍 后端返回的积分数据:', {
+          today_earned: trendData.today_earned,
+          today_consumed: trendData.today_consumed,
+          原始数据: trendData
         })
         
-        console.log('✅ 今日积分趋势已更新:', {
-          todayEarned: trendData.today_earned || 0,
-          todayConsumed: trendData.today_consumed || 0
+        const earnedValue = trendData.today_earned || 0
+        const consumedValue = trendData.today_consumed || 0
+        
+        this.safeSetData({
+          todayEarned: earnedValue,
+          todayConsumed: consumedValue
         })
+        
+        console.log('✅ 今日积分趋势已更新 - 实际设置的值:', {
+          todayEarned: earnedValue,
+          todayConsumed: consumedValue
+        })
+        
+        // 🔧 显示用户提示，确认数据正确
+        if (earnedValue === 0 && consumedValue === 0) {
+          console.log('✅ 确认：今日无积分变动，显示0是正确的')
+        }
       } else {
+        console.error('❌ API返回错误:', result.msg || '今日积分趋势获取失败')
         throw new Error(result.msg || '今日积分趋势获取失败')
       }
     }).catch(error => {
@@ -1216,6 +1231,13 @@ Page({
       })
       
       console.log('⚠️ 今日积分趋势设置为默认值（API调用失败）')
+      
+      // 🔧 显示错误提示给用户
+      wx.showToast({
+        title: '积分数据获取失败',
+        icon: 'none',
+        duration: 2000
+      })
     })
   },
 
@@ -1330,6 +1352,64 @@ Page({
       content: JSON.stringify(currentState, null, 2),
       showCancel: false,
       confirmText: '确定'
+    })
+  },
+
+  /**
+   * 🔧 调试积分显示问题 - 手动触发积分数据刷新和诊断
+   */
+  debugPointsDisplay() {
+    console.log('🔍 开始调试积分显示问题')
+    
+    // 1. 检查当前数据状态
+    console.log('📊 当前页面数据状态:', {
+      todayEarned: this.data.todayEarned,
+      todayConsumed: this.data.todayConsumed,
+      totalPoints: this.data.totalPoints
+    })
+    
+    // 2. 检查用户信息
+    const userInfo = wx.getStorageSync('userInfo')
+    console.log('👤 用户信息:', {
+      phone: userInfo?.phone,
+      is_admin: userInfo?.is_admin,
+      total_points: userInfo?.total_points
+    })
+    
+    // 3. 手动重新调用API
+    console.log('🔄 手动重新调用积分趋势API...')
+    
+    wx.showLoading({
+      title: '调试中...',
+      mask: true
+    })
+    
+    return this.calculateTodayTrend().then(() => {
+      wx.hideLoading()
+      
+      console.log('✅ 调试完成，当前数据状态:', {
+        todayEarned: this.data.todayEarned,
+        todayConsumed: this.data.todayConsumed
+      })
+      
+      // 显示调试结果
+      wx.showModal({
+        title: '积分调试结果',
+        content: `今日获得：${this.data.todayEarned || 0}积分\n今日消费：${this.data.todayConsumed || 0}积分\n\n如果显示0是正确的，说明您今日确实无积分变动。\n\n请查看控制台日志了解详细信息。`,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    }).catch(error => {
+      wx.hideLoading()
+      
+      console.error('❌ 调试失败:', error)
+      
+      wx.showModal({
+        title: '调试失败',
+        content: `调试过程中发生错误：${error.message}\n\n请查看控制台日志了解详细信息。`,
+        showCancel: false,
+        confirmText: '知道了'
+      })
     })
   },
 

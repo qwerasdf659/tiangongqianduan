@@ -46,6 +46,10 @@
         <text class="trend-label">今日消费</text>
         <text class="trend-value consumed">{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text>
       </view>
+      <!-- 调试按钮 -->
+      <view class="debug-button" bindtap="debugPointsDisplay">
+        <text>🔍 调试积分</text>
+      </view>
     </view>
   </view>
 
