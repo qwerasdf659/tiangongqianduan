@@ -2241,7 +2241,7 @@ Page({
   },
 
   /**
-   * 🔧 临时调试：显示详细的每日抽奖次数信息
+   * 显示详细的每日抽奖次数信息
    */
   showDetailedDrawStatus() {
     const { todayDrawCount, dailyLimit, totalPoints, costPoints } = this.data

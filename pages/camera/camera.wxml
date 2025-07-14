@@ -106,14 +106,10 @@
     </view>
   </view>
 
-  <!-- 🔧 临时调试面板 -->
-  <view class="debug-panel" style="background: #f0f0f0; padding: 10rpx; margin: 20rpx 0; border-radius: 10rpx; border: 2rpx dashed #999;">
-    <view style="font-size: 24rpx; color: #666; margin-bottom: 10rpx;">🔧 临时调试工具（问题解决后将移除）</view>
-    <view style="display: flex; flex-wrap: wrap; gap: 10rpx;">
-      <button size="mini" type="primary" bindtap="onDebugApiCheck">检查API</button>
-      <button size="mini" type="default" bindtap="onDebugRefreshHistory">刷新历史</button>
-      <button size="mini" type="warn" bindtap="onDebugShowEnvironment">环境信息</button>
-      <button size="mini" style="background: #ff9800; color: white;" bindtap="onDebugTokenRepair">修复Token</button>
+  <!-- 防抖加载提示 -->
+  <view class="loading-container" wx:if="{{showThrottleLoading}}">
+    <view class="loading-card">
+      <text class="loading-text">⏳ 操作太快了，请稍后...</text>
     </view>
   </view>
 

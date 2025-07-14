@@ -1,11 +1,13 @@
-// pages/camera/camera.js - 拍照上传页面逻辑（权限简化版v2.2.0）
+// pages/camera/camera.js - 拍照页面逻辑
 const app = getApp()
-const { uploadAPI, userAPI } = require('../../utils/api')
-const { validateImage, compressImage, FormValidator, commonRules } = require('../../utils/validate')
-const ApiHealthCheck = require('../../utils/api-health-check') // 🔧 临时调试工具
+const { photoAPI, userAPI, uploadAPI } = require('../../utils/api')
+const { throttle } = require('../../utils/validate')
+const { loadingManager } = require('../../utils/loading-manager')
+
+// 🔧 修复：改进图片质量设置
+const PHOTO_QUALITY = 80 // 设置为80%，平衡质量和大小
 
 Page({
-
   /**
    * 页面的初始数据
    */
@@ -676,91 +678,5 @@ Page({
     }
   },
 
-  /**
-   * 🔧 临时调试功能：API健康检查
-   */
-  onDebugApiCheck() {
-    console.log('🔍 开始API健康检查...')
-    ApiHealthCheck.quickCheck()
-  },
 
-  /**
-   * 🔧 临时调试功能：强制刷新上传历史
-   */
-  onDebugRefreshHistory() {
-    console.log('🔄 强制刷新上传历史...')
-    wx.showLoading({ title: '刷新中...', mask: true })
-    
-    this.loadUploadHistory().then(() => {
-      wx.hideLoading()
-      wx.showToast({
-        title: '刷新完成',
-        icon: 'success'
-      })
-    }).catch((error) => {
-      wx.hideLoading()
-      console.error('❌ 刷新失败:', error)
-      wx.showToast({
-        title: '刷新失败',
-        icon: 'none'
-      })
-    })
-  },
-
-  /**
-   * 🔧 临时调试功能：显示当前环境信息
-   */
-  onDebugShowEnvironment() {
-    const envConfig = require('../../config/env.js')
-    const config = envConfig.getConfig()
-    
-    const envInfo = `当前环境：${envConfig.getCurrentEnv()}\n\nAPI地址：${config.baseUrl}\n\nWebSocket：${config.wsUrl}\n\n认证状态：${app.globalData.accessToken ? '已登录' : '未登录'}\n\n用户ID：${app.globalData.userInfo?.user_id || '未知'}`
-    
-    wx.showModal({
-      title: '🔧 环境信息',
-      content: envInfo,
-      showCancel: false,
-      confirmText: '知道了'
-    })
-  },
-
-  /**
-   * 🔧 临时调试功能：刷新数据
-   */
-  async onDebugTokenRepair() {
-    console.log('🔧 手动刷新数据...')
-    wx.showLoading({ title: '刷新中...', mask: true })
-    
-    try {
-      // 刷新用户信息和上传历史
-      await Promise.all([
-        this.refreshUserInfo(),
-        this.loadUploadHistory()
-      ])
-      
-      wx.hideLoading()
-      wx.showToast({
-        title: '刷新成功',
-        icon: 'success'
-      })
-    } catch (error) {
-      wx.hideLoading()
-      console.error('❌ 刷新失败:', error)
-      
-      wx.showModal({
-        title: '刷新失败',
-        content: `数据刷新失败：${error.message || '未知错误'}\n\n请检查网络连接或重新登录`,
-        showCancel: true,
-        cancelText: '稍后重试',
-        confirmText: '重新登录',
-        success: (res) => {
-          if (res.confirm) {
-            wx.reLaunch({
-              url: '/pages/auth/auth'
-            })
-          }
-        }
-      })
-    }
-  }
 })

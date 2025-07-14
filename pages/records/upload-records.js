@@ -2,7 +2,7 @@
 const app = getApp()
 const { uploadAPI } = require('../../utils/api')
 // 🔧 修复：删除对不存在模块的引用，避免模块加载错误
-// const UploadRecordsDebug = require('../../utils/upload-records-debug') // 🔧 临时：添加诊断工具
+
 // const UploadStatusDiagnostic = require('../../utils/upload-status-diagnostic') // 🔧 新增：状态筛选诊断工具
 
 Page({

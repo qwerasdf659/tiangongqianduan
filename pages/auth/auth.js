@@ -835,10 +835,10 @@ Page({
   },
 
   /**
-   * 🔧 执行统一跳转 - 权限简化版
+   * 🔧 执行统一跳转 - 统一跳转到抽奖页面
    */
   performUnifiedRedirect(isAdmin) {
-    console.log('🔄 执行统一跳转 - 权限简化版:', { isAdmin })
+    console.log('🔄 执行统一跳转 - 所有用户都跳转到抽奖页面')
     
     try {
       this.setData({ 
@@ -846,23 +846,9 @@ Page({
         logging: false 
       })
       
-      // 🔴 权限简化版：根据is_admin字段决定跳转目标
-      if (isAdmin) {
-        console.log('👑 管理员用户，跳转到管理页面')
-        wx.switchTab({
-          url: '/pages/merchant/merchant',
-          success: () => {
-            console.log('✅ 管理员页面跳转成功')
-          },
-          fail: (error) => {
-            console.error('❌ 管理员页面跳转失败:', error)
-            this.safeRedirectToLottery()
-          }
-        })
-      } else {
-        console.log('👤 普通用户，跳转到抽奖页面')
-        this.safeRedirectToLottery()
-      }
+      // 🔴 统一跳转：所有用户（包括管理员）都跳转到抽奖页面
+      console.log('🎰 跳转到抽奖页面')
+      this.safeRedirectToLottery()
       
     } catch (error) {
       console.error('❌ 跳转过程中出错:', error)
@@ -985,17 +971,12 @@ Page({
    * 🔧 跳转到主页面
    */
   redirectToMainPage(userInfo) {
-    console.log('🔄 跳转到主页面:', userInfo)
+    console.log('🔄 跳转到主页面 - 统一跳转到抽奖页面:', userInfo)
     
-    // 🔴 权限简化版：根据is_admin字段决定跳转目标
-    if (userInfo.is_admin) {
-      wx.switchTab({
-        url: '/pages/merchant/merchant'
-      })
-    } else {
-      wx.switchTab({
-        url: '/pages/lottery/lottery'
-      })
-    }
+    // 🔴 统一跳转：所有用户（包括管理员）都跳转到抽奖页面
+    console.log('🎰 跳转到抽奖页面')
+    wx.switchTab({
+      url: '/pages/lottery/lottery'
+    })
   }
 })

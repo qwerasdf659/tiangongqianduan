@@ -1105,7 +1105,7 @@ Page({
     }
     
     // 🔧 跳转到管理员功能页面
-    wx.switchTab({
+    wx.navigateTo({
       url: '/pages/merchant/merchant',
       success: () => {
         console.log('✅ 成功跳转到管理员功能页面')
@@ -1131,8 +1131,8 @@ Page({
       confirmText: '重试',
       success: (res) => {
         if (res.confirm) {
-          // 🔧 尝试使用reLaunch
-          wx.reLaunch({
+          // 🔧 尝试使用navigateTo
+          wx.navigateTo({
             url: '/pages/merchant/merchant',
             success: () => {
               console.log('✅ 重试跳转成功')

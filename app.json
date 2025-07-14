@@ -26,10 +26,6 @@
     "borderStyle": "black",
     "list": [
       {
-        "pagePath": "pages/index/index",
-        "text": "🏠首页"
-      },
-      {
         "pagePath": "pages/lottery/lottery",
         "text": "🎰抽奖"
       },
