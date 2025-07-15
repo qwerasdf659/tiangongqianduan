@@ -938,21 +938,22 @@
         <!-- 金额信息 -->
         <view class="review-amount">
           <text class="amount-text">消费金额：¥{{currentReview.amount}}</text>
-          <text class="expected-points">建议积分：{{currentReview.expected_points}}分</text>
+          <text class="expected-points">建议积分：{{currentReview.suggested_points}}分</text>
         </view>
         
         <!-- 审核表单 -->
         <view class="review-form">
-          <!-- 通过审核 - 积分输入 -->
+          <!-- 通过审核 - 消费金额输入 -->
           <view class="form-item" wx:if="{{reviewAction === 'approve'}}">
-            <text class="form-label">实际给予积分 *</text>
+            <text class="form-label">实际消费金额 *</text>
             <input 
               class="form-input"
               type="number"
-              value="{{reviewPoints}}"
-              placeholder="请输入实际给予的积分"
-              bindinput="onPointsInput"
+              value="{{reviewAmount}}"
+              placeholder="请输入实际消费金额（例如：1000）"
+              bindinput="onAmountInput"
             />
+            <text class="form-tips">💡 输入消费金额，系统会自动计算积分奖励</text>
           </view>
           
           <!-- 拒绝审核 - 理由输入 -->
@@ -998,6 +999,10 @@
     <view class="loading-content">
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
+      <text class="loading-subtitle">正在获取管理员数据...</text>
+      <button class="emergency-stop-btn" bindtap="onEmergencyStop">
+        🚨 停止加载
+      </button>
     </view>
   </view>
 </view>

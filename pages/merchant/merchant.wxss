@@ -669,6 +669,24 @@
   color: var(--text-color);
 }
 
+.loading-subtitle {
+  font-size: 24rpx;
+  color: var(--gray-color);
+  margin-top: 10rpx;
+  margin-bottom: 30rpx;
+}
+
+.emergency-stop-btn {
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 12rpx;
+  padding: 20rpx 40rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-top: 20rpx;
+}
+
 /* 响应式适配 */
 @media (max-width: 400px) {
   .stats-grid {
@@ -1912,6 +1930,14 @@
 
 .review-form {
   margin-top: 20rpx;
+}
+
+.form-tips {
+  font-size: 24rpx;
+  color: #666666;
+  margin-top: 8rpx;
+  line-height: 1.4;
+  display: block;
 }
 
 /* 响应式适配 */

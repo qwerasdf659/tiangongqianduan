@@ -1,7 +1,7 @@
 // pages/camera/camera.js - 拍照页面逻辑
 const app = getApp()
 const { photoAPI, userAPI, uploadAPI } = require('../../utils/api')
-const { throttle } = require('../../utils/validate')
+const { throttle, validateImage } = require('../../utils/validate')
 const { loadingManager } = require('../../utils/loading-manager')
 
 // 🔧 修复：改进图片质量设置
@@ -510,11 +510,41 @@ Page({
     return uploadAPI.getHistory(1, 10, 'all').then((res) => {
       console.log('✅ 上传历史记录API响应:', res)
       
-      if (res.code === 0 && res.data && res.data.records) {
-        this.setData({
-          uploadHistory: res.data.records
+      // 🔧 修复：适配后端返回的数据结构 - 支持 history 和 records 字段
+      if (res.code === 0 && res.data) {
+        const rawHistoryData = res.data.history || res.data.records || []
+        
+        // 🔧 修复：字段映射和数据标准化
+        const historyData = rawHistoryData.map(item => {
+          return {
+            ...item,
+            // 🔧 修复：ID字段映射
+            id: item.upload_id || item.id || `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            // 🔧 修复：状态字段映射（后端返回 review_status，前端期望 status）
+            status: item.review_status || item.status || 'pending',
+            // 🔧 修复：时间格式化
+            created_at: item.created_at ? this.formatDisplayTime(item.created_at) : '未知时间',
+            // 🔧 修复：确保数值字段正确
+            amount: parseFloat(item.amount || 0),
+            points_awarded: parseInt(item.points_awarded || 0),
+            // 🔧 修复：图片URL处理
+            image_url: item.image_url || ''
+          }
         })
-        console.log('✅ 上传历史记录加载成功，共', res.data.records.length, '条记录')
+        
+        this.setData({
+          uploadHistory: historyData
+        })
+        console.log('✅ 上传历史记录加载成功，共', historyData.length, '条记录')
+        
+        // 🔧 显示分页信息（如果有）
+        if (res.data.pagination) {
+          console.log('📊 分页信息:', {
+            total: res.data.pagination.total,
+            page: res.data.pagination.page,
+            totalPages: res.data.pagination.totalPages
+          })
+        }
       } else {
         console.warn('⚠️ 上传历史记录数据为空')
         this.setData({
@@ -535,6 +565,39 @@ Page({
         })
       }
     })
+  },
+
+  /**
+   * 🔧 格式化显示时间
+   */
+  formatDisplayTime(timeStr) {
+    try {
+      const date = new Date(timeStr)
+      if (isNaN(date.getTime())) {
+        return '时间格式错误'
+      }
+      
+      const now = new Date()
+      const diffMs = now - date
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      
+      if (diffDays === 0) {
+        return '今天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+      } else if (diffDays === 1) {
+        return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+      } else if (diffDays < 7) {
+        return diffDays + '天前'
+      } else {
+        return date.toLocaleDateString('zh-CN', { 
+          year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit' 
+        })
+      }
+    } catch (error) {
+      console.warn('⚠️ 时间格式化失败:', error)
+      return '时间解析失败'
+    }
   },
 
   /**
@@ -660,9 +723,12 @@ Page({
    */
   onViewUploadDetail(e) {
     const item = e.currentTarget.dataset.item
+    const uploadId = item.upload_id || item.id || '未知'
+    const statusInfo = this.data.statusMap[item.status] || { text: '未知状态' }
+    
     wx.showModal({
       title: '上传详情',
-      content: `小票ID：${item.id}\n审核金额：¥${item.amount}\n获得积分：${item.points_awarded}分\n状态：${this.data.statusMap[item.status].text}\n上传时间：${item.created_at}`,
+      content: `小票ID：${uploadId}\n审核金额：¥${item.amount}\n获得积分：${item.points_awarded}分\n状态：${statusInfo.text}\n上传时间：${item.created_at}`,
       showCancel: false,
       confirmText: '知道了'
     })

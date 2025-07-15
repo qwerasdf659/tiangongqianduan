@@ -848,7 +848,7 @@ Page({
       
       // 🔴 统一跳转：所有用户（包括管理员）都跳转到抽奖页面
       console.log('🎰 跳转到抽奖页面')
-      this.safeRedirectToLottery()
+            this.safeRedirectToLottery()
       
     } catch (error) {
       console.error('❌ 跳转过程中出错:', error)
@@ -975,8 +975,8 @@ Page({
     
     // 🔴 统一跳转：所有用户（包括管理员）都跳转到抽奖页面
     console.log('🎰 跳转到抽奖页面')
-    wx.switchTab({
-      url: '/pages/lottery/lottery'
-    })
+      wx.switchTab({
+        url: '/pages/lottery/lottery'
+      })
   }
 })

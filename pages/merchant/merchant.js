@@ -304,7 +304,29 @@ Page({
   loadDataAsync() {
     // 延迟执行，确保页面渲染完成
     setTimeout(() => {
-      this.loadData().catch((error) => {
+      // 🔧 增强超时保护：如果3秒内没有开始加载，强制停止loading
+      const emergencyTimeout = setTimeout(() => {
+        console.warn('🚨 紧急超时：异步加载数据3秒内没有响应，强制停止loading')
+        this.setData({ loading: false })
+        
+        wx.showModal({
+          title: '⏱️ 加载超时',
+          content: '页面加载时间过长，已停止加载。\n\n可能原因：\n• 后端API服务异常\n• 网络连接问题\n\n建议：\n• 下拉刷新重新尝试\n• 检查网络连接',
+          showCancel: true,
+          cancelText: '稍后重试',
+          confirmText: '强制刷新',
+          success: (res) => {
+            if (res.confirm) {
+              this.loadData()
+            }
+          }
+        })
+      }, 3000)
+      
+      this.loadData().then(() => {
+        clearTimeout(emergencyTimeout)
+      }).catch((error) => {
+        clearTimeout(emergencyTimeout)
         console.error('❌ 异步加载数据失败:', error)
         this.setData({ loading: false })
       })
@@ -376,10 +398,22 @@ Page({
   },
 
   /**
-   * 加载数据
+   * 加载数据 - 增强版超时保护
    */
   loadData() {
     this.setData({ loading: true })
+    
+    // 🔧 增强超时保护：每个API调用独立超时
+    const createTimeoutPromise = (promise, timeout, name) => {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error(`${name} API调用超时 (${timeout}ms)`))
+          }, timeout)
+        })
+      ])
+    }
     
     // 🚨 立即修复：强制超时保护，防止页面永久loading
     const forceTimeoutId = setTimeout(() => {
@@ -400,24 +434,39 @@ Page({
           }
         })
       }
-    }, 8000) // 8秒强制超时
+    }, 6000) // 6秒强制超时
     
+    // 🔧 为每个API调用添加独立的超时保护
     const loadPromises = [
-      this.loadStatistics(),
-      this.loadPendingList()
+      createTimeoutPromise(this.loadStatistics(), 4000, '统计数据'),
+      createTimeoutPromise(this.loadPendingList(), 5000, '待审核列表')
     ]
     
     // 根据当前选项卡加载对应数据
     if (this.data.currentTab === 'lottery') {
-      loadPromises.push(this.loadLotteryData())
+      loadPromises.push(createTimeoutPromise(this.loadLotteryData(), 3000, '抽奖数据'))
     } else if (this.data.currentTab === 'product') {
-      loadPromises.push(this.loadProductData())
+      loadPromises.push(createTimeoutPromise(this.loadProductData(), 3000, '商品数据'))
     }
     
-    return Promise.all(loadPromises).then(() => {
+    // 🔧 使用Promise.allSettled代替Promise.all，允许部分失败
+    return Promise.allSettled(loadPromises).then((results) => {
       clearTimeout(forceTimeoutId)
       this.setData({ loading: false })
-      console.log('✅ 商家数据加载完成')
+      
+      const failures = results.filter(result => result.status === 'rejected')
+      if (failures.length > 0) {
+        console.warn('⚠️ 部分数据加载失败:', failures.map(f => f.reason.message))
+        
+        // 显示部分失败的友好提示
+        wx.showToast({
+          title: `部分数据加载失败(${failures.length}/${results.length})`,
+          icon: 'none',
+          duration: 3000
+        })
+      } else {
+        console.log('✅ 所有数据加载完成')
+      }
     }).catch(error => {
       clearTimeout(forceTimeoutId)
       console.error('❌ 加载数据失败:', error)
@@ -560,7 +609,8 @@ Page({
           receipt_image: review.image_url || review.receipt_image || '',
           upload_time: review.uploaded_at || review.upload_time || '',
           amount: review.amount || 0,
-          suggested_points: review.suggested_points || (review.amount ? review.amount * 10 : 0),
+          // 🔧 修复：确保suggested_points有合理的默认值
+          suggested_points: review.suggested_points || (review.amount ? review.amount * 10 : 100),
           user_remarks: review.remarks || review.user_remarks || '',
           status: review.status || 'pending',
           selected: false // 用于批量操作
@@ -665,11 +715,32 @@ Page({
     const item = e.currentTarget.dataset.item
     const action = e.currentTarget.dataset.action
     
+    // 🔧 修复：计算默认金额，优先使用已有金额，否则使用建议积分推算
+    let defaultAmount = 0
+    if (action === 'approve') {
+      if (item.amount && item.amount > 0) {
+        defaultAmount = item.amount
+      } else if (item.suggested_points && item.suggested_points > 0) {
+        defaultAmount = Math.round(item.suggested_points / 10) // 假设1元=10积分
+      } else {
+        defaultAmount = 100 // 默认100元
+      }
+    }
+    
+    console.log('🔧 审核初始化调试:', {
+      item: item,
+      action: action,
+      suggested_points: item.suggested_points,
+      amount: item.amount,
+      defaultAmount: defaultAmount,
+      计算逻辑: item.amount > 0 ? '使用已有金额' : '根据建议积分推算'
+    })
+    
     this.setData({
       showReviewModal: true,
       currentReview: item,
       reviewAction: action,
-      reviewAmount: action === 'approve' ? String(item.expected_points) : '',
+      reviewAmount: action === 'approve' ? String(defaultAmount) : '',
       reviewReason: ''
     })
   },
@@ -708,9 +779,32 @@ Page({
 
     // 🔴 权限简化：审核通过时必须设置消费金额
     if (reviewAction === 'approve') {
-      if (!reviewAmount || isNaN(parseFloat(reviewAmount)) || parseFloat(reviewAmount) <= 0) {
+      // 🔧 修复：增强金额验证逻辑，添加详细调试信息
+      console.log('🔧 金额验证调试:', {
+        reviewAmount: reviewAmount,
+        reviewAmount_type: typeof reviewAmount,
+        reviewAmount_length: reviewAmount ? reviewAmount.length : 0,
+        parseFloat_result: parseFloat(reviewAmount),
+        isNaN_result: isNaN(parseFloat(reviewAmount)),
+        comparison_result: parseFloat(reviewAmount) <= 0
+      })
+      
+      // 🔧 修复：先处理字符串，去除空格
+      const cleanAmount = reviewAmount ? reviewAmount.toString().trim() : ''
+      
+      if (!cleanAmount || cleanAmount === '' || cleanAmount === 'undefined' || cleanAmount === 'null') {
         wx.showToast({
-          title: '请输入有效的消费金额',
+          title: '请输入消费金额',
+          icon: 'none'
+        })
+        return
+      }
+      
+      const numAmount = parseFloat(cleanAmount)
+      
+      if (isNaN(numAmount) || numAmount <= 0 || numAmount > 99999) {
+        wx.showToast({
+          title: '请输入有效的消费金额（1-99999）',
           icon: 'none'
         })
         return
@@ -3890,5 +3984,52 @@ Page({
         duration: 2000
       })
     }
+  },
+
+  /**
+   * 🚨 紧急停止加载
+   */
+  onEmergencyStop() {
+    console.log('🚨 用户触发紧急停止加载')
+    
+    wx.showModal({
+      title: '🚨 确认停止加载',
+      content: '确定要停止当前的数据加载吗？\n\n注意：停止后页面可能显示不完整的数据。',
+      showCancel: true,
+      cancelText: '继续加载',
+      confirmText: '确定停止',
+      confirmColor: '#ff4444',
+      success: (res) => {
+        if (res.confirm) {
+          console.log('🚨 用户确认停止加载')
+          
+          // 强制停止加载状态
+          this.setData({ loading: false })
+          
+          // 显示停止成功提示
+          wx.showToast({
+            title: '已停止加载',
+            icon: 'success',
+            duration: 2000
+          })
+          
+          // 提供重新加载选项
+          setTimeout(() => {
+            wx.showModal({
+              title: '💡 重新加载',
+              content: '数据加载已停止，是否重新尝试加载数据？',
+              showCancel: true,
+              cancelText: '稍后再试',
+              confirmText: '重新加载',
+              success: (retryRes) => {
+                if (retryRes.confirm) {
+                  this.loadData()
+                }
+              }
+            })
+          }, 1000)
+        }
+      }
+    })
   }
 })
