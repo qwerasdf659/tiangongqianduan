@@ -52,7 +52,6 @@
       <view class="empty-icon">📝</view>
       <text class="empty-title">暂无积分记录</text>
       <text class="empty-desc">快去参与活动获取积分吧！</text>
-      <button class="test-btn" bindtap="onTestTap">🧪 生成测试数据</button>
     </view>
 
     <!-- 记录列表 -->
@@ -96,9 +95,6 @@
   <view class="bottom-actions">
     <button class="action-btn refresh-btn" bindtap="onPullDownRefresh">
       🔄 刷新记录
-    </button>
-    <button class="action-btn test-btn" bindtap="onTestTap">
-      🧪 测试数据
     </button>
   </view>
 

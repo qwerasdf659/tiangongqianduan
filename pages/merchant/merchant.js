@@ -225,7 +225,19 @@ Page({
    * 生命周期函数--监听页面卸载
    */
   onUnload() {
-    console.log('📱 管理员页面卸载')
+    console.log('🔄 商家页面卸载')
+    
+    // 清理定时器
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer)
+      this.refreshTimer = null
+    }
+    
+    // 清理WebSocket连接
+    if (this.wsConnection) {
+      this.wsConnection.close()
+      this.wsConnection = null
+    }
   },
 
   /**

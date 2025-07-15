@@ -431,7 +431,7 @@
           </view>
         </view>
 
-        <text class="pickup-notice">📍 请凭订单编号到店领取商品</text>
+        <text class="pickup-notice">📍 请凭编号领取商品</text>
       </view>
 
       <view class="result-footer">
@@ -447,10 +447,9 @@
       <text>兑换规则</text>
     </view>
     <view class="rules-content">
-      <view class="rule-item">• 商品按积分值从低到高排序（800-2000分）</view>
-      <view class="rule-item">• 总共20件限量商品，售完即止</view>
+      <view class="rule-item">• 限量商品，换完即止</view>
       <view class="rule-item">• 库存实时同步，先到先得</view>
-      <view class="rule-item">• 兑换成功后请凭订单编号到店领取</view>
+              <view class="rule-item">• 兑换成功后请凭编号领取</view>
       <view class="rule-item">• 积分一经兑换不可退回</view>
     </view>
   </view>

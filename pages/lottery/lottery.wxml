@@ -10,10 +10,6 @@
         <text class="points-value">{{totalPoints || 0}}</text>
       </view>
     </view>
-    <!-- 联系客服按钮 -->
-    <button class="header-service-btn" bindtap="onContactService">
-      📞 客服
-    </button>
   </view>
 
   <!-- 转盘区域 - 优化：使用CSS控制显隐，避免DOM重建 -->
@@ -196,8 +192,5 @@
     </view>
   </view>
   
-  <!-- 🔴 调试信息 - 开发环境可见 -->
-  <view wx:if="{{false}}" style="position: fixed; bottom: 20rpx; left: 20rpx; background: rgba(0,0,0,0.8); color: white; padding: 20rpx; border-radius: 10rpx; font-size: 20rpx; z-index: 9999;">
-    <text>调试: hideWheel={{hideWheel}}, showResult={{showResult}}</text>
-  </view>
+
 </view> 

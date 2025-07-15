@@ -162,7 +162,6 @@ Page({
           if (res.confirm) {
             wx.navigateBack()
           } else {
-            // 🔴 删除违规代码：严禁生成测试数据
             console.log('用户选择稍后重试，保持当前状态')
           }
         }
@@ -285,11 +284,5 @@ Page({
     wx.navigateBack()
   },
 
-  /**
-   * 测试功能
-   */
-  onTestTap() {
-    // 🔴 删除违规代码：严禁生成测试数据
-    console.log('测试功能已禁用，所有积分记录数据均来自后端API')
-  }
+
 }) 

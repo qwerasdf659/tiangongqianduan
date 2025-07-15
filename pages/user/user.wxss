@@ -419,11 +419,17 @@ page {
 }
 
 .section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 32rpx;
   font-weight: 600;
   color: var(--text-color);
   margin-bottom: 30rpx;
-  text-align: center;
+}
+
+.section-title text {
+  flex: 1;
 }
 
 .stats-grid {
@@ -578,31 +584,7 @@ page {
   color: var(--text-color);
 }
 
-.emergency-fix-btn {
-  background: #FF5722;
-  color: white;
-  border: none;
-  border-radius: 16rpx;
-  padding: 24rpx 40rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  margin-top: 40rpx;
-  transition: all 0.3s ease;
-}
 
-.emergency-fix-btn:hover {
-  background: #E64A19;
-  transform: scale(1.05);
-}
-
-.emergency-tips {
-  font-size: 22rpx;
-  color: var(--gray-color);
-  margin-top: 16rpx;
-  margin-bottom: 20rpx;
-  text-align: center;
-  line-height: 1.5;
-}
 
 /* 版本信息 */
 .version-info {
@@ -713,26 +695,7 @@ page {
   color: #FF5722;
 }
 
-/* 调试按钮样式 */
-.debug-button {
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20rpx;
-  padding: 10rpx 20rpx;
-  margin-top: 10rpx;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10rpx);
-}
 
-.debug-button:active {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: scale(0.95);
-}
-
-.debug-button text {
-  font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.8);
-}
 
 /* 积分明细筛选 */
 .detail-filters {
@@ -843,17 +806,15 @@ page {
 }
 
 .refresh-stats {
-  background: var(--primary-color);
-  color: white;
+  background: transparent;
   border: none;
-  border-radius: 50%;
-  width: 60rpx;
-  height: 60rpx;
   font-size: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--blue-start);
+  padding: 0;
+  margin-left: 20rpx;
 }
+
+
 
 .stat-trend {
   font-size: 20rpx;

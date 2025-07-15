@@ -123,12 +123,7 @@
                 <view class="dropdown-mask" wx:if="{{showPeriodSelector}}" bindtap="onCloseDropdown"></view>
               </view>
             </view>
-            <view class="diagnostic-actions">
-              <button class="diagnostic-btn" bindtap="onDiagnoseStatistics">🔍 统计诊断</button>
-              <button class="diagnostic-btn quick-check" bindtap="onQuickDataCheck">⚡ 快速验证</button>
-              <button class="diagnostic-btn fix-test" bindtap="onTestFieldMappingFix">🔧 验证修复</button>
-              <button class="diagnostic-btn refresh-stats" bindtap="onForceRefreshStats">🔄 刷新统计</button>
-            </view>
+
                     </view>
           
           <!-- 时间范围提示 -->
@@ -171,15 +166,7 @@
         <button class="tool-btn batch-btn" bindtap="{{hasPermission ? 'onBatchOperation' : 'onLockedTap'}}">
           📝 批量操作
         </button>
-        <button class="tool-btn diagnostic-btn" bindtap="onRunDiagnostic">
-          🔍 诊断
-        </button>
-        <button class="tool-btn verify-btn" bindtap="onVerifyDataMapping">
-          ✅ 验证修复
-        </button>
-        <button class="tool-btn test-mapping-btn" bindtap="onTestFieldMapping">
-          🧪 测试映射
-        </button>
+
       </view>
 
       <!-- 待审核列表 -->

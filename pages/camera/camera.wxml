@@ -97,11 +97,7 @@
       </view>
       <view class="info-item">
         <text class="info-icon">⏰</text>
-        <text class="info-text">审核时间：1-24小时</text>
-      </view>
-      <view class="info-item">
-        <text class="info-icon">💳</text>
-        <text class="info-text">单次上传积分范围：50-2000分</text>
+        <text class="info-text">审核时间：1-7个工作日</text>
       </view>
     </view>
   </view>

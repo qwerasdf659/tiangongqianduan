@@ -46,10 +46,6 @@
         <text class="trend-label">今日消费</text>
         <text class="trend-value consumed">{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text>
       </view>
-      <!-- 调试按钮 -->
-      <view class="debug-button" bindtap="debugPointsDisplay">
-        <text>🔍 调试积分</text>
-      </view>
     </view>
   </view>
 
@@ -144,24 +140,6 @@
     <view class="loading-content">
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
-      
-      <!-- 🔧 紧急修复按钮：立即解除loading状态 -->
-      <button class="emergency-fix-btn" bindtap="emergencyFixLoading">
-        🚨 立即使用菜单
-      </button>
-      <text class="emergency-tips">如果加载时间过长，点击此按钮立即使用功能菜单</text>
-      
-      <!-- 🔧 测试按钮：用于验证页面修复效果 -->
-      <button class="test-display-btn" bindtap="testPageDisplay">
-        🧪 测试页面显示
-      </button>
-      <text class="test-tips">开发测试用，验证页面修复效果</text>
-      
-      <!-- 🔧 权限诊断按钮：用于诊断管理员权限问题 -->
-      <button class="permission-diagnostic-btn" bindtap="diagnosePermissionStatus">
-        🔐 权限状态诊断
-      </button>
-      <text class="diagnostic-tips">诊断管理员功能按钮显示问题</text>
     </view>
   </view>
 

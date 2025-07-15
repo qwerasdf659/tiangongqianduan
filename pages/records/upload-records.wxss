@@ -137,38 +137,7 @@
   box-shadow: 0 4rpx 16rpx rgba(156, 39, 176, 0.3);
 }
 
-/* 🔍 调试：13612227930问题排查样式 */
-.debug-info {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 10px 0;
-}
 
-.debug-title {
-  font-size: 14px;
-  font-weight: bold;
-  color: #856404;
-  display: block;
-  margin-bottom: 10px;
-}
-
-.debug-detail {
-  font-size: 12px;
-  color: #856404;
-  margin-bottom: 5px;
-}
-
-.debug-refresh-btn {
-  background: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin-top: 10px;
-}
 
 .title-section {
   display: flex;

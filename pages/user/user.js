@@ -223,6 +223,12 @@ Page({
     // 🔧 显示加载状态
     this.setData({ loading: true })
     
+    // 🔧 设置超时机制，最多loading 3秒
+    const loadingTimeout = setTimeout(() => {
+      console.warn('⏰ Loading超时，强制结束loading状态')
+      this.setData({ loading: false })
+    }, 3000)
+    
     // 🔧 并行加载多个数据源 - 修复：正确返回Promise
     return Promise.all([
       this.refreshUserInfo(),
@@ -232,9 +238,11 @@ Page({
       this.initAchievements()
     ]).then(() => {
       console.log('✅ 用户数据加载完成')
+      clearTimeout(loadingTimeout)
       this.setData({ loading: false })
     }).catch(error => {
       console.error('❌ 用户数据加载失败:', error)
+      clearTimeout(loadingTimeout)
       this.setData({ loading: false })
       
       // 🔧 显示友好的错误提示
@@ -354,42 +362,67 @@ Page({
   },
 
   /**
-   * 🔧 加载用户统计数据
+   * 🔧 加载用户统计数据 - 修复：调用正确的API并修复数据映射
    */
   loadUserStatistics() {
-    console.log('📡 获取用户统计数据')
+    console.log('📡 获取用户综合统计数据')
     
-    return userAPI.getStatistics().then(result => {
-      console.log('✅ 用户统计数据获取成功:', result)
+    // 🔴 修复：使用新的综合统计接口，调用三个后端API
+    return userAPI.getComprehensiveStatistics().then(result => {
+      console.log('✅ 用户综合统计数据获取成功:', result)
       
       if (result.code === 0 && result.data) {
         const stats = result.data
         
-        // 🔧 更新统计数据
+        console.log('🔍 统计数据详情:', {
+          抽奖次数: stats.totalLottery,
+          上传次数: stats.totalUpload,
+          通过次数: stats.approvedUpload,
+          当前积分: stats.currentPoints,
+          本月积分: stats.thisMonthPoints
+        })
+        
+        // 🔧 更新统计数据 - 修复数据映射
         this.safeSetData({
           statistics: {
-            totalLottery: stats.total_lottery || 0,
-            totalExchange: stats.total_exchange || 0,
-            totalUpload: stats.total_upload || 0,
-            thisMonthPoints: stats.this_month_points || 0,
-            lotteryTrend: stats.lottery_trend || '→',
-            exchangeTrend: stats.exchange_trend || '→',
-            uploadTrend: stats.upload_trend || '→',
-            pointsTrend: stats.points_trend || '→'
+            totalLottery: stats.totalLottery || 0,        // 🔴 来自抽奖API
+            totalExchange: 0,                             // 🔧 暂时设为0，待后端提供兑换统计API
+            totalUpload: stats.totalUpload || 0,          // 🔴 来自拍照API
+            thisMonthPoints: stats.thisMonthPoints || 0,  // 🔴 来自用户API
+            lotteryTrend: stats.lotteryTrend || '→',
+            exchangeTrend: stats.exchangeTrend || '→',
+            uploadTrend: stats.uploadTrend || '→',
+            pointsTrend: stats.pointsTrend || '→'
           },
           userStats: {
-            totalUploads: stats.total_upload || 0,
-            approvedUploads: stats.approved_upload || 0,
-            totalLotteries: stats.total_lottery || 0,
-            totalExchanges: stats.total_exchange || 0,
-            joinDays: stats.join_days || 0
+            totalUploads: stats.totalUpload || 0,         // 🔴 来自拍照API
+            approvedUploads: stats.approvedUpload || 0,   // 🔴 来自拍照API
+            totalLotteries: stats.totalLottery || 0,      // 🔴 来自抽奖API
+            totalExchanges: 0,                            // 🔧 暂时设为0
+            joinDays: stats.registrationDays || 0         // 🔴 来自用户API
           }
         })
+        
+        // 🔧 更新用户积分信息
+        if (stats.currentPoints !== undefined) {
+          this.safeSetData({
+            totalPoints: stats.currentPoints
+          })
+          
+          // 🔧 同时更新用户信息中的积分
+          if (this.data.userInfo) {
+            const updatedUserInfo = { ...this.data.userInfo }
+            updatedUserInfo.total_points = stats.currentPoints
+            this.safeSetData({
+              userInfo: updatedUserInfo
+            })
+          }
+        }
         
         // 🔧 计算今日趋势
         this.calculateTodayTrend()
         
-        console.log('✅ 用户统计数据已更新')
+        console.log('✅ 用户统计数据已更新 - 修复完成')
       } else {
         throw new Error(result.msg || '统计数据获取失败')
       }
@@ -1294,164 +1327,13 @@ Page({
     } else {
       console.warn('⚠️ 清理后的数据为空，跳过setData操作')
     }
-  },
-
-  /**
-   * 🔧 紧急修复loading状态
-   */
-  emergencyFixLoading() {
-    console.warn('🚨 紧急修复loading状态')
-    
-    this.setData({
-      loading: false,
-      refreshing: false
-    })
-    
-    // 🔧 设置最基本的用户信息
-    if (!this.data.userInfo) {
-      this.safeSetData({
-        userInfo: {
-          user_id: 'emergency_user',
-          mobile: '紧急修复模式',
-          nickname: '请下拉刷新',
-          avatar_url: '/images/default-avatar.png',
-          is_admin: false
-        },
-        totalPoints: 0,
-        statistics: {
-          totalLottery: 0,
-          totalExchange: 0,
-          totalUpload: 0,
-          thisMonthPoints: 0,
-          lotteryTrend: '→',
-          exchangeTrend: '→',
-          uploadTrend: '→',
-          pointsTrend: '→'
-        }
-      })
-    }
-    
-    wx.showToast({
-      title: '已修复页面状态',
-      icon: 'none'
-    })
-  },
-
-  /**
-   * 🔧 测试页面显示
-   */
-  testPageDisplay() {
-    console.log('🧪 测试页面显示')
-    
-    // 🔧 显示当前页面状态
-    const currentState = {
-      loading: this.data.loading,
-      userInfo: this.data.userInfo ? '已加载' : '未加载',
-      totalPoints: this.data.totalPoints,
-      isAdmin: this.data.isAdmin,
-      menuItems: this.data.menuItems.length,
-      pointsRecords: this.data.pointsRecords.length
-    }
-    
-    console.log('📊 当前页面状态:', currentState)
-    
-    wx.showModal({
-      title: '页面状态测试',
-      content: JSON.stringify(currentState, null, 2),
-      showCancel: false,
-      confirmText: '确定'
-    })
-  },
-
-  /**
-   * 🔧 调试积分显示问题 - 手动触发积分数据刷新和诊断
-   */
-  debugPointsDisplay() {
-    console.log('🔍 开始调试积分显示问题')
-    
-    // 1. 检查当前数据状态
-    console.log('📊 当前页面数据状态:', {
-      todayEarned: this.data.todayEarned,
-      todayConsumed: this.data.todayConsumed,
-      totalPoints: this.data.totalPoints
-    })
-    
-    // 2. 检查用户信息
-    const userInfo = wx.getStorageSync('userInfo')
-    console.log('👤 用户信息:', {
-      phone: userInfo?.phone,
-      is_admin: userInfo?.is_admin,
-      total_points: userInfo?.total_points
-    })
-    
-    // 3. 手动重新调用API
-    console.log('🔄 手动重新调用积分趋势API...')
-    
-    wx.showLoading({
-      title: '调试中...',
-      mask: true
-    })
-    
-    return this.calculateTodayTrend().then(() => {
-      wx.hideLoading()
-      
-      console.log('✅ 调试完成，当前数据状态:', {
-        todayEarned: this.data.todayEarned,
-        todayConsumed: this.data.todayConsumed
-      })
-      
-      // 显示调试结果
-      wx.showModal({
-        title: '积分调试结果',
-        content: `今日获得：${this.data.todayEarned || 0}积分\n今日消费：${this.data.todayConsumed || 0}积分\n\n如果显示0是正确的，说明您今日确实无积分变动。\n\n请查看控制台日志了解详细信息。`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
-    }).catch(error => {
-      wx.hideLoading()
-      
-      console.error('❌ 调试失败:', error)
-      
-      wx.showModal({
-        title: '调试失败',
-        content: `调试过程中发生错误：${error.message}\n\n请查看控制台日志了解详细信息。`,
-        showCancel: false,
-        confirmText: '知道了'
-      })
-    })
-  },
-
-  /**
-   * 🔧 诊断权限状态
-   */
-  diagnosePermissionStatus() {
-    console.log('🔍 诊断权限状态')
-    
-    const userInfo = app.globalData.userInfo
-    const localUserInfo = wx.getStorageSync('user_info')
-    
-    const diagnosis = {
-      globalUserInfo: userInfo ? {
-        user_id: userInfo.user_id,
-        is_admin: userInfo.is_admin,
-        mobile: userInfo.mobile
-      } : null,
-      localUserInfo: localUserInfo ? {
-        user_id: localUserInfo.user_id,
-        is_admin: localUserInfo.is_admin,
-        mobile: localUserInfo.mobile
-      } : null,
-      pageIsAdmin: this.data.isAdmin,
-      showAdminEntrance: this.data.showAdminEntrance
-    }
-    
-    console.log('🔍 权限状态诊断:', diagnosis)
-    
-    wx.showModal({
-      title: '权限状态诊断',
-      content: JSON.stringify(diagnosis, null, 2),
-      showCancel: false,
-      confirmText: '确定'
-    })
   }
+
+
+
+
+
+
+
+
 })

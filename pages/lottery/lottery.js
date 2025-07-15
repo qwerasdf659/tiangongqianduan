@@ -2125,17 +2125,7 @@ Page({
     })
   },
 
-  /**
-   * 联系客服
-   */
-  onContactService() {
-    wx.showModal({
-      title: '联系客服',
-      content: '如需帮助，请通过以下方式联系我们：\n\n📞 客服电话：400-123-4567\n💬 在线客服：工作日 9:00-18:00',
-      showCancel: false,
-      confirmText: '知道了'
-    })
-  },
+
 
   /**
    * 分享功能

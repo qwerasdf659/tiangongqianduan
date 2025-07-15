@@ -159,14 +159,7 @@ page {
   opacity: 0.8;
 }
 
-.test-btn {
-  background: #ff9500;
-  color: white;
-  border: none;
-  border-radius: 12rpx;
-  padding: 20rpx 40rpx;
-  font-size: 28rpx;
-}
+
 
 /* 记录列表 */
 .records-list {
@@ -299,15 +292,7 @@ page {
   transform: translateY(-2rpx);
 }
 
-.test-btn {
-  background: #ff9500;
-  color: white;
-}
 
-.test-btn:hover {
-  background: #e6850e;
-  transform: translateY(-2rpx);
-}
 
 /* 统计信息 */
 .stats-section {
