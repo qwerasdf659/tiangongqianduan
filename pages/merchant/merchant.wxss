@@ -1603,155 +1603,292 @@
   justify-content: center;
 }
 
+/* 🎨 优化模态框主体样式 */
 .modal-body {
-  padding: 30rpx;
+  padding: 40rpx;
   max-height: 70vh;
   overflow-y: auto;
 }
 
+.product-modal .modal-body {
+  padding: 30rpx 40rpx;
+  background: #fafafa;
+}
+
+/* 🎯 优化模态框底部按钮 */
 .modal-footer {
-  padding: 30rpx;
-  border-top: 1rpx solid var(--border-color);
+  padding: 30rpx 40rpx;
+  border-top: 1rpx solid #e9ecef;
   display: flex;
   justify-content: flex-end;
-  gap: 20rpx;
+  gap: 24rpx;
+  background: white;
 }
 
 .modal-btn {
   border: none;
-  border-radius: 12rpx;
-  padding: 20rpx 40rpx;
-  font-size: 28rpx;
+  border-radius: 16rpx;
+  padding: 28rpx 48rpx;
+  font-size: 30rpx;
   font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.modal-btn:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
 }
 
 .cancel-btn {
-  background: #f5f5f5;
-  color: var(--text-color);
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 2rpx solid #e9ecef;
+}
+
+.cancel-btn:hover {
+  background: #e9ecef;
+  border-color: #dee2e6;
 }
 
 .confirm-btn {
-  background: var(--primary-color);
+  background: linear-gradient(45deg, #ff6a88, #ff99ac);
   color: white;
+  min-width: 120rpx;
+}
+
+.confirm-btn:hover {
+  background: linear-gradient(45deg, #ff5577, #ff88bb);
 }
 
 .confirm-btn.loading {
   background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .confirm-btn.approve {
-  background: #4CAF50;
+  background: linear-gradient(45deg, #4CAF50, #66BB6A);
 }
 
 .confirm-btn.reject {
-  background: #f44336;
+  background: linear-gradient(45deg, #f44336, #ef5350);
 }
 
-/* 商品编辑弹窗样式 */
+/* 🎨 商品编辑弹窗样式 - 优化布局和视觉效果 */
 .product-modal .modal-content {
-  max-height: 80vh;
+  max-height: 85vh;
+  width: 95%;
+  max-width: 700rpx;
 }
 
 .form-container {
-  max-height: 60vh;
+  max-height: 65vh;
+  padding: 10rpx 0;
 }
 
+/* 🔧 优化表单项间距和布局 */
 .form-item {
-  margin-bottom: 30rpx;
+  margin-bottom: 45rpx;
+  padding: 0 10rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
+.form-item:last-child {
+  margin-bottom: 20rpx;
+}
+
+/* 🎯 优化标签样式 */
 .form-label {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: var(--text-color);
-  margin-bottom: 12rpx;
+  margin-bottom: 24rpx;
   display: block;
+  position: relative;
+  text-align: left;
+  line-height: 1.4;
 }
 
+.form-label::after {
+  content: '';
+  position: absolute;
+  bottom: -4rpx;
+  left: 0;
+  width: 30rpx;
+  height: 3rpx;
+  background: linear-gradient(45deg, #ff6a88, #ff99ac);
+  border-radius: 2rpx;
+}
+
+/* 🎨 优化输入框样式 */
 .form-input {
   width: 100%;
-  padding: 20rpx;
+  padding: 30rpx 24rpx;
   border: 2rpx solid #e0e0e0;
-  border-radius: 12rpx;
-  font-size: 28rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
   background: white;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  margin-top: 8rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
 }
 
 .form-input:focus {
-  border-color: var(--primary-color);
+  border-color: #ff6a88;
+  box-shadow: 0 4rpx 16rpx rgba(255, 106, 136, 0.2);
+  transform: translateY(-2rpx);
 }
 
+.form-input::placeholder {
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 🎨 优化文本域样式 */
 .form-textarea {
   width: 100%;
-  padding: 20rpx;
+  padding: 30rpx 24rpx;
   border: 2rpx solid #e0e0e0;
-  border-radius: 12rpx;
-  font-size: 28rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
   background: white;
-  min-height: 120rpx;
+  min-height: 140rpx;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  line-height: 1.6;
+  margin-top: 8rpx;
 }
 
 .form-textarea:focus {
-  border-color: var(--primary-color);
+  border-color: #ff6a88;
+  box-shadow: 0 4rpx 16rpx rgba(255, 106, 136, 0.2);
+  transform: translateY(-2rpx);
 }
 
+/* 🎯 优化选择器样式 */
 .picker-input {
   display: flex;
   align-items: center;
-  height: 60rpx;
+  height: 88rpx;
   color: var(--text-color);
   cursor: pointer;
+  padding: 0 24rpx;
+  background: white;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
+.picker-input:hover {
+  border-color: #ff6a88;
+  box-shadow: 0 4rpx 16rpx rgba(255, 106, 136, 0.2);
+}
+
+.picker-input::after {
+  content: '▼';
+  position: absolute;
+  right: 24rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+/* 🎨 优化开关样式 */
 .form-switch {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  border: 2rpx solid #e9ecef;
+  transition: all 0.3s ease;
 }
 
+.form-switch:hover {
+  background: #e9ecef;
+  border-color: #ff6a88;
+}
+
+/* 🎨 优化图片上传样式 */
 .image-upload-container {
   text-align: center;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 16rpx;
+  border: 2rpx dashed #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.image-upload-container:hover {
+  border-color: #ff6a88;
+  background: rgba(255, 106, 136, 0.05);
 }
 
 .image-preview {
   position: relative;
-  width: 200rpx;
-  height: 200rpx;
-  margin: 0 auto 20rpx;
+  width: 240rpx;
+  height: 240rpx;
+  margin: 0 auto 30rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
 }
 
 .preview-img {
   width: 100%;
   height: 100%;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
+  object-fit: cover;
 }
 
 .delete-img-btn {
   position: absolute;
-  top: -10rpx;
-  right: -10rpx;
+  top: -8rpx;
+  right: -8rpx;
   background: #f44336;
   color: white;
   border: none;
   border-radius: 50%;
-  width: 40rpx;
-  height: 40rpx;
-  font-size: 20rpx;
+  width: 48rpx;
+  height: 48rpx;
+  font-size: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2rpx 8rpx rgba(244, 67, 54, 0.3);
+  transition: all 0.3s ease;
+}
+
+.delete-img-btn:hover {
+  background: #d32f2f;
+  transform: scale(1.1);
 }
 
 .upload-img-btn {
-  background: var(--primary-color);
+  background: linear-gradient(45deg, #ff6a88, #ff99ac);
   color: white;
   border: none;
-  border-radius: 12rpx;
-  padding: 40rpx 60rpx;
-  font-size: 28rpx;
+  border-radius: 16rpx;
+  padding: 32rpx 48rpx;
+  font-size: 30rpx;
   font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4rpx 16rpx rgba(255, 106, 136, 0.3);
+}
+
+.upload-img-btn:hover {
+  transform: translateY(-2rpx);
+  box-shadow: 0 6rpx 20rpx rgba(255, 106, 136, 0.4);
 }
 
 /* 库存管理弹窗样式 */
@@ -1940,7 +2077,7 @@
   display: block;
 }
 
-/* 响应式适配 */
+/* 🎨 响应式适配优化 */
 @media (max-width: 400px) {
   .modal-content {
     width: 95%;
@@ -1953,6 +2090,55 @@
   
   .batch-options {
     gap: 20rpx;
+  }
+  
+  /* 🔧 小屏幕下的商品弹窗优化 */
+  .product-modal .modal-content {
+    width: 98%;
+    max-height: 90vh;
+  }
+  
+  .form-container {
+    max-height: 70vh;
+  }
+  
+  .form-item {
+    margin-bottom: 35rpx;
+    padding: 0 5rpx;
+  }
+  
+  .form-input,
+  .form-textarea {
+    padding: 25rpx 20rpx;
+    font-size: 28rpx;
+  }
+  
+  .form-label {
+    font-size: 28rpx;
+  }
+  
+  .picker-input {
+    height: 80rpx;
+    font-size: 28rpx;
+  }
+  
+  .image-preview {
+    width: 200rpx;
+    height: 200rpx;
+  }
+  
+  .upload-img-btn {
+    padding: 28rpx 40rpx;
+    font-size: 28rpx;
+  }
+  
+  .modal-footer {
+    padding: 25rpx 30rpx;
+  }
+  
+  .modal-btn {
+    padding: 24rpx 36rpx;
+    font-size: 28rpx;
   }
 }
 
@@ -2027,6 +2213,167 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.3);
+}
+
+/* 🎨 新增商品弹窗特定样式增强 */
+.product-modal {
+  backdrop-filter: blur(8rpx);
+}
+
+.product-modal .modal-content {
+  animation: productModalSlideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.15);
+}
+
+@keyframes productModalSlideIn {
+  from {
+    transform: translateY(-100rpx) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.product-modal .modal-header {
+  background: linear-gradient(135deg, #ff6a88, #ff99ac);
+  padding: 40rpx 30rpx;
+  position: relative;
+}
+
+.product-modal .modal-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.product-modal .close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 48rpx;
+  height: 48rpx;
+  transition: all 0.3s ease;
+}
+
+.product-modal .close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* 🔧 表单验证状态样式 */
+.form-input.error,
+.form-textarea.error {
+  border-color: #f44336;
+  box-shadow: 0 4rpx 16rpx rgba(244, 67, 54, 0.2);
+}
+
+.form-input.success,
+.form-textarea.success {
+  border-color: #4caf50;
+  box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.2);
+}
+
+.form-error-text {
+  color: #f44336;
+  font-size: 24rpx;
+  margin-top: 8rpx;
+  display: block;
+  font-style: italic;
+}
+
+.form-tips {
+  color: #666;
+  font-size: 24rpx;
+  margin-top: 16rpx;
+  display: block;
+  line-height: 1.4;
+  text-align: left;
+  opacity: 0.8;
+}
+
+/* 🎯 表单提交状态样式 */
+.product-modal .confirm-btn.loading {
+  background: linear-gradient(45deg, #ccc, #ddd);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.product-modal .confirm-btn.loading::after {
+  content: '';
+  display: inline-block;
+  width: 20rpx;
+  height: 20rpx;
+  border: 2rpx solid #fff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+  margin-left: 12rpx;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 🎨 商品分类选择器增强 */
+.category-selector {
+  position: relative;
+  margin-top: 8rpx;
+  display: flex;
+  align-items: center;
+}
+
+.category-selector::before {
+  content: '🏷️';
+  position: absolute;
+  left: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24rpx;
+  z-index: 1;
+}
+
+.category-selector .picker-input {
+  padding-left: 60rpx;
+  margin-top: 0;
+}
+
+/* 🔧 积分和库存输入框增强 */
+.points-input-container,
+.stock-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.points-input-container::before {
+  content: '💰';
+  position: absolute;
+  left: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24rpx;
+  z-index: 1;
+}
+
+.stock-input-container::before {
+  content: '📦';
+  position: absolute;
+  left: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24rpx;
+  z-index: 1;
+}
+
+.points-input-container .form-input,
+.stock-input-container .form-input {
+  padding-left: 60rpx;
+  margin: 0;
 }
 
 .lock-content {

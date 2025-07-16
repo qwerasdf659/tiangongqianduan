@@ -185,7 +185,15 @@
   <view class="products-section" wx:else>
     <view class="section-title">
       <text>📦 {{currentFilter === 'all' ? '全部商品' : (currentFilter === 'available' ? '可兑换商品' : '低积分商品')}} ({{filteredProducts.length}}/{{products.length}})</text>
-      <text class="tips">按积分排序 • 实时库存同步</text>
+      <text class="tips">按积分排序 • 实时库存同步 • 调试模式：已加载{{products.length}}个商品</text>
+    </view>
+
+    <!-- 🔧 调试信息面板 - 帮助排查显示问题 -->
+    <view class="debug-info" wx:if="{{products.length > 0}}">
+      <text class="debug-text">✅ 商品数据正常 | 原始数据: {{products.length}}个 | 筛选后: {{filteredProducts.length}}个</text>
+    </view>
+    <view class="debug-info error" wx:elif="{{!loading}}">
+      <text class="debug-text">⚠️ 无商品数据 | 检查后端API返回</text>
     </view>
 
     <!-- 优化的商品网格布局 -->

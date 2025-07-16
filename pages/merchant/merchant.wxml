@@ -658,10 +658,11 @@
             <input 
               class="form-input"
               value="{{productForm.name}}"
-              placeholder="请输入商品名称"
+              placeholder="请输入商品名称（最多50个字符）"
               bindinput="onProductNameInput"
               maxlength="50"
             />
+            <text class="form-tips">商品的展示名称，将在商品列表中显示</text>
           </view>
 
           <!-- 商品描述 -->
@@ -670,48 +671,58 @@
             <textarea 
               class="form-textarea"
               value="{{productForm.description}}"
-              placeholder="请输入商品描述"
+              placeholder="请输入商品描述（最多200个字符）"
               bindinput="onProductDescInput"
               maxlength="200"
             />
+            <text class="form-tips">商品的详细描述，帮助用户了解商品信息</text>
           </view>
 
           <!-- 商品分类 -->
           <view class="form-item">
             <text class="form-label">商品分类</text>
-            <picker 
-              range="{{['实物商品', '优惠券', '虚拟物品']}}"
-              value="{{productForm.category}}"
-              bindchange="onProductCategoryChange"
-            >
-              <view class="form-input picker-input">
-                {{productForm.category || '选择分类'}}
-              </view>
-            </picker>
+            <view class="category-selector">
+              <picker 
+                range="{{['实物商品', '优惠券', '虚拟物品']}}"
+                value="{{productForm.category}}"
+                bindchange="onProductCategoryChange"
+              >
+                <view class="form-input picker-input">
+                  {{productForm.category || '选择分类'}}
+                </view>
+              </picker>
+            </view>
+            <text class="form-tips">选择商品的分类，用于商品筛选和展示</text>
           </view>
 
           <!-- 积分价格 -->
           <view class="form-item">
             <text class="form-label">积分价格 *</text>
-            <input 
-              class="form-input"
-              type="number"
-              value="{{productForm.exchange_points}}"
-              placeholder="请输入兑换所需积分"
-              bindinput="onProductPointsInput"
-            />
+            <view class="points-input-container">
+              <input 
+                class="form-input"
+                type="number"
+                value="{{productForm.exchange_points}}"
+                placeholder="请输入兑换所需积分"
+                bindinput="onProductPointsInput"
+              />
+            </view>
+            <text class="form-tips">用户兑换此商品需要消耗的积分数量</text>
           </view>
 
           <!-- 库存数量 -->
           <view class="form-item">
             <text class="form-label">库存数量 *</text>
-            <input 
-              class="form-input"
-              type="number"
-              value="{{productForm.stock}}"
-              placeholder="请输入库存数量"
-              bindinput="onProductStockInput"
-            />
+            <view class="stock-input-container">
+              <input 
+                class="form-input"
+                type="number"
+                value="{{productForm.stock}}"
+                placeholder="请输入库存数量"
+                bindinput="onProductStockInput"
+              />
+            </view>
+            <text class="form-tips">商品的可兑换库存数量，库存≤5件时将显示低库存预警</text>
           </view>
 
           <!-- 商品图片 -->
@@ -730,6 +741,7 @@
                 📷 上传图片
               </button>
             </view>
+            <text class="form-tips">建议上传清晰的商品图片，支持JPG、PNG格式，文件大小不超过5MB</text>
           </view>
 
           <!-- 是否热门 -->
@@ -741,6 +753,7 @@
                 bindchange="onProductHotChange"
               />
             </view>
+            <text class="form-tips">热门商品将在商品列表中标记🔥图标，提升用户关注度</text>
           </view>
 
           <!-- 排序权重 -->
@@ -750,9 +763,10 @@
               class="form-input"
               type="number"
               value="{{productForm.sort_order}}"
-              placeholder="数值越大排序越靠前"
+              placeholder="输入数值，数值越大排序越靠前"
               bindinput="onProductSortInput"
             />
+            <text class="form-tips">控制商品在列表中的显示顺序，数值越大排序越靠前（默认为0）</text>
           </view>
         </scroll-view>
       </view>

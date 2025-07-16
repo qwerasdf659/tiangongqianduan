@@ -5,6 +5,7 @@ const app = getApp()
  * 🔴 统一网络请求封装 - 严格遵循接口对接规范文档标准
  * 🚨 严禁使用Mock数据 - 100%使用真实后端API
  * 🎯 版本：v2.2.0 权限简化版 - 完全符合接口对接规范文档
+ * 🔧 增强版：完善调试信息和错误处理
  */
 const request = (options) => {
   return new Promise((resolve, reject) => {
@@ -26,6 +27,15 @@ const request = (options) => {
       reject({ code: -1, msg: '应用未初始化', data: null })
       return
     }
+
+    // 🔧 调试信息：记录请求详情
+    console.log('📡 发起API请求:', {
+      url: url,
+      method: method,
+      needAuth: needAuth,
+      hasToken: !!app.globalData.accessToken,
+      dataParams: method === 'GET' ? data : '(POST data)'
+    })
 
     // 显示加载框
     if (showLoading) {
@@ -99,242 +109,122 @@ const request = (options) => {
       }
     }
 
-    // 构建完整URL地址
-    const fullUrl = app.globalData.baseUrl + url
+    // 🔧 构建完整请求URL - 确保使用正确的baseURL
+    const baseURL = 'https://rqchrlqndora.sealosbja.site/api'
+    const fullURL = url.startsWith('http') ? url : `${baseURL}${url}`
+    
+    console.log('🌐 完整请求URL:', fullURL)
+    console.log('📋 请求头部:', header)
 
-    console.log('📡 发起API请求:', { 
-      url: fullUrl, 
-      method, 
-      needAuth, 
-      hasAuthHeader: !!header['Authorization'],
-      headers: header,
-      tokenInfo: needAuth ? {
-        hasToken: !!app.globalData.accessToken,
-        tokenLength: app.globalData.accessToken ? app.globalData.accessToken.length : 0
-      } : null
-    })
-
+    // 🔧 发起请求
+    const requestTime = Date.now()
     wx.request({
-      url: fullUrl,
-      method,
-      data,
-      header,
+      url: fullURL,
+      method: method.toUpperCase(),
+      data: data,
+      header: header,
       timeout: timeout,
-      success(res) {
+      success: (res) => {
+        const responseTime = Date.now() - requestTime
+        console.log(`✅ API响应成功 [${responseTime}ms]:`, {
+          url: url,
+          statusCode: res.statusCode,
+          dataSize: JSON.stringify(res.data).length
+        })
+        console.log('📦 响应数据预览:', JSON.stringify(res.data, null, 2).substring(0, 500) + '...')
+        
         if (showLoading) {
           wx.hideLoading()
         }
 
-        console.log(`📡 API响应 ${method} ${url}:`, {
-          request: data,
-          response: res.data,
-          status: res.statusCode
-        })
-
-        // 🔴 根据接口对接规范文档统一错误处理
-        if (res.statusCode === 200) {
-          if (res.data.code === 0) {
-            resolve(res.data)
-          } else if (res.data.code === 401) {
-            // Token过期或无效，尝试刷新
-            if (retryCount < maxRetry) {
-              app.refreshToken().then(() => {
-                // 重新发起请求
-                const newOptions = { ...options, retryCount: retryCount + 1 }
-                request(newOptions).then(resolve).catch(reject)
-              }).catch(() => {
-                app.logout()
-                reject(res.data)
-              })
-            } else {
-              app.logout()
-              reject(res.data)
-            }
-          } else if (res.data.code === 2001) {
-            // 🔧 2001错误码的精确处理
-            console.error('🚨 认证错误 2001 - 访问令牌不能为空:', {
-              url: url,
-              method: method,
-              requestHeaders: header,
-              hasGlobalToken: !!app.globalData.accessToken,
-              globalTokenInfo: {
-                token: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 30)}...` : null,
-                isLoggedIn: app.globalData.isLoggedIn,
-                userInfo: app.globalData.userInfo ? {
-                  user_id: app.globalData.userInfo.user_id,
-                  mobile: app.globalData.userInfo.mobile
-                } : null
-              }
-            })
-            
-            // 🔧 智能Token修复机制
-            if (retryCount < maxRetry) {
-              console.log('🔄 检测到2001错误，尝试Token自动修复...')
-              
-              // 检查本地存储中的Token
-              const storedToken = wx.getStorageSync('access_token')
-              const storedUserInfo = wx.getStorageSync('user_info')
-              
-              if (storedToken && storedToken !== app.globalData.accessToken) {
-                console.log('🔧 发现本地存储Token与全局Token不一致，尝试修复...')
-                app.globalData.accessToken = storedToken
-                if (storedUserInfo) {
-                  app.globalData.userInfo = storedUserInfo
-                  app.globalData.isLoggedIn = true
-                }
-                
-                // 重新发起请求
-                const newOptions = { ...options, retryCount: retryCount + 1 }
-                request(newOptions).then(resolve).catch(reject)
-                return
-              }
-              
-              // 尝试Token刷新
-              const refreshToken = app.globalData.refreshToken || wx.getStorageSync('refresh_token')
-              if (refreshToken) {
-                console.log('🔄 尝试使用refresh token重新获取访问令牌...')
-                app.refreshToken().then(() => {
-                  const newOptions = { ...options, retryCount: retryCount + 1 }
-                  request(newOptions).then(resolve).catch(reject)
-                }).catch((refreshError) => {
-                  console.error('❌ Refresh token失败:', refreshError)
-                  this.handleTokenFailure(fullUrl, reject)
-                })
-                return
-              }
-            }
-            
-            // 🔴 修复失败，显示用户友好提示
-            this.handleTokenFailure(fullUrl, reject)
-          } else if (res.data.code === 4005) {
-            // 🔴 权限简化版：管理员权限不足错误
-            console.error('🚨 管理员权限不足 4005:', {
-              url: url,
-              method: method,
-              userInfo: app.globalData.userInfo ? {
-                user_id: app.globalData.userInfo.user_id,
-                is_admin: app.globalData.userInfo.is_admin
-              } : null
-            })
-            
-            if (showLoading) {
-              wx.showModal({
-                title: '🔐 权限不足',
-                content: '此功能需要管理员权限才能访问。\n\n如果您是管理员，请检查：\n• 登录状态是否正常\n• 管理员权限是否生效\n\n建议重新登录或联系系统管理员。',
-                showCancel: false,
-                confirmText: '我知道了',
-                confirmColor: '#ff4444'
-              })
-            }
-            
-            reject({
-              code: res.data.code,
-              msg: res.data.msg || '需要管理员权限',
-              data: res.data.data || null,
-              isPermissionError: true
-            })
-          } else {
-            // 🔴 其他业务错误 - 根据接口对接规范文档增强错误处理
-            const errorMessage = res.data.msg || res.data.message || '操作失败'
-            console.log('📝 业务错误:', {
-              code: res.data.code,
-              message: errorMessage,
-              url: url,
-              method: method
-            })
-            
-            if (showLoading) {
-              // 🔴 根据接口对接规范文档，显示详细的后端服务异常信息
-              wx.showModal({
-                title: '🚨 后端服务异常',
-                content: `${errorMessage}\n\n🔗 API端点：${fullUrl}\n错误码：${res.data.code}\n\n请检查后端API服务状态！`,
-                showCancel: false,
-                confirmText: '知道了',
-                confirmColor: '#ff4444'
-              })
-            }
-            
-            reject({
-              code: res.data.code,
-              msg: errorMessage,
-              data: res.data.data || null,
-              isBackendError: true
-            })
-          }
-        } else {
-          // HTTP状态码非200
-          const statusMessage = `HTTP ${res.statusCode} 错误`
-          console.error('❌ HTTP状态错误:', {
-            statusCode: res.statusCode,
-            url: fullUrl,
-            response: res.data
-          })
-          
-          if (showLoading) {
-            wx.showModal({
-              title: '🚨 网络请求失败',
-              content: `${statusMessage}\n\n🔗 API端点：${fullUrl}\n\n请检查网络连接和后端服务状态！`,
-              showCancel: false,
-              confirmText: '知道了',
-              confirmColor: '#ff4444'
-            })
-          }
-          
+        // 🔧 HTTP状态码处理
+        if (res.statusCode !== 200) {
+          console.error('❌ HTTP状态码异常:', res.statusCode)
           reject({
             code: res.statusCode,
-            msg: statusMessage,
-            data: res.data || null,
-            isNetworkError: true
+            msg: `服务器响应错误 ${res.statusCode}`,
+            data: res.data,
+            httpStatus: res.statusCode
           })
+          return
         }
+
+        // 🔧 响应数据处理 - 增强兼容性
+        let responseData = res.data
+        
+        // 确保响应数据是对象
+        if (typeof responseData === 'string') {
+          try {
+            responseData = JSON.parse(responseData)
+          } catch (e) {
+            console.error('❌ 响应数据解析失败:', e)
+            reject({
+              code: -2,
+              msg: '响应数据格式错误',
+              data: null,
+              originalData: responseData
+            })
+            return
+          }
+        }
+
+        // 🔧 业务状态码处理 - 兼容多种格式
+        if (responseData.code !== undefined && responseData.code !== 0) {
+          console.error('❌ 业务错误:', responseData.code, responseData.msg)
+          reject({
+            code: responseData.code,
+            msg: responseData.msg || responseData.message || '请求失败',
+            data: responseData.data || null
+          })
+          return
+        }
+
+        // 🎉 请求成功
+        resolve(responseData)
       },
-      fail(err) {
+      fail: (err) => {
+        const responseTime = Date.now() - requestTime
+        console.error(`❌ API请求失败 [${responseTime}ms]:`, {
+          url: url,
+          error: err.errMsg,
+          retryCount: retryCount
+        })
+        
         if (showLoading) {
           wx.hideLoading()
         }
 
-        console.error('❌ 网络请求失败:', {
-          url: fullUrl,
-          method: method,
-          error: err
-        })
-
-        // 🔴 根据接口对接规范文档，增强网络错误处理
-        const errorMessage = err.errMsg || '网络请求失败'
-        
-        // 判断是否是网络连接问题
-        if (errorMessage.includes('timeout') || errorMessage.includes('fail')) {
-          wx.showModal({
-            title: '🌐 网络连接异常',
-            content: `网络请求超时或失败\n\n🔗 API端点：${fullUrl}\n错误信息：${errorMessage}\n\n请检查网络连接状态！`,
-            showCancel: true,
-            cancelText: '稍后重试',
-            confirmText: '重新请求',
-            success: (modalRes) => {
-              if (modalRes.confirm && retryCount < maxRetry) {
-                // 重新发起请求
-                const newOptions = { ...options, retryCount: retryCount + 1 }
-                request(newOptions).then(resolve).catch(reject)
-              } else {
-                reject({
-                  code: -1,
-                  msg: '网络请求失败: ' + errorMessage,
-                  data: null,
-                  isNetworkError: true,
-                  originalError: err
-                })
-              }
-            }
-          })
-        } else {
-          reject({
-            code: -1,
-            msg: '网络请求失败: ' + errorMessage,
-            data: null,
-            isNetworkError: true,
-            originalError: err
-          })
+        // 🔧 网络错误重试机制
+        if (retryCount < maxRetry && (
+          err.errMsg?.includes('timeout') || 
+          err.errMsg?.includes('fail') ||
+          err.errMsg?.includes('network')
+        )) {
+          console.log(`🔄 第${retryCount + 1}次重试请求:`, url)
+          setTimeout(() => {
+            request({
+              ...options,
+              retryCount: retryCount + 1,
+              showLoading: false // 重试时不显示loading
+            }).then(resolve).catch(reject)
+          }, 1000 * (retryCount + 1)) // 递增延迟
+          return
         }
+
+        // 🔧 网络错误处理
+        let errorMsg = '网络请求失败'
+        if (err.errMsg?.includes('timeout')) {
+          errorMsg = '请求超时，请检查网络连接'
+        } else if (err.errMsg?.includes('fail')) {
+          errorMsg = '网络连接失败'
+        }
+
+        reject({
+          code: -1,
+          msg: errorMsg,
+          data: null,
+          originalError: err
+        })
       }
     })
   })

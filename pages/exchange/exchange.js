@@ -174,6 +174,7 @@ Page({
   /**
    * 🔴 加载商品数据 - 必须从后端API获取
    * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
+   * 🔧 增强版：完善数据处理和错误调试
    * 
    * 接口：GET /api/exchange/products?page=1&page_size=20&category=all&sort=points
    * 认证：需要Bearer Token
@@ -183,28 +184,99 @@ Page({
     this.setData({ loading: true })
 
     console.log('📡 请求商品列表接口...')
+    console.log('🔧 调试信息 - 用户Token状态:', app.globalData.accessToken ? '已设置' : '未设置')
+    
     return exchangeAPI.getProducts().then((result) => {
-      if (result.code === 0) {
-        // 检查数据有效性
-        if (result.data && result.data.products) {
+      console.log('📦 后端API返回完整数据:', JSON.stringify(result, null, 2))
+      
+      // 🔧 增强数据有效性检查和兼容性处理
+      if (result && result.code === 0) {
+        let products = []
+        let totalCount = 0
+        
+        // 🔴 兼容多种数据格式 - 解决数据格式不匹配问题
+        if (result.data) {
+          // 标准格式：{ code: 0, data: { products: [...], total: 11 } }
+          if (result.data.products && Array.isArray(result.data.products)) {
+            products = result.data.products
+            totalCount = result.data.total || result.data.pagination?.total || products.length
+            console.log('✅ 使用标准格式数据，商品数量:', products.length)
+          }
+          // 简化格式：{ code: 0, data: [...] }
+          else if (Array.isArray(result.data)) {
+            products = result.data
+            totalCount = products.length
+            console.log('✅ 使用简化格式数据，商品数量:', products.length)
+          }
+          // 其他格式兼容
+          else if (result.data.productList && Array.isArray(result.data.productList)) {
+            products = result.data.productList
+            totalCount = result.data.totalCount || products.length
+            console.log('✅ 使用productList格式数据，商品数量:', products.length)
+          }
+        }
+        // 直接数组格式：[...]
+        else if (Array.isArray(result)) {
+          products = result
+          totalCount = products.length
+          console.log('✅ 使用直接数组格式数据，商品数量:', products.length)
+        }
+        
+        // 🔧 数据字段标准化处理 - 确保显示正常
+        const standardizedProducts = products.map(product => ({
+          // 保留原始数据
+          ...product,
+          // 标准化必要字段
+          id: product.id || product.commodity_id || product.product_id,
+          name: product.name || product.product_name || '未知商品',
+          description: product.description || product.desc || '',
+          exchange_points: product.exchange_points || product.points || product.price || 0,
+          stock: product.stock || product.inventory || 0,
+          image: product.image || product.image_url || product.picture || '/images/default-product.png',
+          category: product.category || '其他',
+          status: product.status || 'active',
+          is_hot: product.is_hot || false,
+          rating: product.rating || 5.0,
+          created_time: product.created_at || product.created_time || new Date().toISOString()
+        }))
+        
+        console.log('📋 标准化后的商品数据示例:', standardizedProducts[0])
+        
+        if (standardizedProducts.length > 0) {
           this.setData({
-            products: result.data.products,
-            totalCount: result.data.total || result.data.products.length,
+            products: standardizedProducts,
+            totalCount: totalCount,
             loading: false
           })
           
           // 应用筛选和分页
           this.filterProducts()
           
-          console.log('✅ 商品列表加载成功，共', result.data.products.length, '个商品')
+          console.log('✅ 商品列表加载成功！')
+          console.log('   - 商品总数:', standardizedProducts.length)
+          console.log('   - 第一个商品:', standardizedProducts[0]?.name)
+          console.log('   - 库存状态:', standardizedProducts.map(p => `${p.name}:${p.stock}`))
+          
+          // 🎉 显示成功提示
+          wx.showToast({
+            title: `已加载${standardizedProducts.length}个商品`,
+            icon: 'success',
+            duration: 1500
+          })
         } else {
-          throw new Error('⚠️ 后端返回数据格式不正确')
+          throw new Error('📦 后端返回商品列表为空')
         }
       } else {
-        throw new Error('⚠️ 后端服务异常：' + result.msg)
+        const errorMsg = result?.msg || '未知错误'
+        console.error('❌ 后端服务异常 - 错误码:', result?.code, '错误信息:', errorMsg)
+        throw new Error('⚠️ 后端服务异常：' + errorMsg)
       }
     }).catch((error) => {
-      console.error('❌ 获取商品列表失败:', error)
+      console.error('❌ 获取商品列表失败 - 完整错误信息:', error)
+      console.error('   - 错误类型:', typeof error)
+      console.error('   - 错误码:', error.code)
+      console.error('   - 错误消息:', error.msg || error.message)
+      console.error('   - 错误堆栈:', error.stack)
       
       this.setData({ 
         loading: false,
@@ -212,10 +284,26 @@ Page({
         totalCount: 0
       })
       
-      // 🔧 优化：显示后端服务异常提示
+      // 🔧 优化：显示详细的错误诊断信息
+      let errorTitle = '🚨 商品加载失败'
+      let errorContent = ''
+      
+      if (error.code === 2001) {
+        errorTitle = '🔑 认证失败'
+        errorContent = 'Token无效或已过期\n\n请重新登录后再试'
+      } else if (error.code === 4005) {
+        errorTitle = '🔒 权限不足'  
+        errorContent = '当前账号无权限访问商品列表\n\n请联系管理员检查权限设置'
+      } else if (error.msg && error.msg.includes('网络')) {
+        errorTitle = '🌐 网络连接异常'
+        errorContent = '网络连接不稳定\n\n请检查网络连接后重试'
+      } else {
+        errorContent = `错误详情：\n${error.msg || error.message || '未知错误'}\n\n调试信息：\n- 接口：GET /api/exchange/products\n- 状态：${error.code || '无状态码'}\n- 时间：${new Date().toLocaleString()}`
+      }
+      
       wx.showModal({
-        title: '🚨 后端服务异常',
-        content: `无法获取商品列表！\n\n错误信息：${error.msg || error.message || '未知错误'}\n\n请检查后端API服务状态：\nGET /api/exchange/products\n\n商品兑换功能需要后端服务支持。`,
+        title: errorTitle,
+        content: errorContent,
         showCancel: true,
         cancelText: '返回首页',
         confirmText: '重试',
@@ -223,9 +311,11 @@ Page({
         success: (res) => {
           if (res.confirm) {
             // 重新加载商品
+            console.log('🔄 用户选择重试，重新加载商品')
             this.loadProducts()
           } else {
             // 返回首页
+            console.log('🏠 用户选择返回首页')
             wx.switchTab({
               url: '/pages/index/index'
             })
