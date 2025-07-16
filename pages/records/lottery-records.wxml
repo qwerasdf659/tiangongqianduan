@@ -26,10 +26,11 @@
       <text class="stat-number">{{statistics.totalPoints}}</text>
       <text class="stat-label">消费积分</text>
     </view>
-    <view class="stat-item">
+    <!-- 🔴 移除中奖率显示 -->
+    <!-- <view class="stat-item">
       <text class="stat-number">{{statistics.successRate}}%</text>
       <text class="stat-label">中奖率</text>
-    </view>
+    </view> -->
     <view class="stat-item best-prize">
       <text class="stat-number">{{statistics.bestPrize}}</text>
       <text class="stat-label">最佳奖品</text>
@@ -45,7 +46,8 @@
     >
       <text>全部</text>
     </view>
-    <view 
+    <!-- 🔴 移除单抽和五连抽筛选按钮 -->
+    <!-- <view 
       class="filter-tab {{filterType === 'single' ? 'active' : ''}}"
       bindtap="onFilterChange"
       data-type="single"
@@ -58,7 +60,7 @@
       data-type="five"
     >
       <text>五连抽</text>
-    </view>
+    </view> -->
   </view>
 
   <!-- 记录列表 -->

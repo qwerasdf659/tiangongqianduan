@@ -150,9 +150,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40rpx 20rpx;
+  /* 🔧 修复白色内容框左右对齐问题：确保完美居中 */
+  padding: 40rpx 0;
+  margin: 0 auto;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* 背景装饰 */
@@ -207,7 +210,7 @@
 
 /* 登录表单 */
 .auth-form {
-  width: 100%;
+  width: calc(100% - 40rpx);
   max-width: 600rpx;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 32rpx;
@@ -217,6 +220,9 @@
   position: relative;
   z-index: 2;
   animation: slideInUp 0.8s ease-out;
+  /* 🔧 修复白色内容框左右对齐问题：确保完美居中并保持左右边距 */
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 @keyframes slideInUp {
@@ -276,6 +282,8 @@
 
 .input-group {
   margin-bottom: 40rpx;
+  /* 🔧 修复对齐问题：确保输入框组完全对齐 */
+  width: 100%;
 }
 
 .input-label {
@@ -304,6 +312,9 @@
   border-radius: 20rpx;
   padding: 24rpx;
   transition: all 0.3s ease;
+  /* 🔧 修复对齐问题：确保所有输入框容器宽度一致 */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input-wrapper:focus-within {
@@ -327,6 +338,8 @@
   font-size: 32rpx;
   color: var(--text-color);
   background: transparent;
+  /* 🔧 修复对齐问题：确保输入框宽度一致 */
+  min-width: 0;
 }
 
 .code-btn {
@@ -334,11 +347,14 @@
   color: white;
   border: none;
   border-radius: 12rpx;
-  padding: 16rpx 24rpx;
+  padding: 16rpx 20rpx;
   font-size: 24rpx;
   font-weight: 600;
-  min-width: 160rpx;
+  min-width: 140rpx;
   transition: all 0.3s ease;
+  /* 🔧 修复对齐问题：调整按钮样式避免影响输入框对齐 */
+  margin-left: 16rpx;
+  flex-shrink: 0;
 }
 
 .code-btn.disabled {
@@ -882,7 +898,9 @@
 /* 响应式适配 */
 @media (max-width: 400px) {
   .auth-form {
-    margin: 20rpx;
+    /* 🔧 修复白色内容框左右对齐问题：小屏幕下保持居中对齐 */
+    width: calc(100% - 40rpx);
+    margin: 0 auto;
     padding: 40rpx 30rpx;
   }
   

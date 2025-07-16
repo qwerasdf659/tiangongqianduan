@@ -529,11 +529,15 @@ Page({
    * 🔧 菜单项点击处理
    */
   onMenuItemTap(e) {
-    const menuId = e.currentTarget.dataset.id
-    const menuItem = this.data.menuItems.find(item => item.id === menuId)
+    // 🔴 修复：正确从dataset获取菜单项数据
+    const menuItem = e.currentTarget.dataset.item
     
     if (!menuItem) {
-      console.error('❌ 菜单项不存在:', menuId)
+      console.error('❌ 菜单项不存在: undefined')
+      wx.showToast({
+        title: '菜单项数据错误',
+        icon: 'none'
+      })
       return
     }
     
@@ -558,6 +562,10 @@ Page({
         this[menuItem.action]()
       } else {
         console.error('❌ 动作方法不存在:', menuItem.action)
+        wx.showToast({
+          title: '功能暂未开放',
+          icon: 'none'
+        })
       }
     } else if (menuItem.type === 'external') {
       // 外部链接
@@ -971,54 +979,68 @@ Page({
   initMenuItems() {
     console.log('📋 初始化菜单项')
     
-    // 🔧 基础菜单项
+    // 🔧 基础菜单项 - 🔴 修复：添加颜色和描述属性
     const menuItems = [
       {
         id: 'points-detail',
         name: '积分明细',
+        description: '查看积分获得和消费记录',
         icon: '💰',
+        color: '#4CAF50',
         type: 'page',
         url: '/pages/points-detail/points-detail'
       },
       {
         id: 'lottery-records',
         name: '抽奖记录',
+        description: '查看历史抽奖记录和奖品',
         icon: '🎰',
+        color: '#FF9800',
         type: 'page',
         url: '/pages/records/lottery-records'
       },
       {
         id: 'exchange-records',
         name: '兑换记录',
+        description: '查看积分兑换记录',
         icon: '🎁',
+        color: '#2196F3',
         type: 'page',
         url: '/pages/records/exchange-records'
       },
       {
         id: 'upload-records',
         name: '上传记录',
+        description: '查看拍照上传记录',
         icon: '📷',
+        color: '#9C27B0',
         type: 'page',
         url: '/pages/records/upload-records'
       },
       {
         id: 'invite-friend',
         name: '邀请好友',
+        description: '分享给好友一起参与',
         icon: '👥',
+        color: '#FF5722',
         type: 'action',
         action: 'onInviteFriend'
       },
       {
         id: 'contact-service',
         name: '联系客服',
+        description: '在线客服服务支持',
         icon: '📞',
+        color: '#607D8B',
         type: 'action',
         action: 'onContactService'
       },
       {
         id: 'feedback',
         name: '意见反馈',
+        description: '提交建议和意见',
         icon: '💬',
+        color: '#795548',
         type: 'action',
         action: 'onFeedback'
       }
@@ -1326,6 +1348,57 @@ Page({
       this.setData(cleanData)
     } else {
       console.warn('⚠️ 清理后的数据为空，跳过setData操作')
+    }
+  },
+
+  /**
+   * 🔧 测试菜单项功能
+   */
+  testMenuItems() {
+    console.log('🧪 测试菜单项功能')
+    
+    const menuItems = this.data.menuItems
+    if (!menuItems || menuItems.length === 0) {
+      console.warn('⚠️ 菜单项数据为空')
+      wx.showModal({
+        title: '测试结果',
+        content: '菜单项数据为空，请先初始化菜单',
+        showCancel: false
+      })
+      return
+    }
+    
+    console.log('🔍 菜单项数据检查:', {
+      总数: menuItems.length,
+      菜单项: menuItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        hasColor: !!item.color,
+        hasDescription: !!item.description
+      }))
+    })
+    
+    // 检查是否所有菜单项都有必要的属性
+    const missingProps = []
+    menuItems.forEach(item => {
+      if (!item.color) missingProps.push(`${item.name} 缺少颜色`)
+      if (!item.description) missingProps.push(`${item.name} 缺少描述`)
+      if (!item.icon) missingProps.push(`${item.name} 缺少图标`)
+    })
+    
+    if (missingProps.length > 0) {
+      wx.showModal({
+        title: '🚨 菜单项属性检查',
+        content: `发现问题:\n${missingProps.join('\n')}`,
+        showCancel: false
+      })
+    } else {
+      wx.showModal({
+        title: '✅ 菜单项测试通过',
+        content: `菜单项数据完整，共${menuItems.length}个菜单项，所有属性正常。`,
+        showCancel: false
+      })
     }
   }
 

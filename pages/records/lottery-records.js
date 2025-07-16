@@ -22,7 +22,7 @@ Page({
     refreshing: false,
     
     // 筛选条件
-    filterType: 'all', // all全部/single单抽/five五连抽
+    filterType: 'all', // 🔴 修改：仅支持'all'全部类型
     
     // 统计数据
     statistics: {
@@ -330,15 +330,20 @@ Page({
 
   /**
    * 筛选类型改变
+   * 🔴 修改：只支持'all'类型，移除单抽和五连抽筛选
    */
   onFilterChange(e) {
     const filterType = e.currentTarget.dataset.type
-    this.setData({ 
-      filterType,
-      currentPage: 1,
-      records: []
-    })
-    this.loadRecords()
+    
+    // 🔧 只允许'all'类型筛选
+    if (filterType === 'all') {
+      this.setData({ 
+        filterType: 'all',
+        currentPage: 1,
+        records: []
+      })
+      this.loadRecords()
+    }
   },
 
   /**
