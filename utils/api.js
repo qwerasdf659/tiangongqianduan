@@ -2,6 +2,214 @@
 const app = getApp()
 
 /**
+ * 🔴 增强版Token验证函数 - 修复商品显示空白问题
+ * 🎯 解决JWT认证失败导致的401错误
+ */
+const validateToken = (token) => {
+  console.log('🔍 开始Token验证...')
+  
+  if (!token || typeof token !== 'string' || token.trim() === '') {
+    console.error('❌ Token格式无效:', { 
+      exists: !!token, 
+      type: typeof token, 
+      length: token ? token.length : 0 
+    })
+    return {
+      isValid: false,
+      error: 'TOKEN_INVALID',
+      message: 'Token不存在或格式无效',
+      needsRelogin: true
+    }
+  }
+  
+  // JWT格式检查
+  const parts = token.split('.')
+  if (parts.length !== 3) {
+    console.error('❌ JWT格式错误，部分数量:', parts.length)
+    return {
+      isValid: false,
+      error: 'TOKEN_INVALID_JWT',
+      message: `Token不是有效的JWT格式 (${parts.length}/3)`,
+      needsRelogin: true
+    }
+  }
+  
+  try {
+    // 解码Header和Payload
+    const header = JSON.parse(atob(parts[0]))
+    const payload = JSON.parse(atob(parts[1]))
+    const now = Math.floor(Date.now() / 1000)
+    
+    console.log('🔍 JWT解码成功:', {
+      header: header,
+      userId: payload.user_id || payload.userId || payload.sub,
+      mobile: payload.mobile,
+      isAdmin: payload.is_admin || payload.isAdmin,
+      issuedAt: payload.iat ? new Date(payload.iat * 1000).toLocaleString() : '未设置',
+      expiresAt: payload.exp ? new Date(payload.exp * 1000).toLocaleString() : '永不过期',
+      currentTime: new Date().toLocaleString()
+    })
+    
+    // 🔴 关键：检查Token是否过期
+    if (payload.exp && payload.exp < now) {
+      const expiredSeconds = now - payload.exp
+      const expiredMinutes = Math.floor(expiredSeconds / 60)
+      const expiredHours = Math.floor(expiredMinutes / 60)
+      
+      console.error('❌ Token已过期:', {
+        过期时间: new Date(payload.exp * 1000).toLocaleString(),
+        当前时间: new Date().toLocaleString(),
+        过期时长: expiredHours > 0 ? `${expiredHours}小时${expiredMinutes % 60}分钟前` : `${expiredMinutes}分钟前`
+      })
+      
+      return {
+        isValid: false,
+        error: 'TOKEN_EXPIRED',
+        message: `Token已过期 (${expiredHours > 0 ? expiredHours + '小时' : expiredMinutes + '分钟'}前)`,
+        expiredAt: new Date(payload.exp * 1000).toLocaleString(),
+        expiredSeconds: expiredSeconds,
+        needsRelogin: expiredSeconds > 1800, // 超过30分钟则需要重新登录
+        canRefresh: expiredSeconds <= 1800    // 30分钟内可以尝试刷新
+      }
+    }
+    
+    // 🔴 增强：检查即将过期的Token (10分钟内)
+    const secondsUntilExpiry = payload.exp ? payload.exp - now : null
+    const willExpireSoon = secondsUntilExpiry && secondsUntilExpiry < 600
+    
+    if (willExpireSoon) {
+      const minutesLeft = Math.floor(secondsUntilExpiry / 60)
+      console.warn('⚠️ Token即将过期:', minutesLeft + '分钟后')
+    }
+    
+    // 🔴 增强：检查必要的用户字段
+    const hasUserId = !!(payload.user_id || payload.userId || payload.sub)
+    if (!hasUserId) {
+      console.error('❌ Token缺少用户ID字段')
+      return {
+        isValid: false,
+        error: 'TOKEN_MISSING_USER_ID',
+        message: 'Token缺少用户信息',
+        needsRelogin: true
+      }
+    }
+    
+    console.log('✅ Token验证通过')
+    return {
+      isValid: true,
+      token: token,
+      header: header,
+      payload: payload,
+      userId: payload.user_id || payload.userId || payload.sub,
+      mobile: payload.mobile,
+      isAdmin: payload.is_admin || payload.isAdmin || false,
+      issuedAt: payload.iat ? new Date(payload.iat * 1000).toLocaleString() : null,
+      expiresAt: payload.exp ? new Date(payload.exp * 1000).toLocaleString() : '永不过期',
+      willExpireSoon: willExpireSoon,
+      secondsUntilExpiry: secondsUntilExpiry,
+      message: `Token有效${payload.exp ? '，有效期至' + new Date(payload.exp * 1000).toLocaleString() : '，无过期时间'}`
+    }
+    
+  } catch (decodeError) {
+    console.error('❌ JWT解码失败:', decodeError.message)
+    console.error('🔍 Token前100字符:', token.substring(0, 100))
+    
+    return {
+      isValid: false,
+      error: 'TOKEN_DECODE_ERROR',
+      message: 'Token解码失败，可能已损坏',
+      decodeError: decodeError.message,
+      needsRelogin: true
+    }
+  }
+}
+
+/**
+ * 🔴 Token自动刷新函数 - 增强版
+ */
+const attemptTokenRefresh = () => {
+  return new Promise((resolve, reject) => {
+    const app = getApp()
+    const refreshToken = app.globalData.refreshToken || wx.getStorageSync('refresh_token')
+    
+    if (!refreshToken) {
+      console.error('❌ 无refresh token，无法自动刷新')
+      reject(new Error('REFRESH_TOKEN_MISSING'))
+      return
+    }
+    
+    console.log('🔄 开始Token刷新...')
+    
+    wx.request({
+      url: 'https://omqktqrtntnn.sealosbja.site/api/auth/refresh',
+      method: 'POST',
+      data: { refreshToken },
+      header: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000,
+      success: (res) => {
+        if (res.statusCode === 200 && res.data.code === 0) {
+          const newTokens = res.data.data
+          
+          // 更新全局Token
+          app.globalData.accessToken = newTokens.access_token
+          app.globalData.refreshToken = newTokens.refresh_token
+          
+          // 更新本地存储
+          wx.setStorageSync('access_token', newTokens.access_token)
+          wx.setStorageSync('refresh_token', newTokens.refresh_token)
+          
+          console.log('✅ Token刷新成功')
+          resolve(newTokens)
+        } else {
+          console.error('❌ Token刷新失败:', res.data)
+          reject(new Error('REFRESH_FAILED'))
+        }
+      },
+      fail: (error) => {
+        console.error('❌ Token刷新请求失败:', error)
+        reject(new Error('REFRESH_REQUEST_FAILED'))
+      }
+    })
+  })
+}
+
+/**
+ * 🔴 Token刷新失败处理函数 - 增强版
+ */
+const handleTokenRefreshFailure = () => {
+  console.log('🔑 处理Token刷新失败...')
+  
+  const app = getApp()
+  
+  // 清理所有认证信息
+  app.globalData.accessToken = null
+  app.globalData.refreshToken = null
+  app.globalData.userInfo = null
+  app.globalData.isLoggedIn = false
+  
+  // 清理本地存储
+  wx.removeStorageSync('access_token')
+  wx.removeStorageSync('refresh_token')
+  wx.removeStorageSync('user_info')
+  
+  // 显示提示并跳转登录
+  wx.showModal({
+    title: '🔑 认证已失效',
+    content: '登录状态已失效，需要重新登录\n\n这是解决商品显示空白问题的必要步骤',
+    showCancel: false,
+    confirmText: '重新登录',
+    confirmColor: '#FF6B35',
+    success: () => {
+      wx.reLaunch({
+        url: '/pages/auth/auth'
+      })
+    }
+  })
+}
+
+/**
  * 🔴 统一网络请求封装 - 严格遵循接口对接规范文档标准
  * 🚨 严禁使用Mock数据 - 100%使用真实后端API
  * 🎯 版本：v2.2.0 权限简化版 - 完全符合接口对接规范文档
@@ -54,11 +262,90 @@ const request = (options) => {
 
     // 🔧 增强Token认证处理，确保格式严格符合后端要求
     if (needAuth) {
-      const token = app.globalData.accessToken
+      // 🔴 增强：优先从全局数据获取token，降级到本地存储
+      let token = app.globalData.accessToken
+      if (!token) {
+        token = wx.getStorageSync('access_token')
+        if (token) {
+          // 同步到全局数据
+          app.globalData.accessToken = token
+          console.log('🔧 从本地存储恢复Token到全局数据')
+        }
+      }
+      
       if (token && typeof token === 'string' && token.trim() !== '') {
-        // 🔴 确保Bearer Token格式严格正确
+        // 🔴 增强：Token有效性预检查 - 解决商品显示空白问题
+        const tokenValidation = validateToken(token)
+        
+        if (!tokenValidation.isValid) {
+          console.error('❌ Token预检查失败:', tokenValidation.error, tokenValidation.message)
+          
+          if (showLoading) {
+            wx.hideLoading()
+          }
+          
+          // 🔴 修复：根据Token错误类型采取不同策略
+          if (tokenValidation.error === 'TOKEN_EXPIRED') {
+            // Token过期，尝试刷新
+            if (tokenValidation.canRefresh) {
+              console.log('🔄 Token过期但可刷新，尝试自动刷新...')
+              return attemptTokenRefresh().then((newTokens) => {
+                console.log('✅ Token刷新成功，重新发起请求')
+                // 刷新成功后重新发起请求
+                return request(options)
+              }).catch((refreshError) => {
+                console.error('❌ Token刷新失败:', refreshError)
+                // 刷新失败，清理并跳转登录
+                handleTokenRefreshFailure()
+                reject({
+                  code: 4002,
+                  msg: 'Token已过期且刷新失败，请重新登录',
+                  data: null,
+                  statusCode: 401,
+                  isAuthError: true,
+                  needsRelogin: true
+                })
+                return
+              })
+            } else {
+              // Token过期太久，直接要求重新登录
+              console.error('🚨 Token过期时间过长，需要重新登录')
+              handleTokenRefreshFailure()
+              reject({
+                code: 4002,
+                msg: 'Token过期时间过长，请重新登录',
+                data: null,
+                statusCode: 401,
+                isAuthError: true,
+                needsRelogin: true
+              })
+              return
+            }
+          } else {
+            // 其他Token错误（格式错误、解码失败等），直接要求重新登录
+            console.error('🚨 Token存在严重问题，需要重新登录:', tokenValidation.error)
+            handleTokenRefreshFailure()
+            reject({
+              code: 4002,
+              msg: tokenValidation.message || 'Token无效，请重新登录',
+              data: null,
+              statusCode: 401,
+              isAuthError: true,
+              needsRelogin: true
+            })
+            return
+          }
+        }
+        
+        // Token验证通过，添加认证头部
         header['Authorization'] = `Bearer ${token.trim()}`
-        console.log('🔐 已添加认证头部:', `Bearer ${token.substring(0, 20)}...`)
+        console.log('🔐 Token验证通过，已添加认证头部:', `Bearer ${token.substring(0, 20)}...`)
+        console.log('🔍 Token信息:', {
+          userId: tokenValidation.userId,
+          isAdmin: tokenValidation.isAdmin,
+          expiresAt: tokenValidation.expiresAt,
+          willExpireSoon: tokenValidation.willExpireSoon
+        })
       } else {
         console.error('⚠️ 需要认证但Token无效!', { 
           needAuth, 
@@ -110,7 +397,7 @@ const request = (options) => {
     }
 
     // 🔧 构建完整请求URL - 确保使用正确的baseURL
-    const baseURL = 'https://rqchrlqndora.sealosbja.site/api'
+    const baseURL = 'https://omqktqrtntnn.sealosbja.site/api'
     const fullURL = url.startsWith('http') ? url : `${baseURL}${url}`
     
     console.log('🌐 完整请求URL:', fullURL)
@@ -137,14 +424,113 @@ const request = (options) => {
           wx.hideLoading()
         }
 
-        // 🔧 HTTP状态码处理
+        // 🔧 HTTP状态码处理 - 🔴 增强401认证失败处理
         if (res.statusCode !== 200) {
-          console.error('❌ HTTP状态码异常:', res.statusCode)
+          console.error('❌ HTTP状态码异常:', res.statusCode, '完整响应:', res)
+          
+          // 🔴 特殊处理401认证失败 - 商品显示空白问题的关键诊断点
+          if (res.statusCode === 401) {
+            console.error('🔑 401认证失败详情 - 这是商品显示空白的直接原因:', {
+              statusCode: res.statusCode,
+              data: res.data,
+              header: res.header,
+              requestUrl: url,
+              requestMethod: method,
+              hasAuthHeader: !!header['Authorization'],
+              authHeaderPreview: header['Authorization'] ? header['Authorization'].substring(0, 30) + '...' : 'NO_AUTH_HEADER'
+            })
+            
+            // 🔴 根据后端程序员分析：这是JWT认证失败的明确标志
+            const errorMessage = res.data && res.data.msg ? res.data.msg : '访问令牌无效或已过期'
+            console.error('🚨 JWT认证失败原因 - 这会导致商品列表为空:', errorMessage)
+            
+            // 🔴 修复：详细分析401错误，帮助定位商品显示问题
+            let detailedError = '管理员Token认证失败导致无法获取商品列表\n\n'
+            
+            if (header['Authorization']) {
+              detailedError += '📊 Token状态分析:\n'
+              detailedError += `• 请求携带了Authorization头部\n`
+              detailedError += `• Token格式: ${header['Authorization'].substring(0, 20)}...\n`
+              detailedError += `• 后端拒绝了此Token\n\n`
+              
+              detailedError += '🔍 可能原因:\n'
+              detailedError += '• Token已过期\n'
+              detailedError += '• Token格式错误\n'
+              detailedError += '• JWT密钥不匹配\n'
+              detailedError += '• 用户权限不足\n\n'
+            } else {
+              detailedError += '⚠️ 请求未携带Authorization头部\n\n'
+              detailedError += '🔍 可能原因:\n'
+              detailedError += '• 用户未登录\n'
+              detailedError += '• Token丢失\n'
+              detailedError += '• API调用配置错误\n\n'
+            }
+            
+            detailedError += '🔧 建议解决方案:\n'
+            detailedError += '1. 管理员重新登录\n'
+            detailedError += '2. 检查Token有效期\n'
+            detailedError += '3. 清除缓存重新登录\n'
+            detailedError += '4. 联系技术支持'
+            
+            // 清理认证信息
+            app.globalData.accessToken = null
+            app.globalData.refreshToken = null
+            app.globalData.userInfo = null
+            app.globalData.isLoggedIn = false
+            
+            // 清理本地存储
+            wx.removeStorageSync('access_token')
+            wx.removeStorageSync('refresh_token')
+            wx.removeStorageSync('user_info')
+            
+            // 隐藏加载框
+            if (showLoading) {
+              wx.hideLoading()
+            }
+            
+            // 🔴 修复：显示更详细的JWT认证失败提示，帮助解决商品显示空白问题
+            wx.showModal({
+              title: '🔑 JWT认证失败',
+              content: detailedError,
+              showCancel: true,
+              cancelText: '稍后处理',
+              confirmText: '重新登录',
+              confirmColor: '#ff4444',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  wx.reLaunch({
+                    url: '/pages/auth/auth'
+                  })
+                }
+              }
+            })
+            
+            reject({
+              code: 4002,  // 🔴 使用后端标准错误码
+              msg: errorMessage,
+              data: res.data,
+              statusCode: 401,
+              isAuthError: true,
+              needsRelogin: true,
+              // 🔴 新增：商品显示问题诊断信息
+              isProductDisplayIssue: true,
+              troubleshooting: detailedError
+            })
+            return
+          }
+          
+          // 🔧 其他HTTP错误处理
+          const errorMsg = res.data && res.data.msg ? res.data.msg : `请求失败 (${res.statusCode})`
+          
+          if (showLoading) {
+            wx.hideLoading()
+          }
+          
           reject({
-            code: res.statusCode,
-            msg: `服务器响应错误 ${res.statusCode}`,
+            code: res.data ? res.data.code : res.statusCode,
+            msg: errorMsg,
             data: res.data,
-            httpStatus: res.statusCode
+            statusCode: res.statusCode
           })
           return
         }
@@ -816,7 +1202,7 @@ const merchantAPI = {
    */
   getProductStats() {
     return request({
-      url: '/merchant/product-stats',  // 🔴 已修复路径
+      url: '/merchant/product-stats',  // �� 已修复路径
       method: 'GET',
       needAuth: true
     })
@@ -937,6 +1323,7 @@ const merchantAPI = {
 // 🔧 导出所有API模块
 module.exports = {
   request,
+  validateToken,      // 🔴 新增：导出Token验证函数
   authAPI,
   lotteryAPI,
   exchangeAPI,

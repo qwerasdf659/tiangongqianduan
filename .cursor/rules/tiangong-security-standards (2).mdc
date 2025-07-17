@@ -46,7 +46,7 @@ const authSecurity = {
 // ✅ HTTPS强制要求
 const transportSecurity = {
   enforceHTTPS: true,
-  allowedDomains: ['rqchrlqndora.sealosbja.site'],
+  allowedDomains: ['omqktqrtntnn.sealosbja.site'],
   forbiddenDomains: [
     'rqchrlandora.sealoshqja.site',  // 🔴 安全威胁：拼写错误域名
     'rqchrlqndora.sealoshqja.site'   // 🔴 安全威胁：错误TLD

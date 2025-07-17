@@ -117,7 +117,7 @@ class ConfigurationManager {
         }
         
         const configValues = {
-            'domain': 'rqchrlqndora.sealosbja.site',
+            'domain': 'omqktqrtntnn.sealosbja.site',
             'protocol': 'https',
             'wsProtocol': 'wss'
         }

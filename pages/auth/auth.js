@@ -747,6 +747,7 @@ Page({
 
   /**
    * 🔧 处理统一登录成功 - 修复字段映射问题
+   * 🔴 增强版：添加JWT token验证
    */
   handleUnifiedLoginSuccess(loginData) {
     console.log('✅ 处理登录成功数据:', loginData)
@@ -758,6 +759,66 @@ Page({
     try {
       const app = getApp()
       const rawUserInfo = loginData.data.user_info
+      
+      // 🔴 新增：JWT Token验证
+      const accessToken = loginData.data.access_token
+      const refreshToken = loginData.data.refresh_token
+      
+      console.log('\n🔍=================== 登录Token验证开始 ===================')
+      console.log('🔑 获取到的Token:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        accessTokenLength: accessToken ? accessToken.length : 0,
+        refreshTokenLength: refreshToken ? refreshToken.length : 0,
+        accessTokenPreview: accessToken ? accessToken.substring(0, 50) + '...' : 'NO_TOKEN'
+      })
+      
+      // JWT格式验证
+      if (accessToken) {
+        const tokenParts = accessToken.split('.')
+        console.log('🔍 JWT结构检查:', {
+          totalParts: tokenParts.length,
+          isValidJWT: tokenParts.length === 3,
+          expectedParts: 3
+        })
+        
+        if (tokenParts.length === 3) {
+          try {
+            // 解码JWT payload
+            const payload = JSON.parse(atob(tokenParts[1]))
+            console.log('🔍 JWT Payload解码成功:', {
+              userId: payload.userId || payload.user_id,
+              mobile: payload.mobile,
+              isAdmin: payload.is_admin,
+              issuedAt: payload.iat ? new Date(payload.iat * 1000).toLocaleString() : 'N/A',
+              expiresAt: payload.exp ? new Date(payload.exp * 1000).toLocaleString() : 'N/A'
+            })
+            
+            // 检查token是否已经过期
+            const now = Math.floor(Date.now() / 1000)
+            if (payload.exp && payload.exp < now) {
+              console.error('🚨 警告：后端返回的Token已经过期！')
+              console.error('过期时间:', new Date(payload.exp * 1000).toLocaleString())
+              console.error('当前时间:', new Date().toLocaleString())
+            } else if (payload.exp) {
+              const timeLeft = payload.exp - now
+              console.log('✅ Token有效期正常，剩余:', Math.floor(timeLeft / 60), '分钟')
+            }
+            
+          } catch (decodeError) {
+            console.error('❌ JWT Payload解码失败:', decodeError.message)
+            console.error('🚨 这可能导致后续401认证失败')
+          }
+        } else {
+          console.error('❌ JWT格式无效！预期3个部分，实际:', tokenParts.length)
+          console.error('🚨 这将导致API调用时401认证失败')
+        }
+      } else {
+        console.error('❌ 致命错误：后端没有返回access_token！')
+        console.error('🚨 这将导致所有需要认证的API调用失败')
+      }
+      
+      console.log('=================== 登录Token验证结束 ==================\n')
       
       // 🔧 关键修复：统一字段映射 - 将后端登录数据格式转换为前端期待格式
       const mappedUserInfo = {

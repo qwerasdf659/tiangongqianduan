@@ -103,8 +103,8 @@ const ENV = {
   
   // 测试环境
   testing: {
-    baseUrl: 'https://rqchrlqndora.sealosbja.site/api',
-    wsUrl: 'wss://rqchrlqndora.sealosbja.site/ws',
+    baseUrl: 'https://omqktqrtntnn.sealosbja.site/api',
+    wsUrl: 'wss://omqktqrtntnn.sealosbja.site/ws',
     sealosConfig: {
       endpoint: 'https://objectstorageapi.bja.sealos.run',
       bucket: 'tiangong',
@@ -147,8 +147,8 @@ const ENV = {
   
   // 🔴 生产环境 - 完整功能
   production: {
-    baseUrl: 'https://rqchrlqndora.sealosbja.site/api',
-    wsUrl: 'wss://rqchrlqndora.sealosbja.site/ws',
+    baseUrl: 'https://omqktqrtntnn.sealosbja.site/api',
+    wsUrl: 'wss://omqktqrtntnn.sealosbja.site/ws',
     sealosConfig: {
       endpoint: 'https://objectstorageapi.bja.sealos.run',
       bucket: 'tiangong',

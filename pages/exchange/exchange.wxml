@@ -212,7 +212,9 @@
             src="{{item.image}}" 
             mode="aspectFill"
             bindtap="onPreviewImage"
+            binderror="onImageError"
             data-url="{{item.image}}"
+            data-index="{{index}}"
           />
           
           <!-- 热门标签 -->

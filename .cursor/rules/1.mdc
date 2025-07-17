@@ -741,7 +741,7 @@ class ResponsibilityBoundaryChecker {
 ```javascript
 // 🔴 域名配置统一检查器
 class DomainConfigChecker {
-    static correctDomains = ['rqchrlqndora.sealosbja.site']
+    static correctDomains = ['omqktqrtntnn.sealosbja.site']
     static errorDomains = [
         'rqchrlandora.sealoshqja.site',  // 最常见错误
         'rqchrlqndora.sealoshqja.site',  // TLD错误
