@@ -2,20 +2,710 @@
 
 App({
   /**
-   * 生命周期函数--监听小程序初始化
-   * 当小程序初始化完成时，会触发 onLaunch（全局只触发一次）
+   * 🔴 增强版：应用启动时的状态恢复
    */
-  onLaunch() {
-    console.log('🚀 餐厅积分系统启动 - v2.1.3')
+  onLaunch(options) {
+    console.log('🚀 应用启动 - 权限简化版v2.2.0')
     
-    // 安全初始化
-    try {
-      this.initSystem()
-    } catch (error) {
-      console.error('❌ 系统初始化失败:', error)
-      // 即使初始化失败，也要确保基本功能可用
-      this.initFallback()
+    // 🔧 初始化全局数据结构
+    this.initGlobalData()
+    
+    // 🔴 修复：编译后启动优化，减少日志输出
+    console.log('🔧 编译后启动优化：延迟登录检查和WebSocket连接')
+    
+    // 🔧 延迟检查登录状态，避免编译后立即产生大量日志
+    setTimeout(() => {
+      this.checkLoginStatus()
+    }, 1000)
+    
+    console.log('✅ 应用启动完成')
+  },
+
+  /**
+   * 🔴 新增：初始化全局数据结构
+   */
+  initGlobalData() {
+    // 确保所有必要的全局数据字段都已初始化
+    this.globalData = {
+      ...this.globalData,
+      isLoggedIn: false,
+      accessToken: null,
+      refreshToken: null,
+      userInfo: null,
+      lastLoginTime: null,
+      wsConnected: false,
+      
+      // 🔴 编译后状态恢复控制
+      tokenVerifyCooldown: 30000, // 30秒冷却期
+      tokenVerifyInterval: 300000, // 5分钟验证间隔
+      lastTokenVerifyTime: null,
+      
+      // 应用配置
+      isDev: true,
+      needAuth: true,
+      config: {}
     }
+  },
+
+  /**
+   * 🔴 修复：应用显示时的状态检查（优化版 - 减少编译后误判）
+   */
+  onShow(options) {
+    console.log('🔄 应用显示 - 编译后状态检查（优化版）')
+    
+    // 🔴 关键修复：简化编译后处理 - 减少误判和用户干扰
+    this.handleCompilationStateReset()
+    
+    // 保留原有的WebSocket重连逻辑
+    this.handleCompilationWebSocketReconnect()
+  },
+
+  /**
+   * 🔴 修复：编译后状态重置（优化版 - 减少误判）
+   */
+  handleCompilationStateReset() {
+    try {
+      console.log('🔍 编译后状态优化检查...')
+      
+      // 🔴 关键修复：增加编译检测冷却期，避免频繁检查
+      const now = Date.now()
+      if (this.lastCompilationCheck && (now - this.lastCompilationCheck) < 10000) {
+        console.log('🕐 编译检查冷却期内，跳过状态检查')
+        return
+      }
+      this.lastCompilationCheck = now
+      
+      // 🔴 修复：更宽松的状态异常检查
+      const hasStateIssue = this.gentleCheckStateIssues()
+      
+      if (hasStateIssue) {
+        console.warn('⚠️ 检测到编译后状态异常，执行温和修复')
+        this.performGentleStateRecover()
+      } else {
+        console.log('✅ 编译后状态检查正常')
+        // 执行轻量级同步，确保一致性
+        this.lightweightStateSync()
+      }
+    } catch (error) {
+      console.error('❌ 编译后状态检查失败:', error)
+      // 不执行激进重置，仅记录错误
+      console.log('🔧 状态检查失败，但不影响用户使用')
+    }
+  },
+
+  /**
+   * 🔴 新增：温和的状态异常检查（减少误判）
+   */
+  gentleCheckStateIssues() {
+    try {
+      // 🔴 修复：只检查明显的异常情况，不检查边缘情况
+      
+      // 检查1：全局数据基本完整性
+      if (!this.globalData) {
+        console.warn('⚠️ 全局数据对象不存在')
+        return true
+      }
+      
+      // 检查2：明显的异常值检查（只检查字符串化的异常）
+      const token = this.globalData.accessToken
+      const userInfo = this.globalData.userInfo
+      
+      // 只检查明显的字符串化异常
+      if (token === 'undefined' || token === 'null') {
+        console.warn('⚠️ Token值明显异常:', token)
+        return true
+      }
+      
+      if (userInfo === 'undefined' || userInfo === 'null') {
+        console.warn('⚠️ 用户信息值明显异常:', userInfo)
+        return true
+      }
+      
+      // 🔴 移除过于严格的一致性检查，避免误判
+      // 不再检查存储与全局数据的细微差异
+      
+      return false // 大部分情况认为正常
+    } catch (error) {
+      console.error('❌ 状态异常检查失败:', error)
+      return false // 检查失败不视为异常，避免误判
+    }
+  },
+
+  /**
+   * 🔴 新增：温和的状态恢复（避免强制登出）
+   */
+  performGentleStateRecover() {
+    console.log('🔧 执行温和状态恢复...')
+    
+    try {
+      // 🔴 修复：只清理明显异常的字段，不清理整个登录状态
+      if (this.globalData.accessToken === 'undefined' || this.globalData.accessToken === 'null') {
+        this.globalData.accessToken = null
+      }
+      
+      if (this.globalData.userInfo === 'undefined' || this.globalData.userInfo === 'null') {
+        this.globalData.userInfo = null
+      }
+      
+      // 🔴 关键修复：尝试从存储恢复，而不是直接清除
+      const storedToken = wx.getStorageSync('access_token')
+      const storedUserInfo = wx.getStorageSync('user_info')
+      
+      if (storedToken && storedUserInfo && 
+          storedToken !== 'undefined' && storedToken !== 'null' &&
+          typeof storedUserInfo === 'object' && storedUserInfo.user_id) {
+        
+        console.log('🔧 从存储恢复登录状态...')
+        this.globalData.accessToken = storedToken
+        this.globalData.refreshToken = wx.getStorageSync('refresh_token')
+        this.globalData.userInfo = storedUserInfo
+        this.globalData.isLoggedIn = true
+        
+        console.log('✅ 登录状态温和恢复完成')
+        
+        // 🔴 关键修复：不显示用户提示，静默恢复
+        // 移除了强制跳转登录的逻辑
+      } else {
+        console.log('📝 无法恢复登录状态，但不强制登出')
+        // 不执行强制登出，让用户自然发现登录过期
+      }
+      
+    } catch (error) {
+      console.error('❌ 温和状态恢复失败:', error)
+    }
+  },
+
+  /**
+   * 🔴 新增：快速状态异常检查
+   */
+  quickCheckStateIssues() {
+    try {
+      // 检查1：全局数据基本完整性
+      if (!this.globalData) {
+        console.warn('⚠️ 全局数据对象不存在')
+        return true
+      }
+      
+      // 检查2：关键字段异常值检查
+      const token = this.globalData.accessToken
+      const userInfo = this.globalData.userInfo
+      
+      // Token异常检查
+      if (token === 'undefined' || token === 'null' || 
+          (typeof token === 'string' && (token === 'undefined' || token === 'null'))) {
+        console.warn('⚠️ Token值异常:', token)
+        return true
+      }
+      
+      // 用户信息异常检查
+      if (userInfo === 'undefined' || userInfo === 'null' ||
+          (typeof userInfo === 'string' && (userInfo === 'undefined' || userInfo === 'null'))) {
+        console.warn('⚠️ 用户信息值异常:', userInfo)
+        return true
+      }
+      
+      // 检查3：存储与全局数据不一致
+      if (this.globalData.isLoggedIn) {
+        const storageToken = wx.getStorageSync('access_token')
+        const storageUserInfo = wx.getStorageSync('user_info')
+        
+        if (!storageToken || !storageUserInfo) {
+          console.warn('⚠️ 全局数据显示已登录但存储数据缺失')
+          return true
+        }
+        
+        // 简化的一致性检查
+        if (token && storageToken && token !== storageToken) {
+          console.warn('⚠️ Token不一致')
+          return true
+        }
+      }
+      
+      return false
+    } catch (error) {
+      console.error('❌ 状态异常检查失败:', error)
+      return true // 检查失败视为有异常，执行重置
+    }
+  },
+
+  /**
+   * 🔴 新增：直接状态重置（清除登录状态）
+   */
+  performDirectStateReset() {
+    console.log('🧹 执行编译后状态直接重置...')
+    
+    try {
+      // 步骤1：清除全局登录状态
+      this.globalData.isLoggedIn = false
+      this.globalData.accessToken = null
+      this.globalData.refreshToken = null
+      this.globalData.userInfo = null
+      this.globalData.lastLoginTime = null
+      
+      // 步骤2：清除本地存储
+      wx.removeStorageSync('access_token')
+      wx.removeStorageSync('refresh_token')
+      wx.removeStorageSync('user_info')
+      wx.removeStorageSync('last_login_time')
+      
+      console.log('✅ 编译后状态重置完成')
+      
+      // 步骤3：友好提示用户
+      setTimeout(() => {
+        // 检查当前页面，如果不在登录页面才显示提示
+        const pages = getCurrentPages()
+        const currentPage = pages[pages.length - 1]
+        const currentRoute = currentPage ? currentPage.route : ''
+        
+        if (!currentRoute.includes('auth') && !currentRoute.includes('login')) {
+          wx.showModal({
+            title: '编译后状态重置',
+            content: '检测到编译后状态异常，已自动清除登录状态。\n\n这是正常的保护机制，请重新登录即可。',
+            showCancel: false,
+            confirmText: '立即登录',
+            confirmColor: '#FF6B35',
+            success: () => {
+              wx.reLaunch({
+                url: '/pages/auth/auth'
+              })
+            }
+          })
+        }
+      }, 1000)
+      
+    } catch (error) {
+      console.error('❌ 状态重置失败:', error)
+    }
+  },
+
+  /**
+   * 🔴 新增：轻量级状态同步
+   */
+  lightweightStateSync() {
+    try {
+      console.log('🔄 执行轻量级状态同步...')
+      
+      // 如果全局状态显示未登录，但存储中有数据，进行恢复
+      if (!this.globalData.isLoggedIn) {
+        const storedToken = wx.getStorageSync('access_token')
+        const storedUserInfo = wx.getStorageSync('user_info')
+        
+        if (storedToken && storedUserInfo && 
+            storedToken !== 'undefined' && storedToken !== 'null' &&
+            typeof storedUserInfo === 'object' && storedUserInfo.user_id) {
+          
+          console.log('🔧 从存储恢复登录状态...')
+          this.globalData.accessToken = storedToken
+          this.globalData.refreshToken = wx.getStorageSync('refresh_token')
+          this.globalData.userInfo = storedUserInfo
+          this.globalData.lastLoginTime = wx.getStorageSync('last_login_time')
+          this.globalData.isLoggedIn = true
+          
+          console.log('✅ 登录状态轻量级恢复完成')
+        }
+      }
+    } catch (error) {
+      console.error('❌ 轻量级状态同步失败:', error)
+    }
+  },
+
+  /**
+   * 🔴 新增：检测和修复编译后状态异常
+   */
+  detectAndFixCompilationIssues() {
+    try {
+      console.log('🔍 检测编译后状态异常...')
+      
+      // 检测1：检查关键全局数据是否异常
+      const hasInvalidGlobalData = this.checkInvalidGlobalData()
+      
+      // 检测2：检查本地存储与全局数据的一致性
+      const hasInconsistentData = this.checkDataInconsistency()
+      
+      // 检测3：检查Token格式异常
+      const hasInvalidToken = this.checkInvalidTokenFormat()
+      
+      // 如果发现任何异常，执行修复
+      if (hasInvalidGlobalData || hasInconsistentData || hasInvalidToken) {
+        console.warn('⚠️ 检测到编译后状态异常，执行自动修复...')
+        this.performCompilationStateFix()
+      } else {
+        console.log('✅ 编译后状态检查正常')
+      }
+    } catch (error) {
+      console.error('❌ 编译后状态检测失败:', error)
+      // 检测失败时也执行修复，确保状态稳定
+      this.performCompilationStateFix()
+    }
+  },
+
+  /**
+   * 🔴 新增：检查全局数据异常
+   */
+  checkInvalidGlobalData() {
+    if (!this.globalData) {
+      console.warn('⚠️ 全局数据对象不存在')
+      return true
+    }
+    
+    // 检查关键字段是否为undefined字符串（编译后常见问题）
+    const invalidFields = []
+    const checkFields = ['accessToken', 'refreshToken', 'userInfo']
+    
+    checkFields.forEach(field => {
+      const value = this.globalData[field]
+      if (value === 'undefined' || value === 'null' || 
+          (typeof value === 'string' && (value === 'undefined' || value === 'null'))) {
+        invalidFields.push(field)
+      }
+    })
+    
+    if (invalidFields.length > 0) {
+      console.warn('⚠️ 检测到异常字段:', invalidFields)
+      return true
+    }
+    
+    return false
+  },
+
+  /**
+   * 🔴 新增：检查数据一致性
+   */
+  checkDataInconsistency() {
+    try {
+      const globalToken = this.globalData.accessToken
+      const storageToken = wx.getStorageSync('access_token')
+      const globalUserInfo = this.globalData.userInfo
+      const storageUserInfo = wx.getStorageSync('user_info')
+      
+      // 检查Token一致性
+      if (globalToken && storageToken && globalToken !== storageToken) {
+        console.warn('⚠️ Token不一致:', {
+          global: globalToken?.substring(0, 20) + '...',
+          storage: storageToken?.substring(0, 20) + '...'
+        })
+        return true
+      }
+      
+      // 检查用户信息一致性
+      if (globalUserInfo && storageUserInfo) {
+        const globalUserId = globalUserInfo.user_id || globalUserInfo.id
+        const storageUserId = storageUserInfo.user_id || storageUserInfo.id
+        
+        if (globalUserId !== storageUserId) {
+          console.warn('⚠️ 用户ID不一致:', {
+            global: globalUserId,
+            storage: storageUserId
+          })
+          return true
+        }
+      }
+      
+      return false
+    } catch (error) {
+      console.error('❌ 数据一致性检查失败:', error)
+      return true
+    }
+  },
+
+  /**
+   * 🔴 新增：检查Token格式异常
+   */
+  checkInvalidTokenFormat() {
+    const token = this.globalData.accessToken
+    
+    if (token) {
+      // 检查Token是否为异常字符串
+      if (typeof token !== 'string' || token === 'undefined' || token === 'null' || 
+          token.length < 10 || !token.includes('.')) {
+        console.warn('⚠️ Token格式异常:', {
+          type: typeof token,
+          value: token,
+          length: token.length
+        })
+        return true
+      }
+    }
+    
+    return false
+  },
+
+  /**
+   * 🔴 新增：执行编译后状态修复
+   */
+  performCompilationStateFix() {
+    console.log('🔧 执行编译后状态修复...')
+    
+    try {
+      // 步骤1：清理异常的全局数据
+      this.cleanInvalidGlobalData()
+      
+      // 步骤2：重新同步存储数据
+      this.forceSyncStorageToGlobalData()
+      
+      // 步骤3：验证修复结果
+      const isFixed = this.validateFixedState()
+      
+      if (isFixed) {
+        console.log('✅ 编译后状态修复成功')
+        
+        // 显示用户友好提示
+        setTimeout(() => {
+          wx.showToast({
+            title: '系统状态已自动修复',
+            icon: 'success',
+            duration: 2000
+          })
+        }, 1000)
+      } else {
+        console.warn('⚠️ 状态修复不完全，建议重新登录')
+        this.showCompilationFixPrompt()
+      }
+    } catch (error) {
+      console.error('❌ 状态修复失败:', error)
+      this.showCompilationFixPrompt()
+    }
+  },
+
+  /**
+   * 🔴 新增：清理异常的全局数据
+   */
+  cleanInvalidGlobalData() {
+    const fieldsToClean = ['accessToken', 'refreshToken', 'userInfo']
+    
+    fieldsToClean.forEach(field => {
+      const value = this.globalData[field]
+      if (value === 'undefined' || value === 'null' || 
+          (typeof value === 'string' && (value === 'undefined' || value === 'null'))) {
+        console.log(`🧹 清理异常字段 ${field}:`, value)
+        this.globalData[field] = null
+      }
+    })
+    
+    // 重置登录状态
+    if (!this.globalData.accessToken || !this.globalData.userInfo) {
+      this.globalData.isLoggedIn = false
+    }
+  },
+
+  /**
+   * 🔴 新增：强制同步存储数据
+   */
+  forceSyncStorageToGlobalData() {
+    try {
+      console.log('🔄 强制同步存储数据到全局...')
+      
+      const storedToken = wx.getStorageSync('access_token')
+      const storedRefreshToken = wx.getStorageSync('refresh_token')
+      const storedUserInfo = wx.getStorageSync('user_info')
+      const storedLastLoginTime = wx.getStorageSync('last_login_time')
+      
+      // 只有当存储数据有效时才恢复
+      if (storedToken && storedUserInfo && 
+          storedToken !== 'undefined' && storedToken !== 'null' &&
+          typeof storedUserInfo === 'object' && storedUserInfo.user_id) {
+        
+        // 验证Token有效性
+        const tokenValidation = this.preValidateToken(storedToken)
+        if (tokenValidation.isValid) {
+          console.log('🔧 从存储恢复有效状态...')
+          
+          this.globalData.accessToken = storedToken
+          this.globalData.refreshToken = storedRefreshToken
+          this.globalData.userInfo = storedUserInfo
+          this.globalData.lastLoginTime = storedLastLoginTime
+          this.globalData.isLoggedIn = true
+          
+          console.log('✅ 状态恢复完成')
+        } else {
+          console.warn('⚠️ 存储中的Token无效，清理状态')
+          this.clearInvalidStorageData()
+        }
+      } else {
+        console.log('📝 存储中无有效数据，保持未登录状态')
+        this.globalData.isLoggedIn = false
+        this.globalData.accessToken = null
+        this.globalData.userInfo = null
+      }
+    } catch (error) {
+      console.error('❌ 强制同步失败:', error)
+      // 同步失败时清理状态，避免异常
+      this.logout()
+    }
+  },
+
+  /**
+   * 🔴 新增：清理无效存储数据
+   */
+  clearInvalidStorageData() {
+    try {
+      wx.removeStorageSync('access_token')
+      wx.removeStorageSync('refresh_token') 
+      wx.removeStorageSync('user_info')
+      wx.removeStorageSync('last_login_time')
+      
+      this.globalData.isLoggedIn = false
+      this.globalData.accessToken = null
+      this.globalData.refreshToken = null
+      this.globalData.userInfo = null
+      this.globalData.lastLoginTime = null
+      
+      console.log('🧹 无效存储数据已清理')
+    } catch (error) {
+      console.error('❌ 清理存储数据失败:', error)
+    }
+  },
+
+  /**
+   * 🔴 新增：验证修复结果
+   */
+  validateFixedState() {
+    const hasValidToken = this.globalData.accessToken && 
+                         typeof this.globalData.accessToken === 'string' && 
+                         this.globalData.accessToken !== 'undefined' &&
+                         this.globalData.accessToken !== 'null'
+    
+    const hasValidUserInfo = this.globalData.userInfo && 
+                            typeof this.globalData.userInfo === 'object' &&
+                            (this.globalData.userInfo.user_id || this.globalData.userInfo.id)
+    
+    const isConsistent = this.globalData.isLoggedIn === (hasValidToken && hasValidUserInfo)
+    
+    console.log('🔍 修复结果验证:', {
+      hasValidToken,
+      hasValidUserInfo, 
+      isConsistent,
+      loginStatus: this.globalData.isLoggedIn
+    })
+    
+    return isConsistent
+  },
+
+  /**
+   * 🔴 新增：显示编译修复提示
+   */
+  showCompilationFixPrompt() {
+    wx.showModal({
+      title: '系统状态异常',
+      content: '检测到编译后状态异常，已尝试自动修复。\n\n如果仍有问题，建议清除缓存重新登录。',
+      showCancel: true,
+      cancelText: '稍后处理',
+      confirmText: '重新登录',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.confirm) {
+          // 清理所有状态，重新登录
+          this.logout()
+          wx.reLaunch({
+            url: '/pages/auth/auth'
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔴 新增：处理编译后WebSocket重连（核心修复）
+   */
+  handleCompilationWebSocketReconnect() {
+    // 检查用户是否已登录
+    if (!this.globalData.isLoggedIn || !this.globalData.accessToken) {
+      console.log('🚫 用户未登录，跳过WebSocket重连检查')
+      return
+    }
+
+    // 检查WebSocket连接状态
+    if (this.globalData.wsConnected) {
+      console.log('✅ WebSocket已连接，无需重连')
+      return
+    }
+
+    console.log('🔍 检测到编译后WebSocket可能需要重连')
+    
+    // 🔴 关键修复：延迟重连，避免与页面加载冲突
+    setTimeout(() => {
+      if (this.globalData.isLoggedIn && !this.globalData.wsConnected) {
+        console.log('🔄 编译后自动重连WebSocket...')
+        this.connectWebSocketWithRetry(3) // 最多重试3次
+      }
+    }, 2000) // 延迟2秒，确保页面加载完成
+  },
+
+  /**
+   * 🔴 新增：带重试机制的WebSocket连接
+   */
+  connectWebSocketWithRetry(maxRetries = 3, currentRetry = 0) {
+    console.log(`🔌 WebSocket连接尝试 ${currentRetry + 1}/${maxRetries}`)
+    
+    // 调用原有连接方法
+    this.connectWebSocket()
+    
+    // 设置连接检查定时器
+    setTimeout(() => {
+      if (!this.globalData.wsConnected && currentRetry < maxRetries - 1) {
+        console.log(`🔄 WebSocket连接失败，${2}秒后进行第${currentRetry + 2}次重试`)
+        setTimeout(() => {
+          this.connectWebSocketWithRetry(maxRetries, currentRetry + 1)
+        }, 2000 * (currentRetry + 1)) // 递增延迟
+      } else if (!this.globalData.wsConnected) {
+        console.log('⚠️ WebSocket连接最终失败，但不影响应用使用')
+        // 不显示错误提示，静默处理
+      } else {
+        console.log('✅ WebSocket重连成功')
+      }
+    }, 3000) // 3秒后检查连接状态
+  },
+
+  /**
+   * 🔴 新增：同步本地存储到全局数据 - 解决编译后数据丢失问题（优化版）
+   */
+  syncStorageToGlobalData() {
+    try {
+      // 🔴 减少日志输出，避免控制台切换
+      const storedToken = wx.getStorageSync('access_token')
+      const storedRefreshToken = wx.getStorageSync('refresh_token')
+      const storedUserInfo = wx.getStorageSync('user_info')
+      const storedLastLoginTime = wx.getStorageSync('last_login_time')
+      
+      // 如果全局数据丢失但本地存储有数据，则恢复
+      if (storedToken && storedUserInfo && !this.globalData.accessToken) {
+        console.log('🔧 编译后状态恢复中...')
+        
+        // 预检查Token有效性
+        const tokenValidation = this.preValidateToken(storedToken)
+        if (tokenValidation.isValid) {
+          this.globalData.accessToken = storedToken
+          this.globalData.refreshToken = storedRefreshToken
+          this.globalData.userInfo = storedUserInfo
+          this.globalData.lastLoginTime = storedLastLoginTime
+          this.globalData.isLoggedIn = true
+          
+          console.log('✅ 登录状态恢复成功')
+          
+          // 🔴 关键修复：延迟WebSocket连接，避免编译后立即连接
+          setTimeout(() => {
+            if (!this.globalData.wsConnected) {
+              this.connectWebSocket()
+            }
+          }, 3000) // 延长到3秒，确保页面加载完成
+        } else {
+          console.log('❌ Token已过期，需要重新登录')
+          this.logout()
+        }
+      }
+    } catch (error) {
+      console.error('❌ 状态同步异常:', error)
+    }
+  },
+
+  /**
+   * 🔴 新增：登录状态更新时保存标记
+   */
+  updateLoginTime() {
+    const now = Date.now()
+    this.globalData.lastLoginTime = now
+    wx.setStorageSync('last_login_time', now)
+    console.log('✅ 登录时间已更新')
   },
 
   /**
@@ -469,6 +1159,7 @@ App({
 
   /**
    * 检查登录状态
+   * 🔴 新增：支持自动跳转到抽奖页面
    */
   checkLoginStatus() {
     const token = wx.getStorageSync('access_token')
@@ -476,7 +1167,23 @@ App({
     const userInfo = wx.getStorageSync('user_info')
     const lastLoginTime = wx.getStorageSync('last_login_time')
     
+    console.log('🔍 App启动时检查登录状态:', {
+      hasToken: !!token,
+      hasRefreshToken: !!refreshToken,
+      hasUserInfo: !!userInfo,
+      tokenPreview: token ? token.substring(0, 30) + '...' : 'NO_TOKEN'
+    })
+    
     if (token && refreshToken && userInfo) {
+      // 🔴 修复：增强Token预检查 - 解决编译后Token失效问题
+      const tokenValidation = this.preValidateToken(token)
+      
+      if (!tokenValidation.isValid) {
+        console.error('❌ Token预检查失败:', tokenValidation.reason)
+        this.logout() // 清理无效Token
+        return
+      }
+      
       // 🔧 修复：在验证之前先设置token，确保API请求有Authorization头部
       this.globalData.accessToken = token
       this.globalData.refreshToken = refreshToken
@@ -484,7 +1191,7 @@ App({
       this.globalData.lastLoginTime = lastLoginTime || null
       this.globalData.isLoggedIn = true // 先设置为已登录状态
       
-      console.log('🔧 已预设认证信息，开始智能验证Token有效性')
+      console.log('✅ 登录状态恢复成功，Token预检查通过')
       
       // 🔧 使用带冷却期的验证逻辑
       const now = Date.now()
@@ -492,6 +1199,9 @@ App({
       // 如果是刚登录不久，跳过验证直接认为有效
       if (this.globalData.lastLoginTime && (now - this.globalData.lastLoginTime) < this.globalData.tokenVerifyCooldown) {
         console.log('🔧 最近刚登录，跳过初始验证')
+        
+        // 🔴 新增：自动跳转到抽奖页面（用户需求）
+        this.autoRedirectToLottery('recent_login')
         
         // 🔧 延迟连接WebSocket，确保用户状态已就绪
         setTimeout(() => {
@@ -505,6 +1215,9 @@ App({
       this.verifyTokenWithRetry().then(() => {
         console.log('✅ 登录状态验证成功')
         
+        // 🔴 新增：验证成功后自动跳转到抽奖页面（用户需求）
+        this.autoRedirectToLottery('token_verified')
+        
         // 🔧 优化：延迟连接WebSocket，确保用户状态已就绪
         setTimeout(() => {
           this.connectWebSocket()
@@ -515,197 +1228,351 @@ App({
         this.logout()
       })
     } else {
-      console.log('📝 用户未登录')
-      this.globalData.isLoggedIn = false
-      this.globalData.accessToken = null
-      this.globalData.refreshToken = null
-      this.globalData.userInfo = null
-      this.globalData.lastLoginTime = null
+      console.log('🔍 没有有效的登录凭据，保持未登录状态')
     }
   },
 
   /**
-   * 连接WebSocket
+   * 🔴 新增：自动跳转到抽奖页面（响应用户需求）
+   * @param {string} reason - 跳转原因，用于日志记录
+   */
+  autoRedirectToLottery(reason = 'auto') {
+    console.log(`🎰 自动跳转到抽奖页面，原因: ${reason}`)
+    
+    try {
+      // 检查当前页面路径，避免重复跳转
+      const pages = getCurrentPages()
+      const currentPage = pages[pages.length - 1]
+      const currentRoute = currentPage ? currentPage.route : ''
+      
+      console.log('📍 当前页面路径:', currentRoute)
+      
+      // 如果已经在抽奖页面，则不需要跳转
+      if (currentRoute === 'pages/lottery/lottery') {
+        console.log('✅ 已在抽奖页面，无需跳转')
+        return
+      }
+      
+      // 如果在登录页面，使用reLaunch避免堆栈问题
+      if (currentRoute.includes('auth') || currentRoute.includes('login')) {
+        console.log('🔄 从登录页面跳转到抽奖页面')
+        wx.reLaunch({
+          url: '/pages/lottery/lottery',
+          success: () => {
+            console.log('✅ 成功从登录页面跳转到抽奖页面')
+          },
+          fail: (error) => {
+            console.error('❌ 从登录页面跳转到抽奖页面失败:', error)
+          }
+        })
+      } else {
+        // 从其他页面跳转，使用switchTab（如果抽奖页面是tabBar页面）
+        // 或使用navigateTo（如果不是tabBar页面）
+        console.log('🔄 从其他页面跳转到抽奖页面')
+        
+        // 🔴 关键：使用reLaunch确保清理页面栈，避免用户返回到之前的页面
+        wx.reLaunch({
+          url: '/pages/lottery/lottery',
+          success: () => {
+            console.log('✅ 成功自动跳转到抽奖页面')
+            
+            // 显示友好提示
+            setTimeout(() => {
+              wx.showToast({
+                title: '欢迎回来！',
+                icon: 'success',
+                duration: 2000
+              })
+            }, 500)
+          },
+          fail: (error) => {
+            console.error('❌ 自动跳转到抽奖页面失败:', error)
+            
+            // 跳转失败时，尝试使用switchTab（如果抽奖页面在tabBar中）
+            wx.switchTab({
+              url: '/pages/lottery/lottery',
+              success: () => {
+                console.log('✅ 使用switchTab成功跳转到抽奖页面')
+              },
+              fail: (switchError) => {
+                console.error('❌ switchTab也失败了:', switchError)
+                
+                // 最后尝试navigateTo
+                wx.navigateTo({
+                  url: '/pages/lottery/lottery',
+                  success: () => {
+                    console.log('✅ 使用navigateTo成功跳转到抽奖页面')
+                  },
+                  fail: (navError) => {
+                    console.error('❌ 所有跳转方式都失败了:', navError)
+                  }
+                })
+              }
+            })
+          }
+        })
+      }
+      
+    } catch (error) {
+      console.error('❌ 自动跳转到抽奖页面时出错:', error)
+    }
+  },
+
+  /**
+   * 🔴 新增：Token预检查 - 在发起API验证之前先检查基本有效性
+   */
+  preValidateToken(token) {
+    try {
+      // 基本格式检查
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        return { isValid: false, reason: 'Token为空或格式无效' }
+      }
+
+      // JWT格式检查
+      const parts = token.split('.')
+      if (parts.length !== 3) {
+        return { isValid: false, reason: 'Token不是有效的JWT格式' }
+      }
+
+      // 解码并检查过期时间
+      const payload = JSON.parse(atob(parts[1]))
+      const now = Math.floor(Date.now() / 1000)
+      
+      if (payload.exp && payload.exp < now) {
+        const expiredMinutes = Math.floor((now - payload.exp) / 60)
+        return { 
+          isValid: false, 
+          reason: `Token已过期${expiredMinutes}分钟，需要重新登录` 
+        }
+      }
+
+      // 检查必要字段
+      if (!payload.user_id && !payload.userId && !payload.sub) {
+        return { isValid: false, reason: 'Token缺少用户ID字段' }
+      }
+
+      console.log('✅ Token预检查通过:', {
+        userId: payload.user_id || payload.userId || payload.sub,
+        isAdmin: payload.is_admin || payload.isAdmin,
+        expiresAt: payload.exp ? new Date(payload.exp * 1000).toLocaleString() : '永不过期'
+      })
+
+      return { isValid: true, payload }
+      
+    } catch (error) {
+      console.error('❌ Token预检查异常:', error.message)
+      return { isValid: false, reason: 'Token解码失败：' + error.message }
+    }
+  },
+
+  /**
+   * 连接WebSocket（优化版）
    */
   connectWebSocket() {
-    // 🔧 检查环境配置
-    const envConfig = this.globalData.config || this.globalData
-    const devConfig = envConfig.developmentMode || {}
-    
-    if (devConfig.enableWebSocket === false) {
-      console.log('🔧 WebSocket已禁用，跳过连接')
+    // 🔴 修复：增强连接前检查，避免重复连接
+    if (this.globalData.wsConnected) {
+      console.log('🔌 WebSocket已连接，跳过重复连接')
       return
     }
     
-    if (!this.globalData.wsUrl) {
-      console.warn('⚠️ WebSocket URL未配置')
+    if (!this.globalData.isLoggedIn || !this.globalData.accessToken) {
+      console.log('🚫 用户未登录，跳过WebSocket连接')
       return
     }
-    
-    if (!this.globalData.accessToken) {
-      console.warn('⚠️ 未登录，无法连接WebSocket')
+
+    // 🔴 修复：添加连接冷却期，避免频繁连接
+    const now = Date.now()
+    if (this.lastWsConnectTime && (now - this.lastWsConnectTime) < 5000) {
+      console.log('🕐 WebSocket连接冷却期，跳过连接')
       return
     }
+    this.lastWsConnectTime = now
+
+    console.log('🔌 开始连接WebSocket...')
     
-    // 🔧 防止重复连接
-    if (this.wsManager && this.wsManager.connected) {
-      console.log('🔄 WebSocket已连接，跳过重复连接')
-      return
-    }
+    // 🔧 关闭现有连接
+    this.closeWebSocket()
+
+    const wsUrl = `wss://omqktqrtntnn.sealosbja.site/ws?token=${encodeURIComponent(this.globalData.accessToken)}`
     
-    const wsUrl = `${this.globalData.wsUrl}?token=${this.globalData.accessToken}`
-    console.log('🔌 正在连接WebSocket:', wsUrl)
-    
-    try {
-      const socketTask = wx.connectSocket({
-        url: wsUrl,
-        protocols: ['websocket']
-      })
+    wx.connectSocket({
+      url: wsUrl,
+      protocols: ['websocket'],
+      success: () => {
+        console.log('✅ WebSocket连接请求已发送')
+      },
+      fail: (error) => {
+        console.error('❌ WebSocket连接失败:', error)
+        this.globalData.wsConnected = false
+      }
+    })
+
+    // 🔴 修复：设置连接超时，避免长时间等待
+    this.wsConnectTimeout = setTimeout(() => {
+      if (!this.globalData.wsConnected) {
+        console.log('⏰ WebSocket连接超时，关闭连接')
+        wx.closeSocket()
+      }
+    }, 10000) // 10秒超时
+
+    // WebSocket事件监听
+    wx.onSocketOpen(() => {
+      console.log('✅ WebSocket连接成功')
+      this.globalData.wsConnected = true
       
-      // 🔧 优化：添加连接超时处理
-      const connectionTimeout = setTimeout(() => {
-        if (this.wsManager && !this.wsManager.connected) {
-          console.warn('⚠️ WebSocket连接超时')
-          this.handleWebSocketError('连接超时')
-        }
-      }, devConfig.webSocketTimeout || 10000)
+      // 清除连接超时
+      if (this.wsConnectTimeout) {
+        clearTimeout(this.wsConnectTimeout)
+        this.wsConnectTimeout = null
+      }
       
-      socketTask.onOpen(() => {
-        clearTimeout(connectionTimeout)
-        console.log('✅ WebSocket连接成功')
+      // 🔴 减少心跳频率，降低日志输出
+      this.startWebSocketHeartbeat()
+    })
+
+    wx.onSocketMessage((res) => {
+      try {
+        const data = JSON.parse(res.data)
+        this.handleWebSocketMessage(data)
+      } catch (error) {
+        console.error('❌ WebSocket消息解析失败:', error)
+      }
+    })
+
+    wx.onSocketError((error) => {
+      console.log('⚠️ WebSocket连接遇到问题:', error.errMsg || error)
+      this.globalData.wsConnected = false
+      this.stopWebSocketHeartbeat()
+      
+      // 🔴 关键修复：不显示错误界面，静默处理WebSocket错误
+      // WebSocket连接失败不影响应用核心功能，用户可以正常使用抽奖、兑换等功能
+      console.log('💡 WebSocket连接失败不影响应用核心功能，将在后台自动重试')
+    })
+
+    wx.onSocketClose((res) => {
+      console.log('🔌 WebSocket连接已关闭，关闭码:', res.code)
+      this.globalData.wsConnected = false
+      this.stopWebSocketHeartbeat()
+      
+      // 🔴 修复：增强重连逻辑，包括编译断开的情况
+      if (this.globalData.isLoggedIn) {
+        // 编译断开通常是1001或1006，正常断开是1000
+        const shouldReconnect = res.code !== 1000 // 非正常关闭都需要重连
         
-        if (this.wsManager) {
-          this.wsManager.socket = socketTask
-          this.wsManager.connected = true
-          this.wsManager.reconnectAttempts = 0
+        if (shouldReconnect) {
+          console.log(`🔄 WebSocket非正常关闭（${res.code}），准备重连`)
           
-          // 启动心跳
-          this.startHeartbeat()
+          // 🔴 关键修复：区分编译断开和网络错误
+          const isCompilationDisconnect = res.code === 1001 || res.code === 1006
+          const reconnectDelay = isCompilationDisconnect ? 3000 : 5000 // 编译断开延迟短些
           
-          // 发送队列中的消息
-          this.sendQueuedMessages()
+          setTimeout(() => {
+            if (this.globalData.isLoggedIn && !this.globalData.wsConnected) {
+              console.log('🔄 执行WebSocket自动重连')
+              this.connectWebSocketWithRetry(2) // 重连最多2次
+            }
+          }, reconnectDelay)
+        } else {
+          console.log('✅ WebSocket正常关闭，无需重连')
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔴 修复：增强WebSocket消息处理
+   */
+  handleWebSocketMessage(message) {
+    if (!message || !message.type) {
+      console.warn('⚠️ 无效的WebSocket消息格式')
+      return
+    }
+
+    console.log('📨 处理WebSocket消息:', message.type)
+
+    switch (message.type) {
+      case 'auth_verify_result':
+        if (message.data && message.data.success) {
+          console.log('✅ WebSocket认证验证成功')
+        } else {
+          console.error('❌ WebSocket认证验证失败，断开连接')
+          this.closeWebSocket()
+        }
+        break
+
+      case 'points_update':
+        // 积分更新通知
+        if (message.data && message.data.user_id === this.globalData.userInfo?.user_id) {
+          console.log('💰 收到积分更新通知:', message.data)
+          this.globalData.userInfo.total_points = message.data.new_balance
+          
+          // 通知页面更新
+          this.broadcastToPages('points_update', message.data)
+        }
+        break
+
+      case 'review_result':
+        // 审核结果通知
+        console.log('📋 收到审核结果通知:', message.data)
+        this.broadcastToPages('review_result', message.data)
+        break
+
+      case 'system_message':
+        // 系统消息
+        console.log('📢 收到系统消息:', message.data)
+        if (message.data && message.data.show_popup) {
+          wx.showModal({
+            title: '系统通知',
+            content: message.data.content,
+            showCancel: false
+          })
+        }
+        break
+
+      default:
+        console.log('❓ 未知WebSocket消息类型:', message.type)
+    }
+  },
+
+  /**
+   * 🔴 新增：向所有页面广播消息
+   */
+  broadcastToPages(eventName, data) {
+    const pages = getCurrentPages()
+    pages.forEach(page => {
+      if (page.onWebSocketMessage && typeof page.onWebSocketMessage === 'function') {
+        try {
+          page.onWebSocketMessage(eventName, data)
+        } catch (error) {
+          console.warn('⚠️ 页面WebSocket消息处理失败:', error)
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔴 修复：发送WebSocket消息
+   */
+  sendWebSocketMessage(messageData, showLog = true) {
+    if (!this.globalData.wsConnected) {
+      if (showLog) console.log('⚠️ WebSocket未连接，无法发送消息')
+      return false
+    }
+
+    try {
+      wx.sendSocketMessage({
+        data: JSON.stringify(messageData),
+        success: () => {
+          if (showLog) console.log('✅ WebSocket消息发送成功:', messageData.type)
+        },
+        fail: (error) => {
+          if (showLog) console.error('❌ WebSocket消息发送失败:', error)
         }
       })
-      
-      socketTask.onMessage((message) => {
-        console.log('📨 收到WebSocket消息:', message)
-        this.handleWebSocketMessage(message.data)
-      })
-      
-      socketTask.onError((error) => {
-        clearTimeout(connectionTimeout)
-        console.error('❌ WebSocket连接错误:', error)
-        this.handleWebSocketError(error)
-      })
-      
-      socketTask.onClose((close) => {
-        clearTimeout(connectionTimeout)
-        console.log('🔌 WebSocket连接关闭:', close)
-        this.handleWebSocketClose(close)
-      })
-      
+      return true
     } catch (error) {
-      console.error('❌ WebSocket连接异常:', error)
-      this.handleWebSocketError(error)
-    }
-  },
-
-  /**
-   * 🔧 优化：处理WebSocket错误
-   */
-  handleWebSocketError(error) {
-    const envConfig = this.globalData.config || this.globalData
-    const devConfig = envConfig.developmentMode || {}
-    
-    if (this.wsManager) {
-      this.wsManager.connected = false
-      this.wsManager.socket = null
-      
-      // 停止心跳
-      if (this.wsManager.heartbeatInterval) {
-        clearInterval(this.wsManager.heartbeatInterval)
-        this.wsManager.heartbeatInterval = null
-      }
-    }
-    
-    // 🔧 根据配置决定是否静默处理错误
-    if (devConfig.silentWebSocketErrors) {
-      console.log('⚠️ WebSocket错误已静默处理:', error)
-      return
-    }
-    
-    // 🔧 智能重连
-    if (devConfig.webSocketReconnect && this.wsManager && 
-        this.wsManager.reconnectAttempts < this.wsManager.maxReconnectAttempts) {
-      
-      this.wsManager.reconnectAttempts++
-      const delay = this.wsManager.reconnectDelay * this.wsManager.reconnectAttempts
-      
-      console.log(`🔄 WebSocket重连 (${this.wsManager.reconnectAttempts}/${this.wsManager.maxReconnectAttempts})，${delay}ms后重试`)
-      
-      setTimeout(() => {
-        this.connectWebSocket()
-      }, delay)
-    } else {
-      console.warn('⚠️ WebSocket重连次数已达上限，停止重连')
-    }
-  },
-
-  /**
-   * 🔧 优化：处理WebSocket关闭
-   */
-  handleWebSocketClose(close) {
-    const envConfig = this.globalData.config || this.globalData
-    const devConfig = envConfig.developmentMode || {}
-    
-    if (this.wsManager) {
-      this.wsManager.connected = false
-      this.wsManager.socket = null
-      
-      // 停止心跳
-      if (this.wsManager.heartbeatInterval) {
-        clearInterval(this.wsManager.heartbeatInterval)
-        this.wsManager.heartbeatInterval = null
-      }
-    }
-    
-    // 🔧 正常关闭不重连
-    if (close.code === 1000) {
-      console.log('✅ WebSocket正常关闭')
-      return
-    }
-    
-    // 🔧 异常关闭尝试重连
-    if (devConfig.webSocketReconnect && this.wsManager && 
-        this.wsManager.reconnectAttempts < this.wsManager.maxReconnectAttempts) {
-      
-      this.wsManager.reconnectAttempts++
-      const delay = this.wsManager.reconnectDelay * this.wsManager.reconnectAttempts
-      
-      console.log(`🔄 WebSocket异常关闭，${delay}ms后重连`)
-      
-      setTimeout(() => {
-        this.connectWebSocket()
-      }, delay)
-    }
-  },
-
-  /**
-   * 🔧 新增：处理WebSocket消息
-   */
-  handleWebSocketMessage(data) {
-    try {
-      const message = JSON.parse(data)
-      const { event, data: eventData } = message
-      
-      // 处理特定事件
-      if (this.wsEventListeners[event]) {
-        this.wsEventListeners[event](eventData)
-      } else {
-        console.log('📨 未处理的WebSocket事件:', event, eventData)
-      }
-    } catch (error) {
-      console.error('❌ 解析WebSocket消息失败:', error, data)
+      if (showLog) console.error('❌ WebSocket消息发送异常:', error)
+      return false
     }
   },
 
@@ -1081,42 +1948,24 @@ App({
   },
 
   /**
-   * 用户登录成功处理
+   * 🔴 增强版登录成功处理 - 修复编译后Token验证和状态同步问题
    */
   onLoginSuccess(loginData) {
-    console.log('🔧 登录成功处理 - 原始数据:', loginData)
-    
-    // 🔧 修复：兼容不同的后端数据结构
-    let access_token, refresh_token, expires_in, user_info
-    
-    // 方案1：直接从loginData中提取
-    if (loginData.access_token) {
-      access_token = loginData.access_token
-      refresh_token = loginData.refresh_token
-      expires_in = loginData.expires_in || 7200
-      user_info = loginData.user_info || loginData.userInfo
-    }
-    // 方案2：从嵌套的data字段中提取
-    else if (loginData.data) {
-      access_token = loginData.data.access_token || loginData.data.accessToken
-      refresh_token = loginData.data.refresh_token || loginData.data.refreshToken
-      expires_in = loginData.data.expires_in || loginData.data.expiresIn || 7200
-      user_info = loginData.data.user_info || loginData.data.userInfo || loginData.data.user
-    }
-    // 方案3：直接使用不同字段名
-    else {
-      access_token = loginData.accessToken || loginData.token
-      refresh_token = loginData.refreshToken || loginData.refresh
-      expires_in = loginData.expiresIn || loginData.expireTime || 7200
-      user_info = loginData.userInfo || loginData.user
-    }
-    
-    console.log('🔧 登录成功处理 - 解析后数据:', {
-      access_token: access_token ? `${access_token.substring(0, 20)}...` : 'undefined',
-      refresh_token: refresh_token ? `${refresh_token.substring(0, 20)}...` : 'undefined',
-      expires_in: expires_in,
-      user_info: user_info
+    console.log('✅ App.onLoginSuccess - 处理登录成功回调')
+    console.log('🔍 登录数据验证:', {
+      hasAccessToken: !!(loginData.data && loginData.data.access_token),
+      hasRefreshToken: !!(loginData.data && loginData.data.refresh_token),
+      hasUserInfo: !!(loginData.data && loginData.data.user_info),
+      userNickname: loginData.data?.user_info?.nickname || 'UNKNOWN'
     })
+    
+    // 🔧 数据安全性检查
+    if (!loginData || !loginData.data) {
+      console.error('❌ 登录数据无效，缺少data字段')
+      return
+    }
+    
+    const { access_token, refresh_token, user_info } = loginData.data
     
     // 🔧 修复：Token验证和处理
     if (!access_token || typeof access_token !== 'string' || access_token.trim() === '') {
@@ -1170,102 +2019,61 @@ App({
       return
     }
     
-    // 🔧 修复：标准化用户信息字段（权限简化版v2.2.0）
-    const standardizedUserInfo = {
-      user_id: user_id,
-      mobile: user_info.mobile || user_info.phone || '未知',
-      nickname: user_info.nickname || user_info.nickName || user_info.name || `用户${user_id}`,
-      total_points: parseInt(user_info.total_points || user_info.totalPoints || user_info.points || 0),
-      is_admin: Boolean(user_info.is_admin || user_info.isAdmin || false),  // 🔴 权限简化：只保留管理员权限
-      avatar: user_info.avatar || user_info.avatarUrl || user_info.avatar_url || '',
-      status: user_info.status || 'active',
-      last_login: user_info.last_login || user_info.lastLogin || new Date().toISOString(),
-      created_at: user_info.created_at || user_info.createdAt || user_info.createTime || new Date().toISOString()
+    // 🔴 修复：JWT Token预检查和解析 - 解决编译后Token失效问题
+    const tokenValidation = this.preValidateToken(access_token)
+    if (!tokenValidation.isValid) {
+      console.error('❌ Token预检查失败:', tokenValidation.reason)
+      wx.showModal({
+        title: '🔑 Token验证失败',
+        content: `Token验证失败：${tokenValidation.reason}\n\n这可能导致编译后认证异常，请重新登录。`,
+        showCancel: false,
+        confirmText: '重新登录',
+        success: () => {
+          wx.reLaunch({
+            url: '/pages/auth/auth'
+          })
+        }
+      })
+      return
     }
     
-    console.log('🔧 标准化用户信息（权限简化版）:', {
-      user_id: standardizedUserInfo.user_id,
-      mobile: standardizedUserInfo.mobile,
-      nickname: standardizedUserInfo.nickname,
-      total_points: standardizedUserInfo.total_points,
-      is_admin: standardizedUserInfo.is_admin,
-      userType: standardizedUserInfo.is_admin ? '管理员' : '普通用户'
-    })
+    // 🔧 修复：安全保存登录状态到全局数据和本地存储
+    console.log('💾 保存登录状态...')
     
-    // 🔧 设置登录时间，启动验证冷却期
-    const now = Date.now()
-    
-    // 🔧 修复：清理和设置认证信息
-    this.globalData.accessToken = access_token.trim()
+    // 先保存到全局数据
+    this.globalData.accessToken = access_token
     this.globalData.refreshToken = refresh_token || null
-    this.globalData.tokenExpireTime = now + expires_in * 1000
-    this.globalData.userInfo = standardizedUserInfo
+    this.globalData.userInfo = user_info
     this.globalData.isLoggedIn = true
     
-    // 🔧 新增：设置登录冷却期，防止立即验证Token
-    this.globalData.lastLoginTime = now
-    this.globalData.lastTokenVerifyTime = null // 重置验证时间
+    // 🔴 重要：记录登录时间，用于编译后状态恢复判断
+    this.updateLoginTime()
     
-    // 🔧 修复：安全保存到本地存储
+    // 再保存到本地存储（确保编译后能恢复）
     try {
-      wx.setStorageSync('access_token', access_token.trim())
+      wx.setStorageSync('access_token', access_token)
       wx.setStorageSync('refresh_token', refresh_token || '')
-      wx.setStorageSync('token_expire_time', this.globalData.tokenExpireTime)
-      wx.setStorageSync('user_info', standardizedUserInfo)
-      wx.setStorageSync('last_login_time', now)
-      
-      console.log('✅ 用户登录信息已安全保存到本地存储')
+      wx.setStorageSync('user_info', user_info)
+      console.log('✅ 登录状态已同步保存到全局数据和本地存储')
     } catch (storageError) {
-      console.error('❌ 保存登录信息到本地存储失败:', storageError)
+      console.error('❌ 保存到本地存储失败:', storageError)
       wx.showToast({
-        title: '本地存储异常',
+        title: '存储失败，登录状态可能不稳定',
         icon: 'none',
         duration: 2000
       })
     }
     
-    // 🔧 修复：添加防抖机制，避免频繁触发userStatusChanged事件
-    if (this.userStatusChangeNotifyTimeout) {
-      clearTimeout(this.userStatusChangeNotifyTimeout)
-    }
-    
-    this.userStatusChangeNotifyTimeout = setTimeout(() => {
-      // 🔧 修复：只有在数据完整时才触发通知
-      const notifyData = {
-        isLoggedIn: true,
-        accessToken: access_token.trim(),
-        userInfo: standardizedUserInfo
-      }
-      
-      console.log('✅ 发送完整用户状态变化通知:', {
-        user_id: standardizedUserInfo.user_id,
-        nickname: standardizedUserInfo.nickname,
-        hasToken: !!access_token
-      })
-      
-      // 🔧 修复：登录成功后通知所有页面更新状态
-      this.notifyAllPages('userStatusChanged', notifyData)
-    }, 200) // 200ms延迟，确保数据设置完成
-    
-    // 🔧 修复：登录成功后安全连接WebSocket
+    // 🔧 修复：登录成功后立即建立WebSocket连接
+    console.log('🔌 登录成功，准备建立WebSocket连接...')
     setTimeout(() => {
-      this.connectWebSocket()
-    }, 1500) // 延迟连接，确保所有数据设置完成
+      if (this.globalData.isLoggedIn && this.globalData.accessToken) {
+        console.log('🔄 开始连接WebSocket...')
+        this.connectWebSocketWithRetry(3) // 使用带重试的连接方法
+      }
+    }, 1500) // 延迟1.5秒确保状态完全稳定
     
-    console.log('✅ 用户登录成功，已设置验证冷却期:', {
-      user_id: standardizedUserInfo.user_id,
-      user: standardizedUserInfo.nickname || standardizedUserInfo.mobile,
-      cooldownTime: this.globalData.tokenVerifyCooldown / 1000 + '秒',
-      hasToken: !!access_token,
-      tokenLength: access_token.length
-    })
-    
-    // 🔧 新增：登录成功提示
-    wx.showToast({
-      title: `欢迎，${standardizedUserInfo.nickname}!`,
-      icon: 'success',
-      duration: 2000
-    })
+    console.log('✅ 登录成功处理完成')
   },
 
   // 退出登录
@@ -1342,6 +2150,69 @@ App({
       } catch (error) {
         console.error('❌ 兑换页面更新回调执行失败:', error)
       }
+    }
+  },
+
+  /**
+   * 🔴 新增：启动WebSocket心跳机制
+   */
+  startWebSocketHeartbeat() {
+    // 清除现有心跳
+    this.stopWebSocketHeartbeat()
+    
+    console.log('💓 启动WebSocket心跳（90秒间隔）')
+    this.wsHeartbeatInterval = setInterval(() => {
+      if (this.globalData.wsConnected) {
+        // 🔴 修复：减少心跳日志输出
+        this.sendWebSocketMessage({
+          type: 'heartbeat',
+          data: {
+            timestamp: Date.now(),
+            user_id: this.globalData.userInfo?.user_id
+          }
+        }, false) // 不输出发送日志
+      } else {
+        console.log('⚠️ WebSocket未连接，停止心跳')
+        this.stopWebSocketHeartbeat()
+      }
+    }, 90000) // 🔴 延长心跳间隔到90秒，减少日志
+  },
+
+  /**
+   * 🔴 新增：停止WebSocket心跳机制
+   */
+  stopWebSocketHeartbeat() {
+    if (this.wsHeartbeatInterval) {
+      clearInterval(this.wsHeartbeatInterval)
+      this.wsHeartbeatInterval = null
+      console.log('💓 WebSocket心跳机制已停止')
+    }
+  },
+
+  /**
+   * 🔴 新增：关闭WebSocket连接
+   */
+  closeWebSocket() {
+    console.log('🔌 关闭WebSocket连接')
+    
+    // 停止心跳
+    this.stopWebSocketHeartbeat()
+    
+    // 更新连接状态
+    this.globalData.wsConnected = false
+    
+    // 关闭连接
+    try {
+      wx.closeSocket({
+        success: () => {
+          console.log('✅ WebSocket连接已关闭')
+        },
+        fail: (error) => {
+          console.warn('⚠️ 关闭WebSocket连接失败:', error)
+        }
+      })
+    } catch (error) {
+      console.warn('⚠️ 关闭WebSocket连接异常:', error)
     }
   }
 })

@@ -165,23 +165,62 @@ Page({
   onShow() {
     console.log('抽奖页面显示')
     
-    // 🔧 修复：检查关键的登录状态和token
-    const hasValidLogin = app.globalData.isLoggedIn && app.globalData.accessToken && app.globalData.accessToken !== 'undefined'
+    // 🔴 修复：区分正常未登录和登录状态异常
+    const isLoggedIn = app.globalData.isLoggedIn
+    const hasToken = !!app.globalData.accessToken
+    const hasUserInfo = !!app.globalData.userInfo
     
-    if (!hasValidLogin) {
-      console.error('❌ 登录状态或访问令牌无效:', {
-        isLoggedIn: app.globalData.isLoggedIn,
-        hasToken: !!app.globalData.accessToken,
-        tokenPreview: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : 'none'
+    console.log('🔍 抽奖页面检查登录状态:', {
+      isLoggedIn,
+      hasToken,
+      hasUserInfo,
+      tokenPreview: app.globalData.accessToken ? `${app.globalData.accessToken.substring(0, 20)}...` : 'NO_TOKEN'
+    })
+    
+    // 🔴 关键修复：区分两种情况
+    if (!isLoggedIn || !hasToken) {
+      // 情况1：正常的未登录状态 - 友好引导用户登录
+      console.log('📝 检测到用户未登录，引导用户登录')
+      
+      wx.showModal({
+        title: '需要登录',
+        content: '欢迎来到抽奖页面！\n\n请先登录以参与抽奖活动，赢取精美奖品。',
+        showCancel: true,
+        cancelText: '稍后',
+        confirmText: '立即登录',
+        confirmColor: '#FF6B35',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/auth/auth'
+            })
+          } else {
+            // 用户选择稍后，跳转到首页
+            wx.switchTab({
+              url: '/pages/index/index'
+            })
+          }
+        }
       })
+      return
+    }
+    
+    // 情况2：已登录但Token可能有问题 - 验证Token有效性
+    if (app.globalData.accessToken === 'undefined' || typeof app.globalData.accessToken !== 'string') {
+      console.error('❌ Token格式异常:', app.globalData.accessToken)
       
       wx.showModal({
         title: '登录状态异常',
-        content: '检测到登录状态异常，请重新登录以确保正常使用。',
+        content: '检测到登录信息异常，请重新登录以确保正常使用。',
         showCancel: false,
         confirmText: '重新登录',
         confirmColor: '#ff4444',
         success: () => {
+          // 清理异常状态
+          app.globalData.isLoggedIn = false
+          app.globalData.accessToken = null
+          app.globalData.userInfo = null
+          
           wx.reLaunch({
             url: '/pages/auth/auth'
           })

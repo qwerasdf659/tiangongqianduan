@@ -46,7 +46,11 @@ Page({
     console.log('🏠 首页加载')
     // 🔧 修复：初始化登录提示标记
     this.loginPromptShown = false
-    this.initPage()
+    
+    // 🔴 编译后启动优化：延迟初始化，避免立即产生大量检查
+    setTimeout(() => {
+      this.initPage()
+    }, 500)
   },
 
   /**
@@ -66,7 +70,10 @@ Page({
       this.loginPromptShown = false
     }
     
-    this.checkUserStatus()
+    // 🔴 优化：延迟检查用户状态，避免编译后立即检查
+    setTimeout(() => {
+      this.checkUserStatus()
+    }, 800)
     
     // 🔧 修复：注册状态变化监听
     this.registerStatusListener()
@@ -162,7 +169,8 @@ Page({
   },
 
   /**
-   * 检查用户登录状态
+   * 检查用户登录状态（优化版）
+   * 🔴 新增：支持自动跳转到抽奖页面
    */
   checkUserStatus() {
     // 🔧 修复：增加状态检查的可靠性
@@ -184,9 +192,20 @@ Page({
       userInfo: userInfo || null
     })
     
-    // 🔧 修复：立即检查登录状态，与页面加载同步
+    // 🔴 新增：已登录用户自动跳转到抽奖页面（响应用户需求）
+    if (actuallyLoggedIn) {
+      // 🔧 修复：已登录时重置提示标记
+      this.loginPromptShown = false
+      console.log('✅ 用户已登录，准备自动跳转到抽奖页面')
+      
+      // 🔴 关键：自动跳转到抽奖页面
+      this.autoRedirectToLotteryFromIndex()
+      
+      return // 已登录用户直接返回，不执行后续的登录提示逻辑
+    }
+    
+    // 🔴 编译后优化：减少登录提示频率 - 只对未登录用户执行
     if (!actuallyLoggedIn && !this.loginPromptShown) {
-      this.loginPromptShown = true // 标记已显示过提示
       
       // 🔧 新增：检查当前页面路径，避免在登录相关页面弹出提示
       const pages = getCurrentPages()
@@ -199,25 +218,121 @@ Page({
         return
       }
       
-      // �� 修复：立即显示登录提示框，不再延迟
-      console.log('📋 立即显示登录提示框')
-      wx.showModal({
-        title: '登录提示',
-        content: '请先登录以享受完整功能',
-        confirmText: '去登录',
-        cancelText: '稍后',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/auth/auth'
+      // 🔴 编译后优化：延迟显示登录提示，避免与页面加载冲突
+      setTimeout(() => {
+        // 再次检查状态，避免延迟期间状态变化
+        if (!app.globalData.isLoggedIn && !this.loginPromptShown) {
+          this.loginPromptShown = true
+          
+          console.log('📋 显示登录提示框')
+          wx.showModal({
+            title: '欢迎使用',
+            content: '请先登录以享受完整功能\n\n🎰 抽奖赢积分\n📸 拍照获奖励\n🎁 积分换好礼',
+            confirmText: '立即登录',
+            cancelText: '稍后',
+            confirmColor: '#FF6B35',
+            success: (res) => {
+              if (res.confirm) {
+                wx.navigateTo({
+                  url: '/pages/auth/auth'
+                })
+              }
+            }
+          })
+        }
+      }, 1500) // 延迟1.5秒显示，确保页面加载完成
+    }
+  },
+
+  /**
+   * 🔴 新增：从首页自动跳转到抽奖页面（响应用户需求）
+   */
+  autoRedirectToLotteryFromIndex() {
+    console.log('🎰 首页检测到登录状态，准备自动跳转到抽奖页面')
+    
+    try {
+      // 检查当前页面是否确实是首页
+      const pages = getCurrentPages()
+      const currentPage = pages[pages.length - 1]
+      const currentRoute = currentPage ? currentPage.route : ''
+      
+      if (currentRoute !== 'pages/index/index') {
+        console.log('📍 当前页面不是首页，跳过自动跳转')
+        return
+      }
+      
+      console.log('🔄 从首页自动跳转到抽奖页面')
+      
+      // 🔴 关键：给用户一个短暂的提示，然后跳转
+      wx.showToast({
+        title: '检测到登录状态',
+        icon: 'success',
+        duration: 1000,
+        mask: true
+      })
+      
+      // 延迟跳转，让用户看到提示
+      setTimeout(() => {
+        wx.reLaunch({
+          url: '/pages/lottery/lottery',
+          success: () => {
+            console.log('✅ 从首页成功自动跳转到抽奖页面')
+            
+            // 跳转成功后的提示
+            setTimeout(() => {
+              wx.showToast({
+                title: '欢迎来到抽奖页面！',
+                icon: 'success',
+                duration: 2000
+              })
+            }, 500)
+          },
+          fail: (error) => {
+            console.error('❌ 从首页跳转到抽奖页面失败:', error)
+            
+            // 跳转失败时尝试其他方式
+            wx.switchTab({
+              url: '/pages/lottery/lottery',
+              success: () => {
+                console.log('✅ 使用switchTab从首页跳转到抽奖页面成功')
+              },
+              fail: (switchError) => {
+                console.error('❌ switchTab也失败:', switchError)
+                
+                // 最后尝试navigateTo
+                wx.navigateTo({
+                  url: '/pages/lottery/lottery',
+                  success: () => {
+                    console.log('✅ 使用navigateTo从首页跳转到抽奖页面成功')
+                  },
+                  fail: (navError) => {
+                    console.error('❌ 首页所有跳转方式都失败:', navError)
+                    
+                    // 所有跳转都失败时，给用户手动选择
+                    wx.showModal({
+                      title: '自动跳转失败',
+                      content: '检测到您已登录，但自动跳转到抽奖页面失败。\n\n是否手动前往抽奖页面？',
+                      confirmText: '去抽奖',
+                      cancelText: '稍后',
+                      success: (res) => {
+                        if (res.confirm) {
+                          // 用户确认时，尝试最简单的方式
+                          wx.redirectTo({
+                            url: '/pages/lottery/lottery'
+                          })
+                        }
+                      }
+                    })
+                  }
+                })
+              }
             })
           }
-        }
-      })
-    } else if (actuallyLoggedIn) {
-      // 🔧 修复：已登录时重置提示标记
-      this.loginPromptShown = false
-      console.log('✅ 用户已登录，首页状态正常')
+        })
+      }, 1200) // 延迟1.2秒，让用户看到提示
+      
+    } catch (error) {
+      console.error('❌ 从首页自动跳转到抽奖页面时出错:', error)
     }
   },
 

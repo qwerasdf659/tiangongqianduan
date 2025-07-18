@@ -232,27 +232,128 @@ Page({
         return
       }
 
-      // 检查是否已经登录
+      // 🔴 修复：增强Token状态检查 - 解决编译后Token失效问题
       const token = app.globalData.accessToken || wx.getStorageSync('access_token')
       const userInfo = app.globalData.userInfo || wx.getStorageSync('user_info')
+
+      console.log('🔍 检查现有登录状态:', {
+        hasToken: !!token,
+        hasUserInfo: !!userInfo,
+        tokenPreview: token ? token.substring(0, 20) + '...' : 'NO_TOKEN',
+        userNickname: userInfo?.nickname || 'NO_USER'
+      })
 
       if (token && userInfo) {
         console.log('🔍 检测到已有登录状态，验证Token有效性...')
         
-        // 验证Token有效性
-        this.authAPI.verifyToken().then(result => {
-          console.log('✅ Token验证成功，自动跳转到主页面')
-          this.redirectToMainPage(userInfo)
-        }).catch(error => {
-          console.warn('⚠️ Token验证失败，清理登录状态:', error)
-          app.logout()
-        })
+        // 🔴 关键修复：先同步到全局状态，再验证Token
+        app.globalData.accessToken = token
+        app.globalData.userInfo = userInfo
+        app.globalData.isLoggedIn = true
+        
+        // 🔴 增强：Token有效性验证，包含过期检查
+        this.validateTokenAndRedirect(token, userInfo)
       } else {
-        console.log('🔍 未检测到有效的登录状态')
+        console.log('🔍 未检测到有效的登录状态，显示登录表单')
+        // 确保登录表单可见
+        this.setData({ pageLoaded: true })
       }
     } catch (error) {
       console.error('❌ 检查登录状态时出错:', error)
+      // 出错时显示登录表单
+      this.setData({ pageLoaded: true })
     }
+  },
+
+  /**
+   * 🔴 新增：验证Token并处理重定向
+   */
+  validateTokenAndRedirect(token, userInfo) {
+    // 🔴 Token格式预检查
+    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+      console.error('❌ Token格式无效，需要重新登录')
+      this.clearInvalidLoginState()
+      return
+    }
+
+    // 🔴 JWT过期检查
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      const now = Math.floor(Date.now() / 1000)
+      
+      if (payload.exp && payload.exp < now) {
+        const expiredMinutes = Math.floor((now - payload.exp) / 60)
+        console.error('❌ Token已过期:', expiredMinutes + '分钟前')
+        this.clearInvalidLoginState()
+        return
+      }
+    } catch (decodeError) {
+      console.error('❌ Token解码失败:', decodeError.message)
+      this.clearInvalidLoginState()
+      return
+    }
+
+    // 🔴 通过后端验证Token - 使用更宽松的错误处理
+    this.authAPI.verifyToken().then(result => {
+      console.log('✅ Token验证成功，自动跳转到主页面')
+      this.redirectToMainPage(userInfo)
+    }).catch(error => {
+      console.warn('⚠️ Token验证失败，但可能是网络问题:', error)
+      
+      // 🔴 修复：区分网络错误和认证错误
+      if (error.code === 4001 || error.code === 4002) {
+        // 明确的认证错误，清理登录状态
+        console.error('❌ 明确的认证失败，清理登录状态')
+        this.clearInvalidLoginState()
+      } else {
+        // 可能是网络错误，给用户选择
+        wx.showModal({
+          title: '登录状态验证失败',
+          content: '无法验证登录状态，可能是网络问题。\n\n是否重新登录？',
+          showCancel: true,
+          cancelText: '稍后重试',
+          confirmText: '重新登录',
+          success: (res) => {
+            if (res.confirm) {
+              this.clearInvalidLoginState()
+            } else {
+              // 用户选择稍后重试，假设登录有效并跳转
+              console.log('🔄 用户选择稍后重试，假设登录有效')
+              this.redirectToMainPage(userInfo)
+            }
+          }
+        })
+      }
+    })
+  },
+
+  /**
+   * 🔴 新增：清理无效登录状态
+   */
+  clearInvalidLoginState() {
+    const app = getApp()
+    
+    console.log('🧹 清理无效登录状态')
+    
+    // 清理全局状态
+    app.globalData.accessToken = null
+    app.globalData.refreshToken = null
+    app.globalData.userInfo = null
+    app.globalData.isLoggedIn = false
+    
+    // 清理本地存储
+    wx.removeStorageSync('access_token')
+    wx.removeStorageSync('refresh_token')
+    wx.removeStorageSync('user_info')
+    
+    // 显示登录表单
+    this.setData({ pageLoaded: true })
+    
+    wx.showToast({
+      title: '请重新登录',
+      icon: 'none',
+      duration: 2000
+    })
   },
 
   /**
@@ -747,7 +848,7 @@ Page({
 
   /**
    * 🔧 处理统一登录成功 - 修复字段映射问题
-   * 🔴 增强版：添加JWT token验证
+   * 🔴 修复版：减少跳转延迟，优化用户体验
    */
   handleUnifiedLoginSuccess(loginData) {
     console.log('✅ 处理登录成功数据:', loginData)
@@ -877,17 +978,18 @@ Page({
         app.onLoginSuccess(loginDataWithMappedUser)
       }
       
-      // 🔧 显示登录成功提示
+      // 🔴 关键修复：减少跳转延迟，立即开始跳转流程
+      console.log('🚀 立即开始跳转流程，减少用户等待时间')
+      
+      // 简化提示，不阻塞跳转
       wx.showToast({
         title: '登录成功',
         icon: 'success',
-        duration: 1500
+        duration: 1000  // 缩短提示时间
       })
       
-      // 🔧 延迟跳转，确保用户看到成功提示
-      setTimeout(() => {
-        this.performUnifiedRedirect(mappedUserInfo.is_admin)
-      }, 1500)
+      // 🔴 关键修复：立即跳转，不等待提示结束
+      this.performOptimizedRedirect(mappedUserInfo.is_admin)
       
     } catch (error) {
       console.error('❌ 处理登录成功数据时出错:', error)
@@ -896,10 +998,10 @@ Page({
   },
 
   /**
-   * 🔧 执行统一跳转 - 统一跳转到抽奖页面
+   * 🔴 新增：优化的跳转流程（减少延迟）
    */
-  performUnifiedRedirect(isAdmin) {
-    console.log('🔄 执行统一跳转 - 所有用户都跳转到抽奖页面')
+  performOptimizedRedirect(isAdmin) {
+    console.log('🚀 执行优化跳转 - 立即跳转到抽奖页面')
     
     try {
       this.setData({ 
@@ -907,60 +1009,135 @@ Page({
         logging: false 
       })
       
-      // 🔴 统一跳转：所有用户（包括管理员）都跳转到抽奖页面
-      console.log('🎰 跳转到抽奖页面')
-            this.safeRedirectToLottery()
+      // 🔴 关键修复：立即跳转，不延迟等待
+      console.log('🎰 立即跳转到抽奖页面')
+      this.immediateRedirectToLottery()
       
     } catch (error) {
       console.error('❌ 跳转过程中出错:', error)
-      this.safeRedirectToLottery()
+      this.handleSimpleNavigationFailure(error)
     }
   },
 
   /**
-   * 🔧 安全跳转到抽奖页面
+   * 🔴 新增：立即跳转到抽奖页面（无延迟版）
    */
-  safeRedirectToLottery() {
-    console.log('🎰 安全跳转到抽奖页面')
+  immediateRedirectToLottery() {
+    console.log('🎰 立即跳转到抽奖页面（无延迟）')
     
-    // 🔧 多种跳转方式确保成功
+    // 🔴 关键修复：立即尝试跳转，无任何延迟
     wx.switchTab({
       url: '/pages/lottery/lottery',
       success: () => {
-        console.log('✅ 抽奖页面跳转成功')
-      },
-      fail: (switchError) => {
-        console.warn('⚠️ switchTab失败，尝试reLaunch:', switchError)
+        console.log('✅ 抽奖页面跳转成功（立即）')
         
+        // 🔴 修复：跳转成功后延迟显示欢迎提示，避免阻塞
+        setTimeout(() => {
+          wx.showToast({
+            title: '欢迎参与抽奖！',
+            icon: 'success',
+            duration: 1500
+          })
+        }, 200)  // 很短的延迟，确保页面已切换
+      },
+      fail: (error) => {
+        console.error('❌ switchTab跳转失败:', error)
+        
+        // 🔴 修复：立即尝试备用方案，不延迟
+        this.immediateAlternativeNavigation(error)
+      }
+    })
+  },
+
+  /**
+   * 🔴 新增：立即备用导航方案（无延迟）
+   */
+  immediateAlternativeNavigation(originalError) {
+    console.log('🔄 立即尝试备用导航方案...')
+    
+    // 备用方案1：立即使用reLaunch
+    wx.reLaunch({
+      url: '/pages/lottery/lottery',
+      success: () => {
+        console.log('✅ reLaunch跳转成功（立即备用方案）')
+        wx.showToast({
+          title: '登录成功！',
+          icon: 'success',
+          duration: 1500
+        })
+      },
+      fail: (reLaunchError) => {
+        console.error('❌ reLaunch也失败:', reLaunchError)
+        
+        // 备用方案2：立即跳转到首页
         wx.reLaunch({
-          url: '/pages/lottery/lottery',
+          url: '/pages/index/index',
           success: () => {
-            console.log('✅ 抽奖页面reLaunch成功')
-          },
-          fail: (reLaunchError) => {
-            console.error('❌ reLaunch也失败:', reLaunchError)
-            
-            // 最后尝试navigateTo
-            wx.navigateTo({
-              url: '/pages/lottery/lottery',
-              success: () => {
-                console.log('✅ 抽奖页面navigateTo成功')
-              },
-              fail: (navigateError) => {
-                console.error('❌ 所有跳转方式都失败:', navigateError)
-                
-                wx.showModal({
-                  title: '跳转失败',
-                  content: '页面跳转失败，请手动前往抽奖页面。',
-                  showCancel: false,
-                  confirmText: '我知道了'
-                })
-              }
+            console.log('✅ 跳转到首页成功（立即）')
+            wx.showModal({
+              title: '登录成功',
+              content: '登录成功！页面跳转有点问题，已跳转到首页。\n\n请点击底部"抽奖"标签继续使用。',
+              showCancel: false,
+              confirmText: '知道了',
+              confirmColor: '#FF6B35'
             })
+          },
+          fail: (indexError) => {
+            console.error('❌ 所有跳转方案都失败:', indexError)
+            this.handleSimpleNavigationFailure(originalError)
           }
         })
       }
     })
+  },
+
+  /**
+   * 🔴 新增：简化的导航失败处理
+   */
+  handleSimpleNavigationFailure(error) {
+    console.error('❌ 页面跳转最终失败:', error)
+    
+    wx.showModal({
+      title: '登录成功',
+      content: `登录已成功！但页面跳转遇到问题。\n\n请手动点击底部"抽奖"标签继续使用。`,
+      showCancel: true,
+      cancelText: '重试',
+      confirmText: '知道了',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.cancel) {
+          // 用户选择重试
+          this.directSafeRedirectToLottery()
+        } else {
+          // 用户选择知道了，显示操作提示
+          wx.showToast({
+            title: '请点击底部"抽奖"标签',
+            icon: 'none',
+            duration: 3000
+          })
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔧 跳转到主页面（简化版）
+   */
+  redirectToMainPage(userInfo) {
+    console.log('🔄 跳转到主页面 - 统一跳转到抽奖页面:', userInfo)
+    
+    // 🔴 简化：直接调用简化版跳转
+    console.log('🎰 开始跳转到抽奖页面（自动登录）')
+    this.directSafeRedirectToLottery()
+  },
+
+  /**
+   * 🔧 安全跳转到抽奖页面（兼容性保留）
+   */
+  safeRedirectToLottery() {
+    console.log('🎰 安全跳转到抽奖页面（调用简化版）')
+    // 调用简化版跳转机制
+    this.directSafeRedirectToLottery()
   },
 
   /**
@@ -1026,18 +1203,5 @@ Page({
         confirmText: '我知道了'
       })
     }
-  },
-
-  /**
-   * 🔧 跳转到主页面
-   */
-  redirectToMainPage(userInfo) {
-    console.log('🔄 跳转到主页面 - 统一跳转到抽奖页面:', userInfo)
-    
-    // 🔴 统一跳转：所有用户（包括管理员）都跳转到抽奖页面
-    console.log('🎰 跳转到抽奖页面')
-      wx.switchTab({
-        url: '/pages/lottery/lottery'
-      })
   }
 })

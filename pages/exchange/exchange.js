@@ -182,139 +182,75 @@ Page({
   checkTokenStatus() {
     const app = getApp()
     
-    console.log('🔍 开始Token状态检查...')
-    
     // 检查app实例
     if (!app || !app.globalData) {
-      console.error('❌ App实例或globalData未初始化')
+      console.error('❌ App实例未初始化')
       return {
         isValid: false,
         error: 'APP_NOT_INITIALIZED',
-        message: '应用未初始化，请重新打开小程序'
+        message: '应用未初始化，请重新打开小程序',
+        needsRelogin: false,
+        isNormalUnauth: false
       }
     }
     
-    // 🔴 增强：优先检查全局Token，降级到本地存储
-    let token = app.globalData.accessToken
-    console.log('🔧 全局Token状态:', token ? `存在(${token.length}字符)` : '不存在')
+    // 🔴 关键修复：区分正常未登录和Token异常
+    const isLoggedIn = app.globalData.isLoggedIn
+    const accessToken = app.globalData.accessToken
     
-    if (!token) {
-      console.log('🔧 全局Token不存在，尝试从本地存储获取...')
-      try {
-        token = wx.getStorageSync('access_token')
-        if (token) {
-          console.log('🔧 从本地存储恢复Token:', token.length + '字符')
-          // 同步到全局数据
-          app.globalData.accessToken = token
-        }
-      } catch (storageError) {
-        console.error('❌ 读取本地存储Token失败:', storageError)
-      }
-    }
-    
-    // 检查token存在性
-    if (!token) {
-      console.error('❌ Token完全不存在（全局和本地存储都没有）')
+    // 情况1：正常未登录状态
+    if (!isLoggedIn || !accessToken) {
+      console.log('📝 正常未登录状态')
       return {
         isValid: false,
-        error: 'TOKEN_MISSING',
-        message: '未找到访问令牌，需要重新登录'
+        error: 'NOT_LOGGED_IN',
+        message: '用户未登录',
+        needsRelogin: false,
+        isNormalUnauth: true  // 🔴 标记为正常未登录
       }
     }
     
-    // 检查token格式
-    if (typeof token !== 'string' || token.trim() === '') {
-      console.error('❌ Token格式错误:', { type: typeof token, value: token })
+    // 情况2：已登录但Token可能有问题
+    if (typeof accessToken !== 'string' || accessToken.trim() === '' || accessToken === 'undefined') {
+      console.error('❌ Token格式异常')
       return {
         isValid: false,
         error: 'TOKEN_INVALID_FORMAT',
-        message: 'Token格式无效，请重新登录'
+        message: 'Token格式无效，需要重新登录',
+        needsRelogin: true,
+        isNormalUnauth: false
       }
     }
     
-    // 🔴 增强：JWT token格式检查
-    const tokenParts = token.split('.')
-    if (tokenParts.length !== 3) {
-      console.error('❌ JWT格式错误，部分数量:', tokenParts.length, '预期: 3')
+    // 🔴 使用utils/api.js中的validateToken函数，确保逻辑一致
+    const { validateToken } = require('../../utils/api')
+    const validationResult = validateToken(accessToken)
+    
+    if (!validationResult.isValid) {
+      console.error('❌ Token验证失败:', validationResult.error, validationResult.message)
       return {
         isValid: false,
-        error: 'TOKEN_INVALID_JWT',
-        message: 'Token不是有效的JWT格式，请重新登录'
+        error: validationResult.error,
+        message: validationResult.message,
+        needsRelogin: validationResult.needsRelogin || true,
+        canRefresh: validationResult.canRefresh,
+        expiredAt: validationResult.expiredAt,
+        isNormalUnauth: false
       }
     }
     
-    // 🔴 增强：JWT Payload解码和过期检查
-    try {
-      const payload = JSON.parse(atob(tokenParts[1]))
-      const now = Math.floor(Date.now() / 1000)
-      
-      console.log('🔍 JWT Token解码成功:', {
-        userId: payload.user_id || payload.userId || payload.sub,
-        isAdmin: payload.is_admin || payload.isAdmin || false,
-        issuedAt: payload.iat ? new Date(payload.iat * 1000).toLocaleString() : '未设置',
-        expiresAt: payload.exp ? new Date(payload.exp * 1000).toLocaleString() : '永不过期',
-        currentTime: new Date().toLocaleString()
-      })
-      
-      // 🔴 核心：检查token是否过期
-      if (payload.exp && payload.exp < now) {
-        const expiredTime = new Date(payload.exp * 1000).toLocaleString()
-        const expiredMinutes = Math.floor((now - payload.exp) / 60)
-        
-        console.error('❌ Token已过期:', {
-          过期时间: expiredTime,
-          当前时间: new Date().toLocaleString(),
-          过期时长: expiredMinutes + '分钟前'
-        })
-        
-        return {
-          isValid: false,
-          error: 'TOKEN_EXPIRED',
-          message: `Token已过期 (${expiredTime})，请重新登录`,
-          expiredAt: expiredTime,
-          expiredMinutes: expiredMinutes
-        }
-      }
-      
-      // 🔴 增强：检查即将过期的Token (5分钟内)
-      const willExpireSoon = payload.exp && (payload.exp - now) < 300
-      if (willExpireSoon) {
-        const minutesLeft = Math.floor((payload.exp - now) / 60)
-        console.warn('⚠️ Token即将过期:', minutesLeft + '分钟后')
-      }
-      
-      // 🔴 增强：检查Token中的关键字段
-      const hasUserId = !!(payload.user_id || payload.userId || payload.sub)
-      if (!hasUserId) {
-        console.warn('⚠️ Token中缺少用户ID字段')
-        return {
-          isValid: false,
-          error: 'TOKEN_MISSING_USER_ID',
-          message: 'Token缺少用户信息，请重新登录'
-        }
-      }
-      
-      console.log('✅ Token验证通过')
-      return {
-        isValid: true,
-        token: token,
-        payload: payload,
-        info: `Token有效，${payload.exp ? '有效期至' + new Date(payload.exp * 1000).toLocaleString() : '无过期时间'}`,
-        willExpireSoon: willExpireSoon,
-        userId: payload.user_id || payload.userId || payload.sub,
-        isAdmin: payload.is_admin || payload.isAdmin || false
-      }
-      
-    } catch (decodeError) {
-      console.error('❌ JWT解码失败:', decodeError.message)
-      console.error('🔍 Token前50字符:', token.substring(0, 50))
-      
-      return {
-        isValid: false,
-        error: 'TOKEN_DECODE_ERROR',
-        message: 'Token解码失败，可能已损坏，请重新登录',
-        decodeError: decodeError.message
-      }
+    console.log('✅ Token验证通过')
+    return {
+      isValid: true,
+      message: validationResult.message,
+      info: {
+        userId: validationResult.userId,
+        mobile: validationResult.mobile,
+        isAdmin: validationResult.isAdmin,
+        expiresAt: validationResult.expiresAt,
+        willExpireSoon: validationResult.willExpireSoon
+      },
+      isNormalUnauth: false
     }
   },
 
@@ -393,343 +329,142 @@ Page({
   /**
    * 🔴 加载商品数据 - 必须从后端API获取
    * ✅ 符合项目安全规则：禁止Mock数据，强制后端依赖
-   * 🔧 增强版：完善数据处理和错误调试
-   * 🚨 修复版：解决JWT认证问题（根据后端程序员分析）
-   * 🎯 修复商品显示空白问题 - 2025年01月12日
+   * 🔧 修复版：解决JWT认证问题和API调用问题
+   * 🎯 修复商品显示空白问题 - 2025年01月19日
    * 
-   * 接口：GET /api/exchange/products?page=1&page_size=20&category=all&sort=points
+   * 接口：GET /api/exchange/products
    * 认证：需要Bearer Token
    * 返回：商品列表，支持分页和筛选
    */
   loadProducts() {
-    this.setData({ loading: true })
-
-    console.log('\n🚀=================== 开始加载商品 ===================')
-    console.log('📡 请求商品列表接口...')
-    console.log('🕐 请求时间:', new Date().toLocaleString())
-    
-    // 🔴 增强：Token状态检查 - 解决商品显示空白的直接原因
-    const tokenStatus = this.checkTokenStatus()
-    if (!tokenStatus.isValid) {
-      console.error('❌ Token状态异常，这是商品显示空白的直接原因:', tokenStatus.error)
-      
-      // 🔴 修复：Token问题时显示具体错误而不是空白商品列表
-      this.setData({ 
-        loading: false,
-        products: [],
-        filteredProducts: [],
-        totalCount: 0
-      })
-      
-      // 🔴 修复：使用增强的Token错误处理函数
-      this.handleTokenError(tokenStatus.error, {
-        expiredAt: tokenStatus.expiredAt,
-        canRefresh: tokenStatus.canRefresh,
-        message: tokenStatus.message
-      })
-      
-      return Promise.reject(new Error('Token认证失败'))
-    }
-    
-    console.log('✅ Token状态检查通过:', tokenStatus.info || '验证成功')
-    console.log('🔧 调试信息 - 用户Token状态:', app.globalData.accessToken ? '已设置' : '未设置')
-    
-    // 🔴 新增：API调用前的详细状态检查
-    console.log('\n📊 API调用前状态检查:')
-    console.log('- 当前页面数据状态:', {
-      loading: this.data.loading,
-      products: this.data.products ? this.data.products.length : 0,
-      totalCount: this.data.totalCount
-    })
-    
-    console.log('\n📡 开始API请求: exchangeAPI.getProducts()')
+    console.log('🔄 开始加载商品列表...')
     const requestStartTime = Date.now()
     
-    // 🔴 修复：2×2网格布局参数设置
-    const requestParams = {
-      page: this.data.currentPage || 1,
-      pageSize: this.data.pageSize || 4, // 2×2网格每页4个商品
-      category: this.data.categoryFilter === 'all' ? 'all' : this.data.categoryFilter,
-      sort: this.data.sortBy === 'default' ? 'default' : this.data.sortBy
+    this.setData({ loading: true })
+    
+    // 🔴 修复：简化Token检查逻辑，避免误判
+    const app = getApp()
+    
+    // 基本检查
+    if (!app || !app.globalData) {
+      console.error('❌ App未初始化')
+      this.setData({ loading: false })
+      wx.showToast({
+        title: '应用初始化异常，请重启小程序',
+        icon: 'none',
+        duration: 3000
+      })
+      return
     }
     
-    console.log('📊 请求参数:', requestParams)
+    // 获取Token
+    let token = app.globalData.accessToken
+    if (!token) {
+      token = wx.getStorageSync('access_token')
+      if (token) {
+        app.globalData.accessToken = token
+        console.log('🔧 从本地存储恢复Token')
+      }
+    }
     
-    return exchangeAPI.getProducts(
-      requestParams.page,
-      requestParams.pageSize,
-      requestParams.category,
-      requestParams.sort
-    ).then((result) => {
+    // 🔴 修复：如果没有Token，直接提示登录，不进行复杂验证
+    if (!token) {
+      console.log('🔑 用户未登录，需要先登录')
+      this.setData({ loading: false })
+      
+      wx.showModal({
+        title: '🔑 需要登录',
+        content: '请先登录后查看商品列表',
+        showCancel: false,
+        confirmText: '立即登录',
+        success: () => {
+          wx.reLaunch({ url: '/pages/auth/auth' })
+        }
+      })
+      return
+    }
+    
+    console.log('✅ Token存在，开始请求商品数据')
+    
+    // 🔴 修复：调整API调用方式，匹配utils/api.js中的方法签名
+    // exchangeAPI.getProducts(page = 1, pageSize = 20, category = 'all', sort = 'points')
+    const page = this.data.currentPage || 1
+    const pageSize = this.data.pageSize || 20
+    const category = (this.data.categoryFilter && this.data.categoryFilter !== 'all') ? this.data.categoryFilter : 'all'
+    const sort = (this.data.sortBy && this.data.sortBy !== 'default') ? this.data.sortBy : 'points'
+    
+    console.log('📋 API调用参数:', { page, pageSize, category, sort })
+    
+    // 🔧 调用商品API - 使用正确的参数顺序
+    exchangeAPI.getProducts(page, pageSize, category, sort).then((result) => {
       const requestEndTime = Date.now()
       const requestDuration = requestEndTime - requestStartTime
       
-      console.log('\n✅ API请求成功完成!')
+      console.log('\n✅ 商品加载成功!')
       console.log('⏱️ 请求耗时:', requestDuration + 'ms')
-      console.log('📦 后端API返回完整数据:')
-      console.log('- 返回数据类型:', typeof result)
-      console.log('- 返回数据结构:', Object.keys(result))
-      console.log('- 完整数据内容:', JSON.stringify(result, null, 2))
+      console.log('📊 API返回数据:', result)
       
-      // 🔴 增强：详细分析API响应结构
-      if (result) {
-        console.log('\n🔍 API响应结构分析:')
-        console.log('- result.code:', result.code)
-        console.log('- result.msg:', result.msg)
-        console.log('- result.data存在:', !!result.data)
-        
-        if (result.data) {
-          console.log('- result.data类型:', typeof result.data)
-          console.log('- result.data.products存在:', !!result.data.products)
-          console.log('- result.data.products类型:', Array.isArray(result.data.products) ? 'array' : typeof result.data.products)
-          if (result.data.products) {
-            console.log('- result.data.products长度:', result.data.products.length)
-            if (result.data.products.length > 0) {
-              console.log('- 第一个商品示例:', result.data.products[0])
-            }
-          }
-          console.log('- result.data.total:', result.data.total)
-        }
-      }
-      
-      // 🔧 简化数据处理逻辑 - 修复商品显示空白问题
-      if (result && result.code === 0) {
-        console.log('\n🔄 开始简化数据处理和格式化...')
-        console.log('📊 API返回的完整数据结构:', result)
-        
-        let products = []
-        let totalCount = 0
-        
-        try {
-          // 🔴 简化数据提取逻辑
-          if (result.data && result.data.products && Array.isArray(result.data.products)) {
-            // 标准格式：{ code: 0, data: { products: [...], total: N } }
-            products = result.data.products
-            totalCount = result.data.total || products.length
-            console.log('✅ 提取到商品数据，数量:', products.length)
-          } else {
-            // 处理其他可能的格式
-            console.error('❌ 数据格式不符合预期：', {
-              hasData: !!result.data,
-              hasProducts: !!(result.data && result.data.products),
-              isProductsArray: !!(result.data && Array.isArray(result.data.products)),
-              dataType: typeof result.data,
-              dataKeys: result.data ? Object.keys(result.data) : 'null'
-            })
-            
-            // 🚨 显示数据格式错误
-            this.setData({ 
-              loading: false,
-              products: [],
-              filteredProducts: [],
-              totalCount: 0
-            })
-            
-            wx.showModal({
-              title: '🚨 商品数据格式错误',
-              content: '后端API返回的数据格式不符合预期\n\n期望格式：\n{\n  "code": 0,\n  "data": {\n    "products": [...],\n    "total": N\n  }\n}\n\n请联系后端开发人员检查API接口',
-              showCancel: false,
-              confirmText: '知道了'
-            })
-            
-            throw new Error('商品数据格式不符合预期（非对象错误）')
-          }
-          
-          // 🔴 检查商品数组是否为空
-          if (products.length === 0) {
-            console.warn('⚠️ 后端返回的商品列表为空')
-            
-            this.setData({ 
-              loading: false,
-              products: [],
-              filteredProducts: [],
-              totalCount: 0
-            })
-            
-            wx.showModal({
-              title: '📦 暂无商品',
-              content: '后端API返回成功但商品列表为空\n\n可能原因：\n• 数据库中暂无商品数据\n• 商品状态不是"active"\n• 权限或查询条件问题\n\n建议联系管理员添加商品',
-              showCancel: true,
-              cancelText: '知道了',
-              confirmText: '重新加载',
-              success: (res) => {
-                if (res.confirm) {
-                  setTimeout(() => this.loadProducts(), 1000)
-                }
-              }
-            })
-            
-            return Promise.resolve() // 不要抛出错误，正常结束
-          }
-          
-          // 🔧 简化数据标准化处理
-          console.log('\n🔄 开始标准化处理，原始商品数量:', products.length)
-          console.log('🔍 第一个商品原始数据:', products[0])
-          
-          const standardizedProducts = products.map((product, index) => {
-            // 🔴 增强错误处理
-            if (!product || typeof product !== 'object') {
-              console.error(`❌ 商品${index + 1}数据无效:`, product)
-              return null
-            }
-            
-            try {
-              const standardized = {
-                // 保留原始数据
-                ...product,
-                // 标准化必要字段
-                id: product.id || product.commodity_id || product.product_id || index,
-                name: product.name || product.product_name || `商品${index + 1}`,
-                description: product.description || product.desc || '',
-                exchange_points: Number(product.exchange_points || product.points || product.price || 0),
-                stock: Number(product.stock || product.inventory || 0),
-                image: product.image || product.image_url || product.picture || '/images/default-product.png',
-                category: product.category || '其他',
-                status: product.status || 'active',
-                is_hot: !!product.is_hot,
-                rating: Number(product.rating || 5.0),
-                created_time: product.created_at || product.created_time || new Date().toISOString()
-              }
-              
-              console.log(`✅ 商品${index + 1}标准化成功:`, standardized.name)
-              return standardized
-            } catch (error) {
-              console.error(`❌ 商品${index + 1}标准化失败:`, error, product)
-              return null
-            }
-          }).filter(product => product !== null) // 过滤掉无效的商品
-          
-          console.log('\n✨ 标准化处理完成:')
-          console.log('- 标准化后商品数量:', standardizedProducts.length)
-          if (standardizedProducts.length > 0) {
-            console.log('- 标准化后第一个商品:', standardizedProducts[0])
-          }
-          
-          if (standardizedProducts.length > 0) {
-            console.log('\n🎯 设置页面数据...')
-            
-            this.setData({
-              products: standardizedProducts,
-              totalCount: totalCount,
-              loading: false
-            })
-            
-            console.log('✅ setData完成，页面数据已更新')
-            
-            // 🔴 修复：确保在有商品数据时才调用筛选
-            console.log('🔄 调用filterProducts()进行筛选...')
-            // 延迟执行筛选，确保setData完成
-            setTimeout(() => {
-              this.filterProducts()
-              console.log('✅ filterProducts()执行完成')
-            }, 100)
-            console.log('📊 最终页面数据状态:', {
-              'products.length': this.data.products.length,
-              'filteredProducts.length': this.data.filteredProducts.length,
-              'totalCount': this.data.totalCount,
-              'loading': this.data.loading
-            })
-            
-            console.log('\n🎉 商品列表加载成功！')
-            console.log('   - 商品总数:', standardizedProducts.length)
-            console.log('   - 第一个商品:', standardizedProducts[0]?.name)
-            console.log('   - 库存状态:', standardizedProducts.map(p => `${p.name}:${p.stock}`))
-            
-            // 🎉 显示成功提示
-            wx.showToast({
-              title: `已加载${standardizedProducts.length}个商品`,
-              icon: 'success',
-              duration: 1500
-            })
-          } else {
-            console.error('\n❌ 致命问题：处理后商品列表仍为空！')
-            console.error('🔍 可能原因分析:')
-            console.error('1. 后端返回的商品数组为空（后端问题）')
-            console.error('2. 商品数据格式不符合预期（接口对接问题）')
-            console.error('3. 数据处理逻辑有误（前端问题）')
-            
-            // 🔴 修复：处理后商品列表为空时的明确提示
-            this.setData({ 
-              loading: false,
-              products: [],
-              filteredProducts: [],
-              totalCount: 0
-            })
-            
-            wx.showModal({
-              title: '📦 商品加载异常',
-              content: '后端API响应成功但商品列表为空。\n\n这表明：\n• 后端数据库可能没有商品数据\n• 或者API查询逻辑有问题\n• 或者权限配置不正确\n\n请联系管理员检查后端系统。',
-              showCancel: true,
-              cancelText: '稍后重试',
-              confirmText: '重新加载',
-              success: (res) => {
-                if (res.confirm) {
-                  setTimeout(() => {
-                    this.loadProducts()
-                  }, 1000)
-                }
-              }
-            })
-            
-            throw new Error('📦 处理后商品列表为空')
-          }
-          
-        } catch (error) {
-          console.error('\n❌ 数据处理过程中发生错误:', error)
-          
-          this.setData({ 
-            loading: false,
-            products: [],
-            filteredProducts: [],
-            totalCount: 0
-          })
-          
-          wx.showModal({
-            title: '🚨 数据处理错误',
-            content: `商品数据处理失败：\n\n${error.message}\n\n这可能是：\n• 数据格式问题\n• 前端处理逻辑错误\n• 网络传输问题\n\n请尝试重新加载`,
-            showCancel: true,
-            cancelText: '稍后重试',
-            confirmText: '重新加载',
-            success: (res) => {
-              if (res.confirm) {
-                setTimeout(() => this.loadProducts(), 1000)
-              }
-            }
-          })
-          
-          throw error
-        }
-      } else {
-        console.error('\n❌ API返回错误:')
-        console.error('- result.code:', result?.code)
-        console.error('- result.msg:', result?.msg)
-        
-        // 🔴 修复：API返回错误时的详细提示
-        this.setData({ 
-          loading: false,
-          products: [],
-          filteredProducts: [],
-          totalCount: 0
-        })
+      // 🔴 修复：更严格的数据验证和错误处理
+      if (!result || result.code !== 0) {
+        console.error('❌ API返回业务错误:', result)
+        this.setData({ loading: false })
         
         const errorMsg = result?.msg || '获取商品列表失败'
-        
         wx.showModal({
-          title: '🚨 后端API错误',
-          content: `API接口返回错误：\n\n错误码：${result?.code || '未知'}\n错误信息：${errorMsg}\n\n这可能是：\n• 后端服务异常\n• API接口逻辑问题\n• 数据库查询失败\n\n请联系后端开发人员检查。`,
+          title: '🚨 商品加载失败',
+          content: `${errorMsg}\n\n错误码: ${result?.code || '未知'}\n\n请尝试重新加载或联系客服`,
           showCancel: true,
-          cancelText: '知道了',
-          confirmText: '重试',
+          cancelText: '重试',
+          confirmText: '知道了',
           success: (res) => {
-            if (res.confirm) {
-              setTimeout(() => {
-                this.loadProducts()
-              }, 2000)
+            if (res.cancel) {
+              setTimeout(() => this.loadProducts(), 1000)
             }
           }
         })
-        
-        throw new Error(errorMsg)
+        return
+      }
+      
+      // 🔴 修复：确保数据结构正确
+      const data = result.data || {}
+      const products = Array.isArray(data.products) ? data.products : []
+      
+      console.log('📦 商品数据处理:', {
+        原始数据: data,
+        商品数组长度: products.length,
+        总数: data.total,
+        页码信息: {
+          page: data.page,
+          limit: data.limit,
+          has_more: data.has_more
+        }
+      })
+      
+      // 🔧 设置商品数据
+      this.setData({
+        loading: false,
+        products: products,
+        filteredProducts: products,
+        totalCount: data.total || products.length,
+        currentPage: data.page || 1,
+        totalPages: Math.ceil((data.total || products.length) / (this.data.pageSize || 20))
+      })
+      
+      // 显示加载结果
+      if (products.length > 0) {
+        console.log(`✅ 成功加载 ${products.length} 个商品`)
+        wx.showToast({
+          title: `加载了${products.length}个商品`,
+          icon: 'success',
+          duration: 1500
+        })
+      } else {
+        console.log('⚠️ 商品列表为空')
+        wx.showToast({
+          title: '暂无商品数据',
+          icon: 'none',
+          duration: 2000
+        })
       }
       
       console.log('=================== 商品加载完成 ===================\n')
@@ -740,13 +475,7 @@ Page({
       
       console.error('\n❌ 商品加载失败!')
       console.error('⏱️ 失败前耗时:', requestDuration + 'ms')
-      console.error('🚨 错误详情:', {
-        message: error.message,
-        code: error.code,
-        statusCode: error.statusCode,
-        isAuthError: error.isAuthError,
-        needsRelogin: error.needsRelogin
-      })
+      console.error('🚨 错误详情:', error)
       
       this.setData({ 
         loading: false,
@@ -755,47 +484,167 @@ Page({
         totalCount: 0
       })
       
-      // 🔧 错误分类处理 - 增强版
-      if (error.isAuthError || error.needsRelogin || error.statusCode === 401 || error.code === 2001) {
-        console.error('🔑 认证错误，这是商品显示空白的常见原因')
+      // 🔴 修复：改进错误处理逻辑
+      if (error.statusCode === 401 || error.code === 4002) {
+        console.error('🔑 认证失败，需要重新登录')
         
         wx.showModal({
-          title: '🔑 认证失败',
-          content: `JWT认证失败导致无法获取商品：\n\n${error.message || '访问令牌无效'}\n\n根据后端程序员分析，这是商品显示空白的直接原因。\n\n解决方案：重新登录获取有效Token`,
+          title: '🔑 登录状态异常',
+          content: '登录状态已失效，请重新登录后查看商品',
           showCancel: false,
           confirmText: '重新登录',
-          confirmColor: '#FF6B35',
           success: () => {
-            this.redirectToLogin()
+            // 清理认证信息
+            app.globalData.accessToken = null
+            app.globalData.refreshToken = null
+            app.globalData.userInfo = null
+            app.globalData.isLoggedIn = false
+            
+            wx.removeStorageSync('access_token')
+            wx.removeStorageSync('refresh_token')
+            wx.removeStorageSync('user_info')
+            
+            wx.reLaunch({ url: '/pages/auth/auth' })
+          }
+        })
+      } else if (error.code === 4000) {
+        console.error('🎯 检测到4000错误 - 用户反馈的核心问题!')
+        
+        wx.showModal({
+          title: '🎯 商品加载问题',
+          content: `无法获取商品列表\n\n错误详情: ${error.message || error.msg || '未知错误'}\n\n建议：\n1. 检查网络连接\n2. 重新登录\n3. 联系客服支持`,
+          showCancel: true,
+          cancelText: '重试',
+          confirmText: '重新登录',
+          success: (res) => {
+            if (res.cancel) {
+              setTimeout(() => this.loadProducts(), 1000)
+            } else {
+              wx.reLaunch({ url: '/pages/auth/auth' })
+            }
           }
         })
       } else {
-        console.error('🌐 网络或服务器错误，显示友好提示')
-        
-        let errorContent = '获取商品列表失败，请稍后重试'
-        
-        if (error.code) {
-          errorContent = `商品加载失败详情：\n\n错误信息：${error.msg || error.message || '未知错误'}\n错误代码：${error.code}\n\n调试信息：\n• 接口：GET /api/exchange/products\n• 时间：${new Date().toLocaleString()}\n• 状态：${error.statusCode || '无状态码'}\n\n可能原因：\n• 网络连接问题\n• 后端服务异常\n• JWT Token过期\n\n建议：\n1. 检查网络连接\n2. 重新登录\n3. 联系技术支持`
-        }
+        // 其他错误
+        console.error('🚨 其他类型错误:', error)
         
         wx.showModal({
-          title: '📦 商品加载失败',
-          content: errorContent,
+          title: '🚨 网络错误',
+          content: `网络请求失败\n\n错误信息: ${error.message || error.msg || '网络异常'}\n\n请检查网络连接后重试`,
           showCancel: true,
-          cancelText: '稍后重试',
-          confirmText: '立即重试',
+          cancelText: '重试',
+          confirmText: '知道了',
           success: (res) => {
-            if (res.confirm) {
-              setTimeout(() => {
-                this.loadProducts()
-              }, 1000)
+            if (res.cancel) {
+              setTimeout(() => this.loadProducts(), 1000)
             }
           }
         })
       }
-      
-      console.log('=================== 商品加载错误处理完成 ===================\n')
     })
+  },
+
+  /**
+   * 🔴 新增：专门处理4000错误码 - 用户反馈的核心问题
+   */
+  handle4000Error(error) {
+    console.error('🎯 4000错误专用处理程序启动')
+    
+    // 分析4000错误的具体原因
+    let diagnosisContent = '🔍 4000错误诊断结果：\n\n'
+    
+    // 检查Token状态
+    const app = getApp()
+    const hasToken = !!(app.globalData?.accessToken)
+    const isLoggedIn = !!(app.globalData?.isLoggedIn)
+    
+    if (!hasToken) {
+      diagnosisContent += '❌ 未检测到访问令牌\n'
+      diagnosisContent += '• 用户可能未登录\n'
+      diagnosisContent += '• Token已被清除\n\n'
+    } else {
+      diagnosisContent += '✅ 检测到访问令牌\n'
+      
+      // 进一步验证Token
+      const { validateToken } = require('../../utils/api')
+      const validation = validateToken(app.globalData.accessToken)
+      
+      if (!validation.isValid) {
+        diagnosisContent += `❌ Token验证失败: ${validation.error}\n`
+        diagnosisContent += `• 详情: ${validation.message}\n\n`
+      } else {
+        diagnosisContent += '✅ Token格式验证通过\n\n'
+      }
+    }
+    
+    diagnosisContent += '🔧 推荐解决方案：\n'
+    diagnosisContent += '1. 重新登录获取新Token\n'
+    diagnosisContent += '2. 检查网络连接状态\n'
+    diagnosisContent += '3. 清除缓存后重试\n\n'
+    diagnosisContent += '🎯 这个解决方案专门针对您遇到的4000错误'
+    
+    wx.showModal({
+      title: '🎯 4000错误解决方案',
+      content: diagnosisContent,
+      showCancel: true,
+      cancelText: '稍后处理',
+      confirmText: '立即修复',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.confirm) {
+          // 执行修复操作
+          this.perform4000ErrorFix()
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔴 新增：执行4000错误修复操作
+   */
+  perform4000ErrorFix() {
+    console.log('🔧 开始执行4000错误修复...')
+    
+    const app = getApp()
+    
+    // 步骤1：清理可能损坏的认证信息
+    console.log('🧹 步骤1：清理认证信息')
+    app.globalData.accessToken = null
+    app.globalData.refreshToken = null
+    app.globalData.userInfo = null
+    app.globalData.isLoggedIn = false
+    
+    // 步骤2：清理本地存储
+    console.log('🧹 步骤2：清理本地存储')
+    try {
+      wx.removeStorageSync('access_token')
+      wx.removeStorageSync('refresh_token')
+      wx.removeStorageSync('user_info')
+    } catch (error) {
+      console.warn('⚠️ 清理本地存储时出现警告:', error)
+    }
+    
+    // 步骤3：显示修复进度
+    wx.showToast({
+      title: '正在修复4000错误...',
+      icon: 'loading',
+      duration: 2000
+    })
+    
+    // 步骤4：延迟跳转，确保清理完成
+    setTimeout(() => {
+      console.log('🔄 步骤4：跳转到登录页面')
+      
+      wx.showModal({
+        title: '✅ 4000错误修复完成',
+        content: '已清理可能导致4000错误的认证数据\n\n请重新登录以解决商品显示空白问题',
+        showCancel: false,
+        confirmText: '重新登录',
+        success: () => {
+          this.redirectToLogin()
+        }
+      })
+    }, 2000)
   },
 
   /**
@@ -2330,4 +2179,125 @@ Page({
       })
     })
   },
-}) 
+
+  /**
+   * 🔴 修复：友好的未登录状态处理
+   */
+  handleNotLoggedIn() {
+    console.log('🔑 处理正常未登录状态')
+    
+    this.setData({ loading: false })
+    
+    wx.showModal({
+      title: '🔑 需要登录',
+      content: '当前未登录，无法查看商品列表\n\n这是解决商品显示空白问题的关键步骤\n\n请先登录后再查看兑换商品',
+      showCancel: false,
+      confirmText: '立即登录',
+      confirmColor: '#FF6B35',
+      success: () => {
+        this.redirectToLogin()
+      }
+    })
+  },
+
+  /**
+   * 🔴 新增：测试4000错误修复效果
+   */
+  test4000ErrorFix() {
+    console.log('🧪 开始测试4000错误修复效果...')
+    
+    wx.showModal({
+      title: '🧪 4000错误修复测试',
+      content: '这将模拟4000错误的修复流程\n\n1. 清理认证信息\n2. 重新验证Token\n3. 重新加载商品\n\n是否开始测试？',
+      showCancel: true,
+      cancelText: '取消',
+      confirmText: '开始测试',
+      success: (res) => {
+        if (res.confirm) {
+          // 模拟4000错误
+          const mockError = {
+            code: 4000,
+            message: '获取商品列表失败（测试模拟）',
+            statusCode: 400
+          }
+          
+          console.log('🎭 模拟4000错误...')
+          this.handle4000Error(mockError)
+        }
+      }
+    })
+  },
+
+  /**
+   * 🔴 新增：快速重试商品加载（用于修复后测试）
+   */
+  quickRetryProductLoad() {
+    console.log('⚡ 快速重试商品加载...')
+    
+    // 显示重试提示
+    wx.showToast({
+      title: '正在重新加载商品...',
+      icon: 'loading',
+      duration: 1500
+    })
+    
+    // 重置页面状态
+    this.setData({
+      currentPage: 1,
+      searchKeyword: '',
+      currentFilter: 'all'
+    })
+    
+    // 延迟加载，确保提示显示
+    setTimeout(() => {
+      this.loadProducts()
+    }, 500)
+  },
+
+  /**
+   * 🔴 增强版：页面错误恢复机制
+   */
+  handlePageErrorRecovery() {
+    console.log('🔧 启动页面错误恢复机制...')
+    
+    try {
+      // 检查基本状态
+      const hasBasicData = this.data && typeof this.data === 'object'
+      const hasProducts = Array.isArray(this.data.products)
+      const hasFilteredProducts = Array.isArray(this.data.filteredProducts)
+      
+      if (!hasBasicData) {
+        console.error('❌ 页面数据结构异常')
+        this.initPage()
+        return
+      }
+      
+      if (!hasProducts || !hasFilteredProducts) {
+        console.warn('⚠️ 商品数据缺失，重新加载')
+        this.setData({
+          products: [],
+          filteredProducts: [],
+          loading: false
+        })
+        this.loadProducts()
+        return
+      }
+      
+      console.log('✅ 页面状态检查正常')
+      
+    } catch (error) {
+      console.error('❌ 页面错误恢复失败:', error)
+      
+      // 最后的安全措施：重新初始化页面
+      wx.showModal({
+        title: '🔧 页面恢复',
+        content: '检测到页面状态异常，将重新初始化页面以确保功能正常',
+        showCancel: false,
+        confirmText: '确定',
+        success: () => {
+          this.initPage()
+        }
+      })
+    }
+  }
+})
