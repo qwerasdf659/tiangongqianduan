@@ -2,14 +2,7 @@
 <view class="user-container">
   <!-- 用户信息卡片 -->
   <view class="user-card">
-    <view class="user-avatar" bindtap="onAvatarTap">
-      <image class="avatar-image" src="{{userInfo.avatar_url || userInfo.avatar || '/images/default-avatar.png'}}" mode="aspectFill"/>
-      <view class="avatar-edit">
-        <text class="edit-icon">📷</text>
-      </view>
-    </view>
-    
-    <view class="user-info">
+    <view class="user-info-full">
       <view class="user-name" bindtap="onPhoneTap">
         <text class="name-text">{{userInfo.mobile || userInfo.phone || '点击登录'}}</text>
         <text class="edit-phone">✏️</text>
@@ -122,18 +115,7 @@
     </view>
   </view>
 
-  <!-- 快捷操作 -->
-  <view class="quick-actions">
-    <button class="quick-btn service-btn" bindtap="onContactService">
-      📞 联系客服
-    </button>
-    <button class="quick-btn feedback-btn" bindtap="onFeedback">
-      💬 意见反馈
-    </button>
-    <button class="quick-btn logout-btn" bindtap="onLogout">
-      🚪 退出登录
-    </button>
-  </view>
+
 
   <!-- 加载状态 -->
   <view class="loading-overlay" wx:if="{{loading}}">

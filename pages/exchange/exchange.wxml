@@ -284,85 +284,88 @@
         <text>第 {{currentPage}} 页，共 {{totalPages}} 页 | 共 {{totalProducts}} 件商品</text>
       </view>
       
-      <view class="pagination-controls">
-        <!-- 上一页 -->
-        <button 
-          class="page-btn prev-btn {{currentPage === 1 ? 'disabled' : ''}}"
-          bindtap="onPrevPage"
-          disabled="{{currentPage === 1}}"
-        >
-          ← 上一页
-        </button>
-        
-        <!-- 页码列表 -->
-        <view class="page-numbers">
-          <!-- 当总页数小于等于7时，显示所有页码 -->
-          <block wx:if="{{totalPages <= 7}}">
-            <block wx:for="{{totalPages}}" wx:key="*this">
-              <button 
-                class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
-                bindtap="onPageChange"
-                data-page="{{item + 1}}"
-              >{{item + 1}}</button>
-            </block>
-          </block>
+      <!-- 🔴 修复：分页控制和跳转功能强制在同一行显示 -->
+      <view class="pagination-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
+        <view class="pagination-controls">
+          <!-- 上一页 -->
+          <button 
+            class="page-btn prev-btn {{currentPage === 1 ? 'disabled' : ''}}"
+            bindtap="onPrevPage"
+            disabled="{{currentPage === 1}}"
+          >
+            ← 上一页
+          </button>
           
-          <!-- 当总页数大于7时，使用省略号显示 -->
-          <block wx:else>
-            <!-- 第一页 -->
-            <button 
-              class="page-number {{currentPage === 1 ? 'active' : ''}}"
-              bindtap="onPageChange"
-              data-page="1"
-            >1</button>
-            
-            <!-- 左侧省略号 -->
-            <text class="page-ellipsis" wx:if="{{currentPage > 4}}">...</text>
-            
-            <!-- 当前页附近的页码 -->
-            <block wx:for="{{totalPages}}" wx:key="*this">
-              <button 
-                class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
-                bindtap="onPageChange"
-                data-page="{{item + 1}}"
-                wx:if="{{(item + 1) > 1 && (item + 1) < totalPages && (item + 1) >= (currentPage - 2) && (item + 1) <= (currentPage + 2)}}"
-              >{{item + 1}}</button>
+          <!-- 页码列表 -->
+          <view class="page-numbers">
+            <!-- 当总页数小于等于7时，显示所有页码 -->
+            <block wx:if="{{totalPages <= 7}}">
+              <block wx:for="{{totalPages}}" wx:key="*this">
+                <button 
+                  class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onPageChange"
+                  data-page="{{item + 1}}"
+                >{{item + 1}}</button>
+              </block>
             </block>
             
-            <!-- 右侧省略号 -->
-            <text class="page-ellipsis" wx:if="{{currentPage < totalPages - 3}}">...</text>
-            
-            <!-- 最后一页 -->
-            <button 
-              class="page-number {{currentPage === totalPages ? 'active' : ''}}"
-              bindtap="onPageChange"
-              data-page="{{totalPages}}"
-              wx:if="{{totalPages > 1}}"
-            >{{totalPages}}</button>
-          </block>
+            <!-- 当总页数大于7时，使用省略号显示 -->
+            <block wx:else>
+              <!-- 第一页 -->
+              <button 
+                class="page-number {{currentPage === 1 ? 'active' : ''}}"
+                bindtap="onPageChange"
+                data-page="1"
+              >1</button>
+              
+              <!-- 左侧省略号 -->
+              <text class="page-ellipsis" wx:if="{{currentPage > 4}}">...</text>
+              
+              <!-- 当前页附近的页码 -->
+              <block wx:for="{{totalPages}}" wx:key="*this">
+                <button 
+                  class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onPageChange"
+                  data-page="{{item + 1}}"
+                  wx:if="{{(item + 1) > 1 && (item + 1) < totalPages && (item + 1) >= (currentPage - 2) && (item + 1) <= (currentPage + 2)}}"
+                >{{item + 1}}</button>
+              </block>
+              
+              <!-- 右侧省略号 -->
+              <text class="page-ellipsis" wx:if="{{currentPage < totalPages - 3}}">...</text>
+              
+              <!-- 最后一页 -->
+              <button 
+                class="page-number {{currentPage === totalPages ? 'active' : ''}}"
+                bindtap="onPageChange"
+                data-page="{{totalPages}}"
+                wx:if="{{totalPages > 1}}"
+              >{{totalPages}}</button>
+            </block>
+          </view>
+          
+          <!-- 下一页 -->
+          <button 
+            class="page-btn next-btn {{currentPage === totalPages ? 'disabled' : ''}}"
+            bindtap="onNextPage"
+            disabled="{{currentPage === totalPages}}"
+          >
+            下一页 →
+          </button>
         </view>
         
-        <!-- 下一页 -->
-        <button 
-          class="page-btn next-btn {{currentPage === totalPages ? 'disabled' : ''}}"
-          bindtap="onNextPage"
-          disabled="{{currentPage === totalPages}}"
-        >
-          下一页 →
-        </button>
-      </view>
-      
-      <!-- 跳转页面 -->
-      <view class="page-jump">
-        <text>跳转到第</text>
-        <input 
-          class="page-input" 
-          type="number" 
-          placeholder="{{currentPage}}"
-          bindinput="onPageInputChange"
-          bindconfirm="onPageInputConfirm"
-        />
-        <text>页</text>
+        <!-- 跳转页面 -->
+        <view class="page-jump">
+          <text>跳转到第</text>
+          <input 
+            class="page-input" 
+            type="number" 
+            placeholder="{{currentPage}}"
+            bindinput="onPageInputChange"
+            bindconfirm="onPageInputConfirm"
+          />
+          <text>页</text>
+        </view>
       </view>
     </view>
   </view>

@@ -35,11 +35,11 @@ Page({
     searchKeyword: '',
     currentFilter: 'all', // 'all', 'available', 'low-price'
     
-    // 分页功能
+    // 分页功能 - 2×2网格布局
     currentPage: 1,
-    totalPages: 5,
-    pageSize: 20,
-    totalProducts: 100,
+    totalPages: 1,
+    pageSize: 4, // 2×2=4个商品每页
+    totalProducts: 0,
     
     // 高级筛选
     showAdvancedFilter: false,
@@ -51,9 +51,6 @@ Page({
 
   onLoad(options) {
     console.log('兑换页面加载', options)
-    
-    // 🔴 新增：JWT认证诊断
-    this.runJWTDiagnostics()
     
     this.initPage()
   },
@@ -448,10 +445,10 @@ Page({
     console.log('\n📡 开始API请求: exchangeAPI.getProducts()')
     const requestStartTime = Date.now()
     
-    // 🔴 修复：传递正确的参数，避免undefined导致后端查询异常
+    // 🔴 修复：2×2网格布局参数设置
     const requestParams = {
       page: this.data.currentPage || 1,
-      pageSize: this.data.pageSize || 20,
+      pageSize: this.data.pageSize || 4, // 2×2网格每页4个商品
       category: this.data.categoryFilter === 'all' ? 'all' : this.data.categoryFilter,
       sort: this.data.sortBy === 'default' ? 'default' : this.data.sortBy
     }

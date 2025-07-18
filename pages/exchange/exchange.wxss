@@ -197,12 +197,14 @@
   font-weight: 500;
 }
 
-/* 商品网格 - 2×10布局 */
+/* 商品网格 - 2×2布局 */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 20rpx;
   padding: 20rpx;
+  max-height: 800rpx; /* 限制高度确保2×2布局 */
 }
 
 .product-item {
@@ -769,25 +771,43 @@
   font-weight: 500;
 }
 
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 30rpx;
-}
+  /* 🔴 修复：分页行布局容器 - 强制单行显示 */
+  .pagination-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 20rpx !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .pagination-controls {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 12rpx !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    /* 🔴 修复：左对齐分页控制，与跳转功能保持一行 */
+  }
 
-.page-btn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-  border-radius: 12rpx;
-  padding: 20rpx 28rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 140rpx;
-}
+  .page-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12rpx;
+    padding: 16rpx 20rpx;
+    font-size: 22rpx;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 100rpx;
+    flex-shrink: 0;
+    /* 🔴 修复：缩小按钮确保单行显示 */
+  }
 
 .page-btn.disabled {
   background: #e9ecef;
@@ -806,17 +826,19 @@
   gap: 8rpx;
 }
 
-.page-number {
-  background: #f8f9fa;
-  color: #495057;
-  border: 2rpx solid #dee2e6;
-  border-radius: 8rpx;
-  padding: 16rpx 20rpx;
-  font-size: 24rpx;
-  font-weight: 600;
-  min-width: 60rpx;
-  transition: all 0.3s ease;
-}
+  .page-number {
+    background: #f8f9fa;
+    color: #495057;
+    border: 2rpx solid #dee2e6;
+    border-radius: 8rpx;
+    padding: 12rpx 16rpx;
+    font-size: 22rpx;
+    font-weight: 600;
+    min-width: 50rpx;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    /* 🔴 修复：缩小页码按钮确保单行显示 */
+  }
 
 .page-number.active {
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -837,78 +859,128 @@
   padding: 0 8rpx;
 }
 
-.page-jump {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12rpx;
-  padding-top: 20rpx;
-  border-top: 1rpx solid #dee2e6;
-}
+  .page-jump {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 8rpx !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    /* 🔴 修复：右对齐跳转功能，保持单行显示 */
+  }
 
-.page-jump text {
-  font-size: 24rpx;
-  color: #495057;
-}
+  .page-jump text {
+    font-size: 20rpx;
+    color: #495057;
+    flex-shrink: 0;
+    /* 🔴 修复：缩小文字确保紧凑布局 */
+  }
 
-.page-input {
-  width: 100rpx;
-  height: 60rpx;
-  background: #f8f9fa;
-  border: 2rpx solid #dee2e6;
-  border-radius: 8rpx;
-  text-align: center;
-  font-size: 24rpx;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
+  .page-input {
+    width: 60rpx;
+    height: 50rpx;
+    background: #f8f9fa;
+    border: 2rpx solid #dee2e6;
+    border-radius: 8rpx;
+    text-align: center;
+    font-size: 20rpx;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    /* 🔴 修复：进一步缩小输入框，确保单行显示 */
+  }
 
 .page-input:focus {
   border-color: #667eea;
   background: rgba(102, 126, 234, 0.05);
 }
 
-/* 响应式适配 */
-@media (max-width: 400px) {
-  .products-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .product-preview {
-    flex-direction: column;
-  }
-  
-  .preview-image {
-    width: 100%;
-    height: 200rpx;
-  }
-  
-  .filter-options {
-    gap: 8rpx;
-  }
-  
-  .option-btn {
-    padding: 12rpx 16rpx;
-    font-size: 22rpx;
-  }
-  
-  .pagination-controls {
-    flex-direction: column;
-    gap: 20rpx;
-  }
-  
-  .page-numbers {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .page-btn {
-    width: 100%;
-    max-width: 200rpx;
-  }
-  
-  .page-jump {
-    flex-direction: column;
-    gap: 16rpx;
-  }
-} 
+  /* 响应式适配 - 保持2×2布局 */
+  @media (max-width: 400px) {
+    .products-grid {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 16rpx;
+      max-height: 700rpx;
+    }
+    
+    .product-preview {
+      flex-direction: column;
+    }
+    
+    .preview-image {
+      width: 100%;
+      height: 200rpx;
+    }
+    
+    .filter-options {
+      gap: 8rpx;
+    }
+    
+    .option-btn {
+      padding: 12rpx 16rpx;
+      font-size: 22rpx;
+    }
+    
+    /* 🔴 修复：小屏幕下强制保持水平布局 */
+    .pagination-row {
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      gap: 10rpx !important;
+      flex-wrap: nowrap !important;
+    }
+    
+    .pagination-controls {
+      display: flex !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      gap: 8rpx !important;
+      flex: 1 !important;
+      min-width: 0 !important;
+    }
+    
+    .page-numbers {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6rpx !important;
+      flex-wrap: nowrap !important;
+      overflow: hidden !important;
+    }
+    
+    .page-btn {
+      min-width: 80rpx !important;
+      font-size: 20rpx !important;
+      padding: 12rpx 16rpx !important;
+      flex-shrink: 0 !important;
+    }
+    
+    .page-number {
+      min-width: 40rpx !important;
+      padding: 10rpx 12rpx !important;
+      font-size: 20rpx !important;
+      flex-shrink: 0 !important;
+    }
+    
+    .page-jump {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6rpx !important;
+      flex-shrink: 0 !important;
+      white-space: nowrap !important;
+    }
+    
+    .page-jump text {
+      font-size: 18rpx !important;
+    }
+    
+    .page-input {
+      width: 50rpx !important;
+      height: 40rpx !important;
+      font-size: 18rpx !important;
+      flex-shrink: 0 !important;
+    }
+  } 

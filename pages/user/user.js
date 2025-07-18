@@ -1043,6 +1043,15 @@ Page({
         color: '#795548',
         type: 'action',
         action: 'onFeedback'
+      },
+      {
+        id: 'logout',
+        name: '退出登录',
+        description: '安全退出当前账号',
+        icon: '🚪',
+        color: '#F44336',
+        type: 'action',
+        action: 'onLogout'
       }
     ]
     

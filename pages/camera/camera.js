@@ -64,8 +64,22 @@ Page({
    */
   onShow() {
     console.log('拍照上传页面显示 - 权限简化版v2.2.0')
-    this.refreshUserInfo()
-    this.loadUploadHistory()
+    
+    // 🔧 修复：添加超时保护机制，防止页面一直加载
+    const loadingTimeout = setTimeout(() => {
+      console.warn('⏰ 页面加载超时，强制结束loading状态')
+      wx.hideLoading()
+    }, 8000) // 8秒超时
+    
+    // 🔧 并行加载数据，加载完成后清除超时
+    Promise.all([
+      this.refreshUserInfo(),
+      this.loadUploadHistory()
+    ]).finally(() => {
+      clearTimeout(loadingTimeout)
+      wx.hideLoading()
+      console.log('✅ 拍照页面数据加载完成')
+    })
   },
 
   /**
@@ -101,8 +115,22 @@ Page({
    */
   initPage() {
     console.log('📷 拍照上传页面初始化 - 权限简化版v2.2.0')
-    this.refreshUserInfo()
-    this.loadUploadHistory()
+    
+    // 🔧 修复：添加初始化超时保护
+    const initTimeout = setTimeout(() => {
+      console.warn('⏰ 页面初始化超时，强制结束loading状态')
+      wx.hideLoading()
+    }, 10000) // 10秒超时
+    
+    // 🔧 并行初始化数据
+    Promise.all([
+      this.refreshUserInfo(),
+      this.loadUploadHistory()
+    ]).finally(() => {
+      clearTimeout(initTimeout)
+      wx.hideLoading()
+      console.log('✅ 拍照页面初始化完成')
+    })
   },
 
   /**
@@ -487,8 +515,8 @@ Page({
   showSimplifiedUploadResult(result) {
     const { upload_id, image_url, status } = result
     
-    // 🔴 权限简化：说明管理员将设置消费金额
-    let content = `上传ID：${upload_id}\n当前状态：等待管理员审核\n\n管理员将查看您的小票照片并设置实际消费金额，审核通过后您将获得相应积分奖励。\n\n积分规则：消费金额 × 10 = 获得积分`
+    // 🔴 权限简化：说明管理员将设置消费金额，移除上传ID显示
+    let content = `当前状态：等待管理员审核\n\n管理员将查看您的小票照片并设置实际消费金额，审核通过后您将获得相应积分奖励。\n\n积分规则：消费金额 × 10 = 获得积分`
     
     wx.showModal({
       title: '📋 照片上传成功',
