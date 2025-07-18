@@ -112,11 +112,11 @@ Page({
     
     // 🚨 已删除：generateMockProducts()违规调用
     
+    // 🔴 修复：先初始化筛选条件，再加载商品数据
+    this.initFilters()
+    
     // 加载商品数据
     this.loadProducts()
-    
-    // 初始化筛选条件
-    this.initFilters()
   },
 
   /**
@@ -448,12 +448,12 @@ Page({
     console.log('\n📡 开始API请求: exchangeAPI.getProducts()')
     const requestStartTime = Date.now()
     
-    // 🔴 修复：传递正确的参数，确保与后端测试参数一致
+    // 🔴 修复：传递正确的参数，避免undefined导致后端查询异常
     const requestParams = {
       page: this.data.currentPage || 1,
       pageSize: this.data.pageSize || 20,
-      category: this.data.categoryFilter === 'all' ? undefined : this.data.categoryFilter,
-      sort: this.data.sortBy === 'default' ? 'points' : this.data.sortBy
+      category: this.data.categoryFilter === 'all' ? 'all' : this.data.categoryFilter,
+      sort: this.data.sortBy === 'default' ? 'default' : this.data.sortBy
     }
     
     console.log('📊 请求参数:', requestParams)
@@ -619,11 +619,13 @@ Page({
             
             console.log('✅ setData完成，页面数据已更新')
             
-            // 应用筛选和分页
+            // 🔴 修复：确保在有商品数据时才调用筛选
             console.log('🔄 调用filterProducts()进行筛选...')
-            this.filterProducts()
-            
-            console.log('✅ filterProducts()执行完成')
+            // 延迟执行筛选，确保setData完成
+            setTimeout(() => {
+              this.filterProducts()
+              console.log('✅ filterProducts()执行完成')
+            }, 100)
             console.log('📊 最终页面数据状态:', {
               'products.length': this.data.products.length,
               'filteredProducts.length': this.data.filteredProducts.length,
@@ -1469,12 +1471,12 @@ Page({
     
     // 🚨 已删除：mockProducts违规引用
     // ✅ 统一数据源：仅使用从后端API获取的products
-    let sourceProducts = [...this.data.products]
+    let sourceProducts = this.data.products || []
     console.log('🔄 复制源商品数据，数量:', sourceProducts.length)
     
-    // 如果没有商品数据，直接返回
-    if (!sourceProducts || sourceProducts.length === 0) {
-      console.warn('⚠️ 源商品数据为空，设置filteredProducts为空数组')
+    // 🔴 修复：更严格的数据检查，确保是有效数组
+    if (!Array.isArray(sourceProducts) || sourceProducts.length === 0) {
+      console.warn('⚠️ 源商品数据为空或无效，设置filteredProducts为空数组')
       this.setData({
         filteredProducts: [],
         totalProducts: 0,
@@ -1483,6 +1485,9 @@ Page({
       console.log('❌ filterProducts提前返回，原因：无源商品数据')
       return
     }
+    
+    // 🔴 修复：复制数组避免直接修改原数据
+    sourceProducts = [...sourceProducts]
     
     let filtered = [...sourceProducts]
     

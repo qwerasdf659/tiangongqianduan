@@ -1318,9 +1318,28 @@ Page({
     const product = e.currentTarget.dataset.product
     console.log('✏️ 编辑商品:', product.name)
     
+    // 🔴 修复：确保商品ID正确传递
+    const productId = product.commodity_id || product.id
+    if (!productId) {
+      console.error('❌ 商品ID不存在:', product)
+      wx.showModal({
+        title: '编辑失败',
+        content: '商品ID不存在，无法编辑商品',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      return
+    }
+    
+    console.log('🔧 商品ID:', productId)
+    
     this.setData({
       showProductModal: true,
-      editingProduct: product,
+      editingProduct: {
+        ...product,
+        id: productId,  // 🔴 确保ID字段存在
+        commodity_id: productId  // 🔴 保留原始字段
+      },
       productForm: {
         name: product.name,
         description: product.description,
@@ -1506,8 +1525,23 @@ Page({
     let apiPromise
     
     if (this.data.editingProduct) {
-      console.log('📡 更新商品:', this.data.editingProduct.id)
-      apiPromise = merchantAPI.updateProduct(this.data.editingProduct.id, productData)
+      // 🔴 修复：使用正确的商品ID字段
+      const productId = this.data.editingProduct.commodity_id || this.data.editingProduct.id
+      
+      if (!productId) {
+        console.error('❌ 商品ID不存在，无法更新商品:', this.data.editingProduct)
+        wx.showModal({
+          title: '更新失败',
+          content: '商品ID不存在，无法更新商品',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+        this.setData({ productSubmitting: false })
+        return
+      }
+      
+      console.log('📡 更新商品 ID:', productId, '数据:', productData)
+      apiPromise = merchantAPI.updateProduct(productId, productData)
     } else {
       console.log('📡 新增商品')
       apiPromise = merchantAPI.createProduct(productData)
@@ -1517,8 +1551,11 @@ Page({
       // 更新本地商品列表
       if (this.data.editingProduct) {
         // 编辑模式 - 更新现有商品
+        const editingProductId = this.data.editingProduct.commodity_id || this.data.editingProduct.id
         const productList = this.data.productList.map(item => {
-          if (item.id === this.data.editingProduct.id) {
+          // 🔴 修复：使用正确的ID字段进行匹配
+          const itemId = item.commodity_id || item.id
+          if (itemId === editingProductId) {
             return {
               ...item,
               ...productData,
