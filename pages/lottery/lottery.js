@@ -73,6 +73,10 @@ Page({
     showResult: false,
     resultData: null,
     
+    // 🎨 抽奖结果显示模式切换
+    // 可选值：'gradient'(卡片渐变) | 'celebration'(欢庆动画) | 'waterfall'(网格瀑布)
+    resultDisplayMode: 'gradient', // 默认使用方案1：卡片渐变方案
+    
     // 积分不足弹窗
     showPointsModal: false,
     pointsModalData: {

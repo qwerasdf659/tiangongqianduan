@@ -834,3 +834,1467 @@ text {
     transform: translateY(-3rpx);
   }
 } 
+
+/* 🎨 美化版抽奖结果弹窗样式 - 卡片渐变方案 */
+
+/* 美化结果弹窗主容器 */
+.modal-content.beautified-result {
+  width: 90%;
+  max-width: 750rpx;
+  max-height: 80vh;
+  background: linear-gradient(145deg, #ffffff, #f8f9ff);
+  border-radius: 30rpx;
+  overflow: hidden;
+  box-shadow: 
+    0 30rpx 80rpx rgba(102, 126, 234, 0.3),
+    0 0 0 2rpx rgba(255, 255, 255, 0.8);
+  animation: beautifiedModalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes beautifiedModalIn {
+  0% {
+    transform: translateY(-100rpx) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-20rpx) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 🎉 美化头部区域 */
+.result-header.beautified-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+  padding: 40rpx 30rpx 50rpx;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-header.beautified-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: headerShimmer 3s ease-in-out infinite;
+}
+
+@keyframes headerShimmer {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+.header-decoration {
+  margin-bottom: 20rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.celebration-icon {
+  font-size: 80rpx;
+  display: block;
+  margin-bottom: 10rpx;
+  animation: celebrationBounce 1s ease-in-out infinite alternate;
+}
+
+@keyframes celebrationBounce {
+  0% { transform: scale(1) rotate(-5deg); }
+  100% { transform: scale(1.1) rotate(5deg); }
+}
+
+.sparkle-effect {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+}
+
+.sparkle {
+  font-size: 30rpx;
+  animation: sparkleFloat 2s ease-in-out infinite;
+}
+
+.sparkle:nth-child(2) { animation-delay: 0.3s; }
+.sparkle:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes sparkleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+  50% { transform: translateY(-15rpx) scale(1.2); opacity: 1; }
+}
+
+.result-title {
+  font-size: 46rpx;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.3);
+  display: block;
+  margin-bottom: 10rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.result-subtitle {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  position: relative;
+  z-index: 2;
+}
+
+.close-btn.beautified-close {
+  position: absolute;
+  top: 25rpx;
+  right: 25rpx;
+  width: 60rpx;
+  height: 60rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 35rpx;
+  color: white;
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  z-index: 3;
+}
+
+.close-btn.beautified-close:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.9);
+}
+
+/* 🎁 美化列表区域 */
+.result-list.beautified-list {
+  padding: 30rpx 25rpx;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
+}
+
+/* 美化卡片样式 */
+.result-item.beautified-card {
+  background: white;
+  border-radius: 25rpx;
+  margin-bottom: 25rpx;
+  padding: 30rpx;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 2rpx solid transparent;
+}
+
+.result-item.beautified-card:last-child {
+  margin-bottom: 0;
+}
+
+/* 中奖卡片样式 */
+.result-item.win-card {
+  background: linear-gradient(135deg, #fff9f0 0%, #ffffff 100%);
+  box-shadow: 
+    0 15rpx 35rpx rgba(255, 107, 53, 0.15),
+    0 5rpx 15rpx rgba(255, 107, 53, 0.1);
+  border-color: rgba(255, 107, 53, 0.2);
+}
+
+.result-item.win-card:hover {
+  transform: translateY(-5rpx);
+  box-shadow: 
+    0 25rpx 50rpx rgba(255, 107, 53, 0.2),
+    0 10rpx 25rpx rgba(255, 107, 53, 0.15);
+}
+
+/* 差一点卡片样式 */
+.result-item.near-miss-card {
+  background: linear-gradient(135deg, #faf9ff 0%, #ffffff 100%);
+  box-shadow: 
+    0 15rpx 35rpx rgba(156, 163, 175, 0.15),
+    0 5rpx 15rpx rgba(156, 163, 175, 0.1);
+  border-color: rgba(156, 163, 175, 0.2);
+}
+
+.result-item.near-miss-card:hover {
+  transform: translateY(-3rpx);
+}
+
+/* 🎨 卡片装饰角 */
+.card-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.decoration-corner {
+  position: absolute;
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid;
+  border-radius: 5rpx;
+}
+
+.win-card .decoration-corner {
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.near-miss-card .decoration-corner {
+  border-color: rgba(156, 163, 175, 0.3);
+}
+
+.decoration-corner.top-left {
+  top: 15rpx;
+  left: 15rpx;
+  border-right: none;
+  border-bottom: none;
+}
+
+.decoration-corner.top-right {
+  top: 15rpx;
+  right: 15rpx;
+  border-left: none;
+  border-bottom: none;
+}
+
+.decoration-corner.bottom-left {
+  bottom: 15rpx;
+  left: 15rpx;
+  border-right: none;
+  border-top: none;
+}
+
+.decoration-corner.bottom-right {
+  bottom: 15rpx;
+  right: 15rpx;
+  border-left: none;
+  border-top: none;
+}
+
+/* 🎁 美化图标区域 */
+.prize-icon-area {
+  position: relative;
+  margin-bottom: 25rpx;
+  text-align: center;
+  z-index: 2;
+}
+
+.icon-background {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 3;
+}
+
+.icon-background.win-bg {
+  background: linear-gradient(135deg, #ff6b35, #ff8a65);
+  box-shadow: 0 15rpx 30rpx rgba(255, 107, 53, 0.4);
+}
+
+.icon-background.near-miss-bg {
+  background: linear-gradient(135deg, #9ca3af, #d1d5db);
+  box-shadow: 0 15rpx 30rpx rgba(156, 163, 175, 0.3);
+}
+
+.prize-icon-large {
+  font-size: 50rpx;
+  color: white;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+.icon-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.win-card .icon-glow {
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.2) 0%, transparent 70%);
+  animation: winGlow 2s ease-in-out infinite alternate;
+}
+
+.near-miss-card .icon-glow {
+  background: radial-gradient(circle, rgba(156, 163, 175, 0.15) 0%, transparent 70%);
+}
+
+@keyframes winGlow {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+}
+
+/* 📝 美化信息区域 */
+.prize-info-area {
+  text-align: center;
+  margin-bottom: 25rpx;
+  z-index: 2;
+  position: relative;
+}
+
+.prize-name-large {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 15rpx;
+  line-height: 1.3;
+}
+
+.win-card .prize-name-large {
+  color: #dc2626;
+}
+
+.prize-desc-elegant {
+  font-size: 26rpx;
+  color: #6b7280;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 15rpx;
+  padding: 0 10rpx;
+}
+
+.prize-extra-info {
+  display: flex;
+  justify-content: center;
+  margin-top: 15rpx;
+}
+
+.points-badge {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: white;
+  padding: 12rpx 25rpx;
+  border-radius: 50rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 20rpx rgba(16, 185, 129, 0.3);
+  animation: pointsBadgeFloat 3s ease-in-out infinite;
+}
+
+@keyframes pointsBadgeFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3rpx); }
+}
+
+/* 🏆 美化状态区域 */
+.prize-status-area {
+  text-align: center;
+  z-index: 2;
+  position: relative;
+}
+
+.status-badge-large {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 18rpx 35rpx;
+  border-radius: 50rpx;
+  font-weight: 600;
+  box-shadow: 0 10rpx 25rpx rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.status-badge-large.win-badge {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: white;
+}
+
+.status-badge-large.near-miss-badge {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: white;
+}
+
+.status-text-large {
+  font-size: 28rpx;
+}
+
+.status-icon {
+  font-size: 24rpx;
+  animation: statusIconSpin 2s ease-in-out infinite;
+}
+
+@keyframes statusIconSpin {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(10deg) scale(1.1); }
+}
+
+/* 🎯 美化底部区域 */
+.result-footer.beautified-footer {
+  padding: 35rpx 30rpx 40rpx;
+  background: linear-gradient(180deg, #f8f9ff 0%, #f1f5f9 100%);
+  border-top: 1rpx solid rgba(156, 163, 175, 0.2);
+}
+
+.footer-info {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.remaining-points-elegant {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15rpx;
+  padding: 20rpx 30rpx;
+  background: white;
+  border-radius: 50rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.points-label {
+  font-size: 26rpx;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.points-value-large {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.footer-actions {
+  text-align: center;
+}
+
+.continue-btn.beautified-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 25rpx 50rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 15rpx;
+  box-shadow: 
+    0 15rpx 35rpx rgba(102, 126, 234, 0.4),
+    0 5rpx 15rpx rgba(102, 126, 234, 0.2);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.continue-btn.beautified-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.continue-btn.beautified-btn:active::before {
+  left: 100%;
+}
+
+.continue-btn.beautified-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 
+    0 10rpx 25rpx rgba(102, 126, 234, 0.3),
+    0 3rpx 10rpx rgba(102, 126, 234, 0.2);
+}
+
+.btn-icon {
+  font-size: 28rpx;
+}
+
+.btn-text {
+  font-size: 30rpx;
+}
+
+/* 🎈 响应式优化 */
+@media (max-width: 375px) {
+  .modal-content.beautified-result {
+    width: 95%;
+    max-height: 85vh;
+  }
+  
+  .result-header.beautified-header {
+    padding: 30rpx 25rpx 40rpx;
+  }
+  
+  .result-list.beautified-list {
+    padding: 25rpx 20rpx;
+  }
+  
+  .result-item.beautified-card {
+    padding: 25rpx;
+  }
+}
+
+/* 动画性能优化 */
+.beautified-card,
+.beautified-btn,
+.icon-background {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* 🎊 额外的庆祝动画（只在中奖时显示） */
+.win-card::after {
+  content: '';
+  position: absolute;
+  top: -50rpx;
+  left: -50rpx;
+  width: calc(100% + 100rpx);
+  height: calc(100% + 100rpx);
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="20">🎊</text></svg>') repeat;
+  opacity: 0.1;
+  animation: confettiFloat 8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes confettiFloat {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-20rpx) rotate(360deg); }
+} 
+
+/* 🎁 方案5：网格瀑布方案样式 */
+
+/* 瀑布结果弹窗主容器 */
+.modal-content.waterfall-result {
+  width: 88%;
+  max-width: 720rpx;
+  max-height: 85vh;
+  background: linear-gradient(145deg, #f8fafc, #ffffff);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 
+    0 25rpx 50rpx rgba(51, 65, 85, 0.15),
+    0 0 0 1rpx rgba(255, 255, 255, 0.1);
+  animation: waterfallModalIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes waterfallModalIn {
+  0% {
+    transform: translateY(-80rpx) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 🏷️ 瀑布头部区域 */
+.result-header.waterfall-header {
+  background: linear-gradient(135deg, #334155, #475569, #64748b);
+  padding: 35rpx 25rpx 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-header.waterfall-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,0 50,10 T100,10 V20 H0 Z" fill="rgba(255,255,255,0.1)"/></svg>') repeat-x;
+  background-size: 200rpx 40rpx;
+  animation: waveFlow 8s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes waveFlow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-200rpx); }
+}
+
+.header-prize-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 20rpx;
+  border-radius: 15rpx;
+  backdrop-filter: blur(10rpx);
+  position: relative;
+  z-index: 2;
+}
+
+.count-number {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4rpx;
+}
+
+.result-title.waterfall-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.close-btn.waterfall-close {
+  width: 50rpx;
+  height: 50rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  color: white;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.close-btn.waterfall-close:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.9);
+}
+
+/* 🌊 瀑布网格布局 */
+.result-list.waterfall-grid {
+  padding: 25rpx 20rpx;
+  display: flex;
+  gap: 15rpx;
+  min-height: 300rpx;
+  max-height: 55vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+/* 瀑布列 */
+.waterfall-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.left-column {
+  margin-top: 0;
+}
+
+.right-column {
+  margin-top: 20rpx; /* 错位效果 */
+}
+
+/* 🎴 瀑布卡片样式 */
+.result-item.waterfall-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 25rpx;
+  position: relative;
+  overflow: hidden;
+  border: 2rpx solid transparent;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: cardSlideIn 0.6s ease-out;
+}
+
+@keyframes cardSlideIn {
+  0% {
+    transform: translateY(30rpx);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 不同大小的卡片 */
+.waterfall-card.card-size-1 {
+  min-height: 180rpx;
+}
+
+.waterfall-card.card-size-2 {
+  min-height: 220rpx;
+}
+
+.waterfall-card.card-size-3 {
+  min-height: 160rpx;
+}
+
+/* 中奖卡片样式 */
+.waterfall-card.win-card {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+  border-color: rgba(249, 115, 22, 0.2);
+  box-shadow: 
+    0 10rpx 25rpx rgba(249, 115, 22, 0.1),
+    0 4rpx 12rpx rgba(249, 115, 22, 0.08);
+}
+
+.waterfall-card.win-card:hover {
+  transform: translateY(-4rpx);
+  box-shadow: 
+    0 15rpx 35rpx rgba(249, 115, 22, 0.15),
+    0 6rpx 18rpx rgba(249, 115, 22, 0.12);
+}
+
+/* 差一点卡片样式 */
+.waterfall-card.near-miss-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 
+    0 10rpx 25rpx rgba(148, 163, 184, 0.08),
+    0 4rpx 12rpx rgba(148, 163, 184, 0.06);
+}
+
+.waterfall-card.near-miss-card:hover {
+  transform: translateY(-2rpx);
+}
+
+/* 🎯 紧凑图标设计 */
+.compact-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.compact-icon.win-icon {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  box-shadow: 0 8rpx 20rpx rgba(249, 115, 22, 0.3);
+}
+
+.compact-icon.near-miss-icon {
+  background: linear-gradient(135deg, #94a3b8, #cbd5e1);
+  box-shadow: 0 8rpx 20rpx rgba(148, 163, 184, 0.2);
+}
+
+.icon-emoji {
+  font-size: 32rpx;
+  color: white;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 📝 紧凑信息设计 */
+.compact-info {
+  text-align: center;
+  margin-bottom: 20rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.compact-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1e293b;
+  display: block;
+  margin-bottom: 8rpx;
+  line-height: 1.3;
+}
+
+.win-card .compact-name {
+  color: #dc2626;
+}
+
+.compact-extra {
+  margin-top: 10rpx;
+}
+
+.compact-points {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+  padding: 6rpx 15rpx;
+  border-radius: 20rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(5, 150, 105, 0.3);
+}
+
+/* 🏆 紧凑状态设计 */
+.compact-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 25rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.compact-status.win-status {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1rpx solid rgba(34, 197, 94, 0.2);
+}
+
+.compact-status.near-miss-status {
+  background: rgba(251, 146, 60, 0.1);
+  border: 1rpx solid rgba(251, 146, 60, 0.2);
+}
+
+.status-dot {
+  font-size: 16rpx;
+  line-height: 1;
+}
+
+.win-status .status-dot {
+  color: #22c55e;
+}
+
+.near-miss-status .status-dot {
+  color: #fb923c;
+}
+
+.status-text {
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.win-status .status-text {
+  color: #166534;
+}
+
+.near-miss-status .status-text {
+  color: #c2410c;
+}
+
+/* 🌊 瀑布装饰效果 */
+.waterfall-decoration {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 8rpx;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.decoration-wave {
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(249, 115, 22, 0.1) 25%, rgba(249, 115, 22, 0.2) 50%, rgba(249, 115, 22, 0.1) 75%, transparent 100%);
+  animation: waveSlide 4s linear infinite;
+}
+
+.near-miss-card .decoration-wave {
+  background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.1) 25%, rgba(148, 163, 184, 0.2) 50%, rgba(148, 163, 184, 0.1) 75%, transparent 100%);
+}
+
+@keyframes waveSlide {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+/* 📊 瀑布底部区域 */
+.result-footer.waterfall-footer {
+  padding: 30rpx 25rpx 35rpx;
+  background: linear-gradient(135deg, #f1f5f9, #ffffff);
+  border-top: 1rpx solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-stats {
+  display: flex;
+  gap: 25rpx;
+}
+
+.stat-item {
+  text-align: center;
+  background: white;
+  padding: 15rpx 20rpx;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #dc2626;
+  display: block;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 18rpx;
+  color: #64748b;
+  margin-top: 4rpx;
+}
+
+.continue-btn.waterfall-btn {
+  background: linear-gradient(135deg, #334155, #475569);
+  color: white;
+  border: none;
+  border-radius: 25rpx;
+  padding: 20rpx 35rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  box-shadow: 
+    0 10rpx 25rpx rgba(51, 65, 85, 0.2),
+    0 4rpx 12rpx rgba(51, 65, 85, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.continue-btn.waterfall-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.continue-btn.waterfall-btn:active::before {
+  left: 100%;
+}
+
+.continue-btn.waterfall-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 
+    0 6rpx 18rpx rgba(51, 65, 85, 0.15),
+    0 2rpx 8rpx rgba(51, 65, 85, 0.1);
+}
+
+/* 🎨 响应式优化 */
+@media (max-width: 375px) {
+  .modal-content.waterfall-result {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .result-list.waterfall-grid {
+    gap: 12rpx;
+    padding: 20rpx 15rpx;
+  }
+  
+  .waterfall-column {
+    gap: 12rpx;
+  }
+  
+  .waterfall-card {
+    padding: 20rpx;
+  }
+  
+  .compact-icon {
+    width: 50rpx;
+    height: 50rpx;
+  }
+  
+  .icon-emoji {
+    font-size: 28rpx;
+  }
+}
+
+/* 🎯 滚动条美化 */
+.waterfall-grid::-webkit-scrollbar {
+  width: 6rpx;
+}
+
+.waterfall-grid::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 3rpx;
+}
+
+.waterfall-grid::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3rpx;
+}
+
+.waterfall-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* 🚀 性能优化 */
+.waterfall-card,
+.compact-icon,
+.waterfall-btn {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* 🎊 入场动画延迟 */
+.left-column .waterfall-card:nth-child(1) { animation-delay: 0.1s; }
+.left-column .waterfall-card:nth-child(2) { animation-delay: 0.3s; }
+.left-column .waterfall-card:nth-child(3) { animation-delay: 0.5s; }
+.right-column .waterfall-card:nth-child(1) { animation-delay: 0.2s; }
+.right-column .waterfall-card:nth-child(2) { animation-delay: 0.4s; }
+.right-column .waterfall-card:nth-child(3) { animation-delay: 0.6s; } 
+
+/* 🎪 方案3：欢庆动画方案样式 */
+
+/* 欢庆结果弹窗主容器 */
+.modal-content.celebration-result {
+  width: 88%;
+  max-width: 700rpx;
+  max-height: 85vh;
+  background: radial-gradient(circle at center, #fff9e6 0%, #ffffff 100%);
+  border-radius: 25rpx;
+  border: 4rpx solid;
+  border-image: linear-gradient(45deg, #ff6b35, #ffd700, #ff69b4, #00d4ff, #ff6b35) 1;
+  box-shadow: 
+    0 25rpx 50rpx rgba(255, 107, 53, 0.3),
+    0 0 0 8rpx rgba(255, 255, 255, 0.8);
+  animation: celebrationPulse 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes celebrationPulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 
+      0 25rpx 50rpx rgba(255, 107, 53, 0.3),
+      0 0 0 8rpx rgba(255, 255, 255, 0.8);
+  }
+  50% { 
+    transform: scale(1.02);
+    box-shadow: 
+      0 30rpx 60rpx rgba(255, 107, 53, 0.4),
+      0 0 0 12rpx rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* 🎉 欢庆头部区域 */
+.result-header.celebration-header {
+  background: linear-gradient(135deg, #ff6b35, #ffd700, #ff69b4);
+  padding: 45rpx 30rpx 55rpx;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-header.celebration-header::before {
+  content: '🎊 🎉 ⭐ 🎁 🌟 🎊 🎉 ⭐ 🎁 🌟';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  animation: floatingEmojis 8s linear infinite;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+@keyframes floatingEmojis {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0%); }
+}
+
+.celebration-title {
+  font-size: 50rpx;
+  font-weight: 800;
+  color: white;
+  text-shadow: 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5);
+  display: block;
+  margin-bottom: 10rpx;
+  animation: titleBounce 1.5s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes titleBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8rpx) scale(1.05); }
+}
+
+.close-btn.celebration-close {
+  position: absolute;
+  top: 25rpx;
+  right: 25rpx;
+  width: 60rpx;
+  height: 60rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 35rpx;
+  color: white;
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  z-index: 3;
+}
+
+.close-btn.celebration-close:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.9);
+}
+
+/* 🎊 欢庆列表区域 */
+.result-list.celebration-list {
+  padding: 35rpx 25rpx;
+  max-height: 55vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #fff9e6 0%, #ffffff 100%);
+}
+
+/* 欢庆卡片样式 */
+.result-item.celebration-card {
+  background: white;
+  border-radius: 20rpx;
+  margin-bottom: 25rpx;
+  padding: 35rpx;
+  position: relative;
+  border: 3rpx solid;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: cardFloat 4s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.result-item.celebration-card:nth-child(2n) {
+  animation-delay: 0.5s;
+}
+
+.result-item.celebration-card:nth-child(3n) {
+  animation-delay: 1s;
+}
+
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8rpx) rotate(1deg); }
+  50% { transform: translateY(-5rpx) rotate(0deg); }
+  75% { transform: translateY(-8rpx) rotate(-1deg); }
+}
+
+/* 中奖庆祝卡片 */
+.result-item.celebration-win {
+  border-image: linear-gradient(45deg, #ff6b35, #ffd700, #ff69b4) 1;
+  box-shadow: 
+    0 20rpx 40rpx rgba(255, 107, 53, 0.3),
+    inset 0 0 50rpx rgba(255, 215, 0, 0.1);
+}
+
+.result-item.celebration-win:hover {
+  transform: translateY(-8rpx) scale(1.02);
+  box-shadow: 
+    0 30rpx 60rpx rgba(255, 107, 53, 0.4),
+    inset 0 0 50rpx rgba(255, 215, 0, 0.2);
+}
+
+/* 差一点庆祝卡片 */
+.result-item.celebration-near {
+  border-image: linear-gradient(45deg, #9ca3af, #d1d5db, #e5e7eb) 1;
+  box-shadow: 0 15rpx 30rpx rgba(156, 163, 175, 0.2);
+}
+
+/* 🎁 庆祝图标区域 */
+.celebration-icon-area {
+  text-align: center;
+  margin-bottom: 25rpx;
+  position: relative;
+}
+
+.celebration-icon {
+  font-size: 80rpx;
+  display: inline-block;
+  animation: iconSpin 3s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes iconSpin {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(5deg); }
+  50% { transform: scale(1.05) rotate(-3deg); }
+  75% { transform: scale(1.1) rotate(3deg); }
+}
+
+.celebration-icon::after {
+  content: '✨';
+  position: absolute;
+  top: -20rpx;
+  right: -20rpx;
+  font-size: 30rpx;
+  animation: sparkleRotate 2s linear infinite;
+}
+
+@keyframes sparkleRotate {
+  0% { transform: rotate(0deg) scale(0.8); opacity: 0.5; }
+  50% { transform: rotate(180deg) scale(1.2); opacity: 1; }
+  100% { transform: rotate(360deg) scale(0.8); opacity: 0.5; }
+}
+
+/* 📝 庆祝信息区域 */
+.celebration-info {
+  text-align: center;
+  margin-bottom: 25rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.celebration-prize-name {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 15rpx;
+  animation: textGlow 2s ease-in-out infinite alternate;
+  display: block;
+  line-height: 1.3;
+}
+
+.celebration-win .celebration-prize-name {
+  color: #dc2626;
+  text-shadow: 0 0 20rpx rgba(220, 38, 38, 0.3);
+}
+
+@keyframes textGlow {
+  0% { text-shadow: 0 0 10rpx rgba(220, 38, 38, 0.3); }
+  100% { text-shadow: 0 0 25rpx rgba(220, 38, 38, 0.6); }
+}
+
+.celebration-prize-desc {
+  font-size: 26rpx;
+  color: #6b7280;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 15rpx;
+}
+
+.celebration-extra {
+  margin-top: 15rpx;
+}
+
+.celebration-points {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: white;
+  padding: 12rpx 25rpx;
+  border-radius: 50rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 20rpx rgba(16, 185, 129, 0.3);
+  animation: pointsBadgeFloat 3s ease-in-out infinite;
+}
+
+@keyframes pointsBadgeFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3rpx); }
+}
+
+/* 🏆 庆祝状态区域 */
+.celebration-status {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.celebration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 20rpx 40rpx;
+  border-radius: 50rpx;
+  font-weight: 700;
+  animation: badgeShine 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.celebration-badge.win-badge {
+  background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
+  color: white;
+  box-shadow: 0 15rpx 30rpx rgba(16, 185, 129, 0.4);
+}
+
+.celebration-badge.near-badge {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24, #fcd34d);
+  color: white;
+  box-shadow: 0 15rpx 30rpx rgba(245, 158, 11, 0.4);
+}
+
+.celebration-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: badgeSlide 2s ease-in-out infinite;
+}
+
+@keyframes badgeSlide {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+@keyframes badgeShine {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.badge-text {
+  font-size: 30rpx;
+}
+
+.badge-emoji {
+  font-size: 24rpx;
+  animation: statusIconSpin 2s ease-in-out infinite;
+}
+
+@keyframes statusIconSpin {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(10deg) scale(1.1); }
+}
+
+/* 🎯 庆祝底部区域 */
+.result-footer.celebration-footer {
+  padding: 40rpx 30rpx 45rpx;
+  background: linear-gradient(135deg, #fff9e6, #ffffff);
+  text-align: center;
+  border-top: 2rpx solid rgba(255, 107, 53, 0.2);
+}
+
+.celebration-stats {
+  margin-bottom: 30rpx;
+}
+
+.celebration-points-text {
+  font-size: 28rpx;
+  color: #1f2937;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.continue-btn.celebration-btn {
+  background: linear-gradient(135deg, #ff6b35, #ffd700, #ff69b4);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 30rpx 60rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  box-shadow: 
+    0 20rpx 40rpx rgba(255, 107, 53, 0.4),
+    0 0 0 4rpx rgba(255, 255, 255, 0.8);
+  animation: buttonPulse 2s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes buttonPulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 
+      0 20rpx 40rpx rgba(255, 107, 53, 0.4),
+      0 0 0 4rpx rgba(255, 255, 255, 0.8);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 
+      0 25rpx 50rpx rgba(255, 107, 53, 0.5),
+      0 0 0 8rpx rgba(255, 255, 255, 0.9);
+  }
+}
+
+.continue-btn.celebration-btn:active {
+  transform: scale(0.95);
+}
+
+.continue-btn.celebration-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.continue-btn.celebration-btn:active::before {
+  left: 100%;
+}
+
+/* 🎊 庆祝背景装饰 */
+.celebration-result::after {
+  content: '🎊 🎉 ⭐ 🎁 🌟 💎 🏆 🎀 🎊 🎉 ⭐ 🎁 🌟 💎 🏆 🎀';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 40rpx;
+  opacity: 0.05;
+  animation: backgroundFloat 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: space-around;
+  justify-content: space-around;
+}
+
+@keyframes backgroundFloat {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-50rpx) rotate(360deg); }
+}
+
+/* 🎨 庆祝方案响应式优化 */
+@media (max-width: 375px) {
+  .modal-content.celebration-result {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .result-header.celebration-header {
+    padding: 35rpx 25rpx 45rpx;
+  }
+  
+  .celebration-title {
+    font-size: 44rpx;
+  }
+  
+  .result-list.celebration-list {
+    padding: 30rpx 20rpx;
+  }
+  
+  .celebration-card {
+    padding: 30rpx;
+  }
+  
+  .celebration-icon {
+    font-size: 70rpx;
+  }
+  
+  .celebration-prize-name {
+    font-size: 36rpx;
+  }
+} 

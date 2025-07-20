@@ -215,7 +215,7 @@ Page({
   },
 
   /**
-   * 🔧 加载用户数据
+   * 🔧 加载用户数据 - 修复：增强超时保护机制
    */
   loadUserData() {
     console.log('📡 开始加载用户数据')
@@ -223,21 +223,38 @@ Page({
     // 🔧 显示加载状态
     this.setData({ loading: true })
     
-    // 🔧 设置超时机制，最多loading 3秒
+    // 🔧 设置超时机制，增加到10秒，给网络慢的用户更多时间
     const loadingTimeout = setTimeout(() => {
       console.warn('⏰ Loading超时，强制结束loading状态')
       this.setData({ loading: false })
-    }, 3000)
+      
+      // 🔴 修复：超时时显示具体的错误提示
+      wx.showModal({
+        title: '数据加载超时',
+        content: '用户数据加载超时，可能是网络较慢或后端服务响应时间过长。\n\n建议：\n1. 检查网络连接\n2. 稍后重试\n3. 切换网络环境',
+        showCancel: true,
+        cancelText: '稍后重试',
+        confirmText: '立即重试',
+        success: (res) => {
+          if (res.confirm) {
+            setTimeout(() => this.loadUserData(), 1000)
+          }
+        }
+      })
+    }, 10000) // 增加到10秒超时
     
-    // 🔧 并行加载多个数据源 - 修复：正确返回Promise
+    // 🔧 修复：按正确顺序加载数据，确保成就系统依赖的统计数据已准备好
     return Promise.all([
       this.refreshUserInfo(),
-      this.loadUserStatistics(),
+      this.loadUserStatistics(),  // 先加载统计数据
       this.loadRecentPointsRecords(),
-      this.initMenuItems(),
-      this.initAchievements()
+      this.initMenuItems()
     ]).then(() => {
-      console.log('✅ 用户数据加载完成')
+      console.log('✅ 基础数据加载完成，开始初始化成就系统')
+      // 🔴 关键修复：确保成就初始化在统计数据加载完成后执行
+      return this.initAchievements()
+    }).then(() => {
+      console.log('✅ 成就系统初始化完成')
       clearTimeout(loadingTimeout)
       this.setData({ loading: false })
     }).catch(error => {
@@ -362,13 +379,23 @@ Page({
   },
 
   /**
-   * 🔧 加载用户统计数据 - 修复：调用正确的API并修复数据映射
+   * 🔧 加载用户统计数据 - 修复：调用正确的API并修复数据映射，添加超时保护
    */
   loadUserStatistics() {
     console.log('📡 获取用户综合统计数据')
     
-    // 🔴 修复：使用新的综合统计接口，调用三个后端API
-    return userAPI.getComprehensiveStatistics().then(result => {
+    // 🔴 修复：为综合统计API添加超时保护
+    const statisticsTimeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('综合统计API调用超时'))
+      }, 10000) // 10秒超时
+    })
+    
+    // 🔴 修复：使用新的综合统计接口，调用三个后端API，并添加超时保护
+    return Promise.race([
+      userAPI.getComprehensiveStatistics(),
+      statisticsTimeoutPromise
+    ]).then(result => {
       console.log('✅ 用户综合统计数据获取成功:', result)
       
       if (result.code === 0 && result.data) {
@@ -422,7 +449,10 @@ Page({
         // 🔧 计算今日趋势
         this.calculateTodayTrend()
         
-        console.log('✅ 用户统计数据已更新 - 修复完成')
+        // 🔴 关键修复：统计数据更新后立即更新成就状态
+        this.updateAchievements()
+        
+        console.log('✅ 用户统计数据已更新，成就状态已同步更新')
       } else {
         throw new Error(result.msg || '统计数据获取失败')
       }
@@ -485,7 +515,7 @@ Page({
   },
 
   /**
-   * 🔧 刷新用户数据
+   * 🔧 刷新用户数据 - 修复：添加超时保护
    */
   refreshUserData() {
     console.log('🔄 刷新用户数据')
@@ -493,9 +523,34 @@ Page({
     // 🔧 设置刷新状态
     this.setData({ refreshing: true })
     
-    // 🔧 重新加载所有数据 - 修复：正确返回Promise
-    return this.loadUserData().finally(() => {
+    // 🔴 修复：为刷新操作添加超时保护
+    const refreshTimeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('用户数据刷新超时'))
+      }, 12000) // 12秒超时
+    })
+    
+    // 🔧 重新加载所有数据 - 修复：正确返回Promise并添加超时保护
+    return Promise.race([
+      this.loadUserData(),
+      refreshTimeoutPromise
+    ]).finally(() => {
       this.setData({ refreshing: false })
+      console.log('✅ 用户数据刷新完成')
+    }).catch(error => {
+      console.error('❌ 用户数据刷新失败:', error)
+      
+      // 如果是超时错误，给用户特殊提示
+      if (error.message && error.message.includes('超时')) {
+        wx.showToast({
+          title: '刷新超时，请重试',
+          icon: 'none',
+          duration: 3000
+        })
+      }
+      
+      // 重新抛出错误，让调用者处理
+      throw error
     })
   },
 
@@ -819,7 +874,7 @@ Page({
   },
 
   /**
-   * 🔧 刷新统计数据
+   * 🔧 刷新统计数据 - 修复：添加超时保护机制
    */
   onRefreshStats() {
     console.log('🔄 手动刷新统计数据')
@@ -829,19 +884,51 @@ Page({
       mask: true
     })
     
-    this.loadUserStatistics().then(() => {
+    // 🔴 关键修复：添加超时保护，确保loading状态不会永久卡住
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('统计数据刷新超时'))
+      }, 8000) // 8秒超时
+    })
+    
+    // 🔴 使用Promise.race确保最多8秒后必须结束loading状态
+    Promise.race([
+      this.loadUserStatistics(),
+      timeoutPromise
+    ]).then(() => {
       wx.hideLoading()
+      // 🔴 关键修复：手动刷新统计数据后，同步更新成就状态
+      this.updateAchievements()
       wx.showToast({
         title: '刷新成功',
         icon: 'success'
       })
+      console.log('✅ 统计数据刷新成功，成就状态已同步更新')
     }).catch(error => {
       wx.hideLoading()
       console.error('❌ 刷新统计数据失败:', error)
-      wx.showToast({
-        title: '刷新失败',
-        icon: 'none'
-      })
+      
+      // 🔴 修复：区分超时错误和其他错误，给用户更明确的提示
+      if (error.message && error.message.includes('超时')) {
+        wx.showModal({
+          title: '刷新超时',
+          content: '统计数据刷新超时，可能是网络问题或后端服务响应慢。\n\n请检查网络连接后重试。',
+          showCancel: true,
+          cancelText: '稍后重试',
+          confirmText: '立即重试',
+          success: (res) => {
+            if (res.confirm) {
+              // 用户选择立即重试
+              setTimeout(() => this.onRefreshStats(), 1000)
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: '刷新失败',
+          icon: 'none'
+        })
+      }
     })
   },
 
@@ -860,10 +947,23 @@ Page({
   },
 
   /**
-   * 🔧 初始化成就系统
+   * 🔧 初始化成就系统 - 修复：增加数据安全检查和调试信息
    */
   initAchievements() {
     console.log('🏆 初始化成就系统')
+    
+    // 🔴 关键修复：检查依赖数据是否已准备好
+    const statistics = this.data.statistics || {}
+    const totalPoints = this.data.totalPoints || 0
+    
+    console.log('🔍 成就计算依赖数据检查:', {
+      totalLottery: statistics.totalLottery,
+      totalUpload: statistics.totalUpload,
+      totalExchange: statistics.totalExchange,
+      totalPoints: totalPoints,
+      statisticsExists: !!this.data.statistics,
+      userInfoExists: !!this.data.userInfo
+    })
     
     // 🔧 设置成就数据
     const achievements = [
@@ -873,51 +973,69 @@ Page({
         description: '首次登录系统',
         icon: '🎉',
         unlocked: true,
-        progress: 100
+        progress: 100,
+        target: 1
       },
       {
         id: 'first_lottery',
         name: '抽奖新手',
         description: '完成首次抽奖',
         icon: '🎰',
-        unlocked: this.data.statistics.totalLottery > 0,
-        progress: this.data.statistics.totalLottery > 0 ? 100 : 0
+        unlocked: (statistics.totalLottery || 0) > 0,
+        progress: (statistics.totalLottery || 0) > 0 ? 100 : 0,
+        target: 1
       },
       {
         id: 'lottery_master',
         name: '抽奖达人',
         description: '累计抽奖10次',
         icon: '🎯',
-        unlocked: this.data.statistics.totalLottery >= 10,
-        progress: Math.min(this.data.statistics.totalLottery * 10, 100)
+        unlocked: (statistics.totalLottery || 0) >= 10,
+        progress: Math.min((statistics.totalLottery || 0) * 10, 100),
+        target: 10
       },
       {
         id: 'first_exchange',
         name: '兑换新手',
         description: '完成首次兑换',
         icon: '🎁',
-        unlocked: this.data.statistics.totalExchange > 0,
-        progress: this.data.statistics.totalExchange > 0 ? 100 : 0
+        unlocked: (statistics.totalExchange || 0) > 0,
+        progress: (statistics.totalExchange || 0) > 0 ? 100 : 0,
+        target: 1
       },
       {
         id: 'upload_rookie',
         name: '上传新手',
         description: '完成首次照片上传',
         icon: '📷',
-        unlocked: this.data.statistics.totalUpload > 0,
-        progress: this.data.statistics.totalUpload > 0 ? 100 : 0
+        unlocked: (statistics.totalUpload || 0) > 0,
+        progress: (statistics.totalUpload || 0) > 0 ? 100 : 0,
+        target: 1
       },
       {
         id: 'points_collector',
         name: '积分收集者',
         description: '累计获得1000积分',
         icon: '💰',
-        unlocked: this.data.totalPoints >= 1000,
-        progress: Math.min(this.data.totalPoints / 10, 100)
+        unlocked: totalPoints >= 1000,
+        progress: Math.min(totalPoints / 10, 100),
+        target: 1000
       }
     ]
     
     const unlockedCount = achievements.filter(a => a.unlocked).length
+    
+    // 🔴 关键修复：添加详细的成就状态日志
+    console.log('🏆 成就状态计算结果:', {
+      总成就数: achievements.length,
+      已解锁数: unlockedCount,
+      解锁率: `${Math.round(unlockedCount / achievements.length * 100)}%`,
+      详细状态: achievements.map(a => ({
+        name: a.name,
+        unlocked: a.unlocked,
+        progress: a.progress
+      }))
+    })
     
     this.safeSetData({
       achievements: achievements,
@@ -929,10 +1047,22 @@ Page({
   },
 
   /**
-   * 🔧 更新成就状态
+   * 🔧 更新成就状态 - 修复：增加数据安全检查和调试信息
    */
   updateAchievements() {
     console.log('🏆 更新成就状态')
+    
+    // 🔴 关键修复：检查依赖数据是否已准备好
+    const statistics = this.data.statistics || {}
+    const totalPoints = this.data.totalPoints || 0
+    
+    console.log('🔍 成就更新依赖数据检查:', {
+      totalLottery: statistics.totalLottery,
+      totalUpload: statistics.totalUpload,
+      totalExchange: statistics.totalExchange,
+      totalPoints: totalPoints,
+      currentAchievementsCount: this.data.achievements ? this.data.achievements.length : 0
+    })
     
     // 🔧 检查成就解锁条件
     const achievements = this.data.achievements.map(achievement => {
@@ -941,24 +1071,24 @@ Page({
       
       switch (achievement.id) {
         case 'first_lottery':
-          unlocked = this.data.statistics.totalLottery > 0
+          unlocked = (statistics.totalLottery || 0) > 0
           progress = unlocked ? 100 : 0
           break
         case 'lottery_master':
-          unlocked = this.data.statistics.totalLottery >= 10
-          progress = Math.min(this.data.statistics.totalLottery * 10, 100)
+          unlocked = (statistics.totalLottery || 0) >= 10
+          progress = Math.min((statistics.totalLottery || 0) * 10, 100)
           break
         case 'first_exchange':
-          unlocked = this.data.statistics.totalExchange > 0
+          unlocked = (statistics.totalExchange || 0) > 0
           progress = unlocked ? 100 : 0
           break
         case 'upload_rookie':
-          unlocked = this.data.statistics.totalUpload > 0
+          unlocked = (statistics.totalUpload || 0) > 0
           progress = unlocked ? 100 : 0
           break
         case 'points_collector':
-          unlocked = this.data.totalPoints >= 1000
-          progress = Math.min(this.data.totalPoints / 10, 100)
+          unlocked = totalPoints >= 1000
+          progress = Math.min(totalPoints / 10, 100)
           break
       }
       
@@ -966,6 +1096,30 @@ Page({
     })
     
     const unlockedCount = achievements.filter(a => a.unlocked).length
+    const previousUnlockedCount = this.data.unlockedAchievements || 0
+    
+    // 🔴 关键修复：添加详细的成就更新日志
+    console.log('🏆 成就状态更新结果:', {
+      原解锁数: previousUnlockedCount,
+      新解锁数: unlockedCount,
+      变化: unlockedCount - previousUnlockedCount,
+      详细状态: achievements.map(a => ({
+        name: a.name,
+        unlocked: a.unlocked,
+        progress: a.progress
+      }))
+    })
+    
+    // 🔧 如果有新成就解锁，显示提示
+    if (unlockedCount > previousUnlockedCount) {
+      const newlyUnlocked = unlockedCount - previousUnlockedCount
+      console.log(`🎉 检测到${newlyUnlocked}个新成就解锁！`)
+      wx.showToast({
+        title: `🎉 解锁了${newlyUnlocked}个新成就！`,
+        icon: 'success',
+        duration: 2000
+      })
+    }
     
     this.safeSetData({
       achievements: achievements,

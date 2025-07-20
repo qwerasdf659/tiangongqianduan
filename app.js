@@ -10,13 +10,11 @@ App({
     // 🔧 初始化全局数据结构
     this.initGlobalData()
     
-    // 🔴 修复：编译后启动优化，减少日志输出
-    console.log('🔧 编译后启动优化：延迟登录检查和WebSocket连接')
+    // 🔴 修复：立即检查登录状态，确保登录提示框与首页同时显示
+    console.log('🔧 立即检查登录状态，提升用户体验')
     
-    // 🔧 延迟检查登录状态，避免编译后立即产生大量日志
-    setTimeout(() => {
-      this.checkLoginStatus()
-    }, 1000)
+    // 🔧 立即检查登录状态，移除延迟以解决登录提示框延迟显示问题
+    this.checkLoginStatus()
     
     console.log('✅ 应用启动完成')
   },

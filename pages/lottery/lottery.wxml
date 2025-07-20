@@ -135,41 +135,222 @@
     </view>
   </view>
 
-  <!-- 抽奖结果弹窗 -->
+  <!-- 抽奖结果弹窗 - 🎨 三种精美方案供选择 -->
   <view class="result-modal" wx:if="{{showResult}}">
     <view class="modal-mask" bindtap="onCloseResult"></view>
-    <view class="modal-content">
-      <view class="result-header">
-        <text class="result-title">🎉 抽奖结果</text>
-        <view class="close-btn" bindtap="onCloseResult">×</view>
+    
+    <!-- 🌟 方案1：卡片渐变方案 -->
+    <view class="modal-content beautified-result" wx:if="{{resultDisplayMode === 'gradient' || !resultDisplayMode}}">
+      <view class="result-header beautified-header">
+        <view class="header-decoration">
+          <text class="celebration-icon">🎉</text>
+          <view class="sparkle-effect">
+            <text class="sparkle">✨</text>
+            <text class="sparkle">✨</text>
+            <text class="sparkle">✨</text>
+          </view>
+        </view>
+        <text class="result-title">恭喜中奖</text>
+        <text class="result-subtitle">您的幸运时刻</text>
+        <view class="close-btn beautified-close" bindtap="onCloseResult">×</view>
       </view>
       
-      <view class="result-list">
+      <view class="result-list beautified-list">
         <view 
-          class="result-item" 
+          class="result-item beautified-card {{item.is_near_miss ? 'near-miss-card' : 'win-card'}}" 
           wx:for="{{resultData}}" 
           wx:key="prize_id"
         >
-          <view class="prize-icon">🎁</view>
-          <view class="prize-info">
-            <text class="prize-name">{{item.display_name}}</text>
-            <text class="prize-desc">{{item.display_desc}}</text>
-            <text class="prize-extra" wx:if="{{item.points > 0}}">
-              +{{item.points}}积分
-            </text>
+          <!-- 🎨 卡片装饰元素 -->
+          <view class="card-decoration">
+            <view class="decoration-corner top-left"></view>
+            <view class="decoration-corner top-right"></view>
+            <view class="decoration-corner bottom-left"></view>
+            <view class="decoration-corner bottom-right"></view>
           </view>
-          <view class="prize-status">
-            <text class="status-badge {{item.is_near_miss ? 'near-miss' : 'win'}}">
-              {{item.is_near_miss ? '差一点' : '中奖了'}}
-            </text>
+          
+          <!-- 🎁 奖品图标区域 -->
+          <view class="prize-icon-area">
+            <view class="icon-background {{item.is_near_miss ? 'near-miss-bg' : 'win-bg'}}">
+              <text class="prize-icon-large">{{item.is_near_miss ? '😔' : '🎁'}}</text>
+            </view>
+            <view class="icon-glow"></view>
+          </view>
+          
+          <!-- 📝 奖品信息区域 -->
+          <view class="prize-info-area">
+            <text class="prize-name-large">{{item.display_name}}</text>
+            <text class="prize-desc-elegant">{{item.display_desc}}</text>
+            <view class="prize-extra-info" wx:if="{{item.points > 0}}">
+              <text class="points-badge">+{{item.points}} 积分</text>
+            </view>
+          </view>
+          
+          <!-- 🏆 状态徽章区域 -->
+          <view class="prize-status-area">
+            <view class="status-badge-large {{item.is_near_miss ? 'near-miss-badge' : 'win-badge'}}">
+              <text class="status-text-large">{{item.is_near_miss ? '差一点' : '中奖了'}}</text>
+              <text class="status-icon">{{item.is_near_miss ? '💫' : '🎊'}}</text>
+            </view>
           </view>
         </view>
       </view>
 
-      <view class="result-footer">
-        <text class="remaining-points">剩余积分：{{totalPoints}}</text>
-        <button class="continue-btn" bindtap="onCloseResult">
-          继续抽奖
+      <view class="result-footer beautified-footer">
+        <view class="footer-info">
+          <text class="remaining-points-elegant">
+            <text class="points-label">剩余积分</text>
+            <text class="points-value-large">{{totalPoints}}</text>
+          </text>
+        </view>
+        <view class="footer-actions">
+          <button class="continue-btn beautified-btn" bindtap="onCloseResult">
+            <text class="btn-icon">🎰</text>
+            <text class="btn-text">继续抽奖</text>
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 🎪 方案3：欢庆动画方案 -->
+    <view class="modal-content celebration-result" wx:if="{{resultDisplayMode === 'celebration'}}">
+      <view class="result-header celebration-header">
+        <text class="celebration-title">🎊 恭喜中奖 🎊</text>
+        <view class="close-btn celebration-close" bindtap="onCloseResult">×</view>
+      </view>
+      
+      <view class="result-list celebration-list">
+        <view 
+          class="result-item celebration-card {{item.is_near_miss ? 'celebration-near' : 'celebration-win'}}" 
+          wx:for="{{resultData}}" 
+          wx:key="prize_id"
+        >
+          <!-- 🎁 庆祝图标区域 -->
+          <view class="celebration-icon-area">
+            <text class="celebration-icon">{{item.is_near_miss ? '😔' : '🎁'}}</text>
+          </view>
+          
+          <!-- 📝 奖品信息 -->
+          <view class="celebration-info">
+            <text class="celebration-prize-name">{{item.display_name}}</text>
+            <text class="celebration-prize-desc">{{item.display_desc}}</text>
+            <view class="celebration-extra" wx:if="{{item.points > 0}}">
+              <text class="celebration-points">+{{item.points}} 积分</text>
+            </view>
+          </view>
+          
+          <!-- 🏆 庆祝状态 -->
+          <view class="celebration-status">
+            <view class="celebration-badge {{item.is_near_miss ? 'near-badge' : 'win-badge'}}">
+              <text class="badge-text">{{item.is_near_miss ? '差一点' : '中奖了'}}</text>
+              <text class="badge-emoji">{{item.is_near_miss ? '💫' : '🎊'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="result-footer celebration-footer">
+        <view class="celebration-stats">
+          <text class="celebration-points-text">剩余积分：{{totalPoints}}</text>
+        </view>
+        <button class="continue-btn celebration-btn" bindtap="onCloseResult">
+          继续抽奖 🎰
+        </button>
+      </view>
+    </view>
+
+    <!-- 🎁 方案5：网格瀑布方案 -->
+    <view class="modal-content waterfall-result" wx:if="{{resultDisplayMode === 'waterfall'}}">
+      <view class="result-header waterfall-header">
+        <view class="header-prize-count">
+          <text class="count-number">{{resultData.length}}</text>
+          <text class="count-label">个奖品</text>
+        </view>
+        <text class="result-title waterfall-title">🎉 抽奖结果</text>
+        <view class="close-btn waterfall-close" bindtap="onCloseResult">×</view>
+      </view>
+      
+      <view class="result-list waterfall-grid">
+        <!-- 左列 -->
+        <view class="waterfall-column left-column">
+          <view 
+            class="result-item waterfall-card {{item.is_near_miss ? 'near-miss-card' : 'win-card'}} card-size-{{(index % 3) + 1}}" 
+            wx:for="{{resultData}}" 
+            wx:for-index="index"
+            wx:key="prize_id"
+            wx:if="{{index % 2 === 0}}"
+          >
+            <!-- 🎁 紧凑图标 -->
+            <view class="compact-icon {{item.is_near_miss ? 'near-miss-icon' : 'win-icon'}}">
+              <text class="icon-emoji">{{item.is_near_miss ? '😔' : '🎁'}}</text>
+            </view>
+            
+            <!-- 📝 紧凑信息 -->
+            <view class="compact-info">
+              <text class="compact-name">{{item.display_name}}</text>
+              <view class="compact-extra" wx:if="{{item.points > 0}}">
+                <text class="compact-points">+{{item.points}}</text>
+              </view>
+            </view>
+            
+            <!-- 🏆 紧凑状态 -->
+            <view class="compact-status {{item.is_near_miss ? 'near-miss-status' : 'win-status'}}">
+              <text class="status-dot">●</text>
+              <text class="status-text">{{item.is_near_miss ? '差一点' : '中奖'}}</text>
+            </view>
+            
+            <!-- 🌊 瀑布效果装饰 -->
+            <view class="waterfall-decoration">
+              <view class="decoration-wave"></view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 右列 -->
+        <view class="waterfall-column right-column">
+          <view 
+            class="result-item waterfall-card {{item.is_near_miss ? 'near-miss-card' : 'win-card'}} card-size-{{((index + 1) % 3) + 1}}" 
+            wx:for="{{resultData}}" 
+            wx:for-index="index"
+            wx:key="prize_id"
+            wx:if="{{index % 2 === 1}}"
+          >
+            <!-- 🎁 紧凑图标 -->
+            <view class="compact-icon {{item.is_near_miss ? 'near-miss-icon' : 'win-icon'}}">
+              <text class="icon-emoji">{{item.is_near_miss ? '😔' : '🎁'}}</text>
+            </view>
+            
+            <!-- 📝 紧凑信息 -->
+            <view class="compact-info">
+              <text class="compact-name">{{item.display_name}}</text>
+              <view class="compact-extra" wx:if="{{item.points > 0}}">
+                <text class="compact-points">+{{item.points}}</text>
+              </view>
+            </view>
+            
+            <!-- 🏆 紧凑状态 -->
+            <view class="compact-status {{item.is_near_miss ? 'near-miss-status' : 'win-status'}}">
+              <text class="status-dot">●</text>
+              <text class="status-text">{{item.is_near_miss ? '差一点' : '中奖'}}</text>
+            </view>
+            
+            <!-- 🌊 瀑布效果装饰 -->
+            <view class="waterfall-decoration">
+              <view class="decoration-wave"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="result-footer waterfall-footer">
+        <view class="footer-stats">
+          <view class="stat-item">
+            <text class="stat-value">{{totalPoints}}</text>
+            <text class="stat-label">剩余积分</text>
+          </view>
+        </view>
+        <button class="continue-btn waterfall-btn" bindtap="onCloseResult">
+          继续抽奖 🎰
         </button>
       </view>
     </view>
