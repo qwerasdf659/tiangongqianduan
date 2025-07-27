@@ -1,0 +1,507 @@
+<!-- pages/trade/market/market.wxml - 交易市场页面模板 -->
+<view class="market-container">
+  <!-- 用户积分显示 -->
+  <view class="points-header">
+    <view class="points-info">
+      <text class="points-label">我的积分</text>
+      <text class="points-value">{{totalPoints}}</text>
+    </view>
+    <view class="market-stats">
+      <text class="stats-text">市场商品 {{marketStats.total_trades}} 件</text>
+    </view>
+  </view>
+
+  <!-- 🎯 交易空间入口导航 -->
+  <view class="space-navigation">
+    <view class="space-tabs">
+      <!-- 幸运空间 -->
+      <view 
+        class="space-tab {{currentSpace === 'lucky' ? 'active' : ''}}"
+        bindtap="onSpaceChange"
+        data-space="lucky"
+      >
+        <view class="space-icon-container">
+          <text class="space-icon">🍀</text>
+          <view class="space-glow" wx:if="{{currentSpace === 'lucky'}}"></view>
+        </view>
+        <view class="space-info">
+          <text class="space-title">幸运空间</text>
+          <text class="space-subtitle">幸运好物·与你相遇</text>
+        </view>
+        <view class="space-badge" wx:if="{{luckySpaceStats.new_count > 0}}">
+          <text class="badge-text">{{luckySpaceStats.new_count}}</text>
+        </view>
+      </view>
+      
+      <!-- 臻选空间 -->
+      <view 
+        class="space-tab {{currentSpace === 'premium' ? 'active' : ''}}"
+        bindtap="onSpaceChange"
+        data-space="premium"
+      >
+        <view class="space-icon-container">
+          <text class="space-icon">💎</text>
+          <view class="space-glow" wx:if="{{currentSpace === 'premium'}}"></view>
+        </view>
+        <view class="space-info">
+          <text class="space-title">臻选空间</text>
+          <text class="space-subtitle">精品汇聚·品质保障</text>
+        </view>
+        <view class="space-badge" wx:if="{{premiumSpaceStats.hot_count > 0}}">
+          <text class="badge-text">热</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 空间状态指示器 -->
+    <view class="space-indicator">
+      <view class="indicator-dot {{currentSpace === 'lucky' ? 'active' : ''}}"></view>
+      <view class="indicator-dot {{currentSpace === 'premium' ? 'active' : ''}}"></view>
+    </view>
+    
+    <!-- 空间描述和统计 -->
+    <view class="space-description">
+      <view class="space-desc-content" wx:if="{{currentSpace === 'lucky'}}">
+        <text class="desc-text">🎲 发现意外惊喜，享受超值优惠</text>
+        <view class="space-stats">
+          <text class="stat-item">💰 平均省{{luckySpaceStats.avg_discount}}%</text>
+          <text class="stat-item">⚡ {{luckySpaceStats.flash_deals}}个闪购</text>
+        </view>
+      </view>
+      <view class="space-desc-content" wx:if="{{currentSpace === 'premium'}}">
+        <text class="desc-text">✨ 严选好物，品质生活首选</text>
+        <view class="space-stats">
+          <text class="stat-item">⭐ 平均{{premiumSpaceStats.avg_rating}}分好评</text>
+          <text class="stat-item">🔥 {{premiumSpaceStats.trending_count}}个热销</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索和筛选栏 -->
+  <view class="search-filter-bar">
+    <view class="search-box">
+      <icon class="search-icon" type="search" size="16" color="#999" />
+      <input 
+        class="search-input" 
+        placeholder="搜索商品..." 
+        value="{{searchKeyword}}" 
+        bindinput="onSearchInput"
+        confirm-type="search"
+      />
+      <view class="clear-search" wx:if="{{searchKeyword}}" bindtap="onClearSearch">
+        <icon type="clear" size="14" />
+      </view>
+    </view>
+    <view class="filter-button" bindtap="onToggleFilter">
+      <icon type="{{showFilter ? 'cancel' : 'info'}}" size="16" />
+      <text>筛选</text>
+    </view>
+  </view>
+
+  <!-- 筛选面板 -->
+  <view class="filter-panel" wx:if="{{showFilter}}">
+    <!-- 分类筛选 -->
+    <view class="filter-section">
+      <text class="filter-title">商品分类</text>
+      <scroll-view class="category-scroll" scroll-x>
+        <view class="category-list">
+          <text 
+            class="category-item {{currentFilter.category === 'all' ? 'active' : ''}}"
+            bindtap="onCategoryFilter"
+            data-category="all"
+          >全部</text>
+          <text 
+            class="category-item {{currentFilter.category === '优惠券' ? 'active' : ''}}"
+            bindtap="onCategoryFilter"
+            data-category="优惠券"
+          >优惠券</text>
+          <text 
+            class="category-item {{currentFilter.category === '数码产品' ? 'active' : ''}}"
+            bindtap="onCategoryFilter"
+            data-category="数码产品"
+          >数码产品</text>
+          <text 
+            class="category-item {{currentFilter.category === '生活用品' ? 'active' : ''}}"
+            bindtap="onCategoryFilter"
+            data-category="生活用品"
+          >生活用品</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 价格筛选 -->
+    <view class="filter-section">
+      <text class="filter-title">价格区间</text>
+      <view class="price-filter">
+        <text 
+          class="price-item {{currentFilter.priceMin === 0 && currentFilter.priceMax === 0 ? 'active' : ''}}"
+          bindtap="onPriceFilter"
+          data-min="0"
+          data-max="0"
+        >全部</text>
+        <text 
+          class="price-item {{currentFilter.priceMin === 0 && currentFilter.priceMax === 500 ? 'active' : ''}}"
+          bindtap="onPriceFilter"
+          data-min="0"
+          data-max="500"
+        >500以下</text>
+        <text 
+          class="price-item {{currentFilter.priceMin === 500 && currentFilter.priceMax === 1000 ? 'active' : ''}}"
+          bindtap="onPriceFilter"
+          data-min="500"
+          data-max="1000"
+        >500-1000</text>
+        <text 
+          class="price-item {{currentFilter.priceMin === 1000 && currentFilter.priceMax === 0 ? 'active' : ''}}"
+          bindtap="onPriceFilter"
+          data-min="1000"
+          data-max="0"
+        >1000以上</text>
+      </view>
+    </view>
+
+    <!-- 排序方式 -->
+    <view class="filter-section">
+      <text class="filter-title">排序方式</text>
+      <view class="sort-filter">
+        <text 
+          class="sort-item {{currentFilter.sort === 'time_desc' ? 'active' : ''}}"
+          bindtap="onSortChange"
+          data-sort="time_desc"
+        >最新发布</text>
+        <text 
+          class="sort-item {{currentFilter.sort === 'price_asc' ? 'active' : ''}}"
+          bindtap="onSortChange"
+          data-sort="price_asc"
+        >价格从低到高</text>
+        <text 
+          class="sort-item {{currentFilter.sort === 'price_desc' ? 'active' : ''}}"
+          bindtap="onSortChange"
+          data-sort="price_desc"
+        >价格从高到低</text>
+      </view>
+    </view>
+
+    <!-- 筛选操作 -->
+    <view class="filter-actions">
+      <button class="reset-btn" bindtap="onResetFilter">重置</button>
+      <button class="confirm-btn" bindtap="onToggleFilter">确定</button>
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="trade-list" wx:if="{{!loading}}">
+    <view 
+      class="trade-item" 
+      wx:for="{{filteredTrades}}" 
+      wx:key="trade_id"
+      bindtap="onTradeItemTap"
+      data-trade="{{item}}"
+    >
+      <!-- 商品图片 -->
+      <view class="commodity-image-wrapper">
+        <image 
+          class="commodity-image" 
+          src="{{item.commodity.image}}" 
+          mode="aspectFill"
+          bindtap="onPreviewImage"
+          data-url="{{item.commodity.image}}"
+          data-urls="{{item.trade_images || [item.commodity.image]}}"
+        />
+        <view class="discount-badge" wx:if="{{item.price_off_percent > 0}}">
+          省{{item.price_off_percent}}%
+        </view>
+      </view>
+
+      <!-- 商品信息 -->
+      <view class="commodity-details">
+        <view class="commodity-header">
+          <text class="commodity-name">{{item.commodity.name}}</text>
+          <text class="commodity-category">{{item.commodity.category}}</text>
+        </view>
+        
+        <text class="trade-description">{{item.trade_description}}</text>
+        
+        <!-- 价格信息 -->
+        <view class="price-info">
+          <view class="current-price">
+            <text class="price-symbol">积分</text>
+            <text class="price-value">{{item.price_points}}</text>
+          </view>
+          <view class="original-price" wx:if="{{item.commodity.original_points !== item.price_points}}">
+            原价 {{item.commodity.original_points}}积分
+          </view>
+        </view>
+
+        <!-- 卖家信息 -->
+        <view class="seller-info">
+          <image class="seller-avatar" src="{{item.seller_info.avatar_url}}" />
+          <view class="seller-details">
+            <text class="seller-name">{{item.seller_info.nickname}}</text>
+            <view class="seller-credit">
+              <text class="credit-score">⭐{{item.seller_info.credit_score}}</text>
+              <text class="trade-count">{{item.seller_info.trade_count}}笔交易</text>
+            </view>
+          </view>
+          <view class="seller-badge" wx:if="{{item.seller_info.success_rate >= 95}}">
+            <text>信用优秀</text>
+          </view>
+        </view>
+
+        <!-- 商品元信息 -->
+        <view class="trade-meta">
+          <text class="list-time">{{item.listed_at}}</text>
+          <text class="view-count">{{item.view_count}}次浏览</text>
+          <text class="favorite-count" wx:if="{{item.favorite_count > 0}}">
+            ♥ {{item.favorite_count}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="trade-actions">
+        <button 
+          class="favorite-btn {{item.is_favorite ? 'favorited' : ''}}"
+          bindtap="onToggleFavorite"
+          data-trade="{{item}}"
+        >
+          <icon type="{{item.is_favorite ? 'success' : 'info_circle'}}" size="16" />
+        </button>
+        <button 
+          class="buy-btn"
+          bindtap="onBuyButtonTap"
+          data-trade="{{item}}"
+        >
+          立即购买
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-item" wx:for="{{[1,2,3,4,5]}}" wx:key="*this">
+      <view class="loading-image"></view>
+      <view class="loading-content">
+        <view class="loading-line long"></view>
+        <view class="loading-line short"></view>
+        <view class="loading-line medium"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && filteredTrades.length === 0}}">
+    <image src="/images/empty-trade.png" class="empty-image" />
+    <text class="empty-text">暂无交易商品</text>
+    <text class="empty-hint">
+      {{searchKeyword ? '试试其他搜索词' : '快去库存中发布商品吧'}}
+    </text>
+    <button class="empty-action" wx:if="{{!searchKeyword}}" bindtap="onGoToInventory">
+      去我的库存
+    </button>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && !loading}}">
+    <view class="load-more-text" wx:if="{{!loadingMore}}">上拉加载更多</view>
+    <view class="load-more-loading" wx:if="{{loadingMore}}">
+      <text>加载中...</text>
+    </view>
+  </view>
+</view>
+
+<!-- 购买确认弹窗 -->
+<view class="modal-overlay" wx:if="{{showPurchaseModal}}" bindtap="onCancelPurchase">
+  <view class="purchase-modal" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">确认购买</text>
+      <icon class="close-icon" type="cancel" bindtap="onCancelPurchase" />
+    </view>
+
+    <view class="modal-content" wx:if="{{selectedTrade}}">
+      <!-- 商品信息 -->
+      <view class="purchase-product">
+        <image class="product-image" src="{{selectedTrade.commodity.image}}" />
+        <view class="product-info">
+          <text class="product-name">{{selectedTrade.commodity.name}}</text>
+          <text class="product-description">{{selectedTrade.trade_description}}</text>
+          <view class="product-price">
+            <text class="price-label">单价：</text>
+            <text class="price-value">{{selectedTrade.price_points}}积分</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 购买数量 -->
+      <view class="purchase-quantity">
+        <text class="quantity-label">购买数量：</text>
+        <view class="quantity-controls">
+          <button 
+            class="quantity-btn"
+            bindtap="onQuantityChange"
+            data-action="minus"
+            disabled="{{purchaseQuantity <= 1}}"
+          >-</button>
+          <text class="quantity-value">{{purchaseQuantity}}</text>
+          <button 
+            class="quantity-btn"
+            bindtap="onQuantityChange"
+            data-action="plus"
+            disabled="{{purchaseQuantity >= 10}}"
+          >+</button>
+        </view>
+      </view>
+
+      <!-- 买家留言 -->
+      <view class="purchase-message">
+        <text class="message-label">买家留言：</text>
+        <textarea 
+          class="message-input"
+          placeholder="给卖家留言（可选）"
+          value="{{buyerMessage}}"
+          bindinput="onMessageInput"
+          maxlength="100"
+        />
+      </view>
+
+      <!-- 费用明细 -->
+      <view class="purchase-summary">
+        <view class="summary-item">
+          <text class="summary-label">商品总价：</text>
+          <text class="summary-value">{{selectedTrade.price_points * purchaseQuantity}}积分</text>
+        </view>
+        <view class="summary-item total">
+          <text class="summary-label">需支付：</text>
+          <text class="summary-value">{{selectedTrade.price_points * purchaseQuantity}}积分</text>
+        </view>
+        <view class="summary-item balance">
+          <text class="summary-label">账户余额：</text>
+          <text class="summary-value">{{totalPoints}}积分</text>
+        </view>
+        <view class="summary-item remaining">
+          <text class="summary-label">购买后余额：</text>
+          <text class="summary-value {{totalPoints - selectedTrade.price_points * purchaseQuantity < 0 ? 'insufficient' : ''}}">
+            {{totalPoints - selectedTrade.price_points * purchaseQuantity}}积分
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <view class="modal-actions">
+      <button class="cancel-btn" bindtap="onCancelPurchase">取消</button>
+      <button 
+        class="confirm-btn"
+        bindtap="onConfirmPurchase"
+        disabled="{{totalPoints < selectedTrade.price_points * purchaseQuantity}}"
+      >
+        确认购买
+      </button>
+    </view>
+  </view>
+</view>
+
+<!-- 商品详情弹窗 -->
+<view class="modal-overlay" wx:if="{{showDetailModal}}" bindtap="onCloseDetail">
+  <view class="detail-modal" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">商品详情</text>
+      <icon class="close-icon" type="cancel" bindtap="onCloseDetail" />
+    </view>
+
+    <scroll-view class="modal-scroll" scroll-y wx:if="{{detailTrade}}">
+      <!-- 商品图片 -->
+      <view class="detail-images">
+        <swiper class="image-swiper" indicator-dots indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff">
+          <swiper-item>
+            <image 
+              class="detail-image" 
+              src="{{detailTrade.commodity.image}}" 
+              mode="aspectFit"
+              bindtap="onPreviewImage"
+              data-url="{{detailTrade.commodity.image}}"
+            />
+          </swiper-item>
+          <swiper-item wx:for="{{detailTrade.trade_images}}" wx:key="*this">
+            <image 
+              class="detail-image" 
+              src="{{item}}" 
+              mode="aspectFit"
+              bindtap="onPreviewImage"
+              data-url="{{item}}"
+            />
+          </swiper-item>
+        </swiper>
+      </view>
+
+      <!-- 商品基本信息 -->
+      <view class="detail-info">
+        <text class="detail-name">{{detailTrade.commodity.name}}</text>
+        <text class="detail-category">{{detailTrade.commodity.category}}</text>
+        <text class="detail-description">{{detailTrade.trade_description}}</text>
+        
+        <view class="detail-price">
+          <text class="current-price">{{detailTrade.price_points}}积分</text>
+          <text class="original-price" wx:if="{{detailTrade.commodity.original_points !== detailTrade.price_points}}">
+            原价 {{detailTrade.commodity.original_points}}积分
+          </text>
+          <view class="discount-tag" wx:if="{{detailTrade.price_off_percent > 0}}">
+            省{{detailTrade.price_off_percent}}%
+          </view>
+        </view>
+      </view>
+
+      <!-- 卖家详细信息 -->
+      <view class="detail-seller">
+        <view class="seller-header">
+          <image class="seller-avatar-large" src="{{detailTrade.seller_info.avatar_url}}" />
+          <view class="seller-info-detail">
+            <text class="seller-name-large">{{detailTrade.seller_info.nickname}}</text>
+            <view class="seller-stats">
+              <text class="stat-item">⭐ {{detailTrade.seller_info.credit_score}}</text>
+              <text class="stat-item">{{detailTrade.seller_info.trade_count}}笔交易</text>
+              <text class="stat-item">{{detailTrade.seller_info.success_rate}}%好评</text>
+            </view>
+          </view>
+          <button class="view-seller-btn" bindtap="onViewSellerInfo" data-seller-id="{{detailTrade.seller_info.user_id}}">
+            查看
+          </button>
+        </view>
+      </view>
+
+      <!-- 商品详细属性 -->
+      <view class="detail-attributes">
+        <view class="attribute-item">
+          <text class="attr-label">发布时间：</text>
+          <text class="attr-value">{{detailTrade.listed_at}}</text>
+        </view>
+        <view class="attribute-item">
+          <text class="attr-label">浏览次数：</text>
+          <text class="attr-value">{{detailTrade.view_count}}次</text>
+        </view>
+        <view class="attribute-item" wx:if="{{detailTrade.favorite_count > 0}}">
+          <text class="attr-label">收藏次数：</text>
+          <text class="attr-value">{{detailTrade.favorite_count}}次</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="detail-actions">
+      <button 
+        class="detail-favorite-btn {{detailTrade.is_favorite ? 'favorited' : ''}}"
+        bindtap="onToggleFavorite"
+        data-trade="{{detailTrade}}"
+      >
+        {{detailTrade.is_favorite ? '已收藏' : '收藏'}}
+      </button>
+      <button 
+        class="detail-buy-btn"
+        bindtap="onBuyButtonTap"
+        data-trade="{{detailTrade}}"
+      >
+        立即购买
+      </button>
+    </view>
+  </view>
+</view> 

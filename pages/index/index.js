@@ -399,5 +399,7 @@ Page({
       title: '餐厅积分系统 - 拍照赢积分',
       path: '/pages/index/index'
     }
-  }
+  },
+
+
 }) 

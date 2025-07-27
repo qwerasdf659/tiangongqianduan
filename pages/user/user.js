@@ -91,6 +91,39 @@ Page({
    */
   onLoad(options) {
     console.log('🔄 用户中心页面加载 - 权限简化版v2.2.0')
+    
+    // 🔧 关键修复：页面加载时强制恢复Token状态
+    console.log('🔄 强制恢复Token状态...')
+    const app = getApp()
+    if (app) {
+      try {
+        const storedToken = wx.getStorageSync('access_token')
+        const storedRefreshToken = wx.getStorageSync('refresh_token')
+        const storedUserInfo = wx.getStorageSync('user_info')
+        
+        console.log('📦 用户中心本地存储状态:', {
+          hasStoredToken: !!storedToken,
+          hasStoredUser: !!storedUserInfo,
+          currentGlobalToken: !!app.globalData.accessToken,
+          currentGlobalLogin: app.globalData.isLoggedIn
+        })
+        
+        // 如果本地存储有数据但全局状态丢失，立即恢复
+        if (storedToken && storedUserInfo && !app.globalData.accessToken) {
+          console.log('🔧 检测到Token状态丢失，立即恢复')
+          
+          app.globalData.accessToken = storedToken
+          app.globalData.refreshToken = storedRefreshToken
+          app.globalData.userInfo = storedUserInfo
+          app.globalData.isLoggedIn = true
+          
+          console.log('✅ 用户中心Token状态已恢复')
+        }
+      } catch (error) {
+        console.error('❌ Token状态恢复失败:', error)
+      }
+    }
+    
     this.initPage()
   },
 
@@ -1161,6 +1194,15 @@ Page({
         color: '#2196F3',
         type: 'page',
         url: '/pages/records/exchange-records'
+      },
+      {
+        id: 'my-inventory',
+        name: '我的库存',
+        description: '管理已兑换商品库存',
+        icon: '📦',
+        color: '#00BCD4',
+        type: 'page',
+        url: '/pages/trade/inventory/inventory'
       },
       {
         id: 'upload-records',

@@ -84,9 +84,10 @@ class ProductDisplayDiagnostic {
       return
     }
     
-    // 解码并检查过期时间
+    // 🔧 修复：使用微信小程序兼容的JWT解码函数
     try {
-      const payload = JSON.parse(atob(tokenParts[1]))
+      const { decodeJWTPayload } = require('./util.js')
+      const payload = decodeJWTPayload(accessToken)
       const now = Math.floor(Date.now() / 1000)
       
       if (payload.exp && payload.exp < now) {

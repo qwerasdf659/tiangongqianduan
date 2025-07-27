@@ -1,7 +1,68 @@
 <!-- pages/exchange/exchange.wxml - 商品兑换页面模板 -->
 <view class="exchange-container">
-  <!-- 页面头部 -->
-  <view class="header">
+  <!-- 🎯 水平排列导航模块 - 同一行显示两个按钮 -->
+  <view class="nav-module horizontal" hover-class="none">
+    <!-- 导航按钮容器 - 水平布局 -->
+    <view class="nav-buttons-row" hover-class="none">
+      <!-- 商品兑换 -->
+      <view 
+        class="nav-item nav-item-horizontal {{currentTab === 'exchange' ? 'active' : ''}}"
+        bindtap="onGoToExchange"
+        hover-class="none"
+      >
+        <view class="nav-content" hover-class="none">
+          <view class="icon-wrapper" hover-class="none">
+            <icon class="nav-icon" type="success" size="20" />
+          </view>
+          <view class="text-wrapper" hover-class="none">
+            <text class="nav-text">商品兑换</text>
+          </view>
+        </view>
+        <view class="nav-status current" wx:if="{{currentTab === 'exchange'}}">当前</view>
+      </view>
+      
+      <!-- 交易市场 -->
+      <view 
+        class="nav-item nav-item-horizontal {{currentTab === 'market' ? 'active' : 'trade-market-nav'}}" 
+        bindtap="onGoToTradeMarket"
+        hover-class="none"
+      >
+        <view class="nav-content" hover-class="none">
+          <!-- 导航图标容器 -->
+          <view class="nav-icon-container" hover-class="none">
+            <view class="icon-wrapper" hover-class="none">
+              <icon class="nav-icon" type="download" size="20" />
+            </view>
+          </view>
+          
+          <!-- 导航文字 -->
+          <view class="text-wrapper" hover-class="none">
+            <text class="nav-text">交易市场</text>
+          </view>
+          
+          <!-- 导航箭头已移除 -->
+        </view>
+        
+        <!-- 当前状态标签 -->
+        <view class="nav-status current" wx:if="{{currentTab === 'market'}}">当前</view>
+        
+        <!-- 切换进度指示器已移除 -->
+        
+        <!-- 波纹效果已移除 -->
+        
+        <!-- 悬浮提示已移除 -->
+      </view>
+    </view>
+    
+    <!-- 导航状态指示器已移除 -->
+  </view>
+
+  <!-- 内容切换遮罩已移除 -->
+
+  <!-- 🎯 商品兑换内容区域 -->
+    <view wx:if="{{currentTab === 'exchange'}}" class="exchange-content">
+    <!-- 页面头部 -->
+    <view class="header">
     <view class="user-info">
       <text class="welcome">🎁 商品兑换</text>
       <view class="points-info">
@@ -207,15 +268,29 @@
       >
         <!-- 商品图片 -->
         <view class="product-image-container">
+          <!-- 图片加载状态指示器 -->
+          <view wx:if="{{item.imageStatus === 'loading'}}" class="image-loading">
+            <text class="loading-text">加载中...</text>
+          </view>
+          
+          <!-- 商品图片 -->
           <image 
-            class="product-image" 
+            class="product-image {{item.imageStatus === 'error' ? 'image-error' : ''}}" 
             src="{{item.image}}" 
             mode="aspectFill"
             bindtap="onPreviewImage"
             binderror="onImageError"
+            bindload="onImageLoad"
             data-url="{{item.image}}"
             data-index="{{index}}"
+            data-image-id="product_{{index}}"
+            data-src="{{item.image}}"
           />
+          
+          <!-- 图片加载失败提示 -->
+          <view wx:if="{{item.imageStatus === 'error'}}" class="image-error-tip">
+            <text class="error-text">图片加载失败</text>
+          </view>
           
           <!-- 热门标签 -->
           <view class="hot-badge" wx:if="{{item.is_hot}}">
@@ -381,6 +456,7 @@
     <button class="action-btn" bindtap="onSortByPoints">
       📊 按积分排序
     </button>
+
   </view>
 
   <!-- 兑换确认弹窗 -->
@@ -454,16 +530,389 @@
     </view>
   </view>
 
-  <!-- 规则说明 -->
-  <view class="rules-section" wx:if="{{!loading}}">
-    <view class="section-title">
-      <text>兑换规则</text>
+    <!-- 规则说明 -->
+    <view class="rules-section" wx:if="{{!loading}}">
+      <view class="section-title">
+        <text>兑换规则</text>
+      </view>
+      <view class="rules-content">
+        <view class="rule-item">• 限量商品，换完即止</view>
+        <view class="rule-item">• 库存实时同步，先到先得</view>
+        <view class="rule-item">• 兑换成功后请凭编号领取</view>
+        <view class="rule-item">• 积分一经兑换不可退回</view>
+      </view>
     </view>
-    <view class="rules-content">
-      <view class="rule-item">• 限量商品，换完即止</view>
-      <view class="rule-item">• 库存实时同步，先到先得</view>
-              <view class="rule-item">• 兑换成功后请凭编号领取</view>
-      <view class="rule-item">• 积分一经兑换不可退回</view>
+  </view>
+
+  <!-- 🏪 双空间交易市场系统 -->
+  <view wx:if="{{currentTab === 'market'}}" class="dual-space-market">
+    
+    <!-- 🎯 空间切换导航 -->
+    <view class="space-selector">
+      <view class="selector-background"></view>
+      <view 
+        class="space-tab {{item.id === currentSpace ? 'active' : ''}} {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? 'locked' : ''}}"
+        wx:for="{{spaceList}}" 
+        wx:key="id"
+        data-space="{{item.id}}"
+        bindtap="onSpaceChange"
+        style="color: {{item.id === currentSpace ? item.color : (item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '#ccc' : '#666')}}"
+      >
+        <view class="tab-content">
+          <text class="tab-name">
+            {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '🔒' : ''}}{{item.name}}
+          </text>
+          <text class="tab-subtitle">
+            {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '需解锁' : item.subtitle}}
+          </text>
+        </view>
+        <view wx:if="{{item.id === currentSpace}}" class="active-indicator" style="background: {{item.color}}"></view>
+        
+        <!-- 🔒 臻选空间解锁状态指示器 -->
+        <view wx:if="{{item.id === 'premium'}}" class="unlock-status">
+          <!-- 已解锁状态 -->
+          <view wx:if="{{premiumUnlockStatus.isUnlocked}}" class="unlock-indicator unlocked">
+            <text class="unlock-icon">✅</text>
+            <text class="unlock-text">已解锁</text>
+          </view>
+          <!-- 未解锁状态 -->
+          <view wx:else class="unlock-indicator locked">
+            <text class="unlock-icon">🔐</text>
+            <text class="unlock-text">
+              {{premiumUnlockStatus.canUnlock ? '可解锁' : '未解锁'}}
+            </text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 🍀 幸运空间 - 方案1：瀑布流卡片布局 -->
+    <view wx:if="{{currentSpace === 'lucky'}}" class="lucky-space-content">
+      
+      <!-- 空间标题区 -->
+      <view class="space-header lucky-header">
+        <view class="header-background"></view>
+        <view class="header-content">
+          <view class="space-info">
+            <text class="space-title">🍀 幸运空间</text>
+            <text class="space-description">幸运好物，与你相遇</text>
+          </view>
+          <!-- 统计数据已移除 -->
+        </view>
+      </view>
+
+      <!-- 瀑布流商品容器 -->
+      <view class="waterfall-container" style="height: {{containerHeight}}px;">
+        <view 
+          class="waterfall-item"
+          wx:for="{{waterfallProducts}}" 
+          wx:key="id"
+          style="position: absolute; left: {{item.left}}px; top: {{item.top}}px; width: {{item.width}}px;"
+        >
+          <!-- 商品图片 -->
+          <view class="waterfall-image-wrapper">
+            <image 
+              class="waterfall-image" 
+              src="{{item.image}}" 
+              mode="aspectFill" 
+            />
+            <!-- 折扣标签 -->
+            <view class="discount-badge" wx:if="{{item.discount > 0}}">
+              <text class="discount-text">{{item.discount}}%OFF</text>
+            </view>
+            <!-- 幸运标签 -->
+            <view class="lucky-badge" wx:if="{{item.isLucky}}">🍀</view>
+          </view>
+
+          <!-- 商品信息 -->
+          <view class="waterfall-info">
+            <text class="waterfall-title">{{item.name}}</text>
+            
+            <!-- 价格信息 -->
+            <view class="waterfall-price">
+              <text class="current-price">¥{{item.price}}</text>
+              <text class="original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+            </view>
+            
+            <!-- 评分和销量 -->
+            <view class="waterfall-stats">
+              <view class="rating-section">
+                <text class="rating-stars">⭐</text>
+                <text class="rating-score">{{item.rating}}</text>
+              </view>
+              <text class="sales-count">已售{{item.sales}}</text>
+            </view>
+            
+            <!-- 标签 -->
+            <view class="waterfall-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+              <text 
+                class="tag"
+                wx:for="{{item.tags}}" 
+                wx:key="*this"
+                wx:for-item="tag"
+              >{{tag}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-waterfall" wx:if="{{waterfallProducts.length === 0}}">
+        <view class="empty-icon">🍀</view>
+        <text class="empty-text">幸运空间准备中</text>
+        <text class="empty-hint">好运即将到来</text>
+      </view>
+
+    </view>
+
+    <!-- 💎 臻选空间 - 混合展示布局（方案3） -->
+    <view wx:if="{{currentSpace === 'premium'}}" class="premium-space-content mixed-layout">
+      
+      <!-- 空间标题区 -->
+      <view class="space-header premium-header mixed-header">
+        <view class="header-background mixed-bg"></view>
+        <view class="header-content">
+          <view class="space-info">
+            <text class="space-title">💎 臻选空间</text>
+            <text class="space-description">三层式混合展示，精品一网打尽</text>
+          </view>
+          <view class="space-stats">
+            <view class="stat-item">
+              <text class="stat-number">{{carouselItems.length + cardSections.length + listProducts.length}}+</text>
+              <text class="stat-label">精品数量</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-number">{{premiumSpaceStats.avg_rating}}</text>
+              <text class="stat-label">平均评分</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 第一层：轮播推荐区 -->
+      <view class="carousel-section" wx:if="{{carouselItems && carouselItems.length > 0}}">
+        <view class="section-header">
+          <text class="section-title">🎠 精选推荐</text>
+          <text class="section-subtitle">品质之选，值得拥有</text>
+        </view>
+              <swiper 
+          class="premium-carousel"
+          autoplay="{{autoPlay}}" 
+          interval="{{mixedLayoutConfig.carouselInterval || 4000}}"
+          duration="500"
+          circular="{{true}}"
+          indicator-dots="{{true}}"
+          indicator-color="rgba(255,255,255,0.5)"
+          indicator-active-color="#ffffff"
+          current="{{carouselActiveIndex}}"
+          bindchange="onCarouselChange"
+        >
+        <swiper-item 
+          wx:for="{{carouselItems}}" 
+          wx:key="id"
+          class="carousel-item"
+            data-product="{{item}}"
+            bindtap="onProductTap"
+        >
+            <view class="carousel-card" style="background: {{item.background}}">
+              <image class="carousel-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="carousel-content">
+                <view class="carousel-badges">
+                  <text class="discount-badge" wx:if="{{item.discount}}">-{{item.discount}}%</text>
+                  <text class="rating-badge">⭐{{item.rating}}</text>
+                </view>
+                <text class="carousel-title">{{item.title}}</text>
+                <text class="carousel-subtitle">{{item.subtitle}}</text>
+                <view class="carousel-price-section">
+                  <text class="carousel-price">¥{{item.price}}</text>
+                  <text class="carousel-original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+                </view>
+                <view class="carousel-tags">
+                  <text class="carousel-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+              </view>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
+
+      <!-- 第二层：横向滑动卡片组 -->
+      <view class="card-sections" wx:if="{{cardSections && cardSections.length > 0}}">
+      <view 
+        class="card-section"
+        wx:for="{{cardSections}}" 
+        wx:key="id"
+          wx:for-item="section"
+      >
+          <view class="section-header card-section-header" style="background: {{section.backgroundColor}}">
+            <view class="section-title-wrapper">
+              <text class="section-icon">{{section.icon}}</text>
+              <view class="section-titles">
+                <text class="section-title" style="color: {{section.titleColor}}">{{section.title}}</text>
+                <text class="section-subtitle">{{section.subtitle}}</text>
+          </view>
+          </view>
+        </view>
+
+          <scroll-view class="card-scroll-view" scroll-x enable-flex>
+            <view class="card-container">
+          <view 
+                class="section-card"
+                wx:for="{{section.products}}"
+            wx:key="id"
+            wx:for-item="product"
+                data-product="{{product}}"
+                bindtap="onProductTap"
+          >
+            <view class="card-image-wrapper">
+                  <image class="section-card-image" src="{{product.image}}" mode="aspectFill"></image>
+                  <view class="card-badges">
+                    <text class="discount-badge" wx:if="{{product.discount}}">-{{product.discount}}%</text>
+                    <text class="hot-badge" wx:if="{{product.isHot}}">热销</text>
+                    <text class="new-badge" wx:if="{{product.isNew}}">新品</text>
+              </view>
+            </view>
+                <view class="section-card-content">
+                  <text class="section-card-name">{{product.name}}</text>
+                  <text class="section-card-sellpoint">{{product.sellPoint}}</text>
+                  <view class="section-card-price">
+                <text class="current-price">¥{{product.price}}</text>
+                <text class="original-price" wx:if="{{product.originalPrice}}">¥{{product.originalPrice}}</text>
+              </view>
+                  <view class="section-card-meta">
+                    <text class="rating">⭐{{product.rating}}</text>
+                    <text class="sales">销量{{product.sales}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+      <!-- 第三层：详细列表区 -->
+      <view class="list-section" wx:if="{{listProducts && listProducts.length > 0}}">
+        <view class="section-header list-section-header">
+          <text class="section-title">📝 更多精品</text>
+          <text class="section-subtitle">详细信息，理性选择</text>
+      </view>
+
+        <view class="list-container">
+        <view 
+          class="list-item"
+          wx:for="{{listProducts}}" 
+          wx:key="id"
+            data-product="{{item}}"
+            bindtap="onProductTap"
+        >
+            <image class="list-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view class="list-content">
+            <view class="list-header">
+              <text class="list-title">{{item.name}}</text>
+                <view class="list-badges">
+                  <text class="warranty-badge" wx:if="{{item.hasWarranty}}">质保</text>
+                  <text class="shipping-badge" wx:if="{{item.freeShipping}}">包邮</text>
+              </view>
+            </view>
+
+              <text class="list-description" wx:if="{{item.showDescription}}">{{item.description}}</text>
+              
+              <view class="list-seller" wx:if="{{item.showSeller}}">
+                <text class="seller-name">{{item.seller.name}}</text>
+                <text class="seller-rating">⭐{{item.seller.rating}}</text>
+                <text class="seller-sales">{{item.seller.sales}}+销量</text>
+              </view>
+
+            <view class="list-price-section">
+              <view class="price-info">
+                <text class="list-current-price">¥{{item.price}}</text>
+                <text class="list-original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+                  <text class="discount-text" wx:if="{{item.discount}}">省{{item.discount}}%</text>
+              </view>
+                <view class="delivery-info">
+                  <text class="delivery-time">{{item.estimatedDelivery}}</text>
+              </view>
+            </view>
+
+              <view class="list-meta">
+                <text class="detailed-rating">⭐{{item.rating}}</text>
+                <text class="sales-count">销量{{item.sales}}</text>
+                <text class="return-policy">{{item.returnPolicy}}</text>
+            </view>
+          </view>
+        </view>
+        </view>
+      </view>
+
+      
+
+        <!-- 空状态 -->
+      <view class="empty-mixed" wx:if="{{(!carouselItems || carouselItems.length === 0) && (!cardSections || cardSections.length === 0) && (!listProducts || listProducts.length === 0)}}">
+          <view class="empty-icon">💎</view>
+        <text class="empty-text">臻选空间即将精彩呈现</text>
+        <text class="empty-hint">三层式混合展示布局正在准备中</text>
+        </view>
+
+      </view>
+
+    <!-- 🚫 交易市场空状态 - 只保留绿色背景 -->
+    <view class="empty-dual-space" wx:if="{{(currentSpace === 'lucky' && waterfallProducts.length === 0) || (currentSpace === 'premium' && premiumProducts.length === 0)}}">
+      <!-- 内容已移除，只保留绿色背景 -->
+    </view>
+
+  </view>
+
+  <!-- 🎯 竞价弹窗 -->
+  <view class="bid-modal-overlay" wx:if="{{showBidModal}}" bindtap="onCancelBid">
+    <view class="bid-modal" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">🎯 参与竞价</text>
+        <view class="close-btn" bindtap="onCancelBid">×</view>
+      </view>
+      
+      <view class="modal-content" wx:if="{{selectedBidProduct}}">
+        <!-- 商品信息 -->
+        <view class="bid-product-info">
+          <image class="bid-product-image" src="{{selectedBidProduct.image}}" />
+          <view class="bid-product-details">
+            <text class="bid-product-name">{{selectedBidProduct.name}}</text>
+            <text class="bid-product-category">{{selectedBidProduct.category}}</text>
+            <view class="current-bid-info">
+              <text class="current-bid-label">当前最高价：</text>
+              <text class="current-bid-price">{{selectedBidProduct.current_price}}积分</text>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 竞价输入 -->
+        <view class="bid-input-section">
+          <text class="input-label">您的出价：</text>
+          <view class="bid-input-wrapper">
+            <input 
+              class="bid-input"
+              type="number"
+              placeholder="{{selectedBidProduct.current_price + selectedBidProduct.min_bid_increment}}"
+              value="{{userBidAmount}}"
+              bindinput="onBidAmountInput"
+            />
+            <text class="input-unit">积分</text>
+          </view>
+          <text class="bid-hint">最小出价：{{selectedBidProduct.current_price + selectedBidProduct.min_bid_increment}}积分</text>
+        </view>
+        
+        <!-- 竞价说明 -->
+        <view class="bid-instructions">
+          <text class="instruction-title">💡 竞价说明：</text>
+          <text class="instruction-item">• 出价成功后不可撤回</text>
+          <text class="instruction-item">• 每次加价不少于{{selectedBidProduct.min_bid_increment}}积分</text>
+          <text class="instruction-item">• 竞价结束时最高价者获得商品</text>
+        </view>
+      </view>
+      
+      <view class="modal-actions">
+        <button class="cancel-bid-btn" bindtap="onCancelBid">取消</button>
+        <button class="confirm-bid-btn" bindtap="onConfirmBid">确认竞价</button>
+      </view>
     </view>
   </view>
 </view> 

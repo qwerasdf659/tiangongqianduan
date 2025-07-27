@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的库存",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#f8f9fa"
+} 

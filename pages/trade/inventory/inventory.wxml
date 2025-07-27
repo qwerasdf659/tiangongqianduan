@@ -1,0 +1,396 @@
+<!-- pages/trade/inventory/inventory.wxml - 我的库存页面模板 -->
+<view class="inventory-container">
+  <!-- 页面头部 -->
+  <view class="header">
+    <view class="user-info">
+      <text class="welcome">📦 我的库存</text>
+      <view class="points-info">
+        <text class="points-label">当前积分：</text>
+        <text class="points-value">{{totalPoints}}</text>
+      </view>
+    </view>
+    
+    <!-- 库存统计 -->
+    <view class="stats-bar">
+      <view class="stat-item">
+        <text class="stat-number">{{stats.total}}</text>
+        <text class="stat-label">总计</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.available}}</text>
+        <text class="stat-label">可用</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.for_sale}}</text>
+        <text class="stat-label">上架中</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.sold}}</text>
+        <text class="stat-label">已售出</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索和筛选栏 -->
+  <view class="search-filter-bar">
+    <view class="search-box">
+      <icon class="search-icon" type="search" size="16" color="#999" />
+      <input 
+        class="search-input" 
+        placeholder="搜索商品..." 
+        value="{{searchKeyword}}" 
+        bindinput="onSearchInput"
+        confirm-type="search"
+      />
+      <view class="clear-search" wx:if="{{searchKeyword}}" bindtap="onClearSearch">
+        <icon type="clear" size="14" />
+      </view>
+    </view>
+    <view class="edit-button" bindtap="onToggleEditMode">
+      <text>{{editMode ? '完成' : '编辑'}}</text>
+    </view>
+  </view>
+
+  <!-- 状态筛选 -->
+  <view class="status-filter">
+    <scroll-view class="filter-scroll" scroll-x>
+      <view class="filter-list">
+        <text 
+          class="filter-item {{currentStatus === 'all' ? 'active' : ''}}"
+          bindtap="onStatusFilter"
+          data-status="all"
+        >全部</text>
+        <text 
+          class="filter-item {{currentStatus === 'available' ? 'active' : ''}}"
+          bindtap="onStatusFilter"
+          data-status="available"
+        >可用</text>
+        <text 
+          class="filter-item {{currentStatus === 'for_sale' ? 'active' : ''}}"
+          bindtap="onStatusFilter"
+          data-status="for_sale"
+        >上架中</text>
+        <text 
+          class="filter-item {{currentStatus === 'sold' ? 'active' : ''}}"
+          bindtap="onStatusFilter"
+          data-status="sold"
+        >已售出</text>
+        <text 
+          class="filter-item {{currentStatus === 'used' ? 'active' : ''}}"
+          bindtap="onStatusFilter"
+          data-status="used"
+        >已使用</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 批量操作栏 -->
+  <view class="batch-actions" wx:if="{{editMode}}">
+    <view class="select-info">
+      <button class="select-all-btn" bindtap="onSelectAll">
+        {{selectedItems.length === filteredInventory.length && filteredInventory.length > 0 ? '取消全选' : '全选'}}
+      </button>
+      <text class="select-count">已选择 {{selectedItems.length}} 件</text>
+    </view>
+    <view class="action-buttons">
+      <button class="batch-btn" bindtap="onBatchPublish" disabled="{{selectedItems.length === 0}}">
+        批量发布
+      </button>
+      <button class="batch-btn" bindtap="onBatchUse" disabled="{{selectedItems.length === 0}}">
+        批量使用
+      </button>
+    </view>
+  </view>
+
+  <!-- 库存商品列表 -->
+  <view class="inventory-list" wx:if="{{!loading}}">
+    <view 
+      class="inventory-item {{editMode ? 'edit-mode' : ''}}"
+      wx:for="{{filteredInventory}}" 
+      wx:key="inventory_id"
+      bindtap="onInventoryItemTap"
+      data-item="{{item}}"
+    >
+      <!-- 编辑模式选择框 -->
+      <view class="select-checkbox" wx:if="{{editMode}}" 
+            bindtap="onItemSelect" 
+            data-id="{{item.inventory_id}}"
+            catchtap="">
+        <icon 
+          type="{{selectedItems.indexOf(item.inventory_id) > -1 ? 'success' : 'circle'}}" 
+          size="18" 
+          color="{{selectedItems.indexOf(item.inventory_id) > -1 ? '#FF6B35' : '#ccc'}}"
+        />
+      </view>
+
+      <!-- 商品图片 -->
+      <view class="item-image-wrapper">
+        <image 
+          class="item-image" 
+          src="{{item.commodity.image}}" 
+          mode="aspectFill"
+          bindtap="onPreviewImage"
+          data-url="{{item.commodity.image}}"
+          catchtap=""
+        />
+        <view class="status-badge status-{{item.status}}">
+          {{item.status === 'available' ? '可用' : 
+            item.status === 'for_sale' ? '上架中' : 
+            item.status === 'sold' ? '已售出' : '已使用'}}
+        </view>
+      </view>
+
+      <!-- 商品信息 -->
+      <view class="item-details">
+        <view class="item-header">
+          <text class="item-name">{{item.commodity.name}}</text>
+          <text class="item-category">{{item.commodity.category}}</text>
+        </view>
+        
+        <view class="item-meta">
+          <text class="obtained-date">获得时间：{{item.obtained_at}}</text>
+          <text class="original-points">原价：{{item.commodity.exchange_points}}积分</text>
+        </view>
+
+        <!-- 交易信息（如果已上架） -->
+        <view class="trade-info" wx:if="{{item.status === 'for_sale' && item.trade_info}}">
+          <text class="trade-price">售价：{{item.trade_info.price_points}}积分</text>
+          <text class="trade-views">{{item.trade_info.view_count}}次浏览</text>
+        </view>
+
+        <!-- 售出信息 -->
+        <view class="sold-info" wx:if="{{item.status === 'sold' && item.sold_info}}">
+          <text class="sold-price">已售出：{{item.sold_info.price_points}}积分</text>
+          <text class="sold-date">{{item.sold_info.sold_at}}</text>
+        </view>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="item-actions" wx:if="{{!editMode}}">
+        <!-- 可用状态的操作 -->
+        <view wx:if="{{item.status === 'available'}}">
+          <button 
+            class="action-btn publish-btn"
+            bindtap="onPublishTradeTap"
+            data-item="{{item}}"
+            catchtap=""
+          >
+            发布交易
+          </button>
+          <button 
+            class="action-btn use-btn"
+            bindtap="onUseItem"
+            data-item="{{item}}"
+            catchtap=""
+          >
+            使用
+          </button>
+        </view>
+        
+        <!-- 上架中状态的操作 -->
+        <view wx:if="{{item.status === 'for_sale'}}">
+          <button 
+            class="action-btn market-btn"
+            bindtap="onGoToMarket"
+            catchtap=""
+          >
+            查看市场
+          </button>
+        </view>
+        
+        <!-- 其他状态显示 -->
+        <view wx:if="{{item.status === 'sold' || item.status === 'used'}}">
+          <text class="status-text">
+            {{item.status === 'sold' ? '已售出' : '已使用'}}
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-item" wx:for="{{[1,2,3,4,5]}}" wx:key="*this">
+      <view class="loading-image"></view>
+      <view class="loading-content">
+        <view class="loading-line long"></view>
+        <view class="loading-line short"></view>
+        <view class="loading-line medium"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && filteredInventory.length === 0}}">
+    <image src="/images/empty-inventory.png" class="empty-image" />
+    <text class="empty-text">暂无库存商品</text>
+    <text class="empty-hint">
+      {{searchKeyword ? '试试其他搜索词' : '快去兑换商品丰富库存吧'}}
+    </text>
+    <button class="empty-action" wx:if="{{!searchKeyword}}" bindtap="onGoToExchange">
+      去商品兑换
+    </button>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && !loading}}">
+    <view class="load-more-text" wx:if="{{!loadingMore}}">上拉加载更多</view>
+    <view class="load-more-loading" wx:if="{{loadingMore}}">
+      <text>加载中...</text>
+    </view>
+  </view>
+</view>
+
+<!-- 发布交易弹窗 -->
+<view class="modal-overlay" wx:if="{{showPublishModal}}" bindtap="onCancelPublish">
+  <view class="publish-modal" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">发布交易</text>
+      <icon class="close-icon" type="cancel" bindtap="onCancelPublish" />
+    </view>
+
+    <view class="modal-content" wx:if="{{selectedInventory}}">
+      <!-- 商品信息 -->
+      <view class="publish-product">
+        <image class="product-image" src="{{selectedInventory.commodity.image}}" />
+        <view class="product-info">
+          <text class="product-name">{{selectedInventory.commodity.name}}</text>
+          <text class="product-category">{{selectedInventory.commodity.category}}</text>
+          <text class="original-price">原价：{{selectedInventory.commodity.exchange_points}}积分</text>
+        </view>
+      </view>
+
+      <!-- 价格设置 -->
+      <view class="form-section">
+        <text class="form-label">售价设置</text>
+        <view class="price-input-wrapper">
+          <input 
+            class="price-input"
+            type="number"
+            placeholder="输入售价"
+            value="{{publishForm.pricePoints}}"
+            bindinput="onPublishFormInput"
+            data-field="pricePoints"
+          />
+          <text class="price-unit">积分</text>
+        </view>
+        <text class="price-hint">建议价格：{{Math.floor(selectedInventory.commodity.exchange_points * 0.6)}} - {{Math.floor(selectedInventory.commodity.exchange_points * 0.9)}}积分</text>
+      </view>
+
+      <!-- 商品描述 -->
+      <view class="form-section">
+        <text class="form-label">商品描述</text>
+        <textarea 
+          class="description-input"
+          placeholder="描述商品状况、使用情况等"
+          value="{{publishForm.description}}"
+          bindinput="onPublishFormInput"
+          data-field="description"
+          maxlength="200"
+        />
+        <text class="input-count">{{publishForm.description.length}}/200</text>
+      </view>
+
+      <!-- 交易设置 -->
+      <view class="form-section">
+        <view class="setting-item">
+          <text class="setting-label">自动接受交易</text>
+          <switch 
+            class="setting-switch"
+            checked="{{publishForm.autoAccept}}"
+            bindchange="onAutoAcceptSwitch"
+          />
+        </view>
+        <text class="setting-hint">开启后买家下单即自动成交</text>
+      </view>
+
+      <!-- 有效期设置 -->
+      <view class="form-section">
+        <text class="form-label">有效期</text>
+        <view class="expire-options">
+          <text 
+            class="expire-item {{publishForm.expiresDays === 7 ? 'active' : ''}}"
+            bindtap="onExpireDaysChange"
+            data-days="7"
+          >7天</text>
+          <text 
+            class="expire-item {{publishForm.expiresDays === 15 ? 'active' : ''}}"
+            bindtap="onExpireDaysChange"
+            data-days="15"
+          >15天</text>
+          <text 
+            class="expire-item {{publishForm.expiresDays === 30 ? 'active' : ''}}"
+            bindtap="onExpireDaysChange"
+            data-days="30"
+          >30天</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="modal-actions">
+      <button class="cancel-btn" bindtap="onCancelPublish">取消</button>
+      <button class="confirm-btn" bindtap="onConfirmPublish">确认发布</button>
+    </view>
+  </view>
+</view>
+
+<!-- 商品详情弹窗 -->
+<view class="modal-overlay" wx:if="{{showDetailModal}}" bindtap="onCloseDetail">
+  <view class="detail-modal" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">商品详情</text>
+      <icon class="close-icon" type="cancel" bindtap="onCloseDetail" />
+    </view>
+
+    <scroll-view class="modal-scroll" scroll-y wx:if="{{detailInventory}}">
+      <!-- 商品图片 -->
+      <view class="detail-image-wrapper">
+        <image 
+          class="detail-image" 
+          src="{{detailInventory.commodity.image}}" 
+          mode="aspectFit"
+          bindtap="onPreviewImage"
+          data-url="{{detailInventory.commodity.image}}"
+        />
+        <view class="detail-status-badge status-{{detailInventory.status}}">
+          {{detailInventory.status === 'available' ? '可用' : 
+            detailInventory.status === 'for_sale' ? '上架中' : 
+            detailInventory.status === 'sold' ? '已售出' : '已使用'}}
+        </view>
+      </view>
+
+      <!-- 商品基本信息 -->
+      <view class="detail-info">
+        <text class="detail-name">{{detailInventory.commodity.name}}</text>
+        <text class="detail-category">{{detailInventory.commodity.category}}</text>
+        <text class="detail-points">原价：{{detailInventory.commodity.exchange_points}}积分</text>
+        <text class="detail-obtained">获得时间：{{detailInventory.obtained_at}}</text>
+        
+        <!-- 交易信息 -->
+        <view class="detail-trade-info" wx:if="{{detailInventory.trade_info}}">
+          <text class="trade-title">交易信息</text>
+          <text class="trade-detail">售价：{{detailInventory.trade_info.price_points}}积分</text>
+          <text class="trade-detail">浏览：{{detailInventory.trade_info.view_count}}次</text>
+          <text class="trade-detail">发布时间：{{detailInventory.trade_info.listed_at}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="detail-actions" wx:if="{{detailInventory.status === 'available'}}">
+      <button 
+        class="detail-action-btn"
+        bindtap="onPublishTradeTap"
+        data-item="{{detailInventory}}"
+      >
+        发布交易
+      </button>
+      <button 
+        class="detail-action-btn use-btn"
+        bindtap="onUseItem"
+        data-item="{{detailInventory}}"
+      >
+        使用商品
+      </button>
+    </view>
+  </view>
+</view> 

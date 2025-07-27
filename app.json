@@ -10,7 +10,9 @@
     "pages/points-detail/points-detail",
     "pages/records/lottery-records",
     "pages/records/exchange-records",
-    "pages/records/upload-records"
+    "pages/records/upload-records",
+    "pages/trade/market/market",
+    "pages/trade/inventory/inventory"
   ],
   "window": {
     "backgroundTextStyle": "light",

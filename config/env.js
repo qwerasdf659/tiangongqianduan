@@ -33,8 +33,7 @@ const ENV = {
       adminTriggerTimeout: 2000,          // 触发超时时间（2秒内有效）
       
       // 📞 短信相关服务暂停 - v2.1.3开发阶段限制
-      disableSmsService: true,            // 禁用短信服务调用
-      mockSmsResponse: true,              // 模拟短信发送成功响应
+      disableSmsService: true,            // 禁用短信服务调用（开发测试阶段）
       
       // 🔧 WebSocket连接优化 - 基于用户规则修复
       enableWebSocket: false,             // 🔧 暂时禁用WebSocket连接，避免503错误
@@ -47,8 +46,7 @@ const ENV = {
       // 🗄️ 数据库设计预留 - v2.1.3规范要求
       preserveSmsFields: true,            // 保留短信验证相关字段结构
       autoCreateUser: true,               // 自动创建新用户
-      // 🔴 删除违规配置：新用户初始积分应由后端决定，不应在前端配置
-      // mockInitialPoints: 1000,         // 已删除：违反项目安全规则
+      // 🔴 新用户积分由后端决定，严禁前端硬编码
       
       // 🔌 接口预留配置 - 便于后续集成
       reserveProductionApis: true,        // 预留生产环境接口
@@ -56,7 +54,6 @@ const ENV = {
       verboseLogging: true,               // 详细日志输出
       
       // 💡 开发建议实现 - v2.1.3优化
-      mockResponseDelay: 300,             // 模拟响应延迟（优化到300ms）
       showDevelopmentTips: false,         // 🔧 已关闭开发阶段提示（根据用户要求）
       enableDevelopmentTools: true,       // 启用开发工具
       

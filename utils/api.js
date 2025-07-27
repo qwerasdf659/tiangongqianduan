@@ -1,9 +1,11 @@
 // utils/api.js - API接口请求封装（完全符合接口对接规范文档标准）
 const app = getApp()
+const { decodeJWTPayload, decodeJWTHeader } = require('./util.js')
 
 /**
  * 🔴 增强版Token验证函数 - 修复商品显示空白问题
  * 🎯 解决JWT认证失败导致的401错误
+ * 🔧 修复微信小程序atob兼容性问题
  */
 const validateToken = (token) => {
   console.log('🔍 开始Token验证...')
@@ -35,9 +37,9 @@ const validateToken = (token) => {
   }
   
   try {
-    // 解码Header和Payload
-    const header = JSON.parse(atob(parts[0]))
-    const payload = JSON.parse(atob(parts[1]))
+    // 🔴 修复：使用微信小程序兼容的解码函数替代atob()
+    const header = decodeJWTHeader(token)
+    const payload = decodeJWTPayload(token)
     const now = Math.floor(Date.now() / 1000)
     
     console.log('🔍 JWT解码成功:', {
@@ -826,6 +828,39 @@ const exchangeAPI = {
       method: 'GET',
       needAuth: true
     })
+  },
+
+  /**
+   * 🔧 获取轮播商品数据
+   */
+  getCarouselProducts() {
+    return request({
+      url: '/exchange/carousel-products',
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取卡片商品数据
+   */
+  getCardProducts() {
+    return request({
+      url: '/exchange/card-products',
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取列表商品数据
+   */
+  getListProducts() {
+    return request({
+      url: '/exchange/list-products',
+      method: 'GET',
+      needAuth: true
+    })
   }
 }
 
@@ -1126,6 +1161,17 @@ const userAPI = {
       method: 'POST',
       needAuth: true
     })
+  },
+
+  /**
+   * 🔧 获取用户历史累计积分
+   */
+  getCumulativePoints() {
+    return request({
+      url: '/user/cumulative-points',
+      method: 'GET',
+      needAuth: true
+    })
   }
 }
 
@@ -1320,6 +1366,461 @@ const merchantAPI = {
   }
 }
 
+// 🏪 商品交易API - 新增商品交易模块
+const tradeAPI = {
+  // ==============================================
+  // 用户库存管理
+  // ==============================================
+  
+  /**
+   * 🔧 获取用户库存列表
+   * @param {string} status - 状态筛选：'all', 'available', 'for_sale', 'sold', 'used'
+   * @param {string} category - 商品分类筛选
+   * @param {number} page - 页码
+   * @param {number} limit - 每页数量
+   */
+  getInventory(status = 'all', category = '', page = 1, limit = 20) {
+    return request({
+      url: '/trade/inventory',
+      method: 'GET',
+      data: { status, category, page, limit },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 发布商品到交易市场
+   * @param {number} inventoryId - 库存商品ID
+   * @param {number} pricePoints - 交易积分价格
+   * @param {string} description - 交易描述
+   * @param {boolean} autoAccept - 是否自动接受交易
+   * @param {number} expiresDays - 过期天数
+   */
+  publishTrade(inventoryIds, pricePoints, description, autoAccept = false, expiresDays = 7) {
+    return request({
+      url: '/trade/inventory/publish',
+      method: 'POST',
+      data: {
+        inventory_id: inventoryIds,
+        price_points: pricePoints,
+        trade_description: description,
+        auto_accept: autoAccept,
+        expires_days: expiresDays
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 编辑交易商品
+   * @param {string} tradeId - 交易ID
+   * @param {number} pricePoints - 新价格
+   * @param {string} description - 新描述
+   */
+  editTrade(tradeId, pricePoints, description) {
+    return request({
+      url: '/trade/inventory/edit',
+      method: 'POST',
+      data: {
+        trade_id: tradeId,
+        price_points: pricePoints,
+        trade_description: description
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 取消交易（下架商品）
+   * @param {string} tradeId - 交易ID
+   */
+  cancelTrade(tradeId) {
+    return request({
+      url: '/trade/inventory/cancel',
+      method: 'POST',
+      data: { trade_id: tradeId },
+      needAuth: true
+    })
+  },
+
+  // ==============================================
+  // 交易市场
+  // ==============================================
+
+  /**
+   * 🔧 获取交易市场商品列表
+   * @param {string} category - 商品分类
+   * @param {number} priceMin - 最低价格
+   * @param {number} priceMax - 最高价格
+   * @param {string} sort - 排序方式：'price_asc', 'price_desc', 'time_desc', 'rating_desc'
+   * @param {boolean} excludeSelf - 是否排除自己的商品
+   * @param {number} page - 页码
+   * @param {number} limit - 每页数量
+   */
+  getMarketTrades(category = '', priceMin = 0, priceMax = 0, sort = 'time_desc', excludeSelf = true, page = 1, limit = 20) {
+    return request({
+      url: '/trade/market',
+      method: 'GET',
+      data: {
+        category,
+        price_min: priceMin,
+        price_max: priceMax,
+        sort,
+        exclude_self: excludeSelf,
+        page,
+        limit
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取交易商品详情
+   * @param {string} tradeId - 交易ID
+   */
+  getTradeDetail(tradeId) {
+    return request({
+      url: `/trade/market/${tradeId}`,
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 购买交易商品
+   * @param {string} tradeId - 交易ID
+   * @param {number} quantity - 购买数量
+   * @param {string} buyerMessage - 买家留言
+   * @param {object} deliveryAddress - 收货地址
+   */
+  purchaseTrade(tradeId, quantity = 1, buyerMessage = '', deliveryAddress = null) {
+    return request({
+      url: '/trade/purchase',
+      method: 'POST',
+      data: {
+        trade_id: tradeId,
+        quantity,
+        buyer_message: buyerMessage,
+        delivery_address: deliveryAddress
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 收藏/取消收藏交易商品
+   * @param {string} tradeId - 交易ID
+   * @param {boolean} isFavorite - 是否收藏
+   */
+  toggleFavorite(tradeId, isFavorite) {
+    return request({
+      url: '/trade/favorite',
+      method: 'POST',
+      data: {
+        trade_id: tradeId,
+        is_favorite: isFavorite
+      },
+      needAuth: true
+    })
+  },
+
+  // ==============================================
+  // 订单管理
+  // ==============================================
+
+  /**
+   * 🔧 获取交易订单列表
+   * @param {string} type - 订单类型：'buy', 'sell', 'all'
+   * @param {string} status - 订单状态筛选
+   * @param {number} page - 页码
+   * @param {number} limit - 每页数量
+   */
+  getTradeOrders(type = 'all', status = '', page = 1, limit = 20) {
+    return request({
+      url: '/trade/orders',
+      method: 'GET',
+      data: { type, status, page, limit },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取订单详情
+   * @param {string} orderId - 订单ID
+   */
+  getOrderDetail(orderId) {
+    return request({
+      url: `/trade/orders/${orderId}`,
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 确认订单（卖家确认发货）
+   * @param {string} orderId - 订单ID
+   * @param {object} trackingInfo - 物流信息
+   */
+  confirmOrder(orderId, trackingInfo = null) {
+    return request({
+      url: `/trade/orders/${orderId}/action`,
+      method: 'POST',
+      data: {
+        action: 'confirm',
+        tracking_info: trackingInfo
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 取消订单
+   * @param {string} orderId - 订单ID
+   * @param {string} reason - 取消原因
+   */
+  cancelOrder(orderId, reason = '') {
+    return request({
+      url: `/trade/orders/${orderId}/action`,
+      method: 'POST',
+      data: {
+        action: 'cancel',
+        reason
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 完成订单（买家确认收货）
+   * @param {string} orderId - 订单ID
+   */
+  completeOrder(orderId) {
+    return request({
+      url: `/trade/orders/${orderId}/action`,
+      method: 'POST',
+      data: { action: 'complete' },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 申请退款/纠纷
+   * @param {string} orderId - 订单ID
+   * @param {string} reason - 申请原因
+   * @param {array} evidence - 证据图片
+   */
+  requestRefund(orderId, reason, evidence = []) {
+    return request({
+      url: `/trade/orders/${orderId}/dispute`,
+      method: 'POST',
+      data: {
+        reason,
+        evidence_images: evidence
+      },
+      needAuth: true
+    })
+  },
+
+  // ==============================================
+  // 评价系统
+  // ==============================================
+
+  /**
+   * 🔧 提交交易评价
+   * @param {string} orderId - 订单ID
+   * @param {number} rating - 评分1-5分
+   * @param {string} comment - 评价内容
+   * @param {array} tags - 评价标签
+   * @param {boolean} isAnonymous - 是否匿名
+   * @param {array} reviewImages - 评价图片
+   */
+  submitReview(orderId, rating, comment, tags = [], isAnonymous = false, reviewImages = []) {
+    return request({
+      url: `/trade/orders/${orderId}/review`,
+      method: 'POST',
+      data: {
+        rating,
+        comment,
+        tags,
+        is_anonymous: isAnonymous,
+        review_images: reviewImages
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取用户评价列表
+   * @param {number} userId - 用户ID
+   * @param {number} page - 页码
+   * @param {number} limit - 每页数量
+   */
+  getUserReviews(userId, page = 1, limit = 20) {
+    return request({
+      url: `/trade/reviews/user/${userId}`,
+      method: 'GET',
+      data: { page, limit },
+      needAuth: true
+    })
+  },
+
+  // ==============================================
+  // 统计和分析
+  // ==============================================
+
+  /**
+   * 🔧 获取交易统计数据
+   */
+  getTradeStats() {
+    return request({
+      url: '/trade/statistics',
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取市场行情分析
+   * @param {number} commodityId - 商品ID
+   */
+  getMarketAnalysis(commodityId) {
+    return request({
+      url: '/trade/market/analysis',
+      method: 'GET',
+      data: { commodity_id: commodityId },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取用户信用评分
+   * @param {number} userId - 用户ID
+   */
+  getUserCreditScore(userId) {
+    return request({
+      url: `/trade/credit/${userId}`,
+      method: 'GET',
+      needAuth: true
+    })
+  },
+
+  // ==============================================
+  // 高级功能
+  // ==============================================
+
+  /**
+   * 🔧 批量操作库存商品
+   * @param {array} operations - 操作列表
+   */
+  batchInventoryOperation(operations) {
+    return request({
+      url: '/trade/inventory/batch',
+      method: 'POST',
+      data: { operations },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 搜索交易商品
+   * @param {string} keyword - 搜索关键词
+   * @param {object} filters - 筛选条件
+   * @param {number} page - 页码
+   * @param {number} limit - 每页数量
+   */
+  searchTrades(keyword, filters = {}, page = 1, limit = 20) {
+    return request({
+      url: '/trade/search',
+      method: 'GET',
+      data: {
+        keyword,
+        ...filters,
+        page,
+        limit
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 举报交易商品或用户
+   * @param {string} targetType - 举报目标类型：'trade', 'user'
+   * @param {string} targetId - 目标ID
+   * @param {string} reason - 举报原因
+   * @param {array} evidence - 证据
+   */
+  reportTarget(targetType, targetId, reason, evidence = []) {
+    return request({
+      url: '/trade/report',
+      method: 'POST',
+      data: {
+        target_type: targetType,
+        target_id: targetId,
+        reason,
+        evidence
+      },
+      needAuth: true
+    })
+  }
+}
+
+// 🏪 交易市场API - 支持清理后的交易数据获取
+const marketAPI = {
+  /**
+   * 🔧 获取交易市场商品列表
+   * @param {Object} params - 查询参数
+   * @param {number} params.page - 页码
+   * @param {number} params.limit - 每页数量
+   * @param {string} params.space - 空间类型：'lucky', 'premium'
+   */
+  getTradeList(params = {}) {
+    return request({
+      url: '/market/trades',
+      method: 'GET',
+      data: {
+        page: params.page || 1,
+        limit: params.limit || 20,
+        space: params.space || 'all'
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取竞价商品数据
+   * @param {Object} params - 查询参数
+   * @param {number} params.page - 页码
+   * @param {number} params.limit - 每页数量
+   */
+  getBiddingProducts(params = {}) {
+    return request({
+      url: '/market/bidding-products',
+      method: 'GET',
+      data: {
+        page: params.page || 1,
+        limit: params.limit || 20
+      },
+      needAuth: true
+    })
+  },
+
+  /**
+   * 🔧 获取空间统计数据
+   * @param {Object} params - 查询参数
+   * @param {string} params.space - 指定空间类型
+   */
+  getSpaceStats(params = {}) {
+    return request({
+      url: '/market/space-stats',
+      method: 'GET',
+      data: {
+        space: params.space
+      },
+      needAuth: true
+    })
+  }
+}
+
 // 🔧 导出所有API模块
 module.exports = {
   request,
@@ -1330,5 +1831,7 @@ module.exports = {
   uploadAPI,
   userAPI,
   merchantAPI,
+  tradeAPI,           // 🔴 新增：商品交易API
+  marketAPI,          // 🔴 新增：交易市场API - 替代模拟数据
   handleTokenFailure  // 导出Token失效处理函数
 } 

@@ -1332,8 +1332,9 @@ App({
         return { isValid: false, reason: 'Token不是有效的JWT格式' }
       }
 
-      // 解码并检查过期时间
-      const payload = JSON.parse(atob(parts[1]))
+      // 🔧 修复：使用微信小程序兼容的JWT解码函数
+      const { decodeJWTPayload } = require('./utils/util.js')
+      const payload = decodeJWTPayload(token)
       const now = Math.floor(Date.now() / 1000)
       
       if (payload.exp && payload.exp < now) {

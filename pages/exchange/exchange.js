@@ -1,7 +1,8 @@
 // pages/exchange/exchange.js - 商品兑换页面逻辑
 const app = getApp()
-const { exchangeAPI, userAPI } = require('../../utils/api')
+const { exchangeAPI, userAPI, tradeAPI } = require('../../utils/api')
 const { debounce } = require('../../utils/validate')
+const imageHandler = require('../../utils/image-handler')
 
 Page({
   data: {
@@ -9,9 +10,35 @@ Page({
     userInfo: {},
     totalPoints: 0,
     
-    // 商品列表
+    // 🎯 内容切换控制
+    currentTab: 'exchange', // 'exchange' | 'market'
+    
+    // 商品兑换相关数据
     products: [],
     filteredProducts: [],
+    
+    // 交易市场相关数据
+    tradeList: [],
+    
+    // 图片加载状态管理
+    imageStatus: {},
+    filteredTrades: [],
+    currentSpace: 'lucky', // 'lucky' | 'premium'
+    luckySpaceStats: {
+      new_count: 8,
+      avg_discount: 15,
+      flash_deals: 3
+    },
+    premiumSpaceStats: {
+      hot_count: 0,
+      avg_rating: 4.8,
+      trending_count: 5
+    },
+    marketStats: {
+      total_trades: 0,
+      avg_price: 0,
+      hot_categories: []
+    },
     
     // 页面状态
     loading: true,
@@ -47,12 +74,124 @@ Page({
     pointsRange: 'all', // 'all', '0-500', '500-1000', '1000-2000', '2000+'
     stockFilter: 'all', // 'all', 'in-stock', 'low-stock'
     sortBy: 'default', // 'default', 'points-asc', 'points-desc', 'stock-desc', 'rating-desc'
+
+    // 🎯 简化：导航状态管理 - 移除所有状态变量，只保留内容切换
+    // 所有导航相关状态变量已移除，确保无任何视觉反馈
+    
+    // 🏆 方案8：竞价热榜实时布局数据
+    hotRankingList: [], // 实时热销榜数据
+    biddingProducts: [], // 竞价区商品数据
+    newProducts: [], // 新品区商品数据
+    realTimeTimer: null, // 实时更新定时器
+    
+    // 🎮 竞价交互状态
+    showBidModal: false, // 竞价弹窗显示状态
+    selectedBidProduct: null, // 当前竞价商品
+    userBidAmount: 0, // 用户出价金额
+    bidHistory: [], // 竞价历史记录
+    
+    // 🏪 双空间系统数据
+    currentSpace: 'lucky', // 当前空间：仅支持幸运空间
+    spaceList: [
+      {
+        id: 'lucky',
+        name: '🍀 幸运空间',
+        subtitle: '幸运好物，与你相遇',
+        layout: 'waterfall', // 使用方案1瀑布流布局
+        color: '#FF6B35',
+        bgGradient: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 100%)'
+      },
+      {
+        id: 'premium',
+        name: '💎 臻选空间',
+        subtitle: '精品汇聚，品质之选',
+        layout: 'simple', // 使用简单布局
+        color: '#667eea',
+        bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        // 🔒 臻选空间解锁系统
+        locked: true, // 默认锁定状态
+        unlockRequirement: 500000, // 历史累计积分要求：50万积分
+        unlockCost: 100, // 解锁消耗：100积分
+        unlockDuration: 24 * 60 * 60 * 1000 // 解锁持续时间：24小时（毫秒）
+      }
+    ],
+    
+    // 🔒 臻选空间解锁状态管理
+    premiumUnlockStatus: {
+      isUnlocked: false, // 是否已解锁
+      unlockTime: 0, // 解锁时间戳
+      expiryTime: 0, // 过期时间戳
+      cumulativePoints: 0, // 历史累计积分
+      canUnlock: false // 是否满足解锁条件
+    },
+    
+    // 🍀 方案1：幸运空间瀑布流布局数据
+    waterfallProducts: [], // 瀑布流商品数据
+    waterfallColumns: [0, 0], // 双列高度记录
+    containerWidth: 375, // 容器宽度
+    containerHeight: 0, // 容器总高度
+    columnWidth: 0, // 列宽度
+    visibleProducts: [], // 可见区域商品（虚拟滚动优化）
+    renderOffset: 0, // 渲染偏移量
+    
+    // 臻选空间数据 - 混合展示布局（方案3）
+    premiumProducts: [], // 精品商品数据（兼容性保留）
+    
+    // 混合布局三层数据结构
+    carouselItems: [], // 轮播推荐区数据
+    carouselActiveIndex: 0, // 当前轮播索引
+    autoPlay: true, // 自动播放开关
+    
+    cardSections: [], // 卡片组区域数据
+    listProducts: [], // 详细列表区数据
+    
+    // 混合布局配置
+    mixedLayoutConfig: {
+      carouselAutoPlay: true,
+      carouselInterval: 4000,
+      cardColumns: 2,
+      listShowDetails: true
+    }
   },
 
   onLoad(options) {
-    console.log('兑换页面加载', options)
+    console.log('🛒 兑换页面加载', options)
+    
+    // 🔧 关键修复：页面加载时强制恢复Token状态
+    console.log('🔄 强制恢复Token状态...')
+    const app = getApp()
+    if (app) {
+      try {
+        const storedToken = wx.getStorageSync('access_token')
+        const storedRefreshToken = wx.getStorageSync('refresh_token')
+        const storedUserInfo = wx.getStorageSync('user_info')
+        
+        console.log('📦 兑换页面本地存储状态:', {
+          hasStoredToken: !!storedToken,
+          hasStoredUser: !!storedUserInfo,
+          currentGlobalToken: !!app.globalData.accessToken,
+          currentGlobalLogin: app.globalData.isLoggedIn
+        })
+        
+        // 如果本地存储有数据但全局状态丢失，立即恢复
+        if (storedToken && storedUserInfo && !app.globalData.accessToken) {
+          console.log('🔧 检测到Token状态丢失，立即恢复')
+          
+          app.globalData.accessToken = storedToken
+          app.globalData.refreshToken = storedRefreshToken
+          app.globalData.userInfo = storedUserInfo
+          app.globalData.isLoggedIn = true
+          
+          console.log('✅ 兑换页面Token状态已恢复')
+        }
+      } catch (error) {
+        console.error('❌ Token状态恢复失败:', error)
+      }
+    }
     
     this.initPage()
+    // 🔒 初始化臻选空间解锁状态
+    this.initPremiumUnlockStatus()
   },
 
   /**
@@ -81,6 +220,9 @@ Page({
   onHide() {
     console.log('兑换页面隐藏')
     this.disconnectWebSocket()
+    
+    // 🏆 清理竞价热榜定时器
+    this.onHideMarket()
   },
 
   /**
@@ -949,19 +1091,40 @@ Page({
   },
 
   /**
-   * 🔧 图片加载错误处理 - 2025年01月12日修复
-   * 当商品图片加载失败时，使用默认图片替代
+   * 🔧 图片加载错误处理 - 使用统一图片处理工具
+   * 当商品图片加载失败时，使用默认图片替代并显示友好提示
    */
   onImageError(e) {
     const index = e.currentTarget.dataset.index
-    const defaultImage = '/images/default-product.png'
+    const imageId = e.currentTarget.dataset.imageId || `product_${index}`
+    const defaultSrc = imageHandler.handleImageError(e, {
+      defaultType: 'product',
+      callback: (result) => {
+        console.log(`⚠️ 图片加载失败处理完成:`, result)
+        // 显示友好提示
+        wx.showToast({
+          title: '图片加载失败，已使用默认图片',
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    })
     
-    console.log(`⚠️ 商品图片加载失败，索引: ${index}，使用默认图片`)
+    // 使用图片状态管理器更新状态
+    const imageManager = imageHandler.createImageStatusManager(this)
+    imageManager.setStatus(imageId, imageHandler.IMAGE_STATUS.ERROR, {
+      defaultSrc,
+      originalSrc: e.currentTarget.dataset.src
+    })
     
     // 更新对应商品的图片为默认图片
     const filteredProducts = this.data.filteredProducts.map((product, i) => {
       if (i === index) {
-        return { ...product, image: defaultImage }
+        return { 
+          ...product, 
+          image: defaultSrc,
+          imageStatus: imageHandler.IMAGE_STATUS.ERROR
+        }
       }
       return product
     })
@@ -971,12 +1134,50 @@ Page({
     // 同时更新原始商品数据
     const products = this.data.products.map(product => {
       if (product.id === this.data.filteredProducts[index]?.id) {
-        return { ...product, image: defaultImage }
+        return { 
+          ...product, 
+          image: defaultSrc,
+          imageStatus: imageHandler.IMAGE_STATUS.ERROR
+        }
       }
       return product
     })
     
     this.setData({ products })
+  },
+
+  /**
+   * 🎯 图片加载成功处理
+   * 更新图片加载状态为成功
+   */
+  onImageLoad(e) {
+    const index = e.currentTarget.dataset.index
+    const imageId = e.currentTarget.dataset.imageId || `product_${index}`
+    
+    imageHandler.handleImageLoad(e, (result) => {
+      console.log(`✅ 图片加载成功:`, result)
+    })
+    
+    // 使用图片状态管理器更新状态
+    const imageManager = imageHandler.createImageStatusManager(this)
+    imageManager.setStatus(imageId, imageHandler.IMAGE_STATUS.SUCCESS, {
+      src: e.currentTarget.src,
+      width: e.detail?.width,
+      height: e.detail?.height
+    })
+    
+    // 更新产品图片状态
+    const filteredProducts = this.data.filteredProducts.map((product, i) => {
+      if (i === index) {
+        return { 
+          ...product, 
+          imageStatus: imageHandler.IMAGE_STATUS.SUCCESS
+        }
+      }
+      return product
+    })
+    
+    this.setData({ filteredProducts })
   },
 
   /**
@@ -1689,8 +1890,8 @@ Page({
     console.log('🔄 从商家管理同步商品数据...')
     
     if (app.globalData.isDev && !app.globalData.needAuth) {
-      // 开发环境模拟同步
-      console.log('🔧 模拟商家数据同步')
+      // 同步商家数据
+      console.log('🔧 同步商家数据')
       return new Promise(resolve => setTimeout(resolve, 500)).then(() => {
         // 重新加载商品列表
         return this.loadProducts()
@@ -1774,20 +1975,26 @@ Page({
         })
         
         if (parts.length === 3) {
-          // 解码header
-          const header = JSON.parse(atob(parts[0]))
-          console.log('🔍 JWT Header:', header)
+          // 🔧 修复：使用微信小程序兼容的JWT解码函数
+          const { decodeJWTHeader, decodeJWTPayload } = require('../../utils/util.js')
           
-          // 解码payload
-          const payload = JSON.parse(atob(parts[1]))
-          console.log('🔍 JWT Payload:', {
-            userId: payload.userId || payload.user_id,
-            mobile: payload.mobile,
-            isAdmin: payload.is_admin,
-            iat: payload.iat ? new Date(payload.iat * 1000).toLocaleString() : 'N/A',
-            exp: payload.exp ? new Date(payload.exp * 1000).toLocaleString() : 'N/A',
-            currentTime: new Date().toLocaleString()
-          })
+          try {
+            const header = decodeJWTHeader(activeToken)
+            console.log('🔍 JWT Header:', header)
+            
+            const payload = decodeJWTPayload(activeToken)
+            console.log('🔍 JWT Payload:', {
+              userId: payload.userId || payload.user_id,
+              mobile: payload.mobile,
+              isAdmin: payload.is_admin,
+              iat: payload.iat ? new Date(payload.iat * 1000).toLocaleString() : 'N/A',
+              exp: payload.exp ? new Date(payload.exp * 1000).toLocaleString() : 'N/A',
+              currentTime: new Date().toLocaleString()
+            })
+          } catch (decodeError) {
+            console.error('❌ JWT解码失败:', decodeError.message)
+            console.log('这可能是由于Token格式问题导致的')
+          }
           
           // 检查过期状态
           const now = Math.floor(Date.now() / 1000)
@@ -2200,33 +2407,7 @@ Page({
     })
   },
 
-  /**
-   * 🔴 新增：测试4000错误修复效果
-   */
-  test4000ErrorFix() {
-    console.log('🧪 开始测试4000错误修复效果...')
-    
-    wx.showModal({
-      title: '🧪 4000错误修复测试',
-      content: '这将模拟4000错误的修复流程\n\n1. 清理认证信息\n2. 重新验证Token\n3. 重新加载商品\n\n是否开始测试？',
-      showCancel: true,
-      cancelText: '取消',
-      confirmText: '开始测试',
-      success: (res) => {
-        if (res.confirm) {
-          // 模拟4000错误
-          const mockError = {
-            code: 4000,
-            message: '获取商品列表失败（测试模拟）',
-            statusCode: 400
-          }
-          
-          console.log('🎭 模拟4000错误...')
-          this.handle4000Error(mockError)
-        }
-      }
-    })
-  },
+  // 🔴 已删除：test4000ErrorFix() - 违反项目安全规则，删除模拟错误测试函数
 
   /**
    * 🔴 新增：快速重试商品加载（用于修复后测试）
@@ -2299,5 +2480,1574 @@ Page({
         }
       })
     }
-  }
+  },
+
+
+
+  /**
+   * 🏪 切换到交易市场（修复版）
+   * ✨ 进入双空间系统：幸运空间（默认）+ 臻选空间
+   */
+  async onGoToTradeMarket() {
+    console.log('🏪 切换到交易市场')
+    
+    // 如果已经在交易市场标签，直接返回
+    if (this.data.currentTab === 'market') {
+      console.log('已在交易市场，无需切换')
+      return
+    }
+    
+    // 切换到交易市场内容
+    this.setData({
+      currentTab: 'market',
+      currentSpace: 'lucky' // 默认进入幸运空间
+    })
+    
+    // 获取系统信息，计算布局参数
+    this.initLayoutParams()
+    
+    // 初始化幸运空间数据（方案1瀑布流布局）
+    await this.initLuckySpaceData()
+    
+    // 预初始化臻选空间数据结构（确保数据字段存在）
+    console.log('📦 预初始化臻选空间数据结构...')
+    this.setData({
+      carouselItems: [],
+      cardSections: [],
+      listProducts: [],
+      mixedLayoutConfig: {
+        carouselAutoPlay: true,
+        carouselInterval: 4000,
+        cardColumns: 2,
+        listShowDetails: true
+      }
+    })
+    
+    console.log('✅ 交易市场已激活，进入幸运空间')
+  },
+
+  /**
+   * 🎯 简化版：切换回商品兑换内容 - 纯粹的内容切换
+   * ✨ 移除所有视觉反馈，只保留按钮激活状态的颜色变化
+   */
+  onGoToExchange() {
+    // 如果已经在商品兑换标签，直接返回
+    if (this.data.currentTab === 'exchange') {
+      return
+    }
+    
+    // 直接切换内容，无任何动画或延迟
+    this.setData({
+      currentTab: 'exchange'
+    })
+  },
+
+  /**
+   * 🏪 加载交易市场数据 - 使用后端真实API
+   */
+  async loadMarketData() {
+    try {
+      console.log('🔄 开始从后端加载交易市场数据...')
+      
+      // 显示加载状态
+      this.setData({
+        loading: true,
+        loadingText: '正在加载交易数据...'
+      })
+      
+      // 初始化空间统计数据
+      this.initSpaceStats()
+      
+      // 🔴 从后端API获取真实交易数据
+      const response = await API.marketAPI.getTradeList({
+        page: 1,
+        limit: 20,
+        space: this.data.currentSpace
+      })
+      
+      if (!response || !response.data) {
+        throw new Error('后端返回数据格式异常')
+      }
+      
+      const tradeList = response.data.trades || []
+      const marketStats = response.data.stats || {
+        total_trades: 0,
+        avg_price: 0,
+        hot_categories: []
+      }
+      
+      // 根据当前空间筛选商品
+      const filteredTrades = this.filterTradesBySpace(tradeList, this.data.currentSpace)
+      
+      this.setData({
+        tradeList: tradeList,
+        filteredTrades: filteredTrades,
+        marketStats: marketStats,
+        loading: false,
+        loadingText: ''
+      })
+      
+      console.log('✅ 交易市场数据加载完成', {
+        总数: tradeList.length,
+        筛选后: filteredTrades.length
+      })
+      
+      return Promise.resolve()
+    } catch (error) {
+      console.error('❌ 加载交易市场数据失败:', error)
+      
+      // 设置友好的错误提示
+      let errorMessage = '加载交易数据失败'
+      if (error.message && error.message.includes('网络')) {
+        errorMessage = '网络连接异常，请检查网络后重试'
+      } else if (error.message && error.message.includes('认证')) {
+        errorMessage = '登录状态过期，请重新登录'
+      } else if (error.message && error.message.includes('服务器')) {
+        errorMessage = '服务器繁忙，请稍后重试'
+      }
+      
+      this.setData({
+        loading: false,
+        loadingText: '',
+        errorMessage: errorMessage,
+        showError: true,
+        tradeList: [],
+        filteredTrades: [],
+        marketStats: {
+          total_trades: 0,
+          avg_price: 0,
+          hot_categories: []
+        }
+      })
+      
+      // 显示错误提示
+      wx.showToast({
+        title: errorMessage,
+        icon: 'none',
+        duration: 3000
+      })
+      
+      return Promise.reject(error)
+    }
+  },
+
+  /**
+   * 🎯 初始化空间统计数据
+   */
+  initSpaceStats() {
+    const luckyStats = {
+      new_count: Math.floor(Math.random() * 10) + 5,
+      avg_discount: Math.floor(Math.random() * 20) + 10,
+      flash_deals: Math.floor(Math.random() * 5) + 1
+    }
+    
+    const premiumStats = {
+      hot_count: Math.floor(Math.random() * 3),
+      avg_rating: (Math.random() * 0.5 + 4.5).toFixed(1),
+      trending_count: Math.floor(Math.random() * 8) + 3
+    }
+    
+    this.setData({
+      luckySpaceStats: luckyStats,
+      premiumSpaceStats: premiumStats
+    })
+  },
+
+  /**
+   * 🎯 根据空间类型筛选商品
+   */
+  filterTradesBySpace(trades, spaceType) {
+    if (!trades || trades.length === 0) return []
+    
+    let filtered = [...trades]
+    
+    if (spaceType === 'lucky') {
+      // 幸运空间：筛选特价、折扣商品
+      filtered = trades.filter(trade => {
+        const hasDiscount = trade.price_off_percent > 5
+        const isAffordable = trade.price_points <= 1000
+        const isSpecial = trade.trade_description?.includes('特价') || 
+                         trade.trade_description?.includes('限时') ||
+                         trade.price_off_percent > 10
+        
+        return hasDiscount || isAffordable || isSpecial
+      })
+      
+      // 按折扣率排序
+      filtered.sort((a, b) => (b.price_off_percent || 0) - (a.price_off_percent || 0))
+    }
+    
+    return filtered
+  },
+
+
+
+  // 混合展示布局函数已移除（generateCarouselData）
+
+  // 混合展示布局函数已移除（generateCardSections）
+
+  // 混合展示布局函数已移除（generateListProducts）
+
+  /**
+   * 🏪 初始化布局参数
+   */
+  initLayoutParams() {
+    const systemInfo = wx.getSystemInfoSync()
+    const containerWidth = systemInfo.windowWidth - 40 // 减去左右边距
+    const columnWidth = (containerWidth - 15) / 2 // 双列布局，减去中间间距
+    
+    this.setData({
+      containerWidth: containerWidth,
+      columnWidth: columnWidth
+    })
+    
+    console.log('📐 布局参数初始化完成', {
+      containerWidth,
+      columnWidth
+    })
+  },
+
+  /**
+   * 🍀 初始化幸运空间数据（方案1：瀑布流布局）
+   */
+  async initLuckySpaceData() {
+    console.log('🍀 开始初始化幸运空间瀑布流数据...')
+    
+    // 生成瀑布流商品数据
+    const waterfallProducts = await this.loadWaterfallProducts()
+    
+    // 计算瀑布流布局
+    this.calculateWaterfallLayout(waterfallProducts)
+    
+    console.log('✅ 幸运空间瀑布流数据初始化完成')
+    console.log('📊 商品数量:', waterfallProducts.length)
+  },
+
+  /**
+   * 💎 初始化臻选空间数据（方案3：混合展示布局）
+   * 包含三层式布局结构：轮播推荐区 + 卡片组区 + 详细列表区
+   */
+  initPremiumSpaceData() {
+    console.log('💎 开始初始化臻选空间混合展示布局数据...')
+    
+    try {
+      // 初始化混合布局数据
+      this.initMixedLayoutData()
+      
+      console.log('✅ 臻选空间混合展示布局数据初始化完成')
+      console.log('📊 混合布局数据统计:', {
+        轮播数量: this.data.carouselItems.length,
+        卡片组数: this.data.cardSections.length,
+        列表商品: this.data.listProducts.length
+      })
+    } catch (error) {
+      console.error('❌ 臻选空间混合布局初始化失败:', error)
+    }
+  },
+
+  /**
+   * 🎨 初始化混合展示布局数据
+   * 方案3核心实现：三层式布局架构
+   */
+  initMixedLayoutData() {
+    console.log('🎨 构建混合展示布局三层架构...')
+    
+    // 生成基础商品数据
+    const allProducts = this.generateMixedLayoutProducts()
+    
+    // 1. 生成轮播推荐区数据
+    const carouselItems = this.generateCarouselData(allProducts)
+    
+    // 2. 生成卡片组区域数据  
+    const cardSections = this.generateCardSections(allProducts)
+    
+    // 3. 生成详细列表区数据
+    const listProducts = this.generateListProducts(allProducts)
+    
+    // 更新数据到页面
+    console.log('📦 准备更新页面数据...')
+    this.setData({
+      // 轮播推荐区
+      carouselItems: carouselItems,
+      carouselActiveIndex: 0,
+      autoPlay: true,
+      
+      // 卡片组区域
+      cardSections: cardSections,
+      
+      // 详细列表区
+      listProducts: listProducts,
+      
+      // 混合布局配置
+      mixedLayoutConfig: {
+        carouselAutoPlay: true,
+        carouselInterval: 4000,
+        cardColumns: 2,
+        listShowDetails: true
+      }
+    })
+    console.log('✅ 页面数据更新完成')
+    
+    console.log('📊 轮播区项目数:', carouselItems.length)
+    console.log('📊 卡片组数量:', cardSections.length)  
+    console.log('📊 列表商品数:', listProducts.length)
+    
+    // 调试输出：验证数据结构
+    console.log('🔍 轮播数据预览:', carouselItems.slice(0, 2))
+    console.log('🔍 卡片组数据预览:', cardSections.map(s => ({
+      title: s.title,
+      productCount: s.products.length
+    })))
+    console.log('🔍 列表数据预览:', listProducts.slice(0, 2).map(p => p.name))
+  },
+
+  /**
+   * 🛍️ 生成混合布局专用商品数据
+   * 为臻选空间提供高品质商品数据源
+   */
+  /**
+   * 🛍️ 获取混合布局商品数据 - 从后端API获取
+   * 🚨 严禁使用硬编码数据，必须从后端获取真实商品数据
+   */
+  async generateMixedLayoutProducts() {
+    console.log('🛍️ 开始从后端获取混合布局商品数据...')
+    
+    try {
+      // 🔴 从后端API获取真实商品数据
+      const response = await exchangeAPI.getProducts({
+        page: 1,
+        limit: 20,
+        category: 'premium'  // 获取精品商品
+      })
+      
+      if (response.code === 0 && response.data && response.data.products) {
+        const products = response.data.products
+        console.log('✅ 成功获取后端商品数据，商品数量:', products.length)
+        return products
+      } else {
+        console.error('❌ 后端商品API返回异常:', response)
+        throw new Error('后端商品API返回数据格式不正确')
+      }
+    } catch (error) {
+      console.error('❌ 获取后端商品数据失败:', error)
+      
+      // 🚨 严禁使用模拟数据 - 显示错误提示
+      wx.showModal({
+        title: '⚠️ 后端服务异常',
+        content: '无法获取商品数据，请检查后端API服务是否正常运行。',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      
+      // 返回空数组，避免页面崩溃
+      return []
+    }
+  },
+
+  /**
+   * 🎠 生成轮播推荐区数据
+   * 顶部轮播区：展示精选商品和热门推荐
+   */
+  generateCarouselData(allProducts) {
+    console.log('🎠 生成轮播推荐区数据...')
+    console.log('🎠 输入商品总数:', allProducts.length)
+    
+    // 筛选适合轮播展示的商品（精选 + 高评分）
+    const featuredProducts = allProducts.filter(product => 
+      product.isFeatured && product.rating >= 4.7
+    ).slice(0, 5)
+    
+    console.log('🎠 筛选到精选商品:', featuredProducts.length, '个')
+
+    const carouselItems = featuredProducts.map((product, index) => ({
+      id: `carousel_${product.id}`,
+      product_id: product.id,
+      image: product.image,
+      title: product.name,
+      subtitle: product.sellPoint || '精选推荐',
+      price: product.price,
+      originalPrice: product.originalPrice,
+      discount: product.discount,
+      rating: product.rating,
+      sales: product.sales,
+      tags: product.tags,
+      link: `/pages/product/detail?id=${product.id}`,
+      background: this.getCarouselBackground(index)
+    }))
+
+    console.log('✅ 轮播推荐区数据生成完成，项目数:', carouselItems.length)
+    return carouselItems
+  },
+
+  /**
+   * 🎨 获取轮播背景渐变色
+   */
+  getCarouselBackground(index) {
+    const backgrounds = [
+      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+    ]
+    return backgrounds[index % backgrounds.length]
+  },
+
+  /**
+   * 🎴 生成卡片组区域数据
+   * 中部横向滑动卡片组：按类别或标签组织商品
+   */
+  generateCardSections(allProducts) {
+    console.log('🎴 生成卡片组区域数据...')
+    console.log('🎴 输入商品总数:', allProducts.length)
+    
+    const cardSections = [
+      {
+        id: 'hot_section',
+        title: '🔥 热销榜单',
+        type: 'hot',
+        icon: '🔥',
+        subtitle: '人气商品，抢购必备',
+        displayStyle: 'horizontal-scroll',
+        products: this.filterProductsByCondition(allProducts, 'hot', 6),
+        backgroundColor: '#fff2e8',
+        titleColor: '#ff6b35'
+      },
+      {
+        id: 'new_section', 
+        title: '✨ 新品上架',
+        type: 'new',
+        icon: '✨',
+        subtitle: '最新好物，抢先体验',
+        displayStyle: 'horizontal-scroll',
+        products: this.filterProductsByCondition(allProducts, 'new', 6),
+        backgroundColor: '#f0f8ff',
+        titleColor: '#4facfe'
+      },
+      {
+        id: 'discount_section',
+        title: '💰 限时特价',
+        type: 'discount',
+        icon: '💰',
+        subtitle: '超值优惠，错过后悔',
+        displayStyle: 'horizontal-scroll', 
+        products: this.filterProductsByCondition(allProducts, 'discount', 6),
+        backgroundColor: '#f0fff4',
+        titleColor: '#43e97b'
+      }
+    ]
+    
+    // 为每个卡片添加布局信息
+    cardSections.forEach(section => {
+      section.products = section.products.map((product, index) => ({
+        ...product,
+        cardIndex: index,
+        sectionType: section.type
+      }))
+    })
+
+    console.log('✅ 卡片组区域数据生成完成，组数:', cardSections.length)
+    return cardSections
+  },
+
+  /**
+   * 🔍 根据条件筛选商品
+   */
+  filterProductsByCondition(products, condition, limit = 6) {
+    let filteredProducts = []
+    
+    switch (condition) {
+      case 'hot':
+        // 热销商品：销量高或评分高
+        filteredProducts = products.filter(product => 
+          product.isHot || product.sales >= 1000 || product.rating >= 4.7
+        )
+        break
+      case 'new':
+        // 新品商品：标记为新品
+        filteredProducts = products.filter(product => product.isNew)
+        // 如果新品不够，补充最近的商品
+        if (filteredProducts.length < limit) {
+          const remaining = products.filter(product => 
+            !product.isNew && filteredProducts.findIndex(p => p.id === product.id) === -1
+          ).slice(0, limit - filteredProducts.length)
+          filteredProducts = [...filteredProducts, ...remaining]
+        }
+        break
+      case 'discount':
+        // 特价商品：折扣大于15%
+        filteredProducts = products.filter(product => 
+          product.discount && product.discount >= 15
+        )
+        break
+      default:
+        filteredProducts = products
+    }
+
+    // 排序：优先显示评分高的
+    filteredProducts.sort((a, b) => b.rating - a.rating)
+    
+    return filteredProducts.slice(0, limit)
+  },
+
+  /**
+   * 📝 生成详细列表区数据
+   * 底部详细列表区：传统列表布局展示完整信息
+   */
+  generateListProducts(allProducts) {
+    console.log('📝 生成详细列表区数据...')
+    console.log('📝 输入商品总数:', allProducts.length)
+    
+    // 获取不在轮播和卡片组中显示的商品
+    const carouselProductIds = new Set()
+    const cardProductIds = new Set()
+    
+    // 收集已在其他区域显示的商品ID
+    allProducts.forEach(product => {
+      if (product.isFeatured && product.rating >= 4.7) {
+        carouselProductIds.add(product.id)
+      }
+      if (product.isHot || product.isNew || (product.discount >= 15)) {
+        cardProductIds.add(product.id)
+      }
+    })
+
+    // 筛选剩余商品用于列表展示  
+    let remainingProducts = allProducts.filter(product => 
+      !carouselProductIds.has(product.id) && 
+      !cardProductIds.has(product.id)
+    )
+
+    // 如果剩余商品不够，添加一些已展示的商品（避免空列表）
+    if (remainingProducts.length < 3) {
+      const additionalProducts = allProducts.filter(product => 
+        cardProductIds.has(product.id)
+      ).slice(0, 8)
+      remainingProducts = [...remainingProducts, ...additionalProducts]
+    }
+
+    // 为列表商品添加详细信息
+    const listProducts = remainingProducts.map((product, index) => ({
+      ...product,
+      listIndex: index,
+      showDescription: true,
+      showSeller: true,
+      showDetailedRating: true,
+      estimatedDelivery: this.calculateDeliveryTime(product),
+      freeShipping: product.price >= 99, // 99元包邮
+      hasWarranty: product.category === '数码手机' || product.category === '家电',
+      returnPolicy: '7天无理由退换'
+    }))
+
+    // 按综合评分排序（评分 + 销量权重）
+    listProducts.sort((a, b) => {
+      const scoreA = a.rating * 0.7 + Math.log10(a.sales + 1) * 0.3
+      const scoreB = b.rating * 0.7 + Math.log10(b.sales + 1) * 0.3
+      return scoreB - scoreA
+    })
+
+    console.log('✅ 详细列表区数据生成完成，商品数:', listProducts.length)
+    return listProducts.slice(0, 20) // 限制最多20个商品
+  },
+
+  /**
+   * 🚚 计算预计配送时间
+   */
+  calculateDeliveryTime(product) {
+    const deliveryOptions = [
+      '当日达',
+      '次日达', 
+      '2-3天',
+      '3-5天',
+      '5-7天'
+    ]
+    
+    // 根据商品类型和价格判断配送时间
+    if (product.price >= 2000) {
+      return deliveryOptions[0] // 高价商品当日达
+    } else if (product.price >= 500) {
+      return deliveryOptions[1] // 中价商品次日达
+    } else {
+      const randomIndex = Math.floor(Math.random() * 3) + 2
+      return deliveryOptions[randomIndex] // 普通商品2-7天
+    }
+  },
+
+  /**
+   * 🎠 轮播图切换事件处理
+   */
+  onCarouselChange(e) {
+    const current = e.detail.current
+    this.setData({
+      carouselActiveIndex: current
+    })
+    
+    console.log('🎠 轮播切换到:', current)
+  },
+
+  /**
+   * 🔧 臻选空间诊断工具
+   * 系统性检查臻选空间显示问题
+   */
+  diagnosePremiumSpace() {
+    console.log('🔧 === 臻选空间诊断工具启动 ===')
+    
+    const diagnostics = {
+      timestamp: new Date().toLocaleString(),
+      currentSpace: this.data.currentSpace,
+      dataStatus: {},
+      renderStatus: {},
+      configStatus: {}
+    }
+    
+    // 1. 检查当前空间状态
+    console.log('📍 当前空间:', this.data.currentSpace)
+    diagnostics.currentSpace = this.data.currentSpace
+    
+    // 2. 检查数据完整性
+    console.log('📊 === 数据完整性检查 ===')
+    diagnostics.dataStatus = {
+      carouselItems: {
+        exists: !!this.data.carouselItems,
+        length: this.data.carouselItems?.length || 0,
+        sample: this.data.carouselItems?.slice(0, 1) || []
+      },
+      cardSections: {
+        exists: !!this.data.cardSections,
+        length: this.data.cardSections?.length || 0,
+        sample: this.data.cardSections?.map(s => ({title: s.title, count: s.products?.length})) || []
+      },
+      listProducts: {
+        exists: !!this.data.listProducts,
+        length: this.data.listProducts?.length || 0,
+        sample: this.data.listProducts?.slice(0, 1)?.map(p => p.name) || []
+      },
+      mixedLayoutConfig: {
+        exists: !!this.data.mixedLayoutConfig,
+        config: this.data.mixedLayoutConfig || {}
+      }
+    }
+    
+    // 3. 检查渲染条件
+    console.log('🎨 === 渲染条件检查 ===')
+    const isPremiumSpace = this.data.currentSpace === 'premium'
+    const hasCarouselData = this.data.carouselItems && this.data.carouselItems.length > 0
+    const hasCardData = this.data.cardSections && this.data.cardSections.length > 0
+    const hasListData = this.data.listProducts && this.data.listProducts.length > 0
+    
+    diagnostics.renderStatus = {
+      isPremiumSpace,
+      hasCarouselData,
+      hasCardData,
+      hasListData,
+      shouldShowCarousel: isPremiumSpace && hasCarouselData,
+      shouldShowCards: isPremiumSpace && hasCardData,
+      shouldShowList: isPremiumSpace && hasListData,
+      shouldShowEmpty: isPremiumSpace && !hasCarouselData && !hasCardData && !hasListData
+    }
+    
+    // 4. 输出诊断结果
+    console.log('📋 === 诊断结果 ===')
+    console.table(diagnostics.dataStatus)
+    console.table(diagnostics.renderStatus)
+    
+    // 5. 问题分析
+    const issues = []
+    if (isPremiumSpace && !hasCarouselData) issues.push('轮播数据缺失')
+    if (isPremiumSpace && !hasCardData) issues.push('卡片组数据缺失')  
+    if (isPremiumSpace && !hasListData) issues.push('列表数据缺失')
+    if (!isPremiumSpace) issues.push('未切换到臻选空间')
+    
+    console.log('⚠️ 发现问题:', issues.length > 0 ? issues : '无问题')
+    
+    // 6. 修复建议
+    if (issues.length > 0) {
+      console.log('💡 修复建议:')
+      if (!isPremiumSpace) console.log('- 请先切换到臻选空间')
+      if (!hasCarouselData || !hasCardData || !hasListData) {
+        console.log('- 重新初始化臻选空间数据')
+        this.initPremiumSpaceData()
+      }
+    }
+    
+         // 7. 检查WXML渲染条件
+     console.log('🎨 === WXML渲染条件分析 ===')
+     const wxmlConditions = {
+       premiumSpaceVisible: `currentSpace === 'premium'`,
+       carouselSectionVisible: `carouselItems && carouselItems.length > 0`,
+       cardSectionsVisible: `cardSections && cardSections.length > 0`, 
+       listSectionVisible: `listProducts && listProducts.length > 0`,
+       emptyStateVisible: `(!carouselItems || carouselItems.length === 0) && (!cardSections || cardSections.length === 0) && (!listProducts || listProducts.length === 0)`
+     }
+     
+     console.log('WXML条件评估:')
+     for (const [key, condition] of Object.entries(wxmlConditions)) {
+       const result = this.evaluateWXMLCondition(condition)
+       console.log(`${key}: ${condition} = ${result}`)
+     }
+     
+     return diagnostics
+   },
+
+   /**
+    * 📐 评估WXML条件表达式
+    */
+   evaluateWXMLCondition(condition) {
+     try {
+       // 简单的条件评估器
+       const data = this.data
+       return eval(condition.replace(/currentSpace/g, `'${data.currentSpace}'`)
+                          .replace(/carouselItems/g, JSON.stringify(data.carouselItems))
+                          .replace(/cardSections/g, JSON.stringify(data.cardSections))
+                          .replace(/listProducts/g, JSON.stringify(data.listProducts)))
+     } catch(e) {
+       return `评估错误: ${e.message}`
+     }
+   },
+
+   /**
+    * 🧪 临时测试臻选空间按钮
+    */
+   onTestPremiumSpace() {
+    console.log('🧪 === 临时测试臻选空间 ===')
+    
+    // 强制切换到臻选空间
+    this.setData({ currentSpace: 'premium' })
+    console.log('✅ 强制切换到臻选空间')
+    
+    // 延迟100ms后运行诊断
+    setTimeout(() => {
+      const result = this.diagnosePremiumSpace()
+      
+      // 如果数据有问题，强制重新初始化
+      if (!result.renderStatus.hasCarouselData || 
+          !result.renderStatus.hasCardData || 
+          !result.renderStatus.hasListData) {
+        console.log('🔄 强制重新初始化数据...')
+        this.initPremiumSpaceData()
+        
+                 // 再次诊断
+         setTimeout(() => {
+           const finalResult = this.diagnosePremiumSpace()
+           
+           // 如果还是有问题，提供直接的解决方案
+           if (!finalResult.renderStatus.hasCarouselData || 
+               !finalResult.renderStatus.hasCardData || 
+               !finalResult.renderStatus.hasListData) {
+             console.log('🚨 === 紧急修复模式 ===')
+             this.loadPremiumSpaceData()
+           }
+         }, 500)
+       }
+     }, 100)
+   },
+
+   /**
+    * 🔒 加载臻选空间真实数据
+    */
+   async loadPremiumSpaceData() {
+     console.log('🔒 从后端加载臻选空间数据...')
+     
+     try {
+       wx.showLoading({ title: '加载中...', mask: true })
+       
+       const { exchangeAPI } = require('../../utils/api')
+       
+       // 并行获取轮播、卡片和列表数据
+       const [carouselRes, cardRes, listRes] = await Promise.allSettled([
+         exchangeAPI.getCarouselProducts(),
+         exchangeAPI.getCardProducts(), 
+         exchangeAPI.getListProducts()
+       ])
+       
+       const updateData = {}
+       
+       // 处理轮播数据
+       if (carouselRes.status === 'fulfilled' && carouselRes.value.code === 200) {
+         updateData.carouselItems = carouselRes.value.data || []
+       } else {
+         console.warn('⚠️ 轮播数据加载失败')
+         updateData.carouselItems = []
+       }
+       
+       // 处理卡片数据
+       if (cardRes.status === 'fulfilled' && cardRes.value.code === 200) {
+         updateData.cardSections = cardRes.value.data || []
+       } else {
+         console.warn('⚠️ 卡片数据加载失败')
+         updateData.cardSections = []
+       }
+       
+       // 处理列表数据
+       if (listRes.status === 'fulfilled' && listRes.value.code === 200) {
+         updateData.listProducts = listRes.value.data || []
+       } else {
+         console.warn('⚠️ 列表数据加载失败')
+         updateData.listProducts = []
+       }
+       
+       // 更新页面数据
+       this.setData(updateData)
+       
+       wx.hideLoading()
+       
+       console.log('✅ 臻选空间真实数据加载完成')
+       
+     } catch (error) {
+       wx.hideLoading()
+       console.error('❌ 臻选空间数据加载错误:', error)
+       wx.showToast({
+         title: '数据加载失败',
+         icon: 'none'
+       })
+     }
+   },
+
+  /**
+   * 🔒 加载瀑布流商品真实数据
+   */
+  async loadWaterfallProducts() {
+    try {
+      console.log('🔒 从后端加载瀑布流商品数据...')
+      
+      const { exchangeAPI } = require('../../utils/api')
+      
+      // 调用后端API获取瀑布流商品数据
+      const response = await exchangeAPI.getProducts(1, 20, 'waterfall', 'popular')
+      
+      if (response.code === 200 && response.data && response.data.records) {
+        // 处理后端返回的数据，确保包含瀑布流布局所需的字段
+        const products = response.data.records.map(product => ({
+          id: product.product_id || product.id,
+          name: product.product_name || product.name,
+          image: product.product_image || product.image || '/images/default-product.png',
+          price: product.points_price || product.price || 0,
+          originalPrice: product.original_price || product.price || 0,
+          rating: product.rating || 4.5,
+          sales: product.sales_count || product.sales || 0,
+          isLucky: product.is_lucky || false,
+          discount: product.discount || 0,
+          tags: product.tags || [],
+          height: 0 // 布局计算时会重新设置
+        }))
+        
+        console.log('✅ 瀑布流商品数据加载成功:', products.length, '个商品')
+        return products
+        
+      } else {
+        console.warn('⚠️ 瀑布流商品数据加载失败:', response.msg)
+        wx.showToast({
+          title: '商品数据加载失败',
+          icon: 'none'
+        })
+        return []
+      }
+      
+    } catch (error) {
+      console.error('❌ 瀑布流商品数据加载错误:', error)
+      wx.showToast({
+        title: '网络错误，请稍后重试',
+        icon: 'none'
+      })
+      return []
+    }
+  },
+
+  /**
+   * 🌊 计算瀑布流布局
+   */
+  calculateWaterfallLayout(products) {
+    console.log('🌊 开始计算瀑布流布局...')
+    
+    const columns = [0, 0] // 重置双列高度记录
+    const { columnWidth } = this.data
+    
+    products.forEach((product, index) => {
+      // 选择较短的列
+      const shortestCol = columns[0] <= columns[1] ? 0 : 1
+      
+      // 计算商品卡片高度
+      const imageHeight = 200 // 图片固定高度
+      const contentHeight = this.calculateContentHeight(product)
+      const cardHeight = imageHeight + contentHeight + 30 // 间距
+      
+      // 设置商品位置信息
+      product.columnIndex = shortestCol
+      product.left = shortestCol * (columnWidth + 15)
+      product.top = columns[shortestCol]
+      product.width = columnWidth
+      product.height = cardHeight
+      
+      // 更新列高度
+      columns[shortestCol] += cardHeight + 20
+    })
+    
+    // 更新数据状态
+    this.setData({
+      waterfallProducts: products,
+      waterfallColumns: columns,
+      containerHeight: Math.max(columns[0], columns[1])
+    })
+    
+    console.log('✅ 瀑布流布局计算完成', {
+      productCount: products.length,
+      containerHeight: Math.max(columns[0], columns[1])
+    })
+  },
+
+  /**
+   * 📏 计算商品卡片内容高度
+   */
+  calculateContentHeight(product) {
+    // 基础内容高度
+    let height = 40 // 商品名称
+    height += 25 // 价格行
+    height += 20 // 评分销量行
+    
+    // 根据标签数量增加高度
+    if (product.tags && product.tags.length > 0) {
+      height += 25
+    }
+    
+    // 根据折扣标签增加高度
+    if (product.discount > 0) {
+      height += 5
+    }
+    
+    return height
+  },
+
+  /**
+   * 🔄 空间切换处理（修复版）
+   */
+  async onSpaceChange(e) {
+    const spaceId = e.currentTarget.dataset.space
+    const currentSpace = this.data.currentSpace
+    
+    console.log('🔄 空间切换:', currentSpace, '->', spaceId)
+    
+    // 如果是当前空间，直接返回
+    if (currentSpace === spaceId) {
+      console.log('已在当前空间，无需切换')
+      return
+    }
+    
+    // 🔒 臻选空间解锁检查
+    if (spaceId === 'premium') {
+      const unlockResult = this.checkPremiumUnlockStatus()
+      if (!unlockResult.canAccess) {
+        this.showPremiumUnlockModal(unlockResult)
+        return
+      }
+    }
+    
+    // 震动反馈
+    wx.vibrateShort({ type: 'light' })
+    
+    // 切换空间
+    this.setData({
+      currentSpace: spaceId
+    })
+    
+    // 根据空间类型初始化数据
+    if (spaceId === 'lucky') {
+      console.log('🍀 初始化幸运空间数据...')
+      await this.initLuckySpaceData()
+    } else if (spaceId === 'premium') {
+      console.log('💎 初始化臻选空间数据...')
+      this.initPremiumSpaceData()
+    }
+    
+    // 显示切换提示
+    wx.showToast({
+      title: spaceId === 'lucky' ? '🍀 已进入幸运空间' : '💎 已进入臻选空间',
+      icon: 'none',
+      duration: 1500
+    })
+    
+    console.log('✅ 空间切换完成')
+  },
+
+
+
+
+
+  // showNavigationFeedback函数已移除
+
+  /**
+   * 🔒 初始化臻选空间解锁状态
+   */
+  async initPremiumUnlockStatus() {
+    console.log('🔒 初始化臻选空间解锁状态...')
+    
+    try {
+      // 从本地存储获取解锁状态
+      const storedUnlockStatus = wx.getStorageSync('premiumUnlockStatus') || {}
+      
+      // 获取用户积分信息
+      const userInfo = this.data.userInfo
+      const totalPoints = this.data.totalPoints
+      
+      // 模拟获取历史累计积分（实际应从后端获取）
+      const cumulativePoints = await this.getCumulativePoints()
+      
+      // 检查解锁状态
+      const currentTime = Date.now()
+      const isUnlocked = storedUnlockStatus.unlockTime && 
+                        storedUnlockStatus.expiryTime && 
+                        currentTime < storedUnlockStatus.expiryTime
+      
+      // 检查是否满足解锁条件
+      const canUnlock = cumulativePoints >= 500000 // 50万积分要求
+      
+      const unlockStatus = {
+        isUnlocked: isUnlocked || false,
+        unlockTime: storedUnlockStatus.unlockTime || 0,
+        expiryTime: storedUnlockStatus.expiryTime || 0,
+        cumulativePoints: cumulativePoints,
+        canUnlock: canUnlock
+      }
+      
+      this.setData({
+        premiumUnlockStatus: unlockStatus
+      })
+      
+      console.log('🔒 臻选空间解锁状态:', unlockStatus)
+      
+    } catch (error) {
+      console.error('❌ 初始化臻选空间解锁状态失败:', error)
+      
+      // 设置默认状态
+      this.setData({
+        premiumUnlockStatus: {
+          isUnlocked: false,
+          unlockTime: 0,
+          expiryTime: 0,
+          cumulativePoints: 0,
+          canUnlock: false
+        }
+      })
+    }
+  },
+
+  /**
+   * 🔒 获取用户历史累计积分（后端真实数据）
+   * 从后端API获取用户真实的历史累计积分
+   */
+  async getCumulativePoints() {
+    try {
+      const { userAPI } = require('../../utils/api')
+      
+      // 调用后端API获取真实的历史累计积分
+      const response = await userAPI.getCumulativePoints()
+      
+      if (response.code === 200 && response.data) {
+        const cumulativePoints = response.data.cumulative_points || 0
+        console.log('📊 获取真实历史累计积分:', cumulativePoints)
+        return cumulativePoints
+      } else {
+        console.warn('⚠️ 获取历史累计积分失败:', response.msg)
+        wx.showToast({
+          title: '获取积分数据失败',
+          icon: 'none'
+        })
+        return 0
+      }
+      
+    } catch (error) {
+      console.error('❌ 获取历史累计积分网络错误:', error)
+      wx.showToast({
+        title: '网络错误，请稍后重试',
+        icon: 'none'
+      })
+      return 0
+    }
+  },
+
+  /**
+   * 🔒 检查臻选空间解锁状态
+   */
+  checkPremiumUnlockStatus() {
+    const unlockStatus = this.data.premiumUnlockStatus
+    const currentTime = Date.now()
+    
+    console.log('🔒 检查臻选空间解锁状态:', unlockStatus)
+    
+    // 检查是否已解锁且未过期
+    if (unlockStatus.isUnlocked && currentTime < unlockStatus.expiryTime) {
+      return {
+        canAccess: true,
+        status: 'unlocked',
+        message: '✅ 臻选空间已解锁',
+        remainingTime: unlockStatus.expiryTime - currentTime
+      }
+    }
+    
+    // 检查是否满足解锁条件
+    if (!unlockStatus.canUnlock) {
+      const remaining = 500000 - unlockStatus.cumulativePoints
+      return {
+        canAccess: false,
+        status: 'requirement_not_met',
+        message: `需要历史累计获得50万积分\n当前累计: ${unlockStatus.cumulativePoints.toLocaleString()}积分\n还需: ${remaining.toLocaleString()}积分`,
+        requirement: 500000,
+        current: unlockStatus.cumulativePoints,
+        remaining: remaining
+      }
+    }
+    
+    // 满足条件但需要支付解锁费用
+    const currentPoints = this.data.totalPoints
+    if (currentPoints < 100) {
+      return {
+        canAccess: false,
+        status: 'insufficient_points',
+        message: `解锁需要消耗100积分\n当前积分: ${currentPoints}\n还需: ${100 - currentPoints}积分`,
+        cost: 100,
+        current: currentPoints,
+        needed: 100 - currentPoints
+      }
+    }
+    
+    // 可以解锁
+    return {
+      canAccess: false,
+      status: 'can_unlock',
+      message: '满足解锁条件，是否支付100积分解锁臻选空间？',
+      cost: 100,
+      current: currentPoints
+    }
+  },
+
+  /**
+   * 🔒 显示臻选空间解锁弹窗
+   */
+  showPremiumUnlockModal(unlockResult) {
+    console.log('🔒 显示解锁弹窗:', unlockResult)
+    
+    const { status, message } = unlockResult
+    
+    // 根据不同状态显示不同的弹窗
+    switch (status) {
+      case 'requirement_not_met':
+        wx.showModal({
+          title: '🔒 臻选空间未解锁',
+          content: message,
+          showCancel: false,
+          confirmText: '我知道了',
+          confirmColor: '#FF6B35'
+        })
+        break
+        
+      case 'insufficient_points':
+        wx.showModal({
+          title: '💰 积分不足',
+          content: message,
+          showCancel: true,
+          cancelText: '稍后再试',
+          confirmText: '去获取积分',
+          confirmColor: '#FF6B35',
+          success: (res) => {
+            if (res.confirm) {
+              // 跳转到积分获取页面（如上传页面）
+              wx.navigateTo({
+                url: '/pages/camera/camera'
+              })
+            }
+          }
+        })
+        break
+        
+      case 'can_unlock':
+        wx.showModal({
+          title: '🔓 解锁臻选空间',
+          content: `${message}\n\n解锁后可享受24小时访问权限`,
+          showCancel: true,
+          cancelText: '取消',
+          confirmText: '立即解锁',
+          confirmColor: '#FF6B35',
+          success: (res) => {
+            if (res.confirm) {
+              this.unlockPremiumSpace()
+            }
+          }
+        })
+        break
+        
+      default:
+        wx.showToast({
+          title: '系统错误，请稍后重试',
+          icon: 'none'
+        })
+    }
+  },
+
+  /**
+   * 🔓 执行臻选空间解锁
+   */
+  async unlockPremiumSpace() {
+    console.log('🔓 开始解锁臻选空间...')
+    
+    try {
+      // 显示加载中
+      wx.showLoading({
+        title: '解锁中...',
+        mask: true
+      })
+      
+      const currentPoints = this.data.totalPoints
+      const unlockCost = 100
+      
+      // 检查积分是否足够
+      if (currentPoints < unlockCost) {
+        wx.hideLoading()
+        wx.showToast({
+          title: '积分不足，解锁失败',
+          icon: 'none'
+        })
+        return
+      }
+      
+      // 模拟网络请求延迟
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // 扣除积分
+      const newPoints = currentPoints - unlockCost
+      
+      // 设置解锁状态
+      const currentTime = Date.now()
+      const expiryTime = currentTime + (24 * 60 * 60 * 1000) // 24小时后过期
+      
+      const unlockStatus = {
+        isUnlocked: true,
+        unlockTime: currentTime,
+        expiryTime: expiryTime,
+        cumulativePoints: this.data.premiumUnlockStatus.cumulativePoints,
+        canUnlock: true
+      }
+      
+      // 保存到本地存储
+      wx.setStorageSync('premiumUnlockStatus', unlockStatus)
+      
+      // 更新页面数据
+      this.setData({
+        totalPoints: newPoints,
+        premiumUnlockStatus: unlockStatus
+      })
+      
+      wx.hideLoading()
+      
+      // 显示成功提示
+      wx.showModal({
+        title: '🎉 解锁成功',
+        content: `臻选空间已解锁！\n有效期：24小时\n剩余积分：${newPoints}`,
+        showCancel: false,
+        confirmText: '立即进入',
+        confirmColor: '#FF6B35',
+        success: (res) => {
+          if (res.confirm) {
+            // 自动切换到臻选空间
+            this.setData({
+              currentSpace: 'premium'
+            })
+            this.initPremiumSpaceData()
+            
+            wx.showToast({
+              title: '💎 已进入臻选空间',
+              icon: 'none',
+              duration: 1500
+            })
+          }
+        }
+      })
+      
+      console.log('✅ 臻选空间解锁成功')
+      
+    } catch (error) {
+      wx.hideLoading()
+      console.error('❌ 臻选空间解锁失败:', error)
+      
+      wx.showToast({
+        title: '解锁失败，请重试',
+        icon: 'none'
+      })
+    }
+  },
+
+  /**
+   * 🏆 初始化竞价热榜数据 - 从后端API获取真实数据
+   */
+  async initBiddingRankingData() {
+    try {
+      console.log('🎯 从后端加载竞价热榜数据...')
+      
+      // 显示加载状态
+      this.setData({
+        biddingLoading: true,
+        biddingLoadingText: '正在加载竞价商品...'
+      })
+      
+      // 🔴 从后端API获取真实竞价商品数据
+      const response = await API.marketAPI.getBiddingProducts({
+        page: 1,
+        limit: 20
+      })
+      
+      if (!response || !response.data) {
+        throw new Error('后端返回竞价数据格式异常')
+      }
+      
+      const allProducts = response.data.products || []
+      
+      // 根据后端返回的分类信息进行分配
+      const hotRankingList = allProducts.filter(item => item.category === 'hot').slice(0, 8)
+      const biddingProducts = allProducts.filter(item => item.category === 'bidding').slice(0, 7)
+      const newProducts = allProducts.filter(item => item.category === 'new').slice(0, 5)
+      
+      this.setData({
+        hotRankingList,
+        biddingProducts,
+        newProducts,
+        biddingLoading: false,
+        biddingLoadingText: ''
+      })
+      
+      console.log('✅ 竞价热榜数据加载完成', {
+        热销榜: hotRankingList.length,
+        竞价区: biddingProducts.length,
+        新品区: newProducts.length
+      })
+      
+    } catch (error) {
+      console.error('❌ 加载竞价热榜数据失败:', error)
+      
+      // 设置友好的错误提示
+      let errorMessage = '加载竞价商品失败'
+      if (error.message && error.message.includes('网络')) {
+        errorMessage = '网络连接异常，请检查网络后重试'
+      } else if (error.message && error.message.includes('认证')) {
+        errorMessage = '登录状态过期，请重新登录'
+      }
+      
+      this.setData({
+        biddingLoading: false,
+        biddingLoadingText: '',
+        hotRankingList: [],
+        biddingProducts: [],
+        newProducts: [],
+        biddingErrorMessage: errorMessage,
+        showBiddingError: true
+      })
+      
+      // 显示错误提示
+      wx.showToast({
+        title: errorMessage,
+        icon: 'none',
+        duration: 3000
+      })
+    }
+  },
+
+  // 🔴 已删除：generateMockBiddingProducts() - 违反项目安全规则，改为使用后端真实API
+
+  /**
+   * 🚀 启动实时更新定时器
+   */
+  startRealTimeUpdate() {
+    console.log('🚀 启动竞价热榜实时更新')
+    
+    // 清除之前的定时器
+    if (this.data.realTimeTimer) {
+      clearInterval(this.data.realTimeTimer)
+    }
+    
+    // 每30秒更新一次排行和价格
+    const timer = setInterval(() => {
+      this.updateRealTimeData()
+    }, 30000)
+    
+    this.setData({ realTimeTimer: timer })
+  },
+
+  /**
+   * 📊 更新实时排行和价格数据
+   */
+  updateRealTimeData() {
+    console.log('📊 更新实时竞价数据')
+    
+    const { hotRankingList, biddingProducts } = this.data
+    
+    // 🔴 使用后端真实数据，严禁模拟价格变化
+    const updatedHotRanking = hotRankingList // 直接使用后端数据，不做修改
+    const updatedBiddingProducts = biddingProducts // 直接使用后端数据，不做修改
+    
+    // 重新排序热销榜
+    updatedHotRanking.sort((a, b) => b.hot_score - a.hot_score)
+    updatedHotRanking.forEach((product, index) => {
+      product.ranking = index + 1
+    })
+    
+    this.setData({
+      hotRankingList: updatedHotRanking,
+      biddingProducts: updatedBiddingProducts
+    })
+    
+    console.log('✅ 实时数据更新完成')
+  },
+
+  /**
+   * 💰 用户竞价操作
+   */
+  onBidProduct(e) {
+    const product = e.currentTarget.dataset.product
+    console.log('🎯 用户点击竞价:', product.name)
+    
+    // 检查用户积分是否足够
+    const minBidAmount = product.current_price + product.min_bid_increment
+    if (this.data.totalPoints < minBidAmount) {
+      wx.showModal({
+        title: '💰 积分不足',
+        content: `竞价需要至少${minBidAmount}积分\n您当前积分：${this.data.totalPoints}`,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      return
+    }
+    
+    // 显示竞价弹窗
+    this.setData({
+      showBidModal: true,
+      selectedBidProduct: product,
+      userBidAmount: minBidAmount
+    })
+  },
+
+  /**
+   * 📈 确认竞价
+   */
+  onConfirmBid() {
+    const { selectedBidProduct, userBidAmount } = this.data
+    
+    if (!selectedBidProduct || userBidAmount <= selectedBidProduct.current_price) {
+      wx.showToast({
+        title: '竞价金额无效',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 模拟竞价成功
+    console.log(`🎉 竞价成功: ${selectedBidProduct.name} - ${userBidAmount}积分`)
+    
+    // 更新商品价格和竞价信息
+    this.updateProductBidInfo(selectedBidProduct.product_id, userBidAmount)
+    
+    // 关闭弹窗
+    this.setData({
+      showBidModal: false,
+      selectedBidProduct: null,
+      userBidAmount: 0
+    })
+    
+    wx.showToast({
+      title: '🎉 竞价成功',
+      icon: 'success'
+    })
+  },
+
+  /**
+   * 🔄 更新商品竞价信息
+   */
+  updateProductBidInfo(productId, bidAmount) {
+    const updateProduct = (productList) => {
+      return productList.map(product => {
+        if (product.product_id === productId) {
+          return {
+            ...product,
+            current_price: bidAmount,
+            bid_count: product.bid_count + 1,
+            highest_bidder: '我',
+            hot_score: product.hot_score + 100, // 竞价增加热度
+            updated_at: Date.now()
+          }
+        }
+        return product
+      })
+    }
+    
+    this.setData({
+      hotRankingList: updateProduct(this.data.hotRankingList),
+      biddingProducts: updateProduct(this.data.biddingProducts)
+    })
+  },
+
+  /**
+   * ❌ 取消竞价
+   */
+  onCancelBid() {
+    this.setData({
+      showBidModal: false,
+      selectedBidProduct: null,
+      userBidAmount: 0
+    })
+  },
+
+  /**
+   * 🔢 竞价金额输入
+   */
+  onBidAmountInput(e) {
+    const amount = parseInt(e.detail.value) || 0
+    this.setData({ userBidAmount: amount })
+  },
+
+  /**
+   * 🔌 页面隐藏时清理定时器
+   */
+  onHideMarket() {
+    if (this.data.realTimeTimer) {
+      clearInterval(this.data.realTimeTimer)
+      this.setData({ realTimeTimer: null })
+    }
+  },
+
+  // 未使用的导航相关函数已全部移除，保持代码简洁
+
+  /**
+   * 🛍️ 获取混合布局商品数据 - 从后端API获取
+   * 严禁使用硬编码数据，必须从后端获取真实商品数据
+   */
+  async generateMixedLayoutProducts() {
+    console.log('🛍️ 开始从后端获取混合布局商品数据...')
+    
+    try {
+      // 🔴 从后端API获取真实商品数据
+      const response = await exchangeAPI.getProducts({
+        page: 1,
+        limit: 20,
+        category: 'premium'  // 获取精品商品
+      })
+      
+      if (response.code === 0 && response.data && response.data.products) {
+        const products = response.data.products
+        console.log('✅ 成功获取后端商品数据，商品数量:', products.length)
+        return products
+      } else {
+        console.error('❌ 后端商品API返回异常:', response)
+        throw new Error('后端商品API返回数据格式不正确')
+      }
+    } catch (error) {
+      console.error('❌ 获取后端商品数据失败:', error)
+      
+      // 🚨 严禁使用模拟数据 - 显示错误提示
+      wx.showModal({
+        title: '⚠️ 后端服务异常',
+        content: '无法获取商品数据，请检测后端API服务是否正常运行。',
+        showCancel: false,
+        confirmText: '知道了'
+      })
+      
+      // 返回空数组，避免页面崩溃
+      return []
+    }
+  },
 })

@@ -267,6 +267,7 @@ Page({
 
   /**
    * 🔴 新增：验证Token并处理重定向
+   * 🔧 修复微信小程序atob兼容性问题
    */
   validateTokenAndRedirect(token, userInfo) {
     // 🔴 Token格式预检查
@@ -276,9 +277,10 @@ Page({
       return
     }
 
-    // 🔴 JWT过期检查
+    // 🔴 JWT过期检查 - 修复微信小程序兼容性
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
+      const { decodeJWTPayload } = require('../../utils/util.js')
+      const payload = decodeJWTPayload(token)
       const now = Math.floor(Date.now() / 1000)
       
       if (payload.exp && payload.exp < now) {
@@ -885,8 +887,9 @@ Page({
         
         if (tokenParts.length === 3) {
           try {
-            // 解码JWT payload
-            const payload = JSON.parse(atob(tokenParts[1]))
+            // 🔧 修复：使用微信小程序兼容的JWT解码函数
+            const { decodeJWTPayload } = require('../../utils/util.js')
+            const payload = decodeJWTPayload(accessToken)
             console.log('🔍 JWT Payload解码成功:', {
               userId: payload.userId || payload.user_id,
               mobile: payload.mobile,

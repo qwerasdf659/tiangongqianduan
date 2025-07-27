@@ -3348,7 +3348,7 @@ Page({
   /**
    * 🔍 字段映射测试功能 - 测试修复效果
    */
-  onTestFieldMapping() {
+  async onTestFieldMapping() {
     console.log('🔍 开始测试字段映射修复效果...')
     
     wx.showLoading({ title: '测试中...', mask: true })
@@ -3357,40 +3357,48 @@ Page({
     const { FieldMappingValidator } = require('../../utils/field-mapping-validator')
     const validator = new FieldMappingValidator()
     
-    // 模拟后端原始数据和映射后数据
-    const testData = {
-      userInfo: {
-        raw: {
-          user_id: 123,
-          mobile: "136****7930",
-          nickname: "测试用户",
-          total_points: 1500,
-          is_admin: true,
-          avatar_url: "https://example.com/avatar.jpg"
+    // 从后端获取真实数据进行字段映射测试
+    let realData = null
+    
+    try {
+      const { userAPI, adminAPI } = require('../../utils/api')
+      
+      // 获取真实用户信息和审核记录数据
+      const [userInfoRes, reviewRecordsRes] = await Promise.allSettled([
+        userAPI.getUserInfo(),
+        adminAPI.getPendingReviews(1, 1) // 获取一条真实审核记录用于测试
+      ])
+      
+      if (userInfoRes.status === 'rejected' || reviewRecordsRes.status === 'rejected') {
+        throw new Error('无法获取真实数据进行测试')
+      }
+      
+      realData = {
+        userInfo: {
+          raw: userInfoRes.value.data || {},
+          mapped: null
         },
-        mapped: null // 将通过实际映射函数生成
-      },
-      reviewRecords: [
-        {
-          raw: {
-            upload_id: "upload_123_test",
-            user_info: {
-              mobile: "136****7930",
-              user_id: 456,
-              nickname: "上传用户"
-            },
-            image_url: "https://example.com/receipt.jpg",
-            uploaded_at: "2024-12-19 14:30:00",
-            status: "pending"
-          },
-          mapped: null // 将通过实际映射函数生成
-        }
-      ]
+        reviewRecords: [
+          {
+            raw: reviewRecordsRes.value.data?.records?.[0] || {},
+            mapped: null
+          }
+        ]
+      }
+    } catch (error) {
+      console.error('❌ 获取真实数据失败，无法进行字段映射测试:', error)
+      wx.hideLoading()
+      wx.showModal({
+        title: '测试失败',
+        content: '无法获取后端真实数据，请确保网络连接正常且已登录',
+        showCancel: false
+      })
+      return
     }
     
     try {
       // 测试用户信息映射
-      const rawUserInfo = testData.userInfo.raw
+      const rawUserInfo = realData.userInfo.raw
       const mappedUserInfo = {
         user_id: rawUserInfo.user_id || rawUserInfo.id || 'unknown',
         mobile: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知',
@@ -3401,10 +3409,10 @@ Page({
         avatar: rawUserInfo.avatar_url || rawUserInfo.avatarUrl || rawUserInfo.avatar || '/images/default-avatar.png',
         phone: rawUserInfo.mobile || rawUserInfo.phone || rawUserInfo.phone_number || '未知'
       }
-      testData.userInfo.mapped = mappedUserInfo
+      realData.userInfo.mapped = mappedUserInfo
       
       // 测试审核记录映射
-      const rawReview = testData.reviewRecords[0].raw
+      const rawReview = realData.reviewRecords[0].raw
       const mappedReview = {
         id: rawReview.upload_id || rawReview.id || 'pending_0',
         upload_id: rawReview.upload_id,
@@ -3418,10 +3426,10 @@ Page({
         status: rawReview.status || 'pending',
         selected: false
       }
-      testData.reviewRecords[0].mapped = mappedReview
+      realData.reviewRecords[0].mapped = mappedReview
       
       // 运行完整测试
-      const testReport = validator.runCompleteTest(testData)
+      const testReport = validator.runCompleteTest(realData)
       
       wx.hideLoading()
       

@@ -1,5 +1,19 @@
 /* pages/lottery/lottery.wxss - 抽奖页面样式 */
 
+/* 🎯 Z-INDEX 层级管理系统 (2024优化版)
+   ================================
+   结果弹窗层：     99999999 (最高层，确保永远在最顶部)
+   弹窗遮罩层：     99999998 
+   弹窗内容层：     999999999
+   积分弹窗层：     10000-10040 (中高层)
+   抽奖按钮层：     100-10000 (中等层)
+   转盘内容层：     5-50 (低但可见层)
+   转盘Canvas：     5-10 (确保可见)
+   抽奖遮罩层：     9999
+   背景装饰层：     0-2 (背景层)
+   隐藏层：         不使用负值，改用 display: none
+   ================================ */
+
 /* 🚨 真机兼容性重置 - 确保基础样式正常显示 */
 page {
   background-color: transparent !important;
@@ -69,7 +83,8 @@ text {
   outline: none !important;
   -webkit-appearance: none !important;
   /* 真机兼容性增强 */
-  z-index: 999999 !important;
+  /* 🎯 层级优化：设置适中的z-index，确保按钮可见且不覆盖结果弹窗 */
+  z-index: 20 !important;
   pointer-events: auto !important;
   -webkit-transform: translateZ(0) !important;
   transform: translateZ(0) !important;
@@ -81,7 +96,8 @@ text {
 /* 真机兼容 - 按钮容器强化 */
 .center-button-container {
   position: absolute !important;
-  z-index: 999999 !important;
+  /* 🎯 层级优化：设置适中的z-index，确保按钮可见且不覆盖结果弹窗 */
+  z-index: 15 !important;
   pointer-events: auto !important;
   display: block !important;
   width: 80px !important;
@@ -90,6 +106,9 @@ text {
   -webkit-transform: translateZ(0) !important;
   transform: translateZ(0) !important;
   will-change: transform !important;
+  /* 🔧 环境兼容性增强 */
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* 真机兼容 - 各种定位方案 */
@@ -132,19 +151,135 @@ text {
   padding: 15rpx;
 }
 
-/* 显示结果时的全局状态 - 修复版本 */
-.lottery-container.showing-result .wheel-section,
-.lottery-container.showing-result .wheel-container,
-.lottery-container.showing-result .wheel-canvas,
-.lottery-container.showing-result .center-single-draw-btn,
-.lottery-container.showing-result .multi-draw-buttons,
-.lottery-container.showing-result .quick-actions {
-  z-index: -1 !important;
+/* 🔧 修复：转盘Canvas样式优化 - 确保不遮挡指针 */
+.wheel-canvas {
+  transform-origin: center center !important;
+  will-change: auto !important;
+  /* 硬件加速优化 */
+  -webkit-transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  /* 🎯 层级优化：降低z-index，确保指针在转盘之上 */
+  z-index: 5 !important; /* 🎯 降低层级，让指针(z-index: 100)在上层 */
+  position: absolute !important;
+  pointer-events: none !important;
+  /* 🔧 环境兼容性增强 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 🎯 新增：转动指针样式 - 指针转动方案 */
+.lottery-pointer {
+  transform-origin: center center !important;
+  will-change: transform !important;
+  /* 硬件加速优化 */
+  -webkit-transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  /* 确保动画平滑 */
+  transition-timing-function: ease-out !important;
+  transition-property: transform !important;
+  /* 🎯 层级优化：确保指针在转盘之上 */
+  z-index: 15 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  /* 🔧 环境兼容性增强 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 🎯 指针指示器样式 - 增强可见性 */
+.pointer-indicator {
+  position: absolute !important;
+  top: 5px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 35px solid #FF4444;
+  /* 添加阴影效果增强视觉效果 */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+  /* 添加发光效果 */
+  z-index: 30 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.pointer-indicator::after {
+  content: '';
+  position: absolute;
+  top: -35px;
+  left: -12px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 32px solid #FFD700;
+  /* 内层金色指针 */
+  transform: scale(0.8);
+  z-index: 31 !important;
+}
+
+/* 🎯 修复：使用测试转盘的成功样式 */
+.test-pointer-fixed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  z-index: 100; /* 🎯 最高层级，确保在所有元素之上 */
+  /* 🎯 关键：总是启用过渡动画 */
+  transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  -webkit-transition: -webkit-transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  pointer-events: none;
+}
+
+/* 指针箭头 */
+.pointer-arrow-fixed {
+  position: absolute;
+  top: 20rpx;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 40rpx solid transparent;
+  border-right: 40rpx solid transparent;
+  border-top: 80rpx solid #FF0000;
+  transform: translateX(-50%);
+  z-index: 101;
+  /* 增强可见性 */
+  filter: drop-shadow(0 6rpx 12rpx rgba(0, 0, 0, 0.8));
+}
+
+/* 指针中心圆点 */
+.pointer-center-fixed {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30rpx;
+  height: 30rpx;
+  background: #FF0000;
+  border: 6rpx solid #FFFFFF;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 102;
+  box-shadow: 0 0 20rpx rgba(255, 0, 0, 0.8);
 }
 
 /* 🔴 修复：规则说明区域不应该被隐藏，移除z-index设置 */
 .lottery-container.showing-result .rules-section {
   /* 移除 z-index: -1，让规则说明保持可见 */
+}
+
+/* 🎯 转盘区域基础样式 */
+.wheel-section {
+  position: relative;
+  z-index: 8 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* 🔴 新增：转盘隐藏样式 */
@@ -154,6 +289,8 @@ text {
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+/* 清理：移除不再需要的隐藏样式，因为现在使用display:none和wx:if */
 
 /* 🔴 抽奖结果显示时的背景优化 */
 .lottery-container.showing-result {
@@ -221,26 +358,6 @@ text {
   border-radius: 16rpx;
   padding: 16rpx 24rpx;
   font-size: 24rpx;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 2rpx 8rpx rgba(76, 175, 80, 0.3);
-}
-
-/* 转盘区域 */
-.wheel-section {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 30rpx;
-  padding: 20rpx 20rpx 30rpx 20rpx;
-  margin-bottom: 20rpx;
-  text-align: center;
-  backdrop-filter: blur(10rpx);
-  position: relative;
-  z-index: 1;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
-}
-
-/* 转盘加载状态 */
-.wheel-loading {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -316,6 +433,12 @@ text {
   margin-top: 15rpx;
   backdrop-filter: blur(10rpx);
   box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1);
+  /* 🎯 层级优化：确保多连抽区域可见 */
+  position: relative;
+  z-index: 6 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .section-title-small {
@@ -459,17 +582,23 @@ text {
   font-size: 32rpx;
 }
 
-/* 抽奖结果弹窗 */
+/* 抽奖结果弹窗 - 🔴 关键修复：确保最高层级，防止被转盘覆盖 */
 .result-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 100000;
+  z-index: 99999999 !important; /* 🔴 设置为极高的z-index值 */
   display: flex;
   justify-content: center;
   align-items: center;
+  /* 🔴 真机调试修复：强制硬件加速 */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+  /* 🔴 确保在所有情况下都是最顶层 */
+  pointer-events: auto;
 }
 
 .modal-mask {
@@ -477,7 +606,10 @@ text {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
-  z-index: 100010;
+  z-index: 99999998 !important; /* 🔴 设置为极高的z-index值 */
+  /* 🔴 真机调试修复 */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .modal-content {
@@ -488,9 +620,14 @@ text {
   border-radius: 20rpx;
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
-  z-index: 100020;
+  z-index: 999999999 !important; /* 🔴 关键修复：设置为最高层级 */
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.5);
   border: 3rpx solid #ff6b35;
+  /* 🔴 真机调试修复：强制硬件加速和层级提升 */
+  -webkit-transform: translateZ(99999px);
+  transform: translateZ(99999px);
+  will-change: transform, opacity;
+  pointer-events: auto;
 }
 
 @keyframes modalSlideIn {
@@ -659,7 +796,7 @@ text {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 100000;
+  z-index: 10000; /* 🔴 降低z-index，确保不与结果弹窗冲突 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -670,7 +807,7 @@ text {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
-  z-index: 100010;
+  z-index: 10010; /* 🔴 降低z-index */
 }
 
 .points-modal .modal-content {
@@ -681,7 +818,7 @@ text {
   border-radius: 20rpx;
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
-  z-index: 100020;
+  z-index: 10020; /* 🔴 降低z-index */
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.5);
   border: 3rpx solid #ff6b35;
 }
@@ -692,7 +829,7 @@ text {
   padding: 35rpx 30rpx;
   text-align: center;
   position: relative;
-  z-index: 100030;
+  z-index: 10030; /* 🔴 降低z-index */
 }
 
 .points-title {
@@ -795,7 +932,7 @@ text {
   font-size: 40rpx;
   color: white;
   cursor: pointer;
-  z-index: 100040;
+  z-index: 10040; /* 🔴 降低z-index */
   width: 50rpx;
   height: 50rpx;
   display: flex;
@@ -2298,3 +2435,923 @@ text {
     font-size: 36rpx;
   }
 } 
+
+/* 🔴 新增：静态转盘降级方案样式 */
+.static-wheel-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 260px;
+  z-index: 10 !important;
+  /* 🔴 确保在所有环境下都可见 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.static-wheel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.static-wheel-segment {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 50%;
+  transform-origin: 0 100%;
+  overflow: hidden;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+}
+
+.segment-content {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 80px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.segment-text {
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
+  word-break: break-all;
+}
+
+.static-wheel-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  margin: -40px 0 0 -40px;
+  background: linear-gradient(135deg, #FF6B35, #FF8C42);
+  border: 3px solid white;
+  border-radius: 50%;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.6);
+}
+
+.static-wheel-pointer {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 0;
+  height: 0;
+  margin-left: -8px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 20px solid #333;
+  z-index: 15;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* 🔴 环境兼容性优化 */
+@media screen and (max-width: 375px) {
+  .static-wheel-container {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .segment-text {
+    font-size: 10px;
+  }
+  
+  .static-wheel-center {
+    width: 70px;
+    height: 70px;
+    margin: -35px 0 0 -35px;
+  }
+}
+
+/* 🚀 方案1：图片转盘样式（终极降级，最可靠） */
+.image-wheel-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 260px;
+  z-index: 10 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.image-wheel-bg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f5f5f5;
+  border: 3px solid #ffffff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* 简化的网格转盘布局 */
+.simple-wheel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  width: 100%;
+  height: 100%;
+  gap: 2px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.grid-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 40px;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.grid-item-text {
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
+  word-break: break-all;
+  max-width: 100%;
+}
+
+/* 中心圆和指针 */
+.simple-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  background: linear-gradient(135deg, #FF6B35, #FF8C42);
+  border: 3px solid white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.6);
+}
+
+.simple-pointer {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  animation: pointerBlink 2s ease-in-out infinite;
+}
+
+@keyframes pointerBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* 🚀 方案2：超简化列表转盘样式 */
+.ultra-simple-wheel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 260px;
+  background: white;
+  border: 2px solid #FF6B35;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 10 !important;
+}
+
+.wheel-title {
+  color: #FF6B35;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.prize-list {
+  width: 100%;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.prize-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 8px;
+  border-left: 3px solid #FF6B35;
+}
+
+.prize-item-name {
+  color: #333;
+  font-size: 12px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.prize-item-index {
+  color: #FF6B35;
+  font-size: 10px;
+  font-weight: bold;
+  background: #fff5f0;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* 🎯 新的区域轮流发亮抽奖样式 */
+
+/* 抽奖网格区域容器 */
+.lottery-grid-section {
+  position: relative;
+  z-index: 8 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 🎨 美化3x3网格抽奖盘容器 */
+.lottery-grid {
+  width: 600rpx;
+  height: 600rpx;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 30%, #ffffff 70%, #f0f7ff 100%);
+  border-radius: 35rpx;
+  padding: 25rpx;
+  box-shadow: 
+    0 25rpx 50rpx rgba(102, 126, 234, 0.15),
+    0 10rpx 30rpx rgba(102, 126, 234, 0.1),
+    0 0 0 8rpx rgba(255, 255, 255, 0.8),
+    0 0 0 10rpx rgba(102, 126, 234, 0.1),
+    inset 0 2rpx 0 rgba(255, 255, 255, 0.9);
+  position: relative;
+  overflow: visible; /* 允许高亮效果溢出 */
+  /* 添加微妙的纹理效果 */
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 107, 53, 0.05) 0%, transparent 50%);
+}
+
+/* 抽奖盘的装饰边框 */
+.lottery-grid::before {
+  content: '';
+  position: absolute;
+  top: -5rpx;
+  left: -5rpx;
+  right: -5rpx;
+  bottom: -5rpx;
+  background: linear-gradient(45deg, 
+    rgba(102, 126, 234, 0.2) 0%, 
+    rgba(255, 107, 53, 0.2) 25%, 
+    rgba(102, 126, 234, 0.2) 50%, 
+    rgba(255, 107, 53, 0.2) 75%, 
+    rgba(102, 126, 234, 0.2) 100%);
+  border-radius: 40rpx;
+  z-index: -1;
+  animation: borderGlow 6s linear infinite;
+  opacity: 0.6;
+}
+
+/* 边框发光动画 */
+@keyframes borderGlow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 奖品区域网格布局 */
+.prize-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 15rpx;
+  width: 100%;
+  height: 100%;
+  padding: 10rpx;
+  box-sizing: border-box;
+}
+
+/* 🎨 美化奖品区域基础样式 - 现代立体设计 */
+.prize-area {
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 50%, #ffffff 100%);
+  border: 2rpx solid rgba(102, 126, 234, 0.1);
+  border-radius: 25rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 
+    0 8rpx 25rpx rgba(0, 0, 0, 0.08),
+    0 3rpx 12rpx rgba(0, 0, 0, 0.05),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  /* 确保基础渲染清晰 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  transform: translateZ(0);
+  /* 添加微妙的质感 */
+  backdrop-filter: blur(1rpx);
+}
+
+/* 奖品区域悬停效果 */
+.prize-area:hover {
+  transform: translateY(-6rpx) translateZ(0);
+  box-shadow: 
+    0 15rpx 35rpx rgba(102, 126, 234, 0.15),
+    0 8rpx 20rpx rgba(102, 126, 234, 0.1),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.95);
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+/* 🎁 美化奖品区域内容 */
+.prize-content {
+  text-align: center;
+  padding: 18rpx 12rpx;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+/* 奖品图标区域 */
+.prize-icon {
+  font-size: 36rpx;
+  margin-bottom: 6rpx;
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
+/* 奖品名称美化 */
+.prize-name {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #2d3748;
+  line-height: 1.3;
+  display: block;
+  word-break: break-all;
+  text-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 100%;
+  /* 添加文字渐变效果 */
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* 降级方案 */
+  color: #2d3748;
+}
+
+/* 奖品装饰线 */
+.prize-content::before {
+  content: '';
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+  border-radius: 1rpx;
+}
+
+/* 图标浮动动画 */
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-3rpx) rotate(2deg); }
+  66% { transform: translateY(-1rpx) rotate(-1deg); }
+}
+
+/* 🌟 美化高亮状态 - 炫酷发光效果 */
+.prize-area.highlighted {
+  background: linear-gradient(145deg, #ff6b35 0%, #ff8a65 50%, #ffab91 100%);
+  border: 3rpx solid #ff4444;
+  box-shadow: 
+    0 0 40rpx rgba(255, 107, 53, 0.9),
+    0 0 80rpx rgba(255, 107, 53, 0.6),
+    0 15rpx 35rpx rgba(255, 107, 53, 0.4),
+    inset 0 2rpx 0 rgba(255, 255, 255, 0.4),
+    inset 0 -2rpx 0 rgba(0, 0, 0, 0.1);
+  transform: translateY(-8rpx) scale(1.05) translateZ(0);
+  animation: highlightPulse 0.6s ease-in-out;
+  /* 确保文字渲染清晰 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* 添加光晕效果 */
+  position: relative;
+  overflow: visible;
+}
+
+/* 高亮状态的光圈效果 */
+.prize-area.highlighted::before {
+  content: '';
+  position: absolute;
+  top: -10rpx;
+  left: -10rpx;
+  right: -10rpx;
+  bottom: -10rpx;
+  background: linear-gradient(45deg, #ff6b35, #ffd700, #ff69b4, #00d4ff);
+  border-radius: 35rpx;
+  z-index: -1;
+  animation: rotateHalo 2s linear infinite;
+  opacity: 0.6;
+}
+
+/* 高亮文字样式 */
+.prize-area.highlighted .prize-name {
+  color: white;
+  font-weight: 700;
+  text-shadow: 
+    0 2rpx 6rpx rgba(0, 0, 0, 0.6),
+    0 0 12rpx rgba(255, 255, 255, 0.3);
+  font-size: 24rpx;
+  line-height: 1.3;
+  /* 移除渐变背景，使用纯白色 */
+  background: none;
+  -webkit-text-fill-color: white;
+}
+
+/* 高亮图标效果 */
+.prize-area.highlighted .prize-icon {
+  filter: drop-shadow(0 0 12rpx rgba(255, 255, 255, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3));
+  animation: highlightIconPulse 0.6s ease-in-out infinite alternate;
+}
+
+/* 光圈旋转动画 */
+@keyframes rotateHalo {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 高亮图标脉动动画 */
+@keyframes highlightIconPulse {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-3rpx) scale(1.1); }
+}
+
+/* 🏆 美化中奖状态 - 华丽金色胜利效果 */
+.prize-area.winning {
+  background: linear-gradient(145deg, #ffd700 0%, #ffed4a 30%, #fff176 70%, #ffd700 100%);
+  border: 4rpx solid #f59e0b;
+  box-shadow: 
+    0 0 60rpx rgba(255, 215, 0, 1.0),
+    0 0 120rpx rgba(255, 215, 0, 0.8),
+    0 20rpx 40rpx rgba(255, 215, 0, 0.5),
+    inset 0 3rpx 0 rgba(255, 255, 255, 0.6),
+    inset 0 -3rpx 0 rgba(0, 0, 0, 0.1),
+    0 0 0 8rpx rgba(255, 215, 0, 0.3);
+  transform: translateY(-12rpx) scale(1.1) translateZ(0);
+  animation: winningPulse 1.5s ease-in-out infinite;
+  position: relative;
+  overflow: visible;
+}
+
+/* 中奖状态的星光效果 */
+.prize-area.winning::before {
+  content: '✨ ⭐ 💫 ✨ ⭐ 💫';
+  position: absolute;
+  top: -25rpx;
+  left: -25rpx;
+  right: -25rpx;
+  bottom: -25rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  font-size: 20rpx;
+  z-index: -1;
+  animation: starTwinkle 3s ease-in-out infinite;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* 中奖状态的光束效果 */
+.prize-area.winning::after {
+  content: '';
+  position: absolute;
+  top: -15rpx;
+  left: -15rpx;
+  right: -15rpx;
+  bottom: -15rpx;
+  background: conic-gradient(from 0deg, #ffd700, #ffed4a, #fff176, #ffd700);
+  border-radius: 40rpx;
+  z-index: -2;
+  animation: winningRotate 4s linear infinite;
+  opacity: 0.4;
+}
+
+/* 中奖文字样式 */
+.prize-area.winning .prize-name {
+  color: #92400e;
+  font-weight: 800;
+  text-shadow: 
+    0 2rpx 6rpx rgba(146, 64, 14, 0.4),
+    0 0 15rpx rgba(255, 255, 255, 0.6),
+    0 1rpx 0 rgba(255, 255, 255, 0.8);
+  font-size: 26rpx;
+  line-height: 1.2;
+  /* 移除渐变背景，使用纯色 */
+  background: none;
+  -webkit-text-fill-color: #92400e;
+  animation: winningTextGlow 2s ease-in-out infinite alternate;
+}
+
+/* 中奖图标效果 */
+.prize-area.winning .prize-icon {
+  filter: 
+    drop-shadow(0 0 20rpx rgba(255, 215, 0, 1.0)) 
+    drop-shadow(0 6rpx 12rpx rgba(0, 0, 0, 0.3));
+  animation: winningIconDance 1.5s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+/* 星光闪烁动画 */
+@keyframes starTwinkle {
+  0%, 100% { 
+    opacity: 0.4; 
+    transform: scale(0.8) rotate(0deg); 
+  }
+  50% { 
+    opacity: 0.9; 
+    transform: scale(1.2) rotate(180deg); 
+  }
+}
+
+/* 中奖旋转动画 */
+@keyframes winningRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 中奖文字发光动画 */
+@keyframes winningTextGlow {
+  0% { 
+    text-shadow: 
+      0 2rpx 6rpx rgba(146, 64, 14, 0.4),
+      0 0 15rpx rgba(255, 255, 255, 0.6);
+  }
+  100% { 
+    text-shadow: 
+      0 2rpx 6rpx rgba(146, 64, 14, 0.6),
+      0 0 25rpx rgba(255, 255, 255, 0.9),
+      0 0 35rpx rgba(255, 215, 0, 0.8);
+  }
+}
+
+/* 中奖图标舞动动画 */
+@keyframes winningIconDance {
+  0%, 100% { 
+    transform: translateY(0) rotate(0deg) scale(1); 
+  }
+  25% { 
+    transform: translateY(-8rpx) rotate(5deg) scale(1.1); 
+  }
+  50% { 
+    transform: translateY(-4rpx) rotate(0deg) scale(1.05); 
+  }
+  75% { 
+    transform: translateY(-8rpx) rotate(-5deg) scale(1.1); 
+  }
+}
+
+/* 🎯 中央抽奖按钮区域 */
+.lottery-center-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 🎯 美化中央抽奖按钮样式 - 立体炫酷设计（修复文字换行问题） */
+.center-draw-btn {
+  width: 180rpx;
+  height: 150rpx;
+  background: linear-gradient(145deg, #FF6B35 0%, #FF8C42 50%, #FF6B35 100%);
+  color: white;
+  border: 8rpx solid white;
+  border-radius: 75rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+  box-shadow: 
+    0 20rpx 40rpx rgba(255, 107, 53, 0.5),
+    0 10rpx 25rpx rgba(255, 107, 53, 0.3),
+    0 0 0 8rpx rgba(255, 107, 53, 0.2),
+    inset 0 4rpx 0 rgba(255, 255, 255, 0.4),
+    inset 0 -4rpx 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  /* 添加发光效果 */
+  animation: buttonGlow 3s ease-in-out infinite;
+  /* 强制样式优先级 */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  outline: none !important;
+  /* 添加质感 */
+  background-image: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+}
+
+/* 按钮发光动画 */
+@keyframes buttonGlow {
+  0%, 100% { 
+    box-shadow: 
+      0 20rpx 40rpx rgba(255, 107, 53, 0.5),
+      0 10rpx 25rpx rgba(255, 107, 53, 0.3),
+      0 0 0 8rpx rgba(255, 107, 53, 0.2),
+      inset 0 4rpx 0 rgba(255, 255, 255, 0.4),
+      inset 0 -4rpx 0 rgba(0, 0, 0, 0.1);
+  }
+  50% { 
+    box-shadow: 
+      0 25rpx 50rpx rgba(255, 107, 53, 0.6),
+      0 15rpx 35rpx rgba(255, 107, 53, 0.4),
+      0 0 0 12rpx rgba(255, 107, 53, 0.3),
+      inset 0 4rpx 0 rgba(255, 255, 255, 0.5),
+      inset 0 -4rpx 0 rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* 按钮光晕效果 */
+.center-draw-btn::before {
+  content: '';
+  position: absolute;
+  top: -20rpx;
+  left: -20rpx;
+  right: -20rpx;
+  bottom: -20rpx;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+  animation: haloExpand 4s ease-in-out infinite;
+}
+
+/* 光晕扩散动画 */
+@keyframes haloExpand {
+  0%, 100% { 
+    transform: scale(0.8); 
+    opacity: 0.4; 
+  }
+  50% { 
+    transform: scale(1.2); 
+    opacity: 0.8; 
+  }
+}
+
+.center-draw-btn:not(.drawing):active {
+  transform: scale(0.95);
+  box-shadow: 
+    0 10rpx 20rpx rgba(255, 107, 53, 0.3),
+    0 0 0 3rpx rgba(255, 107, 53, 0.3);
+}
+
+.center-draw-btn.drawing {
+  background: linear-gradient(135deg, #9ca3af, #d1d5db);
+  animation: drawingPulse 1.5s ease-in-out infinite;
+}
+
+/* 🎯 美化按钮文字样式（修复换行问题） */
+.btn-text {
+  color: white;
+  font-size: 24rpx;
+  font-weight: 800;
+  text-shadow: 
+    0 2rpx 6rpx rgba(0, 0, 0, 0.4),
+    0 0 12rpx rgba(255, 255, 255, 0.3);
+  line-height: 1;
+  text-align: center;
+  display: block;
+  white-space: nowrap;
+  /* 添加发光效果 */
+  animation: textGlow 2s ease-in-out infinite alternate;
+}
+
+/* 按钮文字发光动画 */
+@keyframes textGlow {
+  0% { 
+    text-shadow: 
+      0 2rpx 6rpx rgba(0, 0, 0, 0.4),
+      0 0 12rpx rgba(255, 255, 255, 0.3);
+  }
+  100% { 
+    text-shadow: 
+      0 2rpx 8rpx rgba(0, 0, 0, 0.5),
+      0 0 20rpx rgba(255, 255, 255, 0.5),
+      0 0 30rpx rgba(255, 215, 0, 0.3);
+  }
+}
+
+/* 🎉 抽奖状态指示器 - 清晰不遮挡的设计 */
+.lottery-status-indicator {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.status-badge {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2rpx solid #ff6b35;
+  border-radius: 25rpx;
+  padding: 12rpx 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(3rpx);
+}
+
+.status-icon {
+  width: 16rpx;
+  height: 16rpx;
+  border: 2rpx solid #ff6b35;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.status-text {
+  color: #ff6b35;
+  font-size: 24rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* 🎯 动画关键帧定义 */
+
+/* 🌟 美化高亮脉动动画 */
+@keyframes highlightPulse {
+  0% { 
+    transform: translateY(-8rpx) scale(1.05) translateZ(0);
+    box-shadow: 
+      0 0 40rpx rgba(255, 107, 53, 0.9),
+      0 0 80rpx rgba(255, 107, 53, 0.6),
+      0 15rpx 35rpx rgba(255, 107, 53, 0.4);
+    opacity: 0.95;
+  }
+  50% { 
+    transform: translateY(-8rpx) scale(1.05) translateZ(0);
+    box-shadow: 
+      0 0 50rpx rgba(255, 107, 53, 1.0),
+      0 0 100rpx rgba(255, 107, 53, 0.8),
+      0 20rpx 40rpx rgba(255, 107, 53, 0.5);
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(-8rpx) scale(1.05) translateZ(0);
+    box-shadow: 
+      0 0 40rpx rgba(255, 107, 53, 0.9),
+      0 0 80rpx rgba(255, 107, 53, 0.6),
+      0 15rpx 35rpx rgba(255, 107, 53, 0.4);
+    opacity: 0.95;
+  }
+}
+
+/* 🏆 美化中奖脉动动画 */
+@keyframes winningPulse {
+  0%, 100% { 
+    transform: translateY(-12rpx) scale(1.1) translateZ(0);
+    box-shadow: 
+      0 0 60rpx rgba(255, 215, 0, 1.0),
+      0 0 120rpx rgba(255, 215, 0, 0.8),
+      0 20rpx 40rpx rgba(255, 215, 0, 0.5),
+      0 0 0 8rpx rgba(255, 215, 0, 0.3);
+    opacity: 0.95;
+  }
+  50% { 
+    transform: translateY(-12rpx) scale(1.1) translateZ(0);
+    box-shadow: 
+      0 0 80rpx rgba(255, 215, 0, 1.0),
+      0 0 160rpx rgba(255, 215, 0, 0.9),
+      0 25rpx 50rpx rgba(255, 215, 0, 0.6),
+      0 0 0 12rpx rgba(255, 215, 0, 0.4);
+    opacity: 1;
+  }
+}
+
+/* 抽奖中按钮动画 */
+@keyframes drawingPulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* 旋转动画 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 🎯 美化响应式设计优化 */
+@media (max-width: 375px) {
+  .lottery-grid {
+    width: 550rpx;
+    height: 550rpx;
+    padding: 20rpx;
+  }
+  
+  .prize-area {
+    border-radius: 20rpx;
+  }
+  
+  .prize-content {
+    padding: 15rpx 10rpx;
+    gap: 6rpx;
+  }
+  
+  .prize-icon {
+    font-size: 32rpx;
+  }
+  
+  .prize-name {
+    font-size: 20rpx;
+  }
+  
+  .center-draw-btn {
+    width: 160rpx;
+    height: 130rpx;
+    font-size: 20rpx;
+    border-width: 6rpx;
+    border-radius: 65rpx;
+  }
+  
+  .btn-text {
+    font-size: 20rpx;
+  }
+}
+
+/* 🚀 性能优化 - 修复模糊问题 */
+.prize-area,
+.center-draw-btn,
+.animation-ring {
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* 修复模糊问题 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform-style: preserve-3d;
+}
+
+/* 修复高亮时的模糊问题 */
+.prize-area.highlighted {
+  -webkit-transform: scale(1.05) translateZ(0);
+  transform: scale(1.05) translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 修复中奖状态的模糊问题 */
+.prize-area.winning {
+  -webkit-transform: scale(1.1) translateZ(0);
+  transform: scale(1.1) translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+

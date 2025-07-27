@@ -12,48 +12,151 @@
     </view>
   </view>
 
-  <!-- 转盘区域 - 优化：使用CSS控制显隐，避免DOM重建 -->
-  <view class="wheel-section {{showResult ? 'result-showing' : ''}} {{hideWheel ? 'hidden' : ''}}" style="position: relative;">
-    <!-- 转盘容器 -->
-    <view style="position: relative; width: 260px; height: 260px; margin: 20rpx auto; display: block;">
-      <!-- Canvas转盘背景 - 降低层级 -->
-      <canvas 
-        canvas-id="wheelCanvas" 
-        class="wheel-canvas"
-        style="position: absolute; top: 0; left: 0; width: 260px; height: 260px; border-radius: 50%; z-index: 1; pointer-events: none;"
-      ></canvas>
-      
-      <!-- 🎯 转盘中央按钮 - 确保在Canvas之上 -->
-      <view style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; pointer-events: none;">
-        <!-- 中央按钮定位容器 -->
-        <view style="position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; margin-left: -40px; margin-top: -40px; z-index: 1000; pointer-events: auto;">
-          <view 
-            style="width: 80px; height: 80px; background: #FF6B35; color: white; border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(255, 107, 53, 0.8); position: relative; z-index: 1001;"
-            bindtap="onSingleDraw"
-          >
-            <text style="color: white; font-size: 12px; font-weight: bold;">{{isDrawing ? '抽奖中' : '开始抽奖'}}</text>
+  <!-- 🎯 新的区域轮流发亮抽奖区域 -->
+  <view class="lottery-grid-section" wx:if="{{!showResult}}" style="position: relative; z-index: 8 !important;">
+    <!-- 8区域网格抽奖盘 -->
+    <view 
+      class="lottery-grid {{highlightAnimation ? 'animating' : ''}}" 
+      wx:if="{{wheelReady}}"
+      style="position: relative; margin: 30rpx auto; display: block; z-index: 9 !important;"
+    >
+      <!-- 🎁 美化奖品区域网格 - 3x3布局，中心为抽奖按钮 -->
+      <view class="prize-grid">
+        <!-- 第一行 -->
+        <view 
+          class="prize-area {{currentHighlight === 0 ? 'highlighted' : ''}} {{winningIndex === 0 ? 'winning' : ''}}" 
+          data-index="0"
+        >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[0].icon || '🎫'}}</text>
+            <text class="prize-name">{{prizes[0].prize_name || prizes[0].name || '奖品1'}}</text>
           </view>
+        </view>
+        
+        <view 
+          class="prize-area {{currentHighlight === 1 ? 'highlighted' : ''}} {{winningIndex === 1 ? 'winning' : ''}}" 
+          data-index="1"
+        >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[1].icon || '🎫'}}</text>
+            <text class="prize-name">{{prizes[1].prize_name || prizes[1].name || '奖品2'}}</text>
+          </view>
+        </view>
+        
+      <view 
+          class="prize-area {{currentHighlight === 2 ? 'highlighted' : ''}} {{winningIndex === 2 ? 'winning' : ''}}" 
+          data-index="2"
+      >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[2].icon || '🎫'}}</text>
+            <text class="prize-name">{{prizes[2].prize_name || prizes[2].name || '奖品3'}}</text>
+          </view>
+      </view>
+      
+        <!-- 第二行 -->
+          <view 
+          class="prize-area {{currentHighlight === 7 ? 'highlighted' : ''}} {{winningIndex === 7 ? 'winning' : ''}}" 
+          data-index="7"
+        >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[7].icon || '🎁'}}</text>
+            <text class="prize-name">{{prizes[7].prize_name || prizes[7].name || '奖品8'}}</text>
+          </view>
+        </view>
+        
+        <!-- 🎯 美化中央抽奖按钮 -->
+        <view class="lottery-center-button">
+          <button 
+            class="center-draw-btn {{isLotteryInProgress ? 'drawing' : ''}}"
+            disabled="{{isLotteryInProgress}}"
+            bindtap="{{isLotteryInProgress ? '' : 'onSingleDraw'}}"
+          >
+            <text class="btn-text">{{isLotteryInProgress ? '抽奖中...' : '🎰 开始抽奖'}}</text>
+          </button>
+        </view>
+        
+        <view 
+          class="prize-area {{currentHighlight === 3 ? 'highlighted' : ''}} {{winningIndex === 3 ? 'winning' : ''}}" 
+          data-index="3"
+        >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[3].icon || '🏆'}}</text>
+            <text class="prize-name">{{prizes[3].prize_name || prizes[3].name || '奖品4'}}</text>
+          </view>
+        </view>
+        
+        <!-- 第三行 -->
+        <view 
+          class="prize-area {{currentHighlight === 6 ? 'highlighted' : ''}} {{winningIndex === 6 ? 'winning' : ''}}" 
+          data-index="6"
+        >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[6].icon || '💎'}}</text>
+            <text class="prize-name">{{prizes[6].prize_name || prizes[6].name || '奖品7'}}</text>
+          </view>
+        </view>
+        
+        <view 
+          class="prize-area {{currentHighlight === 5 ? 'highlighted' : ''}} {{winningIndex === 5 ? 'winning' : ''}}" 
+          data-index="5"
+        >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[5].icon || '🎀'}}</text>
+            <text class="prize-name">{{prizes[5].prize_name || prizes[5].name || '奖品6'}}</text>
+          </view>
+        </view>
+        
+        <view 
+          class="prize-area {{currentHighlight === 4 ? 'highlighted' : ''}} {{winningIndex === 4 ? 'winning' : ''}}" 
+          data-index="4"
+        >
+          <view class="prize-content">
+            <text class="prize-icon">{{prizes[4].icon || '🎊'}}</text>
+            <text class="prize-name">{{prizes[4].prize_name || prizes[4].name || '奖品5'}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 🎉 抽奖动画状态提示 - 修复：移除遮罩，保持清晰 -->
+      <view class="lottery-status-indicator" wx:if="{{highlightAnimation}}">
+        <view class="status-badge">
+          <view class="status-icon"></view>
+          <text class="status-text">正在抽奖</text>
         </view>
       </view>
     </view>
     
-    <!-- 转盘加载提示 -->
-    <view class="wheel-loading" wx:if="{{!wheelReady}}">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">转盘加载中...</text>
-    </view>
-
-    <!-- 抽奖中的遮罩层 -->
-    <view class="drawing-overlay" wx:if="{{isDrawing}}">
-      <view class="overlay-content">
-        <view class="spinner-large"></view>
-        <text class="overlay-text">抽奖中...</text>
+    <!-- 🔧 数据加载失败提示 -->
+    <view style="background: white; border-radius: 20rpx; padding: 40rpx; margin: 20rpx auto; text-align: center; max-width: 600rpx;" wx:if="{{!wheelReady && !loadingConfig && prizes.length === 0}}">
+      <view style="font-size: 60rpx; margin-bottom: 20rpx;">😔</view>
+      <view style="font-size: 32rpx; font-weight: 600; color: #333; margin-bottom: 20rpx;">抽奖数据加载失败</view>
+      <view style="font-size: 26rpx; color: #666; line-height: 1.5; margin-bottom: 30rpx;">
+        无法获取抽奖配置数据<br/>
+        可能是网络问题或后端服务异常
       </view>
+      <button 
+        style="background: #FF6B35; color: white; border: none; border-radius: 50rpx; padding: 20rpx 40rpx; font-size: 28rpx; margin-right: 20rpx;"
+        bindtap="initPage"
+      >
+        重试加载
+      </button>
+      <button 
+        style="background: #fff; color: #FF6B35; border: 2rpx solid #FF6B35; border-radius: 50rpx; padding: 20rpx 40rpx; font-size: 28rpx;"
+        bindtap="onContactService"
+      >
+        联系客服
+      </button>
+    </view>
+    
+    <!-- 转盘加载提示 -->
+    <view class="wheel-loading" wx:if="{{!wheelReady && loadingConfig}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">抽奖数据加载中...</text>
     </view>
   </view>
 
-  <!-- 多连抽按钮组 - 优化：使用CSS控制显隐 -->
-  <view class="multi-draw-section {{hideWheel ? 'hidden' : ''}}">
+  <!-- 多连抽按钮组 - 🎯 抽奖时隐藏按钮，显示结果时也隐藏，其他时间显示 -->
+  <view class="multi-draw-section {{hideWheel ? 'hidden' : ''}}" wx:if="{{isButtonVisible && !isDrawing && !showResult}}" style="position: relative; z-index: 6 !important;">
     <view class="section-title-small">
       <text>⚡ 连抽选项</text>
     </view>
@@ -135,12 +238,12 @@
     </view>
   </view>
 
-  <!-- 抽奖结果弹窗 - 🎨 三种精美方案供选择 -->
-  <view class="result-modal" wx:if="{{showResult}}">
-    <view class="modal-mask" bindtap="onCloseResult"></view>
+  <!-- 抽奖结果弹窗 - 🎨 三种精美方案供选择 - 修复：确保最高层级 -->
+  <view class="result-modal" wx:if="{{showResult}}" style="position: fixed !important; z-index: 999999999 !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: transparent !important; display: flex !important; justify-content: center !important; align-items: center !important; pointer-events: auto !important;">
+    <view class="modal-mask" bindtap="onCloseResult" style="position: fixed !important; z-index: 999999998 !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(0, 0, 0, 0.8) !important; pointer-events: auto !important;"></view>
     
     <!-- 🌟 方案1：卡片渐变方案 -->
-    <view class="modal-content beautified-result" wx:if="{{resultDisplayMode === 'gradient' || !resultDisplayMode}}">
+    <view class="modal-content beautified-result" wx:if="{{resultDisplayMode === 'gradient' || !resultDisplayMode}}" style="position: relative !important; z-index: 9999999999 !important; background: white !important; border-radius: 20rpx !important; width: 80% !important; max-width: 600rpx !important; box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.5) !important; pointer-events: auto !important;">
       <view class="result-header beautified-header">
         <view class="header-decoration">
           <text class="celebration-icon">🎉</text>
@@ -213,7 +316,7 @@
     </view>
 
     <!-- 🎪 方案3：欢庆动画方案 -->
-    <view class="modal-content celebration-result" wx:if="{{resultDisplayMode === 'celebration'}}">
+    <view class="modal-content celebration-result" wx:if="{{resultDisplayMode === 'celebration'}}" style="position: relative !important; z-index: 9999999999 !important; background: white !important; border-radius: 25rpx !important; width: 88% !important; max-width: 700rpx !important; box-shadow: 0 25rpx 50rpx rgba(255, 107, 53, 0.3) !important; pointer-events: auto !important;">
       <view class="result-header celebration-header">
         <text class="celebration-title">🎊 恭喜中奖 🎊</text>
         <view class="close-btn celebration-close" bindtap="onCloseResult">×</view>
@@ -260,7 +363,7 @@
     </view>
 
     <!-- 🎁 方案5：网格瀑布方案 -->
-    <view class="modal-content waterfall-result" wx:if="{{resultDisplayMode === 'waterfall'}}">
+    <view class="modal-content waterfall-result" wx:if="{{resultDisplayMode === 'waterfall'}}" style="position: relative !important; z-index: 9999999999 !important; background: white !important; border-radius: 20rpx !important; width: 88% !important; max-width: 720rpx !important; box-shadow: 0 25rpx 50rpx rgba(51, 65, 85, 0.15) !important; pointer-events: auto !important;">
       <view class="result-header waterfall-header">
         <view class="header-prize-count">
           <text class="count-number">{{resultData.length}}</text>
