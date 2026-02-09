@@ -1,0 +1,63 @@
+{
+  "name": "tiangong-restaurant-lottery",
+  "version": "3.0.0",
+  "description": "餐厅积分抽奖系统 - 微信小程序前端v3.0（TypeScript + Sass + MobX + Skyline）",
+  "main": "app.ts",
+  "scripts": {
+    "lint": "eslint \"pages/**/*.ts\" \"utils/**/*.ts\" \"components/**/*.ts\" \"packageAdmin/**/*.ts\" \"config/**/*.ts\" \"store/**/*.ts\" app.ts",
+    "lint:fix": "eslint \"pages/**/*.ts\" \"utils/**/*.ts\" \"components/**/*.ts\" \"packageAdmin/**/*.ts\" \"config/**/*.ts\" \"store/**/*.ts\" app.ts --fix",
+    "lint:shadow": "eslint \"pages/**/*.ts\" \"utils/**/*.ts\" \"components/**/*.ts\" \"packageAdmin/**/*.ts\" app.ts --rule \"no-shadow: error\" --format stylish",
+    "lint:unused": "eslint \"pages/**/*.ts\" \"utils/**/*.ts\" \"components/**/*.ts\" \"packageAdmin/**/*.ts\" app.ts --rule \"no-unused-vars: error\" --format stylish",
+    "lint:quality": "eslint \"pages/**/*.ts\" \"utils/**/*.ts\" \"components/**/*.ts\" \"packageAdmin/**/*.ts\" app.ts --format stylish",
+    "format": "prettier --write \"**/*.{js,ts,json,wxml,wxss,scss}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,json,wxml,wxss,scss}\"",
+    "check:deps": "depcheck",
+    "check:deps:detail": "depcheck --detailed",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:jwt": "jest test/utils/jwt-test.spec.js",
+    "test:verbose": "jest --verbose",
+    "quality": "npm run lint && npm run format:check && npm run test:coverage",
+    "quality:fast": "npm run lint && npm run format:check",
+    "quality:fix": "npm run lint:fix && npm run format",
+    "precommit": "powershell -ExecutionPolicy Bypass -File ./scripts/quality-check.ps1",
+    "dev": "echo '请使用微信开发者工具运行项目'",
+    "build": "echo '请使用微信开发者工具构建项目'"
+  },
+  "keywords": [
+    "wechat",
+    "miniprogram",
+    "lottery",
+    "restaurant",
+    "points",
+    "typescript",
+    "sass",
+    "mobx"
+  ],
+  "author": "Restaurant Lottery Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
+    "depcheck": "^1.4.7",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^29.7.0",
+    "miniprogram-api-typings": "^5.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "本地项目"
+  },
+  "dependencies": {
+    "mobx-miniprogram": "^6.12.3",
+    "mobx-miniprogram-bindings": "^5.1.1",
+    "weapp-qrcode": "^1.0.0"
+  }
+}

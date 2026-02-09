@@ -1,0 +1,201 @@
+// ============================================================================
+// 🔧 全局Mixin - 复用样式函数
+// ============================================================================
+//
+// 文件用途: 提供常用样式的mixin封装，减少代码重复
+// 使用方式: 在页面.scss中通过 @import 引入后使用 @include
+// 设计原则: 只封装真正高频复用的样式模式
+//
+// @file 天工餐厅积分系统 - 全局Sass Mixin
+// @version 3.0.0
+// @since 2026-02-10
+
+// ===== 布局 =====
+
+/// Flex居中（水平+垂直）
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/// Flex两端对齐
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/// Flex垂直居中
+@mixin flex-align-center {
+  display: flex;
+  align-items: center;
+}
+
+/// Flex纵向排列居中
+@mixin flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/// Flex纵向排列
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// ===== 文本 =====
+
+/// 单行文本省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/// 多行文本省略
+/// @param {number} $lines - 显示行数
+@mixin text-ellipsis-multi($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ===== 卡片 =====
+
+/// 标准卡片样式（白色背景+圆角+阴影）
+@mixin card-base {
+  background: $color-white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+}
+
+/// 卡片带边距
+@mixin card-with-margin {
+  @include card-base;
+  margin-bottom: $spacing-base;
+}
+
+// ===== 按钮 =====
+
+/// 主要按钮样式
+@mixin btn-primary {
+  background-color: $color-primary;
+  color: $color-text-white;
+  border: none;
+  border-radius: $border-radius-sm;
+  text-align: center;
+  transition: background-color $transition-fast;
+
+  &:active {
+    background-color: $color-primary-dark;
+  }
+}
+
+/// 次要按钮样式（边框）
+@mixin btn-outline {
+  background-color: transparent;
+  color: $color-primary;
+  border: 2rpx solid $color-primary;
+  border-radius: $border-radius-sm;
+  text-align: center;
+  transition: all $transition-fast;
+
+  &:active {
+    background-color: rgba($color-primary, 0.1);
+  }
+}
+
+/// 禁用按钮样式
+@mixin btn-disabled {
+  background-color: $color-bg-grey;
+  color: $color-text-disabled;
+  border: none;
+  pointer-events: none;
+}
+
+// ===== 输入框 =====
+
+/// 标准输入框样式
+@mixin input-base {
+  width: 100%;
+  padding: $spacing-base;
+  border: 2rpx solid $color-border;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-base;
+  box-sizing: border-box;
+  transition: border-color $transition-fast;
+
+  &:focus {
+    border-color: $color-primary;
+  }
+}
+
+// ===== 分割线 =====
+
+/// 水平分割线
+@mixin divider {
+  height: 2rpx;
+  background-color: $color-divider;
+  margin: $spacing-md 0;
+}
+
+// ===== 状态标签 =====
+
+/// 状态标签基础样式
+/// @param {color} $bg - 背景色
+/// @param {color} $text - 文字色
+@mixin status-tag($bg, $text) {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  font-size: $font-size-xs;
+  color: $text;
+  background-color: $bg;
+}
+
+// ===== 安全区域 =====
+
+/// 底部安全区域（iPhone X+）
+@mixin safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+// ===== 滚动条隐藏 =====
+
+/// 隐藏滚动条
+@mixin hide-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// ===== 空状态 =====
+
+/// 空状态容器
+@mixin empty-state {
+  @include flex-column-center;
+  padding: 80rpx $spacing-base;
+  color: $color-text-tertiary;
+  font-size: $font-size-base;
+}
+
+// ===== 加载状态 =====
+
+/// 加载状态容器
+@mixin loading-state {
+  @include flex-center;
+  padding: 40rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}
+
+
+
+
+

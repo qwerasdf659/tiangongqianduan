@@ -1,0 +1,93 @@
+{
+  "pages": [
+    "pages/auth/auth",
+    "pages/lottery/lottery",
+    "pages/exchange/exchange",
+    "pages/user/user",
+    "pages/camera/camera",
+    "pages/points-detail/points-detail",
+    "pages/records/trade-upload-records/trade-upload-records",
+    "pages/trade/market/market",
+    "pages/trade/inventory/inventory",
+    "pages/feedback/feedback",
+    "pages/chat/chat"
+  ],
+  "subpackages": [
+    {
+      "root": "packageAdmin",
+      "name": "admin",
+      "pages": [
+        "consume-submit/consume-submit",
+        "audit-list/audit-list",
+        "scan-verify/scan-verify",
+        "customer-service/customer-service",
+        "chat-management/chat-management",
+        "admin-dashboard/admin-dashboard"
+      ]
+    }
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#FF6B35",
+    "navigationBarTitleText": "餐厅积分系统",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5",
+    "enablePullDownRefresh": true,
+    "onReachBottomDistance": 50
+  },
+  "tabBar": {
+    "color": "#666",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#fff",
+    "borderStyle": "black",
+    "position": "bottom",
+    "list": [
+      {
+        "pagePath": "pages/lottery/lottery",
+        "text": "抽奖",
+        "iconPath": "images/icons/lottery.png",
+        "selectedIconPath": "images/icons/lottery-active.png"
+      },
+      {
+        "pagePath": "pages/camera/camera",
+        "text": "发现",
+        "iconPath": "images/icons/home.png",
+        "selectedIconPath": "images/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/exchange/exchange",
+        "text": "兑换",
+        "iconPath": "images/icons/exchange.png",
+        "selectedIconPath": "images/icons/exchange-active.png"
+      },
+      {
+        "pagePath": "pages/user/user",
+        "text": "我的",
+        "iconPath": "images/icons/profile.png",
+        "selectedIconPath": "images/icons/profile-active.png"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "debug": true,
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "rendererOptions": {
+    "skyline": {
+      "defaultDisplayBlock": true,
+      "disableABTest": false,
+      "sdkVersionBegin": "3.0.0",
+      "sdkVersionEnd": "15.255.255"
+    }
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于小程序位置接口的效果展示"
+    }
+  }
+}

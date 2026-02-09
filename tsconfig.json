@@ -1,0 +1,60 @@
+{
+  "compilerOptions": {
+    /* 编译目标 - ES2017兼容微信小程序运行环境 */
+    "target": "ES2017",
+
+    /* 模块系统 - 微信小程序使用CommonJS */
+    "module": "CommonJS",
+
+    /* 严格模式 - 最高代码质量要求 */
+    "strict": true,
+
+    /* ES模块互操作 - 允许CommonJS和ES模块混用 */
+    "esModuleInterop": true,
+
+    /* 允许JS文件 - 支持JS/TS共存，渐进式迁移 */
+    "allowJs": true,
+
+    /* 不检查JS文件类型 - 迁移期间JS文件不报类型错误 */
+    "checkJs": false,
+
+    /* 允许导入JSON模块 */
+    "resolveJsonModule": true,
+
+    /* 不生成声明文件 - 微信小程序不需要 */
+    "declaration": false,
+
+    /* 标准库 - ES2017 */
+    "lib": ["ES2017"],
+
+    /* 类型定义目录 */
+    "typeRoots": ["./typings", "./node_modules/miniprogram-api-typings"],
+
+    /* 不自动包含@types */
+    "types": [],
+
+    /* 基础路径 - 项目根目录 */
+    "baseUrl": ".",
+
+    /* 路径别名 - 简化模块引用 */
+    "paths": {
+      "@utils/*": ["utils/*"],
+      "@config/*": ["config/*"],
+      "@components/*": ["components/*"]
+    },
+
+    /* 跳过库类型检查 - 加快编译速度 */
+    "skipLibCheck": true
+  },
+
+  /* 包含的文件 - TS和JS文件 */
+  "include": ["**/*.ts", "**/*.js"],
+
+  /* 排除的目录 - 不编译第三方库和构建产物 */
+  "exclude": ["node_modules", "miniprogram_npm", "typings"]
+}
+
+
+
+
+

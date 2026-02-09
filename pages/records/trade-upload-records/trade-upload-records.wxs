@@ -1,0 +1,92 @@
+/**
+ * 📊 trade-upload-records.wxs - 积分活动记录页面模板辅助函数
+ *
+ * @description
+ * 微信小程序WXS模块，用于WXML模板中的数据格式化和显示处理。
+ * WXS是微信小程序中唯一能在模板中调用的脚本语言。
+ *
+ * 注意：WXS语法与标准JavaScript有差异：
+ *   - 不支持ES6+语法（箭头函数、const/let、模板字符串等）
+ *   - 不支持Date构造函数
+ *   - 使用getDate()代替new Date()
+ *
+ * @version 1.0.0
+ * @since 2026-02-07
+ */
+
+/**
+ * 获取交易类型图标
+ *
+ * @param {string} type - 交易类型（lottery/upload/exchange/trade/compensation/checkin/activity/referral）
+ * @returns {string} 对应的emoji图标
+ */
+function getTypeIcon(type) {
+  // WXS不支持对象字面量作为映射表，使用if-else
+  if (type === 'lottery') return '🎰'
+  if (type === 'upload') return '📸'
+  if (type === 'exchange') return '🛒'
+  if (type === 'trade') return '🏪'
+  if (type === 'compensation') return '💰'
+  if (type === 'checkin') return '✅'
+  if (type === 'activity') return '🎁'
+  if (type === 'referral') return '👥'
+  return '📄'
+}
+
+/**
+ * 格式化积分金额显示（正数前加+号）
+ *
+ * @param {number} amount - 积分数值
+ * @returns {string} 格式化后的金额字符串
+ */
+function formatAmount(amount) {
+  if (amount > 0) {
+    return '+' + amount
+  }
+  return '' + amount
+}
+
+/**
+ * 格式化时间为友好的相对时间
+ *
+ * @param {string|number} timestamp - 时间戳或ISO时间字符串
+ * @returns {string} 友好的时间描述（如"刚刚"、"5分钟前"、"3小时前"、"2月7日 14:30"）
+ */
+function formatTime(timestamp) {
+  if (!timestamp) return ''
+
+  var date = getDate(timestamp)
+  var now = getDate()
+  var diff = now.getTime() - date.getTime()
+
+  // 1分钟内
+  if (diff < 60000) {
+    return '刚刚'
+  }
+  // 1小时内
+  if (diff < 3600000) {
+    return Math.floor(diff / 60000) + '分钟前'
+  }
+  // 1天内
+  if (diff < 86400000) {
+    return Math.floor(diff / 3600000) + '小时前'
+  }
+
+  // 超过1天，显示具体日期
+  var month = date.getMonth() + 1
+  var day = date.getDate()
+  var hours = date.getHours()
+  var minutes = date.getMinutes()
+  var minuteStr = minutes < 10 ? '0' + minutes : '' + minutes
+  var hourStr = hours < 10 ? '0' + hours : '' + hours
+
+  return month + '月' + day + '日 ' + hourStr + ':' + minuteStr
+}
+
+// WXS模块导出
+module.exports = {
+  getTypeIcon: getTypeIcon,
+  formatAmount: formatAmount,
+  formatTime: formatTime
+}
+

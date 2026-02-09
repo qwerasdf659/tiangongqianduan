@@ -1,0 +1,170 @@
+<!--pages/user/user.wxml - 用户中心页面模板（根据旧项目UI结构完善）-->
+<!-- 🗑️ V2.1更新：已移除VIP等级显示和成就系统UI模块 -->
+
+<view class="user-container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <!-- 已登录状态 -->
+    <view class="user-info-full" wx:if="{{isLoggedIn}}">
+      <view class="user-name" bindtap="onPhoneTap">
+        <text class="name-text">{{userInfo.mobile || userInfo.phone || '点击登录'}}</text>
+        <text class="edit-phone">✏️</text>
+      </view>
+      <!-- 🗑️ V2.1：已删除VIP等级显示系统UI（Line 12-46） -->
+    </view>
+
+    <!-- 未登录状态 -->
+    <view class="login-prompt" wx:else bindtap="redirectToAuth">
+      <view class="login-avatar">👤</view>
+      <text class="login-text">点击登录</text>
+      <text class="login-desc">登录后查看完整功能</text>
+    </view>
+  </view>
+
+  <!-- 积分余额卡片 -->
+  <view class="points-card" bindtap="onPointsTap" wx:if="{{isLoggedIn}}">
+    <view class="points-header">
+      <text class="points-title">我的积分</text>
+      <view class="header-tips">
+        <text class="points-tips">点击查看明细 👇</text>
+      </view>
+    </view>
+    <view class="points-amount">
+      <text class="points-number">{{totalPoints}}</text>
+      <text class="points-unit">分</text>
+    </view>
+
+    <!-- 积分趋势 -->
+    <view class="points-trend">
+      <view class="trend-item">
+        <text class="trend-label">今日获得</text>
+        <text class="trend-value earned">+{{todayEarned || 0}}</text>
+      </view>
+      <view class="trend-item">
+        <text class="trend-label">今日消费</text>
+        <text class="trend-value consumed">{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 🗑️ V2.1：已删除成就系统UI模块（Line 83-96） -->
+
+  <!-- 统计数据 - 🔴 2x2网格布局（与旧项目一致） -->
+  <view class="statistics-section" wx:if="{{isLoggedIn && !loading}}">
+    <view class="section-title">
+      <text>📊 我的统计</text>
+      <button class="refresh-stats" bindtap="onRefreshStats">🔄</button>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.totalLottery}}</text>
+        <text class="stat-label">抽奖次数</text>
+        <text
+          class="stat-trend {{statistics.lotteryTrend === '↑' ? 'up' : (statistics.lotteryTrend === '↓' ? 'down' : 'stable')}}">{{statistics.lotteryTrend}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.totalExchange}}</text>
+        <text class="stat-label">兑换次数</text>
+        <text
+          class="stat-trend {{statistics.exchangeTrend === '↑' ? 'up' : (statistics.exchangeTrend === '↓' ? 'down' : 'stable')}}">{{statistics.exchangeTrend}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.totalUpload}}</text>
+        <text class="stat-label">上传次数</text>
+        <text
+          class="stat-trend {{statistics.uploadTrend === '↑' ? 'up' : (statistics.uploadTrend === '↓' ? 'down' : 'stable')}}">{{statistics.uploadTrend}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{statistics.thisMonthPoints}}</text>
+        <text class="stat-label">本月积分</text>
+        <text
+          class="stat-trend {{statistics.pointsTrend === '↑' ? 'up' : (statistics.pointsTrend === '↓' ? 'down' : 'stable')}}">{{statistics.pointsTrend}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <view class="section-title">
+      <text>🔧 功能菜单</text>
+    </view>
+    <view class="menu-grid">
+      <view class="menu-item" wx:for="{{menuItems}}" wx:key="id" bindtap="onMenuItemTap" data-item="{{item}}"
+        style="border-left: 4rpx solid {{item.color}}">
+        <view class="menu-icon" style="color: {{item.color}}">{{item.icon}}</view>
+        <view class="menu-content">
+          <text class="menu-name">{{item.name}}</text>
+          <text class="menu-desc">{{item.description}}</text>
+        </view>
+        <text class="menu-arrow">▶</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+
+  <!-- 🏪 商家工作台 - 商家店员(role_level>=20)及以上可见 -->
+  <view class="merchant-workspace-section" wx:if="{{isLoggedIn && isMerchant}}">
+    <view class="section-title">
+      <text>🏪 商家工作台</text>
+    </view>
+    <view class="menu-grid">
+      <!-- 📱 扫码核销 - 商家店员(level>=20)可用 -->
+      <view class="menu-item" bindtap="goToScanVerify"
+        style="border-left: 4rpx solid #E91E63">
+        <view class="menu-icon" style="color: #E91E63">📱</view>
+        <view class="menu-content">
+          <text class="menu-name">扫码核销</text>
+          <text class="menu-desc">扫描用户核销码完成核销</text>
+        </view>
+        <text class="menu-arrow">▶</text>
+      </view>
+
+      <!-- 📋 消费录入 - 商家店员(level>=20)可用 -->
+      <view class="menu-item" bindtap="goToConsumeSubmit"
+        style="border-left: 4rpx solid #FF9800">
+        <view class="menu-icon" style="color: #FF9800">📋</view>
+        <view class="menu-content">
+          <text class="menu-name">消费录入</text>
+          <text class="menu-desc">扫码录入用户消费金额</text>
+        </view>
+        <text class="menu-arrow">▶</text>
+      </view>
+
+      <!-- ✅ 审批管理 - 商家店长(level>=40)可用 -->
+      <view class="menu-item" wx:if="{{isManager}}" bindtap="goToAuditList"
+        style="border-left: 4rpx solid #4CAF50">
+        <view class="menu-icon" style="color: #4CAF50">✅</view>
+        <view class="menu-content">
+          <text class="menu-name">审批管理</text>
+          <text class="menu-desc">审核待审批的消费记录</text>
+        </view>
+        <text class="menu-arrow">▶</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 👑 管理员功能入口 - 仅超级管理员(role_level>=100)可见 -->
+  <view class="admin-entrance-section" wx:if="{{isLoggedIn && isAdmin}}">
+    <view class="admin-entrance-card" bindtap="goToAdminDashboard">
+      <view class="entrance-icon">
+        <text class="icon-crown">👑</text>
+        <view class="icon-glow"></view>
+      </view>
+      <view class="entrance-content">
+        <text class="entrance-title">管理员控制台</text>
+        <text class="entrance-desc">Web管理后台功能入口</text>
+      </view>
+      <view class="entrance-badge">
+        <text class="badge-text">ADMIN</text>
+      </view>
+      <text class="entrance-arrow">▶</text>
+    </view>
+  </view>
+</view>

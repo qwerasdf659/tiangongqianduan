@@ -1,0 +1,881 @@
+/* 聊天会话列表界面样式 - V3.0 Sass版本 */
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+/* 整体容器 */
+.chat-sessions-container {
+  width: 100%;
+  height: 100vh;
+  background: $color-bg;
+  @include flex-column;
+}
+
+/* 顶部搜索栏 */
+.search-header {
+  @include flex-align-center;
+  padding: $spacing-base 30rpx;
+  background: $color-white;
+  border-bottom: 1rpx solid $color-border;
+  gap: $spacing-base;
+}
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #f1f3f4;
+  border-radius: 50rpx;
+  padding: 0 24rpx;
+  height: 72rpx;
+}
+
+.search-icon {
+  font-size: 32rpx;
+  color: #9aa0a6;
+  margin-right: 16rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #202124;
+  border: none;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: #9aa0a6;
+}
+
+.clear-search {
+  font-size: 36rpx;
+  color: #9aa0a6;
+  padding: 8rpx;
+  margin-left: 16rpx;
+}
+
+.new-chat-btn {
+  width: 72rpx;
+  height: 72rpx;
+  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.new-chat-icon {
+  font-size: 32rpx;
+  color: $color-text-white;
+  font-weight: bold;
+}
+
+/* 会话列表 */
+.sessions-list {
+  flex: 1;
+  background: $color-white;
+}
+
+/* 会话项目 */
+.session-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  background: $color-white;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.session-item:hover {
+  background: $color-bg;
+}
+
+.session-item.active-session {
+  background: linear-gradient(90deg, #e3f2fd 0%, #f3e5f5 100%);
+}
+
+.session-item:active {
+  background: #e9ecef;
+  transform: scale(0.98);
+}
+
+/* 头像容器 */
+.session-avatar {
+  position: relative;
+  margin-right: 24rpx;
+}
+
+.avatar-bg {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 不同类型的头像背景 */
+.customer-service-avatar .avatar-bg {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.system-bg {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.ai-bg {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.tech-bg {
+  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+}
+
+.activity-bg {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.feedback-bg {
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+}
+
+/* 头像图标 */
+.avatar-icon {
+  font-size: 40rpx;
+  color: $color-text-white;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 在线状态指示器 */
+.online-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 24rpx;
+  height: 24rpx;
+  background: #4caf50;
+  border: 4rpx solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2rpx rgba(76, 175, 80, 0.3);
+}
+
+.online-indicator.small {
+  width: 20rpx;
+  height: 20rpx;
+  border: 3rpx solid #ffffff;
+}
+
+/* 会话内容 */
+.session-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.session-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.session-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #202124;
+}
+
+.session-time {
+  font-size: 24rpx;
+  color: #9aa0a6;
+}
+
+.session-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.last-message {
+  flex: 1;
+  font-size: 28rpx;
+  color: #5f6368;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 16rpx;
+}
+
+/* 未读消息数量 */
+.unread-count {
+  min-width: 36rpx;
+  height: 36rpx;
+  background: #ff4444;
+  color: $color-text-white;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: bold;
+  padding: 0 8rpx;
+  box-shadow: 0 2rpx 4rpx rgba(255, 68, 68, 0.3);
+}
+
+/* 加载状态 */
+.loading-more {
+  padding: 40rpx;
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #9aa0a6;
+}
+
+/* 空状态 */
+.empty-sessions {
+  padding: 120rpx 60rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #9aa0a6;
+  margin-bottom: 60rpx;
+}
+
+.start-chat-btn {
+  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  color: $color-text-white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 24rpx 48rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+/* 底部工具栏 */
+.bottom-toolbar {
+  display: flex;
+  background: $color-white;
+  border-top: 1rpx solid #e9ecef;
+  padding: 16rpx 0;
+  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.05);
+  justify-content: center;
+}
+
+.bottom-toolbar.single-tab {
+  padding: 20rpx 0;
+}
+
+.toolbar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding: 12rpx;
+  transition: all 0.2s ease;
+  max-width: 200rpx;
+}
+
+.bottom-toolbar.single-tab .toolbar-item {
+  flex: none;
+  width: 120rpx;
+}
+
+.toolbar-item.active {
+  color: $gradient-blue-start;
+}
+
+.toolbar-icon {
+  font-size: 44rpx;
+  margin-bottom: 8rpx;
+  opacity: 0.7;
+}
+
+.toolbar-item.active .toolbar-icon {
+  opacity: 1;
+}
+
+.toolbar-label {
+  font-size: 22rpx;
+  color: #9aa0a6;
+}
+
+.toolbar-item.active .toolbar-label {
+  color: $gradient-blue-start;
+  font-weight: 600;
+}
+
+.total-unread {
+  position: absolute;
+  top: 0;
+  right: 25%;
+  min-width: 32rpx;
+  height: 32rpx;
+  background: #ff4444;
+  color: $color-text-white;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+  font-weight: bold;
+  padding: 0 6rpx;
+}
+
+/* 聊天弹窗 */
+.chat-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.chat-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  position: absolute;
+  /* 🔴 修复：在小程序中使用全屏布局，避免输入框被遮挡 */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $color-white;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+/* 🔴 新增：专门为大屏设备保留原有弹窗样式 */
+@media (min-width: 1000rpx) {
+  .modal-content {
+    top: 10%;
+    left: 5%;
+    right: 5%;
+    bottom: 10%;
+    border-radius: 24rpx;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100rpx);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 聊天头部 */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  color: $color-text-white;
+  /* 🔴 新增：确保头部不占据过多空间 */
+  flex: 0 0 auto;
+  /* 不放大、不缩小、自动计算尺寸 */
+  flex-shrink: 0;
+  /* 绝对不允许缩小 */
+  min-height: 80rpx;
+  /* 最小高度保护 */
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.back-btn {
+  font-size: 48rpx;
+  font-weight: bold;
+  padding: 12rpx;
+}
+
+.current-session-avatar {
+  position: relative;
+}
+
+.current-session-avatar .avatar-bg {
+  width: 72rpx;
+  height: 72rpx;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.current-session-avatar .avatar-icon {
+  font-size: 32rpx;
+}
+
+.session-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.session-detail .session-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: $color-text-white;
+  margin-bottom: 4rpx;
+}
+
+.session-status {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.header-right {
+  padding: 12rpx;
+}
+
+.more-btn {
+  font-size: 48rpx;
+  font-weight: bold;
+}
+
+/* 聊天消息区域 */
+.chat-messages {
+  /* 🔴 修复：不让消息区域占据所有空间，为输入区域预留固定空间 */
+  flex: 1;
+  min-height: 0;
+  /* 🔴 关键：允许flex item收缩 */
+  padding: 24rpx;
+  background: $color-bg;
+  overflow-y: auto;
+  /* 🔴 确保消息区域可滚动 */
+  /* 🔴 关键修复：为绝对定位的输入区域留出底部空间 */
+  padding-bottom: 180rpx;
+  /* 为输入区域留出足够空间 */
+  margin-bottom: 0;
+}
+
+/* 时间分割线 */
+.time-divider {
+  text-align: center;
+  margin: 24rpx 0;
+}
+
+.time-text {
+  font-size: 22rpx;
+  color: #9aa0a6;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8rpx 16rpx;
+  border-radius: 24rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+/* 消息项目 */
+.message-item {
+  margin-bottom: 24rpx;
+}
+
+.message-content {
+  display: flex;
+  align-items: flex-end;
+  gap: 16rpx;
+}
+
+.own-message .message-content {
+  flex-direction: row-reverse;
+}
+
+/* 消息头像 */
+.message-avatar .avatar-bg {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.message-avatar .avatar-icon {
+  font-size: 28rpx;
+}
+
+/* 消息气泡 */
+.message-bubble {
+  max-width: 60%;
+  padding: 20rpx 24rpx;
+  border-radius: 24rpx;
+  position: relative;
+  word-wrap: break-word;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.other-bubble {
+  background: $color-white;
+  border-bottom-left-radius: 8rpx;
+}
+
+.own-bubble {
+  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  color: $color-text-white;
+  border-bottom-right-radius: 8rpx;
+}
+
+.message-text {
+  font-size: 28rpx;
+  line-height: 1.4;
+}
+
+.own-bubble .message-text {
+  color: $color-text-white;
+}
+
+/* 消息图片 */
+.message-image {
+  max-width: 400rpx;
+  max-height: 400rpx;
+  border-radius: 16rpx;
+}
+
+/* 系统消息 */
+.system-message {
+  font-size: 26rpx;
+  color: #9aa0a6;
+  font-style: italic;
+}
+
+/* 消息状态 */
+.message-status {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.status-icon {
+  font-size: 24rpx;
+  color: #9aa0a6;
+}
+
+.status-icon.read {
+  color: #4caf50;
+}
+
+.status-icon.failed {
+  color: #f44336;
+}
+
+/* 输入状态指示器 */
+.typing-indicator {
+  display: flex;
+  align-items: flex-end;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.typing-avatar .avatar-bg {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.typing-bubble {
+  background: $color-white;
+  padding: 20rpx 24rpx;
+  border-radius: 24rpx;
+  border-bottom-left-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.typing-text {
+  font-size: 26rpx;
+  color: #9aa0a6;
+}
+
+.typing-animation {
+  display: flex;
+  gap: 6rpx;
+}
+
+.typing-dot {
+  width: 8rpx;
+  height: 8rpx;
+  background: #9aa0a6;
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 输入区域 */
+/* 🔴 新增：确保输入区域在所有情况下都可见的额外保护措施 */
+.chat-input-area {
+  border-top: 1rpx solid #e9ecef;
+  background: $color-white;
+  padding: 24rpx;
+  /* 🔴 关键修复：使用绝对定位确保输入区域始终在底部可见 */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  /* 🔴 新增：为小程序环境添加安全区域适配 */
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  /* 🔴 新增：强制显示和固定高度保护 */
+  height: 120rpx;
+  min-height: 120rpx;
+  max-height: 200rpx;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* 🔴 添加阴影确保视觉分离 */
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.input-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16rpx;
+  /* 🔴 新增：确保工具栏完全可见 */
+  width: 100%;
+  min-height: 80rpx;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.action-btn {
+  width: 64rpx;
+  height: 64rpx;
+  background: #f1f3f4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #5f6368;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #e8eaed;
+  transform: scale(1.1);
+}
+
+/* 输入区域容器 */
+.input-section {
+  flex: 1;
+  position: relative;
+}
+
+.input-wrapper {
+  background: $color-bg;
+  border-radius: 32rpx;
+  padding: 16rpx 24rpx 16rpx 24rpx;
+  min-height: 64rpx;
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding-bottom: 50rpx;
+  /* 为发送按钮留出空间 */
+  /* 🔴 新增：确保输入框包装器可见 */
+  width: 100%;
+  visibility: visible !important;
+}
+
+.message-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 28rpx;
+  color: #202124;
+  resize: none;
+  outline: none;
+  max-height: 200rpx;
+  padding-right: 80rpx;
+  /* 为右下角发送按钮留出空间 */
+  padding-bottom: 8rpx;
+  /* 🔴 新增：确保输入框本身可见 */
+  min-height: 40rpx;
+  line-height: 1.4;
+}
+
+.message-input::placeholder {
+  color: #9aa0a6;
+}
+
+/* 内置发送按钮样式 */
+.inline-send-btn {
+  position: absolute;
+  bottom: 8rpx;
+  right: 12rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  z-index: 10;
+  /* 🔴 新增：确保发送按钮始终可见和可点击 */
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 60rpx;
+  min-height: 36rpx;
+}
+
+.inline-send-btn.inactive {
+  background: #e8eaed;
+  color: #9aa0a6;
+  /* 移除 pointer-events: none; 让按钮始终可以点击 */
+}
+
+.inline-send-btn.active {
+  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  color: $color-text-white;
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.3);
+  transform: scale(1.02);
+}
+
+.inline-send-btn.active:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.4);
+}
+
+.send-text {
+  font-weight: 500;
+}
+
+.send-wrapper {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.send-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.send-btn.inactive {
+  background: #e8eaed;
+}
+
+.send-btn.active {
+  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.send-icon {
+  font-size: 32rpx;
+  color: #5f6368;
+  transform: rotate(-45deg);
+}
+
+.send-btn.active .send-icon {
+  color: $color-text-white;
+}
+
+/* 历史消息加载 */
+.loading-history {
+  text-align: center;
+  padding: 40rpx;
+}
+
+.loading-history .loading-text {
+  font-size: 26rpx;
+  color: #9aa0a6;
+}
+
+/* 响应式设计 */
+/* 🔴 更新：响应式设计 - 扩大适用范围 */
+@media (max-width: 1000rpx) {
+  .modal-content {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+
+  /* 🔴 更新：确保小屏幕下输入框完全可见 */
+  .chat-input-area {
+    padding: 20rpx;
+    padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+    height: 100rpx;
+    /* 小屏幕下稍微减少高度 */
+    min-height: 100rpx;
+    /* 🔴 确保绝对定位在小屏幕下也有效 */
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
+  }
+
+  .message-bubble {
+    max-width: 75%;
+  }
+
+  /* 🔴 新增：小屏幕下的聊天头部优化 */
+  .chat-header {
+    padding: 20rpx 24rpx;
+    /* 🔴 新增：为状态栏留出空间 */
+    padding-top: calc(20rpx + env(safe-area-inset-top));
+  }
+
+  /* 🔴 新增：小屏幕下消息区域的底部空间调整 */
+  .chat-messages {
+    padding-bottom: 140rpx;
+    /* 为较小的输入区域留出空间 */
+  }
+}

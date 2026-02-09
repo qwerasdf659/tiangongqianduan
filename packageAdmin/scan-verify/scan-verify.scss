@@ -1,0 +1,168 @@
+/* 扫码核验页面样式 - V3.0 Sass版本 */
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.scan-verify-container {
+  padding: 30rpx;
+  min-height: 100vh;
+  background: $color-bg-grey;
+}
+
+/* 页面标题 */
+.page-header {
+  text-align: center;
+  margin-bottom: 40rpx;
+  padding: 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.header-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: $color-text-primary;
+  margin-bottom: 10rpx;
+}
+
+.header-desc {
+  display: block;
+  font-size: 26rpx;
+  color: $color-text-tertiary;
+}
+
+/* 扫码提示 */
+.scan-prompt {
+  text-align: center;
+  padding: 80rpx 40rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.scan-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.scan-text {
+  display: block;
+  font-size: 28rpx;
+  color: $color-text-secondary;
+  margin-bottom: 40rpx;
+}
+
+.scan-btn {
+  display: inline-block;
+  padding: 20rpx 60rpx;
+  background: linear-gradient(135deg, $color-primary, #f7931e);
+  color: $color-text-white;
+  font-size: 32rpx;
+  border-radius: 40rpx;
+  border: none;
+}
+
+/* 加载状态 */
+.loading-section {
+  text-align: center;
+  padding: 80rpx 40rpx;
+  background: #fff;
+  border-radius: 16rpx;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #ddd;
+  border-top-color: $color-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20rpx;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  display: block;
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+}
+
+/* 核销结果 */
+.result-section {
+  text-align: center;
+  padding: 60rpx 40rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.result-icon {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+}
+
+.result-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.result-section.success .result-title {
+  color: #4caf50;
+}
+
+.result-section.fail .result-title {
+  color: #f44336;
+}
+
+.result-error {
+  display: block;
+  font-size: 26rpx;
+  color: #f44336;
+  margin-bottom: 30rpx;
+}
+
+/* 结果详情 */
+.result-detail {
+  margin: 20rpx 0 30rpx;
+  padding: 20rpx;
+  background: #f9f9f9;
+  border-radius: 12rpx;
+  text-align: left;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10rpx 0;
+}
+
+.detail-label {
+  font-size: 26rpx;
+  color: $color-text-tertiary;
+}
+
+.detail-value {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+/* 操作按钮 */
+.action-btn {
+  display: inline-block;
+  padding: 20rpx 60rpx;
+  background: linear-gradient(135deg, $color-primary, #f7931e);
+  color: $color-text-white;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+  border: none;
+  margin-top: 20rpx;
+}
