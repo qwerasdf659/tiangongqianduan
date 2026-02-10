@@ -1,8 +1,7 @@
 // packageAdmin/audit-list/audit-list.ts - 审核列表页面（V4.0）+ MobX响应式状态
 
-const app = getApp()
 // 🔴 使用统一的工具函数导入
-const { API, Utils, Wechat } = require('../../utils/index')
+const { API, Utils } = require('../../utils/index')
 const { checkAuth } = Utils
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
@@ -63,7 +62,7 @@ Page({
   /**
    * 生命周期函数 - 监听页面加载
    */
-  onLoad(options) {
+  onLoad(_options) {
     console.log('📋 审核列表页面加载')
 
     // 🆕 MobX Store绑定 - 用户认证状态自动同步

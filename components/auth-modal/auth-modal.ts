@@ -43,7 +43,6 @@
  * @since 2025-10-31
  */
 
-const app = getApp()
 // 🔴 V4.0规范：统一使用utils/index.js导入工具函数
 const { Wechat, API } = require('../../utils/index')
 const { showToast } = Wechat

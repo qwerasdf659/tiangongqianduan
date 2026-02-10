@@ -76,14 +76,6 @@
   "sitemapLocation": "sitemap.json",
   "style": "v2",
   "componentFramework": "glass-easel",
-  "rendererOptions": {
-    "skyline": {
-      "defaultDisplayBlock": true,
-      "disableABTest": false,
-      "sdkVersionBegin": "3.0.0",
-      "sdkVersionEnd": "15.255.255"
-    }
-  },
   "lazyCodeLoading": "requiredComponents",
   "permission": {
     "scope.userLocation": {

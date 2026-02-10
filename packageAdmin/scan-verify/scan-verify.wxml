@@ -38,11 +38,13 @@
   </view>
 
   <!-- 核销失败 -->
-  <view class="result-section fail" wx:if="{{hasScanned && !verifySuccess && !loading && verifyResult}}">
+  <view
+    class="result-section fail"
+    wx:if="{{hasScanned && !verifySuccess && !loading && verifyResult}}"
+  >
     <view class="result-icon">❌</view>
     <text class="result-title">核销失败</text>
     <text class="result-error">{{verifyResult.error || '核销码无效或已过期'}}</text>
     <button class="action-btn" bindtap="onRescan">重新扫码</button>
   </view>
 </view>
-

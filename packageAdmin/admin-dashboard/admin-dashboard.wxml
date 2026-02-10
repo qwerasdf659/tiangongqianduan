@@ -7,7 +7,9 @@
   </view>
 
   <!-- 🔧 强化：主要内容区域 - 只有在所有条件满足时才显示完整内容 -->
-  <view wx:if="{{!loading && initialized && accessChecked && contentReady && !renderLocked && isLoggedIn && isAdmin}}">
+  <view
+    wx:if="{{!loading && initialized && accessChecked && contentReady && !renderLocked && isLoggedIn && isAdmin}}"
+  >
     <!-- 页面头部 -->
     <view class="dashboard-header">
       <view class="header-content">
@@ -44,8 +46,14 @@
       </view>
 
       <view class="functions-grid">
-        <view class="function-item" wx:for="{{adminMenuItems}}" wx:key="id" bindtap="onMenuItemTap" data-item="{{item}}"
-          style="border-left: 4rpx solid {{item.color}}">
+        <view
+          class="function-item"
+          wx:for="{{adminMenuItems}}"
+          wx:key="id"
+          bindtap="onMenuItemTap"
+          data-item="{{item}}"
+          style="border-left: 4rpx solid {{item.color}}"
+        >
           <view class="function-icon" style="color: {{item.color}}">
             <text class="icon-emoji">{{item.icon}}</text>
           </view>
@@ -68,14 +76,15 @@
   </view>
 
   <!-- 🔧 强化：加载状态 - 在任何条件不满足时显示 -->
-  <view class="loading-overlay" wx:if="{{loading || !initialized || !accessChecked || !contentReady || renderLocked}}">
+  <view
+    class="loading-overlay"
+    wx:if="{{loading || !initialized || !accessChecked || !contentReady || renderLocked}}"
+  >
     <view class="loading-content">
       <view class="loading-spinner"></view>
       <text class="loading-text">
-        {{loading ? '正在验证权限...' :
-        (!accessChecked ? '检查权限中...' :
-        (!contentReady ? '准备内容中...' :
-        (renderLocked ? '内容加载中...' : '初始化中...')))}}
+        {{loading ? '正在验证权限...' : (!accessChecked ? '检查权限中...' : (!contentReady ?
+        '准备内容中...' : (renderLocked ? '内容加载中...' : '初始化中...')))}}
       </text>
       <text class="loading-desc">请稍候，确保内容完整加载</text>
     </view>

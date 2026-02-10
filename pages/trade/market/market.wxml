@@ -2,24 +2,37 @@
 <!--📋 基于交易市场UI布局优化方案技术文档 - 方案1：瀑布流卡片布局-->
 
 <view class="waterfall-market-container">
-
   <!-- 🌊 瀑布流主容器 -->
   <view class="waterfall-container" style="height: {{containerHeight}}px;">
-
     <!-- 📦 商品卡片列表 - 绝对定位瀑布流 -->
-    <view class="product-card waterfall-card" wx:for="{{products}}" wx:key="productId"
+    <view
+      class="product-card waterfall-card"
+      wx:for="{{products}}"
+      wx:key="productId"
       style="left: {{item.layoutInfo.left}}px; top: {{item.layoutInfo.top}}px; width: {{item.layoutInfo.width}}px; z-index: {{item.layoutInfo.zIndex}};"
-      data-product="{{item}}" bindtap="onProductClick">
-
+      data-product="{{item}}"
+      bindtap="onProductClick"
+    >
       <!-- 🖼️ 商品图片区域 - 支持懒加载 -->
       <view class="card-image-container">
-        <image class="product-image card-image" src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}"
-          data-product-id="{{item.productId}}" show-menu-by-longpress="{{false}}" />
+        <image
+          class="product-image card-image"
+          src="{{item.image}}"
+          mode="aspectFill"
+          lazy-load="{{true}}"
+          data-product-id="{{item.productId}}"
+          show-menu-by-longpress="{{false}}"
+        />
 
         <!-- 🏷️ 商品标签 -->
         <view class="product-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-          <text class="product-tag {{item.isHot ? 'hot-tag' : ''}} {{item.isNew ? 'new-tag' : ''}}"
-            wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+          <text
+            class="product-tag {{item.isHot ? 'hot-tag' : ''}} {{item.isNew ? 'new-tag' : ''}}"
+            wx:for="{{item.tags}}"
+            wx:key="*this"
+            wx:for-item="tag"
+            >{{tag}}</text
+          >
         </view>
 
         <!-- 📊 销量显示 -->
@@ -30,7 +43,6 @@
 
       <!-- 📝 商品信息区域 -->
       <view class="card-content">
-
         <!-- 📌 商品标题 -->
         <view class="product-title-section">
           <text class="product-title">{{item.name}}</text>
@@ -40,8 +52,11 @@
         <view class="price-section">
           <view class="price-row">
             <text class="current-price">¥{{item.currentPrice}}</text>
-            <text class="original-price"
-              wx:if="{{item.originalPrice && item.originalPrice > item.currentPrice}}">¥{{item.originalPrice}}</text>
+            <text
+              class="original-price"
+              wx:if="{{item.originalPrice && item.originalPrice > item.currentPrice}}"
+              >¥{{item.originalPrice}}</text
+            >
           </view>
 
           <!-- ⭐ 评分和评价 -->
@@ -56,14 +71,11 @@
           <text class="seller-name">{{item.seller.name}}</text>
           <text class="seller-rating" wx:if="{{item.seller.rating}}">{{item.seller.rating}}分</text>
         </view>
-
       </view>
 
       <!-- 🎭 卡片悬停效果遮罩 -->
       <view class="card-hover-mask"></view>
-
     </view>
-
   </view>
 
   <!-- ⏳ 加载状态显示 -->
@@ -93,9 +105,7 @@
       <text class="empty-icon">🛒</text>
       <text class="empty-title">暂无商品</text>
       <text class="empty-subtitle">快去上架一些好物吧</text>
-      <button class="empty-retry-btn" bindtap="onPullDownRefresh" size="mini">
-        重新加载
-      </button>
+      <button class="empty-retry-btn" bindtap="onPullDownRefresh" size="mini">重新加载</button>
     </view>
   </view>
 
@@ -106,19 +116,24 @@
 
   <!-- 📱 浮动操作按钮 -->
   <view class="floating-actions">
-
     <!-- 🔝 回到顶部按钮 -->
-    <view class="floating-btn back-to-top-btn" bindtap="scrollToTop" wx:if="{{products.length > 10}}">
+    <view
+      class="floating-btn back-to-top-btn"
+      bindtap="scrollToTop"
+      wx:if="{{products.length > 10}}"
+    >
       <text class="btn-icon">↑</text>
     </view>
 
     <!-- 📊 性能统计按钮 (开发环境) -->
-    <view class="floating-btn stats-btn" bindtap="showStats" wx:if="{{performanceStats.totalProducts > 0}}">
+    <view
+      class="floating-btn stats-btn"
+      bindtap="showStats"
+      wx:if="{{performanceStats.totalProducts > 0}}"
+    >
       <text class="btn-icon">📊</text>
     </view>
-
   </view>
-
 </view>
 
 <!-- 📊 性能统计弹窗 -->

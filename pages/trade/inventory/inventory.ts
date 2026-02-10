@@ -73,7 +73,7 @@ Page({
    * // 微信小程序自动调用
    * onLoad({ scene: '1001' })
    */
-  onLoad(options) {
+  onLoad(_options) {
     console.log('📦 库存管理页面加载')
 
     // 🆕 MobX Store绑定 - 交易/库存状态自动同步

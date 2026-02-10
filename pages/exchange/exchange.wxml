@@ -5,8 +5,11 @@
     <!-- 导航按钮容器 -->
     <view class="nav-buttons-row" hover-class="none">
       <!-- 商品兑换 -->
-      <view class="nav-item nav-item-horizontal {{currentTab === 'market' ? 'active' : 'trade-market-nav'}}"
-        bindtap="onGoToTradeMarket" hover-class="none">
+      <view
+        class="nav-item nav-item-horizontal {{currentTab === 'market' ? 'active' : 'trade-market-nav'}}"
+        bindtap="onGoToTradeMarket"
+        hover-class="none"
+      >
         <view class="nav-content" hover-class="none">
           <!-- 导航图标容器 -->
           <view class="nav-icon-container" hover-class="none">
@@ -26,8 +29,11 @@
       </view>
 
       <!-- 交易市场 -->
-      <view class="nav-item nav-item-horizontal {{currentTab === 'exchange' ? 'active' : ''}}" bindtap="onGoToExchange"
-        hover-class="none">
+      <view
+        class="nav-item nav-item-horizontal {{currentTab === 'exchange' ? 'active' : ''}}"
+        bindtap="onGoToExchange"
+        hover-class="none"
+      >
         <view class="nav-content" hover-class="none">
           <view class="icon-wrapper" hover-class="none">
             <icon class="nav-icon" type="success" size="20" />
@@ -62,24 +68,41 @@
       <!-- 搜索和筛选功能 -->
       <view class="search-filter">
         <view class="search-box">
-          <input class="search-input" placeholder="搜索商品名称..." value="{{searchKeyword}}" bindinput="onSearchInput" />
+          <input
+            class="search-input"
+            placeholder="搜索商品名称..."
+            value="{{searchKeyword}}"
+            bindinput="onSearchInput"
+          />
           <text class="search-icon">🔍</text>
         </view>
 
         <view class="filter-buttons">
-          <button class="filter-btn {{currentFilter === 'all' ? 'active' : ''}}" bindtap="onFilterChange"
-            data-filter="all">
+          <button
+            class="filter-btn {{currentFilter === 'all' ? 'active' : ''}}"
+            bindtap="onFilterChange"
+            data-filter="all"
+          >
             全部
           </button>
-          <button class="filter-btn {{currentFilter === 'available' ? 'active' : ''}}" bindtap="onFilterChange"
-            data-filter="available">
+          <button
+            class="filter-btn {{currentFilter === 'available' ? 'active' : ''}}"
+            bindtap="onFilterChange"
+            data-filter="available"
+          >
             可兑换
           </button>
-          <button class="filter-btn {{currentFilter === 'low-price' ? 'active' : ''}}" bindtap="onFilterChange"
-            data-filter="low-price">
+          <button
+            class="filter-btn {{currentFilter === 'low-price' ? 'active' : ''}}"
+            bindtap="onFilterChange"
+            data-filter="low-price"
+          >
             低积分
           </button>
-          <button class="advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}" bindtap="onToggleAdvancedFilter">
+          <button
+            class="advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}"
+            bindtap="onToggleAdvancedFilter"
+          >
             高级筛选 {{showAdvancedFilter ? '🔼' : '🔽'}}
           </button>
         </view>
@@ -90,14 +113,34 @@
           <view class="filter-row">
             <text class="filter-label">商品分类</text>
             <view class="filter-options">
-              <button class="option-btn {{categoryFilter === 'all' ? 'active' : ''}}" bindtap="onCategoryFilterChange"
-                data-category="all">全部</button>
-              <button class="option-btn {{categoryFilter === '优惠券' ? 'active' : ''}}" bindtap="onCategoryFilterChange"
-                data-category="优惠券">优惠券</button>
-              <button class="option-btn {{categoryFilter === '实物商品' ? 'active' : ''}}" bindtap="onCategoryFilterChange"
-                data-category="实物商品">实物商品</button>
-              <button class="option-btn {{categoryFilter === '虚拟物品' ? 'active' : ''}}" bindtap="onCategoryFilterChange"
-                data-category="虚拟物品">虚拟物品</button>
+              <button
+                class="option-btn {{categoryFilter === 'all' ? 'active' : ''}}"
+                bindtap="onCategoryFilterChange"
+                data-category="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{categoryFilter === '优惠券' ? 'active' : ''}}"
+                bindtap="onCategoryFilterChange"
+                data-category="优惠券"
+              >
+                优惠券
+              </button>
+              <button
+                class="option-btn {{categoryFilter === '实物商品' ? 'active' : ''}}"
+                bindtap="onCategoryFilterChange"
+                data-category="实物商品"
+              >
+                实物商品
+              </button>
+              <button
+                class="option-btn {{categoryFilter === '虚拟物品' ? 'active' : ''}}"
+                bindtap="onCategoryFilterChange"
+                data-category="虚拟物品"
+              >
+                虚拟物品
+              </button>
             </view>
           </view>
 
@@ -105,16 +148,41 @@
           <view class="filter-row">
             <text class="filter-label">积分范围</text>
             <view class="filter-options">
-              <button class="option-btn {{pointsRange === 'all' ? 'active' : ''}}" bindtap="onPointsRangeChange"
-                data-range="all">全部</button>
-              <button class="option-btn {{pointsRange === '0-500' ? 'active' : ''}}" bindtap="onPointsRangeChange"
-                data-range="0-500">0-500分</button>
-              <button class="option-btn {{pointsRange === '500-1000' ? 'active' : ''}}" bindtap="onPointsRangeChange"
-                data-range="500-1000">500-1000分</button>
-              <button class="option-btn {{pointsRange === '1000-2000' ? 'active' : ''}}" bindtap="onPointsRangeChange"
-                data-range="1000-2000">1000-2000分</button>
-              <button class="option-btn {{pointsRange === '2000+' ? 'active' : ''}}" bindtap="onPointsRangeChange"
-                data-range="2000+">2000分以上</button>
+              <button
+                class="option-btn {{pointsRange === 'all' ? 'active' : ''}}"
+                bindtap="onPointsRangeChange"
+                data-range="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{pointsRange === '0-500' ? 'active' : ''}}"
+                bindtap="onPointsRangeChange"
+                data-range="0-500"
+              >
+                0-500分
+              </button>
+              <button
+                class="option-btn {{pointsRange === '500-1000' ? 'active' : ''}}"
+                bindtap="onPointsRangeChange"
+                data-range="500-1000"
+              >
+                500-1000分
+              </button>
+              <button
+                class="option-btn {{pointsRange === '1000-2000' ? 'active' : ''}}"
+                bindtap="onPointsRangeChange"
+                data-range="1000-2000"
+              >
+                1000-2000分
+              </button>
+              <button
+                class="option-btn {{pointsRange === '2000+' ? 'active' : ''}}"
+                bindtap="onPointsRangeChange"
+                data-range="2000+"
+              >
+                2000分以上
+              </button>
             </view>
           </view>
 
@@ -122,12 +190,27 @@
           <view class="filter-row">
             <text class="filter-label">库存状态</text>
             <view class="filter-options">
-              <button class="option-btn {{stockFilter === 'all' ? 'active' : ''}}" bindtap="onStockFilterChange"
-                data-filter="all">全部</button>
-              <button class="option-btn {{stockFilter === 'in-stock' ? 'active' : ''}}" bindtap="onStockFilterChange"
-                data-filter="in-stock">库存充足</button>
-              <button class="option-btn {{stockFilter === 'low-stock' ? 'active' : ''}}" bindtap="onStockFilterChange"
-                data-filter="low-stock">库存紧张</button>
+              <button
+                class="option-btn {{stockFilter === 'all' ? 'active' : ''}}"
+                bindtap="onStockFilterChange"
+                data-filter="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{stockFilter === 'in-stock' ? 'active' : ''}}"
+                bindtap="onStockFilterChange"
+                data-filter="in-stock"
+              >
+                库存充足
+              </button>
+              <button
+                class="option-btn {{stockFilter === 'low-stock' ? 'active' : ''}}"
+                bindtap="onStockFilterChange"
+                data-filter="low-stock"
+              >
+                库存紧张
+              </button>
             </view>
           </view>
 
@@ -135,16 +218,41 @@
           <view class="filter-row">
             <text class="filter-label">排序方式</text>
             <view class="filter-options">
-              <button class="option-btn {{sortBy === 'default' ? 'active' : ''}}" bindtap="onSortByChange"
-                data-sort="default">默认</button>
-              <button class="option-btn {{sortBy === 'points-asc' ? 'active' : ''}}" bindtap="onSortByChange"
-                data-sort="points-asc">积分升序</button>
-              <button class="option-btn {{sortBy === 'points-desc' ? 'active' : ''}}" bindtap="onSortByChange"
-                data-sort="points-desc">积分降序</button>
-              <button class="option-btn {{sortBy === 'rating-desc' ? 'active' : ''}}" bindtap="onSortByChange"
-                data-sort="rating-desc">评分降序</button>
-              <button class="option-btn {{sortBy === 'stock-desc' ? 'active' : ''}}" bindtap="onSortByChange"
-                data-sort="stock-desc">库存降序</button>
+              <button
+                class="option-btn {{sortBy === 'default' ? 'active' : ''}}"
+                bindtap="onSortByChange"
+                data-sort="default"
+              >
+                默认
+              </button>
+              <button
+                class="option-btn {{sortBy === 'points-asc' ? 'active' : ''}}"
+                bindtap="onSortByChange"
+                data-sort="points-asc"
+              >
+                积分升序
+              </button>
+              <button
+                class="option-btn {{sortBy === 'points-desc' ? 'active' : ''}}"
+                bindtap="onSortByChange"
+                data-sort="points-desc"
+              >
+                积分降序
+              </button>
+              <button
+                class="option-btn {{sortBy === 'rating-desc' ? 'active' : ''}}"
+                bindtap="onSortByChange"
+                data-sort="rating-desc"
+              >
+                评分降序
+              </button>
+              <button
+                class="option-btn {{sortBy === 'stock-desc' ? 'active' : ''}}"
+                bindtap="onSortByChange"
+                data-sort="stock-desc"
+              >
+                库存降序
+              </button>
             </view>
           </view>
 
@@ -166,8 +274,10 @@
     <view class="products-section" wx:else>
       <view class="section-title">
         <view class="title-header">
-          <text class="title-text">📦 {{currentFilter === 'all' ? '全部商品' : (currentFilter === 'available' ? '可兑换商品' :
-            '低积分商品')}}</text>
+          <text class="title-text"
+            >📦 {{currentFilter === 'all' ? '全部商品' : (currentFilter === 'available' ?
+            '可兑换商品' : '低积分商品')}}</text
+          >
           <text class="product-count">({{filteredProducts.length}}/{{products.length}})</text>
         </view>
         <view class="tips-container">
@@ -181,7 +291,11 @@
       <view class="products-grid">
         <view
           class="product-item {{item.stock <= 0 ? 'sold-out' : ''}} {{totalPoints < item.exchange_points ? 'insufficient-points' : ''}}"
-          wx:for="{{filteredProducts}}" wx:key="id" bindtap="onProductTap" data-product="{{item}}">
+          wx:for="{{filteredProducts}}"
+          wx:key="id"
+          bindtap="onProductTap"
+          data-product="{{item}}"
+        >
           <!-- 商品图片 -->
           <view class="product-image-container">
             <!-- 图片加载状态指示器 -->
@@ -190,10 +304,18 @@
             </view>
 
             <!-- 商品图片 -->
-            <image class="product-image {{item.imageStatus === 'error' ? 'image-error' : ''}}" src="{{item.image}}"
-              mode="aspectFill" bindtap="onPreviewImage" binderror="onImageError" bindload="onImageLoad"
-              data-url="{{item.image}}" data-index="{{index}}" data-image-id="product_{{index}}"
-              data-src="{{item.image}}" />
+            <image
+              class="product-image {{item.imageStatus === 'error' ? 'image-error' : ''}}"
+              src="{{item.image}}"
+              mode="aspectFill"
+              bindtap="onPreviewImage"
+              binderror="onImageError"
+              bindload="onImageLoad"
+              data-url="{{item.image}}"
+              data-index="{{index}}"
+              data-image-id="product_{{index}}"
+              data-src="{{item.image}}"
+            />
 
             <!-- 图片加载失败提示 -->
             <view wx:if="{{item.imageStatus === 'error'}}" class="image-error-tip">
@@ -201,9 +323,7 @@
             </view>
 
             <!-- 热门标签 -->
-            <view class="hot-badge" wx:if="{{item.is_hot}}">
-              🔥 热门
-            </view>
+            <view class="hot-badge" wx:if="{{item.is_hot}}"> 🔥 热门 </view>
 
             <!-- 库存标签 -->
             <view class="stock-badge {{item.stock <= 5 ? 'low-stock' : ''}}">
@@ -216,7 +336,10 @@
             </view>
 
             <!-- 积分不足遮罩 -->
-            <view class="insufficient-overlay" wx:if="{{totalPoints < item.exchange_points && item.stock > 0}}">
+            <view
+              class="insufficient-overlay"
+              wx:if="{{totalPoints < item.exchange_points && item.stock > 0}}"
+            >
               <text>积分不足</text>
             </view>
           </view>
@@ -239,9 +362,13 @@
 
           <!-- 兑换按钮 -->
           <view class="exchange-btn-container">
-            <button class="exchange-btn {{item.stock <= 0 || totalPoints < item.exchange_points ? 'disabled' : ''}}"
-              disabled="{{item.stock <= 0 || totalPoints < item.exchange_points}}">
-              {{item.stock <= 0 ? '已售罄' : (totalPoints < item.exchange_points ? '积分不足' : '立即兑换' )}} </button>
+            <button
+              class="exchange-btn {{item.stock <= 0 || totalPoints < item.exchange_points ? 'disabled' : ''}}"
+              disabled="{{item.stock <= 0 || totalPoints < item.exchange_points}}"
+            >
+              {{item.stock <= 0 ? '已售罄' : (totalPoints < item.exchange_points ? '积分不足' :
+              '立即兑换' )}}
+            </button>
           </view>
         </view>
       </view>
@@ -253,9 +380,7 @@
         <button class="retry-btn" bindtap="onClearSearch" wx:if="{{searchKeyword}}">
           清除搜索
         </button>
-        <button class="retry-btn" bindtap="onRefreshProducts" wx:else>
-          重新加载
-        </button>
+        <button class="retry-btn" bindtap="onRefreshProducts" wx:else>重新加载</button>
       </view>
 
       <!-- 分页导航 -->
@@ -265,26 +390,45 @@
         </view>
 
         <!-- 🎯 合并布局：主控制区域 + 页码数字区域在一行 -->
-        <view class="pagination-row unified-controls"
-          style="display: flex; justify-content: center; align-items: center; gap: 6rpx; margin-bottom: 16rpx; flex-wrap: wrap;">
-
+        <view
+          class="pagination-row unified-controls"
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6rpx;
+            margin-bottom: 16rpx;
+            flex-wrap: wrap;
+          "
+        >
           <!-- 上一页按钮 -->
-          <button class="page-btn prev-btn {{currentPage === 1 ? 'disabled' : ''}}" bindtap="onPrevPage"
-            disabled="{{currentPage === 1}}">
+          <button
+            class="page-btn prev-btn {{currentPage === 1 ? 'disabled' : ''}}"
+            bindtap="onPrevPage"
+            disabled="{{currentPage === 1}}"
+          >
             ← 上一页
           </button>
 
           <!-- 🎯 跳转功能 -->
           <view class="page-jump center-jump">
             <text>跳转到第</text>
-            <input class="page-input" type="number" placeholder="{{currentPage}}" bindinput="onPageInputChange"
-              bindconfirm="onPageInputConfirm" />
+            <input
+              class="page-input"
+              type="number"
+              placeholder="{{currentPage}}"
+              bindinput="onPageInputChange"
+              bindconfirm="onPageInputConfirm"
+            />
             <text>页</text>
           </view>
 
           <!-- 下一页按钮 -->
-          <button class="page-btn next-btn {{currentPage === totalPages ? 'disabled' : ''}}" bindtap="onNextPage"
-            disabled="{{currentPage === totalPages}}">
+          <button
+            class="page-btn next-btn {{currentPage === totalPages ? 'disabled' : ''}}"
+            bindtap="onNextPage"
+            disabled="{{currentPage === totalPages}}"
+          >
             下一页 →
           </button>
 
@@ -293,34 +437,54 @@
             <!-- 当总页数小于等于7时，显示所有页码 -->
             <block wx:if="{{totalPages <= 7}}">
               <block wx:for="{{totalPages}}" wx:key="*this">
-                <button class="page-number {{currentPage === (item + 1) ? 'active' : ''}}" bindtap="onPageChange"
-                  data-page="{{item + 1}}">{{item + 1}}</button>
+                <button
+                  class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onPageChange"
+                  data-page="{{item + 1}}"
+                >
+                  {{item + 1}}
+                </button>
               </block>
             </block>
 
             <!-- 当总页数大于7时，使用省略号显示 -->
             <block wx:else>
               <!-- 第一页 -->
-              <button class="page-number {{currentPage === 1 ? 'active' : ''}}" bindtap="onPageChange"
-                data-page="1">1</button>
+              <button
+                class="page-number {{currentPage === 1 ? 'active' : ''}}"
+                bindtap="onPageChange"
+                data-page="1"
+              >
+                1
+              </button>
 
               <!-- 左侧省略号 -->
               <text class="page-ellipsis" wx:if="{{currentPage > 4}}">...</text>
 
               <!-- 当前页附近的页码 -->
               <block wx:for="{{totalPages}}" wx:key="*this">
-                <button class="page-number {{currentPage === (item + 1) ? 'active' : ''}}" bindtap="onPageChange"
+                <button
+                  class="page-number {{currentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onPageChange"
                   data-page="{{item + 1}}"
-                  wx:if="{{(item + 1) > 1 && (item + 1) < totalPages && (item + 1) >= (currentPage - 2) && (item + 1) <= (currentPage + 2)}}">{{item
-                  + 1}}</button>
+                  wx:if="{{(item + 1) > 1 && (item + 1) < totalPages && (item + 1) >= (currentPage - 2) && (item + 1) <= (currentPage + 2)}}"
+                >
+                  {{item + 1}}
+                </button>
               </block>
 
               <!-- 右侧省略号 -->
               <text class="page-ellipsis" wx:if="{{currentPage < totalPages - 3}}">...</text>
 
               <!-- 最后一页 -->
-              <button class="page-number {{currentPage === totalPages ? 'active' : ''}}" bindtap="onPageChange"
-                data-page="{{totalPages}}" wx:if="{{totalPages > 1}}">{{totalPages}}</button>
+              <button
+                class="page-number {{currentPage === totalPages ? 'active' : ''}}"
+                bindtap="onPageChange"
+                data-page="{{totalPages}}"
+                wx:if="{{totalPages > 1}}"
+              >
+                {{totalPages}}
+              </button>
             </block>
           </view>
         </view>
@@ -329,12 +493,8 @@
 
     <!-- 快捷操作 -->
     <view class="quick-actions" wx:if="{{!loading}}">
-      <button class="action-btn" bindtap="onRefreshProducts">
-        🔄 刷新商品
-      </button>
-      <button class="action-btn" bindtap="onSortByPoints">
-        📊 按积分排序
-      </button>
+      <button class="action-btn" bindtap="onRefreshProducts">🔄 刷新商品</button>
+      <button class="action-btn" bindtap="onSortByPoints">📊 按积分排序</button>
     </view>
 
     <!-- 兑换确认弹窗 -->
@@ -357,7 +517,9 @@
             </view>
             <view class="remaining-info">
               <text class="remaining-label">兑换后剩余：</text>
-              <text class="remaining-points">{{totalPoints - selectedProduct.exchange_points}}积分</text>
+              <text class="remaining-points"
+                >{{totalPoints - selectedProduct.exchange_points}}积分</text
+              >
             </view>
           </view>
         </view>
@@ -423,14 +585,17 @@
 
   <!-- 🏪 双空间商品兑换系统 -->
   <view wx:if="{{currentTab === 'market'}}" class="dual-space-market">
-
     <!-- 🎯 空间切换导航 -->
     <view class="space-selector">
       <view class="selector-background"></view>
       <view
         class="space-tab {{item.id === currentSpace ? 'active' : ''}} {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? 'locked' : ''}}"
-        wx:for="{{spaceList}}" wx:key="id" data-space="{{item.id}}" bindtap="onSpaceChange"
-        style="color: {{item.id === currentSpace ? item.color : (item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '#ccc' : '#666')}}">
+        wx:for="{{spaceList}}"
+        wx:key="id"
+        data-space="{{item.id}}"
+        bindtap="onSpaceChange"
+        style="color: {{item.id === currentSpace ? item.color : (item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '#ccc' : '#666')}}"
+      >
         <view class="tab-content">
           <text class="tab-name">
             {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '🔒' : ''}}{{item.name}}
@@ -439,7 +604,11 @@
             {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '需解锁' : item.subtitle}}
           </text>
         </view>
-        <view wx:if="{{item.id === currentSpace}}" class="active-indicator" style="background: {{item.color}}"></view>
+        <view
+          wx:if="{{item.id === currentSpace}}"
+          class="active-indicator"
+          style="background: {{item.color}}"
+        ></view>
 
         <!-- 🔒 臻选空间解锁状态指示器 -->
         <view wx:if="{{item.id === 'premium'}}" class="unlock-status">
@@ -461,15 +630,19 @@
 
     <!-- 🍀 幸运空间 - 瀑布流卡片布局 v2.0 -->
     <!-- 📋 基于商品兑换UI布局优化方案技术文档 - 方案1：瀑布流卡片布局 -->
-    <view wx:if="{{currentSpace === 'lucky'}}" class="lucky-space-content waterfall-market-container">
-
+    <view
+      wx:if="{{currentSpace === 'lucky'}}"
+      class="lucky-space-content waterfall-market-container"
+    >
       <!-- 🌟 空间标题区 - 现代化设计 -->
       <view class="space-header lucky-header modern-header">
         <view class="header-background-modern"></view>
         <view class="header-content modern-content">
           <view class="space-info modern-info">
             <text class="space-title modern-title">🍀 幸运空间</text>
-            <text class="space-description modern-description">现代瀑布流设计，幸运好物等你发现</text>
+            <text class="space-description modern-description"
+              >现代瀑布流设计，幸运好物等你发现</text
+            >
           </view>
         </view>
       </view>
@@ -477,26 +650,41 @@
       <!-- 🔍 搜索和筛选功能模块 -->
       <view class="search-filter-section">
         <view class="search-box">
-          <input class="search-input" placeholder="搜索商品名称..." value="{{luckySearchKeyword}}"
-            bindinput="onLuckySearchInput" />
+          <input
+            class="search-input"
+            placeholder="搜索商品名称..."
+            value="{{luckySearchKeyword}}"
+            bindinput="onLuckySearchInput"
+          />
           <text class="search-icon">🔍</text>
         </view>
 
         <view class="filter-buttons">
-          <button class="filter-btn {{luckyCurrentFilter === 'all' ? 'active' : ''}}" bindtap="onLuckyFilterChange"
-            data-filter="all">
+          <button
+            class="filter-btn {{luckyCurrentFilter === 'all' ? 'active' : ''}}"
+            bindtap="onLuckyFilterChange"
+            data-filter="all"
+          >
             全部
           </button>
-          <button class="filter-btn {{luckyCurrentFilter === 'available' ? 'active' : ''}}"
-            bindtap="onLuckyFilterChange" data-filter="available">
+          <button
+            class="filter-btn {{luckyCurrentFilter === 'available' ? 'active' : ''}}"
+            bindtap="onLuckyFilterChange"
+            data-filter="available"
+          >
             可兑换
           </button>
-          <button class="filter-btn {{luckyCurrentFilter === 'low-price' ? 'active' : ''}}"
-            bindtap="onLuckyFilterChange" data-filter="low-price">
+          <button
+            class="filter-btn {{luckyCurrentFilter === 'low-price' ? 'active' : ''}}"
+            bindtap="onLuckyFilterChange"
+            data-filter="low-price"
+          >
             低积分
           </button>
-          <button class="advanced-filter-btn {{showLuckyAdvancedFilter ? 'active' : ''}}"
-            bindtap="onToggleLuckyAdvancedFilter">
+          <button
+            class="advanced-filter-btn {{showLuckyAdvancedFilter ? 'active' : ''}}"
+            bindtap="onToggleLuckyAdvancedFilter"
+          >
             高级筛选 {{showLuckyAdvancedFilter ? '🔼' : '🔽'}}
           </button>
         </view>
@@ -507,14 +695,34 @@
           <view class="filter-row">
             <text class="filter-label">商品分类</text>
             <view class="filter-options">
-              <button class="option-btn {{luckyCategoryFilter === 'all' ? 'active' : ''}}"
-                bindtap="onLuckyCategoryFilterChange" data-category="all">全部</button>
-              <button class="option-btn {{luckyCategoryFilter === '优惠券' ? 'active' : ''}}"
-                bindtap="onLuckyCategoryFilterChange" data-category="优惠券">优惠券</button>
-              <button class="option-btn {{luckyCategoryFilter === '实物商品' ? 'active' : ''}}"
-                bindtap="onLuckyCategoryFilterChange" data-category="实物商品">实物商品</button>
-              <button class="option-btn {{luckyCategoryFilter === '虚拟物品' ? 'active' : ''}}"
-                bindtap="onLuckyCategoryFilterChange" data-category="虚拟物品">虚拟物品</button>
+              <button
+                class="option-btn {{luckyCategoryFilter === 'all' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{luckyCategoryFilter === '优惠券' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="优惠券"
+              >
+                优惠券
+              </button>
+              <button
+                class="option-btn {{luckyCategoryFilter === '实物商品' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="实物商品"
+              >
+                实物商品
+              </button>
+              <button
+                class="option-btn {{luckyCategoryFilter === '虚拟物品' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="虚拟物品"
+              >
+                虚拟物品
+              </button>
             </view>
           </view>
 
@@ -522,16 +730,41 @@
           <view class="filter-row">
             <text class="filter-label">积分范围</text>
             <view class="filter-options">
-              <button class="option-btn {{luckyPointsRange === 'all' ? 'active' : ''}}"
-                bindtap="onLuckyPointsRangeChange" data-range="all">全部</button>
-              <button class="option-btn {{luckyPointsRange === '0-500' ? 'active' : ''}}"
-                bindtap="onLuckyPointsRangeChange" data-range="0-500">0-500分</button>
-              <button class="option-btn {{luckyPointsRange === '500-1000' ? 'active' : ''}}"
-                bindtap="onLuckyPointsRangeChange" data-range="500-1000">500-1000分</button>
-              <button class="option-btn {{luckyPointsRange === '1000-2000' ? 'active' : ''}}"
-                bindtap="onLuckyPointsRangeChange" data-range="1000-2000">1000-2000分</button>
-              <button class="option-btn {{luckyPointsRange === '2000+' ? 'active' : ''}}"
-                bindtap="onLuckyPointsRangeChange" data-range="2000+">2000分以上</button>
+              <button
+                class="option-btn {{luckyPointsRange === 'all' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '0-500' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="0-500"
+              >
+                0-500分
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '500-1000' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="500-1000"
+              >
+                500-1000分
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '1000-2000' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="1000-2000"
+              >
+                1000-2000分
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '2000+' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="2000+"
+              >
+                2000分以上
+              </button>
             </view>
           </view>
 
@@ -539,12 +772,27 @@
           <view class="filter-row">
             <text class="filter-label">库存状态</text>
             <view class="filter-options">
-              <button class="option-btn {{luckyStockFilter === 'all' ? 'active' : ''}}"
-                bindtap="onLuckyStockFilterChange" data-filter="all">全部</button>
-              <button class="option-btn {{luckyStockFilter === 'in-stock' ? 'active' : ''}}"
-                bindtap="onLuckyStockFilterChange" data-filter="in-stock">库存充足</button>
-              <button class="option-btn {{luckyStockFilter === 'low-stock' ? 'active' : ''}}"
-                bindtap="onLuckyStockFilterChange" data-filter="low-stock">库存紧张</button>
+              <button
+                class="option-btn {{luckyStockFilter === 'all' ? 'active' : ''}}"
+                bindtap="onLuckyStockFilterChange"
+                data-filter="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{luckyStockFilter === 'in-stock' ? 'active' : ''}}"
+                bindtap="onLuckyStockFilterChange"
+                data-filter="in-stock"
+              >
+                库存充足
+              </button>
+              <button
+                class="option-btn {{luckyStockFilter === 'low-stock' ? 'active' : ''}}"
+                bindtap="onLuckyStockFilterChange"
+                data-filter="low-stock"
+              >
+                库存紧张
+              </button>
             </view>
           </view>
 
@@ -552,16 +800,41 @@
           <view class="filter-row">
             <text class="filter-label">排序方式</text>
             <view class="filter-options">
-              <button class="option-btn {{luckySortBy === 'default' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-                data-sort="default">默认</button>
-              <button class="option-btn {{luckySortBy === 'points-asc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-                data-sort="points-asc">积分升序</button>
-              <button class="option-btn {{luckySortBy === 'points-desc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-                data-sort="points-desc">积分降序</button>
-              <button class="option-btn {{luckySortBy === 'rating-desc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-                data-sort="rating-desc">评分降序</button>
-              <button class="option-btn {{luckySortBy === 'stock-desc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-                data-sort="stock-desc">库存降序</button>
+              <button
+                class="option-btn {{luckySortBy === 'default' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="default"
+              >
+                默认
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'points-asc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="points-asc"
+              >
+                积分升序
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'points-desc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="points-desc"
+              >
+                积分降序
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'rating-desc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="rating-desc"
+              >
+                评分降序
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'stock-desc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="stock-desc"
+              >
+                库存降序
+              </button>
             </view>
           </view>
 
@@ -574,22 +847,35 @@
 
       <!-- 🌊 瀑布流主容器 - 方案1优化版本 -->
       <view class="waterfall-container modern-waterfall" style="height: {{containerHeight}}px;">
-
         <!-- 📦 商品卡片列表 - 绝对定位瀑布流 -->
-        <view class="product-card waterfall-card modern-card"
-          wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}" wx:key="id"
+        <view
+          class="product-card waterfall-card modern-card"
+          wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}"
+          wx:key="id"
           style="position: absolute; left: {{item.layoutInfo.left}}px; top: {{item.layoutInfo.top}}px; width: {{item.layoutInfo.width}}px; z-index: {{item.layoutInfo.zIndex || 1}};"
-          data-product="{{item}}" bindtap="onProductTap">
-
+          data-product="{{item}}"
+          bindtap="onProductTap"
+        >
           <!-- 🖼️ 商品图片区域 - 支持懒加载 -->
           <view class="card-image-container modern-image-container">
-            <image class="product-image card-image waterfall-image" src="{{item.image}}" mode="aspectFill"
-              lazy-load="{{true}}" data-product-id="{{item.id}}" show-menu-by-longpress="{{false}}" />
+            <image
+              class="product-image card-image waterfall-image"
+              src="{{item.image}}"
+              mode="aspectFill"
+              lazy-load="{{true}}"
+              data-product-id="{{item.id}}"
+              show-menu-by-longpress="{{false}}"
+            />
 
             <!-- 🏷️ 商品标签 - 现代化样式 -->
             <view class="product-tags modern-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-              <text class="product-tag modern-tag {{item.isHot ? 'hot-tag' : ''}} {{item.isNew ? 'new-tag' : ''}}"
-                wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+              <text
+                class="product-tag modern-tag {{item.isHot ? 'hot-tag' : ''}} {{item.isNew ? 'new-tag' : ''}}"
+                wx:for="{{item.tags}}"
+                wx:key="*this"
+                wx:for-item="tag"
+                >{{tag}}</text
+              >
             </view>
 
             <!-- 💨 折扣标签 - 增强版 -->
@@ -608,7 +894,6 @@
 
           <!-- 📝 商品信息区域 - 方案1优化设计 -->
           <view class="card-content modern-card-content">
-
             <!-- 📌 商品标题 -->
             <view class="product-title-section">
               <text class="product-title waterfall-title modern-title">{{item.name}}</text>
@@ -618,8 +903,11 @@
             <view class="price-section modern-price-section">
               <view class="price-row waterfall-price">
                 <text class="current-price modern-current-price">{{item.price}}</text>
-                <text class="original-price modern-original-price"
-                  wx:if="{{item.originalPrice && item.originalPrice > item.price}}">{{item.originalPrice}}</text>
+                <text
+                  class="original-price modern-original-price"
+                  wx:if="{{item.originalPrice && item.originalPrice > item.price}}"
+                  >{{item.originalPrice}}</text
+                >
               </view>
 
               <!-- ⭐ 评分和销量 -->
@@ -635,21 +923,29 @@
             <!-- 🏪 商家信息 - 现代化样式 -->
             <view class="seller-info modern-seller-info" wx:if="{{item.seller}}">
               <text class="seller-name">{{item.seller.name}}</text>
-              <text class="seller-rating" wx:if="{{item.seller.rating}}">{{item.seller.rating}}分</text>
+              <text class="seller-rating" wx:if="{{item.seller.rating}}"
+                >{{item.seller.rating}}分</text
+              >
             </view>
 
             <!-- 🏷️ 标签区域 - 底部标签 -->
-            <view class="waterfall-tags modern-bottom-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-              <text class="tag modern-bottom-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+            <view
+              class="waterfall-tags modern-bottom-tags"
+              wx:if="{{item.tags && item.tags.length > 0}}"
+            >
+              <text
+                class="tag modern-bottom-tag"
+                wx:for="{{item.tags}}"
+                wx:key="*this"
+                wx:for-item="tag"
+                >{{tag}}</text
+              >
             </view>
-
           </view>
 
           <!-- 🎭 卡片悬停效果遮罩 -->
           <view class="card-hover-mask modern-hover-mask"></view>
-
         </view>
-
       </view>
 
       <!-- ⏳ 加载状态显示 - 方案1设计 -->
@@ -665,19 +961,25 @@
       </view>
 
       <!-- 📊 无更多数据提示 -->
-      <view class="no-more-data modern-no-more"
-        wx:if="{{!loading && (luckyFilteredProducts.length > 0 || waterfallProducts.length > 0) && !hasMore}}">
+      <view
+        class="no-more-data modern-no-more"
+        wx:if="{{!loading && (luckyFilteredProducts.length > 0 || waterfallProducts.length > 0) && !hasMore}}"
+      >
         <view class="no-more-content">
           <text class="no-more-icon">🎉</text>
           <text class="no-more-text">已加载全部幸运好物</text>
-          <text class="no-more-subtitle">共{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts.length :
-            waterfallProducts.length}}件商品等你发现</text>
+          <text class="no-more-subtitle"
+            >共{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts.length :
+            waterfallProducts.length}}件商品等你发现</text
+          >
         </view>
       </view>
 
       <!-- 🚫 空状态显示 - 优化版 -->
-      <view class="empty-state modern-empty"
-        wx:if="{{!loading && luckyFilteredProducts.length === 0 && waterfallProducts.length === 0}}">
+      <view
+        class="empty-state modern-empty"
+        wx:if="{{!loading && luckyFilteredProducts.length === 0 && waterfallProducts.length === 0}}"
+      >
         <view class="empty-content modern-empty-content">
           <text class="empty-icon modern-empty-icon">🍀</text>
           <text class="empty-title modern-empty-title">幸运空间准备中</text>
@@ -689,16 +991,16 @@
       </view>
 
       <!-- 🔄 下拉刷新提示 -->
-      <view class="refresh-hint modern-refresh-hint"
-        wx:if="{{!loading && (luckyFilteredProducts.length > 0 || waterfallProducts.length > 0)}}">
+      <view
+        class="refresh-hint modern-refresh-hint"
+        wx:if="{{!loading && (luckyFilteredProducts.length > 0 || waterfallProducts.length > 0)}}"
+      >
         <text class="refresh-text">下拉刷新获取更多幸运好物</text>
       </view>
-
     </view>
 
     <!-- 💎 臻选空间 - 混合展示布局 -->
     <view wx:if="{{currentSpace === 'premium'}}" class="premium-space-content mixed-layout">
-
       <!-- 空间标题区 -->
       <view class="space-header premium-header mixed-header">
         <view class="header-background mixed-bg"></view>
@@ -709,7 +1011,9 @@
           </view>
           <view class="space-stats">
             <view class="stat-item">
-              <text class="stat-number">{{carouselItems.length + cardSections.length + listProducts.length}}+</text>
+              <text class="stat-number"
+                >{{carouselItems.length + cardSections.length + listProducts.length}}+</text
+              >
               <text class="stat-label">精品数量</text>
             </view>
             <view class="stat-item">
@@ -726,12 +1030,25 @@
           <text class="section-title">🎠 精选推荐</text>
           <text class="section-subtitle">品质之选，值得拥有</text>
         </view>
-        <swiper class="premium-carousel" autoplay="{{autoPlay}}"
-          interval="{{mixedLayoutConfig.carouselInterval || 4000}}" duration="500" circular="{{true}}"
-          indicator-dots="{{true}}" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#ffffff"
-          current="{{carouselActiveIndex}}" bindchange="onCarouselChange">
-          <swiper-item wx:for="{{carouselItems}}" wx:key="id" class="carousel-item" data-product="{{item}}"
-            bindtap="onProductTap">
+        <swiper
+          class="premium-carousel"
+          autoplay="{{autoPlay}}"
+          interval="{{mixedLayoutConfig.carouselInterval || 4000}}"
+          duration="500"
+          circular="{{true}}"
+          indicator-dots="{{true}}"
+          indicator-color="rgba(255,255,255,0.5)"
+          indicator-active-color="#ffffff"
+          current="{{carouselActiveIndex}}"
+          bindchange="onCarouselChange"
+        >
+          <swiper-item
+            wx:for="{{carouselItems}}"
+            wx:key="id"
+            class="carousel-item"
+            data-product="{{item}}"
+            bindtap="onProductTap"
+          >
             <view class="carousel-card" style="background: {{item.background}}">
               <image class="carousel-image" src="{{item.image}}" mode="aspectFill"></image>
               <view class="carousel-content">
@@ -743,10 +1060,14 @@
                 <text class="carousel-subtitle">{{item.subtitle}}</text>
                 <view class="carousel-price-section">
                   <text class="carousel-price">¥{{item.price}}</text>
-                  <text class="carousel-original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+                  <text class="carousel-original-price" wx:if="{{item.originalPrice}}"
+                    >¥{{item.originalPrice}}</text
+                  >
                 </view>
                 <view class="carousel-tags">
-                  <text class="carousel-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+                  <text class="carousel-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag"
+                    >{{tag}}</text
+                  >
                 </view>
               </view>
             </view>
@@ -757,11 +1078,16 @@
       <!-- 第二层：横向滑动卡片组 -->
       <view class="card-sections" wx:if="{{cardSections && cardSections.length > 0}}">
         <view class="card-section" wx:for="{{cardSections}}" wx:key="id" wx:for-item="section">
-          <view class="section-header card-section-header" style="background: {{section.backgroundColor}}">
+          <view
+            class="section-header card-section-header"
+            style="background: {{section.backgroundColor}}"
+          >
             <view class="section-title-wrapper">
               <text class="section-icon">{{section.icon}}</text>
               <view class="section-titles">
-                <text class="section-title" style="color: {{section.titleColor}}">{{section.title}}</text>
+                <text class="section-title" style="color: {{section.titleColor}}"
+                  >{{section.title}}</text
+                >
                 <text class="section-subtitle">{{section.subtitle}}</text>
               </view>
             </view>
@@ -769,12 +1095,24 @@
 
           <scroll-view class="card-scroll-view" scroll-x enable-flex>
             <view class="card-container">
-              <view class="section-card" wx:for="{{section.products}}" wx:key="id" wx:for-item="product"
-                data-product="{{product}}" bindtap="onProductTap">
+              <view
+                class="section-card"
+                wx:for="{{section.products}}"
+                wx:key="id"
+                wx:for-item="product"
+                data-product="{{product}}"
+                bindtap="onProductTap"
+              >
                 <view class="card-image-wrapper">
-                  <image class="section-card-image" src="{{product.image}}" mode="aspectFill"></image>
+                  <image
+                    class="section-card-image"
+                    src="{{product.image}}"
+                    mode="aspectFill"
+                  ></image>
                   <view class="card-badges">
-                    <text class="discount-badge" wx:if="{{product.discount}}">-{{product.discount}}%</text>
+                    <text class="discount-badge" wx:if="{{product.discount}}"
+                      >-{{product.discount}}%</text
+                    >
                     <text class="hot-badge" wx:if="{{product.isHot}}">热销</text>
                     <text class="new-badge" wx:if="{{product.isNew}}">新品</text>
                   </view>
@@ -784,7 +1122,9 @@
                   <text class="section-card-sellpoint">{{product.sellPoint}}</text>
                   <view class="section-card-price">
                     <text class="current-price">¥{{product.price}}</text>
-                    <text class="original-price" wx:if="{{product.originalPrice}}">¥{{product.originalPrice}}</text>
+                    <text class="original-price" wx:if="{{product.originalPrice}}"
+                      >¥{{product.originalPrice}}</text
+                    >
                   </view>
                   <view class="section-card-meta">
                     <text class="rating">⭐{{product.rating}}</text>
@@ -805,7 +1145,13 @@
         </view>
 
         <view class="list-container">
-          <view class="list-item" wx:for="{{listProducts}}" wx:key="id" data-product="{{item}}" bindtap="onProductTap">
+          <view
+            class="list-item"
+            wx:for="{{listProducts}}"
+            wx:key="id"
+            data-product="{{item}}"
+            bindtap="onProductTap"
+          >
             <image class="list-image" src="{{item.image}}" mode="aspectFill"></image>
             <view class="list-content">
               <view class="list-header">
@@ -816,7 +1162,9 @@
                 </view>
               </view>
 
-              <text class="list-description" wx:if="{{item.showDescription}}">{{item.description}}</text>
+              <text class="list-description" wx:if="{{item.showDescription}}"
+                >{{item.description}}</text
+              >
 
               <view class="list-seller" wx:if="{{item.showSeller}}">
                 <text class="seller-name">{{item.seller.name}}</text>
@@ -827,7 +1175,9 @@
               <view class="list-price-section">
                 <view class="price-info">
                   <text class="list-current-price">¥{{item.price}}</text>
-                  <text class="list-original-price" wx:if="{{item.originalPrice}}">¥{{item.originalPrice}}</text>
+                  <text class="list-original-price" wx:if="{{item.originalPrice}}"
+                    >¥{{item.originalPrice}}</text
+                  >
                   <text class="discount-text" wx:if="{{item.discount}}">省{{item.discount}}%</text>
                 </view>
                 <view class="delivery-info">
@@ -846,15 +1196,15 @@
       </view>
 
       <!-- 空状态 -->
-      <view class="empty-mixed"
-        wx:if="{{(!carouselItems || carouselItems.length === 0) && (!cardSections || cardSections.length === 0) && (!listProducts || listProducts.length === 0)}}">
+      <view
+        class="empty-mixed"
+        wx:if="{{(!carouselItems || carouselItems.length === 0) && (!cardSections || cardSections.length === 0) && (!listProducts || listProducts.length === 0)}}"
+      >
         <view class="empty-icon">💎</view>
         <text class="empty-text">臻选空间即将精彩呈现</text>
         <text class="empty-hint">三层式混合展示布局正在准备中</text>
       </view>
-
     </view>
-
   </view>
 
   <!-- 🎯 竞价弹窗 -->
@@ -883,20 +1233,28 @@
         <view class="bid-input-section">
           <text class="input-label">您的出价：</text>
           <view class="bid-input-wrapper">
-            <input class="bid-input" type="number"
+            <input
+              class="bid-input"
+              type="number"
               placeholder="{{selectedBidProduct.current_price + selectedBidProduct.min_bid_increment}}"
-              value="{{userBidAmount}}" bindinput="onBidAmountInput" />
+              value="{{userBidAmount}}"
+              bindinput="onBidAmountInput"
+            />
             <text class="input-unit">积分</text>
           </view>
-          <text class="bid-hint">最小出价：{{selectedBidProduct.current_price +
-            selectedBidProduct.min_bid_increment}}积分</text>
+          <text class="bid-hint"
+            >最小出价：{{selectedBidProduct.current_price +
+            selectedBidProduct.min_bid_increment}}积分</text
+          >
         </view>
 
         <!-- 竞价说明 -->
         <view class="bid-instructions">
           <text class="instruction-title">💡 竞价说明：</text>
           <text class="instruction-item">• 出价成功后不可撤回</text>
-          <text class="instruction-item">• 每次加价不少于{{selectedBidProduct.min_bid_increment}}积分</text>
+          <text class="instruction-item"
+            >• 每次加价不少于{{selectedBidProduct.min_bid_increment}}积分</text
+          >
           <text class="instruction-item">• 竞价结束时最高价者获得商品</text>
         </view>
       </view>

@@ -18,18 +18,27 @@
   <view class="filter-section">
     <view class="filter-title">筛选记录</view>
     <view class="filter-tabs">
-      <view class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}" data-filter="all"
-        bindtap="onPointsFilterChange">
+      <view
+        class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}"
+        data-filter="all"
+        bindtap="onPointsFilterChange"
+      >
         <view class="filter-icon">📊</view>
         <text class="filter-text">全部记录</text>
       </view>
-      <view class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}" data-filter="earn"
-        bindtap="onPointsFilterChange">
+      <view
+        class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}"
+        data-filter="earn"
+        bindtap="onPointsFilterChange"
+      >
         <view class="filter-icon">💰</view>
         <text class="filter-text">积分获得</text>
       </view>
-      <view class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}" data-filter="consume"
-        bindtap="onPointsFilterChange">
+      <view
+        class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}"
+        data-filter="consume"
+        bindtap="onPointsFilterChange"
+      >
         <view class="filter-icon">🛒</view>
         <text class="filter-text">积分消费</text>
       </view>
@@ -40,16 +49,16 @@
   <view class="records-section">
     <view class="records-header">
       <view class="records-title">积分明细</view>
-      <view class="records-count">
-        共 {{filteredPointsRecords.length || 0}} 条记录
-      </view>
+      <view class="records-count"> 共 {{filteredPointsRecords.length || 0}} 条记录 </view>
     </view>
 
     <!-- 🔴 记录列表 -->
     <view class="records-list" wx:if="{{filteredPointsRecords.length > 0}}">
-      <view class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
-        wx:for="{{filteredPointsRecords}}" wx:key="transaction_id">
-
+      <view
+        class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
+        wx:for="{{filteredPointsRecords}}"
+        wx:key="transaction_id"
+      >
         <!-- 🔴 记录图标和类型 -->
         <view class="record-icon">
           <view class="icon-bg {{item.transaction_type === 'earn' ? 'earn-bg' : 'consume-bg'}}">
@@ -61,20 +70,18 @@
         <view class="record-detail">
           <view class="record-main">
             <!-- 🔥 使用后端返回的transaction_title -->
-            <view class="record-title">
-              {{item.displayTitle || '积分记录'}}
-            </view>
+            <view class="record-title"> {{item.displayTitle || '积分记录'}} </view>
             <!-- 🔥 显示格式化后的金额 -->
-            <view class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}">
+            <view
+              class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}"
+            >
               {{item.displayAmount}}
             </view>
           </view>
 
           <!-- 🔥 显示友好的时间格式 -->
           <view class="record-meta">
-            <view class="record-time">
-              {{item.displayTime}}
-            </view>
+            <view class="record-time"> {{item.displayTime}} </view>
             <!-- 可选：显示详细描述 -->
             <view class="record-desc" wx:if="{{item.transaction_description}}">
               {{item.transaction_description}}
@@ -88,12 +95,12 @@
     <view class="empty-state" wx:if="{{filteredPointsRecords.length === 0 && !loading}}">
       <view class="empty-icon">💳</view>
       <view class="empty-title">
-        {{pointsFilter === 'all' ? '暂无积分记录' :
-        (pointsFilter === 'earn' ? '暂无积分获得记录' : '暂无积分消费记录')}}
+        {{pointsFilter === 'all' ? '暂无积分记录' : (pointsFilter === 'earn' ? '暂无积分获得记录' :
+        '暂无积分消费记录')}}
       </view>
       <view class="empty-desc">
-        {{pointsFilter === 'all' ? '您还没有任何积分变动记录' :
-        (pointsFilter === 'earn' ? '您还没有获得积分的记录' : '您还没有消费积分的记录')}}
+        {{pointsFilter === 'all' ? '您还没有任何积分变动记录' : (pointsFilter === 'earn' ?
+        '您还没有获得积分的记录' : '您还没有消费积分的记录')}}
       </view>
       <view class="empty-actions">
         <view class="empty-btn" bindtap="onBackTap">返回用户中心</view>
@@ -127,19 +134,26 @@
 
   <!-- 🔴 测试功能按钮（开发阶段） -->
   <view class="test-section" wx:if="{{true}}">
-    <view class="test-btn" bindtap="onTestPointsDetail">
-      🧪 测试积分详情
-    </view>
-    <view class="test-btn" bindtap="testApiParameterMapping"
-      style="margin-top: 20rpx; background: linear-gradient(135deg, #4CAF50, #66BB6A);">
+    <view class="test-btn" bindtap="onTestPointsDetail"> 🧪 测试积分详情 </view>
+    <view
+      class="test-btn"
+      bindtap="testApiParameterMapping"
+      style="margin-top: 20rpx; background: linear-gradient(135deg, #4caf50, #66bb6a)"
+    >
       🔧 测试API参数映射
     </view>
-    <view class="test-btn" bindtap="testLotteryDescriptionFormatting"
-      style="margin-top: 20rpx; background: linear-gradient(135deg, #FF6B35, #F7931E);">
+    <view
+      class="test-btn"
+      bindtap="testLotteryDescriptionFormatting"
+      style="margin-top: 20rpx; background: linear-gradient(135deg, #ff6b35, #f7931e)"
+    >
       🎯 测试描述格式化
     </view>
-    <view class="test-btn" bindtap="testAggregationFunction"
-      style="margin-top: 20rpx; background: linear-gradient(135deg, #9C27B0, #E91E63);">
+    <view
+      class="test-btn"
+      bindtap="testAggregationFunction"
+      style="margin-top: 20rpx; background: linear-gradient(135deg, #9c27b0, #e91e63)"
+    >
       🎊 测试聚合功能
     </view>
   </view>

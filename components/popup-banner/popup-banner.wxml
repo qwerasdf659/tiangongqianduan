@@ -32,15 +32,20 @@
 -->
 
 <!-- 弹窗最外层容器，visible控制是否渲染 -->
-<view class="popup-banner-overlay {{animateIn ? 'animate-in' : ''}} {{animateOut ? 'animate-out' : ''}}"
-  wx:if="{{visible && banners.length > 0}}" bindtap="handleOverlayTap">
-
+<view
+  class="popup-banner-overlay {{animateIn ? 'animate-in' : ''}} {{animateOut ? 'animate-out' : ''}}"
+  wx:if="{{visible && banners.length > 0}}"
+  bindtap="handleOverlayTap"
+>
   <!-- ============================== -->
   <!--  📐 纯图模式（full_image）     -->
   <!--  无白色卡片壳，图片即弹窗       -->
   <!-- ============================== -->
-  <view class="popup-full-image-container" wx:if="{{banners[currentIndex].display_mode === 'full_image'}}"
-    catchtap="preventBubble">
+  <view
+    class="popup-full-image-container"
+    wx:if="{{banners[currentIndex].display_mode === 'full_image'}}"
+    catchtap="preventBubble"
+  >
     <!-- 🔴 关闭按钮（右上角悬浮，纯图模式专用样式） -->
     <view class="popup-close-btn popup-close-btn-fullimage" bindtap="handleClose">
       <text class="close-icon">✕</text>
@@ -48,9 +53,15 @@
 
     <!-- 🖼️ 纯图模式图片（宽度自适应，高度按原图比例）
          🔴 移除lazy-load：图片已在父页面预加载到缓存，无需懒加载 -->
-    <image class="popup-full-image" wx:if="{{banners[currentIndex].image_url && !imageLoadFailed}}"
-      src="{{banners[currentIndex].image_url}}" mode="widthFix" lazy-load="{{false}}" bindload="handleImageLoad"
-      binderror="handleImageError" />
+    <image
+      class="popup-full-image"
+      wx:if="{{banners[currentIndex].image_url && !imageLoadFailed}}"
+      src="{{banners[currentIndex].image_url}}"
+      mode="widthFix"
+      lazy-load="{{false}}"
+      bindload="handleImageLoad"
+      binderror="handleImageError"
+    />
 
     <!-- 🔴 纯图模式图片加载失败时的降级显示 -->
     <view class="popup-decor-header popup-decor-header-fullimage" wx:if="{{imageLoadFailed}}">
@@ -73,27 +84,39 @@
       <block wx:for="{{banners}}" wx:key="index">
         <view class="indicator-dot {{currentIndex === index ? 'active' : ''}}"></view>
       </block>
-      <text class="indicator-text indicator-text-fullimage">{{currentIndex + 1}} / {{banners.length}}</text>
+      <text class="indicator-text indicator-text-fullimage"
+        >{{currentIndex + 1}} / {{banners.length}}</text
+      >
     </view>
 
     <!-- 🔘 纯图模式操作按钮（悬浮在底部） -->
     <view class="popup-actions popup-actions-fullimage">
       <!-- 有链接时显示"查看详情"按钮 -->
-      <button class="popup-action-btn primary" wx:if="{{banners[currentIndex].link_url}}" bindtap="handleAction">
+      <button
+        class="popup-action-btn primary"
+        wx:if="{{banners[currentIndex].link_url}}"
+        bindtap="handleAction"
+      >
         查看详情
       </button>
 
       <!-- 多个横幅时显示翻页按钮 -->
       <view class="popup-nav-row" wx:if="{{banners.length > 1}}">
         <!-- 上一条按钮 -->
-        <button class="popup-action-btn secondary popup-nav-btn" wx:if="{{currentIndex > 0}}"
-          bindtap="handlePrev">
+        <button
+          class="popup-action-btn secondary popup-nav-btn"
+          wx:if="{{currentIndex > 0}}"
+          bindtap="handlePrev"
+        >
           上一条
         </button>
 
         <!-- 下一条按钮 -->
-        <button class="popup-action-btn secondary popup-nav-btn" wx:if="{{currentIndex < banners.length - 1}}"
-          bindtap="handleNext">
+        <button
+          class="popup-action-btn secondary popup-nav-btn"
+          wx:if="{{currentIndex < banners.length - 1}}"
+          bindtap="handleNext"
+        >
           下一条
         </button>
       </view>
@@ -104,9 +127,11 @@
   <!--  🃏 常规模式（白色卡片壳）      -->
   <!--  wide/horizontal/square/tall/slim -->
   <!-- ============================== -->
-  <view class="popup-banner-card" wx:if="{{banners[currentIndex].display_mode !== 'full_image'}}"
-    catchtap="preventBubble">
-
+  <view
+    class="popup-banner-card"
+    wx:if="{{banners[currentIndex].display_mode !== 'full_image'}}"
+    catchtap="preventBubble"
+  >
     <!-- 🔴 关闭按钮（右上角悬浮） -->
     <view class="popup-close-btn" bindtap="handleClose">
       <text class="close-icon">✕</text>
@@ -119,17 +144,28 @@
          - min-height 按 display_mode 设置，防止图片加载前布局闪烁
          - max-height: 1000rpx 安全上限，防止极端竖图撑爆弹窗
     -->
-    <view class="popup-image-section image-{{banners[currentIndex].display_mode || 'wide'}}"
-      wx:if="{{banners[currentIndex].image_url && !imageLoadFailed}}">
+    <view
+      class="popup-image-section image-{{banners[currentIndex].display_mode || 'wide'}}"
+      wx:if="{{banners[currentIndex].image_url && !imageLoadFailed}}"
+    >
       <!-- 🔴 移除lazy-load：图片已在父页面预加载到缓存，无需懒加载 -->
-      <image class="popup-image" src="{{banners[currentIndex].image_url}}" mode="widthFix" lazy-load="{{false}}"
-        bindload="handleImageLoad" binderror="handleImageError" />
+      <image
+        class="popup-image"
+        src="{{banners[currentIndex].image_url}}"
+        mode="widthFix"
+        lazy-load="{{false}}"
+        bindload="handleImageLoad"
+        binderror="handleImageError"
+      />
       <!-- 图片底部渐变遮罩（让文字更清晰） -->
       <view class="image-gradient-overlay"></view>
     </view>
 
     <!-- 🎨 装饰性顶部条纹（没有图片 或 图片加载失败时 显示渐变装饰作为降级） -->
-    <view class="popup-decor-header" wx:if="{{!banners[currentIndex].image_url || imageLoadFailed}}">
+    <view
+      class="popup-decor-header"
+      wx:if="{{!banners[currentIndex].image_url || imageLoadFailed}}"
+    >
       <view class="decor-circle decor-circle-1"></view>
       <view class="decor-circle decor-circle-2"></view>
       <view class="decor-circle decor-circle-3"></view>
@@ -137,9 +173,14 @@
     </view>
 
     <!-- 📝 内容区域（仅当有正文内容时才显示） -->
-    <view class="popup-content" wx:if="{{banners[currentIndex].content || banners[currentIndex].description}}">
+    <view
+      class="popup-content"
+      wx:if="{{banners[currentIndex].content || banners[currentIndex].description}}"
+    >
       <!-- 正文 -->
-      <text class="popup-desc">{{banners[currentIndex].content || banners[currentIndex].description}}</text>
+      <text class="popup-desc"
+        >{{banners[currentIndex].content || banners[currentIndex].description}}</text
+      >
     </view>
 
     <!-- ⚫ 多横幅指示器（2个及以上横幅时显示） -->
@@ -153,21 +194,31 @@
     <!-- 🔘 操作按钮区域（仅当有按钮内容时才显示，避免空白留白） -->
     <view class="popup-actions" wx:if="{{banners[currentIndex].link_url || banners.length > 1}}">
       <!-- 有链接时显示"查看详情"按钮 -->
-      <button class="popup-action-btn primary" wx:if="{{banners[currentIndex].link_url}}" bindtap="handleAction">
+      <button
+        class="popup-action-btn primary"
+        wx:if="{{banners[currentIndex].link_url}}"
+        bindtap="handleAction"
+      >
         查看详情
       </button>
 
       <!-- 多个横幅时显示翻页按钮 -->
       <view class="popup-nav-row" wx:if="{{banners.length > 1}}">
         <!-- 上一条按钮（不是第一条时显示） -->
-        <button class="popup-action-btn secondary popup-nav-btn" wx:if="{{currentIndex > 0}}"
-          bindtap="handlePrev">
+        <button
+          class="popup-action-btn secondary popup-nav-btn"
+          wx:if="{{currentIndex > 0}}"
+          bindtap="handlePrev"
+        >
           上一条
         </button>
 
         <!-- 下一条按钮（不是最后一条时显示） -->
-        <button class="popup-action-btn secondary popup-nav-btn" wx:if="{{currentIndex < banners.length - 1}}"
-          bindtap="handleNext">
+        <button
+          class="popup-action-btn secondary popup-nav-btn"
+          wx:if="{{currentIndex < banners.length - 1}}"
+          bindtap="handleNext"
+        >
           下一条
         </button>
       </view>

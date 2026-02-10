@@ -5,8 +5,13 @@
   <view class="search-bar">
     <view class="search-input-wrapper">
       <text class="search-icon">🔍</text>
-      <input class="search-input" type="text" placeholder="搜索活动" value="{{searchKeyword}}"
-        bindinput="onSearchInput" />
+      <input
+        class="search-input"
+        type="text"
+        placeholder="搜索活动"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
       <text class="clear-icon" wx:if="{{searchKeyword}}" bindtap="onClearSearch">✕</text>
     </view>
   </view>
@@ -15,8 +20,13 @@
   <view class="tab-bar">
     <scroll-view class="tab-scroll" scroll-x="true" scroll-with-animation="true">
       <view class="tab-list">
-        <view class="tab-item {{currentTab === item.key ? 'active' : ''}}" wx:for="{{tabs}}" wx:key="key"
-          data-tab="{{item.key}}" bindtap="onTabChange">
+        <view
+          class="tab-item {{currentTab === item.key ? 'active' : ''}}"
+          wx:for="{{tabs}}"
+          wx:key="key"
+          data-tab="{{item.key}}"
+          bindtap="onTabChange"
+        >
           <text class="tab-icon">{{item.icon}}</text>
           <text class="tab-name">{{item.name}}</text>
         </view>
@@ -48,14 +58,22 @@
 
     <!-- 活动卡片列表 -->
     <view class="activity-items" wx:if="{{!loading && !isEmpty && !errorMessage}}">
-      <view class="activity-card" wx:for="{{filteredActivities}}" wx:key="id" data-activity="{{item}}"
-        bindtap="onActivityTap">
+      <view
+        class="activity-card"
+        wx:for="{{filteredActivities}}"
+        wx:key="id"
+        data-activity="{{item}}"
+        bindtap="onActivityTap"
+      >
         <!-- 活动封面 -->
         <view class="card-cover">
           <image class="cover-image" src="{{item.cover}}" mode="aspectFill"></image>
           <!-- 状态标签 -->
           <view class="status-badge status-{{item.status}}">
-            <text>{{item.status === 'ongoing' ? '进行中' : item.status === 'upcoming' ? '即将开始' : '已结束'}}</text>
+            <text
+              >{{item.status === 'ongoing' ? '进行中' : item.status === 'upcoming' ? '即将开始' :
+              '已结束'}}</text
+            >
           </view>
           <!-- 热门标签 -->
           <view class="hot-badge" wx:if="{{item.hot_score >= 90}}">

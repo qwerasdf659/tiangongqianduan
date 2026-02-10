@@ -132,7 +132,7 @@ Page({
   /**
    * 强化：安全初始化流程
    */
-  async performSecureInitialization(options) {
+  async performSecureInitialization(_options) {
     try {
       console.log('🔒 开始安全初始化流程')
 

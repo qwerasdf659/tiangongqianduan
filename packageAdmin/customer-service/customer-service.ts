@@ -1,5 +1,4 @@
 ﻿// packageAdmin/customer-service/customer-service.ts - 管理员实时客服聊天页面 + MobX响应式状态
-const app = getApp()
 const { Wechat, API, Utils } = require('../../utils/index')
 const { showToast } = Wechat
 const { checkAdmin } = Utils
@@ -511,7 +510,7 @@ Page({
               } else {
                 lastMessageTime = date.toLocaleDateString()
               }
-            } catch (_e) {
+            } catch {
               lastMessageTime = '未知时间'
             }
           }

@@ -1,9 +1,8 @@
 // packageAdmin/scan-verify/scan-verify.ts - 商家扫码核销页面 + MobX响应式状态
 // 后端路由: POST /api/v4/shop/redemption/fulfill（商家域，需role_level>=20）
 
-const app = getApp()
 // 统一工具函数导入
-const { API, Utils, Wechat } = require('../../utils/index')
+const { API, Utils } = require('../../utils/index')
 const { checkAuth } = Utils
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值

@@ -6,7 +6,6 @@ const { DELAY, API_CONFIG } = Constants
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
-const { pointsStore } = require('../../store/points')
 
 // ====== 方案B重构：子函数1 - JWT解析和验证 ======
 /**

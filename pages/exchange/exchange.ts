@@ -11,7 +11,6 @@ const { PAGINATION, DELAY } = Constants
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
-const { exchangeStore } = require('../../store/exchange')
 
 Page({
   data: {
@@ -872,16 +871,10 @@ Page({
 
       this.setData({ loading: false })
 
-      // 根据错误类型显示不同提示
-      let errorMessage = '商品加载失败'
+      // 根据错误类型执行不同处理
       if (error.statusCode === 401) {
-        errorMessage = '登录已过期，请重新登录'
         this.clearTokenAndRedirectLogin()
         return
-      } else if (error.statusCode === 404) {
-        errorMessage = '商品接口不存在'
-      } else if (error.message) {
-        errorMessage = error.message
       }
 
       // 💡 错误提示由APIClient自动显示,无需手动toast
@@ -941,7 +934,7 @@ Page({
         .catch((error: Error) => {
           console.warn('⚠️ WebSocket连接未就绪:', error.message)
         })
-    } catch (error) {
+    } catch {
       // WebSocket连接失败不影响页面正常使用，用户可通过下拉刷新获取最新数据
       console.warn('⚠️ WebSocket连接异常，不影响页面正常使用')
     }
@@ -951,7 +944,7 @@ Page({
   disconnectWebSocket() {
     try {
       app.unsubscribeWebSocketMessages('exchange')
-    } catch (error) {
+    } catch {
       console.warn('⚠️ WebSocket取消订阅异常')
     }
   },
@@ -1705,8 +1698,8 @@ Page({
     })
 
     console.warn('⚠️ V4.0后端API暂未实现unlockPremiumSpace功能')
-    console.info('📋 待实现的API路径: /api/v4/unified-engine/inventory/unlock-premium')
-    console.info('📋 预期功能: 用户支付积分解锁高级商品空间')
+    console.warn('📋 待实现的API路径: /api/v4/unified-engine/inventory/unlock-premium')
+    console.warn('📋 预期功能: 用户支付积分解锁高级商品空间')
   },
 
   /**

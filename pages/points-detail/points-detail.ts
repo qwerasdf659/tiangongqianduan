@@ -38,23 +38,23 @@ const LOTTERY_TYPE_MAP = {
 const BUSINESS_TYPE_CONFIG = [
   {
     keywords: ['兑换', 'exchange'],
-    formatPositive: points => '商品兑换',
+    formatPositive: _points => '商品兑换',
     formatNegative: points => `商品兑换   (-${Math.abs(points)}积分)`
   },
   {
     keywords: ['签到', 'daily'],
     formatPositive: points => `每日签到   (+${points}积分)`,
-    formatNegative: points => '每日签到'
+    formatNegative: _points => '每日签到'
   },
   {
     keywords: ['上传', 'upload'],
     formatPositive: points => `图片上传   (+${points}积分)`,
-    formatNegative: points => '图片上传'
+    formatNegative: _points => '图片上传'
   },
   {
     keywords: ['任务', 'task'],
     formatPositive: points => `任务奖励   (+${points}积分)`,
-    formatNegative: points => '任务奖励'
+    formatNegative: _points => '任务奖励'
   }
 ]
 
@@ -162,7 +162,7 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad(options) {
+  onLoad(_options) {
     console.log('💰 积分明细页面加载 - v2.0实现')
 
     // 🆕 MobX Store绑定 - 积分余额自动同步

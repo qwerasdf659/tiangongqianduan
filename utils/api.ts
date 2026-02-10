@@ -92,8 +92,8 @@ class APIClient {
   private securityConfig: ReturnType<typeof getSecurityConfig>
   /** Token刷新状态（防止并发刷新） */
   private isRefreshing: boolean
-  /** 等待Token刷新的请求队列 */
-  private refreshSubscribers: Array<(token: string) => void>
+  /** 等待Token刷新的请求队列（存储resolve回调，Token刷新成功后依次调用） */
+  private refreshSubscribers: Array<(value: any) => void>
 
   constructor() {
     this.config = getApiConfig()
@@ -148,7 +148,8 @@ class APIClient {
         }
 
         headers.Authorization = `Bearer ${token}`
-      } else if (needAuth) {
+      } else {
+        // needAuth为true但Token不存在，触发Token缺失处理
         console.error('❌ 未找到access_token')
         return this.handleTokenMissing()
       }
@@ -403,7 +404,7 @@ class APIClient {
   async handleTokenExpired(): Promise<any> {
     if (this.isRefreshing) {
       return new Promise(resolve => {
-        this.refreshSubscribers.push(resolve as any)
+        this.refreshSubscribers.push(resolve)
       })
     }
 

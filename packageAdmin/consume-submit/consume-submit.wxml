@@ -8,11 +8,13 @@
   <!-- 门店选择（多门店时显示picker） -->
   <view class="form-item" wx:if="{{storeList.length > 1}}">
     <view class="form-label required">选择门店</view>
-    <picker mode="selector"
+    <picker
+      mode="selector"
       range="{{storeList}}"
       range-key="store_name"
       value="{{storeIndex}}"
-      bindchange="onStoreChange">
+      bindchange="onStoreChange"
+    >
       <view class="picker-value {{storeId ? '' : 'placeholder'}}">
         {{storeId ? storeList[storeIndex].store_name : '请选择门店'}}
       </view>
@@ -72,8 +74,13 @@
     <view class="form-label required">消费金额（元）</view>
     <view class="input-wrapper">
       <text class="currency-symbol">¥</text>
-      <input type="digit" class="amount-input" placeholder="请输入消费金额" value="{{consumeAmount}}"
-        bindinput="onAmountInput" />
+      <input
+        type="digit"
+        class="amount-input"
+        placeholder="请输入消费金额"
+        value="{{consumeAmount}}"
+        bindinput="onAmountInput"
+      />
     </view>
     <view class="form-tips">（必填，范围：0.01-99999.99元）</view>
     <view class="form-hint">💡 积分规则：1元=1积分（四舍五入）</view>
@@ -82,14 +89,24 @@
   <!-- 商家备注输入（可选，V2升级：500字限制） -->
   <view class="form-item">
     <view class="form-label">商家备注（可选）</view>
-    <textarea class="notes-input" placeholder="请输入备注，如：消费2份套餐" value="{{merchantNotes}}" bindinput="onNotesInput"
-      maxlength="500" auto-height />
+    <textarea
+      class="notes-input"
+      placeholder="请输入备注，如：消费2份套餐"
+      value="{{merchantNotes}}"
+      bindinput="onNotesInput"
+      maxlength="500"
+      auto-height
+    />
     <view class="form-tips">（可选，用于记录消费详情，最多500字）</view>
   </view>
 
   <!-- 提交按钮 -->
   <view class="submit-wrapper">
-    <button class="submit-button {{loading ? 'disabled' : ''}}" bindtap="onSubmit" disabled="{{loading || submitted}}">
+    <button
+      class="submit-button {{loading ? 'disabled' : ''}}"
+      bindtap="onSubmit"
+      disabled="{{loading || submitted}}"
+    >
       {{loading ? '提交中...' : (submitted ? '已提交' : '确认提交')}}
     </button>
   </view>

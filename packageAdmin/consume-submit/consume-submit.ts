@@ -18,7 +18,6 @@
  * @since 2026-02-10
  */
 
-const app = getApp()
 // 统一使用utils/index.ts导入工具函数
 const { API, Utils } = require('../../utils/index')
 const { checkAuth } = Utils

@@ -121,4 +121,3 @@ declare namespace App {
     errorMessage: string
   }
 }
-

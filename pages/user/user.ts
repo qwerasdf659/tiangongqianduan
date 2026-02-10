@@ -1041,7 +1041,7 @@ Page({
             break
         }
       },
-      fail: error => {
+      fail: () => {
         console.log('用户取消了客服选择')
       }
     })

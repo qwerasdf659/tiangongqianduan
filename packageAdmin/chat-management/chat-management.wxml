@@ -1,13 +1,12 @@
 <!--pages/admin/chat-management/chat-management.wxml - 管理员聊天工作台-->
 <view class="chat-management-container">
-
   <!-- 管理员状态栏 -->
   <view class="admin-status-bar">
     <view class="status-info">
       <text class="status-text">工作状态：</text>
       <text class="status-badge {{adminStatus}}">
-        {{adminStatus === 'online' ? '🟢 在线服务' :
-        adminStatus === 'busy' ? '🟡 忙碌中' : '🔴 离线'}}
+        {{adminStatus === 'online' ? '🟢 在线服务' : adminStatus === 'busy' ? '🟡 忙碌中' : '🔴
+        离线'}}
       </text>
     </view>
     <view class="connection-info">
@@ -19,7 +18,6 @@
 
   <!-- 聊天工作台主区域 -->
   <view class="chat-workspace">
-
     <!-- 会话列表面板 -->
     <view class="sessions-panel" wx:if="{{showSessionList}}">
       <view class="panel-header">
@@ -37,10 +35,17 @@
         </view>
 
         <view wx:else class="sessions-content">
-          <view wx:for="{{sessions}}" wx:key="id" class="session-item {{item.id === currentSessionId ? 'active' : ''}}"
-            bindtap="selectSession" data-session="{{item}}">
+          <view
+            wx:for="{{sessions}}"
+            wx:key="id"
+            class="session-item {{item.id === currentSessionId ? 'active' : ''}}"
+            bindtap="selectSession"
+            data-session="{{item}}"
+          >
             <view class="session-avatar">
-              <text class="avatar-text">{{item.userName ? item.userName.substring(0, 1) : '用'}}</text>
+              <text class="avatar-text"
+                >{{item.userName ? item.userName.substring(0, 1) : '用'}}</text
+              >
             </view>
             <view class="session-detail">
               <view class="session-header">
@@ -78,8 +83,12 @@
       </view>
 
       <!-- 聊天消息区域 -->
-      <scroll-view class="messages-container" scroll-y scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
-        scroll-with-animation>
+      <scroll-view
+        class="messages-container"
+        scroll-y
+        scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
+        scroll-with-animation
+      >
         <view wx:if="{{!currentSessionId}}" class="no-session-selected">
           <text class="no-session-text">请从左侧选择一个会话开始对话</text>
         </view>
@@ -89,8 +98,11 @@
         </view>
 
         <view wx:else class="messages-list">
-          <view wx:for="{{currentMessages}}" wx:key="id"
-            class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}">
+          <view
+            wx:for="{{currentMessages}}"
+            wx:key="id"
+            class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}"
+          >
             <view class="message-avatar">
               <text class="avatar-text">{{item.senderType === 'admin' ? '客' : '用'}}</text>
             </view>
@@ -100,9 +112,11 @@
               </view>
               <view class="message-meta">
                 <text class="message-time">{{item.createdAt}}</text>
-                <text wx:if="{{item.senderType === 'admin'}}" class="message-status {{item.status}}">
-                  {{item.status === 'sending' ? '发送中' :
-                  item.status === 'sent' ? '已发送' :
+                <text
+                  wx:if="{{item.senderType === 'admin'}}"
+                  class="message-status {{item.status}}"
+                >
+                  {{item.status === 'sending' ? '发送中' : item.status === 'sent' ? '已发送' :
                   item.status === 'failed' ? '发送失败' : ''}}
                 </text>
               </view>
@@ -120,13 +134,24 @@
           </view>
 
           <view class="input-wrapper">
-            <textarea class="message-input" value="{{inputContent}}" placeholder="输入回复内容..." bindinput="onInputChange"
-              bindblur="stopTyping" bindfocus="startTyping" maxlength="500" auto-height>
+            <textarea
+              class="message-input"
+              value="{{inputContent}}"
+              placeholder="输入回复内容..."
+              bindinput="onInputChange"
+              bindblur="stopTyping"
+              bindfocus="startTyping"
+              maxlength="500"
+              auto-height
+            >
             </textarea>
           </view>
 
-          <button class="send-btn {{inputContent.trim() ? 'active' : ''}}" bindtap="sendMessage"
-            disabled="{{!inputContent.trim()}}">
+          <button
+            class="send-btn {{inputContent.trim() ? 'active' : ''}}"
+            bindtap="sendMessage"
+            disabled="{{!inputContent.trim()}}"
+          >
             <text class="send-icon">📤</text>
           </button>
         </view>
@@ -138,8 +163,13 @@
             <button class="close-btn" bindtap="toggleQuickReplies">×</button>
           </view>
           <view class="quick-replies-list">
-            <view wx:for="{{quickReplies}}" wx:key="id" class="quick-reply-item" bindtap="useQuickReply"
-              data-content="{{item.content}}">
+            <view
+              wx:for="{{quickReplies}}"
+              wx:key="id"
+              class="quick-reply-item"
+              bindtap="useQuickReply"
+              data-content="{{item.content}}"
+            >
               <text class="reply-title">{{item.title}}</text>
               <text class="reply-content">{{item.content}}</text>
             </view>

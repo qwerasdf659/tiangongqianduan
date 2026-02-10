@@ -52,10 +52,12 @@
   left: 0;
   right: 0;
   height: 2rpx;
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.6) 0%,
-      rgba(255, 255, 255, 0.3) 50%,
-      rgba(255, 255, 255, 0.6) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
 }
 
 /* 旧样式已由整合布局替代 */
@@ -257,7 +259,6 @@
 }
 
 @keyframes blink {
-
   0%,
   100% {
     opacity: 1;
@@ -305,7 +306,6 @@
 }
 
 @keyframes qrGlow {
-
   0%,
   100% {
     opacity: 0.5;
@@ -339,7 +339,6 @@
 }
 
 @keyframes hintPulse {
-
   0%,
   100% {
     opacity: 0.6;
@@ -1075,7 +1074,6 @@
 }
 
 @keyframes spinnerBounce {
-
   0%,
   100% {
     transform: scale(1);
@@ -1094,7 +1092,6 @@
 
 /* 动画定义 */
 @keyframes highlightPulse {
-
   0%,
   100% {
     box-shadow: 0 0 40rpx rgba(255, 107, 53, 0.9);
@@ -1108,7 +1105,6 @@
 }
 
 @keyframes winningPulse {
-
   0%,
   100% {
     box-shadow: 0 0 60rpx rgba(255, 215, 0, 1);
@@ -1122,7 +1118,6 @@
 }
 
 @keyframes buttonGlow {
-
   0%,
   100% {
     box-shadow:
@@ -1227,10 +1222,12 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg,
-      rgba(102, 126, 234, 0.15) 0%,
-      rgba(118, 75, 162, 0.15) 50%,
-      rgba(255, 107, 53, 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.15) 0%,
+    rgba(118, 75, 162, 0.15) 50%,
+    rgba(255, 107, 53, 0.15) 100%
+  );
   backdrop-filter: blur(20rpx);
   display: flex;
   align-items: center;
@@ -1684,7 +1681,6 @@
 }
 
 @keyframes nextBtnPulse {
-
   0%,
   100% {
     box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.35);
@@ -1837,7 +1833,6 @@
 }
 
 @keyframes hintPulse {
-
   0%,
   100% {
     opacity: 0.6;
@@ -2158,7 +2153,6 @@
 }
 
 @keyframes iconPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -2170,7 +2164,6 @@
 }
 
 @keyframes prizeFloat {
-
   0%,
   100% {
     transform: translateY(0);
@@ -2182,7 +2175,6 @@
 }
 
 @keyframes glowPulse {
-
   0%,
   100% {
     opacity: 0.3;
@@ -2196,7 +2188,6 @@
 }
 
 @keyframes dotBounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -2218,7 +2209,6 @@
 }
 
 @keyframes sparkle {
-
   0%,
   100% {
     opacity: 0;
@@ -2242,7 +2232,6 @@
 }
 
 @keyframes errorShake {
-
   0%,
   100% {
     transform: translateX(0);
@@ -2468,7 +2457,6 @@
 
 /* 脉冲动画 - 柔和的呼吸效果 */
 @keyframes auditPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -2489,7 +2477,6 @@
 
 /* 光晕脉冲动画 */
 @keyframes glowPulse {
-
   0%,
   100% {
     opacity: 0.3;
@@ -2504,7 +2491,6 @@
 
 /* 数字角标弹跳动画 */
 @keyframes numberBounce {
-
   0%,
   100% {
     transform: scale(1);

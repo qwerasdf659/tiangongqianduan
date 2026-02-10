@@ -108,8 +108,3 @@ declare namespace Store {
     hasMore: boolean
   }
 }
-
-
-
-
-

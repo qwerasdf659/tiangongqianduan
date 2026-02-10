@@ -5,7 +5,12 @@
 /* 🎨 页面整体布局 */
 .inventory-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 50%, #f093fb 100%);
+  background: linear-gradient(
+    135deg,
+    $gradient-blue-start 0%,
+    $gradient-blue-end 50%,
+    #f093fb 100%
+  );
   position: relative;
   padding-bottom: 40rpx;
 }
@@ -185,7 +190,12 @@
 }
 
 .stat-card.active {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 50%, #f093fb 100%);
+  background: linear-gradient(
+    135deg,
+    $gradient-blue-start 0%,
+    $gradient-blue-end 50%,
+    #f093fb 100%
+  );
   color: white;
   transform: translateY(-8rpx) scale(1.02);
   box-shadow:
@@ -321,7 +331,12 @@
   gap: 10rpx;
   padding: 24rpx 28rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 50%, #f093fb 100%);
+  background: linear-gradient(
+    135deg,
+    $gradient-blue-start 0%,
+    $gradient-blue-end 50%,
+    #f093fb 100%
+  );
   color: white;
   font-size: 24rpx;
   font-weight: 600;
@@ -430,7 +445,12 @@
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 50%, #f093fb 100%);
+  background: linear-gradient(
+    135deg,
+    $gradient-blue-start 0%,
+    $gradient-blue-end 50%,
+    #f093fb 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;

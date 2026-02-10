@@ -83,7 +83,7 @@ Page({
    * - 不使用任何mock数据
    *
    */
-  onLoad(options) {
+  onLoad(_options) {
     console.log('🚀 聊天会话列表页面加载')
 
     // 🆕 MobX Store绑定 - 用户登录状态自动同步
@@ -1499,44 +1499,44 @@ Page({
   },
 
   // 新增：弹窗内容区域点击事件 - 阻止事件冒泡
-  onModalContentTap(e) {
+  onModalContentTap(_e) {
     console.log('🔒 点击弹窗内容区域，阻止关闭')
     // 阻止事件冒泡到遮罩层，这样点击内容区域不会关闭弹窗
     // 这个函数存在就足够了，catchtap会自动阻止冒泡
   },
 
   // 新增：消息区域点击事件 - 阻止事件冒泡
-  onMessagesAreaTap(e) {
+  onMessagesAreaTap(_e) {
     console.log('💬 点击消息区域，阻止关闭')
     // 阻止事件冒泡
   },
 
   // 新增：输入区域点击事件 - 阻止事件冒泡
-  onInputAreaTap(e) {
+  onInputAreaTap(_e) {
     console.log('📝 点击输入区域，阻止关闭')
     // 阻止事件冒泡，确保点击输入区域不会关闭弹窗
   },
 
   // 新增：输入工具栏点击事件 - 阻止事件冒泡
-  onInputToolbarTap(e) {
+  onInputToolbarTap(_e) {
     console.log('⌨️ 点击输入工具栏，阻止关闭')
     // 阻止事件冒泡
   },
 
   // 新增：输入框包装器点击事件 - 阻止事件冒泡
-  onInputWrapperTap(e) {
+  onInputWrapperTap(_e) {
     console.log('📝 点击输入框包装器，阻止关闭')
     // 阻止事件冒泡
   },
 
   // 新增：输入框点击事件 - 阻止事件冒泡
-  onTextareaTap(e) {
+  onTextareaTap(_e) {
     console.log('📝 点击输入框，阻止关闭')
     // 阻止事件冒泡，确保点击输入框不会关闭弹窗
   },
 
   // 新增：发送按钮包装器点击事件 - 阻止事件冒泡
-  onSendWrapperTap(e) {
+  onSendWrapperTap(_e) {
     console.log('📨 点击发送按钮区域，阻止关闭')
     // 阻止事件冒泡
   },

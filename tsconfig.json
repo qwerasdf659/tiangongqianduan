@@ -53,8 +53,3 @@
   /* 排除的目录 - 不编译第三方库和构建产物 */
   "exclude": ["node_modules", "miniprogram_npm", "typings"]
 }
-
-
-
-
-

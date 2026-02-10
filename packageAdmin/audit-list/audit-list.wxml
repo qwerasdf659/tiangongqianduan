@@ -66,18 +66,18 @@
 
       <!-- 卡片底部操作按钮 -->
       <view class="card-footer">
-        <button 
-          class="action-btn reject-btn" 
-          bindtap="onReject" 
+        <button
+          class="action-btn reject-btn"
+          bindtap="onReject"
           data-record="{{item}}"
           disabled="{{submitting}}"
         >
           <text class="btn-icon">❌</text>
           <text class="btn-text">拒绝</text>
         </button>
-        <button 
-          class="action-btn approve-btn" 
-          bindtap="onApprove" 
+        <button
+          class="action-btn approve-btn"
+          bindtap="onApprove"
           data-record="{{item}}"
           disabled="{{submitting}}"
         >
@@ -129,14 +129,8 @@
       </view>
 
       <view class="modal-footer">
-        <button class="modal-btn cancel-btn" bindtap="cancelReject">
-          取消
-        </button>
-        <button 
-          class="modal-btn confirm-btn" 
-          bindtap="confirmReject"
-          disabled="{{submitting}}"
-        >
+        <button class="modal-btn cancel-btn" bindtap="cancelReject">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="confirmReject" disabled="{{submitting}}">
           {{submitting ? '提交中...' : '确认拒绝'}}
         </button>
       </view>

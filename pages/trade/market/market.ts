@@ -58,7 +58,7 @@ Page({
   /**
    * 📍 页面生命周期 - 加载
    */
-  async onLoad(options) {
+  async onLoad(_options) {
     console.log('🌊 瀑布流卡片布局页面加载开始')
 
     // 🆕 MobX Store绑定 - 交易市场状态自动同步
@@ -205,7 +205,7 @@ Page({
     const columnHeights = [0, 0]
     const columnWidth = (this.data.containerWidth - this.data.cardGap) / 2
 
-    const layoutProducts = products.map((product, index) => {
+    const layoutProducts = products.map((product, _index) => {
       // 选择较短的列
       const shortestCol = columnHeights[0] <= columnHeights[1] ? 0 : 1
 
