@@ -876,7 +876,7 @@ Page({
     try {
       const messageTime = new Date(timeString)
       const now = new Date()
-      const diffMinutes = Math.floor((now - messageTime) / (1000 * 60))
+      const diffMinutes = Math.floor((now.getTime() - messageTime.getTime()) / (1000 * 60))
 
       if (diffMinutes < 1) {
         return '刚刚'
@@ -1566,3 +1566,5 @@ Page({
     this.sendMessage()
   }
 })
+
+export {}

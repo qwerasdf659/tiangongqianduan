@@ -1,0 +1,341 @@
+@import '../../../../styles/variables';
+
+/* ===== 容器 ===== */
+.card-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30rpx 0;
+}
+
+.card-title {
+  margin-bottom: 30rpx;
+  font-size: 30rpx;
+  color: #fff;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+}
+
+.cards-row {
+  display: flex;
+  justify-content: center;
+  gap: 24rpx;
+}
+
+/* ===== 卡牌主体 ===== */
+.card-item {
+  position: relative;
+  width: 200rpx;
+  height: 280rpx;
+  perspective: 1200rpx;
+  /* 入场前隐藏 */
+  opacity: 0;
+  transform: translateY(80rpx) scale(0.8);
+
+  /* 入场动画 */
+  &.card-enter {
+    animation: cardEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* 待选悬浮呼吸 */
+  &.idle-float {
+    &:nth-child(1) { animation-delay: 0ms; }
+    &:nth-child(2) { animation-delay: 200ms; }
+    &:nth-child(3) { animation-delay: 400ms; }
+  }
+  &.idle-float.card-enter {
+    animation: cardEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               idleFloat 2.5s ease-in-out 1s infinite;
+  }
+
+  /* 选中态：放大 + 上浮 */
+  &.selected {
+    transform: translateY(-20rpx) scale(1.08);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10;
+    animation: none !important;
+  }
+
+  /* 翻转态 */
+  &.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  /* 未选中卡牌淡出 */
+  &.dimmed {
+    opacity: 0.35;
+    transform: scale(0.9);
+    transition: opacity 0.5s ease, transform 0.5s ease, filter 0.5s ease;
+    filter: grayscale(0.5);
+    animation: none !important;
+
+    /* 其他卡牌也翻开后恢复可见 */
+    &.flipped {
+      opacity: 0.7;
+      transform: scale(0.92);
+      filter: grayscale(0);
+    }
+  }
+
+  /* 等待后端返回：选中卡牌摇晃+发光 */
+  &.waiting {
+    animation: cardWaiting 0.8s ease-in-out infinite !important;
+    z-index: 10;
+
+    .card-glow {
+      opacity: 0.5;
+      background: radial-gradient(ellipse at center, rgba(102, 126, 234, 0.5) 0%, transparent 70%);
+      animation: glowPulse 1s ease-in-out infinite;
+    }
+  }
+}
+
+/* ===== 光晕层 ===== */
+.card-glow {
+  position: absolute;
+  top: -16rpx;
+  left: -16rpx;
+  right: -16rpx;
+  bottom: -16rpx;
+  border-radius: 24rpx;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
+
+  &.glow-pulse {
+    animation: glowPulse 1.5s ease-in-out infinite;
+  }
+}
+
+/* ===== 3D翻转内层 ===== */
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* 弹性翻转曲线 */
+  transition: transform 0.7s cubic-bezier(0.25, 1.5, 0.5, 1);
+}
+
+/* ===== 卡面通用 ===== */
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+/* ===== 卡背 ===== */
+.card-back {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: 3rpx solid rgba(255, 255, 255, 0.3);
+}
+
+/* 卡背流光 */
+.card-back-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.card-back-icon {
+  font-size: 60rpx;
+  margin-bottom: 10rpx;
+}
+
+.card-back-text {
+  font-size: 48rpx;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* ===== 卡正面 ===== */
+.card-front {
+  background: linear-gradient(135deg, #fffbe6, #fff8e1, #fff);
+  transform: rotateY(180deg);
+  border: 3rpx solid rgba(255, 215, 0, 0.3);
+}
+
+.card-prize-icon {
+  font-size: 64rpx;
+  margin-bottom: 12rpx;
+
+  /* 揭晓弹跳 */
+  &.icon-bounce {
+    animation: iconBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+.card-prize-name {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+  text-align: center;
+  padding: 0 10rpx;
+}
+
+/* ===== 底部消耗提示 ===== */
+.card-cost {
+  margin-top: 24rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== 关键帧动画 ===== */
+
+/* 入场：从下方弹入 */
+@keyframes cardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(80rpx) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 待选悬浮呼吸 */
+@keyframes idleFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-12rpx) scale(1.02);
+  }
+}
+
+/* 卡背流光扫过 */
+@keyframes shimmer {
+  0% { left: -100%; }
+  50% { left: 150%; }
+  100% { left: 150%; }
+}
+
+/* 揭晓光晕脉冲 */
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* 奖品图标弹跳 */
+@keyframes iconBounce {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 等待后端：轻微摇晃 + 浮动 */
+@keyframes cardWaiting {
+  0%, 100% {
+    transform: translateY(-20rpx) scale(1.08) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-24rpx) scale(1.08) rotate(-2deg);
+  }
+  75% {
+    transform: translateY(-24rpx) scale(1.08) rotate(2deg);
+  }
+}
+
+/* ===== 连翻模式样式 ===== */
+
+.multi-flip-progress {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 24rpx;
+}
+
+.multi-flip-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.multi-flip-row {
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+/* 连翻卡牌尺寸 */
+.card-item.size-3 {
+  width: 200rpx;
+  height: 280rpx;
+
+  .card-back-icon { font-size: 60rpx; }
+  .card-back-text { font-size: 48rpx; }
+  .card-prize-icon { font-size: 64rpx; }
+  .card-prize-name { font-size: 24rpx; }
+}
+
+.card-item.size-5 {
+  width: 180rpx;
+  height: 252rpx;
+
+  .card-back-icon { font-size: 48rpx; }
+  .card-back-text { font-size: 40rpx; }
+  .card-prize-icon { font-size: 52rpx; }
+  .card-prize-name { font-size: 22rpx; }
+}
+
+.card-item.size-10 {
+  width: 128rpx;
+  height: 180rpx;
+
+  .card-back-icon { font-size: 36rpx; }
+  .card-back-text { font-size: 30rpx; }
+  .card-prize-icon { font-size: 38rpx; }
+  .card-prize-name { font-size: 18rpx; padding: 0 4rpx; }
+}
+
+/* 全部翻开按钮 */
+.flip-all-btn {
+  margin-top: 30rpx;
+  padding: 16rpx 48rpx;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 40rpx;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.4);
+  transition: opacity 0.3s ease;
+
+  &:active {
+    opacity: 0.8;
+  }
+}

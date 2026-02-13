@@ -1,0 +1,46 @@
+<!-- 限时秒杀抽奖组件 -->
+<view class="flashsale-container">
+  <!-- 倒计时 -->
+  <view class="sale-timer">
+    <text class="timer-label">距结束</text>
+    <view class="timer-digits">
+      <text class="digit-box">{{countdown.hours}}</text>
+      <text class="digit-sep">:</text>
+      <text class="digit-box">{{countdown.minutes}}</text>
+      <text class="digit-sep">:</text>
+      <text class="digit-box">{{countdown.seconds}}</text>
+    </view>
+  </view>
+
+  <!-- 奖品展示 -->
+  <view class="sale-prize">
+    <view class="prize-icon-wrap {{state === 'grabbed' ? 'grabbed' : ''}}">
+      <text class="prize-icon">{{currentPrize.icon || '🎁'}}</text>
+    </view>
+    <text class="prize-name">{{currentPrize.name || '秒杀奖品'}}</text>
+  </view>
+
+  <!-- 库存 -->
+  <view class="stock-info">
+    <view class="stock-bar">
+      <view class="stock-fill {{stockPercent < 20 ? 'low' : ''}}"
+        style="width: {{stockPercent}}%;"></view>
+    </view>
+    <view class="stock-text">
+      <text>剩余 {{stockRemaining}} / {{stockTotal}}</text>
+      <text class="stock-hot" wx:if="{{stockPercent < 30}}">即将售罄!</text>
+    </view>
+  </view>
+
+  <!-- 抢购按钮 -->
+  <view class="grab-btn {{state !== 'idle' || stockRemaining <= 0 ? 'disabled' : ''}}" bindtap="onGrab">
+    <text wx:if="{{stockRemaining <= 0}}">已抢光</text>
+    <text wx:elif="{{state === 'idle'}}">立即抢购</text>
+    <text wx:elif="{{state === 'grabbing'}}">抢购中...</text>
+    <text wx:else>抢购成功!</text>
+  </view>
+
+  <view class="sale-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

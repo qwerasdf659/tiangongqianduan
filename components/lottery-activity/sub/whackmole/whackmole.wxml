@@ -1,0 +1,39 @@
+<!-- 打地鼠抽奖组件 -->
+<view class="whackmole-container">
+  <view class="whack-header">
+    <text class="whack-title">打地鼠</text>
+    <view class="whack-stats">
+      <text class="stat-score">得分: {{score}}</text>
+      <text class="stat-time">{{timeLeft}}s</text>
+    </view>
+  </view>
+
+  <!-- 地鼠洞 3x3 -->
+  <view class="mole-grid">
+    <view class="mole-hole {{item ? 'active' : ''}}"
+      wx:for="{{holes}}" wx:key="index"
+      data-index="{{index}}"
+      bindtap="onWhack">
+      <view class="hole-bg"></view>
+      <view class="mole" wx:if="{{item}}">
+        <text class="mole-icon">🐹</text>
+      </view>
+      <view class="whack-effect" wx:if="{{item}}">
+        <text>💥</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 开始按钮 -->
+  <view class="whack-start" wx:if="{{gameState === 'ready'}}" bindtap="onStartGame">
+    <text>开始游戏</text>
+  </view>
+
+  <view class="whack-result" wx:if="{{gameState === 'ended'}}">
+    <text>游戏结束! 得分: {{score}}</text>
+  </view>
+
+  <view class="whack-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

@@ -1,0 +1,164 @@
+<!-- 砸金蛋抽奖组件 - 精装版 -->
+<view class="egg-container">
+  <!-- 碎裂白闪遮罩 -->
+  <view class="egg-flash" wx:if="{{showFlash}}"></view>
+
+  <!-- ===== 单敲模式（3选1） ===== -->
+  <block wx:if="{{!isMultiSmash}}">
+    <!-- 顶部装饰横幅 -->
+    <view class="egg-banner">
+      <view class="egg-banner__ribbon"></view>
+      <text class="egg-banner__text">选一个金蛋砸开试试手气</text>
+      <view class="egg-banner__ribbon"></view>
+    </view>
+
+    <!-- 舞台区域（带底部光晕） -->
+    <view class="egg-stage">
+      <view class="egg-stage__glow"></view>
+
+      <view class="eggs-row">
+        <view
+          class="egg-slot {{selectedEgg >= 0 && selectedEgg !== item.id && !item.cracked ? 'is-dimmed' : ''}}"
+          wx:for="{{eggs}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onTapEgg"
+        >
+          <!-- 完整金蛋 -->
+          <view
+            class="egg-body {{item.shaking ? 'is-shaking' : ''}} {{selectedEgg === item.id && !item.cracked ? 'is-selected' : ''}} {{canSelect ? 'is-idle' : ''}}"
+            wx:if="{{!item.cracked}}"
+          >
+            <!-- 蛋体（CSS渐变绘制） -->
+            <view class="egg-shape">
+              <view class="egg-shape__highlight"></view>
+              <view class="egg-shape__band"></view>
+              <view class="egg-shape__sparkle egg-shape__sparkle--1"></view>
+              <view class="egg-shape__sparkle egg-shape__sparkle--2"></view>
+            </view>
+            <!-- 锤子（选中后出现） -->
+            <view class="egg-hammer" wx:if="{{selectedEgg === item.id}}">
+              <view class="egg-hammer__handle"></view>
+              <view class="egg-hammer__head"></view>
+            </view>
+            <!-- 编号 -->
+            <view class="egg-number">
+              <text>{{item.id + 1}}</text>
+            </view>
+            <!-- 点击提示（未选中时） -->
+            <view class="egg-tap-hint" wx:if="{{canSelect && selectedEgg < 0}}">
+              <text>点我</text>
+            </view>
+          </view>
+
+          <!-- 碎裂状态 -->
+          <view class="egg-cracked" wx:else>
+            <view class="egg-shard egg-shard--1"></view>
+            <view class="egg-shard egg-shard--2"></view>
+            <view class="egg-shard egg-shard--3"></view>
+            <view class="egg-shard egg-shard--4"></view>
+            <view class="egg-shard egg-shard--5"></view>
+            <view class="egg-shard egg-shard--6"></view>
+            <view class="egg-burst">
+              <view class="egg-burst__ring"></view>
+              <view class="egg-burst__ring egg-burst__ring--delay"></view>
+              <view class="egg-burst__star"></view>
+            </view>
+            <view class="egg-shell-remain">
+              <view class="egg-shell-remain__left"></view>
+              <view class="egg-shell-remain__right"></view>
+            </view>
+          </view>
+
+          <!-- 底座 -->
+          <view class="egg-pedestal">
+            <view class="egg-pedestal__top"></view>
+            <view class="egg-pedestal__body"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 消耗积分提示 -->
+    <view class="egg-cost" wx:if="{{costPoints > 0}}">
+      <view class="egg-cost__icon"></view>
+      <text class="egg-cost__text">消耗 {{costPoints}} 积分/次</text>
+    </view>
+  </block>
+
+  <!-- ===== 连敲模式（N个蛋） ===== -->
+  <block wx:else>
+    <!-- 顶部横幅 -->
+    <view class="egg-banner">
+      <view class="egg-banner__ribbon"></view>
+      <text class="egg-banner__text">点击金蛋逐个砸开</text>
+      <view class="egg-banner__ribbon"></view>
+    </view>
+
+    <!-- 进度计数 -->
+    <view class="multi-progress">
+      <text class="multi-progress__text">{{crackedCount}} / {{totalEggs}}</text>
+      <view class="multi-progress__bar">
+        <view class="multi-progress__fill" style="width: {{totalEggs > 0 ? crackedCount / totalEggs * 100 : 0}}%"></view>
+      </view>
+    </view>
+
+    <!-- 蛋阵列 -->
+    <view class="multi-stage {{multiEntered ? 'is-entered' : ''}} {{sizeClass}}">
+      <view class="egg-stage__glow"></view>
+
+      <view class="multi-row" wx:for="{{eggRows}}" wx:for-index="rowIdx" wx:key="rowIdx">
+        <view
+          class="multi-egg-slot {{item.cracked ? 'is-cracked' : ''}} {{item.shaking ? 'is-shaking-slot' : ''}}"
+          wx:for="{{item}}" wx:for-item="egg" wx:for-index="colIdx" wx:key="index"
+          data-row="{{rowIdx}}" data-col="{{colIdx}}"
+          bindtap="onTapMultiEgg"
+          style="animation-delay: {{egg.enterDelay}}ms"
+        >
+          <!-- 未砸碎的蛋 -->
+          <view class="egg-body {{egg.shaking ? 'is-shaking' : ''}} {{!egg.cracked ? 'is-idle' : ''}}" wx:if="{{!egg.cracked}}">
+            <view class="egg-shape">
+              <view class="egg-shape__highlight"></view>
+              <view class="egg-shape__band"></view>
+              <view class="egg-shape__sparkle egg-shape__sparkle--1"></view>
+              <view class="egg-shape__sparkle egg-shape__sparkle--2"></view>
+            </view>
+            <!-- 编号 -->
+            <view class="egg-number">
+              <text>{{egg.index + 1}}</text>
+            </view>
+          </view>
+
+          <!-- 砸碎后显示奖品 -->
+          <view class="multi-egg-prize" wx:else>
+            <view class="egg-burst">
+              <view class="egg-burst__ring"></view>
+              <view class="egg-burst__star"></view>
+            </view>
+            <view class="egg-shell-remain">
+              <view class="egg-shell-remain__left"></view>
+              <view class="egg-shell-remain__right"></view>
+            </view>
+            <view class="multi-egg-prize__info">
+              <text class="multi-egg-prize__icon">{{egg.icon || '🎁'}}</text>
+              <text class="multi-egg-prize__name">{{egg.name || '奖品'}}</text>
+            </view>
+          </view>
+
+          <!-- 底座 -->
+          <view class="egg-pedestal">
+            <view class="egg-pedestal__top"></view>
+            <view class="egg-pedestal__body"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 一键全砸按钮 -->
+    <view class="multi-actions" wx:if="{{!allCracked}}">
+      <view class="multi-smash-all-btn" bindtap="onSmashAll">
+        <text>全部砸开</text>
+      </view>
+    </view>
+  </block>
+</view>

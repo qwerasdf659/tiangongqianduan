@@ -1,0 +1,43 @@
+<!-- 拆红包抽奖组件 -->
+<view class="redpacket-container">
+  <view class="redpacket-title">
+    <text>拆红包 赢好礼</text>
+  </view>
+
+  <view class="packet-wrapper" bindtap="onTapPacket">
+    <!-- 红包主体 -->
+    <view class="red-packet {{packetState}}">
+      <!-- 红包封面 -->
+      <view class="packet-cover" wx:if="{{packetState !== 'opened'}}">
+        <view class="packet-gold-circle">
+          <text class="packet-text">开</text>
+        </view>
+        <view class="packet-decoration">
+          <text class="deco-text">恭喜发财</text>
+        </view>
+      </view>
+
+      <!-- 红包内容（拆开后） -->
+      <view class="packet-content" wx:if="{{packetState === 'opened'}}">
+        <text class="content-icon">🧧</text>
+        <text class="content-text">恭喜获得奖品!</text>
+        <text class="content-sparkle">✨</text>
+      </view>
+
+      <!-- 拆开进度条 -->
+      <view class="packet-progress" wx:if="{{packetState === 'opening'}}">
+        <view class="progress-fill" style="width: {{openProgress}}%;"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="redpacket-hint">
+    <text wx:if="{{packetState === 'sealed'}}">点击拆开红包</text>
+    <text wx:elif="{{packetState === 'opening'}}">拆开中...</text>
+    <text wx:else>红包已拆开!</text>
+  </view>
+
+  <view class="redpacket-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

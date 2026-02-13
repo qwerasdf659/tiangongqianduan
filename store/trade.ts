@@ -32,6 +32,8 @@ interface InventoryItem {
   description: string
   acquired_at: string
   expires_at: string | null
+  is_owner: boolean
+  has_redemption_code: boolean
 }
 
 /** 我的挂单结构 */
@@ -75,14 +77,14 @@ export const tradeStore = observable({
   setMarketListings: action(function (
     this: any,
     listings: MarketListing[],
-    pagination: { page: number; total: number; has_more: boolean }
+    pagination: { page: number; total: number; hasMore: boolean }
   ) {
     this.marketListings = listings
     this.marketPagination = {
       page: pagination.page,
       pageSize: 20,
       total: pagination.total,
-      hasMore: pagination.has_more
+      hasMore: pagination.hasMore
     }
   }),
 
@@ -90,14 +92,14 @@ export const tradeStore = observable({
   appendMarketListings: action(function (
     this: any,
     newListings: MarketListing[],
-    pagination: { page: number; total: number; has_more: boolean }
+    pagination: { page: number; total: number; hasMore: boolean }
   ) {
     this.marketListings = [...this.marketListings, ...newListings]
     this.marketPagination = {
       page: pagination.page,
       pageSize: 20,
       total: pagination.total,
-      hasMore: pagination.has_more
+      hasMore: pagination.hasMore
     }
   }),
 
@@ -129,3 +131,4 @@ export const tradeStore = observable({
     this.marketPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
   })
 })
+

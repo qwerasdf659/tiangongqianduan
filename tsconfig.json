@@ -6,8 +6,19 @@
     /* 模块系统 - 微信小程序使用CommonJS */
     "module": "CommonJS",
 
-    /* 严格模式 - 最高代码质量要求 */
+    /**
+     * 严格模式策略：
+     * strict:true 开启全部严格检查，再逐项关闭与小程序Page/Component不兼容的选项。
+     * 微信小程序的 Page({}) / Component({}) 会在运行时动态挂载 this 属性，
+     * TypeScript 静态分析无法推断这些属性，因此需要放宽相关检查。
+     */
     "strict": true,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "strictNullChecks": false,
+    "useUnknownInCatchVariables": false,
 
     /* ES模块互操作 - 允许CommonJS和ES模块混用 */
     "esModuleInterop": true,
@@ -24,13 +35,13 @@
     /* 不生成声明文件 - 微信小程序不需要 */
     "declaration": false,
 
-    /* 标准库 - ES2017 */
-    "lib": ["ES2017"],
+    /* 标准库 - ES2017 + DOM（提供console/setTimeout/clearInterval等全局对象） */
+    "lib": ["ES2020", "DOM"],
 
     /* 类型定义目录 */
     "typeRoots": ["./typings", "./node_modules/miniprogram-api-typings"],
 
-    /* 不自动包含@types */
+    /* 类型声明 - 不指定types，由typings/index.d.ts通过reference引入 */
     "types": [],
 
     /* 基础路径 - 项目根目录 */
@@ -40,7 +51,8 @@
     "paths": {
       "@utils/*": ["utils/*"],
       "@config/*": ["config/*"],
-      "@components/*": ["components/*"]
+      "@components/*": ["components/*"],
+      "@store/*": ["store/*"]
     },
 
     /* 跳过库类型检查 - 加快编译速度 */
@@ -51,5 +63,6 @@
   "include": ["**/*.ts", "**/*.js"],
 
   /* 排除的目录 - 不编译第三方库和构建产物 */
-  "exclude": ["node_modules", "miniprogram_npm", "typings"]
+  "exclude": ["node_modules", "miniprogram_npm"]
 }
+

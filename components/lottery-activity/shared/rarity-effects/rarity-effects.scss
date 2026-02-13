@@ -1,0 +1,140 @@
+/**
+ * 稀有度光效样式
+ * 纯CSS实现4级视觉效果，不依赖Canvas或JS动画
+ *
+ * common    → #3498db 蓝色边框
+ * rare      → #9b59b6 紫色呼吸光 pulse
+ * epic      → #e67e22 橙色光环 flicker
+ * legendary → #f1c40f 金色旋转光环 + 星星飘落
+ */
+
+.rarity-effects {
+  position: relative;
+  border-radius: 16rpx;
+  overflow: visible;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* ===== common: 蓝色边框，无特效 ===== */
+.rarity--common {
+  border: 2rpx solid #3498db;
+}
+
+/* ===== rare: 紫色呼吸光 ===== */
+.rarity--rare {
+  border: 2rpx solid #9b59b6;
+  animation: rarity-pulse 2s ease-in-out infinite;
+}
+
+@keyframes rarity-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8rpx rgba(155, 89, 182, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20rpx rgba(155, 89, 182, 0.6);
+  }
+}
+
+/* ===== epic: 橙色光环闪烁 ===== */
+.rarity--epic {
+  border: 2rpx solid #e67e22;
+  animation: rarity-flicker 1.5s ease-in-out infinite;
+}
+
+@keyframes rarity-flicker {
+  0%, 100% {
+    box-shadow: 0 0 10rpx rgba(230, 126, 34, 0.4);
+  }
+  25% {
+    box-shadow: 0 0 25rpx rgba(230, 126, 34, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15rpx rgba(230, 126, 34, 0.5);
+  }
+  75% {
+    box-shadow: 0 0 30rpx rgba(230, 126, 34, 0.8);
+  }
+}
+
+/* ===== legendary: 金色旋转光环 + 星星 ===== */
+.rarity--legendary {
+  border: 2rpx solid #f1c40f;
+  box-shadow: 0 0 20rpx rgba(241, 196, 15, 0.5);
+  animation: rarity-legendary-glow 2s ease-in-out infinite;
+}
+
+@keyframes rarity-legendary-glow {
+  0%, 100% {
+    box-shadow: 0 0 20rpx rgba(241, 196, 15, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40rpx rgba(241, 196, 15, 0.8), 0 0 60rpx rgba(241, 196, 15, 0.3);
+  }
+}
+
+/* legendary旋转光环底层 */
+.rarity-glow {
+  position: absolute;
+  top: -4rpx;
+  left: -4rpx;
+  right: -4rpx;
+  bottom: -4rpx;
+  border-radius: 18rpx;
+  background: conic-gradient(
+    from 0deg,
+    rgba(241, 196, 15, 0.0),
+    rgba(241, 196, 15, 0.4),
+    rgba(241, 196, 15, 0.0),
+    rgba(241, 196, 15, 0.4),
+    rgba(241, 196, 15, 0.0)
+  );
+  animation: rarity-rotate 3s linear infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes rarity-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* legendary星星飘落效果（通过伪元素模拟） */
+.rarity--legendary::before,
+.rarity--legendary::after {
+  content: '';
+  position: absolute;
+  width: 8rpx;
+  height: 8rpx;
+  background: #f1c40f;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.rarity--legendary::before {
+  top: -10rpx;
+  left: 30%;
+  animation: rarity-star-fall 2.5s ease-in infinite;
+}
+
+.rarity--legendary::after {
+  top: -10rpx;
+  right: 25%;
+  animation: rarity-star-fall 2.5s ease-in 1.2s infinite;
+}
+
+@keyframes rarity-star-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(20rpx) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(120rpx) scale(0.3);
+  }
+}

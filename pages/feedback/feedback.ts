@@ -420,7 +420,7 @@ Page({
     const { feedbackId, adminReply } = replyData
 
     // 振动提醒
-    wx.vibrateShort()
+    wx.vibrateShort({ type: 'medium' })
 
     // 显示回复通知
     wx.showModal({
@@ -516,3 +516,5 @@ Page({
     }
   }
 })
+
+export {}

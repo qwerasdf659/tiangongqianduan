@@ -187,10 +187,8 @@ Page({
    * ✅ 加载交易数据 - V4.2直接调用API方法
    */
   async loadTransactionData() {
-    const userId = app.globalData.userInfo?.user_id
-
-    // ✅ V4.2: 直接调用API方法
-    const result = await API.getPointsTransactions(userId)
+    // ✅ V4.2: 直接调用API方法（通过Token识别用户，无需传userId）
+    const result = await API.getPointsTransactions()
     const { success, data } = result
 
     if (success && data) {
@@ -266,7 +264,7 @@ Page({
     }
 
     // 按时间倒序排列
-    filteredRecords.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    filteredRecords.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
     this.setData({ filteredRecords })
   },
@@ -604,7 +602,7 @@ Page({
   formatTime(timestamp) {
     const date = new Date(timestamp)
     const now = new Date()
-    const diff = now - date
+    const diff = now.getTime() - date.getTime()
 
     if (diff < 60000) {
       // 1分钟内
@@ -671,3 +669,5 @@ Page({
     }
   }
 })
+
+export {}

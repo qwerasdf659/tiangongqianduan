@@ -277,11 +277,81 @@ function clearAuthData(options: ClearAuthDataOptions = {}): void {
 // Token自动刷新已由 api.ts 的 APIClient.handleTokenExpired() 统一处理
 // 认证助手只负责认证状态检查，不处理Token刷新
 
+/**
+ * 🔄 恢复用户信息
+ * 从 userStore → Storage → JWT Token 三级恢复用户信息
+ * 恢复失败时自动跳转登录页
+ *
+ * @returns 恢复成功返回 userInfo 对象，失败返回 null
+ */
+function restoreUserInfo(): any {
+  const { userStore } = require('../store/user')
+  let userInfo = userStore.userInfo
+
+  if (userInfo && userInfo.user_id) {
+    return userInfo
+  }
+
+  // 尝试从Storage恢复
+  userInfo = wx.getStorageSync('user_info')
+  if (userInfo && userInfo.user_id) {
+    userStore.updateUserInfo(userInfo)
+    return userInfo
+  }
+
+  // 尝试从JWT Token恢复
+  const token = wx.getStorageSync('access_token')
+  if (!token) {
+    _redirectToLogin('未登录，请先登录')
+    return null
+  }
+
+  try {
+    const utilFunctions = require('./util')
+    const jwtPayload = utilFunctions.decodeJWTPayload(token)
+
+    if (jwtPayload && jwtPayload.user_id) {
+      userInfo = {
+        user_id: jwtPayload.user_id,
+        mobile: jwtPayload.mobile,
+        nickname: jwtPayload.nickname || '用户',
+        status: jwtPayload.status,
+        is_admin: jwtPayload.is_admin || false,
+        user_role: jwtPayload.user_role || 'user',
+        role_level: jwtPayload.role_level || 0,
+        iat: jwtPayload.iat,
+        exp: jwtPayload.exp
+      }
+      wx.setStorageSync('user_info', userInfo)
+      userStore.updateUserInfo(userInfo)
+      return userInfo
+    }
+
+    _redirectToLogin('登录信息异常，请重新登录')
+    return null
+  } catch (error) {
+    console.error('❌ 从JWT Token恢复userInfo失败:', error)
+    _redirectToLogin('登录信息异常，请重新登录')
+    return null
+  }
+}
+
+/** 跳转登录页（内部方法） */
+function _redirectToLogin(message: string) {
+  wx.showToast({ title: message, icon: 'none', duration: 2000 })
+  setTimeout(() => {
+    wx.redirectTo({ url: '/pages/auth/auth' })
+  }, 2000)
+}
+
 // ===== 导出模块 =====
 module.exports = {
   checkAuth,
   checkAdmin,
   getAccessToken,
   getUserInfo,
-  clearAuthData
+  clearAuthData,
+  restoreUserInfo
 }
+
+export {}

@@ -514,3 +514,5 @@ module.exports = {
   version: '4.0.0',
   lastUpdated: '2026-02-10T00:00:00+08:00'
 }
+
+export {}

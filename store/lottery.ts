@@ -11,15 +11,32 @@
 
 import { observable, action } from 'mobx-miniprogram'
 
-/** 奖品结构（后端返回格式） */
+/**
+ * 奖品结构（后端 DataSanitizer.sanitizePrizes 输出格式）
+ * 字段来源: GET /api/v4/lottery/campaigns/:campaign_code/prizes
+ * 注意: tier/probability/is_winner 后端不返回，已废弃
+ */
 interface Prize {
+  /** 奖品ID（普通用户: id，管理员: lottery_prize_id） */
   id: number
+  /** 奖品名称 */
   name: string
+  /** 奖品类型（points/physical/virtual/coupon/service） */
+  type: string
+  /** 奖品图标（emoji字符串，由后端prize_type自动映射） */
   icon: string
+  /** 稀有度（common/uncommon/rare/epic/legendary，后端自动生成） */
+  rarity: string
+  /** 是否有库存 */
+  available: boolean
+  /** 展示积分值 */
+  display_points: number
+  /** 展示价值文本（高价值/中价值/低价值） */
+  display_value: string
+  /** 奖品状态 */
+  status: string
+  /** 排序序号（从1开始） */
   sort_order: number
-  tier: string
-  probability: number
-  is_winner: boolean
 }
 
 /** 抽奖按钮配置（后端返回的draw_buttons数组项） */
@@ -47,7 +64,7 @@ interface LotteryConfig {
 export const lotteryStore = observable({
   // ===== 可观察状态 =====
 
-  /** 奖品列表（9宫格展示用） */
+  /** 奖品列表（后端返回全部奖品，含正式奖品和fallback奖品） */
   prizes: [] as Prize[],
 
   /** 抽奖配置（含价格、连抽按钮、保底信息） */

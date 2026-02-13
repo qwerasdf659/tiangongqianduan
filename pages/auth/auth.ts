@@ -970,7 +970,7 @@ Page({
         formErrors: validation.errors
       })
 
-      const firstError = Object.values(validation.errors)[0]
+      const firstError = Object.values(validation.errors)[0] as string
       wx.showToast({
         title: firstError,
         icon: 'none'
@@ -1176,7 +1176,7 @@ Page({
 
           // 更新用户信息中的积分（total_amount = available_amount + frozen_amount）
           userInfo.points = points
-          userInfo.total_amount = balanceResult.data.total_amount || points
+          ;(userInfo as any).total_amount = balanceResult.data.total_amount || points
           wx.setStorageSync('user_info', userInfo)
         } else {
           console.warn('⚠️ 积分余额获取失败，使用默认值0')
@@ -1398,8 +1398,7 @@ Page({
     })
 
     // 显示错误信息
-    const modalConfig = {
-      title: '登录失败',
+    const modalConfig: any = {
       content: errorMessage,
       showCancel: showRetryOption,
       cancelText: '取消',
@@ -1435,8 +1434,7 @@ Page({
       const tokenMetadata = wx.getStorageSync('token_metadata')
 
       const issues = []
-      const details = {
-        storedTokenExists: !!storedToken,
+      const details: any = {
         backupTokenExists: !!backupToken,
         metadataExists: !!tokenMetadata,
         storedTokenLength: storedToken ? storedToken.length : 0,
@@ -1649,3 +1647,5 @@ Page({
     })
   }
 })
+
+export {}

@@ -307,23 +307,8 @@ Page({
 
       console.log('✅ 认证检查通过，继续API请求')
 
-      // 🔑 API请求（带详细状态码监控）
-      const userId = app.globalData.userInfo?.user_id
-
-      // 🔧 调试：检查userId是否有效
-      console.log('🔍 获取userId:', {
-        userId,
-        userInfo: app.globalData.userInfo,
-        hasUserInfo: !!app.globalData.userInfo,
-        userInfoKeys: app.globalData.userInfo ? Object.keys(app.globalData.userInfo) : []
-      })
-
-      if (!userId) {
-        throw new Error('用户ID获取失败，请重新登录')
-      }
-
+      // 🔑 API请求（通过Token识别用户）
       const result = await API.getPointsTransactions(
-        userId,
         this.data.currentPage,
         this.data.pageSize,
         this.data.pointsFilter
@@ -603,7 +588,7 @@ Page({
     try {
       const date = new Date(timeString)
       const now = new Date()
-      const diff = now - date
+      const diff = now.getTime() - date.getTime()
 
       if (diff < TIME_CONSTANTS.ONE_MINUTE) {
         return '刚刚'
@@ -654,7 +639,7 @@ Page({
       }
 
       const now = new Date()
-      const diffMs = now - transactionDate
+      const diffMs = now.getTime() - transactionDate.getTime()
       const diffMinutes = Math.floor(diffMs / 60000)
       const diffHours = Math.floor(diffMinutes / 60)
       const diffDays = Math.floor(diffHours / 24)
@@ -916,3 +901,5 @@ Page({
     return aggregatedRecords
   }
 })
+
+export {}

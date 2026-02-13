@@ -1,0 +1,117 @@
+﻿@import '../../../../styles/variables';
+
+.gashapon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30rpx 0;
+}
+
+.machine {
+  position: relative;
+  width: 320rpx;
+  height: 420rpx;
+}
+
+.machine-dome {
+  position: relative;
+  width: 280rpx;
+  height: 240rpx;
+  margin: 0 auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
+  border-radius: 140rpx 140rpx 20rpx 20rpx;
+  border: 6rpx solid #e0e0e0;
+  overflow: hidden;
+}
+
+.capsule-ball {
+  position: absolute;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  box-shadow: inset -4rpx -4rpx 8rpx rgba(0,0,0,0.15), 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+
+.machine-outlet {
+  width: 120rpx;
+  height: 100rpx;
+  margin: -10rpx auto 0;
+  background: linear-gradient(180deg, #e0e0e0, #ccc);
+  border-radius: 0 0 20rpx 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.capsule-dropping {
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.2);
+
+  &.animate {
+    animation: capsuleDrop 1.2s ease-in;
+  }
+}
+
+.capsule-shine {
+  font-size: 32rpx;
+}
+
+.machine-handle {
+  position: absolute;
+  right: 10rpx;
+  top: 200rpx;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &.turning {
+    animation: handleTurn 0.8s ease-in-out;
+  }
+}
+
+.handle-knob {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.2);
+}
+
+.handle-arm {
+  width: 30rpx;
+  height: 8rpx;
+  background: #999;
+  margin-left: -4rpx;
+}
+
+.gashapon-hint {
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.gashapon-cost {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes capsuleDrop {
+  0% { transform: translateY(-60rpx); opacity: 0; }
+  40% { transform: translateY(10rpx); opacity: 1; }
+  60% { transform: translateY(-5rpx); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes handleTurn {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+  100% { transform: rotate(0deg); }
+}

@@ -545,3 +545,5 @@ module.exports = {
   FormValidator,
   commonRules
 }
+
+export {}

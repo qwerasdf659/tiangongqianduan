@@ -171,8 +171,8 @@ Component({
 
         console.log('✅ 用户信息获取成功:', { user_id: userId, nickname: profileData.nickname })
 
-        // 步骤2：调用后端API获取V2动态二维码
-        const qrResponse = await API.getUserQRCode(userId)
+        // 步骤2：调用后端API获取V2动态二维码（JWT解析身份，无需传user_id）
+        const qrResponse = await API.getUserQRCode()
         if (!qrResponse.success || !qrResponse.data) {
           throw new Error(qrResponse.message || '获取二维码失败')
         }
@@ -340,7 +340,7 @@ Component({
      * content - 二维码内容（QRV2_开头的完整字符串）
      */
     drawQRCode(content) {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         try {
           console.log('🎨 开始绘制V2二维码到Canvas（Canvas 2D API）...')
 
@@ -400,7 +400,7 @@ Component({
      *
      */
     canvasToImage() {
-      return new Promise((resolve, reject) => {
+      return new Promise<string>((resolve, reject) => {
         console.log('🖼️ 开始转换Canvas为图片...')
 
         // 延迟执行以确保Canvas绘制完成
@@ -472,3 +472,5 @@ Component({
     }
   }
 })
+
+export {}

@@ -57,7 +57,8 @@ const Utils: Record<string, any> = {
   checkAdmin: authHelperFunctions.checkAdmin,
   getAccessToken: authHelperFunctions.getAccessToken,
   getUserInfo: authHelperFunctions.getUserInfo,
-  clearAuthData: authHelperFunctions.clearAuthData
+  clearAuthData: authHelperFunctions.clearAuthData,
+  restoreUserInfo: authHelperFunctions.restoreUserInfo
 }
 
 /** 数据验证函数 - 表单验证、字段检查、业务规则验证 */
@@ -131,8 +132,10 @@ const API: Record<string, any> = {
   getMarketFacets: apiFunctions.getMarketFacets,
   sellFungibleAssets: apiFunctions.sellFungibleAssets,
 
-  // ========== 消费积分系统 ==========
+  // ========== 消费积分系统（用户端）==========
   getUserQRCode: apiFunctions.getUserQRCode,
+  // ========== 消费积分系统（管理端）==========
+  getAdminUserQRCode: apiFunctions.getAdminUserQRCode,
   getUserInfoByQRCode: apiFunctions.getUserInfoByQRCode,
   submitConsumption: apiFunctions.submitConsumption,
   getMyConsumptionRecords: apiFunctions.getMyConsumptionRecords,
@@ -164,9 +167,14 @@ const API: Record<string, any> = {
   // ========== 用户 ==========
   getUserMe: apiFunctions.getUserMe,
 
-  // ========== 用户统计 ==========
+  // ========== 用户统计（用户端，JWT解析身份）==========
   getUserStatistics: apiFunctions.getUserStatistics,
   getLotteryUserStatistics: apiFunctions.getLotteryUserStatistics,
+
+  // ========== 管理员查看用户数据（console域，需admin权限）==========
+  getAdminLotteryHistory: apiFunctions.getAdminLotteryHistory,
+  getAdminUserStatistics: apiFunctions.getAdminUserStatistics,
+  getAdminLotteryUserStatistics: apiFunctions.getAdminLotteryUserStatistics,
 
   // ========== 商家核销 ==========
   fulfillRedemption: apiFunctions.fulfillRedemption,
@@ -222,3 +230,5 @@ module.exports = {
   ErrorHandler,
   Constants
 }
+
+export {}

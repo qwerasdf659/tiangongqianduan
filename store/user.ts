@@ -14,6 +14,7 @@ import { observable, action } from 'mobx-miniprogram'
 /** 用户信息结构（后端返回的snake_case字段） */
 interface UserInfo {
   user_id: number
+  user_uuid: string
   mobile: string
   nickname: string
   status: string
@@ -21,6 +22,7 @@ interface UserInfo {
   user_role: string
   role_level: number
   avatar_url?: string
+  created_at: string
 }
 
 export const userStore = observable({
@@ -146,3 +148,4 @@ export const userStore = observable({
     }
   })
 })
+

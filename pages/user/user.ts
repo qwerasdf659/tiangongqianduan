@@ -615,21 +615,15 @@ Page({
   },
 
   /**
-   * 🔴 获取抽奖统计数据
+   * 获取抽奖统计数据（用户端，JWT解析身份）
+   * 后端路由: GET /api/v4/lottery/history
    */
   async getLotteryStatistics() {
     try {
       const { getLotteryHistory } = API
-      const appInstance = getApp()
-      const userId = appInstance.globalData.userInfo?.user_id
 
-      if (!userId) {
-        console.warn('⚠️ 未找到用户ID，无法获取抽奖统计')
-        return { success: false }
-      }
-
-      // 只获取总数
-      const result = await getLotteryHistory(userId, 1, 1)
+      // 只获取总数（后端通过JWT识别当前用户）
+      const result = await getLotteryHistory(1, 1)
 
       if (result.success) {
         return {
@@ -728,21 +722,12 @@ Page({
   },
 
   /**
-   * 获取积分统计数据（调用后端用户综合统计API）
-   *
-   * 后端路由: GET /api/v4/system/user/statistics/:user_id
+   * 获取积分统计数据（用户端，JWT解析身份）
+   * 后端路由: GET /api/v4/lottery/points
    */
   async getPointsStatistics() {
     try {
-      const appInstance = getApp()
-      const userId = appInstance.globalData.userInfo?.user_id
-
-      if (!userId) {
-        console.warn('⚠️ 未找到用户ID，无法获取积分统计')
-        return { success: false }
-      }
-
-      const result = await API.getUserStatistics(userId)
+      const result = await API.getUserStatistics()
 
       if (result && result.success && result.data) {
         // 从后端综合统计数据中提取积分相关信息
@@ -767,22 +752,14 @@ Page({
   },
 
   /**
-   * 加载积分趋势数据
+   * 加载积分趋势数据（用户端，JWT解析身份）
    *
-   * 后端路由: GET /api/v4/system/user/statistics/:user_id
+   * 后端路由: GET /api/v4/lottery/points
    * 注意: 今日获得/消费数据从用户综合统计接口获取，后端是权威数据源
    */
   async loadPointsTrend() {
     try {
-      const appInstance = getApp()
-      const userId = appInstance.globalData.userInfo?.user_id
-
-      if (!userId) {
-        this.setData({ todayEarned: 0, todayConsumed: 0 })
-        return
-      }
-
-      const result = await API.getUserStatistics(userId)
+      const result = await API.getUserStatistics()
 
       if (result && result.success && result.data) {
         const statisticsData = result.data
@@ -1222,8 +1199,8 @@ Page({
       await Promise.all(cleanPromises)
 
       // 强制触发垃圾回收（如果支持）
-      if (typeof wx.triggerGC === 'function') {
-        wx.triggerGC()
+      if (typeof (wx as any).triggerGC === 'function') {
+        (wx as any).triggerGC()
       }
 
       console.log('✅ 所有管理员缓存已强制清理')
@@ -1260,3 +1237,5 @@ Page({
     }
   }
 })
+
+export {}

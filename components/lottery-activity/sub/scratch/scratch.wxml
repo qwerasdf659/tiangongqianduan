@@ -1,0 +1,83 @@
+<!-- 进度条刮卡组件 - 横向长条，逐格揭晓 -->
+<view class="scratch-container">
+  <!-- 标题区 -->
+  <view class="scratch-header">
+    <view class="scratch-title-row">
+      <text class="scratch-title">一刮到底 赢取大奖</text>
+      <view class="scratch-badge" wx:if="{{costPoints > 0}}">
+        <text class="badge-text">{{costPoints}} 积分/次</text>
+      </view>
+    </view>
+    <text class="scratch-subtitle">用手指从左往右滑动刮开涂层</text>
+  </view>
+
+  <!-- 刮卡长条主体 -->
+  <view class="scratch-strip-wrapper">
+    <view class="scratch-strip count-{{cells.length}}"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd">
+
+      <!-- 逐格渲染 -->
+      <view class="cell cell--{{item.state}}"
+        wx:for="{{cells}}" wx:key="index"
+        style="width: {{100 / cells.length}}%;">
+
+        <!-- 底层：奖品内容 -->
+        <view class="cell-prize">
+          <text class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
+            {{item.prize.icon || '🎁'}}
+          </text>
+          <text class="cell-prize-name" wx:if="{{item.state === 'revealed' && cells.length <= 5}}">
+            {{item.prize.name || ''}}
+          </text>
+        </view>
+
+        <!-- 覆盖涂层 -->
+        <view class="cell-cover {{item.state === 'dissolving' ? 'dissolving' : ''}} {{item.state === 'revealed' ? 'gone' : ''}}">
+          <view class="cell-cover-texture"></view>
+          <text class="cell-number">{{item.index + 1}}</text>
+        </view>
+
+        <!-- 格子分割线 -->
+        <view class="cell-divider" wx:if="{{item.index < cells.length - 1}}"></view>
+      </view>
+
+      <!-- 引导手势 -->
+      <view class="guide-finger" wx:if="{{showGuide && !scratching}}">
+        <text class="guide-icon">👆</text>
+      </view>
+    </view>
+
+    <!-- 装饰边框 -->
+    <view class="strip-border">
+      <view class="strip-corner strip-corner--tl"></view>
+      <view class="strip-corner strip-corner--tr"></view>
+      <view class="strip-corner strip-corner--bl"></view>
+      <view class="strip-corner strip-corner--br"></view>
+    </view>
+  </view>
+
+  <!-- 进度指示 -->
+  <view class="scratch-progress">
+    <view class="progress-track">
+      <view class="progress-bar" style="width: {{revealedCount / cells.length * 100}}%;"></view>
+    </view>
+    <text class="progress-text">{{revealedCount}}/{{cells.length}}</text>
+  </view>
+
+  <!-- 底部战报条 -->
+  <scroll-view class="report-bar" scroll-x enable-flex wx:if="{{revealedPrizes.length > 0 || cells.length > 1}}">
+    <view class="report-item {{item.state === 'revealed' ? 'revealed' : ''}}"
+      wx:for="{{cells}}" wx:key="index">
+      <text class="report-icon">{{item.state === 'revealed' ? (item.prize.icon || '🎁') : '❓'}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- 底部提示 -->
+  <view class="scratch-footer">
+    <text class="footer-tip" wx:if="{{!scratching && revealedCount === 0}}">从左往右滑动，一刮到底</text>
+    <text class="footer-tip active" wx:elif="{{scratching && !allRevealed}}">继续刮...已揭晓 {{revealedCount}} 个</text>
+    <text class="footer-tip done" wx:elif="{{allRevealed}}">全部揭晓！</text>
+  </view>
+</view>

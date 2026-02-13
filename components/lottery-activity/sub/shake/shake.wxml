@@ -1,0 +1,38 @@
+<!-- 摇一摇抽奖组件 -->
+<view class="shake-container">
+  <view class="shake-title">
+    <text>摇一摇 赢大奖</text>
+  </view>
+
+  <!-- 手机图标 -->
+  <view class="phone-wrapper" bindtap="onTapShake">
+    <view class="phone-icon {{phoneShaking ? 'shaking' : ''}}">
+      <text class="phone-emoji">📱</text>
+    </view>
+    <view class="shake-waves" wx:if="{{shakeState === 'shaking'}}">
+      <view class="wave wave-1"></view>
+      <view class="wave wave-2"></view>
+      <view class="wave wave-3"></view>
+    </view>
+  </view>
+
+  <!-- 进度 -->
+  <view class="shake-progress" wx:if="{{shakeState === 'shaking' || shakeState === 'triggered'}}">
+    <view class="progress-dots">
+      <view class="dot {{index < shakeCount ? 'filled' : ''}}" wx:for="{{shakeRequired}}" wx:key="*this"></view>
+    </view>
+    <text class="progress-text">{{shakeCount}}/{{shakeRequired}}</text>
+  </view>
+
+  <!-- 提示 -->
+  <view class="shake-hint">
+    <text wx:if="{{shakeState === 'ready'}}">点击开始 或 摇动手机</text>
+    <text wx:elif="{{shakeState === 'shaking'}}">继续摇动! 或点击屏幕</text>
+    <text wx:elif="{{shakeState === 'triggered'}}">正在揭晓...</text>
+    <text wx:else>摇动完成!</text>
+  </view>
+
+  <view class="shake-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

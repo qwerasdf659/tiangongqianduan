@@ -389,17 +389,10 @@
           <text>第 {{currentPage}} 页，共 {{totalPages}} 页 | 共 {{totalProducts}} 件商品</text>
         </view>
 
-        <!-- 🎯 合并布局：主控制区域 + 页码数字区域在一行 -->
+        <!-- 合并布局：主控制区域 + 页码数字区域在一行 -->
         <view
           class="pagination-row unified-controls"
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6rpx;
-            margin-bottom: 16rpx;
-            flex-wrap: wrap;
-          "
+          style="display: flex; justify-content: center; align-items: center; gap: 6rpx; margin-bottom: 16rpx; flex-wrap: wrap;"
         >
           <!-- 上一页按钮 -->
           <button

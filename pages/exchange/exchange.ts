@@ -1719,36 +1719,34 @@ Page({
    * this.initLayoutParams()
    */
   initLayoutParams() {
-    // 🔑 使用wx.getWindowInfo替换wx.getSystemInfo获取窗口信息
-    wx.getWindowInfo({
-      success: res => {
-        // 减去padding
-        const containerWidth = res.windowWidth - 40
-        // 两列，减去gap
-        const columnWidth = Math.floor((containerWidth - 20) / 2)
+    // 🔑 wx.getWindowInfo是同步API，直接返回结果
+    try {
+      const res = wx.getWindowInfo()
+      // 减去padding
+      const containerWidth = res.windowWidth - 40
+      // 两列，减去gap
+      const columnWidth = Math.floor((containerWidth - 20) / 2)
 
-        this.setData({
-          containerWidth,
-          columnWidth
-        })
+      this.setData({
+        containerWidth,
+        columnWidth
+      })
 
-        console.log('✅ 布局参数初始化完成:', {
-          windowWidth: res.windowWidth,
-          containerWidth,
-          columnWidth
-        })
-      },
-      fail: err => {
-        console.error('❌ 获取窗口信息失败:', err)
-        // 🔑 提供fallback默认值
-        this.setData({
-          // 默认容器宽度
-          containerWidth: 335,
-          // 默认列宽
-          columnWidth: 157
-        })
-      }
-    })
+      console.log('✅ 布局参数初始化完成:', {
+        windowWidth: res.windowWidth,
+        containerWidth,
+        columnWidth
+      })
+    } catch (err) {
+      console.error('❌ 获取窗口信息失败:', err)
+      // 🔑 提供fallback默认值
+      this.setData({
+        // 默认容器宽度
+        containerWidth: 335,
+        // 默认列宽
+        columnWidth: 157
+      })
+    }
   },
 
   /**
@@ -3581,3 +3579,5 @@ Page({
     )
   }
 })
+
+export {}

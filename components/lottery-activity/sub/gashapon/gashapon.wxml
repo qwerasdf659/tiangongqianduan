@@ -1,0 +1,39 @@
+<!-- 扭蛋机抽奖组件 -->
+<view class="gashapon-container">
+  <!-- 扭蛋机主体 -->
+  <view class="machine">
+    <!-- 顶部圆顶 -->
+    <view class="machine-dome">
+      <!-- 内部胶囊球 -->
+      <view class="capsule-ball" wx:for="{{6}}" wx:key="*this"
+        style="background: {{capsuleColors[index % capsuleColors.length]}}; left: {{20 + (index % 3) * 30}}%; top: {{index < 3 ? '20' : '55'}}%;"></view>
+    </view>
+
+    <!-- 出口 -->
+    <view class="machine-outlet">
+      <view class="capsule-dropping {{machineState === 'dropping' ? 'animate' : ''}}"
+        wx:if="{{machineState === 'dropping' || machineState === 'done'}}"
+        style="background: {{currentCapsuleColor}};">
+        <text class="capsule-shine">✨</text>
+      </view>
+    </view>
+
+    <!-- 手柄 -->
+    <view class="machine-handle {{machineState === 'turning' ? 'turning' : ''}}" bindtap="onTurnHandle">
+      <view class="handle-knob"></view>
+      <view class="handle-arm"></view>
+    </view>
+  </view>
+
+  <!-- 提示文字 -->
+  <view class="gashapon-hint">
+    <text wx:if="{{machineState === 'idle'}}">转动手柄 获取扭蛋</text>
+    <text wx:elif="{{machineState === 'turning'}}">扭动中...</text>
+    <text wx:elif="{{machineState === 'dropping'}}">扭蛋掉落中...</text>
+    <text wx:else>扭蛋已获得!</text>
+  </view>
+
+  <view class="gashapon-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

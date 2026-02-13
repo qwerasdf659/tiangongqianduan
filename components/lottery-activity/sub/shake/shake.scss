@@ -1,0 +1,126 @@
+﻿@import '../../../../styles/variables';
+
+.shake-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30rpx 0;
+}
+
+.shake-title {
+  margin-bottom: 30rpx;
+  font-size: 30rpx;
+  color: #fff;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.phone-wrapper {
+  position: relative;
+  width: 200rpx;
+  height: 240rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+}
+
+.phone-icon {
+  z-index: 2;
+
+  &.shaking {
+    animation: phoneShake 0.3s ease-in-out;
+  }
+}
+
+.phone-emoji {
+  font-size: 120rpx;
+}
+
+.shake-waves {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.wave-1 {
+  width: 160rpx;
+  height: 160rpx;
+  animation: waveExpand 1.5s ease-out infinite;
+}
+
+.wave-2 {
+  width: 160rpx;
+  height: 160rpx;
+  animation: waveExpand 1.5s ease-out 0.5s infinite;
+}
+
+.wave-3 {
+  width: 160rpx;
+  height: 160rpx;
+  animation: waveExpand 1.5s ease-out 1s infinite;
+}
+
+.shake-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+
+  &.filled {
+    background: #FFD700;
+    box-shadow: 0 0 8rpx #FFD700;
+    transform: scale(1.2);
+  }
+}
+
+.progress-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.shake-hint {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 16rpx;
+}
+
+.shake-cost {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes phoneShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+@keyframes waveExpand {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+}

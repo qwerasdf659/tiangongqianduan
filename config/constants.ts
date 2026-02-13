@@ -10,10 +10,10 @@
 
 /** ⏱️ 时间相关常量（毫秒） - 用于时间计算和延迟操作 */
 const TIME = {
-  SECOND: 1000 as const, // 1秒
-  MINUTE: (60 * 1000) as const, // 1分钟
-  HOUR: (60 * 60 * 1000) as const, // 1小时
-  DAY: (24 * 60 * 60 * 1000) as const // 1天
+  SECOND: 1000, // 1秒
+  MINUTE: 60000, // 1分钟
+  HOUR: 3600000, // 1小时
+  DAY: 86400000 // 1天
 } as const
 
 /** ⏳ 延迟时间常量（毫秒） - 用于UI交互和用户体验优化 */
@@ -51,7 +51,12 @@ const PAGINATION = {
 const LOTTERY = {
   GRID_SIZE: 9, // 3×3网格布局总数
   ANIMATION_DURATION: 3000, // 抽奖动画持续时间（毫秒）
-  HIGHLIGHT_INTERVAL: 100 // 高亮切换间隔（毫秒）
+  HIGHLIGHT_INTERVAL: 100, // 高亮切换间隔（毫秒）
+  ANIMATION_SPEED: 120, // 轮盘初始速度（毫秒/格）
+  SLOWDOWN_SPEED: 200, // 轮盘减速阶段速度（毫秒/格）
+  STOP_DELAY: 800, // 动画停止后保持高亮延迟（毫秒）
+  IMAGE_PRELOAD_TIMEOUT: 5000 // 横幅图片预加载超时（毫秒）
+  // ❌ 已移除: QR_COUNTDOWN_SECONDS → 从后端getUserQRCode返回的expires_at字段计算
 } as const
 
 /** 📏 UI尺寸常量（rpx单位） - 用于微信小程序界面布局 */
@@ -106,3 +111,5 @@ module.exports = {
   UI_STATE,
   RANGE
 }
+
+export {}

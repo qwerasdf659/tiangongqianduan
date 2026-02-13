@@ -1,0 +1,36 @@
+<!-- 福袋抽奖组件 -->
+<view class="luckybag-container">
+  <view class="luckybag-title">
+    <text>限量福袋 手快有手慢无</text>
+  </view>
+
+  <!-- 福袋主体 -->
+  <view class="bag-wrapper">
+    <view class="lucky-bag {{bagState}}" bindtap="onGrabBag">
+      <text class="bag-icon">🎒</text>
+      <view class="bag-glow" wx:if="{{bagState === 'opened'}}">
+        <text>✨</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 库存进度 -->
+  <view class="stock-info">
+    <view class="stock-bar">
+      <view class="stock-fill" style="width: {{stockRemaining / stockTotal * 100}}%;"></view>
+    </view>
+    <text class="stock-text">剩余 {{stockRemaining}}/{{stockTotal}}</text>
+  </view>
+
+  <!-- 按钮 -->
+  <view class="grab-btn {{bagState !== 'idle' || stockRemaining <= 0 ? 'disabled' : ''}}" bindtap="onGrabBag">
+    <text wx:if="{{stockRemaining <= 0}}">已抢完</text>
+    <text wx:elif="{{bagState === 'grabbing'}}">抢购中...</text>
+    <text wx:elif="{{bagState === 'opened'}}">已获得</text>
+    <text wx:else>立即抢购</text>
+  </view>
+
+  <view class="luckybag-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

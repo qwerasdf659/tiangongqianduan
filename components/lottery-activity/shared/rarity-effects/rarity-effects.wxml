@@ -1,0 +1,9 @@
+<!--
+  稀有度光效组件 - 包裹容器
+  用法: <rarity-effects rarity="{{item.rarity}}" enabled="{{rarityEffectsEnabled}}"><slot/></rarity-effects>
+-->
+<view class="rarity-effects {{rarityClass}}">
+  <slot></slot>
+  <!-- legendary专属：星星伪元素通过CSS实现，此处放旋转光环底层 -->
+  <view class="rarity-glow" wx:if="{{rarityClass === 'rarity--legendary'}}"></view>
+</view>

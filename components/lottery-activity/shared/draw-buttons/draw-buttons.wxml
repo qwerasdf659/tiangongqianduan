@@ -1,0 +1,65 @@
+<!-- 连抽按钮组 共享组件 -->
+<wxs module="labelHelper">
+  module.exports = {
+    getLabel: function(btn, mode) {
+      var count = '' + (btn.count || btn.draw_count || 0)
+      if (mode === 'scratch_card') {
+        var scratchMap = { '1': '单次刮', '3': '三连刮', '5': '五连刮', '10': '十连刮' }
+        return scratchMap[count] || btn.label
+      }
+      if (mode === 'card_flip') {
+        var flipMap = { '1': '单翻', '3': '三连翻', '5': '五连翻', '10': '十连翻' }
+        return flipMap[count] || btn.label
+      }
+      if (mode === 'golden_egg') {
+        var eggMap = { '1': '单敲', '3': '三连敲', '5': '五连敲', '10': '十连敲' }
+        return eggMap[count] || btn.label
+      }
+      return btn.label
+    },
+    getCount: function(btn) {
+      return btn.count || btn.draw_count || 0
+    },
+    getCost: function(btn) {
+      return btn.totalCost || btn.total_cost || 0
+    }
+  }
+</wxs>
+
+<view class="draw-buttons-container">
+  <view class="multi-draw-grid">
+    <!-- 第一行：三连刮 + 五连刮 -->
+    <view class="grid-row">
+      <block wx:for="{{buttons}}" wx:key="index" wx:if="{{!item.fullWidth}}">
+        <button
+          class="grid-draw-btn {{item.btnClass}}"
+          bindtap="onDraw"
+          data-count="{{labelHelper.getCount(item)}}"
+          disabled="{{isInProgress}}"
+        >
+          <view class="btn-content">
+            <text class="btn-main-text">{{labelHelper.getLabel(item, displayMode)}}</text>
+            <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
+          </view>
+        </button>
+      </block>
+    </view>
+    <!-- 第二行：十连刮（占满整行） -->
+    <view class="grid-row">
+      <block wx:for="{{buttons}}" wx:key="index" wx:if="{{item.fullWidth}}">
+        <button
+          class="grid-draw-btn {{item.btnClass}}"
+          bindtap="onDraw"
+          data-count="{{labelHelper.getCount(item)}}"
+          disabled="{{isInProgress}}"
+        >
+          <view class="btn-content">
+            <text class="btn-main-text">{{labelHelper.getLabel(item, displayMode)}}</text>
+            <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
+            <text class="btn-guarantee" wx:if="{{item.showGuarantee}}">{{item.guaranteeText}}</text>
+          </view>
+        </button>
+      </block>
+    </view>
+  </view>
+</view>

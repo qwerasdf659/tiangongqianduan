@@ -69,10 +69,10 @@
     ]
   },
   "networkTimeout": {
-    "request": 10000,
-    "downloadFile": 10000
+    "request": 15000,
+    "downloadFile": 15000
   },
-  "debug": true,
+  "debug": false,
   "sitemapLocation": "sitemap.json",
   "style": "v2",
   "componentFramework": "glass-easel",

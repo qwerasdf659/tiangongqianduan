@@ -1,0 +1,38 @@
+<!-- 老虎机抽奖组件 -->
+<view class="slotmachine-container">
+  <view class="slot-title">
+    <text>拉动手柄 试试运气</text>
+  </view>
+
+  <view class="slot-machine">
+    <!-- 卷轴区域 -->
+    <view class="reels-frame">
+      <view class="reel" wx:for="{{reels}}" wx:key="index">
+        <view class="reel-window">
+          <view class="reel-strip {{!item.stopped && spinning ? 'spinning' : ''}}"
+            style="transform: translateY(-{{item.offset * 80}}rpx);">
+            <view class="reel-item" wx:for="{{item.items}}" wx:for-item="prize" wx:for-index="pi" wx:key="pi">
+              <text class="reel-icon">{{prize.icon || '🎁'}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="reel-stopped-mark" wx:if="{{item.stopped && spinning}}">
+          <text>✓</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 中线 -->
+    <view class="center-line"></view>
+
+    <!-- 手柄 -->
+    <view class="slot-handle {{spinning ? 'pulled' : ''}}" bindtap="onPullHandle">
+      <view class="handle-ball"></view>
+      <view class="handle-stick"></view>
+    </view>
+  </view>
+
+  <view class="slot-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

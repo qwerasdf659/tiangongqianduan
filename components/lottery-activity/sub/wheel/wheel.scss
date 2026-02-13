@@ -1,0 +1,141 @@
+@import '../../../../styles/variables';
+
+.wheel-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+.wheel-wrapper {
+  position: relative;
+  width: 600rpx;
+  height: 600rpx;
+}
+
+/* 外圈装饰灯 */
+.wheel-outer-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.3);
+}
+
+.wheel-light {
+  position: absolute;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #FFD700;
+  top: 50%;
+  left: 50%;
+  margin-left: -8rpx;
+  margin-top: -8rpx;
+  transform-origin: center center;
+  box-shadow: 0 0 8rpx #FFD700;
+  animation: lightBlink 1s ease-in-out infinite alternate;
+}
+
+.wheel-light:nth-child(odd) {
+  animation-delay: 0.5s;
+}
+
+/* 转盘盘面（conic-gradient 扇区背景） */
+.wheel-plate {
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  width: 560rpx;
+  height: 560rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* 奖品文字（极坐标绝对定位） */
+.wheel-prize {
+  position: absolute;
+  width: 100rpx;
+  height: 80rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+
+  &__icon {
+    font-size: 36rpx;
+    line-height: 1;
+  }
+
+  &__name {
+    font-size: 18rpx;
+    color: #fff;
+    text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100rpx;
+    margin-top: 4rpx;
+  }
+}
+
+/* 顶部指针（固定不动） */
+.wheel-pointer {
+  position: absolute;
+  top: -20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.pointer-arrow {
+  width: 0;
+  height: 0;
+  border-left: 20rpx solid transparent;
+  border-right: 20rpx solid transparent;
+  border-top: 40rpx solid #FF4444;
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.3));
+}
+
+/* 中心按钮 */
+.wheel-center-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(238, 90, 36, 0.4);
+  z-index: 10;
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.center-btn-text {
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+.center-btn-cost {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 18rpx;
+  margin-top: 2rpx;
+}
+
+@keyframes lightBlink {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}

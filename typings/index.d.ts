@@ -8,6 +8,7 @@
  * @since 2026-02-10
  */
 
+/// <reference path="../node_modules/miniprogram-api-typings/index.d.ts" />
 /// <reference path="./api.d.ts" />
 /// <reference path="./store.d.ts" />
 

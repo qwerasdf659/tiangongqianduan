@@ -1,0 +1,89 @@
+<!-- 卡牌翻转抽奖组件（增强动效版） -->
+<view class="card-container">
+
+  <!-- ===== 单抽模式（3选1） ===== -->
+  <block wx:if="{{!isMultiFlip}}">
+    <view class="card-title">
+      <text>{{flipped ? '恭喜获得' : '选择一张卡牌'}}</text>
+    </view>
+
+    <view class="cards-row">
+      <view
+        class="card-item {{entered ? 'card-enter' : ''}} {{item.flipped ? 'flipped' : ''}} {{selectedIndex === index ? 'selected' : ''}} {{(waiting || flipped) && selectedIndex !== index ? 'dimmed' : ''}} {{canSelect && !flipped && !waiting ? 'idle-float' : ''}} {{waiting && selectedIndex === index ? 'waiting' : ''}}"
+        style="animation-delay: {{item.enterDelay}}ms"
+        wx:for="{{cards}}" wx:key="index"
+        data-index="{{index}}"
+        bindtap="onSelectCard">
+
+        <!-- 选中光晕（翻转揭晓后脉冲） -->
+        <view class="card-glow {{showGlow && selectedIndex === index ? 'glow-pulse' : ''}}" />
+
+        <view class="card-inner">
+          <!-- 卡背 -->
+          <view class="card-face card-back">
+            <view class="card-back-shimmer" />
+            <text class="card-back-icon">🎴</text>
+            <text class="card-back-text">?</text>
+          </view>
+
+          <!-- 卡正面 -->
+          <view class="card-face card-front">
+            <text class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}">{{item.icon || '🎁'}}</text>
+            <text class="card-prize-name">{{item.name || '奖品'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card-cost" wx:if="{{costPoints > 0 && !flipped}}">
+      <text>消耗 {{costPoints}} 积分</text>
+    </view>
+  </block>
+
+  <!-- ===== 连翻模式（N张逐张翻开） ===== -->
+  <block wx:else>
+    <view class="card-title">
+      <text>{{allFlipped ? '翻牌完成！' : '点击卡牌逐张翻开'}}</text>
+    </view>
+
+    <view class="multi-flip-progress">
+      <text>{{flippedCount}} / {{totalCards}}</text>
+    </view>
+
+    <view class="multi-flip-grid">
+      <view class="multi-flip-row" wx:for="{{cardRows}}" wx:for-item="row" wx:for-index="rowIdx" wx:key="rowIdx">
+        <view
+          class="card-item {{sizeClass}} {{multiEntered ? 'card-enter' : ''}} {{item.flipped ? 'flipped' : ''}}"
+          style="animation-delay: {{item.enterDelay}}ms"
+          wx:for="{{row}}" wx:key="index"
+          data-row="{{rowIdx}}"
+          data-col="{{index}}"
+          bindtap="onTapMultiCard">
+
+          <view class="card-glow {{item.flipped ? 'glow-pulse' : ''}}" />
+
+          <view class="card-inner">
+            <!-- 卡背 -->
+            <view class="card-face card-back">
+              <view class="card-back-shimmer" />
+              <text class="card-back-icon">🎴</text>
+              <text class="card-back-text">?</text>
+            </view>
+
+            <!-- 卡正面 -->
+            <view class="card-face card-front">
+              <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}">{{item.icon || '🎁'}}</text>
+              <text class="card-prize-name">{{item.name || '奖品'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 全部翻开按钮（翻开至少1张后出现） -->
+    <view class="flip-all-btn" wx:if="{{flippedCount > 0 && !allFlipped}}" bindtap="onFlipAll">
+      <text>全部翻开</text>
+    </view>
+  </block>
+
+</view>

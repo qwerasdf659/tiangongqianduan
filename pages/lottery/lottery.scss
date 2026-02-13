@@ -2766,3 +2766,30 @@
   border-radius: 44rpx;
   border: none;
 }
+
+/* ===== 多活动插槽（任务27） ===== */
+.extra-activity-slot {
+  margin-top: 24rpx;
+  padding: 0 24rpx;
+
+  &--secondary {
+    margin-top: 32rpx;
+  }
+
+  &--floating {
+    position: fixed;
+    right: 24rpx;
+    bottom: 200rpx;
+    z-index: 100;
+    padding: 0;
+  }
+
+  &--top_banner {
+    margin-top: 16rpx;
+  }
+
+  &--bottom {
+    margin-top: 32rpx;
+    margin-bottom: 24rpx;
+  }
+}

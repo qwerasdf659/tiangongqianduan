@@ -276,9 +276,9 @@ Page({
     filteredItems.sort((a, b) => {
       switch (this.data.currentSort) {
         case 'newest':
-          return new Date(b.acquiredAt) - new Date(a.acquiredAt)
+          return new Date(b.acquiredAt).getTime() - new Date(a.acquiredAt).getTime()
         case 'oldest':
-          return new Date(a.acquiredAt) - new Date(b.acquiredAt)
+          return new Date(a.acquiredAt).getTime() - new Date(b.acquiredAt).getTime()
         case 'value_high':
           return b.value - a.value
         case 'value_low':
@@ -294,7 +294,7 @@ Page({
           if (!b.expiresAt) {
             return -1
           }
-          return new Date(a.expiresAt) - new Date(b.expiresAt)
+          return new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime()
         default:
           return 0
       }
@@ -877,3 +877,5 @@ Page({
     }
   }
 })
+
+export {}

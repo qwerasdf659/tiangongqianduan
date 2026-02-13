@@ -1,0 +1,98 @@
+﻿@import '../../../../styles/variables';
+
+.flipmulti-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+.flipmulti-title {
+  margin-bottom: 16rpx;
+  font-size: 30rpx;
+  color: #fff;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.flipmulti-hint {
+  margin-bottom: 20rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.flipmulti-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16rpx;
+  max-width: 600rpx;
+}
+
+.flip-card {
+  width: 170rpx;
+  height: 220rpx;
+  perspective: 800rpx;
+
+  &.selected .flip-inner {
+    box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.6);
+  }
+
+  &.flipped .flip-inner {
+    transform: rotateY(180deg);
+  }
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+  border-radius: 12rpx;
+}
+
+.flip-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.flip-back {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: 2rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.flip-back-num {
+  font-size: 40rpx;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+}
+
+.flip-front {
+  background: #fff;
+  transform: rotateY(180deg);
+}
+
+.flip-prize-icon {
+  font-size: 48rpx;
+  margin-bottom: 8rpx;
+}
+
+.flip-prize-name {
+  font-size: 20rpx;
+  color: #333;
+  text-align: center;
+  padding: 0 8rpx;
+}
+
+.flipmulti-cost {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}

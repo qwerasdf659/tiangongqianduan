@@ -77,14 +77,14 @@ export const exchangeStore = observable({
   setProducts: action(function (
     this: any,
     products: ExchangeProduct[],
-    pagination: { page: number; total: number; has_more: boolean }
+    pagination: { page: number; total: number; hasMore: boolean }
   ) {
     this.products = products
     this.productPagination = {
       page: pagination.page,
       pageSize: 20,
       total: pagination.total,
-      hasMore: pagination.has_more
+      hasMore: pagination.hasMore
     }
   }),
 
@@ -92,14 +92,14 @@ export const exchangeStore = observable({
   appendProducts: action(function (
     this: any,
     newProducts: ExchangeProduct[],
-    pagination: { page: number; total: number; has_more: boolean }
+    pagination: { page: number; total: number; hasMore: boolean }
   ) {
     this.products = [...this.products, ...newProducts]
     this.productPagination = {
       page: pagination.page,
       pageSize: 20,
       total: pagination.total,
-      hasMore: pagination.has_more
+      hasMore: pagination.hasMore
     }
   }),
 
@@ -107,14 +107,14 @@ export const exchangeStore = observable({
   setRecords: action(function (
     this: any,
     records: ExchangeRecord[],
-    pagination: { page: number; total: number; has_more: boolean }
+    pagination: { page: number; total: number; hasMore: boolean }
   ) {
     this.records = records
     this.recordPagination = {
       page: pagination.page,
       pageSize: 20,
       total: pagination.total,
-      hasMore: pagination.has_more
+      hasMore: pagination.hasMore
     }
   }),
 
@@ -144,3 +144,4 @@ export const exchangeStore = observable({
     this.recordPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
   })
 })
+

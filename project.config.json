@@ -94,7 +94,10 @@
     "swc": false,
     "disableSWC": true,
     "disableUseStrict": false,
-    "useCompilerPlugins": ["typescript", "sass"],
+    "useCompilerPlugins": [
+      "typescript",
+      "sass"
+    ],
     "lazyCodeLoading": "requiredComponents"
   },
   "condition": {},

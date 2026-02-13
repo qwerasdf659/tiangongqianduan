@@ -1,0 +1,108 @@
+<!--
+  九宫格抽奖 子组件
+  布局顺序: [0][1][2] / [7][BTN][3] / [6][5][4]
+  奖品数据来源: 后端 GET /api/v4/lottery/campaigns/:code/prizes
+  后端返回字段: { id, name, icon, sort_order, tier, probability, is_winner }
+-->
+<view class="grid-container">
+  <view class="prize-grid">
+    <!-- 奖品区域0 - 左上角 -->
+    <view
+      class="prize-area {{currentHighlight === 0 ? 'highlighted' : ''}} {{winningIndex === 0 ? 'winning' : ''}}"
+      data-index="0"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[0].icon || '🎫'}}</text>
+        <text class="prize-name">{{prizes[0].name || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 奖品区域1 - 中上 -->
+    <view
+      class="prize-area {{currentHighlight === 1 ? 'highlighted' : ''}} {{winningIndex === 1 ? 'winning' : ''}}"
+      data-index="1"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[1].icon || '🎁'}}</text>
+        <text class="prize-name">{{prizes[1].name || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 奖品区域2 - 右上角 -->
+    <view
+      class="prize-area {{currentHighlight === 2 ? 'highlighted' : ''}} {{winningIndex === 2 ? 'winning' : ''}}"
+      data-index="2"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[2].icon || '🏆'}}</text>
+        <text class="prize-name">{{prizes[2].name || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 奖品区域7 - 左中 -->
+    <view
+      class="prize-area {{currentHighlight === 7 ? 'highlighted' : ''}} {{winningIndex === 7 ? 'winning' : ''}}"
+      data-index="7"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[7].icon || '💎'}}</text>
+        <text class="prize-name">{{prizes[7].name || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 中央抽奖按钮 -->
+    <view class="lottery-center-button">
+      <button
+        class="center-draw-btn {{isInProgress ? 'drawing' : ''}}"
+        disabled="{{isInProgress}}"
+        bindtap="onDraw"
+      >
+        <text class="btn-text">{{isInProgress ? '抽奖中...' : '开始抽奖'}}</text>
+      </button>
+    </view>
+
+    <!-- 奖品区域3 - 右中 -->
+    <view
+      class="prize-area {{currentHighlight === 3 ? 'highlighted' : ''}} {{winningIndex === 3 ? 'winning' : ''}}"
+      data-index="3"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[3].icon || '🎪'}}</text>
+        <text class="prize-name">{{prizes[3].name || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 奖品区域6 - 左下角 -->
+    <view
+      class="prize-area {{currentHighlight === 6 ? 'highlighted' : ''}} {{winningIndex === 6 ? 'winning' : ''}}"
+      data-index="6"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[6].icon || '🎊'}}</text>
+        <text class="prize-name">{{prizes[6].name || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 奖品区域5 - 中下 -->
+    <view
+      class="prize-area {{currentHighlight === 5 ? 'highlighted' : ''}} {{winningIndex === 5 ? 'winning' : ''}}"
+      data-index="5"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[5].icon || '🎉'}}</text>
+        <text class="prize-name">{{prizes[5].name || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 奖品区域4 - 右下角 -->
+    <view
+      class="prize-area {{currentHighlight === 4 ? 'highlighted' : ''}} {{winningIndex === 4 ? 'winning' : ''}}"
+      data-index="4"
+    >
+      <view class="prize-content">
+        <text class="prize-icon">{{prizes[4].icon || '🎈'}}</text>
+        <text class="prize-name">{{prizes[4].name || ''}}</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,117 @@
+﻿@import '../../../../styles/variables';
+
+.whackmole-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+.whack-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 560rpx;
+  margin-bottom: 20rpx;
+}
+
+.whack-title {
+  font-size: 30rpx;
+  color: #fff;
+  font-weight: bold;
+}
+
+.whack-stats {
+  display: flex;
+  gap: 20rpx;
+}
+
+.stat-score {
+  font-size: 26rpx;
+  color: #FFD700;
+}
+
+.stat-time {
+  font-size: 26rpx;
+  color: #FF6B6B;
+  font-weight: bold;
+}
+
+.mole-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 560rpx;
+  gap: 16rpx;
+  justify-content: center;
+}
+
+.mole-hole {
+  width: 160rpx;
+  height: 120rpx;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  &.active .mole {
+    animation: molePopUp 0.3s ease-out;
+  }
+}
+
+.hole-bg {
+  position: absolute;
+  bottom: 0;
+  width: 140rpx;
+  height: 40rpx;
+  background: radial-gradient(ellipse, #5D4037, #3E2723);
+  border-radius: 50%;
+}
+
+.mole {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 10rpx;
+}
+
+.mole-icon {
+  font-size: 60rpx;
+}
+
+.whack-effect {
+  position: absolute;
+  top: 0;
+  font-size: 32rpx;
+  opacity: 0;
+  animation: whackHit 0.3s ease-out;
+}
+
+.whack-start,
+.whack-result {
+  margin-top: 24rpx;
+  padding: 16rpx 48rpx;
+  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
+  border-radius: 40rpx;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.whack-result {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+}
+
+.whack-cost {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes molePopUp {
+  0% { transform: translateY(40rpx); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes whackHit {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2) translateY(-20rpx); }
+}

@@ -18,6 +18,7 @@ interface PointsTransaction {
   amount: number
   business_type: string
   description: string
+  balance_after: number
   created_at: string
 }
 
@@ -83,14 +84,14 @@ export const pointsStore = observable({
   setTransactions: action(function (
     this: any,
     transactions: PointsTransaction[],
-    pagination: { page: number; total: number; has_more: boolean }
+    pagination: { page: number; total: number; hasMore: boolean }
   ) {
     this.transactions = transactions
     this.transactionPagination = {
       page: pagination.page,
       pageSize: 20,
       total: pagination.total,
-      hasMore: pagination.has_more
+      hasMore: pagination.hasMore
     }
   }),
 
@@ -98,14 +99,14 @@ export const pointsStore = observable({
   appendTransactions: action(function (
     this: any,
     newTransactions: PointsTransaction[],
-    pagination: { page: number; total: number; has_more: boolean }
+    pagination: { page: number; total: number; hasMore: boolean }
   ) {
     this.transactions = [...this.transactions, ...newTransactions]
     this.transactionPagination = {
       page: pagination.page,
       pageSize: 20,
       total: pagination.total,
-      hasMore: pagination.has_more
+      hasMore: pagination.hasMore
     }
   }),
 
@@ -122,3 +123,4 @@ export const pointsStore = observable({
     this.transactionPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
   })
 })
+

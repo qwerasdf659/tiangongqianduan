@@ -115,7 +115,7 @@ Page({
         systemInfo = {}
       }
     }
-    const containerWidth = systemInfo.windowWidth - this.data.cardPadding * 2
+    const containerWidth = (systemInfo as any).windowWidth - this.data.cardPadding * 2
 
     this.setData({
       containerWidth,
@@ -124,7 +124,7 @@ Page({
     })
 
     console.log('📐 布局配置完成:', {
-      screenWidth: systemInfo.windowWidth,
+      screenWidth: (systemInfo as any).windowWidth,
       containerWidth,
       cardGap: this.data.cardGap
     })
@@ -138,7 +138,7 @@ Page({
 
     this.intersectionObserver = wx.createIntersectionObserver(this, {
       rootMargin: `${this.data.lazyLoadThreshold}px`
-    })
+    } as any)
 
     this.intersectionObserver.relativeToViewport().observe('.product-image', res => {
       if (res.intersectionRatio > 0) {
@@ -451,3 +451,5 @@ Page({
     this.setData({ showStatsModal: false })
   }
 })
+
+export {}

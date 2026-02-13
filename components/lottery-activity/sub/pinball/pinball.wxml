@@ -1,0 +1,39 @@
+<!-- 弹珠机抽奖组件 -->
+<view class="pinball-container">
+  <view class="pinball-title">
+    <text>弹珠机</text>
+  </view>
+
+  <view class="pinball-board">
+    <!-- 弹珠 -->
+    <view class="ball {{ballState}}"
+      style="left: {{ballLeft}}%; top: {{ballTop}}%;">
+      <text class="ball-icon">🔴</text>
+    </view>
+
+    <!-- 钉子装饰 -->
+    <view class="pegs">
+      <view class="peg" wx:for="{{15}}" wx:key="*this"
+        style="left: {{10 + (index % 5) * 20}}%; top: {{20 + Math.floor(index / 5) * 25}}%;"></view>
+    </view>
+
+    <!-- 底部槽位 -->
+    <view class="slots-row">
+      <view class="slot {{item.active ? 'active' : ''}}"
+        wx:for="{{slots}}" wx:key="index">
+        <text class="slot-icon">{{item.prize.icon || '🎁'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 发射按钮 -->
+  <view class="launch-btn {{ballState !== 'ready' ? 'disabled' : ''}}" bindtap="onLaunch">
+    <text wx:if="{{ballState === 'ready'}}">发射弹珠</text>
+    <text wx:elif="{{ballState === 'dropping'}}">掉落中...</text>
+    <text wx:else>已落入!</text>
+  </view>
+
+  <view class="pinball-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

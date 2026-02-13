@@ -6,7 +6,7 @@
  * 业务数据已迁移到MobX Store: store/user.ts, store/points.ts 等
  *
  * @file 天工餐厅积分系统 - 应用主入口
- * @version 3.0.0
+ * @version 4.0.0
  * @since 2026-02-10
  */
 
@@ -16,7 +16,7 @@ const {
   getWebSocketConfig,
   getCurrentEnv
 } = require('./config/env')
-const { initializeWechatEnvironment } = require('./utils/wechat')
+const { initializeWechatEnvironment } = require('./utils/index').Wechat
 
 // MobX Store引用 - 积分变化时同步更新Store
 const { pointsStore } = require('./store/points')
@@ -405,9 +405,9 @@ App({
   /** 获取微信系统信息（基础库2.20.1+新版API） */
   getSafeSystemInfo(): Record<string, any> {
     try {
-      const windowInfo = wx.getWindowInfoSync()
-      const deviceInfo = wx.getDeviceInfoSync()
-      const appBaseInfo = wx.getAppBaseInfoSync()
+      const windowInfo = wx.getWindowInfo()
+      const deviceInfo = wx.getDeviceInfo()
+      const appBaseInfo = wx.getAppBaseInfo()
 
       return { ...windowInfo, ...deviceInfo, ...appBaseInfo }
     } catch (error: any) {
@@ -473,7 +473,7 @@ App({
         resolve()
       })
 
-      wx.onSocketMessage((res: WechatMiniprogram.SocketTaskOnMessageCallbackResult) => {
+      wx.onSocketMessage((res: any) => {
         try {
           const message = JSON.parse(res.data as string)
           console.log('📨 统一WebSocket消息接收:', message)
@@ -493,7 +493,7 @@ App({
         this.handleUnifiedReconnect()
       })
 
-      wx.onSocketClose((res: WechatMiniprogram.SocketTaskOnCloseCallbackResult) => {
+      wx.onSocketClose((res: any) => {
         console.log('🔌 统一WebSocket连接关闭，状态码:', res.code)
         this.websocketData.connected = false
         this.websocketData.connecting = false
@@ -688,3 +688,5 @@ App({
     }
   }
 })
+
+export {}

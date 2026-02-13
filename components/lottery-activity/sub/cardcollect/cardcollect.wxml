@@ -1,0 +1,50 @@
+<!-- 集卡抽奖组件 -->
+<view class="cardcollect-container">
+  <!-- 进度 -->
+  <view class="collect-header">
+    <text class="collect-title">集卡册</text>
+    <text class="collect-progress">{{collectedCount}} / {{totalCards}}</text>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-bar">
+    <view class="progress-fill" style="width: {{collectedCount / totalCards * 100}}%;"></view>
+  </view>
+
+  <!-- 卡片网格 -->
+  <view class="card-grid">
+    <view class="card-slot {{item.collected ? 'collected' : ''}} {{item.isNew ? 'new-card' : ''}}"
+      wx:for="{{cards}}" wx:key="index">
+      <view class="card-inner">
+        <view class="card-face card-front" wx:if="{{item.collected}}">
+          <text class="card-icon">{{item.prize.icon || '🃏'}}</text>
+          <text class="card-name">{{item.prize.name || '卡片'}}</text>
+        </view>
+        <view class="card-face card-back" wx:else>
+          <text class="card-question">?</text>
+          <text class="card-num">No.{{item.index + 1}}</text>
+        </view>
+      </view>
+      <!-- 新卡标记 -->
+      <view class="new-badge" wx:if="{{item.isNew}}">
+        <text>NEW</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 抽卡按钮 -->
+  <view class="collect-btn {{state !== 'idle' ? 'disabled' : ''}}" bindtap="onDraw">
+    <text wx:if="{{state === 'idle'}}">抽取卡片</text>
+    <text wx:elif="{{state === 'flipping'}}">翻转中...</text>
+    <text wx:else>获得新卡!</text>
+  </view>
+
+  <view class="collect-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+
+  <!-- 集齐提示 -->
+  <view class="collect-complete" wx:if="{{collectedCount >= totalCards}}">
+    <text class="complete-text">恭喜集齐全套!</text>
+  </view>
+</view>

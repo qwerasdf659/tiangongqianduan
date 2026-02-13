@@ -1,0 +1,287 @@
+<!-- 抽奖结果弹窗 共享组件 -->
+<view class="result-modal gradient-card-modal" wx:if="{{visible}}">
+  <view class="modal-content gradient-card-container">
+    <!-- 右上角关闭按钮 -->
+    <view class="close-btn gradient-close" bindtap="onClose">
+      <text class="close-icon">✕</text>
+    </view>
+
+    <!-- 弹窗头部 - 卡片式设计 -->
+    <view class="result-header gradient-header-card">
+      <!-- 中奖状态标题卡片 -->
+      <view
+        class="title-card success-card"
+        wx:if="{{!drawResult.isError && !drawResult.isNotWinning}}"
+      >
+        <view class="title-icon">🎉</view>
+        <view class="title-content">
+          <text class="result-title">恭喜中奖！</text>
+          <text class="result-subtitle" wx:if="{{drawResult.isMultiDraw}}">
+            {{drawResult.drawCount}}连抽获得以下奖品
+          </text>
+          <text class="result-subtitle" wx:else>单次抽奖获得精美奖品</text>
+        </view>
+      </view>
+
+      <!-- 未中奖状态标题卡片 -->
+      <view class="title-card not-winning-card" wx:if="{{drawResult.isNotWinning}}">
+        <view class="title-icon not-winning-icon">💨</view>
+        <view class="title-content">
+          <text class="result-title not-winning-title">很遗憾，未中奖</text>
+          <text class="result-subtitle not-winning-subtitle">再接再厉，下次好运！</text>
+        </view>
+      </view>
+
+      <!-- 错误状态标题卡片 -->
+      <view class="title-card error-card" wx:if="{{drawResult.isError}}">
+        <view class="title-icon error-icon">❌</view>
+        <view class="title-content">
+          <text class="result-title error-title">{{drawResult.errorTitle}}</text>
+          <text class="result-subtitle error-subtitle">{{drawResult.errorDescription}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 弹窗主体 -->
+    <view class="result-body gradient-body-container">
+      <!-- ===== 任务10：烟花粒子特效（仅epic/legendary触发） ===== -->
+      <view
+        class="fireworks-container"
+        wx:if="{{winAnimation === 'fireworks' && !drawResult.isError && !drawResult.isNotWinning && (drawResult.prize.rarity === 'epic' || drawResult.prize.rarity === 'legendary')}}"
+      >
+        <view class="firework-particle fp-1"></view>
+        <view class="firework-particle fp-2"></view>
+        <view class="firework-particle fp-3"></view>
+        <view class="firework-particle fp-4"></view>
+        <view class="firework-particle fp-5"></view>
+        <view class="firework-particle fp-6"></view>
+        <view class="firework-particle fp-7"></view>
+        <view class="firework-particle fp-8"></view>
+        <view class="firework-particle fp-9"></view>
+        <view class="firework-particle fp-10"></view>
+        <view class="firework-particle fp-11"></view>
+        <view class="firework-particle fp-12"></view>
+        <view class="firework-particle fp-13"></view>
+        <view class="firework-particle fp-14"></view>
+        <view class="firework-particle fp-15"></view>
+        <view class="firework-particle fp-16"></view>
+        <view class="firework-particle fp-17"></view>
+        <view class="firework-particle fp-18"></view>
+        <view class="firework-particle fp-19"></view>
+        <view class="firework-particle fp-20"></view>
+      </view>
+
+      <!-- ===== 单次抽奖：card_flip 卡牌翻转模式（任务9） ===== -->
+      <view
+        class="card-flip-container single-prize-card"
+        wx:if="{{winAnimation === 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
+      >
+        <view
+          class="card-flip-card {{cardEntered ? 'card-entered' : ''}} {{cardFlipped ? 'card-flipped' : ''}}"
+          bindtap="onCardTap"
+        >
+          <!-- 卡牌背面：统一花纹 + ❓ -->
+          <view class="card-flip-back">
+            <view class="card-back-pattern">
+              <view class="card-back-border"></view>
+              <text class="card-back-icon">❓</text>
+              <text class="card-back-hint">点击翻转</text>
+            </view>
+          </view>
+          <!-- 卡牌正面：奖品信息 -->
+          <view class="card-flip-front">
+            <view class="prize-card-content">
+              <view class="winning-icon-container">
+                <text class="winning-icon">🎁</text>
+                <view class="icon-glow"></view>
+              </view>
+              <view class="winning-info">
+                <text class="winning-name">{{drawResult.prize.name}}</text>
+                <text class="winning-desc">{{drawResult.prize.description}}</text>
+              </view>
+              <view class="prize-card-decoration">
+                <view class="decoration-dot"></view>
+                <view class="decoration-dot"></view>
+                <view class="decoration-dot"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
+      <view
+        class="winning-prize-card single-prize-card"
+        wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
+      >
+        <view class="prize-card-bg">
+          <view class="prize-card-shine"></view>
+          <view class="prize-card-content">
+            <view class="winning-icon-container">
+              <text class="winning-icon">🎁</text>
+              <view class="icon-glow"></view>
+            </view>
+            <view class="winning-info">
+              <text class="winning-name">{{drawResult.prize.name}}</text>
+              <text class="winning-desc">{{drawResult.prize.description}}</text>
+            </view>
+            <view class="prize-card-decoration">
+              <view class="decoration-dot"></view>
+              <view class="decoration-dot"></view>
+              <view class="decoration-dot"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 未中奖提示卡片 -->
+      <view class="not-winning-detail-card single-prize-card" wx:if="{{drawResult.isNotWinning}}">
+        <view class="not-winning-card-bg">
+          <view class="not-winning-icon-container">
+            <text class="not-winning-icon-large">💨</text>
+          </view>
+          <view class="not-winning-info">
+            <text class="not-winning-message">{{drawResult.prize.description}}</text>
+            <text class="not-winning-encourage">继续努力，好运即将到来！</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 多连抽奖品逐个揭晓 -->
+      <view class="multi-prize-reveal" wx:if="{{drawResult.isMultiDraw && !drawResult.isError}}">
+        <!-- 进度指示器 -->
+        <view class="reveal-progress">
+          <text class="reveal-progress-text">
+            第 {{multiDrawCurrentIndex + 1}} 个 / 共 {{drawResult.prizes.length}} 个
+          </text>
+          <view class="reveal-progress-dots">
+            <view
+              class="progress-dot {{index <= multiDrawCurrentIndex ? 'revealed' : ''}}"
+              wx:for="{{drawResult.prizes}}"
+              wx:key="index"
+            ></view>
+          </view>
+        </view>
+
+        <!-- 当前奖品展示卡片 - card_flip翻转模式（任务9） -->
+        <view class="reveal-card-container" wx:if="{{winAnimation === 'card_flip'}}">
+          <view
+            class="card-flip-card {{cardEntered ? 'card-entered' : ''}} {{cardFlipped ? 'card-flipped' : ''}}"
+            bindtap="onCardTap"
+          >
+            <view class="card-flip-back">
+              <view class="card-back-pattern">
+                <view class="card-back-border"></view>
+                <text class="card-back-icon">❓</text>
+              </view>
+            </view>
+            <view class="card-flip-front">
+              <view class="reveal-card-content">
+                <view class="reveal-icon-container">
+                  <text
+                    class="reveal-prize-icon"
+                    wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
+                  >🎁</text>
+                  <text class="reveal-prize-icon not-winner" wx:else>💨</text>
+                  <view class="reveal-icon-glow"></view>
+                </view>
+                <view class="reveal-prize-info">
+                  <text class="reveal-prize-name">
+                    {{drawResult.prizes[multiDrawCurrentIndex].name}}
+                  </text>
+                  <text class="reveal-prize-desc">
+                    {{drawResult.prizes[multiDrawCurrentIndex].description}}
+                  </text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 当前奖品展示卡片 - simple默认模式（原有逻辑） -->
+        <view class="reveal-card-container" wx:else>
+          <view class="reveal-card {{multiDrawRevealing ? 'card-revealing' : 'card-revealed'}}">
+            <view class="reveal-card-front">
+              <view class="reveal-card-content">
+                <view class="reveal-icon-container">
+                  <text
+                    class="reveal-prize-icon"
+                    wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
+                  >🎁</text>
+                  <text class="reveal-prize-icon not-winner" wx:else>💨</text>
+                  <view class="reveal-icon-glow"></view>
+                </view>
+                <view class="reveal-prize-info">
+                  <text class="reveal-prize-name">
+                    {{drawResult.prizes[multiDrawCurrentIndex].name}}
+                  </text>
+                  <text class="reveal-prize-desc">
+                    {{drawResult.prizes[multiDrawCurrentIndex].description}}
+                  </text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 底部操作按钮 -->
+        <view class="reveal-actions">
+          <button
+            class="reveal-next-btn"
+            wx:if="{{multiDrawCurrentIndex < drawResult.prizes.length - 1}}"
+            bindtap="revealNextPrize"
+          >
+            <text class="reveal-next-text">🎲 揭晓下一个</text>
+          </button>
+          <view
+            class="reveal-complete-hint"
+            wx:if="{{multiDrawCurrentIndex >= drawResult.prizes.length - 1}}"
+          >
+            <text class="reveal-complete-text">🎉 全部揭晓完成！</text>
+          </view>
+        </view>
+
+        <!-- 已揭晓的奖品缩略列表 -->
+        <view class="revealed-prizes-list" wx:if="{{multiDrawCurrentIndex > 0}}">
+          <text class="revealed-list-title">已揭晓奖品：</text>
+          <view class="revealed-list-scroll">
+            <view
+              class="revealed-mini-card {{index === multiDrawCurrentIndex ? 'current' : ''}}"
+              wx:for="{{drawResult.prizes}}"
+              wx:key="index"
+              wx:if="{{index <= multiDrawCurrentIndex}}"
+              bindtap="switchToRevealedPrize"
+              data-index="{{index}}"
+            >
+              <text class="mini-card-icon">{{item.isWinner ? '🎁' : '💨'}}</text>
+              <text class="mini-card-name">{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 错误信息卡片 -->
+      <view class="error-info-card" wx:if="{{drawResult.isError}}">
+        <view class="error-card-bg">
+          <view class="error-icon-container">
+            <text class="error-icon">⚠️</text>
+          </view>
+          <view class="error-content">
+            <text class="error-message">{{drawResult.errorMessage}}</text>
+            <text class="error-suggestion">请检查网络连接或稍后重试</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 弹窗底部 - 确认按钮 -->
+    <view class="result-footer gradient-footer">
+      <button class="confirm-btn gradient-confirm-btn" bindtap="onClose">
+        <view class="btn-content">
+          <text class="btn-text">确认收下</text>
+          <text class="btn-icon">✨</text>
+        </view>
+      </button>
+    </view>
+  </view>
+</view>

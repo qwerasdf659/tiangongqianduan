@@ -209,7 +209,7 @@ class APIClient {
    * 处理响应数据 - V4.0统一响应格式
    * 增强: 429频率限制、503服务不可用、409自动重试
    */
-  handleResponse(response: any, requestOptions?: RequestOptions, requestUrl?: string): ApiResponse {
+  handleResponse(response: any, requestOptions?: RequestOptions, requestUrl?: string): ApiResponse | Promise<ApiResponse> {
     const { statusCode, data } = response
 
     // 401认证失败
@@ -446,6 +446,9 @@ class APIClient {
       }
     } catch (error) {
       console.error('❌ Token刷新失败:', error)
+      // 通知所有等待Token刷新的请求：刷新失败
+      this.refreshSubscribers.forEach(callback => callback(null))
+      this.refreshSubscribers = []
       this.handleTokenInvalid()
       throw error
     } finally {
@@ -541,20 +544,39 @@ async function getLotteryConfig(campaign_code: string): Promise<ApiResponse> {
 
 /** 执行抽奖 - 后端路由: POST /api/v4/lottery/draw */
 async function performLottery(campaign_code: string, draw_count: number = 1): Promise<ApiResponse> {
+  const idempotencyKey = `lottery_${campaign_code}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
   return apiClient.request('/lottery/draw', {
     method: 'POST',
     data: { campaign_code, draw_count },
+    needAuth: true,
+    header: { 'Idempotency-Key': idempotencyKey }
+  })
+}
+
+/**
+ * 获取当前用户抽奖历史（用户端，JWT解析身份）
+ * 后端路由: GET /api/v4/lottery/history
+ */
+async function getLotteryHistory(
+  page: number = 1,
+  limit: number = 20
+): Promise<ApiResponse> {
+  return apiClient.request(`/lottery/history?page=${page}&limit=${limit}`, {
+    method: 'GET',
     needAuth: true
   })
 }
 
-/** 获取用户抽奖历史 - 后端路由: GET /api/v4/lottery/history/:user_id */
-async function getLotteryHistory(
+/**
+ * 管理员查看指定用户抽奖历史（管理端，需admin权限）
+ * 后端路由: GET /api/v4/console/lottery-user-analysis/history/:user_id
+ */
+async function getAdminLotteryHistory(
   user_id: number,
   page: number = 1,
   limit: number = 20
 ): Promise<ApiResponse> {
-  return apiClient.request(`/lottery/history/${user_id}?page=${page}&limit=${limit}`, {
+  return apiClient.request(`/console/lottery-user-analysis/history/${user_id}?page=${page}&limit=${limit}`, {
     method: 'GET',
     needAuth: true
   })
@@ -584,7 +606,6 @@ async function getPointsBalance(asset_code: string = 'POINTS'): Promise<ApiRespo
 
 /** 获取用户资产流水 - 后端路由: GET /api/v4/assets/transactions */
 async function getPointsTransactions(
-  _user_id: number | null,
   page: number = 1,
   page_size: number = 20,
   asset_code: string | null = null,
@@ -814,8 +835,26 @@ async function sellFungibleAssets(params: Record<string, any>): Promise<ApiRespo
 // ==================== 🎫 消费积分系统API ====================
 // 后端路由: routes/v4/shop/consumption/
 
-/** 生成用户消费积分二维码 - 后端路由: GET /api/v4/shop/consumption/qrcode/:user_id */
-async function getUserQRCode(user_id: number): Promise<ApiResponse> {
+/**
+ * 获取当前用户消费积分二维码（用户端，JWT解析身份）
+ * 后端路由: GET /api/v4/shop/consumption/qrcode
+ */
+async function getUserQRCode(): Promise<ApiResponse> {
+  return apiClient.request('/shop/consumption/qrcode', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '生成二维码中...',
+    showError: true,
+    errorPrefix: '二维码生成失败：'
+  })
+}
+
+/**
+ * 管理员查看指定用户消费积分二维码（管理端，需admin权限）
+ * 后端路由: GET /api/v4/console/consumption/qrcode/:user_id
+ */
+async function getAdminUserQRCode(user_id: number): Promise<ApiResponse> {
   if (!user_id) {
     throw new Error('用户ID不能为空')
   }
@@ -823,7 +862,7 @@ async function getUserQRCode(user_id: number): Promise<ApiResponse> {
     throw new Error('用户ID必须是正整数')
   }
 
-  return apiClient.request(`/shop/consumption/qrcode/${user_id}`, {
+  return apiClient.request(`/console/consumption/qrcode/${user_id}`, {
     method: 'GET',
     needAuth: true,
     showLoading: true,
@@ -1139,20 +1178,42 @@ async function getUserMe(): Promise<ApiResponse> {
 
 // ==================== 📊 用户统计API ====================
 
-/** 获取用户综合统计数据 - 后端路由: GET /api/v4/system/user/statistics/:user_id */
-async function getUserStatistics(user_id: number): Promise<ApiResponse> {
-  if (!user_id) {
-    throw new Error('用户ID不能为空')
-  }
-  return apiClient.request(`/system/user/statistics/${user_id}`, { method: 'GET', needAuth: true })
+/**
+ * 获取当前用户综合统计数据（用户端，JWT解析身份）
+ * 后端路由: GET /api/v4/lottery/points
+ */
+async function getUserStatistics(): Promise<ApiResponse> {
+  return apiClient.request('/lottery/points', { method: 'GET', needAuth: true })
 }
 
-/** 获取用户抽奖维度统计 - 后端路由: GET /api/v4/lottery/statistics/:user_id */
-async function getLotteryUserStatistics(user_id: number): Promise<ApiResponse> {
+/**
+ * 管理员查看指定用户综合统计（管理端，需admin权限）
+ * 后端路由: GET /api/v4/console/lottery-user-analysis/points/:user_id
+ */
+async function getAdminUserStatistics(user_id: number): Promise<ApiResponse> {
   if (!user_id) {
     throw new Error('用户ID不能为空')
   }
-  return apiClient.request(`/lottery/statistics/${user_id}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/console/lottery-user-analysis/points/${user_id}`, { method: 'GET', needAuth: true })
+}
+
+/**
+ * 获取当前用户抽奖维度统计（用户端，JWT解析身份）
+ * 后端路由: GET /api/v4/lottery/statistics
+ */
+async function getLotteryUserStatistics(): Promise<ApiResponse> {
+  return apiClient.request('/lottery/statistics', { method: 'GET', needAuth: true })
+}
+
+/**
+ * 管理员查看指定用户抽奖维度统计（管理端，需admin权限）
+ * 后端路由: GET /api/v4/console/lottery-user-analysis/statistics/:user_id
+ */
+async function getAdminLotteryUserStatistics(user_id: number): Promise<ApiResponse> {
+  if (!user_id) {
+    throw new Error('用户ID不能为空')
+  }
+  return apiClient.request(`/console/lottery-user-analysis/statistics/${user_id}`, { method: 'GET', needAuth: true })
 }
 
 /**
@@ -1296,8 +1357,10 @@ module.exports = {
   getMarketFacets,
   sellFungibleAssets,
 
-  // 消费积分系统
+  // 消费积分系统（用户端）
   getUserQRCode,
+  // 消费积分系统（管理端）
+  getAdminUserQRCode,
   getUserInfoByQRCode,
   submitConsumption,
   getMyConsumptionRecords,
@@ -1329,9 +1392,14 @@ module.exports = {
   // 用户
   getUserMe,
 
-  // 用户统计
+  // 用户统计（用户端，JWT解析身份）
   getUserStatistics,
   getLotteryUserStatistics,
+
+  // 管理员查看用户数据（console域，需admin权限）
+  getAdminLotteryHistory,
+  getAdminUserStatistics,
+  getAdminLotteryUserStatistics,
 
   // 商家核销
   fulfillRedemption,
@@ -1349,3 +1417,5 @@ module.exports = {
   lastUpdated: '2026-02-10T00:00:00+08:00',
   apiCompatibility: 'V4.7.0后端对齐+V2动态二维码+幂等键+门店选择+精细化错误码'
 }
+
+export {}

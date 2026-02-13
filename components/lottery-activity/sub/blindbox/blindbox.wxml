@@ -1,0 +1,36 @@
+<!-- 虚拟盲盒抽奖组件 -->
+<view class="blindbox-container">
+  <view class="blindbox-title">
+    <text>点击盲盒 开启惊喜</text>
+  </view>
+
+  <view class="blindbox-stage">
+    <view class="blindbox-box {{boxStyle}} {{boxState}}" bindtap="onTapBox">
+      <!-- 盒盖 -->
+      <view class="box-lid">
+        <text class="lid-icon">📦</text>
+      </view>
+      <!-- 盒身 -->
+      <view class="box-body">
+        <view class="box-question" wx:if="{{boxState !== 'opened'}}">
+          <text>?</text>
+        </view>
+        <view class="box-prize" wx:else>
+          <text class="prize-glow">✨</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 晃动提示 -->
+    <view class="shake-hint" wx:if="{{boxState === 'idle'}}">
+      <text>点击开启</text>
+    </view>
+    <view class="shake-progress" wx:elif="{{boxState === 'shaking'}}">
+      <text>晃动中... {{shakeCount}}</text>
+    </view>
+  </view>
+
+  <view class="blindbox-cost" wx:if="{{costPoints > 0}}">
+    <text>消耗 {{costPoints}} 积分</text>
+  </view>
+</view>

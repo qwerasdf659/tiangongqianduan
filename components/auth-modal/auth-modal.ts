@@ -475,3 +475,5 @@ Component({
     }
   }
 })
+
+export {}

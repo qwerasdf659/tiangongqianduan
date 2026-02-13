@@ -245,3 +245,5 @@ module.exports = {
   navigateTo: WechatUtils.navigateTo,
   navigateBack: WechatUtils.navigateBack
 }
+
+export {}

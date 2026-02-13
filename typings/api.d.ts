@@ -70,16 +70,18 @@ declare namespace API {
 
   // ===== 抽奖系统 =====
 
-  /** 奖品信息 */
+  /** 奖品信息（后端 DataSanitizer.sanitizePrizes 输出） */
   interface Prize {
     id: number
     name: string
+    type: string
     icon: string
+    rarity: string
+    available: boolean
+    display_points: number
+    display_value: string
+    status: string
     sort_order: number
-    tier: string
-    probability: number
-    is_winner: boolean
-    description?: string
   }
 
   /** 抽奖配置 */
@@ -111,9 +113,19 @@ declare namespace API {
     guaranteed_tier: string
   }
 
-  /** 抽奖结果 */
+  /** 抽奖结果（单抽和连抽统一结构） */
   interface DrawResult {
+    campaign_code: string
+    lottery_session_id: string
     prizes: Prize[]
+    total_points_cost: number
+    original_cost: number
+    discount: number
+    saved_points: number
+    remaining_balance: number
+    draw_count: number
+    draw_type: string
+    guarantee_info?: GuaranteeInfo | null
   }
 
   // ===== 资产系统 =====

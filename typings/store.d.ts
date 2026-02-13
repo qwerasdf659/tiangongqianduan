@@ -39,8 +39,8 @@ declare namespace Store {
     readonly formattedBalance: string
     setBalance(availableAmount: number, frozenAmount: number): void
     setBalanceLoading(loading: boolean): void
-    setTransactions(transactions: API.AssetTransaction[], pagination: any): void
-    appendTransactions(transactions: API.AssetTransaction[], pagination: any): void
+    setTransactions(transactions: API.AssetTransaction[], pagination: PaginationParam): void
+    appendTransactions(transactions: API.AssetTransaction[], pagination: PaginationParam): void
     setTransactionsLoading(loading: boolean): void
     clearPoints(): void
   }
@@ -74,9 +74,9 @@ declare namespace Store {
     recordPagination: PaginationState
     productsLoading: boolean
     recordsLoading: boolean
-    setProducts(products: API.ExchangeProduct[], pagination: any): void
-    appendProducts(products: API.ExchangeProduct[], pagination: any): void
-    setRecords(records: API.ExchangeOrder[], pagination: any): void
+    setProducts(products: API.ExchangeProduct[], pagination: PaginationParam): void
+    appendProducts(products: API.ExchangeProduct[], pagination: PaginationParam): void
+    setRecords(records: API.ExchangeOrder[], pagination: PaginationParam): void
     setFilter(space: string | null, category: string | null): void
     setProductsLoading(loading: boolean): void
     setRecordsLoading(loading: boolean): void
@@ -91,8 +91,8 @@ declare namespace Store {
     marketPagination: PaginationState
     marketLoading: boolean
     inventoryLoading: boolean
-    setMarketListings(listings: API.MarketListing[], pagination: any): void
-    appendMarketListings(listings: API.MarketListing[], pagination: any): void
+    setMarketListings(listings: API.MarketListing[], pagination: PaginationParam): void
+    appendMarketListings(listings: API.MarketListing[], pagination: PaginationParam): void
     setInventoryItems(items: API.BackpackItem[]): void
     setMyListings(listings: any[]): void
     setMarketLoading(loading: boolean): void
@@ -107,4 +107,12 @@ declare namespace Store {
     total: number
     hasMore: boolean
   }
+
+  /** 分页参数（Store方法接收的分页入参） */
+  interface PaginationParam {
+    page: number
+    total: number
+    hasMore: boolean
+  }
 }
+

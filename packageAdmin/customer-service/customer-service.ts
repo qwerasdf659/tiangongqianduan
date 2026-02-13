@@ -498,7 +498,7 @@ Page({
               // 格式化时间显示
               const date = new Date(lastMessageTime)
               const now = new Date()
-              const diffMs = now - date
+              const diffMs = now.getTime() - date.getTime()
               const diffMins = Math.floor(diffMs / (1000 * 60))
 
               if (diffMins < 1) {
@@ -877,7 +877,7 @@ Page({
       console.log('🔡 [DEBUG] WebSocket连接状态:', this.data.wsConnected)
       console.log(
         '🔡 [DEBUG] WebSocket实例状态:',
-        wx.getSocketState ? wx.getSocketState() : '不支持状态查询'
+        (wx as any).getSocketState ? (wx as any).getSocketState() : '不支持状态查询'
       )
 
       // 修复：检查WebSocket连接状态
@@ -1167,7 +1167,7 @@ Page({
     console.log('🔡 [DEBUG] WebSocket连接状态:', this.data.wsConnected)
     console.log('🔡 [DEBUG] 重连次数:', this.data.reconnectCount)
 
-    const wsStatus = wx.getSocketState ? wx.getSocketState() : '不支持状态查询'
+    const wsStatus = (wx as any).getSocketState ? (wx as any).getSocketState() : '不支持状态查询'
     console.log('🔡 [DEBUG] WebSocket系统状态:', wsStatus)
 
     wx.showModal({
@@ -1528,3 +1528,5 @@ WebSocket: ${this.data.wsConnected ? '已连接' : '未连接'}
 
   // =================== 调试功能区域结束 ===================
 })
+
+export {}
