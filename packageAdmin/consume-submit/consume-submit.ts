@@ -14,12 +14,13 @@
  * - 备注限制：从200字升级为500字
  * - 精细化错误处理：12种错误码映射，替代粗粒度字符串匹配
  *
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
 // 统一使用utils/index.ts导入工具函数
-const { API, Utils } = require('../../utils/index')
+const { API, Utils, Logger } = require('../../utils/index')
+const log = Logger.createLogger('consume-submit')
 const { checkAuth } = Utils
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
@@ -59,11 +60,11 @@ Page({
    * options.qrCode - 扫描到的V2动态二维码字符串（URL编码）
    */
   onLoad(options) {
-    console.log('📋 消费录入页面加载，参数:', options)
+    log.info('📋 消费录入页面加载，参数:', options)
 
     // 权限验证：必须已登录
     if (!checkAuth()) {
-      console.error('❌ 用户未登录，跳转到登录页')
+      log.error('❌ 用户未登录，跳转到登录页')
       return
     }
 
@@ -80,7 +81,7 @@ Page({
     const hasAccess = roleLevel >= 20 || userInfo?.is_admin === true
 
     if (!hasAccess) {
-      console.error('❌ 用户无商家权限，role_level:', roleLevel)
+      log.error('❌ 用户无商家权限，role_level:', roleLevel)
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面，仅商家员工和管理员可录入消费。',
@@ -94,7 +95,7 @@ Page({
 
     // 获取二维码参数
     if (!options.qrCode) {
-      console.error('❌ 缺少二维码参数')
+      log.error('❌ 缺少二维码参数')
       wx.showModal({
         title: '参数错误',
         content: '缺少二维码参数，请重新扫码。',
@@ -108,7 +109,7 @@ Page({
 
     // URL解码二维码
     const qrCode = decodeURIComponent(options.qrCode)
-    console.log('✅ V2二维码解码成功:', qrCode)
+    log.info('✅ V2二维码解码成功:', qrCode)
 
     this.setData({ qrCode })
 
@@ -132,7 +133,7 @@ Page({
     this.setData({ userInfoLoading: true })
 
     try {
-      console.log('🔍 开始获取用户信息，二维码:', this.data.qrCode)
+      log.info('🔍 开始获取用户信息，二维码:', this.data.qrCode)
 
       // 调用后端API：传入 store_id（如果已选择门店）
       const result = await API.getUserInfoByQRCode(this.data.qrCode, this.data.storeId)
@@ -142,17 +143,17 @@ Page({
           userInfo: result.data,
           userInfoLoading: false
         })
-        console.log('✅ 用户信息加载成功:', result.data)
+        log.info('✅ 用户信息加载成功:', result.data)
       } else {
         throw new Error(result.message || '获取用户信息失败')
       }
     } catch (error) {
-      console.error('❌ 加载用户信息失败:', error)
+      log.error('❌ 加载用户信息失败:', error)
 
       // 处理 MULTIPLE_STORES_REQUIRE_STORE_ID 错误：弹出门店选择
       if (error.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
         const availableStores = (error.data && error.data.available_stores) || []
-        console.log('🏪 多门店员工，需要选择门店:', availableStores)
+        log.info('🏪 多门店员工，需要选择门店:', availableStores)
 
         this.setData({
           storeList: availableStores,
@@ -196,7 +197,7 @@ Page({
   onStoreChange(e) {
     const index = parseInt(e.detail.value, 10)
     const store = this.data.storeList[index]
-    console.log('🏪 选择门店:', store)
+    log.info('🏪 选择门店:', store)
 
     this.setData({
       storeIndex: index,
@@ -240,7 +241,7 @@ Page({
   async onSubmit() {
     // 防止重复提交
     if (this.data.loading || this.data.submitted) {
-      console.warn('⚠️ 请勿重复提交')
+      log.warn('⚠️ 请勿重复提交')
       return
     }
 
@@ -292,7 +293,7 @@ Page({
     })
 
     if (!confirmResult) {
-      console.log('ℹ️ 用户取消提交')
+      log.info('ℹ️ 用户取消提交')
       return
     }
 
@@ -300,7 +301,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      console.log('📤 开始提交消费记录...')
+      log.info('📤 开始提交消费记录...')
 
       const result = await API.submitConsumption({
         qr_code: this.data.qrCode,
@@ -309,7 +310,7 @@ Page({
         merchant_notes: this.data.merchantNotes || undefined
       })
 
-      console.log('✅ 提交成功:', result)
+      log.info('✅ 提交成功:', result)
 
       // 标记已提交（防止重复提交）
       this.setData({ submitted: true })
@@ -327,7 +328,7 @@ Page({
         }
       })
     } catch (error) {
-      console.error('❌ 提交失败:', error)
+      log.error('❌ 提交失败:', error)
       this.handleSubmitError(error)
     } finally {
       this.setData({ loading: false })
@@ -414,21 +415,21 @@ Page({
    * 页面显示
    */
   onShow() {
-    console.log('📋 消费录入页面显示')
+    log.info('📋 消费录入页面显示')
   },
 
   /**
    * 页面隐藏
    */
   onHide() {
-    console.log('📋 消费录入页面隐藏')
+    log.info('📋 消费录入页面隐藏')
   },
 
   /**
    * 页面卸载
    */
   onUnload() {
-    console.log('📋 消费录入页面卸载')
+    log.info('📋 消费录入页面卸载')
     // 🆕 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()

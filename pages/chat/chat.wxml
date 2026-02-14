@@ -7,180 +7,101 @@
       <input
         class="search-input"
         placeholder="搜索聊天记录"
+        placeholder-class="search-placeholder"
         value="{{searchKeyword}}"
         bindinput="onSearchInput"
       />
-      <view wx:if="{{searchKeyword}}" class="clear-search" bindtap="clearSearch">×</view>
+      <view wx:if="{{searchKeyword}}" class="clear-search" bindtap="clearSearch">✕</view>
     </view>
     <view class="new-chat-btn" bindtap="startNewChat">
       <text class="new-chat-icon">✚</text>
     </view>
   </view>
 
-  <!-- 会话列表 -->
+  <!-- 会话列表主体 -->
   <scroll-view
     class="sessions-list"
     scroll-y="{{true}}"
     enhanced="{{true}}"
     show-scrollbar="{{false}}"
   >
-    <!-- 在线客服会话 -->
-    <view class="session-item active-session" bindtap="enterCustomerService">
-      <view class="session-avatar customer-service-avatar">
-        <view class="avatar-bg">
-          <text class="avatar-icon">🎧</text>
+    <!-- ===== 状态1：加载中 - 骨架屏 ===== -->
+    <block wx:if="{{sessionLoadStatus === 'loading'}}">
+      <view
+        wx:for="{{[1,2,3,4,5,6]}}"
+        wx:key="*this"
+        class="session-skeleton"
+        style="animation-delay: {{index * 80}}ms;"
+      >
+        <view class="skeleton-avatar shimmer"></view>
+        <view class="skeleton-content">
+          <view class="skeleton-line skeleton-line-name shimmer"></view>
+          <view class="skeleton-line skeleton-line-msg shimmer"></view>
         </view>
-        <view class="online-indicator"></view>
+        <view class="skeleton-time shimmer"></view>
       </view>
-      <view class="session-content">
-        <view class="session-info">
-          <text class="session-name">在线客服</text>
-          <text class="session-time">刚刚</text>
-        </view>
-        <view class="session-preview">
-          <text class="last-message"
-            >{{customerServicePreview || '您好！有什么可以帮助您的吗？'}}</text
-          >
-          <view wx:if="{{customerServiceUnread > 0}}" class="unread-count"
-            >{{customerServiceUnread}}</view
-          >
-        </view>
+    </block>
+
+    <!-- ===== 状态2：加载失败 - 错误+重试 ===== -->
+    <view wx:elif="{{sessionLoadStatus === 'error'}}" class="error-state">
+      <view class="error-icon-wrapper">
+        <text class="error-icon-text">📡</text>
+      </view>
+      <text class="error-title">会话加载失败</text>
+      <text class="error-desc">请检查网络连接后重试</text>
+      <view class="retry-btn" bindtap="retryLoadSession">
+        <text class="retry-btn-text">重新加载</text>
       </view>
     </view>
 
-    <!-- 系统通知会话 -->
-    <view class="session-item" bindtap="enterSystemNotify">
-      <view class="session-avatar system-avatar">
-        <view class="avatar-bg system-bg">
-          <text class="avatar-icon">🔔</text>
+    <!-- ===== 状态3：加载成功 - 会话列表 ===== -->
+    <block wx:else>
+      <view
+        wx:for="{{sessionChannels}}"
+        wx:key="type"
+        class="session-item {{index === 0 && item.isOnline ? 'active-session' : ''}}"
+        data-type="{{item.type}}"
+        bindtap="onSessionTap"
+        style="animation-delay: {{index * 60}}ms;"
+      >
+        <!-- 头像区域 -->
+        <view class="session-avatar">
+          <view class="avatar-bg {{item.avatarClass}}-bg">
+            <text class="avatar-icon">{{item.icon}}</text>
+          </view>
+          <view wx:if="{{item.isOnline}}" class="online-indicator"></view>
         </view>
-      </view>
-      <view class="session-content">
-        <view class="session-info">
-          <text class="session-name">系统通知</text>
-          <text class="session-time">{{systemNotifyTime || '今天'}}</text>
-        </view>
-        <view class="session-preview">
-          <text class="last-message">{{systemNotifyPreview || '欢迎使用天工积分系统'}}</text>
-          <view wx:if="{{systemNotifyUnread > 0}}" class="unread-count"
-            >{{systemNotifyUnread}}</view
-          >
-        </view>
-      </view>
-    </view>
 
-    <!-- AI助手会话 -->
-    <view class="session-item" bindtap="enterAIAssistant">
-      <view class="session-avatar ai-avatar">
-        <view class="avatar-bg ai-bg">
-          <text class="avatar-icon">🤖</text>
+        <!-- 会话内容 -->
+        <view class="session-content">
+          <view class="session-info">
+            <text class="session-name">{{item.name}}</text>
+            <text wx:if="{{item.time}}" class="session-time">{{item.time}}</text>
+          </view>
+          <view class="session-preview">
+            <text class="last-message">{{item.preview}}</text>
+            <view wx:if="{{item.unread > 0}}" class="unread-count">
+              {{item.unread > 99 ? '99+' : item.unread}}
+            </view>
+          </view>
         </view>
-      </view>
-      <view class="session-content">
-        <view class="session-info">
-          <text class="session-name">AI助手</text>
-          <text class="session-time">{{aiAssistantTime || '昨天'}}</text>
-        </view>
-        <view class="session-preview">
-          <text class="last-message"
-            >{{aiAssistantPreview || '我是您的专属AI助手，随时为您解答问题'}}</text
-          >
-          <view wx:if="{{aiAssistantUnread > 0}}" class="unread-count">{{aiAssistantUnread}}</view>
-        </view>
-      </view>
-    </view>
 
-    <!-- 技术支持会话 -->
-    <view class="session-item" bindtap="enterTechSupport">
-      <view class="session-avatar tech-avatar">
-        <view class="avatar-bg tech-bg">
-          <text class="avatar-icon">🛠️</text>
-        </view>
+        <!-- 右箭头 -->
+        <view class="session-arrow">›</view>
       </view>
-      <view class="session-content">
-        <view class="session-info">
-          <text class="session-name">技术支持</text>
-          <text class="session-time">{{techSupportTime || '2天前'}}</text>
-        </view>
-        <view class="session-preview">
-          <text class="last-message">{{techSupportPreview || '技术问题请咨询我们的专业团队'}}</text>
-          <view wx:if="{{techSupportUnread > 0}}" class="unread-count">{{techSupportUnread}}</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 活动咨询会话 -->
-    <view class="session-item" bindtap="enterActivityConsult">
-      <view class="session-avatar activity-avatar">
-        <view class="avatar-bg activity-bg">
-          <text class="avatar-icon">🎉</text>
-        </view>
-      </view>
-      <view class="session-content">
-        <view class="session-info">
-          <text class="session-name">活动咨询</text>
-          <text class="session-time">{{activityConsultTime || '3天前'}}</text>
-        </view>
-        <view class="session-preview">
-          <text class="last-message">{{activityConsultPreview || '最新活动信息和优惠详情'}}</text>
-          <view wx:if="{{activityConsultUnread > 0}}" class="unread-count"
-            >{{activityConsultUnread}}</view
-          >
-        </view>
-      </view>
-    </view>
-
-    <!-- 反馈建议会话 -->
-    <view class="session-item" bindtap="enterFeedback">
-      <view class="session-avatar feedback-avatar">
-        <view class="avatar-bg feedback-bg">
-          <text class="avatar-icon">💬</text>
-        </view>
-      </view>
-      <view class="session-content">
-        <view class="session-info">
-          <text class="session-name">反馈建议</text>
-          <text class="session-time">{{feedbackTime || '1周前'}}</text>
-        </view>
-        <view class="session-preview">
-          <text class="last-message">{{feedbackPreview || '您的宝贵意见是我们改进的动力'}}</text>
-          <view wx:if="{{feedbackUnread > 0}}" class="unread-count">{{feedbackUnread}}</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 加载更多 -->
-    <view wx:if="{{loading}}" class="loading-more">
-      <text class="loading-text">加载更多会话...</text>
-    </view>
-
-    <!-- 空状态 -->
-    <view wx:if="{{!hasSession && !loading}}" class="empty-sessions">
-      <view class="empty-icon">💭</view>
-      <text class="empty-text">暂无聊天记录</text>
-      <button class="start-chat-btn" bindtap="startNewChat">开始聊天</button>
-    </view>
+    </block>
   </scroll-view>
-
-  <!-- 底部工具栏 -->
-  <view class="bottom-toolbar single-tab">
-    <view class="toolbar-item active" data-tab="messages">
-      <text class="toolbar-icon">💬</text>
-      <text class="toolbar-label">消息</text>
-      <view wx:if="{{totalUnreadCount > 0}}" class="total-unread"
-        >{{totalUnreadCount > 99 ? '99+' : totalUnreadCount}}
-      </view>
-    </view>
-  </view>
 </view>
 
-<!-- 聊天弹窗 -->
+<!-- ===== 聊天弹窗（全屏覆盖） ===== -->
 <view class="chat-modal {{showChatModal ? 'show' : ''}}" bindtap="onModalMaskTap">
   <view class="modal-content" catchtap="onModalContentTap">
     <!-- 聊天头部 -->
     <view class="chat-header">
       <view class="header-left">
-        <text class="back-btn" bindtap="closeChatModal">←</text>
+        <view class="back-btn-wrapper" bindtap="closeChatModal">
+          <text class="back-btn">←</text>
+        </view>
         <view class="current-session-avatar">
           <view class="avatar-bg {{currentChatType}}-bg">
             <text class="avatar-icon">{{currentChatIcon}}</text>
@@ -193,7 +114,9 @@
         </view>
       </view>
       <view class="header-right">
-        <text class="more-btn" bindtap="showChatMenu">⋯</text>
+        <view class="more-btn-wrapper" bindtap="showChatMenu">
+          <text class="more-btn">⋯</text>
+        </view>
       </view>
     </view>
 
@@ -207,9 +130,32 @@
       show-scrollbar="{{false}}"
       catchtap="onMessagesAreaTap"
     >
-      <!-- 历史消息加载 -->
+      <!-- 历史消息加载中 -->
       <view wx:if="{{isLoadingHistory}}" class="loading-history">
+        <view class="loading-spinner small"></view>
         <text class="loading-text">加载历史消息...</text>
+      </view>
+
+      <!-- 聊天空状态（无历史消息） -->
+      <view
+        wx:if="{{chatLoadStatus === 'empty' && messages.length === 0 && !isLoadingHistory}}"
+        class="chat-empty-state"
+      >
+        <view class="chat-empty-icon-wrapper">
+          <text class="chat-empty-icon">💬</text>
+        </view>
+        <text class="chat-empty-title">暂无消息记录</text>
+        <text class="chat-empty-desc">发送消息开始对话</text>
+      </view>
+
+      <!-- 聊天加载失败 -->
+      <view
+        wx:if="{{chatLoadStatus === 'error' && messages.length === 0 && !isLoadingHistory}}"
+        class="chat-error-state"
+      >
+        <text class="chat-error-icon">⚠️</text>
+        <text class="chat-error-text">消息加载失败</text>
+        <text class="chat-error-desc">请检查网络后重试</text>
       </view>
 
       <!-- 消息列表 -->
@@ -220,7 +166,9 @@
       >
         <!-- 时间分割线 -->
         <view wx:if="{{item.showTime}}" class="time-divider">
+          <view class="time-line"></view>
           <text class="time-text">{{item.timeText}}</text>
+          <view class="time-line"></view>
         </view>
 
         <!-- 消息内容 -->
@@ -239,9 +187,8 @@
               wx:if="{{item.messageType === 'text'}}"
               class="message-text"
               user-select="{{true}}"
+              >{{item.content}}</text
             >
-              {{item.content}}
-            </text>
 
             <!-- 图片消息 -->
             <image
@@ -254,9 +201,9 @@
             ></image>
 
             <!-- 系统消息 -->
-            <text wx:if="{{item.messageType === 'system'}}" class="system-message">
-              {{item.content}}
-            </text>
+            <text wx:if="{{item.messageType === 'system'}}" class="system-message"
+              >{{item.content}}</text
+            >
           </view>
 
           <!-- 消息状态 -->
@@ -270,7 +217,7 @@
         </view>
       </view>
 
-      <!-- 输入状态 -->
+      <!-- 输入状态指示器 -->
       <view wx:if="{{showTypingIndicator}}" class="typing-indicator">
         <view class="typing-avatar">
           <view class="avatar-bg {{currentChatType}}-bg">
@@ -293,22 +240,25 @@
 
     <!-- 输入区域 -->
     <view class="chat-input-area" catchtap="onInputAreaTap">
-      <!-- 工具栏 -->
       <view class="input-toolbar" catchtap="onInputToolbarTap">
         <view class="toolbar-actions">
-          <!-- 决策3：聊天发图片功能暂不可用，点击提示用户 -->
-          <text class="action-btn" style="opacity: 0.5" bindtap="sendImage">📷</text>
-          <text class="action-btn" bindtap="sendLocation">📍</text>
-          <text class="action-btn" bindtap="sendFile">📎</text>
+          <view class="action-btn disabled" bindtap="sendImage">
+            <text class="action-btn-icon">📷</text>
+          </view>
+          <view class="action-btn" bindtap="sendLocation">
+            <text class="action-btn-icon">📍</text>
+          </view>
+          <view class="action-btn" bindtap="sendFile">
+            <text class="action-btn-icon">📎</text>
+          </view>
         </view>
 
-        <!-- 输入框区域 -->
         <view class="input-section" catchtap="onInputWrapperTap">
-          <!-- 输入框 -->
           <view class="input-wrapper">
             <textarea
               class="message-input"
               placeholder="输入消息..."
+              placeholder-class="input-placeholder"
               value="{{inputContent}}"
               bindinput="onInputChange"
               bindfocus="onInputFocus"
@@ -319,7 +269,6 @@
               catchtap="onTextareaTap"
             >
             </textarea>
-            <!-- 内置发送按钮 -->
             <view
               class="inline-send-btn {{inputContent.trim() ? 'active' : 'inactive'}}"
               catchtap="onInlineSendTap"
@@ -327,17 +276,6 @@
               <text class="send-text">发送</text>
             </view>
           </view>
-        </view>
-
-        <!-- 原有发送按钮（保留作为备用） -->
-        <view class="send-wrapper" catchtap="onSendWrapperTap" style="display: none">
-          <button
-            class="send-btn {{inputContent.trim() ? 'active' : 'inactive'}}"
-            disabled="{{!inputContent.trim()}}"
-            bindtap="sendMessage"
-          >
-            <text class="send-icon">➤</text>
-          </button>
         </view>
       </view>
     </view>

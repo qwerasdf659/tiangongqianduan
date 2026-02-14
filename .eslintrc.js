@@ -133,6 +133,14 @@ module.exports = {
       }
     },
     {
+      // TypeScript声明文件 - 关闭no-undef（.d.ts中的declare namespace引用由TS编译器保证正确性）
+      files: ['**/*.d.ts'],
+      rules: {
+        'no-undef': 'off',
+        'init-declarations': 'off'
+      }
+    },
+    {
       // TypeScript文件 - 使用@typescript-eslint解析器
       files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
@@ -151,7 +159,8 @@ module.exports = {
             vars: 'all',
             args: 'after-used',
             ignoreRestSiblings: true,
-            argsIgnorePattern: '^_'
+            argsIgnorePattern: '^_',
+            caughtErrorsIgnorePattern: '^_'
           }
         ],
         // 关闭ESLint原生no-shadow，使用@typescript-eslint版本（避免interface误报）

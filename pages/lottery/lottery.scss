@@ -32,7 +32,7 @@
 /* 🎨 优化页面头部设计 - 融入背景 */
 .header {
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 0 24rpx;
   margin: 0 0 25rpx 0;
   box-shadow:
@@ -91,7 +91,7 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 700;
   color: $color-text-white;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
@@ -131,7 +131,7 @@
 
 /* 积分数字 - 多级响应式字体（支持超长数字） */
 .points-number {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 800;
   color: #ffd700;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
@@ -156,7 +156,7 @@
 
 /* 积分图标 */
 .points-icon {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   opacity: 0.9;
 }
 
@@ -164,10 +164,7 @@
 
 /* 右侧：二维码区域（纯净版，无额外文字） */
 .qrcode-section-inline {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   flex-shrink: 0;
 }
 
@@ -177,16 +174,14 @@
   height: 180rpx;
   background: rgba(220, 230, 255, 0.95);
   /* 浅蓝色调更明显，与紫色背景同色系，视觉协调且扫描性能优秀 */
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   padding: 2rpx;
   box-shadow:
     0 8rpx 24rpx rgba(0, 0, 0, 0.15),
     0 4rpx 12rpx rgba(0, 0, 0, 0.1),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.4);
   /* 添加内阴影，增强立体感 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10rpx);
@@ -199,17 +194,14 @@
 .qrcode-image {
   width: 176rpx;
   height: 176rpx;
-  border-radius: 8rpx;
+  border-radius: $border-radius-sm;
 }
 
 /* 二维码加载状态 - 正方形加载区域 */
 .qrcode-loading {
   width: 176rpx;
   height: 176rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   gap: 12rpx;
 }
 
@@ -217,19 +209,16 @@
 .qrcode-expired-inline {
   width: 176rpx;
   height: 176rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   gap: 6rpx;
 }
 
 .expired-icon-small {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
 }
 
 .expired-text-small {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: #ff9900;
   font-weight: bold;
 }
@@ -247,7 +236,7 @@
 }
 
 .countdown-text-small {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -270,12 +259,12 @@
 }
 
 .loading-icon {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   animation: rotate 2s linear infinite;
 }
 
 .loading-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: $color-text-tertiary;
   font-weight: 500;
 }
@@ -327,9 +316,7 @@
   border-radius: 50%;
   width: 32rpx;
   height: 32rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   animation: hintPulse 2s ease-in-out infinite;
 }
 
@@ -364,9 +351,7 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.85);
   z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -387,7 +372,7 @@
   max-width: 600rpx;
   background: linear-gradient(135deg, rgba(240, 242, 255, 0.98) 0%, rgba(220, 230, 255, 0.98) 100%);
   /* 浅蓝白色渐变，与页面紫色主题协调 */
-  border-radius: 32rpx;
+  border-radius: $border-radius-xl;
   /* 增加圆角，更现代化 */
   padding: 48rpx;
   box-shadow:
@@ -424,9 +409,7 @@
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   /* 使用页面主题紫色渐变 */
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 10;
   transition: all 0.3s ease;
   box-shadow:
@@ -445,7 +428,7 @@
 }
 
 .qrcode-close-btn .close-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: $color-text-white;
   font-weight: 300;
   line-height: 1;
@@ -499,7 +482,7 @@
 }
 
 .enlarged-tip {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   /* 稍微增大字号 */
   color: $color-text-white;
   font-weight: 500;
@@ -524,7 +507,7 @@
   }
 
   .enlarged-tip {
-    font-size: 24rpx;
+    font-size: $font-size-sm;
   }
 }
 
@@ -564,7 +547,7 @@
   }
 
   .points-number {
-    font-size: 28rpx;
+    font-size: $font-size-base;
   }
 }
 
@@ -642,10 +625,7 @@
   background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 50%, #ffffff 100%);
   border: 2rpx solid rgba(102, 126, 234, 0.1);
   border-radius: 20rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow:
     0 8rpx 25rpx rgba(0, 0, 0, 0.1),
@@ -702,7 +682,7 @@
 }
 
 .prize-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   margin-bottom: 4rpx;
   display: block;
   flex-shrink: 0;
@@ -711,26 +691,21 @@
 
 /* 🔴 文字容器：支持动态单行/双行切换 */
 .prize-text-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   width: 100%;
   text-align: center;
 }
 
 /* 🔴 单行显示模式 */
 .prize-text-container.single-line .prize-name {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   color: $color-text-primary;
   line-height: 1.2;
   text-align: center;
   max-width: 95%;
   word-break: keep-all;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  @include text-ellipsis;
   /* ✅ 单行显示：保持原有效果，避免截断时的布局问题 */
 }
 
@@ -744,7 +719,7 @@
 }
 
 .prize-text-container.double-line .prize-line {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   color: $color-text-primary;
   line-height: 1.1;
@@ -755,23 +730,19 @@
 
 /* 奖品名称默认样式（单行显示） */
 .prize-name {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   color: $color-text-primary;
   line-height: 1.2;
   text-align: center;
   max-width: 95%;
   word-break: keep-all;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  @include text-ellipsis;
 }
 
 /* 🎨 放大的中央抽奖按钮容器 */
 .lottery-center-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   width: 200rpx;
   height: 200rpx;
   box-sizing: border-box;
@@ -788,16 +759,14 @@
   color: white;
   border: 4rpx solid white;
   border-radius: 90rpx;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 800;
   box-shadow:
     0 8rpx 25rpx rgba(255, 107, 53, 0.4),
     0 4rpx 15rpx rgba(255, 107, 53, 0.2),
     0 0 0 4rpx rgba(255, 107, 53, 0.15);
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   text-align: center;
   position: relative;
   z-index: 10;
@@ -862,7 +831,7 @@
   border: none;
   border-radius: 20rpx;
   padding: 20rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   box-shadow:
     0 8rpx 20rpx rgba(0, 0, 0, 0.2),
@@ -935,19 +904,19 @@
 }
 
 .btn-main-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 700;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
 }
 
 .btn-sub-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   opacity: 0.9;
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
 }
 
 .btn-guarantee {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   opacity: 0.9;
   background: rgba(255, 255, 255, 0.25);
   padding: 4rpx 12rpx;
@@ -974,13 +943,13 @@
 /* 🔴 新增：错误状态弹窗样式 */
 .error-title {
   color: #ff4757 !important;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 700;
 }
 
 .error-subtitle {
   color: #ff6b7a !important;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   margin-top: 10rpx;
 }
 
@@ -996,7 +965,7 @@
 }
 
 .error-message {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: #ff4757;
   font-weight: 600;
   display: block;
@@ -1004,7 +973,7 @@
 }
 
 .error-suggestion {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: $color-text-secondary;
   display: block;
 }
@@ -1022,7 +991,7 @@
   .center-draw-btn {
     width: 200rpx;
     height: 160rpx;
-    font-size: 24rpx;
+    font-size: $font-size-sm;
   }
 }
 
@@ -1036,7 +1005,7 @@
   .center-draw-btn {
     width: 240rpx;
     height: 200rpx;
-    font-size: 28rpx;
+    font-size: $font-size-base;
   }
 }
 
@@ -1050,9 +1019,7 @@
   z-index: 10000;
   /* 与页面背景一致的渐变色，加载时看不出差异 */
   background: linear-gradient(180deg, #4a3a8a 0%, #2d2468 50%, #1a1645 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .first-load-spinner {
@@ -1068,7 +1035,7 @@
 }
 
 .spinner-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 }
@@ -1086,7 +1053,7 @@
 
 /* 加载提示文字（二维码生成等场景） */
 .loading-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -1182,16 +1149,12 @@
 /* 🎨 确保放大后的文字在各种屏幕上都可读 */
 .prize-name {
   min-height: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .btn-text {
   min-height: 44rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 /* 🎨 多连抽按钮兼容性 */
@@ -1201,16 +1164,12 @@
 
 .btn-main-text {
   min-height: 36rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .btn-sub-text {
   min-height: 28rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 /* 🌟 卡片渐变方案 - 中奖弹窗美化样式 */
@@ -1229,16 +1188,14 @@
     rgba(255, 107, 53, 0.15) 100%
   );
   backdrop-filter: blur(20rpx);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 9999;
   animation: modalFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .gradient-card-container {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  border-radius: 32rpx;
+  border-radius: $border-radius-xl;
   width: 92%;
   max-width: 540rpx;
   max-height: 85vh;
@@ -1264,9 +1221,7 @@
   height: 64rpx;
   background: linear-gradient(135deg, #ff6b7a, #c44569);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 100;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 8rpx 24rpx rgba(196, 69, 105, 0.3);
@@ -1274,7 +1229,7 @@
 
 .close-icon {
   color: white;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   line-height: 1;
 }
@@ -1295,7 +1250,7 @@
   align-items: center;
   gap: 24rpx;
   padding: 32rpx;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   position: relative;
   overflow: hidden;
 }
@@ -1316,13 +1271,13 @@
 }
 
 .title-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   flex-shrink: 0;
   animation: iconPulse 2s ease-in-out infinite;
 }
 
 .not-winning-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   flex-shrink: 0;
   opacity: 0.9;
 }
@@ -1335,7 +1290,7 @@
 }
 
 .result-title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
   color: white;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
@@ -1348,7 +1303,7 @@
 }
 
 .not-winning-title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
   color: white;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
@@ -1393,7 +1348,7 @@
 
 .prize-card-content {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 40rpx 32rpx;
   position: relative;
   display: flex;
@@ -1405,9 +1360,7 @@
 
 .winning-icon-container {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .winning-icon {
@@ -1432,14 +1385,14 @@
 }
 
 .winning-name {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: 700;
   color: #2c3e50;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .winning-desc {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: #7f8c8d;
   line-height: 1.4;
 }
@@ -1479,7 +1432,7 @@
 
 .not-winning-info {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 32rpx;
   display: flex;
   flex-direction: column;
@@ -1489,7 +1442,7 @@
 }
 
 .not-winning-message {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: #7a7a7a;
 }
@@ -1523,7 +1476,7 @@
 }
 
 .reveal-progress-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   color: $gradient-blue-start;
 }
@@ -1601,7 +1554,7 @@
 
 .reveal-card-content {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 40rpx 32rpx;
   display: flex;
   flex-direction: column;
@@ -1612,9 +1565,7 @@
 
 .reveal-icon-container {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .reveal-prize-icon {
@@ -1644,14 +1595,14 @@
 }
 
 .reveal-prize-name {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: 700;
   color: #2c3e50;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .reveal-prize-desc {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: #7f8c8d;
   line-height: 1.4;
 }
@@ -1700,11 +1651,11 @@
   text-align: center;
   padding: 16rpx 32rpx;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
 }
 
 .reveal-complete-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   color: $gradient-blue-start;
 }
@@ -1715,7 +1666,7 @@
 }
 
 .revealed-list-title {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #7f8c8d;
   margin-bottom: 12rpx;
   display: block;
@@ -1734,7 +1685,7 @@
   gap: 8rpx;
   padding: 12rpx 16rpx;
   background: rgba(102, 126, 234, 0.08);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.3s ease;
@@ -1752,7 +1703,7 @@
 }
 
 .mini-card-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
 }
 
 .mini-card-name {
@@ -1774,17 +1725,17 @@
 }
 
 .grid-title {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 700;
   color: #2c3e50;
 }
 
 .grid-count {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #7f8c8d;
   background: rgba(102, 126, 234, 0.1);
   padding: 8rpx 16rpx;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
 }
 
 .prize-cards-container {
@@ -1822,12 +1773,12 @@
   margin: 8rpx 0 16rpx 0;
   padding: 12rpx;
   background: rgba(102, 126, 234, 0.08);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   animation: hintPulse 2s ease-in-out infinite;
 }
 
 .scroll-hint-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: rgba(102, 126, 234, 0.8);
   font-weight: 500;
 }
@@ -1943,14 +1894,12 @@
   height: 48rpx;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   flex-shrink: 0;
 }
 
 .prize-number {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.7);
 }
@@ -1966,13 +1915,11 @@
 
 .prize-icon-area {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .prize-icon {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   animation: iconRotate 4s linear infinite;
 }
 
@@ -2024,7 +1971,7 @@
 
 .error-card-bg {
   background: linear-gradient(135deg, #ff6b7a 0%, #c44569 100%);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 32rpx;
   display: flex;
   align-items: center;
@@ -2037,7 +1984,7 @@
 }
 
 .error-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   animation: errorShake 1s ease-in-out infinite;
 }
 
@@ -2049,14 +1996,14 @@
 }
 
 .error-message {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   color: white;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .error-suggestion {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 }
@@ -2074,7 +2021,7 @@
   border: none;
   border-radius: 20rpx;
   padding: 0;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.3);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -2103,22 +2050,20 @@
 }
 
 .btn-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 16rpx;
   padding: 28rpx 40rpx;
 }
 
 .btn-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: white;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .btn-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   animation: sparkleRotate 2s linear infinite;
 }
 
@@ -2253,9 +2198,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 9999;
 }
 
@@ -2270,9 +2213,7 @@
 
 /* 🔴 管理员功能条容器 */
 .admin-scan-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
   width: 100%;
   height: 120rpx;
   padding: 0 40rpx;
@@ -2284,7 +2225,7 @@
 
 /* 🔴 左侧：静态标签文字 */
 .admin-scan-label {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: bold;
   color: $color-text-white;
   letter-spacing: 2rpx;
@@ -2292,9 +2233,7 @@
 
 /* 🔴 中间：扫一扫按钮容器 */
 .admin-scan-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 12rpx;
   background-color: $color-text-white;
   padding: 20rpx 40rpx;
@@ -2310,13 +2249,13 @@
 
 /* 🔴 扫一扫图标 */
 .scan-icon {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   line-height: 1;
 }
 
 /* 🔴 扫一扫文字 */
 .scan-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   color: $gradient-blue-start;
   letter-spacing: 1rpx;
@@ -2324,9 +2263,7 @@
 
 /* 🔴 右侧：审核详情按钮容器 */
 .admin-audit-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 8rpx;
   padding: 20rpx 32rpx;
   background-color: rgba(255, 255, 255, 0.2);
@@ -2350,7 +2287,7 @@
 
 /* 🔴 箭头图标 */
 .arrow-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-white;
   font-weight: bold;
 }
@@ -2381,9 +2318,7 @@
   width: 52rpx;
   height: 52rpx;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
@@ -2445,9 +2380,7 @@
   font-size: 22rpx;
   color: $color-text-white;
   font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   padding: 0 8rpx;
   box-shadow:
     0 4rpx 12rpx rgba(255, 107, 53, 0.4),
@@ -2519,7 +2452,7 @@
   .badge-number {
     min-width: 32rpx;
     height: 32rpx;
-    font-size: 20rpx;
+    font-size: $font-size-xs;
   }
 }
 
@@ -2582,9 +2515,7 @@
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(8rpx);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 10;
   transition: all 0.3s ease;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
@@ -2596,7 +2527,7 @@
 }
 
 .close-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: $color-text-white;
   font-weight: bold;
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
@@ -2605,13 +2536,13 @@
 /* 弹窗标题 - 渐变紫色 */
 .audit-modal-header {
   padding: 40rpx 30rpx 20rpx 30rpx;
-  border-bottom: 2rpx solid #f0f0f0;
+  border-bottom: 2rpx solid $color-border-light;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   border-radius: 32rpx 32rpx 0 0;
 }
 
 .modal-title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: bold;
   color: $color-text-white;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
@@ -2684,7 +2615,7 @@
 }
 
 .record-number {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: bold;
   color: $color-text-primary;
 }
@@ -2698,11 +2629,11 @@
 }
 
 .status-icon {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
 }
 
 .status-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: bold;
 }
 
@@ -2718,7 +2649,7 @@
 }
 
 .row-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   margin-right: 12rpx;
 }
 
@@ -2729,7 +2660,7 @@
 }
 
 .row-value {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-primary;
   flex: 1;
 }
@@ -2737,7 +2668,7 @@
 .row-value.amount {
   color: #ff6b6b;
   font-weight: bold;
-  font-size: 32rpx;
+  font-size: $font-size-md;
 }
 
 .row-value.points {
@@ -2747,13 +2678,13 @@
 
 .row-value.time {
   color: $color-text-tertiary;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
 }
 
 /* 弹窗底部 */
 .audit-modal-footer {
   padding: 20rpx 30rpx 40rpx 30rpx;
-  border-top: 2rpx solid #f0f0f0;
+  border-top: 2rpx solid $color-border-light;
 }
 
 .modal-close-btn {
@@ -2761,7 +2692,7 @@
   height: 88rpx;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   color: $color-text-white;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: bold;
   border-radius: 44rpx;
   border: none;

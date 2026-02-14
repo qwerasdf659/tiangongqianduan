@@ -1,8 +1,10 @@
 <!-- 扭蛋机抽奖组件 - 完整扭蛋机交互 -->
 <view class="blindbox-wrap">
   <!-- 浮动装饰粒子 -->
-  <view class="float-particle"
-    wx:for="{{particles}}" wx:key="id"
+  <view
+    class="float-particle"
+    wx:for="{{particles}}"
+    wx:key="id"
     style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; font-size:{{item.size}}rpx;"
   >
     <text>{{item.icon}}</text>
@@ -25,7 +27,8 @@
       <view class="gashapon__eggs">
         <view
           class="egg {{item.dropping ? 'egg--dropping' : ''}} {{item.selected ? 'egg--selected' : ''}}"
-          wx:for="{{eggs}}" wx:key="id"
+          wx:for="{{eggs}}"
+          wx:key="id"
           style="left:{{item.x}}%; top:{{item.y}}%; background:{{item.gradient}}; width:{{item.size}}rpx; height:{{item.size}}rpx; animation-delay:{{item.wobbleDelay}}s; z-index:{{item.z}};"
         >
           <view class="egg__shine"></view>
@@ -54,7 +57,9 @@
     <view class="gashapon__chute">
       <view class="gashapon__chute-door"></view>
       <!-- 掉出来的扭蛋 -->
-      <view class="gashapon__dispensed {{dispensedState}}" wx:if="{{dispensedEgg}}"
+      <view
+        class="gashapon__dispensed {{dispensedState}}"
+        wx:if="{{dispensedEgg}}"
         style="background:{{dispensedEgg.gradient}};"
         bindtap="onTapDispensed"
       >
@@ -74,9 +79,14 @@
   </view>
 
   <!-- 爆炸粒子层 -->
-  <view class="burst-layer" wx:if="{{dispensedState === 'cracking' || dispensedState === 'opened'}}">
-    <view class="burst-particle"
-      wx:for="{{burstParticles}}" wx:key="id"
+  <view
+    class="burst-layer"
+    wx:if="{{dispensedState === 'cracking' || dispensedState === 'opened'}}"
+  >
+    <view
+      class="burst-particle"
+      wx:for="{{burstParticles}}"
+      wx:key="id"
       style="--bx:{{item.x}}rpx; --by:{{item.y}}rpx; --bd:{{item.delay}}s; --bs:{{item.scale}};"
     >
       <text>{{item.emoji}}</text>
@@ -119,7 +129,7 @@
         bindscroll="onPrizesScroll"
       >
         <view class="bb-prizes__list">
-          <view class="bb-prizes__item {{item.rarity}}" wx:for="{{prizes}}" wx:key="id">
+          <view class="bb-prizes__item {{item.rarity_code}}" wx:for="{{prizes}}" wx:key="id">
             <view class="bb-prizes__icon-wrap">
               <text class="bb-prizes__icon">{{item.icon}}</text>
             </view>

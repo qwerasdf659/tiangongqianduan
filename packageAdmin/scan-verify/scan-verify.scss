@@ -1,84 +1,214 @@
-/* 扫码核验页面样式 - V3.0 Sass版本 */
+/* packageAdmin/scan-verify/scan-verify.scss - 商家扫码核销页面样式 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-.scan-verify-container {
-  padding: 30rpx;
+/* 页面容器 */
+.scan-verify-page {
   min-height: 100vh;
-  background: $color-bg-grey;
-}
-
-/* 页面标题 */
-.page-header {
-  text-align: center;
-  margin-bottom: 40rpx;
+  background: linear-gradient(180deg, #fff5f0 0%, $color-bg 200rpx);
   padding: 30rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
-.header-title {
-  display: block;
-  font-size: 36rpx;
+/* ===== 顶部状态栏 ===== */
+.status-bar {
+  margin-bottom: 40rpx;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 28rpx;
+  border-radius: 40rpx;
+  gap: 12rpx;
+  width: fit-content;
+}
+
+.status-indicator.idle {
+  background: #f0f5ff;
+}
+
+.status-indicator.success {
+  background: #f0fff4;
+}
+
+.status-indicator.fail {
+  background: #fff5f5;
+}
+
+.status-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-indicator.idle .status-dot {
+  background: $color-info;
+}
+
+.status-indicator.success .status-dot {
+  background: $color-success;
+}
+
+.status-indicator.fail .status-dot {
+  background: $color-error;
+}
+
+.status-indicator .status-text {
+  font-size: $font-size-sm;
+  font-weight: 500;
+}
+
+.status-indicator.idle .status-text {
+  color: $color-info;
+}
+
+.status-indicator.success .status-text {
+  color: $color-success;
+}
+
+.status-indicator.fail .status-text {
+  color: $color-error;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ===== 扫码引导区域 ===== */
+.scan-guide {
+  @include flex-column-center;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 80rpx 40rpx 60rpx;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
+}
+
+/* 扫码动画圈 */
+.scan-animation-wrapper {
+  position: relative;
+  width: 260rpx;
+  height: 260rpx;
+  @include flex-center;
+  margin-bottom: 40rpx;
+}
+
+.scan-circle {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.scan-circle.outer {
+  width: 260rpx;
+  height: 260rpx;
+  border: 4rpx solid rgba(255, 107, 53, 0.15);
+  animation: scan-ripple 3s ease-out infinite;
+}
+
+.scan-circle.inner {
+  width: 200rpx;
+  height: 200rpx;
+  border: 4rpx solid rgba(255, 107, 53, 0.25);
+  animation: scan-ripple 3s ease-out 1s infinite;
+}
+
+.scan-icon-box {
+  width: 140rpx;
+  height: 140rpx;
+  @include flex-center;
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  border-radius: 50%;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+  z-index: 1;
+}
+
+.scan-icon-text {
+  font-size: 64rpx;
+}
+
+@keyframes scan-ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.guide-title {
+  font-size: $font-size-lg;
   font-weight: bold;
   color: $color-text-primary;
-  margin-bottom: 10rpx;
+  margin-bottom: 12rpx;
 }
 
-.header-desc {
-  display: block;
-  font-size: 26rpx;
+.guide-desc {
+  font-size: $font-size-base;
   color: $color-text-tertiary;
-}
-
-/* 扫码提示 */
-.scan-prompt {
+  margin-bottom: 48rpx;
   text-align: center;
-  padding: 80rpx 40rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
-.scan-icon {
-  font-size: 120rpx;
-  margin-bottom: 30rpx;
+/* 扫码按钮 */
+.scan-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  width: 80%;
+  height: 100rpx;
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: bold;
+  border-radius: 50rpx;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+  transition: all 0.3s;
 }
 
-.scan-text {
-  display: block;
-  font-size: 28rpx;
-  color: $color-text-secondary;
+.scan-btn:active {
+  transform: translateY(4rpx);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.scan-btn .btn-icon {
+  font-size: $font-size-lg;
+}
+
+.scan-btn .btn-text {
+  font-size: $font-size-md;
+  font-weight: bold;
+}
+
+/* ===== 核销处理中 ===== */
+.processing-section {
+  @include flex-column-center;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 80rpx 40rpx 60rpx;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.08);
+}
+
+.processing-animation {
   margin-bottom: 40rpx;
 }
 
-.scan-btn {
-  display: inline-block;
-  padding: 20rpx 60rpx;
-  background: linear-gradient(135deg, $color-primary, #f7931e);
-  color: $color-text-white;
-  font-size: 32rpx;
-  border-radius: 40rpx;
-  border: none;
-}
-
-/* 加载状态 */
-.loading-section {
-  text-align: center;
-  padding: 80rpx 40rpx;
-  background: #fff;
-  border-radius: 16rpx;
-}
-
-.loading-spinner {
-  width: 60rpx;
-  height: 60rpx;
-  border: 4rpx solid #ddd;
+.spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid $color-border-light;
   border-top-color: $color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin: 0 auto 20rpx;
 }
 
 @keyframes spin {
@@ -87,82 +217,166 @@
   }
 }
 
-.loading-text {
-  display: block;
-  font-size: 28rpx;
-  color: $color-text-tertiary;
-}
-
-/* 核销结果 */
-.result-section {
-  text-align: center;
-  padding: 60rpx 40rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-}
-
-.result-icon {
-  font-size: 100rpx;
-  margin-bottom: 20rpx;
-}
-
-.result-title {
-  display: block;
-  font-size: 36rpx;
+.processing-title {
+  font-size: $font-size-lg;
   font-weight: bold;
-  margin-bottom: 20rpx;
+  color: $color-text-primary;
+  margin-bottom: 12rpx;
 }
 
-.result-section.success .result-title {
-  color: #4caf50;
-}
-
-.result-section.fail .result-title {
-  color: #f44336;
-}
-
-.result-error {
-  display: block;
-  font-size: 26rpx;
-  color: #f44336;
+.processing-desc {
+  font-size: $font-size-base;
+  color: $color-text-tertiary;
   margin-bottom: 30rpx;
 }
 
-/* 结果详情 */
-.result-detail {
-  margin: 20rpx 0 30rpx;
-  padding: 20rpx;
-  background: #f9f9f9;
-  border-radius: 12rpx;
-  text-align: left;
-}
-
-.detail-row {
+.code-preview {
   display: flex;
-  justify-content: space-between;
-  padding: 10rpx 0;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
 }
 
-.detail-label {
-  font-size: 26rpx;
+.code-label {
+  font-size: $font-size-sm;
   color: $color-text-tertiary;
 }
 
-.detail-value {
-  font-size: 26rpx;
-  color: $color-text-primary;
-  font-weight: 500;
+.code-value {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  @include text-ellipsis;
+  max-width: 400rpx;
 }
 
-/* 操作按钮 */
+/* ===== 核销结果卡片 ===== */
+.result-card {
+  @include flex-column-center;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 60rpx 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+}
+
+.result-badge {
+  width: 120rpx;
+  height: 120rpx;
+  @include flex-center;
+  border-radius: 50%;
+  margin-bottom: 24rpx;
+}
+
+.result-badge.success {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+}
+
+.result-badge.fail {
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+}
+
+.badge-icon {
+  font-size: 60rpx;
+}
+
+.result-title {
+  font-size: $font-size-lg;
+  font-weight: bold;
+  color: $color-success;
+  margin-bottom: 12rpx;
+}
+
+.result-title.fail-title {
+  color: $color-error;
+}
+
+.result-subtitle {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 30rpx;
+  padding: 0 20rpx;
+}
+
+/* 核销详情卡片 */
+.detail-card {
+  width: 100%;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
+  padding: 24rpx;
+  margin-bottom: 30rpx;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+}
+
+.detail-item + .detail-item {
+  border-top: 2rpx solid $color-border-light;
+}
+
+.detail-label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  min-width: 140rpx;
+}
+
+.detail-value {
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  font-weight: 500;
+  text-align: right;
+  flex: 1;
+}
+
+/* ===== 操作按钮 ===== */
+.action-group {
+  display: flex;
+  gap: 20rpx;
+  width: 100%;
+}
+
 .action-btn {
-  display: inline-block;
-  padding: 20rpx 60rpx;
-  background: linear-gradient(135deg, $color-primary, #f7931e);
-  color: $color-text-white;
-  font-size: 30rpx;
-  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: 44rpx;
   border: none;
-  margin-top: 20rpx;
+  font-size: $font-size-md;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.action-btn.primary {
+  width: 80%;
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  color: $color-text-white;
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+}
+
+.action-btn.primary:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.action-btn.secondary {
+  flex: 1;
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  color: $color-text-white;
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+}
+
+.action-btn.secondary:active {
+  transform: translateY(2rpx);
+}
+
+.action-btn .btn-text {
+  font-size: $font-size-md;
+  font-weight: bold;
 }

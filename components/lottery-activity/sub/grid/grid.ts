@@ -8,6 +8,9 @@
  * @file sub/grid/grid.ts
  */
 
+const { Logger } = require('../../../../utils/index')
+const log = Logger.createLogger('grid')
+
 /** 动画配置常量 */
 const ANIMATION_CONFIG = {
   /** 基础轮转圈数 */
@@ -87,7 +90,7 @@ Component({
     startHighlightAnimation(targetIndex = 0): Promise<void> {
       /* 验证目标索引有效性 */
       if (targetIndex < 0 || targetIndex >= ANIMATION_CONFIG.gridSize) {
-        console.error('❌ 无效的目标索引:', targetIndex)
+        log.error('❌ 无效的目标索引:', targetIndex)
         targetIndex = 0
       }
 
@@ -96,7 +99,8 @@ Component({
 
         let currentIndex = 0
         let rounds = 0
-        const { totalRounds, speed, slowDownSpeed, nearEndDelay, stopDelay, gridSize } = ANIMATION_CONFIG
+        const { totalRounds, speed, slowDownSpeed, nearEndDelay, stopDelay, gridSize } =
+          ANIMATION_CONFIG
 
         const animate = () => {
           this.setData({ currentHighlight: currentIndex })

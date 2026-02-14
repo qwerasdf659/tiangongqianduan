@@ -1,134 +1,27 @@
 ﻿// pages/points-detail/points-detail.ts - 积分详情页面 + MobX响应式状态
-const app = getApp()
+
 // 🔴 统一工具函数导入
-const { API, Utils } = require('../../utils/index')
+const { API, Utils, Logger } = require('../../utils/index')
+const log = Logger.createLogger('points-detail')
 const { checkAuth } = Utils
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { pointsStore } = require('../../store/points')
+const { userStore } = require('../../store/user')
 
-// 🔴 时间格式化常量定义
-const TIME_CONSTANTS = {
-  // 1分钟的毫秒数
-  ONE_MINUTE: 60000,
-  // 1小时的毫秒数
-  ONE_HOUR: 3600000,
-  // 1天的毫秒数
-  ONE_DAY: 86400000
-}
-
-// ====== 方案B重构：配置对象提取 ======
-// 积分类型配置
-const POINTS_CONFIG = {
-  SINGLE: 100,
-  THREE: 300,
-  FIVE: 500,
-  TEN: 1000
-}
-
-// 抽奖类型映射表
-const LOTTERY_TYPE_MAP = {
-  [POINTS_CONFIG.SINGLE]: '单抽',
-  [POINTS_CONFIG.THREE]: '三连抽',
-  [POINTS_CONFIG.FIVE]: '五连抽',
-  [POINTS_CONFIG.TEN]: '十连抽'
-}
-
-// 业务类型识别规则配置
-const BUSINESS_TYPE_CONFIG = [
-  {
-    keywords: ['兑换', 'exchange'],
-    formatPositive: _points => '商品兑换',
-    formatNegative: points => `商品兑换   (-${Math.abs(points)}积分)`
-  },
-  {
-    keywords: ['签到', 'daily'],
-    formatPositive: points => `每日签到   (+${points}积分)`,
-    formatNegative: _points => '每日签到'
-  },
-  {
-    keywords: ['上传', 'upload'],
-    formatPositive: points => `图片上传   (+${points}积分)`,
-    formatNegative: _points => '图片上传'
-  },
-  {
-    keywords: ['任务', 'task'],
-    formatPositive: points => `任务奖励   (+${points}积分)`,
-    formatNegative: _points => '任务奖励'
-  }
-]
-
-// ====== 方案B重构：子函数1 - 抽奖类型识别 ======
 /**
- * 识别抽奖类型
- * points - 积分数量（负数）
- * description - 描述文本
+ * 积分详情页面 - 餐厅积分抽奖系统
  *
- * 复杂度：~10
- */
-function identifyLotteryType(points, description) {
-  const consumedPoints = Math.abs(points)
-  const desc = description.toLowerCase()
-
-  // 使用映射表快速查找标准类型
-  if (LOTTERY_TYPE_MAP[consumedPoints]) {
-    return LOTTERY_TYPE_MAP[consumedPoints]
-  }
-
-  // 处理multi描述（连抽）
-  if (desc.includes('multi')) {
-    const drawCount = Math.floor(consumedPoints / POINTS_CONFIG.SINGLE)
-    const COUNT_THREE = 3
-    const COUNT_FIVE = 5
-    const COUNT_TEN = 10
-
-    if (drawCount === COUNT_THREE) {
-      return '三连抽'
-    } else if (drawCount === COUNT_FIVE) {
-      return '五连抽'
-    } else if (drawCount === COUNT_TEN) {
-      return '十连抽'
-    } else if (drawCount > 1) {
-      return `${drawCount}连抽`
-    }
-  }
-
-  // 默认返回通用抽奖类型
-  return '抽奖消费'
-}
-
-// ====== 方案B重构：子函数2 - 业务类型识别 ======
-/**
- * 识别业务类型并格式化
- * description - 描述文本
- * points - 积分数量
- *
- * 复杂度：~8
- */
-function identifyBusinessType(description, points) {
-  const desc = description.toLowerCase()
-
-  // 遍历业务类型配置
-  for (const config of BUSINESS_TYPE_CONFIG) {
-    const matched = config.keywords.some(keyword => desc.includes(keyword))
-    if (matched) {
-      // 根据积分正负选择格式化函数
-      return points > 0 ? config.formatPositive(points) : config.formatNegative(points)
-    }
-  }
-
-  // 未识别的类型
-  return null
-}
-
-/**
- * 积分详情页面 - 餐厅积分抽奖系统v2.0
- * 🔴 基于旧项目逻辑重新实现，包含：
- * - 可用积分展示（与旧项目一致的UI）
- * - 筛选功能（全部记录、积分获得、积分消费）
- * - 积分记录列表（分页加载）
+ * 功能清单：
+ * - 可用积分余额展示（MobX Store响应式同步）
+ * - 筛选功能（全部记录 / 积分获得 / 积分消费）— 客户端筛选
+ * - 积分交易记录列表（分页加载，上拉加载更多）
  * - 统计信息（记录总数、当前筛选状态）
- * - API调用（使用新项目v2.0标准）
+ * - 抽奖记录智能聚合（同分钟内的连抽合并为一条）
+ *
+ * API依赖：
+ * - GET /api/v4/assets/transactions — 获取积分交易流水
+ * - GET /api/v4/assets/balance — 获取积分余额
  */
 Page({
   data: {
@@ -148,22 +41,14 @@ Page({
     lastUpdateTime: '',
 
     // 页面状态
-    refreshing: false,
-
-    // 🔑 新增：Token诊断状态
-    tokenStatus: {
-      hasToken: false,
-      tokenValid: false,
-      tokenExpired: false,
-      lastCheck: null
-    }
+    refreshing: false
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad(_options) {
-    console.log('💰 积分明细页面加载 - v2.0实现')
+    log.info('💰 积分明细页面加载 - v2.0实现')
 
     // 🆕 MobX Store绑定 - 积分余额自动同步
     this.pointsBindings = createStoreBindings(this, {
@@ -198,14 +83,14 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    console.log('💰 积分明细页面显示')
+    log.info('💰 积分明细页面显示')
   },
 
   /**
    * 页面相关事件处理函数--监听用户下拉动作
    */
   onPullDownRefresh() {
-    console.log('🔄 下拉刷新积分明细')
+    log.info('🔄 下拉刷新积分明细')
     this.refreshPointsData().finally(() => {
       wx.stopPullDownRefresh()
     })
@@ -234,35 +119,35 @@ Page({
    * 🔴 初始化页面 - 基于旧项目逻辑
    */
   initPage() {
-    console.log('🔧 开始初始化积分明细页面...')
+    log.info('🔧 开始初始化积分明细页面...')
 
     // 🔴 使用统一的认证检查
     if (!checkAuth()) {
-      console.warn('⚠️ 用户未登录，已自动跳转')
+      log.warn('⚠️ 用户未登录，已自动跳转')
       return
     }
 
     // 🔴 从全局获取用户信息，如果没有则从Storage恢复
-    let globalUserInfo = app.globalData.userInfo
+    let globalUserInfo = userStore.userInfo
 
     if (!globalUserInfo || !globalUserInfo.user_id) {
-      console.log('⚠️ globalData没有用户信息，尝试从Storage恢复...')
+      log.info('⚠️ globalData没有用户信息，尝试从Storage恢复...')
       try {
         const storedUserInfo = wx.getStorageSync('user_info')
         if (storedUserInfo && storedUserInfo.user_id) {
           globalUserInfo = storedUserInfo
-          app.globalData.userInfo = storedUserInfo
-          console.log('✅ 从Storage恢复用户信息成功:', {
+          userStore.updateUserInfo(storedUserInfo)
+          log.info('✅ 从Storage恢复用户信息成功:', {
             user_id: storedUserInfo.user_id,
             mobile: storedUserInfo.mobile
           })
         } else {
-          console.error('❌ Storage中也没有用户信息，跳转登录页')
+          log.error('❌ Storage中也没有用户信息，跳转登录页')
           checkAuth() // 会自动跳转到登录页
           return
         }
       } catch (error) {
-        console.error('❌ 从Storage恢复用户信息失败:', error)
+        log.error('❌ 从Storage恢复用户信息失败:', error)
         checkAuth()
         return
       }
@@ -281,7 +166,7 @@ Page({
     // 🔴 加载积分记录
     this.loadPointsRecords()
 
-    console.log('✅ 积分明细页面初始化完成')
+    log.info('✅ 积分明细页面初始化完成')
   },
 
   /**
@@ -290,31 +175,29 @@ Page({
    */
   async loadPointsRecords() {
     if (this.data.loading) {
-      console.log('⚠️ 正在加载中，跳过重复请求')
+      log.info('⚠️ 正在加载中，跳过重复请求')
       return
     }
 
-    console.log('📊 开始加载积分记录...')
+    log.info('📊 开始加载积分记录...')
     this.setData({ loading: true, hasError: false })
 
     try {
       // 🔴 使用统一的认证检查（替代diagnoseTokenStatus）
       if (!checkAuth()) {
-        console.warn('⚠️ 用户未登录，已自动跳转')
+        log.warn('⚠️ 用户未登录，已自动跳转')
         this.setData({ loading: false })
         return
       }
 
-      console.log('✅ 认证检查通过，继续API请求')
+      log.info('✅ 认证检查通过，继续API请求')
 
       // 🔑 API请求（通过Token识别用户）
-      const result = await API.getPointsTransactions(
-        this.data.currentPage,
-        this.data.pageSize,
-        this.data.pointsFilter
-      )
+      // 🔴 修复: 不传asset_code和business_type，加载全部积分交易记录
+      // 筛选（全部/获得/消费）在前端客户端通过 filterPointsRecords() 完成
+      const result = await API.getPointsTransactions(this.data.currentPage, this.data.pageSize)
 
-      console.log('🔍 API响应详情:', {
+      log.info('🔍 API响应详情:', {
         success: result.success,
         message: result.message,
         dataType: typeof result.data,
@@ -334,20 +217,20 @@ Page({
         processedRecords = this.aggregateLotteryRecords(processedRecords)
 
         const formattedRecords = processedRecords.map(record => {
-          // 🔧 修正：使用正确的字段名points_amount（根据API文档第7610行）
+          // 使用后端返回的字段名points_amount
           const pointsValue = record.points_amount || record.points || 0
 
-          // 🔧 修正：根据transaction_type确定显示的符号
+          // 根据transaction_type确定显示的符号
           const displayPoints = record.transaction_type === 'earn' ? pointsValue : -pointsValue
 
-          // 🔥 优先使用后端返回的transaction_title（完整业务描述）
+          // 优先使用后端返回的transaction_title（完整业务描述）
           const displayTitle =
             record.transaction_title || record.description || record.source_text || '积分记录'
 
-          // 🔥 直接使用后端返回的时间，不进行计算（前端只负责展示）
+          // 直接使用后端返回的时间（前端只负责展示）
           const displayTime = record.transaction_time || record.created_at || record.timestamp || ''
 
-          // 🔥 格式化金额显示（带符号）
+          // 格式化金额显示（带符号）
           const displayAmount =
             record.transaction_type === 'earn'
               ? `+${Math.abs(pointsValue)}`
@@ -362,35 +245,42 @@ Page({
           }
         })
 
-        console.log('✅ 格式化记录完成', {
+        // 🔴 修复: 加载更多时追加记录，首页加载时替换记录
+        const isLoadMore = this.data.currentPage > 1
+        const allRecords = isLoadMore
+          ? [...this.data.pointsRecords, ...formattedRecords]
+          : formattedRecords
+
+        log.info('✅ 格式化记录完成', {
           原始记录数: transactions?.length || 0,
-          格式化记录数: formattedRecords.length,
-          抽奖记录数: formattedRecords.filter(r => r.isLotteryConsume).length
+          本次格式化: formattedRecords.length,
+          累计记录数: allRecords.length,
+          是否追加: isLoadMore
         })
 
         this.setData({
-          pointsRecords: formattedRecords,
+          pointsRecords: allRecords,
           hasMoreRecords: pagination?.hasMore || false,
           lastUpdateTime: new Date().toLocaleString(),
           loading: false,
           hasError: false
         })
 
-        // 🔑 设置数据后立即调用筛选函数
+        // 设置数据后立即调用筛选函数
         this.filterPointsRecords()
 
-        console.log(`✅ 积分记录加载成功 - 共${formattedRecords.length}条记录`)
+        log.info(`✅ 积分记录加载成功 - 共${allRecords.length}条记录`)
       } else {
         throw new Error(result.message || '获取积分记录失败')
       }
     } catch (error) {
-      console.error('❌ 获取积分记录失败:', error)
+      log.error('❌ 获取积分记录失败:', error)
       this.setData({ loading: false })
 
       const errorMsg = error.message || '获取积分记录失败'
       const errorCode = error.code || error.status || -1
 
-      console.log('🔍 错误详细信息:', {
+      log.info('🔍 错误详细信息:', {
         message: errorMsg,
         code: errorCode,
         needReauth: error.needReauth,
@@ -400,7 +290,7 @@ Page({
       // 特别处理404错误
       const ERROR_NOT_FOUND = 404
       if (errorCode === ERROR_NOT_FOUND || errorMsg.includes('404')) {
-        console.warn('🚨 收到404错误 - 可能是API路径问题或服务未启动')
+        log.warn('🚨 收到404错误 - 可能是API路径问题或服务未启动')
 
         wx.showModal({
           title: '⚠️ 服务暂时不可用',
@@ -430,7 +320,7 @@ Page({
         errorMsg.includes('身份验证已过期') ||
         errorMsg.includes('登录已过期')
       ) {
-        console.log('🔒 认证错误，使用统一认证处理')
+        log.info('🔒 认证错误，使用统一认证处理')
         // 会自动跳转到登录页
         checkAuth()
         return
@@ -477,7 +367,8 @@ Page({
   },
 
   /**
-   * 🔴 刷新积分数据
+   * 🔴 刷新积分数据（下拉刷新时调用）
+   * 重置分页状态，重新加载余额和交易记录
    */
   async refreshPointsData() {
     this.setData({
@@ -485,15 +376,17 @@ Page({
       pointsRecords: []
     })
 
-    // 🔴 同时更新用户积分余额 - V4.2直接调用API方法
-    const result = await API.getPointsBalance()
-    const { success, data } = result
-
-    if (success && data) {
-      this.setData({
-        // 后端资产余额API返回字段：available_amount（可用余额）
-        totalPoints: data.available_amount || 0
-      })
+    // 同时更新用户积分余额
+    try {
+      const result = await API.getPointsBalance()
+      if (result.success && result.data) {
+        this.setData({
+          // 后端资产余额API返回字段：available_amount（可用余额）
+          totalPoints: result.data.available_amount || 0
+        })
+      }
+    } catch (error) {
+      log.error('❌ 刷新积分余额失败:', error)
     }
 
     return this.loadPointsRecords()
@@ -507,7 +400,7 @@ Page({
       return
     }
 
-    console.log('📄 加载更多积分记录...', {
+    log.info('📄 加载更多积分记录...', {
       currentPage: this.data.currentPage,
       nextPage: this.data.currentPage + 1
     })
@@ -521,18 +414,17 @@ Page({
 
   /**
    * 🔴 积分明细筛选切换
+   * 筛选逻辑在前端客户端执行，不需要重新请求API
+   * 后端API的asset_code参数用于资产类型筛选（如POINTS），不是交易方向筛选
    */
   onPointsFilterChange(e) {
     const filter = e.currentTarget.dataset.filter
-    console.log('🔍 切换积分筛选', filter)
+    log.info('🔍 切换积分筛选', filter)
 
-    this.setData({
-      pointsFilter: filter,
-      currentPage: 1,
-      pointsRecords: []
-    })
+    this.setData({ pointsFilter: filter })
 
-    this.loadPointsRecords()
+    // 客户端筛选已加载的记录，不重新请求API
+    this.filterPointsRecords()
   },
 
   /**
@@ -541,7 +433,7 @@ Page({
    */
   filterPointsRecords() {
     const pointsRecords = this.data.pointsRecords || []
-    console.log('🔍 筛选积分记录', {
+    log.info('🔍 筛选积分记录', {
       原始记录数量: pointsRecords.length,
       筛选条件: this.data.pointsFilter
     })
@@ -561,7 +453,7 @@ Page({
         break
     }
 
-    console.log('✅ 筛选完成', { 筛选后记录数量: filtered.length })
+    log.info('✅ 筛选完成', { 筛选后记录数量: filtered.length })
 
     this.setData({
       filteredPointsRecords: filtered
@@ -577,212 +469,20 @@ Page({
     }
   },
 
-  /**
-   * 🔴 格式化时间显示
-   */
-  formatTime(timeString) {
-    if (!timeString) {
-      return '未知时间'
-    }
-
-    try {
-      const date = new Date(timeString)
-      const now = new Date()
-      const diff = now.getTime() - date.getTime()
-
-      if (diff < TIME_CONSTANTS.ONE_MINUTE) {
-        return '刚刚'
-      } else if (diff < TIME_CONSTANTS.ONE_HOUR) {
-        return Math.floor(diff / TIME_CONSTANTS.ONE_MINUTE) + '分钟前'
-      } else if (diff < TIME_CONSTANTS.ONE_DAY) {
-        return Math.floor(diff / TIME_CONSTANTS.ONE_HOUR) + '小时前'
-      } else {
-        return date.toLocaleDateString()
-      }
-    } catch (error) {
-      console.error('❌ 时间格式化失败', error)
-      return timeString
-    }
-  },
-
-  /**
-   * 🔥 格式化交易时间为友好显示（新增）
-   * time - 交易时间
-   */
-  formatTransactionTime(time) {
-    if (!time) {
-      return ''
-    }
-
-    try {
-      // 🔥 iOS兼容性修复：
-      // 方案1: "2025-10-25 23:05:02" → "2025/10/25 23:05:02"（推荐，更符合用户习惯）
-      // 方案2: "2025-10-25 23:05:02" → "2025-10-25T23:05:02"（ISO标准格式）
-      let formattedTime = time
-
-      if (typeof time === 'string') {
-        // 移除毫秒部分（如果有）
-        formattedTime = time.replace(/\.\d+$/, '')
-
-        // 优先使用 "/" 格式，iOS和Android都支持
-        if (formattedTime.includes('-') && !formattedTime.includes('T')) {
-          formattedTime = formattedTime.replace(/-/g, '/')
-        }
-      }
-
-      const transactionDate = new Date(formattedTime)
-
-      // 验证日期是否有效
-      if (isNaN(transactionDate.getTime())) {
-        console.warn('⚠️ 无效的日期格式:', time)
-        return time
-      }
-
-      const now = new Date()
-      const diffMs = now.getTime() - transactionDate.getTime()
-      const diffMinutes = Math.floor(diffMs / 60000)
-      const diffHours = Math.floor(diffMinutes / 60)
-      const diffDays = Math.floor(diffHours / 24)
-
-      // 1小时内显示"XX分钟前"
-      if (diffMinutes < 60) {
-        return diffMinutes <= 0 ? '刚刚' : `${diffMinutes}分钟前`
-      }
-
-      // 24小时内显示"XX小时前"
-      if (diffHours < 24) {
-        return `${diffHours}小时前`
-      }
-
-      // 7天内显示"XX天前"
-      if (diffDays < 7) {
-        return `${diffDays}天前`
-      }
-
-      // 超过7天显示具体日期
-      const month = transactionDate.getMonth() + 1
-      const day = transactionDate.getDate()
-      const hour = String(transactionDate.getHours()).padStart(2, '0')
-      const minute = String(transactionDate.getMinutes()).padStart(2, '0')
-
-      return `${month}月${day}日 ${hour}:${minute}`
-    } catch (error) {
-      console.error('❌ 交易时间格式化失败', error)
-      return time
-    }
-  },
-
-  /**
-   * 🔑 智能格式化抽奖描述 - 方案B重构版
-   *
-   * 优化后复杂度：从44降至~15
-   *
-   * 优化策略：
-   * 1. 提取抽奖类型识别 → identifyLotteryType()
-   * 2. 提取业务类型识别 → identifyBusinessType()
-   * 3. 提取时间格式化 → formatDetailedTime()（已存在）
-   * 4. 主函数负责流程控制和组装
-   */
-  formatLotteryDescription(description, points, timestamp) {
-    // ===== 前置检查 =====
-    if (!description) {
-      console.log('⚠️ 描述为空，使用默认值')
-      return '积分变动'
-    }
-
-    try {
-      const desc = description.toString().toLowerCase()
-
-      // ===== 步骤1：检测抽奖类型 =====
-      const isLotteryRelated =
-        desc.includes('抽奖') ||
-        desc.includes('lottery') ||
-        desc.includes('single') ||
-        desc.includes('multi')
-      const isNegativePoints = points < 0
-
-      // ===== 步骤2：处理抽奖类型记录 =====
-      if (isLotteryRelated && isNegativePoints) {
-        const consumedPoints = Math.abs(points)
-        const lotteryType = identifyLotteryType(points, desc)
-        const lotteryFormattedTime = timestamp ? this.formatDetailedTime(timestamp) : ''
-
-        const displayText = `✨${lotteryType}   (-${consumedPoints}积分)`
-        return lotteryFormattedTime ? `${displayText}    ${lotteryFormattedTime}` : displayText
-      }
-
-      // ===== 步骤3：处理其他业务类型记录 =====
-      const businessFormat = identifyBusinessType(desc, points)
-      if (businessFormat) {
-        const businessFormattedTime = timestamp ? this.formatDetailedTime(timestamp) : ''
-        return businessFormattedTime
-          ? `${businessFormat}    ${businessFormattedTime}`
-          : businessFormat
-      }
-
-      // ===== 步骤4：默认处理（清理描述） =====
-      const cleanedDescription =
-        description
-          .replace(/[-第\d+次]/g, '')
-          .replace(/single|multi/gi, '')
-          .trim() || '积分变动'
-      const formattedTime = timestamp ? this.formatDetailedTime(timestamp) : ''
-      return formattedTime ? `${cleanedDescription}    ${formattedTime}` : cleanedDescription
-    } catch (error) {
-      console.error('❌ 描述格式化失败', error, { description, points })
-      return description || '积分变动'
-    }
-  },
-
-  /**
-   * 🔑 格式化详细时间
-   */
-  formatDetailedTime(timeString) {
-    if (!timeString) {
-      return ''
-    }
-
-    try {
-      const date = new Date(timeString)
-
-      if (isNaN(date.getTime())) {
-        console.warn('⚠️ 无效的时间格式', timeString)
-        return ''
-      }
-
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      const seconds = String(date.getSeconds()).padStart(2, '0')
-
-      return `${year}年${month}月${day}日 ${hours}时${minutes}分${seconds}秒`
-    } catch (error) {
-      console.error('❌ 详细时间格式化失败', error)
-      return ''
-    }
-  },
-
-  /**
-   * 🔴 返回上一页
-   */
+  /** 返回上一页 */
   onBackTap() {
     wx.navigateBack()
   },
-
-  // 🔴 已删除 diagnoseTokenStatus() 和 forceReLogin() 方法
-  // 现在统一使用 checkAuth() 和 clearAuthData() 从 auth-helper.ts
 
   /**
    * 🔑 手动刷新
    */
   async handleManualRefresh() {
-    console.log('🔧 执行手动刷新...')
+    log.info('🔧 执行手动刷新...')
 
     // 🔴 使用统一的认证检查
     if (!checkAuth()) {
-      console.warn('⚠️ 用户未登录，已自动跳转')
+      log.warn('⚠️ 用户未登录，已自动跳转')
       return
     }
 
@@ -803,7 +503,7 @@ Page({
       return []
     }
 
-    console.log('🎰 开始聚合抽奖记录', { 原始记录数: records.length })
+    log.info('🎰 开始聚合抽奖记录', { 原始记录数: records.length })
 
     const lotteryRecords = []
     const otherRecords = []
@@ -825,7 +525,7 @@ Page({
       }
     })
 
-    console.log('🔍 记录分类:', {
+    log.info('🔍 记录分类:', {
       抽奖记录数: lotteryRecords.length,
       其他记录数: otherRecords.length
     })
@@ -839,7 +539,7 @@ Page({
       return timeB - timeA
     })
 
-    console.log('✅ 抽奖记录聚合完成:', {
+    log.info('✅ 抽奖记录聚合完成:', {
       最终记录数: allRecords.length
     })
 
@@ -902,4 +602,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

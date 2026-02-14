@@ -65,18 +65,22 @@ Component({
   },
 
   observers: {
-    'prizes': function (prizes: any[]) {
-      if (this.data.isMultiFlip || this.data.isPickMode) return
+    prizes(prizes: any[]) {
+      if (this.data.isMultiFlip || this.data.isPickMode) {
+        return
+      }
       if (prizes && prizes.length > 0) {
         this._initCards(prizes)
       }
     },
-    'isInProgress': function (val: boolean) {
+    isInProgress(val: boolean) {
       if (this.data.isPickMode && this.data.pickPhase === 'flipping' && val) {
         this._flipPickedCards()
         return
       }
-      if (this.data.isMultiFlip) return
+      if (this.data.isMultiFlip) {
+        return
+      }
       if (val && this.data.selectedIndex >= 0) {
         this._flipCard()
       }
@@ -85,12 +89,12 @@ Component({
         this.setData({ selectedIndex: -1, canSelect: true, waiting: false })
       }
     },
-    'multiDrawCount, multiDrawResults': function (count: number, results: any[]) {
+    'multiDrawCount, multiDrawResults'(count: number, results: any[]) {
       if (count > 0 && results && results.length > 0) {
         this._initMultiFlipCards(count, results)
       }
     },
-    'displayConfig': function (cfg: any) {
+    displayConfig(cfg: any) {
       if (cfg && cfg.total_cards && cfg.pick_count) {
         this._initPickModeCards()
       }
@@ -123,14 +127,19 @@ Component({
       }, 50)
 
       /* 入场动画结束后开放选择 */
-      setTimeout(() => {
-        this.setData({ canSelect: true })
-      }, 50 + cards.length * 150 + 500)
+      setTimeout(
+        () => {
+          this.setData({ canSelect: true })
+        },
+        50 + cards.length * 150 + 500
+      )
     },
 
     /** 选择卡牌 - 单抽模式 */
     onSelectCard(e: any) {
-      if (!this.data.canSelect || this.data.flipped) return
+      if (!this.data.canSelect || this.data.flipped) {
+        return
+      }
       const index = e.currentTarget.dataset.index
       this.setData({ selectedIndex: index, canSelect: false, waiting: true })
 
@@ -144,7 +153,9 @@ Component({
     /** 翻转选中的卡牌 - 单抽模式 */
     _flipCard() {
       const { selectedIndex, cards } = this.data
-      if (selectedIndex < 0) return
+      if (selectedIndex < 0) {
+        return
+      }
 
       /* 第一步：翻转选中卡牌 */
       const step1 = cards.map((c: any, i: number) => ({
@@ -217,7 +228,9 @@ Component({
       const cardRows = this.data.cardRows
       const card = cardRows[rowIdx][colIdx]
 
-      if (card.flipped) return
+      if (card.flipped) {
+        return
+      }
 
       /* 翻开这张卡 */
       cardRows[rowIdx][colIdx] = { ...card, flipped: true }
@@ -250,7 +263,7 @@ Component({
         for (let c = 0; c < cardRows[r].length; c++) {
           if (!cardRows[r][c].flipped) {
             /* 逐张翻开，间隔150ms */
-            ((row, col, d) => {
+            ;((row, col, d) => {
               setTimeout(() => {
                 const rows = this.data.cardRows
                 rows[row][col] = { ...rows[row][col], flipped: true }
@@ -298,7 +311,9 @@ Component({
 
     /** 选牌模式：点击选/取消选 */
     onTapPickCard(e: any) {
-      if (this.data.pickPhase !== 'picking') return
+      if (this.data.pickPhase !== 'picking') {
+        return
+      }
       const idx = e.currentTarget.dataset.index
       const selected = [...this.data.selectedIndices]
       const pos = selected.indexOf(idx)

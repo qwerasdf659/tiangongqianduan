@@ -39,12 +39,13 @@
  * - `error` - 登录失败事件
  *
  * @file components/auth-modal/auth-modal.js
- * @version 4.0.0
+ * @version 5.0.0
  * @since 2025-10-31
  */
 
 // 🔴 V4.0规范：统一使用utils/index.js导入工具函数
-const { Wechat, API } = require('../../utils/index')
+const { Wechat, API, Logger } = require('../../utils/index')
+const log = Logger.createLogger('auth-modal')
 const { showToast } = Wechat
 
 Component({
@@ -222,7 +223,7 @@ Component({
         duration: 2000
       })
 
-      console.log('ℹ️ 发送验证码暂不支持（决策8），测试阶段请使用万能验证码：123456')
+      log.info('ℹ️ 发送验证码暂不支持（决策8），测试阶段请使用万能验证码：123456')
       // TODO: 等后端接入短信服务后恢复发送功能
       this.startCountdown()
     },
@@ -324,7 +325,7 @@ Component({
           throw new Error(result.message || '验证失败')
         }
       } catch (error) {
-        console.error('❌ 手机验证失败:', error)
+        log.error('❌ 手机验证失败:', error)
         showToast(error.message || '验证失败，请重试')
       } finally {
         this.setData({ submitting: false })
@@ -359,7 +360,7 @@ Component({
           throw new Error(result.message || '登录失败')
         }
       } catch (error) {
-        console.error('❌ 密码验证失败:', error)
+        log.error('❌ 密码验证失败:', error)
         showToast(error.message || '登录失败，请重试')
       } finally {
         this.setData({ submitting: false })

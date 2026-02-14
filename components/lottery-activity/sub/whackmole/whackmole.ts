@@ -1,7 +1,7 @@
 /**
  * 打地鼠 子组件 - 趣味性全面增强版
  * @file sub/whackmole/whackmole.ts
- * @version 4.0 - 游戏性重大升级
+ * @version 5.0.0
  *
  * 核心流程（先扣积分）：
  *   1. 用户点"开始游戏" → 调用抽奖接口扣积分 → 后端返回奖品数据
@@ -28,6 +28,9 @@
  *      - 点空地 -1秒
  *      - 灰尘动画提示
  */
+
+const { Logger } = require('../../../../utils/index')
+const log = Logger.createLogger('whackmole')
 
 Component({
   properties: {
@@ -124,7 +127,7 @@ Component({
   },
 
   observers: {
-    'displayConfig'(cfg: any) {
+    displayConfig(cfg: any) {
       if (cfg) {
         const duration = Math.floor((cfg.game_duration || 10000) / 1000)
         this.setData({
@@ -157,7 +160,9 @@ Component({
 
     /** 开始游戏 - 先扣积分流程 */
     onStartGame() {
-      if (this.data.gameState !== 'ready') { return }
+      if (this.data.gameState !== 'ready') {
+        return
+      }
 
       this._vibrate('medium')
 
@@ -172,7 +177,7 @@ Component({
      * @param prizeData 后端返回的奖品数据
      */
     startGameWithPrize(prizeData: any) {
-      console.log('[打地鼠] 缓存奖品数据，开始游戏', prizeData)
+      log.info('[打地鼠] 缓存奖品数据，开始游戏', prizeData)
 
       const baseDuration = this.data.baseGameDuration
 
@@ -206,7 +211,9 @@ Component({
 
     /** 触摸开始 - 显示锤子 */
     onTouchStart(e: any) {
-      if (this.data.gameState !== 'playing') { return }
+      if (this.data.gameState !== 'playing') {
+        return
+      }
 
       const touch = e.touches[0]
       this.setData({
@@ -218,7 +225,9 @@ Component({
 
     /** 触摸结束 - 隐藏锤子 */
     onTouchEnd() {
-      if (this.data.gameState !== 'playing') { return }
+      if (this.data.gameState !== 'playing') {
+        return
+      }
 
       setTimeout(() => {
         this.setData({ showHammer: false })
@@ -228,7 +237,9 @@ Component({
     /** 地鼠生成器 - 节奏变化 + 特殊地鼠 */
     _startMoleSpawner() {
       const spawn = () => {
-        if (this.data.gameState !== 'playing' && !this.data.isCarnival) { return }
+        if (this.data.gameState !== 'playing' && !this.data.isCarnival) {
+          return
+        }
 
         const holes = [...this.data.holes]
         const activeCount = holes.filter(h => h).length
@@ -248,7 +259,7 @@ Component({
           // 8-15秒：加速，最多2洞
           maxMoles = 2
           spawnInterval = Math.max(500, this.data.moleInterval - 200)
-          specialMoleChance = 0.10
+          specialMoleChance = 0.1
         } else {
           // 前8秒：慢速单洞
           maxMoles = 1
@@ -265,7 +276,7 @@ Component({
 
         // 生成新地鼠
         if (activeCount < maxMoles) {
-          const emptySlots = holes.map((h, i) => h ? -1 : i).filter(i => i >= 0)
+          const emptySlots = holes.map((h, i) => (h ? -1 : i)).filter(i => i >= 0)
           if (emptySlots.length > 0) {
             const slot = emptySlots[Math.floor(Math.random() * emptySlots.length)]
 
@@ -279,7 +290,7 @@ Component({
             } else if (rand < 0.05 + specialMoleChance * 0.3) {
               // 炸弹地鼠
               moleType = 'bomb'
-            } else if (rand < 0.10 + specialMoleChance) {
+            } else if (rand < 0.1 + specialMoleChance) {
               // 金色地鼠
               moleType = 'golden'
             }
@@ -293,7 +304,9 @@ Component({
             // 消失前500ms显示警告
             if (moleType === 'normal') {
               const alertTimer = setTimeout(() => {
-                if (this.data.gameState !== 'playing') { return }
+                if (this.data.gameState !== 'playing') {
+                  return
+                }
                 this.setData({ moleAlertIndex: slot })
 
                 setTimeout(() => {
@@ -304,7 +317,9 @@ Component({
             }
 
             const hideTimer = setTimeout(() => {
-              if (this.data.gameState !== 'playing') { return }
+              if (this.data.gameState !== 'playing') {
+                return
+              }
               const currentHoles = [...this.data.holes]
               if (currentHoles[slot]) {
                 currentHoles[slot] = false
@@ -374,7 +389,7 @@ Component({
               isCarnival: false,
               carnivalTimeLeft: 0
             })
-            console.log('[打地鼠] 狂欢模式结束')
+            log.info('[打地鼠] 狂欢模式结束')
           } else {
             this.setData({ carnivalTimeLeft: carnivalLeft })
           }
@@ -390,7 +405,9 @@ Component({
 
     /** 锤击地鼠 - 包含特殊效果和Miss惩罚 */
     onWhack(e: any) {
-      if (this.data.gameState !== 'playing' && !this.data.isCarnival) { return }
+      if (this.data.gameState !== 'playing' && !this.data.isCarnival) {
+        return
+      }
 
       const idx = e.currentTarget.dataset.index
       const moleType = this.data.holes[idx]
@@ -409,7 +426,9 @@ Component({
       })
 
       // 延迟隐藏锤子
-      if (this._hammerTimer) { clearTimeout(this._hammerTimer) }
+      if (this._hammerTimer) {
+        clearTimeout(this._hammerTimer)
+      }
       this._hammerTimer = setTimeout(() => {
         this.setData({ showHammer: false })
       }, 300)
@@ -417,12 +436,12 @@ Component({
       // Miss 惩罚：点空地
       if (!moleType) {
         const missCount = this.data.missCount + 1
-        const newTimeLeft = Math.max(0, this.data.timeLeft - 1) // -1秒
+        const missTimeLeft = Math.max(0, this.data.timeLeft - 1) // -1秒
 
         this.setData({
           missCount,
           totalClicks,
-          timeLeft: newTimeLeft,
+          timeLeft: missTimeLeft,
           showMissEffect: true,
           missEffectX: hammerX,
           missEffectY: hammerY
@@ -435,7 +454,7 @@ Component({
           this.setData({ showMissEffect: false })
         }, 600)
 
-        console.log('[打地鼠] Miss！-1秒，剩余:', newTimeLeft)
+        log.info('[打地鼠] Miss！-1秒，剩余:', newTimeLeft)
         return
       }
 
@@ -461,18 +480,19 @@ Component({
             carnivalTimeLeft: 3
           })
           this._vibrate('heavy')
-          console.log('[打地鼠] 彩虹地鼠！触发狂欢模式3秒')
+          log.info('[打地鼠] 彩虹地鼠！触发狂欢模式3秒')
           break
 
-        case 'golden':
+        case 'golden': {
           // 金色地鼠：全屏特效 + 连击不断 + 高分
           combo += 1
           const comboBonus = Math.min(combo, 10) // 最高10倍
           scoreAdd = 3 * comboBonus
           this._vibrate('medium')
           this._triggerFullScreenEffect() // 全屏特效
-          console.log('[打地鼠] 金色地鼠！x', comboBonus)
+          log.info('[打地鼠] 金色地鼠！x', comboBonus)
           break
+        }
 
         case 'bomb':
           // 炸弹地鼠：-3秒 + 断连击 + 扣分
@@ -480,16 +500,17 @@ Component({
           timeChange = -3
           combo = 0
           this._vibrate('heavy')
-          console.log('[打地鼠] 炸弹地鼠！-3秒')
+          log.info('[打地鼠] 炸弹地鼠！-3秒')
           break
 
-        default:
+        default: {
           // 普通地鼠
           combo += 1
           const normalBonus = Math.min(combo, 5)
           scoreAdd = 1 * normalBonus
           this._vibrate('light')
           break
+        }
       }
 
       // 更新时间（炸弹效果）
@@ -528,7 +549,9 @@ Component({
 
       // combo提示自动消失
       if (combo >= 2) {
-        if (this._comboTimer) { clearTimeout(this._comboTimer) }
+        if (this._comboTimer) {
+          clearTimeout(this._comboTimer)
+        }
         this._comboTimer = setTimeout(() => {
           this.setData({ showCombo: false })
         }, 1000)
@@ -547,7 +570,7 @@ Component({
 
       if (hammerType !== this.data.hammerType) {
         this.setData({ hammerType })
-        console.log('[打地鼠] 锤子升级:', hammerType)
+        log.info('[打地鼠] 锤子升级:', hammerType)
       }
     },
 
@@ -556,7 +579,9 @@ Component({
       // 全屏闪光效果
       this.setData({ showCelebration: true })
 
-      if (this._fullScreenTimer) { clearTimeout(this._fullScreenTimer) }
+      if (this._fullScreenTimer) {
+        clearTimeout(this._fullScreenTimer)
+      }
       this._fullScreenTimer = setTimeout(() => {
         this.setData({ showCelebration: false })
       }, 800)
@@ -586,7 +611,7 @@ Component({
 
       // 延迟后通知父组件展示奖品
       this._endTimer = setTimeout(() => {
-        console.log('[打地鼠] 游戏结束，展示奖品:', this.data.cachedPrizeData)
+        log.info('[打地鼠] 游戏结束，展示奖品:', this.data.cachedPrizeData)
         this.triggerEvent('animationEnd', {
           prizeData: this.data.cachedPrizeData,
           gameStats: {

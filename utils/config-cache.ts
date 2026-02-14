@@ -16,12 +16,14 @@
  *    外部页面统一从 utils/index.ts 导入 ConfigCache
  *
  * @file utils/config-cache.ts
- * @version 1.0.0
+ * @version 5.0.0
  * @since 2026-02-14
  */
 
 /* 直接引用内部模块，避免循环依赖 */
 const configCacheApi = require('./api')
+const { createLogger } = require('./logger')
+const log = createLogger('config-cache')
 
 // ===== 缓存键名常量 =====
 
@@ -74,16 +76,50 @@ interface ValidationResult {
   errors: string[]
 }
 
+// ===== 配置数据规范化 =====
+
+/**
+ * 规范化后端返回的配置数据
+ * 后端可能缺少 version / updated_at 等非核心字段，前端自动补充默认值
+ * 避免因元数据字段缺失导致整个配置加载失败
+ *
+ * @param rawConfig 后端原始配置数据
+ * @returns 规范化后的配置数据（保证 version、updated_at 字段存在）
+ */
+function normalizePlacementConfig(rawConfig: any): any {
+  if (!rawConfig || typeof rawConfig !== 'object') {
+    return rawConfig
+  }
+
+  const normalized = { ...rawConfig }
+
+  /* 后端未返回 version 字段时，自动补充默认版本号 */
+  if (!normalized.version) {
+    normalized.version = '1.0.0-auto'
+    log.warn('⚠️ [配置缓存] 后端未返回 version 字段，已自动补充默认值: 1.0.0-auto')
+  }
+
+  /* 后端未返回 updated_at 字段时，使用当前时间 */
+  if (!normalized.updated_at) {
+    normalized.updated_at = new Date().toISOString()
+    log.warn('⚠️ [配置缓存] 后端未返回 updated_at 字段，已使用当前时间')
+  }
+
+  return normalized
+}
+
 // ===== 配置校验器 =====
 
 /**
  * 配置校验器 - 防止后端返回的配置数据格式错误导致前端异常
  *
  * 校验规则：
- *   1. 必填字段完整性（version、placements）
+ *   1. 必填字段完整性（placements 为核心必填，version 为可选）
  *   2. 每项 placement 结构完整性（campaign_code、page、position、size）
  *   3. 枚举值有效性（page/position/size字段）
  *   4. 业务规则（每个页面最多一个 main 位置活动）
+ *
+ * 注意：version 字段缺失不再视为校验错误，由 normalizePlacementConfig 自动补充
  */
 function validatePlacementConfig(config: PlacementConfig): ValidationResult {
   const errors: string[] = []
@@ -94,8 +130,9 @@ function validatePlacementConfig(config: PlacementConfig): ValidationResult {
     return { valid: false, errors }
   }
 
+  /* version 字段缺失仅记录警告，不阻塞配置加载（由 normalizePlacementConfig 补充） */
   if (!config.version) {
-    errors.push('配置缺少 version 字段')
+    log.warn('⚠️ [配置校验] version 字段缺失，建议后端补充该字段')
   }
 
   if (!Array.isArray(config.placements)) {
@@ -187,14 +224,14 @@ class ConfigCacheManager {
       const cachedConfig = this._getCachedConfig()
 
       if (cachedConfig) {
-        console.log('✅ [配置缓存] 使用本地缓存, 版本:', cachedConfig.version)
+        log.info('✅ [配置缓存] 使用本地缓存, 版本:', cachedConfig.version)
 
         /* 检查缓存是否过期 */
         const lastUpdateTime = wx.getStorageSync(PLACEMENT_LAST_UPDATE_KEY) || 0
         const isExpired = Date.now() - lastUpdateTime > CACHE_EXPIRE_TIME
 
         if (isExpired) {
-          console.log('⚠️ [配置缓存] 缓存已过期（超过24小时），后台静默更新中...')
+          log.info('⚠️ [配置缓存] 缓存已过期（超过24小时），后台静默更新中...')
         }
 
         /* 后台静默更新（不阻塞当前渲染） */
@@ -204,20 +241,20 @@ class ConfigCacheManager {
       }
 
       /* 层级2：无缓存，同步请求后端API */
-      console.log('⚠️ [配置缓存] 无本地缓存，从后端API获取...')
+      log.info('⚠️ [配置缓存] 无本地缓存，从后端API获取...')
       return await this._fetchAndCacheConfig()
     } catch (fetchError) {
-      console.error('❌ [配置缓存] API请求失败:', fetchError)
+      log.error('❌ [配置缓存] API请求失败:', fetchError)
 
       /* 层级3：API失败，尝试使用过期缓存 */
       const fallbackCachedConfig = this._getCachedConfig()
       if (fallbackCachedConfig) {
-        console.warn('⚠️ [配置缓存] 使用过期缓存作为降级（层级3）')
+        log.warn('⚠️ [配置缓存] 使用过期缓存作为降级（层级3）')
         return fallbackCachedConfig
       }
 
       /* 层级4：无任何缓存，返回内置默认配置 */
-      console.warn('⚠️ [配置缓存] 使用内置默认配置（降级层级4）')
+      log.warn('⚠️ [配置缓存] 使用内置默认配置（降级层级4）')
       return this._getBuiltInConfig()
     }
   }
@@ -230,7 +267,7 @@ class ConfigCacheManager {
    * @throws 网络或API错误
    */
   async forceRefresh(): Promise<PlacementConfig> {
-    console.log('🔄 [配置缓存] 强制刷新配置...')
+    log.info('🔄 [配置缓存] 强制刷新配置...')
     return await this._fetchAndCacheConfig()
   }
 
@@ -260,9 +297,9 @@ class ConfigCacheManager {
       wx.removeStorageSync(PLACEMENT_CACHE_KEY)
       wx.removeStorageSync(PLACEMENT_VERSION_KEY)
       wx.removeStorageSync(PLACEMENT_LAST_UPDATE_KEY)
-      console.log('🗑️ [配置缓存] 缓存已清除')
+      log.info('🗑️ [配置缓存] 缓存已清除')
     } catch (clearError) {
-      console.error('❌ [配置缓存] 清除缓存失败:', clearError)
+      log.error('❌ [配置缓存] 清除缓存失败:', clearError)
     }
   }
 
@@ -295,14 +332,14 @@ class ConfigCacheManager {
       /* 校验缓存数据的完整性 */
       const validationResult = validatePlacementConfig(parsedConfig)
       if (!validationResult.valid) {
-        console.warn('⚠️ [配置缓存] 缓存数据校验失败，将重新获取:', validationResult.errors)
+        log.warn('⚠️ [配置缓存] 缓存数据校验失败，将重新获取:', validationResult.errors)
         this.clearCache()
         return null
       }
 
       return parsedConfig
     } catch (parseError) {
-      console.error('❌ [配置缓存] 读取/解析缓存失败:', parseError)
+      log.error('❌ [配置缓存] 读取/解析缓存失败:', parseError)
       this.clearCache()
       return null
     }
@@ -320,19 +357,20 @@ class ConfigCacheManager {
       throw new Error('获取位置配置失败: ' + (apiResponse.message || '后端返回数据为空'))
     }
 
-    const remoteConfig: PlacementConfig = apiResponse.data
+    /* 规范化后端数据：自动补充缺失的 version / updated_at 字段 */
+    const remoteConfig: PlacementConfig = normalizePlacementConfig(apiResponse.data)
 
-    /* 校验后端返回的配置数据 */
+    /* 校验后端返回的配置数据（核心字段：placements） */
     const validationResult = validatePlacementConfig(remoteConfig)
     if (!validationResult.valid) {
-      console.error('❌ [配置缓存] 后端返回的配置校验失败:', validationResult.errors)
+      log.error('❌ [配置缓存] 后端返回的配置校验失败:', validationResult.errors)
       throw new Error('后端配置数据格式错误: ' + validationResult.errors.join('; '))
     }
 
     /* 保存到本地缓存 */
     this._saveToCache(remoteConfig)
 
-    console.log('✅ [配置缓存] 配置已从后端获取并缓存, 版本:', remoteConfig.version)
+    log.info('✅ [配置缓存] 配置已从后端获取并缓存, 版本:', remoteConfig.version)
 
     return remoteConfig
   }
@@ -351,7 +389,8 @@ class ConfigCacheManager {
           return
         }
 
-        const remoteConfig: PlacementConfig = apiResponse.data
+        /* 规范化后端数据：自动补充缺失的 version / updated_at 字段 */
+        const remoteConfig: PlacementConfig = normalizePlacementConfig(apiResponse.data)
         const remoteVersion = remoteConfig.version
 
         /* 版本对比：仅新版本时才更新缓存 */
@@ -359,18 +398,18 @@ class ConfigCacheManager {
           /* 校验新配置 */
           const validationResult = validatePlacementConfig(remoteConfig)
           if (!validationResult.valid) {
-            console.warn('⚠️ [配置缓存] 后台更新: 新版本配置校验失败，保留旧缓存')
+            log.warn('⚠️ [配置缓存] 后台更新: 新版本配置校验失败，保留旧缓存')
             return
           }
 
-          console.log(`🔄 [配置缓存] 发现新版本: ${cachedVersion} → ${remoteVersion}，静默更新`)
+          log.info(`🔄 [配置缓存] 发现新版本: ${cachedVersion} → ${remoteVersion}，静默更新`)
           this._saveToCache(remoteConfig)
         } else {
-          console.log('✅ [配置缓存] 后台检查: 已是最新版本', cachedVersion)
+          log.info('✅ [配置缓存] 后台检查: 已是最新版本', cachedVersion)
         }
       } catch (bgError) {
         /* 静默失败，不影响用户使用 */
-        console.warn('⚠️ [配置缓存] 后台静默更新失败（不影响使用）:', bgError)
+        log.warn('⚠️ [配置缓存] 后台静默更新失败（不影响使用）:', bgError)
       }
     })()
   }
@@ -384,9 +423,9 @@ class ConfigCacheManager {
       wx.setStorageSync(PLACEMENT_CACHE_KEY, JSON.stringify(config))
       wx.setStorageSync(PLACEMENT_VERSION_KEY, config.version)
       wx.setStorageSync(PLACEMENT_LAST_UPDATE_KEY, Date.now())
-      console.log('💾 [配置缓存] 缓存已保存, 版本:', config.version)
+      log.info('💾 [配置缓存] 缓存已保存, 版本:', config.version)
     } catch (saveError) {
-      console.error('❌ [配置缓存] 保存缓存失败:', saveError)
+      log.error('❌ [配置缓存] 保存缓存失败:', saveError)
     }
   }
 

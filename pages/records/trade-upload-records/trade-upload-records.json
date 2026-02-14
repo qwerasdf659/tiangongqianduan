@@ -1,8 +1,10 @@
 {
   "navigationBarTitleText": "积分活动记录",
+  "navigationBarBackgroundColor": "#FF6B35",
+  "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "light",
-  "backgroundColor": "#4facfe",
+  "backgroundColor": "#FF6B35",
   "onReachBottomDistance": 50,
   "usingComponents": {}
 }

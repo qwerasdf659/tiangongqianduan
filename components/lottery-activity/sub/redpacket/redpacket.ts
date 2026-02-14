@@ -52,13 +52,15 @@ Component({
   },
 
   observers: {
-    'isInProgress': function (val: boolean) {
-      if (this.data.isMultiOpen) return
+    isInProgress(val: boolean) {
+      if (this.data.isMultiOpen) {
+        return
+      }
       if (val && this.data.selectedPacket >= 0) {
         this._openSelectedPacket()
       }
     },
-    'multiDrawCount, multiDrawResults': function (count: number, results: any[]) {
+    'multiDrawCount, multiDrawResults'(count: number, results: any[]) {
       if (count > 0 && results && results.length > 0) {
         this._initMultiOpen(count, results)
       }
@@ -78,15 +80,24 @@ Component({
 
     /** 选择一个红包 */
     onTapPacket(e: any) {
-      if (!this.data.canSelect) return
+      if (!this.data.canSelect) {
+        return
+      }
       const id = e.currentTarget.dataset.id
-      if (id === undefined || id === null) return
+      if (id === undefined || id === null) {
+        return
+      }
 
-      try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'light' })
+      } catch (_e) {
+        /* */
+      }
       this.setData({ selectedPacket: id, canSelect: false })
 
       const packets = this.data.packets.map((p: any) => ({
-        ...p, shaking: p.id === id
+        ...p,
+        shaking: p.id === id
       }))
       this.setData({ packets })
 
@@ -98,10 +109,16 @@ Component({
     /** 拆开选中的红包 */
     _openSelectedPacket() {
       const { selectedPacket, packets } = this.data
-      try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'heavy' })
+      } catch (_e) {
+        /* */
+      }
 
       const updated = packets.map((p: any) => ({
-        ...p, shaking: false, opened: p.id === selectedPacket
+        ...p,
+        shaking: false,
+        opened: p.id === selectedPacket
       }))
       this.setData({ packets: updated })
 
@@ -141,7 +158,9 @@ Component({
 
     /** 按布局规则分行：3→1排，5→1排，10→上5下5 */
     _buildRows(packets: any[], count: number): any[][] {
-      if (count <= 5) return [packets]
+      if (count <= 5) {
+        return [packets]
+      }
       return [packets.slice(0, 5), packets.slice(5)]
     },
 
@@ -151,9 +170,15 @@ Component({
       const colIdx = e.currentTarget.dataset.col
       const packetRows = this.data.packetRows
       const packet = packetRows[rowIdx][colIdx]
-      if (packet.opened) return
+      if (packet.opened) {
+        return
+      }
 
-      try { wx.vibrateShort({ type: 'medium' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'medium' })
+      } catch (_e) {
+        /* */
+      }
 
       /* 先晃动 */
       packetRows[rowIdx][colIdx] = { ...packet, shaking: true }
@@ -166,7 +191,11 @@ Component({
         const openedCount = this.data.openedCount + 1
         const allOpened = openedCount >= this.data.totalPackets
 
-        try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+        try {
+          wx.vibrateShort({ type: 'heavy' })
+        } catch (_e) {
+          /* */
+        }
         this.setData({ packetRows: rows, openedCount, allOpened })
 
         if (allOpened) {
@@ -185,7 +214,7 @@ Component({
       for (let r = 0; r < packetRows.length; r++) {
         for (let c = 0; c < packetRows[r].length; c++) {
           if (!packetRows[r][c].opened) {
-            ((row, col, d) => {
+            ;((row, col, d) => {
               /* 先晃动 */
               setTimeout(() => {
                 const rows = this.data.packetRows
@@ -200,7 +229,11 @@ Component({
                 const count = this.data.openedCount + 1
                 const all = count >= this.data.totalPackets
                 this.setData({ packetRows: rows, openedCount: count, allOpened: all })
-                try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+                try {
+                  wx.vibrateShort({ type: 'light' })
+                } catch (_e) {
+                  /* */
+                }
 
                 if (all) {
                   setTimeout(() => {

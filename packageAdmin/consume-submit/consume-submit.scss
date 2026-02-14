@@ -1,283 +1,372 @@
-/* 消费录入页面样式 - V3.0 Sass版本 */
+/* packageAdmin/consume-submit/consume-submit.scss - 商家消费录入页面样式 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-.consume-container {
+/* 页面容器 */
+.consume-page {
   min-height: 100vh;
-  background: linear-gradient(to bottom, #fff5f0 0%, #ffffff 200rpx);
-  padding: 40rpx 30rpx 100rpx 30rpx;
+  background: linear-gradient(180deg, #fff5f0 0%, $color-bg 200rpx);
+  padding: 30rpx 30rpx 160rpx;
 }
 
-/* 页面标题 */
-.page-title {
-  text-align: center;
-  font-size: 44rpx;
-  font-weight: bold;
-  color: $color-primary;
-  margin-bottom: 50rpx;
-}
-
-/* 用户信息展示区域 */
-.user-info-section {
-  background: $color-white;
-  border-radius: 24rpx;
-  padding: 40rpx 30rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.1);
-}
-
-.section-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: $color-text-primary;
-  margin-bottom: 30rpx;
-  padding-bottom: 20rpx;
-  border-bottom: 2rpx solid #f0f0f0;
-}
-
-/* 加载状态 */
-.info-loading {
+/* ===== 顶部步骤条 ===== */
+.step-bar {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60rpx 0;
+  padding: 24rpx 40rpx;
+  margin-bottom: 30rpx;
 }
 
-.loading-icon {
-  font-size: 80rpx;
-  margin-bottom: 20rpx;
-  animation: rotate 2s linear infinite;
+.step {
+  @include flex-column-center;
+  gap: 8rpx;
 }
 
-.loading-text {
-  font-size: 28rpx;
+.step-number {
+  width: 48rpx;
+  height: 48rpx;
+  @include flex-center;
+  border-radius: 50%;
+  font-size: $font-size-sm;
+  font-weight: bold;
+  background: $color-border-light;
+  color: $color-text-tertiary;
+  transition: all 0.3s;
+}
+
+.step.active .step-number {
+  background: $color-primary;
+  color: $color-text-white;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.step.done .step-number {
+  background: $color-success;
+  color: $color-text-white;
+}
+
+.step-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  transition: all 0.3s;
+}
+
+.step.active .step-label {
+  color: $color-primary;
+  font-weight: 500;
+}
+
+.step.done .step-label {
+  color: $color-success;
+  font-weight: 500;
+}
+
+.step-line {
+  width: 80rpx;
+  height: 4rpx;
+  background: $color-border-light;
+  margin: 0 16rpx;
+  margin-bottom: 28rpx;
+  border-radius: 2rpx;
+  transition: all 0.3s;
+}
+
+.step-line.active {
+  background: $color-success;
+}
+
+/* ===== 表单卡片 ===== */
+.form-card {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid $color-border-light;
+}
+
+.title-icon {
+  font-size: $font-size-lg;
+}
+
+.card-title .title-text {
+  font-size: $font-size-md;
+  font-weight: bold;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.required-mark {
+  font-size: $font-size-base;
+  color: $color-error;
+  font-weight: bold;
+}
+
+.optional-mark {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  padding: 4rpx 12rpx;
+  background: $color-bg-grey;
+  border-radius: 8rpx;
+}
+
+/* ===== 门店选择器 ===== */
+.picker-box {
+  @include flex-between;
+  padding: 20rpx 24rpx;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.picker-box.selected {
+  border-color: $color-primary;
+  background: #fff5f0;
+}
+
+.picker-text {
+  font-size: $font-size-base;
   color: $color-text-tertiary;
 }
 
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
+.picker-box.selected .picker-text {
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+.picker-arrow {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+/* 单门店自动显示 */
+.store-auto {
+  @include flex-between;
+  padding: 20rpx 24rpx;
+  background: #f0f9eb;
+  border-radius: $border-radius-md;
+}
+
+.store-name {
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+.auto-badge {
+  padding: 4rpx 12rpx;
+  background: $color-success;
+  border-radius: 8rpx;
+}
+
+.auto-text {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+}
+
+/* ===== 用户信息 ===== */
+.user-loading {
+  @include flex-column-center;
+  padding: 40rpx 0;
+  gap: 16rpx;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid $color-border-light;
+  border-top-color: $color-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* 用户信息内容 */
-.user-info-content {
+.loading-label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.user-info-box {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 16rpx;
 }
 
-.info-row {
-  display: flex;
-  align-items: center;
-  padding: 20rpx;
-  background: #f8f8f8;
-  border-radius: 16rpx;
+.user-row {
+  @include flex-between;
+  padding: 16rpx 20rpx;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
 }
 
-.info-icon {
-  font-size: 40rpx;
-  margin-right: 16rpx;
-}
-
-.info-label {
-  font-size: 28rpx;
+.row-label {
+  font-size: $font-size-sm;
   color: $color-text-secondary;
-  margin-right: 12rpx;
 }
 
-.info-value {
-  font-size: 30rpx;
+.row-value {
+  font-size: $font-size-base;
   color: $color-text-primary;
   font-weight: 500;
-  flex: 1;
 }
 
-/* 加载失败提示 */
-.info-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60rpx 0;
+/* 提示框 */
+.hint-box {
+  @include flex-column-center;
+  padding: 40rpx 20rpx;
+  border-radius: $border-radius-md;
+  gap: 12rpx;
+}
+
+.hint-box.warning {
+  background: #fdf6ec;
+}
+
+.hint-box.error {
   background: #fff5f5;
-  border-radius: 16rpx;
 }
 
-.error-icon {
-  font-size: 80rpx;
-  margin-bottom: 20rpx;
+.hint-icon {
+  font-size: 48rpx;
 }
 
-.error-text {
-  font-size: 28rpx;
-  color: $color-error;
+.hint-text {
+  font-size: $font-size-sm;
   text-align: center;
+  line-height: 1.6;
 }
 
-/* 表单项 */
-.form-item {
-  background: $color-white;
-  border-radius: 24rpx;
-  padding: 40rpx 30rpx;
-  margin-bottom: 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.1);
+.hint-box.warning .hint-text {
+  color: #e6a23c;
 }
 
-.form-label {
-  font-size: 32rpx;
-  color: $color-text-primary;
-  font-weight: bold;
-  margin-bottom: 24rpx;
-}
-
-.form-label.required::after {
-  content: ' *';
+.hint-box.error .hint-text {
   color: $color-error;
-  font-weight: normal;
 }
 
-/* 金额输入 */
-.input-wrapper {
+/* ===== 金额输入 ===== */
+.amount-input-box {
   display: flex;
   align-items: center;
-  background: #f8f8f8;
-  border-radius: 16rpx;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
   padding: 20rpx 24rpx;
   border: 2rpx solid transparent;
   transition: all 0.3s;
 }
 
-.input-wrapper:focus-within {
+.amount-input-box:focus-within {
   border-color: $color-primary;
-  background: #fff;
+  background: $color-white;
 }
 
-.currency-symbol {
-  font-size: 32rpx;
+.currency {
+  font-size: 44rpx;
   color: $color-primary;
   font-weight: bold;
-  margin-right: 12rpx;
+  margin-right: 16rpx;
 }
 
-.amount-input {
+.amount-field {
   flex: 1;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   color: $color-text-primary;
   font-weight: 500;
 }
 
-/* 门店选择器 */
-.picker-value {
-  padding: 20rpx 24rpx;
-  background: #f8f8f8;
-  border-radius: 16rpx;
-  font-size: 30rpx;
-  color: $color-text-primary;
+.input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16rpx;
 }
 
-.picker-value.placeholder {
+.input-hint {
+  font-size: $font-size-xs;
   color: $color-text-tertiary;
 }
 
-.store-auto-value {
+.points-hint {
   display: flex;
   align-items: center;
-  padding: 20rpx 24rpx;
-  background: #f0f9eb;
-  border-radius: 16rpx;
-  gap: 12rpx;
+  gap: 8rpx;
+  padding: 6rpx 16rpx;
+  background: #fff5f0;
+  border-radius: 8rpx;
 }
 
-.form-value {
-  font-size: 30rpx;
-  color: $color-text-primary;
+.points-label {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.points-value {
+  font-size: $font-size-sm;
+  color: $color-primary;
   font-weight: 500;
 }
 
-/* 门店选择提示 */
-.info-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60rpx 0;
-  background: #fdf6ec;
-  border-radius: 16rpx;
-}
-
-.hint-icon {
-  font-size: 80rpx;
-  margin-bottom: 20rpx;
-}
-
-.hint-text {
-  font-size: 28rpx;
-  color: #e6a23c;
-  text-align: center;
-}
-
-/* 备注输入 */
-.notes-input {
+/* ===== 备注输入 ===== */
+.notes-field {
   width: 100%;
-  min-height: 180rpx;
+  min-height: 160rpx;
   max-height: 300rpx;
-  background: #f8f8f8;
-  border-radius: 16rpx;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
   padding: 20rpx 24rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-primary;
   line-height: 1.6;
   border: 2rpx solid transparent;
   transition: all 0.3s;
+  box-sizing: border-box;
 }
 
-.notes-input:focus {
+.notes-field:focus {
   border-color: $color-primary;
-  background: #fff;
+  background: $color-white;
 }
 
-/* 表单提示 */
-.form-tips {
-  font-size: 24rpx;
-  color: $color-text-tertiary;
-  margin-top: 16rpx;
-  line-height: 1.4;
+.notes-counter {
+  text-align: right;
+  margin-top: 8rpx;
+  font-size: $font-size-xs;
+  color: $color-text-disabled;
 }
 
-.form-hint {
-  display: flex;
-  align-items: center;
-  font-size: 26rpx;
-  color: $color-primary;
-  margin-top: 20rpx;
-  padding: 16rpx 20rpx;
-  background: #fff5f0;
-  border-radius: 12rpx;
-  border-left: 4rpx solid $color-primary;
-}
-
-/* 提交按钮 */
-.submit-wrapper {
+/* ===== 底部提交区域 ===== */
+.submit-area {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20rpx 30rpx 30rpx 30rpx;
-  background: linear-gradient(to top, #ffffff 80%, rgba(255, 255, 255, 0));
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, $color-white 80%, rgba(255, 255, 255, 0));
   z-index: 10;
 }
 
-.submit-button {
+.submit-btn {
   width: 100%;
   height: 100rpx;
-  background: linear-gradient(135deg, $color-primary 0%, #ff8c5a 100%);
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
   color: $color-text-white;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: bold;
   border-radius: 50rpx;
   border: none;
@@ -285,51 +374,52 @@
   transition: all 0.3s;
 }
 
-.submit-button:active {
+.submit-btn:active {
   transform: translateY(2rpx);
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
 
-.submit-button.disabled {
-  background: linear-gradient(135deg, #cccccc 0%, #dddddd 100%);
+.submit-btn.disabled {
+  background: linear-gradient(135deg, #ccc, #ddd);
   box-shadow: none;
   color: $color-text-tertiary;
 }
 
-/* 加载遮罩 */
-.loading-mask {
+.submit-text {
+  font-size: $font-size-md;
+  font-weight: bold;
+}
+
+/* ===== 加载遮罩 ===== */
+.overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  @include flex-center;
   z-index: 9999;
 }
 
-.loading-content {
+.overlay-content {
   background: $color-white;
-  border-radius: 24rpx;
-  padding: 60rpx 80rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30rpx;
+  border-radius: $border-radius-lg;
+  padding: 50rpx 60rpx;
+  @include flex-column-center;
+  gap: 24rpx;
 }
 
-.loading-content text {
-  font-size: 28rpx;
-  color: $color-text-primary;
-}
-
-.loading-spinner {
-  width: 80rpx;
-  height: 80rpx;
-  border: 6rpx solid #f0f0f0;
+.overlay-spinner {
+  width: 64rpx;
+  height: 64rpx;
+  border: 5rpx solid $color-border-light;
   border-top-color: $color-primary;
   border-radius: 50%;
-  animation: rotate 1s linear infinite;
+  animation: spin 0.8s linear infinite;
+}
+
+.overlay-text {
+  font-size: $font-size-base;
+  color: $color-text-primary;
 }

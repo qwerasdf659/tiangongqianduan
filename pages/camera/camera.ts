@@ -1,8 +1,8 @@
 ﻿// pages/camera/camera.ts - 发现页面 - 活动聚合入口（方案C：标签页分类）+ MobX响应式状态
 
-const app = getApp()
 // 🔴 统一工具函数导入
-const { Wechat, API } = require('../../utils/index')
+const { Wechat, API, Logger } = require('../../utils/index')
+const log = Logger.createLogger('camera')
 const { showToast } = Wechat
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -64,7 +64,7 @@ Page({
   },
 
   onLoad(options) {
-    console.log('🔍 发现页面（活动聚合）加载', options)
+    log.info('🔍 发现页面（活动聚合）加载', options)
 
     // 🆕 MobX Store绑定
     this.storeBindings = createStoreBindings(this, {
@@ -84,15 +84,14 @@ Page({
   },
 
   onShow() {
-    console.log('🔍 发现页面（活动聚合）显示')
+    log.info('🔍 发现页面（活动聚合）显示')
 
-    // 检查登录状态（活动页面可以未登录浏览）
-    const globalData = app.globalData
-    const isLoggedIn = globalData.isLoggedIn && globalData.access_token
+    // 检查登录状态（活动页面可以未登录浏览，从 MobX Store 读取）
+    const isLoggedIn = userStore.isLoggedIn && !!userStore.accessToken
 
     this.setData({
       isLoggedIn,
-      userInfo: isLoggedIn ? globalData.userInfo || {} : {}
+      userInfo: isLoggedIn ? userStore.userInfo || {} : {}
     })
   },
 
@@ -122,17 +121,17 @@ Page({
         // 应用筛选（根据当前Tab）
         this.filterActivities()
 
-        console.log('✅ 活动数据加载完成，共', activities.length, '个活动')
+        log.info('✅ 活动数据加载完成，共', activities.length, '个活动')
       } else {
         // API返回失败，显示空状态
         this.setData({
           activities: [],
           loading: false
         })
-        console.warn('⚠️ 活动API返回无数据')
+        log.warn('⚠️ 活动API返回无数据')
       }
     } catch (error) {
-      console.error('❌ 初始化失败:', error)
+      log.error('❌ 初始化失败:', error)
       this.setData({
         loading: false,
         errorMessage: '加载失败，请重试'
@@ -173,7 +172,7 @@ Page({
       isEmpty: filtered.length === 0
     })
 
-    console.log('✅ 筛选完成，共', filtered.length, '个活动')
+    log.info('✅ 筛选完成，共', filtered.length, '个活动')
   },
 
   /**
@@ -187,7 +186,7 @@ Page({
       return
     }
 
-    console.log('🔄 Tab切换:', tab)
+    log.info('🔄 Tab切换:', tab)
 
     this.setData({ currentTab: tab })
     this.filterActivities()
@@ -223,7 +222,7 @@ Page({
    * 下拉刷新
    */
   async onPullDownRefresh() {
-    console.log('🔄 下拉刷新')
+    log.info('🔄 下拉刷新')
 
     this.setData({ refreshing: true })
 
@@ -232,7 +231,7 @@ Page({
       await this.initializePage()
       showToast('刷新成功')
     } catch (error) {
-      console.error('❌ 刷新失败:', error)
+      log.error('❌ 刷新失败:', error)
       showToast('刷新失败，请重试')
     } finally {
       wx.stopPullDownRefresh()
@@ -244,7 +243,7 @@ Page({
    * 上拉加载更多
    */
   onReachBottom() {
-    console.log('📄 已显示全部活动')
+    log.info('📄 已显示全部活动')
   },
 
   /**
@@ -258,7 +257,7 @@ Page({
       return
     }
 
-    console.log('👆 点击活动:', activity.title)
+    log.info('👆 点击活动:', activity.title)
 
     // 显示活动详情弹窗
     this.showActivityDetail(activity)

@@ -48,7 +48,7 @@
   width: 100%;
   max-width: 640rpx;
   background: $color-white;
-  border-radius: 32rpx;
+  border-radius: $border-radius-xl;
   overflow: hidden;
   position: relative;
   box-shadow:
@@ -89,9 +89,7 @@
   height: 56rpx;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   transition:
     background 0.2s ease,
     transform 0.15s ease;
@@ -110,7 +108,7 @@
 }
 
 .close-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-white;
   font-weight: bold;
   line-height: 1;
@@ -187,7 +185,7 @@
   width: 100%;
   max-width: 640rpx;
   position: relative;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   overflow: hidden;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.4);
   /* 入场动画 */
@@ -217,13 +215,13 @@
 .popup-full-image {
   width: 100%;
   display: block;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
 }
 
 /* 🔴 纯图模式图片加载失败降级：装饰性占位 */
 .popup-decor-header-fullimage {
   min-height: 400rpx;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   flex-direction: column;
   gap: 16rpx;
 }
@@ -241,12 +239,12 @@
   bottom: 120rpx;
   left: 20rpx;
   background: rgba(0, 0, 0, 0.4);
-  border-radius: 8rpx;
+  border-radius: $border-radius-sm;
   padding: 4rpx 12rpx;
 }
 
 .full-image-size-text {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: rgba(255, 255, 255, 0.7);
 } */
 
@@ -291,9 +289,7 @@
   );
   position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 /* 装饰圆圈 - 漂浮光斑效果 */
@@ -368,7 +364,7 @@
 
 .popup-title {
   display: block;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
   color: #1a1a2e;
   line-height: 1.4;
@@ -377,7 +373,7 @@
 
 .popup-desc {
   display: block;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-secondary;
   line-height: 1.7;
   word-break: break-all;
@@ -395,9 +391,7 @@
    ⚫ 多横幅指示器
    ======================================== */
 .popup-indicators {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 12rpx;
   padding: 8rpx 40rpx 16rpx;
 }
@@ -440,9 +434,7 @@
   font-weight: 600;
   letter-spacing: 2rpx;
   border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   transition: all 0.2s ease;
   padding: 0;
   margin: 0;

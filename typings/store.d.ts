@@ -4,7 +4,7 @@
  * 定义MobX Store的类型接口，用于页面绑定时的类型推导
  *
  * @file 天工餐厅积分系统 - Store类型定义
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
@@ -115,9 +115,3 @@ declare namespace Store {
     hasMore: boolean
   }
 }
-
-
-
-
-
-

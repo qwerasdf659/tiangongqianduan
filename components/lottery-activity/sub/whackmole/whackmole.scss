@@ -10,11 +10,13 @@
   padding: 30rpx 0 60rpx;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg,
-      var(--theme-bg-light, #87CEEB) 0%,
-      var(--theme-bg-mid, #98D8C8) 30%,
-      var(--theme-bg-dark, #4CAF50) 60%,
-      var(--theme-bg-darker, #2E7D32) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-light, #87ceeb) 0%,
+    var(--theme-bg-mid, #98d8c8) 30%,
+    var(--theme-bg-dark, #4caf50) 60%,
+    var(--theme-bg-darker, #2e7d32) 100%
+  );
 
   /* 草地纹理 */
   &::before {
@@ -24,12 +26,13 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background:
-      repeating-linear-gradient(0deg,
-        transparent,
-        transparent 4rpx,
-        rgba(0, 0, 0, 0.03) 4rpx,
-        rgba(0, 0, 0, 0.03) 8rpx);
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 4rpx,
+      rgba(0, 0, 0, 0.03) 4rpx,
+      rgba(0, 0, 0, 0.03) 8rpx
+    );
     opacity: 0.5;
     pointer-events: none;
     z-index: 0;
@@ -44,9 +47,7 @@
     transform: translateX(-50%);
     width: 400rpx;
     height: 300rpx;
-    background: radial-gradient(circle,
-        rgba(255, 235, 59, 0.2) 0%,
-        transparent 70%);
+    background: radial-gradient(circle, rgba(255, 235, 59, 0.2) 0%, transparent 70%);
     filter: blur(40rpx);
     pointer-events: none;
     z-index: 1;
@@ -69,7 +70,7 @@
 
 .particle {
   position: absolute;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   animation: particleFloat linear infinite;
   opacity: 0.4;
 
@@ -116,9 +117,7 @@
   width: 620rpx;
   margin-bottom: 16rpx;
   padding: 16rpx 24rpx;
-  background: linear-gradient(135deg,
-      rgba(0, 0, 0, 0.6) 0%,
-      rgba(0, 0, 0, 0.4) 100%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 100%);
   border-radius: 20rpx;
   border: 3rpx solid rgba(255, 255, 255, 0.2);
   -webkit-backdrop-filter: blur(10rpx);
@@ -140,7 +139,7 @@
 }
 
 .whack-title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   color: var(--theme-text-inverse, #fff);
   font-weight: bold;
   text-shadow:
@@ -157,10 +156,7 @@
   left: -100%;
   width: 50%;
   height: 200%;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.3),
-      transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   animation: titleShine 3s ease-in-out infinite;
 }
 
@@ -187,7 +183,7 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 20rpx;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   background: rgba(0, 0, 0, 0.4);
   border: 2rpx solid rgba(255, 255, 255, 0.15);
   position: relative;
@@ -201,14 +197,13 @@
 .badge-glow {
   position: absolute;
   inset: -4rpx;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), transparent);
   opacity: 0;
   animation: badgeGlow 2s ease-in-out infinite;
 }
 
 @keyframes badgeGlow {
-
   0%,
   100% {
     opacity: 0;
@@ -220,7 +215,6 @@
 }
 
 @keyframes badgePulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -238,9 +232,10 @@
 
 .score-value {
   font-size: 30rpx;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   font-weight: bold;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5),
+  text-shadow:
+    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
     0 0 10rpx rgba(255, 215, 0, 0.5);
 }
 
@@ -257,12 +252,11 @@
   animation: urgentPulse 0.4s ease-in-out infinite;
 
   .time-value {
-    color: var(--theme-danger, #FF6B6B);
+    color: var(--theme-danger, #ff6b6b);
   }
 }
 
 @keyframes urgentPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -293,21 +287,39 @@
 
 .timer-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--theme-success, #4CAF50), var(--theme-success-light, #8BC34A), var(--theme-warning-light, #CDDC39));
+  background: linear-gradient(
+    90deg,
+    var(--theme-success, #4caf50),
+    var(--theme-success-light, #8bc34a),
+    var(--theme-warning-light, #cddc39)
+  );
   border-radius: 6rpx;
   transition: width 1s linear;
   position: relative;
   box-shadow: 0 0 10rpx rgba(76, 175, 80, 0.5);
 
   &.urgent {
-    background: linear-gradient(90deg, var(--theme-danger, #f44336), var(--theme-danger-light, #FF5722), var(--theme-warning, #FF9800));
+    background: linear-gradient(
+      90deg,
+      var(--theme-danger, #f44336),
+      var(--theme-danger-light, #ff5722),
+      var(--theme-warning, #ff9800)
+    );
     animation: timerFlash 0.3s ease-in-out infinite;
     box-shadow: 0 0 15rpx rgba(244, 67, 54, 0.8);
   }
 
   &.carnival {
-    background: linear-gradient(90deg,
-        #FF0080, #FF8C00, #FFD700, #00FF00, #00CED1, #0080FF, #8B00FF);
+    background: linear-gradient(
+      90deg,
+      #ff0080,
+      #ff8c00,
+      #ffd700,
+      #00ff00,
+      #00ced1,
+      #0080ff,
+      #8b00ff
+    );
     background-size: 200% 100%;
     animation: rainbowFlow 2s linear infinite;
   }
@@ -332,27 +344,30 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 20rpx;
-  background: linear-gradient(135deg, var(--theme-primary, #FF0080), var(--theme-secondary, #8B00FF));
-  border-radius: 24rpx;
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff0080),
+    var(--theme-secondary, #8b00ff)
+  );
+  border-radius: $border-radius-lg;
   border: 2rpx solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 4rpx 12rpx var(--theme-secondary-glow, rgba(139, 0, 255, 0.4));
   animation: carnivalPulse 0.5s ease-in-out infinite;
 }
 
 .carnival-icon {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   animation: carnivalIconSpin 1s linear infinite;
 }
 
 .carnival-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: bold;
   color: var(--theme-text-inverse, #fff);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
 @keyframes carnivalPulse {
-
   0%,
   100% {
     transform: translateX(-50%) scale(1);
@@ -379,10 +394,7 @@
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.5),
-      transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
   animation: timerShine 2s ease-in-out infinite;
 }
 
@@ -398,7 +410,6 @@
 }
 
 @keyframes timerFlash {
-
   0%,
   100% {
     opacity: 1;
@@ -429,9 +440,9 @@
 }
 
 .combo-text {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: bold;
-  color: var(--theme-primary, #FF6B6B);
+  color: var(--theme-primary, #ff6b6b);
   text-shadow:
     3rpx 3rpx 0 #000,
     -3rpx -3rpx 0 #000,
@@ -443,7 +454,7 @@
 }
 
 .combo-spark {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   animation: comboSparkle 0.8s ease-in-out infinite;
 }
 
@@ -472,7 +483,6 @@
 }
 
 @keyframes comboShake {
-
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
@@ -488,7 +498,6 @@
 }
 
 @keyframes comboSparkle {
-
   0%,
   100% {
     transform: scale(1) rotate(0deg);
@@ -520,10 +529,8 @@
   position: relative;
   z-index: 2;
   padding: 20rpx;
-  background: radial-gradient(ellipse at center,
-      rgba(76, 175, 80, 0.3) 0%,
-      transparent 70%);
-  border-radius: 24rpx;
+  background: radial-gradient(ellipse at center, rgba(76, 175, 80, 0.3) 0%, transparent 70%);
+  border-radius: $border-radius-lg;
 }
 
 /* ================================
@@ -545,7 +552,8 @@
   // 火焰锤（5连击）
   &.hammer-fire .hammer-icon {
     font-size: 56rpx;
-    filter: drop-shadow(0 0 12rpx rgba(255, 165, 0, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 12rpx rgba(255, 165, 0, 0.8))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
   // 雷电锤（10连击）
@@ -556,7 +564,7 @@
 }
 
 .hammer-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   display: block;
 
@@ -590,7 +598,6 @@
 }
 
 @keyframes fireFlicker {
-
   0%,
   100% {
     filter: brightness(1);
@@ -602,7 +609,6 @@
 }
 
 @keyframes thunderPulse {
-
   0%,
   100% {
     filter: brightness(1);
@@ -614,7 +620,6 @@
 }
 
 @keyframes fireGlow {
-
   0%,
   100% {
     transform: scale(1);
@@ -628,7 +633,6 @@
 }
 
 @keyframes thunderGlow {
-
   0%,
   100% {
     transform: scale(1);
@@ -664,7 +668,7 @@
 .miss-text {
   font-size: 44rpx;
   font-weight: bold;
-  color: var(--theme-danger, #FF5252);
+  color: var(--theme-danger, #ff5252);
   text-shadow:
     2rpx 2rpx 0 #000,
     -2rpx -2rpx 0 #000,
@@ -674,16 +678,16 @@
 }
 
 .miss-penalty {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: bold;
-  color: var(--theme-warning, #FFA726);
+  color: var(--theme-warning, #ffa726);
   text-shadow:
     1rpx 1rpx 0 #000,
     -1rpx -1rpx 0 #000;
 }
 
 .dust-cloud {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   animation: dustSpread 0.5s ease-out forwards;
 }
 
@@ -705,7 +709,6 @@
 }
 
 @keyframes missShake {
-
   0%,
   100% {
     transform: translateX(0);
@@ -795,7 +798,6 @@
 }
 
 @keyframes bombPulse {
-
   0%,
   100% {
     box-shadow: 0 0 20rpx rgba(255, 0, 0, 0.6);
@@ -810,7 +812,7 @@
 .grass-deco {
   position: absolute;
   top: 10rpx;
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   z-index: 4;
   animation: grassSway 2s ease-in-out infinite;
   filter: drop-shadow(1rpx 1rpx 0 rgba(0, 0, 0, 0.3));
@@ -827,7 +829,6 @@
 }
 
 @keyframes grassSway {
-
   0%,
   100% {
     transform: rotate(-5deg);
@@ -844,10 +845,7 @@
   bottom: 20rpx;
   width: 40rpx;
   height: 30rpx;
-  background: radial-gradient(ellipse,
-      #8D6E63 0%,
-      #6D4C41 60%,
-      transparent 100%);
+  background: radial-gradient(ellipse, #8d6e63 0%, #6d4c41 60%, transparent 100%);
   border-radius: 50%;
   z-index: 4;
   /* 提高层级，让土堆显示在地鼠上方（营造土堆在洞口边缘的效果） */
@@ -870,10 +868,7 @@
   transform: translateX(-50%);
   width: 150rpx;
   height: 28rpx;
-  background: linear-gradient(180deg,
-      #8D6E63 0%,
-      #6D4C41 50%,
-      #5D4037 100%);
+  background: linear-gradient(180deg, #8d6e63 0%, #6d4c41 50%, #5d4037 100%);
   border-radius: 50%;
   z-index: -1;
   /* 降低层级到-1，让圆形土壤边缘显示在黑色洞口下方 */
@@ -886,9 +881,7 @@
 .hole-rim-inner {
   position: absolute;
   inset: 4rpx;
-  background: radial-gradient(ellipse,
-      rgba(93, 64, 55, 0.8) 0%,
-      transparent 70%);
+  background: radial-gradient(ellipse, rgba(93, 64, 55, 0.8) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -899,10 +892,7 @@
   transform: translateX(-50%);
   width: 130rpx;
   height: 55rpx;
-  background: radial-gradient(ellipse,
-      #2c1810 0%,
-      #1a0f08 60%,
-      #0a0504 100%);
+  background: radial-gradient(ellipse, #2c1810 0%, #1a0f08 60%, #0a0504 100%);
   border-radius: 50%;
   z-index: 1;
   /* 提高层级到1，让黑色洞口显示在圆形土壤边缘上方 */
@@ -912,15 +902,12 @@
 .hole-shadow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse,
-      rgba(0, 0, 0, 0.6) 0%,
-      transparent 70%);
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6) 0%, transparent 70%);
   border-radius: 50%;
   animation: shadowPulse 2s ease-in-out infinite;
 }
 
 @keyframes shadowPulse {
-
   0%,
   100% {
     opacity: 0.6;
@@ -973,7 +960,6 @@
 }
 
 @keyframes moleBlink {
-
   0%,
   90%,
   100% {
@@ -990,12 +976,11 @@
   position: absolute;
   top: -20rpx;
   right: -10rpx;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   animation: alertBounce 0.3s ease-in-out infinite;
 }
 
 @keyframes alertBounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1007,7 +992,6 @@
 }
 
 @keyframes moleHideAlert {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1021,8 +1005,7 @@
 /* 金色地鼠增强 */
 .golden-body {
   .mole-icon {
-    filter:
-      drop-shadow(0 0 16rpx rgba(255, 215, 0, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
     animation: goldenGlow 0.6s ease-in-out infinite;
   }
 }
@@ -1031,22 +1014,22 @@
   position: absolute;
   top: 10rpx;
   left: -15rpx;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   animation: sparkleRotate 2s linear infinite;
 }
 
 .golden-crown {
   position: absolute;
   top: -15rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   animation: crownBob 1s ease-in-out infinite;
 }
 
 /* 彩虹地鼠 - 超稀有 */
 .rainbow-body {
   .mole-icon {
-    filter:
-      drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8)) drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8))
+      drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
     animation: rainbowGlow 0.8s ease-in-out infinite;
   }
 }
@@ -1054,7 +1037,7 @@
 .rainbow-aura {
   position: absolute;
   top: -20rpx;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   animation: rainbowFloat 2s ease-in-out infinite;
 }
 
@@ -1068,7 +1051,7 @@
 
 .rainbow-star {
   position: absolute;
-  font-size: 20rpx;
+  font-size: $font-size-xs;
 
   &:nth-child(1) {
     top: -10rpx;
@@ -1089,21 +1072,19 @@
 }
 
 @keyframes rainbowGlow {
-
   0%,
   100% {
-    filter:
-      drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8)) drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8))
+      drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
   50% {
-    filter:
-      drop-shadow(0 0 30rpx rgba(255, 215, 0, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 30rpx rgba(255, 215, 0, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 }
 
 @keyframes rainbowFloat {
-
   0%,
   100% {
     transform: translateY(0) scale(1);
@@ -1117,7 +1098,6 @@
 }
 
 @keyframes rainbowStar1 {
-
   0%,
   100% {
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -1129,7 +1109,6 @@
 }
 
 @keyframes rainbowStar2 {
-
   0%,
   100% {
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -1141,7 +1120,6 @@
 }
 
 @keyframes rainbowStar3 {
-
   0%,
   100% {
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -1167,7 +1145,6 @@
 }
 
 @keyframes crownBob {
-
   0%,
   100% {
     transform: translateY(0) rotate(-5deg);
@@ -1189,12 +1166,11 @@
   position: absolute;
   top: -10rpx;
   right: -10rpx;
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   animation: fuseSpark 0.5s ease-in-out infinite;
 }
 
 @keyframes fuseSpark {
-
   0%,
   100% {
     opacity: 1;
@@ -1207,13 +1183,12 @@
   }
 }
 
-
 /* 金色地鼠发光效果 */
 @keyframes goldenGlow {
-
   0%,
   100% {
-    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.8))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
   50% {
@@ -1223,7 +1198,6 @@
 
 /* 炸弹地鼠抖动 */
 @keyframes bombShake {
-
   0%,
   100% {
     transform: rotate(0deg);
@@ -1320,7 +1294,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  font-size: 28rpx;
+  font-size: $font-size-base;
 
   &.p1 {
     animation: burstParticle1 0.6s ease-out forwards;
@@ -1393,9 +1367,9 @@
 }
 
 .whack-score {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: bold;
-  color: var(--theme-success, #4CAF50);
+  color: var(--theme-success, #4caf50);
   text-shadow:
     2rpx 2rpx 0 #000,
     -2rpx -2rpx 0 #000,
@@ -1405,7 +1379,7 @@
   animation: scoreFloat 0.8s ease-out forwards;
 
   &.penalty {
-    color: var(--theme-danger, #FF5252);
+    color: var(--theme-danger, #ff5252);
     text-shadow:
       2rpx 2rpx 0 #000,
       -2rpx -2rpx 0 #000,
@@ -1578,7 +1552,7 @@
   transform: translate(-50%, -50%);
   font-size: 56rpx;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   text-shadow:
     3rpx 3rpx 0 #000,
     -3rpx -3rpx 0 #000,
@@ -1599,8 +1573,11 @@
   }
 
   100% {
-    transform: translate(calc(-50% + 200rpx * cos(var(--angle))),
-        calc(-50% + 200rpx * sin(var(--angle)))) scale(1.5) rotate(360deg);
+    transform: translate(
+        calc(-50% + 200rpx * cos(var(--angle))),
+        calc(-50% + 200rpx * sin(var(--angle)))
+      )
+      scale(1.5) rotate(360deg);
     opacity: 0;
   }
 }
@@ -1661,7 +1638,6 @@
 }
 
 @keyframes introIconSpin {
-
   0%,
   100% {
     transform: rotate(-10deg) scale(1);
@@ -1673,7 +1649,7 @@
 }
 
 .intro-title {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: bold;
   color: var(--theme-text-inverse, #fff);
   text-shadow:
@@ -1682,14 +1658,13 @@
 }
 
 .intro-desc {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.85));
   text-align: center;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
 @keyframes introFloat {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1710,10 +1685,14 @@
   align-items: center;
   gap: 16rpx;
   padding: 24rpx 80rpx;
-  background: linear-gradient(135deg, var(--theme-primary, #FF6B6B) 0%, var(--theme-primary-dark, #ee5a24) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff6b6b) 0%,
+    var(--theme-primary-dark, #ee5a24) 100%
+  );
   border-radius: 60rpx;
   color: var(--theme-text-inverse, #fff);
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: bold;
   box-shadow:
     0 12rpx 32rpx rgba(238, 90, 36, 0.5),
@@ -1726,8 +1705,7 @@
 
   &--active {
     transform: scale(0.92);
-    box-shadow:
-      0 6rpx 16rpx rgba(238, 90, 36, 0.4);
+    box-shadow: 0 6rpx 16rpx rgba(238, 90, 36, 0.4);
   }
 }
 
@@ -1737,10 +1715,7 @@
   left: -100%;
   width: 50%;
   height: 200%;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   animation: btnShine 2.5s ease-in-out infinite;
 }
 
@@ -1768,12 +1743,11 @@
 }
 
 .start-btn__icon {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   animation: btnIconBounce 1s ease-in-out infinite;
 }
 
 @keyframes btnIconBounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1803,7 +1777,7 @@
   gap: 8rpx;
   padding: 12rpx 20rpx;
   background: rgba(0, 0, 0, 0.4);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   border: 2rpx solid rgba(255, 255, 255, 0.15);
   -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
@@ -1825,11 +1799,11 @@
 }
 
 .rule-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
 }
 
 .rule-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.9));
   font-weight: 500;
 }
@@ -1860,10 +1834,8 @@
   flex-direction: column;
   align-items: center;
   padding: 40rpx 60rpx;
-  background: linear-gradient(135deg,
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0.5) 100%);
-  border-radius: 32rpx;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 100%);
+  border-radius: $border-radius-xl;
   border: 3rpx solid rgba(255, 215, 0, 0.4);
   -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
@@ -1880,15 +1852,12 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle,
-        rgba(255, 215, 0, 0.1) 0%,
-        transparent 70%);
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
     animation: resultGlow 2s ease-in-out infinite;
   }
 }
 
 @keyframes resultGlow {
-
   0%,
   100% {
     transform: scale(0.8);
@@ -1909,7 +1878,6 @@
 }
 
 @keyframes trophyBounce {
-
   0%,
   100% {
     transform: translateY(0) rotate(-5deg);
@@ -1922,7 +1890,7 @@
 
 .result-title {
   font-size: 42rpx;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   font-weight: bold;
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
@@ -1951,7 +1919,6 @@
 }
 
 @keyframes scoreRingPulse {
-
   0%,
   100% {
     transform: translate(-50%, -50%) scale(1);
@@ -1986,7 +1953,7 @@
 .result-score__value {
   font-size: 72rpx;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   text-shadow:
     0 0 30rpx rgba(255, 215, 0, 0.8),
     0 4rpx 8rpx rgba(0, 0, 0, 0.5);
@@ -1994,7 +1961,6 @@
 }
 
 @keyframes scoreValuePulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -2011,7 +1977,7 @@
   gap: 12rpx;
   padding: 16rpx 32rpx;
   background: rgba(76, 175, 80, 0.2);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   border: 2rpx solid rgba(76, 175, 80, 0.4);
   margin-bottom: 24rpx;
   animation: evalSlideIn 0.5s 0.3s ease-out backwards;
@@ -2030,11 +1996,11 @@
 }
 
 .eval-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
 }
 
 .eval-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--theme-text-inverse, #fff);
   font-weight: bold;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
@@ -2046,7 +2012,7 @@
   gap: 32rpx;
   padding: 24rpx 40rpx;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   border: 2rpx solid rgba(255, 255, 255, 0.1);
   animation: statsSlideIn 0.5s 0.5s ease-out backwards;
 }
@@ -2071,9 +2037,9 @@
 }
 
 .stat-value {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -2085,10 +2051,7 @@
 .stat-divider {
   width: 2rpx;
   height: 60rpx;
-  background: linear-gradient(180deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent);
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
 /* ================================
@@ -2097,10 +2060,8 @@
 .whack-cost {
   margin-top: 24rpx;
   padding: 14rpx 32rpx;
-  background: linear-gradient(135deg,
-      rgba(0, 0, 0, 0.5) 0%,
-      rgba(0, 0, 0, 0.3) 100%);
-  border-radius: 24rpx;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%);
+  border-radius: $border-radius-lg;
   display: flex;
   align-items: center;
   gap: 8rpx;
@@ -2111,7 +2072,6 @@
 }
 
 @keyframes costBlink {
-
   0%,
   90%,
   100% {
@@ -2124,12 +2084,11 @@
 }
 
 .cost-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   animation: costIconSpin 3s ease-in-out infinite;
 }
 
 @keyframes costIconSpin {
-
   0%,
   100% {
     transform: rotate(0deg) scale(1);
@@ -2141,9 +2100,9 @@
 }
 
 .cost-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -2190,7 +2149,7 @@
     gap: 12rpx;
     padding: 16rpx 20rpx;
     background: rgba(0, 0, 0, 0.3);
-    border-radius: 16rpx;
+    border-radius: $border-radius-md;
     border: 2rpx solid rgba(255, 255, 255, 0.1);
     animation: statsSlideIn 0.5s ease-out backwards;
 
@@ -2205,7 +2164,7 @@
 }
 
 .stat-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
 }
 
 .stat-info {
@@ -2214,14 +2173,14 @@
   gap: 4rpx;
 
   .stat-value {
-    font-size: 32rpx;
+    font-size: $font-size-md;
     font-weight: bold;
-    color: var(--theme-accent, #FFD700);
+    color: var(--theme-accent, #ffd700);
     text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
   }
 
   .stat-label {
-    font-size: 20rpx;
+    font-size: $font-size-xs;
     color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
   }
 }
@@ -2233,25 +2192,24 @@
   gap: 12rpx;
   padding: 20rpx;
   background: rgba(255, 215, 0, 0.1);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   border: 2rpx solid rgba(255, 215, 0, 0.3);
   animation: waitingPulse 1.5s ease-in-out infinite;
 }
 
 .waiting-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   animation: waitingIconBounce 1s ease-in-out infinite;
 }
 
 .waiting-text {
   font-size: 26rpx;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   font-weight: bold;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
 @keyframes waitingPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -2265,7 +2223,6 @@
 }
 
 @keyframes waitingIconBounce {
-
   0%,
   100% {
     transform: translateY(0) rotate(0deg);

@@ -46,7 +46,7 @@
 .status-badge {
   font-size: 22rpx;
   padding: 6rpx 12rpx;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10rpx);
 }
@@ -54,7 +54,7 @@
 .connection-info .ws-status {
   font-size: 22rpx;
   padding: 6rpx 12rpx;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   backdrop-filter: blur(10rpx);
 }
 
@@ -85,7 +85,7 @@
 .sessions-panel {
   width: 420rpx;
   background: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
@@ -96,9 +96,7 @@
   padding: 24rpx 30rpx;
   border-bottom: 2rpx solid #f1f2f6;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
 }
 
 .panel-title {
@@ -174,9 +172,7 @@
   height: 60rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   margin-right: 16rpx;
   flex-shrink: 0;
   box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
@@ -201,7 +197,7 @@
 }
 
 .user-name {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   color: #2c3e50;
   max-width: 160rpx;
@@ -211,7 +207,7 @@
 }
 
 .session-time {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: #95a5a6;
 }
 
@@ -223,7 +219,7 @@
 }
 
 .last-message {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: #7f8c8d;
   white-space: nowrap;
   overflow: hidden;
@@ -271,7 +267,7 @@
 .chat-panel {
   flex: 1;
   background: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
@@ -332,7 +328,7 @@
   justify-content: center;
   gap: 8rpx;
   padding: 0 20rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   transition: all 0.3s ease;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
@@ -348,10 +344,7 @@
 
 .no-session-selected {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   color: #95a5a6;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
@@ -363,7 +356,7 @@
 }
 
 .no-session-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: #95a5a6;
 }
 
@@ -402,7 +395,7 @@
 }
 
 .back-icon {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: bold;
 }
 
@@ -418,13 +411,13 @@
 }
 
 .chat-user-name {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 700;
   color: #2c3e50;
 }
 
 .chat-session-id {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: #95a5a6;
 }
 
@@ -467,9 +460,7 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   margin: 0 16rpx;
   flex-shrink: 0;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
@@ -485,7 +476,7 @@
 
 .message-avatar .avatar-text {
   color: white;
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   font-weight: 600;
 }
 
@@ -590,7 +581,7 @@
 }
 
 .quick-reply-item text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: inherit;
 }
 
@@ -604,7 +595,7 @@
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   color: white;
   padding: 10rpx 20rpx;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   font-size: 22rpx;
   border: none;
   box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.3);
@@ -625,7 +616,7 @@
   max-height: 160rpx;
   padding: 16rpx 20rpx;
   border: 2rpx solid #e9ecef;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   font-size: 26rpx;
   background: $color-bg;
   resize: none;
@@ -644,12 +635,10 @@
   height: 72rpx;
   border-radius: 36rpx;
   border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 8rpx;
   padding: 0 20rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   transition: all 0.3s ease;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   background: #e9ecef;
@@ -671,7 +660,7 @@
 }
 
 .send-icon {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
 }
 
 .send-text {
@@ -692,7 +681,7 @@
 .today-stats {
   margin-top: 20rpx;
   background: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
@@ -704,7 +693,7 @@
 }
 
 .stats-title {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 700;
   color: #2c3e50;
 }
@@ -732,7 +721,7 @@
 }
 
 .stat-card .stat-number {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 700;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   background-clip: text;
@@ -795,7 +784,7 @@
 }
 
 .debug-panel-title {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   color: white;
 }
@@ -806,11 +795,11 @@
 }
 
 .status-item {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.2);
   padding: 4rpx 8rpx;
-  border-radius: 8rpx;
+  border-radius: $border-radius-sm;
 }
 
 /* 快速操作按钮区域 */
@@ -828,7 +817,7 @@
   align-items: center;
   padding: 12rpx 8rpx;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 8rpx;
+  border-radius: $border-radius-sm;
   border: none;
   color: white;
   min-width: 80rpx;
@@ -841,7 +830,7 @@
 }
 
 .debug-quick-btn .btn-icon {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   margin-bottom: 4rpx;
 }
 
@@ -864,7 +853,7 @@
 }
 
 .debug-section-title-compact {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 8rpx;
@@ -902,7 +891,7 @@
 }
 
 .debug-info-title-compact {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   font-weight: 600;
   color: white;
   margin-bottom: 8rpx;

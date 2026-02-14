@@ -49,12 +49,12 @@ Component({
   },
 
   observers: {
-    'prizes, displayConfig': function () {
+    'prizes, displayConfig'() {
       if (this.data.machineState === 'idle') {
         this._initReels()
       }
     },
-    'isInProgress': function (val: boolean) {
+    isInProgress(val: boolean) {
       if (val && this.data.machineState === 'spinning') {
         this._beginStopSequence()
       }
@@ -68,7 +68,9 @@ Component({
       const count = cfg?.reels || 3
       const delay = cfg?.stop_delay || 600
       const prizes = this.properties.prizes as any[]
-      if (!prizes.length) return
+      if (!prizes.length) {
+        return
+      }
 
       const reels = Array.from({ length: count }, (_, i) => {
         const shuffled = [...prizes].sort(() => Math.random() - 0.5)
@@ -103,7 +105,9 @@ Component({
 
     /** 拉动手柄 */
     onPullHandle() {
-      if (this.data.machineState !== 'idle') return
+      if (this.data.machineState !== 'idle') {
+        return
+      }
 
       this._vibrate('heavy')
       this.setData({ machineState: 'pulling' })
@@ -111,7 +115,7 @@ Component({
       // 手柄动画完成后启动卷轴旋转
       this._pullTimer = setTimeout(() => {
         const prizes = this.properties.prizes as any[]
-        const reels = this.data.reels.map((r: any, i: number) => {
+        const reels = this.data.reels.map((r: any, _i: number) => {
           const shuffled = [...prizes].sort(() => Math.random() - 0.5)
           const items = [...shuffled, ...shuffled, ...shuffled]
           return {
@@ -138,38 +142,43 @@ Component({
 
       this._stopTimers = []
       for (let i = 0; i < reelCount; i++) {
-        this._stopTimers.push(setTimeout(() => {
-          // 将结果奖品放在前3个位置（显示窗口区域）
-          const shuffled = [...prizes].sort(() => Math.random() - 0.5)
-          const resultItems = shuffled.slice(0, 3)
-          const filler = [...prizes, ...prizes]
-          const items = [...resultItems, ...filler]
+        this._stopTimers.push(
+          setTimeout(
+            () => {
+              // 将结果奖品放在前3个位置（显示窗口区域）
+              const shuffled = [...prizes].sort(() => Math.random() - 0.5)
+              const resultItems = shuffled.slice(0, 3)
+              const filler = [...prizes, ...prizes]
+              const items = [...resultItems, ...filler]
 
-          const reels = [...this.data.reels]
-          reels[i] = {
-            ...reels[i],
-            items,
-            spinning: false,
-            stopping: true
-          }
-          const stopped = this.data.stoppedCount + 1
-          this.setData({ reels, stoppedCount: stopped })
-          this._vibrate('medium')
+              const reels = [...this.data.reels]
+              reels[i] = {
+                ...reels[i],
+                items,
+                spinning: false,
+                stopping: true
+              }
+              const stopped = this.data.stoppedCount + 1
+              this.setData({ reels, stoppedCount: stopped })
+              this._vibrate('medium')
 
-          // 回弹动画结束后标记为已停止
-          const bounceTimer = setTimeout(() => {
-            const reelsAfter = [...this.data.reels]
-            reelsAfter[i] = { ...reelsAfter[i], stopping: false, stopped: true }
-            this.setData({ reels: reelsAfter })
-          }, 800)
-          this._stopTimers.push(bounceTimer)
+              // 回弹动画结束后标记为已停止
+              const bounceTimer = setTimeout(() => {
+                const reelsAfter = [...this.data.reels]
+                reelsAfter[i] = { ...reelsAfter[i], stopping: false, stopped: true }
+                this.setData({ reels: reelsAfter })
+              }, 800)
+              this._stopTimers.push(bounceTimer)
 
-          // 全部卷轴停止
-          if (stopped >= reelCount) {
-            const doneTimer = setTimeout(() => this._onAllStopped(), 1000)
-            this._stopTimers.push(doneTimer)
-          }
-        }, stopDelay * (i + 1)))
+              // 全部卷轴停止
+              if (stopped >= reelCount) {
+                const doneTimer = setTimeout(() => this._onAllStopped(), 1000)
+                this._stopTimers.push(doneTimer)
+              }
+            },
+            stopDelay * (i + 1)
+          )
+        )
       }
     },
 
@@ -195,7 +204,7 @@ Component({
         if (wx.vibrateShort) {
           wx.vibrateShort({ type })
         }
-      } catch (e) {
+      } catch (_e) {
         // 静默处理
       }
     },

@@ -1,4 +1,5 @@
 @import '../../../../styles/variables';
+@import '../../../../styles/mixins';
 
 /* ================================================================
    老虎机容器 - 拉斯维加斯赌场风格
@@ -10,11 +11,13 @@
   padding: 40rpx 0 80rpx;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg,
-      var(--theme-bg-dark, #1a0a2e) 0%,
-      var(--theme-bg-darker, #2d1b4e) 30%,
-      var(--theme-bg-dark, #1a0a2e) 60%,
-      var(--theme-bg-darkest, #0d0520) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #1a0a2e) 0%,
+    var(--theme-bg-darker, #2d1b4e) 30%,
+    var(--theme-bg-dark, #1a0a2e) 60%,
+    var(--theme-bg-darkest, #0d0520) 100%
+  );
 
   /* 星光纹理背景 */
   &::before {
@@ -41,10 +44,12 @@
     transform: translateX(-50%);
     width: 450rpx;
     height: 400rpx;
-    background: radial-gradient(ellipse,
-        rgba(255, 215, 0, 0.1) 0%,
-        rgba(255, 215, 0, 0.04) 40%,
-        transparent 70%);
+    background: radial-gradient(
+      ellipse,
+      rgba(255, 215, 0, 0.1) 0%,
+      rgba(255, 215, 0, 0.04) 40%,
+      transparent 70%
+    );
     filter: blur(40rpx);
     pointer-events: none;
     z-index: 1;
@@ -68,13 +73,15 @@
     left: -16rpx;
     right: -16rpx;
     bottom: -16rpx;
-    background: linear-gradient(180deg,
-        var(--theme-primary, #6B2C91) 0%,
-        var(--theme-primary-dark, #5A1E7A) 15%,
-        var(--theme-primary-darker, #4A1565) 40%,
-        var(--theme-primary-darker, #3A0D55) 60%,
-        var(--theme-primary-darkest, #2A0645) 85%,
-        var(--theme-primary-darkest, #1A0235) 100%);
+    background: linear-gradient(
+      180deg,
+      var(--theme-primary, #6b2c91) 0%,
+      var(--theme-primary-dark, #5a1e7a) 15%,
+      var(--theme-primary-darker, #4a1565) 40%,
+      var(--theme-primary-darker, #3a0d55) 60%,
+      var(--theme-primary-darkest, #2a0645) 85%,
+      var(--theme-primary-darkest, #1a0235) 100%
+    );
     border-radius: 20rpx 20rpx 16rpx 16rpx;
     box-shadow:
       inset 0 4rpx 10rpx rgba(200, 150, 255, 0.15),
@@ -82,7 +89,7 @@
       0 16rpx 48rpx rgba(107, 44, 145, 0.3),
       0 8rpx 32rpx rgba(147, 51, 234, 0.2);
     z-index: -1;
-    border: 3rpx solid var(--theme-primary-light, #9333EA);
+    border: 3rpx solid var(--theme-primary-light, #9333ea);
   }
 
   /* 金色边框装饰 */
@@ -127,7 +134,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: var(--theme-accent, #FFD700);
+  background: var(--theme-accent, #ffd700);
   box-shadow:
     0 0 8rpx var(--theme-accent-glow, rgba(255, 215, 0, 1)),
     0 0 16rpx var(--theme-accent-glow-mid, rgba(255, 215, 0, 0.7)),
@@ -142,18 +149,15 @@
     position: absolute;
     inset: -4rpx;
     border-radius: 50%;
-    background: radial-gradient(circle,
-        rgba(255, 215, 0, 0.4) 0%,
-        transparent 70%);
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
     animation: ledGlow 2s ease-in-out infinite;
   }
 }
 
 @keyframes ledChaseEnhanced {
-
   0%,
   100% {
-    background: #FFD700;
+    background: #ffd700;
     box-shadow:
       0 0 8rpx rgba(255, 215, 0, 1),
       0 0 16rpx rgba(255, 215, 0, 0.7),
@@ -162,7 +166,7 @@
   }
 
   25% {
-    background: #FF0080;
+    background: #ff0080;
     box-shadow:
       0 0 8rpx rgba(255, 0, 128, 1),
       0 0 16rpx rgba(255, 0, 128, 0.7),
@@ -171,7 +175,7 @@
   }
 
   50% {
-    background: #00FFE0;
+    background: #00ffe0;
     box-shadow:
       0 0 8rpx rgba(0, 255, 224, 1),
       0 0 16rpx rgba(0, 255, 224, 0.7),
@@ -180,7 +184,7 @@
   }
 
   75% {
-    background: #80FF00;
+    background: #80ff00;
     box-shadow:
       0 0 8rpx rgba(128, 255, 0, 1),
       0 0 16rpx rgba(128, 255, 0, 0.7),
@@ -190,7 +194,6 @@
 }
 
 @keyframes ledGlow {
-
   0%,
   100% {
     opacity: 0.6;
@@ -217,14 +220,16 @@
     left: 20%;
     right: 20%;
     height: 4rpx;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 0, 128, 0.6) 15%,
-        rgba(255, 215, 0, 0.9) 35%,
-        rgba(0, 255, 255, 0.9) 50%,
-        rgba(255, 215, 0, 0.9) 65%,
-        rgba(255, 0, 128, 0.6) 85%,
-        transparent 100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 0, 128, 0.6) 15%,
+      rgba(255, 215, 0, 0.9) 35%,
+      rgba(0, 255, 255, 0.9) 50%,
+      rgba(255, 215, 0, 0.9) 65%,
+      rgba(255, 0, 128, 0.6) 85%,
+      transparent 100%
+    );
     animation: neonBarFlow 3s linear infinite;
     box-shadow: 0 0 10rpx rgba(255, 215, 0, 0.6);
   }
@@ -238,10 +243,12 @@
     transform: translate(-50%, -50%);
     width: 120%;
     height: 150%;
-    background: radial-gradient(ellipse,
-        rgba(255, 215, 0, 0.15) 0%,
-        rgba(255, 128, 0, 0.08) 40%,
-        transparent 70%);
+    background: radial-gradient(
+      ellipse,
+      rgba(255, 215, 0, 0.15) 0%,
+      rgba(255, 128, 0, 0.08) 40%,
+      transparent 70%
+    );
     filter: blur(20rpx);
     animation: glowPulse 2s ease-in-out infinite;
     z-index: -1;
@@ -259,7 +266,6 @@
 }
 
 @keyframes glowPulse {
-
   0%,
   100% {
     opacity: 0.6;
@@ -273,9 +279,9 @@
 }
 
 .title-text {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: 900;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   /* 多层霓虹光晕 - 更深、更广、更亮 */
   text-shadow:
     /* 核心发光层 */
@@ -285,23 +291,21 @@
     0 0 30rpx rgba(255, 215, 0, 0.7),
     0 0 50rpx rgba(255, 170, 0, 0.5),
     0 0 80rpx rgba(255, 128, 0, 0.3),
-    /* 彩色光晕 */
-    0 0 100rpx rgba(255, 0, 128, 0.2),
+    /* 彩色光晕 */ 0 0 100rpx rgba(255, 0, 128, 0.2),
     0 0 120rpx rgba(128, 0, 255, 0.15),
-    /* 3D立体阴影 */
-    3rpx 3rpx 0 #8B6914,
+    /* 3D立体阴影 */ 3rpx 3rpx 0 #8b6914,
     6rpx 6rpx 0 rgba(139, 105, 20, 0.5),
     9rpx 9rpx 20rpx rgba(0, 0, 0, 0.8);
   letter-spacing: 12rpx;
   font-family: 'Georgia', 'Times New Roman', serif;
-  animation: neonFlickerEnhanced 3.5s ease-in-out infinite,
+  animation:
+    neonFlickerEnhanced 3.5s ease-in-out infinite,
     neonColorShift 5s linear infinite;
   position: relative;
   display: inline-block;
 }
 
 @keyframes neonFlickerEnhanced {
-
   0%,
   100% {
     opacity: 1;
@@ -346,7 +350,6 @@
 }
 
 @keyframes neonColorShift {
-
   0%,
   100% {
     filter: hue-rotate(0deg) brightness(1.2);
@@ -376,15 +379,17 @@
 
 .display-inner {
   position: relative;
-  background: linear-gradient(180deg,
-      var(--theme-display-dark, #0a0a1a) 0%,
-      var(--theme-display-mid, #12122a) 30%,
-      var(--theme-display-light, #1a1a3a) 50%,
-      var(--theme-display-mid, #12122a) 70%,
-      var(--theme-display-dark, #0a0a1a) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-display-dark, #0a0a1a) 0%,
+    var(--theme-display-mid, #12122a) 30%,
+    var(--theme-display-light, #1a1a3a) 50%,
+    var(--theme-display-mid, #12122a) 70%,
+    var(--theme-display-dark, #0a0a1a) 100%
+  );
   border-radius: 14rpx;
   padding: 20rpx 12rpx 20rpx 36rpx;
-  border: 4rpx solid var(--theme-accent-dark, #B8860B);
+  border: 4rpx solid var(--theme-accent-dark, #b8860b);
   box-shadow:
     inset 0 6rpx 20rpx rgba(0, 0, 0, 0.7),
     inset 0 -4rpx 12rpx rgba(255, 215, 0, 0.08),
@@ -424,9 +429,7 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   border: 1rpx solid rgba(255, 255, 255, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   font-size: 16rpx;
   color: var(--theme-text-lightest, rgba(255, 255, 255, 0.3));
   font-weight: bold;
@@ -460,11 +463,13 @@
   width: 140rpx;
   height: 330rpx;
   overflow: hidden;
-  background: linear-gradient(180deg,
-      rgba(240, 240, 250, 0.92) 0%,
-      #ffffff 12%,
-      #ffffff 88%,
-      rgba(240, 240, 250, 0.92) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(240, 240, 250, 0.92) 0%,
+    #ffffff 12%,
+    #ffffff 88%,
+    rgba(240, 240, 250, 0.92) 100%
+  );
   border-radius: 10rpx;
   border: 2rpx solid rgba(184, 134, 11, 0.4);
   box-shadow:
@@ -477,7 +482,7 @@
   transition: box-shadow 0.3s ease;
 
   /* 旋转时发光效果 */
-  .reel-strip.is-spinning~&,
+  .reel-strip.is-spinning ~ &,
   &:has(.reel-strip.is-spinning) {
     box-shadow:
       inset 0 12rpx 24rpx rgba(0, 0, 0, 0.18),
@@ -494,10 +499,12 @@
     left: 0;
     right: 0;
     height: 80rpx;
-    background: linear-gradient(180deg,
-        rgba(180, 180, 200, 0.6) 0%,
-        rgba(220, 220, 240, 0.3) 40%,
-        transparent 100%);
+    background: linear-gradient(
+      180deg,
+      rgba(180, 180, 200, 0.6) 0%,
+      rgba(220, 220, 240, 0.3) 40%,
+      transparent 100%
+    );
     z-index: 3;
     pointer-events: none;
     border-radius: 10rpx 10rpx 0 0;
@@ -511,10 +518,12 @@
     left: 0;
     right: 0;
     height: 80rpx;
-    background: linear-gradient(0deg,
-        rgba(180, 180, 200, 0.6) 0%,
-        rgba(220, 220, 240, 0.3) 40%,
-        transparent 100%);
+    background: linear-gradient(
+      0deg,
+      rgba(180, 180, 200, 0.6) 0%,
+      rgba(220, 220, 240, 0.3) 40%,
+      transparent 100%
+    );
     z-index: 3;
     pointer-events: none;
     border-radius: 0 0 10rpx 10rpx;
@@ -540,12 +549,14 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(180deg,
-          transparent 0%,
-          rgba(255, 255, 255, 0.4) 10%,
-          rgba(255, 215, 0, 0.3) 20%,
-          transparent 30%,
-          transparent 100%);
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.4) 10%,
+        rgba(255, 215, 0, 0.3) 20%,
+        transparent 30%,
+        transparent 100%
+      );
       animation: lightSweep 0.8s linear infinite;
       pointer-events: none;
       z-index: 10;
@@ -635,10 +646,7 @@
 /* 卷轴项 - 增强3D效果 */
 .reel-item {
   height: 110rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   gap: 2rpx;
   position: relative;
   transition: all 0.1s ease;
@@ -648,10 +656,12 @@
     content: '';
     position: absolute;
     inset: 8rpx;
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        transparent 50%,
-        rgba(0, 0, 0, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
     border-radius: 6rpx;
     pointer-events: none;
     opacity: 0;
@@ -665,7 +675,6 @@
 }
 
 @keyframes prizeGlow {
-
   0%,
   100% {
     transform: scale(1);
@@ -698,7 +707,6 @@
 }
 
 @keyframes iconBlur {
-
   0%,
   100% {
     transform: scale(0.95);
@@ -744,7 +752,7 @@
 .reel-img {
   width: 72rpx;
   height: 72rpx;
-  border-radius: 8rpx;
+  border-radius: $border-radius-sm;
   box-shadow:
     0 4rpx 12rpx rgba(0, 0, 0, 0.2),
     inset 0 1rpx 2rpx rgba(255, 255, 255, 0.3);
@@ -781,14 +789,16 @@
 .reel-divider {
   width: 5rpx;
   height: 310rpx;
-  background: linear-gradient(180deg,
-      transparent 0%,
-      rgba(184, 134, 11, 0.3) 10%,
-      rgba(218, 165, 32, 0.7) 25%,
-      #DAA520 50%,
-      rgba(218, 165, 32, 0.7) 75%,
-      rgba(184, 134, 11, 0.3) 90%,
-      transparent 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(184, 134, 11, 0.3) 10%,
+    rgba(218, 165, 32, 0.7) 25%,
+    #daa520 50%,
+    rgba(218, 165, 32, 0.7) 75%,
+    rgba(184, 134, 11, 0.3) 90%,
+    transparent 100%
+  );
   margin: 0 3rpx;
   flex-shrink: 0;
   box-shadow:
@@ -812,14 +822,15 @@
 
   /* 中奖激活态 - 多重光效 */
   &.win-active {
-
     .payline-line {
-      background: linear-gradient(90deg,
-          #FFD700 0%,
-          #FFA500 25%,
-          #FFD700 50%,
-          #FFA500 75%,
-          #FFD700 100%);
+      background: linear-gradient(
+        90deg,
+        #ffd700 0%,
+        #ffa500 25%,
+        #ffd700 50%,
+        #ffa500 75%,
+        #ffd700 100%
+      );
       background-size: 200% 100%;
       height: 6rpx;
       box-shadow:
@@ -827,9 +838,9 @@
         0 0 28rpx rgba(255, 215, 0, 0.8),
         0 0 52rpx rgba(255, 215, 0, 0.5),
         0 0 80rpx rgba(255, 128, 0, 0.3),
-        /* 内发光 */
-        inset 0 0 8rpx rgba(255, 255, 255, 0.8);
-      animation: paylineGlowEnhanced 0.6s ease-in-out infinite alternate,
+        /* 内发光 */ inset 0 0 8rpx rgba(255, 255, 255, 0.8);
+      animation:
+        paylineGlowEnhanced 0.6s ease-in-out infinite alternate,
         paylineFlow 1.5s linear infinite;
       position: relative;
 
@@ -841,10 +852,12 @@
         left: 0;
         width: 100%;
         height: 10rpx;
-        background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(255, 255, 255, 0.8) 50%,
-            transparent 100%);
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.8) 50%,
+          transparent 100%
+        );
         animation: lineSparkle 1s linear infinite;
         border-radius: 5rpx;
       }
@@ -856,11 +869,11 @@
       animation: arrowPulse 0.5s ease-in-out infinite;
 
       &.payline-left {
-        border-right-color: var(--theme-accent, #FFD700);
+        border-right-color: var(--theme-accent, #ffd700);
       }
 
       &.payline-right {
-        border-left-color: var(--theme-accent, #FFD700);
+        border-left-color: var(--theme-accent, #ffd700);
       }
     }
   }
@@ -914,7 +927,6 @@
 }
 
 @keyframes arrowPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -928,7 +940,7 @@
 .payline-line {
   flex: 1;
   height: 3rpx;
-  background: var(--theme-primary-light, #9333EA);
+  background: var(--theme-primary-light, #9333ea);
   box-shadow:
     0 0 8rpx var(--theme-primary-glow, rgba(147, 51, 234, 0.6)),
     0 0 16rpx var(--theme-primary-glow-far, rgba(147, 51, 234, 0.3));
@@ -944,13 +956,13 @@
   transition: all 0.2s ease;
 
   &.payline-left {
-    border-right-color: var(--theme-primary-light, #9333EA);
+    border-right-color: var(--theme-primary-light, #9333ea);
     margin-right: 2rpx;
     filter: drop-shadow(0 0 6rpx var(--theme-primary-glow, rgba(147, 51, 234, 0.5)));
   }
 
   &.payline-right {
-    border-left-color: var(--theme-primary-light, #9333EA);
+    border-left-color: var(--theme-primary-light, #9333ea);
     margin-left: 2rpx;
     filter: drop-shadow(0 0 6rpx var(--theme-primary-glow, rgba(147, 51, 234, 0.5)));
   }
@@ -964,12 +976,14 @@
   right: 0;
   bottom: 0;
   border-radius: 14rpx;
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.03) 25%,
-      transparent 50%,
-      transparent 75%,
-      rgba(255, 255, 255, 0.04) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 25%,
+    transparent 50%,
+    transparent 75%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
   pointer-events: none;
   z-index: 5;
 
@@ -981,9 +995,7 @@
     left: 40rpx;
     width: 120rpx;
     height: 40rpx;
-    background: radial-gradient(ellipse,
-        rgba(255, 255, 255, 0.12) 0%,
-        transparent 70%);
+    background: radial-gradient(ellipse, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
     border-radius: 50%;
     filter: blur(4rpx);
   }
@@ -993,9 +1005,7 @@
    控制面板
    ================================================================ */
 .machine-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   padding: 14rpx 20rpx 10rpx;
   gap: 16rpx;
   z-index: 2;
@@ -1005,10 +1015,12 @@
 .panel-deco {
   width: 60rpx;
   height: 10rpx;
-  background: linear-gradient(90deg,
-      var(--theme-accent-dark, #B8860B) 0%,
-      var(--theme-accent, #DAA520) 50%,
-      var(--theme-accent-dark, #B8860B) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--theme-accent-dark, #b8860b) 0%,
+    var(--theme-accent, #daa520) 50%,
+    var(--theme-accent-dark, #b8860b) 100%
+  );
   border-radius: 5rpx;
   box-shadow:
     inset 0 2rpx 3rpx rgba(255, 255, 255, 0.3),
@@ -1017,9 +1029,11 @@
 
 .panel-label {
   padding: 6rpx 24rpx;
-  background: linear-gradient(180deg,
-      var(--theme-bg-dark, #1a1a2e) 0%,
-      var(--theme-bg-darkest, #0d0d1a) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #1a1a2e) 0%,
+    var(--theme-bg-darkest, #0d0d1a) 100%
+  );
   border-radius: 6rpx;
   border: 2rpx solid var(--theme-accent-border, rgba(255, 215, 0, 0.3));
   box-shadow:
@@ -1030,7 +1044,7 @@
 .label-text {
   font-size: 22rpx;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   letter-spacing: 4rpx;
   text-shadow: 0 0 6rpx rgba(255, 215, 0, 0.5);
   font-family: 'Georgia', serif;
@@ -1065,7 +1079,6 @@
 }
 
 @keyframes handleBreath {
-
   0%,
   100% {
     transform: translateY(-50%) scale(1);
@@ -1087,23 +1100,23 @@
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 35% 30%,
-      var(--theme-primary-lightest, #C084FC) 0%,
-      var(--theme-primary-lighter, #A855F7) 20%,
-      var(--theme-primary-light, #9333EA) 40%,
-      var(--theme-primary, #7E22CE) 70%,
-      var(--theme-primary-dark, #6B21A8) 100%);
+  background: radial-gradient(
+    ellipse at 35% 30%,
+    var(--theme-primary-lightest, #c084fc) 0%,
+    var(--theme-primary-lighter, #a855f7) 20%,
+    var(--theme-primary-light, #9333ea) 40%,
+    var(--theme-primary, #7e22ce) 70%,
+    var(--theme-primary-dark, #6b21a8) 100%
+  );
   box-shadow:
     /* 主阴影 */
     0 10rpx 25rpx rgba(0, 0, 0, 0.6),
-    /* 内部立体感 */
-    inset 0 -6rpx 12rpx rgba(0, 0, 0, 0.4),
+    /* 内部立体感 */ inset 0 -6rpx 12rpx rgba(0, 0, 0, 0.4),
     inset 0 4rpx 8rpx rgba(255, 255, 255, 0.4),
-    /* 外发光 */
-    0 0 20rpx rgba(147, 51, 234, 0.5),
+    /* 外发光 */ 0 0 20rpx rgba(147, 51, 234, 0.5),
     0 0 40rpx rgba(147, 51, 234, 0.2);
   position: relative;
-  border: 2rpx solid var(--theme-primary-dark, #6B21A8);
+  border: 2rpx solid var(--theme-primary-dark, #6b21a8);
 
   /* 脉冲呼吸光 */
   &::after {
@@ -1111,15 +1124,12 @@
     position: absolute;
     inset: -6rpx;
     border-radius: 50%;
-    background: radial-gradient(circle,
-        rgba(147, 51, 234, 0.4) 0%,
-        transparent 70%);
+    background: radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, transparent 70%);
     animation: handlePulse 2s ease-in-out infinite;
   }
 }
 
 @keyframes handlePulse {
-
   0%,
   100% {
     opacity: 0.5;
@@ -1138,17 +1148,18 @@
   left: 14rpx;
   width: 24rpx;
   height: 24rpx;
-  background: radial-gradient(circle,
-      rgba(255, 255, 255, 0.9) 0%,
-      rgba(255, 255, 255, 0.5) 40%,
-      transparent 100%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.5) 40%,
+    transparent 100%
+  );
   border-radius: 50%;
   filter: blur(2rpx);
   animation: shineMove 3s ease-in-out infinite;
 }
 
 @keyframes shineMove {
-
   0%,
   100% {
     transform: translate(0, 0) scale(1);
@@ -1164,22 +1175,23 @@
 .handle-stick {
   width: 16rpx;
   height: 100rpx;
-  background: linear-gradient(90deg,
-      #666 0%,
-      #999 15%,
-      #ccc 30%,
-      #fff 45%,
-      #fff 55%,
-      #ccc 70%,
-      #999 85%,
-      #666 100%);
-  border-radius: 8rpx;
+  background: linear-gradient(
+    90deg,
+    #666 0%,
+    #999 15%,
+    #ccc 30%,
+    #fff 45%,
+    #fff 55%,
+    #ccc 70%,
+    #999 85%,
+    #666 100%
+  );
+  border-radius: $border-radius-sm;
   margin-top: -4rpx;
   box-shadow:
     /* 主阴影 */
     4rpx 8rpx 16rpx rgba(0, 0, 0, 0.4),
-    /* 内部高光 */
-    inset 3rpx 0 4rpx rgba(255, 255, 255, 0.7),
+    /* 内部高光 */ inset 3rpx 0 4rpx rgba(255, 255, 255, 0.7),
     inset -2rpx 0 4rpx rgba(0, 0, 0, 0.3);
   border: 1rpx solid var(--theme-border-dark, #555);
   position: relative;
@@ -1192,11 +1204,13 @@
     left: 35%;
     width: 3rpx;
     height: 85%;
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.8) 0%,
-        rgba(255, 255, 255, 0.9) 30%,
-        rgba(255, 255, 255, 0.9) 70%,
-        rgba(255, 255, 255, 0.8) 100%);
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(255, 255, 255, 0.9) 30%,
+      rgba(255, 255, 255, 0.9) 70%,
+      rgba(255, 255, 255, 0.8) 100%
+    );
     border-radius: 2rpx;
     filter: blur(1rpx);
     animation: reflectionFlow 3s linear infinite;
@@ -1207,16 +1221,17 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(180deg,
-        transparent 0rpx,
-        rgba(255, 255, 255, 0.05) 2rpx,
-        transparent 4rpx);
-    border-radius: 8rpx;
+    background: repeating-linear-gradient(
+      180deg,
+      transparent 0rpx,
+      rgba(255, 255, 255, 0.05) 2rpx,
+      transparent 4rpx
+    );
+    border-radius: $border-radius-sm;
   }
 }
 
 @keyframes reflectionFlow {
-
   0%,
   100% {
     opacity: 0.6;
@@ -1274,27 +1289,30 @@
   width: 480rpx;
   height: 22rpx;
   margin: 0 auto;
-  background: linear-gradient(180deg,
-      #CD7F32 0%,
-      #B8860B 25%,
-      #DAA520 50%,
-      #B8860B 75%,
-      #8B6914 100%);
+  background: linear-gradient(
+    180deg,
+    #cd7f32 0%,
+    #b8860b 25%,
+    #daa520 50%,
+    #b8860b 75%,
+    #8b6914 100%
+  );
   border-radius: 0 0 10rpx 10rpx;
   box-shadow:
     0 8rpx 20rpx rgba(0, 0, 0, 0.5),
     inset 0 2rpx 4rpx rgba(255, 228, 181, 0.4),
     inset 0 -3rpx 6rpx rgba(0, 0, 0, 0.3);
-  border: 2rpx solid var(--theme-accent-darker, #8B6914);
+  border: 2rpx solid var(--theme-accent-darker, #8b6914);
   border-top: none;
 
   /* 金属磨砂纹理 */
-  background-image:
-    repeating-linear-gradient(90deg,
-      transparent 0rpx,
-      rgba(255, 255, 255, 0.06) 1rpx,
-      transparent 2rpx,
-      transparent 8rpx);
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0rpx,
+    rgba(255, 255, 255, 0.06) 1rpx,
+    transparent 2rpx,
+    transparent 8rpx
+  );
 }
 
 .base-feet {
@@ -1307,9 +1325,7 @@
 .foot {
   width: 50rpx;
   height: 12rpx;
-  background: linear-gradient(180deg,
-      #8B6914 0%,
-      #654321 100%);
+  background: linear-gradient(180deg, #8b6914 0%, #654321 100%);
   border-radius: 0 0 6rpx 6rpx;
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.3);
 }
@@ -1363,9 +1379,9 @@
    ================================================================ */
 .status-hint {
   margin-top: 32rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   text-shadow:
     0 0 8rpx rgba(255, 215, 0, 0.6),
     0 0 16rpx rgba(255, 215, 0, 0.3),
@@ -1377,7 +1393,6 @@
 }
 
 @keyframes hintPulse {
-
   0%,
   100% {
     opacity: 0.85;
@@ -1394,13 +1409,15 @@
 .slot-cost {
   margin-top: 16rpx;
   padding: 10rpx 30rpx;
-  background: linear-gradient(180deg,
-      var(--theme-primary-bg-dark, rgba(74, 21, 165, 0.85)) 0%,
-      var(--theme-primary-bg-darker, rgba(59, 13, 130, 0.9)) 100%);
-  border-radius: 8rpx;
-  font-size: 24rpx;
+  background: linear-gradient(
+    180deg,
+    var(--theme-primary-bg-dark, rgba(74, 21, 165, 0.85)) 0%,
+    var(--theme-primary-bg-darker, rgba(59, 13, 130, 0.9)) 100%
+  );
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   border: 2rpx solid rgba(255, 215, 0, 0.25);
   box-shadow:
     0 4rpx 12rpx rgba(0, 0, 0, 0.5),
@@ -1427,7 +1444,7 @@
 
 .particle {
   position: absolute;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   animation: particleFloat3D linear infinite;
   opacity: 0.4;
   font-weight: bold;
@@ -1436,7 +1453,8 @@
     display: inline-block;
     filter: drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
     color: var(--theme-accent-dim, rgba(255, 215, 0, 0.8));
-    animation: particleRotate 4s linear infinite,
+    animation:
+      particleRotate 4s linear infinite,
       particleColor 3s linear infinite;
   }
 }
@@ -1507,7 +1525,6 @@
 }
 
 @keyframes particleColor {
-
   0%,
   100% {
     filter: hue-rotate(0deg) drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
@@ -1593,9 +1610,9 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   text-shadow:
     0 0 15rpx rgba(255, 215, 0, 1),
     0 0 30rpx rgba(255, 128, 0, 0.8),
@@ -1654,7 +1671,7 @@
 
   &:nth-child(11) {
     --angle: 225deg;
-    --delay: 0.30s;
+    --delay: 0.3s;
   }
 
   &:nth-child(12) {
@@ -1701,8 +1718,11 @@
   }
 
   100% {
-    transform: translate(calc(-50% + 240rpx * cos(var(--angle))),
-        calc(-50% + 240rpx * sin(var(--angle)))) scale(1.8) rotate(360deg);
+    transform: translate(
+        calc(-50% + 240rpx * cos(var(--angle))),
+        calc(-50% + 240rpx * sin(var(--angle)))
+      )
+      scale(1.8) rotate(360deg);
     opacity: 0;
     filter: hue-rotate(180deg);
   }
@@ -1722,7 +1742,7 @@
   top: -20%;
   font-size: 52rpx;
   font-weight: bold;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   text-shadow:
     0 3rpx 6rpx rgba(0, 0, 0, 0.6),
     0 0 15rpx rgba(255, 215, 0, 0.8);
@@ -1782,7 +1802,6 @@
 }
 
 @keyframes coinGlow {
-
   0%,
   100% {
     opacity: 0.5;
@@ -1838,8 +1857,8 @@
 }
 
 .tip-hand {
-  font-size: 28rpx;
-  color: var(--theme-accent, #FFD700);
+  font-size: $font-size-base;
+  color: var(--theme-accent, #ffd700);
   animation: arrowPulse 1s ease-in-out infinite;
   font-weight: bold;
   text-shadow: 0 0 8rpx rgba(255, 215, 0, 0.6);
@@ -1857,7 +1876,6 @@
 }
 
 @keyframes tipBounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1871,7 +1889,6 @@
 }
 
 @keyframes arrowPulse {
-
   0%,
   100% {
     transform: translateX(0);

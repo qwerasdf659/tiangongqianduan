@@ -1,11 +1,10 @@
 <!-- 扭蛋机抽奖组件 - 增强版 -->
 <view class="gashapon-container">
-  
   <!-- 🌟 背景浮动粒子特效 -->
   <view class="bg-particles" wx:if="{{particles.length > 0}}">
-    <view 
-      class="particle" 
-      wx:for="{{particles}}" 
+    <view
+      class="particle"
+      wx:for="{{particles}}"
       wx:key="id"
       style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
     >
@@ -15,13 +14,12 @@
 
   <!-- 扭蛋机主体 -->
   <view class="machine">
-    
     <!-- 顶部透明圆顶 -->
     <view class="machine-dome">
       <!-- 内部胶囊球 - 增加数量和随机布局 -->
-      <view 
-        class="capsule-ball" 
-        wx:for="{{8}}" 
+      <view
+        class="capsule-ball"
+        wx:for="{{8}}"
         wx:key="*this"
         style="background: {{capsuleColors[index % capsuleColors.length]}}; left: {{15 + (index % 4) * 22}}%; top: {{index < 4 ? '15' : '50'}}%; animation-delay: {{index * 0.3}}s;"
       ></view>
@@ -30,7 +28,7 @@
     <!-- 出口区域 -->
     <view class="machine-outlet">
       <!-- 掉落的胶囊 -->
-      <view 
+      <view
         class="capsule-dropping {{machineState === 'dropping' ? 'animate' : ''}}"
         wx:if="{{machineState === 'dropping' || machineState === 'done'}}"
         style="background: {{currentCapsuleColor}};"
@@ -40,8 +38,8 @@
     </view>
 
     <!-- 手柄组件 -->
-    <view 
-      class="machine-handle {{machineState === 'turning' ? 'turning' : ''}}" 
+    <view
+      class="machine-handle {{machineState === 'turning' ? 'turning' : ''}}"
       bindtap="onTurnHandle"
       hover-class="handle-active"
       hover-stay-time="100"
@@ -54,7 +52,12 @@
   <!-- 🎉 庆祝特效（扭蛋获得后显示） -->
   <view class="celebration-effect" wx:if="{{showCelebration}}">
     <view class="celebration-burst">
-      <text class="burst-item" wx:for="{{12}}" wx:key="*this" style="animation-delay: {{index * 0.05}}s;">
+      <text
+        class="burst-item"
+        wx:for="{{12}}"
+        wx:key="*this"
+        style="animation-delay: {{index * 0.05}}s;"
+      >
         {{index % 2 === 0 ? '🎉' : '✨'}}
       </text>
     </view>
@@ -78,5 +81,4 @@
     <view class="tip-arrow">👆</view>
     <text class="tip-text">点击红色手柄开始抽奖</text>
   </view>
-
 </view>

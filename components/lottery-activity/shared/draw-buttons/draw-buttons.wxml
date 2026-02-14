@@ -1,49 +1,25 @@
 <!-- 连抽按钮组 共享组件 -->
 <wxs module="labelHelper">
-  module.exports = {
-    getLabel: function(btn, mode) {
-      var count = '' + (btn.count || btn.draw_count || 0)
-      if (mode === 'scratch_card') {
-        var scratchMap = { '1': '单次刮', '3': '三连刮', '5': '五连刮', '10': '十连刮' }
-        return scratchMap[count] || btn.label
-      }
-      if (mode === 'card_flip' || mode === 'flip_card_multi') {
-        var flipMap = { '1': '单翻', '3': '三连翻', '5': '五连翻', '10': '十连翻' }
-        return flipMap[count] || btn.label
-      }
-      if (mode === 'golden_egg') {
-        var eggMap = { '1': '单敲', '3': '三连敲', '5': '五连敲', '10': '十连敲' }
-        return eggMap[count] || btn.label
-      }
-      if (mode === 'gashapon' || mode === 'blind_box') {
-        var gachaMap = { '1': '单扭', '3': '三连扭', '5': '五连扭', '10': '十连扭' }
-        return gachaMap[count] || btn.label
-      }
-      if (mode === 'lucky_bag') {
-        var bagMap = { '1': '单开', '3': '三连开', '5': '五连开', '10': '十连开' }
-        return bagMap[count] || btn.label
-      }
-      if (mode === 'red_packet') {
-        var packetMap = { '1': '单拆', '3': '三连拆', '5': '五连拆', '10': '十连拆' }
-        return packetMap[count] || btn.label
-      }
-      if (mode === 'slot_machine') {
-        var slotMap = { '1': '单拉', '3': '三连拉', '5': '五连拉', '10': '十连拉' }
-        return slotMap[count] || btn.label
-      }
-      if (mode === 'whack_mole') {
-        var moleMap = { '1': '单锤', '3': '三连锤', '5': '五连锤', '10': '十连锤' }
-        return moleMap[count] || btn.label
-      }
-      return btn.label
-    },
-    getCount: function(btn) {
-      return btn.count || btn.draw_count || 0
-    },
-    getCost: function(btn) {
-      return btn.totalCost || btn.total_cost || 0
-    }
-  }
+  module.exports = { getLabel: function(btn, mode) { var count = '' + (btn.count || btn.draw_count
+  || 0); if (mode === 'scratch_card') { var scratchMap = { '1': '单次刮', '3': '三连刮', '5':
+  '五连刮', '10': '十连刮' }; return scratchMap[count] || btn.label; } if (mode === 'card_flip' ||
+  mode === 'flip_card_multi') { var flipMap = { '1': '单翻', '3': '三连翻', '5': '五连翻', '10':
+  '十连翻' }; return flipMap[count] || btn.label; } if (mode === 'golden_egg') { var eggMap = { '1':
+  '单敲', '3': '三连敲', '5': '五连敲', '10': '十连敲' }; return eggMap[count] || btn.label; } if
+  (mode === 'gashapon' || mode === 'blind_box') { var gachaMap = { '1': '单扭', '3': '三连扭', '5':
+  '五连扭', '10': '十连扭' }; return gachaMap[count] || btn.label; } if (mode === 'lucky_bag') { var
+  bagMap = { '1': '单开', '3': '三连开', '5': '五连开', '10': '十连开' }; return bagMap[count] ||
+  btn.label; } if (mode === 'red_packet') { var packetMap = { '1': '单拆', '3': '三连拆', '5':
+  '五连拆', '10': '十连拆' }; return packetMap[count] || btn.label; } if (mode === 'slot_machine') {
+  var slotMap = { '1': '单拉', '3': '三连拉', '5': '五连拉', '10': '十连拉' }; return slotMap[count]
+  || btn.label; } if (mode === 'whack_mole') { var moleMap = { '1': '单锤', '3': '三连锤', '5':
+  '五连锤', '10': '十连锤' }; return moleMap[count] || btn.label; } if (mode === 'pinball') { var
+  pinballMap = { '1': '单珠', '3': '三连珠', '5': '五连珠', '10': '十连珠' }; return
+  pinballMap[count] || btn.label; } return btn.label; }, getCount: function(btn) { return btn.count
+  || btn.draw_count || 0; }, getCost: function(btn) { return btn.totalCost || btn.total_cost || 0;
+  }, getOriginalCost: function(btn) { return btn.originalCost || btn.original_cost || 0; },
+  getSavedPoints: function(btn) { return btn.savedPoints || btn.saved_points || 0; }, hasDiscount:
+  function(btn) { var saved = btn.savedPoints || btn.saved_points || 0; return saved > 0; } };
 </wxs>
 
 <view class="draw-buttons-container">
@@ -59,7 +35,13 @@
         >
           <view class="btn-content">
             <text class="btn-main-text">{{labelHelper.getLabel(item, displayMode)}}</text>
-            <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
+            <!-- 有折扣时：划线原价 + 实付价 -->
+            <view class="btn-price-row" wx:if="{{labelHelper.hasDiscount(item)}}">
+              <text class="btn-original-cost">{{labelHelper.getOriginalCost(item)}}</text>
+              <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
+            </view>
+            <!-- 无折扣时：仅显示价格 -->
+            <text class="btn-sub-text" wx:else>{{labelHelper.getCost(item)}}积分</text>
           </view>
         </button>
       </block>
@@ -75,7 +57,14 @@
         >
           <view class="btn-content">
             <text class="btn-main-text">{{labelHelper.getLabel(item, displayMode)}}</text>
-            <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
+            <!-- 有折扣时：划线原价 + 实付价 + 省多少 -->
+            <view class="btn-price-row" wx:if="{{labelHelper.hasDiscount(item)}}">
+              <text class="btn-original-cost">{{labelHelper.getOriginalCost(item)}}</text>
+              <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
+              <text class="btn-saved">省{{labelHelper.getSavedPoints(item)}}</text>
+            </view>
+            <!-- 无折扣时：仅显示价格 -->
+            <text class="btn-sub-text" wx:else>{{labelHelper.getCost(item)}}积分</text>
             <text class="btn-guarantee" wx:if="{{item.showGuarantee}}">{{item.guaranteeText}}</text>
           </view>
         </button>

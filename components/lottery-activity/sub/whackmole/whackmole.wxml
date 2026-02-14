@@ -1,10 +1,13 @@
 <!-- 打地鼠抽奖组件 - 超强交互升级版 -->
 <view class="whackmole-container">
-
   <!-- 🌿 背景浮动粒子 -->
   <view class="bg-particles" wx:if="{{particles.length > 0}}">
-    <view class="particle" wx:for="{{particles}}" wx:key="id"
-      style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;">
+    <view
+      class="particle"
+      wx:for="{{particles}}"
+      wx:key="id"
+      style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
+    >
       <text>{{item.icon}}</text>
     </view>
   </view>
@@ -32,8 +35,10 @@
 
   <!-- 倒计时进度条 -->
   <view class="timer-bar-container" wx:if="{{gameState === 'playing' || isCarnival}}">
-    <view class="timer-bar-fill {{timeLeft <= 3 ? 'urgent' : ''}} {{isCarnival ? 'carnival' : ''}}"
-      style="width: {{timePercent}}%">
+    <view
+      class="timer-bar-fill {{timeLeft <= 3 ? 'urgent' : ''}} {{isCarnival ? 'carnival' : ''}}"
+      style="width: {{timePercent}}%"
+    >
       <view class="timer-shine"></view>
     </view>
     <!-- 狂欢模式提示 -->
@@ -53,8 +58,11 @@
   </view>
 
   <!-- 🔨 跟随光标的锤子 - 带样式变化 -->
-  <view class="hammer-cursor {{showHammer ? 'active' : ''}} hammer-{{hammerType}}"
-    style="left: {{hammerX}}px; top: {{hammerY}}px;" wx:if="{{gameState === 'playing' || isCarnival}}">
+  <view
+    class="hammer-cursor {{showHammer ? 'active' : ''}} hammer-{{hammerType}}"
+    style="left: {{hammerX}}px; top: {{hammerY}}px;"
+    wx:if="{{gameState === 'playing' || isCarnival}}"
+  >
     <text class="hammer-icon" wx:if="{{hammerType === 'normal'}}">🔨</text>
     <text class="hammer-icon fire-hammer" wx:elif="{{hammerType === 'fire'}}">🔥🔨</text>
     <text class="hammer-icon thunder-hammer" wx:elif="{{hammerType === 'thunder'}}">⚡🔨</text>
@@ -62,7 +70,10 @@
   </view>
 
   <!-- ⚠️ Miss特效 -->
-  <view class="miss-effect {{showMissEffect ? 'active' : ''}}" style="left: {{missEffectX}}px; top: {{missEffectY}}px;">
+  <view
+    class="miss-effect {{showMissEffect ? 'active' : ''}}"
+    style="left: {{missEffectX}}px; top: {{missEffectY}}px;"
+  >
     <text class="miss-text">Miss!</text>
     <text class="miss-penalty">-1s</text>
     <view class="dust-cloud">💨</view>
@@ -73,8 +84,13 @@
     <view class="mole-grid">
       <view
         class="mole-hole {{item ? 'active' : ''}} {{item === 'golden' ? 'golden' : ''}} {{item === 'bomb' ? 'bomb' : ''}} {{whackedHoles[index] ? 'whacked' : ''}}"
-        wx:for="{{holes}}" wx:key="index" data-index="{{index}}" bindtap="onWhack" catchtouchstart="onTouchStart"
-        catchtouchend="onTouchEnd">
+        wx:for="{{holes}}"
+        wx:key="index"
+        data-index="{{index}}"
+        bindtap="onWhack"
+        catchtouchstart="onTouchStart"
+        catchtouchend="onTouchEnd"
+      >
         <!-- 草丛装饰 -->
         <view class="grass-deco grass-left">🌿</view>
         <view class="grass-deco grass-right">🍃</view>
@@ -143,7 +159,9 @@
 
           <!-- 分数提示 -->
           <view class="score-popup">
-            <text class="whack-score" wx:if="{{item !== 'bomb'}}">+{{comboCount >= 2 ? comboCount : 1}}</text>
+            <text class="whack-score" wx:if="{{item !== 'bomb'}}"
+              >+{{comboCount >= 2 ? comboCount : 1}}</text
+            >
             <text class="whack-score penalty" wx:elif="{{item === 'bomb'}}">-2</text>
           </view>
 
@@ -157,8 +175,13 @@
   <!-- 🎉 庆祝特效 - 增强版 -->
   <view class="celebration-effect" wx:if="{{showCelebration}}">
     <view class="celebration-burst">
-      <text class="burst-item" wx:for="{{12}}" wx:key="*this" style="animation-delay: {{index * 0.05}}s;">{{index % 3
-        === 0 ? '🎉' : (index % 3 === 1 ? '⭐' : '✨')}}</text>
+      <text
+        class="burst-item"
+        wx:for="{{12}}"
+        wx:key="*this"
+        style="animation-delay: {{index * 0.05}}s;"
+        >{{index % 3 === 0 ? '🎉' : (index % 3 === 1 ? '⭐' : '✨')}}</text
+      >
     </view>
     <view class="celebration-ring ring-1"></view>
     <view class="celebration-ring ring-2"></view>
@@ -174,7 +197,12 @@
     </view>
 
     <view class="start-btn-wrapper">
-      <view class="start-btn" bindtap="onStartGame" hover-class="start-btn--active" hover-stay-time="100">
+      <view
+        class="start-btn"
+        bindtap="onStartGame"
+        hover-class="start-btn--active"
+        hover-stay-time="100"
+      >
         <view class="btn-shine"></view>
         <text class="start-btn__icon">🎮</text>
         <text class="start-btn__text">开始游戏</text>
@@ -279,5 +307,4 @@
     <text class="cost-icon">💰</text>
     <text class="cost-text">消耗 {{costPoints}} 积分</text>
   </view>
-
 </view>

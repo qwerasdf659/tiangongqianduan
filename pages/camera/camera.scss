@@ -26,19 +26,19 @@
 }
 
 .search-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   margin-right: 15rpx;
   color: $color-text-tertiary;
 }
 
 .search-input {
   flex: 1;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-primary;
 }
 
 .clear-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: $color-text-tertiary;
   padding: 10rpx;
   margin-left: 10rpx;
@@ -69,7 +69,7 @@
   min-width: 120rpx;
   padding: 20rpx 30rpx;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   transition: all 0.3s ease;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
 }
@@ -81,7 +81,7 @@
 }
 
 .tab-icon {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   margin-bottom: 8rpx;
 }
 
@@ -103,10 +103,7 @@
 
 /* ========== 加载状态 ========== */
 .loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   padding: 100rpx 0;
   gap: 20rpx;
 }
@@ -127,16 +124,13 @@
 }
 
 .loading-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: rgba(255, 255, 255, 0.9);
 }
 
 /* ========== 空状态 ========== */
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   padding: 120rpx 40rpx;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20rpx;
@@ -149,7 +143,7 @@
 }
 
 .empty-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: $color-text-secondary;
   font-weight: 500;
 }
@@ -163,10 +157,7 @@
 
 /* ========== 错误状态 ========== */
 .error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   padding: 120rpx 40rpx;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20rpx;
@@ -178,7 +169,7 @@
 }
 
 .error-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: #e74c3c;
   font-weight: 500;
 }
@@ -189,7 +180,7 @@
   border: none;
   border-radius: 50rpx;
   padding: 20rpx 60rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
 }
 
@@ -235,7 +226,7 @@
   right: 20rpx;
   padding: 8rpx 20rpx;
   border-radius: 50rpx;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: $color-text-white;
   font-weight: 600;
   backdrop-filter: blur(10rpx);
@@ -260,7 +251,7 @@
   left: 20rpx;
   padding: 8rpx 20rpx;
   border-radius: 50rpx;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: $color-text-white;
   font-weight: 600;
   background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
@@ -283,7 +274,7 @@
 }
 
 .card-title {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 700;
   color: $color-text-primary;
   line-height: 1.4;
@@ -316,11 +307,11 @@
 }
 
 .data-icon {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
 }
 
 .data-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: $gradient-blue-start;
   font-weight: 500;
 }
@@ -351,7 +342,7 @@
   width: 100%;
   border-radius: 50rpx;
   padding: 24rpx 0;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   border: none;
   transition: all 0.3s ease;
@@ -384,7 +375,7 @@
 }
 
 .tip-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -394,15 +385,13 @@
   border-radius: 20rpx;
   padding: 30rpx;
   margin: 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 15rpx;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
 }
 
 .bottom-tip .tip-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
 }
 
 .bottom-tip .tip-text {
@@ -422,6 +411,6 @@
   }
 
   .card-subtitle {
-    font-size: 24rpx;
+    font-size: $font-size-sm;
   }
 }

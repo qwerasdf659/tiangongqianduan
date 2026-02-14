@@ -21,8 +21,7 @@
         "audit-list/audit-list",
         "scan-verify/scan-verify",
         "customer-service/customer-service",
-        "chat-management/chat-management",
-        "admin-dashboard/admin-dashboard"
+        "chat-management/chat-management"
       ]
     }
   ],

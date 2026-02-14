@@ -4,8 +4,10 @@
   <view class="bag-flash" wx:if="{{showFlash}}"></view>
 
   <!-- 浮动装饰粒子 -->
-  <view class="float-particle"
-    wx:for="{{particles}}" wx:key="id"
+  <view
+    class="float-particle"
+    wx:for="{{particles}}"
+    wx:key="id"
     style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; font-size:{{item.size}}rpx;"
   >
     <text>{{item.icon}}</text>
@@ -98,7 +100,10 @@
     <view class="multi-progress">
       <text class="multi-progress__text">{{openedCount}} / {{totalBags}}</text>
       <view class="multi-progress__bar">
-        <view class="multi-progress__fill" style="width: {{totalBags > 0 ? openedCount / totalBags * 100 : 0}}%"></view>
+        <view
+          class="multi-progress__fill"
+          style="width: {{totalBags > 0 ? openedCount / totalBags * 100 : 0}}%"
+        ></view>
       </view>
     </view>
 
@@ -109,13 +114,20 @@
       <view class="multi-row" wx:for="{{bagRows}}" wx:for-index="rowIdx" wx:key="rowIdx">
         <view
           class="multi-bag-slot {{bag.opened ? 'is-opened' : ''}} {{bag.shaking ? 'is-shaking-slot' : ''}}"
-          wx:for="{{item}}" wx:for-item="bag" wx:for-index="colIdx" wx:key="index"
-          data-row="{{rowIdx}}" data-col="{{colIdx}}"
+          wx:for="{{item}}"
+          wx:for-item="bag"
+          wx:for-index="colIdx"
+          wx:key="index"
+          data-row="{{rowIdx}}"
+          data-col="{{colIdx}}"
           bindtap="onTapMultiBag"
           style="animation-delay: {{bag.enterDelay}}ms"
         >
           <!-- 未拆开的福袋 -->
-          <view class="bag-item {{bag.shaking ? 'is-shaking' : ''}} {{!bag.opened ? 'is-idle' : ''}}" wx:if="{{!bag.opened}}">
+          <view
+            class="bag-item {{bag.shaking ? 'is-shaking' : ''}} {{!bag.opened ? 'is-idle' : ''}}"
+            wx:if="{{!bag.opened}}"
+          >
             <view class="bag-shape">
               <view class="bag-shape__tie">
                 <view class="bag-shape__tie-knot"></view>

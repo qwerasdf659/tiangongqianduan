@@ -1,72 +1,55 @@
 /**
  * 连抽按钮组 共享组件
  *
- * @description 从 lottery.wxml 提取的多连抽按钮（三连/五连/十连），
- *   积分价格从后端 drawPricing 获取，按钮禁用状态由父组件控制。
+ * @description 展示多连抽按钮（三连/五连/十连等），
+ *   积分价格由后端 draw_buttons 数组提供，父组件通过 buttons 属性传入。
+ *   单抽按钮由各子玩法组件自行处理，此组件仅展示 draw_count > 1 的连抽档位。
+ *
+ * 数据来源: 后端 GET /api/v4/lottery/campaigns/:code/config → draw_buttons[]
+ * 父组件: lottery-activity.ts → initActivity() → 转换后传入 buttons 属性
  *
  * @file shared/draw-buttons/draw-buttons.ts
  */
 
-/** 连抽按钮配置项 */
-interface DrawButton {
-  /** 连抽次数 */
-  count: number
-  /** 按钮文案 */
+/**
+ * 连抽按钮渲染项（由父组件从后端 draw_buttons 转换而来）
+ * 后端字段(snake_case) → 前端渲染字段(camelCase)
+ */
+interface DrawButtonItem {
+  /** 连抽次数（后端 draw_count） */
+  draw_count: number
+  /** 按钮文案（后端 label，如 "3连抽"） */
   label: string
-  /** 总花费积分（后端返回） */
-  totalCost: number
-  /** 按钮样式类名 */
+  /** 总花费积分（后端 total_cost，折扣后） */
+  total_cost: number
+  /** 原价积分（后端 original_cost，折扣前） */
+  original_cost: number
+  /** 节省积分（后端 saved_points，0=无折扣） */
+  saved_points: number
+  /** 折扣率（后端 discount，1=无折扣，0.8=8折） */
+  discount: number
+  /** 每抽均价（后端 per_draw，折扣后） */
+  per_draw: number
+  /** 按钮样式类名（父组件转换时附加） */
   btnClass: string
-  /** 是否显示保底标签 */
+  /** 是否显示保底标签（10连抽显示） */
   showGuarantee: boolean
   /** 保底文案 */
   guaranteeText: string
-  /** 是否占满整行 */
+  /** 是否占满整行（10连抽占满） */
   fullWidth: boolean
 }
 
-/** 默认连抽按钮配置 */
-const DEFAULT_BUTTONS: DrawButton[] = [
-  {
-    count: 3,
-    label: '三连开',
-    totalCost: 300,
-    btnClass: 'triple-btn',
-    showGuarantee: false,
-    guaranteeText: '',
-    fullWidth: false
-  },
-  {
-    count: 5,
-    label: '五连开',
-    totalCost: 500,
-    btnClass: 'five-btn',
-    showGuarantee: false,
-    guaranteeText: '',
-    fullWidth: false
-  },
-  {
-    count: 10,
-    label: '十连开',
-    totalCost: 1000,
-    btnClass: 'ten-btn special full-width',
-    showGuarantee: true,
-    guaranteeText: '保底好礼',
-    fullWidth: true
-  }
-]
-
 Component({
   properties: {
-    /** 连抽按钮配置列表（可由父组件覆盖） */
+    /**
+     * 连抽按钮配置列表
+     * 由父组件 lottery-activity 从后端 draw_buttons 数组转换后传入
+     * 仅包含 draw_count > 1 的连抽档位（单抽由子玩法组件处理）
+     */
     buttons: {
       type: Array,
-      value: DEFAULT_BUTTONS
-    },
-    /** 后端返回的连抽定价信息 */
-    drawPricing: {
-      type: Object,
-      value: null
+      value: [] as DrawButtonItem[]
     },
     /** 用户当前积分余额 */
     pointsBalance: {
@@ -85,38 +68,20 @@ Component({
     }
   },
 
-  observers: {
-    /* 当后端定价数据变化时，更新按钮显示的积分 */
-    'drawPricing': function(pricing: any) {
-      if (!pricing) return
-      const pricingMap: Record<number, string> = {
-        3: 'three',
-        5: 'five',
-        10: 'ten'
-      }
-      const buttons = (this.data.buttons as DrawButton[]).map(btn => {
-        const btnCount = btn.count || (btn as any).draw_count
-        const key = pricingMap[btnCount]
-        if (key && pricing[key] && pricing[key].total_cost != null) {
-          return { ...btn, totalCost: pricing[key].total_cost }
-        }
-        return btn
-      })
-      this.setData({ buttons })
-    },
-    /* 按钮文案适配已移至 wxml WXS 层（渲染时同步计算，无时序问题） */
-  },
-
   methods: {
     /**
      * 连抽按钮点击事件
      * 向父组件触发 draw 事件，携带连抽次数
      */
     onDraw(e: WechatMiniprogram.TouchEvent) {
-      if (this.data.isInProgress) return
+      if (this.data.isInProgress) {
+        return
+      }
       const { count } = e.currentTarget.dataset
       const drawCount = Number(count)
-      if (!drawCount || drawCount <= 0) return
+      if (!drawCount || drawCount <= 0) {
+        return
+      }
       this.triggerEvent('draw', { count: drawCount })
     }
   }

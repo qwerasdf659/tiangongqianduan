@@ -11,7 +11,9 @@
           bind:tap="onTabChange"
           data-id="{{item.id}}"
         >
-          <text class="tab-icon">{{item.icon}}</text>
+          <view class="tab-icon-wrapper {{activeTab === item.id ? 'active' : ''}}">
+            <text class="tab-icon">{{item.icon}}</text>
+          </view>
           <text class="tab-name">{{item.name}}</text>
           <view class="tab-indicator" wx:if="{{activeTab === item.id}}"></view>
         </view>
@@ -31,38 +33,42 @@
   <!-- 💰 交易记录Tab内容 -->
   <!-- ============================================================================ -->
   <view class="trade-tab-content" wx:if="{{activeTab === 0 && !loading}}">
-    <!-- 统计面板 -->
+    <!-- 余额汇总面板（数据来自 GET /api/v4/assets/balance） -->
     <view class="statistics-section">
       <view class="main-stats-grid">
-        <view class="main-stat-card income">
-          <view class="stat-header">
-            <text class="stat-icon">📈</text>
-            <text class="stat-label">总收入</text>
+        <view class="main-stat-card available">
+          <view class="stat-icon-bg available">
+            <text class="stat-icon">💰</text>
           </view>
-          <text class="stat-value">+{{monthlyStats.totalIncome}}</text>
+          <view class="stat-body">
+            <text class="stat-label">可用积分</text>
+            <text class="stat-value available">{{balanceSummary.availableAmount}}</text>
+          </view>
         </view>
 
-        <view class="main-stat-card expense">
-          <view class="stat-header">
-            <text class="stat-icon">📉</text>
-            <text class="stat-label">总支出</text>
+        <view class="main-stat-card frozen">
+          <view class="stat-icon-bg frozen">
+            <text class="stat-icon">🔒</text>
           </view>
-          <text class="stat-value">{{monthlyStats.totalExpense}}</text>
+          <view class="stat-body">
+            <text class="stat-label">冻结积分</text>
+            <text class="stat-value frozen">{{balanceSummary.frozenAmount}}</text>
+          </view>
         </view>
 
-        <view class="main-stat-card net">
-          <view class="stat-header">
+        <view class="main-stat-card total">
+          <view class="stat-icon-bg total">
             <text class="stat-icon">💎</text>
-            <text class="stat-label">净收益</text>
           </view>
-          <text class="stat-value"
-            >{{monthlyStats.netIncome > 0 ? '+' : ''}}{{monthlyStats.netIncome}}</text
-          >
+          <view class="stat-body">
+            <text class="stat-label">总资产</text>
+            <text class="stat-value total">{{balanceSummary.totalAmount}}</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 筛选工具栏 -->
+    <!-- 筛选工具栏 - 胶囊式交互 -->
     <view class="filter-section">
       <view class="filter-content">
         <view class="time-filters">
@@ -117,26 +123,37 @@
           <input
             class="search-input"
             placeholder="搜索交易ID、描述..."
+            placeholder-class="search-placeholder"
             value="{{searchKeyword}}"
             bind:input="onSearchInput"
           />
+          <view class="search-clear" wx:if="{{searchKeyword}}" bind:tap="onResetFilters">
+            <text class="clear-icon">✕</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 交易记录列表 -->
+    <!-- 记录数量提示 -->
+    <view class="records-count" wx:if="{{filteredRecords.length > 0}}">
+      <text class="count-text">共 {{filteredRecords.length}} 条记录</text>
+    </view>
+
+    <!-- 交易记录列表（字段已在TS中映射为: title/description/amount/category/type/txn_id/created_at） -->
     <view class="records-section">
       <view class="transaction-list">
-        <block wx:if="{{filteredRecords.length > 0}}" wx:for="{{filteredRecords}}" wx:key="id">
-          <view class="transaction-card">
+        <block wx:if="{{filteredRecords.length > 0}}" wx:for="{{filteredRecords}}" wx:key="txn_id">
+          <view class="transaction-card" style="animation-delay: {{index * 60}}ms;">
             <view class="transaction-header">
               <view class="transaction-left">
-                <view class="transaction-icon-wrapper">
+                <view class="transaction-icon-wrapper {{item.category}}">
                   <text class="transaction-icon">{{helpers.getTypeIcon(item.type)}}</text>
                 </view>
                 <view class="transaction-info">
-                  <text class="transaction-title">{{item.title}}</text>
-                  <text class="transaction-desc">{{item.description}}</text>
+                  <text class="transaction-title">{{item.title || '积分记录'}}</text>
+                  <text class="transaction-desc" wx:if="{{item.description}}"
+                    >{{item.description}}</text
+                  >
                   <text class="transaction-time">{{helpers.formatTime(item.created_at)}}</text>
                 </view>
               </view>
@@ -149,7 +166,7 @@
 
             <!-- 操作按钮 -->
             <view class="transaction-actions">
-              <button class="action-btn primary" bind:tap="onViewDetail" data-record="{{item}}">
+              <button class="action-btn detail" bind:tap="onViewDetail" data-record="{{item}}">
                 <text class="btn-icon">📋</text>
                 <text class="btn-text">详情</text>
               </button>
@@ -160,7 +177,9 @@
         <!-- 空状态 -->
         <view class="empty-state" wx:if="{{filteredRecords.length === 0}}">
           <view class="empty-content">
-            <text class="empty-icon">📊</text>
+            <view class="empty-icon-wrapper">
+              <text class="empty-icon">📊</text>
+            </view>
             <text class="empty-title">暂无交易记录</text>
             <text class="empty-subtitle">快去参与活动赚取积分吧！</text>
             <button class="activity-action-btn" bind:tap="goToActivity">
@@ -174,10 +193,10 @@
   </view>
 
   <!-- ============================================================================ -->
-  <!-- 🧾 消费记录Tab内容（决策2：替代原"上传记录"） -->
+  <!-- 🧾 消费记录Tab内容 -->
   <!-- ============================================================================ -->
   <view class="upload-tab-content" wx:if="{{activeTab === 1 && !loading}}">
-    <!-- 筛选标签 -->
+    <!-- 筛选标签 - 胶囊组 -->
     <view class="filter-section">
       <view class="filter-tabs">
         <block wx:for="{{consumptionFilterOptions}}" wx:key="key">
@@ -201,12 +220,13 @@
           wx:for="{{consumptionRecords}}"
           wx:key="consumption_record_id"
         >
-          <view class="record-card">
+          <view class="record-card" style="animation-delay: {{index * 60}}ms;">
             <view class="record-header">
               <view class="record-meta">
-                <text class="record-time">{{item.created_at}}</text>
+                <!-- 🔴 使用WXS helpers.formatTime()格式化时间，防止[object Object] -->
+                <text class="record-time">{{helpers.formatTime(item.created_at)}}</text>
               </view>
-              <view class="record-status">
+              <view class="record-status {{item.status}}">
                 <text class="status-icon"
                   >{{item.status === 'approved' ? '✅' : item.status === 'rejected' ? '❌' :
                   '⏳'}}</text
@@ -219,25 +239,27 @@
             </view>
 
             <view class="record-content">
-              <view class="upload-info">
-                <text class="upload-desc">消费金额：¥{{item.consumption_amount}}</text>
-                <view
-                  class="points-info"
-                  wx:if="{{item.points_awarded && item.status === 'approved'}}"
-                >
-                  <view class="points-badge">
-                    <text class="points-icon">💰</text>
-                    <text class="points-earned">+{{item.points_awarded}}积分</text>
-                  </view>
+              <view class="consumption-amount-row">
+                <text class="consumption-label">消费金额</text>
+                <text class="consumption-value">¥{{item.consumption_amount || 0}}</text>
+              </view>
+              <view
+                class="points-info"
+                wx:if="{{item.points_awarded && item.status === 'approved'}}"
+              >
+                <view class="points-badge">
+                  <text class="points-icon">💰</text>
+                  <text class="points-earned">+{{item.points_awarded}}积分</text>
                 </view>
-                <text class="upload-desc" wx:if="{{item.merchant_notes}}"
-                  >备注：{{item.merchant_notes}}</text
-                >
+              </view>
+              <view class="merchant-notes" wx:if="{{item.merchant_notes}}">
+                <text class="notes-label">商家备注：</text>
+                <text class="notes-content">{{item.merchant_notes}}</text>
               </view>
             </view>
 
             <view class="record-actions">
-              <button class="action-btn primary" bind:tap="viewReviewDetail" data-record="{{item}}">
+              <button class="action-btn detail" bind:tap="viewReviewDetail" data-record="{{item}}">
                 <text class="btn-icon">📝</text>
                 <text class="btn-text">查看详情</text>
               </button>
@@ -248,7 +270,9 @@
         <!-- 空状态 -->
         <view class="empty-state" wx:if="{{consumptionRecords.length === 0}}">
           <view class="empty-content">
-            <text class="empty-icon">🧾</text>
+            <view class="empty-icon-wrapper">
+              <text class="empty-icon">🧾</text>
+            </view>
             <text class="empty-title">还没有消费记录</text>
             <text class="empty-subtitle">在商家消费后，记录将显示在这里</text>
             <button class="upload-action-btn" bind:tap="goToActivity">

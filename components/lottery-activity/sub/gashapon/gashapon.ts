@@ -1,14 +1,17 @@
 /**
  * 扭蛋机 子组件 - 扭动手柄+胶囊掉落（增强版）
  * @file sub/gashapon/gashapon.ts
- * @version 2.0 - UI优化版本
- * 
+ * @version 5.0.0
+ *
  * 优化内容：
  * 1. 添加触觉反馈（震动）
  * 2. 增强动画流畅度
  * 3. 添加粒子特效
  * 4. 优化状态管理
  */
+
+const { Logger } = require('../../../../utils/index')
+const log = Logger.createLogger('gashapon')
 
 Component({
   properties: {
@@ -34,7 +37,7 @@ Component({
       '#FF8C42', // 橙色
       '#6BCF7F', // 绿色
       '#FF6AC1', // 粉色
-      '#5DADE2'  // 蓝色
+      '#5DADE2' // 蓝色
     ],
     /** 当前掉落胶囊颜色 */
     currentCapsuleColor: '#FF6B6B',
@@ -62,12 +65,12 @@ Component({
   },
 
   observers: {
-    'displayConfig': function (cfg: any) {
+    displayConfig(cfg: any) {
       if (cfg?.capsule_colors?.length) {
         this.setData({ capsuleColors: cfg.capsule_colors })
       }
     },
-    'isInProgress': function (val: boolean) {
+    isInProgress(val: boolean) {
       if (val && this.data.machineState === 'turning') {
         this._dropCapsule()
       }
@@ -78,8 +81,8 @@ Component({
     /** 初始化粒子特效 - 复古简化版 */
     _initParticles() {
       const particles = []
-      const icons = ['⭐', '✨', '💫']  // 简化图标
-      
+      const icons = ['⭐', '✨', '💫'] // 简化图标
+
       // 生成8个粒子（减少数量）
       for (let i = 0; i < 8; i++) {
         particles.push({
@@ -91,16 +94,15 @@ Component({
           duration: 10 + Math.random() * 4
         })
       }
-      
+
       this.setData({ particles })
     },
-    
 
     /** 点击手柄扭动 - 复古简化版 */
     onTurnHandle() {
       // 防止重复点击
       if (this.data.machineState !== 'idle') {
-        console.log('[gashapon] 扭蛋进行中，忽略重复点击')
+        log.info('[gashapon] 扭蛋进行中，忽略重复点击')
         return
       }
 
@@ -110,34 +112,33 @@ Component({
       // 随机选择胶囊颜色
       const colors = this.data.capsuleColors
       const color = colors[Math.floor(Math.random() * colors.length)]
-      
+
       // 更新状态
-      this.setData({ 
-        machineState: 'turning', 
+      this.setData({
+        machineState: 'turning',
         currentCapsuleColor: color
       })
 
       // 触发抽奖事件
       this.triggerEvent('draw', { count: 1 })
     },
-    
 
     /** 胶囊掉落动画 - 复古简化版 */
     _dropCapsule() {
       // 第一阶段：手柄转动完成，胶囊开始掉落
       this._dropTimer1 = setTimeout(() => {
         this.setData({ machineState: 'dropping' })
-        
+
         // 掉落时单次震动
         this._vibrate('medium')
-        
+
         // 第二阶段：胶囊落到出口
         this._dropTimer2 = setTimeout(() => {
           this.setData({ machineState: 'done' })
-          
+
           // 显示庆祝特效
           this._showCelebrationEffect()
-          
+
           // 通知父组件动画结束
           this.triggerEvent('animationEnd')
         }, 1500)
@@ -147,7 +148,7 @@ Component({
     /** 显示庆祝特效 */
     _showCelebrationEffect() {
       this.setData({ showCelebration: true })
-      
+
       // 2秒后隐藏特效
       this._celebrationTimer = setTimeout(() => {
         this.setData({ showCelebration: false })
@@ -171,7 +172,7 @@ Component({
           }
         }
       } catch (error) {
-        console.warn('[gashapon] 触觉反馈不可用:', error)
+        log.warn('[gashapon] 触觉反馈不可用:', error)
       }
     },
 
@@ -198,7 +199,7 @@ Component({
     /** 重置扭蛋机状态 */
     resetMachine() {
       this._cleanupTimers()
-      this.setData({ 
+      this.setData({
         machineState: 'idle',
         showCelebration: false
       })

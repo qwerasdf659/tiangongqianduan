@@ -1,6 +1,5 @@
 <!-- 卡牌翻转抽奖组件（增强动效版） -->
 <view class="card-container">
-
   <!-- ===== 单抽模式（3选1） ===== -->
   <block wx:if="{{!isMultiFlip && !isPickMode}}">
     <view class="card-title">
@@ -11,10 +10,11 @@
       <view
         class="card-item {{entered ? 'card-enter' : ''}} {{item.flipped ? 'flipped' : ''}} {{selectedIndex === index ? 'selected' : ''}} {{(waiting || flipped) && selectedIndex !== index ? 'dimmed' : ''}} {{canSelect && !flipped && !waiting ? 'idle-float' : ''}} {{waiting && selectedIndex === index ? 'waiting' : ''}}"
         style="animation-delay: {{item.enterDelay}}ms"
-        wx:for="{{cards}}" wx:key="index"
+        wx:for="{{cards}}"
+        wx:key="index"
         data-index="{{index}}"
-        bindtap="onSelectCard">
-
+        bindtap="onSelectCard"
+      >
         <!-- 选中光晕（翻转揭晓后脉冲） -->
         <view class="card-glow {{showGlow && selectedIndex === index ? 'glow-pulse' : ''}}" />
 
@@ -28,7 +28,10 @@
 
           <!-- 卡正面 -->
           <view class="card-face card-front">
-            <text class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}">{{item.icon || '🎁'}}</text>
+            <text
+              class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}"
+              >{{item.icon || '🎁'}}</text
+            >
             <text class="card-prize-name">{{item.name || '奖品'}}</text>
           </view>
         </view>
@@ -51,15 +54,22 @@
     </view>
 
     <view class="multi-flip-grid">
-      <view class="multi-flip-row" wx:for="{{cardRows}}" wx:for-item="row" wx:for-index="rowIdx" wx:key="rowIdx">
+      <view
+        class="multi-flip-row"
+        wx:for="{{cardRows}}"
+        wx:for-item="row"
+        wx:for-index="rowIdx"
+        wx:key="rowIdx"
+      >
         <view
           class="card-item {{sizeClass}} {{multiEntered ? 'card-enter' : ''}} {{item.flipped ? 'flipped' : ''}}"
           style="animation-delay: {{item.enterDelay}}ms"
-          wx:for="{{row}}" wx:key="index"
+          wx:for="{{row}}"
+          wx:key="index"
           data-row="{{rowIdx}}"
           data-col="{{index}}"
-          bindtap="onTapMultiCard">
-
+          bindtap="onTapMultiCard"
+        >
           <view class="card-glow {{item.flipped ? 'glow-pulse' : ''}}" />
 
           <view class="card-inner">
@@ -72,7 +82,9 @@
 
             <!-- 卡正面 -->
             <view class="card-face card-front">
-              <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}">{{item.icon || '🎁'}}</text>
+              <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+                >{{item.icon || '🎁'}}</text
+              >
               <text class="card-prize-name">{{item.name || '奖品'}}</text>
             </view>
           </view>
@@ -101,9 +113,11 @@
     <view class="pick-grid">
       <view
         class="card-item pick-card {{item.selected ? 'pick-selected' : ''}} {{item.flipped ? 'flipped' : ''}}"
-        wx:for="{{cards}}" wx:key="index"
+        wx:for="{{cards}}"
+        wx:key="index"
         data-index="{{item.index}}"
-        bindtap="onTapPickCard">
+        bindtap="onTapPickCard"
+      >
         <view class="card-inner">
           <!-- 卡背 -->
           <view class="card-face card-back">
@@ -111,7 +125,9 @@
           </view>
           <!-- 卡正面 -->
           <view class="card-face card-front">
-            <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}">{{item.prize.icon || '🎁'}}</text>
+            <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+              >{{item.prize.icon || '🎁'}}</text
+            >
             <text class="card-prize-name">{{item.prize.name || '奖品'}}</text>
           </view>
         </view>
@@ -122,5 +138,4 @@
       <text>消耗 {{costPoints}} 积分</text>
     </view>
   </block>
-
 </view>

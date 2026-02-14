@@ -1,6 +1,7 @@
 // packageAdmin/chat-management/chat-management.ts - 管理员聊天工作台 + MobX响应式状态
 const app = getApp()
-const { Wechat, API } = require('../../utils/index')
+const { Wechat, API, Logger } = require('../../utils/index')
+const log = Logger.createLogger('chat-management')
 const { showToast } = Wechat
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
@@ -57,7 +58,7 @@ Page({
   },
 
   onLoad() {
-    console.log('👨‍💼 管理员聊天工作台加载')
+    log.info('👨‍💼 管理员聊天工作台加载')
 
     // 🆕 MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
@@ -94,7 +95,7 @@ Page({
   },
 
   onUnload() {
-    console.log('📱 管理员聊天管理页面卸载，取消WebSocket订阅')
+    log.info('📱 管理员聊天管理页面卸载，取消WebSocket订阅')
 
     // 🆕 销毁MobX Store绑定
     if (this.userBindings) {
@@ -119,7 +120,7 @@ Page({
         userInfo.user_role === 'admin' ||
         (userInfo.role_level && userInfo.role_level >= 100))
 
-    console.log('🔐 聊天管理权限检查:', {
+    log.info('🔐 聊天管理权限检查:', {
       isAdmin,
       userInfo_is_admin: userInfo?.is_admin,
       userInfo_user_role: userInfo?.user_role,
@@ -147,7 +148,7 @@ Page({
   // 📡 初始化聊天工作区
   async initWorkspace() {
     try {
-      console.log('🔧 初始化管理员聊天工作区...')
+      log.info('🔧 初始化管理员聊天工作区...')
 
       // 🔴 修复：使用统一WebSocket管理替代独立连接
       await this.connectToUnifiedWebSocket()
@@ -160,7 +161,7 @@ Page({
 
       showToast('工作区初始化完成')
     } catch (error) {
-      console.error('❌ 初始化聊天工作区失败:', error)
+      log.error('❌ 初始化聊天工作区失败:', error)
       showToast('初始化失败，请稍后重试')
     }
   },
@@ -171,11 +172,11 @@ Page({
 
     // 🔧 安全检查app对象和方法是否存在
     if (!appInstance || typeof appInstance.subscribeWebSocketMessages !== 'function') {
-      console.error('❌ app对象或WebSocket管理方法不可用')
+      log.error('❌ app对象或WebSocket管理方法不可用')
       throw new Error('WebSocket管理系统未就绪')
     }
 
-    console.log('🔌 管理员聊天管理页面使用统一WebSocket连接')
+    log.info('🔌 管理员聊天管理页面使用统一WebSocket连接')
 
     // 🔴 订阅WebSocket消息
     appInstance.subscribeWebSocketMessages('admin_chat_management', (eventName, data) => {
@@ -186,7 +187,7 @@ Page({
       // 🔴 使用统一WebSocket连接
       await appInstance.connectWebSocket()
 
-      console.log('✅ 管理员聊天管理页面WebSocket连接成功')
+      log.info('✅ 管理员聊天管理页面WebSocket连接成功')
       this.setData({
         wsConnected: true,
         reconnectCount: 0
@@ -195,7 +196,7 @@ Page({
       // 注册为管理员
       this.registerAsAdmin()
     } catch (error) {
-      console.error('❌ 管理员聊天管理页面WebSocket连接失败:', error)
+      log.error('❌ 管理员聊天管理页面WebSocket连接失败:', error)
       this.setData({
         wsConnected: false
       })
@@ -205,7 +206,7 @@ Page({
 
   // 🔧 处理统一WebSocket消息
   handleUnifiedWebSocketMessage(eventName, data) {
-    console.log('📨 管理员聊天管理页面收到统一WebSocket消息:', eventName, data)
+    log.info('📨 管理员聊天管理页面收到统一WebSocket消息:', eventName, data)
 
     switch (eventName) {
       case 'websocket_connected':
@@ -239,43 +240,43 @@ Page({
         break
 
       case 'new_chat_session':
-        console.log('👤 新的聊天会话:', data)
+        log.info('👤 新的聊天会话:', data)
         this.handleNewChatSession(data)
         break
 
       case 'user_chat_message':
-        console.log('💬 收到用户消息:', data)
+        log.info('💬 收到用户消息:', data)
         this.handleUserMessage(data)
         break
 
       case 'session_status_update':
-        console.log('📊 会话状态更新:', data)
+        log.info('📊 会话状态更新:', data)
         this.handleSessionStatusUpdate(data)
         break
 
       default:
-        console.log('🔄 管理员聊天管理页面未处理的消息类型:', eventName)
+        log.info('🔄 管理员聊天管理页面未处理的消息类型:', eventName)
     }
   },
 
   // 📨 注册为管理员
   registerAsAdmin() {
     if (!this.data.wsConnected) {
-      console.warn('⚠️ WebSocket未连接，无法注册管理员')
+      log.warn('⚠️ WebSocket未连接，无法注册管理员')
       return
     }
 
     const appInstance = getApp()
     if (!appInstance || typeof appInstance.sendWebSocketMessage !== 'function') {
-      console.error('❌ 无法发送WebSocket消息')
+      log.error('❌ 无法发送WebSocket消息')
       return
     }
 
     const registerMessage = {
       type: 'admin_register',
-      adminId: appInstance.globalData.userInfo?.user_id,
+      adminId: userStore.userInfo?.user_id,
       adminInfo: {
-        name: appInstance.globalData.userInfo?.nickname || '管理员',
+        name: userStore.userInfo?.nickname || '管理员',
         role: 'chat_admin'
       },
       timestamp: Date.now()
@@ -284,16 +285,16 @@ Page({
     appInstance
       .sendWebSocketMessage(registerMessage)
       .then(() => {
-        console.log('✅ 管理员注册消息已发送')
+        log.info('✅ 管理员注册消息已发送')
       })
       .catch(error => {
-        console.error('❌ 管理员注册失败:', error)
+        log.error('❌ 管理员注册失败:', error)
       })
   },
 
   // 👤 处理新聊天会话
   handleNewChatSession(sessionData) {
-    console.log('👤 处理新聊天会话:', sessionData)
+    log.info('👤 处理新聊天会话:', sessionData)
     // 刷新会话列表
     this.loadSessions()
 
@@ -307,7 +308,7 @@ Page({
 
   // 💬 处理用户消息
   handleUserMessage(messageData) {
-    console.log('💬 处理用户消息:', messageData)
+    log.info('💬 处理用户消息:', messageData)
 
     // 如果消息属于当前选中的会话，更新消息列表
     if (messageData.sessionId === this.data.currentSessionId) {
@@ -334,7 +335,7 @@ Page({
 
   // 📊 处理会话状态更新
   handleSessionStatusUpdate(statusData) {
-    console.log('📊 处理会话状态更新:', statusData)
+    log.info('📊 处理会话状态更新:', statusData)
     // 更新会话列表中对应会话的状态
     const sessions = this.data.sessions.map(session => {
       if (session.sessionId === statusData.sessionId) {
@@ -368,7 +369,7 @@ Page({
         })
       }
     } catch (error) {
-      console.error('❌ 加载会话列表失败:', error)
+      log.error('❌ 加载会话列表失败:', error)
       this.setData({ loadingSessions: false })
     }
   },
@@ -392,7 +393,7 @@ Page({
         }
       })
     } catch (error) {
-      console.error('❌ 加载统计数据失败:', error)
+      log.error('❌ 加载统计数据失败:', error)
     }
   },
 
@@ -419,14 +420,14 @@ Page({
       // 标记会话为活跃
       this.markSessionActive(sessionId)
     } catch (error) {
-      console.error('❌ 选择会话失败:', error)
+      log.error('❌ 选择会话失败:', error)
     }
   },
 
-  // 📜 加载会话消息
+  // 📜 加载会话消息（管理员端使用专用API）
   async loadSessionMessages(sessionId) {
     try {
-      const result = await API.getChatHistory({
+      const result = await API.getAdminChatHistory({
         sessionId,
         page: 1,
         pageSize: 50
@@ -450,7 +451,7 @@ Page({
         })
       }
     } catch (error) {
-      console.error('❌ 加载会话消息失败:', error)
+      log.error('❌ 加载会话消息失败:', error)
     }
   },
 
@@ -555,7 +556,7 @@ Page({
         data: JSON.stringify(chatMessage)
       })
     } catch (error) {
-      console.error('❌ 发送消息失败:', error)
+      log.error('❌ 发送消息失败:', error)
       showToast('发送失败，请重试')
     }
   },
@@ -611,7 +612,7 @@ Page({
         }
       })
     } catch (error) {
-      console.error('❌ 关闭会话失败:', error)
+      log.error('❌ 关闭会话失败:', error)
       showToast('关闭失败')
     }
   },
@@ -643,7 +644,7 @@ Page({
    * 后端提供API后，此处应同步推送在线状态到服务端
    */
   async updateAdminStatus(status: string) {
-    console.log('ℹ️ 管理员状态已更新（本地）:', status)
+    log.info('ℹ️ 管理员状态已更新（本地）:', status)
     this.setData({ adminStatus: status })
   },
 

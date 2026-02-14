@@ -1,39 +1,245 @@
-<!-- 弹珠机抽奖组件 -->
+<!-- 弹珠机抽奖组件 - Plinko风格豪华弹珠台 v6.0 -->
 <view class="pinball-container">
-  <view class="pinball-title">
-    <text>弹珠机</text>
+  <!-- 背景浮动粒子 -->
+  <view class="bg-particles" wx:if="{{particles.length > 0}}">
+    <view
+      class="particle"
+      wx:for="{{particles}}"
+      wx:key="id"
+      style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
+    >
+      <text>{{item.icon}}</text>
+    </view>
   </view>
 
-  <view class="pinball-board">
-    <!-- 弹珠 -->
-    <view class="ball {{ballState}}"
-      style="left: {{ballLeft}}%; top: {{ballTop}}%;">
-      <text class="ball-icon">🔴</text>
-    </view>
-
-    <!-- 钉子装饰 -->
-    <view class="pegs">
-      <view class="peg" wx:for="{{15}}" wx:key="*this"
-        style="left: {{10 + (index % 5) * 20}}%; top: {{20 + Math.floor(index / 5) * 25}}%;"></view>
-    </view>
-
-    <!-- 底部槽位 -->
-    <view class="slots-row">
-      <view class="slot {{item.active ? 'active' : ''}}"
-        wx:for="{{slots}}" wx:key="index">
-        <text class="slot-icon">{{item.prize.icon || '🎁'}}</text>
+  <!-- 机台主体 -->
+  <view class="machine-body anim-enter">
+    <!-- 顶部霓虹灯标题 + 跑马灯 -->
+    <view class="machine-top">
+      <view class="top-lights">
+        <view
+          class="light-bulb"
+          wx:for="{{14}}"
+          wx:key="*this"
+          style="animation-delay: {{index * 0.12}}s;"
+        ></view>
+      </view>
+      <view class="top-title">
+        <text class="title-icon left-icon">🎱</text>
+        <text class="title-text">P L I N K O</text>
+        <text class="title-icon right-icon">🎱</text>
+      </view>
+      <view class="top-lights bottom-row">
+        <view
+          class="light-bulb"
+          wx:for="{{14}}"
+          wx:key="*this"
+          style="animation-delay: {{(14 - index) * 0.12}}s;"
+        ></view>
       </view>
     </view>
+
+    <!-- 游戏面板 -->
+    <view class="board">
+      <!-- 顶部发光装饰条 -->
+      <view class="board-top-glow"></view>
+
+      <!-- 发射口装饰 -->
+      <view class="launcher {{ballState === 'launching' ? 'is-active' : ''}}">
+        <view class="launcher-tube"></view>
+        <view class="launcher-ring"></view>
+        <view class="launcher-glow" wx:if="{{ballState === 'launching'}}"></view>
+        <!-- 发射口脉冲指示器（ready态） -->
+        <view class="launcher-pulse" wx:if="{{ballState === 'ready'}}"></view>
+      </view>
+
+      <!-- Plinko 钉阵 -->
+      <view class="pegs-area">
+        <view
+          class="peg {{item.lit ? 'lit' : ''}} anim-peg-enter"
+          wx:for="{{pegs}}"
+          wx:key="id"
+          style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.row * 0.06 + item.col * 0.03}}s;"
+        >
+          <view class="peg-core"></view>
+          <view class="peg-ring" wx:if="{{item.lit}}"></view>
+          <view class="peg-glow" wx:if="{{item.lit}}"></view>
+        </view>
+      </view>
+
+      <!-- 碰撞冲击波 -->
+      <view
+        class="impact-ripple"
+        wx:if="{{impactRipple.show}}"
+        style="left: {{impactRipple.x}}%; top: {{impactRipple.y}}%;"
+      >
+        <view class="ripple-ring r1"></view>
+        <view class="ripple-ring r2"></view>
+      </view>
+
+      <!-- 弹珠尾迹 -->
+      <view class="ball-trail" wx:if="{{ballState === 'bouncing'}}">
+        <view
+          class="trail-dot"
+          wx:for="{{trailDots}}"
+          wx:key="id"
+          style="left: {{item.x}}%; top: {{item.y}}%; opacity: {{item.opacity}}; transform: translate(-50%, -50%) scale({{item.scale}});"
+        ></view>
+      </view>
+
+      <!-- 弹珠 -->
+      <view
+        class="ball-wrap {{ballState}}"
+        style="left: {{ballX}}%; top: {{ballY}}%; --ball-angle: {{ballAngle}}deg;"
+      >
+        <view class="ball">
+          <view class="ball-highlight"></view>
+          <view class="ball-highlight-secondary"></view>
+        </view>
+        <view class="ball-glow"></view>
+        <view class="ball-outer-glow" wx:if="{{ballState === 'bouncing'}}"></view>
+        <view class="ball-shadow"></view>
+      </view>
+
+      <!-- 底部奖品槽 -->
+      <view class="prize-slots">
+        <view
+          class="prize-slot {{item.active ? 'active' : ''}} {{item.winner ? 'winner' : ''}} anim-slot-enter"
+          wx:for="{{slots}}"
+          wx:key="index"
+          style="animation-delay: {{0.3 + index * 0.06}}s;"
+        >
+          <!-- 漏斗导轨 -->
+          <view class="slot-funnel">
+            <view class="funnel-left"></view>
+            <view class="funnel-right"></view>
+          </view>
+          <!-- 槽位内容 -->
+          <view class="slot-body">
+            <view class="slot-icon-wrap {{item.winner ? 'bounce' : ''}}">
+              <text class="slot-icon">{{item.prize.icon || '🎁'}}</text>
+            </view>
+            <text class="slot-name">{{item.prize.name || '奖品'}}</text>
+          </view>
+          <!-- 中奖发光效果 -->
+          <view class="slot-winner-glow" wx:if="{{item.winner}}"></view>
+          <view class="slot-winner-beam" wx:if="{{item.winner}}"></view>
+          <!-- 分隔线 -->
+          <view class="slot-divider" wx:if="{{index < slots.length - 1}}"></view>
+        </view>
+      </view>
+
+      <!-- 玻璃反光层 -->
+      <view class="glass-overlay"></view>
+
+      <!-- 侧面装饰灯 -->
+      <view class="side-lights left">
+        <view
+          class="side-bulb"
+          wx:for="{{8}}"
+          wx:key="*this"
+          style="animation-delay: {{index * 0.2}}s;"
+        ></view>
+      </view>
+      <view class="side-lights right">
+        <view
+          class="side-bulb"
+          wx:for="{{8}}"
+          wx:key="*this"
+          style="animation-delay: {{(8 - index) * 0.2}}s;"
+        ></view>
+      </view>
+
+      <!-- 底部渐变遮罩（让奖品槽上方自然过渡） -->
+      <view class="board-bottom-fade"></view>
+    </view>
+
+    <!-- 底部底座 -->
+    <view class="machine-base">
+      <view class="base-plate"></view>
+    </view>
   </view>
 
-  <!-- 发射按钮 -->
-  <view class="launch-btn {{ballState !== 'ready' ? 'disabled' : ''}}" bindtap="onLaunch">
-    <text wx:if="{{ballState === 'ready'}}">发射弹珠</text>
-    <text wx:elif="{{ballState === 'dropping'}}">掉落中...</text>
-    <text wx:else>已落入!</text>
+  <!-- 庆祝特效 -->
+  <view class="celebration-effect" wx:if="{{showCelebration}}">
+    <!-- 光芒爆发 -->
+    <view class="celebration-burst">
+      <text
+        class="burst-item"
+        wx:for="{{16}}"
+        wx:key="*this"
+        style="animation-delay: {{index * 0.04}}s;"
+        >{{index % 4 === 0 ? '🎉' : index % 4 === 1 ? '⭐' : index % 4 === 2 ? '✨' : '💫'}}</text
+      >
+    </view>
+    <!-- 扩散光环 -->
+    <view class="celebration-ring ring-1"></view>
+    <view class="celebration-ring ring-2"></view>
+    <view class="celebration-ring ring-3"></view>
+    <!-- 金币雨 -->
+    <view class="celebration-coins">
+      <text
+        class="coin-item"
+        wx:for="{{10}}"
+        wx:key="*this"
+        style="animation-delay: {{index * 0.08}}s; left: {{5 + index * 9.5}}%;"
+        >🪙</text
+      >
+    </view>
+    <!-- 闪光点 -->
+    <view class="celebration-sparkles">
+      <view
+        class="sparkle"
+        wx:for="{{12}}"
+        wx:key="*this"
+        style="left: {{10 + (index % 4) * 25}}%; top: {{15 + (index / 4) * 25}}%; animation-delay: {{index * 0.1}}s;"
+      ></view>
+    </view>
   </view>
 
-  <view class="pinball-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
+  <!-- 发射按钮区域 -->
+  <view class="launch-area">
+    <view class="launch-btn-wrapper" wx:if="{{ballState === 'ready'}}">
+      <!-- 呼吸光圈 -->
+      <view class="btn-breath-ring"></view>
+      <view
+        class="launch-btn"
+        bindtap="onLaunch"
+        hover-class="launch-btn--active"
+        hover-stay-time="100"
+      >
+        <view class="btn-shine"></view>
+        <view class="btn-content">
+          <text class="btn-icon">🎱</text>
+          <text class="btn-text">发射弹珠</text>
+        </view>
+      </view>
+      <view class="launch-btn-shadow"></view>
+      <!-- 消耗积分（集成到按钮下方） -->
+      <view class="cost-badge" wx:if="{{costPoints > 0}}">
+        <text class="cost-badge-text">消耗 {{costPoints}} 积分</text>
+      </view>
+    </view>
+    <view
+      class="launch-btn-wrapper"
+      wx:elif="{{ballState === 'launching' || ballState === 'bouncing'}}"
+    >
+      <view class="launch-btn in-progress">
+        <view class="btn-progress-ring"></view>
+        <view class="btn-content">
+          <text class="btn-icon pulse-icon">⚡</text>
+          <text class="btn-text">弹珠跳跃中...</text>
+        </view>
+      </view>
+    </view>
+    <view class="launch-btn-wrapper" wx:elif="{{ballState === 'landed'}}">
+      <view class="launch-btn winner-btn">
+        <view class="btn-shine"></view>
+        <view class="btn-content">
+          <text class="btn-icon">🎉</text>
+          <text class="btn-text">恭喜中奖！</text>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

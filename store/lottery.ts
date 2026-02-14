@@ -5,7 +5,7 @@
  * 数据来源: 后端 GET /api/v4/lottery/campaigns/:code/prizes、GET .../config、POST .../draw
  *
  * @file 天工餐厅积分系统 - 抽奖Store
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
@@ -25,8 +25,8 @@ interface Prize {
   type: string
   /** 奖品图标（emoji字符串，由后端prize_type自动映射） */
   icon: string
-  /** 稀有度（common/uncommon/rare/epic/legendary，后端自动生成） */
-  rarity: string
+  /** 稀有度代码（common/uncommon/rare/epic/legendary，后端字段名 rarity_code） */
+  rarity_code: string
   /** 是否有库存 */
   available: boolean
   /** 展示积分值 */
@@ -50,12 +50,15 @@ interface DrawButton {
   saved_points: number
 }
 
-/** 抽奖配置结构 */
+/** 抽奖配置结构（对齐后端 GET /api/v4/lottery/campaigns/:code/config 响应） */
 interface LotteryConfig {
   campaign_code: string
   campaign_name: string
   status: string
-  cost_per_draw: number
+  /** 单抽基础定价（折扣前），由后端 LotteryPricingService 驱动 */
+  base_cost: number
+  /** 单抽实际花费（折扣后），用于积分不足判断和单抽价格展示 */
+  per_draw_cost: number
   max_draws_per_user_daily: number
   draw_buttons: DrawButton[]
   guarantee_info: any
@@ -81,9 +84,9 @@ export const lotteryStore = observable({
 
   // ===== 计算属性 =====
 
-  /** 单抽消耗积分（从后端配置获取，不使用默认值） */
+  /** 单抽实际消耗积分（折扣后，从后端配置per_draw_cost获取，不使用默认值） */
   get costPerDraw(): number {
-    return this.config?.cost_per_draw || 0
+    return this.config?.per_draw_cost || 0
   },
 
   /** 抽奖按钮配置列表 */
@@ -136,8 +139,3 @@ export const lotteryStore = observable({
     this.currentHighlight = -1
   })
 })
-
-
-
-
-

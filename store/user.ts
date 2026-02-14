@@ -5,7 +5,7 @@
  * 数据来源: 后端 POST /api/v4/auth/login、GET /api/v4/auth/profile
  *
  * @file 天工餐厅积分系统 - 用户Store
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
@@ -115,6 +115,12 @@ export const userStore = observable({
     wx.setStorageSync('access_token', token)
   }),
 
+  /** 更新刷新令牌（Token刷新后调用） */
+  updateRefreshToken: action(function (this: any, token: string) {
+    this.refreshToken = token
+    wx.setStorageSync('refresh_token', token)
+  }),
+
   /** 清除登录状态（退出登录时调用） */
   clearLoginState: action(function (this: any) {
     this.isLoggedIn = false
@@ -148,9 +154,3 @@ export const userStore = observable({
     }
   })
 })
-
-
-
-
-
-

@@ -12,7 +12,7 @@ const EGG_COLORS = [
   { gradient: 'linear-gradient(135deg, #fd79a8, #e84393)', bandColor: 'rgba(255,255,255,0.35)' },
   { gradient: 'linear-gradient(135deg, #55efc4, #00b894)', bandColor: 'rgba(255,255,255,0.4)' },
   { gradient: 'linear-gradient(135deg, #74b9ff, #0984e3)', bandColor: 'rgba(255,255,255,0.35)' },
-  { gradient: 'linear-gradient(135deg, #fdcb6e, #e17055)', bandColor: 'rgba(255,255,255,0.4)' },
+  { gradient: 'linear-gradient(135deg, #fdcb6e, #e17055)', bandColor: 'rgba(255,255,255,0.4)' }
 ]
 
 /** 生成扭蛋机内的扭蛋堆 */
@@ -30,7 +30,7 @@ function generateEggs(count: number): any[] {
       size,
       wobbleDelay: (Math.random() * 3).toFixed(1),
       dropping: false,
-      selected: false,
+      selected: false
     })
   }
   return eggs
@@ -74,14 +74,14 @@ Component({
     dispensedState: '' as string,
     dispensedEgg: null as any,
     burstParticles: [] as any[],
-    showScrollHint: true,
+    showScrollHint: true
   },
 
   lifetimes: {
     attached() {
       this.setData({
         eggs: generateEggs(15),
-        particles: generateParticles(),
+        particles: generateParticles()
       })
     },
     detached() {
@@ -90,7 +90,7 @@ Component({
   },
 
   observers: {
-    'isInProgress': function (val: boolean) {
+    isInProgress(val: boolean) {
       if (val && this.data.crankState === 'cranking') {
         this._dispenseEgg()
       }
@@ -100,8 +100,12 @@ Component({
   methods: {
     /** 转动手柄 */
     onCrank() {
-      if (this.data.crankState !== 'idle') return
-      if (this.data.dispensedState === 'landed' || this.data.dispensedState === 'opened') return
+      if (this.data.crankState !== 'idle') {
+        return
+      }
+      if (this.data.dispensedState === 'landed' || this.data.dispensedState === 'opened') {
+        return
+      }
 
       this.setData({ crankState: 'cranking' })
 
@@ -117,7 +121,7 @@ Component({
       const eggs = this.data.eggs.map((egg: any) => ({
         ...egg,
         x: 8 + Math.floor(Math.random() * 68),
-        y: 8 + Math.floor(Math.random() * 70),
+        y: 8 + Math.floor(Math.random() * 70)
       }))
       this.setData({ eggs })
     },
@@ -134,25 +138,27 @@ Component({
       this.setData({
         eggs,
         dispensedEgg: chosen,
-        dispensedState: 'dispensing',
+        dispensedState: 'dispensing'
       })
 
       // 蛋落到出口
       this._dispenseTimer1 = setTimeout(() => {
         this.setData({
           crankState: 'idle',
-          dispensedState: 'landed',
+          dispensedState: 'landed'
         })
       }, 800)
     },
 
     /** 点击掉出来的蛋 - 打开 */
     onTapDispensed() {
-      if (this.data.dispensedState !== 'landed') return
+      if (this.data.dispensedState !== 'landed') {
+        return
+      }
 
       this.setData({
         dispensedState: 'cracking',
-        burstParticles: this._generateBurst(),
+        burstParticles: this._generateBurst()
       })
 
       this._openTimer1 = setTimeout(() => {
@@ -197,14 +203,23 @@ Component({
         crankState: 'idle',
         dispensedState: '',
         dispensedEgg: null,
-        burstParticles: [],
+        burstParticles: []
       })
     },
 
     _clearTimers() {
-      if (this._dispenseTimer1) { clearTimeout(this._dispenseTimer1); this._dispenseTimer1 = null }
-      if (this._openTimer1) { clearTimeout(this._openTimer1); this._openTimer1 = null }
-      if (this._openTimer2) { clearTimeout(this._openTimer2); this._openTimer2 = null }
+      if (this._dispenseTimer1) {
+        clearTimeout(this._dispenseTimer1)
+        this._dispenseTimer1 = null
+      }
+      if (this._openTimer1) {
+        clearTimeout(this._openTimer1)
+        this._openTimer1 = null
+      }
+      if (this._openTimer2) {
+        clearTimeout(this._openTimer2)
+        this._openTimer2 = null
+      }
     }
   }
 })

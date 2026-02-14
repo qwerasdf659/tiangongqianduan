@@ -44,14 +44,15 @@ function getTechnicalConfig() {
 /**
  * 🔴 必须从后端获取的数据类型说明：
  * - 奖品列表：prizes[]
- * - 抽奖消耗积分：cost_points
- * - 中奖概率：probability
- * - 每日限制：daily_limit
- * - 奖品类型：type, value
+ * - 单抽基础定价（折扣前）：base_cost
+ * - 单抽实际花费（折扣后）：per_draw_cost
+ * - 连抽档位定价数组：draw_buttons[]
+ * - 每日限制：max_draws_per_user_daily
+ * - 保底信息：guarantee_info
  *
  * 正确获取方式：
- * lotteryAPI.getConfig().then(result => {
- *   const { prizes, cost_points, daily_limit } = result.data
+ * API.getLotteryConfig(campaignCode).then(result => {
+ *   const { base_cost, per_draw_cost, draw_buttons, max_draws_per_user_daily } = result.data
  *   // 使用后端数据
  * }).catch(error => {
  *   wx.showModal({

@@ -1,4 +1,5 @@
 @import '../../../../styles/variables';
+@import '../../../../styles/mixins';
 
 /* ===== 砸金蛋 - 精装版样式 ===== */
 
@@ -7,8 +8,14 @@
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx;
-  background: linear-gradient(180deg, var(--theme-bg-dark, #8b1a1a) 0%, var(--theme-primary, #c0392b) 30%, var(--theme-primary-dark, #a93226) 70%, var(--theme-bg-darker, #7b241c) 100%);
-  border-radius: 16rpx;
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #8b1a1a) 0%,
+    var(--theme-primary, #c0392b) 30%,
+    var(--theme-primary-dark, #a93226) 70%,
+    var(--theme-bg-darker, #7b241c) 100%
+  );
+  border-radius: $border-radius-md;
   overflow: hidden;
   position: relative;
 }
@@ -28,9 +35,7 @@
 
 /* ===== 顶部横幅 ===== */
 .egg-banner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 16rpx;
   margin-bottom: 24rpx;
   padding: 12rpx 32rpx;
@@ -86,7 +91,9 @@
   align-items: center;
   position: relative;
   width: 180rpx;
-  transition: opacity 0.3s ease, filter 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
 
   /* 未选中的蛋变暗 */
   &.is-dimmed {
@@ -111,7 +118,11 @@
   &__top {
     width: 100%;
     height: 16rpx;
-    background: linear-gradient(180deg, var(--theme-accent-light, #daa520), var(--theme-accent-dark, #b8860b));
+    background: linear-gradient(
+      180deg,
+      var(--theme-accent-light, #daa520),
+      var(--theme-accent-dark, #b8860b)
+    );
     border-radius: 50%;
     box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
   }
@@ -120,7 +131,11 @@
     width: 90%;
     height: 12rpx;
     margin: 0 auto;
-    background: linear-gradient(180deg, var(--theme-accent-dark, #b8860b), var(--theme-accent-darker, #8b6914));
+    background: linear-gradient(
+      180deg,
+      var(--theme-accent-dark, #b8860b),
+      var(--theme-accent-darker, #8b6914)
+    );
     border-radius: 0 0 8rpx 8rpx;
   }
 }
@@ -150,14 +165,16 @@
 .egg-shape {
   width: 130rpx;
   height: 170rpx;
-  background: linear-gradient(160deg,
-      #fff6d5 0%,
-      #ffe066 15%,
-      #ffd700 30%,
-      #daa520 50%,
-      #b8860b 70%,
-      #996515 85%,
-      #8b6914 100%);
+  background: linear-gradient(
+    160deg,
+    #fff6d5 0%,
+    #ffe066 15%,
+    #ffd700 30%,
+    #daa520 50%,
+    #b8860b 70%,
+    #996515 85%,
+    #8b6914 100%
+  );
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   position: relative;
   box-shadow:
@@ -173,10 +190,12 @@
     left: 22rpx;
     width: 50rpx;
     height: 70rpx;
-    background: radial-gradient(ellipse at 40% 30%,
-        rgba(255, 255, 255, 0.7) 0%,
-        rgba(255, 255, 255, 0.2) 40%,
-        transparent 70%);
+    background: radial-gradient(
+      ellipse at 40% 30%,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0.2) 40%,
+      transparent 70%
+    );
     border-radius: 50%;
     transform: rotate(-15deg);
   }
@@ -189,12 +208,14 @@
     right: 0;
     height: 20rpx;
     transform: translateY(-50%);
-    background: linear-gradient(180deg,
-        transparent 0%,
-        rgba(255, 215, 0, 0.4) 30%,
-        rgba(218, 165, 32, 0.6) 50%,
-        rgba(255, 215, 0, 0.4) 70%,
-        transparent 100%);
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 215, 0, 0.4) 30%,
+      rgba(218, 165, 32, 0.6) 50%,
+      rgba(255, 215, 0, 0.4) 70%,
+      transparent 100%
+    );
   }
 
   /* 闪烁星点 */
@@ -228,11 +249,13 @@
   transform: translateX(-50%);
   width: 40rpx;
   height: 40rpx;
-  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-light, #daa520));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-light, #daa520)
+  );
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
   border: 2rpx solid rgba(255, 255, 255, 0.5);
 
@@ -253,8 +276,8 @@
   animation: hintBounce 1.5s ease-in-out infinite;
 
   text {
-    font-size: 20rpx;
-    color: rgba(255, 215, 0, 0.9);
+    font-size: $font-size-xs;
+    color: var(--theme-accent-dim, rgba(255, 215, 0, 0.9));
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
   }
 }
@@ -297,9 +320,7 @@
   position: relative;
   width: 130rpx;
   height: 170rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 /* ===== 碎片粒子 ===== */
@@ -307,7 +328,12 @@
   position: absolute;
   width: 24rpx;
   height: 30rpx;
-  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-light, #daa520), var(--theme-accent-dark, #b8860b));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-light, #daa520),
+    var(--theme-accent-dark, #b8860b)
+  );
   border-radius: 4rpx 8rpx 4rpx 2rpx;
   box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 
@@ -394,7 +420,12 @@
   &__right {
     width: 50rpx;
     height: 40rpx;
-    background: linear-gradient(160deg, var(--theme-accent-lighter, #ffe066), var(--theme-accent-light, #daa520), var(--theme-accent-dark, #b8860b));
+    background: linear-gradient(
+      160deg,
+      var(--theme-accent-lighter, #ffe066),
+      var(--theme-accent-light, #daa520),
+      var(--theme-accent-dark, #b8860b)
+    );
     box-shadow: inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3);
   }
 
@@ -413,26 +444,28 @@
 
 /* ===== 积分消耗提示 ===== */
 .egg-cost {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 8rpx;
   margin-top: 20rpx;
   padding: 8rpx 28rpx;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
 
   &__icon {
     width: 20rpx;
     height: 20rpx;
-    background: radial-gradient(circle, var(--theme-accent, #ffd700), var(--theme-accent-light, #daa520));
+    background: radial-gradient(
+      circle,
+      var(--theme-accent, #ffd700),
+      var(--theme-accent-light, #daa520)
+    );
     border-radius: 50%;
     box-shadow: 0 0 6rpx var(--theme-accent-glow, rgba(255, 215, 0, 0.5));
   }
 
   &__text {
-    font-size: 24rpx;
-    color: rgba(255, 255, 255, 0.85);
+    font-size: $font-size-sm;
+    color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.85));
   }
 }
 
@@ -461,7 +494,11 @@
 
   &__fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--theme-accent, #ffd700), var(--theme-accent-bright, #ff8c00));
+    background: linear-gradient(
+      90deg,
+      var(--theme-accent, #ffd700),
+      var(--theme-accent-bright, #ff8c00)
+    );
     border-radius: 6rpx;
     transition: width 0.3s ease;
   }
@@ -474,7 +511,9 @@
   padding: 20rpx 16rpx 30rpx;
   opacity: 0;
   transform: scale(0.9);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
 
   &.is-entered {
     opacity: 1;
@@ -553,7 +592,7 @@
   }
 
   .egg-number text {
-    font-size: 20rpx;
+    font-size: $font-size-xs;
   }
 
   .egg-shape__sparkle {
@@ -605,7 +644,7 @@
   }
 
   .multi-egg-prize__icon {
-    font-size: 36rpx;
+    font-size: $font-size-lg;
   }
 
   .multi-egg-prize__name {
@@ -617,10 +656,7 @@
 /* ===== 连敲模式 - 砸碎后奖品展示 ===== */
 .multi-egg-prize {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   min-height: 130rpx;
 
   &__info {
@@ -632,12 +668,12 @@
   }
 
   &__icon {
-    font-size: 48rpx;
+    font-size: $font-size-xxl;
     line-height: 1;
   }
 
   &__name {
-    font-size: 20rpx;
+    font-size: $font-size-xs;
     color: var(--theme-accent, #ffd700);
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
     margin-top: 4rpx;
@@ -658,12 +694,16 @@
 
 .multi-smash-all-btn {
   padding: 14rpx 48rpx;
-  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-bright, #ff8c00));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-bright, #ff8c00)
+  );
   border-radius: 40rpx;
   box-shadow: 0 4rpx 16rpx var(--theme-accent-shadow, rgba(255, 140, 0, 0.4));
 
   text {
-    font-size: 28rpx;
+    font-size: $font-size-base;
     font-weight: bold;
     color: var(--theme-text-dark, #7b241c);
     letter-spacing: 2rpx;
@@ -839,7 +879,6 @@
 }
 
 @keyframes burstStar {
-
   0%,
   100% {
     opacity: 0.7;
@@ -863,7 +902,6 @@
 }
 
 @keyframes eggFloat {
-
   0%,
   100% {
     transform: translateY(0);
@@ -875,7 +913,6 @@
 }
 
 @keyframes sparkle {
-
   0%,
   100% {
     opacity: 0;
@@ -889,7 +926,6 @@
 }
 
 @keyframes hintBounce {
-
   0%,
   100% {
     transform: translateX(-50%) translateY(0);

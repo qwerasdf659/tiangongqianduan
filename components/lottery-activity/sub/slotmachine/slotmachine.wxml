@@ -1,6 +1,5 @@
 <!-- 老虎机抽奖组件 - 经典拉斯维加斯风格 -->
 <view class="slotmachine-container">
-
   <!-- 背景装饰粒子 -->
   <view class="bg-particles" wx:if="{{particles.length > 0}}">
     <view
@@ -15,7 +14,6 @@
 
   <!-- 老虎机主体 -->
   <view class="machine-body">
-
     <!-- 顶部装饰 - 霓虹灯标题 + 跑马灯 -->
     <view class="machine-top">
       <view class="top-lights">
@@ -42,7 +40,6 @@
     <!-- 主显示区域 -->
     <view class="machine-display">
       <view class="display-inner">
-
         <!-- 行号标记 -->
         <view class="row-markers">
           <view class="row-mark">1</view>
@@ -65,7 +62,12 @@
                   wx:for-index="pi"
                   wx:key="pi"
                 >
-                  <image wx:if="{{prize.image}}" class="reel-img" src="{{prize.image}}" mode="aspectFit" />
+                  <image
+                    wx:if="{{prize.image}}"
+                    class="reel-img"
+                    src="{{prize.image}}"
+                    mode="aspectFit"
+                  />
                   <text wx:else class="reel-icon">{{prize.icon || '?'}}</text>
                 </view>
               </view>
@@ -128,7 +130,8 @@
         wx:for="{{16}}"
         wx:key="*this"
         style="animation-delay: {{index * 0.04}}s;"
-      >{{index % 4 === 0 ? '7' : index % 4 === 1 ? '*' : index % 4 === 2 ? '$' : '+'}}</text>
+        >{{index % 4 === 0 ? '7' : index % 4 === 1 ? '*' : index % 4 === 2 ? '$' : '+'}}</text
+      >
     </view>
     <view class="celebration-coins">
       <text
@@ -137,7 +140,8 @@
         wx:key="*this"
         style="left: {{item}}%; animation-delay: {{index * 0.1}}s;"
         data-positions="{{[10,25,40,55,70,85,15,60]}}"
-      >$</text>
+        >$</text
+      >
     </view>
   </view>
 
@@ -162,5 +166,4 @@
     </view>
     <text class="tip-text">拉动手柄开始游戏</text>
   </view>
-
 </view>

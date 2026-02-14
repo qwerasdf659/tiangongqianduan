@@ -34,7 +34,7 @@
 .waterfall-card {
   position: absolute !important;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   overflow: hidden;
   box-shadow:
     0 12rpx 40rpx rgba(102, 126, 234, 0.15),
@@ -128,7 +128,7 @@
 }
 
 .product-tag {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: $color-text-white;
   background: rgba(0, 0, 0, 0.6);
   padding: 4rpx 8rpx;
@@ -195,7 +195,7 @@
   right: 12rpx;
   background: rgba(0, 0, 0, 0.7);
   color: $color-text-white;
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   padding: 4rpx 10rpx;
   border-radius: 12rpx;
   backdrop-filter: blur(10rpx);
@@ -271,7 +271,7 @@
 }
 
 .rating-stars {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: #ffd700;
   line-height: 1;
   letter-spacing: 1rpx;
@@ -285,14 +285,12 @@
 
 /* 🏪 商家信息 */
 .seller-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 20rpx;
+  @include flex-between;
+  font-size: $font-size-xs;
   color: #888888;
   margin-top: 8rpx;
   padding-top: 8rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $color-border-light;
 }
 
 .seller-name {
@@ -382,7 +380,7 @@
 }
 
 .loading-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-secondary;
   font-weight: 500;
 }
@@ -406,13 +404,13 @@
 }
 
 .no-more-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-primary;
   font-weight: 600;
 }
 
 .no-more-subtitle {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #888888;
 }
 
@@ -421,9 +419,7 @@
   padding: 120rpx 20rpx;
   text-align: center;
   min-height: 60vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .empty-content {
@@ -440,7 +436,7 @@
 }
 
 .empty-title {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: $color-text-primary;
   font-weight: 600;
 }
@@ -454,7 +450,7 @@
 .empty-retry-btn {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%) !important;
   color: $color-text-white !important;
-  border-radius: 24rpx !important;
+  border-radius: $border-radius-lg !important;
   padding: 16rpx 32rpx !important;
   font-size: 26rpx !important;
   font-weight: 600 !important;
@@ -473,7 +469,7 @@
 }
 
 .refresh-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #888888;
 }
 
@@ -492,9 +488,7 @@
   width: 96rpx;
   height: 96rpx;
   border-radius: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(20rpx);
@@ -517,7 +511,7 @@
 }
 
 .btn-icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: $color-text-white;
   font-weight: 700;
 }
@@ -530,9 +524,7 @@
   right: 0;
   bottom: 0;
   z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   animation: modalFadeIn 0.3s ease;
 }
 
@@ -582,26 +574,22 @@
 
 .stats-header {
   padding: 40rpx 40rpx 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1rpx solid #f0f0f0;
+  @include flex-between;
+  border-bottom: 1rpx solid $color-border-light;
 }
 
 .stats-title {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 700;
   color: $color-text-primary;
 }
 
 .stats-close {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   color: $color-text-tertiary;
   width: 60rpx;
   height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   border-radius: 30rpx;
   transition: all 0.2s ease;
 }
@@ -616,11 +604,9 @@
 }
 
 .stats-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f8f9fa;
+  border-bottom: 1rpx solid $color-bg;
 }
 
 .stats-item:last-child {
@@ -628,13 +614,13 @@
 }
 
 .stats-label {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-secondary;
   font-weight: 500;
 }
 
 .stats-value {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: $color-text-primary;
   font-weight: 600;
 }
@@ -650,11 +636,11 @@
   }
 
   .product-title {
-    font-size: 24rpx;
+    font-size: $font-size-sm;
   }
 
   .current-price {
-    font-size: 28rpx;
+    font-size: $font-size-base;
   }
 }
 
@@ -676,7 +662,7 @@
   }
 
   .btn-icon {
-    font-size: 28rpx;
+    font-size: $font-size-base;
   }
 }
 
@@ -687,7 +673,7 @@
   }
 
   .waterfall-card {
-    background: #333333;
+    background: $color-text-primary;
     color: $color-text-white;
   }
 
@@ -696,7 +682,7 @@
   }
 
   .stats-content {
-    background: #333333;
+    background: $color-text-primary;
   }
 
   .stats-title {
@@ -757,9 +743,7 @@
 }
 
 .flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .hidden {

@@ -5,18 +5,19 @@
  * 将交易记录和消费记录合并到一个页面，使用Tab切换。
  * Tab0 = 交易记录（资产流水），Tab1 = 消费记录（商家消费积分）
  *
- * @version 2.0.0
+ * @version 5.1.0
  * @author Restaurant Lottery Team
  * @since 2026-02-07
  *
  * API依赖:
  *   - API.getPointsTransactions() → GET /api/v4/assets/transactions（交易流水）
+ *   - API.getPointsBalance()     → GET /api/v4/assets/balance（积分余额汇总）
  *   - API.getMyConsumptionRecords() → GET /api/v4/shop/consumption/me（消费记录）
  */
 
-const app = getApp()
 // 🔴 统一工具函数导入
-const { API, Utils, Wechat } = require('../../../utils/index')
+const { API, Utils, Wechat, Logger } = require('../../../utils/index')
+const log = Logger.createLogger('trade-records')
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../../store/user')
@@ -24,6 +25,42 @@ const { userStore } = require('../../../store/user')
 const { checkAuth, formatPoints } = Utils
 // 从Wechat中解构Toast函数
 const { showToast } = Wechat
+
+/**
+ * 安全转换时间字段为字符串
+ * 防止后端返回Sequelize Date对象等非字符串类型导致 [object Object]
+ *
+ * @param value - 需要转换的时间值
+ * @returns 时间字符串
+ */
+function safeTimeString(value: any): string {
+  if (!value) {
+    return ''
+  }
+  if (typeof value === 'string') {
+    return value
+  }
+  if (typeof value === 'number') {
+    return String(value)
+  }
+  // 处理对象类型（如Sequelize Date对象）
+  if (typeof value === 'object') {
+    if (typeof value.toISOString === 'function') {
+      return value.toISOString()
+    }
+    if (typeof value.toString === 'function' && value.toString() !== '[object Object]') {
+      return value.toString()
+    }
+    // 尝试取常见日期字段
+    if (value.val) {
+      return String(value.val)
+    }
+    if (value.date) {
+      return String(value.date)
+    }
+  }
+  return String(value)
+}
 
 Page({
   /**
@@ -40,23 +77,24 @@ Page({
     // 🔴 用户信息
     isLoggedIn: false,
 
-    // 🔴 交易记录相关数据
-    transactionRecords: [],
-    filteredRecords: [],
-    monthlyStats: {
-      totalIncome: 0,
-      totalExpense: 0,
-      netIncome: 0,
-      transactionCount: 0
+    // 🔴 积分余额汇总（来自 GET /api/v4/assets/balance）
+    balanceSummary: {
+      availableAmount: 0,
+      frozenAmount: 0,
+      totalAmount: 0
     },
+
+    // 🔴 交易记录相关数据（来自 GET /api/v4/assets/transactions）
+    transactionRecords: [] as any[],
+    filteredRecords: [] as any[],
     // 筛选条件
     currentTimeFilter: 'all',
     currentTypeFilter: 'all',
     searchKeyword: '',
     showFilterPanel: false,
 
-    // 🧾 消费记录相关数据（决策2：原"上传记录"改为"消费记录"）
-    consumptionRecords: [],
+    // 🧾 消费记录相关数据（来自 GET /api/v4/shop/consumption/me）
+    consumptionRecords: [] as any[],
     // all, pending, approved, rejected
     consumptionFilter: 'all',
     consumptionFilterOptions: [
@@ -72,14 +110,17 @@ Page({
     // 🔴 页面状态
     loading: true,
     refreshing: false,
-    loadingMore: false
+    loadingMore: false,
+    // 是否已完成首次初始化（防止onLoad+onShow双重加载）
+    initialized: false
   },
 
   /**
    * 生命周期函数--监听页面加载
+   * 仅负责初始化绑定和UI配置，不加载数据（数据加载在onShow中）
    */
-  onLoad(options) {
-    console.log('📊 积分活动记录页面加载')
+  onLoad(options: Record<string, string>) {
+    log.info('📊 积分活动记录页面加载')
 
     // 🆕 MobX Store绑定 - 用户登录状态自动同步
     this.userBindings = createStoreBindings(this, {
@@ -99,54 +140,54 @@ Page({
     wx.setNavigationBarTitle({
       title: '积分活动记录'
     })
-
-    this.initializePage()
   },
 
   /**
    * 生命周期函数--监听页面显示
+   * 首次进入执行初始化，后续返回本页时执行刷新
    */
   onShow() {
-    console.log('📊 积分活动记录页面显示')
+    log.info('📊 积分活动记录页面显示')
     // ✅ 使用helper：检查登录状态
     if (!checkAuth()) {
       return
     }
     this.setData({ isLoggedIn: true })
-    this.refreshCurrentTab()
+
+    if (!this.data.initialized) {
+      // 首次进入 → 初始化（含loading状态）
+      this.initializePage()
+    } else {
+      // 非首次 → 静默刷新当前Tab
+      this.refreshCurrentTab()
+    }
   },
 
   /**
-   * 🔴 初始化页面
+   * 🔴 初始化页面（首次进入时调用）
    */
   async initializePage() {
     try {
-      // ✅ 使用helper：检查登录状态
-      if (!checkAuth()) {
-        return
-      }
-      this.setData({ isLoggedIn: true })
-
-      // 加载当前Tab的数据
-      await this.loadCurrentTabData()
+      // 并行加载：余额汇总 + 当前Tab数据
+      await Promise.all([this.loadBalanceSummary(), this.loadCurrentTabData()])
     } catch (error) {
-      console.error('❌ 积分活动记录页面初始化失败', error)
+      log.error('❌ 积分活动记录页面初始化失败', error)
       showToast('页面加载失败')
     } finally {
-      this.setData({ loading: false })
+      this.setData({ loading: false, initialized: true })
     }
   },
 
   /**
    * 🔴 Tab切换事件
    */
-  onTabChange(e) {
+  onTabChange(e: WechatMiniprogram.BaseEvent) {
     const tabId = e.currentTarget.dataset.id
     if (tabId === this.data.activeTab) {
       return
     }
 
-    console.log(`🔄 切换到Tab${tabId}`)
+    log.info(`🔄 切换到Tab${tabId}`)
     this.setData({
       activeTab: tabId,
       loading: true
@@ -165,7 +206,7 @@ Page({
       // 交易记录Tab
       await this.loadTransactionData()
     } else {
-      // 🧾 消费记录Tab（决策2：替代原"上传记录"）
+      // 🧾 消费记录Tab
       await this.loadConsumptionRecords(true)
     }
   },
@@ -175,8 +216,42 @@ Page({
    */
   async refreshCurrentTab() {
     this.setData({ refreshing: true })
-    await this.loadCurrentTabData()
-    this.setData({ refreshing: false })
+    try {
+      await Promise.all([this.loadBalanceSummary(), this.loadCurrentTabData()])
+    } finally {
+      this.setData({ refreshing: false })
+    }
+  },
+
+  // ============================================================================
+  // 💰 余额汇总相关方法
+  // ============================================================================
+
+  /**
+   * 💰 加载积分余额汇总
+   * API: GET /api/v4/assets/balance?asset_code=POINTS
+   *
+   * 返回字段: available_amount（可用余额）、frozen_amount（冻结余额）、total_amount（总资产）
+   */
+  async loadBalanceSummary() {
+    try {
+      const result = await API.getPointsBalance()
+      const { success, data } = result
+
+      if (success && data) {
+        this.setData({
+          balanceSummary: {
+            availableAmount: data.available_amount || 0,
+            frozenAmount: data.frozen_amount || 0,
+            totalAmount: data.total_amount || 0
+          }
+        })
+        log.info('✅ 余额汇总加载成功:', this.data.balanceSummary)
+      }
+    } catch (error) {
+      log.error('❌ 余额汇总加载失败:', error)
+      // 余额加载失败不阻断页面，保持默认值0
+    }
   },
 
   // ============================================================================
@@ -184,45 +259,75 @@ Page({
   // ============================================================================
 
   /**
-   * ✅ 加载交易数据 - V4.2直接调用API方法
+   * ✅ 加载交易数据
+   * API: GET /api/v4/assets/transactions
+   *
+   * 后端返回字段:
+   *   - transaction_id: 交易ID
+   *   - transaction_title: 交易标题（如"兑换商品：测试商品"）
+   *   - transaction_type: 交易类型（'earn' 获得 / 'consume' 消费）
+   *   - points_amount: 积分数量
+   *   - business_type: 业务类型（lottery/upload/exchange/trade等）
+   *   - description / transaction_description: 描述
+   *   - transaction_time / created_at: 交易时间
+   *
+   * 🔴 前端处理：将后端snake_case字段映射为WXML模板所需的显示字段
    */
   async loadTransactionData() {
-    // ✅ V4.2: 直接调用API方法（通过Token识别用户，无需传userId）
-    const result = await API.getPointsTransactions()
-    const { success, data } = result
+    try {
+      const result = await API.getPointsTransactions()
+      const { success, data } = result
 
-    if (success && data) {
-      // 🔴 V4.0修正: 后端返回的字段名是transactions，不是records（文档Line 5871）
-      const { transactions = [], stats = {} } = data
+      if (success && data) {
+        // 🔴 后端返回字段名是 transactions（文档明确）
+        const { transactions = [] } = data
 
-      console.log('📊 成功加载交易记录:', {
-        transactionsCount: transactions.length,
-        stats
-      })
+        log.info('📊 成功获取交易记录原始数据:', {
+          transactionsCount: transactions.length
+        })
 
-      this.setData({
-        transactionRecords: transactions,
-        monthlyStats: stats || {
-          totalIncome: 0,
-          totalExpense: 0,
-          netIncome: 0,
-          transactionCount: 0
-        }
-      })
+        // 🔴 处理交易记录 - 映射后端字段到WXML模板使用的字段名
+        const processedRecords = transactions.map((record: any) => ({
+          // 保留后端原始字段（用于详情弹窗等）
+          ...record,
+          // === 映射为WXML模板使用的字段名 ===
+          // 标题：优先使用 transaction_title
+          title: record.transaction_title || record.description || '积分记录',
+          // 描述：优先使用 transaction_description
+          description: record.transaction_description || record.description || '',
+          // 金额：后端字段是 points_amount（非 amount）
+          amount: record.points_amount || 0,
+          // 分类：映射 transaction_type → CSS类名（income/expense）
+          category: record.transaction_type === 'earn' ? 'income' : 'expense',
+          // 业务类型：用于图标显示
+          type: record.business_type || record.transaction_type || 'default',
+          // 交易ID
+          txn_id: record.transaction_id || '',
+          // 时间：安全转换为字符串
+          created_at: safeTimeString(record.transaction_time || record.created_at)
+        }))
 
-      // 应用筛选
-      this.applyFilters()
-    } else {
-      // 显示友好的错误提示
+        this.setData({ transactionRecords: processedRecords })
+
+        log.info('✅ 交易记录处理完成:', {
+          processedCount: processedRecords.length
+        })
+
+        // 应用筛选
+        this.applyFilters()
+      } else {
+        // 显示友好的错误提示
+        this.setData({
+          transactionRecords: [],
+          filteredRecords: []
+        })
+        showToast('交易记录加载失败')
+      }
+    } catch (error) {
+      log.error('❌ 加载交易记录失败:', error)
       this.setData({
         transactionRecords: [],
-        filteredRecords: [],
-        monthlyStats: {
-          totalIncome: 0,
-          totalExpense: 0,
-          netIncome: 0,
-          transactionCount: 0
-        }
+        filteredRecords: []
       })
       showToast('交易记录加载失败')
     }
@@ -230,6 +335,7 @@ Page({
 
   /**
    * 🔴 应用筛选条件
+   * 使用处理后的字段名（category/title/description/txn_id）
    */
   applyFilters() {
     let filteredRecords = [...this.data.transactionRecords]
@@ -239,24 +345,25 @@ Page({
       filteredRecords = this.filterByTime(filteredRecords, this.data.currentTimeFilter)
     }
 
-    // 类型筛选
+    // 类型筛选（使用处理后的 category 字段：income/expense）
     if (this.data.currentTypeFilter !== 'all') {
       if (this.data.currentTypeFilter === 'income') {
-        filteredRecords = filteredRecords.filter(record => record.category === 'income')
+        filteredRecords = filteredRecords.filter((record: any) => record.category === 'income')
       } else if (this.data.currentTypeFilter === 'expense') {
-        filteredRecords = filteredRecords.filter(record => record.category === 'expense')
+        filteredRecords = filteredRecords.filter((record: any) => record.category === 'expense')
       } else {
+        // 按业务类型筛选（lottery/upload/exchange等）
         filteredRecords = filteredRecords.filter(
-          record => record.type === this.data.currentTypeFilter
+          (record: any) => record.type === this.data.currentTypeFilter
         )
       }
     }
 
-    // 关键词搜索
+    // 关键词搜索（使用处理后的字段名）
     if (this.data.searchKeyword) {
       const keyword = this.data.searchKeyword.toLowerCase()
       filteredRecords = filteredRecords.filter(
-        record =>
+        (record: any) =>
           (record.title && record.title.toLowerCase().includes(keyword)) ||
           (record.description && record.description.toLowerCase().includes(keyword)) ||
           (record.txn_id && record.txn_id.toLowerCase().includes(keyword))
@@ -264,7 +371,9 @@ Page({
     }
 
     // 按时间倒序排列
-    filteredRecords.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    filteredRecords.sort(
+      (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
 
     this.setData({ filteredRecords })
   },
@@ -272,9 +381,9 @@ Page({
   /**
    * 🔴 按时间筛选
    */
-  filterByTime(records, timeFilter) {
+  filterByTime(records: any[], timeFilter: string) {
     const now = new Date()
-    let startDate = null
+    let startDate: Date | null = null
 
     switch (timeFilter) {
       case 'today':
@@ -290,13 +399,13 @@ Page({
         return records
     }
 
-    return records.filter(record => new Date(record.created_at) >= startDate)
+    return records.filter((record: any) => new Date(record.created_at) >= startDate!)
   },
 
   /**
    * 🔴 时间筛选
    */
-  onTimeFilter(e) {
+  onTimeFilter(e: WechatMiniprogram.BaseEvent) {
     const timeFilter = e.currentTarget.dataset.filter
     this.setData({ currentTimeFilter: timeFilter })
     this.applyFilters()
@@ -305,16 +414,16 @@ Page({
   /**
    * 🔴 类型筛选
    */
-  onTypeFilter(e) {
+  onTypeFilter(e: WechatMiniprogram.BaseEvent) {
     const typeFilter = e.currentTarget.dataset.filter
     this.setData({ currentTypeFilter: typeFilter })
     this.applyFilters()
   },
 
   /**
-   * 🔴 搜索输入
+   * 🔴 搜索输入（防抖500ms）
    */
-  onSearchInput(e) {
+  onSearchInput(e: WechatMiniprogram.Input) {
     const keyword = e.detail.value
     this.setData({ searchKeyword: keyword })
 
@@ -348,41 +457,22 @@ Page({
   },
 
   /**
-   * 🔴 格式化金额显示
-   */
-  formatAmount(amount) {
-    if (amount > 0) {
-      return `+${amount}`
-    }
-    return `${amount}`
-  },
-
-  /**
-   * 🔴 获取交易类型图标
-   */
-  getTypeIcon(type) {
-    const iconMap = {
-      lottery: '🎰',
-      upload: '📸',
-      exchange: '🛒',
-      trade: '🏪',
-      compensation: '💰',
-      checkin: '✅',
-      activity: '🎁',
-      referral: '👥'
-    }
-    return iconMap[type] || '📄'
-  },
-
-  /**
    * 🔴 查看交易详情
+   * 使用处理后的字段名
    */
-  onViewDetail(e) {
+  onViewDetail(e: WechatMiniprogram.BaseEvent) {
     const record = e.currentTarget.dataset.record
+
+    if (!record) {
+      return
+    }
+
+    // 格式化金额显示
+    const amountDisplay = record.amount > 0 ? `+${record.amount}` : `${record.amount}`
 
     wx.showModal({
       title: '交易详情',
-      content: `交易类型：${record.title}\n交易金额：${this.formatAmount(record.amount)}积分\n交易时间：${this.formatTime(record.created_at)}\n交易ID：${record.txn_id}`,
+      content: `交易类型：${record.title}\n交易金额：${amountDisplay}积分\n交易时间：${record.created_at || '未知'}\n交易ID：${record.txn_id || '无'}`,
       showCancel: false,
       confirmText: '知道了'
     })
@@ -391,8 +481,13 @@ Page({
   /**
    * 🔴 复制交易ID
    */
-  onCopyTxnId(e) {
-    const { txnId } = e.currentTarget.dataset
+  onCopyTxnId(e: WechatMiniprogram.BaseEvent) {
+    const txnId = e.currentTarget.dataset.txnId
+    if (!txnId) {
+      showToast('无交易ID')
+      return
+    }
+
     wx.setClipboardData({
       data: txnId,
       success: () => {
@@ -402,14 +497,23 @@ Page({
   },
 
   // ============================================================================
-  // 🧾 消费记录相关方法（决策2：替代原"上传记录"）
+  // 🧾 消费记录相关方法
   // 后端API: GET /api/v4/shop/consumption/me（支持分页 + status筛选）
   // ============================================================================
 
   /**
-   * 🧾 加载消费记录（决策2：替代原getMyUploads/getMyUploadStats）
+   * 🧾 加载消费记录
    *
-   * refresh - 是否刷新（重置分页）
+   * 后端返回字段:
+   *   - consumption_record_id: 记录主键
+   *   - status: 审核状态（pending/approved/rejected）
+   *   - consumption_amount: 消费金额
+   *   - points_awarded: 获得积分
+   *   - merchant_notes: 商家备注
+   *   - reject_reason: 拒绝原因
+   *   - created_at: 创建时间 ⚠️ 后端可能返回非字符串类型，需安全转换
+   *
+   * @param refresh - 是否刷新（重置分页）
    */
   async loadConsumptionRecords(refresh = false) {
     if (!this.data.isLoggedIn) {
@@ -436,19 +540,29 @@ Page({
       const { success, data } = result
 
       if (success && data) {
-        const newRecords = data.records || []
-        const allRecords = refresh ? newRecords : [...this.data.consumptionRecords, ...newRecords]
+        const rawRecords = data.records || []
+
+        // 🔴 处理消费记录 - 安全转换时间字段（防止 [object Object]）
+        const processedRecords = rawRecords.map((record: any) => ({
+          ...record,
+          // 安全转换 created_at 为字符串
+          created_at: safeTimeString(record.created_at)
+        }))
+
+        const allRecords = refresh
+          ? processedRecords
+          : [...this.data.consumptionRecords, ...processedRecords]
 
         this.setData({
           consumptionRecords: allRecords,
-          consumptionHasMore: newRecords.length === this.data.consumptionPageSize,
+          consumptionHasMore: rawRecords.length === this.data.consumptionPageSize,
           consumptionPage: currentPage + 1
         })
 
-        console.log(`✅ 消费记录加载完成，共${allRecords.length}条`)
+        log.info(`✅ 消费记录加载完成，共${allRecords.length}条`)
       }
     } catch (error) {
-      console.error('❌ 加载消费记录失败:', error)
+      log.error('❌ 加载消费记录失败:', error)
       showToast('消费记录加载失败')
     }
   },
@@ -456,7 +570,7 @@ Page({
   /**
    * 🧾 切换消费记录筛选条件
    */
-  switchConsumptionFilter(e) {
+  switchConsumptionFilter(e: WechatMiniprogram.BaseEvent) {
     const filter = e.currentTarget.dataset.filter
     if (filter === this.data.consumptionFilter) {
       return
@@ -473,10 +587,10 @@ Page({
 
   /**
    * 🔴 格式化审核状态
-   * status - 状态值
+   * @param status - 状态值
    */
-  formatReviewStatus(status) {
-    const statusMap = {
+  formatReviewStatus(status: string) {
+    const statusMap: Record<string, { text: string; color: string; icon: string }> = {
       pending: { text: '待审核', color: '#FFC107', icon: '⏳' },
       approved: { text: '已通过', color: '#4CAF50', icon: '✅' },
       rejected: { text: '已拒绝', color: '#F44336', icon: '❌' },
@@ -488,7 +602,7 @@ Page({
   /**
    * 🔴 预览图片
    */
-  previewImage(e) {
+  previewImage(e: WechatMiniprogram.BaseEvent) {
     const imageUrl = e.currentTarget.dataset.url
 
     if (!imageUrl) {
@@ -508,16 +622,16 @@ Page({
    * 字段来源：后端API GET /api/v4/shop/consumption/me 返回的记录
    * 使用status字段（与WXML模板和后端API一致）
    */
-  viewReviewDetail(e) {
+  viewReviewDetail(e: WechatMiniprogram.BaseEvent) {
     const record = e.currentTarget.dataset.record
 
     if (!record) {
       return
     }
 
-    // 🔴 使用status字段（与后端API和WXML模板一致，不是review_status）
+    // 🔴 使用status字段（与后端API和WXML模板一致）
     const statusInfo = this.formatReviewStatus(record.status)
-    let content = `消费时间：${record.created_at}\n审核状态：${statusInfo.text}\n消费金额：¥${record.consumption_amount || 0}`
+    let content = `消费时间：${record.created_at || '未知'}\n审核状态：${statusInfo.text}\n消费金额：¥${record.consumption_amount || 0}`
 
     if (record.status === 'approved' && record.points_awarded) {
       content += `\n获得积分：${formatPoints(record.points_awarded)}`
@@ -542,32 +656,15 @@ Page({
   /**
    * 🔴 重新上传
    */
-  reuploadImage(_e) {
+  reuploadImage(_e: WechatMiniprogram.BaseEvent) {
     wx.showModal({
       title: '重新上传',
       content: '是否要重新上传照片？',
-      success: res => {
+      success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
         if (res.confirm) {
           wx.navigateTo({
             url: '/pages/camera/camera'
           })
-        }
-      }
-    })
-  },
-
-  /**
-   * 🔴 删除记录
-   */
-  deleteRecord(_e) {
-    // ⚠️ 删除功能待后端实现删除API后启用
-
-    wx.showModal({
-      title: '确认删除',
-      content: '确定要删除这条上传记录吗？',
-      success: async res => {
-        if (res.confirm) {
-          showToast('删除功能开发中')
         }
       }
     })
@@ -589,38 +686,6 @@ Page({
     wx.switchTab({
       url: '/pages/lottery/lottery'
     })
-  },
-
-  // ============================================================================
-  // 🔧 通用工具方法
-  // ============================================================================
-
-  /**
-   * 🔴 格式化时间
-   * timestamp - 时间戳
-   */
-  formatTime(timestamp) {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-
-    if (diff < 60000) {
-      // 1分钟内
-      return '刚刚'
-    } else if (diff < 3600000) {
-      // 1小时内
-      return `${Math.floor(diff / 60000)}分钟前`
-    } else if (diff < 86400000) {
-      // 1天内
-      return `${Math.floor(diff / 3600000)}小时前`
-    } else {
-      return date.toLocaleDateString('zh-CN', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    }
   },
 
   // ============================================================================

@@ -218,10 +218,12 @@
         />
         <pinball
           wx:elif="{{displayMode === 'pinball'}}"
+          id="lottery-sub"
           prizes="{{prizes}}"
           costPoints="{{costPerDraw}}"
           pointsBalance="{{pointsBalance}}"
           isInProgress="{{isDrawing}}"
+          targetPrizeIndex="{{targetPrizeIndex}}"
           effectTheme="{{effectTheme}}"
           rarityEffects="{{rarityEffectsEnabled}}"
           winAnimation="{{winAnimation}}"
@@ -299,10 +301,18 @@
         </view>
 
         <!-- 保底进度条（未达到阈值时显示进度） -->
-        <view class="guarantee-progress" wx:elif="{{guaranteeInfo && guaranteeInfo.guarantee_threshold > 0}}">
-          <text class="guarantee-progress__text">保底进度：{{guaranteeInfo.current_pity}}/{{guaranteeInfo.guarantee_threshold}}</text>
+        <view
+          class="guarantee-progress"
+          wx:elif="{{guaranteeInfo && guaranteeInfo.guarantee_threshold > 0}}"
+        >
+          <text class="guarantee-progress__text"
+            >保底进度：{{guaranteeInfo.current_pity}}/{{guaranteeInfo.guarantee_threshold}}</text
+          >
           <view class="guarantee-progress__bar">
-            <view class="guarantee-progress__fill" style="width: {{guaranteeInfo.current_pity / guaranteeInfo.guarantee_threshold * 100}}%"></view>
+            <view
+              class="guarantee-progress__fill"
+              style="width: {{guaranteeInfo.current_pity / guaranteeInfo.guarantee_threshold * 100}}%"
+            ></view>
           </view>
         </view>
 
@@ -333,7 +343,7 @@
 <view
   class="lottery-activity lottery-activity--{{size}}"
   wx:elif="{{size === 'full' || size === 'medium'}}"
-  style="{{themeStyle}}"
+  style="{{themeStyle}}{{backgroundImageUrl ? ';background-image:url(' + backgroundImageUrl + ');background-size:cover;background-position:center' : ''}}"
 >
   <view class="lottery-activity__loading" wx:if="{{loading}}">
     <text class="lottery-activity__loading-text">加载中...</text>
@@ -504,10 +514,12 @@
     />
     <pinball
       wx:elif="{{displayMode === 'pinball'}}"
+      id="lottery-sub"
       prizes="{{prizes}}"
       costPoints="{{costPerDraw}}"
       pointsBalance="{{pointsBalance}}"
       isInProgress="{{isDrawing}}"
+      targetPrizeIndex="{{targetPrizeIndex}}"
       effectTheme="{{effectTheme}}"
       rarityEffects="{{rarityEffectsEnabled}}"
       winAnimation="{{winAnimation}}"
@@ -586,10 +598,18 @@
     </view>
 
     <!-- 保底进度条（未达到阈值时显示进度） -->
-    <view class="guarantee-progress" wx:elif="{{guaranteeInfo && guaranteeInfo.guarantee_threshold > 0}}">
-      <text class="guarantee-progress__text">保底进度：{{guaranteeInfo.current_pity}}/{{guaranteeInfo.guarantee_threshold}}</text>
+    <view
+      class="guarantee-progress"
+      wx:elif="{{guaranteeInfo && guaranteeInfo.guarantee_threshold > 0}}"
+    >
+      <text class="guarantee-progress__text"
+        >保底进度：{{guaranteeInfo.current_pity}}/{{guaranteeInfo.guarantee_threshold}}</text
+      >
       <view class="guarantee-progress__bar">
-        <view class="guarantee-progress__fill" style="width: {{guaranteeInfo.current_pity / guaranteeInfo.guarantee_threshold * 100}}%"></view>
+        <view
+          class="guarantee-progress__fill"
+          style="width: {{guaranteeInfo.current_pity / guaranteeInfo.guarantee_threshold * 100}}%"
+        ></view>
       </view>
     </view>
 

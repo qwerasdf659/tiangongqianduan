@@ -1,46 +1,198 @@
-<!-- 限时秒杀抽奖组件 -->
-<view class="flashsale-container">
-  <!-- 倒计时 -->
-  <view class="sale-timer">
-    <text class="timer-label">距结束</text>
-    <view class="timer-digits">
-      <text class="digit-box">{{countdown.hours}}</text>
-      <text class="digit-sep">:</text>
-      <text class="digit-box">{{countdown.minutes}}</text>
-      <text class="digit-sep">:</text>
-      <text class="digit-box">{{countdown.seconds}}</text>
+<!-- 限时秒杀 V3 — 极限抢购体验 -->
+<view class="fs {{entered ? 'entered' : ''}} urgency-{{urgencyLevel}}">
+  <!-- ===== 氛围层：脉冲光环 + 斜角光束 + 火焰粒子 ===== -->
+  <view class="fs-atmosphere">
+    <view class="atmo-pulse" />
+    <view class="atmo-beam beam1" />
+    <view class="atmo-beam beam2" />
+    <view class="fire-particle fp1" />
+    <view class="fire-particle fp2" />
+    <view class="fire-particle fp3" />
+    <view class="fire-particle fp4" />
+    <view class="fire-particle fp5" />
+    <view class="fire-particle fp6" />
+    <view class="fire-particle fp7" />
+    <view class="fire-particle fp8" />
+    <view class="fire-particle fp9" />
+    <view class="fire-particle fp10" />
+  </view>
+
+  <!-- ===== 秒杀横幅（霓虹边框 + 徽章 + 倒计时） ===== -->
+  <view class="fs-banner">
+    <view class="banner-glow-border" />
+    <view class="banner-inner">
+      <view class="banner-badge">
+        <text class="badge-icon">⚡</text>
+        <text class="badge-text">限时秒杀</text>
+      </view>
+      <view class="banner-countdown">
+        <text class="cd-label">距结束</text>
+        <view class="cd-digits">
+          <view class="cd-block {{countdownFlip ? 'flip-a' : 'flip-b'}}">
+            <text class="cd-num">{{countdown.hours}}</text>
+          </view>
+          <text class="cd-sep">:</text>
+          <view class="cd-block {{countdownFlip ? 'flip-a' : 'flip-b'}}">
+            <text class="cd-num">{{countdown.minutes}}</text>
+          </view>
+          <text class="cd-sep">:</text>
+          <view class="cd-block {{countdownFlip ? 'flip-a' : 'flip-b'}}">
+            <text class="cd-num">{{countdown.seconds}}</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 
-  <!-- 奖品展示 -->
-  <view class="sale-prize">
-    <view class="prize-icon-wrap {{state === 'grabbed' ? 'grabbed' : ''}}">
-      <text class="prize-icon">{{currentPrize.icon || '🎁'}}</text>
-    </view>
-    <text class="prize-name">{{currentPrize.name || '秒杀奖品'}}</text>
-  </view>
-
-  <!-- 库存 -->
-  <view class="stock-info">
-    <view class="stock-bar">
-      <view class="stock-fill {{stockPercent < 20 ? 'low' : ''}}"
-        style="width: {{stockPercent}}%;"></view>
-    </view>
-    <view class="stock-text">
-      <text>剩余 {{stockRemaining}} / {{stockTotal}}</text>
-      <text class="stock-hot" wx:if="{{stockPercent < 30}}">即将售罄!</text>
+  <!-- ===== 滚动播报条 ===== -->
+  <view class="fs-broadcast" wx:if="{{rollingMessages.length > 0}}">
+    <text class="bc-icon">📢</text>
+    <view class="bc-track">
+      <view class="bc-msg {{msgSliding ? 'bc-out' : 'bc-in'}}">
+        <text>{{rollingMessages[currentMsgIndex].text}}</text>
+      </view>
     </view>
   </view>
 
-  <!-- 抢购按钮 -->
-  <view class="grab-btn {{state !== 'idle' || stockRemaining <= 0 ? 'disabled' : ''}}" bindtap="onGrab">
-    <text wx:if="{{stockRemaining <= 0}}">已抢光</text>
-    <text wx:elif="{{state === 'idle'}}">立即抢购</text>
-    <text wx:elif="{{state === 'grabbing'}}">抢购中...</text>
-    <text wx:else>抢购成功!</text>
+  <!-- ===== 奖品展示区 ===== -->
+  <view class="fs-prizes">
+    <!-- 聚光灯主奖品（大卡 + 全息光效） -->
+    <view class="spotlight" wx:if="{{spotlightPrize}}">
+      <view class="spot-glow" />
+      <view class="spot-card">
+        <view class="spot-holo" />
+        <image
+          wx:if="{{spotlightPrize.image_url}}"
+          class="spot-img"
+          src="{{spotlightPrize.image_url}}"
+          mode="aspectFit"
+        />
+        <text wx:else class="spot-emoji">{{spotlightPrize.icon || '🎁'}}</text>
+        <text class="spot-name">{{spotlightPrize.name || '限量大奖'}}</text>
+        <view class="spot-shine" />
+        <view class="spot-tag">
+          <text>主打</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 缩略奖品横排（可横向滚动） -->
+    <scroll-view class="thumb-scroll" scroll-x enable-flex wx:if="{{thumbnailPrizes.length > 0}}">
+      <view class="thumb-row">
+        <view
+          class="thumb-item"
+          wx:for="{{thumbnailPrizes}}"
+          wx:key="index"
+          style="animation-delay: {{0.25 + item.index * 0.1}}s;"
+        >
+          <view class="ti-border" />
+          <image
+            wx:if="{{item.image_url}}"
+            class="ti-img"
+            src="{{item.image_url}}"
+            mode="aspectFit"
+          />
+          <text wx:else class="ti-emoji">{{item.icon || '🎁'}}</text>
+          <text class="ti-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 
-  <view class="sale-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
+  <!-- ===== 库存进度区（百分比徽章 + 波浪进度条） ===== -->
+  <view class="fs-stock stock-{{stockUrgency}}">
+    <view class="stock-header">
+      <view class="stock-pct-badge">
+        <text class="spb-num">{{grabbedPercent}}</text>
+        <text class="spb-pct">%</text>
+        <text class="spb-label">已抢</text>
+      </view>
+      <view class="stock-detail">
+        <view class="stock-status-row">
+          <text class="stock-fire" wx:if="{{stockUrgency !== 'normal'}}">🔥</text>
+          <text class="stock-label">
+            {{stockUrgency === 'critical' ? '即将售罄' : stockUrgency === 'low' ? '库存紧张' :
+            '火热进行中'}}
+          </text>
+        </view>
+        <text class="stock-count">剩余 {{stockRemaining}} / {{stockTotal}}</text>
+      </view>
+    </view>
+    <view class="stock-bar-wrap">
+      <view class="stock-bar-bg" />
+      <view class="stock-bar-fill" style="width: {{grabbedPercent}}%;">
+        <view class="stock-bar-wave" />
+        <view class="stock-bar-glow" />
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 抢购按钮区（脉冲环 + 涟漪） ===== -->
+  <view class="fs-action">
+    <view class="grab-wrap">
+      <!-- 外围脉冲环 -->
+      <view class="grab-ring ring1" wx:if="{{state === 'idle' && stockRemaining > 0}}" />
+      <view class="grab-ring ring2" wx:if="{{state === 'idle' && stockRemaining > 0}}" />
+      <!-- 按钮主体 -->
+      <view
+        class="grab-btn {{state !== 'idle' ? 'grab-btn-busy' : ''}} {{stockRemaining <= 0 ? 'grab-btn-sold' : ''}}"
+        bindtap="onGrab"
+      >
+        <view class="grab-btn-bg" />
+        <view class="grab-btn-inner">
+          <text class="grab-btn-icon" wx:if="{{stockRemaining <= 0}}">😢</text>
+          <text class="grab-btn-icon" wx:elif="{{state === 'grabbing'}}">⏳</text>
+          <text class="grab-btn-icon" wx:elif="{{state === 'grabbed'}}">🎉</text>
+          <text class="grab-btn-icon" wx:else>🔥</text>
+          <text class="grab-btn-text">
+            {{stockRemaining <= 0 ? '已抢光' : state === 'idle' ? '立即抢购' : state === 'grabbing'
+            ? '抢购中...' : '抢购成功!'}}
+          </text>
+        </view>
+        <!-- 表面扫光 -->
+        <view class="grab-btn-shine" wx:if="{{state === 'idle' && stockRemaining > 0}}" />
+        <!-- 点击涟漪 -->
+        <view class="grab-ripple {{showRipple ? 'ripple-active' : ''}}" />
+      </view>
+    </view>
+    <view class="fs-cost-row" wx:if="{{costPoints > 0}}">
+      <text class="fs-cost">消耗 <text class="cost-val">{{costPoints}}</text> 积分</text>
+      <text class="fs-sep">|</text>
+      <text class="fs-balance">余额 <text class="balance-val">{{pointsBalance}}</text></text>
+    </view>
+  </view>
+
+  <!-- ===== 抢购成功弹层（全息卡 + 12粒子 + 文字动画） ===== -->
+  <view class="success-overlay {{showSuccess ? 'show' : ''}}" catchtouchmove="noop">
+    <view class="success-backdrop" />
+
+    <!-- 庆祝粒子 -->
+    <view class="success-particles" wx:if="{{showSuccess}}">
+      <view class="sp sp1" /><view class="sp sp2" /><view class="sp sp3" />
+      <view class="sp sp4" /><view class="sp sp5" /><view class="sp sp6" />
+      <view class="sp sp7" /><view class="sp sp8" /><view class="sp sp9" />
+      <view class="sp sp10" /><view class="sp sp11" /><view class="sp sp12" />
+    </view>
+
+    <!-- 成功揭晓卡 -->
+    <view class="success-card {{showSuccess ? 'sc-enter' : ''}}">
+      <view class="sc-glow" />
+      <view class="sc-inner">
+        <view class="sc-holo" />
+        <text class="sc-emoji">🎉</text>
+        <view class="sc-divider" />
+        <text class="sc-title">抢购成功</text>
+        <text class="sc-sub">奖品已放入背包</text>
+        <view class="sc-shine" />
+      </view>
+    </view>
+
+    <!-- 底部提示 -->
+    <view class="success-hint {{showSuccess ? 'sh-enter' : ''}}">
+      <text class="sh-text">点击任意处关闭</text>
+    </view>
+
+    <!-- 点击关闭层 -->
+    <view class="success-close-area" bindtap="onCloseSuccess" />
   </view>
 </view>

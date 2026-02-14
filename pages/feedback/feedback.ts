@@ -1,7 +1,8 @@
 // pages/feedback/feedback.ts - 客服反馈页面 + MobX响应式状态
 const app = getApp()
 // 🔴 统一工具函数导入
-const { Utils, Wechat, API } = require('../../utils/index')
+const { Utils, Wechat, API, Logger } = require('../../utils/index')
+const log = Logger.createLogger('feedback')
 const { showToast } = Wechat
 const { checkAuth } = Utils
 // 🆕 MobX Store绑定 - 用户登录状态自动同步
@@ -58,7 +59,7 @@ Page({
   },
 
   async onLoad() {
-    console.log('💬 客服反馈页面加载')
+    log.info('💬 客服反馈页面加载')
 
     // 🆕 MobX Store绑定 - 用户登录状态自动同步
     this.userBindings = createStoreBindings(this, {
@@ -107,7 +108,7 @@ Page({
       // }
 
       // UI级默认值（后端API就绪后将被替换）
-      console.warn('⚠️ 后端未提供 getFeedbackConfig API，使用UI默认值')
+      log.warn('⚠️ 后端未提供 getFeedbackConfig API，使用UI默认值')
       this.setData({
         feedbackConfig: {
           maxLength: 500,
@@ -118,7 +119,7 @@ Page({
         maxLength: 500
       })
     } catch (error) {
-      console.error('❌ 加载反馈配置异常:', error)
+      log.error('❌ 加载反馈配置异常:', error)
       this.setData({
         feedbackConfig: {
           maxLength: 500,
@@ -135,7 +136,7 @@ Page({
     // 页面显示时刷新反馈列表
     // 🔴 使用统一的认证检查
     if (!checkAuth()) {
-      console.warn('⚠️ 用户未登录，已自动跳转')
+      log.warn('⚠️ 用户未登录，已自动跳转')
       return
     }
 
@@ -156,7 +157,7 @@ Page({
         })
       }
     } catch (error) {
-      console.error('❌ 加载反馈历史失败:', error)
+      log.error('❌ 加载反馈历史失败:', error)
     } finally {
       this.setData({ loadingHistory: false })
     }
@@ -179,7 +180,7 @@ Page({
   onCategoryChange(e) {
     const category = e.currentTarget.dataset.category
     this.setData({ selectedCategory: category })
-    console.log('选择反馈分类:', category)
+    log.info('选择反馈分类:', category)
   },
 
   // 添加图片
@@ -208,10 +209,10 @@ Page({
           attachedImages: [...this.data.attachedImages, ...newImages]
         })
 
-        console.log('添加图片:', newImages.length)
+        log.info('添加图片:', newImages.length)
       },
       fail: error => {
-        console.error('选择图片失败:', error)
+        log.error('选择图片失败:', error)
         showToast('选择图片失败')
       }
     })
@@ -235,7 +236,7 @@ Page({
     images.splice(index, 1)
 
     this.setData({ attachedImages: images })
-    console.log('删除图片，剩余:', images.length)
+    log.info('删除图片，剩余:', images.length)
   },
 
   // 更新提交按钮状态
@@ -271,7 +272,7 @@ Page({
       this.setData({ submitting: true })
       // 💡 loading由APIClient自动处理，无需手动showLoading
 
-      console.log('📝 准备提交反馈:', {
+      log.info('📝 准备提交反馈:', {
         content: feedbackContent,
         category: selectedCategory,
         imageCount: attachedImages.length
@@ -293,7 +294,7 @@ Page({
 
       if (result.success) {
         // 提交成功
-        console.log('✅ 反馈提交成功:', result.data.feedbackId)
+        log.info('✅ 反馈提交成功:', result.data.feedbackId)
 
         showToast('反馈提交成功，我们会尽快处理')
 
@@ -312,7 +313,7 @@ Page({
         showToast(result.message || '提交失败，请稍后重试')
       }
     } catch (error) {
-      console.error('❌ 提交反馈失败:', error)
+      log.error('❌ 提交反馈失败:', error)
       showToast('网络异常，请稍后重试')
     } finally {
       // 💡 loading由APIClient自动处理，无需手动hideLoading
@@ -322,7 +323,7 @@ Page({
 
   // 🚀 启动实时监听（三层保障）
   startRealtimeMonitoring(feedbackId) {
-    console.log('🔔 启动反馈实时监听:', feedbackId)
+    log.info('🔔 启动反馈实时监听:', feedbackId)
 
     // 第一层：WebSocket实时推送
     if (app.globalData.ws_connected) {
@@ -346,9 +347,9 @@ Page({
         })
       })
 
-      console.log('📡 已订阅WebSocket反馈通知')
+      log.info('📡 已订阅WebSocket反馈通知')
     } catch (error) {
-      console.warn('⚠️ WebSocket订阅失败:', error)
+      log.warn('⚠️ WebSocket订阅失败:', error)
     }
   },
 
@@ -380,11 +381,11 @@ Page({
         // 🔴 修复：直接调用 checkFeedbackUpdate 方法复用逻辑
         await this.checkFeedbackUpdate(feedbackId)
       } catch (error) {
-        console.error('轮询检查失败:', error)
+        log.error('轮询检查失败:', error)
       }
     }, pollingInterval)
 
-    console.log(`⏰ 启动轮询检查，间隔: ${pollingInterval}ms`)
+    log.info(`⏰ 启动轮询检查，间隔: ${pollingInterval}ms`)
   },
 
   // 检查反馈更新
@@ -411,7 +412,7 @@ Page({
         }
       }
     } catch (error) {
-      console.error('检查反馈更新失败:', error)
+      log.error('检查反馈更新失败:', error)
     }
   },
 

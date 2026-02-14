@@ -5,7 +5,7 @@
  * 所有API交互字段使用snake_case命名（与后端一致）
  *
  * @file 天工餐厅积分系统 - API类型定义
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
@@ -76,7 +76,8 @@ declare namespace API {
     name: string
     type: string
     icon: string
-    rarity: string
+    /** 稀有度代码（5级: common/uncommon/rare/epic/legendary） */
+    rarity_code: string
     available: boolean
     display_points: number
     display_value: string
@@ -84,12 +85,15 @@ declare namespace API {
     sort_order: number
   }
 
-  /** 抽奖配置 */
+  /** 抽奖配置（对齐后端 GET /api/v4/lottery/campaigns/:code/config 响应） */
   interface LotteryConfig {
     campaign_code: string
     campaign_name: string
     status: string
-    cost_per_draw: number
+    /** 单抽基础定价（折扣前），由后端 LotteryPricingService 驱动 */
+    base_cost: number
+    /** 单抽实际花费（折扣后），用于积分不足判断和单抽价格展示 */
+    per_draw_cost: number
     max_draws_per_user_daily: number
     draw_buttons: DrawButton[]
     guarantee_info: GuaranteeInfo | null

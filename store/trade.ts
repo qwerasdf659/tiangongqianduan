@@ -5,7 +5,7 @@
  * 数据来源: 后端 GET /api/v4/market/listings、GET /api/v4/backpack/
  *
  * @file 天工餐厅积分系统 - 交易Store
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
@@ -131,9 +131,3 @@ export const tradeStore = observable({
     this.marketPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
   })
 })
-
-
-
-
-
-

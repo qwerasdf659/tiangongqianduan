@@ -67,13 +67,15 @@ Component({
   },
 
   observers: {
-    'isInProgress': function (val: boolean) {
-      if (this.data.isMultiOpen) return
+    isInProgress(val: boolean) {
+      if (this.data.isMultiOpen) {
+        return
+      }
       if (val && this.data.selectedBag >= 0) {
         this._openBag()
       }
     },
-    'multiDrawCount, multiDrawResults': function (count: number, results: any[]) {
+    'multiDrawCount, multiDrawResults'(count: number, results: any[]) {
       if (count > 0 && results && results.length > 0) {
         this._initMultiOpen(count, results)
       }
@@ -92,20 +94,33 @@ Component({
     },
 
     onTapBag(e: any) {
-      if (!this.data.canSelect) return
+      if (!this.data.canSelect) {
+        return
+      }
       const bagId = e.currentTarget.dataset.id
-      if (bagId === undefined || bagId === null) return
+      if (bagId === undefined || bagId === null) {
+        return
+      }
 
-      try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'light' })
+      } catch (_e) {
+        /* */
+      }
       this.setData({ selectedBag: bagId, canSelect: false })
 
       const bags = this.data.bags.map((bag: any) => ({
-        ...bag, shaking: bag.id === bagId
+        ...bag,
+        shaking: bag.id === bagId
       }))
       this.setData({ bags })
 
       setTimeout(() => {
-        try { wx.vibrateShort({ type: 'medium' }) } catch (_e) { /* */ }
+        try {
+          wx.vibrateShort({ type: 'medium' })
+        } catch (_e) {
+          /* */
+        }
       }, 400)
 
       setTimeout(() => {
@@ -115,13 +130,21 @@ Component({
 
     _openBag() {
       const { selectedBag, bags } = this.data
-      try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'heavy' })
+      } catch (_e) {
+        /* */
+      }
 
       this.setData({ showFlash: true })
-      setTimeout(() => { this.setData({ showFlash: false }) }, 200)
+      setTimeout(() => {
+        this.setData({ showFlash: false })
+      }, 200)
 
       const updatedBags = bags.map((bag: any) => ({
-        ...bag, shaking: false, opened: bag.id === selectedBag
+        ...bag,
+        shaking: false,
+        opened: bag.id === selectedBag
       }))
       this.setData({ bags: updatedBags })
 
@@ -161,7 +184,9 @@ Component({
     },
 
     _buildRows(bags: any[], count: number): any[][] {
-      if (count <= 5) return [bags]
+      if (count <= 5) {
+        return [bags]
+      }
       return [bags.slice(0, 5), bags.slice(5)]
     },
 
@@ -171,9 +196,15 @@ Component({
       const colIdx = e.currentTarget.dataset.col
       const bagRows = this.data.bagRows
       const bag = bagRows[rowIdx][colIdx]
-      if (bag.opened) return
+      if (bag.opened) {
+        return
+      }
 
-      try { wx.vibrateShort({ type: 'medium' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'medium' })
+      } catch (_e) {
+        /* */
+      }
 
       bagRows[rowIdx][colIdx] = { ...bag, shaking: true }
       this.setData({ bagRows })
@@ -184,9 +215,15 @@ Component({
         const openedCount = this.data.openedCount + 1
         const allOpened = openedCount >= this.data.totalBags
 
-        try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+        try {
+          wx.vibrateShort({ type: 'heavy' })
+        } catch (_e) {
+          /* */
+        }
         this.setData({ bagRows: rows, openedCount, allOpened, showFlash: true })
-        setTimeout(() => { this.setData({ showFlash: false }) }, 150)
+        setTimeout(() => {
+          this.setData({ showFlash: false })
+        }, 150)
 
         if (allOpened) {
           setTimeout(() => {
@@ -204,7 +241,7 @@ Component({
       for (let r = 0; r < bagRows.length; r++) {
         for (let c = 0; c < bagRows[r].length; c++) {
           if (!bagRows[r][c].opened) {
-            ((row, col, d) => {
+            ;((row, col, d) => {
               setTimeout(() => {
                 const rows = this.data.bagRows
                 rows[row][col] = { ...rows[row][col], shaking: true }
@@ -217,8 +254,14 @@ Component({
                 const count = this.data.openedCount + 1
                 const all = count >= this.data.totalBags
                 this.setData({ bagRows: rows, openedCount: count, allOpened: all, showFlash: true })
-                setTimeout(() => { this.setData({ showFlash: false }) }, 100)
-                try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+                setTimeout(() => {
+                  this.setData({ showFlash: false })
+                }, 100)
+                try {
+                  wx.vibrateShort({ type: 'light' })
+                } catch (_e) {
+                  /* */
+                }
 
                 if (all) {
                   setTimeout(() => {

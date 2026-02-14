@@ -12,8 +12,6 @@
  * 弹窗出现后延迟触发翻转，给用户看到卡牌背面的时间
  */
 const CARD_FLIP_DELAY = 800
-/** 卡牌翻转动画持续时间（毫秒），与CSS transition保持一致 */
-const CARD_FLIP_DURATION = 600
 
 Component({
   properties: {
@@ -53,7 +51,7 @@ Component({
 
   observers: {
     /* 弹窗显示时重置揭晓状态，并根据winAnimation启动对应动画 */
-    'visible': function(val: boolean) {
+    visible(val: boolean) {
       if (val) {
         this.setData({
           multiDrawCurrentIndex: 0,
@@ -92,7 +90,9 @@ Component({
      * 用户手动点击卡牌触发翻转（未自动翻转时可手动触发）
      */
     onCardTap() {
-      if (this.data.cardFlipped || !this.data.cardEntered) return
+      if (this.data.cardFlipped || !this.data.cardEntered) {
+        return
+      }
       this.setData({ cardFlipped: true })
     },
 
@@ -102,27 +102,34 @@ Component({
      */
     revealNextPrize() {
       const { multiDrawCurrentIndex, drawResult } = this.data as any
-      if (!drawResult || !drawResult.prizes) return
+      if (!drawResult || !drawResult.prizes) {
+        return
+      }
 
       const nextIndex = multiDrawCurrentIndex + 1
-      if (nextIndex >= drawResult.prizes.length) return
+      if (nextIndex >= drawResult.prizes.length) {
+        return
+      }
 
       /* card_flip模式：先重置翻转状态，再切换奖品后重新翻转 */
       if (this.properties.winAnimation === 'card_flip') {
-        this.setData({
-          multiDrawRevealing: true,
-          cardFlipped: false,
-          cardEntered: false
-        }, () => {
-          setTimeout(() => {
-            this.setData({
-              multiDrawCurrentIndex: nextIndex,
-              multiDrawRevealing: false
-            })
-            /* 新卡牌入场+翻转 */
-            this._startCardFlipSequence()
-          }, 400)
-        })
+        this.setData(
+          {
+            multiDrawRevealing: true,
+            cardFlipped: false,
+            cardEntered: false
+          },
+          () => {
+            setTimeout(() => {
+              this.setData({
+                multiDrawCurrentIndex: nextIndex,
+                multiDrawRevealing: false
+              })
+              /* 新卡牌入场+翻转 */
+              this._startCardFlipSequence()
+            }, 400)
+          }
+        )
         return
       }
 
@@ -143,7 +150,9 @@ Component({
      */
     switchToRevealedPrize(e: WechatMiniprogram.TouchEvent) {
       const index = Number(e.currentTarget.dataset.index)
-      if (index > this.data.multiDrawCurrentIndex) return
+      if (index > this.data.multiDrawCurrentIndex) {
+        return
+      }
       this.setData({
         multiDrawCurrentIndex: index,
         /* 已揭晓的奖品直接显示正面 */

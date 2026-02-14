@@ -2,9 +2,10 @@
  * 🌐 全局类型声明
  *
  * 声明微信小程序全局类型、App实例类型、扩展声明等
+ * 业务数据（用户认证/积分）统一由 MobX Store 管理，globalData 仅保留系统配置
  *
  * @file 天工餐厅积分系统 - 全局类型定义
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
@@ -22,24 +23,6 @@ interface IAppOption {
     systemName: string
     /** 构建时间 */
     buildTime: string
-
-    // ===== 用户认证状态（snake_case与后端一致） =====
-    /** 是否已登录 */
-    isLoggedIn: boolean
-    /** 用户信息（后端返回的完整用户数据） */
-    userInfo: App.UserInfo | null
-    /** 访问令牌（snake_case，与后端一致） */
-    access_token: string | null
-    /** 刷新令牌（snake_case，与后端一致） */
-    refresh_token: string | null
-    /** 用户角色: 'guest' | 'user' | 'admin' */
-    userRole: string
-
-    // ===== 业务数据缓存（后续将完全迁移到MobX Store） =====
-    /** 可用积分余额（后端字段: available_amount） */
-    points_balance: number
-    /** 冻结积分余额（后端字段: frozen_amount） */
-    frozen_amount: number
 
     // ===== 系统状态 =====
     /** 网络状态 */
@@ -71,20 +54,12 @@ interface IAppOption {
     }
   }
 
-  /** 清空认证数据 */
+  /** 清空认证数据（委托给 MobX Store） */
   clearAuthData(): void
-  /** 更新用户信息 */
-  updateUserInfo(userInfo: App.UserInfo): void
-  /** 更新积分余额 */
-  updatePointsBalance(points: number): void
-  /** 设置访问令牌 */
+  /** 设置访问令牌（委托给 userStore，api.ts Token刷新时调用） */
   setAccessToken(token: string): void
-  /** 设置刷新令牌 */
+  /** 设置刷新令牌（委托给 userStore，api.ts Token刷新时调用） */
   setRefreshToken(token: string): void
-  /** 获取用户角色 */
-  getUserRole(): string
-  /** 从V4信息获取角色 */
-  getUserRoleFromV4(userInfo: App.UserInfo): string
   /** 安全获取系统信息 */
   getSafeSystemInfo(): any
   /** 连接WebSocket */

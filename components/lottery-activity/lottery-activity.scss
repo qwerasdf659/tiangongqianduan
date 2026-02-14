@@ -4,21 +4,59 @@
  *
  * @file components/lottery-activity/lottery-activity.scss
  */
+@import '../../styles/variables';
+@import '../../styles/mixins';
 
 /* ===== 主题CSS变量默认值（被 themeStyle 内联覆盖） ===== */
+/* 当后端未返回主题配置时，这里的默认值生效（default主题色） */
+/* 子组件的 var(--xxx, fallback) 中的 fallback 是各组件独立的保底色 */
 .lottery-activity {
+  /* 主色调 */
   --theme-primary: #e67e22;
-  --theme-secondary: #ffffff;
-  --theme-background: #fff8f0;
+  --theme-primary-dark: #d35400;
+  --theme-primary-light: #f39c12;
+  --theme-primary-lighter: #f5b041;
+  /* 次色调 */
+  --theme-secondary: #ff8c42;
+  --theme-secondary-dark: #e07830;
+  --theme-secondary-light: #ffab70;
+  /* 强调色 */
+  --theme-accent: #ffd700;
+  --theme-accent-dark: #ccac00;
+  --theme-accent-light: #ffe44d;
+  --theme-accent-bright: #ff8c00;
+  /* 文字颜色 */
   --theme-text: #333333;
   --theme-text-light: #666666;
-  --theme-border: #eeeeee;
+  --theme-text-lighter: rgba(255, 255, 255, 0.5);
+  --theme-text-inverse: #ffffff;
+  --theme-text-dark: #7b241c;
+  /* 背景色 */
+  --theme-background: #fff8f0;
+  --theme-bg-dark: #2c1810;
+  --theme-bg-darker: #1a0e08;
+  --theme-bg-light: #fffdf7;
+  --theme-bg-lighter: #fff5eb;
+  /* 阴影 / 光效 */
+  --theme-shadow-strong: rgba(230, 126, 34, 0.4);
+  --theme-shadow-medium: rgba(230, 126, 34, 0.25);
+  --theme-shadow-soft: rgba(230, 126, 34, 0.15);
+  --theme-glow-intense: rgba(230, 126, 34, 0.9);
+  --theme-glow-medium: rgba(230, 126, 34, 0.6);
+  --theme-glow-soft: rgba(230, 126, 34, 0.35);
+  /* 边框 */
+  --theme-border: $color-divider;
+  --theme-border-light: rgba(230, 126, 34, 0.2);
   --theme-highlight: rgba(230, 126, 34, 0.3);
+  /* 状态色 */
+  --theme-success: #27ae60;
+  --theme-danger: #e74c3c;
+  --theme-warning: #f39c12;
 
   width: 100%;
   box-sizing: border-box;
   background-color: var(--theme-background);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   overflow: hidden;
 }
 
@@ -58,7 +96,7 @@
   flex-direction: column;
   align-items: center;
   overflow: hidden;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
 
   &__cover {
     width: 100%;
@@ -75,7 +113,7 @@
   }
 
   &__name {
-    font-size: 24rpx;
+    font-size: $font-size-sm;
     color: var(--theme-text);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -88,7 +126,7 @@
     color: var(--theme-primary);
     padding: 6rpx 24rpx;
     border: 1rpx solid var(--theme-primary);
-    border-radius: 24rpx;
+    border-radius: $border-radius-lg;
   }
 }
 
@@ -96,9 +134,7 @@
 .mini-entry {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   border-radius: 50%;
   overflow: hidden;
   background: var(--theme-primary);
@@ -109,8 +145,8 @@
   }
 
   &__text {
-    font-size: 24rpx;
-    color: #fff;
+    font-size: $font-size-sm;
+    color: var(--theme-text-inverse, #fff);
     font-weight: bold;
   }
 }
@@ -124,30 +160,26 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .lottery-popup {
   width: 90%;
   max-height: 85vh;
   background: var(--theme-background, #fff8f0);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 
   &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    @include flex-between;
     padding: 24rpx 32rpx;
     border-bottom: 1rpx solid var(--theme-border, #eee);
   }
 
   &__title {
-    font-size: 32rpx;
+    font-size: $font-size-md;
     font-weight: bold;
     color: var(--theme-text, #333);
   }
@@ -155,10 +187,8 @@
   &__close {
     width: 56rpx;
     height: 56rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32rpx;
+    @include flex-center;
+    font-size: $font-size-md;
     color: var(--theme-text-light, #666);
   }
 
@@ -171,30 +201,25 @@
 
 /* ===== 加载状态 ===== */
 .lottery-activity__loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   min-height: 400rpx;
 }
 
 .lottery-activity__loading-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--theme-text-light);
 }
 
 /* ===== 错误状态 ===== */
 .lottery-activity__error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   min-height: 400rpx;
   padding: 40rpx;
 }
 
 .lottery-activity__error-text {
-  font-size: 28rpx;
-  color: #e74c3c;
+  font-size: $font-size-base;
+  color: var(--theme-danger, #e74c3c);
   margin-bottom: 24rpx;
   text-align: center;
 }
@@ -202,9 +227,9 @@
 .lottery-activity__retry-btn {
   padding: 16rpx 48rpx;
   background-color: var(--theme-primary);
-  color: #ffffff;
-  border-radius: 32rpx;
-  font-size: 28rpx;
+  color: var(--theme-text-inverse, #ffffff);
+  border-radius: $border-radius-xl;
+  font-size: $font-size-base;
 }
 
 /* ===== 保底砸金蛋 ===== */
@@ -214,13 +239,17 @@
   align-items: center;
   padding: 32rpx 24rpx;
   margin: 24rpx 16rpx;
-  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-  border-radius: 16rpx;
-  border: 2rpx solid #ffd54f;
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent-bg-light, #fff8e1) 0%,
+    var(--theme-accent-bg, #ffecb3) 100%
+  );
+  border-radius: $border-radius-md;
+  border: 2rpx solid var(--theme-accent-border, #ffd54f);
 
   &__title {
-    font-size: 28rpx;
-    color: #e65100;
+    font-size: $font-size-base;
+    color: var(--theme-warning-dark, #e65100);
     font-weight: bold;
     margin-bottom: 24rpx;
     text-align: center;
@@ -235,9 +264,7 @@
     position: relative;
     width: 200rpx;
     height: 240rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex-center;
 
     &.shaking {
       animation: guaranteeShake 0.6s ease-in-out;
@@ -250,9 +277,7 @@
 
   &__whole {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex-center;
   }
 
   &__icon {
@@ -272,9 +297,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @include flex-center;
   }
 
   &__shell-left,
@@ -299,8 +322,8 @@
 
   &__hint {
     margin-top: 16rpx;
-    font-size: 24rpx;
-    color: #bf360c;
+    font-size: $font-size-sm;
+    color: var(--theme-warning-dark, #bf360c);
   }
 }
 
@@ -321,7 +344,7 @@
   &__bar {
     width: 100%;
     height: 12rpx;
-    background: #e0e0e0;
+    background: var(--theme-bg-muted, #e0e0e0);
     border-radius: 6rpx;
     overflow: hidden;
     margin-top: 8rpx;
@@ -329,7 +352,11 @@
 
   &__fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffa726, #e65100);
+    background: linear-gradient(
+      90deg,
+      var(--theme-accent-light, #ffa726),
+      var(--theme-warning-dark, #e65100)
+    );
     border-radius: 6rpx;
     transition: width 0.3s ease;
     min-width: 0;
@@ -338,26 +365,56 @@
 }
 
 @keyframes guaranteeShake {
-  0%, 100% { transform: rotate(0deg); }
-  20% { transform: rotate(-12deg); }
-  40% { transform: rotate(12deg); }
-  60% { transform: rotate(-10deg); }
-  80% { transform: rotate(10deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-12deg);
+  }
+  40% {
+    transform: rotate(12deg);
+  }
+  60% {
+    transform: rotate(-10deg);
+  }
+  80% {
+    transform: rotate(10deg);
+  }
 }
 
 @keyframes guaranteeHammer {
-  0% { transform: rotate(0deg); }
-  50% { transform: rotate(-50deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-50deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes guaranteeCrack {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes guaranteeGlow {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.3); }
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
 }

@@ -1,6 +1,6 @@
 <!--
-  稀有度光效组件 - 包裹容器
-  用法: <rarity-effects rarity="{{item.rarity}}" enabled="{{rarityEffectsEnabled}}"><slot/></rarity-effects>
+  稀有度光效组件 - 包裹容器（5级稀有度: common/uncommon/rare/epic/legendary）
+  用法: <rarity-effects rarity="{{item.rarity_code}}" enabled="{{rarityEffectsEnabled}}"><slot/></rarity-effects>
 -->
 <view class="rarity-effects {{rarityClass}}">
   <slot></slot>

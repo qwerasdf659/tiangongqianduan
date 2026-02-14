@@ -13,10 +13,11 @@
  *   <lottery-activity campaignCode="BASIC_LOTTERY" size="full" />
  *
  * @file pages/lottery/lottery.ts
- * @version 2.0.0 (任务8瘦身)
+ * @version 5.0.0
  */
 
-const { Wechat, API, Utils, Constants, ConfigCache } = require('../../utils/index')
+const { Wechat, API, Utils, Constants, ConfigCache, Logger } = require('../../utils/index')
+const log = Logger.createLogger('lottery')
 const { showToast } = Wechat
 const { checkAuth, restoreUserInfo } = Utils
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -153,13 +154,13 @@ Page({
       await Promise.all([
         this._refreshPoints(),
         ConfigCache.configCache.forceRefresh().catch((refreshError: any) => {
-          console.warn('[lottery] 配置刷新失败（不影响主功能）:', refreshError)
+          log.warn('[lottery] 配置刷新失败（不影响主功能）:', refreshError)
         })
       ])
       /* 配置刷新后重新加载活动列表 */
       await this._loadCampaigns()
     } catch (pullError) {
-      console.error('[lottery] 下拉刷新失败:', pullError)
+      log.error('[lottery] 下拉刷新失败:', pullError)
     } finally {
       wx.stopPullDownRefresh()
     }
@@ -200,11 +201,11 @@ Page({
       await Promise.all([
         this._refreshPoints(),
         this.loadPopupBanners().catch(err => {
-          console.error('[lottery] 弹窗横幅加载失败（不影响主功能）:', err)
+          log.error('[lottery] 弹窗横幅加载失败（不影响主功能）:', err)
         })
       ])
     } catch (error) {
-      console.error('[lottery] 页面初始化失败:', error)
+      log.error('[lottery] 页面初始化失败:', error)
       wx.showModal({
         title: '页面加载失败',
         content: '请检查网络连接后重试。',
@@ -241,21 +242,21 @@ Page({
    *
    * 流程：
    *   1. 通过 ConfigCache 获取活动位置配置（缓存优先）
-   *   2. 通过 API.getLotteryCampaigns 获取后端 active 活动列表
+   *   2. 通过 API.getActiveCampaigns 获取后端 active 活动列表（文档接口B）
    *   3. 将活动列表与位置配置合并，按位置分组和优先级排序
    *   4. 设置 mainCampaign（position=main）和 extraCampaigns（其他位置）
    */
   async _loadCampaigns() {
     try {
-      /* 并行获取：位置配置 + 活动列表 */
+      /* 并行获取：位置配置 + 进行中的活动列表（文档接口B: GET /lottery/campaigns/active） */
       const [placementConfig, campaignsResult] = await Promise.all([
         ConfigCache.configCache.getConfig(),
-        API.getLotteryCampaigns('active')
+        API.getActiveCampaigns()
       ])
 
       /* 活动列表数据校验 */
       if (!campaignsResult?.success || !campaignsResult.data) {
-        console.warn('[lottery] 活动列表获取失败或为空')
+        log.warn('[lottery] 活动列表获取失败或为空')
         return
       }
 
@@ -269,15 +270,18 @@ Page({
         extraCampaigns: processedResult.extraCampaigns
       })
 
-      console.log('✅ [lottery] 活动加载完成', {
+      log.info('✅ [lottery] 活动加载完成', {
         mainCampaign: processedResult.mainCampaign?.campaign_code || '无',
         extraCount: processedResult.extraCampaigns.length
       })
     } catch (loadError) {
-      console.error('[lottery] 加载活动列表失败:', loadError)
-      /* 降级兜底：使用默认 BASIC_LOTTERY */
+      log.error('[lottery] 加载活动列表失败:', loadError)
+      /* 降级兜底：使用默认 BASIC_LOTTERY，包含完整 placement 结构（WXML模板需要） */
       this.setData({
-        mainCampaign: { campaign_code: 'BASIC_LOTTERY' },
+        mainCampaign: {
+          campaign_code: 'BASIC_LOTTERY',
+          placement: { page: 'lottery', position: 'main', size: 'full', priority: 100 }
+        },
         extraCampaigns: []
       })
     }
@@ -300,7 +304,7 @@ Page({
         )
 
         if (!matchedPlacement) {
-          console.warn('[lottery] 活动未配置位置，已过滤:', campaign.campaign_code)
+          log.warn('[lottery] 活动未配置位置，已过滤:', campaign.campaign_code)
           return null
         }
 
@@ -345,7 +349,7 @@ Page({
         this.updatePointsDisplay(pointsStore.availableAmount || 0, pointsStore.frozenAmount || 0)
       }
     } catch (err) {
-      console.error('[lottery] 刷新积分失败:', err)
+      log.error('[lottery] 刷新积分失败:', err)
       this.updatePointsDisplay(pointsStore.availableAmount || 0, pointsStore.frozenAmount || 0)
     }
   },
@@ -459,7 +463,7 @@ Page({
                   this.startQrCountdown()
                 },
                 fail: err => {
-                  console.error('[lottery] 二维码转图片失败:', err)
+                  log.error('[lottery] 二维码转图片失败:', err)
                   wx.showToast({ title: '二维码生成失败', icon: 'none', duration: 2000 })
                 }
               },
@@ -469,12 +473,12 @@ Page({
         }
       })
     } catch (error: any) {
-      console.error('[lottery] 生成V2二维码异常:', error)
+      log.error('[lottery] 生成V2二维码异常:', error)
       wx.showToast({ title: '二维码生成异常', icon: 'none', duration: 2000 })
     }
   },
 
-  /** V2二维码倒计时 */
+  /** V2二维码倒计时（到期后自动刷新，无需手动点击） */
   startQrCountdown() {
     if (this._qrTimer) {
       clearInterval(this._qrTimer)
@@ -485,7 +489,8 @@ Page({
       if (remaining <= 0) {
         clearInterval(this._qrTimer)
         this._qrTimer = null
-        this.setData({ qrCountdown: 0, qrExpired: true, qrCountdownText: '已过期' })
+        // 倒计时归零，触发自动刷新
+        this._autoRefreshQR()
         return
       }
       const minutes = Math.floor(remaining / 60)
@@ -497,12 +502,45 @@ Page({
     }, 1000)
   },
 
-  /** 刷新V2动态二维码 */
+  /**
+   * 自动刷新二维码（过期后自动触发）
+   * 安全机制：最多自动刷新50次（约4小时），超出后需手动刷新
+   */
+  _autoRefreshQR() {
+    const MAX_AUTO_REFRESH = 50
+    const count = (this._qrAutoRefreshCount || 0) as number
+
+    if (count >= MAX_AUTO_REFRESH) {
+      log.info('⚠️ 二维码自动刷新已达上限（' + MAX_AUTO_REFRESH + '次），请手动刷新')
+      this.setData({ qrCountdown: 0, qrExpired: true, qrCountdownText: '已过期' })
+      return
+    }
+
+    log.info('🔄 二维码过期，2秒后自动刷新（第' + (count + 1) + '次）')
+    this._qrAutoRefreshCount = count + 1
+
+    // 先显示"刷新中"状态
+    this.setData({
+      qrCountdown: 0,
+      qrExpired: false,
+      qrCodeImage: '',
+      qrCountdownText: '刷新中...'
+    })
+
+    // 延迟2秒后自动刷新，避免频繁请求
+    setTimeout(() => {
+      this.generateUserQRCode()
+    }, 2000)
+  },
+
+  /** 手动刷新V2动态二维码（重置自动刷新计数） */
   onRefreshQRCode() {
     if (this._qrTimer) {
       clearInterval(this._qrTimer)
       this._qrTimer = null
     }
+    // 手动刷新时重置自动刷新计数
+    this._qrAutoRefreshCount = 0
     this.setData({
       qrCodeImage: '',
       qrExpired: false,
@@ -538,7 +576,7 @@ Page({
         userInfo?.role === 'admin' || userInfo?.is_admin === true || userInfo?.user_role === 'admin'
       this.setData({ isAdmin })
     } catch (error) {
-      console.error('[lottery] 权限检查失败:', error)
+      log.error('[lottery] 权限检查失败:', error)
       this.setData({ isAdmin: false })
     }
   },
@@ -574,7 +612,7 @@ Page({
     wx.navigateTo({
       url: `/packageAdmin/consume-submit/consume-submit?qrCode=${encodeURIComponent(qrCode)}`,
       fail: err => {
-        console.error('[lottery] 跳转失败:', err)
+        log.error('[lottery] 跳转失败:', err)
         wx.showToast({ title: '页面跳转失败', icon: 'none', duration: 2000 })
       }
     })
@@ -589,7 +627,7 @@ Page({
     wx.navigateTo({
       url: '/packageAdmin/audit-list/audit-list',
       fail: err => {
-        console.error('[lottery] 跳转失败:', err)
+        log.error('[lottery] 跳转失败:', err)
         wx.showToast({ title: '页面跳转失败', icon: 'none', duration: 2000 })
       }
     })
@@ -759,7 +797,7 @@ Page({
         this.setData({ popupBanners: activeBanners, showPopupBanner: true })
       }
     } catch (error) {
-      console.error('[lottery] 加载弹窗横幅失败:', error)
+      log.error('[lottery] 加载弹窗横幅失败:', error)
     }
   },
 
@@ -803,7 +841,7 @@ Page({
         fail: () => {
           wx.switchTab({
             url: banner.link_url,
-            fail: err => console.error('[lottery] 跳转失败:', err)
+            fail: err => log.error('[lottery] 跳转失败:', err)
           })
         }
       })

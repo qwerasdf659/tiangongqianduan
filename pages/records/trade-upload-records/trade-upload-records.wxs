@@ -10,18 +10,18 @@
  *   - 不支持Date构造函数
  *   - 使用getDate()代替new Date()
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @since 2026-02-07
  */
 
 /**
  * 获取交易类型图标
  *
- * @param {string} type - 交易类型（lottery/upload/exchange/trade/compensation/checkin/activity/referral）
+ * @param {string} type - 交易类型（lottery/upload/exchange/trade/compensation/checkin/activity/referral/earn/consume/default）
  * @returns {string} 对应的emoji图标
  */
 function getTypeIcon(type) {
-  // WXS不支持对象字面量作为映射表，使用if-else
+  if (!type) return '📄'
   if (type === 'lottery') return '🎰'
   if (type === 'upload') return '📸'
   if (type === 'exchange') return '🛒'
@@ -30,16 +30,28 @@ function getTypeIcon(type) {
   if (type === 'checkin') return '✅'
   if (type === 'activity') return '🎁'
   if (type === 'referral') return '👥'
+  // 兼容 transaction_type 值
+  if (type === 'earn') return '📈'
+  if (type === 'consume') return '📉'
   return '📄'
 }
 
 /**
  * 格式化积分金额显示（正数前加+号）
+ * 增加了空值安全检查，防止显示"undefined"
  *
  * @param {number} amount - 积分数值
  * @returns {string} 格式化后的金额字符串
  */
 function formatAmount(amount) {
+  // 🔴 安全检查：防止 undefined/null 导致显示 "undefined积分"
+  if (amount === undefined || amount === null) return '0'
+  if (typeof amount !== 'number') {
+    // WXS不支持Number()构造函数，使用算术运算转换为数字
+    var num = amount - 0
+    if (isNaN(num)) return '0'
+    amount = num
+  }
   if (amount > 0) {
     return '+' + amount
   }
@@ -48,6 +60,7 @@ function formatAmount(amount) {
 
 /**
  * 格式化时间为友好的相对时间
+ * 增加了对象类型安全检查，防止 [object Object] 显示
  *
  * @param {string|number} timestamp - 时间戳或ISO时间字符串
  * @returns {string} 友好的时间描述（如"刚刚"、"5分钟前"、"3小时前"、"2月7日 14:30"）
@@ -55,9 +68,25 @@ function formatAmount(amount) {
 function formatTime(timestamp) {
   if (!timestamp) return ''
 
+  // 🔴 安全检查：如果是对象类型，尝试转换为字符串
+  if (typeof timestamp === 'object') {
+    // 尝试获取常见日期字段
+    if (timestamp.val) {
+      timestamp = timestamp.val
+    } else if (timestamp.date) {
+      timestamp = timestamp.date
+    } else {
+      // 无法识别的对象，返回空字符串（而非[object Object]）
+      return ''
+    }
+  }
+
   var date = getDate(timestamp)
   var now = getDate()
   var diff = now.getTime() - date.getTime()
+
+  // 验证日期是否有效（getTime()返回NaN表示无效日期）
+  if (isNaN(diff)) return ''
 
   // 1分钟内
   if (diff < 60000) {
@@ -89,4 +118,3 @@ module.exports = {
   formatAmount: formatAmount,
   formatTime: formatTime
 }
-

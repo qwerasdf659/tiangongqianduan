@@ -1,6 +1,7 @@
 // pages/trade/market/market.ts - V4.0交易市场页面 + MobX响应式状态
 // 🔴 统一工具函数导入
-const { API } = require('../../../utils/index')
+const { API, Logger } = require('../../../utils/index')
+const log = Logger.createLogger('market')
 const { APIClient, getMarketProducts } = API
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -59,7 +60,7 @@ Page({
    * 📍 页面生命周期 - 加载
    */
   async onLoad(_options) {
-    console.log('🌊 瀑布流卡片布局页面加载开始')
+    log.info('🌊 瀑布流卡片布局页面加载开始')
 
     // 🆕 MobX Store绑定 - 交易市场状态自动同步
     this.tradeBindings = createStoreBindings(this, {
@@ -81,9 +82,9 @@ Page({
       // 加载初始商品数据
       await this.loadProducts(1)
 
-      console.log('✅ 瀑布流布局初始化完成')
+      log.info('✅ 瀑布流布局初始化完成')
     } catch (error) {
-      console.error('❌ 瀑布流布局初始化失败:', error)
+      log.error('❌ 瀑布流布局初始化失败:', error)
       this.showError('页面加载失败，请重试')
     }
   },
@@ -92,7 +93,7 @@ Page({
    * 🔧 初始化瀑布流布局
    */
   async initializeLayout() {
-    console.log('🔧 初始化瀑布流布局配置')
+    log.info('🔧 初始化瀑布流布局配置')
 
     // 🔧 获取系统信息 - 使用新的API替代过时的wx.getSystemInfoSync
     let systemInfo = {}
@@ -107,11 +108,11 @@ Page({
         ...appBaseInfo
       }
     } catch (error) {
-      console.warn('⚠️ 获取系统信息失败，使用降级方案:', error)
+      log.warn('⚠️ 获取系统信息失败，使用降级方案:', error)
       try {
         systemInfo = wx.getSystemInfoSync()
       } catch (fallbackError) {
-        console.error('❌ 系统信息获取完全失败:', fallbackError)
+        log.error('❌ 系统信息获取完全失败:', fallbackError)
         systemInfo = {}
       }
     }
@@ -123,7 +124,7 @@ Page({
       columnHeights: [0, 0]
     })
 
-    console.log('📐 布局配置完成:', {
+    log.info('📐 布局配置完成:', {
       screenWidth: (systemInfo as any).windowWidth,
       containerWidth,
       cardGap: this.data.cardGap
@@ -134,7 +135,7 @@ Page({
    * 🖼️ 设置图片懒加载观察器
    */
   setupLazyLoading() {
-    console.log('🖼️ 设置图片懒加载观察器')
+    log.info('🖼️ 设置图片懒加载观察器')
 
     this.intersectionObserver = wx.createIntersectionObserver(this, {
       rootMargin: `${this.data.lazyLoadThreshold}px`
@@ -155,11 +156,11 @@ Page({
    */
   async loadProducts(page = 1, append = false) {
     if (this.data.loading) {
-      console.log('⚠️ 正在加载中，跳过重复请求')
+      log.info('⚠️ 正在加载中，跳过重复请求')
       return
     }
 
-    console.log(`📦 开始加载商品数据 - 第${page}页`)
+    log.info(`📦 开始加载商品数据 - 第${page}页`)
 
     this.setData({ loading: true })
 
@@ -169,7 +170,7 @@ Page({
 
     if (success && data && data.products) {
       const newProducts = data.products
-      console.log('✅ 使用真实API数据')
+      log.info('✅ 使用真实API数据')
 
       const allProducts = append ? [...this.data.products, ...newProducts] : newProducts
 
@@ -189,7 +190,7 @@ Page({
         loading: false
       })
 
-      console.log(`✅ 商品数据加载完成 - 共${layoutProducts.length}个商品`)
+      log.info(`✅ 商品数据加载完成 - 共${layoutProducts.length}个商品`)
     } else {
       this.setData({ loading: false })
     }
@@ -199,7 +200,7 @@ Page({
    * 🌊 计算瀑布流布局算法 - 核心功能
    */
   calculateWaterfallLayout(products) {
-    console.log('🌊 开始计算瀑布流布局')
+    log.info('🌊 开始计算瀑布流布局')
 
     // 重置列高度（当不是追加数据时）
     const columnHeights = [0, 0]
@@ -239,7 +240,7 @@ Page({
     // 保存列高度状态
     this.setData({ columnHeights })
 
-    console.log('✅ 瀑布流布局计算完成:', {
+    log.info('✅ 瀑布流布局计算完成:', {
       totalProducts: layoutProducts.length,
       leftColumnHeight: columnHeights[0],
       rightColumnHeight: columnHeights[1],
@@ -276,7 +277,7 @@ Page({
    * 🖼️ 加载单个商品图片
    */
   loadProductImage(productId) {
-    console.log(`🖼️ 开始加载商品图片: ${productId}`)
+    log.info(`🖼️ 开始加载商品图片: ${productId}`)
 
     const imageLoadedMap = { ...this.data.imageLoadedMap }
     imageLoadedMap[productId] = true
@@ -297,7 +298,7 @@ Page({
 
     this.setData({ performanceStats })
 
-    console.log('📊 性能统计更新:', performanceStats)
+    log.info('📊 性能统计更新:', performanceStats)
   },
 
   /**
@@ -306,7 +307,7 @@ Page({
   onProductClick(e) {
     const product = e.currentTarget.dataset.product
 
-    console.log('🎯 商品点击:', product.name)
+    log.info('🎯 商品点击:', product.name)
 
     // 埋点统计
     wx.reportAnalytics('product_click', {
@@ -326,7 +327,7 @@ Page({
    * 🔄 下拉刷新
    */
   async onPullDownRefresh() {
-    console.log('🔄 执行下拉刷新')
+    log.info('🔄 执行下拉刷新')
 
     try {
       // 重置数据
@@ -348,7 +349,7 @@ Page({
         duration: 1500
       })
     } catch (error) {
-      console.error('❌ 下拉刷新失败:', error)
+      log.error('❌ 下拉刷新失败:', error)
       wx.stopPullDownRefresh()
       wx.showToast({
         title: '刷新失败',
@@ -361,10 +362,10 @@ Page({
    * ⬆️ 上拉加载更多
    */
   async onReachBottom() {
-    console.log('⬆️ 触发上拉加载更多')
+    log.info('⬆️ 触发上拉加载更多')
 
     if (!this.data.hasMore || this.data.loading) {
-      console.log('⚠️ 无更多数据或正在加载中')
+      log.info('⚠️ 无更多数据或正在加载中')
       return
     }
 
@@ -386,7 +387,7 @@ Page({
    * 🗑️ 页面卸载清理
    */
   onUnload() {
-    console.log('🗑️ 瀑布流布局页面卸载，清理资源')
+    log.info('🗑️ 瀑布流布局页面卸载，清理资源')
 
     // 🆕 销毁MobX Store绑定
     if (this.tradeBindings) {

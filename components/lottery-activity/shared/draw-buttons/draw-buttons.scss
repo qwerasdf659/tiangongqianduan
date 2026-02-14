@@ -30,11 +30,11 @@
   border: none;
   border-radius: 20rpx;
   padding: 20rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   box-shadow:
-    0 8rpx 20rpx rgba(0, 0, 0, 0.2),
-    0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+    0 8rpx 20rpx var(--theme-shadow-medium, rgba(0, 0, 0, 0.2)),
+    0 4rpx 12rpx var(--theme-shadow-soft, rgba(0, 0, 0, 0.15));
   transition: all 0.3s ease;
 }
 
@@ -50,22 +50,34 @@
   transform: none !important;
 }
 
-/* 三连抽 */
+/* 三连抽 - 使用主题色 */
 .triple-btn {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, $gradient-blue-start),
+    var(--theme-primary-dark, $gradient-blue-end)
+  );
+  color: var(--theme-text-inverse, white);
 }
 
 /* 五连抽 */
 .five-btn {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--theme-secondary-light, #f093fb),
+    var(--theme-secondary, #f5576c)
+  );
+  color: var(--theme-text-inverse, white);
 }
 
 /* 十连抽 */
 .ten-btn {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent-blue, #4facfe),
+    var(--theme-accent-cyan, #00f2fe)
+  );
+  color: var(--theme-text-inverse, white);
 }
 
 .ten-btn.full-width {
@@ -89,8 +101,13 @@
 }
 
 @keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
 }
 
 /* 按钮内容布局 */
@@ -102,19 +119,44 @@
 }
 
 .btn-main-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 700;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
 }
 
 .btn-sub-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   opacity: 0.9;
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
 }
 
+/* 折扣价格行（划线价 + 实付价 + 省多少） */
+.btn-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 划线原价（折扣前） */
+.btn-original-cost {
+  font-size: $font-size-xs;
+  opacity: 0.6;
+  text-decoration: line-through;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 省多少积分标签 */
+.btn-saved {
+  font-size: $font-size-xs;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
+  opacity: 0.95;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.15);
+}
+
 .btn-guarantee {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   opacity: 0.9;
   background: rgba(255, 255, 255, 0.25);
   padding: 4rpx 12rpx;

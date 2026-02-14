@@ -1,20 +1,32 @@
-<!--pages/trade/inventory/inventory.wxml - 库存管理页面v2.0优化版-->
+<!--pages/trade/inventory/inventory.wxml - 库存管理页面（背包系统）-->
+<!--
+  后端字段全部使用snake_case（与后端一致）：
+  item_instance_id, item_type, name, status, rarity,
+  description, acquired_at, expires_at, has_redemption_code
+
+  前端计算的操作标志（布尔值，基于status计算）：
+  can_use, can_generate_code, can_transfer, can_contact
+-->
+
+<!-- 🔴 引入WXS模板辅助函数 -->
+<wxs module="helper" src="./inventory.wxs" />
+
 <view class="inventory-container">
-  <!-- 🎨 页面头部 -->
+  <!-- 页面头部 -->
   <view class="header-section">
     <view class="header-content">
       <view class="header-title">
-        <text class="title-text">🎒 我的库存</text>
+        <text class="title-text">我的库存</text>
         <text class="title-desc">管理您的积分奖品和权益</text>
       </view>
       <view class="total-value-card">
         <text class="value-label">总价值</text>
-        <text class="value-amount">{{totalValue}}积分</text>
+        <text class="value-amount">{{totalValue || 0}} 积分</text>
       </view>
     </view>
   </view>
 
-  <!-- 🔴 统计面板 - 现代化网格设计 -->
+  <!-- 🔴 统计面板 - 分类卡片 -->
   <view class="statistics-section">
     <view class="stats-grid">
       <view
@@ -67,7 +79,7 @@
     </view>
   </view>
 
-  <!-- 🔴 搜索和筛选工具栏 - 现代化设计 -->
+  <!-- 🔴 搜索和筛选工具栏 -->
   <view class="toolbar-section">
     <view class="toolbar-content">
       <view class="search-container">
@@ -98,15 +110,25 @@
       </view>
     </view>
 
+    <!-- 错误状态 -->
+    <view class="error-state" wx:elif="{{hasError}}">
+      <text class="error-icon">⚠️</text>
+      <text class="error-title">{{errorMessage}}</text>
+      <text class="error-detail">{{errorDetail}}</text>
+      <button class="retry-btn" bind:tap="initPage">重新加载</button>
+    </view>
+
     <!-- 库存物品列表 -->
     <view class="inventory-list" wx:else>
-      <block wx:if="{{!loading && filteredItems.length > 0}}">
-        <view class="inventory-card" wx:for="{{filteredItems}}" wx:key="id">
+      <block wx:if="{{filteredItems.length > 0}}">
+        <!-- 物品卡片（wx:key使用后端主键字段 item_instance_id） -->
+        <view class="inventory-card" wx:for="{{filteredItems}}" wx:key="item_instance_id">
           <!-- 物品头部信息 -->
           <view class="item-header">
             <view class="item-left">
               <view class="item-icon-wrapper">
-                <text class="item-icon">{{item.icon || '📦'}}</text>
+                <!-- 图标根据 item_type 通过WXS函数获取 -->
+                <text class="item-icon">{{helper.getItemIcon(item.item_type)}}</text>
               </view>
               <view class="item-basic">
                 <text class="item-name">{{item.name}}</text>
@@ -114,45 +136,48 @@
               </view>
             </view>
             <view class="item-right">
+              <!-- 状态标签（WXS函数转换为中文） -->
               <view class="status-badge status-{{item.status}}">
-                <text class="status-text">{{getStatusText(item.status)}}</text>
+                <text class="status-text">{{helper.getStatusText(item.status)}}</text>
               </view>
-              <text class="item-value" wx:if="{{item.value}}">{{item.value}}积分</text>
+              <!-- 稀有度标签 -->
+              <text class="item-rarity rarity-{{item.rarity}}" wx:if="{{item.rarity}}"
+                >{{helper.getRarityText(item.rarity)}}</text
+              >
             </view>
           </view>
 
-          <!-- 物品详细信息 -->
+          <!-- 物品详细信息（后端snake_case字段） -->
           <view
             class="item-details"
-            wx:if="{{item.sourceType || item.acquiredAt || item.expiresAt || item.verificationCode}}"
+            wx:if="{{item.acquired_at || item.expires_at || item.has_redemption_code}}"
           >
             <view class="details-grid">
-              <view class="detail-item" wx:if="{{item.sourceType}}">
-                <text class="detail-label">获得方式</text>
-                <text class="detail-value">{{item.sourceType}}</text>
-              </view>
-              <view class="detail-item" wx:if="{{item.acquiredAt}}">
+              <view class="detail-item" wx:if="{{item.acquired_at}}">
                 <text class="detail-label">获得时间</text>
-                <text class="detail-value">{{item.acquiredAt}}</text>
+                <text class="detail-value">{{helper.formatTime(item.acquired_at)}}</text>
               </view>
-              <view class="detail-item" wx:if="{{item.expiresAt}}">
+              <view class="detail-item" wx:if="{{item.expires_at}}">
                 <text class="detail-label">过期时间</text>
-                <text class="detail-value {{isExpiringSoon(item.expiresAt) ? 'expiring' : ''}}"
-                  >{{item.expiresAt}}</text
+                <!-- WXS函数判断是否即将过期，添加expiring样式 -->
+                <text
+                  class="detail-value {{helper.isExpiringSoon(item.expires_at) ? 'expiring' : ''}}"
+                  >{{helper.formatTime(item.expires_at)}}</text
                 >
               </view>
-              <view class="detail-item" wx:if="{{item.verificationCode}}">
+              <view class="detail-item" wx:if="{{item.has_redemption_code}}">
                 <text class="detail-label">核销码</text>
-                <text class="detail-value verification-code">{{item.verificationCode}}</text>
+                <text class="detail-value verification-code">已生成</text>
               </view>
             </view>
           </view>
 
-          <!-- 操作按钮 -->
+          <!-- 操作按钮（基于前端计算的布尔标志控制显示） -->
           <view class="item-actions">
+            <!-- 可用状态：立即使用 -->
             <button
               class="action-btn primary"
-              wx:if="{{item.actions && item.actions.includes('use')}}"
+              wx:if="{{item.can_use}}"
               bind:tap="onUseItem"
               data-item="{{item}}"
             >
@@ -160,19 +185,21 @@
               <text class="btn-text">立即使用</text>
             </button>
 
+            <!-- 可用状态：生成核销码（到店出示） -->
             <button
               class="action-btn secondary"
-              wx:if="{{item.actions && item.actions.includes('verify')}}"
+              wx:if="{{item.can_generate_code}}"
               bind:tap="onGenerateCode"
               data-item="{{item}}"
             >
               <text class="btn-icon">🎫</text>
-              <text class="btn-text">创建核销订单</text>
+              <text class="btn-text">生成核销码</text>
             </button>
 
+            <!-- 可用状态：上架到交易市场 -->
             <button
               class="action-btn warning"
-              wx:if="{{item.actions && item.actions.includes('transfer')}}"
+              wx:if="{{item.can_transfer}}"
               bind:tap="onTransferItem"
               data-item="{{item}}"
             >
@@ -180,14 +207,16 @@
               <text class="btn-text">上架到市场</text>
             </button>
 
+            <!-- 所有状态：查看详情 -->
             <button class="action-btn outline" bind:tap="onViewItem" data-item="{{item}}">
               <text class="btn-icon">📋</text>
               <text class="btn-text">查看详情</text>
             </button>
 
+            <!-- 非可用状态：联系客服 -->
             <button
               class="action-btn outline"
-              wx:if="{{item.actions && item.actions.includes('contact')}}"
+              wx:if="{{item.can_contact}}"
               bind:tap="onContactService"
             >
               <text class="btn-icon">💬</text>
@@ -197,8 +226,8 @@
         </view>
       </block>
 
-      <!-- 🎨 全新空状态设计 -->
-      <view class="empty-state" wx:if="{{!loading && filteredItems.length === 0}}">
+      <!-- 🎨 空状态设计 -->
+      <view class="empty-state" wx:if="{{filteredItems.length === 0}}">
         <view class="empty-illustration">
           <view class="empty-treasure-box">
             <view class="treasure-box">
@@ -253,7 +282,7 @@
     </view>
   </view>
 
-  <!-- 🔴 操作提示区域 -->
+  <!-- 🔴 操作提示区域（有物品时显示） -->
   <view class="tips-section" wx:if="{{!loading && filteredItems.length > 0}}">
     <view class="tips-card">
       <view class="tips-header">
@@ -271,7 +300,7 @@
         </view>
         <view class="tip-item">
           <text class="tip-icon">🎫</text>
-          <text class="tip-text">创建核销订单后可到店核销使用</text>
+          <text class="tip-text">生成核销码后可到店出示给商家核销</text>
         </view>
       </view>
     </view>
@@ -341,11 +370,11 @@
               <text>最新获得</text>
             </view>
             <view
-              class="filter-option {{currentSort === 'value_high' ? 'active' : ''}}"
+              class="filter-option {{currentSort === 'oldest' ? 'active' : ''}}"
               bind:tap="onSortChange"
-              data-sort="value_high"
+              data-sort="oldest"
             >
-              <text>价值从高到低</text>
+              <text>最早获得</text>
             </view>
             <view
               class="filter-option {{currentSort === 'expire_soon' ? 'active' : ''}}"

@@ -13,16 +13,19 @@
 
   <!-- 刮卡长条主体 -->
   <view class="scratch-strip-wrapper">
-    <view class="scratch-strip count-{{cells.length}}"
+    <view
+      class="scratch-strip count-{{cells.length}}"
       bindtouchstart="onTouchStart"
       bindtouchmove="onTouchMove"
-      bindtouchend="onTouchEnd">
-
+      bindtouchend="onTouchEnd"
+    >
       <!-- 逐格渲染 -->
-      <view class="cell cell--{{item.state}}"
-        wx:for="{{cells}}" wx:key="index"
-        style="width: {{100 / cells.length}}%;">
-
+      <view
+        class="cell cell--{{item.state}}"
+        wx:for="{{cells}}"
+        wx:key="index"
+        style="width: {{100 / cells.length}}%;"
+      >
         <!-- 底层：奖品内容 -->
         <view class="cell-prize">
           <text class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
@@ -34,7 +37,9 @@
         </view>
 
         <!-- 覆盖涂层 -->
-        <view class="cell-cover {{item.state === 'dissolving' ? 'dissolving' : ''}} {{item.state === 'revealed' ? 'gone' : ''}}">
+        <view
+          class="cell-cover {{item.state === 'dissolving' ? 'dissolving' : ''}} {{item.state === 'revealed' ? 'gone' : ''}}"
+        >
           <view class="cell-cover-texture"></view>
           <text class="cell-number">{{item.index + 1}}</text>
         </view>
@@ -67,17 +72,31 @@
   </view>
 
   <!-- 底部战报条 -->
-  <scroll-view class="report-bar" scroll-x enable-flex wx:if="{{revealedPrizes.length > 0 || cells.length > 1}}">
-    <view class="report-item {{item.state === 'revealed' ? 'revealed' : ''}}"
-      wx:for="{{cells}}" wx:key="index">
-      <text class="report-icon">{{item.state === 'revealed' ? (item.prize.icon || '🎁') : '❓'}}</text>
+  <scroll-view
+    class="report-bar"
+    scroll-x
+    enable-flex
+    wx:if="{{revealedPrizes.length > 0 || cells.length > 1}}"
+  >
+    <view
+      class="report-item {{item.state === 'revealed' ? 'revealed' : ''}}"
+      wx:for="{{cells}}"
+      wx:key="index"
+    >
+      <text class="report-icon"
+        >{{item.state === 'revealed' ? (item.prize.icon || '🎁') : '❓'}}</text
+      >
     </view>
   </scroll-view>
 
   <!-- 底部提示 -->
   <view class="scratch-footer">
-    <text class="footer-tip" wx:if="{{!scratching && revealedCount === 0}}">从左往右滑动，一刮到底</text>
-    <text class="footer-tip active" wx:elif="{{scratching && !allRevealed}}">继续刮...已揭晓 {{revealedCount}} 个</text>
+    <text class="footer-tip" wx:if="{{!scratching && revealedCount === 0}}"
+      >从左往右滑动，一刮到底</text
+    >
+    <text class="footer-tip active" wx:elif="{{scratching && !allRevealed}}"
+      >继续刮...已揭晓 {{revealedCount}} 个</text
+    >
     <text class="footer-tip done" wx:elif="{{allRevealed}}">全部揭晓！</text>
   </view>
 </view>

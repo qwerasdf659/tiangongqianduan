@@ -1,7 +1,7 @@
 {
   "name": "tiangong-restaurant-lottery",
-  "version": "3.0.0",
-  "description": "餐厅积分抽奖系统 - 微信小程序前端v3.0（TypeScript + Sass + MobX + Skyline）",
+  "version": "5.0.0",
+  "description": "餐厅积分抽奖系统 - 微信小程序前端v5.0（TypeScript + Sass + MobX + Skyline）",
   "main": "app.ts",
   "scripts": {
     "lint": "eslint \"pages/**/*.ts\" \"utils/**/*.ts\" \"components/**/*.ts\" \"packageAdmin/**/*.ts\" \"config/**/*.ts\" \"store/**/*.ts\" app.ts",

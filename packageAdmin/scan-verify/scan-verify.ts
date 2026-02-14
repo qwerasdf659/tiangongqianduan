@@ -2,7 +2,8 @@
 // 后端路由: POST /api/v4/shop/redemption/fulfill（商家域，需role_level>=20）
 
 // 统一工具函数导入
-const { API, Utils } = require('../../utils/index')
+const { API, Utils, Logger } = require('../../utils/index')
+const log = Logger.createLogger('scan-verify')
 const { checkAuth } = Utils
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
@@ -25,7 +26,7 @@ const { userStore } = require('../../store/user')
  * 权限要求: 商家店员(role_level>=20)及以上
  *
  * @file packageAdmin/scan-verify/scan-verify.ts
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 Page({
@@ -46,7 +47,7 @@ Page({
    * 生命周期函数 - 监听页面加载
    */
   onLoad() {
-    console.log('📱 扫码核销页面加载')
+    log.info('📱 扫码核销页面加载')
 
     // 🆕 MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
@@ -66,7 +67,7 @@ Page({
     const hasAccess = roleLevel >= 20 || userInfo?.is_admin === true
 
     if (!hasAccess) {
-      console.error('❌ 用户无商家权限，role_level:', roleLevel)
+      log.error('❌ 用户无商家权限，role_level:', roleLevel)
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面，仅商家员工和管理员可使用扫码核销功能。',
@@ -89,13 +90,13 @@ Page({
    * 调用微信扫码API扫描用户的核销码二维码
    */
   startScan() {
-    console.log('📷 启动扫码...')
+    log.info('📷 启动扫码...')
 
     wx.scanCode({
       onlyFromCamera: false,
       scanType: ['qrCode', 'barCode'],
       success: res => {
-        console.log('✅ 扫码成功:', res.result)
+        log.info('✅ 扫码成功:', res.result)
         this.setData({
           scannedCode: res.result,
           hasScanned: true
@@ -105,7 +106,7 @@ Page({
         this.handleFulfill(res.result)
       },
       fail: error => {
-        console.log('📷 扫码取消或失败:', error)
+        log.info('📷 扫码取消或失败:', error)
         // 用户取消扫码，不做任何处理
       }
     })
@@ -133,12 +134,12 @@ Page({
     this.setData({ loading: true })
 
     try {
-      console.log('📤 开始核销，核销码:', code)
+      log.info('📤 开始核销，核销码:', code)
 
       const result = await API.fulfillRedemption({ code })
 
       if (result && result.success) {
-        console.log('✅ 核销成功:', result.data)
+        log.info('✅ 核销成功:', result.data)
 
         this.setData({
           verifyResult: result.data,
@@ -155,7 +156,7 @@ Page({
         throw new Error(result?.message || '核销失败')
       }
     } catch (error) {
-      console.error('❌ 核销失败:', error)
+      log.error('❌ 核销失败:', error)
 
       this.setData({
         verifyResult: { error: error.message },
@@ -195,14 +196,14 @@ Page({
    * 生命周期函数 - 监听页面显示
    */
   onShow() {
-    console.log('📱 扫码核销页面显示')
+    log.info('📱 扫码核销页面显示')
   },
 
   /**
    * 生命周期函数 - 监听页面卸载
    */
   onUnload() {
-    console.log('📱 扫码核销页面卸载')
+    log.info('📱 扫码核销页面卸载')
     // 🆕 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()

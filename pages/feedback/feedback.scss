@@ -20,7 +20,7 @@
 }
 
 .header-title .title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 600;
   display: block;
   margin-bottom: 8rpx;
@@ -38,20 +38,20 @@
   border: none;
   border-radius: 20rpx;
   padding: 16rpx 24rpx;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   display: flex;
   align-items: center;
   gap: 8rpx;
 }
 
 .history-btn .icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
 }
 
 /* 📝 表单区块 */
 .section {
   background-color: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   padding: 30rpx 24rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.08);
@@ -72,18 +72,18 @@
 
 .section-title .required {
   color: #e74c3c;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
 }
 
 .section-title .optional {
   color: #95a5a6;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
 }
 
 .section-title .more {
   color: #3498db;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   margin-left: auto;
   cursor: pointer;
 }
@@ -113,13 +113,13 @@
 }
 
 .category-item .icon {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   margin-bottom: 8rpx;
   display: block;
 }
 
 .category-item .label {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #2c3e50;
   text-align: center;
   display: block;
@@ -136,7 +136,7 @@
   padding: 20rpx;
   border: 2rpx solid #ecf0f1;
   border-radius: 12rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   line-height: 1.5;
   background-color: #fafbfc;
   box-sizing: border-box;
@@ -154,7 +154,7 @@
 }
 
 .char-count {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #95a5a6;
 }
 
@@ -190,11 +190,9 @@
   height: 40rpx;
   background-color: #e74c3c;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   color: white;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   cursor: pointer;
 }
@@ -204,10 +202,7 @@
   height: 160rpx;
   border: 2rpx dashed #bdc3c7;
   border-radius: 12rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   background-color: #fafbfc;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -219,14 +214,14 @@
 }
 
 .add-image-btn .icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   color: #bdc3c7;
   margin-bottom: 8rpx;
   display: block;
 }
 
 .add-image-btn .text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #7f8c8d;
   display: block;
 }
@@ -241,7 +236,7 @@
   width: 100%;
   height: 88rpx;
   border-radius: 44rpx;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   border: none;
   transition: all 0.3s ease;
@@ -262,7 +257,7 @@
 }
 
 .submit-tips .tip {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #7f8c8d;
 }
 
@@ -294,14 +289,14 @@
 }
 
 .item-header .category {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #7f8c8d;
 }
 
 .item-header .status {
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   font-weight: 500;
 }
 
@@ -345,9 +340,7 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
@@ -364,7 +357,7 @@
   max-width: 640rpx;
   max-height: 80vh;
   background-color: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   display: flex;
   flex-direction: column;
   transform: scale(0.9);
@@ -384,7 +377,7 @@
 }
 
 .modal-title {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: #2c3e50;
 }
@@ -392,10 +385,8 @@
 .close-btn {
   width: 48rpx;
   height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
+  @include flex-center;
+  font-size: $font-size-xl;
   color: #95a5a6;
   cursor: pointer;
   border-radius: 50%;
@@ -414,10 +405,7 @@
 
 .loading-state,
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   padding: 60rpx 20rpx;
   color: #95a5a6;
 }
@@ -429,7 +417,7 @@
 }
 
 .empty-state .message {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   display: block;
 }
 
@@ -457,8 +445,8 @@
 
 .item-status .status-badge {
   padding: 6rpx 16rpx;
-  border-radius: 16rpx;
-  font-size: 20rpx;
+  border-radius: $border-radius-md;
+  font-size: $font-size-xs;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -487,7 +475,7 @@
 
 .item-arrow {
   color: #bdc3c7;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
 }
 
@@ -503,7 +491,7 @@
   color: white;
   border: none;
   border-radius: 38rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 500;
 }
 

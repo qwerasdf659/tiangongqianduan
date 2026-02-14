@@ -1,6 +1,6 @@
 {
-  "navigationBarTitleText": "审核列表",
-  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTitleText": "审批管理",
+  "navigationBarBackgroundColor": "#FF6B35",
   "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
   "usingComponents": {}

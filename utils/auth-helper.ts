@@ -1,8 +1,8 @@
 /**
- * 🔐 认证助手模块 - V4.0统一认证系统
+ * 🔐 认证助手模块 - V5.0统一认证系统
  *
- * 提取认证检查逻辑，消除页面重复代码
- * 统一从 utils/index.ts 导出给外部使用
+ * 认证数据统一从 MobX userStore 读取（决策3：废弃globalData业务字段）
+ * 页面通过 createStoreBindings 自动同步，不再依赖 app.globalData
  *
  * 功能清单:
  * - checkAuth() - 检查用户登录状态
@@ -10,11 +10,15 @@
  * - getAccessToken() - 获取当前access_token
  * - getUserInfo() - 获取当前用户信息
  * - clearAuthData() - 清理认证数据
+ * - restoreUserInfo() - 三级恢复用户信息
  *
  * @file 天工餐厅积分系统 - 认证助手
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
+
+const { createLogger } = require('./logger')
+const log = createLogger('auth-helper')
 
 // ===== 类型定义 =====
 
@@ -36,14 +40,6 @@ interface CheckAdminOptions {
   navigateBack?: boolean
 }
 
-/** clearAuthData 配置选项 */
-interface ClearAuthDataOptions {
-  /** 是否清理本地存储（默认true） */
-  clearStorage?: boolean
-  /** 是否清理全局状态（默认true） */
-  clearGlobal?: boolean
-}
-
 /** 用户信息结构（后端返回的snake_case字段） */
 interface AuthUserInfo {
   user_id: number
@@ -57,28 +53,23 @@ interface AuthUserInfo {
   points?: number
 }
 
-// ===== 延迟获取App实例 =====
+// ===== 延迟获取 Store（避免循环依赖） =====
 
-/** 缓存的App实例 */
-let appInstance: WechatMiniprogram.App.Instance<Record<string, any>> | null = null
+/** 延迟获取 userStore，避免模块加载阶段的循环依赖 */
+function getUserStore() {
+  return require('../store/user').userStore
+}
 
-/** 延迟获取App实例，避免模块加载时调用getApp() */
-function getAppInstance(): WechatMiniprogram.App.Instance<Record<string, any>> | null {
-  if (!appInstance && typeof getApp !== 'undefined') {
-    try {
-      appInstance = getApp()
-    } catch (error) {
-      console.warn('⚠️ 无法获取App实例:', error)
-    }
-  }
-  return appInstance
+/** 延迟获取 pointsStore */
+function getPointsStore() {
+  return require('../store/points').pointsStore
 }
 
 // ===== 核心功能函数 =====
 
 /**
  * 🔐 检查用户登录状态
- * 后端路由: GET /api/v4/auth/verify-token（验证Token有效性）
+ * 数据来源: MobX userStore（唯一来源） + Storage（降级备份）
  *
  * @example
  * if (!checkAuth()) return;
@@ -86,46 +77,36 @@ function getAppInstance(): WechatMiniprogram.App.Instance<Record<string, any>> |
  */
 function checkAuth(options: CheckAuthOptions = {}): boolean {
   const { redirect = true, redirectUrl = '/pages/auth/auth', showToast = false } = options
+  const store = getUserStore()
 
-  // V4.0规范: 从storage和全局状态检查access_token
-  const token: string = wx.getStorageSync('access_token')
-  const app = getAppInstance()
-  const globalToken: string | null = app?.globalData?.access_token ?? null
-  const isLoggedIn: boolean = app?.globalData?.isLoggedIn ?? false
-
-  // 详细的登录状态检查
+  // 从 Storage 和 Store 双重校验
+  const storageToken: string = wx.getStorageSync('access_token')
   const hasValidToken: boolean =
-    !!token && typeof token === 'string' && token.trim() !== '' && token !== 'undefined'
+    !!storageToken &&
+    typeof storageToken === 'string' &&
+    storageToken.trim() !== '' &&
+    storageToken !== 'undefined'
 
-  const isAuthenticated: boolean = hasValidToken && isLoggedIn && !!globalToken
+  const isAuthenticated: boolean = hasValidToken && store.isLoggedIn && !!store.accessToken
 
-  console.log('🔍 认证状态检查:', {
-    hasToken: !!token,
-    hasGlobalToken: !!globalToken,
-    isLoggedIn,
+  log.info('🔍 认证状态检查:', {
+    hasStorageToken: !!storageToken,
+    storeIsLoggedIn: store.isLoggedIn,
     isAuthenticated
   })
 
-  // 未登录处理
   if (!isAuthenticated) {
-    console.warn('⚠️ 用户未登录或Token无效')
+    log.warn('⚠️ 用户未登录或Token无效')
 
     if (showToast) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none',
-        duration: 2000
-      })
+      wx.showToast({ title: '请先登录', icon: 'none', duration: 2000 })
     }
 
     if (redirect) {
-      console.log('🔄 跳转到登录页:', redirectUrl)
-      // 使用redirectTo清空页面栈，确保用户必须重新登录
+      log.info('🔄 跳转到登录页:', redirectUrl)
       wx.redirectTo({
         url: redirectUrl,
-        fail: (error: WechatMiniprogram.GeneralCallbackResult) => {
-          console.error('❌ 跳转登录页失败:', error)
-          // 备用方案: 使用reLaunch
+        fail: () => {
           wx.reLaunch({ url: redirectUrl })
         }
       })
@@ -134,7 +115,7 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
     return false
   }
 
-  console.log('✅ 认证检查通过')
+  log.info('✅ 认证检查通过')
   return true
 }
 
@@ -144,51 +125,40 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
  *
  * @example
  * if (!checkAdmin()) return;
- * if (!checkAdmin({ showToast: true, navigateBack: false })) return;
  */
 function checkAdmin(options: CheckAdminOptions = {}): boolean {
   const { showToast = true, navigateBack = true } = options
 
-  // 先检查登录状态
   if (!checkAuth({ redirect: true, showToast: false })) {
     return false
   }
 
-  // V4.0规范: 从JWT Token和用户信息检查管理员标识
-  const app = getAppInstance()
-  const userInfo: AuthUserInfo | null =
-    app?.globalData?.userInfo || wx.getStorageSync('user_info') || null
+  const store = getUserStore()
+  const userInfo: AuthUserInfo | null = store.userInfo || wx.getStorageSync('user_info') || null
 
-  // 检查管理员标识 - V4.0标准: is_admin 或 role_level >= 100
   const isAdmin: boolean = !!(
     userInfo?.is_admin === true ||
     (userInfo?.role_level && userInfo.role_level >= 100)
   )
 
-  console.log('🔍 管理员权限检查:', {
+  log.info('🔍 管理员权限检查:', {
     hasUserInfo: !!userInfo,
     is_admin: userInfo?.is_admin,
     role_level: userInfo?.role_level,
     isAdmin
   })
 
-  // 无权限处理
   if (!isAdmin) {
-    console.warn('⚠️ 用户无管理员权限')
+    log.warn('⚠️ 用户无管理员权限')
 
     if (showToast) {
-      wx.showToast({
-        title: '无权限访问',
-        icon: 'none',
-        duration: 2000
-      })
+      wx.showToast({ title: '无权限访问', icon: 'none', duration: 2000 })
     }
 
     if (navigateBack) {
       setTimeout(() => {
         wx.navigateBack({
           fail: () => {
-            // 如果无法返回，跳转到首页
             wx.switchTab({ url: '/pages/lottery/lottery' })
           }
         })
@@ -198,7 +168,7 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
     return false
   }
 
-  console.log('✅ 管理员权限检查通过')
+  log.info('✅ 管理员权限检查通过')
   return true
 }
 
@@ -207,7 +177,6 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
  *
  * @example
  * const token = getAccessToken();
- * if (token) { console.log('Token:', token); }
  */
 function getAccessToken(): string | null {
   const token: string = wx.getStorageSync('access_token')
@@ -215,67 +184,29 @@ function getAccessToken(): string | null {
 }
 
 /**
- * 👤 获取当前用户信息
+ * 👤 获取当前用户信息（优先从 userStore 读取）
  *
  * @example
  * const userInfo = getUserInfo();
- * if (userInfo) { console.log('用户ID:', userInfo.user_id); }
+ * if (userInfo) { log.info('用户ID:', userInfo.user_id); }
  */
 function getUserInfo(): AuthUserInfo | null {
-  const app = getAppInstance()
-  const userInfo: AuthUserInfo | null =
-    app?.globalData?.userInfo || wx.getStorageSync('user_info') || null
-  return userInfo
+  const store = getUserStore()
+  return store.userInfo || wx.getStorageSync('user_info') || null
 }
 
 /**
- * 🧹 清理认证数据
- * 退出登录时调用，清理Storage和全局状态
- *
- * @example
- * clearAuthData(); // 清理所有认证数据
- * clearAuthData({ clearStorage: false }); // 只清理全局状态
+ * 🧹 清理认证数据（委托给 MobX Store）
+ * 退出登录时调用，Store 内部自动清理 Storage
  */
-function clearAuthData(options: ClearAuthDataOptions = {}): void {
-  const { clearStorage = true, clearGlobal = true } = options
-
-  console.log('🧹 清理认证数据:', options)
-
-  // 清理本地存储
-  if (clearStorage) {
-    try {
-      wx.removeStorageSync('access_token')
-      wx.removeStorageSync('refresh_token')
-      wx.removeStorageSync('user_info')
-      console.log('✅ 本地存储已清理')
-    } catch (error) {
-      console.error('❌ 清理本地存储失败:', error)
-    }
-  }
-
-  // 清理全局状态
-  if (clearGlobal) {
-    try {
-      const app = getAppInstance()
-      if (app && app.globalData) {
-        app.globalData.access_token = null
-        app.globalData.refresh_token = null
-        app.globalData.userInfo = null
-        app.globalData.isLoggedIn = false
-        app.globalData.points_balance = 0
-        app.globalData.frozen_amount = 0
-        console.log('✅ 全局状态已清理')
-      }
-    } catch (error) {
-      console.error('❌ 清理全局状态失败:', error)
-    }
-  }
-
-  console.log('✅ 认证数据清理完成')
+function clearAuthData(): void {
+  log.info('🧹 清理认证数据')
+  const uStore = getUserStore()
+  const pStore = getPointsStore()
+  uStore.clearLoginState()
+  pStore.clearPoints()
+  log.info('✅ 认证数据清理完成')
 }
-
-// Token自动刷新已由 api.ts 的 APIClient.handleTokenExpired() 统一处理
-// 认证助手只负责认证状态检查，不处理Token刷新
 
 /**
  * 🔄 恢复用户信息
@@ -285,21 +216,22 @@ function clearAuthData(options: ClearAuthDataOptions = {}): void {
  * @returns 恢复成功返回 userInfo 对象，失败返回 null
  */
 function restoreUserInfo(): any {
-  const { userStore } = require('../store/user')
-  let userInfo = userStore.userInfo
+  const store = getUserStore()
+  let userInfo = store.userInfo
 
+  // 第一级：从 userStore 读取
   if (userInfo && userInfo.user_id) {
     return userInfo
   }
 
-  // 尝试从Storage恢复
+  // 第二级：从 Storage 恢复到 Store
   userInfo = wx.getStorageSync('user_info')
   if (userInfo && userInfo.user_id) {
-    userStore.updateUserInfo(userInfo)
+    store.updateUserInfo(userInfo)
     return userInfo
   }
 
-  // 尝试从JWT Token恢复
+  // 第三级：从 JWT Token 解码恢复
   const token = wx.getStorageSync('access_token')
   if (!token) {
     _redirectToLogin('未登录，请先登录')
@@ -323,16 +255,124 @@ function restoreUserInfo(): any {
         exp: jwtPayload.exp
       }
       wx.setStorageSync('user_info', userInfo)
-      userStore.updateUserInfo(userInfo)
+      store.updateUserInfo(userInfo)
       return userInfo
     }
 
     _redirectToLogin('登录信息异常，请重新登录')
     return null
   } catch (error) {
-    console.error('❌ 从JWT Token恢复userInfo失败:', error)
+    log.error('❌ 从JWT Token恢复userInfo失败:', error)
     _redirectToLogin('登录信息异常，请重新登录')
     return null
+  }
+}
+
+/**
+ * 🔍 Token有效性详细检查
+ * 返回丰富的状态信息（isValid / error / needsRelogin 等），供页面做细粒度处理
+ *
+ * 检查项:
+ * 1. 应用是否已初始化
+ * 2. 用户是否已登录（MobX Store + Storage 双重校验）
+ * 3. Token字符串格式是否正常
+ * 4. JWT 解码是否成功
+ * 5. Token是否已过期
+ *
+ * @example
+ * const status = checkTokenValidity()
+ * if (!status.isValid) {
+ *   if (status.needsRelogin) wx.redirectTo({ url: '/pages/auth/auth' })
+ * }
+ */
+function checkTokenValidity(): {
+  isValid: boolean
+  error?: string
+  message: string
+  needsRelogin?: boolean
+  isNormalUnauth?: boolean
+  info?: Record<string, any>
+} {
+  const store = getUserStore()
+
+  // 检查登录状态
+  const isLoggedIn: boolean = store.isLoggedIn
+  const accessToken: string | null = store.accessToken
+
+  if (!isLoggedIn || !accessToken) {
+    log.info('🔓 用户未登录')
+    return {
+      isValid: false,
+      error: 'NOT_LOGGED_IN',
+      message: '用户未登录',
+      needsRelogin: false,
+      isNormalUnauth: true
+    }
+  }
+
+  // Token格式校验
+  if (typeof accessToken !== 'string' || accessToken.trim() === '' || accessToken === 'undefined') {
+    log.error('❌ Token格式异常')
+    return {
+      isValid: false,
+      error: 'TOKEN_INVALID_FORMAT',
+      message: 'Token格式无效',
+      needsRelogin: true,
+      isNormalUnauth: false
+    }
+  }
+
+  // JWT 解码和过期检查
+  const utilFunctions = require('./util')
+  const { decodeJWTPayload, isTokenExpired } = utilFunctions
+
+  try {
+    const payload = decodeJWTPayload(accessToken)
+
+    if (!payload) {
+      log.error('❌ Token解码失败')
+      return {
+        isValid: false,
+        error: 'TOKEN_INVALID',
+        message: 'Token无效',
+        needsRelogin: true,
+        isNormalUnauth: false
+      }
+    }
+
+    if (isTokenExpired(accessToken)) {
+      log.error('⏰ Token已过期')
+      return {
+        isValid: false,
+        error: 'TOKEN_EXPIRED',
+        message: 'Token已过期',
+        needsRelogin: true,
+        isNormalUnauth: false
+      }
+    }
+
+    log.info('✅ Token验证通过')
+    return {
+      isValid: true,
+      message: 'Token有效',
+      info: {
+        userId: payload.user_id,
+        mobile: payload.mobile,
+        roleBasedAdmin: payload.is_admin || false,
+        roles: payload.roles || ['user'],
+        expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null
+      },
+      isNormalUnauth: false
+    }
+  } catch (error) {
+    log.error('❌ Token验证异常:', error)
+    return {
+      isValid: false,
+      error: 'TOKEN_CHECK_ERROR',
+      message: 'Token验证异常',
+      needsRelogin: true,
+      isNormalUnauth: false
+    }
   }
 }
 
@@ -351,7 +391,8 @@ module.exports = {
   getAccessToken,
   getUserInfo,
   clearAuthData,
-  restoreUserInfo
+  restoreUserInfo,
+  checkTokenValidity
 }
 
 export {}

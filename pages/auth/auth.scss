@@ -40,7 +40,7 @@
 }
 
 .loading-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: var(--text-color);
   font-weight: 500;
 }
@@ -53,9 +53,7 @@
   width: 100%;
   height: 100vh;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   padding: 40rpx 20rpx;
   z-index: 9999;
 }
@@ -64,7 +62,7 @@
   width: 100%;
   max-width: 600rpx;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 32rpx;
+  border-radius: $border-radius-xl;
   padding: 60rpx 40rpx;
   backdrop-filter: blur(20rpx);
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
@@ -78,7 +76,7 @@
 
 .error-title {
   display: block;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 600;
   color: #f44336;
   margin-bottom: 20rpx;
@@ -86,7 +84,7 @@
 
 .error-message {
   display: block;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--gray-color);
   line-height: 1.5;
   margin-bottom: 40rpx;
@@ -103,7 +101,7 @@
   border: none;
   border-radius: 20rpx;
   padding: 20rpx 40rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   transition: all 0.3s ease;
 }
@@ -128,7 +126,7 @@
 }
 
 .error-details-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: var(--gray-color);
   line-height: 1.6;
   text-align: left;
@@ -145,9 +143,7 @@
 .auth-container {
   min-height: 100vh;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   /* 🔧 修复白色内容框左右对齐问题：确保完美居中 */
   padding: 40rpx 0;
   margin: 0 auto;
@@ -213,7 +209,7 @@
   width: calc(100% - 40rpx);
   max-width: 600rpx;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 32rpx;
+  border-radius: $border-radius-xl;
   padding: 60rpx 40rpx;
   backdrop-filter: blur(20rpx);
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
@@ -268,7 +264,7 @@
 }
 
 .title {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   font-weight: 700;
   color: var(--text-color);
   margin-bottom: 20rpx;
@@ -276,7 +272,7 @@
 }
 
 .subtitle {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--gray-color);
   line-height: 1.5;
   display: block;
@@ -300,13 +296,13 @@
 }
 
 .label-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: var(--text-color);
 }
 
 .required {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: #f44336;
   margin-left: 8rpx;
 }
@@ -335,14 +331,14 @@
 }
 
 .input-prefix {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   margin-right: 20rpx;
   color: var(--gray-color);
 }
 
 .form-input {
   flex: 1;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: var(--text-color);
   background: transparent;
   /* 🔧 修复对齐问题：确保输入框宽度一致 */
@@ -353,11 +349,11 @@
   background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end) !important;
   color: white !important;
   border: none !important;
-  border-radius: 16rpx !important;
+  border-radius: $border-radius-md !important;
   /* 🔧 调整圆角使其与输入框更协调 */
   padding: 20rpx 4rpx !important;
   /* 🔧 进一步减少左右内边距使总宽度为70rpx */
-  font-size: 28rpx !important;
+  font-size: $font-size-base !important;
   /* 🔧 增大字体使其与输入框字体更协调 */
   font-weight: 600 !important;
   width: 150rpx !important;
@@ -388,7 +384,7 @@
 }
 
 .error-tip {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #f44336;
   margin-top: 12rpx;
   margin-left: 20rpx;
@@ -424,9 +420,9 @@
   background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end);
   color: white;
   border: none;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 36rpx;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
   margin-bottom: 30rpx;
   transition: all 0.3s ease;
@@ -466,7 +462,7 @@
   border: 2rpx solid var(--border-color);
   border-radius: 20rpx;
   padding: 28rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
 }
 
@@ -476,7 +472,7 @@
 }
 
 .tips {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: var(--gray-color);
   margin-bottom: 30rpx;
   display: block;
@@ -525,7 +521,7 @@
   max-width: 700rpx;
   max-height: 80vh;
   background: white;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
 }
@@ -551,7 +547,7 @@
 }
 
 .modal-title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 600;
 }
 
@@ -563,9 +559,7 @@
   cursor: pointer;
   width: 60rpx;
   height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .modal-body {
@@ -582,7 +576,7 @@
 }
 
 .section-title {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: var(--text-color);
   margin-bottom: 20rpx;
@@ -590,7 +584,7 @@
 }
 
 .section-content {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--gray-color);
   line-height: 1.8;
   display: block;
@@ -607,9 +601,9 @@
   background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end);
   color: white;
   border: none;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   padding: 28rpx;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
 }
 
@@ -634,7 +628,7 @@
   max-width: 650rpx;
   max-height: 85vh;
   background: white;
-  border-radius: 32rpx;
+  border-radius: $border-radius-xl;
   overflow: hidden;
   animation: adminModalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 30rpx 80rpx rgba(0, 0, 0, 0.3);
@@ -687,9 +681,7 @@
   cursor: pointer;
   width: 60rpx;
   height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
@@ -719,7 +711,7 @@
 }
 
 .admin-label-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: $color-text-primary;
 }
@@ -729,7 +721,7 @@
   align-items: center;
   background: $color-bg;
   border: 3rpx solid #e9ecef;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 28rpx 24rpx;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -764,25 +756,23 @@
 }
 
 .admin-input-prefix {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   margin-right: 24rpx;
   color: #6c757d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   width: 40rpx;
 }
 
 .admin-form-input {
   flex: 1;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   color: $color-text-primary;
   background: transparent;
   font-weight: 500;
 }
 
 .admin-password-toggle {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   cursor: pointer;
   color: #6c757d;
   margin-left: 20rpx;
@@ -797,7 +787,7 @@
 }
 
 .admin-error-tip {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #dc3545;
   margin-top: 12rpx;
   margin-left: 8rpx;
@@ -832,7 +822,7 @@
 }
 
 .admin-checkbox-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: #495057;
   margin-left: 16rpx;
   font-weight: 500;
@@ -842,7 +832,7 @@
   margin-top: 20rpx;
   padding: 20rpx;
   background: rgba(255, 193, 7, 0.1);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   border: 2rpx solid rgba(255, 193, 7, 0.3);
 }
 
@@ -860,9 +850,9 @@
   background: linear-gradient(135deg, $color-primary, #f7931e);
   color: white;
   border: none;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 35rpx 28rpx;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
   position: relative;
   overflow: hidden;
@@ -911,12 +901,12 @@
   margin-top: 30rpx;
   padding: 25rpx;
   background: rgba(23, 162, 184, 0.05);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   border: 2rpx solid rgba(23, 162, 184, 0.2);
 }
 
 .security-tip {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #17a2b8;
   line-height: 1.8;
   display: block;
@@ -938,11 +928,11 @@
   }
 
   .title {
-    font-size: 40rpx;
+    font-size: $font-size-xl;
   }
 
   .submit-btn {
-    font-size: 32rpx;
+    font-size: $font-size-md;
     padding: 32rpx;
   }
 
@@ -969,7 +959,7 @@
   }
 
   .admin-submit-btn {
-    font-size: 32rpx;
+    font-size: $font-size-md;
     padding: 32rpx 24rpx;
   }
 }

@@ -1,21 +1,25 @@
 /**
  * 稀有度光效 共享组件
  *
- * 作为包裹容器使用，根据 rarity 属性为子内容添加对应光效
+ * 作为包裹容器使用，根据 rarity 属性（对应后端 rarity_code 字段）为子内容添加对应光效
  * 纯CSS实现，不依赖Canvas或JS动画
  *
- * 4级光效：
- *   common    → 蓝色边框，无特效
- *   rare      → 紫色呼吸光，CSS pulse动画
- *   epic      → 橙色光环，CSS box-shadow闪烁
- *   legendary → 金色旋转光环，conic-gradient + rotate + 星星
+ * 5级光效（对齐后端 rarity_code 枚举）：
+ *   common    → #9E9E9E 灰色边框，无特效
+ *   uncommon  → #4CAF50 绿色边框
+ *   rare      → #2196F3 蓝色呼吸光，CSS pulse动画
+ *   epic      → #9C27B0 紫色闪烁光环，CSS box-shadow闪烁
+ *   legendary → #FF9800 金色旋转光环，conic-gradient + rotate + 星星
  *
  * @file shared/rarity-effects/rarity-effects.ts
  */
 
+/** 有效的5级稀有度枚举值（对齐后端 rarity_code 字段） */
+const VALID_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary']
+
 Component({
   properties: {
-    /** 稀有度等级：common / rare / epic / legendary */
+    /** 稀有度等级：common / uncommon / rare / epic / legendary */
     rarity: {
       type: String,
       value: 'common'
@@ -34,9 +38,8 @@ Component({
 
   observers: {
     'rarity, enabled'(rarity: string, enabled: boolean) {
-      const validRarities = ['common', 'rare', 'epic', 'legendary']
-      const safeRarity = validRarities.includes(rarity) ? rarity : 'common'
-      // 🔴 enabled=false 时不添加任何class，让硬编码样式作为保底
+      const safeRarity = VALID_RARITIES.includes(rarity) ? rarity : 'common'
+      /* enabled=false 时不添加任何class，让硬编码样式作为保底 */
       this.setData({
         rarityClass: enabled ? `rarity--${safeRarity}` : ''
       })
@@ -46,9 +49,8 @@ Component({
   lifetimes: {
     attached() {
       const { rarity, enabled } = this.properties
-      const validRarities = ['common', 'rare', 'epic', 'legendary']
-      const safeRarity = validRarities.includes(rarity) ? rarity : 'common'
-      // 🔴 enabled=false 时不添加任何class，让硬编码样式作为保底
+      const safeRarity = VALID_RARITIES.includes(rarity) ? rarity : 'common'
+      /* enabled=false 时不添加任何class，让硬编码样式作为保底 */
       this.setData({
         rarityClass: enabled ? `rarity--${safeRarity}` : ''
       })

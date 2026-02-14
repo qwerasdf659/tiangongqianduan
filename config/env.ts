@@ -3,7 +3,7 @@
  * 支持4种环境: development(开发)、mobile(真机)、testing(测试)、production(生产)
  *
  * @file 天工餐厅积分系统 - 环境配置
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
 
@@ -154,7 +154,7 @@ const ENV_CONFIG: AllEnvironmentConfig = {
         enabled: true,
         engineVersion: '4.0.0',
         defaultStrategy: 'basic_guarantee',
-        // 单抽消耗由后端API /lottery/campaigns/:code/config 的 cost_per_draw 字段决定
+        // 单抽消耗由后端API /lottery/campaigns/:code/config 的 per_draw_cost（折扣后）/ base_cost（折扣前）字段决定
         supportMultipleDraw: true,
         enableGuarantee: true
       },
@@ -511,7 +511,7 @@ module.exports = {
   switchToDevTools,
   switchToMobile,
   isMobileDebug,
-  version: '4.0.0',
+  version: '5.0.0',
   lastUpdated: '2026-02-10T00:00:00+08:00'
 }
 

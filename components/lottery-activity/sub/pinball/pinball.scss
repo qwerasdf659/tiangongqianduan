@@ -1,110 +1,1671 @@
 ﻿@import '../../../../styles/variables';
+@import '../../../../styles/mixins';
 
+/* ================================================================
+   弹珠机容器 - 豪华街机风格 v6.0
+   全面优化：更丰富的动效、更精致的质感、更流畅的交互
+   ================================================================ */
 .pinball-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20rpx 0;
-}
-
-.pinball-title {
-  margin-bottom: 20rpx;
-  font-size: 30rpx;
-  color: var(--theme-text-inverse, #fff);
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
-}
-
-.pinball-board {
+  padding: 24rpx 0 40rpx;
   position: relative;
-  width: 560rpx;
-  height: 500rpx;
-  background: linear-gradient(180deg, var(--theme-bg-dark, #1a1a2e), var(--theme-bg-darker, #16213e));
-  border-radius: 20rpx;
   overflow: hidden;
-  border: 4rpx solid var(--theme-border, #333);
-  box-shadow: 0 8rpx 30rpx var(--theme-shadow-strong, rgba(0, 0, 0, 0.3));
-}
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #070b1e) 0%,
+    var(--theme-bg-darker, #0e1438) 30%,
+    var(--theme-bg-dark, #0a0e27) 60%,
+    var(--theme-bg-darkest, #04060f) 100%
+  );
 
-.ball {
-  position: absolute;
-  z-index: 10;
-  transform: translate(-50%, -50%);
-  transition: none;
+  /* 深空星云纹理 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(0, 200, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 55%, rgba(255, 165, 0, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, rgba(120, 80, 255, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 50% 10%, rgba(255, 215, 0, 0.04) 0%, transparent 35%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-  &.dropping {
-    transition: left 0.08s linear, top 0.08s linear;
+  /* 顶部聚光灯 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600rpx;
+    height: 450rpx;
+    background: radial-gradient(
+      ellipse,
+      rgba(0, 200, 255, 0.14) 0%,
+      rgba(0, 150, 255, 0.06) 35%,
+      transparent 65%
+    );
+    filter: blur(50rpx);
+    pointer-events: none;
+    z-index: 1;
+    animation: spotlightBreath 4s ease-in-out infinite alternate;
   }
 }
 
-.ball-icon {
-  font-size: 36rpx;
+/* 聚光灯呼吸 */
+@keyframes spotlightBreath {
+  from {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.pegs {
+/* ================================================================
+   入场动画
+   ================================================================ */
+.anim-enter {
+  animation: machineEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes machineEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(40rpx) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.anim-peg-enter {
+  animation: pegEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes pegEnter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.anim-slot-enter {
+  animation: slotEnter 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes slotEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================================================================
+   背景浮动粒子
+   ================================================================ */
+.bg-particles {
   position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  font-size: $font-size-xs;
+  opacity: 0;
+  animation: particleFloat linear infinite;
+
+  text {
+    display: block;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  15% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-140rpx) scale(1.3) rotate(360deg);
+  }
+}
+
+/* ================================================================
+   机台主体 - 深邃金属外壳
+   ================================================================ */
+.machine-body {
+  position: relative;
+  width: 620rpx;
+  z-index: 2;
+  filter: drop-shadow(0 24rpx 60rpx rgba(0, 0, 0, 0.7));
+
+  /* 外壳 - 深蓝金属质感 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -16rpx;
+    left: -20rpx;
+    right: -20rpx;
+    bottom: -20rpx;
+    background: linear-gradient(
+      180deg,
+      var(--theme-shell-top, #1c2d50) 0%,
+      var(--theme-shell-mid1, #162440) 20%,
+      var(--theme-shell-mid2, #111d38) 50%,
+      var(--theme-shell-mid3, #0d1730) 80%,
+      var(--theme-shell-bottom, #091224) 100%
+    );
+    border-radius: 28rpx 28rpx 18rpx 18rpx;
+    box-shadow:
+      inset 0 4rpx 16rpx var(--theme-shell-inner-glow, rgba(100, 180, 255, 0.15)),
+      inset 0 -8rpx 24rpx rgba(0, 0, 0, 0.6),
+      0 20rpx 60rpx var(--theme-shadow-strong, rgba(5, 15, 50, 0.5)),
+      0 8rpx 40rpx var(--theme-glow-soft, rgba(0, 100, 255, 0.12)),
+      0 0 120rpx rgba(0, 100, 255, 0.06);
+    z-index: -1;
+    border: 3rpx solid var(--theme-shell-border, rgba(80, 160, 255, 0.25));
+  }
+
+  /* 金色内框装饰线 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: -12rpx;
+    left: -16rpx;
+    right: -16rpx;
+    bottom: -16rpx;
+    border-radius: 26rpx 26rpx 16rpx 16rpx;
+    border: 2rpx solid var(--theme-accent-border, rgba(255, 200, 50, 0.18));
+    pointer-events: none;
+    z-index: 3;
+  }
+}
+
+/* ================================================================
+   顶部霓虹灯标题 + 跑马灯
+   ================================================================ */
+.machine-top {
+  position: relative;
+  padding: 18rpx 16rpx 14rpx;
+  text-align: center;
+  z-index: 4;
+}
+
+.top-lights {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 8rpx;
+
+  &.bottom-row {
+    margin-top: 6rpx;
+  }
+}
+
+.light-bulb {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: var(--theme-accent-dim, rgba(255, 200, 50, 0.2));
+  animation: bulbChase 1.6s ease-in-out infinite;
+  box-shadow: 0 0 4rpx var(--theme-accent-dim, rgba(255, 200, 50, 0.2));
+  transition: background 0.2s;
+
+  &:nth-child(even) {
+    animation-name: bulbChaseAlt;
+  }
+
+  /* 颜色交替 - 增加多彩效果 */
+  &:nth-child(3n) {
+    animation-name: bulbChaseRed;
+  }
+}
+
+@keyframes bulbChase {
+  0%,
+  42%,
+  100% {
+    background: var(--theme-accent-dim, rgba(255, 200, 50, 0.2));
+    box-shadow: 0 0 3rpx var(--theme-accent-dim, rgba(255, 200, 50, 0.15));
+  }
+  48%,
+  92% {
+    background: var(--theme-accent, #ffd700);
+    box-shadow:
+      0 0 14rpx var(--theme-accent-glow, rgba(255, 215, 0, 0.9)),
+      0 0 28rpx var(--theme-accent-glow-soft, rgba(255, 215, 0, 0.4));
+  }
+}
+
+@keyframes bulbChaseAlt {
+  0%,
+  48%,
+  100% {
+    background: var(--theme-accent, #ffd700);
+    box-shadow:
+      0 0 14rpx var(--theme-accent-glow, rgba(255, 215, 0, 0.9)),
+      0 0 28rpx var(--theme-accent-glow-soft, rgba(255, 215, 0, 0.4));
+  }
+  5%,
+  42% {
+    background: var(--theme-accent-dim, rgba(255, 200, 50, 0.2));
+    box-shadow: 0 0 3rpx var(--theme-accent-dim, rgba(255, 200, 50, 0.15));
+  }
+}
+
+@keyframes bulbChaseRed {
+  0%,
+  42%,
+  100% {
+    background: rgba(255, 80, 50, 0.2);
+    box-shadow: 0 0 3rpx rgba(255, 80, 50, 0.15);
+  }
+  48%,
+  92% {
+    background: #ff6b35;
+    box-shadow:
+      0 0 14rpx rgba(255, 107, 53, 0.9),
+      0 0 28rpx rgba(255, 107, 53, 0.4);
+  }
+}
+
+.top-title {
+  @include flex-center;
+  gap: 16rpx;
+  padding: 10rpx 0;
+}
+
+.title-icon {
+  font-size: 34rpx;
+
+  &.left-icon {
+    animation: titleBounceL 2.5s ease-in-out infinite;
+  }
+
+  &.right-icon {
+    animation: titleBounceR 2.5s ease-in-out 0.3s infinite;
+  }
+}
+
+.title-text {
+  font-size: 38rpx;
+  font-weight: 900;
+  letter-spacing: 10rpx;
+  color: transparent;
+  background: linear-gradient(
+    180deg,
+    #fff8e1 0%,
+    var(--theme-accent-light, #ffe066) 20%,
+    var(--theme-accent, #ffd700) 50%,
+    var(--theme-accent-bright, #ffa500) 80%,
+    #cc7700 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 3rpx 8rpx var(--theme-accent-glow-soft, rgba(255, 200, 0, 0.6)));
+}
+
+@keyframes titleBounceL {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6rpx) rotate(-10deg);
+  }
+}
+
+@keyframes titleBounceR {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6rpx) rotate(10deg);
+  }
+}
+
+/* ================================================================
+   游戏面板 - 透明弹珠台
+   ================================================================ */
+.board {
+  position: relative;
   width: 100%;
-  height: 70%;
+  height: 700rpx;
+  background: linear-gradient(
+    180deg,
+    var(--theme-board-top, #0a1630) 0%,
+    var(--theme-board-mid1, #0c1938) 12%,
+    var(--theme-board-mid2, #0e1c40) 40%,
+    var(--theme-board-mid3, #0c1838) 65%,
+    var(--theme-board-bottom, #081228) 100%
+  );
+  border-radius: $border-radius-sm;
+  overflow: hidden;
+  margin: 0 4rpx;
+
+  /* 内边框柔光 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: $border-radius-sm;
+    box-shadow:
+      inset 0 3rpx 24rpx var(--theme-glow-soft, rgba(0, 150, 255, 0.12)),
+      inset 0 -3rpx 24rpx rgba(0, 60, 180, 0.08);
+    pointer-events: none;
+    z-index: 15;
+  }
+
+  /* 微光网格纹理 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 39rpx,
+        rgba(100, 180, 255, 0.015) 39rpx,
+        rgba(100, 180, 255, 0.015) 40rpx
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 39rpx,
+        rgba(100, 180, 255, 0.015) 39rpx,
+        rgba(100, 180, 255, 0.015) 40rpx
+      );
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* 面板顶部发光线 */
+.board-top-glow {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 3rpx;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 200, 255, 0.6) 20%,
+    rgba(0, 200, 255, 0.9) 50%,
+    rgba(0, 200, 255, 0.6) 80%,
+    transparent
+  );
+  box-shadow: 0 0 16rpx rgba(0, 200, 255, 0.4);
+  z-index: 16;
+  animation: topGlowPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes topGlowPulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 面板底部渐变遮罩 */
+.board-bottom-fade {
+  position: absolute;
+  bottom: 20%;
+  left: 0;
+  right: 0;
+  height: 40rpx;
+  background: linear-gradient(180deg, transparent, rgba(8, 18, 40, 0.5));
+  pointer-events: none;
+  z-index: 7;
+}
+
+/* ================================================================
+   发射口 - 精致机械感
+   ================================================================ */
+.launcher {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.launcher-tube {
+  width: 44rpx;
+  height: 22rpx;
+  background: linear-gradient(
+    180deg,
+    var(--theme-primary-light, #5a7fbb) 0%,
+    var(--theme-primary-dark, #2e5088) 100%
+  );
+  border-radius: 0 0 10rpx 10rpx;
+  box-shadow:
+    inset 0 3rpx 8rpx rgba(255, 255, 255, 0.2),
+    0 4rpx 16rpx rgba(0, 0, 0, 0.5);
+}
+
+.launcher-ring {
+  width: 56rpx;
+  height: 10rpx;
+  background: linear-gradient(
+    180deg,
+    #ffe066 0%,
+    var(--theme-accent, #ffd700) 40%,
+    var(--theme-accent-dark, #cc9900) 100%
+  );
+  border-radius: 5rpx;
+  margin-top: -3rpx;
+  box-shadow:
+    0 0 12rpx var(--theme-accent-glow-soft, rgba(255, 215, 0, 0.5)),
+    inset 0 1rpx 3rpx rgba(255, 255, 255, 0.4);
+}
+
+.launcher-glow {
+  position: absolute;
+  top: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 220, 255, 0.9), rgba(0, 150, 255, 0.3), transparent);
+  animation: launchGlow 0.5s ease-out;
+}
+
+/* 发射口就绪态脉冲指示器 */
+.launcher-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: rgba(0, 200, 255, 0.6);
+  animation: launcherPulse 2s ease-in-out infinite;
+}
+
+@keyframes launcherPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(0.8);
+    box-shadow: 0 0 8rpx rgba(0, 200, 255, 0.3);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.4);
+    box-shadow: 0 0 20rpx rgba(0, 200, 255, 0.6);
+  }
+}
+
+.launcher.is-active {
+  .launcher-tube {
+    background: linear-gradient(180deg, #7ab5e0, #4a8fc5);
+    box-shadow:
+      inset 0 3rpx 8rpx rgba(255, 255, 255, 0.35),
+      0 0 24rpx var(--theme-glow-medium, rgba(0, 200, 255, 0.6));
+  }
+
+  .launcher-ring {
+    box-shadow:
+      0 0 22rpx var(--theme-accent-glow, rgba(255, 215, 0, 0.8)),
+      0 0 40rpx var(--theme-accent-glow-soft, rgba(255, 215, 0, 0.3));
+  }
+}
+
+@keyframes launchGlow {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(4);
+  }
+}
+
+/* ================================================================
+   钉阵 - Plinko核心视觉（3D质感增强）
+   ================================================================ */
+.pegs-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .peg {
   position: absolute;
+  transform: translate(-50%, -50%);
+  width: 24rpx;
+  height: 24rpx;
+  @include flex-center;
+}
+
+.peg-core {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: var(--theme-accent, #FFD700);
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 6rpx var(--theme-glow-soft, rgba(255, 215, 0, 0.5));
+  background: radial-gradient(
+    circle at 30% 30%,
+    #88ccff 0%,
+    var(--theme-peg-highlight, #5eaae8) 20%,
+    var(--theme-peg-mid, #3888cc) 50%,
+    var(--theme-peg-dark, #2266aa) 75%,
+    var(--theme-peg-darkest, #1a5090) 100%
+  );
+  box-shadow:
+    0 0 8rpx var(--theme-glow-soft, rgba(80, 160, 255, 0.5)),
+    0 2rpx 4rpx rgba(0, 0, 0, 0.4),
+    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.35),
+    inset 0 -1rpx 3rpx rgba(0, 0, 50, 0.3);
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.slots-row {
+/* 钉子碰撞发光态 - 更强烈的视觉冲击 */
+.peg.lit .peg-core {
+  background: radial-gradient(
+    circle at 30% 30%,
+    #ffffff 0%,
+    #ccf0ff 15%,
+    var(--theme-peg-lit-mid, #66ddff) 35%,
+    var(--theme-peg-lit-bright, #00ccff) 60%,
+    var(--theme-peg-lit-dark, #0099dd) 100%
+  );
+  box-shadow:
+    0 0 20rpx var(--theme-glow-intense, rgba(0, 210, 255, 0.95)),
+    0 0 40rpx var(--theme-glow-medium, rgba(0, 200, 255, 0.5)),
+    0 0 60rpx var(--theme-glow-soft, rgba(0, 200, 255, 0.25)),
+    inset 0 2rpx 6rpx rgba(255, 255, 255, 0.5);
+  transform: scale(1.5);
+}
+
+/* 碰撞光环（新增） */
+.peg-ring {
+  position: absolute;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(0, 220, 255, 0.8);
+  animation: pegRingExpand 0.4s ease-out forwards;
+}
+
+@keyframes pegRingExpand {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.5);
+    border-color: transparent;
+  }
+}
+
+.peg-glow {
+  position: absolute;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 220, 255, 0.7), transparent 65%);
+  animation: pegGlowPulse 0.35s ease-out forwards;
+}
+
+@keyframes pegGlowPulse {
+  0% {
+    opacity: 1;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+/* ================================================================
+   碰撞冲击波
+   ================================================================ */
+.impact-ripple {
+  position: absolute;
+  z-index: 11;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ripple-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2rpx solid rgba(0, 220, 255, 0.6);
+
+  &.r1 {
+    animation: rippleExpand 0.5s ease-out forwards;
+  }
+
+  &.r2 {
+    animation: rippleExpand 0.5s ease-out 0.1s forwards;
+    border-color: rgba(255, 215, 0, 0.4);
+  }
+}
+
+@keyframes rippleExpand {
+  0% {
+    width: 10rpx;
+    height: 10rpx;
+    opacity: 1;
+  }
+  100% {
+    width: 60rpx;
+    height: 60rpx;
+    opacity: 0;
+  }
+}
+
+/* ================================================================
+   弹珠尾迹
+   ================================================================ */
+.ball-trail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.trail-dot {
+  position: absolute;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 200, 50, 0.7) 0%,
+    rgba(255, 160, 0, 0.3) 50%,
+    transparent 70%
+  );
+  transition: opacity 0.15s ease;
+}
+
+/* ================================================================
+   弹珠 - 金色金属质感（更醒目！）
+   ================================================================ */
+.ball-wrap {
+  position: absolute;
+  z-index: 10;
+  transform: translate(-50%, -50%);
+
+  /* 弹跳状态 - 更有弹性的贝塞尔曲线 */
+  &.bouncing {
+    transition:
+      left 0.18s cubic-bezier(0.25, 0.1, 0.25, 1.05),
+      top 0.18s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  }
+
+  /* 发射状态 */
+  &.launching {
+    animation: ballLaunch 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* 落入槽位 - 平滑减速 */
+  &.landed {
+    transition:
+      left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      top 0.4s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  }
+}
+
+.ball {
+  position: relative;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  /* 金色金属弹珠 - 更醒目的配色 */
+  background: radial-gradient(
+    circle at 28% 28%,
+    #fffde7 0%,
+    #ffe082 15%,
+    #ffd54f 30%,
+    #ffca28 50%,
+    #ffb300 70%,
+    #ff8f00 90%,
+    #e65100 100%
+  );
+  box-shadow:
+    0 4rpx 14rpx rgba(0, 0, 0, 0.5),
+    0 0 20rpx rgba(255, 180, 0, 0.4),
+    inset 0 3rpx 8rpx rgba(255, 255, 255, 0.5),
+    inset 0 -3rpx 8rpx rgba(180, 100, 0, 0.4);
+  transform: rotate(var(--ball-angle, 0deg));
+  transition: transform 0.1s linear;
+}
+
+/* 主高光点 */
+.ball-highlight {
+  position: absolute;
+  top: 7rpx;
+  left: 9rpx;
+  width: 14rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  filter: blur(2rpx);
+}
+
+/* 次高光点（增加立体感） */
+.ball-highlight-secondary {
+  position: absolute;
+  bottom: 10rpx;
+  right: 8rpx;
+  width: 6rpx;
+  height: 4rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 240, 0.35);
+  filter: blur(1rpx);
+}
+
+/* 弹珠内发光 */
+.ball-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 200, 50, 0.4) 0%,
+    rgba(255, 160, 0, 0.15) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+
+  .bouncing & {
+    animation: ballGlowPulse 0.4s ease-in-out infinite alternate;
+  }
+
+  .ready & {
+    animation: ballIdlePulse 2.5s ease-in-out infinite;
+  }
+
+  .landed & {
+    animation: ballWinGlow 0.8s ease-in-out infinite alternate;
+  }
+}
+
+/* 弹珠外光晕（弹跳时） */
+.ball-outer-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 180, 0, 0.15) 0%,
+    rgba(255, 140, 0, 0.05) 50%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: outerGlowPulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes outerGlowPulse {
+  from {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* 弹珠阴影 */
+.ball-shadow {
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  filter: blur(5rpx);
+
+  .bouncing & {
+    animation: shadowPulse 0.3s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes shadowPulse {
+  from {
+    transform: translateX(-50%) scaleX(0.8);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateX(-50%) scaleX(1.2);
+    opacity: 0.5;
+  }
+}
+
+@keyframes ballLaunch {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+  55% {
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes ballGlowPulse {
+  from {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+@keyframes ballIdlePulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@keyframes ballWinGlow {
+  from {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.5);
+    background: radial-gradient(
+      circle,
+      rgba(255, 215, 0, 0.6) 0%,
+      rgba(255, 180, 0, 0.2) 45%,
+      transparent 70%
+    );
+  }
+}
+
+/* ================================================================
+   底部奖品槽 - 更精致的分格设计
+   ================================================================ */
+.prize-slots {
   position: absolute;
   bottom: 0;
-  width: 100%;
+  left: 0;
+  right: 0;
+  height: 22%;
   display: flex;
-  height: 80rpx;
+  z-index: 8;
 }
 
-.slot {
+.prize-slot {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-left: 2rpx solid rgba(255, 255, 255, 0.1);
+  justify-content: flex-end;
+  position: relative;
+  padding-bottom: 12rpx;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 22, 50, 0.2) 0%,
+    rgba(10, 18, 45, 0.7) 30%,
+    rgba(8, 15, 38, 0.92) 100%
+  );
+  border-top: 2rpx solid var(--theme-border-light, rgba(80, 160, 255, 0.2));
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
+  /* 中奖高亮 */
   &.active {
-    background: var(--theme-accent-bg, rgba(255, 215, 0, 0.3));
-    animation: slotGlow 0.5s ease-in-out infinite alternate;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 215, 0, 0.12) 0%,
+      rgba(255, 200, 0, 0.22) 30%,
+      rgba(255, 180, 0, 0.32) 100%
+    );
+    border-top-color: rgba(255, 215, 0, 0.7);
+  }
+
+  /* 中奖闪烁 */
+  &.winner {
+    animation: slotWinPulse 0.7s ease-in-out infinite alternate;
+  }
+}
+
+/* 漏斗导轨 - 新的设计（两条斜线） */
+.slot-funnel {
+  position: absolute;
+  top: -12rpx;
+  left: 0;
+  right: 0;
+  height: 16rpx;
+  overflow: visible;
+}
+
+.funnel-left,
+.funnel-right {
+  position: absolute;
+  top: 0;
+  width: 3rpx;
+  height: 14rpx;
+  background: linear-gradient(180deg, rgba(80, 160, 255, 0.5), rgba(80, 160, 255, 0.15));
+  border-radius: 2rpx;
+}
+
+.funnel-left {
+  left: 2rpx;
+  transform: rotate(-15deg);
+  transform-origin: top center;
+}
+
+.funnel-right {
+  right: 2rpx;
+  transform: rotate(15deg);
+  transform-origin: top center;
+}
+
+.slot-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.slot-icon-wrap {
+  width: 48rpx;
+  height: 48rpx;
+  @include flex-center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+
+  &.bounce {
+    animation: iconBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
+  }
+}
+
+@keyframes iconBounce {
+  from {
+    transform: scale(1) translateY(0);
+  }
+  to {
+    transform: scale(1.15) translateY(-4rpx);
   }
 }
 
 .slot-icon {
-  font-size: 36rpx;
+  font-size: 28rpx;
+  line-height: 1.2;
 }
 
-.launch-btn {
-  margin-top: 20rpx;
-  padding: 16rpx 48rpx;
-  background: linear-gradient(135deg, var(--theme-primary, #FF6B6B), var(--theme-primary-dark, #ee5a24));
-  border-radius: 40rpx;
-  color: var(--theme-text-inverse, #fff);
-  font-size: 28rpx;
-  font-weight: bold;
-  box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(255, 107, 107, 0.4));
+.slot-name {
+  font-size: 18rpx;
+  color: var(--theme-text-lighter, rgba(255, 255, 255, 0.55));
+  max-width: 95%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  letter-spacing: 1rpx;
 
-  &.disabled {
-    opacity: 0.5;
-    pointer-events: none;
+  .active &,
+  .winner & {
+    color: var(--theme-accent, #ffd700);
+    font-weight: bold;
+    text-shadow: 0 0 10rpx var(--theme-accent-glow-soft, rgba(255, 215, 0, 0.5));
   }
 }
 
-.pinball-cost {
-  margin-top: 16rpx;
-  font-size: 24rpx;
-  color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
+/* 中奖发光 */
+.slot-winner-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center bottom,
+    rgba(255, 215, 0, 0.35) 0%,
+    transparent 65%
+  );
+  animation: winnerGlowPulse 0.8s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
-@keyframes slotGlow {
-  from { background: var(--theme-accent-glow-weak, rgba(255, 215, 0, 0.2)); }
-  to { background: var(--theme-accent-glow-strong, rgba(255, 215, 0, 0.5)); }
+/* 中奖光柱（新增） */
+.slot-winner-beam {
+  position: absolute;
+  top: -100rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 120rpx;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 215, 0, 0.15) 30%,
+    rgba(255, 215, 0, 0.3) 100%
+  );
+  filter: blur(10rpx);
+  pointer-events: none;
+  animation: beamPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes beamPulse {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 0.8;
+  }
+}
+
+.slot-divider {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2rpx;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(80, 160, 255, 0.35) 0%,
+    rgba(80, 160, 255, 0.08) 50%,
+    rgba(80, 160, 255, 0.25) 100%
+  );
+}
+
+@keyframes slotWinPulse {
+  from {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 215, 0, 0.08) 0%,
+      rgba(255, 200, 0, 0.18) 30%,
+      rgba(255, 180, 0, 0.28) 100%
+    );
+  }
+  to {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 215, 0, 0.2) 0%,
+      rgba(255, 200, 0, 0.38) 30%,
+      rgba(255, 180, 0, 0.5) 100%
+    );
+  }
+}
+
+@keyframes winnerGlowPulse {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ================================================================
+   玻璃反光层
+   ================================================================ */
+.glass-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.015) 25%,
+    transparent 45%,
+    transparent 55%,
+    rgba(255, 255, 255, 0.01) 75%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  pointer-events: none;
+  z-index: 14;
+}
+
+/* ================================================================
+   侧面装饰灯 - 更亮更密
+   ================================================================ */
+.side-lights {
+  position: absolute;
+  top: 8%;
+  bottom: 24%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  z-index: 6;
+
+  &.left {
+    left: 6rpx;
+  }
+  &.right {
+    right: 6rpx;
+  }
+}
+
+.side-bulb {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: var(--theme-side-bulb-dim, rgba(0, 200, 255, 0.25));
+  animation: sideBulbGlow 1.8s ease-in-out infinite;
+}
+
+@keyframes sideBulbGlow {
+  0%,
+  35%,
+  100% {
+    background: var(--theme-side-bulb-dim, rgba(0, 200, 255, 0.15));
+    box-shadow: none;
+  }
+  45%,
+  85% {
+    background: var(--theme-primary-light, #00e5ff);
+    box-shadow:
+      0 0 10rpx rgba(0, 229, 255, 0.9),
+      0 0 22rpx rgba(0, 229, 255, 0.4),
+      0 0 36rpx rgba(0, 229, 255, 0.15);
+  }
+}
+
+/* ================================================================
+   底部底座 - 简化
+   ================================================================ */
+.machine-base {
+  position: relative;
+  z-index: 4;
+}
+
+.base-plate {
+  height: 18rpx;
+  background: linear-gradient(
+    180deg,
+    var(--theme-base-light, #2a3d60) 0%,
+    var(--theme-base-dark, #1a2a44) 100%
+  );
+  border-radius: 0 0 14rpx 14rpx;
+  box-shadow:
+    inset 0 2rpx 8rpx rgba(255, 255, 255, 0.06),
+    0 8rpx 24rpx rgba(0, 0, 0, 0.5);
+}
+
+/* ================================================================
+   庆祝特效 - 更华丽
+   ================================================================ */
+.celebration-effect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.celebration-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.burst-item {
+  position: absolute;
+  font-size: $font-size-md;
+  animation: burstFly 1.4s ease-out forwards;
+
+  &:nth-child(1) {
+    --angle: 0deg;
+  }
+  &:nth-child(2) {
+    --angle: 22.5deg;
+  }
+  &:nth-child(3) {
+    --angle: 45deg;
+  }
+  &:nth-child(4) {
+    --angle: 67.5deg;
+  }
+  &:nth-child(5) {
+    --angle: 90deg;
+  }
+  &:nth-child(6) {
+    --angle: 112.5deg;
+  }
+  &:nth-child(7) {
+    --angle: 135deg;
+  }
+  &:nth-child(8) {
+    --angle: 157.5deg;
+  }
+  &:nth-child(9) {
+    --angle: 180deg;
+  }
+  &:nth-child(10) {
+    --angle: 202.5deg;
+  }
+  &:nth-child(11) {
+    --angle: 225deg;
+  }
+  &:nth-child(12) {
+    --angle: 247.5deg;
+  }
+  &:nth-child(13) {
+    --angle: 270deg;
+  }
+  &:nth-child(14) {
+    --angle: 292.5deg;
+  }
+  &:nth-child(15) {
+    --angle: 315deg;
+  }
+  &:nth-child(16) {
+    --angle: 337.5deg;
+  }
+}
+
+@keyframes burstFly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.3);
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(cos(var(--angle)) * 240rpx), calc(sin(var(--angle)) * 240rpx))
+      scale(1.3) rotate(540deg);
+  }
+}
+
+.celebration-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3rpx solid rgba(255, 215, 0, 0.7);
+  animation: ringExpand 1.2s ease-out forwards;
+
+  &.ring-1 {
+    animation-delay: 0s;
+  }
+  &.ring-2 {
+    animation-delay: 0.15s;
+    border-color: rgba(0, 200, 255, 0.6);
+  }
+  &.ring-3 {
+    animation-delay: 0.3s;
+    border-color: rgba(255, 100, 50, 0.5);
+  }
+}
+
+@keyframes ringExpand {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 600rpx;
+    height: 600rpx;
+    opacity: 0;
+  }
+}
+
+.celebration-coins {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.coin-item {
+  position: absolute;
+  font-size: 28rpx;
+  animation: coinFall 1.8s ease-in forwards;
+}
+
+@keyframes coinFall {
+  0% {
+    top: -10%;
+    opacity: 1;
+    transform: rotate(0deg) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(360deg) scale(1);
+  }
+  100% {
+    top: 110%;
+    opacity: 0.3;
+    transform: rotate(720deg) scale(0.8);
+  }
+}
+
+/* 闪光粒子（新增） */
+.celebration-sparkles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.sparkle {
+  position: absolute;
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: #fff;
+  animation: sparkleFlash 0.8s ease-out forwards;
+}
+
+@keyframes sparkleFlash {
+  0% {
+    opacity: 1;
+    transform: scale(0);
+    box-shadow:
+      0 0 10rpx #fff,
+      0 0 20rpx rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+/* ================================================================
+   发射按钮 - 更精致更有质感
+   ================================================================ */
+.launch-area {
+  margin-top: 28rpx;
+  z-index: 5;
+}
+
+.launch-btn-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 呼吸光圈（新增） */
+.btn-breath-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  width: 280rpx;
+  height: 80rpx;
+  border-radius: 48rpx;
+  border: 2rpx solid rgba(255, 140, 0, 0.3);
+  animation: breathRing 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes breathRing {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translate(-50%, -55%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -55%) scale(1.08);
+    border-color: rgba(255, 160, 0, 0.5);
+    box-shadow: 0 0 20rpx rgba(255, 140, 0, 0.2);
+  }
+}
+
+.launch-btn {
+  position: relative;
+  @include flex-center;
+  padding: 22rpx 60rpx;
+  background: linear-gradient(
+    135deg,
+    #ff9800 0%,
+    var(--theme-primary, #ff8c00) 30%,
+    var(--theme-primary-dark, #ff6b00) 60%,
+    #f57c00 100%
+  );
+  border-radius: 50rpx;
+  color: var(--theme-text-inverse, #fff);
+  overflow: hidden;
+  box-shadow:
+    0 8rpx 28rpx rgba(255, 140, 0, 0.5),
+    0 3rpx 10rpx rgba(255, 100, 0, 0.35),
+    inset 0 3rpx 8rpx rgba(255, 255, 255, 0.25),
+    inset 0 -3rpx 8rpx rgba(200, 80, 0, 0.3);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 2rpx solid rgba(255, 200, 100, 0.3);
+
+  &--active {
+    transform: scale(0.93);
+    box-shadow:
+      0 4rpx 14rpx rgba(255, 140, 0, 0.4),
+      0 1rpx 5rpx rgba(255, 100, 0, 0.25);
+  }
+
+  /* 进行中态 */
+  &.in-progress {
+    background: linear-gradient(135deg, #37474f, #263238);
+    box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* 中奖态 */
+  &.winner-btn {
+    background: linear-gradient(
+      135deg,
+      #ffe082 0%,
+      var(--theme-accent, #ffd700) 30%,
+      var(--theme-accent-bright, #ffa500) 60%,
+      var(--theme-accent, #ffd700) 100%
+    );
+    box-shadow:
+      0 8rpx 28rpx rgba(255, 215, 0, 0.6),
+      0 0 50rpx rgba(255, 215, 0, 0.3),
+      inset 0 3rpx 8rpx rgba(255, 255, 255, 0.4);
+    animation: winnerBtnPulse 1s ease-in-out infinite alternate;
+    pointer-events: none;
+    border-color: rgba(255, 240, 180, 0.5);
+  }
+}
+
+.btn-content {
+  @include flex-center;
+  gap: 12rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: btnShine 2.5s ease-in-out infinite;
+}
+
+.btn-icon {
+  font-size: $font-size-md;
+}
+
+.pulse-icon {
+  animation: iconPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* 进行中圆环进度 */
+.btn-progress-ring {
+  position: absolute;
+  top: -4rpx;
+  left: -4rpx;
+  right: -4rpx;
+  bottom: -4rpx;
+  border-radius: 54rpx;
+  border: 3rpx solid transparent;
+  border-top-color: rgba(0, 200, 255, 0.8);
+  border-right-color: rgba(0, 200, 255, 0.3);
+  animation: progressSpin 1.2s linear infinite;
+}
+
+@keyframes progressSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-text {
+  font-size: 30rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
+}
+
+.launch-btn-shadow {
+  width: 65%;
+  height: 14rpx;
+  margin-top: 8rpx;
+  background: radial-gradient(ellipse, rgba(255, 140, 0, 0.35), transparent);
+  border-radius: 50%;
+  filter: blur(5rpx);
+}
+
+/* 积分消耗标签 */
+.cost-badge {
+  margin-top: 12rpx;
+  padding: 4rpx 20rpx;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.cost-badge-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 1rpx;
+}
+
+@keyframes btnShine {
+  0%,
+  100% {
+    left: -100%;
+  }
+  50% {
+    left: 200%;
+  }
+}
+
+@keyframes winnerBtnPulse {
+  from {
+    box-shadow:
+      0 6rpx 24rpx rgba(255, 215, 0, 0.4),
+      0 0 35rpx rgba(255, 215, 0, 0.2);
+  }
+  to {
+    box-shadow:
+      0 10rpx 36rpx rgba(255, 215, 0, 0.7),
+      0 0 60rpx rgba(255, 215, 0, 0.4);
+  }
 }

@@ -43,7 +43,7 @@
  *   bind:action="onPopupBannerAction"
  * />
  *
- * @version 2.0.0
+ * @version 5.0.0
  * @since 2026-02-07
  * @updated 2026-02-08 修复图片裁剪：改用widthFix动态适配，任何尺寸图片都完整显示
  */
@@ -52,6 +52,9 @@
  * 后端支持的6种显示模式（与数据库ENUM字段一一对应）
  * 用于前端校验 display_mode 字段值的合法性
  */
+const { Logger } = require('../../utils/index')
+const log = Logger.createLogger('popup-banner')
+
 const VALID_DISPLAY_MODES = ['wide', 'horizontal', 'square', 'tall', 'slim', 'full_image']
 
 Component({
@@ -128,12 +131,12 @@ Component({
      */
     getDisplayMode(banner) {
       if (!banner || !banner.display_mode) {
-        console.warn('⚠️ 横幅缺少 display_mode 字段，降级为 wide 模式')
+        log.warn('⚠️ 横幅缺少 display_mode 字段，降级为 wide 模式')
         return 'wide'
       }
 
       if (VALID_DISPLAY_MODES.indexOf(banner.display_mode) === -1) {
-        console.warn('⚠️ 无效的 display_mode 值:', banner.display_mode, '，降级为 wide 模式')
+        log.warn('⚠️ 无效的 display_mode 值:', banner.display_mode, '，降级为 wide 模式')
         return 'wide'
       }
 
@@ -175,11 +178,7 @@ Component({
         this.setData({ imageReady: true })
       }
 
-      console.log(
-        '📐 横幅图片加载成功:',
-        loadedWidth + '×' + loadedHeight,
-        '显示模式=' + displayMode
-      )
+      log.info('📐 横幅图片加载成功:', loadedWidth + '×' + loadedHeight, '显示模式=' + displayMode)
     },
 
     // ========================================
@@ -283,7 +282,7 @@ Component({
 
       if (this._imageRetryCount <= MAX_RETRY) {
         // 🔄 自动重试：添加时间戳参数绕过缓存
-        console.warn('⚠️ 弹窗横幅图片加载失败，第' + this._imageRetryCount + '次重试...', imageUrl)
+        log.warn('⚠️ 弹窗横幅图片加载失败，第' + this._imageRetryCount + '次重试...', imageUrl)
 
         // 构造重试URL（添加_retry参数绕过缓存）
         let retryUrl = imageUrl
@@ -302,10 +301,7 @@ Component({
         }
       } else {
         // ❌ 重试耗尽，标记加载失败，触发降级占位显示
-        console.error(
-          '❌ 弹窗横幅图片加载失败（已重试' + MAX_RETRY + '次），降级显示占位图:',
-          imageUrl
-        )
+        log.error('❌ 弹窗横幅图片加载失败（已重试' + MAX_RETRY + '次），降级显示占位图:', imageUrl)
         this.setData({ imageLoadFailed: true })
       }
     }

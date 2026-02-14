@@ -53,13 +53,15 @@ Component({
   },
 
   observers: {
-    'isInProgress': function (val: boolean) {
-      if (this.data.isMultiSmash) return
+    isInProgress(val: boolean) {
+      if (this.data.isMultiSmash) {
+        return
+      }
       if (val && this.data.selectedEgg >= 0) {
         this._crackEgg()
       }
     },
-    'multiDrawCount, multiDrawResults': function (count: number, results: any[]) {
+    'multiDrawCount, multiDrawResults'(count: number, results: any[]) {
       if (count > 0 && results && results.length > 0) {
         this._initMultiSmash(count, results)
       }
@@ -78,20 +80,33 @@ Component({
     },
 
     onTapEgg(e: any) {
-      if (!this.data.canSelect) return
+      if (!this.data.canSelect) {
+        return
+      }
       const eggId = e.currentTarget.dataset.id
-      if (eggId === undefined || eggId === null) return
+      if (eggId === undefined || eggId === null) {
+        return
+      }
 
-      try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'light' })
+      } catch (_e) {
+        /* */
+      }
       this.setData({ selectedEgg: eggId, canSelect: false })
 
       const eggs = this.data.eggs.map((egg: any) => ({
-        ...egg, shaking: egg.id === eggId
+        ...egg,
+        shaking: egg.id === eggId
       }))
       this.setData({ eggs })
 
       setTimeout(() => {
-        try { wx.vibrateShort({ type: 'medium' }) } catch (_e) { /* */ }
+        try {
+          wx.vibrateShort({ type: 'medium' })
+        } catch (_e) {
+          /* */
+        }
       }, 400)
 
       setTimeout(() => {
@@ -101,13 +116,21 @@ Component({
 
     _crackEgg() {
       const { selectedEgg, eggs } = this.data
-      try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'heavy' })
+      } catch (_e) {
+        /* */
+      }
 
       this.setData({ showFlash: true })
-      setTimeout(() => { this.setData({ showFlash: false }) }, 200)
+      setTimeout(() => {
+        this.setData({ showFlash: false })
+      }, 200)
 
       const updatedEggs = eggs.map((egg: any) => ({
-        ...egg, shaking: false, cracked: egg.id === selectedEgg
+        ...egg,
+        shaking: false,
+        cracked: egg.id === selectedEgg
       }))
       this.setData({ eggs: updatedEggs })
 
@@ -148,7 +171,9 @@ Component({
 
     /** 按布局规则分行：3→1排，5→1排，10→上5下5 */
     _buildRows(eggs: any[], count: number): any[][] {
-      if (count <= 5) return [eggs]
+      if (count <= 5) {
+        return [eggs]
+      }
       return [eggs.slice(0, 5), eggs.slice(5)]
     },
 
@@ -158,9 +183,15 @@ Component({
       const colIdx = e.currentTarget.dataset.col
       const eggRows = this.data.eggRows
       const egg = eggRows[rowIdx][colIdx]
-      if (egg.cracked) return
+      if (egg.cracked) {
+        return
+      }
 
-      try { wx.vibrateShort({ type: 'medium' }) } catch (_e) { /* */ }
+      try {
+        wx.vibrateShort({ type: 'medium' })
+      } catch (_e) {
+        /* */
+      }
 
       /* 先晃动 */
       eggRows[rowIdx][colIdx] = { ...egg, shaking: true }
@@ -173,9 +204,15 @@ Component({
         const crackedCount = this.data.crackedCount + 1
         const allCracked = crackedCount >= this.data.totalEggs
 
-        try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+        try {
+          wx.vibrateShort({ type: 'heavy' })
+        } catch (_e) {
+          /* */
+        }
         this.setData({ eggRows: rows, crackedCount, allCracked, showFlash: true })
-        setTimeout(() => { this.setData({ showFlash: false }) }, 150)
+        setTimeout(() => {
+          this.setData({ showFlash: false })
+        }, 150)
 
         if (allCracked) {
           setTimeout(() => {
@@ -193,7 +230,7 @@ Component({
       for (let r = 0; r < eggRows.length; r++) {
         for (let c = 0; c < eggRows[r].length; c++) {
           if (!eggRows[r][c].cracked) {
-            ((row, col, d) => {
+            ;((row, col, d) => {
               /* 先晃动 */
               setTimeout(() => {
                 const rows = this.data.eggRows
@@ -207,9 +244,20 @@ Component({
                 rows[row][col] = { ...rows[row][col], shaking: false, cracked: true }
                 const count = this.data.crackedCount + 1
                 const all = count >= this.data.totalEggs
-                this.setData({ eggRows: rows, crackedCount: count, allCracked: all, showFlash: true })
-                setTimeout(() => { this.setData({ showFlash: false }) }, 100)
-                try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+                this.setData({
+                  eggRows: rows,
+                  crackedCount: count,
+                  allCracked: all,
+                  showFlash: true
+                })
+                setTimeout(() => {
+                  this.setData({ showFlash: false })
+                }, 100)
+                try {
+                  wx.vibrateShort({ type: 'light' })
+                } catch (_e) {
+                  /* */
+                }
 
                 if (all) {
                   setTimeout(() => {

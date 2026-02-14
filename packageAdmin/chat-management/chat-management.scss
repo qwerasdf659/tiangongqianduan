@@ -36,7 +36,7 @@
 .status-badge {
   font-size: 22rpx;
   padding: 6rpx 12rpx;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10rpx);
 }
@@ -44,7 +44,7 @@
 .connection-info .ws-status {
   font-size: 22rpx;
   padding: 6rpx 12rpx;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   backdrop-filter: blur(10rpx);
 }
 
@@ -69,7 +69,7 @@
 .sessions-panel {
   width: 420rpx;
   background: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
@@ -80,9 +80,7 @@
   padding: 24rpx 30rpx;
   border-bottom: 2rpx solid #f1f2f6;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
 }
 
 .panel-title {
@@ -130,15 +128,13 @@
   height: 64rpx;
   background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   margin-right: 20rpx;
 }
 
 .session-avatar .avatar-text {
   color: white;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
 }
 
@@ -155,13 +151,13 @@
 }
 
 .session-name {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   color: #2c3e50;
 }
 
 .session-time {
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   color: #95a5a6;
 }
 
@@ -172,7 +168,7 @@
 }
 
 .preview-text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #7f8c8d;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -186,9 +182,7 @@
   border-radius: 50%;
   width: 36rpx;
   height: 36rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   margin-left: 12rpx;
 }
 
@@ -201,7 +195,7 @@
 .chat-panel {
   flex: 1;
   background: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
@@ -229,27 +223,25 @@
   height: 64rpx;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   border: 2rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .current-session-avatar .avatar-text {
   color: white;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
 }
 
 .session-detail .session-name {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: white;
   margin-bottom: 4rpx;
 }
 
 .session-status {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -280,7 +272,7 @@
 
 .no-session-text,
 .empty-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
 }
 
 /* 🔴 关键：消息对齐样式 - 确保管理员消息在右边，用户消息在左边 */
@@ -306,9 +298,7 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   margin: 0 16rpx;
   flex-shrink: 0;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
@@ -326,7 +316,7 @@
 
 .message-avatar .avatar-text {
   color: white;
-  font-size: 20rpx;
+  font-size: $font-size-xs;
   font-weight: 600;
 }
 
@@ -433,18 +423,16 @@
   height: 60rpx;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   color: white;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
 }
 
 .input-wrapper {
   flex: 1;
   background: $color-bg;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 16rpx 20rpx;
   min-height: 60rpx;
   display: flex;
@@ -453,7 +441,7 @@
 
 .message-input {
   width: 100%;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   line-height: 1.4;
   background: transparent;
   border: none;
@@ -469,10 +457,8 @@
   border: none;
   background: #e9ecef;
   color: #95a5a6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
+  @include flex-center;
+  font-size: $font-size-sm;
   transition: all 0.2s ease;
 }
 
@@ -486,7 +472,7 @@
 .quick-replies-panel {
   margin-top: 20rpx;
   background: $color-bg;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   padding: 20rpx;
   max-height: 300rpx;
   overflow-y: auto;
@@ -508,14 +494,12 @@
 .close-btn {
   background: none;
   border: none;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   color: #95a5a6;
   padding: 0;
   width: 40rpx;
   height: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .quick-replies-list {
@@ -538,7 +522,7 @@
 }
 
 .reply-title {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   color: $gradient-blue-start;
   display: block;
@@ -555,21 +539,19 @@
 /* 无会话提示 */
 .no-session-tips {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   color: #95a5a6;
 }
 
 .tips-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
 }
 
 /* 统计面板 */
 .stats-panel {
   margin-top: 20rpx;
   background: white;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   padding: 24rpx 30rpx;
   box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
 }
@@ -599,7 +581,7 @@
 
 .stat-number {
   display: block;
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
   color: $gradient-blue-start;
   margin-bottom: 8rpx;

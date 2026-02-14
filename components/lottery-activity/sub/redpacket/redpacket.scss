@@ -1,4 +1,5 @@
 @import '../../../../styles/variables';
+@import '../../../../styles/mixins';
 
 /* ===== 拆红包 - 精装版样式 ===== */
 
@@ -7,16 +8,20 @@
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx;
-  background: linear-gradient(180deg, var(--theme-bg-dark, #8b1a1a) 0%, var(--theme-primary, #c0392b) 30%, var(--theme-primary-dark, #a93226) 70%, var(--theme-bg-darker, #7b241c) 100%);
-  border-radius: 16rpx;
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #8b1a1a) 0%,
+    var(--theme-primary, #c0392b) 30%,
+    var(--theme-primary-dark, #a93226) 70%,
+    var(--theme-bg-darker, #7b241c) 100%
+  );
+  border-radius: $border-radius-md;
   overflow: hidden;
   position: relative;
 }
 
 .redpacket-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   margin-bottom: 24rpx;
   font-size: 30rpx;
   font-weight: bold;
@@ -40,7 +45,9 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  transition: opacity 0.3s ease, filter 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
 
   &.is-dimmed {
     opacity: 0.45;
@@ -57,15 +64,16 @@
 .red-packet {
   width: 180rpx;
   height: 260rpx;
-  background: linear-gradient(180deg, var(--theme-primary, #FF4444), var(--theme-primary-dark, #CC0000));
-  border-radius: 16rpx;
+  background: linear-gradient(
+    180deg,
+    var(--theme-primary, #ff4444),
+    var(--theme-primary-dark, #cc0000)
+  );
+  border-radius: $border-radius-md;
   position: relative;
   overflow: hidden;
   box-shadow: 0 8rpx 24rpx var(--theme-shadow-medium, rgba(204, 0, 0, 0.4));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   transition: transform 0.2s ease;
 
   &.is-idle {
@@ -87,17 +95,19 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--theme-accent, #FFD700), var(--theme-accent-light, #FFA500));
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-light, #ffa500)
+  );
+  @include flex-center;
   box-shadow: 0 4rpx 16rpx var(--theme-accent-shadow, rgba(255, 165, 0, 0.5));
   margin-bottom: 12rpx;
 }
 
 .packet-text {
-  font-size: 36rpx;
-  color: var(--theme-primary-dark, #CC0000);
+  font-size: $font-size-lg;
+  color: var(--theme-primary-dark, #cc0000);
   font-weight: bold;
 }
 
@@ -107,7 +117,7 @@
 
 .deco-text {
   font-size: 22rpx;
-  color: var(--theme-accent, #FFD700);
+  color: var(--theme-accent, #ffd700);
   font-weight: bold;
   letter-spacing: 4rpx;
 }
@@ -120,16 +130,18 @@
   transform: translateX(-50%);
   width: 36rpx;
   height: 36rpx;
-  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-light, #daa520));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-light, #daa520)
+  );
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
   border: 2rpx solid rgba(255, 255, 255, 0.5);
 
   text {
-    font-size: 20rpx;
+    font-size: $font-size-xs;
     font-weight: bold;
     color: var(--theme-text-dark, #7b241c);
   }
@@ -145,7 +157,7 @@
   animation: hintBounce 1.5s ease-in-out infinite;
 
   text {
-    font-size: 20rpx;
+    font-size: $font-size-xs;
     color: var(--theme-accent-dim, rgba(255, 215, 0, 0.9));
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
   }
@@ -155,10 +167,7 @@
 .packet-opened {
   width: 180rpx;
   height: 260rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   position: relative;
   animation: contentReveal 0.8s ease-out;
 
@@ -180,13 +189,13 @@
   }
 
   &__text {
-    font-size: 24rpx;
-    color: var(--theme-accent, #FFD700);
+    font-size: $font-size-sm;
+    color: var(--theme-accent, #ffd700);
     font-weight: bold;
   }
 
   &__sparkle {
-    font-size: 36rpx;
+    font-size: $font-size-lg;
     margin-top: 8rpx;
     animation: sparkle 1s ease-in-out infinite;
   }
@@ -194,14 +203,12 @@
 
 /* ===== 底部消耗提示 ===== */
 .redpacket-cost {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   margin-top: 20rpx;
   padding: 8rpx 28rpx;
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 24rpx;
-  font-size: 24rpx;
+  border-radius: $border-radius-lg;
+  font-size: $font-size-sm;
   color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.85));
 }
 
@@ -230,7 +237,11 @@
 
   &__fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--theme-accent, #ffd700), var(--theme-accent-bright, #ff8c00));
+    background: linear-gradient(
+      90deg,
+      var(--theme-accent, #ffd700),
+      var(--theme-accent-bright, #ff8c00)
+    );
     border-radius: 6rpx;
     transition: width 0.3s ease;
   }
@@ -243,7 +254,9 @@
   padding: 20rpx 16rpx 30rpx;
   opacity: 0;
   transform: scale(0.9);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
 
   &.is-entered {
     opacity: 1;
@@ -290,7 +303,7 @@
   }
 
   .packet-text {
-    font-size: 36rpx;
+    font-size: $font-size-lg;
   }
 
   .deco-text {
@@ -318,7 +331,7 @@
   }
 
   .packet-text {
-    font-size: 28rpx;
+    font-size: $font-size-base;
   }
 
   .deco-text {
@@ -356,7 +369,7 @@
   }
 
   .packet-text {
-    font-size: 24rpx;
+    font-size: $font-size-sm;
   }
 
   .deco-text {
@@ -382,7 +395,7 @@
   }
 
   .multi-packet-prize__icon {
-    font-size: 36rpx;
+    font-size: $font-size-lg;
   }
 
   .multi-packet-prize__name {
@@ -394,10 +407,7 @@
 /* ===== 连拆模式 - 拆开后奖品展示 ===== */
 .multi-packet-prize {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   min-height: 188rpx;
   animation: contentReveal 0.6s ease-out;
 
@@ -410,12 +420,12 @@
   }
 
   &__icon {
-    font-size: 48rpx;
+    font-size: $font-size-xxl;
     line-height: 1;
   }
 
   &__name {
-    font-size: 20rpx;
+    font-size: $font-size-xs;
     color: var(--theme-accent, #ffd700);
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
     margin-top: 4rpx;
@@ -436,12 +446,16 @@
 
 .multi-open-all-btn {
   padding: 14rpx 48rpx;
-  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-bright, #ff8c00));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-bright, #ff8c00)
+  );
   border-radius: 40rpx;
   box-shadow: 0 4rpx 16rpx var(--theme-accent-shadow, rgba(255, 140, 0, 0.4));
 
   text {
-    font-size: 28rpx;
+    font-size: $font-size-base;
     font-weight: bold;
     color: var(--theme-text-dark, #7b241c);
     letter-spacing: 2rpx;
@@ -502,7 +516,6 @@
 }
 
 @keyframes packetFloat {
-
   0%,
   100% {
     transform: translateY(0);
@@ -526,7 +539,6 @@
 }
 
 @keyframes sparkle {
-
   0%,
   100% {
     opacity: 0.6;
@@ -552,7 +564,6 @@
 }
 
 @keyframes hintBounce {
-
   0%,
   100% {
     transform: translateX(-50%) translateY(0);

@@ -1,50 +1,145 @@
-<!-- 集卡抽奖组件 -->
-<view class="cardcollect-container">
-  <!-- 进度 -->
-  <view class="collect-header">
-    <text class="collect-title">集卡册</text>
-    <text class="collect-progress">{{collectedCount}} / {{totalCards}}</text>
+<!-- 集卡抽奖组件 - 魔法卡册 -->
+<view class="cc {{entered ? 'entered' : ''}}">
+  <!-- ===== 背景氛围层：浮动星屑 ===== -->
+  <view class="cc-atmosphere">
+    <view class="atmo-star a1" />
+    <view class="atmo-star a2" />
+    <view class="atmo-star a3" />
+    <view class="atmo-star a4" />
+    <view class="atmo-star a5" />
+    <view class="atmo-star a6" />
+    <view class="atmo-star a7" />
+    <view class="atmo-star a8" />
   </view>
 
-  <!-- 进度条 -->
-  <view class="progress-bar">
-    <view class="progress-fill" style="width: {{collectedCount / totalCards * 100}}%;"></view>
-  </view>
-
-  <!-- 卡片网格 -->
-  <view class="card-grid">
-    <view class="card-slot {{item.collected ? 'collected' : ''}} {{item.isNew ? 'new-card' : ''}}"
-      wx:for="{{cards}}" wx:key="index">
-      <view class="card-inner">
-        <view class="card-face card-front" wx:if="{{item.collected}}">
-          <text class="card-icon">{{item.prize.icon || '🃏'}}</text>
-          <text class="card-name">{{item.prize.name || '卡片'}}</text>
+  <!-- ===== 卡册主体 ===== -->
+  <view class="cc-book">
+    <!-- 卡册标题栏 -->
+    <view class="book-header">
+      <view class="book-title-row">
+        <text class="book-icon">📖</text>
+        <text class="book-title">集 卡 册</text>
+      </view>
+      <view class="book-progress-pill">
+        <view class="progress-ring-wrap">
+          <view class="progress-ring">
+            <view class="ring-bg" />
+            <view
+              class="ring-fill"
+              style="background: conic-gradient(#FFD700 0deg, #FFA500 {{progressDeg}}deg, transparent {{progressDeg}}deg);"
+            />
+            <view class="ring-center">
+              <text class="ring-text">{{collectedCount}}</text>
+            </view>
+          </view>
         </view>
-        <view class="card-face card-back" wx:else>
-          <text class="card-question">?</text>
-          <text class="card-num">No.{{item.index + 1}}</text>
+        <view class="progress-label">
+          <text class="pl-main">已收集</text>
+          <text class="pl-sub">共{{totalCards}}张</text>
         </view>
       </view>
-      <!-- 新卡标记 -->
-      <view class="new-badge" wx:if="{{item.isNew}}">
-        <text>NEW</text>
+    </view>
+
+    <!-- 卡片网格（2列或3列，根据总数自适应） -->
+    <view class="book-grid cols-{{gridCols}}">
+      <view
+        class="gc {{item.collected ? 'gc-got' : 'gc-miss'}} {{item.isNew ? 'gc-new' : ''}} {{revealingIndex === item.index ? 'gc-fly' : ''}} {{tappedIndex === item.index ? 'gc-tap' : ''}}"
+        wx:for="{{cards}}"
+        wx:key="index"
+        data-idx="{{item.index}}"
+        bindtap="onTapCard"
+      >
+        <!-- 卡片容器 -->
+        <view class="gc-wrap">
+          <!-- 已收集：正面 -->
+          <view class="gc-face gc-front" wx:if="{{item.collected}}">
+            <view class="gc-holo" />
+            <text class="gc-emoji">{{item.prize.icon || '🃏'}}</text>
+            <text class="gc-label">{{item.prize.name || '卡片'}}</text>
+            <view class="gc-shine" />
+            <text class="gc-no">{{item.index + 1}}</text>
+          </view>
+          <!-- 未收集：背面 -->
+          <view class="gc-face gc-back" wx:else>
+            <view class="gc-back-deco" />
+            <text class="gc-q">?</text>
+            <text class="gc-back-no">No.{{item.index + 1}}</text>
+            <view class="gc-back-shine" />
+          </view>
+        </view>
+
+        <!-- NEW 标记 -->
+        <view class="gc-badge" wx:if="{{item.isNew && !showReveal}}">
+          <text>NEW</text>
+        </view>
       </view>
     </view>
   </view>
 
-  <!-- 抽卡按钮 -->
-  <view class="collect-btn {{state !== 'idle' ? 'disabled' : ''}}" bindtap="onDraw">
-    <text wx:if="{{state === 'idle'}}">抽取卡片</text>
-    <text wx:elif="{{state === 'flipping'}}">翻转中...</text>
-    <text wx:else>获得新卡!</text>
+  <!-- ===== 中央舞台揭晓弹层 ===== -->
+  <view class="reveal-overlay {{showReveal ? 'show' : ''}}" catchtouchmove="noop">
+    <view class="reveal-backdrop" />
+
+    <!-- 爆炸粒子 -->
+    <view class="reveal-particles" wx:if="{{showReveal}}">
+      <view class="rp rp1" />
+      <view class="rp rp2" />
+      <view class="rp rp3" />
+      <view class="rp rp4" />
+      <view class="rp rp5" />
+      <view class="rp rp6" />
+      <view class="rp rp7" />
+      <view class="rp rp8" />
+      <view class="rp rp9" />
+      <view class="rp rp10" />
+      <view class="rp rp11" />
+      <view class="rp rp12" />
+    </view>
+
+    <!-- 放大的卡面 -->
+    <view class="reveal-card {{showReveal ? 'reveal-card-in' : ''}}">
+      <view class="reveal-glow" />
+      <view class="rc-inner">
+        <view class="rc-holo" />
+        <text class="rc-emoji">{{revealPrize.icon || '🃏'}}</text>
+        <text class="rc-name">{{revealPrize.name || '新卡片'}}</text>
+        <view class="rc-shine" />
+        <view class="rc-tag">
+          <text>No.{{revealIndex + 1}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提示文字 -->
+    <view class="reveal-hint {{showReveal ? 'reveal-hint-in' : ''}}">
+      <text class="rh-main">{{isRepeatCard ? '重复卡片' : '获得新卡!'}}</text>
+      <text class="rh-sub">点击任意处继续</text>
+    </view>
+
+    <!-- 点击关闭层 -->
+    <view class="reveal-close-area" bindtap="onCloseReveal" />
   </view>
 
-  <view class="collect-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
+  <!-- ===== 抽卡按钮 ===== -->
+  <view class="cc-action">
+    <view
+      class="draw-btn {{state !== 'idle' ? 'draw-btn-busy' : ''}} {{allCollected ? 'draw-btn-done' : ''}}"
+      bindtap="onDraw"
+    >
+      <view class="draw-btn-bg" />
+      <view class="draw-btn-inner">
+        <text class="draw-btn-icon">{{state === 'flipping' ? '✨' : '🎴'}}</text>
+        <text class="draw-btn-text">{{state === 'flipping' ? '抽卡中...' : '抽取卡片'}}</text>
+      </view>
+    </view>
+    <view class="cc-cost" wx:if="{{costPoints > 0}}">
+      <text>消耗 </text><text class="cost-val">{{costPoints}}</text><text> 积分</text>
+    </view>
   </view>
 
-  <!-- 集齐提示 -->
-  <view class="collect-complete" wx:if="{{collectedCount >= totalCards}}">
-    <text class="complete-text">恭喜集齐全套!</text>
+  <!-- ===== 集齐彩蛋 ===== -->
+  <view class="cc-done {{allCollected ? 'cc-done-show' : ''}}">
+    <text class="done-emoji">🎊</text>
+    <text class="done-text">恭喜集齐全套!</text>
   </view>
 </view>

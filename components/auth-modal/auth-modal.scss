@@ -24,7 +24,7 @@
 
 .modal-content {
   background: white;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   width: 90%;
   max-width: 600rpx;
   max-height: 80vh;
@@ -52,12 +52,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 40rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $color-border-light;
   position: relative;
 }
 
 .modal-title {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: $color-text-primary;
 }
@@ -65,10 +65,8 @@
 .close-btn {
   width: 60rpx;
   height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
+  @include flex-center;
+  font-size: $font-size-lg;
   color: $color-text-tertiary;
   background: $color-bg;
   border-radius: 50%;
@@ -91,9 +89,9 @@
   flex: 1;
   background: $color-bg;
   border: none;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   padding: 24rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   color: $color-text-secondary;
   transition: all 0.3s ease;
@@ -123,7 +121,7 @@
   padding: 24rpx 20rpx;
   border: 2rpx solid #e9ecef;
   border-radius: 12rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   background: #fff;
   transition: all 0.3s ease;
 }
@@ -134,7 +132,7 @@
 }
 
 .auth-input::placeholder {
-  color: #ccc;
+  color: $color-text-disabled;
 }
 
 /* 验证码输入容器 */
@@ -154,7 +152,7 @@
   border: none;
   border-radius: 12rpx;
   padding: 24rpx 32rpx;
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   font-weight: 600;
   white-space: nowrap;
   transition: all 0.3s ease;
@@ -165,7 +163,7 @@
 }
 
 .send-code-btn.disabled {
-  background: #ccc;
+  background: $color-text-disabled;
   color: $color-text-tertiary;
 }
 
@@ -186,13 +184,11 @@
   right: 20rpx;
   width: 60rpx;
   height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
+  @include flex-center;
+  font-size: $font-size-base;
   color: $color-text-secondary;
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 8rpx;
+  border-radius: $border-radius-sm;
   transition: all 0.3s ease;
 }
 
@@ -219,7 +215,7 @@
 }
 
 .forgot-password text {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: $gradient-blue-start;
   text-decoration: underline;
 }
@@ -237,11 +233,9 @@
   height: 88rpx;
   border: none;
   border-radius: 20rpx;
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   transition: all 0.3s ease;
 }
 
@@ -266,7 +260,7 @@
 }
 
 .confirm-btn.disabled {
-  background: #ccc;
+  background: $color-text-disabled;
   color: $color-text-tertiary;
   box-shadow: none;
 }
@@ -274,7 +268,7 @@
 /* 首次使用提示 */
 .first-use-tips {
   background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   padding: 30rpx;
   margin: 20rpx 40rpx 0;
   display: flex;
@@ -284,17 +278,17 @@
 }
 
 .tips-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
 }
 
 .tips-title {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
   color: #856404;
 }
 
 .tips-content {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: #856404;
   text-align: center;
   line-height: 1.5;
@@ -340,7 +334,7 @@
   }
 
   .input-label {
-    color: #ccc;
+    color: $color-text-disabled;
   }
 
   .auth-input {

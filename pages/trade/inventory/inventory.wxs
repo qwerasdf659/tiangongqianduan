@@ -1,0 +1,128 @@
+/**
+ * 📦 inventory.wxs - 库存管理页面模板辅助函数
+ *
+ * @description
+ * 微信小程序WXS模块，用于WXML模板中的数据格式化和显示处理。
+ * WXS是微信小程序中唯一能在模板表达式中调用的脚本语言。
+ *
+ * 注意：WXS语法与标准JavaScript有差异：
+ *   - 不支持ES6+语法（箭头函数、const/let、模板字符串等）
+ *   - 不支持Date构造函数，使用getDate()代替new Date()
+ *   - 不支持对象解构等ES6特性
+ *
+ * @version 1.0.0
+ * @since 2026-02-15
+ */
+
+/**
+ * 获取物品状态的中文显示文本
+ *
+ * @param {string} status - 后端返回的状态代码
+ * @returns {string} 用户友好的中文状态文本
+ *
+ * 状态对照：
+ *   available   → 可用
+ *   pending     → 待核销
+ *   used        → 已使用
+ *   expired     → 已过期
+ *   transferred → 已转让
+ */
+function getStatusText(status) {
+  if (status === 'available') return '可用'
+  if (status === 'pending') return '待核销'
+  if (status === 'used') return '已使用'
+  if (status === 'expired') return '已过期'
+  if (status === 'transferred') return '已转让'
+  return '未知'
+}
+
+/**
+ * 判断物品是否即将过期（3天内）
+ *
+ * @param {string} expires_at - 过期时间（ISO 8601格式，后端snake_case字段）
+ * @returns {boolean} 是否即将过期
+ */
+function isExpiringSoon(expires_at) {
+  if (!expires_at) return false
+
+  var expireTime = getDate(expires_at).getTime()
+  var nowTime = getDate().getTime()
+  // 3天的毫秒数
+  var threeDays = 3 * 24 * 60 * 60 * 1000
+
+  return expireTime - nowTime < threeDays && expireTime > nowTime
+}
+
+/**
+ * 根据物品类型获取显示图标
+ *
+ * @param {string} item_type - 后端返回的物品类型（snake_case）
+ * @returns {string} 对应的emoji图标
+ *
+ * 类型对照：
+ *   voucher → 🎫 优惠券
+ *   product → 📱 实物商品
+ *   service → 🎁 服务权益
+ *   default → 📦 通用物品
+ */
+function getItemIcon(item_type) {
+  if (item_type === 'voucher') return '🎫'
+  if (item_type === 'product') return '📱'
+  if (item_type === 'service') return '🎁'
+  return '📦'
+}
+
+/**
+ * 格式化时间为可读的日期字符串
+ *
+ * @param {string} timestamp - ISO时间字符串（后端返回格式）
+ * @returns {string} 格式化后的时间（YYYY-MM-DD HH:mm）
+ */
+function formatTime(timestamp) {
+  if (!timestamp) return ''
+
+  var date = getDate(timestamp)
+  var year = date.getFullYear()
+  var month = date.getMonth() + 1
+  var day = date.getDate()
+  var hours = date.getHours()
+  var minutes = date.getMinutes()
+
+  var monthStr = month < 10 ? '0' + month : '' + month
+  var dayStr = day < 10 ? '0' + day : '' + day
+  var hourStr = hours < 10 ? '0' + hours : '' + hours
+  var minuteStr = minutes < 10 ? '0' + minutes : '' + minutes
+
+  return year + '-' + monthStr + '-' + dayStr + ' ' + hourStr + ':' + minuteStr
+}
+
+/**
+ * 获取稀有度的中文显示文本
+ *
+ * @param {string} rarity - 后端返回的稀有度代码
+ * @returns {string} 中文稀有度文本
+ *
+ * 稀有度对照（5级体系）：
+ *   common    → 普通
+ *   uncommon  → 优良
+ *   rare      → 稀有
+ *   epic      → 史诗
+ *   legendary → 传说
+ */
+function getRarityText(rarity) {
+  if (rarity === 'common') return '普通'
+  if (rarity === 'uncommon') return '优良'
+  if (rarity === 'rare') return '稀有'
+  if (rarity === 'epic') return '史诗'
+  if (rarity === 'legendary') return '传说'
+  return rarity || ''
+}
+
+// WXS模块导出
+module.exports = {
+  getStatusText: getStatusText,
+  isExpiringSoon: isExpiringSoon,
+  getItemIcon: getItemIcon,
+  formatTime: formatTime,
+  getRarityText: getRarityText
+}

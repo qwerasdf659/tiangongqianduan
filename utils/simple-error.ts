@@ -5,9 +5,12 @@
  * 设计原则：简单、直接、零学习成本
  *
  * @file 天工餐厅积分系统 - 极简错误处理工具
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
+
+const { createLogger } = require('./logger')
+const log = createLogger('error')
 
 /** 显示错误提示（微信小程序弹窗） */
 function showError(message: string, title: string = '操作失败'): void {
@@ -58,7 +61,7 @@ interface ErrorLike {
  */
 function handleError(error: ErrorLike | Error | string, context: string = '操作'): void {
   // 记录错误日志（方便调试）
-  console.error(`❌ ${context}失败:`, error)
+  log.error(`❌ ${context}失败:`, error)
 
   // 提取错误消息（兼容多种错误对象格式）
   const message =

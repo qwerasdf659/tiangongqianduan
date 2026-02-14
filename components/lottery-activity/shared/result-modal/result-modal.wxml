@@ -47,7 +47,7 @@
       <!-- ===== 任务10：烟花粒子特效（仅epic/legendary触发） ===== -->
       <view
         class="fireworks-container"
-        wx:if="{{winAnimation === 'fireworks' && !drawResult.isError && !drawResult.isNotWinning && (drawResult.prize.rarity === 'epic' || drawResult.prize.rarity === 'legendary')}}"
+        wx:if="{{winAnimation === 'fireworks' && !drawResult.isError && !drawResult.isNotWinning && (drawResult.prize.rarity_code === 'epic' || drawResult.prize.rarity_code === 'legendary')}}"
       >
         <view class="firework-particle fp-1"></view>
         <view class="firework-particle fp-2"></view>
@@ -77,8 +77,8 @@
         wx:if="{{winAnimation === 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
       >
         <!-- 🌟 稀有度光效包裹整个卡牌 -->
-        <rarity-effects 
-          rarity="{{drawResult.prize.rarity || 'common'}}" 
+        <rarity-effects
+          rarity="{{drawResult.prize.rarity_code || 'common'}}"
           enabled="{{rarityEffects && cardFlipped}}"
         >
           <view
@@ -121,8 +121,8 @@
         wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
       >
         <!-- 🌟 稀有度光效包裹 -->
-        <rarity-effects 
-          rarity="{{drawResult.prize.rarity || 'common'}}" 
+        <rarity-effects
+          rarity="{{drawResult.prize.rarity_code || 'common'}}"
           enabled="{{rarityEffects}}"
         >
           <view class="prize-card-bg">
@@ -178,8 +178,8 @@
         <!-- 当前奖品展示卡片 - card_flip翻转模式（任务9） -->
         <view class="reveal-card-container" wx:if="{{winAnimation === 'card_flip'}}">
           <!-- 🌟 稀有度光效包裹 -->
-          <rarity-effects 
-            rarity="{{drawResult.prizes[multiDrawCurrentIndex].rarity || 'common'}}" 
+          <rarity-effects
+            rarity="{{drawResult.prizes[multiDrawCurrentIndex].rarity_code || 'common'}}"
             enabled="{{rarityEffects && cardFlipped}}"
           >
             <view
@@ -198,7 +198,8 @@
                     <text
                       class="reveal-prize-icon"
                       wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
-                    >🎁</text>
+                      >🎁</text
+                    >
                     <text class="reveal-prize-icon not-winner" wx:else>💨</text>
                     <view class="reveal-icon-glow"></view>
                   </view>
@@ -219,8 +220,8 @@
         <!-- 当前奖品展示卡片 - simple默认模式（原有逻辑） -->
         <view class="reveal-card-container" wx:else>
           <!-- 🌟 稀有度光效包裹 -->
-          <rarity-effects 
-            rarity="{{drawResult.prizes[multiDrawCurrentIndex].rarity || 'common'}}" 
+          <rarity-effects
+            rarity="{{drawResult.prizes[multiDrawCurrentIndex].rarity_code || 'common'}}"
             enabled="{{rarityEffects}}"
           >
             <view class="reveal-card {{multiDrawRevealing ? 'card-revealing' : 'card-revealed'}}">
@@ -230,7 +231,8 @@
                     <text
                       class="reveal-prize-icon"
                       wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
-                    >🎁</text>
+                      >🎁</text
+                    >
                     <text class="reveal-prize-icon not-winner" wx:else>💨</text>
                     <view class="reveal-icon-glow"></view>
                   </view>

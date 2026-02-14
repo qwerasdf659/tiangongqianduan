@@ -1,5 +1,6 @@
 ﻿/* 抽奖结果弹窗 共享组件样式 */
 @import '../../../../styles/variables';
+@import '../../../../styles/mixins';
 
 /* 弹窗遮罩层 */
 .gradient-card-modal {
@@ -15,9 +16,7 @@
     rgba(255, 107, 53, 0.15) 100%
   );
   backdrop-filter: blur(20rpx);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 9999;
   animation: modalFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -25,7 +24,7 @@
 /* 弹窗容器 */
 .gradient-card-container {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  border-radius: 32rpx;
+  border-radius: $border-radius-xl;
   width: 92%;
   max-width: 540rpx;
   max-height: 85vh;
@@ -48,19 +47,21 @@
   right: 24rpx;
   width: 64rpx;
   height: 64rpx;
-  background: linear-gradient(135deg, #ff6b7a, #c44569);
+  background: linear-gradient(
+    135deg,
+    var(--theme-danger-light, #ff6b7a),
+    var(--theme-danger, #c44569)
+  );
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   z-index: 100;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 8rpx 24rpx rgba(196, 69, 105, 0.3);
 }
 
 .close-icon {
-  color: white;
-  font-size: 28rpx;
+  color: var(--theme-text-inverse, white);
+  font-size: $font-size-base;
   font-weight: 600;
   line-height: 1;
 }
@@ -81,7 +82,7 @@
   align-items: center;
   gap: 24rpx;
   padding: 32rpx;
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   position: relative;
   overflow: hidden;
 }
@@ -92,23 +93,31 @@
 }
 
 .error-card {
-  background: linear-gradient(135deg, #ff6b7a 0%, #c44569 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-danger-light, #ff6b7a) 0%,
+    var(--theme-danger, #c44569) 100%
+  );
   box-shadow: 0 16rpx 32rpx rgba(255, 107, 122, 0.25);
 }
 
 .not-winning-card {
-  background: linear-gradient(135deg, #a8a8a8 0%, #7a7a7a 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-text-muted, #a8a8a8) 0%,
+    var(--theme-text-disabled, #7a7a7a) 100%
+  );
   box-shadow: 0 16rpx 32rpx rgba(168, 168, 168, 0.25);
 }
 
 .title-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   flex-shrink: 0;
   animation: iconPulse 2s ease-in-out infinite;
 }
 
 .not-winning-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   flex-shrink: 0;
   opacity: 0.9;
 }
@@ -121,9 +130,9 @@
 }
 
 .result-title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
-  color: white;
+  color: var(--theme-text-inverse, white);
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
 }
 
@@ -134,9 +143,9 @@
 }
 
 .not-winning-title {
-  font-size: 36rpx;
+  font-size: $font-size-lg;
   font-weight: 700;
-  color: white;
+  color: var(--theme-text-inverse, white);
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
 }
 
@@ -179,7 +188,7 @@
 
 .prize-card-content {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 40rpx 32rpx;
   position: relative;
   display: flex;
@@ -191,9 +200,7 @@
 
 .winning-icon-container {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .winning-icon {
@@ -218,14 +225,14 @@
 }
 
 .winning-name {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: 700;
   color: var(--theme-text-dark, #2c3e50);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .winning-desc {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--theme-text-secondary, #7f8c8d);
   line-height: 1.4;
 }
@@ -244,13 +251,22 @@
   animation: dotBounce 1.5s ease-in-out infinite;
 }
 
-.decoration-dot:nth-child(2) { animation-delay: 0.2s; }
-.decoration-dot:nth-child(3) { animation-delay: 0.4s; }
+.decoration-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.decoration-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
 
 /* 未中奖卡片 */
 .not-winning-card-bg {
   position: relative;
-  background: linear-gradient(145deg, #a8a8a8, #7a7a7a);
+  background: linear-gradient(
+    145deg,
+    var(--theme-text-muted, #a8a8a8),
+    var(--theme-text-disabled, #7a7a7a)
+  );
   border-radius: 28rpx;
   padding: 4rpx;
   box-shadow: 0 20rpx 40rpx rgba(168, 168, 168, 0.3);
@@ -268,7 +284,7 @@
 
 .not-winning-info {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 32rpx;
   display: flex;
   flex-direction: column;
@@ -278,7 +294,7 @@
 }
 
 .not-winning-message {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   color: var(--theme-text-muted, #7a7a7a);
 }
@@ -303,9 +319,9 @@
 }
 
 .reveal-progress-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--theme-primary, $gradient-blue-start);
 }
 
 .reveal-progress-dots {
@@ -362,7 +378,7 @@
 
 .reveal-card-content {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 40rpx 32rpx;
   display: flex;
   flex-direction: column;
@@ -373,9 +389,7 @@
 
 .reveal-icon-container {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
 }
 
 .reveal-prize-icon {
@@ -405,14 +419,14 @@
 }
 
 .reveal-prize-name {
-  font-size: 40rpx;
+  font-size: $font-size-xl;
   font-weight: 700;
   color: var(--theme-text-dark, #2c3e50);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .reveal-prize-desc {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   color: var(--theme-text-secondary, #7f8c8d);
   line-height: 1.4;
 }
@@ -425,8 +439,12 @@
 }
 
 .reveal-next-btn {
-  background: linear-gradient(135deg, $color-primary, #ff8c42) !important;
-  color: white !important;
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, $color-primary),
+    var(--theme-secondary, #ff8c42)
+  ) !important;
+  color: var(--theme-text-inverse, white) !important;
   border: none !important;
   border-radius: 48rpx !important;
   padding: 20rpx 60rpx !important;
@@ -443,20 +461,20 @@
 
 .reveal-next-text {
   font-size: 30rpx;
-  color: white;
+  color: var(--theme-text-inverse, white);
 }
 
 .reveal-complete-hint {
   text-align: center;
   padding: 16rpx 32rpx;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
 }
 
 .reveal-complete-text {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--theme-primary, $gradient-blue-start);
 }
 
 /* 已揭晓奖品缩略列表 */
@@ -465,7 +483,7 @@
 }
 
 .revealed-list-title {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: var(--theme-text-secondary, #7f8c8d);
   margin-bottom: 12rpx;
   display: block;
@@ -484,7 +502,7 @@
   gap: 8rpx;
   padding: 12rpx 16rpx;
   background: rgba(102, 126, 234, 0.08);
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
   white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.3s ease;
@@ -502,7 +520,7 @@
 }
 
 .mini-card-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
 }
 
 .mini-card-name {
@@ -521,8 +539,12 @@
 }
 
 .error-card-bg {
-  background: linear-gradient(135deg, #ff6b7a 0%, #c44569 100%);
-  border-radius: 24rpx;
+  background: linear-gradient(
+    135deg,
+    var(--theme-danger-light, #ff6b7a) 0%,
+    var(--theme-danger, #c44569) 100%
+  );
+  border-radius: $border-radius-lg;
   padding: 32rpx;
   display: flex;
   align-items: center;
@@ -535,7 +557,7 @@
 }
 
 .error-icon {
-  font-size: 48rpx;
+  font-size: $font-size-xxl;
   animation: errorShake 1s ease-in-out infinite;
 }
 
@@ -547,14 +569,14 @@
 }
 
 .error-message {
-  font-size: 28rpx;
+  font-size: $font-size-base;
   font-weight: 600;
-  color: white;
+  color: var(--theme-text-inverse, white);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .error-suggestion {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.9));
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 }
@@ -568,32 +590,30 @@
 .gradient-confirm-btn {
   width: 100%;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: white;
+  color: var(--theme-text-inverse, white);
   border: none;
   border-radius: 20rpx;
   padding: 0;
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
   box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.3);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .gradient-confirm-btn .btn-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: 12rpx;
   padding: 28rpx 0;
 }
 
 .gradient-confirm-btn .btn-text {
-  font-size: 32rpx;
+  font-size: $font-size-md;
   font-weight: 600;
-  color: white;
+  color: var(--theme-text-inverse, white);
 }
 
 .gradient-confirm-btn .btn-icon {
-  font-size: 28rpx;
+  font-size: $font-size-base;
 }
 
 .gradient-confirm-btn:active {
@@ -603,50 +623,114 @@
 
 /* 动画关键帧 */
 @keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes cardSlideUp {
-  from { transform: translateY(100rpx); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(100rpx);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes iconPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 @keyframes prizeFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-16rpx); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-16rpx);
+  }
 }
 
 @keyframes glowPulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 @keyframes dotBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8rpx); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8rpx);
+  }
 }
 
 @keyframes revealBounce {
-  0% { transform: scale(0.85); opacity: 0.3; }
-  60% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.85);
+    opacity: 0.3;
+  }
+
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes nextBtnPulse {
-  0%, 100% { box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.35); }
-  50% { box-shadow: 0 16rpx 32rpx rgba(255, 107, 53, 0.5); }
+  0%,
+  100% {
+    box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.35);
+  }
+
+  50% {
+    box-shadow: 0 16rpx 32rpx rgba(255, 107, 53, 0.5);
+  }
 }
 
 @keyframes errorShake {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-5deg); }
-  75% { transform: rotate(5deg); }
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-5deg);
+  }
+
+  75% {
+    transform: rotate(5deg);
+  }
 }
 
 /* ===== 任务9：卡牌翻转中奖动画（display.win_animation = 'card_flip'） ===== */
@@ -703,10 +787,7 @@
 .card-back-pattern {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  @include flex-column-center;
   gap: 24rpx;
   position: relative;
 }
@@ -729,7 +810,7 @@
 }
 
 .card-back-hint {
-  font-size: 24rpx;
+  font-size: $font-size-sm;
   color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
 }
 
@@ -744,7 +825,7 @@
 .card-flip-front .prize-card-content,
 .card-flip-front .reveal-card-content {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 24rpx;
+  border-radius: $border-radius-lg;
   padding: 40rpx 32rpx;
   display: flex;
   flex-direction: column;
@@ -757,15 +838,34 @@
 
 /* 卡牌入场弹跳动画 */
 @keyframes cardEnterBounce {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.08); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* 背面问号呼吸动画 */
 @keyframes cardBackPulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.15); opacity: 1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
 }
 
 /* ===== 任务10：烟花粒子特效（display.win_animation = 'fireworks'） ===== */
@@ -793,48 +893,206 @@
 
 /* 20个粒子的方向、颜色、延迟各不相同，形成烟花扩散效果 */
 /* 颜色使用金色系(legendary)和橙色系(epic)混合 */
-.fp-1  { background: #f1c40f; animation: fw-burst 1.2s 0.1s ease-out forwards; }
-.fp-2  { background: #e67e22; animation: fw-burst 1.2s 0.15s ease-out forwards; }
-.fp-3  { background: #f39c12; animation: fw-burst 1.2s 0.05s ease-out forwards; }
-.fp-4  { background: #f1c40f; animation: fw-burst 1.2s 0.2s ease-out forwards; }
-.fp-5  { background: #e74c3c; animation: fw-burst 1.2s 0.1s ease-out forwards; }
-.fp-6  { background: #f1c40f; animation: fw-burst 1.2s 0.25s ease-out forwards; }
-.fp-7  { background: #e67e22; animation: fw-burst 1.2s 0.08s ease-out forwards; }
-.fp-8  { background: #f39c12; animation: fw-burst 1.2s 0.18s ease-out forwards; }
-.fp-9  { background: #f1c40f; animation: fw-burst 1.2s 0.12s ease-out forwards; }
-.fp-10 { background: #e74c3c; animation: fw-burst 1.2s 0.22s ease-out forwards; }
-.fp-11 { background: #f39c12; animation: fw-burst 1.2s 0.06s ease-out forwards; }
-.fp-12 { background: #f1c40f; animation: fw-burst 1.2s 0.16s ease-out forwards; }
-.fp-13 { background: #e67e22; animation: fw-burst 1.2s 0.09s ease-out forwards; }
-.fp-14 { background: #f1c40f; animation: fw-burst 1.2s 0.2s ease-out forwards; }
-.fp-15 { background: #e74c3c; animation: fw-burst 1.2s 0.14s ease-out forwards; }
-.fp-16 { background: #f39c12; animation: fw-burst 1.2s 0.07s ease-out forwards; }
-.fp-17 { background: #f1c40f; animation: fw-burst 1.2s 0.19s ease-out forwards; }
-.fp-18 { background: #e67e22; animation: fw-burst 1.2s 0.11s ease-out forwards; }
-.fp-19 { background: #f1c40f; animation: fw-burst 1.2s 0.23s ease-out forwards; }
-.fp-20 { background: #f39c12; animation: fw-burst 1.2s 0.03s ease-out forwards; }
+.fp-1 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.1s ease-out forwards;
+}
+
+.fp-2 {
+  background: #e67e22;
+  animation: fw-burst 1.2s 0.15s ease-out forwards;
+}
+
+.fp-3 {
+  background: #f39c12;
+  animation: fw-burst 1.2s 0.05s ease-out forwards;
+}
+
+.fp-4 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.2s ease-out forwards;
+}
+
+.fp-5 {
+  background: #e74c3c;
+  animation: fw-burst 1.2s 0.1s ease-out forwards;
+}
+
+.fp-6 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.25s ease-out forwards;
+}
+
+.fp-7 {
+  background: #e67e22;
+  animation: fw-burst 1.2s 0.08s ease-out forwards;
+}
+
+.fp-8 {
+  background: #f39c12;
+  animation: fw-burst 1.2s 0.18s ease-out forwards;
+}
+
+.fp-9 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.12s ease-out forwards;
+}
+
+.fp-10 {
+  background: #e74c3c;
+  animation: fw-burst 1.2s 0.22s ease-out forwards;
+}
+
+.fp-11 {
+  background: #f39c12;
+  animation: fw-burst 1.2s 0.06s ease-out forwards;
+}
+
+.fp-12 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.16s ease-out forwards;
+}
+
+.fp-13 {
+  background: #e67e22;
+  animation: fw-burst 1.2s 0.09s ease-out forwards;
+}
+
+.fp-14 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.2s ease-out forwards;
+}
+
+.fp-15 {
+  background: #e74c3c;
+  animation: fw-burst 1.2s 0.14s ease-out forwards;
+}
+
+.fp-16 {
+  background: #f39c12;
+  animation: fw-burst 1.2s 0.07s ease-out forwards;
+}
+
+.fp-17 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.19s ease-out forwards;
+}
+
+.fp-18 {
+  background: #e67e22;
+  animation: fw-burst 1.2s 0.11s ease-out forwards;
+}
+
+.fp-19 {
+  background: #f1c40f;
+  animation: fw-burst 1.2s 0.23s ease-out forwards;
+}
+
+.fp-20 {
+  background: #f39c12;
+  animation: fw-burst 1.2s 0.03s ease-out forwards;
+}
 
 /* 每个粒子的扩散方向（通过CSS自定义属性 + nth-child实现360度均匀分布） */
-.fp-1  { --fw-x: 0rpx;    --fw-y: -180rpx; }
-.fp-2  { --fw-x: 56rpx;   --fw-y: -170rpx; }
-.fp-3  { --fw-x: 108rpx;  --fw-y: -140rpx; }
-.fp-4  { --fw-x: 148rpx;  --fw-y: -96rpx;  }
-.fp-5  { --fw-x: 172rpx;  --fw-y: -40rpx;  }
-.fp-6  { --fw-x: 180rpx;  --fw-y: 0rpx;    }
-.fp-7  { --fw-x: 170rpx;  --fw-y: 56rpx;   }
-.fp-8  { --fw-x: 140rpx;  --fw-y: 108rpx;  }
-.fp-9  { --fw-x: 96rpx;   --fw-y: 148rpx;  }
-.fp-10 { --fw-x: 40rpx;   --fw-y: 172rpx;  }
-.fp-11 { --fw-x: 0rpx;    --fw-y: 180rpx;  }
-.fp-12 { --fw-x: -56rpx;  --fw-y: 170rpx;  }
-.fp-13 { --fw-x: -108rpx; --fw-y: 140rpx;  }
-.fp-14 { --fw-x: -148rpx; --fw-y: 96rpx;   }
-.fp-15 { --fw-x: -172rpx; --fw-y: 40rpx;   }
-.fp-16 { --fw-x: -180rpx; --fw-y: 0rpx;    }
-.fp-17 { --fw-x: -170rpx; --fw-y: -56rpx;  }
-.fp-18 { --fw-x: -140rpx; --fw-y: -108rpx; }
-.fp-19 { --fw-x: -96rpx;  --fw-y: -148rpx; }
-.fp-20 { --fw-x: -40rpx;  --fw-y: -172rpx; }
+.fp-1 {
+  --fw-x: 0rpx;
+  --fw-y: -180rpx;
+}
+
+.fp-2 {
+  --fw-x: 56rpx;
+  --fw-y: -170rpx;
+}
+
+.fp-3 {
+  --fw-x: 108rpx;
+  --fw-y: -140rpx;
+}
+
+.fp-4 {
+  --fw-x: 148rpx;
+  --fw-y: -96rpx;
+}
+
+.fp-5 {
+  --fw-x: 172rpx;
+  --fw-y: -40rpx;
+}
+
+.fp-6 {
+  --fw-x: 180rpx;
+  --fw-y: 0rpx;
+}
+
+.fp-7 {
+  --fw-x: 170rpx;
+  --fw-y: 56rpx;
+}
+
+.fp-8 {
+  --fw-x: 140rpx;
+  --fw-y: 108rpx;
+}
+
+.fp-9 {
+  --fw-x: 96rpx;
+  --fw-y: 148rpx;
+}
+
+.fp-10 {
+  --fw-x: 40rpx;
+  --fw-y: 172rpx;
+}
+
+.fp-11 {
+  --fw-x: 0rpx;
+  --fw-y: 180rpx;
+}
+
+.fp-12 {
+  --fw-x: -56rpx;
+  --fw-y: 170rpx;
+}
+
+.fp-13 {
+  --fw-x: -108rpx;
+  --fw-y: 140rpx;
+}
+
+.fp-14 {
+  --fw-x: -148rpx;
+  --fw-y: 96rpx;
+}
+
+.fp-15 {
+  --fw-x: -172rpx;
+  --fw-y: 40rpx;
+}
+
+.fp-16 {
+  --fw-x: -180rpx;
+  --fw-y: 0rpx;
+}
+
+.fp-17 {
+  --fw-x: -170rpx;
+  --fw-y: -56rpx;
+}
+
+.fp-18 {
+  --fw-x: -140rpx;
+  --fw-y: -108rpx;
+}
+
+.fp-19 {
+  --fw-x: -96rpx;
+  --fw-y: -148rpx;
+}
+
+.fp-20 {
+  --fw-x: -40rpx;
+  --fw-y: -172rpx;
+}
 
 /* 烟花爆发动画：从中心扩散 + 缩小 + 渐隐 */
 @keyframes fw-burst {
@@ -842,10 +1100,12 @@
     opacity: 1;
     transform: translate(0, 0) scale(1);
   }
+
   60% {
     opacity: 0.8;
     transform: translate(var(--fw-x), var(--fw-y)) scale(1.2);
   }
+
   100% {
     opacity: 0;
     transform: translate(var(--fw-x), var(--fw-y)) scale(0.3);

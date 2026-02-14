@@ -43,12 +43,18 @@ Component({
   },
 
   observers: {
-    'drawCount': function (count: number) {
+    drawCount(count: number) {
       this._buildCells(count || 1)
     },
 
-    'isInProgress, drawResults': function (inProgress: boolean, results: any[]) {
-      if (inProgress && results && results.length > 0 && this.data.apiCalled && !this.data.resultsReady) {
+    'isInProgress, drawResults'(inProgress: boolean, results: any[]) {
+      if (
+        inProgress &&
+        results &&
+        results.length > 0 &&
+        this.data.apiCalled &&
+        !this.data.resultsReady
+      ) {
         this.setData({ pendingResults: results, resultsReady: true })
         this._flushPendingReveals()
       }
@@ -78,28 +84,37 @@ Component({
 
     _measureCard() {
       const query = this.createSelectorQuery()
-      query.select('.scratch-strip').boundingClientRect((rect: any) => {
-        if (rect) {
-          const count = this.data.cells.length
-          this.setData({
-            cardLeft: rect.left,
-            cardWidth: rect.width,
-            cellWidthPx: rect.width / count
-          })
-        }
-      }).exec()
+      query
+        .select('.scratch-strip')
+        .boundingClientRect((rect: any) => {
+          if (rect) {
+            const count = this.data.cells.length
+            this.setData({
+              cardLeft: rect.left,
+              cardWidth: rect.width,
+              cellWidthPx: rect.width / count
+            })
+          }
+        })
+        .exec()
     },
 
     _getCellIndexByX(clientX: number): number {
       const { cardLeft, cardWidth, cellWidthPx } = this.data
-      if (cellWidthPx <= 0) return -1
+      if (cellWidthPx <= 0) {
+        return -1
+      }
       const relX = clientX - cardLeft
-      if (relX < 0 || relX > cardWidth) return -1
+      if (relX < 0 || relX > cardWidth) {
+        return -1
+      }
       return Math.min(Math.floor(relX / cellWidthPx), this.data.cells.length - 1)
     },
 
     onTouchStart(e: any) {
-      if (this.data.allRevealed) return
+      if (this.data.allRevealed) {
+        return
+      }
       this.setData({ scratching: true, showGuide: false })
       const cellIndex = this._getCellIndexByX(e.touches[0].clientX)
       if (cellIndex >= 0) {
@@ -108,7 +123,9 @@ Component({
     },
 
     onTouchMove(e: any) {
-      if (!this.data.scratching || this.data.allRevealed) return
+      if (!this.data.scratching || this.data.allRevealed) {
+        return
+      }
       const cellIndex = this._getCellIndexByX(e.touches[0].clientX)
       if (cellIndex >= 0) {
         this._tryRevealCell(cellIndex)
@@ -116,7 +133,9 @@ Component({
     },
 
     onTouchEnd() {
-      if (!this.data.scratching) return
+      if (!this.data.scratching) {
+        return
+      }
       this.setData({ scratching: false })
 
       /* 只要已经开始刮（有格子进入dissolving/revealed），就自动补完剩余 */
@@ -127,7 +146,9 @@ Component({
 
     _tryRevealCell(cellIndex: number) {
       const cell = this.data.cells[cellIndex]
-      if (!cell || cell.state !== 'covered') return
+      if (!cell || cell.state !== 'covered') {
+        return
+      }
 
       if (!this.data.apiCalled) {
         this.setData({ apiCalled: true })
@@ -150,11 +171,15 @@ Component({
 
     _revealCellWithPrize(cellIndex: number) {
       const prize = this.data.pendingResults[cellIndex]
-      if (!prize) return
+      if (!prize) {
+        return
+      }
 
       setTimeout(() => {
         const cells = this.data.cells
-        if (!cells[cellIndex] || cells[cellIndex].state === 'revealed') return
+        if (!cells[cellIndex] || cells[cellIndex].state === 'revealed') {
+          return
+        }
 
         const revealedCount = this.data.revealedCount + 1
         const revealedPrizes = [...this.data.revealedPrizes, prize]
@@ -180,7 +205,9 @@ Component({
 
     _flushPendingReveals() {
       const queue = this.data.pendingCellQueue
-      if (!queue || queue.length === 0) return
+      if (!queue || queue.length === 0) {
+        return
+      }
       this.setData({ pendingCellQueue: [] })
       queue.forEach((cellIndex: number) => {
         this._revealCellWithPrize(cellIndex)
@@ -201,9 +228,11 @@ Component({
 
     _vibrate(prize: any) {
       try {
-        const isRare = ['rare', 'epic', 'legendary'].includes(prize?.rarity)
+        const isRare = ['rare', 'epic', 'legendary'].includes(prize?.rarity_code)
         wx.vibrateShort({ type: isRare ? 'heavy' : 'light' })
-      } catch (_e) { /* 静默失败 */ }
+      } catch (_e) {
+        /* 静默失败 */
+      }
     },
 
     resetCard() {

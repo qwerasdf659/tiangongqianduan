@@ -10,9 +10,12 @@
  *   6. 通过Token识别用户 - 不在路径中传user_id（后端通过JWT解析）
  *
  * @file 天工餐厅积分系统 - V4.0统一引擎API客户端
- * @version 3.0.0
+ * @version 5.0.0
  * @since 2026-02-10
  */
+
+const { createLogger } = require('./logger')
+const log = createLogger('api')
 
 // ===== 类型定义 =====
 
@@ -64,7 +67,7 @@ function getAppInstance(): any {
     try {
       app = getApp()
     } catch (error) {
-      console.warn('⚠️ 无法获取App实例:', error)
+      log.warn('⚠️ 无法获取App实例:', error)
     }
   }
   return app
@@ -102,7 +105,7 @@ class APIClient {
     this.isRefreshing = false
     this.refreshSubscribers = []
 
-    console.log('🚀 V4.0 API Client初始化完成', {
+    log.info('🚀 V4.0 API Client初始化完成', {
       baseURL: this.config.fullUrl,
       apiVersion: 'v4.0',
       isDevelopment: this.devConfig.enableUnifiedAuth
@@ -126,9 +129,9 @@ class APIClient {
     // 构建完整URL
     const fullUrl: string = `${this.config.fullUrl}${url}`
 
-    console.log('\n🚀=================== V4.0 API请求 ===================')
-    console.log(`📤 ${method} ${fullUrl}`)
-    console.log('📋 请求数据:', data)
+    log.info('\n🚀=================== V4.0 API请求 ===================')
+    log.info(`📤 ${method} ${fullUrl}`)
+    log.info('📋 请求数据:', data)
 
     // 构建请求头（支持自定义header合并，如Idempotency-Key）
     const headers: Record<string, string> = {
@@ -143,14 +146,14 @@ class APIClient {
         // Token完整性验证
         const integrityCheck = validateJWTTokenIntegrity(token)
         if (!integrityCheck.isValid) {
-          console.error('🚨 Token完整性检查失败:', integrityCheck.error)
+          log.error('🚨 Token完整性检查失败:', integrityCheck.error)
           return this.handleTokenInvalid()
         }
 
         headers.Authorization = `Bearer ${token}`
       } else {
         // needAuth为true但Token不存在，触发Token缺失处理
-        console.error('❌ 未找到access_token')
+        log.error('❌ 未找到access_token')
         return this.handleTokenMissing()
       }
     }
@@ -176,16 +179,16 @@ class APIClient {
       })
 
       const duration: number = Date.now() - startTime
-      console.log(`✅ API请求成功，耗时: ${duration}ms`)
-      console.log('📦 响应数据:', response.data)
-      console.log('=======================================================\n')
+      log.info(`✅ API请求成功，耗时: ${duration}ms`)
+      log.info('📦 响应数据:', response.data)
+      log.info('=======================================================\n')
 
       // 处理响应
       return this.handleResponse(response, options, url)
     } catch (error: any) {
       const duration: number = Date.now() - startTime
-      console.error(`❌ API请求失败，耗时: ${duration}ms`, error)
-      console.log('=======================================================\n')
+      log.error(`❌ API请求失败，耗时: ${duration}ms`, error)
+      log.info('=======================================================\n')
 
       // 自动显示错误toast
       if (showError) {
@@ -221,10 +224,10 @@ class APIClient {
       const serverErrorCode: string = data && (data.code || data.error)
       const serverMessage: string = data && data.message
 
-      console.error('🔒 认证失败(401):', { serverErrorCode, serverMessage })
+      log.error('🔒 认证失败(401):', { serverErrorCode, serverMessage })
 
       if (serverErrorCode === 'TOKEN_EXPIRED') {
-        console.log('🔄 Token已过期，尝试自动刷新')
+        log.info('🔄 Token已过期，尝试自动刷新')
         return this.handleTokenExpired()
       }
 
@@ -233,7 +236,7 @@ class APIClient {
 
     // 403权限不足
     if (statusCode === 403) {
-      console.error('🚫 权限不足(403):', data && data.code)
+      log.error('🚫 权限不足(403):', data && data.code)
       throw this._createApiError(
         data.message || '权限不足',
         (data && data.code) || 'FORBIDDEN',
@@ -243,7 +246,7 @@ class APIClient {
 
     // 404资源不存在
     if (statusCode === 404) {
-      console.error('❌ 资源不存在(404)')
+      log.error('❌ 资源不存在(404)')
       throw this._createApiError(
         data.message || '请求的资源不存在',
         (data && data.code) || 'NOT_FOUND',
@@ -254,10 +257,10 @@ class APIClient {
     // 409冲突 - CONCURRENT_CONFLICT自动重试1次
     if (statusCode === 409) {
       const errorCode: string = data && data.code
-      console.error('⚠️ 冲突(409):', errorCode)
+      log.error('⚠️ 冲突(409):', errorCode)
 
       if (errorCode === 'CONCURRENT_CONFLICT' && requestOptions && !requestOptions._retried) {
-        console.log('🔄 CONCURRENT_CONFLICT 自动重试')
+        log.info('🔄 CONCURRENT_CONFLICT 自动重试')
         requestOptions._retried = true
         return this.request(requestUrl!, requestOptions)
       }
@@ -267,7 +270,7 @@ class APIClient {
 
     // 429频率限制
     if (statusCode === 429) {
-      console.error('🚦 频率限制(429)')
+      log.error('🚦 频率限制(429)')
       throw this._createApiError(
         data.message || '操作过于频繁，请稍后再试',
         (data && data.code) || 'RATE_LIMIT_EXCEEDED',
@@ -277,7 +280,7 @@ class APIClient {
 
     // 500服务器错误
     if (statusCode === 500) {
-      console.error('🚨 服务器错误(500)')
+      log.error('🚨 服务器错误(500)')
       throw this._createApiError(
         data.message || '服务器内部错误',
         (data && data.code) || 'INTERNAL_ERROR',
@@ -287,7 +290,7 @@ class APIClient {
 
     // 503服务不可用
     if (statusCode === 503) {
-      console.error('🔧 服务不可用(503)')
+      log.error('🔧 服务不可用(503)')
       throw this._createApiError(
         data.message || '服务暂时不可用，请稍后重试',
         (data && data.code) || 'SERVICE_UNAVAILABLE',
@@ -297,7 +300,7 @@ class APIClient {
 
     // 400请求错误
     if (statusCode === 400) {
-      console.error('❌ 请求错误(400):', data && data.code)
+      log.error('❌ 请求错误(400):', data && data.code)
       throw this._createApiError(
         data.message || '请求参数错误',
         (data && data.code) || 'BAD_REQUEST',
@@ -381,7 +384,7 @@ class APIClient {
     const errorMessage: string =
       (responseData && responseData.message) || '登录状态已失效，请重新登录'
 
-    console.error('🔒 Token无效处理:', { errorCode, errorMessage })
+    log.error('🔒 Token无效处理:', { errorCode, errorMessage })
 
     const error: ApiError = new Error(errorMessage) as ApiError
     error.isAuthError = true
@@ -420,7 +423,7 @@ class APIClient {
         throw new Error('未找到refresh_token')
       }
 
-      console.log('🔄 开始刷新Token...')
+      log.info('🔄 开始刷新Token...')
 
       const response = await this.request('/auth/refresh', {
         method: 'POST',
@@ -434,12 +437,14 @@ class APIClient {
         wx.setStorageSync('access_token', access_token)
         wx.setStorageSync('refresh_token', newRefreshToken)
 
+        // 同步到 MobX Store（access_token + refresh_token 都需要更新）
         const appInstance = getAppInstance()
         if (appInstance) {
           appInstance.setAccessToken(access_token)
+          appInstance.setRefreshToken(newRefreshToken)
         }
 
-        console.log('✅ Token刷新成功')
+        log.info('✅ Token刷新成功')
 
         this.refreshSubscribers.forEach(callback => callback(access_token))
         this.refreshSubscribers = []
@@ -449,7 +454,7 @@ class APIClient {
         throw new Error('Token刷新失败')
       }
     } catch (error) {
-      console.error('❌ Token刷新失败:', error)
+      log.error('❌ Token刷新失败:', error)
       // 通知所有等待Token刷新的请求：刷新失败
       this.refreshSubscribers.forEach(callback => callback(null))
       this.refreshSubscribers = []
@@ -521,9 +526,32 @@ async function verifyToken(): Promise<ApiResponse> {
 // ==================== 🎰 抽奖系统API ====================
 // 后端路由: routes/v4/lottery/
 
-/** 获取抽奖活动列表 - 后端路由: GET /api/v4/lottery/campaigns */
+/** 获取抽奖活动列表（通用查询） - 后端路由: GET /api/v4/lottery/campaigns */
 async function getLotteryCampaigns(status: string = 'active'): Promise<ApiResponse> {
   return apiClient.request(`/lottery/campaigns?status=${status}`, { method: 'GET', needAuth: true })
+}
+
+/**
+ * 获取进行中的活动列表（专用端点，需登录）
+ * 后端路由: GET /api/v4/lottery/campaigns/active
+ *
+ * 响应示例：
+ * {
+ *   success: true,
+ *   data: [{
+ *     campaign_code: "BASIC_LOTTERY",
+ *     campaign_name: "餐厅积分抽奖",
+ *     campaign_type: "permanent",
+ *     status: "active",
+ *     display: { mode: "grid_3x3", effect_theme: "default" },
+ *     banner_image_url: null,
+ *     start_time: "2025-08-19 00:00:00",
+ *     end_time: "2026-12-28 23:59:59"
+ *   }]
+ * }
+ */
+async function getActiveCampaigns(): Promise<ApiResponse> {
+  return apiClient.request('/lottery/campaigns/active', { method: 'GET', needAuth: true })
 }
 
 /** 获取抽奖奖品列表 - 后端路由: GET /api/v4/lottery/campaigns/:campaign_code/prizes */
@@ -590,17 +618,9 @@ async function getAdminLotteryHistory(
 // 后端路由: routes/v4/assets/ （通过Token识别用户）
 
 /**
- * 获取当前用户资产余额 - 后端路由: GET /api/v4/assets/balance
+ * 获取当前用户积分余额 - 后端路由: GET /api/v4/assets/balance
  * 响应字段: asset_code, available_amount, frozen_amount, total_amount
  */
-async function getCurrentUserBalance(asset_code: string = 'POINTS'): Promise<ApiResponse> {
-  return apiClient.request(`/assets/balance?asset_code=${asset_code}`, {
-    method: 'GET',
-    needAuth: true
-  })
-}
-
-/** 获取当前用户积分余额（getCurrentUserBalance的语义化别名） */
 async function getPointsBalance(asset_code: string = 'POINTS'): Promise<ApiResponse> {
   return apiClient.request(`/assets/balance?asset_code=${asset_code}`, {
     method: 'GET',
@@ -1172,8 +1192,12 @@ async function getNotifications(
 // 后端路由: routes/v4/system/chat.js
 
 /** 创建客服会话 - 后端路由: POST /api/v4/system/chat/create */
-async function createChatSession(): Promise<ApiResponse> {
-  return apiClient.request('/system/chat/create', { method: 'POST', needAuth: true })
+async function createChatSession(data: { source?: string } = {}): Promise<ApiResponse> {
+  return apiClient.request('/system/chat/create', {
+    method: 'POST',
+    data,
+    needAuth: true
+  })
 }
 
 /** 获取用户会话列表 - 后端路由: GET /api/v4/system/chat/sessions */
@@ -1193,11 +1217,47 @@ async function getChatHistory(
   })
 }
 
-/** 发送消息 - 后端路由: POST /api/v4/system/chat/send */
-async function sendChatMessage(session_id: number, content: string): Promise<ApiResponse> {
+/**
+ * 发送消息 - 后端路由: POST /api/v4/system/chat/send
+ *
+ * 支持两种调用方式:
+ * 1. 位置参数: sendChatMessage(session_id, content)
+ * 2. 对象参数: sendChatMessage({ sessionId, content, messageType, senderType })
+ *
+ * 后端期望字段: session_id, content
+ */
+async function sendChatMessage(
+  sessionIdOrParams: number | Record<string, any>,
+  content?: string
+): Promise<ApiResponse> {
+  let requestData: Record<string, any>
+
+  if (typeof sessionIdOrParams === 'object' && sessionIdOrParams !== null) {
+    // 对象参数模式（管理员客服/用户聊天页面使用）
+    requestData = {
+      session_id: sessionIdOrParams.sessionId || sessionIdOrParams.session_id,
+      content: sessionIdOrParams.content,
+      message_type: sessionIdOrParams.messageType || 'text',
+      sender_type: sessionIdOrParams.senderType || undefined
+    }
+  } else {
+    // 位置参数模式
+    requestData = {
+      session_id: sessionIdOrParams,
+      content
+    }
+  }
+
+  if (!requestData.session_id) {
+    throw new Error('会话ID不能为空')
+  }
+  if (!requestData.content) {
+    throw new Error('消息内容不能为空')
+  }
+
   return apiClient.request('/system/chat/send', {
     method: 'POST',
-    data: { session_id, content },
+    data: requestData,
     needAuth: true
   })
 }
@@ -1343,7 +1403,7 @@ async function getActivities(
 
 // ============================================================================
 // 导出模块
-// ⚠️ 新增API方法后，还需要在 utils/index.ts 的 API 对象中添加导出！
+// ✅ utils/index.ts 使用展开运算符自动同步，新增方法只需在此处 module.exports 中添加即可
 // ============================================================================
 
 module.exports = {
@@ -1358,13 +1418,13 @@ module.exports = {
 
   // 抽奖系统
   getLotteryCampaigns,
+  getActiveCampaigns,
   getLotteryPrizes,
   getLotteryConfig,
   performLottery,
   getLotteryHistory,
 
   // 资产系统
-  getCurrentUserBalance,
   getPointsBalance,
   getPointsTransactions,
   getAssetBalances,
@@ -1455,9 +1515,9 @@ module.exports = {
   getActivities,
 
   // API版本信息
-  version: '4.3.0',
-  lastUpdated: '2026-02-10T00:00:00+08:00',
-  apiCompatibility: 'V4.7.0后端对齐+V2动态二维码+幂等键+门店选择+精细化错误码'
+  version: '5.0.0',
+  lastUpdated: '2026-02-15T00:00:00+08:00',
+  apiCompatibility: 'V4.7.0后端对齐+V2动态二维码+幂等键+门店选择+精细化错误码+活动位置配置'
 }
 
 export {}

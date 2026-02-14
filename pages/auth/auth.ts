@@ -1,11 +1,13 @@
 // pages/auth/auth.ts - V4.0认证页面 + MobX响应式状态
 
 // 🔴 统一工具函数导入
-const { Utils, API, Validation, Constants } = require('../../utils/index')
+const { Utils, API, Validation, Constants, Logger } = require('../../utils/index')
+const log = Logger.createLogger('auth')
 const { DELAY, API_CONFIG } = Constants
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
+const { pointsStore } = require('../../store/points')
 
 // ====== 方案B重构：子函数1 - JWT解析和验证 ======
 /**
@@ -47,7 +49,7 @@ function parseAndValidateJWT(accessToken) {
       user_id: payload.user_id
     }
   } catch (error) {
-    console.error('❌ JWT解析失败:', error.message)
+    log.error('❌ JWT解析失败:', error.message)
     throw error
   }
 }
@@ -100,52 +102,10 @@ function buildUserInfoObject(rawUserInfo, jwtData) {
  * 复杂度：~8
  */
 function saveAuthDataToStorage(accessToken, refreshToken, userInfo) {
-  const app = getApp()
+  // 设置 MobX Store 登录状态（Store 内部自动同步到 Storage）
+  userStore.setLoginState(userInfo, accessToken, refreshToken || '')
 
-  if (!app) {
-    throw new Error('App实例不可用')
-  }
-
-  // 保存到本地存储
-  try {
-    wx.setStorageSync('access_token', accessToken)
-    if (refreshToken) {
-      wx.setStorageSync('refresh_token', refreshToken)
-    }
-    wx.setStorageSync('user_info', userInfo)
-  } catch (storageError) {
-    console.error('❌ 本地存储失败:', storageError)
-    throw new Error('保存到本地存储失败')
-  }
-
-  // 更新全局状态
-  app.globalData.access_token = accessToken
-  if (refreshToken) {
-    app.globalData.refresh_token = refreshToken
-  }
-  app.globalData.userInfo = userInfo
-  app.globalData.isLoggedIn = true
-
-  // 调用app的标准方法（如果存在）
-  if (app.setAccessToken) {
-    app.setAccessToken(accessToken)
-  }
-  if (app.updateUserInfo) {
-    app.updateUserInfo(userInfo)
-  }
-
-  // 触发应用事件（如果存在）
-  if (app.onLoginSuccess) {
-    app.onLoginSuccess({
-      data: {
-        userInfo,
-        access_token: accessToken,
-        refresh_token: refreshToken
-      }
-    })
-  }
-
-  console.log('✅ 认证数据已保存到全局状态和本地存储')
+  log.info('✅ 认证数据已保存到 MobX Store 和本地存储')
 }
 
 Page({
@@ -215,7 +175,7 @@ Page({
    *
    */
   onLoad() {
-    console.log('🔧 V4.0认证页面开始加载 - 统一引擎架构')
+    log.info('🔧 V4.0认证页面开始加载 - 统一引擎架构')
 
     // 🆕 MobX Store绑定 - 登录成功后自动同步用户状态到Store
     this.storeBindings = createStoreBindings(this, {
@@ -227,7 +187,7 @@ Page({
     // 🚨 立即修复：强制超时保护，防止页面永久loading
     setTimeout(() => {
       if (!this.data.pageLoaded) {
-        console.warn('🚨 认证页面loading超时，强制设置为完成状态')
+        log.warn('🚨 认证页面loading超时，强制设置为完成状态')
         this.setData({
           pageLoaded: true,
           initError: null
@@ -240,7 +200,7 @@ Page({
     try {
       this.safeInitPage()
     } catch (error) {
-      console.error('❌ 页面加载异常:', error)
+      log.error('❌ 页面加载异常:', error)
       this.setData({
         pageLoaded: true,
         initError: '页面初始化异常：' + (error.message || error)
@@ -298,14 +258,14 @@ Page({
         this.setData({
           pageLoaded: true
         })
-        console.log('✅ 认证页面初始化完成 - 显示登录表单')
+        log.info('✅ 认证页面初始化完成 - 显示登录表单')
       } else {
-        console.log('✅ 检测到已登录状态，准备自动跳转...')
+        log.info('✅ 检测到已登录状态，准备自动跳转...')
       }
 
-      console.log('✅ 认证页面初始化完成 - V4.0统一认证')
+      log.info('✅ 认证页面初始化完成 - V4.0统一认证')
     } catch (error) {
-      console.error('❌ 页面初始化过程中出错:', error)
+      log.error('❌ 页面初始化过程中出错:', error)
       this.handleInitError(error)
     }
   },
@@ -319,9 +279,9 @@ Page({
       const { userLogin, sendVerificationCode } = API
       this.userLogin = userLogin
       this.sendVerificationCode = sendVerificationCode
-      console.log('✅ API引用初始化成功')
+      log.info('✅ API引用初始化成功')
     } catch (error) {
-      console.error('❌ API引用初始化失败:', error)
+      log.error('❌ API引用初始化失败:', error)
       // 设置空的API对象防止调用错误
       this.userLogin = () => Promise.reject(new Error('API未初始化'))
       this.sendVerificationCode = () => Promise.reject(new Error('API未初始化'))
@@ -346,9 +306,9 @@ Page({
         ]
       })
 
-      console.log('✅ 表单验证器初始化成功')
+      log.info('✅ 表单验证器初始化成功')
     } catch (error) {
-      console.error('❌ 表单验证器初始化失败:', error)
+      log.error('❌ 表单验证器初始化失败:', error)
       // 设置空的验证器防止调用错误
       this.formValidator = {
         validate: () => ({ isValid: true, errors: {} })
@@ -363,15 +323,15 @@ Page({
     try {
       const app = getApp()
       if (!app || !app.globalData) {
-        console.warn('⚠️ App实例不可用，跳过登录状态检查')
+        log.warn('⚠️ App实例不可用，跳过登录状态检查')
         return false
       }
 
-      // 🔴 修复：增强Token状态检查 - 解决编译后Token失效问题
-      const token = app.globalData.access_token || wx.getStorageSync('access_token')
-      const userInfo = app.globalData.userInfo || wx.getStorageSync('user_info')
+      // 从 MobX Store 或 Storage 检查已有登录状态
+      const token = userStore.accessToken || wx.getStorageSync('access_token')
+      const userInfo = userStore.userInfo || wx.getStorageSync('user_info')
 
-      console.log('🔍 检查现有登录状态:', {
+      log.info('🔍 检查现有登录状态:', {
         hasToken: !!token,
         hasUserInfo: !!userInfo,
         tokenPreview: token ? token.substring(0, 20) + '...' : 'NO_TOKEN',
@@ -379,12 +339,12 @@ Page({
       })
 
       if (token && userInfo) {
-        console.log('🔍 检测到已有登录状态，验证Token有效性...')
+        log.info('🔍 检测到已有登录状态，验证Token有效性...')
 
-        // 🔴 关键修复：先同步到全局状态，再验证Token
-        app.globalData.access_token = token
-        app.globalData.userInfo = userInfo
-        app.globalData.isLoggedIn = true
+        // 恢复登录状态到 MobX Store
+        if (!userStore.isLoggedIn) {
+          userStore.setLoginState(userInfo, token, wx.getStorageSync('refresh_token') || '')
+        }
 
         // 🔴 增强：Token有效性验证，包含过期检查
         // 不在这里设置pageLoaded，让页面保持loading状态直到跳转完成
@@ -392,12 +352,12 @@ Page({
         // 已检测到登录状态
         return true
       } else {
-        console.log('🔍 未检测到有效的登录状态，显示登录表单')
+        log.info('🔍 未检测到有效的登录状态，显示登录表单')
         // 未检测到登录状态
         return false
       }
     } catch (error) {
-      console.error('❌ 检查登录状态时出错:', error)
+      log.error('❌ 检查登录状态时出错:', error)
       // 出错时返回未登录
       return false
     }
@@ -410,7 +370,7 @@ Page({
   validateTokenAndRedirect(token, userInfo) {
     // 🔴 Token格式预检查
     if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
-      console.error('❌ Token格式无效，需要重新登录')
+      log.error('❌ Token格式无效，需要重新登录')
       this.clearInvalidLoginState()
       return
     }
@@ -423,12 +383,12 @@ Page({
 
       if (payload.exp && payload.exp < now) {
         const expiredMinutes = Math.floor((now - payload.exp) / 60)
-        console.error('❌ Token已过期:', expiredMinutes + '分钟前')
+        log.error('❌ Token已过期:', expiredMinutes + '分钟前')
         this.clearInvalidLoginState()
         return
       }
     } catch (decodeError) {
-      console.error('❌ Token解码失败:', decodeError.message)
+      log.error('❌ Token解码失败:', decodeError.message)
       this.clearInvalidLoginState()
       return
     }
@@ -438,7 +398,7 @@ Page({
     verifyToken()
       .then(result => {
         // 🔴 详细日志：检查后端实际返回的数据结构
-        console.log('🔍 Token验证响应详细检查:', {
+        log.info('🔍 Token验证响应详细检查:', {
           success: result.success,
           hasData: !!result.data,
           dataKeys: result.data ? Object.keys(result.data) : [],
@@ -450,10 +410,10 @@ Page({
         // 🔴 按照文档规范验证：文档 Line 1846, 1870
         // 文档明确说明：data.valid 是"关键验证字段"
         if (result.success && result.data && result.data.valid === true) {
-          console.log('✅ V4.0 Token验证成功（data.valid === true），自动跳转到主页面')
+          log.info('✅ V4.0 Token验证成功（data.valid === true），自动跳转到主页面')
           this.redirectToMainPage(userInfo)
         } else {
-          console.error('❌ V4.0 Token验证失败，原因:', {
+          log.error('❌ V4.0 Token验证失败，原因:', {
             success: result.success,
             hasData: !!result.data,
             hasValidField: result.data ? 'valid' in result.data : false,
@@ -464,7 +424,7 @@ Page({
         }
       })
       .catch(error => {
-        console.warn('⚠️ Token验证失败:', error)
+        log.warn('⚠️ Token验证失败:', error)
 
         // 🔴 修复：通过 isAuthError 标记区分认证错误和网络错误
         // APIClient.handleTokenInvalid() 已设置 error.isAuthError = true
@@ -476,7 +436,7 @@ Page({
 
         if (isAuthError) {
           // 明确的认证错误 → 清理登录状态，显示后端返回的具体原因
-          console.error('❌ 认证失败:', error.code, error.message)
+          log.error('❌ 认证失败:', error.code, error.message)
           this.clearInvalidLoginState()
         } else {
           // 网络错误 → 给用户选择重试或重新登录
@@ -491,7 +451,7 @@ Page({
                 this.clearInvalidLoginState()
               } else {
                 // 用户选择稍后重试，假设登录有效并跳转
-                console.log('🔄 用户选择稍后重试，假设登录有效')
+                log.info('🔄 用户选择稍后重试，假设登录有效')
                 this.redirectToMainPage(userInfo)
               }
             }
@@ -504,19 +464,10 @@ Page({
    * 🔴 新增：清理无效登录状态
    */
   clearInvalidLoginState() {
-    const app = getApp()
+    log.info('🧹 清理无效登录状态')
 
-    console.log('🧹 清理无效登录状态')
-
-    // 清理全局状态
-    app.globalData.access_token = null
-    app.globalData.refresh_token = null
-    app.globalData.userInfo = null
-    app.globalData.isLoggedIn = false
-
-    // 清理本地存储
-    wx.removeStorageSync('access_token')
-    wx.removeStorageSync('refresh_token')
+    // 委托 MobX Store 清理（Store 内部同步清理 Storage）
+    userStore.clearLoginState()
     wx.removeStorageSync('user_info')
 
     // 显示登录表单
@@ -533,7 +484,7 @@ Page({
    * 🔧 处理初始化错误
    */
   handleInitError(error) {
-    console.error('❌ 页面初始化错误:', error)
+    log.error('❌ 页面初始化错误:', error)
 
     this.setData({
       pageLoaded: true,
@@ -571,14 +522,14 @@ Page({
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady() {
-    console.log('🎨 认证页面渲染完成')
+    log.info('🎨 认证页面渲染完成')
   },
 
   /**
    * 生命周期函数--监听页面显示
    */
   onShow() {
-    console.log('🔄 认证页面显示')
+    log.info('🔄 认证页面显示')
 
     // 🔧 重置登录状态标志
     this.setData({
@@ -588,7 +539,7 @@ Page({
 
     // 🔧 检查是否需要重新加载页面状态
     if (this.data.initError) {
-      console.log('🔄 检测到初始化错误，尝试重新初始化...')
+      log.info('🔄 检测到初始化错误，尝试重新初始化...')
       this.safeInitPage()
     }
   },
@@ -597,7 +548,7 @@ Page({
    * 生命周期函数--监听页面隐藏
    */
   onHide() {
-    console.log('🔄 认证页面隐藏')
+    log.info('🔄 认证页面隐藏')
 
     // 🔧 清理定时器
     if (this.countdownTimer) {
@@ -617,7 +568,7 @@ Page({
    * 生命周期函数--监听页面卸载
    */
   onUnload() {
-    console.log('🔄 认证页面卸载')
+    log.info('🔄 认证页面卸载')
 
     // 🆕 销毁MobX Store绑定
     if (this.storeBindings) {
@@ -640,12 +591,12 @@ Page({
   setupWebSocketListener() {
     try {
       const app = getApp()
-      if (app && app.registerWebSocketHandler) {
-        app.registerWebSocketHandler('auth_status', this.onWebSocketMessage.bind(this))
-        console.log('✅ WebSocket监听器已设置')
+      if (app && app.subscribeWebSocketMessages) {
+        app.subscribeWebSocketMessages('auth', this.onWebSocketMessage.bind(this))
+        log.info('✅ WebSocket监听器已设置')
       }
     } catch (error) {
-      console.warn('⚠️ 设置WebSocket监听失败:', error)
+      log.warn('⚠️ 设置WebSocket监听失败:', error)
     }
   },
 
@@ -655,12 +606,12 @@ Page({
   cleanupWebSocketListener() {
     try {
       const app = getApp()
-      if (app && app.unregisterWebSocketHandler) {
-        app.unregisterWebSocketHandler('auth_status', this.onWebSocketMessage.bind(this))
-        console.log('✅ WebSocket监听器已清理')
+      if (app && app.unsubscribeWebSocketMessages) {
+        app.unsubscribeWebSocketMessages('auth')
+        log.info('✅ WebSocket监听器已清理')
       }
     } catch (error) {
-      console.warn('⚠️ 清理WebSocket监听失败:', error)
+      log.warn('⚠️ 清理WebSocket监听失败:', error)
     }
   },
 
@@ -668,16 +619,16 @@ Page({
    * 🔧 WebSocket消息处理
    */
   onWebSocketMessage(eventName, data) {
-    console.log('📡 收到WebSocket消息:', eventName, data)
+    log.info('📡 收到WebSocket消息:', eventName, data)
 
     // 处理认证相关的实时消息
     if (eventName === 'auth_status' && data) {
       if (data.type === 'login_success') {
         // 登录成功的实时通知
-        console.log('✅ 收到登录成功的实时通知')
+        log.info('✅ 收到登录成功的实时通知')
       } else if (data.type === 'token_expired') {
         // Token过期的实时通知
-        console.log('⚠️ 收到Token过期的实时通知')
+        log.info('⚠️ 收到Token过期的实时通知')
         wx.showToast({
           title: '登录已过期',
           icon: 'none',
@@ -691,7 +642,7 @@ Page({
    * 页面相关事件处理函数--监听用户下拉动作
    */
   onPullDownRefresh() {
-    console.log('🔄 下拉刷新认证页面')
+    log.info('🔄 下拉刷新认证页面')
 
     // 重新初始化页面
     this.safeInitPage()
@@ -734,7 +685,7 @@ Page({
       ['formErrors.mobile']: isValid ? '' : '请输入正确的手机号'
     })
 
-    console.log('📱 手机号输入:', mobile, '验证结果:', isValid)
+    log.info('📱 手机号输入:', mobile, '验证结果:', isValid)
   },
 
   /**
@@ -760,7 +711,7 @@ Page({
       ['formErrors.verification_code']: isValid ? '' : '请输入6位数字验证码'
     })
 
-    console.log('🔐 验证码输入:', verification_code, '格式验证结果:', isValid)
+    log.info('🔐 验证码输入:', verification_code, '格式验证结果:', isValid)
   },
 
   /**
@@ -804,7 +755,7 @@ Page({
     // 🔴 V4.0：调用统一的发送验证码API方法
     this.sendVerificationCode(this.data.mobile)
       .then(result => {
-        console.log('✅ 验证码发送成功:', result)
+        log.info('✅ 验证码发送成功:', result)
 
         wx.showToast({
           title: result.success ? '验证码已发送' : result.message,
@@ -816,7 +767,7 @@ Page({
         }
       })
       .catch(error => {
-        console.error('❌ 验证码发送失败:', error)
+        log.error('❌ 验证码发送失败:', error)
         this.handleSendCodeError(error)
       })
       .finally(() => {
@@ -894,7 +845,7 @@ Page({
     this.setData({
       agreementChecked
     })
-    console.log('✅ 用户协议状态变化:', agreementChecked)
+    log.info('✅ 用户协议状态变化:', agreementChecked)
   },
 
   /**
@@ -945,7 +896,7 @@ Page({
   onSubmitLogin() {
     // 🔧 防止重复提交
     if (this.data.submitting || this.data.loginCompleted) {
-      console.log('⚠️ 登录正在进行中或已完成，忽略重复提交')
+      log.info('⚠️ 登录正在进行中或已完成，忽略重复提交')
       return
     }
 
@@ -985,7 +936,7 @@ Page({
       loginCompleted: false
     })
 
-    console.log('🔐 开始统一登录流程 - 权限简化版v2.2.0')
+    log.info('🔐 开始统一登录流程 - 权限简化版v2.2.0')
     this.performUnifiedLogin(formData)
   },
 
@@ -1031,7 +982,7 @@ Page({
    * })
    */
   performUnifiedLogin(formData, retryCount = 0) {
-    console.log('🔐 执行V4.0统一登录:', {
+    log.info('🔐 执行V4.0统一登录:', {
       mobile: formData.mobile,
       verification_code: formData.verification_code,
       retryCount
@@ -1040,7 +991,7 @@ Page({
     // 🔧 登录超时保护
     const loginTimeout = setTimeout(() => {
       if (!this.data.loginCompleted) {
-        console.warn('🚨 登录请求超时，强制结束')
+        log.warn('🚨 登录请求超时，强制结束')
         this.setData({
           submitting: false,
           logging: false,
@@ -1063,16 +1014,16 @@ Page({
         clearTimeout(loginTimeout)
 
         if (this.data.loginCompleted) {
-          console.log('⚠️ 登录已完成，忽略后续响应')
+          log.info('⚠️ 登录已完成，忽略后续响应')
           return
         }
 
         // 🔴 V4登录结果检查
         if (result && result.success === true) {
-          console.log('✅ V4统一登录成功:', result)
+          log.info('✅ V4统一登录成功:', result)
           this.handleV4LoginSuccess(result)
         } else {
-          console.log('❌ V4统一登录失败:', result)
+          log.info('❌ V4统一登录失败:', result)
           this.handleLoginFailure(result || new Error('登录失败，未收到有效响应'))
         }
       })
@@ -1080,11 +1031,11 @@ Page({
         clearTimeout(loginTimeout)
 
         if (this.data.loginCompleted) {
-          console.log('⚠️ 登录已完成，忽略错误响应')
+          log.info('⚠️ 登录已完成，忽略错误响应')
           return
         }
 
-        console.error('❌ 统一登录失败:', error)
+        log.error('❌ 统一登录失败:', error)
         this.handleLoginFailure(error)
       })
   },
@@ -1097,11 +1048,11 @@ Page({
    * 复用子函数：parseAndValidateJWT(), buildUserInfoObject(), saveAuthDataToStorage()
    */
   async handleV4LoginSuccess(loginData) {
-    console.log('✅ 处理V4登录成功数据 - 方案B重构版')
+    log.info('✅ 处理V4登录成功数据 - 方案B重构版')
 
     // ===== 步骤1：数据完整性检查 =====
     if (!loginData || !loginData.data) {
-      console.error('❌ V4登录数据格式错误')
+      log.error('❌ V4登录数据格式错误')
       this.handleLoginFailure(new Error('V4登录数据格式错误'))
       return
     }
@@ -1110,7 +1061,6 @@ Page({
     this.setData({ loginCompleted: true })
 
     try {
-      const app = getApp()
       const responseData = loginData.data
 
       // ===== 步骤2：提取V4双Token和用户信息 =====
@@ -1118,7 +1068,7 @@ Page({
       const refreshToken = responseData.refresh_token
       const rawUserInfo = responseData.user
 
-      console.log('🔑 V4 Token信息:', {
+      log.info('🔑 V4 Token信息:', {
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
         expiresIn: responseData.expires_in
@@ -1129,18 +1079,18 @@ Page({
       }
 
       // ===== 步骤3：解析JWT Token（复用子函数） =====
-      console.log('🔐 步骤3：解析JWT Token...')
+      log.info('🔐 步骤3：解析JWT Token...')
       const jwtData = parseAndValidateJWT(accessToken)
-      console.log('✅ JWT解析成功:', {
+      log.info('✅ JWT解析成功:', {
         is_admin: jwtData.is_admin,
         user_role: jwtData.user_role,
         role_level: jwtData.role_level
       })
 
       // ===== 步骤4：构建用户信息（复用子函数） =====
-      console.log('👤 步骤4：构建用户信息对象...')
+      log.info('👤 步骤4：构建用户信息对象...')
       const userInfo = buildUserInfoObject(rawUserInfo, jwtData)
-      console.log('✅ 用户信息构建完成:', {
+      log.info('✅ 用户信息构建完成:', {
         user_id: userInfo.user_id,
         mobile: userInfo.mobile,
         is_admin: userInfo.is_admin,
@@ -1149,53 +1099,47 @@ Page({
       })
 
       // ===== 步骤5：保存认证数据（复用子函数） =====
-      console.log('💾 步骤5：保存认证数据...')
+      log.info('💾 步骤5：保存认证数据...')
       saveAuthDataToStorage(accessToken, refreshToken, userInfo)
 
       // 🔍 验证保存后的数据
-      console.log('🔍 验证存储的用户信息:', {
+      log.info('🔍 验证存储的用户信息:', {
         storage_user_info: wx.getStorageSync('user_info'),
-        global_user_info: app.globalData.userInfo
+        store_user_info: userStore.userInfo
       })
 
       // ===== 步骤6：获取积分余额（V4.0规范） =====
-      console.log('💰 步骤6：获取用户积分余额...')
+      log.info('💰 步骤6：获取用户积分余额...')
       try {
         const { getPointsBalance } = API
         const balanceResult = await getPointsBalance()
 
         if (balanceResult && balanceResult.success && balanceResult.data) {
-          // 后端资产余额API返回字段：available_amount（可用余额）、frozen_amount（冻结余额）、total_amount（总余额）
-          const points = balanceResult.data.available_amount || 0
-          console.log('✅ 积分余额获取成功:', points)
+          // 后端资产余额API返回字段：available_amount（可用余额）、frozen_amount（冻结余额）
+          const availablePoints = balanceResult.data.available_amount || 0
+          const frozenPoints = balanceResult.data.frozen_amount || 0
+          log.info('✅ 积分余额获取成功:', { availablePoints, frozenPoints })
 
-          // 更新全局积分
-          if (app && app.updatePointsBalance) {
-            app.updatePointsBalance(points)
-          }
-
-          // 更新用户信息中的积分（total_amount = available_amount + frozen_amount）
-          userInfo.points = points
-          ;(userInfo as any).total_amount = balanceResult.data.total_amount || points
-          wx.setStorageSync('user_info', userInfo)
+          // 直接更新MobX Store（决策3：废弃app.updatePointsBalance间接路径）
+          pointsStore.setBalance(availablePoints, frozenPoints)
         } else {
-          console.warn('⚠️ 积分余额获取失败，使用默认值0')
+          log.warn('⚠️ 积分余额获取失败，使用默认值0')
         }
       } catch (pointsError) {
-        console.error('❌ 获取积分余额异常:', pointsError)
-        console.warn('⚠️ 积分获取失败不影响登录流程，继续跳转')
+        log.error('❌ 获取积分余额异常:', pointsError)
+        log.warn('⚠️ 积分获取失败不影响登录流程，继续跳转')
       }
 
       // ===== 步骤7：跳转到抽奖页面 =====
-      console.log('✅ V4登录处理完成，准备跳转到抽奖页面')
+      log.info('✅ V4登录处理完成，准备跳转到抽奖页面')
 
       // 🔍 调试：验证数据是否已正确保存
-      console.log('🔍 登录后数据验证:', {
+      log.info('🔍 登录后数据验证:', {
         storageToken: !!wx.getStorageSync('access_token'),
         storageUserInfo: !!wx.getStorageSync('user_info'),
-        globalToken: !!app.globalData.access_token,
-        globalUserInfo: !!app.globalData.userInfo,
-        globalIsLoggedIn: app.globalData.isLoggedIn,
+        storeToken: !!userStore.accessToken,
+        storeUserInfo: !!userStore.userInfo,
+        storeIsLoggedIn: userStore.isLoggedIn,
         userInfoDetail: wx.getStorageSync('user_info')
       })
 
@@ -1203,7 +1147,7 @@ Page({
         url: '/pages/lottery/lottery'
       })
     } catch (error) {
-      console.error('❌ V4登录处理异常:', error)
+      log.error('❌ V4登录处理异常:', error)
       this.handleLoginFailure(error)
     }
   },
@@ -1212,7 +1156,7 @@ Page({
    * 🔴 新增：优化的跳转流程（减少延迟）
    */
   performOptimizedRedirect() {
-    console.log('🚀 执行优化跳转 - 立即跳转到抽奖页面')
+    log.info('🚀 执行优化跳转 - 立即跳转到抽奖页面')
 
     try {
       this.setData({
@@ -1221,10 +1165,10 @@ Page({
       })
 
       // 🔴 关键修复：立即跳转，不延迟等待
-      console.log('🎰 立即跳转到抽奖页面')
+      log.info('🎰 立即跳转到抽奖页面')
       this.immediateRedirectToLottery()
     } catch (error) {
-      console.error('❌ 跳转过程中出错:', error)
+      log.error('❌ 跳转过程中出错:', error)
       this.handleSimpleNavigationFailure(error)
     }
   },
@@ -1234,25 +1178,25 @@ Page({
    * 🔧 优化：使用reLaunch避免在auth页面停留
    */
   immediateRedirectToLottery() {
-    console.log('🎰 立即跳转到抽奖页面（无延迟）')
+    log.info('🎰 立即跳转到抽奖页面（无延迟）')
 
     // 🔴 关键修复：使用reLaunch立即跳转，清空页面栈
     wx.reLaunch({
       url: '/pages/lottery/lottery',
       success: () => {
-        console.log('✅ 抽奖页面跳转成功（reLaunch）')
+        log.info('✅ 抽奖页面跳转成功（reLaunch）')
       },
       fail: error => {
-        console.error('❌ reLaunch跳转失败，尝试switchTab:', error)
+        log.error('❌ reLaunch跳转失败，尝试switchTab:', error)
 
         // 备用方案：使用switchTab
         wx.switchTab({
           url: '/pages/lottery/lottery',
           success: () => {
-            console.log('✅ 抽奖页面跳转成功（switchTab）')
+            log.info('✅ 抽奖页面跳转成功（switchTab）')
           },
           fail: switchError => {
-            console.error('❌ switchTab也失败:', switchError)
+            log.error('❌ switchTab也失败:', switchError)
             // 最后的备用方案
             this.immediateAlternativeNavigation(error)
           }
@@ -1265,13 +1209,13 @@ Page({
    * 🔴 新增：立即备用导航方案（无延迟）
    */
   immediateAlternativeNavigation(originalError) {
-    console.log('🔄 立即尝试备用导航方案...')
+    log.info('🔄 立即尝试备用导航方案...')
 
     // 备用方案1：立即使用reLaunch
     wx.reLaunch({
       url: '/pages/lottery/lottery',
       success: () => {
-        console.log('✅ reLaunch跳转成功（立即备用方案）')
+        log.info('✅ reLaunch跳转成功（立即备用方案）')
         wx.showToast({
           title: '登录成功！',
           icon: 'success',
@@ -1279,13 +1223,13 @@ Page({
         })
       },
       fail: reLaunchError => {
-        console.error('❌ reLaunch也失败:', reLaunchError)
+        log.error('❌ reLaunch也失败:', reLaunchError)
 
         // 备用方案2：立即使用navigateTo跳转到抽奖页面
         wx.navigateTo({
           url: '/pages/lottery/lottery',
           success: () => {
-            console.log('✅ navigateTo跳转到抽奖页面成功（立即）')
+            log.info('✅ navigateTo跳转到抽奖页面成功（立即）')
             wx.showToast({
               title: '登录成功！',
               icon: 'success',
@@ -1293,7 +1237,7 @@ Page({
             })
           },
           fail: navError => {
-            console.error('❌ 所有跳转方案都失败:', navError)
+            log.error('❌ 所有跳转方案都失败:', navError)
             this.handleSimpleNavigationFailure(originalError)
           }
         })
@@ -1305,7 +1249,7 @@ Page({
    * 🔴 新增：简化的导航失败处理
    */
   handleSimpleNavigationFailure(error) {
-    console.error('❌ 页面跳转最终失败:', error)
+    log.error('❌ 页面跳转最终失败:', error)
 
     wx.showModal({
       title: '登录成功',
@@ -1334,10 +1278,10 @@ Page({
    * 🔧 跳转到主页面（简化版）
    */
   redirectToMainPage(userInfo) {
-    console.log('🔄 跳转到主页面 - 统一跳转到抽奖页面:', userInfo)
+    log.info('🔄 跳转到主页面 - 统一跳转到抽奖页面:', userInfo)
 
     // 🔴 简化：直接调用简化版跳转
-    console.log('🎰 开始跳转到抽奖页面（自动登录）')
+    log.info('🎰 开始跳转到抽奖页面（自动登录）')
     this.directSafeRedirectToLottery()
   },
 
@@ -1345,7 +1289,7 @@ Page({
    * 🔧 安全跳转到抽奖页面
    */
   directSafeRedirectToLottery() {
-    console.log('🎰 直接安全跳转到抽奖页面')
+    log.info('🎰 直接安全跳转到抽奖页面')
     this.immediateRedirectToLottery()
   },
 
@@ -1353,7 +1297,7 @@ Page({
    * 🔧 处理登录失败 - 增强版Token问题诊断
    */
   handleLoginFailure(error) {
-    console.error('❌ 登录失败处理:', error)
+    log.error('❌ 登录失败处理:', error)
 
     // 🔧 新增：Token问题智能诊断
     const tokenDiagnostics = this.diagnoseTokenIssues()
@@ -1369,7 +1313,7 @@ Page({
         // 自动重试延迟
         autoRetryDelay = DELAY.TOAST_LONG
 
-        console.log('🔧 检测到Token传输问题，准备自动修复...')
+        log.info('🔧 检测到Token传输问题，准备自动修复...')
 
         // 尝试自动清理和重试
         this.clearTokenCacheAndRetry()
@@ -1387,7 +1331,7 @@ Page({
 
     // 🔧 Token问题诊断报告
     if (tokenDiagnostics.hasIssues) {
-      console.log('📊 Token问题诊断报告:', tokenDiagnostics)
+      log.info('📊 Token问题诊断报告:', tokenDiagnostics)
       errorMessage += `\n\n技术诊断:\n${tokenDiagnostics.summary}`
     }
 
@@ -1409,7 +1353,7 @@ Page({
       modalConfig.success = res => {
         if (res.confirm) {
           // 重新尝试登录
-          console.log('🔄 用户选择重试登录')
+          log.info('🔄 用户选择重试登录')
           if (autoRetryDelay > 0) {
             setTimeout(() => {
               this.retryLoginWithTokenRepair()
@@ -1472,7 +1416,7 @@ Page({
         summary: issues.length > 0 ? issues.join('; ') : 'Token状态正常'
       }
     } catch (error) {
-      console.error('❌ Token诊断失败:', error)
+      log.error('❌ Token诊断失败:', error)
       return {
         hasIssues: true,
         issues: ['Token诊断失败'],
@@ -1486,7 +1430,7 @@ Page({
    * 🔧 新增：清理Token缓存并重试
    */
   clearTokenCacheAndRetry() {
-    console.log('🧹 清理Token缓存，准备重试...')
+    log.info('🧹 清理Token缓存，准备重试...')
 
     try {
       // 保存当前表单数据（使用snake_case字段名，与performUnifiedLogin一致）
@@ -1524,11 +1468,11 @@ Page({
 
       // 延迟重试，确保状态清理完成
       setTimeout(() => {
-        console.log('🔄 开始重新登录...')
+        log.info('🔄 开始重新登录...')
         this.performUnifiedLogin(currentFormData, 1)
       }, DELAY.TOAST_SHORT)
     } catch (error) {
-      console.error('❌ Token缓存清理失败:', error)
+      log.error('❌ Token缓存清理失败:', error)
       wx.showModal({
         title: '重试失败',
         content: '无法清理缓存，请手动重新登录',
@@ -1541,7 +1485,7 @@ Page({
    * 🔧 新增：带Token修复的重试登录
    */
   retryLoginWithTokenRepair() {
-    console.log('🔧 启动Token修复重试流程...')
+    log.info('🔧 启动Token修复重试流程...')
 
     // 使用snake_case字段名，与performUnifiedLogin一致
     const formData = {
@@ -1565,7 +1509,7 @@ Page({
       loginCompleted: false
     })
 
-    console.log('🔄 执行修复性重试登录...')
+    log.info('🔄 执行修复性重试登录...')
     this.clearTokenCacheAndRetry()
   },
 
@@ -1573,7 +1517,7 @@ Page({
    * 🔧 新增：显示网络诊断信息
    */
   showNetworkDiagnostics() {
-    console.log('🔍 显示网络诊断信息...')
+    log.info('🔍 显示网络诊断信息...')
 
     // 获取网络状态
     wx.getNetworkType({
