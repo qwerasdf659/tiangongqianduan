@@ -2,7 +2,7 @@
 <view class="card-container">
 
   <!-- ===== 单抽模式（3选1） ===== -->
-  <block wx:if="{{!isMultiFlip}}">
+  <block wx:if="{{!isMultiFlip && !isPickMode}}">
     <view class="card-title">
       <text>{{flipped ? '恭喜获得' : '选择一张卡牌'}}</text>
     </view>
@@ -41,7 +41,7 @@
   </block>
 
   <!-- ===== 连翻模式（N张逐张翻开） ===== -->
-  <block wx:else>
+  <block wx:elif="{{isMultiFlip}}">
     <view class="card-title">
       <text>{{allFlipped ? '翻牌完成！' : '点击卡牌逐张翻开'}}</text>
     </view>
@@ -83,6 +83,43 @@
     <!-- 全部翻开按钮（翻开至少1张后出现） -->
     <view class="flip-all-btn" wx:if="{{flippedCount > 0 && !allFlipped}}" bindtap="onFlipAll">
       <text>全部翻开</text>
+    </view>
+  </block>
+
+  <!-- ===== M选N 选牌模式 ===== -->
+  <block wx:elif="{{isPickMode}}">
+    <view class="card-title">
+      <text>选择 {{pickCount}} 张卡牌翻开</text>
+    </view>
+
+    <view class="pick-hint">
+      <text wx:if="{{pickPhase === 'picking'}}">已选 {{selectedIndices.length}}/{{pickCount}}</text>
+      <text wx:elif="{{pickPhase === 'flipping'}}">翻牌中...</text>
+      <text wx:else>翻牌完成!</text>
+    </view>
+
+    <view class="pick-grid">
+      <view
+        class="card-item pick-card {{item.selected ? 'pick-selected' : ''}} {{item.flipped ? 'flipped' : ''}}"
+        wx:for="{{cards}}" wx:key="index"
+        data-index="{{item.index}}"
+        bindtap="onTapPickCard">
+        <view class="card-inner">
+          <!-- 卡背 -->
+          <view class="card-face card-back">
+            <text class="card-back-num">{{item.index + 1}}</text>
+          </view>
+          <!-- 卡正面 -->
+          <view class="card-face card-front">
+            <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}">{{item.prize.icon || '🎁'}}</text>
+            <text class="card-prize-name">{{item.prize.name || '奖品'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card-cost" wx:if="{{costPoints > 0}}">
+      <text>消耗 {{costPoints}} 积分</text>
     </view>
   </block>
 

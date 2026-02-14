@@ -9,8 +9,6 @@
     "blindbox": "./sub/blindbox/blindbox",
     "gashapon": "./sub/gashapon/gashapon",
     "luckybag": "./sub/luckybag/luckybag",
-    "shake": "./sub/shake/shake",
-    "flipmulti": "./sub/flipmulti/flipmulti",
     "redpacket": "./sub/redpacket/redpacket",
     "slotmachine": "./sub/slotmachine/slotmachine",
     "whackmole": "./sub/whackmole/whackmole",

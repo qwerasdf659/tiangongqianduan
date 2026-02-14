@@ -33,11 +33,12 @@ Component({
   },
 
   observers: {
-    'rarity, enabled': function (rarity: string, enabled: boolean) {
+    'rarity, enabled'(rarity: string, enabled: boolean) {
       const validRarities = ['common', 'rare', 'epic', 'legendary']
       const safeRarity = validRarities.includes(rarity) ? rarity : 'common'
+      // 🔴 enabled=false 时不添加任何class，让硬编码样式作为保底
       this.setData({
-        rarityClass: enabled ? `rarity--${safeRarity}` : 'rarity--common'
+        rarityClass: enabled ? `rarity--${safeRarity}` : ''
       })
     }
   },
@@ -47,8 +48,9 @@ Component({
       const { rarity, enabled } = this.properties
       const validRarities = ['common', 'rare', 'epic', 'legendary']
       const safeRarity = validRarities.includes(rarity) ? rarity : 'common'
+      // 🔴 enabled=false 时不添加任何class，让硬编码样式作为保底
       this.setData({
-        rarityClass: enabled ? `rarity--${safeRarity}` : 'rarity--common'
+        rarityClass: enabled ? `rarity--${safeRarity}` : ''
       })
     }
   },

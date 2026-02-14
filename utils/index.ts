@@ -21,6 +21,7 @@ const apiFunctions = require('./api')
 const wechatFunctions = require('./wechat')
 const authHelperFunctions = require('./auth-helper')
 const errorFunctions = require('./simple-error')
+const configCacheFunctions = require('./config-cache')
 
 // ===== 功能模块分类导出 =====
 
@@ -148,7 +149,10 @@ const API: Record<string, any> = {
   approveConsumption: apiFunctions.approveConsumption,
   rejectConsumption: apiFunctions.rejectConsumption,
 
-  // ========== 系统通用 ==========
+  // ========== 系统通用 - 位置配置 ==========
+  getPlacementConfig: apiFunctions.getPlacementConfig,
+
+  // ========== 系统通用 - 公告/反馈/状态 ==========
   getAnnouncements: apiFunctions.getAnnouncements,
   getHomeAnnouncements: apiFunctions.getHomeAnnouncements,
   submitFeedback: apiFunctions.submitFeedback,
@@ -213,6 +217,12 @@ const ErrorHandler: Record<string, any> = {
   handleError: errorFunctions.handleError
 }
 
+/** 活动位置配置缓存管理器（单例） */
+const ConfigCache: Record<string, any> = {
+  configCache: configCacheFunctions.configCache,
+  validatePlacementConfig: configCacheFunctions.validatePlacementConfig
+}
+
 /** 项目核心常量 */
 const Constants: Record<string, any> = require('../config/constants')
 
@@ -220,7 +230,7 @@ const Constants: Record<string, any> = require('../config/constants')
 
 /**
  * 标准导入方式:
- * const { Utils, Validation, API, Wechat, ErrorHandler, Constants } = require('../../utils/index')
+ * const { Utils, Validation, API, Wechat, ErrorHandler, Constants, ConfigCache } = require('../../utils/index')
  */
 module.exports = {
   Utils,
@@ -228,7 +238,9 @@ module.exports = {
   API,
   Wechat,
   ErrorHandler,
-  Constants
+  Constants,
+  ConfigCache
 }
 
-export {}
+export { }
+

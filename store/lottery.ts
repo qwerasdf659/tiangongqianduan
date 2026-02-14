@@ -136,3 +136,8 @@ export const lotteryStore = observable({
     this.currentHighlight = -1
   })
 })
+
+
+
+
+

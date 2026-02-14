@@ -1,39 +1,283 @@
-<!-- 打地鼠抽奖组件 -->
+<!-- 打地鼠抽奖组件 - 超强交互升级版 -->
 <view class="whackmole-container">
+
+  <!-- 🌿 背景浮动粒子 -->
+  <view class="bg-particles" wx:if="{{particles.length > 0}}">
+    <view class="particle" wx:for="{{particles}}" wx:key="id"
+      style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;">
+      <text>{{item.icon}}</text>
+    </view>
+  </view>
+
+  <!-- 顶部信息栏 -->
   <view class="whack-header">
-    <text class="whack-title">打地鼠</text>
-    <view class="whack-stats">
-      <text class="stat-score">得分: {{score}}</text>
-      <text class="stat-time">{{timeLeft}}s</text>
-    </view>
-  </view>
-
-  <!-- 地鼠洞 3x3 -->
-  <view class="mole-grid">
-    <view class="mole-hole {{item ? 'active' : ''}}"
-      wx:for="{{holes}}" wx:key="index"
-      data-index="{{index}}"
-      bindtap="onWhack">
-      <view class="hole-bg"></view>
-      <view class="mole" wx:if="{{item}}">
-        <text class="mole-icon">🐹</text>
+    <view class="header-left">
+      <view class="title-wrapper">
+        <text class="whack-title">🔨 打地鼠</text>
+        <view class="title-shine"></view>
       </view>
-      <view class="whack-effect" wx:if="{{item}}">
-        <text>💥</text>
+    </view>
+    <view class="header-right">
+      <view class="score-badge animated">
+        <text class="score-icon">⭐</text>
+        <text class="score-value">{{score}}</text>
+        <view class="badge-glow"></view>
+      </view>
+      <view class="time-badge {{timeLeft <= 3 ? 'urgent' : ''}} animated">
+        <text class="time-icon">⏱️</text>
+        <text class="time-value">{{timeLeft}}s</text>
       </view>
     </view>
   </view>
 
-  <!-- 开始按钮 -->
-  <view class="whack-start" wx:if="{{gameState === 'ready'}}" bindtap="onStartGame">
-    <text>开始游戏</text>
+  <!-- 倒计时进度条 -->
+  <view class="timer-bar-container" wx:if="{{gameState === 'playing' || isCarnival}}">
+    <view class="timer-bar-fill {{timeLeft <= 3 ? 'urgent' : ''}} {{isCarnival ? 'carnival' : ''}}"
+      style="width: {{timePercent}}%">
+      <view class="timer-shine"></view>
+    </view>
+    <!-- 狂欢模式提示 -->
+    <view class="carnival-badge" wx:if="{{isCarnival}}">
+      <text class="carnival-icon">🌈</text>
+      <text class="carnival-text">狂欢模式 {{carnivalTimeLeft}}s</text>
+    </view>
   </view>
 
-  <view class="whack-result" wx:if="{{gameState === 'ended'}}">
-    <text>游戏结束! 得分: {{score}}</text>
+  <!-- Combo 提示 - 增强版 -->
+  <view class="combo-tip" wx:if="{{showCombo && gameState === 'playing'}}">
+    <view class="combo-wrapper">
+      <text class="combo-text">🔥 COMBO x{{comboCount}}</text>
+      <view class="combo-spark">✨</view>
+      <view class="combo-ring"></view>
+    </view>
   </view>
 
-  <view class="whack-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
+  <!-- 🔨 跟随光标的锤子 - 带样式变化 -->
+  <view class="hammer-cursor {{showHammer ? 'active' : ''}} hammer-{{hammerType}}"
+    style="left: {{hammerX}}px; top: {{hammerY}}px;" wx:if="{{gameState === 'playing' || isCarnival}}">
+    <text class="hammer-icon" wx:if="{{hammerType === 'normal'}}">🔨</text>
+    <text class="hammer-icon fire-hammer" wx:elif="{{hammerType === 'fire'}}">🔥🔨</text>
+    <text class="hammer-icon thunder-hammer" wx:elif="{{hammerType === 'thunder'}}">⚡🔨</text>
+    <view class="hammer-glow {{hammerType}}"></view>
   </view>
+
+  <!-- ⚠️ Miss特效 -->
+  <view class="miss-effect {{showMissEffect ? 'active' : ''}}" style="left: {{missEffectX}}px; top: {{missEffectY}}px;">
+    <text class="miss-text">Miss!</text>
+    <text class="miss-penalty">-1s</text>
+    <view class="dust-cloud">💨</view>
+  </view>
+
+  <!-- 地鼠洞 3x3 - 超强交互版 -->
+  <view class="mole-field">
+    <view class="mole-grid">
+      <view
+        class="mole-hole {{item ? 'active' : ''}} {{item === 'golden' ? 'golden' : ''}} {{item === 'bomb' ? 'bomb' : ''}} {{whackedHoles[index] ? 'whacked' : ''}}"
+        wx:for="{{holes}}" wx:key="index" data-index="{{index}}" bindtap="onWhack" catchtouchstart="onTouchStart"
+        catchtouchend="onTouchEnd">
+        <!-- 草丛装饰 -->
+        <view class="grass-deco grass-left">🌿</view>
+        <view class="grass-deco grass-right">🍃</view>
+
+        <!-- 土堆效果 -->
+        <view class="dirt-pile dirt-left"></view>
+        <view class="dirt-pile dirt-right"></view>
+
+        <!-- 洞口 - 3D效果 -->
+        <view class="hole-rim">
+          <view class="hole-rim-inner"></view>
+        </view>
+        <view class="hole-bg">
+          <view class="hole-shadow"></view>
+        </view>
+
+        <!-- 地鼠 - 增强版 -->
+        <view class="mole {{item === 'about-to-hide' ? 'hiding' : ''}}" wx:if="{{item}}">
+          <!-- 普通地鼠 -->
+          <view class="mole-body" wx:if="{{item === 'normal'}}">
+            <text class="mole-icon">🐹</text>
+            <view class="mole-eyes">
+              <text class="eye left">👁️</text>
+              <text class="eye right">👁️</text>
+            </view>
+            <view class="mole-alert-icon" wx:if="{{moleAlertIndex === index}}">❗</view>
+          </view>
+
+          <!-- 金色地鼠 -->
+          <view class="mole-body golden-body" wx:elif="{{item === 'golden'}}">
+            <text class="mole-icon golden-mole">🐹</text>
+            <view class="golden-sparkle">✨</view>
+            <view class="golden-crown">👑</view>
+          </view>
+
+          <!-- 彩虹地鼠 -->
+          <view class="mole-body rainbow-body" wx:elif="{{item === 'rainbow'}}">
+            <text class="mole-icon rainbow-mole">🐹</text>
+            <view class="rainbow-aura">🌈</view>
+            <view class="rainbow-stars">
+              <text class="rainbow-star">⭐</text>
+              <text class="rainbow-star">✨</text>
+              <text class="rainbow-star">💫</text>
+            </view>
+          </view>
+
+          <!-- 炸弹鼠 -->
+          <view class="mole-body bomb-body" wx:elif="{{item === 'bomb'}}">
+            <text class="mole-icon bomb-mole">💣</text>
+            <view class="bomb-fuse">💥</view>
+          </view>
+        </view>
+
+        <!-- 锤击特效 - 超强版 -->
+        <view class="whack-effect" wx:if="{{whackedHoles[index]}}">
+          <!-- 主爆炸效果 -->
+          <text class="whack-star main">💥</text>
+
+          <!-- 粒子爆炸 -->
+          <view class="particle-burst">
+            <text class="burst-particle p1">✨</text>
+            <text class="burst-particle p2">⭐</text>
+            <text class="burst-particle p3">💫</text>
+            <text class="burst-particle p4">🌟</text>
+          </view>
+
+          <!-- 分数提示 -->
+          <view class="score-popup">
+            <text class="whack-score" wx:if="{{item !== 'bomb'}}">+{{comboCount >= 2 ? comboCount : 1}}</text>
+            <text class="whack-score penalty" wx:elif="{{item === 'bomb'}}">-2</text>
+          </view>
+
+          <!-- 冲击波 -->
+          <view class="shockwave"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 🎉 庆祝特效 - 增强版 -->
+  <view class="celebration-effect" wx:if="{{showCelebration}}">
+    <view class="celebration-burst">
+      <text class="burst-item" wx:for="{{12}}" wx:key="*this" style="animation-delay: {{index * 0.05}}s;">{{index % 3
+        === 0 ? '🎉' : (index % 3 === 1 ? '⭐' : '✨')}}</text>
+    </view>
+    <view class="celebration-ring ring-1"></view>
+    <view class="celebration-ring ring-2"></view>
+    <view class="celebration-text">PERFECT!</view>
+  </view>
+
+  <!-- 开始按钮 - 游戏化设计 -->
+  <view class="whack-start-area" wx:if="{{gameState === 'ready'}}">
+    <view class="game-intro">
+      <view class="intro-icon">🎯</view>
+      <text class="intro-title">准备好了吗？</text>
+      <text class="intro-desc">快速点击冒出的地鼠得分！</text>
+    </view>
+
+    <view class="start-btn-wrapper">
+      <view class="start-btn" bindtap="onStartGame" hover-class="start-btn--active" hover-stay-time="100">
+        <view class="btn-shine"></view>
+        <text class="start-btn__icon">🎮</text>
+        <text class="start-btn__text">开始游戏</text>
+      </view>
+      <view class="start-btn-shadow"></view>
+    </view>
+
+    <view class="game-rules">
+      <view class="rule-item">
+        <text class="rule-icon">🐹</text>
+        <text class="rule-text">普通地鼠 +1分</text>
+      </view>
+      <view class="rule-item golden">
+        <text class="rule-icon">🐹✨</text>
+        <text class="rule-text">金色地鼠 +3分</text>
+      </view>
+      <view class="rule-item rainbow">
+        <text class="rule-icon">🐹🌈</text>
+        <text class="rule-text">彩虹地鼠 狂欢3秒</text>
+      </view>
+      <view class="rule-item bomb">
+        <text class="rule-icon">💣</text>
+        <text class="rule-text">炸弹地鼠 -3秒</text>
+      </view>
+      <view class="rule-item combo">
+        <text class="rule-icon">🔥</text>
+        <text class="rule-text">连击有加成！</text>
+      </view>
+      <view class="rule-item miss">
+        <text class="rule-icon">❌</text>
+        <text class="rule-text">点空地 -1秒</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 游戏结束 - 增强版 -->
+  <view class="whack-result-area" wx:if="{{gameState === 'ended'}}">
+    <view class="result-card">
+      <view class="result-trophy">🏆</view>
+      <text class="result-title">游戏结束！</text>
+
+      <view class="result-score-wrapper">
+        <view class="result-score-ring"></view>
+        <view class="result-score">
+          <text class="result-score__label">最终得分</text>
+          <text class="result-score__value">{{score}}</text>
+        </view>
+      </view>
+
+      <!-- 趣味评价 -->
+      <view class="result-evaluation funny-comment">
+        <text class="funny-text">{{funnyComment}}</text>
+      </view>
+
+      <!-- 详细统计 -->
+      <view class="result-stats-detailed">
+        <view class="stat-row">
+          <view class="stat-item">
+            <text class="stat-icon">🎯</text>
+            <view class="stat-info">
+              <text class="stat-value">{{totalHits}}</text>
+              <text class="stat-label">总命中数</text>
+            </view>
+          </view>
+          <view class="stat-item">
+            <text class="stat-icon">🔥</text>
+            <view class="stat-info">
+              <text class="stat-value">{{maxCombo}}</text>
+              <text class="stat-label">最高连击</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="stat-row">
+          <view class="stat-item">
+            <text class="stat-icon">📊</text>
+            <view class="stat-info">
+              <text class="stat-value">{{hitRate}}%</text>
+              <text class="stat-label">命中率</text>
+            </view>
+          </view>
+          <view class="stat-item">
+            <text class="stat-icon">❌</text>
+            <view class="stat-info">
+              <text class="stat-value">{{missCount}}</text>
+              <text class="stat-label">Miss次数</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 等待揭晓提示 -->
+      <view class="prize-waiting">
+        <text class="waiting-icon">🎁</text>
+        <text class="waiting-text">即将揭晓奖品...</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 消耗积分提示 -->
+  <view class="whack-cost" wx:if="{{costPoints > 0 && gameState === 'ready'}}">
+    <text class="cost-icon">💰</text>
+    <text class="cost-text">消耗 {{costPoints}} 积分</text>
+  </view>
+
 </view>

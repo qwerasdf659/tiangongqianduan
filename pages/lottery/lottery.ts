@@ -16,7 +16,7 @@
  * @version 2.0.0 (任务8瘦身)
  */
 
-const { Wechat, API, Utils, Constants } = require('../../utils/index')
+const { Wechat, API, Utils, Constants, ConfigCache } = require('../../utils/index')
 const { showToast } = Wechat
 const { checkAuth, restoreUserInfo } = Utils
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -147,8 +147,22 @@ Page({
     this._loadCampaigns()
   },
 
-  onPullDownRefresh() {
-    this._refreshPoints().finally(() => wx.stopPullDownRefresh())
+  async onPullDownRefresh() {
+    try {
+      /* 并行刷新：积分数据 + 位置配置 + 活动列表 */
+      await Promise.all([
+        this._refreshPoints(),
+        ConfigCache.configCache.forceRefresh().catch((refreshError: any) => {
+          console.warn('[lottery] 配置刷新失败（不影响主功能）:', refreshError)
+        })
+      ])
+      /* 配置刷新后重新加载活动列表 */
+      await this._loadCampaigns()
+    } catch (pullError) {
+      console.error('[lottery] 下拉刷新失败:', pullError)
+    } finally {
+      wx.stopPullDownRefresh()
+    }
   },
 
   onUnload() {
@@ -219,37 +233,99 @@ Page({
   },
 
   // ========================================
-  // 积分数据刷新
-  // ========================================
-  // 多活动加载（任务27）
+  // 多活动加载（任务27 + 位置配置缓存）
   // ========================================
 
-  /** 加载当前页面的活动列表 */
+  /**
+   * 加载当前页面的活动列表（集成位置配置缓存）
+   *
+   * 流程：
+   *   1. 通过 ConfigCache 获取活动位置配置（缓存优先）
+   *   2. 通过 API.getLotteryCampaigns 获取后端 active 活动列表
+   *   3. 将活动列表与位置配置合并，按位置分组和优先级排序
+   *   4. 设置 mainCampaign（position=main）和 extraCampaigns（其他位置）
+   */
   async _loadCampaigns() {
     try {
-      const res = await API.getLotteryCampaigns('active')
+      /* 并行获取：位置配置 + 活动列表 */
+      const [placementConfig, campaignsResult] = await Promise.all([
+        ConfigCache.configCache.getConfig(),
+        API.getLotteryCampaigns('active')
+      ])
 
-      if (!res?.success || !res.data) {
+      /* 活动列表数据校验 */
+      if (!campaignsResult?.success || !campaignsResult.data) {
+        console.warn('[lottery] 活动列表获取失败或为空')
         return
       }
 
-      const campaigns = Array.isArray(res.data) ? res.data : []
+      const activeCampaigns = Array.isArray(campaignsResult.data) ? campaignsResult.data : []
 
-      /* 主活动：第一个 active 状态的活动 */
-      const mainCampaign = campaigns[0] || null
+      /* 根据位置配置处理活动列表 */
+      const processedResult = this._processCampaignsWithPlacement(activeCampaigns, placementConfig)
 
-      /* 其他活动：排除主活动 */
-      const extraCampaigns = campaigns.slice(1)
+      this.setData({
+        mainCampaign: processedResult.mainCampaign,
+        extraCampaigns: processedResult.extraCampaigns
+      })
 
-      this.setData({ mainCampaign, extraCampaigns })
-    } catch (err) {
-      console.error('[lottery] 加载活动列表失败:', err)
-      /* 降级兜底：使用默认BASIC_LOTTERY */
+      console.log('✅ [lottery] 活动加载完成', {
+        mainCampaign: processedResult.mainCampaign?.campaign_code || '无',
+        extraCount: processedResult.extraCampaigns.length
+      })
+    } catch (loadError) {
+      console.error('[lottery] 加载活动列表失败:', loadError)
+      /* 降级兜底：使用默认 BASIC_LOTTERY */
       this.setData({
         mainCampaign: { campaign_code: 'BASIC_LOTTERY' },
         extraCampaigns: []
       })
     }
+  },
+
+  /**
+   * 根据位置配置处理活动列表
+   * 将后端返回的活动列表与位置配置合并，按位置分组和优先级排序
+   *
+   * @param activeCampaigns 后端返回的 active 活动列表
+   * @param placementConfig 位置配置数据
+   * @returns 分组后的主活动和其他活动
+   */
+  _processCampaignsWithPlacement(activeCampaigns: any[], placementConfig: any) {
+    /* 为每个活动附加位置信息 */
+    const campaignsWithPlacement = activeCampaigns
+      .map((campaign: any) => {
+        const matchedPlacement = placementConfig.placements.find(
+          (p: any) => p.campaign_code === campaign.campaign_code
+        )
+
+        if (!matchedPlacement) {
+          console.warn('[lottery] 活动未配置位置，已过滤:', campaign.campaign_code)
+          return null
+        }
+
+        return {
+          ...campaign,
+          placement: matchedPlacement.placement
+        }
+      })
+      .filter(Boolean)
+
+    /* 筛选当前页面（lottery）的活动 */
+    const lotteryPageCampaigns = campaignsWithPlacement.filter(
+      (c: any) => c.placement.page === 'lottery'
+    )
+
+    /* 主活动：position=main 的第一个 */
+    const mainCampaign =
+      lotteryPageCampaigns.find((c: any) => c.placement.position === 'main') || null
+
+    /* 其他活动：排除 main 位置，按 priority 降序排列 */
+    const extraCampaigns = lotteryPageCampaigns
+      .filter((c: any) => c.placement.position !== 'main')
+      .sort((a: any, b: any) => (b.placement.priority || 0) - (a.placement.priority || 0))
+
+    return { mainCampaign, extraCampaigns }
   },
 
   // ========================================

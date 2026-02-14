@@ -7,13 +7,33 @@
         var scratchMap = { '1': '单次刮', '3': '三连刮', '5': '五连刮', '10': '十连刮' }
         return scratchMap[count] || btn.label
       }
-      if (mode === 'card_flip') {
+      if (mode === 'card_flip' || mode === 'flip_card_multi') {
         var flipMap = { '1': '单翻', '3': '三连翻', '5': '五连翻', '10': '十连翻' }
         return flipMap[count] || btn.label
       }
       if (mode === 'golden_egg') {
         var eggMap = { '1': '单敲', '3': '三连敲', '5': '五连敲', '10': '十连敲' }
         return eggMap[count] || btn.label
+      }
+      if (mode === 'gashapon' || mode === 'blind_box') {
+        var gachaMap = { '1': '单扭', '3': '三连扭', '5': '五连扭', '10': '十连扭' }
+        return gachaMap[count] || btn.label
+      }
+      if (mode === 'lucky_bag') {
+        var bagMap = { '1': '单开', '3': '三连开', '5': '五连开', '10': '十连开' }
+        return bagMap[count] || btn.label
+      }
+      if (mode === 'red_packet') {
+        var packetMap = { '1': '单拆', '3': '三连拆', '5': '五连拆', '10': '十连拆' }
+        return packetMap[count] || btn.label
+      }
+      if (mode === 'slot_machine') {
+        var slotMap = { '1': '单拉', '3': '三连拉', '5': '五连拉', '10': '十连拉' }
+        return slotMap[count] || btn.label
+      }
+      if (mode === 'whack_mole') {
+        var moleMap = { '1': '单锤', '3': '三连锤', '5': '五连锤', '10': '十连锤' }
+        return moleMap[count] || btn.label
       }
       return btn.label
     },

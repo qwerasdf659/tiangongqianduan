@@ -76,20 +76,57 @@
         class="card-flip-container single-prize-card"
         wx:if="{{winAnimation === 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
       >
-        <view
-          class="card-flip-card {{cardEntered ? 'card-entered' : ''}} {{cardFlipped ? 'card-flipped' : ''}}"
-          bindtap="onCardTap"
+        <!-- 🌟 稀有度光效包裹整个卡牌 -->
+        <rarity-effects 
+          rarity="{{drawResult.prize.rarity || 'common'}}" 
+          enabled="{{rarityEffects && cardFlipped}}"
         >
-          <!-- 卡牌背面：统一花纹 + ❓ -->
-          <view class="card-flip-back">
-            <view class="card-back-pattern">
-              <view class="card-back-border"></view>
-              <text class="card-back-icon">❓</text>
-              <text class="card-back-hint">点击翻转</text>
+          <view
+            class="card-flip-card {{cardEntered ? 'card-entered' : ''}} {{cardFlipped ? 'card-flipped' : ''}}"
+            bindtap="onCardTap"
+          >
+            <!-- 卡牌背面：统一花纹 + ❓ -->
+            <view class="card-flip-back">
+              <view class="card-back-pattern">
+                <view class="card-back-border"></view>
+                <text class="card-back-icon">❓</text>
+                <text class="card-back-hint">点击翻转</text>
+              </view>
+            </view>
+            <!-- 卡牌正面：奖品信息 -->
+            <view class="card-flip-front">
+              <view class="prize-card-content">
+                <view class="winning-icon-container">
+                  <text class="winning-icon">🎁</text>
+                  <view class="icon-glow"></view>
+                </view>
+                <view class="winning-info">
+                  <text class="winning-name">{{drawResult.prize.name}}</text>
+                  <text class="winning-desc">{{drawResult.prize.description}}</text>
+                </view>
+                <view class="prize-card-decoration">
+                  <view class="decoration-dot"></view>
+                  <view class="decoration-dot"></view>
+                  <view class="decoration-dot"></view>
+                </view>
+              </view>
             </view>
           </view>
-          <!-- 卡牌正面：奖品信息 -->
-          <view class="card-flip-front">
+        </rarity-effects>
+      </view>
+
+      <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
+      <view
+        class="winning-prize-card single-prize-card"
+        wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
+      >
+        <!-- 🌟 稀有度光效包裹 -->
+        <rarity-effects 
+          rarity="{{drawResult.prize.rarity || 'common'}}" 
+          enabled="{{rarityEffects}}"
+        >
+          <view class="prize-card-bg">
+            <view class="prize-card-shine"></view>
             <view class="prize-card-content">
               <view class="winning-icon-container">
                 <text class="winning-icon">🎁</text>
@@ -106,32 +143,7 @@
               </view>
             </view>
           </view>
-        </view>
-      </view>
-
-      <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
-      <view
-        class="winning-prize-card single-prize-card"
-        wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
-      >
-        <view class="prize-card-bg">
-          <view class="prize-card-shine"></view>
-          <view class="prize-card-content">
-            <view class="winning-icon-container">
-              <text class="winning-icon">🎁</text>
-              <view class="icon-glow"></view>
-            </view>
-            <view class="winning-info">
-              <text class="winning-name">{{drawResult.prize.name}}</text>
-              <text class="winning-desc">{{drawResult.prize.description}}</text>
-            </view>
-            <view class="prize-card-decoration">
-              <view class="decoration-dot"></view>
-              <view class="decoration-dot"></view>
-              <view class="decoration-dot"></view>
-            </view>
-          </view>
-        </view>
+        </rarity-effects>
       </view>
 
       <!-- 未中奖提示卡片 -->
@@ -165,63 +177,75 @@
 
         <!-- 当前奖品展示卡片 - card_flip翻转模式（任务9） -->
         <view class="reveal-card-container" wx:if="{{winAnimation === 'card_flip'}}">
-          <view
-            class="card-flip-card {{cardEntered ? 'card-entered' : ''}} {{cardFlipped ? 'card-flipped' : ''}}"
-            bindtap="onCardTap"
+          <!-- 🌟 稀有度光效包裹 -->
+          <rarity-effects 
+            rarity="{{drawResult.prizes[multiDrawCurrentIndex].rarity || 'common'}}" 
+            enabled="{{rarityEffects && cardFlipped}}"
           >
-            <view class="card-flip-back">
-              <view class="card-back-pattern">
-                <view class="card-back-border"></view>
-                <text class="card-back-icon">❓</text>
-              </view>
-            </view>
-            <view class="card-flip-front">
-              <view class="reveal-card-content">
-                <view class="reveal-icon-container">
-                  <text
-                    class="reveal-prize-icon"
-                    wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
-                  >🎁</text>
-                  <text class="reveal-prize-icon not-winner" wx:else>💨</text>
-                  <view class="reveal-icon-glow"></view>
-                </view>
-                <view class="reveal-prize-info">
-                  <text class="reveal-prize-name">
-                    {{drawResult.prizes[multiDrawCurrentIndex].name}}
-                  </text>
-                  <text class="reveal-prize-desc">
-                    {{drawResult.prizes[multiDrawCurrentIndex].description}}
-                  </text>
+            <view
+              class="card-flip-card {{cardEntered ? 'card-entered' : ''}} {{cardFlipped ? 'card-flipped' : ''}}"
+              bindtap="onCardTap"
+            >
+              <view class="card-flip-back">
+                <view class="card-back-pattern">
+                  <view class="card-back-border"></view>
+                  <text class="card-back-icon">❓</text>
                 </view>
               </view>
+              <view class="card-flip-front">
+                <view class="reveal-card-content">
+                  <view class="reveal-icon-container">
+                    <text
+                      class="reveal-prize-icon"
+                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
+                    >🎁</text>
+                    <text class="reveal-prize-icon not-winner" wx:else>💨</text>
+                    <view class="reveal-icon-glow"></view>
+                  </view>
+                  <view class="reveal-prize-info">
+                    <text class="reveal-prize-name">
+                      {{drawResult.prizes[multiDrawCurrentIndex].name}}
+                    </text>
+                    <text class="reveal-prize-desc">
+                      {{drawResult.prizes[multiDrawCurrentIndex].description}}
+                    </text>
+                  </view>
+                </view>
+              </view>
             </view>
-          </view>
+          </rarity-effects>
         </view>
 
         <!-- 当前奖品展示卡片 - simple默认模式（原有逻辑） -->
         <view class="reveal-card-container" wx:else>
-          <view class="reveal-card {{multiDrawRevealing ? 'card-revealing' : 'card-revealed'}}">
-            <view class="reveal-card-front">
-              <view class="reveal-card-content">
-                <view class="reveal-icon-container">
-                  <text
-                    class="reveal-prize-icon"
-                    wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
-                  >🎁</text>
-                  <text class="reveal-prize-icon not-winner" wx:else>💨</text>
-                  <view class="reveal-icon-glow"></view>
-                </view>
-                <view class="reveal-prize-info">
-                  <text class="reveal-prize-name">
-                    {{drawResult.prizes[multiDrawCurrentIndex].name}}
-                  </text>
-                  <text class="reveal-prize-desc">
-                    {{drawResult.prizes[multiDrawCurrentIndex].description}}
-                  </text>
+          <!-- 🌟 稀有度光效包裹 -->
+          <rarity-effects 
+            rarity="{{drawResult.prizes[multiDrawCurrentIndex].rarity || 'common'}}" 
+            enabled="{{rarityEffects}}"
+          >
+            <view class="reveal-card {{multiDrawRevealing ? 'card-revealing' : 'card-revealed'}}">
+              <view class="reveal-card-front">
+                <view class="reveal-card-content">
+                  <view class="reveal-icon-container">
+                    <text
+                      class="reveal-prize-icon"
+                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
+                    >🎁</text>
+                    <text class="reveal-prize-icon not-winner" wx:else>💨</text>
+                    <view class="reveal-icon-glow"></view>
+                  </view>
+                  <view class="reveal-prize-info">
+                    <text class="reveal-prize-name">
+                      {{drawResult.prizes[multiDrawCurrentIndex].name}}
+                    </text>
+                    <text class="reveal-prize-desc">
+                      {{drawResult.prizes[multiDrawCurrentIndex].description}}
+                    </text>
+                  </view>
                 </view>
               </view>
             </view>
-          </view>
+          </rarity-effects>
         </view>
 
         <!-- 底部操作按钮 -->

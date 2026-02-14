@@ -26,25 +26,25 @@
 .scratch-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--theme-text, $color-text-primary);
   letter-spacing: 2rpx;
 }
 
 .scratch-badge {
-  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+  background: linear-gradient(135deg, var(--theme-primary, $color-primary), var(--theme-primary-dark, $color-primary-dark));
   padding: 4rpx 16rpx;
   border-radius: 20rpx;
 }
 
 .badge-text {
   font-size: 20rpx;
-  color: #fff;
+  color: var(--theme-text-inverse, #fff);
   font-weight: 600;
 }
 
 .scratch-subtitle {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--theme-text-light, $color-text-tertiary);
 }
 
 /* ===== 刮卡长条主体 ===== */
@@ -54,7 +54,7 @@
   border-radius: 20rpx;
   overflow: hidden;
   box-shadow:
-    0 12rpx 40rpx rgba(102, 126, 234, 0.15),
+    0 12rpx 40rpx var(--theme-shadow-soft, rgba(102, 126, 234, 0.15)),
     0 4rpx 16rpx rgba(0, 0, 0, 0.08);
 }
 
@@ -65,10 +65,21 @@
   flex-direction: row;
 
   /* 根据格子数量自适应高度 */
-  &.count-1 { height: 360rpx; }
-  &.count-3 { height: 280rpx; }
-  &.count-5 { height: 240rpx; }
-  &.count-10 { height: 200rpx; }
+  &.count-1 {
+    height: 360rpx;
+  }
+
+  &.count-3 {
+    height: 280rpx;
+  }
+
+  &.count-5 {
+    height: 240rpx;
+  }
+
+  &.count-10 {
+    height: 200rpx;
+  }
 }
 
 /* ===== 单个格子 ===== */
@@ -83,7 +94,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background: linear-gradient(145deg, #fffdf7 0%, #fff5eb 40%, #fff0e0 100%);
+  background: linear-gradient(145deg, var(--theme-bg-light, #fffdf7) 0%, var(--theme-bg-lighter, #fff5eb) 40%, var(--theme-bg-lightest, #fff0e0) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -103,10 +114,21 @@
 }
 
 /* 根据格子数量调整 icon 大小 */
-.count-1 .cell-prize-icon { font-size: 96rpx; }
-.count-3 .cell-prize-icon { font-size: 72rpx; }
-.count-5 .cell-prize-icon { font-size: 56rpx; }
-.count-10 .cell-prize-icon { font-size: 40rpx; }
+.count-1 .cell-prize-icon {
+  font-size: 96rpx;
+}
+
+.count-3 .cell-prize-icon {
+  font-size: 72rpx;
+}
+
+.count-5 .cell-prize-icon {
+  font-size: 56rpx;
+}
+
+.count-10 .cell-prize-icon {
+  font-size: 40rpx;
+}
 
 .cell-prize-icon.pop-in {
   animation: cellPrizeIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
@@ -115,7 +137,7 @@
 .cell-prize-name {
   font-size: 20rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--theme-text, $color-text-primary);
   text-align: center;
   max-width: 90%;
   overflow: hidden;
@@ -125,23 +147,26 @@
 }
 
 /* 1格和3格时名称字号更大 */
-.count-1 .cell-prize-name { font-size: 28rpx; }
-.count-3 .cell-prize-name { font-size: 24rpx; }
+.count-1 .cell-prize-name {
+  font-size: 28rpx;
+}
+
+.count-3 .cell-prize-name {
+  font-size: 24rpx;
+}
 
 /* ===== 格子覆盖涂层 ===== */
 .cell-cover {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    145deg,
-    #d4d4d8 0%,
-    #c0c0c8 20%,
-    #b8b8c0 40%,
-    #c8c8d0 60%,
-    #bcbcc4 80%,
-    #d0d0d8 100%
-  );
+  background: linear-gradient(145deg,
+      var(--theme-cover-start, #d4d4d8) 0%,
+      var(--theme-cover-mid1, #c0c0c8) 20%,
+      var(--theme-cover-mid2, #b8b8c0) 40%,
+      var(--theme-cover-mid3, #c8c8d0) 60%,
+      var(--theme-cover-mid4, #bcbcc4) 80%,
+      var(--theme-cover-end, #d0d0d8) 100%);
   z-index: 2;
   display: flex;
   align-items: center;
@@ -162,20 +187,16 @@
   width: 100%;
   height: 100%;
   background-image:
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       transparent,
       transparent 4rpx,
       rgba(255, 255, 255, 0.05) 4rpx,
-      rgba(255, 255, 255, 0.05) 8rpx
-    ),
-    repeating-linear-gradient(
-      90deg,
+      rgba(255, 255, 255, 0.05) 8rpx),
+    repeating-linear-gradient(90deg,
       transparent,
       transparent 4rpx,
       rgba(255, 255, 255, 0.03) 4rpx,
-      rgba(255, 255, 255, 0.03) 8rpx
-    );
+      rgba(255, 255, 255, 0.03) 8rpx);
   opacity: 0.8;
 }
 
@@ -184,11 +205,16 @@
   z-index: 1;
   font-size: 24rpx;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--theme-text-lighter, rgba(255, 255, 255, 0.5));
 }
 
-.count-1 .cell-number { font-size: 40rpx; }
-.count-3 .cell-number { font-size: 32rpx; }
+.count-1 .cell-number {
+  font-size: 40rpx;
+}
+
+.count-3 .cell-number {
+  font-size: 32rpx;
+}
 
 /* 格子分割线 */
 .cell-divider {
@@ -216,28 +242,39 @@
   position: absolute;
   width: 32rpx;
   height: 32rpx;
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--theme-border-light, rgba(255, 255, 255, 0.5));
   border-style: solid;
   border-width: 0;
 
   &--tl {
-    top: 8rpx; left: 8rpx;
-    border-top-width: 4rpx; border-left-width: 4rpx;
+    top: 8rpx;
+    left: 8rpx;
+    border-top-width: 4rpx;
+    border-left-width: 4rpx;
     border-top-left-radius: 6rpx;
   }
+
   &--tr {
-    top: 8rpx; right: 8rpx;
-    border-top-width: 4rpx; border-right-width: 4rpx;
+    top: 8rpx;
+    right: 8rpx;
+    border-top-width: 4rpx;
+    border-right-width: 4rpx;
     border-top-right-radius: 6rpx;
   }
+
   &--bl {
-    bottom: 8rpx; left: 8rpx;
-    border-bottom-width: 4rpx; border-left-width: 4rpx;
+    bottom: 8rpx;
+    left: 8rpx;
+    border-bottom-width: 4rpx;
+    border-left-width: 4rpx;
     border-bottom-left-radius: 6rpx;
   }
+
   &--br {
-    bottom: 8rpx; right: 8rpx;
-    border-bottom-width: 4rpx; border-right-width: 4rpx;
+    bottom: 8rpx;
+    right: 8rpx;
+    border-bottom-width: 4rpx;
+    border-right-width: 4rpx;
     border-bottom-right-radius: 6rpx;
   }
 }
@@ -276,14 +313,14 @@
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, $color-primary, #FFD700);
+  background: linear-gradient(90deg, var(--theme-primary, $color-primary), var(--theme-accent, #FFD700));
   border-radius: 5rpx;
   transition: width 0.3s ease;
 }
 
 .progress-text {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--theme-text-light, $color-text-tertiary);
   font-weight: 600;
   min-width: 60rpx;
   text-align: right;
@@ -309,7 +346,7 @@
   transition: background 0.3s ease, transform 0.3s ease;
 
   &.revealed {
-    background: rgba(255, 107, 53, 0.1);
+    background: var(--theme-primary-bg-light, rgba(255, 107, 53, 0.1));
     transform: scale(1.05);
   }
 }
@@ -327,16 +364,16 @@
 
 .footer-tip {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--theme-text-light, $color-text-tertiary);
 
   &.active {
-    color: $color-primary;
+    color: var(--theme-primary, $color-primary);
     font-weight: 600;
     animation: tipPulse 1s ease-in-out infinite;
   }
 
   &.done {
-    color: $color-success;
+    color: var(--theme-success, $color-success);
     font-weight: 600;
   }
 }
@@ -347,10 +384,12 @@
     opacity: 1;
     clip-path: inset(0 0 0 0);
   }
+
   40% {
     opacity: 0.6;
     clip-path: inset(0 0 0 40%);
   }
+
   100% {
     opacity: 0;
     clip-path: inset(10% 10% 10% 90%);
@@ -358,9 +397,20 @@
 }
 
 @keyframes cellPrizeIn {
-  0% { opacity: 0; transform: scale(0.3) translateY(20rpx); }
-  60% { opacity: 1; transform: scale(1.15) translateY(-4rpx); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(20rpx);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.15) translateY(-4rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
@@ -368,6 +418,7 @@
     opacity: 0;
     transform: translateY(16rpx);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -375,14 +426,40 @@
 }
 
 @keyframes guideSlide {
-  0%   { left: 8%;  opacity: 0; }
-  10%  { left: 8%;  opacity: 1; }
-  80%  { left: 82%; opacity: 1; }
-  90%  { left: 82%; opacity: 0; }
-  100% { left: 82%; opacity: 0; }
+  0% {
+    left: 8%;
+    opacity: 0;
+  }
+
+  10% {
+    left: 8%;
+    opacity: 1;
+  }
+
+  80% {
+    left: 82%;
+    opacity: 1;
+  }
+
+  90% {
+    left: 82%;
+    opacity: 0;
+  }
+
+  100% {
+    left: 82%;
+    opacity: 0;
+  }
 }
 
 @keyframes tipPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }

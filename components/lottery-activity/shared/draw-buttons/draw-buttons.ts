@@ -29,7 +29,7 @@ interface DrawButton {
 const DEFAULT_BUTTONS: DrawButton[] = [
   {
     count: 3,
-    label: '三连抽',
+    label: '三连开',
     totalCost: 300,
     btnClass: 'triple-btn',
     showGuarantee: false,
@@ -38,7 +38,7 @@ const DEFAULT_BUTTONS: DrawButton[] = [
   },
   {
     count: 5,
-    label: '五连抽',
+    label: '五连开',
     totalCost: 500,
     btnClass: 'five-btn',
     showGuarantee: false,
@@ -47,7 +47,7 @@ const DEFAULT_BUTTONS: DrawButton[] = [
   },
   {
     count: 10,
-    label: '十连抽',
+    label: '十连开',
     totalCost: 1000,
     btnClass: 'ten-btn special full-width',
     showGuarantee: true,

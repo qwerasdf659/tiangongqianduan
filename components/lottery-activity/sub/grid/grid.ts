@@ -45,7 +45,15 @@ Component({
     isInProgress: {
       type: Boolean,
       value: false
-    }
+    },
+    /** 特效主题 */
+    effectTheme: { type: String, value: 'default' },
+    /** 是否启用稀有度光效 */
+    rarityEffects: { type: Boolean, value: false },
+    /** 中奖动画类型 */
+    winAnimation: { type: String, value: 'simple' },
+    /** 网格列数（3或4） */
+    gridCols: { type: Number, value: 3 }
   },
 
   data: {

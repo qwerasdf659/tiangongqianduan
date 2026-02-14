@@ -16,7 +16,7 @@
 
 .timer-label {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
 }
 
 .timer-digits {
@@ -26,8 +26,8 @@
 }
 
 .digit-box {
-  background: #FF4444;
-  color: #fff;
+  background: var(--theme-primary, #FF4444);
+  color: var(--theme-text-inverse, #fff);
   font-size: 28rpx;
   font-weight: bold;
   padding: 6rpx 12rpx;
@@ -37,7 +37,7 @@
 }
 
 .digit-sep {
-  color: #FF4444;
+  color: var(--theme-primary, #FF4444);
   font-size: 28rpx;
   font-weight: bold;
 }
@@ -57,13 +57,13 @@
   justify-content: center;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 20rpx;
-  border: 2rpx solid rgba(255, 68, 68, 0.3);
+  border: 2rpx solid var(--theme-primary-border, rgba(255, 68, 68, 0.3));
   margin-bottom: 12rpx;
 
   &.grabbed {
     animation: grabSuccess 0.6s ease-out;
-    border-color: #4CAF50;
-    box-shadow: 0 0 20rpx rgba(76, 175, 80, 0.4);
+    border-color: var(--theme-success, #4CAF50);
+    box-shadow: 0 0 20rpx var(--theme-success-glow, rgba(76, 175, 80, 0.4));
   }
 }
 
@@ -73,7 +73,7 @@
 
 .prize-name {
   font-size: 26rpx;
-  color: #fff;
+  color: var(--theme-text-inverse, #fff);
   font-weight: bold;
 }
 
@@ -85,7 +85,7 @@
 .stock-bar {
   width: 100%;
   height: 16rpx;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--theme-bg-transparent, rgba(255, 255, 255, 0.1));
   border-radius: 8rpx;
   overflow: hidden;
   margin-bottom: 8rpx;
@@ -93,7 +93,7 @@
 
 .stock-fill {
   height: 100%;
-  background: linear-gradient(90deg, #FF6B6B, #FF4444);
+  background: linear-gradient(90deg, var(--theme-primary-light, #FF6B6B), var(--theme-primary, #FF4444));
   border-radius: 8rpx;
   transition: width 0.5s ease;
 
@@ -106,23 +106,23 @@
   display: flex;
   justify-content: space-between;
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--theme-text-lighter, rgba(255, 255, 255, 0.6));
 }
 
 .stock-hot {
-  color: #FF4444;
+  color: var(--theme-primary, #FF4444);
   font-weight: bold;
   animation: hotBlink 0.8s ease-in-out infinite alternate;
 }
 
 .grab-btn {
   padding: 18rpx 64rpx;
-  background: linear-gradient(135deg, #FF4444, #CC0000);
+  background: linear-gradient(135deg, var(--theme-primary, #FF4444), var(--theme-primary-dark, #CC0000));
   border-radius: 40rpx;
-  color: #fff;
+  color: var(--theme-text-inverse, #fff);
   font-size: 30rpx;
   font-weight: bold;
-  box-shadow: 0 4rpx 16rpx rgba(255, 68, 68, 0.4);
+  box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(255, 68, 68, 0.4));
 
   &.disabled {
     opacity: 0.5;
@@ -133,21 +133,41 @@
 .sale-cost {
   margin-top: 16rpx;
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
 }
 
 @keyframes grabSuccess {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes stockPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
 }
 
 @keyframes hotBlink {
-  from { opacity: 0.6; }
-  to { opacity: 1; }
+  from {
+    opacity: 0.6;
+  }
+
+  to {
+    opacity: 1;
+  }
 }

@@ -13,14 +13,14 @@
   height: 600rpx;
 }
 
-/* 外圈装饰灯 */
+/* 外圈装饰灯 - 使用主题色 */
 .wheel-outer-ring {
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2c3e50, #34495e);
-  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--theme-bg-dark, #2c3e50), var(--theme-bg-darker, #34495e));
+  box-shadow: 0 8rpx 30rpx var(--theme-shadow-strong, rgba(0, 0, 0, 0.3));
 }
 
 .wheel-light {
@@ -28,13 +28,13 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #FFD700;
+  background: var(--theme-accent, #FFD700);
   top: 50%;
   left: 50%;
   margin-left: -8rpx;
   margin-top: -8rpx;
   transform-origin: center center;
-  box-shadow: 0 0 8rpx #FFD700;
+  box-shadow: 0 0 8rpx var(--theme-accent, #FFD700);
   animation: lightBlink 1s ease-in-out infinite alternate;
 }
 
@@ -72,8 +72,8 @@
 
   &__name {
     font-size: 18rpx;
-    color: #fff;
-    text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.5);
+    color: var(--theme-text-inverse, #fff);
+    text-shadow: 0 1rpx 2rpx var(--theme-shadow-soft, rgba(0, 0, 0, 0.5));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -82,7 +82,7 @@
   }
 }
 
-/* 顶部指针（固定不动） */
+/* 顶部指针（固定不动） - 使用主题色 */
 .wheel-pointer {
   position: absolute;
   top: -20rpx;
@@ -96,11 +96,11 @@
   height: 0;
   border-left: 20rpx solid transparent;
   border-right: 20rpx solid transparent;
-  border-top: 40rpx solid #FF4444;
-  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.3));
+  border-top: 40rpx solid var(--theme-primary, #FF4444);
+  filter: drop-shadow(0 2rpx 4rpx var(--theme-shadow-soft, rgba(0, 0, 0, 0.3)));
 }
 
-/* 中心按钮 */
+/* 中心按钮 - 使用主题色 */
 .wheel-center-btn {
   position: absolute;
   top: 50%;
@@ -109,12 +109,12 @@
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
+  background: linear-gradient(135deg, var(--theme-primary, #FF6B6B), var(--theme-primary-dark, #ee5a24));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 16rpx rgba(238, 90, 36, 0.4);
+  box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(238, 90, 36, 0.4));
   z-index: 10;
 
   &.disabled {
@@ -124,13 +124,13 @@
 }
 
 .center-btn-text {
-  color: #fff;
+  color: var(--theme-text-inverse, #fff);
   font-size: 30rpx;
   font-weight: bold;
 }
 
 .center-btn-cost {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--theme-text-inverse-light, rgba(255, 255, 255, 0.8));
   font-size: 18rpx;
   margin-top: 2rpx;
 }

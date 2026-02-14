@@ -209,7 +209,11 @@ class APIClient {
    * 处理响应数据 - V4.0统一响应格式
    * 增强: 429频率限制、503服务不可用、409自动重试
    */
-  handleResponse(response: any, requestOptions?: RequestOptions, requestUrl?: string): ApiResponse | Promise<ApiResponse> {
+  handleResponse(
+    response: any,
+    requestOptions?: RequestOptions,
+    requestUrl?: string
+  ): ApiResponse | Promise<ApiResponse> {
     const { statusCode, data } = response
 
     // 401认证失败
@@ -557,10 +561,7 @@ async function performLottery(campaign_code: string, draw_count: number = 1): Pr
  * 获取当前用户抽奖历史（用户端，JWT解析身份）
  * 后端路由: GET /api/v4/lottery/history
  */
-async function getLotteryHistory(
-  page: number = 1,
-  limit: number = 20
-): Promise<ApiResponse> {
+async function getLotteryHistory(page: number = 1, limit: number = 20): Promise<ApiResponse> {
   return apiClient.request(`/lottery/history?page=${page}&limit=${limit}`, {
     method: 'GET',
     needAuth: true
@@ -576,10 +577,13 @@ async function getAdminLotteryHistory(
   page: number = 1,
   limit: number = 20
 ): Promise<ApiResponse> {
-  return apiClient.request(`/console/lottery-user-analysis/history/${user_id}?page=${page}&limit=${limit}`, {
-    method: 'GET',
-    needAuth: true
-  })
+  return apiClient.request(
+    `/console/lottery-user-analysis/history/${user_id}?page=${page}&limit=${limit}`,
+    {
+      method: 'GET',
+      needAuth: true
+    }
+  )
 }
 
 // ==================== 💰 资产系统API ====================
@@ -1053,6 +1057,35 @@ async function rejectConsumption(
 // ==================== 🌐 系统通用API ====================
 // 后端路由: routes/v4/system/
 
+/**
+ * 获取活动位置配置 - 后端路由: GET /api/v4/system/config/placement
+ * 用于前端根据后端配置动态控制活动在页面中的展示位置
+ * 无需登录即可获取（公开接口）
+ *
+ * 响应格式：
+ * {
+ *   success: true,
+ *   data: {
+ *     version: "1.0.5",
+ *     updated_at: "2026-02-14T10:30:00+08:00",
+ *     placements: [
+ *       {
+ *         campaign_code: "BASIC_LOTTERY",
+ *         placement: { page: "lottery", position: "main", size: "full", priority: 100 }
+ *       }
+ *     ]
+ *   }
+ * }
+ */
+async function getPlacementConfig(): Promise<ApiResponse> {
+  return apiClient.request('/system/config/placement', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
 /** 获取系统公告列表 - 后端路由: GET /api/v4/system/announcements */
 async function getAnnouncements(
   page: number = 1,
@@ -1194,7 +1227,10 @@ async function getAdminUserStatistics(user_id: number): Promise<ApiResponse> {
   if (!user_id) {
     throw new Error('用户ID不能为空')
   }
-  return apiClient.request(`/console/lottery-user-analysis/points/${user_id}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/console/lottery-user-analysis/points/${user_id}`, {
+    method: 'GET',
+    needAuth: true
+  })
 }
 
 /**
@@ -1213,7 +1249,10 @@ async function getAdminLotteryUserStatistics(user_id: number): Promise<ApiRespon
   if (!user_id) {
     throw new Error('用户ID不能为空')
   }
-  return apiClient.request(`/console/lottery-user-analysis/statistics/${user_id}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/console/lottery-user-analysis/statistics/${user_id}`, {
+    method: 'GET',
+    needAuth: true
+  })
 }
 
 /**
@@ -1373,7 +1412,10 @@ module.exports = {
   approveConsumption,
   rejectConsumption,
 
-  // 系统通用
+  // 系统通用 - 位置配置
+  getPlacementConfig,
+
+  // 系统通用 - 公告
   getAnnouncements,
   getHomeAnnouncements,
   submitFeedback,

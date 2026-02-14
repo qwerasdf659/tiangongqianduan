@@ -51,8 +51,9 @@ function normalizePrize(raw: any): any {
     status: raw.status ?? 'active'
   }
 }
+/** 默认配置：当后端没有返回mode时使用弹珠机作为兜底玩法 */
 const DEFAULT_DISPLAY = {
-  mode: 'golden_egg',
+  mode: 'pinball',
   grid_cols: 3,
   effect_theme: 'default',
   rarity_effects_enabled: false,
@@ -88,7 +89,7 @@ Component({
     config: null as any,
 
     /** display配置解析后的字段 */
-    displayMode: 'golden_egg',
+    displayMode: 'pinball',
     displayConfig: {} as any,
     effectTheme: 'default',
     rarityEffectsEnabled: false,
@@ -275,8 +276,12 @@ Component({
       try {
         const child = this.selectComponent('#lottery-sub')
         if (child) {
-          if (typeof child.resetCards === 'function') child.resetCards()
-          if (typeof child.resetEggs === 'function') child.resetEggs()
+          if (typeof child.resetCards === 'function') { child.resetCards() }
+          if (typeof child.resetEggs === 'function') { child.resetEggs() }
+          if (typeof child.resetBox === 'function') { child.resetBox() }
+          if (typeof child.resetBag === 'function') { child.resetBag() }
+          if (typeof child.resetPacket === 'function') { child.resetPacket() }
+          if (typeof child.resetGame === 'function') { child.resetGame() }
         }
       } catch (_e) {
         /* 静默失败 */
@@ -288,7 +293,83 @@ Component({
      */
     async onChildDraw(e: any) {
       const count = e?.detail?.count || 1
+
+      /* 打地鼠模式：特殊处理，抽奖成功后需要通知子组件开始游戏 */
+      if (this.data.displayMode === 'whack_mole') {
+        await this._handleWhackMoleDraw(count)
+        return
+      }
+
       await this._handleDraw(count)
+    },
+
+    /**
+     * 打地鼠专用抽奖处理
+     * 抽奖成功后调用子组件的 startGameWithPrize 方法开始游戏
+     */
+    async _handleWhackMoleDraw(count: number) {
+      if (this.data.isDrawing) { return }
+
+      const campaignCode = this.properties.campaignCode
+      const totalCost = this.data.costPerDraw * count
+
+      /* 积分不足检查 */
+      if (this.data.pointsBalance < totalCost) {
+        wx.showToast({ title: '积分不足', icon: 'none' })
+        this._resetSubComponent()
+        return
+      }
+
+      this.setData({ isDrawing: true })
+
+      try {
+        const result = await this._performDraw(campaignCode, count)
+
+        if (!result.success) {
+          wx.showToast({ title: result.message || '抽奖失败', icon: 'none' })
+          this.setData({ isDrawing: false })
+          this._resetSubComponent()
+          return
+        }
+
+        /* 更新积分余额 */
+        if (result.data.remaining_balance !== undefined) {
+          this.setData({ pointsBalance: result.data.remaining_balance })
+        }
+
+        /* 更新保底进度 */
+        if (result.data.guarantee_info !== undefined) {
+          this.setData({
+            guaranteeInfo: result.data.guarantee_info,
+            showGuaranteeEgg: this._checkGuaranteeReady(result.data.guarantee_info)
+          })
+        }
+
+        /* 缓存奖品数据 */
+        this.setData({
+          drawResult: {
+            prize: result.data.prizes?.[0] || {},
+            isMultiDraw: false,
+            isError: false
+          }
+        })
+
+        /* 通知打地鼠子组件开始游戏 */
+        const whackmoleComponent = this.selectComponent('#lottery-sub')
+        if (whackmoleComponent && typeof whackmoleComponent.startGameWithPrize === 'function') {
+          whackmoleComponent.startGameWithPrize(result.data)
+        } else {
+          console.error('[lottery-activity] 打地鼠组件未找到或方法不存在')
+          wx.showToast({ title: '游戏启动失败', icon: 'none' })
+          this.setData({ isDrawing: false })
+        }
+
+      } catch (err) {
+        console.error('[lottery-activity] 打地鼠抽奖失败:', err)
+        wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+        this.setData({ isDrawing: false })
+        this._resetSubComponent()
+      }
     },
 
     /**
@@ -302,13 +383,23 @@ Component({
         return
       }
       /* 卡牌翻转模式连抽：走专用连翻流程 */
-      if (this.data.displayMode === 'card_flip' && count > 1) {
+      if ((this.data.displayMode === 'card_flip' || this.data.displayMode === 'flip_card_multi') && count > 1) {
         await this._handleCardFlipMultiDraw(count)
         return
       }
       /* 砸金蛋模式连敲：走专用连敲流程 */
       if (this.data.displayMode === 'golden_egg' && count > 1) {
         await this._handleEggMultiDraw(count)
+        return
+      }
+      /* 福袋模式连开：走专用连开流程 */
+      if (this.data.displayMode === 'lucky_bag' && count > 1) {
+        await this._handleBagMultiDraw(count)
+        return
+      }
+      /* 红包模式连拆：走专用连拆流程 */
+      if (this.data.displayMode === 'red_packet' && count > 1) {
+        await this._handlePacketMultiDraw(count)
         return
       }
       await this._handleDraw(count)
@@ -319,7 +410,7 @@ Component({
      * 结果传给 card 子组件由用户手动逐张翻开，不触发自动翻转
      */
     async _handleCardFlipMultiDraw(count: number) {
-      if (this.data.isDrawing) return
+      if (this.data.isDrawing) { return }
 
       const campaignCode = this.properties.campaignCode
       const totalCost = this.data.costPerDraw * count
@@ -358,6 +449,15 @@ Component({
         if (result.data.remaining_balance !== undefined) {
           this.setData({ pointsBalance: result.data.remaining_balance })
         }
+
+        /* 🔧 优化用户体验：API调用完成、卡牌显示后，延迟500ms解除按钮禁用
+         * 用户可以边查看当前连翻结果，边继续进行下一次抽奖，不必等待翻完所有卡牌 */
+        setTimeout(() => {
+          this.setData({
+            isDrawing: false,
+            showResult: false  /* 连翻模式不显示结果弹窗，直接在卡牌上查看 */
+          })
+        }, 500)
       } catch (err) {
         console.error('[lottery-activity] 卡牌连抽失败:', err)
         wx.showToast({ title: '网络异常，请重试', icon: 'none' })
@@ -371,7 +471,7 @@ Component({
      * 结果传给 egg 子组件由用户手动逐个砸开或一键全砸
      */
     async _handleEggMultiDraw(count: number) {
-      if (this.data.isDrawing) return
+      if (this.data.isDrawing) { return }
 
       const campaignCode = this.properties.campaignCode
       const totalCost = this.data.costPerDraw * count
@@ -410,6 +510,15 @@ Component({
         if (result.data.remaining_balance !== undefined) {
           this.setData({ pointsBalance: result.data.remaining_balance })
         }
+
+        /* 🔧 优化用户体验：API调用完成、金蛋显示后，延迟500ms解除按钮禁用
+         * 用户可以边砸金蛋查看结果，边继续进行下一次抽奖 */
+        setTimeout(() => {
+          this.setData({
+            isDrawing: false,
+            showResult: false  /* 连敲模式不显示结果弹窗，直接在金蛋上查看 */
+          })
+        }, 500)
       } catch (err) {
         console.error('[lottery-activity] 金蛋连敲失败:', err)
         wx.showToast({ title: '网络异常，请重试', icon: 'none' })
@@ -419,7 +528,127 @@ Component({
     },
 
     /**
-     * 统一抽奖处理
+     * 福袋连开专用处理
+     * 结果传给 luckybag 子组件由用户手动逐个开启或一键全开
+     */
+    async _handleBagMultiDraw(count: number) {
+      if (this.data.isDrawing) { return }
+
+      const campaignCode = this.properties.campaignCode
+      const totalCost = this.data.costPerDraw * count
+
+      if (this.data.pointsBalance < totalCost) {
+        wx.showToast({ title: '积分不足', icon: 'none' })
+        this._resetSubComponent()
+        return
+      }
+
+      this.setData({ isDrawing: true })
+
+      try {
+        const result = await this._performDraw(campaignCode, count)
+
+        if (!result.success) {
+          wx.showToast({ title: result.message || '抽奖失败', icon: 'none' })
+          this.setData({ isDrawing: false })
+          this._resetSubComponent()
+          return
+        }
+
+        const prizes = result.data.prizes || []
+
+        this.setData({
+          drawResult: {
+            prizes,
+            isMultiDraw: true,
+            drawCount: count,
+            isError: false
+          },
+          isMultiDraw: true,
+          multiDrawResults: prizes
+        })
+
+        if (result.data.remaining_balance !== undefined) {
+          this.setData({ pointsBalance: result.data.remaining_balance })
+        }
+
+        /* 🔧 优化用户体验：API调用完成、福袋显示后，延迟500ms解除按钮禁用
+         * 用户可以边开福袋查看结果，边继续进行下一次抽奖 */
+        setTimeout(() => {
+          this.setData({
+            isDrawing: false,
+            showResult: false  /* 连开模式不显示结果弹窗，直接在福袋上查看 */
+          })
+        }, 500)
+      } catch (err) {
+        console.error('[lottery-activity] 福袋连开失败:', err)
+        wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+        this.setData({ isDrawing: false })
+        this._resetSubComponent()
+      }
+    },
+
+    /**
+     * 红包连拆专用处理
+     * 结果传给 redpacket 子组件由用户手动逐个拆开或一键全拆
+     */
+    async _handlePacketMultiDraw(count: number) {
+      if (this.data.isDrawing) { return }
+
+      const campaignCode = this.properties.campaignCode
+      const totalCost = this.data.costPerDraw * count
+
+      if (this.data.pointsBalance < totalCost) {
+        wx.showToast({ title: '积分不足', icon: 'none' })
+        this._resetSubComponent()
+        return
+      }
+
+      this.setData({ isDrawing: true })
+
+      try {
+        const result = await this._performDraw(campaignCode, count)
+
+        if (!result.success) {
+          wx.showToast({ title: result.message || '抽奖失败', icon: 'none' })
+          this.setData({ isDrawing: false })
+          this._resetSubComponent()
+          return
+        }
+
+        const prizes = result.data.prizes || []
+
+        this.setData({
+          drawResult: {
+            prizes,
+            isMultiDraw: true,
+            drawCount: count,
+            isError: false
+          },
+          isMultiDraw: true,
+          multiDrawResults: prizes
+        })
+
+        if (result.data.remaining_balance !== undefined) {
+          this.setData({ pointsBalance: result.data.remaining_balance })
+        }
+
+        /* 优化用户体验：API调用完成、红包显示后，延迟500ms解除按钮禁用 */
+        setTimeout(() => {
+          this.setData({
+            isDrawing: false,
+            showResult: false
+          })
+        }, 500)
+      } catch (err) {
+        console.error('[lottery-activity] 红包连拆失败:', err)
+        wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+        this.setData({ isDrawing: false })
+        this._resetSubComponent()
+      }
+    },
+
+    /**
      */
     async _handleDraw(count: number) {
       if (this.data.isDrawing) {
@@ -510,7 +739,29 @@ Component({
     /**
      * 子组件动画播放结束回调
      */
-    onAnimationEnd() {
+    onAnimationEnd(e: any) {
+      /* 打地鼠模式：游戏结束，显示奖品结果 */
+      if (this.data.displayMode === 'whack_mole') {
+        const prizeData = e?.detail?.prizeData
+        if (prizeData && prizeData.prizes && prizeData.prizes.length > 0) {
+          this.setData({
+            isDrawing: false,
+            showResult: true,
+            drawResult: {
+              prize: prizeData.prizes[0],
+              isMultiDraw: false,
+              isError: false,
+              gameStats: e?.detail?.gameStats || {}
+            }
+          })
+        } else {
+          this.setData({ isDrawing: false })
+        }
+        this._syncPointsBalance()
+        return
+      }
+
+      /* 其他模式：标准流程 */
       this.setData({
         isDrawing: false,
         showResult: true
@@ -549,7 +800,7 @@ Component({
      * 检查是否达到保底条件
      */
     _checkGuaranteeReady(info: any): boolean {
-      if (!info) return false
+      if (!info) { return false }
       return info.current_pity >= info.guarantee_threshold
     },
 
@@ -557,8 +808,8 @@ Component({
      * 保底砸金蛋：用户点击金蛋
      */
     async onGuaranteeEggTap() {
-      if (this.data.guaranteeEggState !== 'idle') return
-      if (this.data.isDrawing) return
+      if (this.data.guaranteeEggState !== 'idle') { return }
+      if (this.data.isDrawing) { return }
 
       this.setData({ guaranteeEggState: 'shaking' })
 
@@ -635,4 +886,5 @@ Component({
   }
 })
 
-export {}
+export { }
+

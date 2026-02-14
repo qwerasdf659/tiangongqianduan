@@ -1,36 +1,135 @@
-<!-- 虚拟盲盒抽奖组件 -->
-<view class="blindbox-container">
-  <view class="blindbox-title">
-    <text>点击盲盒 开启惊喜</text>
+<!-- 扭蛋机抽奖组件 - 完整扭蛋机交互 -->
+<view class="blindbox-wrap">
+  <!-- 浮动装饰粒子 -->
+  <view class="float-particle"
+    wx:for="{{particles}}" wx:key="id"
+    style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; font-size:{{item.size}}rpx;"
+  >
+    <text>{{item.icon}}</text>
   </view>
 
-  <view class="blindbox-stage">
-    <view class="blindbox-box {{boxStyle}} {{boxState}}" bindtap="onTapBox">
-      <!-- 盒盖 -->
-      <view class="box-lid">
-        <text class="lid-icon">📦</text>
-      </view>
-      <!-- 盒身 -->
-      <view class="box-body">
-        <view class="box-question" wx:if="{{boxState !== 'opened'}}">
-          <text>?</text>
-        </view>
-        <view class="box-prize" wx:else>
-          <text class="prize-glow">✨</text>
+  <!-- 标题 -->
+  <view class="bb-header">
+    <text class="bb-header__title">扭蛋机</text>
+    <text class="bb-header__sub">转动手柄，收获惊喜</text>
+  </view>
+
+  <!-- ====== 扭蛋机主体 ====== -->
+  <view class="gashapon">
+    <!-- 顶部装饰 -->
+    <view class="gashapon__top-cap"></view>
+
+    <!-- 透明球形罩 - 里面堆满扭蛋 -->
+    <view class="gashapon__dome">
+      <view class="gashapon__dome-shine"></view>
+      <view class="gashapon__eggs">
+        <view
+          class="egg {{item.dropping ? 'egg--dropping' : ''}} {{item.selected ? 'egg--selected' : ''}}"
+          wx:for="{{eggs}}" wx:key="id"
+          style="left:{{item.x}}%; top:{{item.y}}%; background:{{item.gradient}}; width:{{item.size}}rpx; height:{{item.size}}rpx; animation-delay:{{item.wobbleDelay}}s; z-index:{{item.z}};"
+        >
+          <view class="egg__shine"></view>
+          <view class="egg__band" style="background:{{item.bandColor}};"></view>
         </view>
       </view>
     </view>
 
-    <!-- 晃动提示 -->
-    <view class="shake-hint" wx:if="{{boxState === 'idle'}}">
-      <text>点击开启</text>
+    <!-- 机身中段 -->
+    <view class="gashapon__body">
+      <!-- 投币口装饰 -->
+      <view class="gashapon__coin-slot">
+        <view class="gashapon__coin-slit"></view>
+      </view>
+
+      <!-- 手柄 -->
+      <view class="gashapon__handle-wrap" bindtap="onCrank">
+        <view class="gashapon__handle {{crankState}}">
+          <view class="gashapon__handle-arm"></view>
+          <view class="gashapon__handle-knob"></view>
+        </view>
+      </view>
     </view>
-    <view class="shake-progress" wx:elif="{{boxState === 'shaking'}}">
-      <text>晃动中... {{shakeCount}}</text>
+
+    <!-- 出蛋口 -->
+    <view class="gashapon__chute">
+      <view class="gashapon__chute-door"></view>
+      <!-- 掉出来的扭蛋 -->
+      <view class="gashapon__dispensed {{dispensedState}}" wx:if="{{dispensedEgg}}"
+        style="background:{{dispensedEgg.gradient}};"
+        bindtap="onTapDispensed"
+      >
+        <view class="egg__shine"></view>
+        <view class="egg__band" style="background:{{dispensedEgg.bandColor}};"></view>
+        <!-- 开蛋后显示奖品 -->
+        <view class="gashapon__prize-reveal" wx:if="{{dispensedState === 'opened'}}">
+          <text class="reveal-sparkle">🎉</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底座 -->
+    <view class="gashapon__base">
+      <view class="gashapon__base-stripe"></view>
     </view>
   </view>
 
-  <view class="blindbox-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
+  <!-- 爆炸粒子层 -->
+  <view class="burst-layer" wx:if="{{dispensedState === 'cracking' || dispensedState === 'opened'}}">
+    <view class="burst-particle"
+      wx:for="{{burstParticles}}" wx:key="id"
+      style="--bx:{{item.x}}rpx; --by:{{item.y}}rpx; --bd:{{item.delay}}s; --bs:{{item.scale}};"
+    >
+      <text>{{item.emoji}}</text>
+    </view>
+  </view>
+
+  <!-- 操作提示 -->
+  <view class="stage-hint">
+    <text wx:if="{{crankState === 'idle'}}" class="hint-tap">转动手柄抽取扭蛋</text>
+    <text wx:elif="{{crankState === 'cranking'}}" class="hint-shaking">扭蛋掉落中...</text>
+    <text wx:elif="{{dispensedState === 'landed'}}" class="hint-tap">点击扭蛋打开</text>
+    <text wx:elif="{{dispensedState === 'cracking'}}" class="hint-exploding">惊喜来了!</text>
+  </view>
+
+  <!-- 积分消耗 -->
+  <view class="bb-cost" wx:if="{{costPoints > 0}}">
+    <text class="bb-cost__label">单次消耗</text>
+    <text class="bb-cost__value">{{costPoints}}</text>
+    <text class="bb-cost__unit">积分</text>
+    <text class="bb-cost__sep">|</text>
+    <text class="bb-cost__balance">余额 {{pointsBalance}}</text>
+  </view>
+
+  <!-- 奖品池 -->
+  <view class="bb-prizes" wx:if="{{prizes.length > 0}}">
+    <view class="bb-prizes__header">
+      <view class="bb-prizes__title-wrap">
+        <text class="bb-prizes__dot"></text>
+        <text class="bb-prizes__title">奖品池</text>
+        <text class="bb-prizes__dot"></text>
+      </view>
+      <text class="bb-prizes__count">{{prizes.length}}种奖品</text>
+    </view>
+    <view class="bb-prizes__scroll-wrap">
+      <scroll-view
+        class="bb-prizes__scroll"
+        scroll-x="{{true}}"
+        enhanced="{{true}}"
+        show-scrollbar="{{false}}"
+        bindscroll="onPrizesScroll"
+      >
+        <view class="bb-prizes__list">
+          <view class="bb-prizes__item {{item.rarity}}" wx:for="{{prizes}}" wx:key="id">
+            <view class="bb-prizes__icon-wrap">
+              <text class="bb-prizes__icon">{{item.icon}}</text>
+            </view>
+            <text class="bb-prizes__name">{{item.name}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="bb-prizes__scroll-hint" wx:if="{{showScrollHint && prizes.length > 4}}">
+        <text>← 滑动查看 →</text>
+      </view>
+    </view>
   </view>
 </view>

@@ -1,39 +1,82 @@
-<!-- 扭蛋机抽奖组件 -->
+<!-- 扭蛋机抽奖组件 - 增强版 -->
 <view class="gashapon-container">
+  
+  <!-- 🌟 背景浮动粒子特效 -->
+  <view class="bg-particles" wx:if="{{particles.length > 0}}">
+    <view 
+      class="particle" 
+      wx:for="{{particles}}" 
+      wx:key="id"
+      style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
+    >
+      <text>{{item.icon}}</text>
+    </view>
+  </view>
+
   <!-- 扭蛋机主体 -->
   <view class="machine">
-    <!-- 顶部圆顶 -->
+    
+    <!-- 顶部透明圆顶 -->
     <view class="machine-dome">
-      <!-- 内部胶囊球 -->
-      <view class="capsule-ball" wx:for="{{6}}" wx:key="*this"
-        style="background: {{capsuleColors[index % capsuleColors.length]}}; left: {{20 + (index % 3) * 30}}%; top: {{index < 3 ? '20' : '55'}}%;"></view>
+      <!-- 内部胶囊球 - 增加数量和随机布局 -->
+      <view 
+        class="capsule-ball" 
+        wx:for="{{8}}" 
+        wx:key="*this"
+        style="background: {{capsuleColors[index % capsuleColors.length]}}; left: {{15 + (index % 4) * 22}}%; top: {{index < 4 ? '15' : '50'}}%; animation-delay: {{index * 0.3}}s;"
+      ></view>
     </view>
 
-    <!-- 出口 -->
+    <!-- 出口区域 -->
     <view class="machine-outlet">
-      <view class="capsule-dropping {{machineState === 'dropping' ? 'animate' : ''}}"
+      <!-- 掉落的胶囊 -->
+      <view 
+        class="capsule-dropping {{machineState === 'dropping' ? 'animate' : ''}}"
         wx:if="{{machineState === 'dropping' || machineState === 'done'}}"
-        style="background: {{currentCapsuleColor}};">
+        style="background: {{currentCapsuleColor}};"
+      >
         <text class="capsule-shine">✨</text>
       </view>
     </view>
 
-    <!-- 手柄 -->
-    <view class="machine-handle {{machineState === 'turning' ? 'turning' : ''}}" bindtap="onTurnHandle">
+    <!-- 手柄组件 -->
+    <view 
+      class="machine-handle {{machineState === 'turning' ? 'turning' : ''}}" 
+      bindtap="onTurnHandle"
+      hover-class="handle-active"
+      hover-stay-time="100"
+    >
       <view class="handle-knob"></view>
       <view class="handle-arm"></view>
     </view>
   </view>
 
-  <!-- 提示文字 -->
-  <view class="gashapon-hint">
-    <text wx:if="{{machineState === 'idle'}}">转动手柄 获取扭蛋</text>
-    <text wx:elif="{{machineState === 'turning'}}">扭动中...</text>
-    <text wx:elif="{{machineState === 'dropping'}}">扭蛋掉落中...</text>
-    <text wx:else>扭蛋已获得!</text>
+  <!-- 🎉 庆祝特效（扭蛋获得后显示） -->
+  <view class="celebration-effect" wx:if="{{showCelebration}}">
+    <view class="celebration-burst">
+      <text class="burst-item" wx:for="{{12}}" wx:key="*this" style="animation-delay: {{index * 0.05}}s;">
+        {{index % 2 === 0 ? '🎉' : '✨'}}
+      </text>
+    </view>
   </view>
 
-  <view class="gashapon-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
+  <!-- 状态提示文字 -->
+  <view class="gashapon-hint">
+    <text wx:if="{{machineState === 'idle'}}">🎮 转动手柄 获取扭蛋</text>
+    <text wx:elif="{{machineState === 'turning'}}">⚙️ 扭动中...</text>
+    <text wx:elif="{{machineState === 'dropping'}}">💫 扭蛋掉落中...</text>
+    <text wx:else>🎁 扭蛋已获得！</text>
   </view>
+
+  <!-- 消耗积分提示 -->
+  <view class="gashapon-cost" wx:if="{{costPoints > 0}}">
+    <text>💰 消耗 {{costPoints}} 积分</text>
+  </view>
+
+  <!-- 操作提示（仅在idle状态显示） -->
+  <view class="operation-tip" wx:if="{{machineState === 'idle'}}">
+    <view class="tip-arrow">👆</view>
+    <text class="tip-text">点击红色手柄开始抽奖</text>
+  </view>
+
 </view>

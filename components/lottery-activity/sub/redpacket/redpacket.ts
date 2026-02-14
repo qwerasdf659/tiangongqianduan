@@ -1,7 +1,15 @@
 /**
- * 拆红包 子组件 - 点击/滑动拆开红包
+ * 拆红包 子组件
+ *
+ * @description 支持单拆（3选1）和连拆（N个逐个拆开）两种模式。
+ *   单拆: 3个红包选1个 → 触发抽奖API → 播放拆开动画 → 通知父组件
+ *   连拆: 父组件传入结果 → 展示N个红包 → 逐个/全部拆开 → 通知父组件
+ *
  * @file sub/redpacket/redpacket.ts
  */
+
+/** 默认红包数量（单拆模式） */
+const DEFAULT_PACKET_COUNT = 3
 
 Component({
   properties: {
@@ -11,56 +19,214 @@ Component({
     isInProgress: { type: Boolean, value: false },
     effectTheme: { type: String, value: 'default' },
     rarityEffects: { type: Boolean, value: false },
-    winAnimation: { type: String, value: 'simple' }
+    winAnimation: { type: String, value: 'simple' },
+    /** 连拆个数（0=单拆模式） */
+    multiDrawCount: { type: Number, value: 0 },
+    /** 连拆结果数组（API返回的奖品） */
+    multiDrawResults: { type: Array, value: [] }
   },
 
   data: {
-    /** 状态: sealed / opening / opened */
-    packetState: 'sealed',
-    /** 开启进度 */
-    openProgress: 0
+    /* ===== 单拆模式 ===== */
+    packets: [] as Array<{ id: number; shaking: boolean; opened: boolean }>,
+    selectedPacket: -1,
+    canSelect: true,
+
+    /* ===== 连拆模式 ===== */
+    isMultiOpen: false,
+    openedCount: 0,
+    totalPackets: 0,
+    allOpened: false,
+    /** 行布局数组 */
+    packetRows: [] as any[][],
+    /** 尺寸class：size-3 / size-5 / size-10 */
+    sizeClass: 'size-3',
+    /** 连拆入场动画 */
+    multiEntered: false
+  },
+
+  lifetimes: {
+    attached() {
+      this._initPackets()
+    }
   },
 
   observers: {
     'isInProgress': function (val: boolean) {
-      if (val && this.data.packetState === 'opening') {
-        this._openPacket()
+      if (this.data.isMultiOpen) return
+      if (val && this.data.selectedPacket >= 0) {
+        this._openSelectedPacket()
+      }
+    },
+    'multiDrawCount, multiDrawResults': function (count: number, results: any[]) {
+      if (count > 0 && results && results.length > 0) {
+        this._initMultiOpen(count, results)
       }
     }
   },
 
   methods: {
-    /** 点击红包 */
-    onTapPacket() {
-      if (this.data.packetState !== 'sealed') return
-      this.setData({ packetState: 'opening' })
-      this.triggerEvent('draw', { count: 1 })
+    /* ===== 单拆模式 ===== */
+
+    _initPackets() {
+      const packets = []
+      for (let i = 0; i < DEFAULT_PACKET_COUNT; i++) {
+        packets.push({ id: i, shaking: false, opened: false })
+      }
+      this.setData({ packets, selectedPacket: -1, canSelect: true })
     },
 
-    /** 拆开红包动画 */
-    _openPacket() {
-      let progress = 0
-      this._openTimer = setInterval(() => {
-        progress += 10
-        this.setData({ openProgress: progress })
-        if (progress >= 100) {
-          clearInterval(this._openTimer)
-          this._openTimer = null
-          this.setData({ packetState: 'opened' })
+    /** 选择一个红包 */
+    onTapPacket(e: any) {
+      if (!this.data.canSelect) return
+      const id = e.currentTarget.dataset.id
+      if (id === undefined || id === null) return
+
+      try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+      this.setData({ selectedPacket: id, canSelect: false })
+
+      const packets = this.data.packets.map((p: any) => ({
+        ...p, shaking: p.id === id
+      }))
+      this.setData({ packets })
+
+      setTimeout(() => {
+        this.triggerEvent('draw', { count: 1 })
+      }, 600)
+    },
+
+    /** 拆开选中的红包 */
+    _openSelectedPacket() {
+      const { selectedPacket, packets } = this.data
+      try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+
+      const updated = packets.map((p: any) => ({
+        ...p, shaking: false, opened: p.id === selectedPacket
+      }))
+      this.setData({ packets: updated })
+
+      setTimeout(() => {
+        this.triggerEvent('animationEnd')
+      }, 1200)
+    },
+
+    /* ===== 连拆模式 ===== */
+
+    _initMultiOpen(count: number, results: any[]) {
+      const list = results.map((prize: any, i: number) => ({
+        ...prize,
+        index: i,
+        opened: false,
+        shaking: false,
+        enterDelay: i * 80
+      }))
+
+      const sizeClass = count <= 3 ? 'size-3' : count <= 5 ? 'size-5' : 'size-10'
+      const packetRows = this._buildRows(list, count)
+
+      this.setData({
+        isMultiOpen: true,
+        openedCount: 0,
+        totalPackets: list.length,
+        allOpened: false,
+        packetRows,
+        sizeClass,
+        multiEntered: false
+      })
+
+      setTimeout(() => {
+        this.setData({ multiEntered: true })
+      }, 50)
+    },
+
+    /** 按布局规则分行：3→1排，5→1排，10→上5下5 */
+    _buildRows(packets: any[], count: number): any[][] {
+      if (count <= 5) return [packets]
+      return [packets.slice(0, 5), packets.slice(5)]
+    },
+
+    /** 连拆模式：点击单个红包 */
+    onTapMultiPacket(e: any) {
+      const rowIdx = e.currentTarget.dataset.row
+      const colIdx = e.currentTarget.dataset.col
+      const packetRows = this.data.packetRows
+      const packet = packetRows[rowIdx][colIdx]
+      if (packet.opened) return
+
+      try { wx.vibrateShort({ type: 'medium' }) } catch (_e) { /* */ }
+
+      /* 先晃动 */
+      packetRows[rowIdx][colIdx] = { ...packet, shaking: true }
+      this.setData({ packetRows })
+
+      /* 晃动后拆开 */
+      setTimeout(() => {
+        const rows = this.data.packetRows
+        rows[rowIdx][colIdx] = { ...rows[rowIdx][colIdx], shaking: false, opened: true }
+        const openedCount = this.data.openedCount + 1
+        const allOpened = openedCount >= this.data.totalPackets
+
+        try { wx.vibrateShort({ type: 'heavy' }) } catch (_e) { /* */ }
+        this.setData({ packetRows: rows, openedCount, allOpened })
+
+        if (allOpened) {
           setTimeout(() => {
             this.triggerEvent('animationEnd')
           }, 800)
         }
-      }, 80)
+      }, 500)
+    },
+
+    /** 一键全部拆开 */
+    onOpenAll() {
+      const packetRows = this.data.packetRows
+      let delay = 0
+
+      for (let r = 0; r < packetRows.length; r++) {
+        for (let c = 0; c < packetRows[r].length; c++) {
+          if (!packetRows[r][c].opened) {
+            ((row, col, d) => {
+              /* 先晃动 */
+              setTimeout(() => {
+                const rows = this.data.packetRows
+                rows[row][col] = { ...rows[row][col], shaking: true }
+                this.setData({ packetRows: rows })
+              }, d)
+
+              /* 再拆开 */
+              setTimeout(() => {
+                const rows = this.data.packetRows
+                rows[row][col] = { ...rows[row][col], shaking: false, opened: true }
+                const count = this.data.openedCount + 1
+                const all = count >= this.data.totalPackets
+                this.setData({ packetRows: rows, openedCount: count, allOpened: all })
+                try { wx.vibrateShort({ type: 'light' }) } catch (_e) { /* */ }
+
+                if (all) {
+                  setTimeout(() => {
+                    this.triggerEvent('animationEnd')
+                  }, 800)
+                }
+              }, d + 400)
+            })(r, c, delay)
+            delay += 300
+          }
+        }
+      }
     },
 
     /** 重置 */
     resetPacket() {
-      if (this._openTimer) {
-        clearInterval(this._openTimer)
-        this._openTimer = null
-      }
-      this.setData({ packetState: 'sealed', openProgress: 0 })
+      this.setData({
+        isMultiOpen: false,
+        openedCount: 0,
+        totalPackets: 0,
+        allOpened: false,
+        packetRows: [],
+        sizeClass: 'size-3',
+        multiEntered: false
+      })
+      this._initPackets()
     }
   }
 })

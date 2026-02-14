@@ -1,7 +1,57 @@
 /**
- * 虚拟盲盒 子组件 - 晃动+开盒动画
+ * 扭蛋机组件 - 完整扭蛋机交互
  * @file sub/blindbox/blindbox.ts
  */
+
+/** 扭蛋配色方案 */
+const EGG_COLORS = [
+  { gradient: 'linear-gradient(135deg, #ff6b6b, #ee5a24)', bandColor: 'rgba(255,255,255,0.4)' },
+  { gradient: 'linear-gradient(135deg, #ffd93d, #f0932b)', bandColor: 'rgba(255,255,255,0.4)' },
+  { gradient: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', bandColor: 'rgba(255,255,255,0.35)' },
+  { gradient: 'linear-gradient(135deg, #00cec9, #81ecec)', bandColor: 'rgba(255,255,255,0.4)' },
+  { gradient: 'linear-gradient(135deg, #fd79a8, #e84393)', bandColor: 'rgba(255,255,255,0.35)' },
+  { gradient: 'linear-gradient(135deg, #55efc4, #00b894)', bandColor: 'rgba(255,255,255,0.4)' },
+  { gradient: 'linear-gradient(135deg, #74b9ff, #0984e3)', bandColor: 'rgba(255,255,255,0.35)' },
+  { gradient: 'linear-gradient(135deg, #fdcb6e, #e17055)', bandColor: 'rgba(255,255,255,0.4)' },
+]
+
+/** 生成扭蛋机内的扭蛋堆 */
+function generateEggs(count: number): any[] {
+  const eggs: any[] = []
+  for (let i = 0; i < count; i++) {
+    const colorSet = EGG_COLORS[i % EGG_COLORS.length]
+    const size = 52 + Math.floor(Math.random() * 20)
+    eggs.push({
+      id: i,
+      ...colorSet,
+      x: 8 + Math.floor(Math.random() * 68),
+      y: 8 + Math.floor(Math.random() * 70),
+      z: Math.floor(Math.random() * 10),
+      size,
+      wobbleDelay: (Math.random() * 3).toFixed(1),
+      dropping: false,
+      selected: false,
+    })
+  }
+  return eggs
+}
+
+/** 生成浮动装饰粒子 */
+function generateParticles(): any[] {
+  const icons = ['✨', '⭐', '🎁', '🎀', '💫', '🌟']
+  const particles: any[] = []
+  for (let i = 0; i < 8; i++) {
+    particles.push({
+      id: i,
+      icon: icons[i % icons.length],
+      left: Math.floor(Math.random() * 90) + 5,
+      delay: (Math.random() * 4).toFixed(1),
+      duration: (3 + Math.random() * 3).toFixed(1),
+      size: Math.floor(20 + Math.random() * 20)
+    })
+  }
+  return particles
+}
 
 Component({
   properties: {
@@ -16,75 +66,145 @@ Component({
   },
 
   data: {
-    /** 盲盒状态: idle / shaking / opening / opened */
-    boxState: 'idle',
-    /** 晃动次数 */
-    shakeCount: 0,
-    /** 盒子样式（cube/round） */
-    boxStyle: 'cube'
+    eggs: [] as any[],
+    particles: [] as any[],
+    /** idle / cranking */
+    crankState: 'idle' as string,
+    /** null / dispensing / landed / cracking / opened */
+    dispensedState: '' as string,
+    dispensedEgg: null as any,
+    burstParticles: [] as any[],
+    showScrollHint: true,
+  },
+
+  lifetimes: {
+    attached() {
+      this.setData({
+        eggs: generateEggs(15),
+        particles: generateParticles(),
+      })
+    },
+    detached() {
+      this._clearTimers()
+    }
   },
 
   observers: {
-    'displayConfig': function (cfg: any) {
-      if (cfg?.box_style) {
-        this.setData({ boxStyle: cfg.box_style })
-      }
-    },
     'isInProgress': function (val: boolean) {
-      if (val && this.data.boxState === 'shaking') {
-        this._openBox()
+      if (val && this.data.crankState === 'cranking') {
+        this._dispenseEgg()
       }
     }
   },
 
   methods: {
-    /** 点击盲盒 - 开始晃动 */
-    onTapBox() {
-      const { boxState } = this.data
-      if (boxState === 'opening' || boxState === 'opened') return
+    /** 转动手柄 */
+    onCrank() {
+      if (this.data.crankState !== 'idle') return
+      if (this.data.dispensedState === 'landed' || this.data.dispensedState === 'opened') return
 
-      if (boxState === 'idle') {
-        this.setData({ boxState: 'shaking', shakeCount: 0 })
-        this._shakeSequence()
-        return
-      }
+      this.setData({ crankState: 'cranking' })
+
+      // 扭蛋机内蛋晃动
+      this._shakeEggs()
+
+      // 触发抽奖
+      this.triggerEvent('draw', { count: 1 })
     },
 
-    /** 晃动序列 */
-    _shakeSequence() {
-      const shakeNeeded = this.properties.displayConfig?.shake_before_open ? 3 : 1
-      let count = 0
-      this._shakeTimer = setInterval(() => {
-        count++
-        this.setData({ shakeCount: count })
-        if (count >= shakeNeeded) {
-          clearInterval(this._shakeTimer)
-          this._shakeTimer = null
-          /* 晃动完成，触发抽奖 */
-          this.triggerEvent('draw', { count: 1 })
-        }
-      }, 500)
+    /** 让蛋堆晃动 */
+    _shakeEggs() {
+      const eggs = this.data.eggs.map((egg: any) => ({
+        ...egg,
+        x: 8 + Math.floor(Math.random() * 68),
+        y: 8 + Math.floor(Math.random() * 70),
+      }))
+      this.setData({ eggs })
     },
 
-    /** 开盒动画 */
-    _openBox() {
-      this.setData({ boxState: 'opening' })
+    /** 出蛋动画 */
+    _dispenseEgg() {
+      // 随机选一个蛋掉出来
+      const idx = Math.floor(Math.random() * this.data.eggs.length)
+      const chosen = { ...this.data.eggs[idx] }
 
-      setTimeout(() => {
-        this.setData({ boxState: 'opened' })
-        setTimeout(() => {
+      // 从蛋堆中移除
+      const eggs = this.data.eggs.filter((_: any, i: number) => i !== idx)
+
+      this.setData({
+        eggs,
+        dispensedEgg: chosen,
+        dispensedState: 'dispensing',
+      })
+
+      // 蛋落到出口
+      this._dispenseTimer1 = setTimeout(() => {
+        this.setData({
+          crankState: 'idle',
+          dispensedState: 'landed',
+        })
+      }, 800)
+    },
+
+    /** 点击掉出来的蛋 - 打开 */
+    onTapDispensed() {
+      if (this.data.dispensedState !== 'landed') return
+
+      this.setData({
+        dispensedState: 'cracking',
+        burstParticles: this._generateBurst(),
+      })
+
+      this._openTimer1 = setTimeout(() => {
+        this.setData({ dispensedState: 'opened' })
+        this._openTimer2 = setTimeout(() => {
           this.triggerEvent('animationEnd')
-        }, 800)
-      }, 1000)
+        }, 600)
+      }, 800)
     },
 
-    /** 重置盲盒 */
-    resetBox() {
-      if (this._shakeTimer) {
-        clearInterval(this._shakeTimer)
-        this._shakeTimer = null
+    /** 生成爆炸粒子 */
+    _generateBurst(): any[] {
+      const items = []
+      const emojis = ['✨', '⭐', '💫', '🌟', '🎉', '🎊']
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * 360
+        const distance = 80 + Math.random() * 60
+        const rad = (angle * Math.PI) / 180
+        items.push({
+          id: i,
+          emoji: emojis[i % emojis.length],
+          x: Math.cos(rad) * distance,
+          y: Math.sin(rad) * distance,
+          delay: (Math.random() * 0.2).toFixed(2),
+          scale: (0.6 + Math.random() * 0.8).toFixed(1)
+        })
       }
-      this.setData({ boxState: 'idle', shakeCount: 0 })
+      return items
+    },
+
+    onPrizesScroll() {
+      if (this.data.showScrollHint) {
+        this.setData({ showScrollHint: false })
+      }
+    },
+
+    /** 重置（供父组件调用） */
+    resetBox() {
+      this._clearTimers()
+      this.setData({
+        eggs: generateEggs(15),
+        crankState: 'idle',
+        dispensedState: '',
+        dispensedEgg: null,
+        burstParticles: [],
+      })
+    },
+
+    _clearTimers() {
+      if (this._dispenseTimer1) { clearTimeout(this._dispenseTimer1); this._dispenseTimer1 = null }
+      if (this._openTimer1) { clearTimeout(this._openTimer1); this._openTimer1 = null }
+      if (this._openTimer2) { clearTimeout(this._openTimer2); this._openTimer2 = null }
     }
   }
 })

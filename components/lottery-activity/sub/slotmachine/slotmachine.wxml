@@ -1,38 +1,166 @@
-<!-- 老虎机抽奖组件 -->
+<!-- 老虎机抽奖组件 - 经典拉斯维加斯风格 -->
 <view class="slotmachine-container">
-  <view class="slot-title">
-    <text>拉动手柄 试试运气</text>
+
+  <!-- 背景装饰粒子 -->
+  <view class="bg-particles" wx:if="{{particles.length > 0}}">
+    <view
+      class="particle"
+      wx:for="{{particles}}"
+      wx:key="id"
+      style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
+    >
+      <text>{{item.icon}}</text>
+    </view>
   </view>
 
-  <view class="slot-machine">
-    <!-- 卷轴区域 -->
-    <view class="reels-frame">
-      <view class="reel" wx:for="{{reels}}" wx:key="index">
-        <view class="reel-window">
-          <view class="reel-strip {{!item.stopped && spinning ? 'spinning' : ''}}"
-            style="transform: translateY(-{{item.offset * 80}}rpx);">
-            <view class="reel-item" wx:for="{{item.items}}" wx:for-item="prize" wx:for-index="pi" wx:key="pi">
-              <text class="reel-icon">{{prize.icon || '🎁'}}</text>
-            </view>
-          </view>
-        </view>
-        <view class="reel-stopped-mark" wx:if="{{item.stopped && spinning}}">
-          <text>✓</text>
-        </view>
+  <!-- 老虎机主体 -->
+  <view class="machine-body">
+
+    <!-- 顶部装饰 - 霓虹灯标题 + 跑马灯 -->
+    <view class="machine-top">
+      <view class="top-lights">
+        <view
+          class="light-bulb"
+          wx:for="{{14}}"
+          wx:key="*this"
+          style="animation-delay: {{index * 0.12}}s;"
+        ></view>
+      </view>
+      <view class="top-title">
+        <text class="title-text">666</text>
+      </view>
+      <view class="top-lights bottom-row">
+        <view
+          class="light-bulb"
+          wx:for="{{14}}"
+          wx:key="*this"
+          style="animation-delay: {{(14 - index) * 0.12}}s;"
+        ></view>
       </view>
     </view>
 
-    <!-- 中线 -->
-    <view class="center-line"></view>
+    <!-- 主显示区域 -->
+    <view class="machine-display">
+      <view class="display-inner">
 
-    <!-- 手柄 -->
-    <view class="slot-handle {{spinning ? 'pulled' : ''}}" bindtap="onPullHandle">
-      <view class="handle-ball"></view>
-      <view class="handle-stick"></view>
+        <!-- 行号标记 -->
+        <view class="row-markers">
+          <view class="row-mark">1</view>
+          <view class="row-mark center">2</view>
+          <view class="row-mark">3</view>
+        </view>
+
+        <!-- 卷轴区域 -->
+        <view class="reels-frame">
+          <view class="reel" wx:for="{{reels}}" wx:key="reelIndex">
+            <view class="reel-window">
+              <view
+                class="reel-strip {{item.spinning ? 'is-spinning' : ''}} {{item.stopping ? 'is-stopping' : ''}} {{item.stopped ? 'is-stopped' : ''}}"
+                style="{{item.spinning ? 'animation-duration: ' + item.spinDuration + 's;' : ''}}"
+              >
+                <view
+                  class="reel-item"
+                  wx:for="{{item.items}}"
+                  wx:for-item="prize"
+                  wx:for-index="pi"
+                  wx:key="pi"
+                >
+                  <image wx:if="{{prize.image}}" class="reel-img" src="{{prize.image}}" mode="aspectFit" />
+                  <text wx:else class="reel-icon">{{prize.icon || '?'}}</text>
+                </view>
+              </view>
+            </view>
+            <!-- 卷轴分隔线 -->
+            <view class="reel-divider" wx:if="{{index < reels.length - 1}}"></view>
+          </view>
+        </view>
+
+        <!-- 中奖线 - 横贯中间行 -->
+        <view class="payline {{machineState === 'result' ? 'win-active' : ''}}">
+          <view class="payline-arrow payline-left"></view>
+          <view class="payline-line"></view>
+          <view class="payline-arrow payline-right"></view>
+        </view>
+
+        <!-- 玻璃反光层 -->
+        <view class="display-glass"></view>
+      </view>
+    </view>
+
+    <!-- 控制面板 -->
+    <view class="machine-panel">
+      <view class="panel-deco left"></view>
+      <view class="panel-label">
+        <text class="label-text">{{machineState === 'result' ? '中奖!' : '拉杆'}}</text>
+      </view>
+      <view class="panel-deco right"></view>
+    </view>
+
+    <!-- 底部底座 -->
+    <view class="machine-base">
+      <view class="base-plate"></view>
+      <view class="base-feet">
+        <view class="foot"></view>
+        <view class="foot"></view>
+      </view>
     </view>
   </view>
 
-  <view class="slot-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
+  <!-- 手柄组件（机身外部右侧） -->
+  <view
+    class="handle-assembly {{machineState === 'pulling' ? 'is-pulled' : ''}}"
+    bindtap="onPullHandle"
+    hover-class="handle-hover"
+    hover-stay-time="100"
+  >
+    <view class="handle-ball">
+      <view class="handle-ball-shine"></view>
+    </view>
+    <view class="handle-stick"></view>
+    <view class="handle-base"></view>
   </view>
+
+  <!-- 庆祝特效 -->
+  <view class="celebration-effect" wx:if="{{showCelebration}}">
+    <view class="celebration-burst">
+      <text
+        class="burst-item"
+        wx:for="{{16}}"
+        wx:key="*this"
+        style="animation-delay: {{index * 0.04}}s;"
+      >{{index % 4 === 0 ? '7' : index % 4 === 1 ? '*' : index % 4 === 2 ? '$' : '+'}}</text>
+    </view>
+    <view class="celebration-coins">
+      <text
+        class="coin-item"
+        wx:for="{{8}}"
+        wx:key="*this"
+        style="left: {{item}}%; animation-delay: {{index * 0.1}}s;"
+        data-positions="{{[10,25,40,55,70,85,15,60]}}"
+      >$</text>
+    </view>
+  </view>
+
+  <!-- 状态提示 -->
+  <view class="status-hint">
+    <text wx:if="{{machineState === 'idle'}}">准备好了 - 拉动手柄</text>
+    <text wx:elif="{{machineState === 'pulling'}}">开始了...</text>
+    <text wx:elif="{{machineState === 'spinning'}}">转动中...</text>
+    <text wx:elif="{{machineState === 'stopping'}}">减速中...</text>
+    <text wx:else>恭喜中奖！</text>
+  </view>
+
+  <!-- 消耗积分 -->
+  <view class="slot-cost" wx:if="{{costPoints > 0}}">
+    <text>{{costPoints}} 积分</text>
+  </view>
+
+  <!-- 操作引导 -->
+  <view class="operation-tip" wx:if="{{machineState === 'idle'}}">
+    <view class="tip-hand">
+      <text>></text>
+    </view>
+    <text class="tip-text">拉动手柄开始游戏</text>
+  </view>
+
 </view>

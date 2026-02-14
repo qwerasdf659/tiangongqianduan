@@ -118,19 +118,22 @@
     </view>
   </view>
 
-  <!-- 抽奖万能组件 - 主活动（动态加载，任务27） -->
+  <!-- 抽奖万能组件 - 主活动（动态加载，位置配置驱动） -->
   <lottery-activity
     wx:if="{{mainCampaign}}"
     campaignCode="{{mainCampaign.campaign_code}}"
-    size="full"
+    size="{{mainCampaign.placement.size || 'full'}}"
   />
   <!-- 降级兜底：活动列表未加载时使用默认 -->
   <lottery-activity wx:else campaignCode="BASIC_LOTTERY" size="full" />
 
-  <!-- 其他活动（secondary/floating等位置） -->
+  <!-- 其他活动（secondary/floating等位置，尺寸由位置配置决定） -->
   <block wx:for="{{extraCampaigns}}" wx:key="campaign_code">
     <view class="extra-activity-slot">
-      <lottery-activity campaignCode="{{item.campaign_code}}" size="medium" />
+      <lottery-activity
+        campaignCode="{{item.campaign_code}}"
+        size="{{item.placement.size || 'medium'}}"
+      />
     </view>
   </block>
 

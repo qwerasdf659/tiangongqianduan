@@ -262,6 +262,35 @@ declare namespace API {
     created_at: string
   }
 
+  // ===== 活动位置配置 =====
+
+  /** 单个活动的位置配置项（后端 GET /api/v4/system/config/placement 响应中的数组项） */
+  interface PlacementItem {
+    /** 活动唯一标识（如 BASIC_LOTTERY、SPRING_2026） */
+    campaign_code: string
+    /** 位置配置详情 */
+    placement: {
+      /** 展示页面（lottery | discover | user） */
+      page: string
+      /** 页面位置（main | secondary | floating | top | bottom） */
+      position: string
+      /** 组件尺寸（full | medium | small | mini） */
+      size: string
+      /** 优先级，数字越大越靠前（默认0） */
+      priority: number
+    }
+  }
+
+  /** 活动位置配置完整数据（后端 GET /api/v4/system/config/placement 响应的 data 字段） */
+  interface PlacementConfig {
+    /** 配置版本号（语义化版本，如 "1.0.5"，用于缓存版本对比） */
+    version: string
+    /** 配置更新时间（ISO 8601 格式，如 "2026-02-14T10:30:00+08:00"） */
+    updated_at: string
+    /** 活动位置配置列表 */
+    placements: PlacementItem[]
+  }
+
   // ===== 系统通用 =====
 
   /** 系统公告 */

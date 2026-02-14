@@ -47,9 +47,5 @@ eslint-*.txt
 *-old.*
 *-backup.*
 
-# 优化方案文档（可选，根据需要调整）
-docs/*方案*.md
-docs/*执行文档*.md
-
 # Windows保留文件名
 nul

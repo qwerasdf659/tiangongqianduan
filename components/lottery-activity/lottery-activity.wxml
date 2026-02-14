@@ -91,7 +91,7 @@
           bind:animationEnd="onAnimationEnd"
         />
         <card
-          wx:elif="{{displayMode === 'card_flip'}}"
+          wx:elif="{{displayMode === 'card_flip' || displayMode === 'flip_card_multi'}}"
           prizes="{{prizes}}"
           costPoints="{{costPerDraw}}"
           pointsBalance="{{pointsBalance}}"
@@ -101,6 +101,7 @@
           winAnimation="{{winAnimation}}"
           multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
           multiDrawResults="{{multiDrawResults}}"
+          displayConfig="{{displayConfig}}"
           bind:draw="onChildDraw"
           bind:animationEnd="onAnimationEnd"
         />
@@ -160,6 +161,7 @@
         />
         <luckybag
           wx:elif="{{displayMode === 'lucky_bag'}}"
+          id="lottery-sub"
           prizes="{{prizes}}"
           costPoints="{{costPerDraw}}"
           pointsBalance="{{pointsBalance}}"
@@ -168,32 +170,8 @@
           rarityEffects="{{rarityEffectsEnabled}}"
           winAnimation="{{winAnimation}}"
           displayConfig="{{displayConfig}}"
-          bind:draw="onChildDraw"
-          bind:animationEnd="onAnimationEnd"
-        />
-        <shake
-          wx:elif="{{displayMode === 'shake'}}"
-          prizes="{{prizes}}"
-          costPoints="{{costPerDraw}}"
-          pointsBalance="{{pointsBalance}}"
-          isInProgress="{{isDrawing}}"
-          effectTheme="{{effectTheme}}"
-          rarityEffects="{{rarityEffectsEnabled}}"
-          winAnimation="{{winAnimation}}"
-          displayConfig="{{displayConfig}}"
-          bind:draw="onChildDraw"
-          bind:animationEnd="onAnimationEnd"
-        />
-        <flipmulti
-          wx:elif="{{displayMode === 'flip_card_multi'}}"
-          prizes="{{prizes}}"
-          costPoints="{{costPerDraw}}"
-          pointsBalance="{{pointsBalance}}"
-          isInProgress="{{isDrawing}}"
-          effectTheme="{{effectTheme}}"
-          rarityEffects="{{rarityEffectsEnabled}}"
-          winAnimation="{{winAnimation}}"
-          displayConfig="{{displayConfig}}"
+          multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
+          multiDrawResults="{{multiDrawResults}}"
           bind:draw="onChildDraw"
           bind:animationEnd="onAnimationEnd"
         />
@@ -206,6 +184,8 @@
           effectTheme="{{effectTheme}}"
           rarityEffects="{{rarityEffectsEnabled}}"
           winAnimation="{{winAnimation}}"
+          multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
+          multiDrawResults="{{multiDrawResults}}"
           bind:draw="onChildDraw"
           bind:animationEnd="onAnimationEnd"
         />
@@ -224,6 +204,7 @@
         />
         <whackmole
           wx:elif="{{displayMode === 'whack_mole'}}"
+          id="lottery-sub"
           prizes="{{prizes}}"
           costPoints="{{costPerDraw}}"
           pointsBalance="{{pointsBalance}}"
@@ -393,7 +374,7 @@
       bind:animationEnd="onAnimationEnd"
     />
     <card
-      wx:elif="{{displayMode === 'card_flip'}}"
+      wx:elif="{{displayMode === 'card_flip' || displayMode === 'flip_card_multi'}}"
       id="lottery-sub"
       prizes="{{prizes}}"
       costPoints="{{costPerDraw}}"
@@ -404,6 +385,7 @@
       winAnimation="{{winAnimation}}"
       multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
       multiDrawResults="{{multiDrawResults}}"
+      displayConfig="{{displayConfig}}"
       bind:draw="onChildDraw"
       bind:animationEnd="onAnimationEnd"
     />
@@ -464,6 +446,7 @@
     />
     <luckybag
       wx:elif="{{displayMode === 'lucky_bag'}}"
+      id="lottery-sub"
       prizes="{{prizes}}"
       costPoints="{{costPerDraw}}"
       pointsBalance="{{pointsBalance}}"
@@ -472,37 +455,14 @@
       rarityEffects="{{rarityEffectsEnabled}}"
       winAnimation="{{winAnimation}}"
       displayConfig="{{displayConfig}}"
-      bind:draw="onChildDraw"
-      bind:animationEnd="onAnimationEnd"
-    />
-    <shake
-      wx:elif="{{displayMode === 'shake'}}"
-      prizes="{{prizes}}"
-      costPoints="{{costPerDraw}}"
-      pointsBalance="{{pointsBalance}}"
-      isInProgress="{{isDrawing}}"
-      effectTheme="{{effectTheme}}"
-      rarityEffects="{{rarityEffectsEnabled}}"
-      winAnimation="{{winAnimation}}"
-      displayConfig="{{displayConfig}}"
-      bind:draw="onChildDraw"
-      bind:animationEnd="onAnimationEnd"
-    />
-    <flipmulti
-      wx:elif="{{displayMode === 'flip_card_multi'}}"
-      prizes="{{prizes}}"
-      costPoints="{{costPerDraw}}"
-      pointsBalance="{{pointsBalance}}"
-      isInProgress="{{isDrawing}}"
-      effectTheme="{{effectTheme}}"
-      rarityEffects="{{rarityEffectsEnabled}}"
-      winAnimation="{{winAnimation}}"
-      displayConfig="{{displayConfig}}"
+      multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
+      multiDrawResults="{{multiDrawResults}}"
       bind:draw="onChildDraw"
       bind:animationEnd="onAnimationEnd"
     />
     <redpacket
       wx:elif="{{displayMode === 'red_packet'}}"
+      id="lottery-sub"
       prizes="{{prizes}}"
       costPoints="{{costPerDraw}}"
       pointsBalance="{{pointsBalance}}"
@@ -510,6 +470,8 @@
       effectTheme="{{effectTheme}}"
       rarityEffects="{{rarityEffectsEnabled}}"
       winAnimation="{{winAnimation}}"
+      multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
+      multiDrawResults="{{multiDrawResults}}"
       bind:draw="onChildDraw"
       bind:animationEnd="onAnimationEnd"
     />
@@ -528,6 +490,7 @@
     />
     <whackmole
       wx:elif="{{displayMode === 'whack_mole'}}"
+      id="lottery-sub"
       prizes="{{prizes}}"
       costPoints="{{costPerDraw}}"
       pointsBalance="{{pointsBalance}}"

@@ -132,3 +132,8 @@ export const tradeStore = observable({
   })
 })
 
+
+
+
+
+

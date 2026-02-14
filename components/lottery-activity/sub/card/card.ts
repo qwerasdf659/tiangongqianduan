@@ -1,6 +1,6 @@
 /**
  * 卡牌翻转 子组件 - 3张卡牌选1张翻转（增强动效版）
- * 支持单抽（3选1）和连翻（N张逐张翻开）两种模式
+ * 支持单抽（3选1）、连翻（N张逐张翻开）和选牌（M选N）三种模式
  * @file sub/card/card.ts
  */
 
@@ -16,7 +16,9 @@ Component({
     /** 连翻张数（0=单抽模式） */
     multiDrawCount: { type: Number, value: 0 },
     /** 连翻结果数组（API返回的奖品） */
-    multiDrawResults: { type: Array, value: [] }
+    multiDrawResults: { type: Array, value: [] },
+    /** 展示配置（M选N模式使用 total_cards / pick_count） */
+    displayConfig: { type: Object, value: {} }
   },
 
   data: {
@@ -49,17 +51,31 @@ Component({
     /** 尺寸class：size-3 / size-5 / size-10 */
     sizeClass: 'size-3',
     /** 连翻入场动画 */
-    multiEntered: false
+    multiEntered: false,
+
+    /* ===== M选N 选牌模式 ===== */
+    /** 是否处于 M选N 模式 */
+    isPickMode: false,
+    /** 需选择的卡牌数 */
+    pickCount: 3,
+    /** 已选中的卡牌索引 */
+    selectedIndices: [] as number[],
+    /** 选牌阶段：picking=选牌中 flipping=翻牌中 done=完成 */
+    pickPhase: 'picking' as 'picking' | 'flipping' | 'done'
   },
 
   observers: {
     'prizes': function (prizes: any[]) {
-      if (this.data.isMultiFlip) return
+      if (this.data.isMultiFlip || this.data.isPickMode) return
       if (prizes && prizes.length > 0) {
         this._initCards(prizes)
       }
     },
     'isInProgress': function (val: boolean) {
+      if (this.data.isPickMode && this.data.pickPhase === 'flipping' && val) {
+        this._flipPickedCards()
+        return
+      }
       if (this.data.isMultiFlip) return
       if (val && this.data.selectedIndex >= 0) {
         this._flipCard()
@@ -72,6 +88,11 @@ Component({
     'multiDrawCount, multiDrawResults': function (count: number, results: any[]) {
       if (count > 0 && results && results.length > 0) {
         this._initMultiFlipCards(count, results)
+      }
+    },
+    'displayConfig': function (cfg: any) {
+      if (cfg && cfg.total_cards && cfg.pick_count) {
+        this._initPickModeCards()
       }
     }
   },
@@ -251,6 +272,81 @@ Component({
       }
     },
 
+    /* ===== M选N 选牌模式方法 ===== */
+
+    /** 初始化 M选N 卡牌 */
+    _initPickModeCards() {
+      const cfg = this.properties.displayConfig as any
+      const total = cfg?.total_cards || 9
+      const pick = cfg?.pick_count || 3
+      const prizes = this.properties.prizes as any[]
+      const cards = Array.from({ length: total }, (_, i) => ({
+        index: i,
+        prize: prizes[i % prizes.length] || { name: '奖品', icon: '🎁' },
+        flipped: false,
+        selected: false
+      }))
+      this.setData({
+        isPickMode: true,
+        cards,
+        totalCards: total,
+        pickCount: pick,
+        selectedIndices: [],
+        pickPhase: 'picking'
+      })
+    },
+
+    /** 选牌模式：点击选/取消选 */
+    onTapPickCard(e: any) {
+      if (this.data.pickPhase !== 'picking') return
+      const idx = e.currentTarget.dataset.index
+      const selected = [...this.data.selectedIndices]
+      const pos = selected.indexOf(idx)
+
+      if (pos >= 0) {
+        selected.splice(pos, 1)
+      } else if (selected.length < this.data.pickCount) {
+        selected.push(idx)
+      } else {
+        return
+      }
+
+      const cards = this.data.cards.map((c: any, i: number) => ({
+        ...c,
+        selected: selected.includes(i)
+      }))
+      this.setData({ cards, selectedIndices: selected })
+
+      wx.vibrateShort({ type: 'medium' })
+
+      if (selected.length === this.data.pickCount) {
+        this.setData({ pickPhase: 'flipping' })
+        this.triggerEvent('draw', { count: 1 })
+      }
+    },
+
+    /** 选牌模式：依次翻开选中卡牌 */
+    _flipPickedCards() {
+      const { selectedIndices } = this.data
+      let delay = 0
+      selectedIndices.forEach((idx: number) => {
+        setTimeout(() => {
+          const updated = this.data.cards.map((c: any, i: number) => ({
+            ...c,
+            flipped: c.flipped || i === idx
+          }))
+          this.setData({ cards: updated })
+          wx.vibrateShort({ type: 'light' })
+        }, delay)
+        delay += 400
+      })
+
+      setTimeout(() => {
+        this.setData({ pickPhase: 'done' })
+        this.triggerEvent('animationEnd')
+      }, delay + 800)
+    },
+
     /** 重置卡牌 */
     resetCards() {
       /* 清除连翻状态 */
@@ -264,10 +360,23 @@ Component({
         multiEntered: false
       })
 
-      /* 恢复单抽模式 */
-      const prizes = this.properties.prizes as any[]
-      if (prizes.length > 0) {
-        this._initCards(prizes)
+      /* 清除选牌模式状态 */
+      this.setData({
+        isPickMode: false,
+        pickCount: 3,
+        selectedIndices: [],
+        pickPhase: 'picking'
+      })
+
+      /* 恢复单抽模式或重新初始化选牌模式 */
+      const cfg = this.properties.displayConfig as any
+      if (cfg && cfg.total_cards && cfg.pick_count) {
+        this._initPickModeCards()
+      } else {
+        const prizes = this.properties.prizes as any[]
+        if (prizes.length > 0) {
+          this._initCards(prizes)
+        }
       }
     }
   }

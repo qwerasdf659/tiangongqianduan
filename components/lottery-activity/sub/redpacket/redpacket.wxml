@@ -1,43 +1,110 @@
 <!-- 拆红包抽奖组件 -->
 <view class="redpacket-container">
-  <view class="redpacket-title">
-    <text>拆红包 赢好礼</text>
-  </view>
 
-  <view class="packet-wrapper" bindtap="onTapPacket">
-    <!-- 红包主体 -->
-    <view class="red-packet {{packetState}}">
-      <!-- 红包封面 -->
-      <view class="packet-cover" wx:if="{{packetState !== 'opened'}}">
-        <view class="packet-gold-circle">
-          <text class="packet-text">开</text>
+  <!-- ===== 单拆模式（3选1） ===== -->
+  <block wx:if="{{!isMultiOpen}}">
+    <view class="redpacket-title">
+      <text>选一个红包拆开试试手气</text>
+    </view>
+
+    <view class="packets-row">
+      <view
+        class="packet-slot {{selectedPacket >= 0 && selectedPacket !== item.id && !item.opened ? 'is-dimmed' : ''}}"
+        wx:for="{{packets}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onTapPacket"
+      >
+        <!-- 未拆开的红包 -->
+        <view
+          class="red-packet {{item.shaking ? 'is-shaking' : ''}} {{selectedPacket === item.id && !item.opened ? 'is-selected' : ''}} {{canSelect ? 'is-idle' : ''}}"
+          wx:if="{{!item.opened}}"
+        >
+          <view class="packet-gold-circle">
+            <text class="packet-text">开</text>
+          </view>
+          <view class="packet-decoration">
+            <text class="deco-text">恭喜发财</text>
+          </view>
+          <!-- 编号 -->
+          <view class="packet-number">
+            <text>{{item.id + 1}}</text>
+          </view>
+          <!-- 点击提示 -->
+          <view class="packet-tap-hint" wx:if="{{canSelect && selectedPacket < 0}}">
+            <text>点我</text>
+          </view>
         </view>
-        <view class="packet-decoration">
-          <text class="deco-text">恭喜发财</text>
+
+        <!-- 拆开状态 -->
+        <view class="packet-opened" wx:else>
+          <view class="packet-opened__burst"></view>
+          <text class="packet-opened__icon">🧧</text>
+          <text class="packet-opened__text">恭喜获得!</text>
+          <text class="packet-opened__sparkle">✨</text>
         </view>
-      </view>
-
-      <!-- 红包内容（拆开后） -->
-      <view class="packet-content" wx:if="{{packetState === 'opened'}}">
-        <text class="content-icon">🧧</text>
-        <text class="content-text">恭喜获得奖品!</text>
-        <text class="content-sparkle">✨</text>
-      </view>
-
-      <!-- 拆开进度条 -->
-      <view class="packet-progress" wx:if="{{packetState === 'opening'}}">
-        <view class="progress-fill" style="width: {{openProgress}}%;"></view>
       </view>
     </view>
-  </view>
 
-  <view class="redpacket-hint">
-    <text wx:if="{{packetState === 'sealed'}}">点击拆开红包</text>
-    <text wx:elif="{{packetState === 'opening'}}">拆开中...</text>
-    <text wx:else>红包已拆开!</text>
-  </view>
+    <view class="redpacket-cost" wx:if="{{costPoints > 0}}">
+      <text>消耗 {{costPoints}} 积分</text>
+    </view>
+  </block>
 
-  <view class="redpacket-cost" wx:if="{{costPoints > 0}}">
-    <text>消耗 {{costPoints}} 积分</text>
-  </view>
+  <!-- ===== 连拆模式（N个红包） ===== -->
+  <block wx:else>
+    <view class="redpacket-title">
+      <text>{{allOpened ? '全部拆开！' : '点击红包逐个拆开'}}</text>
+    </view>
+
+    <!-- 进度计数 -->
+    <view class="multi-progress">
+      <text class="multi-progress__text">{{openedCount}} / {{totalPackets}}</text>
+      <view class="multi-progress__bar">
+        <view class="multi-progress__fill" style="width: {{totalPackets > 0 ? openedCount / totalPackets * 100 : 0}}%"></view>
+      </view>
+    </view>
+
+    <!-- 红包阵列 -->
+    <view class="multi-stage {{multiEntered ? 'is-entered' : ''}} {{sizeClass}}">
+      <view class="multi-row" wx:for="{{packetRows}}" wx:for-index="rowIdx" wx:key="rowIdx">
+        <view
+          class="multi-packet-slot {{item.opened ? 'is-opened' : ''}} {{item.shaking ? 'is-shaking-slot' : ''}}"
+          wx:for="{{item}}" wx:for-item="packet" wx:for-index="colIdx" wx:key="index"
+          data-row="{{rowIdx}}" data-col="{{colIdx}}"
+          bindtap="onTapMultiPacket"
+          style="animation-delay: {{packet.enterDelay}}ms"
+        >
+          <!-- 未拆开 -->
+          <view class="red-packet {{packet.shaking ? 'is-shaking' : ''}} {{!packet.opened ? 'is-idle' : ''}}" wx:if="{{!packet.opened}}">
+            <view class="packet-gold-circle">
+              <text class="packet-text">开</text>
+            </view>
+            <view class="packet-decoration">
+              <text class="deco-text">恭喜发财</text>
+            </view>
+            <view class="packet-number">
+              <text>{{packet.index + 1}}</text>
+            </view>
+          </view>
+
+          <!-- 拆开后显示奖品 -->
+          <view class="multi-packet-prize" wx:else>
+            <view class="multi-packet-prize__info">
+              <text class="multi-packet-prize__icon">{{packet.icon || '🎁'}}</text>
+              <text class="multi-packet-prize__name">{{packet.name || '奖品'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 一键全拆按钮 -->
+    <view class="multi-actions" wx:if="{{!allOpened}}">
+      <view class="multi-open-all-btn" bindtap="onOpenAll">
+        <text>全部拆开</text>
+      </view>
+    </view>
+  </block>
+
 </view>

@@ -7,7 +7,7 @@
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx;
-  background: linear-gradient(180deg, #8b1a1a 0%, #c0392b 30%, #a93226 70%, #7b241c 100%);
+  background: linear-gradient(180deg, var(--theme-bg-dark, #8b1a1a) 0%, var(--theme-primary, #c0392b) 30%, var(--theme-primary-dark, #a93226) 70%, var(--theme-bg-darker, #7b241c) 100%);
   border-radius: 16rpx;
   overflow: hidden;
   position: relative;
@@ -38,14 +38,14 @@
   &__ribbon {
     width: 48rpx;
     height: 4rpx;
-    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    background: linear-gradient(90deg, transparent, var(--theme-accent, #ffd700), transparent);
     border-radius: 2rpx;
   }
 
   &__text {
     font-size: 30rpx;
     font-weight: bold;
-    color: #ffd700;
+    color: var(--theme-accent, #ffd700);
     text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
     letter-spacing: 2rpx;
   }
@@ -111,7 +111,7 @@
   &__top {
     width: 100%;
     height: 16rpx;
-    background: linear-gradient(180deg, #daa520, #b8860b);
+    background: linear-gradient(180deg, var(--theme-accent-light, #daa520), var(--theme-accent-dark, #b8860b));
     border-radius: 50%;
     box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
   }
@@ -120,7 +120,7 @@
     width: 90%;
     height: 12rpx;
     margin: 0 auto;
-    background: linear-gradient(180deg, #b8860b, #8b6914);
+    background: linear-gradient(180deg, var(--theme-accent-dark, #b8860b), var(--theme-accent-darker, #8b6914));
     border-radius: 0 0 8rpx 8rpx;
   }
 }
@@ -150,16 +150,14 @@
 .egg-shape {
   width: 130rpx;
   height: 170rpx;
-  background: linear-gradient(
-    160deg,
-    #fff6d5 0%,
-    #ffe066 15%,
-    #ffd700 30%,
-    #daa520 50%,
-    #b8860b 70%,
-    #996515 85%,
-    #8b6914 100%
-  );
+  background: linear-gradient(160deg,
+      #fff6d5 0%,
+      #ffe066 15%,
+      #ffd700 30%,
+      #daa520 50%,
+      #b8860b 70%,
+      #996515 85%,
+      #8b6914 100%);
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   position: relative;
   box-shadow:
@@ -175,12 +173,10 @@
     left: 22rpx;
     width: 50rpx;
     height: 70rpx;
-    background: radial-gradient(
-      ellipse at 40% 30%,
-      rgba(255, 255, 255, 0.7) 0%,
-      rgba(255, 255, 255, 0.2) 40%,
-      transparent 70%
-    );
+    background: radial-gradient(ellipse at 40% 30%,
+        rgba(255, 255, 255, 0.7) 0%,
+        rgba(255, 255, 255, 0.2) 40%,
+        transparent 70%);
     border-radius: 50%;
     transform: rotate(-15deg);
   }
@@ -193,14 +189,12 @@
     right: 0;
     height: 20rpx;
     transform: translateY(-50%);
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(255, 215, 0, 0.4) 30%,
-      rgba(218, 165, 32, 0.6) 50%,
-      rgba(255, 215, 0, 0.4) 70%,
-      transparent 100%
-    );
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(255, 215, 0, 0.4) 30%,
+        rgba(218, 165, 32, 0.6) 50%,
+        rgba(255, 215, 0, 0.4) 70%,
+        transparent 100%);
   }
 
   /* 闪烁星点 */
@@ -234,7 +228,7 @@
   transform: translateX(-50%);
   width: 40rpx;
   height: 40rpx;
-  background: linear-gradient(135deg, #ffd700, #daa520);
+  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-light, #daa520));
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -245,7 +239,7 @@
   text {
     font-size: 22rpx;
     font-weight: bold;
-    color: #7b241c;
+    color: var(--theme-text-dark, #7b241c);
   }
 }
 
@@ -313,31 +307,36 @@
   position: absolute;
   width: 24rpx;
   height: 30rpx;
-  background: linear-gradient(135deg, #ffd700, #daa520, #b8860b);
+  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-light, #daa520), var(--theme-accent-dark, #b8860b));
   border-radius: 4rpx 8rpx 4rpx 2rpx;
   box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 
   &--1 {
     animation: shardFly1 0.8s ease-out forwards;
   }
+
   &--2 {
     animation: shardFly2 0.8s ease-out forwards;
   }
+
   &--3 {
     animation: shardFly3 0.8s ease-out forwards;
     width: 18rpx;
     height: 22rpx;
   }
+
   &--4 {
     animation: shardFly4 0.8s ease-out forwards;
     width: 20rpx;
     height: 26rpx;
   }
+
   &--5 {
     animation: shardFly5 0.8s ease-out forwards;
     width: 16rpx;
     height: 20rpx;
   }
+
   &--6 {
     animation: shardFly6 0.8s ease-out forwards;
     width: 14rpx;
@@ -372,7 +371,7 @@
   &__star {
     width: 60rpx;
     height: 60rpx;
-    background: radial-gradient(circle, #fff 0%, #ffd700 40%, transparent 70%);
+    background: radial-gradient(circle, #fff 0%, var(--theme-accent, #ffd700) 40%, transparent 70%);
     border-radius: 50%;
     animation: burstStar 1.2s ease-in-out infinite;
     position: absolute;
@@ -395,7 +394,7 @@
   &__right {
     width: 50rpx;
     height: 40rpx;
-    background: linear-gradient(160deg, #ffe066, #daa520, #b8860b);
+    background: linear-gradient(160deg, var(--theme-accent-lighter, #ffe066), var(--theme-accent-light, #daa520), var(--theme-accent-dark, #b8860b));
     box-shadow: inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3);
   }
 
@@ -426,9 +425,9 @@
   &__icon {
     width: 20rpx;
     height: 20rpx;
-    background: radial-gradient(circle, #ffd700, #daa520);
+    background: radial-gradient(circle, var(--theme-accent, #ffd700), var(--theme-accent-light, #daa520));
     border-radius: 50%;
-    box-shadow: 0 0 6rpx rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 6rpx var(--theme-accent-glow, rgba(255, 215, 0, 0.5));
   }
 
   &__text {
@@ -448,7 +447,7 @@
   &__text {
     font-size: 26rpx;
     font-weight: bold;
-    color: #ffd700;
+    color: var(--theme-accent, #ffd700);
     white-space: nowrap;
   }
 
@@ -462,7 +461,7 @@
 
   &__fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    background: linear-gradient(90deg, var(--theme-accent, #ffd700), var(--theme-accent-bright, #ff8c00));
     border-radius: 6rpx;
     transition: width 0.3s ease;
   }
@@ -507,36 +506,112 @@
 
 /* ===== 尺寸适配 ===== */
 .multi-stage.size-3 {
-  .multi-egg-slot { width: 180rpx; }
-  .egg-shape { width: 130rpx; height: 170rpx; }
-  .egg-pedestal { width: 120rpx; }
-  .egg-number { width: 40rpx; height: 40rpx; }
-  .egg-number text { font-size: 22rpx; }
-  .multi-row { gap: 24rpx; }
+  .multi-egg-slot {
+    width: 180rpx;
+  }
+
+  .egg-shape {
+    width: 130rpx;
+    height: 170rpx;
+  }
+
+  .egg-pedestal {
+    width: 120rpx;
+  }
+
+  .egg-number {
+    width: 40rpx;
+    height: 40rpx;
+  }
+
+  .egg-number text {
+    font-size: 22rpx;
+  }
+
+  .multi-row {
+    gap: 24rpx;
+  }
 }
 
 .multi-stage.size-5 {
-  .multi-egg-slot { width: 130rpx; }
-  .egg-shape { width: 100rpx; height: 130rpx; }
-  .egg-pedestal { width: 90rpx; }
-  .egg-number { width: 34rpx; height: 34rpx; }
-  .egg-number text { font-size: 20rpx; }
-  .egg-shape__sparkle { display: none; }
-  .multi-row { gap: 12rpx; }
+  .multi-egg-slot {
+    width: 130rpx;
+  }
+
+  .egg-shape {
+    width: 100rpx;
+    height: 130rpx;
+  }
+
+  .egg-pedestal {
+    width: 90rpx;
+  }
+
+  .egg-number {
+    width: 34rpx;
+    height: 34rpx;
+  }
+
+  .egg-number text {
+    font-size: 20rpx;
+  }
+
+  .egg-shape__sparkle {
+    display: none;
+  }
+
+  .multi-row {
+    gap: 12rpx;
+  }
 }
 
 .multi-stage.size-10 {
-  .multi-egg-slot { width: 120rpx; }
-  .egg-shape { width: 88rpx; height: 114rpx; }
-  .egg-pedestal { width: 80rpx; }
-  .egg-number { width: 30rpx; height: 30rpx; }
-  .egg-number text { font-size: 18rpx; }
-  .egg-shape__sparkle { display: none; }
-  .egg-shape__band { display: none; }
-  .multi-row { gap: 8rpx; }
-  .multi-egg-prize { min-height: 114rpx; }
-  .multi-egg-prize__icon { font-size: 36rpx; }
-  .multi-egg-prize__name { font-size: 18rpx; max-width: 100rpx; }
+  .multi-egg-slot {
+    width: 120rpx;
+  }
+
+  .egg-shape {
+    width: 88rpx;
+    height: 114rpx;
+  }
+
+  .egg-pedestal {
+    width: 80rpx;
+  }
+
+  .egg-number {
+    width: 30rpx;
+    height: 30rpx;
+  }
+
+  .egg-number text {
+    font-size: 18rpx;
+  }
+
+  .egg-shape__sparkle {
+    display: none;
+  }
+
+  .egg-shape__band {
+    display: none;
+  }
+
+  .multi-row {
+    gap: 8rpx;
+  }
+
+  .multi-egg-prize {
+    min-height: 114rpx;
+  }
+
+  .multi-egg-prize__icon {
+    font-size: 36rpx;
+  }
+
+  .multi-egg-prize__name {
+    font-size: 18rpx;
+    max-width: 100rpx;
+  }
 }
 
 /* ===== 连敲模式 - 砸碎后奖品展示 ===== */
@@ -563,7 +638,7 @@
 
   &__name {
     font-size: 20rpx;
-    color: #ffd700;
+    color: var(--theme-accent, #ffd700);
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
     margin-top: 4rpx;
     max-width: 120rpx;
@@ -583,14 +658,14 @@
 
 .multi-smash-all-btn {
   padding: 14rpx 48rpx;
-  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  background: linear-gradient(135deg, var(--theme-accent, #ffd700), var(--theme-accent-bright, #ff8c00));
   border-radius: 40rpx;
-  box-shadow: 0 4rpx 16rpx rgba(255, 140, 0, 0.4);
+  box-shadow: 0 4rpx 16rpx var(--theme-accent-shadow, rgba(255, 140, 0, 0.4));
 
   text {
     font-size: 28rpx;
     font-weight: bold;
-    color: #7b241c;
+    color: var(--theme-text-dark, #7b241c);
     letter-spacing: 2rpx;
   }
 
@@ -603,87 +678,241 @@
 /* ===== 动画关键帧 ===== */
 
 @keyframes eggShake {
-  0%   { transform: rotate(0deg) scale(1); }
-  10%  { transform: rotate(-12deg) scale(1.02); }
-  20%  { transform: rotate(12deg) scale(1.04); }
-  30%  { transform: rotate(-14deg) scale(1.03); }
-  40%  { transform: rotate(14deg) scale(1.05); }
-  50%  { transform: rotate(-12deg) scale(1.04); }
-  60%  { transform: rotate(10deg) scale(1.03); }
-  70%  { transform: rotate(-8deg) scale(1.02); }
-  80%  { transform: rotate(6deg) scale(1.01); }
-  90%  { transform: rotate(-3deg) scale(1); }
-  100% { transform: rotate(0deg) scale(1); }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  10% {
+    transform: rotate(-12deg) scale(1.02);
+  }
+
+  20% {
+    transform: rotate(12deg) scale(1.04);
+  }
+
+  30% {
+    transform: rotate(-14deg) scale(1.03);
+  }
+
+  40% {
+    transform: rotate(14deg) scale(1.05);
+  }
+
+  50% {
+    transform: rotate(-12deg) scale(1.04);
+  }
+
+  60% {
+    transform: rotate(10deg) scale(1.03);
+  }
+
+  70% {
+    transform: rotate(-8deg) scale(1.02);
+  }
+
+  80% {
+    transform: rotate(6deg) scale(1.01);
+  }
+
+  90% {
+    transform: rotate(-3deg) scale(1);
+  }
+
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
 }
 
 @keyframes hammerSwing {
-  0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-60deg); }
-  45%  { transform: rotate(10deg); }
-  60%  { transform: rotate(-50deg); }
-  75%  { transform: rotate(5deg); }
-  85%  { transform: rotate(-40deg); }
-  100% { transform: rotate(-35deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-60deg);
+  }
+
+  45% {
+    transform: rotate(10deg);
+  }
+
+  60% {
+    transform: rotate(-50deg);
+  }
+
+  75% {
+    transform: rotate(5deg);
+  }
+
+  85% {
+    transform: rotate(-40deg);
+  }
+
+  100% {
+    transform: rotate(-35deg);
+  }
 }
 
 /* 碎片飞散 - 6个方向 */
 @keyframes shardFly1 {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-80rpx, -100rpx) rotate(-120deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-80rpx, -100rpx) rotate(-120deg);
+    opacity: 0;
+  }
 }
+
 @keyframes shardFly2 {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(80rpx, -90rpx) rotate(150deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(80rpx, -90rpx) rotate(150deg);
+    opacity: 0;
+  }
 }
+
 @keyframes shardFly3 {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-100rpx, -40rpx) rotate(-90deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-100rpx, -40rpx) rotate(-90deg);
+    opacity: 0;
+  }
 }
+
 @keyframes shardFly4 {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(100rpx, -50rpx) rotate(100deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(100rpx, -50rpx) rotate(100deg);
+    opacity: 0;
+  }
 }
+
 @keyframes shardFly5 {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-50rpx, -120rpx) rotate(-160deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50rpx, -120rpx) rotate(-160deg);
+    opacity: 0;
+  }
 }
+
 @keyframes shardFly6 {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(60rpx, -110rpx) rotate(130deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(60rpx, -110rpx) rotate(130deg);
+    opacity: 0;
+  }
 }
 
 @keyframes burstRing {
-  0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
 }
 
 @keyframes burstStar {
-  0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.8); }
-  50%      { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
 }
 
 @keyframes flashFade {
-  0%   { opacity: 0.85; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes eggFloat {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-8rpx); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8rpx);
+  }
 }
 
 @keyframes sparkle {
-  0%, 100% { opacity: 0; transform: scale(0.5); }
-  50%      { opacity: 1; transform: scale(1.2); }
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 @keyframes hintBounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50%      { transform: translateX(-50%) translateY(-6rpx); }
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-6rpx);
+  }
 }
 
 @keyframes multiEggEnter {
-  0%   { opacity: 0; transform: scale(0.3) translateY(40rpx); }
-  60%  { opacity: 1; transform: scale(1.05) translateY(-4rpx); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(40rpx);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.05) translateY(-4rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }

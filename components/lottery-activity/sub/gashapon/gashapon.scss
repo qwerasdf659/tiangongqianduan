@@ -1,117 +1,1272 @@
 ﻿@import '../../../../styles/variables';
 
+/* ================================
+   扭蛋机容器 - 复古怀旧版
+   ================================ */
 .gashapon-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 30rpx 0;
+  padding: 40rpx 0 80rpx;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg,
+      var(--theme-bg-dark, #2c1810) 0%,
+      var(--theme-bg-darker, #3d2415) 50%,
+      var(--theme-bg-dark, #2c1810) 100%);
+
+  /* 复古纹理背景 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      repeating-linear-gradient(0deg,
+        transparent,
+        transparent 2rpx,
+        rgba(0, 0, 0, 0.05) 2rpx,
+        rgba(0, 0, 0, 0.05) 4rpx),
+      repeating-linear-gradient(90deg,
+        transparent,
+        transparent 2rpx,
+        rgba(0, 0, 0, 0.05) 2rpx,
+        rgba(0, 0, 0, 0.05) 4rpx);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 暖光晕染效果 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300rpx;
+    height: 300rpx;
+    background: radial-gradient(circle,
+        var(--theme-accent-glow, rgba(255, 170, 51, 0.15)) 0%,
+        transparent 70%);
+    filter: blur(60rpx);
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
+/* 背景脉冲动画 */
+@keyframes bgPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+/* 光束动画 */
+@keyframes lightBeam {
+
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translateX(-50%) scaleY(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1.2);
+  }
+}
+
+/* ================================
+   扭蛋机主体 - 复古机械风格
+   ================================ */
 .machine {
   position: relative;
-  width: 320rpx;
-  height: 420rpx;
+  width: 380rpx;
+  height: 520rpx;
+  filter: drop-shadow(0 20rpx 40rpx rgba(0, 0, 0, 0.6));
+  z-index: 2;
+
+  /* 木质框架装饰 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -15rpx;
+    left: -15rpx;
+    right: -15rpx;
+    bottom: -40rpx;
+    background: linear-gradient(135deg,
+        var(--theme-frame, #8b4513) 0%,
+        var(--theme-frame-dark, #6f3609) 30%,
+        var(--theme-frame-darker, #5c2e08) 60%,
+        var(--theme-frame-darkest, #4a2507) 100%);
+    border-radius: 20rpx;
+    box-shadow:
+      inset 0 4rpx 8rpx rgba(0, 0, 0, 0.4),
+      inset 0 -4rpx 8rpx rgba(255, 255, 255, 0.1),
+      0 10rpx 30rpx rgba(0, 0, 0, 0.5);
+    z-index: -1;
+
+    /* 木质纹理 */
+    background-image:
+      repeating-linear-gradient(90deg,
+        transparent 0rpx,
+        rgba(0, 0, 0, 0.1) 2rpx,
+        transparent 4rpx,
+        transparent 20rpx);
+  }
+
+  /* 黄铜装饰条 */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -35rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340rpx;
+    height: 20rpx;
+    background: linear-gradient(90deg,
+        var(--theme-accent-dark, #b8860b) 0%,
+        var(--theme-accent, #daa520) 20%,
+        var(--theme-accent-mid, #cd7f32) 50%,
+        var(--theme-accent, #daa520) 80%,
+        var(--theme-accent-dark, #b8860b) 100%);
+    border-radius: 10rpx;
+    box-shadow:
+      0 4rpx 12rpx rgba(0, 0, 0, 0.4),
+      inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3),
+      inset 0 -2rpx 4rpx rgba(0, 0, 0, 0.3);
+
+    /* 黄铜锈迹 */
+    background-image:
+      repeating-linear-gradient(90deg,
+        transparent 0rpx,
+        rgba(46, 125, 50, 0.1) 10rpx,
+        transparent 20rpx);
+  }
 }
 
+/* 霓虹旋转动画 */
+@keyframes neonRotate {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.6;
+  }
+}
+
+/* ================================
+   透明圆顶 - 复古有色玻璃质感
+   ================================ */
 .machine-dome {
   position: relative;
-  width: 280rpx;
-  height: 240rpx;
+  width: 340rpx;
+  height: 300rpx;
   margin: 0 auto;
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
-  border-radius: 140rpx 140rpx 20rpx 20rpx;
-  border: 6rpx solid #e0e0e0;
+  background: linear-gradient(180deg,
+      rgba(255, 228, 181, 0.6) 0%,
+      rgba(245, 222, 179, 0.5) 30%,
+      rgba(222, 184, 135, 0.4) 60%,
+      rgba(210, 180, 140, 0.3) 100%);
+  border-radius: 170rpx 170rpx 35rpx 35rpx;
+  border: 12rpx solid var(--theme-frame, #8b4513);
+  border-bottom-color: var(--theme-frame-darkest, #654321);
   overflow: hidden;
+  box-shadow:
+    inset 0 -20rpx 40rpx rgba(139, 69, 19, 0.3),
+    inset 20rpx 0 30rpx rgba(255, 228, 181, 0.4),
+    inset -15rpx 0 25rpx rgba(139, 69, 19, 0.2),
+    0 8rpx 24rpx rgba(0, 0, 0, 0.4),
+    0 0 30rpx rgba(218, 165, 32, 0.2);
+
+  /* 复古玻璃反光 - 暖色调 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 12%;
+    left: 18%;
+    width: 45%;
+    height: 35%;
+    background: radial-gradient(ellipse at center,
+        rgba(255, 228, 181, 0.5) 0%,
+        rgba(255, 228, 181, 0.3) 40%,
+        transparent 70%);
+    border-radius: 50%;
+    filter: blur(10rpx);
+    pointer-events: none;
+  }
+
+  /* 木质边框阴影 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 170rpx 170rpx 35rpx 35rpx;
+    box-shadow:
+      inset 0 0 20rpx rgba(139, 69, 19, 0.4);
+    pointer-events: none;
+  }
 }
 
+/* 圆顶发光动画 */
+@keyframes domeGlow {
+
+  0%,
+  100% {
+    box-shadow:
+      inset 0 -30rpx 60rpx rgba(135, 206, 250, 0.2),
+      inset 30rpx 0 40rpx rgba(255, 255, 255, 0.6),
+      inset -20rpx 0 30rpx rgba(135, 206, 250, 0.15),
+      0 10rpx 30rpx rgba(0, 0, 0, 0.15),
+      0 0 60rpx rgba(135, 206, 250, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      inset 0 -30rpx 60rpx rgba(135, 206, 250, 0.25),
+      inset 30rpx 0 40rpx rgba(255, 255, 255, 0.7),
+      inset -20rpx 0 30rpx rgba(135, 206, 250, 0.2),
+      0 10rpx 30rpx rgba(0, 0, 0, 0.15),
+      0 0 80rpx rgba(135, 206, 250, 0.5);
+  }
+}
+
+/* 高光移动动画 */
+@keyframes highlightShift {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translate(10rpx, -5rpx) scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* 高光脉冲动画 */
+@keyframes highlightPulse {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* ================================
+   扭蛋球 - 复古塑料质感
+   ================================ */
 .capsule-ball {
   position: absolute;
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
-  box-shadow: inset -4rpx -4rpx 8rpx rgba(0,0,0,0.15), 0 2rpx 4rpx rgba(0,0,0,0.1);
-}
-
-.machine-outlet {
-  width: 120rpx;
-  height: 100rpx;
-  margin: -10rpx auto 0;
-  background: linear-gradient(180deg, #e0e0e0, #ccc);
-  border-radius: 0 0 20rpx 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.capsule-dropping {
   width: 70rpx;
   height: 70rpx;
   border-radius: 50%;
+  box-shadow:
+    inset -6rpx -6rpx 12rpx rgba(0, 0, 0, 0.3),
+    inset 4rpx 4rpx 8rpx rgba(255, 255, 255, 0.3),
+    0 4rpx 10rpx rgba(0, 0, 0, 0.3);
+  animation: capsuleBobRetro 4s ease-in-out infinite;
+  border: 2rpx solid rgba(0, 0, 0, 0.15);
+
+  /* 复古高光 - 柔和暖光 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 25%;
+    width: 18rpx;
+    height: 18rpx;
+    background: radial-gradient(circle,
+        rgba(255, 248, 220, 0.7) 0%,
+        rgba(255, 248, 220, 0.4) 50%,
+        transparent 100%);
+    border-radius: 50%;
+    filter: blur(2rpx);
+  }
+
+  /* 中部反光带 - 磨砂质感 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 40%;
+    left: 15%;
+    right: 15%;
+    height: 6rpx;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 3rpx;
+    filter: blur(2rpx);
+  }
+}
+
+/* 扭蛋球浮动动画 - 增强版 */
+@keyframes capsuleBobDeluxe {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-10rpx) rotate(2deg);
+  }
+
+  50% {
+    transform: translateY(-5rpx) rotate(0deg);
+  }
+
+  75% {
+    transform: translateY(-10rpx) rotate(-2deg);
+  }
+}
+
+/* 高光闪烁动画 */
+@keyframes sparkle {
+
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* 高光条流动动画 */
+@keyframes shimmer {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ================================
+   机身出口 - 金属质感
+   ================================ */
+.machine-outlet {
+  width: 140rpx;
+  height: 120rpx;
+  margin: -15rpx auto 0;
+  background: linear-gradient(180deg,
+      #f0f0f0 0%,
+      #d8d8d8 40%,
+      #c0c0c0 100%);
+  border-radius: 0 0 30rpx 30rpx;
+  border: 4rpx solid var(--theme-frame-light, #b8b8b8);
+  border-top: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 4rpx 8rpx rgba(0, 0, 0, 0.1),
+    0 8rpx 16rpx rgba(0, 0, 0, 0.15);
 
-  &.animate {
-    animation: capsuleDrop 1.2s ease-in;
+  /* 金属纹理 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      repeating-linear-gradient(90deg,
+        transparent 0rpx,
+        rgba(255, 255, 255, 0.05) 2rpx,
+        transparent 4rpx);
+    pointer-events: none;
+  }
+
+  /* 出口开口 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 20rpx;
+    left: 20rpx;
+    right: 20rpx;
+    height: 4rpx;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 2rpx;
   }
 }
 
-.capsule-shine {
-  font-size: 32rpx;
+/* ================================
+   掉落扭蛋 - 增强动画
+   ================================ */
+.capsule-dropping {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 8rpx 20rpx rgba(0, 0, 0, 0.25),
+    inset -4rpx -4rpx 8rpx rgba(0, 0, 0, 0.15),
+    inset 3rpx 3rpx 6rpx rgba(255, 255, 255, 0.4);
+  position: relative;
+
+  &.animate {
+    animation: capsuleDrop 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* 掉落时的拖尾效果 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60rpx;
+    height: 100rpx;
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 100%);
+    border-radius: 50%;
+    filter: blur(8rpx);
+    opacity: 0;
+    animation: capsuleTrail 1.5s ease-out;
+  }
 }
 
+/* 扭蛋光泽 */
+.capsule-shine {
+  font-size: 36rpx;
+  animation: shineRotate 2s linear infinite;
+  filter: drop-shadow(0 0 8rpx var(--theme-accent-glow, rgba(255, 215, 0, 0.6)));
+}
+
+/* ================================
+   手柄组件 - 交互增强
+   ================================ */
 .machine-handle {
   position: absolute;
-  right: 10rpx;
-  top: 200rpx;
+  right: -10rpx;
+  top: 220rpx;
   display: flex;
   align-items: center;
   cursor: pointer;
+  transform-origin: left center;
+  transition: transform 0.2s ease;
+  z-index: 2;
 
   &.turning {
-    animation: handleTurn 0.8s ease-in-out;
+    animation: handleTurn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  /* 点击时的缩放效果 */
+  &:active {
+    transform: scale(0.95);
   }
 }
 
+/* 手柄球 - 复古木质旋钮效果 */
 .handle-knob {
-  width: 40rpx;
-  height: 40rpx;
+  width: 54rpx;
+  height: 54rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.2);
+  background:
+    radial-gradient(ellipse at 35% 30%,
+      #d2691e 0%,
+      #a0522d 40%,
+      #8b4513 70%,
+      #654321 100%);
+  box-shadow:
+    0 5rpx 12rpx rgba(0, 0, 0, 0.5),
+    inset 0 -3rpx 6rpx rgba(0, 0, 0, 0.4),
+    inset 0 2rpx 4rpx rgba(255, 228, 181, 0.3);
+  position: relative;
+  border: 3rpx solid var(--theme-frame-darkest, #654321);
+
+  /* 木质高光 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 12rpx;
+    left: 16rpx;
+    width: 16rpx;
+    height: 16rpx;
+    background: radial-gradient(circle,
+        rgba(255, 228, 181, 0.6) 0%,
+        rgba(255, 228, 181, 0.3) 50%,
+        transparent 100%);
+    border-radius: 50%;
+    filter: blur(2rpx);
+  }
+
+  /* 木纹纹理 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background:
+      repeating-linear-gradient(120deg,
+        transparent 0rpx,
+        rgba(0, 0, 0, 0.1) 1rpx,
+        transparent 2rpx,
+        transparent 8rpx);
+    pointer-events: none;
+  }
 }
 
+/* 手柄球高光闪耀 */
+@keyframes knobShine {
+
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+/* 三层脉冲光环 */
+@keyframes tripleRing {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* 手柄臂 - 黄铜金属杆 */
 .handle-arm {
-  width: 30rpx;
-  height: 8rpx;
-  background: #999;
-  margin-left: -4rpx;
+  width: 38rpx;
+  height: 14rpx;
+  background: linear-gradient(180deg,
+      var(--theme-accent, #daa520) 0%,
+      var(--theme-accent-mid, #cd7f32) 40%,
+      var(--theme-accent-dark, #b8860b) 100%);
+  margin-left: -6rpx;
+  border-radius: 7rpx;
+  border: 2rpx solid var(--theme-accent-darker, #8b6914);
+  box-shadow:
+    0 3rpx 6rpx rgba(0, 0, 0, 0.4),
+    inset 0 2rpx 3rpx rgba(255, 228, 181, 0.4),
+    inset 0 -2rpx 3rpx rgba(0, 0, 0, 0.3);
+
+  /* 金属磨损纹理 */
+  background-image:
+    repeating-linear-gradient(90deg,
+      transparent 0rpx,
+      rgba(0, 0, 0, 0.05) 1rpx,
+      transparent 2rpx,
+      transparent 6rpx);
 }
 
+/* ================================
+   提示文字 - 复古像素风格
+   ================================ */
 .gashapon-hint {
-  margin-top: 20rpx;
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  margin-top: 35rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: var(--theme-accent-light, #ffeb3b);
+  text-shadow:
+    2rpx 2rpx 0 #000,
+    -2rpx -2rpx 0 #000,
+    2rpx -2rpx 0 #000,
+    -2rpx 2rpx 0 #000,
+    0 4rpx 8rpx rgba(0, 0, 0, 0.6);
+  letter-spacing: 4rpx;
+  font-family: 'Courier New', monospace;
 }
 
+/* 消耗积分提示 - 复古游戏厅标牌 */
 .gashapon-cost {
   margin-top: 16rpx;
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.7);
+  padding: 12rpx 28rpx;
+  background: linear-gradient(180deg,
+      var(--theme-bg-dark, #2c1810) 0%,
+      var(--theme-bg-darkest, #1a0f08) 100%);
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  font-weight: bold;
+  color: var(--theme-accent-light, #ffeb3b);
+  border: 4rpx solid var(--theme-frame, #8b4513);
+  box-shadow:
+    0 6rpx 12rpx rgba(0, 0, 0, 0.6),
+    inset 0 2rpx 4rpx rgba(255, 235, 59, 0.2);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2rpx;
 }
 
+/* ================================
+   动画定义
+   ================================ */
+
+/* 扭蛋掉落动画 - 更流畅 */
 @keyframes capsuleDrop {
-  0% { transform: translateY(-60rpx); opacity: 0; }
-  40% { transform: translateY(10rpx); opacity: 1; }
-  60% { transform: translateY(-5rpx); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(-80rpx) scale(0.8);
+    opacity: 0;
+  }
+
+  30% {
+    transform: translateY(-20rpx) scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(20rpx) scale(1.05);
+  }
+
+  65% {
+    transform: translateY(-5rpx) scale(0.98);
+  }
+
+  80% {
+    transform: translateY(5rpx) scale(1.02);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }
 
+/* 扭蛋拖尾效果 */
+@keyframes capsuleTrail {
+  0% {
+    opacity: 0.6;
+    transform: translateX(-50%) scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(0.3);
+  }
+}
+
+/* 手柄转动动画 - 更有力度 */
 @keyframes handleTurn {
-  0% { transform: rotate(0deg); }
-  50% { transform: rotate(90deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  15% {
+    transform: rotate(-15deg);
+  }
+
+  40% {
+    transform: rotate(100deg);
+  }
+
+  65% {
+    transform: rotate(85deg);
+  }
+
+  85% {
+    transform: rotate(95deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* 扭蛋球浮动动画 */
+@keyframes capsuleBob {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8rpx);
+  }
+}
+
+/* 光泽旋转 */
+@keyframes shineRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 脉冲圆环 */
+@keyframes pulseRing {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* 提示文字脉冲 */
+@keyframes hintPulse {
+
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ================================
+   复古像素粒子系统
+   ================================ */
+.bg-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  font-size: 28rpx;
+  animation: particleFloatRetro linear infinite;
+  opacity: 0.5;
+
+  text {
+    filter: drop-shadow(2rpx 2rpx 0 rgba(0, 0, 0, 0.5));
+  }
+
+  /* 简化粒子 - 统一速度 */
+  &:nth-child(odd) {
+    animation-duration: 10s;
+  }
+
+  &:nth-child(even) {
+    animation-duration: 14s;
+  }
+}
+
+/* 粒子漂浮动画 - 3D螺旋上升 */
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 0.7;
+  }
+
+  25% {
+    transform: translateY(-25vh) translateX(30rpx) rotate(90deg) scale(1);
+  }
+
+  50% {
+    transform: translateY(-50vh) translateX(-30rpx) rotate(180deg) scale(1.2);
+  }
+
+  75% {
+    transform: translateY(-75vh) translateX(30rpx) rotate(270deg) scale(1);
+  }
+
+  95% {
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: translateY(-110vh) translateX(0) rotate(360deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* 粒子闪烁动画 */
+@keyframes particleTwinkle {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+
+/* ================================
+   庆祝特效
+   ================================ */
+.celebration-effect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300rpx;
+  height: 300rpx;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.celebration-burst {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.burst-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 40rpx;
+  animation: burstOut 1s ease-out forwards;
+
+  &:nth-child(1) {
+    --angle: 0deg;
+  }
+
+  &:nth-child(2) {
+    --angle: 30deg;
+  }
+
+  &:nth-child(3) {
+    --angle: 60deg;
+  }
+
+  &:nth-child(4) {
+    --angle: 90deg;
+  }
+
+  &:nth-child(5) {
+    --angle: 120deg;
+  }
+
+  &:nth-child(6) {
+    --angle: 150deg;
+  }
+
+  &:nth-child(7) {
+    --angle: 180deg;
+  }
+
+  &:nth-child(8) {
+    --angle: 210deg;
+  }
+
+  &:nth-child(9) {
+    --angle: 240deg;
+  }
+
+  &:nth-child(10) {
+    --angle: 270deg;
+  }
+
+  &:nth-child(11) {
+    --angle: 300deg;
+  }
+
+  &:nth-child(12) {
+    --angle: 330deg;
+  }
+}
+
+@keyframes burstOut {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(calc(-50% + 120rpx * cos(var(--angle))),
+        calc(-50% + 120rpx * sin(var(--angle)))) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* ================================
+   操作提示
+   ================================ */
+/* ================================
+   操作引导 - 复古告示牌风格
+   ================================ */
+.operation-tip {
+  margin-top: 35rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  animation: tipBounceRetro 2s ease-in-out infinite;
+  position: relative;
+}
+
+.tip-arrow {
+  font-size: 36rpx;
+  animation: arrowBounceRetro 1.5s ease-in-out infinite;
+  text-shadow:
+    2rpx 2rpx 0 #000,
+    -1rpx -1rpx 0 #000;
+  position: relative;
+  z-index: 1;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: var(--theme-accent-light, #ffeb3b);
+  text-align: center;
+  padding: 14rpx 30rpx;
+  background: linear-gradient(180deg,
+      var(--theme-bg-darker, #3d2415) 0%,
+      var(--theme-bg-dark, #2c1810) 100%);
+  border: 4rpx solid var(--theme-frame, #8b4513);
+  border-radius: 12rpx;
+  box-shadow:
+    0 6rpx 12rpx rgba(0, 0, 0, 0.6),
+    inset 0 2rpx 4rpx rgba(255, 235, 59, 0.15);
+  position: relative;
+  z-index: 1;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2rpx;
+  text-shadow:
+    1rpx 1rpx 0 #000,
+    -1rpx -1rpx 0 #000;
+
+  /* 木质纹理背景 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      repeating-linear-gradient(90deg,
+        transparent 0rpx,
+        rgba(0, 0, 0, 0.05) 1rpx,
+        transparent 2rpx,
+        transparent 8rpx);
+    border-radius: 8rpx;
+    pointer-events: none;
+  }
+}
+
+/* ================================
+   进度反馈系统
+   ================================ */
+/* 能量蓄积条 */
+.energy-bar-container {
+  margin-top: 25rpx;
+  width: 320rpx;
+  height: 12rpx;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  position: relative;
+  backdrop-filter: blur(10rpx);
+  box-shadow:
+    inset 0 2rpx 4rpx rgba(0, 0, 0, 0.3),
+    0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.energy-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg,
+      var(--theme-primary, #FF6B6B) 0%,
+      var(--theme-accent-light, #FFD93D) 25%,
+      var(--theme-success, #4ECDC4) 50%,
+      var(--theme-secondary, #9775FA) 75%,
+      var(--theme-primary-light, #FF6AC1) 100%);
+  background-size: 200% 100%;
+  animation: energyFlow 2s linear infinite, energyGlow 1.5s ease-in-out infinite;
+  border-radius: 8rpx;
+  position: relative;
+  transition: width 0.3s ease;
+
+  /* 能量闪光 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.8) 50%,
+        transparent 100%);
+    animation: energySweep 1.5s ease-in-out infinite;
+  }
+}
+
+/* 能量粒子 */
+.energy-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.energy-particle {
+  position: absolute;
+  width: 4rpx;
+  height: 4rpx;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 6rpx rgba(255, 255, 255, 0.8);
+  animation: energyParticleFly 1s ease-out forwards;
+}
+
+@keyframes tipBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translateY(-8rpx);
+    opacity: 1;
+  }
+}
+
+@keyframes arrowBounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6rpx);
+  }
+}
+
+/* ================================
+   手柄点击激活态
+   ================================ */
+.handle-active {
+  transform: scale(0.92);
+  filter: brightness(1.1);
+}
+
+/* ================================
+   新增动画定义
+   ================================ */
+@keyframes tipGlow {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@keyframes arrowRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes textShimmer {
+
+  0%,
+  100% {
+    box-shadow:
+      0 4rpx 12rpx rgba(0, 0, 0, 0.2),
+      inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3),
+      0 0 20rpx rgba(255, 215, 0, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 4rpx 12rpx rgba(0, 0, 0, 0.2),
+      inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3),
+      0 0 40rpx rgba(255, 215, 0, 0.6);
+  }
+}
+
+@keyframes energyFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes energyGlow {
+
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes energySweep {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 200%;
+  }
+}
+
+@keyframes energyParticleFly {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-50rpx) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ================================
+   复古机械动画定义
+   ================================ */
+
+/* 扭蛋球复古浮动 - 缓慢悠闲 */
+@keyframes capsuleBobRetro {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5rpx);
+  }
+}
+
+/* 粒子简单上浮 - 8-bit风格 */
+@keyframes particleFloatRetro {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.5;
+  }
+
+  90% {
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+}
+
+/* 提示文字缓慢跳动 */
+@keyframes tipBounceRetro {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8rpx);
+  }
+}
+
+/* 箭头简单跳动 */
+@keyframes arrowBounceRetro {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12rpx);
+  }
 }

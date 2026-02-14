@@ -11,7 +11,7 @@
 .card-title {
   margin-bottom: 30rpx;
   font-size: 30rpx;
-  color: #fff;
+  color: var(--theme-text-inverse, #fff);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
   transition: opacity 0.3s ease;
 }
@@ -39,13 +39,22 @@
 
   /* 待选悬浮呼吸 */
   &.idle-float {
-    &:nth-child(1) { animation-delay: 0ms; }
-    &:nth-child(2) { animation-delay: 200ms; }
-    &:nth-child(3) { animation-delay: 400ms; }
+    &:nth-child(1) {
+      animation-delay: 0ms;
+    }
+
+    &:nth-child(2) {
+      animation-delay: 200ms;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 400ms;
+    }
   }
+
   &.idle-float.card-enter {
     animation: cardEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-               idleFloat 2.5s ease-in-out 1s infinite;
+      idleFloat 2.5s ease-in-out 1s infinite;
   }
 
   /* 选中态：放大 + 上浮 */
@@ -84,7 +93,7 @@
 
     .card-glow {
       opacity: 0.5;
-      background: radial-gradient(ellipse at center, rgba(102, 126, 234, 0.5) 0%, transparent 70%);
+      background: radial-gradient(ellipse at center, var(--theme-primary-glow, rgba(102, 126, 234, 0.5)) 0%, transparent 70%);
       animation: glowPulse 1s ease-in-out infinite;
     }
   }
@@ -101,7 +110,7 @@
   opacity: 0;
   pointer-events: none;
   z-index: -1;
-  background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, var(--theme-accent-glow, rgba(255, 215, 0, 0.6)) 0%, transparent 70%);
 
   &.glow-pulse {
     animation: glowPulse 1.5s ease-in-out infinite;
@@ -135,7 +144,7 @@
 
 /* ===== 卡背 ===== */
 .card-back {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--theme-primary, #667eea), var(--theme-primary-dark, #764ba2));
   border: 3rpx solid rgba(255, 255, 255, 0.3);
 }
 
@@ -146,12 +155,10 @@
   left: -100%;
   width: 60%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.15),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.15),
+      transparent);
   animation: shimmer 3s ease-in-out infinite;
   pointer-events: none;
 }
@@ -163,15 +170,15 @@
 
 .card-back-text {
   font-size: 48rpx;
-  color: #fff;
+  color: var(--theme-text-inverse, #fff);
   font-weight: bold;
 }
 
 /* ===== 卡正面 ===== */
 .card-front {
-  background: linear-gradient(135deg, #fffbe6, #fff8e1, #fff);
+  background: linear-gradient(135deg, var(--theme-bg-light, #fffbe6), var(--theme-bg-lighter, #fff8e1), var(--theme-bg-lightest, #fff));
   transform: rotateY(180deg);
-  border: 3rpx solid rgba(255, 215, 0, 0.3);
+  border: 3rpx solid var(--theme-accent-border, rgba(255, 215, 0, 0.3));
 }
 
 .card-prize-icon {
@@ -186,7 +193,7 @@
 
 .card-prize-name {
   font-size: 24rpx;
-  color: #333;
+  color: var(--theme-text, #333);
   font-weight: 500;
   text-align: center;
   padding: 0 10rpx;
@@ -196,7 +203,7 @@
 .card-cost {
   margin-top: 24rpx;
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
 }
 
 /* ===== 关键帧动画 ===== */
@@ -207,6 +214,7 @@
     opacity: 0;
     transform: translateY(80rpx) scale(0.8);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -215,9 +223,12 @@
 
 /* 待选悬浮呼吸 */
 @keyframes idleFloat {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0) scale(1);
   }
+
   50% {
     transform: translateY(-12rpx) scale(1.02);
   }
@@ -225,17 +236,28 @@
 
 /* 卡背流光扫过 */
 @keyframes shimmer {
-  0% { left: -100%; }
-  50% { left: 150%; }
-  100% { left: 150%; }
+  0% {
+    left: -100%;
+  }
+
+  50% {
+    left: 150%;
+  }
+
+  100% {
+    left: 150%;
+  }
 }
 
 /* 揭晓光晕脉冲 */
 @keyframes glowPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.8;
     transform: scale(1.05);
@@ -248,10 +270,12 @@
     transform: scale(0.3);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.3);
     opacity: 1;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -260,12 +284,16 @@
 
 /* 等待后端：轻微摇晃 + 浮动 */
 @keyframes cardWaiting {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(-20rpx) scale(1.08) rotate(0deg);
   }
+
   25% {
     transform: translateY(-24rpx) scale(1.08) rotate(-2deg);
   }
+
   75% {
     transform: translateY(-24rpx) scale(1.08) rotate(2deg);
   }
@@ -275,7 +303,7 @@
 
 .multi-flip-progress {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--theme-text-light, rgba(255, 255, 255, 0.8));
   margin-bottom: 24rpx;
 }
 
@@ -289,7 +317,8 @@
 .multi-flip-row {
   display: flex;
   justify-content: center;
-  gap: 16rpx;
+  gap: 12rpx;
+  /* 🔧 从16rpx减小到12rpx，节省空间避免五连翻超出边界 */
 }
 
 /* 连翻卡牌尺寸 */
@@ -297,45 +326,137 @@
   width: 200rpx;
   height: 280rpx;
 
-  .card-back-icon { font-size: 60rpx; }
-  .card-back-text { font-size: 48rpx; }
-  .card-prize-icon { font-size: 64rpx; }
-  .card-prize-name { font-size: 24rpx; }
+  .card-back-icon {
+    font-size: 60rpx;
+  }
+
+  .card-back-text {
+    font-size: 48rpx;
+  }
+
+  .card-prize-icon {
+    font-size: 64rpx;
+  }
+
+  .card-prize-name {
+    font-size: 24rpx;
+  }
 }
 
 .card-item.size-5 {
-  width: 180rpx;
-  height: 252rpx;
+  width: 138rpx;
+  /* 🔧 从180rpx减小到138rpx，确保5张卡牌(138×5=690rpx) + 4个gap(12×4=48rpx) = 738rpx 不超出屏幕750rpx */
+  height: 193rpx;
+  /* 🔧 按比例缩小高度 (252 * 138 / 180 ≈ 193) */
 
-  .card-back-icon { font-size: 48rpx; }
-  .card-back-text { font-size: 40rpx; }
-  .card-prize-icon { font-size: 52rpx; }
-  .card-prize-name { font-size: 22rpx; }
+  .card-back-icon {
+    font-size: 44rpx;
+  }
+
+  .card-back-text {
+    font-size: 36rpx;
+  }
+
+  .card-prize-icon {
+    font-size: 48rpx;
+  }
+
+  .card-prize-name {
+    font-size: 20rpx;
+  }
 }
 
 .card-item.size-10 {
   width: 128rpx;
   height: 180rpx;
 
-  .card-back-icon { font-size: 36rpx; }
-  .card-back-text { font-size: 30rpx; }
-  .card-prize-icon { font-size: 38rpx; }
-  .card-prize-name { font-size: 18rpx; padding: 0 4rpx; }
+  .card-back-icon {
+    font-size: 36rpx;
+  }
+
+  .card-back-text {
+    font-size: 30rpx;
+  }
+
+  .card-prize-icon {
+    font-size: 38rpx;
+  }
+
+  .card-prize-name {
+    font-size: 18rpx;
+    padding: 0 4rpx;
+  }
 }
 
 /* 全部翻开按钮 */
 .flip-all-btn {
   margin-top: 30rpx;
   padding: 16rpx 48rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--theme-primary, #667eea), var(--theme-primary-dark, #764ba2));
   border-radius: 40rpx;
-  color: #fff;
+  color: var(--theme-text-inverse, #fff);
   font-size: 28rpx;
   font-weight: 500;
-  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6rpx 20rpx var(--theme-shadow-medium, rgba(102, 126, 234, 0.4));
   transition: opacity 0.3s ease;
 
   &:active {
     opacity: 0.8;
   }
+}
+
+/* ===== M选N 选牌模式样式 ===== */
+
+.pick-hint {
+  margin-bottom: 20rpx;
+  font-size: 24rpx;
+  color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
+}
+
+.pick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16rpx;
+  max-width: 600rpx;
+}
+
+.card-item.pick-card {
+  width: 170rpx;
+  height: 220rpx;
+  perspective: 800rpx;
+  opacity: 1;
+  transform: none;
+
+  .card-inner {
+    border-radius: 12rpx;
+  }
+
+  .card-back {
+    border: 2rpx solid rgba(255, 255, 255, 0.2);
+  }
+
+  .card-front {
+    background: var(--theme-bg-lightest, #fff);
+  }
+
+  .card-prize-icon {
+    font-size: 48rpx;
+    margin-bottom: 8rpx;
+  }
+
+  .card-prize-name {
+    font-size: 20rpx;
+    padding: 0 8rpx;
+  }
+
+  &.pick-selected .card-inner {
+    box-shadow: 0 0 16rpx var(--theme-accent-glow, rgba(255, 215, 0, 0.6));
+  }
+}
+
+.card-back-num {
+  font-size: 40rpx;
+  color: var(--theme-text-lighter, rgba(255, 255, 255, 0.6));
+  font-weight: bold;
 }
