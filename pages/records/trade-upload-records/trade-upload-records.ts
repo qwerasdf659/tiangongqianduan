@@ -264,7 +264,7 @@ Page({
    * API: GET /api/v4/assets/transactions
    *
    * 后端实际返回字段（对齐 typings/api.d.ts AssetTransaction）：
-   *   asset_transaction_id - 交易流水ID（数字类型，主键）
+   *   transaction_id       - 交易流水ID（BIGINT）
    *   asset_code           - 资产代码（POINTS / DIAMOND / red_shard）
    *   delta_amount         - 变动金额（正数=获得/earn，负数=消费/consume）
    *   balance_before       - 变动前余额
@@ -303,7 +303,7 @@ Page({
           const rawDeltaAmount = record.delta_amount || 0
 
           return {
-            // 保留后端原始字段（asset_transaction_id / delta_amount / business_type 等直接使用）
+            // 保留后端原始字段（transaction_id / delta_amount / business_type 等直接使用）
             ...record,
             // === 前端计算的显示辅助字段 ===
             // 标题显示：优先 title → description → 硬编码回退
@@ -373,7 +373,7 @@ Page({
         (record: any) =>
           (record.displayTitle && record.displayTitle.toLowerCase().includes(keyword)) ||
           (record.description && record.description.toLowerCase().includes(keyword)) ||
-          (record.asset_transaction_id && String(record.asset_transaction_id).includes(keyword))
+          (record.transaction_id && String(record.transaction_id).includes(keyword))
       )
     }
 
@@ -484,7 +484,7 @@ Page({
 
     wx.showModal({
       title: '交易详情',
-      content: `交易类型：${record.displayTitle || '积分记录'}\n交易金额：${amountDisplay}积分\n交易时间：${record.created_at || '未知'}\n交易ID：${record.asset_transaction_id || '无'}`,
+      content: `交易类型：${record.displayTitle || '积分记录'}\n交易金额：${amountDisplay}积分\n交易时间：${record.created_at || '未知'}\n交易ID：${record.transaction_id || '无'}`,
       showCancel: false,
       confirmText: '知道了'
     })

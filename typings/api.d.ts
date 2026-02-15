@@ -154,8 +154,7 @@ declare namespace API {
    */
   interface AssetTransaction {
     /** 交易流水ID（主键，数字类型） */
-    /** 交易流水ID（后端API响应字段名 transaction_id，非数据库列名 asset_transaction_id） */
-    transaction_id: number
+    asset_transaction_id: number
     /** 资产代码（POINTS / DIAMOND / red_shard 等） */
     asset_code: string
     /** 变动金额（正数=增加/earn，负数=扣减/consume），后端字段名为 delta_amount */
