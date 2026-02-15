@@ -54,7 +54,7 @@ interface ApiResponse<T = any> {
   code?: string
 }
 
-// ===== 延迟获取App实例 =====
+// ===== 延迟获取App实例和Store =====
 
 let app: any = null
 function getAppInstance(): any {
@@ -66,6 +66,46 @@ function getAppInstance(): any {
     }
   }
   return app
+}
+
+/**
+ * 延迟获取 userStore（避免模块加载阶段的循环依赖）
+ * APIClient在模块顶层创建单例，此时Store可能尚未初始化，
+ * 因此必须在每次使用时延迟获取。
+ */
+let _userStore: any = null
+function getUserStore(): any {
+  if (!_userStore) {
+    try {
+      _userStore = require('../../store/user').userStore
+    } catch (error) {
+      log.warn('⚠️ 无法获取userStore:', error)
+    }
+  }
+  return _userStore
+}
+
+/**
+ * 从 Store 获取 access_token（Store优先，Storage降级）
+ * Store 是运行时唯一数据源，Storage 仅在 Store 尚未初始化时降级使用
+ */
+function getAccessToken(): string {
+  const store = getUserStore()
+  if (store && store.accessToken) {
+    return store.accessToken
+  }
+  return wx.getStorageSync('access_token') || ''
+}
+
+/**
+ * 从 Store 获取 refresh_token（Store优先，Storage降级）
+ */
+function getRefreshToken(): string {
+  const store = getUserStore()
+  if (store && store.refreshToken) {
+    return store.refreshToken
+  }
+  return wx.getStorageSync('refresh_token') || ''
 }
 
 const { getApiConfig, getDevelopmentConfig, getSecurityConfig } = require('../../config/env')
@@ -131,9 +171,9 @@ class APIClient {
       ...customHeaders
     }
 
-    // 认证处理 - JWT Token
+    // 认证处理 - JWT Token（Store优先，Storage降级）
     if (needAuth) {
-      const token: string = wx.getStorageSync('access_token')
+      const token: string = getAccessToken()
       if (token) {
         const integrityCheck = validateJWTTokenIntegrity(token)
         if (!integrityCheck.isValid) {
