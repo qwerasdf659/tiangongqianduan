@@ -424,7 +424,7 @@ class APIClient {
     this.isRefreshing = true
 
     try {
-      const refreshToken: string = wx.getStorageSync('refresh_token')
+      const refreshToken: string = getRefreshToken()
       if (!refreshToken) {
         throw new Error('未找到refresh_token')
       }
@@ -440,9 +440,18 @@ class APIClient {
       if (response.success && response.data) {
         const { access_token, refresh_token: newRefreshToken } = response.data
 
-        wx.setStorageSync('access_token', access_token)
-        wx.setStorageSync('refresh_token', newRefreshToken)
+        // 通过 Store 统一更新Token（Store内部自动同步到Storage）
+        const store = getUserStore()
+        if (store) {
+          store.updateAccessToken(access_token)
+          store.updateRefreshToken(newRefreshToken)
+        } else {
+          // Store 尚未初始化时降级直接写 Storage（仅在启动早期可能发生）
+          wx.setStorageSync('access_token', access_token)
+          wx.setStorageSync('refresh_token', newRefreshToken)
+        }
 
+        // 通知App实例（兼容其他需要Token的组件）
         const appInstance = getAppInstance()
         if (appInstance) {
           appInstance.setAccessToken(access_token)
