@@ -13,23 +13,29 @@ import { observable, action } from 'mobx-miniprogram'
 
 import { createPaginationState, createPaginatedActions } from './helpers'
 
-/** 积分交易记录结构（对齐后端 GET /api/v4/assets/transactions 返回字段） */
+/**
+ * 积分交易记录结构（对齐 typings/api.d.ts AssetTransaction）
+ * 后端路由层 routes/v4/assets/transactions.js 第61-76行 map 输出
+ * ⚠️ 注意：API响应字段名是 transaction_id（非数据库列名 asset_transaction_id）
+ */
 interface PointsTransaction {
-  /** 交易流水ID（主键，数字类型） */
-  asset_transaction_id: number
+  /** 交易流水ID — 后端API返回字段名是 transaction_id */
+  transaction_id: number
   /** 资产代码（POINTS / DIAMOND / red_shard 等） */
   asset_code: string
   /** 变动金额（正数=获得/earn，负数=消费/consume） */
   delta_amount: number
-  /** 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等） */
-  business_type: string
-  /** 交易描述（可为null） */
-  description: string | null
-  /** 交易标题（可为null） */
-  title: string | null
+  /** 变动前余额 */
+  balance_before: number
   /** 变动后余额 */
   balance_after: number
-  /** 创建时间 */
+  /** 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等） */
+  business_type: string
+  /** 交易描述（来自 meta.description，覆盖率91.2%，可为null） */
+  description: string | null
+  /** 交易标题（来自 meta.title，覆盖率79.2%，可为null） */
+  title: string | null
+  /** 创建时间（ISO 8601 格式） */
   created_at: string
 }
 

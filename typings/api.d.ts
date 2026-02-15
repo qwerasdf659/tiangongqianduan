@@ -24,12 +24,16 @@ declare namespace API {
     code?: string
   }
 
-  /** 分页信息结构 */
+  /** 分页信息结构（对齐后端实际返回格式） */
   interface Pagination {
+    /** 当前页码 */
     page: number
+    /** 每页条数 */
     page_size: number
+    /** 记录总数 */
     total: number
-    has_more: boolean
+    /** 总页数 */
+    total_pages: number
   }
 
   /** 带分页的响应数据 */
@@ -150,7 +154,8 @@ declare namespace API {
    */
   interface AssetTransaction {
     /** 交易流水ID（主键，数字类型） */
-    asset_transaction_id: number
+    /** 交易流水ID（后端API响应字段名 transaction_id，非数据库列名 asset_transaction_id） */
+    transaction_id: number
     /** 资产代码（POINTS / DIAMOND / red_shard 等） */
     asset_code: string
     /** 变动金额（正数=增加/earn，负数=扣减/consume），后端字段名为 delta_amount */

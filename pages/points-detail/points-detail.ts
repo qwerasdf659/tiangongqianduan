@@ -174,16 +174,16 @@ Page({
    *
    * API: GET /api/v4/assets/transactions
    *
-   * 后端实际返回字段（对齐 typings/api.d.ts AssetTransaction，路由层 transactions.js 第61-76行 map）：
-   *   transaction_id  - 交易流水ID（BIGINT）
-   *   asset_code      - 资产代码（POINTS / DIAMOND / red_shard）
-   *   delta_amount    - 变动金额（正数=获得/earn，负数=消费/consume）
-   *   balance_before  - 变动前余额
-   *   balance_after   - 变动后余额
-   *   business_type   - 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等）
-   *   description     - 交易描述（来自 meta.description，覆盖率91.2%，可为null）
-   *   title           - 交易标题（来自 meta.title，覆盖率79.2%，可为null）
-   *   created_at      - 创建时间（ISO 8601）
+   * 后端实际返回字段（对齐 typings/api.d.ts AssetTransaction）：
+   *   transaction_id       - 交易流水ID（BIGINT）
+   *   asset_code           - 资产代码（POINTS / DIAMOND / red_shard）
+   *   delta_amount         - 变动金额（正数=获得/earn，负数=消费/consume）
+   *   balance_before       - 变动前余额
+   *   balance_after        - 变动后余额
+   *   business_type        - 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等）
+   *   description          - 交易描述（约91%有值，可为null）
+   *   title                - 交易标题（约79%有值，可为null）
+   *   created_at           - 创建时间
    *
    * 后端分页字段（pagination对象）：
    *   total        - 记录总数
@@ -620,6 +620,7 @@ Page({
 
         const aggregatedRecord = {
           ...groupRecords[0],
+          // 聚合记录使用首条记录的 transaction_id 加后缀区分
           transaction_id: `aggregated_${groupRecords[0].transaction_id}_${drawCount}`,
           delta_amount: totalDeltaAmount,
           description: `连抽${drawCount}次（聚合记录）`,

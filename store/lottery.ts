@@ -17,13 +17,13 @@ import { observable, action } from 'mobx-miniprogram'
  * 注意: tier/probability/is_winner 后端不返回，已废弃
  */
 interface Prize {
-  /** 奖品ID（普通用户: id，管理员: lottery_prize_id） */
+  /** 奖品ID（后端 DataSanitizer 统一输出 id） */
   id: number
   /** 奖品名称 */
   name: string
   /** 奖品类型（points/physical/virtual/coupon/service） */
   type: string
-  /** 奖品图标（emoji字符串，由后端prize_type自动映射） */
+  /** 奖品图标（emoji字符串，后端按 type 自动映射输出 icon 字段） */
   icon: string
   /** 稀有度代码（common/uncommon/rare/epic/legendary，后端字段名 rarity_code） */
   rarity_code: string

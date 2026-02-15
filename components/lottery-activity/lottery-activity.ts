@@ -24,62 +24,46 @@ const { API, Logger } = require('../../utils/index')
 const log = Logger.createLogger('lottery-activity')
 
 /**
- * prize_type → emoji 映射（与后端 DataSanitizer.getPrizeIcon 一致）
- * 仅管理员账号（无icon字段）时作为兜底使用，普通用户后端已返回icon
- * 数据库ENUM: points/physical/virtual/coupon/service
- */
-const PRIZE_ICON_MAP: Record<string, string> = {
-  points: '🪙',
-  physical: '🎁',
-  voucher: '🎫',
-  virtual: '💎',
-  special: '⭐',
-  coupon: '🎁',
-  service: '🎁'
-}
-
-/**
- * 提取奖品展示字段 - 兼容后端不同响应格式
+ * 后端 DataSanitizer 标准字段 → 前端直接使用
  *
- * 后端 DataSanitizer 标准化字段名: id/name/type/icon/rarity_code/sort_order
- * 但管理员账号或特殊接口可能返回 prize_name/prize_type/lottery_prize_id 等替代字段名
- * 此函数统一处理两种格式，确保前端展示正常
+ * 后端 GET /api/v4/lottery/campaigns/:code/prizes 响应字段（snake_case）：
+ *   id           — 奖品ID（DataSanitizer 统一输出）
+ *   name         — 奖品名称
+ *   type         — 奖品类型（数据库ENUM: points/physical/virtual/coupon/service）
+ *   icon         — 奖品图标（emoji字符串，后端按 type 自动映射）
+ *   rarity_code  — 稀有度（5级: common/uncommon/rare/epic/legendary）
+ *   sort_order   — 排序序号（从1开始）
+ *   available    — 是否有库存
+ *   display_points — 展示积分值
+ *   status       — 奖品状态
  *
- * rarity_code 字段说明（5级稀有度，后端保证必定存在、不为null）：
- *   common    → 普通（#9E9E9E 灰色边框，无特效）
- *   uncommon  → 稀有（#4CAF50 绿色边框）
- *   rare      → 精良（#2196F3 蓝色呼吸光）
- *   epic      → 史诗（#9C27B0 紫色闪烁光环）
- *   legendary → 传说（#FF9800 金色旋转光环+星星）
+ * 前端直接使用后端字段名，不做任何映射。
+ * 如果某字段缺失，在控制台打印诊断日志，方便排查后端数据问题。
  */
-function normalizePrize(raw: any): any {
-  /* 兼容后端不同字段名格式：标准字段 → 管理员字段 → 其他可能字段 */
-  const prizeId = raw.id || raw.lottery_prize_id || raw.prize_id || 0
-  const prizeName = raw.name || raw.prize_name || raw.display_name || raw.item_name || ''
-  const prizeType = raw.type || raw.prize_type || raw.item_type || ''
-  const prizeIcon = raw.icon || PRIZE_ICON_MAP[prizeType] || '🎁'
+function normalizePrize(raw: any, index: number): any {
+  /* 🔍 诊断日志：打印第一个奖品的所有原始字段名，定位后端实际返回格式 */
+  if (index === 0) {
+    log.info('[normalizePrize] 后端奖品原始字段名:', Object.keys(raw).join(', '))
+    log.info('[normalizePrize] 第1个奖品原始数据:', JSON.stringify(raw))
+  }
 
-  /* 首次加载时打印一条日志，帮助确认后端实际返回的字段名 */
-  if (!normalizePrize._logged) {
-    normalizePrize._logged = true
-    log.info('[normalizePrize] 后端奖品原始字段:', Object.keys(raw).join(', '), '| name:', prizeName, '| type:', prizeType)
+  /* 🔍 字段缺失诊断：如果关键字段不存在，打印警告帮助定位问题 */
+  if (raw.name === undefined || raw.name === null || raw.name === '') {
+    log.warn('[normalizePrize] ⚠️ 奖品缺少name字段, 原始字段:', Object.keys(raw).join(', '), ', id:', raw.id)
   }
 
   return {
-    id: prizeId,
-    name: prizeName,
-    type: prizeType,
-    icon: prizeIcon,
+    id: raw.id,
+    name: raw.name || '',
+    type: raw.type || '',
+    icon: raw.icon || '',
     sort_order: raw.sort_order ?? 0,
-    /** 稀有度代码（后端字段名 rarity_code，5级枚举: common/uncommon/rare/epic/legendary） */
-    rarity_code: raw.rarity_code ?? raw.rarity ?? 'common',
+    rarity_code: raw.rarity_code || 'common',
     available: raw.available ?? true,
-    display_points: raw.display_points ?? raw.points_value ?? raw.value ?? 0,
-    status: raw.status ?? 'active'
+    display_points: raw.display_points ?? 0,
+    status: raw.status || 'active'
   }
 }
-/** normalizePrize 日志标记（仅记录一次） */
-normalizePrize._logged = false
 /**
  * 默认display配置（降级策略）
  * 当后端未返回 display 字段时使用此默认值
@@ -228,22 +212,27 @@ Component({
         /* 先解析display配置，因为mode决定奖品截取策略 */
         const display = { ...DEFAULT_DISPLAY, ...(config.display || {}) }
 
-        /* 标准化字段 - 兼容后端两种响应格式：
-         *   格式A: data = [prize1, prize2, ...]（直接数组）
-         *   格式B: data = { prizes: [prize1, prize2, ...] }（嵌套对象）
+        /**
+         * 后端 GET /api/v4/lottery/campaigns/:code/prizes
+         * 标准响应: { success: true, data: [ {id, name, type, icon, ...}, ... ] }
+         * prizesRes.data 应该是奖品数组
          */
-        const rawData = prizesRes.data
-        const prizesRaw = Array.isArray(rawData) ? rawData : (rawData?.prizes || rawData?.list || [])
+        const prizesRaw = prizesRes.data
 
-        if (!Array.isArray(prizesRaw) || prizesRaw.length === 0) {
-          log.warn('[lottery-activity] 奖品数据为空或格式异常, rawData类型:', typeof rawData, ', keys:', rawData ? Object.keys(rawData).join(',') : 'null')
+        /* 🔍 诊断日志：打印后端prizes响应的data结构 */
+        log.info('[lottery-activity] prizesRes.data 类型:', typeof prizesRaw, ', isArray:', Array.isArray(prizesRaw))
+        if (prizesRaw && !Array.isArray(prizesRaw)) {
+          log.error('[lottery-activity] ⚠️ prizesRes.data 不是数组! 实际keys:', Object.keys(prizesRaw).join(', '))
         }
 
-        /* 重置日志标记，确保每次初始化都能打印一次字段诊断日志 */
-        normalizePrize._logged = false
+        if (!Array.isArray(prizesRaw) || prizesRaw.length === 0) {
+          log.warn('[lottery-activity] 奖品数据为空，检查后端 GET /api/v4/lottery/campaigns/' + campaignCode + '/prizes 返回值')
+          this.setData({ loading: false, loadError: '奖品数据为空' })
+          return
+        }
 
-        const allPrizes = (Array.isArray(prizesRaw) ? prizesRaw : [])
-          .map(normalizePrize)
+        const allPrizes = prizesRaw
+          .map((item: any, idx: number) => normalizePrize(item, idx))
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
 
         /* grid 固定8格需要截取，wheel等模式动态渲染全部奖品 */

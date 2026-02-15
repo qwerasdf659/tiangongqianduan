@@ -139,7 +139,7 @@
       <text class="count-text">共 {{filteredRecords.length}} 条记录</text>
     </view>
 
-    <!-- 交易记录列表（直接使用后端字段名: asset_transaction_id / delta_amount / business_type / description / title / created_at） -->
+    <!-- 交易记录列表（直接使用后端字段名: transaction_id / delta_amount / business_type / description / title / created_at） -->
     <view class="records-section">
       <view class="transaction-list">
         <block
