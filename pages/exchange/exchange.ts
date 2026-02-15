@@ -278,8 +278,6 @@ Page({
       this.pointsBindings.destroyStoreBindings()
     }
     this.disconnectWebSocket()
-    const appInstance = getApp()
-    appInstance.clearExchangeUpdateCallback && appInstance.clearExchangeUpdateCallback()
   },
 
   /** 下拉刷新 */
@@ -364,13 +362,21 @@ Page({
     wx.reLaunch({ url: '/pages/auth/auth' })
   },
 
-  /** 连接WebSocket（订阅商品更新消息） */
+  /** 连接 Socket.IO（订阅商品更新消息，事件名由后端 emit 直接匹配） */
   connectWebSocket() {
+    // 连接前先检查Token有效性
+    const tokenStatus = Utils.checkTokenValidity()
+    if (!tokenStatus.isValid) {
+      log.warn('⚠️ Token无效，跳过Socket.IO连接:', tokenStatus.message)
+      return
+    }
+
     try {
       app
         .connectWebSocket()
         .then(() => {
           app.subscribeWebSocketMessages('exchange', (eventName: string, _data: any) => {
+            // Socket.IO 按事件名自动路由，直接匹配 product_updated / exchange_stock_changed
             if (eventName === 'product_updated' || eventName === 'exchange_stock_changed') {
               log.info('📦 收到商品更新通知，刷新列表')
               this.loadProducts()
@@ -378,19 +384,19 @@ Page({
           })
         })
         .catch((error: Error) => {
-          log.warn('⚠️ WebSocket连接未就绪:', error.message)
+          log.warn('⚠️ Socket.IO连接未就绪:', error.message)
         })
     } catch {
-      log.warn('⚠️ WebSocket连接异常，不影响页面正常使用')
+      log.warn('⚠️ Socket.IO连接异常，不影响页面正常使用')
     }
   },
 
-  /** 断开WebSocket连接 */
+  /** 断开 Socket.IO 连接 */
   disconnectWebSocket() {
     try {
       app.unsubscribeWebSocketMessages('exchange')
     } catch {
-      log.warn('⚠️ WebSocket取消订阅异常')
+      log.warn('⚠️ Socket.IO取消订阅异常')
     }
   },
 

@@ -1,13 +1,14 @@
 /**
- * 餐厅积分抽奖系统V4.0主入口 - TypeScript版
- * 基于V4.0统一引擎架构，JWT双Token机制
+ * 餐厅积分抽奖系统V5.1主入口 - TypeScript版
+ * 基于V4.0统一引擎架构，JWT双Token机制，Socket.IO实时通信
  *
- * globalData只保留系统配置和认证状态
+ * globalData只保留系统配置
  * 业务数据已迁移到MobX Store: store/user.ts, store/points.ts 等
+ * WebSocket 使用 weapp.socket.io（心跳/重连/事件路由全部由 Socket.IO 内建管理）
  *
  * @file 天工餐厅积分系统 - 应用主入口
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 const {
@@ -18,37 +19,26 @@ const {
 } = require('./config/env')
 const { initializeWechatEnvironment } = require('./utils/index').Wechat
 
-// MobX Store - 业务数据唯一来源（决策3：废弃globalData业务字段）
+// Socket.IO 客户端（weapp.socket.io 适配微信小程序环境）
+const io = require('weapp.socket.io')
+
+// MobX Store - 业务数据唯一来源
 const { userStore } = require('./store/user')
 const { pointsStore } = require('./store/points')
 const { Logger } = require('./utils/index')
 const log = Logger.createLogger('app')
 
 // ===== 类型定义 =====
+// 用户信息结构统一使用 API.UserProfile（typings/api.d.ts），禁止在此重复定义
 
-/** 用户信息结构（后端返回的snake_case字段） */
-interface AppUserInfo {
-  user_id: number
-  mobile: string
-  nickname: string
-  status: string
-  is_admin: boolean
-  user_role: string
-  role_level: number
-  avatar_url?: string
-  points?: number
-}
-
-/** WebSocket连接数据 */
-interface WebSocketData {
+/** Socket.IO 连接数据（心跳+重连由 Socket.IO 内建，无需手动管理） */
+interface SocketIOData {
+  /** Socket.IO 实例引用 */
+  socket: any
+  /** 是否已连接 */
   connected: boolean
-  connecting: boolean
-  reconnectAttempts: number
-  maxReconnectAttempts: number
-  heartbeatTimer: ReturnType<typeof setInterval> | null
-  reconnectTimer: ReturnType<typeof setTimeout> | null
+  /** 页面消息订阅者（pageId → callback） */
   pageSubscribers: Map<string, (eventName: string, data: any) => void>
-  lastHeartbeatTime: number | null
 }
 
 /** Token使用日志条目 */
@@ -59,10 +49,6 @@ interface TokenLogEntry {
 }
 
 App({
-  /**
-   * 全局数据 - 仅保留系统配置和认证状态
-   * 业务数据（积分、商品、抽奖配置等）使用MobX Store管理
-   */
   /**
    * 全局数据 - 仅保留系统级配置
    * 用户认证/积分等业务数据已迁移到 MobX Store（store/user.ts、store/points.ts）
@@ -78,7 +64,7 @@ App({
     network_status: 'online' as string,
     current_page: '' as string,
 
-    // WebSocket配置
+    // Socket.IO 配置
     ws_url: null as string | null,
     ws_connected: false as boolean,
     ws_config: null as any,
@@ -135,7 +121,7 @@ App({
   async checkAuthStatus(): Promise<void> {
     try {
       const token: string = wx.getStorageSync('access_token')
-      let userInfo: AppUserInfo | null = wx.getStorageSync('user_info') || null
+      let userInfo: API.UserProfile | null = wx.getStorageSync('user_info') || null
 
       log.info('🔍 检查认证状态:', {
         hasToken: !!token,
@@ -167,13 +153,15 @@ App({
           if (jwtPayload) {
             userInfo = {
               user_id: jwtPayload.user_id,
+              user_uuid: jwtPayload.user_uuid || '',
               mobile: jwtPayload.mobile,
               nickname: jwtPayload.nickname || '用户',
               status: jwtPayload.status,
               is_admin: jwtPayload.is_admin || false,
               user_role: jwtPayload.user_role || 'user',
-              role_level: jwtPayload.role_level || 0
-            }
+              role_level: jwtPayload.role_level || 0,
+              created_at: jwtPayload.created_at || ''
+            } as API.UserProfile
 
             wx.setStorageSync('user_info', userInfo)
             log.info('✅ 从JWT Token恢复userInfo成功')
@@ -227,7 +215,9 @@ App({
         // 恢复认证状态到 MobX Store（唯一数据源）
         const refreshToken: string = wx.getStorageSync('refresh_token') || ''
         userStore.setLoginState(userInfo, token, refreshToken)
-        pointsStore.setBalance(userInfo.points || 0, 0)
+        // 积分余额应从 GET /api/v4/assets/balance 获取，不依赖 userInfo
+        // 此处仅恢复为0，后续页面加载时会从后端刷新真实余额
+        pointsStore.setBalance(0, 0)
 
         log.info('✅ 用户认证状态恢复成功:', {
           user_id: userInfo.user_id,
@@ -335,288 +325,210 @@ App({
     }
   },
 
-  // ===== WebSocket统一管理 =====
+  // ===== Socket.IO 统一管理（替代原生 WebSocket） =====
+  // ✅ 心跳：Socket.IO 内建（25秒一次），无需手动管理
+  // ✅ 重连：Socket.IO 内建（指数退避），无需手动管理
+  // ✅ 消息路由：Socket.IO 按事件名自动路由，无需 JSON.parse + switch
 
-  /** WebSocket连接数据 */
-  websocketData: {
+  /** Socket.IO 连接数据 */
+  socketData: {
+    socket: null,
     connected: false,
-    connecting: false,
-    reconnectAttempts: 0,
-    maxReconnectAttempts: 5,
-    heartbeatTimer: null,
-    reconnectTimer: null,
-    pageSubscribers: new Map(),
-    lastHeartbeatTime: null,
-    /** 全局事件监听器是否已注册（防止重复注册导致事件处理器堆叠） */
-    listenersRegistered: false,
-    /** 当前连接的Promise回调（仅当前连接有效，重连时更新） */
-    connectResolve: null as ((value?: any) => void) | null,
-    connectReject: null as ((reason?: any) => void) | null,
-    /** 重连锁（防止onSocketError和onSocketClose同时触发重连） */
-    reconnectLocked: false
-  } as WebSocketData & {
-    listenersRegistered: boolean
-    connectResolve: ((value?: any) => void) | null
-    connectReject: ((reason?: any) => void) | null
-    reconnectLocked: boolean
-  },
+    pageSubscribers: new Map()
+  } as SocketIOData,
 
   /**
-   * 注册全局WebSocket事件监听器（仅注册一次）
-   * wx.onSocketOpen/Message/Error/Close 是全局单例监听器，
-   * 重复调用会堆叠多个处理器，导致事件触发多次
+   * 统一 Socket.IO 连接管理
+   * 使用 weapp.socket.io 替代原生 wx.connectSocket
+   * Token 通过 auth 选项传递，不拼在 URL 上
    */
-  registerWebSocketListeners(): void {
-    if (this.websocketData.listenersRegistered) {
-      return
-    }
-
-    log.info('🔧 注册全局WebSocket事件监听器（仅一次）')
-
-    wx.onSocketOpen(() => {
-      log.info('✅ 统一WebSocket连接已建立')
-      this.websocketData.connected = true
-      this.websocketData.connecting = false
-      this.websocketData.reconnectAttempts = 0
-      this.websocketData.reconnectLocked = false
-      this.globalData.ws_connected = true
-
-      this.startUnifiedHeartbeat()
-      this.notifyPageSubscribers('websocket_connected', {})
-
-      // 回调当前连接的Promise
-      if (this.websocketData.connectResolve) {
-        this.websocketData.connectResolve()
-        this.websocketData.connectResolve = null
-        this.websocketData.connectReject = null
-      }
-    })
-
-    wx.onSocketMessage((res: any) => {
-      try {
-        const message = JSON.parse(res.data as string)
-        log.info('📨 统一WebSocket消息接收:', message)
-        this.handleUnifiedWebSocketMessage(message)
-      } catch (error) {
-        log.error('❌ WebSocket消息解析失败:', error)
-      }
-    })
-
-    wx.onSocketError((error: WechatMiniprogram.GeneralCallbackResult) => {
-      log.error('❌ 统一WebSocket连接错误:', error)
-      this.websocketData.connected = false
-      this.websocketData.connecting = false
-      this.globalData.ws_connected = false
-      this.stopUnifiedHeartbeat()
-      this.notifyPageSubscribers('websocket_error', { error })
-
-      // 回调当前连接的Promise（仅在首次连接时reject，重连不走这里）
-      if (this.websocketData.connectReject) {
-        this.websocketData.connectReject(error)
-        this.websocketData.connectResolve = null
-        this.websocketData.connectReject = null
-      }
-
-      // 使用重连锁防止onSocketError和onSocketClose同时触发重连
-      this.handleUnifiedReconnect()
-    })
-
-    wx.onSocketClose((res: any) => {
-      log.info('🔌 统一WebSocket连接关闭，状态码:', res.code)
-      this.websocketData.connected = false
-      this.websocketData.connecting = false
-      this.globalData.ws_connected = false
-      this.stopUnifiedHeartbeat()
-      this.notifyPageSubscribers('websocket_closed', { code: res.code })
-
-      // onSocketError已经触发了重连，onSocketClose不再重复触发
-      // 仅当正常关闭后需要重连（非用户主动关闭）时才触发
-      if (res.code !== 1000 && userStore.isLoggedIn) {
-        this.handleUnifiedReconnect()
-      }
-    })
-
-    this.websocketData.listenersRegistered = true
-  },
-
-  /** 统一WebSocket连接管理 */
   connectWebSocket(): Promise<void> {
-    if (this.websocketData.connected || this.websocketData.connecting) {
-      log.info('🔌 WebSocket已连接或正在连接中')
+    // 已连接则直接返回
+    if (this.socketData.connected && this.socketData.socket) {
+      log.info('🔌 Socket.IO 已连接')
       return Promise.resolve()
     }
 
     if (!userStore.isLoggedIn || !userStore.accessToken) {
-      log.info('🚫 用户未登录，跳过WebSocket连接')
+      log.info('🚫 用户未登录，跳过Socket.IO连接')
       return Promise.reject(new Error('用户未登录'))
     }
 
-    // 确保全局事件监听器仅注册一次
-    this.registerWebSocketListeners()
+    // Token 过期检查
+    const { Utils } = require('./utils/index')
+    const { isTokenExpired } = Utils
+    if (isTokenExpired(userStore.accessToken)) {
+      log.warn('⚠️ Token已过期，跳过Socket.IO连接')
+      return Promise.reject(new Error('Token已过期'))
+    }
 
-    // 重置重连锁
-    this.websocketData.reconnectLocked = false
-    this.websocketData.connecting = true
-    log.info('🔌 启动统一WebSocket连接...')
+    const wsConfig = getWebSocketConfig()
+    log.info('🔌 启动 Socket.IO 连接...', { url: wsConfig.url })
 
     return new Promise((resolve, reject) => {
-      // 保存当前连接的Promise回调
-      this.websocketData.connectResolve = resolve
-      this.websocketData.connectReject = reject
+      try {
+        // 创建 Socket.IO 连接（Token 通过 auth 传递，不拼 URL）
+        const socket = io(wsConfig.url, {
+          transports: ['websocket'],
+          auth: { token: userStore.accessToken },
+          // Socket.IO 内建重连
+          reconnection: true,
+          reconnectionDelay: wsConfig.reconnectionDelay || 3000,
+          reconnectionAttempts: wsConfig.reconnectionAttempts || 5
+        })
 
-      const wsUrl: string = `${this.globalData.ws_url}?token=${encodeURIComponent(userStore.accessToken)}`
+        // 保存 socket 实例
+        this.socketData.socket = socket
 
-      wx.connectSocket({
-        url: wsUrl,
-        protocols: ['websocket'],
-        success: () => {
-          log.info('✅ WebSocket连接请求已发送')
-        },
-        fail: (error: WechatMiniprogram.GeneralCallbackResult) => {
-          log.error('❌ WebSocket连接失败:', error)
-          this.websocketData.connecting = false
-          this.websocketData.connectResolve = null
-          this.websocketData.connectReject = null
-          reject(error)
-        }
-      })
+        // ===== Socket.IO 原生事件 =====
+
+        // 连接成功（替代原 connection_established + wx.onSocketOpen）
+        socket.on('connect', () => {
+          log.info('✅ Socket.IO 连接成功')
+          this.socketData.connected = true
+          this.globalData.ws_connected = true
+          this.notifyPageSubscribers('websocket_connected', {})
+          resolve()
+        })
+
+        // 连接错误（替代原 auth_verify_result 失败 + wx.onSocketError）
+        socket.on('connect_error', (err: any) => {
+          log.error('❌ Socket.IO 连接错误:', err.message)
+          this.socketData.connected = false
+          this.globalData.ws_connected = false
+
+          // Token 认证失败时清理认证数据
+          if (err.message && err.message.includes('Authentication')) {
+            log.warn('⚠️ Token认证失败，清理认证数据')
+            this.clearAuthData()
+          }
+
+          this.notifyPageSubscribers('websocket_error', { error: err })
+          reject(err)
+        })
+
+        // 断开连接（替代原 wx.onSocketClose）
+        socket.on('disconnect', (reason: string) => {
+          log.info('🔌 Socket.IO 断开连接，原因:', reason)
+          this.socketData.connected = false
+          this.globalData.ws_connected = false
+          this.notifyPageSubscribers('websocket_closed', { reason })
+        })
+
+        // 重连失败（所有重连尝试耗尽）
+        socket.on('reconnect_failed', () => {
+          log.info('❌ Socket.IO 重连次数已达上限')
+          this.notifyPageSubscribers('websocket_max_reconnect_reached', {})
+        })
+
+        // 重连成功
+        socket.on('reconnect', (attemptNumber: number) => {
+          log.info(`🔄 Socket.IO 重连成功（第${attemptNumber}次尝试）`)
+          this.socketData.connected = true
+          this.globalData.ws_connected = true
+          this.notifyPageSubscribers('websocket_connected', {})
+        })
+
+        // ===== 业务事件监听（对齐后端 ChatWebSocketService 事件协议） =====
+
+        // 连接确认（后端连接成功后立即推送，含 user_id、is_admin、server_time）
+        socket.on('connection_established', (data: any) => {
+          log.info('🤝 收到后端连接确认:', data)
+          this.notifyPageSubscribers('connection_established', data)
+        })
+
+        // 新消息（后端 ChatWebSocketService 推送，含 chat_message_id、content、sender_type 等）
+        socket.on('new_message', (data: any) => {
+          log.info('📨 收到新消息:', data)
+          this.notifyPageSubscribers('new_message', data)
+        })
+
+        // 系统通知（替代原 system_message）
+        socket.on('notification', (data: any) => {
+          log.info('📢 收到系统通知:', data)
+          if (data.level === 'urgent') {
+            wx.showModal({ title: '🚨 紧急通知', content: data.content, showCancel: false })
+          }
+          this.notifyPageSubscribers('notification', data)
+        })
+
+        // 商品更新
+        socket.on('product_updated', (data: any) => {
+          log.info('📦 收到商品更新:', data)
+          this.notifyPageSubscribers('product_updated', data)
+        })
+
+        // 库存变更
+        socket.on('exchange_stock_changed', (data: any) => {
+          log.info('📦 收到库存变更:', data)
+          this.notifyPageSubscribers('exchange_stock_changed', data)
+        })
+
+        // 会话状态变更
+        socket.on('session_status', (data: any) => {
+          log.info('📋 收到会话状态变更:', data)
+          this.notifyPageSubscribers('session_status', data)
+        })
+
+        // 会话开始
+        socket.on('session_started', (data: any) => {
+          log.info('🆕 收到新会话通知:', data)
+          this.notifyPageSubscribers('session_started', data)
+        })
+
+        // 会话关闭（后端 session_closed 事件，含 session_id、close_reason）
+        socket.on('session_closed', (data: any) => {
+          log.info('🔚 收到会话关闭通知:', data)
+          this.notifyPageSubscribers('session_closed', data)
+        })
+
+        // 消息发送确认（后端收到 send_message 后写库成功回执）
+        socket.on('message_sent', (data: any) => {
+          log.info('✅ 消息发送确认:', data)
+          this.notifyPageSubscribers('message_sent', data)
+        })
+
+        // 消息发送失败（后端处理 send_message 时出错的回执）
+        socket.on('message_error', (data: any) => {
+          log.error('❌ 消息发送失败:', data)
+          this.notifyPageSubscribers('message_error', data)
+        })
+
+        // 用户输入状态
+        socket.on('user_typing', (data: any) => {
+          this.notifyPageSubscribers('user_typing', data)
+        })
+
+        // 认证状态变更
+        socket.on('auth_status', (data: any) => {
+          log.info('🔐 收到认证状态通知:', data)
+          this.notifyPageSubscribers('auth_status', data)
+        })
+      } catch (error: any) {
+        log.error('❌ Socket.IO 初始化失败:', error)
+        reject(error)
+      }
     })
   },
 
-  /** 启动统一心跳机制（60秒间隔） */
-  startUnifiedHeartbeat(): void {
-    this.stopUnifiedHeartbeat()
-    log.info('💓 启动统一WebSocket心跳机制')
-
-    this.websocketData.heartbeatTimer = setInterval(() => {
-      if (this.websocketData.connected) {
-        const heartbeatMessage = {
-          type: 'heartbeat',
-          timestamp: Date.now(),
-          clientId: userStore.userInfo?.user_id || 'unknown'
-        }
-
-        wx.sendSocketMessage({
-          data: JSON.stringify(heartbeatMessage),
-          success: () => {
-            log.info('💓 统一心跳发送成功')
-            this.websocketData.lastHeartbeatTime = Date.now()
-          },
-          fail: (error: WechatMiniprogram.GeneralCallbackResult) => {
-            log.error('❌ 统一心跳发送失败:', error)
-            this.websocketData.connected = false
-            this.globalData.ws_connected = false
-          }
-        })
-      }
-    }, 60000)
-  },
-
-  /** 停止心跳机制 */
-  stopUnifiedHeartbeat(): void {
-    if (this.websocketData.heartbeatTimer) {
-      clearInterval(this.websocketData.heartbeatTimer)
-      this.websocketData.heartbeatTimer = null
-      log.info('🛑 统一心跳机制已停止')
-    }
-  },
-
-  /**
-   * 统一重连机制（指数退避 + 重连锁）
-   * 重连锁机制: 同一次断连中onSocketError和onSocketClose都会触发此方法，
-   * 但只有第一次调用会真正执行重连，第二次调用被锁拦截
-   */
-  handleUnifiedReconnect(): void {
-    // 重连锁: 防止同一次断连中error和close事件同时触发两次重连
-    if (this.websocketData.reconnectLocked) {
-      log.info('🔒 重连锁生效，跳过重复重连')
-      return
-    }
-    this.websocketData.reconnectLocked = true
-
-    if (this.websocketData.reconnectAttempts >= this.websocketData.maxReconnectAttempts) {
-      log.info('❌ WebSocket重连次数已达上限')
-      this.notifyPageSubscribers('websocket_max_reconnect_reached', {})
-      return
-    }
-
-    const delay: number = Math.min(Math.pow(2, this.websocketData.reconnectAttempts) * 1000, 30000)
-    this.websocketData.reconnectAttempts++
-
-    log.info(
-      `🔄 WebSocket重连 (${this.websocketData.reconnectAttempts}/${this.websocketData.maxReconnectAttempts})，延迟: ${delay}ms`
-    )
-
-    // 清理旧的重连定时器
-    if (this.websocketData.reconnectTimer) {
-      clearTimeout(this.websocketData.reconnectTimer)
-    }
-
-    this.websocketData.reconnectTimer = setTimeout(() => {
-      // 重连前重置锁，允许下一次断连触发重连
-      this.websocketData.reconnectLocked = false
-
-      if (userStore.isLoggedIn && !this.websocketData.connected) {
-        this.connectWebSocket().catch((error: Error) => {
-          log.error('❌ 重连失败:', error)
-        })
-      }
-    }, delay)
-  },
-
-  /** 统一消息处理分发 */
-  handleUnifiedWebSocketMessage(message: { type?: string; data?: any; event_name?: string }): void {
-    const eventName: string = message.event_name || message.type || 'unknown'
-    const data = message.data || {}
-
-    log.info(`📢 统一处理WebSocket消息: ${eventName}`)
-
-    switch (eventName) {
-      case 'auth_verify_result':
-        if (data.status === 'success') {
-          log.info('✅ WebSocket认证成功')
-        } else {
-          log.warn('⚠️ WebSocket认证失败')
-          this.clearAuthData()
-        }
-        break
-      case 'connection_established':
-        log.info('✅ WebSocket连接确认')
-        break
-      case 'heartbeat_response':
-        log.info('💓 收到心跳响应')
-        break
-      case 'system_message':
-        if (data.level === 'urgent') {
-          wx.showModal({ title: '🚨 紧急通知', content: data.content, showCancel: false })
-        }
-        break
-      default:
-        log.warn(`🚫 未知的WebSocket消息类型: ${eventName}`)
-        break
-    }
-
-    this.notifyPageSubscribers(eventName, data)
-  },
-
-  /** 页面消息订阅 */
+  /** 页面消息订阅（保持原有接口，页面无感知） */
   subscribeWebSocketMessages(
     pageId: string,
     callback: (eventName: string, data: any) => void
   ): void {
-    log.info(`📱 页面 ${pageId} 订阅WebSocket消息`)
-    this.websocketData.pageSubscribers.set(pageId, callback)
+    log.info(`📱 页面 ${pageId} 订阅Socket.IO消息`)
+    this.socketData.pageSubscribers.set(pageId, callback)
   },
 
   /** 取消页面订阅 */
   unsubscribeWebSocketMessages(pageId: string): void {
-    log.info(`📱 页面 ${pageId} 取消WebSocket消息订阅`)
-    this.websocketData.pageSubscribers.delete(pageId)
+    log.info(`📱 页面 ${pageId} 取消Socket.IO消息订阅`)
+    this.socketData.pageSubscribers.delete(pageId)
   },
 
   /** 通知所有订阅页面 */
   notifyPageSubscribers(eventName: string, data: any): void {
-    this.websocketData.pageSubscribers.forEach((callback, pageId) => {
+    this.socketData.pageSubscribers.forEach((callback, pageId) => {
       try {
         callback(eventName, data)
       } catch (error) {
@@ -625,46 +537,34 @@ App({
     })
   },
 
-  /** 发送WebSocket消息 */
-  sendWebSocketMessage(message: Record<string, any>): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.websocketData.connected) {
-        reject(new Error('WebSocket未连接'))
-        return
-      }
-
-      wx.sendSocketMessage({
-        data: JSON.stringify(message),
-        success: () => resolve(),
-        fail: (error: WechatMiniprogram.GeneralCallbackResult) => reject(error)
-      })
-    })
-  },
-
-  /** 断开WebSocket连接 */
-  disconnectWebSocket(): void {
-    log.info('🔌 断开统一WebSocket连接')
-    this.stopUnifiedHeartbeat()
-
-    // 清理重连定时器
-    if (this.websocketData.reconnectTimer) {
-      clearTimeout(this.websocketData.reconnectTimer)
-      this.websocketData.reconnectTimer = null
+  /**
+   * 发送 Socket.IO 消息（emit 方式，替代 wx.sendSocketMessage + JSON.stringify）
+   *
+   * @param eventName - 事件名称（如 'send_message'、'admin_register'）
+   * @param data - 消息数据对象（无需手动 JSON.stringify）
+   */
+  emitSocketMessage(eventName: string, data: Record<string, any>): void {
+    if (!this.socketData.connected || !this.socketData.socket) {
+      log.warn('⚠️ Socket.IO未连接，无法发送消息:', eventName)
+      return
     }
 
-    // 重置连接状态
-    this.websocketData.connected = false
-    this.websocketData.connecting = false
-    this.websocketData.reconnectLocked = false
-    this.websocketData.reconnectAttempts = 0
+    this.socketData.socket.emit(eventName, data)
+    log.info(`📤 Socket.IO emit: ${eventName}`)
+  },
+
+  /** 断开 Socket.IO 连接 */
+  disconnectWebSocket(): void {
+    log.info('🔌 断开 Socket.IO 连接')
+
+    if (this.socketData.socket) {
+      this.socketData.socket.disconnect()
+      this.socketData.socket = null
+    }
+
+    this.socketData.connected = false
     this.globalData.ws_connected = false
-    this.websocketData.pageSubscribers.clear()
-
-    // 清理挂起的Promise回调
-    this.websocketData.connectResolve = null
-    this.websocketData.connectReject = null
-
-    wx.closeSocket()
+    this.socketData.pageSubscribers.clear()
   },
 
   /** Token使用日志记录（分析Token问题的发生频率和模式） */

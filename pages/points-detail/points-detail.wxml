@@ -85,13 +85,17 @@
         <view class="record-detail">
           <view class="record-main">
             <view class="record-title">{{item.displayTitle || '积分记录'}}</view>
-            <view class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}">
+            <view
+              class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}"
+            >
               {{item.displayAmount}}
             </view>
           </view>
           <view class="record-meta">
             <text class="record-time">{{item.displayTime}}</text>
-            <text class="record-desc" wx:if="{{item.transaction_description}}">{{item.transaction_description}}</text>
+            <text class="record-desc" wx:if="{{item.transaction_description}}"
+              >{{item.transaction_description}}</text
+            >
           </view>
         </view>
       </view>
@@ -104,10 +108,12 @@
         <view class="empty-icon">💳</view>
       </view>
       <view class="empty-title">
-        {{pointsFilter === 'all' ? '暂无积分记录' : (pointsFilter === 'earn' ? '暂无积分获得记录' : '暂无积分消费记录')}}
+        {{pointsFilter === 'all' ? '暂无积分记录' : (pointsFilter === 'earn' ? '暂无积分获得记录' :
+        '暂无积分消费记录')}}
       </view>
       <view class="empty-desc">
-        {{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ? '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}
+        {{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ?
+        '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}
       </view>
       <view class="empty-actions">
         <view class="empty-btn primary-btn" bindtap="onBackTap">返回用户中心</view>

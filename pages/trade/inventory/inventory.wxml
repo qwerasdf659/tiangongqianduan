@@ -1,14 +1,19 @@
 <!--pages/trade/inventory/inventory.wxml - 库存管理页面（背包系统）-->
 <!--
   后端字段全部使用snake_case（与后端一致）：
-  item_instance_id, item_type, name, status, rarity,
+  item_instance_id, item_type, item_type_display, name,
+  status, status_display, rarity, rarity_display,
   description, acquired_at, expires_at, has_redemption_code
 
-  前端计算的操作标志（布尔值，基于status计算）：
-  can_use, can_generate_code, can_transfer, can_contact
+  后端 *_display 字段为中文显示用（后端权威来源），前端不做映射
+
+  前端计算的操作标志（布尔值，基于status和字段计算）：
+  can_use           = status === 'available'
+  can_generate_code = status === 'available' && !has_redemption_code
+  can_sell          = status === 'available'
 -->
 
-<!-- 🔴 引入WXS模板辅助函数 -->
+<!-- 🔴 引入WXS模板辅助函数（仅用于图标、时间格式化、过期判断等UI逻辑） -->
 <wxs module="helper" src="./inventory.wxs" />
 
 <view class="inventory-container">
@@ -20,13 +25,51 @@
         <text class="title-desc">管理您的积分奖品和权益</text>
       </view>
       <view class="total-value-card">
-        <text class="value-label">总价值</text>
-        <text class="value-amount">{{totalValue || 0}} 积分</text>
+        <text class="value-label">资产总价值</text>
+        <text class="value-amount">{{totalAssetValue || 0}}</text>
+        <text class="value-meta">{{totalAssets}}种资产 · {{totalItems}}件物品</text>
       </view>
     </view>
   </view>
 
-  <!-- 🔴 统计面板 - 分类卡片 -->
+  <!-- 🔴 可叠加资产区域（积分、钻石、碎片等） -->
+  <view class="assets-section" wx:if="{{backpackAssets.length > 0}}">
+    <view class="section-title">
+      <text class="section-icon">💎</text>
+      <text class="section-text">我的资产</text>
+    </view>
+    <scroll-view class="assets-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
+      <view class="assets-list">
+        <view class="asset-card" wx:for="{{backpackAssets}}" wx:key="asset_code">
+          <view class="asset-info">
+            <text class="asset-name">{{item.display_name}}</text>
+            <text class="asset-rarity" wx:if="{{item.rarity_display}}"
+              >{{item.rarity_display}}</text
+            >
+          </view>
+          <view class="asset-amounts">
+            <view class="asset-amount-row">
+              <text class="asset-amount-label">可用</text>
+              <text class="asset-amount-value">{{item.available_amount}}</text>
+            </view>
+            <view class="asset-amount-row" wx:if="{{item.frozen_amount > 0}}">
+              <text class="asset-amount-label">冻结</text>
+              <text class="asset-amount-value frozen">{{item.frozen_amount}}</text>
+            </view>
+          </view>
+          <!-- 资产操作：上架到交易市场（is_tradable=true 且 可用余额>0 时显示） -->
+          <view class="asset-actions" wx:if="{{item.is_tradable && item.available_amount > 0}}">
+            <button class="asset-sell-btn" bind:tap="onSellAsset" data-asset="{{item}}">
+              <text class="btn-icon">🏪</text>
+              <text class="btn-text">上架到市场</text>
+            </button>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 🔴 物品分类统计面板 -->
   <view class="statistics-section">
     <view class="stats-grid">
       <view
@@ -42,13 +85,25 @@
       </view>
 
       <view
+        class="stat-card {{currentCategory === 'prize' ? 'active' : ''}}"
+        bind:tap="onCategoryChange"
+        data-category="prize"
+      >
+        <view class="stat-header">
+          <text class="stat-icon">🏆</text>
+          <text class="stat-label">奖品</text>
+        </view>
+        <text class="stat-number">{{categoryStats.prize}}</text>
+      </view>
+
+      <view
         class="stat-card {{currentCategory === 'voucher' ? 'active' : ''}}"
         bind:tap="onCategoryChange"
         data-category="voucher"
       >
         <view class="stat-header">
           <text class="stat-icon">🎫</text>
-          <text class="stat-label">优惠券</text>
+          <text class="stat-label">兑换券</text>
         </view>
         <text class="stat-number">{{categoryStats.voucher}}</text>
       </view>
@@ -60,9 +115,21 @@
       >
         <view class="stat-header">
           <text class="stat-icon">📱</text>
-          <text class="stat-label">实物商品</text>
+          <text class="stat-label">商品</text>
         </view>
         <text class="stat-number">{{categoryStats.product}}</text>
+      </view>
+
+      <view
+        class="stat-card {{currentCategory === 'tradable_item' ? 'active' : ''}}"
+        bind:tap="onCategoryChange"
+        data-category="tradable_item"
+      >
+        <view class="stat-header">
+          <text class="stat-icon">🔄</text>
+          <text class="stat-label">可交易</text>
+        </view>
+        <text class="stat-number">{{categoryStats.tradable_item}}</text>
       </view>
 
       <view
@@ -72,7 +139,7 @@
       >
         <view class="stat-header">
           <text class="stat-icon">🎁</text>
-          <text class="stat-label">服务权益</text>
+          <text class="stat-label">服务</text>
         </view>
         <text class="stat-number">{{categoryStats.service}}</text>
       </view>
@@ -95,7 +162,7 @@
       </view>
       <button class="filter-btn" bind:tap="onShowFilter">
         <text class="btn-icon">⚙️</text>
-        <text class="btn-text">筛选</text>
+        <text class="btn-text">排序</text>
       </button>
     </view>
   </view>
@@ -127,22 +194,27 @@
           <view class="item-header">
             <view class="item-left">
               <view class="item-icon-wrapper">
-                <!-- 图标根据 item_type 通过WXS函数获取 -->
+                <!-- 图标根据 item_type 通过WXS函数获取（UI辅助逻辑，非业务数据） -->
                 <text class="item-icon">{{helper.getItemIcon(item.item_type)}}</text>
               </view>
               <view class="item-basic">
                 <text class="item-name">{{item.name}}</text>
-                <text class="item-desc">{{item.description}}</text>
+                <text class="item-type-tag" wx:if="{{item.item_type_display}}"
+                  >{{item.item_type_display}}</text
+                >
+                <text class="item-desc" wx:if="{{item.description}}">{{item.description}}</text>
               </view>
             </view>
             <view class="item-right">
-              <!-- 状态标签（WXS函数转换为中文） -->
+              <!-- 状态标签：使用后端 status_display 中文名 -->
               <view class="status-badge status-{{item.status}}">
-                <text class="status-text">{{helper.getStatusText(item.status)}}</text>
+                <text class="status-text">{{item.status_display || '可用'}}</text>
               </view>
-              <!-- 稀有度标签 -->
-              <text class="item-rarity rarity-{{item.rarity}}" wx:if="{{item.rarity}}"
-                >{{helper.getRarityText(item.rarity)}}</text
+              <!-- 稀有度标签：使用后端 rarity_display 中文名 -->
+              <text
+                class="item-rarity rarity-{{item.rarity}}"
+                wx:if="{{item.rarity && item.rarity !== 'common'}}"
+                >{{item.rarity_display}}</text
               >
             </view>
           </view>
@@ -185,7 +257,7 @@
               <text class="btn-text">立即使用</text>
             </button>
 
-            <!-- 可用状态：生成核销码（到店出示） -->
+            <!-- 可用状态且未生成核销码：生成核销码（到店出示） -->
             <button
               class="action-btn secondary"
               wx:if="{{item.can_generate_code}}"
@@ -199,8 +271,8 @@
             <!-- 可用状态：上架到交易市场 -->
             <button
               class="action-btn warning"
-              wx:if="{{item.can_transfer}}"
-              bind:tap="onTransferItem"
+              wx:if="{{item.can_sell}}"
+              bind:tap="onSellItem"
               data-item="{{item}}"
             >
               <text class="btn-icon">🏪</text>
@@ -211,16 +283,6 @@
             <button class="action-btn outline" bind:tap="onViewItem" data-item="{{item}}">
               <text class="btn-icon">📋</text>
               <text class="btn-text">查看详情</text>
-            </button>
-
-            <!-- 非可用状态：联系客服 -->
-            <button
-              class="action-btn outline"
-              wx:if="{{item.can_contact}}"
-              bind:tap="onContactService"
-            >
-              <text class="btn-icon">💬</text>
-              <text class="btn-text">联系客服</text>
             </button>
           </view>
         </view>
@@ -291,76 +353,32 @@
       </view>
       <view class="tips-content">
         <view class="tip-item">
-          <text class="tip-icon">⏰</text>
-          <text class="tip-text">优惠券7天内有效，过期自动失效</text>
-        </view>
-        <view class="tip-item">
           <text class="tip-icon">🏪</text>
           <text class="tip-text">可将物品上架到交易市场出售</text>
         </view>
         <view class="tip-item">
           <text class="tip-icon">🎫</text>
-          <text class="tip-text">生成核销码后可到店出示给商家核销</text>
+          <text class="tip-text">生成核销码后可到店出示给商家核销，核销码仅显示一次</text>
+        </view>
+        <view class="tip-item">
+          <text class="tip-icon">⏰</text>
+          <text class="tip-text">请注意物品有效期，过期后将无法使用</text>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 🔴 高级筛选面板 -->
+  <!-- 🔴 排序筛选面板 -->
   <view class="filter-panel {{showFilterPanel ? 'show' : ''}}" wx:if="{{showFilterPanel}}">
     <view class="filter-mask" bind:tap="onHideFilter"></view>
     <view class="filter-content-panel">
       <view class="filter-header">
-        <text class="filter-title">筛选条件</text>
+        <text class="filter-title">排序方式</text>
         <text class="filter-close" bind:tap="onHideFilter">✕</text>
       </view>
 
       <view class="filter-body">
-        <!-- 状态筛选 -->
         <view class="filter-group">
-          <text class="filter-group-title">状态筛选</text>
-          <view class="filter-options">
-            <view
-              class="filter-option {{currentStatus === 'all' ? 'active' : ''}}"
-              bind:tap="onStatusFilter"
-              data-status="all"
-            >
-              <text>全部</text>
-            </view>
-            <view
-              class="filter-option {{currentStatus === 'available' ? 'active' : ''}}"
-              bind:tap="onStatusFilter"
-              data-status="available"
-            >
-              <text>可用</text>
-            </view>
-            <view
-              class="filter-option {{currentStatus === 'pending' ? 'active' : ''}}"
-              bind:tap="onStatusFilter"
-              data-status="pending"
-            >
-              <text>待核销</text>
-            </view>
-            <view
-              class="filter-option {{currentStatus === 'used' ? 'active' : ''}}"
-              bind:tap="onStatusFilter"
-              data-status="used"
-            >
-              <text>已使用</text>
-            </view>
-            <view
-              class="filter-option {{currentStatus === 'expired' ? 'active' : ''}}"
-              bind:tap="onStatusFilter"
-              data-status="expired"
-            >
-              <text>已过期</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 排序方式 -->
-        <view class="filter-group">
-          <text class="filter-group-title">排序方式</text>
           <view class="filter-options">
             <view
               class="filter-option {{currentSort === 'newest' ? 'active' : ''}}"

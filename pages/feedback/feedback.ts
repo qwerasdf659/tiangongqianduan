@@ -337,19 +337,14 @@ Page({
     this.startPollingCheck(feedbackId)
   },
 
-  // WebSocket订阅
+  // Socket.IO 订阅反馈通知（替代原 wx.sendSocketMessage + JSON.stringify）
   subscribeWebSocketFeedback(feedbackId) {
     try {
-      wx.sendSocketMessage({
-        data: JSON.stringify({
-          type: 'subscribe_feedback',
-          feedbackId
-        })
-      })
-
-      log.info('📡 已订阅WebSocket反馈通知')
+      const appInstance = getApp()
+      appInstance.emitSocketMessage('subscribe_feedback', { feedbackId })
+      log.info('📡 已订阅Socket.IO反馈通知')
     } catch (error) {
-      log.warn('⚠️ WebSocket订阅失败:', error)
+      log.warn('⚠️ Socket.IO订阅失败:', error)
     }
   },
 

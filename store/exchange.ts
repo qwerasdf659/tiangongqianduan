@@ -5,11 +5,13 @@
  * 数据来源: 后端 GET /api/v4/backpack/exchange/items、GET .../orders
  *
  * @file 天工餐厅积分系统 - 兑换Store
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 import { observable, action } from 'mobx-miniprogram'
+
+const { createPaginationState, createPaginatedActions } = require('./helpers')
 
 /** 兑换商品结构（后端返回格式） */
 interface ExchangeProduct {
@@ -50,20 +52,10 @@ export const exchangeStore = observable({
   currentCategory: null as string | null,
 
   /** 商品列表分页 */
-  productPagination: {
-    page: 1,
-    pageSize: 20,
-    total: 0,
-    hasMore: true
-  },
+  productPagination: createPaginationState(20),
 
   /** 记录列表分页 */
-  recordPagination: {
-    page: 1,
-    pageSize: 20,
-    total: 0,
-    hasMore: true
-  },
+  recordPagination: createPaginationState(20),
 
   /** 商品列表加载状态 */
   productsLoading: false as boolean,
@@ -71,52 +63,17 @@ export const exchangeStore = observable({
   /** 记录列表加载状态 */
   recordsLoading: false as boolean,
 
-  // ===== 操作方法 =====
+  // ===== 操作方法（分页操作由工厂函数统一生成） =====
 
   /** 设置商品列表（首页加载） */
-  setProducts: action(function (
-    this: any,
-    products: ExchangeProduct[],
-    pagination: { page: number; total: number; hasMore: boolean }
-  ) {
-    this.products = products
-    this.productPagination = {
-      page: pagination.page,
-      pageSize: 20,
-      total: pagination.total,
-      hasMore: pagination.hasMore
-    }
-  }),
+  setProducts: createPaginatedActions<ExchangeProduct>('products', 'productPagination').setAction,
 
   /** 追加商品列表（分页加载更多） */
-  appendProducts: action(function (
-    this: any,
-    newProducts: ExchangeProduct[],
-    pagination: { page: number; total: number; hasMore: boolean }
-  ) {
-    this.products = [...this.products, ...newProducts]
-    this.productPagination = {
-      page: pagination.page,
-      pageSize: 20,
-      total: pagination.total,
-      hasMore: pagination.hasMore
-    }
-  }),
+  appendProducts: createPaginatedActions<ExchangeProduct>('products', 'productPagination')
+    .appendAction,
 
   /** 设置兑换记录（首页加载） */
-  setRecords: action(function (
-    this: any,
-    records: ExchangeRecord[],
-    pagination: { page: number; total: number; hasMore: boolean }
-  ) {
-    this.records = records
-    this.recordPagination = {
-      page: pagination.page,
-      pageSize: 20,
-      total: pagination.total,
-      hasMore: pagination.hasMore
-    }
-  }),
+  setRecords: createPaginatedActions<ExchangeRecord>('records', 'recordPagination').setAction,
 
   /** 设置筛选条件 */
   setFilter: action(function (this: any, space: string | null, category: string | null) {
@@ -140,7 +97,7 @@ export const exchangeStore = observable({
     this.records = []
     this.currentSpace = null
     this.currentCategory = null
-    this.productPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
-    this.recordPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
+    this.productPagination = createPaginationState(20)
+    this.recordPagination = createPaginationState(20)
   })
 })

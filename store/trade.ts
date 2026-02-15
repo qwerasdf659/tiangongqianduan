@@ -5,11 +5,13 @@
  * 数据来源: 后端 GET /api/v4/market/listings、GET /api/v4/backpack/
  *
  * @file 天工餐厅积分系统 - 交易Store
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
-import { observable, action } from 'mobx-miniprogram'
+import { action, observable } from 'mobx-miniprogram'
+
+const { createPaginationState, createPaginatedActions } = require('./helpers')
 
 /** 市场商品结构（后端返回格式） */
 interface MarketListing {
@@ -22,18 +24,48 @@ interface MarketListing {
   description: string
 }
 
-/** 背包物品结构（后端返回格式） */
+/**
+ * 背包物品结构（后端返回格式）
+ *
+ * 状态枚举（来源：item_instances表 + system_dictionaries表）：
+ *   available   - 可用（用户可操作：使用/核销/上架）
+ *   locked      - 已锁定（交易/核销流程中，暂时不可操作）
+ *   transferred - 已转移（已转让给其他用户）
+ *   used        - 已使用（已消耗/核销完成）
+ *   expired     - 已过期（超过有效期）
+ *
+ * 物品类型枚举（来源：system_dictionaries表 dict_type='item_type'）：
+ *   prize         - 奖品
+ *   product       - 商品
+ *   voucher       - 兑换券
+ *   tradable_item - 可交易物品
+ *   service       - 服务
+ */
 interface InventoryItem {
+  /** 物品实例唯一ID（bigint） */
   item_instance_id: number
+  /** 物品类型编码 */
   item_type: string
+  /** 物品类型中文名（后端自动附加） */
+  item_type_display: string
+  /** 物品名称 */
   name: string
+  /** 物品状态编码 */
   status: string
+  /** 物品状态中文名（后端自动附加） */
+  status_display: string
+  /** 稀有度编码 */
   rarity: string
+  /** 稀有度中文名（后端自动附加） */
+  rarity_display: string
+  /** 物品描述 */
   description: string
-  acquired_at: string
-  expires_at: string | null
-  is_owner: boolean
+  /** 是否已生成核销码 */
   has_redemption_code: boolean
+  /** 获得时间（YYYY-MM-DD HH:mm:ss格式） */
+  acquired_at: string
+  /** 过期时间（可为null） */
+  expires_at: string | null
 }
 
 /** 我的挂单结构 */
@@ -58,12 +90,7 @@ export const tradeStore = observable({
   myListings: [] as MyListing[],
 
   /** 市场商品分页 */
-  marketPagination: {
-    page: 1,
-    pageSize: 20,
-    total: 0,
-    hasMore: true
-  },
+  marketPagination: createPaginationState(20),
 
   /** 市场加载状态 */
   marketLoading: false as boolean,
@@ -71,37 +98,15 @@ export const tradeStore = observable({
   /** 库存加载状态 */
   inventoryLoading: false as boolean,
 
-  // ===== 操作方法 =====
+  // ===== 操作方法（分页操作由工厂函数统一生成） =====
 
   /** 设置市场商品列表（首页加载） */
-  setMarketListings: action(function (
-    this: any,
-    listings: MarketListing[],
-    pagination: { page: number; total: number; hasMore: boolean }
-  ) {
-    this.marketListings = listings
-    this.marketPagination = {
-      page: pagination.page,
-      pageSize: 20,
-      total: pagination.total,
-      hasMore: pagination.hasMore
-    }
-  }),
+  setMarketListings: createPaginatedActions<MarketListing>('marketListings', 'marketPagination')
+    .setAction,
 
   /** 追加市场商品列表（分页加载更多） */
-  appendMarketListings: action(function (
-    this: any,
-    newListings: MarketListing[],
-    pagination: { page: number; total: number; hasMore: boolean }
-  ) {
-    this.marketListings = [...this.marketListings, ...newListings]
-    this.marketPagination = {
-      page: pagination.page,
-      pageSize: 20,
-      total: pagination.total,
-      hasMore: pagination.hasMore
-    }
-  }),
+  appendMarketListings: createPaginatedActions<MarketListing>('marketListings', 'marketPagination')
+    .appendAction,
 
   /** 设置背包物品列表 */
   setInventoryItems: action(function (this: any, items: InventoryItem[]) {
@@ -128,6 +133,6 @@ export const tradeStore = observable({
     this.marketListings = []
     this.inventoryItems = []
     this.myListings = []
-    this.marketPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
+    this.marketPagination = createPaginationState(20)
   })
 })

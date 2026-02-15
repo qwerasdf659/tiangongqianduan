@@ -12,7 +12,7 @@ declare namespace Store {
   /** 用户Store状态 */
   interface UserStore {
     isLoggedIn: boolean
-    userInfo: App.UserInfo | null
+    userInfo: API.UserProfile | null
     accessToken: string
     refreshToken: string
     userRole: string
@@ -20,9 +20,10 @@ declare namespace Store {
     readonly userId: number
     readonly nickname: string
     readonly maskedMobile: string
-    setLoginState(userInfo: App.UserInfo, accessToken: string, refreshToken: string): void
-    updateUserInfo(userInfo: App.UserInfo): void
+    setLoginState(userInfo: API.UserProfile, accessToken: string, refreshToken: string): void
+    updateUserInfo(userInfo: API.UserProfile): void
     updateAccessToken(token: string): void
+    updateRefreshToken(token: string): void
     clearLoginState(): void
     restoreLoginState(): void
   }

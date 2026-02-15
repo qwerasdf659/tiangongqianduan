@@ -118,11 +118,21 @@ Page({
    * @description
    * 调用后端API完成核销。
    * 后端路由: POST /api/v4/shop/redemption/fulfill
+   * 请求参数: { redeem_code: "XXXX-YYYY-ZZZZ" }
    *
-   * code - 核销码
+   * 后端响应格式:
+   * {
+   *   order: { order_id, fulfilled_at },
+   *   item_instance: { item_instance_id, name, status },
+   *   redeemer: { user_id, nickname }
+   * }
+   *
+   * 后端错误码: BAD_REQUEST(无效) / EXPIRED(过期) / CONFLICT(已使用)
+   *
+   * @param redeemCode - 扫描到的核销码字符串
    */
-  async handleFulfill(code) {
-    if (!code) {
+  async handleFulfill(redeemCode) {
+    if (!redeemCode) {
       wx.showToast({ title: '核销码不能为空', icon: 'none' })
       return
     }
@@ -134,15 +144,25 @@ Page({
     this.setData({ loading: true })
 
     try {
-      log.info('📤 开始核销，核销码:', code)
+      log.info('📤 开始核销，核销码:', redeemCode)
 
-      const result = await API.fulfillRedemption({ code })
+      // 后端要求参数名为 redeem_code
+      const result = await API.fulfillRedemption({ redeem_code: redeemCode })
 
       if (result && result.success) {
         log.info('✅ 核销成功:', result.data)
 
+        // 将嵌套的后端响应数据展平为模板需要的格式
+        const responseData = result.data || {}
+        const flatResult = {
+          order_id: responseData.order && responseData.order.order_id,
+          fulfilled_at: responseData.order && responseData.order.fulfilled_at,
+          item_name: responseData.item_instance && responseData.item_instance.name,
+          redeemer_nickname: responseData.redeemer && responseData.redeemer.nickname
+        }
+
         this.setData({
-          verifyResult: result.data,
+          verifyResult: flatResult,
           verifySuccess: true,
           loading: false
         })
@@ -158,15 +178,25 @@ Page({
     } catch (error) {
       log.error('❌ 核销失败:', error)
 
+      // 后端错误码映射为用户友好提示
+      const errorCode = error.code || ''
+      const errorMessages = {
+        BAD_REQUEST: '核销码无效，请检查后重试',
+        EXPIRED: '核销码已过期，请联系用户重新生成',
+        CONFLICT: '核销码已被使用'
+      }
+
+      const errorContent = errorMessages[errorCode] || error.message || '请检查核销码是否有效'
+
       this.setData({
-        verifyResult: { error: error.message },
+        verifyResult: { error: errorContent },
         verifySuccess: false,
         loading: false
       })
 
       wx.showModal({
         title: '核销失败',
-        content: error.message || '请检查核销码是否有效',
+        content: errorContent,
         showCancel: true,
         cancelText: '返回',
         confirmText: '重新扫码',

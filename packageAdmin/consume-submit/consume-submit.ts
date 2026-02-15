@@ -21,7 +21,7 @@
 // 统一使用utils/index.ts导入工具函数
 const { API, Utils, Logger } = require('../../utils/index')
 const log = Logger.createLogger('consume-submit')
-const { checkAuth } = Utils
+const { checkAuth, formatPhoneNumber } = Utils
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -139,8 +139,15 @@ Page({
       const result = await API.getUserInfoByQRCode(this.data.qrCode, this.data.storeId)
 
       if (result && result.success && result.data) {
+        // 后端返回完整手机号，前端脱敏展示（如 138****5678）
+        const userData = result.data
+        const maskedUserInfo = {
+          ...userData,
+          mobile_display: formatPhoneNumber(userData.mobile)
+        }
+
         this.setData({
-          userInfo: result.data,
+          userInfo: maskedUserInfo,
           userInfoLoading: false
         })
         log.info('✅ 用户信息加载成功:', result.data)

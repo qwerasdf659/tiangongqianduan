@@ -58,6 +58,7 @@
   "dependencies": {
     "mobx-miniprogram": "^6.12.3",
     "mobx-miniprogram-bindings": "^5.1.1",
-    "weapp-qrcode": "^1.0.0"
+    "weapp-qrcode": "^1.0.0",
+    "weapp.socket.io": "^2.2.1"
   }
 }

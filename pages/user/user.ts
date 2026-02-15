@@ -26,8 +26,8 @@ Page({
 
     // 多角色权限标识（从JWT Token中的role_level判断）
     // isMerchant = role_level >= 20（商家店员及以上，可访问消费录入、扫码核销）
-    // isManager  = role_level >= 40（商家店长及以上，可访问审批管理）
-    // isAdmin    = role_level >= 100（超级管理员）
+    // isManager  = role_level >= 40（商家店长及以上）
+    // isAdmin    = role_level >= 100（管理员，可访问审批管理 - 后端console域限制）
     isMerchant: false,
     isManager: false,
     isAdmin: false,
@@ -609,10 +609,10 @@ Page({
     })
   },
 
-  /** 跳转到审批管理页面（商家店长 level>=40 可用） */
+  /** 跳转到审批管理页面（仅管理员 role_level>=100 可用，后端console域限制） */
   goToAuditList() {
-    if (!this.data.isManager) {
-      wx.showToast({ title: '需要店长权限', icon: 'none' })
+    if (!this.data.isAdmin) {
+      wx.showToast({ title: '需要管理员权限', icon: 'none' })
       return
     }
 

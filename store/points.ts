@@ -5,11 +5,13 @@
  * 数据来源: 后端 GET /api/v4/assets/balance、GET /api/v4/assets/transactions
  *
  * @file 天工餐厅积分系统 - 资产Store
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 import { observable, action } from 'mobx-miniprogram'
+
+const { createPaginationState, createPaginatedActions } = require('./helpers')
 
 /** 积分交易记录结构 */
 interface PointsTransaction {
@@ -35,12 +37,7 @@ export const pointsStore = observable({
   transactions: [] as PointsTransaction[],
 
   /** 交易记录分页信息 */
-  transactionPagination: {
-    page: 1,
-    pageSize: 20,
-    total: 0,
-    hasMore: true
-  },
+  transactionPagination: createPaginationState(20),
 
   /** 余额加载状态 */
   balanceLoading: false as boolean,
@@ -81,34 +78,16 @@ export const pointsStore = observable({
   }),
 
   /** 设置交易记录（首页加载） */
-  setTransactions: action(function (
-    this: any,
-    transactions: PointsTransaction[],
-    pagination: { page: number; total: number; hasMore: boolean }
-  ) {
-    this.transactions = transactions
-    this.transactionPagination = {
-      page: pagination.page,
-      pageSize: 20,
-      total: pagination.total,
-      hasMore: pagination.hasMore
-    }
-  }),
+  setTransactions: createPaginatedActions<PointsTransaction>(
+    'transactions',
+    'transactionPagination'
+  ).setAction,
 
   /** 追加交易记录（分页加载更多） */
-  appendTransactions: action(function (
-    this: any,
-    newTransactions: PointsTransaction[],
-    pagination: { page: number; total: number; hasMore: boolean }
-  ) {
-    this.transactions = [...this.transactions, ...newTransactions]
-    this.transactionPagination = {
-      page: pagination.page,
-      pageSize: 20,
-      total: pagination.total,
-      hasMore: pagination.hasMore
-    }
-  }),
+  appendTransactions: createPaginatedActions<PointsTransaction>(
+    'transactions',
+    'transactionPagination'
+  ).appendAction,
 
   /** 设置交易记录加载状态 */
   setTransactionsLoading: action(function (this: any, loading: boolean) {
@@ -120,6 +99,6 @@ export const pointsStore = observable({
     this.availableAmount = 0
     this.frozenAmount = 0
     this.transactions = []
-    this.transactionPagination = { page: 1, pageSize: 20, total: 0, hasMore: true }
+    this.transactionPagination = createPaginationState(20)
   })
 })

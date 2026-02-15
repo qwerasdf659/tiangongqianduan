@@ -1,4 +1,4 @@
-﻿// pages/points-detail/points-detail.ts - 积分详情页面 + MobX响应式状态
+// pages/points-detail/points-detail.ts - 积分详情页面 + MobX响应式状态
 
 // 🔴 统一工具函数导入
 const { API, Utils, Logger } = require('../../utils/index')
@@ -602,5 +602,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

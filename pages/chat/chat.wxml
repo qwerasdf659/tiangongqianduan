@@ -56,20 +56,29 @@
 
     <!-- ===== 状态3：加载成功 - 会话列表 ===== -->
     <block wx:else>
+      <!-- 空状态：暂无会话 -->
+      <view wx:if="{{sessions.length === 0}}" class="error-state">
+        <view class="error-icon-wrapper">
+          <text class="error-icon-text">💬</text>
+        </view>
+        <text class="error-title">暂无会话记录</text>
+        <text class="error-desc">点击右上角"+"开始新的客服咨询</text>
+      </view>
+
+      <!-- 会话列表（直接渲染后端sessions数组） -->
       <view
-        wx:for="{{sessionChannels}}"
-        wx:key="type"
-        class="session-item {{index === 0 && item.isOnline ? 'active-session' : ''}}"
-        data-type="{{item.type}}"
+        wx:for="{{sessions}}"
+        wx:key="sessionId"
+        class="session-item"
+        data-id="{{item.sessionId}}"
         bindtap="onSessionTap"
         style="animation-delay: {{index * 60}}ms;"
       >
         <!-- 头像区域 -->
         <view class="session-avatar">
-          <view class="avatar-bg {{item.avatarClass}}-bg">
+          <view class="avatar-bg customer-service-bg">
             <text class="avatar-icon">{{item.icon}}</text>
           </view>
-          <view wx:if="{{item.isOnline}}" class="online-indicator"></view>
         </view>
 
         <!-- 会话内容 -->
@@ -79,14 +88,14 @@
             <text wx:if="{{item.time}}" class="session-time">{{item.time}}</text>
           </view>
           <view class="session-preview">
-            <text class="last-message">{{item.preview}}</text>
+            <text class="last-message">{{item.preview || '暂无消息'}}</text>
             <view wx:if="{{item.unread > 0}}" class="unread-count">
               {{item.unread > 99 ? '99+' : item.unread}}
             </view>
           </view>
         </view>
 
-        <!-- 右箭头 -->
+        <!-- 状态标签 + 右箭头 -->
         <view class="session-arrow">›</view>
       </view>
     </block>
@@ -103,14 +112,16 @@
           <text class="back-btn">←</text>
         </view>
         <view class="current-session-avatar">
-          <view class="avatar-bg {{currentChatType}}-bg">
+          <view class="avatar-bg customer-service-bg">
             <text class="avatar-icon">{{currentChatIcon}}</text>
           </view>
-          <view wx:if="{{isOnline}}" class="online-indicator small"></view>
         </view>
         <view class="session-detail">
           <text class="session-name">{{currentChatName}}</text>
-          <text class="session-status">{{isOnline ? '在线' : '离线'}}</text>
+          <text class="session-status"
+            >{{sessionStatus === 'active' ? '对话中' : (sessionStatus === 'waiting' ? '等待客服' :
+            sessionStatus)}}</text
+          >
         </view>
       </view>
       <view class="header-right">
@@ -175,7 +186,7 @@
         <view class="message-content">
           <!-- 对方头像 -->
           <view wx:if="{{!item.isOwn}}" class="message-avatar">
-            <view class="avatar-bg {{currentChatType}}-bg">
+            <view class="avatar-bg customer-service-bg">
               <text class="avatar-icon">{{currentChatIcon}}</text>
             </view>
           </view>
@@ -220,7 +231,7 @@
       <!-- 输入状态指示器 -->
       <view wx:if="{{showTypingIndicator}}" class="typing-indicator">
         <view class="typing-avatar">
-          <view class="avatar-bg {{currentChatType}}-bg">
+          <view class="avatar-bg customer-service-bg">
             <text class="avatar-icon">{{currentChatIcon}}</text>
           </view>
         </view>

@@ -1,10 +1,13 @@
 /**
- * 环境配置管理v4.0 - V4统一引擎架构
+ * 环境配置管理v5.1 - V4统一引擎架构
  * 支持4种环境: development(开发)、mobile(真机)、testing(测试)、production(生产)
  *
+ * v5.1优化: 提取 BASE_BUSINESS_CONFIG / BASE_SECURITY_CONFIG / BASE_DEVELOPMENT_CONFIG
+ * 消除4个环境80%重复配置，各环境仅覆盖有差异的部分
+ *
  * @file 天工餐厅积分系统 - 环境配置
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 // ===== 类型定义 =====
@@ -21,13 +24,14 @@ interface ApiConfig {
   enableAutoRetry?: boolean
 }
 
-/** WebSocket服务配置 */
+/** WebSocket服务配置（Socket.IO） */
 interface WebSocketConfig {
+  /** Socket.IO 服务地址（http/https，不拼 /ws） */
   url: string
-  reconnectInterval: number
-  maxReconnectAttempts: number
-  heartbeatInterval: number
-  enableHeartbeat: boolean
+  /** 重连延迟基础值（ms），Socket.IO 内部使用 */
+  reconnectionDelay: number
+  /** 最大重连次数，Socket.IO 内部使用 */
+  reconnectionAttempts: number
 }
 
 /** 开发阶段配置 */
@@ -116,10 +120,63 @@ interface ApiConfigResult {
   retryDelay: number
 }
 
+// ===== 基础配置（所有环境共享，各环境仅覆盖有差异的部分） =====
+
+/** 业务模块基础配置 — 4个环境完全一致 */
+const BASE_BUSINESS_CONFIG: BusinessConfig = {
+  lottery: {
+    enabled: true,
+    engineVersion: '4.0.0',
+    defaultStrategy: 'basic_guarantee',
+    /* 单抽消耗由后端API /lottery/campaigns/:code/config 的 per_draw_cost 字段决定 */
+    supportMultipleDraw: true,
+    enableGuarantee: true
+  },
+  inventory: {
+    enabled: true,
+    enableUserInventory: true,
+    supportTransfer: true,
+    supportVerification: true
+  },
+  uploads: {
+    enabled: true,
+    storageProvider: 'sealos',
+    manualReviewMode: true,
+    maxFileSize: 10485760, // 10MB
+    allowedTypes: ['jpg', 'jpeg', 'png', 'gif']
+  },
+  permissions: {
+    enabled: true,
+    enableRoleBasedAccess: true,
+    supportBatchCheck: true
+  }
+}
+
+/** 安全基础配置 — 4个环境完全一致 */
+const BASE_SECURITY_CONFIG: SecurityConfig = {
+  enableFieldMapping: true,
+  enableDataValidation: true,
+  enableSafetyChecks: true,
+  apiVersion: 'v4.0'
+}
+
+/** 开发阶段基础配置 — dev/mobile/testing共享，production 独立覆盖 */
+const BASE_DEVELOPMENT_CONFIG: DevelopmentConfig = {
+  enableUnifiedAuth: true,
+  devVerificationCode: '123456', // 后端控制的开发验证码，非mock数据
+  skipSmsVerification: true,
+  enableAdminAutoDetection: true,
+  adminFieldMapping: 'is_admin',
+  disableSmsService: true,
+  preserveSmsFields: true,
+  enableDebugMode: true,
+  showDetailedErrors: true
+}
+
 // ===== 环境配置数据 =====
 
 const ENV_CONFIG: AllEnvironmentConfig = {
-  // 开发环境配置（微信开发者工具）
+  /** 开发环境配置（微信开发者工具） */
   development: {
     api: {
       baseUrl: 'http://localhost:3000',
@@ -132,60 +189,19 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       enableAutoRetry: true
     },
     websocket: {
-      url: 'ws://localhost:3000/ws',
-      reconnectInterval: 3000,
-      maxReconnectAttempts: 5,
-      heartbeatInterval: 30000,
-      enableHeartbeat: true
+      url: 'http://localhost:3000',
+      reconnectionDelay: 3000,
+      reconnectionAttempts: 5
     },
-    development: {
-      enableUnifiedAuth: true,
-      devVerificationCode: '123456', // 后端控制的开发验证码，非mock数据
-      skipSmsVerification: true,
-      enableAdminAutoDetection: true,
-      adminFieldMapping: 'is_admin',
-      disableSmsService: true,
-      preserveSmsFields: true,
-      enableDebugMode: true,
-      showDetailedErrors: true
-    },
-    business: {
-      lottery: {
-        enabled: true,
-        engineVersion: '4.0.0',
-        defaultStrategy: 'basic_guarantee',
-        // 单抽消耗由后端API /lottery/campaigns/:code/config 的 per_draw_cost（折扣后）/ base_cost（折扣前）字段决定
-        supportMultipleDraw: true,
-        enableGuarantee: true
-      },
-      inventory: {
-        enabled: true,
-        enableUserInventory: true,
-        supportTransfer: true,
-        supportVerification: true
-      },
-      uploads: {
-        enabled: true,
-        storageProvider: 'sealos',
-        manualReviewMode: true,
-        maxFileSize: 10485760, // 10MB
-        allowedTypes: ['jpg', 'jpeg', 'png', 'gif']
-      },
-      permissions: {
-        enabled: true,
-        enableRoleBasedAccess: true,
-        supportBatchCheck: true
-      }
-    },
-    security: {
-      enableFieldMapping: true,
-      enableDataValidation: true,
-      enableSafetyChecks: true,
-      apiVersion: 'v4.0'
-    }
+    development: { ...BASE_DEVELOPMENT_CONFIG },
+    business: { ...BASE_BUSINESS_CONFIG },
+    security: { ...BASE_SECURITY_CONFIG }
   },
 
-  // 真机调试环境
+  /**
+   * 真机调试环境
+   * ⚠️ baseUrl 为本地 IP，换网络（WiFi/热点）时需要手动更新
+   */
   mobile: {
     api: {
       baseUrl: 'http://192.168.43.12:3000',
@@ -198,59 +214,16 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       enableAutoRetry: true
     },
     websocket: {
-      url: 'ws://192.168.43.12:3000/ws',
-      reconnectInterval: 3000,
-      maxReconnectAttempts: 5,
-      heartbeatInterval: 30000,
-      enableHeartbeat: true
+      url: 'http://192.168.43.12:3000',
+      reconnectionDelay: 3000,
+      reconnectionAttempts: 5
     },
-    development: {
-      enableUnifiedAuth: true,
-      devVerificationCode: '123456',
-      skipSmsVerification: true,
-      enableAdminAutoDetection: true,
-      adminFieldMapping: 'is_admin',
-      disableSmsService: true,
-      preserveSmsFields: true,
-      enableDebugMode: true,
-      showDetailedErrors: true
-    },
-    business: {
-      lottery: {
-        enabled: true,
-        engineVersion: '4.0.0',
-        defaultStrategy: 'basic_guarantee',
-        supportMultipleDraw: true,
-        enableGuarantee: true
-      },
-      inventory: {
-        enabled: true,
-        enableUserInventory: true,
-        supportTransfer: true,
-        supportVerification: true
-      },
-      uploads: {
-        enabled: true,
-        storageProvider: 'sealos',
-        manualReviewMode: true,
-        maxFileSize: 10485760,
-        allowedTypes: ['jpg', 'jpeg', 'png', 'gif']
-      },
-      permissions: {
-        enabled: true,
-        enableRoleBasedAccess: true,
-        supportBatchCheck: true
-      }
-    },
-    security: {
-      enableFieldMapping: true,
-      enableDataValidation: true,
-      enableSafetyChecks: true,
-      apiVersion: 'v4.0'
-    }
+    development: { ...BASE_DEVELOPMENT_CONFIG },
+    business: { ...BASE_BUSINESS_CONFIG },
+    security: { ...BASE_SECURITY_CONFIG }
   },
 
-  // 测试环境 - V4统一引擎架构
+  /** 测试环境 - V4统一引擎架构 */
   testing: {
     api: {
       baseUrl: 'https://omqktqrtntnn.sealosbja.site',
@@ -260,59 +233,20 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       retryDelay: 2000
     },
     websocket: {
-      url: 'wss://omqktqrtntnn.sealosbja.site/ws',
-      reconnectInterval: 3000,
-      maxReconnectAttempts: 5,
-      heartbeatInterval: 30000,
-      enableHeartbeat: true
+      url: 'https://omqktqrtntnn.sealosbja.site',
+      reconnectionDelay: 3000,
+      reconnectionAttempts: 5
     },
     development: {
-      enableUnifiedAuth: true,
-      devVerificationCode: '123456',
-      skipSmsVerification: true,
-      enableAdminAutoDetection: true,
-      adminFieldMapping: 'is_admin',
+      ...BASE_DEVELOPMENT_CONFIG,
       disableSmsService: false,
-      preserveSmsFields: true,
-      enableDebugMode: false,
-      showDetailedErrors: true
+      enableDebugMode: false
     },
-    business: {
-      lottery: {
-        enabled: true,
-        engineVersion: '4.0.0',
-        defaultStrategy: 'basic_guarantee',
-        supportMultipleDraw: true,
-        enableGuarantee: true
-      },
-      inventory: {
-        enabled: true,
-        enableUserInventory: true,
-        supportTransfer: true,
-        supportVerification: true
-      },
-      uploads: {
-        enabled: true,
-        storageProvider: 'sealos',
-        manualReviewMode: true,
-        maxFileSize: 10485760,
-        allowedTypes: ['jpg', 'jpeg', 'png', 'gif']
-      },
-      permissions: {
-        enabled: true,
-        enableRoleBasedAccess: true,
-        supportBatchCheck: true
-      }
-    },
-    security: {
-      enableFieldMapping: true,
-      enableDataValidation: true,
-      enableSafetyChecks: true,
-      apiVersion: 'v4.0'
-    }
+    business: { ...BASE_BUSINESS_CONFIG },
+    security: { ...BASE_SECURITY_CONFIG }
   },
 
-  // 生产环境 - V4统一引擎架构（安全严格设置）
+  /** 生产环境 - V4统一引擎架构（安全严格设置） */
   production: {
     api: {
       baseUrl: 'https://omqktqrtntnn.sealosbja.site', // 🚨 部署时更新为正式域名
@@ -325,11 +259,9 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       enableAutoRetry: true
     },
     websocket: {
-      url: 'wss://omqktqrtntnn.sealosbja.site/ws',
-      reconnectInterval: 5000,
-      maxReconnectAttempts: 3,
-      heartbeatInterval: 60000,
-      enableHeartbeat: true
+      url: 'https://omqktqrtntnn.sealosbja.site',
+      reconnectionDelay: 5000,
+      reconnectionAttempts: 3
     },
     development: {
       enableUnifiedAuth: false, // 🚨 生产环境禁用万能验证码
@@ -342,39 +274,8 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       enableDebugMode: false, // 🚨 必须关闭调试模式
       showDetailedErrors: false // 🚨 隐藏详细错误信息
     },
-    business: {
-      lottery: {
-        enabled: true,
-        engineVersion: '4.0.0',
-        defaultStrategy: 'basic_guarantee',
-        supportMultipleDraw: true,
-        enableGuarantee: true
-      },
-      inventory: {
-        enabled: true,
-        enableUserInventory: true,
-        supportTransfer: true,
-        supportVerification: true
-      },
-      uploads: {
-        enabled: true,
-        storageProvider: 'sealos',
-        manualReviewMode: true,
-        maxFileSize: 10485760,
-        allowedTypes: ['jpg', 'jpeg', 'png', 'gif']
-      },
-      permissions: {
-        enabled: true,
-        enableRoleBasedAccess: true,
-        supportBatchCheck: true
-      }
-    },
-    security: {
-      enableFieldMapping: true,
-      enableDataValidation: true,
-      enableSafetyChecks: true,
-      apiVersion: 'v4.0'
-    }
+    business: { ...BASE_BUSINESS_CONFIG },
+    security: { ...BASE_SECURITY_CONFIG }
   }
 }
 
@@ -439,18 +340,10 @@ function getSecurityConfig(): SecurityConfig {
   return config.security
 }
 
-/** 获取WebSocket服务配置（无配置时返回默认值） */
+/** 获取WebSocket服务配置 */
 function getWebSocketConfig(): WebSocketConfig {
   const config = getConfig()
-  return (
-    config.websocket || {
-      url: 'ws://localhost:3000/ws',
-      reconnectInterval: 3000,
-      maxReconnectAttempts: 5,
-      heartbeatInterval: 30000,
-      enableHeartbeat: true
-    }
-  )
+  return config.websocket
 }
 
 /** 快速获取WebSocket服务地址 */
@@ -511,8 +404,8 @@ module.exports = {
   switchToDevTools,
   switchToMobile,
   isMobileDebug,
-  version: '5.0.0',
-  lastUpdated: '2026-02-10T00:00:00+08:00'
+  version: '5.1.0',
+  lastUpdated: '2026-02-15T00:00:00+08:00'
 }
 
 export {}

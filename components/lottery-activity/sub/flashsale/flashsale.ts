@@ -276,7 +276,7 @@ Component({
       try {
         wx.vibrateShort({ type: 'heavy' })
       } catch (_e) {
-        /* 兼容 */
+        /* 部分设备不支持震动API，静默降级 */
       }
     },
 
@@ -296,7 +296,7 @@ Component({
       try {
         wx.vibrateShort({ type: 'heavy' })
       } catch (_e) {
-        /* 兼容 */
+        /* 部分设备不支持震动API，静默降级 */
       }
 
       /* 2s后自动关闭弹层 */

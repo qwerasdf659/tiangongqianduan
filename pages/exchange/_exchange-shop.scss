@@ -1,0 +1,906 @@
+﻿/* 鍏戞崲椤甸潰 - 鍙岀┖闂村晢鍝佸厬鎹㈢郴缁熸牱寮?- 浠巈xchange.scss鎷嗗垎 */
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+/* ========================================
+   馃彧 鍙岀┖闂村晢鍝佸厬鎹㈢郴缁熸牱寮?- Dual Space Exchange
+   ======================================== */
+
+/* 馃挮 鍙岀┖闂翠富瀹瑰櫒 */
+.dual-space-market {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  position: relative;
+}
+
+/* 馃幆 绌洪棿鍒囨崲瀵艰埅 */
+.space-selector {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0 0 25rpx 25rpx;
+  padding: 25rpx 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10rpx);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+}
+
+.selector-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+  border-radius: 0 0 25rpx 25rpx;
+  opacity: 0.8;
+}
+
+.space-tab {
+  position: relative;
+  flex: 1;
+  padding: 20rpx 15rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.space-tab.active {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+  transform: translateY(-2rpx);
+}
+
+/* 馃敀 鑷婚€夌┖闂撮攣瀹氱姸鎬佹牱寮?*/
+.space-tab.locked {
+  opacity: 0.6;
+  filter: grayscale(80%);
+  pointer-events: auto;
+  background: rgba(200, 200, 200, 0.3);
+  border: 2rpx dashed $color-text-disabled;
+  position: relative;
+}
+
+.space-tab.locked::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(128, 128, 128, 0.2);
+  border-radius: 20rpx;
+  z-index: 1;
+}
+
+.space-tab.locked .tab-content {
+  position: relative;
+  z-index: 2;
+  opacity: 0.8;
+}
+
+.space-tab.locked .tab-name {
+  color: #888 !important;
+  font-weight: 500;
+}
+
+.space-tab.locked .tab-subtitle {
+  color: #aaa !important;
+  font-size: $font-size-xs;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5rpx;
+}
+
+.tab-name {
+  font-size: $font-size-base;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.tab-subtitle {
+  font-size: 22rpx;
+  opacity: 0.8;
+  line-height: 1.3;
+}
+
+.active-indicator {
+  position: absolute;
+  bottom: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+}
+
+/* 馃敀 瑙ｉ攣鐘舵€佹寚绀哄櫒鏍峰紡 */
+.unlock-status {
+  position: absolute;
+  top: -10rpx;
+  right: -5rpx;
+  z-index: 10;
+}
+
+.unlock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5rpx;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4rpx 8rpx;
+  border-radius: 15rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.unlock-indicator.unlocked {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+.unlock-indicator.locked {
+  background: rgba(158, 158, 158, 0.9);
+  color: white;
+}
+
+.unlock-icon {
+  font-size: 16rpx;
+}
+
+.unlock-text {
+  font-size: 18rpx;
+  font-weight: 500;
+}
+
+/* ========================================
+   馃崁 骞歌繍绌洪棿鏍峰紡 - Lucky Space Styles v2.0
+   馃搵 鍩轰簬鍟嗗搧鍏戞崲UI甯冨眬浼樺寲鏂规鎶€鏈枃妗?- 鏂规1锛氱€戝竷娴佸崱鐗囧竷灞€
+   ======================================== */
+
+/* 馃寠 ========== 涓诲鍣ㄦ牱寮?- 鏂规1浼樺寲鐗堟湰 ========== */
+.lucky-space-content.waterfall-market-container {
+  min-height: calc(100vh - 120rpx);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 53, 0.08) 0%,
+    rgba(247, 147, 30, 0.08) 30%,
+    rgba(76, 175, 80, 0.08) 70%,
+    rgba(67, 233, 123, 0.08) 100%
+  );
+  backdrop-filter: blur(20rpx);
+  padding: 24rpx;
+  position: relative;
+  overflow-x: hidden;
+  /* 馃帹 娣诲姞寰鐨勭汗鐞嗘晥鏋?*/
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+}
+
+/* 馃専 ========== 绌洪棿鏍囬鍖?- 鐜颁唬鍖栬璁?========== */
+.space-header.modern-header {
+  position: relative;
+  padding: 40rpx 30rpx;
+  margin-bottom: 30rpx;
+  overflow: hidden;
+  border-radius: $border-radius-lg;
+  box-shadow: 0 12rpx 40rpx rgba(255, 107, 53, 0.15);
+}
+
+.lucky-header.modern-header {
+  background: linear-gradient(135deg, $color-primary 0%, #f7931e 50%, #4caf50 100%);
+  color: white;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.header-background-modern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.15;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="3" fill="white"/><circle cx="80" cy="80" r="3" fill="white"/><circle cx="60" cy="25" r="2" fill="white"/><circle cx="30" cy="70" r="2" fill="white"/><circle cx="85" cy="30" r="1.5" fill="white"/><circle cx="15" cy="85" r="1.5" fill="white"/></svg>');
+  background-size: 80rpx 80rpx;
+  animation: backgroundFloat 20s ease-in-out infinite;
+}
+
+@keyframes backgroundFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10rpx);
+  }
+}
+
+.header-content.modern-content {
+  position: relative;
+  z-index: 2;
+}
+
+.space-info.modern-info {
+  text-align: center;
+}
+
+.space-title.modern-title {
+  font-size: $font-size-xl;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 12rpx;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  letter-spacing: 2rpx;
+}
+
+.space-description.modern-description {
+  font-size: 26rpx;
+  opacity: 0.95;
+  display: block;
+  margin-bottom: 24rpx;
+  font-weight: 500;
+}
+
+/* 馃搳 缁熻淇℃伅琛?*/
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 40rpx;
+  margin-top: 20rpx;
+}
+
+.stat-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 16rpx 24rpx;
+  border-radius: 20rpx;
+  backdrop-filter: blur(10rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  min-width: 120rpx;
+}
+
+.stat-number {
+  font-size: $font-size-md;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 4rpx;
+  color: $color-text-white;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+  font-size: $font-size-xs;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* 馃寠 ========== 鐎戝竷娴佸鍣?- 鏂规1浼樺寲鐗堟湰 ========== */
+.waterfall-container.modern-waterfall {
+  position: relative;
+  width: 100%;
+  min-height: 500rpx;
+  padding: 0 10rpx;
+  transition: height 0.3s ease;
+}
+
+/* 馃摝 ========== 鍟嗗搧鍗＄墖鏍峰紡 - 鏂规1鐜颁唬鍖栬璁2.0 ========== */
+.waterfall-card.modern-card {
+  position: absolute !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 252, 254, 0.95) 100%),
+    radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+  border-radius: 28rpx;
+  overflow: hidden;
+  box-shadow:
+    0 16rpx 48rpx rgba(99, 102, 241, 0.12),
+    0 6rpx 20rpx rgba(0, 0, 0, 0.06),
+    0 2rpx 8rpx rgba(0, 0, 0, 0.04),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24rpx);
+  margin-bottom: 0;
+  /* 馃敡 淇锛氱Щ闄SS闂磋窛锛岀敱JavaScript鐎戝竷娴佺粺涓€鎺у埗 */
+  /* 馃帹 娣诲姞绮捐嚧鐨勯湏铏瑰厜鏁?*/
+  position: relative;
+}
+
+.waterfall-card.modern-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 28rpx;
+  padding: 2rpx;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.6) 0%,
+    rgba(236, 72, 153, 0.6) 25%,
+    rgba(59, 130, 246, 0.6) 50%,
+    rgba(16, 185, 129, 0.6) 75%,
+    rgba(99, 102, 241, 0.6) 100%
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.waterfall-card.modern-card:active {
+  transform: scale(0.98) translateY(-8rpx);
+  box-shadow:
+    0 24rpx 72rpx rgba(99, 102, 241, 0.2),
+    0 12rpx 36rpx rgba(236, 72, 153, 0.15),
+    0 6rpx 16rpx rgba(0, 0, 0, 0.1),
+    inset 0 1rpx 0 rgba(255, 255, 255, 1);
+}
+
+.waterfall-card.modern-card:active::after {
+  opacity: 1;
+}
+
+.waterfall-card.modern-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 馃柤锔?========== 鍥剧墖鍖哄煙鏍峰紡 - 鏂规1鍥剧墖浼樺厛璁捐v2.0 ========== */
+.card-image-container.modern-image-container {
+  position: relative;
+  width: 100%;
+  height: 200rpx;
+  /* 馃敡 淇锛氬噺灏戝浘鐗囧鍣ㄩ珮搴︼紝瑙ｅ喅闂磋窛杩囧ぇ闂 */
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%),
+    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.08) 0%, transparent 50%);
+  border-radius: 24rpx 24rpx 0 0;
+  /* 馃帹 娣诲姞寰鐨勫唴闃村奖 */
+  box-shadow: inset 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  /* 馃寛 娣诲姞鍔ㄦ€佽竟妗嗘笎鍙?*/
+  background-size: 200% 200%;
+  animation: shimmerBackground 6s ease-in-out infinite;
+}
+
+@keyframes shimmerBackground {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.product-image.card-image.waterfall-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 24rpx 24rpx 0 0;
+  /* 馃帹 澧炲己鍥剧墖鏄剧ず鏁堟灉 */
+  filter: contrast(1.08) saturate(1.15) brightness(1.02);
+  /* 馃専 娣诲姞寰鐨勫厜娉芥晥鏋?*/
+  position: relative;
+}
+
+.product-image.card-image.waterfall-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: imageShine 3s infinite;
+  pointer-events: none;
+}
+
+@keyframes imageShine {
+  0% {
+    left: -100%;
+  }
+
+  50% {
+    left: 100%;
+  }
+
+  100% {
+    left: -100%;
+  }
+}
+
+.waterfall-card.modern-card:active .product-image.card-image.waterfall-image {
+  transform: scale(1.1);
+  filter: contrast(1.12) saturate(1.2) brightness(1.08);
+}
+
+/* 馃彿锔?鍟嗗搧鏍囩鏍峰紡 - 鐜颁唬鍖栫増鏈?*/
+.product-tags.modern-tags {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  z-index: 3;
+}
+
+.product-tag.modern-tag {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4rpx 8rpx;
+  border-radius: 12rpx;
+  backdrop-filter: blur(10rpx);
+  font-weight: 600;
+  max-width: 80rpx;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.product-tag.modern-tag.hot-tag {
+  background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
+  animation: hotPulse 2s infinite;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
+  font-weight: 700;
+}
+
+.product-tag.modern-tag.new-tag {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  box-shadow: 0 4rpx 12rpx rgba(67, 233, 123, 0.4);
+  font-weight: 700;
+  animation: newShine 3s ease-in-out infinite;
+}
+
+/* 馃挩 鎶樻墸鏍囩 - 澧炲己鐗?*/
+.discount-badge.modern-discount-badge {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  padding: 6rpx 12rpx;
+  border-radius: $border-radius-md;
+  font-weight: 700;
+  box-shadow: 0 4rpx 12rpx rgba(255, 71, 87, 0.4);
+  backdrop-filter: blur(10rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  z-index: 3;
+  animation: discountPulse 2s ease-in-out infinite;
+}
+
+@keyframes discountPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4rpx 12rpx rgba(255, 71, 87, 0.4);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6rpx 20rpx rgba(255, 71, 87, 0.6);
+  }
+}
+
+/* 馃崁 骞歌繍鏍囩 - 鐗规畩鏁堟灉 */
+.lucky-badge.modern-lucky-badge {
+  position: absolute;
+  bottom: 12rpx;
+  right: 12rpx;
+  background: linear-gradient(135deg, #4caf50 0%, #43e97b 100%);
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  padding: 8rpx 12rpx;
+  border-radius: 50%;
+  @include flex-center;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.4);
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+  z-index: 3;
+  animation: luckySparkle 3s ease-in-out infinite;
+  min-width: 48rpx;
+  min-height: 48rpx;
+}
+
+@keyframes luckySparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.4);
+  }
+
+  50% {
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.6);
+  }
+}
+
+/* 馃搳 閿€閲忔樉绀?*/
+.sales-badge.modern-sales-badge {
+  position: absolute;
+  bottom: 12rpx;
+  left: 12rpx;
+  background: rgba(0, 0, 0, 0.7);
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  padding: 4rpx 10rpx;
+  border-radius: 12rpx;
+  backdrop-filter: blur(10rpx);
+  z-index: 3;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.sales-text {
+  font-weight: 500;
+}
+
+/* 馃摑 ========== 鍐呭鍖哄煙鏍峰紡 - 鏂规1浼樺寲鐗堟湰v2.0 ========== */
+.card-content.modern-card-content {
+  padding: 18rpx 16rpx 16rpx;
+  /* 馃帹 浼樺寲锛氬噺灏戝唴瀹瑰尯鍩熷唴杈硅窛 */
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
+  /* 馃帹 娣诲姞寰鐨勫唴瀹瑰垎闅旂嚎 */
+  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+/* 馃搶 鍟嗗搧鏍囬 */
+.product-title-section {
+  margin-bottom: 12rpx;
+  /* 馃帹 浼樺寲锛氬噺灏戞爣棰樹笅杈硅窛 */
+  position: relative;
+}
+
+.product-title.waterfall-title.modern-title {
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  /* 馃帹 娣诲姞鏂囧瓧娓愬彉鏁堟灉 */
+  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.5rpx;
+}
+
+/* 馃挵 浠锋牸鍖哄煙 - 娓愬彉鏁堟灉v2.0 */
+.price-section.modern-price-section {
+  margin-bottom: 8rpx;
+  /* 馃帹 浼樺寲锛氬噺灏戜环鏍煎尯鍩熶笅杈硅窛 */
+  position: relative;
+}
+
+.price-row.waterfall-price {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: 10rpx;
+}
+
+.current-price.modern-current-price {
+  font-size: $font-size-lg;
+  font-weight: 900;
+  background: linear-gradient(135deg, #e11d48 0%, #f59e0b 50%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  /* 馃専 涓轰环鏍兼坊鍔犲彂鍏夋晥鏋?*/
+  filter: drop-shadow(0 4rpx 12rpx rgba(225, 29, 72, 0.25));
+  /* 馃帹 涓轰笉鏀寔鑳屾櫙瑁佸壀鐨勮澶囨彁渚涘悗澶囪壊 */
+  color: #e11d48;
+  position: relative;
+  letter-spacing: 1rpx;
+}
+
+.current-price.modern-current-price::before {
+  content: '楼';
+  font-size: $font-size-sm;
+  opacity: 0.8;
+  margin-right: 2rpx;
+}
+
+.original-price.modern-original-price {
+  font-size: $font-size-sm;
+  color: #94a3b8;
+  text-decoration: line-through;
+  font-weight: 500;
+  position: relative;
+  opacity: 0.7;
+}
+
+.original-price.modern-original-price::before {
+  content: '楼';
+  font-size: 18rpx;
+}
+
+/* 猸?璇勫垎鍖哄煙 - 鐜颁唬鍖栨牱寮?*/
+.rating-section.waterfall-stats.modern-stats {
+  @include flex-between;
+}
+
+.rating-stars-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.rating-stars.modern-rating-stars {
+  font-size: $font-size-xs;
+  color: #ffd700;
+  line-height: 1;
+  letter-spacing: 1rpx;
+}
+
+.rating-score.modern-rating-score {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  font-weight: 500;
+}
+
+.sales-count.modern-sales-count {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+/* 馃彧 鍟嗗淇℃伅 - 鐜颁唬鍖栨牱寮?*/
+.seller-info.modern-seller-info {
+  @include flex-between;
+  font-size: $font-size-xs;
+  color: #888888;
+  margin-top: 8rpx;
+  padding-top: 8rpx;
+  border-top: 1rpx solid $color-border-light;
+}
+
+.seller-name {
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seller-rating {
+  color: #4caf50;
+  font-weight: 600;
+  margin-left: 12rpx;
+}
+
+/* 馃彿锔?鏍囩鍖哄煙 - 搴曢儴鏍囩 */
+.waterfall-tags.modern-bottom-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.tag.modern-bottom-tag {
+  background: rgba(255, 107, 53, 0.1);
+  color: $color-primary;
+  font-size: 18rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 107, 53, 0.2);
+  font-weight: 500;
+}
+
+/* 馃幁 鎮仠閬僵 - 鐜颁唬鍖栨晥鏋?*/
+.card-hover-mask.modern-hover-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 107, 53, 0.1);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.waterfall-card.modern-card:active .card-hover-mask.modern-hover-mask {
+  opacity: 1;
+}
+
+/* 鈴?========== 鍔犺浇鐘舵€佹牱寮?- 鏂规1璁捐 ========== */
+.loading-section.modern-loading {
+  padding: 60rpx 20rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-content.modern-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.loading-spinner.modern-spinner {
+  display: flex;
+  gap: 8rpx;
+}
+
+.spinner-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-primary 0%, #4caf50 100%);
+  animation: spinnerBounce 1.4s infinite ease-in-out both;
+}
+
+.spinner-dot.dot1 {
+  animation-delay: -0.32s;
+}
+
+.spinner-dot.dot2 {
+  animation-delay: -0.16s;
+}
+
+.spinner-dot.dot3 {
+  animation-delay: 0s;
+}
+
+@keyframes spinnerBounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.loading-text.modern-loading-text {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  font-weight: 500;
+}
+
+/* 馃搳 ========== 鐘舵€佹彁绀烘牱寮?- 鐜颁唬鍖栫増鏈?========== */
+.no-more-data.modern-no-more {
+  padding: 60rpx 20rpx;
+  text-align: center;
+}
+
+.no-more-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.no-more-icon {
+  font-size: 60rpx;
+  margin-bottom: 8rpx;
+}
+
+.no-more-text {
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  font-weight: 600;
+}
+
+.no-more-subtitle {
+  font-size: $font-size-sm;
+  color: #888888;
+}
+
+/* 馃毇 绌虹姸鎬佹牱寮?- 浼樺寲鐗?*/
+.empty-state.modern-empty {
+  padding: 120rpx 20rpx;
+  text-align: center;
+  min-height: 60vh;
+  @include flex-center;
+}
+
+.empty-content.modern-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.empty-icon.modern-empty-icon {
+  font-size: 120rpx;
+  opacity: 0.6;
+  margin-bottom: 16rpx;
+  animation: emptyFloat 3s ease-in-out infinite;
+}
+
+@keyframes emptyFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10rpx);
+  }
+}
+
+.empty-title.modern-empty-title {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: 600;
+}
+
+.empty-subtitle.modern-empty-subtitle {
+  font-size: 26rpx;
+  color: #888888;
+  margin-bottom: 20rpx;
+}
+
+.empty-retry-btn.modern-retry-btn {
+  background: linear-gradient(135deg, $color-primary 0%, #4caf50 100%) !important;
+  color: $color-text-white !important;
+  border-radius: $border-radius-lg !important;
+  padding: 16rpx 32rpx !important;
+  font-size: 26rpx !important;
+  font-weight: 600 !important;
+  border: none !important;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3) !important;
+}
+
+/* 馃攧 鍒锋柊鎻愮ず - 鐜颁唬鍖栫増鏈?*/
+.refresh-hint.modern-refresh-hint {
+  padding: 20rpx;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10rpx);
+  margin-top: 20rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 107, 53, 0.1);
+}
+
+.refresh-text {
+  font-size: $font-size-sm;
+  color: #888888;
+}
+

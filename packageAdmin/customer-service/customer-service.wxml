@@ -2,11 +2,11 @@
 <view class="customer-service-container">
   <!-- 🔴 实时聊天模式 -->
   <view class="chat-mode-container">
-    <!-- 管理员状态栏 -->
+    <!-- 管理员状态栏（状态可切换: online / busy / offline） -->
     <view class="admin-status-bar">
       <view class="status-info">
         <text class="status-text">当前状态：</text>
-        <text class="status-badge {{adminStatus}}">
+        <text class="status-badge {{adminStatus}}" bindtap="onToggleAdminStatus" data-status="{{adminStatus === 'online' ? 'busy' : 'online'}}">
           {{adminStatus === 'online' ? '🟢 在线' : adminStatus === 'busy' ? '🟡 忙碌' : '🔴 离线'}}
         </text>
       </view>
@@ -36,17 +36,11 @@
         </view>
 
         <view wx:else class="sessions-list">
-          <view
-            wx:for="{{sessions}}"
-            wx:key="sessionId"
+          <view wx:for="{{sessions}}" wx:key="sessionId"
             class="session-item {{currentSessionId === item.sessionId ? 'active' : ''}}"
-            data-session-id="{{item.sessionId}}"
-            bindtap="onSelectSession"
-          >
+            data-session-id="{{item.sessionId}}" bindtap="onSelectSession">
             <view class="session-avatar">
-              <text class="avatar-text"
-                >{{item.userInfo.nickname ? item.userInfo.nickname.charAt(0) : '用'}}</text
-              >
+              <text class="avatar-text">{{item.userInfo.nickname ? item.userInfo.nickname.charAt(0) : '用'}}</text>
             </view>
             <view class="session-info">
               <view class="session-header">
@@ -55,9 +49,7 @@
               </view>
               <view class="session-preview">
                 <text class="last-message">{{item.lastMessage || '等待客服回复...'}}</text>
-                <view wx:if="{{item.unreadCount > 0}}" class="unread-badge"
-                  >{{item.unreadCount}}</view
-                >
+                <view wx:if="{{item.unreadCount > 0}}" class="unread-badge">{{item.unreadCount}}</view>
               </view>
               <view class="session-status">
                 <text class="status-tag {{item.status}}">
@@ -94,22 +86,15 @@
           </view>
 
           <!-- 聊天消息区域 -->
-          <scroll-view
-            class="messages-container"
-            scroll-y
-            scroll-top="{{scrollToBottom ? 99999 : 0}}"
-            scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
-          >
+          <scroll-view class="messages-container" scroll-y scroll-top="{{scrollToBottom ? 99999 : 0}}"
+            scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}">
             <view wx:if="{{currentMessages.length === 0}}" class="empty-messages">
               <text class="empty-text">会话开始，请礼貌回复用户</text>
             </view>
 
             <view wx:else class="messages-list">
-              <view
-                wx:for="{{currentMessages}}"
-                wx:key="id"
-                class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}"
-              >
+              <view wx:for="{{currentMessages}}" wx:key="id"
+                class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}">
                 <view class="message-avatar">
                   <text class="avatar-text">{{item.senderType === 'admin' ? '客' : '用'}}</text>
                 </view>
@@ -119,10 +104,7 @@
                   </view>
                   <view class="message-meta">
                     <text class="message-time">{{item.createdAt}}</text>
-                    <text
-                      wx:if="{{item.senderType === 'admin'}}"
-                      class="message-status {{item.status}}"
-                    >
+                    <text wx:if="{{item.senderType === 'admin'}}" class="message-status {{item.status}}">
                       {{item.status === 'sending' ? '发送中' : item.status === 'sent' ? '已发送' :
                       item.status === 'failed' ? '发送失败' : ''}}
                     </text>
@@ -137,32 +119,16 @@
           <view class="chat-input-container">
             <!-- 快捷回复 -->
             <view wx:if="{{showQuickReplies}}" class="quick-replies-panel">
-              <view
-                class="quick-reply-item"
-                data-content="您好，我是客服，有什么可以帮助您的吗？"
-                bindtap="onQuickReplySelect"
-              >
+              <view class="quick-reply-item" data-content="您好，我是客服，有什么可以帮助您的吗？" bindtap="onQuickReplySelect">
                 <text>您好，我是客服，有什么可以帮助您的吗？</text>
               </view>
-              <view
-                class="quick-reply-item"
-                data-content="感谢您的反馈，我们会尽快处理。"
-                bindtap="onQuickReplySelect"
-              >
+              <view class="quick-reply-item" data-content="感谢您的反馈，我们会尽快处理。" bindtap="onQuickReplySelect">
                 <text>感谢您的反馈，我们会尽快处理。</text>
               </view>
-              <view
-                class="quick-reply-item"
-                data-content="请您稍等，我帮您查询一下。"
-                bindtap="onQuickReplySelect"
-              >
+              <view class="quick-reply-item" data-content="请您稍等，我帮您查询一下。" bindtap="onQuickReplySelect">
                 <text>请您稍等，我帮您查询一下。</text>
               </view>
-              <view
-                class="quick-reply-item"
-                data-content="问题已解决，如有其他问题请随时联系。"
-                bindtap="onQuickReplySelect"
-              >
+              <view class="quick-reply-item" data-content="问题已解决，如有其他问题请随时联系。" bindtap="onQuickReplySelect">
                 <text>问题已解决，如有其他问题请随时联系。</text>
               </view>
             </view>
@@ -172,29 +138,15 @@
               <button class="toolbar-btn" bindtap="toggleQuickReplies">
                 <text class="btn-icon">⚡</text>
               </button>
-              <button class="toolbar-btn debug-toggle-btn" bindtap="toggleDebugPanel">
-                <text class="btn-icon">🔧</text>
-              </button>
             </view>
 
             <!-- 输入框和发送按钮 -->
             <view class="input-area">
-              <textarea
-                class="message-input"
-                placeholder="输入回复内容..."
-                value="{{inputContent}}"
-                bindinput="onChatInputChange"
-                bindfocus="onChatInputFocus"
-                bindblur="onChatInputBlur"
-                maxlength="500"
-                auto-height
-                show-confirm-bar="{{false}}"
-              ></textarea>
-              <button
-                class="send-btn {{sendButtonEnabled ? 'active' : 'disabled'}}"
-                disabled="{{!sendButtonEnabled}}"
-                bindtap="sendChatMessage"
-              >
+              <textarea class="message-input" placeholder="输入回复内容..." value="{{inputContent}}"
+                bindinput="onChatInputChange" bindfocus="onChatInputFocus" bindblur="onChatInputBlur" maxlength="500"
+                auto-height show-confirm-bar="{{false}}"></textarea>
+              <button class="send-btn {{sendButtonEnabled ? 'active' : 'disabled'}}" disabled="{{!sendButtonEnabled}}"
+                bindtap="sendChatMessage">
                 <text class="send-icon">📤</text>
                 <text class="send-text">发送</text>
               </button>
@@ -203,102 +155,6 @@
             <!-- 输入状态提示 -->
             <view wx:if="{{isTyping}}" class="typing-indicator">
               <text>正在输入...</text>
-            </view>
-
-            <!-- 🔧 聊天面板调试工具 -->
-            <view wx:if="{{showDebugPanel}}" class="chat-debug-panel">
-              <view class="debug-panel-header">
-                <text class="debug-panel-title">🔧 聊天调试工具</text>
-                <view class="debug-status-bar">
-                  <text class="status-item">WS: {{wsConnected ? '✅' : '❌'}}</text>
-                  <text class="status-item">会话: {{currentSessionId ? '✅' : '❌'}}</text>
-                  <text class="status-item"
-                    >质量: {{connectionQuality === 'good' ? '💚' : connectionQuality === 'poor' ?
-                    '💛' : '💔'}}</text
-                  >
-                  <text class="status-item"
-                    >重连: {{reconnectAttempts}}/{{maxReconnectAttempts}}</text
-                  >
-                </view>
-              </view>
-
-              <view class="debug-quick-actions">
-                <!-- 快速诊断按钮 -->
-                <button class="debug-quick-btn" bindtap="debugCheckStatus">
-                  <text class="btn-icon">📊</text>
-                  <text class="btn-text">状态检查</text>
-                </button>
-
-                <button class="debug-quick-btn" bindtap="debugSendTestMessage">
-                  <text class="btn-icon">🧪</text>
-                  <text class="btn-text">测试发送</text>
-                </button>
-
-                <button class="debug-quick-btn" bindtap="debugReconnectWebSocket">
-                  <text class="btn-icon">🔄</text>
-                  <text class="btn-text">重连WS</text>
-                </button>
-
-                <button class="debug-quick-btn" bindtap="debugSendHeartbeat">
-                  <text class="btn-icon">💓</text>
-                  <text class="btn-text">发送心跳</text>
-                </button>
-
-                <button class="debug-quick-btn" bindtap="debugTestAPI">
-                  <text class="btn-icon">🔗</text>
-                  <text class="btn-text">测试API</text>
-                </button>
-
-                <button class="debug-quick-btn" bindtap="debugCheckSendButton">
-                  <text class="btn-icon">🔍</text>
-                  <text class="btn-text">检查发送按钮</text>
-                </button>
-              </view>
-
-              <!-- 详细调试面板 -->
-              <view class="debug-detailed-panel">
-                <view class="debug-section-compact">
-                  <text class="debug-section-title-compact">⚡ WebSocket控制</text>
-                  <view class="debug-buttons-compact">
-                    <button class="debug-btn-compact" bindtap="debugCheckWebSocket">检查WS</button>
-                    <button class="debug-btn-compact" bindtap="debugSendTestWS">测试WS</button>
-                    <button class="debug-btn-compact" bindtap="debugCloseWebSocket">断开WS</button>
-                  </view>
-                </view>
-
-                <view class="debug-section-compact">
-                  <text class="debug-section-title-compact">🔗 API测试</text>
-                  <view class="debug-buttons-compact">
-                    <button class="debug-btn-compact" bindtap="debugTestAPI">连接测试</button>
-                    <button class="debug-btn-compact" bindtap="debugLoadSessions">重载会话</button>
-                    <button class="debug-btn-compact" bindtap="debugCheckNetwork">网络检查</button>
-                  </view>
-                </view>
-
-                <view class="debug-section-compact">
-                  <text class="debug-section-title-compact">📋 数据操作</text>
-                  <view class="debug-buttons-compact">
-                    <button class="debug-btn-compact" bindtap="debugShowCurrentData">
-                      查看数据
-                    </button>
-                    <button class="debug-btn-compact" bindtap="debugClearMessages">清空消息</button>
-                    <button class="debug-btn-compact" bindtap="debugExportLogs">导出日志</button>
-                  </view>
-                </view>
-              </view>
-
-              <!-- 实时调试信息 -->
-              <view class="debug-info-compact">
-                <text class="debug-info-title-compact">📊 实时状态</text>
-                <view class="debug-info-grid">
-                  <text class="debug-info-item-compact"
-                    >WebSocket: {{wsConnected ? '已连接' : '未连接'}}</text
-                  >
-                  <text class="debug-info-item-compact">会话ID: {{currentSessionId || '无'}}</text>
-                  <text class="debug-info-item-compact">消息数: {{currentMessages.length}}</text>
-                  <text class="debug-info-item-compact">重连次数: {{reconnectCount}}</text>
-                </view>
-              </view>
             </view>
           </view>
         </view>

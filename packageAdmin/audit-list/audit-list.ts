@@ -3,7 +3,7 @@
 // 🔴 使用统一的工具函数导入
 const { API, Utils, Logger } = require('../../utils/index')
 const log = Logger.createLogger('audit-list')
-const { checkAuth } = Utils
+const { checkAuth, formatPhoneNumber } = Utils
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -79,16 +79,16 @@ Page({
       return
     }
 
-    // 🔴 权限检查：商家店长(role_level>=40)及以上可访问（从MobX Store获取）
+    // 🔴 权限检查：仅管理员(role_level>=100)可访问审批功能（后端console域限制）
     const userInfo = userStore.userInfo || wx.getStorageSync('user_info')
     const roleLevel = userInfo?.role_level || 0
-    const hasAccess = roleLevel >= 40 || userInfo?.is_admin === true
+    const hasAccess = roleLevel >= 100 || userInfo?.is_admin === true
 
     if (!hasAccess) {
       log.error('❌ 用户无审批权限，role_level:', roleLevel)
       wx.showModal({
         title: '权限不足',
-        content: '您没有权限访问此页面，仅商家店长和管理员可查看审核列表。',
+        content: '您没有权限访问此页面，仅管理员可查看和审核消费记录。',
         showCancel: false,
         success: () => {
           wx.navigateBack()
@@ -142,11 +142,14 @@ Page({
           total: pagination.total
         })
 
-        // 🔴 格式化时间显示（北京时间）
+        // 🔴 格式化时间显示（北京时间）+ 手机号脱敏
         const formattedRecords = records.map(record => {
           return {
             ...record,
-            created_at_formatted: this.formatBeijingTime(record.created_at)
+            // 后端 created_at 为对象 { iso, display }，格式化为中文时间
+            created_at_formatted: this.formatBeijingTime(record.created_at),
+            // 后端返回完整手机号，前端脱敏展示（如 138****5678）
+            user_mobile_display: formatPhoneNumber(record.user_mobile)
           }
         })
 
@@ -181,24 +184,36 @@ Page({
    * 格式化北京时间显示
    *
    * @description
-   * 将后端返回的时间格式化为中文友好格式：2025年11月07日 14:30:15
-   * 后端返回的已经是北京时间（GMT+8），前端只需格式化显示。
+   * 后端返回的 created_at 是对象格式: { iso: "2026-02-02T03:17:19+08:00", display: "2026-02-02 03:17:19" }
+   * 优先使用 display 字段；如果是字符串则直接解析。
    *
-   * dateTimeString - 后端返回的时间字符串（北京时间，格式：2025-11-07 14:30:15）
-   *
-   * @example
-   * this.formatBeijingTime('2025-11-07 14:30:15')
-   * // 返回: "2025年11月07日 14:30:15"
+   * @param dateTimeValue - 后端返回的时间（对象或字符串）
+   * @returns 中文格式时间字符串（如 "2026年02月02日 03:17:19"）
    */
-  formatBeijingTime(dateTimeString) {
-    if (!dateTimeString) {
+  formatBeijingTime(dateTimeValue) {
+    if (!dateTimeValue) {
       return '时间未知'
     }
 
     try {
-      // 后端返回的已经是北京时间，格式：2025-11-07 14:30:15
-      // 转换为中文格式：2025年11月07日 14:30:15
-      const date = new Date(dateTimeString.replace(/-/g, '/')) // 兼容iOS
+      // 后端返回 created_at 为对象 { iso, display }
+      let dateTimeString: string
+      if (typeof dateTimeValue === 'object' && dateTimeValue !== null) {
+        // 优先使用 display 字段（已格式化的北京时间）
+        if (dateTimeValue.display) {
+          return dateTimeValue.display
+        }
+        // 降级使用 iso 字段
+        dateTimeString = dateTimeValue.iso || ''
+      } else {
+        dateTimeString = String(dateTimeValue)
+      }
+
+      if (!dateTimeString) {
+        return '时间未知'
+      }
+
+      const date = new Date(dateTimeString.replace(/-/g, '/'))
 
       const year = date.getFullYear()
       const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -210,7 +225,7 @@ Page({
       return `${year}年${month}月${day}日 ${hour}:${minute}:${second}`
     } catch (error) {
       log.error('❌ 时间格式化失败:', error)
-      return dateTimeString // 格式化失败时返回原始字符串
+      return typeof dateTimeValue === 'string' ? dateTimeValue : '时间未知'
     }
   },
 

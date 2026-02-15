@@ -96,7 +96,7 @@ Page({
 
   onReady() {
     /* Canvas就绪后生成用户身份二维码 */
-    if (this.data.userInfo && this.data.userInfo.user_id) {
+    if (this.data.userInfo && this.data.userInfo.user_id && checkAuth({ redirect: false })) {
       this.generateUserQRCode()
     }
   },

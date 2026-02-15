@@ -161,25 +161,63 @@ declare namespace API {
     items: BackpackItem[]
   }
 
-  /** 背包可叠加资产 */
+  /**
+   * 背包可叠加资产（对齐后端 GET /api/v4/backpack/ 的 assets[] 返回格式）
+   * 示例: DIAMOND(钻石)、red_shard(红色碎片)
+   */
   interface BackpackAsset {
+    /** 资产类型编码（如 DIAMOND, red_shard） */
     asset_code: string
+    /** 资产中文名称 */
     display_name: string
-    amount: number
-    icon: string
+    /** 资产总数量（含冻结） */
+    total_amount: number
+    /** 冻结数量（交易中锁定的数量） */
+    frozen_amount: number
+    /** 可用数量（total_amount - frozen_amount） */
+    available_amount: number
+    /** 资产分类（currency / red 等） */
+    category: string
+    /** 稀有度编码（common / uncommon / rare / epic / legendary） */
+    rarity: string
+    /** 稀有度中文名（后端自动附加） */
+    rarity_display: string
+    /** 稀有度颜色（可为null） */
+    rarity_color: string | null
+    /** 是否可在交易市场上架（true=可交易，false=不可交易） */
+    is_tradable: boolean
   }
 
-  /** 背包不可叠加物品 */
+  /**
+   * 背包不可叠加物品（对齐后端 GET /api/v4/backpack/ 的 items[] 返回格式）
+   * 背包列表只返回 status='available' 的物品
+   */
   interface BackpackItem {
+    /** 物品实例唯一ID（bigint） */
     item_instance_id: number
+    /** 物品类型编码（prize/product/voucher/tradable_item/service） */
     item_type: string
+    /** 物品类型中文名（后端自动附加） */
+    item_type_display: string
+    /** 物品名称 */
     name: string
+    /** 物品状态编码（available/locked/used/expired/transferred） */
     status: string
+    /** 物品状态中文名（后端自动附加） */
+    status_display: string
+    /** 稀有度编码（common/uncommon/rare/epic/legendary） */
     rarity: string
+    /** 稀有度中文名（后端自动附加） */
+    rarity_display: string
+    /** 物品描述 */
     description: string
+    /** 获得时间（YYYY-MM-DD HH:mm:ss 格式） */
     acquired_at: string
+    /** 过期时间（可为 null） */
     expires_at: string | null
-    is_owner: boolean
+    /** 是否为当前用户所有（详情接口返回） */
+    is_owner?: boolean
+    /** 是否已生成核销码 */
     has_redemption_code: boolean
   }
 
@@ -248,22 +286,59 @@ declare namespace API {
 
   // ===== 客服系统 =====
 
-  /** 客服会话 */
+  /** 客服会话（对齐后端 GET /api/v4/system/chat/sessions 返回格式） */
   interface ChatSession {
-    session_id: number
+    /** 会话主键（后端字段: customer_service_session_id） */
+    customer_service_session_id: number
+    /** 会话状态: waiting | assigned | active | closed */
     status: string
+    /** 创建时间（ISO 8601） */
     created_at: string
+    /** 最后更新时间（ISO 8601） */
     updated_at: string
-    last_message?: string
+    /** 最后消息对象（含 chat_message_id, content, sender_type, created_at） */
+    last_message: {
+      chat_message_id: number
+      content: string
+      sender_type: string
+      created_at: string
+    } | null
+    /** 未读消息数 */
+    unread_count: number
+    /** 用户信息 */
+    user?: {
+      user_id: number
+      nickname: string
+      mobile: string
+    }
   }
 
-  /** 聊天消息 */
+  /** 聊天消息（对齐后端消息字段格式） */
   interface ChatMessage {
-    message_id: number
-    session_id: number
+    /** 消息主键（后端字段: chat_message_id） */
+    chat_message_id: number
+    /** 所属会话ID */
+    customer_service_session_id: number
+    /** 发送者类型: user | admin | system */
     sender_type: string
+    /** 消息内容 */
     content: string
+    /** 消息类型: text | image | system */
+    message_type: string
+    /** 创建时间（ISO 8601） */
     created_at: string
+  }
+
+  /** 背包统计（对齐后端 GET /api/v4/backpack/stats 返回格式） */
+  interface BackpackStats {
+    /** 资产种类数量 */
+    total_assets: number
+    /** 可用物品数量 */
+    total_items: number
+    /** 所有资产可用余额总和 */
+    total_asset_value: number
+    /** 按item_type分组的物品数量 */
+    items_by_type: Record<string, number>
   }
 
   // ===== 活动位置配置 =====

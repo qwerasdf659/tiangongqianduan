@@ -1,17 +1,40 @@
-﻿// packageAdmin/customer-service/customer-service.ts - 管理员实时客服聊天页面 + MobX响应式状态
+﻿/**
+ * 管理员实时客服聊天页面 + MobX响应式状态
+ *
+ * 功能：实时聊天、会话管理、快捷回复
+ *
+ * 后端API：
+ * - GET /api/v4/console/customer-service/sessions  （管理员会话列表）
+ * - GET /api/v4/console/customer-service/sessions/:id/messages  （会话消息历史）
+ * - POST /api/v4/system/chat/sessions/:id/messages  （发送消息）
+ * - POST /api/v4/console/customer-service/sessions/:id/close  （关闭会话）
+ *
+ * 后端响应字段均为 snake_case，前端直接使用后端字段名。
+ *
+ * @file packageAdmin/customer-service/customer-service.ts
+ * @version 5.0.0
+ * @since 2026-02-15
+ */
+
 const { Wechat, API, Utils, Logger } = require('../../utils/index')
 const log = Logger.createLogger('customer-service')
 const { showToast } = Wechat
-const { checkAdmin } = Utils
+const { checkAdmin, formatDateMessage } = Utils
 
-// 🆕 MobX Store绑定 - 替代手动globalData取值
+// MobX Store绑定 - 用户认证状态自动同步
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 
 /**
- * 管理员实时客服聊天页面 - 处理用户实时咨询
- * 功能：实时聊天、会话管理、快捷回复
+ * 会话状态文案映射（对应后端 customer_service_sessions.status 字段）
  */
+const SESSION_STATUS_MAP: Record<string, string> = {
+  waiting: '等待客服',
+  assigned: '已分配',
+  active: '对话中',
+  closed: '已结束'
+}
+
 Page({
   data: {
     // 权限验证
@@ -19,46 +42,28 @@ Page({
     userInfo: null,
 
     // 实时聊天模式数据
-    sessions: [],
-    currentSessionId: null,
+    sessions: [] as any[],
+    currentSessionId: null as number | null,
     currentSessionUserName: '',
-    currentMessages: [],
+    currentMessages: [] as any[],
     loadingSessions: false,
     inputContent: '',
     isTyping: false,
 
-    // 布局控制
-    // 聊天面板是否展开全屏显示
+    // 布局控制 - 聊天面板是否展开全屏显示
     chatExpanded: false,
 
     // 聊天工作台功能
-    // 管理员状态: online, busy, offline
-    adminStatus: 'online',
+    adminStatus: 'online', // online, busy, offline
     wsConnected: false,
     reconnectCount: 0,
     scrollToBottom: false,
     showQuickReplies: false,
 
-    // 清理资源
-    cleanup: null,
+    // Socket.IO 连接质量（心跳+重连由 Socket.IO 内建管理）
+    connectionQuality: 'good', // good, poor, lost
 
-    // WebSocket稳定性管理
-    // 心跳定时器
-    heartbeatInterval: null,
-    // 心跳超时定时器
-    heartbeatTimeout: null,
-    // 最后心跳时间
-    lastHeartbeatTime: null,
-    // 连接质量: good, poor, lost
-    connectionQuality: 'good',
-    reconnectAttempts: 0,
-    maxReconnectAttempts: 5,
-
-    // 调试相关
-    showDebugPanel: false,
-    debugLogs: [],
-
-    // 按钮状态管理
+    // 发送按钮状态
     sendButtonEnabled: false,
 
     // 快捷回复模板
@@ -74,7 +79,7 @@ Page({
     todayStats: {
       totalSessions: 0,
       completedSessions: 0,
-      avgResponseTime: '0分钟',
+      avgResponseTime: '--',
       customerSatisfaction: 0
     }
   },
@@ -82,30 +87,27 @@ Page({
   onLoad() {
     log.info('📊 管理员实时客服聊天页面加载')
 
-    // 🆕 MobX Store绑定 - 用户认证状态自动同步
+    // MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn', 'userInfo', 'isAdmin', 'userRole'],
       actions: []
     })
 
-    // 🔴 使用统一的管理员权限检查
+    // 使用统一的管理员权限检查
     if (!checkAdmin()) {
       log.warn('⚠️ 管理员权限检查失败，已自动处理')
       return
     }
 
     this.initChatWorkspace()
-    // 初始化按钮状态
     this.updateSendButtonState()
   },
 
   onShow() {
     log.info('📱 管理员客服页面显示')
 
-    // 🔴 使用统一的管理员权限检查
     if (!checkAdmin()) {
-      log.warn('⚠️ 管理员权限检查失败，已自动处理')
       return
     }
 
@@ -117,32 +119,28 @@ Page({
   onUnload() {
     log.info('📱 管理员客服页面卸载，清理资源')
 
-    // 🆕 销毁MobX Store绑定
+    // 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
     }
 
+    // 取消 Socket.IO 消息订阅（心跳无需手动停止，Socket.IO 内建管理）
     const appInstance = getApp()
-
-    // 安全检查app对象和方法是否存在
     if (appInstance && typeof appInstance.unsubscribeWebSocketMessages === 'function') {
-      // 取消WebSocket消息订阅
       appInstance.unsubscribeWebSocketMessages('admin_customer_service')
-    } else {
-      log.warn('⚠️ app对象或unsubscribeWebSocketMessages方法不可用')
     }
 
-    // 清理本地状态
     this.setData({
       wsConnected: false,
       connectionQuality: 'lost'
     })
   },
 
-  // 🔴 已删除 checkAdminPermission() 方法
-  // 现在统一使用 checkAdmin() 从 auth-helper.js
+  // ============================================================================
+  // 初始化
+  // ============================================================================
 
-  // 初始化聊天工作台
+  /** 初始化聊天工作台 */
   async initChatWorkspace() {
     try {
       const userInfo = userStore.userInfo
@@ -159,46 +157,50 @@ Page({
       await this.connectWebSocket()
       await this.refreshSessions()
       await this.loadAdminTodayStats()
+
+      // 进入页面时自动更新管理员在线状态为 online
+      this.updateOnlineStatus('online')
     } catch (error) {
       log.error('❌ 初始化聊天工作台失败:', error)
     }
   },
 
-  // 📡 WebSocket连接管理
+  // ============================================================================
+  // WebSocket连接管理
+  // ============================================================================
+
+  /** 连接 Socket.IO（使用统一 Socket.IO 管理，心跳+重连由 Socket.IO 内建） */
   async connectWebSocket() {
     const appInstance = getApp()
 
-    // 安全检查app对象和方法是否存在
     if (!appInstance || typeof appInstance.subscribeWebSocketMessages !== 'function') {
-      log.error('❌ app对象或WebSocket管理方法不可用')
-      throw new Error('WebSocket管理系统未就绪')
+      log.error('❌ Socket.IO管理方法不可用')
+      throw new Error('Socket.IO管理系统未就绪')
     }
 
-    // 使用统一WebSocket管理
-    log.info('🔒 管理员端使用统一WebSocket连接')
+    log.info('🔒 管理员端使用统一Socket.IO连接')
 
-    // 订阅WebSocket消息
-    appInstance.subscribeWebSocketMessages('admin_customer_service', (eventName, data) => {
-      this.handleUnifiedWebSocketMessage(eventName, data)
-    })
+    // 订阅Socket.IO消息
+    appInstance.subscribeWebSocketMessages(
+      'admin_customer_service',
+      (eventName: string, data: any) => {
+        this.handleUnifiedWebSocketMessage(eventName, data)
+      }
+    )
 
     try {
-      // 尝试连接统一WebSocket
       await appInstance.connectWebSocket()
 
-      log.info('✅ 管理员端WebSocket连接成功')
+      log.info('✅ 管理员端Socket.IO连接成功')
       this.setData({
         wsConnected: true,
         reconnectCount: 0,
-        reconnectAttempts: 0,
-        connectionQuality: 'good',
-        lastHeartbeatTime: Date.now()
+        connectionQuality: 'good'
       })
 
-      // 注册为管理员
       this.registerAsAdmin()
     } catch (error) {
-      log.error('❌ 管理员端WebSocket连接失败:', error)
+      log.error('❌ 管理员端Socket.IO连接失败:', error)
       this.setData({
         wsConnected: false,
         connectionQuality: 'lost'
@@ -207,41 +209,38 @@ Page({
     }
   },
 
-  // 注册为管理员
+  /** 注册为管理员（通过 Socket.IO emit） */
   registerAsAdmin() {
     if (!this.data.wsConnected) {
       return
     }
 
-    const message = {
-      type: 'admin_register',
-      data: {
-        adminId: this.data.userInfo?.userId,
-        adminName: this.data.userInfo?.nickname || '管理员'
-      }
-    }
-
-    wx.sendSocketMessage({
-      data: JSON.stringify(message),
-      success: () => {
-        log.info('✅ 管理员注册成功')
-      },
-      fail: error => {
-        log.error('❌ 管理员注册失败', error)
-      }
+    const appInstance = getApp()
+    appInstance.emitSocketMessage('admin_register', {
+      adminId: this.data.userInfo?.userId,
+      adminName: this.data.userInfo?.nickname || '管理员'
     })
+    log.info('✅ 管理员注册消息已发送')
   },
 
-  // 处理统一WebSocket消息
-  handleUnifiedWebSocketMessage(eventName, data) {
-    log.info('📢 管理员端收到统一WebSocket消息:', eventName, data)
+  /**
+   * 处理统一Socket.IO消息（对齐后端 ChatWebSocketService 事件协议）
+   *
+   * 后端事件协议:
+   * - connection_established: { user_id, is_admin, socket_id, server_time }
+   * - new_message: { chat_message_id, content, sender_type, session_id, ... }
+   * - message_sent: { chat_message_id, session_id, timestamp } — 发送确认
+   * - message_error: { error, message, timestamp } — 发送失败
+   * - session_closed: { session_id, close_reason, ... }
+   */
+  handleUnifiedWebSocketMessage(eventName: string, data: any) {
+    log.info('📢 管理员端收到Socket.IO消息:', eventName)
 
     switch (eventName) {
       case 'websocket_connected':
         this.setData({
           wsConnected: true,
-          connectionQuality: 'good',
-          reconnectAttempts: 0
+          connectionQuality: 'good'
         })
         this.registerAsAdmin()
         break
@@ -259,16 +258,35 @@ Page({
         showToast('连接已断开，请刷新页面重试')
         break
 
-      case 'new_user_message':
+      // 后端连接确认
+      case 'connection_established':
+        log.info('🤝 后端连接确认:', data)
+        break
+
+      // 新消息（后端 snake_case: chat_message_id, content, sender_type, session_id）
+      case 'new_message':
         this.handleNewUserMessage(data)
+        break
+
+      // 消息发送确认（后端写库成功: chat_message_id, session_id, timestamp）
+      case 'message_sent':
+        log.info('✅ 消息发送确认:', data)
+        this.handleMessageSentConfirm(data)
+        break
+
+      // 消息发送失败（后端处理出错: error, message, timestamp）
+      case 'message_error':
+        log.error('❌ 消息发送失败:', data)
+        this.handleMessageSendError(data)
         break
 
       case 'session_started':
         this.handleSessionStarted(data)
         break
 
-      case 'session_ended':
-        this.handleSessionEnded(data)
+      // 会话关闭（后端: session_id, close_reason）
+      case 'session_closed':
+        this.handleSessionClosed(data)
         break
 
       default:
@@ -276,42 +294,29 @@ Page({
     }
   },
 
-  // 处理新用户消息
-  handleNewUserMessage(messageData) {
-    log.info('👥 收到新用户消息', messageData)
-
-    // 确保消息内容不为空且格式正确
+  /**
+   * 处理新用户消息
+   * 后端统一使用 snake_case 字段: chat_message_id, sender_type, session_id, created_at
+   */
+  handleNewUserMessage(messageData: any) {
     if (!messageData || !messageData.content) {
-      log.warn('⚠️ 收到空消息或格式错误的消息', messageData)
+      log.warn('⚠️ 收到空消息或格式错误的消息')
       return
     }
 
-    if (messageData.sessionId === this.data.currentSessionId) {
-      // 用户消息对管理员来说不是自己的
-      const isOwn = false
+    // 后端字段: session_id（snake_case）
+    const msgSessionId = messageData.session_id
 
-      // 简化日志：管理员端收到用户消息
-      log.info('📢 [管理员收到用户消息]', {
-        content: messageData.content?.substring(0, 30) + '...',
-        senderType: 'user',
-        position: '左边(用户)'
-      })
-
+    if (msgSessionId === this.data.currentSessionId) {
+      const senderType = messageData.sender_type || 'user'
       const newMessage = {
-        id: messageData.messageId || `msg_${Date.now()}`,
-        senderId: messageData.userId || messageData.senderId,
-        senderType: 'user',
-        // 确保content是字符串
+        id: messageData.chat_message_id || `msg_${Date.now()}`,
+        senderId: messageData.sender_id,
+        senderType,
         content: String(messageData.content || ''),
-        messageType: messageData.messageType || 'text',
-        createdAt: messageData.createdAt || new Date().toISOString(),
-        isOwn,
-        // 新增：保留调试信息
-        _debugInfo: {
-          messageSource: '实时WebSocket',
-          expectedPosition: '左边(用户)',
-          cssClass: 'user'
-        }
+        messageType: messageData.message_type || 'text',
+        createdAt: messageData.created_at || new Date().toISOString(),
+        isOwn: senderType === 'admin'
       }
 
       this.setData({
@@ -320,221 +325,139 @@ Page({
       })
     }
 
-    // 实时消息到达时也刷新会话列表，确保最新消息显示
+    // 实时消息到达时刷新会话列表
     this.refreshSessions()
   },
 
-  // 处理会话开始
-  handleSessionStarted(sessionData) {
-    log.info('🆕 新会话开始', sessionData)
+  /**
+   * 处理 message_sent 确认（后端写库成功回执）
+   * 后端返回: { chat_message_id, session_id, timestamp }
+   */
+  handleMessageSentConfirm(data: any) {
+    const serverMsgId = data.chat_message_id
+    if (!serverMsgId) {
+      return
+    }
+
+    const updatedMessages = this.data.currentMessages.map((msg: any) => {
+      if (msg.isOwn && msg.status === 'sending') {
+        return { ...msg, status: 'sent', id: serverMsgId }
+      }
+      return msg
+    })
+    this.setData({ currentMessages: updatedMessages })
+  },
+
+  /**
+   * 处理 message_error（后端处理 send_message 失败回执）
+   * 后端返回: { error, message, timestamp }
+   */
+  handleMessageSendError(data: any) {
+    log.error('❌ 后端消息处理失败:', data.message || data.error)
+
+    const failedMessages = this.data.currentMessages.map((msg: any) => {
+      if (msg.isOwn && msg.status === 'sending') {
+        return { ...msg, status: 'failed' }
+      }
+      return msg
+    })
+    this.setData({ currentMessages: failedMessages })
+    showToast(data.message || '消息发送失败')
+  },
+
+  /** 处理会话开始 */
+  handleSessionStarted(_sessionData: any) {
+    log.info('🆕 新会话开始')
     this.refreshSessions()
   },
 
-  // 处理会话结束
-  handleSessionEnded(sessionData) {
-    log.info('🔚 会话结束:', sessionData)
-    if (sessionData.sessionId === this.data.currentSessionId) {
+  /** 处理会话关闭（后端 session_closed 事件: session_id, close_reason） */
+  handleSessionClosed(sessionData: any) {
+    const closedSessionId = sessionData.session_id
+    log.info('🔚 会话关闭:', closedSessionId, sessionData.close_reason)
+
+    if (closedSessionId === this.data.currentSessionId) {
       this.setData({
         currentSessionId: null,
-        currentMessages: [],
+        currentMessages: [] as any[],
         chatExpanded: false
       })
     }
     this.refreshSessions()
   },
 
-  // 改进的重连机制
-  handleReconnect() {
-    if (this.data.reconnectAttempts < this.data.maxReconnectAttempts) {
-      // 指数退避算法，最大30秒延迟
-      const reconnectDelay = Math.min(Math.pow(2, this.data.reconnectAttempts) * 1000, 30000)
+  // ✅ 心跳：已删除，Socket.IO 内建心跳（25秒一次）
+  // ✅ 重连：已删除，Socket.IO 内建重连（指数退避）
 
-      log.info(
-        `🔧 尝试重连WebSocket (${this.data.reconnectAttempts + 1}/${this.data.maxReconnectAttempts})`
-      )
-      log.info(`⏲ 重连延迟: ${reconnectDelay}ms`)
+  // ============================================================================
+  // 会话列表管理
+  // ============================================================================
 
-      this.setData({
-        reconnectAttempts: this.data.reconnectAttempts + 1,
-        connectionQuality: 'poor'
-      })
-
-      setTimeout(() => {
-        this.connectWebSocket().catch(() => {
-          log.info('⚠️ 重连失败，将继续尝试')
-        })
-      }, reconnectDelay)
-    } else {
-      log.info('❌ WebSocket重连失败，已达到最大重试次数')
-      this.setData({ connectionQuality: 'lost' })
-      showToast('连接已断开，请刷新页面重试')
-    }
-  },
-
-  // WebSocket心跳机制
-  startHeartbeat() {
-    log.info('💓 启动WebSocket心跳机制')
-    // 确保清理之前的定时器
-    this.stopHeartbeat()
-
-    // 每30秒发送一次心跳
-    this.setData({
-      heartbeatInterval: setInterval(() => {
-        this.sendHeartbeat()
-      }, 30000)
-    })
-
-    // 第一次立即发送心跳
-    this.sendHeartbeat()
-  },
-
-  stopHeartbeat() {
-    log.info('🛑 停止WebSocket心跳机制')
-    if (this.data.heartbeatInterval) {
-      clearInterval(this.data.heartbeatInterval)
-      this.setData({ heartbeatInterval: null })
-    }
-    if (this.data.heartbeatTimeout) {
-      clearTimeout(this.data.heartbeatTimeout)
-      this.setData({ heartbeatTimeout: null })
-    }
-  },
-
-  sendHeartbeat() {
-    if (!this.data.wsConnected) {
-      log.info('💔 WebSocket未连接，跳过心跳发送')
-      return
-    }
-
-    const heartbeatData = {
-      type: 'heartbeat',
-      timestamp: Date.now(),
-      clientId: this.data.userInfo?.userId || 'admin'
-    }
-
-    try {
-      wx.sendSocketMessage({
-        data: JSON.stringify(heartbeatData),
-        success: () => {
-          log.info('💓 心跳发送成功')
-          this.setData({ lastHeartbeatTime: Date.now() })
-          this.waitForHeartbeatResponse()
-        },
-        fail: error => {
-          log.error('💔 心跳发送失败', error)
-          this.setData({ connectionQuality: 'poor' })
-        }
-      })
-    } catch (error) {
-      log.error('💔 心跳发送异常', error)
-      this.setData({ connectionQuality: 'poor' })
-    }
-  },
-
-  waitForHeartbeatResponse() {
-    // 设置10秒超时，如果没有收到响应则认为连接有问题
-    this.setData({
-      heartbeatTimeout: setTimeout(() => {
-        log.info('💔 心跳响应超时，连接可能有问题')
-        this.setData({ connectionQuality: 'poor' })
-
-        // 如果连续3次心跳超时，主动断开重连
-        const timeSinceLastHeartbeat = Date.now() - this.data.lastHeartbeatTime
-        if (timeSinceLastHeartbeat > 90000) {
-          // 90秒
-          log.info('💔 连接质量太差，主动重连')
-          wx.closeSocket()
-        }
-      }, 10000)
-    })
-  },
-
-  handleHeartbeatResponse() {
-    log.info('💚 收到心跳响应')
-    this.setData({ connectionQuality: 'good' })
-    if (this.data.heartbeatTimeout) {
-      clearTimeout(this.data.heartbeatTimeout)
-      this.setData({ heartbeatTimeout: null })
-    }
-  },
-
-  // 刷新会话列表
+  /**
+   * 刷新会话列表
+   *
+   * 后端API: GET /api/v4/console/customer-service/sessions
+   *
+   * 后端返回字段（snake_case）:
+   * - customer_service_session_id: 会话主键
+   * - user: { user_id, nickname, mobile }
+   * - admin: { user_id, nickname } | null
+   * - status: 'waiting' | 'assigned' | 'active' | 'closed'
+   * - last_message: { chat_message_id, content, sender_type, created_at } | null
+   * - unread_count: 未读消息数
+   * - updated_at: 最后更新时间
+   * - created_at: 创建时间
+   */
   async refreshSessions() {
     try {
       this.setData({ loadingSessions: true })
 
-      // 修复：管理员端应使用专用的管理员会话API
       const result = await API.getAdminChatSessions({
         status: 'active',
         page: 1,
         pageSize: 50
       })
 
-      if (result.success) {
-        // 关键修复：添加数据格式转换逻辑，确保前端显示正确
-        const processedSessions = (result.data.sessions || []).map(session => {
-          // 处理用户信息：确保userInfo是正确的对象格式
-          const userInfo = session.userInfo || session.user || {}
-          const processedUserInfo = {
-            nickname:
-              typeof userInfo === 'object'
-                ? userInfo.nickname || userInfo.userName || userInfo.name || null
-                : String(userInfo || ''),
-            userId: userInfo.userId || session.userId || 'unknown'
+      if (result.success && result.data) {
+        const rawSessions = result.data.sessions || []
+
+        // 直接使用后端 snake_case 字段，不做兼容性转换
+        const processedSessions = rawSessions.map((session: any) => {
+          // 用户信息（后端字段: user 对象）
+          const user = session.user || {}
+          const userName = user.nickname || (user.user_id ? `用户${user.user_id}` : '未知用户')
+
+          // 最后消息预览（后端字段: last_message 对象，取 .content）
+          let lastMessagePreview = '等待客服回复...'
+          if (session.last_message && session.last_message.content) {
+            lastMessagePreview = String(session.last_message.content)
           }
 
-          // 处理最后消息：确保lastMessage是字符串
-          let lastMessage = session.lastMessage || session.latestMessage || ''
-          if (typeof lastMessage === 'object') {
-            // 如果lastMessage是对象，提取content字段
-            lastMessage = lastMessage.content || lastMessage.text || '[消息]'
-          }
-          lastMessage = String(lastMessage || '等待客服回复...')
+          // 时间格式化（后端字段: updated_at / last_message_at）
+          const timeSource =
+            session.last_message_at || session.updated_at || session.created_at || ''
+          const formattedTime = timeSource ? formatDateMessage(timeSource) : ''
 
-          // 处理时间格式：确保时间显示正确
-          let lastMessageTime =
-            session.lastMessageTime || session.updatedAt || session.createdAt || ''
-          if (lastMessageTime) {
-            try {
-              // 格式化时间显示
-              const date = new Date(lastMessageTime)
-              const now = new Date()
-              const diffMs = now.getTime() - date.getTime()
-              const diffMins = Math.floor(diffMs / (1000 * 60))
+          // 未读消息数（后端字段: unread_count）
+          const unreadCount = parseInt(session.unread_count) || 0
 
-              if (diffMins < 1) {
-                lastMessageTime = '刚刚'
-              } else if (diffMins < 60) {
-                lastMessageTime = `${diffMins}分钟前`
-              } else if (diffMins < 1440) {
-                lastMessageTime = `${Math.floor(diffMins / 60)}小时前`
-              } else {
-                lastMessageTime = date.toLocaleDateString()
-              }
-            } catch {
-              lastMessageTime = '未知时间'
-            }
-          }
-
-          // 处理未读计数：确保是数字
-          const unreadCount = parseInt(session.unreadCount || session.unread || 0) || 0
-
-          // 处理会话状态：标准化状态值
-          let status = session.status || 'waiting'
-          if (!['waiting', 'active', 'ended'].includes(status)) {
-            status = 'waiting'
-          }
+          // 会话状态标准化（后端字段: status）
+          const status = session.status || 'waiting'
 
           return {
-            sessionId: session.sessionId || session.id,
-            userId: session.userId,
-            userInfo: processedUserInfo,
-            lastMessage,
-            lastMessageTime,
+            sessionId: session.customer_service_session_id,
+            userId: user.user_id,
+            userInfo: {
+              nickname: userName,
+              userId: user.user_id
+            },
+            lastMessage: lastMessagePreview,
+            lastMessageTime: formattedTime,
             unreadCount,
             status,
-            createdAt: session.createdAt,
-            updatedAt: session.updatedAt
+            statusText: SESSION_STATUS_MAP[status] || '未知',
+            createdAt: session.created_at,
+            updatedAt: session.updated_at
           }
         })
 
@@ -543,105 +466,97 @@ Page({
           loadingSessions: false
         })
 
-        // 添加调试信息：输出处理后的数据
-        log.info('✅ 会话列表刷新成功:', processedSessions.length)
-        log.info('📊 [调试] 处理后的会话数据示例:', processedSessions[0])
+        log.info('✅ 会话列表刷新成功:', processedSessions.length, '个会话')
       } else {
         throw new Error(result.message || '获取会话列表失败')
       }
     } catch (error) {
       log.error('❌ 刷新会话列表失败:', error)
       this.setData({ loadingSessions: false })
-
-      // 添加用户友好的错误提示
       showToast('获取会话列表失败，请稍后重试')
     }
   },
 
-  // 选择会话
-  onSelectSession(e) {
+  // ============================================================================
+  // 会话选择与消息加载
+  // ============================================================================
+
+  /** 选择会话 */
+  onSelectSession(e: WechatMiniprogram.BaseEvent) {
     const sessionId = e.currentTarget.dataset.sessionId
-    log.info('📋 [管理员] 选择会话:', sessionId)
+    log.info('📋 选择会话:', sessionId)
 
     if (sessionId === this.data.currentSessionId) {
-      this.setData({
-        chatExpanded: !this.data.chatExpanded
-      })
+      this.setData({ chatExpanded: !this.data.chatExpanded })
       return
     }
 
-    const currentSession = this.data.sessions.find(s => s.sessionId === sessionId)
-    const currentSessionUserName =
-      currentSession && currentSession.userInfo
-        ? currentSession.userInfo.nickname || '用户' + currentSession.userId
-        : '用户'
+    const currentSession = this.data.sessions.find((s: any) => s.sessionId === sessionId)
+    const currentSessionUserName = currentSession?.userInfo?.nickname || '用户'
 
     this.setData({
       currentSessionId: sessionId,
       currentSessionUserName,
-      currentMessages: [],
+      currentMessages: [] as any[],
       scrollToBottom: true,
       chatExpanded: true
     })
 
-    // 更新按钮状态（会话改变时）
     this.updateSendButtonState()
-
     this.loadSessionMessages(sessionId)
   },
 
-  // 关闭展开模式
+  /** 关闭展开模式 */
   onCloseChatExpanded() {
-    this.setData({
-      chatExpanded: false
-    })
+    this.setData({ chatExpanded: false })
   },
 
-  // 📖 加载会话消息
-  async loadSessionMessages(sessionId) {
+  /**
+   * 加载会话消息历史
+   *
+   * 后端API: GET /api/v4/console/customer-service/sessions/:id/messages
+   *
+   * 后端返回消息字段（snake_case）:
+   * - chat_message_id: 消息主键
+   * - content: 消息内容
+   * - sender_type: 'user' | 'admin' | 'system'
+   * - message_type: 'text' | 'image' | 'system'
+   * - created_at: 创建时间（ISO 8601）
+   */
+  async loadSessionMessages(sessionId: number) {
     try {
-      log.info('📖 [管理员] 加载会话消息:', sessionId)
+      log.info('📖 加载会话消息:', sessionId)
 
-      // 关键修复：管理员端使用专用的历史消息API
       const result = await API.getAdminChatHistory({
         sessionId,
         page: 1,
         pageSize: 50
       })
 
-      if (result.success) {
-        const messages = (result.data.messages || []).map(msg => {
-          // 判断是否为管理员自己的消息：senderType为admin
-          const isOwn = msg.senderType === 'admin'
+      if (result.success && result.data) {
+        const rawMessages = result.data.messages || []
+
+        const messages = rawMessages.map((msg: any) => {
+          // 后端字段统一 snake_case: sender_type, chat_message_id, created_at
+          const senderType = msg.sender_type || 'user'
+          const isOwn = senderType === 'admin'
 
           return {
-            id: msg.messageId,
-            senderId: msg.senderId,
-            senderType: msg.senderType,
-            content: msg.content,
-            messageType: msg.messageType || 'text',
-            createdAt: msg.createdAt,
+            id: msg.chat_message_id || msg.id,
+            senderId: msg.sender_id,
+            senderType,
+            content: msg.content || '',
+            messageType: msg.message_type || 'text',
+            createdAt: msg.created_at || '',
             isOwn
           }
         })
 
-        // 修复消息顺序：按时间排序，最新消息在最下面
-        const sortedMessages = messages.sort((a, b) => {
+        // 按时间升序排列：旧消息在前，新消息在后
+        const sortedMessages = messages.sort((a: any, b: any) => {
           const timeA = new Date(a.createdAt).getTime()
           const timeB = new Date(b.createdAt).getTime()
-          // 升序排列：旧消息在前，新消息在后
           return timeA - timeB
-        })
-
-        // 调试信息：统计消息类型和时间范围
-        log.info('📊 [客服消息统计]', {
-          admin: sortedMessages.filter(m => m.senderType === 'admin').length,
-          user: sortedMessages.filter(m => m.senderType === 'user').length,
-          total: sortedMessages.length,
-          时间范围: {
-            最旧: sortedMessages[0]?.createdAt,
-            最新: sortedMessages[sortedMessages.length - 1]?.createdAt
-          }
         })
 
         this.setData({
@@ -649,28 +564,21 @@ Page({
           scrollToBottom: true
         })
 
-        log.info('✅ [管理员] 会话消息加载成功:', messages.length)
+        log.info('✅ 会话消息加载成功:', sortedMessages.length, '条')
       }
     } catch (error) {
       log.error('❌ 加载会话消息失败:', error)
     }
   },
 
-  // 📝 聊天输入框内容变化
-  onChatInputChange(e) {
+  // ============================================================================
+  // 输入与发送
+  // ============================================================================
+
+  /** 聊天输入框内容变化 */
+  onChatInputChange(e: WechatMiniprogram.Input) {
     const content = e.detail.value
-    log.info('🔡 [INPUT-CHANGE] 输入内容变化:', JSON.stringify(content))
-    log.info('🔡 [INPUT-CHANGE] 变化前inputContent:', JSON.stringify(this.data.inputContent))
-    log.info('🔡 [INPUT-CHANGE] 事件时间:', new Date().toISOString())
-
-    this.setData({
-      inputContent: content
-    })
-
-    // 验证设置是否成功
-    log.info('🔡 [INPUT-CHANGE] 设置后inputContent:', JSON.stringify(this.data.inputContent))
-
-    // 立即更新按钮状态
+    this.setData({ inputContent: content })
     this.updateSendButtonState()
 
     if (content.trim()) {
@@ -680,77 +588,42 @@ Page({
     }
   },
 
-  // 📝 聊天输入框获得焦点
+  /** 输入框获得焦点 */
   onChatInputFocus() {
     this.setData({ scrollToBottom: true })
   },
 
-  // 📝 聊天输入框失去焦点
+  /** 输入框失去焦点 */
   onChatInputBlur() {
-    // 可以在这里添加失去焦点的处理逻辑
+    // 预留
   },
 
-  // 📤 发送聊天消息
+  /**
+   * 发送聊天消息
+   *
+   * 发送流程：
+   * 1. 验证输入内容和会话ID
+   * 2. 乐观更新本地消息列表（status: 'sending'）
+   * 3. 通过API发送消息到后端（持久化存储）
+   * 4. 通过WebSocket发送实时通知
+   * 5. 更新消息状态（sent / failed）
+   */
   async sendChatMessage() {
-    log.info('🔡 [SEND-START] ========== 正常发送按钮被点击 ==========')
-    log.info('🔡 [SEND-START] sendChatMessage函数被调用')
-    log.info('🔡 [SEND-START] 函数执行时间:', new Date().toISOString())
-    log.info('🔡 [SEND-START] 函数执行时inputContent:', JSON.stringify(this.data.inputContent))
-    log.info(
-      '🔡 [SEND-START] inputContent长度:',
-      this.data.inputContent ? this.data.inputContent.length : 0
-    )
-    log.info('🔡 [SEND-START] inputContent类型:', typeof this.data.inputContent)
-    log.info(
-      '🔡 [SEND-START] inputContent.trim()结果:',
-      JSON.stringify(this.data.inputContent ? this.data.inputContent.trim() : 'undefined')
-    )
-    log.info('🔡 [SEND-START] 当前currentSessionId:', JSON.stringify(this.data.currentSessionId))
-    log.info('🔡 [SEND-START] 用户信息:', JSON.stringify(this.data.userInfo))
-    log.info('🔡 [SEND-START] WebSocket连接状态:', this.data.wsConnected)
-    log.info('🔡 [SEND-START] 当前会话列表数量:', this.data.sessions.length)
-    log.info('🔡 [SEND-START] 当前消息列表数量:', this.data.currentMessages.length)
-
-    // 立即保存输入内容（防止被异步清空）
+    // 立即保存输入内容（防止被异步操作影响）
     const originalInputContent = this.data.inputContent
-    log.info('🔡 [SEND-START] 立即保存的输入内容:', JSON.stringify(originalInputContent))
-
-    // 使用立即保存的内容，避免异步清空问题
     const content = originalInputContent ? originalInputContent.trim() : ''
-    log.info('🔡 [SEND-START] 使用保存的内容:', JSON.stringify(originalInputContent))
-    log.info('🔡 [SEND-START] 处理后的content:', JSON.stringify(content))
-    log.info('🔡 [SEND-START] content是否为空:', !content)
-    log.info('🔡 [SEND-START] content长度:', content.length)
-
-    // 同时检查当前的inputContent是否被改变
-    if (this.data.inputContent !== originalInputContent) {
-      log.info('⚠️ [SEND-START] 检测到inputContent被异步修改')
-      log.info('🔡 [SEND-START] 原始内容:', JSON.stringify(originalInputContent))
-      log.info('🔡 [SEND-START] 当前内容:', JSON.stringify(this.data.inputContent))
-    }
 
     if (!content) {
-      log.info('❌ [SEND-START] 发送消息失败：内容为空')
-      log.info('🔡 [SEND-START] 原始inputContent:', JSON.stringify(this.data.inputContent))
-      log.info('🔡 [SEND-START] 保存的inputContent:', JSON.stringify(originalInputContent))
-      wx.showToast({
-        title: '请输入消息内容',
-        icon: 'none'
-      })
+      wx.showToast({ title: '请输入消息内容', icon: 'none' })
       return
     }
 
     if (!this.data.currentSessionId) {
-      log.info('❌ [SEND-START] 发送消息失败：sessionId缺失')
-      log.info('🔡 [SEND-START] 可用的会话列表:', JSON.stringify(this.data.sessions))
-      wx.showToast({
-        title: '请先选择一个聊天会话',
-        icon: 'none'
-      })
+      wx.showToast({ title: '请先选择一个聊天会话', icon: 'none' })
       return
     }
 
-    log.info('✅ [SEND-START] 验证通过，开始发送消息流程')
+    log.info('📤 发送管理员消息:', content.substring(0, 30))
 
     const tempMessage = {
       id: `temp_${Date.now()}`,
@@ -764,178 +637,46 @@ Page({
     }
 
     try {
-      log.info('🔡 [DEBUG] 开始发送消息流程')
-      log.info('🔡 [DEBUG] 消息内容:', JSON.stringify(content))
-      log.info('🔡 [DEBUG] 会话ID:', JSON.stringify(this.data.currentSessionId))
-      log.info('🔡 [DEBUG] 临时消息对象:', JSON.stringify(tempMessage))
-
-      // 检查网络状态
-      wx.getNetworkType({
-        success: res => {
-          log.info('🔡 [DEBUG] 网络类型:', res.networkType)
-          log.info('🔡 [DEBUG] 网络可用:', res.networkType !== 'none')
-        }
-      })
-
+      // 清空输入框，乐观更新UI
       this.setData({ inputContent: '' })
       this.stopTyping()
-
       this.setData({
         currentMessages: [...this.data.currentMessages, tempMessage],
         scrollToBottom: true
       })
 
-      log.info('🔡 [DEBUG] UI更新完成，开始API调用')
-      log.info(
-        '🔡 [DEBUG] API调用参数:',
-        JSON.stringify({
-          sessionId: this.data.currentSessionId,
-          content,
-          messageType: 'text',
-          tempMessageId: tempMessage.id,
-          senderType: 'admin'
-        })
-      )
-
-      try {
-        const startTime = Date.now()
-        log.info('🔡 [DEBUG-NORMAL] API调用开始时间:', startTime)
-
-        const apiParams = {
-          sessionId: this.data.currentSessionId,
-          content,
-          messageType: 'text',
-          tempMessageId: tempMessage.id,
-          senderType: 'admin'
-        }
-        log.info('🔡 [DEBUG-NORMAL] API调用参数详情:', JSON.stringify(apiParams))
-
-        const apiResult = await API.sendChatMessage(apiParams)
-
-        const endTime = Date.now()
-        log.info('🔡 [DEBUG-NORMAL] API调用结束时间:', endTime)
-        log.info('🔡 [DEBUG-NORMAL] API调用耗时:', endTime - startTime + 'ms')
-        log.info('🔡 [DEBUG-NORMAL] API调用完整响应:', JSON.stringify(apiResult))
-        log.info('🔡 [DEBUG-NORMAL] API响应类型:', typeof apiResult)
-        log.info('🔡 [DEBUG-NORMAL] API响应success字段:', apiResult?.success)
-        log.info('🔡 [DEBUG-NORMAL] API响应data字段:', JSON.stringify(apiResult?.data))
-        log.info('🔡 [DEBUG-NORMAL] API响应message字段:', apiResult?.message)
-
-        if (apiResult && apiResult.success === true) {
-          log.info('✅ [DEBUG-NORMAL] API消息发送成功')
-          log.info('🔡 [DEBUG-NORMAL] 成功响应数据:', JSON.stringify(apiResult.data))
-
-          const updatedMessages = this.data.currentMessages.map(msg =>
-            msg.id === tempMessage.id
-              ? {
-                  ...msg,
-                  status: 'sent',
-                  id: apiResult.data?.messageId || msg.id,
-                  serverResponse: apiResult.data
-                }
-              : msg
-          )
-          this.setData({ currentMessages: updatedMessages })
-          log.info('🔡 [DEBUG-NORMAL] 消息状态更新完成')
-          log.info('🔡 [DEBUG-NORMAL] 更新后的消息列表:', JSON.stringify(updatedMessages))
-        } else {
-          log.error('❌ [DEBUG-NORMAL] API消息发送失败')
-          log.error('🔡 [DEBUG-NORMAL] 失败原因:', JSON.stringify(apiResult))
-          log.error('🔡 [DEBUG-NORMAL] success字段值:', apiResult?.success)
-          log.error('🔡 [DEBUG-NORMAL] 完整响应结构:', Object.keys(apiResult || {}))
-
-          // 更新消息状态为失败
-          const failedMessages = this.data.currentMessages.map(msg =>
-            msg.id === tempMessage.id
-              ? { ...msg, status: 'failed', error: apiResult?.message }
-              : msg
-          )
-          this.setData({ currentMessages: failedMessages })
-
-          throw new Error(apiResult?.message || 'API发送失败')
-        }
-      } catch (apiError) {
-        log.error('❌ [DEBUG-NORMAL] API发送消息异常', apiError)
-        log.error('🔡 [DEBUG-NORMAL] 异常类型:', apiError.constructor.name)
-        log.error('🔡 [DEBUG-NORMAL] 异常消息:', apiError.message)
-        log.error('🔡 [DEBUG-NORMAL] 异常堆栈:', apiError.stack)
-
-        // 更新消息状态为失败
-        const failedMessages = this.data.currentMessages.map(msg =>
-          msg.id === tempMessage.id ? { ...msg, status: 'failed', error: apiError.message } : msg
-        )
-        this.setData({ currentMessages: failedMessages })
-
-        wx.showToast({
-          title: 'API调用失败: ' + (apiError.message || '未知错误'),
-          icon: 'none',
-          duration: 3000
-        })
-      }
-
-      // WebSocket发送
-      log.info('🔡 [DEBUG] 开始WebSocket发送流程')
-      log.info('🔡 [DEBUG] WebSocket连接状态:', this.data.wsConnected)
-      log.info(
-        '🔡 [DEBUG] WebSocket实例状态:',
-        (wx as any).getSocketState ? (wx as any).getSocketState() : '不支持状态查询'
-      )
-
-      // 修复：检查WebSocket连接状态
-      if (!this.data.wsConnected) {
-        log.info('⚠️ [DEBUG] WebSocket未连接，跳过实时发送')
-        log.info('🔡 [DEBUG] 尝试重新连接WebSocket')
-        this.connectWebSocket()
-        return
-      }
-
+      /**
+       * 发送策略: Socket.IO 优先（后端自动写库 + 回执），API 降级兜底
+       *
+       * Socket.IO 通道: emit('send_message', { session_id, content, message_type })
+       *   → 后端自动写库 → 回推 message_sent / message_error
+       *
+       * API 降级: POST /api/v4/system/chat/sessions/:id/messages
+       */
       if (this.data.wsConnected) {
-        log.info('🔡 [DEBUG] WebSocket已连接，准备发送')
-
-        const chatMessage = {
-          type: 'admin_chat_message',
-          data: {
-            sessionId: this.data.currentSessionId,
-            content,
-            messageType: 'text',
-            adminId: this.data.userInfo?.userId,
-            // 配合后端v2.0.1：标识消息来源为管理员端
-            messageSource: 'admin_client',
-            senderType: 'admin'
-          }
-        }
-
-        log.info('🔡 [DEBUG] WebSocket消息内容:', JSON.stringify(chatMessage))
-
+        // 主通道: Socket.IO（后端自动写库，回执 message_sent / message_error）
         try {
-          wx.sendSocketMessage({
-            data: JSON.stringify(chatMessage),
-            success: res => {
-              log.info('✅ [DEBUG] WebSocket消息发送成功')
-              log.info('🔡 [DEBUG] 发送成功响应:', JSON.stringify(res))
-            },
-            fail: err => {
-              log.error('❌ [DEBUG] WebSocket发送失败')
-              log.error('🔡 [DEBUG] 发送失败详情:', JSON.stringify(err))
-            }
+          const appInstance = getApp()
+          appInstance.emitSocketMessage('send_message', {
+            session_id: this.data.currentSessionId,
+            content,
+            message_type: 'text'
           })
+          log.info('✅ Socket.IO send_message 已发送，等待后端回执')
+          // 状态由 handleMessageSentConfirm / handleMessageSendError 自动更新
         } catch (wsError) {
-          log.error('❌ [DEBUG] WebSocket发送异常', wsError)
-          log.error('🔡 [DEBUG] 异常详情:', {
-            name: wsError.name,
-            message: wsError.message,
-            stack: wsError.stack
-          })
+          log.error('❌ Socket.IO emit 异常，降级到 API:', wsError)
+          await this.sendMessageViaAPI(tempMessage.id, content)
         }
       } else {
-        log.info('⚠️ [DEBUG] WebSocket未连接，跳过实时发送')
-        log.info('🔡 [DEBUG] 尝试重新连接WebSocket')
-        this.connectWebSocket()
+        // 降级通道: REST API
+        log.info('🔄 Socket.IO 未连接，使用 API 发送')
+        await this.sendMessageViaAPI(tempMessage.id, content)
       }
     } catch (error) {
-      log.error('❌ [管理员] 发送聊天消息失败', error)
+      log.error('❌ 发送聊天消息失败:', error)
 
-      const failedMessages = this.data.currentMessages.map(msg =>
+      const failedMessages = this.data.currentMessages.map((msg: any) =>
         msg.id === tempMessage.id ? { ...msg, status: 'failed' } : msg
       )
       this.setData({ currentMessages: failedMessages })
@@ -944,30 +685,62 @@ Page({
     }
   },
 
-  // ⌨️ 开始输入状态
-  startTyping() {
-    if (!this.data.wsConnected || !this.data.currentSessionId) {
-      return
-    }
-
-    if (!this.data.isTyping) {
-      this.setData({ isTyping: true })
-
-      const typingMessage = {
-        type: 'admin_typing_start',
-        data: {
-          sessionId: this.data.currentSessionId,
-          adminId: this.data.userInfo?.userId
-        }
-      }
-
-      wx.sendSocketMessage({
-        data: JSON.stringify(typingMessage)
+  /**
+   * API 降级发送（Socket.IO 不可用时的兜底）
+   * 后端路由: POST /api/v4/system/chat/sessions/:id/messages
+   */
+  async sendMessageViaAPI(localMsgId: string, content: string) {
+    try {
+      const apiResult = await API.sendChatMessage(this.data.currentSessionId, {
+        content,
+        message_type: 'text',
+        sender_type: 'admin'
       })
+
+      if (apiResult && apiResult.success === true) {
+        log.info('✅ API 降级发送成功')
+        const updatedMessages = this.data.currentMessages.map((msg: any) =>
+          msg.id === localMsgId
+            ? { ...msg, status: 'sent', id: apiResult.data?.chat_message_id || msg.id }
+            : msg
+        )
+        this.setData({ currentMessages: updatedMessages })
+      } else {
+        log.error('❌ API 降级发送失败:', apiResult?.message)
+        const failedMessages = this.data.currentMessages.map((msg: any) =>
+          msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
+        )
+        this.setData({ currentMessages: failedMessages })
+      }
+    } catch (apiError: any) {
+      log.error('❌ API 降级发送异常:', apiError.message)
+      const failedMessages = this.data.currentMessages.map((msg: any) =>
+        msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
+      )
+      this.setData({ currentMessages: failedMessages })
     }
   },
 
-  // ⌨️ 停止输入状态
+  // ============================================================================
+  // 输入状态管理
+  // ============================================================================
+
+  /** 开始输入状态（通过 Socket.IO emit） */
+  startTyping() {
+    if (!this.data.wsConnected || !this.data.currentSessionId || this.data.isTyping) {
+      return
+    }
+
+    this.setData({ isTyping: true })
+
+    const appInstance = getApp()
+    appInstance.emitSocketMessage('admin_typing_start', {
+      sessionId: this.data.currentSessionId,
+      adminId: this.data.userInfo?.userId
+    })
+  },
+
+  /** 停止输入状态（通过 Socket.IO emit） */
   stopTyping() {
     if (!this.data.wsConnected || !this.data.currentSessionId || !this.data.isTyping) {
       return
@@ -975,38 +748,34 @@ Page({
 
     this.setData({ isTyping: false })
 
-    const typingMessage = {
-      type: 'admin_typing_stop',
-      data: {
-        sessionId: this.data.currentSessionId,
-        adminId: this.data.userInfo?.userId
-      }
-    }
-
-    wx.sendSocketMessage({
-      data: JSON.stringify(typingMessage)
+    const appInstance = getApp()
+    appInstance.emitSocketMessage('admin_typing_stop', {
+      sessionId: this.data.currentSessionId,
+      adminId: this.data.userInfo?.userId
     })
   },
 
-  // ⚡ 切换快捷回复
+  // ============================================================================
+  // 快捷回复
+  // ============================================================================
+
+  /** 切换快捷回复面板 */
   toggleQuickReplies() {
-    this.setData({
-      showQuickReplies: !this.data.showQuickReplies
-    })
+    this.setData({ showQuickReplies: !this.data.showQuickReplies })
   },
 
-  // 🚀 快捷回复选择
-  onQuickReplySelect(e) {
+  /** 选择快捷回复 */
+  onQuickReplySelect(e: WechatMiniprogram.BaseEvent) {
     const content = e.currentTarget.dataset.content
-    this.setData({
-      inputContent: content,
-      showQuickReplies: false
-    })
+    this.setData({ inputContent: content, showQuickReplies: false })
   },
+
+  // ============================================================================
+  // 会话管理操作
+  // ============================================================================
 
   /**
-   * 🔚 结束会话（修复：使用closeAdminChatSession替代不存在的endChatSession）
-   *
+   * 结束会话
    * 后端API: POST /api/v4/console/customer-service/sessions/:id/close
    */
   async onEndSession() {
@@ -1015,7 +784,7 @@ Page({
       return
     }
 
-    log.info('🔚 [管理员] 结束会话:', this.data.currentSessionId)
+    log.info('🔚 结束会话:', this.data.currentSessionId)
 
     try {
       const result = await API.closeAdminChatSession(this.data.currentSessionId)
@@ -1023,7 +792,7 @@ Page({
       if (result.success) {
         this.setData({
           currentSessionId: null,
-          currentMessages: [],
+          currentMessages: [] as any[],
           chatExpanded: false
         })
 
@@ -1038,496 +807,120 @@ Page({
     }
   },
 
+  // ============================================================================
+  // 统计信息
+  // ============================================================================
+
   /**
-   * 📊 加载今日统计
+   * 加载今日客服统计
    *
-   * ⚠️ getAdminTodayStats已删除（管理员统计功能走独立后台）
-   * 当前使用会话列表数据生成基础统计
+   * 后端API: GET /api/v4/console/customer-service/sessions/stats
+   * 可选参数: ?admin_id=31（筛选指定客服的统计）
+   *
+   * 后端返回字段:
+   *   total_sessions       - 总会话数
+   *   completed_sessions   - 已完成会话数
+   *   avg_response_time    - 平均响应时间
+   *   customer_satisfaction - 客户满意度
    */
   async loadAdminTodayStats() {
     try {
-      // getAdminTodayStats已删除，使用会话列表数据生成基础统计
-      log.info('ℹ️ 管理员统计功能已迁移到独立后台，使用基础统计')
-      this.setData({
-        todayStats: {
-          totalSessions: this.data.sessions.length || 0,
-          completedSessions: 0,
-          avgResponseTime: '--',
-          customerSatisfaction: 0
-        }
-      })
+      const result = await API.getAdminSessionStats()
+
+      if (result.success && result.data) {
+        this.setData({
+          todayStats: {
+            totalSessions: result.data.total_sessions || 0,
+            completedSessions: result.data.completed_sessions || 0,
+            avgResponseTime: result.data.avg_response_time || '--',
+            customerSatisfaction: result.data.customer_satisfaction || 0
+          }
+        })
+        log.info('📊 客服统计加载成功:', result.data)
+      } else {
+        log.warn('⚠️ 客服统计API返回空数据，使用默认值')
+        this.setData({
+          todayStats: {
+            totalSessions: 0,
+            completedSessions: 0,
+            avgResponseTime: '--',
+            customerSatisfaction: 0
+          }
+        })
+      }
     } catch (error) {
       log.error('❌ 加载今日统计失败:', error)
+      // 统计加载失败不影响主流程
     }
   },
 
-  // 🗑 清理资源
+  // ============================================================================
+  // 按钮状态管理
+  // ============================================================================
+
+  /** 更新发送按钮状态 */
+  updateSendButtonState() {
+    const hasContent = !!(this.data.inputContent && this.data.inputContent.trim())
+    const hasSession = !!this.data.currentSessionId
+    const shouldEnable = hasContent && hasSession
+
+    if (this.data.sendButtonEnabled !== shouldEnable) {
+      this.setData({ sendButtonEnabled: shouldEnable })
+    }
+  },
+
+  // ============================================================================
+  // 资源清理
+  // ============================================================================
+
+  /**
+   * 更新管理员在线状态
+   *
+   * 后端API: POST /api/v4/console/customer-service/sessions/status
+   * 状态枚举: 'online' | 'busy' | 'offline'
+   * 存储: Redis（4小时自动过期，未设置或过期视为offline）
+   */
+  async updateOnlineStatus(status: 'online' | 'busy' | 'offline') {
+    try {
+      const result = await API.updateAdminOnlineStatus(status)
+      if (result.success) {
+        this.setData({ adminStatus: status })
+        log.info(`✅ 管理员在线状态更新为: ${status}`)
+      }
+    } catch (error) {
+      log.error('❌ 更新在线状态失败:', error)
+      // 状态更新失败不影响主流程
+    }
+  },
+
+  /** 切换管理员在线状态（供页面按钮调用） */
+  onToggleAdminStatus(e: WechatMiniprogram.BaseEvent) {
+    const status = e.currentTarget.dataset.status as 'online' | 'busy' | 'offline'
+    if (status && ['online', 'busy', 'offline'].includes(status)) {
+      this.updateOnlineStatus(status)
+    }
+  },
+
+  /** 清理所有资源 */
   cleanup() {
     this.stopTyping()
 
-    if (this.data.wsConnected) {
-      wx.closeSocket()
+    // 离开页面时更新管理员状态为 offline
+    this.updateOnlineStatus('offline')
+
+    // 取消 Socket.IO 消息订阅
+    const appInstance = getApp()
+    if (appInstance && typeof appInstance.unsubscribeWebSocketMessages === 'function') {
+      appInstance.unsubscribeWebSocketMessages('admin_customer_service')
     }
 
     this.setData({
       wsConnected: false,
       currentSessionId: null,
-      currentMessages: [],
-      sessions: []
+      currentMessages: [] as any[],
+      sessions: [] as any[]
     })
-  },
-
-  // =================== 调试功能区域 ===================
-
-  // 切换调试面板显示
-  toggleDebugPanel() {
-    this.setData({
-      showDebugPanel: !this.data.showDebugPanel
-    })
-    log.info('🔡 [DEBUG] 调试面板状态:', this.data.showDebugPanel ? '显示' : '隐藏')
-  },
-
-  // 检查所有状态
-  debugCheckStatus() {
-    log.info('🔡 [DEBUG] ========== 全面状态检查 ==========')
-    const statusInfo = {
-      timestamp: new Date().toISOString(),
-      userInfo: this.data.userInfo,
-      isAdmin: this.data.isAdmin,
-      currentSessionId: this.data.currentSessionId,
-      currentSessionUserName: this.data.currentSessionUserName,
-      sessionsCount: this.data.sessions.length,
-      currentMessagesCount: this.data.currentMessages.length,
-      wsConnected: this.data.wsConnected,
-      adminStatus: this.data.adminStatus,
-      inputContent: this.data.inputContent,
-      chatExpanded: this.data.chatExpanded,
-      reconnectCount: this.data.reconnectCount
-    }
-
-    log.info('🔡 [DEBUG] 当前状态详情:', JSON.stringify(statusInfo, null, 2))
-
-    // 显示关键状态
-    const statusText = `WebSocket: ${this.data.wsConnected ? '✅已连接' : '❌断开'}
-当前会话: ${this.data.currentSessionId || '❌无'}
-用户信息: ${this.data.userInfo ? '✅有' : '❌无'}
-管理员权限: ${this.data.isAdmin ? '✅是' : '❌否'}
-消息数量: ${this.data.currentMessages.length}
-会话数量: ${this.data.sessions.length}`
-
-    wx.showModal({
-      title: '📊 状态检查结果',
-      content: statusText,
-      showCancel: false
-    })
-  },
-
-  // 检查网络状态
-  debugCheckNetwork() {
-    log.info('🔡 [DEBUG] 开始网络状态检查')
-
-    wx.getNetworkType({
-      success: res => {
-        log.info('🔡 [DEBUG] 网络类型:', res.networkType)
-
-        // 测试网络连通性
-        wx.request({
-          url: 'https://www.baidu.com',
-          timeout: 5000,
-          success: () => {
-            log.info('🔡 [DEBUG] 网络连通性测试成功')
-            wx.showToast({
-              title: `网络正常 ${res.networkType}`,
-              icon: 'success',
-              duration: 2000
-            })
-          },
-          fail: testErr => {
-            log.error('🔡 [DEBUG] 网络连通性测试失败', testErr)
-            wx.showToast({
-              title: `网络异常 ${res.networkType}`,
-              icon: 'error',
-              duration: 2000
-            })
-          }
-        })
-      },
-      fail: err => {
-        log.error('🔡 [DEBUG] 获取网络类型失败:', err)
-        wx.showToast({
-          title: '网络状态检查失败',
-          icon: 'error'
-        })
-      }
-    })
-  },
-
-  // 检查WebSocket状态
-  debugCheckWebSocket() {
-    log.info('🔡 [DEBUG] ========== WebSocket状态检查 ==========')
-    log.info('🔡 [DEBUG] WebSocket连接状态:', this.data.wsConnected)
-    log.info('🔡 [DEBUG] 重连次数:', this.data.reconnectCount)
-
-    const wsStatus = (wx as any).getSocketState ? (wx as any).getSocketState() : '不支持状态查询'
-    log.info('🔡 [DEBUG] WebSocket系统状态:', wsStatus)
-
-    wx.showModal({
-      title: '⚡WebSocket状态',
-      content: `连接状态: ${this.data.wsConnected ? '✅已连接' : '❌未连接'}\n重连次数: ${this.data.reconnectCount}\n系统状态: ${wsStatus}`,
-      showCancel: false
-    })
-  },
-
-  // 测试API连接
-  async debugTestAPI() {
-    log.info('🔡 [DEBUG] 开始API连接测试')
-
-    try {
-      // 💡 loading由APIClient自动处理，无需手动showLoading
-
-      // 测试基础API
-      const testResult = await API.getUserInfo()
-      log.info('🔡 [DEBUG] API测试结果:', testResult)
-
-      // 💡 loading由APIClient自动处理，无需手动hideLoading
-      wx.showToast({
-        title: testResult.success ? '✅API连接正常' : '❌API连接异常',
-        icon: testResult.success ? 'success' : 'error',
-        duration: 2000
-      })
-    } catch (error) {
-      log.error('🔡 [DEBUG] API测试失败:', error)
-      // 💡 loading由APIClient自动处理，无需手动hideLoading
-      wx.showToast({
-        title: '❌API测试失败',
-        icon: 'error',
-        duration: 2000
-      })
-    }
-  },
-
-  // 发送测试消息
-  async debugSendTestMessage() {
-    log.info('🔡 [DEBUG-TEST] ========== 测试发送按钮被点击 ==========')
-
-    if (!this.data.currentSessionId) {
-      log.info('❌ [DEBUG-TEST] 测试发送失败：无会话ID')
-      wx.showToast({
-        title: '请先选择一个会话',
-        icon: 'none'
-      })
-      return
-    }
-
-    log.info('🔡 [DEBUG-TEST] 开始发送测试消息')
-    log.info('🔡 [DEBUG-TEST] 当前会话ID:', this.data.currentSessionId)
-
-    const testContent = `[测试消息] ${new Date().toLocaleTimeString()}`
-    log.info('🔡 [DEBUG-TEST] 测试消息内容:', testContent)
-
-    try {
-      log.info('🔡 [DEBUG-TEST] 调用API.sendChatMessage，参数：', {
-        sessionId: this.data.currentSessionId,
-        content: testContent,
-        messageType: 'text',
-        senderType: 'admin'
-      })
-
-      const apiResult = await API.sendChatMessage({
-        sessionId: this.data.currentSessionId,
-        content: testContent,
-        messageType: 'text',
-        senderType: 'admin'
-      })
-
-      log.info('🔡 [DEBUG-TEST] 测试消息发送结果:', apiResult)
-
-      wx.showToast({
-        title: apiResult.success ? '✅测试消息发送成功' : '❌测试消息发送失败',
-        icon: apiResult.success ? 'success' : 'error',
-        duration: 2000
-      })
-    } catch (error) {
-      log.error('🔡 [DEBUG-TEST] 测试消息发送异常', error)
-      wx.showToast({
-        title: '❌测试消息发送异常',
-        icon: 'error'
-      })
-    }
-  },
-
-  // 重新加载会话
-  async debugLoadSessions() {
-    log.info('🔡 [DEBUG] 重新加载会话列表')
-    await this.refreshSessions()
-  },
-
-  // 改进的手动重连WebSocket
-  debugReconnectWebSocket() {
-    log.info('🔡 [DEBUG] 手动重新连接WebSocket')
-
-    // 先清理现有连接
-    this.stopHeartbeat()
-    if (this.data.wsConnected) {
-      wx.closeSocket()
-    }
-
-    // 重置状态
-    this.setData({
-      wsConnected: false,
-      reconnectAttempts: 0,
-      connectionQuality: 'poor'
-    })
-
-    wx.showToast({
-      title: '🔧 正在重连...',
-      icon: 'loading',
-      duration: 1000
-    })
-
-    // 延迟1秒后重连，给清理时间
-    setTimeout(() => {
-      this.connectWebSocket()
-        .then(() => {
-          wx.showToast({
-            title: '✅ 重连成功',
-            icon: 'success',
-            duration: 2000
-          })
-        })
-        .catch(error => {
-          log.error('🔡 [DEBUG] 重连失败:', error)
-          wx.showToast({
-            title: '❌ 重连失败',
-            icon: 'error',
-            duration: 2000
-          })
-        })
-    }, 1000)
-  },
-
-  // 发送测试WebSocket消息
-  debugSendTestWS() {
-    if (!this.data.wsConnected) {
-      wx.showToast({
-        title: 'WebSocket未连接',
-        icon: 'none'
-      })
-      return
-    }
-
-    log.info('🔡 [DEBUG] 发送测试WebSocket消息')
-
-    const testMessage = {
-      type: 'ping',
-      timestamp: Date.now(),
-      data: { test: true }
-    }
-
-    try {
-      wx.sendSocketMessage({
-        data: JSON.stringify(testMessage),
-        success: () => {
-          log.info('🔡 [DEBUG] 测试WebSocket消息发送成功')
-          wx.showToast({
-            title: '✅WS测试消息发送成功',
-            icon: 'success'
-          })
-        },
-        fail: err => {
-          log.error('🔡 [DEBUG] 测试WebSocket消息发送失败', err)
-          wx.showToast({
-            title: '❌WS测试消息发送失败',
-            icon: 'error'
-          })
-        }
-      })
-    } catch (error) {
-      log.error('🔡 [DEBUG] WebSocket发送异常', error)
-      wx.showToast({
-        title: '❌WS发送异常',
-        icon: 'error'
-      })
-    }
-  },
-
-  // 手动发送心跳测试
-  debugSendHeartbeat() {
-    log.info('🔡 [DEBUG] 手动发送心跳测试')
-    if (!this.data.wsConnected) {
-      wx.showToast({
-        title: '❌ WebSocket未连接',
-        icon: 'none'
-      })
-      return
-    }
-
-    this.sendHeartbeat()
-    wx.showToast({
-      title: '💓 心跳发送完成',
-      icon: 'success',
-      duration: 1500
-    })
-  },
-
-  // 断开WebSocket连接
-  debugCloseWebSocket() {
-    log.info('🔡 [DEBUG] 手动断开WebSocket连接')
-    this.stopHeartbeat()
-    if (this.websocket) {
-      this.websocket.close()
-    }
-    wx.closeSocket()
-    this.setData({
-      wsConnected: false,
-      connectionQuality: 'lost'
-    })
-
-    wx.showToast({
-      title: '❌ WebSocket已断开',
-      icon: 'none'
-    })
-  },
-
-  // 显示当前数据
-  debugShowCurrentData() {
-    log.info('🔡 [DEBUG] ========== 当前页面数据 ==========')
-    log.info('🔡 [DEBUG] 完整数据对象:', JSON.stringify(this.data, null, 2))
-
-    // 显示关键数据摘要
-    const dataText = `会话数量: ${this.data.sessions.length}
-当前会话ID: ${this.data.currentSessionId || '无'}
-消息数量: ${this.data.currentMessages.length}
-用户信息: ${this.data.userInfo ? '已登录' : '未登录'}
-WebSocket: ${this.data.wsConnected ? '已连接' : '未连接'}
-输入内容: "${this.data.inputContent}"`
-
-    wx.showModal({
-      title: '📦 当前数据摘要',
-      content: dataText,
-      showCancel: false
-    })
-  },
-
-  // 清空消息列表
-  debugClearMessages() {
-    log.info('🔡 [DEBUG] 清空当前消息列表')
-    this.setData({
-      currentMessages: []
-    })
-
-    wx.showToast({
-      title: '🗑 消息列表已清空',
-      icon: 'success'
-    })
-  },
-
-  // 导出调试日志
-  debugExportLogs() {
-    log.info('🔡 [DEBUG] 准备导出调试日志')
-
-    wx.showModal({
-      title: '📋 调试日志导出',
-      content: '请查看微信开发者工具的控制台获取详细日志信息。所有调试信息都已输出到控制台。',
-      showCancel: false
-    })
-  },
-
-  // 更新发送按钮状态
-  updateSendButtonState() {
-    const hasContent = this.data.inputContent && this.data.inputContent.trim()
-    const hasSession = this.data.currentSessionId
-    const shouldEnable = hasContent && hasSession
-
-    log.info('🔡 [BUTTON-STATE] ========== 更新按钮状态 ==========')
-    log.info('🔡 [BUTTON-STATE] inputContent:', JSON.stringify(this.data.inputContent))
-    log.info('🔡 [BUTTON-STATE] inputContent.trim():', JSON.stringify(hasContent))
-    log.info('🔡 [BUTTON-STATE] currentSessionId:', JSON.stringify(this.data.currentSessionId))
-    log.info('🔡 [BUTTON-STATE] hasContent:', hasContent)
-    log.info('🔡 [BUTTON-STATE] hasSession:', hasSession)
-    log.info('🔡 [BUTTON-STATE] 按钮应该启用:', shouldEnable)
-    log.info('🔡 [BUTTON-STATE] 当前按钮状态:', this.data.sendButtonEnabled)
-
-    if (this.data.sendButtonEnabled !== shouldEnable) {
-      log.info('🔡 [BUTTON-STATE] 按钮状态发生变化，更新中...')
-      this.setData({
-        sendButtonEnabled: shouldEnable
-      })
-      log.info('🔡 [BUTTON-STATE] 按钮状态已更新为:', shouldEnable)
-    } else {
-      log.info('🔡 [BUTTON-STATE] 按钮状态无变化')
-    }
-  },
-
-  // 检查发送按钮状态
-  debugCheckSendButton() {
-    log.info('🔡 [DEBUG-BUTTON] ========== 检查发送按钮状态 ==========')
-    log.info('🔡 [DEBUG-BUTTON] 原始inputContent:', JSON.stringify(this.data.inputContent))
-    log.info('🔡 [DEBUG-BUTTON] inputContent类型:', typeof this.data.inputContent)
-    log.info(
-      '🔡 [DEBUG-BUTTON] inputContent长度:',
-      this.data.inputContent ? this.data.inputContent.length : 'undefined'
-    )
-    log.info(
-      '🔡 [DEBUG-BUTTON] inputContent.trim():',
-      JSON.stringify(this.data.inputContent ? this.data.inputContent.trim() : 'undefined')
-    )
-    log.info('🔡 [DEBUG-BUTTON] !inputContent.trim()结果:', !this.data.inputContent?.trim())
-    log.info('🔡 [DEBUG-BUTTON] currentSessionId:', JSON.stringify(this.data.currentSessionId))
-    log.info('🔡 [DEBUG-BUTTON] !currentSessionId结果:', !this.data.currentSessionId)
-    log.info('🔡 [DEBUG-BUTTON] sendButtonEnabled:', this.data.sendButtonEnabled)
-
-    const isButtonDisabled = !this.data.inputContent?.trim() || !this.data.currentSessionId
-    log.info('🔡 [DEBUG-BUTTON] 按钮是否被禁用:', isButtonDisabled)
-
-    if (isButtonDisabled) {
-      if (!this.data.inputContent?.trim()) {
-        log.info('❌ [DEBUG-BUTTON] 按钮被禁用原因：输入内容为空')
-      }
-      if (!this.data.currentSessionId) {
-        log.info('❌ [DEBUG-BUTTON] 按钮被禁用原因：会话ID为空')
-      }
-    } else {
-      log.info('✅ [DEBUG-BUTTON] 按钮应该是可用的')
-    }
-
-    // 强制更新按钮状态
-    this.updateSendButtonState()
-
-    // 强制调用发送消息（绕过按钮禁用）
-    log.info('🔡 [DEBUG-BUTTON] 尝试强制调用sendChatMessage')
-    this.sendChatMessage()
-  },
-
-  // 发送WebSocket消息的独立方法
-  sendWebSocketMessage(chatMessage) {
-    if (!this.data.wsConnected) {
-      log.info('❌ [DEBUG] WebSocket未连接，无法发送')
-      return
-    }
-
-    try {
-      wx.sendSocketMessage({
-        data: JSON.stringify(chatMessage),
-        success: res => {
-          log.info('✅ [DEBUG] WebSocket消息发送成功')
-          log.info('🔡 [DEBUG] 发送成功响应:', JSON.stringify(res))
-        },
-        fail: err => {
-          log.error('❌ [DEBUG] WebSocket发送失败')
-          log.error('🔡 [DEBUG] 发送失败详情:', JSON.stringify(err))
-
-          // 如果发送失败，尝试重连
-          log.info('🔡 [DEBUG] WebSocket发送失败，尝试重连')
-          this.connectWebSocket()
-        }
-      })
-    } catch (error) {
-      log.error('❌ [DEBUG] WebSocket发送异常', error)
-    }
   }
-
-  // =================== 调试功能区域结束 ===================
 })
 
 export {}

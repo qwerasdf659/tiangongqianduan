@@ -78,7 +78,7 @@
       </view>
       <view class="user-row">
         <text class="row-label">手机号</text>
-        <text class="row-value">{{userInfo.mobile}}</text>
+        <text class="row-value">{{userInfo.mobile_display || userInfo.mobile}}</text>
       </view>
     </view>
 

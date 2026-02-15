@@ -10,71 +10,26 @@ const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 
 /**
- * 会话频道定义（UI结构常量）
- * type: 前端内部路由标识
- * sessionType: 后端session_type字段匹配值
- * name: 频道显示名称
- * icon: 频道图标（emoji）
- * avatarClass: 头像渐变CSS类名前缀
+ * 会话状态文案映射（对应后端 customer_service_sessions.status 字段）
+ * waiting: 等待分配客服
+ * assigned: 已分配客服
+ * active: 对话进行中
+ * closed: 会话已结束
  */
-const SESSION_CHANNEL_DEFS = [
-  {
-    type: 'customer-service',
-    sessionType: 'customer-service',
-    name: '在线客服',
-    icon: '🎧',
-    avatarClass: 'customer-service'
-  },
-  {
-    type: 'system-notify',
-    sessionType: 'system-notify',
-    name: '系统通知',
-    icon: '🔔',
-    avatarClass: 'system'
-  },
-  {
-    type: 'ai-assistant',
-    sessionType: 'ai-assistant',
-    name: 'AI助手',
-    icon: '🤖',
-    avatarClass: 'ai'
-  },
-  {
-    type: 'tech-support',
-    sessionType: 'tech-support',
-    name: '技术支持',
-    icon: '🛠️',
-    avatarClass: 'tech'
-  },
-  {
-    type: 'activity',
-    sessionType: 'activity',
-    name: '活动咨询',
-    icon: '🎉',
-    avatarClass: 'activity'
-  },
-  {
-    type: 'feedback',
-    sessionType: 'feedback',
-    name: '反馈建议',
-    icon: '💬',
-    avatarClass: 'feedback'
-  }
-] as const
+const SESSION_STATUS_MAP: Record<string, string> = {
+  waiting: '等待客服',
+  assigned: '已分配',
+  active: '对话中',
+  closed: '已结束'
+}
 
 Page({
   data: {
     // 搜索相关
     searchKeyword: '',
 
-    // 会话频道列表（后端API填充 preview/unread/time 数据）
-    sessionChannels: SESSION_CHANNEL_DEFS.map(ch => ({
-      ...ch,
-      preview: '',
-      unread: 0,
-      time: '',
-      isOnline: false
-    })) as any[],
+    // 会话列表（直接使用后端API返回的sessions数组，字段按后端实际返回格式）
+    sessions: [] as any[],
 
     // 页面加载状态: loading=骨架屏 | success=正常显示 | error=错误+重试
     sessionLoadStatus: 'loading',
@@ -84,10 +39,8 @@ Page({
 
     // 弹窗聊天相关
     showChatModal: false,
-    currentChatType: '',
-    currentChatName: '',
-    currentChatIcon: '',
-    isOnline: false,
+    currentChatName: '在线客服',
+    currentChatIcon: '🎧',
 
     // 聊天消息
     messages: [] as any[],
@@ -121,7 +74,7 @@ Page({
    * 1. 绑定MobX Store（用户登录状态）
    * 2. 检查用户登录状态（未登录自动跳转到登录页）
    * 3. 初始化用户信息（userId, token）
-   * 4. 加载所有会话数据（客服、系统通知、AI助手等）
+   * 4. 加载客服会话列表数据
    */
   onLoad(_options: Record<string, string | undefined>) {
     log.info('🚀 聊天会话列表页面加载')
@@ -209,7 +162,8 @@ Page({
    * 加载所有会话列表数据
    *
    * @description
-   * 调用一次 getChatSessions() API，将结果分发到 sessionChannels 数组中。
+   * 调用 getChatSessions() API，直接使用后端返回的 sessions 数组渲染列表。
+   * 后端字段: customer_service_session_id, status, last_message(object), unread_count, updated_at
    * 使用 sessionLoadStatus 管理加载/成功/错误三种状态。
    */
   async loadSessionData() {
@@ -217,18 +171,18 @@ Page({
     this.setData({ sessionLoadStatus: 'loading' })
 
     try {
-      const { getChatSessions } = API
-      const result = await getChatSessions()
+      const result = await API.getChatSessions()
 
       if (result && result.success && result.data && result.data.sessions) {
-        const sessions = result.data.sessions
-        log.info('✅ 会话列表数据获取成功，共', sessions.length, '个会话')
+        const rawSessions = result.data.sessions
+        log.info('✅ 会话列表数据获取成功，共', rawSessions.length, '个会话')
 
-        this.distributeSessionData(sessions)
+        this.processSessionList(rawSessions)
         this.setData({ sessionLoadStatus: 'success' })
       } else {
         log.warn('⚠️ 后端未返回有效的会话列表数据')
-        this.setData({ sessionLoadStatus: 'error' })
+        // 空列表也是正常状态，设为success
+        this.setData({ sessions: [] as any[], sessionLoadStatus: 'success' })
       }
 
       this.updateTotalUnreadCount()
@@ -240,29 +194,40 @@ Page({
   },
 
   /**
-   * 分发会话数据到 sessionChannels 数组
+   * 处理后端返回的会话列表，映射为前端展示所需格式
    *
-   * @param sessions - 后端返回的会话列表数组
-   * @description
-   * 遍历 sessionChannels，根据 sessionType 匹配后端数据并填充 preview/unread/time。
+   * @param rawSessions - 后端返回的原始会话数组
+   *
+   * 后端每条会话字段：
+   * - customer_service_session_id: 会话主键
+   * - status: 'waiting' | 'assigned' | 'active' | 'closed'
+   * - last_message: { chat_message_id, content, sender_type, created_at } | null
+   * - unread_count: 未读消息数
+   * - updated_at: 最后更新时间（ISO 8601）
+   * - user: { user_id, nickname, mobile } （用户信息）
    */
-  distributeSessionData(sessions: any[]) {
-    const channels = this.data.sessionChannels.map((channel: any) => {
-      const session = sessions.find((s: any) => s.session_type === channel.sessionType)
-      if (session) {
-        return {
-          ...channel,
-          preview: session.last_message || '',
-          unread: session.unread_count || 0,
-          time: session.last_update_time ? formatDateMessage(session.last_update_time) : '',
-          isOnline: channel.type === 'customer-service' ? session.is_online || false : false
-        }
-      }
-      return { ...channel, preview: '', unread: 0, time: '' }
-    })
+  processSessionList(rawSessions: any[]) {
+    const processed = rawSessions.map((session: any) => ({
+      // 会话唯一标识（后端主键字段）
+      sessionId: session.customer_service_session_id,
+      // 会话状态
+      status: session.status || 'waiting',
+      statusText: SESSION_STATUS_MAP[session.status] || '未知',
+      // 最后消息预览（last_message 是对象，取 .content 展示）
+      preview:
+        session.last_message && session.last_message.content ? session.last_message.content : '',
+      // 未读消息数
+      unread: session.unread_count || 0,
+      // 最后更新时间（使用 updated_at 字段）
+      time: session.updated_at ? formatDateMessage(session.updated_at) : '',
+      // 显示名称：固定为"在线客服"（用户端只有客服会话）
+      name: '在线客服',
+      icon: '🎧',
+      avatarClass: 'customer-service'
+    }))
 
-    this.setData({ sessionChannels: channels })
-    log.info('✅ 会话数据分发完成')
+    this.setData({ sessions: processed })
+    log.info('✅ 会话列表处理完成，共', processed.length, '条')
   },
 
   /**
@@ -275,29 +240,26 @@ Page({
 
   /**
    * 更新总未读消息数量
-   * 遍历 sessionChannels 累加 unread 字段
+   * 遍历 sessions 累加 unread 字段
    */
   updateTotalUnreadCount() {
-    const total = this.data.sessionChannels.reduce(
-      (sum: number, ch: any) => sum + (ch.unread || 0),
-      0
-    )
+    const total = this.data.sessions.reduce((sum: number, s: any) => sum + (s.unread || 0), 0)
     this.setData({ totalUnreadCount: total })
   },
 
   /**
-   * 清除指定频道的未读计数
+   * 清除指定会话的未读计数
    *
-   * @param channelType - 频道类型标识（如 'customer-service', 'system-notify'）
+   * @param sessionId - 会话ID（customer_service_session_id）
    */
-  clearChannelUnread(channelType: string) {
-    const channels = this.data.sessionChannels.map((ch: any) => {
-      if (ch.type === channelType) {
-        return { ...ch, unread: 0 }
+  clearSessionUnread(sessionId: number) {
+    const sessions = this.data.sessions.map((s: any) => {
+      if (s.sessionId === sessionId) {
+        return { ...s, unread: 0 }
       }
-      return ch
+      return s
     })
-    this.setData({ sessionChannels: channels })
+    this.setData({ sessions })
     this.updateTotalUnreadCount()
   },
 
@@ -320,10 +282,47 @@ Page({
     this.setData({ searchKeyword: '' })
   },
 
-  // 执行搜索
-  performSearch(keyword: string) {
-    log.info('🔍 搜索关键词', keyword)
-    // 🔴 后端需提供: GET /api/v4/system/chat/search?keyword=xxx
+  /**
+   * 执行聊天消息搜索
+   *
+   * 后端API: GET /api/v4/system/chat/sessions/search?keyword=xxx
+   * 数据隔离: 用户端只能搜索自己会话中的消息
+   *
+   * 返回格式:
+   * {
+   *   messages: [{ chat_message_id, customer_service_session_id, sender_type, content, message_type, created_at }],
+   *   pagination: { page, page_size, total, total_pages }
+   * }
+   */
+  async performSearch(keyword: string) {
+    log.info('🔍 搜索关键词:', keyword)
+
+    if (!keyword || !keyword.trim()) {
+      return
+    }
+
+    try {
+      const result = await API.searchChatMessages(keyword.trim(), 1, 20)
+
+      if (result.success && result.data && result.data.messages) {
+        const searchMessages = result.data.messages
+        log.info('🔍 搜索结果:', searchMessages.length, '条')
+
+        if (searchMessages.length === 0) {
+          showToast('未找到相关消息')
+          return
+        }
+
+        // 搜索结果中如果有会话ID，点击后可跳转到对应会话
+        // 此处仅展示搜索到的消息数量提示，用户可在列表中找到对应会话
+        showToast(`找到 ${result.data.pagination.total} 条相关消息`)
+      } else {
+        showToast('未找到相关消息')
+      }
+    } catch (error: any) {
+      log.error('❌ 搜索失败:', error)
+      showToast(error.message || '搜索失败，请稍后重试')
+    }
   },
 
   // ============================================================================
@@ -331,29 +330,35 @@ Page({
   // ============================================================================
 
   /**
-   * 统一的会话频道点击事件处理器
+   * 会话列表点击事件处理器
    *
-   * @param e - 点击事件，通过 data-type 获取频道类型
+   * @param e - 点击事件，通过 data-id 获取会话ID
    * @description
-   * 根据频道类型路由到不同的处理逻辑：
-   * - customer-service: 创建聊天会话 → 连接WebSocket → 打开聊天弹窗
-   * - 其他类型: 直接打开聊天弹窗并加载历史消息
+   * 点击会话 → 保存sessionId → 打开聊天弹窗 → 加载历史消息 → 连接WebSocket
    */
   onSessionTap(e: WechatMiniprogram.BaseEvent) {
-    const type = e.currentTarget.dataset.type as string
-    const channel = this.data.sessionChannels.find((ch: any) => ch.type === type)
-    if (!channel) {
+    const sessionId = e.currentTarget.dataset.id as number
+    if (!sessionId) {
       return
     }
 
-    log.info('🔗 点击会话频道:', channel.name)
-
-    if (type === 'customer-service') {
-      this.enterCustomerService()
-    } else {
-      this.openChatModal(channel.avatarClass, channel.name, channel.icon)
-      this.clearChannelUnread(type)
+    const session = this.data.sessions.find((s: any) => s.sessionId === sessionId)
+    if (!session) {
+      return
     }
+
+    log.info('🔗 点击会话:', session.sessionId, session.name)
+
+    // 保存会话ID，打开聊天弹窗并加载历史消息
+    this.setData({
+      sessionId,
+      sessionStatus: session.status || 'active'
+    })
+    this.openChatModal('在线客服', '🎧')
+    this.clearSessionUnread(sessionId)
+
+    // 连接WebSocket
+    this.connectWebSocket()
   },
 
   // 开始新聊天
@@ -362,35 +367,43 @@ Page({
     this.enterCustomerService()
   },
 
-  // 进入在线客服
+  /**
+   * 创建新客服会话（"+"按钮触发）
+   *
+   * @description
+   * 调用 POST /api/v4/system/chat/sessions 创建新会话。
+   * 后端返回的会话对象包含 customer_service_session_id。
+   * 创建成功后打开聊天弹窗并连接WebSocket。
+   */
   async enterCustomerService() {
-    log.info('🎧 进入在线客服')
+    log.info('🎧 创建新客服会话')
 
     try {
-      // 调用API创建聊天会话
       const sessionResult = await API.createChatSession({
         source: 'mobile'
       })
 
-      if (sessionResult.success && sessionResult.data.session) {
-        const session = sessionResult.data.session
-        log.info('✅ 聊天会话创建成功:', session)
+      if (sessionResult.success && sessionResult.data) {
+        // 后端返回的会话对象（主键字段: customer_service_session_id）
+        const session = sessionResult.data.session || sessionResult.data
+        const sessionId = session.customer_service_session_id
+        log.info('✅ 聊天会话创建成功，ID:', sessionId)
 
         // 保存会话信息
         this.setData({
-          sessionId: session.sessionId,
+          sessionId,
           sessionStatus: session.status || 'waiting'
         })
 
         // 打开聊天弹窗
-        this.openChatModal('customer-service', '在线客服', '🎧')
-
-        // 清除未读消息
-        this.clearChannelUnread('customer-service')
+        this.openChatModal('在线客服', '🎧')
         this.setData({ showChatModal: true })
 
         // 连接WebSocket
         this.connectWebSocket()
+
+        // 刷新会话列表（新创建的会话需要显示在列表中）
+        this.loadSessionData()
 
         showToast('客服连接成功')
       } else {
@@ -407,20 +420,23 @@ Page({
   // 聊天弹窗管理
   // ============================================================================
 
-  // 打开聊天弹窗
-  openChatModal(type: string, name: string, icon: string) {
+  /**
+   * 打开聊天弹窗
+   *
+   * @param name - 聊天对象名称（如 '在线客服'）
+   * @param icon - 聊天对象图标（如 '🎧'）
+   */
+  openChatModal(name: string, icon: string) {
     this.setData({
       showChatModal: true,
-      currentChatType: type,
       currentChatName: name,
       currentChatIcon: icon,
-      isOnline: type === 'customer-service',
       inputContent: '',
       chatLoadStatus: 'loading'
     })
 
-    // 加载对应类型的历史消息
-    this.loadChatHistory(type)
+    // 加载当前会话的历史消息
+    this.loadChatHistory()
   },
 
   // 关闭聊天弹窗
@@ -437,165 +453,57 @@ Page({
   // 聊天历史消息
   // ============================================================================
 
-  // 加载聊天历史
-  async loadChatHistory(type: string) {
-    log.info('📚 加载聊天历史:', type)
+  /**
+   * 加载当前会话的聊天历史
+   *
+   * @description
+   * 后端路由: GET /api/v4/system/chat/sessions/:id/messages
+   * 使用当前 sessionId 获取消息列表。
+   *
+   * 消息字段（后端snake_case）:
+   * - chat_message_id: 消息主键
+   * - content: 消息内容
+   * - sender_type: 'user' | 'admin' | 'system'
+   * - message_type: 'text' | 'image' | 'system'
+   * - created_at: 创建时间（ISO 8601）
+   */
+  async loadChatHistory() {
+    log.info('📚 加载聊天历史，会话ID:', this.data.sessionId)
     this.setData({
       isLoadingHistory: true,
       chatLoadStatus: 'loading'
     })
 
     try {
-      if (type === 'customer-service') {
-        await this.loadCustomerServiceHistory()
-      } else {
-        await this.loadOtherTypeHistory(type)
-      }
-    } catch (error) {
-      log.error('❌ 加载历史消息失败:', error)
-      this.setData({ chatLoadStatus: 'error' })
-      showToast('加载历史消息失败')
-    } finally {
-      this.setData({ isLoadingHistory: false })
-    }
-  },
-
-  // 加载客服聊天历史
-  async loadCustomerServiceHistory() {
-    try {
-      if (this.data.sessionId) {
-        log.info('📚 从API加载聊天历史，会话ID:', this.data.sessionId)
-
-        const historyResult = await API.getChatHistory(this.data.sessionId, 1, 50)
-
-        if (historyResult.success && historyResult.data.messages) {
-          const apiMessages = historyResult.data.messages.map((msg: any) => {
-            const senderId = msg.senderId || msg.senderInfo?.userId || null
-
-            // 基于messageSource判断消息显示位置（后端v2.0.1）
-            let isOwn = false
-
-            if (msg.messageSource) {
-              switch (msg.messageSource) {
-                case 'user_client':
-                  isOwn = true
-                  break
-                case 'admin_client':
-                case 'system':
-                default:
-                  isOwn = false
-              }
-            } else if (msg.senderType) {
-              isOwn = msg.senderType === 'user'
-            } else {
-              isOwn = senderId === this.data.userId
-              log.warn('⚠️ [历史消息] 缺少messageSource和senderType，使用senderId判断')
-            }
-
-            return {
-              id: msg.messageId,
-              content: msg.content,
-              messageType: msg.messageType || 'text',
-              isOwn,
-              status: isOwn ? 'sent' : 'read',
-              timestamp: new Date(msg.createdAt).getTime(),
-              timeText: this.formatMessageTime(msg.createdAt),
-              showTime: true,
-              attachments: msg.attachments || []
-            }
-          })
-
-          // 按时间戳排序（最早的在前，最新的在后）
-          const sortedMessages = apiMessages.sort((a: any, b: any) => a.timestamp - b.timestamp)
-
-          log.info('✅ 成功加载聊天历史:', sortedMessages.length, '条消息')
-
-          this.setData({
-            messages: sortedMessages,
-            scrollToBottom: true,
-            chatLoadStatus: sortedMessages.length > 0 ? 'success' : 'empty'
-          })
-          return
-        } else {
-          log.warn('⚠️ API返回的历史消息为空')
-        }
-      }
-
-      // 没有sessionId或消息为空 → 显示空状态
-      this.setData({
-        messages: [],
-        scrollToBottom: true,
-        chatLoadStatus: 'empty'
-      })
-    } catch (error) {
-      log.error('❌ 加载客服历史失败:', error)
-      this.setData({
-        messages: [],
-        chatLoadStatus: 'error'
-      })
-    }
-  },
-
-  /**
-   * 加载非客服类型的聊天历史 - 仅从后端API获取真实数据
-   *
-   * @param type - 会话类型（system/ai/tech/activity/feedback）
-   */
-  async loadOtherTypeHistory(type: string) {
-    log.info('📱 开始加载聊天历史', type)
-
-    this.setData({
-      messages: [],
-      chatLoadStatus: 'loading'
-    })
-
-    try {
-      // 先获取该类型的会话session_id
-      const sessionsResult = await API.getChatSessions()
-
-      if (!sessionsResult || !sessionsResult.success || !sessionsResult.data?.sessions) {
-        log.warn('⚠️ 无法获取会话列表')
-        this.setData({ chatLoadStatus: 'empty' })
+      if (!this.data.sessionId) {
+        log.info('📝 无会话ID，显示空状态')
+        this.setData({ messages: [] as any[], scrollToBottom: true, chatLoadStatus: 'empty' })
         return
       }
 
-      // 根据type映射到session_type
-      const typeMapping: Record<string, string> = {
-        system: 'system-notify',
-        ai: 'ai-assistant',
-        tech: 'tech-support',
-        activity: 'activity',
-        feedback: 'feedback'
-      }
+      const historyResult = await API.getChatHistory(this.data.sessionId, 1, 50)
 
-      const sessionType = typeMapping[type] || type
-      const targetSession = sessionsResult.data.sessions.find(
-        (s: any) => s.session_type === sessionType
-      )
+      if (historyResult.success && historyResult.data && historyResult.data.messages) {
+        const apiMessages = historyResult.data.messages.map((msg: any) => {
+          // 判断消息方向: sender_type='user' → 自己发的(右侧)，其余 → 对方发的(左侧)
+          const isOwn = msg.sender_type === 'user'
 
-      if (!targetSession || !targetSession.session_id) {
-        log.info('📝 该类型暂无会话记录:', type)
-        this.setData({ chatLoadStatus: 'empty' })
-        return
-      }
+          return {
+            id: msg.chat_message_id || msg.id,
+            content: msg.content || '',
+            messageType: msg.message_type || 'text',
+            isOwn,
+            status: isOwn ? 'sent' : 'read',
+            timestamp: new Date(msg.created_at).getTime(),
+            timeText: this.formatMessageTime(msg.created_at),
+            showTime: true,
+            attachments: msg.attachments || []
+          }
+        })
 
-      // 使用session_id调用getChatHistory
-      const response = await API.getChatHistory(targetSession.session_id, 1, 50)
-
-      if (response.success && response.data && response.data.messages) {
-        const realMessages = response.data.messages.map((msg: any) => ({
-          id: msg.messageId || msg.id,
-          content: msg.content || '',
-          messageType: msg.messageType || 'text',
-          isOwn: msg.senderType === 'user',
-          timestamp: new Date(msg.createdAt || msg.timestamp).getTime(),
-          timeText: this.formatMessageTime(msg.createdAt || msg.timestamp),
-          showTime: true
-        }))
-
-        const sortedMessages = realMessages.sort((a: any, b: any) => a.timestamp - b.timestamp)
-
-        log.info('📱 成功加载聊天历史:', type, sortedMessages.length, '条消息')
+        // 按时间戳排序（最早的在前，最新的在后）
+        const sortedMessages = apiMessages.sort((a: any, b: any) => a.timestamp - b.timestamp)
+        log.info('✅ 成功加载聊天历史:', sortedMessages.length, '条消息')
 
         this.setData({
           messages: sortedMessages,
@@ -603,13 +511,15 @@ Page({
           chatLoadStatus: sortedMessages.length > 0 ? 'success' : 'empty'
         })
       } else {
-        log.warn('⚠️ 获取聊天历史失败:', response.message || '未知错误')
-        this.setData({ chatLoadStatus: 'empty' })
+        log.warn('⚠️ API返回的历史消息为空')
+        this.setData({ messages: [] as any[], scrollToBottom: true, chatLoadStatus: 'empty' })
       }
     } catch (error) {
-      log.error('❌ 加载聊天历史异常:', error)
-      this.setData({ chatLoadStatus: 'error' })
-      showToast('系统异常，请稍后重试')
+      log.error('❌ 加载历史消息失败:', error)
+      this.setData({ messages: [] as any[], chatLoadStatus: 'error' })
+      showToast('加载历史消息失败')
+    } finally {
+      this.setData({ isLoadingHistory: false })
     }
   },
 
@@ -705,9 +615,19 @@ Page({
       })
   },
 
-  // 处理统一WebSocket消息
+  /**
+   * 处理统一Socket.IO消息（对齐后端 ChatWebSocketService 事件协议）
+   *
+   * 后端事件协议:
+   * - connection_established: { user_id, is_admin, socket_id, server_time }
+   * - new_message: { chat_message_id, content, sender_type, session_id, ... }
+   * - message_sent: { chat_message_id, session_id, timestamp } — 发送确认
+   * - message_error: { error, message, timestamp } — 发送失败
+   * - session_closed: { session_id, close_reason, ... }
+   * - notification: { type, title, message, ... }
+   */
   handleUnifiedWebSocketMessage(eventName: string, data: any) {
-    log.info('📢 用户端收到统一WebSocket消息:', eventName)
+    log.info('📢 用户端收到Socket.IO消息:', eventName)
 
     switch (eventName) {
       case 'websocket_connected':
@@ -740,13 +660,38 @@ Page({
         })
         break
 
-      case 'new_user_message':
-        this.addMessage(data)
+      // 后端连接确认（含 user_id、is_admin、server_time）
+      case 'connection_established':
+        log.info('🤝 后端连接确认:', data)
         break
 
-      case 'admin_message':
-        log.info('👨‍💼 用户端收到管理员消息:', data)
-        this.handleAdminMessage(data)
+      // 新消息（后端 snake_case: chat_message_id, content, sender_type）
+      case 'new_message':
+        log.info('📨 用户端收到新消息:', data)
+        if (data.sender_type === 'admin') {
+          this.handleAdminMessage(data)
+        } else {
+          this.addMessage(data)
+        }
+        break
+
+      // 消息发送确认（后端写库成功回执: chat_message_id, session_id, timestamp）
+      case 'message_sent':
+        log.info('✅ 消息发送确认:', data)
+        this.handleMessageSentConfirm(data)
+        break
+
+      // 消息发送失败（后端处理出错: error, message, timestamp）
+      case 'message_error':
+        log.error('❌ 消息发送失败:', data)
+        this.handleMessageSendError(data)
+        break
+
+      // 会话关闭（后端: session_id, close_reason）
+      case 'session_closed':
+        log.info('🔚 会话已关闭:', data)
+        this.setData({ sessionStatus: 'closed' })
+        this.loadSessionData()
         break
 
       case 'user_typing':
@@ -762,24 +707,66 @@ Page({
     }
   },
 
-  // 处理管理员消息
+  /**
+   * 处理管理员消息
+   * 后端统一使用 snake_case 字段: chat_message_id, sender_type, message_type, created_at
+   */
   handleAdminMessage(messageData: any) {
     log.info('👨‍💼 处理管理员消息')
 
     const adminMessage = {
-      id: messageData.messageId || `admin_msg_${Date.now()}`,
+      id: messageData.chat_message_id || `admin_msg_${Date.now()}`,
       content: messageData.content,
-      messageType: messageData.messageType || 'text',
-      senderId: messageData.adminId || messageData.senderId,
+      messageType: messageData.message_type || 'text',
+      senderId: messageData.sender_id,
       senderType: 'admin',
-      messageSource: messageData.messageSource || 'admin_client',
-      timestamp: messageData.timestamp || Date.now(),
-      createdAt: messageData.createdAt || new Date().toISOString(),
+      messageSource: messageData.message_source || 'admin_client',
+      timestamp: messageData.created_at ? new Date(messageData.created_at).getTime() : Date.now(),
+      createdAt: messageData.created_at || new Date().toISOString(),
       attachments: messageData.attachments || []
     }
 
     this.addMessage(adminMessage)
     log.info('✅ 管理员消息处理完成')
+  },
+
+  /**
+   * 处理 message_sent 确认（后端通过 Socket.IO 写库成功的回执）
+   * 后端返回: { chat_message_id, session_id, timestamp }
+   * 用于将本地 'sending' 状态的消息更新为 'sent'，并替换临时 ID 为真实 ID
+   */
+  handleMessageSentConfirm(data: any) {
+    const serverMsgId = data.chat_message_id
+    if (!serverMsgId) {
+      return
+    }
+
+    // 找到最近一条 status='sending' 的自己的消息，更新为 sent
+    const messages = this.data.messages.map((msg: any) => {
+      if (msg.isOwn && msg.status === 'sending') {
+        return { ...msg, status: 'sent', id: serverMsgId }
+      }
+      return msg
+    })
+    this.setData({ messages })
+  },
+
+  /**
+   * 处理 message_error（后端处理 send_message 失败的回执）
+   * 后端返回: { error, message, timestamp }
+   */
+  handleMessageSendError(data: any) {
+    log.error('❌ 后端消息处理失败:', data.message || data.error)
+
+    // 将最近一条 'sending' 消息标记为 failed
+    const messages = this.data.messages.map((msg: any) => {
+      if (msg.isOwn && msg.status === 'sending') {
+        return { ...msg, status: 'failed' }
+      }
+      return msg
+    })
+    this.setData({ messages })
+    showToast(data.message || '消息发送失败')
   },
 
   // 断开WebSocket连接
@@ -804,29 +791,18 @@ Page({
   // 消息管理
   // ============================================================================
 
-  // 添加消息
+  /**
+   * 添加消息到聊天列表
+   *
+   * 后端统一事件 new_message 字段: sender_type = 'user' | 'admin' | 'system'
+   * 判断消息方向: sender_type='user' → 自己发的(右侧)，其余 → 对方发的(左侧)
+   */
   addMessage(messageData: any) {
-    const senderId = messageData.senderId || messageData.senderInfo?.userId || null
+    // 后端字段: sender_type（snake_case），直接使用
+    const senderType = messageData.senderType || messageData.sender_type || ''
 
-    // 基于messageSource判断消息显示位置（后端v2.0.1）
-    let isOwn = false
-
-    if (messageData.messageSource) {
-      switch (messageData.messageSource) {
-        case 'user_client':
-          isOwn = true
-          break
-        case 'admin_client':
-        case 'system':
-        default:
-          isOwn = false
-      }
-    } else if (messageData.senderType) {
-      isOwn = messageData.senderType === 'user'
-    } else {
-      isOwn = senderId === this.data.userId
-      log.warn('⚠️ [聊天] 缺少messageSource和senderType，使用senderId判断')
-    }
+    // 基于 sender_type 判断消息显示位置
+    const isOwn = senderType === 'user'
 
     const newMessage = {
       id: messageData.id || `msg_${Date.now()}`,
@@ -867,22 +843,28 @@ Page({
     return timeDiff > TIME.MINUTE * 5
   },
 
-  // 更新会话预览（收到新消息时更新列表中的预览文字）
+  /**
+   * 更新会话预览（收到新消息时更新列表中的预览文字和未读数）
+   *
+   * @param content - 新消息文本内容
+   */
   updateSessionPreview(content: string) {
-    if (this.data.currentChatType === 'customer-service') {
-      const channels = this.data.sessionChannels.map((ch: any) => {
-        if (ch.type === 'customer-service') {
-          return {
-            ...ch,
-            preview: content,
-            unread: this.data.showChatModal ? 0 : ch.unread + 1
-          }
-        }
-        return ch
-      })
-      this.setData({ sessionChannels: channels })
-      this.updateTotalUnreadCount()
+    if (!this.data.sessionId) {
+      return
     }
+
+    const sessions = this.data.sessions.map((s: any) => {
+      if (s.sessionId === this.data.sessionId) {
+        return {
+          ...s,
+          preview: content,
+          unread: this.data.showChatModal ? 0 : s.unread + 1
+        }
+      }
+      return s
+    })
+    this.setData({ sessions })
+    this.updateTotalUnreadCount()
   },
 
   // 处理输入状态指示器
@@ -936,7 +918,7 @@ Page({
     }
 
     // 检查sessionId是否存在
-    if (!this.data.sessionId && this.data.currentChatType === 'customer-service') {
+    if (!this.data.sessionId) {
       showToast('会话连接中，请稍后重试')
       return
     }
@@ -955,7 +937,7 @@ Page({
     }
 
     try {
-      // 立即更新本地消息列表
+      // 立即更新本地消息列表（乐观 UI）
       const messages = [...this.data.messages, message]
       this.setData({
         messages,
@@ -964,67 +946,44 @@ Page({
         chatLoadStatus: 'success'
       })
 
-      // 客服聊天：API + WebSocket双通道发送
-      if (this.data.currentChatType === 'customer-service' && this.data.sessionId) {
-        // 1. 通过API发送消息（确保存储到数据库）
-        try {
-          const apiResult = await API.sendChatMessage({
-            sessionId: this.data.sessionId,
-            content,
-            messageType: 'text',
-            tempMessageId: message.id,
-            messageSource: 'user_client',
-            senderType: 'user'
-          })
-
-          if (apiResult.success) {
-            log.info('✅ API消息发送成功')
-
-            const updatedMessages = this.data.messages.map((msg: any) =>
-              msg.id === message.id
-                ? {
-                    ...msg,
-                    status: 'sent',
-                    id: apiResult.data.messageId || msg.id
-                  }
-                : msg
-            )
-            this.setData({ messages: updatedMessages })
-          } else {
-            log.error('❌ API消息发送失败', apiResult.message)
-            throw new Error(apiResult.message || 'API发送失败')
-          }
-        } catch (apiError) {
-          log.error('❌ API发送消息出错', apiError)
-        }
-
-        // 2. 通过WebSocket发送消息（实时通知）
-        if (this.websocket && this.data.wsConnected) {
-          const wsMessage = {
-            type: 'send_message',
-            sessionId: this.data.sessionId,
-            content,
-            messageType: 'text',
-            messageSource: 'user_client',
-            senderType: 'user'
-          }
-
-          try {
-            this.websocket.send({
-              data: JSON.stringify(wsMessage)
-            })
-            log.info('✅ WebSocket消息发送成功')
-          } catch (wsError) {
-            log.error('❌ WebSocket发送失败', wsError)
-          }
-        }
-      } else {
-        // 非客服聊天功能暂未实现
-        log.warn('⚠️ 非客服聊天功能暂未实现，等待后端API开发')
-        showToast('该聊天类型暂未开放')
-
+      if (!this.data.sessionId) {
+        log.warn('⚠️ 无有效会话ID，无法发送消息')
+        showToast('会话连接中，请稍后重试')
         const updatedMessages = this.data.messages.filter((msg: any) => msg.id !== message.id)
         this.setData({ messages: updatedMessages })
+        return
+      }
+
+      /**
+       * 发送策略: Socket.IO 优先（后端自动写库 + 回执），API 降级兜底
+       *
+       * Socket.IO 通道:
+       *   emit('send_message', { session_id, content, message_type })
+       *   → 后端自动写库 → 回推 message_sent / message_error
+       *   → handleMessageSentConfirm / handleMessageSendError 更新本地状态
+       *
+       * API 降级:
+       *   Socket.IO 未连接时，走 POST /api/v4/system/chat/sessions/:id/messages
+       */
+      if (this.data.wsConnected) {
+        // 主通道: Socket.IO（后端自动写库，回执 message_sent / message_error）
+        try {
+          const appInstance = getApp()
+          appInstance.emitSocketMessage('send_message', {
+            session_id: this.data.sessionId,
+            content,
+            message_type: 'text'
+          })
+          log.info('✅ Socket.IO send_message 已发送，等待后端回执')
+          // 状态由 handleMessageSentConfirm / handleMessageSendError 自动更新
+        } catch (wsError) {
+          log.error('❌ Socket.IO emit 异常，降级到 API:', wsError)
+          await this.sendMessageViaAPI(message.id, content)
+        }
+      } else {
+        // 降级通道: REST API
+        log.info('🔄 Socket.IO 未连接，使用 API 发送')
+        await this.sendMessageViaAPI(message.id, content)
       }
     } catch (error) {
       log.error('❌ sendMessage函数执行出错:', error)
@@ -1034,6 +993,42 @@ Page({
         msg.id === message.id ? { ...msg, status: 'failed' } : msg
       )
       this.setData({ messages: updatedMessages })
+    }
+  },
+
+  /**
+   * API 降级发送（Socket.IO 不可用时的兜底）
+   * 后端路由: POST /api/v4/system/chat/sessions/:id/messages
+   */
+  async sendMessageViaAPI(localMsgId: string, content: string) {
+    try {
+      const apiResult = await API.sendChatMessage(this.data.sessionId, {
+        content,
+        message_type: 'text',
+        sender_type: 'user'
+      })
+
+      if (apiResult.success) {
+        log.info('✅ API 降级发送成功')
+        const updatedMessages = this.data.messages.map((msg: any) =>
+          msg.id === localMsgId
+            ? { ...msg, status: 'sent', id: apiResult.data?.chat_message_id || msg.id }
+            : msg
+        )
+        this.setData({ messages: updatedMessages })
+      } else {
+        log.error('❌ API 降级发送失败:', apiResult.message)
+        const failedMessages = this.data.messages.map((msg: any) =>
+          msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
+        )
+        this.setData({ messages: failedMessages })
+      }
+    } catch (apiError) {
+      log.error('❌ API 降级发送异常:', apiError)
+      const failedMessages = this.data.messages.map((msg: any) =>
+        msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
+      )
+      this.setData({ messages: failedMessages })
     }
   },
 
@@ -1136,7 +1131,7 @@ Page({
   showSessionInfo() {
     wx.showModal({
       title: '会话信息',
-      content: `会话类型：${this.data.currentChatName}\n状态：${this.data.isOnline ? '在线' : '离线'}`,
+      content: `会话：${this.data.currentChatName}\n状态：${SESSION_STATUS_MAP[this.data.sessionStatus] || this.data.sessionStatus}`,
       showCancel: false
     })
   },

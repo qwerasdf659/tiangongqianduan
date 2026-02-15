@@ -595,6 +595,58 @@ const formatDateMessage = (timestamp: number | string | Date): string => {
   }
 }
 
+// ===== 用户角色判断 =====
+
+/**
+ * 判断用户角色（管理员 or 普通用户）
+ * 判断标准: is_admin === true ∥ user_role === 'admin' ∥ role_level >= 100
+ *
+ * 此函数为唯一的角色判断逻辑，store/user.ts 的 isAdmin 计算属性、
+ * setLoginState、restoreLoginState 均统一调用此函数，禁止重复编写。
+ *
+ * @param userInfo - 后端返回的用户信息（API.UserProfile）
+ * @returns 'admin' | 'user'
+ */
+const determineUserRole = (userInfo: {
+  is_admin?: boolean
+  user_role?: string
+  role_level?: number
+}): string => {
+  if (!userInfo) {
+    return 'guest'
+  }
+  if (
+    userInfo.is_admin === true ||
+    userInfo.user_role === 'admin' ||
+    (typeof userInfo.role_level === 'number' && userInfo.role_level >= 100)
+  ) {
+    return 'admin'
+  }
+  return 'user'
+}
+
+// ===== URL查询参数构建 =====
+
+/**
+ * 构建URL查询参数字符串
+ * 统一处理空值过滤、encodeURIComponent编码、参数拼接
+ *
+ * 替代 api.ts 中多处手动字符串拼接，消除重复代码和编码遗漏。
+ *
+ * @param params - 参数键值对（值为 null/undefined/'' 的参数自动过滤）
+ * @returns 拼接好的查询字符串（不含前导 ?），如 "page=1&page_size=20&status=active"
+ *
+ * @example
+ * buildQueryString({ page: 1, page_size: 20, status: null })
+ * // → "page=1&page_size=20"
+ */
+const buildQueryString = (params: Record<string, any>): string => {
+  return Object.entries(params)
+    .filter(([, value]) => value !== null && value !== undefined && value !== '')
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .join('&')
+}
+
 // ===== 导出模块 =====
 module.exports = {
   formatTime,
@@ -612,7 +664,9 @@ module.exports = {
   safeJsonParse,
   formatPoints,
   formatPhoneNumber,
-  formatDateMessage
+  formatDateMessage,
+  determineUserRole,
+  buildQueryString
 }
 
 export {}

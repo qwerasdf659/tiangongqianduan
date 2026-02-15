@@ -4,26 +4,18 @@
  * 管理内容: 登录状态、认证信息、用户角色、userInfo
  * 数据来源: 后端 POST /api/v4/auth/login、GET /api/v4/auth/profile
  *
+ * 用户信息类型统一使用 API.UserProfile（typings/api.d.ts）
+ * 角色判断统一使用 determineUserRole()（utils/util.ts）
+ *
  * @file 天工餐厅积分系统 - 用户Store
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 import { observable, action } from 'mobx-miniprogram'
 
-/** 用户信息结构（后端返回的snake_case字段） */
-interface UserInfo {
-  user_id: number
-  user_uuid: string
-  mobile: string
-  nickname: string
-  status: string
-  is_admin: boolean
-  user_role: string
-  role_level: number
-  avatar_url?: string
-  created_at: string
-}
+/* 内部模块直接引用，不通过 utils/index.ts（避免循环依赖） */
+const { determineUserRole } = require('../utils/util')
 
 export const userStore = observable({
   // ===== 可观察状态 =====
@@ -31,8 +23,8 @@ export const userStore = observable({
   /** 是否已登录 */
   isLoggedIn: false as boolean,
 
-  /** 用户信息（后端返回的完整用户数据） */
-  userInfo: null as UserInfo | null,
+  /** 用户信息（后端返回的完整用户数据，类型见 API.UserProfile） */
+  userInfo: null as API.UserProfile | null,
 
   /** 当前访问令牌 */
   accessToken: '' as string,
@@ -45,16 +37,12 @@ export const userStore = observable({
 
   // ===== 计算属性 =====
 
-  /** 是否为管理员 */
+  /** 是否为管理员（统一调用 determineUserRole 判断） */
   get isAdmin(): boolean {
     if (!this.userInfo) {
       return false
     }
-    return (
-      this.userInfo.is_admin === true ||
-      this.userInfo.user_role === 'admin' ||
-      (this.userInfo.role_level && this.userInfo.role_level >= 100)
-    )
+    return determineUserRole(this.userInfo) === 'admin'
   },
 
   /** 用户ID */
@@ -81,7 +69,7 @@ export const userStore = observable({
   /** 设置登录状态（登录成功后调用） */
   setLoginState: action(function (
     this: any,
-    userInfo: UserInfo,
+    userInfo: API.UserProfile,
     accessToken: string,
     refreshToken: string
   ) {
@@ -90,12 +78,8 @@ export const userStore = observable({
     this.accessToken = accessToken
     this.refreshToken = refreshToken
 
-    // 根据用户信息判断角色
-    if (userInfo.is_admin || userInfo.user_role === 'admin' || userInfo.role_level >= 100) {
-      this.userRole = 'admin'
-    } else {
-      this.userRole = 'user'
-    }
+    // 统一角色判断（唯一逻辑入口）
+    this.userRole = determineUserRole(userInfo)
 
     // 同步到本地存储
     wx.setStorageSync('access_token', accessToken)
@@ -104,7 +88,7 @@ export const userStore = observable({
   }),
 
   /** 更新用户信息（刷新用户资料后调用） */
-  updateUserInfo: action(function (this: any, userInfo: UserInfo) {
+  updateUserInfo: action(function (this: any, userInfo: API.UserProfile) {
     this.userInfo = userInfo
     wx.setStorageSync('user_info', userInfo)
   }),
@@ -146,11 +130,8 @@ export const userStore = observable({
       this.refreshToken = refreshToken || ''
       this.userInfo = userInfo
 
-      if (userInfo.is_admin || userInfo.user_role === 'admin' || userInfo.role_level >= 100) {
-        this.userRole = 'admin'
-      } else {
-        this.userRole = 'user'
-      }
+      // 统一角色判断（唯一逻辑入口）
+      this.userRole = determineUserRole(userInfo)
     }
   })
 })

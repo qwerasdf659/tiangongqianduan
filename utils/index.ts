@@ -1,10 +1,11 @@
 /**
- * Utils统一导出模块 v5.0 - 对齐后端V4.7.0真实路由
+ * Utils统一导出模块 v5.1 - 对齐后端V4.7.0真实路由
  *
  * 集中管理所有工具函数，防止导入混乱
  * 统一使用分类导出：Utils / Validation / API / Wechat / ErrorHandler / Constants
  *
  * 使用展开运算符自动同步模块导出，新增函数无需手动维护映射
+ * API模块已拆分为 utils/api/ 子目录（方案A：barrel re-export，页面零改动）
  *
  * 命名规范:
  *   业务逻辑层: 100% camelCase（变量名、函数名）
@@ -12,8 +13,8 @@
  *   工具类/类名: PascalCase（APIClient等）
  *
  * @file 天工餐厅积分系统 - 工具函数统一入口
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 // ===== 内部模块导入（index.ts内部直接引用，不通过自身循环引用） =====
@@ -27,7 +28,6 @@ const configCacheFunctions = require('./config-cache')
 const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const productFilterFunctions = require('./product-filter')
-
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
 /** 基础工具函数 - 日期格式化、字符串处理、防抖节流、JWT处理、认证助手 */
@@ -38,7 +38,8 @@ const Validation = { ...validateFunctions }
 
 /**
  * API接口函数 - V4.0统一引擎（对齐后端V4.7.0真实路由）
- * 新增API方法只需在 api.ts 的 module.exports 中添加，此处自动同步
+ * API已拆分到 utils/api/ 子目录，require('./api') 解析到 api/index.ts
+ * 新增API方法只需在对应子模块导出，api/index.ts barrel自动同步
  */
 const API = { ...apiFunctions }
 
@@ -59,6 +60,8 @@ const Waterfall = { ...waterfallFunctions }
 
 /** 商品筛选工具 - 通用筛选/排序/搜索 */
 const ProductFilter = { ...productFilterFunctions }
+
+// WebSocket重连工具已移除 — Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
 const Constants = require('../config/constants')

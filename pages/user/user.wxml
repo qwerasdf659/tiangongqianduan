@@ -100,7 +100,7 @@
       <!-- ✅ 审批管理 - 商家店长(level>=40)可用 -->
       <view
         class="menu-item"
-        wx:if="{{isManager}}"
+        wx:if="{{isAdmin}}"
         bindtap="goToAuditList"
         style="border-left: 4rpx solid #4caf50"
       >

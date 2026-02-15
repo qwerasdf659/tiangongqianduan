@@ -5,8 +5,8 @@
  * 业务数据（用户认证/积分）统一由 MobX Store 管理，globalData 仅保留系统配置
  *
  * @file 天工餐厅积分系统 - 全局类型定义
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 /// <reference path="../node_modules/miniprogram-api-typings/index.d.ts" />
@@ -62,32 +62,30 @@ interface IAppOption {
   setRefreshToken(token: string): void
   /** 安全获取系统信息 */
   getSafeSystemInfo(): any
-  /** 连接WebSocket */
+  /** 连接 Socket.IO（weapp.socket.io，心跳/重连/事件路由由 Socket.IO 内建管理） */
   connectWebSocket(): Promise<void>
-  /** 断开WebSocket */
+  /** 断开 Socket.IO 连接 */
   disconnectWebSocket(): void
-  /** 发送WebSocket消息 */
-  sendWebSocketMessage(message: any): Promise<void>
-  /** 订阅WebSocket消息 */
+  /**
+   * 发送 Socket.IO 事件消息
+   * @param eventName - 事件名称（如 'send_message'、'admin_register'）
+   * @param data - 消息数据对象（Socket.IO 自动序列化，无需手动 JSON.stringify）
+   */
+  emitSocketMessage(eventName: string, data: any): void
+  /** 订阅 Socket.IO 消息（页面级） */
   subscribeWebSocketMessages(pageId: string, callback: Function): void
-  /** 取消订阅WebSocket消息 */
+  /** 取消订阅 Socket.IO 消息（页面卸载时调用） */
   unsubscribeWebSocketMessages(pageId: string): void
 }
 
 /** App命名空间 - 项目级类型 */
 declare namespace App {
-  /** 用户信息结构（后端返回的snake_case字段） */
-  interface UserInfo {
-    user_id: number
-    mobile: string
-    nickname: string
-    status: string
-    is_admin: boolean
-    user_role: string
-    role_level: number
-    avatar_url?: string
-    points?: number
-  }
+  /**
+   * 用户信息结构 — 统一引用 API.UserProfile
+   * 权威定义在 typings/api.d.ts → API.UserProfile
+   * 所有文件统一使用此类型，禁止重复定义
+   */
+  type UserInfo = API.UserProfile
 
   /** 页面通用数据 */
   interface PageData {

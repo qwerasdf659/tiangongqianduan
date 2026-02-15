@@ -365,7 +365,7 @@ Component({
         try {
           wx.vibrateShort({ type: 'light' })
         } catch (_e) {
-          /* 兼容降级 */
+          /* 部分设备不支持震动API，静默降级 */
         }
       }
 
@@ -454,7 +454,7 @@ Component({
       try {
         wx.vibrateLong()
       } catch (_e) {
-        /* 兼容降级 */
+        /* 部分设备不支持震动API，静默降级 */
       }
 
       /* 延迟通知父组件动画结束（让庆祝特效充分播放） */

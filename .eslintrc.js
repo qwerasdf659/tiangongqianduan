@@ -151,6 +151,8 @@ module.exports = {
       plugins: ['@typescript-eslint'],
       rules: {
         // TS文件由TypeScript编译器检查类型
+        // 关闭no-undef：TypeScript已接管未定义变量检查，ESLint的no-undef不理解declare namespace
+        'no-undef': 'off',
         // 关闭ESLint原生no-unused-vars，使用@typescript-eslint版本
         'no-unused-vars': 'off',
         '@typescript-eslint/no-unused-vars': [

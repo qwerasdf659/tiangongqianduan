@@ -53,19 +53,19 @@
     <text class="result-title">核销成功</text>
     <text class="result-subtitle">商品已成功核销，用户物品状态已更新</text>
 
-    <!-- 核销详情 -->
+    <!-- 核销详情（字段来自后端 POST /api/v4/shop/redemption/fulfill 响应） -->
     <view class="detail-card" wx:if="{{verifyResult}}">
-      <view class="detail-item" wx:if="{{verifyResult.redemption_order_id}}">
+      <view class="detail-item" wx:if="{{verifyResult.order_id}}">
         <text class="detail-label">订单编号</text>
-        <text class="detail-value">{{verifyResult.redemption_order_id}}</text>
+        <text class="detail-value">{{verifyResult.order_id}}</text>
       </view>
       <view class="detail-item" wx:if="{{verifyResult.item_name}}">
         <text class="detail-label">核销物品</text>
         <text class="detail-value">{{verifyResult.item_name}}</text>
       </view>
-      <view class="detail-item" wx:if="{{verifyResult.user_nickname}}">
+      <view class="detail-item" wx:if="{{verifyResult.redeemer_nickname}}">
         <text class="detail-label">用户昵称</text>
-        <text class="detail-value">{{verifyResult.user_nickname}}</text>
+        <text class="detail-value">{{verifyResult.redeemer_nickname}}</text>
       </view>
       <view class="detail-item" wx:if="{{verifyResult.fulfilled_at}}">
         <text class="detail-label">核销时间</text>

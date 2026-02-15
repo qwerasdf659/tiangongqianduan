@@ -18,6 +18,8 @@
  */
 
 const { createLogger } = require('./logger')
+/* 内部模块直接引用，不通过 utils/index.ts（避免循环依赖） */
+const { determineUserRole } = require('./util')
 const log = createLogger('auth-helper')
 
 // ===== 类型定义 =====
@@ -40,18 +42,10 @@ interface CheckAdminOptions {
   navigateBack?: boolean
 }
 
-/** 用户信息结构（后端返回的snake_case字段） */
-interface AuthUserInfo {
-  user_id: number
-  mobile: string
-  nickname: string
-  status: string
-  is_admin: boolean
-  user_role: string
-  role_level: number
-  avatar_url?: string
-  points?: number
-}
+/**
+ * 用户信息结构 — 统一使用 API.UserProfile（typings/api.d.ts）
+ * 禁止在此文件重复定义 UserInfo 接口
+ */
 
 // ===== 延迟获取 Store（避免循环依赖） =====
 
@@ -134,12 +128,10 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
   }
 
   const store = getUserStore()
-  const userInfo: AuthUserInfo | null = store.userInfo || wx.getStorageSync('user_info') || null
+  const userInfo: API.UserProfile | null = store.userInfo || wx.getStorageSync('user_info') || null
 
-  const isAdmin: boolean = !!(
-    userInfo?.is_admin === true ||
-    (userInfo?.role_level && userInfo.role_level >= 100)
-  )
+  /* 统一使用 determineUserRole()（utils/util.ts），禁止重复编写判断逻辑 */
+  const isAdmin: boolean = !!userInfo && determineUserRole(userInfo) === 'admin'
 
   log.info('🔍 管理员权限检查:', {
     hasUserInfo: !!userInfo,
@@ -190,7 +182,7 @@ function getAccessToken(): string | null {
  * const userInfo = getUserInfo();
  * if (userInfo) { log.info('用户ID:', userInfo.user_id); }
  */
-function getUserInfo(): AuthUserInfo | null {
+function getUserInfo(): API.UserProfile | null {
   const store = getUserStore()
   return store.userInfo || wx.getStorageSync('user_info') || null
 }
@@ -245,14 +237,14 @@ function restoreUserInfo(): any {
     if (jwtPayload && jwtPayload.user_id) {
       userInfo = {
         user_id: jwtPayload.user_id,
+        user_uuid: jwtPayload.user_uuid || '',
         mobile: jwtPayload.mobile,
         nickname: jwtPayload.nickname || '用户',
-        status: jwtPayload.status,
+        status: jwtPayload.status || 'active',
         is_admin: jwtPayload.is_admin || false,
         user_role: jwtPayload.user_role || 'user',
         role_level: jwtPayload.role_level || 0,
-        iat: jwtPayload.iat,
-        exp: jwtPayload.exp
+        created_at: jwtPayload.created_at || ''
       }
       wx.setStorageSync('user_info', userInfo)
       store.updateUserInfo(userInfo)
