@@ -639,5 +639,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

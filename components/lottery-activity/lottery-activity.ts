@@ -49,7 +49,12 @@ function normalizePrize(raw: any, index: number): any {
 
   /* 🔍 字段缺失诊断：如果关键字段不存在，打印警告帮助定位问题 */
   if (raw.name === undefined || raw.name === null || raw.name === '') {
-    log.warn('[normalizePrize] ⚠️ 奖品缺少name字段, 原始字段:', Object.keys(raw).join(', '), ', id:', raw.id)
+    log.warn(
+      '[normalizePrize] ⚠️ 奖品缺少name字段, 原始字段:',
+      Object.keys(raw).join(', '),
+      ', id:',
+      raw.id
+    )
   }
 
   return {
@@ -220,13 +225,25 @@ Component({
         const prizesRaw = prizesRes.data
 
         /* 🔍 诊断日志：打印后端prizes响应的data结构 */
-        log.info('[lottery-activity] prizesRes.data 类型:', typeof prizesRaw, ', isArray:', Array.isArray(prizesRaw))
+        log.info(
+          '[lottery-activity] prizesRes.data 类型:',
+          typeof prizesRaw,
+          ', isArray:',
+          Array.isArray(prizesRaw)
+        )
         if (prizesRaw && !Array.isArray(prizesRaw)) {
-          log.error('[lottery-activity] ⚠️ prizesRes.data 不是数组! 实际keys:', Object.keys(prizesRaw).join(', '))
+          log.error(
+            '[lottery-activity] ⚠️ prizesRes.data 不是数组! 实际keys:',
+            Object.keys(prizesRaw).join(', ')
+          )
         }
 
         if (!Array.isArray(prizesRaw) || prizesRaw.length === 0) {
-          log.warn('[lottery-activity] 奖品数据为空，检查后端 GET /api/v4/lottery/campaigns/' + campaignCode + '/prizes 返回值')
+          log.warn(
+            '[lottery-activity] 奖品数据为空，检查后端 GET /api/v4/lottery/campaigns/' +
+              campaignCode +
+              '/prizes 返回值'
+          )
           this.setData({ loading: false, loadError: '奖品数据为空' })
           return
         }
@@ -838,5 +855,4 @@ Component({
   }
 })
 
-export { }
-
+export {}
