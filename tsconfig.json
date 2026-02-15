@@ -7,18 +7,15 @@
     "module": "CommonJS",
 
     /**
-     * 严格模式策略：
-     * strict:true 开启全部严格检查，再逐项关闭与小程序Page/Component不兼容的选项。
-     * 微信小程序的 Page({}) / Component({}) 会在运行时动态挂载 this 属性，
-     * TypeScript 静态分析无法推断这些属性，因此需要放宽相关检查。
+     * 严格模式策略（2026-02-15 一步到位开启）：
+     * strict:true 开启全部严格检查。
+     * 仅保留2项微信小程序框架不可避免的豁免：
+     *   - noImplicitThis: false — Page({}) / Component({}) 运行时挂载 this 属性，TS静态分析无法推断
+     *   - strictPropertyInitialization: false — 同上原因，Component data/properties 由框架初始化
      */
     "strict": true,
-    "noImplicitAny": false,
     "noImplicitThis": false,
-    "strictBindCallApply": false,
     "strictPropertyInitialization": false,
-    "strictNullChecks": false,
-    "useUnknownInCatchVariables": false,
 
     /* ES模块互操作 - 允许CommonJS和ES模块混用 */
     "esModuleInterop": true,

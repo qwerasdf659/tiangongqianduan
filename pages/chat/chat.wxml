@@ -1,4 +1,4 @@
-<!--pages/chat/chat.wxml - 用户端聊天会话列表界面-->
+<!--pages/chat/chat.wxml - 用户端聊天会话列表界面 V6.0 UI优化版-->
 <view class="chat-sessions-container">
   <!-- 顶部搜索栏 -->
   <view class="search-header">
@@ -79,6 +79,8 @@
           <view class="avatar-bg customer-service-bg">
             <text class="avatar-icon">{{item.icon}}</text>
           </view>
+          <!-- 在线状态指示器 -->
+          <view class="online-indicator"></view>
         </view>
 
         <!-- 会话内容 -->
@@ -105,7 +107,8 @@
 <!-- ===== 聊天弹窗（全屏覆盖） ===== -->
 <view class="chat-modal {{showChatModal ? 'show' : ''}}" bindtap="onModalMaskTap">
   <view class="modal-content" catchtap="onModalContentTap">
-    <!-- 聊天头部 -->
+
+    <!-- 聊天头部 - 优化版 -->
     <view class="chat-header">
       <view class="header-left">
         <view class="back-btn-wrapper" bindtap="closeChatModal">
@@ -115,19 +118,31 @@
           <view class="avatar-bg customer-service-bg">
             <text class="avatar-icon">{{currentChatIcon}}</text>
           </view>
+          <!-- 在线状态点 -->
+          <view class="header-online-dot {{wsConnected ? 'online' : 'offline'}}"></view>
         </view>
         <view class="session-detail">
           <text class="session-name">{{currentChatName}}</text>
-          <text class="session-status"
-            >{{sessionStatus === 'active' ? '对话中' : (sessionStatus === 'waiting' ? '等待客服' :
-            sessionStatus)}}</text
-          >
+          <view class="session-status-row">
+            <view class="status-dot {{wsConnected ? 'dot-online' : 'dot-offline'}}"></view>
+            <text class="session-status-text"
+              >{{sessionStatus === 'active' ? '对话中' : (sessionStatus === 'waiting' ? '等待接入...' : (sessionStatus === 'closed' ? '已结束' : (wsConnected ? '已连接' : '连接中...')))}}</text
+            >
+          </view>
         </view>
       </view>
       <view class="header-right">
         <view class="more-btn-wrapper" bindtap="showChatMenu">
           <text class="more-btn">⋯</text>
         </view>
+      </view>
+    </view>
+
+    <!-- 连接状态横幅（断线时显示） -->
+    <view wx:if="{{!wsConnected && showChatModal}}" class="connection-banner">
+      <view class="banner-content">
+        <view class="banner-spinner"></view>
+        <text class="banner-text">正在重新连接...</text>
       </view>
     </view>
 
@@ -140,6 +155,7 @@
       enhanced="{{true}}"
       show-scrollbar="{{false}}"
       catchtap="onMessagesAreaTap"
+      bindscroll="onChatScroll"
     >
       <!-- 历史消息加载中 -->
       <view wx:if="{{isLoadingHistory}}" class="loading-history">
@@ -147,16 +163,41 @@
         <text class="loading-text">加载历史消息...</text>
       </view>
 
-      <!-- 聊天空状态（无历史消息） -->
+      <!-- 欢迎卡片（无历史消息时展示） -->
       <view
-        wx:if="{{chatLoadStatus === 'empty' && messages.length === 0 && !isLoadingHistory}}"
-        class="chat-empty-state"
+        wx:if="{{(chatLoadStatus === 'empty' || chatLoadStatus === 'success') && messages.length === 0 && !isLoadingHistory}}"
+        class="welcome-card"
       >
-        <view class="chat-empty-icon-wrapper">
-          <text class="chat-empty-icon">💬</text>
+        <view class="welcome-avatar-wrapper">
+          <view class="welcome-avatar">
+            <text class="welcome-avatar-icon">🎧</text>
+          </view>
+          <view class="welcome-pulse"></view>
         </view>
-        <text class="chat-empty-title">暂无消息记录</text>
-        <text class="chat-empty-desc">发送消息开始对话</text>
+        <text class="welcome-title">{{currentChatName}}</text>
+        <text class="welcome-subtitle">很高兴为您服务</text>
+        <view class="welcome-tips">
+          <view class="tip-item">
+            <text class="tip-icon">⏱</text>
+            <text class="tip-text">工作时间：9:00-18:00</text>
+          </view>
+          <view class="tip-item">
+            <text class="tip-icon">💡</text>
+            <text class="tip-text">请描述您的问题，我们会尽快回复</text>
+          </view>
+        </view>
+        <!-- 快捷问题 -->
+        <view class="welcome-quick-actions">
+          <view class="quick-action-item" bindtap="onQuickReply" data-text="如何查看我的积分？">
+            <text>查看积分</text>
+          </view>
+          <view class="quick-action-item" bindtap="onQuickReply" data-text="如何兑换商品？">
+            <text>兑换商品</text>
+          </view>
+          <view class="quick-action-item" bindtap="onQuickReply" data-text="我的订单有问题">
+            <text>订单问题</text>
+          </view>
+        </view>
       </view>
 
       <!-- 聊天加载失败 -->
@@ -177,13 +218,16 @@
       >
         <!-- 时间分割线 -->
         <view wx:if="{{item.showTime}}" class="time-divider">
-          <view class="time-line"></view>
           <text class="time-text">{{item.timeText}}</text>
-          <view class="time-line"></view>
         </view>
 
-        <!-- 消息内容 -->
-        <view class="message-content">
+        <!-- 系统消息（独立展示，不走气泡布局） -->
+        <view wx:if="{{item.messageType === 'system'}}" class="system-message-wrapper">
+          <text class="system-message-text">{{item.content}}</text>
+        </view>
+
+        <!-- 普通消息内容 -->
+        <view wx:else class="message-content">
           <!-- 对方头像 -->
           <view wx:if="{{!item.isOwn}}" class="message-avatar">
             <view class="avatar-bg customer-service-bg">
@@ -191,39 +235,37 @@
             </view>
           </view>
 
-          <!-- 消息气泡 -->
-          <view class="message-bubble {{item.isOwn ? 'own-bubble' : 'other-bubble'}}">
-            <!-- 文字消息 -->
-            <text
-              wx:if="{{item.messageType === 'text'}}"
-              class="message-text"
-              user-select="{{true}}"
-              >{{item.content}}</text
-            >
+          <!-- 消息气泡区域 -->
+          <view class="message-bubble-area">
+            <!-- 消息气泡 -->
+            <view class="message-bubble {{item.isOwn ? 'own-bubble' : 'other-bubble'}}">
+              <!-- 文字消息 -->
+              <text
+                wx:if="{{item.messageType === 'text'}}"
+                class="message-text"
+                user-select="{{true}}"
+                >{{item.content}}</text
+              >
 
-            <!-- 图片消息 -->
-            <image
-              wx:if="{{item.messageType === 'image'}}"
-              class="message-image"
-              src="{{item.attachments[0].url}}"
-              mode="aspectFit"
-              bindtap="previewImage"
-              data-src="{{item.attachments[0].url}}"
-            ></image>
+              <!-- 图片消息 -->
+              <image
+                wx:if="{{item.messageType === 'image'}}"
+                class="message-image"
+                src="{{item.attachments[0].url || item.content}}"
+                mode="widthFix"
+                bindtap="previewImage"
+                data-src="{{item.attachments[0].url || item.content}}"
+              ></image>
+            </view>
 
-            <!-- 系统消息 -->
-            <text wx:if="{{item.messageType === 'system'}}" class="system-message"
-              >{{item.content}}</text
-            >
-          </view>
-
-          <!-- 消息状态 -->
-          <view wx:if="{{item.isOwn}}" class="message-status">
-            <text wx:if="{{item.status === 'sending'}}" class="status-icon sending">⏳</text>
-            <text wx:if="{{item.status === 'sent'}}" class="status-icon sent">✓</text>
-            <text wx:if="{{item.status === 'delivered'}}" class="status-icon delivered">✓✓</text>
-            <text wx:if="{{item.status === 'read'}}" class="status-icon read">✓✓</text>
-            <text wx:if="{{item.status === 'failed'}}" class="status-icon failed">❌</text>
+            <!-- 消息状态（自己发送的消息） -->
+            <view wx:if="{{item.isOwn}}" class="message-status-row">
+              <text wx:if="{{item.status === 'sending'}}" class="status-label sending">发送中</text>
+              <text wx:if="{{item.status === 'sent'}}" class="status-label sent">已发送</text>
+              <text wx:if="{{item.status === 'delivered'}}" class="status-label delivered">已送达</text>
+              <text wx:if="{{item.status === 'read'}}" class="status-label read">已读</text>
+              <text wx:if="{{item.status === 'failed'}}" class="status-label failed" bindtap="resendMessage" data-id="{{item.id}}">发送失败，点击重试</text>
+            </view>
           </view>
         </view>
       </view>
@@ -236,7 +278,6 @@
           </view>
         </view>
         <view class="typing-bubble">
-          <text class="typing-text">{{typingUser || currentChatName}} 正在输入...</text>
           <view class="typing-animation">
             <view class="typing-dot"></view>
             <view class="typing-dot"></view>
@@ -246,46 +287,108 @@
       </view>
 
       <!-- 滚动锚点 -->
-      <view id="message-bottom"></view>
+      <view id="message-bottom" style="height: 20rpx;"></view>
     </scroll-view>
 
-    <!-- 输入区域 -->
-    <view class="chat-input-area" catchtap="onInputAreaTap">
-      <view class="input-toolbar" catchtap="onInputToolbarTap">
-        <view class="toolbar-actions">
-          <view class="action-btn disabled" bindtap="sendImage">
-            <text class="action-btn-icon">📷</text>
+    <!-- 回到底部浮动按钮（滚动时显示） -->
+    <view
+      wx:if="{{showScrollBottomBtn}}"
+      class="scroll-bottom-fab"
+      catchtap="scrollToLatest"
+    >
+      <text class="fab-arrow">↓</text>
+      <view wx:if="{{newMsgCount > 0}}" class="fab-badge">{{newMsgCount > 99 ? '99+' : newMsgCount}}</view>
+    </view>
+
+    <!-- 快捷回复区域（有消息时显示在输入框上方） -->
+    <view wx:if="{{showQuickReplies && messages.length > 0}}" class="quick-replies-bar" catchtap="onQuickRepliesBarTap">
+      <scroll-view class="quick-replies-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="quick-replies-list">
+          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="好的，谢谢">
+            <text>好的，谢谢</text>
           </view>
-          <view class="action-btn" bindtap="sendLocation">
-            <text class="action-btn-icon">📍</text>
+          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="请稍等">
+            <text>请稍等</text>
           </view>
-          <view class="action-btn" bindtap="sendFile">
-            <text class="action-btn-icon">📎</text>
+          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="还有其他问题">
+            <text>还有问题</text>
+          </view>
+          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="问题已解决">
+            <text>已解决</text>
+          </view>
+          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="如何查看积分余额？">
+            <text>查看积分</text>
           </view>
         </view>
+      </scroll-view>
+      <view class="quick-replies-toggle" bindtap="toggleQuickReplies">
+        <text class="toggle-icon">{{showQuickReplies ? '▾' : '▴'}}</text>
+      </view>
+    </view>
 
-        <view class="input-section" catchtap="onInputWrapperTap">
-          <view class="input-wrapper">
-            <textarea
-              class="message-input"
-              placeholder="输入消息..."
-              placeholder-class="input-placeholder"
-              value="{{inputContent}}"
-              bindinput="onInputChange"
-              bindfocus="onInputFocus"
-              bindblur="onInputBlur"
-              auto-height="{{true}}"
-              show-confirm-bar="{{false}}"
-              maxlength="500"
-              catchtap="onTextareaTap"
-            >
-            </textarea>
-            <view
-              class="inline-send-btn {{inputContent.trim() ? 'active' : 'inactive'}}"
-              catchtap="onInlineSendTap"
-            >
-              <text class="send-text">发送</text>
+    <!-- 输入区域 - 重新设计 -->
+    <view class="chat-input-area" catchtap="onInputAreaTap">
+      <view class="input-main-row" catchtap="onInputToolbarTap">
+        <!-- 附件按钮（展开/折叠工具栏） -->
+        <view class="expand-btn {{showToolbar ? 'active' : ''}}" catchtap="toggleToolbar">
+          <text class="expand-icon">{{showToolbar ? '×' : '+'}}</text>
+        </view>
+
+        <!-- 输入框 -->
+        <view class="input-wrapper" catchtap="onInputWrapperTap">
+          <textarea
+            class="message-input"
+            placeholder="输入消息..."
+            placeholder-class="input-placeholder"
+            value="{{inputContent}}"
+            bindinput="onInputChange"
+            bindfocus="onInputFocus"
+            bindblur="onInputBlur"
+            bindconfirm="onInlineSendTap"
+            confirm-type="send"
+            auto-height="{{true}}"
+            show-confirm-bar="{{false}}"
+            maxlength="500"
+            catchtap="onTextareaTap"
+          >
+          </textarea>
+        </view>
+
+        <!-- 发送按钮 -->
+        <view
+          class="send-btn {{inputContent.trim() ? 'active' : 'inactive'}}"
+          catchtap="onInlineSendTap"
+        >
+          <text class="send-btn-icon">{{inputContent.trim() ? '➤' : '🎤'}}</text>
+        </view>
+      </view>
+
+      <!-- 展开的工具栏面板 -->
+      <view class="toolbar-panel {{showToolbar ? 'show' : ''}}">
+        <view class="toolbar-grid">
+          <view class="toolbar-item" bindtap="sendImage">
+            <view class="toolbar-item-icon-wrapper">
+              <text class="toolbar-item-icon">📷</text>
             </view>
+            <text class="toolbar-item-label">相册</text>
+          </view>
+          <view class="toolbar-item" bindtap="sendImage">
+            <view class="toolbar-item-icon-wrapper">
+              <text class="toolbar-item-icon">📸</text>
+            </view>
+            <text class="toolbar-item-label">拍照</text>
+          </view>
+          <view class="toolbar-item" bindtap="sendLocation">
+            <view class="toolbar-item-icon-wrapper">
+              <text class="toolbar-item-icon">📍</text>
+            </view>
+            <text class="toolbar-item-label">位置</text>
+          </view>
+          <view class="toolbar-item" bindtap="sendFile">
+            <view class="toolbar-item-icon-wrapper">
+              <text class="toolbar-item-icon">📎</text>
+            </view>
+            <text class="toolbar-item-label">文件</text>
           </view>
         </view>
       </view>

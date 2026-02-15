@@ -62,8 +62,8 @@
 /* 奖品文字（极坐标绝对定位） */
 .wheel-prize {
   position: absolute;
-  width: 100rpx;
-  height: 80rpx;
+  width: 120rpx;
+  height: 90rpx;
   @include flex-column-center;
   pointer-events: none;
 
@@ -73,14 +73,16 @@
   }
 
   &__name {
-    font-size: 18rpx;
+    font-size: 22rpx;
     color: var(--theme-text-inverse, #fff);
-    text-shadow: 0 1rpx 2rpx var(--theme-shadow-soft, rgba(0, 0, 0, 0.5));
+    font-weight: 600;
+    text-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.6);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100rpx;
+    max-width: 120rpx;
     margin-top: 4rpx;
+    text-align: center;
   }
 }
 

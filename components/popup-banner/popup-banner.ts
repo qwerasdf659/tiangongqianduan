@@ -129,7 +129,7 @@ Component({
      *
      * banner - 横幅数据对象
      */
-    getDisplayMode(banner) {
+    getDisplayMode(banner: any) {
       if (!banner || !banner.display_mode) {
         log.warn('⚠️ 横幅缺少 display_mode 字段，降级为 wide 模式')
         return 'wide'
@@ -152,7 +152,7 @@ Component({
      *
      * banner - 横幅数据对象
      */
-    isFullImageMode(banner) {
+    isFullImageMode(banner: any) {
       return banner && banner.display_mode === 'full_image'
     },
 
@@ -167,7 +167,7 @@ Component({
      * e.detail.width - 图片原始宽度
      * e.detail.height - 图片原始高度
      */
-    handleImageLoad(e) {
+    handleImageLoad(e: WechatMiniprogram.CustomEvent) {
       let loadedWidth = e.detail.width
       let loadedHeight = e.detail.height
       let currentBanner = this.data.banners[this.data.currentIndex]
@@ -269,7 +269,7 @@ Component({
      *
      * e - binderror事件对象
      */
-    handleImageError(_e) {
+    handleImageError(_e: WechatMiniprogram.CustomEvent) {
       // 最大重试次数
       const MAX_RETRY = 2
       if (!this._imageRetryCount) {

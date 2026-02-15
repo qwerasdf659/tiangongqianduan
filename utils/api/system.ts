@@ -139,6 +139,103 @@ async function sendChatMessage(
   })
 }
 
+// ==================== 📷 聊天图片上传 ====================
+
+/**
+ * 上传聊天图片
+ * 后端API: POST /api/v4/system/chat/sessions/:id/upload
+ *
+ * 实现方式: multer内存存储 → Sealos对象存储上传 → 返回公网URL
+ * 安全策略: authenticateToken + 会话归属校验 + 5MB大小限制 + jpg/png/gif/webp类型限制
+ *
+ * 上传成功后，需再调用 sendChatMessage() 发送 message_type='image'、content=图片URL
+ *
+ * @param session_id - 会话ID
+ * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回的 tempFilePath）
+ * @returns { success: true, data: { image_url: "https://...", object_key: "..." } }
+ */
+async function uploadChatImage(session_id: number, filePath: string) {
+  if (!session_id) {
+    throw new Error('会话ID不能为空')
+  }
+  if (!filePath) {
+    throw new Error('图片文件路径不能为空')
+  }
+
+  const { getApiConfig: _getApiConfig } = require('../../config/env')
+  const { getAccessToken: _getToken } = require('../auth-helper')
+  const config = _getApiConfig()
+  const token = _getToken()
+
+  if (!token) {
+    throw new Error('未登录，请先登录后再上传图片')
+  }
+
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: `${config.fullUrl}/system/chat/sessions/${session_id}/upload`,
+      filePath,
+      name: 'image',
+      header: {
+        Authorization: `Bearer ${token}`
+      },
+      success: (res: WechatMiniprogram.UploadFileSuccessCallbackResult) => {
+        try {
+          const data = JSON.parse(res.data)
+          if (data.success) {
+            resolve(data)
+          } else {
+            reject(new Error(data.message || '图片上传失败'))
+          }
+        } catch (_parseError) {
+          reject(new Error('图片上传响应解析失败'))
+        }
+      },
+      fail: (err: WechatMiniprogram.GeneralCallbackResult) => {
+        reject(new Error(err.errMsg || '图片上传网络错误'))
+      }
+    })
+  })
+}
+
+// ==================== 📋 系统配置查询 ====================
+
+/**
+ * 获取商品筛选配置（公开接口，无需登录）
+ * 后端API: GET /api/v4/system/config/product-filter
+ *
+ * 从 system_configs 表读取 config_key='product_filter'
+ * 不存在时返回兜底默认配置
+ *
+ * @returns 筛选配置（积分范围选项、库存阈值、分类选项等）
+ */
+async function getProductFilterConfig() {
+  return apiClient.request('/system/config/product-filter', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 获取反馈表单配置（公开接口，无需登录）
+ * 后端API: GET /api/v4/system/config/feedback
+ *
+ * 从 system_configs 表读取 config_key='feedback_config'
+ * 不存在时返回兜底默认配置（包含 max_length、min_length、max_images、categories 等字段）
+ *
+ * @returns 反馈配置（最大字数、最小字数、最大图片数、分类选项等）
+ */
+async function getFeedbackConfig() {
+  return apiClient.request('/system/config/feedback', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
 // ==================== 🔍 聊天搜索 ====================
 
 /**
@@ -199,7 +296,10 @@ module.exports = {
   getChatSessions,
   getChatHistory,
   sendChatMessage,
+  uploadChatImage,
   searchChatMessages,
+  getProductFilterConfig,
+  getFeedbackConfig,
   getUserMe,
   getActivities
 }

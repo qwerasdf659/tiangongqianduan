@@ -130,7 +130,7 @@ class APIClient {
   /** Token刷新状态（防止并发刷新） */
   private isRefreshing: boolean
   /** 等待Token刷新的请求队列 */
-  private refreshSubscribers: Array<(value: any) => void>
+  private refreshSubscribers: Array<(_value: any) => void>
 
   constructor() {
     this.config = getApiConfig()

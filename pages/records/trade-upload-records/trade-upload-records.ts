@@ -260,18 +260,21 @@ Page({
 
   /**
    * ✅ 加载交易数据
+   *
    * API: GET /api/v4/assets/transactions
    *
-   * 后端返回字段:
-   *   - transaction_id: 交易ID
-   *   - transaction_title: 交易标题（如"兑换商品：测试商品"）
-   *   - transaction_type: 交易类型（'earn' 获得 / 'consume' 消费）
-   *   - points_amount: 积分数量
-   *   - business_type: 业务类型（lottery/upload/exchange/trade等）
-   *   - description / transaction_description: 描述
-   *   - transaction_time / created_at: 交易时间
+   * 后端实际返回字段（对齐 typings/api.d.ts AssetTransaction，路由层 transactions.js 第61-76行 map）：
+   *   transaction_id  - 交易流水ID（BIGINT）
+   *   asset_code      - 资产代码（POINTS / DIAMOND / red_shard）
+   *   delta_amount    - 变动金额（正数=获得/earn，负数=消费/consume）
+   *   balance_before  - 变动前余额
+   *   balance_after   - 变动后余额
+   *   business_type   - 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等）
+   *   description     - 交易描述（来自 meta.description，覆盖率91.2%，可为null）
+   *   title           - 交易标题（来自 meta.title，覆盖率79.2%，可为null）
+   *   created_at      - 创建时间（ISO 8601）
    *
-   * 🔴 前端处理：将后端snake_case字段映射为WXML模板所需的显示字段
+   * 前端处理：将后端 snake_case 字段映射为 WXML 模板所需的显示字段
    */
   async loadTransactionData() {
     try {
@@ -279,33 +282,38 @@ Page({
       const { success, data } = result
 
       if (success && data) {
-        // 🔴 后端返回字段名是 transactions（文档明确）
+        // 后端返回字段名是 transactions
         const { transactions = [] } = data
 
         log.info('📊 成功获取交易记录原始数据:', {
           transactionsCount: transactions.length
         })
 
-        // 🔴 处理交易记录 - 映射后端字段到WXML模板使用的字段名
-        const processedRecords = transactions.map((record: any) => ({
-          // 保留后端原始字段（用于详情弹窗等）
-          ...record,
-          // === 映射为WXML模板使用的字段名 ===
-          // 标题：优先使用 transaction_title
-          title: record.transaction_title || record.description || '积分记录',
-          // 描述：优先使用 transaction_description
-          description: record.transaction_description || record.description || '',
-          // 金额：后端字段是 points_amount（非 amount）
-          amount: record.points_amount || 0,
-          // 分类：映射 transaction_type → CSS类名（income/expense）
-          category: record.transaction_type === 'earn' ? 'income' : 'expense',
-          // 业务类型：用于图标显示
-          type: record.business_type || record.transaction_type || 'default',
-          // 交易ID
-          txn_id: record.transaction_id || '',
-          // 时间：安全转换为字符串
-          created_at: safeTimeString(record.transaction_time || record.created_at)
-        }))
+        // 🔍 诊断日志：打印第一条原始记录字段
+        if (transactions.length > 0) {
+          log.info('🔍 [诊断] 第一条原始交易记录:', {
+            keys: Object.keys(transactions[0]),
+            sample: transactions[0]
+          })
+        }
+
+        // 处理交易记录 — 保留后端原始字段，仅新增前端计算的显示字段
+        const processedRecords = transactions.map((record: any) => {
+          // 🔴 使用后端实际字段 delta_amount（对齐后端路由层 transactions.js 第61-76行）
+          const rawDeltaAmount = record.delta_amount || 0
+
+          return {
+            // 保留后端原始字段（delta_amount / business_type / transaction_id 等直接使用）
+            ...record,
+            // === 前端计算的显示辅助字段 ===
+            // 标题显示：优先 title → description → 硬编码回退
+            displayTitle: record.title || record.description || '积分记录',
+            // 交易方向分类：根据 delta_amount 正负号判断（income=获得 / expense=消费）
+            category: rawDeltaAmount > 0 ? 'income' : 'expense',
+            // 时间：安全转换为字符串（防止 Sequelize Date 对象导致 [object Object]）
+            created_at: safeTimeString(record.created_at)
+          }
+        })
 
         this.setData({ transactionRecords: processedRecords })
 
@@ -316,7 +324,6 @@ Page({
         // 应用筛选
         this.applyFilters()
       } else {
-        // 显示友好的错误提示
         this.setData({
           transactionRecords: [],
           filteredRecords: []
@@ -352,27 +359,29 @@ Page({
       } else if (this.data.currentTypeFilter === 'expense') {
         filteredRecords = filteredRecords.filter((record: any) => record.category === 'expense')
       } else {
-        // 按业务类型筛选（lottery/upload/exchange等）
+        // 按后端 business_type 筛选（lottery_consume / exchange_debit 等）
         filteredRecords = filteredRecords.filter(
-          (record: any) => record.type === this.data.currentTypeFilter
+          (record: any) => record.business_type === this.data.currentTypeFilter
         )
       }
     }
 
-    // 关键词搜索（使用处理后的字段名）
+    // 关键词搜索（直接使用后端字段名）
     if (this.data.searchKeyword) {
       const keyword = this.data.searchKeyword.toLowerCase()
       filteredRecords = filteredRecords.filter(
         (record: any) =>
-          (record.title && record.title.toLowerCase().includes(keyword)) ||
+          (record.displayTitle && record.displayTitle.toLowerCase().includes(keyword)) ||
           (record.description && record.description.toLowerCase().includes(keyword)) ||
-          (record.txn_id && record.txn_id.toLowerCase().includes(keyword))
+          (record.transaction_id && String(record.transaction_id).includes(keyword))
       )
     }
 
-    // 按时间倒序排列
+    // 按时间倒序排列（iOS兼容：空格替换为T）
     filteredRecords.sort(
-      (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      (a: any, b: any) =>
+        new Date((b.created_at || '').replace(' ', 'T')).getTime() -
+        new Date((a.created_at || '').replace(' ', 'T')).getTime()
     )
 
     this.setData({ filteredRecords })
@@ -399,7 +408,9 @@ Page({
         return records
     }
 
-    return records.filter((record: any) => new Date(record.created_at) >= startDate!)
+    return records.filter(
+      (record: any) => new Date((record.created_at || '').replace(' ', 'T')) >= startDate!
+    )
   },
 
   /**
@@ -467,12 +478,13 @@ Page({
       return
     }
 
-    // 格式化金额显示
-    const amountDisplay = record.amount > 0 ? `+${record.amount}` : `${record.amount}`
+    // 使用后端 delta_amount 字段格式化金额显示
+    const deltaAmount = record.delta_amount || 0
+    const amountDisplay = deltaAmount > 0 ? `+${deltaAmount}` : `${deltaAmount}`
 
     wx.showModal({
       title: '交易详情',
-      content: `交易类型：${record.title}\n交易金额：${amountDisplay}积分\n交易时间：${record.created_at || '未知'}\n交易ID：${record.txn_id || '无'}`,
+      content: `交易类型：${record.displayTitle || '积分记录'}\n交易金额：${amountDisplay}积分\n交易时间：${record.created_at || '未知'}\n交易ID：${record.transaction_id || '无'}`,
       showCancel: false,
       confirmText: '知道了'
     })

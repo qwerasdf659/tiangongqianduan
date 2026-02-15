@@ -236,8 +236,8 @@ Component({
         }
       }, 1000)
 
-        // 保存定时器引用以便清理
-        ; (this as any).countdownTimer = timer
+      // 保存定时器引用以便清理
+      ;(this as any).countdownTimer = timer
     },
 
     /**
@@ -406,7 +406,7 @@ Component({
       // 清理定时器
       if ((this as any).countdownTimer) {
         clearInterval((this as any).countdownTimer)
-          ; (this as any).countdownTimer = null
+        ;(this as any).countdownTimer = null
       }
 
       this.setData({
@@ -451,4 +451,4 @@ Component({
   }
 })
 
-export { }
+export {}

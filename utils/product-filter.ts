@@ -39,7 +39,8 @@ interface FilterOptions {
   priceField?: string
   /**
    * 库存紧张阈值
-   * 🚨 注意：此值为前端临时硬编码，应由后端 API 提供（getProductFilterConfig）
+   * 后端API: GET /api/v4/system/config/product-filter 提供配置
+   * 调用方应先从 API.getProductFilterConfig() 获取阈值再传入
    */
   lowStockThreshold?: number
 }
@@ -136,11 +137,8 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
   }
 
   // ===== 4. 价格范围筛选 =====
-  // 🚨 警告：以下积分范围是硬编码的业务数据，应从后端获取
-  // 📋 TODO: 实现 API.getProductFilterConfig() 接口
+  // 积分范围由调用方从 API.getProductFilterConfig() 获取后以字符串传入
   if (pointsRange !== 'all') {
-    log.warn('⚠️ 使用硬编码的积分范围筛选，建议后端提供配置')
-
     const price = (product: any): number => product[priceField] || 0
 
     switch (pointsRange) {
@@ -162,11 +160,8 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
   }
 
   // ===== 5. 库存状态筛选 =====
-  // 🚨 警告：以下库存阈值是硬编码的业务数据，应从后端获取
-  // 📋 TODO: 实现 API.getProductFilterConfig() 接口
+  // 库存阈值由调用方从 API.getProductFilterConfig() 获取后传入 lowStockThreshold
   if (stockFilter !== 'all') {
-    log.warn(`⚠️ 使用硬编码的库存阈值（${lowStockThreshold}件），建议后端提供配置`)
-
     switch (stockFilter) {
       case 'in-stock':
         filtered = filtered.filter((product: any) => product.stock > lowStockThreshold)

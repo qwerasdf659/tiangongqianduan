@@ -1,0 +1,202 @@
+# Sealos应用配置文件 - 数字显示网站
+# 适用于Sealos应用管理平台的配置
+
+apiVersion: app.sealos.io/v1
+kind: App
+metadata:
+  name: numbers-website-app
+  namespace: default
+spec:
+  name: "数字显示网站"
+  icon: "https://cdn-icons-png.flaticon.com/512/1027/1027131.png"
+  type: iframe
+  data:
+    url: "http://numbers-website-service.default.svc.cluster.local"
+    desc: "显示数字1、2、3的简单网站"
+  displayType: normal
+  menuData:
+    nameColor: "text-black"
+
+---
+# 针对Sealos优化的Deployment配置
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: numbers-website
+  namespace: default
+  labels:
+    app: numbers-website
+    cloud.sealos.io/app-deploy-manager: numbers-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: numbers-website
+  template:
+    metadata:
+      labels:
+        app: numbers-website
+        cloud.sealos.io/app-deploy-manager: numbers-website
+    spec:
+      containers:
+      - name: numbers-website
+        # 使用构建好的镜像
+        image: nginx:alpine
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        # 环境变量配置
+        env:
+        - name: PORT
+          value: "80"
+        # 资源配置 - 适合Sealos的资源管理
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 50m
+            memory: 32Mi
+        # 挂载配置文件
+        volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+      volumes:
+      - name: html-volume
+        configMap:
+          name: numbers-website-html
+      - name: nginx-config
+        configMap:
+          name: numbers-website-nginx-config
+
+---
+# HTML内容ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: numbers-website-html
+  namespace: default
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <!-- 页面元数据配置 -->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>显示数字1、2、3</title>
+        
+        <!-- 页面样式设置 -->
+        <style>
+            /* 重置默认样式 */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            /* 页面主体样式 */
+            body {
+                font-family: 'Arial', sans-serif;
+                background-color: #f5f5f5;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                padding: 20px;
+            }
+            
+            /* 数字容器样式 */
+            .numbers-container {
+                background-color: #ffffff;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+                text-align: center;
+            }
+            
+            /* 数字显示样式 */
+            .number {
+                font-size: 72px;
+                font-weight: bold;
+                color: #333333;
+                margin: 0 20px;
+                display: inline-block;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            
+            /* 标题样式 */
+            .title {
+                font-size: 24px;
+                color: #666666;
+                margin-bottom: 30px;
+                font-weight: normal;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- 页面主要内容区域 -->
+        <div class="numbers-container">
+            <!-- 页面标题 -->
+            <h1 class="title">数字显示</h1>
+            
+            <!-- 数字显示区域 -->
+            <div class="numbers-display">
+                <!-- 显示数字1 -->
+                <span class="number">1</span>
+                <!-- 显示数字2 -->
+                <span class="number">2</span>
+                <!-- 显示数字3 -->
+                <span class="number">3</span>
+            </div>
+        </div>
+    </body>
+    </html>
+
+---
+# Nginx配置ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: numbers-website-nginx-config
+  namespace: default
+data:
+  default.conf: |
+    server {
+        listen 80;
+        listen [::]:80;
+        server_name localhost;
+        
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+            try_files $uri $uri/ =404;
+        }
+        
+        error_page 404 /404.html;
+        error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+            root /usr/share/nginx/html;
+        }
+    }
+
+---
+# Service配置 - Sealos兼容
+apiVersion: v1
+kind: Service
+metadata:
+  name: numbers-website-service
+  namespace: default
+  labels:
+    cloud.sealos.io/app-deploy-manager: numbers-website
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: numbers-website 

@@ -66,7 +66,7 @@ interface ImageFile {
 
 /** 批量验证配置项 */
 interface BatchValidationItem {
-  validator: (value: any) => ValidationResult
+  validator: (_value: any) => ValidationResult
   value: any
   fieldName?: string
 }
@@ -87,7 +87,7 @@ interface BatchValidationResult {
 }
 
 /** 表单验证规则函数 */
-type ValidatorFunction = (value: any) => ValidationResult
+type ValidatorFunction = (_value: any) => ValidationResult
 
 /** 表单验证规则配置 */
 interface FormValidatorRules {

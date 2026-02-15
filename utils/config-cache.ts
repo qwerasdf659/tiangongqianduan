@@ -21,7 +21,7 @@
  */
 
 /* 直接引用内部模块，避免循环依赖 */
-const configCacheApi = require('./api')
+const configCacheApi = require('./api/index')
 const { createLogger } = require('./logger')
 const log = createLogger('config-cache')
 

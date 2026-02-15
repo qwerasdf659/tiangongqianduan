@@ -1,8 +1,8 @@
 /**app.scss - 全局样式（从app.wxss迁移到Sass）**/
 /* 全局样式文件 - V3.0 Sass版本 */
 
-@import './styles/variables.scss';
-@import './styles/mixins.scss';
+@import './styles/variables';
+@import './styles/mixins';
 
 /* 页面基础样式 */
 page {
@@ -106,4 +106,3 @@ page {
 .pr-10 {
   padding-right: 10rpx;
 }
-

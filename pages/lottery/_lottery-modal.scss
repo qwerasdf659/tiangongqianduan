@@ -2,7 +2,6 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-
 /* 馃帹 鏁翠綋寮圭獥瀹瑰櫒 - 娓愬彉鑳屾櫙 */
 .gradient-card-modal {
   position: fixed;
@@ -1030,5 +1029,3 @@
   @include flex-center;
   z-index: 9999;
 }
-
-/* ========================================

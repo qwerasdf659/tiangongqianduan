@@ -113,12 +113,7 @@ Component({
         enterDelay: i * 70
       }))
 
-      /**
-       * 🔴 后端真实数据待接入：用户卡牌收集进度
-       * 当前全部初始化为未收集（collected: false），后端提供用户已收集卡牌ID后恢复
-       * 后端需提供接口或在抽奖配置中返回用户已收集的卡牌索引列表
-       * 详见: docs/后端需求-前端对接问题.md #14
-       */
+      /* 卡牌收集状态：基于抽奖结果展示，无需独立进度接口 */
 
       const collectedCount = cards.filter((c: any) => c.collected).length
       const progressDeg = Math.round((collectedCount / total) * 360)

@@ -13,8 +13,8 @@
  * - restoreUserInfo() - 三级恢复用户信息
  *
  * @file 天工餐厅积分系统 - 认证助手
- * @version 5.0.0
- * @since 2026-02-10
+ * @version 5.1.0
+ * @since 2026-02-15
  */
 
 const { createLogger } = require('./logger')
@@ -63,7 +63,7 @@ function getPointsStore() {
 
 /**
  * 🔐 检查用户登录状态
- * 数据来源: MobX userStore（唯一来源） + Storage（降级备份）
+ * 数据来源: MobX userStore（唯一来源）
  *
  * @example
  * if (!checkAuth()) return;
@@ -73,18 +73,18 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
   const { redirect = true, redirectUrl = '/pages/auth/auth', showToast = false } = options
   const store = getUserStore()
 
-  // 从 Storage 和 Store 双重校验
-  const storageToken: string = wx.getStorageSync('access_token')
+  // 从 Store 校验登录状态（Store 是运行时唯一数据源）
+  const storeToken: string = store.accessToken || ''
   const hasValidToken: boolean =
-    !!storageToken &&
-    typeof storageToken === 'string' &&
-    storageToken.trim() !== '' &&
-    storageToken !== 'undefined'
+    !!storeToken &&
+    typeof storeToken === 'string' &&
+    storeToken.trim() !== '' &&
+    storeToken !== 'undefined'
 
-  const isAuthenticated: boolean = hasValidToken && store.isLoggedIn && !!store.accessToken
+  const isAuthenticated: boolean = hasValidToken && store.isLoggedIn
 
   log.info('🔍 认证状态检查:', {
-    hasStorageToken: !!storageToken,
+    storeHasToken: !!storeToken,
     storeIsLoggedIn: store.isLoggedIn,
     isAuthenticated
   })
@@ -128,7 +128,7 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
   }
 
   const store = getUserStore()
-  const userInfo: API.UserProfile | null = store.userInfo || wx.getStorageSync('user_info') || null
+  const userInfo: API.UserProfile | null = store.userInfo || null
 
   /* 统一使用 determineUserRole()（utils/util.ts），禁止重复编写判断逻辑 */
   const isAdmin: boolean = !!userInfo && determineUserRole(userInfo) === 'admin'
@@ -165,18 +165,19 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
 }
 
 /**
- * 🔑 获取当前access_token
+ * 🔑 获取当前access_token（Store优先）
  *
  * @example
  * const token = getAccessToken();
  */
 function getAccessToken(): string | null {
-  const token: string = wx.getStorageSync('access_token')
+  const store = getUserStore()
+  const token: string = store.accessToken || ''
   return token || null
 }
 
 /**
- * 👤 获取当前用户信息（优先从 userStore 读取）
+ * 👤 获取当前用户信息（从 userStore 读取，Store是唯一数据源）
  *
  * @example
  * const userInfo = getUserInfo();
@@ -184,7 +185,7 @@ function getAccessToken(): string | null {
  */
 function getUserInfo(): API.UserProfile | null {
   const store = getUserStore()
-  return store.userInfo || wx.getStorageSync('user_info') || null
+  return store.userInfo || null
 }
 
 /**
@@ -216,15 +217,15 @@ function restoreUserInfo(): any {
     return userInfo
   }
 
-  // 第二级：从 Storage 恢复到 Store
-  userInfo = wx.getStorageSync('user_info')
-  if (userInfo && userInfo.user_id) {
-    store.updateUserInfo(userInfo)
-    return userInfo
+  // 第二级：从 Storage 降级恢复到 Store（仅在 Store 数据丢失时触发）
+  const cachedUserInfo = wx.getStorageSync('user_info')
+  if (cachedUserInfo && cachedUserInfo.user_id) {
+    store.updateUserInfo(cachedUserInfo)
+    return cachedUserInfo
   }
 
   // 第三级：从 JWT Token 解码恢复
-  const token = wx.getStorageSync('access_token')
+  const token = store.accessToken || wx.getStorageSync('access_token')
   if (!token) {
     _redirectToLogin('未登录，请先登录')
     return null

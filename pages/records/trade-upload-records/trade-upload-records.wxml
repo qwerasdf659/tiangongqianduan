@@ -139,18 +139,22 @@
       <text class="count-text">共 {{filteredRecords.length}} 条记录</text>
     </view>
 
-    <!-- 交易记录列表（字段已在TS中映射为: title/description/amount/category/type/txn_id/created_at） -->
+    <!-- 交易记录列表（直接使用后端字段名: asset_transaction_id / delta_amount / business_type / description / title / created_at） -->
     <view class="records-section">
       <view class="transaction-list">
-        <block wx:if="{{filteredRecords.length > 0}}" wx:for="{{filteredRecords}}" wx:key="txn_id">
+        <block
+          wx:if="{{filteredRecords.length > 0}}"
+          wx:for="{{filteredRecords}}"
+          wx:key="asset_transaction_id"
+        >
           <view class="transaction-card" style="animation-delay: {{index * 60}}ms;">
             <view class="transaction-header">
               <view class="transaction-left">
                 <view class="transaction-icon-wrapper {{item.category}}">
-                  <text class="transaction-icon">{{helpers.getTypeIcon(item.type)}}</text>
+                  <text class="transaction-icon">{{helpers.getTypeIcon(item.business_type)}}</text>
                 </view>
                 <view class="transaction-info">
-                  <text class="transaction-title">{{item.title || '积分记录'}}</text>
+                  <text class="transaction-title">{{item.displayTitle || '积分记录'}}</text>
                   <text class="transaction-desc" wx:if="{{item.description}}"
                     >{{item.description}}</text
                   >
@@ -159,7 +163,7 @@
               </view>
               <view class="transaction-right">
                 <text class="amount-value {{item.category}}"
-                  >{{helpers.formatAmount(item.amount)}}积分</text
+                  >{{helpers.formatAmount(item.delta_amount)}}积分</text
                 >
               </view>
             </view>

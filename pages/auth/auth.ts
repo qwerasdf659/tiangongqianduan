@@ -16,7 +16,7 @@ const { pointsStore } = require('../../store/points')
  *
  * 复杂度：~10
  */
-function parseAndValidateJWT(accessToken) {
+function parseAndValidateJWT(accessToken: string) {
   // JWT格式预检查
   if (!accessToken || typeof accessToken !== 'string') {
     throw new Error('Token格式错误：Token为空或类型不正确')
@@ -48,7 +48,7 @@ function parseAndValidateJWT(accessToken) {
       exp: payload.exp,
       user_id: payload.user_id
     }
-  } catch (error) {
+  } catch (error: any) {
     log.error('❌ JWT解析失败:', error.message)
     throw error
   }
@@ -62,7 +62,7 @@ function parseAndValidateJWT(accessToken) {
  *
  * 复杂度：~12
  */
-function buildUserInfoObject(rawUserInfo, jwtData) {
+function buildUserInfoObject(rawUserInfo: any, jwtData: any) {
   if (!rawUserInfo) {
     throw new Error('用户信息为空')
   }
@@ -101,7 +101,7 @@ function buildUserInfoObject(rawUserInfo, jwtData) {
  *
  * 复杂度：~8
  */
-function saveAuthDataToStorage(accessToken, refreshToken, userInfo) {
+function saveAuthDataToStorage(accessToken: string, refreshToken: string, userInfo: any) {
   // 设置 MobX Store 登录状态（Store 内部自动同步到 Storage）
   userStore.setLoginState(userInfo, accessToken, refreshToken || '')
 
@@ -199,7 +199,7 @@ Page({
     // 🔧 使用安全的初始化方法
     try {
       this.safeInitPage()
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 页面加载异常:', error)
       this.setData({
         pageLoaded: true,
@@ -285,7 +285,7 @@ Page({
       // 设置空的API对象防止调用错误
       this.userLogin = () => Promise.reject(new Error('API未初始化'))
       this.sendVerificationCode = () => Promise.reject(new Error('API未初始化'))
-      throw new Error('API模块加载失败: ' + error.message)
+      throw new Error('API模块加载失败: ' + (error as any).message)
     }
   },
 
@@ -367,7 +367,7 @@ Page({
    * 🔴 验证Token并处理重定向
    * 使用微信小程序专用的JWT解码方法
    */
-  validateTokenAndRedirect(token, userInfo) {
+  validateTokenAndRedirect(token: string, userInfo: any) {
     // 🔴 Token格式预检查
     if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
       log.error('❌ Token格式无效，需要重新登录')
@@ -387,7 +387,7 @@ Page({
         this.clearInvalidLoginState()
         return
       }
-    } catch (decodeError) {
+    } catch (decodeError: any) {
       log.error('❌ Token解码失败:', decodeError.message)
       this.clearInvalidLoginState()
       return
@@ -396,7 +396,7 @@ Page({
     // 🔴 通过V4.0后端验证Token - 使用顶部统一导入的API模块
     const { verifyToken } = API
     verifyToken()
-      .then(result => {
+      .then((result: any) => {
         // 🔴 详细日志：检查后端实际返回的数据结构
         log.info('🔍 Token验证响应详细检查:', {
           success: result.success,
@@ -423,7 +423,7 @@ Page({
           this.clearInvalidLoginState()
         }
       })
-      .catch(error => {
+      .catch((error: any) => {
         log.warn('⚠️ Token验证失败:', error)
 
         // 🔴 修复：通过 isAuthError 标记区分认证错误和网络错误
@@ -466,9 +466,8 @@ Page({
   clearInvalidLoginState() {
     log.info('🧹 清理无效登录状态')
 
-    // 委托 MobX Store 清理（Store 内部同步清理 Storage）
+    // 委托 MobX Store 清理（Store 内部同步清理 Storage，不需要额外操作）
     userStore.clearLoginState()
-    wx.removeStorageSync('user_info')
 
     // 显示登录表单
     this.setData({ pageLoaded: true })
@@ -483,7 +482,7 @@ Page({
   /**
    * 🔧 处理初始化错误
    */
-  handleInitError(error) {
+  handleInitError(error: any) {
     log.error('❌ 页面初始化错误:', error)
 
     this.setData({
@@ -618,7 +617,7 @@ Page({
   /**
    * 🔧 WebSocket消息处理
    */
-  onWebSocketMessage(eventName, data) {
+  onWebSocketMessage(eventName: string, data: any) {
     log.info('📡 收到WebSocket消息:', eventName, data)
 
     // 处理认证相关的实时消息
@@ -674,7 +673,7 @@ Page({
   /**
    * 🔧 手机号输入处理
    */
-  onMobileInput(e) {
+  onMobileInput(e: WechatMiniprogram.CustomEvent) {
     const mobile = e.detail.value.trim()
 
     // 🔧 实时验证手机号格式
@@ -691,7 +690,7 @@ Page({
   /**
    * 🔧 验证手机号格式
    */
-  validateMobile(mobile) {
+  validateMobile(mobile: string) {
     const mobilePattern = /^1[3-9]\d{9}$/
     return mobilePattern.test(mobile)
   },
@@ -699,7 +698,7 @@ Page({
   /**
    * 🔧 验证码输入处理
    */
-  onCodeInput(e) {
+  onCodeInput(e: WechatMiniprogram.CustomEvent) {
     const verification_code = e.detail.value.trim()
 
     // 🔧 实时验证验证码格式
@@ -717,7 +716,7 @@ Page({
   /**
    * 🔧 验证验证码格式
    */
-  validateCode(code) {
+  validateCode(code: string) {
     const codePattern = /^\d{6}$/
     return codePattern.test(code)
   },
@@ -754,7 +753,7 @@ Page({
 
     // 🔴 V4.0：调用统一的发送验证码API方法
     this.sendVerificationCode(this.data.mobile)
-      .then(result => {
+      .then((result: any) => {
         log.info('✅ 验证码发送成功:', result)
 
         wx.showToast({
@@ -766,7 +765,7 @@ Page({
           this.startCountdown()
         }
       })
-      .catch(error => {
+      .catch((error: any) => {
         log.error('❌ 验证码发送失败:', error)
         this.handleSendCodeError(error)
       })
@@ -778,7 +777,7 @@ Page({
   /**
    * 🔧 处理发送验证码错误
    */
-  handleSendCodeError(error) {
+  handleSendCodeError(error: any) {
     let errorMessage = '验证码发送失败'
 
     if (error.code === 1001) {
@@ -839,7 +838,7 @@ Page({
   /**
    * 🔧 用户协议状态变化
    */
-  onAgreementChange(e) {
+  onAgreementChange(e: WechatMiniprogram.CustomEvent) {
     // 🔧 checkbox-group返回的是数组，需要判断是否包含'agreed'
     const agreementChecked = e.detail.value.includes('agreed')
     this.setData({
@@ -981,7 +980,10 @@ Page({
    *   verification_code: '123456'
    * })
    */
-  performUnifiedLogin(formData, retryCount = 0) {
+  performUnifiedLogin(
+    formData: { mobile: string; verification_code: string },
+    retryCount: number = 0
+  ) {
     log.info('🔐 执行V4.0统一登录:', {
       mobile: formData.mobile,
       verification_code: formData.verification_code,
@@ -1010,7 +1012,7 @@ Page({
 
     // 🔴 V4.0: 使用userLogin函数，传入verification_code
     this.userLogin(formData.mobile, formData.verification_code)
-      .then(result => {
+      .then((result: any) => {
         clearTimeout(loginTimeout)
 
         if (this.data.loginCompleted) {
@@ -1027,7 +1029,7 @@ Page({
           this.handleLoginFailure(result || new Error('登录失败，未收到有效响应'))
         }
       })
-      .catch(error => {
+      .catch((error: any) => {
         clearTimeout(loginTimeout)
 
         if (this.data.loginCompleted) {
@@ -1047,7 +1049,7 @@ Page({
    * 优化后复杂度：显著降低
    * 复用子函数：parseAndValidateJWT(), buildUserInfoObject(), saveAuthDataToStorage()
    */
-  async handleV4LoginSuccess(loginData) {
+  async handleV4LoginSuccess(loginData: any) {
     log.info('✅ 处理V4登录成功数据 - 方案B重构版')
 
     // ===== 步骤1：数据完整性检查 =====
@@ -1208,7 +1210,7 @@ Page({
   /**
    * 🔴 新增：立即备用导航方案（无延迟）
    */
-  immediateAlternativeNavigation(originalError) {
+  immediateAlternativeNavigation(originalError: any) {
     log.info('🔄 立即尝试备用导航方案...')
 
     // 备用方案1：立即使用reLaunch
@@ -1248,7 +1250,7 @@ Page({
   /**
    * 🔴 新增：简化的导航失败处理
    */
-  handleSimpleNavigationFailure(error) {
+  handleSimpleNavigationFailure(error: any) {
     log.error('❌ 页面跳转最终失败:', error)
 
     wx.showModal({
@@ -1277,7 +1279,7 @@ Page({
   /**
    * 🔧 跳转到主页面（简化版）
    */
-  redirectToMainPage(userInfo) {
+  redirectToMainPage(userInfo: any) {
     log.info('🔄 跳转到主页面 - 统一跳转到抽奖页面:', userInfo)
 
     // 🔴 简化：直接调用简化版跳转
@@ -1296,7 +1298,7 @@ Page({
   /**
    * 🔧 处理登录失败 - 增强版Token问题诊断
    */
-  handleLoginFailure(error) {
+  handleLoginFailure(error: any) {
     log.error('❌ 登录失败处理:', error)
 
     // 🔧 新增：Token问题智能诊断
@@ -1350,7 +1352,7 @@ Page({
     }
 
     if (showRetryOption) {
-      modalConfig.success = res => {
+      modalConfig.success = (res: any) => {
         if (res.confirm) {
           // 重新尝试登录
           log.info('🔄 用户选择重试登录')
@@ -1415,7 +1417,7 @@ Page({
         details,
         summary: issues.length > 0 ? issues.join('; ') : 'Token状态正常'
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ Token诊断失败:', error)
       return {
         hasIssues: true,
@@ -1439,18 +1441,11 @@ Page({
         verification_code: this.data.verification_code
       }
 
-      // 清理所有Token相关存储
-      wx.removeStorageSync('access_token')
+      // 通过 Store 统一清理认证数据（Store 内部自动清理 Storage）
+      userStore.clearLoginState()
+      // 额外清理非标准键（backup_token / token_metadata 不在 Store 管理范围内）
       wx.removeStorageSync('backup_token')
-      wx.removeStorageSync('refresh_token')
-      wx.removeStorageSync('user_info')
       wx.removeStorageSync('token_metadata')
-
-      // 清理全局状态
-      const app = getApp()
-      if (app) {
-        app.clearAuthData()
-      }
 
       // 重置UI状态
       this.setData({

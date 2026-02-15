@@ -100,9 +100,10 @@ Component({
         /* 文字旋转角度：让文字沿径向朝外 */
         const textRotate = sectorAngle * i + sectorAngle / 2
 
+        /* 偏移量对齐 .wheel-prize 容器尺寸 width:120rpx / height:90rpx 的一半 */
         prizePositions.push(
-          `left: calc(50% + ${Math.round(offsetX)}rpx - 50rpx); ` +
-            `top: calc(50% + ${Math.round(offsetY)}rpx - 40rpx); ` +
+          `left: calc(50% + ${Math.round(offsetX)}rpx - 60rpx); ` +
+            `top: calc(50% + ${Math.round(offsetY)}rpx - 45rpx); ` +
             `transform: rotate(${textRotate}deg);`
         )
       }

@@ -355,12 +355,20 @@ Page({
     }
 
     // 排序（后端字段: acquired_at, expires_at）
+    // iOS 兼容：后端返回 "YYYY-MM-DD HH:mm:ss" 格式，iOS 不支持空格分隔
+    // 需要将空格替换为 "T"（ISO 8601 格式）后再创建 Date 对象
     filteredItems.sort((a: any, b: any) => {
       switch (this.data.currentSort) {
         case 'newest':
-          return new Date(b.acquired_at).getTime() - new Date(a.acquired_at).getTime()
+          return (
+            new Date((b.acquired_at || '').replace(' ', 'T')).getTime() -
+            new Date((a.acquired_at || '').replace(' ', 'T')).getTime()
+          )
         case 'oldest':
-          return new Date(a.acquired_at).getTime() - new Date(b.acquired_at).getTime()
+          return (
+            new Date((a.acquired_at || '').replace(' ', 'T')).getTime() -
+            new Date((b.acquired_at || '').replace(' ', 'T')).getTime()
+          )
         case 'expire_soon':
           // 有过期时间的排在前面，按过期时间升序
           if (!a.expires_at && !b.expires_at) {
@@ -372,7 +380,10 @@ Page({
           if (!b.expires_at) {
             return -1
           }
-          return new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()
+          return (
+            new Date(a.expires_at.replace(' ', 'T')).getTime() -
+            new Date(b.expires_at.replace(' ', 'T')).getTime()
+          )
         default:
           return 0
       }
@@ -817,27 +828,6 @@ Page({
       content: details || '暂无详情',
       showCancel: false,
       confirmText: '知道了'
-    })
-  },
-
-  /**
-   * 联系客服
-   * 🔴 TODO: 客服电话需要由运营人员提供真实号码，此处为占位
-   */
-  onContactService() {
-    // 🔴 ========== 【需要运营人员填写真实数据】========== //
-    // 当前值为占位号码，请运营提供真实客服电话号码后替换
-    // ================================================== //
-    const customerServicePhone = '400-000-0000'
-    wx.makePhoneCall({
-      phoneNumber: customerServicePhone,
-      success: () => {
-        log.info('📦 拨打客服电话成功')
-      },
-      fail: (error: any) => {
-        log.error('📦 拨打客服电话失败:', error)
-        showToast('无法拨打客服电话')
-      }
     })
   },
 

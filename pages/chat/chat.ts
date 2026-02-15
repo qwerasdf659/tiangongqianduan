@@ -61,7 +61,13 @@ Page({
     token: '',
 
     // 会话状态
-    sessionStatus: 'connecting'
+    sessionStatus: 'connecting',
+
+    // UI交互状态 - V6.0新增
+    showToolbar: false, // 工具栏展开面板
+    showQuickReplies: true, // 快捷回复区域
+    showScrollBottomBtn: false, // 回到底部浮动按钮
+    newMsgCount: 0 // 新消息计数（滚动到底部时重置）
   },
 
   /**
@@ -432,7 +438,12 @@ Page({
       currentChatName: name,
       currentChatIcon: icon,
       inputContent: '',
-      chatLoadStatus: 'loading'
+      chatLoadStatus: 'loading',
+      // 重置UI交互状态
+      showToolbar: false,
+      showQuickReplies: true,
+      showScrollBottomBtn: false,
+      newMsgCount: 0
     })
 
     // 加载当前会话的历史消息
@@ -817,11 +828,21 @@ Page({
     }
 
     const messages = [...this.data.messages, newMessage]
-    this.setData({
-      messages,
-      scrollToBottom: true,
-      chatLoadStatus: 'success'
-    })
+
+    // 如果用户正在查看历史消息（不在底部），增加新消息计数提示
+    if (this.data.showScrollBottomBtn && !newMessage.isOwn) {
+      this.setData({
+        messages,
+        chatLoadStatus: 'success',
+        newMsgCount: this.data.newMsgCount + 1
+      })
+    } else {
+      this.setData({
+        messages,
+        scrollToBottom: true,
+        chatLoadStatus: 'success'
+      })
+    }
 
     // 如果是对方发送的消息，更新会话预览
     if (!newMessage.isOwn) {
@@ -1033,15 +1054,93 @@ Page({
   },
 
   /**
-   * 发送图片 - 功能暂不可用（后端/photo/upload路由已废弃）
-   * TODO: 等后端提供聊天专用图片上传接口后恢复
+   * 发送图片 — 上传到后端Sealos对象存储后以image消息发送
+   * 后端API: POST /api/v4/system/chat/sessions/:id/upload
+   * 安全限制: 5MB大小 + jpg/png/gif/webp类型
+   * 流程: 选择图片 → 上传获取URL → 发送image类型消息
    */
   sendImage() {
-    log.info('📷 发送图片 - 功能暂不可用')
-    wx.showToast({
-      title: '图片发送功能暂不可用',
-      icon: 'none',
-      duration: 2000
+    if (!this.data.sessionId) {
+      showToast('会话连接中，请稍后重试')
+      return
+    }
+
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: async (res: WechatMiniprogram.ChooseMediaSuccessCallbackResult) => {
+        const tempFile = res.tempFiles[0]
+        if (!tempFile) {
+          return
+        }
+
+        /* 前端预检: 5MB大小限制 */
+        if (tempFile.size > 5 * 1024 * 1024) {
+          showToast('图片不能超过5MB')
+          return
+        }
+
+        log.info('📷 开始上传聊天图片:', {
+          size: tempFile.size,
+          tempFilePath: tempFile.tempFilePath
+        })
+
+        /* 本地乐观消息 */
+        const localMsg = {
+          id: `img_${Date.now()}`,
+          content: tempFile.tempFilePath,
+          messageType: 'image',
+          isOwn: true,
+          status: 'sending',
+          timestamp: Date.now(),
+          timeText: formatDateMessage(Date.now()),
+          showTime: this.shouldShowTime(Date.now())
+        }
+        this.setData({
+          messages: [...this.data.messages, localMsg],
+          scrollToBottom: true
+        })
+
+        try {
+          /* 第1步: 上传图片到后端 */
+          const uploadResult: any = await API.uploadChatImage(
+            this.data.sessionId,
+            tempFile.tempFilePath
+          )
+          const imageUrl: string = uploadResult.data.image_url
+
+          /* 第2步: 发送image类型消息（content填图片URL） */
+          const sendResult = await API.sendChatMessage(this.data.sessionId, {
+            content: imageUrl,
+            message_type: 'image',
+            sender_type: 'user'
+          })
+
+          if (sendResult.success) {
+            log.info('✅ 图片消息发送成功')
+            const updatedMessages = this.data.messages.map((msg: any) =>
+              msg.id === localMsg.id
+                ? {
+                    ...msg,
+                    content: imageUrl,
+                    status: 'sent',
+                    id: sendResult.data?.chat_message_id || msg.id
+                  }
+                : msg
+            )
+            this.setData({ messages: updatedMessages })
+          }
+        } catch (error: any) {
+          log.error('❌ 图片发送失败:', error)
+          showToast(error.message || '图片发送失败')
+          const failedMessages = this.data.messages.map((msg: any) =>
+            msg.id === localMsg.id ? { ...msg, status: 'failed' } : msg
+          )
+          this.setData({ messages: failedMessages })
+        }
+      }
     })
   },
 
@@ -1179,6 +1278,136 @@ Page({
   onInlineSendTap() {
     log.info('⌨️ 内置发送按钮被点击')
     this.sendMessage()
+  },
+
+  // ============================================================================
+  // V6.0 新增交互功能
+  // ============================================================================
+
+  /**
+   * 切换工具栏展开面板（+按钮）
+   * 展开时显示相册、拍照、位置、文件等功能按钮
+   */
+  toggleToolbar() {
+    const showToolbar = !this.data.showToolbar
+    this.setData({ showToolbar })
+
+    // 展开工具栏时收起快捷回复
+    if (showToolbar) {
+      this.setData({ showQuickReplies: false })
+    }
+  },
+
+  /**
+   * 切换快捷回复区域的显示/隐藏
+   */
+  toggleQuickReplies() {
+    this.setData({ showQuickReplies: !this.data.showQuickReplies })
+  },
+
+  /**
+   * 快捷回复点击 - 直接发送预设文字
+   *
+   * @param e - 点击事件，通过 data-text 获取预设文字内容
+   * @description
+   * 用户点击快捷回复按钮时，自动将预设文字填入输入框并发送，
+   * 提供更便捷的交互体验，减少用户输入成本。
+   */
+  onQuickReply(e: WechatMiniprogram.BaseEvent) {
+    const replyText = e.currentTarget.dataset.text as string
+    if (!replyText) {
+      return
+    }
+
+    log.info('⚡ 快捷回复:', replyText)
+
+    // 设置输入内容并立即发送
+    this.setData({ inputContent: replyText })
+
+    // 延迟发送确保数据更新
+    setTimeout(() => {
+      this.sendMessage()
+    }, 100)
+  },
+
+  /**
+   * 快捷回复区域点击（阻止冒泡）
+   */
+  onQuickRepliesBarTap() {
+    /* catchtap阻止冒泡 */
+  },
+
+  /**
+   * 聊天区域滚动事件 - 控制回到底部按钮显示
+   *
+   * @param e - 滚动事件对象
+   * @description
+   * 当用户向上滚动查看历史消息时，显示"回到底部"浮动按钮。
+   * 帮助用户快速返回最新消息位置。
+   */
+  onChatScroll(e: WechatMiniprogram.ScrollViewScroll) {
+    // 判断是否已滚动到接近底部（阈值200rpx约100px）
+    const scrollTop = e.detail.scrollTop
+    const scrollHeight = e.detail.scrollHeight
+    const clientHeight = (e.detail as any).clientHeight || 500
+
+    // 如果距离底部超过200px，显示回到底部按钮
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+    const shouldShowBtn = distanceFromBottom > 200
+
+    if (shouldShowBtn !== this.data.showScrollBottomBtn) {
+      this.setData({ showScrollBottomBtn: shouldShowBtn })
+    }
+
+    // 滚动到底部时重置新消息计数
+    if (!shouldShowBtn) {
+      this.setData({ newMsgCount: 0 })
+    }
+  },
+
+  /**
+   * 滚动到最新消息（回到底部按钮点击）
+   */
+  scrollToLatest() {
+    this.setData({
+      scrollToBottom: true,
+      showScrollBottomBtn: false,
+      newMsgCount: 0
+    })
+
+    // 重置scrollToBottom以允许下次触发
+    setTimeout(() => {
+      this.setData({ scrollToBottom: false })
+    }, 300)
+  },
+
+  /**
+   * 重新发送失败的消息
+   *
+   * @param e - 点击事件，通过 data-id 获取消息ID
+   */
+  resendMessage(e: WechatMiniprogram.BaseEvent) {
+    const messageId = e.currentTarget.dataset.id as string
+    if (!messageId) {
+      return
+    }
+
+    const failedMessage = this.data.messages.find((msg: any) => msg.id === messageId)
+    if (!failedMessage) {
+      return
+    }
+
+    log.info('🔄 重新发送消息:', messageId)
+
+    // 移除旧的失败消息
+    const filteredMessages = this.data.messages.filter((msg: any) => msg.id !== messageId)
+    this.setData({ messages: filteredMessages })
+
+    // 重新设置输入内容并发送
+    this.setData({ inputContent: failedMessage.content })
+    setTimeout(() => {
+      this.sendMessage()
+    }, 100)
   }
 })
 

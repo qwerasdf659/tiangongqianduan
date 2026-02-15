@@ -548,7 +548,14 @@ Page({
             })
             break
           case 1:
-            // 复制客服微信号（🔴 真实数据：需要由运营人员确认实际微信号）
+            /**
+             * 复制客服微信号
+             * ⚠️ 需后端在 system_settings 表插入 customer_wechat 配置项
+             * 当前临时使用硬编码值，后续应从系统配置API获取
+             * 详见: docs/后端需求-前端对接问题.md #16
+             *
+             * 🔴 需运营人员确认实际客服微信号后替换此处硬编码值
+             */
             wx.setClipboardData({
               data: 'tg15818387910',
               success: () => {

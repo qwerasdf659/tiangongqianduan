@@ -176,7 +176,12 @@ Page({
     showBidModal: false,
     selectedBidProduct: null,
     userBidAmount: 0,
-    bidHistory: []
+    bidHistory: [],
+    bidMinAmount: 0,         // 当前最低出价金额
+    bidAmountValid: false,   // 出价金额是否有效
+    bidSubmitting: false,    // 是否正在提交竞价
+    showBidRules: false,     // 竞价规则是否展开
+    bidModalCountdown: ''    // 弹窗内倒计时文本
   },
 
   // ============================================
@@ -266,6 +271,9 @@ Page({
     log.info('🙈 兑换页面隐藏')
     this.disconnectWebSocket()
     this.onHideMarket()
+    /* 暂停竞价倒计时（节省性能） */
+    if (this._bidListTimer) { clearInterval(this._bidListTimer); this._bidListTimer = null }
+    if (this._bidModalTimer) { clearInterval(this._bidModalTimer); this._bidModalTimer = null }
   },
 
   /** 页面卸载 */
@@ -278,6 +286,9 @@ Page({
       this.pointsBindings.destroyStoreBindings()
     }
     this.disconnectWebSocket()
+    /* 清理竞价倒计时定时器 */
+    if (this._bidListTimer) { clearInterval(this._bidListTimer); this._bidListTimer = null }
+    if (this._bidModalTimer) { clearInterval(this._bidModalTimer); this._bidModalTimer = null }
   },
 
   /** 下拉刷新 */
@@ -376,10 +387,20 @@ Page({
         .connectWebSocket()
         .then(() => {
           app.subscribeWebSocketMessages('exchange', (eventName: string, _data: any) => {
-            // Socket.IO 按事件名自动路由，直接匹配 product_updated / exchange_stock_changed
+            /* Socket.IO 按事件名自动路由 */
             if (eventName === 'product_updated' || eventName === 'exchange_stock_changed') {
               log.info('📦 收到商品更新通知，刷新列表')
               this.loadProducts()
+            }
+            /* 竞价相关实时事件 */
+            if (eventName === 'bid_outbid') {
+              log.info('🔔 收到出价被超越通知')
+              this.loadBidProducts()
+            }
+            if (eventName === 'bid_won' || eventName === 'bid_lost') {
+              log.info('🏆 收到竞价结果通知:', eventName)
+              this.loadBidProducts()
+              this.loadBidHistory()
             }
           })
         })
@@ -400,9 +421,14 @@ Page({
     }
   },
 
-  /** 初始化臻选空间解锁状态（后端API待实现） */
+  /**
+   * 初始化臻选空间解锁状态
+   * 后端API: GET /api/v4/backpack/exchange/premium-status
+   * 业务规则: 100积分解锁费用、历史积分10万门槛、24小时有效期
+   */
   initPremiumUnlockStatus() {
-    log.info('⏳ 臻选空间解锁状态：等待后端API /api/v4/backpack/exchange/premium-status')
+    log.info('🔒 检查臻选空间解锁状态...')
+    this.checkPremiumUnlockStatus()
   },
 
   /** 刷新页面数据（根据当前Tab选择刷新逻辑） */

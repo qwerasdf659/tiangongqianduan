@@ -4,7 +4,7 @@
  * 拆分策略: 方案A — 只拆文件，不改调用方式
  *   utils/api.ts → utils/api/{client,auth,lottery,assets,backpack,market,shop,system,console}.ts
  *   本文件作为 barrel 文件 re-export 所有子模块
- *   utils/index.ts 的 require('./api') 照旧解析到此处
+ *   utils/index.ts 通过 require('./api/index') 显式引用本barrel入口
  *   所有页面的 API.xxx() 调用方式零改动
  *
  * @file 天工餐厅积分系统 - API Barrel入口
@@ -62,6 +62,16 @@ module.exports = {
   getExchangeItemDetail: backpackModule.getExchangeItemDetail,
   getExchangeOrderDetail: backpackModule.getExchangeOrderDetail,
 
+  // ===== 臻选空间（高级兑换）=====
+  getPremiumStatus: backpackModule.getPremiumStatus,
+  unlockPremium: backpackModule.unlockPremium,
+
+  // ===== 竞价系统（backpack/bid域）=====
+  getBidProducts: backpackModule.getBidProducts,
+  getBidProductDetail: backpackModule.getBidProductDetail,
+  placeBid: backpackModule.placeBid,
+  getBidHistory: backpackModule.getBidHistory,
+
   // ===== 交易市场 =====
   getMarketProducts: marketModule.getMarketProducts,
   getMarketProductDetail: marketModule.getMarketProductDetail,
@@ -100,12 +110,15 @@ module.exports = {
   getPopupBanners: systemModule.getPopupBanners,
   getDictionaries: systemModule.getDictionaries,
   getNotifications: systemModule.getNotifications,
+  getProductFilterConfig: systemModule.getProductFilterConfig,
+  getFeedbackConfig: systemModule.getFeedbackConfig,
 
   // ===== 客服会话 =====
   createChatSession: systemModule.createChatSession,
   getChatSessions: systemModule.getChatSessions,
   getChatHistory: systemModule.getChatHistory,
   sendChatMessage: systemModule.sendChatMessage,
+  uploadChatImage: systemModule.uploadChatImage,
   searchChatMessages: systemModule.searchChatMessages,
 
   // ===== 用户 =====
@@ -126,6 +139,7 @@ module.exports = {
 
   // ===== 管理员客服统计与在线状态 =====
   getAdminSessionStats: consoleModule.getAdminSessionStats,
+  getAdminResponseStats: consoleModule.getAdminResponseStats,
   updateAdminOnlineStatus: consoleModule.updateAdminOnlineStatus,
   getAdminOnlineStatus: consoleModule.getAdminOnlineStatus,
 
@@ -133,9 +147,10 @@ module.exports = {
   getActivities: systemModule.getActivities,
 
   // API版本信息
-  version: '5.1.0',
+  version: '5.2.0',
   lastUpdated: '2026-02-15T00:00:00+08:00',
-  apiCompatibility: 'V4.7.0后端对齐+V2动态二维码+幂等键+门店选择+精细化错误码+活动位置配置'
+  apiCompatibility:
+    'V4.7.0后端对齐+聊天图片上传+臻选空间解锁+商品筛选配置+反馈配置+客服响应统计+竞价系统'
 }
 
 export {}

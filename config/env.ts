@@ -32,6 +32,11 @@ interface WebSocketConfig {
   reconnectionDelay: number
   /** 最大重连次数，Socket.IO 内部使用 */
   reconnectionAttempts: number
+  /**
+   * 连接超时时间（ms），握手阶段超时后触发 connect_error
+   * 微信开发者工具环境下代理链路较长，需要足够的握手时间
+   */
+  timeout: number
 }
 
 /** 开发阶段配置 */
@@ -191,7 +196,8 @@ const ENV_CONFIG: AllEnvironmentConfig = {
     websocket: {
       url: 'http://localhost:3000',
       reconnectionDelay: 3000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      timeout: 30000
     },
     development: { ...BASE_DEVELOPMENT_CONFIG },
     business: { ...BASE_BUSINESS_CONFIG },
@@ -216,7 +222,8 @@ const ENV_CONFIG: AllEnvironmentConfig = {
     websocket: {
       url: 'http://192.168.43.12:3000',
       reconnectionDelay: 3000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      timeout: 30000
     },
     development: { ...BASE_DEVELOPMENT_CONFIG },
     business: { ...BASE_BUSINESS_CONFIG },
@@ -235,7 +242,8 @@ const ENV_CONFIG: AllEnvironmentConfig = {
     websocket: {
       url: 'https://omqktqrtntnn.sealosbja.site',
       reconnectionDelay: 3000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      timeout: 30000
     },
     development: {
       ...BASE_DEVELOPMENT_CONFIG,
@@ -261,7 +269,8 @@ const ENV_CONFIG: AllEnvironmentConfig = {
     websocket: {
       url: 'https://omqktqrtntnn.sealosbja.site',
       reconnectionDelay: 5000,
-      reconnectionAttempts: 3
+      reconnectionAttempts: 3,
+      timeout: 30000
     },
     development: {
       enableUnifiedAuth: false, // 🚨 生产环境禁用万能验证码

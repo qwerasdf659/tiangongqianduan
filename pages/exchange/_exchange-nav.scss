@@ -2,8 +2,7 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-
-/* 馃帹 鐜颁唬鍖栧鑸ā鍧楁牱寮?- 缇庡寲鐗?*/
+/* 🎨 现代化导航模块样式 - 美化版 */
 .nav-module {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
   border-radius: 28rpx;
@@ -20,7 +19,7 @@
   border: 1rpx solid rgba(255, 255, 255, 0.6);
 }
 
-/* 娣诲姞闂寒鐨勮楗版晥鏋?*/
+/* 添加闪亮的装饰效果 */
 .nav-module::before {
   content: '';
   position: absolute;
@@ -66,7 +65,7 @@
   z-index: 2;
 }
 
-/* 娣诲姞鏌斿拰鐨勮儗鏅浘妗?*/
+/* 添加柔和的背景图案 */
 .nav-module.horizontal::after {
   content: '';
   position: absolute;
@@ -103,7 +102,7 @@
   overflow: hidden;
 }
 
-/* 鏈縺娲荤姸鎬佺殑鎮仠鏁堟灉 */
+/* 未激活状态的悬停效果 */
 .nav-item-horizontal:not(.active):hover {
   background: rgba(255, 255, 255, 0.9);
   box-shadow:
@@ -113,7 +112,7 @@
   border: 2rpx solid rgba(255, 107, 53, 0.3);
 }
 
-/* 婵€娲荤姸鎬佺殑璞崕鏍峰紡 */
+/* 激活状态的豪华样式 */
 .nav-item-horizontal.active {
   background: linear-gradient(135deg, $color-primary 0%, #f7931e 50%, #ff8c42 100%);
   color: white;
@@ -125,7 +124,7 @@
   border: 2rpx solid rgba(255, 255, 255, 0.4);
 }
 
-/* 婵€娲荤姸鎬佺殑闂厜鏁堟灉 */
+/* 激活状态的闪光效果 */
 .nav-item-horizontal.active::before {
   content: '';
   position: absolute;
@@ -170,7 +169,7 @@
   position: relative;
 }
 
-/* 鍟嗗搧鍏戞崲鎸夐挳鐨勭壒娈婃晥鏋?*/
+/* 商品兑换按钮的特殊效果 */
 .nav-item-horizontal.trade-market-nav::after {
   content: '';
   position: absolute;
@@ -244,7 +243,7 @@
   transform: scale(1.02);
 }
 
-/* 鐜颁唬鍖栫殑鐘舵€佹爣绛?*/
+/* 现代化的状态标签 */
 .nav-status.current {
   position: absolute;
   top: -8rpx;
@@ -277,7 +276,7 @@
   }
 }
 
-/* 娣诲姞寰鐨勬潗璐ㄦ劅 */
+/* 添加微妙的材质感 */
 .nav-item-horizontal {
   background-image: linear-gradient(
     135deg,
@@ -287,7 +286,7 @@
   border: 1rpx solid rgba(255, 255, 255, 0.6);
 }
 
-/* 鍝嶅簲寮忎紭鍖?*/
+/* 响应式优化 */
 @media (max-width: 400px) {
   .nav-text {
     font-size: 26rpx;
@@ -302,126 +301,126 @@
     gap: 12rpx;
   }
 
-  /* 馃帹 灏忓睆骞曠瓫閫夋寜閽紭鍖?*/
+  /* 🎨 小屏幕筛选按钮优化 */
   .filter-buttons {
     gap: 10rpx;
-    /* 璋冩暣灏忓睆骞曢棿璺濓細6rpx 鈫?10rpx */
+    /* 调整小屏幕间距：6rpx → 10rpx */
     padding: 0;
-    /* 灏忓睆骞曠Щ闄ゅ鍣ㄥ唴杈硅窛 */
+    /* 小屏幕移除容器内边距 */
   }
 
   .filter-btn {
     font-size: 21rpx;
-    /* 璋冩暣灏忓睆骞曞瓧浣擄細20rpx 鈫?21rpx */
+    /* 调整小屏幕字体：20rpx → 21rpx */
     padding: 0 6rpx;
-    /* 鍑忓皬鍐呰竟璺?*/
+    /* 减小内边距 */
     height: 64rpx;
-    /* 灏忓睆骞曟仮澶嶅師鏉ョ殑楂樺害 */
+    /* 小屏幕恢复原来的高度 */
     line-height: 60rpx;
   }
 
   .advanced-filter-btn {
     font-size: 19rpx;
-    /* 璋冩暣瀛椾綋锛?8rpx 鈫?19rpx */
+    /* 调整字体：18rpx → 19rpx */
     padding: 0 10rpx;
-    /* 璋冩暣鍐呰竟璺?*/
+    /* 调整内边距 */
     height: 64rpx;
-    /* 灏忓睆骞曟仮澶嶅師鏉ョ殑楂樺害 */
+    /* 小屏幕恢复原来的高度 */
     line-height: 60rpx;
   }
 
   .advanced-filter-btn::before {
     font-size: 15rpx;
-    /* 璋冩暣鍥炬爣澶у皬锛?4rpx 鈫?15rpx */
+    /* 调整图标大小：14rpx → 15rpx */
     margin-right: 4rpx;
-    /* 璋冩暣闂磋窛 */
+    /* 调整间距 */
   }
 
-  /* 馃帹 灏忓睆骞曞揩鎹锋搷浣滄寜閽紭鍖?*/
+  /* 🎨 小屏幕快捷操作按钮优化 */
   .quick-actions {
     gap: 16rpx;
-    /* 灏忓睆骞曢€傚綋鍑忓皬闂磋窛锛?0rpx 鈫?16rpx */
+    /* 小屏幕适当减小间距：20rpx → 16rpx */
     padding: 0 2rpx;
-    /* 鍑忓皬瀹瑰櫒鍐呰竟璺?*/
+    /* 减小容器内边距 */
   }
 
   .action-btn {
     font-size: 22rpx;
-    /* 灏忓睆骞曞瓧浣擄細23rpx 鈫?22rpx */
+    /* 小屏幕字体：23rpx → 22rpx */
     height: 64rpx;
-    /* 灏忓睆骞曟仮澶嶅師楂樺害 */
+    /* 小屏幕恢复原高度 */
     line-height: 60rpx;
     padding: 0 6rpx;
-    /* 鍑忓皬鍐呰竟璺?*/
+    /* 减小内边距 */
   }
 
-  /* 馃帹 灏忓睆骞曢珮绾х瓫閫夐潰鏉夸紭鍖?- 2*2缃戞牸甯冨眬鍝嶅簲寮?*/
+  /* 🎨 小屏幕高级筛选面板优化 - 2*2网格布局响应式 */
   .advanced-filter-panel {
     grid-template-columns: 1fr;
-    /* 灏忓睆骞曟敼涓哄崟鍒楀竷灞€ */
+    /* 小屏幕改为单列布局 */
     gap: 12rpx;
-    /* 鍑忓皬闂磋窛 */
+    /* 减小间距 */
     padding: 16rpx;
-    /* 鍑忓皬鍐呰竟璺?*/
+    /* 减小内边距 */
     margin: 16rpx auto 0;
-    /* 馃幆 灏忓睆骞曚篃浣跨敤auto灞呬腑 */
+    /* 🎯 小屏幕也使用auto居中 */
     width: 95%;
-    /* 馃幆 灏忓睆骞曞搴︾◢寰ぇ涓€浜?*/
+    /* 🎯 小屏幕宽度稍微大一些 */
     max-width: 100%;
-    /* 馃幆 灏忓睆骞曞彇娑堟渶澶у搴﹂檺鍒?*/
+    /* 🎯 小屏幕取消最大宽度限制 */
     min-width: 0;
-    /* 馃幆 灏忓睆骞曞彇娑堟渶灏忓搴﹂檺鍒?*/
+    /* 🎯 小屏幕取消最小宽度限制 */
     justify-items: center;
-    /* 馃幆 纭繚灏忓睆骞曚篃灞呬腑 */
+    /* 🎯 确保小屏幕也居中 */
   }
 
   .filter-row {
     padding: 16rpx 12rpx;
-    /* 馃幆 灏忓睆骞曡皟鏁村唴杈硅窛 */
+    /* 🎯 小屏幕调整内边距 */
     width: 85%;
-    /* 馃幆 灏忓睆骞曡缃悎閫傜殑瀹藉害 */
+    /* 🎯 小屏幕设置合适的宽度 */
     min-width: 200rpx;
-    /* 馃幆 灏忓睆骞曚繚璇佹渶灏忓搴?*/
+    /* 🎯 小屏幕保证最小宽度 */
     max-width: 90%;
-    /* 馃幆 灏忓睆骞曢檺鍒舵渶澶у搴?*/
+    /* 🎯 小屏幕限制最大宽度 */
     min-height: 160rpx;
-    /* 馃幆 灏忓睆骞曢€傚綋鍑忓皬鏈€灏忛珮搴?*/
+    /* 🎯 小屏幕适当减小最小高度 */
   }
 
   .filter-label {
     font-size: $font-size-sm;
-    /* 馃幆 灏忓睆骞曚繚鎸佸彲璇绘€?*/
+    /* 🎯 小屏幕保持可读性 */
     margin-bottom: 12rpx;
-    /* 馃幆 鎭㈠鍚堥€傜殑搴曡竟璺?*/
+    /* 🎯 恢复合适的底边距 */
     padding: 6rpx 10rpx;
-    /* 馃幆 灏忓睆骞曞噺灏戝唴杈硅窛 */
+    /* 🎯 小屏幕减少内边距 */
   }
 
   .option-btn {
     font-size: $font-size-xs;
-    /* 馃幆 灏忓睆骞曚繚鎸佸彲璇绘€?*/
+    /* 🎯 小屏幕保持可读性 */
     height: 48rpx;
-    /* 馃幆 鎭㈠鍚堥€傜殑楂樺害 */
+    /* 🎯 恢复合适的高度 */
     line-height: 44rpx;
     padding: 0 12rpx;
-    /* 馃幆 鎭㈠鍚堥€傜殑鍐呰竟璺?*/
+    /* 🎯 恢复合适的内边距 */
     min-width: 60rpx;
-    /* 馃幆 鎭㈠鍚堥€傜殑鏈€灏忓搴?*/
+    /* 🎯 恢复合适的最小宽度 */
   }
 
   .reset-btn {
     height: 56rpx;
-    /* 馃幆 灏忓睆骞曢€傚綋鍑忓皬楂樺害 */
+    /* 🎯 小屏幕适当减小高度 */
     font-size: $font-size-sm;
-    /* 馃幆 灏忓睆骞曡皟鏁村瓧浣?*/
+    /* 🎯 小屏幕调整字体 */
     line-height: 52rpx;
     padding: 0 28rpx;
-    /* 馃幆 灏忓睆骞曞噺灏戝唴杈硅窛 */
+    /* 🎯 小屏幕减少内边距 */
   }
 
   .filter-actions {
     padding-top: 12rpx;
-    /* 鍑忓皬椤堕儴鍐呰竟璺?*/
+    /* 减小顶部内边距 */
     margin-top: 16rpx;
   }
 }

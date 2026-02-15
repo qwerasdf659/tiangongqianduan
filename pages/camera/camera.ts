@@ -1,4 +1,4 @@
-﻿// pages/camera/camera.ts - 发现页面 - 活动聚合入口（方案C：标签页分类）+ MobX响应式状态
+// pages/camera/camera.ts - 发现页面 - 活动聚合入口（方案C：标签页分类）+ MobX响应式状态
 
 // 🔴 统一工具函数导入
 const { Wechat, API, Logger } = require('../../utils/index')
@@ -130,7 +130,7 @@ Page({
         })
         log.warn('⚠️ 活动API返回无数据')
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 初始化失败:', error)
       this.setData({
         loading: false,
@@ -151,21 +151,21 @@ Page({
 
     // 按Tab筛选
     if (currentTab !== 'recommend') {
-      filtered = filtered.filter(item => item.type === currentTab)
+      filtered = filtered.filter((item: any) => item.type === currentTab)
     }
 
     // 按搜索关键词筛选
     if (searchKeyword) {
       const keyword = searchKeyword.toLowerCase()
       filtered = filtered.filter(
-        item =>
+        (item: any) =>
           item.title.toLowerCase().includes(keyword) ||
           item.subtitle.toLowerCase().includes(keyword)
       )
     }
 
     // 按热度排序
-    filtered.sort((a, b) => (b.hot_score || 0) - (a.hot_score || 0))
+    filtered.sort((a: any, b: any) => (b.hot_score || 0) - (a.hot_score || 0))
 
     this.setData({
       filteredActivities: filtered,
@@ -179,7 +179,7 @@ Page({
    * Tab切换
    * e - 事件对象
    */
-  onTabChange(e) {
+  onTabChange(e: any) {
     const tab = e.currentTarget.dataset.tab
 
     if (this.data.currentTab === tab) {
@@ -196,7 +196,7 @@ Page({
    * 搜索输入
    * e - 事件对象
    */
-  onSearchInput(e) {
+  onSearchInput(e: any) {
     const keyword = e.detail.value
     this.setData({ searchKeyword: keyword })
 
@@ -230,7 +230,7 @@ Page({
       // 重新加载活动数据
       await this.initializePage()
       showToast('刷新成功')
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 刷新失败:', error)
       showToast('刷新失败，请重试')
     } finally {
@@ -250,7 +250,7 @@ Page({
    * 活动点击事件
    * e - 事件对象
    */
-  onActivityTap(e) {
+  onActivityTap(e: any) {
     const activity = e.currentTarget.dataset.activity
 
     if (!activity) {
@@ -267,7 +267,7 @@ Page({
    * 显示活动详情
    * activity - 活动数据
    */
-  showActivityDetail(activity) {
+  showActivityDetail(activity: any) {
     // 构建详情内容
     let content = `${activity.subtitle || ''}\n\n`
 
@@ -321,7 +321,7 @@ Page({
    * 处理活动操作
    * activity - 活动数据
    */
-  handleActivityAction(activity) {
+  handleActivityAction(activity: any) {
     // 检查登录状态
     if (!this.data.isLoggedIn) {
       wx.showModal({
@@ -365,20 +365,20 @@ Page({
    * 获取状态文本
    * status - 状态值
    */
-  getStatusText(status) {
+  getStatusText(status: string) {
     const statusMap = {
       ongoing: '进行中',
       upcoming: '即将开始',
       ended: '已结束'
     }
-    return statusMap[status] || '未知'
+    return statusMap[status as keyof typeof statusMap] || '未知'
   },
 
   /**
    * 格式化时间
    * timestamp - 时间戳
    */
-  formatTime(timestamp) {
+  formatTime(timestamp: any) {
     if (!timestamp) {
       return '-'
     }
@@ -397,7 +397,7 @@ Page({
    * 格式化倒计时
    * endTime - 结束时间戳
    */
-  formatCountdown(endTime) {
+  formatCountdown(endTime: any) {
     const now = Date.now()
     const diff = endTime - now
 

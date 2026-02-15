@@ -154,7 +154,7 @@ Page({
       } else {
         throw new Error(result.message || '获取用户信息失败')
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 加载用户信息失败:', error)
 
       // 处理 MULTIPLE_STORES_REQUIRE_STORE_ID 错误：弹出门店选择
@@ -201,7 +201,7 @@ Page({
    *
    * e - picker事件对象
    */
-  onStoreChange(e) {
+  onStoreChange(e: any) {
     const index = parseInt(e.detail.value, 10)
     const store = this.data.storeList[index]
     log.info('🏪 选择门店:', store)
@@ -222,7 +222,7 @@ Page({
    *
    * e - 事件对象
    */
-  onAmountInput(e) {
+  onAmountInput(e: any) {
     this.setData({ consumeAmount: e.detail.value })
   },
 
@@ -231,7 +231,7 @@ Page({
    *
    * e - 事件对象
    */
-  onNotesInput(e) {
+  onNotesInput(e: any) {
     this.setData({ merchantNotes: e.detail.value })
   },
 
@@ -334,7 +334,7 @@ Page({
           }, 1000)
         }
       })
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 提交失败:', error)
       this.handleSubmitError(error)
     } finally {
@@ -347,7 +347,7 @@ Page({
    *
    * error - 错误对象（包含 code 字段）
    */
-  handleSubmitError(error) {
+  handleSubmitError(error: any) {
     /** 错误码 → 用户友好提示映射 */
     const errorMap = {
       QRCODE_EXPIRED: '二维码已过期，请让顾客刷新二维码',
@@ -364,8 +364,9 @@ Page({
       UNAUTHENTICATED: '登录已过期，请重新登录'
     }
 
-    const code = error.code || ''
-    const content = errorMap[code] || error.message || '提交失败，请重试'
+    const code: string = error.code || ''
+    const content =
+      (errorMap as Record<string, string>)[code] || error.message || '提交失败，请重试'
 
     // UNAUTHENTICATED 特殊处理：跳转登录
     if (code === 'UNAUTHENTICATED') {
@@ -400,10 +401,10 @@ Page({
    *
    * error - 错误对象
    */
-  getErrorContent(error) {
-    const code = error.code || ''
+  getErrorContent(error: any) {
+    const code: string = error.code || ''
 
-    const contentMap = {
+    const contentMap: Record<string, string> = {
       INVALID_QRCODE_FORMAT: '二维码格式不支持，请让顾客刷新二维码后重试。',
       QRCODE_EXPIRED: '二维码已过期（5分钟有效），请让顾客刷新二维码后重试。',
       REPLAY_DETECTED: '该二维码已被使用（一次性），请让顾客重新生成二维码。',

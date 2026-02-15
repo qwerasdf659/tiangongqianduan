@@ -20,7 +20,7 @@
 // ===== 内部模块导入（index.ts内部直接引用，不通过自身循环引用） =====
 const utilFunctions = require('./util')
 const validateFunctions = require('./validate')
-const apiFunctions = require('./api')
+const apiFunctions = require('./api/index')
 const wechatFunctions = require('./wechat')
 const authHelperFunctions = require('./auth-helper')
 const errorFunctions = require('./simple-error')
@@ -38,7 +38,7 @@ const Validation = { ...validateFunctions }
 
 /**
  * API接口函数 - V4.0统一引擎（对齐后端V4.7.0真实路由）
- * API已拆分到 utils/api/ 子目录，require('./api') 解析到 api/index.ts
+ * API已拆分到 utils/api/ 子目录，require('./api/index') 显式引用barrel入口
  * 新增API方法只需在对应子模块导出，api/index.ts barrel自动同步
  */
 const API = { ...apiFunctions }

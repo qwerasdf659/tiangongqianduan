@@ -142,14 +142,30 @@ declare namespace API {
     total_amount: number
   }
 
-  /** 资产交易记录 */
+  /**
+   * 资产交易记录（对齐后端 GET /api/v4/assets/transactions 路由层输出）
+   *
+   * 后端数据来源: routes/v4/assets/transactions.js 第 61-76 行 map 输出
+   * delta_amount 正数=获得(earn)，负数=消费(consume)
+   */
   interface AssetTransaction {
-    transaction_id: number
+    /** 交易流水ID（主键，数字类型） */
+    asset_transaction_id: number
+    /** 资产代码（POINTS / DIAMOND / red_shard 等） */
     asset_code: string
-    amount: number
-    business_type: string
-    description: string
+    /** 变动金额（正数=增加/earn，负数=扣减/consume），后端字段名为 delta_amount */
+    delta_amount: number
+    /** 变动前余额 */
+    balance_before: number
+    /** 变动后余额 */
     balance_after: number
+    /** 业务类型枚举（lottery_consume / lottery_reward / exchange_debit / consumption_reward 等） */
+    business_type: string
+    /** 交易描述（来自后端 meta.description，约91.2%覆盖率，可为null） */
+    description: string | null
+    /** 交易标题（来自后端 meta.title，约79.2%覆盖率，可为null） */
+    title: string | null
+    /** 创建时间（ISO 8601 格式） */
     created_at: string
   }
 
@@ -244,6 +260,77 @@ declare namespace API {
     quantity: number
     status: string
     created_at: string
+  }
+
+  // ===== 竞价系统 =====
+
+  /**
+   * 竞价商品（后端 bid_products 表，7态状态机）
+   * 状态流转: pending → active → settled/no_bid/cancelled
+   * 后端API: GET /api/v4/backpack/bid/products
+   */
+  interface BidProduct {
+    /** 竞价商品ID（主键） */
+    bid_product_id: number
+    /** 关联的兑换商品ID（exchange_items表） */
+    exchange_item_id: number
+    /** 商品名称 */
+    name: string
+    /** 商品描述 */
+    description: string
+    /** 商品图片URL */
+    image_url: string
+    /** 商品分类 */
+    category: string
+    /** 起拍价（最低出价金额） */
+    starting_price: number
+    /** 当前最高出价 */
+    current_price: number
+    /** 最小加价幅度 */
+    min_bid_increment: number
+    /** 竞价使用的资产类型编码（如 DIAMOND、red_shard） */
+    asset_code: string
+    /** 竞价状态: pending/active/settled/no_bid/cancelled */
+    status: string
+    /** 竞价开始时间（ISO 8601） */
+    start_time: string
+    /** 竞价结束时间（ISO 8601） */
+    end_time: string
+    /** 当前出价人数 */
+    bid_count: number
+    /** 最高出价者用户ID（可为null） */
+    highest_bidder_id: number | null
+    /** 创建时间 */
+    created_at: string
+    /** 更新时间 */
+    updated_at: string
+  }
+
+  /**
+   * 竞价出价记录（后端 bid_records 表，含幂等键+冻结流水）
+   * 后端API: GET /api/v4/backpack/bid/history
+   */
+  interface BidRecord {
+    /** 出价记录ID（主键） */
+    bid_record_id: number
+    /** 关联的竞价商品ID */
+    bid_product_id: number
+    /** 出价用户ID */
+    user_id: number
+    /** 出价金额 */
+    bid_amount: number
+    /** 竞价使用的资产类型编码 */
+    asset_code: string
+    /** 冻结流水号（用于资产冻结/解冻追踪） */
+    frozen_transaction_id: number | null
+    /** 是否为当前最高出价 */
+    is_highest: boolean
+    /** 出价时间 */
+    created_at: string
+    /** 关联的竞价商品名称（联表查询返回） */
+    product_name?: string
+    /** 竞价商品状态（联表查询返回） */
+    product_status?: string
   }
 
   // ===== 交易市场 =====

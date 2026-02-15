@@ -81,6 +81,4 @@ function createPaginatedActions<T>(listKey: string, paginationKey: string, pageS
   return { setAction, appendAction }
 }
 
-module.exports = { createPaginationState, createPaginatedActions }
-
-export {}
+export { createPaginationState, createPaginatedActions }

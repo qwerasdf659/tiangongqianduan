@@ -200,7 +200,7 @@ Page({
       /* 并行加载：积分数据和弹窗横幅 */
       await Promise.all([
         this._refreshPoints(),
-        this.loadPopupBanners().catch(err => {
+        this.loadPopupBanners().catch((err: any) => {
           log.error('[lottery] 弹窗横幅加载失败（不影响主功能）:', err)
         })
       ])

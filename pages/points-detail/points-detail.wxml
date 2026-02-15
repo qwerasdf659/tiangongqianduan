@@ -72,7 +72,7 @@
       <view
         class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
         wx:for="{{filteredPointsRecords}}"
-        wx:key="transaction_id"
+        wx:key="asset_transaction_id"
       >
         <!-- 记录图标 -->
         <view class="record-icon">
@@ -93,9 +93,7 @@
           </view>
           <view class="record-meta">
             <text class="record-time">{{item.displayTime}}</text>
-            <text class="record-desc" wx:if="{{item.transaction_description}}"
-              >{{item.transaction_description}}</text
-            >
+            <text class="record-desc" wx:if="{{item.business_type}}">{{item.business_type}}</text>
           </view>
         </view>
       </view>

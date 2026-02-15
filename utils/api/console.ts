@@ -190,6 +190,23 @@ async function getAdminSessionStats(admin_id?: number) {
   })
 }
 
+/**
+ * 获取管理员客服响应时长统计
+ * 后端API: GET /api/v4/console/customer-service/sessions/response-stats?days=7
+ *
+ * @param days - 统计天数（默认7天）
+ * @returns { summary, distribution, trend, admin_ranking }
+ */
+async function getAdminResponseStats(days: number = 7) {
+  const qs = buildQueryString({ days })
+  return apiClient.request(`/console/customer-service/sessions/response-stats?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
 // ==================== 🟢 管理员在线状态 ====================
 
 /**
@@ -252,6 +269,7 @@ module.exports = {
   getAdminUserStatistics,
   getAdminLotteryUserStatistics,
   getAdminSessionStats,
+  getAdminResponseStats,
   updateAdminOnlineStatus,
   getAdminOnlineStatus
 }

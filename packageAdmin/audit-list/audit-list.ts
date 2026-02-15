@@ -143,7 +143,7 @@ Page({
         })
 
         // 🔴 格式化时间显示（北京时间）+ 手机号脱敏
-        const formattedRecords = records.map(record => {
+        const formattedRecords = records.map((record: any) => {
           return {
             ...record,
             // 后端 created_at 为对象 { iso, display }，格式化为中文时间
@@ -164,7 +164,7 @@ Page({
       } else {
         throw new Error(result.message || '加载失败')
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 加载待审核记录失败:', error)
 
       wx.showToast({
@@ -190,7 +190,7 @@ Page({
    * @param dateTimeValue - 后端返回的时间（对象或字符串）
    * @returns 中文格式时间字符串（如 "2026年02月02日 03:17:19"）
    */
-  formatBeijingTime(dateTimeValue) {
+  formatBeijingTime(dateTimeValue: any) {
     if (!dateTimeValue) {
       return '时间未知'
     }
@@ -223,7 +223,7 @@ Page({
       const second = String(date.getSeconds()).padStart(2, '0')
 
       return `${year}年${month}月${day}日 ${hour}:${minute}:${second}`
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 时间格式化失败:', error)
       return typeof dateTimeValue === 'string' ? dateTimeValue : '时间未知'
     }
@@ -237,7 +237,7 @@ Page({
    * e.currentTarget.dataset - 数据集
    * e.currentTarget.dataset.record - 消费记录
    */
-  onApprove(e) {
+  onApprove(e: any) {
     const record = e.currentTarget.dataset.record
 
     log.info('✅ 点击审核通过，记录:', record)
@@ -263,7 +263,7 @@ Page({
    *
    * record - 消费记录
    */
-  async handleApprove(record) {
+  async handleApprove(record: any) {
     this.setData({ submitting: true })
 
     try {
@@ -287,7 +287,7 @@ Page({
       setTimeout(() => {
         this.loadPendingRecords(true)
       }, 1500)
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 审核通过失败:', error)
 
       wx.showToast({
@@ -308,7 +308,7 @@ Page({
    * e.currentTarget.dataset - 数据集
    * e.currentTarget.dataset.record - 消费记录
    */
-  onReject(e) {
+  onReject(e: any) {
     const record = e.currentTarget.dataset.record
 
     log.info('❌ 点击审核拒绝，记录:', record)
@@ -328,7 +328,7 @@ Page({
    * e.detail - 事件详情
    * e.detail.value - 输入的拒绝原因
    */
-  onRejectReasonInput(e) {
+  onRejectReasonInput(e: any) {
     const reason = e.detail.value
 
     this.setData({
@@ -385,7 +385,7 @@ Page({
       setTimeout(() => {
         this.loadPendingRecords(true)
       }, 1500)
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 审核拒绝失败:', error)
 
       wx.showToast({

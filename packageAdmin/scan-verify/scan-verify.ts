@@ -131,7 +131,7 @@ Page({
    *
    * @param redeemCode - 扫描到的核销码字符串
    */
-  async handleFulfill(redeemCode) {
+  async handleFulfill(redeemCode: string) {
     if (!redeemCode) {
       wx.showToast({ title: '核销码不能为空', icon: 'none' })
       return
@@ -175,7 +175,7 @@ Page({
       } else {
         throw new Error(result?.message || '核销失败')
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 核销失败:', error)
 
       // 后端错误码映射为用户友好提示
@@ -186,7 +186,10 @@ Page({
         CONFLICT: '核销码已被使用'
       }
 
-      const errorContent = errorMessages[errorCode] || error.message || '请检查核销码是否有效'
+      const errorContent =
+        (errorMessages as Record<string, string>)[errorCode] ||
+        error.message ||
+        '请检查核销码是否有效'
 
       this.setData({
         verifyResult: { error: errorContent },

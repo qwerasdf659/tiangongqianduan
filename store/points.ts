@@ -11,16 +11,25 @@
 
 import { observable, action } from 'mobx-miniprogram'
 
-const { createPaginationState, createPaginatedActions } = require('./helpers')
+import { createPaginationState, createPaginatedActions } from './helpers'
 
-/** 积分交易记录结构 */
+/** 积分交易记录结构（对齐后端 GET /api/v4/assets/transactions 返回字段） */
 interface PointsTransaction {
-  transaction_id: number
+  /** 交易流水ID（主键，数字类型） */
+  asset_transaction_id: number
+  /** 资产代码（POINTS / DIAMOND / red_shard 等） */
   asset_code: string
-  amount: number
+  /** 变动金额（正数=获得/earn，负数=消费/consume） */
+  delta_amount: number
+  /** 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等） */
   business_type: string
-  description: string
+  /** 交易描述（可为null） */
+  description: string | null
+  /** 交易标题（可为null） */
+  title: string | null
+  /** 变动后余额 */
   balance_after: number
+  /** 创建时间 */
   created_at: string
 }
 

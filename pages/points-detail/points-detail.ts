@@ -146,7 +146,7 @@ Page({
           checkAuth() // 会自动跳转到登录页
           return
         }
-      } catch (error) {
+      } catch (error: any) {
         log.error('❌ 从Storage恢复用户信息失败:', error)
         checkAuth()
         return
@@ -170,8 +170,30 @@ Page({
   },
 
   /**
-   * 🔴 加载积分记录 - 使用新项目V2.0 API
-   * 注意：根据接口文档2.0，积分API已实现
+   * 🔴 加载积分记录
+   *
+   * API: GET /api/v4/assets/transactions
+   *
+   * 后端实际返回字段（对齐 typings/api.d.ts AssetTransaction，路由层 transactions.js 第61-76行 map）：
+   *   transaction_id  - 交易流水ID（BIGINT）
+   *   asset_code      - 资产代码（POINTS / DIAMOND / red_shard）
+   *   delta_amount    - 变动金额（正数=获得/earn，负数=消费/consume）
+   *   balance_before  - 变动前余额
+   *   balance_after   - 变动后余额
+   *   business_type   - 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等）
+   *   description     - 交易描述（来自 meta.description，覆盖率91.2%，可为null）
+   *   title           - 交易标题（来自 meta.title，覆盖率79.2%，可为null）
+   *   created_at      - 创建时间（ISO 8601）
+   *
+   * 后端分页字段（pagination对象）：
+   *   total        - 记录总数
+   *   page         - 当前页码
+   *   page_size    - 每页条数
+   *   total_pages  - 总页数
+   *
+   * 前端筛选逻辑（earn/consume）：根据 delta_amount 正负号判断
+   *   delta_amount > 0  → earn（积分获得）
+   *   delta_amount < 0  → consume（积分消费）
    */
   async loadPointsRecords() {
     if (this.data.loading) {
@@ -183,7 +205,7 @@ Page({
     this.setData({ loading: true, hasError: false })
 
     try {
-      // 🔴 使用统一的认证检查（替代diagnoseTokenStatus）
+      // 统一认证检查
       if (!checkAuth()) {
         log.warn('⚠️ 用户未登录，已自动跳转')
         this.setData({ loading: false })
@@ -192,8 +214,7 @@ Page({
 
       log.info('✅ 认证检查通过，继续API请求')
 
-      // 🔑 API请求（通过Token识别用户）
-      // 🔴 修复: 不传asset_code和business_type，加载全部积分交易记录
+      // API请求（通过JWT Token识别用户，不传asset_code和business_type加载全部交易记录）
       // 筛选（全部/获得/消费）在前端客户端通过 filterPointsRecords() 完成
       const result = await API.getPointsTransactions(this.data.currentPage, this.data.pageSize)
 
@@ -201,51 +222,57 @@ Page({
         success: result.success,
         message: result.message,
         dataType: typeof result.data,
-        // 🔴 V4.0修正: 字段名transactions，不是records
         transactionsCount: result.data?.transactions?.length || 0,
         hasData: !!result.data
       })
 
       if (result.success && result.data) {
-        // 🔴 V4.0修正: 后端返回的字段名是transactions，不是records（文档Line 5871）
+        // 后端返回的字段名是 transactions
         const { transactions, pagination } = result.data
 
-        // 🔑 处理记录数据
         let processedRecords = transactions || []
+
+        // 🔍 诊断日志：打印第一条原始记录的字段，帮助确认后端实际返回格式
+        if (processedRecords.length > 0) {
+          log.info('🔍 [诊断] 第一条原始记录字段:', {
+            keys: Object.keys(processedRecords[0]),
+            sample: processedRecords[0]
+          })
+        }
 
         // 🎰 智能聚合抽奖记录
         processedRecords = this.aggregateLotteryRecords(processedRecords)
 
-        const formattedRecords = processedRecords.map(record => {
-          // 使用后端返回的字段名points_amount
-          const pointsValue = record.points_amount || record.points || 0
+        const formattedRecords = processedRecords.map((record: any) => {
+          // 🔴 使用后端实际返回的字段名 delta_amount（对齐后端路由层 transactions.js 第61-76行）
+          // delta_amount > 0 表示获得积分，delta_amount < 0 表示消费积分
+          const rawAmount = record.delta_amount || 0
+          const absAmount = Math.abs(rawAmount)
 
-          // 根据transaction_type确定显示的符号
-          const displayPoints = record.transaction_type === 'earn' ? pointsValue : -pointsValue
+          // 根据 delta_amount 正负号推导交易方向
+          const transactionType = rawAmount > 0 ? 'earn' : 'consume'
 
-          // 优先使用后端返回的transaction_title（完整业务描述）
-          const displayTitle =
-            record.transaction_title || record.description || record.source_text || '积分记录'
+          // 标题显示优先级：title → description → 业务类型中文回退
+          const displayTitle = record.title || record.description || '积分记录'
 
-          // 直接使用后端返回的时间（前端只负责展示）
-          const displayTime = record.transaction_time || record.created_at || record.timestamp || ''
+          // 使用后端返回的 created_at 字段（ISO 8601 格式）
+          const displayTime = record.created_at || ''
 
           // 格式化金额显示（带符号）
-          const displayAmount =
-            record.transaction_type === 'earn'
-              ? `+${Math.abs(pointsValue)}`
-              : `-${Math.abs(pointsValue)}`
+          const displayAmount = rawAmount > 0 ? `+${absAmount}` : `-${absAmount}`
 
           return {
             ...record,
-            displayTitle, // 业务标题（如"兑换商品：测试商品"）
-            displayTime, // 友好时间（如"2小时前"）
-            displayAmount, // 带符号的金额（如"+100"）
-            displayPoints // 数值（用于计算）
+            // 前端计算的交易方向（用于筛选和UI样式）
+            transaction_type: transactionType,
+            displayTitle,
+            displayTime,
+            displayAmount,
+            displayPoints: rawAmount
           }
         })
 
-        // 🔴 修复: 加载更多时追加记录，首页加载时替换记录
+        // 加载更多时追加记录，首页加载时替换记录
         const isLoadMore = this.data.currentPage > 1
         const allRecords = isLoadMore
           ? [...this.data.pointsRecords, ...formattedRecords]
@@ -258,9 +285,13 @@ Page({
           是否追加: isLoadMore
         })
 
+        // 🔴 后端分页字段: total, page, page_size, total_pages（不含 hasMore / has_more）
+        // 根据 page < total_pages 计算是否还有更多数据
+        const hasMore = pagination ? pagination.page < pagination.total_pages : false
+
         this.setData({
           pointsRecords: allRecords,
-          hasMoreRecords: pagination?.hasMore || false,
+          hasMoreRecords: hasMore,
           lastUpdateTime: new Date().toLocaleString(),
           loading: false,
           hasError: false
@@ -273,65 +304,49 @@ Page({
       } else {
         throw new Error(result.message || '获取积分记录失败')
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 获取积分记录失败:', error)
       this.setData({ loading: false })
 
       const errorMsg = error.message || '获取积分记录失败'
-      const errorCode = error.code || error.status || -1
+      const errorCode = error.code || error.statusCode || -1
 
       log.info('🔍 错误详细信息:', {
         message: errorMsg,
         code: errorCode,
-        needReauth: error.needReauth,
         fullError: error
       })
 
-      // 特别处理404错误
+      // 404错误 - API路径问题
       const ERROR_NOT_FOUND = 404
       if (errorCode === ERROR_NOT_FOUND || errorMsg.includes('404')) {
         log.warn('🚨 收到404错误 - 可能是API路径问题或服务未启动')
-
         wx.showModal({
           title: '⚠️ 服务暂时不可用',
           content:
-            '积分记录服务暂时不可用，这是后端API问题。\n\n请联系技术支持处理：\n• API端点可能未部署\n• 服务器可能重启中\n• 路由配置可能有问题',
+            '积分记录服务暂时不可用。\n\n请联系技术支持处理：\n• API端点可能未部署\n• 服务器可能重启中',
           showCancel: true,
           cancelText: '稍后重试',
-          confirmText: '联系客服',
-          confirmColor: '#FF6B35',
-          success: res => {
-            if (res.confirm) {
-              wx.showToast({
-                title: '请联系技术支持',
-                icon: 'none'
-              })
-            }
-          }
+          confirmText: '知道了',
+          confirmColor: '#FF6B35'
         })
         return
       }
 
-      // 认证错误处理（checkAuth会自动处理跳转）
+      // 认证错误（APIClient已处理401自动刷新，此处处理其他认证场景）
       const ERROR_UNAUTHORIZED = 401
-      if (
-        error.needReauth ||
-        errorCode === ERROR_UNAUTHORIZED ||
-        errorMsg.includes('身份验证已过期') ||
-        errorMsg.includes('登录已过期')
-      ) {
+      if (error.isAuthError || errorCode === ERROR_UNAUTHORIZED) {
         log.info('🔒 认证错误，使用统一认证处理')
-        // 会自动跳转到登录页
         checkAuth()
         return
       }
 
-      // 服务器错误处理
+      // 服务器错误
       const ERROR_SERVER = 500
       if (errorCode >= ERROR_SERVER) {
         wx.showModal({
           title: '🚨 服务器暂时繁忙',
-          content: `服务器遇到问题(${errorCode})：\n\n${errorMsg}\n\n建议操作：\n• 稍后重新尝试\n• 检查网络连接\n• 联系技术支持`,
+          content: `服务器遇到问题(${errorCode})：\n${errorMsg}\n\n建议稍后重新尝试`,
           showCancel: true,
           cancelText: '重新加载',
           confirmText: '返回上页',
@@ -347,10 +362,10 @@ Page({
         return
       }
 
-      // 通用错误处理
+      // 通用错误
       wx.showModal({
-        title: '💔 数据加载失败',
-        content: `积分记录加载遇到问题：\n\n${errorMsg}\n\n建议操作：\n• 检查网络连接\n• 稍后重新尝试\n• 如持续出现请联系客服`,
+        title: '数据加载失败',
+        content: `${errorMsg}\n\n建议检查网络后重试`,
         showCancel: true,
         cancelText: '重新加载',
         confirmText: '返回上页',
@@ -385,7 +400,7 @@ Page({
           totalPoints: result.data.available_amount || 0
         })
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 刷新积分余额失败:', error)
     }
 
@@ -417,7 +432,7 @@ Page({
    * 筛选逻辑在前端客户端执行，不需要重新请求API
    * 后端API的asset_code参数用于资产类型筛选（如POINTS），不是交易方向筛选
    */
-  onPointsFilterChange(e) {
+  onPointsFilterChange(e: any) {
     const filter = e.currentTarget.dataset.filter
     log.info('🔍 切换积分筛选', filter)
 
@@ -429,7 +444,12 @@ Page({
 
   /**
    * 🔴 筛选积分记录
-   * 注意：后端返回字段是points_amount和transaction_type，不是points
+   *
+   * 筛选逻辑基于 loadPointsRecords() 中计算的 transaction_type 字段：
+   *   - 'earn'    → delta_amount > 0（积分获得）
+   *   - 'consume' → delta_amount < 0（积分消费）
+   *
+   * 筛选在前端客户端执行，不需要重新请求API
    */
   filterPointsRecords() {
     const pointsRecords = this.data.pointsRecords || []
@@ -442,11 +462,11 @@ Page({
 
     switch (this.data.pointsFilter) {
       case 'earn':
-        // 🔧 修正：根据transaction_type字段筛选，而不是points字段
+        // 根据前端计算的 transaction_type 筛选（来源：delta_amount > 0）
         filtered = filtered.filter(record => record.transaction_type === 'earn')
         break
       case 'consume':
-        // 🔧 修正：根据transaction_type字段筛选，而不是points字段
+        // 根据前端计算的 transaction_type 筛选（来源：delta_amount < 0）
         filtered = filtered.filter(record => record.transaction_type === 'consume')
         break
       default:
@@ -497,26 +517,31 @@ Page({
 
   /**
    * 🎰 智能聚合抽奖记录
+   *
+   * 将同一分钟内的连续抽奖消费记录合并为一条聚合记录。
+   * 判断依据：business_type 含 lottery_consume 或 description 含"抽奖" 且 delta_amount < 0（消费）
+   *
+   * @param records - 后端原始交易记录（AssetTransaction 格式）
+   * @returns 聚合后的记录数组
    */
-  aggregateLotteryRecords(records) {
+  aggregateLotteryRecords(records: any[]) {
     if (!records || records.length === 0) {
       return []
     }
 
     log.info('🎰 开始聚合抽奖记录', { 原始记录数: records.length })
 
-    const lotteryRecords = []
-    const otherRecords = []
+    const lotteryRecords: any[] = []
+    const otherRecords: any[] = []
 
-    records.forEach(record => {
-      const desc = (record.description || record.reason || '').toLowerCase()
+    records.forEach((record: any) => {
+      // 优先使用 business_type 判断抽奖类型（比 description 文本匹配更可靠）
+      const businessType = (record.business_type || '').toLowerCase()
+      const desc = (record.description || record.title || '').toLowerCase()
       const isLottery =
-        desc.includes('抽奖') ||
-        desc.includes('lottery') ||
-        desc.includes('single') ||
-        desc.includes('multi')
-      // 🔧 修正：使用正确的字段transaction_type判断消耗类型
-      const isConsume = record.transaction_type === 'consume'
+        businessType === 'lottery_consume' || desc.includes('抽奖') || desc.includes('lottery')
+      // 使用 delta_amount 字段判断消费方向（delta_amount < 0 表示消费）
+      const isConsume = (record.delta_amount || 0) < 0
 
       if (isLottery && isConsume) {
         lotteryRecords.push(record)
@@ -533,9 +558,10 @@ Page({
     const aggregatedLottery = this.groupLotteryByTime(lotteryRecords)
     const allRecords = [...aggregatedLottery, ...otherRecords]
 
+    // 按 created_at 降序排列（最新的在前）
     allRecords.sort((a, b) => {
-      const timeA = new Date(a.createTime || a.created_at || a.timestamp).getTime()
-      const timeB = new Date(b.createTime || b.created_at || b.timestamp).getTime()
+      const timeA = new Date((a.created_at || '').replace(' ', 'T')).getTime()
+      const timeB = new Date((b.created_at || '').replace(' ', 'T')).getTime()
       return timeB - timeA
     })
 
@@ -547,21 +573,30 @@ Page({
   },
 
   /**
-   * 🎰 按时间分组聚合
+   * 🎰 按时间分组聚合抽奖记录
+   *
+   * 将同一分钟内的抽奖消费记录合并：
+   * - 单条记录：保持不变
+   * - 多条记录：合并为一条聚合记录，delta_amount 累加
+   *
+   * @param lotteryRecords - 已筛选的抽奖消费记录
+   * @returns 聚合后的记录数组
    */
-  groupLotteryByTime(lotteryRecords) {
+  groupLotteryByTime(lotteryRecords: any[]) {
     if (lotteryRecords.length === 0) {
       return []
     }
 
     const timeGroups = new Map()
 
-    lotteryRecords.forEach(record => {
-      const timestamp = record.createTime || record.created_at || record.timestamp
+    lotteryRecords.forEach((record: any) => {
+      // 使用后端实际字段 created_at（ISO 8601 格式）
+      const timestamp = record.created_at
       if (!timestamp) {
         return
       }
 
+      // ISO 8601 格式 "2026-02-15T19:41:15.000Z" 可直接解析
       const date = new Date(timestamp)
       const minuteKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}`
 
@@ -571,24 +606,25 @@ Page({
       timeGroups.get(minuteKey).push(record)
     })
 
-    const aggregatedRecords = []
-    timeGroups.forEach(groupRecords => {
+    const aggregatedRecords: any[] = []
+    timeGroups.forEach((groupRecords: any[]) => {
       if (groupRecords.length === 1) {
         aggregatedRecords.push(groupRecords[0])
       } else {
-        // 🔧 修正：使用正确的字段points_amount累加积分
-        const totalPoints = groupRecords.reduce((sum, r) => sum + (r.points_amount || 0), 0)
+        // 使用后端实际字段 delta_amount 累加积分消费（负数累加）
+        const totalDeltaAmount = groupRecords.reduce(
+          (sum: number, r: any) => sum + (r.delta_amount || 0),
+          0
+        )
         const drawCount = groupRecords.length
 
         const aggregatedRecord = {
           ...groupRecords[0],
-          id: `aggregated_${groupRecords[0].id}_${drawCount}`,
-          points_amount: totalPoints, // 🔧 修正：使用正确的字段名
-          description: `multi抽奖-聚合${drawCount}次`,
-          reason: '连抽聚合记录',
-          createTime: groupRecords[0].createTime,
+          transaction_id: `aggregated_${groupRecords[0].transaction_id}_${drawCount}`,
+          delta_amount: totalDeltaAmount,
+          description: `连抽${drawCount}次（聚合记录）`,
+          title: `连抽${drawCount}次`,
           created_at: groupRecords[0].created_at,
-          timestamp: groupRecords[0].timestamp,
           isAggregated: true,
           originalCount: drawCount,
           originalRecords: groupRecords
@@ -602,4 +638,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

@@ -441,10 +441,10 @@ const safeJsonParse = <T = any>(str: string, defaultValue: T | null = null): T |
  * @example
  * const handleSearch = debounce((keyword: string) => { API.search(keyword) }, 500)
  */
-const debounce = <T extends (...args: any[]) => any>(
+const debounce = <T extends (..._args: any[]) => any>(
   func: T,
   wait: number
-): ((...args: Parameters<T>) => void) => {
+): ((..._args: Parameters<T>) => void) => {
   let timeout: ReturnType<typeof setTimeout> | null = null
   return function executedFunction(this: any, ...args: Parameters<T>): void {
     const later = (): void => {
@@ -465,10 +465,10 @@ const debounce = <T extends (...args: any[]) => any>(
  * @example
  * const handleScroll = throttle(() => { log.info('scroll') }, 200)
  */
-const throttle = <T extends (...args: any[]) => any>(
+const throttle = <T extends (..._args: any[]) => any>(
   func: T,
   limit: number
-): ((...args: Parameters<T>) => void) => {
+): ((..._args: Parameters<T>) => void) => {
   let inThrottle: boolean = false
   return function (this: any, ...args: Parameters<T>): void {
     if (!inThrottle) {

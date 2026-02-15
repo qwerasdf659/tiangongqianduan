@@ -16,23 +16,30 @@
 
 /**
  * 获取交易类型图标
+ * 对齐后端 business_type 枚举值（数据库真实统计）
  *
- * @param {string} type - 交易类型（lottery/upload/exchange/trade/compensation/checkin/activity/referral/earn/consume/default）
+ * @param {string} businessType - 后端 business_type 字段值
  * @returns {string} 对应的emoji图标
  */
-function getTypeIcon(type) {
-  if (!type) return '📄'
-  if (type === 'lottery') return '🎰'
-  if (type === 'upload') return '📸'
-  if (type === 'exchange') return '🛒'
-  if (type === 'trade') return '🏪'
-  if (type === 'compensation') return '💰'
-  if (type === 'checkin') return '✅'
-  if (type === 'activity') return '🎁'
-  if (type === 'referral') return '👥'
-  // 兼容 transaction_type 值
-  if (type === 'earn') return '📈'
-  if (type === 'consume') return '📉'
+function getTypeIcon(businessType) {
+  if (!businessType) return '📄'
+  // 抽奖相关（lottery_consume / lottery_reward / lottery_budget_deduct）
+  if (businessType.indexOf('lottery') === 0) return '🎰'
+  // 兑换扣减（exchange_debit）
+  if (businessType.indexOf('exchange') === 0) return '🛒'
+  // 消费奖励（consumption_reward / consumption_budget_allocation）
+  if (businessType.indexOf('consumption') === 0) return '💰'
+  // 管理员调整（admin_adjustment）
+  if (businessType === 'admin_adjustment') return '⚙️'
+  // 材料转换（material_convert_debit / material_convert_credit）
+  if (businessType.indexOf('material_convert') === 0) return '🔄'
+  // 商户积分奖励（merchant_points_reward）
+  if (businessType === 'merchant_points_reward') return '🏪'
+  // 开账（opening_balance）
+  if (businessType === 'opening_balance') return '📋'
+  // 交易市场相关（order_freeze_buyer / order_settle_* / market_listing_*）
+  if (businessType.indexOf('order_') === 0) return '🏪'
+  if (businessType.indexOf('market_') === 0) return '🏪'
   return '📄'
 }
 

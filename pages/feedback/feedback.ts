@@ -80,55 +80,31 @@ Page({
 
   /**
    * 加载反馈配置（从后端API获取业务规则）
+   * 后端API: GET /api/v4/system/config/feedback
    *
-   * 🔴 后端缺失API: GET /api/v4/system/feedback/config
-   * 期望响应: { max_content_length, min_content_length, max_image_count, polling_interval }
-   *
-   * 当前状态: 后端尚未提供此API，前端使用UI级默认值
-   * UI默认值说明: maxLength/minLength/maxImages 属于表单UI约束（非业务定价类数据）
-   * 后端提供API后，此处应替换为API返回的配置
+   * 从 system_configs 表读取 config_key='feedback_config'
+   * 不存在时后端返回兜底默认配置
    */
   async loadFeedbackConfig() {
     try {
-      // 🔴 后端需提供: GET /api/v4/system/feedback/config
-      // 当后端API就绪后，取消下方注释并删除UI默认值代码块
-      // const result = await API.getFeedbackConfig()
-      // if (result && result.success && result.data) {
-      //   const config = result.data
-      //   this.setData({
-      //     feedbackConfig: {
-      //       maxLength: config.max_content_length,
-      //       minLength: config.min_content_length,
-      //       maxImages: config.max_image_count,
-      //       pollingInterval: config.polling_interval
-      //     },
-      //     maxLength: config.max_content_length
-      //   })
-      //   return
-      // }
-
-      // UI级默认值（后端API就绪后将被替换）
-      log.warn('⚠️ 后端未提供 getFeedbackConfig API，使用UI默认值')
-      this.setData({
-        feedbackConfig: {
-          maxLength: 500,
-          minLength: 10,
-          maxImages: 3,
-          pollingInterval: 5000
-        },
-        maxLength: 500
-      })
-    } catch (error) {
+      const result = await API.getFeedbackConfig()
+      if (result && result.success && result.data) {
+        const config = result.data
+        this.setData({
+          feedbackConfig: {
+            maxLength: config.max_length || config.max_content_length || 500,
+            minLength: config.min_length || config.min_content_length || 10,
+            maxImages: config.max_images || config.max_image_count || 3,
+            pollingInterval: config.polling_interval || 5000
+          },
+          maxLength: config.max_length || config.max_content_length || 500
+        })
+        log.info('✅ 反馈配置加载成功:', config)
+        return
+      }
+      log.warn('⚠️ 后端返回反馈配置数据为空，使用后端兜底默认值')
+    } catch (error: any) {
       log.error('❌ 加载反馈配置异常:', error)
-      this.setData({
-        feedbackConfig: {
-          maxLength: 500,
-          minLength: 10,
-          maxImages: 3,
-          pollingInterval: 5000
-        },
-        maxLength: 500
-      })
     }
   },
 
@@ -156,7 +132,7 @@ Page({
           myFeedbacks: result.data.feedbacks
         })
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 加载反馈历史失败:', error)
     } finally {
       this.setData({ loadingHistory: false })
@@ -164,7 +140,7 @@ Page({
   },
 
   // 反馈内容输入
-  onContentInput(e) {
+  onContentInput(e: any) {
     const content = e.detail.value
     const length = content.length
 
@@ -177,7 +153,7 @@ Page({
   },
 
   // 分类选择
-  onCategoryChange(e) {
+  onCategoryChange(e: any) {
     const category = e.currentTarget.dataset.category
     this.setData({ selectedCategory: category })
     log.info('选择反馈分类:', category)
@@ -219,18 +195,18 @@ Page({
   },
 
   // 预览图片
-  onPreviewImage(e) {
+  onPreviewImage(e: any) {
     const index = e.currentTarget.dataset.index
     const images = this.data.attachedImages
 
     wx.previewImage({
       current: images[index].path,
-      urls: images.map(img => img.path)
+      urls: images.map((img: any) => img.path)
     })
   },
 
   // 删除图片
-  onDeleteImage(e) {
+  onDeleteImage(e: any) {
     const index = e.currentTarget.dataset.index
     const images = [...this.data.attachedImages]
     images.splice(index, 1)
@@ -279,7 +255,7 @@ Page({
       })
 
       // 准备图片数据
-      const imageData = attachedImages.map(img => ({
+      const imageData = attachedImages.map((img: any) => ({
         path: img.path,
         name: img.name
       }))
@@ -312,7 +288,7 @@ Page({
       } else {
         showToast(result.message || '提交失败，请稍后重试')
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('❌ 提交反馈失败:', error)
       showToast('网络异常，请稍后重试')
     } finally {
@@ -322,7 +298,7 @@ Page({
   },
 
   // 🚀 启动实时监听（三层保障）
-  startRealtimeMonitoring(feedbackId) {
+  startRealtimeMonitoring(feedbackId: any) {
     log.info('🔔 启动反馈实时监听:', feedbackId)
 
     // 第一层：WebSocket实时推送
@@ -338,18 +314,18 @@ Page({
   },
 
   // Socket.IO 订阅反馈通知（替代原 wx.sendSocketMessage + JSON.stringify）
-  subscribeWebSocketFeedback(feedbackId) {
+  subscribeWebSocketFeedback(feedbackId: any) {
     try {
       const appInstance = getApp()
       appInstance.emitSocketMessage('subscribe_feedback', { feedbackId })
       log.info('📡 已订阅Socket.IO反馈通知')
-    } catch (error) {
+    } catch (error: any) {
       log.warn('⚠️ Socket.IO订阅失败:', error)
     }
   },
 
   // 页面激活检查
-  enablePageActiveCheck(feedbackId) {
+  enablePageActiveCheck(feedbackId: any) {
     this.feedbackId = feedbackId
 
     // 重写onShow方法，添加实时检查
@@ -363,7 +339,7 @@ Page({
   },
 
   // 定时轮询检查
-  startPollingCheck(feedbackId) {
+  startPollingCheck(feedbackId: any) {
     if (this.pollingTimer) {
       clearInterval(this.pollingTimer)
     }
@@ -375,7 +351,7 @@ Page({
       try {
         // 🔴 修复：直接调用 checkFeedbackUpdate 方法复用逻辑
         await this.checkFeedbackUpdate(feedbackId)
-      } catch (error) {
+      } catch (error: any) {
         log.error('轮询检查失败:', error)
       }
     }, pollingInterval)
@@ -384,14 +360,14 @@ Page({
   },
 
   // 检查反馈更新
-  async checkFeedbackUpdate(feedbackId) {
+  async checkFeedbackUpdate(feedbackId: any) {
     try {
       // 🔴 修复：使用 getMyFeedbacks API 获取反馈列表，然后筛选目标反馈
       // 获取最近20条反馈
       const result = await API.getMyFeedbacks(1, 20)
       if (result.success && result.data && result.data.feedbacks) {
         // 从列表中找到对应的反馈
-        const feedback = result.data.feedbacks.find(f => f.feedback_id === feedbackId)
+        const feedback = result.data.feedbacks.find((f: any) => f.feedback_id === feedbackId)
         if (feedback && feedback.status === 'resolved' && feedback.reply) {
           // 如果反馈已回复，触发实时回复处理
           this.handleRealtimeReply({
@@ -406,13 +382,13 @@ Page({
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       log.error('检查反馈更新失败:', error)
     }
   },
 
   // 🔔 处理实时回复
-  handleRealtimeReply(replyData) {
+  handleRealtimeReply(replyData: any) {
     const { feedbackId, adminReply } = replyData
 
     // 振动提醒
@@ -436,7 +412,7 @@ Page({
   },
 
   // 显示提交成功
-  showSubmitSuccess(feedbackId) {
+  showSubmitSuccess(feedbackId: any) {
     wx.showModal({
       title: '提交成功',
       content: '您的反馈已成功提交，我们会在24小时内处理并回复。您可以在"我的反馈"中查看处理进度。',
@@ -451,7 +427,7 @@ Page({
   },
 
   // 查看反馈详情
-  viewFeedbackDetail(feedbackId) {
+  viewFeedbackDetail(feedbackId: any) {
     wx.navigateTo({
       url: `/pages/feedback/detail?id=${feedbackId}`
     })
@@ -486,7 +462,7 @@ Page({
   },
 
   // 点击历史记录项
-  onHistoryItemTap(e) {
+  onHistoryItemTap(e: any) {
     const feedbackId = e.currentTarget.dataset.feedbackId
     this.onHideHistoryModal()
     this.viewFeedbackDetail(feedbackId)

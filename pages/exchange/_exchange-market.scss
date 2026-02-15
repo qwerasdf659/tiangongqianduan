@@ -2,7 +2,7 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-/* 馃帹 鏌斿拰鐨勫厬鎹㈠唴瀹瑰尯鍩熸牱寮?- 涓庢娊濂?鎷嶇収椤甸潰鍗忚皟 */
+/* 🎨 柔和的兑换内容区域样式 - 与抽奖/拍照页面协调 */
 .exchange-content {
   background: linear-gradient(145deg, rgba(235, 240, 245, 0.85) 0%, rgba(220, 230, 240, 0.8) 100%);
   border-radius: $border-radius-xl;
@@ -18,12 +18,12 @@
   z-index: 1;
 }
 
-/* 馃帹 鏌斿拰鐨勫ご閮ㄦ牱寮?*/
+/* 🎨 柔和的头部样式 */
 .header {
   margin-bottom: 24rpx;
 }
 
-/* 馃帹 淇敼user-info涓烘按骞冲竷灞€锛屼氦鏄撳競鍦哄拰鍙敤绉垎涓€琛屾樉绀?*/
+/* 🎨 修改user-info为水平布局，交易市场和可用积分一行显示 */
 .user-info {
   @include flex-between;
   margin-bottom: 32rpx;
@@ -32,7 +32,7 @@
   flex-wrap: wrap;
 }
 
-/* 馃帹 浜ゆ槗甯傚満鏍囬鏍峰紡浼樺寲 */
+/* 🎨 交易市场标题样式优化 */
 .welcome {
   font-size: $font-size-md;
   font-weight: 700;
@@ -42,14 +42,14 @@
   min-width: fit-content;
 }
 
-/* 馃帹 绉垎淇℃伅琛屽鍣?*/
+/* 🎨 积分信息行容器 */
 .points-row {
   display: flex;
   gap: 15rpx;
   flex-wrap: wrap;
 }
 
-/* 馃帹 绉垎淇℃伅鍙冲榻愭樉绀?*/
+/* 🎨 积分信息右对齐显示 */
 .points-info {
   @include flex-center;
   gap: 8rpx;
@@ -81,27 +81,27 @@
   color: $color-text-white;
 }
 
-/* 馃帹 浼樺寲鎼滅储绛涢€夊尯鍩?*/
+/* 🎨 优化搜索筛选区域 */
 .search-filter {
   margin: 0 auto 20rpx;
-  /* 馃幆 姘村钩灞呬腑瀵归綈 */
+  /* 🎯 水平居中对齐 */
   padding-bottom: 16rpx;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* 馃幆 瀛愬厓绱犲眳涓榻?*/
+  /* 🎯 子元素居中对齐 */
   width: 100%;
-  /* 馃幆 鍗犳弧鐖跺鍣ㄥ搴?*/
+  /* 🎯 占满父容器宽度 */
 }
 
 .search-box {
   position: relative;
   margin-bottom: 24rpx;
   width: 100%;
-  /* 馃幆 鍗犳弧鐖跺鍣ㄥ搴?*/
+  /* 🎯 占满父容器宽度 */
   max-width: 700rpx;
-  /* 馃幆 闄愬埗鏈€澶у搴?*/
+  /* 🎯 限制最大宽度 */
 }
 
 .search-input {
@@ -133,46 +133,46 @@
   color: rgba(102, 126, 234, 0.6);
 }
 
-/* 馃帹 鏌斿拰鐨勭瓫閫夋寜閽牱寮?- 鍥涙寜閽竴琛屽竷灞€锛堜紭鍖栭棿璺濓級 */
+/* 🎨 柔和的筛选按钮样式 - 四按钮一行布局（优化间距） */
 .filter-buttons {
   display: flex;
   gap: 12rpx;
-  /* 澧炲姞闂磋窛锛?rpx 鈫?12rpx */
+  /* 增加间距：8rpx → 12rpx */
   margin-bottom: 24rpx;
-  /* 澧炲姞搴曢儴杈硅窛 */
+  /* 增加底部边距 */
   flex-wrap: nowrap;
-  /* 绂佹鎹㈣ */
+  /* 禁止换行 */
   align-items: center;
   justify-content: space-between;
   padding: 0 2rpx;
-  /* 娣诲姞瀹瑰櫒宸﹀彸鍐呰竟璺?*/
+  /* 添加容器左右内边距 */
   width: 100%;
-  /* 馃幆 鍗犳弧鐖跺鍣ㄥ搴?*/
+  /* 🎯 占满父容器宽度 */
   max-width: 700rpx;
-  /* 馃幆 闄愬埗鏈€澶у搴︼紝涓庢悳绱㈡淇濇寔涓€鑷?*/
+  /* 🎯 限制最大宽度，与搜索框保持一致 */
 }
 
 .filter-btn {
   flex: 1;
   min-width: 0;
-  /* 鍏佽鏀剁缉 */
+  /* 允许收缩 */
   height: 68rpx;
-  /* 绋嶅井澧炲姞楂樺害锛?4rpx 鈫?68rpx */
+  /* 稍微增加高度：64rpx → 68rpx */
   border: 2rpx solid rgba(102, 126, 234, 0.2);
   border-radius: 20rpx;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
   color: #2c3e50;
   font-size: 23rpx;
-  /* 鎭㈠瀛椾綋澶у皬锛?2rpx 鈫?23rpx */
+  /* 恢复字体大小：22rpx → 23rpx */
   font-weight: 500;
   line-height: 64rpx;
-  /* 璋冩暣琛岄珮閰嶅悎鏂伴珮搴?*/
+  /* 调整行高配合新高度 */
   text-align: center;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(20rpx);
   padding: 0 8rpx;
-  /* 娣诲姞宸﹀彸鍐呰竟璺?*/
+  /* 添加左右内边距 */
 }
 
 .filter-btn:hover {
@@ -188,40 +188,40 @@
   transform: translateY(-2rpx);
 }
 
-/* 馃帹 楂樼骇绛涢€夋寜閽壒娈婃牱寮?- 涓庡叾浠栨寜閽竴琛屾樉绀猴紙浼樺寲闂磋窛锛?*/
+/* 🎨 高级筛选按钮特殊样式 - 与其他按钮一行显示（优化间距） */
 .advanced-filter-btn {
   flex: 1.1;
-  /* 鍑忓皯瀹藉害姣斾緥锛?.2 鈫?1.1 */
+  /* 减少宽度比例：1.2 → 1.1 */
   min-width: 0;
-  /* 鍏佽鏀剁缉 */
+  /* 允许收缩 */
   padding: 0 12rpx;
-  /* 璋冩暣鍐呰竟璺濓細16rpx 鈫?12rpx */
+  /* 调整内边距：16rpx → 12rpx */
   height: 68rpx;
-  /* 涓庡叾浠栨寜閽繚鎸佷竴鑷?*/
+  /* 与其他按钮保持一致 */
   border: 2rpx solid rgba(102, 126, 234, 0.3);
   border-radius: 20rpx;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 243, 248, 0.9));
   color: #2c3e50;
   font-size: 21rpx;
-  /* 澧炲ぇ瀛椾綋锛?0rpx 鈫?21rpx */
+  /* 增大字体：20rpx → 21rpx */
   font-weight: 500;
   line-height: 64rpx;
-  /* 璋冩暣琛岄珮閰嶅悎鏂伴珮搴?*/
+  /* 调整行高配合新高度 */
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(20rpx);
   margin-left: 0;
-  /* 绉婚櫎宸﹁竟璺?*/
+  /* 移除左边距 */
   position: relative;
   text-align: center;
 }
 
 .advanced-filter-btn::before {
-  content: '馃敡';
+  content: '🔧';
   margin-right: 5rpx;
-  /* 绋嶅井澧炲姞闂磋窛锛?rpx 鈫?5rpx */
+  /* 稍微增加间距：4rpx → 5rpx */
   font-size: 17rpx;
-  /* 绋嶅井澧炲ぇ鍥炬爣锛?6rpx 鈫?17rpx */
+  /* 稍微增大图标：16rpx → 17rpx */
 }
 
 .advanced-filter-btn:hover {
@@ -238,22 +238,22 @@
 }
 
 .advanced-filter-btn.active::before {
-  content: '馃敡';
+  content: '🔧';
 }
 
-/* 馃帹 浼樺寲楂樼骇绛涢€夐潰鏉挎牱寮?- 2*2缃戞牸甯冨眬 */
+/* 🎨 优化高级筛选面板样式 - 2*2网格布局 */
 .advanced-filter-panel {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
   border-radius: $border-radius-lg;
   padding: 24rpx;
   margin: 16rpx auto 0;
-  /* 馃幆 姘村钩灞呬腑瀵归綈 */
+  /* 🎯 水平居中对齐 */
   width: 90%;
-  /* 馃幆 璁剧疆鍥哄畾瀹藉害姣斾緥锛岀‘淇濆眳涓晥鏋滃彲瑙?*/
+  /* 🎯 设置固定宽度比例，确保居中效果可见 */
   max-width: 700rpx;
-  /* 馃幆 闄愬埗鏈€澶у搴?*/
+  /* 🎯 限制最大宽度 */
   min-width: 600rpx;
-  /* 馃幆 璁剧疆鏈€灏忓搴︼紝淇濊瘉2*2甯冨眬涓嶄細澶尋 */
+  /* 🎯 设置最小宽度，保证2*2布局不会太挤 */
   box-shadow:
     0 8rpx 16rpx rgba(0, 0, 0, 0.06),
     0 2rpx 4rpx rgba(0, 0, 0, 0.04),
@@ -261,28 +261,28 @@
   border: 2rpx solid rgba(235, 240, 245, 0.8);
   backdrop-filter: blur(20rpx);
 
-  /* 馃幆 2*2缃戞牸甯冨眬瀹瑰櫒 */
+  /* 🎯 2*2网格布局容器 */
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* 涓ゅ垪绛夊 */
+  /* 两列等宽 */
   grid-template-rows: auto auto;
-  /* 涓よ鑷€傚簲楂樺害 */
+  /* 两行自适应高度 */
   gap: 20rpx 16rpx;
-  /* 琛岄棿璺?0rpx锛屽垪闂磋窛16rpx */
+  /* 行间距20rpx，列间距16rpx */
   justify-items: center;
-  /* 馃幆 缃戞牸椤规按骞冲眳涓?*/
+  /* 🎯 网格项水平居中 */
   align-items: start;
-  /* 馃幆 缃戞牸椤归《閮ㄥ榻?*/
+  /* 🎯 网格项顶部对齐 */
 }
 
-/* 馃幆 绛涢€夎鏍峰紡璋冩暣 - 閫傞厤缃戞牸甯冨眬 */
+/* 🎯 筛选行样式调整 - 适配网格布局 */
 .filter-row {
   margin-bottom: 0;
-  /* 绉婚櫎榛樿搴曡竟璺濓紝浣跨敤grid gap鎺у埗闂磋窛 */
+  /* 移除默认底边距，使用grid gap控制间距 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
   border-radius: 20rpx;
   padding: 20rpx 16rpx;
-  /* 馃幆 澧炲姞鍐呰竟璺濅互鎻愬崌瑙嗚鏁堟灉 */
+  /* 🎯 增加内边距以提升视觉效果 */
   box-shadow:
     0 6rpx 16rpx rgba(0, 0, 0, 0.08),
     0 2rpx 6rpx rgba(0, 0, 0, 0.05);
@@ -290,24 +290,24 @@
   backdrop-filter: blur(15rpx);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   width: 90%;
-  /* 馃幆 璁剧疆鍚堥€傜殑瀹藉害姣斾緥 */
+  /* 🎯 设置合适的宽度比例 */
   min-width: 260rpx;
-  /* 馃幆 淇濊瘉鏈€灏忓搴?*/
+  /* 🎯 保证最小宽度 */
   max-width: 320rpx;
-  /* 馃幆 闄愬埗鏈€澶у搴︼紝閬垮厤杩囧 */
+  /* 🎯 限制最大宽度，避免过宽 */
   text-align: center;
-  /* 馃幆 鍐呭灞呬腑瀵归綈 */
+  /* 🎯 内容居中对齐 */
   min-height: 180rpx;
-  /* 馃幆 璁剧疆鏈€灏忛珮搴︼紝纭繚鎵€鏈夋ā鍧楅珮搴︿竴鑷?*/
+  /* 🎯 设置最小高度，确保所有模块高度一致 */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* 馃幆 鍐呭浠庨《閮ㄥ紑濮嬫帓鍒?*/
+  /* 🎯 内容从顶部开始排列 */
   position: relative;
   overflow: hidden;
 }
 
-/* 馃幆 绛涢€夎瑁呴グ鑳屾櫙 */
+/* 🎯 筛选行装饰背景 */
 .filter-row::before {
   content: '';
   position: absolute;
@@ -324,7 +324,7 @@
   z-index: 1;
 }
 
-/* 馃幆 绛涢€夎鎮仠鏁堟灉 */
+/* 🎯 筛选行悬停效果 */
 .filter-row:hover {
   transform: translateY(-3rpx) scale(1.02);
   box-shadow:
@@ -338,92 +338,92 @@
   opacity: 1;
 }
 
-/* 馃幆 鏈€鍚庝竴涓瓫閫夎鏍峰紡閲嶇疆 */
+/* 🎯 最后一个筛选行样式重置 */
 .filter-row:last-child {
   margin-bottom: 0;
-  /* 纭繚鏈€鍚庝竴琛屾病鏈夐澶栬竟璺?*/
+  /* 确保最后一行没有额外边距 */
 }
 
 .filter-label {
   font-size: 26rpx;
-  /* 馃幆 鎭㈠鍚堥€傚瓧浣撳ぇ灏?*/
+  /* 🎯 恢复合适字体大小 */
   font-weight: 700;
   color: #1e293b;
-  /* 馃幆 浣跨敤鏇存繁鐨勮壊褰╁寮哄姣?*/
+  /* 🎯 使用更深的色彩增强对比 */
   @include flex-center;
   margin-bottom: 16rpx;
-  /* 馃幆 澧炲姞搴曡竟璺?*/
+  /* 🎯 增加底边距 */
   padding: 8rpx 12rpx;
-  /* 馃幆 澧炲姞鍐呰竟璺?*/
+  /* 🎯 增加内边距 */
   position: relative;
   text-align: center;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.08));
   border-radius: 12rpx;
   border: 1rpx solid rgba(102, 126, 234, 0.2);
   z-index: 2;
-  /* 馃幆 纭繚鍦ㄨ楗拌儗鏅箣涓?*/
+  /* 🎯 确保在装饰背景之上 */
 }
 
 .filter-label::before {
-  content: '鈼?;
-  /* 馃幆 浣跨敤鏇寸編瑙傜殑鍥炬爣 */
+  content: '◈';
+  /* 🎯 使用更美观的图标 */
   color: $gradient-blue-start;
   margin-right: 8rpx;
-  /* 馃幆 鎭㈠鍚堥€傜殑闂磋窛 */
+  /* 🎯 恢复合适的间距 */
   font-weight: bold;
   font-size: $font-size-xs;
-  /* 馃幆 璋冩暣鍥炬爣澶у皬 */
+  /* 🎯 调整图标大小 */
   text-shadow: 0 1rpx 2rpx rgba(102, 126, 234, 0.3);
-  /* 馃幆 娣诲姞闃村奖鏁堟灉 */
+  /* 🎯 添加阴影效果 */
 }
 
 .filter-options {
   display: flex;
   gap: 10rpx;
-  /* 馃幆 鎭㈠鍚堥€傜殑閫夐」闂磋窛 */
+  /* 🎯 恢复合适的选项间距 */
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
-  /* 馃幆 椤堕儴瀵归綈 */
+  /* 🎯 顶部对齐 */
   flex-grow: 1;
-  /* 馃幆 鍗犳嵁鍓╀綑绌洪棿 */
+  /* 🎯 占据剩余空间 */
   padding-top: 4rpx;
-  /* 馃幆 娣诲姞椤堕儴闂磋窛 */
+  /* 🎯 添加顶部间距 */
   position: relative;
   z-index: 2;
-  /* 馃幆 纭繚鍦ㄨ楗拌儗鏅箣涓?*/
+  /* 🎯 确保在装饰背景之上 */
 }
 
 .option-btn {
   flex: none;
   padding: 0 14rpx;
-  /* 馃幆 澧炲姞鍐呰竟璺濅互鎻愬崌瑙嗚鏁堟灉 */
+  /* 🎯 增加内边距以提升视觉效果 */
   height: 52rpx;
-  /* 馃幆 澧炲姞楂樺害浠ユ敼鍠勬瘮渚?*/
+  /* 🎯 增加高度以改善比例 */
   border: 2rpx solid rgba(102, 126, 234, 0.25);
   border-radius: $border-radius-md;
-  /* 馃幆 鎭㈠鍚堥€傜殑鍦嗚 */
+  /* 🎯 恢复合适的圆角 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
   color: #334155;
-  /* 馃幆 浣跨敤鏇存繁鐨勬枃瀛楅鑹?*/
+  /* 🎯 使用更深的文字颜色 */
   font-size: 22rpx;
-  /* 馃幆 澧炲ぇ瀛椾綋浠ユ彁鍗囧彲璇绘€?*/
+  /* 🎯 增大字体以提升可读性 */
   font-weight: 500;
   line-height: 48rpx;
-  /* 馃幆 璋冩暣琛岄珮 */
+  /* 🎯 调整行高 */
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow:
     0 3rpx 8rpx rgba(0, 0, 0, 0.08),
     0 1rpx 3rpx rgba(0, 0, 0, 0.06);
   white-space: nowrap;
   min-width: 65rpx;
-  /* 馃幆 閫傚綋澧炲姞鏈€灏忓搴?*/
+  /* 🎯 适当增加最小宽度 */
   position: relative;
   overflow: hidden;
   cursor: pointer;
 }
 
-/* 馃幆 閫夐」鎸夐挳寰鑳屾櫙鍔ㄧ敾 */
+/* 🎯 选项按钮微妙背景动画 */
 .option-btn::before {
   content: '';
   position: absolute;
@@ -458,7 +458,7 @@
     0 3rpx 8rpx rgba(102, 126, 234, 0.25);
   transform: translateY(-2rpx) scale(1.08);
   font-weight: 600;
-  /* 馃幆 婵€娲荤姸鎬佸瓧浣撳姞绮?*/
+  /* 🎯 激活状态字体加粗 */
 }
 
 .option-btn.active::before {
@@ -469,30 +469,30 @@
   margin-top: 20rpx;
   text-align: center;
   padding-top: 16rpx;
-  /* 澧炲姞椤堕儴鍐呰竟璺濓細12rpx 鈫?16rpx */
+  /* 增加顶部内边距：12rpx → 16rpx */
   border-top: 1rpx solid rgba(235, 240, 245, 0.8);
   grid-column: 1 / -1;
-  /* 閲嶇疆鎸夐挳璺ㄨ秺鏁磋 */
+  /* 重置按钮跨越整行 */
   display: flex;
   justify-content: center;
-  /* 馃幆 纭繚閲嶇疆鎸夐挳灞呬腑 */
+  /* 🎯 确保重置按钮居中 */
 }
 
-/* 馃帹 閲嶇疆鎸夐挳鏍峰紡 */
+/* 🎨 重置按钮样式 */
 .reset-btn {
   padding: 0 36rpx;
   height: 64rpx;
-  /* 馃幆 澧炲姞楂樺害浠ユ彁鍗囪瑙夊眰娆?*/
+  /* 🎯 增加高度以提升视觉层次 */
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(220, 38, 38, 0.18));
   border: 2rpx solid rgba(239, 68, 68, 0.35);
   border-radius: 20rpx;
-  /* 馃幆 澧炲姞鍦嗚涓庡叾浠栧厓绱犱繚鎸佷竴鑷?*/
+  /* 🎯 增加圆角与其他元素保持一致 */
   color: #dc2626;
-  /* 馃幆 浣跨敤鏇寸幇浠ｇ殑绾㈣壊 */
+  /* 🎯 使用更现代的红色 */
   font-size: 26rpx;
-  /* 馃幆 澧炲ぇ瀛椾綋 */
+  /* 🎯 增大字体 */
   font-weight: 600;
-  /* 馃幆 澧炲己瀛椾綋鏉冮噸 */
+  /* 🎯 增强字体权重 */
   line-height: 60rpx;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow:
@@ -503,7 +503,7 @@
   cursor: pointer;
 }
 
-/* 馃幆 閲嶇疆鎸夐挳鑳屾櫙鍔ㄧ敾 */
+/* 🎯 重置按钮背景动画 */
 .reset-btn::before {
   content: '';
   position: absolute;
@@ -532,13 +532,13 @@
 }
 
 .reset-btn::after {
-  content: '馃攧 閲嶇疆绛涢€?;
+  content: '🔄 重置筛选';
   position: relative;
   z-index: 2;
   font-size: 26rpx;
 }
 
-/* 馃帹 浼樺寲鍔犺浇鐘舵€佹牱寮?*/
+/* 🎨 优化加载状态样式 */
 .loading-container {
   text-align: center;
   padding: 48rpx 32rpx;
@@ -579,14 +579,14 @@
   font-weight: 500;
 }
 
-/* 馃帹 浼樺寲鍟嗗搧鍖哄煙鏍峰紡 */
+/* 🎨 优化商品区域样式 */
 .products-section {
   margin-bottom: 32rpx;
   position: relative;
   z-index: 1;
 }
 
-/* 馃帹 缇庡寲鍟嗗搧鏍囬鍖哄煙 */
+/* 🎨 美化商品标题区域 */
 .section-title {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
   border-radius: $border-radius-lg;
@@ -601,7 +601,7 @@
   backdrop-filter: blur(20rpx);
 }
 
-/* 馃帹 鏍囬澶撮儴甯冨眬 */
+/* 🎨 标题头部布局 */
 .title-header {
   display: flex;
   align-items: baseline;
@@ -648,7 +648,7 @@
   text-align: center;
 }
 
-/* 馃毇 闅愯棌璋冭瘯淇℃伅 - 鐢熶骇鐜涓嶆樉绀?*/
+/* 🚫 隐藏调试信息 - 生产环境不显示 */
 .debug-info {
   display: none !important;
 }
@@ -661,12 +661,12 @@
   display: none !important;
 }
 
-/* 馃帹 浼樺寲鍟嗗搧缃戞牸鏍峰紡 */
+/* 🎨 优化商品网格样式 */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16rpx 12rpx;
-  /* 琛岄棿璺?6rpx锛屽垪闂磋窛12rpx */
+  /* 行间距16rpx，列间距12rpx */
   padding: 8rpx;
   margin-top: 12rpx;
   background: rgba(255, 255, 255, 0.02);
@@ -782,7 +782,7 @@
   font-weight: bold;
 }
 
-/* 馃帹 鏌斿拰鐨勫晢鍝佷俊鎭牱寮?*/
+/* 🎨 柔和的商品信息样式 */
 .product-info {
   padding: 24rpx;
 }
@@ -846,7 +846,7 @@
   color: $color-text-secondary;
 }
 
-/* 馃帹 鏌斿拰鐨勫厬鎹㈡寜閽牱寮?*/
+/* 🎨 柔和的兑换按钮样式 */
 .exchange-btn-container {
   padding: 0 24rpx 24rpx 24rpx;
 }
@@ -885,7 +885,7 @@
   cursor: not-allowed;
 }
 
-/* 绌虹姸鎬佹牱寮?*/
+/* 空状态样式 */
 .empty-state {
   text-align: center;
   padding: 100rpx 0;
@@ -915,36 +915,36 @@
   line-height: 60rpx;
 }
 
-/* 馃殌 绱у噾鍨嬪垎椤靛鑸?- 闃叉婧㈠嚭浼樺寲 */
+/* 🚀 紧凑型分页导航 - 防止溢出优化 */
 .pagination {
   margin-top: 32rpx;
-  /* 馃敡 鍑忓皯涓婅竟璺?*/
+  /* 🔧 减少上边距 */
   padding: 16rpx 12rpx;
-  /* 馃敡 澶у箙鍑忓皯鍐呰竟璺?*/
+  /* 🔧 大幅减少内边距 */
   max-width: 100%;
-  /* 馃幆 纭繚涓嶈秴鍑虹埗瀹瑰櫒 */
+  /* 🎯 确保不超出父容器 */
   width: 100%;
-  /* 馃幆 浣跨敤鍏ㄥ */
+  /* 🎯 使用全宽 */
   box-sizing: border-box;
-  /* 馃敡 鍖呭惈杈规鍜屽唴杈硅窛 */
+  /* 🔧 包含边框和内边距 */
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 252, 254, 0.95) 100%),
     radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
     radial-gradient(circle at 70% 80%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
   border-radius: 20rpx;
-  /* 馃敡 鍑忓皯鍦嗚 */
+  /* 🔧 减少圆角 */
   box-shadow:
     0 8rpx 16rpx rgba(99, 102, 241, 0.12),
     0 4rpx 12rpx rgba(0, 0, 0, 0.06),
     0 2rpx 6rpx rgba(0, 0, 0, 0.03),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   border: 2rpx solid rgba(99, 102, 241, 0.15);
-  /* 馃敡 鍑忓皯杈规 */
+  /* 🔧 减少边框 */
   backdrop-filter: blur(20rpx);
   animation: paginationPulse 4s ease-in-out infinite;
-  /* 馃敡 鍑忔參鍔ㄧ敾 */
+  /* 🔧 减慢动画 */
   overflow: hidden;
-  /* 馃幆 闃叉鍐呭婧㈠嚭 */
+  /* 🎯 防止内容溢出 */
 }
 
 @keyframes paginationPulse {
@@ -964,23 +964,23 @@
   }
 }
 
-/* 馃幆 绱у噾鍨嬪垎椤典俊鎭樉绀?- 涓€琛屾樉绀轰紭鍖?*/
+/* 🎯 紧凑型分页信息显示 - 一行显示优化 */
 .pagination-info {
   text-align: center;
   margin-bottom: 16rpx;
-  /* 馃敡 鍑忓皯涓嬭竟璺?*/
+  /* 🔧 减少下边距 */
   padding: 12rpx 20rpx;
-  /* 馃敡 鍑忓皯鍐呰竟璺?*/
+  /* 🔧 减少内边距 */
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.06) 100%);
   border-radius: 18rpx;
-  /* 馃敡 璋冩暣鍦嗚 */
+  /* 🔧 调整圆角 */
   border: 2rpx solid rgba(99, 102, 241, 0.12);
   box-shadow: 0 2rpx 8rpx rgba(99, 102, 241, 0.08);
 }
 
 .pagination-info text {
   font-size: $font-size-sm;
-  /* 馃敡 璋冩暣瀛椾綋澶у皬 */
+  /* 🔧 调整字体大小 */
   color: #1e293b;
   font-weight: 600;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
@@ -988,10 +988,10 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: 0.3rpx;
-  /* 馃敡 璋冩暣瀛楅棿璺?*/
+  /* 🔧 调整字间距 */
 }
 
-/* 馃幆 鍒嗛〉琛岄€氱敤甯冨眬 */
+/* 🎯 分页行通用布局 */
 .pagination-row {
   display: flex;
   justify-content: space-between;
@@ -1003,13 +1003,13 @@
   width: 100%;
 }
 
-/* 馃摫 灏忓睆閫傞厤 - 鏂板竷灞€浼樺寲绛栫暐 */
+/* 📱 小屏适配 - 新布局优化策略 */
 @media (max-width: 600rpx) {
   .pagination {
     padding: 12rpx 8rpx;
   }
 
-  /* 馃幆 鍒嗛〉琛屽皬灞忛€傞厤 */
+  /* 🎯 分页行小屏适配 */
   .pagination-row {
     justify-content: space-between;
     gap: 4rpx;
@@ -1019,7 +1019,7 @@
   button.page-btn,
   .page-btn.prev-btn,
   .page-btn.next-btn {
-    /* 馃敡 灏忓睆涓嬪浐瀹氬搴﹂槻姝㈡孩鍑?*/
+    /* 🔧 小屏下固定宽度防止溢出 */
     width: 100rpx !important;
     max-width: 100rpx !important;
     min-width: 100rpx !important;
@@ -1043,13 +1043,13 @@
     font-size: 16rpx;
   }
 
-  /* 馃幆 灞呬腑璺宠浆鍔熻兘灏忓睆浼樺寲 */
+  /* 🎯 居中跳转功能小屏优化 */
   .page-jump.center-jump {
     padding: 6rpx 10rpx;
     gap: 6rpx;
   }
 
-  /* 馃幆 璺宠浆鍔熻兘灏忓睆浼樺寲 */
+  /* 🎯 跳转功能小屏优化 */
   .page-jump {
     padding: 4rpx 6rpx;
     gap: 4rpx;
@@ -1059,26 +1059,26 @@
     font-size: 16rpx;
   }
 
-  /* 馃幆 鐙珛椤电爜鍖哄煙灏忓睆浼樺寲 */
+  /* 🎯 独立页码区域小屏优化 */
   .page-numbers.standalone-numbers {
     padding: 8rpx 12rpx;
     gap: 4rpx;
   }
 
-  /* 馃幆 鍦ㄥ皬灞忛殣钘忛儴鍒嗛〉鐮?*/
+  /* 🎯 在小屏隐藏部分页码 */
   .page-numbers.standalone-numbers
     .page-number:not(.active):nth-child(n + 4):nth-last-child(n + 4) {
     display: none;
   }
 }
 
-/* 馃摫 瓒呭皬灞忛€傞厤 - 鏂板竷灞€鏋侀檺浼樺寲 */
+/* 📱 超小屏适配 - 新布局极限优化 */
 @media (max-width: 500rpx) {
   .pagination {
     padding: 8rpx 4rpx;
   }
 
-  /* 馃幆 鍒嗛〉琛岃秴灏忓睆浼樺寲 */
+  /* 🎯 分页行超小屏优化 */
   .pagination-row {
     gap: 2rpx;
   }
@@ -1087,7 +1087,7 @@
   button.page-btn,
   .page-btn.prev-btn,
   .page-btn.next-btn {
-    /* 馃敡 瓒呭皬灞忎笅鍥哄畾瀹藉害闃叉婧㈠嚭 */
+    /* 🔧 超小屏下固定宽度防止溢出 */
     width: 80rpx !important;
     max-width: 80rpx !important;
     min-width: 80rpx !important;
@@ -1111,7 +1111,7 @@
     font-size: 14rpx;
   }
 
-  /* 馃幆 灞呬腑璺宠浆鍔熻兘瓒呭皬灞忎紭鍖?*/
+  /* 🎯 居中跳转功能超小屏优化 */
   .page-jump.center-jump {
     padding: 4rpx 8rpx;
     gap: 4rpx;
@@ -1121,13 +1121,13 @@
     font-size: 14rpx;
   }
 
-  /* 馃幆 鐙珛椤电爜鍖哄煙瓒呭皬灞忎紭鍖?*/
+  /* 🎯 独立页码区域超小屏优化 */
   .page-numbers.standalone-numbers {
     padding: 6rpx 10rpx;
     gap: 3rpx;
   }
 
-  /* 馃幆 鍙樉绀哄叧閿〉鐮?*/
+  /* 🎯 只显示关键页码 */
   .page-numbers.standalone-numbers .page-number:not(.active):not(:first-child):not(:last-child) {
     display: none;
   }
@@ -1137,22 +1137,22 @@
   }
 }
 
-/* 馃幃 瓒呯揣鍑戝垎椤垫帶鍒跺尯鍩?- 闃叉孩鍑轰紭鍖?*/
+/* 🎮 超紧凑分页控制区域 - 防溢出优化 */
 .pagination-controls {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  /* 馃敡 杩涗竴姝ュ噺灏戦棿璺?*/
+  /* 🔧 进一步减少间距 */
   flex-wrap: nowrap;
-  /* 馃毇 绂佹鎹㈣ */
+  /* 🚫 禁止换行 */
   justify-content: center;
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  /* 馃幆 闃叉婧㈠嚭 */
+  /* 🎯 防止溢出 */
 }
 
-/* 馃幆 鍚堝苟甯冨眬鎺у埗鍖哄煙 - 6rpx闂磋窛 */
+/* 🎯 合并布局控制区域 - 6rpx间距 */
 .pagination-row.unified-controls {
   display: flex !important;
   justify-content: center !important;
@@ -1162,7 +1162,7 @@
   margin-bottom: 16rpx !important;
 }
 
-/* 馃搳 鍐呰仈椤电爜鏁板瓧鍖哄煙 */
+/* 📊 内联页码数字区域 */
 .page-numbers.inline-numbers {
   display: flex !important;
   align-items: center !important;
@@ -1174,7 +1174,7 @@
   flex-shrink: 0 !important;
 }
 
-/* 馃敘 鍐呰仈妯″紡涓嬬殑椤电爜鎸夐挳 - 鏇寸揣鍑?*/
+/* 🔢 内联模式下的页码按钮 - 更紧凑 */
 .page-numbers.inline-numbers .page-number {
   width: 32rpx !important;
   height: 32rpx !important;
@@ -1186,29 +1186,29 @@
   min-width: 32rpx !important;
 }
 
-/* 馃敘 鍐呰仈妯″紡涓嬬殑鐪佺暐鍙?*/
+/* 🔢 内联模式下的省略号 */
 .page-numbers.inline-numbers .page-ellipsis {
   font-size: 16rpx !important;
   color: $color-text-tertiary !important;
   margin: 0 2rpx !important;
 }
 
-/* 馃敟 鍒嗛〉鎸夐挳 - 鍥哄畾瀹藉害闃叉婧㈠嚭 */
+/* 🔥 分页按钮 - 固定宽度防止溢出 */
 .page-btn,
 button.page-btn,
 .page-btn.prev-btn,
 .page-btn.next-btn {
   padding: 0 8rpx !important;
   height: 48rpx;
-  /* 馃敡 鐢ㄦ埛寤鸿鐨勪慨澶嶆柟妗堬細鍥哄畾瀹藉害鍜屾孩鍑哄鐞?*/
+  /* 🔧 用户建议的修复方案：固定宽度和溢出处理 */
   width: 120rpx !important;
-  /* 鐩存帴鎺у埗鍥哄畾瀹藉害 */
+  /* 直接控制固定宽度 */
   max-width: 120rpx !important;
-  /* 闄愬埗鏈€澶у搴?*/
+  /* 限制最大宽度 */
   overflow: hidden !important;
-  /* 澶勭悊鏂囧瓧婧㈠嚭 */
+  /* 处理文字溢出 */
   min-width: 120rpx !important;
-  /* 纭繚鏈€灏忓搴?*/
+  /* 确保最小宽度 */
   background: linear-gradient(
     135deg,
     $gradient-blue-start 0%,
@@ -1232,9 +1232,9 @@ button.page-btn,
   position: relative;
   flex-shrink: 0;
   white-space: nowrap;
-  /* 馃幆 闃叉鏂囧瓧鎹㈣ */
+  /* 🎯 防止文字换行 */
   text-overflow: ellipsis;
-  /* 馃幆 鏂囧瓧婧㈠嚭鐪佺暐鍙?*/
+  /* 🎯 文字溢出省略号 */
 }
 
 .page-btn::before {
@@ -1252,7 +1252,7 @@ button.page-btn,
   left: 100%;
 }
 
-/* 馃幆 澧炲己鎸夐挳浜や簰鏁堟灉 */
+/* 🎯 增强按钮交互效果 */
 .page-btn:hover {
   transform: translateY(-4rpx) scale(1.05);
   background: linear-gradient(135deg, #5a67d8 0%, #9f7aea 50%, #5a67d8 100%);
@@ -1264,7 +1264,7 @@ button.page-btn,
     inset 0 2rpx 0 rgba(255, 255, 255, 0.3);
 }
 
-/* 馃毇 绂佺敤鐘舵€?- 鏄庢樉鍖哄垎 */
+/* 🚫 禁用状态 - 明显区分 */
 .page-btn.disabled {
   background: linear-gradient(135deg, rgba(148, 163, 184, 0.5), rgba(120, 113, 108, 0.3));
   color: rgba(100, 116, 139, 0.6);
@@ -1276,7 +1276,7 @@ button.page-btn,
 
 .page-btn.disabled::before {
   display: none;
-  /* 绂佺敤鍙戝厜鏁堟灉 */
+  /* 禁用发光效果 */
 }
 
 .page-btn:active {
@@ -1286,26 +1286,26 @@ button.page-btn,
     0 6rpx 16rpx rgba(0, 0, 0, 0.12);
 }
 
-/* 馃搳 鐙珛椤电爜鏁板瓧鍖哄煙 - 灞呬腑鏄剧ず */
+/* 📊 独立页码数字区域 - 居中显示 */
 .page-numbers.standalone-numbers {
   @include flex-center;
   gap: 6rpx;
-  /* 馃敡 閫備腑闂磋窛渚夸簬鐐瑰嚮 */
+  /* 🔧 适中间距便于点击 */
   margin: 0;
-  /* 馃敡 鍙栨秷澶栬竟璺濓紝鐢辩埗瀹瑰櫒鎺у埗 */
+  /* 🔧 取消外边距，由父容器控制 */
   padding: 12rpx 20rpx;
-  /* 馃幆 澧炲姞鍐呰竟璺濈獊鍑烘樉绀?*/
+  /* 🎯 增加内边距突出显示 */
   background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
   border-radius: 18rpx;
-  /* 馃幆 鐙珛鍖哄煙鍦嗚 */
+  /* 🎯 独立区域圆角 */
   border: 1rpx solid rgba(99, 102, 241, 0.1);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
-  /* 馃幆 椤电爜鍖哄煙浼樺厛鏄剧ず */
+  /* 🎯 页码区域优先显示 */
   overflow: hidden;
 }
 
-/* 馃搳 椤电爜鏁板瓧鍖哄煙 */
+/* 📊 页码数字区域 */
 .page-numbers {
   display: flex;
   align-items: center;
@@ -1315,29 +1315,29 @@ button.page-btn,
   overflow: hidden;
 }
 
-/* 馃幆 椤电爜鏁板瓧琛屽鍣?- 鐙珛鏄剧ず鍖哄煙 */
+/* 🎯 页码数字行容器 - 独立显示区域 */
 .pagination-numbers-row {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-top: 8rpx;
-  /* 馃幆 涓庝富鎺у埗鍖洪€傚綋鍒嗙 */
+  /* 🎯 与主控制区适当分离 */
 }
 
-/* 馃敘 瓒呯揣鍑戦〉鐮佹寜閽?- 闃叉孩鍑轰紭鍖?*/
+/* 🔢 超紧凑页码按钮 - 防溢出优化 */
 .page-number {
   width: 40rpx;
-  /* 馃敡 杩涗竴姝ュ噺灏戝昂瀵?*/
+  /* 🔧 进一步减少尺寸 */
   height: 40rpx;
-  /* 馃敡 杩涗竴姝ュ噺灏戝昂瀵?*/
+  /* 🔧 进一步减少尺寸 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
   border: 1rpx solid rgba(102, 126, 234, 0.25);
-  /* 馃敡 鍑忓皯杈规 */
+  /* 🔧 减少边框 */
   border-radius: 12rpx;
-  /* 馃敡 鍑忓皯鍦嗚 */
+  /* 🔧 减少圆角 */
   color: #1e293b;
   font-size: 18rpx;
-  /* 馃敡 鍑忓皯瀛椾綋澶у皬 */
+  /* 🔧 减少字体大小 */
   font-weight: 600;
   line-height: 38rpx;
   text-align: center;
@@ -1350,7 +1350,7 @@ button.page-btn,
   flex-shrink: 0;
 }
 
-/* 馃幆 椤电爜鎸夐挳浜や簰鏁堟灉 */
+/* 🎯 页码按钮交互效果 */
 .page-number:hover {
   transform: translateY(-2rpx) scale(1.1);
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.12));
@@ -1360,7 +1360,7 @@ button.page-btn,
     0 4rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
-/* 馃専 褰撳墠椤电爜 - 瓒呯骇绐佸嚭鏄剧ず */
+/* 🌟 当前页码 - 超级突出显示 */
 .page-number.active {
   background: linear-gradient(
     135deg,
@@ -1371,14 +1371,14 @@ button.page-btn,
   border-color: $gradient-blue-start;
   color: white;
   font-weight: 700;
-  /* 馃敻 鏇村姞鍔犵矖 */
+  /* 🔸 更加加粗 */
   box-shadow:
     0 8rpx 20rpx rgba(102, 126, 234, 0.35),
     0 4rpx 12rpx rgba(0, 0, 0, 0.15),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
   transform: translateY(-2rpx) scale(1.05);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
-  /* 馃巻 娣诲姞鑴夊姩鍔ㄧ敾 */
+  /* 🎆 添加脉动动画 */
   animation: activePagePulse 2s ease-in-out infinite;
 }
 
@@ -1397,44 +1397,44 @@ button.page-btn,
   }
 }
 
-/* 馃搷 瓒呯揣鍑戠渷鐣ュ彿鏍峰紡 - 闃叉孩鍑轰紭鍖?*/
+/* 📍 超紧凑省略号样式 - 防溢出优化 */
 .page-ellipsis {
   font-size: 18rpx;
-  /* 馃敡 杩涗竴姝ュ噺灏戝瓧浣?*/
+  /* 🔧 进一步减少字体 */
   color: rgba(30, 41, 59, 0.5);
-  /* 馃敡 闄嶄綆瀵规瘮搴?*/
+  /* 🔧 降低对比度 */
   margin: 0 2rpx;
-  /* 馃敡 鏈€灏忓寲闂磋窛 */
+  /* 🔧 最小化间距 */
   font-weight: 500;
-  /* 馃敡 鍑忓皯瀛楅噸 */
+  /* 🔧 减少字重 */
   letter-spacing: 0rpx;
-  /* 馃敡 鍙栨秷瀛楅棿璺?*/
+  /* 🔧 取消字间距 */
   flex-shrink: 1;
-  /* 馃幆 鍏佽鐪佺暐鍙锋敹缂?*/
+  /* 🎯 允许省略号收缩 */
 }
 
-/* 馃幆 灞呬腑璺宠浆鍔熻兘 - 涓绘帶鍒跺尯涓撶敤 */
+/* 🎯 居中跳转功能 - 主控制区专用 */
 .page-jump.center-jump {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  /* 馃敡 閫備腑闂磋窛绐佸嚭鍔熻兘 */
+  /* 🔧 适中间距突出功能 */
   padding: 8rpx 12rpx;
-  /* 馃敡 澧炲姞鍐呰竟璺濇彁鍗囧彲瑙佹€?*/
+  /* 🔧 增加内边距提升可见性 */
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.06) 100%);
   border-radius: $border-radius-md;
-  /* 馃敡 澧炲姞鍦嗚缇庤搴?*/
+  /* 🔧 增加圆角美观度 */
   border: 2rpx solid rgba(99, 102, 241, 0.15);
-  /* 馃敡 澧炲己杈规绐佸嚭鏄剧ず */
+  /* 🔧 增强边框突出显示 */
   box-shadow: 0 2rpx 8rpx rgba(99, 102, 241, 0.12);
   flex-shrink: 0;
-  /* 馃幆 纭繚璺宠浆鍔熻兘涓嶈鍘嬬缉 */
+  /* 🎯 确保跳转功能不被压缩 */
   white-space: nowrap;
-  /* 馃幆 灞呬腑鏄剧ず鏃舵洿绐佸嚭 */
+  /* 🎯 居中显示时更突出 */
   position: relative;
 }
 
-/* 馃幆 璺宠浆鍔熻兘閫氱敤鏍峰紡 */
+/* 🎯 跳转功能通用样式 */
 .page-jump {
   display: flex;
   align-items: center;
@@ -1451,26 +1451,26 @@ button.page-btn,
 
 .page-jump text {
   font-size: 18rpx;
-  /* 馃敡 杩涗竴姝ュ噺灏戝瓧浣撳ぇ灏?*/
+  /* 🔧 进一步减少字体大小 */
   color: #1e293b;
   font-weight: 600;
   white-space: nowrap;
 }
 
-/* 馃敘 瓒呯揣鍑戣緭鍏ユ - 闃叉孩鍑轰紭鍖?*/
+/* 🔢 超紧凑输入框 - 防溢出优化 */
 .page-input {
   width: 50rpx;
-  /* 馃敡 杩涗竴姝ュ噺灏戝搴?*/
+  /* 🔧 进一步减少宽度 */
   height: 40rpx;
-  /* 馃敡 鍑忓皯楂樺害鍖归厤椤电爜鎸夐挳 */
+  /* 🔧 减少高度匹配页码按钮 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
   border: 1rpx solid rgba(102, 126, 234, 0.25);
-  /* 馃敡 鍑忓皯杈规 */
+  /* 🔧 减少边框 */
   border-radius: 12rpx;
-  /* 馃敡 璋冩暣鍦嗚鍖归厤椤电爜鎸夐挳 */
+  /* 🔧 调整圆角匹配页码按钮 */
   text-align: center;
   font-size: 18rpx;
-  /* 馃敡 鍑忓皯瀛椾綋澶у皬 */
+  /* 🔧 减少字体大小 */
   font-weight: 600;
   color: #1e293b;
   box-shadow:
@@ -1491,35 +1491,35 @@ button.page-btn,
   transform: translateY(-2rpx) scale(1.05);
 }
 
-/* 馃帹 鏌斿拰鐨勫揩鎹锋搷浣滄牱寮忥紙浼樺寲闂磋窛锛?*/
+/* 🎨 柔和的快捷操作样式（优化间距） */
 .quick-actions {
   display: flex;
   gap: 20rpx;
-  /* 澧炲姞闂磋窛锛?6rpx 鈫?20rpx */
+  /* 增加间距：16rpx → 20rpx */
   margin-top: 32rpx;
   padding: 0 4rpx;
-  /* 娣诲姞瀹瑰櫒宸﹀彸鍐呰竟璺?*/
+  /* 添加容器左右内边距 */
 }
 
 .action-btn {
   flex: 1;
   height: 68rpx;
-  /* 澧炲姞楂樺害锛?4rpx 鈫?68rpx锛屼笌绛涢€夋寜閽繚鎸佷竴鑷?*/
+  /* 增加高度：64rpx → 68rpx，与筛选按钮保持一致 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.85));
   border: 2rpx solid rgba(102, 126, 234, 0.2);
   border-radius: 20rpx;
   color: #2c3e50;
   font-size: 23rpx;
-  /* 寰皟瀛椾綋锛?4rpx 鈫?23rpx锛屼笌绛涢€夋寜閽崗璋?*/
+  /* 微调字体：24rpx → 23rpx，与筛选按钮协调 */
   font-weight: 500;
   line-height: 64rpx;
-  /* 璋冩暣琛岄珮閰嶅悎鏂伴珮搴?*/
+  /* 调整行高配合新高度 */
   text-align: center;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.06);
   backdrop-filter: blur(20rpx);
   padding: 0 8rpx;
-  /* 娣诲姞宸﹀彸鍐呰竟璺?*/
+  /* 添加左右内边距 */
 }
 
 .action-btn:hover {
@@ -1534,7 +1534,7 @@ button.page-btn,
   transform: translateY(-1rpx) scale(0.98);
 }
 
-/* 寮圭獥鏍峰紡 */
+/* 弹窗样式 */
 .confirm-modal,
 .result-modal {
   position: fixed;
@@ -1679,7 +1679,7 @@ button.page-btn,
   text-align: center;
 }
 
-/* 缁撴灉寮圭獥鍐呭 */
+/* 结果弹窗内容 */
 .result-content {
   padding: 30rpx;
   text-align: center;
@@ -1743,7 +1743,7 @@ button.page-btn,
   display: block;
 }
 
-/* 瑙勫垯璇存槑鏍峰紡 */
+/* 规则说明样式 */
 .rules-section {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 15rpx;
@@ -1771,31 +1771,3 @@ button.page-btn,
   color: $color-text-secondary;
   margin-bottom: 8rpx;
 }
-
-/* 鍟嗗搧鍏戞崲鍗犱綅鏍峰紡 */
-.dual-space-market {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
-  padding: 60rpx 30rpx;
-  text-align: center;
-  margin-bottom: 20rpx;
-}
-
-.development-notice {
-  text-align: center;
-}
-
-.notice-title {
-  font-size: $font-size-lg;
-  font-weight: bold;
-  color: $color-primary;
-  display: block;
-  margin-bottom: 20rpx;
-}
-
-.notice-content {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  line-height: 1.6;
-}
-

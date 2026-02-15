@@ -4,7 +4,8 @@
  *
  * globalData只保留系统配置
  * 业务数据已迁移到MobX Store: store/user.ts, store/points.ts 等
- * WebSocket 使用 weapp.socket.io（心跳/重连/事件路由全部由 Socket.IO 内建管理）
+ * WebSocket 使用 weapp.socket.io@3.0.0（心跳/重连/事件路由全部由 Socket.IO 内建管理）
+ * weapp.socket.io 内部将 WebSocket 传输适配为 wx.connectSocket()，微信小程序专用
  *
  * @file 天工餐厅积分系统 - 应用主入口
  * @version 5.1.0
@@ -38,7 +39,7 @@ interface SocketIOData {
   /** 是否已连接 */
   connected: boolean
   /** 页面消息订阅者（pageId → callback） */
-  pageSubscribers: Map<string, (eventName: string, data: any) => void>
+  pageSubscribers: Map<string, (_eventName: string, _data: any) => void>
 }
 
 /** Token使用日志条目 */
@@ -117,9 +118,17 @@ App({
     })
   },
 
-  /** 检查用户认证状态 */
+  /**
+   * 检查用户认证状态（应用启动初始化阶段）
+   *
+   * ⚠️ 此处直接读取 Storage 是设计意图：
+   * 应用启动时 MobX Store 尚未持有数据，需要从 Storage 恢复上次会话，
+   * 恢复成功后通过 userStore.setLoginState() 将数据同步到 Store，
+   * 此后所有业务代码统一从 Store 读取，不再直接访问 Storage。
+   */
   async checkAuthStatus(): Promise<void> {
     try {
+      // 应用启动恢复：从 Storage 读取上次会话的Token和用户信息
       const token: string = wx.getStorageSync('access_token')
       let userInfo: API.UserProfile | null = wx.getStorageSync('user_info') || null
 
@@ -329,6 +338,7 @@ App({
   // ✅ 心跳：Socket.IO 内建（25秒一次），无需手动管理
   // ✅ 重连：Socket.IO 内建（指数退避），无需手动管理
   // ✅ 消息路由：Socket.IO 按事件名自动路由，无需 JSON.parse + switch
+  // ✅ 传输层：weapp.socket.io@3.0.0 将 WebSocket 适配为 wx.connectSocket()（微信专用）
 
   /** Socket.IO 连接数据 */
   socketData: {
@@ -339,7 +349,8 @@ App({
 
   /**
    * 统一 Socket.IO 连接管理
-   * 使用 weapp.socket.io 替代原生 wx.connectSocket
+   * 使用 weapp.socket.io@3.0.0 替代原生 wx.connectSocket
+   * weapp.socket.io 内部将 WebSocket 传输适配为 wx.connectSocket()
    * Token 通过 auth 选项传递，不拼在 URL 上
    */
   connectWebSocket(): Promise<void> {
@@ -363,14 +374,31 @@ App({
     }
 
     const wsConfig = getWebSocketConfig()
-    log.info('🔌 启动 Socket.IO 连接...', { url: wsConfig.url })
+    log.info('🔌 启动 Socket.IO 连接...', {
+      url: wsConfig.url,
+      timeout: wsConfig.timeout
+    })
 
     return new Promise((resolve, reject) => {
       try {
-        // 创建 Socket.IO 连接（Token 通过 auth 传递，不拼 URL）
+        /**
+         * 创建 Socket.IO 连接
+         *
+         * transports: ['websocket']
+         *   微信小程序仅支持 WebSocket 传输（不支持 HTTP long-polling）。
+         *   weapp.socket.io@3.0.0 内部通过 wx-ws.js 适配器将标准 WebSocket API
+         *   映射为 wx.connectSocket() / wx.sendSocketMessage() / wx.closeSocket()。
+         *
+         * timeout: 30000ms
+         *   握手超时时间，给 wss 连接经代理建立留足够时间（默认20s）。
+         *
+         * auth: { token }
+         *   JWT Token 通过 Socket.IO auth 选项传递，不拼在 URL 上。
+         */
         const socket = io(wsConfig.url, {
           transports: ['websocket'],
           auth: { token: userStore.accessToken },
+          timeout: wsConfig.timeout || 30000,
           // Socket.IO 内建重连
           reconnection: true,
           reconnectionDelay: wsConfig.reconnectionDelay || 3000,
@@ -514,7 +542,7 @@ App({
   /** 页面消息订阅（保持原有接口，页面无感知） */
   subscribeWebSocketMessages(
     pageId: string,
-    callback: (eventName: string, data: any) => void
+    callback: (_eventName: string, _data: any) => void
   ): void {
     log.info(`📱 页面 ${pageId} 订阅Socket.IO消息`)
     this.socketData.pageSubscribers.set(pageId, callback)
@@ -528,13 +556,15 @@ App({
 
   /** 通知所有订阅页面 */
   notifyPageSubscribers(eventName: string, data: any): void {
-    this.socketData.pageSubscribers.forEach((callback, pageId) => {
-      try {
-        callback(eventName, data)
-      } catch (error) {
-        log.error(`❌ 页面 ${pageId} 消息处理失败:`, error)
+    this.socketData.pageSubscribers.forEach(
+      (callback: (_evt: string, _payload: any) => void, pageId: string) => {
+        try {
+          callback(eventName, data)
+        } catch (error) {
+          log.error(`❌ 页面 ${pageId} 消息处理失败:`, error)
+        }
       }
-    })
+    )
   },
 
   /**

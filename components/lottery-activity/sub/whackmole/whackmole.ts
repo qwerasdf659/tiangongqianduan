@@ -454,7 +454,7 @@ Component({
           this.setData({ showMissEffect: false })
         }, 600)
 
-        log.info('[打地鼠] Miss！-1秒，剩余:', newTimeLeft)
+        log.info('[打地鼠] Miss！-1秒，剩余:', missTimeLeft)
         return
       }
 

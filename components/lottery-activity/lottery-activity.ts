@@ -39,8 +39,11 @@ const PRIZE_ICON_MAP: Record<string, string> = {
 }
 
 /**
- * 提取奖品展示字段（后端 DataSanitizer 已标准化字段名: id/name/type/icon等）
- * 不做字段映射，后端API是数据权威来源
+ * 提取奖品展示字段 - 兼容后端不同响应格式
+ *
+ * 后端 DataSanitizer 标准化字段名: id/name/type/icon/rarity_code/sort_order
+ * 但管理员账号或特殊接口可能返回 prize_name/prize_type/lottery_prize_id 等替代字段名
+ * 此函数统一处理两种格式，确保前端展示正常
  *
  * rarity_code 字段说明（5级稀有度，后端保证必定存在、不为null）：
  *   common    → 普通（#9E9E9E 灰色边框，无特效）
@@ -50,19 +53,33 @@ const PRIZE_ICON_MAP: Record<string, string> = {
  *   legendary → 传说（#FF9800 金色旋转光环+星星）
  */
 function normalizePrize(raw: any): any {
+  /* 兼容后端不同字段名格式：标准字段 → 管理员字段 → 其他可能字段 */
+  const prizeId = raw.id || raw.lottery_prize_id || raw.prize_id || 0
+  const prizeName = raw.name || raw.prize_name || raw.display_name || raw.item_name || ''
+  const prizeType = raw.type || raw.prize_type || raw.item_type || ''
+  const prizeIcon = raw.icon || PRIZE_ICON_MAP[prizeType] || '🎁'
+
+  /* 首次加载时打印一条日志，帮助确认后端实际返回的字段名 */
+  if (!normalizePrize._logged) {
+    normalizePrize._logged = true
+    log.info('[normalizePrize] 后端奖品原始字段:', Object.keys(raw).join(', '), '| name:', prizeName, '| type:', prizeType)
+  }
+
   return {
-    id: raw.id,
-    name: raw.name || '',
-    type: raw.type || '',
-    icon: raw.icon || PRIZE_ICON_MAP[raw.type || ''] || '🎁',
+    id: prizeId,
+    name: prizeName,
+    type: prizeType,
+    icon: prizeIcon,
     sort_order: raw.sort_order ?? 0,
     /** 稀有度代码（后端字段名 rarity_code，5级枚举: common/uncommon/rare/epic/legendary） */
-    rarity_code: raw.rarity_code ?? 'common',
+    rarity_code: raw.rarity_code ?? raw.rarity ?? 'common',
     available: raw.available ?? true,
-    display_points: raw.display_points ?? 0,
+    display_points: raw.display_points ?? raw.points_value ?? raw.value ?? 0,
     status: raw.status ?? 'active'
   }
 }
+/** normalizePrize 日志标记（仅记录一次） */
+normalizePrize._logged = false
 /**
  * 默认display配置（降级策略）
  * 当后端未返回 display 字段时使用此默认值
@@ -211,10 +228,21 @@ Component({
         /* 先解析display配置，因为mode决定奖品截取策略 */
         const display = { ...DEFAULT_DISPLAY, ...(config.display || {}) }
 
-        /* 标准化字段（后端 DataSanitizer 已统一字段名: id/name/type/icon/rarity_code/sort_order） */
-        /* 后端返回的所有奖品都应展示，不做前端过滤 */
-        const prizesRaw = prizesRes.data || []
-        const allPrizes = prizesRaw
+        /* 标准化字段 - 兼容后端两种响应格式：
+         *   格式A: data = [prize1, prize2, ...]（直接数组）
+         *   格式B: data = { prizes: [prize1, prize2, ...] }（嵌套对象）
+         */
+        const rawData = prizesRes.data
+        const prizesRaw = Array.isArray(rawData) ? rawData : (rawData?.prizes || rawData?.list || [])
+
+        if (!Array.isArray(prizesRaw) || prizesRaw.length === 0) {
+          log.warn('[lottery-activity] 奖品数据为空或格式异常, rawData类型:', typeof rawData, ', keys:', rawData ? Object.keys(rawData).join(',') : 'null')
+        }
+
+        /* 重置日志标记，确保每次初始化都能打印一次字段诊断日志 */
+        normalizePrize._logged = false
+
+        const allPrizes = (Array.isArray(prizesRaw) ? prizesRaw : [])
           .map(normalizePrize)
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
 
@@ -821,4 +849,5 @@ Component({
   }
 })
 
-export {}
+export { }
+

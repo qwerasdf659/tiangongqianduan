@@ -11,7 +11,7 @@
 
 import { observable, action } from 'mobx-miniprogram'
 
-const { createPaginationState, createPaginatedActions } = require('./helpers')
+import { createPaginationState, createPaginatedActions } from './helpers'
 
 /** 兑换商品结构（后端返回格式） */
 interface ExchangeProduct {
