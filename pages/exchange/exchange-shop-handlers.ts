@@ -136,10 +136,10 @@ const shopHandlers = {
         const luckyStats =
           statsResponse && statsResponse.success && statsResponse.data
             ? {
-                new_count: statsResponse.data.new_count || 0,
-                avg_discount: statsResponse.data.avg_discount || 0,
-                flash_deals: statsResponse.data.flash_deals || 0
-              }
+              new_count: statsResponse.data.new_count || 0,
+              avg_discount: statsResponse.data.avg_discount || 0,
+              flash_deals: statsResponse.data.flash_deals || 0
+            }
             : { new_count: 0, avg_discount: 0, flash_deals: 0 }
 
         if (!statsResponse || !statsResponse.success) {
@@ -253,37 +253,37 @@ const shopHandlers = {
 
         /**
          * 🔒 数据完整性校验（与幸运空间 convertToWaterfallData 保持一致的验证逻辑）
-         * 后端 exchange_items 表主键 exchange_item_id 是兑换操作的必需字段
-         * 缺少此字段的商品无法执行 POST /api/v4/backpack/exchange 兑换请求，必须在入口处过滤
+         * 后端 DataSanitizer 将 exchange_item_id 脱敏为 id（string 类型）
+         * 缺少 id 的商品无法执行 POST /api/v4/backpack/exchange 兑换请求，必须在入口处过滤
          */
         const items = rawItems.filter((item: any, idx: number) => {
           if (!item || typeof item !== 'object') {
             shopLog.warn(`⚠️ 臻选空间第${idx}个商品数据无效，跳过`)
             return false
           }
-          if (!item.exchange_item_id) {
+          /* 后端 DataSanitizer 脱敏: exchange_item_id → id（string） */
+          if (!item.id) {
             shopLog.error(
-              `❌ 臻选空间第${idx}个商品缺少 exchange_item_id（后端 exchange_items 表主键），数据异常:`,
-              `keys=${Object.keys(item).join(',')}, item_name=${item.item_name || '空'}`
+              `❌ 臻选空间第${idx}个商品缺少 id（DataSanitizer 脱敏后的商品主键），数据异常:`,
+              `keys=${Object.keys(item).join(',')}, name=${item.name || '空'}`
             )
             return false
           }
-          if (!item.item_name) {
-            shopLog.warn(
-              `⚠️ 臻选空间商品 exchange_item_id=${item.exchange_item_id} 的 item_name 为空`
-            )
+          /* 后端 DataSanitizer 脱敏: item_name → name */
+          if (!item.name) {
+            shopLog.warn(`⚠️ 臻选空间商品 id=${item.id} 的 name 为空`)
           }
           return true
         })
 
         if (rawItems.length > 0 && items.length === 0) {
           shopLog.error(
-            `❌ 后端API返回 ${rawItems.length} 个商品全部缺少 exchange_item_id，` +
-              `请通知后端检查 GET /api/v4/backpack/exchange/items 响应格式`
+            `❌ 后端API返回 ${rawItems.length} 个商品全部缺少 id，` +
+            `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
           )
           this.setErrorState(
             '商品数据异常',
-            '后端返回的商品缺少必要字段(exchange_item_id)，请联系管理员'
+            '后端返回的商品缺少必要字段(id)，请联系管理员'
           )
           return
         }
@@ -291,7 +291,7 @@ const shopHandlers = {
         if (rawItems.length !== items.length) {
           shopLog.warn(
             `⚠️ 臻选空间数据校验: 原始${rawItems.length}个, 有效${items.length}个, ` +
-              `过滤${rawItems.length - items.length}个`
+            `过滤${rawItems.length - items.length}个`
           )
         }
 
@@ -299,10 +299,10 @@ const shopHandlers = {
         const premiumStats =
           premiumStatsResponse && premiumStatsResponse.success && premiumStatsResponse.data
             ? {
-                hot_count: premiumStatsResponse.data.hot_count || 0,
-                avg_rating: premiumStatsResponse.data.avg_rating || 0,
-                trending_count: premiumStatsResponse.data.trending_count || 0
-              }
+              hot_count: premiumStatsResponse.data.hot_count || 0,
+              avg_rating: premiumStatsResponse.data.avg_rating || 0,
+              trending_count: premiumStatsResponse.data.trending_count || 0
+            }
             : { hot_count: 0, avg_rating: 0, trending_count: 0 }
 
         if (!premiumStatsResponse || !premiumStatsResponse.success) {
@@ -499,8 +499,8 @@ const shopHandlers = {
         const mappedProducts = bidProducts.map((item: any) => ({
           bid_product_id: item.bid_product_id,
           exchange_item_id: item.exchange_item_id,
-          /* 📋 待后? bid products API 是否在JOIN exchange_items时返?item_name? */
-          item_name: item.item_name || item.name || '',
+          /* 后端 DataSanitizer 脱敏: item_name → name */
+          name: item.name || '',
           description: item.description || '',
           image: item.image_url || '/images/products/default-product.png',
           category: item.category || '',
@@ -936,9 +936,15 @@ const shopHandlers = {
   // 🛠数据转换和工具方  // ============================================
 
   /**
-   * 转换后端商品数据为瀑布流格式   * 使用后端 exchange_items 表真实字段名
+   * 转换后端商品数据为瀑布流格式
+   * 使用后端 DataSanitizer 脱敏后的真实字段名（id / name）
    *
-   * @param items - 后端返回exchange_items 数组
+   * 后端字段映射（DataSanitizer 安全脱敏）:
+   *   exchange_item_id → id（string，BIGINT 主键转字符串）
+   *   item_name → name
+   *   cost_amount / original_price → string（bigNumberStrings: true）
+   *
+   * @param items - 后端 GET /api/v4/backpack/exchange/items 返回的 items 数组
    * @returns 瀑布流格式的商品数组
    */
   convertToWaterfallData(items: any) {
@@ -954,58 +960,61 @@ const shopHandlers = {
             return null
           }
 
-          /* 后端 exchange_items 表主键和名称字段（不做兼容性映射，后端是权威数据源） */
-          const itemId = item.exchange_item_id || null
-          const itemName = item.item_name || ''
+          /**
+           * 后端 DataSanitizer 脱敏后的字段名（后端是权威数据源）:
+           *   id: string — 商品主键（原 exchange_item_id，BIGINT→string）
+           *   name: string — 商品名称（原 item_name）
+           */
+          const itemId = item.id || null
+          const itemName = item.name || ''
 
           if (!itemName || !itemId) {
             shopLog.warn(
-              `⚠️ 商品数据不完整，缺少ID或名称，跳过索引${index}:`,
+              `⚠️ 商品数据不完整，缺少id或name，跳过索引${index}:`,
               `keys=${Object.keys(item).join(',')}, id=${itemId}, name=${itemName}`
             )
             return null
           }
 
-          /* 商品图片（后端 exchange_items 表字段） */
+          /* 商品图片: 优先 primary_image 嵌套对象，兜底默认图 */
           const imageUrl =
             (item.primary_image && (item.primary_image.url || item.primary_image.thumbnail_url)) ||
-            item.image_url ||
             '/images/products/default-product.png'
 
-          /* 直接使用后端 exchange_items 表 snake_case 字段，不做 camelCase 映射 */
+          /**
+           * 使用后端 DataSanitizer 脱敏后的字段名
+           * BIGINT 字段（cost_amount / original_price）在此统一转 Number，下游无需重复转换
+           */
           return {
-            /* 主键ID（exchange_items.exchange_item_id） */
-            exchange_item_id: itemId,
-            /* 商品名称（exchange_items.item_name） */
-            item_name: itemName,
+            /* 商品主键（DataSanitizer: exchange_item_id → id，string 类型） */
+            id: itemId,
+            /* 商品名称（DataSanitizer: item_name → name） */
+            name: itemName,
             /* 商品图片 */
             image: imageUrl,
-            /* 主图ID（exchange_items.primary_image_id） */
+            /* 主图ID */
             primary_image_id: item.primary_image_id || null,
-            /* 兑换价格（exchange_items.cost_amount） */
-            cost_amount: item.cost_amount || 0,
-            /* 支付资产类型（exchange_items.cost_asset_code） */
+            /* 兑换价格（BIGINT→string，统一转 Number） */
+            cost_amount: Number(item.cost_amount) || 0,
+            /* 支付资产类型 */
             cost_asset_code: item.cost_asset_code || 'POINTS',
-            /* 原价（exchange_items.original_price） */
-            original_price: item.original_price || null,
-            /* 销量（exchange_items.sold_count） */
+            /* 原价（BIGINT→string，统一转 Number） */
+            original_price: item.original_price ? Number(item.original_price) : null,
+            /* 销量 */
             sold_count: item.sold_count || 0,
             tags: item.tags || [],
-            /* 是否幸运商品（exchange_items.is_lucky） */
             is_lucky: item.is_lucky || false,
-            /* 是否热销（exchange_items.is_hot） */
             is_hot: item.is_hot || false,
-            /* 是否新品（exchange_items.is_new） */
             is_new: item.is_new || false,
-            /* 商品卖点（exchange_items.sell_point） */
             sell_point: item.sell_point || '',
-            /* 创建时间（exchange_items.created_at） */
             created_at: item.created_at || '',
             description: item.description || '',
-            /* 库存（exchange_items.stock） */
             stock: item.stock || 0,
-            /* 分类（exchange_items.category_code） */
-            category: item.category_code || ''
+            /* 排序序号 */
+            sort_order: item.sort_order || 0,
+            /* 质保 / 包邮标记 */
+            has_warranty: item.has_warranty || false,
+            free_shipping: item.free_shipping || false
           }
         })
         .filter(Boolean)
@@ -1273,7 +1282,7 @@ const shopHandlers = {
   /**
    * 臻选空间 - 加载当前页商品数据
    * 使用与幸运空间一致的双列网格布局展示
-   * 数据格式统一使用后端 exchange_items 表 snake_case 字段
+   * 数据格式统一使用后端 DataSanitizer 脱敏后的字段名（id / name）
    */
   loadPremiumCurrentPageProducts() {
     const { premiumAllProducts, premiumCurrentPage, premiumPageSize } = this.data
@@ -1286,39 +1295,33 @@ const shopHandlers = {
       `📖 臻选空间加载第${premiumCurrentPage}页 [${startIndex}-${endIndex - 1}], 共${currentPageProducts.length}个`
     )
 
-    /* 统一使用后端 exchange_items 表字段，与幸运空间卡片格式一致 */
+    /**
+     * 统一使用后端 DataSanitizer 脱敏后的字段名，与幸运空间卡片格式一致
+     * BIGINT 字段（cost_amount / original_price）统一转 Number
+     */
     const premiumFilteredProducts = currentPageProducts.map((item: any) => ({
-      /* 主键ID（exchange_items.exchange_item_id） */
-      exchange_item_id: item.exchange_item_id,
-      /* 商品名称（exchange_items.item_name） */
-      item_name: item.item_name || '',
-      /* 商品描述（exchange_items.description） */
+      /* 商品主键（DataSanitizer: exchange_item_id → id，string 类型） */
+      id: item.id,
+      /* 商品名称（DataSanitizer: item_name → name） */
+      name: item.name || '',
       description: item.description || '',
-      /* 商品图片 - 优先使用 primary_image.url，兜底 image_url */
+      /* 商品图片 - 优先使用 primary_image 嵌套对象 */
       image:
         (item.primary_image && (item.primary_image.url || item.primary_image.thumbnail_url)) ||
-        item.image_url ||
         '/images/products/default-product.png',
-      /* 兑换价格（exchange_items.cost_amount） */
-      cost_amount: item.cost_amount || 0,
-      /* 支付资产类型（exchange_items.cost_asset_code） */
+      /* 兑换价格（BIGINT→string，转 Number） */
+      cost_amount: Number(item.cost_amount) || 0,
       cost_asset_code: item.cost_asset_code || 'POINTS',
-      /* 原价（exchange_items.original_price） */
-      original_price: item.original_price || null,
-      /* 库存（exchange_items.stock） */
+      /* 原价（BIGINT→string，转 Number） */
+      original_price: item.original_price ? Number(item.original_price) : null,
       stock: item.stock || 0,
-      /* 销量（exchange_items.sold_count） */
       sold_count: item.sold_count || 0,
-      /* 标签数组（exchange_items.tags） */
       tags: item.tags || [],
-      /* 是否热销（exchange_items.is_hot） */
       is_hot: item.is_hot || false,
-      /* 是否新品（exchange_items.is_new） */
       is_new: item.is_new || false,
-      /* 商品卖点（exchange_items.sell_point） */
       sell_point: item.sell_point || '',
-      /* 分类（exchange_items.category_code） */
-      category: item.category_code || ''
+      has_warranty: item.has_warranty || false,
+      free_shipping: item.free_shipping || false
     }))
 
     this.setData({ premiumFilteredProducts })
@@ -1386,4 +1389,5 @@ const shopHandlers = {
 
 module.exports = shopHandlers
 
-export {}
+export { }
+

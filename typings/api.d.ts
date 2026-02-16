@@ -273,10 +273,10 @@ declare namespace API {
    * 图片通过 primary_image_id 关联 image_resources 表
    */
   interface ExchangeProduct {
-    /** 商品主键（BIGINT PK） */
-    exchange_item_id: number
-    /** 商品名称（VARCHAR(200)） */
-    item_name: string
+    /** 商品主键（DataSanitizer 输出通用 id，数据库实际字段 exchange_item_id） */
+    id: number
+    /** 商品名称（DataSanitizer 输出通用 name，数据库实际字段 item_name） */
+    name: string
     /** 商品描述（TEXT） */
     description: string
     /** 支付资产代码（如 red_shard、DIAMOND、POINTS） */
@@ -340,8 +340,8 @@ declare namespace API {
     source: string
     /** 商品快照（JSON，兑换时冻结的商品信息副本，字段来自 exchange_items 表） */
     item_snapshot: {
-      /** 商品名称（⚠️ 后端已直接返回 item_name，前端不再使用旧映射 name） */
-      item_name: string
+      /** 商品名称（DataSanitizer 输出 name） */
+      name: string
       /** 商品描述 */
       description?: string
       /** 支付资产代码 */

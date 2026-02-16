@@ -146,12 +146,14 @@ async function getExchangeProducts(
  *
  * 后端服务: exchange_core（CoreService.exchangeItem * 业务流程: 幂等键校商品状态校库存校验 BalanceService扣减资产 库存扣减 创建exchange_records
  * 全流程在 TransactionManager.execute() 事务 *
- * 响应字段: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
- * ⚠️ 后端不返remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance *
- * @param exchange_item_id - 兑换商品ID（BIGINT，exchange_items.exchange_item_id * @param quantity - 兑换数量，默
+ * 响应字段: { order_no, id, quantity, pay_asset_code, pay_amount, status, exchange_time }
+ * ⚠️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
+ *
+ * @param id - 兑换商品ID（DataSanitizer 输出通用 id，数据库实际字段 exchange_item_id）
+ * @param quantity - 兑换数量，默认 1
  */
-async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
-  if (!exchange_item_id) {
+async function exchangeProduct(id: number, quantity: number = 1) {
+  if (!id) {
     throw new Error('兑换商品ID不能为空')
   }
   if (quantity < 1) {
@@ -159,12 +161,12 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
   }
 
   /* 生成幂等键，防止重复提交（exchange_records 表唯一约束） */
-  const idempotencyKey = `exchange_${exchange_item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = `exchange_${id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
   return apiClient.request('/backpack/exchange', {
     method: 'POST',
     data: {
-      exchange_item_id,
+      id,
       quantity
     },
     header: {
@@ -218,14 +220,15 @@ async function cancelExchange(order_no: string) {
 
 /**
  * 获取兑换商品详情
- * GET /api/v4/backpack/exchange/items/:exchange_item_id
+ * GET /api/v4/backpack/exchange/items/:id
  *
- * @param exchange_item_id - 兑换商品ID（BIGINT */
-async function getExchangeItemDetail(exchange_item_id: number | string) {
-  if (!exchange_item_id) {
+ * @param id - 兑换商品ID（DataSanitizer 输出通用 id）
+ */
+async function getExchangeItemDetail(id: number | string) {
+  if (!id) {
     throw new Error('商品ID不能为空')
   }
-  return apiClient.request(`/backpack/exchange/items/${exchange_item_id}`, {
+  return apiClient.request(`/backpack/exchange/items/${id}`, {
     method: 'GET',
     needAuth: true
   })
