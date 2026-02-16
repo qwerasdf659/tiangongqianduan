@@ -8,8 +8,8 @@
  * 角色判断统一使用 determineUserRole()（utils/util.ts）
  *
  * @file 天工餐厅积分系统 - 用户Store
- * @version 5.1.0
- * @since 2026-02-15
+ * @version 5.2.0
+ * @since 2026-02-10
  */
 
 import { observable, action } from 'mobx-miniprogram'

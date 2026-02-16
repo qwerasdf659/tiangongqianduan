@@ -1,7 +1,7 @@
 /**
  * 🔐 认证助手模块 - V5.0统一认证系统
  *
- * 认证数据统一从 MobX userStore 读取（决策3：废弃globalData业务字段）
+ * 认证数据统一从MobX userStore 读取（废弃globalData业务字段）
  * 页面通过 createStoreBindings 自动同步，不再依赖 app.globalData
  *
  * 功能清单:
@@ -13,7 +13,7 @@
  * - restoreUserInfo() - 三级恢复用户信息
  *
  * @file 天工餐厅积分系统 - 认证助手
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -43,7 +43,7 @@ interface CheckAdminOptions {
 }
 
 /**
- * 用户信息结构 — 统一使用 API.UserProfile（typings/api.d.ts）
+ * 用户信息结构 统一使用 API.UserProfile（typings/api.d.ts）
  * 禁止在此文件重复定义 UserInfo 接口
  */
 
@@ -73,7 +73,7 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
   const { redirect = true, redirectUrl = '/pages/auth/auth', showToast = false } = options
   const store = getUserStore()
 
-  // 从 Store 校验登录状态（Store 是运行时唯一数据源）
+  // Store 校验登录状态（Store 是运行时唯一数据源）
   const storeToken: string = store.accessToken || ''
   const hasValidToken: boolean =
     !!storeToken &&
@@ -83,7 +83,7 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
 
   const isAuthenticated: boolean = hasValidToken && store.isLoggedIn
 
-  log.info('🔍 认证状态检查:', {
+  log.info('🔍 认证状态检查', {
     storeHasToken: !!storeToken,
     storeIsLoggedIn: store.isLoggedIn,
     isAuthenticated
@@ -115,7 +115,7 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
 
 /**
  * 🔐 检查管理员权限
- * V4.0标准: is_admin === true 或 role_level >= 100
+ * V4.0标准: is_admin === true, role_level >= 100
  *
  * @example
  * if (!checkAdmin()) return;
@@ -133,7 +133,7 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
   /* 统一使用 determineUserRole()（utils/util.ts），禁止重复编写判断逻辑 */
   const isAdmin: boolean = !!userInfo && determineUserRole(userInfo) === 'admin'
 
-  log.info('🔍 管理员权限检查:', {
+  log.info('🔍 管理员权限检查', {
     hasUserInfo: !!userInfo,
     is_admin: userInfo?.is_admin,
     role_level: userInfo?.role_level,
@@ -203,7 +203,7 @@ function clearAuthData(): void {
 
 /**
  * 🔄 恢复用户信息
- * 从 userStore → Storage → JWT Token 三级恢复用户信息
+ * userStore → Storage → JWT Token 三级恢复用户信息
  * 恢复失败时自动跳转登录页
  *
  * @returns 恢复成功返回 userInfo 对象，失败返回 null
@@ -212,19 +212,19 @@ function restoreUserInfo(): any {
   const store = getUserStore()
   let userInfo = store.userInfo
 
-  // 第一级：从 userStore 读取
+  // 第一级：userStore 读取
   if (userInfo && userInfo.user_id) {
     return userInfo
   }
 
-  // 第二级：从 Storage 降级恢复到 Store（仅在 Store 数据丢失时触发）
+  // 第二级：Storage 降级恢复到 Store（仅 Store 数据丢失时触发）
   const cachedUserInfo = wx.getStorageSync('user_info')
   if (cachedUserInfo && cachedUserInfo.user_id) {
     store.updateUserInfo(cachedUserInfo)
     return cachedUserInfo
   }
 
-  // 第三级：从 JWT Token 解码恢复
+  // 第三级：JWT Token 解码恢复
   const token = store.accessToken || wx.getStorageSync('access_token')
   if (!token) {
     _redirectToLogin('未登录，请先登录')
@@ -268,7 +268,7 @@ function restoreUserInfo(): any {
  * 检查项:
  * 1. 应用是否已初始化
  * 2. 用户是否已登录（MobX Store + Storage 双重校验）
- * 3. Token字符串格式是否正常
+ * 3. Token字符串格式是否正确
  * 4. JWT 解码是否成功
  * 5. Token是否已过期
  *
@@ -334,7 +334,7 @@ function checkTokenValidity(): {
     }
 
     if (isTokenExpired(accessToken)) {
-      log.error('⏰ Token已过期')
+      log.error('❌ Token已过期')
       return {
         isValid: false,
         error: 'TOKEN_EXPIRED',
@@ -388,4 +388,5 @@ module.exports = {
   checkTokenValidity
 }
 
-export {}
+export { }
+

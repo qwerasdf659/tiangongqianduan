@@ -11,6 +11,26 @@ const { pointsStore } = require('../../store/points')
 /** loading安全超时时间（毫秒），防止loading遮罩层永远不消失导致页面无法操作 */
 const LOADING_SAFETY_TIMEOUT = 8000
 
+/** 用户中心功能菜单项（纯前端UI配置） */
+interface MenuItem {
+  /** 菜单项唯一标识 */
+  id: string
+  /** 菜单项显示名称 */
+  name: string
+  /** 菜单项描述文字 */
+  description: string
+  /** 菜单项图标（emoji） */
+  icon: string
+  /** 菜单项主题色 */
+  color: string
+  /** 类型: page=页面跳转, action=执行方法 */
+  type: 'page' | 'action'
+  /** 跳转URL（type='page' 时使用） */
+  url?: string
+  /** 执行方法名（type='action' 时使用） */
+  action?: string
+}
+
 /**
  * 用户中心页面 - 餐厅积分抽奖系统
  * 功能说明：
@@ -22,7 +42,7 @@ Page({
   data: {
     // 用户基础信息
     isLoggedIn: false,
-    userInfo: null as any,
+    userInfo: null as API.UserProfile | null,
 
     // 多角色权限标识（从JWT Token中的role_level判断）
     // isMerchant = role_level >= 20（商家店员及以上，可访问消费录入、扫码核销）
@@ -94,7 +114,7 @@ Page({
         type: 'action',
         action: 'logout'
       }
-    ] as any[],
+    ] as MenuItem[],
 
     // 页面状态
     loading: true,
@@ -424,7 +444,7 @@ Page({
 
     wx.showModal({
       title: '手机号码',
-      content: this.data.userInfo.mobile || this.data.userInfo.phone || '未设置',
+      content: this.data.userInfo.mobile || '未设置',
       showCancel: false
     })
   },

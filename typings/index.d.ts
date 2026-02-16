@@ -2,10 +2,9 @@
  * 🌐 全局类型声明
  *
  * 声明微信小程序全局类型、App实例类型、扩展声明等
- * 业务数据（用户认证/积分）统一由 MobX Store 管理，globalData 仅保留系统配置
- *
+ * 业务数据（用户认证积分）统一从MobX Store 管理，globalData 仅保留系统配置 *
  * @file 天工餐厅积分系统 - 全局类型定义
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -13,19 +12,19 @@
 /// <reference path="./api.d.ts" />
 /// <reference path="./store.d.ts" />
 
-/** 微信小程序App实例扩展（globalData类型声明） - 与app.ts实际定义严格一致 */
+/** 微信小程序App实例扩展（globalData类型声明?- 与app.ts实际定义严格一?*/
 interface IAppOption {
   globalData: {
     // ===== 系统基础信息 =====
-    /** 系统版本号 */
+    /** 系统版本?*/
     version: string
     /** 系统名称 */
     systemName: string
     /** 构建时间 */
     buildTime: string
 
-    // ===== 系统状态 =====
-    /** 网络状态 */
+    // ===== 系统状态=====
+    /** 网络状态*/
     network_status: string
     /** 当前页面路径 */
     current_page: string
@@ -33,28 +32,28 @@ interface IAppOption {
     // ===== WebSocket配置 =====
     /** WebSocket地址 */
     ws_url: string | null
-    /** WebSocket连接状态 */
+    /** WebSocket连接状态*/
     ws_connected: boolean
     /** WebSocket配置 */
     ws_config: any | null
 
-    // ===== 开发阶段配置 =====
-    /** 是否开发模式 */
+    // ===== 开发阶段配置=====
+    /** 是否开发模?*/
     is_development: boolean
 
     // ===== 多业务线存储配置 =====
     /** 存储配置 */
     storage_config: {
-      /** 最大图片文件大小（字节） */
+      /** 最大图片文件大小（字节?*/
       max_image_size: number
-      /** 允许的图片类型 */
+      /** 允许的图片类?*/
       allowed_image_types: string[]
-      /** 业务线类型 */
+      /** 业务线类?*/
       business_types: string[]
     }
   }
 
-  /** 清空认证数据（委托给 MobX Store） */
+  /** 清空认证数据（委托给 MobX Store?*/
   clearAuthData(): void
   /** 设置访问令牌（委托给 userStore，api.ts Token刷新时调用） */
   setAccessToken(token: string): void
@@ -62,34 +61,32 @@ interface IAppOption {
   setRefreshToken(token: string): void
   /** 安全获取系统信息 */
   getSafeSystemInfo(): any
-  /** 连接 Socket.IO（weapp.socket.io，心跳/重连/事件路由由 Socket.IO 内建管理） */
+  /** 连接 Socket.IO（weapp.socket.io，心跳重连/事件路由?Socket.IO 内建管理）*/
   connectWebSocket(): Promise<void>
   /** 断开 Socket.IO 连接 */
   disconnectWebSocket(): void
   /**
-   * 发送 Socket.IO 事件消息
-   * @param eventName - 事件名称（如 'send_message'、'admin_register'）
-   * @param data - 消息数据对象（Socket.IO 自动序列化，无需手动 JSON.stringify）
-   */
+   * 发Socket.IO 事件消息
+   * @param eventName - 事件名称（如 'send_message'admin_register'   * @param data - 消息数据对象（Socket.IO 自动序列化，无需手动 JSON.stringify   */
   emitSocketMessage(eventName: string, data: any): void
-  /** 订阅 Socket.IO 消息（页面级） */
+  /** 订阅 Socket.IO 消息（页面级?*/
   subscribeWebSocketMessages(pageId: string, callback: Function): void
-  /** 取消订阅 Socket.IO 消息（页面卸载时调用） */
+  /** 取消订阅 Socket.IO 消息（页面卸载时调用户*/
   unsubscribeWebSocketMessages(pageId: string): void
 }
 
-/** App命名空间 - 项目级类型 */
+/** App命名空间 - 项目级类?*/
 declare namespace App {
   /**
-   * 用户信息结构 — 统一引用 API.UserProfile
-   * 权威定义在 typings/api.d.ts → API.UserProfile
+   * 用户信息结构 统一引用 API.UserProfile
+   * 权威定义typings/api.d.ts API.UserProfile
    * 所有文件统一使用此类型，禁止重复定义
    */
   type UserInfo = API.UserProfile
 
   /** 页面通用数据 */
   interface PageData {
-    /** 页面加载状态 */
+    /** 页面加载状态*/
     loading: boolean
     /** 页面错误信息 */
     errorMessage: string

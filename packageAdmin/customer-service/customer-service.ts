@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理员实时客服聊天页面 + MobX响应式状态
  *
  * 功能：实时聊天、会话管理、快捷回复
@@ -12,7 +12,7 @@
  * 后端响应字段均为 snake_case，前端直接使用后端字段名。
  *
  * @file packageAdmin/customer-service/customer-service.ts
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -41,11 +41,11 @@ Page({
     isAdmin: false,
     userInfo: null,
 
-    // 实时聊天模式数据
-    sessions: [] as any[],
+    // 实时聊天模式数据（后端 GET /api/v4/console/chat/sessions 返回）
+    sessions: [] as API.ChatSession[],
     currentSessionId: null as number | null,
     currentSessionUserName: '',
-    currentMessages: [] as any[],
+    currentMessages: [] as API.ChatMessage[],
     loadingSessions: false,
     inputContent: '',
     isTyping: false,
@@ -379,7 +379,7 @@ Page({
     if (closedSessionId === this.data.currentSessionId) {
       this.setData({
         currentSessionId: null,
-        currentMessages: [] as any[],
+        currentMessages: [] as API.ChatMessage[],
         chatExpanded: false
       })
     }
@@ -497,7 +497,7 @@ Page({
     this.setData({
       currentSessionId: sessionId,
       currentSessionUserName,
-      currentMessages: [] as any[],
+      currentMessages: [] as API.ChatMessage[],
       scrollToBottom: true,
       chatExpanded: true
     })
@@ -792,7 +792,7 @@ Page({
       if (result.success) {
         this.setData({
           currentSessionId: null,
-          currentMessages: [] as any[],
+          currentMessages: [] as API.ChatMessage[],
           chatExpanded: false
         })
 
@@ -917,8 +917,8 @@ Page({
     this.setData({
       wsConnected: false,
       currentSessionId: null,
-      currentMessages: [] as any[],
-      sessions: [] as any[]
+      currentMessages: [] as API.ChatMessage[],
+      sessions: [] as API.ChatSession[]
     })
   }
 })

@@ -1,7 +1,7 @@
 /**
  * 弹珠机 子组件 - Plinko风格弹珠台
  * @file sub/pinball/pinball.ts
- * @version 5.0.0
+ * @version 5.2.0
  *
  * 核心流程（与父组件 lottery-activity 协同）：
  *   1. 用户点"发射弹珠" → 触发 draw 事件 → 父组件调用后端API

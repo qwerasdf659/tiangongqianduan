@@ -8,12 +8,12 @@
  * API模块已拆分为 utils/api/ 子目录（方案A：barrel re-export，页面零改动）
  *
  * 命名规范:
- *   业务逻辑层: 100% camelCase（变量名、函数名）
- *   API交互层: 100% snake_case（请求参数、响应字段）
- *   工具类/类名: PascalCase（APIClient等）
+ *   业务逻辑 100% camelCase（变量名、函数名）
+ *   API交互 100% snake_case（请求参数、响应字段）
+ *   工具类名: PascalCase（APIClient等）
  *
  * @file 天工餐厅积分系统 - 工具函数统一入口
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -28,6 +28,7 @@ const configCacheFunctions = require('./config-cache')
 const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const productFilterFunctions = require('./product-filter')
+
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
 /** 基础工具函数 - 日期格式化、字符串处理、防抖节流、JWT处理、认证助手 */
@@ -55,13 +56,13 @@ const ConfigCache = { ...configCacheFunctions }
 /** 统一日志工具 - 环境级别控制 */
 const Logger = { ...loggerFunctions }
 
-/** 瀑布流布局工具 - 两列瀑布流计算 */
+/** 瀑布流布局工具 - 两列瀑布流计算器 */
 const Waterfall = { ...waterfallFunctions }
 
 /** 商品筛选工具 - 通用筛选/排序/搜索 */
 const ProductFilter = { ...productFilterFunctions }
 
-// WebSocket重连工具已移除 — Socket.IO 内建心跳 + 重连，无需手动管理
+// WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
 const Constants = require('../config/constants')

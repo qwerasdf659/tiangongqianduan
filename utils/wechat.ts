@@ -3,7 +3,7 @@
  * 封装微信API，提供统一的交互和导航能力
  *
  * @file 天工餐厅积分系统 - 微信API封装工具
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-10
  */
 
@@ -69,7 +69,7 @@ class WechatUtils {
 
     return {
       success: true,
-      version: '5.0.0',
+      version: '5.2.0',
       developmentMode: devConfig.enableUnifiedAuth
     }
   }

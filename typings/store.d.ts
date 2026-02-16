@@ -4,7 +4,7 @@
  * 定义MobX Store的类型接口，用于页面绑定时的类型推导
  *
  * @file 天工餐厅积分系统 - Store类型定义
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-10
  */
 
@@ -88,14 +88,14 @@ declare namespace Store {
   interface TradeStore {
     marketListings: API.MarketListing[]
     inventoryItems: API.BackpackItem[]
-    myListings: any[]
+    myListings: API.MyListing[]
     marketPagination: PaginationState
     marketLoading: boolean
     inventoryLoading: boolean
     setMarketListings(listings: API.MarketListing[], pagination: PaginationParam): void
     appendMarketListings(listings: API.MarketListing[], pagination: PaginationParam): void
     setInventoryItems(items: API.BackpackItem[]): void
-    setMyListings(listings: any[]): void
+    setMyListings(listings: API.MyListing[]): void
     setMarketLoading(loading: boolean): void
     setInventoryLoading(loading: boolean): void
     clearTrade(): void

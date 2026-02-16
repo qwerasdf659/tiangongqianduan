@@ -43,7 +43,7 @@
  *   bind:action="onPopupBannerAction"
  * />
  *
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-07
  * @updated 2026-02-08 修复图片裁剪：改用widthFix动态适配，任何尺寸图片都完整显示
  */

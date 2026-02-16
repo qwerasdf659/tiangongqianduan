@@ -16,7 +16,7 @@
  *    外部页面统一从 utils/index.ts 导入 ConfigCache
  *
  * @file utils/config-cache.ts
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-14
  */
 

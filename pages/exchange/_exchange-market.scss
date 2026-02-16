@@ -3,10 +3,11 @@
 @import '../../styles/mixins';
 
 /* 🎨 柔和的兑换内容区域样式 - 与抽奖/拍照页面协调 */
+/* 🔒 改为flex布局：固定头部 + 可滚动商品列表 */
 .exchange-content {
   background: linear-gradient(145deg, rgba(235, 240, 245, 0.85) 0%, rgba(220, 230, 240, 0.8) 100%);
   border-radius: $border-radius-xl;
-  padding: 32rpx;
+  padding: 0; /* 🔒 取消内边距，由子元素各自控制 */
   margin-bottom: 24rpx;
   box-shadow:
     0 20rpx 40rpx rgba(0, 0, 0, 0.08),
@@ -16,11 +17,43 @@
   backdrop-filter: blur(40rpx);
   position: relative;
   z-index: 1;
+  /* 🔒 flex布局实现固定头部 + 滚动列表 */
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* 🔒 自动填充exchange-container剩余空间 */
+  min-height: 0; /* 🔒 允许flex子元素收缩，配合内部scroll-view */
+  overflow: hidden; /* 🔒 防止内容溢出圆角区域 */
+}
+
+/* 🔒 固定头部样式 - 不随滚动移动 */
+.exchange-market-sticky-header {
+  flex-shrink: 0; /* 🔒 不被压缩 */
+  padding: 32rpx 32rpx 0 32rpx; /* 🔒 头部自带内边距 */
+  background: linear-gradient(145deg, rgba(235, 240, 245, 0.95) 0%, rgba(220, 230, 240, 0.95) 100%);
+  border-radius: $border-radius-xl $border-radius-xl 0 0; /* 🔒 只保留顶部圆角 */
+  z-index: 10; /* 🔒 确保在滚动内容之上 */
+  position: relative;
+  /* 🔒 底部添加微妙阴影，区分固定头部和滚动内容 */
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+/* 🔒 可滚动商品列表区域 */
+.exchange-market-scroll-body {
+  flex: 1; /* 🔒 填充剩余空间 */
+  padding: 16rpx 32rpx 32rpx 32rpx; /* 🔒 滚动区域自带内边距 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 🔒 iOS流畅滚动 */
 }
 
 /* 🎨 柔和的头部样式 */
 .header {
   margin-bottom: 24rpx;
+}
+
+/* 🔒 固定头部内的header不需要底部边距（由sticky-header的padding控制） */
+.exchange-market-sticky-header.header {
+  margin-bottom: 0;
+  padding-bottom: 16rpx; /* 🔒 用padding代替margin，避免margin穿透 */
 }
 
 /* 🎨 修改user-info为水平布局，交易市场和可用积分一行显示 */

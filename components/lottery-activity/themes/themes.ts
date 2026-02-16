@@ -19,7 +19,7 @@
  * 选择不使用主题色时，CSS变量不设置，子组件自动回退到各自的硬编码保底色。
  *
  * @file components/lottery-activity/themes/themes.ts
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-11
  * @updated 2026-02-15 全面扩展变量覆盖，从7个基础变量扩展到30+个核心变量
  */

@@ -29,7 +29,7 @@ const { userStore } = require('../../store/user')
  * - 审核后自动刷新列表
  *
  * @file packageAdmin/audit-list/audit-list.ts
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-10
  */
 Page({

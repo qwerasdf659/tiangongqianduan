@@ -4,8 +4,9 @@
 @import '../../styles/mixins';
 
 /* 🎨 柔和的整体容器背景 - 与抽奖/拍照页面协调 */
+/* 🔒 改为flex布局，让交易市场内容区域自动填满剩余高度 */
 .exchange-container {
-  min-height: 100vh;
+  height: 100vh; /* 🔒 固定视口高度，配合内部flex布局 */
   background: linear-gradient(
     135deg,
     rgba(102, 126, 234, 0.08) 0%,
@@ -15,6 +16,11 @@
   backdrop-filter: blur(20rpx);
   padding: calc(env(safe-area-inset-top) + 20rpx) 20rpx 20rpx;
   position: relative;
+  /* 🔒 flex布局让子元素自适应高度 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 🔒 防止整体页面滚动，由内部scroll-view接管 */
+  box-sizing: border-box;
 }
 
 /* ========== 🔍 幸运空间搜索筛选区域样式 ========== */

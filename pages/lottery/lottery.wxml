@@ -20,7 +20,7 @@
       <view class="user-info-section">
         <!-- 欢迎语 + 审核记录徽章 -->
         <view class="welcome-text">
-          <text>欢迎，{{userInfo.mobile || userInfo.phone || userInfo.nickname || '用户'}}</text>
+          <text>欢迎，{{userInfo.mobile || userInfo.nickname || '用户'}}</text>
 
           <!-- 🆕 积分审核记录查询徽章 - 紧跟手机号码后 -->
           <view class="audit-badge-container" bindtap="viewRecentAudits">

@@ -175,7 +175,7 @@ Page({
    * API: GET /api/v4/assets/transactions
    *
    * 后端实际返回字段（对齐 typings/api.d.ts AssetTransaction）：
-   *   transaction_id       - 交易流水ID（BIGINT）
+   *   asset_transaction_id - 交易流水ID（BIGINT PK）
    *   asset_code           - 资产代码（POINTS / DIAMOND / red_shard）
    *   delta_amount         - 变动金额（正数=获得/earn，负数=消费/consume）
    *   balance_before       - 变动前余额
@@ -253,7 +253,15 @@ Page({
           const transactionType = rawAmount > 0 ? 'earn' : 'consume'
 
           // 标题显示优先级：title → description → 业务类型中文回退
-          const displayTitle = record.title || record.description || '积分记录'
+          const displayTitle =
+            record.title || record.description || this.getBusinessTypeLabel(record.business_type)
+
+          // 描述文本：当 title 和 description 都存在且不同时，显示 description 作为补充说明
+          // 否则显示业务类型的中文标签
+          const displayDescription =
+            record.title && record.description && record.title !== record.description
+              ? record.description
+              : this.getBusinessTypeLabel(record.business_type)
 
           // 使用后端返回的 created_at 字段（ISO 8601 格式）
           const displayTime = record.created_at || ''
@@ -266,6 +274,7 @@ Page({
             // 前端计算的交易方向（用于筛选和UI样式）
             transaction_type: transactionType,
             displayTitle,
+            displayDescription,
             displayTime,
             displayAmount,
             displayPoints: rawAmount
@@ -489,6 +498,55 @@ Page({
     }
   },
 
+  /**
+   * 🏷️ 获取业务类型的中文标签
+   *
+   * 将后端 business_type 枚举码映射为用户可读的中文标签。
+   * 当 title 和 description 均为 null 时，作为 displayTitle 的回退值。
+   *
+   * 枚举来源：数据库 asset_transactions.business_type 字段
+   * 覆盖率参考：docs/backend-transaction-fields-request要求.md 第2.3节
+   *
+   * @param businessType - 后端 business_type 字段值
+   * @returns 中文标签字符串
+   */
+  getBusinessTypeLabel(businessType: string): string {
+    if (!businessType) {
+      return '积分记录'
+    }
+
+    /** 后端 business_type 枚举 → 中文标签映射 */
+    const labelMap: Record<string, string> = {
+      // 抽奖系统
+      lottery_consume: '抽奖消耗',
+      lottery_reward: '抽奖奖励',
+      lottery_budget_deduct: '抽奖预算扣减',
+      // 消费奖励
+      consumption_reward: '消费奖励',
+      consumption_budget_allocation: '消费预算分配',
+      // 兑换系统
+      exchange_debit: '兑换扣减',
+      // 管理员操作
+      admin_adjustment: '管理员调整',
+      // 商户
+      merchant_points_reward: '商户积分奖励',
+      // 开账
+      opening_balance: '开账余额',
+      // 材料转换
+      material_convert_debit: '材料转换扣减',
+      material_convert_credit: '材料转换获得',
+      // 交易市场
+      order_freeze_buyer: '交易冻结',
+      order_settle_seller: '交易收款',
+      order_settle_buyer: '交易扣款',
+      order_cancel_unfreeze: '交易取消退回',
+      market_listing_freeze: '挂单冻结',
+      market_listing_cancel: '挂单取消退回'
+    }
+
+    return labelMap[businessType] || '积分记录'
+  },
+
   /** 返回上一页 */
   onBackTap() {
     wx.navigateBack()
@@ -620,8 +678,8 @@ Page({
 
         const aggregatedRecord = {
           ...groupRecords[0],
-          // 聚合记录使用首条记录的 transaction_id 加后缀区分
-          transaction_id: `aggregated_${groupRecords[0].transaction_id}_${drawCount}`,
+          // 聚合记录使用首条记录的 asset_transaction_id 加后缀区分
+          asset_transaction_id: `aggregated_${groupRecords[0].asset_transaction_id}_${drawCount}`,
           delta_amount: totalDeltaAmount,
           description: `连抽${drawCount}次（聚合记录）`,
           title: `连抽${drawCount}次`,

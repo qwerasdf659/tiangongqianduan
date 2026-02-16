@@ -4,16 +4,16 @@
  * 核销路由: routes/v4/shop/redemption/
  *
  * @file 天工餐厅积分系统 - 消费与核销API模块
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
 const { apiClient } = require('./client')
 const { buildQueryString } = require('../util')
 
-// ==================== 🎫 用户端消费 ====================
+// ==================== 🎫 用户端消====================
 
-/** 获取当前用户消费积分二维码 - GET /api/v4/shop/consumption/qrcode */
+/** 获取当前用户消费积分二维?- GET /api/v4/shop/consumption/qrcode */
 async function getUserQRCode() {
   return apiClient.request('/shop/consumption/qrcode', {
     method: 'GET',
@@ -25,7 +25,7 @@ async function getUserQRCode() {
   })
 }
 
-/** 获取当前用户的消费记录 - GET /api/v4/shop/consumption/me */
+/** 获取当前用户的消费记?- GET /api/v4/shop/consumption/me */
 async function getMyConsumptionRecords(
   params: { page?: number; page_size?: number; status?: string | null } = {}
 ) {
@@ -42,11 +42,10 @@ async function getConsumptionDetail(record_id: number) {
   })
 }
 
-// ==================== 🏪 商家端消费 ====================
+// ==================== 🏪 商家端消====================
 
 /**
- * 根据V2动态二维码获取用户信息（商家扫码后调用）
- * GET /api/v4/shop/consumption/user-info?qr_code=xxx&store_id=xxx
+ * 根据V2动态二维码获取用户信息（商家扫码后调用户 * GET /api/v4/shop/consumption/user-info?qr_code=xxx&store_id=xxx
  */
 async function getUserInfoByQRCode(qr_code: string, store_id?: number) {
   if (!qr_code) {
@@ -130,9 +129,9 @@ async function getMerchantConsumptionStats() {
   return apiClient.request('/shop/consumption/merchant/stats', { method: 'GET', needAuth: true })
 }
 
-// ==================== 🎟️ 商家核销 ====================
+// ==================== 🎟商家核销 ====================
 
-/** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限） */
+/** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限?*/
 async function createRedemptionOrder(params: Record<string, any>) {
   return apiClient.request('/shop/redemption/orders', {
     method: 'POST',
@@ -147,7 +146,7 @@ async function createRedemptionOrder(params: Record<string, any>) {
 
 /**
  * 商家核销用户物品 - POST /api/v4/shop/redemption/fulfill
- * 🔴 需要商家权限(role_level>=20)
+ * 🔴 需要商家权role_level>=20)
  */
 async function fulfillRedemption(params: { redeem_code: string; store_id?: number }) {
   if (!params || !params.redeem_code) {

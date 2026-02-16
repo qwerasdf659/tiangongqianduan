@@ -63,6 +63,7 @@
   border: 2rpx solid rgba(255, 255, 255, 0.5);
   position: relative;
   z-index: 2;
+  flex-shrink: 0; /* 🔒 在flex容器中不被压缩 */
 }
 
 /* 添加柔和的背景图案 */

@@ -5,7 +5,7 @@
  * 所有API交互字段使用snake_case命名（与后端一致）
  *
  * @file 天工餐厅积分系统 - API类型定义
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-10
  */
 
@@ -52,21 +52,45 @@ declare namespace API {
     expires_in: number
   }
 
-  /** 用户资料 */
+  /**
+   * 用户资料（对齐后端 GET /api/v4/auth/profile 响应，数据来源: users 表 + RBAC角色系统）
+   * 管理员判断: role_level >= 100（UUID角色系统）
+   * ⚠️ 后端不返回 user_level 字段，角色判断使用 role_level + roles
+   */
   interface UserProfile {
+    /** 用户ID（INT PK） */
     user_id: number
-    user_uuid: string
+    /** 手机号（脱敏为 136****7930 格式，STRING(20)） */
     mobile: string
+    /** 昵称（STRING） */
     nickname: string
-    status: string
-    is_admin: boolean
-    user_role: string
+    /** 角色等级（>= 100 为管理员，来自UUID角色系统） */
     role_level: number
-    avatar_url?: string
+    /** 角色列表（Array） */
+    roles: string[]
+    /** 用户状态: active / inactive / banned */
+    status: string
+    /** 连续未中奖次数（保底机制） */
+    consecutive_fail_count: number
+    /** 历史累计积分（用于臻选空间解锁门槛判断） */
+    history_total_points: number
+    /** 创建时间（ISO8601 北京时间） */
     created_at: string
+    /** 最后登录时间（ISO8601 北京时间） */
+    last_login: string
+    /** 登录次数 */
+    login_count: number
+    /** 用户UUID（登录响应返回，profile接口可能不返回） */
+    user_uuid?: string
+    /** 头像URL（登录响应返回，profile接口可能不返回） */
+    avatar_url?: string
+    /** 是否管理员（前端根据 role_level >= 100 派生，部分接口可能直接返回） */
+    is_admin?: boolean
+    /** 用户角色名称（部分接口可能直接返回） */
+    user_role?: string
   }
 
-  /** Token验证响应 */
+  /** Token验证响应（GET /api/v4/auth/verify） */
   interface VerifyTokenData {
     valid: boolean
     user: UserProfile
@@ -153,7 +177,7 @@ declare namespace API {
    * delta_amount 正数=获得(earn)，负数=消费(consume)
    */
   interface AssetTransaction {
-    /** 交易流水ID（主键，数字类型） */
+    /** 交易流水ID（BIGINT PK，对齐后端字段 asset_transaction_id） */
     asset_transaction_id: number
     /** 资产代码（POINTS / DIAMOND / red_shard 等） */
     asset_code: string
@@ -243,26 +267,91 @@ declare namespace API {
 
   // ===== 兑换系统 =====
 
-  /** 兑换商品 */
+  /**
+   * 兑换商品（对齐后端 exchange_items 表 + GET /api/v4/backpack/exchange/items 响应）
+   * 后端使用多币种支付模型: cost_asset_code + cost_amount
+   * 图片通过 primary_image_id 关联 image_resources 表
+   */
   interface ExchangeProduct {
-    id: number
-    name: string
+    /** 商品主键（BIGINT PK） */
+    exchange_item_id: number
+    /** 商品名称（VARCHAR(200)） */
+    item_name: string
+    /** 商品描述（TEXT） */
     description: string
-    cost_points: number
-    category: string
+    /** 支付资产代码（如 red_shard、DIAMOND、POINTS） */
+    cost_asset_code: string
+    /** 支付资产数量（BIGINT） */
+    cost_amount: number
+    /** 原价（用于展示折扣，可为null） */
+    original_price: number | null
+    /** 库存数量 */
     stock: number
-    image_url: string
+    /** 已售数量 */
+    sold_count: number
+    /** 分类编码（关联 category_defs.category_code） */
+    category: string
+    /** 空间类型: lucky(幸运空间) / premium(臻选空间) */
     space: string
+    /** 排序权重 */
+    sort_order: number
+    /** 状态: active / inactive */
+    status: string
+    /** 主图ID（关联 image_resources 表，可为null） */
+    primary_image_id: number | null
+    /** 标签数组（JSON） */
+    tags: string[]
+    /** 是否热销 */
+    is_hot: boolean
+    /** 是否新品 */
+    is_new: boolean
+    /** 是否幸运商品 */
+    is_lucky: boolean
+    /** 是否有保修 */
+    has_warranty: boolean
+    /** 是否包邮 */
+    free_shipping: boolean
+    /** 商品卖点（VARCHAR(200)） */
+    sell_point: string
+    /** 创建时间 */
+    created_at: string
   }
 
-  /** 兑换订单 */
+  /**
+   * 兑换订单记录（对齐后端 exchange_records 表 + GET /api/v4/backpack/exchange/orders 响应）
+   * 订单状态枚举（数据库ENUM）: pending → completed → shipped / cancelled
+   */
   interface ExchangeOrder {
-    order_id: string
+    /** 记录ID（BIGINT PK） */
+    exchange_record_id: number
+    /** 订单号（VARCHAR(50) UNIQUE） */
     order_no: string
-    product_name: string
-    cost_points: number
+    /** 关联兑换商品ID */
+    exchange_item_id: number
+    /** 支付资产代码 */
+    pay_asset_code: string
+    /** 支付金额 */
+    pay_amount: number
+    /** 兑换数量 */
     quantity: number
+    /** 订单状态: pending / completed / shipped / cancelled */
     status: string
+    /** 来源（默认 'exchange'） */
+    source: string
+    /** 商品快照（JSON，兑换时冻结的商品信息副本，字段来自 exchange_items 表） */
+    item_snapshot: {
+      /** 商品名称（⚠️ 后端已直接返回 item_name，前端不再使用旧映射 name） */
+      item_name: string
+      /** 商品描述 */
+      description?: string
+      /** 支付资产代码 */
+      cost_asset_code?: string
+      /** 支付金额 */
+      cost_amount?: number
+      /** 商品分类 */
+      category?: string
+    }
+    /** 兑换时间 */
     created_at: string
   }
 
@@ -286,24 +375,24 @@ declare namespace API {
     image_url: string
     /** 商品分类 */
     category: string
-    /** 起拍价（最低出价金额） */
-    starting_price: number
-    /** 当前最高出价 */
+    /** 起拍价（BIGINT，最低出价金额） */
+    start_price: number
+    /** 当前最高出价（BIGINT） */
     current_price: number
-    /** 最小加价幅度 */
+    /** 最小加价幅度（BIGINT） */
     min_bid_increment: number
     /** 竞价使用的资产类型编码（如 DIAMOND、red_shard） */
-    asset_code: string
-    /** 竞价状态: pending/active/settled/no_bid/cancelled */
+    price_asset_code: string
+    /** 竞价状态（7态）: pending/active/ended/settled/no_bid/cancelled/settlement_failed */
     status: string
-    /** 竞价开始时间（ISO 8601） */
+    /** 竞价开始时间 */
     start_time: string
-    /** 竞价结束时间（ISO 8601） */
+    /** 竞价结束时间 */
     end_time: string
     /** 当前出价人数 */
     bid_count: number
-    /** 最高出价者用户ID（可为null） */
-    highest_bidder_id: number | null
+    /** 当前最高出价者用户ID（可为null） */
+    winner_user_id: number | null
     /** 创建时间 */
     created_at: string
     /** 更新时间 */
@@ -339,30 +428,95 @@ declare namespace API {
 
   // ===== 交易市场 =====
 
-  /** 市场挂单 */
+  /**
+   * 市场挂单（对齐后端 market_listings 表 + GET /api/v4/market/listings 响应）
+   * 双模式表: listing_kind 区分不可叠加物品(item_instance)和可叠加资产(fungible_asset)
+   * 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn
+   */
   interface MarketListing {
+    /** 挂单ID（BIGINT PK） */
     market_listing_id: number
-    item_name: string
-    price: number
-    seller_nickname: string
+    /** 挂牌类型: item_instance(不可叠加物品) / fungible_asset(可叠加资产) */
+    listing_kind: string
+    /** 卖家用户ID */
+    seller_user_id: number
+    /** 物品实例ID（item_instance类型使用，可为null） */
+    offer_item_instance_id: number | null
+    /** 物品模板ID（可为null） */
+    offer_item_template_id: number | null
+    /** 物品显示名称 */
+    offer_item_display_name: string | null
+    /** 物品分类编码 */
+    offer_item_category_code: string | null
+    /** 物品稀有度编码 */
+    offer_item_rarity: string | null
+    /** 资产代码（fungible_asset类型使用，可为null） */
+    offer_asset_code: string | null
+    /** 资产分组代码 */
+    offer_asset_group_code: string | null
+    /** 资产显示名称 */
+    offer_asset_display_name: string | null
+    /** 上架数量（fungible_asset类型使用，可为null） */
+    offer_amount: number | null
+    /** 定价币种（默认 DIAMOND） */
+    price_asset_code: string
+    /** 售价（BIGINT） */
+    price_amount: number
+    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
     status: string
-    listed_at: string
-    description: string
+    /** 创建时间 */
+    created_at: string
+  }
+
+  /**
+   * 我的挂单状态（对齐后端 GET /api/v4/market/listing-status 响应）
+   * 与 MarketListing 共享核心字段，但字段更精简
+   */
+  interface MyListing {
+    /** 挂单ID（BIGINT PK） */
+    market_listing_id: number
+    /** 挂牌类型: item_instance / fungible_asset */
+    listing_kind: string
+    /** 定价币种（默认 DIAMOND） */
+    price_asset_code: string
+    /** 售价（BIGINT） */
+    price_amount: number
+    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
+    status: string
+    /** 创建时间 */
+    created_at: string
   }
 
   // ===== 消费系统 =====
 
-  /** 消费记录 */
+  /**
+   * 消费记录（对齐后端 consumption_records 表 + GET /api/v4/shop/consumption/me 响应）
+   * 状态枚举（4态）: pending / approved / rejected / expired
+   * 后端有 final_status 双重状态: pending_review / approved / rejected
+   */
   interface ConsumptionRecord {
-    record_id: number
+    /** 记录主键（BIGINT PK） */
+    consumption_record_id: number
+    /** 用户ID */
     user_id: number
-    store_id: number
+    /** 商家ID */
+    merchant_id: number
+    /** 消费金额（元，DECIMAL(10,2)） */
     consumption_amount: number
+    /** 待发放积分数（⚠️ 不是 points_awarded） */
     points_to_award: number
+    /** 状态: pending / approved / rejected / expired */
     status: string
-    status_name: string
-    created_at: string
+    /** 最终状态: pending_review / approved / rejected */
+    final_status: string
+    /** 商家备注 */
     merchant_notes?: string
+    /** 管理员备注 */
+    admin_notes?: string
+    /** 门店ID */
+    store_id: number
+    /** 创建时间 */
+    created_at: string
   }
 
   /** 二维码数据 */

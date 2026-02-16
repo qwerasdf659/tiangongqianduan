@@ -4,36 +4,17 @@
  * 管理内容: 可用积分、冻结积分、积分交易记录
  * 数据来源: 后端 GET /api/v4/assets/balance、GET /api/v4/assets/transactions
  *
+ * 类型定义统一引用 typings/api.d.ts → API.AssetTransaction
+ * 禁止在此重复定义与后端对齐的接口
+ *
  * @file 天工餐厅积分系统 - 资产Store
- * @version 5.1.0
- * @since 2026-02-15
+ * @version 5.2.0
+ * @since 2026-02-10
  */
 
-import { observable, action } from 'mobx-miniprogram'
+import { action, observable } from 'mobx-miniprogram'
 
-import { createPaginationState, createPaginatedActions } from './helpers'
-
-/** 积分交易记录结构（对齐后端 GET /api/v4/assets/transactions 返回字段） */
-interface PointsTransaction {
-  /** 交易流水ID（主键，数字类型） */
-  asset_transaction_id: number
-  /** 资产代码（POINTS / DIAMOND / red_shard 等） */
-  asset_code: string
-  /** 变动金额（正数=获得/earn，负数=消费/consume） */
-  delta_amount: number
-  /** 变动前余额 */
-  balance_before: number
-  /** 变动后余额 */
-  balance_after: number
-  /** 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等） */
-  business_type: string
-  /** 交易描述（约91%有值，可为null） */
-  description: string | null
-  /** 交易标题（约79%有值，可为null） */
-  title: string | null
-  /** 创建时间 */
-  created_at: string
-}
+import { createPaginatedActions, createPaginationState } from './helpers'
 
 export const pointsStore = observable({
   // ===== 可观察状态 =====
@@ -44,8 +25,8 @@ export const pointsStore = observable({
   /** 冻结积分余额（后端字段: frozen_amount，审核中的积分） */
   frozenAmount: 0 as number,
 
-  /** 积分交易记录列表 */
-  transactions: [] as PointsTransaction[],
+  /** 积分交易记录列表（后端 GET /api/v4/assets/transactions 返回） */
+  transactions: [] as API.AssetTransaction[],
 
   /** 交易记录分页信息 */
   transactionPagination: createPaginationState(20),
@@ -89,13 +70,13 @@ export const pointsStore = observable({
   }),
 
   /** 设置交易记录（首页加载） */
-  setTransactions: createPaginatedActions<PointsTransaction>(
+  setTransactions: createPaginatedActions<API.AssetTransaction>(
     'transactions',
     'transactionPagination'
   ).setAction,
 
   /** 追加交易记录（分页加载更多） */
-  appendTransactions: createPaginatedActions<PointsTransaction>(
+  appendTransactions: createPaginatedActions<API.AssetTransaction>(
     'transactions',
     'transactionPagination'
   ).appendAction,

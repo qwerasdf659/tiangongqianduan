@@ -13,7 +13,7 @@
  *   log.error('加载失败:', err)
  *
  * @file 天工餐厅积分系统 - 统一日志工具
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 

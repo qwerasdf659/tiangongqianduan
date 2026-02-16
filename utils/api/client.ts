@@ -1,11 +1,11 @@
 /**
  * V4.0 API客户端核心模块
  *
- * 职责: APIClient类、请求/响应处理、Token管理、错误处理
+ * 职责: APIClient类、请求响应处理、Token管理、错误处理
  * 各业务API子模块通过 apiClient 单例发起请求
  *
  * @file 天工餐厅积分系统 - API客户端核心
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -26,7 +26,7 @@ interface RequestOptions {
   timeout?: number
   /** 是否自动显示loading（默认true） */
   showLoading?: boolean
-  /** loading文案（默认"加载中..."） */
+  /** loading文案（默认'加载中...'） */
   loadingText?: string
   /** 是否自动显示错误toast（默认true） */
   showError?: boolean
@@ -71,7 +71,7 @@ function getAppInstance(): any {
 /**
  * 延迟获取 userStore（避免模块加载阶段的循环依赖）
  * APIClient在模块顶层创建单例，此时Store可能尚未初始化，
- * 因此必须在每次使用时延迟获取。
+ * 因此必须在每次使用时延迟获取
  */
 let _userStore: any = null
 function getUserStore(): any {
@@ -177,7 +177,7 @@ class APIClient {
       if (token) {
         const integrityCheck = validateJWTTokenIntegrity(token)
         if (!integrityCheck.isValid) {
-          log.error('🚨 Token完整性检查失败:', integrityCheck.error)
+          log.error('🚨 Token完整性检查失败', integrityCheck.error)
           return this.handleTokenInvalid()
         }
         headers.Authorization = `Bearer ${token}`
@@ -192,6 +192,12 @@ class APIClient {
     }
 
     const startTime: number = Date.now()
+    /**
+     * Loading隐藏标志：防止 catch + finally 重复调用 hideLoading
+     * 微信小程序中 hideLoading 会同时关闭 showToast，
+     * 必须保证 hideLoading 在 showToast 之前调用，且只调用一次
+     */
+    let loadingHidden = false
 
     try {
       const response: any = await new Promise((resolve, reject) => {
@@ -217,6 +223,16 @@ class APIClient {
       log.error(`❌ API请求失败，耗时: ${duration}ms`, error)
       log.info('=======================================================\n')
 
+      /**
+       * ⚠️ hideLoading 必须在 showToast 之前（微信小程序框架要求）
+       * hideLoading 会关闭所有浮层（包括 showToast），
+       * 所以必须先关闭 Loading，再显示错误 Toast
+       */
+      if (showLoading && !loadingHidden) {
+        wechatUtils.hideLoading()
+        loadingHidden = true
+      }
+
       if (showError) {
         const errorMessage: string = errorPrefix
           ? `${errorPrefix}${error.message || '请求失败'}`
@@ -226,7 +242,8 @@ class APIClient {
 
       throw this.handleError(error)
     } finally {
-      if (showLoading) {
+      /* 正常返回 / handleResponse 内部 throw 时隐藏 Loading */
+      if (showLoading && !loadingHidden) {
         wechatUtils.hideLoading()
       }
     }

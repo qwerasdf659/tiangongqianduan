@@ -6,8 +6,8 @@
  * 消除4个环境80%重复配置，各环境仅覆盖有差异的部分
  *
  * @file 天工餐厅积分系统 - 环境配置
- * @version 5.1.0
- * @since 2026-02-15
+ * @version 5.2.0
+ * @since 2026-02-10
  */
 
 // ===== 类型定义 =====
@@ -413,8 +413,8 @@ module.exports = {
   switchToDevTools,
   switchToMobile,
   isMobileDebug,
-  version: '5.1.0',
-  lastUpdated: '2026-02-15T00:00:00+08:00'
+  version: '5.2.0',
+  lastUpdated: '2026-02-16T00:00:00+08:00'
 }
 
 export {}

@@ -13,7 +13,7 @@
  *   <lottery-activity campaignCode="BASIC_LOTTERY" size="full" />
  *
  * @file pages/lottery/lottery.ts
- * @version 5.0.0
+ * @version 5.2.0
  */
 
 const { Wechat, API, Utils, Constants, ConfigCache, Logger } = require('../../utils/index')
@@ -49,24 +49,24 @@ Page({
     qrCountdownText: '5:00',
     qrExpiresAt: 0,
 
-    /* ===== 审核记录 ===== */
+    /* ===== 审核记录（后端 GET /api/v4/shop/consumption/me 返回） ===== */
     auditRecordsCount: 0,
-    auditRecordsData: [] as any[],
+    auditRecordsData: [] as API.ConsumptionRecord[],
     showAuditModal: false,
     auditRecordsLoading: false,
 
-    /* ===== 弹窗横幅 ===== */
+    /* ===== 弹窗横幅（后端 GET /api/v4/system/popup-banners 返回） ===== */
     showPopupBanner: false,
-    popupBanners: [] as any[],
+    popupBanners: [] as API.PopupBanner[],
 
     /* ===== 页面状态 ===== */
     loading: true,
 
-    /* ===== 多活动（任务27） ===== */
+    /* ===== 多活动（后端活动位置配置 GET /api/v4/system/config/placement） ===== */
     /** 主活动（position=main, size=full） */
-    mainCampaign: null as any,
+    mainCampaign: null as API.PlacementItem | null,
     /** 其他活动列表（secondary/floating等） */
-    extraCampaigns: [] as any[]
+    extraCampaigns: [] as API.PlacementItem[]
   },
 
   // ========================================

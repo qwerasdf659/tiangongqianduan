@@ -93,7 +93,9 @@
           </view>
           <view class="record-meta">
             <text class="record-time">{{item.displayTime}}</text>
-            <text class="record-desc" wx:if="{{item.business_type}}">{{item.business_type}}</text>
+            <text class="record-desc" wx:if="{{item.displayDescription}}"
+              >{{item.displayDescription}}</text
+            >
           </view>
         </view>
       </view>

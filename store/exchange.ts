@@ -4,46 +4,26 @@
  * 管理内容: 兑换商品列表、兑换记录
  * 数据来源: 后端 GET /api/v4/backpack/exchange/items、GET .../orders
  *
+ * 类型定义统一引用 typings/api.d.ts → API.ExchangeProduct / API.ExchangeOrder
+ * 禁止在此重复定义与后端对齐的接口
+ *
  * @file 天工餐厅积分系统 - 兑换Store
- * @version 5.1.0
- * @since 2026-02-15
+ * @version 5.2.0
+ * @since 2026-02-10
  */
 
-import { observable, action } from 'mobx-miniprogram'
+import { action, observable } from 'mobx-miniprogram'
 
-import { createPaginationState, createPaginatedActions } from './helpers'
-
-/** 兑换商品结构（后端返回格式） */
-interface ExchangeProduct {
-  id: number
-  name: string
-  description: string
-  cost_points: number
-  category: string
-  stock: number
-  image_url: string
-  space: string
-}
-
-/** 兑换订单记录结构 */
-interface ExchangeRecord {
-  order_id: string
-  order_no: string
-  product_name: string
-  cost_points: number
-  quantity: number
-  status: string
-  created_at: string
-}
+import { createPaginatedActions, createPaginationState } from './helpers'
 
 export const exchangeStore = observable({
   // ===== 可观察状态 =====
 
-  /** 商品列表 */
-  products: [] as ExchangeProduct[],
+  /** 商品列表（后端 GET /api/v4/backpack/exchange/items 返回） */
+  products: [] as API.ExchangeProduct[],
 
-  /** 兑换记录列表 */
-  records: [] as ExchangeRecord[],
+  /** 兑换记录列表（后端 GET /api/v4/backpack/exchange/orders 返回） */
+  records: [] as API.ExchangeOrder[],
 
   /** 当前筛选的商品空间: 'lucky' | 'premium' | null */
   currentSpace: null as string | null,
@@ -66,14 +46,15 @@ export const exchangeStore = observable({
   // ===== 操作方法（分页操作由工厂函数统一生成） =====
 
   /** 设置商品列表（首页加载） */
-  setProducts: createPaginatedActions<ExchangeProduct>('products', 'productPagination').setAction,
+  setProducts: createPaginatedActions<API.ExchangeProduct>('products', 'productPagination')
+    .setAction,
 
   /** 追加商品列表（分页加载更多） */
-  appendProducts: createPaginatedActions<ExchangeProduct>('products', 'productPagination')
+  appendProducts: createPaginatedActions<API.ExchangeProduct>('products', 'productPagination')
     .appendAction,
 
   /** 设置兑换记录（首页加载） */
-  setRecords: createPaginatedActions<ExchangeRecord>('records', 'recordPagination').setAction,
+  setRecords: createPaginatedActions<API.ExchangeOrder>('records', 'recordPagination').setAction,
 
   /** 设置筛选条件 */
   setFilter: action(function (this: any, space: string | null, category: string | null) {

@@ -9,7 +9,7 @@
  *   5. 环形进度 + 集齐彩蛋
  *
  * @file sub/cardcollect/cardcollect.ts
- * @version 5.0.0
+ * @version 5.2.0
  */
 
 Component({

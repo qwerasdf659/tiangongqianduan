@@ -7,8 +7,11 @@
  *   utils/index.ts 通过 require('./api/index') 显式引用本barrel入口
  *   所有页面的 API.xxx() 调用方式零改动
  *
+ * ✅ 使用展开运算符自动同步：新增API方法只需在子模块导出，无需手动维护映射
+ * ❌ 已删除: 150+行逐一手动映射（维护成本高，新增函数需3处同步）
+ *
  * @file 天工餐厅积分系统 - API Barrel入口
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -22,135 +25,47 @@ const shopModule = require('./shop')
 const systemModule = require('./system')
 const consoleModule = require('./console')
 
+/**
+ * 展开运算符自动同步所有子模块导出
+ * 新增API方法只需在对应子模块 module.exports 中添加，此处自动同步
+ *
+ * 合并顺序说明: 后面的模块会覆盖前面同名的导出
+ * 如果两个模块定义了同名函数，后面的模块优先（当前无冲突）
+ */
 module.exports = {
-  // 客户端核心
+  /** APIClient 核心类（单独具名导出，确保不被展开覆盖） */
   APIClient: clientModule.APIClient,
 
-  // ===== 认证系统 =====
-  userLogin: authModule.userLogin,
-  quickLogin: authModule.quickLogin,
-  sendVerificationCode: authModule.sendVerificationCode,
-  getUserInfo: authModule.getUserInfo,
-  verifyToken: authModule.verifyToken,
+  /** 认证系统: userLogin / quickLogin / sendVerificationCode / getUserInfo / verifyToken */
+  ...authModule,
 
-  // ===== 抽奖系统 =====
-  getLotteryCampaigns: lotteryModule.getLotteryCampaigns,
-  getActiveCampaigns: lotteryModule.getActiveCampaigns,
-  getLotteryPrizes: lotteryModule.getLotteryPrizes,
-  getLotteryConfig: lotteryModule.getLotteryConfig,
-  performLottery: lotteryModule.performLottery,
-  getLotteryHistory: lotteryModule.getLotteryHistory,
+  /** 抽奖系统: getLotteryCampaigns / getActiveCampaigns / getLotteryPrizes / getLotteryConfig / performLottery / getLotteryHistory / getUserStatistics / getLotteryUserStatistics */
+  ...lotteryModule,
 
-  // ===== 资产系统 =====
-  getPointsBalance: assetsModule.getPointsBalance,
-  getPointsTransactions: assetsModule.getPointsTransactions,
-  getAssetBalances: assetsModule.getAssetBalances,
-  getConversionRules: assetsModule.getConversionRules,
+  /** 资产系统: getPointsBalance / getPointsTransactions / getAssetBalances / getConversionRules */
+  ...assetsModule,
 
-  // ===== 背包系统 =====
-  getUserInventory: backpackModule.getUserInventory,
-  getBackpackStats: backpackModule.getBackpackStats,
-  getInventoryItem: backpackModule.getInventoryItem,
-  useInventoryItem: backpackModule.useInventoryItem,
-  redeemInventoryItem: backpackModule.redeemInventoryItem,
+  /** 背包+兑换+竞价: getUserInventory / getBackpackStats / getExchangeProducts / exchangeProduct / getBidProducts / placeBid 等 */
+  ...backpackModule,
 
-  // ===== 兑换系统（backpack域）=====
-  getExchangeProducts: backpackModule.getExchangeProducts,
-  exchangeProduct: backpackModule.exchangeProduct,
-  getExchangeRecords: backpackModule.getExchangeRecords,
-  cancelExchange: backpackModule.cancelExchange,
-  getExchangeItemDetail: backpackModule.getExchangeItemDetail,
-  getExchangeOrderDetail: backpackModule.getExchangeOrderDetail,
+  /** 交易市场: getMarketProducts / purchaseMarketProduct / sellToMarket / getMarketFacets / sellFungibleAssets 等 */
+  ...marketModule,
 
-  // ===== 臻选空间（高级兑换）=====
-  getPremiumStatus: backpackModule.getPremiumStatus,
-  unlockPremium: backpackModule.unlockPremium,
+  /** 消费积分系统（用户端+商家端）: getUserQRCode / submitConsumption / createRedemptionOrder 等 */
+  ...shopModule,
 
-  // ===== 竞价系统（backpack/bid域）=====
-  getBidProducts: backpackModule.getBidProducts,
-  getBidProductDetail: backpackModule.getBidProductDetail,
-  placeBid: backpackModule.placeBid,
-  getBidHistory: backpackModule.getBidHistory,
+  /** 系统通用+客服+活动: getPlacementConfig / getAnnouncements / createChatSession / getActivities 等 */
+  ...systemModule,
 
-  // ===== 交易市场 =====
-  getMarketProducts: marketModule.getMarketProducts,
-  getMarketProductDetail: marketModule.getMarketProductDetail,
-  purchaseMarketProduct: marketModule.purchaseMarketProduct,
-  withdrawMarketProduct: marketModule.withdrawMarketProduct,
-  sellToMarket: marketModule.sellToMarket,
-  getMyListingStatus: marketModule.getMyListingStatus,
-  getMarketFacets: marketModule.getMarketFacets,
-  sellFungibleAssets: marketModule.sellFungibleAssets,
+  /** 管理员: getPendingConsumption / approveConsumption / getAdminChatSessions / updateAdminOnlineStatus 等 */
+  ...consoleModule,
 
-  // ===== 消费积分系统（用户端）=====
-  getUserQRCode: shopModule.getUserQRCode,
-  getMyConsumptionRecords: shopModule.getMyConsumptionRecords,
-  getConsumptionDetail: shopModule.getConsumptionDetail,
-
-  // ===== 消费积分系统（商家端）=====
-  getUserInfoByQRCode: shopModule.getUserInfoByQRCode,
-  submitConsumption: shopModule.submitConsumption,
-  getMerchantConsumptions: shopModule.getMerchantConsumptions,
-  getMerchantConsumptionStats: shopModule.getMerchantConsumptionStats,
-  createRedemptionOrder: shopModule.createRedemptionOrder,
-  fulfillRedemption: shopModule.fulfillRedemption,
-
-  // ===== 管理员消费审核 =====
-  getPendingConsumption: consoleModule.getPendingConsumption,
-  approveConsumption: consoleModule.approveConsumption,
-  rejectConsumption: consoleModule.rejectConsumption,
-
-  // ===== 系统通用 =====
-  getPlacementConfig: systemModule.getPlacementConfig,
-  getAnnouncements: systemModule.getAnnouncements,
-  getHomeAnnouncements: systemModule.getHomeAnnouncements,
-  submitFeedback: systemModule.submitFeedback,
-  getMyFeedbacks: systemModule.getMyFeedbacks,
-  getSystemStatus: systemModule.getSystemStatus,
-  getPopupBanners: systemModule.getPopupBanners,
-  getDictionaries: systemModule.getDictionaries,
-  getNotifications: systemModule.getNotifications,
-  getProductFilterConfig: systemModule.getProductFilterConfig,
-  getFeedbackConfig: systemModule.getFeedbackConfig,
-
-  // ===== 客服会话 =====
-  createChatSession: systemModule.createChatSession,
-  getChatSessions: systemModule.getChatSessions,
-  getChatHistory: systemModule.getChatHistory,
-  sendChatMessage: systemModule.sendChatMessage,
-  uploadChatImage: systemModule.uploadChatImage,
-  searchChatMessages: systemModule.searchChatMessages,
-
-  // ===== 用户 =====
-  getUserMe: systemModule.getUserMe,
-
-  // ===== 用户统计（JWT解析身份）=====
-  getUserStatistics: lotteryModule.getUserStatistics,
-  getLotteryUserStatistics: lotteryModule.getLotteryUserStatistics,
-
-  // ===== 管理员（console域）=====
-  getAdminUserQRCode: consoleModule.getAdminUserQRCode,
-  getAdminLotteryHistory: consoleModule.getAdminLotteryHistory,
-  getAdminUserStatistics: consoleModule.getAdminUserStatistics,
-  getAdminLotteryUserStatistics: consoleModule.getAdminLotteryUserStatistics,
-  getAdminChatSessions: consoleModule.getAdminChatSessions,
-  getAdminChatHistory: consoleModule.getAdminChatHistory,
-  closeAdminChatSession: consoleModule.closeAdminChatSession,
-
-  // ===== 管理员客服统计与在线状态 =====
-  getAdminSessionStats: consoleModule.getAdminSessionStats,
-  getAdminResponseStats: consoleModule.getAdminResponseStats,
-  updateAdminOnlineStatus: consoleModule.updateAdminOnlineStatus,
-  getAdminOnlineStatus: consoleModule.getAdminOnlineStatus,
-
-  // ===== 活动 =====
-  getActivities: systemModule.getActivities,
-
-  // API版本信息
+  /** API版本信息 */
   version: '5.2.0',
-  lastUpdated: '2026-02-15T00:00:00+08:00',
+  lastUpdated: '2026-02-16T00:00:00+08:00',
   apiCompatibility:
     'V4.7.0后端对齐+聊天图片上传+臻选空间解锁+商品筛选配置+反馈配置+客服响应统计+竞价系统'
 }
 
-export {}
+export { }
+

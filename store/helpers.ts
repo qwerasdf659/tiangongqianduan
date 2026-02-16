@@ -10,8 +10,8 @@
  * 消除 Store 之间的代码重复。
  *
  * @file 天工餐厅积分系统 - Store分页工具
- * @version 5.1.0
- * @since 2026-02-15
+ * @version 5.2.0
+ * @since 2026-02-10
  */
 
 import { action } from 'mobx-miniprogram'

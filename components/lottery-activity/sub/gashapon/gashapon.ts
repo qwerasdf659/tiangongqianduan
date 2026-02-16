@@ -1,7 +1,7 @@
 /**
  * 扭蛋机 子组件 - 扭动手柄+胶囊掉落（增强版）
  * @file sub/gashapon/gashapon.ts
- * @version 5.0.0
+ * @version 5.2.0
  *
  * 优化内容：
  * 1. 添加触觉反馈（震动）

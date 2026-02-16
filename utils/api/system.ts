@@ -3,7 +3,7 @@
  * 后端路由: routes/v4/system/、routes/v4/user/、routes/v4/activities
  *
  * @file 天工餐厅积分系统 - 系统通用API模块
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -12,7 +12,7 @@ const { buildQueryString } = require('../util')
 
 // ==================== 🌐 系统配置 ====================
 
-/** 获取活动位置配置（公开接口） - GET /api/v4/system/config/placement */
+/** 获取活动位置配置（公开接口?- GET /api/v4/system/config/placement */
 async function getPlacementConfig() {
   return apiClient.request('/system/config/placement', {
     method: 'GET',
@@ -57,7 +57,7 @@ async function getMyFeedbacks(page: number = 1, limit: number = 20) {
   return apiClient.request(`/system/feedback/my?${qs}`, { method: 'GET', needAuth: true })
 }
 
-/** 获取系统状态 - GET /api/v4/system/status */
+/** 获取系统状态- GET /api/v4/system/status */
 async function getSystemStatus() {
   return apiClient.request('/system/status', { method: 'GET', needAuth: true })
 }
@@ -113,9 +113,9 @@ async function getChatHistory(session_id: number, page: number = 1, limit: numbe
 }
 
 /**
- * 发送消息 - POST /api/v4/system/chat/sessions/:id/messages
+ * 发送消- POST /api/v4/system/chat/sessions/:id/messages
  * @param session_id - 会话ID
- * @param params - { content: 消息内容, message_type?: 消息类型, sender_type?: 发送者类型 }
+ * @param params - { content: 消息内容, message_type?: 消息类型, sender_type?: 发送者类}
  */
 async function sendChatMessage(
   session_id: number,
@@ -145,14 +145,13 @@ async function sendChatMessage(
  * 上传聊天图片
  * 后端API: POST /api/v4/system/chat/sessions/:id/upload
  *
- * 实现方式: multer内存存储 → Sealos对象存储上传 → 返回公网URL
+ * 实现方式: multer内存存储 Sealos对象存储上传 返回公网URL
  * 安全策略: authenticateToken + 会话归属校验 + 5MB大小限制 + jpg/png/gif/webp类型限制
  *
- * 上传成功后，需再调用 sendChatMessage() 发送 message_type='image'、content=图片URL
+ * 上传成功后，需再调sendChatMessage() 发message_type='image'、content=图片URL
  *
  * @param session_id - 会话ID
- * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回的 tempFilePath）
- * @returns { success: true, data: { image_url: "https://...", object_key: "..." } }
+ * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回tempFilePath * @returns { success: true, data: { image_url: "https://...", object_key: "..." } }
  */
 async function uploadChatImage(session_id: number, filePath: string) {
   if (!session_id) {
@@ -201,10 +200,9 @@ async function uploadChatImage(session_id: number, filePath: string) {
 // ==================== 📋 系统配置查询 ====================
 
 /**
- * 获取商品筛选配置（公开接口，无需登录）
- * 后端API: GET /api/v4/system/config/product-filter
+ * 获取商品筛选配置（公开接口，无需登录 * 后端API: GET /api/v4/system/config/product-filter
  *
- * 从 system_configs 表读取 config_key='product_filter'
+ * system_configs 表读取config_key='product_filter'
  * 不存在时返回兜底默认配置
  *
  * @returns 筛选配置（积分范围选项、库存阈值、分类选项等）
@@ -219,11 +217,10 @@ async function getProductFilterConfig() {
 }
 
 /**
- * 获取反馈表单配置（公开接口，无需登录）
- * 后端API: GET /api/v4/system/config/feedback
+ * 获取反馈表单配置（公开接口，无需登录 * 后端API: GET /api/v4/system/config/feedback
  *
- * 从 system_configs 表读取 config_key='feedback_config'
- * 不存在时返回兜底默认配置（包含 max_length、min_length、max_images、categories 等字段）
+ * system_configs 表读取config_key='feedback_config'
+ * 不存在时返回兜底默认配置（包max_length、min_length、max_images、categories 等字段）
  *
  * @returns 反馈配置（最大字数、最小字数、最大图片数、分类选项等）
  */
@@ -242,14 +239,10 @@ async function getFeedbackConfig() {
  * 搜索聊天消息
  * 后端API: GET /api/v4/system/chat/sessions/search?keyword=xxx
  *
- * ⚠️ 路径注意: 后端实际路径是 /system/chat/sessions/search（遵循 RESTful 资源嵌套规范）
- *    前端文档中曾写 /system/chat/search，已对齐为后端实际路径
- *
- * 数据隔离: 用户端只能搜索自己会话中的消息，无法搜索其他用户的聊天内容
- *
- * @param keyword - 搜索关键词（必填）
- * @param page - 页码，默认1
- * @param page_size - 每页数量，默认20，最大50
+ * ⚠️ 路径注意: 后端实际路径/system/chat/sessions/search（遵RESTful 资源嵌套规范 *    前端文档中曾/system/chat/search，已对齐为后端实际路 *
+ * 数据隔离: 用户端只能搜索自己会话中的消息，无法搜索其他用户的聊天内 *
+ * @param keyword - 搜索关键词（必填 * @param page - 页码，默
+ * @param page_size - 每页数量，默0，最0
  * @returns { messages: [...], pagination: { page, page_size, total, total_pages } }
  */
 async function searchChatMessages(keyword: string, page: number = 1, page_size: number = 20) {

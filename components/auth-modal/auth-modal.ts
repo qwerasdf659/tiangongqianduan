@@ -1,45 +1,34 @@
 /**
- * 认证模态弹窗组件 - V4.0统一认证系统
+ * 认证模态弹窗组- V4.0统一认证系统
  *
  * @component auth-modal
  * @description
- * 用户身份验证弹窗组件，支持手机号验证码登录和用户名密码登录两种方式。
- *
- * **核心功能**：
- * - 📱 手机号验证码登录（支持开发阶段万能验证码123456）
- * - 🔑 用户名密码登录
- * - ⏱️ 验证码倒计时（60秒）
- * - 🔄 表单验证和提交状态管理
- *
- * **业务场景**：
- * - 用户首次使用小程序时的登录引导
- * - 需要权限的页面强制登录提示
+ * 用户身份验证弹窗组件，支持手机号验证码登录和用户名密码登录两种方式 *
+ * **核心功能** * - 📱 手机号验证码登录（支持开发阶段万能验证码123456 * - 🔑 用户名密码登录 * - ⏱️ 验证码倒计时（60秒）
+ * - 🔄 表单验证和提交状态管 *
+ * **业务场景** * - 用户首次使用小程序时的登录引 * - 需要权限的页面强制登录提示
  * - Token过期后的重新登录
  *
- * **技术特点**：
- * - 完全依赖后端真实数据，不使用mock数据
+ * **技术特* * - 完全依赖后端真实数据，不使用mock数据
  * - 统一使用utils/index.js导入工具函数
  * - 符合V4.0统一认证架构
- * - 自动清理定时器防止内存泄漏
- *
- * **使用示例**：
- * ```xml
+ * - 自动清理定时器防止内存泄 *
+ * **使用示例** * ```xml
  * <auth-modal
  *   visible="{{showAuthModal}}"
- *   title="请登录"
+ *   title="请登录
  *   isFirstUse="{{true}}"
  *   bind:success="onAuthSuccess"
  *   bind:cancel="onAuthCancel"
  * />
  * ```
  *
- * **事件**：
- * - `success` - 登录成功事件，返回用户信息和Token
+ * **事件** * - `success` - 登录成功事件，返回用户信息和Token
  * - `cancel` - 取消登录事件
  * - `error` - 登录失败事件
  *
  * @file components/auth-modal/auth-modal.ts
- * @version 5.1.0
+ * @version 5.2.0
  * @since 2025-10-31
  */
 
@@ -50,8 +39,7 @@ const { showToast } = Wechat
 
 Component({
   /**
-   * 组件的属性列表
-   *
+   * 组件的属性列   *
    * @property {boolean} visible - 是否显示弹窗
    * @property {string} title - 弹窗标题
    * @property {boolean} isFirstUse - 是否首次使用（用于区分提示文案）
@@ -72,19 +60,16 @@ Component({
   },
 
   /**
-   * 组件的内部数据
-   *
-   * @property {string} authType - 验证方式（phone/password）
-   * @property {string} phoneNumber - 手机号
-   * @property {string} verificationCode - 验证码
+   * 组件的内部数据   *
+
+   * @property {string} authType - 验证方式（phone/password
+   * @property {string} phoneNumber - 手机
+   * @property {string} verificationCode - 验证
    * @property {boolean} codeSending - 验证码发送状态
    * @property {number} countdown - 验证码倒计时（秒）
-   * @property {string} username - 用户名
-   * @property {string} password - 密码
+   * @property {string} username - 用户   * @property {string} password - 密码
    * @property {boolean} showPassword - 是否显示密码明文
-   * @property {boolean} submitting - 提交状态
-   * @property {boolean} canSubmit - 是否可以提交（表单验证通过）
-   */
+   * @property {boolean} submitting - 提交状态   * @property {boolean} canSubmit - 是否可以提交（表单验证通过期   */
   data: {
     authType: 'phone',
     phoneNumber: '',
@@ -104,17 +89,13 @@ Component({
     }
   },
 
-  /** 组件的方法列表 */
+  /** 组件的方法列表?*/
   methods: {
     /**
-     * 切换验证方式（手机号/密码）
-     *
-     * e - 微信小程序事件对象
-     * e.currentTarget.dataset.type - 验证方式类型（phone/password）
-     *
+     * 切换验证方式（手机号/密码     *
+     * e - 微信小程序事件对     * e.currentTarget.dataset.type - 验证方式类型（phone/password     *
      * @description
-     * 切换验证方式时自动清空所有输入数据和状态
-     */
+     * 切换验证方式时自动清空所有输入数据和状态     */
     onAuthTypeChange(e: WechatMiniprogram.CustomEvent) {
       const type = e.currentTarget.dataset.type
       this.setData({
@@ -129,8 +110,7 @@ Component({
     },
 
     /**
-     * 手机号输入事件
-     *
+     * 手机号输入事     *
      * e.detail.value - 输入的手机号
      */
     onPhoneInput(e: WechatMiniprogram.Input) {
@@ -138,8 +118,7 @@ Component({
     },
 
     /**
-     * 验证码输入事件
-     *
+     * 验证码输入事     *
      * e.detail.value - 输入的验证码
      */
     onCodeInput(e: WechatMiniprogram.Input) {
@@ -147,8 +126,7 @@ Component({
     },
 
     /**
-     * 用户名输入事件
-     *
+     * 用户名输入事     *
      * e.detail.value - 输入的用户名
      */
     onUsernameInput(e: WechatMiniprogram.Input) {
@@ -158,13 +136,12 @@ Component({
     /**
      * 密码输入事件
      *
-     * e.detail.value - 输入的密码
-     */
+     * e.detail.value - 输入的密码     */
     onPasswordInput(e: WechatMiniprogram.Input) {
       this.setData({ password: e.detail.value })
     },
 
-    /** 切换密码显示/隐藏状态 */
+    /** 切换密码显示/隐藏状态*/
     onTogglePassword() {
       this.setData({ showPassword: !this.data.showPassword })
     },
@@ -173,17 +150,11 @@ Component({
      * 发送验证码
      *
      * @description
-     * 发送短信验证码到用户手机。
-     *
-     * **验证流程**：
-     * 1. 检查手机号格式（11位，1开头）
+     * 发送短信验证码到用户手机     *
+     * **验证流程**     * 1. 检查手机号格式1位，1开头）
      * 2. 调用后端API发送验证码
-     * 3. 开始60秒倒计时
-     *
-     * **开发阶段**：
-     * - 支持万能验证码123456（由后端完全控制）
-     * - 不实际发送短信，降低开发成本
-     */
+     * 3. 开0秒倒计     *
+     * **开发阶*     * - 支持万能验证23456（由后端完全控制     * - 不实际发送短信，降低开发成功     */
     async onSendCode() {
       if (this.data.codeSending || this.data.countdown > 0) {
         return
@@ -203,26 +174,22 @@ Component({
         return
       }
 
-      // 决策8：发送验证码功能暂不支持，后端尚未实现短信发送路由
-      // 测试阶段使用万能验证码123456
+      // 决策8：发送验证码功能暂不支持，后端尚未实现短信发送路      // 测试阶段使用万能验证23456
       wx.showToast({
         title: '暂不支持，请输入验证码',
         icon: 'none',
         duration: 2000
       })
 
-      log.info('ℹ️ 发送验证码暂不支持（决策8），测试阶段请使用万能验证码：123456')
+      log.info('ℹ️ 发送验证码暂不支持（决?），测试阶段请使用万能验证码?23456')
       // TODO: 等后端接入短信服务后恢复发送功能
       this.startCountdown()
     },
 
     /**
-     * 开始验证码倒计时
-     *
+     * 开始验证码倒计     *
      * @description
-     * 60秒倒计时，期间禁用发送按钮。
-     * 自动清理定时器防止内存泄漏。
-     */
+     * 60秒倒计时，期间禁用发送按钮     * 自动清理定时器防止内存泄漏     */
     startCountdown() {
       this.setData({ countdown: 60 })
 
@@ -236,20 +203,14 @@ Component({
         }
       }, 1000)
 
-      // 保存定时器引用以便清理
-      ;(this as any).countdownTimer = timer
+      // 保存定时器引用以便清      ;(this as any).countdownTimer = timer
     },
 
     /**
-     * 更新提交按钮状态
-     *
+     * 更新提交按钮状态     *
      * @description
-     * 根据当前验证方式和输入内容，动态更新提交按钮的可用状态。
-     *
-     * **验证规则**：
-     * - 手机号方式：必须填写手机号和验证码
-     * - 密码方式：必须填写用户名和密码
-     */
+     * 根据当前验证方式和输入内容，动态更新提交按钮的可用状态     *
+     * **验证规则**     * - 手机号方式：必须填写手机号和验证     * - 密码方式：必须填写用户名和密码     */
     updateCanSubmit() {
       let canSubmit = false
 
@@ -263,11 +224,9 @@ Component({
     },
 
     /**
-     * 确认验证（主方法）
-     *
+     * 确认验证（主方法     *
      * @description
-     * 根据当前验证方式调用对应的验证方法
-     */
+     * 根据当前验证方式调用对应的验证方     */
     async onConfirm() {
       if (!this.data.canSubmit || this.data.submitting) {
         return
@@ -281,17 +240,12 @@ Component({
     },
 
     /**
-     * 执行手机验证码登录
-     *
+     * 执行手机验证码登录     *
      * @description
-     * 使用手机号和验证码登录系统。
-     *
-     * **V4.0特性**：
-     * - 调用utils/api的userLogin方法
+     * 使用手机号和验证码登录系统     *
+     * **V4.0特*     * - 调用utils/api的userLogin方法
      * - 完全使用后端真实数据，不生成mock数据
-     * - 支持开发阶段万能验证码123456（由后端控制）
-     * - 统一错误处理和提示
-     */
+     * - 支持开发阶段万能验证码123456（由后端控制     * - 统一错误处理和提     */
     async performPhoneAuth() {
       const { phoneNumber, verificationCode } = this.data
 
@@ -319,10 +273,8 @@ Component({
      * 执行密码登录
      *
      * @description
-     * 使用用户名和密码登录系统。
-     *
-     * **V4.0特性**：
-     * - 调用统一的API接口
+     * 使用用户名和密码登录系统     *
+     * **V4.0特*     * - 调用统一的API接口
      * - 完全使用后端真实数据
      * - 统一错误处理
      */
@@ -351,18 +303,15 @@ Component({
     /**
      * 处理验证成功
      *
-     * data - 后端返回的登录数据
-     * data.user - 用户信息
+     * data - 后端返回的登录数据     * data.user - 用户信息
      * data.token - 访问令牌
      *
      * @description
-     * 登录成功后触发success事件，通知父组件更新状态。
-     * 1秒后自动关闭弹窗。
-     */
+     * 登录成功后触发success事件，通知父组件更新状态     * 1秒后自动关闭弹窗     */
     handleAuthSuccess(data: any) {
       showToast('验证成功')
 
-      // 通知父组件
+      // 通知父组
       this.triggerEvent('success', {
         user: data.user,
         token: data.token
@@ -388,8 +337,7 @@ Component({
      * 取消登录
      *
      * @description
-     * 触发cancel事件并重置所有数据
-     */
+     * 触发cancel事件并重置所有数据     */
     onCancel() {
       this.triggerEvent('cancel')
       this.resetData()
@@ -399,11 +347,9 @@ Component({
      * 重置组件数据
      *
      * @description
-     * 清空所有输入数据、定时器和状态，恢复初始状态。
-     * 防止内存泄漏。
-     */
+     * 清空所有输入数据、定时器和状态，恢复初始状态     * 防止内存泄漏     */
     resetData() {
-      // 清理定时器
+      // 清理定时间
       if ((this as any).countdownTimer) {
         clearInterval((this as any).countdownTimer)
         ;(this as any).countdownTimer = null
@@ -437,13 +383,12 @@ Component({
   /** 组件生命周期 */
   lifetimes: {
     /**
-     * 组件销毁时的清理工作
-     *
+     * 组件销毁时的清理工     *
      * @description
      * 清理定时器，防止内存泄漏
      */
     detached() {
-      // 组件销毁时清理定时器
+      // 组件销毁时清理定时间
       if ((this as any).countdownTimer) {
         clearInterval((this as any).countdownTimer)
       }

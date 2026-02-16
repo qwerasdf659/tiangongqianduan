@@ -10,7 +10,7 @@
  *   6. 成功卡片弹层（全息揭晓 + 12粒子 + 文字动画）
  *
  * @file sub/flashsale/flashsale.ts
- * @version 5.0.0
+ * @version 5.2.0
  */
 
 Component({

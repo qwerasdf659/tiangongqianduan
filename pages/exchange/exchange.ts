@@ -8,7 +8,7 @@
  * 拆分后 WXML 完全不变，用户无感知。this 上下文自动绑定到 Page 实例。
  *
  * @file pages/exchange/exchange.ts
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -132,17 +132,16 @@ Page({
       }
     ],
 
-    // 臻选空间解锁状态 - 全部由后端API返回
-    premiumUnlockStatus: {
-      isUnlocked: false,
-      unlockTime: 0,
-      expiryTime: 0,
-      canUnlock: false,
-      unlockCost: 0,
-      unlockDuration: 0,
-      failureReasons: [] as string[],
-      lastCheckTime: 0
-    },
+    // 臻选空间解锁状态 - 全部由后端 GET /api/v4/backpack/exchange/premium-status 返回
+    premiumUnlocked: false,
+    premiumRemainingHours: 0, // 剩余有效时间（小时），后端字段 remaining_hours
+    premiumIsValid: false,
+    premiumTotalUnlockCount: 0,
+    premiumCanUnlock: false, // 是否满足解锁条件（未解锁时后端返回）
+    premiumIsExpired: false, // 是否已过期（未解锁时后端返回）
+    premiumConditions: null as any, // 解锁条件详情（未解锁时后端返回）
+    premiumUnlockCost: 0, // 解锁花费（积分）
+    premiumValidityHours: 24, // 有效期（小时）
 
     // ========== 瀑布流布局数据 ==========
     waterfallProducts: [],
@@ -177,11 +176,11 @@ Page({
     selectedBidProduct: null,
     userBidAmount: 0,
     bidHistory: [],
-    bidMinAmount: 0,         // 当前最低出价金额
-    bidAmountValid: false,   // 出价金额是否有效
-    bidSubmitting: false,    // 是否正在提交竞价
-    showBidRules: false,     // 竞价规则是否展开
-    bidModalCountdown: ''    // 弹窗内倒计时文本
+    bidMinAmount: 0, // 当前最低出价金额
+    bidAmountValid: false, // 出价金额是否有效
+    bidSubmitting: false, // 是否正在提交竞价
+    showBidRules: false, // 竞价规则是否展开
+    bidModalCountdown: '' // 弹窗内倒计时文本
   },
 
   // ============================================
@@ -272,8 +271,14 @@ Page({
     this.disconnectWebSocket()
     this.onHideMarket()
     /* 暂停竞价倒计时（节省性能） */
-    if (this._bidListTimer) { clearInterval(this._bidListTimer); this._bidListTimer = null }
-    if (this._bidModalTimer) { clearInterval(this._bidModalTimer); this._bidModalTimer = null }
+    if (this._bidListTimer) {
+      clearInterval(this._bidListTimer)
+      this._bidListTimer = null
+    }
+    if (this._bidModalTimer) {
+      clearInterval(this._bidModalTimer)
+      this._bidModalTimer = null
+    }
   },
 
   /** 页面卸载 */
@@ -287,8 +292,14 @@ Page({
     }
     this.disconnectWebSocket()
     /* 清理竞价倒计时定时器 */
-    if (this._bidListTimer) { clearInterval(this._bidListTimer); this._bidListTimer = null }
-    if (this._bidModalTimer) { clearInterval(this._bidModalTimer); this._bidModalTimer = null }
+    if (this._bidListTimer) {
+      clearInterval(this._bidListTimer)
+      this._bidListTimer = null
+    }
+    if (this._bidModalTimer) {
+      clearInterval(this._bidModalTimer)
+      this._bidModalTimer = null
+    }
   },
 
   /** 下拉刷新 */
@@ -424,7 +435,7 @@ Page({
   /**
    * 初始化臻选空间解锁状态
    * 后端API: GET /api/v4/backpack/exchange/premium-status
-   * 业务规则: 100积分解锁费用、历史积分10万门槛、24小时有效期
+   * 后端返回 unlocked + remaining_hours（已解锁）或 can_unlock + conditions（未解锁）
    */
   initPremiumUnlockStatus() {
     log.info('🔒 检查臻选空间解锁状态...')

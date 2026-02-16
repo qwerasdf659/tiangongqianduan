@@ -4,74 +4,24 @@
  * 管理内容: 奖品列表、抽奖配置、抽奖进度
  * 数据来源: 后端 GET /api/v4/lottery/campaigns/:code/prizes、GET .../config、POST .../draw
  *
+ * 类型定义统一引用 typings/api.d.ts → API.Prize / API.LotteryConfig / API.DrawButton
+ * 禁止在此重复定义与后端对齐的接口
+ *
  * @file 天工餐厅积分系统 - 抽奖Store
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-10
  */
 
-import { observable, action } from 'mobx-miniprogram'
-
-/**
- * 奖品结构（后端 DataSanitizer.sanitizePrizes 输出格式）
- * 字段来源: GET /api/v4/lottery/campaigns/:campaign_code/prizes
- * 注意: tier/probability/is_winner 后端不返回，已废弃
- */
-interface Prize {
-  /** 奖品ID（后端 DataSanitizer 统一输出 id） */
-  id: number
-  /** 奖品名称 */
-  name: string
-  /** 奖品类型（points/physical/virtual/coupon/service） */
-  type: string
-  /** 奖品图标（emoji字符串，后端按 type 自动映射输出 icon 字段） */
-  icon: string
-  /** 稀有度代码（common/uncommon/rare/epic/legendary，后端字段名 rarity_code） */
-  rarity_code: string
-  /** 是否有库存 */
-  available: boolean
-  /** 展示积分值 */
-  display_points: number
-  /** 展示价值文本（高价值/中价值/低价值） */
-  display_value: string
-  /** 奖品状态 */
-  status: string
-  /** 排序序号（从1开始） */
-  sort_order: number
-}
-
-/** 抽奖按钮配置（后端返回的draw_buttons数组项） */
-interface DrawButton {
-  draw_count: number
-  discount: number
-  label: string
-  per_draw: number
-  total_cost: number
-  original_cost: number
-  saved_points: number
-}
-
-/** 抽奖配置结构（对齐后端 GET /api/v4/lottery/campaigns/:code/config 响应） */
-interface LotteryConfig {
-  campaign_code: string
-  campaign_name: string
-  status: string
-  /** 单抽基础定价（折扣前），由后端 LotteryPricingService 驱动 */
-  base_cost: number
-  /** 单抽实际花费（折扣后），用于积分不足判断和单抽价格展示 */
-  per_draw_cost: number
-  max_draws_per_user_daily: number
-  draw_buttons: DrawButton[]
-  guarantee_info: any
-}
+import { action, observable } from 'mobx-miniprogram'
 
 export const lotteryStore = observable({
   // ===== 可观察状态 =====
 
   /** 奖品列表（后端返回全部奖品，含正式奖品和fallback奖品） */
-  prizes: [] as Prize[],
+  prizes: [] as API.Prize[],
 
   /** 抽奖配置（含价格、连抽按钮、保底信息） */
-  config: null as LotteryConfig | null,
+  config: null as API.LotteryConfig | null,
 
   /** 是否正在抽奖中（动画进行时） */
   isDrawing: false as boolean,
@@ -90,7 +40,7 @@ export const lotteryStore = observable({
   },
 
   /** 抽奖按钮配置列表 */
-  get drawButtons(): DrawButton[] {
+  get drawButtons(): API.DrawButton[] {
     return this.config?.draw_buttons || []
   },
 
@@ -107,12 +57,12 @@ export const lotteryStore = observable({
   // ===== 操作方法 =====
 
   /** 设置奖品列表 */
-  setPrizes: action(function (this: any, prizes: Prize[]) {
+  setPrizes: action(function (this: any, prizes: API.Prize[]) {
     this.prizes = prizes
   }),
 
   /** 设置抽奖配置 */
-  setConfig: action(function (this: any, config: LotteryConfig) {
+  setConfig: action(function (this: any, config: API.LotteryConfig) {
     this.config = config
   }),
 

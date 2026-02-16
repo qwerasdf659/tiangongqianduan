@@ -1,14 +1,9 @@
 /**
- * 餐厅积分抽奖系统V5.1主入口 - TypeScript版
- * 基于V4.0统一引擎架构，JWT双Token机制，Socket.IO实时通信
+ * 餐厅积分抽奖系统V5.1主入口- TypeScript版 * 基于V4.0统一引擎架构，JWT双Token机制，Socket.IO实时通信
  *
- * globalData只保留系统配置
- * 业务数据已迁移到MobX Store: store/user.ts, store/points.ts 等
- * WebSocket 使用 weapp.socket.io@3.0.0（心跳/重连/事件路由全部由 Socket.IO 内建管理）
- * weapp.socket.io 内部将 WebSocket 传输适配为 wx.connectSocket()，微信小程序专用
+ * globalData只保留系统配置 * 业务数据已迁移到MobX Store: store/user.ts, store/points.ts 等 * WebSocket 使用 weapp.socket.io@3.0.0（心跳重连/事件路由全部由Socket.IO 内建管理） * weapp.socket.io 内部用WebSocket 传输适配置wx.connectSocket()，微信小程序专用
  *
- * @file 天工餐厅积分系统 - 应用主入口
- * @version 5.1.0
+ * @file 天工餐厅积分系统 - 应用主入口 * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -32,13 +27,13 @@ const log = Logger.createLogger('app')
 // ===== 类型定义 =====
 // 用户信息结构统一使用 API.UserProfile（typings/api.d.ts），禁止在此重复定义
 
-/** Socket.IO 连接数据（心跳+重连由 Socket.IO 内建，无需手动管理） */
+/** Socket.IO 连接数据（心跳重连接Socket.IO 内建，无需手动管理）*/
 interface SocketIOData {
   /** Socket.IO 实例引用 */
   socket: any
-  /** 是否已连接 */
+  /** 是否已连接*/
   connected: boolean
-  /** 页面消息订阅者（pageId → callback） */
+  /** 页面消息订阅者（pageId ?callback）*/
   pageSubscribers: Map<string, (_eventName: string, _data: any) => void>
 }
 
@@ -52,12 +47,11 @@ interface TokenLogEntry {
 App({
   /**
    * 全局数据 - 仅保留系统级配置
-   * 用户认证/积分等业务数据已迁移到 MobX Store（store/user.ts、store/points.ts）
-   * 页面通过 createStoreBindings 自动同步，不再读取 globalData 业务字段
+   * 用户认证/积分等业务数据已迁移到MobX Store（store/user.ts、store/points.ts   * 页面通过 createStoreBindings 自动同步，不再读取globalData 业务字段
    */
   globalData: {
     // 系统基础信息
-    version: '5.0.0' as string,
+    version: '5.2.0' as string,
     systemName: '餐厅积分抽奖系统' as string,
     buildTime: new Date().toISOString(),
 
@@ -81,7 +75,7 @@ App({
     }
   },
 
-  /** 应用启动初始化 */
+  /** 应用启动初始化?*/
   async onLaunch(options: WechatMiniprogram.App.LaunchShowOption): Promise<void> {
     log.info('🚀 餐厅积分抽奖系统v5.0启动中...')
     log.info('📱 启动参数:', options)
@@ -92,12 +86,12 @@ App({
       await initializeWechatEnvironment()
       log.info('✅ 系统初始化完成')
     } catch (error: any) {
-      log.error('❌ 系统初始化失败:', error)
+      log.error('❌ 系统初始化失败', error)
       this.handleInitializationError(error)
     }
   },
 
-  /** 初始化系统环境 */
+  /** 初始化系统环境?*/
   async initializeSystem(): Promise<void> {
     const apiConfig = getApiConfig()
     const devConfig = getDevelopmentConfig()
@@ -122,17 +116,14 @@ App({
    * 检查用户认证状态（应用启动初始化阶段）
    *
    * ⚠️ 此处直接读取 Storage 是设计意图：
-   * 应用启动时 MobX Store 尚未持有数据，需要从 Storage 恢复上次会话，
-   * 恢复成功后通过 userStore.setLoginState() 将数据同步到 Store，
-   * 此后所有业务代码统一从 Store 读取，不再直接访问 Storage。
-   */
+   * 应用启动MobX Store 尚未持有数据，需要从 Storage 恢复上次会话   * 恢复成功后通过 userStore.setLoginState() 将数据同步到 Store   * 此后所有业务代码统一从Store 读取，不再直接访问Storage   */
   async checkAuthStatus(): Promise<void> {
     try {
       // 应用启动恢复：从 Storage 读取上次会话的Token和用户信息
       const token: string = wx.getStorageSync('access_token')
       let userInfo: API.UserProfile | null = wx.getStorageSync('user_info') || null
 
-      log.info('🔍 检查认证状态:', {
+      log.info('🔍 检查认证状态', {
         hasToken: !!token,
         hasUserInfo: !!userInfo,
         tokenLength: token ? token.length : 0
@@ -140,7 +131,7 @@ App({
 
       // 有token但没有userInfo，从JWT Token中解析恢复
       if (token && !userInfo) {
-        log.info('⚠️ 检测到Token存在但userInfo缺失，尝试从JWT Token中恢复...')
+        log.info('⚠️ 检测到Token存在但userInfo缺失，尝试从JWT Token中恢复..')
         const { Utils } = require('./utils/index')
         const { decodeJWTPayload, validateJWTTokenIntegrity, isTokenExpired } = Utils
 
@@ -189,11 +180,11 @@ App({
         // 完整性验证
         const integrityCheck = validateJWTTokenIntegrity(token)
         if (!integrityCheck.isValid) {
-          log.error('🚨 检测到Token完整性问题:', integrityCheck.error)
+          log.error('🚨 检测到Token完整性问题', integrityCheck.error)
           if (integrityCheck.error.includes('截断')) {
             wx.showModal({
               title: '认证令牌异常',
-              content: `检测到认证令牌传输异常。\n\n问题：${integrityCheck.error}\n\n请重新登录。`,
+              content: `检测到认证令牌传输异常。\n\n问题）{integrityCheck.error}\n\n请重新登录。`,
               showCancel: true,
               cancelText: '稍后处理',
               confirmText: '立即修复',
@@ -206,13 +197,13 @@ App({
             })
             return
           } else {
-            log.warn('⚠️ Token格式问题，自动清理')
+            log.warn('⚠️ Token格式问题，自动清除')
             this.clearAuthData()
             return
           }
         }
 
-        // 过期检查
+        // 过期检
         if (isTokenExpired(token)) {
           log.warn('⚠️ Token已过期，清理认证数据')
           this.clearAuthData()
@@ -228,7 +219,7 @@ App({
         // 此处仅恢复为0，后续页面加载时会从后端刷新真实余额
         pointsStore.setBalance(0, 0)
 
-        log.info('✅ 用户认证状态恢复成功:', {
+        log.info('✅ 用户认证状态恢复成功', {
           user_id: userInfo.user_id,
           mobile: userInfo.mobile,
           is_admin: userInfo.is_admin,
@@ -243,13 +234,13 @@ App({
         log.info('💡 没有存储的认证信息')
       }
     } catch (error: any) {
-      log.info('⚠️ 认证状态恢复失败:', error.message)
+      log.info('⚠️ 认证状态恢复失败', error.message)
       this.logTokenUsage('restore_error', { error: error.message })
       this.clearAuthData()
     }
   },
 
-  /** 清空认证数据（委托给 MobX Store，Store 内部同步清理 Storage） */
+  /** 清空认证数据（委托给 MobX Store，Store 内部同步清理 Storage?*/
   clearAuthData(): void {
     userStore.clearLoginState()
     pointsStore.clearPoints()
@@ -265,9 +256,9 @@ App({
     userStore.updateRefreshToken(token)
   },
 
-  /** 处理初始化错误 */
+  /** 处理初始化错误*/
   handleInitializationError(error: Error): void {
-    log.error('🚨 系统初始化错误:', error)
+    log.error('🚨 系统初始化错误', error)
 
     wx.showModal({
       title: '系统初始化失败',
@@ -280,7 +271,7 @@ App({
     })
   },
 
-  /** 应用显示时触发 */
+  /** 应用显示时触发?*/
   onShow(): void {
     log.info('📱 应用进入前台')
     const pages = getCurrentPages()
@@ -288,7 +279,7 @@ App({
       pages.length > 0 && pages[pages.length - 1] ? pages[pages.length - 1].route || '' : ''
   },
 
-  /** 应用隐藏时触发 */
+  /** 应用隐藏时触发?*/
   onHide(): void {
     log.info('📱 应用进入后台')
   },
@@ -320,7 +311,7 @@ App({
     }
   },
 
-  /** 获取微信系统信息（基础库2.20.1+新版API） */
+  /** 获取微信系统信息（基础?.20.1+新版API?*/
   getSafeSystemInfo(): Record<string, any> {
     try {
       const windowInfo = wx.getWindowInfo()
@@ -334,11 +325,11 @@ App({
     }
   },
 
-  // ===== Socket.IO 统一管理（替代原生 WebSocket） =====
-  // ✅ 心跳：Socket.IO 内建（25秒一次），无需手动管理
-  // ✅ 重连：Socket.IO 内建（指数退避），无需手动管理
-  // ✅ 消息路由：Socket.IO 按事件名自动路由，无需 JSON.parse + switch
-  // ✅ 传输层：weapp.socket.io@3.0.0 将 WebSocket 适配为 wx.connectSocket()（微信专用）
+  // ===== Socket.IO 统一管理（替代原WebSocket=====
+  // 心跳：Socket.IO 内建5秒一次），无需手动管理
+  // 重连：Socket.IO 内建（指数退避），无需手动管理
+  // 消息路由：Socket.IO 按事件名自动路由，无需 JSON.parse + switch
+  // 传输层：weapp.socket.io@3.0.0 WebSocket 适配置wx.connectSocket()（微信专用）
 
   /** Socket.IO 连接数据 */
   socketData: {
@@ -350,9 +341,8 @@ App({
   /**
    * 统一 Socket.IO 连接管理
    * 使用 weapp.socket.io@3.0.0 替代原生 wx.connectSocket
-   * weapp.socket.io 内部将 WebSocket 传输适配为 wx.connectSocket()
-   * Token 通过 auth 选项传递，不拼在 URL 上
-   */
+   * weapp.socket.io 内部用WebSocket 传输适配置wx.connectSocket()
+   * Token 通过 auth 选项传递，不拼URL    */
   connectWebSocket(): Promise<void> {
     // 已连接则直接返回
     if (this.socketData.connected && this.socketData.socket) {
@@ -365,7 +355,7 @@ App({
       return Promise.reject(new Error('用户未登录'))
     }
 
-    // Token 过期检查
+    // Token 过期检
     const { Utils } = require('./utils/index')
     const { isTokenExpired } = Utils
     if (isTokenExpired(userStore.accessToken)) {
@@ -385,16 +375,12 @@ App({
          * 创建 Socket.IO 连接
          *
          * transports: ['websocket']
-         *   微信小程序仅支持 WebSocket 传输（不支持 HTTP long-polling）。
-         *   weapp.socket.io@3.0.0 内部通过 wx-ws.js 适配器将标准 WebSocket API
-         *   映射为 wx.connectSocket() / wx.sendSocketMessage() / wx.closeSocket()。
-         *
+         *   微信小程序仅支持 WebSocket 传输（不支持 HTTP long-polling）         *   weapp.socket.io@3.0.0 内部通过 wx-ws.js 适配器将标准 WebSocket API
+         *   映射wx.connectSocket() / wx.sendSocketMessage() / wx.closeSocket()         *
          * timeout: 30000ms
-         *   握手超时时间，给 wss 连接经代理建立留足够时间（默认20s）。
-         *
+         *   握手超时时间，给 wss 连接经代理建立留足够时间（默0s）         *
          * auth: { token }
-         *   JWT Token 通过 Socket.IO auth 选项传递，不拼在 URL 上。
-         */
+         *   JWT Token 通过 Socket.IO auth 选项传递，不拼URL 上         */
         const socket = io(wsConfig.url, {
           transports: ['websocket'],
           auth: { token: userStore.accessToken },
@@ -467,7 +453,7 @@ App({
 
         // 新消息（后端 ChatWebSocketService 推送，含 chat_message_id、content、sender_type 等）
         socket.on('new_message', (data: any) => {
-          log.info('📨 收到新消息:', data)
+          log.info('📨 收到新消息', data)
           this.notifyPageSubscribers('new_message', data)
         })
 
@@ -494,7 +480,7 @@ App({
 
         // 会话状态变更
         socket.on('session_status', (data: any) => {
-          log.info('📋 收到会话状态变更:', data)
+          log.info('📋 收到会话状态变更', data)
           this.notifyPageSubscribers('session_status', data)
         })
 
@@ -512,13 +498,13 @@ App({
 
         // 消息发送确认（后端收到 send_message 后写库成功回执）
         socket.on('message_sent', (data: any) => {
-          log.info('✅ 消息发送确认:', data)
+          log.info('✅ 消息发送确认', data)
           this.notifyPageSubscribers('message_sent', data)
         })
 
         // 消息发送失败（后端处理 send_message 时出错的回执）
         socket.on('message_error', (data: any) => {
-          log.error('❌ 消息发送失败:', data)
+          log.error('❌ 消息发送失败', data)
           this.notifyPageSubscribers('message_error', data)
         })
 
@@ -533,7 +519,7 @@ App({
           this.notifyPageSubscribers('auth_status', data)
         })
       } catch (error: any) {
-        log.error('❌ Socket.IO 初始化失败:', error)
+        log.error('❌ Socket.IO 初始化失败', error)
         reject(error)
       }
     })
@@ -554,7 +540,7 @@ App({
     this.socketData.pageSubscribers.delete(pageId)
   },
 
-  /** 通知所有订阅页面 */
+  /** 通知所有订阅页面?*/
   notifyPageSubscribers(eventName: string, data: any): void {
     this.socketData.pageSubscribers.forEach(
       (callback: (_evt: string, _payload: any) => void, pageId: string) => {
@@ -568,14 +554,11 @@ App({
   },
 
   /**
-   * 发送 Socket.IO 消息（emit 方式，替代 wx.sendSocketMessage + JSON.stringify）
-   *
-   * @param eventName - 事件名称（如 'send_message'、'admin_register'）
-   * @param data - 消息数据对象（无需手动 JSON.stringify）
-   */
+   * 发Socket.IO 消息（emit 方式，替wx.sendSocketMessage + JSON.stringify   *
+   * @param eventName - 事件名称（如 'send_message'admin_register'   * @param data - 消息数据对象（无需手动 JSON.stringify   */
   emitSocketMessage(eventName: string, data: Record<string, any>): void {
     if (!this.socketData.connected || !this.socketData.socket) {
-      log.warn('⚠️ Socket.IO未连接，无法发送消息:', eventName)
+      log.warn('⚠️ Socket.IO未连接，无法发送消息', eventName)
       return
     }
 
@@ -597,7 +580,7 @@ App({
     this.socketData.pageSubscribers.clear()
   },
 
-  /** Token使用日志记录（分析Token问题的发生频率和模式） */
+  /** Token使用日志记录（分析Token问题的发生频率和模式?*/
   logTokenUsage(action: string, details: Record<string, any>): void {
     try {
       const logs: TokenLogEntry[] = wx.getStorageSync('token_usage_logs') || []
@@ -608,7 +591,7 @@ App({
       }
 
       logs.push(logEntry)
-      // 只保留最近50条记录
+      // 只保留最0条记
       if (logs.length > 50) {
         logs.shift()
       }
@@ -621,4 +604,4 @@ App({
   }
 })
 
-export {}
+export { }
