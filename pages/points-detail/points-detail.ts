@@ -3,11 +3,11 @@
 // 🔴 统一工具函数导入
 const { API, Utils, Logger } = require('../../utils/index')
 const log = Logger.createLogger('points-detail')
-const { checkAuth } = Utils
+const { checkAuth, restoreUserInfo } = Utils
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { pointsStore } = require('../../store/points')
-const { userStore } = require('../../store/user')
+// userStore 由 restoreUserInfo() 内部访问，页面无需直接引用
 
 /**
  * 积分详情页面 - 餐厅积分抽奖系统
@@ -116,54 +116,34 @@ Page({
   },
 
   /**
-   * 🔴 初始化页面 - 基于旧项目逻辑
+   * 初始化页面 - 统一使用 restoreUserInfo 三级恢复
+   *
+   * 恢复链路（auth-helper.restoreUserInfo）：
+   *   第1级: userStore.userInfo（MobX Store 运行时数据）
+   *   第2级: wx.getStorageSync('user_info')（本地持久化缓存）
+   *   第3级: JWT Token 解码重建 userInfo（Token有效时可恢复）
+   *
+   * 三级均失败时自动跳转登录页，无需页面手动处理跳转
    */
   initPage() {
     log.info('🔧 开始初始化积分明细页面...')
 
-    // 🔴 使用统一的认证检查
-    if (!checkAuth()) {
-      log.warn('⚠️ 用户未登录，已自动跳转')
+    // 统一认证 + 用户信息恢复（三级恢复，失败自动跳转登录页）
+    const userInfo = restoreUserInfo()
+    if (!userInfo) {
+      log.warn('⚠️ 用户信息恢复失败，已自动跳转登录页')
       return
-    }
-
-    // 🔴 从全局获取用户信息，如果没有则从Storage恢复
-    let globalUserInfo = userStore.userInfo
-
-    if (!globalUserInfo || !globalUserInfo.user_id) {
-      log.info('⚠️ globalData没有用户信息，尝试从Storage恢复...')
-      try {
-        const storedUserInfo = wx.getStorageSync('user_info')
-        if (storedUserInfo && storedUserInfo.user_id) {
-          globalUserInfo = storedUserInfo
-          userStore.updateUserInfo(storedUserInfo)
-          log.info('✅ 从Storage恢复用户信息成功:', {
-            user_id: storedUserInfo.user_id,
-            mobile: storedUserInfo.mobile
-          })
-        } else {
-          log.error('❌ Storage中也没有用户信息，跳转登录页')
-          checkAuth() // 会自动跳转到登录页
-          return
-        }
-      } catch (error: any) {
-        log.error('❌ 从Storage恢复用户信息失败:', error)
-        checkAuth()
-        return
-      }
     }
 
     // 积分余额使用MobX Store（由资产余额API更新），不依赖globalData
     const totalPoints = pointsStore.availableAmount || 0
 
-    if (globalUserInfo) {
-      this.setData({
-        userInfo: globalUserInfo,
-        totalPoints
-      })
-    }
+    this.setData({
+      userInfo,
+      totalPoints
+    })
 
-    // 🔴 加载积分记录
+    // 加载积分记录
     this.loadPointsRecords()
 
     log.info('✅ 积分明细页面初始化完成')

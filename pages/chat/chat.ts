@@ -41,6 +41,10 @@ Page({
   data: {
     // 搜索相关
     searchKeyword: '',
+    isSearching: false, // 是否处于搜索结果模式
+    searchResults: [] as any[], // 搜索结果列表（后端 messages 数组处理后的展示数据）
+    searchLoading: false, // 搜索API请求中
+    searchTotal: 0, // 搜索结果总数（后端 pagination.total）
 
     // 会话列表（后端 GET /api/v4/system/chat/sessions 返回）
     sessions: [] as API.ChatSession[],
@@ -68,11 +72,9 @@ Page({
     // 聊天区域状态: idle | loading | success | empty | error
     chatLoadStatus: 'idle',
 
-    // WebSocket相关
+    // WebSocket相关（认证数据统一从 MobX userStore 读取，不在页面 data 中冗余存储）
     wsConnected: false,
     sessionId: '',
-    userId: '',
-    token: '',
 
     // 会话状态
     sessionStatus: 'connecting',
@@ -91,18 +93,19 @@ Page({
    * 聊天会话列表页面入口函数，初始化用户信息和加载会话数据。
    *
    * **初始化流程**：
-   * 1. 绑定MobX Store（用户登录状态）
+   * 1. 绑定MobX Store（isLoggedIn 响应式同步）
    * 2. 检查用户登录状态（未登录自动跳转到登录页）
-   * 3. 初始化用户信息（userId, token）
+   * 3. 验证用户认证状态（token/userId 从 userStore 直接读取）
    * 4. 加载客服会话列表数据
    */
   onLoad(_options: Record<string, string | undefined>) {
     log.info('🚀 聊天会话列表页面加载')
 
-    // 🆕 MobX Store绑定 - 用户登录状态自动同步
+    // MobX Store绑定 - 仅同步 isLoggedIn 用于页面响应式更新
+    // 认证数据（token/userId）统一从 userStore 直接读取，不通过 data 中转
     this.userBindings = createStoreBindings(this, {
       store: userStore,
-      fields: ['isLoggedIn', 'userId'],
+      fields: ['isLoggedIn'],
       actions: []
     })
 
@@ -133,6 +136,8 @@ Page({
       return
     }
 
+    // 页面重新显示时退出搜索模式，展示最新会话列表
+    this.exitSearchMode()
     // 从其他页面返回时刷新会话数据
     this.loadSessionData()
   },
@@ -140,6 +145,10 @@ Page({
   // 页面卸载时清理资源
   onUnload() {
     log.info('📱 聊天页面卸载，清理WebSocket订阅')
+    // 清理搜索防抖定时器
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer)
+    }
     // 🆕 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
@@ -155,21 +164,18 @@ Page({
   },
 
   /**
-   * 初始化用户信息
+   * 验证用户认证状态
    *
    * @description
-   * 从MobX Store获取用户信息和Token，用于后续API调用和WebSocket连接。
+   * 检查 MobX userStore 中的认证数据是否就绪。
+   * 认证数据统一从 userStore 读取，不在页面 data 中冗余存储，
+   * 避免 MobX 绑定与 setData 的竞态覆盖问题。
    */
   initializeUser() {
     if (userStore.isLoggedIn) {
-      this.setData({
-        userId: userStore.userInfo?.user_id || '',
-        token: userStore.accessToken || ''
-      })
-
-      log.info('✅ 用户信息初始化完成', {
-        userId: this.data.userId,
-        hasToken: !!this.data.token
+      log.info('✅ 用户认证状态就绪', {
+        userId: userStore.userInfo?.user_id,
+        hasToken: !!userStore.accessToken
       })
     }
   },
@@ -227,24 +233,48 @@ Page({
    * - user: { user_id, nickname, mobile } （用户信息）
    */
   processSessionList(rawSessions: any[]) {
-    const processed = rawSessions.map((session: any) => ({
-      // 会话唯一标识（后端主键字段）
-      sessionId: session.customer_service_session_id,
-      // 会话状态
-      status: session.status || 'waiting',
-      statusText: SESSION_STATUS_MAP[session.status] || '未知',
-      // 最后消息预览（last_message 是对象，取 .content 展示）
-      preview:
-        session.last_message && session.last_message.content ? session.last_message.content : '',
-      // 未读消息数
-      unread: session.unread_count || 0,
-      // 最后更新时间（使用 updated_at 字段）
-      time: session.updated_at ? formatDateMessage(session.updated_at) : '',
-      // 显示名称：固定为"在线客服"（用户端只有客服会话）
-      name: '在线客服',
-      icon: '🎧',
-      avatarClass: 'customer-service'
-    }))
+    const processed = rawSessions.map((session: any) => {
+      /**
+       * 消息预览处理：
+       * 1. 添加发送者前缀 [我] / [客服] / [系统]（对标微信群聊消息预览）
+       * 2. 非文字消息显示类型标签 [图片] / [位置]
+       */
+      let preview = ''
+      if (session.last_message && session.last_message.content) {
+        const senderPrefix =
+          session.last_message.sender_type === 'user'
+            ? '[我] '
+            : session.last_message.sender_type === 'admin'
+              ? '[客服] '
+              : '[系统] '
+        const msgType = session.last_message.message_type
+        const content =
+          msgType === 'image'
+            ? '[图片]'
+            : msgType === 'location'
+              ? '[位置]'
+              : session.last_message.content
+        preview = senderPrefix + content
+      }
+
+      return {
+        // 会话唯一标识（后端主键字段）
+        sessionId: session.customer_service_session_id,
+        // 会话状态（用于状态标签和在线指示器）
+        status: session.status || 'waiting',
+        statusText: SESSION_STATUS_MAP[session.status] || '未知',
+        // 最后消息预览（带发送者前缀）
+        preview,
+        // 未读消息数
+        unread: session.unread_count || 0,
+        // 最后更新时间（使用 updated_at 字段）
+        time: session.updated_at ? formatDateMessage(session.updated_at) : '',
+        // 显示名称：固定为"在线客服"（用户端只有客服会话）
+        name: '在线客服',
+        icon: '🎧',
+        avatarClass: 'customer-service'
+      }
+    })
 
     this.setData({ sessions: processed })
     log.info('✅ 会话列表处理完成，共', processed.length, '条')
@@ -284,35 +314,93 @@ Page({
   },
 
   // ============================================================================
-  // 搜索功能
+  // 搜索功能（对标微信消息搜索体验）
   // ============================================================================
 
-  // 搜索输入
+  /**
+   * 搜索输入事件 — 带300ms防抖，避免每个按键都触发API请求
+   *
+   * 交互流程（对标微信）：
+   * 1. 用户输入 → 进入搜索模式，显示搜索加载态
+   * 2. 停止输入300ms → 发起搜索API请求
+   * 3. 返回结果 → 展示搜索结果列表（带关键词高亮）
+   * 4. 清空输入 → 退出搜索模式，回到会话列表
+   */
   onSearchInput(e: WechatMiniprogram.Input) {
     const keyword = e.detail.value
     this.setData({ searchKeyword: keyword })
 
-    if (keyword.trim()) {
+    // 清空输入时退出搜索模式，回到会话列表
+    if (!keyword.trim()) {
+      this.exitSearchMode()
+      return
+    }
+
+    // 进入搜索模式，显示搜索加载状态
+    this.setData({ isSearching: true, searchLoading: true })
+
+    // 防抖300ms：取消上一次未执行的搜索，重新计时
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer)
+    }
+    this._searchTimer = setTimeout(() => {
+      this.performSearch(keyword)
+    }, DELAY.DEBOUNCE || 300)
+  },
+
+  /**
+   * 搜索确认（键盘搜索按钮）— 立即触发搜索，不等防抖
+   */
+  onSearchConfirm(e: WechatMiniprogram.Input) {
+    const keyword = e.detail.value
+    if (keyword && keyword.trim()) {
+      if (this._searchTimer) {
+        clearTimeout(this._searchTimer)
+      }
+      this.setData({ isSearching: true, searchLoading: true })
       this.performSearch(keyword)
     }
   },
 
-  // 清除搜索
+  /**
+   * 清除搜索 — 退出搜索模式，回到会话列表
+   */
   clearSearch() {
     this.setData({ searchKeyword: '' })
+    this.exitSearchMode()
   },
 
   /**
-   * 执行聊天消息搜索
+   * 退出搜索模式 — 清理搜索状态和定时器
+   */
+  exitSearchMode() {
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer)
+    }
+    this.setData({
+      isSearching: false,
+      searchResults: [] as any[],
+      searchLoading: false,
+      searchTotal: 0
+    })
+  },
+
+  /**
+   * 执行聊天消息搜索 — 展示搜索结果列表（对标微信消息搜索）
    *
    * 后端API: GET /api/v4/system/chat/sessions/search?keyword=xxx
    * 数据隔离: 用户端只能搜索自己会话中的消息
    *
-   * 返回格式:
+   * 后端返回格式:
    * {
    *   messages: [{ chat_message_id, customer_service_session_id, sender_type, content, message_type, created_at }],
    *   pagination: { page, page_size, total, total_pages }
    * }
+   *
+   * 前端处理:
+   * 1. 将后端 messages 映射为搜索结果展示数据
+   * 2. 对 content 中的关键词进行高亮（通过 rich-text 渲染 HTML）
+   * 3. 添加发送者标签（我/客服/系统）
    */
   async performSearch(keyword: string) {
     log.info('🔍 搜索关键词:', keyword)
@@ -321,28 +409,86 @@ Page({
       return
     }
 
+    this.setData({ searchLoading: true })
+
     try {
       const result = await API.searchChatMessages(keyword.trim(), 1, 20)
 
       if (result.success && result.data && result.data.messages) {
         const searchMessages = result.data.messages
+        const total = result.data.pagination?.total || searchMessages.length
         log.info('🔍 搜索结果:', searchMessages.length, '条')
 
-        if (searchMessages.length === 0) {
-          showToast('未找到相关消息')
-          return
-        }
+        // 将后端消息映射为搜索结果展示数据
+        const searchResults = searchMessages.map((msg: any) => ({
+          // 消息唯一标识
+          chatMessageId: msg.chat_message_id,
+          // 所属会话ID（用于点击跳转）
+          sessionId: msg.customer_service_session_id,
+          // 原始消息内容
+          content: msg.content || '',
+          // 关键词高亮后的HTML内容（供 rich-text 组件渲染）
+          highlightContent: this.highlightKeyword(msg.content || '', keyword.trim()),
+          // 发送者类型和标签
+          senderType: msg.sender_type || 'user',
+          senderLabel:
+            msg.sender_type === 'user' ? '我' : msg.sender_type === 'admin' ? '客服' : '系统',
+          // 格式化时间
+          time: msg.created_at ? formatDateMessage(msg.created_at) : '',
+          // 消息类型
+          messageType: msg.message_type || 'text'
+        }))
 
-        // 搜索结果中如果有会话ID，点击后可跳转到对应会话
-        // 此处仅展示搜索到的消息数量提示，用户可在列表中找到对应会话
-        showToast(`找到 ${result.data.pagination.total} 条相关消息`)
+        this.setData({ searchResults, searchTotal: total, searchLoading: false })
       } else {
-        showToast('未找到相关消息')
+        this.setData({ searchResults: [] as any[], searchTotal: 0, searchLoading: false })
       }
     } catch (error: any) {
       log.error('❌ 搜索失败:', error)
+      this.setData({ searchResults: [] as any[], searchTotal: 0, searchLoading: false })
       showToast(error.message || '搜索失败，请稍后重试')
     }
+  },
+
+  /**
+   * 搜索关键词高亮 — 生成带内联样式的HTML供 rich-text 组件渲染
+   *
+   * @param content - 原始消息文本
+   * @param keyword - 搜索关键词
+   * @returns 带高亮标签的HTML字符串
+   *
+   * 示例: highlightKeyword("你好世界", "你好")
+   *   → '<span style="color:#667eea;font-weight:bold;">你好</span>世界'
+   */
+  highlightKeyword(content: string, keyword: string): string {
+    if (!content || !keyword) {
+      return content || ''
+    }
+    // 转义正则特殊字符，防止用户输入的特殊符号导致正则错误
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(${escapedKeyword})`, 'gi')
+    return content.replace(regex, '<span style="color:#667eea;font-weight:bold;">$1</span>')
+  },
+
+  /**
+   * 搜索结果点击 — 跳转到对应会话并打开聊天弹窗
+   *
+   * @param e - 点击事件，通过 data-session-id 获取会话ID
+   */
+  onSearchResultTap(e: WechatMiniprogram.BaseEvent) {
+    const sessionId = e.currentTarget.dataset.sessionId as number
+    if (!sessionId) {
+      log.warn('⚠️ 搜索结果缺少会话ID')
+      return
+    }
+
+    log.info('🔍 点击搜索结果，跳转到会话:', sessionId)
+
+    // 保存会话信息，打开聊天弹窗
+    this.setData({ sessionId, sessionStatus: 'active' })
+    this.openChatModal('在线客服', '🎧')
+    this.clearSessionUnread(sessionId)
+    this.connectWebSocket()
   },
 
   // ============================================================================
@@ -480,4 +626,4 @@ Page({
   ...chatMessageHandlers
 })
 
-export { }
+export {}

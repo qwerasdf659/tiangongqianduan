@@ -115,9 +115,10 @@ const marketHandlers = {
           seller_user_id: item.seller_user_id,
           // 商品显示名称：物品实例用 offer_item_display_name，资产用 offer_asset_display_name
           item_name: item.offer_item_display_name || item.offer_asset_display_name || '未知商品',
-          description: item.listing_kind === 'fungible_asset'
-            ? `${item.offer_asset_code || ''} × ${item.offer_amount || 0}`
-            : (item.offer_item_category_code || ''),
+          description:
+            item.listing_kind === 'fungible_asset'
+              ? `${item.offer_asset_code || ''} × ${item.offer_amount || 0}`
+              : item.offer_item_category_code || '',
           image: item.image_url || '/images/default-product.png',
           // 挂单定价信息
           price_asset_code: item.price_asset_code || 'DIAMOND',
@@ -272,10 +273,11 @@ const marketHandlers = {
     // 按关键词搜索（搜索商品名称）
     if (searchKeyword) {
       const keyword = searchKeyword.toLowerCase()
-      filtered = filtered.filter((item: any) =>
-        (item.item_name || '').toLowerCase().includes(keyword) ||
-        (item.description || '').toLowerCase().includes(keyword) ||
-        (item.offer_asset_code || '').toLowerCase().includes(keyword)
+      filtered = filtered.filter(
+        (item: any) =>
+          (item.item_name || '').toLowerCase().includes(keyword) ||
+          (item.description || '').toLowerCase().includes(keyword) ||
+          (item.offer_asset_code || '').toLowerCase().includes(keyword)
       )
     }
 
@@ -285,8 +287,8 @@ const marketHandlers = {
     } else if (sortBy === 'points-desc' || sortBy === 'price_desc') {
       filtered.sort((a: any, b: any) => b.price_amount - a.price_amount)
     } else if (sortBy === 'newest') {
-      filtered.sort((a: any, b: any) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      filtered.sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
     }
 
@@ -301,10 +303,11 @@ const marketHandlers = {
     // 按关键词搜索
     if (searchKeyword) {
       const keyword = searchKeyword.toLowerCase()
-      filtered = filtered.filter((item: any) =>
-        (item.item_name || '').toLowerCase().includes(keyword) ||
-        (item.description || '').toLowerCase().includes(keyword) ||
-        (item.offer_asset_code || '').toLowerCase().includes(keyword)
+      filtered = filtered.filter(
+        (item: any) =>
+          (item.item_name || '').toLowerCase().includes(keyword) ||
+          (item.description || '').toLowerCase().includes(keyword) ||
+          (item.offer_asset_code || '').toLowerCase().includes(keyword)
       )
     }
 
@@ -320,9 +323,14 @@ const marketHandlers = {
     marketLog.info('🔧 手动刷新商品列表')
 
     if (this.data.currentTab === 'market') {
-      marketLog.info('🏪 商品兑换模式，刷新幸运空间数据')
+      const { currentSpace } = this.data
+      marketLog.info(`🏪 商品兑换模式，刷新${currentSpace === 'premium' ? '臻选' : '幸运'}空间数据`)
       try {
-        await this.initLuckySpaceData()
+        if (currentSpace === 'premium') {
+          await this.initPremiumSpaceData()
+        } else {
+          await this.initLuckySpaceData()
+        }
         showToast({ title: '✅ 刷新成功', icon: 'success' })
       } catch (error) {
         marketLog.error('❌ 刷新失败:', error)

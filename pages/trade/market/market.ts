@@ -7,7 +7,8 @@
  * @since 2026-02-15
  */
 
-// 🔴 统一工具函数导入（外部页面统一从utils/index 导入口const { API, Logger, Waterfall } = require('../../../utils/index')
+// 🔴 统一工具函数导入（外部页面统一从utils/index导入）
+const { API, Logger, Waterfall } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market')
 
 // 🆕 MobX Store绑定
@@ -213,7 +214,10 @@ Page({
   onProductClick(e: WechatMiniprogram.TouchEvent) {
     const product = e.currentTarget.dataset.product
 
-    marketLog.info('🎯 商品点击:', product.offer_item_display_name || product.offer_asset_display_name)
+    marketLog.info(
+      '🎯 商品点击:',
+      product.offer_item_display_name || product.offer_asset_display_name
+    )
 
     // 埋点统计 使用后端字段 market_listing_id
     wx.reportAnalytics('product_click', {
@@ -330,4 +334,4 @@ Page({
   }
 })
 
-export { }
+export {}

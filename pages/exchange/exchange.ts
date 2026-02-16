@@ -62,13 +62,21 @@ Page({
     loading: true,
     refreshing: false,
 
-    // ========== 兑换确认弹窗 ==========
+    // ========== 交易市场购买确认弹窗 ==========
     showConfirm: false,
     selectedProduct: null,
 
-    // ========== 兑换结果弹窗 ==========
+    // ========== 交易市场购买结果弹窗 ==========
     showResult: false,
     resultData: null,
+
+    // ========== 商品兑换确认弹窗（幸运空间/臻选空间专用） ==========
+    showShopConfirm: false,
+    selectedShopProduct: null,
+    shopExchangeQuantity: 1,
+    shopExchanging: false,
+    showShopResult: false,
+    shopResultData: null,
 
     // ========== 兑换相关数据 ==========
     exchangeQuantity: 1,
@@ -106,6 +114,22 @@ Page({
     luckyStockFilter: 'all',
     luckySortBy: 'default',
     luckyFilteredProducts: [],
+
+    // ========== 幸运空间分页 ==========
+    luckyCurrentPage: 1,
+    luckyTotalPages: 1,
+    luckyPageSize: PAGINATION.GRID_SIZE,
+    luckyTotalProducts: 0,
+    luckyAllProducts: [], // 幸运空间全部商品（用于前端分页）
+    luckyPageInputValue: '',
+
+    // ========== 臻选空间分页 ==========
+    premiumCurrentPage: 1,
+    premiumTotalPages: 1,
+    premiumPageSize: PAGINATION.GRID_SIZE,
+    premiumTotalProducts: 0,
+    premiumAllProducts: [], // 臻选空间全部商品（用于前端分页）
+    premiumPageInputValue: '',
 
     // ========== 双空间系统数据 ==========
     spaceList: [
@@ -152,18 +176,8 @@ Page({
     visibleProducts: [],
     renderOffset: 0,
 
-    // ========== 混合布局数据结构 ==========
-    carouselItems: [],
-    carouselActiveIndex: 0,
-    autoPlay: true,
-    cardSections: [],
-    listProducts: [],
-    mixedLayoutConfig: {
-      carouselAutoPlay: true,
-      carouselInterval: 4000,
-      cardColumns: 2,
-      listShowDetails: true
-    },
+    // ========== 臻选空间商品列表（双列网格布局，与幸运空间一致） ==========
+    premiumFilteredProducts: [],
 
     // ========== 竞价热销数据 ==========
     hotRankingList: [],
@@ -302,9 +316,15 @@ Page({
     }
   },
 
-  /** 下拉刷新 */
+  /** 下拉刷新（页面级 - 已禁用，保留兼容） */
   onPullDownRefresh() {
-    log.info('⬇️ 下拉刷新')
+    log.info('⬇️ 页面级下拉刷新')
+    this.refreshPage()
+  },
+
+  /** scroll-view 下拉刷新（替代页面级下拉刷新） */
+  onScrollViewRefresh() {
+    log.info('⬇️ scroll-view 下拉刷新')
     this.refreshPage()
   },
 
@@ -493,15 +513,7 @@ Page({
     // 预初始化臻选空间数据结构
     log.info('📝 预初始化臻选空间数据结构...')
     this.setData({
-      carouselItems: [],
-      cardSections: [],
-      listProducts: [],
-      mixedLayoutConfig: {
-        carouselAutoPlay: true,
-        carouselInterval: 4000,
-        cardColumns: 2,
-        listShowDetails: true
-      }
+      premiumFilteredProducts: []
     })
 
     log.info('✅ 商品兑换已激活，进入幸运空间')
@@ -525,11 +537,163 @@ Page({
   // 🛒 共享交互
   // ============================================
 
-  /** 商品点击事件（两个Tab共用） */
+  /**
+   * 商品点击事件（两个Tab共用，根据当前Tab打开不同弹窗）
+   * - 交易市场Tab（currentTab === 'exchange'）：打开购买确认弹窗（showConfirm）
+   * - 商品兑换Tab（currentTab === 'market'）：打开兑换确认弹窗（showShopConfirm）
+   */
   onProductTap(e: any) {
     const product = e.currentTarget.dataset.product
     log.info('🎁 点击商品:', product)
-    this.setData({ selectedProduct: product, showConfirm: true })
+
+    if (this.data.currentTab === 'market') {
+      // 商品兑换Tab（幸运空间/臻选空间）→ 打开兑换确认弹窗
+      log.info('🛒 商品兑换模式 - 打开兑换确认弹窗')
+      this.setData({
+        selectedShopProduct: product,
+        showShopConfirm: true,
+        shopExchangeQuantity: 1,
+        shopExchanging: false
+      })
+    } else {
+      // 交易市场Tab → 打开购买确认弹窗
+      log.info('🏪 交易市场模式 - 打开购买确认弹窗')
+      this.setData({ selectedProduct: product, showConfirm: true })
+    }
+  },
+
+  /** 取消商品兑换操作（幸运空间/臻选空间专用） */
+  onCancelShopExchange() {
+    log.info('❌ 取消商品兑换操作')
+    this.setData({ showShopConfirm: false, selectedShopProduct: null, shopExchangeQuantity: 1 })
+  },
+
+  /**
+   * 确认商品兑换操作（幸运空间/臻选空间专用）
+   * 后端API: POST /api/v4/backpack/exchange
+   * 请求: { exchange_item_id, quantity, idempotency_key }
+   * 响应: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
+   */
+  async onConfirmShopExchange() {
+    const { selectedShopProduct, shopExchangeQuantity, shopExchanging, totalPoints } = this.data
+
+    if (!selectedShopProduct) {
+      log.error('❌ 未选择兑换商品')
+      showToast({ title: '请选择要兑换的商品', icon: 'none' })
+      return
+    }
+
+    if (shopExchanging) {
+      log.info('⏳ 正在兑换中，请勿重复操作')
+      return
+    }
+
+    // 获取商品兑换所需的ID和价格（后端 exchange_items 表字段，不做兼容性映射）
+    const exchangeItemId = selectedShopProduct.exchange_item_id
+    const costAmount = selectedShopProduct.cost_amount || 0
+    const costAssetCode = selectedShopProduct.cost_asset_code || 'POINTS'
+
+    if (!exchangeItemId) {
+      log.error('❌ 商品ID无效:', selectedShopProduct)
+      showToast({ title: '商品数据异常，请重试', icon: 'none' })
+      return
+    }
+
+    // 积分余额检查（仅当使用积分支付时）
+    if (
+      costAssetCode === 'POINTS' &&
+      costAmount > 0 &&
+      totalPoints < costAmount * shopExchangeQuantity
+    ) {
+      showToast({ title: '积分不足，无法兑换', icon: 'none' })
+      return
+    }
+
+    this.setData({ shopExchanging: true })
+
+    try {
+      log.info('🛒 执行商品兑换:', { exchangeItemId, quantity: shopExchangeQuantity })
+      const response = await API.exchangeProduct(exchangeItemId, shopExchangeQuantity)
+
+      if (response && response.success && response.data) {
+        log.info('✅ 兑换成功:', response.data)
+
+        this.setData({
+          showShopConfirm: false,
+          selectedShopProduct: null,
+          shopExchanging: false,
+          showShopResult: true,
+          shopResultData: {
+            product: selectedShopProduct,
+            orderNo: response.data.order_no || '',
+            payAssetCode: response.data.pay_asset_code || costAssetCode,
+            payAmount: response.data.pay_amount || costAmount,
+            quantity: response.data.quantity || shopExchangeQuantity,
+            exchangeTime: response.data.exchange_time || ''
+          }
+        })
+
+        // 刷新积分余额
+        try {
+          const balanceResult = await API.getPointsBalance()
+          if (balanceResult && balanceResult.success && balanceResult.data) {
+            const points = balanceResult.data.available_amount || 0
+            const frozen = balanceResult.data.frozen_amount || 0
+            pointsStore.setBalance(points, frozen)
+            this.setData({ totalPoints: points, frozenPoints: frozen })
+            log.info('💰 兑换后积分余额更新:', { available: points, frozen })
+          }
+        } catch (balanceError) {
+          log.warn('⚠️ 兑换后积分余额刷新失败:', balanceError)
+        }
+
+        // 延迟刷新商品列表
+        setTimeout(() => {
+          this.refreshMarketData()
+        }, 1000)
+      } else {
+        throw new Error((response && response.message) || '兑换失败')
+      }
+    } catch (error: any) {
+      log.error('❌ 商品兑换失败:', error)
+      this.setData({ shopExchanging: false })
+
+      let errorMessage = '兑换失败，请重试'
+      if (error.statusCode === 401) {
+        errorMessage = '登录状态异常，请重新登录'
+      } else if (error.statusCode === 400) {
+        errorMessage = error.message || '请求参数错误'
+      } else if (error.statusCode === 409) {
+        errorMessage = error.message || '库存不足或余额不足'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      wx.showModal({
+        title: '🚨 兑换失败',
+        content: errorMessage,
+        showCancel: false,
+        confirmText: '我知道了'
+      })
+    }
+  },
+
+  /** 商品兑换数量增减（幸运空间/臻选空间专用） */
+  onShopQuantityChange(e: any) {
+    const action = e.currentTarget.dataset.action
+    let { shopExchangeQuantity } = this.data
+    if (action === 'increase') {
+      shopExchangeQuantity = Math.min(shopExchangeQuantity + 1, 99)
+    } else if (action === 'decrease') {
+      shopExchangeQuantity = Math.max(shopExchangeQuantity - 1, 1)
+    }
+    this.setData({ shopExchangeQuantity })
+  },
+
+  /** 关闭商品兑换结果弹窗 */
+  onCloseShopResult() {
+    log.info('📝 关闭商品兑换结果弹窗')
+    this.setData({ showShopResult: false, shopResultData: null })
   },
 
   /** 设置错误状态（清空所有商品数据，不使用模拟数据） */
@@ -543,9 +707,7 @@ Page({
       errorMessage,
       errorDetail,
       waterfallProducts: [],
-      carouselItems: [],
-      cardSections: [],
-      listProducts: [],
+      premiumFilteredProducts: [],
       luckySpaceStats: { new_count: 0, avg_discount: 0, flash_deals: 0 },
       premiumSpaceStats: { hot_count: 0, avg_rating: 0, trending_count: 0 },
       containerHeight: 800,
@@ -557,4 +719,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

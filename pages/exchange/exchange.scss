@@ -4,22 +4,19 @@
 @import '../../styles/mixins';
 
 /* 🎨 柔和的整体容器背景 - 与抽奖/拍照页面协调 */
-/* 🔒 改为flex布局，让交易市场内容区域自动填满剩余高度 */
 .exchange-container {
-  height: 100vh; /* 🔒 固定视口高度，配合内部flex布局 */
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.08) 0%,
-    rgba(118, 75, 162, 0.12) 50%,
-    rgba(76, 205, 196, 0.08) 100%
-  );
-  backdrop-filter: blur(20rpx);
-  padding: calc(env(safe-area-inset-top) + 20rpx) 20rpx 20rpx;
-  position: relative;
-  /* 🔒 flex布局让子元素自适应高度 */
+  /* 🔒 固定全屏布局：导航栏和头部固定不动，仅商品列表区域可滚动 */
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 🔒 防止整体页面滚动，由内部scroll-view接管 */
+  background: linear-gradient(135deg,
+      rgba(102, 126, 234, 0.08) 0%,
+      rgba(118, 75, 162, 0.12) 50%,
+      rgba(76, 205, 196, 0.08) 100%);
+  padding: 8rpx 12rpx 0;
+  /* 🔧 底部padding去掉，由tabBar自身控制安全区域，最大化商品展示空间 */
+  position: relative;
   box-sizing: border-box;
 }
 

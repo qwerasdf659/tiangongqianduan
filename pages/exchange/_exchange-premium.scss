@@ -8,18 +8,21 @@
 
 /* ==================== 1. 增强版空间切换器 ==================== */
 .space-selector-enhanced {
-  padding: 20rpx 16rpx;
-  margin-bottom: 16rpx;
+  padding: 8rpx 12rpx 4rpx 12rpx;
+  /* 🔧 极致压缩：大幅减小空间切换器内边距 */
+  margin-bottom: 4rpx;
+  /* 🔧 极致压缩：减小底部间距 */
 }
 
 .selector-track {
   display: flex;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 28rpx;
-  padding: 8rpx;
+  border-radius: 22rpx;
+  padding: 4rpx;
+  /* 🔧 极致压缩：减小轨道内边距 */
   position: relative;
   box-shadow:
-    0 8rpx 32rpx rgba(0, 0, 0, 0.08),
+    0 4rpx 16rpx rgba(0, 0, 0, 0.06),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   border: 1rpx solid rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(20rpx);
@@ -52,8 +55,9 @@
   flex: 1;
   position: relative;
   z-index: 1;
-  padding: 20rpx 16rpx;
-  border-radius: 22rpx;
+  padding: 10rpx 12rpx;
+  /* 🔧 极致压缩：减小Tab内边距 */
+  border-radius: 18rpx;
   text-align: center;
   transition: all 0.3s ease;
 }
@@ -62,21 +66,24 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6rpx;
+  gap: 2rpx;
+  /* 🔧 极致压缩：减小内部间距 */
 }
 
 .tab-icon-row {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 6rpx;
 }
 
 .tab-emoji {
-  font-size: $font-size-lg;
+  font-size: 28rpx;
+  /* 🔧 极致压缩：减小emoji大小 */
 }
 
 .tab-label {
-  font-size: $font-size-base;
+  font-size: 26rpx;
+  /* 🔧 极致压缩：减小标签字体 */
   font-weight: 600;
   color: $color-text-secondary;
   transition: color 0.3s ease;
@@ -88,9 +95,11 @@
 }
 
 .tab-desc {
-  font-size: $font-size-xs;
+  font-size: 20rpx;
+  /* 🔧 极致压缩：减小描述字体 */
   color: $color-text-tertiary;
   transition: color 0.3s ease;
+  line-height: 1.2;
 }
 
 .tab-desc.active-desc {
@@ -393,474 +402,117 @@
   font-weight: 500;
 }
 
-/* ==================== 6. 臻选空间 - 轮播区 ==================== */
-.carousel-section-enhanced {
-  margin-bottom: 24rpx;
-}
+/* ==================== 6. 臻选空间 - 双列网格布局（与幸运空间统一） ==================== */
 
-.premium-carousel-enhanced {
-  height: 420rpx;
-  border-radius: 24rpx;
-}
-
-.carousel-item-enhanced {
-  padding: 0 8rpx;
-}
-
-.carousel-card-enhanced {
+/* 🌊 臻选空间网格主容器 */
+.premium-space-content.premium-grid-container {
+  padding: 20rpx 16rpx;
   position: relative;
-  width: 100%;
-  height: 400rpx;
-  border-radius: 24rpx;
-  overflow: hidden;
-  box-shadow: 0 12rpx 40rpx rgba(102, 126, 234, 0.2);
 }
 
-.carousel-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.carousel-gradient-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    transparent 30%,
-    rgba(0, 0, 0, 0.15) 50%,
-    rgba(0, 0, 0, 0.7) 100%
-  );
-}
-
-.carousel-info-layer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 24rpx;
-  color: #ffffff;
-}
-
-.carousel-badges-row {
+/* 🌊 臻选商品网格容器 - Flex两列布局（与幸运空间一致） */
+.waterfall-container.premium-waterfall {
   display: flex;
-  gap: 12rpx;
-  margin-bottom: 12rpx;
-}
-
-.carousel-badge {
-  padding: 4rpx 14rpx;
-  border-radius: 20rpx;
-  font-size: $font-size-xs;
-  font-weight: 600;
-}
-
-.carousel-badge.discount {
-  background: rgba(255, 71, 87, 0.9);
-}
-
-.carousel-badge.rating {
-  background: rgba(255, 200, 0, 0.85);
-  color: #333;
-}
-
-.carousel-name {
-  display: block;
-  font-size: $font-size-md;
-  font-weight: 700;
-  margin-bottom: 6rpx;
-  @include text-ellipsis;
-}
-
-.carousel-desc {
-  display: block;
-  font-size: $font-size-xs;
-  opacity: 0.8;
-  margin-bottom: 16rpx;
-  @include text-ellipsis;
-}
-
-.carousel-bottom-row {
-  display: flex;
-  align-items: flex-end;
+  flex-wrap: wrap;
   justify-content: space-between;
-}
-
-.carousel-price-area {
-  display: flex;
-  align-items: baseline;
-  gap: 10rpx;
-}
-
-.carousel-price-now {
-  font-size: $font-size-xl;
-  font-weight: 900;
-  color: #ffd700;
-  text-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.3);
-}
-
-.carousel-price-now::before {
-  content: '¥';
-  font-size: $font-size-sm;
-}
-
-.carousel-price-old {
-  font-size: $font-size-sm;
-  text-decoration: line-through;
-  opacity: 0.6;
-}
-
-.carousel-action-hint {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
-  font-size: $font-size-xs;
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(8rpx);
-}
-
-/* 自定义轮播指示器 */
-.carousel-dots-custom {
-  display: flex;
-  justify-content: center;
-  gap: 10rpx;
-  margin-top: 16rpx;
-}
-
-.dot-item {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 6rpx;
-  background: rgba(102, 126, 234, 0.2);
-  transition: all 0.3s ease;
-}
-
-.dot-item.active {
-  width: 32rpx;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.4);
-}
-
-/* ==================== 7. 臻选空间 - 横向卡片区 ==================== */
-.card-sections-enhanced {
-  margin-bottom: 20rpx;
-}
-
-.card-section-group {
-  margin-bottom: 24rpx;
-}
-
-.card-group-header {
-  padding: 20rpx 4rpx 12rpx;
-}
-
-.card-scroll-enhanced {
-  white-space: nowrap;
-  padding: 4rpx 0 16rpx;
-}
-
-.card-row {
-  display: inline-flex;
-  gap: 16rpx;
+  width: 100%;
   padding: 0 4rpx;
 }
 
-.product-card-h {
-  display: inline-flex;
-  flex-direction: column;
-  width: 260rpx;
-  background: #ffffff;
+/* 📦 臻选空间商品卡片 - 简洁圆角卡片（紫色品牌色） */
+.waterfall-card.premium-card {
+  position: relative;
+  background: #fff;
   border-radius: 20rpx;
   overflow: hidden;
-  box-shadow:
-    0 8rpx 28rpx rgba(0, 0, 0, 0.06),
-    0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  border: 1rpx solid rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-  flex-shrink: 0;
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.1);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.product-card-h:active {
+.waterfall-card.premium-card:active {
   transform: scale(0.97);
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.15);
 }
 
-.card-h-img-wrap {
+/* 🖼️ 臻选空间图片区域 */
+.card-image-container.premium-image-container {
   position: relative;
   width: 100%;
-  height: 200rpx;
+  height: 240rpx;
   overflow: hidden;
+  background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
 }
 
-.card-h-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.card-h-badges {
+/* 🏷️ 臻选空间商品标签（紫色品牌色） */
+.product-tags.premium-tags {
   position: absolute;
-  top: 10rpx;
-  left: 10rpx;
+  top: 12rpx;
+  left: 12rpx;
   display: flex;
-  gap: 6rpx;
+  gap: 8rpx;
+  z-index: 3;
 }
 
-.card-h-badge {
-  padding: 4rpx 10rpx;
-  border-radius: 12rpx;
-  font-size: 18rpx;
-  font-weight: 600;
+.product-tag.premium-tag {
+  font-size: 20rpx;
   color: #fff;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
 }
 
-.card-h-badge.discount {
-  background: linear-gradient(135deg, #ff4757, #ff6b6b);
+.product-tag.premium-tag.hot-tag {
+  background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
-.card-h-badge.hot {
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
-}
-
-.card-h-badge.new {
+.product-tag.premium-tag.new-tag {
   background: linear-gradient(135deg, #43e97b, #38f9d7);
   color: #1a5c2e;
 }
 
-.card-h-body {
-  padding: 16rpx;
-}
-
-.card-h-name {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: 600;
-  color: $color-text-primary;
-  margin-bottom: 6rpx;
-  @include text-ellipsis;
-}
-
-.card-h-sell {
-  display: block;
-  font-size: $font-size-xs;
-  color: #667eea;
-  margin-bottom: 8rpx;
-  @include text-ellipsis;
-}
-
-.card-h-price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8rpx;
-  margin-bottom: 8rpx;
-}
-
-.card-h-price {
-  font-size: $font-size-base;
-  font-weight: 800;
-  color: #e11d48;
-}
-
-.card-h-old-price {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  text-decoration: line-through;
-}
-
-.card-h-meta {
-  display: flex;
-  justify-content: space-between;
-}
-
-.card-h-rating,
-.card-h-sales {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-}
-
-/* ==================== 8. 臻选空间 - 详细列表区 ==================== */
-.list-section-enhanced {
-  margin-bottom: 32rpx;
-}
-
-.list-container-enhanced {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.list-row-item {
-  display: flex;
-  gap: 20rpx;
-  background: #ffffff;
-  border-radius: 20rpx;
-  padding: 20rpx;
-  box-shadow:
-    0 4rpx 20rpx rgba(0, 0, 0, 0.05),
-    0 1rpx 4rpx rgba(0, 0, 0, 0.03);
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
-  transition: all 0.3s ease;
-}
-
-.list-row-item:active {
-  transform: scale(0.99);
-  background: #fafafa;
-}
-
-.list-row-img-wrap {
-  position: relative;
-  width: 200rpx;
-  height: 200rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.list-row-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.list-row-rank {
+/* 📊 臻选空间销量显示 */
+.sales-badge.premium-sales-badge {
   position: absolute;
-  top: 0;
-  left: 0;
-  background: linear-gradient(135deg, #ffd700, #ffaa00);
-  padding: 4rpx 14rpx;
-  border-radius: 0 0 12rpx 0;
-  font-size: 18rpx;
-  font-weight: 700;
-  color: #7a5300;
-}
-
-.list-row-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-}
-
-.list-row-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8rpx;
-}
-
-.list-row-name {
-  font-size: $font-size-base;
-  font-weight: 700;
-  color: $color-text-primary;
-  flex: 1;
-  @include text-ellipsis-multi(2);
-}
-
-.list-row-tags {
-  display: flex;
-  gap: 6rpx;
-  flex-shrink: 0;
-}
-
-.list-tag {
-  padding: 2rpx 10rpx;
-  border-radius: 8rpx;
-  font-size: 18rpx;
-  font-weight: 600;
-}
-
-.list-tag.warranty {
-  background: rgba(24, 144, 255, 0.1);
-  color: $color-info;
-  border: 1rpx solid rgba(24, 144, 255, 0.2);
-}
-
-.list-tag.shipping {
-  background: rgba(82, 196, 26, 0.1);
-  color: $color-success;
-  border: 1rpx solid rgba(82, 196, 26, 0.2);
-}
-
-.list-row-desc {
-  display: block;
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
-  margin: 8rpx 0;
-  @include text-ellipsis-multi(2);
-}
-
-.list-row-seller {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin: 6rpx 0;
-}
-
-.seller-avatar-text {
-  font-size: $font-size-xs;
-  color: #667eea;
-  font-weight: 500;
-  background: rgba(102, 126, 234, 0.08);
-  padding: 2rpx 10rpx;
-  border-radius: 8rpx;
-}
-
-.seller-score {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
-}
-
-.seller-vol {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-}
-
-.list-row-bottom {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-
-.list-row-price-area {
-  display: flex;
-  align-items: baseline;
-  gap: 8rpx;
-}
-
-.list-row-price {
-  font-size: $font-size-md;
-  font-weight: 800;
-  color: #e11d48;
-}
-
-.list-row-old-price {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  text-decoration: line-through;
-}
-
-.list-row-discount {
-  font-size: 18rpx;
-  background: rgba(225, 29, 72, 0.1);
-  color: #e11d48;
-  padding: 2rpx 8rpx;
-  border-radius: 8rpx;
-  font-weight: 600;
-}
-
-.list-row-action {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  padding: 10rpx 24rpx;
-  border-radius: 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
-}
-
-.action-text {
-  font-size: $font-size-xs;
+  bottom: 12rpx;
+  left: 12rpx;
+  background: rgba(102, 126, 234, 0.7);
   color: #fff;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  z-index: 3;
+  backdrop-filter: blur(4rpx);
+}
+
+/* 📝 臻选空间卡片内容区 */
+.card-content.premium-card-content {
+  padding: 16rpx 16rpx 20rpx;
+}
+
+.product-title.waterfall-title.premium-title {
+  font-size: 26rpx;
   font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 💰 臻选空间价格样式（紫色品牌色） */
+.current-price.premium-current-price {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.original-price.premium-original-price {
+  font-size: 22rpx;
+  color: #bbb;
+  text-decoration: line-through;
 }
 
 /* ==================== 9. 臻选空间 - 空状态 ==================== */
@@ -1239,9 +891,16 @@
 }
 
 @keyframes inputShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4rpx); }
-  75% { transform: translateX(4rpx); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4rpx);
+  }
+  75% {
+    transform: translateX(4rpx);
+  }
 }
 
 .bid-input-prefix {
@@ -1513,8 +1172,15 @@
 }
 
 @keyframes bidLivePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
 }
 
 .bid-live-text {
@@ -1615,8 +1281,13 @@
 }
 
 @keyframes bidStatusBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* 热度角标 - 右上角 */

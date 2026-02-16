@@ -99,28 +99,35 @@ async function getMarketProductDetail(market_listing_id: number) {
 /**
  * 购买市场商品
  * POST /api/v4/market/listings/:market_listing_id/purchase
+ * 🔴 携带 Idempotency-Key 请求头防止重复购买
  *
  * 后端服务: TradeOrderService
  * 业务流程:
- *   1. 验证挂单状态= on_sale
+ *   1. 验证挂单状态 = on_sale
  *   2. 禁止自买自卖
- *   3. 悲观+ 状态locked
- *   4. 冻结买家资产（order_freeze_buyer *   5. 创建 trade_orders 记录
- *   6. 结算: 扣减买家 扣平台手续费 入账卖家
+ *   3. 悲观锁 + 状态 locked
+ *   4. 冻结买家资产（order_freeze_buyer）
+ *   5. 创建 trade_orders 记录
+ *   6. 结算: 扣减买家、扣平台手续费、入账卖家
  *   7. 物品/资产转移
- *   8. 挂单状态sold
+ *   8. 挂单状态 sold
  *
  * 响应: { trade_order_id, business_id, market_listing_id, buyer_user_id, seller_user_id,
  *          asset_code, gross_amount, fee_amount, net_amount, status }
  *
- * @param market_listing_id - 挂单ID（BIGINT */
+ * @param market_listing_id - 挂单ID（BIGINT）
+ */
 async function purchaseMarketProduct(market_listing_id: number) {
   if (!market_listing_id) {
     throw new Error('挂单ID不能为空')
   }
+
+  // 生成唯一幂等键：防止网络重试、用户重复点击导致重复购买
+  const idempotencyKey = `market_purchase_${market_listing_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
   return apiClient.request(`/market/listings/${market_listing_id}/purchase`, {
     method: 'POST',
     needAuth: true,
+    header: { 'Idempotency-Key': idempotencyKey },
     showLoading: true,
     loadingText: '购买中...',
     showError: true,
@@ -249,4 +256,5 @@ module.exports = {
   sellFungibleAssets
 }
 
-export {}
+export { }
+

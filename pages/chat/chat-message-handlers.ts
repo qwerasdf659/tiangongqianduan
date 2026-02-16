@@ -24,6 +24,9 @@ const { formatDateMessage } = Utils
 const { showToast: msgShowToast } = Wechat
 const { DELAY: MSG_DELAY } = Constants
 
+// MobX Store — 直接引用 userStore 作为认证数据权威来源
+const { userStore } = require('../../store/user')
+
 /**
  * 会话状态文案映射（对应后端 customer_service_sessions.status 字段）
  * 复制自 chat.ts，供 showSessionInfo 等方法使用
@@ -155,10 +158,22 @@ const chatMessageHandlers = {
   // WebSocket管理
   // ============================================================================
 
-  /** 连接WebSocket（通过App全局Socket.IO连接） */
+  /**
+   * 连接WebSocket（通过App全局Socket.IO连接）
+   *
+   * 认证数据统一从 MobX userStore 读取（运行时唯一数据源），
+   * 避免依赖 this.data.token/userId 导致 MobX 绑定覆盖或页面数据未同步的问题。
+   */
   connectWebSocket() {
-    if (!this.data.token || !this.data.userId) {
-      msgLog.warn('⚠️ 缺少必要信息，无法连接WebSocket')
+    // 从 MobX Store 读取认证状态（权威数据源）
+    const token = userStore.accessToken
+    const userId = userStore.userInfo?.user_id
+
+    if (!token || !userId) {
+      msgLog.warn('⚠️ 缺少必要信息，无法连接WebSocket', {
+        hasToken: !!token,
+        hasUserId: !!userId
+      })
       return
     }
 
@@ -367,9 +382,7 @@ const chatMessageHandlers = {
    */
   addMessage(messageData: any) {
     const isOwn =
-      messageData.isOwn !== undefined
-        ? messageData.isOwn
-        : messageData.sender_type === 'user'
+      messageData.isOwn !== undefined ? messageData.isOwn : messageData.sender_type === 'user'
 
     const timestamp =
       messageData.timestamp ||
@@ -388,9 +401,7 @@ const chatMessageHandlers = {
           ? this.formatMessageTime(messageData.created_at)
           : formatDateMessage(timestamp)),
       showTime:
-        messageData.showTime !== undefined
-          ? messageData.showTime
-          : this.shouldShowTime(timestamp),
+        messageData.showTime !== undefined ? messageData.showTime : this.shouldShowTime(timestamp),
       senderType: messageData.senderType || messageData.sender_type || 'user',
       attachments: messageData.attachments || []
     }
@@ -930,5 +941,3 @@ const chatMessageHandlers = {
 module.exports = chatMessageHandlers
 
 export {}
-
-

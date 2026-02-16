@@ -2,41 +2,44 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-.dual-space-market {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
-  padding: 60rpx 30rpx;
-  text-align: center;
-  margin-bottom: 20rpx;
-}
-
-.development-notice {
-  text-align: center;
-}
-
-.notice-title {
-  font-size: $font-size-lg;
-  font-weight: bold;
-  color: $color-primary;
-  display: block;
-  margin-bottom: 20rpx;
-}
-
-.notice-content {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  line-height: 1.6;
-}
-
 /* ========================================
-   🏪 双空间商品兑换系统样式 - Dual Space Exchange
+   🏪 双空间商品兑换系统样式
    ======================================== */
 
-/* 💫 双空间主容器 */
+/* 💫 双空间主容器 - flex布局实现固定头部 + 滚动列表 */
 .dual-space-market {
-  min-height: 100vh;
   background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
   position: relative;
+  /* 🔒 flex布局：固定头部(空间切换器) + 可滚动商品列表 */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  /* 🔒 防止内容溢出，由内部scroll-view控制滚动 */
+}
+
+/* 🔒 固定头部样式 - 空间切换导航不随滚动移动 */
+.shop-sticky-header {
+  flex-shrink: 0;
+  /* 🔒 不被压缩，始终显示 */
+  z-index: 10;
+  /* 🔒 确保在滚动内容之上 */
+  position: relative;
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  /* 🔒 底部添加微妙阴影，区分固定头部和滚动内容 */
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  padding-bottom: 0;
+  /* 🔧 极致压缩：去除底部内边距 */
+}
+
+/* 🔒 可滚动商品列表区域 */
+.shop-scroll-body {
+  flex: 1;
+  /* 🔒 填充剩余空间 */
+  min-height: 0;
+  /* 🔒 允许flex子元素收缩 */
+  padding-bottom: 40rpx;
 }
 
 /* 🎯 空间切换导航 */
@@ -189,24 +192,10 @@
    📋 基于商品兑换UI布局优化方案技术文档 - 方案1：瀑布流卡片布局
    ======================================== */
 
-/* 🌊 ========== 主容器样式 - 方案1优化版本 ========== */
+/* 🌊 ========== 幸运空间主容器 ========== */
 .lucky-space-content.waterfall-market-container {
-  min-height: calc(100vh - 120rpx);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 107, 53, 0.08) 0%,
-    rgba(247, 147, 30, 0.08) 30%,
-    rgba(76, 175, 80, 0.08) 70%,
-    rgba(67, 233, 123, 0.08) 100%
-  );
-  backdrop-filter: blur(20rpx);
-  padding: 24rpx;
+  padding: 20rpx 16rpx;
   position: relative;
-  overflow-x: hidden;
-  /* 🎨 添加微妙的纹理效果 */
-  background-image:
-    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
 }
 
 /* 🌟 ========== 空间标题区 - 现代化设计 ========== */
@@ -238,6 +227,7 @@
 }
 
 @keyframes backgroundFloat {
+
   0%,
   100% {
     transform: translateY(0);
@@ -307,270 +297,101 @@
   font-weight: 500;
 }
 
-/* 🌊 ========== 瀑布流容器 - 方案1优化版本 ========== */
+/* 🌊 ========== 商品网格容器 - Flex两列布局 ========== */
 .waterfall-container.modern-waterfall {
-  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   width: 100%;
-  min-height: 500rpx;
-  padding: 0 10rpx;
-  transition: height 0.3s ease;
+  padding: 0 4rpx;
 }
 
-/* 📦 ========== 商品卡片样式 - 方案1现代化设计v2.0 ========== */
+/* 📦 ========== 商品卡片 - 简洁圆角卡片 ========== */
 .waterfall-card.modern-card {
-  position: absolute !important;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 252, 254, 0.95) 100%),
-    radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
-  border-radius: 28rpx;
-  overflow: hidden;
-  box-shadow:
-    0 16rpx 48rpx rgba(99, 102, 241, 0.12),
-    0 6rpx 20rpx rgba(0, 0, 0, 0.06),
-    0 2rpx 8rpx rgba(0, 0, 0, 0.04),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
-  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-  will-change: transform, box-shadow;
-  backface-visibility: hidden;
-  border: 1rpx solid rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(24rpx);
-  margin-bottom: 0;
-  /* 🔧 修复：移除CSS间距，由JavaScript瀑布流统一控制 */
-  /* 🎨 添加精致的霓虹光效 */
   position: relative;
-}
-
-.waterfall-card.modern-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 28rpx;
-  padding: 2rpx;
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.6) 0%,
-    rgba(236, 72, 153, 0.6) 25%,
-    rgba(59, 130, 246, 0.6) 50%,
-    rgba(16, 185, 129, 0.6) 75%,
-    rgba(99, 102, 241, 0.6) 100%
-  );
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: xor;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .waterfall-card.modern-card:active {
-  transform: scale(0.98) translateY(-8rpx);
-  box-shadow:
-    0 24rpx 72rpx rgba(99, 102, 241, 0.2),
-    0 12rpx 36rpx rgba(236, 72, 153, 0.15),
-    0 6rpx 16rpx rgba(0, 0, 0, 0.1),
-    inset 0 1rpx 0 rgba(255, 255, 255, 1);
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.12);
 }
 
-.waterfall-card.modern-card:active::after {
-  opacity: 1;
-}
+/* 伪元素已移除，保持卡片简洁 */
 
-.waterfall-card.modern-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* 🖼️ ========== 图片区域样式 - 方案1图片优先设计v2.0 ========== */
+/* 🖼️ ========== 图片区域 ========== */
 .card-image-container.modern-image-container {
   position: relative;
   width: 100%;
-  height: 200rpx;
-  /* 🔧 修复：减少图片容器高度，解决间距过大问题 */
+  height: 240rpx;
   overflow: hidden;
-  background:
-    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%),
-    radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.08) 0%, transparent 50%);
-  border-radius: 24rpx 24rpx 0 0;
-  /* 🎨 添加微妙的内阴影 */
-  box-shadow: inset 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  /* 🌈 添加动态边框渐变 */
-  background-size: 200% 200%;
-  animation: shimmerBackground 6s ease-in-out infinite;
-}
-
-@keyframes shimmerBackground {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
+  background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
 }
 
 .product-image.card-image.waterfall-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border-radius: 24rpx 24rpx 0 0;
-  /* 🎨 增强图片显示效果 */
-  filter: contrast(1.08) saturate(1.15) brightness(1.02);
-  /* 🌟 添加微妙的光泽效果 */
-  position: relative;
+  display: block;
 }
 
-.product-image.card-image.waterfall-image::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
+/* 图片加载失败时的占位样式 */
+.image-placeholder {
   width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.4) 50%,
-    transparent 100%
-  );
-  animation: imageShine 3s infinite;
-  pointer-events: none;
+  height: 240rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f5f5 0%, #ebebeb 100%);
+  color: #bbb;
+  font-size: 60rpx;
 }
 
-@keyframes imageShine {
-  0% {
-    left: -100%;
-  }
-
-  50% {
-    left: 100%;
-  }
-
-  100% {
-    left: -100%;
-  }
-}
-
-.waterfall-card.modern-card:active .product-image.card-image.waterfall-image {
-  transform: scale(1.1);
-  filter: contrast(1.12) saturate(1.2) brightness(1.08);
-}
-
-/* 🏷️ 商品标签样式 - 现代化版本 */
+/* 🏷️ 商品标签 */
 .product-tags.modern-tags {
   position: absolute;
   top: 12rpx;
   left: 12rpx;
   display: flex;
-  flex-direction: column;
-  gap: 6rpx;
+  gap: 8rpx;
   z-index: 3;
 }
 
 .product-tag.modern-tag {
-  font-size: $font-size-xs;
-  color: $color-text-white;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 4rpx 8rpx;
-  border-radius: 12rpx;
-  backdrop-filter: blur(10rpx);
-  font-weight: 600;
-  max-width: 80rpx;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
 }
 
 .product-tag.modern-tag.hot-tag {
-  background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
-  animation: hotPulse 2s infinite;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
-  font-weight: 700;
+  background: #ff6b35;
 }
 
 .product-tag.modern-tag.new-tag {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  box-shadow: 0 4rpx 12rpx rgba(67, 233, 123, 0.4);
-  font-weight: 700;
-  animation: newShine 3s ease-in-out infinite;
+  background: #52c41a;
 }
 
-/* 💨 折扣标签 - 增强版 */
-.discount-badge.modern-discount-badge {
-  position: absolute;
-  top: 12rpx;
-  right: 12rpx;
-  background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
-  color: $color-text-white;
-  font-size: $font-size-xs;
-  padding: 6rpx 12rpx;
-  border-radius: $border-radius-md;
-  font-weight: 700;
-  box-shadow: 0 4rpx 12rpx rgba(255, 71, 87, 0.4);
-  backdrop-filter: blur(10rpx);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
-  z-index: 3;
-  animation: discountPulse 2s ease-in-out infinite;
-}
-
-@keyframes discountPulse {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4rpx 12rpx rgba(255, 71, 87, 0.4);
-  }
-
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 6rpx 20rpx rgba(255, 71, 87, 0.6);
-  }
-}
-
-/* 🍀 幸运标签 - 特殊效果 */
+/* 🍀 幸运标签 */
 .lucky-badge.modern-lucky-badge {
   position: absolute;
   bottom: 12rpx;
   right: 12rpx;
-  background: linear-gradient(135deg, #4caf50 0%, #43e97b 100%);
-  color: $color-text-white;
-  font-size: $font-size-sm;
-  padding: 8rpx 12rpx;
+  background: #4caf50;
+  color: #fff;
+  font-size: 24rpx;
+  width: 44rpx;
+  height: 44rpx;
   border-radius: 50%;
-  @include flex-center;
-  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.4);
-  backdrop-filter: blur(10rpx);
-  border: 2rpx solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 3;
-  animation: luckySparkle 3s ease-in-out infinite;
-  min-width: 48rpx;
-  min-height: 48rpx;
-}
-
-@keyframes luckySparkle {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-    box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.4);
-  }
-
-  50% {
-    transform: scale(1.1) rotate(10deg);
-    box-shadow: 0 6rpx 20rpx rgba(76, 175, 80, 0.6);
-  }
 }
 
 /* 📊 销量显示 */
@@ -578,195 +399,88 @@
   position: absolute;
   bottom: 12rpx;
   left: 12rpx;
-  background: rgba(0, 0, 0, 0.7);
-  color: $color-text-white;
-  font-size: $font-size-xs;
-  padding: 4rpx 10rpx;
-  border-radius: 12rpx;
-  backdrop-filter: blur(10rpx);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
   z-index: 3;
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
 }
 
 .sales-text {
   font-weight: 500;
 }
 
-/* 📝 ========== 内容区域样式 - 方案1优化版本v2.0 ========== */
+/* 📝 ========== 卡片内容区 ========== */
 .card-content.modern-card-content {
-  padding: 18rpx 16rpx 16rpx;
-  /* 🎨 优化：减少内容区域内边距 */
-  position: relative;
-  z-index: 2;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
-  /* 🎨 添加微妙的内容分隔线 */
-  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
+  padding: 16rpx 16rpx 20rpx;
 }
 
-/* 📌 商品标题 */
 .product-title-section {
-  margin-bottom: 12rpx;
-  /* 🎨 优化：减少标题下边距 */
-  position: relative;
+  margin-bottom: 8rpx;
 }
 
 .product-title.waterfall-title.modern-title {
-  font-size: $font-size-base;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1.3;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  word-break: break-all;
-  /* 🎨 添加文字渐变效果 */
-  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: 0.5rpx;
 }
 
-/* 💰 价格区域 - 渐变效果v2.0 */
 .price-section.modern-price-section {
-  margin-bottom: 8rpx;
-  /* 🎨 优化：减少价格区域下边距 */
-  position: relative;
+  margin-bottom: 4rpx;
 }
 
 .price-row.waterfall-price {
   display: flex;
   align-items: baseline;
-  gap: 16rpx;
-  margin-bottom: 10rpx;
+  gap: 8rpx;
 }
 
 .current-price.modern-current-price {
-  font-size: $font-size-lg;
-  font-weight: 900;
-  background: linear-gradient(135deg, #e11d48 0%, #f59e0b 50%, #10b981 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1;
-  /* 🌟 为价格添加发光效果 */
-  filter: drop-shadow(0 4rpx 12rpx rgba(225, 29, 72, 0.25));
-  /* 🎨 为不支持背景裁剪的设备提供后备色 */
-  color: #e11d48;
-  position: relative;
-  letter-spacing: 1rpx;
-}
-
-.current-price.modern-current-price::before {
-  content: '¥';
-  font-size: $font-size-sm;
-  opacity: 0.8;
-  margin-right: 2rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #ff6b35;
 }
 
 .original-price.modern-original-price {
-  font-size: $font-size-sm;
-  color: #94a3b8;
-  text-decoration: line-through;
-  font-weight: 500;
-  position: relative;
-  opacity: 0.7;
-}
-
-.original-price.modern-original-price::before {
-  content: '¥';
-  font-size: 18rpx;
-}
-
-/* ⭐ 评分区域 - 现代化样式 */
-.rating-section.waterfall-stats.modern-stats {
-  @include flex-between;
-}
-
-.rating-stars-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.rating-stars.modern-rating-stars {
-  font-size: $font-size-xs;
-  color: #ffd700;
-  line-height: 1;
-  letter-spacing: 1rpx;
-}
-
-.rating-score.modern-rating-score {
   font-size: 22rpx;
-  color: $color-text-secondary;
-  font-weight: 500;
+  color: #bbb;
+  text-decoration: line-through;
 }
 
-.sales-count.modern-sales-count {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+.sell-point-section {
+  margin-top: 4rpx;
 }
 
-/* 🏪 商家信息 - 现代化样式 */
-.seller-info.modern-seller-info {
-  @include flex-between;
-  font-size: $font-size-xs;
-  color: #888888;
-  margin-top: 8rpx;
-  padding-top: 8rpx;
-  border-top: 1rpx solid $color-border-light;
+.sell-point-text {
+  font-size: 20rpx;
+  color: #999;
 }
 
-.seller-name {
-  font-weight: 500;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.seller-rating {
-  color: #4caf50;
-  font-weight: 600;
-  margin-left: 12rpx;
-}
-
-/* 🏷️ 标签区域 - 底部标签 */
+/* 🏷️ 底部标签 */
 .waterfall-tags.modern-bottom-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8rpx;
-  margin-top: 12rpx;
+  gap: 6rpx;
+  margin-top: 8rpx;
 }
 
 .tag.modern-bottom-tag {
-  background: rgba(255, 107, 53, 0.1);
-  color: $color-primary;
+  background: #fff5f0;
+  color: #ff6b35;
   font-size: 18rpx;
-  padding: 4rpx 8rpx;
-  border-radius: 12rpx;
-  border: 1rpx solid rgba(255, 107, 53, 0.2);
-  font-weight: 500;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
 }
 
-/* 🎭 悬停遮罩 - 现代化效果 */
+/* 遮罩层（点击反馈） */
 .card-hover-mask.modern-hover-mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 107, 53, 0.1);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.waterfall-card.modern-card:active .card-hover-mask.modern-hover-mask {
-  opacity: 1;
+  display: none;
 }
 
 /* ⏳ ========== 加载状态样式 - 方案1设计 ========== */
@@ -810,6 +524,7 @@
 }
 
 @keyframes spinnerBounce {
+
   0%,
   80%,
   100% {
@@ -881,6 +596,7 @@
 }
 
 @keyframes emptyFloat {
+
   0%,
   100% {
     transform: translateY(0);
@@ -928,4 +644,518 @@
 .refresh-text {
   font-size: $font-size-sm;
   color: #888888;
+}
+
+/* ========================================
+   🛒 商品兑换确认弹窗样式（幸运空间/臻选空间专用）
+   ======================================== */
+
+/* 弹窗遮罩层 */
+.shop-confirm-overlay,
+.shop-result-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* 弹窗主体 - 底部弹出式 */
+.shop-confirm-sheet,
+.shop-result-sheet {
+  width: 100%;
+  max-height: 85vh;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 -8rpx 40rpx rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* 弹窗头部 */
+.shop-confirm-header,
+.shop-result-header {
+  position: relative;
+  padding: 36rpx 30rpx 24rpx;
+  display: flex;
+  align-items: center;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.shop-header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border-radius: 32rpx 32rpx 0 0;
+  opacity: 0.08;
+}
+
+.shop-header-content {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.shop-header-icon {
+  font-size: 48rpx;
+}
+
+.shop-header-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.shop-close-btn {
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.shop-close-btn .close-x {
+  font-size: 32rpx;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* 商品预览卡片 */
+.shop-product-preview {
+  display: flex;
+  padding: 30rpx;
+  gap: 24rpx;
+  background: linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%);
+  margin: 20rpx 24rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.shop-preview-img-wrap {
+  position: relative;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.shop-preview-img {
+  width: 100%;
+  height: 100%;
+}
+
+.shop-preview-badges {
+  position: absolute;
+  top: 8rpx;
+  left: 8rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.shop-badge {
+  font-size: 20rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
+  color: #fff;
+}
+
+.shop-badge.hot {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+}
+
+.shop-badge.new {
+  background: linear-gradient(135deg, #43e97b, #38f9d7);
+  color: #1e293b;
+}
+
+.shop-preview-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.shop-preview-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.shop-preview-desc {
+  font-size: 24rpx;
+  color: #64748b;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.shop-preview-sell {
+  font-size: 22rpx;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.shop-preview-price-area {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-top: 4rpx;
+}
+
+.shop-price-label {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.shop-price-value {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #e11d48;
+}
+
+.shop-preview-original {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.shop-original-label {
+  font-size: 22rpx;
+  color: #94a3b8;
+}
+
+.shop-original-value {
+  font-size: 24rpx;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.shop-preview-stock {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.shop-stock-label {
+  font-size: 22rpx;
+  color: #64748b;
+}
+
+.shop-stock-value {
+  font-size: 22rpx;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.shop-stock-value.low-stock {
+  color: #f59e0b;
+}
+
+/* 兑换数量选择 */
+.shop-quantity-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 30rpx;
+  margin: 0 24rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.shop-quantity-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.shop-quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.shop-qty-btn {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 36rpx;
+  font-weight: 700;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  transition: all 0.2s ease;
+}
+
+.shop-qty-btn.disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.shop-qty-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1e293b;
+  min-width: 60rpx;
+  text-align: center;
+}
+
+/* 费用汇总 */
+.shop-cost-summary {
+  margin: 20rpx 24rpx;
+  padding: 24rpx 30rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.shop-cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.shop-cost-row.total {
+  padding-top: 16rpx;
+}
+
+.shop-cost-row.balance {
+  padding-top: 12rpx;
+}
+
+.shop-cost-label {
+  font-size: 26rpx;
+  color: #64748b;
+}
+
+.shop-cost-value {
+  font-size: 26rpx;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.shop-cost-divider {
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent);
+  margin: 12rpx 0;
+}
+
+.shop-cost-total {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #e11d48;
+}
+
+.shop-cost-value.insufficient {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.shop-cost-value.sufficient {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* 底部操作栏 */
+.shop-confirm-actions {
+  display: flex;
+  gap: 20rpx;
+  padding: 24rpx 30rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.shop-cancel-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border-radius: 44rpx !important;
+  font-size: 30rpx !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+.shop-exchange-btn {
+  flex: 2;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff6b35, #f7931e) !important;
+  color: #fff !important;
+  border-radius: 44rpx !important;
+  font-size: 30rpx !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35);
+  transition: all 0.2s ease;
+}
+
+.shop-exchange-btn.exchanging {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.shop-exchange-btn[disabled] {
+  background: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  box-shadow: none;
+}
+
+/* 🎉 兑换成功结果弹窗 */
+.shop-result-header {
+  justify-content: center;
+  padding: 40rpx 30rpx 24rpx;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.shop-result-icon {
+  font-size: 64rpx;
+}
+
+.shop-result-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.shop-result-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30rpx;
+  gap: 16rpx;
+}
+
+.shop-result-success-icon {
+  font-size: 80rpx;
+  margin-bottom: 8rpx;
+}
+
+.shop-result-congrats {
+  font-size: 28rpx;
+  color: #64748b;
+}
+
+.shop-result-product-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+}
+
+.shop-result-details {
+  width: 100%;
+  background: #f8fafc;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-top: 16rpx;
+}
+
+.shop-result-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.shop-result-item .result-label {
+  font-size: 26rpx;
+  color: #64748b;
+}
+
+.shop-result-item .result-value {
+  font-size: 26rpx;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.shop-result-notice {
+  font-size: 26rpx;
+  color: #f59e0b;
+  margin-top: 16rpx;
+  text-align: center;
+  font-weight: 500;
+}
+
+.shop-result-footer {
+  padding: 24rpx 30rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.shop-result-btn {
+  width: 100%;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #fff !important;
+  border-radius: 44rpx !important;
+  font-size: 30rpx !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 8rpx 24rpx rgba(16, 185, 129, 0.35);
 }

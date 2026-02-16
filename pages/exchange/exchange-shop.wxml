@@ -4,541 +4,723 @@
 
 <!-- 🏪 双空间商品兑换系统 -->
 <view wx:if="{{currentTab === 'market'}}" class="dual-space-market">
-  <!-- 🎯 空间切换导航 - 增强版胶囊式切换器 -->
-  <view class="space-selector-enhanced">
-    <view class="selector-track">
-      <!-- 滑动指示器背景 -->
-      <view class="selector-slider {{currentSpace === 'premium' ? 'slide-right' : 'slide-left'}}"></view>
-      <!-- Tab按钮 -->
-      <view
-        class="space-tab-enhanced {{item.id === currentSpace ? 'active' : ''}} {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? 'locked' : ''}}"
-        wx:for="{{spaceList}}" wx:key="id" data-space="{{item.id}}" bindtap="onSpaceChange">
-        <view class="tab-inner">
-          <view class="tab-icon-row">
-            <text class="tab-emoji">{{item.id === 'lucky' ? '🍀' : '💎'}}</text>
-            <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}">
-              {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '🔒 ' : ''}}{{item.name}}
+  <!-- 🔒 固定头部：空间切换导航 - 不随滚动移动 -->
+  <view class="shop-sticky-header">
+    <!-- 🎯 空间切换导航 - 增强版胶囊式切换器 -->
+    <view class="space-selector-enhanced">
+      <view class="selector-track">
+        <!-- 滑动指示器背景 -->
+        <view
+          class="selector-slider {{currentSpace === 'premium' ? 'slide-right' : 'slide-left'}}"
+        ></view>
+        <!-- Tab按钮 -->
+        <view
+          class="space-tab-enhanced {{item.id === currentSpace ? 'active' : ''}} {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? 'locked' : ''}}"
+          wx:for="{{spaceList}}"
+          wx:key="id"
+          data-space="{{item.id}}"
+          bindtap="onSpaceChange"
+        >
+          <view class="tab-inner">
+            <view class="tab-icon-row">
+              <text class="tab-emoji">{{item.id === 'lucky' ? '🍀' : '💎'}}</text>
+              <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}">
+                {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '🔒 ' :
+                ''}}{{item.name}}
+              </text>
+            </view>
+            <text class="tab-desc {{item.id === currentSpace ? 'active-desc' : ''}}">
+              {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '达标可解锁' :
+              item.subtitle}}
             </text>
           </view>
-          <text class="tab-desc {{item.id === currentSpace ? 'active-desc' : ''}}">
-            {{item.id === 'premium' && !premiumUnlockStatus.isUnlocked ? '达标可解锁' :
-            item.subtitle}}
-          </text>
+          <!-- 🔒 臻选空间解锁状态小标签 -->
+          <view
+            wx:if="{{item.id === 'premium'}}"
+            class="unlock-badge {{premiumUnlockStatus.isUnlocked ? 'unlocked' : 'locked'}}"
+          >
+            <text
+              >{{premiumUnlockStatus.isUnlocked ? '已解锁' : (premiumUnlockStatus.canUnlock ?
+              '可解锁' : '未解锁')}}</text
+            >
+          </view>
         </view>
-        <!-- 🔒 臻选空间解锁状态小标签 -->
-        <view wx:if="{{item.id === 'premium'}}"
-          class="unlock-badge {{premiumUnlockStatus.isUnlocked ? 'unlocked' : 'locked'}}">
-          <text>{{premiumUnlockStatus.isUnlocked ? '已解锁' : (premiumUnlockStatus.canUnlock ? '可解锁'
-            : '未解锁')}}</text>
+      </view>
+    </view>
+
+    <!-- 📊 积分信息 + 搜索 + 快捷操作 + 筛选（和交易市场一致，固定在空间切换器下方） -->
+    <view class="header exchange-market-sticky-header">
+      <view class="user-info">
+        <!-- 可用积分 -->
+        <view class="points-info">
+          <text class="points-label">可用积分：</text>
+          <text class="points-value">{{totalPoints}}</text>
+        </view>
+        <!-- 搜索框 - 嵌入积分行中间 -->
+        <view class="header-search-box">
+          <input
+            class="header-search-input"
+            placeholder="搜索商品名称..."
+            value="{{luckySearchKeyword}}"
+            bindinput="onLuckySearchInput"
+          />
+          <text class="header-search-icon">🔍</text>
+        </view>
+        <!-- 快捷操作按钮 -->
+        <view class="header-quick-actions">
+          <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
+          <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
+        </view>
+      </view>
+
+      <!-- 筛选功能 -->
+      <view class="search-filter">
+        <view class="filter-buttons">
+          <button
+            class="filter-btn {{luckyCurrentFilter === 'all' ? 'active' : ''}}"
+            bindtap="onLuckyFilterChange"
+            data-filter="all"
+          >
+            全部({{luckyTotalProducts}})
+          </button>
+          <button
+            class="filter-btn {{luckyCurrentFilter === 'available' ? 'active' : ''}}"
+            bindtap="onLuckyFilterChange"
+            data-filter="available"
+          >
+            可兑换
+          </button>
+          <button
+            class="filter-btn {{luckyCurrentFilter === 'low-price' ? 'active' : ''}}"
+            bindtap="onLuckyFilterChange"
+            data-filter="low-price"
+          >
+            低积分
+          </button>
+          <button
+            class="advanced-filter-btn {{showLuckyAdvancedFilter ? 'active' : ''}}"
+            bindtap="onToggleLuckyAdvancedFilter"
+          >
+            高级筛选 {{showLuckyAdvancedFilter ? '🔼' : '🔽'}}
+          </button>
+        </view>
+
+        <!-- 高级筛选面板 -->
+        <view class="advanced-filter-panel" wx:if="{{showLuckyAdvancedFilter}}">
+          <view class="filter-row">
+            <text class="filter-label">商品分类</text>
+            <view class="filter-options">
+              <button
+                class="option-btn {{luckyCategoryFilter === 'all' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{luckyCategoryFilter === '优惠券' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="优惠券"
+              >
+                优惠券
+              </button>
+              <button
+                class="option-btn {{luckyCategoryFilter === '实物商品' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="实物商品"
+              >
+                实物商品
+              </button>
+              <button
+                class="option-btn {{luckyCategoryFilter === '虚拟物品' ? 'active' : ''}}"
+                bindtap="onLuckyCategoryFilterChange"
+                data-category="虚拟物品"
+              >
+                虚拟物品
+              </button>
+            </view>
+          </view>
+          <view class="filter-row">
+            <text class="filter-label">积分范围</text>
+            <view class="filter-options">
+              <button
+                class="option-btn {{luckyPointsRange === 'all' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '0-500' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="0-500"
+              >
+                0-500分
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '500-1000' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="500-1000"
+              >
+                500-1000分
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '1000-2000' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="1000-2000"
+              >
+                1000-2000分
+              </button>
+              <button
+                class="option-btn {{luckyPointsRange === '2000+' ? 'active' : ''}}"
+                bindtap="onLuckyPointsRangeChange"
+                data-range="2000+"
+              >
+                2000分以上
+              </button>
+            </view>
+          </view>
+          <view class="filter-row">
+            <text class="filter-label">库存状态</text>
+            <view class="filter-options">
+              <button
+                class="option-btn {{luckyStockFilter === 'all' ? 'active' : ''}}"
+                bindtap="onLuckyStockFilterChange"
+                data-filter="all"
+              >
+                全部
+              </button>
+              <button
+                class="option-btn {{luckyStockFilter === 'in-stock' ? 'active' : ''}}"
+                bindtap="onLuckyStockFilterChange"
+                data-filter="in-stock"
+              >
+                库存充足
+              </button>
+              <button
+                class="option-btn {{luckyStockFilter === 'low-stock' ? 'active' : ''}}"
+                bindtap="onLuckyStockFilterChange"
+                data-filter="low-stock"
+              >
+                库存紧张
+              </button>
+            </view>
+          </view>
+          <view class="filter-row">
+            <text class="filter-label">排序方式</text>
+            <view class="filter-options">
+              <button
+                class="option-btn {{luckySortBy === 'default' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="default"
+              >
+                默认
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'points-asc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="points-asc"
+              >
+                积分升序
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'points-desc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="points-desc"
+              >
+                积分降序
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'rating-desc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="rating-desc"
+              >
+                评分降序
+              </button>
+              <button
+                class="option-btn {{luckySortBy === 'stock-desc' ? 'active' : ''}}"
+                bindtap="onLuckySortByChange"
+                data-sort="stock-desc"
+              >
+                库存降序
+              </button>
+            </view>
+          </view>
+          <view class="filter-actions">
+            <button class="reset-btn" bindtap="onResetLuckyFilters">重置筛选</button>
+          </view>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 🍀 幸运空间 - 瀑布流卡片布局 -->
-  <view wx:if="{{currentSpace === 'lucky'}}" class="lucky-space-content waterfall-market-container">
-    <!-- 🌟 空间标题区 - 增强版带实时统计 -->
-    <view class="space-header lucky-header modern-header">
-      <view class="header-background-modern"></view>
-      <view class="header-content modern-content">
-        <view class="space-info modern-info">
-          <text class="space-title modern-title">🍀 幸运空间</text>
-          <text class="space-description modern-description">瀑布流精选，幸运好物等你发现</text>
-        </view>
-        <!-- 📊 实时数据统计条 -->
-        <view class="lucky-stats-bar">
-          <view class="lucky-stat-chip">
-            <text class="chip-icon">🆕</text>
-            <text class="chip-value">{{luckySpaceStats.new_count || 0}}</text>
-            <text class="chip-label">件商品</text>
+  <!-- 🔒 可滚动内容区域 - 商品列表随滚动移动（含下拉刷新） -->
+  <scroll-view
+    class="shop-scroll-body"
+    scroll-y="{{true}}"
+    enhanced="{{true}}"
+    show-scrollbar="{{false}}"
+    refresher-enabled="{{true}}"
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onScrollViewRefresh"
+  >
+    <!-- 🍀 幸运空间 - 瀑布流卡片布局 -->
+    <view
+      wx:if="{{currentSpace === 'lucky'}}"
+      class="lucky-space-content waterfall-market-container"
+    >
+      <!-- 🌊 商品网格容器（Flex两列布局） -->
+      <view
+        class="waterfall-container modern-waterfall"
+        wx:if="{{!loading && ((luckyFilteredProducts && luckyFilteredProducts.length > 0) || (waterfallProducts && waterfallProducts.length > 0))}}"
+      >
+        <view
+          class="product-card waterfall-card modern-card"
+          wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}"
+          wx:key="exchange_item_id"
+          style="width: calc(50% - 12rpx); margin-bottom: 16rpx"
+          data-product="{{item}}"
+          bindtap="onProductTap"
+        >
+          <!-- 图片区域 -->
+          <view class="card-image-container modern-image-container">
+            <image
+              class="product-image card-image waterfall-image"
+              src="{{item.image}}"
+              mode="aspectFill"
+              lazy-load="{{true}}"
+            />
+            <!-- 图片加载失败时的占位 -->
+            <view
+              class="image-placeholder"
+              wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}"
+            >
+              <text>🎁</text>
+            </view>
+            <!-- 标签（使用后端 exchange_items 表 snake_case 字段） -->
+            <view class="product-tags modern-tags" wx:if="{{item.is_hot || item.is_new}}">
+              <text class="product-tag modern-tag hot-tag" wx:if="{{item.is_hot}}">热销</text>
+              <text class="product-tag modern-tag new-tag" wx:if="{{item.is_new}}">新品</text>
+            </view>
+            <view class="lucky-badge modern-lucky-badge" wx:if="{{item.is_lucky}}">🍀</view>
+            <view class="sales-badge modern-sales-badge" wx:if="{{item.sold_count > 0}}">
+              <text class="sales-text">已售{{item.sold_count}}</text>
+            </view>
           </view>
-          <view class="lucky-stat-chip highlight">
-            <text class="chip-icon">🔥</text>
-            <text class="chip-value">{{luckySpaceStats.flash_deals || 0}}</text>
-            <text class="chip-label">件热门</text>
-          </view>
-          <view class="lucky-stat-chip">
-            <text class="chip-icon">💰</text>
-            <text class="chip-value">{{luckySpaceStats.avg_discount || 0}}%</text>
-            <text class="chip-label">均折扣</text>
-          </view>
-        </view>
-      </view>
-    </view>
 
-    <!-- 🔍 搜索和筛选功能模块 -->
-    <view class="search-filter-section">
-      <view class="search-box">
-        <input class="search-input" placeholder="搜索商品名称..." value="{{luckySearchKeyword}}"
-          bindinput="onLuckySearchInput" />
-        <text class="search-icon">🔍</text>
-      </view>
-
-      <view class="filter-buttons">
-        <button class="filter-btn {{luckyCurrentFilter === 'all' ? 'active' : ''}}" bindtap="onLuckyFilterChange"
-          data-filter="all">
-          全部
-        </button>
-        <button class="filter-btn {{luckyCurrentFilter === 'available' ? 'active' : ''}}" bindtap="onLuckyFilterChange"
-          data-filter="available">
-          可兑换
-        </button>
-        <button class="filter-btn {{luckyCurrentFilter === 'low-price' ? 'active' : ''}}" bindtap="onLuckyFilterChange"
-          data-filter="low-price">
-          低积分
-        </button>
-        <button class="advanced-filter-btn {{showLuckyAdvancedFilter ? 'active' : ''}}"
-          bindtap="onToggleLuckyAdvancedFilter">
-          高级筛选 {{showLuckyAdvancedFilter ? '🔼' : '🔽'}}
-        </button>
-      </view>
-
-      <!-- 高级筛选面板 -->
-      <view class="advanced-filter-panel" wx:if="{{showLuckyAdvancedFilter}}">
-        <view class="filter-row">
-          <text class="filter-label">商品分类</text>
-          <view class="filter-options">
-            <button class="option-btn {{luckyCategoryFilter === 'all' ? 'active' : ''}}"
-              bindtap="onLuckyCategoryFilterChange" data-category="all">
-              全部
-            </button>
-            <button class="option-btn {{luckyCategoryFilter === '优惠券' ? 'active' : ''}}"
-              bindtap="onLuckyCategoryFilterChange" data-category="优惠券">
-              优惠券
-            </button>
-            <button class="option-btn {{luckyCategoryFilter === '实物商品' ? 'active' : ''}}"
-              bindtap="onLuckyCategoryFilterChange" data-category="实物商品">
-              实物商品
-            </button>
-            <button class="option-btn {{luckyCategoryFilter === '虚拟物品' ? 'active' : ''}}"
-              bindtap="onLuckyCategoryFilterChange" data-category="虚拟物品">
-              虚拟物品
-            </button>
-          </view>
-        </view>
-        <view class="filter-row">
-          <text class="filter-label">积分范围</text>
-          <view class="filter-options">
-            <button class="option-btn {{luckyPointsRange === 'all' ? 'active' : ''}}" bindtap="onLuckyPointsRangeChange"
-              data-range="all">
-              全部
-            </button>
-            <button class="option-btn {{luckyPointsRange === '0-500' ? 'active' : ''}}"
-              bindtap="onLuckyPointsRangeChange" data-range="0-500">
-              0-500分
-            </button>
-            <button class="option-btn {{luckyPointsRange === '500-1000' ? 'active' : ''}}"
-              bindtap="onLuckyPointsRangeChange" data-range="500-1000">
-              500-1000分
-            </button>
-            <button class="option-btn {{luckyPointsRange === '1000-2000' ? 'active' : ''}}"
-              bindtap="onLuckyPointsRangeChange" data-range="1000-2000">
-              1000-2000分
-            </button>
-            <button class="option-btn {{luckyPointsRange === '2000+' ? 'active' : ''}}"
-              bindtap="onLuckyPointsRangeChange" data-range="2000+">
-              2000分以上
-            </button>
-          </view>
-        </view>
-        <view class="filter-row">
-          <text class="filter-label">库存状态</text>
-          <view class="filter-options">
-            <button class="option-btn {{luckyStockFilter === 'all' ? 'active' : ''}}" bindtap="onLuckyStockFilterChange"
-              data-filter="all">
-              全部
-            </button>
-            <button class="option-btn {{luckyStockFilter === 'in-stock' ? 'active' : ''}}"
-              bindtap="onLuckyStockFilterChange" data-filter="in-stock">
-              库存充足
-            </button>
-            <button class="option-btn {{luckyStockFilter === 'low-stock' ? 'active' : ''}}"
-              bindtap="onLuckyStockFilterChange" data-filter="low-stock">
-              库存紧张
-            </button>
-          </view>
-        </view>
-        <view class="filter-row">
-          <text class="filter-label">排序方式</text>
-          <view class="filter-options">
-            <button class="option-btn {{luckySortBy === 'default' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-              data-sort="default">
-              默认
-            </button>
-            <button class="option-btn {{luckySortBy === 'points-asc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-              data-sort="points-asc">
-              积分升序
-            </button>
-            <button class="option-btn {{luckySortBy === 'points-desc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-              data-sort="points-desc">
-              积分降序
-            </button>
-            <button class="option-btn {{luckySortBy === 'rating-desc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-              data-sort="rating-desc">
-              评分降序
-            </button>
-            <button class="option-btn {{luckySortBy === 'stock-desc' ? 'active' : ''}}" bindtap="onLuckySortByChange"
-              data-sort="stock-desc">
-              库存降序
-            </button>
-          </view>
-        </view>
-        <view class="filter-actions">
-          <button class="reset-btn" bindtap="onResetLuckyFilters">重置筛选</button>
-        </view>
-      </view>
-    </view>
-
-    <!-- 🌊 瀑布流主容器 -->
-    <view class="waterfall-container modern-waterfall" style="height: {{containerHeight}}px;">
-      <view class="product-card waterfall-card modern-card"
-        wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}" wx:key="exchange_item_id"
-        style="position: absolute; left: {{item.layoutInfo.left}}px; top: {{item.layoutInfo.top}}px; width: {{item.layoutInfo.width}}px; z-index: {{item.layoutInfo.zIndex || 1}};"
-        data-product="{{item}}" bindtap="onProductTap">
-        <view class="card-image-container modern-image-container">
-          <image class="product-image card-image waterfall-image" src="{{item.image}}" mode="aspectFill"
-            lazy-load="{{true}}" data-product-id="{{item.exchange_item_id}}" show-menu-by-longpress="{{false}}" />
-          <view class="product-tags modern-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-            <text class="product-tag modern-tag {{item.isHot ? 'hot-tag' : ''}} {{item.isNew ? 'new-tag' : ''}}"
-              wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
-          </view>
-          <view class="lucky-badge modern-lucky-badge" wx:if="{{item.isLucky}}">🍀</view>
-          <view class="sales-badge modern-sales-badge" wx:if="{{item.soldCount > 0}}">
-            <text class="sales-text">已售{{item.soldCount}}</text>
-          </view>
-        </view>
-
-        <view class="card-content modern-card-content">
-          <view class="product-title-section">
+          <!-- 商品信息 -->
+          <view class="card-content modern-card-content">
             <text class="product-title waterfall-title modern-title">{{item.item_name}}</text>
-          </view>
-          <view class="price-section modern-price-section">
             <view class="price-row waterfall-price">
-              <text class="current-price modern-current-price">{{item.price}} {{item.costAssetCode === 'POINTS' ? '积分' : item.costAssetCode}}</text>
-              <text class="original-price modern-original-price"
-                wx:if="{{item.originalPrice && item.originalPrice > item.price}}">{{item.originalPrice}}</text>
+              <text class="current-price modern-current-price"
+                >{{item.cost_amount}} {{item.cost_asset_code === 'POINTS' ? '积分' :
+                item.cost_asset_code}}</text
+              >
             </view>
-            <view class="sell-point-section" wx:if="{{item.sellPoint}}">
-              <text class="sell-point-text">{{item.sellPoint}}</text>
+            <view wx:if="{{item.stock > 0}}" style="margin-top: 4rpx">
+              <text style="font-size: 20rpx; color: #999">库存 {{item.stock}}</text>
             </view>
           </view>
-          <view class="waterfall-tags modern-bottom-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-            <text class="tag modern-bottom-tag" wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+        </view>
+      </view>
+
+      <!-- ⏳ 加载状态 -->
+      <view class="loading-section modern-loading" wx:if="{{loading}}">
+        <view class="loading-content modern-loading-content">
+          <view class="loading-spinner modern-spinner">
+            <view class="spinner-dot dot1"></view>
+            <view class="spinner-dot dot2"></view>
+            <view class="spinner-dot dot3"></view>
+          </view>
+          <text class="loading-text modern-loading-text">幸运好物加载中...</text>
+        </view>
+      </view>
+
+      <!-- 📖 幸运空间分页导航 -->
+      <view class="pagination" wx:if="{{!loading && luckyTotalProducts > 0}}">
+        <view class="pagination-info">
+          <text
+            >第 {{luckyCurrentPage}} 页，共 {{luckyTotalPages}} 页 | 共 {{luckyTotalProducts}}
+            件商品</text
+          >
+        </view>
+        <view class="pagination-row unified-controls">
+          <button
+            class="page-btn prev-btn {{luckyCurrentPage === 1 ? 'disabled' : ''}}"
+            bindtap="onLuckyPrevPage"
+            disabled="{{luckyCurrentPage === 1}}"
+          >
+            ← 上一页
+          </button>
+          <view class="page-jump center-jump">
+            <text>跳转到第</text>
+            <input
+              class="page-input"
+              type="number"
+              placeholder="{{luckyCurrentPage}}"
+              value="{{luckyPageInputValue}}"
+              bindinput="onLuckyPageInputChange"
+              bindconfirm="onLuckyPageInputConfirm"
+            />
+            <text>页</text>
+          </view>
+          <button
+            class="page-btn next-btn {{luckyCurrentPage === luckyTotalPages ? 'disabled' : ''}}"
+            bindtap="onLuckyNextPage"
+            disabled="{{luckyCurrentPage === luckyTotalPages}}"
+          >
+            下一页 →
+          </button>
+          <view class="page-numbers inline-numbers">
+            <block wx:if="{{luckyTotalPages <= 7}}">
+              <block wx:for="{{luckyTotalPages}}" wx:key="*this">
+                <button
+                  class="page-number {{luckyCurrentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onLuckyPageChange"
+                  data-page="{{item + 1}}"
+                >
+                  {{item + 1}}
+                </button>
+              </block>
+            </block>
+            <block wx:else>
+              <button
+                class="page-number {{luckyCurrentPage === 1 ? 'active' : ''}}"
+                bindtap="onLuckyPageChange"
+                data-page="1"
+              >
+                1
+              </button>
+              <text class="page-ellipsis" wx:if="{{luckyCurrentPage > 4}}">...</text>
+              <block wx:for="{{luckyTotalPages}}" wx:key="*this">
+                <button
+                  class="page-number {{luckyCurrentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onLuckyPageChange"
+                  data-page="{{item + 1}}"
+                  wx:if="{{(item + 1) > 1 && (item + 1) < luckyTotalPages && (item + 1) >= (luckyCurrentPage - 2) && (item + 1) <= (luckyCurrentPage + 2)}}"
+                >
+                  {{item + 1}}
+                </button>
+              </block>
+              <text class="page-ellipsis" wx:if="{{luckyCurrentPage < luckyTotalPages - 3}}"
+                >...</text
+              >
+              <button
+                class="page-number {{luckyCurrentPage === luckyTotalPages ? 'active' : ''}}"
+                bindtap="onLuckyPageChange"
+                data-page="{{luckyTotalPages}}"
+                wx:if="{{luckyTotalPages > 1}}"
+              >
+                {{luckyTotalPages}}
+              </button>
+            </block>
           </view>
         </view>
-        <view class="card-hover-mask modern-hover-mask"></view>
       </view>
-    </view>
 
-    <!-- ⏳ 加载状态 -->
-    <view class="loading-section modern-loading" wx:if="{{loading}}">
-      <view class="loading-content modern-loading-content">
-        <view class="loading-spinner modern-spinner">
-          <view class="spinner-dot dot1"></view>
-          <view class="spinner-dot dot2"></view>
-          <view class="spinner-dot dot3"></view>
+      <!-- 🚫 空状态 -->
+      <view
+        class="empty-state modern-empty"
+        wx:if="{{!loading && luckyFilteredProducts.length === 0 && waterfallProducts.length === 0}}"
+      >
+        <view class="empty-content modern-empty-content">
+          <text class="empty-icon modern-empty-icon">🍀</text>
+          <text class="empty-title modern-empty-title">幸运空间准备中</text>
+          <text class="empty-subtitle modern-empty-subtitle">好运即将到来，请稍后再试</text>
+          <button class="empty-retry-btn modern-retry-btn" bindtap="initLuckySpaceData" size="mini">
+            重新加载
+          </button>
         </view>
-        <text class="loading-text modern-loading-text">幸运好物加载中...</text>
       </view>
     </view>
 
-    <!-- 📊 无更多数据提示 -->
-    <view class="no-more-data modern-no-more"
-      wx:if="{{!loading && (luckyFilteredProducts.length > 0 || waterfallProducts.length > 0) && !hasMore}}">
-      <view class="no-more-content">
-        <text class="no-more-icon">🎉</text>
-        <text class="no-more-text">已加载全部幸运好物</text>
-        <text class="no-more-subtitle">共{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts.length :
-          waterfallProducts.length}}件商品等你发现</text>
+    <!-- 💎 臻选空间 - 双列网格布局（与幸运空间统一风格） -->
+    <view
+      wx:if="{{currentSpace === 'premium'}}"
+      class="premium-space-content premium-grid-container"
+    >
+      <!-- ⏳ 加载状态 -->
+      <view class="premium-loading" wx:if="{{loading}}">
+        <view class="premium-loading-inner">
+          <view class="premium-spinner">
+            <view class="spinner-ring"></view>
+          </view>
+          <text class="premium-loading-text">臻选好物加载中...</text>
+        </view>
       </view>
-    </view>
 
-    <!-- 🚫 空状态 -->
-    <view class="empty-state modern-empty"
-      wx:if="{{!loading && luckyFilteredProducts.length === 0 && waterfallProducts.length === 0}}">
-      <view class="empty-content modern-empty-content">
-        <text class="empty-icon modern-empty-icon">🍀</text>
-        <text class="empty-title modern-empty-title">幸运空间准备中</text>
-        <text class="empty-subtitle modern-empty-subtitle">好运即将到来，请稍后再试</text>
-        <button class="empty-retry-btn modern-retry-btn" bindtap="initLuckySpaceData" size="mini">
+      <!-- 🌊 臻选商品网格容器（Flex两列布局，与幸运空间一致） -->
+      <view
+        class="waterfall-container premium-waterfall"
+        wx:if="{{!loading && premiumFilteredProducts && premiumFilteredProducts.length > 0}}"
+      >
+        <view
+          class="product-card waterfall-card premium-card"
+          wx:for="{{premiumFilteredProducts}}"
+          wx:key="exchange_item_id"
+          style="width: calc(50% - 12rpx); margin-bottom: 16rpx"
+          data-product="{{item}}"
+          bindtap="onProductTap"
+        >
+          <!-- 图片区域 -->
+          <view class="card-image-container premium-image-container">
+            <image
+              class="product-image card-image waterfall-image"
+              src="{{item.image}}"
+              mode="aspectFill"
+              lazy-load="{{true}}"
+            />
+            <!-- 图片加载失败时的占位 -->
+            <view
+              class="image-placeholder"
+              wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}"
+            >
+              <text>💎</text>
+            </view>
+            <!-- 标签（使用后端 exchange_items 表 snake_case 字段） -->
+            <view class="product-tags premium-tags" wx:if="{{item.is_hot || item.is_new}}">
+              <text class="product-tag premium-tag hot-tag" wx:if="{{item.is_hot}}">🔥 热销</text>
+              <text class="product-tag premium-tag new-tag" wx:if="{{item.is_new}}">✨ 新品</text>
+            </view>
+            <view class="sales-badge premium-sales-badge" wx:if="{{item.sold_count > 0}}">
+              <text class="sales-text">已售{{item.sold_count}}</text>
+            </view>
+          </view>
+
+          <!-- 商品信息 -->
+          <view class="card-content premium-card-content">
+            <text class="product-title waterfall-title premium-title">{{item.item_name}}</text>
+            <view class="price-row waterfall-price">
+              <text class="current-price premium-current-price"
+                >{{item.cost_amount}} {{item.cost_asset_code === 'POINTS' ? '积分' :
+                item.cost_asset_code}}</text
+              >
+              <text class="original-price premium-original-price" wx:if="{{item.original_price}}"
+                >{{item.original_price}}</text
+              >
+            </view>
+            <view wx:if="{{item.stock > 0}}" style="margin-top: 4rpx">
+              <text style="font-size: 20rpx; color: #999">库存 {{item.stock}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 🎯 竞价商品区域 — 后端API: GET /api/v4/backpack/bid/products -->
+      <view
+        class="bid-section-enhanced"
+        wx:if="{{biddingProducts && biddingProducts.length > 0 && !loading}}"
+      >
+        <!-- 区域头部：标题 + 竞价历史入口 -->
+        <view class="section-header-enhanced bid-section-header">
+          <view class="section-header-left">
+            <view class="section-dot bid-dot"></view>
+            <text class="section-title-text">🎯 竞价拍卖</text>
+          </view>
+          <view class="bid-header-right">
+            <text class="bid-live-dot"></text>
+            <text class="bid-live-text">{{biddingProducts.length}}件竞拍中</text>
+          </view>
+        </view>
+
+        <!-- 双列卡片网格布局 -->
+        <view class="bid-card-grid">
+          <view
+            class="bid-card {{item.status === 'active' ? 'bid-card-active' : 'bid-card-pending'}}"
+            wx:for="{{biddingProducts}}"
+            wx:key="bid_product_id"
+            data-product="{{item}}"
+            bindtap="onBidTap"
+          >
+            <!-- 商品图片区域 -->
+            <view class="bid-card-img-wrap">
+              <image
+                class="bid-card-img"
+                src="{{item.image}}"
+                mode="aspectFill"
+                lazy-load="{{true}}"
+                wx:if="{{item.image && item.image !== '/images/products/default-product.png'}}"
+              />
+              <view
+                wx:else
+                style="
+                  width: 100%;
+                  height: 100%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+                  font-size: 50rpx;
+                "
+              >
+                <text>🎯</text>
+              </view>
+              <!-- 状态标签（左上角） -->
+              <view class="bid-card-status {{item.status}}">
+                <text class="bid-card-status-dot"></text>
+                <text
+                  >{{item.status === 'active' ? '竞价中' : (item.status === 'pending' ? '即将开始' :
+                  '已结束')}}</text
+                >
+              </view>
+              <!-- 出价热度（右上角） -->
+              <view class="bid-card-heat" wx:if="{{item.bid_count > 0}}">
+                <text>🔥 {{item.bid_count}}</text>
+              </view>
+            </view>
+
+            <!-- 商品信息区域 -->
+            <view class="bid-card-body">
+              <text class="bid-card-name">{{item.item_name}}</text>
+
+              <!-- 当前价格高亮显示 -->
+              <view class="bid-card-price-block">
+                <text class="bid-card-price-label">当前价</text>
+                <view class="bid-card-price-main">
+                  <text class="bid-card-price-num">{{item.current_price || item.start_price}}</text>
+                  <text class="bid-card-price-unit">{{item.price_asset_code || 'DIAMOND'}}</text>
+                </view>
+              </view>
+
+              <!-- 竞价热度进度条 -->
+              <view class="bid-card-heat-bar" wx:if="{{item.bid_count > 0}}">
+                <view class="heat-bar-track">
+                  <view
+                    class="heat-bar-fill"
+                    style="width: {{item.bid_count > 10 ? 100 : item.bid_count * 10}}%"
+                  >
+                  </view>
+                </view>
+                <text class="heat-bar-label"
+                  >{{item.bid_count > 10 ? '超火爆' : (item.bid_count > 5 ? '火热竞拍' :
+                  '参与竞拍')}}</text
+                >
+              </view>
+
+              <!-- 倒计时（竞价中状态显示） -->
+              <view
+                class="bid-card-countdown"
+                wx:if="{{item.status === 'active' && item._countdownText}}"
+              >
+                <text class="countdown-icon">⏱</text>
+                <text class="countdown-text">{{item._countdownText}}</text>
+              </view>
+
+              <!-- 出价按钮 -->
+              <button
+                class="bid-card-btn {{item.status !== 'active' ? 'btn-disabled' : ''}}"
+                catchtap="onBidTap"
+                data-product="{{item}}"
+              >
+                <text
+                  >{{item.status === 'active' ? '立即出价' : (item.status === 'pending' ? '即将开始'
+                  : '已结束')}}</text
+                >
+              </button>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 📖 臻选空间分页导航 -->
+      <view class="pagination" wx:if="{{!loading && premiumTotalProducts > 0}}">
+        <view class="pagination-info">
+          <text
+            >第 {{premiumCurrentPage}} 页，共 {{premiumTotalPages}} 页 | 共 {{premiumTotalProducts}}
+            件商品</text
+          >
+        </view>
+        <view class="pagination-row unified-controls">
+          <button
+            class="page-btn prev-btn {{premiumCurrentPage === 1 ? 'disabled' : ''}}"
+            bindtap="onPremiumPrevPage"
+            disabled="{{premiumCurrentPage === 1}}"
+          >
+            ← 上一页
+          </button>
+          <view class="page-jump center-jump">
+            <text>跳转到第</text>
+            <input
+              class="page-input"
+              type="number"
+              placeholder="{{premiumCurrentPage}}"
+              value="{{premiumPageInputValue}}"
+              bindinput="onPremiumPageInputChange"
+              bindconfirm="onPremiumPageInputConfirm"
+            />
+            <text>页</text>
+          </view>
+          <button
+            class="page-btn next-btn {{premiumCurrentPage === premiumTotalPages ? 'disabled' : ''}}"
+            bindtap="onPremiumNextPage"
+            disabled="{{premiumCurrentPage === premiumTotalPages}}"
+          >
+            下一页 →
+          </button>
+          <view class="page-numbers inline-numbers">
+            <block wx:if="{{premiumTotalPages <= 7}}">
+              <block wx:for="{{premiumTotalPages}}" wx:key="*this">
+                <button
+                  class="page-number {{premiumCurrentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onPremiumPageChange"
+                  data-page="{{item + 1}}"
+                >
+                  {{item + 1}}
+                </button>
+              </block>
+            </block>
+            <block wx:else>
+              <button
+                class="page-number {{premiumCurrentPage === 1 ? 'active' : ''}}"
+                bindtap="onPremiumPageChange"
+                data-page="1"
+              >
+                1
+              </button>
+              <text class="page-ellipsis" wx:if="{{premiumCurrentPage > 4}}">...</text>
+              <block wx:for="{{premiumTotalPages}}" wx:key="*this">
+                <button
+                  class="page-number {{premiumCurrentPage === (item + 1) ? 'active' : ''}}"
+                  bindtap="onPremiumPageChange"
+                  data-page="{{item + 1}}"
+                  wx:if="{{(item + 1) > 1 && (item + 1) < premiumTotalPages && (item + 1) >= (premiumCurrentPage - 2) && (item + 1) <= (premiumCurrentPage + 2)}}"
+                >
+                  {{item + 1}}
+                </button>
+              </block>
+              <text class="page-ellipsis" wx:if="{{premiumCurrentPage < premiumTotalPages - 3}}"
+                >...</text
+              >
+              <button
+                class="page-number {{premiumCurrentPage === premiumTotalPages ? 'active' : ''}}"
+                bindtap="onPremiumPageChange"
+                data-page="{{premiumTotalPages}}"
+                wx:if="{{premiumTotalPages > 1}}"
+              >
+                {{premiumTotalPages}}
+              </button>
+            </block>
+          </view>
+        </view>
+      </view>
+
+      <!-- 🚫 空状态（臻选商品和竞价商品都为空时显示） -->
+      <view
+        class="premium-empty-state"
+        wx:if="{{!loading && (!premiumFilteredProducts || premiumFilteredProducts.length === 0) && (!biddingProducts || biddingProducts.length === 0)}}"
+      >
+        <view class="empty-diamond-icon">
+          <text class="diamond-emoji">💎</text>
+          <view class="diamond-ring"></view>
+        </view>
+        <text class="empty-main-text">臻选空间即将精彩呈现</text>
+        <text class="empty-sub-text">精品好物和竞价拍卖即将上架</text>
+        <button class="empty-retry-btn modern-retry-btn" bindtap="initPremiumSpaceData" size="mini">
           重新加载
         </button>
       </view>
     </view>
-
-    <!-- 🔄 下拉刷新提示 -->
-    <view class="refresh-hint modern-refresh-hint"
-      wx:if="{{!loading && (luckyFilteredProducts.length > 0 || waterfallProducts.length > 0)}}">
-      <text class="refresh-text">下拉刷新获取更多幸运好物</text>
-    </view>
-  </view>
-
-  <!-- 💎 臻选空间 - 三层混合展示布局（增强版） -->
-  <view wx:if="{{currentSpace === 'premium'}}" class="premium-space-content mixed-layout">
-    <!-- 头部区域 - 渐变背景 + 统计面板 -->
-    <view class="premium-hero-header">
-      <view class="hero-bg-layer"></view>
-      <view class="hero-particles"></view>
-      <view class="hero-content">
-        <view class="hero-title-area">
-          <text class="hero-icon">💎</text>
-          <view class="hero-text">
-            <text class="hero-title">臻选空间</text>
-            <text class="hero-subtitle">精品汇聚 · 品质之选</text>
-          </view>
-        </view>
-        <!-- 统计面板 -->
-        <view class="hero-stats-panel">
-          <view class="hero-stat">
-            <text class="hero-stat-num">{{carouselItems.length + cardSections.length + listProducts.length}}+</text>
-            <text class="hero-stat-label">精品数量</text>
-          </view>
-          <view class="hero-stat-divider"></view>
-          <view class="hero-stat">
-            <text class="hero-stat-num">{{premiumSpaceStats.avg_rating || '5.0'}}</text>
-            <text class="hero-stat-label">平均评分</text>
-          </view>
-          <view class="hero-stat-divider"></view>
-          <view class="hero-stat">
-            <text class="hero-stat-num">{{premiumSpaceStats.trending_count || 0}}</text>
-            <text class="hero-stat-label">热门趋势</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- ⏳ 加载状态 -->
-    <view class="premium-loading" wx:if="{{loading}}">
-      <view class="premium-loading-inner">
-        <view class="premium-spinner">
-          <view class="spinner-ring"></view>
-        </view>
-        <text class="premium-loading-text">臻选好物加载中...</text>
-      </view>
-    </view>
-
-    <!-- 第一层：轮播推荐区 - 增强版 -->
-    <view class="carousel-section-enhanced" wx:if="{{carouselItems && carouselItems.length > 0 && !loading}}">
-      <view class="section-header-enhanced">
-        <view class="section-header-left">
-          <view class="section-dot"></view>
-          <text class="section-title-text">🎠 精选推荐</text>
-        </view>
-        <text class="section-subtitle-text">品质之选，值得拥有</text>
-      </view>
-      <swiper class="premium-carousel-enhanced" autoplay="{{autoPlay}}"
-        interval="{{mixedLayoutConfig.carouselInterval || 4000}}" duration="600" circular="{{true}}"
-        indicator-dots="{{false}}" current="{{carouselActiveIndex}}" bindchange="onCarouselChange"
-        previous-margin="30rpx" next-margin="30rpx" easing-function="easeInOutCubic">
-        <swiper-item wx:for="{{carouselItems}}" wx:key="exchange_item_id" class="carousel-item-enhanced" data-product="{{item}}"
-          bindtap="onProductTap">
-          <view class="carousel-card-enhanced">
-            <image class="carousel-img" src="{{item.image}}" mode="aspectFill"></image>
-            <view class="carousel-gradient-overlay"></view>
-            <view class="carousel-info-layer">
-              <view class="carousel-badges-row">
-                <text class="carousel-badge hot" wx:if="{{item.is_hot}}">🔥 热销</text>
-                <text class="carousel-badge new" wx:if="{{item.is_new}}">✨ 新品</text>
-              </view>
-              <text class="carousel-name">{{item.item_name}}</text>
-              <text class="carousel-desc">{{item.description}}</text>
-              <view class="carousel-bottom-row">
-                <view class="carousel-price-area">
-                  <text class="carousel-price-now">{{item.cost_amount}} {{item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code}}</text>
-                  <text class="carousel-price-old" wx:if="{{item.original_price}}">{{item.original_price}}</text>
-                </view>
-                <view class="carousel-action-hint">
-                  <text>查看详情 →</text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </swiper-item>
-      </swiper>
-      <!-- 自定义指示器 -->
-      <view class="carousel-dots-custom">
-        <view class="dot-item {{carouselActiveIndex === index ? 'active' : ''}}" wx:for="{{carouselItems}}" wx:key="exchange_item_id">
-        </view>
-      </view>
-    </view>
-
-    <!-- 第二层：横向滑动卡片组 - 增强版 -->
-    <view class="card-sections-enhanced" wx:if="{{cardSections && cardSections.length > 0 && !loading}}">
-      <view class="card-section-group" wx:for="{{cardSections}}" wx:key="id" wx:for-item="section">
-        <view class="section-header-enhanced card-group-header">
-          <view class="section-header-left">
-            <text class="section-icon-text">{{section.icon}}</text>
-            <view class="section-title-block">
-              <text class="section-title-text">{{section.title}}</text>
-              <text class="section-subtitle-text">{{section.subtitle}}</text>
-            </view>
-          </view>
-          <text class="section-more-text">查看更多 ></text>
-        </view>
-        <scroll-view class="card-scroll-enhanced" scroll-x enhanced show-scrollbar="{{false}}">
-          <view class="card-row">
-            <view class="product-card-h" wx:for="{{section.products}}" wx:key="exchange_item_id" wx:for-item="product"
-              data-product="{{product}}" bindtap="onProductTap">
-              <view class="card-h-img-wrap">
-                <image class="card-h-img" src="{{product.image}}" mode="aspectFill"></image>
-                <view class="card-h-badges">
-                  <text class="card-h-badge hot" wx:if="{{product.isHot}}">热销</text>
-                  <text class="card-h-badge new" wx:if="{{product.isNew}}">新品</text>
-                </view>
-              </view>
-              <view class="card-h-body">
-                <text class="card-h-name">{{product.item_name}}</text>
-                <text class="card-h-sell" wx:if="{{product.sellPoint}}">{{product.sellPoint}}</text>
-                <view class="card-h-price-row">
-                  <text class="card-h-price">{{product.cost_amount}} {{product.cost_asset_code === 'POINTS' ? '积分' : product.cost_asset_code}}</text>
-                  <text class="card-h-old-price" wx:if="{{product.original_price}}">{{product.original_price}}</text>
-                </view>
-                <view class="card-h-meta">
-                  <text class="card-h-stock">库存{{product.stock}}</text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </scroll-view>
-      </view>
-    </view>
-
-    <!-- 第三层：详细列表区 - 增强版 -->
-    <view class="list-section-enhanced" wx:if="{{listProducts && listProducts.length > 0 && !loading}}">
-      <view class="section-header-enhanced">
-        <view class="section-header-left">
-          <view class="section-dot"></view>
-          <text class="section-title-text">📝 更多精品</text>
-        </view>
-        <text class="section-subtitle-text">详细信息，理性选择</text>
-      </view>
-      <view class="list-container-enhanced">
-        <view class="list-row-item" wx:for="{{listProducts}}" wx:key="exchange_item_id" data-product="{{item}}"
-          bindtap="onProductTap">
-          <view class="list-row-img-wrap">
-            <image class="list-row-img" src="{{item.image}}" mode="aspectFill"></image>
-            <view class="list-row-rank" wx:if="{{index < 3}}">
-              <text>TOP{{index + 1}}</text>
-            </view>
-          </view>
-          <view class="list-row-body">
-            <view class="list-row-top">
-              <text class="list-row-name">{{item.item_name}}</text>
-              <view class="list-row-tags">
-                <text class="list-tag warranty" wx:if="{{item.has_warranty}}">质保</text>
-                <text class="list-tag shipping" wx:if="{{item.free_shipping}}">包邮</text>
-              </view>
-            </view>
-            <text class="list-row-desc">{{item.description}}</text>
-            <view class="list-row-bottom">
-              <view class="list-row-price-area">
-                <text class="list-row-price">{{item.cost_amount}} {{item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code}}</text>
-                <text class="list-row-old-price" wx:if="{{item.original_price}}">{{item.original_price}}</text>
-              </view>
-              <view class="list-row-action">
-                <text class="action-text">立即查看</text>
-              </view>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 🎯 竞价商品区域 — 后端API: GET /api/v4/backpack/bid/products -->
-    <view class="bid-section-enhanced" wx:if="{{biddingProducts && biddingProducts.length > 0 && !loading}}">
-      <!-- 区域头部：标题 + 竞价历史入口 -->
-      <view class="section-header-enhanced bid-section-header">
-        <view class="section-header-left">
-          <view class="section-dot bid-dot"></view>
-          <text class="section-title-text">🎯 竞价拍卖</text>
-        </view>
-        <view class="bid-header-right">
-          <text class="bid-live-dot"></text>
-          <text class="bid-live-text">{{biddingProducts.length}}件竞拍中</text>
-        </view>
-      </view>
-
-      <!-- 双列卡片网格布局 -->
-      <view class="bid-card-grid">
-        <view class="bid-card {{item.status === 'active' ? 'bid-card-active' : 'bid-card-pending'}}"
-          wx:for="{{biddingProducts}}" wx:key="bid_product_id" data-product="{{item}}" bindtap="onBidTap">
-          <!-- 商品图片区域 -->
-          <view class="bid-card-img-wrap">
-            <image class="bid-card-img" src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" />
-            <!-- 状态标签（左上角） -->
-            <view class="bid-card-status {{item.status}}">
-              <text class="bid-card-status-dot"></text>
-              <text>{{item.status === 'active' ? '竞价中' : (item.status === 'pending' ? '即将开始' : '已结束')}}</text>
-            </view>
-            <!-- 出价热度（右上角） -->
-            <view class="bid-card-heat" wx:if="{{item.bid_count > 0}}">
-              <text>🔥 {{item.bid_count}}</text>
-            </view>
-          </view>
-
-          <!-- 商品信息区域 -->
-          <view class="bid-card-body">
-            <text class="bid-card-name">{{item.item_name}}</text>
-
-            <!-- 当前价格高亮显示 -->
-            <view class="bid-card-price-block">
-              <text class="bid-card-price-label">当前价</text>
-              <view class="bid-card-price-main">
-                <text class="bid-card-price-num">{{item.current_price || item.start_price}}</text>
-                <text class="bid-card-price-unit">{{item.price_asset_code || 'DIAMOND'}}</text>
-              </view>
-            </view>
-
-            <!-- 竞价热度进度条 -->
-            <view class="bid-card-heat-bar" wx:if="{{item.bid_count > 0}}">
-              <view class="heat-bar-track">
-                <view class="heat-bar-fill" style="width: {{item.bid_count > 10 ? 100 : item.bid_count * 10}}%"></view>
-              </view>
-              <text class="heat-bar-label">{{item.bid_count > 10 ? '超火爆' : (item.bid_count > 5 ? '火热竞拍' :
-                '参与竞拍')}}</text>
-            </view>
-
-            <!-- 倒计时（竞价中状态显示） -->
-            <view class="bid-card-countdown" wx:if="{{item.status === 'active' && item._countdownText}}">
-              <text class="countdown-icon">⏱</text>
-              <text class="countdown-text">{{item._countdownText}}</text>
-            </view>
-
-            <!-- 出价按钮 -->
-            <button class="bid-card-btn {{item.status !== 'active' ? 'btn-disabled' : ''}}" catchtap="onBidTap"
-              data-product="{{item}}">
-              <text>{{item.status === 'active' ? '立即出价' : (item.status === 'pending' ? '即将开始' : '已结束')}}</text>
-            </button>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 空状态 - 增强版（臻选商品和竞价商品都为空时显示） -->
-    <view class="premium-empty-state"
-      wx:if="{{!loading && (!carouselItems || carouselItems.length === 0) && (!cardSections || cardSections.length === 0) && (!listProducts || listProducts.length === 0) && (!biddingProducts || biddingProducts.length === 0)}}">
-      <view class="empty-diamond-icon">
-        <text class="diamond-emoji">💎</text>
-        <view class="diamond-ring"></view>
-      </view>
-      <text class="empty-main-text">臻选空间即将精彩呈现</text>
-      <text class="empty-sub-text">精品好物和竞价拍卖即将上架</text>
-      <view class="empty-features">
-        <view class="empty-feature-item">
-          <text class="feature-icon">🎠</text>
-          <text class="feature-text">轮播推荐</text>
-        </view>
-        <view class="empty-feature-item">
-          <text class="feature-icon">🎯</text>
-          <text class="feature-text">竞价拍卖</text>
-        </view>
-        <view class="empty-feature-item">
-          <text class="feature-icon">📋</text>
-          <text class="feature-text">详细列表</text>
-        </view>
-      </view>
-    </view>
-  </view>
+  </scroll-view>
 </view>
 
 <!-- 🎯 竞价弹窗 — 后端API: POST /api/v4/backpack/bid -->
@@ -552,7 +734,10 @@
         <view class="bid-header-text-block">
           <text class="bid-header-title">参与竞价</text>
           <!-- 倒计时显示 -->
-          <view class="bid-modal-countdown" wx:if="{{selectedBidProduct.status === 'active' && bidModalCountdown}}">
+          <view
+            class="bid-modal-countdown"
+            wx:if="{{selectedBidProduct.status === 'active' && bidModalCountdown}}"
+          >
             <text class="modal-countdown-icon">⏱</text>
             <text class="modal-countdown-val">{{bidModalCountdown}}</text>
           </view>
@@ -580,13 +765,18 @@
         <view class="bid-current-price-panel">
           <text class="bid-price-label">当前最高价</text>
           <view class="bid-price-display">
-            <text class="bid-price-value">{{selectedBidProduct.current_price || selectedBidProduct.start_price}}</text>
+            <text class="bid-price-value"
+              >{{selectedBidProduct.current_price || selectedBidProduct.start_price}}</text
+            >
             <text class="bid-price-unit">{{selectedBidProduct.price_asset_code || 'DIAMOND'}}</text>
           </view>
         </view>
         <!-- 起拍价 -->
         <view class="bid-extra-info">
-          <text class="bid-info-item">起拍价: {{selectedBidProduct.start_price}} {{selectedBidProduct.price_asset_code || 'DIAMOND'}}</text>
+          <text class="bid-info-item"
+            >起拍价: {{selectedBidProduct.start_price}} {{selectedBidProduct.price_asset_code ||
+            'DIAMOND'}}</text
+          >
         </view>
       </view>
     </view>
@@ -597,28 +787,49 @@
         <text class="bid-input-title">输入竞价金额</text>
         <!-- 实时校验提示 -->
         <text class="bid-input-min {{bidAmountValid ? 'valid' : 'invalid'}}">
-          {{bidAmountValid ? '✓ 金额有效' : '最低 ' + bidMinAmount + ' ' + (selectedBidProduct.price_asset_code || 'DIAMOND')}}
+          {{bidAmountValid ? '✓ 金额有效' : '最低 ' + bidMinAmount + ' ' +
+          (selectedBidProduct.price_asset_code || 'DIAMOND')}}
         </text>
       </view>
       <!-- 输入框（增加校验状态样式） -->
-      <view class="bid-input-box {{bidAmountValid ? 'input-valid' : (userBidAmount > 0 ? 'input-invalid' : '')}}">
+      <view
+        class="bid-input-box {{bidAmountValid ? 'input-valid' : (userBidAmount > 0 ? 'input-invalid' : '')}}"
+      >
         <text class="bid-input-prefix">💰</text>
-        <input class="bid-amount-input" type="number" placeholder="{{bidMinAmount}}" value="{{userBidAmount}}"
-          bindinput="onBidAmountInput" adjust-position="{{true}}" />
+        <input
+          class="bid-amount-input"
+          type="number"
+          placeholder="{{bidMinAmount}}"
+          value="{{userBidAmount}}"
+          bindinput="onBidAmountInput"
+          adjust-position="{{true}}"
+        />
         <text class="bid-input-suffix">{{selectedBidProduct.price_asset_code || 'DIAMOND'}}</text>
       </view>
 
       <!-- 快捷加价按钮（增强版 - 显示结果金额） -->
       <view class="bid-quick-buttons">
-        <view class="quick-bid-btn" data-amount="{{selectedBidProduct.min_bid_increment}}" bindtap="onQuickBidAdd">
+        <view
+          class="quick-bid-btn"
+          data-amount="{{selectedBidProduct.min_bid_increment}}"
+          bindtap="onQuickBidAdd"
+        >
           <text class="quick-btn-plus">+{{selectedBidProduct.min_bid_increment}}</text>
           <text class="quick-btn-label">最低加价</text>
         </view>
-        <view class="quick-bid-btn" data-amount="{{selectedBidProduct.min_bid_increment * 5}}" bindtap="onQuickBidAdd">
+        <view
+          class="quick-bid-btn"
+          data-amount="{{selectedBidProduct.min_bid_increment * 5}}"
+          bindtap="onQuickBidAdd"
+        >
           <text class="quick-btn-plus">+{{selectedBidProduct.min_bid_increment * 5}}</text>
           <text class="quick-btn-label">5倍加价</text>
         </view>
-        <view class="quick-bid-btn" data-amount="{{selectedBidProduct.min_bid_increment * 10}}" bindtap="onQuickBidAdd">
+        <view
+          class="quick-bid-btn"
+          data-amount="{{selectedBidProduct.min_bid_increment * 10}}"
+          bindtap="onQuickBidAdd"
+        >
           <text class="quick-btn-plus">+{{selectedBidProduct.min_bid_increment * 10}}</text>
           <text class="quick-btn-label">10倍加价</text>
         </view>
@@ -646,7 +857,10 @@
         </view>
         <view class="rule-row">
           <text class="rule-num">2</text>
-          <text class="rule-text">每次加价不少于 {{selectedBidProduct.min_bid_increment}} {{selectedBidProduct.price_asset_code || 'DIAMOND'}}</text>
+          <text class="rule-text"
+            >每次加价不少于 {{selectedBidProduct.min_bid_increment}}
+            {{selectedBidProduct.price_asset_code || 'DIAMOND'}}</text
+          >
         </view>
         <view class="rule-row">
           <text class="rule-num">3</text>
@@ -662,12 +876,187 @@
     <!-- 底部操作栏（增强版 - 含金额预览） -->
     <view class="bid-action-bar">
       <button class="bid-cancel-btn" bindtap="onCancelBid">取消</button>
-      <button class="bid-confirm-btn {{!bidAmountValid ? 'btn-disabled' : ''}}" bindtap="onConfirmBid"
-        disabled="{{!bidAmountValid}}">
+      <button
+        class="bid-confirm-btn {{!bidAmountValid ? 'btn-disabled' : ''}}"
+        bindtap="onConfirmBid"
+        disabled="{{!bidAmountValid}}"
+      >
         <text class="bid-confirm-text">{{bidSubmitting ? '提交中...' : '确认竞价'}}</text>
-        <text class="bid-confirm-amount" wx:if="{{userBidAmount > 0 && bidAmountValid}}">{{userBidAmount}}
-          {{selectedBidProduct.price_asset_code || 'DIAMOND'}}</text>
+        <text class="bid-confirm-amount" wx:if="{{userBidAmount > 0 && bidAmountValid}}"
+          >{{userBidAmount}} {{selectedBidProduct.price_asset_code || 'DIAMOND'}}</text
+        >
       </button>
+    </view>
+  </view>
+</view>
+
+<!-- 🛒 商品兑换确认弹窗（幸运空间/臻选空间专用） -->
+<!-- 后端API: POST /api/v4/backpack/exchange -->
+<view class="shop-confirm-overlay" wx:if="{{showShopConfirm}}" bindtap="onCancelShopExchange">
+  <view class="shop-confirm-sheet" catchtap="">
+    <!-- 弹窗头部 -->
+    <view class="shop-confirm-header">
+      <view class="shop-header-bg"></view>
+      <view class="shop-header-content">
+        <text class="shop-header-icon">🛒</text>
+        <text class="shop-header-title">确认兑换</text>
+      </view>
+      <view class="shop-close-btn" bindtap="onCancelShopExchange">
+        <text class="close-x">✕</text>
+      </view>
+    </view>
+
+    <!-- 商品预览卡片 -->
+    <view class="shop-product-preview" wx:if="{{selectedShopProduct}}">
+      <view class="shop-preview-img-wrap">
+        <image
+          class="shop-preview-img"
+          src="{{selectedShopProduct.image || selectedShopProduct.image_url || '/images/products/default-product.png'}}"
+          mode="aspectFill"
+        />
+        <!-- 标签 -->
+        <view class="shop-preview-badges">
+          <text class="shop-badge hot" wx:if="{{selectedShopProduct.is_hot}}">🔥 热销</text>
+          <text class="shop-badge new" wx:if="{{selectedShopProduct.is_new}}">✨ 新品</text>
+        </view>
+      </view>
+      <view class="shop-preview-info">
+        <!-- 商品名称 -->
+        <text class="shop-preview-name">{{selectedShopProduct.item_name || '未知商品'}}</text>
+        <!-- 商品描述 -->
+        <text class="shop-preview-desc" wx:if="{{selectedShopProduct.description}}"
+          >{{selectedShopProduct.description}}</text
+        >
+        <!-- 卖点 -->
+        <text class="shop-preview-sell" wx:if="{{selectedShopProduct.sell_point}}">
+          {{selectedShopProduct.sell_point}}
+        </text>
+        <!-- 兑换价格 -->
+        <view class="shop-preview-price-area">
+          <text class="shop-price-label">兑换价格：</text>
+          <text class="shop-price-value">
+            {{selectedShopProduct.cost_amount || 0}} {{(selectedShopProduct.cost_asset_code ||
+            'POINTS') === 'POINTS' ? '积分' : selectedShopProduct.cost_asset_code}}
+          </text>
+        </view>
+        <!-- 原价（如有折扣） -->
+        <view class="shop-preview-original" wx:if="{{selectedShopProduct.original_price}}">
+          <text class="shop-original-label">原价：</text>
+          <text class="shop-original-value">{{selectedShopProduct.original_price}}</text>
+        </view>
+        <!-- 库存信息 -->
+        <view class="shop-preview-stock" wx:if="{{selectedShopProduct.stock !== undefined}}">
+          <text class="shop-stock-label">库存：</text>
+          <text class="shop-stock-value {{selectedShopProduct.stock < 10 ? 'low-stock' : ''}}">
+            {{selectedShopProduct.stock > 0 ? selectedShopProduct.stock + '件' : '已售罄'}}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 兑换数量选择 -->
+    <view class="shop-quantity-area" wx:if="{{selectedShopProduct}}">
+      <text class="shop-quantity-label">兑换数量</text>
+      <view class="shop-quantity-control">
+        <view
+          class="shop-qty-btn {{shopExchangeQuantity <= 1 ? 'disabled' : ''}}"
+          bindtap="onShopQuantityChange"
+          data-action="decrease"
+        >
+          <text>−</text>
+        </view>
+        <text class="shop-qty-value">{{shopExchangeQuantity}}</text>
+        <view
+          class="shop-qty-btn {{selectedShopProduct.stock > 0 && shopExchangeQuantity >= selectedShopProduct.stock ? 'disabled' : ''}}"
+          bindtap="onShopQuantityChange"
+          data-action="increase"
+        >
+          <text>+</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 费用汇总 -->
+    <view class="shop-cost-summary" wx:if="{{selectedShopProduct}}">
+      <view class="shop-cost-row">
+        <text class="shop-cost-label">单价</text>
+        <text class="shop-cost-value">
+          {{selectedShopProduct.cost_amount || 0}} {{(selectedShopProduct.cost_asset_code ||
+          'POINTS') === 'POINTS' ? '积分' : selectedShopProduct.cost_asset_code}}
+        </text>
+      </view>
+      <view class="shop-cost-row">
+        <text class="shop-cost-label">数量</text>
+        <text class="shop-cost-value">× {{shopExchangeQuantity}}</text>
+      </view>
+      <view class="shop-cost-divider"></view>
+      <view class="shop-cost-row total">
+        <text class="shop-cost-label">合计</text>
+        <text class="shop-cost-total">
+          {{(selectedShopProduct.cost_amount || 0) * shopExchangeQuantity}}
+          {{(selectedShopProduct.cost_asset_code || 'POINTS') === 'POINTS' ? '积分' :
+          selectedShopProduct.cost_asset_code}}
+        </text>
+      </view>
+      <view class="shop-cost-row balance">
+        <text class="shop-cost-label">当前余额</text>
+        <text
+          class="shop-cost-value {{totalPoints < (selectedShopProduct.cost_amount || 0) * shopExchangeQuantity ? 'insufficient' : 'sufficient'}}"
+        >
+          {{totalPoints}} 积分
+        </text>
+      </view>
+    </view>
+
+    <!-- 底部操作栏 -->
+    <view class="shop-confirm-actions">
+      <button class="shop-cancel-btn" bindtap="onCancelShopExchange">取消</button>
+      <button
+        class="shop-exchange-btn {{shopExchanging ? 'exchanging' : ''}}"
+        bindtap="onConfirmShopExchange"
+        disabled="{{shopExchanging || (selectedShopProduct.stock !== undefined && selectedShopProduct.stock <= 0)}}"
+      >
+        <text>{{shopExchanging ? '兑换中...' : '确认兑换'}}</text>
+      </button>
+    </view>
+  </view>
+</view>
+
+<!-- 🎉 商品兑换成功结果弹窗 -->
+<view class="shop-result-overlay" wx:if="{{showShopResult}}" bindtap="onCloseShopResult">
+  <view class="shop-result-sheet" catchtap="">
+    <view class="shop-result-header">
+      <text class="shop-result-icon">🎉</text>
+      <text class="shop-result-title">兑换成功</text>
+      <view class="shop-close-btn" bindtap="onCloseShopResult">
+        <text class="close-x">✕</text>
+      </view>
+    </view>
+    <view class="shop-result-body" wx:if="{{shopResultData}}">
+      <view class="shop-result-success-icon">✅</view>
+      <text class="shop-result-congrats">恭喜您成功兑换</text>
+      <text class="shop-result-product-name">{{shopResultData.product.item_name || '商品'}}</text>
+      <view class="shop-result-details">
+        <view class="shop-result-item" wx:if="{{shopResultData.orderNo}}">
+          <text class="result-label">订单编号：</text>
+          <text class="result-value">{{shopResultData.orderNo}}</text>
+        </view>
+        <view class="shop-result-item">
+          <text class="result-label">支付：</text>
+          <text class="result-value"
+            >-{{shopResultData.payAmount}} {{shopResultData.payAssetCode === 'POINTS' ? '积分' :
+            shopResultData.payAssetCode}}</text
+          >
+        </view>
+        <view class="shop-result-item" wx:if="{{shopResultData.quantity > 1}}">
+          <text class="result-label">数量：</text>
+          <text class="result-value">{{shopResultData.quantity}}</text>
+        </view>
+      </view>
+      <text class="shop-result-notice">🎁 商品已到账，请在背包中查看</text>
+    </view>
+    <view class="shop-result-footer">
+      <button class="shop-result-btn" bindtap="onCloseShopResult">继续浏览</button>
     </view>
   </view>
 </view>

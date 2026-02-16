@@ -194,14 +194,14 @@ function calculateContentHeight(product: any): number {
   try {
     let baseHeight = 70
 
-    // 长标题额外高度
-    const titleLength: number = product.name ? String(product.name).length : 0
+    // 长标题额外高度（后端字段: exchange_items.item_name）
+    const titleLength: number = product.item_name ? String(product.item_name).length : 0
     if (titleLength > 20) {
       baseHeight += 10
     }
 
-    // 原价显示额外高度
-    if (product.originalPrice && product.originalPrice !== product.price) {
+    // 原价显示额外高度（后端字段: exchange_items.original_price / cost_amount）
+    if (product.original_price && product.original_price !== product.cost_amount) {
       baseHeight += 8
     }
 

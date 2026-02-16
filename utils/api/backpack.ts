@@ -158,15 +158,18 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
     throw new Error('兑换数量必须大于0')
   }
 
-  /* 生成幂等??防止重复提交（exchange_records 表唯一约束）*/
+  /* 生成幂等键，防止重复提交（exchange_records 表唯一约束） */
   const idempotencyKey = `exchange_${exchange_item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
   return apiClient.request('/backpack/exchange', {
     method: 'POST',
     data: {
       exchange_item_id,
-      quantity,
-      idempotency_key: idempotencyKey
+      quantity
+    },
+    header: {
+      /* 后端要求幂等键通过 HTTP Header 传递，而非请求体 */
+      'Idempotency-Key': idempotencyKey
     },
     needAuth: true,
     showLoading: true,
@@ -243,10 +246,35 @@ async function getExchangeOrderDetail(order_no: string) {
   })
 }
 
-// ==================== 🌟 臻选空间（高级兑换行====================
+// ==================== 📊 空间统计 ====================
 
 /**
- * 查询臻选空间解锁状态 * GET /api/v4/backpack/exchange/premium-status
+ * 获取兑换空间统计数据
+ * GET /api/v4/backpack/exchange/space-stats
+ *
+ * 后端服务: exchange_query（ExchangeQueryService）
+ * 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
+ *
+ * @param space - 空间类型: 'lucky' | 'premium'
+ */
+async function getExchangeSpaceStats(space: string) {
+  if (!space) {
+    throw new Error('空间类型不能为空')
+  }
+  const qs = buildQueryString({ space })
+  return apiClient.request(`/backpack/exchange/space-stats?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+// ==================== 🌟 臻选空间（高级兑换） ====================
+
+/**
+ * 查询臻选空间解锁状态
+ * GET /api/v4/backpack/exchange/premium-status
  *
  * 后端服务: premium（PremiumService.getPremiumStatus * 数据来源: PremiumService 服务层计算返回（⚠️ user_premium_statuses 表不存在） *
  * 已解锁时响应字段:
@@ -408,6 +436,7 @@ module.exports = {
   cancelExchange,
   getExchangeItemDetail,
   getExchangeOrderDetail,
+  getExchangeSpaceStats,
   getPremiumStatus,
   unlockPremium,
   getBidProducts,

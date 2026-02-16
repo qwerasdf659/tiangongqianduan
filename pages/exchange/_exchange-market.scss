@@ -7,8 +7,10 @@
 .exchange-content {
   background: linear-gradient(145deg, rgba(235, 240, 245, 0.85) 0%, rgba(220, 230, 240, 0.8) 100%);
   border-radius: $border-radius-xl;
-  padding: 0; /* 🔒 取消内边距，由子元素各自控制 */
-  margin-bottom: 24rpx;
+  padding: 0;
+  /* 🔒 取消内边距，由子元素各自控制 */
+  margin-bottom: 0;
+  /* 🔧 去掉底部外边距，最大化商品展示空间 */
   box-shadow:
     0 20rpx 40rpx rgba(0, 0, 0, 0.08),
     0 8rpx 16rpx rgba(0, 0, 0, 0.04),
@@ -20,29 +22,39 @@
   /* 🔒 flex布局实现固定头部 + 滚动列表 */
   display: flex;
   flex-direction: column;
-  flex: 1; /* 🔒 自动填充exchange-container剩余空间 */
-  min-height: 0; /* 🔒 允许flex子元素收缩，配合内部scroll-view */
-  overflow: hidden; /* 🔒 防止内容溢出圆角区域 */
+  flex: 1;
+  /* 🔒 自动填充exchange-container剩余空间 */
+  min-height: 0;
+  /* 🔒 允许flex子元素收缩，配合内部scroll-view */
+  overflow: hidden;
+  /* 🔒 防止内容溢出圆角区域 */
 }
 
 /* 🔒 固定头部样式 - 不随滚动移动 */
 .exchange-market-sticky-header {
-  flex-shrink: 0; /* 🔒 不被压缩 */
-  padding: 32rpx 32rpx 0 32rpx; /* 🔒 头部自带内边距 */
+  flex-shrink: 0;
+  /* 🔒 不被压缩 */
+  padding: 8rpx 16rpx 0 16rpx;
+  /* 🔧 极致压缩：大幅减小头部内边距，最大化商品展示空间 */
   background: linear-gradient(145deg, rgba(235, 240, 245, 0.95) 0%, rgba(220, 230, 240, 0.95) 100%);
-  border-radius: $border-radius-xl $border-radius-xl 0 0; /* 🔒 只保留顶部圆角 */
-  z-index: 10; /* 🔒 确保在滚动内容之上 */
+  border-radius: $border-radius-lg $border-radius-lg 0 0;
+  /* 🔒 只保留顶部圆角 */
+  z-index: 10;
+  /* 🔒 确保在滚动内容之上 */
   position: relative;
   /* 🔒 底部添加微妙阴影，区分固定头部和滚动内容 */
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 /* 🔒 可滚动商品列表区域 */
 .exchange-market-scroll-body {
-  flex: 1; /* 🔒 填充剩余空间 */
-  padding: 16rpx 32rpx 32rpx 32rpx; /* 🔒 滚动区域自带内边距 */
+  flex: 1;
+  /* 🔒 填充剩余空间 */
+  padding: 8rpx 0 8rpx 0;
+  /* 🔧 大幅压缩上下padding，最大化商品展示空间 */
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* 🔒 iOS流畅滚动 */
+  -webkit-overflow-scrolling: touch;
+  /* 🔒 iOS流畅滚动 */
 }
 
 /* 🎨 柔和的头部样式 */
@@ -53,44 +65,119 @@
 /* 🔒 固定头部内的header不需要底部边距（由sticky-header的padding控制） */
 .exchange-market-sticky-header.header {
   margin-bottom: 0;
-  padding-bottom: 16rpx; /* 🔒 用padding代替margin，避免margin穿透 */
+  padding-bottom: 4rpx;
+  /* 🔧 进一步压缩底部内边距 */
 }
 
-/* 🎨 修改user-info为水平布局，交易市场和可用积分一行显示 */
+/* 🎨 修改user-info为水平布局，可用积分 + 快捷操作一行显示 */
 .user-info {
-  @include flex-between;
-  margin-bottom: 32rpx;
-  padding: 0 8rpx;
-  gap: 16rpx;
-  flex-wrap: wrap;
-}
-
-/* 🎨 交易市场标题样式优化 */
-.welcome {
-  font-size: $font-size-md;
-  font-weight: 700;
-  color: #2c3e50;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
-  min-width: fit-content;
-}
-
-/* 🎨 积分信息行容器 */
-.points-row {
   display: flex;
-  gap: 15rpx;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6rpx;
+  /* 🔧 极致压缩：减小底部间距 */
+  padding: 0 2rpx;
+  gap: 4rpx;
+  /* 🔧 极致压缩：减小间距 */
+  flex-wrap: nowrap;
+  /* 🔧 不换行，保持一行 */
+  overflow: hidden;
+  /* 🔧 防止溢出 */
 }
 
-/* 🎨 积分信息右对齐显示 */
+/* 🔍 头部内嵌搜索框 - 嵌入积分行中间，自动填充剩余空间 */
+.header-search-box {
+  flex: 1;
+  /* 填充积分和按钮之间的剩余空间 */
+  min-width: 0;
+  position: relative;
+  height: 36rpx;
+  /* 🔧 极致压缩：减小搜索框高度 */
+}
+
+.header-search-input {
+  width: 100%;
+  height: 36rpx;
+  /* 🔧 极致压缩：减小搜索框高度 */
+  background: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(102, 126, 234, 0.2);
+  border-radius: 18rpx;
+  padding: 0 36rpx 0 12rpx;
+  font-size: 20rpx;
+  color: #2c3e50;
+  box-sizing: border-box;
+  line-height: 36rpx;
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.03);
+}
+
+.header-search-input::placeholder {
+  color: rgba(44, 62, 80, 0.4);
+  font-size: 20rpx;
+}
+
+.header-search-icon {
+  position: absolute;
+  right: 12rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20rpx;
+  color: rgba(102, 126, 234, 0.5);
+  pointer-events: none;
+}
+
+/* 🎨 头部快捷操作按钮组 - 与可用积分同行横排 */
+.header-quick-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8rpx;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+/* 🎨 头部快捷操作按钮样式 - 使用view标签避免button默认样式 */
+.header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36rpx;
+  /* 🔧 极致压缩：减小按钮高度 */
+  padding: 0 2rpx;
+  /* 🔧 极小内边距，文字紧贴边框 */
+  font-size: 18rpx;
+  /* 🔧 极致压缩：减小字体 */
+  font-weight: 500;
+  color: #5a6acf;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1rpx solid rgba(102, 126, 234, 0.2);
+  border-radius: 18rpx;
+  box-shadow: 0 1rpx 4rpx rgba(102, 126, 234, 0.08);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  line-height: 36rpx;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+
+.header-action-btn:active {
+  transform: scale(0.95);
+  background: rgba(102, 126, 234, 0.1);
+}
+
+/* 🎨 积分信息显示 - 允许收缩以适配空间 */
 .points-info {
   @include flex-center;
-  gap: 8rpx;
+  gap: 2rpx;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  padding: 12rpx 20rpx;
-  border-radius: 20rpx;
-  box-shadow: 0 8rpx 16rpx rgba(102, 126, 234, 0.25);
-  flex-shrink: 0;
+  padding: 4rpx 10rpx;
+  /* 🔧 极致压缩：减小积分标签内边距 */
+  border-radius: 14rpx;
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.15);
+  flex-shrink: 1;
+  /* 🔧 允许积分区域适当收缩 */
+  min-width: 0;
+  /* 🔧 允许收缩到内容最小宽度 */
+  overflow: hidden;
 }
 
 .points-info.frozen {
@@ -98,16 +185,18 @@
 }
 
 .points-label {
-  font-size: $font-size-sm;
+  font-size: 20rpx;
+  /* 🔧 极致压缩：减小字体 */
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
 }
 
 .points-value {
-  font-size: $font-size-base;
+  font-size: 24rpx;
+  /* 🔧 极致压缩：减小字体 */
   font-weight: 700;
   color: #ffd700;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
 }
 
 .points-value.frozen {
@@ -116,9 +205,10 @@
 
 /* 🎨 优化搜索筛选区域 */
 .search-filter {
-  margin: 0 auto 20rpx;
-  /* 🎯 水平居中对齐 */
-  padding-bottom: 16rpx;
+  margin: 0 auto 4rpx;
+  /* 🔧 极致压缩：减小底部间距 */
+  padding-bottom: 4rpx;
+  /* 🔧 极致压缩：减小底部内边距 */
   position: relative;
   display: flex;
   flex-direction: column;
@@ -130,7 +220,8 @@
 
 .search-box {
   position: relative;
-  margin-bottom: 24rpx;
+  margin-bottom: 14rpx;
+  /* 🔧 优化：减小搜索框底部间距 */
   width: 100%;
   /* 🎯 占满父容器宽度 */
   max-width: 700rpx;
@@ -139,16 +230,17 @@
 
 .search-input {
   width: 100%;
-  height: 88rpx;
+  height: 72rpx;
+  /* 🔧 优化：减小搜索框高度 88→72 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
   border: 2rpx solid rgba(102, 126, 234, 0.15);
   border-radius: $border-radius-lg;
-  padding: 0 60rpx 0 30rpx;
+  padding: 0 52rpx 0 24rpx;
   font-size: $font-size-base;
   color: #2c3e50;
   box-sizing: border-box;
   box-shadow:
-    0 8rpx 16rpx rgba(0, 0, 0, 0.06),
+    0 6rpx 12rpx rgba(0, 0, 0, 0.05),
     inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(20rpx);
 }
@@ -169,10 +261,10 @@
 /* 🎨 柔和的筛选按钮样式 - 四按钮一行布局（优化间距） */
 .filter-buttons {
   display: flex;
-  gap: 12rpx;
-  /* 增加间距：8rpx → 12rpx */
-  margin-bottom: 24rpx;
-  /* 增加底部边距 */
+  gap: 8rpx;
+  /* 🔧 极致压缩：减小间距 */
+  margin-bottom: 4rpx;
+  /* 🔧 极致压缩：减小底部边距 */
   flex-wrap: nowrap;
   /* 禁止换行 */
   align-items: center;
@@ -189,17 +281,17 @@
   flex: 1;
   min-width: 0;
   /* 允许收缩 */
-  height: 68rpx;
-  /* 稍微增加高度：64rpx → 68rpx */
-  border: 2rpx solid rgba(102, 126, 234, 0.2);
-  border-radius: 20rpx;
+  height: 48rpx;
+  /* 🔧 极致压缩：减小按钮高度 58→48 */
+  border: 1rpx solid rgba(102, 126, 234, 0.2);
+  border-radius: 14rpx;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
   color: #2c3e50;
-  font-size: 23rpx;
-  /* 恢复字体大小：22rpx → 23rpx */
+  font-size: 22rpx;
+  /* 🔧 极致压缩：减小字体 */
   font-weight: 500;
-  line-height: 64rpx;
-  /* 调整行高配合新高度 */
+  line-height: 46rpx;
+  /* 🔧 配合新高度调整行高 */
   text-align: center;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.06);
@@ -227,12 +319,12 @@
   /* 减少宽度比例：1.2 → 1.1 */
   min-width: 0;
   /* 允许收缩 */
-  padding: 0 12rpx;
-  /* 调整内边距：16rpx → 12rpx */
-  height: 68rpx;
-  /* 与其他按钮保持一致 */
-  border: 2rpx solid rgba(102, 126, 234, 0.3);
-  border-radius: 20rpx;
+  padding: 0 10rpx;
+  /* 🔧 极致压缩：减小内边距 */
+  height: 48rpx;
+  /* 🔧 极致压缩：与filter-btn一致 58→48 */
+  border: 1rpx solid rgba(102, 126, 234, 0.3);
+  border-radius: 14rpx;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 243, 248, 0.9));
   color: #2c3e50;
   font-size: 21rpx;
@@ -577,7 +669,9 @@
   padding: 48rpx 32rpx;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.85));
   border-radius: $border-radius-lg;
-  margin: 20rpx 0;
+  margin: 20rpx auto;
+  /* 🔧 水平居中 */
+  max-width: 700rpx;
   box-shadow:
     0 8rpx 16rpx rgba(0, 0, 0, 0.06),
     0 2rpx 4rpx rgba(0, 0, 0, 0.04),
@@ -614,7 +708,12 @@
 
 /* 🎨 优化商品区域样式 */
 .products-section {
-  margin-bottom: 32rpx;
+  margin-bottom: 8rpx;
+  /* 🔧 压缩底部间距 */
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 700rpx;
+  /* 🔧 与头部保持一致，居中对齐 */
   position: relative;
   z-index: 1;
 }
@@ -694,16 +793,19 @@
   display: none !important;
 }
 
-/* 🎨 优化商品网格样式 */
+/* 🎨 优化商品网格样式 - 居中对齐 */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16rpx 12rpx;
   /* 行间距16rpx，列间距12rpx */
-  padding: 8rpx;
-  margin-top: 12rpx;
+  padding: 4rpx 0;
+  margin-top: 4rpx;
+  /* 🔧 压缩顶部间距 */
   background: rgba(255, 255, 255, 0.02);
   border-radius: $border-radius-md;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .product-item {
@@ -950,10 +1052,10 @@
 
 /* 🚀 紧凑型分页导航 - 防止溢出优化 */
 .pagination {
-  margin-top: 32rpx;
-  /* 🔧 减少上边距 */
-  padding: 16rpx 12rpx;
-  /* 🔧 大幅减少内边距 */
+  margin-top: 12rpx;
+  /* 🔧 压缩上边距 */
+  padding: 12rpx 12rpx;
+  /* 🔧 压缩内边距 */
   max-width: 100%;
   /* 🎯 确保不超出父容器 */
   width: 100%;
@@ -981,6 +1083,7 @@
 }
 
 @keyframes paginationPulse {
+
   0%,
   100% {
     transform: scale(1);
@@ -1099,8 +1202,7 @@
   }
 
   /* 🎯 在小屏隐藏部分页码 */
-  .page-numbers.standalone-numbers
-    .page-number:not(.active):nth-child(n + 4):nth-last-child(n + 4) {
+  .page-numbers.standalone-numbers .page-number:not(.active):nth-child(n + 4):nth-last-child(n + 4) {
     display: none;
   }
 }
@@ -1242,12 +1344,10 @@ button.page-btn,
   /* 处理文字溢出 */
   min-width: 120rpx !important;
   /* 确保最小宽度 */
-  background: linear-gradient(
-    135deg,
-    $gradient-blue-start 0%,
-    $gradient-blue-end 50%,
-    $gradient-blue-start 100%
-  );
+  background: linear-gradient(135deg,
+      $gradient-blue-start 0%,
+      $gradient-blue-end 50%,
+      $gradient-blue-start 100%);
   border: 2rpx solid rgba(102, 126, 234, 0.4);
   border-radius: $border-radius-md;
   color: white;
@@ -1395,12 +1495,10 @@ button.page-btn,
 
 /* 🌟 当前页码 - 超级突出显示 */
 .page-number.active {
-  background: linear-gradient(
-    135deg,
-    $gradient-blue-start 0%,
-    $gradient-blue-end 50%,
-    $gradient-blue-start 100%
-  );
+  background: linear-gradient(135deg,
+      $gradient-blue-start 0%,
+      $gradient-blue-end 50%,
+      $gradient-blue-start 100%);
   border-color: $gradient-blue-start;
   color: white;
   font-weight: 700;
@@ -1416,6 +1514,7 @@ button.page-btn,
 }
 
 @keyframes activePagePulse {
+
   0%,
   100% {
     box-shadow:
@@ -1780,8 +1879,10 @@ button.page-btn,
 .rules-section {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 15rpx;
-  padding: 30rpx;
-  margin-top: 30rpx;
+  padding: 20rpx;
+  margin: 12rpx auto 0;
+  /* 🔧 压缩上边距 */
+  max-width: 700rpx;
 }
 
 .rules-section .section-title {

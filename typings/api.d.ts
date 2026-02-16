@@ -355,6 +355,30 @@ declare namespace API {
     created_at: string
   }
 
+  /**
+   * 兑换空间统计数据（后端 GET /api/v4/backpack/exchange/space-stats 响应）
+   * 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
+   * ⚠️ 统计数据由后端计算返回，前端不自行统计
+   */
+  interface ExchangeSpaceStats {
+    /** 空间类型: 'lucky' | 'premium' */
+    space: string
+    /** 新品数量 */
+    new_count: number
+    /** 热销数量 */
+    hot_count: number
+    /** 平均折扣率 */
+    avg_discount: number
+    /** 限时特价数量 */
+    flash_deals: number
+    /** 平均评分 */
+    avg_rating: number
+    /** 趋势商品数量 */
+    trending_count: number
+    /** 商品总数 */
+    total_count: number
+  }
+
   // ===== 竞价系统 =====
 
   /**

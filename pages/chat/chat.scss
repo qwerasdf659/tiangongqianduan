@@ -154,17 +154,10 @@
   transform: scale(0.98);
 }
 
-/* 会话右侧箭头 */
-.session-arrow {
-  font-size: 36rpx;
-  color: #d5d5d5;
-  margin-left: 8rpx;
-  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.session-item:active .session-arrow {
-  transform: translateX(6rpx);
-  color: $gradient-blue-start;
+/* 有未读消息的会话项 — 名称加粗（对标微信未读消息效果） */
+.session-item.has-unread .session-name {
+  font-weight: 700;
+  color: #000;
 }
 
 /* ============================================================================ */
@@ -246,6 +239,13 @@
   }
 }
 
+/* 已结束的会话 — 在线指示器显示灰色（无脉冲动画） */
+.online-indicator.indicator-offline {
+  background: #bdc1c6;
+  box-shadow: none;
+  animation: none;
+}
+
 .online-indicator.small {
   width: 20rpx;
   height: 20rpx;
@@ -267,6 +267,15 @@
   margin-bottom: 10rpx;
 }
 
+/* 名称行容器：名称 + 状态标签 */
+.session-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  flex: 1;
+  min-width: 0;
+}
+
 .session-name {
   font-size: $font-size-md;
   font-weight: 600;
@@ -274,9 +283,89 @@
   letter-spacing: 0.5rpx;
 }
 
+/* ============================================================================ */
+/* 会话状态标签（对标微信/美团的会话状态标识） */
+/* ============================================================================ */
+.session-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+}
+
+.status-tag-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+}
+
+.status-tag-text {
+  font-size: 20rpx;
+  white-space: nowrap;
+}
+
+/* 等待客服 — 橙色 */
+.status-waiting {
+  background: rgba(255, 152, 0, 0.08);
+}
+.status-waiting .status-tag-dot {
+  background: #ff9800;
+}
+.status-waiting .status-tag-text {
+  color: #e68900;
+}
+
+/* 已分配 — 蓝色 */
+.status-assigned {
+  background: rgba(33, 150, 243, 0.08);
+}
+.status-assigned .status-tag-dot {
+  background: #2196f3;
+}
+.status-assigned .status-tag-text {
+  color: #1976d2;
+}
+
+/* 对话中 — 绿色 */
+.status-active {
+  background: rgba(76, 175, 80, 0.08);
+}
+.status-active .status-tag-dot {
+  background: #4caf50;
+  animation: statusDotPulse 1.5s ease-in-out infinite;
+}
+.status-active .status-tag-text {
+  color: #388e3c;
+}
+
+@keyframes statusDotPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* 已结束 — 灰色 */
+.status-closed {
+  background: rgba(158, 158, 158, 0.08);
+}
+.status-closed .status-tag-dot {
+  background: #9e9e9e;
+}
+.status-closed .status-tag-text {
+  color: #757575;
+}
+
 .session-time {
   font-size: $font-size-xs;
   color: #b0b8c1;
+  flex-shrink: 0;
+  margin-left: 8rpx;
 }
 
 .session-preview {
@@ -321,6 +410,182 @@
   100% {
     transform: scale(1);
   }
+}
+
+/* ============================================================================ */
+/* 搜索结果区域（对标微信消息搜索体验）                                        */
+/* ============================================================================ */
+
+/* 搜索加载中 */
+.search-loading-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: 120rpx 60rpx;
+  gap: 16rpx;
+}
+
+.search-loading-text {
+  font-size: $font-size-sm;
+  color: #9aa0a6;
+}
+
+/* 搜索无结果 */
+.search-empty-state {
+  @include flex-column-center;
+  padding: 120rpx 60rpx;
+}
+
+.search-empty-icon-wrapper {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.03);
+  @include flex-center;
+  margin-bottom: 24rpx;
+}
+
+.search-empty-icon {
+  font-size: 48rpx;
+  opacity: 0.6;
+}
+
+.search-empty-title {
+  font-size: $font-size-md;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 8rpx;
+}
+
+.search-empty-desc {
+  font-size: $font-size-sm;
+  color: #9aa0a6;
+}
+
+/* 搜索结果头部 */
+.search-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx 12rpx;
+  background: $color-bg;
+}
+
+.search-results-label {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: #5f6368;
+}
+
+.search-results-count {
+  font-size: $font-size-xs;
+  color: #9aa0a6;
+}
+
+/* 搜索结果项 */
+.search-result-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 24rpx 30rpx;
+  background: $color-white;
+  transition: background 0.15s ease;
+  position: relative;
+}
+
+.search-result-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 110rpx;
+  right: 30rpx;
+  height: 1rpx;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.search-result-item:last-child::after {
+  display: none;
+}
+
+.search-result-item:active {
+  background: rgba(102, 126, 234, 0.04);
+}
+
+/* 搜索结果头像 */
+.result-avatar {
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+/* 小尺寸头像（搜索结果用） */
+.avatar-sm {
+  width: 72rpx !important;
+  height: 72rpx !important;
+  border-radius: 20rpx !important;
+}
+
+.avatar-icon-sm {
+  font-size: 28rpx !important;
+}
+
+/* 搜索结果内容区域 */
+.result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+/* 发送者标签 */
+.result-sender-tag {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+/* "我"标签 — 蓝色 */
+.sender-self {
+  color: $gradient-blue-start;
+  background: rgba(102, 126, 234, 0.08);
+}
+
+/* "客服"标签 — 青色 */
+.sender-admin {
+  color: #00a0a0;
+  background: rgba(0, 160, 160, 0.08);
+}
+
+.result-time {
+  font-size: $font-size-xs;
+  color: #b0b8c1;
+  flex-shrink: 0;
+}
+
+/* 消息内容行 */
+.result-message-row {
+  margin-bottom: 6rpx;
+}
+
+.result-message-text {
+  font-size: $font-size-base;
+  color: #202124;
+  line-height: 1.5;
+  /* rich-text 内容自动渲染，关键词高亮通过内联样式实现 */
+}
+
+/* 来源会话行 */
+.result-source-row {
+  display: flex;
+  align-items: center;
+}
+
+.result-source-text {
+  font-size: $font-size-xs;
+  color: #b0b8c1;
 }
 
 /* ============================================================================ */
@@ -635,8 +900,13 @@
 }
 
 @keyframes offlineBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .session-detail {
@@ -678,8 +948,15 @@
 }
 
 @keyframes dotPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
 }
 
 .session-status-text {
@@ -1081,8 +1358,13 @@
 }
 
 @keyframes statusPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .status-label.read {
@@ -1145,7 +1427,9 @@
 }
 
 @keyframes typing {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: scale(0.6);
     opacity: 0.4;
   }

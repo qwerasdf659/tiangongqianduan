@@ -1,11 +1,12 @@
 /**
  * 通用商品筛选工- 统一 exchange.ts 套重复筛选逻辑
  *
- * 原始代码中存applyFilters()、applyAdvancedFilters()、applyLuckyFilters() 三套几乎
- * 相同的筛选实现，唯一区别是价格字段名（cost_amount vs price） * 本模块将三者合并为一个通用户applyProductFilters() 函数，通过 priceField 参数区分 *
+ * 原始代码中存在 applyFilters()、applyAdvancedFilters()、applyLuckyFilters() 三套几乎
+ * 相同的筛选实现，本模块将三者合并为一个通用 applyProductFilters() 函数
+ *
  * 后端对齐说明:
- *   - 兑换商品列表中价格字段为 cost_amount（后exchange_items 表）
- *   - 瀑布流格式中价格字段price（前convertToWaterfallData 映射后）
+ *   - 统一使用后端 exchange_items 表字段 cost_amount 作为价格字段
+ *   - 幸运空间和臻选空间均使用 cost_amount（不再映射为 price）
  *
  * 使用方式 *   const { applyProductFilters } = require('../../utils/product-filter')
  *   const filtered = applyProductFilters(products, filterOptions)
@@ -35,7 +36,7 @@ interface FilterOptions {
   sortBy?: string
   /** 用户当前可用积分（用于available筛选） */
   totalPoints?: number
-  /** 价格字段名（兑换商品列表?cost_amount'，瀑布流用'price'），默认'cost_amount' */
+  /** 价格字段名（统一使用后端 exchange_items.cost_amount），默认'cost_amount' */
   priceField?: string
   /**
    * 库存紧张阈   * 后端API: GET /api/v4/system/config/product-filter 提供配置
@@ -71,10 +72,11 @@ interface FilterResult {
  *   priceField: 'cost_amount'
  * })
  *
- * // 幸运空间瀑布流筛选（价格字段: price，由 convertToWaterfallData 映射 * const result = applyProductFilters(waterfallProducts, {
+ * // 幸运空间瀑布流筛选（统一使用后端 cost_amount 字段）
+ * const result = applyProductFilters(waterfallProducts, {
  *   searchKeyword: '',
  *   currentFilter: 'low-price',
- *   priceField: 'price'
+ *   priceField: 'cost_amount'
  * })
  */
 function applyProductFilters(products: any[], options: FilterOptions = {}): FilterResult {
@@ -201,5 +203,4 @@ module.exports = {
   applyProductFilters
 }
 
-export { }
-
+export {}

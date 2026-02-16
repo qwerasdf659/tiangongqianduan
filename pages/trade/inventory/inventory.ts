@@ -16,7 +16,8 @@
  * @since 2026-02-15
  */
 
-// 🔴 统一工具函数导入（通过utils/index.tsconst { Utils, Wechat, API, Logger } = require('../../../utils/index')
+// 🔴 统一工具函数导入（通过utils/index.ts）
+const { Utils, Wechat, API, Logger } = require('../../../utils/index')
 const log = Logger.createLogger('inventory')
 const { showToast } = Wechat
 const { checkAuth } = Utils
@@ -562,9 +563,9 @@ Page({
         // 第二步：输入价格
         wx.showModal({
           title: `上架 "${item.name}"`,
-          content: `请输入售价（单位?{currencyName}）`,
+          content: `请输入售价（单位：${currencyName}）`,
           editable: true,
-          placeholderText: `请输?{currencyName}数量（正整数）`,
+          placeholderText: `请输入${currencyName}数量（正整数）`,
           success: async (modalRes: any) => {
             if (modalRes.confirm) {
               const priceInput = modalRes.content
@@ -661,10 +662,10 @@ Page({
 
             // 第三步：输入售价
             wx.showModal({
-              title: `定价格{currencyName}）`,
-              content: `上架 ${sellAmount} ?${asset.display_name}\n请输入总售价`,
+              title: `定价（${currencyName}）`,
+              content: `上架 ${sellAmount} 个${asset.display_name}\n请输入总售价`,
               editable: true,
-              placeholderText: `请输?{currencyName}数量（正整数）`,
+              placeholderText: `请输入${currencyName}数量（正整数）`,
               success: async (priceRes: any) => {
                 if (!priceRes.confirm) {
                   return
