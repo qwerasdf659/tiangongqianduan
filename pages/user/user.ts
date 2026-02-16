@@ -346,7 +346,7 @@ Page({
     const roleLevel = userInfo?.role_level || 0
     const isMerchant = roleLevel >= 20
     const isManager = roleLevel >= 40
-    const isAdmin = roleLevel >= 100 || userInfo?.is_admin === true
+    const isAdmin = roleLevel >= 100
 
     this.setData({
       isLoggedIn,

@@ -64,7 +64,7 @@ Page({
     // 权限检查：商家店员(role_level>=20)及以上（从MobX Store获取）
     const userInfo = userStore.userInfo || wx.getStorageSync('user_info')
     const roleLevel = userInfo?.role_level || 0
-    const hasAccess = roleLevel >= 20 || userInfo?.is_admin === true
+    const hasAccess = roleLevel >= 20
 
     if (!hasAccess) {
       log.error('❌ 用户无商家权限，role_level:', roleLevel)

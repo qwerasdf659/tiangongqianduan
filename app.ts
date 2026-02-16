@@ -157,7 +157,6 @@ App({
               mobile: jwtPayload.mobile,
               nickname: jwtPayload.nickname || '用户',
               status: jwtPayload.status,
-              is_admin: jwtPayload.is_admin || false,
               user_role: jwtPayload.user_role || 'user',
               role_level: jwtPayload.role_level || 0,
               created_at: jwtPayload.created_at || ''
@@ -222,7 +221,7 @@ App({
         log.info('✅ 用户认证状态恢复成功', {
           user_id: userInfo.user_id,
           mobile: userInfo.mobile,
-          is_admin: userInfo.is_admin,
+          role_level: userInfo.role_level,
           userRole: userStore.userRole
         })
 
@@ -445,7 +444,7 @@ App({
 
         // ===== 业务事件监听（对齐后端 ChatWebSocketService 事件协议） =====
 
-        // 连接确认（后端连接成功后立即推送，含 user_id、is_admin、server_time）
+        // 连接确认（后端连接成功后立即推送，含 user_id、socket_id、server_time）
         socket.on('connection_established', (data: any) => {
           log.info('🤝 收到后端连接确认:', data)
           this.notifyPageSubscribers('connection_established', data)
@@ -604,4 +603,4 @@ App({
   }
 })
 
-export { }
+export {}

@@ -277,7 +277,7 @@
         <view
           class="product-card waterfall-card modern-card"
           wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}"
-          wx:key="exchange_item_id"
+          wx:key="id"
           style="width: calc(50% - 12rpx); margin-bottom: 16rpx"
           data-product="{{item}}"
           bindtap="onProductTap"
@@ -310,7 +310,7 @@
 
           <!-- 商品信息 -->
           <view class="card-content modern-card-content">
-            <text class="product-title waterfall-title modern-title">{{item.item_name}}</text>
+            <text class="product-title waterfall-title modern-title">{{item.name}}</text>
             <view class="price-row waterfall-price">
               <text class="current-price modern-current-price"
                 >{{item.cost_amount}} {{item.cost_asset_code === 'POINTS' ? '积分' :
@@ -457,7 +457,7 @@
         <view
           class="product-card waterfall-card premium-card"
           wx:for="{{premiumFilteredProducts}}"
-          wx:key="exchange_item_id"
+          wx:key="id"
           style="width: calc(50% - 12rpx); margin-bottom: 16rpx"
           data-product="{{item}}"
           bindtap="onProductTap"
@@ -489,7 +489,7 @@
 
           <!-- 商品信息 -->
           <view class="card-content premium-card-content">
-            <text class="product-title waterfall-title premium-title">{{item.item_name}}</text>
+            <text class="product-title waterfall-title premium-title">{{item.name}}</text>
             <view class="price-row waterfall-price">
               <text class="current-price premium-current-price"
                 >{{item.cost_amount}} {{item.cost_asset_code === 'POINTS' ? '积分' :
@@ -543,15 +543,7 @@
               />
               <view
                 wx:else
-                style="
-                  width: 100%;
-                  height: 100%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-                  font-size: 50rpx;
-                "
+                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff3e0, #ffe0b2); font-size: 50rpx;"
               >
                 <text>🎯</text>
               </view>
@@ -571,7 +563,7 @@
 
             <!-- 商品信息区域 -->
             <view class="bid-card-body">
-              <text class="bid-card-name">{{item.item_name}}</text>
+              <text class="bid-card-name">{{item.name}}</text>
 
               <!-- 当前价格高亮显示 -->
               <view class="bid-card-price-block">
@@ -759,7 +751,7 @@
         </view>
       </view>
       <view class="bid-product-meta">
-        <text class="bid-pname">{{selectedBidProduct.item_name}}</text>
+        <text class="bid-pname">{{selectedBidProduct.name}}</text>
         <text class="bid-pcategory">{{selectedBidProduct.category}}</text>
         <!-- 当前最高价面板（高亮） -->
         <view class="bid-current-price-panel">
@@ -922,7 +914,7 @@
       </view>
       <view class="shop-preview-info">
         <!-- 商品名称 -->
-        <text class="shop-preview-name">{{selectedShopProduct.item_name || '未知商品'}}</text>
+        <text class="shop-preview-name">{{selectedShopProduct.name || '未知商品'}}</text>
         <!-- 商品描述 -->
         <text class="shop-preview-desc" wx:if="{{selectedShopProduct.description}}"
           >{{selectedShopProduct.description}}</text
@@ -1035,7 +1027,7 @@
     <view class="shop-result-body" wx:if="{{shopResultData}}">
       <view class="shop-result-success-icon">✅</view>
       <text class="shop-result-congrats">恭喜您成功兑换</text>
-      <text class="shop-result-product-name">{{shopResultData.product.item_name || '商品'}}</text>
+      <text class="shop-result-product-name">{{shopResultData.product.name || '商品'}}</text>
       <view class="shop-result-details">
         <view class="shop-result-item" wx:if="{{shopResultData.orderNo}}">
           <text class="result-label">订单编号：</text>

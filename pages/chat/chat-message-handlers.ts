@@ -161,19 +161,20 @@ const chatMessageHandlers = {
   /**
    * 连接WebSocket（通过App全局Socket.IO连接）
    *
-   * 认证数据统一从 MobX userStore 读取（运行时唯一数据源），
-   * 避免依赖 this.data.token/userId 导致 MobX 绑定覆盖或页面数据未同步的问题。
+   * 后端 ChatWebSocketService 握手鉴权流程:
+   *   1. 前端传递 { auth: { token: accessToken } }
+   *   2. 后端 jwt.verify(token) 解码出 user_id、role_level
+   *   3. 后端自动注册用户/管理员（role_level >= 100）
+   *   4. 后端推送 connection_established 事件确认
+   *
+   * 前端只需检查 accessToken 存在即可，userId 由后端从 JWT 解码获取。
    */
   connectWebSocket() {
-    // 从 MobX Store 读取认证状态（权威数据源）
+    // 从 MobX Store 读取 accessToken（权威数据源，后端从 JWT 解码 userId）
     const token = userStore.accessToken
-    const userId = userStore.userInfo?.user_id
 
-    if (!token || !userId) {
-      msgLog.warn('⚠️ 缺少必要信息，无法连接WebSocket', {
-        hasToken: !!token,
-        hasUserId: !!userId
-      })
+    if (!token) {
+      msgLog.warn('⚠️ 未登录或Token不存在，无法连接WebSocket')
       return
     }
 
@@ -214,8 +215,8 @@ const chatMessageHandlers = {
   /**
    * 处理统一Socket.IO消息（对齐后端 ChatWebSocketService 事件协议）
    *
-   * 后端事件协议:
-   * - connection_established: { user_id, is_admin, socket_id, server_time }
+   * 后端事件协议（ChatWebSocketService）:
+   * - connection_established: { user_id, socket_id, server_time, timestamp }
    * - new_message: { chat_message_id, content, sender_type, session_id, ... }
    * - message_sent: { chat_message_id, session_id, timestamp } — 发送确认
    * - message_error: { error, message, timestamp } — 发送失败
@@ -249,7 +250,7 @@ const chatMessageHandlers = {
         })
         break
 
-      /* 后端连接确认（含 user_id、is_admin、server_time） */
+      /* 后端连接确认（含 user_id、socket_id、server_time） */
       case 'connection_established':
         msgLog.info('🤝 后端连接确认:', data)
         break

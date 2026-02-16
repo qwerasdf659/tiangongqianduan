@@ -19,15 +19,20 @@ interface JWTIntegrityResult {
   details?: Record<string, any>
 }
 
-/** JWT Payload结构（后端返回的字段） */
+/**
+ * JWT Payload 结构（对齐后端 JWT 签发逻辑）
+ *
+ * ⚠️ 后端 JWT Payload 不包含 is_admin、user_uuid 字段
+ * 管理员判断统一使用 role_level >= 100（与后端 authenticateToken 中间件一致）
+ */
 interface JWTPayload {
   user_id?: number
   mobile?: string
   nickname?: string
-  is_admin?: boolean
   user_role?: string
   role_level?: number
   status?: string
+  session_token?: string
   exp?: number
   iat?: number
   [key: string]: any
@@ -261,7 +266,7 @@ const validateJWTTokenIntegrity = (token: string): JWTIntegrityResult => {
  * 解码JWT Token的Payload部分，获取用户信息和Token元数据
  * 解码流程: 完整性验证 → Base64 URL解码 → JSON解析
  *
- * Token内容: user_id、mobile、is_admin、exp、iat等
+ * Token内容: user_id、mobile、role_level、user_role、exp、iat 等（不含 is_admin）
  */
 const decodeJWTPayload = (token: string): JWTPayload | null => {
   try {
@@ -337,7 +342,7 @@ const decodeJWTPayload = (token: string): JWTPayload | null => {
         iat: parsedPayload.iat,
         userId: parsedPayload.user_id,
         mobile: parsedPayload.mobile,
-        isAdmin: parsedPayload.is_admin
+        roleLevel: parsedPayload.role_level
       })
     }
 
@@ -599,27 +604,24 @@ const formatDateMessage = (timestamp: number | string | Date): string => {
 
 /**
  * 判断用户角色（管理员 or 普通用户）
- * 判断标准: is_admin === true ∥ user_role === 'admin' ∥ role_level >= 100
+ *
+ * 判断标准（对齐后端 authenticateToken 中间件）:
+ *   role_level >= 100 → 管理员
+ *
+ * ⚠️ 后端 JWT 和登录响应均不包含 is_admin 字段，
+ * 管理员身份完全由 role_level 决定（后端 role_level >= 100）。
  *
  * 此函数为唯一的角色判断逻辑，store/user.ts 的 isAdmin 计算属性、
  * setLoginState、restoreLoginState 均统一调用此函数，禁止重复编写。
  *
  * @param userInfo - 后端返回的用户信息（API.UserProfile）
- * @returns 'admin' | 'user'
+ * @returns 'admin' | 'user' | 'guest'
  */
-const determineUserRole = (userInfo: {
-  is_admin?: boolean
-  user_role?: string
-  role_level?: number
-}): string => {
+const determineUserRole = (userInfo: { user_role?: string; role_level?: number }): string => {
   if (!userInfo) {
     return 'guest'
   }
-  if (
-    userInfo.is_admin === true ||
-    userInfo.user_role === 'admin' ||
-    (typeof userInfo.role_level === 'number' && userInfo.role_level >= 100)
-  ) {
+  if (typeof userInfo.role_level === 'number' && userInfo.role_level >= 100) {
     return 'admin'
   }
   return 'user'

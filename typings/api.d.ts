@@ -80,13 +80,15 @@ declare namespace API {
     last_login: string
     /** 登录次数 */
     login_count: number
-    /** 用户UUID（登录响应返回，profile接口可能不返回） */
-    user_uuid?: string
     /** 头像URL（登录响应返回，profile接口可能不返回） */
     avatar_url?: string
-    /** 是否管理员（前端根据 role_level >= 100 派生，部分接口可能直接返回） */
-    is_admin?: boolean
-    /** 用户角色名称（部分接口可能直接返回） */
+    /**
+     * 用户角色名称（部分接口可能直接返回）
+     *
+     * ⚠️ 后端 JWT 和登录响应均不包含 is_admin、user_uuid 字段：
+     * - 管理员判断统一使用 role_level >= 100（对齐后端 authenticateToken）
+     * - user_uuid 仅后端内部使用（QR码生成），前端不需要
+     */
     user_role?: string
   }
 

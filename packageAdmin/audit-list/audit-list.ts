@@ -82,7 +82,7 @@ Page({
     // 🔴 权限检查：仅管理员(role_level>=100)可访问审批功能（后端console域限制）
     const userInfo = userStore.userInfo || wx.getStorageSync('user_info')
     const roleLevel = userInfo?.role_level || 0
-    const hasAccess = roleLevel >= 100 || userInfo?.is_admin === true
+    const hasAccess = roleLevel >= 100
 
     if (!hasAccess) {
       log.error('❌ 用户无审批权限，role_level:', roleLevel)

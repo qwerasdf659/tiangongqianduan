@@ -474,6 +474,22 @@ Page({
       })
     } catch (error: any) {
       log.error('[lottery] 生成V2二维码异常:', error)
+
+      // USER_UUID_MISSING：后端用户记录异常，引导重新登录触发认证中间件重新查询用户信息
+      if (error.code === 'USER_UUID_MISSING') {
+        wx.showModal({
+          title: '身份信息异常',
+          content: '请重新登录以刷新身份信息',
+          showCancel: false,
+          confirmText: '重新登录',
+          success: () => {
+            userStore.clearLoginState()
+            wx.redirectTo({ url: '/pages/auth/auth' })
+          }
+        })
+        return
+      }
+
       wx.showToast({ title: '二维码生成异常', icon: 'none', duration: 2000 })
     }
   },
@@ -572,8 +588,8 @@ Page({
   checkAdminRole() {
     try {
       const userInfo = userStore.userInfo
-      const isAdmin =
-        userInfo?.role === 'admin' || userInfo?.is_admin === true || userInfo?.user_role === 'admin'
+      // 管理员判断统一标准：role_level >= 100（对齐后端 authenticateToken）
+      const isAdmin = typeof userInfo?.role_level === 'number' && userInfo.role_level >= 100
       this.setData({ isAdmin })
     } catch (error) {
       log.error('[lottery] 权限检查失败:', error)

@@ -45,7 +45,6 @@ interface DevelopmentConfig {
   devVerificationCode: string | null
   skipSmsVerification: boolean
   enableAdminAutoDetection: boolean
-  adminFieldMapping: string
   disableSmsService: boolean
   preserveSmsFields: boolean
   enableDebugMode: boolean
@@ -171,7 +170,6 @@ const BASE_DEVELOPMENT_CONFIG: DevelopmentConfig = {
   devVerificationCode: '123456', // 后端控制的开发验证码，非mock数据
   skipSmsVerification: true,
   enableAdminAutoDetection: true,
-  adminFieldMapping: 'is_admin',
   disableSmsService: true,
   preserveSmsFields: true,
   enableDebugMode: true,
@@ -277,7 +275,6 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       devVerificationCode: null, // 🚨 生产环境无开发验证码
       skipSmsVerification: false,
       enableAdminAutoDetection: true,
-      adminFieldMapping: 'is_admin',
       disableSmsService: false,
       preserveSmsFields: true,
       enableDebugMode: false, // 🚨 必须关闭调试模式

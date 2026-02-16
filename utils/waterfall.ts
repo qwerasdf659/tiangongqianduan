@@ -194,8 +194,8 @@ function calculateContentHeight(product: any): number {
   try {
     let baseHeight = 70
 
-    // 长标题额外高度（后端字段: exchange_items.item_name）
-    const titleLength: number = product.item_name ? String(product.item_name).length : 0
+    // 长标题额外高度（DataSanitizer 输出字段: name）
+    const titleLength: number = product.name ? String(product.name).length : 0
     if (titleLength > 20) {
       baseHeight += 10
     }

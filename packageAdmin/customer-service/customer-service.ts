@@ -227,7 +227,7 @@ Page({
    * 处理统一Socket.IO消息（对齐后端 ChatWebSocketService 事件协议）
    *
    * 后端事件协议:
-   * - connection_established: { user_id, is_admin, socket_id, server_time }
+   * - connection_established: { user_id, socket_id, server_time, timestamp }
    * - new_message: { chat_message_id, content, sender_type, session_id, ... }
    * - message_sent: { chat_message_id, session_id, timestamp } — 发送确认
    * - message_error: { error, message, timestamp } — 发送失败

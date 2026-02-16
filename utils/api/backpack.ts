@@ -146,14 +146,19 @@ async function getExchangeProducts(
  *
  * 后端服务: exchange_core（CoreService.exchangeItem * 业务流程: 幂等键校商品状态校库存校验 BalanceService扣减资产 库存扣减 创建exchange_records
  * 全流程在 TransactionManager.execute() 事务 *
- * 响应字段: { order_no, id, quantity, pay_asset_code, pay_amount, status, exchange_time }
+ * 响应字段: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
  * ⚠️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
  *
- * @param id - 兑换商品ID（DataSanitizer 输出通用 id，数据库实际字段 exchange_item_id）
+ * ⚠️ 字段映射关系:
+ *   列表 API（GET）返回 id（string，DataSanitizer 脱敏后的通用字段名）
+ *   兑换 API（POST）body 参数名是 exchange_item_id（number，后端路由直接读取）
+ *   调用方需先 Number(列表item.id) 转为数字再传入本函数
+ *
+ * @param exchange_item_id - 兑换商品ID（BIGINT，对应列表 API 返回的 id 字段，需 Number() 转换）
  * @param quantity - 兑换数量，默认 1
  */
-async function exchangeProduct(id: number, quantity: number = 1) {
-  if (!id) {
+async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
+  if (!exchange_item_id) {
     throw new Error('兑换商品ID不能为空')
   }
   if (quantity < 1) {
@@ -161,12 +166,17 @@ async function exchangeProduct(id: number, quantity: number = 1) {
   }
 
   /* 生成幂等键，防止重复提交（exchange_records 表唯一约束） */
-  const idempotencyKey = `exchange_${id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = `exchange_${exchange_item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
   return apiClient.request('/backpack/exchange', {
     method: 'POST',
     data: {
-      id,
+      /**
+       * ⚠️ POST body 参数名是 exchange_item_id（后端路由直接读取此字段）
+       * 值从列表 API 的 id（string）字段获取，调用方需先 Number() 转为数字
+       * 列表返回: { id: "958" } → 调用: exchangeProduct(Number("958"), 1)
+       */
+      exchange_item_id,
       quantity
     },
     header: {

@@ -547,7 +547,16 @@ Page({
     log.info('🎁 点击商品:', product)
 
     if (this.data.currentTab === 'market') {
-      // 商品兑换Tab（幸运空间/臻选空间）→ 打开兑换确认弹窗
+      /**
+       * 🔒 前置校验: 商品兑换Tab必须有 id（DataSanitizer 脱敏后的商品主键）
+       * 缺少此字段时无法执行 POST /api/v4/backpack/exchange 兑换请求
+       */
+      if (!product || !product.id) {
+        log.error('❌ 商品数据缺少 id（DataSanitizer 脱敏后的主键），无法兑换:', product)
+        showToast({ title: '商品数据异常，请刷新页面重试', icon: 'none' })
+        return
+      }
+
       log.info('🛒 商品兑换模式 - 打开兑换确认弹窗')
       this.setData({
         selectedShopProduct: product,
@@ -571,8 +580,14 @@ Page({
   /**
    * 确认商品兑换操作（幸运空间/臻选空间专用）
    * 后端API: POST /api/v4/backpack/exchange
-   * 请求: { exchange_item_id, quantity, idempotency_key }
+   * 请求体: { exchange_item_id: number, quantity: number }
+   * 请求头: Idempotency-Key（幂等键，防止重复提交）
    * 响应: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
+   *
+   * ⚠️ 字段映射关系:
+   *   列表 API 返回 id（string "958"，DataSanitizer 脱敏）
+   *   POST 接口 body 要求 exchange_item_id（number 958）
+   *   取值用 id，传参时 Number(id) 转为数字传给 exchange_item_id
    */
   async onConfirmShopExchange() {
     const { selectedShopProduct, shopExchangeQuantity, shopExchanging, totalPoints } = this.data
@@ -588,13 +603,17 @@ Page({
       return
     }
 
-    // 获取商品兑换所需的ID和价格（后端 exchange_items 表字段，不做兼容性映射）
-    const exchangeItemId = selectedShopProduct.exchange_item_id
-    const costAmount = selectedShopProduct.cost_amount || 0
+    /**
+     * 获取商品兑换所需的ID和价格（DataSanitizer 脱敏后的字段）
+     * id: string — 商品主键（原 exchange_item_id，BIGINT→string）
+     * cost_amount: string — 兑换价格（BIGINT→string，bigNumberStrings: true）
+     */
+    const shopProductId = selectedShopProduct.id
+    const costAmount = Number(selectedShopProduct.cost_amount) || 0
     const costAssetCode = selectedShopProduct.cost_asset_code || 'POINTS'
 
-    if (!exchangeItemId) {
-      log.error('❌ 商品ID无效:', selectedShopProduct)
+    if (!shopProductId) {
+      log.error('❌ 商品ID无效（id 字段缺失）:', selectedShopProduct)
       showToast({ title: '商品数据异常，请重试', icon: 'none' })
       return
     }
@@ -612,8 +631,16 @@ Page({
     this.setData({ shopExchanging: true })
 
     try {
-      log.info('🛒 执行商品兑换:', { exchangeItemId, quantity: shopExchangeQuantity })
-      const response = await API.exchangeProduct(exchangeItemId, shopExchangeQuantity)
+      /**
+       * POST /api/v4/backpack/exchange 的 body 参数名是 exchange_item_id（number）
+       * 值从列表 API 的 id（string）字段获取，Number() 转为数字
+       */
+      const exchangeItemIdNum = Number(shopProductId)
+      log.info('🛒 执行商品兑换:', {
+        exchangeItemId: exchangeItemIdNum,
+        quantity: shopExchangeQuantity
+      })
+      const response = await API.exchangeProduct(exchangeItemIdNum, shopExchangeQuantity)
 
       if (response && response.success && response.data) {
         log.info('✅ 兑换成功:', response.data)

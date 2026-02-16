@@ -99,13 +99,12 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
   const totalCount: number = products.length
   let filtered: any[] = [...products]
 
-  // ===== 1. 搜索关键词筛=====
-  // 搜索匹配: item_name（后端原始字段）name（部分前端映射后的字段）description
+  // ===== 1. 搜索关键词筛选 =====
+  // 搜索匹配: name（DataSanitizer 输出字段）+ description
   if (searchKeyword) {
     const keyword: string = searchKeyword.toLowerCase()
     filtered = filtered.filter(
       (product: any) =>
-        (product.item_name && product.item_name.toLowerCase().includes(keyword)) ||
         (product.name && product.name.toLowerCase().includes(keyword)) ||
         (product.description && product.description.toLowerCase().includes(keyword))
     )

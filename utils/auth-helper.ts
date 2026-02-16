@@ -115,7 +115,7 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
 
 /**
  * 🔐 检查管理员权限
- * V4.0标准: is_admin === true, role_level >= 100
+ * 统一标准: role_level >= 100（对齐后端 authenticateToken 中间件）
  *
  * @example
  * if (!checkAdmin()) return;
@@ -135,7 +135,6 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
 
   log.info('🔍 管理员权限检查', {
     hasUserInfo: !!userInfo,
-    is_admin: userInfo?.is_admin,
     role_level: userInfo?.role_level,
     isAdmin
   })
@@ -242,7 +241,6 @@ function restoreUserInfo(): any {
         mobile: jwtPayload.mobile,
         nickname: jwtPayload.nickname || '用户',
         status: jwtPayload.status || 'active',
-        is_admin: jwtPayload.is_admin || false,
         user_role: jwtPayload.user_role || 'user',
         role_level: jwtPayload.role_level || 0,
         created_at: jwtPayload.created_at || ''
@@ -351,7 +349,7 @@ function checkTokenValidity(): {
       info: {
         userId: payload.user_id,
         mobile: payload.mobile,
-        roleBasedAdmin: payload.is_admin || false,
+        roleLevel: payload.role_level || 0,
         roles: payload.roles || ['user'],
         expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null
       },
@@ -388,5 +386,4 @@ module.exports = {
   checkTokenValidity
 }
 
-export { }
-
+export {}

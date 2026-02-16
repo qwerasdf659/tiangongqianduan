@@ -40,8 +40,8 @@ function parseAndValidateJWT(accessToken: string) {
     }
 
     // 返回权限信息（保持snake_case命名）
+    // ⚠️ 后端 JWT 不含 is_admin，管理员判断统一使用 role_level >= 100
     return {
-      is_admin: payload.is_admin || false,
       user_role: payload.user_role || 'user',
       role_level: payload.role_level || 0,
       iat: payload.iat,
@@ -75,8 +75,7 @@ function buildUserInfoObject(rawUserInfo: any, jwtData: any) {
     nickname: rawUserInfo.nickname,
     status: rawUserInfo.status || 'active',
 
-    // 权限字段（从JWT Token Payload提取）
-    is_admin: jwtData.is_admin,
+    // 权限字段（从JWT Token Payload提取，不含 is_admin）
     user_role: jwtData.user_role,
     role_level: jwtData.role_level,
 
@@ -1084,7 +1083,6 @@ Page({
       log.info('🔐 步骤3：解析JWT Token...')
       const jwtData = parseAndValidateJWT(accessToken)
       log.info('✅ JWT解析成功:', {
-        is_admin: jwtData.is_admin,
         user_role: jwtData.user_role,
         role_level: jwtData.role_level
       })
@@ -1095,7 +1093,6 @@ Page({
       log.info('✅ 用户信息构建完成:', {
         user_id: userInfo.user_id,
         mobile: userInfo.mobile,
-        is_admin: userInfo.is_admin,
         user_role: userInfo.user_role,
         role_level: userInfo.role_level
       })

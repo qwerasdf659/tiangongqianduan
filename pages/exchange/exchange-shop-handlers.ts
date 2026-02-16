@@ -136,10 +136,10 @@ const shopHandlers = {
         const luckyStats =
           statsResponse && statsResponse.success && statsResponse.data
             ? {
-              new_count: statsResponse.data.new_count || 0,
-              avg_discount: statsResponse.data.avg_discount || 0,
-              flash_deals: statsResponse.data.flash_deals || 0
-            }
+                new_count: statsResponse.data.new_count || 0,
+                avg_discount: statsResponse.data.avg_discount || 0,
+                flash_deals: statsResponse.data.flash_deals || 0
+              }
             : { new_count: 0, avg_discount: 0, flash_deals: 0 }
 
         if (!statsResponse || !statsResponse.success) {
@@ -279,19 +279,16 @@ const shopHandlers = {
         if (rawItems.length > 0 && items.length === 0) {
           shopLog.error(
             `❌ 后端API返回 ${rawItems.length} 个商品全部缺少 id，` +
-            `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
+              `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
           )
-          this.setErrorState(
-            '商品数据异常',
-            '后端返回的商品缺少必要字段(id)，请联系管理员'
-          )
+          this.setErrorState('商品数据异常', '后端返回的商品缺少必要字段(id)，请联系管理员')
           return
         }
 
         if (rawItems.length !== items.length) {
           shopLog.warn(
             `⚠️ 臻选空间数据校验: 原始${rawItems.length}个, 有效${items.length}个, ` +
-            `过滤${rawItems.length - items.length}个`
+              `过滤${rawItems.length - items.length}个`
           )
         }
 
@@ -299,10 +296,10 @@ const shopHandlers = {
         const premiumStats =
           premiumStatsResponse && premiumStatsResponse.success && premiumStatsResponse.data
             ? {
-              hot_count: premiumStatsResponse.data.hot_count || 0,
-              avg_rating: premiumStatsResponse.data.avg_rating || 0,
-              trending_count: premiumStatsResponse.data.trending_count || 0
-            }
+                hot_count: premiumStatsResponse.data.hot_count || 0,
+                avg_rating: premiumStatsResponse.data.avg_rating || 0,
+                trending_count: premiumStatsResponse.data.trending_count || 0
+              }
             : { hot_count: 0, avg_rating: 0, trending_count: 0 }
 
         if (!premiumStatsResponse || !premiumStatsResponse.success) {
@@ -1389,5 +1386,4 @@ const shopHandlers = {
 
 module.exports = shopHandlers
 
-export { }
-
+export {}
