@@ -583,7 +583,7 @@ const shopHandlers = {
         this.setData({
           selectedBidProduct: {
             bid_product_id: detail.bid_product_id,
-            item_name: detail.item_name || detail.name || '',
+            name: detail.name || '',
             description: detail.description || '',
             image: detail.image_url || product.image || '/images/products/default-product.png',
             category: detail.category || '',
