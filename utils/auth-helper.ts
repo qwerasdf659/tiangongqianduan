@@ -385,5 +385,4 @@ module.exports = {
   checkTokenValidity
 }
 
-export { }
-
+export {}

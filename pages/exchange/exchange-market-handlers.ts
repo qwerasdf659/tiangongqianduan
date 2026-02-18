@@ -314,7 +314,9 @@ const marketHandlers = {
       filtered.sort((a: any, b: any) => b.price_amount - a.price_amount)
     } else if (sortBy === 'newest') {
       filtered.sort(
-        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a: any, b: any) =>
+          (Utils.safeParseDateString(b.created_at) || new Date(0)).getTime() -
+          (Utils.safeParseDateString(a.created_at) || new Date(0)).getTime()
       )
     }
 
@@ -636,4 +638,5 @@ const marketHandlers = {
 
 module.exports = marketHandlers
 
-export {}
+export { }
+

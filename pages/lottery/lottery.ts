@@ -16,7 +16,16 @@
  * @version 5.2.0
  */
 
-const { Wechat, API, Utils, Constants, ConfigCache, Logger } = require('../../utils/index')
+const {
+  Wechat,
+  API,
+  Utils,
+  Constants,
+  ConfigCache,
+  Logger,
+  PopupFrequency,
+  QRCode
+} = require('../../utils/index')
 const log = Logger.createLogger('lottery')
 const { showToast } = Wechat
 const { checkAuth, restoreUserInfo } = Utils
@@ -93,6 +102,15 @@ Page({
     /* ===== 弹窗横幅（后端 GET /api/v4/system/popup-banners 返回） ===== */
     showPopupBanner: false,
     popupBanners: [] as API.PopupBanner[],
+
+    /* ===== 轮播图（后端 GET /api/v4/system/carousel-items 返回） ===== */
+    carouselItems: [] as API.CarouselItem[],
+    /** 轮播间隔毫秒（取首个轮播图配置或默认3000ms） */
+    carouselInterval: 3000,
+    /** 当前轮播索引（用于展示日志上报） */
+    carouselCurrent: 0,
+    /** 轮播区域是否可见（有数据时显示） */
+    showCarousel: false,
 
     /* ===== 页面状态 ===== */
     loading: true,
@@ -240,11 +258,14 @@ Page({
         return
       }
 
-      /* 并行加载：积分数据和弹窗横幅 */
+      /* 并行加载：积分数据、弹窗横幅、轮播图 */
       await Promise.all([
         this._refreshPoints(),
         this.loadPopupBanners().catch((err: any) => {
           log.error('[lottery] 弹窗横幅加载失败（不影响主功能）:', err)
+        }),
+        this.loadCarouselItems().catch((err: any) => {
+          log.error('[lottery] 轮播图加载失败（不影响主功能）:', err)
         })
       ])
     } catch (error) {
@@ -269,6 +290,7 @@ Page({
         finalData.popupBanners = this._preparedBanners
         finalData.showPopupBanner = true
         this._preparedBanners = null
+        this._bannerShowStartTime = Date.now()
       }
 
       this.setData(finalData)
@@ -488,11 +510,12 @@ Page({
       if (qrCodeData.expires_at && typeof qrCodeData.expires_at === 'object') {
         expiresTimestamp = qrCodeData.expires_at.timestamp
       } else {
-        expiresTimestamp = new Date(qrCodeData.expires_at).getTime()
+        expiresTimestamp = (
+          Utils.safeParseDateString(qrCodeData.expires_at) || new Date()
+        ).getTime()
       }
 
-      const drawQrcode = require('../../utils/weapp-qrcode')
-      drawQrcode({
+      QRCode.drawQrcode({
         canvasId: 'qrcodeCanvas',
         text: qrContent,
         width: 428,
@@ -835,12 +858,13 @@ Page({
     if (!timestamp) {
       return '时间未知'
     }
-    const time = new Date(timestamp).getTime()
-    if (isNaN(time)) {
+    const parsedDate = Utils.safeParseDateString(timestamp)
+    if (!parsedDate) {
       return '时间未知'
     }
 
-    const diff = Date.now() - time
+    const parsedTime = parsedDate.getTime()
+    const diff = Date.now() - parsedTime
     const minutes = Math.floor(diff / 60000)
     const hours = Math.floor(diff / 3600000)
     const days = Math.floor(diff / 86400000)
@@ -861,8 +885,7 @@ Page({
       return `${days}天前`
     }
 
-    const timeStr = typeof timestamp === 'string' ? timestamp : new Date(timestamp).toISOString()
-    return timeStr.substring(0, 16).replace('T', ' ')
+    return Utils.formatTime(parsedDate)
   },
 
   /** 关闭审核记录弹窗 */
@@ -883,7 +906,6 @@ Page({
    */
   async loadPopupBanners() {
     try {
-      const { filterBannersByFrequency, markBannerSeen } = require('../../utils/popup-frequency')
       const app = getApp()
 
       const result = await API.getPopupBanners()
@@ -898,7 +920,7 @@ Page({
 
       // 后端已过滤 is_active + 时间范围，前端再做客户端频率过滤
       const sessionSeenIds: Set<number> = app.globalData.sessionSeenPopups || new Set()
-      const filteredBanners = filterBannersByFrequency(banners, sessionSeenIds)
+      const filteredBanners = PopupFrequency.filterBannersByFrequency(banners, sessionSeenIds)
       if (filteredBanners.length === 0) {
         return
       }
@@ -910,12 +932,13 @@ Page({
       await this._preloadBannerImages(bannersToShow)
 
       // 标记为已展示（更新本地存储 + 会话级集合）
-      markBannerSeen(topBanner.popup_banner_id, sessionSeenIds)
+      PopupFrequency.markBannerSeen(topBanner.popup_banner_id, sessionSeenIds)
 
       if (this._isFirstLoad) {
         this._preparedBanners = bannersToShow
       } else {
         this.setData({ popupBanners: bannersToShow, showPopupBanner: true })
+        this._bannerShowStartTime = Date.now()
       }
     } catch (error) {
       log.error('[lottery] 加载弹窗横幅失败:', error)
@@ -952,12 +975,23 @@ Page({
   onPopupBannerClose() {
     const currentBanners = this.data.popupBanners
     if (currentBanners && currentBanners.length > 0) {
-      const { markBannerDismissed } = require('../../utils/popup-frequency')
       const closedBanner = currentBanners[0]
       if (closedBanner?.popup_banner_id) {
-        markBannerDismissed(closedBanner.popup_banner_id)
+        PopupFrequency.markBannerDismissed(closedBanner.popup_banner_id)
+
+        // 上报弹窗展示日志（静默上报，不阻塞关闭流程）
+        const showDuration = this._bannerShowStartTime ? Date.now() - this._bannerShowStartTime : 0
+        API.reportPopupBannerShowLog({
+          popup_banner_id: closedBanner.popup_banner_id,
+          show_duration_ms: showDuration,
+          close_method: 'close_btn',
+          queue_position: 1
+        }).catch((err: any) => {
+          log.warn('[lottery] 弹窗展示日志上报失败（不影响业务）:', err)
+        })
       }
     }
+    this._bannerShowStartTime = 0
     this.setData({ showPopupBanner: false })
   },
 
@@ -975,6 +1009,136 @@ Page({
         }
       })
     }
+  },
+
+  // ========================================
+  // 轮播图（后端 GET /api/v4/system/carousel-items）
+  // ========================================
+
+  /**
+   * 加载轮播图数据
+   *
+   * 数据流:
+   * API获取carousel_items → 空数组则隐藏区域 → 有数据则渲染swiper
+   * 轮播间隔由后端 slide_interval_ms 字段配置
+   */
+  async loadCarouselItems() {
+    try {
+      const apiResult = await API.getCarouselItems({ position: 'home' })
+      if (!apiResult?.success || !apiResult.data) {
+        return
+      }
+
+      const carouselList: API.CarouselItem[] = apiResult.data.carousel_items || []
+      if (!Array.isArray(carouselList) || carouselList.length === 0) {
+        this.setData({ showCarousel: false, carouselItems: [] })
+        return
+      }
+
+      const firstInterval = carouselList[0].slide_interval_ms
+      const safeInterval = firstInterval && firstInterval >= 1000 ? firstInterval : 3000
+
+      this.setData({
+        carouselItems: carouselList,
+        carouselInterval: safeInterval,
+        showCarousel: true,
+        carouselCurrent: 0
+      })
+
+      // 记录每张轮播图的曝光起始时间（用于展示日志上报）
+      this._carouselExposureStart = Date.now()
+
+      log.info('[lottery] 轮播图加载成功:', carouselList.length, '条')
+    } catch (error) {
+      log.error('[lottery] 轮播图加载失败:', error)
+    }
+  },
+
+  /** 轮播图切换事件（swiper bindchange） */
+  onCarouselChange(e: WechatMiniprogram.SwiperChange) {
+    const newIndex = e.detail.current
+    const prevIndex = this.data.carouselCurrent
+    const isManualSwipe = e.detail.source === 'touch'
+
+    // 上报前一张轮播图的展示日志
+    this._reportCarouselExposure(prevIndex, isManualSwipe, false)
+
+    this.setData({ carouselCurrent: newIndex })
+    this._carouselExposureStart = Date.now()
+  },
+
+  /** 轮播图点击事件 */
+  onCarouselItemTap(e: WechatMiniprogram.CustomEvent) {
+    const tappedIndex = e.currentTarget.dataset.index as number
+    const tappedItem: API.CarouselItem = this.data.carouselItems[tappedIndex]
+    if (!tappedItem) {
+      return
+    }
+
+    // 上报点击展示日志
+    this._reportCarouselExposure(tappedIndex, false, true)
+
+    // 根据 link_type 执行跳转
+    if (!tappedItem.link_url || tappedItem.link_type === 'none') {
+      return
+    }
+
+    switch (tappedItem.link_type) {
+      case 'page':
+        wx.navigateTo({
+          url: tappedItem.link_url,
+          fail: () => {
+            wx.switchTab({
+              url: tappedItem.link_url,
+              fail: err => log.error('[lottery] 轮播图跳转失败:', err)
+            })
+          }
+        })
+        break
+
+      case 'miniprogram':
+        wx.navigateToMiniProgram({
+          appId: tappedItem.link_url,
+          fail: err => log.error('[lottery] 轮播图跳转小程序失败:', err)
+        })
+        break
+
+      case 'webview':
+        wx.navigateTo({
+          url: '/pages/webview/webview?url=' + encodeURIComponent(tappedItem.link_url),
+          fail: err => log.error('[lottery] 轮播图跳转webview失败:', err)
+        })
+        break
+
+      default:
+        log.warn('[lottery] 未知的轮播图跳转类型:', tappedItem.link_type)
+    }
+  },
+
+  /**
+   * 上报轮播图曝光日志（静默上报，不阻塞UI）
+   * @param slideIndex - 轮播图索引
+   * @param isManualSwipe - 是否手动滑动
+   * @param isClicked - 是否被点击
+   */
+  _reportCarouselExposure(slideIndex: number, isManualSwipe: boolean, isClicked: boolean) {
+    const carouselItem: API.CarouselItem = this.data.carouselItems[slideIndex]
+    if (!carouselItem?.carousel_item_id) {
+      return
+    }
+
+    const exposureDuration = this._carouselExposureStart
+      ? Date.now() - this._carouselExposureStart
+      : 0
+
+    API.reportCarouselShowLog({
+      carousel_item_id: carouselItem.carousel_item_id,
+      exposure_duration_ms: exposureDuration,
+      is_manual_swipe: isManualSwipe,
+      is_clicked: isClicked
+    }).catch((err: any) => {
+      log.warn('[lottery] 轮播展示日志上报失败（不影响业务）:', err)
+    })
   },
 
   // ========================================

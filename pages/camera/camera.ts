@@ -1,7 +1,7 @@
 // pages/camera/camera.ts - 发现页面 - 活动聚合入口（方案C：标签页分类）+ MobX响应式状态
 
 // 🔴 统一工具函数导入
-const { Wechat, API, Logger } = require('../../utils/index')
+const { Wechat, API, Logger, Utils } = require('../../utils/index')
 const log = Logger.createLogger('camera')
 const { showToast } = Wechat
 // 🆕 MobX Store绑定
@@ -383,7 +383,7 @@ Page({
       return '-'
     }
 
-    const date = new Date(timestamp)
+    const date = Utils.safeParseDateString(timestamp) || new Date()
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
@@ -429,4 +429,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

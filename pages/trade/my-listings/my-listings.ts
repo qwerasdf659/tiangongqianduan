@@ -174,28 +174,36 @@ Page({
         const pagination = result.data.pagination || {}
         const statusCounts = result.data.status_counts || {}
 
+        if (!result.data.status_counts) {
+          log.warn(
+            '⚠️ 后端未返回 status_counts 字段，各状态计数将显示0。需后端在 GET /api/v4/market/my-listings 响应中添加 status_counts: { on_sale, sold, withdrawn } 聚合字段'
+          )
+        }
+
         /**
-         * 适配后端嵌套响应结构（与 /market/listings 一致）
-         * 优先从 item_info / asset_info 嵌套对象读取商品名称
-         * 兼容后端尚未更新 my-listings 端点的场景（降级到根级字段）
+         * 适配后端 GET /api/v4/market/my-listings 扁平字段格式
+         *
+         * 后端响应字段（基于 market_listings 表）:
+         *   market_listing_id, listing_kind,
+         *   offer_item_display_name, offer_asset_display_name,
+         *   offer_asset_code, offer_amount, offer_item_rarity,
+         *   price_asset_code, price_amount, status, status_display, created_at
          */
         const listings = rawListings.map((item: any) => {
-          const itemInfo = item.item_info || {}
-          const assetInfo = item.asset_info || {}
+          const displayName =
+            item.listing_kind === 'fungible_asset'
+              ? item.offer_asset_display_name || '未知资产'
+              : item.offer_item_display_name || '未知物品'
+
+          const parsedDate = Utils.safeParseDateString(item.created_at)
 
           return {
             market_listing_id: item.market_listing_id,
             listing_kind: item.listing_kind || 'item_instance',
-            display_name:
-              itemInfo.display_name ||
-              assetInfo.display_name ||
-              item.display_name ||
-              item.offer_item_display_name ||
-              item.offer_asset_display_name ||
-              '未知商品',
-            offer_item_rarity: itemInfo.rarity_code || item.offer_item_rarity || '',
-            offer_asset_code: assetInfo.asset_code || item.offer_asset_code || '',
-            offer_amount: assetInfo.amount || item.offer_amount || 0,
+            display_name: displayName,
+            offer_item_rarity: item.offer_item_rarity || '',
+            offer_asset_code: item.offer_asset_code || '',
+            offer_amount: item.offer_amount || 0,
             price_asset_code: item.price_asset_code,
             price_amount: item.price_amount || 0,
             status: item.status || 'on_sale',
@@ -204,10 +212,7 @@ Page({
             created_at: item.created_at || '',
             statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.on_sale).color,
             kindLabel: LISTING_KIND_LABEL[item.listing_kind] || '未知',
-            formattedTime:
-              item.created_at && Utils.formatTime
-                ? Utils.formatTime(new Date(item.created_at))
-                : item.created_at || ''
+            formattedTime: parsedDate ? Utils.formatTime(parsedDate) : item.created_at || ''
           }
         })
 
@@ -370,4 +375,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

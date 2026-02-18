@@ -474,5 +474,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

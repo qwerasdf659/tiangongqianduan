@@ -78,11 +78,85 @@ async function getSystemStatus() {
   return apiClient.request('/system/status', { method: 'GET', needAuth: true })
 }
 
-/** 获取弹窗横幅列表 - GET /api/v4/system/popup-banners */
-async function getPopupBanners() {
-  return apiClient.request('/system/popup-banners', {
+/**
+ * 获取弹窗横幅列表 - GET /api/v4/system/popup-banners
+ * @param params.status - 弹窗状态，普通用户只能传 'active'（默认）
+ * @param params.position - 显示位置: 'home' / 'profile'（默认 'home'）
+ * @param params.limit - 返回数量上限 1-10（默认 10）
+ */
+async function getPopupBanners(
+  params: { status?: string; position?: string; limit?: number } = {}
+) {
+  const qs = buildQueryString({
+    status: params.status || 'active',
+    position: params.position || 'home',
+    limit: params.limit || 10
+  })
+  return apiClient.request(`/system/popup-banners?${qs}`, {
     method: 'GET',
     needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 获取轮播图列表 - GET /api/v4/system/carousel-items
+ * @param params.position - 显示位置: 'home'（默认）
+ * @param params.limit - 返回数量上限 1-20（默认 10）
+ */
+async function getCarouselItems(params: { position?: string; limit?: number } = {}) {
+  const qs = buildQueryString({
+    position: params.position || 'home',
+    limit: params.limit || 10
+  })
+  return apiClient.request(`/system/carousel-items?${qs}`, {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 上报弹窗展示日志 - POST /api/v4/system/ad-events/popup-banners/show-log
+ * @param data.popup_banner_id - 弹窗ID（必填）
+ * @param data.show_duration_ms - 展示时长毫秒（弹出到关闭的时间差）
+ * @param data.close_method - 关闭方式: close_btn / overlay / confirm_btn / auto_timeout
+ * @param data.queue_position - 弹出队列位置（从1开始）
+ */
+async function reportPopupBannerShowLog(data: {
+  popup_banner_id: number
+  show_duration_ms?: number
+  close_method?: string
+  queue_position?: number
+}) {
+  return apiClient.request('/system/ad-events/popup-banners/show-log', {
+    method: 'POST',
+    data,
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 上报轮播图展示日志 - POST /api/v4/system/ad-events/carousel-items/show-log
+ * @param data.carousel_item_id - 轮播图ID（必填）
+ * @param data.exposure_duration_ms - 曝光时长毫秒
+ * @param data.is_manual_swipe - 是否手动滑动触发展示
+ * @param data.is_clicked - 用户是否点击了该轮播图
+ */
+async function reportCarouselShowLog(data: {
+  carousel_item_id: number
+  exposure_duration_ms?: number
+  is_manual_swipe?: boolean
+  is_clicked?: boolean
+}) {
+  return apiClient.request('/system/ad-events/carousel-items/show-log', {
+    method: 'POST',
+    data,
+    needAuth: true,
     showLoading: false,
     showError: false
   })
@@ -300,6 +374,9 @@ module.exports = {
   getMyFeedbacks,
   getSystemStatus,
   getPopupBanners,
+  getCarouselItems,
+  reportPopupBannerShowLog,
+  reportCarouselShowLog,
   getDictionaries,
   getNotifications,
   createChatSession,
@@ -314,4 +391,5 @@ module.exports = {
   getActivities
 }
 
-export {}
+export { }
+

@@ -1,4 +1,4 @@
-﻿/* 九宫格抽奖 子组件样式 */
+/* 九宫格抽奖 子组件样式 */
 @import '../../../../styles/variables';
 @import '../../../../styles/mixins';
 
@@ -68,12 +68,10 @@
 
 /* 高亮状态 - 使用主题色 */
 .prize-area.highlighted {
-  background: linear-gradient(
-    145deg,
-    var(--theme-primary, $color-primary) 0%,
-    var(--theme-primary-light, #ff8a65) 50%,
-    var(--theme-primary-lighter, #ffab91) 100%
-  );
+  background: linear-gradient(145deg,
+      var(--theme-primary, $color-primary) 0%,
+      var(--theme-primary-light, #ff8a65) 50%,
+      var(--theme-primary-lighter, #ffab91) 100%);
   border: 3rpx solid var(--theme-primary, #ff4444);
   box-shadow:
     0 0 40rpx var(--theme-glow-intense, rgba(255, 107, 53, 0.9)),
@@ -89,13 +87,11 @@
 
 /* 中奖状态 - 使用主题色 */
 .prize-area.winning {
-  background: linear-gradient(
-    145deg,
-    var(--theme-accent, #ffd700) 0%,
-    var(--theme-accent-light, #ffed4a) 30%,
-    var(--theme-accent-lighter, #fff176) 70%,
-    var(--theme-accent, #ffd700) 100%
-  );
+  background: linear-gradient(145deg,
+      var(--theme-accent, #ffd700) 0%,
+      var(--theme-accent-light, #ffed4a) 30%,
+      var(--theme-accent-lighter, #fff176) 70%,
+      var(--theme-accent, #ffd700) 100%);
   border: 4rpx solid var(--theme-accent-border, #f59e0b);
   box-shadow:
     0 0 60rpx var(--theme-accent-glow-intense, rgba(255, 215, 0, 1)),
@@ -127,6 +123,14 @@
   flex-shrink: 0;
 }
 
+.prize-img {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 4rpx;
+  flex-shrink: 0;
+  border-radius: $border-radius-sm;
+}
+
 .prize-name {
   font-size: $font-size-sm;
   font-weight: 600;
@@ -152,12 +156,10 @@
   width: 175rpx;
   height: 175rpx;
   background: var(--theme-primary, $color-primary);
-  background: linear-gradient(
-    145deg,
-    var(--theme-primary, $color-primary) 0%,
-    var(--theme-secondary, #ff8c42) 50%,
-    var(--theme-primary, $color-primary) 100%
-  );
+  background: linear-gradient(145deg,
+      var(--theme-primary, $color-primary) 0%,
+      var(--theme-secondary, #ff8c42) 50%,
+      var(--theme-primary, $color-primary) 100%);
   color: var(--theme-text-inverse, white);
   border: 4rpx solid white;
   border-radius: 90rpx;
@@ -219,6 +221,7 @@
 }
 
 @keyframes winningPulse {
+
   0%,
   100% {
     box-shadow:
@@ -236,6 +239,7 @@
 }
 
 @keyframes buttonGlow {
+
   0%,
   100% {
     box-shadow:
@@ -277,6 +281,7 @@
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;

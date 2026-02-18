@@ -19,7 +19,12 @@
  * @since 2026-02-18
  */
 
-const { API: bidAPI, Wechat: bidWechat, Logger: bidLogger } = require('../../utils/index')
+const {
+  API: bidAPI,
+  Wechat: bidWechat,
+  Logger: bidLogger,
+  Utils: bidUtils
+} = require('../../utils/index')
 const bidLog = bidLogger.createLogger('exchange-bid')
 const {
   getBidProducts: bidGetBidProducts,
@@ -360,7 +365,10 @@ const bidHandlers = {
       return ''
     }
     const now = Date.now()
-    const endTimestamp = typeof endTime === 'number' ? endTime : new Date(endTime).getTime()
+    const endTimestamp =
+      typeof endTime === 'number'
+        ? endTime
+        : (bidUtils.safeParseDateString(endTime) || new Date(0)).getTime()
     const diff = endTimestamp - now
 
     if (diff <= 0) {

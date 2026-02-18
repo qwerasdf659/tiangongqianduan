@@ -553,7 +553,7 @@ Page({
       item.action &&
       typeof (this as any)[item.action] === 'function'
     ) {
-      ; (this as any)[item.action]()
+      ;(this as any)[item.action]()
     } else {
       log.warn('⚠️ 未知的菜单类型或方法不存在:', { type: item.type, action: item.action })
     }
@@ -719,5 +719,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

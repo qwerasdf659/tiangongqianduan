@@ -598,8 +598,8 @@ Page({
 
     // 按 created_at 降序排列（最新的在前）
     allRecords.sort((a, b) => {
-      const timeA = new Date((a.created_at || '').replace(' ', 'T')).getTime()
-      const timeB = new Date((b.created_at || '').replace(' ', 'T')).getTime()
+      const timeA = (Utils.safeParseDateString(a.created_at) || new Date(0)).getTime()
+      const timeB = (Utils.safeParseDateString(b.created_at) || new Date(0)).getTime()
       return timeB - timeA
     })
 
@@ -634,8 +634,7 @@ Page({
         return
       }
 
-      // ISO 8601 格式 "2026-02-15T19:41:15.000Z" 可直接解析
-      const date = new Date(timestamp)
+      const date = Utils.safeParseDateString(timestamp) || new Date()
       const minuteKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}-${date.getMinutes()}`
 
       if (!timeGroups.has(minuteKey)) {
@@ -677,4 +676,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

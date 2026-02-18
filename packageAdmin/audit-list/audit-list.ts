@@ -23,7 +23,9 @@ function extractDateParts(dateStr: string): string {
     return '时间未知'
   }
 
-  const fullMatch = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})[T\s](\d{1,2}):(\d{1,2}):(\d{1,2})/)
+  const fullMatch = dateStr.match(
+    /(\d{4})[/-](\d{1,2})[/-](\d{1,2})[T\s](\d{1,2}):(\d{1,2}):(\d{1,2})/
+  )
   if (fullMatch) {
     const [, yr, mo, dy, hr, mi, sc] = fullMatch
     return `${yr}年${mo.padStart(2, '0')}月${dy.padStart(2, '0')}日 ${hr.padStart(2, '0')}:${mi.padStart(2, '0')}:${sc.padStart(2, '0')}`
@@ -491,5 +493,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

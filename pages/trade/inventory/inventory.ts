@@ -343,19 +343,17 @@ Page({
       )
     }
 
-    // iOS 兼容：后端返回 "YYYY-MM-DD HH:mm:ss" 格式，iOS 不支持空格分隔
-    // 需要将空格替换为 "T"（ISO 8601 格式）后再创建 Date 对象
     filteredItems.sort((a: any, b: any) => {
       switch (this.data.currentSort) {
         case 'newest':
           return (
-            new Date((b.acquired_at || '').replace(' ', 'T')).getTime() -
-            new Date((a.acquired_at || '').replace(' ', 'T')).getTime()
+            (Utils.safeParseDateString(b.acquired_at) || new Date(0)).getTime() -
+            (Utils.safeParseDateString(a.acquired_at) || new Date(0)).getTime()
           )
         case 'oldest':
           return (
-            new Date((a.acquired_at || '').replace(' ', 'T')).getTime() -
-            new Date((b.acquired_at || '').replace(' ', 'T')).getTime()
+            (Utils.safeParseDateString(a.acquired_at) || new Date(0)).getTime() -
+            (Utils.safeParseDateString(b.acquired_at) || new Date(0)).getTime()
           )
         case 'expire_soon':
           if (!a.expires_at && !b.expires_at) {
@@ -368,8 +366,8 @@ Page({
             return -1
           }
           return (
-            new Date(a.expires_at.replace(' ', 'T')).getTime() -
-            new Date(b.expires_at.replace(' ', 'T')).getTime()
+            (Utils.safeParseDateString(a.expires_at) || new Date(0)).getTime() -
+            (Utils.safeParseDateString(b.expires_at) || new Date(0)).getTime()
           )
         default:
           return 0
@@ -917,4 +915,4 @@ Page({
   }
 })
 
-export {}
+export { }

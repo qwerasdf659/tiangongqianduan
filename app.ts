@@ -21,7 +21,7 @@ const io = require('weapp.socket.io')
 // MobX Store - 业务数据唯一来源
 const { userStore } = require('./store/user')
 const { pointsStore } = require('./store/points')
-const { Logger } = require('./utils/index')
+const { Logger, PopupFrequency } = require('./utils/index')
 const log = Logger.createLogger('app')
 
 // ===== 类型定义 =====
@@ -89,8 +89,7 @@ App({
       await initializeWechatEnvironment()
 
       // 冷启动时清理过期弹窗记录（90天以上），防止本地存储无限增长
-      const { cleanExpiredRecords } = require('./utils/popup-frequency')
-      cleanExpiredRecords()
+      PopupFrequency.cleanExpiredRecords()
 
       log.info('✅ 系统初始化完成')
     } catch (error: any) {
@@ -615,4 +614,5 @@ App({
   }
 })
 
-export {}
+export { }
+

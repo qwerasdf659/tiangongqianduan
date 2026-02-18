@@ -47,6 +47,47 @@ const formatNumber = (n: number | string): string => {
 }
 
 /**
+ * 安全解析后端日期字符串为Date对象（iOS兼容）
+ *
+ * iOS JS引擎不支持 "YYYY-MM-DD HH:mm:ss" 空格分隔格式，
+ * 仅支持 ISO 8601 标准格式 "YYYY-MM-DDTHH:mm:ss"。
+ * 后端统一返回 "YYYY-MM-DD HH:mm:ss" 或 ISO 8601 两种格式，
+ * 此函数使用正则提取数字分量，确保100%兼容所有运行环境。
+ *
+ * 业务场景: 所有后端返回的 created_at / updated_at / acquired_at / expires_at 字段
+ *
+ * @param dateStr - 后端返回的日期字符串（"2026-02-15 02:15:02" 或 "2026-02-15T02:15:02+08:00"）
+ * @returns 解析后的Date对象，解析失败返回null
+ */
+const safeParseDateString = (dateStr: string | number | null | undefined): Date | null => {
+  if (!dateStr) {
+    return null
+  }
+
+  if (typeof dateStr === 'number') {
+    return new Date(dateStr)
+  }
+
+  const str = String(dateStr)
+  const match = str.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})[\sT](\d{1,2}):(\d{1,2}):(\d{1,2})/)
+  if (match) {
+    const [, yr, mo, dy, hr, mi, sc] = match
+    return new Date(
+      `${yr}-${mo.padStart(2, '0')}-${dy.padStart(2, '0')}T${hr.padStart(2, '0')}:${mi.padStart(2, '0')}:${sc.padStart(2, '0')}`
+    )
+  }
+
+  const dateOnly = str.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/)
+  if (dateOnly) {
+    const [, yr, mo, dy] = dateOnly
+    return new Date(`${yr}-${mo.padStart(2, '0')}-${dy.padStart(2, '0')}T00:00:00`)
+  }
+
+  log.warn('⚠️ 无法解析日期字符串:', str)
+  return null
+}
+
+/**
  * 格式化日期时间（YYYY-MM-DD HH:mm:ss格式）
  * 业务场景: 积分记录时间、兑换记录时间、抽奖记录时间、聊天消息时间戳
  */
@@ -653,6 +694,7 @@ const buildQueryString = (params: Record<string, any>): string => {
 module.exports = {
   formatTime,
   formatNumber,
+  safeParseDateString,
   base64Decode,
   validateJWTTokenIntegrity,
   decodeJWTPayload,
@@ -671,4 +713,5 @@ module.exports = {
   buildQueryString
 }
 
-export {}
+export { }
+

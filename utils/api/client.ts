@@ -501,5 +501,4 @@ const apiClient = new APIClient()
 
 module.exports = { APIClient, apiClient }
 
-export { }
-
+export {}

@@ -100,19 +100,55 @@ declare namespace API {
 
   // ===== 抽奖系统 =====
 
-  /** 奖品信息（后端 DataSanitizer.sanitizePrizes 输出） */
+  /**
+   * 奖品信息（后端 DataSanitizer.sanitizePrizes 输出，public级别）
+   *
+   * 字段对齐后端实际返回格式（2026-02-18 DataSanitizer字段对齐后）：
+   * - id: 统一为通用 id（数据库实际字段 lottery_prize_id，DataSanitizer 安全映射）
+   * - image: 新增字段，有图片时为 PrizeImage 对象，无图片时为 null（emoji兜底）
+   * - icon 字段已移除（后端不再返回，前端根据 prize_type 自行生成 emoji）
+   */
   interface Prize {
+    /** 奖品ID（DataSanitizer 统一输出 id，数据库实际字段 lottery_prize_id） */
     id: number
-    name: string
-    type: string
-    icon: string
+    /** 奖品名称 */
+    prize_name: string
+    /** 奖品类型: points/physical/virtual/coupon/service */
+    prize_type: string
+    /** 奖品数值（积分数/面值等） */
+    prize_value: number
     /** 稀有度代码（5级: common/uncommon/rare/epic/legendary） */
     rarity_code: string
-    available: boolean
-    display_points: number
-    display_value: string
-    status: string
+    /** 展示排序权重 */
     sort_order: number
+    /** 奖励层级: low/medium/high/premium */
+    reward_tier: string
+    /** 状态: active / inactive */
+    status: string
+    /** 图片资源ID（关联 image_resources 表，可为 null） */
+    image_resource_id: number | null
+    /**
+     * 奖品图片对象（DataSanitizer 通过 ImageUrlHelper 生成完整URL）
+     * 有图片时: { id, url, mime, thumbnail_url }
+     * 无图片时: null（前端使用 PRIZE_ICON_MAP[prize_type] emoji 兜底）
+     */
+    image: PrizeImage | null
+    /** 材料资产代码（如 CRYSTAL） */
+    material_asset_code: string
+    /** 材料数量 */
+    material_amount: number
+  }
+
+  /** 奖品关联图片（Sealos 对象存储公网URL） */
+  interface PrizeImage {
+    /** 图片资源ID */
+    id: number
+    /** 图片完整公网URL（Sealos 对象存储直连） */
+    url: string
+    /** MIME 类型（如 image/jpeg） */
+    mime: string
+    /** 缩略图URL（可为 null） */
+    thumbnail_url: string | null
   }
 
   /** 抽奖配置（对齐后端 GET /api/v4/lottery/campaigns/:code/config 响应） */
@@ -742,6 +778,38 @@ declare namespace API {
     seenCount: number
     /** 是否被用户主动关闭过 */
     dismissed: boolean
+  }
+
+  /**
+   * 轮播图（对齐后端 carousel_items 表 + GET /api/v4/system/carousel-items 响应）
+   * 显示位置: position='home'（首页抽奖页）
+   * 轮播间隔: slide_interval_ms（毫秒，后端配置，最小1000ms）
+   */
+  interface CarouselItem {
+    /** 轮播图主键（INT PK） */
+    carousel_item_id: number
+    /** 轮播图标题 */
+    title: string
+    /** 轮播图图片URL（Sealos对象存储完整公网URL） */
+    image_url: string
+    /** 显示模式: wide / horizontal / square */
+    display_mode: string
+    /** 原图宽度px（后端sharp检测，可为null） */
+    image_width: number | null
+    /** 原图高度px（后端sharp检测，可为null） */
+    image_height: number | null
+    /** 跳转链接 */
+    link_url: string
+    /** 跳转类型: none / page / miniprogram / webview */
+    link_type: string
+    /** 轮播间隔毫秒（默认3000ms，最小1000ms） */
+    slide_interval_ms: number
+    /** 广告标记（竞价结果附加字段，可选） */
+    _is_ad?: boolean
+    /** 广告活动ID（广告竞价结果附加字段，可选） */
+    _ad_campaign_id?: number
+    /** 广告创意ID（广告竞价结果附加字段，可选） */
+    _ad_creative_id?: number
   }
 
   /** 用户反馈 */

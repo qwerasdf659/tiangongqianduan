@@ -29,6 +29,7 @@ const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const productFilterFunctions = require('./product-filter')
 const popupFrequencyFunctions = require('./popup-frequency')
+const drawQrcodeFunction = require('./weapp-qrcode')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -66,6 +67,9 @@ const ProductFilter = { ...productFilterFunctions }
 /** 弹窗横幅频率控制 - 服务端驱动客户端执行的频率判断 */
 const PopupFrequency = { ...popupFrequencyFunctions }
 
+/** 二维码生成工具 - weapp-qrcode Canvas绘制 */
+const QRCode = { drawQrcode: drawQrcodeFunction }
+
 // WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
@@ -88,7 +92,9 @@ module.exports = {
   Logger,
   Waterfall,
   ProductFilter,
-  PopupFrequency
+  PopupFrequency,
+  QRCode
 }
 
-export {}
+export { }
+

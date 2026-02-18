@@ -376,11 +376,10 @@ Page({
       )
     }
 
-    // 按时间倒序排列（iOS兼容：空格替换为T）
     filteredRecords.sort(
       (a: any, b: any) =>
-        new Date((b.created_at || '').replace(' ', 'T')).getTime() -
-        new Date((a.created_at || '').replace(' ', 'T')).getTime()
+        (Utils.safeParseDateString(b.created_at) || new Date(0)).getTime() -
+        (Utils.safeParseDateString(a.created_at) || new Date(0)).getTime()
     )
 
     this.setData({ filteredRecords })
@@ -408,7 +407,7 @@ Page({
     }
 
     return records.filter(
-      (record: any) => new Date((record.created_at || '').replace(' ', 'T')) >= startDate!
+      (record: any) => (Utils.safeParseDateString(record.created_at) || new Date(0)) >= startDate!
     )
   },
 
@@ -752,4 +751,5 @@ Page({
   }
 })
 
-export {}
+export { }
+
