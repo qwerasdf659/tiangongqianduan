@@ -8,18 +8,24 @@
         <view class="balance-dot"></view>
         <text class="balance-title">可用积分</text>
       </view>
-      <view class="balance-close" bindtap="onBackTap">
-        <text class="close-icon">✕</text>
+      <view class="balance-refresh" bindtap="handleManualRefresh">
+        <text class="refresh-icon">🔄</text>
       </view>
     </view>
     <view class="balance-amount">
       <text class="balance-number">{{totalPoints || 0}}</text>
       <text class="balance-unit">积分</text>
     </view>
+    <!-- 余额信息底栏 -->
     <view class="balance-footer">
-      <view class="balance-desc">积分余额变动记录</view>
+      <view class="balance-stat">
+        <view class="stat-dot earn-dot"></view>
+        <text class="stat-text"
+          >获得：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length : 0}}笔</text
+        >
+      </view>
       <view class="balance-badge" wx:if="{{filteredPointsRecords.length > 0}}">
-        <text class="badge-text">{{filteredPointsRecords.length}}条</text>
+        <text class="badge-text">{{filteredPointsRecords.length}}条记录</text>
       </view>
     </view>
   </view>
@@ -74,6 +80,11 @@
         wx:for="{{filteredPointsRecords}}"
         wx:key="asset_transaction_id"
       >
+        <!-- 左侧彩色指示条 -->
+        <view
+          class="record-indicator {{item.transaction_type === 'earn' ? 'earn-indicator' : 'consume-indicator'}}"
+        ></view>
+
         <!-- 记录图标 -->
         <view class="record-icon">
           <view class="icon-bg {{item.transaction_type === 'earn' ? 'earn-bg' : 'consume-bg'}}">
@@ -126,7 +137,7 @@
         <text class="load-more-text">加载更多</text>
         <view class="load-more-arrow">↓</view>
       </view>
-      <view class="loading-state" wx:if="{{loading}}">
+      <view class="loading-inline" wx:if="{{loading}}">
         <view class="loading-spinner"></view>
         <text class="loading-text">加载中...</text>
       </view>

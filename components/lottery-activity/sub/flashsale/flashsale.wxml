@@ -67,8 +67,8 @@
           src="{{spotlightPrize.image_url}}"
           mode="aspectFit"
         />
-        <text wx:else class="spot-emoji">{{spotlightPrize.icon || '🎁'}}</text>
-        <text class="spot-name">{{spotlightPrize.name || '限量大奖'}}</text>
+        <text wx:else class="spot-emoji">{{spotlightPrize.prize_icon || '🎁'}}</text>
+        <text class="spot-name">{{spotlightPrize.prize_name || '限量大奖'}}</text>
         <view class="spot-shine" />
         <view class="spot-tag">
           <text>主打</text>
@@ -92,8 +92,8 @@
             src="{{item.image_url}}"
             mode="aspectFit"
           />
-          <text wx:else class="ti-emoji">{{item.icon || '🎁'}}</text>
-          <text class="ti-name">{{item.name}}</text>
+          <text wx:else class="ti-emoji">{{item.prize_icon || '🎁'}}</text>
+          <text class="ti-name">{{item.prize_name}}</text>
         </view>
       </view>
     </scroll-view>

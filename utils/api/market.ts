@@ -1,13 +1,24 @@
 /**
- * 🏪 交易市场API（C2C用户交易 * 后端路由: routes/v4/market/
+ * 🏪 交易市场API（C2C用户交易）
+ * 后端路由: routes/v4/market/
  *
- * 数据库表: market_listings（双模式: item_instance / fungible_asset *           trade_orders（状态机: created frozen completed / cancelled / failed *
+ * 数据库表: market_listings（双模式: item_instance / fungible_asset）
+ *           trade_orders（状态机: created → frozen → completed / cancelled / failed）
+ *
  * 核心概念:
- *   - listing_kind: 'item_instance'（不可叠加物品） / 'fungible_asset'（可叠加资产 *   - price_asset_code: 定价币种（默DIAMOND *   - price_amount: 售价（BIGINT整数据 *   - 挂单状态 on_sale / locked / sold / withdrawn / admin_withdrawn
+ *   - listing_kind: 'item_instance'（不可叠加物品） / 'fungible_asset'（可叠加资产）
+ *   - price_asset_code: 定价币种（默认 DIAMOND）
+ *   - price_amount: 售价（BIGINT整数）
+ *   - 挂单状态 on_sale / locked / sold / withdrawn / admin_withdrawn
+ *
+ * QueryService 响应结构（2026-02-18 更新）:
+ *   - 物品信息通过 JOIN item_templates 查询，封装在 item_info 嵌套对象中
+ *   - 资产信息通过 JOIN material_asset_types 查询，封装在 asset_info 嵌套对象中
+ *   - 图片URL通过 ImageUrlHelper.getImageUrl(object_key) 自动转换为完整公网URL
  *
  * @file 天工餐厅积分系统 - 交易市场API模块
- * @version 5.2.0
- * @since 2026-02-16
+ * @version 5.3.0
+ * @since 2026-02-18
  */
 
 const { apiClient } = require('./client')
@@ -17,27 +28,47 @@ const { buildQueryString } = require('../util')
  * 获取交易市场挂单列表
  * GET /api/v4/market/listings
  *
- * 后端服务: market_listing_query（QueryService.getMarketListings *
+ * 后端服务: QueryService.getMarketListings（含 ItemTemplate / MaterialAssetType 关联查询）
+ *
  * 响应结构: { products: MarketListing[], pagination: { page, page_size, total } }
  *
- * 响应字段（基market_listings 表）:
+ * 响应字段（根级 — 基于 market_listings 表）:
  *   - market_listing_id: BIGINT PK 挂单ID
  *   - listing_kind: ENUM 'item_instance' / 'fungible_asset'
  *   - seller_user_id: INT FK 卖家用户ID
- *   - offer_item_instance_id: BIGINT NULL 物品实例ID（item_instance类型 *   - offer_item_display_name: VARCHAR(200) 物品显示名称
- *   - offer_item_rarity: VARCHAR(50) 物品稀有度编码
- *   - offer_item_category_code: VARCHAR(50) 物品分类编码
- *   - offer_asset_code: VARCHAR(50) NULL 资产代码（fungible_asset类型 *   - offer_asset_display_name: VARCHAR(100) 资产显示名称
- *   - offer_asset_group_code: VARCHAR(50) 资产分组代码
- *   - offer_amount: BIGINT NULL 上架数量（fungible_asset类型 *   - price_asset_code: VARCHAR(50) 定价币种（默DIAMOND *   - price_amount: BIGINT 售价
+ *   - seller_nickname: VARCHAR 卖家昵称
+ *   - seller_avatar_url: VARCHAR 卖家头像（可null）
+ *   - price_asset_code: VARCHAR(50) 定价币种（默认 DIAMOND）
+ *   - price_amount: BIGINT 售价
  *   - status: ENUM on_sale / locked / sold / withdrawn / admin_withdrawn
  *   - created_at: DATETIME
  *
+ * 物品类型(item_instance)嵌套对象 item_info:
+ *   - item_instance_id: BIGINT 物品实例ID
+ *   - display_name: VARCHAR 物品显示名称（来自 ItemTemplate 或 item_instances.meta.name）
+ *   - image_url: VARCHAR 物品图片URL（ImageUrlHelper 转完整公网URL，运营未上传时为null）
+ *   - category_code: VARCHAR 物品分类编码（可null）
+ *   - rarity_code: VARCHAR 物品稀有度编码（可null）
+ *   - template_id: BIGINT 物品模板ID（可null）
+ *
+ * 资产类型(fungible_asset)嵌套对象 asset_info:
+ *   - asset_code: VARCHAR 资产代码（如 red_shard）
+ *   - amount: BIGINT 上架数量
+ *   - display_name: VARCHAR 资产显示名称（来自 material_asset_types）
+ *   - icon_url: VARCHAR 资产图标URL（ImageUrlHelper 转完整公网URL，运营未上传时为null）
+ *   - group_code: VARCHAR 资产分组代码
+ *
  * @param params - 查询参数对象
- * @param params.page - 页码，默
- * @param params.limit - 每页数量，默0
+ * @param params.page - 页码，默认1
+ * @param params.limit - 每页数量，默认20
  * @param params.listing_kind - 挂牌类型: 'item_instance' / 'fungible_asset'
- * @param params.asset_code - 资产代码筛选（fungible_asset 有效 * @param params.item_category_code - 物品类目代码（仅 item_instance 有效 * @param params.asset_group_code - 资产分组代码（仅 fungible_asset 有效 * @param params.rarity_code - 稀有度筛选（item_instance 有效 * @param params.min_price - 最低价格 * @param params.max_price - 最高价格 * @param params.sort - 排序方式: 'newest' / 'price_asc' / 'price_desc'
+ * @param params.asset_code - 资产代码筛选（仅 fungible_asset 有效）
+ * @param params.item_category_code - 物品类目代码（仅 item_instance 有效）
+ * @param params.asset_group_code - 资产分组代码（仅 fungible_asset 有效）
+ * @param params.rarity_code - 稀有度筛选（仅 item_instance 有效）
+ * @param params.min_price - 最低价格
+ * @param params.max_price - 最高价格
+ * @param params.sort - 排序方式: 'newest' / 'price_asc' / 'price_desc'
  */
 async function getMarketProducts(
   params: {
@@ -136,15 +167,36 @@ async function purchaseMarketProduct(market_listing_id: number) {
 }
 
 /**
- * 撤回市场挂单
- * POST /api/v4/market/manage/listings/:market_listing_id/withdraw
+ * 撤回物品实例挂单
+ * POST /api/v4/market/listings/:market_listing_id/withdraw
  *
- * @param market_listing_id - 挂单ID（BIGINT */
+ * @param market_listing_id - 挂单ID（BIGINT）
+ */
 async function withdrawMarketProduct(market_listing_id: number) {
   if (!market_listing_id) {
     throw new Error('挂单ID不能为空')
   }
-  return apiClient.request(`/market/manage/listings/${market_listing_id}/withdraw`, {
+  return apiClient.request(`/market/listings/${market_listing_id}/withdraw`, {
+    method: 'POST',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '撤回中...',
+    showError: true,
+    errorPrefix: '撤回失败：'
+  })
+}
+
+/**
+ * 撤回可叠加资产挂单
+ * POST /api/v4/market/fungible-assets/:market_listing_id/withdraw
+ *
+ * @param market_listing_id - 挂单ID（BIGINT）
+ */
+async function withdrawFungibleAsset(market_listing_id: number) {
+  if (!market_listing_id) {
+    throw new Error('挂单ID不能为空')
+  }
+  return apiClient.request(`/market/fungible-assets/${market_listing_id}/withdraw`, {
     method: 'POST',
     needAuth: true,
     showLoading: true,
@@ -197,12 +249,13 @@ async function getMyListingStatus() {
 
 /**
  * 获取当前用户的挂单列表（我的挂单）
- * GET /api/v4/market/manage/my-listings
+ * GET /api/v4/market/my-listings
  *
  * 后端通过JWT Token识别当前用户，返回该用户的所有挂单记录
- * 响应结构: { listings: MyListing[], pagination: { page, page_size, total }, status_counts: {...} }
- *
- * 🔴 需后端实现此接口，详见: docs/后端需求-我的挂单API.md
+ * 响应字段（基于 market_listings 表）:
+ *   market_listing_id, listing_kind, offer_item_display_name, offer_asset_display_name,
+ *   offer_asset_code, offer_amount, offer_item_rarity, price_asset_code, price_amount,
+ *   status, created_at
  *
  * @param params.page - 页码，默认1
  * @param params.limit - 每页数量，默认20
@@ -217,9 +270,25 @@ async function getMyListings(
 ) {
   const { page = 1, limit = 20, status = null } = params
   const qs = buildQueryString({ page, limit, status })
-  return apiClient.request(`/market/manage/my-listings?${qs}`, {
+  return apiClient.request(`/market/my-listings?${qs}`, {
     method: 'GET',
     needAuth: true
+  })
+}
+
+/**
+ * 获取结算币种列表（用户可选的定价币种）
+ * GET /api/v4/market/settlement-currencies
+ *
+ * 响应: { currencies: [{ asset_code: "DIAMOND", display_name: "钻石" }, ...] }
+ * 数据来源: system_settings.allowed_settlement_assets 白名单 + material_asset_types.display_name
+ */
+async function getSettlementCurrencies() {
+  return apiClient.request('/market/settlement-currencies', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
   })
 }
 
@@ -278,12 +347,13 @@ module.exports = {
   getMarketProductDetail,
   purchaseMarketProduct,
   withdrawMarketProduct,
+  withdrawFungibleAsset,
   sellToMarket,
   getMyListingStatus,
   getMyListings,
+  getSettlementCurrencies,
   getMarketFacets,
   sellFungibleAssets
 }
 
-export { }
-
+export {}

@@ -1,6 +1,6 @@
 {
   "navigationBarTitleText": "审批管理",
-  "navigationBarBackgroundColor": "#FF6B35",
+  "navigationBarBackgroundColor": "#667eea",
   "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
   "usingComponents": {}

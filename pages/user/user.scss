@@ -351,6 +351,185 @@
   color: var(--gray-color);
 }
 
+/* ===== 商家工作台 ===== */
+
+.mw-section {
+  margin-bottom: $spacing-base;
+}
+
+.mw-header {
+  @include flex-between;
+  padding: 24rpx 28rpx;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.08));
+  border-radius: 20rpx 20rpx 0 0;
+  border: 1rpx solid rgba(102, 126, 234, 0.15);
+  border-bottom: none;
+  -webkit-backdrop-filter: blur(10rpx);
+  backdrop-filter: blur(10rpx);
+}
+
+.mw-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.mw-header-icon {
+  width: 64rpx;
+  height: 64rpx;
+  @include flex-center;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  border-radius: $border-radius-md;
+  font-size: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+}
+
+.mw-header-info {
+  @include flex-column;
+  gap: 4rpx;
+}
+
+.mw-header-title {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-white;
+}
+
+.mw-header-role {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.mw-role-badge {
+  padding: 8rpx 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(5rpx);
+  backdrop-filter: blur(5rpx);
+}
+
+.mw-role-text {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.mw-cards {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0 0 20rpx 20rpx;
+  padding: 20rpx;
+  -webkit-backdrop-filter: blur(10rpx);
+  backdrop-filter: blur(10rpx);
+  box-shadow: $shadow-card;
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.mw-card {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: $color-white;
+  border-radius: $border-radius-md;
+  border: 1rpx solid $color-border-light;
+  transition: all $transition-base;
+}
+
+.mw-card:active {
+  transform: scale(0.98);
+  background: $color-bg-grey;
+}
+
+.mw-card-icon-wrap {
+  width: 80rpx;
+  height: 80rpx;
+  @include flex-center;
+  border-radius: $border-radius-md;
+  flex-shrink: 0;
+}
+
+.mw-icon-scan {
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  box-shadow: 0 4rpx 16rpx rgba(233, 30, 99, 0.25);
+}
+
+.mw-icon-consume {
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.25);
+}
+
+.mw-icon-audit {
+  background: linear-gradient(135deg, $color-success, #73d13d);
+  box-shadow: 0 4rpx 16rpx rgba(82, 196, 26, 0.25);
+}
+
+.mw-card-icon {
+  font-size: 40rpx;
+}
+
+.mw-card-body {
+  flex: 1;
+  margin-left: 20rpx;
+  min-width: 0;
+}
+
+.mw-card-title {
+  display: block;
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 6rpx;
+}
+
+.mw-card-desc {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  line-height: 1.4;
+  margin-bottom: 12rpx;
+}
+
+.mw-card-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6rpx;
+}
+
+.mw-step {
+  font-size: 18rpx;
+  color: $color-info;
+  padding: 2rpx 10rpx;
+  background: rgba(24, 144, 255, 0.08);
+  border-radius: 6rpx;
+}
+
+.mw-step-arrow {
+  font-size: 16rpx;
+  color: $color-text-disabled;
+}
+
+.mw-card-go {
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  @include flex-center;
+  background: $color-bg-grey;
+  border-radius: 50%;
+  margin-left: 12rpx;
+}
+
+.mw-go-icon {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  font-weight: 300;
+  line-height: 1;
+}
+
 /* 加载状态 */
 .loading-overlay {
   position: fixed;

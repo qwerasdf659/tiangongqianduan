@@ -233,12 +233,12 @@ Page({
    * - user: { user_id, nickname, mobile } （用户信息）
    */
   processSessionList(rawSessions: any[]) {
+    /* 诊断日志: 打印第一条原始会话数据的字段名，确认后端实际返回结构 */
+    if (rawSessions.length > 0) {
+      log.info('📋 原始会话字段:', Object.keys(rawSessions[0]))
+    }
+
     const processed = rawSessions.map((session: any) => {
-      /**
-       * 消息预览处理：
-       * 1. 添加发送者前缀 [我] / [客服] / [系统]（对标微信群聊消息预览）
-       * 2. 非文字消息显示类型标签 [图片] / [位置]
-       */
       let preview = ''
       if (session.last_message && session.last_message.content) {
         const senderPrefix =
@@ -248,28 +248,28 @@ Page({
               ? '[客服] '
               : '[系统] '
         const msgType = session.last_message.message_type
-        const content =
+        const contentText =
           msgType === 'image'
             ? '[图片]'
             : msgType === 'location'
               ? '[位置]'
               : session.last_message.content
-        preview = senderPrefix + content
+        preview = senderPrefix + contentText
+      }
+
+      /* DataSanitizer 将主键 customer_service_session_id 统一为 id */
+      const rawSessionId = session.id
+      if (!rawSessionId) {
+        log.error('❌ 会话缺少 id 字段，原始数据:', JSON.stringify(session).substring(0, 200))
       }
 
       return {
-        // 会话唯一标识（后端主键字段）
-        sessionId: session.customer_service_session_id,
-        // 会话状态（用于状态标签和在线指示器）
+        sessionId: rawSessionId,
         status: session.status || 'waiting',
         statusText: SESSION_STATUS_MAP[session.status] || '未知',
-        // 最后消息预览（带发送者前缀）
         preview,
-        // 未读消息数
         unread: session.unread_count || 0,
-        // 最后更新时间（使用 updated_at 字段）
         time: session.updated_at ? formatDateMessage(session.updated_at) : '',
-        // 显示名称：固定为"在线客服"（用户端只有客服会话）
         name: '在线客服',
         icon: '🎧',
         avatarClass: 'customer-service'
@@ -419,12 +419,14 @@ Page({
         const total = result.data.pagination?.total || searchMessages.length
         log.info('🔍 搜索结果:', searchMessages.length, '条')
 
-        // 将后端消息映射为搜索结果展示数据
+        /* 诊断日志: 确认搜索消息字段名 */
+        if (searchMessages.length > 0) {
+          log.info('📋 搜索消息字段:', Object.keys(searchMessages[0]))
+        }
         const searchResults = searchMessages.map((msg: any) => ({
-          // 消息唯一标识
-          chatMessageId: msg.chat_message_id,
-          // 所属会话ID（用于点击跳转）
-          sessionId: msg.customer_service_session_id,
+          /* DataSanitizer: 主键 chat_message_id → id，外键 session_id */
+          chatMessageId: msg.id,
+          sessionId: msg.session_id,
           // 原始消息内容
           content: msg.content || '',
           // 关键词高亮后的HTML内容（供 rich-text 组件渲染）
@@ -550,14 +552,14 @@ Page({
       })
 
       if (sessionResult.success && sessionResult.data) {
-        // 后端返回的会话对象（主键字段: customer_service_session_id）
         const session = sessionResult.data.session || sessionResult.data
-        const sessionId = session.customer_service_session_id
-        log.info('✅ 聊天会话创建成功，ID:', sessionId)
+        log.info('📋 创建会话响应字段:', Object.keys(session))
+        /* DataSanitizer 将主键 customer_service_session_id 统一为 id */
+        const createdSessionId = session.id
+        log.info('✅ 聊天会话创建成功，ID:', createdSessionId)
 
-        // 保存会话信息
         this.setData({
-          sessionId,
+          sessionId: createdSessionId,
           sessionStatus: session.status || 'waiting'
         })
 

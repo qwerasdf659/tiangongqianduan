@@ -9,6 +9,141 @@
   padding: 30rpx 30rpx 160rpx;
 }
 
+/* ===== 扫码入口页面 ===== */
+
+.guide-card {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 60rpx 40rpx 50rpx;
+  margin-bottom: 30rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.guide-icon-wrap {
+  width: 120rpx;
+  height: 120rpx;
+  margin: 0 auto 30rpx;
+  background: linear-gradient(135deg, #fff5f0, #ffe8dd);
+  border-radius: 50%;
+  @include flex-center;
+}
+
+.guide-icon-text {
+  font-size: 56rpx;
+}
+
+.guide-title {
+  font-size: $font-size-xl;
+  font-weight: bold;
+  color: $color-text-primary;
+  margin-bottom: 16rpx;
+}
+
+.guide-desc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+  padding: 0 20rpx;
+}
+
+/* 操作步骤说明 */
+.guide-steps {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.guide-step-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx 0;
+  gap: 20rpx;
+}
+
+.guide-step-item+.guide-step-item {
+  border-top: 2rpx solid $color-border-light;
+}
+
+.guide-step-num {
+  width: 48rpx;
+  height: 48rpx;
+  min-width: 48rpx;
+  @include flex-center;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: bold;
+  border-radius: 50%;
+}
+
+.guide-step-content {
+  flex: 1;
+}
+
+.guide-step-title {
+  font-size: $font-size-base;
+  font-weight: bold;
+  color: $color-text-primary;
+  margin-bottom: 8rpx;
+}
+
+.guide-step-desc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  line-height: $line-height-base;
+}
+
+/* 扫码按钮区域 */
+.scan-btn-area {
+  padding: 30rpx 0;
+}
+
+.scan-btn {
+  width: 100%;
+  height: 100rpx;
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: bold;
+  border-radius: 50rpx;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.scan-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.scan-btn-icon {
+  font-size: $font-size-lg;
+}
+
+.scan-btn-text {
+  font-size: $font-size-md;
+  font-weight: bold;
+}
+
+/* 重新扫码按钮 */
+.rescan-btn {
+  padding: 6rpx 16rpx;
+  background: #fff5f0;
+  border-radius: 8rpx;
+}
+
+.rescan-text {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: 500;
+}
+
 /* ===== 顶部步骤条 ===== */
 .step-bar {
   display: flex;

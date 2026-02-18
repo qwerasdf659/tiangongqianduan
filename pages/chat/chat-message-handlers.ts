@@ -85,7 +85,8 @@ const chatMessageHandlers = {
           const isOwn = msg.sender_type === 'user'
 
           return {
-            id: msg.chat_message_id || msg.id,
+            /* DataSanitizer: 主键 chat_message_id → id */
+            id: msg.id,
             content: msg.content || '',
             messageType: msg.message_type || 'text',
             isOwn,
@@ -304,8 +305,10 @@ const chatMessageHandlers = {
   handleAdminMessage(messageData: any) {
     msgLog.info('👨‍💼 处理管理员消息')
 
+    msgLog.info('📋 admin消息字段:', Object.keys(messageData))
     const adminMessage = {
-      id: messageData.chat_message_id || `admin_msg_${Date.now()}`,
+      /* Socket.IO事件: 尝试 id 和 chat_message_id */
+      id: messageData.id || messageData.chat_message_id || `admin_msg_${Date.now()}`,
       content: messageData.content,
       messageType: messageData.message_type || 'text',
       senderId: messageData.sender_id,
@@ -326,7 +329,9 @@ const chatMessageHandlers = {
    * 用于将本地 'sending' 状态的消息更新为 'sent'，并替换临时 ID 为真实 ID
    */
   handleMessageSentConfirm(data: any) {
-    const serverMsgId = data.chat_message_id
+    msgLog.info('📋 message_sent 字段:', Object.keys(data))
+    /* Socket.IO事件可能不经DataSanitizer，尝试 id 和 chat_message_id */
+    const serverMsgId = data.id || data.chat_message_id
     if (!serverMsgId) {
       return
     }
@@ -438,27 +443,25 @@ const chatMessageHandlers = {
   /**
    * 更新会话列表中当前会话的最后消息预览
    * 用于聊天弹窗中发送消息后，同步更新会话列表的最新消息展示
+   *
+   * 注意: sessions 列表经 processSessionList 处理后，主键字段为 sessionId（非原始 customer_service_session_id）
    */
   updateSessionPreview(content: string) {
-    const sessionId = this.data.sessionId
-    if (!sessionId) {
+    const currentSessionId = this.data.sessionId
+    if (!currentSessionId) {
       return
     }
 
-    const sessions = this.data.sessions.map((session: any) => {
-      if (String(session.customer_service_session_id) === String(sessionId)) {
+    const updatedSessions = this.data.sessions.map((session: any) => {
+      if (String(session.sessionId) === String(currentSessionId)) {
         return {
           ...session,
-          last_message: {
-            ...session.last_message,
-            content,
-            created_at: new Date().toISOString()
-          }
+          preview: `[我] ${content}`
         }
       }
       return session
     })
-    this.setData({ sessions })
+    this.setData({ sessions: updatedSessions })
   },
 
   /** 处理对方正在输入状态指示器 */
@@ -508,22 +511,31 @@ const chatMessageHandlers = {
    * API降级:  POST /api/v4/system/chat/sessions/:id/messages
    */
   async sendMessage() {
-    const content = this.data.inputContent.trim()
+    const rawInput = this.data.inputContent
+    const content = (rawInput || '').trim()
+
+    msgLog.info('📨 sendMessage 调用', {
+      inputContent: rawInput,
+      contentLength: content.length,
+      sessionId: this.data.sessionId,
+      wsConnected: this.data.wsConnected
+    })
 
     if (!content) {
+      msgLog.warn('⚠️ 消息内容为空，inputContent 原始值:', JSON.stringify(rawInput))
       msgShowToast('请输入消息内容')
       return
     }
 
     if (!this.data.sessionId) {
+      msgLog.warn('⚠️ 会话ID为空，无法发送消息')
       msgShowToast('会话连接中，请稍后重试')
       return
     }
 
-    msgLog.info('📨 [发送消息]', content.substring(0, 30) + '...')
-
+    const localMsgId = `local_${Date.now()}`
     const message = {
-      id: `local_${Date.now()}`,
+      id: localMsgId,
       content,
       messageType: 'text',
       isOwn: true,
@@ -534,50 +546,51 @@ const chatMessageHandlers = {
     }
 
     try {
-      /* 立即更新本地消息列表（乐观 UI） */
-      const messages = [...this.data.messages, message]
+      /* 立即更新本地消息列表（乐观 UI），同时清空输入框 */
+      const localMessages = [...this.data.messages, message]
       this.setData({
-        messages,
+        messages: localMessages,
         inputContent: '',
         scrollToBottom: true,
         chatLoadStatus: 'success'
       })
 
-      if (!this.data.sessionId) {
-        msgLog.warn('⚠️ 无有效会话ID，无法发送消息')
-        msgShowToast('会话连接中，请稍后重试')
-        const updatedMessages = this.data.messages.filter((msg: any) => msg.id !== message.id)
-        this.setData({ messages: updatedMessages })
-        return
-      }
+      /* 同步更新会话列表的最后消息预览 */
+      this.updateSessionPreview(content)
 
+      const sessionIdNum = Number(this.data.sessionId)
       if (this.data.wsConnected) {
         /* 主通道: Socket.IO（后端自动写库，回执 message_sent / message_error） */
-        try {
-          const appInstance = getApp()
-          appInstance.emitSocketMessage('send_message', {
-            session_id: this.data.sessionId,
+        const appInstance = getApp()
+        if (appInstance && typeof appInstance.emitSocketMessage === 'function') {
+          const emitOk = appInstance.emitSocketMessage('send_message', {
+            session_id: sessionIdNum,
             content,
             message_type: 'text'
           })
-          msgLog.info('✅ Socket.IO send_message 已发送，等待后端回执')
-        } catch (wsError) {
-          msgLog.error('❌ Socket.IO emit 异常，降级到 API:', wsError)
-          await this.sendMessageViaAPI(message.id, content)
+          if (emitOk === false) {
+            msgLog.warn('⚠️ Socket.IO 实际未连接，降级到 API')
+            await this.sendMessageViaAPI(localMsgId, content)
+          } else {
+            msgLog.info('✅ Socket.IO send_message 已发送，等待后端回执')
+          }
+        } else {
+          msgLog.warn('⚠️ app.emitSocketMessage 不可用，降级到 API')
+          await this.sendMessageViaAPI(localMsgId, content)
         }
       } else {
         /* 降级通道: REST API */
         msgLog.info('🔄 Socket.IO 未连接，使用 API 发送')
-        await this.sendMessageViaAPI(message.id, content)
+        await this.sendMessageViaAPI(localMsgId, content)
       }
     } catch (error) {
-      msgLog.error('❌ sendMessage函数执行出错:', error)
+      msgLog.error('❌ sendMessage 执行出错:', error)
       msgShowToast('发送消息时出现错误')
 
-      const updatedMessages = this.data.messages.map((msg: any) =>
-        msg.id === message.id ? { ...msg, status: 'failed' } : msg
+      const failedMessages = this.data.messages.map((msg: any) =>
+        msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
       )
-      this.setData({ messages: updatedMessages })
+      this.setData({ messages: failedMessages })
     }
   },
 
@@ -587,7 +600,8 @@ const chatMessageHandlers = {
    */
   async sendMessageViaAPI(localMsgId: string, content: string) {
     try {
-      const apiResult = await API.sendChatMessage(this.data.sessionId, {
+      const sessionIdNum = Number(this.data.sessionId)
+      const apiResult = await API.sendChatMessage(sessionIdNum, {
         content,
         message_type: 'text',
         sender_type: 'user'
@@ -595,9 +609,10 @@ const chatMessageHandlers = {
 
       if (apiResult.success) {
         msgLog.info('✅ API 降级发送成功')
+        /* DataSanitizer: API响应主键为 id */
         const updatedMessages = this.data.messages.map((msg: any) =>
           msg.id === localMsgId
-            ? { ...msg, status: 'sent', id: apiResult.data?.chat_message_id || msg.id }
+            ? { ...msg, status: 'sent', id: apiResult.data?.id || msg.id }
             : msg
         )
         this.setData({ messages: updatedMessages })
@@ -689,7 +704,8 @@ const chatMessageHandlers = {
                     ...msg,
                     content: imageUrl,
                     status: 'sent',
-                    id: sendResult.data?.chat_message_id || msg.id
+                    /* DataSanitizer: API响应主键为 id */
+                    id: sendResult.data?.id || msg.id
                   }
                 : msg
             )
@@ -827,9 +843,28 @@ const chatMessageHandlers = {
     /* catchtap阻止冒泡 */
   },
 
-  /** 内置发送按钮点击 */
-  onInlineSendTap() {
+  /**
+   * 内置发送按钮点击 / textarea键盘发送
+   *
+   * 触发来源:
+   * 1. catchtap="onInlineSendTap" — 点击发送按钮（e.detail 无 value）
+   * 2. bindconfirm="onInlineSendTap" — textarea 键盘 send 按钮（e.detail.value 有值）
+   *
+   * 中文输入法场景: Pinyin 组合结束选词后，bindinput 可能未同步最终值，
+   * 通过 bindconfirm 的 e.detail.value 补偿，确保发送时 inputContent 为最新。
+   */
+  onInlineSendTap(e?: WechatMiniprogram.InputEvent) {
     msgLog.info('⌨️ 内置发送按钮被点击')
+
+    /* bindconfirm 携带 textarea 最新值，补偿 bindinput 可能的延迟 */
+    if (e && e.detail && typeof (e.detail as any).value === 'string') {
+      const confirmValue = (e.detail as any).value as string
+      if (confirmValue && confirmValue !== this.data.inputContent) {
+        msgLog.info('🔄 bindconfirm 补偿更新 inputContent')
+        this.setData({ inputContent: confirmValue })
+      }
+    }
+
     this.sendMessage()
   },
 

@@ -10,6 +10,35 @@ const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 
 /**
+ * 从日期字符串中直接提取年月日时分秒（不依赖 new Date() 解析）
+ *
+ * 微信小程序的JS引擎对 ISO 8601 带时区偏移的字符串（如 "+08:00"）解析不可靠，
+ * 使用正则直接提取数字分量，确保100%兼容所有运行环境。
+ *
+ * @param dateStr - 日期字符串（如 "2026-02-02T03:17:19+08:00" 或 "2026-02-02 03:17:19"）
+ * @returns 中文格式时间（如 "2026年02月02日 03:17:19"），解析失败返回原始字符串
+ */
+function extractDateParts(dateStr: string): string {
+  if (!dateStr) {
+    return '时间未知'
+  }
+
+  const fullMatch = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})[T\s](\d{1,2}):(\d{1,2}):(\d{1,2})/)
+  if (fullMatch) {
+    const [, yr, mo, dy, hr, mi, sc] = fullMatch
+    return `${yr}年${mo.padStart(2, '0')}月${dy.padStart(2, '0')}日 ${hr.padStart(2, '0')}:${mi.padStart(2, '0')}:${sc.padStart(2, '0')}`
+  }
+
+  const dateOnlyMatch = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/)
+  if (dateOnlyMatch) {
+    const [, yr, mo, dy] = dateOnlyMatch
+    return `${yr}年${mo.padStart(2, '0')}月${dy.padStart(2, '0')}日`
+  }
+
+  return dateStr
+}
+
+/**
  * 审核列表页面（管理员）
  *
  * @description
@@ -181,50 +210,44 @@ Page({
   },
 
   /**
-   * 格式化北京时间显示
+   * 格式化北京时间显示（兼容微信小程序JS引擎）
    *
-   * @description
-   * 后端返回的 created_at 是对象格式: { iso: "2026-02-02T03:17:19+08:00", display: "2026-02-02 03:17:19" }
-   * 优先使用 display 字段；如果是字符串则直接解析。
+   * 支持格式：
+   * 1. 对象 { iso, display } — 后端标准返回格式
+   * 2. ISO字符串 "2026-02-02T03:17:19+08:00"
+   * 3. 标准字符串 "2026-02-02 03:17:19"
+   * 4. Unix时间戳（毫秒）
    *
-   * @param dateTimeValue - 后端返回的时间（对象或字符串）
+   * @param dateTimeValue - 后端返回的时间值
    * @returns 中文格式时间字符串（如 "2026年02月02日 03:17:19"）
    */
-  formatBeijingTime(dateTimeValue: any) {
+  formatBeijingTime(dateTimeValue: any): string {
     if (!dateTimeValue) {
       return '时间未知'
     }
 
     try {
       // 后端返回 created_at 为对象 { iso, display }
-      let dateTimeString: string
       if (typeof dateTimeValue === 'object' && dateTimeValue !== null) {
-        // 优先使用 display 字段（已格式化的北京时间）
         if (dateTimeValue.display) {
-          return dateTimeValue.display
+          return String(dateTimeValue.display)
         }
-        // 降级使用 iso 字段
-        dateTimeString = dateTimeValue.iso || ''
-      } else {
-        dateTimeString = String(dateTimeValue)
-      }
-
-      if (!dateTimeString) {
+        if (dateTimeValue.iso) {
+          return extractDateParts(String(dateTimeValue.iso))
+        }
         return '时间未知'
       }
 
-      const date = new Date(dateTimeString.replace(/-/g, '/'))
+      // Unix时间戳
+      if (typeof dateTimeValue === 'number') {
+        const dateObj = new Date(dateTimeValue)
+        return isNaN(dateObj.getTime()) ? '时间未知' : extractDateParts(dateObj.toISOString())
+      }
 
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const hour = String(date.getHours()).padStart(2, '0')
-      const minute = String(date.getMinutes()).padStart(2, '0')
-      const second = String(date.getSeconds()).padStart(2, '0')
-
-      return `${year}年${month}月${day}日 ${hour}:${minute}:${second}`
-    } catch (error: any) {
-      log.error('❌ 时间格式化失败:', error)
+      // 字符串格式：使用正则直接提取，不依赖 new Date() 解析
+      return extractDateParts(String(dateTimeValue))
+    } catch (formatError: any) {
+      log.error('❌ 时间格式化失败:', formatError, '原始值:', dateTimeValue)
       return typeof dateTimeValue === 'string' ? dateTimeValue : '时间未知'
     }
   },
@@ -468,4 +491,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

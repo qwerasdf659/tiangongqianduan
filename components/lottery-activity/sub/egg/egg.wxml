@@ -150,8 +150,8 @@
               <view class="egg-shell-remain__right"></view>
             </view>
             <view class="multi-egg-prize__info">
-              <text class="multi-egg-prize__icon">{{egg.icon || '🎁'}}</text>
-              <text class="multi-egg-prize__name">{{egg.name || '奖品'}}</text>
+              <text class="multi-egg-prize__icon">{{egg.prize_icon || '🎁'}}</text>
+              <text class="multi-egg-prize__name">{{egg.prize_name || '奖品'}}</text>
             </view>
           </view>
 

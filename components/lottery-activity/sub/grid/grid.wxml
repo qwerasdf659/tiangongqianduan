@@ -3,7 +3,7 @@
   布局顺序（顺时针）: [0][1][2] / [7][BTN][3] / [6][5][4]
   对应 sort_order:    [1][2][3] / [8][🎰][4] / [7][6][5]
   奖品数据来源: 后端 GET /api/v4/lottery/campaigns/:code/prizes
-  后端返回字段: { id, name, icon, sort_order, rarity_code, status }
+  后端返回字段: { lottery_prize_id, prize_name, prize_type, prize_value, sort_order, rarity_code, status }
   稀有度光效: rarity_code → rarity-effects组件（5级: common/uncommon/rare/epic/legendary）
 -->
 <view class="grid-container">
@@ -15,8 +15,8 @@
     >
       <rarity-effects rarity="{{prizes[0].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[0].icon || '🎫'}}</text>
-          <text class="prize-name">{{prizes[0].name || ''}}</text>
+          <text class="prize-icon">{{prizes[0].prize_icon || '🎫'}}</text>
+          <text class="prize-name">{{prizes[0].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>
@@ -28,8 +28,8 @@
     >
       <rarity-effects rarity="{{prizes[1].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[1].icon || '🎁'}}</text>
-          <text class="prize-name">{{prizes[1].name || ''}}</text>
+          <text class="prize-icon">{{prizes[1].prize_icon || '🎁'}}</text>
+          <text class="prize-name">{{prizes[1].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>
@@ -41,8 +41,8 @@
     >
       <rarity-effects rarity="{{prizes[2].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[2].icon || '🏆'}}</text>
-          <text class="prize-name">{{prizes[2].name || ''}}</text>
+          <text class="prize-icon">{{prizes[2].prize_icon || '🏆'}}</text>
+          <text class="prize-name">{{prizes[2].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>
@@ -54,8 +54,8 @@
     >
       <rarity-effects rarity="{{prizes[7].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[7].icon || '💎'}}</text>
-          <text class="prize-name">{{prizes[7].name || ''}}</text>
+          <text class="prize-icon">{{prizes[7].prize_icon || '💎'}}</text>
+          <text class="prize-name">{{prizes[7].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>
@@ -78,8 +78,8 @@
     >
       <rarity-effects rarity="{{prizes[3].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[3].icon || '🎪'}}</text>
-          <text class="prize-name">{{prizes[3].name || ''}}</text>
+          <text class="prize-icon">{{prizes[3].prize_icon || '🎪'}}</text>
+          <text class="prize-name">{{prizes[3].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>
@@ -91,8 +91,8 @@
     >
       <rarity-effects rarity="{{prizes[6].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[6].icon || '🎊'}}</text>
-          <text class="prize-name">{{prizes[6].name || ''}}</text>
+          <text class="prize-icon">{{prizes[6].prize_icon || '🎊'}}</text>
+          <text class="prize-name">{{prizes[6].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>
@@ -104,8 +104,8 @@
     >
       <rarity-effects rarity="{{prizes[5].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[5].icon || '🎉'}}</text>
-          <text class="prize-name">{{prizes[5].name || ''}}</text>
+          <text class="prize-icon">{{prizes[5].prize_icon || '🎉'}}</text>
+          <text class="prize-name">{{prizes[5].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>
@@ -117,8 +117,8 @@
     >
       <rarity-effects rarity="{{prizes[4].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <text class="prize-icon">{{prizes[4].icon || '🎈'}}</text>
-          <text class="prize-name">{{prizes[4].name || ''}}</text>
+          <text class="prize-icon">{{prizes[4].prize_icon || '🎈'}}</text>
+          <text class="prize-name">{{prizes[4].prize_name || ''}}</text>
         </view>
       </rarity-effects>
     </view>

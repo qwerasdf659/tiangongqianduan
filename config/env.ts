@@ -94,7 +94,6 @@ interface BusinessConfig {
 
 /** 安全配置 */
 interface SecurityConfig {
-  enableFieldMapping: boolean
   enableDataValidation: boolean
   enableSafetyChecks: boolean
   apiVersion: string
@@ -158,7 +157,6 @@ const BASE_BUSINESS_CONFIG: BusinessConfig = {
 
 /** 安全基础配置 — 4个环境完全一致 */
 const BASE_SECURITY_CONFIG: SecurityConfig = {
-  enableFieldMapping: true,
   enableDataValidation: true,
   enableSafetyChecks: true,
   apiVersion: 'v4.0'

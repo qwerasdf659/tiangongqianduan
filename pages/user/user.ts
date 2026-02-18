@@ -53,10 +53,13 @@ Page({
     isAdmin: false,
     roleLevel: 0,
 
-    // 积分信息（后端API字段: available_amount, today_earned, today_consumed）
+    // 积分信息（GET /api/v4/lottery/points 返回 today_summary.today_earned / today_summary.today_consumed）
     totalPoints: 0,
     todayEarned: 0,
     todayConsumed: 0,
+
+    // 系统配置（从 GET /api/v4/system/config 动态获取）
+    customerWechat: '' as string,
 
     // 功能菜单配置
     menuItems: [
@@ -133,6 +136,13 @@ Page({
   /** loading安全超时定时器ID */
   loadingSafetyTimer: null as any,
 
+  /** 首次onShow跳过标记（onLoad已初始化，防止微信生命周期 onLoad→onShow 连续触发导致重复请求） */
+  _skipNextShow: false as boolean,
+
+  /** MobX Store绑定实例引用 */
+  storeBindings: null as any,
+  pointsBindings: null as any,
+
   /**
    * 生命周期函数 - 监听页面加载
    * 页面首次加载时调用，执行用户中心页面初始化操作
@@ -155,14 +165,19 @@ Page({
       actions: ['setBalance']
     })
 
+    this._skipNextShow = true
     this.initializePage()
   },
 
   /**
    * 生命周期函数 - 监听页面显示
-   * 每次页面显示时调用（包括从其他页面返回、从后台切换到前台）
+   * 从其他页面返回 / 从后台切回前台时刷新数据（首次进入由 onLoad 处理，跳过）
    */
   onShow() {
+    if (this._skipNextShow) {
+      this._skipNextShow = false
+      return
+    }
     log.info('👤 用户中心页面显示')
     this.updateUserStatus()
     if (this.data.isLoggedIn) {
@@ -221,13 +236,14 @@ Page({
 
       log.info('👤 用户已登录，开始加载用户数据')
 
-      // 并行加载用户信息和积分趋势（Promise.allSettled保证部分失败不影响整体）
+      // 并行加载用户信息、积分趋势、系统配置（Promise.allSettled保证部分失败不影响整体）
       const results = await Promise.allSettled([
         this.safeLoadUserInfo(),
-        this.safeLoadPointsTrend()
+        this.safeLoadPointsTrend(),
+        this.safeLoadSystemConfig()
       ])
 
-      const taskNames = ['用户信息', '积分趋势']
+      const taskNames = ['用户信息', '积分趋势', '系统配置']
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
           log.warn(`⚠️ ${taskNames[index]}加载失败:`, result.reason)
@@ -269,6 +285,29 @@ Page({
       log.warn('⚠️ 积分趋势加载失败:', error.message)
       this.setData({ todayEarned: 0, todayConsumed: 0 })
       return null
+    }
+  },
+
+  /**
+   * 安全加载系统配置（客服微信号等）
+   * 后端路由: GET /api/v4/system/config
+   * 响应: { success: true, data: { customer_wechat, customer_phone, customer_email, ... } }
+   */
+  async safeLoadSystemConfig() {
+    try {
+      const result = await API.getSystemGlobalConfig()
+      if (result && result.success && result.data) {
+        const configData = result.data
+        this.setData({
+          customerWechat: configData.customer_wechat || ''
+        })
+        log.info(
+          '✅ 系统配置加载成功, customer_wechat:',
+          configData.customer_wechat ? '已配置' : '未配置'
+        )
+      }
+    } catch (error: any) {
+      log.warn('⚠️ 系统配置加载失败:', error.message)
     }
   },
 
@@ -424,7 +463,7 @@ Page({
   /**
    * 加载积分趋势数据（今日获得/消费）
    * 后端路由: GET /api/v4/lottery/points
-   * 期望响应: { success: true, data: { asset_summary: { today_earned, today_consumed } } }
+   * 响应: { success: true, data: { ..., today_summary: { today_earned, today_consumed, transaction_count } } }
    */
   async loadPointsTrend() {
     try {
@@ -433,12 +472,12 @@ Page({
       if (result && result.success && result.data) {
         const statisticsData = result.data
 
-        if (!statisticsData.asset_summary) {
-          log.warn('⚠️ 后端响应缺少 asset_summary 字段，响应data结构:', Object.keys(statisticsData))
+        if (!statisticsData.today_summary) {
+          log.warn('⚠️ 后端响应缺少 today_summary 字段，响应data结构:', Object.keys(statisticsData))
         }
 
-        const todayEarned = statisticsData.asset_summary?.today_earned ?? 0
-        const todayConsumed = statisticsData.asset_summary?.today_consumed ?? 0
+        const todayEarned = statisticsData.today_summary?.today_earned ?? 0
+        const todayConsumed = statisticsData.today_summary?.today_consumed ?? 0
         this.setData({ todayEarned, todayConsumed })
 
         log.info('📊 积分趋势数据:', { todayEarned, todayConsumed })
@@ -588,20 +627,16 @@ Page({
             })
             break
           case 1:
-            /**
-             * 复制客服微信号
-             * ⚠️ 需后端在 system_settings 表插入 customer_wechat 配置项
-             * 当前临时使用硬编码值，后续应从系统配置API获取
-             * 详见: docs/后端需求-前端对接问题.md #16
-             *
-             * 🔴 需运营人员确认实际客服微信号后替换此处硬编码值
-             */
-            wx.setClipboardData({
-              data: 'tg15818387910',
-              success: () => {
-                wx.showToast({ title: '微信号已复制', icon: 'success' })
-              }
-            })
+            if (this.data.customerWechat) {
+              wx.setClipboardData({
+                data: this.data.customerWechat,
+                success: () => {
+                  wx.showToast({ title: '微信号已复制', icon: 'success' })
+                }
+              })
+            } else {
+              wx.showToast({ title: '暂无客服微信号，请使用在线聊天', icon: 'none' })
+            }
             break
           default:
             break
@@ -633,26 +668,15 @@ Page({
     })
   },
 
-  /** 跳转到消费录入页面（商家店员 level>=20 可用，先扫码获取用户二维码） */
+  /** 跳转到消费录入页面（商家店员 level>=20 可用） */
   goToConsumeSubmit() {
     if (!this.data.isMerchant) {
       wx.showToast({ title: '需要商家权限', icon: 'none' })
       return
     }
 
-    wx.scanCode({
-      onlyFromCamera: false,
-      scanType: ['qrCode'] as any,
-      success: (res: any) => {
-        log.info('📷 扫码成功:', res.result)
-        const qrCode = encodeURIComponent(res.result)
-        wx.navigateTo({
-          url: `/packageAdmin/consume-submit/consume-submit?qrCode=${qrCode}`
-        })
-      },
-      fail: (error: any) => {
-        log.info('📷 扫码取消或失败:', error)
-      }
+    wx.navigateTo({
+      url: '/packageAdmin/consume-submit/consume-submit'
     })
   },
 

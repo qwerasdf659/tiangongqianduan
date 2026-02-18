@@ -1117,30 +1117,6 @@
   box-shadow: none;
 }
 
-/* 兼容旧类名（防止其他地方引用） */
-.shop-confirm-header,
-.shop-header-bg,
-.shop-header-content,
-.shop-header-icon,
-.shop-header-title,
-.shop-product-preview,
-.shop-preview-img-wrap,
-.shop-preview-info,
-.shop-preview-name,
-.shop-preview-desc,
-.shop-preview-sell,
-.shop-preview-price-area,
-.shop-price-label,
-.shop-price-value,
-.shop-preview-original,
-.shop-original-label,
-.shop-preview-stock,
-.shop-stock-label,
-.shop-stock-value,
-.shop-quantity-area,
-.shop-cost-summary {
-  /* 旧类名保留空样式，避免编译警告 */
-}
 
 /* 🎉 兑换成功结果弹窗 */
 .shop-result-header {

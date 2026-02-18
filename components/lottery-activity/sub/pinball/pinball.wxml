@@ -8,7 +8,7 @@
       wx:key="id"
       style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
     >
-      <text>{{item.icon}}</text>
+      <text>{{item.prize_icon}}</text>
     </view>
   </view>
 
@@ -117,9 +117,9 @@
           <!-- 槽位内容 -->
           <view class="slot-body">
             <view class="slot-icon-wrap {{item.winner ? 'bounce' : ''}}">
-              <text class="slot-icon">{{item.prize.icon || '🎁'}}</text>
+              <text class="slot-icon">{{item.prize.prize_icon || '🎁'}}</text>
             </view>
-            <text class="slot-name">{{item.prize.name || '奖品'}}</text>
+            <text class="slot-name">{{item.prize.prize_name || '奖品'}}</text>
           </view>
           <!-- 中奖发光效果 -->
           <view class="slot-winner-glow" wx:if="{{item.winner}}"></view>

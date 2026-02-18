@@ -76,11 +76,7 @@ Page({
           wx.navigateBack()
         }
       })
-      return
     }
-
-    // 自动启动扫码
-    this.startScan()
   },
 
   /**
@@ -244,4 +240,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

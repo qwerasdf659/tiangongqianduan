@@ -4,15 +4,19 @@
  * 包含：市场挂单加载、搜索筛选、分页、购买弹窗、图片处理
  * 通过对象展开运算符合并到 Page({})，this 自动指向 Page 实例
  *
- * 后端API对齐 v4.0（C2C交易市场）:
- *   - market_listings 表字段: market_listing_id, listing_kind, seller_user_id,
- *     offer_item_display_name, offer_asset_display_name, price_asset_code, price_amount, status, ...
- *   - getMarketProducts 响应: { products: MarketListing[], pagination: { page, page_size, total } }
+ * 后端API对齐 v4.0（C2C交易市场 — QueryService 嵌套响应结构）:
+ *   - GET /api/v4/market/listings 响应: { products: MarketListing[], pagination: {...} }
+ *   - 物品类型(item_instance): 商品信息在 item_info 嵌套对象中
+ *     item_info: { item_instance_id, display_name, image_url, category_code, rarity_code, template_id }
+ *   - 资产类型(fungible_asset): 资产信息在 asset_info 嵌套对象中
+ *     asset_info: { asset_code, amount, display_name, icon_url, group_code }
+ *   - 根级字段: market_listing_id, listing_kind, seller_user_id, seller_nickname,
+ *     seller_avatar_url, price_asset_code, price_amount, status, created_at
  *   - purchaseMarketProduct 响应: { trade_order_id, ... }
  *
  * @file pages/exchange/exchange-market-handlers.ts
- * @version 5.2.0
- * @since 2026-02-16
+ * @version 5.3.0
+ * @since 2026-02-18
  */
 
 const { API, Wechat, Constants, Logger, Utils } = require('../../utils/index')
@@ -108,32 +112,54 @@ const marketHandlers = {
         // 后端返回字段名是 products（基于 market_listings 表）
         const items = response.data.products || []
 
-        // 使用后端真实字段名（market_listings 表）
-        const processedProducts = items.map((item: any) => ({
-          market_listing_id: item.market_listing_id,
-          listing_kind: item.listing_kind || 'item_instance',
-          seller_user_id: item.seller_user_id,
-          // 商品显示名称：物品实例用 offer_item_display_name，资产用 offer_asset_display_name
-          item_name: item.offer_item_display_name || item.offer_asset_display_name || '未知商品',
-          description:
-            item.listing_kind === 'fungible_asset'
-              ? `${item.offer_asset_code || ''} × ${item.offer_amount || 0}`
-              : item.offer_item_category_code || '',
-          image: item.image_url || '/images/default-product.png',
-          // 挂单定价信息
-          price_asset_code: item.price_asset_code || 'DIAMOND',
-          price_amount: item.price_amount || 0,
-          // 资产相关字段（fungible_asset 类型）
-          offer_asset_code: item.offer_asset_code || null,
-          offer_amount: item.offer_amount || null,
-          // 物品相关字段（item_instance 类型）
-          offer_item_rarity: item.offer_item_rarity || null,
-          offer_item_category_code: item.offer_item_category_code || null,
-          // 挂单状态
-          status: item.status || 'on_sale',
-          created_at: item.created_at || '',
-          imageStatus: 'loading'
-        }))
+        /**
+         * 适配后端 QueryService 嵌套响应结构（2026-02-18 后端已更新）
+         *
+         * 物品类型(item_instance): 商品名称/图片在 item_info 嵌套对象中
+         *   item_info: { item_instance_id, display_name, image_url, category_code, rarity_code, template_id }
+         *
+         * 资产类型(fungible_asset): 资产名称/图标在 asset_info 嵌套对象中
+         *   asset_info: { asset_code, amount, display_name, icon_url, group_code }
+         *
+         * 根级字段: market_listing_id, listing_kind, seller_user_id, seller_nickname,
+         *           seller_avatar_url, price_asset_code, price_amount, status, created_at
+         */
+        const processedProducts = items.map((item: any) => {
+          const itemInfo = item.item_info || {}
+          const assetInfo = item.asset_info || {}
+          const isAsset = item.listing_kind === 'fungible_asset'
+
+          return {
+            market_listing_id: item.market_listing_id,
+            listing_kind: item.listing_kind || 'item_instance',
+            seller_user_id: item.seller_user_id,
+            seller_nickname: item.seller_nickname || '',
+            seller_avatar_url: item.seller_avatar_url || null,
+            /* 商品名称：物品从 item_info.display_name 取，资产从 asset_info.display_name 取 */
+            item_name: itemInfo.display_name || assetInfo.display_name || '未知商品',
+            description: isAsset
+              ? `${assetInfo.asset_code || ''} × ${assetInfo.amount || 0}`
+              : itemInfo.category_code || '',
+            /* 商品图片：物品从 item_info.image_url 取，资产从 asset_info.icon_url 取 */
+            image: itemInfo.image_url || assetInfo.icon_url || '/images/default-product.png',
+            /* 挂单定价信息（根级字段） */
+            price_asset_code: item.price_asset_code,
+            price_amount: item.price_amount || 0,
+            /* 资产相关字段（从 asset_info 嵌套对象提取） */
+            offer_asset_code: assetInfo.asset_code || null,
+            offer_amount: assetInfo.amount || null,
+            offer_asset_group_code: assetInfo.group_code || null,
+            /* 物品相关字段（从 item_info 嵌套对象提取） */
+            offer_item_rarity: itemInfo.rarity_code || null,
+            offer_item_category_code: itemInfo.category_code || null,
+            item_instance_id: itemInfo.item_instance_id || null,
+            template_id: itemInfo.template_id || null,
+            /* 挂单状态 */
+            status: item.status || 'on_sale',
+            created_at: item.created_at || '',
+            imageStatus: 'loading'
+          }
+        })
 
         // 分页信息
         const pagination = response.data.pagination || {}
@@ -610,4 +636,4 @@ const marketHandlers = {
 
 module.exports = marketHandlers
 
-export { }
+export {}

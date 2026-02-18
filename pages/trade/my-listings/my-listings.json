@@ -1,5 +1,9 @@
 {
   "navigationBarTitleText": "我的挂单",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#667eea",
+  "backgroundTextStyle": "light",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50
 }

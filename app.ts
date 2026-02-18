@@ -560,16 +560,21 @@ App({
   },
 
   /**
-   * 发Socket.IO 消息（emit 方式，替wx.sendSocketMessage + JSON.stringify   *
-   * @param eventName - 事件名称（如 'send_message'admin_register'   * @param data - 消息数据对象（无需手动 JSON.stringify   */
-  emitSocketMessage(eventName: string, data: Record<string, any>): void {
+   * 发送 Socket.IO 消息
+   *
+   * @param eventName - 事件名称（如 'send_message'、'admin_register'）
+   * @param data - 消息数据对象（无需手动 JSON.stringify）
+   * @returns true=已发送, false=连接不可用未发送
+   */
+  emitSocketMessage(eventName: string, data: Record<string, any>): boolean {
     if (!this.socketData.connected || !this.socketData.socket) {
-      log.warn('⚠️ Socket.IO未连接，无法发送消息', eventName)
-      return
+      log.warn('⚠️ Socket.IO未连接，无法发送消息:', eventName)
+      return false
     }
 
     this.socketData.socket.emit(eventName, data)
     log.info(`📤 Socket.IO emit: ${eventName}`)
+    return true
   },
 
   /** 断开 Socket.IO 连接 */
@@ -610,4 +615,4 @@ App({
   }
 })
 
-export { }
+export {}

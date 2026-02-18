@@ -207,6 +207,11 @@ Component({
       })
     },
 
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.resetBox()
+    },
+
     _clearTimers() {
       if (this._dispenseTimer1) {
         clearTimeout(this._dispenseTimer1)

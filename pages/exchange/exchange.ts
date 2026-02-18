@@ -28,6 +28,7 @@ const { pointsStore } = require('../../store/points')
 // 拆分的业务方法模块
 const marketHandlers = require('./exchange-market-handlers')
 const shopHandlers = require('./exchange-shop-handlers')
+const bidHandlers = require('./exchange-bid-handlers')
 
 Page({
   data: {
@@ -203,8 +204,11 @@ Page({
 
   /** 交易市场 Tab 全部方法（搜索、筛选、分页、兑换弹窗、图片处理） */
   ...marketHandlers,
-  /** 商品兑换 Tab 全部方法（双空间、瀑布流、竞价、幸运空间筛选） */
+  /** 商品兑换 Tab 方法（双空间、瀑布流、幸运空间筛选） */
   ...shopHandlers,
+
+  /** 竞价功能方法（出价弹窗、金额校验、倒计时） */
+  ...bidHandlers,
 
   // ============================================
   // 🔄 页面生命周期
@@ -746,4 +750,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

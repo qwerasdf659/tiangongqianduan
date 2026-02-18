@@ -611,53 +611,7 @@ Page({
       return
     }
 
-    // 第一步：选择定价币种
-    // TODO: 【需后端提供】定价币种列表应从后端API动态获取，当前为硬编码临时方案
-    wx.showActionSheet({
-      itemList: ['钻石（DIAMOND）', '红水晶碎片（red_shard）'],
-      success: (sheetRes: any) => {
-        const priceAssetCode = sheetRes.tapIndex === 0 ? 'DIAMOND' : 'red_shard'
-        const currencyName = sheetRes.tapIndex === 0 ? '钻石' : '红水晶碎片'
-
-        // 第二步：输入价格
-        wx.showModal({
-          title: `上架 "${item.name}"`,
-          content: `请输入售价（单位：${currencyName}）`,
-          editable: true,
-          placeholderText: `请输入${currencyName}数量（正整数）`,
-          success: async (modalRes: any) => {
-            if (modalRes.confirm) {
-              const priceInput = modalRes.content
-              const priceAmount = parseInt(priceInput)
-
-              if (!priceInput || isNaN(priceAmount) || priceAmount <= 0) {
-                showToast('请输入有效的正整数价格')
-                return
-              }
-
-              try {
-                const result = await API.sellToMarket({
-                  item_instance_id: item.item_instance_id,
-                  price_amount: priceAmount,
-                  price_asset_code: priceAssetCode
-                })
-
-                if (result.success) {
-                  showToast(result.message || '上架成功')
-                  // 刷新背包数据
-                  this.loadInventoryData(true)
-                } else {
-                  showToast(result.message || '上架失败，请重试')
-                }
-              } catch (error: any) {
-                log.error('❌ 上架到市场失败', error)
-                showToast(error.message || '上架失败，请重试')
-              }
-            }
-          }
-        })
-      }
-    })
+    this._selectCurrencyThenSellItem(item)
   },
 
   /**
@@ -691,77 +645,7 @@ Page({
       return
     }
 
-    // 第一步：选择定价币种
-    // TODO: 【需后端提供】定价币种列表应从后端API动态获取，当前为硬编码临时方案
-    wx.showActionSheet({
-      itemList: ['钻石（DIAMOND）', '红水晶碎片（red_shard）'],
-      success: (sheetRes: any) => {
-        const priceAssetCode = sheetRes.tapIndex === 0 ? 'DIAMOND' : 'red_shard'
-        const currencyName = sheetRes.tapIndex === 0 ? '钻石' : '红水晶碎片'
-
-        // 第二步：输入上架数量
-        wx.showModal({
-          title: `上架 "${asset.display_name}"`,
-          content: `可用余额: ${asset.available_amount}\n请输入上架数量`,
-          editable: true,
-          placeholderText: '请输入上架数量（正整数）',
-          success: (amountRes: any) => {
-            if (!amountRes.confirm) {
-              return
-            }
-
-            const sellAmount = parseInt(amountRes.content)
-            if (!amountRes.content || isNaN(sellAmount) || sellAmount <= 0) {
-              showToast('请输入有效的正整数数据')
-              return
-            }
-            if (sellAmount > asset.available_amount) {
-              showToast(`上架数量不能超过可用余额 ${asset.available_amount}`)
-              return
-            }
-
-            // 第三步：输入售价
-            wx.showModal({
-              title: `定价（${currencyName}）`,
-              content: `上架 ${sellAmount} 个${asset.display_name}\n请输入总售价`,
-              editable: true,
-              placeholderText: `请输入${currencyName}数量（正整数）`,
-              success: async (priceRes: any) => {
-                if (!priceRes.confirm) {
-                  return
-                }
-
-                const priceAmount = parseInt(priceRes.content)
-                if (!priceRes.content || isNaN(priceAmount) || priceAmount <= 0) {
-                  showToast('请输入有效的正整数价格')
-                  return
-                }
-
-                try {
-                  const result = await API.sellFungibleAssets({
-                    asset_code: asset.asset_code,
-                    amount: sellAmount,
-                    price_amount: priceAmount,
-                    price_asset_code: priceAssetCode
-                  })
-
-                  if (result.success) {
-                    showToast(result.message || '上架成功')
-                    // 刷新背包数据（资产余额会减少
-                    this.loadInventoryData(true)
-                  } else {
-                    showToast(result.message || '上架失败，请重试')
-                  }
-                } catch (error: any) {
-                  log.error('❌ 上架资产到市场失败', error)
-                  showToast(error.message || '上架失败，请重试')
-                }
-              }
-            })
-          }
-        })
-      }
-    })
+    this._selectCurrencyThenSellAsset(asset)
   },
 
   /**
@@ -869,6 +753,149 @@ Page({
   },
 
   /**
+   * 从后端获取结算币种列表，让用户选择定价币种，然后上架物品实例
+   * 后端API: GET /api/v4/market/settlement-currencies
+   * 响应: { currencies: [{ asset_code, display_name }] }
+   */
+  async _selectCurrencyThenSellItem(item: any) {
+    try {
+      const currencyResult = await API.getSettlementCurrencies()
+      if (!currencyResult.success || !currencyResult.data?.currencies?.length) {
+        showToast('获取定价币种失败')
+        return
+      }
+      const currencyList: Array<{ asset_code: string; display_name: string }> =
+        currencyResult.data.currencies
+      const displayLabels = currencyList.map((c: any) => `${c.display_name}（${c.asset_code}）`)
+
+      wx.showActionSheet({
+        itemList: displayLabels,
+        success: (sheetRes: any) => {
+          const selectedCurrency = currencyList[sheetRes.tapIndex]
+
+          wx.showModal({
+            title: `上架 "${item.name}"`,
+            content: `请输入售价（单位：${selectedCurrency.display_name}）`,
+            editable: true,
+            placeholderText: `请输入${selectedCurrency.display_name}数量（正整数）`,
+            success: async (modalRes: any) => {
+              if (!modalRes.confirm) {
+                return
+              }
+              const priceAmount = parseInt(modalRes.content)
+              if (!modalRes.content || isNaN(priceAmount) || priceAmount <= 0) {
+                showToast('请输入有效的正整数价格')
+                return
+              }
+              try {
+                const result = await API.sellToMarket({
+                  item_instance_id: item.item_instance_id,
+                  price_amount: priceAmount,
+                  price_asset_code: selectedCurrency.asset_code
+                })
+                if (result.success) {
+                  showToast(result.message || '上架成功')
+                  this.loadInventoryData(true)
+                } else {
+                  showToast(result.message || '上架失败，请重试')
+                }
+              } catch (sellError: any) {
+                log.error('❌ 上架到市场失败', sellError)
+                showToast(sellError.message || '上架失败，请重试')
+              }
+            }
+          })
+        }
+      })
+    } catch (error: any) {
+      log.error('❌ 获取结算币种失败', error)
+      showToast('获取定价币种失败，请重试')
+    }
+  },
+
+  /**
+   * 从后端获取结算币种列表，让用户选择定价币种，然后上架可叠加资产
+   * 后端API: GET /api/v4/market/settlement-currencies
+   */
+  async _selectCurrencyThenSellAsset(asset: any) {
+    try {
+      const currencyResult = await API.getSettlementCurrencies()
+      if (!currencyResult.success || !currencyResult.data?.currencies?.length) {
+        showToast('获取定价币种失败')
+        return
+      }
+      const currencyList: Array<{ asset_code: string; display_name: string }> =
+        currencyResult.data.currencies
+      const displayLabels = currencyList.map((c: any) => `${c.display_name}（${c.asset_code}）`)
+
+      wx.showActionSheet({
+        itemList: displayLabels,
+        success: (sheetRes: any) => {
+          const selectedCurrency = currencyList[sheetRes.tapIndex]
+
+          wx.showModal({
+            title: `上架 "${asset.display_name}"`,
+            content: `可用余额: ${asset.available_amount}\n请输入上架数量`,
+            editable: true,
+            placeholderText: '请输入上架数量（正整数）',
+            success: (amountRes: any) => {
+              if (!amountRes.confirm) {
+                return
+              }
+              const sellAmount = parseInt(amountRes.content)
+              if (!amountRes.content || isNaN(sellAmount) || sellAmount <= 0) {
+                showToast('请输入有效的正整数数量')
+                return
+              }
+              if (sellAmount > asset.available_amount) {
+                showToast(`上架数量不能超过可用余额 ${asset.available_amount}`)
+                return
+              }
+
+              wx.showModal({
+                title: `定价（${selectedCurrency.display_name}）`,
+                content: `上架 ${sellAmount} 个${asset.display_name}\n请输入总售价`,
+                editable: true,
+                placeholderText: `请输入${selectedCurrency.display_name}数量（正整数）`,
+                success: async (priceRes: any) => {
+                  if (!priceRes.confirm) {
+                    return
+                  }
+                  const priceAmount = parseInt(priceRes.content)
+                  if (!priceRes.content || isNaN(priceAmount) || priceAmount <= 0) {
+                    showToast('请输入有效的正整数价格')
+                    return
+                  }
+                  try {
+                    const result = await API.sellFungibleAssets({
+                      asset_code: asset.asset_code,
+                      amount: sellAmount,
+                      price_amount: priceAmount,
+                      price_asset_code: selectedCurrency.asset_code
+                    })
+                    if (result.success) {
+                      showToast(result.message || '上架成功')
+                      this.loadInventoryData(true)
+                    } else {
+                      showToast(result.message || '上架失败，请重试')
+                    }
+                  } catch (sellError: any) {
+                    log.error('❌ 上架资产到市场失败', sellError)
+                    showToast(sellError.message || '上架失败，请重试')
+                  }
+                }
+              })
+            }
+          })
+        }
+      })
+    } catch (error: any) {
+      log.error('❌ 获取结算币种失败', error)
+      showToast('获取定价币种失败，请重试')
+    }
+  },
+
+  /**
    * 生命周期 - 页面卸载
    */
   onUnload() {
@@ -890,5 +917,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

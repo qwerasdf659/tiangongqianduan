@@ -338,6 +338,11 @@ Component({
 
     noop() {
       /* intentionally empty */
+    },
+
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.setData({ state: 'idle' })
     }
   }
 })

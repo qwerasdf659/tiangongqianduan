@@ -2,98 +2,154 @@
 <!--业务流程: 用户到店出示核销码 → 商家扫码 → 调用POST /api/v4/shop/redemption/fulfill → 核销成功-->
 
 <view class="scan-verify-page">
-  <!-- 顶部状态栏 -->
-  <view class="status-bar">
-    <view
-      class="status-indicator {{verifySuccess ? 'success' : (hasScanned && verifyResult ? 'fail' : 'idle')}}"
-    >
-      <text class="status-dot"></text>
-      <text class="status-text"
-        >{{verifySuccess ? '核销成功' : (hasScanned && verifyResult && !verifySuccess ? '核销失败' :
-        (loading ? '核销中...' : '等待扫码'))}}</text
-      >
-    </view>
-  </view>
-
-  <!-- 未扫码状态 - 扫码引导 -->
-  <view class="scan-guide" wx:if="{{!hasScanned && !loading}}">
-    <view class="scan-animation-wrapper">
-      <view class="scan-circle outer"></view>
-      <view class="scan-circle inner"></view>
-      <view class="scan-icon-box">
-        <text class="scan-icon-text">📷</text>
+  <!-- 渐变头部区域 -->
+  <view class="page-header">
+    <view class="header-decor-circle"></view>
+    <view class="header-decor-circle-sm"></view>
+    <view class="header-icon-wrapper">
+      <view class="header-icon-ring"></view>
+      <view class="header-icon-box">
+        <text class="header-icon">📷</text>
       </view>
     </view>
-    <text class="guide-title">扫描核销码</text>
-    <text class="guide-desc">请扫描用户出示的核销码二维码完成核销</text>
-    <button class="scan-btn" bindtap="startScan">
-      <text class="btn-icon">📱</text>
-      <text class="btn-text">开始扫码</text>
-    </button>
+    <text class="header-title">扫码核销</text>
+    <text class="header-desc">扫描用户出示的核销码，完成到店核销</text>
+  </view>
+
+  <!-- 未扫码状态 - 操作引导 -->
+  <view class="main-content" wx:if="{{!hasScanned && !loading}}">
+    <!-- 核销流程说明卡片 -->
+    <view class="guide-card">
+      <view class="guide-header">
+        <text class="guide-header-icon">📋</text>
+        <text class="guide-header-text">核销流程</text>
+      </view>
+      <view class="steps-list">
+        <view class="step-item">
+          <view class="step-badge">1</view>
+          <view class="step-content">
+            <text class="step-title">用户出示</text>
+            <text class="step-desc">用户在背包中使用物品，生成核销码</text>
+          </view>
+        </view>
+        <view class="step-line"></view>
+        <view class="step-item highlight">
+          <view class="step-badge active">2</view>
+          <view class="step-content">
+            <text class="step-title">商家扫码</text>
+            <text class="step-desc">点击下方按钮，扫描用户手机上的二维码</text>
+          </view>
+        </view>
+        <view class="step-line"></view>
+        <view class="step-item">
+          <view class="step-badge">3</view>
+          <view class="step-content">
+            <text class="step-title">核销完成</text>
+            <text class="step-desc">系统自动完成核销，用户物品状态更新</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 扫码操作区域 -->
+    <view class="scan-action-card">
+      <view class="scan-anim-wrapper">
+        <view class="scan-ring outer"></view>
+        <view class="scan-ring inner"></view>
+        <view class="scan-center-icon">
+          <text class="center-icon-text">📷</text>
+        </view>
+      </view>
+      <button class="scan-main-btn" bindtap="startScan">
+        <text class="scan-btn-text">开始扫码核销</text>
+      </button>
+      <text class="scan-hint">请对准用户手机上的核销二维码</text>
+    </view>
+
+    <!-- 温馨提示 -->
+    <view class="tips-card">
+      <view class="tips-header">
+        <text class="tips-icon">💡</text>
+        <text class="tips-title">温馨提示</text>
+      </view>
+      <view class="tips-list">
+        <view class="tip-row">
+          <view class="tip-dot"></view>
+          <text class="tip-text">核销码由用户在小程序"我的背包"中生成</text>
+        </view>
+        <view class="tip-row">
+          <view class="tip-dot"></view>
+          <text class="tip-text">每个核销码仅可使用一次，请勿重复扫码</text>
+        </view>
+        <view class="tip-row">
+          <view class="tip-dot"></view>
+          <text class="tip-text">核销成功后物品状态将自动更新为已使用</text>
+        </view>
+      </view>
+    </view>
   </view>
 
   <!-- 加载状态 - 核销处理中 -->
-  <view class="processing-section" wx:if="{{loading}}">
-    <view class="processing-animation">
-      <view class="spinner"></view>
-    </view>
-    <text class="processing-title">正在核销</text>
-    <text class="processing-desc">正在验证核销码，请稍候...</text>
-    <view class="code-preview" wx:if="{{scannedCode}}">
-      <text class="code-label">核销码</text>
-      <text class="code-value">{{scannedCode}}</text>
+  <view class="main-content" wx:if="{{loading}}">
+    <view class="processing-card">
+      <view class="processing-anim">
+        <view class="processing-spinner"></view>
+      </view>
+      <text class="processing-title">正在核销</text>
+      <text class="processing-desc">正在验证核销码，请稍候...</text>
+      <view class="code-info" wx:if="{{scannedCode}}">
+        <text class="code-label">核销码</text>
+        <text class="code-value">{{scannedCode}}</text>
+      </view>
     </view>
   </view>
 
   <!-- 核销成功 -->
-  <view class="result-card success-card" wx:if="{{hasScanned && verifySuccess && !loading}}">
-    <view class="result-badge success">
-      <text class="badge-icon">✅</text>
-    </view>
-    <text class="result-title">核销成功</text>
-    <text class="result-subtitle">商品已成功核销，用户物品状态已更新</text>
+  <view class="main-content" wx:if="{{hasScanned && verifySuccess && !loading}}">
+    <view class="result-card success">
+      <view class="result-icon-box success-bg">
+        <text class="result-icon">✅</text>
+      </view>
+      <text class="result-main-title success-text">核销成功</text>
+      <text class="result-desc">商品已成功核销，用户物品状态已更新</text>
 
-    <!-- 核销详情（字段来自后端 POST /api/v4/shop/redemption/fulfill 响应） -->
-    <view class="detail-card" wx:if="{{verifyResult}}">
-      <view class="detail-item" wx:if="{{verifyResult.order_id}}">
-        <text class="detail-label">订单编号</text>
-        <text class="detail-value">{{verifyResult.order_id}}</text>
+      <!-- 核销详情（字段来自后端 POST /api/v4/shop/redemption/fulfill 响应） -->
+      <view class="result-detail" wx:if="{{verifyResult}}">
+        <view class="detail-row" wx:if="{{verifyResult.order_id}}">
+          <text class="detail-label">订单编号</text>
+          <text class="detail-value">{{verifyResult.order_id}}</text>
+        </view>
+        <view class="detail-row" wx:if="{{verifyResult.item_name}}">
+          <text class="detail-label">核销物品</text>
+          <text class="detail-value item-highlight">{{verifyResult.item_name}}</text>
+        </view>
+        <view class="detail-row" wx:if="{{verifyResult.redeemer_nickname}}">
+          <text class="detail-label">用户昵称</text>
+          <text class="detail-value">{{verifyResult.redeemer_nickname}}</text>
+        </view>
+        <view class="detail-row" wx:if="{{verifyResult.fulfilled_at}}">
+          <text class="detail-label">核销时间</text>
+          <text class="detail-value">{{verifyResult.fulfilled_at}}</text>
+        </view>
       </view>
-      <view class="detail-item" wx:if="{{verifyResult.item_name}}">
-        <text class="detail-label">核销物品</text>
-        <text class="detail-value">{{verifyResult.item_name}}</text>
-      </view>
-      <view class="detail-item" wx:if="{{verifyResult.redeemer_nickname}}">
-        <text class="detail-label">用户昵称</text>
-        <text class="detail-value">{{verifyResult.redeemer_nickname}}</text>
-      </view>
-      <view class="detail-item" wx:if="{{verifyResult.fulfilled_at}}">
-        <text class="detail-label">核销时间</text>
-        <text class="detail-value">{{verifyResult.fulfilled_at}}</text>
-      </view>
-    </view>
 
-    <button class="action-btn primary" bindtap="onRescan">
-      <text class="btn-text">继续扫码</text>
-    </button>
+      <button class="action-btn primary-btn" bindtap="onRescan">
+        <text class="action-btn-text">继续扫码</text>
+      </button>
+    </view>
   </view>
 
   <!-- 核销失败 -->
-  <view
-    class="result-card fail-card"
-    wx:if="{{hasScanned && !verifySuccess && !loading && verifyResult}}"
-  >
-    <view class="result-badge fail">
-      <text class="badge-icon">❌</text>
-    </view>
-    <text class="result-title fail-title">核销失败</text>
-    <text class="result-subtitle"
-      >{{verifyResult.error || '核销码无效或已过期，请核实后重试'}}</text
-    >
+  <view class="main-content" wx:if="{{hasScanned && !verifySuccess && !loading && verifyResult}}">
+    <view class="result-card fail">
+      <view class="result-icon-box fail-bg">
+        <text class="result-icon">❌</text>
+      </view>
+      <text class="result-main-title fail-text">核销失败</text>
+      <text class="result-desc">{{verifyResult.error || '核销码无效或已过期，请核实后重试'}}</text>
 
-    <view class="action-group">
-      <button class="action-btn secondary" bindtap="onRescan">
-        <text class="btn-text">重新扫码</text>
+      <button class="action-btn primary-btn" bindtap="onRescan">
+        <text class="action-btn-text">重新扫码</text>
       </button>
     </view>
   </view>

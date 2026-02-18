@@ -474,6 +474,11 @@ Component({
       this._initBoard()
     },
 
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.resetBall()
+    },
+
     /** 清理所有定时器，防止内存泄漏 */
     _cleanupTimers() {
       if (this._stepTimer) {

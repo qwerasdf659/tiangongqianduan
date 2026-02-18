@@ -151,6 +151,11 @@ Component({
         winningIndex: -1,
         highlightAnimation: false
       })
+    },
+
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.setData({ currentHighlight: -1 })
     }
   }
 })

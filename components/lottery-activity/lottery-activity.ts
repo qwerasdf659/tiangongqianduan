@@ -27,9 +27,11 @@ const log = Logger.createLogger('lottery-activity')
 const { pointsStore } = require('../../store/points')
 
 /**
- * prize_type → emoji 映射（与后端 DataSanitizer.getPrizeIcon 一致）
- * 仅管理员账号（无icon字段）时作为兜底使用，普通用户后端已返回icon
- * 数据库ENUM: points/physical/virtual/coupon/service
+ * prize_type → emoji 映射（UI展示常量）
+ *
+ * 后端不再返回 icon 字段（已从 DataSanitizer 移除），
+ * 前端根据 prize_type 自行生成展示用 emoji。
+ * 数据库 ENUM: points/physical/virtual/coupon/service
  */
 const PRIZE_ICON_MAP: Record<string, string> = {
   points: '🪙',
@@ -42,54 +44,15 @@ const PRIZE_ICON_MAP: Record<string, string> = {
 }
 
 /**
- * 提取奖品展示字段 - 兼容后端不同响应格式
+ * 为奖品数据添加 UI 展示字段 prize_icon
  *
- * 后端 DataSanitizer 标准化字段名: id/name/type/icon/rarity_code/sort_order
- * 但管理员账号或特殊接口可能返回 prize_name/prize_type/lottery_prize_id 等替代字段名
- * 此函数统一处理两种格式，确保前端展示正常
- *
- * rarity_code 字段说明（5级稀有度，后端保证必定存在、不为null）：
- *   common    → 普通（#9E9E9E 灰色边框，无特效）
- *   uncommon  → 稀有（#4CAF50 绿色边框）
- *   rare      → 精良（#2196F3 蓝色呼吸光）
- *   epic      → 史诗（#9C27B0 紫色闪烁光环）
- *   legendary → 传说（#FF9800 金色旋转光环+星星）
+ * 后端返回数据库原始字段名（lottery_prize_id/prize_name/prize_type/prize_value/rarity_code/sort_order）
+ * 前端不做字段名映射，仅补充 prize_icon（后端已移除 icon 字段）
  */
-function normalizePrize(raw: any): any {
-  /* 兼容后端不同字段名格式：标准字段 → 管理员字段 → 其他可能字段 */
-  const prizeId = raw.id || raw.lottery_prize_id || raw.prize_id || 0
-  const prizeName = raw.name || raw.prize_name || raw.display_name || raw.item_name || ''
-  const prizeType = raw.type || raw.prize_type || raw.item_type || ''
-  const prizeIcon = raw.icon || PRIZE_ICON_MAP[prizeType] || '🎁'
-
-  /* 首次加载时打印一条日志，帮助确认后端实际返回的字段名 */
-  if (!normalizePrize._logged) {
-    normalizePrize._logged = true
-    log.info(
-      '[normalizePrize] 后端奖品原始字段:',
-      Object.keys(raw).join(', '),
-      '| name:',
-      prizeName,
-      '| type:',
-      prizeType
-    )
-  }
-
-  return {
-    id: prizeId,
-    name: prizeName,
-    type: prizeType,
-    icon: prizeIcon,
-    sort_order: raw.sort_order ?? 0,
-    /** 稀有度代码（后端字段名 rarity_code，5级枚举: common/uncommon/rare/epic/legendary） */
-    rarity_code: raw.rarity_code ?? raw.rarity ?? 'common',
-    available: raw.available ?? true,
-    display_points: raw.display_points ?? raw.points_value ?? raw.value ?? 0,
-    status: raw.status ?? 'active'
-  }
+function addPrizeIcon(prize: any): any {
+  prize.prize_icon = PRIZE_ICON_MAP[prize.prize_type] || '🎁'
+  return prize
 }
-/** normalizePrize 日志标记（仅记录一次） */
-normalizePrize._logged = false
 /**
  * 默认display配置（降级策略）
  * 当后端未返回 display 字段时使用此默认值
@@ -183,7 +146,10 @@ Component({
     /** 保底金蛋状态：idle/shaking/cracked */
     guaranteeEggState: 'idle' as string,
     /** 保底金蛋抽奖结果 */
-    guaranteeEggResult: null as any
+    guaranteeEggResult: null as any,
+
+    /** 连抽按钮是否显示（由 size 和 drawButtons 共同决定，供 lottery-modes.wxml 绑定） */
+    showDrawButtons: false
   },
 
   /** 生命周期 */
@@ -238,27 +204,18 @@ Component({
         /* 先解析display配置，因为mode决定奖品截取策略 */
         const display = { ...DEFAULT_DISPLAY, ...(config.display || {}) }
 
-        /* 标准化字段 - 兼容后端两种响应格式：
-         *   格式A: data = [prize1, prize2, ...]（直接数组）
-         *   格式B: data = { prizes: [prize1, prize2, ...] }（嵌套对象）
+        /**
+         * 奖品列表: ApiResponse 标准信封，data 直接是数组
+         * 后端字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier
          */
-        const rawData = prizesRes.data
-        const prizesRaw = Array.isArray(rawData) ? rawData : rawData?.prizes || rawData?.list || []
+        const prizesRaw: any[] = prizesRes.data
 
         if (!Array.isArray(prizesRaw) || prizesRaw.length === 0) {
-          log.warn(
-            '[lottery-activity] 奖品数据为空或格式异常, rawData类型:',
-            typeof rawData,
-            ', keys:',
-            rawData ? Object.keys(rawData).join(',') : 'null'
-          )
+          log.warn('[lottery-activity] 奖品数据为空, data:', prizesRaw)
         }
 
-        /* 重置日志标记，确保每次初始化都能打印一次字段诊断日志 */
-        normalizePrize._logged = false
-
         const allPrizes = (Array.isArray(prizesRaw) ? prizesRaw : [])
-          .map(normalizePrize)
+          .map(addPrizeIcon)
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
 
         /* grid 固定8格需要截取，wheel等模式动态渲染全部奖品 */
@@ -272,6 +229,7 @@ Component({
         /* 将后端 draw_buttons 转换为 draw-buttons 组件所需的渲染格式（仅连抽） */
         const drawButtons = this._transformDrawButtons(rawDrawButtons)
 
+        const currentSize = this.properties.size || 'full'
         this.setData({
           loading: false,
           config,
@@ -281,12 +239,14 @@ Component({
           effectTheme: display.effect_theme,
           rarityEffectsEnabled: display.rarity_effects_enabled,
           winAnimation: display.win_animation,
-          /** 活动背景图（文档接口C: display.background_image_url，null时无背景图） */
           backgroundImageUrl: display.background_image_url || '',
           themeStyle,
           costPerDraw: config.per_draw_cost || 0,
           drawButtons,
           rawDrawButtons,
+          showDrawButtons:
+            drawButtons.length > 0 &&
+            (currentSize === 'full' || currentSize === 'small' || currentSize === 'mini'),
           campaignName: config.campaign_name || '',
           coverImage: config.cover_image || display.background_image_url || '',
           guaranteeInfo: config.guarantee_info || null,
@@ -371,38 +331,16 @@ Component({
 
     /**
      * 重置子组件状态（抽奖失败/积分不足时调用）
+     * 所有子组件统一实现 reset() 方法，父组件无需关心具体玩法类型
      */
     _resetSubComponent() {
       try {
         const child = this.selectComponent('#lottery-sub')
-        if (child) {
-          if (typeof child.resetCards === 'function') {
-            child.resetCards()
-          }
-          if (typeof child.resetEggs === 'function') {
-            child.resetEggs()
-          }
-          if (typeof child.resetBox === 'function') {
-            child.resetBox()
-          }
-          if (typeof child.resetBag === 'function') {
-            child.resetBag()
-          }
-          if (typeof child.resetPacket === 'function') {
-            child.resetPacket()
-          }
-          if (typeof child.resetGame === 'function') {
-            child.resetGame()
-          }
-          if (typeof child.resetBall === 'function') {
-            child.resetBall()
-          }
-          if (typeof child.resetMachine === 'function') {
-            child.resetMachine()
-          }
+        if (child && typeof child.reset === 'function') {
+          child.reset()
         }
-      } catch (_e) {
-        /* 静默失败 */
+      } catch (resetError) {
+        log.warn('[lottery-activity] 子组件重置失败:', resetError)
       }
     },
 
@@ -468,10 +406,11 @@ Component({
           })
         }
 
-        /* 缓存奖品数据 */
+        /* 缓存奖品数据（添加 prize_icon UI展示字段） */
+        const whackmolePrize = addPrizeIcon(result.data.prizes?.[0] || {})
         this.setData({
           drawResult: {
-            prize: result.data.prizes?.[0] || {},
+            prize: whackmolePrize,
             isMultiDraw: false,
             isError: false
           }
@@ -553,7 +492,7 @@ Component({
           return
         }
 
-        const prizes = result.data.prizes || []
+        const prizes = (result.data.prizes || []).map(addPrizeIcon)
 
         this.setData({
           drawResult: {
@@ -618,8 +557,11 @@ Component({
           return
         }
 
-        /* 后端统一返回 data.prizes 数组（单抽 length=1，连抽 length=N） */
-        const prizes = result.data.prizes || []
+        /**
+         * 后端统一返回 data.prizes 数组（单抽 length=1，连抽 length=N）
+         * 字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier
+         */
+        const prizes = (result.data.prizes || []).map(addPrizeIcon)
 
         if (count === 1) {
           const item = prizes[0] || {}
@@ -839,7 +781,7 @@ Component({
             return
           }
 
-          const prizes = result.data.prizes || []
+          const prizes = (result.data.prizes || []).map(addPrizeIcon)
           const item = prizes[0] || {}
 
           /* 播放碎裂动画 */

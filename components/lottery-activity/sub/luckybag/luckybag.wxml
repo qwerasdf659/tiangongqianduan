@@ -10,7 +10,7 @@
     wx:key="id"
     style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; font-size:{{item.size}}rpx;"
   >
-    <text>{{item.icon}}</text>
+    <text>{{item.prize_icon}}</text>
   </view>
 
   <!-- ===== 单开模式（3选1） ===== -->
@@ -152,8 +152,8 @@
               <view class="bag-burst__star"></view>
             </view>
             <view class="multi-bag-prize__info">
-              <text class="multi-bag-prize__icon">{{bag.icon || '🎁'}}</text>
-              <text class="multi-bag-prize__name">{{bag.name || '奖品'}}</text>
+              <text class="multi-bag-prize__icon">{{bag.prize_icon || '🎁'}}</text>
+              <text class="multi-bag-prize__name">{{bag.prize_name || '奖品'}}</text>
             </view>
           </view>
 
@@ -193,9 +193,9 @@
       <view class="lb-prizes__list">
         <view class="lb-prizes__item" wx:for="{{prizes}}" wx:key="id">
           <view class="lb-prizes__icon-wrap">
-            <text class="lb-prizes__icon">{{item.icon}}</text>
+            <text class="lb-prizes__icon">{{item.prize_icon}}</text>
           </view>
-          <text class="lb-prizes__name">{{item.name}}</text>
+          <text class="lb-prizes__name">{{item.prize_name}}</text>
         </view>
       </view>
     </scroll-view>

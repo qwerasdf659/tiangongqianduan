@@ -288,6 +288,11 @@ Component({
         multiEntered: false
       })
       this._initBags()
+    },
+
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.resetBag()
     }
   }
 })

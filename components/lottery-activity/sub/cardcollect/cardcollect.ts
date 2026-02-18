@@ -272,6 +272,11 @@ Component({
 
     resetCards() {
       this._initCards()
+    },
+
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.resetCards()
     }
   }
 })

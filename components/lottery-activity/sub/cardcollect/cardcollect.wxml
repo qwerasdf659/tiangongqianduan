@@ -54,8 +54,8 @@
           <!-- 已收集：正面 -->
           <view class="gc-face gc-front" wx:if="{{item.collected}}">
             <view class="gc-holo" />
-            <text class="gc-emoji">{{item.prize.icon || '🃏'}}</text>
-            <text class="gc-label">{{item.prize.name || '卡片'}}</text>
+            <text class="gc-emoji">{{item.prize.prize_icon || '🃏'}}</text>
+            <text class="gc-label">{{item.prize.prize_name || '卡片'}}</text>
             <view class="gc-shine" />
             <text class="gc-no">{{item.index + 1}}</text>
           </view>
@@ -101,8 +101,8 @@
       <view class="reveal-glow" />
       <view class="rc-inner">
         <view class="rc-holo" />
-        <text class="rc-emoji">{{revealPrize.icon || '🃏'}}</text>
-        <text class="rc-name">{{revealPrize.name || '新卡片'}}</text>
+        <text class="rc-emoji">{{revealPrize.prize_icon || '🃏'}}</text>
+        <text class="rc-name">{{revealPrize.prize_name || '新卡片'}}</text>
         <view class="rc-shine" />
         <view class="rc-tag">
           <text>No.{{revealIndex + 1}}</text>

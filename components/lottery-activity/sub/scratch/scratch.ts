@@ -250,6 +250,11 @@ Component({
         dissolvedCount: 0
       })
       setTimeout(() => this._measureCard(), 50)
+    },
+
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this._buildCells(this.properties.drawCount || 1)
     }
   }
 })

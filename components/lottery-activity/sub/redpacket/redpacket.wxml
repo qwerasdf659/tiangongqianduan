@@ -100,8 +100,8 @@
           <!-- 拆开后显示奖品 -->
           <view class="multi-packet-prize" wx:else>
             <view class="multi-packet-prize__info">
-              <text class="multi-packet-prize__icon">{{packet.icon || '🎁'}}</text>
-              <text class="multi-packet-prize__name">{{packet.name || '奖品'}}</text>
+              <text class="multi-packet-prize__icon">{{packet.prize_icon || '🎁'}}</text>
+              <text class="multi-packet-prize__name">{{packet.prize_name || '奖品'}}</text>
             </view>
           </view>
         </view>

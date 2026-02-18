@@ -737,8 +737,8 @@ Page({
         const totalItems = statsResult.data.total_items || statsResult.data.totalItems || 0
         this.setData({ inventoryItemCount: totalItems })
       }
-    } catch (_e) {
-      /* 静默失败 */
+    } catch (inventoryError) {
+      log.warn('⚠️ 仓库物品数量加载失败（不影响主流程）:', inventoryError)
     }
   },
 
@@ -749,8 +749,8 @@ Page({
       if (result?.success && result.data) {
         this.setData({ auditRecordsCount: result.data.pagination?.total || 0 })
       }
-    } catch (_e) {
-      /* 静默失败 */
+    } catch (recordsError) {
+      log.warn('⚠️ 消费记录数量加载失败（不影响主流程）:', recordsError)
     }
   },
 
@@ -991,4 +991,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

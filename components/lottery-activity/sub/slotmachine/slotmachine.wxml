@@ -8,7 +8,7 @@
       wx:key="id"
       style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
     >
-      <text>{{item.icon}}</text>
+      <text>{{item.prize_icon}}</text>
     </view>
   </view>
 
@@ -68,7 +68,7 @@
                     src="{{prize.image}}"
                     mode="aspectFit"
                   />
-                  <text wx:else class="reel-icon">{{prize.icon || '?'}}</text>
+                  <text wx:else class="reel-icon">{{prize.prize_icon || '?'}}</text>
                 </view>
               </view>
             </view>

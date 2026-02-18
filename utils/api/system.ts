@@ -12,7 +12,23 @@ const { buildQueryString } = require('../util')
 
 // ==================== 🌐 系统配置 ====================
 
-/** 获取活动位置配置（公开接口?- GET /api/v4/system/config/placement */
+/**
+ * 获取系统全局配置（客服信息等）
+ * GET /api/v4/system/config
+ *
+ * 响应字段: system_name, customer_phone, customer_email, customer_wechat 等
+ * 数据来源: system_settings 表
+ */
+async function getSystemGlobalConfig() {
+  return apiClient.request('/system/config', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/** 获取活动位置配置（公开接口）- GET /api/v4/system/config/placement */
 async function getPlacementConfig() {
   return apiClient.request('/system/config/placement', {
     method: 'GET',
@@ -276,6 +292,7 @@ async function getActivities(params: { page?: number; page_size?: number } = {})
 }
 
 module.exports = {
+  getSystemGlobalConfig,
   getPlacementConfig,
   getAnnouncements,
   getHomeAnnouncements,

@@ -129,8 +129,8 @@ class APIClient {
   private securityConfig: ReturnType<typeof getSecurityConfig>
   /** Token刷新状态（防止并发刷新） */
   private isRefreshing: boolean
-  /** 等待Token刷新的请求队列 */
-  private refreshSubscribers: Array<(_value: any) => void>
+  /** 等待Token刷新的请求队列（回调参数: 新access_token或null） */
+  private refreshSubscribers: Array<(_value: string | null) => void>
 
   constructor() {
     this.config = getApiConfig()
@@ -431,7 +431,7 @@ class APIClient {
   }
 
   /** 处理Token过期 - 自动刷新机制（防止并发刷新） */
-  async handleTokenExpired(): Promise<any> {
+  async handleTokenExpired(): Promise<ApiResponse> {
     if (this.isRefreshing) {
       return new Promise(resolve => {
         this.refreshSubscribers.push(resolve)
@@ -501,4 +501,5 @@ const apiClient = new APIClient()
 
 module.exports = { APIClient, apiClient }
 
-export {}
+export { }
+

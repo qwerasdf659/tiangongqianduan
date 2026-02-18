@@ -445,7 +445,8 @@ Page({
           const status = session.status || 'waiting'
 
           return {
-            sessionId: session.customer_service_session_id,
+            /* DataSanitizer 将主键 customer_service_session_id 统一为 id */
+            sessionId: session.id,
             userId: user.user_id,
             userInfo: {
               nickname: userName,

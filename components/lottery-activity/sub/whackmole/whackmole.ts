@@ -737,6 +737,11 @@ Component({
         holes: [false, false, false, false, false, false, false, false, false],
         whackedHoles: [false, false, false, false, false, false, false, false, false]
       })
+    },
+
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.resetGame()
     }
   }
 })

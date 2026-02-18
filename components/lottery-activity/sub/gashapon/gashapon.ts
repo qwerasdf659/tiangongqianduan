@@ -203,6 +203,11 @@ Component({
         machineState: 'idle',
         showCelebration: false
       })
+    },
+
+    /** 统一重置接口（父组件调用） */
+    reset() {
+      this.resetMachine()
     }
   }
 })

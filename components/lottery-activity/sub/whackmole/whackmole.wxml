@@ -8,7 +8,7 @@
       wx:key="id"
       style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
     >
-      <text>{{item.icon}}</text>
+      <text>{{item.prize_icon}}</text>
     </view>
   </view>
 

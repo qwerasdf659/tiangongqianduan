@@ -24,8 +24,8 @@
         wx:key="index"
         style="{{prizePositions[index]}}"
       >
-        <text class="wheel-prize__icon">{{item.icon || '🎁'}}</text>
-        <text class="wheel-prize__name">{{item.name || '奖品'}}</text>
+        <text class="wheel-prize__icon">{{item.prize_icon || '🎁'}}</text>
+        <text class="wheel-prize__name">{{item.prize_name || '奖品'}}</text>
       </view>
     </view>
 

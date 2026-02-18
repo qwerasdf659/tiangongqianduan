@@ -7,7 +7,7 @@
     wx:key="id"
     style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; font-size:{{item.size}}rpx;"
   >
-    <text>{{item.icon}}</text>
+    <text>{{item.prize_icon}}</text>
   </view>
 
   <!-- 标题 -->
@@ -131,9 +131,9 @@
         <view class="bb-prizes__list">
           <view class="bb-prizes__item {{item.rarity_code}}" wx:for="{{prizes}}" wx:key="id">
             <view class="bb-prizes__icon-wrap">
-              <text class="bb-prizes__icon">{{item.icon}}</text>
+              <text class="bb-prizes__icon">{{item.prize_icon}}</text>
             </view>
-            <text class="bb-prizes__name">{{item.name}}</text>
+            <text class="bb-prizes__name">{{item.prize_name}}</text>
           </view>
         </view>
       </scroll-view>

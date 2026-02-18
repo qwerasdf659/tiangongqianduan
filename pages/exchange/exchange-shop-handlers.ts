@@ -26,11 +26,7 @@ const {
 const shopLog = shopLogger.createLogger('exchange-shop')
 const {
   getExchangeProducts: shopGetExchangeProducts,
-  getExchangeSpaceStats: shopGetExchangeSpaceStats,
-  getBidProducts: shopGetBidProducts,
-  getBidProductDetail: shopGetBidProductDetail,
-  placeBid: shopPlaceBid,
-  getBidHistory: shopGetBidHistory
+  getExchangeSpaceStats: shopGetExchangeSpaceStats
 } = shopAPI
 const { showToast: shopShowToast } = shopWechat
 const { debounce: shopDebounce } = shopUtils
@@ -136,10 +132,10 @@ const shopHandlers = {
         const luckyStats =
           statsResponse && statsResponse.success && statsResponse.data
             ? {
-                new_count: statsResponse.data.new_count || 0,
-                avg_discount: statsResponse.data.avg_discount || 0,
-                flash_deals: statsResponse.data.flash_deals || 0
-              }
+              new_count: statsResponse.data.new_count || 0,
+              avg_discount: statsResponse.data.avg_discount || 0,
+              flash_deals: statsResponse.data.flash_deals || 0
+            }
             : { new_count: 0, avg_discount: 0, flash_deals: 0 }
 
         if (!statsResponse || !statsResponse.success) {
@@ -279,7 +275,7 @@ const shopHandlers = {
         if (rawItems.length > 0 && items.length === 0) {
           shopLog.error(
             `❌ 后端API返回 ${rawItems.length} 个商品全部缺少 id，` +
-              `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
+            `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
           )
           this.setErrorState('商品数据异常', '后端返回的商品缺少必要字段(id)，请联系管理员')
           return
@@ -288,7 +284,7 @@ const shopHandlers = {
         if (rawItems.length !== items.length) {
           shopLog.warn(
             `⚠️ 臻选空间数据校验: 原始${rawItems.length}个, 有效${items.length}个, ` +
-              `过滤${rawItems.length - items.length}个`
+            `过滤${rawItems.length - items.length}个`
           )
         }
 
@@ -296,10 +292,10 @@ const shopHandlers = {
         const premiumStats =
           premiumStatsResponse && premiumStatsResponse.success && premiumStatsResponse.data
             ? {
-                hot_count: premiumStatsResponse.data.hot_count || 0,
-                avg_rating: premiumStatsResponse.data.avg_rating || 0,
-                trending_count: premiumStatsResponse.data.trending_count || 0
-              }
+              hot_count: premiumStatsResponse.data.hot_count || 0,
+              avg_rating: premiumStatsResponse.data.avg_rating || 0,
+              trending_count: premiumStatsResponse.data.trending_count || 0
+            }
             : { hot_count: 0, avg_rating: 0, trending_count: 0 }
 
         if (!premiumStatsResponse || !premiumStatsResponse.success) {
@@ -465,460 +461,7 @@ const shopHandlers = {
     }
   },
 
-  /* onCarouselChange 已移除 - 臻选空间不再使用轮播布局 */
-
-  // ============================================
-  // 🎯 竞价功能（后端API: /api/v4/backpack/bid/*  // ============================================
-
-  /**
-   * 加载竞价商品列表
-   * 后端API: GET /api/v4/backpack/bid/products
-   *
-   * 响应字段（对bid_products 表）:
-   *   - bid_product_id: BIGINT PK
-   *   - exchange_item_id: BIGINT FK
-   *   - start_price: BIGINT（⚠不是 starting_price   *   - current_price: BIGINT
-   *   - min_bid_increment: BIGINT
-   *   - price_asset_code: VARCHAR(50)（⚠不是 asset_code   *   - status: ENUM态）
-   *   - start_time / end_time: DATETIME
-   *   - bid_count: INT
-   *   - winner_user_id: INT（⚠不是 highest_bidder_id   */
-  async loadBidProducts() {
-    shopLog.info('🎯 加载竞价商品列表...')
-    try {
-      const response = await shopGetBidProducts(1, 20, 'active')
-
-      if (response && response.success && response.data) {
-        const bidProducts = response.data.products || []
-        shopLog.info(`✅ 获取了 ${bidProducts.length} 个竞价商品`)
-
-        /* 使用后端真实字段名（bid_products 表） */
-        const mappedProducts = bidProducts.map((item: any) => ({
-          bid_product_id: item.bid_product_id,
-          exchange_item_id: item.exchange_item_id,
-          /* 后端 DataSanitizer 脱敏: item_name → name */
-          name: item.name || '',
-          description: item.description || '',
-          image: item.image_url || '/images/products/default-product.png',
-          category: item.category || '',
-          /* 后端字段: start_price（不?starting_price?*/
-          start_price: item.start_price || 0,
-          current_price: item.current_price || 0,
-          min_bid_increment: item.min_bid_increment || 1,
-          /* 后端字段: price_asset_code（不?asset_code?*/
-          price_asset_code: item.price_asset_code || 'DIAMOND',
-          status: item.status,
-          start_time: item.start_time,
-          end_time: item.end_time,
-          bid_count: item.bid_count || 0,
-          /* 后端字段: winner_user_id（不?highest_bidder_id?*/
-          winner_user_id: item.winner_user_id,
-          /* 倒计时文本（初始化时计算一次，定时器持续更新） */
-          _countdownText: this._formatBidCountdown(item.end_time)
-        }))
-
-        this.setData({ biddingProducts: mappedProducts })
-
-        /* 启动竞价列表倒计时定时器 */
-        this._startBidListCountdown()
-      } else {
-        shopLog.info('ℹ️ 暂无竞价商品或API返回空数据')
-        this.setData({ biddingProducts: [] })
-      }
-    } catch (error) {
-      shopLog.error('❌ 加载竞价商品失败:', error)
-      this.setData({ biddingProducts: [] })
-    }
-  },
-
-  /**
-   * 加载用户竞价历史
-   * 后端API: GET /api/v4/backpack/bid/history
-   */
-  async loadBidHistory() {
-    shopLog.info('📋 加载竞价历史...')
-    try {
-      const response = await shopGetBidHistory(1, 50)
-      if (response && response.success && response.data) {
-        const records = response.data.records || []
-        this.setData({ bidHistory: records })
-        shopLog.info(`✅ 获取了 ${records.length} 条竞价历史`)
-      }
-    } catch (error) {
-      shopLog.error('❌ 加载竞价历史失败:', error)
-      this.setData({ bidHistory: [] })
-    }
-  },
-
-  /**
-   * 竞价按钮点击 - 打开竞价弹窗并加载商品详   * 增加震动反馈和实时校验状态初始化
-   */
-  async onBidTap(e: any) {
-    const product = e.currentTarget.dataset.product
-    shopLog.info('🏷️ ?点击竞价:', product)
-
-    /* 仅允?active 状态的商品出价 */
-    if (product.status !== 'active') {
-      shopShowToast(product.status === 'pending' ? '竞拍尚未开始' : '竞拍已结束')
-      return
-    }
-
-    /* 轻触震动反馈 */
-    try {
-      wx.vibrateShort({ type: 'light' })
-    } catch (_vibrateErr) {
-      /* 忽略不支持的设备 */
-    }
-
-    /* 先从后端获取最新的竞价商品详情（确保价格是实时的） */
-    try {
-      const detailResponse = await shopGetBidProductDetail(product.bid_product_id)
-      if (detailResponse && detailResponse.success && detailResponse.data) {
-        const detail = detailResponse.data
-        const currentMinBid = (detail.current_price || 0) + (detail.min_bid_increment || 1)
-
-        this.setData({
-          selectedBidProduct: {
-            bid_product_id: detail.bid_product_id,
-            name: detail.name || '',
-            description: detail.description || '',
-            image: detail.image_url || product.image || '/images/products/default-product.png',
-            category: detail.category || '',
-            /* 后端字段: start_price */
-            start_price: detail.start_price || 0,
-            current_price: detail.current_price || 0,
-            min_bid_increment: detail.min_bid_increment || 1,
-            /* 后端字段: price_asset_code */
-            price_asset_code: detail.price_asset_code || 'DIAMOND',
-            status: detail.status,
-            end_time: detail.end_time,
-            bid_count: detail.bid_count || 0
-          },
-          showBidModal: true,
-          userBidAmount: currentMinBid,
-          bidMinAmount: currentMinBid,
-          bidAmountValid: true,
-          bidSubmitting: false,
-          showBidRules: false,
-          bidModalCountdown: this._formatBidCountdown(detail.end_time)
-        })
-      } else {
-        /* 详情获取失败时使用列表数据*/
-        const fallbackMinBid = (product.current_price || 0) + (product.min_bid_increment || 1)
-        this.setData({
-          selectedBidProduct: product,
-          showBidModal: true,
-          userBidAmount: fallbackMinBid,
-          bidMinAmount: fallbackMinBid,
-          bidAmountValid: true,
-          bidSubmitting: false,
-          showBidRules: false,
-          bidModalCountdown: this._formatBidCountdown(product.end_time)
-        })
-      }
-
-      /* 启动弹窗内倒计时?*/
-      this._startBidModalCountdown()
-    } catch (error) {
-      shopLog.error('❌ 获取竞价详情失败，使用列表数据', error)
-      const errorMinBid = (product.current_price || 0) + (product.min_bid_increment || 1)
-      this.setData({
-        selectedBidProduct: product,
-        showBidModal: true,
-        userBidAmount: errorMinBid,
-        bidMinAmount: errorMinBid,
-        bidAmountValid: true,
-        bidSubmitting: false,
-        showBidRules: false,
-        bidModalCountdown: this._formatBidCountdown(product.end_time)
-      })
-      this._startBidModalCountdown()
-    }
-  },
-
-  /**
-   * 竞价金额输入 - 实时校验并更新状态   * 输入金额 最低出价时显示绿色✓，否则显示红色提示
-   */
-  onBidAmountInput(e: any) {
-    const inputAmount = parseFloat(e.detail.value) || 0
-    const { selectedBidProduct } = this.data
-    if (!selectedBidProduct) {
-      return
-    }
-
-    const localMinBid =
-      (selectedBidProduct.current_price || 0) + (selectedBidProduct.min_bid_increment || 1)
-    this.setData({
-      userBidAmount: inputAmount,
-      bidAmountValid: inputAmount >= localMinBid,
-      bidMinAmount: localMinBid
-    })
-  },
-
-  /**
-   * 快捷加价按钮
-   * 在当前出价基础上增加固定金额，提升竞价操作效率
-   */
-  onQuickBidAdd(e: any) {
-    const addAmount = Number(e.currentTarget.dataset.amount) || 0
-    const { selectedBidProduct, userBidAmount } = this.data
-    if (!selectedBidProduct) {
-      return
-    }
-
-    /* 震动反馈 */
-    try {
-      wx.vibrateShort({ type: 'light' })
-    } catch (_vibErr) {
-      /* 静默 */
-    }
-
-    const baseAmount =
-      userBidAmount > 0
-        ? userBidAmount
-        : selectedBidProduct.current_price + selectedBidProduct.min_bid_increment
-
-    const newAmount = baseAmount + addAmount
-    const quickMinBid =
-      (selectedBidProduct.current_price || 0) + (selectedBidProduct.min_bid_increment || 1)
-    this.setData({
-      userBidAmount: newAmount,
-      bidAmountValid: newAmount >= quickMinBid
-    })
-  },
-
-  /** 一键填入最低出?*/
-  onSetMinBid() {
-    const { selectedBidProduct } = this.data
-    if (!selectedBidProduct) {
-      return
-    }
-
-    const setMinBidAmount =
-      (selectedBidProduct.current_price || 0) + (selectedBidProduct.min_bid_increment || 1)
-    this.setData({
-      userBidAmount: setMinBidAmount,
-      bidAmountValid: true,
-      bidMinAmount: setMinBidAmount
-    })
-  },
-
-  /** 切换竞价规则显示/隐藏 */
-  onToggleBidRules() {
-    this.setData({ showBidRules: !this.data.showBidRules })
-  },
-
-  /**
-   * 确认竞价 - 调用后端 POST /api/v4/backpack/bid
-   * ⚠️ 后端口bid_products.price_asset_code 读取竞价资产类型，无需前端传入 asset_code
-   */
-  async onConfirmBid() {
-    const { selectedBidProduct, userBidAmount, bidSubmitting } = this.data
-
-    if (!selectedBidProduct) {
-      shopShowToast('请选择竞价商品')
-      return
-    }
-
-    /* 防止重复提交 */
-    if (bidSubmitting) {
-      return
-    }
-
-    /* 前端基础校验（后端会做完整校验，这里是提前拦截明显错误） */
-    const confirmMinBid =
-      (selectedBidProduct.current_price || 0) + (selectedBidProduct.min_bid_increment || 1)
-    if (userBidAmount < confirmMinBid) {
-      shopShowToast(
-        `出价不能低于 ${confirmMinBid} ${selectedBidProduct.price_asset_code || 'DIAMOND'}`
-      )
-      return
-    }
-
-    /* 二次确认弹窗 */
-    wx.showModal({
-      title: '确认竞价',
-      content: `您将以 ${userBidAmount} ${selectedBidProduct.price_asset_code || 'DIAMOND'} 出价，资产将被冻结直到被超越或竞价结束。`,
-      confirmText: '确认出价',
-      cancelText: '再想想',
-      success: async (modalRes: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
-        if (!modalRes.confirm) {
-          return
-        }
-
-        this.setData({ bidSubmitting: true })
-
-        try {
-          /* 提交时震动反?*/
-          try {
-            wx.vibrateShort({ type: 'medium' })
-          } catch (_e) {
-            /* 静默 */
-          }
-
-          shopLog.info('🎯 提交竞价:', {
-            bid_product_id: selectedBidProduct.bid_product_id,
-            bid_amount: userBidAmount
-          })
-
-          /* ⚠️ placeBid 不再?asset_code（后端从 bid_products.price_asset_code 读取消*/
-          const response = await shopPlaceBid(selectedBidProduct.bid_product_id, userBidAmount)
-
-          if (response && response.success) {
-            shopLog.info('✅ 竞价成功:', response.data)
-
-            /* 成功震动 */
-            try {
-              wx.vibrateShort({ type: 'heavy' })
-            } catch (_e) {
-              /* 静默 */
-            }
-
-            shopShowToast('🎉 竞价成功')
-            this._stopBidModalCountdown()
-            this.setData({
-              showBidModal: false,
-              selectedBidProduct: null,
-              userBidAmount: 0,
-              bidSubmitting: false,
-              bidAmountValid: false
-            })
-
-            /* 竞价成功后刷新竞价商品列表和历史 */
-            this.loadBidProducts()
-            this.loadBidHistory()
-          }
-        } catch (error: any) {
-          shopLog.error('❌ 竞价失败:', error)
-          this.setData({ bidSubmitting: false })
-          /* 后端返回的错误信息已?APIClient.showError 自动展示 */
-        }
-      }
-    })
-  },
-
-  /** 取消竞价弹窗 */
-  onCancelBid() {
-    this._stopBidModalCountdown()
-    this.setData({
-      showBidModal: false,
-      selectedBidProduct: null,
-      userBidAmount: 0,
-      bidAmountValid: false,
-      bidSubmitting: false
-    })
-  },
-
-  // ============================================
-  // 竞价倒计时工具方  // ============================================
-
-  /**
-   * 格式化竞价倒计时文   * @param endTime - 竞价结束时间（ISO字符串或时间戳）
-   * @returns 格式化后的倒计时文本，"20 / "152 / "已结
-   */
-  _formatBidCountdown(endTime: string | number | undefined): string {
-    if (!endTime) {
-      return ''
-    }
-    const now = Date.now()
-    const endTimestamp = typeof endTime === 'number' ? endTime : new Date(endTime).getTime()
-    const diff = endTimestamp - now
-
-    if (diff <= 0) {
-      return '已结束'
-    }
-
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-
-    if (hours > 24) {
-      const days = Math.floor(hours / 24)
-      return `${days}天${hours % 24}时`
-    }
-    if (hours > 0) {
-      return `${hours}时${minutes}分`
-    }
-    if (minutes > 0) {
-      return `${minutes}分${seconds}秒`
-    }
-    return `${seconds}秒`
-  },
-
-  /**
-   * 启动竞价列表倒计时（每秒更新卡片上的倒计时文本）
-   * 使用 _bidListTimer 存储定时器ID，避免重复启   */
-  _startBidListCountdown() {
-    /* 先清理旧定时间*/
-    if (this._bidListTimer) {
-      clearInterval(this._bidListTimer)
-      this._bidListTimer = null
-    }
-
-    this._bidListTimer = setInterval(() => {
-      const { biddingProducts } = this.data
-      if (!biddingProducts || biddingProducts.length === 0) {
-        clearInterval(this._bidListTimer)
-        this._bidListTimer = null
-        return
-      }
-
-      let needsUpdate = false
-      const updatedProducts = biddingProducts.map((item: any) => {
-        if (item.status === 'active' && item.end_time) {
-          const newText = this._formatBidCountdown(item.end_time)
-          if (newText !== item._countdownText) {
-            needsUpdate = true
-            return { ...item, _countdownText: newText }
-          }
-        }
-        return item
-      })
-
-      if (needsUpdate) {
-        this.setData({ biddingProducts: updatedProducts })
-      }
-    }, 1000)
-  },
-
-  /**
-   * 启动弹窗内倒计时（每秒更新弹窗内的倒计时显示）
-   * 使用 _bidModalTimer 存储定时器ID
-   */
-  _startBidModalCountdown() {
-    this._stopBidModalCountdown()
-
-    this._bidModalTimer = setInterval(() => {
-      const { selectedBidProduct, showBidModal } = this.data
-      if (!showBidModal || !selectedBidProduct || !selectedBidProduct.end_time) {
-        this._stopBidModalCountdown()
-        return
-      }
-
-      const countdownText = this._formatBidCountdown(selectedBidProduct.end_time)
-      this.setData({ bidModalCountdown: countdownText })
-
-      /* 竞价已结束时自动关闭弹窗 */
-      if (countdownText === '已结束') {
-        this._stopBidModalCountdown()
-        shopShowToast('竞拍已结束')
-        this.setData({
-          showBidModal: false,
-          selectedBidProduct: null,
-          userBidAmount: 0
-        })
-        this.loadBidProducts()
-      }
-    }, 1000)
-  },
-
-  /** 停止弹窗倒计时?*/
-  _stopBidModalCountdown() {
-    if (this._bidModalTimer) {
-      clearInterval(this._bidModalTimer)
-      this._bidModalTimer = null
-    }
-  },
+  /* 竞价功能已拆分到 exchange-bid-handlers.ts */
 
   /** 刷新市场数据（根据当前空间类型） */
   async refreshMarketData() {
@@ -1381,9 +924,35 @@ const shopHandlers = {
       this.loadPremiumCurrentPageProducts()
       shopShowToast({ title: `已跳转到第 ${targetPage} 页`, icon: 'success' })
     }
+  },
+
+  // ============================================
+  // 🖼️ 图片加载错误处理
+  // ============================================
+
+  /**
+   * 商品图片加载失败回调（幸运空间 + 臻选空间统一处理）
+   * 当后端返回的 image_url 无效（如对象存储 key 而非完整 URL）时触发
+   * 将 image 设置为本地默认图，同时触发 WXML placeholder 显示
+   */
+  onShopImageError(e: any) {
+    const { index, space } = e.currentTarget.dataset
+    shopLog.info(`⚠️ 商品图片加载失败 [space=${space}, index=${index}]`)
+
+    const defaultImg = '/images/products/default-product.png'
+
+    if (space === 'premium') {
+      this.setData({ [`premiumFilteredProducts[${index}].image`]: defaultImg })
+    } else {
+      const useLuckyFiltered =
+        this.data.luckyFilteredProducts && this.data.luckyFilteredProducts.length > 0
+      const listKey = useLuckyFiltered ? 'luckyFilteredProducts' : 'waterfallProducts'
+      this.setData({ [`${listKey}[${index}].image`]: defaultImg })
+    }
   }
 }
 
 module.exports = shopHandlers
 
-export {}
+export { }
+

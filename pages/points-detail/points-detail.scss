@@ -1,4 +1,4 @@
-/* 积分详情页面样式 - 增强UI美感版本 */
+/* 积分详情页面样式 - 增强UI美感 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
@@ -12,15 +12,14 @@
 
 /* ========== 积分余额卡片 ========== */
 .points-balance-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+  background: $gradient-card-bg;
   border-radius: $border-radius-xl;
   padding: 48rpx 40rpx;
   margin-bottom: $spacing-lg;
   position: relative;
+  -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
-  box-shadow:
-    0 16rpx 48rpx rgba(102, 126, 234, 0.15),
-    0 4rpx 16rpx rgba(102, 126, 234, 0.08);
+  box-shadow: $shadow-card;
   border: 1rpx solid rgba(255, 255, 255, 0.5);
   overflow: hidden;
 }
@@ -78,28 +77,28 @@
   font-size: $font-size-md;
   font-weight: 700;
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  background-clip: text;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.balance-close {
-  width: 48rpx;
-  height: 48rpx;
+/* 刷新按钮 */
+.balance-refresh {
+  width: 56rpx;
+  height: 56rpx;
   @include flex-center;
   background: rgba(102, 126, 234, 0.08);
-  border-radius: 50%;
+  border-radius: $border-radius-md;
   transition: $transition-base;
 }
 
-.balance-close:active {
-  background: rgba(102, 126, 234, 0.15);
-  transform: scale(0.92);
+.balance-refresh:active {
+  background: rgba(102, 126, 234, 0.18);
+  transform: scale(0.92) rotate(90deg);
 }
 
-.close-icon {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+.refresh-icon {
+  font-size: $font-size-md;
 }
 
 /* 积分数字展示 */
@@ -115,8 +114,8 @@
   font-weight: 800;
   margin-right: 12rpx;
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  background-clip: text;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.08));
   animation: pulseGlow 3s ease-in-out infinite;
@@ -146,7 +145,23 @@
   z-index: 2;
 }
 
-.balance-desc {
+.balance-stat {
+  @include flex-align-center;
+  gap: 8rpx;
+}
+
+.stat-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+}
+
+.earn-dot {
+  background: $color-success;
+  box-shadow: 0 0 6rpx rgba(82, 196, 26, 0.4);
+}
+
+.stat-text {
   font-size: $font-size-sm;
   color: $color-text-tertiary;
 }
@@ -165,10 +180,11 @@
 
 /* ========== 筛选功能区域 ========== */
 .filter-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+  background: $gradient-card-bg;
   border-radius: $border-radius-xl;
   padding: $spacing-lg $spacing-base;
   margin-bottom: $spacing-lg;
+  -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
   box-shadow: $shadow-md;
   border: 1rpx solid rgba(255, 255, 255, 0.5);
@@ -237,10 +253,11 @@
 
 /* ========== 记录列表区域 ========== */
 .records-section {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+  background: $gradient-card-bg;
   border-radius: $border-radius-xl;
   padding: $spacing-lg;
   margin-bottom: $spacing-lg;
+  -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
   box-shadow: $shadow-md;
   border: 1rpx solid rgba(255, 255, 255, 0.5);
@@ -289,6 +306,7 @@
   display: flex;
   align-items: center;
   padding: $spacing-base;
+  padding-left: 24rpx;
   background: $color-bg;
   border-radius: $border-radius-lg;
   border: 2rpx solid transparent;
@@ -297,17 +315,22 @@
   overflow: hidden;
 }
 
-/* 左侧装饰条 */
-.record-item::before {
-  content: '';
+/* 左侧彩色指示条 - 始终可见 */
+.record-indicator {
   position: absolute;
   left: 0;
   top: 8rpx;
   bottom: 8rpx;
   width: 6rpx;
   border-radius: 3rpx;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+}
+
+.earn-indicator {
+  background: linear-gradient(180deg, $color-success, #66bb6a);
+}
+
+.consume-indicator {
+  background: linear-gradient(180deg, $color-error, #ef5350);
 }
 
 .record-item:active {
@@ -315,24 +338,12 @@
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
 }
 
-.record-item:active::before {
-  opacity: 1;
-}
-
 /* 获得积分记录 */
-.record-item.earn-type::before {
-  background: linear-gradient(180deg, $color-success, #66bb6a);
-}
-
 .record-item.earn-type:active {
   border-color: rgba(76, 175, 80, 0.15);
 }
 
 /* 消费积分记录 */
-.record-item.consume-type::before {
-  background: linear-gradient(180deg, $color-error, #ef5350);
-}
-
 .record-item.consume-type:active {
   border-color: rgba(244, 67, 54, 0.15);
 }
@@ -541,8 +552,8 @@
   }
 }
 
-/* 加载状态 */
-.loading-state {
+/* 内联加载状态 */
+.loading-inline {
   @include flex-center;
   gap: $spacing-xs;
   color: $color-text-tertiary;
@@ -553,9 +564,14 @@
   width: 32rpx;
   height: 32rpx;
   border: 3rpx solid rgba(102, 126, 234, 0.15);
-  border-top: 3rpx solid $color-primary;
+  border-top: 3rpx solid $gradient-blue-start;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
 }
 
 @keyframes spin {
@@ -609,6 +625,7 @@
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
   @include flex-center;
   z-index: 1000;
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 }
 
@@ -666,6 +683,7 @@
 
   .record-item {
     padding: $spacing-sm;
+    padding-left: 24rpx;
   }
 
   .record-title {

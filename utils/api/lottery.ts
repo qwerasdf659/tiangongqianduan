@@ -37,12 +37,12 @@ async function getLotteryConfig(campaign_code: string) {
   })
 }
 
-/** 执行抽奖 - POST /api/v4/lottery/draw（携带幂等键?*/
+/** 执行抽奖 - POST /api/v4/lottery/campaigns/:campaign_code/draw（携带幂等键） */
 async function performLottery(campaign_code: string, draw_count: number = 1) {
   const idempotencyKey = `lottery_${campaign_code}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
-  return apiClient.request('/lottery/draw', {
+  return apiClient.request(`/lottery/campaigns/${campaign_code}/draw`, {
     method: 'POST',
-    data: { campaign_code, draw_count },
+    data: { draw_count },
     needAuth: true,
     header: { 'Idempotency-Key': idempotencyKey }
   })

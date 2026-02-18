@@ -8,8 +8,9 @@
  *   - 下拉刷新 + 触底加载更多
  *
  * 后端API:
- *   - GET /api/v4/market/manage/my-listings（获取挂单列表）
- *   - POST /api/v4/market/manage/listings/:id/withdraw（撤回挂单）
+ *   - GET /api/v4/market/my-listings（获取挂单列表）
+ *   - POST /api/v4/market/listings/:id/withdraw（撤回物品实例挂单）
+ *   - POST /api/v4/market/fungible-assets/:id/withdraw（撤回可叠加资产挂单）
  *
  * 数据来源: 后端 market_listings 表（seller_user_id = 当前用户）
  *
@@ -45,7 +46,7 @@ const LISTING_KIND_LABEL: Record<string, string> = {
 
 Page({
   data: {
-    /** 挂单列表（后端 GET /api/v4/market/manage/my-listings 返回） */
+    /** 挂单列表（后端 GET /api/v4/market/my-listings 返回） */
     listings: [] as API.MyListing[],
 
     /** 当前筛选状态: all / on_sale / sold / withdrawn */
@@ -81,6 +82,9 @@ Page({
   storeBindings: null as any,
   tradeBindings: null as any,
 
+  /** 首次onShow跳过标记（onLoad已加载数据，防止微信生命周期 onLoad→onShow 连续触发导致重复请求） */
+  _skipNextShow: false as boolean,
+
   onLoad() {
     log.info('📋 我的挂单页面加载')
 
@@ -95,10 +99,15 @@ Page({
       actions: ['setMyListings']
     })
 
+    this._skipNextShow = true
     this.loadMyListings()
   },
 
   onShow() {
+    if (this._skipNextShow) {
+      this._skipNextShow = false
+      return
+    }
     if (userStore.isLoggedIn) {
       this.loadMyListings()
     }
@@ -135,8 +144,7 @@ Page({
 
   /**
    * 加载我的挂单列表
-   * 后端API: GET /api/v4/market/manage/my-listings
-   * 🔴 需后端实现此接口，当前调用可能返回404
+   * 后端API: GET /api/v4/market/my-listings
    */
   async loadMyListings() {
     if (!userStore.isLoggedIn) {
@@ -166,31 +174,42 @@ Page({
         const pagination = result.data.pagination || {}
         const statusCounts = result.data.status_counts || {}
 
-        const listings = rawListings.map((item: any) => ({
-          market_listing_id: item.market_listing_id,
-          listing_kind: item.listing_kind || 'item_instance',
-          display_name:
-            item.display_name ||
-            item.offer_item_display_name ||
-            item.offer_asset_display_name ||
-            '未知商品',
-          offer_item_rarity: item.offer_item_rarity || '',
-          offer_asset_code: item.offer_asset_code || '',
-          offer_amount: item.offer_amount || 0,
-          price_asset_code: item.price_asset_code || 'DIAMOND',
-          price_amount: item.price_amount || 0,
-          status: item.status || 'on_sale',
-          status_display:
-            item.status_display || (STATUS_CONFIG[item.status] || {}).label || item.status,
-          created_at: item.created_at || '',
-          // 前端展示用辅助字段（camelCase）
-          statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.on_sale).color,
-          kindLabel: LISTING_KIND_LABEL[item.listing_kind] || '未知',
-          formattedTime:
-            item.created_at && Utils.formatTime
-              ? Utils.formatTime(new Date(item.created_at))
-              : item.created_at || ''
-        }))
+        /**
+         * 适配后端嵌套响应结构（与 /market/listings 一致）
+         * 优先从 item_info / asset_info 嵌套对象读取商品名称
+         * 兼容后端尚未更新 my-listings 端点的场景（降级到根级字段）
+         */
+        const listings = rawListings.map((item: any) => {
+          const itemInfo = item.item_info || {}
+          const assetInfo = item.asset_info || {}
+
+          return {
+            market_listing_id: item.market_listing_id,
+            listing_kind: item.listing_kind || 'item_instance',
+            display_name:
+              itemInfo.display_name ||
+              assetInfo.display_name ||
+              item.display_name ||
+              item.offer_item_display_name ||
+              item.offer_asset_display_name ||
+              '未知商品',
+            offer_item_rarity: itemInfo.rarity_code || item.offer_item_rarity || '',
+            offer_asset_code: assetInfo.asset_code || item.offer_asset_code || '',
+            offer_amount: assetInfo.amount || item.offer_amount || 0,
+            price_asset_code: item.price_asset_code,
+            price_amount: item.price_amount || 0,
+            status: item.status || 'on_sale',
+            status_display:
+              item.status_display || (STATUS_CONFIG[item.status] || {}).label || item.status,
+            created_at: item.created_at || '',
+            statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.on_sale).color,
+            kindLabel: LISTING_KIND_LABEL[item.listing_kind] || '未知',
+            formattedTime:
+              item.created_at && Utils.formatTime
+                ? Utils.formatTime(new Date(item.created_at))
+                : item.created_at || ''
+          }
+        })
 
         const newListings = page === 1 ? listings : [...this.data.listings, ...listings]
 
@@ -224,8 +243,8 @@ Page({
       }
 
       if (error.statusCode === 404) {
-        log.warn('⚠️ 后端尚未实现 GET /api/v4/market/manage/my-listings 接口')
-        wx.showToast({ title: '功能开发中，敬请期待', icon: 'none', duration: 3000 })
+        log.error('❌ GET /api/v4/market/my-listings 返回404，请确认后端部署')
+        wx.showToast({ title: '服务暂不可用，请稍后再试', icon: 'none', duration: 3000 })
         this.setData({ isEmpty: true, listings: [] })
         return
       }
@@ -251,7 +270,8 @@ Page({
 
   /**
    * 撤回挂单操作
-   * 后端API: POST /api/v4/market/manage/listings/:market_listing_id/withdraw
+   * 物品实例: POST /api/v4/market/listings/:id/withdraw
+   * 可叠加资产: POST /api/v4/market/fungible-assets/:id/withdraw
    */
   onWithdrawListing(e: any) {
     const listing = e.currentTarget.dataset.listing
@@ -277,19 +297,22 @@ Page({
       confirmColor: '#ff4d4f',
       success: (res: any) => {
         if (res.confirm) {
-          this.executeWithdraw(listing.market_listing_id)
+          this.executeWithdraw(listing.market_listing_id, listing.listing_kind)
         }
       }
     })
   },
 
-  /** 执行撤回操作 */
-  async executeWithdraw(marketListingId: number) {
+  /** 执行撤回操作（根据 listing_kind 调用不同后端路由） */
+  async executeWithdraw(marketListingId: number, listingKind: string) {
     this.setData({ withdrawingId: marketListingId })
-    log.info('📋 撤回挂单:', marketListingId)
+    log.info('📋 撤回挂单:', marketListingId, '类型:', listingKind)
 
     try {
-      const result = await API.withdrawMarketProduct(marketListingId)
+      const result =
+        listingKind === 'fungible_asset'
+          ? await API.withdrawFungibleAsset(marketListingId)
+          : await API.withdrawMarketProduct(marketListingId)
 
       if (result && result.success) {
         log.info('✅ 挂单撤回成功')
@@ -347,5 +370,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

@@ -3,81 +3,72 @@
  *
  * @file packageAdmin/consume-submit/consume-submit.ts
  * @description
- * 商家扫描用户V2动态二维码后，录入消费金额。
+ * 商家进入页面后，先看到操作说明和扫码按钮，点击扫码后识别用户，再录入消费金额。
  *
- * V2升级要点：
- * - 门店选择：多门店员工必须选择门店后才能操作
- *   · 首次调用 /user-info 不传 store_id
- *   · 如果返回 MULTIPLE_STORES_REQUIRE_STORE_ID，从 data.available_stores 取门店列表
- *   · 单门店自动填充，无需用户选择
- * - 幂等键：API层自动生成Idempotency-Key（在utils/api.ts中实现）
- * - 备注限制：从200字升级为500字
- * - 精细化错误处理：12种错误码映射，替代粗粒度字符串匹配
+ * 业务流程：
+ * 1. 商家进入页面 → 看到操作说明 + 扫码按钮
+ * 2. 点击"扫描用户二维码" → 调用wx.scanCode识别顾客V2动态二维码
+ * 3. 获取用户信息 → 多门店时弹出门店选择
+ * 4. 填写消费金额（必填）+ 商家备注（选填）
+ * 5. 确认提交 → POST /api/v4/shop/consumption/submit → 生成待审核记录
  *
- * @version 5.2.0
- * @since 2026-02-10
+ * @version 5.3.0
+ * @since 2026-02-18
  */
 
-// 统一使用utils/index.ts导入工具函数
 const { API, Utils, Logger } = require('../../utils/index')
 const log = Logger.createLogger('consume-submit')
 const { checkAuth, formatPhoneNumber } = Utils
 
-// 🆕 MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 
 Page({
-  /**
-   * 页面数据
-   */
   data: {
+    // 页面阶段：'scan' 扫码入口 | 'form' 填写表单
+    pageStage: 'scan' as 'scan' | 'form',
+
     // 二维码信息
-    qrCode: '', // 扫描到的V2动态二维码字符串
+    qrCode: '',
 
     // 用户信息（从后端API获取）
-    userInfo: null, // { user_id, user_uuid, nickname, mobile, qr_code }
-    userInfoLoading: false, // 用户信息加载状态
+    userInfo: null as any,
+    userInfoLoading: false,
 
-    // 门店选择（V2新增：多门店场景）
-    storeId: null, // 选中的门店ID
-    storeList: [], // 商家绑定的门店列表（从错误响应的 data.available_stores 获取）
-    storeIndex: 0, // picker选中索引
+    // 门店选择（多门店场景）
+    storeId: null as number | null,
+    storeList: [] as any[],
+    storeIndex: 0,
 
     // 表单数据
-    consumeAmount: '', // 消费金额（字符串，保留小数）
-    merchantNotes: '', // 商家备注（可选，最多500字）
+    consumeAmount: '',
+    merchantNotes: '',
 
     // 页面状态
-    loading: false, // 提交状态
-    submitted: false // 是否已提交（防止重复提交）
+    loading: false,
+    submitted: false
   },
 
   /**
-   * 页面加载
-   *
-   * options - 页面参数
-   * options.qrCode - 扫描到的V2动态二维码字符串（URL编码）
+   * 页面加载 - 不再要求必须携带qrCode参数，商家先看到操作说明页
    */
   onLoad(options) {
     log.info('📋 消费录入页面加载，参数:', options)
 
-    // 权限验证：必须已登录
     if (!checkAuth()) {
       log.error('❌ 用户未登录，跳转到登录页')
       return
     }
 
-    // 🆕 MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn', 'userInfo', 'isAdmin', 'userRole'],
       actions: []
     })
 
-    // 权限检查：商家店员(role_level>=20)及以上可访问（从MobX Store获取）
-    const userInfo = userStore.userInfo || wx.getStorageSync('user_info')
-    const roleLevel = userInfo?.role_level || 0
+    // 权限检查：商家店员(role_level>=20)及以上可访问
+    const currentUserInfo = userStore.userInfo || wx.getStorageSync('user_info')
+    const roleLevel = currentUserInfo?.role_level || 0
     const hasAccess = roleLevel >= 20
 
     if (!hasAccess) {
@@ -93,28 +84,67 @@ Page({
       return
     }
 
-    // 获取二维码参数
-    if (!options.qrCode) {
-      log.error('❌ 缺少二维码参数')
-      wx.showModal({
-        title: '参数错误',
-        content: '缺少二维码参数，请重新扫码。',
-        showCancel: false,
-        success: () => {
-          wx.navigateBack()
-        }
-      })
+    // 支持外部入口携带qrCode参数直接进入表单阶段（如管理员扫码跳转）
+    if (options.qrCode) {
+      const decodedQrCode = decodeURIComponent(options.qrCode)
+      log.info('✅ 外部携带二维码参数，直接进入表单:', decodedQrCode)
+      this.setData({ qrCode: decodedQrCode, pageStage: 'form' })
+      this.loadUserInfo()
       return
     }
 
-    // URL解码二维码
-    const qrCode = decodeURIComponent(options.qrCode)
-    log.info('✅ V2二维码解码成功:', qrCode)
+    // 默认显示扫码入口页面，商家可以看到操作说明
+    this.setData({ pageStage: 'scan' })
+  },
 
-    this.setData({ qrCode })
+  /**
+   * 商家点击扫码按钮 → 调用wx.scanCode → 识别用户V2动态二维码
+   */
+  startScan() {
+    log.info('📷 商家点击扫码按钮')
 
-    // 自动加载用户信息（首次不传 store_id，后端自动判断单/多门店）
-    this.loadUserInfo()
+    wx.scanCode({
+      onlyFromCamera: false,
+      scanType: ['qrCode'] as any,
+      success: (res: any) => {
+        log.info('📷 扫码成功:', res.result)
+        this.setData({
+          qrCode: res.result,
+          pageStage: 'form',
+          userInfo: null,
+          submitted: false,
+          consumeAmount: '',
+          merchantNotes: '',
+          storeId: null,
+          storeList: [],
+          storeIndex: 0
+        })
+        this.loadUserInfo()
+      },
+      fail: (scanError: any) => {
+        log.info('📷 扫码取消或失败:', scanError)
+      }
+    })
+  },
+
+  /**
+   * 重新扫码 — 清空当前数据，回到扫码入口
+   */
+  onRescanCode() {
+    log.info('🔄 商家点击重新扫码')
+    this.setData({
+      pageStage: 'scan',
+      qrCode: '',
+      userInfo: null,
+      userInfoLoading: false,
+      submitted: false,
+      consumeAmount: '',
+      merchantNotes: '',
+      storeId: null,
+      storeList: [],
+      storeIndex: 0,
+      loading: false
+    })
   },
 
   /**
@@ -127,7 +157,6 @@ Page({
    * - 单门店员工：后端自动填充，直接返回用户信息
    * - 多门店员工：后端返回 MULTIPLE_STORES_REQUIRE_STORE_ID + data.available_stores
    *   前端弹出门店选择器，选择后重新请求
-   *
    */
   async loadUserInfo() {
     this.setData({ userInfoLoading: true })
@@ -445,4 +474,5 @@ Page({
   }
 })
 
-export {}
+export { }
+
