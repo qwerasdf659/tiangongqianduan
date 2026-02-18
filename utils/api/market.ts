@@ -195,6 +195,34 @@ async function getMyListingStatus() {
   return apiClient.request('/market/listing-status', { method: 'GET', needAuth: true })
 }
 
+/**
+ * 获取当前用户的挂单列表（我的挂单）
+ * GET /api/v4/market/manage/my-listings
+ *
+ * 后端通过JWT Token识别当前用户，返回该用户的所有挂单记录
+ * 响应结构: { listings: MyListing[], pagination: { page, page_size, total }, status_counts: {...} }
+ *
+ * 🔴 需后端实现此接口，详见: docs/后端需求-我的挂单API.md
+ *
+ * @param params.page - 页码，默认1
+ * @param params.limit - 每页数量，默认20
+ * @param params.status - 挂单状态筛选: on_sale / sold / withdrawn（可选，不传返回全部）
+ */
+async function getMyListings(
+  params: {
+    page?: number
+    limit?: number
+    status?: string | null
+  } = {}
+) {
+  const { page = 1, limit = 20, status = null } = params
+  const qs = buildQueryString({ page, limit, status })
+  return apiClient.request(`/market/manage/my-listings?${qs}`, {
+    method: 'GET',
+    needAuth: true
+  })
+}
+
 /** 获取市场分类筛选数据- GET /api/v4/market/listings/facets（✅ 后端已确认实现） */
 async function getMarketFacets() {
   return apiClient.request('/market/listings/facets', { method: 'GET', needAuth: true })
@@ -252,6 +280,7 @@ module.exports = {
   withdrawMarketProduct,
   sellToMarket,
   getMyListingStatus,
+  getMyListings,
   getMarketFacets,
   sellFungibleAssets
 }

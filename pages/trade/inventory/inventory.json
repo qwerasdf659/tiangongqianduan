@@ -1,5 +1,6 @@
 {
   "usingComponents": {},
   "enablePullDownRefresh": true,
-  "navigationBarTitleText": "我的库存"
+  "onReachBottomDistance": 200,
+  "navigationBarTitleText": "我的仓库"
 }

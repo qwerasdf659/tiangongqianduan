@@ -593,9 +593,21 @@ const marketHandlers = {
   onClearSearch() {
     this.setData({ searchKeyword: '', currentPage: 1 })
     this.applyFilters()
+  },
+
+  /** 跳转到"我的挂单"页面 */
+  goToMyListings() {
+    marketLog.info('📋 跳转到我的挂单页面')
+    wx.navigateTo({
+      url: '/pages/trade/my-listings/my-listings',
+      fail: (error: any) => {
+        marketLog.error('❌ 跳转我的挂单页面失败:', error)
+        showToast({ title: '页面跳转失败', icon: 'none' })
+      }
+    })
   }
 }
 
 module.exports = marketHandlers
 
-export {}
+export { }

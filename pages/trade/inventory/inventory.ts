@@ -39,11 +39,11 @@ Page({
      */
     backpackAssets: [] as API.BackpackAsset[],
 
-    // ===== 不可叠加物品数据（后items[] ====
-    /** 处理后的物品列表（含前端计算的操作标?can_use / can_generate_code / can_sell?*/
-    inventoryItems: [] as API.BackpackItem[],
-    /** 筛选排序后的物品列表（WXML模板渲染数据源） */
+    // ===== 不可叠加物品数据（后端 items[]） =====
+    /** 筛选排序后的物品列表（WXML模板渲染数据源，分页加载） */
     filteredItems: [] as API.BackpackItem[],
+    /** 是否还有更多物品可加载（触底加载更多） */
+    hasMoreItems: false,
 
     // ===== 统计数据（来GET /api/v4/backpack/stats====
     /** 资产种类数量 */
@@ -98,12 +98,24 @@ Page({
   searchTimer: 0 as any,
   // MobX绑定实例
   tradeBindings: null as any,
+  /**
+   * 全量物品数据（仅在JS逻辑层保留，不通过setData传输到WXML层）
+   * 解决 setData 传输 1390KB 性能问题：3422个物品 × 每个约400字节
+   * WXML层只接收分页后的 filteredItems（每页50条，约20KB）
+   */
+  _allItems: [] as any[],
+  /** 当前已加载到WXML的filteredItems分页数 */
+  _displayPage: 0,
+  /** 筛选排序后的完整结果（JS逻辑层缓存，分页截取后传入data） */
+  _filteredAllItems: [] as any[],
+  /** 首次加载标志（防止onLoad+onShow重复调用loadInventoryData） */
+  _isFirstLoad: true,
 
   /**
    * 生命周期 - 页面加载
    */
   onLoad(_options: any) {
-    log.info('📦 库存管理页面加载')
+    log.info('🏰 仓库页面加载')
 
     // MobX Store绑定 - 库存加载状态同
     this.tradeBindings = createStoreBindings(this, {
@@ -117,9 +129,13 @@ Page({
 
   /**
    * 生命周期 - 页面显示
-   * 每次页面显示时静默刷新数据（从其他页面返回、后台切回前台）
+   * 仅在非首次加载时静默刷新（从其他页面返回、后台切回前台）
+   * 首次加载由 initPage() 处理，避免与 onLoad 重复发起 backpack API 请求
    */
   onShow() {
+    if (this._isFirstLoad) {
+      return
+    }
     if (this.data.isLoggedIn) {
       this.loadInventoryData(true)
     }
@@ -132,7 +148,6 @@ Page({
    */
   async initPage() {
     try {
-      // 检查登录状态，未登录自动跳转到 /pages/auth/auth
       if (!checkAuth()) {
         return
       }
@@ -142,11 +157,12 @@ Page({
         userInfo: userStore.userInfo
       })
 
-      // 首次加载：传false 显示loading占位
       await this.loadInventoryData(false)
     } catch (error: any) {
       log.error('📦 初始化失败', error)
       showToast('初始化失败，请重试')
+    } finally {
+      this._isFirstLoad = false
     }
   },
 
@@ -202,9 +218,11 @@ Page({
           itemCount: processedItems.length
         })
 
+        // 全量数据存储在JS逻辑层（不通过setData传输，避免1390KB传输瓶颈）
+        this._allItems = processedItems
+
         this.setData({
           backpackAssets,
-          inventoryItems: processedItems,
           hasError: false,
           errorMessage: '',
           errorDetail: '',
@@ -212,15 +230,11 @@ Page({
           refreshing: false
         })
 
-        // 同步原始物品数据到MobX Store（供其他页面使用户
         if (typeof this.setInventoryItems === 'function') {
           this.setInventoryItems(items)
         }
 
-        // 独立加载背包统计数据（总价值等，非关键数据
         this.loadBackpackStats()
-
-        // 应用当前筛选排序条
         this.applyFilters()
       } else {
         this.handleLoadError('库存数据加载失败', '请稍后重试或联系客服')
@@ -276,10 +290,13 @@ Page({
    * 处理数据加载错误（统一错误状态设置）
    */
   handleLoadError(message: string, detail: string) {
+    this._allItems = []
+    this._filteredAllItems = []
+    this._displayPage = 0
     this.setData({
       backpackAssets: [],
-      inventoryItems: [],
       filteredItems: [],
+      hasMoreItems: false,
       totalAssets: 0,
       totalItems: 0,
       totalAssetValue: 0,
@@ -302,17 +319,21 @@ Page({
    *   - expire_soon：按 expires_at 升序（即将过期优先）
    *
    * ⚠️ 背包列表只返status='available' 的物品，因此不提供状态筛   */
-  applyFilters() {
-    let filteredItems = [...this.data.inventoryItems]
+  /**
+   * 每页加载物品数量（UI常量，前端自主决定）
+   * 每页50条约20KB，远低于微信推荐的256KB限制
+   */
+  _pageSize: 50,
 
-    // 分类筛选（后端字段: item_type
+  applyFilters() {
+    let filteredItems = [...this._allItems]
+
     if (this.data.currentCategory !== 'all') {
       filteredItems = filteredItems.filter(
         (item: any) => item.item_type === this.data.currentCategory
       )
     }
 
-    // 关键词搜索（搜索 name description
     if (this.data.searchKeyword) {
       const keyword = this.data.searchKeyword.toLowerCase()
       filteredItems = filteredItems.filter(
@@ -322,7 +343,8 @@ Page({
       )
     }
 
-    // 排序（后端字符 acquired_at, expires_at    // iOS 兼容：后端返"YYYY-MM-DD HH:mm:ss" 格式，iOS 不支持空格分    // 需要将空格替换行"T"（ISO 8601 格式）后再创Date 对象
+    // iOS 兼容：后端返回 "YYYY-MM-DD HH:mm:ss" 格式，iOS 不支持空格分隔
+    // 需要将空格替换为 "T"（ISO 8601 格式）后再创建 Date 对象
     filteredItems.sort((a: any, b: any) => {
       switch (this.data.currentSort) {
         case 'newest':
@@ -336,7 +358,6 @@ Page({
             new Date((b.acquired_at || '').replace(' ', 'T')).getTime()
           )
         case 'expire_soon':
-          // 有过期时间的排在前面，按过期时间升序
           if (!a.expires_at && !b.expires_at) {
             return 0
           }
@@ -355,7 +376,44 @@ Page({
       }
     })
 
-    this.setData({ filteredItems })
+    // 缓存完整筛选结果到JS逻辑层，分页截取后传入WXML
+    this._filteredAllItems = filteredItems
+    this._displayPage = 1
+    const firstPage = filteredItems.slice(0, this._pageSize)
+
+    this.setData({
+      filteredItems: firstPage,
+      hasMoreItems: filteredItems.length > this._pageSize
+    })
+  },
+
+  /**
+   * 触底加载更多物品（无限滚动分页）
+   * 从 _filteredAllItems 缓存中截取下一页追加到 filteredItems
+   */
+  onReachBottom() {
+    if (!this.data.hasMoreItems) {
+      return
+    }
+
+    this._displayPage += 1
+    const endIndex = this._displayPage * this._pageSize
+    const nextPage = this._filteredAllItems.slice(
+      (this._displayPage - 1) * this._pageSize,
+      endIndex
+    )
+
+    if (nextPage.length === 0) {
+      this.setData({ hasMoreItems: false })
+      return
+    }
+
+    // 追加数据到现有列表（避免重传已有数据）
+    const currentItems = this.data.filteredItems
+    this.setData({
+      filteredItems: currentItems.concat(nextPage),
+      hasMoreItems: endIndex < this._filteredAllItems.length
+    })
   },
 
   /**
@@ -536,7 +594,7 @@ Page({
    * 请求Header: Idempotency-Key: market_list_<timestamp>_<random>（必填）
    * 请求Body: { item_instance_id, price_amount, price_asset_code }
    *
-   * 定价币种: DIAMOND（钻石）red_shard（红色碎片）
+   * 定价币种: DIAMOND（钻石）red_shard（红水晶碎片）
    * 上架限制: 用户最多同时上0件商   *
    * WXML绑定: <button bindtap="onSellItem" data-item="{{item}}">
    */
@@ -554,11 +612,12 @@ Page({
     }
 
     // 第一步：选择定价币种
+    // TODO: 【需后端提供】定价币种列表应从后端API动态获取，当前为硬编码临时方案
     wx.showActionSheet({
-      itemList: ['钻石（DIAMOND）', '红色碎片（red_shard）'],
+      itemList: ['钻石（DIAMOND）', '红水晶碎片（red_shard）'],
       success: (sheetRes: any) => {
         const priceAssetCode = sheetRes.tapIndex === 0 ? 'DIAMOND' : 'red_shard'
-        const currencyName = sheetRes.tapIndex === 0 ? '钻石' : '红色碎片'
+        const currencyName = sheetRes.tapIndex === 0 ? '钻石' : '红水晶碎片'
 
         // 第二步：输入价格
         wx.showModal({
@@ -633,11 +692,12 @@ Page({
     }
 
     // 第一步：选择定价币种
+    // TODO: 【需后端提供】定价币种列表应从后端API动态获取，当前为硬编码临时方案
     wx.showActionSheet({
-      itemList: ['钻石（DIAMOND）', '红色碎片（red_shard）'],
+      itemList: ['钻石（DIAMOND）', '红水晶碎片（red_shard）'],
       success: (sheetRes: any) => {
         const priceAssetCode = sheetRes.tapIndex === 0 ? 'DIAMOND' : 'red_shard'
-        const currencyName = sheetRes.tapIndex === 0 ? '钻石' : '红色碎片'
+        const currencyName = sheetRes.tapIndex === 0 ? '钻石' : '红水晶碎片'
 
         // 第二步：输入上架数量
         wx.showModal({
@@ -824,10 +884,11 @@ Page({
    * 用户点击右上角分   */
   onShareAppMessage() {
     return {
-      title: '我的库存管理',
+      title: '我的仓库',
       path: '/pages/trade/inventory/inventory'
     }
   }
 })
 
-export {}
+export { }
+

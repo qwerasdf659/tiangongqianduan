@@ -73,5 +73,4 @@ async function verifyToken() {
 
 module.exports = { userLogin, quickLogin, getUserInfo, sendVerificationCode, verifyToken }
 
-export { }
-
+export {}

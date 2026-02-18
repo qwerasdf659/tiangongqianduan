@@ -46,8 +46,12 @@
     wx:if="{{banners[currentIndex].display_mode === 'full_image'}}"
     catchtap="preventBubble"
   >
-    <!-- 🔴 关闭按钮（右上角悬浮，纯图模式专用样式） -->
-    <view class="popup-close-btn popup-close-btn-fullimage" bindtap="handleClose">
+    <!-- 🔴 关闭按钮（右上角悬浮，纯图模式专用样式）— force_show时隐藏关闭按钮 -->
+    <view
+      class="popup-close-btn popup-close-btn-fullimage"
+      bindtap="handleClose"
+      wx:if="{{!isForceShow}}"
+    >
       <text class="close-icon">✕</text>
     </view>
 
@@ -91,10 +95,19 @@
 
     <!-- 🔘 纯图模式操作按钮（悬浮在底部） -->
     <view class="popup-actions popup-actions-fullimage">
+      <!-- notice类型强制弹出: "我知道了"确认按钮（必须点此关闭） -->
+      <button
+        class="popup-action-btn primary popup-notice-confirm-btn"
+        wx:if="{{currentBannerType === 'notice' && isForceShow}}"
+        bindtap="handleNoticeConfirm"
+      >
+        我知道了
+      </button>
+
       <!-- 有链接时显示"查看详情"按钮 -->
       <button
         class="popup-action-btn primary"
-        wx:if="{{banners[currentIndex].link_url}}"
+        wx:if="{{banners[currentIndex].link_url && !(currentBannerType === 'notice' && isForceShow)}}"
         bindtap="handleAction"
       >
         查看详情
@@ -102,7 +115,6 @@
 
       <!-- 多个横幅时显示翻页按钮 -->
       <view class="popup-nav-row" wx:if="{{banners.length > 1}}">
-        <!-- 上一条按钮 -->
         <button
           class="popup-action-btn secondary popup-nav-btn"
           wx:if="{{currentIndex > 0}}"
@@ -110,8 +122,6 @@
         >
           上一条
         </button>
-
-        <!-- 下一条按钮 -->
         <button
           class="popup-action-btn secondary popup-nav-btn"
           wx:if="{{currentIndex < banners.length - 1}}"
@@ -132,8 +142,8 @@
     wx:if="{{banners[currentIndex].display_mode !== 'full_image'}}"
     catchtap="preventBubble"
   >
-    <!-- 🔴 关闭按钮（右上角悬浮） -->
-    <view class="popup-close-btn" bindtap="handleClose">
+    <!-- 🔴 关闭按钮（右上角悬浮）— force_show时隐藏关闭按钮 -->
+    <view class="popup-close-btn" bindtap="handleClose" wx:if="{{!isForceShow}}">
       <text class="close-icon">✕</text>
     </view>
 
@@ -191,12 +201,24 @@
       <text class="indicator-text">{{currentIndex + 1}} / {{banners.length}}</text>
     </view>
 
-    <!-- 🔘 操作按钮区域（仅当有按钮内容时才显示，避免空白留白） -->
-    <view class="popup-actions" wx:if="{{banners[currentIndex].link_url || banners.length > 1}}">
-      <!-- 有链接时显示"查看详情"按钮 -->
+    <!-- 🔘 操作按钮区域 -->
+    <view
+      class="popup-actions"
+      wx:if="{{banners[currentIndex].link_url || banners.length > 1 || (currentBannerType === 'notice' && isForceShow)}}"
+    >
+      <!-- notice类型强制弹出: "我知道了"确认按钮（必须点此关闭） -->
+      <button
+        class="popup-action-btn primary popup-notice-confirm-btn"
+        wx:if="{{currentBannerType === 'notice' && isForceShow}}"
+        bindtap="handleNoticeConfirm"
+      >
+        我知道了
+      </button>
+
+      <!-- 有链接时显示"查看详情"按钮（notice强制弹出模式下隐藏） -->
       <button
         class="popup-action-btn primary"
-        wx:if="{{banners[currentIndex].link_url}}"
+        wx:if="{{banners[currentIndex].link_url && !(currentBannerType === 'notice' && isForceShow)}}"
         bindtap="handleAction"
       >
         查看详情
@@ -204,7 +226,6 @@
 
       <!-- 多个横幅时显示翻页按钮 -->
       <view class="popup-nav-row" wx:if="{{banners.length > 1}}">
-        <!-- 上一条按钮（不是第一条时显示） -->
         <button
           class="popup-action-btn secondary popup-nav-btn"
           wx:if="{{currentIndex > 0}}"
@@ -212,8 +233,6 @@
         >
           上一条
         </button>
-
-        <!-- 下一条按钮（不是最后一条时显示） -->
         <button
           class="popup-action-btn secondary popup-nav-btn"
           wx:if="{{currentIndex < banners.length - 1}}"

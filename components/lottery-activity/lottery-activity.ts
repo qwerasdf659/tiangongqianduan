@@ -23,6 +23,9 @@ const { getThemeStyle } = require('./themes/themes')
 const { API, Logger } = require('../../utils/index')
 const log = Logger.createLogger('lottery-activity')
 
+/** 引入积分Store - 抽奖后同步更新全局积分状态，确保页面头部实时刷新 */
+const { pointsStore } = require('../../store/points')
+
 /**
  * prize_type → emoji 映射（与后端 DataSanitizer.getPrizeIcon 一致）
  * 仅管理员账号（无icon字段）时作为兜底使用，普通用户后端已返回icon
@@ -62,7 +65,14 @@ function normalizePrize(raw: any): any {
   /* 首次加载时打印一条日志，帮助确认后端实际返回的字段名 */
   if (!normalizePrize._logged) {
     normalizePrize._logged = true
-    log.info('[normalizePrize] 后端奖品原始字段:', Object.keys(raw).join(', '), '| name:', prizeName, '| type:', prizeType)
+    log.info(
+      '[normalizePrize] 后端奖品原始字段:',
+      Object.keys(raw).join(', '),
+      '| name:',
+      prizeName,
+      '| type:',
+      prizeType
+    )
   }
 
   return {
@@ -233,10 +243,15 @@ Component({
          *   格式B: data = { prizes: [prize1, prize2, ...] }（嵌套对象）
          */
         const rawData = prizesRes.data
-        const prizesRaw = Array.isArray(rawData) ? rawData : (rawData?.prizes || rawData?.list || [])
+        const prizesRaw = Array.isArray(rawData) ? rawData : rawData?.prizes || rawData?.list || []
 
         if (!Array.isArray(prizesRaw) || prizesRaw.length === 0) {
-          log.warn('[lottery-activity] 奖品数据为空或格式异常, rawData类型:', typeof rawData, ', keys:', rawData ? Object.keys(rawData).join(',') : 'null')
+          log.warn(
+            '[lottery-activity] 奖品数据为空或格式异常, rawData类型:',
+            typeof rawData,
+            ', keys:',
+            rawData ? Object.keys(rawData).join(',') : 'null'
+          )
         }
 
         /* 重置日志标记，确保每次初始化都能打印一次字段诊断日志 */
@@ -313,11 +328,40 @@ Component({
     },
 
     /**
+     * 抽奖后更新积分余额 - 同时更新组件状态、全局Store、并通知父页面
+     *
+     * @param remainingBalance 后端返回的 remaining_balance（扣除后的可用积分）
+     */
+    _updateBalanceAfterDraw(remainingBalance: number) {
+      /* 更新组件内部积分（用于组件内积分不足判断） */
+      this.setData({ pointsBalance: remainingBalance })
+
+      /* 同步更新全局积分Store */
+      const currentFrozen = pointsStore.frozenAmount || 0
+      pointsStore.setBalance(remainingBalance, currentFrozen)
+    },
+
+    /**
+     * 通知父页面积分已变化 - 使用 triggerEvent 标准组件通信
+     *
+     * 解决的问题：抽奖后页面头部"可用积分"不立即刷新
+     * 原因：MobX createStoreBindings 的 computed 字段在微信小程序中
+     *       不一定能同步触发 setData 更新格式化显示值
+     * 方案：通过 triggerEvent 显式通知父页面调用 _refreshPoints()，
+     *       该方法会调用 API.getPointsBalance() 并显式执行
+     *       updatePointsDisplay() → this.setData({ pointsBalanceFormatted })
+     *       这是最可靠的更新路径，与切换Tab返回时触发的更新逻辑完全一致
+     */
+    _notifyPointsChanged() {
+      this.triggerEvent('pointsupdate')
+    },
+
+    /**
      * 同步用户积分余额（从全局pointsStore读取）
+     * 用于组件初始化和动画结束后同步最新余额
      */
     _syncPointsBalance() {
       try {
-        const { pointsStore } = require('../../store/points')
         const pointsBalance = pointsStore.availableAmount || 0
         this.setData({ pointsBalance })
       } catch {
@@ -409,10 +453,12 @@ Component({
           return
         }
 
-        /* 更新积分余额 */
+        /* 更新积分余额 → 同步组件状态 + 全局Store */
         if (result.data.remaining_balance !== undefined) {
-          this.setData({ pointsBalance: result.data.remaining_balance })
+          this._updateBalanceAfterDraw(result.data.remaining_balance)
         }
+        /* 通知父页面刷新积分显示（无论后端是否返回remaining_balance都触发） */
+        this._notifyPointsChanged()
 
         /* 更新保底进度 */
         if (result.data.guarantee_info !== undefined) {
@@ -520,9 +566,12 @@ Component({
           multiDrawResults: prizes
         })
 
+        /* 更新积分余额 → 同步组件状态 + 全局Store */
         if (result.data.remaining_balance !== undefined) {
-          this.setData({ pointsBalance: result.data.remaining_balance })
+          this._updateBalanceAfterDraw(result.data.remaining_balance)
         }
+        /* 通知父页面刷新积分显示（无论后端是否返回remaining_balance都触发） */
+        this._notifyPointsChanged()
 
         /* 🔧 优化用户体验：API调用完成后，延迟500ms解除按钮禁用
          * 用户可以边查看当前结果，边继续进行下一次抽奖 */
@@ -612,10 +661,12 @@ Component({
           })
         }
 
-        /* 用后端返回的余额直接更新，避免额外请求 */
+        /* 更新积分余额 → 同步组件状态 + 全局Store */
         if (result.data.remaining_balance !== undefined) {
-          this.setData({ pointsBalance: result.data.remaining_balance })
+          this._updateBalanceAfterDraw(result.data.remaining_balance)
         }
+        /* 通知父页面刷新积分显示（无论后端是否返回remaining_balance都触发） */
+        this._notifyPointsChanged()
 
         /* 更新保底进度（后端每次抽奖可能返回最新guarantee_info） */
         if (result.data.guarantee_info !== undefined) {
@@ -794,10 +845,12 @@ Component({
           /* 播放碎裂动画 */
           this.setData({ guaranteeEggState: 'cracked' })
 
-          /* 更新余额 */
+          /* 更新积分余额 → 同步组件状态 + 全局Store */
           if (result.data.remaining_balance !== undefined) {
-            this.setData({ pointsBalance: result.data.remaining_balance })
+            this._updateBalanceAfterDraw(result.data.remaining_balance)
           }
+          /* 通知父页面刷新积分显示 */
+          this._notifyPointsChanged()
 
           /* 碎裂动画结束后弹出结果 */
           setTimeout(() => {
@@ -849,5 +902,4 @@ Component({
   }
 })
 
-export { }
-
+export {}

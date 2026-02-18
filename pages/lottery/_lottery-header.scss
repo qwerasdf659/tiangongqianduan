@@ -1,18 +1,18 @@
-﻿/* 鎶藉椤甸潰 - 澶撮儴甯冨眬鏍峰紡锛堢敤鎴蜂俊鎭?浜岀淮鐮侊級 - 浠巐ottery.scss鎷嗗垎 */
+/* 抽奖页面 - 头部布局样式（用户信息+二维码） - 从lottery.scss拆分 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ========================================
-   馃啎 鏁村悎甯冨眬鏍峰紡锛堢敤鎴蜂俊鎭?+ 浜岀淮鐮佹í鍚戞帓鍒楋級
+   🎎 整合布局样式（用户信息 + 二维码横向排列）
    ======================================== */
 
-/* 澶撮儴鍐呭瀹瑰櫒 - 妯悜甯冨眬锛堜笂涓嬪眳涓榻愶級 */
+/* 头部内容容器 - 横向布局（上下居中对齐） */
 .header-content {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  /* 馃敶 鏀逛负center锛屽疄鐜颁笂涓嬪眳涓榻?*/
+  /* 🔴 改为center，实现上下居中对齐 */
   gap: 24rpx;
 }
 
@@ -26,7 +26,7 @@
   justify-content: center;
 }
 
-/* 娆㈣繋璇?*/
+/* 欢迎语 */
 .welcome-text {
   display: flex;
   align-items: center;
@@ -38,15 +38,15 @@
   margin-bottom: 8rpx;
 }
 
-/* 绉垎妯悜瀹瑰櫒 */
+/* 积分横向容器 */
 .points-row {
   display: flex;
   flex-direction: row;
   gap: 0;
-  align-items: flex-start;
+  align-items: center;
 }
 
-/* 绉垎椤?- 绾枃鏈睍绀?*/
+/* 积分项 - 纯文本展示 */
 .points-item {
   display: flex;
   flex-direction: column;
@@ -54,7 +54,7 @@
   flex: 1;
 }
 
-/* 绉垎鏍囩 */
+/* 积分标签 */
 .points-label {
   font-size: 22rpx;
   color: rgba(255, 255, 255, 0.8);
@@ -62,82 +62,184 @@
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
 }
 
-/* 绉垎鏁板€煎鍣?*/
+/* 积分数值容器 */
 .points-value {
   display: flex;
   align-items: center;
   gap: 6rpx;
 }
 
-/* 绉垎鏁板瓧 - 澶氱骇鍝嶅簲寮忓瓧浣擄紙鏀寔瓒呴暱鏁板瓧锛?*/
+/* 积分数字 - 多级响应式字体（支持超长数字） */
 .points-number {
   font-size: $font-size-md;
   font-weight: 800;
   color: #ffd700;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
   transition: font-size 0.2s ease;
-  /* 骞虫粦杩囨浮鏁堟灉 */
+  /* 平滑过渡效果 */
 }
 
-/* 馃啎 8-10浣嶆暟瀛楋細涓瓑缂╁皬 */
+/* 🎎 8-10位数字楋細涓瓑缂╁皬 */
 .points-number.medium-number {
   font-size: 26rpx;
 }
 
-/* 馃啎 11-13浣嶆暟瀛楋細杈冨ぇ缂╁皬 */
+/* 🎎 11-13位数字：较大缩小 */
 .points-number.small-number {
   font-size: 22rpx;
 }
 
-/* 馃啎 14浣嶅強浠ヤ笂锛氭渶灏忓瓧浣?*/
+/* 🎎 14位及以上：最小字体 */
 .points-number.tiny-number {
   font-size: 18rpx;
 }
 
-/* 绉垎鍥炬爣 */
+/* 积分图标 */
 .points-icon {
   font-size: $font-size-sm;
   opacity: 0.9;
 }
 
-/* 浜岀淮鐮佹爣棰樻牱寮忓凡鍒犻櫎锛堢函鍑€鐗堟棤闇€鏂囧瓧锛?*/
+/* ========================================
+ * 📦 仓库入口按钮 - 与审核按钮同风格布局
+ * ======================================== */
 
-/* 鍙充晶锛氫簩缁寸爜鍖哄煙锛堢函鍑€鐗堬紝鏃犻澶栨枃瀛楋級 */
+/* 仓库徽章容器 - 复用审核按钮的布局模式 */
+.inventory-badge-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12rpx;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  flex-shrink: 0;
+}
+
+.inventory-badge-container:active {
+  transform: scale(0.92);
+}
+
+/* 仓库胶囊按钮 - 放大版 */
+.inventory-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  height: 54rpx;
+  padding: 0 20rpx;
+  border-radius: 27rpx;
+  background: linear-gradient(135deg, rgba(255, 175, 0, 0.7) 0%, rgba(255, 120, 0, 0.8) 100%);
+  box-shadow:
+    0 4rpx 16rpx rgba(255, 150, 0, 0.35),
+    0 2rpx 8rpx rgba(255, 100, 0, 0.25),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.25);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  animation: inventoryPulse 3s ease-in-out infinite;
+}
+
+/* 仓库内图标文字放大 */
+.inventory-badge-btn .badge-icon {
+  font-size: 28rpx;
+}
+
+.inventory-badge-btn .badge-label {
+  font-size: 26rpx;
+}
+
+/* 仓库数字角标 - 放大版 */
+.inventory-badge-number {
+  position: absolute;
+  top: -24rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 38rpx;
+  height: 38rpx;
+  background: linear-gradient(135deg, #ff5252 0%, #ff8a65 100%);
+  border-radius: 19rpx;
+  border: 2rpx solid #ffffff;
+  font-size: 22rpx;
+  color: $color-text-white;
+  font-weight: bold;
+  @include flex-center;
+  padding: 0 6rpx;
+  box-shadow:
+    0 4rpx 12rpx rgba(255, 82, 82, 0.4),
+    0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  animation: inventoryBadgeBounce 2.5s ease-in-out infinite;
+}
+
+/* 仓库呼吸动画 */
+@keyframes inventoryPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 4rpx 16rpx rgba(255, 150, 0, 0.35),
+      0 2rpx 8rpx rgba(255, 100, 0, 0.25),
+      inset 0 1rpx 0 rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 6rpx 24rpx rgba(255, 150, 0, 0.5),
+      0 3rpx 12rpx rgba(255, 100, 0, 0.35),
+      inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* 仓库角标弹跳动画 */
+@keyframes inventoryBadgeBounce {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  10% {
+    transform: translateX(-50%) scale(1.15);
+  }
+  20% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* 纯净版无文字标题 */
+
+/* 右侧：二维码区域（纯净版，无额外文字） */
 .qrcode-section-inline {
   @include flex-column-center;
   flex-shrink: 0;
 }
 
-/* 浜岀淮鐮佸鍣?- 娴呰摑鑹诧紝涓庣传鑹茶儗鏅畬缇庤瀺鍚?- 鉁?姝ｆ柟褰㈠鍣紙瀹岀編閫傞厤姝ｆ柟褰簩缁寸爜锛?*/
+/* 二维码容器 - 浅蓝色，与紫色背景完美融合 - 正方形容器 */
 .qrcode-container {
   width: 180rpx;
   height: 180rpx;
   background: rgba(220, 230, 255, 0.95);
-  /* 娴呰摑鑹茶皟鏇存槑鏄撅紝涓庣传鑹茶儗鏅悓鑹茬郴锛岃瑙夊崗璋冧笖鎵弿鎬ц兘浼樼 */
+  /* 浅蓝色调更明显，与紫色背景同色系，视觉协调且扫描性能优秀 */
   border-radius: $border-radius-md;
   padding: 2rpx;
   box-shadow:
     0 8rpx 24rpx rgba(0, 0, 0, 0.15),
     0 4rpx 12rpx rgba(0, 0, 0, 0.1),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.4);
-  /* 娣诲姞鍐呴槾褰憋紝澧炲己绔嬩綋鎰?*/
+  /* 添加内阴影，增强立体感 */
   @include flex-center;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10rpx);
-  /* 姣涚幓鐠冩晥鏋滐紝涓庨〉闈㈡暣浣撻鏍间繚鎸佷竴鑷?*/
+  /* 毛玻璃效果，与页面整体风格保持一致 */
   border: 1rpx solid rgba(200, 215, 255, 0.5);
-  /* 娴呰摑鑹茶竟妗嗭紝涓庤儗鏅壊鍗忚皟 */
+  /* 浅蓝色边框，与背景色协调 */
 }
 
-/* 浜岀淮鐮佸浘鐗?- 鉁?姝ｆ柟褰㈠浘鐗囧尯鍩燂紙180-4=176锛屽畬缇庡～鍏呮棤鐣欑櫧锛?*/
+/* 二维码图片 - 正方形图片区域（180-4=176，完美填充无留白） */
 .qrcode-image {
   width: 176rpx;
   height: 176rpx;
   border-radius: $border-radius-sm;
 }
 
-/* 浜岀淮鐮佸姞杞界姸鎬?- 姝ｆ柟褰㈠姞杞藉尯鍩?*/
+/* 二维码加载状态 - 正方形加载区域 */
 .qrcode-loading {
   width: 176rpx;
   height: 176rpx;
@@ -145,7 +247,7 @@
   gap: 12rpx;
 }
 
-/* V2浜岀淮鐮佽繃鏈熺姸鎬侊紙鍐呰仈鐗堬級 */
+/* 🎎 点击提示图标 */
 .qrcode-expired-inline {
   width: 176rpx;
   height: 176rpx;
@@ -169,7 +271,7 @@
   text-decoration: underline;
 }
 
-/* V2浜岀淮鐮佸€掕鏃讹紙鍐呰仈鐗堬級 */
+/* V2二维码倒计时（内联版） */
 .qr-countdown-inline {
   margin-top: 6rpx;
   text-align: center;
@@ -181,7 +283,7 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* 鍊掕鏃剁揣鎬ョ姸鎬侊紙鏈€鍚?0绉掗棯鐑侊級 */
+/* 倒计时紧急状态（最后30秒闪烁） */
 .countdown-urgent {
   color: $color-error;
   animation: blink 1s ease-in-out infinite;
@@ -219,9 +321,9 @@
   }
 }
 
-/* 浜岀淮鐮佹彁绀烘枃瀛楁牱寮忓凡鍒犻櫎锛堢函鍑€鐗堟棤闇€鏂囧瓧锛?*/
+/* 纯净版无提示文字 */
 
-/* 浜岀淮鐮佸厜鏅曟晥鏋?*/
+/* 二维码光晕效果 */
 .qrcode-container::before {
   content: '';
   position: absolute;
@@ -247,7 +349,7 @@
   }
 }
 
-/* 馃啎 鐐瑰嚮鎻愮ず鍥炬爣 */
+/* 🎎 点击提示图标 */
 .qrcode-hint {
   position: absolute;
   bottom: 8rpx;

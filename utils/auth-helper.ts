@@ -237,7 +237,6 @@ function restoreUserInfo(): any {
     if (jwtPayload && jwtPayload.user_id) {
       userInfo = {
         user_id: jwtPayload.user_id,
-        user_uuid: jwtPayload.user_uuid || '',
         mobile: jwtPayload.mobile,
         nickname: jwtPayload.nickname || '用户',
         status: jwtPayload.status || 'active',
@@ -386,4 +385,5 @@ module.exports = {
   checkTokenValidity
 }
 
-export {}
+export { }
+

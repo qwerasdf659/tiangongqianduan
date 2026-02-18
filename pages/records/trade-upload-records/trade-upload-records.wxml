@@ -6,7 +6,11 @@
   <view class="tab-section">
     <view class="tab-list">
       <block wx:for="{{tabs}}" wx:key="id">
-        <view class="tab-item {{activeTab === item.id ? 'active' : ''}}" bind:tap="onTabChange" data-id="{{item.id}}">
+        <view
+          class="tab-item {{activeTab === item.id ? 'active' : ''}}"
+          bind:tap="onTabChange"
+          data-id="{{item.id}}"
+        >
           <view class="tab-icon-wrapper {{activeTab === item.id ? 'active' : ''}}">
             <text class="tab-icon">{{item.icon}}</text>
           </view>
@@ -68,20 +72,32 @@
     <view class="filter-section">
       <view class="filter-content">
         <view class="time-filters">
-          <view class="filter-chip {{currentTimeFilter === 'all' ? 'active' : ''}}" bind:tap="onTimeFilter"
-            data-filter="all">
+          <view
+            class="filter-chip {{currentTimeFilter === 'all' ? 'active' : ''}}"
+            bind:tap="onTimeFilter"
+            data-filter="all"
+          >
             <text class="chip-text">全部</text>
           </view>
-          <view class="filter-chip {{currentTimeFilter === 'today' ? 'active' : ''}}" bind:tap="onTimeFilter"
-            data-filter="today">
+          <view
+            class="filter-chip {{currentTimeFilter === 'today' ? 'active' : ''}}"
+            bind:tap="onTimeFilter"
+            data-filter="today"
+          >
             <text class="chip-text">今天</text>
           </view>
-          <view class="filter-chip {{currentTimeFilter === 'week' ? 'active' : ''}}" bind:tap="onTimeFilter"
-            data-filter="week">
+          <view
+            class="filter-chip {{currentTimeFilter === 'week' ? 'active' : ''}}"
+            bind:tap="onTimeFilter"
+            data-filter="week"
+          >
             <text class="chip-text">本周</text>
           </view>
-          <view class="filter-chip {{currentTimeFilter === 'month' ? 'active' : ''}}" bind:tap="onTimeFilter"
-            data-filter="month">
+          <view
+            class="filter-chip {{currentTimeFilter === 'month' ? 'active' : ''}}"
+            bind:tap="onTimeFilter"
+            data-filter="month"
+          >
             <text class="chip-text">本月</text>
           </view>
         </view>
@@ -104,8 +120,13 @@
       <view class="search-container">
         <view class="search-box">
           <text class="search-icon">🔍</text>
-          <input class="search-input" placeholder="搜索交易ID、描述..." placeholder-class="search-placeholder"
-            value="{{searchKeyword}}" bind:input="onSearchInput" />
+          <input
+            class="search-input"
+            placeholder="搜索交易ID、描述..."
+            placeholder-class="search-placeholder"
+            value="{{searchKeyword}}"
+            bind:input="onSearchInput"
+          />
           <view class="search-clear" wx:if="{{searchKeyword}}" bind:tap="onResetFilters">
             <text class="clear-icon">✕</text>
           </view>
@@ -121,7 +142,11 @@
     <!-- 交易记录列表（后端字段: asset_transaction_id / delta_amount / business_type / description / title / created_at） -->
     <view class="records-section">
       <view class="transaction-list">
-        <block wx:if="{{filteredRecords.length > 0}}" wx:for="{{filteredRecords}}" wx:key="asset_transaction_id">
+        <block
+          wx:if="{{filteredRecords.length > 0}}"
+          wx:for="{{filteredRecords}}"
+          wx:key="asset_transaction_id"
+        >
           <view class="transaction-card" style="animation-delay: {{index * 60}}ms;">
             <view class="transaction-header">
               <view class="transaction-left">
@@ -130,12 +155,16 @@
                 </view>
                 <view class="transaction-info">
                   <text class="transaction-title">{{item.displayTitle || '积分记录'}}</text>
-                  <text class="transaction-desc" wx:if="{{item.description}}">{{item.description}}</text>
+                  <text class="transaction-desc" wx:if="{{item.description}}"
+                    >{{item.description}}</text
+                  >
                   <text class="transaction-time">{{helpers.formatTime(item.created_at)}}</text>
                 </view>
               </view>
               <view class="transaction-right">
-                <text class="amount-value {{item.category}}">{{helpers.formatAmount(item.delta_amount)}}积分</text>
+                <text class="amount-value {{item.category}}"
+                  >{{helpers.formatAmount(item.delta_amount)}}积分</text
+                >
               </view>
             </view>
 
@@ -175,8 +204,11 @@
     <view class="filter-section">
       <view class="filter-tabs">
         <block wx:for="{{consumptionFilterOptions}}" wx:key="key">
-          <button class="filter-tab {{consumptionFilter === item.key ? 'active' : ''}}"
-            bind:tap="switchConsumptionFilter" data-filter="{{item.key}}">
+          <button
+            class="filter-tab {{consumptionFilter === item.key ? 'active' : ''}}"
+            bind:tap="switchConsumptionFilter"
+            data-filter="{{item.key}}"
+          >
             <text class="filter-icon">{{item.icon}}</text>
             <text class="filter-name">{{item.name}}</text>
           </button>
@@ -187,7 +219,11 @@
     <!-- 消费记录列表 -->
     <view class="records-section">
       <view class="records-list">
-        <block wx:if="{{consumptionRecords.length > 0}}" wx:for="{{consumptionRecords}}" wx:key="consumption_record_id">
+        <block
+          wx:if="{{consumptionRecords.length > 0}}"
+          wx:for="{{consumptionRecords}}"
+          wx:key="consumption_record_id"
+        >
           <view class="record-card" style="animation-delay: {{index * 60}}ms;">
             <view class="record-header">
               <view class="record-meta">
@@ -195,10 +231,14 @@
                 <text class="record-time">{{helpers.formatTime(item.created_at)}}</text>
               </view>
               <view class="record-status {{item.status}}">
-                <text class="status-icon">{{item.status === 'approved' ? '✅' : item.status === 'rejected' ? '❌' :
-                  item.status === 'expired' ? '⌛' : '⏳'}}</text>
-                <text class="status-text">{{item.status === 'approved' ? '已通过' : item.status === 'rejected' ? '已拒绝' :
-                  item.status === 'expired' ? '已过期' : '待审核'}}</text>
+                <text class="status-icon"
+                  >{{item.status === 'approved' ? '✅' : item.status === 'rejected' ? '❌' :
+                  item.status === 'expired' ? '⌛' : '⏳'}}</text
+                >
+                <text class="status-text"
+                  >{{item.status === 'approved' ? '已通过' : item.status === 'rejected' ? '已拒绝' :
+                  item.status === 'expired' ? '已过期' : '待审核'}}</text
+                >
               </view>
             </view>
 
@@ -207,7 +247,10 @@
                 <text class="consumption-label">消费金额</text>
                 <text class="consumption-value">¥{{item.consumption_amount || 0}}</text>
               </view>
-              <view class="points-info" wx:if="{{item.points_to_award && item.status === 'approved'}}">
+              <view
+                class="points-info"
+                wx:if="{{item.points_to_award && item.status === 'approved'}}"
+              >
                 <view class="points-badge">
                   <text class="points-icon">💰</text>
                   <text class="points-earned">+{{item.points_to_award}}积分</text>
@@ -244,7 +287,10 @@
         </view>
 
         <!-- 加载更多 -->
-        <view class="load-more-section" wx:if="{{consumptionHasMore && consumptionRecords.length > 0}}">
+        <view
+          class="load-more-section"
+          wx:if="{{consumptionHasMore && consumptionRecords.length > 0}}"
+        >
           <view class="load-more-content" wx:if="{{loadingMore}}">
             <view class="loading-spinner small"></view>
             <text class="loading-text">加载更多...</text>
@@ -255,7 +301,10 @@
         </view>
 
         <!-- 没有更多 -->
-        <view class="no-more-section" wx:if="{{!consumptionHasMore && consumptionRecords.length > 0}}">
+        <view
+          class="no-more-section"
+          wx:if="{{!consumptionHasMore && consumptionRecords.length > 0}}"
+        >
           <view class="no-more-line"></view>
           <text class="no-more-text">已显示全部记录</text>
           <view class="no-more-line"></view>

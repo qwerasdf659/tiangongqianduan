@@ -22,16 +22,17 @@
         <view class="welcome-text">
           <text>欢迎，{{userInfo.mobile || userInfo.nickname || '用户'}}</text>
 
-          <!-- 🆕 积分审核记录查询徽章 - 紧跟手机号码后 -->
+          <!-- 🆕 积分审核记录查询按钮 - 带图标+文字+角标 -->
           <view class="audit-badge-container" bindtap="viewRecentAudits">
-            <!-- 圆形徽章 -->
-            <view class="audit-badge {{auditRecordsCount > 0 ? 'has-records' : 'no-records'}}">
-              <text class="badge-icon">{{auditRecordsCount > 0 ? '📬' : '📭'}}</text>
+            <!-- 按钮主体：图标 + 文字 -->
+            <view class="audit-badge-btn {{auditRecordsCount > 0 ? 'has-records' : 'no-records'}}">
+              <text class="badge-icon">📋</text>
+              <text class="badge-label">审核</text>
             </view>
 
             <!-- 数字角标（仅当有记录时显示） -->
             <view class="badge-number" wx:if="{{auditRecordsCount > 0}}">
-              <text>{{auditRecordsCount}}</text>
+              <text>{{auditRecordsCount > 99 ? '99+' : auditRecordsCount}}</text>
             </view>
           </view>
         </view>
@@ -53,6 +54,20 @@
             <view class="points-value">
               <text class="points-number {{frozenClass}}">{{frozenPointsFormatted}}</text>
               <text class="points-icon">🔒</text>
+            </view>
+          </view>
+
+          <!-- 🆕 仓库入口按钮 - 与审核按钮同风格布局 -->
+          <view class="inventory-badge-container" bindtap="goToInventory">
+            <!-- 按钮主体：图标 + 文字（与审核按钮一致） -->
+            <view class="inventory-badge-btn">
+              <text class="badge-icon">📦</text>
+              <text class="badge-label">仓库</text>
+            </view>
+
+            <!-- 数字角标（物品数量，仅有物品时显示） -->
+            <view class="inventory-badge-number" wx:if="{{inventoryItemCount > 0}}">
+              <text>{{inventoryItemCount > 99 ? '99+' : inventoryItemCount}}</text>
             </view>
           </view>
         </view>
@@ -123,9 +138,15 @@
     wx:if="{{mainCampaign}}"
     campaignCode="{{mainCampaign.campaign_code}}"
     size="{{mainCampaign.placement.size || 'full'}}"
+    bind:pointsupdate="onPointsUpdate"
   />
   <!-- 降级兜底：活动列表未加载时使用默认 -->
-  <lottery-activity wx:else campaignCode="BASIC_LOTTERY" size="full" />
+  <lottery-activity
+    wx:else
+    campaignCode="BASIC_LOTTERY"
+    size="full"
+    bind:pointsupdate="onPointsUpdate"
+  />
 
   <!-- 其他活动（secondary/floating等位置，尺寸由位置配置决定） -->
   <block wx:for="{{extraCampaigns}}" wx:key="campaign_code">
@@ -133,6 +154,7 @@
       <lottery-activity
         campaignCode="{{item.campaign_code}}"
         size="{{item.placement.size || 'medium'}}"
+        bind:pointsupdate="onPointsUpdate"
       />
     </view>
   </block>

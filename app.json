@@ -9,6 +9,7 @@
     "pages/records/trade-upload-records/trade-upload-records",
     "pages/trade/market/market",
     "pages/trade/inventory/inventory",
+    "pages/trade/my-listings/my-listings",
     "pages/feedback/feedback",
     "pages/chat/chat"
   ],

@@ -1,8 +1,8 @@
-﻿/* 鎶藉椤甸潰 - 涓缁撴灉寮圭獥鏍峰紡锛堝崱鐗囨笎鍙樻柟妗堬級 - 浠巐ottery.scss鎷嗗垎 */
+/* 抽奖页面 - 中奖结果弹窗样式（卡片渐变方案） - 从lottery.scss拆分 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-/* 馃帹 鏁翠綋寮圭獥瀹瑰櫒 - 娓愬彉鑳屾櫙 */
+/* 🎨 整体弹窗容器 - 渐变背景 */
 .gradient-card-modal {
   position: fixed;
   top: 0;
@@ -30,7 +30,7 @@
   position: relative;
   animation: cardSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
-  /* 鐜颁唬鍖栭槾褰辩郴缁?*/
+  /* 现代化阴影系统?*/
   box-shadow:
     0 32rpx 64rpx rgba(0, 0, 0, 0.12),
     0 16rpx 32rpx rgba(0, 0, 0, 0.08),
@@ -40,7 +40,7 @@
   backdrop-filter: blur(40rpx);
 }
 
-/* 馃幆 鍏抽棴鎸夐挳 - 娓愬彉璁捐 */
+/* 🎯 关闭按钮 - 渐变设计 */
 .gradient-close {
   position: absolute;
   top: 24rpx;
@@ -67,7 +67,7 @@
   box-shadow: 0 4rpx 12rpx rgba(196, 69, 105, 0.4);
 }
 
-/* 馃帹 寮圭獥澶撮儴 - 鍗＄墖寮忔爣棰?*/
+/* 🎨 弹窗头部 - 卡片式标题?*/
 .gradient-header-card {
   padding: 40rpx 32rpx 24rpx;
   background: transparent;
@@ -143,14 +143,14 @@
   text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
-/* 馃巵 寮圭獥涓讳綋 - 娓愬彉鍗＄墖瀹瑰櫒 */
+/* 🎁 弹窗主体 - 渐变卡片容器 */
 .gradient-body-container {
   padding: 0 32rpx 24rpx;
   max-height: 60vh;
   overflow-y: auto;
 }
 
-/* 馃専 鍗曟鎶藉濂栧搧鍗＄墖 */
+/* 🌟 单次抽奖奖品卡片 */
 .single-prize-card {
   margin-bottom: 24rpx;
 }
@@ -239,7 +239,7 @@
   animation: dotBounce 1.5s ease-in-out infinite;
 }
 
-/* 馃挩 鏈腑濂栧崱鐗囨牱寮?*/
+/* 💩 未中奖卡片样式 */
 .not-winning-card-bg {
   position: relative;
   background: linear-gradient(145deg, #a8a8a8, #7a7a7a);
@@ -289,12 +289,12 @@
   animation-delay: 0.4s;
 }
 
-/* 馃帄 澶氳繛鎶介€愪釜鎻檽鏍峰紡 */
+/* 🎔 多连抽逐个揭晓样式 */
 .multi-prize-reveal {
   margin-bottom: 24rpx;
 }
 
-/* 馃搳 杩涘害鎸囩ず鍣?*/
+/* 📊 进度指示器 */
 .reveal-progress {
   display: flex;
   flex-direction: column;
@@ -330,7 +330,7 @@
   transform: scale(1.2);
 }
 
-/* 馃幋 鎻檽鍗＄墖瀹瑰櫒 */
+/* 🎋 揭晓卡片容器 */
 .reveal-card-container {
   margin-bottom: 28rpx;
   perspective: 1000rpx;
@@ -343,7 +343,7 @@
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 鎻檽鍔ㄧ敾 - 缂╁皬娣″嚭鍐嶆斁澶ф贰鍏?*/
+/* 揭晓动画 - 缩小淡出再放大淡入 */
 .reveal-card.card-revealing {
   transform: scale(0.85);
   opacity: 0.3;
@@ -372,7 +372,7 @@
   }
 }
 
-/* 馃巵 鍗＄墖姝ｉ潰 */
+/* 🎁 卡片正面 */
 .reveal-card-front {
   background: linear-gradient(145deg, $gradient-blue-start, $gradient-blue-end);
   border-radius: 28rpx;
@@ -435,7 +435,7 @@
   line-height: 1.4;
 }
 
-/* 馃幃 搴曢儴鎿嶄綔鎸夐挳 */
+/* 🎃 底部操作按钮 */
 .reveal-actions {
   display: flex;
   justify-content: center;
@@ -488,7 +488,7 @@
   color: $gradient-blue-start;
 }
 
-/* 馃搵 宸叉彮鏅撳鍝佺缉鐣ュ垪琛?*/
+/* 📋 已揭晓奖品缩略列表 */
 .revealed-prizes-list {
   margin-top: 16rpx;
 }
@@ -576,7 +576,7 @@
   padding-right: 8rpx;
 }
 
-/* 馃帹 缇庡寲婊氬姩鏉?*/
+/* 🎨 美化滚动条 */
 .prize-cards-container::-webkit-scrollbar {
   width: 6rpx;
 }
@@ -595,7 +595,7 @@
   background: rgba(102, 126, 234, 0.5);
 }
 
-/* 馃攳 婊氬姩鎻愮ず鏍峰紡 */
+/* 🔍 滚动提示样式 */
 .scroll-hint {
   text-align: center;
   margin: 8rpx 0 16rpx 0;
@@ -630,7 +630,7 @@
   transform: translateY(20rpx);
 }
 
-/* 馃幀 2x2缃戞牸鍔ㄧ敾寤惰繜浼樺寲 - 鎸夎灞曠ず */
+/* 🎠 2x2网格动画延迟优化 */
 .prize-item-card:nth-child(1) {
   animation-delay: 0.1s;
 }
@@ -671,7 +671,7 @@
   animation-delay: 0.95s;
 }
 
-/* 馃寛 娓愬彉鑹插僵绯荤粺 - 4绉嶄氦鏇挎笎鍙?*/
+/* 🌈 渐变色彩系统 - 4种交替渐变 */
 .gradient-prize-1 {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   box-shadow: 0 12rpx 24rpx rgba(102, 126, 234, 0.2);
@@ -792,7 +792,7 @@
   border-radius: 0 17rpx 17rpx 0;
 }
 
-/* 鉂?閿欒淇℃伅鍗＄墖 */
+/* ❌ 错误信息卡片 */
 .error-info-card {
   margin-bottom: 24rpx;
 }
@@ -836,7 +836,7 @@
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 }
 
-/* 馃帹 搴曢儴鎸夐挳 - 娓愬彉璁捐 */
+/* 🎨 底部按钮 - 渐变设计 */
 .gradient-footer {
   padding: 24rpx 32rpx 40rpx;
   background: transparent;
@@ -895,7 +895,7 @@
   animation: sparkleRotate 2s linear infinite;
 }
 
-/* 馃幁 鍔ㄧ敾瀹氫箟 */
+/* 🎁 动画定义 */
 @keyframes modalFadeIn {
   from {
     opacity: 0;
@@ -1019,7 +1019,7 @@
   }
 }
 
-/* 馃幇 鎶藉缁撴灉寮圭獥 */
+/* 🎇 抽奖结果弹窗 */
 .result-modal {
   position: fixed;
   top: 0;

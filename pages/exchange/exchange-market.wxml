@@ -107,7 +107,6 @@
 
     <!-- 交易市场挂单列表（C2C用户交易） -->
     <view class="products-section" wx:else>
-
       <!-- 挂单网格布局 -->
       <view class="products-grid">
         <view class="product-item {{item.status !== 'on_sale' ? 'sold-out' : ''}}" wx:for="{{filteredProducts}}"
@@ -147,7 +146,8 @@
           <view class="exchange-btn-container">
             <button class="exchange-btn {{item.status !== 'on_sale' ? 'disabled' : ''}}"
               disabled="{{item.status !== 'on_sale'}}">
-              {{item.status === 'sold' ? '已售出' : (item.status === 'withdrawn' ? '已下架' : '立即购买')}}
+              {{item.status === 'sold' ? '已售出' : (item.status === 'withdrawn' ? '已下架' :
+              '立即购买')}}
             </button>
           </view>
         </view>
@@ -157,7 +157,9 @@
       <view class="empty-state" wx:if="{{!loading && filteredProducts.length === 0}}">
         <view class="empty-icon">🏪</view>
         <text class="empty-text">{{searchKeyword ? '没有找到相关挂单' : '交易市场暂无挂单'}}</text>
-        <button class="retry-btn" bindtap="onClearSearch" wx:if="{{searchKeyword}}">清除搜索</button>
+        <button class="retry-btn" bindtap="onClearSearch" wx:if="{{searchKeyword}}">
+          清除搜索
+        </button>
         <button class="retry-btn" bindtap="onRefreshProducts" wx:else>重新加载</button>
       </view>
 
@@ -211,6 +213,18 @@
           </view>
         </view>
       </view>
+    </view>
+
+    <!-- 我的挂单快捷入口 -->
+    <view class="my-listings-entry" wx:if="{{!loading}}" bindtap="goToMyListings">
+      <view class="entry-icon-wrapper">
+        <text class="entry-icon">📋</text>
+      </view>
+      <view class="entry-text">
+        <text class="entry-title">我的挂单</text>
+        <text class="entry-desc">查看和管理我的市场挂单商品</text>
+      </view>
+      <text class="entry-arrow">▶</text>
     </view>
 
     <!-- 规则说明 -->

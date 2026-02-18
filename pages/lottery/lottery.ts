@@ -24,6 +24,38 @@ const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
 
+/**
+ * 积分千分位格式化（独立函数，供MobX绑定的computed使用）
+ * 例: 807871 → "807,871"
+ */
+function formatPointsDisplay(num: number): string {
+  if (!num && num !== 0) {
+    return '0'
+  }
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+/**
+ * 根据积分位数返回响应式字体CSS类名（独立函数，供MobX绑定的computed使用）
+ * 位数 ≤7: 默认字号  |  ≤10: medium-number  |  ≤13: small-number  |  >13: tiny-number
+ */
+function getPointsDisplayClass(num: number): string {
+  if (!num) {
+    return ''
+  }
+  const len = num.toString().length
+  if (len <= 7) {
+    return ''
+  }
+  if (len <= 10) {
+    return 'medium-number'
+  }
+  if (len <= 13) {
+    return 'small-number'
+  }
+  return 'tiny-number'
+}
+
 Page({
   data: {
     /* ===== 用户状态 ===== */
@@ -48,6 +80,9 @@ Page({
     qrExpired: false,
     qrCountdownText: '5:00',
     qrExpiresAt: 0,
+
+    /* ===== 仓库/背包物品数量（后端 GET /api/v4/backpack/stats 返回） ===== */
+    inventoryItemCount: 0,
 
     /* ===== 审核记录（后端 GET /api/v4/shop/consumption/me 返回） ===== */
     auditRecordsCount: 0,
@@ -83,8 +118,15 @@ Page({
     this.pointsBindings = createStoreBindings(this, {
       store: pointsStore,
       fields: {
+        /* 原始积分值 */
         pointsBalance: () => pointsStore.availableAmount,
-        frozenPoints: () => pointsStore.frozenAmount
+        frozenPoints: () => pointsStore.frozenAmount,
+        /* 格式化积分显示（带千分位分隔符） - 当Store变化时自动重新计算 */
+        pointsBalanceFormatted: () => formatPointsDisplay(pointsStore.availableAmount),
+        frozenPointsFormatted: () => formatPointsDisplay(pointsStore.frozenAmount),
+        /* 响应式字体CSS类 - 根据积分位数自动切换字号 */
+        pointsClass: () => getPointsDisplayClass(pointsStore.availableAmount),
+        frozenClass: () => getPointsDisplayClass(pointsStore.frozenAmount)
       },
       actions: ['setBalance']
     })
@@ -127,6 +169,7 @@ Page({
     }
 
     await this.loadConsumptionRecordsCount()
+    this.loadInventoryItemCount()
 
     /* V2动态码：从后台恢复时检查二维码是否过期 */
     if (this.data.qrExpiresAt && Date.now() >= this.data.qrExpiresAt) {
@@ -334,6 +377,24 @@ Page({
 
   // ========================================
   // 积分数据
+
+  /**
+   * 抽奖组件积分变更事件处理（bind:pointsupdate）
+   *
+   * lottery-activity 组件每次抽奖成功后触发此事件，
+   * 页面收到后调用 _refreshPoints() 从后端获取最新余额并刷新显示
+   *
+   * 数据流：组件 triggerEvent('pointsupdate')
+   *       → 页面 onPointsUpdate()
+   *       → API.getPointsBalance()
+   *       → pointsStore.setBalance()
+   *       → updatePointsDisplay() → this.setData({ pointsBalanceFormatted })
+   *       → 页面头部"可用积分"立即更新
+   */
+  onPointsUpdate() {
+    this._refreshPoints()
+  },
+
   async _refreshPoints() {
     if (!this.data.isLoggedIn) {
       return
@@ -441,35 +502,50 @@ Page({
         background: '#ffffff',
         foreground: '#000000',
         callback: () => {
-          setTimeout(() => {
-            wx.canvasToTempFilePath(
-              {
-                canvasId: 'qrcodeCanvas',
-                width: 428,
-                height: 428,
-                destWidth: 428,
-                destHeight: 428,
-                success: tempRes => {
-                  const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
-                  const minutes = Math.floor(remaining / 60)
-                  const seconds = remaining % 60
-                  this.setData({
-                    qrCodeImage: tempRes.tempFilePath,
-                    qrCountdown: remaining,
-                    qrExpired: false,
-                    qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
-                    qrExpiresAt: expiresTimestamp
-                  })
-                  this.startQrCountdown()
+          const maxRetries = 3
+          const tryExport = (attempt: number) => {
+            const delay = attempt === 0 ? 500 : 1000 * attempt
+            setTimeout(() => {
+              wx.canvasToTempFilePath(
+                {
+                  canvasId: 'qrcodeCanvas',
+                  width: 428,
+                  height: 428,
+                  destWidth: 428,
+                  destHeight: 428,
+                  success: tempRes => {
+                    const remaining = Math.max(
+                      0,
+                      Math.floor((expiresTimestamp - Date.now()) / 1000)
+                    )
+                    const minutes = Math.floor(remaining / 60)
+                    const seconds = remaining % 60
+                    this.setData({
+                      qrCodeImage: tempRes.tempFilePath,
+                      qrCountdown: remaining,
+                      qrExpired: false,
+                      qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
+                      qrExpiresAt: expiresTimestamp
+                    })
+                    this.startQrCountdown()
+                  },
+                  fail: err => {
+                    if (attempt < maxRetries) {
+                      log.info(
+                        `[lottery] 二维码导出第${attempt + 1}次失败，${1000 * (attempt + 1)}ms后重试`
+                      )
+                      tryExport(attempt + 1)
+                    } else {
+                      log.error('[lottery] 二维码转图片失败(已重试3次):', err)
+                      wx.showToast({ title: '二维码生成失败', icon: 'none', duration: 2000 })
+                    }
+                  }
                 },
-                fail: err => {
-                  log.error('[lottery] 二维码转图片失败:', err)
-                  wx.showToast({ title: '二维码生成失败', icon: 'none', duration: 2000 })
-                }
-              },
-              this
-            )
-          }, 500)
+                this
+              )
+            }, delay)
+          }
+          tryExport(0)
         }
       })
     } catch (error: any) {
@@ -653,6 +729,19 @@ Page({
   // 审核记录弹窗
   // ========================================
 
+  /** 加载仓库物品数量（徽章显示） */
+  async loadInventoryItemCount() {
+    try {
+      const statsResult = await API.getBackpackStats()
+      if (statsResult?.success && statsResult.data) {
+        const totalItems = statsResult.data.total_items || statsResult.data.totalItems || 0
+        this.setData({ inventoryItemCount: totalItems })
+      }
+    } catch (_e) {
+      /* 静默失败 */
+    }
+  },
+
   /** 加载消费记录数量（徽章显示） */
   async loadConsumptionRecordsCount() {
     try {
@@ -785,9 +874,18 @@ Page({
   // 弹窗横幅
   // ========================================
 
-  /** 加载弹窗横幅 */
+  /**
+   * 加载弹窗横幅（含频率控制过滤）
+   *
+   * 数据流:
+   * API获取活跃banners → 客户端频率过滤(shouldShowBanner) → priority降序排序 → 展示第一条
+   * 频率规则由后端运营后台配置，前端只负责执行判断逻辑
+   */
   async loadPopupBanners() {
     try {
+      const { filterBannersByFrequency, markBannerSeen } = require('../../utils/popup-frequency')
+      const app = getApp()
+
       const result = await API.getPopupBanners()
       if (!result?.success || !result.data) {
         return
@@ -798,19 +896,26 @@ Page({
         return
       }
 
-      const activeBanners = banners.filter(
-        (b: any) => !b.status || b.status === 'active' || b.is_active === true
-      )
-      if (activeBanners.length === 0) {
+      // 后端已过滤 is_active + 时间范围，前端再做客户端频率过滤
+      const sessionSeenIds: Set<number> = app.globalData.sessionSeenPopups || new Set()
+      const filteredBanners = filterBannersByFrequency(banners, sessionSeenIds)
+      if (filteredBanners.length === 0) {
         return
       }
 
-      await this._preloadBannerImages(activeBanners)
+      // 只展示最高优先级的banner（filterBannersByFrequency已按priority降序排序）
+      const topBanner = filteredBanners[0]
+      const bannersToShow = [topBanner]
+
+      await this._preloadBannerImages(bannersToShow)
+
+      // 标记为已展示（更新本地存储 + 会话级集合）
+      markBannerSeen(topBanner.popup_banner_id, sessionSeenIds)
 
       if (this._isFirstLoad) {
-        this._preparedBanners = activeBanners
+        this._preparedBanners = bannersToShow
       } else {
-        this.setData({ popupBanners: activeBanners, showPopupBanner: true })
+        this.setData({ popupBanners: bannersToShow, showPopupBanner: true })
       }
     } catch (error) {
       log.error('[lottery] 加载弹窗横幅失败:', error)
@@ -843,8 +948,16 @@ Page({
     await Promise.all(promises)
   },
 
-  /** 弹窗横幅关闭 */
+  /** 弹窗横幅关闭（记录dismissed状态到本地存储） */
   onPopupBannerClose() {
+    const currentBanners = this.data.popupBanners
+    if (currentBanners && currentBanners.length > 0) {
+      const { markBannerDismissed } = require('../../utils/popup-frequency')
+      const closedBanner = currentBanners[0]
+      if (closedBanner?.popup_banner_id) {
+        markBannerDismissed(closedBanner.popup_banner_id)
+      }
+    }
     this.setData({ showPopupBanner: false })
   },
 
@@ -870,6 +983,11 @@ Page({
 
   goToExchange() {
     wx.switchTab({ url: '/pages/exchange/exchange' })
+  },
+
+  /** 跳转到道具仓库/背包页面 */
+  goToInventory() {
+    wx.navigateTo({ url: '/pages/trade/inventory/inventory' })
   }
 })
 

@@ -209,7 +209,7 @@ declare namespace API {
 
   /**
    * 背包可叠加资产（对齐后端 GET /api/v4/backpack/ 的 assets[] 返回格式）
-   * 示例: DIAMOND(钻石)、red_shard(红色碎片)
+   * 示例: DIAMOND(钻石)、red_shard(红水晶碎片)
    */
   interface BackpackAsset {
     /** 资产类型编码（如 DIAMOND, red_shard） */
@@ -503,12 +503,22 @@ declare namespace API {
     market_listing_id: number
     /** 挂牌类型: item_instance / fungible_asset */
     listing_kind: string
+    /** 商品显示名称（物品实例 → offer_item_display_name，资产 → offer_asset_display_name） */
+    display_name: string
+    /** 物品稀有度编码（仅 item_instance 类型） */
+    offer_item_rarity?: string
+    /** 资产代码（仅 fungible_asset 类型，如 DIAMOND） */
+    offer_asset_code?: string
+    /** 上架数量（仅 fungible_asset 类型） */
+    offer_amount?: number
     /** 定价币种（默认 DIAMOND） */
     price_asset_code: string
     /** 售价（BIGINT） */
     price_amount: number
     /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
     status: string
+    /** 挂单状态中文显示（后端返回） */
+    status_display?: string
     /** 创建时间 */
     created_at: string
   }
@@ -652,14 +662,86 @@ declare namespace API {
     created_at: string
   }
 
-  /** 弹窗横幅 */
+  /**
+   * 弹窗横幅（对齐后端 popup_banners 表 + GET /api/v4/system/popup-banners 响应）
+   *
+   * 频率控制字段（banner_type / frequency_rule / frequency_value / force_show / priority）
+   * 由后端运营后台配置，前端读取后在客户端执行频率判断逻辑
+   *
+   * @see docs/弹窗横幅频率控制系统设计文档.md
+   */
   interface PopupBanner {
-    id: number
+    /** 弹窗横幅主键（INT PK） */
+    popup_banner_id: number
+    /** 弹窗标题（后台识别用，VARCHAR(100)） */
     title: string
-    content: string
-    image_url?: string
-    link_url?: string
-    display_type: string
+    /** 横幅图片URL（Sealos对象存储，VARCHAR(500)） */
+    image_url: string
+    /**
+     * 显示模式（后端ENUM，运营在管理后台选择模板）
+     * wide=宽屏16:9 / horizontal=横版3:2 / square=方图1:1 /
+     * tall=竖图3:4 / slim=窄长图9:16 / full_image=纯图模式
+     */
+    display_mode: string
+    /** 原图宽度px（后端sharp检测，可为null） */
+    image_width: number | null
+    /** 原图高度px（后端sharp检测，可为null） */
+    image_height: number | null
+    /** 跳转链接（可为null，VARCHAR(500)） */
+    link_url: string | null
+    /** 跳转类型: none=无跳转 / page=小程序页面 / miniprogram=其他小程序 / webview=网页 */
+    link_type: string
+    /** 显示位置（如 home，VARCHAR(50)） */
+    position: string
+    /** 显示顺序（数字小优先，用于列表排列，与priority职责不同） */
+    display_order: number
+    /** 开始展示时间（ISO8601，可为null） */
+    start_time: string | null
+    /** 结束展示时间（ISO8601，可为null） */
+    end_time: string | null
+
+    // ===== 频率控制字段（后端新增，运营后台配置） =====
+
+    /**
+     * banner类型分级: notice=系统公告 / event=活动推广 / promo=日常促销
+     * notice: 强制弹出，必须点"我知道了"关闭，关闭后永不再弹
+     * event: 活动期间弹一次，关闭后不再弹
+     * promo: 按frequency_rule控制频率
+     */
+    banner_type: string
+    /**
+     * 频率规则枚举:
+     * always=每次进入都弹 / once=整个周期只弹一次 / once_per_session=每次冷启动弹一次 /
+     * once_per_day=每天最多弹一次 / once_per_n_days=每N天弹一次 / n_times_total=累计最多弹N次
+     */
+    frequency_rule: string
+    /** 频率参数值（配合once_per_n_days的天数 或 n_times_total的次数） */
+    frequency_value: number
+    /** 是否强制弹出（true=不可点击遮罩关闭，必须点按钮） */
+    force_show: boolean
+    /** 弹出优先级（数字越大越优先弹出，多banner竞争时使用） */
+    priority: number
+
+    // ===== 可选字段（部分接口可能返回） =====
+
+    /** 正文内容（可选，部分banner可能包含文案描述） */
+    content?: string
+    /** 描述（可选） */
+    description?: string
+  }
+
+  /**
+   * 弹窗横幅本地交互记录（wx.setStorageSync 存储）
+   * Storage Key: 'popup_banner_records'
+   * 数据结构: Record<string, BannerRecord>（key为popup_banner_id字符串）
+   */
+  interface BannerRecord {
+    /** 最后一次展示的时间戳（毫秒） */
+    lastSeen: number
+    /** 累计展示次数 */
+    seenCount: number
+    /** 是否被用户主动关闭过 */
+    dismissed: boolean
   }
 
   /** 用户反馈 */

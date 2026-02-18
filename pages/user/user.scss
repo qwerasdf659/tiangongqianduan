@@ -8,25 +8,22 @@
   padding: $spacing-base;
 }
 
-/* 🎨 美化用户信息卡片 */
+/* 用户信息卡片 */
 .user-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.92));
+  background: $gradient-card-bg;
   border-radius: 28rpx;
-  padding: 50rpx;
-  margin-bottom: 30rpx;
+  padding: 24rpx 30rpx;
+  margin-bottom: $spacing-base;
   display: flex;
   align-items: center;
-  backdrop-filter: blur(15rpx);
-  box-shadow:
-    0 12rpx 48rpx rgba(102, 126, 234, 0.12),
-    0 4rpx 24rpx rgba(102, 126, 234, 0.08),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: $blur-card;
+  box-shadow: $shadow-card;
   border: 1rpx solid rgba(255, 255, 255, 0.4);
   position: relative;
   overflow: hidden;
 }
 
-/* 🌟 添加装饰性光效 */
+/* 装饰性光效 */
 .user-card::before {
   content: '';
   position: absolute;
@@ -34,17 +31,16 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(102, 126, 234, 0.05) 50%,
-    transparent 70%
-  );
+  background: linear-gradient(45deg,
+      transparent 30%,
+      rgba(102, 126, 234, 0.05) 50%,
+      transparent 70%);
   animation: shimmer 4s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes shimmer {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
@@ -55,7 +51,7 @@
   }
 }
 
-/* 🎨 简化用户信息区域 */
+/* 用户信息区域 */
 .user-info-full {
   flex: 1;
   position: relative;
@@ -63,11 +59,10 @@
   width: 100%;
 }
 
-/* 🎨 美化用户名区域 */
+/* 用户名区域（内部唯一子元素，无需底部边距） */
 .user-name {
   display: flex;
   align-items: center;
-  margin-bottom: 16rpx;
   position: relative;
 }
 
@@ -122,12 +117,12 @@
   color: $color-text-tertiary;
 }
 
-/* 🎨 美化积分卡片 */
+/* 积分卡片 */
 .points-card {
   background: linear-gradient(135deg, var(--blue-start), var(--blue-end));
   border-radius: $border-radius-xl;
-  padding: 50rpx;
-  margin-bottom: 30rpx;
+  padding: 30rpx;
+  margin-bottom: $spacing-base;
   color: white;
   text-align: center;
   box-shadow:
@@ -139,7 +134,7 @@
   overflow: hidden;
 }
 
-/* 🌟 添加动态光效背景 */
+/* 动态光效背景 */
 .points-card::before {
   content: '';
   position: absolute;
@@ -147,17 +142,16 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(
-    -45deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 60%
-  );
+  background: linear-gradient(-45deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 60%);
   animation: flow 6s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes flow {
+
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(-45deg);
@@ -175,7 +169,7 @@
     0 12rpx 48rpx rgba(102, 126, 234, 0.25);
 }
 
-/* 🎨 美化积分头部 */
+/* 积分头部 */
 .points-header {
   display: flex;
   justify-content: space-between;
@@ -209,7 +203,7 @@
   backdrop-filter: blur(5rpx);
 }
 
-/* 🎯 美化积分数字 */
+/* 积分数字 */
 .points-amount {
   margin-bottom: 36rpx;
   position: relative;
@@ -232,6 +226,7 @@
 }
 
 @keyframes pulse-glow {
+
   0%,
   100% {
     filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
@@ -402,7 +397,7 @@
   color: var(--text-color);
 }
 
-/* 🔥 优化响应式适配 */
+/* 响应式适配 */
 @media (max-width: 400px) {
   .user-card {
     flex-direction: column;

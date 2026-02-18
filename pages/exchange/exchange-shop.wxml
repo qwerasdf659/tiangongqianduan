@@ -886,117 +886,119 @@
 <!-- 后端API: POST /api/v4/backpack/exchange -->
 <view class="shop-confirm-overlay" wx:if="{{showShopConfirm}}" bindtap="onCancelShopExchange">
   <view class="shop-confirm-sheet" catchtap="">
-    <!-- 弹窗头部 -->
-    <view class="shop-confirm-header">
-      <view class="shop-header-bg"></view>
-      <view class="shop-header-content">
-        <text class="shop-header-icon">🛒</text>
-        <text class="shop-header-title">确认兑换</text>
-      </view>
+    <!-- 顶部渐变头部区域（含商品信息） -->
+    <view class="shop-confirm-hero">
+      <!-- 关闭按钮 -->
       <view class="shop-close-btn" bindtap="onCancelShopExchange">
         <text class="close-x">✕</text>
       </view>
-    </view>
-
-    <!-- 商品预览卡片 -->
-    <view class="shop-product-preview" wx:if="{{selectedShopProduct}}">
-      <view class="shop-preview-img-wrap">
-        <image
-          class="shop-preview-img"
-          src="{{selectedShopProduct.image || selectedShopProduct.image_url || '/images/products/default-product.png'}}"
-          mode="aspectFill"
-        />
-        <!-- 标签 -->
-        <view class="shop-preview-badges">
-          <text class="shop-badge hot" wx:if="{{selectedShopProduct.is_hot}}">🔥 热销</text>
-          <text class="shop-badge new" wx:if="{{selectedShopProduct.is_new}}">✨ 新品</text>
+      <!-- 商品图片 + 核心信息 -->
+      <view class="shop-hero-content" wx:if="{{selectedShopProduct}}">
+        <view class="shop-hero-img-wrap">
+          <image
+            class="shop-preview-img"
+            src="{{selectedShopProduct.image || selectedShopProduct.image_url || '/images/products/default-product.png'}}"
+            mode="aspectFill"
+          />
+          <view class="shop-preview-badges">
+            <text class="shop-badge hot" wx:if="{{selectedShopProduct.is_hot}}">🔥 热销</text>
+            <text class="shop-badge new" wx:if="{{selectedShopProduct.is_new}}">✨ 新品</text>
+          </view>
+        </view>
+        <view class="shop-hero-info">
+          <text class="shop-hero-name">{{selectedShopProduct.name || '未知商品'}}</text>
+          <text class="shop-hero-desc" wx:if="{{selectedShopProduct.description}}"
+            >{{selectedShopProduct.description}}</text
+          >
+          <text class="shop-hero-sell" wx:if="{{selectedShopProduct.sell_point}}"
+            >{{selectedShopProduct.sell_point}}</text
+          >
+          <view class="shop-hero-price-row">
+            <text class="shop-hero-price"> {{selectedShopProduct.cost_amount || 0}} </text>
+            <text class="shop-hero-price-unit">
+              {{(selectedShopProduct.cost_asset_code || 'POINTS') === 'POINTS' ? '积分' :
+              selectedShopProduct.cost_asset_code}}
+            </text>
+            <view class="shop-hero-original" wx:if="{{selectedShopProduct.original_price}}">
+              <text class="shop-original-value">{{selectedShopProduct.original_price}}</text>
+            </view>
+          </view>
+          <view class="shop-hero-stock" wx:if="{{selectedShopProduct.stock !== undefined}}">
+            <text
+              class="shop-stock-dot {{selectedShopProduct.stock > 0 ? 'in-stock' : 'out-stock'}}"
+            ></text>
+            <text class="shop-stock-text {{selectedShopProduct.stock < 10 ? 'low-stock' : ''}}">
+              {{selectedShopProduct.stock > 0 ? '库存 ' + selectedShopProduct.stock + ' 件' :
+              '已售罄'}}
+            </text>
+          </view>
         </view>
       </view>
-      <view class="shop-preview-info">
-        <!-- 商品名称 -->
-        <text class="shop-preview-name">{{selectedShopProduct.name || '未知商品'}}</text>
-        <!-- 商品描述 -->
-        <text class="shop-preview-desc" wx:if="{{selectedShopProduct.description}}"
-          >{{selectedShopProduct.description}}</text
-        >
-        <!-- 卖点 -->
-        <text class="shop-preview-sell" wx:if="{{selectedShopProduct.sell_point}}">
-          {{selectedShopProduct.sell_point}}
-        </text>
-        <!-- 兑换价格 -->
-        <view class="shop-preview-price-area">
-          <text class="shop-price-label">兑换价格：</text>
-          <text class="shop-price-value">
+    </view>
+
+    <!-- 白色内容区域（带圆角遮盖） -->
+    <view class="shop-confirm-body">
+      <!-- 兑换数量选择 -->
+      <view class="shop-quantity-card" wx:if="{{selectedShopProduct}}">
+        <text class="shop-quantity-label">兑换数量</text>
+        <view class="shop-quantity-control">
+          <view
+            class="shop-qty-btn decrease {{shopExchangeQuantity <= 1 ? 'disabled' : ''}}"
+            bindtap="onShopQuantityChange"
+            data-action="decrease"
+          >
+            <text>−</text>
+          </view>
+          <text class="shop-qty-value">{{shopExchangeQuantity}}</text>
+          <view
+            class="shop-qty-btn increase {{selectedShopProduct.stock > 0 && shopExchangeQuantity >= selectedShopProduct.stock ? 'disabled' : ''}}"
+            bindtap="onShopQuantityChange"
+            data-action="increase"
+          >
+            <text>+</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 费用明细卡片 -->
+      <view class="shop-cost-card" wx:if="{{selectedShopProduct}}">
+        <view class="shop-cost-card-title">费用明细</view>
+        <view class="shop-cost-row">
+          <text class="shop-cost-label">单价</text>
+          <text class="shop-cost-value">
             {{selectedShopProduct.cost_amount || 0}} {{(selectedShopProduct.cost_asset_code ||
             'POINTS') === 'POINTS' ? '积分' : selectedShopProduct.cost_asset_code}}
           </text>
         </view>
-        <!-- 原价（如有折扣） -->
-        <view class="shop-preview-original" wx:if="{{selectedShopProduct.original_price}}">
-          <text class="shop-original-label">原价：</text>
-          <text class="shop-original-value">{{selectedShopProduct.original_price}}</text>
+        <view class="shop-cost-row">
+          <text class="shop-cost-label">数量</text>
+          <text class="shop-cost-value">× {{shopExchangeQuantity}}</text>
         </view>
-        <!-- 库存信息 -->
-        <view class="shop-preview-stock" wx:if="{{selectedShopProduct.stock !== undefined}}">
-          <text class="shop-stock-label">库存：</text>
-          <text class="shop-stock-value {{selectedShopProduct.stock < 10 ? 'low-stock' : ''}}">
-            {{selectedShopProduct.stock > 0 ? selectedShopProduct.stock + '件' : '已售罄'}}
-          </text>
+        <view class="shop-cost-divider"></view>
+        <view class="shop-cost-row total">
+          <text class="shop-cost-label">合计</text>
+          <view class="shop-cost-total-wrap">
+            <text class="shop-cost-total-symbol">
+              {{(selectedShopProduct.cost_asset_code || 'POINTS') === 'POINTS' ? '积分' :
+              selectedShopProduct.cost_asset_code}}
+            </text>
+            <text class="shop-cost-total">
+              {{(selectedShopProduct.cost_amount || 0) * shopExchangeQuantity}}
+            </text>
+          </view>
         </view>
       </view>
-    </view>
 
-    <!-- 兑换数量选择 -->
-    <view class="shop-quantity-area" wx:if="{{selectedShopProduct}}">
-      <text class="shop-quantity-label">兑换数量</text>
-      <view class="shop-quantity-control">
-        <view
-          class="shop-qty-btn {{shopExchangeQuantity <= 1 ? 'disabled' : ''}}"
-          bindtap="onShopQuantityChange"
-          data-action="decrease"
-        >
-          <text>−</text>
+      <!-- 余额提示条 -->
+      <view
+        class="shop-balance-bar {{totalPoints < (selectedShopProduct.cost_amount || 0) * shopExchangeQuantity ? 'insufficient' : 'sufficient'}}"
+        wx:if="{{selectedShopProduct}}"
+      >
+        <view class="shop-balance-left">
+          <text class="shop-balance-icon">💰</text>
+          <text class="shop-balance-label">当前余额</text>
         </view>
-        <text class="shop-qty-value">{{shopExchangeQuantity}}</text>
-        <view
-          class="shop-qty-btn {{selectedShopProduct.stock > 0 && shopExchangeQuantity >= selectedShopProduct.stock ? 'disabled' : ''}}"
-          bindtap="onShopQuantityChange"
-          data-action="increase"
-        >
-          <text>+</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 费用汇总 -->
-    <view class="shop-cost-summary" wx:if="{{selectedShopProduct}}">
-      <view class="shop-cost-row">
-        <text class="shop-cost-label">单价</text>
-        <text class="shop-cost-value">
-          {{selectedShopProduct.cost_amount || 0}} {{(selectedShopProduct.cost_asset_code ||
-          'POINTS') === 'POINTS' ? '积分' : selectedShopProduct.cost_asset_code}}
-        </text>
-      </view>
-      <view class="shop-cost-row">
-        <text class="shop-cost-label">数量</text>
-        <text class="shop-cost-value">× {{shopExchangeQuantity}}</text>
-      </view>
-      <view class="shop-cost-divider"></view>
-      <view class="shop-cost-row total">
-        <text class="shop-cost-label">合计</text>
-        <text class="shop-cost-total">
-          {{(selectedShopProduct.cost_amount || 0) * shopExchangeQuantity}}
-          {{(selectedShopProduct.cost_asset_code || 'POINTS') === 'POINTS' ? '积分' :
-          selectedShopProduct.cost_asset_code}}
-        </text>
-      </view>
-      <view class="shop-cost-row balance">
-        <text class="shop-cost-label">当前余额</text>
-        <text
-          class="shop-cost-value {{totalPoints < (selectedShopProduct.cost_amount || 0) * shopExchangeQuantity ? 'insufficient' : 'sufficient'}}"
-        >
-          {{totalPoints}} 积分
-        </text>
+        <text class="shop-balance-value">{{totalPoints}} 积分</text>
       </view>
     </view>
 

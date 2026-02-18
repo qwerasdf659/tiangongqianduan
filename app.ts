@@ -72,10 +72,13 @@ App({
       max_image_size: 20 * 1024 * 1024, // 20MB
       allowed_image_types: ['jpg', 'jpeg', 'png', 'webp'],
       business_types: ['lottery', 'exchange', 'trade', 'uploads']
-    }
+    },
+
+    /** 弹窗横幅会话级已展示ID集合（每次冷启动重置，用于 once_per_session 规则） */
+    sessionSeenPopups: new Set<number>()
   },
 
-  /** 应用启动初始化?*/
+  /** 应用启动初始化 */
   async onLaunch(options: WechatMiniprogram.App.LaunchShowOption): Promise<void> {
     log.info('🚀 餐厅积分抽奖系统v5.0启动中...')
     log.info('📱 启动参数:', options)
@@ -84,6 +87,11 @@ App({
       await this.initializeSystem()
       await this.checkAuthStatus()
       await initializeWechatEnvironment()
+
+      // 冷启动时清理过期弹窗记录（90天以上），防止本地存储无限增长
+      const { cleanExpiredRecords } = require('./utils/popup-frequency')
+      cleanExpiredRecords()
+
       log.info('✅ 系统初始化完成')
     } catch (error: any) {
       log.error('❌ 系统初始化失败', error)
@@ -153,7 +161,6 @@ App({
           if (jwtPayload) {
             userInfo = {
               user_id: jwtPayload.user_id,
-              user_uuid: jwtPayload.user_uuid || '',
               mobile: jwtPayload.mobile,
               nickname: jwtPayload.nickname || '用户',
               status: jwtPayload.status,
@@ -603,4 +610,4 @@ App({
   }
 })
 
-export {}
+export { }

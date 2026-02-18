@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 聊天会话页面 — Page Shell + 生命周期 + 会话管理
  *
  * 消息收发逻辑已拆分到 chat-message-handlers.ts：
@@ -15,7 +15,7 @@ const { Utils, Wechat, API, Constants, Logger } = require('../../utils/index')
 const log = Logger.createLogger('chat')
 const { formatDateMessage, checkAuth } = Utils
 const { showToast } = Wechat
-const { DELAY, TIME } = Constants
+const { DELAY } = Constants
 // MobX Store绑定 - 用户登录状态自动同步
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')

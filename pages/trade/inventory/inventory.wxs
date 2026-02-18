@@ -81,9 +81,35 @@ function isExpiringSoon(expires_at) {
   return expireTime - nowTime < threeDays && expireTime > nowTime
 }
 
+/**
+ * 根据资产编码获取显示图标（UI辅助逻辑）
+ *
+ * @param {string} asset_code - 后端返回的资产编码（如 DIAMOND, red_shard, POINTS）
+ * @returns {string} 对应的emoji图标
+ *
+ * 资产编码对照（来源：system_dictionaries 表 dict_type = 'asset_code'）：
+ *   DIAMOND     → 💎 钻石
+ *   red_shard   → 🔴 红水晶碎片
+ *   blue_shard  → 🔵 蓝色水晶碎片
+ *   gold_shard  → 🟡 金色水晶碎片
+ *   POINTS      → 🪙 积分
+ *   default     → 💰 通用资产
+ *
+ * 注意：用户看到的名称由后端 display_name 字段决定，此函数只匹配图标
+ */
+function getAssetIcon(asset_code) {
+  if (asset_code === 'DIAMOND') return '💎'
+  if (asset_code === 'red_shard') return '🔴'
+  if (asset_code === 'blue_shard') return '🔵'
+  if (asset_code === 'gold_shard') return '🟡'
+  if (asset_code === 'POINTS') return '🪙'
+  return '💰'
+}
+
 // WXS模块导出
 module.exports = {
   getItemIcon: getItemIcon,
+  getAssetIcon: getAssetIcon,
   formatTime: formatTime,
   isExpiringSoon: isExpiringSoon
 }

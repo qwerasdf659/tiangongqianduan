@@ -1,14 +1,14 @@
-﻿/* 鎶藉椤甸潰 - 绠＄悊鍛樺姛鑳芥潯/瀹℃牳璁板綍/澶氭椿鍔ㄦ彃妲芥牱寮?- 浠巐ottery.scss鎷嗗垎 */
+/* 抽奖页面 - 管理员功能条/审核记录/多活动插槽样式 - 从lottery.scss拆分 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ========================================
- * 馃啎 绠＄悊鍛樹笓灞炲姛鑳芥潯鏍峰紡
+ * 🎎 管理员专属功能条样式
  * ========================================
- * 璇存槑锛? * - 浠呯鐞嗗憳鍙锛堥€氳繃wx:if="{{isAdmin}}"鎺у埗锛? * - 妯悜甯冨眬锛氬乏渚ч潤鎬佹枃瀛?+ 涓棿鎵竴鎵寜閽?+ 鍙充晶瀹℃牳璇︽儏鎸夐挳
- * - 璁捐椋庢牸锛氱幇浠ｇ畝娲併€佹搷浣滄槑纭€佽瑙夊眰娆℃竻鏅? * ======================================== */
+ * 说明：
+ * - 设计风格：现代简洁、操作明确、视觉层次清晰
 
-/* 馃敶 绠＄悊鍛樺姛鑳芥潯瀹瑰櫒 */
+/* 🔴 管理员功能条容器 */
 .admin-scan-bar {
   @include flex-between;
   width: 100%;
@@ -20,7 +20,7 @@
   margin-bottom: 20rpx;
 }
 
-/* 馃敶 宸︿晶锛氶潤鎬佹爣绛炬枃瀛?*/
+/* 🔴 左侧：静态标签文字 */
 .admin-scan-label {
   font-size: $font-size-md;
   font-weight: bold;
@@ -28,7 +28,7 @@
   letter-spacing: 2rpx;
 }
 
-/* 馃敶 涓棿锛氭壂涓€鎵寜閽鍣?*/
+/* 🔴 中间：扫一扫按钮 */
 .admin-scan-button {
   @include flex-center;
   gap: 12rpx;
@@ -44,13 +44,13 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
-/* 馃敶 鎵竴鎵浘鏍?*/
+/* 🔴 扫一扫图标 */
 .scan-icon {
   font-size: $font-size-xl;
   line-height: 1;
 }
 
-/* 馃敶 鎵竴鎵枃瀛?*/
+/* 🔴 扫一扫文字 */
 .scan-text {
   font-size: $font-size-base;
   font-weight: 600;
@@ -58,7 +58,7 @@
   letter-spacing: 1rpx;
 }
 
-/* 馃敶 鍙充晶锛氬鏍歌鎯呮寜閽鍣?*/
+/* 🔴 右侧：审核详情按钮 */
 .admin-audit-button {
   @include flex-center;
   gap: 8rpx;
@@ -74,7 +74,7 @@
   transform: scale(0.95);
 }
 
-/* 馃敶 瀹℃牳璇︽儏鏂囧瓧 */
+/* 🔴 审核详情文字 */
 .audit-text {
   font-size: 26rpx;
   font-weight: 500;
@@ -82,7 +82,7 @@
   letter-spacing: 1rpx;
 }
 
-/* 馃敶 绠ご鍥炬爣 */
+/* 🔴 箭头图标 */
 .arrow-icon {
   font-size: $font-size-base;
   color: $color-text-white;
@@ -90,9 +90,9 @@
 }
 
 /* ========================================
-   馃啎 绉垎瀹℃牳璁板綍鏌ヨ鍔熻兘鏍峰紡 - 绱壊涓婚缇庡寲鐗?   ======================================== */
+   🎎 积分审核记录查看功能样式 - 紫色主题美化版
 
-/* 馃敶 寰界珷瀹瑰櫒 */
+/* 🔴 徽章容器 */
 .audit-badge-container {
   position: relative;
   display: inline-flex;
@@ -109,19 +109,21 @@
   transform: scale(0.92);
 }
 
-/* 馃敶 鍦嗗舰寰界珷 - 绗﹀悎椤圭洰绱壊涓婚 */
-.audit-badge {
-  width: 52rpx;
-  height: 52rpx;
-  border-radius: 50%;
-  @include flex-center;
+/* 🔴 圆形徽章 - 符合项目紫色主题 */
+.audit-badge-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  height: 48rpx;
+  padding: 0 16rpx;
+  border-radius: 24rpx;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
-  overflow: hidden;
 }
 
-/* 鏈夎褰曠姸鎬?- 绱壊娓愬彉 + 鍏夌幆鏁堟灉 + 鑴夊啿鍔ㄧ敾 */
-.audit-badge.has-records {
+/* 有记录状态 - 紫色渐变 + 光环效果 + 脉冲动画 */
+.audit-badge-btn.has-records {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   box-shadow:
     0 4rpx 16rpx rgba(102, 126, 234, 0.4),
@@ -130,8 +132,8 @@
   animation: auditPulse 2.5s ease-in-out infinite;
 }
 
-/* 鏃犺褰曠姸鎬?- 鍗婇€忔槑鐧借壊锛岃瀺鍏ヨ儗鏅?*/
-.audit-badge.no-records {
+/* 无记录状态 - 半透明白色，融入背景 */
+.audit-badge-btn.no-records {
   background: rgba(255, 255, 255, 0.25);
   box-shadow:
     0 2rpx 8rpx rgba(0, 0, 0, 0.1),
@@ -139,8 +141,8 @@
   backdrop-filter: blur(8rpx);
 }
 
-/* 寰界珷鍏夋檿鏁堟灉锛堜粎鏈夎褰曟椂锛?*/
-.audit-badge.has-records::before {
+/* 徽章光晕效果（仅有记录时）
+.audit-badge-btn.has-records::before {
   content: '';
   position: absolute;
   top: -2rpx;
@@ -148,43 +150,53 @@
   right: -2rpx;
   bottom: -2rpx;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  border-radius: 50%;
+  border-radius: 24rpx;
   opacity: 0.3;
   filter: blur(8rpx);
   z-index: -1;
   animation: glowPulse 2.5s ease-in-out infinite;
 }
 
-/* 寰界珷鍥炬爣 */
+/* 徽章图标 */
 .badge-icon {
-  font-size: 26rpx;
-  color: $color-text-white;
+  font-size: 24rpx;
   line-height: 1;
   filter: drop-shadow(0 1rpx 2rpx rgba(0, 0, 0, 0.2));
 }
 
-/* 鏁板瓧瑙掓爣 - 娓愬彉绱壊 */
+/* 按钮文字标签 */
+.badge-label {
+  font-size: 22rpx;
+  color: $color-text-white;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.15);
+}
+
+/* 数字角标 - 渐变紫色 */
 .badge-number {
   position: absolute;
-  top: -4rpx;
-  right: -4rpx;
-  min-width: 36rpx;
-  height: 36rpx;
-  background: linear-gradient(135deg, $color-primary 0%, #ff8a65 100%);
-  border-radius: 18rpx;
-  border: 3rpx solid #ffffff;
-  font-size: 22rpx;
+  top: -22rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 32rpx;
+  height: 32rpx;
+  background: linear-gradient(135deg, #ff5252 0%, #ff8a65 100%);
+  border-radius: 16rpx;
+  border: 2rpx solid #ffffff;
+  font-size: 20rpx;
   color: $color-text-white;
   font-weight: bold;
   @include flex-center;
-  padding: 0 8rpx;
+  padding: 0 6rpx;
   box-shadow:
-    0 4rpx 12rpx rgba(255, 107, 53, 0.4),
+    0 4rpx 12rpx rgba(255, 82, 82, 0.4),
     0 2rpx 4rpx rgba(0, 0, 0, 0.2);
   animation: numberBounce 2.5s ease-in-out infinite;
 }
 
-/* 鑴夊啿鍔ㄧ敾 - 鏌斿拰鐨勫懠鍚告晥鏋?*/
+/* 脉冲动画 - 柔和的呼吸效果?*/
 @keyframes auditPulse {
   0%,
   100% {
@@ -204,7 +216,7 @@
   }
 }
 
-/* 鍏夋檿鑴夊啿鍔ㄧ敾 */
+/* 光晕脉冲动画 */
 @keyframes glowPulse {
   0%,
   100% {
@@ -218,45 +230,49 @@
   }
 }
 
-/* 鏁板瓧瑙掓爣寮硅烦鍔ㄧ敾 */
+/* 数字角标弹跳动画 */
 @keyframes numberBounce {
   0%,
   100% {
-    transform: scale(1);
+    transform: translateX(-50%) scale(1);
   }
 
   10% {
-    transform: scale(1.15);
+    transform: translateX(-50%) scale(1.15);
   }
 
   20% {
-    transform: scale(1);
+    transform: translateX(-50%) scale(1);
   }
 }
 
-/* 鍝嶅簲寮忛€傞厤 */
+/* 响应式适配 */
 @media (max-width: 320px) {
-  .audit-badge {
-    width: 44rpx;
-    height: 44rpx;
+  .audit-badge-btn {
+    height: 40rpx;
+    padding: 0 12rpx;
+    gap: 2rpx;
   }
 
   .badge-icon {
-    font-size: 22rpx;
+    font-size: 20rpx;
+  }
+
+  .badge-label {
+    font-size: 20rpx;
   }
 
   .badge-number {
-    min-width: 32rpx;
-    height: 32rpx;
+    min-width: 28rpx;
+    height: 28rpx;
     font-size: $font-size-xs;
   }
 }
 
 /* ========================================
-   馃啎 瀹℃牳璁板綍寮圭獥鏍峰紡
+   🎎 审核记录弹窗样式
    ======================================== */
 
-/* 寮圭獥閬僵 */
 .audit-modal {
   position: fixed;
   top: 0;
@@ -280,7 +296,7 @@
   }
 }
 
-/* 寮圭獥鍐呭瀹瑰櫒 */
+/* 弹窗内容容器 */
 .audit-modal-content {
   width: 100%;
   max-height: 80vh;
@@ -301,7 +317,7 @@
   }
 }
 
-/* 鍏抽棴鎸夐挳 - 鍗婇€忔槑鐧借壊 */
+/* 关闭按钮 - 半透明白色 */
 .audit-modal-close {
   position: absolute;
   top: 20rpx;
@@ -329,7 +345,7 @@
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
 }
 
-/* 寮圭獥鏍囬 - 娓愬彉绱壊 */
+/* 弹窗标题 - 渐变紫色 */
 .audit-modal-header {
   padding: 40rpx 30rpx 20rpx 30rpx;
   border-bottom: 2rpx solid $color-border-light;
@@ -344,14 +360,14 @@
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
-/* 璁板綍鍒楄〃瀹瑰櫒 */
+/* 记录列表容器 */
 .audit-records-list {
   flex: 1;
   padding: 20rpx 30rpx;
   overflow-y: auto;
 }
 
-/* 璁板綍鍗＄墖 - 娓愬彉杈规璁捐 */
+/* 记录卡片 - 渐变边框设计 */
 .audit-record-card {
   background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 50%, #ffffff 100%);
   border-radius: 20rpx;
@@ -400,7 +416,7 @@
   background: linear-gradient(180deg, #ff9800 0%, #ffa726 100%);
 }
 
-/* 璁板綍澶撮儴锛堢紪鍙?鐘舵€侊級 */
+/* 记录头部（编号+状态） */
 .record-header {
   display: flex;
   justify-content: space-between;
@@ -433,7 +449,7 @@
   font-weight: bold;
 }
 
-/* 璁板綍琛?*/
+/* 记录行?*/
 .record-row {
   display: flex;
   align-items: center;
@@ -477,7 +493,7 @@
   font-size: $font-size-sm;
 }
 
-/* 寮圭獥搴曢儴 */
+/* 弹窗底部 */
 .audit-modal-footer {
   padding: 20rpx 30rpx 40rpx 30rpx;
   border-top: 2rpx solid $color-border-light;
@@ -494,7 +510,7 @@
   border: none;
 }
 
-/* ===== 澶氭椿鍔ㄦ彃妲斤紙浠诲姟27锛?===== */
+/* ===== 多活动插槽（任务27）?===== */
 .extra-activity-slot {
   margin-top: 24rpx;
   padding: 0 24rpx;

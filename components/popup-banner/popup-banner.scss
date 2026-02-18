@@ -491,3 +491,18 @@
 .popup-action-btn.ghost:active {
   background: $color-bg-grey;
 }
+
+/* ========================================
+   📢 notice类型（系统公告）"我知道了"确认按钮
+   强制弹出模式下，此按钮是唯一关闭入口
+   ======================================== */
+.popup-notice-confirm-btn {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff4500 100%) !important;
+  color: $color-text-white !important;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35) !important;
+}
+
+.popup-notice-confirm-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3) !important;
+}

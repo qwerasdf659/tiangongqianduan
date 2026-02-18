@@ -1,11 +1,11 @@
-﻿/* 鎶藉椤甸潰 - 浜岀淮鐮佸脊绐楁牱寮?- 浠巐ottery.scss鎷嗗垎 */
+/* 抽奖页面 - 二维码弹窗样式 - 从lottery.scss拆分 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ========================================
-   馃啎 鏀惧ぇ浜岀淮鐮佸脊绐楁牱寮?   ======================================== */
+   🎎 放大二维码弹窗样式?   ======================================== */
 
-/* 寮圭獥钂欏眰 */
+/* 弹窗蒙层 */
 .qrcode-enlarged-modal {
   position: fixed;
   top: 0;
@@ -28,25 +28,25 @@
   }
 }
 
-/* 鏀惧ぇ浜岀淮鐮佸鍣?*/
+/* 放大二维码容器 */
 .qrcode-enlarged-container {
   position: relative;
   width: 90%;
   max-width: 600rpx;
   background: linear-gradient(135deg, rgba(240, 242, 255, 0.98) 0%, rgba(220, 230, 255, 0.98) 100%);
-  /* 娴呰摑鐧借壊娓愬彉锛屼笌椤甸潰绱壊涓婚鍗忚皟 */
+  /* 浅蓝白色渐变，与页面紫色主题协调 */
   border-radius: $border-radius-xl;
-  /* 澧炲姞鍦嗚锛屾洿鐜颁唬鍖?*/
+  /* 增加圆角，更现代化?*/
   padding: 48rpx;
   box-shadow:
     0 20rpx 60rpx rgba(102, 126, 234, 0.3),
     0 8rpx 32rpx rgba(0, 0, 0, 0.2),
     inset 0 2rpx 0 rgba(255, 255, 255, 0.6);
-  /* 澧炲己闃村奖鏁堟灉锛屾坊鍔犲唴闃村奖楂樺厜 */
+  /* 增强阴影效果，添加内阴影高光 */
   backdrop-filter: blur(20rpx);
-  /* 姣涚幓鐠冩晥鏋?*/
+  /* 毛玻璃效果?*/
   border: 2rpx solid rgba(255, 255, 255, 0.5);
-  /* 鐧借壊杈规锛岀簿鑷存劅 */
+  /* 白色边框，精致感 */
   animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -62,7 +62,7 @@
   }
 }
 
-/* 鍏抽棴鎸夐挳 - 浼橀泤鐨勭传鑹蹭富棰?*/
+/* 关闭按钮 - 优雅的紫色主题?*/
 .qrcode-close-btn {
   position: absolute;
   top: 16rpx;
@@ -70,7 +70,7 @@
   width: 56rpx;
   height: 56rpx;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  /* 浣跨敤椤甸潰涓婚绱壊娓愬彉 */
+  /* 使用页面主题紫色渐变 */
   border-radius: 50%;
   @include flex-center;
   z-index: 10;
@@ -78,9 +78,9 @@
   box-shadow:
     0 4rpx 16rpx rgba(102, 126, 234, 0.4),
     0 2rpx 8rpx rgba(0, 0, 0, 0.2);
-  /* 绱壊闃村奖锛屽寮虹珛浣撴劅 */
+  /* 紫色阴影，增强立体感 */
   border: 2rpx solid rgba(255, 255, 255, 0.3);
-  /* 鐧借壊杈规 */
+  /* 白色边框 */
 }
 
 .qrcode-close-btn:active {
@@ -97,7 +97,7 @@
   line-height: 1;
 }
 
-/* 鏀惧ぇ浜岀淮鐮佸唴瀹?*/
+/* 放大二维码内容 */
 .qrcode-enlarged-content {
   display: flex;
   flex-direction: column;
@@ -105,28 +105,28 @@
   gap: 32rpx;
 }
 
-/* 鏀惧ぇ鐨勪簩缁寸爜鍥剧墖 - 姝ｆ柟褰㈡樉绀?*/
+/* 放大的二维码图片 - 正方形显示 */
 .qrcode-enlarged-image {
   width: 500rpx;
-  /* 馃敶 姝ｆ柟褰細瀹藉害500rpx */
+  /* 🔴 正方形：宽度500rpx */
   height: 500rpx;
-  /* 馃敶 姝ｆ柟褰細楂樺害500rpx */
+  /* 🔴 正方形：高度500rpx */
   border-radius: 20rpx;
   /* 澧炲姞鍦嗚 */
   box-shadow:
     0 12rpx 40rpx rgba(102, 126, 234, 0.2),
     0 6rpx 20rpx rgba(0, 0, 0, 0.15),
     inset 0 0 0 1rpx rgba(255, 255, 255, 0.3);
-  /* 澧炲己闃村奖鏁堟灉锛屾坊鍔犲唴杈规楂樺厜 */
+  /* 增强阴影效果，添加内边框高光 */
   padding: 16rpx;
-  /* 鍐呰竟璺濓紝璁╀簩缁寸爜鏈夊懠鍚告劅 */
+  /* 内边距，让二维码有呼吸感 */
   background: rgba(255, 255, 255, 0.9);
-  /* 鍗婇€忔槑鐧借壊鑳屾櫙锛岀‘淇濅簩缁寸爜娓呮櫚 */
-  /* 馃敶 纭繚鍥剧墖姝ｇ‘鏄剧ず */
+  /* 半透明白色背景，确保二维码清晰 */
+  /* 🔴 确保图片正确显示 */
   display: block;
 }
 
-/* 鏀惧ぇ浜岀淮鐮佹彁绀烘枃瀛?- 澧炲己瑙嗚鏁堟灉 */
+/* 放大二维码提示文字 - 增强视觉效果 */
 .qrcode-enlarged-tips {
   display: flex;
   flex-direction: column;
@@ -139,9 +139,9 @@
   box-shadow:
     0 8rpx 24rpx rgba(102, 126, 234, 0.3),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
-  /* 澧炲己闃村奖鍜屽唴楂樺厜 */
+  /* 增强阴影和内高光 */
   border: 1rpx solid rgba(255, 255, 255, 0.2);
-  /* 鍗婇€忔槑杈规 */
+  /* 半透明边框 */
 }
 
 .enlarged-tip {
@@ -151,12 +151,12 @@
   font-weight: 500;
   text-align: center;
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
-  /* 澧炲己鏂囧瓧闃村奖 */
+  /* 增强文字阴影 */
   letter-spacing: 1rpx;
   /* 澧炲姞瀛楅棿璺濓紝鏇翠紭闆?*/
 }
 
-/* 鍝嶅簲寮忥細灏忓睆骞曚紭鍖?*/
+/* 响应式：小屏幕优化?*/
 @media (max-width: 750rpx) {
   .qrcode-enlarged-container {
     width: 85%;
@@ -165,7 +165,7 @@
 
   .qrcode-enlarged-image {
     width: 400rpx;
-    /* 馃敶 灏忓睆骞曟鏂瑰舰锛?00脳400rpx */
+    /* 🔴 小屏幕正方形：300x400rpx */
     height: 400rpx;
   }
 
@@ -174,7 +174,7 @@
   }
 }
 
-/* 馃敶 鍝嶅簲寮忎紭鍖栵紙鏁村悎甯冨眬 - 灏忓睆骞曞垏鎹负绾靛悜锛?*/
+/* 🔴 响应式优化（整合布局 - 小屏幕切换为纵向） */
 @media (max-width: 750rpx) {
   .header-content {
     flex-direction: column;

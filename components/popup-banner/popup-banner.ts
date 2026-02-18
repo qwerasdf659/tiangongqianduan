@@ -24,13 +24,16 @@
  *
  * @property {boolean} visible - 控制弹窗显示/隐藏
  * @property {Array} banners - 横幅数据列表（从后端API获取）
- *   banners[].title          {String} 标题
- *   banners[].content        {String} 正文内容
- *   banners[].image_url      {String} 横幅图片URL（可选）
- *   banners[].link_url       {String} 点击跳转链接（可选）
- *   banners[].display_mode   {String} 显示模式（后端必填字段）
- *   banners[].image_width    {Number} 原图宽度px（后端sharp检测）
- *   banners[].image_height   {Number} 原图高度px（后端sharp检测）
+ *   banners[].popup_banner_id {Number} 横幅主键ID
+ *   banners[].title           {String} 标题
+ *   banners[].content         {String} 正文内容
+ *   banners[].image_url       {String} 横幅图片URL（可选）
+ *   banners[].link_url        {String} 点击跳转链接（可选）
+ *   banners[].display_mode    {String} 显示模式（后端必填字段）
+ *   banners[].image_width     {Number} 原图宽度px（后端sharp检测）
+ *   banners[].image_height    {Number} 原图高度px（后端sharp检测）
+ *   banners[].banner_type     {String} 类型: notice/event/promo（频率控制系统新增）
+ *   banners[].force_show      {Boolean} 强制弹出（不可点遮罩关闭）
  *
  * @event {Function} close - 关闭弹窗时触发
  * @event {Function} action - 点击操作按钮时触发，detail: { banner, index }
@@ -87,7 +90,11 @@ Component({
     /** 🖼️ 图片是否已加载完成（配合预加载，防止白屏闪烁） */
     imageReady: false,
     /** 🔴 图片加载是否最终失败（重试耗尽后为true，触发降级占位显示） */
-    imageLoadFailed: false
+    imageLoadFailed: false,
+    /** 当前banner是否为强制弹出模式（不可点击遮罩关闭） */
+    isForceShow: false,
+    /** 当前banner类型: notice/event/promo */
+    currentBannerType: '' as string
   },
 
   /**
@@ -103,7 +110,17 @@ Component({
       if (val) {
         // 入场：先渲染DOM，再延迟添加动画类（触发CSS transition）
         // 🔴 重置图片状态（新弹窗打开时清除之前的失败状态）
-        this.setData({ animateOut: false, imageReady: false, imageLoadFailed: false })
+        const currentBanner = this.data.banners[this.data.currentIndex]
+        const bannerForceShow = currentBanner?.force_show === true
+        const bannerType = currentBanner?.banner_type || 'promo'
+
+        this.setData({
+          animateOut: false,
+          imageReady: false,
+          imageLoadFailed: false,
+          isForceShow: bannerForceShow,
+          currentBannerType: bannerType
+        })
         this._imageRetryCount = 0 // 重置重试计数器
         setTimeout(() => {
           this.setData({ animateIn: true })
@@ -203,8 +220,12 @@ Component({
 
     /**
      * 点击遮罩层关闭
+     * force_show=true 时遮罩点击无效，必须通过按钮关闭
      */
     handleOverlayTap() {
+      if (this.data.isForceShow) {
+        return
+      }
       this.handleClose()
     },
 
@@ -257,6 +278,14 @@ Component({
       if (prevIndex >= 0) {
         this.setData({ currentIndex: prevIndex })
       }
+    },
+
+    /**
+     * notice类型"我知道了"确认按钮
+     * 强制弹出(force_show)的系统公告必须通过此按钮关闭
+     */
+    handleNoticeConfirm() {
+      this.handleClose()
     },
 
     /**

@@ -1,4 +1,4 @@
-﻿/* 鍏戞崲椤甸潰瀵艰埅妯″潡鏍峰紡 - 浠巈xchange.scss鎷嗗垎 */
+/* 兑换页面导航模块样式 - 从exchange.scss拆分 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
@@ -46,10 +46,12 @@
 }
 
 .nav-module.horizontal {
-  background: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.98) 0%,
-      rgba(248, 250, 252, 0.95) 50%,
-      rgba(241, 245, 249, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(248, 250, 252, 0.95) 50%,
+    rgba(241, 245, 249, 0.95) 100%
+  );
   border-radius: 16rpx;
   padding: 8rpx 14rpx;
   /* 🔧 极致压缩：减小内边距，最大化商品展示空间 */
@@ -188,7 +190,6 @@
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -283,9 +284,11 @@
 
 /* 添加微妙的材质感 */
 .nav-item-horizontal {
-  background-image: linear-gradient(135deg,
-      rgba(255, 255, 255, 0.8) 0%,
-      rgba(255, 255, 255, 0.4) 100%);
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
   border: 1rpx solid rgba(255, 255, 255, 0.6);
 }
 

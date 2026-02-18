@@ -1,4 +1,4 @@
-﻿/* 鍏戞崲椤甸潰 - 鍟嗗搧鍏戞崲Tab锛堜氦鏄撳競鍦猴級鏍峰紡 - 浠巈xchange.scss鎷嗗垎 */
+/* 兑换页面 - 商品兑换Tab（交易市场）样式 - 从exchange.scss拆分 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
@@ -157,7 +157,6 @@
   margin: 0;
   box-sizing: border-box;
 }
-
 
 .header-action-btn:active {
   transform: scale(0.95);
@@ -1873,6 +1872,77 @@ button.page-btn,
   padding: 15rpx;
   border-radius: 10rpx;
   display: block;
+}
+
+/* ===== 我的挂单快捷入口 ===== */
+.my-listings-entry {
+  display: flex;
+  align-items: center;
+  margin: 20rpx auto 12rpx;
+  max-width: 700rpx;
+  padding: 28rpx 24rpx;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.08), rgba(255, 167, 38, 0.05));
+  border: 2rpx solid rgba(255, 152, 0, 0.25);
+  border-radius: $border-radius-lg;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.my-listings-entry::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6rpx;
+  background: linear-gradient(180deg, #ff9800, #ff6d00);
+  border-radius: 3rpx;
+}
+
+.my-listings-entry:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 167, 38, 0.1));
+}
+
+.entry-icon-wrapper {
+  width: 64rpx;
+  height: 64rpx;
+  @include flex-center;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 167, 38, 0.1));
+  border-radius: $border-radius-md;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.entry-icon {
+  font-size: 36rpx;
+}
+
+.entry-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry-title {
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: #e65100;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.entry-desc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+}
+
+.entry-arrow {
+  font-size: $font-size-xs;
+  color: rgba(255, 152, 0, 0.6);
+  flex-shrink: 0;
+  margin-left: 12rpx;
 }
 
 /* 规则说明样式 */

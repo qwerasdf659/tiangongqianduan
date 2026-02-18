@@ -28,6 +28,7 @@ const configCacheFunctions = require('./config-cache')
 const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const productFilterFunctions = require('./product-filter')
+const popupFrequencyFunctions = require('./popup-frequency')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -62,6 +63,9 @@ const Waterfall = { ...waterfallFunctions }
 /** 商品筛选工具 - 通用筛选/排序/搜索 */
 const ProductFilter = { ...productFilterFunctions }
 
+/** 弹窗横幅频率控制 - 服务端驱动客户端执行的频率判断 */
+const PopupFrequency = { ...popupFrequencyFunctions }
+
 // WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
@@ -83,7 +87,8 @@ module.exports = {
   ConfigCache,
   Logger,
   Waterfall,
-  ProductFilter
+  ProductFilter,
+  PopupFrequency
 }
 
 export {}

@@ -71,12 +71,21 @@ Page({
       },
       {
         id: 'my-inventory',
-        name: '我的库存',
-        description: '管理已兑换商品库存',
+        name: '我的仓库',
+        description: '管理我的所有物品',
         icon: '📦',
         color: '#00BCD4',
         type: 'page',
         url: '/pages/trade/inventory/inventory'
+      },
+      {
+        id: 'my-listings',
+        name: '我的挂单',
+        description: '查看和管理市场挂单',
+        icon: '📋',
+        color: '#FF9800',
+        type: 'page',
+        url: '/pages/trade/my-listings/my-listings'
       },
       {
         id: 'trade-records',
@@ -415,6 +424,7 @@ Page({
   /**
    * 加载积分趋势数据（今日获得/消费）
    * 后端路由: GET /api/v4/lottery/points
+   * 期望响应: { success: true, data: { asset_summary: { today_earned, today_consumed } } }
    */
   async loadPointsTrend() {
     try {
@@ -422,11 +432,21 @@ Page({
 
       if (result && result.success && result.data) {
         const statisticsData = result.data
-        this.setData({
-          todayEarned: statisticsData.asset_summary?.today_earned || 0,
-          todayConsumed: statisticsData.asset_summary?.today_consumed || 0
-        })
+
+        if (!statisticsData.asset_summary) {
+          log.warn('⚠️ 后端响应缺少 asset_summary 字段，响应data结构:', Object.keys(statisticsData))
+        }
+
+        const todayEarned = statisticsData.asset_summary?.today_earned ?? 0
+        const todayConsumed = statisticsData.asset_summary?.today_consumed ?? 0
+        this.setData({ todayEarned, todayConsumed })
+
+        log.info('📊 积分趋势数据:', { todayEarned, todayConsumed })
       } else {
+        log.warn('⚠️ getUserStatistics 返回失败或无数据:', {
+          success: result?.success,
+          hasData: !!result?.data
+        })
         this.setData({ todayEarned: 0, todayConsumed: 0 })
       }
     } catch (error) {
@@ -494,7 +514,7 @@ Page({
       item.action &&
       typeof (this as any)[item.action] === 'function'
     ) {
-      ;(this as any)[item.action]()
+      ; (this as any)[item.action]()
     } else {
       log.warn('⚠️ 未知的菜单类型或方法不存在:', { type: item.type, action: item.action })
     }
@@ -675,4 +695,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

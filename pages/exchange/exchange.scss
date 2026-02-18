@@ -1,4 +1,4 @@
-﻿/* 兑换页面样式 - V5.1 Sass模块化版本 */
+/* 兑换页面样式 - V5.1 Sass模块化版本 */
 /* 从4672行拆分为5个文件: 公共样式 + 4个模块partial */
 @import '../../styles/variables';
 @import '../../styles/mixins';
@@ -10,10 +10,12 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg,
-      rgba(102, 126, 234, 0.08) 0%,
-      rgba(118, 75, 162, 0.12) 50%,
-      rgba(76, 205, 196, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.08) 0%,
+    rgba(118, 75, 162, 0.12) 50%,
+    rgba(76, 205, 196, 0.08) 100%
+  );
   padding: 8rpx 12rpx 0;
   /* 🔧 底部padding去掉，由tabBar自身控制安全区域，最大化商品展示空间 */
   position: relative;

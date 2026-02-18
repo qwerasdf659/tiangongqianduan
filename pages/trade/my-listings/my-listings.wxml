@@ -1,0 +1,112 @@
+<!--pages/trade/my-listings/my-listings.wxml - 我的挂单页面模板 -->
+
+<view class="my-listings-container">
+  <!-- 顶部统计卡片 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-number">{{totalCount}}</text>
+        <text class="stat-label">全部挂单</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-number stat-on-sale">{{statusTabs[1].count || 0}}</text>
+        <text class="stat-label">在售中</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-number stat-sold">{{statusTabs[2].count || 0}}</text>
+        <text class="stat-label">已成交</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 状态筛选标签页 -->
+  <view class="status-tabs">
+    <view class="tab-item {{currentStatus === item.key ? 'active' : ''}}" wx:for="{{statusTabs}}" wx:key="key"
+      bindtap="onStatusTabTap" data-status="{{item.key}}">
+      <text class="tab-label">{{item.label}}</text>
+      <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
+    </view>
+  </view>
+
+  <!-- 挂单列表 -->
+  <view class="listings-wrapper">
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading && listings.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 挂单卡片列表 -->
+    <block wx:if="{{!loading || listings.length > 0}}">
+      <view class="listing-card" wx:for="{{listings}}" wx:key="market_listing_id">
+        <!-- 卡片头部：类型标签 + 状态标签 -->
+        <view class="card-header">
+          <view class="kind-tag {{item.listing_kind}}">
+            <text>{{item.listing_kind === 'fungible_asset' ? '💎 资产' : '📦 物品'}}</text>
+          </view>
+          <view class="status-tag"
+            style="background: {{item.statusColor}}20; color: {{item.statusColor}}; border: 2rpx solid {{item.statusColor}}40">
+            <text>{{item.status_display}}</text>
+          </view>
+        </view>
+
+        <!-- 卡片主体：商品信息 -->
+        <view class="card-body">
+          <view class="item-info">
+            <text class="item-name">{{item.display_name}}</text>
+            <view class="item-meta">
+              <text class="meta-text" wx:if="{{item.listing_kind === 'fungible_asset' && item.offer_amount}}">数量:
+                {{item.offer_amount}} {{item.offer_asset_code}}</text>
+              <text class="meta-text" wx:if="{{item.offer_item_rarity}}">稀有度: {{item.offer_item_rarity}}</text>
+            </view>
+          </view>
+          <view class="price-info">
+            <text class="price-label">售价</text>
+            <view class="price-value-row">
+              <text class="price-amount">{{item.price_amount}}</text>
+              <text class="price-unit">{{item.price_asset_code === 'DIAMOND' ? '💎' : item.price_asset_code}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 卡片底部：时间 + 操作 -->
+        <view class="card-footer">
+          <text class="created-time">{{item.formattedTime || item.created_at}}</text>
+          <view class="card-actions">
+            <button class="withdraw-btn" wx:if="{{item.status === 'on_sale'}}" catchtap="onWithdrawListing"
+              data-listing="{{item}}" disabled="{{withdrawingId === item.market_listing_id}}">
+              {{withdrawingId === item.market_listing_id ? '撤回中...' : '撤回挂单'}}
+            </button>
+            <view class="status-label" wx:elif="{{item.status === 'sold'}}">
+              <text class="sold-label">🎉 交易完成</text>
+            </view>
+            <view class="status-label" wx:elif="{{item.status === 'withdrawn' || item.status === 'admin_withdrawn'}}">
+              <text class="withdrawn-label">已撤回</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载更多提示 -->
+      <view class="load-more" wx:if="{{listings.length > 0 && hasMore}}">
+        <text class="load-more-text">{{loading ? '加载中...' : '上拉加载更多'}}</text>
+      </view>
+      <view class="load-more" wx:if="{{listings.length > 0 && !hasMore}}">
+        <text class="load-more-text no-more">— 已经到底了 —</text>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && isEmpty}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-title">{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</text>
+      <text class="empty-desc">去仓库上架您的物品或资产吧</text>
+      <view class="empty-actions">
+        <button class="action-btn-primary" bindtap="goToInventory">📦 去上架</button>
+        <button class="action-btn-outline" bindtap="goToMarket">🏪 逛市场</button>
+      </view>
+    </view>
+  </view>
+</view>
