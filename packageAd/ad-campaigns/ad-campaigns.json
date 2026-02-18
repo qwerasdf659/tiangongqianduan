@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的广告活动",
+  "navigationBarBackgroundColor": "#FF6B35",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "usingComponents": {}
+}

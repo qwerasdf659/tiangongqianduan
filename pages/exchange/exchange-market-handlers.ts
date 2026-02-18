@@ -35,7 +35,7 @@ const { userStore: marketUserStore } = require('../../store/user')
  */
 const marketHandlers = {
   // ============================================
-  // 📦 商品数据加载
+  // 商品数据加载
   // ============================================
 
   /** 初始化筛选条件（重置所有筛选为默认值） */
@@ -57,11 +57,11 @@ const marketHandlers = {
    * 响应: { products: MarketListing[], pagination: { page, page_size, total } }
    */
   async loadProducts() {
-    marketLog.info('🏪 开始加载交易市场挂单列表...')
+    marketLog.info(' 开始加载交易市场挂单列表...')
 
     // 在商品兑换模式下不加载交易市场列表
     if (this.data.currentTab === 'market') {
-      marketLog.info('🏪 当前在商品兑换模式，跳过交易市场列表加载')
+      marketLog.info(' 当前在商品兑换模式，跳过交易市场列表加载')
       return
     }
 
@@ -74,12 +74,12 @@ const marketHandlers = {
       token = wx.getStorageSync('access_token')
       if (token) {
         marketUserStore.updateAccessToken(token)
-        marketLog.info('🔑 从本地存储恢复Token到Store')
+        marketLog.info('从本地存储恢复Token到Store')
       }
     }
 
     if (!token) {
-      marketLog.info('🔐 用户未登录，需要先登录')
+      marketLog.info('用户未登录，需要先登录')
       this.setData({ loading: false })
       wx.showModal({
         title: '未登录',
@@ -87,26 +87,26 @@ const marketHandlers = {
         showCancel: false,
         confirmText: '立即登录',
         success: () => {
-          wx.reLaunch({ url: '/pages/auth/auth' })
+          wx.reLaunch({ url: '/packageUser/auth/auth' })
         }
       })
       return
     }
 
-    marketLog.info('🎫 Token已准备，开始请求交易市场数据')
+    marketLog.info('Token已准备，开始请求交易市场数据')
 
     try {
       const page = this.data.currentPage || 1
       const limit = this.data.pageSize || 20
 
-      marketLog.info(`📦 请求参数: page=${page}, limit=${limit}`)
+      marketLog.info(`请求参数: page=${page}, limit=${limit}`)
 
       // 调用交易市场API（GET /api/v4/market/listings）
       const response = await getMarketProducts({ page, limit })
       const requestDuration = Date.now() - requestStartTime
 
-      marketLog.info('✅ 交易市场数据加载成功!')
-      marketLog.info('⏱️ 请求耗时:', requestDuration + 'ms')
+      marketLog.info('交易市场数据加载成功!')
+      marketLog.info('请求耗时:', requestDuration + 'ms')
 
       if (response && response.success && response.data) {
         // 后端返回字段名是 products（基于 market_listings 表）
@@ -175,19 +175,15 @@ const marketHandlers = {
         this.calculateTotalPages()
         this.loadCurrentPageProducts()
 
-        marketLog.info(`✅ 成功加载 ${processedProducts.length} 个交易市场挂单`)
-        showToast({
-          title: `加载 ${processedProducts.length} 个挂单`,
-          icon: 'success',
-          duration: DELAY.TOAST_SHORT
-        })
+        marketLog.info(`成功加载 ${processedProducts.length} 个交易市场挂单`)
+        showToast(`加载 ${processedProducts.length} 个挂单`, 'success', DELAY.TOAST_SHORT)
       } else {
         throw new Error((response && response.message) || '交易市场数据加载失败')
       }
     } catch (error: any) {
       const requestDuration = Date.now() - requestStartTime
-      marketLog.error('❌ 交易市场数据加载失败:', error)
-      marketLog.info('⏱️ 失败请求耗时:', requestDuration + 'ms')
+      marketLog.error('交易市场数据加载失败:', error)
+      marketLog.info('失败请求耗时:', requestDuration + 'ms')
       this.setData({ loading: false })
 
       if (error.statusCode === 401) {
@@ -201,19 +197,19 @@ const marketHandlers = {
     const lastLoadTime: number = (this as any)._lastProductLoadTime || 0
     const now: number = Date.now()
     if (now - lastLoadTime > 60000) {
-      marketLog.info('🔄 商品数据已过期，自动刷新')
+      marketLog.info('商品数据已过期，自动刷新')
       this.loadProducts()
     }
   },
 
   // ============================================
-  // 🔍 搜索和筛选
+  // 搜索和筛选
   // ============================================
 
   /** 搜索输入处理（500ms防抖） */
   onSearchInput: debounce(function (e: any) {
     const keyword = e.detail.value.trim()
-    marketLog.info('🔍 搜索关键词:', keyword)
+    marketLog.info('搜索关键词:', keyword)
     this.setData({ searchKeyword: keyword, currentPage: 1 })
     this.applyFilters()
   }, 500),
@@ -221,7 +217,7 @@ const marketHandlers = {
   /** 筛选条件变更（全部/物品/资产） */
   onFilterChange(e: any) {
     const filter = e.currentTarget.dataset.filter
-    marketLog.info('🔍 切换筛选:', filter)
+    marketLog.info('切换筛选:', filter)
     this.setData({ currentFilter: filter, currentPage: 1 })
 
     // 按 listing_kind 筛选
@@ -238,14 +234,14 @@ const marketHandlers = {
   /** 切换高级筛选面板 */
   onToggleAdvancedFilter() {
     const { showAdvancedFilter } = this.data
-    marketLog.info('🔍 切换高级筛选:', !showAdvancedFilter)
+    marketLog.info('切换高级筛选:', !showAdvancedFilter)
     this.setData({ showAdvancedFilter: !showAdvancedFilter })
   },
 
   /** 商品分类筛选变更 */
   onCategoryFilterChange(e: any) {
     const category = e.currentTarget.dataset.category
-    marketLog.info('🔍 切换分类筛选:', category)
+    marketLog.info('切换分类筛选:', category)
     this.setData({ categoryFilter: category, currentPage: 1 })
     this.applyAdvancedFilters()
   },
@@ -253,7 +249,7 @@ const marketHandlers = {
   /** 积分范围筛选变更 */
   onPointsRangeChange(e: any) {
     const range = e.currentTarget.dataset.range
-    marketLog.info('🔍 切换积分范围:', range)
+    marketLog.info('切换积分范围:', range)
     this.setData({ pointsRange: range, currentPage: 1 })
     this.applyAdvancedFilters()
   },
@@ -261,7 +257,7 @@ const marketHandlers = {
   /** 库存状态筛选变更 */
   onStockFilterChange(e: any) {
     const filter = e.currentTarget.dataset.filter
-    marketLog.info('🔍 切换库存筛选:', filter)
+    marketLog.info('切换库存筛选:', filter)
     this.setData({ stockFilter: filter, currentPage: 1 })
     this.applyAdvancedFilters()
   },
@@ -269,14 +265,14 @@ const marketHandlers = {
   /** 排序方式变更 */
   onSortByChange(e: any) {
     const sort = e.currentTarget.dataset.sort
-    marketLog.info('🔍 切换排序:', sort)
+    marketLog.info('切换排序:', sort)
     this.setData({ sortBy: sort, currentPage: 1 })
     this.applyAdvancedFilters()
   },
 
   /** 重置所有筛选条件 */
   onResetFilters() {
-    marketLog.info('🔄 重置所有筛选条件')
+    marketLog.info('重置所有筛选条件')
     this.setData({
       currentFilter: 'all',
       categoryFilter: 'all',
@@ -288,7 +284,7 @@ const marketHandlers = {
       showAdvancedFilter: false
     })
     this.applyFilters()
-    showToast({ title: '✅ 筛选已重置', icon: 'success' })
+    showToast('筛选已重置', 'success')
   },
 
   /** 应用高级筛选条件（交易市场挂单筛选） */
@@ -343,55 +339,55 @@ const marketHandlers = {
   },
 
   // ============================================
-  // 🔄 刷新和排序
+  // 刷新和排序
   // ============================================
 
   /** 手动刷新商品列表 */
   async onRefreshProducts() {
-    marketLog.info('🔧 手动刷新商品列表')
+    marketLog.info('手动刷新商品列表')
 
     if (this.data.currentTab === 'market') {
       const { currentSpace } = this.data
-      marketLog.info(`🏪 商品兑换模式，刷新${currentSpace === 'premium' ? '臻选' : '幸运'}空间数据`)
+      marketLog.info(` 商品兑换模式，刷新${currentSpace === 'premium' ? '臻选' : '幸运'}空间数据`)
       try {
         if (currentSpace === 'premium') {
           await this.initPremiumSpaceData()
         } else {
           await this.initLuckySpaceData()
         }
-        showToast({ title: '✅ 刷新成功', icon: 'success' })
+        showToast('刷新成功', 'success')
       } catch (error) {
-        marketLog.error('❌ 刷新失败:', error)
+        marketLog.error('刷新失败:', error)
       }
       return
     }
 
     try {
       await this.loadProducts()
-      showToast({ title: '✅ 刷新成功', icon: 'success' })
+      showToast('刷新成功', 'success')
     } catch (error) {
-      marketLog.error('❌ 刷新失败:', error)
-      showToast({ title: '刷新失败，请重试', icon: 'none' })
+      marketLog.error('刷新失败:', error)
+      showToast('刷新失败，请重试')
     }
   },
 
   /** 按 price_amount 升序排序 */
   onSortByPoints() {
-    marketLog.info('🔍 按售价排序')
+    marketLog.info('按售价排序')
     const { filteredProducts } = this.data
     const sorted = [...filteredProducts].sort((a: any, b: any) => a.price_amount - b.price_amount)
     this.setData({ filteredProducts: sorted, sortBy: 'price_asc' })
-    showToast({ title: '已按售价升序排列', icon: 'success' })
+    showToast('已按售价升序排列', 'success')
   },
 
   // ============================================
-  // 🖼️ 图片处理
+  // ️ 图片处理
   // ============================================
 
   /** 图片加载错误处理 */
   onImageError(e: any) {
     const { index } = e.currentTarget.dataset
-    marketLog.info(`⚠️ 图片加载失败 [${index}]`)
+    marketLog.info(`图片加载失败 [${index}]`)
     this.setData({
       [`filteredProducts[${index}].imageStatus`]: 'error',
       [`filteredProducts[${index}].image`]: '/images/default-product.png'
@@ -407,27 +403,27 @@ const marketHandlers = {
   /** 预览商品图片 */
   onPreviewImage(e: any) {
     const { url } = e.currentTarget.dataset
-    marketLog.info('🖼️ 预览图片:', url)
+    marketLog.info('预览图片:', url)
     if (url && url !== '/images/default-product.png') {
       wx.previewImage({
         current: url,
         urls: [url],
-        success: () => marketLog.info('✅ 图片预览成功'),
+        success: () => marketLog.info('图片预览成功'),
         fail: (error: any) => {
-          marketLog.error('❌ 图片预览失败:', error)
-          showToast({ title: '图片预览失败', icon: 'none' })
+          marketLog.error('图片预览失败:', error)
+          showToast('图片预览失败')
         }
       })
     }
   },
 
   // ============================================
-  // 🛒 购买弹窗（C2C交易市场）
+  // 购买弹窗（C2C交易市场）
   // ============================================
 
   /** 取消购买操作 */
   onCancelExchange() {
-    marketLog.info('❌ 取消购买操作')
+    marketLog.info('取消购买操作')
     this.setData({ showConfirm: false, selectedProduct: null })
   },
 
@@ -441,19 +437,19 @@ const marketHandlers = {
     const { selectedProduct } = this.data
 
     if (!selectedProduct) {
-      marketLog.error('❌ 未选择商品')
-      showToast({ title: '请选择要购买的商品', icon: 'none' })
+      marketLog.error('未选择商品')
+      showToast('请选择要购买的商品')
       return
     }
 
     if (selectedProduct.status !== 'on_sale') {
-      marketLog.error('❌ 商品已下架或已售出')
-      showToast({ title: '该商品已不可购买', icon: 'none' })
+      marketLog.error('商品已下架或已售出')
+      showToast('该商品已不可购买')
       return
     }
 
     if (this.data.exchanging) {
-      marketLog.info('⏳ 正在购买中，请勿重复操作')
+      marketLog.info('正在购买中，请勿重复操作')
       return
     }
 
@@ -464,7 +460,7 @@ const marketHandlers = {
       const response = await purchaseMarketProduct(selectedProduct.market_listing_id)
 
       if (response && response.success && response.data) {
-        marketLog.info('✅ 购买成功:', response.data)
+        marketLog.info('购买成功:', response.data)
 
         this.setData({
           showConfirm: false,
@@ -480,7 +476,7 @@ const marketHandlers = {
           }
         })
 
-        marketLog.info('🎉 购买流程完成')
+        marketLog.info('购买流程完成')
 
         // 延迟刷新列表
         setTimeout(() => {
@@ -490,7 +486,7 @@ const marketHandlers = {
         throw new Error((response && response.message) || '购买失败')
       }
     } catch (error: any) {
-      marketLog.error('❌ 购买失败:', error)
+      marketLog.error('购买失败:', error)
       this.setData({ exchanging: false })
 
       let errorMessage = '购买失败，请重试'
@@ -507,7 +503,7 @@ const marketHandlers = {
       }
 
       wx.showModal({
-        title: '🚨 购买失败',
+        title: '购买失败',
         content: errorMessage,
         showCancel: true,
         cancelText: '重试',
@@ -525,13 +521,23 @@ const marketHandlers = {
 
   /** 关闭购买结果弹窗 */
   onCloseResult() {
-    marketLog.info('📝 关闭购买结果弹窗')
+    marketLog.info('关闭购买结果弹窗')
     this.setData({ showResult: false, resultData: null })
   },
 
   // ============================================
-  // 📖 分页
+  // 分页
   // ============================================
+
+  /** pagination组件统一分页事件处理 */
+  onMarketPaginationChange(e: any) {
+    const targetPage = e.detail.page
+    if (targetPage !== this.data.currentPage) {
+      this.setData({ currentPage: targetPage, pageInputValue: '' })
+      this.loadCurrentPageProducts()
+      marketLog.info(`交易市场跳转到第 ${targetPage} 页`)
+    }
+  },
 
   /** 上一页 */
   onPrevPage() {
@@ -539,7 +545,7 @@ const marketHandlers = {
     if (currentPage > 1) {
       this.setData({ currentPage: currentPage - 1 })
       this.loadCurrentPageProducts()
-      marketLog.info(`📖 切换到第 ${currentPage - 1} 页`)
+      marketLog.info(` 切换到第 ${currentPage - 1} 页`)
     }
   },
 
@@ -549,7 +555,7 @@ const marketHandlers = {
     if (currentPage < totalPages) {
       this.setData({ currentPage: currentPage + 1 })
       this.loadCurrentPageProducts()
-      marketLog.info(`📖 切换到第 ${currentPage + 1} 页`)
+      marketLog.info(` 切换到第 ${currentPage + 1} 页`)
     }
   },
 
@@ -560,7 +566,7 @@ const marketHandlers = {
     if (targetPage !== this.data.currentPage) {
       this.setData({ currentPage: targetPage })
       this.loadCurrentPageProducts()
-      marketLog.info(`📖 跳转到第 ${targetPage} 页`)
+      marketLog.info(` 跳转到第 ${targetPage} 页`)
     }
   },
 
@@ -575,20 +581,20 @@ const marketHandlers = {
     const inputValue = e.detail.value || this.data.pageInputValue
     const targetPage = parseInt(inputValue)
 
-    marketLog.info(`📖 输入跳转页码: ${targetPage}`)
+    marketLog.info(` 输入跳转页码: ${targetPage}`)
 
     if (isNaN(targetPage)) {
-      showToast({ title: '请输入有效页码', icon: 'none' })
+      showToast('请输入有效页码')
       return
     }
     if (targetPage < 1 || targetPage > totalPages) {
-      showToast({ title: `页码范围: 1 - ${totalPages}`, icon: 'none' })
+      showToast(`页码范围: 1 - ${totalPages}`)
       return
     }
     if (targetPage !== this.data.currentPage) {
       this.setData({ currentPage: targetPage, pageInputValue: '' })
       this.loadCurrentPageProducts()
-      showToast({ title: `已跳转到第 ${targetPage} 页`, icon: 'success' })
+      showToast(`已跳转到第 ${targetPage} 页`, 'success')
     }
   },
 
@@ -600,7 +606,7 @@ const marketHandlers = {
     const currentPageProducts = products.slice(startIndex, endIndex)
 
     marketLog.info(
-      `📖 加载第${currentPage}页商品 [${startIndex}-${endIndex - 1}], 共${currentPageProducts.length}个`
+      `加载第${currentPage}页商品 [${startIndex}-${endIndex - 1}], 共${currentPageProducts.length}个`
     )
 
     this.setData({ filteredProducts: currentPageProducts })
@@ -612,9 +618,7 @@ const marketHandlers = {
     const { products, pageSize } = this.data
     const totalPages = Math.max(1, Math.ceil(products.length / pageSize))
     this.setData({ totalPages, totalProducts: products.length })
-    marketLog.info(
-      `📊 计算分页信息: 共${products.length}个商品, 每页${pageSize}个, 共${totalPages}页`
-    )
+    marketLog.info(`计算分页信息: 共${products.length}个商品, 每页${pageSize}个, 共${totalPages}页`)
   },
 
   /** 清除搜索关键词 */
@@ -625,12 +629,12 @@ const marketHandlers = {
 
   /** 跳转到"我的挂单"页面 */
   goToMyListings() {
-    marketLog.info('📋 跳转到我的挂单页面')
+    marketLog.info('跳转到我的挂单页面')
     wx.navigateTo({
-      url: '/pages/trade/my-listings/my-listings',
+      url: '/packageTrade/trade/my-listings/my-listings',
       fail: (error: any) => {
-        marketLog.error('❌ 跳转我的挂单页面失败:', error)
-        showToast({ title: '页面跳转失败', icon: 'none' })
+        marketLog.error('跳转我的挂单页面失败:', error)
+        showToast('页面跳转失败')
       }
     })
   }
@@ -638,5 +642,4 @@ const marketHandlers = {
 
 module.exports = marketHandlers
 
-export { }
-
+export {}

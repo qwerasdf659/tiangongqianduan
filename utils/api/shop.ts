@@ -1,5 +1,5 @@
 /**
- * 🎫 消费积分系统 + 核销API
+ * 消费积分系统 + 核销API
  * 后端路由: routes/v4/shop/consumption/（用户端+商家端）
  * 核销路由: routes/v4/shop/redemption/
  *
@@ -11,7 +11,7 @@
 const { apiClient } = require('./client')
 const { buildQueryString } = require('../util')
 
-// ==================== 🎫 用户端消====================
+// ==================== 用户端消====================
 
 /** 获取当前用户消费积分二维?- GET /api/v4/shop/consumption/qrcode */
 async function getUserQRCode() {
@@ -42,7 +42,7 @@ async function getConsumptionDetail(record_id: number) {
   })
 }
 
-// ==================== 🏪 商家端消====================
+// ==================== 商家端消====================
 
 /**
  * 根据V2动态二维码获取用户信息（商家扫码后调用户 * GET /api/v4/shop/consumption/user-info?qr_code=xxx&store_id=xxx
@@ -129,7 +129,7 @@ async function getMerchantConsumptionStats() {
   return apiClient.request('/shop/consumption/merchant/stats', { method: 'GET', needAuth: true })
 }
 
-// ==================== 🎟商家核销 ====================
+// ==================== 商家核销 ====================
 
 /** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限?*/
 async function createRedemptionOrder(params: Record<string, any>) {
@@ -146,7 +146,7 @@ async function createRedemptionOrder(params: Record<string, any>) {
 
 /**
  * 商家核销用户物品 - POST /api/v4/shop/redemption/fulfill
- * 🔴 需要商家权role_level>=20)
+ * 需要商家权role_level>=20)
  */
 async function fulfillRedemption(params: { redeem_code: string; store_id?: number }) {
   if (!params || !params.redeem_code) {

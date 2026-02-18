@@ -1,9 +1,10 @@
 // packageAdmin/audit-list/audit-list.ts - 审核列表页面（V4.0）+ MobX响应式状态
 
-// 🔴 使用统一的工具函数导入
-const { API, Utils, Logger } = require('../../utils/index')
+// 统一工具函数导入
+const { API, Utils, Wechat, Logger } = require('../../utils/index')
 const log = Logger.createLogger('audit-list')
 const { checkAuth, formatPhoneNumber } = Utils
+const { showToast } = Wechat
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -95,7 +96,7 @@ Page({
    * 生命周期函数 - 监听页面加载
    */
   onLoad(_options) {
-    log.info('📋 审核列表页面加载')
+    log.info('审核列表页面加载')
 
     // 🆕 MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
@@ -106,7 +107,7 @@ Page({
 
     // 🔴 权限验证：必须是管理员
     if (!checkAuth()) {
-      log.error('❌ 用户未登录，跳转到登录页')
+      log.error('用户未登录，跳转到登录页')
       return
     }
 
@@ -116,7 +117,7 @@ Page({
     const hasAccess = roleLevel >= 100
 
     if (!hasAccess) {
-      log.error('❌ 用户无审批权限，role_level:', roleLevel)
+      log.error('用户无审批权限，role_level:', roleLevel)
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面，仅管理员可查看和审核消费记录。',
@@ -156,7 +157,7 @@ Page({
       // 🔴 刷新时重置页码
       const page = isRefresh ? 1 : this.data.page
 
-      log.info('🔍 开始加载待审核记录，页码:', page)
+      log.info('开始加载待审核记录，页码:', page)
 
       // 🔴 调用后端API获取待审核记录
       const result = await API.getPendingConsumption({
@@ -167,7 +168,7 @@ Page({
       if (result && result.success && result.data) {
         const { records, pagination } = result.data
 
-        log.info('✅ 待审核记录加载成功:', {
+        log.info('待审核记录加载成功:', {
           count: records.length,
           page: pagination.page,
           total: pagination.total
@@ -196,13 +197,9 @@ Page({
         throw new Error(result.message || '加载失败')
       }
     } catch (error: any) {
-      log.error('❌ 加载待审核记录失败:', error)
+      log.error('加载待审核记录失败:', error)
 
-      wx.showToast({
-        title: error.message || '加载失败',
-        icon: 'none',
-        duration: 2000
-      })
+      showToast(error.message || '加载失败')
     } finally {
       this.setData({
         loading: false,
@@ -249,7 +246,7 @@ Page({
       // 字符串格式：使用正则直接提取，不依赖 new Date() 解析
       return extractDateParts(String(dateTimeValue))
     } catch (formatError: any) {
-      log.error('❌ 时间格式化失败:', formatError, '原始值:', dateTimeValue)
+      log.error('时间格式化失败:', formatError, '原始值:', dateTimeValue)
       return typeof dateTimeValue === 'string' ? dateTimeValue : '时间未知'
     }
   },
@@ -265,7 +262,7 @@ Page({
   onApprove(e: any) {
     const record = e.currentTarget.dataset.record
 
-    log.info('✅ 点击审核通过，记录:', record)
+    log.info('点击审核通过，记录:', record)
 
     // 二次确认
     wx.showModal({
@@ -292,34 +289,25 @@ Page({
     this.setData({ submitting: true })
 
     try {
-      log.info('📤 开始审核通过，记录ID:', record.record_id)
+      log.info('开始审核通过，记录ID:', record.record_id)
 
       // 🔴 调用后端API审核通过
       const result = await API.approveConsumption(record.record_id, {
         admin_notes: '核实无误，审核通过'
       })
 
-      log.info('✅ 审核通过成功:', result)
+      log.info('审核通过成功:', result)
 
-      // 🔴 显示成功提示
-      wx.showToast({
-        title: result.message || '审核通过',
-        icon: 'success',
-        duration: 2000
-      })
+      showToast(result.message || '审核通过', 'success')
 
-      // 🔴 刷新列表
+      // 刷新列表
       setTimeout(() => {
         this.loadPendingRecords(true)
       }, 1500)
     } catch (error: any) {
-      log.error('❌ 审核通过失败:', error)
+      log.error('审核通过失败:', error)
 
-      wx.showToast({
-        title: error.message || '审核失败',
-        icon: 'none',
-        duration: 2000
-      })
+      showToast(error.message || '审核失败')
     } finally {
       this.setData({ submitting: false })
     }
@@ -336,7 +324,7 @@ Page({
   onReject(e: any) {
     const record = e.currentTarget.dataset.record
 
-    log.info('❌ 点击审核拒绝，记录:', record)
+    log.info('点击审核拒绝，记录:', record)
 
     // 显示拒绝原因输入弹窗
     this.setData({
@@ -370,27 +358,23 @@ Page({
    *
    */
   async confirmReject() {
-    // 🔴 验证拒绝原因
+    // 验证拒绝原因（至少5个字符，防止审核敷衍）
     if (!this.data.rejectReason || this.data.rejectReason.trim().length < 5) {
-      wx.showToast({
-        title: '拒绝原因至少5个字符',
-        icon: 'none',
-        duration: 2000
-      })
+      showToast('拒绝原因至少5个字符')
       return
     }
 
     this.setData({ submitting: true })
 
     try {
-      log.info('📤 开始审核拒绝，记录ID:', this.data.selectedRecord.record_id)
+      log.info('开始审核拒绝，记录ID:', this.data.selectedRecord.record_id)
 
       // 🔴 调用后端API审核拒绝
       const result = await API.rejectConsumption(this.data.selectedRecord.record_id, {
         admin_notes: this.data.rejectReason.trim()
       })
 
-      log.info('✅ 审核拒绝成功:', result)
+      log.info('审核拒绝成功:', result)
 
       // 🔴 关闭弹窗
       this.setData({
@@ -399,25 +383,16 @@ Page({
         rejectReason: ''
       })
 
-      // 🔴 显示成功提示
-      wx.showToast({
-        title: result.message || '已拒绝',
-        icon: 'success',
-        duration: 2000
-      })
+      showToast(result.message || '已拒绝', 'success')
 
-      // 🔴 刷新列表
+      // 刷新列表
       setTimeout(() => {
         this.loadPendingRecords(true)
       }, 1500)
     } catch (error: any) {
-      log.error('❌ 审核拒绝失败:', error)
+      log.error('审核拒绝失败:', error)
 
-      wx.showToast({
-        title: error.message || '拒绝失败',
-        icon: 'none',
-        duration: 2000
-      })
+      showToast(error.message || '拒绝失败')
     } finally {
       this.setData({ submitting: false })
     }
@@ -445,14 +420,14 @@ Page({
    * 生命周期函数 - 监听页面显示
    */
   onShow() {
-    log.info('📋 审核列表页面显示')
+    log.info('审核列表页面显示')
   },
 
   /**
    * 生命周期函数 - 监听用户下拉刷新
    */
   onPullDownRefresh() {
-    log.info('🔄 下拉刷新')
+    log.info('下拉刷新')
 
     this.loadPendingRecords(true).finally(() => {
       wx.stopPullDownRefresh()
@@ -463,7 +438,7 @@ Page({
    * 生命周期函数 - 监听用户上拉触底
    */
   onReachBottom() {
-    log.info('📄 上拉加载更多')
+    log.info('上拉加载更多')
 
     // 🔴 判断是否还有更多数据
     if (!this.data.hasMore || this.data.loading || this.data.loadingMore) {
@@ -485,7 +460,7 @@ Page({
    * 生命周期函数 - 监听页面卸载
    */
   onUnload() {
-    log.info('📋 审核列表页面卸载')
+    log.info('审核列表页面卸载')
     // 🆕 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()

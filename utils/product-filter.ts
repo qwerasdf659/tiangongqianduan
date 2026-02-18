@@ -192,7 +192,7 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
       break
   }
 
-  log.info(`✅ 筛选完成，共${totalCount}个商品筛选出${filtered.length}个`)
+  log.info(`筛选完成，共${totalCount}个商品筛选出${filtered.length}个`)
 
   return { filtered, totalCount, filteredCount: filtered.length }
 }

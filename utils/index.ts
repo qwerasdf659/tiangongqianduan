@@ -30,6 +30,7 @@ const waterfallFunctions = require('./waterfall')
 const productFilterFunctions = require('./product-filter')
 const popupFrequencyFunctions = require('./popup-frequency')
 const drawQrcodeFunction = require('./weapp-qrcode')
+const apiWrapperFunctions = require('./api-wrapper')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -70,6 +71,9 @@ const PopupFrequency = { ...popupFrequencyFunctions }
 /** 二维码生成工具 - weapp-qrcode Canvas绘制 */
 const QRCode = { drawQrcode: drawQrcodeFunction }
 
+/** API调用包装器 - 统一 try/catch + 响应检查 + 错误处理 */
+const ApiWrapper = { ...apiWrapperFunctions }
+
 // WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
@@ -93,8 +97,8 @@ module.exports = {
   Waterfall,
   ProductFilter,
   PopupFrequency,
-  QRCode
+  QRCode,
+  ApiWrapper
 }
 
-export { }
-
+export {}

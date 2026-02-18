@@ -1,7 +1,7 @@
 /**
  * 📦 MobX Store 分页操作工厂函数
  *
- * 抽取 trade.ts、exchange.ts、points.ts 中完全相同的分页模式：
+ * 抽取 trade.ts、points.ts 中完全相同的分页模式：
  *   - 初始分页状态对象
  *   - setXxx(items, pagination) — 首页加载
  *   - appendXxx(newItems, pagination) — 分页追加

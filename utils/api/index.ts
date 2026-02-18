@@ -24,6 +24,7 @@ const marketModule = require('./market')
 const shopModule = require('./shop')
 const systemModule = require('./system')
 const consoleModule = require('./console')
+const adCampaignsModule = require('./ad-campaigns')
 
 /**
  * 展开运算符自动同步所有子模块导出
@@ -60,11 +61,14 @@ module.exports = {
   /** 管理员: getPendingConsumption / approveConsumption / getAdminChatSessions / updateAdminOnlineStatus 等 */
   ...consoleModule,
 
+  /** 广告系统(P2+P3): getMyAdCampaigns / createAdCampaign / submitAdCampaign / cancelAdCampaign / reportAdImpression / reportAdClick 等 */
+  ...adCampaignsModule,
+
   /** API版本信息 */
   version: '5.2.0',
-  lastUpdated: '2026-02-16T00:00:00+08:00',
+  lastUpdated: '2026-02-19T00:00:00+08:00',
   apiCompatibility:
-    'V4.7.0后端对齐+聊天图片上传+臻选空间解锁+商品筛选配置+反馈配置+客服响应统计+竞价系统'
+    'V4.7.0后端对齐+聊天图片上传+臻选空间解锁+商品筛选配置+反馈配置+客服响应统计+竞价系统+广告系统'
 }
 
 export {}

@@ -31,19 +31,25 @@ function showSuccess(message: string): void {
   })
 }
 
-/** 处理JWT Token过期（自动清理+跳转登录页） */
+/** 处理JWT Token过期（通过 Store 统一清理认证数据 + 跳转登录页） */
 function handleJWTExpired(): void {
   wx.showModal({
     title: '登录已过期',
     content: '请重新登录',
     showCancel: false,
     success: () => {
-      // 清理本地存储的认证数据
-      wx.removeStorageSync('access_token')
-      wx.removeStorageSync('refresh_token')
-      wx.removeStorageSync('user_info')
-      // 跳转到登录页
-      wx.redirectTo({ url: '/pages/auth/auth' })
+      try {
+        const { userStore } = require('../store/user')
+        const { pointsStore } = require('../store/points')
+        userStore.clearLoginState()
+        pointsStore.clearPoints()
+      } catch (storeError) {
+        log.warn('Store清理失败，降级直接清理Storage:', storeError)
+        wx.removeStorageSync('access_token')
+        wx.removeStorageSync('refresh_token')
+        wx.removeStorageSync('user_info')
+      }
+      wx.redirectTo({ url: '/packageUser/auth/auth' })
     }
   })
 }
@@ -61,7 +67,7 @@ interface ErrorLike {
  */
 function handleError(error: ErrorLike | Error | string, context: string = '操作'): void {
   // 记录错误日志（方便调试）
-  log.error(`❌ ${context}失败:`, error)
+  log.error(`${context}失败:`, error)
 
   // 提取错误消息（兼容多种错误对象格式）
   const message =
@@ -89,3 +95,5 @@ module.exports = {
   handleJWTExpired,
   handleError
 }
+
+export {}

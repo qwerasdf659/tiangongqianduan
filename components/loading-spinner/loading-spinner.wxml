@@ -1,0 +1,9 @@
+<!-- 通用加载动画组件 -->
+<view class="loading-container">
+  <view class="loading-spinner">
+    <view class="spinner-dot dot1"></view>
+    <view class="spinner-dot dot2"></view>
+    <view class="spinner-dot dot3"></view>
+  </view>
+  <text class="loading-text" wx:if="{{text}}">{{text}}</text>
+</view>

@@ -62,7 +62,7 @@ class WechatUtils {
   static initializeWechatEnvironment(): WechatInitResult {
     const devConfig = getDevelopmentConfig()
 
-    log.info('🚀 微信环境初始化v5.0', {
+    log.info('微信环境初始化v5.0', {
       isDevelopment: devConfig.enableUnifiedAuth
       // 万能验证码123456完全由后端控制，前端不记录
     })
@@ -76,7 +76,7 @@ class WechatUtils {
 
   /**
    * 获取微信用户信息
-   * V4.0规范: 移除Mock数据，统一使用微信官方API
+   * V4.0规范: 统一使用微信官方API
    * 用户信息完全由后端JWT Token提供，此处仅获取微信昵称头像
    * 业务场景: 用户首次登录时获取资料、完善用户档案
    */
@@ -85,7 +85,7 @@ class WechatUtils {
       wx.getUserProfile({
         desc: '用于完善会员资料',
         success(res: WechatMiniprogram.GetUserProfileSuccessCallbackResult) {
-          log.info('✅ 获取用户信息成功', res.userInfo)
+          log.info('获取用户信息成功', res.userInfo)
           resolve({
             success: true,
             userInfo: res.userInfo,
@@ -93,7 +93,7 @@ class WechatUtils {
           })
         },
         fail(err: WechatMiniprogram.GeneralCallbackResult) {
-          log.error('❌ 获取用户信息失败', err)
+          log.error('获取用户信息失败', err)
           reject({
             success: false,
             error: err,
@@ -114,11 +114,11 @@ class WechatUtils {
       wx.authorize({
         scope,
         success() {
-          log.info(`✅ 授权成功: ${scope}`)
+          log.info(`授权成功: ${scope}`)
           resolve({ success: true, scope })
         },
         fail(err: WechatMiniprogram.GeneralCallbackResult) {
-          log.warn(`⚠️ 授权失败: ${scope}`, err)
+          log.warn(`授权失败: ${scope}`, err)
           reject({ success: false, scope, error: err })
         }
       })
@@ -170,10 +170,10 @@ class WechatUtils {
     wx.navigateTo({
       url: fullUrl,
       success() {
-        log.info(`✅ 页面跳转成功: ${fullUrl}`)
+        log.info(`页面跳转成功: ${fullUrl}`)
       },
       fail(err: WechatMiniprogram.GeneralCallbackResult) {
-        log.error(`❌ 页面跳转失败: ${fullUrl}`, err)
+        log.error(`页面跳转失败: ${fullUrl}`, err)
         WechatUtils.showToast('页面跳转失败')
       }
     })
@@ -187,10 +187,10 @@ class WechatUtils {
     wx.navigateBack({
       delta,
       success() {
-        log.info(`✅ 返回上一页成功, delta: ${delta}`)
+        log.info(`返回上一页成功, delta: ${delta}`)
       },
       fail(err: WechatMiniprogram.GeneralCallbackResult) {
-        log.error('❌ 返回上一页失败', err)
+        log.error('返回上一页失败', err)
         WechatUtils.showToast('返回失败')
       }
     })
@@ -226,10 +226,10 @@ class WechatUtils {
           version: appBaseInfo.version
         }
 
-        log.info('✅ 系统信息获取成功', combinedSystemInfo)
+        log.info('系统信息获取成功', combinedSystemInfo)
         resolve({ success: true, systemInfo: combinedSystemInfo })
       } catch (err) {
-        log.error('❌ 系统信息获取失败', err)
+        log.error('系统信息获取失败', err)
         reject({ success: false, error: err })
       }
     })

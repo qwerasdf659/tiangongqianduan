@@ -1,0 +1,154 @@
+<!--
+  📊 广告活动详情
+  后端API: GET /api/v4/user/ad-campaigns/:id
+-->
+<view class="ad-detail-page">
+  <!-- 加载中 -->
+  <view class="page-loading" wx:if="{{loading}}">
+    <text class="loading-icon">⏳</text>
+    <text class="loading-text">加载活动详情...</text>
+  </view>
+
+  <block wx:if="{{!loading && campaign}}">
+    <!-- 状态头部 -->
+    <view class="status-header" style="background: {{campaign.statusStyle.bgColor}}">
+      <text class="status-icon">{{campaign.statusStyle.icon}}</text>
+      <text class="status-text" style="color: {{campaign.statusStyle.color}}"
+        >{{campaign.statusStyle.text}}</text
+      >
+      <text class="campaign-title">{{campaign.campaign_name}}</text>
+    </view>
+
+    <!-- 基本信息卡片 -->
+    <view class="info-card">
+      <view class="card-title">基本信息</view>
+      <view class="info-row">
+        <text class="info-label">计费模式</text>
+        <text class="info-value">{{campaign.billingModeText}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">展示优先级</text>
+        <text class="info-value">{{campaign.priority}}</text>
+      </view>
+      <view class="info-row" wx:if="{{campaign.start_date}}">
+        <text class="info-label">投放周期</text>
+        <text class="info-value">{{campaign.start_date}} ~ {{campaign.end_date || '持续'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">创建时间</text>
+        <text class="info-value">{{campaign.created_at}}</text>
+      </view>
+    </view>
+
+    <!-- 费用信息卡片 -->
+    <view class="info-card">
+      <view class="card-title">费用信息</view>
+      <block wx:if="{{campaign.billing_mode === 'fixed_daily'}}">
+        <view class="info-row">
+          <text class="info-label">投放天数</text>
+          <text class="info-value">{{campaign.fixed_days}} 天</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">总费用</text>
+          <text class="info-value highlight">{{campaign.fixed_total_diamond}} 💎</text>
+        </view>
+      </block>
+      <block wx:if="{{campaign.billing_mode === 'bidding'}}">
+        <view class="info-row">
+          <text class="info-label">日出价</text>
+          <text class="info-value highlight">{{campaign.daily_bid_diamond}} 💎/天</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">总预算</text>
+          <text class="info-value">{{campaign.budget_total_diamond}} 💎</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">已消耗</text>
+          <text class="info-value">{{campaign.budget_spent_diamond}} 💎</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 审核信息（有审核备注时显示） -->
+    <view class="info-card" wx:if="{{campaign.review_note}}">
+      <view class="card-title">审核信息</view>
+      <view class="info-row">
+        <text class="info-label">审核备注</text>
+        <text class="info-value">{{campaign.review_note}}</text>
+      </view>
+      <view class="info-row" wx:if="{{campaign.reviewed_at}}">
+        <text class="info-label">审核时间</text>
+        <text class="info-value">{{campaign.reviewed_at}}</text>
+      </view>
+    </view>
+
+    <!-- 素材列表 -->
+    <view class="info-card" wx:if="{{campaign.creatives && campaign.creatives.length > 0}}">
+      <view class="card-title">广告素材</view>
+      <view class="creative-list">
+        <view wx:for="{{campaign.creatives}}" wx:key="ad_creative_id" class="creative-item">
+          <image class="creative-image" src="{{item.image_url}}" mode="aspectFill" />
+          <view class="creative-info">
+            <text class="creative-title">{{item.title}}</text>
+            <text class="creative-status"
+              >审核: {{item.review_status === 'approved' ? '已通过' : item.review_status ===
+              'rejected' ? '已拒绝' : '待审核'}}</text
+            >
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 数据报表（仅投放中/已完成状态显示） -->
+    <view class="info-card" wx:if="{{showReport}}">
+      <view class="card-title">数据报表</view>
+      <view class="report-loading" wx:if="{{reportLoading}}">
+        <text>加载报表数据...</text>
+      </view>
+      <block wx:elif="{{report}}">
+        <view class="report-grid">
+          <view class="report-item">
+            <text class="report-number">{{report.impressions_valid}}</text>
+            <text class="report-label">有效曝光</text>
+          </view>
+          <view class="report-item">
+            <text class="report-number">{{report.clicks_valid}}</text>
+            <text class="report-label">有效点击</text>
+          </view>
+          <view class="report-item">
+            <text class="report-number">{{report.ctr || 0}}%</text>
+            <text class="report-label">点击率</text>
+          </view>
+          <view class="report-item">
+            <text class="report-number">{{report.spend_diamond}} 💎</text>
+            <text class="report-label">消耗钻石</text>
+          </view>
+        </view>
+      </block>
+      <view class="report-empty" wx:else>
+        <text>暂无报表数据</text>
+      </view>
+    </view>
+
+    <!-- 底部操作按钮 -->
+    <view class="bottom-actions" wx:if="{{canEdit || canSubmit || canCancel}}">
+      <button
+        class="btn-cancel"
+        wx:if="{{canCancel}}"
+        disabled="{{submitting}}"
+        bindtap="onCancelCampaign"
+      >
+        取消活动
+      </button>
+      <button class="btn-edit" wx:if="{{canEdit}}" bindtap="goToEdit">编辑</button>
+      <button
+        class="btn-submit"
+        wx:if="{{canSubmit}}"
+        disabled="{{submitting}}"
+        bindtap="onSubmitForReview"
+      >
+        {{submitting ? '提交中...' : '提交审核'}}
+      </button>
+    </view>
+  </block>
+</view>

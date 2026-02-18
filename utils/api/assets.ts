@@ -1,5 +1,5 @@
 /**
- * 💰 资产系统API
+ * 资产系统API
  * 后端路由: routes/v4/assets/（通过Token识别用户 *
  * @file 天工餐厅积分系统 - 资产API模块
  * @version 5.2.0

@@ -28,7 +28,7 @@ const log = createLogger('auth-helper')
 interface CheckAuthOptions {
   /** 未登录时是否自动跳转到登录页（默认true） */
   redirect?: boolean
-  /** 自定义跳转URL（默认'/pages/auth/auth'） */
+  /** 自定义跳转URL（默认'/packageUser/auth/auth'） */
   redirectUrl?: string
   /** 未登录时是否显示提示（默认false） */
   showToast?: boolean
@@ -70,7 +70,7 @@ function getPointsStore() {
  * if (!checkAuth({ redirect: false, showToast: true })) return;
  */
 function checkAuth(options: CheckAuthOptions = {}): boolean {
-  const { redirect = true, redirectUrl = '/pages/auth/auth', showToast = false } = options
+  const { redirect = true, redirectUrl = '/packageUser/auth/auth', showToast = false } = options
   const store = getUserStore()
 
   // Store 校验登录状态（Store 是运行时唯一数据源）
@@ -83,21 +83,21 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
 
   const isAuthenticated: boolean = hasValidToken && store.isLoggedIn
 
-  log.info('🔍 认证状态检查', {
+  log.info('认证状态检查', {
     storeHasToken: !!storeToken,
     storeIsLoggedIn: store.isLoggedIn,
     isAuthenticated
   })
 
   if (!isAuthenticated) {
-    log.warn('⚠️ 用户未登录或Token无效')
+    log.warn('用户未登录或Token无效')
 
     if (showToast) {
       wx.showToast({ title: '请先登录', icon: 'none', duration: 2000 })
     }
 
     if (redirect) {
-      log.info('🔄 跳转到登录页:', redirectUrl)
+      log.info('跳转到登录页:', redirectUrl)
       wx.redirectTo({
         url: redirectUrl,
         fail: () => {
@@ -109,7 +109,7 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
     return false
   }
 
-  log.info('✅ 认证检查通过')
+  log.info('认证检查通过')
   return true
 }
 
@@ -133,14 +133,14 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
   /* 统一使用 determineUserRole()（utils/util.ts），禁止重复编写判断逻辑 */
   const isAdmin: boolean = !!userInfo && determineUserRole(userInfo) === 'admin'
 
-  log.info('🔍 管理员权限检查', {
+  log.info('管理员权限检查', {
     hasUserInfo: !!userInfo,
     role_level: userInfo?.role_level,
     isAdmin
   })
 
   if (!isAdmin) {
-    log.warn('⚠️ 用户无管理员权限')
+    log.warn('用户无管理员权限')
 
     if (showToast) {
       wx.showToast({ title: '无权限访问', icon: 'none', duration: 2000 })
@@ -159,7 +159,7 @@ function checkAdmin(options: CheckAdminOptions = {}): boolean {
     return false
   }
 
-  log.info('✅ 管理员权限检查通过')
+  log.info('管理员权限检查通过')
   return true
 }
 
@@ -192,12 +192,12 @@ function getUserInfo(): API.UserProfile | null {
  * 退出登录时调用，Store 内部自动清理 Storage
  */
 function clearAuthData(): void {
-  log.info('🧹 清理认证数据')
+  log.info('清理认证数据')
   const uStore = getUserStore()
   const pStore = getPointsStore()
   uStore.clearLoginState()
   pStore.clearPoints()
-  log.info('✅ 认证数据清理完成')
+  log.info('认证数据清理完成')
 }
 
 /**
@@ -252,7 +252,7 @@ function restoreUserInfo(): any {
     _redirectToLogin('登录信息异常，请重新登录')
     return null
   } catch (error) {
-    log.error('❌ 从JWT Token恢复userInfo失败:', error)
+    log.error('从JWT Token恢复userInfo失败:', error)
     _redirectToLogin('登录信息异常，请重新登录')
     return null
   }
@@ -272,7 +272,7 @@ function restoreUserInfo(): any {
  * @example
  * const status = checkTokenValidity()
  * if (!status.isValid) {
- *   if (status.needsRelogin) wx.redirectTo({ url: '/pages/auth/auth' })
+ *   if (status.needsRelogin) wx.redirectTo({ url: '/packageUser/auth/auth' })
  * }
  */
 function checkTokenValidity(): {
@@ -290,7 +290,7 @@ function checkTokenValidity(): {
   const accessToken: string | null = store.accessToken
 
   if (!isLoggedIn || !accessToken) {
-    log.info('🔓 用户未登录')
+    log.info('用户未登录')
     return {
       isValid: false,
       error: 'NOT_LOGGED_IN',
@@ -302,7 +302,7 @@ function checkTokenValidity(): {
 
   // Token格式校验
   if (typeof accessToken !== 'string' || accessToken.trim() === '' || accessToken === 'undefined') {
-    log.error('❌ Token格式异常')
+    log.error('Token格式异常')
     return {
       isValid: false,
       error: 'TOKEN_INVALID_FORMAT',
@@ -320,7 +320,7 @@ function checkTokenValidity(): {
     const payload = decodeJWTPayload(accessToken)
 
     if (!payload) {
-      log.error('❌ Token解码失败')
+      log.error('Token解码失败')
       return {
         isValid: false,
         error: 'TOKEN_INVALID',
@@ -331,7 +331,7 @@ function checkTokenValidity(): {
     }
 
     if (isTokenExpired(accessToken)) {
-      log.error('❌ Token已过期')
+      log.error('Token已过期')
       return {
         isValid: false,
         error: 'TOKEN_EXPIRED',
@@ -341,7 +341,7 @@ function checkTokenValidity(): {
       }
     }
 
-    log.info('✅ Token验证通过')
+    log.info('Token验证通过')
     return {
       isValid: true,
       message: 'Token有效',
@@ -355,7 +355,7 @@ function checkTokenValidity(): {
       isNormalUnauth: false
     }
   } catch (error) {
-    log.error('❌ Token验证异常:', error)
+    log.error('Token验证异常:', error)
     return {
       isValid: false,
       error: 'TOKEN_CHECK_ERROR',
@@ -370,7 +370,7 @@ function checkTokenValidity(): {
 function _redirectToLogin(message: string) {
   wx.showToast({ title: message, icon: 'none', duration: 2000 })
   setTimeout(() => {
-    wx.redirectTo({ url: '/pages/auth/auth' })
+    wx.redirectTo({ url: '/packageUser/auth/auth' })
   }, 2000)
 }
 

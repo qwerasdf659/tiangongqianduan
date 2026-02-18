@@ -1,19 +1,34 @@
 {
   "pages": [
-    "pages/auth/auth",
     "pages/lottery/lottery",
     "pages/exchange/exchange",
     "pages/user/user",
     "pages/camera/camera",
-    "pages/points-detail/points-detail",
-    "pages/records/trade-upload-records/trade-upload-records",
-    "pages/trade/market/market",
-    "pages/trade/inventory/inventory",
-    "pages/trade/my-listings/my-listings",
-    "pages/feedback/feedback",
-    "pages/chat/chat"
+    "pages/webview/webview"
   ],
   "subpackages": [
+    {
+      "root": "packageTrade",
+      "name": "trade",
+      "pages": [
+        "trade/market/market",
+        "trade/inventory/inventory",
+        "trade/my-listings/my-listings",
+        "records/trade-upload-records/trade-upload-records"
+      ]
+    },
+    {
+      "root": "packageUser",
+      "name": "user-services",
+      "pages": [
+        "auth/auth",
+        "chat/chat",
+        "points-detail/points-detail",
+        "feedback/feedback",
+        "feedback/detail",
+        "feedback/list"
+      ]
+    },
     {
       "root": "packageAdmin",
       "name": "admin",
@@ -23,8 +38,27 @@
         "scan-verify/scan-verify",
         "customer-service/customer-service"
       ]
+    },
+    {
+      "root": "packageAd",
+      "name": "ad",
+      "pages": ["ad-campaigns/ad-campaigns", "ad-create/ad-create", "ad-detail/ad-detail"]
     }
   ],
+  "preloadRule": {
+    "pages/lottery/lottery": {
+      "network": "all",
+      "packages": ["trade"]
+    },
+    "pages/exchange/exchange": {
+      "network": "all",
+      "packages": ["trade"]
+    },
+    "pages/user/user": {
+      "network": "all",
+      "packages": ["user-services", "trade", "admin"]
+    }
+  },
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#FF6B35",

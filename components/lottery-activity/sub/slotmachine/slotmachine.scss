@@ -1,5 +1,6 @@
 @import '../../../../styles/variables';
 @import '../../../../styles/mixins';
+@import '../../shared/common-animations';
 
 /* ================================================================
    老虎机容器 - 拉斯维加斯赌场风格
@@ -1331,50 +1332,6 @@
 }
 
 /* ================================================================
-   卷轴动画 - CSS keyframes
-   ================================================================ */
-
-/* 无缝循环旋转（滚动一组items的高度 = 33.33%） */
-@keyframes reelSpin {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(-33.33%);
-  }
-}
-
-/* 停止减速 + 回弹 */
-@keyframes reelStop {
-  0% {
-    transform: translateY(-20%);
-    filter: blur(1rpx);
-  }
-
-  35% {
-    transform: translateY(3%);
-    filter: blur(0);
-  }
-
-  55% {
-    transform: translateY(-2%);
-  }
-
-  72% {
-    transform: translateY(1%);
-  }
-
-  85% {
-    transform: translateY(-0.5%);
-  }
-
-  100% {
-    transform: translateY(0);
-  }
-}
-
-/* ================================================================
    状态提示文字
    ================================================================ */
 .status-hint {
@@ -1431,15 +1388,7 @@
    背景粒子系统 - 3D增强版
    ================================================================ */
 .bg-particles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
-  perspective: 1000rpx;
+  @include bg-particles(0, 1000rpx);
 }
 
 .particle {
@@ -1859,7 +1808,7 @@
 .tip-hand {
   font-size: $font-size-base;
   color: var(--theme-accent, #ffd700);
-  animation: arrowPulse 1s ease-in-out infinite;
+  animation: tipArrowSlide 1s ease-in-out infinite;
   font-weight: bold;
   text-shadow: 0 0 8rpx rgba(255, 215, 0, 0.6);
 }
@@ -1888,7 +1837,7 @@
   }
 }
 
-@keyframes arrowPulse {
+@keyframes tipArrowSlide {
   0%,
   100% {
     transform: translateX(0);

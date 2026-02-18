@@ -84,8 +84,22 @@
 
       <!-- 操作按钮 -->
       <view class="card-action-bar">
-        <button class="action-reject" bindtap="onReject" data-record="{{item}}" disabled="{{submitting}}">拒绝</button>
-        <button class="action-approve" bindtap="onApprove" data-record="{{item}}" disabled="{{submitting}}">通过</button>
+        <button
+          class="action-reject"
+          bindtap="onReject"
+          data-record="{{item}}"
+          disabled="{{submitting}}"
+        >
+          拒绝
+        </button>
+        <button
+          class="action-approve"
+          bindtap="onApprove"
+          data-record="{{item}}"
+          disabled="{{submitting}}"
+        >
+          通过
+        </button>
       </view>
     </view>
 
@@ -126,14 +140,22 @@
       </view>
 
       <view class="dialog-record-summary" wx:if="{{selectedRecord}}">
-        <text class="summary-info">用户：{{selectedRecord.user_nickname || selectedRecord.user_mobile}} |
-          ¥{{selectedRecord.consumption_amount}}</text>
+        <text class="summary-info"
+          >用户：{{selectedRecord.user_nickname || selectedRecord.user_mobile}} |
+          ¥{{selectedRecord.consumption_amount}}</text
+        >
       </view>
 
       <view class="dialog-form">
         <text class="form-label">拒绝原因（必填，至少5个字符）</text>
-        <textarea class="form-textarea" placeholder="请输入拒绝原因，如：消费金额与实际不符" value="{{rejectReason}}"
-          bindinput="onRejectReasonInput" maxlength="200" auto-height />
+        <textarea
+          class="form-textarea"
+          placeholder="请输入拒绝原因，如：消费金额与实际不符"
+          value="{{rejectReason}}"
+          bindinput="onRejectReasonInput"
+          maxlength="200"
+          auto-height
+        />
         <view class="form-meta">
           <text class="char-counter">{{rejectReason.length || 0}}/200</text>
           <text class="caution-text">拒绝后用户将收到通知，请谨慎操作</text>
@@ -142,8 +164,9 @@
 
       <view class="dialog-buttons">
         <button class="dialog-cancel" bindtap="cancelReject">取消</button>
-        <button class="dialog-confirm" bindtap="confirmReject" disabled="{{submitting}}">{{submitting ? '提交中...' :
-          '确认拒绝'}}</button>
+        <button class="dialog-confirm" bindtap="confirmReject" disabled="{{submitting}}">
+          {{submitting ? '提交中...' : '确认拒绝'}}
+        </button>
       </view>
     </view>
   </view>

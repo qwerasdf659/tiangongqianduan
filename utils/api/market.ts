@@ -1,5 +1,5 @@
 /**
- * 🏪 交易市场API（C2C用户交易）
+ * 交易市场API（C2C用户交易）
  * 后端路由: routes/v4/market/
  *
  * 数据库表: market_listings（双模式: item_instance / fungible_asset）
@@ -130,7 +130,7 @@ async function getMarketProductDetail(market_listing_id: number) {
 /**
  * 购买市场商品
  * POST /api/v4/market/listings/:market_listing_id/purchase
- * 🔴 携带 Idempotency-Key 请求头防止重复购买
+ * 携带 Idempotency-Key 请求头防止重复购买
  *
  * 后端服务: TradeOrderService
  * 业务流程:
@@ -208,7 +208,7 @@ async function withdrawFungibleAsset(market_listing_id: number) {
 
 /**
  * 上架不可叠加物品到交易市 * POST /api/v4/market/list
- * 🔴 携带 Idempotency-Key 请求头防止重复上 *
+ * 携带 Idempotency-Key 请求头防止重复上 *
  * @param params.item_instance_id - 物品实例ID（BIGINT * @param params.price_amount - 售价（BIGINT整数据 * @param params.price_asset_code - 定价币种（如 'DIAMOND' */
 async function sellToMarket(params: {
   item_instance_id: number
@@ -292,7 +292,7 @@ async function getSettlementCurrencies() {
   })
 }
 
-/** 获取市场分类筛选数据- GET /api/v4/market/listings/facets（✅ 后端已确认实现） */
+/** 获取市场分类筛选数据- GET /api/v4/market/listings/facets（ 后端已确认实现） */
 async function getMarketFacets() {
   return apiClient.request('/market/listings/facets', { method: 'GET', needAuth: true })
 }
@@ -300,7 +300,7 @@ async function getMarketFacets() {
 /**
  * 上架可叠加资产到交易市场
  * POST /api/v4/market/fungible-assets/list
- * 🔴 携带 Idempotency-Key 请求头防止重复上 * 业务规则: 资产必须 is_tradable = true（material_asset_types 表控制）
+ * 携带 Idempotency-Key 请求头防止重复上 * 业务规则: 资产必须 is_tradable = true（material_asset_types 表控制）
  *
  * @param params.asset_code - 资产代码（如 'DIAMOND' * @param params.amount - 上架数量
  * @param params.price_amount - 售价

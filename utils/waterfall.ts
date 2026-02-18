@@ -97,11 +97,11 @@ function calculateWaterfallLayout(
     minContainerHeight = 300
   } = options
 
-  log.info(`📐 计算瀑布流布局: ${products ? products.length : 0} 个商品`)
+  log.info(`计算瀑布流布局: ${products ? products.length : 0} 个商品`)
 
   // 空数据安全处理
   if (!products || !Array.isArray(products) || products.length === 0) {
-    log.info('⚠️ 商品数据为空或无效')
+    log.info('商品数据为空或无效')
     return {
       layoutProducts: [],
       columnHeights: [0, 0],
@@ -118,7 +118,7 @@ function calculateWaterfallLayout(
         try {
           // 商品有效性检查
           if (!product || typeof product !== 'object') {
-            log.warn(`⚠️ 商品数据无效 [${index}]:`, product)
+            log.warn(`商品数据无效 [${index}]:`, product)
             return null
           }
 
@@ -146,7 +146,7 @@ function calculateWaterfallLayout(
 
           return layoutProduct
         } catch (productError) {
-          log.error(`❌ 处理商品布局失败 [${index}]:`, productError)
+          log.error(`处理商品布局失败 [${index}]:`, productError)
           return null
         }
       })
@@ -154,7 +154,7 @@ function calculateWaterfallLayout(
 
     const containerHeight: number = Math.max(Math.max(...columnHeights), minContainerHeight)
 
-    log.info('✅ 瀑布流布局计算完成:', {
+    log.info('瀑布流布局计算完成:', {
       totalProducts: layoutProducts.length,
       leftColumnHeight: columnHeights[0],
       rightColumnHeight: columnHeights[1],
@@ -163,7 +163,7 @@ function calculateWaterfallLayout(
 
     return { layoutProducts, columnHeights, containerHeight }
   } catch (error) {
-    log.error('❌ 瀑布流布局计算失败:', error)
+    log.error('瀑布流布局计算失败:', error)
     return {
       layoutProducts: [],
       columnHeights: [0, 0],
@@ -222,7 +222,7 @@ function calculateContentHeight(product: any): number {
 
     return baseHeight
   } catch (error) {
-    log.error('❌ 计算内容高度失败:', error)
+    log.error('计算内容高度失败:', error)
     return 70
   }
 }

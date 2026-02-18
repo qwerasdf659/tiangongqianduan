@@ -1,0 +1,167 @@
+<!--packageUser/points-detail/points-detail.wxml - 积分详情页面模板-->
+
+<view class="points-detail-container">
+  <!-- 积分余额展示卡片 -->
+  <view class="points-balance-card">
+    <view class="balance-header">
+      <view class="balance-label">
+        <view class="balance-dot"></view>
+        <text class="balance-title">可用积分</text>
+      </view>
+      <view class="balance-refresh" bindtap="handleManualRefresh">
+        <text class="refresh-icon">🔄</text>
+      </view>
+    </view>
+    <view class="balance-amount">
+      <text class="balance-number">{{totalPoints || 0}}</text>
+      <text class="balance-unit">积分</text>
+    </view>
+    <!-- 余额信息底栏 -->
+    <view class="balance-footer">
+      <view class="balance-stat">
+        <view class="stat-dot earn-dot"></view>
+        <text class="stat-text"
+          >获得：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length : 0}}笔</text
+        >
+      </view>
+      <view class="balance-badge" wx:if="{{filteredPointsRecords.length > 0}}">
+        <text class="badge-text">{{filteredPointsRecords.length}}条记录</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选功能区域 -->
+  <view class="filter-section">
+    <view class="filter-tabs">
+      <view
+        class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}"
+        data-filter="all"
+        bindtap="onPointsFilterChange"
+      >
+        <view class="filter-tab-icon">📊</view>
+        <text class="filter-tab-text">全部</text>
+        <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'all'}}"></view>
+      </view>
+      <view
+        class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}"
+        data-filter="earn"
+        bindtap="onPointsFilterChange"
+      >
+        <view class="filter-tab-icon">💰</view>
+        <text class="filter-tab-text">获得</text>
+        <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'earn'}}"></view>
+      </view>
+      <view
+        class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}"
+        data-filter="consume"
+        bindtap="onPointsFilterChange"
+      >
+        <view class="filter-tab-icon">🛒</view>
+        <text class="filter-tab-text">消费</text>
+        <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'consume'}}"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分记录列表 -->
+  <view class="records-section">
+    <view class="records-header">
+      <view class="records-title-row">
+        <view class="records-title-icon">📋</view>
+        <text class="records-title">积分明细</text>
+      </view>
+      <view class="records-count">共 {{filteredPointsRecords.length || 0}} 条</view>
+    </view>
+
+    <!-- 记录列表 -->
+    <view class="records-list" wx:if="{{filteredPointsRecords.length > 0}}">
+      <view
+        class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
+        wx:for="{{filteredPointsRecords}}"
+        wx:key="asset_transaction_id"
+      >
+        <!-- 左侧彩色指示条 -->
+        <view
+          class="record-indicator {{item.transaction_type === 'earn' ? 'earn-indicator' : 'consume-indicator'}}"
+        ></view>
+
+        <!-- 记录图标 -->
+        <view class="record-icon">
+          <view class="icon-bg {{item.transaction_type === 'earn' ? 'earn-bg' : 'consume-bg'}}">
+            <text class="icon-symbol">{{item.transaction_type === 'earn' ? '↑' : '↓'}}</text>
+          </view>
+        </view>
+
+        <!-- 记录详情 -->
+        <view class="record-detail">
+          <view class="record-main">
+            <view class="record-title">{{item.displayTitle || '积分记录'}}</view>
+            <view
+              class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}"
+            >
+              {{item.displayAmount}}
+            </view>
+          </view>
+          <view class="record-meta">
+            <text class="record-time">{{item.displayTime}}</text>
+            <text class="record-desc" wx:if="{{item.displayDescription}}"
+              >{{item.displayDescription}}</text
+            >
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态展示 -->
+    <view class="empty-state" wx:if="{{filteredPointsRecords.length === 0 && !loading}}">
+      <view class="empty-illustration">
+        <view class="empty-circle"></view>
+        <view class="empty-icon">💳</view>
+      </view>
+      <view class="empty-title">
+        {{pointsFilter === 'all' ? '暂无积分记录' : (pointsFilter === 'earn' ? '暂无积分获得记录' :
+        '暂无积分消费记录')}}
+      </view>
+      <view class="empty-desc">
+        {{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ?
+        '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}
+      </view>
+      <view class="empty-actions">
+        <view class="empty-btn primary-btn" bindtap="onBackTap">返回用户中心</view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more-section" wx:if="{{hasMoreRecords}}">
+      <view class="load-more-btn" bindtap="loadMoreRecords" wx:if="{{!loading}}">
+        <text class="load-more-text">加载更多</text>
+        <view class="load-more-arrow">↓</view>
+      </view>
+      <view class="loading-inline" wx:if="{{loading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">加载中...</text>
+      </view>
+    </view>
+
+    <!-- 没有更多记录提示 -->
+    <view class="no-more-section" wx:if="{{!hasMoreRecords && filteredPointsRecords.length > 0}}">
+      <view class="no-more-line"></view>
+      <text class="no-more-text">已加载全部记录</text>
+      <view class="no-more-line"></view>
+    </view>
+  </view>
+
+  <!-- 最后更新时间 -->
+  <view class="update-info" wx:if="{{lastUpdateTime}}">
+    <text class="update-time">最后更新：{{lastUpdateTime}}</text>
+  </view>
+</view>
+
+<!-- 全屏加载状态 -->
+<view class="fullscreen-loading" wx:if="{{loading && filteredPointsRecords.length === 0}}">
+  <view class="loading-content">
+    <view class="loading-spinner-large"></view>
+    <text class="loading-title">加载中...</text>
+    <text class="loading-desc">正在获取您的积分记录</text>
+  </view>
+</view>

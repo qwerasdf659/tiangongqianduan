@@ -85,7 +85,7 @@ Page({
   },
 
   onLoad() {
-    log.info('📊 管理员实时客服聊天页面加载')
+    log.info('管理员实时客服聊天页面加载')
 
     // MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
@@ -96,7 +96,7 @@ Page({
 
     // 使用统一的管理员权限检查
     if (!checkAdmin()) {
-      log.warn('⚠️ 管理员权限检查失败，已自动处理')
+      log.warn('管理员权限检查失败，已自动处理')
       return
     }
 
@@ -105,7 +105,7 @@ Page({
   },
 
   onShow() {
-    log.info('📱 管理员客服页面显示')
+    log.info('管理员客服页面显示')
 
     if (!checkAdmin()) {
       return
@@ -117,7 +117,7 @@ Page({
 
   // 页面卸载时清理资源
   onUnload() {
-    log.info('📱 管理员客服页面卸载，清理资源')
+    log.info('管理员客服页面卸载，清理资源')
 
     // 销毁MobX Store绑定
     if (this.userBindings) {
@@ -161,7 +161,7 @@ Page({
       // 进入页面时自动更新管理员在线状态为 online
       this.updateOnlineStatus('online')
     } catch (error) {
-      log.error('❌ 初始化聊天工作台失败:', error)
+      log.error('初始化聊天工作台失败:', error)
     }
   },
 
@@ -174,11 +174,11 @@ Page({
     const appInstance = getApp()
 
     if (!appInstance || typeof appInstance.subscribeWebSocketMessages !== 'function') {
-      log.error('❌ Socket.IO管理方法不可用')
+      log.error('Socket.IO管理方法不可用')
       throw new Error('Socket.IO管理系统未就绪')
     }
 
-    log.info('🔒 管理员端使用统一Socket.IO连接')
+    log.info('管理员端使用统一Socket.IO连接')
 
     // 订阅Socket.IO消息
     appInstance.subscribeWebSocketMessages(
@@ -191,7 +191,7 @@ Page({
     try {
       await appInstance.connectWebSocket()
 
-      log.info('✅ 管理员端Socket.IO连接成功')
+      log.info('管理员端Socket.IO连接成功')
       this.setData({
         wsConnected: true,
         reconnectCount: 0,
@@ -200,7 +200,7 @@ Page({
 
       this.registerAsAdmin()
     } catch (error) {
-      log.error('❌ 管理员端Socket.IO连接失败:', error)
+      log.error('管理员端Socket.IO连接失败:', error)
       this.setData({
         wsConnected: false,
         connectionQuality: 'lost'
@@ -220,7 +220,7 @@ Page({
       adminId: this.data.userInfo?.userId,
       adminName: this.data.userInfo?.nickname || '管理员'
     })
-    log.info('✅ 管理员注册消息已发送')
+    log.info('管理员注册消息已发送')
   },
 
   /**
@@ -234,7 +234,7 @@ Page({
    * - session_closed: { session_id, close_reason, ... }
    */
   handleUnifiedWebSocketMessage(eventName: string, data: any) {
-    log.info('📢 管理员端收到Socket.IO消息:', eventName)
+    log.info('管理员端收到Socket.IO消息:', eventName)
 
     switch (eventName) {
       case 'websocket_connected':
@@ -260,7 +260,7 @@ Page({
 
       // 后端连接确认
       case 'connection_established':
-        log.info('🤝 后端连接确认:', data)
+        log.info(' 后端连接确认:', data)
         break
 
       // 新消息（后端 snake_case: chat_message_id, content, sender_type, session_id）
@@ -270,13 +270,13 @@ Page({
 
       // 消息发送确认（后端写库成功: chat_message_id, session_id, timestamp）
       case 'message_sent':
-        log.info('✅ 消息发送确认:', data)
+        log.info('消息发送确认:', data)
         this.handleMessageSentConfirm(data)
         break
 
       // 消息发送失败（后端处理出错: error, message, timestamp）
       case 'message_error':
-        log.error('❌ 消息发送失败:', data)
+        log.error('消息发送失败:', data)
         this.handleMessageSendError(data)
         break
 
@@ -290,7 +290,7 @@ Page({
         break
 
       default:
-        log.info('🔧 管理员端未处理的消息类型:', eventName)
+        log.info('管理员端未处理的消息类型:', eventName)
     }
   },
 
@@ -300,12 +300,11 @@ Page({
    */
   handleNewUserMessage(messageData: any) {
     if (!messageData || !messageData.content) {
-      log.warn('⚠️ 收到空消息或格式错误的消息')
+      log.warn('收到空消息或格式错误的消息')
       return
     }
 
-    // 后端字段: session_id（snake_case）
-    const msgSessionId = messageData.session_id
+    const msgSessionId = messageData.customer_service_session_id
 
     if (msgSessionId === this.data.currentSessionId) {
       const senderType = messageData.sender_type || 'user'
@@ -353,7 +352,7 @@ Page({
    * 后端返回: { error, message, timestamp }
    */
   handleMessageSendError(data: any) {
-    log.error('❌ 后端消息处理失败:', data.message || data.error)
+    log.error('后端消息处理失败:', data.message || data.error)
 
     const failedMessages = this.data.currentMessages.map((msg: any) => {
       if (msg.isOwn && msg.status === 'sending') {
@@ -367,14 +366,14 @@ Page({
 
   /** 处理会话开始 */
   handleSessionStarted(_sessionData: any) {
-    log.info('🆕 新会话开始')
+    log.info('新会话开始')
     this.refreshSessions()
   },
 
   /** 处理会话关闭（后端 session_closed 事件: session_id, close_reason） */
   handleSessionClosed(sessionData: any) {
     const closedSessionId = sessionData.session_id
-    log.info('🔚 会话关闭:', closedSessionId, sessionData.close_reason)
+    log.info('会话关闭:', closedSessionId, sessionData.close_reason)
 
     if (closedSessionId === this.data.currentSessionId) {
       this.setData({
@@ -445,8 +444,7 @@ Page({
           const status = session.status || 'waiting'
 
           return {
-            /* DataSanitizer 将主键 customer_service_session_id 统一为 id */
-            sessionId: session.id,
+            sessionId: session.customer_service_session_id,
             userId: user.user_id,
             userInfo: {
               nickname: userName,
@@ -467,12 +465,12 @@ Page({
           loadingSessions: false
         })
 
-        log.info('✅ 会话列表刷新成功:', processedSessions.length, '个会话')
+        log.info('会话列表刷新成功:', processedSessions.length, '个会话')
       } else {
         throw new Error(result.message || '获取会话列表失败')
       }
     } catch (error) {
-      log.error('❌ 刷新会话列表失败:', error)
+      log.error('刷新会话列表失败:', error)
       this.setData({ loadingSessions: false })
       showToast('获取会话列表失败，请稍后重试')
     }
@@ -485,7 +483,7 @@ Page({
   /** 选择会话 */
   onSelectSession(e: WechatMiniprogram.BaseEvent) {
     const sessionId = e.currentTarget.dataset.sessionId
-    log.info('📋 选择会话:', sessionId)
+    log.info('选择会话:', sessionId)
 
     if (sessionId === this.data.currentSessionId) {
       this.setData({ chatExpanded: !this.data.chatExpanded })
@@ -526,7 +524,7 @@ Page({
    */
   async loadSessionMessages(sessionId: number) {
     try {
-      log.info('📖 加载会话消息:', sessionId)
+      log.info(' 加载会话消息:', sessionId)
 
       const result = await API.getAdminChatHistory({
         sessionId,
@@ -543,7 +541,7 @@ Page({
           const isOwn = senderType === 'admin'
 
           return {
-            id: msg.chat_message_id || msg.id,
+            id: msg.chat_message_id,
             senderId: msg.sender_id,
             senderType,
             content: msg.content || '',
@@ -565,10 +563,10 @@ Page({
           scrollToBottom: true
         })
 
-        log.info('✅ 会话消息加载成功:', sortedMessages.length, '条')
+        log.info('会话消息加载成功:', sortedMessages.length, '条')
       }
     } catch (error) {
-      log.error('❌ 加载会话消息失败:', error)
+      log.error('加载会话消息失败:', error)
     }
   },
 
@@ -615,16 +613,16 @@ Page({
     const content = originalInputContent ? originalInputContent.trim() : ''
 
     if (!content) {
-      wx.showToast({ title: '请输入消息内容', icon: 'none' })
+      Wechat.showToast('请输入消息内容')
       return
     }
 
     if (!this.data.currentSessionId) {
-      wx.showToast({ title: '请先选择一个聊天会话', icon: 'none' })
+      Wechat.showToast('请先选择一个聊天会话')
       return
     }
 
-    log.info('📤 发送管理员消息:', content.substring(0, 30))
+    log.info('发送管理员消息:', content.substring(0, 30))
 
     const tempMessage = {
       id: `temp_${Date.now()}`,
@@ -663,19 +661,19 @@ Page({
             content,
             message_type: 'text'
           })
-          log.info('✅ Socket.IO send_message 已发送，等待后端回执')
+          log.info('Socket.IO send_message 已发送，等待后端回执')
           // 状态由 handleMessageSentConfirm / handleMessageSendError 自动更新
         } catch (wsError) {
-          log.error('❌ Socket.IO emit 异常，降级到 API:', wsError)
+          log.error('Socket.IO emit 异常，降级到 API:', wsError)
           await this.sendMessageViaAPI(tempMessage.id, content)
         }
       } else {
         // 降级通道: REST API
-        log.info('🔄 Socket.IO 未连接，使用 API 发送')
+        log.info('Socket.IO 未连接，使用 API 发送')
         await this.sendMessageViaAPI(tempMessage.id, content)
       }
     } catch (error) {
-      log.error('❌ 发送聊天消息失败:', error)
+      log.error('发送聊天消息失败:', error)
 
       const failedMessages = this.data.currentMessages.map((msg: any) =>
         msg.id === tempMessage.id ? { ...msg, status: 'failed' } : msg
@@ -699,7 +697,7 @@ Page({
       })
 
       if (apiResult && apiResult.success === true) {
-        log.info('✅ API 降级发送成功')
+        log.info('API 降级发送成功')
         const updatedMessages = this.data.currentMessages.map((msg: any) =>
           msg.id === localMsgId
             ? { ...msg, status: 'sent', id: apiResult.data?.chat_message_id || msg.id }
@@ -707,14 +705,14 @@ Page({
         )
         this.setData({ currentMessages: updatedMessages })
       } else {
-        log.error('❌ API 降级发送失败:', apiResult?.message)
+        log.error('API 降级发送失败:', apiResult?.message)
         const failedMessages = this.data.currentMessages.map((msg: any) =>
           msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
         )
         this.setData({ currentMessages: failedMessages })
       }
     } catch (apiError: any) {
-      log.error('❌ API 降级发送异常:', apiError.message)
+      log.error('API 降级发送异常:', apiError.message)
       const failedMessages = this.data.currentMessages.map((msg: any) =>
         msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
       )
@@ -785,7 +783,7 @@ Page({
       return
     }
 
-    log.info('🔚 结束会话:', this.data.currentSessionId)
+    log.info('结束会话:', this.data.currentSessionId)
 
     try {
       const result = await API.closeAdminChatSession(this.data.currentSessionId)
@@ -803,7 +801,7 @@ Page({
         throw new Error(result.message || '结束会话失败')
       }
     } catch (error) {
-      log.error('❌ 结束会话失败:', error)
+      log.error('结束会话失败:', error)
       showToast('结束会话失败，请重试')
     }
   },
@@ -837,9 +835,9 @@ Page({
             customerSatisfaction: result.data.customer_satisfaction || 0
           }
         })
-        log.info('📊 客服统计加载成功:', result.data)
+        log.info('客服统计加载成功:', result.data)
       } else {
-        log.warn('⚠️ 客服统计API返回空数据，使用默认值')
+        log.warn('客服统计API返回空数据，使用默认值')
         this.setData({
           todayStats: {
             totalSessions: 0,
@@ -850,7 +848,7 @@ Page({
         })
       }
     } catch (error) {
-      log.error('❌ 加载今日统计失败:', error)
+      log.error('加载今日统计失败:', error)
       // 统计加载失败不影响主流程
     }
   },
@@ -886,10 +884,10 @@ Page({
       const result = await API.updateAdminOnlineStatus(status)
       if (result.success) {
         this.setData({ adminStatus: status })
-        log.info(`✅ 管理员在线状态更新为: ${status}`)
+        log.info(`管理员在线状态更新为: ${status}`)
       }
     } catch (error) {
-      log.error('❌ 更新在线状态失败:', error)
+      log.error('更新在线状态失败:', error)
       // 状态更新失败不影响主流程
     }
   },

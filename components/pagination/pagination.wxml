@@ -1,0 +1,25 @@
+<!-- 通用分页组件 -->
+<view class="pagination" wx:if="{{totalPages > 1}}">
+  <view class="pagination-info">
+    <text>第 {{currentPage}} / {{totalPages}} 页</text>
+    <text class="pagination-total">共 {{totalItems}} {{itemUnit}}</text>
+  </view>
+
+  <view class="pagination-row">
+    <button class="page-btn prev-btn {{currentPage <= 1 ? 'disabled' : ''}}" disabled="{{currentPage <= 1}}" bindtap="onPrevPage">← 上一页</button>
+
+    <view class="page-jump">
+      <input class="page-input" type="number" placeholder="{{currentPage}}" value="{{pageInputValue}}" bindinput="onPageInputChange" bindconfirm="onPageInputConfirm" />
+      <text class="page-jump-label">/ {{totalPages}}</text>
+    </view>
+
+    <button class="page-btn next-btn {{currentPage >= totalPages ? 'disabled' : ''}}" disabled="{{currentPage >= totalPages}}" bindtap="onNextPage">下一页 →</button>
+  </view>
+
+  <view class="page-numbers" wx:if="{{visiblePages.length > 0}}">
+    <block wx:for="{{visiblePages}}" wx:key="page">
+      <button wx:if="{{item.type === 'page'}}" class="page-number {{currentPage === item.page ? 'active' : ''}}" bindtap="onPageTap" data-page="{{item.page}}">{{item.page}}</button>
+      <text wx:if="{{item.type === 'ellipsis'}}" class="page-ellipsis">...</text>
+    </block>
+  </view>
+</view>

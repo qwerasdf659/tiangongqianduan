@@ -1,4 +1,5 @@
 @import '../../../../styles/variables';
+@import '../../shared/common-animations';
 
 /* ================================
    打地鼠容器 - 草地游戏厅风格
@@ -58,14 +59,7 @@
    背景粒子系统
    ================================ */
 .bg-particles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
+  @include bg-particles();
 }
 
 .particle {
@@ -951,7 +945,7 @@
   top: 15rpx;
   display: flex;
   gap: 20rpx;
-  animation: moleB link 3s ease-in-out infinite;
+  animation: moleBlink 3s ease-in-out infinite;
 
   .eye {
     font-size: 12rpx;
@@ -1452,20 +1446,11 @@
    庆祝特效 - 增强版
    ================================ */
 .celebration-effect {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 500rpx;
-  height: 500rpx;
-  pointer-events: none;
-  z-index: 10;
+  @include celebration-effect(500rpx, 500rpx);
 }
 
 .celebration-burst {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  @include celebration-burst;
 }
 
 .burst-item {
@@ -1710,24 +1695,7 @@
 }
 
 .btn-shine {
-  position: absolute;
-  top: -50%;
-  left: -100%;
-  width: 50%;
-  height: 200%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: btnShine 2.5s ease-in-out infinite;
-}
-
-@keyframes btnShine {
-  0% {
-    left: -100%;
-  }
-
-  50%,
-  100% {
-    left: 200%;
-  }
+  @include btn-shine();
 }
 
 .start-btn-shadow {
@@ -1995,28 +1963,6 @@
   }
 }
 
-.eval-icon {
-  font-size: $font-size-md;
-}
-
-.eval-text {
-  font-size: $font-size-base;
-  color: var(--theme-text-inverse, #fff);
-  font-weight: bold;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
-}
-
-.result-stats {
-  display: flex;
-  align-items: center;
-  gap: 32rpx;
-  padding: 24rpx 40rpx;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: $border-radius-lg;
-  border: 2rpx solid rgba(255, 255, 255, 0.1);
-  animation: statsSlideIn 0.5s 0.5s ease-out backwards;
-}
-
 @keyframes statsSlideIn {
   0% {
     opacity: 0;
@@ -2046,12 +1992,6 @@
 .stat-label {
   font-size: 22rpx;
   color: var(--theme-text-light, rgba(255, 255, 255, 0.7));
-}
-
-.stat-divider {
-  width: 2rpx;
-  height: 60rpx;
-  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
 /* ================================

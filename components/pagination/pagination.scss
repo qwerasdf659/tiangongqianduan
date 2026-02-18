@@ -1,0 +1,102 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.pagination {
+  padding: 24rpx 32rpx;
+}
+
+.pagination-info {
+  @include flex-center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.pagination-total {
+  color: $color-text-tertiary;
+}
+
+.pagination-row {
+  @include flex-center;
+  gap: 16rpx;
+}
+
+.page-btn {
+  flex: 1;
+  height: 64rpx;
+  line-height: 64rpx;
+  font-size: $font-size-sm;
+  border-radius: $border-radius-md;
+  background: $color-primary;
+  color: #fff;
+  border: none;
+  padding: 0;
+
+  &.disabled {
+    background: $color-bg-grey;
+    color: $color-text-tertiary;
+  }
+
+  &::after {
+    border: none;
+  }
+}
+
+.page-jump {
+  @include flex-center;
+  gap: 8rpx;
+  white-space: nowrap;
+}
+
+.page-input {
+  width: 80rpx;
+  height: 56rpx;
+  text-align: center;
+  font-size: $font-size-sm;
+  border: 2rpx solid $color-border;
+  border-radius: $border-radius-sm;
+  background: $color-bg;
+}
+
+.page-jump-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.page-numbers {
+  @include flex-center;
+  gap: 8rpx;
+  margin-top: 16rpx;
+  flex-wrap: wrap;
+}
+
+.page-number {
+  min-width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: $font-size-sm;
+  text-align: center;
+  border-radius: $border-radius-sm;
+  background: $color-bg;
+  color: $color-text-primary;
+  border: 2rpx solid $color-border;
+  padding: 0;
+
+  &.active {
+    background: $color-primary;
+    color: #fff;
+    border-color: $color-primary;
+    font-weight: bold;
+  }
+
+  &::after {
+    border: none;
+  }
+}
+
+.page-ellipsis {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  padding: 0 4rpx;
+}

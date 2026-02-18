@@ -1082,7 +1082,6 @@
 }
 
 @keyframes paginationPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -1201,7 +1200,8 @@
   }
 
   /* 🎯 在小屏隐藏部分页码 */
-  .page-numbers.standalone-numbers .page-number:not(.active):nth-child(n + 4):nth-last-child(n + 4) {
+  .page-numbers.standalone-numbers
+    .page-number:not(.active):nth-child(n + 4):nth-last-child(n + 4) {
     display: none;
   }
 }
@@ -1343,10 +1343,12 @@ button.page-btn,
   /* 处理文字溢出 */
   min-width: 120rpx !important;
   /* 确保最小宽度 */
-  background: linear-gradient(135deg,
-      $gradient-blue-start 0%,
-      $gradient-blue-end 50%,
-      $gradient-blue-start 100%);
+  background: linear-gradient(
+    135deg,
+    $gradient-blue-start 0%,
+    $gradient-blue-end 50%,
+    $gradient-blue-start 100%
+  );
   border: 2rpx solid rgba(102, 126, 234, 0.4);
   border-radius: $border-radius-md;
   color: white;
@@ -1494,10 +1496,12 @@ button.page-btn,
 
 /* 🌟 当前页码 - 超级突出显示 */
 .page-number.active {
-  background: linear-gradient(135deg,
-      $gradient-blue-start 0%,
-      $gradient-blue-end 50%,
-      $gradient-blue-start 100%);
+  background: linear-gradient(
+    135deg,
+    $gradient-blue-start 0%,
+    $gradient-blue-end 50%,
+    $gradient-blue-start 100%
+  );
   border-color: $gradient-blue-start;
   color: white;
   font-weight: 700;
@@ -1513,7 +1517,6 @@ button.page-btn,
 }
 
 @keyframes activePagePulse {
-
   0%,
   100% {
     box-shadow:
@@ -1974,4 +1977,434 @@ button.page-btn,
   font-size: $font-size-sm;
   color: $color-text-secondary;
   margin-bottom: 8rpx;
+}
+
+/* ========================================
+   🌑 交易市场 - 暗色高级质感风格 (Dark Premium)
+   仅影响 .dark-* 前缀的交易市场卡片
+   ======================================== */
+
+/* 网格容器暗色背景 */
+.products-grid.dark-grid {
+  gap: 20rpx 16rpx;
+  padding: 12rpx 8rpx;
+}
+
+/* 暗色卡片基础 */
+.product-item.dark-card {
+  background: linear-gradient(165deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  border: 2rpx solid rgba(255, 255, 255, 0.06);
+  border-radius: 20rpx;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 8rpx 32rpx rgba(0, 0, 0, 0.4),
+    0 2rpx 8rpx rgba(0, 0, 0, 0.3),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  -webkit-backdrop-filter: blur(10rpx);
+  backdrop-filter: blur(10rpx);
+}
+
+.product-item.dark-card:active {
+  transform: scale(0.97);
+  box-shadow:
+    0 4rpx 16rpx rgba(0, 0, 0, 0.5),
+    0 1rpx 4rpx rgba(0, 0, 0, 0.4);
+}
+
+/* 资产卡片微调 */
+.product-item.dark-card.card-asset {
+  border-color: rgba(102, 126, 234, 0.15);
+}
+
+/* 物品卡片微调 */
+.product-item.dark-card.card-item {
+  border-color: rgba(255, 107, 53, 0.15);
+}
+
+/* 霓虹顶部光条 */
+.dark-card-glow-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  z-index: 5;
+  border-radius: 20rpx 20rpx 0 0;
+}
+
+.dark-card-glow-bar.glow-asset {
+  background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+  box-shadow:
+    0 0 12rpx rgba(102, 126, 234, 0.6),
+    0 0 24rpx rgba(102, 126, 234, 0.3);
+  animation: neonPulseBlue 3s ease-in-out infinite;
+}
+
+.dark-card-glow-bar.glow-item {
+  background: linear-gradient(90deg, #ff6b35, #f7931e, #ff6b35);
+  box-shadow:
+    0 0 12rpx rgba(255, 107, 53, 0.6),
+    0 0 24rpx rgba(255, 107, 53, 0.3);
+  animation: neonPulseOrange 3s ease-in-out infinite;
+}
+
+@keyframes neonPulseBlue {
+  0%,
+  100% {
+    box-shadow:
+      0 0 12rpx rgba(102, 126, 234, 0.6),
+      0 0 24rpx rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 20rpx rgba(102, 126, 234, 0.9),
+      0 0 40rpx rgba(102, 126, 234, 0.5);
+  }
+}
+
+@keyframes neonPulseOrange {
+  0%,
+  100% {
+    box-shadow:
+      0 0 12rpx rgba(255, 107, 53, 0.6),
+      0 0 24rpx rgba(255, 107, 53, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 20rpx rgba(255, 107, 53, 0.9),
+      0 0 40rpx rgba(255, 107, 53, 0.5);
+  }
+}
+
+/* 暗色图片容器 */
+.product-image-container.dark-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 220rpx;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 100%);
+}
+
+/* 图片底部渐变遮罩 */
+.dark-image-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80rpx;
+  background: linear-gradient(to top, rgba(26, 26, 46, 0.95) 0%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 暗色加载中状态 */
+.image-loading.dark-image-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0d1b2a, #1b2838);
+  @include flex-center;
+  z-index: 3;
+}
+
+.dark-loading-ring {
+  width: 48rpx;
+  height: 48rpx;
+  border: 3rpx solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: darkSpin 0.8s linear infinite;
+}
+
+@keyframes darkSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 图片加载失败暗色占位 */
+.dark-image-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  @include flex-column-center;
+  gap: 8rpx;
+  z-index: 3;
+}
+
+.dark-image-fallback.fallback-asset {
+  background: linear-gradient(135deg, #0d1b3a 0%, #1a1040 50%, #0f3460 100%);
+}
+
+.dark-image-fallback.fallback-item {
+  background: linear-gradient(135deg, #2a1510 0%, #3d1e14 50%, #1a1a2e 100%);
+}
+
+.dark-image-fallback .fallback-emoji {
+  font-size: 64rpx;
+  filter: drop-shadow(0 0 8rpx rgba(255, 255, 255, 0.3));
+}
+
+.dark-image-fallback .fallback-text {
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+}
+
+/* 霓虹类型标签 */
+.dark-type-badge {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  z-index: 4;
+  -webkit-backdrop-filter: blur(8rpx);
+  backdrop-filter: blur(8rpx);
+}
+
+.dark-type-badge.badge-asset {
+  background: rgba(102, 126, 234, 0.2);
+  color: #a5b4fc;
+  border: 1rpx solid rgba(102, 126, 234, 0.4);
+  box-shadow: 0 0 8rpx rgba(102, 126, 234, 0.3);
+}
+
+.dark-type-badge.badge-item {
+  background: rgba(255, 107, 53, 0.2);
+  color: #ffa07a;
+  border: 1rpx solid rgba(255, 107, 53, 0.4);
+  box-shadow: 0 0 8rpx rgba(255, 107, 53, 0.3);
+}
+
+.dark-type-badge .badge-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dark-type-badge.badge-asset .badge-dot {
+  background: #667eea;
+  box-shadow: 0 0 6rpx #667eea;
+}
+
+.dark-type-badge.badge-item .badge-dot {
+  background: #ff6b35;
+  box-shadow: 0 0 6rpx #ff6b35;
+}
+
+/* 稀有度标签 */
+.dark-rarity-badge {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd700;
+  border: 1rpx solid rgba(255, 215, 0, 0.35);
+  font-size: 18rpx;
+  font-weight: 600;
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+  z-index: 4;
+  box-shadow: 0 0 8rpx rgba(255, 215, 0, 0.2);
+  -webkit-backdrop-filter: blur(8rpx);
+  backdrop-filter: blur(8rpx);
+}
+
+/* 已售出 / 已下架暗色遮罩 */
+.dark-sold-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  @include flex-column-center;
+  gap: 8rpx;
+  z-index: 6;
+  -webkit-backdrop-filter: blur(4rpx);
+  backdrop-filter: blur(4rpx);
+}
+
+.dark-sold-overlay .sold-stamp {
+  font-size: 40rpx;
+  font-weight: 900;
+  color: rgba(255, 77, 79, 0.8);
+  letter-spacing: 6rpx;
+  text-shadow: 0 0 12rpx rgba(255, 77, 79, 0.5);
+  border: 4rpx solid rgba(255, 77, 79, 0.5);
+  padding: 4rpx 20rpx;
+  border-radius: 8rpx;
+  transform: rotate(-12deg);
+}
+
+.dark-sold-overlay.withdrawn .sold-stamp {
+  color: rgba(255, 173, 20, 0.8);
+  text-shadow: 0 0 12rpx rgba(255, 173, 20, 0.5);
+  border-color: rgba(255, 173, 20, 0.5);
+}
+
+.dark-sold-overlay .sold-text-cn {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+/* 暗色商品信息区域 */
+.product-info.dark-info {
+  padding: 16rpx 18rpx 12rpx;
+  background: transparent;
+}
+
+.product-name.dark-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.product-desc.dark-desc {
+  font-size: 22rpx;
+  color: rgba(148, 163, 184, 0.7);
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+/* 暗色价格区域 - 金色高亮 */
+.dark-price-block {
+  padding: 10rpx 14rpx;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 179, 71, 0.06) 100%);
+  border: 1rpx solid rgba(255, 215, 0, 0.15);
+  border-radius: 12rpx;
+  margin-top: 4rpx;
+}
+
+.dark-price-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6rpx;
+}
+
+.dark-price-num {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #ffd700;
+  text-shadow: 0 0 12rpx rgba(255, 215, 0, 0.4);
+  line-height: 1;
+}
+
+.dark-price-unit {
+  font-size: 20rpx;
+  font-weight: 500;
+  color: rgba(255, 215, 0, 0.6);
+}
+
+/* 暗色购买按钮 */
+.exchange-btn-container.dark-btn-wrap {
+  padding: 8rpx 18rpx 18rpx;
+}
+
+.exchange-btn.dark-buy-btn {
+  width: 100%;
+  height: 68rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 16rpx !important;
+  font-size: 26rpx !important;
+  font-weight: 700 !important;
+  line-height: 68rpx !important;
+  text-align: center;
+  box-shadow:
+    0 6rpx 20rpx rgba(102, 126, 234, 0.4),
+    0 2rpx 8rpx rgba(118, 75, 162, 0.3),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.exchange-btn.dark-buy-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  animation: darkBtnShimmer 3s ease-in-out infinite;
+}
+
+@keyframes darkBtnShimmer {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+.exchange-btn.dark-buy-btn:active {
+  transform: scale(0.97);
+  box-shadow:
+    0 3rpx 10rpx rgba(102, 126, 234, 0.3),
+    0 1rpx 4rpx rgba(118, 75, 162, 0.2);
+}
+
+.exchange-btn.dark-buy-btn.disabled {
+  background: linear-gradient(135deg, rgba(50, 50, 70, 0.8), rgba(40, 40, 60, 0.8)) !important;
+  color: rgba(148, 163, 184, 0.4) !important;
+  box-shadow: none !important;
+  text-shadow: none;
+}
+
+.exchange-btn.dark-buy-btn.disabled::after {
+  display: none;
+}
+
+/* 已售罄状态暗化 */
+.product-item.dark-card.sold-out {
+  opacity: 0.65;
+  filter: saturate(0.5);
+}
+
+.product-item.dark-card.sold-out .dark-card-glow-bar {
+  opacity: 0.3;
+  animation: none;
+}
+
+/* 暗色空状态 */
+.exchange-content .empty-state {
+  text-align: center;
+  padding: 100rpx 0;
+}
+
+.exchange-content .empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
 }

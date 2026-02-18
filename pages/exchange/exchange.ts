@@ -46,11 +46,6 @@ Page({
     filteredProducts: [],
 
     // ========== 商品兑换相关数据 ==========
-    tradeList: [],
-
-    // ========== 图片加载状态管理 ==========
-    imageStatus: {},
-    filteredTrades: [],
     // 'lucky' | 'premium'
     currentSpace: 'lucky',
 
@@ -87,6 +82,42 @@ Page({
     searchKeyword: '',
     // 'all', 'available', 'low-price'
     currentFilter: 'all',
+
+    /** 幸运空间基础筛选项（UI常量） */
+    luckyBasicFilters: [
+      { key: 'all', label: '全部', showCount: true },
+      { key: 'available', label: '可兑换', showCount: false },
+      { key: 'low-price', label: '低积分', showCount: false }
+    ] as any[],
+    /** 商品分类筛选项（UI常量） */
+    categoryOptions: [
+      { key: 'all', label: '全部' },
+      { key: '优惠券', label: '优惠券' },
+      { key: '实物商品', label: '实物商品' },
+      { key: '虚拟物品', label: '虚拟物品' }
+    ] as any[],
+    /** 积分范围筛选项（UI常量） */
+    pointsRangeOptions: [
+      { key: 'all', label: '全部' },
+      { key: '0-500', label: '0-500分' },
+      { key: '500-1000', label: '500-1000分' },
+      { key: '1000-2000', label: '1000-2000分' },
+      { key: '2000+', label: '2000分以上' }
+    ] as any[],
+    /** 库存状态筛选项（UI常量） */
+    stockFilterOptions: [
+      { key: 'all', label: '全部' },
+      { key: 'in-stock', label: '库存充足' },
+      { key: 'low-stock', label: '库存紧张' }
+    ] as any[],
+    /** 排序方式选项（UI常量） */
+    sortByOptions: [
+      { key: 'default', label: '默认' },
+      { key: 'points-asc', label: '积分升序' },
+      { key: 'points-desc', label: '积分降序' },
+      { key: 'rating-desc', label: '评分降序' },
+      { key: 'stock-desc', label: '库存降序' }
+    ] as any[],
 
     // ========== 分页功能 ==========
     currentPage: 1,
@@ -216,7 +247,7 @@ Page({
 
   /** 页面加载 */
   onLoad(_options: any) {
-    log.info('📄 交易市场页面加载')
+    log.info('交易市场页面加载')
 
     // MobX Store 绑定
     this.userBindings = createStoreBindings(this, {
@@ -238,39 +269,39 @@ Page({
 
   /** 页面显示（恢复用户数据 + WebSocket + 刷新检查） */
   async onShow() {
-    log.info('👁️ 兑换页面显示')
+    log.info(' 兑换页面显示')
 
     // 从 MobX Store 获取用户信息，缺失时从 Storage 恢复（2级恢复，不跳转）
     let userInfo = userStore.userInfo
     if (!userInfo || !userInfo.user_id) {
-      log.warn('⚠️ userStore.userInfo缺失，尝试从Storage恢复')
+      log.warn('userStore.userInfo缺失，尝试从Storage恢复')
       userInfo = wx.getStorageSync('user_info')
       if (userInfo && userInfo.user_id) {
         userStore.updateUserInfo(userInfo)
-        log.info('✅ 从Storage恢复userInfo到Store成功')
+        log.info('从Storage恢复userInfo到Store成功')
       }
     }
 
     // 调用API获取最新积分余额
     if (userInfo && userInfo.user_id) {
       try {
-        log.info('💰 正在获取最新积分余额...')
+        log.info('正在获取最新积分余额...')
         const { getPointsBalance } = API
         const balanceResult = await getPointsBalance()
 
         if (balanceResult && balanceResult.success && balanceResult.data) {
           const points = balanceResult.data.available_amount || 0
           const frozen = balanceResult.data.frozen_amount || 0
-          log.info('✅ 最新积分余额:', { available: points, frozen })
+          log.info('最新积分余额:', { available: points, frozen })
           pointsStore.setBalance(points, frozen)
           this.setData({ userInfo, totalPoints: points, frozenPoints: frozen })
         } else {
           const storePoints = pointsStore.availableAmount || 0
           this.setData({ userInfo, totalPoints: storePoints })
-          log.warn('⚠️ 积分余额API返回失败，使用MobX Store缓存值:', storePoints)
+          log.warn('积分余额API返回失败，使用MobX Store缓存值:', storePoints)
         }
       } catch (error) {
-        log.error('❌ 获取积分余额异常:', error)
+        log.error('获取积分余额异常:', error)
         const storePoints = pointsStore.availableAmount || 0
         this.setData({ userInfo, totalPoints: storePoints })
       }
@@ -285,7 +316,7 @@ Page({
 
   /** 页面隐藏 */
   onHide() {
-    log.info('🙈 兑换页面隐藏')
+    log.info(' 兑换页面隐藏')
     this.disconnectWebSocket()
     this.onHideMarket()
     /* 暂停竞价倒计时（节省性能） */
@@ -301,7 +332,7 @@ Page({
 
   /** 页面卸载 */
   onUnload() {
-    log.info('🗑️ 兑换页面卸载')
+    log.info('兑换页面卸载')
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
     }
@@ -322,13 +353,13 @@ Page({
 
   /** 下拉刷新（页面级 - 已禁用，保留兼容） */
   onPullDownRefresh() {
-    log.info('⬇️ 页面级下拉刷新')
+    log.info('⬇ 页面级下拉刷新')
     this.refreshPage()
   },
 
   /** scroll-view 下拉刷新（替代页面级下拉刷新） */
   onScrollViewRefresh() {
-    log.info('⬇️ scroll-view 下拉刷新')
+    log.info('⬇ scroll-view 下拉刷新')
     this.refreshPage()
   },
 
@@ -344,18 +375,18 @@ Page({
     if (this.data.currentTab !== 'market') {
       this.loadProducts()
     } else {
-      log.info('🏪 商品兑换模式，跳过交易市场列表初始化')
+      log.info(' 商品兑换模式，跳过交易市场列表初始化')
     }
   },
 
   /** 刷新用户信息（从后端API获取最新数据） */
   async refreshUserInfo() {
-    log.info('🔄 刷新用户信息...')
+    log.info('刷新用户信息...')
 
     try {
       const tokenStatus = Utils.checkTokenValidity()
       if (!tokenStatus.isValid) {
-        log.warn('⚠️ Token状态异常，跳过用户信息刷新')
+        log.warn('Token状态异常，跳过用户信息刷新')
         return
       }
 
@@ -372,40 +403,40 @@ Page({
         if (balanceResponse && balanceResponse.success && balanceResponse.data) {
           points = balanceResponse.data.available_amount || 0
           frozen = balanceResponse.data.frozen_amount || 0
-          log.info('✅ 积分余额获取成功:', { available: points, frozen })
+          log.info('积分余额获取成功:', { available: points, frozen })
         } else {
           points = pointsStore.availableAmount || 0
-          log.warn('⚠️ 积分余额API失败，使用MobX Store缓存积分:', points)
+          log.warn('积分余额API失败，使用MobX Store缓存积分:', points)
         }
 
         this.setData({ userInfo, totalPoints: points, frozenPoints: frozen })
         userStore.updateUserInfo(userInfo)
         pointsStore.setBalance(points, frozen)
-        log.info('✅ 用户信息刷新成功，可用积分:', points)
+        log.info('用户信息刷新成功，可用积分:', points)
       } else {
         throw new Error(userInfoResponse.message || '获取用户信息失败')
       }
     } catch (error) {
-      log.error('❌ 用户信息刷新失败:', error)
+      log.error('用户信息刷新失败:', error)
 
       if (userStore.userInfo) {
         const storePoints = pointsStore.availableAmount || 0
         this.setData({ userInfo: userStore.userInfo, totalPoints: storePoints })
-        log.info('💾 使用缓存的用户信息，积分:', storePoints)
+        log.info('使用缓存的用户信息，积分:', storePoints)
       } else {
         this.setData({ userInfo: {}, totalPoints: 0, frozenPoints: 0 })
-        log.warn('⚠️ 无可用用户数据，积分数据需从后端API获取')
-        showToast({ title: '获取用户信息失败', icon: 'none', duration: DELAY.TOAST_LONG })
+        log.warn('无可用用户数据，积分数据需从后端API获取')
+        showToast('获取用户信息失败', 'none', DELAY.TOAST_LONG)
       }
     }
   },
 
   /** 清理Token并跳转登录页 */
   clearTokenAndRedirectLogin() {
-    log.info('🗑️ 清理无效Token')
+    log.info('清理无效Token')
     userStore.clearLoginState()
     pointsStore.clearPoints()
-    wx.reLaunch({ url: '/pages/auth/auth' })
+    wx.reLaunch({ url: '/packageUser/auth/auth' })
   },
 
   /** 连接 Socket.IO（订阅商品更新消息，事件名由后端 emit 直接匹配） */
@@ -413,7 +444,7 @@ Page({
     // 连接前先检查Token有效性
     const tokenStatus = Utils.checkTokenValidity()
     if (!tokenStatus.isValid) {
-      log.warn('⚠️ Token无效，跳过Socket.IO连接:', tokenStatus.message)
+      log.warn('Token无效，跳过Socket.IO连接:', tokenStatus.message)
       return
     }
 
@@ -424,26 +455,26 @@ Page({
           app.subscribeWebSocketMessages('exchange', (eventName: string, _data: any) => {
             /* Socket.IO 按事件名自动路由 */
             if (eventName === 'product_updated' || eventName === 'exchange_stock_changed') {
-              log.info('📦 收到商品更新通知，刷新列表')
+              log.info('收到商品更新通知，刷新列表')
               this.loadProducts()
             }
             /* 竞价相关实时事件 */
             if (eventName === 'bid_outbid') {
-              log.info('🔔 收到出价被超越通知')
+              log.info('收到出价被超越通知')
               this.loadBidProducts()
             }
             if (eventName === 'bid_won' || eventName === 'bid_lost') {
-              log.info('🏆 收到竞价结果通知:', eventName)
+              log.info('收到竞价结果通知:', eventName)
               this.loadBidProducts()
               this.loadBidHistory()
             }
           })
         })
         .catch((error: Error) => {
-          log.warn('⚠️ Socket.IO连接未就绪:', error.message)
+          log.warn('Socket.IO连接未就绪:', error.message)
         })
     } catch {
-      log.warn('⚠️ Socket.IO连接异常，不影响页面正常使用')
+      log.warn('Socket.IO连接异常，不影响页面正常使用')
     }
   },
 
@@ -452,7 +483,7 @@ Page({
     try {
       app.unsubscribeWebSocketMessages('exchange')
     } catch {
-      log.warn('⚠️ Socket.IO取消订阅异常')
+      log.warn('Socket.IO取消订阅异常')
     }
   },
 
@@ -462,7 +493,7 @@ Page({
    * 后端返回 unlocked + remaining_hours（已解锁）或 can_unlock + conditions（未解锁）
    */
   initPremiumUnlockStatus() {
-    log.info('🔒 检查臻选空间解锁状态...')
+    log.info('检查臻选空间解锁状态...')
     this.checkPremiumUnlockStatus()
   },
 
@@ -473,10 +504,10 @@ Page({
     const refreshPromises = [this.refreshUserInfo()]
 
     if (this.data.currentTab === 'market') {
-      log.info('🏪 商品兑换模式刷新')
+      log.info(' 商品兑换模式刷新')
       refreshPromises.push(this.initLuckySpaceData())
     } else {
-      log.info('📦 交易市场模式刷新')
+      log.info('交易市场模式刷新')
       refreshPromises.push(this.loadProducts())
     }
 
@@ -486,7 +517,7 @@ Page({
         wx.stopPullDownRefresh()
       })
       .catch(error => {
-        log.error('❌ 页面刷新失败:', error)
+        log.error('页面刷新失败:', error)
         this.setData({ refreshing: false })
         wx.stopPullDownRefresh()
       })
@@ -494,7 +525,7 @@ Page({
 
   /** 隐藏商品兑换（功能占位） */
   onHideMarket() {
-    log.info('🙈 市场隐藏功能待实现')
+    log.info(' 市场隐藏功能待实现')
   },
 
   // ============================================
@@ -503,7 +534,7 @@ Page({
 
   /** 切换到商品兑换 */
   async onGoToTradeMarket() {
-    log.info('🏪 切换到商品兑换')
+    log.info(' 切换到商品兑换')
 
     if (this.data.currentTab === 'market') {
       log.info('已在商品兑换，无需切换')
@@ -515,17 +546,17 @@ Page({
     await this.initLuckySpaceData()
 
     // 预初始化臻选空间数据结构
-    log.info('📝 预初始化臻选空间数据结构...')
+    log.info('预初始化臻选空间数据结构...')
     this.setData({
       premiumFilteredProducts: []
     })
 
-    log.info('✅ 商品兑换已激活，进入幸运空间')
+    log.info('商品兑换已激活，进入幸运空间')
   },
 
   /** 切换回交易市场模式 */
   onGoToExchange() {
-    log.info('🎁 切换到交易市场')
+    log.info('切换到交易市场')
 
     if (this.data.currentTab === 'exchange') {
       log.info('已在兑换模式，无需切换')
@@ -534,7 +565,7 @@ Page({
 
     this.setData({ currentTab: 'exchange' })
     this.loadProducts()
-    log.info('✅ 交易市场模式已激活')
+    log.info('交易市场模式已激活')
   },
 
   // ============================================
@@ -548,7 +579,7 @@ Page({
    */
   onProductTap(e: any) {
     const product = e.currentTarget.dataset.product
-    log.info('🎁 点击商品:', product)
+    log.info('点击商品:', product)
 
     if (this.data.currentTab === 'market') {
       /**
@@ -556,12 +587,12 @@ Page({
        * 缺少此字段时无法执行 POST /api/v4/backpack/exchange 兑换请求
        */
       if (!product || !product.id) {
-        log.error('❌ 商品数据缺少 id（DataSanitizer 脱敏后的主键），无法兑换:', product)
-        showToast({ title: '商品数据异常，请刷新页面重试', icon: 'none' })
+        log.error('商品数据缺少 id（DataSanitizer 脱敏后的主键），无法兑换:', product)
+        showToast('商品数据异常，请刷新页面重试')
         return
       }
 
-      log.info('🛒 商品兑换模式 - 打开兑换确认弹窗')
+      log.info('商品兑换模式 - 打开兑换确认弹窗')
       this.setData({
         selectedShopProduct: product,
         showShopConfirm: true,
@@ -570,14 +601,14 @@ Page({
       })
     } else {
       // 交易市场Tab → 打开购买确认弹窗
-      log.info('🏪 交易市场模式 - 打开购买确认弹窗')
+      log.info(' 交易市场模式 - 打开购买确认弹窗')
       this.setData({ selectedProduct: product, showConfirm: true })
     }
   },
 
   /** 取消商品兑换操作（幸运空间/臻选空间专用） */
   onCancelShopExchange() {
-    log.info('❌ 取消商品兑换操作')
+    log.info('取消商品兑换操作')
     this.setData({ showShopConfirm: false, selectedShopProduct: null, shopExchangeQuantity: 1 })
   },
 
@@ -597,13 +628,13 @@ Page({
     const { selectedShopProduct, shopExchangeQuantity, shopExchanging, totalPoints } = this.data
 
     if (!selectedShopProduct) {
-      log.error('❌ 未选择兑换商品')
-      showToast({ title: '请选择要兑换的商品', icon: 'none' })
+      log.error('未选择兑换商品')
+      showToast('请选择要兑换的商品')
       return
     }
 
     if (shopExchanging) {
-      log.info('⏳ 正在兑换中，请勿重复操作')
+      log.info('正在兑换中，请勿重复操作')
       return
     }
 
@@ -617,8 +648,8 @@ Page({
     const costAssetCode = selectedShopProduct.cost_asset_code || 'POINTS'
 
     if (!shopProductId) {
-      log.error('❌ 商品ID无效（id 字段缺失）:', selectedShopProduct)
-      showToast({ title: '商品数据异常，请重试', icon: 'none' })
+      log.error('商品ID无效（id 字段缺失）:', selectedShopProduct)
+      showToast('商品数据异常，请重试')
       return
     }
 
@@ -628,7 +659,7 @@ Page({
       costAmount > 0 &&
       totalPoints < costAmount * shopExchangeQuantity
     ) {
-      showToast({ title: '积分不足，无法兑换', icon: 'none' })
+      showToast('积分不足，无法兑换')
       return
     }
 
@@ -640,14 +671,14 @@ Page({
        * 值从列表 API 的 id（string）字段获取，Number() 转为数字
        */
       const exchangeItemIdNum = Number(shopProductId)
-      log.info('🛒 执行商品兑换:', {
+      log.info('执行商品兑换:', {
         exchangeItemId: exchangeItemIdNum,
         quantity: shopExchangeQuantity
       })
       const response = await API.exchangeProduct(exchangeItemIdNum, shopExchangeQuantity)
 
       if (response && response.success && response.data) {
-        log.info('✅ 兑换成功:', response.data)
+        log.info('兑换成功:', response.data)
 
         this.setData({
           showShopConfirm: false,
@@ -672,10 +703,10 @@ Page({
             const frozen = balanceResult.data.frozen_amount || 0
             pointsStore.setBalance(points, frozen)
             this.setData({ totalPoints: points, frozenPoints: frozen })
-            log.info('💰 兑换后积分余额更新:', { available: points, frozen })
+            log.info('兑换后积分余额更新:', { available: points, frozen })
           }
         } catch (balanceError) {
-          log.warn('⚠️ 兑换后积分余额刷新失败:', balanceError)
+          log.warn('兑换后积分余额刷新失败:', balanceError)
         }
 
         // 延迟刷新商品列表
@@ -686,7 +717,7 @@ Page({
         throw new Error((response && response.message) || '兑换失败')
       }
     } catch (error: any) {
-      log.error('❌ 商品兑换失败:', error)
+      log.error('商品兑换失败:', error)
       this.setData({ shopExchanging: false })
 
       let errorMessage = '兑换失败，请重试'
@@ -723,13 +754,13 @@ Page({
 
   /** 关闭商品兑换结果弹窗 */
   onCloseShopResult() {
-    log.info('📝 关闭商品兑换结果弹窗')
+    log.info('关闭商品兑换结果弹窗')
     this.setData({ showShopResult: false, shopResultData: null })
   },
 
   /** 设置错误状态（清空所有商品数据，不使用模拟数据） */
   setErrorState(errorMessage: string, errorDetail: string, specificData: Record<string, any> = {}) {
-    log.info('⚠️ 设置错误状态:', errorMessage)
+    log.info('设置错误状态:', errorMessage)
 
     const baseErrorData = {
       loading: false,
@@ -746,7 +777,7 @@ Page({
     }
 
     this.setData(baseErrorData)
-    showToast({ title: errorMessage, icon: 'none', duration: DELAY.RETRY })
+    showToast(errorMessage, 'none', DELAY.RETRY)
   }
 })
 

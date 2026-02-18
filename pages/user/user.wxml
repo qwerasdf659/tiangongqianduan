@@ -40,7 +40,9 @@
       </view>
       <view class="trend-item">
         <text class="trend-label">今日消费</text>
-        <text class="trend-value consumed">{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text>
+        <text class="trend-value consumed"
+          >{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text
+        >
       </view>
     </view>
   </view>
@@ -51,8 +53,14 @@
       <text>🔧 功能菜单</text>
     </view>
     <view class="menu-grid">
-      <view class="menu-item" wx:for="{{menuItems}}" wx:key="id" bindtap="onMenuItemTap" data-item="{{item}}"
-        style="border-left: 4rpx solid {{item.color}}">
+      <view
+        class="menu-item"
+        wx:for="{{menuItems}}"
+        wx:key="id"
+        bindtap="onMenuItemTap"
+        data-item="{{item}}"
+        style="border-left: 4rpx solid {{item.color}}"
+      >
         <view class="menu-icon" style="color: {{item.color}}">{{item.icon}}</view>
         <view class="menu-content">
           <text class="menu-name">{{item.name}}</text>

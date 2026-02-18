@@ -148,12 +148,12 @@ Component({
      */
     getDisplayMode(banner: any) {
       if (!banner || !banner.display_mode) {
-        log.warn('⚠️ 横幅缺少 display_mode 字段，降级为 wide 模式')
+        log.warn('横幅缺少 display_mode 字段，降级为 wide 模式')
         return 'wide'
       }
 
       if (VALID_DISPLAY_MODES.indexOf(banner.display_mode) === -1) {
-        log.warn('⚠️ 无效的 display_mode 值:', banner.display_mode, '，降级为 wide 模式')
+        log.warn('无效的 display_mode 值:', banner.display_mode, '，降级为 wide 模式')
         return 'wide'
       }
 
@@ -195,7 +195,7 @@ Component({
         this.setData({ imageReady: true })
       }
 
-      log.info('📐 横幅图片加载成功:', loadedWidth + '×' + loadedHeight, '显示模式=' + displayMode)
+      log.info(' 横幅图片加载成功:', loadedWidth + '×' + loadedHeight, '显示模式=' + displayMode)
     },
 
     // ========================================
@@ -204,18 +204,22 @@ Component({
 
     /**
      * 关闭弹窗（带退场动画）
-     * 先播放退场动画，动画结束后通知父组件隐藏
+     * @param closeMethod - 关闭方式: close_btn / overlay / confirm_btn
      */
-    handleClose() {
+    _closeWithMethod(closeMethod: string) {
       this.setData({ animateOut: true, animateIn: false })
-      // 等待退场动画完成（300ms）后通知父组件
       setTimeout(() => {
         this.setData({
           animateOut: false,
           currentIndex: 0
         })
-        this.triggerEvent('close')
+        this.triggerEvent('close', { close_method: closeMethod })
       }, 300)
+    },
+
+    /** 点击关闭按钮 */
+    handleClose() {
+      this._closeWithMethod('close_btn')
     },
 
     /**
@@ -226,7 +230,7 @@ Component({
       if (this.data.isForceShow) {
         return
       }
-      this.handleClose()
+      this._closeWithMethod('overlay')
     },
 
     /**
@@ -251,9 +255,8 @@ Component({
         index: this.data.currentIndex
       })
 
-      // 有链接时自动关闭弹窗
       if (banner.link_url) {
-        this.handleClose()
+        this._closeWithMethod('close_btn')
       }
     },
 
@@ -285,7 +288,7 @@ Component({
      * 强制弹出(force_show)的系统公告必须通过此按钮关闭
      */
     handleNoticeConfirm() {
-      this.handleClose()
+      this._closeWithMethod('confirm_btn')
     },
 
     /**
@@ -311,7 +314,7 @@ Component({
 
       if (this._imageRetryCount <= MAX_RETRY) {
         // 🔄 自动重试：添加时间戳参数绕过缓存
-        log.warn('⚠️ 弹窗横幅图片加载失败，第' + this._imageRetryCount + '次重试...', imageUrl)
+        log.warn('弹窗横幅图片加载失败，第' + this._imageRetryCount + '次重试...', imageUrl)
 
         // 构造重试URL（添加_retry参数绕过缓存）
         let retryUrl = imageUrl
@@ -330,7 +333,7 @@ Component({
         }
       } else {
         // ❌ 重试耗尽，标记加载失败，触发降级占位显示
-        log.error('❌ 弹窗横幅图片加载失败（已重试' + MAX_RETRY + '次），降级显示占位图:', imageUrl)
+        log.error('弹窗横幅图片加载失败（已重试' + MAX_RETRY + '次），降级显示占位图:', imageUrl)
         this.setData({ imageLoadFailed: true })
       }
     }

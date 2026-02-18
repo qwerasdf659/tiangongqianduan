@@ -19,9 +19,10 @@
 /** 引入主题映射表 */
 const { getThemeStyle } = require('./themes/themes')
 
-/** 引入API工具 */
-const { API, Logger } = require('../../utils/index')
+/** 引入API工具和认证助手 */
+const { API, Logger, Utils } = require('../../utils/index')
 const log = Logger.createLogger('lottery-activity')
+const { checkAuth } = Utils
 
 /** 引入积分Store - 抽奖后同步更新全局积分状态，确保页面头部实时刷新 */
 const { pointsStore } = require('../../store/points')
@@ -159,20 +160,20 @@ Component({
   lifetimes: {
     attached() {
       if (this.properties.campaignCode) {
-        this.initActivity(this.properties.campaignCode)
+        this._initFromLifecycle(this.properties.campaignCode)
       }
     },
 
     detached() {
-      /* 组件销毁时data自动清理，无需手动操作 */
+      this._currentCampaign = null
     }
   },
 
   /** 属性监听 */
   observers: {
     campaignCode(newCode: string) {
-      if (newCode) {
-        this.initActivity(newCode)
+      if (newCode && newCode !== this._currentCampaign) {
+        this._initFromLifecycle(newCode)
       }
     }
   },
@@ -180,10 +181,28 @@ Component({
   /** 组件方法 */
   methods: {
     /**
+     * 生命周期统一入口 — 防止 attached + observer 双重触发
+     * 记录当前活动标识，相同标识不重复初始化
+     */
+    _initFromLifecycle(campaignCode: string) {
+      if (this._currentCampaign === campaignCode) {
+        return
+      }
+      this._currentCampaign = campaignCode
+      this.initActivity(campaignCode)
+    },
+
+    /**
      * 初始化活动 - 加载配置和奖品
+     * 前置校验: 认证状态检查，未登录时显示友好提示而非触发API报错
      * @param campaignCode 活动标识
      */
     async initActivity(campaignCode: string) {
+      if (!checkAuth({ redirect: false, showToast: false })) {
+        this.setData({ loading: false, loadError: '请先登录后查看活动' })
+        return
+      }
+
       this.setData({ loading: true, loadError: '' })
 
       try {
@@ -847,5 +866,4 @@ Component({
   }
 })
 
-export { }
-
+export {}

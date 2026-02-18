@@ -31,16 +31,17 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(45deg,
-      transparent 30%,
-      rgba(102, 126, 234, 0.05) 50%,
-      transparent 70%);
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(102, 126, 234, 0.05) 50%,
+    transparent 70%
+  );
   animation: shimmer 4s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes shimmer {
-
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
@@ -142,16 +143,17 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(-45deg,
-      transparent 40%,
-      rgba(255, 255, 255, 0.1) 50%,
-      transparent 60%);
+  background: linear-gradient(
+    -45deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 60%
+  );
   animation: flow 6s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes flow {
-
   0%,
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(-45deg);
@@ -226,7 +228,6 @@
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
     filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));

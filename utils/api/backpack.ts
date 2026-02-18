@@ -1,5 +1,5 @@
 /**
- * 🎒 背包系统 + 🎁 兑换系统 + 🎯 竞价系统 API
+ * 背包系统 + 兑换系统 + 竞价系统 API
  * 后端路由: routes/v4/backpack/（双轨结 assets[] + items[] * 兑换路由: routes/v4/backpack/exchange/（用户域 * 竞价路由: routes/v4/backpack/bid/（用户域 *
  * 数据库表: exchange_items / exchange_records / bid_products / bid_records
  *           item_instances / account_asset_balances
@@ -12,7 +12,7 @@
 const { apiClient } = require('./client')
 const { buildQueryString } = require('../util')
 
-// ==================== 🎒 背包 ====================
+// ==================== 背包 ====================
 
 /**
  * 获取用户背包 双轨结构 assets[] + items[]
@@ -59,7 +59,7 @@ async function useInventoryItem(item_instance_id: number) {
  * 生成核销码（到店出示，商家扫码核销 * POST /api/v4/backpack/items/:item_instance_id/redeem
  *
  * 响应: { order: { redemption_order_id: UUID, status, expires_at }, code: "ABCD1234EFGH" }
- * ⚠️ redemption_order_id UUID(CHAR(36))，code 明文仅返回一 *
+ * ️ redemption_order_id UUID(CHAR(36))，code 明文仅返回一 *
  * @param item_instance_id - 物品实例ID（BIGINT */
 async function redeemInventoryItem(item_instance_id: number) {
   return apiClient.request(`/backpack/items/${item_instance_id}/redeem`, {
@@ -72,7 +72,7 @@ async function redeemInventoryItem(item_instance_id: number) {
   })
 }
 
-// ==================== 🎁 兑换 ====================
+// ==================== 兑换 ====================
 
 /**
  * 获取兑换商品列表
@@ -81,7 +81,7 @@ async function redeemInventoryItem(item_instance_id: number) {
  * 后端服务: exchange_query（ExchangeQueryService.getMarketItems * 数据库表: exchange_items（字符 exchange_item_id, item_name, cost_asset_code, cost_amount 等）
  *
  * 响应结构: { items: ExchangeItem[], pagination: { page, page_size, total, total_pages }, summary }
- * ⚠️ 后端返回数组字段名是 items，不products
+ * ️ 后端返回数组字段名是 items，不products
  *
  * @param params - 查询参数对象
  * @param params.space - 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空
@@ -147,9 +147,9 @@ async function getExchangeProducts(
  * 后端服务: exchange_core（CoreService.exchangeItem * 业务流程: 幂等键校商品状态校库存校验 BalanceService扣减资产 库存扣减 创建exchange_records
  * 全流程在 TransactionManager.execute() 事务 *
  * 响应字段: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
- * ⚠️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
+ * ️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
  *
- * ⚠️ 字段映射关系:
+ * ️ 字段映射关系:
  *   列表 API（GET）返回 id（string，DataSanitizer 脱敏后的通用字段名）
  *   兑换 API（POST）body 参数名是 exchange_item_id（number，后端路由直接读取）
  *   调用方需先 Number(列表item.id) 转为数字再传入本函数
@@ -172,7 +172,7 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
     method: 'POST',
     data: {
       /**
-       * ⚠️ POST body 参数名是 exchange_item_id（后端路由直接读取此字段）
+       * ️ POST body 参数名是 exchange_item_id（后端路由直接读取此字段）
        * 值从列表 API 的 id（string）字段获取，调用方需先 Number() 转为数字
        * 列表返回: { id: "958" } → 调用: exchangeProduct(Number("958"), 1)
        */
@@ -259,7 +259,7 @@ async function getExchangeOrderDetail(order_no: string) {
   })
 }
 
-// ==================== 📊 空间统计 ====================
+// ==================== 空间统计 ====================
 
 /**
  * 获取兑换空间统计数据
@@ -283,16 +283,16 @@ async function getExchangeSpaceStats(space: string) {
   })
 }
 
-// ==================== 🌟 臻选空间（高级兑换） ====================
+// ==================== 臻选空间（高级兑换） ====================
 
 /**
  * 查询臻选空间解锁状态
  * GET /api/v4/backpack/exchange/premium-status
  *
- * 后端服务: premium（PremiumService.getPremiumStatus * 数据来源: PremiumService 服务层计算返回（⚠️ user_premium_statuses 表不存在） *
+ * 后端服务: premium（PremiumService.getPremiumStatus * 数据来源: PremiumService 服务层计算返回（️ user_premium_statuses 表不存在） *
  * 已解锁时响应字段:
- *   - unlocked: true 当前已解锁（⚠️ 不是 is_unlocked *   - is_valid: boolean 是否在有效期 *   - unlock_cost: 100 解锁花费（积分）
- *   - validity_hours: 24 有效期（小时间 *   - remaining_hours: number 剩余有效时间（小时）（⚠不返expires_at *   - total_unlock_count: number 累计解锁次数
+ * - unlocked: true 当前已解锁（️ 不是 is_unlocked * - is_valid: boolean 是否在有效期 * - unlock_cost: 100 解锁花费（积分）
+ * - validity_hours: 24 有效期（小时间 * - remaining_hours: number 剩余有效时间（小时）（不返expires_at * - total_unlock_count: number 累计解锁次数
  *
  * 未解锁时响应字段:
  *   - unlocked: false 当前未解锁 *   - is_expired: boolean 是否已过期 *   - can_unlock: boolean 是否满足解锁条件
@@ -327,7 +327,7 @@ async function unlockPremium() {
   })
 }
 
-// ==================== 🎯 竞价系统（bid域） ====================
+// ==================== 竞价系统（bid域） ====================
 
 /**
  * 获取竞价商品列表
@@ -339,12 +339,12 @@ async function unlockPremium() {
  * 响应字段（基bid_products 表）:
  *   - bid_product_id: BIGINT PK
  *   - exchange_item_id: BIGINT FK
- *   - start_price: BIGINT（起拍价，⚠不是 starting_price *   - current_price: BIGINT（当前最高出价）
+ * - start_price: BIGINT（起拍价，不是 starting_price * - current_price: BIGINT（当前最高出价）
  *   - min_bid_increment: BIGINT（最小加价幅度）
- *   - price_asset_code: VARCHAR(50)（竞价资产类型，默认 DIAMOND，⚠不是 asset_code *   - status: ENUM态）
+ * - price_asset_code: VARCHAR(50)（竞价资产类型，默认 DIAMOND，不是 asset_code * - status: ENUM态）
  *   - start_time / end_time: DATETIME
  *   - bid_count: INT
- *   - winner_user_id: INT（当前最高出价者，⚠️ 不是 highest_bidder_id *
+ * - winner_user_id: INT（当前最高出价者，️ 不是 highest_bidder_id *
  * @param page - 页码，默
  * @param page_size - 每页数量，默0
  * @param status - 竞价状态筛选（active/pending/ended/settled/no_bid/all），默认 'active'
@@ -391,7 +391,7 @@ async function getBidProductDetail(bid_product_id: number) {
  *   3. 金额校验: bid_amount >= current_price + min_bid_increment
  *   4. 旧冻结解冻（用户之前出过价，先解冻旧金额 *   5. 新金额冻 *   6. 更新 bid_records（含幂等idempotency_key *   7. 更新 bid_products.current_price
  *
- * ⚠️ 后端口bid_products.price_asset_code 读取竞价资产类型，无需前端传入 asset_code
+ * ️ 后端口bid_products.price_asset_code 读取竞价资产类型，无需前端传入 asset_code
  *
  * 响应字段（基bid_records 表）:
  *   - bid_record_id: 出价记录ID

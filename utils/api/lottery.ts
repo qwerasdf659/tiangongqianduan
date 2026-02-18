@@ -1,5 +1,5 @@
 /**
- * 🎰 抽奖系统API
+ * 抽奖系统API
  * 后端路由: routes/v4/lottery/
  *
  * @file 天工餐厅积分系统 - 抽奖API模块

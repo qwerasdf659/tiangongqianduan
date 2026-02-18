@@ -52,13 +52,13 @@ const bidHandlers = {
    *   - winner_user_id: INT
    */
   async loadBidProducts() {
-    bidLog.info('🎯 加载竞价商品列表...')
+    bidLog.info('加载竞价商品列表...')
     try {
       const response = await bidGetBidProducts(1, 20, 'active')
 
       if (response && response.success && response.data) {
         const bidProducts = response.data.products || []
-        bidLog.info(`✅ 获取了 ${bidProducts.length} 个竞价商品`)
+        bidLog.info(`获取了 ${bidProducts.length} 个竞价商品`)
 
         /* 使用后端真实字段名（bid_products 表） */
         const mappedProducts = bidProducts.map((item: any) => ({
@@ -83,11 +83,11 @@ const bidHandlers = {
         this.setData({ biddingProducts: mappedProducts })
         this._startBidListCountdown()
       } else {
-        bidLog.info('ℹ️ 暂无竞价商品或API返回空数据')
+        bidLog.info('暂无竞价商品或API返回空数据')
         this.setData({ biddingProducts: [] })
       }
     } catch (error) {
-      bidLog.error('❌ 加载竞价商品失败:', error)
+      bidLog.error('加载竞价商品失败:', error)
       this.setData({ biddingProducts: [] })
     }
   },
@@ -97,16 +97,16 @@ const bidHandlers = {
    * 后端API: GET /api/v4/backpack/bid/history
    */
   async loadBidHistory() {
-    bidLog.info('📋 加载竞价历史...')
+    bidLog.info('加载竞价历史...')
     try {
       const response = await bidGetBidHistory(1, 50)
       if (response && response.success && response.data) {
         const records = response.data.records || []
         this.setData({ bidHistory: records })
-        bidLog.info(`✅ 获取了 ${records.length} 条竞价历史`)
+        bidLog.info(`获取了 ${records.length} 条竞价历史`)
       }
     } catch (error) {
-      bidLog.error('❌ 加载竞价历史失败:', error)
+      bidLog.error('加载竞价历史失败:', error)
       this.setData({ bidHistory: [] })
     }
   },
@@ -120,7 +120,7 @@ const bidHandlers = {
    */
   async onBidTap(e: any) {
     const product = e.currentTarget.dataset.product
-    bidLog.info('🏷️ 点击竞价:', product)
+    bidLog.info('点击竞价:', product)
 
     if (product.status !== 'active') {
       bidShowToast(product.status === 'pending' ? '竞拍尚未开始' : '竞拍已结束')
@@ -178,7 +178,7 @@ const bidHandlers = {
 
       this._startBidModalCountdown()
     } catch (error) {
-      bidLog.error('❌ 获取竞价详情失败，使用列表数据', error)
+      bidLog.error('获取竞价详情失败，使用列表数据', error)
       const errorMinBid = (product.current_price || 0) + (product.min_bid_increment || 1)
       this.setData({
         selectedBidProduct: product,
@@ -302,7 +302,7 @@ const bidHandlers = {
             /* 部分设备不支持震动 */
           }
 
-          bidLog.info('🎯 提交竞价:', {
+          bidLog.info('提交竞价:', {
             bid_product_id: selectedBidProduct.bid_product_id,
             bid_amount: userBidAmount
           })
@@ -310,7 +310,7 @@ const bidHandlers = {
           const response = await bidPlaceBid(selectedBidProduct.bid_product_id, userBidAmount)
 
           if (response && response.success) {
-            bidLog.info('✅ 竞价成功:', response.data)
+            bidLog.info('竞价成功:', response.data)
 
             try {
               wx.vibrateShort({ type: 'heavy' })
@@ -332,7 +332,7 @@ const bidHandlers = {
             this.loadBidHistory()
           }
         } catch (error: any) {
-          bidLog.error('❌ 竞价失败:', error)
+          bidLog.error('竞价失败:', error)
           this.setData({ bidSubmitting: false })
         }
       }
@@ -463,5 +463,4 @@ const bidHandlers = {
 
 module.exports = bidHandlers
 
-export { }
-
+export {}

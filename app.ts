@@ -80,8 +80,8 @@ App({
 
   /** 应用启动初始化 */
   async onLaunch(options: WechatMiniprogram.App.LaunchShowOption): Promise<void> {
-    log.info('🚀 餐厅积分抽奖系统v5.0启动中...')
-    log.info('📱 启动参数:', options)
+    log.info('餐厅积分抽奖系统v5.0启动中...')
+    log.info('启动参数:', options)
 
     try {
       await this.initializeSystem()
@@ -91,9 +91,9 @@ App({
       // 冷启动时清理过期弹窗记录（90天以上），防止本地存储无限增长
       PopupFrequency.cleanExpiredRecords()
 
-      log.info('✅ 系统初始化完成')
+      log.info('系统初始化完成')
     } catch (error: any) {
-      log.error('❌ 系统初始化失败', error)
+      log.error('系统初始化失败', error)
       this.handleInitializationError(error)
     }
   },
@@ -104,13 +104,13 @@ App({
     const devConfig = getDevelopmentConfig()
     const wsConfig = getWebSocketConfig()
 
-    log.info('✅ 系统核心服务初始化完成')
+    log.info('系统核心服务初始化完成')
 
     this.globalData.is_development = devConfig.enableUnifiedAuth
     this.globalData.ws_url = wsConfig.url
     this.globalData.ws_config = wsConfig
 
-    log.info('🔧 系统环境配置:', {
+    log.info('系统环境配置:', {
       currentEnv: getCurrentEnv(),
       apiBaseUrl: apiConfig.baseUrl,
       webSocketUrl: wsConfig.url,
@@ -126,11 +126,11 @@ App({
    * 应用启动MobX Store 尚未持有数据，需要从 Storage 恢复上次会话   * 恢复成功后通过 userStore.setLoginState() 将数据同步到 Store   * 此后所有业务代码统一从Store 读取，不再直接访问Storage   */
   async checkAuthStatus(): Promise<void> {
     try {
-      // 应用启动恢复：从 Storage 读取上次会话的Token和用户信息
-      const token: string = wx.getStorageSync('access_token')
+      // 应用启动恢复：从 Storage 读取上次会话的Token和用户信息（token用let因刷新后需更新）
+      let token: string = wx.getStorageSync('access_token')
       let userInfo: API.UserProfile | null = wx.getStorageSync('user_info') || null
 
-      log.info('🔍 检查认证状态', {
+      log.info('检查认证状态', {
         hasToken: !!token,
         hasUserInfo: !!userInfo,
         tokenLength: token ? token.length : 0
@@ -138,21 +138,48 @@ App({
 
       // 有token但没有userInfo，从JWT Token中解析恢复
       if (token && !userInfo) {
-        log.info('⚠️ 检测到Token存在但userInfo缺失，尝试从JWT Token中恢复..')
-        const { Utils } = require('./utils/index')
+        log.info('检测到Token存在但userInfo缺失，尝试从JWT Token中恢复...')
+        const { Utils, API: AuthAPI } = require('./utils/index')
         const { decodeJWTPayload, validateJWTTokenIntegrity, isTokenExpired } = Utils
 
         const integrityCheck = validateJWTTokenIntegrity(token)
         if (!integrityCheck.isValid) {
-          log.error('❌ Token完整性验证失败，需要重新登录')
+          log.error('Token完整性验证失败，需要重新登录')
           this.clearAuthData()
           return
         }
 
+        /**
+         * Token过期时尝试自动刷新（而非直接清除）
+         * 正确启动流程: 过期 → refresh → 成功则继续 → 失败则重新登录
+         */
         if (isTokenExpired(token)) {
-          log.warn('⚠️ Token已过期，需要重新登录')
-          this.clearAuthData()
-          return
+          log.warn('Token已过期，尝试自动刷新...')
+          const refreshToken: string = wx.getStorageSync('refresh_token') || ''
+          if (refreshToken) {
+            try {
+              const refreshResult = await AuthAPI.refreshAccessToken(refreshToken, token)
+              if (refreshResult.success && refreshResult.data) {
+                token = refreshResult.data.access_token
+                const newRefreshToken: string = refreshResult.data.refresh_token || refreshToken
+                wx.setStorageSync('access_token', token)
+                wx.setStorageSync('refresh_token', newRefreshToken)
+                log.info('启动时Token刷新成功（无userInfo场景）')
+              } else {
+                log.warn('Token刷新响应异常，需要重新登录')
+                this.clearAuthData()
+                return
+              }
+            } catch (refreshError: any) {
+              log.error('启动时Token刷新失败:', refreshError.message)
+              this.clearAuthData()
+              return
+            }
+          } else {
+            log.warn('无refresh_token，需要重新登录')
+            this.clearAuthData()
+            return
+          }
         }
 
         try {
@@ -169,10 +196,10 @@ App({
             } as API.UserProfile
 
             wx.setStorageSync('user_info', userInfo)
-            log.info('✅ 从JWT Token恢复userInfo成功')
+            log.info('从JWT Token恢复userInfo成功')
           }
         } catch (decodeError) {
-          log.error('❌ JWT Token解析失败:', decodeError)
+          log.error('JWT Token解析失败:', decodeError)
           this.clearAuthData()
           return
         }
@@ -185,7 +212,7 @@ App({
         // 完整性验证
         const integrityCheck = validateJWTTokenIntegrity(token)
         if (!integrityCheck.isValid) {
-          log.error('🚨 检测到Token完整性问题', integrityCheck.error)
+          log.error(' 检测到Token完整性问题', integrityCheck.error)
           if (integrityCheck.error.includes('截断')) {
             wx.showModal({
               title: '认证令牌异常',
@@ -196,26 +223,53 @@ App({
               success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
                 if (res.confirm) {
                   this.clearAuthData()
-                  wx.redirectTo({ url: '/pages/auth/auth' })
+                  wx.redirectTo({ url: '/packageUser/auth/auth' })
                 }
               }
             })
             return
           } else {
-            log.warn('⚠️ Token格式问题，自动清除')
+            log.warn('Token格式问题，自动清除')
             this.clearAuthData()
             return
           }
         }
 
-        // 过期检
+        /**
+         * Token过期时尝试自动刷新（而非直接清除）
+         * 正确启动流程: 过期 → refresh → 成功则继续 → 失败则重新登录
+         */
         if (isTokenExpired(token)) {
-          log.warn('⚠️ Token已过期，清理认证数据')
-          this.clearAuthData()
-          return
+          log.warn('Token已过期，尝试自动刷新...')
+          const refreshTokenStr: string = wx.getStorageSync('refresh_token') || ''
+          if (refreshTokenStr) {
+            try {
+              const { API: RefreshAPI } = require('./utils/index')
+              const refreshResult = await RefreshAPI.refreshAccessToken(refreshTokenStr, token)
+              if (refreshResult.success && refreshResult.data) {
+                token = refreshResult.data.access_token
+                const newRefreshToken: string = refreshResult.data.refresh_token || refreshTokenStr
+                wx.setStorageSync('access_token', token)
+                wx.setStorageSync('refresh_token', newRefreshToken)
+                log.info('启动时Token刷新成功')
+              } else {
+                log.warn('Token刷新响应异常，需要重新登录')
+                this.clearAuthData()
+                return
+              }
+            } catch (refreshError: any) {
+              log.error('启动时Token刷新失败:', refreshError.message)
+              this.clearAuthData()
+              return
+            }
+          } else {
+            log.warn('无refresh_token，需要重新登录')
+            this.clearAuthData()
+            return
+          }
         }
 
-        log.info('✅ Token健康检查通过')
+        log.info('Token本地健康检查通过')
 
         // 恢复认证状态到 MobX Store（唯一数据源）
         const refreshToken: string = wx.getStorageSync('refresh_token') || ''
@@ -224,22 +278,70 @@ App({
         // 此处仅恢复为0，后续页面加载时会从后端刷新真实余额
         pointsStore.setBalance(0, 0)
 
-        log.info('✅ 用户认证状态恢复成功', {
+        log.info('用户认证状态恢复成功', {
           user_id: userInfo.user_id,
           mobile: userInfo.mobile,
           role_level: userInfo.role_level,
           userRole: userStore.userRole
         })
 
+        /**
+         * 服务端认证会话验证：确认 authentication_sessions.is_active = true
+         *
+         * 本地 JWT 有效 ≠ 服务端会话有效（单设备登录策略下，新登录会使旧会话 is_active=false）
+         * 此处调用 GET /api/v4/auth/verify 做服务端确认，失败时静默清理而非自动重新登录，
+         * 避免触发新的登录请求导致其他设备的会话被连锁失效
+         */
+        try {
+          const { API: AuthAPI } = require('./utils/index')
+          const verifyResult = await AuthAPI.verifyToken()
+          if (verifyResult && verifyResult.success) {
+            log.info('服务端认证会话验证通过')
+          }
+        } catch (verifyError: any) {
+          const errorCode: string = verifyError.code || ''
+          log.warn('服务端认证会话验证失败:', errorCode, verifyError.message)
+
+          /**
+           * 认证失败错误码分类处理（对齐后端 middleware/auth.js）
+           *
+           * SESSION_REPLACED  → 其他设备登录，旧会话已被覆盖
+           * SESSION_EXPIRED   → 会话超时（7天未使用），APIClient 会自动尝试刷新
+           * SESSION_NOT_FOUND → 会话记录被清理任务删除
+           * TOKEN_EXPIRED     → JWT过期，APIClient 会自动尝试刷新
+           * MISSING_TOKEN     → 请求未携带 Authorization 头
+           * INVALID_TOKEN     → Token格式错误或签名无效
+           *
+           * TOKEN_EXPIRED 和 SESSION_EXPIRED 在 APIClient.handleResponse 中
+           * 已自动触发 handleTokenExpired 尝试刷新，如果刷新也失败才会走到这里
+           */
+          const authErrorCodes: string[] = [
+            'SESSION_REPLACED',
+            'SESSION_EXPIRED',
+            'SESSION_NOT_FOUND',
+            'TOKEN_EXPIRED',
+            'MISSING_TOKEN',
+            'INVALID_TOKEN'
+          ]
+
+          if (authErrorCodes.includes(errorCode)) {
+            log.warn('认证会话已失效，清理本地认证数据', { errorCode })
+            this.clearAuthData()
+            return
+          }
+          // 网络错误等非认证失败场景：保留本地状态，不阻断用户使用
+          log.info('服务端验证异常但非认证问题，保留本地认证状态')
+        }
+
         this.logTokenUsage('restore_success', {
           tokenLength: token.length,
           userType: userStore.userRole
         })
       } else {
-        log.info('💡 没有存储的认证信息')
+        log.info('没有存储的认证信息')
       }
     } catch (error: any) {
-      log.info('⚠️ 认证状态恢复失败', error.message)
+      log.info('认证状态恢复失败', error.message)
       this.logTokenUsage('restore_error', { error: error.message })
       this.clearAuthData()
     }
@@ -263,7 +365,7 @@ App({
 
   /** 处理初始化错误*/
   handleInitializationError(error: Error): void {
-    log.error('🚨 系统初始化错误', error)
+    log.error(' 系统初始化错误', error)
 
     wx.showModal({
       title: '系统初始化失败',
@@ -278,7 +380,7 @@ App({
 
   /** 应用显示时触发?*/
   onShow(): void {
-    log.info('📱 应用进入前台')
+    log.info('应用进入前台')
     const pages = getCurrentPages()
     this.globalData.current_page =
       pages.length > 0 && pages[pages.length - 1] ? pages[pages.length - 1].route || '' : ''
@@ -286,12 +388,12 @@ App({
 
   /** 应用隐藏时触发?*/
   onHide(): void {
-    log.info('📱 应用进入后台')
+    log.info('应用进入后台')
   },
 
   /** 应用错误处理 */
   onError(error: string): void {
-    log.error('🚨 应用发生错误:', error)
+    log.error(' 应用发生错误:', error)
     this.logError(error)
   },
 
@@ -305,7 +407,7 @@ App({
       userAgent: this.getSafeSystemInfo()
     }
 
-    log.error('📝 错误记录:', errorInfo)
+    log.error('错误记录:', errorInfo)
 
     if (this.globalData.is_development) {
       wx.showModal({
@@ -325,7 +427,7 @@ App({
 
       return { ...windowInfo, ...deviceInfo, ...appBaseInfo }
     } catch (error: any) {
-      log.error('❌ 获取系统信息失败:', error)
+      log.error('获取系统信息失败:', error)
       throw new Error(`系统信息获取失败：${error.message}`)
     }
   },
@@ -351,12 +453,12 @@ App({
   connectWebSocket(): Promise<void> {
     // 已连接则直接返回
     if (this.socketData.connected && this.socketData.socket) {
-      log.info('🔌 Socket.IO 已连接')
+      log.info('Socket.IO 已连接')
       return Promise.resolve()
     }
 
     if (!userStore.isLoggedIn || !userStore.accessToken) {
-      log.info('🚫 用户未登录，跳过Socket.IO连接')
+      log.info(' 用户未登录，跳过Socket.IO连接')
       return Promise.reject(new Error('用户未登录'))
     }
 
@@ -364,12 +466,12 @@ App({
     const { Utils } = require('./utils/index')
     const { isTokenExpired } = Utils
     if (isTokenExpired(userStore.accessToken)) {
-      log.warn('⚠️ Token已过期，跳过Socket.IO连接')
+      log.warn('Token已过期，跳过Socket.IO连接')
       return Promise.reject(new Error('Token已过期'))
     }
 
     const wsConfig = getWebSocketConfig()
-    log.info('🔌 启动 Socket.IO 连接...', {
+    log.info('启动 Socket.IO 连接...', {
       url: wsConfig.url,
       timeout: wsConfig.timeout
     })
@@ -403,7 +505,7 @@ App({
 
         // 连接成功（替代原 connection_established + wx.onSocketOpen）
         socket.on('connect', () => {
-          log.info('✅ Socket.IO 连接成功')
+          log.info('Socket.IO 连接成功')
           this.socketData.connected = true
           this.globalData.ws_connected = true
           this.notifyPageSubscribers('websocket_connected', {})
@@ -412,13 +514,13 @@ App({
 
         // 连接错误（替代原 auth_verify_result 失败 + wx.onSocketError）
         socket.on('connect_error', (err: any) => {
-          log.error('❌ Socket.IO 连接错误:', err.message)
+          log.error('Socket.IO 连接错误:', err.message)
           this.socketData.connected = false
           this.globalData.ws_connected = false
 
           // Token 认证失败时清理认证数据
           if (err.message && err.message.includes('Authentication')) {
-            log.warn('⚠️ Token认证失败，清理认证数据')
+            log.warn('Token认证失败，清理认证数据')
             this.clearAuthData()
           }
 
@@ -428,21 +530,31 @@ App({
 
         // 断开连接（替代原 wx.onSocketClose）
         socket.on('disconnect', (reason: string) => {
-          log.info('🔌 Socket.IO 断开连接，原因:', reason)
+          log.info('Socket.IO 断开连接，原因:', reason)
           this.socketData.connected = false
           this.globalData.ws_connected = false
+
+          /**
+           * 会话失效导致的断连：后端主动断开时 reason 包含 "session"
+           * 此时说明认证会话已失效（可能是其他设备登录），需要重新登录
+           */
+          if (reason && reason.toLowerCase().includes('session')) {
+            log.warn('WebSocket因会话失效被服务端断开，清理认证数据')
+            this.clearAuthData()
+          }
+
           this.notifyPageSubscribers('websocket_closed', { reason })
         })
 
         // 重连失败（所有重连尝试耗尽）
         socket.on('reconnect_failed', () => {
-          log.info('❌ Socket.IO 重连次数已达上限')
+          log.info('Socket.IO 重连次数已达上限')
           this.notifyPageSubscribers('websocket_max_reconnect_reached', {})
         })
 
         // 重连成功
         socket.on('reconnect', (attemptNumber: number) => {
-          log.info(`🔄 Socket.IO 重连成功（第${attemptNumber}次尝试）`)
+          log.info(`Socket.IO 重连成功（第${attemptNumber}次尝试）`)
           this.socketData.connected = true
           this.globalData.ws_connected = true
           this.notifyPageSubscribers('websocket_connected', {})
@@ -452,19 +564,19 @@ App({
 
         // 连接确认（后端连接成功后立即推送，含 user_id、socket_id、server_time）
         socket.on('connection_established', (data: any) => {
-          log.info('🤝 收到后端连接确认:', data)
+          log.info(' 收到后端连接确认:', data)
           this.notifyPageSubscribers('connection_established', data)
         })
 
         // 新消息（后端 ChatWebSocketService 推送，含 chat_message_id、content、sender_type 等）
         socket.on('new_message', (data: any) => {
-          log.info('📨 收到新消息', data)
+          log.info('收到新消息', data)
           this.notifyPageSubscribers('new_message', data)
         })
 
         // 系统通知（替代原 system_message）
         socket.on('notification', (data: any) => {
-          log.info('📢 收到系统通知:', data)
+          log.info('收到系统通知:', data)
           if (data.level === 'urgent') {
             wx.showModal({ title: '🚨 紧急通知', content: data.content, showCancel: false })
           }
@@ -473,43 +585,43 @@ App({
 
         // 商品更新
         socket.on('product_updated', (data: any) => {
-          log.info('📦 收到商品更新:', data)
+          log.info('收到商品更新:', data)
           this.notifyPageSubscribers('product_updated', data)
         })
 
         // 库存变更
         socket.on('exchange_stock_changed', (data: any) => {
-          log.info('📦 收到库存变更:', data)
+          log.info('收到库存变更:', data)
           this.notifyPageSubscribers('exchange_stock_changed', data)
         })
 
         // 会话状态变更
         socket.on('session_status', (data: any) => {
-          log.info('📋 收到会话状态变更', data)
+          log.info('收到会话状态变更', data)
           this.notifyPageSubscribers('session_status', data)
         })
 
         // 会话开始
         socket.on('session_started', (data: any) => {
-          log.info('🆕 收到新会话通知:', data)
+          log.info('收到新会话通知:', data)
           this.notifyPageSubscribers('session_started', data)
         })
 
         // 会话关闭（后端 session_closed 事件，含 session_id、close_reason）
         socket.on('session_closed', (data: any) => {
-          log.info('🔚 收到会话关闭通知:', data)
+          log.info('收到会话关闭通知:', data)
           this.notifyPageSubscribers('session_closed', data)
         })
 
         // 消息发送确认（后端收到 send_message 后写库成功回执）
         socket.on('message_sent', (data: any) => {
-          log.info('✅ 消息发送确认', data)
+          log.info('消息发送确认', data)
           this.notifyPageSubscribers('message_sent', data)
         })
 
         // 消息发送失败（后端处理 send_message 时出错的回执）
         socket.on('message_error', (data: any) => {
-          log.error('❌ 消息发送失败', data)
+          log.error('消息发送失败', data)
           this.notifyPageSubscribers('message_error', data)
         })
 
@@ -520,11 +632,11 @@ App({
 
         // 认证状态变更
         socket.on('auth_status', (data: any) => {
-          log.info('🔐 收到认证状态通知:', data)
+          log.info('收到认证状态通知:', data)
           this.notifyPageSubscribers('auth_status', data)
         })
       } catch (error: any) {
-        log.error('❌ Socket.IO 初始化失败', error)
+        log.error('Socket.IO 初始化失败', error)
         reject(error)
       }
     })
@@ -535,13 +647,13 @@ App({
     pageId: string,
     callback: (_eventName: string, _data: any) => void
   ): void {
-    log.info(`📱 页面 ${pageId} 订阅Socket.IO消息`)
+    log.info(`页面 ${pageId} 订阅Socket.IO消息`)
     this.socketData.pageSubscribers.set(pageId, callback)
   },
 
   /** 取消页面订阅 */
   unsubscribeWebSocketMessages(pageId: string): void {
-    log.info(`📱 页面 ${pageId} 取消Socket.IO消息订阅`)
+    log.info(`页面 ${pageId} 取消Socket.IO消息订阅`)
     this.socketData.pageSubscribers.delete(pageId)
   },
 
@@ -552,7 +664,7 @@ App({
         try {
           callback(eventName, data)
         } catch (error) {
-          log.error(`❌ 页面 ${pageId} 消息处理失败:`, error)
+          log.error(`页面 ${pageId} 消息处理失败:`, error)
         }
       }
     )
@@ -567,18 +679,18 @@ App({
    */
   emitSocketMessage(eventName: string, data: Record<string, any>): boolean {
     if (!this.socketData.connected || !this.socketData.socket) {
-      log.warn('⚠️ Socket.IO未连接，无法发送消息:', eventName)
+      log.warn('Socket.IO未连接，无法发送消息:', eventName)
       return false
     }
 
     this.socketData.socket.emit(eventName, data)
-    log.info(`📤 Socket.IO emit: ${eventName}`)
+    log.info(`Socket.IO emit: ${eventName}`)
     return true
   },
 
   /** 断开 Socket.IO 连接 */
   disconnectWebSocket(): void {
-    log.info('🔌 断开 Socket.IO 连接')
+    log.info('断开 Socket.IO 连接')
 
     if (this.socketData.socket) {
       this.socketData.socket.disconnect()
@@ -607,12 +719,11 @@ App({
       }
 
       wx.setStorageSync('token_usage_logs', logs)
-      log.info('📊 Token使用日志记录:', logEntry)
+      log.info('Token使用日志记录:', logEntry)
     } catch (error: any) {
-      log.warn('⚠️ Token日志记录失败:', error.message)
+      log.warn('Token日志记录失败:', error.message)
     }
   }
 })
 
-export { }
-
+export {}

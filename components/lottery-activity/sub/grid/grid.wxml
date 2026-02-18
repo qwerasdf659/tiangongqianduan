@@ -9,12 +9,18 @@
 <view class="grid-container">
   <view class="prize-grid">
     <!-- 奖品区域0 - 左上角（sort_order=1） -->
-    <view class="prize-area {{currentHighlight === 0 ? 'highlighted' : ''}} {{winningIndex === 0 ? 'winning' : ''}}"
-      data-index="0">
+    <view
+      class="prize-area {{currentHighlight === 0 ? 'highlighted' : ''}} {{winningIndex === 0 ? 'winning' : ''}}"
+      data-index="0"
+    >
       <rarity-effects rarity="{{prizes[0].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[0].prize_image_url}}" class="prize-img" src="{{prizes[0].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[0].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[0].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[0].prize_icon || '🎫'}}</text>
           <text class="prize-name">{{prizes[0].prize_name || ''}}</text>
         </view>
@@ -22,12 +28,18 @@
     </view>
 
     <!-- 奖品区域1 - 中上（sort_order=2） -->
-    <view class="prize-area {{currentHighlight === 1 ? 'highlighted' : ''}} {{winningIndex === 1 ? 'winning' : ''}}"
-      data-index="1">
+    <view
+      class="prize-area {{currentHighlight === 1 ? 'highlighted' : ''}} {{winningIndex === 1 ? 'winning' : ''}}"
+      data-index="1"
+    >
       <rarity-effects rarity="{{prizes[1].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[1].prize_image_url}}" class="prize-img" src="{{prizes[1].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[1].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[1].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[1].prize_icon || '🎁'}}</text>
           <text class="prize-name">{{prizes[1].prize_name || ''}}</text>
         </view>
@@ -35,12 +47,18 @@
     </view>
 
     <!-- 奖品区域2 - 右上角（sort_order=3） -->
-    <view class="prize-area {{currentHighlight === 2 ? 'highlighted' : ''}} {{winningIndex === 2 ? 'winning' : ''}}"
-      data-index="2">
+    <view
+      class="prize-area {{currentHighlight === 2 ? 'highlighted' : ''}} {{winningIndex === 2 ? 'winning' : ''}}"
+      data-index="2"
+    >
       <rarity-effects rarity="{{prizes[2].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[2].prize_image_url}}" class="prize-img" src="{{prizes[2].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[2].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[2].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[2].prize_icon || '🏆'}}</text>
           <text class="prize-name">{{prizes[2].prize_name || ''}}</text>
         </view>
@@ -48,12 +66,18 @@
     </view>
 
     <!-- 奖品区域7 - 左中（sort_order=8） -->
-    <view class="prize-area {{currentHighlight === 7 ? 'highlighted' : ''}} {{winningIndex === 7 ? 'winning' : ''}}"
-      data-index="7">
+    <view
+      class="prize-area {{currentHighlight === 7 ? 'highlighted' : ''}} {{winningIndex === 7 ? 'winning' : ''}}"
+      data-index="7"
+    >
       <rarity-effects rarity="{{prizes[7].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[7].prize_image_url}}" class="prize-img" src="{{prizes[7].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[7].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[7].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[7].prize_icon || '💎'}}</text>
           <text class="prize-name">{{prizes[7].prize_name || ''}}</text>
         </view>
@@ -62,18 +86,28 @@
 
     <!-- 中央抽奖按钮 -->
     <view class="lottery-center-button">
-      <button class="center-draw-btn {{isInProgress ? 'drawing' : ''}}" disabled="{{isInProgress}}" bindtap="onDraw">
+      <button
+        class="center-draw-btn {{isInProgress ? 'drawing' : ''}}"
+        disabled="{{isInProgress}}"
+        bindtap="onDraw"
+      >
         <text class="btn-text">{{isInProgress ? '抽奖中...' : '开始抽奖'}}</text>
       </button>
     </view>
 
     <!-- 奖品区域3 - 右中（sort_order=4） -->
-    <view class="prize-area {{currentHighlight === 3 ? 'highlighted' : ''}} {{winningIndex === 3 ? 'winning' : ''}}"
-      data-index="3">
+    <view
+      class="prize-area {{currentHighlight === 3 ? 'highlighted' : ''}} {{winningIndex === 3 ? 'winning' : ''}}"
+      data-index="3"
+    >
       <rarity-effects rarity="{{prizes[3].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[3].prize_image_url}}" class="prize-img" src="{{prizes[3].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[3].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[3].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[3].prize_icon || '🎪'}}</text>
           <text class="prize-name">{{prizes[3].prize_name || ''}}</text>
         </view>
@@ -81,12 +115,18 @@
     </view>
 
     <!-- 奖品区域6 - 左下角（sort_order=7） -->
-    <view class="prize-area {{currentHighlight === 6 ? 'highlighted' : ''}} {{winningIndex === 6 ? 'winning' : ''}}"
-      data-index="6">
+    <view
+      class="prize-area {{currentHighlight === 6 ? 'highlighted' : ''}} {{winningIndex === 6 ? 'winning' : ''}}"
+      data-index="6"
+    >
       <rarity-effects rarity="{{prizes[6].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[6].prize_image_url}}" class="prize-img" src="{{prizes[6].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[6].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[6].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[6].prize_icon || '🎊'}}</text>
           <text class="prize-name">{{prizes[6].prize_name || ''}}</text>
         </view>
@@ -94,12 +134,18 @@
     </view>
 
     <!-- 奖品区域5 - 中下（sort_order=6） -->
-    <view class="prize-area {{currentHighlight === 5 ? 'highlighted' : ''}} {{winningIndex === 5 ? 'winning' : ''}}"
-      data-index="5">
+    <view
+      class="prize-area {{currentHighlight === 5 ? 'highlighted' : ''}} {{winningIndex === 5 ? 'winning' : ''}}"
+      data-index="5"
+    >
       <rarity-effects rarity="{{prizes[5].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[5].prize_image_url}}" class="prize-img" src="{{prizes[5].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[5].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[5].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[5].prize_icon || '🎉'}}</text>
           <text class="prize-name">{{prizes[5].prize_name || ''}}</text>
         </view>
@@ -107,12 +153,18 @@
     </view>
 
     <!-- 奖品区域4 - 右下角（sort_order=5） -->
-    <view class="prize-area {{currentHighlight === 4 ? 'highlighted' : ''}} {{winningIndex === 4 ? 'winning' : ''}}"
-      data-index="4">
+    <view
+      class="prize-area {{currentHighlight === 4 ? 'highlighted' : ''}} {{winningIndex === 4 ? 'winning' : ''}}"
+      data-index="4"
+    >
       <rarity-effects rarity="{{prizes[4].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
         <view class="prize-content">
-          <image wx:if="{{prizes[4].prize_image_url}}" class="prize-img" src="{{prizes[4].prize_image_url}}"
-            mode="aspectFit" />
+          <image
+            wx:if="{{prizes[4].prize_image_url}}"
+            class="prize-img"
+            src="{{prizes[4].prize_image_url}}"
+            mode="aspectFit"
+          />
           <text wx:else class="prize-icon">{{prizes[4].prize_icon || '🎈'}}</text>
           <text class="prize-name">{{prizes[4].prize_name || ''}}</text>
         </view>

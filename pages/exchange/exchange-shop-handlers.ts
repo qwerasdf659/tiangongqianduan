@@ -38,17 +38,17 @@ const { PAGINATION: SHOP_PAGINATION } = shopConstants
  */
 const shopHandlers = {
   // ============================================
-  // 🔄 空间切换
+  // 空间切换
   // ============================================
 
   /** 切换幸运空间/臻选空间?*/
   async onSpaceChange(e: any) {
     const targetSpace = e.currentTarget.dataset.space
-    shopLog.info(`🔄 切换空间: ${targetSpace}`)
+    shopLog.info(`切换空间: ${targetSpace}`)
 
     // 检查臻选空间解锁状态
     if (targetSpace === 'premium' && !this.data.premiumUnlocked) {
-      shopLog.info('🔒 臻选空间未解锁，尝试解锁..')
+      shopLog.info('臻选空间未解锁，尝试解锁..')
       this.handlePremiumUnlock()
       return
     }
@@ -66,18 +66,18 @@ const shopHandlers = {
       await this.initPremiumSpaceData()
     }
 
-    shopLog.info(`✅ 已切换到空间: ${targetSpace}`)
+    shopLog.info(`已切换到空间: ${targetSpace}`)
   },
 
   // ============================================
-  // 🍀 幸运空间（瀑布流布局  // ============================================
+  // 幸运空间（瀑布流布局 // ============================================
 
   /**
    * 初始化幸运空间数据   * 后端API: GET /api/v4/backpack/exchange/items?space=lucky
    * 响应: { items: ExchangeItem[], pagination: {...} }
    */
   async initLuckySpaceData() {
-    shopLog.info('🎁 初始化幸运空间数据（方案1瀑布流布局）...')
+    shopLog.info('初始化幸运空间数据（方案1瀑布流布局）...')
 
     try {
       this.setData({ loading: true })
@@ -94,15 +94,15 @@ const shopHandlers = {
         }),
         shopGetExchangeSpaceStats('lucky')
       ])
-      shopLog.info('📦 API返回数据:', { space: 'lucky', page: 1, page_size: waterfallPageSize })
+      shopLog.info('API返回数据:', { space: 'lucky', page: 1, page_size: waterfallPageSize })
 
       if (response && response.success && response.data) {
-        // ⚠️ 后端返回字段名是 items（不products
+        // ️ 后端返回字段名是 items（不products
         const items = response.data.items || []
-        shopLog.info(`✅ 获取了 ${items.length} 个商品`)
+        shopLog.info(`获取了 ${items.length} 个商品`)
 
         if (items.length < 1) {
-          shopLog.info('⚠️ API返回商品数量不足')
+          shopLog.info('API返回商品数量不足')
           this.setData({
             luckySpaceProducts: [],
             errorMessage: '暂无商品数据',
@@ -114,7 +114,7 @@ const shopHandlers = {
         }
 
         const waterfallProducts = this.convertToWaterfallData(items) || []
-        shopLog.info(`🌊 转换为瀑布流数据 ${waterfallProducts.length} 个`)
+        shopLog.info(` 转换为瀑布流数据 ${waterfallProducts.length} 个`)
 
         // 布局计算（保留用于筛选功能，Flex网格不依赖layoutInfo定位）
         const layoutResult = this.calculateWaterfallLayout(waterfallProducts) || {
@@ -123,7 +123,7 @@ const shopHandlers = {
           containerHeight: 500
         }
         const layoutProducts = layoutResult.layoutProducts || []
-        shopLog.info(`📐 布局计算完成: ${layoutProducts.length} 个商品`)
+        shopLog.info(` 布局计算完成: ${layoutProducts.length} 个商品`)
 
         // 保存全部商品数据用于分页
         const allLayoutProducts = Array.isArray(layoutProducts) ? layoutProducts : []
@@ -139,7 +139,7 @@ const shopHandlers = {
             : { new_count: 0, avg_discount: 0, flash_deals: 0 }
 
         if (!statsResponse || !statsResponse.success) {
-          shopLog.warn('⚠️ 幸运空间统计API返回失败，统计数据为空')
+          shopLog.warn('幸运空间统计API返回失败，统计数据为空')
         }
 
         this.setData({
@@ -162,20 +162,20 @@ const shopHandlers = {
         this.calculateLuckyTotalPages()
         this.loadLuckyCurrentPageProducts()
 
-        shopLog.info('✅ 幸运空间数据初始化完成')
+        shopLog.info('幸运空间数据初始化完成')
       } else {
-        shopLog.info('❌ API返回失败')
+        shopLog.info('API返回失败')
         this.setErrorState('加载商品失败', '幸运空间接口调用失败，请稍后重试')
       }
     } catch (error) {
-      shopLog.error('❌ 幸运空间初始化失败', error)
+      shopLog.error('幸运空间初始化失败', error)
       this.setErrorState('系统错误', '幸运空间初始化失败，请联系开发者')
     }
   },
 
   /** 初始化瀑布流布局配置 */
   async initWaterfallLayout() {
-    shopLog.info('🔑 初始化瀑布流布局配置')
+    shopLog.info('初始化瀑布流布局配置')
 
     try {
       let systemInfo: Record<string, any> = {}
@@ -185,19 +185,19 @@ const shopHandlers = {
         const appBaseInfo = wx.getAppBaseInfo()
         systemInfo = { ...deviceInfo, ...windowInfo, ...appBaseInfo }
       } catch (error) {
-        shopLog.error('❌ 获取系统信息失败:', error)
+        shopLog.error('获取系统信息失败:', error)
         systemInfo = { windowWidth: 375, windowHeight: 667 }
       }
 
       const containerWidth = (systemInfo.windowWidth || 375) - 48
       this.setData({ containerWidth, columnHeights: [0, 0], cardGap: 15, cardPadding: 24 })
-      shopLog.info('✅ 瀑布流布局配置完成:', {
+      shopLog.info('瀑布流布局配置完成:', {
         screenWidth: systemInfo.windowWidth,
         containerWidth,
         cardGap: this.data.cardGap
       })
     } catch (error) {
-      shopLog.error('❌ 初始化瀑布流布局失败:', error)
+      shopLog.error('初始化瀑布流布局失败:', error)
       this.setData({ containerWidth: 327, columnHeights: [0, 0], cardGap: 15, cardPadding: 24 })
     }
   },
@@ -223,7 +223,7 @@ const shopHandlers = {
   },
 
   // ============================================
-  // 💎 臻选空间（混合布局  // ============================================
+  // 臻选空间（混合布局 // ============================================
 
   /**
    * 初始化臻选空间数据（含竞价商品）
@@ -231,7 +231,7 @@ const shopHandlers = {
    * 后端API: GET /api/v4/backpack/exchange/items?space=premium
    */
   async initPremiumSpaceData() {
-    shopLog.info('💎 初始化臻选空间数据（含竞价商品）...')
+    shopLog.info('初始化臻选空间数据（含竞价商品）...')
 
     try {
       this.setData({ loading: true })
@@ -244,37 +244,37 @@ const shopHandlers = {
       ])
 
       if (exchangeResponse && exchangeResponse.success && exchangeResponse.data) {
-        // ⚠️ 后端返回字段名是 items（不是 products）
+        // ️ 后端返回字段名是 items（不是 products）
         const rawItems = exchangeResponse.data.items || []
 
         /**
-         * 🔒 数据完整性校验（与幸运空间 convertToWaterfallData 保持一致的验证逻辑）
+         * 数据完整性校验（与幸运空间 convertToWaterfallData 保持一致的验证逻辑）
          * 后端 DataSanitizer 将 exchange_item_id 脱敏为 id（string 类型）
          * 缺少 id 的商品无法执行 POST /api/v4/backpack/exchange 兑换请求，必须在入口处过滤
          */
         const items = rawItems.filter((item: any, idx: number) => {
           if (!item || typeof item !== 'object') {
-            shopLog.warn(`⚠️ 臻选空间第${idx}个商品数据无效，跳过`)
+            shopLog.warn(`臻选空间第${idx}个商品数据无效，跳过`)
             return false
           }
           /* 后端 DataSanitizer 脱敏: exchange_item_id → id（string） */
           if (!item.id) {
             shopLog.error(
-              `❌ 臻选空间第${idx}个商品缺少 id（DataSanitizer 脱敏后的商品主键），数据异常:`,
+              `臻选空间第${idx}个商品缺少 id（DataSanitizer 脱敏后的商品主键），数据异常:`,
               `keys=${Object.keys(item).join(',')}, name=${item.name || '空'}`
             )
             return false
           }
           /* 后端 DataSanitizer 脱敏: item_name → name */
           if (!item.name) {
-            shopLog.warn(`⚠️ 臻选空间商品 id=${item.id} 的 name 为空`)
+            shopLog.warn(`臻选空间商品 id=${item.id} 的 name 为空`)
           }
           return true
         })
 
         if (rawItems.length > 0 && items.length === 0) {
           shopLog.error(
-            `❌ 后端API返回 ${rawItems.length} 个商品全部缺少 id，` +
+            `后端API返回 ${rawItems.length} 个商品全部缺少 id，` +
               `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
           )
           this.setErrorState('商品数据异常', '后端返回的商品缺少必要字段(id)，请联系管理员')
@@ -283,7 +283,7 @@ const shopHandlers = {
 
         if (rawItems.length !== items.length) {
           shopLog.warn(
-            `⚠️ 臻选空间数据校验: 原始${rawItems.length}个, 有效${items.length}个, ` +
+            `臻选空间数据校验: 原始${rawItems.length}个, 有效${items.length}个, ` +
               `过滤${rawItems.length - items.length}个`
           )
         }
@@ -299,7 +299,7 @@ const shopHandlers = {
             : { hot_count: 0, avg_rating: 0, trending_count: 0 }
 
         if (!premiumStatsResponse || !premiumStatsResponse.success) {
-          shopLog.warn('⚠️ 臻选空间统计API返回失败，统计数据为空')
+          shopLog.warn('臻选空间统计API返回失败，统计数据为空')
         }
 
         // 保存校验通过的商品数据用于分页
@@ -315,14 +315,14 @@ const shopHandlers = {
         this.calculatePremiumTotalPages()
         this.loadPremiumCurrentPageProducts()
 
-        shopLog.info('✅ 臻选空间数据初始化完成')
+        shopLog.info('臻选空间数据初始化完成')
       } else {
-        shopLog.info('ℹ️ 臻选空间商品为空（后端尚未配置premium商品）')
+        shopLog.info('臻选空间商品为空（后端尚未配置premium商品）')
         this.setData({ loading: false })
         /* 即使臻选商品为空，竞价商品仍然可展示?*/
       }
     } catch (error) {
-      shopLog.error('❌ 臻选空间初始化失败:', error)
+      shopLog.error('臻选空间初始化失败:', error)
       this.setErrorState('系统错误', '臻选空间初始化失败，请联系开发者')
     }
   },
@@ -332,19 +332,19 @@ const shopHandlers = {
    * 后端API: GET /api/v4/backpack/exchange/items?space=premium
    */
   async loadPremiumProducts() {
-    shopLog.info('💎 解锁后刷新臻选空间商品?..')
+    shopLog.info('解锁后刷新臻选空间商品?..')
     await this.initPremiumSpaceData()
   },
 
   /**
    * 检查臻选空间解锁状态   * 后端API: GET /api/v4/backpack/exchange/premium-status
    *
-   * 响应字段（PremiumService 服务层计算返回，⚠️ user_premium_statuses 表不存在）
+   * 响应字段（PremiumService 服务层计算返回，️ user_premium_statuses 表不存在）
    * 已解锁时:
-   *   - unlocked: true（⚠不是 is_unlocked   *   - is_valid: boolean
+   * - unlocked: true（不是 is_unlocked * - is_valid: boolean
    *   - unlock_cost: 100
    *   - validity_hours: 24
-   *   - remaining_hours: number（⚠不返expires_at   *   - total_unlock_count: number
+   * - remaining_hours: number（不返expires_at * - total_unlock_count: number
    * 未解锁时:
    *   - unlocked: false
    *   - is_expired: boolean
@@ -359,9 +359,9 @@ const shopHandlers = {
       if (result && result.success && result.data) {
         const status = result.data
         this.setData({
-          /* 后端字段?unlocked（⚠不是 is_unlocked?*/
+          /* 后端字段?unlocked（不是 is_unlocked?*/
           premiumUnlocked: !!status.unlocked,
-          /* 后端返回 remaining_hours（⚠不返?expires_at 也不返回 unlock_expires_at?*/
+          /* 后端返回 remaining_hours（不返?expires_at 也不返回 unlock_expires_at?*/
           premiumRemainingHours: status.remaining_hours || 0,
           premiumIsValid: !!status.is_valid,
           premiumTotalUnlockCount: status.total_unlock_count || 0,
@@ -372,10 +372,10 @@ const shopHandlers = {
           premiumUnlockCost: status.unlock_cost || 0,
           premiumValidityHours: status.validity_hours || 24
         })
-        shopLog.info('✅ 臻选空间解锁状态', status)
+        shopLog.info('臻选空间解锁状态', status)
       }
     } catch (error) {
-      shopLog.error('❌ 查询臻选空间解锁状态失败', error)
+      shopLog.error('查询臻选空间解锁状态失败', error)
     }
   },
 
@@ -433,12 +433,12 @@ const shopHandlers = {
           premiumRemainingHours: result.data.remaining_hours || 0
         })
         shopShowToast('🎉 臻选空间解锁成功！')
-        shopLog.info('✅ 臻选空间解锁成功', result.data)
+        shopLog.info('臻选空间解锁成功', result.data)
         /* 解锁后刷新臻选空间商品列表?*/
         this.loadPremiumProducts()
       }
     } catch (error: any) {
-      shopLog.error('❌ 臻选空间解锁失败', error)
+      shopLog.error('臻选空间解锁失败', error)
       shopShowToast(error.message || '解锁失败，请稍后重试')
     }
   },
@@ -450,13 +450,13 @@ const shopHandlers = {
       const containerWidth = res.windowWidth - 40
       const columnWidth = Math.floor((containerWidth - 20) / 2)
       this.setData({ containerWidth, columnWidth })
-      shopLog.info('✅ 布局参数初始化完成', {
+      shopLog.info('布局参数初始化完成', {
         windowWidth: res.windowWidth,
         containerWidth,
         columnWidth
       })
     } catch (err) {
-      shopLog.error('✅ 获取窗口信息失败:', err)
+      shopLog.error('获取窗口信息失败:', err)
       this.setData({ containerWidth: 335, columnWidth: 157 })
     }
   },
@@ -473,7 +473,7 @@ const shopHandlers = {
   },
 
   // ============================================
-  // 🛠数据转换和工具方  // ============================================
+  // 数据转换和工具方 // ============================================
 
   /**
    * 转换后端商品数据为瀑布流格式
@@ -489,14 +489,14 @@ const shopHandlers = {
    */
   convertToWaterfallData(items: any) {
     if (!items || !Array.isArray(items)) {
-      shopLog.warn('⚠️ convertToWaterfallData: 传入的items无效，返回空数组')
+      shopLog.warn('convertToWaterfallData: 传入的items无效，返回空数组')
       return []
     }
     try {
       const result = items
         .map((item: any, index: number) => {
           if (!item || typeof item !== 'object') {
-            shopLog.warn(`⚠️ convertToWaterfallData: 第${index}个商品数据无效`, item)
+            shopLog.warn(`convertToWaterfallData: 第${index}个商品数据无效`, item)
             return null
           }
 
@@ -510,7 +510,7 @@ const shopHandlers = {
 
           if (!itemName || !itemId) {
             shopLog.warn(
-              `⚠️ 商品数据不完整，缺少id或name，跳过索引${index}:`,
+              `商品数据不完整，缺少id或name，跳过索引${index}:`,
               `keys=${Object.keys(item).join(',')}, id=${itemId}, name=${itemName}`
             )
             return null
@@ -559,10 +559,10 @@ const shopHandlers = {
         })
         .filter(Boolean)
 
-      shopLog.info(`🔍 convertToWaterfallData: 输入${items.length}个, 输出${result.length}个`)
+      shopLog.info(`convertToWaterfallData: 输入${items.length}个, 输出${result.length}个`)
       return result
     } catch (error) {
-      shopLog.error('❌ convertToWaterfallData 转换失败:', error)
+      shopLog.error('convertToWaterfallData 转换失败:', error)
       return []
     }
   },
@@ -571,12 +571,12 @@ const shopHandlers = {
    * 臻选空间已改为与幸运空间一致的双列网格布局，不再需要轮播/卡片分组/列表三层混合布局 */
 
   // ============================================
-  // 🔍 幸运空间搜索和筛  // ============================================
+  // 幸运空间搜索和筛 // ============================================
 
   /** 幸运空间搜索输入处理?00ms防抖?*/
   onLuckySearchInput: shopDebounce(function (e: any) {
     const keyword = e.detail.value.trim()
-    shopLog.info('🔍 幸运空间搜索关键词', keyword)
+    shopLog.info('幸运空间搜索关键词', keyword)
     this.setData({ luckySearchKeyword: keyword })
     this.applyLuckyFilters()
   }, 500),
@@ -584,7 +584,7 @@ const shopHandlers = {
   /** 幸运空间筛选条件变?*/
   onLuckyFilterChange(e: any) {
     const filter = e.currentTarget.dataset.filter
-    shopLog.info('🔍 幸运空间切换筛选', filter)
+    shopLog.info('幸运空间切换筛选', filter)
     this.setData({ luckyCurrentFilter: filter })
     this.applyLuckyFilters()
   },
@@ -592,14 +592,14 @@ const shopHandlers = {
   /** 切换幸运空间高级筛选面?*/
   onToggleLuckyAdvancedFilter() {
     const { showLuckyAdvancedFilter } = this.data
-    shopLog.info('🔍 切换幸运空间高级筛选', !showLuckyAdvancedFilter)
+    shopLog.info('切换幸运空间高级筛选', !showLuckyAdvancedFilter)
     this.setData({ showLuckyAdvancedFilter: !showLuckyAdvancedFilter })
   },
 
   /** 幸运空间分类筛选变?*/
   onLuckyCategoryFilterChange(e: any) {
     const category = e.currentTarget.dataset.category
-    shopLog.info('🔍 幸运空间切换分类筛选', category)
+    shopLog.info('幸运空间切换分类筛选', category)
     this.setData({ luckyCategoryFilter: category })
     this.applyLuckyFilters()
   },
@@ -607,7 +607,7 @@ const shopHandlers = {
   /** 幸运空间积分范围筛选变?*/
   onLuckyPointsRangeChange(e: any) {
     const range = e.currentTarget.dataset.range
-    shopLog.info('🔍 幸运空间切换积分范围:', range)
+    shopLog.info('幸运空间切换积分范围:', range)
     this.setData({ luckyPointsRange: range })
     this.applyLuckyFilters()
   },
@@ -615,7 +615,7 @@ const shopHandlers = {
   /** 幸运空间排序方式变更 */
   onLuckySortByChange(e: any) {
     const sort = e.currentTarget.dataset.sort
-    shopLog.info('🔍 幸运空间切换排序:', sort)
+    shopLog.info('幸运空间切换排序:', sort)
     this.setData({ luckySortBy: sort })
     this.applyLuckyFilters()
   },
@@ -623,14 +623,14 @@ const shopHandlers = {
   /** 幸运空间库存状态筛?*/
   onLuckyStockFilterChange(e: any) {
     const filter = e.currentTarget.dataset.filter
-    shopLog.info(`🔍 幸运空间库存状态筛选: ${filter}`)
+    shopLog.info(`幸运空间库存状态筛选: ${filter}`)
     this.setData({ luckyStockFilter: filter })
     this.applyLuckyFilters()
   },
 
   /** 重置幸运空间所有筛选条?*/
   onResetLuckyFilters() {
-    shopLog.info('🔄 重置幸运空间所有筛选条件')
+    shopLog.info('重置幸运空间所有筛选条件')
     this.setData({
       luckySearchKeyword: '',
       luckyCurrentFilter: 'all',
@@ -641,12 +641,12 @@ const shopHandlers = {
       showLuckyAdvancedFilter: false
     })
     this.applyLuckyFilters()
-    shopShowToast({ title: '✅ 筛选已重置', icon: 'success' })
+    shopShowToast('筛选已重置', 'success')
   },
 
   /** 商品兑换空间 - 按售价排序（和交易市场一致的快捷操作） */
   onShopSortByPoints() {
-    shopLog.info('📊 商品兑换空间按售价排序')
+    shopLog.info('商品兑换空间按售价排序')
     const { currentSpace } = this.data
 
     if (currentSpace === 'lucky') {
@@ -668,7 +668,7 @@ const shopHandlers = {
       })
       this.setData({ premiumFilteredProducts: sortedPremiumProducts })
     }
-    shopShowToast({ title: '已按售价升序排列', icon: 'success' })
+    shopShowToast('已按售价升序排列', 'success')
   },
 
   /** 应用幸运空间筛选条件（委托?utils/product-filter.ts + utils/waterfall.ts?*/
@@ -704,8 +704,18 @@ const shopHandlers = {
   },
 
   // ============================================
-  // 📖 幸运空间分页
+  // 幸运空间分页
   // ============================================
+
+  /** 幸运空间 - pagination组件统一分页事件处理 */
+  onLuckyPaginationChange(e: any) {
+    const targetPage = e.detail.page
+    if (targetPage !== this.data.luckyCurrentPage) {
+      this.setData({ luckyCurrentPage: targetPage, luckyPageInputValue: '' })
+      this.loadLuckyCurrentPageProducts()
+      shopLog.info(`幸运空间跳转到第 ${targetPage} 页`)
+    }
+  },
 
   /** 幸运空间 - 计算总页数 */
   calculateLuckyTotalPages() {
@@ -717,7 +727,7 @@ const shopHandlers = {
       luckyTotalProducts: allProducts.length
     })
     shopLog.info(
-      `📊 幸运空间分页: 共${allProducts.length}个商品, 每页${luckyPageSize}个, 共${luckyTotalPages}页`
+      `幸运空间分页: 共${allProducts.length}个商品, 每页${luckyPageSize}个, 共${luckyTotalPages}页`
     )
   },
 
@@ -730,7 +740,7 @@ const shopHandlers = {
     const currentPageProducts = allProducts.slice(startIndex, endIndex)
 
     shopLog.info(
-      `📖 幸运空间加载第${luckyCurrentPage}页 [${startIndex}-${endIndex - 1}], 共${currentPageProducts.length}个`
+      `幸运空间加载第${luckyCurrentPage}页 [${startIndex}-${endIndex - 1}], 共${currentPageProducts.length}个`
     )
 
     // 对当前页商品计算瀑布流布局
@@ -748,7 +758,7 @@ const shopHandlers = {
     if (luckyCurrentPage > 1) {
       this.setData({ luckyCurrentPage: luckyCurrentPage - 1 })
       this.loadLuckyCurrentPageProducts()
-      shopLog.info(`📖 幸运空间切换到第 ${luckyCurrentPage - 1} 页`)
+      shopLog.info(` 幸运空间切换到第 ${luckyCurrentPage - 1} 页`)
     }
   },
 
@@ -758,7 +768,7 @@ const shopHandlers = {
     if (luckyCurrentPage < luckyTotalPages) {
       this.setData({ luckyCurrentPage: luckyCurrentPage + 1 })
       this.loadLuckyCurrentPageProducts()
-      shopLog.info(`📖 幸运空间切换到第 ${luckyCurrentPage + 1} 页`)
+      shopLog.info(` 幸运空间切换到第 ${luckyCurrentPage + 1} 页`)
     }
   },
 
@@ -769,7 +779,7 @@ const shopHandlers = {
     if (targetPage !== this.data.luckyCurrentPage) {
       this.setData({ luckyCurrentPage: targetPage })
       this.loadLuckyCurrentPageProducts()
-      shopLog.info(`📖 幸运空间跳转到第 ${targetPage} 页`)
+      shopLog.info(` 幸运空间跳转到第 ${targetPage} 页`)
     }
   },
 
@@ -784,26 +794,36 @@ const shopHandlers = {
     const inputValue = e.detail.value || this.data.luckyPageInputValue
     const targetPage = parseInt(inputValue)
 
-    shopLog.info(`📖 幸运空间输入跳转页码: ${targetPage}`)
+    shopLog.info(` 幸运空间输入跳转页码: ${targetPage}`)
 
     if (isNaN(targetPage)) {
-      shopShowToast({ title: '请输入有效页码', icon: 'none' })
+      shopShowToast('请输入有效页码')
       return
     }
     if (targetPage < 1 || targetPage > luckyTotalPages) {
-      shopShowToast({ title: `页码范围: 1 - ${luckyTotalPages}`, icon: 'none' })
+      shopShowToast(`页码范围: 1 - ${luckyTotalPages}`)
       return
     }
     if (targetPage !== this.data.luckyCurrentPage) {
       this.setData({ luckyCurrentPage: targetPage, luckyPageInputValue: '' })
       this.loadLuckyCurrentPageProducts()
-      shopShowToast({ title: `已跳转到第 ${targetPage} 页`, icon: 'success' })
+      shopShowToast(`已跳转到第 ${targetPage} 页`, 'success')
     }
   },
 
   // ============================================
-  // 📖 臻选空间分页
+  // 臻选空间分页
   // ============================================
+
+  /** 臻选空间 - pagination组件统一分页事件处理 */
+  onPremiumPaginationChange(e: any) {
+    const targetPage = e.detail.page
+    if (targetPage !== this.data.premiumCurrentPage) {
+      this.setData({ premiumCurrentPage: targetPage, premiumPageInputValue: '' })
+      this.loadPremiumCurrentPageProducts()
+      shopLog.info(`臻选空间跳转到第 ${targetPage} 页`)
+    }
+  },
 
   /** 臻选空间 - 计算总页数 */
   calculatePremiumTotalPages() {
@@ -815,7 +835,7 @@ const shopHandlers = {
       premiumTotalProducts: allProducts.length
     })
     shopLog.info(
-      `📊 臻选空间分页: 共${allProducts.length}个商品, 每页${premiumPageSize}个, 共${premiumTotalPages}页`
+      `臻选空间分页: 共${allProducts.length}个商品, 每页${premiumPageSize}个, 共${premiumTotalPages}页`
     )
   },
 
@@ -832,7 +852,7 @@ const shopHandlers = {
     const currentPageProducts = allProducts.slice(startIndex, endIndex)
 
     shopLog.info(
-      `📖 臻选空间加载第${premiumCurrentPage}页 [${startIndex}-${endIndex - 1}], 共${currentPageProducts.length}个`
+      `臻选空间加载第${premiumCurrentPage}页 [${startIndex}-${endIndex - 1}], 共${currentPageProducts.length}个`
     )
 
     /**
@@ -873,7 +893,7 @@ const shopHandlers = {
     if (premiumCurrentPage > 1) {
       this.setData({ premiumCurrentPage: premiumCurrentPage - 1 })
       this.loadPremiumCurrentPageProducts()
-      shopLog.info(`📖 臻选空间切换到第 ${premiumCurrentPage - 1} 页`)
+      shopLog.info(` 臻选空间切换到第 ${premiumCurrentPage - 1} 页`)
     }
   },
 
@@ -883,7 +903,7 @@ const shopHandlers = {
     if (premiumCurrentPage < premiumTotalPages) {
       this.setData({ premiumCurrentPage: premiumCurrentPage + 1 })
       this.loadPremiumCurrentPageProducts()
-      shopLog.info(`📖 臻选空间切换到第 ${premiumCurrentPage + 1} 页`)
+      shopLog.info(` 臻选空间切换到第 ${premiumCurrentPage + 1} 页`)
     }
   },
 
@@ -894,7 +914,7 @@ const shopHandlers = {
     if (targetPage !== this.data.premiumCurrentPage) {
       this.setData({ premiumCurrentPage: targetPage })
       this.loadPremiumCurrentPageProducts()
-      shopLog.info(`📖 臻选空间跳转到第 ${targetPage} 页`)
+      shopLog.info(` 臻选空间跳转到第 ${targetPage} 页`)
     }
   },
 
@@ -909,25 +929,25 @@ const shopHandlers = {
     const inputValue = e.detail.value || this.data.premiumPageInputValue
     const targetPage = parseInt(inputValue)
 
-    shopLog.info(`📖 臻选空间输入跳转页码: ${targetPage}`)
+    shopLog.info(` 臻选空间输入跳转页码: ${targetPage}`)
 
     if (isNaN(targetPage)) {
-      shopShowToast({ title: '请输入有效页码', icon: 'none' })
+      shopShowToast('请输入有效页码')
       return
     }
     if (targetPage < 1 || targetPage > premiumTotalPages) {
-      shopShowToast({ title: `页码范围: 1 - ${premiumTotalPages}`, icon: 'none' })
+      shopShowToast(`页码范围: 1 - ${premiumTotalPages}`)
       return
     }
     if (targetPage !== this.data.premiumCurrentPage) {
       this.setData({ premiumCurrentPage: targetPage, premiumPageInputValue: '' })
       this.loadPremiumCurrentPageProducts()
-      shopShowToast({ title: `已跳转到第 ${targetPage} 页`, icon: 'success' })
+      shopShowToast(`已跳转到第 ${targetPage} 页`, 'success')
     }
   },
 
   // ============================================
-  // 🖼️ 图片加载错误处理
+  // ️ 图片加载错误处理
   // ============================================
 
   /**
@@ -937,7 +957,7 @@ const shopHandlers = {
    */
   onShopImageError(e: any) {
     const { index, space } = e.currentTarget.dataset
-    shopLog.info(`⚠️ 商品图片加载失败 [space=${space}, index=${index}]`)
+    shopLog.info(`商品图片加载失败 [space=${space}, index=${index}]`)
 
     const defaultImg = '/images/products/default-product.png'
 

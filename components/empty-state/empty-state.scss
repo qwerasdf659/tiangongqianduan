@@ -1,0 +1,45 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-title {
+  font-size: $font-size-md;
+  font-weight: bold;
+  color: $color-text-secondary;
+  margin-bottom: 12rpx;
+}
+
+.empty-subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.empty-btn {
+  margin-top: 32rpx;
+  padding: 0 48rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  font-size: $font-size-sm;
+  background: $color-primary;
+  color: #fff;
+  border-radius: $border-radius-lg;
+  border: none;
+
+  &::after {
+    border: none;
+  }
+}

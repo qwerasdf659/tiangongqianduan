@@ -1,0 +1,163 @@
+<!--
+  📝 创建广告活动
+  后端API: POST /api/v4/user/ad-campaigns
+-->
+<view class="ad-create-page">
+  <!-- 加载中 -->
+  <view class="page-loading" wx:if="{{loading}}">
+    <text class="loading-icon">⏳</text>
+    <text class="loading-text">加载广告位信息...</text>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <!-- 表单区域 -->
+    <view class="form-section">
+      <!-- 活动名称 -->
+      <view class="form-group">
+        <text class="form-label">活动名称</text>
+        <input
+          class="form-input"
+          placeholder="请输入广告活动名称"
+          value="{{campaignName}}"
+          bindinput="onNameInput"
+          maxlength="100"
+        />
+      </view>
+
+      <!-- 选择广告位 -->
+      <view class="form-group">
+        <text class="form-label">选择广告位</text>
+        <view class="slot-list">
+          <view
+            wx:for="{{adSlots}}"
+            wx:key="ad_slot_id"
+            class="slot-card {{selectedSlotIndex === index ? 'selected' : ''}}"
+            data-index="{{index}}"
+            bindtap="onSlotSelect"
+          >
+            <view class="slot-header">
+              <text class="slot-icon">{{item.slot_type === 'popup' ? '💬' : '🎠'}}</text>
+              <text class="slot-name">{{item.slot_name}}</text>
+            </view>
+            <view class="slot-info">
+              <text class="slot-type"
+                >{{item.slot_type === 'popup' ? '弹窗广告' : '轮播广告'}}</text
+              >
+              <text class="slot-price">日价 {{item.daily_price_diamond}} 💎</text>
+            </view>
+            <view class="slot-meta" wx:if="{{item.description}}">
+              <text>{{item.description}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="form-tip" wx:if="{{adSlots.length === 0}}">
+          <text>暂无可用广告位</text>
+        </view>
+      </view>
+
+      <!-- 计费模式 -->
+      <view class="form-group">
+        <text class="form-label">计费模式</text>
+        <view class="billing-mode-list">
+          <view
+            wx:for="{{billingModes}}"
+            wx:key="value"
+            class="billing-mode-card {{selectedBillingMode === item.value ? 'selected' : ''}}"
+            data-mode="{{item.value}}"
+            bindtap="onBillingModeChange"
+          >
+            <text class="mode-label">{{item.label}}</text>
+            <text class="mode-desc">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 固定包天参数 -->
+      <view class="form-group" wx:if="{{selectedBillingMode === 'fixed_daily'}}">
+        <text class="form-label">投放天数</text>
+        <input
+          class="form-input"
+          type="number"
+          placeholder="请输入投放天数"
+          value="{{fixedDays}}"
+          bindinput="onFixedDaysInput"
+        />
+        <view class="cost-preview" wx:if="{{selectedSlot && estimatedTotalDiamond > 0}}">
+          <text class="cost-label">预估总费用:</text>
+          <text class="cost-value">{{estimatedTotalDiamond}} 💎</text>
+          <text class="cost-detail"
+            >({{selectedSlot.daily_price_diamond}} 💎/天 × {{fixedDays}} 天)</text
+          >
+        </view>
+      </view>
+
+      <!-- 竞价参数 -->
+      <block wx:if="{{selectedBillingMode === 'bidding'}}">
+        <view class="form-group">
+          <text class="form-label">日出价（钻石）</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="最低 {{selectedSlot.min_bid_diamond || 50}} 钻石"
+            value="{{dailyBidDiamond}}"
+            bindinput="onDailyBidInput"
+          />
+          <text class="form-tip" wx:if="{{selectedSlot}}"
+            >最低日出价: {{selectedSlot.min_bid_diamond}} 钻石</text
+          >
+        </view>
+        <view class="form-group">
+          <text class="form-label">总预算（钻石）</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
+            value="{{budgetTotalDiamond}}"
+            bindinput="onBudgetInput"
+          />
+          <text class="form-tip" wx:if="{{selectedSlot}}"
+            >最低总预算: {{selectedSlot.min_budget_diamond}} 钻石，预算耗尽自动停投</text
+          >
+        </view>
+      </block>
+
+      <!-- 投放日期 -->
+      <view class="form-group">
+        <text class="form-label">投放日期（可选）</text>
+        <view class="date-row">
+          <picker
+            mode="date"
+            start="{{minDate}}"
+            value="{{startDate}}"
+            bindchange="onStartDateChange"
+          >
+            <view class="date-picker">
+              <text>{{startDate || '开始日期'}}</text>
+            </view>
+          </picker>
+          <text class="date-separator">至</text>
+          <picker
+            mode="date"
+            start="{{startDate || minDate}}"
+            value="{{endDate}}"
+            bindchange="onEndDateChange"
+          >
+            <view class="date-picker">
+              <text>{{endDate || '结束日期'}}</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作按钮 -->
+    <view class="bottom-actions">
+      <button class="btn-draft" disabled="{{submitting}}" bindtap="onSaveDraft">
+        {{submitting ? '保存中...' : '保存草稿'}}
+      </button>
+      <button class="btn-submit" disabled="{{submitting}}" bindtap="onSubmitForReview">
+        {{submitting ? '提交中...' : '提交审核'}}
+      </button>
+    </view>
+  </block>
+</view>

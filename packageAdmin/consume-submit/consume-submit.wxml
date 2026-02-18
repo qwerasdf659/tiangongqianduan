@@ -2,10 +2,8 @@
 <!--业务流程: 商家进入页面 → 看到操作说明 → 扫描用户V2动态二维码 → 加载用户信息 → 录入消费金额 → POST /api/v4/shop/consumption/submit-->
 
 <view class="consume-page">
-
   <!-- ========== 阶段一：扫码入口（商家先看到操作说明） ========== -->
   <block wx:if="{{pageStage === 'scan'}}">
-
     <!-- 操作说明卡片 -->
     <view class="guide-card">
       <view class="guide-icon-wrap">
@@ -21,7 +19,9 @@
         <view class="guide-step-num">1</view>
         <view class="guide-step-content">
           <view class="guide-step-title">顾客出示二维码</view>
-          <view class="guide-step-desc">顾客在小程序「抽奖」页面点击「消费积分二维码」，生成动态二维码</view>
+          <view class="guide-step-desc"
+            >顾客在小程序「抽奖」页面点击「消费积分二维码」，生成动态二维码</view
+          >
         </view>
       </view>
       <view class="guide-step-item">
@@ -35,7 +35,9 @@
         <view class="guide-step-num">3</view>
         <view class="guide-step-content">
           <view class="guide-step-title">录入消费金额</view>
-          <view class="guide-step-desc">输入本次消费金额，提交后等待管理员审核，通过后积分自动发放</view>
+          <view class="guide-step-desc"
+            >输入本次消费金额，提交后等待管理员审核，通过后积分自动发放</view
+          >
         </view>
       </view>
     </view>
@@ -51,7 +53,6 @@
 
   <!-- ========== 阶段二：填写消费信息表单 ========== -->
   <block wx:if="{{pageStage === 'form'}}">
-
     <!-- 顶部进度指示 -->
     <view class="step-bar">
       <view class="step {{userInfo ? 'done' : 'active'}}">
@@ -77,10 +78,17 @@
         <text class="title-text">选择门店</text>
         <text class="required-mark">*</text>
       </view>
-      <picker mode="selector" range="{{storeList}}" range-key="store_name" value="{{storeIndex}}"
-        bindchange="onStoreChange">
+      <picker
+        mode="selector"
+        range="{{storeList}}"
+        range-key="store_name"
+        value="{{storeIndex}}"
+        bindchange="onStoreChange"
+      >
         <view class="picker-box {{storeId ? 'selected' : ''}}">
-          <text class="picker-text">{{storeId ? storeList[storeIndex].store_name : '请选择门店'}}</text>
+          <text class="picker-text"
+            >{{storeId ? storeList[storeIndex].store_name : '请选择门店'}}</text
+          >
           <text class="picker-arrow">▼</text>
         </view>
       </picker>
@@ -130,13 +138,19 @@
       </view>
 
       <!-- 需要选择门店提示（多门店且未选择时） -->
-      <view class="hint-box warning" wx:if="{{!userInfoLoading && !userInfo && storeList.length > 1}}">
+      <view
+        class="hint-box warning"
+        wx:if="{{!userInfoLoading && !userInfo && storeList.length > 1}}"
+      >
         <text class="hint-icon">🏪</text>
         <text class="hint-text">请先在上方选择门店，系统将自动加载顾客信息</text>
       </view>
 
       <!-- 加载失败提示 -->
-      <view class="hint-box error" wx:if="{{!userInfoLoading && !userInfo && storeList.length <= 1}}">
+      <view
+        class="hint-box error"
+        wx:if="{{!userInfoLoading && !userInfo && storeList.length <= 1}}"
+      >
         <text class="hint-icon">⚠️</text>
         <text class="hint-text">顾客信息加载失败，请检查二维码是否有效</text>
       </view>
@@ -151,8 +165,14 @@
       </view>
       <view class="amount-input-box">
         <text class="currency">¥</text>
-        <input type="digit" class="amount-field" placeholder="请输入消费金额" value="{{consumeAmount}}"
-          bindinput="onAmountInput" disabled="{{!userInfo || submitted}}" />
+        <input
+          type="digit"
+          class="amount-field"
+          placeholder="请输入消费金额"
+          value="{{consumeAmount}}"
+          bindinput="onAmountInput"
+          disabled="{{!userInfo || submitted}}"
+        />
       </view>
       <view class="input-footer">
         <text class="input-hint">范围：0.01 ~ 99,999.99 元</text>
@@ -170,8 +190,15 @@
         <text class="title-text">商家备注</text>
         <text class="optional-mark">选填</text>
       </view>
-      <textarea class="notes-field" placeholder="请输入备注信息，如：消费2份套餐" value="{{merchantNotes}}" bindinput="onNotesInput"
-        maxlength="500" auto-height disabled="{{!userInfo || submitted}}" />
+      <textarea
+        class="notes-field"
+        placeholder="请输入备注信息，如：消费2份套餐"
+        value="{{merchantNotes}}"
+        bindinput="onNotesInput"
+        maxlength="500"
+        auto-height
+        disabled="{{!userInfo || submitted}}"
+      />
       <view class="notes-counter">
         <text>{{merchantNotes.length || 0}}/500</text>
       </view>
@@ -179,9 +206,14 @@
 
     <!-- 底部提交区域 -->
     <view class="submit-area">
-      <button class="submit-btn {{(loading || submitted || !userInfo) ? 'disabled' : ''}}" bindtap="onSubmit"
-        disabled="{{loading || submitted || !userInfo}}">
-        <text class="submit-text">{{loading ? '提交中...' : (submitted ? '已提交' : '确认提交')}}</text>
+      <button
+        class="submit-btn {{(loading || submitted || !userInfo) ? 'disabled' : ''}}"
+        bindtap="onSubmit"
+        disabled="{{loading || submitted || !userInfo}}"
+      >
+        <text class="submit-text"
+          >{{loading ? '提交中...' : (submitted ? '已提交' : '确认提交')}}</text
+        >
       </button>
     </view>
 
@@ -193,5 +225,4 @@
       </view>
     </view>
   </block>
-
 </view>

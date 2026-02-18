@@ -1,0 +1,10 @@
+<!--
+  网页浏览器页面 - web-view 组件
+  用于轮播图广告跳转外部链接（link_type = 'webview'）
+-->
+<web-view
+  wx:if="{{webviewUrl}}"
+  src="{{webviewUrl}}"
+  bindload="onWebviewLoad"
+  binderror="onWebviewError"
+></web-view>

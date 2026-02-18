@@ -247,7 +247,10 @@
       <text>恭喜触发保底！砸金蛋领取奖励</text>
     </view>
     <view class="guarantee-egg__body">
-      <view class="guarantee-egg__item {{guaranteeEggState === 'shaking' ? 'shaking' : ''}} {{guaranteeEggState === 'cracked' ? 'cracked' : ''}}" bindtap="onGuaranteeEggTap">
+      <view
+        class="guarantee-egg__item {{guaranteeEggState === 'shaking' ? 'shaking' : ''}} {{guaranteeEggState === 'cracked' ? 'cracked' : ''}}"
+        bindtap="onGuaranteeEggTap"
+      >
         <view class="guarantee-egg__whole" wx:if="{{guaranteeEggState !== 'cracked'}}">
           <text class="guarantee-egg__icon">🥚</text>
           <view class="guarantee-egg__hammer" wx:if="{{guaranteeEggState === 'shaking'}}">
@@ -267,10 +270,18 @@
   </view>
 
   <!-- 保底进度条（未达到阈值时显示进度） -->
-  <view class="guarantee-progress" wx:elif="{{guaranteeInfo && guaranteeInfo.guarantee_threshold > 0}}">
-    <text class="guarantee-progress__text">保底进度：{{guaranteeInfo.current_pity}}/{{guaranteeInfo.guarantee_threshold}}</text>
+  <view
+    class="guarantee-progress"
+    wx:elif="{{guaranteeInfo && guaranteeInfo.guarantee_threshold > 0}}"
+  >
+    <text class="guarantee-progress__text"
+      >保底进度：{{guaranteeInfo.current_pity}}/{{guaranteeInfo.guarantee_threshold}}</text
+    >
     <view class="guarantee-progress__bar">
-      <view class="guarantee-progress__fill" style="width: {{guaranteeInfo.current_pity / guaranteeInfo.guarantee_threshold * 100}}%"></view>
+      <view
+        class="guarantee-progress__fill"
+        style="width: {{guaranteeInfo.current_pity / guaranteeInfo.guarantee_threshold * 100}}%"
+      ></view>
     </view>
   </view>
 

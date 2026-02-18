@@ -53,10 +53,12 @@
   left: 0;
   right: 0;
   height: 2rpx;
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.6) 0%,
-      rgba(255, 255, 255, 0.3) 50%,
-      rgba(255, 255, 255, 0.6) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
 }
 
 /* ===== 轮播图区域（后端 carousel_items 数据驱动） ===== */

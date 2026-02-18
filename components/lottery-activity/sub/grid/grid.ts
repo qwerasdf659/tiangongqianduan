@@ -90,7 +90,7 @@ Component({
     startHighlightAnimation(targetIndex = 0): Promise<void> {
       /* 验证目标索引有效性 */
       if (targetIndex < 0 || targetIndex >= ANIMATION_CONFIG.gridSize) {
-        log.error('❌ 无效的目标索引:', targetIndex)
+        log.error('无效的目标索引:', targetIndex)
         targetIndex = 0
       }
 

@@ -1,8 +1,10 @@
 // pages/user/user.ts - 用户中心页面 + MobX响应式状态
 const app = getApp()
 // 统一工具函数导入（从utils/index.ts）
-const { API, Logger } = require('../../utils/index')
+const { API, Wechat, Logger, ApiWrapper } = require('../../utils/index')
 const log = Logger.createLogger('user')
+const { showToast } = Wechat
+const { safeApiCall } = ApiWrapper
 // MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
@@ -70,7 +72,7 @@ Page({
         icon: '💰',
         color: '#4CAF50',
         type: 'page',
-        url: '/pages/points-detail/points-detail'
+        url: '/packageUser/points-detail/points-detail'
       },
       {
         id: 'my-inventory',
@@ -79,7 +81,7 @@ Page({
         icon: '📦',
         color: '#00BCD4',
         type: 'page',
-        url: '/pages/trade/inventory/inventory'
+        url: '/packageTrade/trade/inventory/inventory'
       },
       {
         id: 'my-listings',
@@ -88,7 +90,7 @@ Page({
         icon: '📋',
         color: '#FF9800',
         type: 'page',
-        url: '/pages/trade/my-listings/my-listings'
+        url: '/packageTrade/trade/my-listings/my-listings'
       },
       {
         id: 'trade-records',
@@ -97,7 +99,7 @@ Page({
         icon: '📊',
         color: '#3F51B5',
         type: 'page',
-        url: '/pages/records/trade-upload-records/trade-upload-records?tab=0'
+        url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=0'
       },
       {
         id: 'consumption-records',
@@ -106,7 +108,16 @@ Page({
         icon: '🧾',
         color: '#9C27B0',
         type: 'page',
-        url: '/pages/records/trade-upload-records/trade-upload-records?tab=1'
+        url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=1'
+      },
+      {
+        id: 'my-ads',
+        name: '我的广告',
+        description: '管理广告投放活动',
+        icon: '📢',
+        color: '#FF6B35',
+        type: 'page',
+        url: '/packageAd/ad-campaigns/ad-campaigns'
       },
       {
         id: 'contact-service',
@@ -148,7 +159,7 @@ Page({
    * 页面首次加载时调用，执行用户中心页面初始化操作
    */
   onLoad() {
-    log.info('👤 用户中心页面加载')
+    log.info('用户中心页面加载')
 
     // MobX Store绑定 - 用户状态和积分余额自动同步
     this.storeBindings = createStoreBindings(this, {
@@ -178,7 +189,7 @@ Page({
       this._skipNextShow = false
       return
     }
-    log.info('👤 用户中心页面显示')
+    log.info('用户中心页面显示')
     this.updateUserStatus()
     if (this.data.isLoggedIn) {
       this.refreshUserData()
@@ -201,7 +212,7 @@ Page({
     this.clearLoadingSafetyTimer()
     this.loadingSafetyTimer = setTimeout(() => {
       if (this.data.loading) {
-        log.warn('⚠️ loading安全超时触发，强制关闭loading遮罩层')
+        log.warn('loading安全超时触发，强制关闭loading遮罩层')
         this.setData({ loading: false })
       }
     }, LOADING_SAFETY_TIMEOUT)
@@ -228,13 +239,13 @@ Page({
 
       // 用户未登录，直接关闭loading，显示未登录UI
       if (!this.data.isLoggedIn) {
-        log.info('👤 用户未登录，跳过数据加载')
+        log.info('用户未登录，跳过数据加载')
         this.setData({ loading: false })
         this.clearLoadingSafetyTimer()
         return
       }
 
-      log.info('👤 用户已登录，开始加载用户数据')
+      log.info('用户已登录，开始加载用户数据')
 
       // 并行加载用户信息、积分趋势、系统配置（Promise.allSettled保证部分失败不影响整体）
       const results = await Promise.allSettled([
@@ -246,20 +257,16 @@ Page({
       const taskNames = ['用户信息', '积分趋势', '系统配置']
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
-          log.warn(`⚠️ ${taskNames[index]}加载失败:`, result.reason)
+          log.warn(`${taskNames[index]}加载失败:`, result.reason)
         } else {
-          log.info(`✅ ${taskNames[index]}加载成功`)
+          log.info(`${taskNames[index]}加载成功`)
         }
       })
 
-      log.info('✅ 用户中心页面初始化完成')
+      log.info('用户中心页面初始化完成')
     } catch (error) {
-      log.error('❌ 用户中心页面初始化失败', error)
-      wx.showToast({
-        title: '页面加载失败，请下拉刷新',
-        icon: 'none',
-        duration: 3000
-      })
+      log.error('用户中心页面初始化失败', error)
+      showToast('页面加载失败，请下拉刷新', 'none', 3000)
     } finally {
       // 确保loading一定被关闭，避免遮罩层阻挡用户操作
       this.setData({ loading: false })
@@ -272,7 +279,7 @@ Page({
     try {
       return await this.loadUserInfo()
     } catch (error: any) {
-      log.warn('⚠️ 用户信息加载失败:', error.message)
+      log.warn('用户信息加载失败:', error.message)
       return null
     }
   },
@@ -282,7 +289,7 @@ Page({
     try {
       return await this.loadPointsTrend()
     } catch (error: any) {
-      log.warn('⚠️ 积分趋势加载失败:', error.message)
+      log.warn('积分趋势加载失败:', error.message)
       this.setData({ todayEarned: 0, todayConsumed: 0 })
       return null
     }
@@ -294,20 +301,16 @@ Page({
    * 响应: { success: true, data: { customer_wechat, customer_phone, customer_email, ... } }
    */
   async safeLoadSystemConfig() {
-    try {
-      const result = await API.getSystemGlobalConfig()
-      if (result && result.success && result.data) {
-        const configData = result.data
-        this.setData({
-          customerWechat: configData.customer_wechat || ''
-        })
-        log.info(
-          '✅ 系统配置加载成功, customer_wechat:',
-          configData.customer_wechat ? '已配置' : '未配置'
-        )
-      }
-    } catch (error: any) {
-      log.warn('⚠️ 系统配置加载失败:', error.message)
+    const configData = await safeApiCall(() => API.getSystemGlobalConfig(), {
+      context: '系统配置',
+      silent: true
+    })
+    if (configData) {
+      this.setData({ customerWechat: configData.customer_wechat || '' })
+      log.info(
+        '系统配置加载成功, customer_wechat:',
+        configData.customer_wechat ? '已配置' : '未配置'
+      )
     }
   },
 
@@ -316,11 +319,11 @@ Page({
    * 用于页面显示时或下拉刷新时更新用户信息和积分趋势
    */
   async refreshUserData() {
-    log.info('🔄 刷新用户数据开始...')
+    log.info('刷新用户数据开始...')
 
     try {
       if (!this.data.isLoggedIn) {
-        log.info('👤 用户未登录，跳过数据刷新')
+        log.info('用户未登录，跳过数据刷新')
         return
       }
 
@@ -329,7 +332,7 @@ Page({
 
       // updateUserStatus可能发现Token失效导致isLoggedIn变为false
       if (!this.data.isLoggedIn) {
-        log.info('👤 用户状态更新后发现未登录，停止数据刷新')
+        log.info('用户状态更新后发现未登录，停止数据刷新')
         return
       }
 
@@ -344,29 +347,21 @@ Page({
       results.forEach((result, index) => {
         if (result.status === 'fulfilled') {
           successCount++
-          log.info(`✅ ${taskNames[index]}刷新成功`)
+          log.info(`${taskNames[index]}刷新成功`)
         } else {
-          log.warn(`⚠️ ${taskNames[index]}刷新失败:`, result.reason)
+          log.warn(`${taskNames[index]}刷新失败:`, result.reason)
         }
       })
 
-      log.info(`✅ 用户数据刷新完成，成功项: ${successCount}/2`)
+      log.info(`用户数据刷新完成，成功项: ${successCount}/2`)
 
       // 全部失败时提示用户检查网络
       if (successCount === 0) {
-        wx.showToast({
-          title: '刷新失败，请检查网络',
-          icon: 'none',
-          duration: 2000
-        })
+        showToast('刷新失败，请检查网络', 'none', 2000)
       }
     } catch (error) {
-      log.error('❌ 刷新用户数据时发生错误:', error)
-      wx.showToast({
-        title: '数据刷新失败',
-        icon: 'none',
-        duration: 2000
-      })
+      log.error('刷新用户数据时发生错误:', error)
+      showToast('数据刷新失败', 'none', 2000)
     } finally {
       // 确保loading和refreshing状态被清除
       this.setData({ refreshing: false, loading: false })
@@ -406,7 +401,7 @@ Page({
       totalPoints: pointsStore.availableAmount || 0
     })
 
-    log.info('👤 用户状态更新:', {
+    log.info('用户状态更新:', {
       isLoggedIn,
       roleLevel,
       isMerchant,
@@ -431,7 +426,7 @@ Page({
         // API返回: {success: true, data: {user: {...}, timestamp: ...}}
         const userInfo = result.data.user || result.data
         this.setData({ userInfo })
-        log.info('✅ 用户信息加载成功')
+        log.info('用户信息加载成功')
       }
 
       // 第2步：获取用户积分余额
@@ -442,21 +437,21 @@ Page({
           // 后端资产余额API返回字段：available_amount（可用余额）、frozen_amount（冻结余额）
           const availablePoints = balanceResult.data.available_amount || 0
           const frozenPoints = balanceResult.data.frozen_amount || 0
-          log.info('✅ 积分余额获取成功:', { availablePoints, frozenPoints })
+          log.info('积分余额获取成功:', { availablePoints, frozenPoints })
 
           // 更新MobX Store
           pointsStore.setBalance(availablePoints, frozenPoints)
           this.setData({ totalPoints: availablePoints })
         } else {
-          log.warn('⚠️ 积分余额API返回失败，使用MobX Store缓存值')
+          log.warn('积分余额API返回失败，使用MobX Store缓存值')
           this.setData({ totalPoints: pointsStore.availableAmount || 0 })
         }
       } catch (pointsError) {
-        log.error('❌ 获取积分余额异常:', pointsError)
+        log.error('获取积分余额异常:', pointsError)
         this.setData({ totalPoints: pointsStore.availableAmount || 0 })
       }
     } catch (error) {
-      log.error('❌ 加载用户信息失败', error)
+      log.error('加载用户信息失败', error)
     }
   },
 
@@ -466,30 +461,19 @@ Page({
    * 响应: { success: true, data: { ..., today_summary: { today_earned, today_consumed, transaction_count } } }
    */
   async loadPointsTrend() {
-    try {
-      const result = await API.getUserStatistics()
-
-      if (result && result.success && result.data) {
-        const statisticsData = result.data
-
-        if (!statisticsData.today_summary) {
-          log.warn('⚠️ 后端响应缺少 today_summary 字段，响应data结构:', Object.keys(statisticsData))
-        }
-
-        const todayEarned = statisticsData.today_summary?.today_earned ?? 0
-        const todayConsumed = statisticsData.today_summary?.today_consumed ?? 0
-        this.setData({ todayEarned, todayConsumed })
-
-        log.info('📊 积分趋势数据:', { todayEarned, todayConsumed })
-      } else {
-        log.warn('⚠️ getUserStatistics 返回失败或无数据:', {
-          success: result?.success,
-          hasData: !!result?.data
-        })
-        this.setData({ todayEarned: 0, todayConsumed: 0 })
+    const data = await safeApiCall(() => API.getUserStatistics(), {
+      context: '积分趋势',
+      silent: true
+    })
+    if (data) {
+      if (!data.today_summary) {
+        log.warn('后端响应缺少 today_summary 字段，响应data结构:', Object.keys(data))
       }
-    } catch (error) {
-      log.error('❌ 加载积分趋势失败:', error)
+      this.setData({
+        todayEarned: data.today_summary?.today_earned ?? 0,
+        todayConsumed: data.today_summary?.today_consumed ?? 0
+      })
+    } else {
       this.setData({ todayEarned: 0, todayConsumed: 0 })
     }
   },
@@ -516,7 +500,7 @@ Page({
     }
 
     wx.navigateTo({
-      url: '/pages/points-detail/points-detail'
+      url: '/packageUser/points-detail/points-detail'
     })
   },
 
@@ -529,11 +513,11 @@ Page({
   onMenuItemTap(e: any) {
     const item = e.currentTarget.dataset.item
     if (!item) {
-      log.warn('⚠️ 菜单项数据为空')
+      log.warn('菜单项数据为空')
       return
     }
 
-    log.info('📌 菜单项点击:', { id: item.id, name: item.name, type: item.type })
+    log.info('菜单项点击:', { id: item.id, name: item.name, type: item.type })
 
     if (!this.data.isLoggedIn) {
       this.redirectToAuth()
@@ -544,8 +528,8 @@ Page({
       wx.navigateTo({
         url: item.url,
         fail: (error: any) => {
-          log.error('❌ 页面跳转失败:', { url: item.url, error })
-          wx.showToast({ title: '页面跳转失败', icon: 'none' })
+          log.error('页面跳转失败:', { url: item.url, error })
+          showToast('页面跳转失败')
         }
       })
     } else if (
@@ -555,13 +539,13 @@ Page({
     ) {
       ;(this as any)[item.action]()
     } else {
-      log.warn('⚠️ 未知的菜单类型或方法不存在:', { type: item.type, action: item.action })
+      log.warn('未知的菜单类型或方法不存在:', { type: item.type, action: item.action })
     }
   },
 
   /** 退出登录 - 清除认证数据并跳转到登录页 */
   logout() {
-    log.info('🔄 退出登录')
+    log.info('退出登录')
 
     wx.showModal({
       title: '确认退出',
@@ -576,10 +560,10 @@ Page({
 
           // 🔴 跳转到登录页（与旧项目保持一致）
           wx.reLaunch({
-            url: '/pages/auth/auth'
+            url: '/packageUser/auth/auth'
           })
 
-          log.info('✅ 用户已退出登录')
+          log.info('用户已退出登录')
         }
       }
     })
@@ -588,7 +572,7 @@ Page({
   /** 跳转到登录页面 */
   redirectToAuth() {
     wx.navigateTo({
-      url: '/pages/auth/auth'
+      url: '/packageUser/auth/auth'
     })
   },
 
@@ -604,10 +588,10 @@ Page({
    * 显示客服选择列表：在线聊天 / 复制客服微信号
    */
   onContactService() {
-    log.info('📞 联系客服功能')
+    log.info('联系客服功能')
 
     if (!this.data.isLoggedIn) {
-      wx.showToast({ title: '请先登录后使用客服功能', icon: 'none' })
+      showToast('请先登录后使用客服功能')
       return
     }
 
@@ -617,12 +601,12 @@ Page({
         switch (res.tapIndex) {
           case 0:
             // 跳转到实时聊天页面
-            log.info('🚀 跳转到实时聊天页面')
+            log.info('跳转到实时聊天页面')
             wx.navigateTo({
-              url: '/pages/chat/chat',
+              url: '/packageUser/chat/chat',
               fail: (error: any) => {
-                log.error('❌ 跳转聊天页面失败:', error)
-                wx.showToast({ title: '页面跳转失败', icon: 'none' })
+                log.error('跳转聊天页面失败:', error)
+                showToast('页面跳转失败')
               }
             })
             break
@@ -631,11 +615,11 @@ Page({
               wx.setClipboardData({
                 data: this.data.customerWechat,
                 success: () => {
-                  wx.showToast({ title: '微信号已复制', icon: 'success' })
+                  showToast('微信号已复制', 'success')
                 }
               })
             } else {
-              wx.showToast({ title: '暂无客服微信号，请使用在线聊天', icon: 'none' })
+              showToast('暂无客服微信号，请使用在线聊天')
             }
             break
           default:
@@ -659,7 +643,7 @@ Page({
   /** 跳转到扫码核销页面（商家店员 level>=20 可用） */
   goToScanVerify() {
     if (!this.data.isMerchant) {
-      wx.showToast({ title: '需要商家权限', icon: 'none' })
+      showToast('需要商家权限')
       return
     }
 
@@ -671,7 +655,7 @@ Page({
   /** 跳转到消费录入页面（商家店员 level>=20 可用） */
   goToConsumeSubmit() {
     if (!this.data.isMerchant) {
-      wx.showToast({ title: '需要商家权限', icon: 'none' })
+      showToast('需要商家权限')
       return
     }
 
@@ -683,38 +667,12 @@ Page({
   /** 跳转到审批管理页面（仅管理员 role_level>=100 可用，后端console域限制） */
   goToAuditList() {
     if (!this.data.isAdmin) {
-      wx.showToast({ title: '需要管理员权限', icon: 'none' })
+      showToast('需要管理员权限')
       return
     }
 
     wx.navigateTo({
       url: '/packageAdmin/audit-list/audit-list'
-    })
-  },
-
-  /** 跳转到管理员仪表板（超级管理员 level>=100 可用） */
-  goToAdminDashboard() {
-    if (!this.data.isLoggedIn) {
-      wx.showToast({ title: '请先登录', icon: 'none' })
-      return
-    }
-
-    if (!this.data.isAdmin) {
-      wx.showToast({ title: '需要管理员权限', icon: 'none' })
-      return
-    }
-
-    log.info('🎛️ 跳转到管理员仪表板')
-
-    wx.navigateTo({
-      url: '/packageAdmin/admin-dashboard/admin-dashboard?from=user',
-      success: () => {
-        log.info('✅ 管理员仪表板跳转成功')
-      },
-      fail: (error: any) => {
-        log.error('❌ 管理员仪表板跳转失败:', error)
-        wx.showToast({ title: '跳转失败，请重试', icon: 'none' })
-      }
     })
   }
 })

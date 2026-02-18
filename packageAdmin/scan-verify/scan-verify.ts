@@ -2,9 +2,10 @@
 // 后端路由: POST /api/v4/shop/redemption/fulfill（商家域，需role_level>=20）
 
 // 统一工具函数导入
-const { API, Utils, Logger } = require('../../utils/index')
+const { API, Utils, Wechat, Logger } = require('../../utils/index')
 const log = Logger.createLogger('scan-verify')
 const { checkAuth } = Utils
+const { showToast } = Wechat
 
 // 🆕 MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -47,7 +48,7 @@ Page({
    * 生命周期函数 - 监听页面加载
    */
   onLoad() {
-    log.info('📱 扫码核销页面加载')
+    log.info('扫码核销页面加载')
 
     // 🆕 MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
@@ -67,7 +68,7 @@ Page({
     const hasAccess = roleLevel >= 20
 
     if (!hasAccess) {
-      log.error('❌ 用户无商家权限，role_level:', roleLevel)
+      log.error('用户无商家权限，role_level:', roleLevel)
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面，仅商家员工和管理员可使用扫码核销功能。',
@@ -86,13 +87,13 @@ Page({
    * 调用微信扫码API扫描用户的核销码二维码
    */
   startScan() {
-    log.info('📷 启动扫码...')
+    log.info(' 启动扫码...')
 
     wx.scanCode({
       onlyFromCamera: false,
       scanType: ['qrCode', 'barCode'],
       success: res => {
-        log.info('✅ 扫码成功:', res.result)
+        log.info('扫码成功:', res.result)
         this.setData({
           scannedCode: res.result,
           hasScanned: true
@@ -102,7 +103,7 @@ Page({
         this.handleFulfill(res.result)
       },
       fail: error => {
-        log.info('📷 扫码取消或失败:', error)
+        log.info(' 扫码取消或失败:', error)
         // 用户取消扫码，不做任何处理
       }
     })
@@ -129,7 +130,7 @@ Page({
    */
   async handleFulfill(redeemCode: string) {
     if (!redeemCode) {
-      wx.showToast({ title: '核销码不能为空', icon: 'none' })
+      showToast('核销码不能为空')
       return
     }
 
@@ -140,13 +141,13 @@ Page({
     this.setData({ loading: true })
 
     try {
-      log.info('📤 开始核销，核销码:', redeemCode)
+      log.info('开始核销，核销码:', redeemCode)
 
       // 后端要求参数名为 redeem_code
       const result = await API.fulfillRedemption({ redeem_code: redeemCode })
 
       if (result && result.success) {
-        log.info('✅ 核销成功:', result.data)
+        log.info('核销成功:', result.data)
 
         // 将嵌套的后端响应数据展平为模板需要的格式
         const responseData = result.data || {}
@@ -163,16 +164,12 @@ Page({
           loading: false
         })
 
-        wx.showToast({
-          title: '核销成功',
-          icon: 'success',
-          duration: 2000
-        })
+        showToast('核销成功', 'success')
       } else {
         throw new Error(result?.message || '核销失败')
       }
     } catch (error: any) {
-      log.error('❌ 核销失败:', error)
+      log.error('核销失败:', error)
 
       // 后端错误码映射为用户友好提示
       const errorCode = error.code || ''
@@ -225,14 +222,14 @@ Page({
    * 生命周期函数 - 监听页面显示
    */
   onShow() {
-    log.info('📱 扫码核销页面显示')
+    log.info('扫码核销页面显示')
   },
 
   /**
    * 生命周期函数 - 监听页面卸载
    */
   onUnload() {
-    log.info('📱 扫码核销页面卸载')
+    log.info('扫码核销页面卸载')
     // 🆕 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()

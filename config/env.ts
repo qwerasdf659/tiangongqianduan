@@ -294,7 +294,7 @@ let CURRENT_ENV: string = 'testing'
 function getConfig(): EnvironmentConfig {
   const config = ENV_CONFIG[CURRENT_ENV]
   if (!config) {
-    console.error(`❌ 无效的环境配置: ${CURRENT_ENV}`)
+    console.error(` 无效的环境配置: ${CURRENT_ENV}`)
     return ENV_CONFIG.development
   }
   return config
@@ -371,10 +371,10 @@ function getCurrentEnv(): string {
 function setEnv(envName: string): boolean {
   if (ENV_CONFIG[envName]) {
     CURRENT_ENV = envName
-    console.log(`🔧 环境已切换到: ${envName}`)
+    console.log(` 环境已切换到: ${envName}`)
     return true
   }
-  console.error(`❌ 无效的环境名称: ${envName}`)
+  console.error(` 无效的环境名称: ${envName}`)
   return false
 }
 

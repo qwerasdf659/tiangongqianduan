@@ -149,7 +149,7 @@ const validateVerificationCode = (code: string): CodeValidationResult => {
   // 去除空格
   const cleanCode: string = code.replace(/\s+/g, '')
 
-  // 开发阶段: 支持123456万能验证码（后端控制，非mock数据）
+  // 开发阶段: 支持123456万能验证码（后端控制）
   if (devConfig.enableUnifiedAuth && cleanCode === '123456') {
     return {
       isValid: true,

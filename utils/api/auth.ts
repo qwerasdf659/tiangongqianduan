@@ -1,5 +1,5 @@
 /**
- * 🔐 认证系统API
+ * 认证系统API
  * 后端路由: routes/v4/auth/
  *
  * @file 天工餐厅积分系统 - 认证API模块
@@ -42,7 +42,7 @@ async function quickLogin(mobile: string) {
  *   created_at: ISO8601 创建时间（北京时间）
  *   last_login: ISO8601 最后登录时间（北京时间隔 *   login_count: INT 登录次数
  *
- * ⚠️ 后端不返user_level 字段，角色判断使role_level + roles
+ * ️ 后端不返user_level 字段，角色判断使role_level + roles
  */
 async function getUserInfo() {
   return apiClient.request('/auth/profile', { method: 'GET', needAuth: true })
@@ -50,7 +50,7 @@ async function getUserInfo() {
 
 /**
  * 发送短信验证码 - POST /api/v4/auth/send-code
- * 🔴 开测试环境：后端支持万能验证码123456，无需实际发送短 */
+ * 开测试环境：后端支持万能验证码123456，无需实际发送短 */
 async function sendVerificationCode(mobile: string) {
   if (!mobile || !/^1[3-9]\d{9}$/.test(mobile)) {
     throw new Error('请输入正确的11位手机号')
@@ -66,11 +66,42 @@ async function sendVerificationCode(mobile: string) {
   })
 }
 
-/** 验证Token有效?- GET /api/v4/auth/verify */
+/** 验证Token有效性 - GET /api/v4/auth/verify */
 async function verifyToken() {
   return apiClient.request('/auth/verify', { method: 'GET', needAuth: true })
 }
 
-module.exports = { userLogin, quickLogin, getUserInfo, sendVerificationCode, verifyToken }
+/**
+ * 刷新 access_token - POST /api/v4/auth/refresh
+ *
+ * 携带旧 access_token（即使已过期）在 Authorization 头中，
+ * 后端从旧 JWT 提取 session_token 来复用会话，避免创建新会话
+ *
+ * @param refreshToken - 刷新令牌
+ * @param oldAccessToken - 旧的 access_token（可选，用于会话复用）
+ */
+async function refreshAccessToken(refreshToken: string, oldAccessToken?: string) {
+  const refreshHeaders: Record<string, string> = {}
+  if (oldAccessToken) {
+    refreshHeaders.Authorization = `Bearer ${oldAccessToken}`
+  }
+  return apiClient.request('/auth/refresh', {
+    method: 'POST',
+    data: { refresh_token: refreshToken },
+    needAuth: false,
+    showLoading: false,
+    showError: false,
+    header: refreshHeaders
+  })
+}
+
+module.exports = {
+  userLogin,
+  quickLogin,
+  getUserInfo,
+  sendVerificationCode,
+  verifyToken,
+  refreshAccessToken
+}
 
 export {}

@@ -16,9 +16,10 @@
  * @since 2026-02-18
  */
 
-const { API, Utils, Logger } = require('../../utils/index')
+const { API, Utils, Wechat, Logger } = require('../../utils/index')
 const log = Logger.createLogger('consume-submit')
 const { checkAuth, formatPhoneNumber } = Utils
+const { showToast } = Wechat
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
@@ -53,10 +54,10 @@ Page({
    * 页面加载 - 不再要求必须携带qrCode参数，商家先看到操作说明页
    */
   onLoad(options) {
-    log.info('📋 消费录入页面加载，参数:', options)
+    log.info('消费录入页面加载，参数:', options)
 
     if (!checkAuth()) {
-      log.error('❌ 用户未登录，跳转到登录页')
+      log.error('用户未登录，跳转到登录页')
       return
     }
 
@@ -72,7 +73,7 @@ Page({
     const hasAccess = roleLevel >= 20
 
     if (!hasAccess) {
-      log.error('❌ 用户无商家权限，role_level:', roleLevel)
+      log.error('用户无商家权限，role_level:', roleLevel)
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面，仅商家员工和管理员可录入消费。',
@@ -87,7 +88,7 @@ Page({
     // 支持外部入口携带qrCode参数直接进入表单阶段（如管理员扫码跳转）
     if (options.qrCode) {
       const decodedQrCode = decodeURIComponent(options.qrCode)
-      log.info('✅ 外部携带二维码参数，直接进入表单:', decodedQrCode)
+      log.info('外部携带二维码参数，直接进入表单:', decodedQrCode)
       this.setData({ qrCode: decodedQrCode, pageStage: 'form' })
       this.loadUserInfo()
       return
@@ -101,13 +102,13 @@ Page({
    * 商家点击扫码按钮 → 调用wx.scanCode → 识别用户V2动态二维码
    */
   startScan() {
-    log.info('📷 商家点击扫码按钮')
+    log.info(' 商家点击扫码按钮')
 
     wx.scanCode({
       onlyFromCamera: false,
       scanType: ['qrCode'] as any,
       success: (res: any) => {
-        log.info('📷 扫码成功:', res.result)
+        log.info(' 扫码成功:', res.result)
         this.setData({
           qrCode: res.result,
           pageStage: 'form',
@@ -122,7 +123,7 @@ Page({
         this.loadUserInfo()
       },
       fail: (scanError: any) => {
-        log.info('📷 扫码取消或失败:', scanError)
+        log.info(' 扫码取消或失败:', scanError)
       }
     })
   },
@@ -131,7 +132,7 @@ Page({
    * 重新扫码 — 清空当前数据，回到扫码入口
    */
   onRescanCode() {
-    log.info('🔄 商家点击重新扫码')
+    log.info('商家点击重新扫码')
     this.setData({
       pageStage: 'scan',
       qrCode: '',
@@ -162,7 +163,7 @@ Page({
     this.setData({ userInfoLoading: true })
 
     try {
-      log.info('🔍 开始获取用户信息，二维码:', this.data.qrCode)
+      log.info('开始获取用户信息，二维码:', this.data.qrCode)
 
       // 调用后端API：传入 store_id（如果已选择门店）
       const result = await API.getUserInfoByQRCode(this.data.qrCode, this.data.storeId)
@@ -179,24 +180,24 @@ Page({
           userInfo: maskedUserInfo,
           userInfoLoading: false
         })
-        log.info('✅ 用户信息加载成功:', result.data)
+        log.info('用户信息加载成功:', result.data)
       } else {
         throw new Error(result.message || '获取用户信息失败')
       }
     } catch (error: any) {
-      log.error('❌ 加载用户信息失败:', error)
+      log.error('加载用户信息失败:', error)
 
       // 处理 MULTIPLE_STORES_REQUIRE_STORE_ID 错误：弹出门店选择
       if (error.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
         const availableStores = (error.data && error.data.available_stores) || []
-        log.info('🏪 多门店员工，需要选择门店:', availableStores)
+        log.info(' 多门店员工，需要选择门店:', availableStores)
 
         this.setData({
           storeList: availableStores,
           userInfoLoading: false
         })
 
-        wx.showToast({ title: '请先选择门店', icon: 'none', duration: 2000 })
+        showToast('请先选择门店')
         return
       }
 
@@ -233,7 +234,7 @@ Page({
   onStoreChange(e: any) {
     const index = parseInt(e.detail.value, 10)
     const store = this.data.storeList[index]
-    log.info('🏪 选择门店:', store)
+    log.info(' 选择门店:', store)
 
     this.setData({
       storeIndex: index,
@@ -277,13 +278,13 @@ Page({
   async onSubmit() {
     // 防止重复提交
     if (this.data.loading || this.data.submitted) {
-      log.warn('⚠️ 请勿重复提交')
+      log.warn('请勿重复提交')
       return
     }
 
     // 验证用户信息
     if (!this.data.userInfo) {
-      wx.showToast({ title: '用户信息未加载', icon: 'none', duration: 2000 })
+      showToast('用户信息未加载')
       return
     }
 
@@ -291,29 +292,29 @@ Page({
     const amount = parseFloat(this.data.consumeAmount)
 
     if (!this.data.consumeAmount || isNaN(amount)) {
-      wx.showToast({ title: '请输入消费金额', icon: 'none', duration: 2000 })
+      showToast('请输入消费金额')
       return
     }
 
     if (amount < 0.01) {
-      wx.showToast({ title: '消费金额至少0.01元', icon: 'none', duration: 2000 })
+      showToast('消费金额至少0.01元')
       return
     }
 
     if (amount > 99999.99) {
-      wx.showToast({ title: '消费金额不能超过99999.99元', icon: 'none', duration: 2000 })
+      showToast('消费金额不能超过99999.99元')
       return
     }
 
     // 验证门店ID（多门店场景必传）
     if (this.data.storeList.length > 1 && !this.data.storeId) {
-      wx.showToast({ title: '请先选择门店', icon: 'none', duration: 2000 })
+      showToast('请先选择门店')
       return
     }
 
     // 验证备注长度（V2：500字限制）
     if (this.data.merchantNotes && this.data.merchantNotes.length > 500) {
-      wx.showToast({ title: '商家备注不能超过500字', icon: 'none', duration: 2000 })
+      showToast('商家备注不能超过500字')
       return
     }
 
@@ -329,7 +330,7 @@ Page({
     })
 
     if (!confirmResult) {
-      log.info('ℹ️ 用户取消提交')
+      log.info('用户取消提交')
       return
     }
 
@@ -337,7 +338,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      log.info('📤 开始提交消费记录...')
+      log.info('开始提交消费记录...')
 
       const result = await API.submitConsumption({
         qr_code: this.data.qrCode,
@@ -346,7 +347,7 @@ Page({
         merchant_notes: this.data.merchantNotes || undefined
       })
 
-      log.info('✅ 提交成功:', result)
+      log.info('提交成功:', result)
 
       // 标记已提交（防止重复提交）
       this.setData({ submitted: true })
@@ -364,7 +365,7 @@ Page({
         }
       })
     } catch (error: any) {
-      log.error('❌ 提交失败:', error)
+      log.error('提交失败:', error)
       this.handleSubmitError(error)
     } finally {
       this.setData({ loading: false })
@@ -399,7 +400,7 @@ Page({
 
     // UNAUTHENTICATED 特殊处理：跳转登录
     if (code === 'UNAUTHENTICATED') {
-      wx.redirectTo({ url: '/pages/auth/auth' })
+      wx.redirectTo({ url: '/packageUser/auth/auth' })
       return
     }
 
@@ -452,21 +453,21 @@ Page({
    * 页面显示
    */
   onShow() {
-    log.info('📋 消费录入页面显示')
+    log.info('消费录入页面显示')
   },
 
   /**
    * 页面隐藏
    */
   onHide() {
-    log.info('📋 消费录入页面隐藏')
+    log.info('消费录入页面隐藏')
   },
 
   /**
    * 页面卸载
    */
   onUnload() {
-    log.info('📋 消费录入页面卸载')
+    log.info('消费录入页面卸载')
     // 🆕 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
@@ -474,4 +475,5 @@ Page({
   }
 })
 
-export {}
+export { }
+

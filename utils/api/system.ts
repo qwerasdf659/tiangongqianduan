@@ -73,6 +73,25 @@ async function getMyFeedbacks(page: number = 1, limit: number = 20) {
   return apiClient.request(`/system/feedback/my?${qs}`, { method: 'GET', needAuth: true })
 }
 
+/**
+ * 获取单条反馈详情 - GET /api/v4/system/feedback/:id
+ *
+ * 认证方式: JWT Bearer Token（authenticateToken 中间件）
+ * 权限控制: 普通用户只能查看自己的反馈，role_level >= 100 的管理员可查看所有
+ * 错误响应: 404 NOT_FOUND（反馈不存在）/ 403 FORBIDDEN（无权访问他人反馈）
+ *
+ * @param feedbackId - 反馈记录ID
+ */
+async function getFeedbackDetail(feedbackId: number) {
+  if (!feedbackId) {
+    throw new Error('反馈ID不能为空')
+  }
+  return apiClient.request(`/system/feedback/${feedbackId}`, {
+    method: 'GET',
+    needAuth: true
+  })
+}
+
 /** 获取系统状态- GET /api/v4/system/status */
 async function getSystemStatus() {
   return apiClient.request('/system/status', { method: 'GET', needAuth: true })
@@ -372,6 +391,7 @@ module.exports = {
   getHomeAnnouncements,
   submitFeedback,
   getMyFeedbacks,
+  getFeedbackDetail,
   getSystemStatus,
   getPopupBanners,
   getCarouselItems,

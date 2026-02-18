@@ -62,7 +62,7 @@ function getAppInstance(): any {
     try {
       app = getApp()
     } catch (error) {
-      log.warn('⚠️ 无法获取App实例:', error)
+      log.warn('无法获取App实例:', error)
     }
   }
   return app
@@ -79,7 +79,7 @@ function getUserStore(): any {
     try {
       _userStore = require('../../store/user').userStore
     } catch (error) {
-      log.warn('⚠️ 无法获取userStore:', error)
+      log.warn('无法获取userStore:', error)
     }
   }
   return _userStore
@@ -121,6 +121,8 @@ const wechatUtils = require('../wechat')
  * 基于V4统一引擎架构，JWT Token自动管理和刷新，统一响应格式处理
  */
 class APIClient {
+  /** 防止并发Token缺失弹窗（类级别锁） */
+  static _tokenMissingModalShown: boolean = false
   /** API配置 */
   private config: ReturnType<typeof getApiConfig>
   /** 开发配置 */
@@ -129,8 +131,8 @@ class APIClient {
   private securityConfig: ReturnType<typeof getSecurityConfig>
   /** Token刷新状态（防止并发刷新） */
   private isRefreshing: boolean
-  /** 等待Token刷新的请求队列（回调参数: 新access_token或null） */
-  private refreshSubscribers: Array<(_value: string | null) => void>
+  /** 等待Token刷新的请求队列（并发请求等待Token刷新后统一resolve） */
+  private refreshSubscribers: Array<(value: any) => void>
 
   constructor() {
     this.config = getApiConfig()
@@ -139,7 +141,7 @@ class APIClient {
     this.isRefreshing = false
     this.refreshSubscribers = []
 
-    log.info('🚀 V4.0 API Client初始化完成', {
+    log.info('V4.0 API Client初始化完成', {
       baseURL: this.config.fullUrl,
       apiVersion: 'v4.0',
       isDevelopment: this.devConfig.enableUnifiedAuth
@@ -162,9 +164,9 @@ class APIClient {
 
     const fullUrl: string = `${this.config.fullUrl}${url}`
 
-    log.info('\n🚀=================== V4.0 API请求 ===================')
-    log.info(`📤 ${method} ${fullUrl}`)
-    log.info('📋 请求数据:', data)
+    log.info('\n=================== V4.0 API请求 ===================')
+    log.info(`${method} ${fullUrl}`)
+    log.info('请求数据:', data)
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -177,12 +179,12 @@ class APIClient {
       if (token) {
         const integrityCheck = validateJWTTokenIntegrity(token)
         if (!integrityCheck.isValid) {
-          log.error('🚨 Token完整性检查失败', integrityCheck.error)
+          log.error(' Token完整性检查失败', integrityCheck.error)
           return this.handleTokenInvalid()
         }
         headers.Authorization = `Bearer ${token}`
       } else {
-        log.error('❌ 未找到access_token')
+        log.error('未找到access_token')
         return this.handleTokenMissing()
       }
     }
@@ -213,14 +215,14 @@ class APIClient {
       })
 
       const duration: number = Date.now() - startTime
-      log.info(`✅ API请求成功，耗时: ${duration}ms`)
-      log.info('📦 响应数据:', response.data)
+      log.info(`API请求成功，耗时: ${duration}ms`)
+      log.info('响应数据:', response.data)
       log.info('=======================================================\n')
 
       return this.handleResponse(response, options, url)
     } catch (error: any) {
       const duration: number = Date.now() - startTime
-      log.error(`❌ API请求失败，耗时: ${duration}ms`, error)
+      log.error(`API请求失败，耗时: ${duration}ms`, error)
       log.info('=======================================================\n')
 
       /**
@@ -260,17 +262,34 @@ class APIClient {
     if (statusCode === 401) {
       const serverErrorCode: string = data && (data.code || data.error)
       const serverMessage: string = data && data.message
-      log.error('🔒 认证失败(401):', { serverErrorCode, serverMessage })
+      log.error('认证失败(401):', { serverErrorCode, serverMessage })
 
-      if (serverErrorCode === 'TOKEN_EXPIRED') {
-        log.info('🔄 Token已过期，尝试自动刷新')
+      /**
+       * 401 错误码分类处理（对齐后端 middleware/auth.js 细分错误码）
+       *
+       * TOKEN_EXPIRED    → JWT 过期，自动刷新 Token
+       * SESSION_EXPIRED  → 会话超时（7天未使用），尝试刷新（后端会创建新会话）
+       * SESSION_REPLACED → 账号在其他设备登录，弹窗提示后跳登录页
+       * SESSION_NOT_FOUND / MISSING_TOKEN / INVALID_TOKEN → 清除Token，跳登录页
+       */
+      if (serverErrorCode === 'TOKEN_EXPIRED' || serverErrorCode === 'SESSION_EXPIRED') {
+        log.info(
+          serverErrorCode === 'TOKEN_EXPIRED'
+            ? 'Token已过期，尝试自动刷新'
+            : '会话已过期，尝试刷新Token以创建新会话'
+        )
         return this.handleTokenExpired()
       }
+
+      if (serverErrorCode === 'SESSION_REPLACED') {
+        return this.handleSessionReplaced(serverMessage)
+      }
+
       return this.handleTokenInvalid(data)
     }
 
     if (statusCode === 403) {
-      log.error('🚫 权限不足(403):', data && data.code)
+      log.error(' 权限不足(403):', data && data.code)
       throw this._createApiError(
         data.message || '权限不足',
         (data && data.code) || 'FORBIDDEN',
@@ -279,7 +298,7 @@ class APIClient {
     }
 
     if (statusCode === 404) {
-      log.error('❌ 资源不存在(404)')
+      log.error('资源不存在(404)')
       throw this._createApiError(
         data.message || '请求的资源不存在',
         (data && data.code) || 'NOT_FOUND',
@@ -289,10 +308,10 @@ class APIClient {
 
     if (statusCode === 409) {
       const errorCode: string = data && data.code
-      log.error('⚠️ 冲突(409):', errorCode)
+      log.error('冲突(409):', errorCode)
 
       if (errorCode === 'CONCURRENT_CONFLICT' && requestOptions && !requestOptions._retried) {
-        log.info('🔄 CONCURRENT_CONFLICT 自动重试')
+        log.info('CONCURRENT_CONFLICT 自动重试')
         requestOptions._retried = true
         return this.request(requestUrl!, requestOptions)
       }
@@ -300,7 +319,7 @@ class APIClient {
     }
 
     if (statusCode === 429) {
-      log.error('🚦 频率限制(429)')
+      log.error(' 频率限制(429)')
       throw this._createApiError(
         data.message || '操作过于频繁，请稍后再试',
         (data && data.code) || 'RATE_LIMIT_EXCEEDED',
@@ -309,7 +328,7 @@ class APIClient {
     }
 
     if (statusCode === 500) {
-      log.error('🚨 服务器错误(500)')
+      log.error(' 服务器错误(500)')
       throw this._createApiError(
         data.message || '服务器内部错误',
         (data && data.code) || 'INTERNAL_ERROR',
@@ -318,7 +337,7 @@ class APIClient {
     }
 
     if (statusCode === 503) {
-      log.error('🔧 服务不可用(503)')
+      log.error('服务不可用(503)')
       throw this._createApiError(
         data.message || '服务暂时不可用，请稍后重试',
         (data && data.code) || 'SERVICE_UNAVAILABLE',
@@ -327,7 +346,7 @@ class APIClient {
     }
 
     if (statusCode === 400) {
-      log.error('❌ 请求错误(400):', data && data.code)
+      log.error('请求错误(400):', data && data.code)
       throw this._createApiError(
         data.message || '请求参数错误',
         (data && data.code) || 'BAD_REQUEST',
@@ -384,20 +403,30 @@ class APIClient {
     return networkError
   }
 
-  /** 处理Token缺失 - 引导用户登录 */
+  /**
+   * 处理Token缺失 - 引导用户登录
+   * 使用静态标志防止并发请求导致多次弹窗
+   */
   handleTokenMissing(): never {
-    wx.showModal({
-      title: '未登录',
-      content: '请先登录后再进行操作',
-      showCancel: false,
-      success: () => {
-        wx.redirectTo({ url: '/pages/auth/auth' })
-      }
-    })
+    if (!APIClient._tokenMissingModalShown) {
+      APIClient._tokenMissingModalShown = true
+      wx.showModal({
+        title: '未登录',
+        content: '请先登录后再进行操作',
+        showCancel: false,
+        success: () => {
+          APIClient._tokenMissingModalShown = false
+          wx.redirectTo({ url: '/packageUser/auth/auth' })
+        }
+      })
+    }
     throw new Error('未登录')
   }
 
-  /** 处理Token无效 - 清除登录状态并引导重新登录 */
+  /**
+   * 处理Token无效 - 清除登录状态并引导重新登录
+   * 使用静态标志防止并发请求导致多次弹窗
+   */
   handleTokenInvalid(responseData?: any): never {
     const appInstance = getAppInstance()
     if (appInstance) {
@@ -408,25 +437,64 @@ class APIClient {
     const errorMessage: string =
       (responseData && responseData.message) || '登录状态已失效，请重新登录'
 
-    log.error('🔒 Token无效处理:', { errorCode, errorMessage })
+    log.error('Token无效处理:', { errorCode, errorMessage })
 
     const error: ApiError = new Error(errorMessage) as ApiError
     error.isAuthError = true
     error.code = errorCode
 
-    const pages = getCurrentPages()
-    const currentRoute: string = pages.length > 0 ? pages[pages.length - 1].route || '' : ''
-    if (currentRoute !== 'pages/auth/auth') {
-      wx.showModal({
-        title: '登录已失效',
-        content: errorMessage,
-        showCancel: false,
-        success: () => {
-          wx.redirectTo({ url: '/pages/auth/auth' })
-        }
-      })
+    if (!APIClient._tokenMissingModalShown) {
+      const pages = getCurrentPages()
+      const currentRoute: string = pages.length > 0 ? pages[pages.length - 1].route || '' : ''
+      if (currentRoute !== 'packageUser/auth/auth') {
+        APIClient._tokenMissingModalShown = true
+        wx.showModal({
+          title: '登录已失效',
+          content: errorMessage,
+          showCancel: false,
+          success: () => {
+            APIClient._tokenMissingModalShown = false
+            wx.redirectTo({ url: '/packageUser/auth/auth' })
+          }
+        })
+      }
     }
 
+    throw error
+  }
+
+  /**
+   * 处理会话被替换 — 账号在其他设备登录
+   * 与 handleTokenInvalid 区别：向用户明确说明原因是"其他设备登录"
+   */
+  handleSessionReplaced(serverMessage?: string): never {
+    const appInstance = getAppInstance()
+    if (appInstance) {
+      appInstance.clearAuthData()
+    }
+
+    const displayMessage: string = serverMessage || '您的账号已在其他设备登录，请重新登录'
+
+    if (!APIClient._tokenMissingModalShown) {
+      const pages = getCurrentPages()
+      const currentRoute: string = pages.length > 0 ? pages[pages.length - 1].route || '' : ''
+      if (currentRoute !== 'packageUser/auth/auth') {
+        APIClient._tokenMissingModalShown = true
+        wx.showModal({
+          title: '账号已在其他设备登录',
+          content: displayMessage,
+          showCancel: false,
+          success: () => {
+            APIClient._tokenMissingModalShown = false
+            wx.redirectTo({ url: '/packageUser/auth/auth' })
+          }
+        })
+      }
+    }
+
+    const error: ApiError = new Error(displayMessage) as ApiError
+    error.isAuthError = true
+    error.code = 'SESSION_REPLACED'
     throw error
   }
 
@@ -446,12 +514,26 @@ class APIClient {
         throw new Error('未找到refresh_token')
       }
 
-      log.info('🔄 开始刷新Token...')
+      log.info('开始刷新Token...')
+
+      /**
+       * 刷新时携带旧 access_token（即使已过期）
+       * 后端从旧 JWT 中提取 session_token 来复用会话，
+       * 避免创建新会话导致单设备登录策略误覆盖当前设备的旧会话
+       */
+      const oldAccessToken: string = getAccessToken()
+      const refreshHeaders: Record<string, string> = {}
+      if (oldAccessToken) {
+        refreshHeaders.Authorization = `Bearer ${oldAccessToken}`
+      }
 
       const response = await this.request('/auth/refresh', {
         method: 'POST',
         data: { refresh_token: refreshToken },
-        needAuth: false
+        needAuth: false,
+        showLoading: false,
+        showError: false,
+        header: refreshHeaders
       })
 
       if (response.success && response.data) {
@@ -475,7 +557,7 @@ class APIClient {
           appInstance.setRefreshToken(newRefreshToken)
         }
 
-        log.info('✅ Token刷新成功')
+        log.info('Token刷新成功')
 
         this.refreshSubscribers.forEach(callback => callback(access_token))
         this.refreshSubscribers = []
@@ -485,7 +567,7 @@ class APIClient {
         throw new Error('Token刷新失败')
       }
     } catch (error) {
-      log.error('❌ Token刷新失败:', error)
+      log.error('Token刷新失败:', error)
       this.refreshSubscribers.forEach(callback => callback(null))
       this.refreshSubscribers = []
       this.handleTokenInvalid()

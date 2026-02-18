@@ -26,7 +26,7 @@ const { userStore } = require('../../store/user')
  * 🔴 数据来源：
  * 后端路由: GET /api/v4/activities
  * API方法: API.getActivities()（已在utils/api.js中定义）
- * 当前状态: 调用后端真实API，mock数据已全部清除(2026-02-07)
+ * 数据来源: 后端真实API，无模拟数据
  */
 Page({
   data: {
@@ -64,7 +64,7 @@ Page({
   },
 
   onLoad(options) {
-    log.info('🔍 发现页面（活动聚合）加载', options)
+    log.info('发现页面（活动聚合）加载', options)
 
     // 🆕 MobX Store绑定
     this.storeBindings = createStoreBindings(this, {
@@ -84,7 +84,7 @@ Page({
   },
 
   onShow() {
-    log.info('🔍 发现页面（活动聚合）显示')
+    log.info('发现页面（活动聚合）显示')
 
     // 检查登录状态（活动页面可以未登录浏览，从 MobX Store 读取）
     const isLoggedIn = userStore.isLoggedIn && !!userStore.accessToken
@@ -121,17 +121,17 @@ Page({
         // 应用筛选（根据当前Tab）
         this.filterActivities()
 
-        log.info('✅ 活动数据加载完成，共', activities.length, '个活动')
+        log.info('活动数据加载完成，共', activities.length, '个活动')
       } else {
         // API返回失败，显示空状态
         this.setData({
           activities: [],
           loading: false
         })
-        log.warn('⚠️ 活动API返回无数据')
+        log.warn('活动API返回无数据')
       }
     } catch (error: any) {
-      log.error('❌ 初始化失败:', error)
+      log.error('初始化失败:', error)
       this.setData({
         loading: false,
         errorMessage: '加载失败，请重试'
@@ -172,7 +172,7 @@ Page({
       isEmpty: filtered.length === 0
     })
 
-    log.info('✅ 筛选完成，共', filtered.length, '个活动')
+    log.info('筛选完成，共', filtered.length, '个活动')
   },
 
   /**
@@ -186,7 +186,7 @@ Page({
       return
     }
 
-    log.info('🔄 Tab切换:', tab)
+    log.info('Tab切换:', tab)
 
     this.setData({ currentTab: tab })
     this.filterActivities()
@@ -222,7 +222,7 @@ Page({
    * 下拉刷新
    */
   async onPullDownRefresh() {
-    log.info('🔄 下拉刷新')
+    log.info('下拉刷新')
 
     this.setData({ refreshing: true })
 
@@ -231,7 +231,7 @@ Page({
       await this.initializePage()
       showToast('刷新成功')
     } catch (error: any) {
-      log.error('❌ 刷新失败:', error)
+      log.error('刷新失败:', error)
       showToast('刷新失败，请重试')
     } finally {
       wx.stopPullDownRefresh()
@@ -243,7 +243,7 @@ Page({
    * 上拉加载更多
    */
   onReachBottom() {
-    log.info('📄 已显示全部活动')
+    log.info('已显示全部活动')
   },
 
   /**
@@ -257,7 +257,7 @@ Page({
       return
     }
 
-    log.info('👆 点击活动:', activity.title)
+    log.info(' 点击活动:', activity.title)
 
     // 显示活动详情弹窗
     this.showActivityDetail(activity)
@@ -332,7 +332,7 @@ Page({
         success: res => {
           if (res.confirm) {
             wx.navigateTo({
-              url: '/pages/auth/auth'
+              url: '/packageUser/auth/auth'
             })
           }
         }
@@ -429,5 +429,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

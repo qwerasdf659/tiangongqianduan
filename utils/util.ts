@@ -83,7 +83,7 @@ const safeParseDateString = (dateStr: string | number | null | undefined): Date 
     return new Date(`${yr}-${mo.padStart(2, '0')}-${dy.padStart(2, '0')}T00:00:00`)
   }
 
-  log.warn('⚠️ 无法解析日期字符串:', str)
+  log.warn('无法解析日期字符串:', str)
   return null
 }
 
@@ -112,7 +112,7 @@ const formatTime = (date: Date): string => {
 const base64Decode = (base64Str: string): string => {
   try {
     if (!base64Str || typeof base64Str !== 'string') {
-      log.error('❌ Base64解码错误：输入无效', { input: base64Str, type: typeof base64Str })
+      log.error('Base64解码错误：输入无效', { input: base64Str, type: typeof base64Str })
       throw new Error('Base64输入无效')
     }
 
@@ -124,7 +124,7 @@ const base64Decode = (base64Str: string): string => {
     // 保留 +, /, = 字符，只移除其他无关字符
     const cleanedStr: string = base64Str.replace(/[^A-Za-z0-9+/=]/g, '')
 
-    log.info('🔍 Base64解码调试:', {
+    log.info('Base64解码调试:', {
       original: base64Str.substring(0, 50) + (base64Str.length > 50 ? '...' : ''),
       cleaned: cleanedStr.substring(0, 50) + (cleanedStr.length > 50 ? '...' : ''),
       originalLength: base64Str.length,
@@ -137,7 +137,7 @@ const base64Decode = (base64Str: string): string => {
     }
 
     if (cleanedStr.length % 4 !== 0) {
-      log.warn('⚠️ Base64字符串长度不是4的倍数:', cleanedStr.length)
+      log.warn('Base64字符串长度不是4的倍数:', cleanedStr.length)
     }
 
     while (i < cleanedStr.length) {
@@ -152,7 +152,7 @@ const base64Decode = (base64Str: string): string => {
       const encoded4 = chars.indexOf(char4)
 
       if (encoded1 === -1 || encoded2 === -1) {
-        log.error('❌ Base64字符无效:', { char1, char2, char3, char4 })
+        log.error('Base64字符无效:', { char1, char2, char3, char4 })
         throw new Error(`无效的Base64字符: ${char1}, ${char2}`)
       }
 
@@ -168,7 +168,7 @@ const base64Decode = (base64Str: string): string => {
       }
     }
 
-    log.info('✅ Base64解码成功:', {
+    log.info('Base64解码成功:', {
       inputLength: base64Str.length,
       outputLength: result.length,
       preview: result.substring(0, 100) + (result.length > 100 ? '...' : '')
@@ -176,8 +176,8 @@ const base64Decode = (base64Str: string): string => {
 
     return result
   } catch (error: any) {
-    log.error('❌ Base64解码失败:', error)
-    log.error('📊 错误详情:', {
+    log.error('Base64解码失败:', error)
+    log.error('错误详情:', {
       input: base64Str ? base64Str.substring(0, 100) + '...' : 'NULL',
       inputLength: base64Str ? base64Str.length : 0,
       errorMessage: error.message
@@ -314,22 +314,22 @@ const decodeJWTPayload = (token: string): JWTPayload | null => {
     // 完整性验证
     const integrityCheck = validateJWTTokenIntegrity(token)
     if (!integrityCheck.isValid) {
-      log.error('❌ JWT Token完整性验证失败:', integrityCheck.error)
-      log.error('🔍 详细信息:', integrityCheck.details)
+      log.error('JWT Token完整性验证失败:', integrityCheck.error)
+      log.error('详细信息:', integrityCheck.details)
 
       if (integrityCheck.error && integrityCheck.error.includes('截断')) {
-        log.error('🚨 检测到Token截断问题！')
-        log.error('💡 建议：1.检查网络 2.重新登录 3.联系后端检查Token生成')
+        log.error(' 检测到Token截断问题！')
+        log.error('建议：1.检查网络 2.重新登录 3.联系后端检查Token生成')
       }
 
       return null
     }
 
-    log.info('✅ JWT Token完整性验证通过:', integrityCheck.details)
+    log.info('JWT Token完整性验证通过:', integrityCheck.details)
 
     const tokenParts: string[] = token.split('.')
     if (tokenParts.length !== 3) {
-      log.warn('⚠️ JWT Token格式错误')
+      log.warn('JWT Token格式错误')
       return null
     }
 
@@ -342,17 +342,17 @@ const decodeJWTPayload = (token: string): JWTPayload | null => {
       payload += '='
     }
 
-    log.info('🔍 JWT解码调试信息:', {
+    log.info('JWT解码调试信息:', {
       originalPayload: tokenParts[1],
       processedPayload: payload,
       payloadLength: payload.length
     })
 
     // Base64解码
-    log.info('🔄 开始Base64解码...')
+    log.info('开始Base64解码...')
     const decodedPayload: string = base64Decode(payload)
 
-    log.info('🔄 开始JSON解析...', {
+    log.info('开始JSON解析...', {
       decodedLength: decodedPayload.length,
       decodedPreview: decodedPayload.substring(0, 200)
     })
@@ -362,23 +362,23 @@ const decodeJWTPayload = (token: string): JWTPayload | null => {
     try {
       parsedPayload = JSON.parse(decodedPayload)
     } catch (jsonError: any) {
-      log.error('❌ JSON解析失败:', jsonError.message)
+      log.error('JSON解析失败:', jsonError.message)
 
       // 尝试清理无效字符后重新解析
-      log.info('🔧 尝试清理JSON并重新解析...')
+      log.info('尝试清理JSON并重新解析...')
       try {
         const cleanedPayload: string = decodedPayload.replace(/[^\x20-\x7E]/g, '')
-        log.info('🔍 清理后的Payload:', cleanedPayload)
+        log.info('清理后的Payload:', cleanedPayload)
         parsedPayload = JSON.parse(cleanedPayload)
-        log.info('✅ 清理后JSON解析成功')
+        log.info('清理后JSON解析成功')
       } catch (retryError: any) {
-        log.error('❌ 清理后仍然解析失败:', retryError.message)
+        log.error('清理后仍然解析失败:', retryError.message)
         throw new Error(`JWT Payload JSON解析失败: ${jsonError.message}`)
       }
     }
 
     if (parsedPayload) {
-      log.info('✅ JWT解码成功', {
+      log.info('JWT解码成功', {
         exp: parsedPayload.exp,
         iat: parsedPayload.iat,
         userId: parsedPayload.user_id,
@@ -389,7 +389,7 @@ const decodeJWTPayload = (token: string): JWTPayload | null => {
 
     return parsedPayload
   } catch (error: any) {
-    log.error('❌ JWT解码失败:', error)
+    log.error('JWT解码失败:', error)
     log.error('Token信息:', {
       tokenLength: token ? token.length : 0,
       tokenPreview: token ? token.substring(0, 50) + '...' : 'NO_TOKEN'
@@ -413,12 +413,12 @@ const isTokenExpired = (token: string): boolean => {
     const isExpired: boolean = currentTime >= payload.exp
 
     if (isExpired) {
-      log.warn('⚠️ Token已过期')
+      log.warn('Token已过期')
     }
 
     return isExpired
   } catch (error) {
-    log.error('❌ Token过期检查失败', error)
+    log.error('Token过期检查失败', error)
     return true
   }
 }
@@ -473,7 +473,7 @@ const safeJsonParse = <T = any>(str: string, defaultValue: T | null = null): T |
   try {
     return JSON.parse(str)
   } catch (error) {
-    log.warn('⚠️ JSON解析失败', error)
+    log.warn('JSON解析失败', error)
     return defaultValue
   }
 }
@@ -636,7 +636,7 @@ const formatDateMessage = (timestamp: number | string | Date): string => {
     // 跨年显示
     return `${date.getFullYear()}-${formatNumber(date.getMonth() + 1)}-${formatNumber(date.getDate())} ${formatNumber(date.getHours())}:${formatNumber(date.getMinutes())}`
   } catch (error) {
-    log.error('❌ 格式化消息时间失败:', error)
+    log.error('格式化消息时间失败:', error)
     return '未知时间'
   }
 }
@@ -713,5 +713,4 @@ module.exports = {
   buildQueryString
 }
 
-export { }
-
+export {}

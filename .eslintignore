@@ -3,10 +3,14 @@ utils/weapp-qrcode.js
 
 # 依赖包
 node_modules/
+miniprogram_npm/
 
 # 构建输出
 dist/
 build/
+
+# 测试文件（使用Jest环境，不参与ESLint项目规则检查）
+test/
 
 # 临时文件
 *.tmp

@@ -66,6 +66,38 @@
       {
         "value": ".eslintrc.custom-rules.js",
         "type": "file"
+      },
+      {
+        "value": "package-lock.json",
+        "type": "file"
+      },
+      {
+        "value": "package.json",
+        "type": "file"
+      },
+      {
+        "value": "jest.config.js",
+        "type": "file"
+      },
+      {
+        "value": "project.private.config.json",
+        "type": "file"
+      },
+      {
+        "value": ".claude",
+        "type": "folder"
+      },
+      {
+        "value": ".eslintignore",
+        "type": "file"
+      },
+      {
+        "value": ".prettierignore",
+        "type": "file"
+      },
+      {
+        "value": ".map",
+        "type": "suffix"
       }
     ],
     "include": []
@@ -85,7 +117,7 @@
     },
     "compileWorklet": false,
     "uglifyFileName": false,
-    "uploadWithSourceMap": true,
+    "uploadWithSourceMap": false,
     "packNpmManually": false,
     "minifyWXSS": true,
     "minifyWXML": true,

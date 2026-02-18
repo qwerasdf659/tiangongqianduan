@@ -812,14 +812,266 @@ declare namespace API {
     _ad_creative_id?: number
   }
 
-  /** 用户反馈 */
+  /**
+   * 用户反馈（对齐后端 feedbacks 表 + GET /api/v4/system/feedback/:id 响应）
+   * 状态流转: pending → processing → replied → closed
+   * 认证方式: JWT Bearer Token（普通用户只能查看自己的反馈）
+   */
   interface Feedback {
+    /** 反馈ID（INT 自增主键） */
     feedback_id: number
+    /** 反馈分类: technical / feature / bug / complaint / suggestion / other */
     category: string
+    /** 反馈内容（1-5000字符） */
     content: string
-    priority: string
+    /** 附件URL数组（无附件时为 []） */
+    attachments: any[]
+    /** 反馈状态: pending=待处理 / processing=处理中 / replied=已回复 / closed=已关闭 */
     status: string
+    /** 优先级: high / medium / low */
+    priority: string
+    /** 用户信息（mobile 非管理员显示为 ****，由 DataSanitizer 脱敏） */
+    user_info: { user_id: number; mobile: string; nickname: string }
+    /** 管理员回复内容（未回复时为 null） */
+    reply_content: string | null
+    /** 管理员信息（未回复时为 null） */
+    admin_info: { admin_id: number; admin_name: string } | null
+    /** 创建时间（北京时间格式，如 "2026年02月18日 14:00:00"） */
     created_at: string
-    reply?: string
+    /** 回复时间（北京时间格式，未回复时为 null） */
+    replied_at: string | null
+    /** 预计响应时间: "4小时内" / "24小时内" / "72小时内"（未设定时为 null） */
+    estimated_response_time: string | null
+  }
+
+  // ===== 广告系统（Phase 2-6） =====
+
+  /**
+   * 广告位配置（对齐后端 ad_slots 表 + GET /api/v4/console/ad-slots 响应）
+   * 每个广告位可独立配置日价、最低竞价、最大展示数
+   */
+  interface AdSlot {
+    /** 广告位ID（INT PK） */
+    ad_slot_id: number
+    /** 广告位标识（如 home_popup / home_carousel，UNIQUE） */
+    slot_key: string
+    /** 广告位名称（如「首页弹窗位」） */
+    slot_name: string
+    /** 广告位类型: popup（弹窗） / carousel（轮播图） */
+    slot_type: string
+    /** 页面位置（home / lottery / profile） */
+    position: string
+    /** 该位每次最多展示广告数 */
+    max_display_count: number
+    /** 固定包天日价（钻石） */
+    daily_price_diamond: number
+    /** 竞价最低日出价（钻石，拍板决策: 50） */
+    min_bid_diamond: number
+    /** 竞价最低总预算（钻石，拍板决策: 500） */
+    min_budget_diamond: number
+    /** 是否开放投放 */
+    is_active: boolean
+    /** 广告位描述 */
+    description: string | null
+    /** 创建时间（ISO 8601） */
+    created_at: string
+    /** 更新时间（ISO 8601） */
+    updated_at: string
+  }
+
+  /**
+   * 广告投放计划（对齐后端 ad_campaigns 表 + GET /api/v4/user/ad-campaigns 响应）
+   * 状态流转: draft → pending_review → approved/rejected → active → completed/cancelled
+   * 计费模式: fixed_daily（固定包天） / bidding（竞价排名）
+   */
+  interface AdCampaign {
+    /** 广告计划ID（INT PK） */
+    ad_campaign_id: number
+    /** 幂等键（复用 IdempotencyService） */
+    business_id: string
+    /** 广告主用户ID */
+    advertiser_user_id: number
+    /** 投放广告位ID */
+    ad_slot_id: number
+    /** 计划名称 */
+    campaign_name: string
+    /** 计费模式: fixed_daily（固定包天） / bidding（竞价排名） */
+    billing_mode: string
+    /**
+     * 广告状态（8态状态机）:
+     * draft=草稿 / pending_review=待审核 / approved=已通过 / active=投放中 /
+     * paused=已暂停 / completed=已完成 / rejected=已拒绝 / cancelled=已取消
+     */
+    status: string
+    /** 竞价日出价（钻石，bidding 模式使用） */
+    daily_bid_diamond: number | null
+    /** 总预算（钻石，bidding 模式使用） */
+    budget_total_diamond: number | null
+    /** 已消耗钻石 */
+    budget_spent_diamond: number
+    /** 固定包天天数（fixed_daily 模式使用） */
+    fixed_days: number | null
+    /** 固定包天总价 = daily_price × days（钻石） */
+    fixed_total_diamond: number | null
+    /** 定向规则（Phase 5 启用，JSON） */
+    targeting_rules: AdTargetingRules | null
+    /** 展示优先级（广告范围 1~99） */
+    priority: number
+    /** 投放开始日期（YYYY-MM-DD） */
+    start_date: string | null
+    /** 投放结束日期（YYYY-MM-DD） */
+    end_date: string | null
+    /** 审核备注 */
+    review_note: string | null
+    /** 审核人ID */
+    reviewed_by: number | null
+    /** 审核时间（ISO 8601） */
+    reviewed_at: string | null
+    /** 创建时间（ISO 8601） */
+    created_at: string
+    /** 更新时间（ISO 8601） */
+    updated_at: string
+    /** 关联的广告位信息（联表查询返回，可选） */
+    ad_slot?: AdSlot
+    /** 关联的素材列表（联表查询返回，可选） */
+    creatives?: AdCreative[]
+  }
+
+  /**
+   * 广告定向规则（存储在 ad_campaigns.targeting_rules JSON字段中）
+   * Phase 5 启用，基于用户行为标签做精准定向
+   */
+  interface AdTargetingRules {
+    /** AND条件: 所有条件都满足才投放 */
+    match_all?: AdTargetCondition[]
+    /** OR条件: 任一条件满足即投放 */
+    match_any?: AdTargetCondition[]
+  }
+
+  /** 定向条件（单条规则） */
+  interface AdTargetCondition {
+    /** 标签键（如 lottery_active_7d / diamond_balance） */
+    tag_key: string
+    /** 比较运算符: eq / neq / gt / gte / lt / lte */
+    operator: string
+    /** 目标值 */
+    value: string
+  }
+
+  /**
+   * 广告素材（对齐后端 ad_creatives 表）
+   * 审核状态: pending=待审核 / approved=已通过 / rejected=已拒绝
+   */
+  interface AdCreative {
+    /** 素材ID（INT PK） */
+    ad_creative_id: number
+    /** 所属广告计划ID */
+    ad_campaign_id: number
+    /** 素材标题 */
+    title: string
+    /** 图片URL（Sealos对象存储，后端自动转CDN） */
+    image_url: string
+    /** 原图宽度px */
+    image_width: number | null
+    /** 原图高度px */
+    image_height: number | null
+    /** 跳转链接 */
+    link_url: string | null
+    /** 跳转类型: none / page / miniprogram / webview */
+    link_type: string
+    /** 审核状态: pending / approved / rejected */
+    review_status: string
+    /** 审核备注 */
+    review_note: string | null
+    /** 审核人ID */
+    reviewed_by: number | null
+    /** 审核时间 */
+    reviewed_at: string | null
+    /** 创建时间 */
+    created_at: string
+    /** 更新时间 */
+    updated_at: string
+  }
+
+  /**
+   * 广告计费流水（对齐后端 ad_billing_records 表）
+   * 计费类型: freeze=冻结 / deduct=扣除 / refund=退款 / daily_deduct=竞价日扣费
+   */
+  interface AdBillingRecord {
+    /** 流水ID（BIGINT PK） */
+    ad_billing_record_id: number
+    /** 幂等键 */
+    business_id: string
+    /** 关联广告计划ID */
+    ad_campaign_id: number
+    /** 广告主用户ID */
+    advertiser_user_id: number
+    /** 计费日期（YYYY-MM-DD） */
+    billing_date: string
+    /** 钻石金额 */
+    amount_diamond: number
+    /** 计费类型: freeze / deduct / refund / daily_deduct */
+    billing_type: string
+    /** 关联资产交易流水ID */
+    asset_transaction_id: number | null
+    /** 备注 */
+    remark: string | null
+    /** 创建时间 */
+    created_at: string
+  }
+
+  /**
+   * 广告活动报表（对齐后端 GET /api/v4/user/ad-campaigns/:id/report 响应）
+   * 包含曝光、点击、消耗等统计维度
+   */
+  interface AdCampaignReport {
+    /** 广告计划ID */
+    ad_campaign_id: number
+    /** 总曝光次数 */
+    impressions_total: number
+    /** 有效曝光次数 */
+    impressions_valid: number
+    /** 总点击次数 */
+    clicks_total: number
+    /** 有效点击次数 */
+    clicks_valid: number
+    /** 转化数 */
+    conversions: number
+    /** 消耗钻石总量 */
+    spend_diamond: number
+    /** 点击率（clicks_valid / impressions_valid × 100） */
+    ctr: number
+    /** 报表数据区间 */
+    date_range: {
+      start_date: string
+      end_date: string
+    }
+  }
+
+  /**
+   * 创建广告活动请求体（POST /api/v4/user/ad-campaigns）
+   * 业务规则:
+   *   fixed_daily模式: 必须传 fixed_days
+   *   bidding模式: 必须传 daily_bid_diamond(≥50) + budget_total_diamond(≥500)
+   */
+  interface CreateAdCampaignParams {
+    /** 活动名称（必填） */
+    campaign_name: string
+    /** 广告位ID（必填，从广告位列表获取） */
+    ad_slot_id: number
+    /** 计费模式（必填）: fixed_daily / bidding */
+    billing_mode: string
+    /** 固定包天天数（fixed_daily 模式必填） */
+    fixed_days?: number
+    /** 竞价日出价钻石数（bidding 模式必填，≥50） */
+    daily_bid_diamond?: number
+    /** 竞价总预算钻石数（bidding 模式必填，≥500） */
+    budget_total_diamond?: number
+    /** 投放开始日期（YYYY-MM-DD） */
+    start_date?: string
+    /** 投放结束日期（YYYY-MM-DD） */
+    end_date?: string
+    /** 展示优先级（1~99，默认50） */
+    priority?: number
   }
 }

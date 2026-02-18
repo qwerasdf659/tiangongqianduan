@@ -33,16 +33,8 @@ const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
 
-/**
- * 积分千分位格式化（独立函数，供MobX绑定的computed使用）
- * 例: 807871 → "807,871"
- */
-function formatPointsDisplay(num: number): string {
-  if (!num && num !== 0) {
-    return '0'
-  }
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-}
+/** 积分千分位格式化 — 供MobX computed使用 */
+const formatPointsDisplay = Utils.formatPoints
 
 /**
  * 根据积分位数返回响应式字体CSS类名（独立函数，供MobX绑定的computed使用）
@@ -335,7 +327,7 @@ Page({
         extraCampaigns: processedResult.extraCampaigns
       })
 
-      log.info('✅ [lottery] 活动加载完成', {
+      log.info('[lottery] 活动加载完成', {
         mainCampaign: processedResult.mainCampaign?.campaign_code || '无',
         extraCount: processedResult.extraCampaigns.length
       })
@@ -441,42 +433,16 @@ Page({
   // 积分显示（格式化 + 响应式字体）
   // ========================================
 
-  /** 统一更新积分显示 */
+  /** 统一更新积分显示（复用模块级 getPointsDisplayClass） */
   updatePointsDisplay(points: number, frozen: number) {
     this.setData({
       pointsBalance: points,
       frozenPoints: frozen,
-      pointsClass: this._getNumberClass(points),
-      frozenClass: this._getNumberClass(frozen),
-      pointsBalanceFormatted: this._formatNumber(points),
-      frozenPointsFormatted: this._formatNumber(frozen)
+      pointsClass: getPointsDisplayClass(points),
+      frozenClass: getPointsDisplayClass(frozen),
+      pointsBalanceFormatted: Utils.formatPoints(points),
+      frozenPointsFormatted: Utils.formatPoints(frozen)
     })
-  },
-
-  /** 根据数字位数返回响应式字体CSS类 */
-  _getNumberClass(num: number) {
-    if (!num) {
-      return ''
-    }
-    const len = num.toString().length
-    if (len <= 7) {
-      return ''
-    }
-    if (len <= 10) {
-      return 'medium-number'
-    }
-    if (len <= 13) {
-      return 'small-number'
-    }
-    return 'tiny-number'
-  },
-
-  /** 千分位格式化 */
-  _formatNumber(num: number) {
-    if (!num && num !== 0) {
-      return '0'
-    }
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   },
 
   // ========================================
@@ -560,7 +526,7 @@ Page({
                       tryExport(attempt + 1)
                     } else {
                       log.error('[lottery] 二维码转图片失败(已重试3次):', err)
-                      wx.showToast({ title: '二维码生成失败', icon: 'none', duration: 2000 })
+                      showToast('二维码生成失败', 'none', 2000)
                     }
                   }
                 },
@@ -583,13 +549,13 @@ Page({
           confirmText: '重新登录',
           success: () => {
             userStore.clearLoginState()
-            wx.redirectTo({ url: '/pages/auth/auth' })
+            wx.redirectTo({ url: '/packageUser/auth/auth' })
           }
         })
         return
       }
 
-      wx.showToast({ title: '二维码生成异常', icon: 'none', duration: 2000 })
+      showToast('二维码生成异常', 'none', 2000)
     }
   },
 
@@ -626,12 +592,12 @@ Page({
     const count = (this._qrAutoRefreshCount || 0) as number
 
     if (count >= MAX_AUTO_REFRESH) {
-      log.info('⚠️ 二维码自动刷新已达上限（' + MAX_AUTO_REFRESH + '次），请手动刷新')
+      log.info('二维码自动刷新已达上限（' + MAX_AUTO_REFRESH + '次），请手动刷新')
       this.setData({ qrCountdown: 0, qrExpired: true, qrCountdownText: '已过期' })
       return
     }
 
-    log.info('🔄 二维码过期，2秒后自动刷新（第' + (count + 1) + '次）')
+    log.info('二维码过期，2秒后自动刷新（第' + (count + 1) + '次）')
     this._qrAutoRefreshCount = count + 1
 
     // 先显示"刷新中"状态
@@ -668,7 +634,7 @@ Page({
   /** 放大二维码 */
   enlargeQRCode() {
     if (!this.data.qrCodeImage) {
-      wx.showToast({ title: '二维码尚未生成', icon: 'none', duration: 2000 })
+      showToast('二维码尚未生成', 'none', 2000)
       return
     }
     this.setData({ qrCodeEnlarged: true })
@@ -699,7 +665,7 @@ Page({
   /** 扫一扫功能（管理员） */
   onScanTap() {
     if (!this.data.isAdmin) {
-      wx.showToast({ title: '无权限访问', icon: 'none', duration: 2000 })
+      showToast('无权限访问', 'none', 2000)
       return
     }
     wx.scanCode({
@@ -708,7 +674,7 @@ Page({
       success: res => this.handleScanResult(res.result),
       fail: err => {
         if (err.errMsg !== 'scanCode:fail cancel') {
-          wx.showToast({ title: '扫码失败，请重试', icon: 'none', duration: 2000 })
+          showToast('扫码失败，请重试', 'none', 2000)
         }
       }
     })
@@ -728,7 +694,7 @@ Page({
       url: `/packageAdmin/consume-submit/consume-submit?qrCode=${encodeURIComponent(qrCode)}`,
       fail: err => {
         log.error('[lottery] 跳转失败:', err)
-        wx.showToast({ title: '页面跳转失败', icon: 'none', duration: 2000 })
+        showToast('页面跳转失败', 'none', 2000)
       }
     })
   },
@@ -736,14 +702,14 @@ Page({
   /** 跳转到审核详情页（管理员） */
   onAuditTap() {
     if (!this.data.isAdmin) {
-      wx.showToast({ title: '无权限访问', icon: 'none', duration: 2000 })
+      showToast('无权限访问', 'none', 2000)
       return
     }
     wx.navigateTo({
       url: '/packageAdmin/audit-list/audit-list',
       fail: err => {
         log.error('[lottery] 跳转失败:', err)
-        wx.showToast({ title: '页面跳转失败', icon: 'none', duration: 2000 })
+        showToast('页面跳转失败', 'none', 2000)
       }
     })
   },
@@ -757,11 +723,11 @@ Page({
     try {
       const statsResult = await API.getBackpackStats()
       if (statsResult?.success && statsResult.data) {
-        const totalItems = statsResult.data.total_items || statsResult.data.totalItems || 0
+        const totalItems = statsResult.data.total_items || 0
         this.setData({ inventoryItemCount: totalItems })
       }
     } catch (inventoryError) {
-      log.warn('⚠️ 仓库物品数量加载失败（不影响主流程）:', inventoryError)
+      log.warn('仓库物品数量加载失败（不影响主流程）:', inventoryError)
     }
   },
 
@@ -773,7 +739,7 @@ Page({
         this.setData({ auditRecordsCount: result.data.pagination?.total || 0 })
       }
     } catch (recordsError) {
-      log.warn('⚠️ 消费记录数量加载失败（不影响主流程）:', recordsError)
+      log.warn('消费记录数量加载失败（不影响主流程）:', recordsError)
     }
   },
 
@@ -786,7 +752,7 @@ Page({
         confirmText: '去登录',
         success: res => {
           if (res.confirm) {
-            wx.navigateTo({ url: '/pages/auth/auth' })
+            wx.navigateTo({ url: '/packageUser/auth/auth' })
           }
         }
       })
@@ -918,26 +884,29 @@ Page({
         return
       }
 
-      // 后端已过滤 is_active + 时间范围，前端再做客户端频率过滤
+      /* 后端已过滤 is_active + 时间范围 + 按priority DESC排序，前端再做客户端频率过滤 */
       const sessionSeenIds: Set<number> = app.globalData.sessionSeenPopups || new Set()
       const filteredBanners = PopupFrequency.filterBannersByFrequency(banners, sessionSeenIds)
       if (filteredBanners.length === 0) {
         return
       }
 
-      // 只展示最高优先级的banner（filterBannersByFrequency已按priority降序排序）
-      const topBanner = filteredBanners[0]
-      const bannersToShow = [topBanner]
+      /* 方案B弹窗队列：后端最多返回5个，依次弹出，用户关闭一个再弹下一个 */
+      await this._preloadBannerImages(filteredBanners)
 
-      await this._preloadBannerImages(bannersToShow)
+      /* 存储完整队列到实例变量（不放data，避免大数组序列化开销） */
+      this._popupQueue = filteredBanners
+      this._popupQueueIndex = 0
 
-      // 标记为已展示（更新本地存储 + 会话级集合）
-      PopupFrequency.markBannerSeen(topBanner.popup_banner_id, sessionSeenIds)
+      /* 立即标记第一个为已展示 */
+      PopupFrequency.markBannerSeen(filteredBanners[0].popup_banner_id, sessionSeenIds)
 
+      /* 展示队列中的第一个弹窗 */
+      const firstBanner = filteredBanners[0]
       if (this._isFirstLoad) {
-        this._preparedBanners = bannersToShow
+        this._preparedBanners = [firstBanner]
       } else {
-        this.setData({ popupBanners: bannersToShow, showPopupBanner: true })
+        this.setData({ popupBanners: [firstBanner], showPopupBanner: true })
         this._bannerShowStartTime = Date.now()
       }
     } catch (error) {
@@ -971,43 +940,116 @@ Page({
     await Promise.all(promises)
   },
 
-  /** 弹窗横幅关闭（记录dismissed状态到本地存储） */
-  onPopupBannerClose() {
+  /**
+   * 弹窗横幅关闭（方案B队列行为）
+   * 关闭当前弹窗 → 上报展示日志 → 队列中有下一个则自动弹出
+   */
+  onPopupBannerClose(e: WechatMiniprogram.CustomEvent) {
+    const closeMethod: string = e?.detail?.close_method || 'close_btn'
     const currentBanners = this.data.popupBanners
+    const queueIndex: number = this._popupQueueIndex || 0
+
+    /* 上报当前关闭的弹窗展示日志 */
     if (currentBanners && currentBanners.length > 0) {
       const closedBanner = currentBanners[0]
       if (closedBanner?.popup_banner_id) {
         PopupFrequency.markBannerDismissed(closedBanner.popup_banner_id)
 
-        // 上报弹窗展示日志（静默上报，不阻塞关闭流程）
         const showDuration = this._bannerShowStartTime ? Date.now() - this._bannerShowStartTime : 0
         API.reportPopupBannerShowLog({
           popup_banner_id: closedBanner.popup_banner_id,
           show_duration_ms: showDuration,
-          close_method: 'close_btn',
-          queue_position: 1
+          close_method: closeMethod,
+          queue_position: queueIndex + 1
         }).catch((err: any) => {
           log.warn('[lottery] 弹窗展示日志上报失败（不影响业务）:', err)
         })
       }
     }
-    this._bannerShowStartTime = 0
-    this.setData({ showPopupBanner: false })
+
+    /* 队列中取下一个弹窗 */
+    const queue: API.PopupBanner[] = this._popupQueue || []
+    const nextIndex = queueIndex + 1
+
+    if (nextIndex < queue.length) {
+      /* 标记下一个为已展示 */
+      const app = getApp()
+      const sessionSeenIds: Set<number> = app.globalData.sessionSeenPopups || new Set()
+      PopupFrequency.markBannerSeen(queue[nextIndex].popup_banner_id, sessionSeenIds)
+
+      this._popupQueueIndex = nextIndex
+
+      /*
+       * 队列衔接：先隐藏当前弹窗（visible: true → false），
+       * 等组件 DOM 销毁后再重新显示下一个（visible: false → true），
+       * 确保 popup-banner 组件的 visible observer 能正常触发入场动画。
+       */
+      this.setData({ showPopupBanner: false })
+      setTimeout(() => {
+        this._bannerShowStartTime = Date.now()
+        this.setData({
+          popupBanners: [queue[nextIndex]],
+          showPopupBanner: true
+        })
+      }, 100)
+      log.info('[lottery] 弹窗队列弹出第', nextIndex + 1, '个，共', queue.length, '个')
+    } else {
+      /* 队列已全部展示完毕 */
+      this._bannerShowStartTime = 0
+      this._popupQueue = null
+      this._popupQueueIndex = 0
+      this.setData({ showPopupBanner: false })
+      log.info('[lottery] 弹窗队列全部展示完毕')
+    }
   },
 
-  /** 弹窗横幅操作按钮 */
+  /**
+   * 弹窗横幅操作按钮点击
+   * 根据后端 link_type 字段决定跳转方式（与轮播图跳转逻辑一致）
+   */
   onPopupBannerAction(e: any) {
     const { banner } = e.detail
-    if (banner?.link_url) {
-      wx.navigateTo({
-        url: banner.link_url,
-        fail: () => {
-          wx.switchTab({
-            url: banner.link_url,
-            fail: err => log.error('[lottery] 跳转失败:', err)
-          })
-        }
-      })
+    if (!banner?.link_url || banner.link_type === 'none') {
+      return
+    }
+
+    switch (banner.link_type) {
+      case 'page':
+        wx.navigateTo({
+          url: banner.link_url,
+          fail: () => {
+            wx.switchTab({
+              url: banner.link_url,
+              fail: (err: any) => log.error('[lottery] 弹窗跳转页面失败:', err)
+            })
+          }
+        })
+        break
+
+      case 'miniprogram':
+        wx.navigateToMiniProgram({
+          appId: banner.link_url,
+          fail: (err: any) => log.error('[lottery] 弹窗跳转小程序失败:', err)
+        })
+        break
+
+      case 'webview':
+        wx.navigateTo({
+          url: '/pages/webview/webview?url=' + encodeURIComponent(banner.link_url),
+          fail: (err: any) => log.error('[lottery] 弹窗跳转webview失败:', err)
+        })
+        break
+
+      default:
+        wx.navigateTo({
+          url: banner.link_url,
+          fail: () => {
+            wx.switchTab({
+              url: banner.link_url,
+              fail: (err: any) => log.error('[lottery] 弹窗跳转失败:', err)
+            })
+          }
+        })
     }
   },
 
@@ -1151,9 +1193,8 @@ Page({
 
   /** 跳转到道具仓库/背包页面 */
   goToInventory() {
-    wx.navigateTo({ url: '/pages/trade/inventory/inventory' })
+    wx.navigateTo({ url: '/packageTrade/trade/inventory/inventory' })
   }
 })
 
-export { }
-
+export {}
