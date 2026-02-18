@@ -611,9 +611,7 @@ const chatMessageHandlers = {
         msgLog.info('✅ API 降级发送成功')
         /* DataSanitizer: API响应主键为 id */
         const updatedMessages = this.data.messages.map((msg: any) =>
-          msg.id === localMsgId
-            ? { ...msg, status: 'sent', id: apiResult.data?.id || msg.id }
-            : msg
+          msg.id === localMsgId ? { ...msg, status: 'sent', id: apiResult.data?.id || msg.id } : msg
         )
         this.setData({ messages: updatedMessages })
       } else {
