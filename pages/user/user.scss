@@ -401,20 +401,6 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-.mw-role-badge {
-  padding: 8rpx 20rpx;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 24rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
-  -webkit-backdrop-filter: blur(5rpx);
-  backdrop-filter: blur(5rpx);
-}
-
-.mw-role-text {
-  font-size: $font-size-xs;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-}
 
 .mw-cards {
   background: rgba(255, 255, 255, 0.95);

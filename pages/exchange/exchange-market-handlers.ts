@@ -164,12 +164,17 @@ const marketHandlers = {
         // 分页信息
         const pagination = response.data.pagination || {}
 
+        // 附加前端展示计算字段（价格中文化、稀有度标记等）
+        const enrichedProducts = typeof this.enrichProductDisplayFields === 'function'
+          ? this.enrichProductDisplayFields(processedProducts)
+          : processedProducts
+
         this.setData({
           loading: false,
-          products: processedProducts,
-          filteredProducts: processedProducts,
-          totalCount: pagination.total || processedProducts.length,
-          totalPages: Math.ceil((pagination.total || processedProducts.length) / limit) || 1
+          products: enrichedProducts,
+          filteredProducts: enrichedProducts,
+          totalCount: pagination.total || enrichedProducts.length,
+          totalPages: Math.ceil((pagination.total || enrichedProducts.length) / limit) || 1
         })
 
         this.calculateTotalPages()
@@ -390,7 +395,8 @@ const marketHandlers = {
     marketLog.info(`图片加载失败 [${index}]`)
     this.setData({
       [`filteredProducts[${index}].imageStatus`]: 'error',
-      [`filteredProducts[${index}].image`]: '/images/default-product.png'
+      [`filteredProducts[${index}].image`]: '/images/default-product.png',
+      [`filteredProducts[${index}]._hasImage`]: false
     })
   },
 
@@ -642,4 +648,5 @@ const marketHandlers = {
 
 module.exports = marketHandlers
 
-export {}
+export { }
+

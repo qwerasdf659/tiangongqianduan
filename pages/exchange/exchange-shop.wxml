@@ -65,6 +65,11 @@
         <view class="header-quick-actions">
           <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
           <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
+          <!-- 视图切换 -->
+          <view class="view-toggle">
+            <view class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="grid">⊞</view>
+            <view class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="list">☰</view>
+          </view>
         </view>
       </view>
 
@@ -169,80 +174,49 @@
       wx:if="{{currentSpace === 'lucky'}}"
       class="lucky-space-content waterfall-market-container"
     >
-      <!-- 🌊 商品网格容器（Flex两列布局） -->
-      <view
-        class="waterfall-container modern-waterfall"
-        wx:if="{{!loading && ((luckyFilteredProducts && luckyFilteredProducts.length > 0) || (waterfallProducts && waterfallProducts.length > 0))}}"
-      >
-        <view
-          class="product-card waterfall-card modern-card"
-          wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}"
-          wx:key="id"
-          style="width: calc(50% - 12rpx); margin-bottom: 16rpx"
-          data-product="{{item}}"
-          bindtap="onProductTap"
-        >
-          <!-- 卡片顶部类型渐变条带 -->
-          <view class="card-type-stripe stripe-lucky">
-            <text class="stripe-label">🍀 幸运好物</text>
-            <view class="stripe-tags">
-              <text class="stripe-tag hot" wx:if="{{item.is_hot}}">热销</text>
-              <text class="stripe-tag new" wx:if="{{item.is_new}}">新品</text>
-            </view>
-          </view>
+      <!-- 🌊 幸运空间商品网格 — 统一卡片主题系统 -->
+      <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}" wx:if="{{!loading && ((luckyFilteredProducts && luckyFilteredProducts.length > 0) || (waterfallProducts && waterfallProducts.length > 0))}}">
+        <view class="unified-card theme-{{cardTheme}} shop-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} {{item._isLegendary && effects.holo ? 'holo-effect' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{item._isLimited && effects.rotatingBorder ? 'rotating-border' : ''}} {{item.stock <= 0 ? 'sold-out' : ''}}" wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}" wx:key="id" data-product="{{item}}" bindtap="onProductTap" bindtouchstart="onCardTouchStart" data-card-index="{{index}}" data-tab="lucky">
+          <!-- 顶部类型色条 -->
+          <view class="type-bar lucky"></view>
 
           <!-- 图片区域 -->
-          <view class="card-image-container modern-image-container">
-            <image
-              class="product-image card-image waterfall-image"
-              src="{{item.image}}"
-              mode="aspectFill"
-              lazy-load="{{true}}"
-              binderror="onShopImageError"
-              data-index="{{index}}"
-              data-space="lucky"
-            />
-            <!-- 图片加载失败或无图时的彩色占位 -->
-            <view
-              class="image-fallback fallback-lucky"
-              wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}"
-            >
+          <view class="card-image-area">
+            <image src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" binderror="onShopImageError" data-index="{{index}}" data-space="lucky" />
+            <!-- 彩色占位（无图或图片加载失败回退为默认图时显示） -->
+            <view class="image-fallback lucky-type" wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}">
               <text class="fallback-icon">🎁</text>
-              <text class="fallback-text">{{item.name}}</text>
+              <text class="fallback-name">{{item.name}}</text>
             </view>
-            <!-- 图片底部渐变遮罩 -->
-            <view class="image-gradient-mask"></view>
-            <view class="lucky-badge modern-lucky-badge" wx:if="{{item.is_lucky}}">🍀</view>
-            <view class="sales-badge modern-sales-badge" wx:if="{{item.sold_count > 0}}">
-              <text class="sales-text">已售{{item.sold_count}}</text>
-            </view>
+            <!-- 左上角标签 -->
+            <view class="badge-tag hot" wx:if="{{item.is_hot}}">热销</view>
+            <view class="badge-tag new" wx:elif="{{item.is_new}}">新品</view>
+            <!-- 右下角类型胶囊 -->
+            <view class="type-capsule">🍀 幸运好物</view>
+            <!-- 已售数量角标 -->
+            <view class="sold-count-badge" wx:if="{{item.sold_count > 0}}">已售{{item.sold_count}}</view>
           </view>
 
-          <!-- 商品信息 -->
-          <view class="card-content modern-card-content">
-            <text class="product-title waterfall-title modern-title">{{item.name}}</text>
-            <!-- 价格色块高亮 -->
-            <view class="product-price-block price-lucky">
-              <view class="price-main-row">
-                <text class="price-currency"
-                  >{{item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code}}</text
-                >
-                <text class="price-amount">{{item.cost_amount}}</text>
-              </view>
+          <!-- 卡片内容区 -->
+          <view class="card-body">
+            <view class="product-name">{{item.name}}</view>
+            <!-- 价格高亮行 -->
+            <view class="price-row">
+              <text class="price-unit">{{item._priceLabel || (item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code)}}</text>
+              <text class="price-current">{{item.cost_amount}}</text>
+              <text class="price-original" wx:if="{{item.original_price}}">{{item.original_price}}</text>
             </view>
             <!-- 库存进度条 -->
-            <view class="product-stock-bar" wx:if="{{item.stock !== undefined}}">
-              <view class="stock-bar-track">
-                <view
-                  class="stock-bar-fill {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}"
-                  style="width: {{item.stock > 100 ? 100 : item.stock}}%"
-                ></view>
-              </view>
-              <text class="stock-bar-text {{item.stock < 10 ? 'text-low' : ''}}"
-                >库存 {{item.stock}}</text
-              >
+            <view class="stock-bar" wx:if="{{item.stock !== undefined}}">
+              <view class="stock-fill {{item.stock < 10 ? 'fill-low' : (item.stock < 50 ? 'fill-medium' : 'fill-high')}}" style="width: {{item.stock > 100 ? 100 : item.stock}}%"></view>
             </view>
+            <text class="stock-text {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}" wx:if="{{item.stock !== undefined}}">{{item.stock <= 0 ? '已售罄' : (item.stock < 10 ? '仅剩' + item.stock + '件！' : (item.stock < 50 ? '库存紧张' : '库存充足'))}}</text>
+            <!-- CTA按钮 -->
+            <button class="cta-btn {{item.stock <= 0 ? 'btn-disabled' : ''}}">立即兑换</button>
           </view>
+
+          <!-- 涟漪层 -->
+          <view class="ripple-layer {{item._rippleActive ? 'ripple-active' : ''}}" wx:if="{{effects.ripple && item._rippleActive}}" style="left: {{item._rippleX}}px; top: {{item._rippleY}}px"></view>
         </view>
       </view>
 
@@ -294,82 +268,49 @@
         </view>
       </view>
 
-      <!-- 🌊 臻选商品网格容器（Flex两列布局，与幸运空间一致） -->
-      <view
-        class="waterfall-container premium-waterfall"
-        wx:if="{{!loading && premiumFilteredProducts && premiumFilteredProducts.length > 0}}"
-      >
-        <view
-          class="product-card waterfall-card premium-card"
-          wx:for="{{premiumFilteredProducts}}"
-          wx:key="id"
-          style="width: calc(50% - 12rpx); margin-bottom: 16rpx"
-          data-product="{{item}}"
-          bindtap="onProductTap"
-        >
-          <!-- 卡片顶部类型渐变条带 -->
-          <view class="card-type-stripe stripe-premium">
-            <text class="stripe-label">💎 臻选</text>
-            <view class="stripe-tags">
-              <text class="stripe-tag hot" wx:if="{{item.is_hot}}">🔥 热销</text>
-              <text class="stripe-tag new" wx:if="{{item.is_new}}">✨ 新品</text>
-            </view>
-          </view>
+      <!-- 🌊 臻选空间商品网格 — 统一卡片主题系统 -->
+      <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}" wx:if="{{!loading && premiumFilteredProducts && premiumFilteredProducts.length > 0}}">
+        <view class="unified-card theme-{{cardTheme}} shop-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} {{item._isLegendary && effects.holo ? 'holo-effect' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{item._isLimited && effects.rotatingBorder ? 'rotating-border' : ''}} {{item.stock <= 0 ? 'sold-out' : ''}}" wx:for="{{premiumFilteredProducts}}" wx:key="id" data-product="{{item}}" bindtap="onProductTap" bindtouchstart="onCardTouchStart" data-card-index="{{index}}" data-tab="premium">
+          <!-- 顶部类型色条 -->
+          <view class="type-bar asset"></view>
 
           <!-- 图片区域 -->
-          <view class="card-image-container premium-image-container">
-            <image
-              class="product-image card-image waterfall-image"
-              src="{{item.image}}"
-              mode="aspectFill"
-              lazy-load="{{true}}"
-              binderror="onShopImageError"
-              data-index="{{index}}"
-              data-space="premium"
-            />
-            <!-- 图片加载失败或无图时的彩色占位 -->
-            <view
-              class="image-fallback fallback-premium"
-              wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}"
-            >
+          <view class="card-image-area">
+            <image src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" binderror="onShopImageError" data-index="{{index}}" data-space="premium" />
+            <!-- 彩色占位（无图或图片加载失败回退为默认图时显示） -->
+            <view class="image-fallback asset-type" wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}">
               <text class="fallback-icon">💎</text>
-              <text class="fallback-text">{{item.name}}</text>
+              <text class="fallback-name">{{item.name}}</text>
             </view>
-            <!-- 图片底部渐变遮罩 -->
-            <view class="image-gradient-mask"></view>
-            <view class="sales-badge premium-sales-badge" wx:if="{{item.sold_count > 0}}">
-              <text class="sales-text">已售{{item.sold_count}}</text>
-            </view>
+            <!-- 左上角标签 -->
+            <view class="badge-tag hot" wx:if="{{item.is_hot}}">🔥 热销</view>
+            <view class="badge-tag new" wx:elif="{{item.is_new}}">✨ 新品</view>
+            <!-- 右下角类型胶囊 -->
+            <view class="type-capsule">💎 臻选</view>
+            <!-- 已售数量角标 -->
+            <view class="sold-count-badge" wx:if="{{item.sold_count > 0}}">已售{{item.sold_count}}</view>
           </view>
 
-          <!-- 商品信息 -->
-          <view class="card-content premium-card-content">
-            <text class="product-title waterfall-title premium-title">{{item.name}}</text>
-            <!-- 价格色块高亮 -->
-            <view class="product-price-block price-premium">
-              <view class="price-main-row">
-                <text class="price-currency"
-                  >{{item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code}}</text
-                >
-                <text class="price-amount">{{item.cost_amount}}</text>
-              </view>
-              <text class="price-original" wx:if="{{item.original_price}}"
-                >{{item.original_price}}</text
-              >
+          <!-- 卡片内容区 -->
+          <view class="card-body">
+            <view class="product-name">{{item.name}}</view>
+            <!-- 价格高亮行 -->
+            <view class="price-row">
+              <text class="price-unit">{{item._priceLabel || (item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code)}}</text>
+              <text class="price-current">{{item.cost_amount}}</text>
+              <text class="price-original" wx:if="{{item.original_price}}">{{item.original_price}}</text>
             </view>
             <!-- 库存进度条 -->
-            <view class="product-stock-bar" wx:if="{{item.stock !== undefined}}">
-              <view class="stock-bar-track">
-                <view
-                  class="stock-bar-fill {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}"
-                  style="width: {{item.stock > 100 ? 100 : item.stock}}%"
-                ></view>
-              </view>
-              <text class="stock-bar-text {{item.stock < 10 ? 'text-low' : ''}}"
-                >库存 {{item.stock}}</text
-              >
+            <view class="stock-bar" wx:if="{{item.stock !== undefined}}">
+              <view class="stock-fill {{item.stock < 10 ? 'fill-low' : (item.stock < 50 ? 'fill-medium' : 'fill-high')}}" style="width: {{item.stock > 100 ? 100 : item.stock}}%"></view>
             </view>
+            <text class="stock-text {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}" wx:if="{{item.stock !== undefined}}">{{item.stock <= 0 ? '已售罄' : (item.stock < 10 ? '仅剩' + item.stock + '件！' : (item.stock < 50 ? '库存紧张' : '库存充足'))}}</text>
+            <!-- CTA按钮 -->
+            <button class="cta-btn {{item.stock <= 0 ? 'btn-disabled' : ''}}">立即兑换</button>
           </view>
+
+          <!-- 涟漪层 -->
+          <view class="ripple-layer {{item._rippleActive ? 'ripple-active' : ''}}" wx:if="{{effects.ripple && item._rippleActive}}" style="left: {{item._rippleX}}px; top: {{item._rippleY}}px"></view>
         </view>
       </view>
 
@@ -393,7 +334,7 @@
         <!-- 双列卡片网格布局 -->
         <view class="bid-card-grid">
           <view
-            class="bid-card {{item.status === 'active' ? 'bid-card-active' : 'bid-card-pending'}}"
+            class="bid-card {{item.status === 'active' ? 'bid-card-active' : 'bid-card-pending'}} {{item._isEndingSoon && effects.breathingGlow ? 'breathing-glow' : ''}}"
             wx:for="{{biddingProducts}}"
             wx:key="bid_product_id"
             data-product="{{item}}"

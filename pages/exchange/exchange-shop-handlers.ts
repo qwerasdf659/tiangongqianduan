@@ -132,19 +132,24 @@ const shopHandlers = {
         const luckyStats =
           statsResponse && statsResponse.success && statsResponse.data
             ? {
-                new_count: statsResponse.data.new_count || 0,
-                avg_discount: statsResponse.data.avg_discount || 0,
-                flash_deals: statsResponse.data.flash_deals || 0
-              }
+              new_count: statsResponse.data.new_count || 0,
+              avg_discount: statsResponse.data.avg_discount || 0,
+              flash_deals: statsResponse.data.flash_deals || 0
+            }
             : { new_count: 0, avg_discount: 0, flash_deals: 0 }
 
         if (!statsResponse || !statsResponse.success) {
           shopLog.warn('幸运空间统计API返回失败，统计数据为空')
         }
 
+        // 附加前端展示计算字段（价格中文化、稀有度标记等）
+        const enrichedLayoutProducts = typeof this.enrichProductDisplayFields === 'function'
+          ? this.enrichProductDisplayFields(allLayoutProducts)
+          : allLayoutProducts
+
         this.setData({
-          waterfallProducts: allLayoutProducts,
-          luckyAllProducts: allLayoutProducts,
+          waterfallProducts: enrichedLayoutProducts,
+          luckyAllProducts: enrichedLayoutProducts,
           luckySpaceStats: luckyStats,
           loading: false,
           luckySearchKeyword: '',
@@ -275,7 +280,7 @@ const shopHandlers = {
         if (rawItems.length > 0 && items.length === 0) {
           shopLog.error(
             `后端API返回 ${rawItems.length} 个商品全部缺少 id，` +
-              `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
+            `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
           )
           this.setErrorState('商品数据异常', '后端返回的商品缺少必要字段(id)，请联系管理员')
           return
@@ -284,7 +289,7 @@ const shopHandlers = {
         if (rawItems.length !== items.length) {
           shopLog.warn(
             `臻选空间数据校验: 原始${rawItems.length}个, 有效${items.length}个, ` +
-              `过滤${rawItems.length - items.length}个`
+            `过滤${rawItems.length - items.length}个`
           )
         }
 
@@ -292,10 +297,10 @@ const shopHandlers = {
         const premiumStats =
           premiumStatsResponse && premiumStatsResponse.success && premiumStatsResponse.data
             ? {
-                hot_count: premiumStatsResponse.data.hot_count || 0,
-                avg_rating: premiumStatsResponse.data.avg_rating || 0,
-                trending_count: premiumStatsResponse.data.trending_count || 0
-              }
+              hot_count: premiumStatsResponse.data.hot_count || 0,
+              avg_rating: premiumStatsResponse.data.avg_rating || 0,
+              trending_count: premiumStatsResponse.data.trending_count || 0
+            }
             : { hot_count: 0, avg_rating: 0, trending_count: 0 }
 
         if (!premiumStatsResponse || !premiumStatsResponse.success) {
@@ -552,6 +557,10 @@ const shopHandlers = {
             stock: item.stock || 0,
             /* 排序序号 */
             sort_order: item.sort_order || 0,
+            /* 稀有度（后端字段，enrichProductDisplayFields 用于触发全息光效） */
+            rarity: item.rarity || null,
+            /* 是否限量商品（后端字段，enrichProductDisplayFields 用于触发旋转边框） */
+            is_limited: item.is_limited || false,
             /* 质保 / 包邮标记 */
             has_warranty: item.has_warranty || false,
             free_shipping: item.free_shipping || false
@@ -880,11 +889,20 @@ const shopHandlers = {
       is_hot: item.is_hot || false,
       is_new: item.is_new || false,
       sell_point: item.sell_point || '',
+      /* 稀有度（后端字段，enrichProductDisplayFields 用于触发全息光效） */
+      rarity: item.rarity || null,
+      /* 是否限量商品（后端字段，enrichProductDisplayFields 用于触发旋转边框） */
+      is_limited: item.is_limited || false,
       has_warranty: item.has_warranty || false,
       free_shipping: item.free_shipping || false
     }))
 
-    this.setData({ premiumFilteredProducts })
+    // 附加前端展示计算字段
+    const enrichedPremiumProducts = typeof this.enrichProductDisplayFields === 'function'
+      ? this.enrichProductDisplayFields(premiumFilteredProducts)
+      : premiumFilteredProducts
+
+    this.setData({ premiumFilteredProducts: enrichedPremiumProducts })
   },
 
   /** 臻选空间 - 上一页 */
@@ -962,16 +980,23 @@ const shopHandlers = {
     const defaultImg = '/images/products/default-product.png'
 
     if (space === 'premium') {
-      this.setData({ [`premiumFilteredProducts[${index}].image`]: defaultImg })
+      this.setData({
+        [`premiumFilteredProducts[${index}].image`]: defaultImg,
+        [`premiumFilteredProducts[${index}]._hasImage`]: false
+      })
     } else {
       const useLuckyFiltered =
         this.data.luckyFilteredProducts && this.data.luckyFilteredProducts.length > 0
       const listKey = useLuckyFiltered ? 'luckyFilteredProducts' : 'waterfallProducts'
-      this.setData({ [`${listKey}[${index}].image`]: defaultImg })
+      this.setData({
+        [`${listKey}[${index}].image`]: defaultImg,
+        [`${listKey}[${index}]._hasImage`]: false
+      })
     }
   }
 }
 
 module.exports = shopHandlers
 
-export {}
+export { }
+

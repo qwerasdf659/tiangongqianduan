@@ -2,7 +2,7 @@
  * lottery-activity 万能抽奖组件 - 公共样式
  * 主题CSS变量挂载点 + 尺寸适配 + 加载/错误状态
  *
- * @file components/lottery-activity/lottery-activity.scss
+ * @file packageLottery/lottery-activity/lottery-activity.scss
  */
 @import '../../styles/variables';
 @import '../../styles/mixins';
@@ -369,15 +369,19 @@
   100% {
     transform: rotate(0deg);
   }
+
   20% {
     transform: rotate(-12deg);
   }
+
   40% {
     transform: rotate(12deg);
   }
+
   60% {
     transform: rotate(-10deg);
   }
+
   80% {
     transform: rotate(10deg);
   }
@@ -387,9 +391,11 @@
   0% {
     transform: rotate(0deg);
   }
+
   50% {
     transform: rotate(-50deg);
   }
+
   100% {
     transform: rotate(0deg);
   }
@@ -399,9 +405,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.3);
   }
+
   100% {
     transform: scale(1);
   }
@@ -413,6 +421,7 @@
     opacity: 0.8;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.3);

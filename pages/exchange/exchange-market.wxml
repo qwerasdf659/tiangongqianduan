@@ -13,49 +13,38 @@
       </view>
       <!-- 搜索框 - 嵌入积分行中间 -->
       <view class="header-search-box">
-        <input
-          class="header-search-input"
-          placeholder="搜索商品名称..."
-          value="{{searchKeyword}}"
-          bindinput="onSearchInput"
-        />
+        <input class="header-search-input" placeholder="搜索商品名称..." value="{{searchKeyword}}"
+          bindinput="onSearchInput" />
         <text class="header-search-icon">🔍</text>
       </view>
       <!-- 快捷操作按钮 -->
       <view class="header-quick-actions">
         <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
         <view class="header-action-btn" bindtap="onSortByPoints">📊 按售价排序</view>
+        <!-- 视图切换 -->
+        <view class="view-toggle">
+          <view class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="grid">⊞</view>
+          <view class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="list">☰</view>
+        </view>
       </view>
     </view>
 
     <!-- 筛选功能 -->
     <view class="search-filter">
       <view class="filter-buttons">
-        <button
-          class="filter-btn {{currentFilter === 'all' ? 'active' : ''}}"
-          bindtap="onFilterChange"
-          data-filter="all"
-        >
+        <button class="filter-btn {{currentFilter === 'all' ? 'active' : ''}}" bindtap="onFilterChange"
+          data-filter="all">
           全部({{products.length}})
         </button>
-        <button
-          class="filter-btn {{currentFilter === 'item_instance' ? 'active' : ''}}"
-          bindtap="onFilterChange"
-          data-filter="item_instance"
-        >
+        <button class="filter-btn {{currentFilter === 'item_instance' ? 'active' : ''}}" bindtap="onFilterChange"
+          data-filter="item_instance">
           物品
         </button>
-        <button
-          class="filter-btn {{currentFilter === 'fungible_asset' ? 'active' : ''}}"
-          bindtap="onFilterChange"
-          data-filter="fungible_asset"
-        >
+        <button class="filter-btn {{currentFilter === 'fungible_asset' ? 'active' : ''}}" bindtap="onFilterChange"
+          data-filter="fungible_asset">
           资产
         </button>
-        <button
-          class="advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}"
-          bindtap="onToggleAdvancedFilter"
-        >
+        <button class="advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}" bindtap="onToggleAdvancedFilter">
           高级筛选 {{showAdvancedFilter ? '🔼' : '🔽'}}
         </button>
       </view>
@@ -66,25 +55,16 @@
         <view class="filter-row">
           <text class="filter-label">挂单类型</text>
           <view class="filter-options">
-            <button
-              class="option-btn {{categoryFilter === 'all' ? 'active' : ''}}"
-              bindtap="onCategoryFilterChange"
-              data-category="all"
-            >
+            <button class="option-btn {{categoryFilter === 'all' ? 'active' : ''}}" bindtap="onCategoryFilterChange"
+              data-category="all">
               全部
             </button>
-            <button
-              class="option-btn {{categoryFilter === 'item_instance' ? 'active' : ''}}"
-              bindtap="onCategoryFilterChange"
-              data-category="item_instance"
-            >
+            <button class="option-btn {{categoryFilter === 'item_instance' ? 'active' : ''}}"
+              bindtap="onCategoryFilterChange" data-category="item_instance">
               物品实例
             </button>
-            <button
-              class="option-btn {{categoryFilter === 'fungible_asset' ? 'active' : ''}}"
-              bindtap="onCategoryFilterChange"
-              data-category="fungible_asset"
-            >
+            <button class="option-btn {{categoryFilter === 'fungible_asset' ? 'active' : ''}}"
+              bindtap="onCategoryFilterChange" data-category="fungible_asset">
               可叠加资产
             </button>
           </view>
@@ -94,32 +74,20 @@
         <view class="filter-row">
           <text class="filter-label">排序方式</text>
           <view class="filter-options">
-            <button
-              class="option-btn {{sortBy === 'default' ? 'active' : ''}}"
-              bindtap="onSortByChange"
-              data-sort="default"
-            >
+            <button class="option-btn {{sortBy === 'default' ? 'active' : ''}}" bindtap="onSortByChange"
+              data-sort="default">
               默认
             </button>
-            <button
-              class="option-btn {{sortBy === 'newest' ? 'active' : ''}}"
-              bindtap="onSortByChange"
-              data-sort="newest"
-            >
+            <button class="option-btn {{sortBy === 'newest' ? 'active' : ''}}" bindtap="onSortByChange"
+              data-sort="newest">
               最新上架
             </button>
-            <button
-              class="option-btn {{sortBy === 'price_asc' ? 'active' : ''}}"
-              bindtap="onSortByChange"
-              data-sort="price_asc"
-            >
+            <button class="option-btn {{sortBy === 'price_asc' ? 'active' : ''}}" bindtap="onSortByChange"
+              data-sort="price_asc">
               价格升序
             </button>
-            <button
-              class="option-btn {{sortBy === 'price_desc' ? 'active' : ''}}"
-              bindtap="onSortByChange"
-              data-sort="price_desc"
-            >
+            <button class="option-btn {{sortBy === 'price_desc' ? 'active' : ''}}" bindtap="onSortByChange"
+              data-sort="price_desc">
               价格降序
             </button>
           </view>
@@ -134,141 +102,100 @@
   </view>
 
   <!-- 📜 可滚动商品列表区域（含下拉刷新） -->
-  <scroll-view
-    class="exchange-market-scroll-body"
-    scroll-y="true"
-    enhanced="true"
-    show-scrollbar="false"
-    bounces="true"
-    refresher-enabled="{{true}}"
-    refresher-triggered="{{refreshing}}"
-    bindrefresherrefresh="onScrollViewRefresh"
-  >
+  <scroll-view class="exchange-market-scroll-body" scroll-y="true" enhanced="true" show-scrollbar="false" bounces="true"
+    refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" bindrefresherrefresh="onScrollViewRefresh">
     <!-- 加载状态 -->
-    <loading-spinner wx:if="{{loading}}" text="加载中..." />
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
 
-    <!-- 交易市场挂单列表（C2C用户交易）- 暗色高级质感风格 -->
+    <!-- 交易市场挂单列表（C2C用户交易） -->
     <view class="products-section" wx:else>
-      <view class="products-grid dark-grid">
-        <view
-          class="product-item dark-card {{item.status !== 'on_sale' ? 'sold-out' : ''}} {{item.listing_kind === 'fungible_asset' ? 'card-asset' : 'card-item'}}"
-          wx:for="{{filteredProducts}}"
-          wx:key="market_listing_id"
-          bindtap="onProductTap"
-          data-product="{{item}}"
-        >
-          <!-- 霓虹顶部光条 -->
-          <view
-            class="dark-card-glow-bar {{item.listing_kind === 'fungible_asset' ? 'glow-asset' : 'glow-item'}}"
-          ></view>
+      <!-- 挂单网格布局 — 统一卡片主题系统 -->
+      <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
+        <view class="unified-card theme-{{cardTheme}} market-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} {{item._isLegendary && effects.holo ? 'holo-effect' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{item.status !== 'on_sale' ? 'sold-out' : ''}}" wx:for="{{filteredProducts}}" wx:key="market_listing_id" bindtap="onProductTap" bindtouchstart="onCardTouchStart" data-product="{{item}}" data-card-index="{{index}}" data-tab="market">
+          <!-- 顶部类型色条 -->
+          <view class="type-bar {{item.listing_kind === 'fungible_asset' ? 'asset' : 'item'}}"></view>
 
-          <!-- 商品图片区域 -->
-          <view class="product-image-container dark-image-wrap">
-            <view
-              wx:if="{{item.imageStatus === 'loading'}}"
-              class="image-loading dark-image-loading"
-            >
-              <view class="dark-loading-ring"></view>
+          <!-- 图片区域 -->
+          <view class="card-image-area">
+            <image src="{{item.image}}" mode="aspectFill" binderror="onImageError" bindload="onImageLoad" data-index="{{index}}" lazy-load="{{true}}" />
+            <!-- 彩色占位（图片加载失败或无图） -->
+            <view class="image-fallback {{item.listing_kind === 'fungible_asset' ? 'asset-type' : 'item-type'}}" wx:if="{{!item.image || item.imageStatus === 'error'}}">
+              <text class="fallback-icon">{{item.listing_kind === 'fungible_asset' ? '💎' : '📦'}}</text>
+              <text class="fallback-name">{{item.item_name}}</text>
             </view>
-            <image
-              class="product-image {{item.imageStatus === 'error' ? 'image-error' : ''}}"
-              src="{{item.image}}"
-              mode="aspectFill"
-              binderror="onImageError"
-              bindload="onImageLoad"
-              data-index="{{index}}"
-            />
-            <!-- 图片加载失败占位 -->
-            <view
-              wx:if="{{item.imageStatus === 'error' || !item.image}}"
-              class="dark-image-fallback {{item.listing_kind === 'fungible_asset' ? 'fallback-asset' : 'fallback-item'}}"
-            >
-              <text class="fallback-emoji"
-                >{{item.listing_kind === 'fungible_asset' ? '💎' : '📦'}}</text
-              >
-              <text class="fallback-text"
-                >{{item.listing_kind === 'fungible_asset' ? 'ASSET' : 'ITEM'}}</text
-              >
-            </view>
-            <!-- 图片底部渐变遮罩 -->
-            <view class="dark-image-overlay"></view>
-            <!-- 霓虹类型标签 -->
-            <view
-              class="dark-type-badge {{item.listing_kind === 'fungible_asset' ? 'badge-asset' : 'badge-item'}}"
-            >
-              <text class="badge-dot"></text>
-              <text>{{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</text>
-            </view>
-            <!-- 稀有度标签 -->
-            <view class="dark-rarity-badge" wx:if="{{item.offer_item_rarity}}">
-              <text>{{item.offer_item_rarity}}</text>
-            </view>
-            <!-- 已售出 / 已下架遮罩 -->
-            <view class="dark-sold-overlay" wx:if="{{item.status === 'sold'}}">
-              <text class="sold-stamp">SOLD</text>
-              <text class="sold-text-cn">已售出</text>
-            </view>
-            <view class="dark-sold-overlay withdrawn" wx:if="{{item.status === 'withdrawn'}}">
-              <text class="sold-stamp">OFF</text>
-              <text class="sold-text-cn">已下架</text>
-            </view>
+            <!-- 左上角稀有度飘带标签 -->
+            <view class="badge-tag {{item._rarityClass || 'rare'}}" wx:if="{{item.offer_item_rarity}}">{{item.offer_item_rarity}}</view>
+            <!-- 右下角类型胶囊 -->
+            <view class="type-capsule {{item.listing_kind === 'fungible_asset' ? 'asset-capsule' : 'item-capsule'}}">{{item.listing_kind === 'fungible_asset' ? '💎 资产' : '📦 物品'}}</view>
+            <!-- 已售出/已下架遮罩 -->
+            <view class="sold-overlay" wx:if="{{item.status === 'sold'}}"><text>已售出</text></view>
+            <view class="sold-overlay" wx:if="{{item.status === 'withdrawn'}}"><text>已下架</text></view>
           </view>
 
-          <!-- 商品信息区域 -->
-          <view class="product-info dark-info">
-            <view class="product-name dark-name">{{item.item_name}}</view>
-            <view class="product-desc dark-desc" wx:if="{{item.description}}"
-              >{{item.description}}</view
-            >
-            <!-- 价格高亮区域 -->
-            <view class="dark-price-block">
-              <view class="dark-price-main">
-                <text class="dark-price-num">{{item.price_amount}}</text>
-                <text class="dark-price-unit">{{item.price_asset_code}}</text>
-              </view>
+          <!-- 卡片内容区 -->
+          <view class="card-body">
+            <view class="product-name">{{item.item_name}}</view>
+            <view class="product-desc" wx:if="{{item.description}}">{{item.description}}</view>
+            <!-- 价格高亮行 -->
+            <view class="price-row">
+              <text class="price-unit">{{item._priceLabel || item.price_asset_code}}</text>
+              <text class="price-current">{{item.price_amount}}</text>
             </view>
+            <!-- CTA按钮 -->
+            <button class="cta-btn {{item.status !== 'on_sale' ? 'btn-disabled' : ''}}" disabled="{{item.status !== 'on_sale'}}">{{item.status === 'sold' ? '已售出' : (item.status === 'withdrawn' ? '已下架' : '立即购买')}}</button>
           </view>
 
-          <!-- 购买按钮 -->
-          <view class="exchange-btn-container dark-btn-wrap">
-            <button
-              class="exchange-btn dark-buy-btn {{item.status !== 'on_sale' ? 'disabled' : ''}}"
-              disabled="{{item.status !== 'on_sale'}}"
-            >
-              {{item.status === 'sold' ? '已售出' : (item.status === 'withdrawn' ? '已下架' :
-              '立即购买')}}
-            </button>
-          </view>
+          <!-- 涟漪层（墨水扩散效果） -->
+          <view class="ripple-layer {{item._rippleActive ? 'ripple-active' : ''}}" wx:if="{{effects.ripple && item._rippleActive}}" style="left: {{item._rippleX}}px; top: {{item._rippleY}}px"></view>
         </view>
       </view>
 
-      <!-- 空状态（复用通用empty-state组件） -->
-      <empty-state
-        wx:if="{{!loading && filteredProducts.length === 0 && searchKeyword}}"
-        icon="🔍"
-        title="没有找到相关挂单"
-        subtitle="试试其他关键词"
-        buttonText="清除搜索"
-        bind:retry="onClearSearch"
-      />
-      <empty-state
-        wx:if="{{!loading && filteredProducts.length === 0 && !searchKeyword}}"
-        icon="🏪"
-        title="交易市场暂无挂单"
-        subtitle="暂时没有商品在售"
-        buttonText="重新加载"
-        bind:retry="onRefreshProducts"
-      />
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!loading && filteredProducts.length === 0}}">
+        <view class="empty-icon">🏪</view>
+        <text class="empty-text">{{searchKeyword ? '没有找到相关挂单' : '交易市场暂无挂单'}}</text>
+        <button class="retry-btn" bindtap="onClearSearch" wx:if="{{searchKeyword}}">
+          清除搜索
+        </button>
+        <button class="retry-btn" bindtap="onRefreshProducts" wx:else>重新加载</button>
+      </view>
 
-      <!-- 分页导航（复用通用pagination组件） -->
-      <pagination
-        wx:if="{{!loading && filteredProducts.length > 0}}"
-        currentPage="{{currentPage}}"
-        totalPages="{{totalPages}}"
-        totalItems="{{totalProducts}}"
-        itemUnit="件商品"
-        bind:pagechange="onMarketPaginationChange"
-      />
+      <!-- 分页导航 -->
+      <view class="pagination" wx:if="{{!loading && filteredProducts.length > 0}}">
+        <view class="pagination-info">
+          <text>第 {{currentPage}}/{{totalPages}} 页 · 共 {{totalProducts}} 件商品</text>
+        </view>
+        <view class="pagination-row unified-controls">
+          <button class="page-btn prev-btn {{currentPage === 1 ? 'disabled' : ''}}" bindtap="onPrevPage"
+            disabled="{{currentPage === 1}}">‹</button>
+          <view class="page-numbers inline-numbers">
+            <block wx:if="{{totalPages <= 7}}">
+              <block wx:for="{{totalPages}}" wx:key="*this">
+                <view class="page-number {{currentPage === (item + 1) ? 'active' : ''}}" bindtap="onPageChange"
+                  data-page="{{item + 1}}">{{item + 1}}</view>
+              </block>
+            </block>
+            <block wx:else>
+              <view class="page-number {{currentPage === 1 ? 'active' : ''}}" bindtap="onPageChange"
+                data-page="1">1</view>
+              <text class="page-ellipsis" wx:if="{{currentPage > 4}}">...</text>
+              <block wx:for="{{totalPages}}" wx:key="*this">
+                <view class="page-number {{currentPage === (item + 1) ? 'active' : ''}}" bindtap="onPageChange"
+                  data-page="{{item + 1}}"
+                  wx:if="{{(item + 1) > 1 && (item + 1) < totalPages && (item + 1) >= (currentPage - 2) && (item + 1) <= (currentPage + 2)}}">{{item + 1}}</view>
+              </block>
+              <text class="page-ellipsis" wx:if="{{currentPage < totalPages - 3}}">...</text>
+              <view class="page-number {{currentPage === totalPages ? 'active' : ''}}" bindtap="onPageChange"
+                data-page="{{totalPages}}" wx:if="{{totalPages > 1}}">{{totalPages}}</view>
+            </block>
+          </view>
+          <button class="page-btn next-btn {{currentPage === totalPages ? 'disabled' : ''}}" bindtap="onNextPage"
+            disabled="{{currentPage === totalPages}}">›</button>
+        </view>
+      </view>
     </view>
 
     <!-- 我的挂单快捷入口 -->
@@ -310,18 +237,11 @@
           <text class="preview-desc">{{selectedProduct.description}}</text>
           <view class="preview-cost">
             <text class="cost-label">购买价格：</text>
-            <text class="cost-points"
-              >{{selectedProduct.price_amount}} {{selectedProduct.price_asset_code}}</text
-            >
+            <text class="cost-points">{{selectedProduct.price_amount}} {{selectedProduct.price_asset_code}}</text>
           </view>
-          <view
-            class="remaining-info"
-            wx:if="{{selectedProduct.listing_kind === 'fungible_asset'}}"
-          >
+          <view class="remaining-info" wx:if="{{selectedProduct.listing_kind === 'fungible_asset'}}">
             <text class="remaining-label">资产数量：</text>
-            <text class="remaining-points"
-              >{{selectedProduct.offer_amount}} {{selectedProduct.offer_asset_code}}</text
-            >
+            <text class="remaining-points">{{selectedProduct.offer_amount}} {{selectedProduct.offer_asset_code}}</text>
           </view>
         </view>
       </view>

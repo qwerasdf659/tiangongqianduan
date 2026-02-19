@@ -11,7 +11,7 @@
  *
  * 数据来源：调用真实后端API
  *
- * @file components/lottery-activity/lottery-activity.ts
+ * @file packageLottery/lottery-activity/lottery-activity.ts
  * @version 5.2.0
  * @since 2026-02-11
  */

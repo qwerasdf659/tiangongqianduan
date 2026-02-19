@@ -1,6 +1,6 @@
 /**
  * 转盘 子组件 - conic-gradient扇区 + 极坐标文字定位
- * @file components/lottery-activity/sub/wheel/wheel.ts
+ * @file packageLottery/lottery-activity/sub/wheel/wheel.ts
  */
 
 /** 转盘盘面半径（rpx），对应 scss 中 wheel-plate 的 width/2 */

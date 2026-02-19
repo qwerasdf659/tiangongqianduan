@@ -82,9 +82,6 @@
           <text class="mw-header-role">{{isAdmin ? '管理员' : (isManager ? '店长' : '店员')}}</text>
         </view>
       </view>
-      <view class="mw-role-badge">
-        <text class="mw-role-text">Lv.{{roleLevel}}</text>
-      </view>
     </view>
 
     <!-- 功能卡片列表 -->

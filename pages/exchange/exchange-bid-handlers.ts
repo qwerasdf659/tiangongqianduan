@@ -61,24 +61,35 @@ const bidHandlers = {
         bidLog.info(`获取了 ${bidProducts.length} 个竞价商品`)
 
         /* 使用后端真实字段名（bid_products 表） */
-        const mappedProducts = bidProducts.map((item: any) => ({
-          bid_product_id: item.bid_product_id,
-          exchange_item_id: item.exchange_item_id,
-          name: item.name || '',
-          description: item.description || '',
-          image: item.image_url || '/images/products/default-product.png',
-          category: item.category || '',
-          start_price: item.start_price || 0,
-          current_price: item.current_price || 0,
-          min_bid_increment: item.min_bid_increment || 1,
-          price_asset_code: item.price_asset_code,
-          status: item.status,
-          start_time: item.start_time,
-          end_time: item.end_time,
-          bid_count: item.bid_count || 0,
-          winner_user_id: item.winner_user_id,
-          _countdownText: this._formatBidCountdown(item.end_time)
-        }))
+        const INITIAL_TEN_MIN_MS = 10 * 60 * 1000
+        const mappedProducts = bidProducts.map((item: any) => {
+          const endTs = item.end_time
+            ? (typeof item.end_time === 'number'
+                ? item.end_time
+                : (bidUtils.safeParseDateString(item.end_time) || new Date(0)).getTime())
+            : 0
+          const remainingMs = endTs - Date.now()
+
+          return {
+            bid_product_id: item.bid_product_id,
+            exchange_item_id: item.exchange_item_id,
+            name: item.name || '',
+            description: item.description || '',
+            image: item.image_url || '/images/products/default-product.png',
+            category: item.category || '',
+            start_price: item.start_price || 0,
+            current_price: item.current_price || 0,
+            min_bid_increment: item.min_bid_increment || 1,
+            price_asset_code: item.price_asset_code,
+            status: item.status,
+            start_time: item.start_time,
+            end_time: item.end_time,
+            bid_count: item.bid_count || 0,
+            winner_user_id: item.winner_user_id,
+            _countdownText: this._formatBidCountdown(item.end_time),
+            _isEndingSoon: item.status === 'active' && remainingMs > 0 && remainingMs < INITIAL_TEN_MIN_MS
+          }
+        })
 
         this.setData({ biddingProducts: mappedProducts })
         this._startBidListCountdown()
@@ -408,12 +419,19 @@ const bidHandlers = {
       }
 
       let needsUpdate = false
+      const TEN_MINUTES_MS = 10 * 60 * 1000
       const updatedProducts = biddingProducts.map((item: any) => {
         if (item.status === 'active' && item.end_time) {
           const newText = this._formatBidCountdown(item.end_time)
-          if (newText !== item._countdownText) {
+          const endTs = typeof item.end_time === 'number'
+            ? item.end_time
+            : (bidUtils.safeParseDateString(item.end_time) || new Date(0)).getTime()
+          const remaining = endTs - Date.now()
+          const endingSoon = remaining > 0 && remaining < TEN_MINUTES_MS
+
+          if (newText !== item._countdownText || endingSoon !== item._isEndingSoon) {
             needsUpdate = true
-            return { ...item, _countdownText: newText }
+            return { ...item, _countdownText: newText, _isEndingSoon: endingSoon }
           }
         }
         return item

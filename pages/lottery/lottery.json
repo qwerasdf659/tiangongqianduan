@@ -7,7 +7,11 @@
   "backgroundTextStyle": "light",
   "backgroundColor": "#667eea",
   "usingComponents": {
-    "popup-banner": "/components/popup-banner/popup-banner",
-    "lottery-activity": "/components/lottery-activity/lottery-activity"
+    "popup-banner": "/packageLottery/popup-banner/popup-banner",
+    "lottery-activity": "/packageLottery/lottery-activity/lottery-activity"
+  },
+  "componentPlaceholder": {
+    "popup-banner": "view",
+    "lottery-activity": "view"
   }
 }

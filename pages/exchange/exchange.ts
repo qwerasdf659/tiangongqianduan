@@ -222,11 +222,29 @@ Page({
     selectedBidProduct: null,
     userBidAmount: 0,
     bidHistory: [],
-    bidMinAmount: 0, // 当前最低出价金额
-    bidAmountValid: false, // 出价金额是否有效
-    bidSubmitting: false, // 是否正在提交竞价
-    showBidRules: false, // 竞价规则是否展开
-    bidModalCountdown: '' // 弹窗内倒计时文本
+    bidMinAmount: 0,
+    bidAmountValid: false,
+    bidSubmitting: false,
+    showBidRules: false,
+    bidModalCountdown: '',
+
+    // ========== V6.0 统一卡片主题系统 ==========
+    /** 当前视觉方案 'A'|'B'|'C'|'D'|'E' */
+    cardTheme: 'E',
+    /** 增强效果开关（每项独立） */
+    effects: {
+      grain: true,
+      holo: true,
+      rotatingBorder: true,
+      breathingGlow: true,
+      ripple: true,
+      fullbleed: true,
+      listView: false
+    },
+    /** 视图模式 'grid'|'list' */
+    viewMode: 'grid',
+    /** 主题设置面板是否显示 */
+    showThemeSettings: false
   },
 
   // ============================================
@@ -263,6 +281,10 @@ Page({
 
     // 恢复认证状态（统一由 auth-helper 处理）
     Utils.restoreUserInfo()
+
+    // 恢复卡片主题偏好
+    this.restoreThemePreferences()
+
     this.initPage()
     this.initPremiumUnlockStatus()
   },
@@ -778,6 +800,180 @@ Page({
 
     this.setData(baseErrorData)
     showToast(errorMessage, 'none', DELAY.RETRY)
+  },
+
+  // ============================================
+  // 🎨 V6.0 统一卡片主题系统 — 方法
+  // ============================================
+
+  /** 资产代码→中文显示名映射（后端 asset_code → 前端展示文案） */
+  _assetDisplayMap: {
+    POINTS: '积分',
+    red_shard: '红色碎片',
+    blue_shard: '蓝色碎片',
+    gold_coin: '金币',
+    diamond: '钻石'
+  } as Record<string, string>,
+
+  /** 将 asset_code 转换为中文显示名 */
+  formatAssetLabel(assetCode: string): string {
+    return (this._assetDisplayMap as Record<string, string>)[assetCode] || assetCode
+  },
+
+  /** 从 localStorage 恢复主题偏好 */
+  restoreThemePreferences() {
+    const savedTheme = wx.getStorageSync('card_theme') || 'E'
+    const savedEffects = wx.getStorageSync('card_effects')
+    const savedViewMode = wx.getStorageSync('card_view_mode') || 'grid'
+
+    const defaultEffects = {
+      grain: true,
+      holo: true,
+      rotatingBorder: true,
+      breathingGlow: true,
+      ripple: true,
+      fullbleed: true,
+      listView: false
+    }
+    const restoredEffects = savedEffects || defaultEffects
+
+    this.setData({
+      cardTheme: savedTheme,
+      effects: restoredEffects,
+      viewMode: savedViewMode
+    })
+    log.info('卡片主题偏好已恢复:', { theme: savedTheme, viewMode: savedViewMode })
+  },
+
+  /** 切换主题方案 */
+  onThemeChange(e: any) {
+    const selectedTheme = e.currentTarget.dataset.theme
+    if (!selectedTheme || selectedTheme === this.data.cardTheme) return
+
+    this.setData({ cardTheme: selectedTheme })
+    wx.setStorageSync('card_theme', selectedTheme)
+    log.info('卡片主题切换为:', selectedTheme)
+  },
+
+  /** 切换增强效果开关 */
+  onEffectToggle(e: any) {
+    const effectKey = e.currentTarget.dataset.effect
+    if (!effectKey) return
+
+    const currentEffects = { ...this.data.effects }
+    ;(currentEffects as any)[effectKey] = !(currentEffects as any)[effectKey]
+    this.setData({ effects: currentEffects })
+    wx.setStorageSync('card_effects', currentEffects)
+    log.info('效果开关切换:', effectKey, (currentEffects as any)[effectKey])
+  },
+
+  /** 切换网格/列表视图 */
+  onToggleViewMode(e: any) {
+    const targetMode = e.currentTarget.dataset.mode
+    if (!targetMode || targetMode === this.data.viewMode) return
+
+    this.setData({ viewMode: targetMode })
+    wx.setStorageSync('card_view_mode', targetMode)
+    log.info('视图模式切换为:', targetMode)
+  },
+
+  /** 打开主题设置面板 */
+  onOpenThemeSettings() {
+    this.setData({ showThemeSettings: true })
+  },
+
+  /** 关闭主题设置面板 */
+  onCloseThemeSettings() {
+    this.setData({ showThemeSettings: false })
+  },
+
+  /** 卡片按压涟漪效果 — touchstart 计算触点坐标 */
+  onCardTouchStart(e: any) {
+    if (!this.data.effects.ripple) return
+
+    const touch = e.touches[0]
+    if (!touch) return
+
+    const cardIndex = e.currentTarget.dataset.cardIndex
+    const tabSource = e.currentTarget.dataset.tab
+
+    const query = wx.createSelectorQuery().in(this)
+    query
+      .select(`[data-card-index="${cardIndex}"][data-tab="${tabSource}"]`)
+      .boundingClientRect((rect: any) => {
+        if (!rect) return
+        const rippleX = touch.clientX - rect.left
+        const rippleY = touch.clientY - rect.top
+
+        const dataKeyMap: Record<string, string> = {
+          market: 'filteredProducts',
+          lucky: 'luckyFilteredProducts',
+          premium: 'premiumFilteredProducts'
+        }
+        const dataKey = dataKeyMap[tabSource]
+        if (!dataKey) return
+
+        const productList = [...((this.data as any)[dataKey] || [])]
+        if (!productList[cardIndex]) return
+
+        productList[cardIndex] = {
+          ...productList[cardIndex],
+          _rippleActive: true,
+          _rippleX: rippleX,
+          _rippleY: rippleY
+        }
+        this.setData({ [dataKey]: productList })
+
+        setTimeout(() => {
+          productList[cardIndex] = {
+            ...productList[cardIndex],
+            _rippleActive: false
+          }
+          this.setData({ [dataKey]: productList })
+        }, 500)
+      })
+      .exec()
+  },
+
+  /**
+   * 为商品数据附加前端展示用计算字段
+   * _priceLabel: 资产代码中文化（POINTS→积分）
+   * _rarityClass: 稀有度对应 CSS class（rare/epic/legend）
+   * _isLegendary: 是否传说/史诗级（触发全息光效）
+   * _isLimited: 是否限量商品（触发旋转彩虹边框）
+   * _hasImage: 是否有有效商品图片（触发全图叠字模式）
+   */
+  enrichProductDisplayFields(productList: any[]): any[] {
+    const rarityClassMap: Record<string, string> = {
+      '普通': 'common',
+      '稀有': 'rare',
+      '史诗': 'epic',
+      '传说': 'legend',
+      common: 'common',
+      rare: 'rare',
+      epic: 'epic',
+      legendary: 'legend'
+    }
+
+    const holoRarities = ['legendary', 'epic', '传说', '史诗']
+
+    const defaultImg = '/images/products/default-product.png'
+
+    return productList.map(productItem => {
+      const priceCode = productItem.price_asset_code || productItem.cost_asset_code || 'POINTS'
+      const rarityValue = productItem.offer_item_rarity || productItem.rarity || ''
+      const imgSrc = productItem.image || ''
+      const validImage = imgSrc && imgSrc !== defaultImg && !productItem._imageError
+
+      return {
+        ...productItem,
+        _priceLabel: this.formatAssetLabel(priceCode),
+        _rarityClass: rarityClassMap[rarityValue] || '',
+        _isLegendary: holoRarities.includes(rarityValue),
+        _isLimited: productItem.is_limited === true,
+        _hasImage: validImage
+      }
+    })
   }
 })
 
