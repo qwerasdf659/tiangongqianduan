@@ -441,6 +441,10 @@ async onLoad() {
 > **exchange.ts 配套改动**: 新增统一的 `onTabChange(e)` 方法，内部根据 `e.currentTarget.dataset.tab`
 > 分发到原有的 `onGoToTradeMarket` / `onGoToExchange` 逻辑（保留异步初始化和 WebSocket 重连）。
 > 原有两个方法保留为内部实现，不直接从 WXML 调用。
+>
+> **现有 handler 文件位置**:
+> - `onGoToTradeMarket` → `exchange-shop-handlers.ts`（切换到商品兑换 Tab，加载双空间数据）
+> - `onGoToExchange` → `exchange-market-handlers.ts`（切换到交易市场 Tab，加载挂单列表 + WebSocket）
 
 ### 4.4 兜底默认值（核心安全保障）
 
