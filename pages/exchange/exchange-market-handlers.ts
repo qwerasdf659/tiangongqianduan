@@ -38,13 +38,13 @@ const marketHandlers = {
   // 商品数据加载
   // ============================================
 
-  /** 初始化筛选条件（重置所有筛选为默认值） */
+  /** 初始化筛选条件（重置所有筛选为默认值，对齐后端 market_filters） */
   initFilters() {
     this.setData({
       currentFilter: 'all',
       categoryFilter: 'all',
-      pointsRange: 'all',
-      stockFilter: 'all',
+      costRange: 'all',
+      stockStatus: 'all',
       sortBy: 'default',
       searchKeyword: '',
       currentPage: 1
@@ -60,8 +60,8 @@ const marketHandlers = {
     marketLog.info(' 开始加载交易市场挂单列表...')
 
     // 在商品兑换模式下不加载交易市场列表
-    if (this.data.currentTab === 'market') {
-      marketLog.info(' 当前在商品兑换模式，跳过交易市场列表加载')
+    if (this.data.currentTab === 'exchange') {
+      marketLog.info('当前在商品兑换模式，跳过交易市场列表加载')
       return
     }
 
@@ -165,9 +165,10 @@ const marketHandlers = {
         const pagination = response.data.pagination || {}
 
         // 附加前端展示计算字段（价格中文化、稀有度标记等）
-        const enrichedProducts = typeof this.enrichProductDisplayFields === 'function'
-          ? this.enrichProductDisplayFields(processedProducts)
-          : processedProducts
+        const enrichedProducts =
+          typeof this.enrichProductDisplayFields === 'function'
+            ? this.enrichProductDisplayFields(processedProducts)
+            : processedProducts
 
         this.setData({
           loading: false,
@@ -219,21 +220,12 @@ const marketHandlers = {
     this.applyFilters()
   }, 500),
 
-  /** 筛选条件变更（全部/物品/资产） */
+  /** 筛选条件变更（全部/物品/资产 — 基础类型筛选按钮，同步高级面板的 categoryFilter） */
   onFilterChange(e: any) {
     const filter = e.currentTarget.dataset.filter
     marketLog.info('切换筛选:', filter)
-    this.setData({ currentFilter: filter, currentPage: 1 })
-
-    // 按 listing_kind 筛选
-    const { products } = this.data
-    let filtered = [...products]
-    if (filter === 'item_instance') {
-      filtered = products.filter((item: any) => item.listing_kind === 'item_instance')
-    } else if (filter === 'fungible_asset') {
-      filtered = products.filter((item: any) => item.listing_kind === 'fungible_asset')
-    }
-    this.setData({ filteredProducts: filtered })
+    this.setData({ currentFilter: filter, categoryFilter: filter, currentPage: 1 })
+    this.applyAdvancedFilters()
   },
 
   /** 切换高级筛选面板 */
@@ -243,31 +235,15 @@ const marketHandlers = {
     this.setData({ showAdvancedFilter: !showAdvancedFilter })
   },
 
-  /** 商品分类筛选变更 */
+  /** 挂单类型筛选变更（高级面板 — 同步基础筛选按钮状态） */
   onCategoryFilterChange(e: any) {
     const category = e.currentTarget.dataset.category
     marketLog.info('切换分类筛选:', category)
-    this.setData({ categoryFilter: category, currentPage: 1 })
+    this.setData({ categoryFilter: category, currentFilter: category, currentPage: 1 })
     this.applyAdvancedFilters()
   },
 
-  /** 积分范围筛选变更 */
-  onPointsRangeChange(e: any) {
-    const range = e.currentTarget.dataset.range
-    marketLog.info('切换积分范围:', range)
-    this.setData({ pointsRange: range, currentPage: 1 })
-    this.applyAdvancedFilters()
-  },
-
-  /** 库存状态筛选变更 */
-  onStockFilterChange(e: any) {
-    const filter = e.currentTarget.dataset.filter
-    marketLog.info('切换库存筛选:', filter)
-    this.setData({ stockFilter: filter, currentPage: 1 })
-    this.applyAdvancedFilters()
-  },
-
-  /** 排序方式变更 */
+  /** 排序方式变更（交易市场 Tab） */
   onSortByChange(e: any) {
     const sort = e.currentTarget.dataset.sort
     marketLog.info('切换排序:', sort)
@@ -275,14 +251,14 @@ const marketHandlers = {
     this.applyAdvancedFilters()
   },
 
-  /** 重置所有筛选条件 */
+  /** 重置所有筛选条件（对齐后端 market_filters） */
   onResetFilters() {
     marketLog.info('重置所有筛选条件')
     this.setData({
       currentFilter: 'all',
       categoryFilter: 'all',
-      pointsRange: 'all',
-      stockFilter: 'all',
+      costRange: 'all',
+      stockStatus: 'all',
       sortBy: 'default',
       searchKeyword: '',
       currentPage: 1,
@@ -292,10 +268,18 @@ const marketHandlers = {
     showToast('筛选已重置', 'success')
   },
 
-  /** 应用高级筛选条件（交易市场挂单筛选） */
+  /**
+   * 应用高级筛选条件（交易市场挂单筛选 — 组合全部条件）
+   * 筛选维度: listing_kind(categoryFilter) + 关键词(searchKeyword) + 排序(sortBy)
+   */
   applyAdvancedFilters() {
-    const { products, searchKeyword, sortBy } = this.data
+    const { products, searchKeyword, sortBy, categoryFilter } = this.data
     let filtered = [...products]
+
+    // 按 listing_kind 筛选（对齐后端 market_filters.category_filters 的 value）
+    if (categoryFilter && categoryFilter !== 'all') {
+      filtered = filtered.filter((item: any) => item.listing_kind === categoryFilter)
+    }
 
     // 按关键词搜索（搜索商品名称）
     if (searchKeyword) {
@@ -308,12 +292,12 @@ const marketHandlers = {
       )
     }
 
-    // 排序
-    if (sortBy === 'points-asc' || sortBy === 'price_asc') {
+    // 排序（value 对齐后端 market_filters.sort_options）
+    if (sortBy === 'price_amount_asc') {
       filtered.sort((a: any, b: any) => a.price_amount - b.price_amount)
-    } else if (sortBy === 'points-desc' || sortBy === 'price_desc') {
+    } else if (sortBy === 'price_amount_desc') {
       filtered.sort((a: any, b: any) => b.price_amount - a.price_amount)
-    } else if (sortBy === 'newest') {
+    } else if (sortBy === 'created_at_desc') {
       filtered.sort(
         (a: any, b: any) =>
           (Utils.safeParseDateString(b.created_at) || new Date(0)).getTime() -
@@ -324,23 +308,9 @@ const marketHandlers = {
     this.setData({ filteredProducts: filtered })
   },
 
-  /** 应用基础筛选条件（交易市场挂单筛选） */
+  /** 应用筛选条件（统一委托给 applyAdvancedFilters，保证所有维度一致） */
   applyFilters() {
-    const { products, searchKeyword } = this.data
-    let filtered = [...products]
-
-    // 按关键词搜索
-    if (searchKeyword) {
-      const keyword = searchKeyword.toLowerCase()
-      filtered = filtered.filter(
-        (item: any) =>
-          (item.item_name || '').toLowerCase().includes(keyword) ||
-          (item.description || '').toLowerCase().includes(keyword) ||
-          (item.offer_asset_code || '').toLowerCase().includes(keyword)
-      )
-    }
-
-    this.setData({ filteredProducts: filtered })
+    this.applyAdvancedFilters()
   },
 
   // ============================================
@@ -351,9 +321,9 @@ const marketHandlers = {
   async onRefreshProducts() {
     marketLog.info('手动刷新商品列表')
 
-    if (this.data.currentTab === 'market') {
+    if (this.data.currentTab === 'exchange') {
       const { currentSpace } = this.data
-      marketLog.info(` 商品兑换模式，刷新${currentSpace === 'premium' ? '臻选' : '幸运'}空间数据`)
+      marketLog.info(`商品兑换模式，刷新${currentSpace === 'premium' ? '臻选' : '幸运'}空间数据`)
       try {
         if (currentSpace === 'premium') {
           await this.initPremiumSpaceData()
@@ -376,12 +346,12 @@ const marketHandlers = {
     }
   },
 
-  /** 按 price_amount 升序排序 */
+  /** 按 price_amount 升序排序（交易市场快捷操作） */
   onSortByPoints() {
     marketLog.info('按售价排序')
     const { filteredProducts } = this.data
     const sorted = [...filteredProducts].sort((a: any, b: any) => a.price_amount - b.price_amount)
-    this.setData({ filteredProducts: sorted, sortBy: 'price_asc' })
+    this.setData({ filteredProducts: sorted, sortBy: 'price_amount_asc' })
     showToast('已按售价升序排列', 'success')
   },
 
@@ -648,5 +618,4 @@ const marketHandlers = {
 
 module.exports = marketHandlers
 
-export { }
-
+export {}

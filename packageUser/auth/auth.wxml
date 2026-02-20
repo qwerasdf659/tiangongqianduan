@@ -85,13 +85,13 @@
             <text class="label-text">验证码</text>
             <text class="required">*</text>
           </view>
-          <view class="input-wrapper {{formErrors.code ? 'error' : ''}}">
+          <view class="input-wrapper {{formErrors.verification_code ? 'error' : ''}}">
             <view class="input-prefix">🔑</view>
             <input
               class="form-input"
               type="number"
               placeholder="请输入验证码"
-              value="{{code}}"
+              value="{{verification_code}}"
               bindinput="onCodeInput"
               maxlength="6"
             />
@@ -103,7 +103,9 @@
               {{countdown > 0 ? countdown + 's' : '获取验证码'}}
             </button>
           </view>
-          <text class="error-tip" wx:if="{{formErrors.code}}">{{formErrors.code}}</text>
+          <text class="error-tip" wx:if="{{formErrors.verification_code}}"
+            >{{formErrors.verification_code}}</text
+          >
           <!-- 🔴 开发阶段提示已移除 - 根据用户需求清除开发环境提示 -->
         </view>
 

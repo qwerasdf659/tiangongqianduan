@@ -138,17 +138,37 @@ class WechatUtils {
   }
 
   /**
-   * 显示加载中提示框（Loading）
-   * ⚠️ 必须与 hideLoading() 配对使用
+   * Loading引用计数器 — 解决并发API请求导致的 showLoading/hideLoading 不配对问题
+   *
+   * 微信小程序框架全局只维护一个Loading浮层：
+   *   并发请求A调用showLoading → 请求B调用showLoading(覆盖文案)
+   *   请求A完成hideLoading → Loading消失（但请求B还在进行中）
+   *   请求B完成hideLoading → 此时无Loading可隐藏 → 框架抛出配对警告
+   *
+   * 引用计数方案：每次show +1，每次hide -1，仅在计数归零时真正调用wx.hideLoading
+   */
+  private static _loadingCount: number = 0
+
+  /**
+   * 显示加载中提示框（Loading，引用计数）
    * 业务场景: API请求期间、数据处理中、异步操作等待
    */
   static showLoading(title: string = '加载中...'): void {
-    wx.showLoading({ title, mask: true })
+    WechatUtils._loadingCount++
+    if (WechatUtils._loadingCount === 1) {
+      wx.showLoading({ title, mask: true })
+    }
   }
 
-  /** 隐藏加载中提示框 - 必须与 showLoading() 配对使用 */
+  /**
+   * 隐藏加载中提示框（引用计数）
+   * 仅当所有并发请求都完成（计数归零）时才真正隐藏Loading
+   */
   static hideLoading(): void {
-    wx.hideLoading()
+    WechatUtils._loadingCount = Math.max(0, WechatUtils._loadingCount - 1)
+    if (WechatUtils._loadingCount === 0) {
+      wx.hideLoading()
+    }
   }
 
   /**

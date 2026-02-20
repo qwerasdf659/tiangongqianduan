@@ -197,7 +197,7 @@
                   <view class="reveal-icon-container">
                     <text
                       class="reveal-prize-icon"
-                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
+                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].reward_tier !== 'low'}}"
                       >🎁</text
                     >
                     <text class="reveal-prize-icon not-winner" wx:else>💨</text>
@@ -230,7 +230,7 @@
                   <view class="reveal-icon-container">
                     <text
                       class="reveal-prize-icon"
-                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].isWinner}}"
+                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].reward_tier !== 'low'}}"
                       >🎁</text
                     >
                     <text class="reveal-prize-icon not-winner" wx:else>💨</text>
@@ -279,7 +279,7 @@
               bindtap="switchToRevealedPrize"
               data-index="{{index}}"
             >
-              <text class="mini-card-icon">{{item.isWinner ? '🎁' : '💨'}}</text>
+              <text class="mini-card-icon">{{item.reward_tier !== 'low' ? '🎁' : '💨'}}</text>
               <text class="mini-card-name">{{item.prize_name}}</text>
             </view>
           </view>

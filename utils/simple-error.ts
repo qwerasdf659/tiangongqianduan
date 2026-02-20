@@ -31,7 +31,10 @@ function showSuccess(message: string): void {
   })
 }
 
-/** 处理JWT Token过期（通过 Store 统一清理认证数据 + 跳转登录页） */
+/**
+ * 处理JWT Token过期（统一通过 app.clearAuthData 清理WebSocket+Store+Storage + 跳转登录页）
+ * 优先使用 App 实例的 clearAuthData()，降级直接操作 Store/Storage
+ */
 function handleJWTExpired(): void {
   wx.showModal({
     title: '登录已过期',
@@ -39,15 +42,21 @@ function handleJWTExpired(): void {
     showCancel: false,
     success: () => {
       try {
-        const { userStore } = require('../store/user')
-        const { pointsStore } = require('../store/points')
-        userStore.clearLoginState()
-        pointsStore.clearPoints()
-      } catch (storeError) {
-        log.warn('Store清理失败，降级直接清理Storage:', storeError)
-        wx.removeStorageSync('access_token')
-        wx.removeStorageSync('refresh_token')
-        wx.removeStorageSync('user_info')
+        const appInstance = getApp()
+        appInstance.clearAuthData()
+      } catch (appError) {
+        log.warn('App实例不可用，降级直接清理Store/Storage:', appError)
+        try {
+          const { userStore } = require('../store/user')
+          const { pointsStore } = require('../store/points')
+          userStore.clearLoginState()
+          pointsStore.clearPoints()
+        } catch (storeError) {
+          log.warn('Store清理失败，降级直接清理Storage:', storeError)
+          wx.removeStorageSync('access_token')
+          wx.removeStorageSync('refresh_token')
+          wx.removeStorageSync('user_info')
+        }
       }
       wx.redirectTo({ url: '/packageUser/auth/auth' })
     }

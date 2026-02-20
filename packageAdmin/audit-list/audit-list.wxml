@@ -1,91 +1,119 @@
 <!--packageAdmin/audit-list/audit-list.wxml - 审批管理页面-->
-<!--业务流程: 加载待审核消费记录 → 审核通过(自动发积分)/拒绝(填写原因) → 刷新列表-->
+<!--业务流程: 加载待审核消费记录 → 单条/批量审核通过(自动发积分)/拒绝(填写原因) → 刷新列表-->
 
 <view class="audit-page">
-  <!-- 顶部统计区域（毛玻璃卡片） -->
-  <view class="header-section">
-    <view class="stats-card">
-      <view class="stats-icon-wrap">
-        <text class="stats-icon">📋</text>
+  <!-- 顶部统计面板：待审核数量 + 操作引导 -->
+  <view class="stats-panel">
+    <view class="stats-main">
+      <view class="stats-number-wrap">
+        <text class="stats-number">{{total}}</text>
+        <text class="stats-unit">条</text>
       </view>
-      <view class="stats-body">
-        <view class="stats-number-row">
-          <text class="stats-number">{{total}}</text>
-          <text class="stats-unit">条</text>
-        </view>
-        <text class="stats-desc">待审核消费记录</text>
-      </view>
+      <text class="stats-label">待审核消费记录</text>
     </view>
-    <view class="guide-bar">
-      <text class="guide-icon">💡</text>
-      <text class="guide-text">审核通过后，积分将自动发放给顾客，请仔细核实消费信息</text>
+    <view class="stats-hint">
+      <text class="stats-hint-icon">💡</text>
+      <text class="stats-hint-text">审核通过后积分自动发放</text>
     </view>
   </view>
 
-  <!-- 记录列表区域 -->
+  <!-- 操作工具栏（置顶）：全选 + 批量操作 -->
+  <view class="toolbar">
+    <view class="toolbar-left">
+      <view class="custom-checkbox {{allSelected ? 'checked' : ''}}" bindtap="toggleSelectAll">
+        <text class="check-mark" wx:if="{{allSelected}}">✓</text>
+      </view>
+      <text class="toolbar-label">全选</text>
+    </view>
+    <view class="toolbar-right">
+      <view class="batch-btn reject" wx:if="{{selectedCount > 0}}" bindtap="onBatchReject">
+        <text>拒绝 ({{selectedCount}})</text>
+      </view>
+      <view class="batch-btn approve" wx:if="{{selectedCount > 0}}" bindtap="onBatchApprove">
+        <text>通过 ({{selectedCount}})</text>
+      </view>
+      <text class="toolbar-tip" wx:if="{{selectedCount === 0 && records.length > 0}}"
+        >勾选记录可批量操作</text
+      >
+    </view>
+  </view>
+
+  <!-- 列表区域 -->
   <view class="list-section">
     <!-- 空状态 -->
-    <view class="empty-card" wx:if="{{!loading && records.length === 0}}">
-      <view class="empty-visual">
-        <view class="empty-glow"></view>
-        <text class="empty-emoji">✅</text>
+    <view class="empty-state" wx:if="{{!loading && records.length === 0}}">
+      <view class="empty-icon-wrap">
+        <text class="empty-icon">✅</text>
       </view>
-      <text class="empty-heading">暂无待审核记录</text>
-      <text class="empty-subtext">所有消费记录已审核完成，请稍后再来查看</text>
+      <text class="empty-title">暂无待审核记录</text>
+      <text class="empty-desc">所有消费记录已审核完成，下拉刷新检查新记录</text>
     </view>
 
     <!-- 记录卡片列表 -->
-    <view class="record-card" wx:for="{{records}}" wx:key="record_id">
-      <!-- 用户信息行 -->
-      <view class="card-user-row">
-        <view class="user-avatar">
-          <text class="avatar-char">{{item.user_nickname ? item.user_nickname[0] : '用'}}</text>
+    <view
+      class="record-card {{item.selected ? 'selected' : ''}}"
+      wx:for="{{records}}"
+      wx:key="record_id"
+    >
+      <!-- 卡片顶部：选择框 + 用户信息 + 状态 -->
+      <view class="card-header">
+        <view class="header-left">
+          <view
+            class="custom-checkbox {{item.selected ? 'checked' : ''}}"
+            catchtap="toggleSelect"
+            data-index="{{index}}"
+          >
+            <text class="check-mark" wx:if="{{item.selected}}">✓</text>
+          </view>
+          <view class="user-avatar">
+            <text class="avatar-text">{{item.user_nickname ? item.user_nickname[0] : '用'}}</text>
+          </view>
+          <view class="user-info">
+            <text class="user-name">{{item.user_nickname || '未知用户'}}</text>
+            <text class="user-phone">{{item.user_mobile_display || item.user_mobile}}</text>
+          </view>
         </view>
-        <view class="user-info-col">
-          <text class="user-nickname">{{item.user_nickname || '未知用户'}}</text>
-          <text class="user-mobile">{{item.user_mobile_display || item.user_mobile}}</text>
-        </view>
-        <view class="pending-badge">
-          <view class="badge-pulse-dot"></view>
-          <text class="badge-label">待审核</text>
+        <view class="status-tag pending">
+          <view class="status-dot"></view>
+          <text>待审核</text>
         </view>
       </view>
 
-      <!-- 金额信息区 -->
-      <view class="card-amount-area">
-        <view class="amount-block">
-          <text class="amount-caption">消费金额</text>
-          <view class="amount-display">
-            <text class="amount-symbol">¥</text>
-            <text class="amount-figure">{{item.consumption_amount}}</text>
+      <!-- 金额与积分区域 -->
+      <view class="card-amounts">
+        <view class="amount-item">
+          <text class="amount-label">消费金额</text>
+          <view class="amount-value">
+            <text class="currency">¥</text>
+            <text class="number money">{{item.consumption_amount}}</text>
           </view>
         </view>
-        <view class="amount-separator"></view>
-        <view class="amount-block">
-          <text class="amount-caption">预计积分</text>
-          <view class="amount-display">
-            <text class="amount-figure accent">{{item.points_to_award}}</text>
-            <text class="amount-suffix">分</text>
+        <view class="amount-divider"></view>
+        <view class="amount-item">
+          <text class="amount-label">预计积分</text>
+          <view class="amount-value">
+            <text class="number points">{{item.points_to_award}}</text>
+            <text class="unit">分</text>
           </view>
         </view>
       </view>
 
       <!-- 详情信息 -->
-      <view class="card-detail-section">
-        <view class="detail-row" wx:if="{{item.merchant_notes}}">
-          <text class="detail-label">商家备注</text>
-          <text class="detail-content">{{item.merchant_notes}}</text>
+      <view class="card-details">
+        <view class="detail-item" wx:if="{{item.merchant_notes}}">
+          <text class="detail-key">商家备注</text>
+          <text class="detail-val">{{item.merchant_notes}}</text>
         </view>
-        <view class="detail-row">
-          <text class="detail-label">提交时间</text>
-          <text class="detail-content subdued">{{item.created_at_formatted}}</text>
+        <view class="detail-item">
+          <text class="detail-key">提交时间</text>
+          <text class="detail-val muted">{{item.created_at_formatted}}</text>
         </view>
       </view>
 
       <!-- 操作按钮 -->
-      <view class="card-action-bar">
+      <view class="card-actions">
         <button
-          class="action-reject"
+          class="btn-reject"
           bindtap="onReject"
           data-record="{{item}}"
           disabled="{{submitting}}"
@@ -93,7 +121,7 @@
           拒绝
         </button>
         <button
-          class="action-approve"
+          class="btn-approve"
           bindtap="onApprove"
           data-record="{{item}}"
           disabled="{{submitting}}"
@@ -102,71 +130,97 @@
         </button>
       </view>
     </view>
+  </view>
 
-    <!-- 加载更多 -->
-    <view class="load-more-area" wx:if="{{hasMore && !loading}}">
-      <view class="load-more-spinner" wx:if="{{loadingMore}}">
-        <view class="mini-spinner"></view>
-        <text class="spinner-text">加载中...</text>
+  <!-- 分页栏（页码水平排列） -->
+  <view class="pagination" wx:if="{{total_pages > 1}}">
+    <view class="page-arrow {{page <= 1 ? 'disabled' : ''}}" bindtap="goToPrevPage">
+      <text>‹</text>
+    </view>
+    <view class="page-nums">
+      <view
+        wx:for="{{pageNumbers}}"
+        wx:key="*this"
+        class="page-num {{item === page ? 'active' : ''}}"
+        bindtap="goToPage"
+        data-page="{{item}}"
+      >
+        <text>{{item}}</text>
       </view>
-      <text class="load-more-hint" wx:else>上拉加载更多</text>
     </view>
+    <view class="page-arrow {{page >= total_pages ? 'disabled' : ''}}" bindtap="goToNextPage">
+      <text>›</text>
+    </view>
+    <text class="page-info">{{page}}/{{total_pages}}</text>
+  </view>
 
-    <!-- 全部加载完毕 -->
-    <view class="all-loaded-bar" wx:if="{{!hasMore && records.length > 0}}">
-      <view class="loaded-divider"></view>
-      <text class="loaded-label">已加载全部</text>
-      <view class="loaded-divider"></view>
+  <!-- 首次加载 -->
+  <view class="loading-overlay" wx:if="{{loading && records.length === 0}}">
+    <view class="loading-box">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">正在加载...</text>
     </view>
   </view>
 
-  <!-- 首次加载状态 -->
-  <view class="initial-loading" wx:if="{{loading && !refreshing && records.length === 0}}">
-    <view class="loading-content">
-      <view class="loading-spinner-lg"></view>
-      <text class="loading-title">正在加载...</text>
-      <text class="loading-subtitle">获取待审核消费记录</text>
-    </view>
-  </view>
-
-  <!-- 审核拒绝弹窗 -->
-  <view class="reject-overlay" wx:if="{{showRejectModal}}" bindtap="cancelReject">
-    <view class="reject-dialog" catchtap="stopPropagation">
-      <view class="dialog-top">
-        <text class="dialog-heading">审核拒绝</text>
-        <view class="dialog-close-btn" bindtap="cancelReject">
-          <text class="close-x">✕</text>
+  <!-- 审核拒绝弹窗（单条/批量共用） -->
+  <view class="modal-overlay" wx:if="{{showRejectModal}}" bindtap="cancelReject">
+    <view class="modal-dialog" catchtap="stopPropagation">
+      <view class="modal-header">
+        <view class="modal-header-left">
+          <view class="modal-header-icon">
+            <text>✕</text>
+          </view>
+          <text class="modal-title">{{batchRejectMode ? '批量拒绝' : '审核拒绝'}}</text>
+        </view>
+        <view class="modal-close" bindtap="cancelReject">
+          <text>✕</text>
         </view>
       </view>
 
-      <view class="dialog-record-summary" wx:if="{{selectedRecord}}">
-        <text class="summary-info"
-          >用户：{{selectedRecord.user_nickname || selectedRecord.user_mobile}} |
-          ¥{{selectedRecord.consumption_amount}}</text
+      <view class="modal-summary" wx:if="{{!batchRejectMode && selectedRecord}}">
+        <text class="modal-summary-label">用户</text>
+        <text class="modal-summary-val"
+          >{{selectedRecord.user_nickname || selectedRecord.user_mobile}}</text
         >
+        <text class="modal-summary-divider">|</text>
+        <text class="modal-summary-amount">¥{{selectedRecord.consumption_amount}}</text>
+      </view>
+      <view class="modal-summary batch" wx:if="{{batchRejectMode}}">
+        <text class="modal-summary-batch">已选中 {{selectedCount}} 条记录，将统一拒绝</text>
       </view>
 
-      <view class="dialog-form">
-        <text class="form-label">拒绝原因（必填，至少5个字符）</text>
+      <view class="modal-body">
+        <text class="input-label">拒绝原因（必填，至少5个字符）</text>
         <textarea
-          class="form-textarea"
+          class="reject-textarea"
           placeholder="请输入拒绝原因，如：消费金额与实际不符"
           value="{{rejectReason}}"
           bindinput="onRejectReasonInput"
           maxlength="200"
           auto-height
         />
-        <view class="form-meta">
-          <text class="char-counter">{{rejectReason.length || 0}}/200</text>
-          <text class="caution-text">拒绝后用户将收到通知，请谨慎操作</text>
+        <view class="input-meta">
+          <text class="char-count">{{rejectReason.length || 0}}/200</text>
+          <text class="warning-text">拒绝后用户将收到通知</text>
         </view>
       </view>
 
-      <view class="dialog-buttons">
-        <button class="dialog-cancel" bindtap="cancelReject">取消</button>
-        <button class="dialog-confirm" bindtap="confirmReject" disabled="{{submitting}}">
-          {{submitting ? '提交中...' : '确认拒绝'}}
+      <view class="modal-footer">
+        <button class="modal-btn cancel" bindtap="cancelReject">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmReject" disabled="{{submitting}}">
+          {{submitting ? '提交中...' : (batchRejectMode ? '确认批量拒绝' : '确认拒绝')}}
         </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 批量操作进度弹窗 -->
+  <view class="modal-overlay" wx:if="{{showBatchProgress}}">
+    <view class="modal-dialog progress" catchtap="stopPropagation">
+      <view class="progress-content">
+        <view class="loading-spinner"></view>
+        <text class="progress-title">{{batchProgressText}}</text>
+        <text class="progress-detail">{{batchProgressDetail}}</text>
       </view>
     </view>
   </view>

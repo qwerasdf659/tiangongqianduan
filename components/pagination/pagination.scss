@@ -65,14 +65,17 @@
 }
 
 .page-numbers {
-  @include flex-center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   gap: 8rpx;
   margin-top: 16rpx;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .page-number {
-  min-width: 56rpx;
+  width: 56rpx;
   height: 56rpx;
   line-height: 56rpx;
   font-size: $font-size-sm;
@@ -81,17 +84,14 @@
   background: $color-bg;
   color: $color-text-primary;
   border: 2rpx solid $color-border;
-  padding: 0;
+  flex-shrink: 0;
+  box-sizing: border-box;
 
   &.active {
     background: $color-primary;
     color: #fff;
     border-color: $color-primary;
     font-weight: bold;
-  }
-
-  &::after {
-    border: none;
   }
 }
 

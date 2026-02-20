@@ -1,22 +1,11 @@
 <!--pages/user/user.wxml - 用户中心页面模板 -->
 
 <view class="user-container">
-  <!-- 用户信息卡片 -->
-  <view class="user-card">
-    <!-- 已登录状态 -->
-    <view class="user-info-full" wx:if="{{isLoggedIn}}">
-      <view class="user-name" bindtap="onPhoneTap">
-        <text class="name-text">{{userInfo.mobile || '点击登录'}}</text>
-        <text class="edit-phone">✏️</text>
-      </view>
-    </view>
-
-    <!-- 未登录状态 -->
-    <view class="login-prompt" wx:else bindtap="redirectToAuth">
-      <view class="login-avatar">👤</view>
-      <text class="login-text">点击登录</text>
-      <text class="login-desc">登录后查看完整功能</text>
-    </view>
+  <!-- 未登录状态：登录引导卡片（已登录时不显示，积分卡片已体现登录状态） -->
+  <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
+    <view class="login-avatar">👤</view>
+    <text class="login-text">点击登录</text>
+    <text class="login-desc">登录后查看完整功能</text>
   </view>
 
   <!-- 积分余额卡片 -->
@@ -52,11 +41,28 @@
     <view class="section-title">
       <text>🔧 功能菜单</text>
     </view>
-    <view class="menu-grid">
+    <!-- 快捷入口（前5项水平排列） -->
+    <view class="menu-quick-row">
+      <view
+        class="menu-quick-item"
+        wx:for="{{menuItems}}"
+        wx:key="id"
+        wx:if="{{index < 5}}"
+        bindtap="onMenuItemTap"
+        data-item="{{item}}"
+      >
+        <view class="menu-quick-icon" style="background: {{item.color}}">{{item.icon}}</view>
+        <text class="menu-quick-name">{{item.name}}</text>
+      </view>
+    </view>
+
+    <!-- 其他功能（剩余项列表排列） -->
+    <view class="menu-list">
       <view
         class="menu-item"
         wx:for="{{menuItems}}"
         wx:key="id"
+        wx:if="{{index >= 5}}"
         bindtap="onMenuItemTap"
         data-item="{{item}}"
         style="border-left: 4rpx solid {{item.color}}"

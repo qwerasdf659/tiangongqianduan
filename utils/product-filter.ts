@@ -20,27 +20,38 @@ const log = createLogger('product-filter')
 
 // ===== 类型定义 =====
 
-/** 筛选条件配置*/
+/** 筛选条件配置（对齐后端 exchange_page 配置的字段格式） */
 interface FilterOptions {
-  /** 搜索关键?*/
+  /** 搜索关键词 */
   searchKeyword?: string
-  /** 基础筛选类型（'all' | 'available' | 'low-price'?*/
+  /** 基础筛选类型（value: 'all' | 'available' | 'low-price'） */
   currentFilter?: string
-  /** 分类筛选（'all' 或具体分类名称?*/
+  /** 分类筛选（value: 'all' 或具体分类名称如 '数码配件'） */
   categoryFilter?: string
-  /** 积分/价格范围?all' | '0-500' | '500-1000' | '1000-2000' | '2000+'?*/
-  pointsRange?: string
-  /** 库存状态（'all' | 'in-stock' | 'low-stock'?*/
-  stockFilter?: string
-  /** 排序方式?default' | 'points-asc' | 'points-desc' | 'rating-desc' | 'stock-desc'?*/
+  /**
+   * 价格区间下限（对齐后端 cost_ranges.min）
+   * null 表示无下限（"全部"时 min=null, max=null）
+   */
+  costRangeMin?: number | null
+  /**
+   * 价格区间上限（对齐后端 cost_ranges.max）
+   * null 表示无上限（如 "500以上" 时 max=null）
+   */
+  costRangeMax?: number | null
+  /** 库存状态（value: 'all' | 'in_stock' | 'low_stock'，对齐后端 stock_statuses） */
+  stockStatus?: string
+  /**
+   * 排序方式（value 引用后端实际列名，对齐 sort_options）
+   * 'sort_order' | 'cost_amount_asc' | 'cost_amount_desc' | 'created_at_desc' | 'sold_count_desc'
+   */
   sortBy?: string
-  /** 用户当前可用积分（用于available筛选） */
+  /** 用户当前可用积分（用于 available 筛选） */
   totalPoints?: number
-  /** 价格字段名（统一使用后端 exchange_items.cost_amount），默认'cost_amount' */
+  /** 价格字段名（统一使用后端 exchange_items.cost_amount），默认 'cost_amount' */
   priceField?: string
   /**
-   * 库存紧张阈   * 后端API: GET /api/v4/system/config/product-filter 提供配置
-   * 调用方应先从 API.getProductFilterConfig() 获取阈值再传入
+   * 库存紧张阈值
+   * 后端 exchange_page 配置的 ui.low_stock_threshold 提供
    */
   lowStockThreshold?: number
 }
@@ -84,9 +95,10 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
     searchKeyword = '',
     currentFilter = 'all',
     categoryFilter = 'all',
-    pointsRange = 'all',
-    stockFilter = 'all',
-    sortBy = 'default',
+    costRangeMin = null,
+    costRangeMax = null,
+    stockStatus = 'all',
+    sortBy = 'sort_order',
     totalPoints = 0,
     priceField = 'cost_amount',
     lowStockThreshold = 10
@@ -133,37 +145,29 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
     )
   }
 
-  // ===== 4. 价格范围筛选 =====
-  // 积分范围由调用方从 API.getProductFilterConfig() 获取后以字符串传入
-  if (pointsRange !== 'all') {
-    const price = (product: any): number => product[priceField] || 0
+  // ===== 4. 价格区间筛选（对齐后端 cost_ranges: {min, max} 格式） =====
+  if (costRangeMin !== null || costRangeMax !== null) {
+    const price = (product: any): number => Number(product[priceField]) || 0
 
-    switch (pointsRange) {
-      case '0-500':
-        filtered = filtered.filter((p: any) => price(p) <= 500)
-        break
-      case '500-1000':
-        filtered = filtered.filter((p: any) => price(p) > 500 && price(p) <= 1000)
-        break
-      case '1000-2000':
-        filtered = filtered.filter((p: any) => price(p) > 1000 && price(p) <= 2000)
-        break
-      case '2000+':
-        filtered = filtered.filter((p: any) => price(p) > 2000)
-        break
-      default:
-        break
-    }
+    filtered = filtered.filter((p: any) => {
+      const val = price(p)
+      if (costRangeMin !== null && val < costRangeMin) {
+        return false
+      }
+      if (costRangeMax !== null && val > costRangeMax) {
+        return false
+      }
+      return true
+    })
   }
 
-  // ===== 5. 库存状态筛=====
-  // 库存阈值由调用方从 API.getProductFilterConfig() 获取后传lowStockThreshold
-  if (stockFilter !== 'all') {
-    switch (stockFilter) {
-      case 'in-stock':
+  // ===== 5. 库存状态筛选（对齐后端 stock_statuses 的 value 字段） =====
+  if (stockStatus !== 'all') {
+    switch (stockStatus) {
+      case 'in_stock':
         filtered = filtered.filter((product: any) => product.stock > lowStockThreshold)
         break
-      case 'low-stock':
+      case 'low_stock':
         filtered = filtered.filter(
           (product: any) => product.stock > 0 && product.stock <= lowStockThreshold
         )
@@ -173,20 +177,23 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
     }
   }
 
-  // ===== 6. 排序 =====
+  // ===== 6. 排序（value 引用后端实际列名，对齐 sort_options） =====
   switch (sortBy) {
-    case 'points-asc':
+    case 'cost_amount_asc':
       filtered = filtered.sort((a: any, b: any) => (a[priceField] || 0) - (b[priceField] || 0))
       break
-    case 'points-desc':
+    case 'cost_amount_desc':
       filtered = filtered.sort((a: any, b: any) => (b[priceField] || 0) - (a[priceField] || 0))
       break
-    case 'rating-desc':
-      /* ⚠️ 后端 exchange_items 表无 rating 字段，此排序仅在后端扩展返回 rating 后生?*/
-      filtered = filtered.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0))
+    case 'created_at_desc':
+      filtered = filtered.sort((a: any, b: any) => {
+        const dateA = new Date(a.created_at || 0).getTime()
+        const dateB = new Date(b.created_at || 0).getTime()
+        return dateB - dateA
+      })
       break
-    case 'stock-desc':
-      filtered = filtered.sort((a: any, b: any) => (b.stock || 0) - (a.stock || 0))
+    case 'sold_count_desc':
+      filtered = filtered.sort((a: any, b: any) => (b.sold_count || 0) - (a.sold_count || 0))
       break
     default:
       break

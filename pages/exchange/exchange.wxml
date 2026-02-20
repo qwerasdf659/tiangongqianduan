@@ -1,51 +1,29 @@
-<!-- pages/exchange/exchange.wxml - 交易市场页面模板（基于v2.0接口标准） -->
+<!-- pages/exchange/exchange.wxml - 兑换中心页面模板（商品兑换Tab + 交易市场Tab，API v4.0） -->
 <!-- WXML 已拆分为独立模板文件，通过 include 引入，减少单文件体积 -->
 <!-- exchange-market.wxml: 交易市场 Tab（搜索、筛选、商品网格、分页、兑换弹窗） -->
 <!-- exchange-shop.wxml: 商品兑换 Tab（幸运空间/臻选空间、瀑布流、竞价弹窗） -->
 <view class="exchange-container">
   <!-- 水平排列导航模块 -->
   <view class="nav-module horizontal" hover-class="none">
-    <!-- 导航按钮容器 -->
+    <!-- 导航按钮容器（动态渲染，由后端 exchange_page 配置下发） -->
     <view class="nav-buttons-row" hover-class="none">
-      <!-- 商品兑换 -->
       <view
-        class="nav-item nav-item-horizontal {{currentTab === 'market' ? 'active' : 'trade-market-nav'}}"
-        bindtap="onGoToTradeMarket"
-        hover-class="none"
-      >
-        <view class="nav-content" hover-class="none">
-          <!-- 导航图标容器 -->
-          <view class="nav-icon-container" hover-class="none">
-            <view class="icon-wrapper" hover-class="none">
-              <icon class="nav-icon" type="download" size="20" />
-            </view>
-          </view>
-
-          <!-- 导航文字 -->
-          <view class="text-wrapper" hover-class="none">
-            <text class="nav-text">商品兑换</text>
-          </view>
-        </view>
-
-        <!-- 当前状态标签 -->
-        <view class="nav-status current" wx:if="{{currentTab === 'market'}}">当前</view>
-      </view>
-
-      <!-- 交易市场 -->
-      <view
-        class="nav-item nav-item-horizontal {{currentTab === 'exchange' ? 'active' : ''}}"
-        bindtap="onGoToExchange"
+        wx:for="{{tabs}}"
+        wx:key="key"
+        class="nav-item nav-item-horizontal {{currentTab === item.key ? 'active' : ''}}"
+        data-tab="{{item.key}}"
+        bindtap="onTabChange"
         hover-class="none"
       >
         <view class="nav-content" hover-class="none">
           <view class="icon-wrapper" hover-class="none">
-            <icon class="nav-icon" type="success" size="20" />
+            <icon class="nav-icon" type="{{item.icon}}" size="20" />
           </view>
           <view class="text-wrapper" hover-class="none">
-            <text class="nav-text">交易市场</text>
+            <text class="nav-text">{{item.label}}</text>
           </view>
         </view>
-        <view class="nav-status current" wx:if="{{currentTab === 'exchange'}}">当前</view>
+        <view class="nav-status current" wx:if="{{currentTab === item.key}}">当前</view>
       </view>
     </view>
   </view>
@@ -72,19 +50,39 @@
         <view class="settings-section">
           <text class="settings-section-title">主题方案</text>
           <view class="theme-options">
-            <view class="theme-option-btn {{cardTheme === 'A' ? 'active' : ''}}" bindtap="onThemeChange" data-theme="A">
+            <view
+              class="theme-option-btn {{cardTheme === 'A' ? 'active' : ''}}"
+              bindtap="onThemeChange"
+              data-theme="A"
+            >
               <text class="theme-label">毛玻璃</text>
             </view>
-            <view class="theme-option-btn {{cardTheme === 'B' ? 'active' : ''}}" bindtap="onThemeChange" data-theme="B">
+            <view
+              class="theme-option-btn {{cardTheme === 'B' ? 'active' : ''}}"
+              bindtap="onThemeChange"
+              data-theme="B"
+            >
               <text class="theme-label">暖橙电商</text>
             </view>
-            <view class="theme-option-btn {{cardTheme === 'C' ? 'active' : ''}}" bindtap="onThemeChange" data-theme="C">
+            <view
+              class="theme-option-btn {{cardTheme === 'C' ? 'active' : ''}}"
+              bindtap="onThemeChange"
+              data-theme="C"
+            >
               <text class="theme-label">暗色游戏</text>
             </view>
-            <view class="theme-option-btn {{cardTheme === 'D' ? 'active' : ''}}" bindtap="onThemeChange" data-theme="D">
+            <view
+              class="theme-option-btn {{cardTheme === 'D' ? 'active' : ''}}"
+              bindtap="onThemeChange"
+              data-theme="D"
+            >
               <text class="theme-label">极简扁平</text>
             </view>
-            <view class="theme-option-btn {{cardTheme === 'E' ? 'active' : ''}}" bindtap="onThemeChange" data-theme="E">
+            <view
+              class="theme-option-btn {{cardTheme === 'E' ? 'active' : ''}}"
+              bindtap="onThemeChange"
+              data-theme="E"
+            >
               <text class="theme-label">推荐方案</text>
             </view>
           </view>
@@ -99,7 +97,11 @@
                 <text class="effect-toggle-name">噪点纹理</text>
                 <text class="effect-toggle-desc">渐变区域叠加印刷质感</text>
               </view>
-              <view class="toggle-switch {{effects.grain ? 'on' : ''}}" bindtap="onEffectToggle" data-effect="grain">
+              <view
+                class="toggle-switch {{effects.grain ? 'on' : ''}}"
+                bindtap="onEffectToggle"
+                data-effect="grain"
+              >
                 <view class="toggle-knob"></view>
               </view>
             </view>
@@ -108,7 +110,11 @@
                 <text class="effect-toggle-name">全息光效</text>
                 <text class="effect-toggle-desc">稀有/传说品彩虹光泽</text>
               </view>
-              <view class="toggle-switch {{effects.holo ? 'on' : ''}}" bindtap="onEffectToggle" data-effect="holo">
+              <view
+                class="toggle-switch {{effects.holo ? 'on' : ''}}"
+                bindtap="onEffectToggle"
+                data-effect="holo"
+              >
                 <view class="toggle-knob"></view>
               </view>
             </view>
@@ -117,7 +123,11 @@
                 <text class="effect-toggle-name">旋转边框</text>
                 <text class="effect-toggle-desc">限量/即将结束品渐变边框</text>
               </view>
-              <view class="toggle-switch {{effects.rotatingBorder ? 'on' : ''}}" bindtap="onEffectToggle" data-effect="rotatingBorder">
+              <view
+                class="toggle-switch {{effects.rotatingBorder ? 'on' : ''}}"
+                bindtap="onEffectToggle"
+                data-effect="rotatingBorder"
+              >
                 <view class="toggle-knob"></view>
               </view>
             </view>
@@ -126,7 +136,11 @@
                 <text class="effect-toggle-name">呼吸光圈</text>
                 <text class="effect-toggle-desc">竞价即将结束脉动光效</text>
               </view>
-              <view class="toggle-switch {{effects.breathingGlow ? 'on' : ''}}" bindtap="onEffectToggle" data-effect="breathingGlow">
+              <view
+                class="toggle-switch {{effects.breathingGlow ? 'on' : ''}}"
+                bindtap="onEffectToggle"
+                data-effect="breathingGlow"
+              >
                 <view class="toggle-knob"></view>
               </view>
             </view>
@@ -135,7 +149,11 @@
                 <text class="effect-toggle-name">墨水扩散</text>
                 <text class="effect-toggle-desc">按压时涟漪扩散反馈</text>
               </view>
-              <view class="toggle-switch {{effects.ripple ? 'on' : ''}}" bindtap="onEffectToggle" data-effect="ripple">
+              <view
+                class="toggle-switch {{effects.ripple ? 'on' : ''}}"
+                bindtap="onEffectToggle"
+                data-effect="ripple"
+              >
                 <view class="toggle-knob"></view>
               </view>
             </view>
@@ -144,7 +162,11 @@
                 <text class="effect-toggle-name">全图叠字</text>
                 <text class="effect-toggle-desc">有图商品图片铺满卡片</text>
               </view>
-              <view class="toggle-switch {{effects.fullbleed ? 'on' : ''}}" bindtap="onEffectToggle" data-effect="fullbleed">
+              <view
+                class="toggle-switch {{effects.fullbleed ? 'on' : ''}}"
+                bindtap="onEffectToggle"
+                data-effect="fullbleed"
+              >
                 <view class="toggle-knob"></view>
               </view>
             </view>
@@ -155,10 +177,18 @@
         <view class="settings-section">
           <text class="settings-section-title">视图模式</text>
           <view class="theme-options">
-            <view class="theme-option-btn {{viewMode === 'grid' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="grid">
+            <view
+              class="theme-option-btn {{viewMode === 'grid' ? 'active' : ''}}"
+              bindtap="onToggleViewMode"
+              data-mode="grid"
+            >
               <text class="theme-label">⊞ 网格</text>
             </view>
-            <view class="theme-option-btn {{viewMode === 'list' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="list">
+            <view
+              class="theme-option-btn {{viewMode === 'list' ? 'active' : ''}}"
+              bindtap="onToggleViewMode"
+              data-mode="list"
+            >
               <text class="theme-label">☰ 列表</text>
             </view>
           </view>

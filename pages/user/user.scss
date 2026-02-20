@@ -8,98 +8,18 @@
   padding: $spacing-base;
 }
 
-/* 用户信息卡片 */
-.user-card {
+/* 未登录引导卡片（已登录时不显示） */
+.login-prompt-card {
+  @include flex-column-center;
   background: $gradient-card-bg;
   border-radius: 28rpx;
-  padding: 24rpx 30rpx;
+  padding: 40rpx 30rpx;
   margin-bottom: $spacing-base;
-  display: flex;
-  align-items: center;
+  -webkit-backdrop-filter: $blur-card;
   backdrop-filter: $blur-card;
   box-shadow: $shadow-card;
   border: 1rpx solid rgba(255, 255, 255, 0.4);
-  position: relative;
-  overflow: hidden;
-}
-
-/* 装饰性光效 */
-.user-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(102, 126, 234, 0.05) 50%,
-    transparent 70%
-  );
-  animation: shimmer 4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes shimmer {
-  0%,
-  100% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-
-  50% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
-}
-
-/* 用户信息区域 */
-.user-info-full {
-  flex: 1;
-  position: relative;
-  z-index: 2;
-  width: 100%;
-}
-
-/* 用户名区域（内部唯一子元素，无需底部边距） */
-.user-name {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.name-text {
-  font-size: $font-size-lg;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--text-color), #666);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-right: 16rpx;
-  line-height: 1.2;
-}
-
-.edit-phone {
-  font-size: 22rpx;
-  background: linear-gradient(135deg, var(--blue-start), var(--blue-end));
-  color: white;
-  padding: 6rpx 12rpx;
-  border-radius: 12rpx;
-  opacity: 0.9;
-  transition: all 0.3s ease;
-}
-
-.edit-phone:hover {
-  opacity: 1;
-  transform: scale(1.05);
-}
-
-/* 未登录状态 */
-.login-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 12rpx;
-  cursor: pointer;
 }
 
 .login-avatar {
@@ -298,8 +218,49 @@
   backdrop-filter: blur(10rpx);
 }
 
-.menu-grid {
-  margin-top: 30rpx;
+/* 快捷入口行（前5项水平排列） */
+.menu-quick-row {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 24rpx;
+  margin-bottom: 20rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+
+.menu-quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20%;
+  transition: all $transition-base;
+}
+
+.menu-quick-item:active {
+  transform: scale(0.92);
+}
+
+.menu-quick-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $border-radius-md;
+  @include flex-center;
+  margin-bottom: 12rpx;
+  font-size: 36rpx;
+  color: $color-white;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
+}
+
+.menu-quick-name {
+  font-size: 22rpx;
+  color: $color-text-primary;
+  text-align: center;
+  @include text-ellipsis;
+  max-width: 100%;
+}
+
+/* 其他功能列表 */
+.menu-list {
+  margin-top: 8rpx;
 }
 
 .menu-item {
@@ -400,7 +361,6 @@
   font-size: $font-size-xs;
   color: rgba(255, 255, 255, 0.7);
 }
-
 
 .mw-cards {
   background: rgba(255, 255, 255, 0.95);
@@ -561,12 +521,4 @@
 .loading-text {
   font-size: $font-size-base;
   color: var(--text-color);
-}
-
-/* 响应式适配 */
-@media (max-width: 400px) {
-  .user-card {
-    flex-direction: column;
-    text-align: center;
-  }
 }

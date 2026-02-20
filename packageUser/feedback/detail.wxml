@@ -19,7 +19,9 @@
   <view wx:elif="{{feedbackDetail}}" class="detail-container">
     <!-- 状态头部 -->
     <view class="status-header status-{{feedbackDetail.status}}">
-      <text class="status-label">{{statusMap[feedbackDetail.status] || feedbackDetail.status}}</text>
+      <text class="status-label"
+        >{{statusMap[feedbackDetail.status] || feedbackDetail.status}}</text
+      >
       <text class="feedback-time">{{feedbackDetail.created_at}}</text>
     </view>
 
@@ -33,11 +35,21 @@
     </view>
 
     <!-- 附件图片 -->
-    <view wx:if="{{feedbackDetail.attachments && feedbackDetail.attachments.length}}" class="attachments-section">
+    <view
+      wx:if="{{feedbackDetail.attachments && feedbackDetail.attachments.length}}"
+      class="attachments-section"
+    >
       <view class="section-title">附件图片</view>
       <view class="image-grid">
-        <image wx:for="{{feedbackDetail.attachments}}" wx:key="index" src="{{item.url || item}}" mode="aspectFill"
-          class="attachment-image" bindtap="onPreviewImage" data-url="{{item.url || item}}"></image>
+        <image
+          wx:for="{{feedbackDetail.attachments}}"
+          wx:key="index"
+          src="{{item.url || item}}"
+          mode="aspectFill"
+          class="attachment-image"
+          bindtap="onPreviewImage"
+          data-url="{{item.url || item}}"
+        ></image>
       </view>
     </view>
 

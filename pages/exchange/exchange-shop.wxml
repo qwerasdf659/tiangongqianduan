@@ -3,7 +3,7 @@
 <!-- 数据绑定和事件处理仍由 exchange.ts Page 方法管理 -->
 
 <!-- 🏪 双空间商品兑换系统 -->
-<view wx:if="{{currentTab === 'market'}}" class="dual-space-market">
+<view wx:if="{{currentTab === 'exchange'}}" class="dual-space-market">
   <!-- 🔒 固定头部：空间切换导航 - 不随滚动移动 -->
   <view class="shop-sticky-header">
     <!-- 🎯 空间切换导航 - 增强版胶囊式切换器 -->
@@ -67,21 +67,31 @@
           <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
           <!-- 视图切换 -->
           <view class="view-toggle">
-            <view class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="grid">⊞</view>
-            <view class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}" bindtap="onToggleViewMode" data-mode="list">☰</view>
+            <view
+              class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}"
+              bindtap="onToggleViewMode"
+              data-mode="grid"
+              >⊞</view
+            >
+            <view
+              class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}"
+              bindtap="onToggleViewMode"
+              data-mode="list"
+              >☰</view
+            >
           </view>
         </view>
       </view>
 
-      <!-- 筛选功能 -->
+      <!-- 筛选功能（由后端 shop_filters 配置驱动，统一 {value, label} 格式） -->
       <view class="search-filter">
         <view class="filter-buttons">
           <button
             wx:for="{{luckyBasicFilters}}"
-            wx:key="key"
-            class="filter-btn {{luckyCurrentFilter === item.key ? 'active' : ''}}"
+            wx:key="value"
+            class="filter-btn {{luckyCurrentFilter === item.value ? 'active' : ''}}"
             bindtap="onLuckyFilterChange"
-            data-filter="{{item.key}}"
+            data-filter="{{item.value}}"
           >
             {{item.showCount ? item.label + '(' + luckyTotalProducts + ')' : item.label}}
           </button>
@@ -93,31 +103,31 @@
           </button>
         </view>
 
-        <!-- 高级筛选面板 -->
+        <!-- 高级筛选面板（shop_filters 配置驱动） -->
         <view class="advanced-filter-panel" wx:if="{{showLuckyAdvancedFilter}}">
           <view class="filter-row">
             <text class="filter-label">商品分类</text>
             <view class="filter-options">
               <button
                 wx:for="{{categoryOptions}}"
-                wx:key="key"
-                class="option-btn {{luckyCategoryFilter === item.key ? 'active' : ''}}"
+                wx:key="value"
+                class="option-btn {{luckyCategoryFilter === item.value ? 'active' : ''}}"
                 bindtap="onLuckyCategoryFilterChange"
-                data-category="{{item.key}}"
+                data-category="{{item.value}}"
               >
                 {{item.label}}
               </button>
             </view>
           </view>
           <view class="filter-row">
-            <text class="filter-label">积分范围</text>
+            <text class="filter-label">价格区间</text>
             <view class="filter-options">
               <button
-                wx:for="{{pointsRangeOptions}}"
-                wx:key="key"
-                class="option-btn {{luckyPointsRange === item.key ? 'active' : ''}}"
-                bindtap="onLuckyPointsRangeChange"
-                data-range="{{item.key}}"
+                wx:for="{{costRangeOptions}}"
+                wx:key="label"
+                class="option-btn {{luckyCostRangeIndex === index ? 'active' : ''}}"
+                bindtap="onLuckyCostRangeChange"
+                data-index="{{index}}"
               >
                 {{item.label}}
               </button>
@@ -127,11 +137,11 @@
             <text class="filter-label">库存状态</text>
             <view class="filter-options">
               <button
-                wx:for="{{stockFilterOptions}}"
-                wx:key="key"
-                class="option-btn {{luckyStockFilter === item.key ? 'active' : ''}}"
-                bindtap="onLuckyStockFilterChange"
-                data-filter="{{item.key}}"
+                wx:for="{{stockStatusOptions}}"
+                wx:key="value"
+                class="option-btn {{luckyStockStatus === item.value ? 'active' : ''}}"
+                bindtap="onLuckyStockStatusChange"
+                data-status="{{item.value}}"
               >
                 {{item.label}}
               </button>
@@ -142,10 +152,10 @@
             <view class="filter-options">
               <button
                 wx:for="{{sortByOptions}}"
-                wx:key="key"
-                class="option-btn {{luckySortBy === item.key ? 'active' : ''}}"
+                wx:key="value"
+                class="option-btn {{luckySortBy === item.value ? 'active' : ''}}"
                 bindtap="onLuckySortByChange"
-                data-sort="{{item.key}}"
+                data-sort="{{item.value}}"
               >
                 {{item.label}}
               </button>
@@ -175,16 +185,38 @@
       class="lucky-space-content waterfall-market-container"
     >
       <!-- 🌊 幸运空间商品网格 — 统一卡片主题系统 -->
-      <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}" wx:if="{{!loading && ((luckyFilteredProducts && luckyFilteredProducts.length > 0) || (waterfallProducts && waterfallProducts.length > 0))}}">
-        <view class="unified-card theme-{{cardTheme}} shop-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} {{item._isLegendary && effects.holo ? 'holo-effect' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{item._isLimited && effects.rotatingBorder ? 'rotating-border' : ''}} {{item.stock <= 0 ? 'sold-out' : ''}}" wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}" wx:key="id" data-product="{{item}}" bindtap="onProductTap" bindtouchstart="onCardTouchStart" data-card-index="{{index}}" data-tab="lucky">
+      <view
+        class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}"
+        wx:if="{{!loading && ((luckyFilteredProducts && luckyFilteredProducts.length > 0) || (waterfallProducts && waterfallProducts.length > 0))}}"
+      >
+        <view
+          class="unified-card theme-{{cardTheme}} shop-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} {{item._isLegendary && effects.holo ? 'holo-effect' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{item._isLimited && effects.rotatingBorder ? 'rotating-border' : ''}} {{item.stock <= 0 ? 'sold-out' : ''}}"
+          wx:for="{{luckyFilteredProducts.length > 0 ? luckyFilteredProducts : waterfallProducts}}"
+          wx:key="id"
+          data-product="{{item}}"
+          bindtap="onProductTap"
+          bindtouchstart="onCardTouchStart"
+          data-card-index="{{index}}"
+          data-tab="lucky"
+        >
           <!-- 顶部类型色条 -->
           <view class="type-bar lucky"></view>
 
           <!-- 图片区域 -->
           <view class="card-image-area">
-            <image src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" binderror="onShopImageError" data-index="{{index}}" data-space="lucky" />
+            <image
+              src="{{item.image}}"
+              mode="aspectFill"
+              lazy-load="{{true}}"
+              binderror="onShopImageError"
+              data-index="{{index}}"
+              data-space="lucky"
+            />
             <!-- 彩色占位（无图或图片加载失败回退为默认图时显示） -->
-            <view class="image-fallback lucky-type" wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}">
+            <view
+              class="image-fallback lucky-type"
+              wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}"
+            >
               <text class="fallback-icon">🎁</text>
               <text class="fallback-name">{{item.name}}</text>
             </view>
@@ -194,7 +226,9 @@
             <!-- 右下角类型胶囊 -->
             <view class="type-capsule">🍀 幸运好物</view>
             <!-- 已售数量角标 -->
-            <view class="sold-count-badge" wx:if="{{item.sold_count > 0}}">已售{{item.sold_count}}</view>
+            <view class="sold-count-badge" wx:if="{{item.sold_count > 0}}"
+              >已售{{item.sold_count}}</view
+            >
           </view>
 
           <!-- 卡片内容区 -->
@@ -202,21 +236,38 @@
             <view class="product-name">{{item.name}}</view>
             <!-- 价格高亮行 -->
             <view class="price-row">
-              <text class="price-unit">{{item._priceLabel || (item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code)}}</text>
+              <text class="price-unit"
+                >{{item._priceLabel || (item.cost_asset_code === 'POINTS' ? '积分' :
+                item.cost_asset_code)}}</text
+              >
               <text class="price-current">{{item.cost_amount}}</text>
-              <text class="price-original" wx:if="{{item.original_price}}">{{item.original_price}}</text>
+              <text class="price-original" wx:if="{{item.original_price}}"
+                >{{item.original_price}}</text
+              >
             </view>
             <!-- 库存进度条 -->
             <view class="stock-bar" wx:if="{{item.stock !== undefined}}">
-              <view class="stock-fill {{item.stock < 10 ? 'fill-low' : (item.stock < 50 ? 'fill-medium' : 'fill-high')}}" style="width: {{item.stock > 100 ? 100 : item.stock}}%"></view>
+              <view
+                class="stock-fill {{item.stock < 10 ? 'fill-low' : (item.stock < 50 ? 'fill-medium' : 'fill-high')}}"
+                style="width: {{item.stock > 100 ? 100 : item.stock}}%"
+              ></view>
             </view>
-            <text class="stock-text {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}" wx:if="{{item.stock !== undefined}}">{{item.stock <= 0 ? '已售罄' : (item.stock < 10 ? '仅剩' + item.stock + '件！' : (item.stock < 50 ? '库存紧张' : '库存充足'))}}</text>
+            <text
+              class="stock-text {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}"
+              wx:if="{{item.stock !== undefined}}"
+              >{{item.stock <= 0 ? '已售罄' : (item.stock < 10 ? '仅剩' + item.stock + '件！' :
+              (item.stock < 50 ? '库存紧张' : '库存充足'))}}</text
+            >
             <!-- CTA按钮 -->
             <button class="cta-btn {{item.stock <= 0 ? 'btn-disabled' : ''}}">立即兑换</button>
           </view>
 
           <!-- 涟漪层 -->
-          <view class="ripple-layer {{item._rippleActive ? 'ripple-active' : ''}}" wx:if="{{effects.ripple && item._rippleActive}}" style="left: {{item._rippleX}}px; top: {{item._rippleY}}px"></view>
+          <view
+            class="ripple-layer {{item._rippleActive ? 'ripple-active' : ''}}"
+            wx:if="{{effects.ripple && item._rippleActive}}"
+            style="left: {{item._rippleX}}px; top: {{item._rippleY}}px"
+          ></view>
         </view>
       </view>
 
@@ -269,16 +320,38 @@
       </view>
 
       <!-- 🌊 臻选空间商品网格 — 统一卡片主题系统 -->
-      <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}" wx:if="{{!loading && premiumFilteredProducts && premiumFilteredProducts.length > 0}}">
-        <view class="unified-card theme-{{cardTheme}} shop-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} {{item._isLegendary && effects.holo ? 'holo-effect' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{item._isLimited && effects.rotatingBorder ? 'rotating-border' : ''}} {{item.stock <= 0 ? 'sold-out' : ''}}" wx:for="{{premiumFilteredProducts}}" wx:key="id" data-product="{{item}}" bindtap="onProductTap" bindtouchstart="onCardTouchStart" data-card-index="{{index}}" data-tab="premium">
+      <view
+        class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}"
+        wx:if="{{!loading && premiumFilteredProducts && premiumFilteredProducts.length > 0}}"
+      >
+        <view
+          class="unified-card theme-{{cardTheme}} shop-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} {{item._isLegendary && effects.holo ? 'holo-effect' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{item._isLimited && effects.rotatingBorder ? 'rotating-border' : ''}} {{item.stock <= 0 ? 'sold-out' : ''}}"
+          wx:for="{{premiumFilteredProducts}}"
+          wx:key="id"
+          data-product="{{item}}"
+          bindtap="onProductTap"
+          bindtouchstart="onCardTouchStart"
+          data-card-index="{{index}}"
+          data-tab="premium"
+        >
           <!-- 顶部类型色条 -->
           <view class="type-bar asset"></view>
 
           <!-- 图片区域 -->
           <view class="card-image-area">
-            <image src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" binderror="onShopImageError" data-index="{{index}}" data-space="premium" />
+            <image
+              src="{{item.image}}"
+              mode="aspectFill"
+              lazy-load="{{true}}"
+              binderror="onShopImageError"
+              data-index="{{index}}"
+              data-space="premium"
+            />
             <!-- 彩色占位（无图或图片加载失败回退为默认图时显示） -->
-            <view class="image-fallback asset-type" wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}">
+            <view
+              class="image-fallback asset-type"
+              wx:if="{{!item.image || item.image === '/images/products/default-product.png'}}"
+            >
               <text class="fallback-icon">💎</text>
               <text class="fallback-name">{{item.name}}</text>
             </view>
@@ -288,7 +361,9 @@
             <!-- 右下角类型胶囊 -->
             <view class="type-capsule">💎 臻选</view>
             <!-- 已售数量角标 -->
-            <view class="sold-count-badge" wx:if="{{item.sold_count > 0}}">已售{{item.sold_count}}</view>
+            <view class="sold-count-badge" wx:if="{{item.sold_count > 0}}"
+              >已售{{item.sold_count}}</view
+            >
           </view>
 
           <!-- 卡片内容区 -->
@@ -296,21 +371,38 @@
             <view class="product-name">{{item.name}}</view>
             <!-- 价格高亮行 -->
             <view class="price-row">
-              <text class="price-unit">{{item._priceLabel || (item.cost_asset_code === 'POINTS' ? '积分' : item.cost_asset_code)}}</text>
+              <text class="price-unit"
+                >{{item._priceLabel || (item.cost_asset_code === 'POINTS' ? '积分' :
+                item.cost_asset_code)}}</text
+              >
               <text class="price-current">{{item.cost_amount}}</text>
-              <text class="price-original" wx:if="{{item.original_price}}">{{item.original_price}}</text>
+              <text class="price-original" wx:if="{{item.original_price}}"
+                >{{item.original_price}}</text
+              >
             </view>
             <!-- 库存进度条 -->
             <view class="stock-bar" wx:if="{{item.stock !== undefined}}">
-              <view class="stock-fill {{item.stock < 10 ? 'fill-low' : (item.stock < 50 ? 'fill-medium' : 'fill-high')}}" style="width: {{item.stock > 100 ? 100 : item.stock}}%"></view>
+              <view
+                class="stock-fill {{item.stock < 10 ? 'fill-low' : (item.stock < 50 ? 'fill-medium' : 'fill-high')}}"
+                style="width: {{item.stock > 100 ? 100 : item.stock}}%"
+              ></view>
             </view>
-            <text class="stock-text {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}" wx:if="{{item.stock !== undefined}}">{{item.stock <= 0 ? '已售罄' : (item.stock < 10 ? '仅剩' + item.stock + '件！' : (item.stock < 50 ? '库存紧张' : '库存充足'))}}</text>
+            <text
+              class="stock-text {{item.stock < 10 ? 'stock-low' : (item.stock < 50 ? 'stock-medium' : 'stock-high')}}"
+              wx:if="{{item.stock !== undefined}}"
+              >{{item.stock <= 0 ? '已售罄' : (item.stock < 10 ? '仅剩' + item.stock + '件！' :
+              (item.stock < 50 ? '库存紧张' : '库存充足'))}}</text
+            >
             <!-- CTA按钮 -->
             <button class="cta-btn {{item.stock <= 0 ? 'btn-disabled' : ''}}">立即兑换</button>
           </view>
 
           <!-- 涟漪层 -->
-          <view class="ripple-layer {{item._rippleActive ? 'ripple-active' : ''}}" wx:if="{{effects.ripple && item._rippleActive}}" style="left: {{item._rippleX}}px; top: {{item._rippleY}}px"></view>
+          <view
+            class="ripple-layer {{item._rippleActive ? 'ripple-active' : ''}}"
+            wx:if="{{effects.ripple && item._rippleActive}}"
+            style="left: {{item._rippleX}}px; top: {{item._rippleY}}px"
+          ></view>
         </view>
       </view>
 

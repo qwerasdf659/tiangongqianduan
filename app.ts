@@ -216,7 +216,7 @@ App({
           if (integrityCheck.error.includes('截断')) {
             wx.showModal({
               title: '认证令牌异常',
-              content: `检测到认证令牌传输异常。\n\n问题）{integrityCheck.error}\n\n请重新登录。`,
+              content: `检测到认证令牌传输异常。\n\n问题：${integrityCheck.error}\n\n请重新登录。`,
               showCancel: true,
               cancelText: '稍后处理',
               confirmText: '立即修复',
@@ -288,9 +288,11 @@ App({
         /**
          * 服务端认证会话验证：确认 authentication_sessions.is_active = true
          *
-         * 本地 JWT 有效 ≠ 服务端会话有效（单设备登录策略下，新登录会使旧会话 is_active=false）
+         * 本地 JWT 有效 ≠ 服务端会话有效（同平台新登录会使旧会话 is_active=false）
+         * 后端采用方案B平台隔离（user_id + login_platform），Web登录不会影响小程序会话，
+         * 仅同平台（如另一台手机的微信小程序）新登录才会替换当前会话。
          * 此处调用 GET /api/v4/auth/verify 做服务端确认，失败时静默清理而非自动重新登录，
-         * 避免触发新的登录请求导致其他设备的会话被连锁失效
+         * 避免触发新的登录请求导致同平台其他设备的会话被连锁失效
          */
         try {
           const { API: AuthAPI } = require('./utils/index')
@@ -305,7 +307,7 @@ App({
           /**
            * 认证失败错误码分类处理（对齐后端 middleware/auth.js）
            *
-           * SESSION_REPLACED  → 其他设备登录，旧会话已被覆盖
+           * SESSION_REPLACED  → 同平台其他设备登录，当前会话被替换（方案B平台隔离：跨平台不互踢）
            * SESSION_EXPIRED   → 会话超时（7天未使用），APIClient 会自动尝试刷新
            * SESSION_NOT_FOUND → 会话记录被清理任务删除
            * TOKEN_EXPIRED     → JWT过期，APIClient 会自动尝试刷新
@@ -347,8 +349,13 @@ App({
     }
   },
 
-  /** 清空认证数据（委托给 MobX Store，Store 内部同步清理 Storage?*/
+  /**
+   * 清空认证数据（统一入口）
+   * 清理顺序: 断开WebSocket → 清除MobX Store → Storage由Store内部自动同步清理
+   * 所有需要清理认证状态的场景都应调用此方法，不要直接调用 userStore.clearLoginState()
+   */
   clearAuthData(): void {
+    this.disconnectWebSocket()
     userStore.clearLoginState()
     pointsStore.clearPoints()
   },
@@ -536,7 +543,8 @@ App({
 
           /**
            * 会话失效导致的断连：后端主动断开时 reason 包含 "session"
-           * 此时说明认证会话已失效（可能是其他设备登录），需要重新登录
+           * 此时说明认证会话已失效（方案B平台隔离下，仅同平台其他设备登录会导致此断连，
+           * Web端登录不会影响微信小程序的WebSocket连接）
            */
           if (reason && reason.toLowerCase().includes('session')) {
             log.warn('WebSocket因会话失效被服务端断开，清理认证数据')

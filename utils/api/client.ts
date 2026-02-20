@@ -269,7 +269,7 @@ class APIClient {
        *
        * TOKEN_EXPIRED    → JWT 过期，自动刷新 Token
        * SESSION_EXPIRED  → 会话超时（7天未使用），尝试刷新（后端会创建新会话）
-       * SESSION_REPLACED → 账号在其他设备登录，弹窗提示后跳登录页
+       * SESSION_REPLACED → 同平台其他设备登录导致当前会话被替换（方案B平台隔离：跨平台不互踢）
        * SESSION_NOT_FOUND / MISSING_TOKEN / INVALID_TOKEN → 清除Token，跳登录页
        */
       if (serverErrorCode === 'TOKEN_EXPIRED' || serverErrorCode === 'SESSION_EXPIRED') {
@@ -464,8 +464,11 @@ class APIClient {
   }
 
   /**
-   * 处理会话被替换 — 账号在其他设备登录
-   * 与 handleTokenInvalid 区别：向用户明确说明原因是"其他设备登录"
+   * 处理会话被替换 — 同平台其他设备登录（方案B平台隔离）
+   *
+   * 后端采用按平台隔离会话（user_id + login_platform），同平台新登录会替换旧会话，
+   * 跨平台（如Web登录）不会影响微信小程序会话。
+   * 与 handleTokenInvalid 区别：向用户明确说明原因是"同平台其他设备登录"
    */
   handleSessionReplaced(serverMessage?: string): never {
     const appInstance = getAppInstance()
@@ -518,8 +521,8 @@ class APIClient {
 
       /**
        * 刷新时携带旧 access_token（即使已过期）
-       * 后端从旧 JWT 中提取 session_token 来复用会话，
-       * 避免创建新会话导致单设备登录策略误覆盖当前设备的旧会话
+       * 后端从旧 JWT 中提取 session_token 来复用会话并继承 login_platform，
+       * 避免创建新会话导致同平台会话被误覆盖（方案B平台隔离策略）
        */
       const oldAccessToken: string = getAccessToken()
       const refreshHeaders: Record<string, string> = {}

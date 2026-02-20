@@ -1,4 +1,4 @@
-/* packageAdmin/scan-verify/scan-verify.scss - 商家扫码核销页面样式 */
+/* packageAdmin/scan-verify/scan-verify.scss - 商家扫码核销页面样式（表单优先模式） */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
@@ -8,102 +8,83 @@
   background: $color-bg;
 }
 
-/* ===== 渐变头部区域 ===== */
-.page-header {
-  @include flex-column-center;
-  background: $gradient-primary;
-  padding: 48rpx 40rpx 72rpx;
-  position: relative;
-  overflow: hidden;
-}
-
-.header-decor-circle {
-  position: absolute;
-  width: 400rpx;
-  height: 400rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  top: -120rpx;
-  right: -80rpx;
-}
-
-.header-decor-circle-sm {
-  position: absolute;
-  width: 240rpx;
-  height: 240rpx;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  bottom: -60rpx;
-  left: -40rpx;
-}
-
-.header-icon-wrapper {
-  position: relative;
-  width: 160rpx;
-  height: 160rpx;
-  @include flex-center;
+/* ===== 横向步骤条 ===== */
+.step-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 40rpx;
+  background: $color-white;
   margin-bottom: 24rpx;
-  z-index: 1;
+  box-shadow: $shadow-sm;
 }
 
-.header-icon-ring {
-  position: absolute;
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 50%;
-  border: 3rpx solid rgba(255, 255, 255, 0.25);
-  animation: header-pulse 3s ease-in-out infinite;
+.step-item {
+  @include flex-column-center;
+  gap: 8rpx;
 }
 
-@keyframes header-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-
-  50% {
-    transform: scale(1.15);
-    opacity: 0;
-  }
-}
-
-.header-icon-box {
-  width: 120rpx;
-  height: 120rpx;
+.step-dot {
+  width: 48rpx;
+  height: 48rpx;
   @include flex-center;
-  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  z-index: 1;
-}
-
-.header-icon {
-  font-size: 56rpx;
-}
-
-.header-title {
-  font-size: $font-size-xl;
+  background: $color-bg-grey;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
   font-weight: bold;
-  color: $color-text-white;
-  margin-bottom: 8rpx;
-  z-index: 1;
+  transition: all 0.3s;
 }
 
-.header-desc {
-  font-size: $font-size-base;
-  color: rgba(255, 255, 255, 0.8);
-  z-index: 1;
+/* 步骤激活态 - 蓝紫渐变 */
+.step-dot.active {
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  color: $color-text-white;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.35);
+}
+
+/* 步骤完成态 - 成功色 */
+.step-dot.done {
+  background: $color-success;
+  color: $color-text-white;
+}
+
+.step-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-weight: 500;
+}
+
+.step-text.active {
+  color: $gradient-blue-start;
+  font-weight: 600;
+}
+
+.step-text.done {
+  color: $color-success;
+  font-weight: 600;
+}
+
+.step-connector {
+  width: 60rpx;
+  height: 2rpx;
+  background: $color-border-light;
+  margin: 0 16rpx;
+  margin-bottom: 28rpx;
+  transition: all 0.3s;
+}
+
+/* 步骤连接线激活态 */
+.step-connector.active {
+  background: $color-success;
 }
 
 /* ===== 主内容区 ===== */
 .main-content {
-  padding: 24rpx 30rpx 60rpx;
-  margin-top: -36rpx;
-  position: relative;
-  z-index: 1;
+  padding: 0 30rpx 60rpx;
 }
 
-/* ===== 核销流程引导卡片 ===== */
+/* ===== 操作指引卡片（步骤1） ===== */
 .guide-card {
   background: $color-white;
   border-radius: $border-radius-lg;
@@ -115,82 +96,230 @@
 .guide-header {
   @include flex-align-center;
   gap: 10rpx;
-  margin-bottom: 24rpx;
-  padding-bottom: 20rpx;
-  border-bottom: 2rpx solid $color-border-light;
+  margin-bottom: 16rpx;
 }
 
-.guide-header-icon {
-  font-size: $font-size-md;
+.guide-icon {
+  font-size: $font-size-lg;
 }
 
-.guide-header-text {
+.guide-title {
   font-size: $font-size-md;
   font-weight: bold;
   color: $color-text-primary;
 }
 
-.steps-list {
-  padding: 0 8rpx;
+.guide-desc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+  margin-bottom: 24rpx;
 }
 
-.step-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 20rpx;
+/* 核销准备清单 */
+.checklist {
+  @include flex-column;
+  gap: 18rpx;
 }
 
-.step-item.highlight {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.06), rgba(118, 75, 162, 0.06));
-  margin: 0 -16rpx;
-  padding: 16rpx;
+.check-item {
+  @include flex-align-center;
+  gap: 14rpx;
+  padding: 16rpx 20rpx;
+  background: #f0f9eb;
   border-radius: $border-radius-md;
 }
 
-.step-badge {
-  flex-shrink: 0;
-  width: 48rpx;
-  height: 48rpx;
-  @include flex-center;
+.check-dot {
+  width: 28rpx;
+  height: 28rpx;
   border-radius: 50%;
-  background: $color-bg-grey;
-  color: $color-text-tertiary;
+  background: $color-border-light;
+  flex-shrink: 0;
+}
+
+.check-dot.done {
+  background: $color-success;
+}
+
+.check-text {
   font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+}
+
+/* ===== 表单卡片（步骤1：门店选择） ===== */
+.form-card {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid $color-border-light;
+}
+
+.title-icon {
+  font-size: $font-size-lg;
+}
+
+.card-title .title-text {
+  font-size: $font-size-md;
+  font-weight: bold;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.required-mark {
+  font-size: $font-size-base;
+  color: $color-error;
   font-weight: bold;
 }
 
-.step-badge.active {
-  background: $gradient-primary;
+/* 门店选择器 */
+.picker-box {
+  @include flex-between;
+  padding: 20rpx 24rpx;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
+  border: 2rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.picker-box.selected {
+  border-color: $color-primary;
+  background: #fff5f0;
+}
+
+.picker-text {
+  font-size: $font-size-base;
+  color: $color-text-tertiary;
+}
+
+.picker-box.selected .picker-text {
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+.picker-arrow {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+/* 单门店自动显示 */
+.store-auto {
+  @include flex-between;
+  padding: 20rpx 24rpx;
+  background: #f0f9eb;
+  border-radius: $border-radius-md;
+}
+
+.store-name {
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+.auto-badge {
+  padding: 4rpx 12rpx;
+  background: $color-success;
+  border-radius: 8rpx;
+}
+
+.auto-text {
+  font-size: $font-size-xs;
   color: $color-text-white;
 }
 
-.step-content {
-  flex: 1;
-  @include flex-column;
-  gap: 4rpx;
-  padding-top: 4rpx;
+/* ===== 温馨提示卡片 ===== */
+.tips-card {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 28rpx 30rpx;
+  margin-bottom: 32rpx;
+  box-shadow: $shadow-sm;
 }
 
-.step-title {
+.tips-header {
+  @include flex-align-center;
+  gap: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.tips-icon {
+  font-size: $font-size-md;
+}
+
+.tips-title {
   font-size: $font-size-base;
   font-weight: 600;
   color: $color-text-primary;
 }
 
-.step-desc {
+.tips-list {
+  @include flex-column;
+  gap: 14rpx;
+}
+
+.tip-row {
+  @include flex-align-center;
+  gap: 12rpx;
+}
+
+.tip-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: $gradient-blue-start;
+  flex-shrink: 0;
+}
+
+.tip-text {
   font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  color: $color-text-secondary;
   line-height: $line-height-base;
 }
 
-.step-line {
-  width: 2rpx;
-  height: 24rpx;
-  background: $color-border-light;
-  margin-left: 23rpx;
+/* ===== 操作按钮区域 ===== */
+.action-area {
+  padding: 16rpx 0;
 }
 
-/* ===== 扫码操作卡片 ===== */
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 96rpx;
+  border-radius: 48rpx;
+  border: none;
+  transition: all $transition-base;
+}
+
+.action-btn.primary-btn {
+  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  color: $color-text-white;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+}
+
+.action-btn.primary-btn:active {
+  transform: translateY(3rpx);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+}
+
+.action-btn-text {
+  font-size: $font-size-md;
+  font-weight: bold;
+}
+
+/* ===== 扫码操作卡片（步骤2） ===== */
 .scan-action-card {
   @include flex-column-center;
   background: $color-white;
@@ -285,52 +414,19 @@
   color: $color-text-tertiary;
 }
 
-/* ===== 温馨提示卡片 ===== */
-.tips-card {
-  background: $color-white;
-  border-radius: $border-radius-lg;
-  padding: 28rpx 30rpx;
-  box-shadow: $shadow-sm;
+/* 返回准备步骤按钮 */
+.back-action {
+  @include flex-center;
+  padding: 24rpx 0;
 }
 
-.tips-header {
-  @include flex-align-center;
-  gap: 8rpx;
-  margin-bottom: 20rpx;
+.back-btn {
+  padding: 12rpx 24rpx;
 }
 
-.tips-icon {
-  font-size: $font-size-md;
-}
-
-.tips-title {
-  font-size: $font-size-base;
-  font-weight: 600;
-  color: $color-text-primary;
-}
-
-.tips-list {
-  @include flex-column;
-  gap: 14rpx;
-}
-
-.tip-row {
-  @include flex-align-center;
-  gap: 12rpx;
-}
-
-.tip-dot {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: $gradient-blue-start;
-  flex-shrink: 0;
-}
-
-.tip-text {
+.back-btn-text {
   font-size: $font-size-sm;
   color: $color-text-secondary;
-  line-height: $line-height-base;
 }
 
 /* ===== 核销处理中 ===== */
@@ -394,7 +490,7 @@
   max-width: 400rpx;
 }
 
-/* ===== 核销结果卡片 ===== */
+/* ===== 核销结果卡片（步骤3） ===== */
 .result-card {
   @include flex-column-center;
   background: $color-white;
@@ -489,32 +585,4 @@
 .detail-value.item-highlight {
   color: $gradient-blue-start;
   font-weight: 600;
-}
-
-/* ===== 操作按钮 ===== */
-.action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80%;
-  height: 92rpx;
-  border-radius: 46rpx;
-  border: none;
-  transition: all $transition-base;
-}
-
-.action-btn.primary-btn {
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
-  color: $color-text-white;
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
-}
-
-.action-btn.primary-btn:active {
-  transform: translateY(3rpx);
-  box-shadow: 0 3rpx 10rpx rgba(255, 107, 53, 0.3);
-}
-
-.action-btn-text {
-  font-size: $font-size-md;
-  font-weight: bold;
 }

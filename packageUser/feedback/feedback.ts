@@ -488,5 +488,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

@@ -132,10 +132,10 @@ const shopHandlers = {
         const luckyStats =
           statsResponse && statsResponse.success && statsResponse.data
             ? {
-              new_count: statsResponse.data.new_count || 0,
-              avg_discount: statsResponse.data.avg_discount || 0,
-              flash_deals: statsResponse.data.flash_deals || 0
-            }
+                new_count: statsResponse.data.new_count || 0,
+                avg_discount: statsResponse.data.avg_discount || 0,
+                flash_deals: statsResponse.data.flash_deals || 0
+              }
             : { new_count: 0, avg_discount: 0, flash_deals: 0 }
 
         if (!statsResponse || !statsResponse.success) {
@@ -143,9 +143,10 @@ const shopHandlers = {
         }
 
         // 附加前端展示计算字段（价格中文化、稀有度标记等）
-        const enrichedLayoutProducts = typeof this.enrichProductDisplayFields === 'function'
-          ? this.enrichProductDisplayFields(allLayoutProducts)
-          : allLayoutProducts
+        const enrichedLayoutProducts =
+          typeof this.enrichProductDisplayFields === 'function'
+            ? this.enrichProductDisplayFields(allLayoutProducts)
+            : allLayoutProducts
 
         this.setData({
           waterfallProducts: enrichedLayoutProducts,
@@ -155,9 +156,9 @@ const shopHandlers = {
           luckySearchKeyword: '',
           luckyCurrentFilter: 'all',
           luckyCategoryFilter: 'all',
-          luckyPointsRange: 'all',
-          luckyStockFilter: 'all',
-          luckySortBy: 'default',
+          luckyCostRangeIndex: 0,
+          luckyStockStatus: 'all',
+          luckySortBy: 'sort_order',
           showLuckyAdvancedFilter: false,
           luckyCurrentPage: 1,
           luckyPageInputValue: ''
@@ -280,7 +281,7 @@ const shopHandlers = {
         if (rawItems.length > 0 && items.length === 0) {
           shopLog.error(
             `后端API返回 ${rawItems.length} 个商品全部缺少 id，` +
-            `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
+              `请检查 DataSanitizer 是否正常处理 GET /api/v4/backpack/exchange/items 响应`
           )
           this.setErrorState('商品数据异常', '后端返回的商品缺少必要字段(id)，请联系管理员')
           return
@@ -289,7 +290,7 @@ const shopHandlers = {
         if (rawItems.length !== items.length) {
           shopLog.warn(
             `臻选空间数据校验: 原始${rawItems.length}个, 有效${items.length}个, ` +
-            `过滤${rawItems.length - items.length}个`
+              `过滤${rawItems.length - items.length}个`
           )
         }
 
@@ -297,10 +298,10 @@ const shopHandlers = {
         const premiumStats =
           premiumStatsResponse && premiumStatsResponse.success && premiumStatsResponse.data
             ? {
-              hot_count: premiumStatsResponse.data.hot_count || 0,
-              avg_rating: premiumStatsResponse.data.avg_rating || 0,
-              trending_count: premiumStatsResponse.data.trending_count || 0
-            }
+                hot_count: premiumStatsResponse.data.hot_count || 0,
+                avg_rating: premiumStatsResponse.data.avg_rating || 0,
+                trending_count: premiumStatsResponse.data.trending_count || 0
+              }
             : { hot_count: 0, avg_rating: 0, trending_count: 0 }
 
         if (!premiumStatsResponse || !premiumStatsResponse.success) {
@@ -557,9 +558,7 @@ const shopHandlers = {
             stock: item.stock || 0,
             /* 排序序号 */
             sort_order: item.sort_order || 0,
-            /* 稀有度（后端字段，enrichProductDisplayFields 用于触发全息光效） */
-            rarity: item.rarity || null,
-            /* 是否限量商品（后端字段，enrichProductDisplayFields 用于触发旋转边框） */
+            /* 是否限量商品（后端 is_limited 字段，触发旋转彩虹边框） */
             is_limited: item.is_limited || false,
             /* 质保 / 包邮标记 */
             has_warranty: item.has_warranty || false,
@@ -613,15 +612,15 @@ const shopHandlers = {
     this.applyLuckyFilters()
   },
 
-  /** 幸运空间积分范围筛选变?*/
-  onLuckyPointsRangeChange(e: any) {
-    const range = e.currentTarget.dataset.range
-    shopLog.info('幸运空间切换积分范围:', range)
-    this.setData({ luckyPointsRange: range })
+  /** 幸运空间价格区间筛选变更（使用 costRangeOptions 的索引） */
+  onLuckyCostRangeChange(e: any) {
+    const idx = Number(e.currentTarget.dataset.index) || 0
+    shopLog.info('幸运空间切换价格区间, 索引:', idx)
+    this.setData({ luckyCostRangeIndex: idx })
     this.applyLuckyFilters()
   },
 
-  /** 幸运空间排序方式变更 */
+  /** 幸运空间排序方式变更（value 引用后端列名） */
   onLuckySortByChange(e: any) {
     const sort = e.currentTarget.dataset.sort
     shopLog.info('幸运空间切换排序:', sort)
@@ -629,24 +628,24 @@ const shopHandlers = {
     this.applyLuckyFilters()
   },
 
-  /** 幸运空间库存状态筛?*/
-  onLuckyStockFilterChange(e: any) {
-    const filter = e.currentTarget.dataset.filter
-    shopLog.info(`幸运空间库存状态筛选: ${filter}`)
-    this.setData({ luckyStockFilter: filter })
+  /** 幸运空间库存状态筛选（对齐后端 stock_statuses 的 value） */
+  onLuckyStockStatusChange(e: any) {
+    const status = e.currentTarget.dataset.status
+    shopLog.info('幸运空间库存状态筛选:', status)
+    this.setData({ luckyStockStatus: status })
     this.applyLuckyFilters()
   },
 
-  /** 重置幸运空间所有筛选条?*/
+  /** 重置幸运空间所有筛选条件 */
   onResetLuckyFilters() {
     shopLog.info('重置幸运空间所有筛选条件')
     this.setData({
       luckySearchKeyword: '',
       luckyCurrentFilter: 'all',
       luckyCategoryFilter: 'all',
-      luckyPointsRange: 'all',
-      luckyStockFilter: 'all',
-      luckySortBy: 'default',
+      luckyCostRangeIndex: 0,
+      luckyStockStatus: 'all',
+      luckySortBy: 'sort_order',
       showLuckyAdvancedFilter: false
     })
     this.applyLuckyFilters()
@@ -666,7 +665,7 @@ const shopHandlers = {
         const priceB = b.cost_amount || 0
         return priceA - priceB
       })
-      this.setData({ luckyFilteredProducts: sortedProducts, luckySortBy: 'points-asc' })
+      this.setData({ luckyFilteredProducts: sortedProducts, luckySortBy: 'cost_amount_asc' })
     } else if (currentSpace === 'premium') {
       // 臻选空间：对商品列表按价格升序排序（与幸运空间一致的排序逻辑）
       const premiumProducts = [...(this.data.premiumFilteredProducts || [])]
@@ -680,28 +679,32 @@ const shopHandlers = {
     shopShowToast('已按售价升序排列', 'success')
   },
 
-  /** 应用幸运空间筛选条件（委托?utils/product-filter.ts + utils/waterfall.ts?*/
+  /** 应用幸运空间筛选条件（委托 utils/product-filter.ts，对齐后端配置字段） */
   applyLuckyFilters() {
     const {
       waterfallProducts,
       luckySearchKeyword,
       luckyCurrentFilter,
       luckyCategoryFilter,
-      luckyPointsRange,
-      luckyStockFilter,
+      luckyCostRangeIndex,
+      luckyStockStatus,
       luckySortBy,
-      totalPoints
+      totalPoints,
+      costRangeOptions
     } = this.data
+
+    // 从 costRangeOptions 获取选中的价格区间 {min, max}
+    const selectedRange = costRangeOptions[luckyCostRangeIndex] || {}
 
     const filterResult = shopProductFilter.applyProductFilters(waterfallProducts, {
       searchKeyword: luckySearchKeyword,
       currentFilter: luckyCurrentFilter,
       categoryFilter: luckyCategoryFilter,
-      pointsRange: luckyPointsRange,
-      stockFilter: luckyStockFilter,
+      costRangeMin: selectedRange.min ?? null,
+      costRangeMax: selectedRange.max ?? null,
+      stockStatus: luckyStockStatus,
       sortBy: luckySortBy,
       totalPoints,
-      /* 后端 exchange_items 表价格字段: cost_amount */
       priceField: 'cost_amount'
     })
 
@@ -889,18 +892,17 @@ const shopHandlers = {
       is_hot: item.is_hot || false,
       is_new: item.is_new || false,
       sell_point: item.sell_point || '',
-      /* 稀有度（后端字段，enrichProductDisplayFields 用于触发全息光效） */
-      rarity: item.rarity || null,
-      /* 是否限量商品（后端字段，enrichProductDisplayFields 用于触发旋转边框） */
+      /* 是否限量商品（后端 is_limited 字段，触发旋转彩虹边框） */
       is_limited: item.is_limited || false,
       has_warranty: item.has_warranty || false,
       free_shipping: item.free_shipping || false
     }))
 
     // 附加前端展示计算字段
-    const enrichedPremiumProducts = typeof this.enrichProductDisplayFields === 'function'
-      ? this.enrichProductDisplayFields(premiumFilteredProducts)
-      : premiumFilteredProducts
+    const enrichedPremiumProducts =
+      typeof this.enrichProductDisplayFields === 'function'
+        ? this.enrichProductDisplayFields(premiumFilteredProducts)
+        : premiumFilteredProducts
 
     this.setData({ premiumFilteredProducts: enrichedPremiumProducts })
   },
@@ -998,5 +1000,4 @@ const shopHandlers = {
 
 module.exports = shopHandlers
 
-export { }
-
+export {}

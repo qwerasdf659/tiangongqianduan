@@ -25,6 +25,7 @@ const wechatFunctions = require('./wechat')
 const authHelperFunctions = require('./auth-helper')
 const errorFunctions = require('./simple-error')
 const configCacheFunctions = require('./config-cache')
+const exchangeConfigCacheFunctions = require('./exchange-config-cache')
 const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const productFilterFunctions = require('./product-filter')
@@ -55,6 +56,9 @@ const ErrorHandler = { ...errorFunctions }
 
 /** 活动位置配置缓存管理器（单例） */
 const ConfigCache = { ...configCacheFunctions }
+
+/** 兑换页面配置缓存（ExchangeConfigCache 类 + DEFAULT_EXCHANGE_CONFIG 兜底值） */
+const ExchangeConfig = { ...exchangeConfigCacheFunctions }
 
 /** 统一日志工具 - 环境级别控制 */
 const Logger = { ...loggerFunctions }
@@ -93,6 +97,7 @@ module.exports = {
   ErrorHandler,
   Constants,
   ConfigCache,
+  ExchangeConfig,
   Logger,
   Waterfall,
   ProductFilter,

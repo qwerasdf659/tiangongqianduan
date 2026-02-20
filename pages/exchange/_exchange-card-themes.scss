@@ -342,7 +342,9 @@
   backdrop-filter: blur(20rpx);
   border: 1rpx solid rgba(255, 255, 255, 0.6);
   border-radius: 20rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06), inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 8rpx 32rpx rgba(0, 0, 0, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
 }
 
 .theme-A .card-image-area {
@@ -758,10 +760,14 @@
 
 @keyframes breatheGlow {
   from {
-    box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.1), 0 0 40rpx rgba(255, 107, 53, 0.05);
+    box-shadow:
+      0 4rpx 20rpx rgba(255, 107, 53, 0.1),
+      0 0 40rpx rgba(255, 107, 53, 0.05);
   }
   to {
-    box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.3), 0 0 60rpx rgba(255, 107, 53, 0.15);
+    box-shadow:
+      0 4rpx 20rpx rgba(255, 107, 53, 0.3),
+      0 0 60rpx rgba(255, 107, 53, 0.15);
   }
 }
 

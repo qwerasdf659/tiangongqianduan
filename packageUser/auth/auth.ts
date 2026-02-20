@@ -1,7 +1,7 @@
 // packageUser/auth/auth.ts - V4.0认证页面 + MobX响应式状态
 
 // 🔴 统一工具函数导入
-const { Utils, API, Validation, Constants, Logger } = require('../../utils/index')
+const { Utils, API, Validation, Wechat, Constants, Logger } = require('../../utils/index')
 const log = Logger.createLogger('auth')
 const { DELAY, API_CONFIG } = Constants
 // 🆕 MobX Store绑定
@@ -144,16 +144,7 @@ Page({
 
     // 用户协议
     agreementChecked: true,
-    showAgreement: false,
-
-    // 🔴 v2.2.0新增：增强错误处理
-    lastErrorTime: null,
-    errorRetryCount: 0,
-    maxErrorRetryCount: 3,
-
-    // 🔴 v2.2.0新增：WebSocket状态监听
-    webSocketConnected: false,
-    webSocketRetryCount: 0
+    showAgreement: false
   },
 
   /**
@@ -414,7 +405,7 @@ Page({
         // 🔴 修复：通过 isAuthError 标记区分认证错误和网络错误（APIClient.handleTokenInvalid() 已设置 error.isAuthError = true）
         /**
          * 认证错误码判断（对齐后端 middleware/auth.js 细分错误码）
-         * SESSION_REPLACED  → 账号在其他设备登录
+         * SESSION_REPLACED  → 同平台其他设备登录，当前会话被替换（方案B平台隔离：跨平台不互踢）
          * SESSION_EXPIRED   → 会话超时（7天未使用）
          * SESSION_NOT_FOUND → 会话记录被清理
          * TOKEN_EXPIRED     → JWT过期
@@ -454,14 +445,18 @@ Page({
       })
   },
 
-  /**
-   * 🔴 新增：清理无效登录状态
-   */
+  /** 清理无效登录状态（统一通过 app.clearAuthData 清理WebSocket+Store+Storage） */
   clearInvalidLoginState() {
     log.info('清理无效登录状态')
 
-    // 委托 MobX Store 清理（Store 内部同步清理 Storage，不需要额外操作）
-    userStore.clearLoginState()
+    try {
+      const appInstance = getApp()
+      appInstance.clearAuthData()
+    } catch (appError) {
+      log.warn('App实例不可用，降级直接清理Store:', appError)
+      userStore.clearLoginState()
+      pointsStore.clearPoints()
+    }
 
     this.setData({ pageLoaded: true })
 
@@ -563,58 +558,6 @@ Page({
     if (this.countdownTimer) {
       clearInterval(this.countdownTimer)
       this.countdownTimer = null
-    }
-
-    this.cleanupWebSocketListener()
-  },
-
-  /**
-   * 🔧 设置WebSocket监听
-   */
-  setupWebSocketListener() {
-    try {
-      const app = getApp()
-      if (app && app.subscribeWebSocketMessages) {
-        app.subscribeWebSocketMessages('auth', this.onWebSocketMessage.bind(this))
-        log.info('WebSocket监听器已设置')
-      }
-    } catch (error) {
-      log.warn('设置WebSocket监听失败:', error)
-    }
-  },
-
-  /**
-   * 🔧 清理WebSocket监听
-   */
-  cleanupWebSocketListener() {
-    try {
-      const app = getApp()
-      if (app && app.unsubscribeWebSocketMessages) {
-        app.unsubscribeWebSocketMessages('auth')
-        log.info('WebSocket监听器已清理')
-      }
-    } catch (error) {
-      log.warn('清理WebSocket监听失败:', error)
-    }
-  },
-
-  /**
-   * 🔧 WebSocket消息处理
-   */
-  onWebSocketMessage(eventName: string, data: any) {
-    log.info('收到WebSocket消息:', eventName, data)
-
-    if (eventName === 'auth_status' && data) {
-      if (data.type === 'login_success') {
-        log.info('收到登录成功的实时通知')
-      } else if (data.type === 'token_expired') {
-        log.info('收到Token过期的实时通知')
-        wx.showToast({
-          title: '登录已过期',
-          icon: 'none',
-          duration: DELAY.TOAST_LONG
-        })
-      }
     }
   },
 
@@ -1095,27 +1038,7 @@ Page({
   },
 
   /**
-   * 🔴 新增：优化的跳转流程（减少延迟）
-   */
-  performOptimizedRedirect() {
-    log.info('执行优化跳转 - 立即跳转到抽奖页面')
-
-    try {
-      this.setData({
-        submitting: false,
-        logging: false
-      })
-
-      log.info('立即跳转到抽奖页面')
-      this.immediateRedirectToLottery()
-    } catch (error) {
-      log.error('跳转过程中出错:', error)
-      this.handleSimpleNavigationFailure(error)
-    }
-  },
-
-  /**
-   * 🔴 新增：立即跳转到抽奖页面（无延迟版）
+   * 立即跳转到抽奖页面（无延迟版）
    * 🔧 优化：使用reLaunch避免在auth页面停留
    */
   immediateRedirectToLottery() {
@@ -1268,8 +1191,7 @@ Page({
 
     this.setData({
       submitting: false,
-      logging: false,
-      showVerificationInput: true
+      logging: false
     })
 
     const modalConfig: any = {
@@ -1303,38 +1225,17 @@ Page({
   diagnoseTokenIssues() {
     try {
       const storedToken = wx.getStorageSync('access_token')
-      const backupToken = wx.getStorageSync('backup_token')
-      const tokenMetadata = wx.getStorageSync('token_metadata')
-
       const issues: string[] = []
       const details: any = {
-        backupTokenExists: !!backupToken,
-        metadataExists: !!tokenMetadata,
-        storedTokenLength: storedToken ? storedToken.length : 0,
-        backupTokenLength: backupToken ? backupToken.length : 0
+        storedTokenLength: storedToken ? storedToken.length : 0
       }
 
       if (storedToken) {
-        // 🔴 使用顶部统一导入的Utils模块
         const { validateJWTTokenIntegrity } = Utils
-
         const integrityCheck = validateJWTTokenIntegrity(storedToken)
         if (!integrityCheck.isValid) {
-          issues.push(`主Token异常: ${integrityCheck.error}`)
+          issues.push(`Token异常: ${integrityCheck.error}`)
           details.storedTokenIssue = integrityCheck.error
-        }
-      }
-
-      if (backupToken && backupToken !== storedToken) {
-        // 🔴 使用顶部统一导入的Utils模块
-        const { validateJWTTokenIntegrity } = Utils
-
-        const backupCheck = validateJWTTokenIntegrity(backupToken)
-        if (!backupCheck.isValid) {
-          issues.push(`备份Token异常: ${backupCheck.error}`)
-          details.backupTokenIssue = backupCheck.error
-        } else {
-          details.backupTokenHealth = 'healthy'
         }
       }
 
@@ -1355,9 +1256,7 @@ Page({
     }
   },
 
-  /**
-   * 🔧 新增：清理Token缓存并重试
-   */
+  /** 清理Token缓存并重试登录（统一通过 app.clearAuthData 清理） */
   clearTokenCacheAndRetry() {
     log.info('清理Token缓存，准备重试...')
 
@@ -1367,9 +1266,14 @@ Page({
         verification_code: this.data.verification_code
       }
 
-      userStore.clearLoginState()
-      wx.removeStorageSync('backup_token')
-      wx.removeStorageSync('token_metadata')
+      try {
+        const appInstance = getApp()
+        appInstance.clearAuthData()
+      } catch (appError) {
+        log.warn('App实例不可用，降级直接清理Store:', appError)
+        userStore.clearLoginState()
+        pointsStore.clearPoints()
+      }
 
       this.setData({
         submitting: false,
@@ -1426,83 +1330,6 @@ Page({
 
     log.info('执行修复性重试登录...')
     this.clearTokenCacheAndRetry()
-  },
-
-  /**
-   * 🔧 新增：显示网络诊断信息
-   */
-  showNetworkDiagnostics() {
-    log.info('显示网络诊断信息...')
-
-    wx.getNetworkType({
-      success: res => {
-        const networkInfo = {
-          networkType: res.networkType,
-          isConnected: res.networkType !== 'none'
-        }
-
-        let diagnosticMessage = `当前网络状态：${res.networkType}\n\n`
-
-        if (!networkInfo.isConnected) {
-          diagnosticMessage += '❌ 网络未连接，请检查网络设置'
-        } else {
-          diagnosticMessage += '✅ 网络已连接\n\n'
-          diagnosticMessage += '根据后端诊断报告：\n'
-          diagnosticMessage += '• 后端服务运行正常\n'
-          diagnosticMessage += '• API响应时间仅0.008秒\n'
-          diagnosticMessage += '• 数据库连接正常\n\n'
-          diagnosticMessage += '建议检查项：\n'
-          diagnosticMessage += '1. 小程序网络域名白名单\n'
-          diagnosticMessage += '2. 本地网络代理设置\n'
-          diagnosticMessage += '3. 防火墙配置\n'
-          diagnosticMessage += '4. 开发者工具网络设置'
-        }
-
-        wx.showModal({
-          title: '🔍 网络诊断报告',
-          content: diagnosticMessage,
-          showCancel: true,
-          cancelText: '配置帮助',
-          confirmText: '知道了',
-          success: modalRes => {
-            if (modalRes.cancel) {
-              this.showNetworkConfigHelp()
-            }
-          }
-        })
-      },
-      fail: () => {
-        wx.showModal({
-          title: '网络诊断',
-          content: '无法获取网络状态信息，请检查设备网络设置。',
-          showCancel: false,
-          confirmText: '知道了'
-        })
-      }
-    })
-  },
-
-  /**
-   * 🔧 新增：显示网络配置帮助
-   */
-  showNetworkConfigHelp() {
-    const helpMessage =
-      '小程序网络配置步骤：\n\n' +
-      '1. 登录微信小程序管理后台\n' +
-      '2. 开发 → 开发管理 → 开发设置\n' +
-      '3. 服务器域名 → request合法域名\n' +
-      '4. 添加：http://localhost:3000\n\n' +
-      '开发者工具设置：\n' +
-      '1. 工具 → 设置 → 代理设置\n' +
-      '2. 检查代理配置\n' +
-      '3. 尝试关闭代理'
-
-    wx.showModal({
-      title: '📖 网络配置帮助',
-      content: helpMessage,
-      showCancel: false,
-      confirmText: '知道了'
-    })
   }
 })
 

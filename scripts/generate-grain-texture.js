@@ -1,6 +1,6 @@
 /**
  * 生成噪点纹理 PNG — 纯 Node.js 实现，无第三方依赖
- * 
+ *
  * 输出: images/ui/grain-texture.png (200x200, 半透明随机噪点)
  * 用法: node scripts/generate-grain-texture.js
  */
@@ -17,15 +17,15 @@ function crc32(buf) {
   for (let n = 0; n < 256; n++) {
     let c = n
     for (let k = 0; k < 8; k++) {
-      c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1)
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
     }
     crcTable[n] = c
   }
-  let crc = 0xFFFFFFFF
+  let crc = 0xffffffff
   for (let i = 0; i < buf.length; i++) {
-    crc = crcTable[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8)
+    crc = crcTable[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8)
   }
-  return (crc ^ 0xFFFFFFFF) >>> 0
+  return (crc ^ 0xffffffff) >>> 0
 }
 
 function makeChunk(type, data) {
@@ -41,11 +41,11 @@ function makeChunk(type, data) {
 const ihdrData = Buffer.alloc(13)
 ihdrData.writeUInt32BE(WIDTH, 0)
 ihdrData.writeUInt32BE(HEIGHT, 4)
-ihdrData[8] = 8   // bit depth
-ihdrData[9] = 6   // color type: RGBA
-ihdrData[10] = 0  // compression
-ihdrData[11] = 0  // filter
-ihdrData[12] = 0  // interlace
+ihdrData[8] = 8 // bit depth
+ihdrData[9] = 6 // color type: RGBA
+ihdrData[10] = 0 // compression
+ihdrData[11] = 0 // filter
+ihdrData[12] = 0 // interlace
 
 const rawPixels = Buffer.alloc(HEIGHT * (1 + WIDTH * 4))
 
@@ -56,7 +56,7 @@ for (let y = 0; y < HEIGHT; y++) {
   for (let x = 0; x < WIDTH; x++) {
     const pixelOffset = rowOffset + 1 + x * 4
     const grain = Math.floor(Math.random() * 200) + 55 // 55~255 灰度值
-    rawPixels[pixelOffset] = grain     // R
+    rawPixels[pixelOffset] = grain // R
     rawPixels[pixelOffset + 1] = grain // G
     rawPixels[pixelOffset + 2] = grain // B
 

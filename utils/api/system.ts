@@ -309,15 +309,15 @@ async function uploadChatImage(session_id: number, filePath: string) {
 // ==================== 📋 系统配置查询 ====================
 
 /**
- * 获取商品筛选配置（公开接口，无需登录 * 后端API: GET /api/v4/system/config/product-filter
+ * 获取兑换页面配置（公开接口，无需登录）
+ * 后端API: GET /api/v4/system/config/exchange-page
  *
- * system_configs 表读取config_key='product_filter'
- * 不存在时返回兜底默认配置
- *
- * @returns 筛选配置（积分范围选项、库存阈值、分类选项等）
+ * system_configs 表读取 config_key='exchange_page'
+ * 返回: tabs / spaces / shop_filters / market_filters / card_display / ui 完整配置
+ * 响应格式: { success, code: 'EXCHANGE_PAGE_CONFIG_SUCCESS', data: ExchangePageConfig }
  */
-async function getProductFilterConfig() {
-  return apiClient.request('/system/config/product-filter', {
+async function getExchangePageConfig() {
+  return apiClient.request('/system/config/exchange-page', {
     method: 'GET',
     needAuth: false,
     showLoading: false,
@@ -405,11 +405,10 @@ module.exports = {
   sendChatMessage,
   uploadChatImage,
   searchChatMessages,
-  getProductFilterConfig,
+  getExchangePageConfig,
   getFeedbackConfig,
   getUserMe,
   getActivities
 }
 
-export { }
-
+export {}

@@ -1,56 +1,128 @@
-<!--packageAdmin/scan-verify/scan-verify.wxml - 商家扫码核销页面-->
-<!--业务流程: 用户到店出示核销码 → 商家扫码 → 调用POST /api/v4/shop/redemption/fulfill → 核销成功-->
+<!--packageAdmin/scan-verify/scan-verify.wxml - 商家扫码核销页面（表单优先模式）-->
+<!--业务流程: 核销准备(门店选择+操作确认) → 扫码核销 → POST /api/v4/shop/redemption/fulfill → 核销结果-->
 
 <view class="scan-verify-page">
-  <!-- 渐变头部区域 -->
-  <view class="page-header">
-    <view class="header-decor-circle"></view>
-    <view class="header-decor-circle-sm"></view>
-    <view class="header-icon-wrapper">
-      <view class="header-icon-ring"></view>
-      <view class="header-icon-box">
-        <text class="header-icon">📷</text>
-      </view>
+  <!-- 横向步骤条（始终显示，跟随 currentStep 变化） -->
+  <view class="step-bar">
+    <view class="step-item">
+      <view class="step-dot {{currentStep === 1 ? 'active' : (currentStep > 1 ? 'done' : '')}}"
+        >1</view
+      >
+      <text class="step-text {{currentStep === 1 ? 'active' : (currentStep > 1 ? 'done' : '')}}"
+        >核销准备</text
+      >
     </view>
-    <text class="header-title">扫码核销</text>
-    <text class="header-desc">扫描用户出示的核销码，完成到店核销</text>
+    <view class="step-connector {{currentStep > 1 ? 'active' : ''}}"></view>
+    <view class="step-item">
+      <view class="step-dot {{currentStep === 2 ? 'active' : (currentStep > 2 ? 'done' : '')}}"
+        >2</view
+      >
+      <text class="step-text {{currentStep === 2 ? 'active' : (currentStep > 2 ? 'done' : '')}}"
+        >扫码核销</text
+      >
+    </view>
+    <view class="step-connector {{currentStep > 2 ? 'active' : ''}}"></view>
+    <view class="step-item">
+      <view class="step-dot {{currentStep === 3 ? 'active' : ''}}">3</view>
+      <text class="step-text {{currentStep === 3 ? 'active' : ''}}">核销完成</text>
+    </view>
   </view>
 
-  <!-- 未扫码状态 - 操作引导 -->
-  <view class="main-content" wx:if="{{!hasScanned && !loading}}">
-    <!-- 核销流程说明卡片 -->
+  <!-- ===== 步骤1: 核销准备 ===== -->
+  <view class="main-content" wx:if="{{currentStep === 1 && !loading}}">
+    <!-- 操作指引卡片 -->
     <view class="guide-card">
       <view class="guide-header">
-        <text class="guide-header-icon">📋</text>
-        <text class="guide-header-text">核销流程</text>
+        <text class="guide-icon">📋</text>
+        <text class="guide-title">核销准备</text>
       </view>
-      <view class="steps-list">
-        <view class="step-item">
-          <view class="step-badge">1</view>
-          <view class="step-content">
-            <text class="step-title">用户出示</text>
-            <text class="step-desc">用户在背包中使用物品，生成核销码</text>
-          </view>
+      <text class="guide-desc">请确认以下事项，准备就绪后进入扫码核销</text>
+
+      <view class="checklist">
+        <view class="check-item">
+          <view class="check-dot done"></view>
+          <text class="check-text">用户已在小程序"我的背包"中生成核销码</text>
         </view>
-        <view class="step-line"></view>
-        <view class="step-item highlight">
-          <view class="step-badge active">2</view>
-          <view class="step-content">
-            <text class="step-title">商家扫码</text>
-            <text class="step-desc">点击下方按钮，扫描用户手机上的二维码</text>
-          </view>
+        <view class="check-item">
+          <view class="check-dot done"></view>
+          <text class="check-text">用户已出示手机上的核销二维码</text>
         </view>
-        <view class="step-line"></view>
-        <view class="step-item">
-          <view class="step-badge">3</view>
-          <view class="step-content">
-            <text class="step-title">核销完成</text>
-            <text class="step-desc">系统自动完成核销，用户物品状态更新</text>
-          </view>
+        <view class="check-item">
+          <view class="check-dot done"></view>
+          <text class="check-text">每个核销码仅可使用一次，请勿重复扫码</text>
         </view>
       </view>
     </view>
 
+    <!-- 门店选择（多门店时显示picker，与消费录入页保持一致） -->
+    <view class="form-card" wx:if="{{storeList.length > 1}}">
+      <view class="card-title">
+        <text class="title-icon">🏪</text>
+        <text class="title-text">选择门店</text>
+        <text class="required-mark">*</text>
+      </view>
+      <picker
+        mode="selector"
+        range="{{storeList}}"
+        range-key="store_name"
+        value="{{storeIndex}}"
+        bindchange="onStoreChange"
+      >
+        <view class="picker-box {{storeId ? 'selected' : ''}}">
+          <text class="picker-text"
+            >{{storeId ? storeList[storeIndex].store_name : '请选择门店'}}</text
+          >
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 单门店自动显示（无需选择） -->
+    <view class="form-card" wx:elif="{{storeList.length === 1}}">
+      <view class="card-title">
+        <text class="title-icon">🏪</text>
+        <text class="title-text">所属门店</text>
+      </view>
+      <view class="store-auto">
+        <text class="store-name">{{storeList[0].store_name}}</text>
+        <view class="auto-badge">
+          <text class="auto-text">自动识别</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 温馨提示 -->
+    <view class="tips-card">
+      <view class="tips-header">
+        <text class="tips-icon">💡</text>
+        <text class="tips-title">温馨提示</text>
+      </view>
+      <view class="tips-list">
+        <view class="tip-row">
+          <view class="tip-dot"></view>
+          <text class="tip-text">核销成功后物品状态将自动更新为已使用</text>
+        </view>
+        <view class="tip-row">
+          <view class="tip-dot"></view>
+          <text class="tip-text">如遇核销码过期，请让用户重新生成</text>
+        </view>
+        <view class="tip-row">
+          <view class="tip-dot"></view>
+          <text class="tip-text">核销记录将自动关联到对应门店</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 准备就绪按钮 -->
+    <view class="action-area">
+      <button class="action-btn primary-btn" bindtap="onGoToScan">
+        <text class="action-btn-text">准备就绪，开始扫码</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- ===== 步骤2: 扫码核销 ===== -->
+  <view class="main-content" wx:if="{{currentStep === 2 && !loading}}">
     <!-- 扫码操作区域 -->
     <view class="scan-action-card">
       <view class="scan-anim-wrapper">
@@ -66,25 +138,10 @@
       <text class="scan-hint">请对准用户手机上的核销二维码</text>
     </view>
 
-    <!-- 温馨提示 -->
-    <view class="tips-card">
-      <view class="tips-header">
-        <text class="tips-icon">💡</text>
-        <text class="tips-title">温馨提示</text>
-      </view>
-      <view class="tips-list">
-        <view class="tip-row">
-          <view class="tip-dot"></view>
-          <text class="tip-text">核销码由用户在小程序"我的背包"中生成</text>
-        </view>
-        <view class="tip-row">
-          <view class="tip-dot"></view>
-          <text class="tip-text">每个核销码仅可使用一次，请勿重复扫码</text>
-        </view>
-        <view class="tip-row">
-          <view class="tip-dot"></view>
-          <text class="tip-text">核销成功后物品状态将自动更新为已使用</text>
-        </view>
+    <!-- 返回准备步骤 -->
+    <view class="back-action">
+      <view class="back-btn" bindtap="onBackToPrepare">
+        <text class="back-btn-text">← 返回修改信息</text>
       </view>
     </view>
   </view>
@@ -104,8 +161,8 @@
     </view>
   </view>
 
-  <!-- 核销成功 -->
-  <view class="main-content" wx:if="{{hasScanned && verifySuccess && !loading}}">
+  <!-- ===== 步骤3: 核销成功 ===== -->
+  <view class="main-content" wx:if="{{currentStep === 3 && verifySuccess && !loading}}">
     <view class="result-card success">
       <view class="result-icon-box success-bg">
         <text class="result-icon">✅</text>
@@ -133,14 +190,18 @@
         </view>
       </view>
 
-      <button class="action-btn primary-btn" bindtap="onRescan">
-        <text class="action-btn-text">继续扫码</text>
+      <!-- 继续核销：保留门店选择，直接进入扫码步骤 -->
+      <button class="action-btn primary-btn" bindtap="onContinueScan">
+        <text class="action-btn-text">继续核销</text>
       </button>
     </view>
   </view>
 
-  <!-- 核销失败 -->
-  <view class="main-content" wx:if="{{hasScanned && !verifySuccess && !loading && verifyResult}}">
+  <!-- ===== 步骤3: 核销失败 ===== -->
+  <view
+    class="main-content"
+    wx:if="{{currentStep === 3 && !verifySuccess && !loading && verifyResult}}"
+  >
     <view class="result-card fail">
       <view class="result-icon-box fail-bg">
         <text class="result-icon">❌</text>
@@ -148,8 +209,9 @@
       <text class="result-main-title fail-text">核销失败</text>
       <text class="result-desc">{{verifyResult.error || '核销码无效或已过期，请核实后重试'}}</text>
 
+      <!-- 重新核销：回到准备步骤重新操作 -->
       <button class="action-btn primary-btn" bindtap="onRescan">
-        <text class="action-btn-text">重新扫码</text>
+        <text class="action-btn-text">重新核销</text>
       </button>
     </view>
   </view>

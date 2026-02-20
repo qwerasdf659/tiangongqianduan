@@ -127,5 +127,4 @@ Page({
   }
 })
 
-export { }
-
+export {}

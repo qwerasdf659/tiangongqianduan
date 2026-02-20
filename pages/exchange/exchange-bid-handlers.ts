@@ -64,9 +64,9 @@ const bidHandlers = {
         const INITIAL_TEN_MIN_MS = 10 * 60 * 1000
         const mappedProducts = bidProducts.map((item: any) => {
           const endTs = item.end_time
-            ? (typeof item.end_time === 'number'
-                ? item.end_time
-                : (bidUtils.safeParseDateString(item.end_time) || new Date(0)).getTime())
+            ? typeof item.end_time === 'number'
+              ? item.end_time
+              : (bidUtils.safeParseDateString(item.end_time) || new Date(0)).getTime()
             : 0
           const remainingMs = endTs - Date.now()
 
@@ -87,7 +87,8 @@ const bidHandlers = {
             bid_count: item.bid_count || 0,
             winner_user_id: item.winner_user_id,
             _countdownText: this._formatBidCountdown(item.end_time),
-            _isEndingSoon: item.status === 'active' && remainingMs > 0 && remainingMs < INITIAL_TEN_MIN_MS
+            _isEndingSoon:
+              item.status === 'active' && remainingMs > 0 && remainingMs < INITIAL_TEN_MIN_MS
           }
         })
 
@@ -423,9 +424,10 @@ const bidHandlers = {
       const updatedProducts = biddingProducts.map((item: any) => {
         if (item.status === 'active' && item.end_time) {
           const newText = this._formatBidCountdown(item.end_time)
-          const endTs = typeof item.end_time === 'number'
-            ? item.end_time
-            : (bidUtils.safeParseDateString(item.end_time) || new Date(0)).getTime()
+          const endTs =
+            typeof item.end_time === 'number'
+              ? item.end_time
+              : (bidUtils.safeParseDateString(item.end_time) || new Date(0)).getTime()
           const remaining = endTs - Date.now()
           const endingSoon = remaining > 0 && remaining < TEN_MINUTES_MS
 

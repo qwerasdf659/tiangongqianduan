@@ -75,10 +75,11 @@ async function verifyToken() {
  * 刷新 access_token - POST /api/v4/auth/refresh
  *
  * 携带旧 access_token（即使已过期）在 Authorization 头中，
- * 后端从旧 JWT 提取 session_token 来复用会话，避免创建新会话
+ * 后端从旧 JWT 提取 session_token 来复用会话并继承 login_platform，
+ * 避免创建新会话导致同平台会话被误覆盖（方案B平台隔离策略）
  *
  * @param refreshToken - 刷新令牌
- * @param oldAccessToken - 旧的 access_token（可选，用于会话复用）
+ * @param oldAccessToken - 旧的 access_token（可选，用于会话复用和平台继承）
  */
 async function refreshAccessToken(refreshToken: string, oldAccessToken?: string) {
   const refreshHeaders: Record<string, string> = {}
@@ -95,13 +96,28 @@ async function refreshAccessToken(refreshToken: string, oldAccessToken?: string)
   })
 }
 
+/**
+ * 退出登录 - POST /api/v4/auth/logout
+ * 通知后端将当前会话标记为 is_active=false，释放认证会话资源
+ * 前端在调用成功或失败后都应清理本地认证数据
+ */
+async function logout() {
+  return apiClient.request('/auth/logout', {
+    method: 'POST',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
 module.exports = {
   userLogin,
   quickLogin,
   getUserInfo,
   sendVerificationCode,
   verifyToken,
-  refreshAccessToken
+  refreshAccessToken,
+  logout
 }
 
 export {}

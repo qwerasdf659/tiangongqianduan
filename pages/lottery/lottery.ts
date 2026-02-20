@@ -449,10 +449,14 @@ Page({
   // V2动态身份二维码
   // ========================================
 
-  /** 生成V2动态身份二维码 */
   /**
-   * 生成用户V2动态二维码（用户端，JWT解析身份）
-   * 后端路由: GET /api/v4/shop/consumption/qrcode
+   * 生成用户V2动态二维码
+   *
+   * DB-3修复后，所有已登录用户统一调用用户域端点：
+   *   GET /api/v4/user/consumption/qrcode（仅需 authenticateToken，无角色限制）
+   *
+   * 管理员为其他用户生成二维码时使用 console 端点：
+   *   GET /api/v4/console/consumption/qrcode/:user_id（需 role_level >= 100）
    */
   async generateUserQRCode() {
     try {
@@ -548,7 +552,8 @@ Page({
           showCancel: false,
           confirmText: '重新登录',
           success: () => {
-            userStore.clearLoginState()
+            const appInstance = getApp()
+            appInstance.clearAuthData()
             wx.redirectTo({ url: '/packageUser/auth/auth' })
           }
         })

@@ -37,12 +37,22 @@ async function getLotteryConfig(campaign_code: string) {
   })
 }
 
-/** 执行抽奖 - POST /api/v4/lottery/campaigns/:campaign_code/draw（携带幂等键） */
+/**
+ * 执行抽奖 - POST /api/v4/lottery/draw
+ *
+ * 后端路由: routes/v4/lottery/draw.js
+ * campaign_code 通过 Body 传参（非 URL 路径参数）
+ * Idempotency-Key 通过 Header 必传（缺失返回 400 MISSING_IDEMPOTENCY_KEY）
+ *
+ * 响应: data.prizes[] 数组（单抽 length=1，连抽 length=N）
+ *       data.remaining_balance 扣除后的可用积分
+ *       data.total_points_cost / data.discount / data.saved_points 消费和折扣信息
+ */
 async function performLottery(campaign_code: string, draw_count: number = 1) {
   const idempotencyKey = `lottery_${campaign_code}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
-  return apiClient.request(`/lottery/campaigns/${campaign_code}/draw`, {
+  return apiClient.request('/lottery/draw', {
     method: 'POST',
-    data: { draw_count },
+    data: { campaign_code, draw_count },
     needAuth: true,
     header: { 'Idempotency-Key': idempotencyKey }
   })

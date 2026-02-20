@@ -3,21 +3,22 @@
  *
  * @file packageAdmin/consume-submit/consume-submit.ts
  * @description
- * 商家进入页面后，先看到操作说明和扫码按钮，点击扫码后识别用户，再录入消费金额。
+ * 商家先填写消费金额/备注，再扫码识别顾客，最后确认提交。
+ * 表单优先模式：商家可以提前录入金额和备注，顾客出示二维码后立刻扫码提交，提高效率。
  *
  * 业务流程：
- * 1. 商家进入页面 → 看到操作说明 + 扫码按钮
- * 2. 点击"扫描用户二维码" → 调用wx.scanCode识别顾客V2动态二维码
- * 3. 获取用户信息 → 多门店时弹出门店选择
- * 4. 填写消费金额（必填）+ 商家备注（选填）
+ * 1. 商家进入页面 → 立即看到消费金额输入框和备注框
+ * 2. 填写消费金额（必填）+ 商家备注（选填）
+ * 3. 点击"扫描顾客二维码" → 调用wx.scanCode识别顾客V2动态二维码
+ * 4. 获取用户信息 → 多门店时弹出门店选择
  * 5. 确认提交 → POST /api/v4/shop/consumption/submit → 生成待审核记录
  *
- * @version 5.3.0
- * @since 2026-02-18
+ * @version 6.0.0
+ * @since 2026-02-20
  */
 
 const { API, Utils, Wechat, Logger } = require('../../utils/index')
-const log = Logger.createLogger('consume-submit')
+const consumeLog = Logger.createLogger('consume-submit')
 const { checkAuth, formatPhoneNumber } = Utils
 const { showToast } = Wechat
 
@@ -26,9 +27,6 @@ const { userStore } = require('../../store/user')
 
 Page({
   data: {
-    // 页面阶段：'scan' 扫码入口 | 'form' 填写表单
-    pageStage: 'scan' as 'scan' | 'form',
-
     // 二维码信息
     qrCode: '',
 
@@ -51,13 +49,13 @@ Page({
   },
 
   /**
-   * 页面加载 - 不再要求必须携带qrCode参数，商家先看到操作说明页
+   * 页面加载 - 直接显示表单，商家先填写信息再扫码
    */
   onLoad(options) {
-    log.info('消费录入页面加载，参数:', options)
+    consumeLog.info('消费录入页面加载，参数:', options)
 
     if (!checkAuth()) {
-      log.error('用户未登录，跳转到登录页')
+      consumeLog.error('用户未登录，跳转到登录页')
       return
     }
 
@@ -73,7 +71,7 @@ Page({
     const hasAccess = roleLevel >= 20
 
     if (!hasAccess) {
-      log.error('用户无商家权限，role_level:', roleLevel)
+      consumeLog.error('用户无商家权限，role_level:', roleLevel)
       wx.showModal({
         title: '权限不足',
         content: '您没有权限访问此页面，仅商家员工和管理员可录入消费。',
@@ -85,37 +83,29 @@ Page({
       return
     }
 
-    // 支持外部入口携带qrCode参数直接进入表单阶段（如管理员扫码跳转）
+    // 支持外部入口携带qrCode参数（如管理员扫码跳转）
     if (options.qrCode) {
       const decodedQrCode = decodeURIComponent(options.qrCode)
-      log.info('外部携带二维码参数，直接进入表单:', decodedQrCode)
-      this.setData({ qrCode: decodedQrCode, pageStage: 'form' })
+      consumeLog.info('外部携带二维码参数:', decodedQrCode)
+      this.setData({ qrCode: decodedQrCode })
       this.loadUserInfo()
-      return
     }
-
-    // 默认显示扫码入口页面，商家可以看到操作说明
-    this.setData({ pageStage: 'scan' })
   },
 
   /**
    * 商家点击扫码按钮 → 调用wx.scanCode → 识别用户V2动态二维码
    */
   startScan() {
-    log.info(' 商家点击扫码按钮')
+    consumeLog.info('商家点击扫码按钮')
 
     wx.scanCode({
       onlyFromCamera: false,
       scanType: ['qrCode'] as any,
       success: (res: any) => {
-        log.info(' 扫码成功:', res.result)
+        consumeLog.info('扫码成功:', res.result)
         this.setData({
           qrCode: res.result,
-          pageStage: 'form',
           userInfo: null,
-          submitted: false,
-          consumeAmount: '',
-          merchantNotes: '',
           storeId: null,
           storeList: [],
           storeIndex: 0
@@ -123,24 +113,21 @@ Page({
         this.loadUserInfo()
       },
       fail: (scanError: any) => {
-        log.info(' 扫码取消或失败:', scanError)
+        consumeLog.info('扫码取消或失败:', scanError)
       }
     })
   },
 
   /**
-   * 重新扫码 — 清空当前数据，回到扫码入口
+   * 重新扫码 — 清空顾客数据，保留已填写的金额和备注
    */
   onRescanCode() {
-    log.info('商家点击重新扫码')
+    consumeLog.info('商家点击重新扫码')
     this.setData({
-      pageStage: 'scan',
       qrCode: '',
       userInfo: null,
       userInfoLoading: false,
       submitted: false,
-      consumeAmount: '',
-      merchantNotes: '',
       storeId: null,
       storeList: [],
       storeIndex: 0,
@@ -163,14 +150,12 @@ Page({
     this.setData({ userInfoLoading: true })
 
     try {
-      log.info('开始获取用户信息，二维码:', this.data.qrCode)
+      consumeLog.info('开始获取用户信息，二维码:', this.data.qrCode)
 
-      // 调用后端API：传入 store_id（如果已选择门店）
-      const result = await API.getUserInfoByQRCode(this.data.qrCode, this.data.storeId)
+      const apiResult = await API.getUserInfoByQRCode(this.data.qrCode, this.data.storeId)
 
-      if (result && result.success && result.data) {
-        // 后端返回完整手机号，前端脱敏展示（如 138****5678）
-        const userData = result.data
+      if (apiResult && apiResult.success && apiResult.data) {
+        const userData = apiResult.data
         const maskedUserInfo = {
           ...userData,
           mobile_display: formatPhoneNumber(userData.mobile)
@@ -180,17 +165,16 @@ Page({
           userInfo: maskedUserInfo,
           userInfoLoading: false
         })
-        log.info('用户信息加载成功:', result.data)
+        consumeLog.info('用户信息加载成功:', apiResult.data)
       } else {
-        throw new Error(result.message || '获取用户信息失败')
+        throw new Error(apiResult.message || '获取用户信息失败')
       }
-    } catch (error: any) {
-      log.error('加载用户信息失败:', error)
+    } catch (loadError: any) {
+      consumeLog.error('加载用户信息失败:', loadError)
 
-      // 处理 MULTIPLE_STORES_REQUIRE_STORE_ID 错误：弹出门店选择
-      if (error.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
-        const availableStores = (error.data && error.data.available_stores) || []
-        log.info(' 多门店员工，需要选择门店:', availableStores)
+      if (loadError.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
+        const availableStores = (loadError.data && loadError.data.available_stores) || []
+        consumeLog.info('多门店员工，需要选择门店:', availableStores)
 
         this.setData({
           storeList: availableStores,
@@ -206,8 +190,7 @@ Page({
         userInfoLoading: false
       })
 
-      // 精细化错误提示
-      const errorContent = this.getErrorContent(error)
+      const errorContent = this.getErrorContent(loadError)
 
       wx.showModal({
         title: '加载失败',
@@ -215,11 +198,11 @@ Page({
         showCancel: true,
         cancelText: '返回',
         confirmText: '重试',
-        success: res => {
-          if (res.confirm) {
+        success: modalResult => {
+          if (modalResult.confirm) {
             this.loadUserInfo()
           } else {
-            wx.navigateBack()
+            this.setData({ qrCode: '' })
           }
         }
       })
@@ -228,20 +211,17 @@ Page({
 
   /**
    * 门店选择变更事件
-   *
-   * e - picker事件对象
    */
   onStoreChange(e: any) {
     const index = parseInt(e.detail.value, 10)
     const store = this.data.storeList[index]
-    log.info(' 选择门店:', store)
+    consumeLog.info('选择门店:', store)
 
     this.setData({
       storeIndex: index,
       storeId: store.store_id
     })
 
-    // 选择门店后重新加载用户信息（传入 store_id）
     if (this.data.qrCode && !this.data.userInfo) {
       this.loadUserInfo()
     }
@@ -249,8 +229,6 @@ Page({
 
   /**
    * 消费金额输入事件
-   *
-   * e - 事件对象
    */
   onAmountInput(e: any) {
     this.setData({ consumeAmount: e.detail.value })
@@ -258,8 +236,6 @@ Page({
 
   /**
    * 商家备注输入事件
-   *
-   * e - 事件对象
    */
   onNotesInput(e: any) {
     this.setData({ merchantNotes: e.detail.value })
@@ -270,25 +246,21 @@ Page({
    *
    * V2升级要点：
    * - 传入 store_id（多门店场景必传）
-   * - 幂等键在API层自动生成
+   * - 幂等键在API层自动生成（放入请求Header Idempotency-Key）
    * - 备注限制升级为500字
    * - 精细化错误码处理
-   *
    */
   async onSubmit() {
-    // 防止重复提交
     if (this.data.loading || this.data.submitted) {
-      log.warn('请勿重复提交')
+      consumeLog.warn('请勿重复提交')
       return
     }
 
-    // 验证用户信息
     if (!this.data.userInfo) {
-      showToast('用户信息未加载')
+      showToast('请先扫码识别顾客')
       return
     }
 
-    // 验证消费金额
     const amount = parseFloat(this.data.consumeAmount)
 
     if (!this.data.consumeAmount || isNaN(amount)) {
@@ -306,54 +278,48 @@ Page({
       return
     }
 
-    // 验证门店ID（多门店场景必传）
     if (this.data.storeList.length > 1 && !this.data.storeId) {
       showToast('请先选择门店')
       return
     }
 
-    // 验证备注长度（V2：500字限制）
     if (this.data.merchantNotes && this.data.merchantNotes.length > 500) {
       showToast('商家备注不能超过500字')
       return
     }
 
-    // 二次确认
     const confirmResult = await new Promise(resolve => {
       wx.showModal({
         title: '确认提交',
         content: `用户：${this.data.userInfo.nickname || this.data.userInfo.mobile}\n消费金额：¥${amount.toFixed(2)}元\n\n提交后将创建待审核记录，请确认信息无误。`,
-        success: res => {
-          resolve(res.confirm)
+        success: modalRes => {
+          resolve(modalRes.confirm)
         }
       })
     })
 
     if (!confirmResult) {
-      log.info('用户取消提交')
+      consumeLog.info('用户取消提交')
       return
     }
 
-    // 开始提交
     this.setData({ loading: true })
 
     try {
-      log.info('开始提交消费记录...')
+      consumeLog.info('开始提交消费记录...')
 
-      const result = await API.submitConsumption({
+      const submitResult = await API.submitConsumption({
         qr_code: this.data.qrCode,
         consumption_amount: amount,
         store_id: this.data.storeId || undefined,
         merchant_notes: this.data.merchantNotes || undefined
       })
 
-      log.info('提交成功:', result)
+      consumeLog.info('提交成功:', submitResult)
 
-      // 标记已提交（防止重复提交）
       this.setData({ submitted: true })
 
-      // 显示成功提示
-      const resultData = result.data || {}
+      const resultData = submitResult.data || {}
       wx.showModal({
         title: '提交成功',
         content: `消费记录已提交！\n\n预计奖励积分：${resultData.points_to_award || '待审核'}分\n记录状态：${resultData.status_name || '待审核'}\n\n管理员审核通过后，积分将自动发放给用户。`,
@@ -364,9 +330,9 @@ Page({
           }, 1000)
         }
       })
-    } catch (error: any) {
-      log.error('提交失败:', error)
-      this.handleSubmitError(error)
+    } catch (submitError: any) {
+      consumeLog.error('提交失败:', submitError)
+      this.handleSubmitError(submitError)
     } finally {
       this.setData({ loading: false })
     }
@@ -374,12 +340,9 @@ Page({
 
   /**
    * 精细化提交错误处理（V2：12种错误码映射）
-   *
-   * error - 错误对象（包含 code 字段）
    */
-  handleSubmitError(error: any) {
-    /** 错误码 → 用户友好提示映射 */
-    const errorMap = {
+  handleSubmitError(submitError: any) {
+    const errorMap: Record<string, string> = {
       QRCODE_EXPIRED: '二维码已过期，请让顾客刷新二维码',
       REPLAY_DETECTED: '该二维码已使用，请让顾客重新生成',
       INVALID_QRCODE_FORMAT: '二维码格式无效，请让顾客刷新',
@@ -394,19 +357,16 @@ Page({
       UNAUTHENTICATED: '登录已过期，请重新登录'
     }
 
-    const code: string = error.code || ''
-    const content =
-      (errorMap as Record<string, string>)[code] || error.message || '提交失败，请重试'
+    const code: string = submitError.code || ''
+    const content = errorMap[code] || submitError.message || '提交失败，请重试'
 
-    // UNAUTHENTICATED 特殊处理：跳转登录
     if (code === 'UNAUTHENTICATED') {
       wx.redirectTo({ url: '/packageUser/auth/auth' })
       return
     }
 
-    // MULTIPLE_STORES_REQUIRE_STORE_ID 特殊处理：弹出门店选择器
     if (code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
-      const availableStores = (error.data && error.data.available_stores) || []
+      const availableStores = (submitError.data && submitError.data.available_stores) || []
       if (availableStores.length > 0) {
         this.setData({ storeList: availableStores })
       }
@@ -418,8 +378,8 @@ Page({
       showCancel: true,
       cancelText: '返回',
       confirmText: '重试',
-      success: res => {
-        if (!res.confirm) {
+      success: modalRes => {
+        if (!modalRes.confirm) {
           wx.navigateBack()
         }
       }
@@ -428,11 +388,9 @@ Page({
 
   /**
    * 根据错误码获取用户友好的错误内容
-   *
-   * error - 错误对象
    */
-  getErrorContent(error: any) {
-    const code: string = error.code || ''
+  getErrorContent(apiError: any) {
+    const code: string = apiError.code || ''
 
     const contentMap: Record<string, string> = {
       INVALID_QRCODE_FORMAT: '二维码格式不支持，请让顾客刷新二维码后重试。',
@@ -445,35 +403,24 @@ Page({
 
     return (
       contentMap[code] ||
-      `无法获取用户信息：${error.message}\n\n可能的原因：\n1. 二维码无效或已过期\n2. 用户不存在\n3. 网络连接异常`
+      `无法获取用户信息：${apiError.message}\n\n可能的原因：\n1. 二维码无效或已过期\n2. 用户不存在\n3. 网络连接异常`
     )
   },
 
-  /**
-   * 页面显示
-   */
   onShow() {
-    log.info('消费录入页面显示')
+    consumeLog.info('消费录入页面显示')
   },
 
-  /**
-   * 页面隐藏
-   */
   onHide() {
-    log.info('消费录入页面隐藏')
+    consumeLog.info('消费录入页面隐藏')
   },
 
-  /**
-   * 页面卸载
-   */
   onUnload() {
-    log.info('消费录入页面卸载')
-    // 🆕 销毁MobX Store绑定
+    consumeLog.info('消费录入页面卸载')
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
     }
   }
 })
 
-export { }
-
+export {}

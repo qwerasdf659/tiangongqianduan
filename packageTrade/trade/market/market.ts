@@ -8,7 +8,7 @@
  */
 
 // 🔴 统一工具函数导入（外部页面统一从utils/index导入）
-const { API, Logger, Waterfall } = require('../../../utils/index')
+const { API, Logger, Waterfall, Wechat } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market')
 
 // 🆕 MobX Store绑定

@@ -65,7 +65,83 @@ async function rejectConsumption(record_id: number, params: { admin_notes: strin
   })
 }
 
-// ==================== 👨‍管理员客====================
+// ==================== 📦 批量审核 ====================
+
+/** 批量审核请求参数 */
+interface BatchReviewParams {
+  /** 消费记录ID数组，最多100条 */
+  record_ids: number[]
+  /** 审核动作：approve=通过 reject=拒绝 */
+  action: 'approve' | 'reject'
+  /** 拒绝原因（action=reject时必填，5-500字符） */
+  reason?: string
+  /** 幂等键（防止重复提交，可选） */
+  idempotency_key?: string
+}
+
+/**
+ * 批量审核消费记录 - POST /api/v4/console/consumption/batch-review
+ *
+ * 后端路由: routes/v4/console/consumption.js (第244行)
+ * 服务: ConsumptionBatchService.batchReview()
+ * 权限: admin (role_level >= 100)
+ *
+ * 特性:
+ *   - 每条记录独立事务，单条失败不影响其他
+ *   - 支持幂等键防止重复提交
+ *   - approve 时自动发放积分
+ *   - 自动记录审计日志
+ *
+ * 响应格式:
+ *   data.stats: { total, success_count, failed_count, skipped_count }
+ *   data.processed: { success[], failed[], skipped[] }
+ *   data.operation_id: 操作批次ID
+ */
+async function batchReviewConsumption(params: BatchReviewParams) {
+  if (!params || !params.record_ids || params.record_ids.length === 0) {
+    throw new Error('请选择要审核的记录')
+  }
+  if (params.record_ids.length > 100) {
+    throw new Error('批量审核最多100条记录')
+  }
+  if (!params.action || !['approve', 'reject'].includes(params.action)) {
+    throw new Error('审核动作必须是 approve 或 reject')
+  }
+  if (params.action === 'reject') {
+    if (!params.reason || params.reason.trim().length < 5) {
+      throw new Error('拒绝原因至少5个字符')
+    }
+    if (params.reason.length > 500) {
+      throw new Error('拒绝原因不能超过500字')
+    }
+  }
+
+  const requestData: Record<string, any> = {
+    record_ids: params.record_ids,
+    action: params.action
+  }
+  if (params.reason) {
+    requestData.reason = params.reason
+  }
+
+  const headers: Record<string, string> = {}
+  if (params.idempotency_key) {
+    headers['Idempotency-Key'] = params.idempotency_key
+  }
+
+  return apiClient.request('/console/consumption/batch-review', {
+    method: 'POST',
+    data: requestData,
+    header: Object.keys(headers).length > 0 ? headers : undefined,
+    needAuth: true,
+    showLoading: true,
+    loadingText: params.action === 'approve' ? '批量审核通过中...' : '批量拒绝中...',
+    showError: true,
+    errorPrefix: '批量审核失败：'
+  })
+}
+
+// ==================== 👨‍💼 管理员客服 ====================
 
 /** 获取管理员客服会话列表?- GET /api/v4/console/customer-service/sessions */
 async function getAdminChatSessions(
@@ -250,6 +326,7 @@ module.exports = {
   getPendingConsumption,
   approveConsumption,
   rejectConsumption,
+  batchReviewConsumption,
   getAdminChatSessions,
   getAdminChatHistory,
   closeAdminChatSession,

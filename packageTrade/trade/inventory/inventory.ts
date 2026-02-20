@@ -480,10 +480,10 @@ Page({
 
     wx.showModal({
       title: '确认使用',
-      content: `确定要使?${item.name}"吗？使用后将无法撤销。`,
+      content: `确定要使用「${item.name}」吗？使用后将无法撤销。`,
       success: async (res: any) => {
         if (res.confirm) {
-          await this.executeUseItem(item.item_instance_id)
+          await this.executeUseItem(item)
         }
       }
     })
@@ -496,19 +496,51 @@ Page({
    * 成功返回: { item_instance_id, status: "used", is_duplicate }
    * is_duplicate: true 表示幂等回放（重复请求返回首次结果）
    *
-   * @param itemInstanceId - 物品实例ID（后端字符 item_instance_id   */
-  async executeUseItem(itemInstanceId: number) {
-    wx.showLoading({ title: '使用户..' })
+   * 使用结果通过 wx.showModal 展示给用户，包含：
+   *   - 物品名称（来自列表传入的 item.name）
+   *   - 后端返回的 message（使用结果说明）
+   *   - 后端返回的 instructions（使用指引，如有）
+   *   - 幂等回放提示（is_duplicate 为 true 时）
+   *
+   * @param item - 物品对象（包含 item_instance_id、name、item_type 等字段）
+   */
+  async executeUseItem(item: any) {
+    wx.showLoading({ title: '使用中...' })
     try {
-      const result = await API.useInventoryItem(itemInstanceId)
+      const result = await API.useInventoryItem(item.item_instance_id)
       wx.hideLoading()
 
       if (result.success) {
-        showToast(result.message || '使用成功')
-        // 刷新背包数据
+        const itemName = item.name || '物品'
+        const resultData = result.data || {}
+
+        let resultContent = `「${itemName}」${result.message || '使用成功'}`
+
+        /* 后端若返回 instructions 字段则优先展示使用指引 */
+        if (resultData.instructions) {
+          resultContent += `\n\n${resultData.instructions}`
+        }
+
+        /* 幂等回放提示（重复请求时后端返回 is_duplicate: true） */
+        if (resultData.is_duplicate) {
+          resultContent += '\n\n（该物品此前已使用，本次为重复确认）'
+        }
+
+        wx.showModal({
+          title: '使用成功',
+          content: resultContent,
+          showCancel: false,
+          confirmText: '我知道了'
+        })
+
         this.loadInventoryData(true)
       } else {
-        showToast(result.message || '使用失败，请重试')
+        wx.showModal({
+          title: '使用失败',
+          content: result.message || '使用失败，请重试',
+          showCancel: false,
+          confirmText: '我知道了'
+        })
       }
     } catch (error: any) {
       wx.hideLoading()
@@ -545,18 +577,22 @@ Page({
       const response = await API.redeemInventoryItem(item.item_instance_id)
 
       if (response.success && response.data) {
-        // 后端返回字段: data.code2位Base32明文核销码，仅此一次返回）
+        /* 后端返回字段: data.code（12位Base32明文核销码，仅此一次返回） */
         const redemptionCode = response.data.code || ''
         const expiresAt =
           response.data.order && response.data.order.expires_at
             ? response.data.order.expires_at
             : ''
 
-        let modalContent = `核销码：${redemptionCode}`
+        const itemName = item.name || '物品'
+
+        /* 构建核销码展示内容：物品名称 + 核销码 + 有效期 + 使用说明 */
+        let modalContent = `物品：${itemName}\n核销码：${redemptionCode}`
         if (expiresAt) {
-          modalContent += `\n有效期至：${expiresAt}`
+          modalContent += `\n有效期至：${this.formatReadableTime(expiresAt)}`
         }
-        modalContent += '\n\n⚠️ 核销码仅显示一次，请妥善保管！\n请在有效期内到店出示此码完成核销。'
+        modalContent +=
+          '\n\n⚠️ 核销码仅显示一次，请妥善保管！\n请在有效期内到店出示此码，由店员扫码完成核销。'
 
         wx.showModal({
           title: response.message || '核销码生成成功',
@@ -567,13 +603,13 @@ Page({
             if (res.confirm && redemptionCode) {
               wx.setClipboardData({
                 data: redemptionCode,
-                success: () => showToast('核销码已复制')
+                success: () => showToast('核销码已复制到剪贴板')
               })
             }
           }
         })
 
-        // 刷新背包数据（物品状态可能变为locked
+        /* 刷新背包数据（物品状态可能变为 locked） */
         this.loadInventoryData(true)
       } else {
         throw new Error(response.message || '生成失败')
@@ -723,6 +759,32 @@ Page({
       showCancel: false,
       confirmText: '知道了'
     })
+  },
+
+  /**
+   * 格式化后端ISO时间为用户可读格式
+   *
+   * 后端返回格式：ISO 8601（如 2026-02-20T03:50:51.318+08:00）
+   * 前端展示格式：YYYY-MM-DD HH:mm（去掉秒和毫秒，对用户更友好）
+   *
+   * @param isoString - ISO 8601 格式时间字符串
+   * @returns 格式化后的时间字符串，解析失败时返回原始字符串
+   */
+  formatReadableTime(isoString: string): string {
+    try {
+      const date = new Date(isoString)
+      if (isNaN(date.getTime())) {
+        return isoString
+      }
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}`
+    } catch {
+      return isoString
+    }
   },
 
   /**

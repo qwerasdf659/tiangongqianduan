@@ -142,4 +142,4 @@ Page({
   }
 })
 
-export { }
+export {}

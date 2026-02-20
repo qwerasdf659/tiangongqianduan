@@ -15,7 +15,7 @@
 const app = getApp()
 
 // 统一工具函数导入
-const { Utils, API, Wechat, Constants, Logger } = require('../../utils/index')
+const { Utils, API, Wechat, Constants, Logger, ExchangeConfig } = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { showToast } = Wechat
 const { PAGINATION, DELAY } = Constants
@@ -83,41 +83,25 @@ Page({
     // 'all', 'available', 'low-price'
     currentFilter: 'all',
 
-    /** 幸运空间基础筛选项（UI常量） */
-    luckyBasicFilters: [
-      { key: 'all', label: '全部', showCount: true },
-      { key: 'available', label: '可兑换', showCount: false },
-      { key: 'low-price', label: '低积分', showCount: false }
-    ] as any[],
-    /** 商品分类筛选项（UI常量） */
-    categoryOptions: [
-      { key: 'all', label: '全部' },
-      { key: '优惠券', label: '优惠券' },
-      { key: '实物商品', label: '实物商品' },
-      { key: '虚拟物品', label: '虚拟物品' }
-    ] as any[],
-    /** 积分范围筛选项（UI常量） */
-    pointsRangeOptions: [
-      { key: 'all', label: '全部' },
-      { key: '0-500', label: '0-500分' },
-      { key: '500-1000', label: '500-1000分' },
-      { key: '1000-2000', label: '1000-2000分' },
-      { key: '2000+', label: '2000分以上' }
-    ] as any[],
-    /** 库存状态筛选项（UI常量） */
-    stockFilterOptions: [
-      { key: 'all', label: '全部' },
-      { key: 'in-stock', label: '库存充足' },
-      { key: 'low-stock', label: '库存紧张' }
-    ] as any[],
-    /** 排序方式选项（UI常量） */
-    sortByOptions: [
-      { key: 'default', label: '默认' },
-      { key: 'points-asc', label: '积分升序' },
-      { key: 'points-desc', label: '积分降序' },
-      { key: 'rating-desc', label: '评分降序' },
-      { key: 'stock-desc', label: '库存降序' }
-    ] as any[],
+    // ========== Tab 配置（由后端 exchange_page 配置下发） ==========
+    tabs: [] as any[],
+
+    // ========== 商品兑换筛选项（由后端 shop_filters 下发，onLoad 填充） ==========
+    /** 幸运空间基础筛选项（{value, label} 格式） */
+    luckyBasicFilters: [] as any[],
+    /** 商品分类筛选项（{value, label} 格式，来自真实分类数据） */
+    categoryOptions: [] as any[],
+    /** 价格区间筛选项（{label, min, max} 格式，对齐 cost_ranges） */
+    costRangeOptions: [] as any[],
+    /** 库存状态筛选项（{value, label} 格式，对齐 stock_statuses） */
+    stockStatusOptions: [] as any[],
+    /** 排序方式选项（{value, label} 格式，value 引用后端列名） */
+    sortByOptions: [] as any[],
+
+    // ========== 交易市场筛选项（由后端 market_filters 下发） ==========
+    marketTypeFilters: [] as any[],
+    marketCategoryFilters: [] as any[],
+    marketSortOptions: [] as any[],
 
     // ========== 分页功能 ==========
     currentPage: 1,
@@ -130,11 +114,11 @@ Page({
     waterfallPageSize: PAGINATION.WATERFALL_SIZE,
     pageInputValue: '',
 
-    // ========== 高级筛选 ==========
+    // ========== 高级筛选（交易市场 Tab 使用） ==========
     showAdvancedFilter: false,
     categoryFilter: 'all',
-    pointsRange: 'all',
-    stockFilter: 'all',
+    costRange: 'all',
+    stockStatus: 'all',
     sortBy: 'default',
 
     // ========== 幸运空间搜索和筛选 ==========
@@ -142,9 +126,10 @@ Page({
     luckyCurrentFilter: 'all',
     showLuckyAdvancedFilter: false,
     luckyCategoryFilter: 'all',
-    luckyPointsRange: 'all',
-    luckyStockFilter: 'all',
-    luckySortBy: 'default',
+    /** 选中的价格区间索引（0=全部，对应 costRangeOptions 数组下标） */
+    luckyCostRangeIndex: 0,
+    luckyStockStatus: 'all',
+    luckySortBy: 'sort_order',
     luckyFilteredProducts: [],
 
     // ========== 幸运空间分页 ==========
@@ -163,30 +148,8 @@ Page({
     premiumAllProducts: [], // 臻选空间全部商品（用于前端分页）
     premiumPageInputValue: '',
 
-    // ========== 双空间系统数据 ==========
-    spaceList: [
-      {
-        id: 'lucky',
-        name: '🎁 幸运空间',
-        subtitle: '瀑布流卡片',
-        description: '发现随机好物',
-        layout: 'waterfall',
-        color: '#52c41a',
-        bgGradient: 'linear-gradient(135deg, #52c41a 0%, #95de64 100%)',
-        locked: false
-      },
-      {
-        id: 'premium',
-        name: '💎 臻选空间',
-        subtitle: '混合精品展示',
-        description: '解锁高级商品',
-        layout: 'simple',
-        color: '#667eea',
-        bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        locked: true
-        // 🔴 解锁条件由后端API提供: GET /api/v4/backpack/exchange/premium-status
-      }
-    ],
+    // ========== 双空间系统数据（由后端 exchange_page 配置下发，onLoad 填充） ==========
+    spaceList: [] as any[],
 
     // 臻选空间解锁状态 - 全部由后端 GET /api/v4/backpack/exchange/premium-status 返回
     premiumUnlocked: false,
@@ -263,9 +226,9 @@ Page({
   // 🔄 页面生命周期
   // ============================================
 
-  /** 页面加载 */
-  onLoad(_options: any) {
-    log.info('交易市场页面加载')
+  /** 页面加载 — 从后端配置加载 Tab/筛选/主题等数据 */
+  async onLoad(_options: any) {
+    log.info('兑换页面加载')
 
     // MobX Store 绑定
     this.userBindings = createStoreBindings(this, {
@@ -282,11 +245,78 @@ Page({
     // 恢复认证状态（统一由 auth-helper 处理）
     Utils.restoreUserInfo()
 
-    // 恢复卡片主题偏好
+    // 加载兑换页面配置（4层降级：缓存→API→过期缓存→内置默认）
+    await this.loadExchangePageConfig()
+
+    // 恢复卡片主题偏好（用户本地覆盖优先于后端配置默认值）
     this.restoreThemePreferences()
 
     this.initPage()
     this.initPremiumUnlockStatus()
+  },
+
+  /**
+   * 加载兑换页面配置，将后端下发的配置映射到 Page data
+   * 配置来源: GET /api/v4/system/config/exchange-page
+   * 降级策略: 缓存→API→过期缓存→内置默认（保证页面始终可用）
+   */
+  async loadExchangePageConfig() {
+    try {
+      const exchangeConfig = await ExchangeConfig.ExchangeConfigCache.getConfig()
+      log.info('兑换页面配置加载成功:', exchangeConfig.updated_at || '内置默认')
+
+      const shopFilters = exchangeConfig.shop_filters
+      const marketFilters = exchangeConfig.market_filters
+
+      this.setData({
+        // Tab 配置（过滤禁用项，按 sort_order 排序）
+        tabs: exchangeConfig.tabs
+          .filter((t: any) => t.enabled)
+          .sort((a: any, b: any) => a.sort_order - b.sort_order),
+        // 空间配置（过滤禁用项，按 sort_order 排序）
+        spaceList: exchangeConfig.spaces
+          .filter((s: any) => s.enabled)
+          .sort((a: any, b: any) => a.sort_order - b.sort_order),
+        // 商品兑换筛选项（直接使用后端 {value, label} 格式）
+        luckyBasicFilters: shopFilters.basic_filters,
+        categoryOptions: shopFilters.categories,
+        costRangeOptions: shopFilters.cost_ranges,
+        stockStatusOptions: shopFilters.stock_statuses,
+        sortByOptions: shopFilters.sort_options,
+        // 交易市场筛选项
+        marketTypeFilters: marketFilters.type_filters,
+        marketCategoryFilters: marketFilters.category_filters,
+        marketSortOptions: marketFilters.sort_options,
+        // 卡片主题默认值（后端配置提供，用户本地覆盖在 restoreThemePreferences 中处理）
+        cardTheme: exchangeConfig.card_display.theme,
+        effects: exchangeConfig.card_display.effects,
+        viewMode: exchangeConfig.card_display.default_view_mode || 'grid'
+      })
+    } catch (error) {
+      log.error('加载兑换页面配置失败，使用内置默认配置:', error)
+
+      /* 降级到内置默认配置，保证 Tab 导航和筛选项始终可见 */
+      const fallback = ExchangeConfig.DEFAULT_EXCHANGE_CONFIG
+      if (fallback) {
+        const shopFilters = fallback.shop_filters
+        const marketFilters = fallback.market_filters
+        this.setData({
+          tabs: fallback.tabs.filter((t: any) => t.enabled),
+          spaceList: fallback.spaces.filter((s: any) => s.enabled),
+          luckyBasicFilters: shopFilters.basic_filters,
+          categoryOptions: shopFilters.categories,
+          costRangeOptions: shopFilters.cost_ranges,
+          stockStatusOptions: shopFilters.stock_statuses,
+          sortByOptions: shopFilters.sort_options,
+          marketTypeFilters: marketFilters.type_filters,
+          marketCategoryFilters: marketFilters.category_filters,
+          marketSortOptions: marketFilters.sort_options,
+          cardTheme: fallback.card_display.theme,
+          effects: fallback.card_display.effects,
+          viewMode: fallback.card_display.default_view_mode || 'grid'
+        })
+      }
+    }
   },
 
   /** 页面显示（恢复用户数据 + WebSocket + 刷新检查） */
@@ -393,11 +423,15 @@ Page({
   initPage() {
     this.refreshUserInfo()
     this.initFilters()
-    // 只在交易市场模式下加载商品，商品兑换有独立的初始化
-    if (this.data.currentTab !== 'market') {
-      this.loadProducts()
+    // 根据当前Tab初始化对应数据
+    if (this.data.currentTab === 'exchange') {
+      // 商品兑换模式：初始化幸运空间数据
+      log.info('默认商品兑换模式，初始化幸运空间')
+      this.initLayoutParams()
+      this.initLuckySpaceData()
     } else {
-      log.info(' 商品兑换模式，跳过交易市场列表初始化')
+      // 交易市场模式：加载挂单列表
+      this.loadProducts()
     }
   },
 
@@ -453,11 +487,10 @@ Page({
     }
   },
 
-  /** 清理Token并跳转登录页 */
+  /** 清理Token并跳转登录页（统一通过 app.clearAuthData 清理WebSocket+Store+Storage） */
   clearTokenAndRedirectLogin() {
     log.info('清理无效Token')
-    userStore.clearLoginState()
-    pointsStore.clearPoints()
+    app.clearAuthData()
     wx.reLaunch({ url: '/packageUser/auth/auth' })
   },
 
@@ -525,8 +558,8 @@ Page({
 
     const refreshPromises = [this.refreshUserInfo()]
 
-    if (this.data.currentTab === 'market') {
-      log.info(' 商品兑换模式刷新')
+    if (this.data.currentTab === 'exchange') {
+      log.info('商品兑换模式刷新')
       refreshPromises.push(this.initLuckySpaceData())
     } else {
       log.info('交易市场模式刷新')
@@ -554,16 +587,35 @@ Page({
   // 🏪 Tab 切换
   // ============================================
 
-  /** 切换到商品兑换 */
-  async onGoToTradeMarket() {
-    log.info(' 切换到商品兑换')
+  /**
+   * 统一 Tab 切换入口（WXML wx:for 动态渲染绑定此方法）
+   * 根据 data-tab 分发到对应 Tab 切换方法
+   */
+  onTabChange(e: any) {
+    const tabKey = e.currentTarget.dataset.tab
+    if (!tabKey || tabKey === this.data.currentTab) {
+      return
+    }
 
-    if (this.data.currentTab === 'market') {
+    if (tabKey === 'exchange') {
+      this.switchToExchangeTab()
+    } else if (tabKey === 'market') {
+      this.switchToMarketTab()
+    } else {
+      log.warn('未知 Tab key:', tabKey)
+    }
+  },
+
+  /** 切换到商品兑换（Tab key: exchange） */
+  async switchToExchangeTab() {
+    log.info('切换到商品兑换')
+
+    if (this.data.currentTab === 'exchange') {
       log.info('已在商品兑换，无需切换')
       return
     }
 
-    this.setData({ currentTab: 'market', currentSpace: 'lucky' })
+    this.setData({ currentTab: 'exchange', currentSpace: 'lucky' })
     this.initLayoutParams()
     await this.initLuckySpaceData()
 
@@ -576,16 +628,16 @@ Page({
     log.info('商品兑换已激活，进入幸运空间')
   },
 
-  /** 切换回交易市场模式 */
-  onGoToExchange() {
+  /** 切换到交易市场（Tab key: market） */
+  switchToMarketTab() {
     log.info('切换到交易市场')
 
-    if (this.data.currentTab === 'exchange') {
-      log.info('已在兑换模式，无需切换')
+    if (this.data.currentTab === 'market') {
+      log.info('已在交易市场，无需切换')
       return
     }
 
-    this.setData({ currentTab: 'exchange' })
+    this.setData({ currentTab: 'market' })
     this.loadProducts()
     log.info('交易市场模式已激活')
   },
@@ -596,14 +648,14 @@ Page({
 
   /**
    * 商品点击事件（两个Tab共用，根据当前Tab打开不同弹窗）
-   * - 交易市场Tab（currentTab === 'exchange'）：打开购买确认弹窗（showConfirm）
-   * - 商品兑换Tab（currentTab === 'market'）：打开兑换确认弹窗（showShopConfirm）
+   * - 商品兑换Tab（currentTab === 'exchange'）：打开兑换确认弹窗（showShopConfirm）
+   * - 交易市场Tab（currentTab === 'market'）：打开购买确认弹窗（showConfirm）
    */
   onProductTap(e: any) {
     const product = e.currentTarget.dataset.product
     log.info('点击商品:', product)
 
-    if (this.data.currentTab === 'market') {
+    if (this.data.currentTab === 'exchange') {
       /**
        * 🔒 前置校验: 商品兑换Tab必须有 id（DataSanitizer 脱敏后的商品主键）
        * 缺少此字段时无法执行 POST /api/v4/backpack/exchange 兑换请求
@@ -820,35 +872,42 @@ Page({
     return (this._assetDisplayMap as Record<string, string>)[assetCode] || assetCode
   },
 
-  /** 从 localStorage 恢复主题偏好 */
+  /**
+   * 从 localStorage 恢复用户手动设置的主题偏好
+   * 优先级: 后端配置（loadExchangePageConfig 已设置）→ 用户本地覆盖（此方法）
+   * 仅当用户明确保存过偏好时才覆盖后端配置默认值
+   */
   restoreThemePreferences() {
-    const savedTheme = wx.getStorageSync('card_theme') || 'E'
+    const savedTheme = wx.getStorageSync('card_theme')
     const savedEffects = wx.getStorageSync('card_effects')
-    const savedViewMode = wx.getStorageSync('card_view_mode') || 'grid'
+    const savedViewMode = wx.getStorageSync('card_view_mode')
 
-    const defaultEffects = {
-      grain: true,
-      holo: true,
-      rotatingBorder: true,
-      breathingGlow: true,
-      ripple: true,
-      fullbleed: true,
-      listView: false
+    const updateData: Record<string, any> = {}
+
+    if (savedTheme) {
+      updateData.cardTheme = savedTheme
     }
-    const restoredEffects = savedEffects || defaultEffects
+    if (savedEffects) {
+      updateData.effects = savedEffects
+    }
+    if (savedViewMode) {
+      updateData.viewMode = savedViewMode
+    }
 
-    this.setData({
-      cardTheme: savedTheme,
-      effects: restoredEffects,
-      viewMode: savedViewMode
-    })
-    log.info('卡片主题偏好已恢复:', { theme: savedTheme, viewMode: savedViewMode })
+    if (Object.keys(updateData).length > 0) {
+      this.setData(updateData)
+      log.info('用户本地主题偏好覆盖后端配置:', updateData)
+    } else {
+      log.info('无本地主题偏好，使用后端配置默认值')
+    }
   },
 
   /** 切换主题方案 */
   onThemeChange(e: any) {
     const selectedTheme = e.currentTarget.dataset.theme
-    if (!selectedTheme || selectedTheme === this.data.cardTheme) return
+    if (!selectedTheme || selectedTheme === this.data.cardTheme) {
+      return
+    }
 
     this.setData({ cardTheme: selectedTheme })
     wx.setStorageSync('card_theme', selectedTheme)
@@ -858,7 +917,9 @@ Page({
   /** 切换增强效果开关 */
   onEffectToggle(e: any) {
     const effectKey = e.currentTarget.dataset.effect
-    if (!effectKey) return
+    if (!effectKey) {
+      return
+    }
 
     const currentEffects = { ...this.data.effects }
     ;(currentEffects as any)[effectKey] = !(currentEffects as any)[effectKey]
@@ -870,7 +931,9 @@ Page({
   /** 切换网格/列表视图 */
   onToggleViewMode(e: any) {
     const targetMode = e.currentTarget.dataset.mode
-    if (!targetMode || targetMode === this.data.viewMode) return
+    if (!targetMode || targetMode === this.data.viewMode) {
+      return
+    }
 
     this.setData({ viewMode: targetMode })
     wx.setStorageSync('card_view_mode', targetMode)
@@ -889,10 +952,14 @@ Page({
 
   /** 卡片按压涟漪效果 — touchstart 计算触点坐标 */
   onCardTouchStart(e: any) {
-    if (!this.data.effects.ripple) return
+    if (!this.data.effects.ripple) {
+      return
+    }
 
     const touch = e.touches[0]
-    if (!touch) return
+    if (!touch) {
+      return
+    }
 
     const cardIndex = e.currentTarget.dataset.cardIndex
     const tabSource = e.currentTarget.dataset.tab
@@ -901,7 +968,9 @@ Page({
     query
       .select(`[data-card-index="${cardIndex}"][data-tab="${tabSource}"]`)
       .boundingClientRect((rect: any) => {
-        if (!rect) return
+        if (!rect) {
+          return
+        }
         const rippleX = touch.clientX - rect.left
         const rippleY = touch.clientY - rect.top
 
@@ -911,10 +980,14 @@ Page({
           premium: 'premiumFilteredProducts'
         }
         const dataKey = dataKeyMap[tabSource]
-        if (!dataKey) return
+        if (!dataKey) {
+          return
+        }
 
         const productList = [...((this.data as any)[dataKey] || [])]
-        if (!productList[cardIndex]) return
+        if (!productList[cardIndex]) {
+          return
+        }
 
         productList[cardIndex] = {
           ...productList[cardIndex],
@@ -936,19 +1009,24 @@ Page({
   },
 
   /**
-   * 为商品数据附加前端展示用计算字段
+   * 为商品数据附加前端展示用计算字段（兑换商品 + 交易市场共用）
+   *
    * _priceLabel: 资产代码中文化（POINTS→积分）
-   * _rarityClass: 稀有度对应 CSS class（rare/epic/legend）
-   * _isLegendary: 是否传说/史诗级（触发全息光效）
-   * _isLimited: 是否限量商品（触发旋转彩虹边框）
+   * _rarityClass: 稀有度CSS class（仅交易市场有值，兑换商品无rarity字段为空）
+   * _isLegendary: 是否传说/史诗级（触发全息光效，仅交易市场生效）
+   * _isLimited: 是否限量商品（触发旋转彩虹边框，后端 is_limited 字段）
    * _hasImage: 是否有有效商品图片（触发全图叠字模式）
+   *
+   * 稀有度归属说明:
+   *   交易市场 market_listings.offer_item_rarity → 来源 item_templates.rarity_code
+   *   兑换商品 exchange_items 无 rarity 字段 → _rarityClass 为空，不触发全息光效
    */
   enrichProductDisplayFields(productList: any[]): any[] {
     const rarityClassMap: Record<string, string> = {
-      '普通': 'common',
-      '稀有': 'rare',
-      '史诗': 'epic',
-      '传说': 'legend',
+      普通: 'common',
+      稀有: 'rare',
+      史诗: 'epic',
+      传说: 'legend',
       common: 'common',
       rare: 'rare',
       epic: 'epic',
@@ -961,7 +1039,8 @@ Page({
 
     return productList.map(productItem => {
       const priceCode = productItem.price_asset_code || productItem.cost_asset_code || 'POINTS'
-      const rarityValue = productItem.offer_item_rarity || productItem.rarity || ''
+      /* 交易市场使用 offer_item_rarity，兑换商品无此字段为空字符串 */
+      const rarityValue = productItem.offer_item_rarity || ''
       const imgSrc = productItem.image || ''
       const validImage = imgSrc && imgSrc !== defaultImg && !productItem._imageError
 

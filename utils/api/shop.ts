@@ -1,10 +1,11 @@
 /**
  * 消费积分系统 + 核销API
- * 后端路由: routes/v4/shop/consumption/（用户端+商家端）
+ * 用户端路由: routes/v4/user/consumption/（QR码生成，所有已登录用户）
+ * 商家端路由: routes/v4/shop/consumption/（扫码获取用户信息、提交消费）
  * 核销路由: routes/v4/shop/redemption/
  *
  * @file 天工餐厅积分系统 - 消费与核销API模块
- * @version 5.2.0
+ * @version 5.3.0
  * @since 2026-02-15
  */
 
@@ -13,9 +14,15 @@ const { buildQueryString } = require('../util')
 
 // ==================== 用户端消====================
 
-/** 获取当前用户消费积分二维?- GET /api/v4/shop/consumption/qrcode */
+/**
+ * 获取当前用户消费积分二维码 - GET /api/v4/user/consumption/qrcode
+ *
+ * DB-3修复后路径变更：/shop/consumption/qrcode → /user/consumption/qrcode
+ * 所有已登录用户（含普通用户、商家员工、管理员）统一使用此端点
+ * 响应字段: qr_code, user_id, user_uuid, nonce, expires_at, generated_at, validity, algorithm
+ */
 async function getUserQRCode() {
-  return apiClient.request('/shop/consumption/qrcode', {
+  return apiClient.request('/user/consumption/qrcode', {
     method: 'GET',
     needAuth: true,
     showLoading: true,

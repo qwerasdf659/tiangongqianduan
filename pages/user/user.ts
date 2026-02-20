@@ -478,20 +478,6 @@ Page({
     }
   },
 
-  /** 点击手机号区域，显示完整手机号 */
-  onPhoneTap() {
-    if (!this.data.isLoggedIn) {
-      this.redirectToAuth()
-      return
-    }
-
-    wx.showModal({
-      title: '手机号码',
-      content: this.data.userInfo.mobile || '未设置',
-      showCancel: false
-    })
-  },
-
   /** 点击积分区域，跳转到积分明细页面 */
   onPointsTap() {
     if (!this.data.isLoggedIn) {
@@ -543,7 +529,17 @@ Page({
     }
   },
 
-  /** 退出登录 - 清除认证数据并跳转到登录页 */
+  /**
+   * 退出登录 - 通知后端释放会话 + 清除本地认证数据 + 跳转登录页
+   *
+   * 数据流：
+   *   用户确认退出
+   *   → POST /api/v4/auth/logout（后端将 authentication_sessions.is_active 设为 false）
+   *   → 清理本地 MobX Store + Storage
+   *   → 跳转到登录页
+   *
+   * 即使后端调用失败（网络异常等），仍然清理本地数据并跳转，保证用户能正常退出
+   */
   logout() {
     log.info('退出登录')
 
@@ -553,12 +549,17 @@ Page({
       showCancel: true,
       cancelText: '取消',
       confirmText: '退出',
-      success: res => {
-        if (res.confirm) {
-          // 🔴 清理用户数据（使用新项目的清理方法）
+      success: async (modalResult: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
+        if (modalResult.confirm) {
+          try {
+            await API.logout()
+            log.info('后端会话注销成功')
+          } catch (logoutError: any) {
+            log.warn('后端会话注销失败（不影响本地退出）:', logoutError.message)
+          }
+
           app.clearAuthData()
 
-          // 🔴 跳转到登录页（与旧项目保持一致）
           wx.reLaunch({
             url: '/packageUser/auth/auth'
           })

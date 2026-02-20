@@ -40,7 +40,7 @@ interface SafeApiCallOptions {
  *
  * 使用示例:
  *   const userData = await safeApiCall(
- *     () => API.getUserInfo(userId),
+ *     () => API.getUserInfo(),
  *     { context: '获取用户信息' }
  *   )
  *   if (userData) { this.setData({ userInfo: userData }) }
