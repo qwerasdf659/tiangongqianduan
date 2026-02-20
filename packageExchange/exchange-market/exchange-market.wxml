@@ -170,6 +170,24 @@
     />
   </scroll-view>
 
+  <!-- 我的交易管理 — 底部快捷操作栏 -->
+  <view class="trade-manage-bar">
+    <view class="manage-bar-inner">
+      <view class="manage-bar-left" bindtap="onGoToMyListings">
+        <text class="manage-bar-icon">📋</text>
+        <text class="manage-bar-text">我的挂单</text>
+        <view class="manage-bar-badge" wx:if="{{myOnSaleCount > 0}}">
+          <text>{{myOnSaleCount > 99 ? '99+' : myOnSaleCount}}</text>
+        </view>
+      </view>
+      <view class="manage-bar-divider"></view>
+      <view class="manage-bar-right" bindtap="onGoToInventory">
+        <text class="manage-bar-icon">📦</text>
+        <text class="manage-bar-text">去上架</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 购买确认弹窗 -->
   <view class="confirm-overlay" wx:if="{{showConfirm}}" bindtap="onCancelPurchase">
     <view class="confirm-modal" catchtap="">

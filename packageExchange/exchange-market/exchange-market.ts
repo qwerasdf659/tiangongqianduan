@@ -67,7 +67,10 @@ Component({
     purchasing: false,
     /** 购买结果弹窗 */
     showResult: false,
-    resultData: null as any
+    resultData: null as any,
+
+    /** 我的交易管理 — 在售挂单数量（来自 GET /api/v4/market/listing-status） */
+    myOnSaleCount: 0
   },
 
   lifetimes: {
@@ -86,11 +89,15 @@ Component({
     refreshToken(val: number) {
       if (val > 0) {
         this.loadProducts()
+        this.loadMyListingStatus()
       }
     },
     active(isActive: boolean) {
       if (isActive && (!this.data.products || this.data.products.length === 0)) {
         this.loadProducts()
+      }
+      if (isActive) {
+        this.loadMyListingStatus()
       }
     }
   },

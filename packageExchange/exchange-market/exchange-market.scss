@@ -4,6 +4,15 @@
 @import '../../styles/mixins';
 @import '../exchange-shelf/exchange-shelf-cards';
 
+/* 组件宿主元素：填充父容器 flex 剩余空间，传递 flex 上下文给内部根元素 */
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .exchange-content {
   display: flex;
   flex-direction: column;
@@ -193,6 +202,72 @@
 .seller-label {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
+}
+
+/* ===== 我的交易管理 — 底部快捷操作栏 ===== */
+.trade-manage-bar {
+  flex-shrink: 0;
+  padding: 12rpx 16rpx;
+  padding-bottom: calc(12rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1rpx solid $color-border-light;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.manage-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+  border-radius: $border-radius-md;
+  padding: 16rpx 0;
+}
+
+.manage-bar-left,
+.manage-bar-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  position: relative;
+}
+
+.manage-bar-left:active,
+.manage-bar-right:active {
+  opacity: 0.7;
+}
+
+.manage-bar-divider {
+  width: 1rpx;
+  height: 48rpx;
+  background: $color-border;
+}
+
+.manage-bar-icon {
+  font-size: $font-size-lg;
+}
+
+.manage-bar-text {
+  font-size: $font-size-base;
+  font-weight: 500;
+  color: $color-text-primary;
+}
+
+.manage-bar-badge {
+  min-width: 32rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  padding: 0 8rpx;
+  background: $color-error;
+  border-radius: 16rpx;
+  text-align: center;
+}
+
+.manage-bar-badge text {
+  font-size: $font-size-xs;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 /* 确认弹窗和结果弹窗样式（复用 shared 组件样式） */

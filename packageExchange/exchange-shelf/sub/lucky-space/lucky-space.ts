@@ -398,6 +398,26 @@ Component({
       })
     },
 
+    /**
+     * 卡片按压涟漪效果
+     * 通过 boundingClientRect 计算触点相对坐标，更新 _rippleActive/_rippleX/_rippleY
+     */
+    onCardTouchStart(e: any) {
+      if (!this.properties.effects || !(this.properties.effects as any).ripple) {
+        return
+      }
+      const touch = e.touches[0]
+      if (!touch) {
+        return
+      }
+      const cardIndex = e.currentTarget.dataset.cardIndex
+      this.applyRipple(
+        cardIndex,
+        touch.clientX - (e.currentTarget.offsetLeft || 0),
+        touch.clientY - (e.currentTarget.offsetTop || 0)
+      )
+    },
+
     /** 商品点击（通知父组件打开确认弹窗） */
     onProductTap(e: any) {
       const product = e.currentTarget.dataset.product

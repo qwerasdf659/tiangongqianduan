@@ -12,11 +12,9 @@
     </view>
   </view>
 
-  <!-- 页面头部 -->
-  <view class="header">
-    <!-- 🆕 整合布局：用户信息 + 二维码横向排列 -->
+  <!-- 页面头部（仅登录后渲染，防止未认证时闪现空数据UI） -->
+  <view class="header" wx:if="{{isLoggedIn}}">
     <view class="header-content">
-      <!-- 左侧：用户信息和积分（横向布局） -->
       <view class="user-info-section">
         <!-- 欢迎语 + 审核记录徽章 -->
         <view class="welcome-text">
@@ -113,8 +111,8 @@
     </view>
   </view>
 
-  <!-- 🔴 管理员专属功能条 - 仅管理员可见 -->
-  <view wx:if="{{isAdmin}}" class="admin-scan-bar">
+  <!-- 管理员专属功能条 — 需同时满足已登录且为管理员 -->
+  <view wx:if="{{isLoggedIn && isAdmin}}" class="admin-scan-bar">
     <!-- 左侧：静态文字 -->
     <view class="admin-scan-label">
       <text>商家扫码</text>

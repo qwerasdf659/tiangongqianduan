@@ -26,201 +26,40 @@
     </view>
   </view>
 
-  <!-- 卡片风格设置入口 -->
-  <view class="theme-settings-trigger" bindtap="onOpenThemeSettings">⚙</view>
+  <!-- 商品货架组件（view 包装器控制 hidden，组件始终存活保留状态） -->
+  <view class="tab-content-wrapper" hidden="{{currentTab !== 'exchange'}}">
+    <exchange-shelf
+      active="{{currentTab === 'exchange'}}"
+      pointsBalance="{{totalPoints}}"
+      frozenPoints="{{frozenPoints}}"
+      theme="{{cardTheme}}"
+      effects="{{effects}}"
+      viewMode="{{viewMode}}"
+      spaceId="{{currentSpace}}"
+      refreshToken="{{_shelfRefreshToken}}"
+      bind:exchange="onExchangeSuccess"
+      bind:pointsupdate="onPointsUpdate"
+      bind:viewmodechange="onViewModeChange"
+      bind:autherror="onAuthError"
+    />
+  </view>
 
-  <!-- 商品货架组件（hidden 模式保留组件状态） -->
-  <exchange-shelf
-    hidden="{{currentTab !== 'exchange'}}"
-    active="{{currentTab === 'exchange'}}"
-    pointsBalance="{{totalPoints}}"
-    frozenPoints="{{frozenPoints}}"
-    theme="{{cardTheme}}"
-    effects="{{effects}}"
-    viewMode="{{viewMode}}"
-    spaceId="{{currentSpace}}"
-    refreshToken="{{_shelfRefreshToken}}"
-    bind:exchange="onExchangeSuccess"
-    bind:pointsupdate="onPointsUpdate"
-    bind:viewmodechange="onViewModeChange"
-    bind:autherror="onAuthError"
-  />
-
-  <!-- 交易市场组件（hidden 模式保留组件状态） -->
-  <exchange-market
-    hidden="{{currentTab !== 'market'}}"
-    active="{{currentTab === 'market'}}"
-    pointsBalance="{{totalPoints}}"
-    theme="{{cardTheme}}"
-    effects="{{effects}}"
-    viewMode="{{viewMode}}"
-    refreshToken="{{_marketRefreshToken}}"
-    marketTypeFilters="{{marketTypeFilters}}"
-    marketCategoryFilters="{{marketCategoryFilters}}"
-    marketSortOptions="{{marketSortOptions}}"
-    bind:purchase="onPurchaseSuccess"
-    bind:pointsupdate="onPointsUpdate"
-    bind:viewmodechange="onViewModeChange"
-    bind:autherror="onAuthError"
-  />
-
-  <!-- 卡片风格设置面板 -->
-  <view class="theme-settings-overlay" wx:if="{{showThemeSettings}}" bindtap="onCloseThemeSettings">
-    <view class="theme-settings-panel" catchtap="">
-      <view class="settings-header">
-        <text class="settings-title">卡片风格</text>
-        <view class="settings-close" bindtap="onCloseThemeSettings">✕</view>
-      </view>
-
-      <scroll-view class="settings-body" scroll-y="{{true}}">
-        <!-- 主题方案选择 -->
-        <view class="settings-section">
-          <text class="settings-section-title">主题方案</text>
-          <view class="theme-options">
-            <view
-              class="theme-option-btn {{cardTheme === 'A' ? 'active' : ''}}"
-              bindtap="onThemeChange"
-              data-theme="A"
-            >
-              <text class="theme-label">毛玻璃</text>
-            </view>
-            <view
-              class="theme-option-btn {{cardTheme === 'B' ? 'active' : ''}}"
-              bindtap="onThemeChange"
-              data-theme="B"
-            >
-              <text class="theme-label">暖橙电商</text>
-            </view>
-            <view
-              class="theme-option-btn {{cardTheme === 'C' ? 'active' : ''}}"
-              bindtap="onThemeChange"
-              data-theme="C"
-            >
-              <text class="theme-label">暗色游戏</text>
-            </view>
-            <view
-              class="theme-option-btn {{cardTheme === 'D' ? 'active' : ''}}"
-              bindtap="onThemeChange"
-              data-theme="D"
-            >
-              <text class="theme-label">极简扁平</text>
-            </view>
-            <view
-              class="theme-option-btn {{cardTheme === 'E' ? 'active' : ''}}"
-              bindtap="onThemeChange"
-              data-theme="E"
-            >
-              <text class="theme-label">推荐方案</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 增强效果开关 -->
-        <view class="settings-section">
-          <text class="settings-section-title">增强效果</text>
-          <view class="effect-toggle-list">
-            <view class="effect-toggle-item">
-              <view class="effect-toggle-info">
-                <text class="effect-toggle-name">噪点纹理</text>
-                <text class="effect-toggle-desc">渐变区域叠加印刷质感</text>
-              </view>
-              <view
-                class="toggle-switch {{effects.grain ? 'on' : ''}}"
-                bindtap="onEffectToggle"
-                data-effect="grain"
-              >
-                <view class="toggle-knob"></view>
-              </view>
-            </view>
-            <view class="effect-toggle-item">
-              <view class="effect-toggle-info">
-                <text class="effect-toggle-name">全息光效</text>
-                <text class="effect-toggle-desc">稀有/传说品彩虹光泽</text>
-              </view>
-              <view
-                class="toggle-switch {{effects.holo ? 'on' : ''}}"
-                bindtap="onEffectToggle"
-                data-effect="holo"
-              >
-                <view class="toggle-knob"></view>
-              </view>
-            </view>
-            <view class="effect-toggle-item">
-              <view class="effect-toggle-info">
-                <text class="effect-toggle-name">旋转边框</text>
-                <text class="effect-toggle-desc">限量/即将结束品渐变边框</text>
-              </view>
-              <view
-                class="toggle-switch {{effects.rotatingBorder ? 'on' : ''}}"
-                bindtap="onEffectToggle"
-                data-effect="rotatingBorder"
-              >
-                <view class="toggle-knob"></view>
-              </view>
-            </view>
-            <view class="effect-toggle-item">
-              <view class="effect-toggle-info">
-                <text class="effect-toggle-name">呼吸光圈</text>
-                <text class="effect-toggle-desc">竞价即将结束脉动光效</text>
-              </view>
-              <view
-                class="toggle-switch {{effects.breathingGlow ? 'on' : ''}}"
-                bindtap="onEffectToggle"
-                data-effect="breathingGlow"
-              >
-                <view class="toggle-knob"></view>
-              </view>
-            </view>
-            <view class="effect-toggle-item">
-              <view class="effect-toggle-info">
-                <text class="effect-toggle-name">墨水扩散</text>
-                <text class="effect-toggle-desc">按压时涟漪扩散反馈</text>
-              </view>
-              <view
-                class="toggle-switch {{effects.ripple ? 'on' : ''}}"
-                bindtap="onEffectToggle"
-                data-effect="ripple"
-              >
-                <view class="toggle-knob"></view>
-              </view>
-            </view>
-            <view class="effect-toggle-item">
-              <view class="effect-toggle-info">
-                <text class="effect-toggle-name">全图叠字</text>
-                <text class="effect-toggle-desc">有图商品图片铺满卡片</text>
-              </view>
-              <view
-                class="toggle-switch {{effects.fullbleed ? 'on' : ''}}"
-                bindtap="onEffectToggle"
-                data-effect="fullbleed"
-              >
-                <view class="toggle-knob"></view>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <!-- 视图模式 -->
-        <view class="settings-section">
-          <text class="settings-section-title">视图模式</text>
-          <view class="theme-options">
-            <view
-              class="theme-option-btn {{viewMode === 'grid' ? 'active' : ''}}"
-              bindtap="onToggleViewMode"
-              data-mode="grid"
-            >
-              <text class="theme-label">⊞ 网格</text>
-            </view>
-            <view
-              class="theme-option-btn {{viewMode === 'list' ? 'active' : ''}}"
-              bindtap="onToggleViewMode"
-              data-mode="list"
-            >
-              <text class="theme-label">☰ 列表</text>
-            </view>
-          </view>
-        </view>
-      </scroll-view>
-    </view>
+  <!-- 交易市场组件（view 包装器控制 hidden，组件始终存活保留状态） -->
+  <view class="tab-content-wrapper" hidden="{{currentTab !== 'market'}}">
+    <exchange-market
+      active="{{currentTab === 'market'}}"
+      pointsBalance="{{totalPoints}}"
+      theme="{{cardTheme}}"
+      effects="{{effects}}"
+      viewMode="{{viewMode}}"
+      refreshToken="{{_marketRefreshToken}}"
+      marketTypeFilters="{{marketTypeFilters}}"
+      marketCategoryFilters="{{marketCategoryFilters}}"
+      marketSortOptions="{{marketSortOptions}}"
+      bind:purchase="onPurchaseSuccess"
+      bind:pointsupdate="onPointsUpdate"
+      bind:viewmodechange="onViewModeChange"
+      bind:autherror="onAuthError"
+    />
   </view>
 </view>

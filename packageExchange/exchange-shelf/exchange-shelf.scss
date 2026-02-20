@@ -3,6 +3,15 @@
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
+/* 组件宿主元素：填充父容器 flex 剩余空间，传递 flex 上下文给内部根元素 */
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 /* ① CSS 变量默认值声明（theme-E 作为 fallback） */
 .exchange-shelf {
   --shelf-card-bg: #ffffff;

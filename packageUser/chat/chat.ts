@@ -60,7 +60,7 @@ Page({
     currentChatName: '在线客服',
     currentChatIcon: '🎧',
 
-    // 聊天消息（后端 GET /api/v4/system/chat/history 返回）
+    // 聊天消息（后端 GET /api/v4/system/chat/sessions/:id/messages 返回）
     messages: [] as API.ChatMessage[],
     inputContent: '',
     inputFocused: false,

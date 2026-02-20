@@ -16,7 +16,7 @@
 
 const { API, Wechat, Logger, Utils } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market-behavior')
-const { getMarketProducts, purchaseMarketProduct } = API
+const { getMarketProducts, purchaseMarketProduct, getMyListingStatus } = API
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = require('../../utils/product-display')
@@ -367,6 +367,7 @@ module.exports = Behavior({
     /** 刷新 */
     onRefreshProducts() {
       this.loadProducts()
+      this.loadMyListingStatus()
     },
 
     /** 检查并刷新 */
@@ -380,6 +381,37 @@ module.exports = Behavior({
     /** 对外暴露的刷新方法 */
     refresh() {
       this.loadProducts()
+      this.loadMyListingStatus()
+    },
+
+    // ===== 我的交易管理 =====
+
+    /**
+     * 加载当前用户的挂单状态统计
+     * 后端API: GET /api/v4/market/listing-status
+     * 用于在交易市场底部管理栏展示在售挂单数量
+     */
+    async loadMyListingStatus() {
+      try {
+        const result = await getMyListingStatus()
+        if (result && result.success && result.data) {
+          const onSaleCount = result.data.on_sale_count || 0
+          this.setData({ myOnSaleCount: onSaleCount })
+          marketLog.info('我的挂单统计:', onSaleCount, '个在售')
+        }
+      } catch (error: any) {
+        marketLog.warn('获取挂单状态失败（不影响浏览）:', error.message)
+      }
+    },
+
+    /** 跳转到"我的挂单"管理页面 */
+    onGoToMyListings() {
+      wx.navigateTo({ url: '/packageTrade/trade/my-listings/my-listings' })
+    },
+
+    /** 跳转到仓库页面（去上架） */
+    onGoToInventory() {
+      wx.navigateTo({ url: '/packageTrade/trade/inventory/inventory' })
     }
   }
 })

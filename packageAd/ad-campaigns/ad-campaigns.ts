@@ -116,11 +116,7 @@ Page({
         throw new Error(result?.message || '获取广告活动列表失败')
       }
 
-      const newCampaigns = Array.isArray(result.data.campaigns)
-        ? result.data.campaigns
-        : Array.isArray(result.data.items)
-          ? result.data.items
-          : []
+      const newCampaigns = result.data.campaigns || []
 
       const styledCampaigns = newCampaigns.map((campaign: API.AdCampaign) => ({
         ...campaign,

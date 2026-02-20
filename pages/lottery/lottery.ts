@@ -154,13 +154,16 @@ Page({
   },
 
   async onShow() {
-    if (!this._isFirstLoad) {
-      this.setData({ loading: false })
+    /* 首次加载由 initializePage() 统一处理认证和数据，onShow 不重复检查 */
+    if (this._isFirstLoad) {
+      return
     }
 
     if (!checkAuth()) {
       return
     }
+
+    this.setData({ loading: false })
 
     const userInfo = restoreUserInfo()
     if (!userInfo) {
@@ -246,7 +249,8 @@ Page({
   async initializePage() {
     try {
       if (!checkAuth()) {
-        this.setData({ loading: false })
+        /* 认证失败时保持 loading 遮罩，避免未登录内容闪现 */
+        this._isFirstLoad = false
         return
       }
 
@@ -275,7 +279,12 @@ Page({
         }
       })
     } finally {
-      const finalData: any = { loading: false }
+      const finalData: any = {}
+
+      /* 仅认证通过时才移除加载遮罩 */
+      if (this.data.isLoggedIn) {
+        finalData.loading = false
+      }
 
       /* 弹窗横幅数据一并设置（同一帧显示） */
       if (this._preparedBanners?.length > 0) {
@@ -285,7 +294,9 @@ Page({
         this._bannerShowStartTime = Date.now()
       }
 
-      this.setData(finalData)
+      if (Object.keys(finalData).length > 0) {
+        this.setData(finalData)
+      }
       this._isFirstLoad = false
     }
   },

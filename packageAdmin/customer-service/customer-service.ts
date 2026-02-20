@@ -304,18 +304,43 @@ Page({
       return
     }
 
+    const senderType = messageData.sender_type || 'user'
+
+    /*
+     * 跳过管理员自己发送的消息回显
+     *
+     * 后端 Socket.IO 对所有订阅者广播 new_message（包括发送者本人），
+     * 但管理员自己的消息已通过以下两步处理:
+     *   1. sendChatMessage() 乐观UI — 立即添加本地消息（status: 'sending'）
+     *   2. message_sent 确认 — 更新 status → 'sent'，替换临时ID为真实 chat_message_id
+     *
+     * 如果不跳过，会导致同一条消息在界面出现两次
+     */
+    if (senderType === 'admin') {
+      log.info('跳过管理员自己发送的消息回显，chat_message_id:', messageData.chat_message_id)
+      return
+    }
+
     const msgSessionId = messageData.customer_service_session_id
 
     if (msgSessionId === this.data.currentSessionId) {
-      const senderType = messageData.sender_type || 'user'
+      const msgId = messageData.chat_message_id || `msg_${Date.now()}`
+
+      /* 去重检查: 防止 Socket.IO 网络抖动或重连补推导致重复消息 */
+      const exists = this.data.currentMessages.some((msg: any) => msg.id === msgId)
+      if (exists) {
+        log.info('消息去重 — 已存在相同ID的消息，跳过:', msgId)
+        return
+      }
+
       const newMessage = {
-        id: messageData.chat_message_id || `msg_${Date.now()}`,
+        id: msgId,
         senderId: messageData.sender_id,
         senderType,
         content: String(messageData.content || ''),
         messageType: messageData.message_type || 'text',
         createdAt: messageData.created_at || new Date().toISOString(),
-        isOwn: senderType === 'admin'
+        isOwn: false
       }
 
       this.setData({
@@ -324,7 +349,6 @@ Page({
       })
     }
 
-    // 实时消息到达时刷新会话列表
     this.refreshSessions()
   },
 
@@ -338,8 +362,14 @@ Page({
       return
     }
 
+    /*
+     * FIFO: 只更新第一条 status='sending' 的自己消息
+     * 防止快速连发场景下，所有 sending 消息被批量覆盖为同一个 serverMsgId
+     */
+    let updated = false
     const updatedMessages = this.data.currentMessages.map((msg: any) => {
-      if (msg.isOwn && msg.status === 'sending') {
+      if (!updated && msg.isOwn && msg.status === 'sending') {
+        updated = true
         return { ...msg, status: 'sent', id: serverMsgId }
       }
       return msg
@@ -608,7 +638,12 @@ Page({
    * 5. 更新消息状态（sent / failed）
    */
   async sendChatMessage() {
-    // 立即保存输入内容（防止被异步操作影响）
+    /* 发送锁: 防止管理员快速连点导致同一条消息被重复发送 */
+    if (this._isSending) {
+      log.warn('消息正在发送中，忽略重复点击')
+      return
+    }
+
     const originalInputContent = this.data.inputContent
     const content = originalInputContent ? originalInputContent.trim() : ''
 
@@ -621,6 +656,8 @@ Page({
       Wechat.showToast('请先选择一个聊天会话')
       return
     }
+
+    this._isSending = true
 
     log.info('发送管理员消息:', content.substring(0, 30))
 
@@ -681,6 +718,8 @@ Page({
       this.setData({ currentMessages: failedMessages })
 
       showToast('消息发送失败，请重试')
+    } finally {
+      this._isSending = false
     }
   },
 

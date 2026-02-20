@@ -369,6 +369,12 @@ Component({
       this.triggerEvent('viewmodechange', { mode: targetMode })
     },
 
+    /** 竞价完成事件（bid-panel 子组件触发） */
+    onBidComplete(_e: any) {
+      shelfLog.info('竞价完成，通知 Page 壳刷新积分')
+      this.triggerEvent('pointsupdate')
+    },
+
     /** 设置错误状态 */
     setErrorState(errorMessage: string, _errorDetail: string) {
       shelfLog.info('设置错误状态:', errorMessage)

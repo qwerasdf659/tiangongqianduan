@@ -257,8 +257,27 @@ const chatMessageHandlers = {
 
       /* 新消息（后端 snake_case: chat_message_id, content, sender_type） */
       case 'new_message':
-        msgLog.info('用户端收到新消息:', data)
-        if (data.sender_type === 'admin') {
+        msgLog.info('用户端收到新消息:', {
+          chat_message_id: data.chat_message_id,
+          sender_type: data.sender_type,
+          session_id: data.session_id || data.customer_service_session_id
+        })
+        if (data.sender_type === 'user') {
+          /*
+           * 用户自己发送的消息回显 — 跳过
+           *
+           * 后端 Socket.IO 对所有订阅者广播 new_message（包括发送者本人），
+           * 但前端已通过以下两步处理了自己的消息:
+           *   1. sendMessage() 乐观UI — 立即添加本地消息（status: 'sending'）
+           *   2. message_sent 确认 — 更新 status → 'sent'，替换临时ID为真实 chat_message_id
+           *
+           * 如果不跳过，会导致同一条消息在界面出现两次（wx:key 冲突: "Do not set same key"）
+           */
+          msgLog.info(
+            '跳过自己发送的消息回显（已通过乐观UI展示），chat_message_id:',
+            data.chat_message_id
+          )
+        } else if (data.sender_type === 'admin') {
           this.handleAdminMessage(data)
         } else {
           this.addMessage(data)
@@ -333,8 +352,16 @@ const chatMessageHandlers = {
       return
     }
 
+    /*
+     * FIFO: 只更新第一条 status='sending' 的自己消息
+     * 快速连发场景: 如果用户连续发送A、B两条消息，后端按序返回确认，
+     * 需要确保 A 的确认对应 A 的临时消息，B 的确认对应 B 的临时消息，
+     * 而不是把所有 sending 消息都更新为同一个 serverMsgId
+     */
+    let updated = false
     const messages = this.data.messages.map((msg: any) => {
-      if (msg.isOwn && msg.status === 'sending') {
+      if (!updated && msg.isOwn && msg.status === 'sending') {
+        updated = true
         return { ...msg, status: 'sent', id: serverMsgId }
       }
       return msg
@@ -384,6 +411,19 @@ const chatMessageHandlers = {
    * 判断消息方向: sender_type='user' → 自己发的(右侧)，其余 → 对方发的(左侧)
    */
   addMessage(messageData: any) {
+    const msgId = messageData.chat_message_id || messageData.id
+    /*
+     * 去重检查: 防止同一条消息被重复添加
+     * 场景: Socket.IO 网络抖动、重连后补推、或 new_message 与 message_sent 竞态
+     */
+    if (msgId) {
+      const exists = this.data.messages.some((msg: any) => msg.id === msgId)
+      if (exists) {
+        msgLog.info('消息去重 — 已存在相同ID的消息，跳过:', msgId)
+        return
+      }
+    }
+
     const isOwn =
       messageData.isOwn !== undefined ? messageData.isOwn : messageData.sender_type === 'user'
 
@@ -392,7 +432,7 @@ const chatMessageHandlers = {
       (messageData.created_at ? new Date(messageData.created_at).getTime() : Date.now())
 
     const newMessage = {
-      id: messageData.chat_message_id || messageData.id || `msg_${Date.now()}`,
+      id: msgId || `msg_${Date.now()}`,
       content: messageData.content || '',
       messageType: messageData.messageType || messageData.message_type || 'text',
       isOwn,
@@ -508,6 +548,12 @@ const chatMessageHandlers = {
    * API降级:  POST /api/v4/system/chat/sessions/:id/messages
    */
   async sendMessage() {
+    /* 发送锁: 防止用户快速连点导致同一条消息被重复发送 */
+    if (this._isSending) {
+      msgLog.warn('消息正在发送中，忽略重复点击')
+      return
+    }
+
     const rawInput = this.data.inputContent
     const content = (rawInput || '').trim()
 
@@ -529,6 +575,8 @@ const chatMessageHandlers = {
       msgShowToast('会话连接中，请稍后重试')
       return
     }
+
+    this._isSending = true
 
     const localMsgId = `local_${Date.now()}`
     const message = {
@@ -588,6 +636,8 @@ const chatMessageHandlers = {
         msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
       )
       this.setData({ messages: failedMessages })
+    } finally {
+      this._isSending = false
     }
   },
 

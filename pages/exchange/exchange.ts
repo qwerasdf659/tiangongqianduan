@@ -10,7 +10,7 @@
  *   2. MobX Store 绑定（userStore + pointsStore）
  *   3. 积分余额刷新（API → MobX → 下传 properties）
  *   4. Tab 切换（currentTab 控制 hidden 属性）
- *   5. 卡片主题偏好管理（theme/effects/viewMode → localStorage + 下传 properties）
+ *   5. 卡片主题配置（theme/effects/viewMode 由后端配置下发 → 下传 properties）
  *   6. WebSocket 订阅（refreshToken property 驱动子组件刷新）
  *   7. 兑换页面配置加载（4层降级策略）
  *
@@ -25,6 +25,7 @@ const app = getApp()
 
 const { Utils, API, Logger, ExchangeConfig } = require('../../utils/index')
 const log = Logger.createLogger('exchange')
+const { checkAuth } = Utils
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
@@ -50,7 +51,7 @@ Page({
     loading: true,
     refreshing: false,
 
-    /** 卡片主题系统（下传给两个组件） */
+    /** 卡片主题系统（后端配置下发，下传给两个组件） */
     cardTheme: 'E',
     effects: {
       grain: true,
@@ -62,7 +63,6 @@ Page({
       listView: false
     } as any,
     viewMode: 'grid',
-    showThemeSettings: false,
 
     /** 交易市场筛选配置（后端下发，传给 exchange-market） */
     marketTypeFilters: [] as any[],
@@ -89,6 +89,10 @@ Page({
       actions: ['setBalance']
     })
 
+    if (!checkAuth()) {
+      return
+    }
+
     Utils.restoreUserInfo()
     await this._loadExchangePageConfig()
     this._restoreThemePreferences()
@@ -98,6 +102,10 @@ Page({
   /** 页面显示（恢复积分 + WebSocket 连接） */
   async onShow() {
     log.info('兑换页面显示')
+
+    if (!checkAuth()) {
+      return
+    }
 
     let localUserInfo = userStore.userInfo
     if (!localUserInfo || !localUserInfo.user_id) {
@@ -292,72 +300,7 @@ Page({
       return
     }
     this.setData({ viewMode: targetMode })
-    wx.setStorageSync('card_view_mode', targetMode)
     log.info('视图模式切换:', targetMode)
-  },
-
-  /** 切换主题方案 */
-  onThemeChange(e: any) {
-    const selectedTheme = e.currentTarget.dataset.theme
-    if (!selectedTheme || selectedTheme === this.data.cardTheme) {
-      return
-    }
-    this.setData({ cardTheme: selectedTheme })
-    wx.setStorageSync('card_theme', selectedTheme)
-    log.info('卡片主题切换:', selectedTheme)
-  },
-
-  /** 切换增强效果开关 */
-  onEffectToggle(e: any) {
-    const effectKey = e.currentTarget.dataset.effect
-    if (!effectKey) {
-      return
-    }
-    const currentEffects = { ...this.data.effects }
-    ;(currentEffects as any)[effectKey] = !(currentEffects as any)[effectKey]
-    this.setData({ effects: currentEffects })
-    wx.setStorageSync('card_effects', currentEffects)
-  },
-
-  /** 视图模式切换（设置面板内按钮） */
-  onToggleViewMode(e: any) {
-    const targetMode = e.currentTarget.dataset.mode
-    if (!targetMode || targetMode === this.data.viewMode) {
-      return
-    }
-    this.setData({ viewMode: targetMode })
-    wx.setStorageSync('card_view_mode', targetMode)
-  },
-
-  onOpenThemeSettings() {
-    this.setData({ showThemeSettings: true })
-  },
-
-  onCloseThemeSettings() {
-    this.setData({ showThemeSettings: false })
-  },
-
-  /** 从 localStorage 恢复用户主题偏好（覆盖后端配置默认值） */
-  _restoreThemePreferences() {
-    const savedTheme = wx.getStorageSync('card_theme')
-    const savedEffects = wx.getStorageSync('card_effects')
-    const savedViewMode = wx.getStorageSync('card_view_mode')
-
-    const updateData: Record<string, any> = {}
-    if (savedTheme) {
-      updateData.cardTheme = savedTheme
-    }
-    if (savedEffects) {
-      updateData.effects = savedEffects
-    }
-    if (savedViewMode) {
-      updateData.viewMode = savedViewMode
-    }
-
-    if (Object.keys(updateData).length > 0) {
-      this.setData(updateData)
-      log.info('恢复用户主题偏好:', Object.keys(updateData))
-    }
   }
 })
 
