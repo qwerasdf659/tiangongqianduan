@@ -1,0 +1,226 @@
+<!-- exchange-market 交易市场组件 -->
+<!-- CSS变量通过 style="{{marketThemeStyle}}" 注入 -->
+<view class="exchange-content" style="{{marketThemeStyle}}">
+  <!-- 🔒 固定头部区域 -->
+  <view class="header exchange-market-sticky-header">
+    <view class="user-info">
+      <view class="points-info">
+        <text class="points-label">可用积分：</text>
+        <text class="points-value">{{pointsBalance}}</text>
+      </view>
+      <view class="header-search-box">
+        <input
+          class="header-search-input"
+          placeholder="搜索商品名称..."
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
+        <text class="header-search-icon">🔍</text>
+      </view>
+      <view class="header-quick-actions">
+        <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
+        <view class="header-action-btn" bindtap="onSortByPoints">📊 按售价排序</view>
+        <view class="view-toggle">
+          <view
+            class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}"
+            bindtap="onToggleViewMode"
+            data-mode="grid"
+            >⊞</view
+          >
+          <view
+            class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}"
+            bindtap="onToggleViewMode"
+            data-mode="list"
+            >☰</view
+          >
+        </view>
+      </view>
+    </view>
+
+    <!-- 筛选功能 -->
+    <view class="search-filter">
+      <view class="filter-buttons">
+        <button
+          wx:for="{{marketTypeFilters}}"
+          wx:key="value"
+          class="filter-btn {{currentFilter === item.value ? 'active' : ''}}"
+          bindtap="onFilterChange"
+          data-filter="{{item.value}}"
+        >
+          {{item.label}}
+        </button>
+        <button
+          class="advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}"
+          bindtap="onToggleAdvancedFilter"
+        >
+          高级筛选 {{showAdvancedFilter ? '▲' : '▼'}}
+        </button>
+      </view>
+
+      <view class="advanced-filter-panel" wx:if="{{showAdvancedFilter}}">
+        <view class="filter-row" wx:if="{{marketCategoryFilters.length > 0}}">
+          <text class="filter-label">挂单类型</text>
+          <view class="filter-options">
+            <view
+              wx:for="{{marketCategoryFilters}}"
+              wx:key="value"
+              class="option-btn {{categoryFilter === item.value ? 'active' : ''}}"
+              data-category="{{item.value}}"
+              bindtap="onCategoryFilterChange"
+              >{{item.label}}</view
+            >
+          </view>
+        </view>
+        <view class="filter-row" wx:if="{{marketSortOptions.length > 0}}">
+          <text class="filter-label">排序方式</text>
+          <view class="filter-options">
+            <view
+              wx:for="{{marketSortOptions}}"
+              wx:key="value"
+              class="option-btn {{sortBy === item.value ? 'active' : ''}}"
+              data-sort="{{item.value}}"
+              bindtap="onSortByChange"
+              >{{item.label}}</view
+            >
+          </view>
+        </view>
+        <view class="filter-actions">
+          <view class="reset-btn" bindtap="onResetFilters">重置筛选</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 🔒 可滚动商品列表 -->
+  <scroll-view
+    class="market-scroll-content"
+    scroll-y="{{true}}"
+    enhanced="{{true}}"
+    show-scrollbar="{{false}}"
+  >
+    <loading-spinner wx:if="{{loading}}" />
+
+    <view wx:else class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
+      <view
+        wx:for="{{filteredProducts}}"
+        wx:key="market_listing_id"
+        class="unified-card theme-{{theme || 'E'}} {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
+        data-product="{{item}}"
+        data-card-index="{{index}}"
+        bindtap="onProductTap"
+        bindtouchstart="onCardTouchStart"
+      >
+        <view
+          wx:if="{{effects.ripple && item._rippleActive}}"
+          class="ripple-layer ripple-active"
+          style="left:{{item._rippleX}}px;top:{{item._rippleY}}px"
+        ></view>
+        <view class="type-bar {{item.listing_kind === 'fungible_asset' ? 'asset' : 'item'}}"></view>
+
+        <view class="card-image-area">
+          <image
+            wx:if="{{item.imageStatus !== 'error'}}"
+            src="{{item.image}}"
+            mode="aspectFill"
+            lazy-load="{{true}}"
+            data-index="{{index}}"
+            binderror="onImageError"
+            bindload="onImageLoad"
+          />
+          <view
+            wx:else
+            class="image-fallback {{item.listing_kind === 'fungible_asset' ? 'asset-type' : 'item-type'}}"
+          >
+            <text class="fallback-icon"
+              >{{item.listing_kind === 'fungible_asset' ? '🪙' : '🎁'}}</text
+            >
+            <text class="fallback-name">{{item.item_name}}</text>
+          </view>
+          <view wx:if="{{item._rarityClass}}" class="badge-tag {{item._rarityClass}}"
+            >{{item.offer_item_rarity}}</view
+          >
+          <view
+            class="type-capsule {{item.listing_kind === 'fungible_asset' ? 'asset-capsule' : 'item-capsule'}}"
+            >{{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</view
+          >
+        </view>
+
+        <view class="card-body">
+          <text class="product-name">{{item.item_name}}</text>
+          <text class="product-desc">{{item.description}}</text>
+          <view class="price-row">
+            <text class="price-unit">{{item._priceLabel || '积分'}}</text>
+            <text class="price-current">{{item.price_amount}}</text>
+          </view>
+          <view class="seller-info" wx:if="{{item.seller_nickname}}">
+            <text class="seller-label">卖家：{{item.seller_nickname}}</text>
+          </view>
+          <view class="cta-btn">立即购买</view>
+        </view>
+      </view>
+    </view>
+
+    <empty-state wx:if="{{!loading && filteredProducts.length === 0}}" />
+
+    <pagination
+      wx:if="{{totalPages > 1}}"
+      current="{{currentPage}}"
+      total="{{totalPages}}"
+      bind:change="onPaginationChange"
+    />
+  </scroll-view>
+
+  <!-- 购买确认弹窗 -->
+  <view class="confirm-overlay" wx:if="{{showConfirm}}" bindtap="onCancelPurchase">
+    <view class="confirm-modal" catchtap="">
+      <view class="confirm-header">
+        <text class="confirm-title">确认购买</text>
+        <view class="confirm-close" bindtap="onCancelPurchase">✕</view>
+      </view>
+      <view class="confirm-body" wx:if="{{selectedProduct}}">
+        <view class="confirm-product-info">
+          <image class="confirm-product-image" src="{{selectedProduct.image}}" mode="aspectFill" />
+          <view class="confirm-product-detail">
+            <text class="confirm-product-name">{{selectedProduct.item_name}}</text>
+            <text class="confirm-product-price"
+              >{{selectedProduct.price_amount}} {{selectedProduct._priceLabel || '积分'}}</text
+            >
+          </view>
+        </view>
+        <view class="confirm-balance-row">
+          <text class="confirm-balance-label">当前余额</text>
+          <text class="confirm-balance-value">{{pointsBalance}} 积分</text>
+        </view>
+      </view>
+      <view class="confirm-footer">
+        <view class="confirm-cancel-btn" bindtap="onCancelPurchase">取消</view>
+        <view
+          class="confirm-submit-btn {{purchasing ? 'disabled' : ''}}"
+          bindtap="onConfirmPurchase"
+          >{{purchasing ? '购买中...' : '确认购买'}}</view
+        >
+      </view>
+    </view>
+  </view>
+
+  <!-- 购买结果弹窗 -->
+  <view class="result-overlay" wx:if="{{showResult}}" bindtap="onCloseResult">
+    <view class="result-modal" catchtap="">
+      <view class="result-icon">✅</view>
+      <text class="result-title">购买成功</text>
+      <view class="result-detail" wx:if="{{resultData}}">
+        <view class="result-row"
+          ><text class="result-label">商品</text
+          ><text class="result-value">{{resultData.product.item_name}}</text></view
+        >
+        <view class="result-row"
+          ><text class="result-label">支付</text
+          ><text class="result-value">{{resultData.payAmount}} 积分</text></view
+        >
+      </view>
+      <view class="result-footer">
+        <view class="result-btn" bindtap="onCloseResult">确定</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,9 @@
+/* premium-space 臻选空间子组件样式 */
+/* 从 _exchange-premium.scss 第1-609行搬入 */
+@import '../../../../styles/variables';
+@import '../../../../styles/mixins';
+@import '../../exchange-shelf-cards';
+
+.premium-space-content {
+  padding: 20rpx 16rpx;
+}

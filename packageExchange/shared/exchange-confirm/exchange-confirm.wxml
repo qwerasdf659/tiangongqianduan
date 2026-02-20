@@ -1,0 +1,53 @@
+<!-- 兑换确认弹窗组件 -->
+<view class="confirm-overlay" wx:if="{{visible}}" bindtap="onClose">
+  <view class="confirm-modal" catchtap="">
+    <view class="confirm-header">
+      <text class="confirm-title">确认兑换</text>
+      <view class="confirm-close" bindtap="onClose">✕</view>
+    </view>
+
+    <view class="confirm-body" wx:if="{{product}}">
+      <view class="confirm-product-info">
+        <image
+          class="confirm-product-image"
+          src="{{product.image || '/images/products/default-product.png'}}"
+          mode="aspectFill"
+        />
+        <view class="confirm-product-detail">
+          <text class="confirm-product-name">{{product.name}}</text>
+          <text class="confirm-product-price"
+            >{{product.cost_amount}} {{product._priceLabel || '积分'}}</text
+          >
+        </view>
+      </view>
+
+      <view class="confirm-quantity-row">
+        <text class="confirm-quantity-label">兑换数量</text>
+        <view class="confirm-quantity-controls">
+          <view class="qty-btn" data-action="decrease" bindtap="onQuantityChange">-</view>
+          <text class="qty-value">{{quantity}}</text>
+          <view class="qty-btn" data-action="increase" bindtap="onQuantityChange">+</view>
+        </view>
+      </view>
+
+      <view class="confirm-total-row">
+        <text class="confirm-total-label">合计消耗</text>
+        <text class="confirm-total-value"
+          >{{product.cost_amount * quantity}} {{product._priceLabel || '积分'}}</text
+        >
+      </view>
+
+      <view class="confirm-balance-row">
+        <text class="confirm-balance-label">当前余额</text>
+        <text class="confirm-balance-value">{{pointsBalance}} 积分</text>
+      </view>
+    </view>
+
+    <view class="confirm-footer">
+      <view class="confirm-cancel-btn" bindtap="onClose">取消</view>
+      <view class="confirm-submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onConfirm">
+        {{submitting ? '兑换中...' : '确认兑换'}}
+      </view>
+    </view>
+  </view>
+</view>

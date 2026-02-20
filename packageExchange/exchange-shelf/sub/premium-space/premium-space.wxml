@@ -1,0 +1,72 @@
+<!-- premium-space 臻选空间子组件 — 双列网格展示 -->
+<view class="premium-space-content">
+  <!-- 加载中 -->
+  <loading-spinner wx:if="{{loading}}" />
+
+  <!-- 商品网格 -->
+  <view wx:else class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
+    <view
+      wx:for="{{filteredProducts}}"
+      wx:key="id"
+      class="unified-card theme-{{theme || 'E'}} {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
+      data-product="{{item}}"
+      data-card-index="{{index}}"
+      data-tab="premium"
+      bindtap="onProductTap"
+    >
+      <view class="type-bar {{item.cost_asset_code === 'POINTS' ? 'asset' : 'item'}}"></view>
+
+      <view class="card-image-area">
+        <image
+          wx:if="{{item._hasImage}}"
+          src="{{item.image}}"
+          mode="aspectFill"
+          lazy-load="{{true}}"
+          data-index="{{index}}"
+          binderror="onImageError"
+        />
+        <view wx:else class="image-fallback asset-type">
+          <text class="fallback-icon">💎</text>
+          <text class="fallback-name">{{item.name}}</text>
+        </view>
+        <view wx:if="{{item.is_hot}}" class="badge-tag hot">热销</view>
+        <view wx:elif="{{item.is_new}}" class="badge-tag new">新品</view>
+        <view wx:elif="{{item.is_limited}}" class="badge-tag limited">限量</view>
+      </view>
+
+      <view class="card-body">
+        <text class="product-name">{{item.name}}</text>
+        <text class="product-desc" wx:if="{{item.sell_point}}">{{item.sell_point}}</text>
+        <view class="price-row">
+          <text class="price-unit">{{item._priceLabel || '积分'}}</text>
+          <text class="price-current">{{item.cost_amount}}</text>
+          <text class="price-original" wx:if="{{item.original_price}}"
+            >{{item.original_price}}</text
+          >
+        </view>
+        <view class="stock-bar" wx:if="{{item.stock !== undefined}}">
+          <view
+            class="stock-fill {{item.stock > 50 ? 'fill-high' : (item.stock > 10 ? 'fill-medium' : 'fill-low')}}"
+            style="width:{{item.stock > 0 ? (item.stock > 100 ? 100 : item.stock) : 0}}%"
+          ></view>
+        </view>
+        <text
+          class="stock-text {{item.stock > 50 ? 'stock-high' : (item.stock > 10 ? 'stock-medium' : (item.stock > 0 ? 'stock-low' : 'stock-out'))}}"
+          >{{item.stock > 0 ? ('库存 ' + item.stock) : '已售罄'}}</text
+        >
+        <view class="cta-btn {{item.stock <= 0 ? 'btn-disabled' : ''}}"
+          >{{item.stock > 0 ? '立即兑换' : '已售罄'}}</view
+        >
+      </view>
+    </view>
+  </view>
+
+  <empty-state wx:if="{{!loading && filteredProducts.length === 0}}" />
+
+  <pagination
+    wx:if="{{totalPages > 1}}"
+    current="{{currentPage}}"
+    total="{{totalPages}}"
+    bind:change="onPaginationChange"
+  />
+</view>

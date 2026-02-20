@@ -1,0 +1,29 @@
+<!-- 兑换结果弹窗组件 -->
+<view class="result-overlay" wx:if="{{visible}}" bindtap="onClose">
+  <view class="result-modal" catchtap="">
+    <view class="result-icon">{{success ? '✅' : '❌'}}</view>
+    <text class="result-title">{{success ? '兑换成功' : '兑换失败'}}</text>
+    <text class="result-message" wx:if="{{message}}">{{message}}</text>
+
+    <view class="result-detail" wx:if="{{orderData && success}}">
+      <view class="result-row" wx:if="{{orderData.product}}">
+        <text class="result-label">商品名称</text>
+        <text class="result-value">{{orderData.product.name}}</text>
+      </view>
+      <view class="result-row" wx:if="{{orderData.orderNo}}">
+        <text class="result-label">订单编号</text>
+        <text class="result-value">{{orderData.orderNo}}</text>
+      </view>
+      <view class="result-row" wx:if="{{orderData.payAmount}}">
+        <text class="result-label">消耗</text>
+        <text class="result-value"
+          >{{orderData.payAmount}} {{orderData.payAssetCode || '积分'}}</text
+        >
+      </view>
+    </view>
+
+    <view class="result-footer">
+      <view class="result-btn" bindtap="onClose">确定</view>
+    </view>
+  </view>
+</view>

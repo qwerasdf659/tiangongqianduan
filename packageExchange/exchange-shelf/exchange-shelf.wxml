@@ -1,0 +1,135 @@
+<!-- exchange-shelf 商品货架组件 — 对标 lottery-activity -->
+<!-- CSS变量通过 style="{{shelfThemeStyle}}" 从根元素向下继承到所有子组件 -->
+<view class="exchange-shelf" style="{{shelfThemeStyle}}">
+  <!-- 🔒 固定头部：空间切换导航 -->
+  <view class="shop-sticky-header">
+    <!-- 🎯 增强版胶囊式空间切换器 -->
+    <view class="space-selector-enhanced">
+      <view class="selector-track">
+        <view
+          class="selector-slider {{currentSpace === 'premium' ? 'slide-right' : 'slide-left'}}"
+        ></view>
+        <view
+          class="space-tab-enhanced {{item.id === currentSpace ? 'active' : ''}} {{item.id === 'premium' && !premiumUnlocked ? 'locked' : ''}}"
+          wx:for="{{spaceList}}"
+          wx:key="id"
+          data-space="{{item.id}}"
+          bindtap="onSpaceChange"
+        >
+          <view class="tab-inner">
+            <view class="tab-icon-row">
+              <text class="tab-emoji">{{item.id === 'lucky' ? '🍀' : '💎'}}</text>
+              <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}"
+                >{{item.id === 'premium' && !premiumUnlocked ? '🔒 ' : ''}}{{item.name}}</text
+              >
+            </view>
+            <text class="tab-desc {{item.id === currentSpace ? 'active-desc' : ''}}"
+              >{{item.id === 'premium' && !premiumUnlocked ? '达标可解锁' : item.subtitle}}</text
+            >
+          </view>
+          <view
+            wx:if="{{item.id === 'premium'}}"
+            class="unlock-badge {{premiumUnlocked ? 'unlocked' : 'locked'}}"
+          >
+            <text>{{premiumUnlocked ? '已解锁' : (premiumCanUnlock ? '可解锁' : '未解锁')}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 📊 积分信息 + 快捷操作 -->
+    <view class="header exchange-market-sticky-header">
+      <view class="user-info">
+        <view class="points-info">
+          <text class="points-label">可用积分：</text>
+          <text class="points-value">{{pointsBalance}}</text>
+        </view>
+        <view class="header-quick-actions">
+          <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
+          <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
+          <view class="view-toggle">
+            <view
+              class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}"
+              bindtap="onToggleViewMode"
+              data-mode="grid"
+              >⊞</view
+            >
+            <view
+              class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}"
+              bindtap="onToggleViewMode"
+              data-mode="list"
+              >☰</view
+            >
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 🔒 可滚动内容区域 -->
+  <scroll-view
+    class="shop-scroll-body"
+    scroll-y="{{true}}"
+    enhanced="{{true}}"
+    show-scrollbar="{{false}}"
+  >
+    <!-- 🍀 幸运空间子组件 -->
+    <lucky-space
+      id="lucky-space"
+      wx:if="{{currentSpace === 'lucky'}}"
+      pointsBalance="{{pointsBalance}}"
+      effects="{{effects}}"
+      viewMode="{{viewMode}}"
+      basicFilters="{{luckyBasicFilters}}"
+      categoryOptions="{{categoryOptions}}"
+      costRangeOptions="{{costRangeOptions}}"
+      stockStatusOptions="{{stockStatusOptions}}"
+      sortByOptions="{{sortByOptions}}"
+      bind:producttap="onProductTap"
+    />
+
+    <!-- 💎 臻选空间子组件 -->
+    <premium-space
+      id="premium-space"
+      wx:if="{{currentSpace === 'premium'}}"
+      pointsBalance="{{pointsBalance}}"
+      effects="{{effects}}"
+      viewMode="{{viewMode}}"
+      premiumUnlocked="{{premiumUnlocked}}"
+      bind:producttap="onProductTap"
+    />
+
+    <!-- 🏷 竞价区域子组件（臻选空间下方，始终可见） -->
+    <bid-panel
+      id="bid-panel"
+      wx:if="{{currentSpace === 'premium' && premiumUnlocked}}"
+      pointsBalance="{{pointsBalance}}"
+      theme="{{theme}}"
+      refreshToken="{{refreshToken}}"
+      bind:bidcomplete="onBidComplete"
+    />
+
+    <!-- 加载状态 -->
+    <loading-spinner wx:if="{{loading}}" />
+  </scroll-view>
+
+  <!-- 兑换确认弹窗 -->
+  <exchange-confirm
+    visible="{{showShopConfirm}}"
+    product="{{selectedShopProduct}}"
+    quantity="{{shopExchangeQuantity}}"
+    pointsBalance="{{pointsBalance}}"
+    submitting="{{shopExchanging}}"
+    bind:confirm="onConfirmShopExchange"
+    bind:close="onCancelShopExchange"
+    bind:quantitychange="onShopQuantityChange"
+  />
+
+  <!-- 兑换结果弹窗 -->
+  <exchange-result
+    visible="{{showShopResult}}"
+    success="{{true}}"
+    orderData="{{shopResultData}}"
+    bind:close="onCloseShopResult"
+  />
+</view>

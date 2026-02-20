@@ -1,11 +1,10 @@
-/* 兑换页面样式 - V5.1 Sass模块化版本 */
-/* 从4672行拆分为5个文件: 公共样式 + 4个模块partial */
+/* 兑换页面样式 — 薄壳 Page Shell */
+/* 组件化后仅保留: 容器布局 + Tab导航 + 主题设置面板 */
+/* 商品/市场/卡片样式已迁入 packageExchange/ 各组件 SCSS */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
-/* 🎨 柔和的整体容器背景 - 与抽奖/拍照页面协调 */
 .exchange-container {
-  /* 🔒 固定全屏布局：导航栏和头部固定不动，仅商品列表区域可滚动 */
   height: 100vh;
   overflow: hidden;
   display: flex;
@@ -17,201 +16,10 @@
     rgba(76, 205, 196, 0.08) 100%
   );
   padding: 8rpx 12rpx 0;
-  /* 🔧 底部padding去掉，由tabBar自身控制安全区域，最大化商品展示空间 */
   position: relative;
   box-sizing: border-box;
 }
 
-/* ========== 🔍 幸运空间搜索筛选区域样式 ========== */
-.search-filter-section {
-  background: transparent;
-  padding: 0;
-  margin: 20rpx 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-/* 搜索框样式 */
-.search-filter-section .search-box {
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 20rpx;
-  padding: 24rpx 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow:
-    0 8rpx 24rpx rgba(0, 0, 0, 0.08),
-    0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  border: 2rpx solid rgba(102, 126, 234, 0.15);
-}
-
-.search-filter-section .search-input {
-  flex: 1;
-  font-size: $font-size-base;
-  color: $color-text-primary;
-  margin-left: 0;
-  background: transparent;
-}
-
-.search-filter-section .search-icon {
-  font-size: $font-size-lg;
-  margin-right: 12rpx;
-}
-
-/* 筛选按钮组样式 */
-.search-filter-section .filter-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20rpx;
-  margin-bottom: 24rpx;
-}
-
-.search-filter-section .filter-btn {
-  flex: 1;
-  min-width: 140rpx;
-  height: 76rpx;
-  line-height: 76rpx;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: $border-radius-md;
-  font-size: $font-size-base;
-  font-weight: 500;
-  color: $color-text-secondary;
-  border: 2rpx solid rgba(102, 126, 234, 0.15);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  padding: 0;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-}
-
-.search-filter-section .filter-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: $color-text-white;
-  border-color: transparent;
-  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.35);
-  transform: translateY(-2rpx);
-}
-
-.search-filter-section .advanced-filter-btn {
-  width: 100%;
-  height: 76rpx;
-  line-height: 76rpx;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: $border-radius-md;
-  font-size: $font-size-base;
-  font-weight: 500;
-  color: $color-text-secondary;
-  border: 2rpx solid rgba(102, 126, 234, 0.15);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-}
-
-.search-filter-section .advanced-filter-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: $color-text-white;
-  border-color: transparent;
-  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.35);
-}
-
-/* 高级筛选面板 */
-.search-filter-section .advanced-filter-panel {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 20rpx;
-  padding: 32rpx;
-  margin-top: 24rpx;
-  box-shadow:
-    0 8rpx 24rpx rgba(0, 0, 0, 0.08),
-    0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  border: 2rpx solid rgba(102, 126, 234, 0.1);
-  animation: slideDown 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20rpx);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 筛选行样式 */
-.search-filter-section .filter-row {
-  margin-bottom: 32rpx;
-}
-
-.search-filter-section .filter-row:last-child {
-  margin-bottom: 0;
-}
-
-.search-filter-section .filter-label {
-  display: block;
-  font-size: $font-size-base;
-  font-weight: 600;
-  color: $color-text-primary;
-  margin-bottom: 20rpx;
-}
-
-.search-filter-section .filter-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-}
-
-.search-filter-section .option-btn {
-  flex: 0 0 auto;
-  height: 68rpx;
-  line-height: 68rpx;
-  padding: 0 28rpx;
-  background: rgba(248, 250, 252, 0.95);
-  border-radius: 12rpx;
-  font-size: 26rpx;
-  color: $color-text-secondary;
-  border: 2rpx solid rgba(102, 126, 234, 0.12);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.search-filter-section .option-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: $color-text-white;
-  border-color: transparent;
-  box-shadow: 0 6rpx 16rpx rgba(102, 126, 234, 0.3);
-  transform: translateY(-2rpx);
-}
-
-/* 筛选操作按钮 */
-.search-filter-section .filter-actions {
-  margin-top: 32rpx;
-  padding-top: 24rpx;
-  border-top: 2rpx solid rgba(102, 126, 234, 0.1);
-  display: flex;
-  justify-content: center;
-}
-
-.search-filter-section .reset-btn {
-  width: 240rpx;
-  height: 76rpx;
-  line-height: 76rpx;
-  text-align: center;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-  color: $color-text-white;
-  border-radius: $border-radius-md;
-  font-size: $font-size-base;
-  font-weight: 500;
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 107, 0.35);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border: none;
-}
-
-.search-filter-section .reset-btn:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 3rpx 8rpx rgba(255, 107, 107, 0.3);
-}
-
-/* 添加柔和的装饰背景 */
 .exchange-container::before {
   content: '';
   position: absolute;
@@ -227,19 +35,198 @@
   z-index: 0;
 }
 
-/* ===== 模块化SCSS拆分 ===== */
-
-/* 导航模块 - Tab切换、水平导航指示器 */
+/* Tab 导航模块 */
 @import 'exchange-nav';
 
-/* 兑换内容区 - 商品兑换Tab、交易市场Tab样式 */
-@import 'exchange-market';
+/* 卡片风格设置入口 */
+.theme-settings-trigger {
+  position: fixed;
+  right: 24rpx;
+  bottom: 200rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.4);
+  z-index: 100;
+}
 
-/* 双空间商品兑换系统 - 幸运空间、普通空间 */
-@import 'exchange-shop';
+/* 卡片风格设置面板覆盖层 */
+.theme-settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
 
-/* V5.0 UI优化 - 增强版空间切换器、臻选空间、竞价弹窗 */
-@import 'exchange-premium';
+.theme-settings-panel {
+  width: 100%;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
 
-/* V6.0 统一卡片主题系统 - 5套方案 + 7项增强效果 */
-@import 'exchange-card-themes';
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 40rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.settings-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.settings-close {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: $color-text-secondary;
+}
+
+.settings-body {
+  padding: 32rpx 40rpx;
+  max-height: 60vh;
+}
+
+.settings-section {
+  margin-bottom: 40rpx;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-section-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 24rpx;
+}
+
+.theme-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.theme-option-btn {
+  flex: 1;
+  min-width: 120rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.theme-option-btn.active {
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  border-color: transparent;
+  box-shadow: 0 6rpx 16rpx rgba(102, 126, 234, 0.35);
+}
+
+.theme-option-btn .theme-label {
+  font-size: 26rpx;
+  color: $color-text-secondary;
+}
+
+.theme-option-btn.active .theme-label {
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 增强效果切换列表 */
+.effect-toggle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.effect-toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+}
+
+.effect-toggle-info {
+  flex: 1;
+}
+
+.effect-toggle-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: $color-text-primary;
+}
+
+.effect-toggle-desc {
+  display: block;
+  font-size: 24rpx;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+}
+
+.toggle-switch {
+  width: 96rpx;
+  height: 52rpx;
+  border-radius: 26rpx;
+  background: #ddd;
+  position: relative;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+  margin-left: 24rpx;
+}
+
+.toggle-switch.on {
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+}
+
+.toggle-knob {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch.on .toggle-knob {
+  transform: translateX(44rpx);
+}

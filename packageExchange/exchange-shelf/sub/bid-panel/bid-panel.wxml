@@ -1,0 +1,110 @@
+<!-- bid-panel 竞价子组件 -->
+<view class="bid-panel-container" wx:if="{{biddingProducts.length > 0}}">
+  <view class="bid-section-title">
+    <text class="bid-title-text">竞价专区</text>
+    <text class="bid-title-desc">出价竞拍稀有商品</text>
+  </view>
+
+  <!-- 竞价商品列表 -->
+  <view class="bid-products-grid">
+    <view
+      wx:for="{{biddingProducts}}"
+      wx:key="bid_product_id"
+      class="bid-card {{item._isEndingSoon ? 'breathing-glow' : ''}}"
+      data-product="{{item}}"
+      bindtap="onBidTap"
+    >
+      <view class="bid-card-image">
+        <image src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" />
+        <view class="bid-countdown-badge {{item._isEndingSoon ? 'ending-soon' : ''}}"
+          >{{item._countdownText || '加载中'}}</view
+        >
+      </view>
+      <view class="bid-card-body">
+        <text class="bid-product-name">{{item.name}}</text>
+        <view class="bid-price-row">
+          <text class="bid-current-price">{{item.current_price}} {{item.price_asset_code}}</text>
+          <text class="bid-count">{{item.bid_count}}次出价</text>
+        </view>
+        <view class="bid-action-btn {{item.status !== 'active' ? 'disabled' : ''}}"
+          >{{item.status === 'active' ? '立即出价' : (item.status === 'pending' ? '即将开始' :
+          '已结束')}}</view
+        >
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 竞价弹窗 -->
+<view class="bid-modal-overlay" wx:if="{{showBidModal}}" bindtap="onCancelBid">
+  <view class="bid-modal" catchtap="">
+    <view class="bid-modal-header">
+      <text class="bid-modal-title">竞价出价</text>
+      <view class="bid-modal-close" bindtap="onCancelBid">✕</view>
+    </view>
+
+    <view class="bid-modal-body" wx:if="{{selectedBidProduct}}">
+      <view class="bid-product-info">
+        <image class="bid-product-img" src="{{selectedBidProduct.image}}" mode="aspectFill" />
+        <view class="bid-product-detail">
+          <text class="bid-detail-name">{{selectedBidProduct.name}}</text>
+          <text class="bid-detail-countdown">剩余 {{bidModalCountdown}}</text>
+        </view>
+      </view>
+
+      <view class="bid-price-info">
+        <view class="bid-info-row">
+          <text class="bid-info-label">当前最高价</text>
+          <text class="bid-info-value"
+            >{{selectedBidProduct.current_price}} {{selectedBidProduct.price_asset_code}}</text
+          >
+        </view>
+        <view class="bid-info-row">
+          <text class="bid-info-label">最低出价</text>
+          <text class="bid-info-value"
+            >{{bidMinAmount}} {{selectedBidProduct.price_asset_code}}</text
+          >
+        </view>
+      </view>
+
+      <view class="bid-input-area">
+        <text class="bid-input-label">您的出价</text>
+        <input
+          class="bid-amount-input"
+          type="digit"
+          value="{{userBidAmount}}"
+          bindinput="onBidAmountInput"
+          placeholder="输入出价金额"
+        />
+        <text class="bid-valid-hint {{bidAmountValid ? 'valid' : 'invalid'}}"
+          >{{bidAmountValid ? '出价有效' : '出价低于最低要求'}}</text
+        >
+      </view>
+
+      <view class="bid-quick-buttons">
+        <view class="bid-quick-btn" bindtap="onSetMinBid">最低价</view>
+        <view class="bid-quick-btn" data-amount="{{10}}" bindtap="onQuickBidAdd">+10</view>
+        <view class="bid-quick-btn" data-amount="{{50}}" bindtap="onQuickBidAdd">+50</view>
+        <view class="bid-quick-btn" data-amount="{{100}}" bindtap="onQuickBidAdd">+100</view>
+      </view>
+
+      <view class="bid-rules-toggle" bindtap="onToggleBidRules">
+        <text>{{showBidRules ? '收起规则 ▲' : '竞价规则 ▼'}}</text>
+      </view>
+      <view class="bid-rules-content" wx:if="{{showBidRules}}">
+        <text>1. 出价后资产将被冻结，直到被超越或竞价结束</text>
+        <text>2. 每次出价需高于当前最高价 + 最小加价幅度</text>
+        <text>3. 竞价结束时，最高出价者获得商品</text>
+      </view>
+    </view>
+
+    <view class="bid-modal-footer">
+      <view class="bid-cancel-btn" bindtap="onCancelBid">取消</view>
+      <view
+        class="bid-confirm-btn {{!bidAmountValid || bidSubmitting ? 'disabled' : ''}}"
+        bindtap="onConfirmBid"
+        >{{bidSubmitting ? '提交中...' : '确认出价'}}</view
+      >
+    </view>
+  </view>
+</view>

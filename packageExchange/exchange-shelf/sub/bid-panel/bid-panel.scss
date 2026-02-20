@@ -1,0 +1,336 @@
+/* bid-panel 竞价子组件样式 */
+/* 从 _exchange-premium.scss 第610-1441行搬入 */
+@import '../../../../styles/variables';
+@import '../../../../styles/mixins';
+
+.bid-panel-container {
+  padding: 20rpx 16rpx;
+}
+
+.bid-section-title {
+  margin-bottom: 20rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: $border-radius-md;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.bid-title-text {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.bid-title-desc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-left: 12rpx;
+}
+
+.bid-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+}
+
+.bid-card {
+  background: #ffffff;
+  border-radius: $border-radius-md;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.bid-card-image {
+  height: 200rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.bid-card-image image {
+  width: 100%;
+  height: 100%;
+}
+
+.bid-countdown-badge {
+  position: absolute;
+  bottom: 8rpx;
+  right: 8rpx;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+.bid-countdown-badge.ending-soon {
+  background: rgba(255, 77, 79, 0.85);
+  animation: breatheGlow 2s ease-in-out infinite alternate;
+}
+
+.bid-card-body {
+  padding: 12rpx 14rpx;
+}
+
+.bid-product-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-bottom: 8rpx;
+}
+
+.bid-price-row {
+  @include flex-between;
+  margin-bottom: 12rpx;
+}
+
+.bid-current-price {
+  font-size: $font-size-base;
+  font-weight: 800;
+  color: $color-primary;
+}
+
+.bid-count {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.bid-action-btn {
+  width: 100%;
+  height: 60rpx;
+  @include flex-center;
+  background: linear-gradient(135deg, $color-primary, #f7931e);
+  color: #ffffff;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  font-weight: 600;
+}
+
+.bid-action-btn.disabled {
+  background: #cccccc;
+}
+
+/* 竞价弹窗 */
+.bid-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  @include flex-center;
+}
+
+.bid-modal {
+  width: 90%;
+  max-width: 700rpx;
+  max-height: 85vh;
+  background: #ffffff;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.bid-modal-header {
+  @include flex-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.bid-modal-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.bid-modal-close {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: $color-bg-grey;
+  @include flex-center;
+  font-size: $font-size-base;
+}
+
+.bid-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24rpx 32rpx;
+}
+
+.bid-product-info {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.bid-product-img {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $border-radius-md;
+  flex-shrink: 0;
+}
+
+.bid-product-detail {
+  @include flex-column;
+  justify-content: center;
+}
+
+.bid-detail-name {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.bid-detail-countdown {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  margin-top: 8rpx;
+}
+
+.bid-price-info {
+  background: $color-bg;
+  border-radius: $border-radius-md;
+  padding: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.bid-info-row {
+  @include flex-between;
+  padding: 8rpx 0;
+}
+
+.bid-info-label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.bid-info-value {
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.bid-input-area {
+  margin-bottom: 20rpx;
+}
+
+.bid-input-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.bid-amount-input {
+  width: 100%;
+  height: 88rpx;
+  border: 2rpx solid $color-border;
+  border-radius: $border-radius-md;
+  padding: 0 24rpx;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.bid-valid-hint {
+  font-size: $font-size-xs;
+  margin-top: 8rpx;
+  display: block;
+}
+
+.bid-valid-hint.valid {
+  color: $color-success;
+}
+.bid-valid-hint.invalid {
+  color: $color-error;
+}
+
+.bid-quick-buttons {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.bid-quick-btn {
+  flex: 1;
+  height: 64rpx;
+  @include flex-center;
+  background: $color-bg;
+  border: 2rpx solid $color-border;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.bid-rules-toggle {
+  text-align: center;
+  padding: 16rpx;
+  font-size: $font-size-sm;
+  color: $gradient-blue-start;
+}
+
+.bid-rules-content {
+  background: $color-bg;
+  border-radius: $border-radius-md;
+  padding: 20rpx;
+  margin-top: 12rpx;
+}
+
+.bid-rules-content text {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  line-height: 1.8;
+}
+
+.bid-modal-footer {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx 32rpx 32rpx;
+  border-top: 1rpx solid $color-border-light;
+}
+
+.bid-cancel-btn {
+  flex: 1;
+  height: 88rpx;
+  @include flex-center;
+  background: $color-bg-grey;
+  border-radius: $border-radius-md;
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.bid-confirm-btn {
+  flex: 2;
+  height: 88rpx;
+  @include flex-center;
+  background: linear-gradient(135deg, $color-primary, #f7931e);
+  border-radius: $border-radius-md;
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.35);
+}
+
+.bid-confirm-btn.disabled {
+  background: #cccccc;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+@keyframes breatheGlow {
+  from {
+    box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.1);
+  }
+  to {
+    box-shadow:
+      0 4rpx 20rpx rgba(255, 107, 53, 0.3),
+      0 0 60rpx rgba(255, 107, 53, 0.15);
+  }
+}

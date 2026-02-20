@@ -1,0 +1,163 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  @include flex-center;
+}
+
+.confirm-modal {
+  width: 85%;
+  max-width: 680rpx;
+  background: $color-bg-card;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.2);
+}
+
+.confirm-header {
+  @include flex-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.confirm-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.confirm-close {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: $color-bg-grey;
+  @include flex-center;
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+.confirm-body {
+  padding: 32rpx;
+}
+
+.confirm-product-info {
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.confirm-product-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: $border-radius-md;
+  flex-shrink: 0;
+}
+
+.confirm-product-detail {
+  @include flex-column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.confirm-product-name {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  margin-bottom: 12rpx;
+}
+
+.confirm-product-price {
+  font-size: $font-size-lg;
+  font-weight: 800;
+  color: $color-primary;
+}
+
+.confirm-quantity-row,
+.confirm-total-row,
+.confirm-balance-row {
+  @include flex-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.confirm-quantity-label,
+.confirm-total-label,
+.confirm-balance-label {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+.confirm-quantity-controls {
+  @include flex-align-center;
+  gap: 20rpx;
+}
+
+.qty-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: $color-bg-grey;
+  @include flex-center;
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+  font-weight: 600;
+}
+
+.qty-value {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+  min-width: 60rpx;
+  text-align: center;
+}
+
+.confirm-total-value {
+  font-size: $font-size-lg;
+  font-weight: 800;
+  color: $color-primary;
+}
+
+.confirm-balance-value {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+.confirm-footer {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx 32rpx 32rpx;
+}
+
+.confirm-cancel-btn {
+  flex: 1;
+  height: 88rpx;
+  @include flex-center;
+  border-radius: $border-radius-md;
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-secondary;
+  background: $color-bg-grey;
+}
+
+.confirm-submit-btn {
+  flex: 2;
+  height: 88rpx;
+  @include flex-center;
+  border-radius: $border-radius-md;
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: $color-text-white;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.35);
+}
+
+.confirm-submit-btn.disabled {
+  background: linear-gradient(135deg, rgba(160, 160, 160, 0.8), rgba(140, 140, 140, 0.8));
+  pointer-events: none;
+}

@@ -1,0 +1,200 @@
+/* exchange-market 交易市场组件样式 */
+/* 从 _exchange-market.scss 搬入 + 卡片 var() 规则 */
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../exchange-shelf/exchange-shelf-cards';
+
+.exchange-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.exchange-market-sticky-header {
+  flex-shrink: 0;
+  z-index: 10;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 10rpx 16rpx;
+}
+
+.market-scroll-content {
+  flex: 1;
+  min-height: 0;
+  padding: 16rpx;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.points-info {
+  display: flex;
+  align-items: center;
+}
+
+.points-label {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.points-value {
+  font-size: $font-size-lg;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.header-search-box {
+  flex: 1;
+  min-width: 200rpx;
+  max-width: 360rpx;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20rpx;
+  padding: 8rpx 16rpx;
+}
+
+.header-search-input {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: #ffffff;
+}
+
+.header-search-icon {
+  font-size: $font-size-sm;
+}
+
+.header-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.header-action-btn {
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20rpx;
+  font-size: 20rpx;
+  color: #ffffff;
+}
+
+/* 筛选区域 */
+.search-filter {
+  margin-top: 12rpx;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.filter-btn {
+  flex: 1;
+  min-width: 100rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20rpx;
+  font-size: $font-size-sm;
+  color: #ffffff;
+  border: none;
+  padding: 0 16rpx;
+}
+
+.filter-btn.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #667eea;
+  font-weight: 600;
+}
+
+.advanced-filter-btn {
+  min-width: 120rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20rpx;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.9);
+  border: none;
+  padding: 0 16rpx;
+}
+
+.advanced-filter-btn.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #667eea;
+}
+
+.advanced-filter-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: $border-radius-md;
+  padding: 24rpx;
+  margin-top: 16rpx;
+}
+
+.filter-row {
+  margin-bottom: 24rpx;
+}
+.filter-label {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 16rpx;
+}
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.option-btn {
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0 24rpx;
+  background: $color-bg;
+  border-radius: 12rpx;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border: 1rpx solid $color-border;
+}
+.option-btn.active {
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  color: #ffffff;
+  border-color: transparent;
+}
+.filter-actions {
+  margin-top: 24rpx;
+  display: flex;
+  justify-content: center;
+}
+.reset-btn {
+  width: 200rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  text-align: center;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+  color: #ffffff;
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  font-weight: 500;
+}
+
+.seller-info {
+  margin: 8rpx 0;
+}
+.seller-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* 确认弹窗和结果弹窗样式（复用 shared 组件样式） */
+@import '../shared/exchange-confirm/exchange-confirm';
+@import '../shared/exchange-result/exchange-result';

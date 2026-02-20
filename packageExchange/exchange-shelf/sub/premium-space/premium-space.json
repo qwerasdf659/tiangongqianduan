@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "pagination": "/components/pagination/pagination",
+    "empty-state": "/components/empty-state/empty-state",
+    "loading-spinner": "/components/loading-spinner/loading-spinner"
+  }
+}

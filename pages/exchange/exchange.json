@@ -8,8 +8,14 @@
   "onReachBottomDistance": 100,
   "backgroundTextStyle": "dark",
   "usingComponents": {
+    "exchange-shelf": "/packageExchange/exchange-shelf/exchange-shelf",
+    "exchange-market": "/packageExchange/exchange-market/exchange-market",
     "pagination": "/components/pagination/pagination",
     "empty-state": "/components/empty-state/empty-state",
     "loading-spinner": "/components/loading-spinner/loading-spinner"
+  },
+  "componentPlaceholder": {
+    "exchange-shelf": "view",
+    "exchange-market": "view"
   }
 }

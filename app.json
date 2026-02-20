@@ -13,6 +13,11 @@
       "pages": ["_placeholder/_placeholder"]
     },
     {
+      "root": "packageExchange",
+      "name": "exchange",
+      "pages": ["_placeholder/_placeholder"]
+    },
+    {
       "root": "packageTrade",
       "name": "trade",
       "pages": [
@@ -57,7 +62,7 @@
     },
     "pages/exchange/exchange": {
       "network": "all",
-      "packages": ["trade", "lottery"]
+      "packages": ["trade", "lottery", "exchange"]
     },
     "pages/camera/camera": {
       "network": "all",

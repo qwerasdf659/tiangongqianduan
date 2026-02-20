@@ -1,0 +1,190 @@
+/* exchange-shelf 组件样式 — 对标 lottery-activity.scss */
+/* CSS 变量默认值声明 + 货架框架 + 卡片主题 var() 规则 + 增强效果 */
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+/* ① CSS 变量默认值声明（theme-E 作为 fallback） */
+.exchange-shelf {
+  --shelf-card-bg: #ffffff;
+  --shelf-card-radius: 20rpx;
+  --shelf-card-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  --shelf-price-color: #ff6b35;
+  --shelf-cta-bg: linear-gradient(135deg, #667eea, #764ba2);
+  --shelf-cta-text: #ffffff;
+  --shelf-stock-normal: #52c41a;
+  --shelf-stock-warn: #faad14;
+  --shelf-stock-danger: #ff4d4f;
+  --shelf-name-color: #333;
+  --shelf-desc-color: #999;
+
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ② 货架框架样式（从 _exchange-shop.scss 第1-189行搬入） */
+.shop-sticky-header {
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  padding-bottom: 0;
+}
+
+.shop-scroll-body {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 40rpx;
+}
+
+/* 增强版空间切换器（从 _exchange-premium.scss 搬入） */
+.space-selector-enhanced {
+  padding: 8rpx 12rpx 4rpx 12rpx;
+  margin-bottom: 4rpx;
+}
+
+.selector-track {
+  display: flex;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 22rpx;
+  padding: 4rpx;
+  position: relative;
+  box-shadow:
+    0 4rpx 16rpx rgba(0, 0, 0, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20rpx);
+}
+
+.selector-slider {
+  position: absolute;
+  top: 8rpx;
+  bottom: 8rpx;
+  width: calc(50% - 8rpx);
+  border-radius: 22rpx;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+}
+
+.selector-slider.slide-left {
+  left: 8rpx;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  box-shadow: 0 6rpx 24rpx rgba(255, 107, 53, 0.4);
+}
+
+.selector-slider.slide-right {
+  left: calc(50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 6rpx 24rpx rgba(102, 126, 234, 0.4);
+}
+
+.space-tab-enhanced {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  padding: 12rpx 8rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.space-tab-enhanced.active .tab-label {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.space-tab-enhanced.active .tab-desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.space-tab-enhanced.locked {
+  opacity: 0.6;
+}
+
+.tab-inner {
+  @include flex-column-center;
+}
+
+.tab-icon-row {
+  @include flex-align-center;
+  gap: 6rpx;
+}
+
+.tab-emoji {
+  font-size: $font-size-base;
+}
+
+.tab-label {
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $color-text-secondary;
+  transition: all 0.3s ease;
+}
+
+.tab-desc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
+}
+
+.unlock-badge {
+  position: absolute;
+  top: -4rpx;
+  right: 4rpx;
+  font-size: 16rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 10rpx;
+  z-index: 2;
+}
+
+.unlock-badge.unlocked {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+.unlock-badge.locked {
+  background: rgba(158, 158, 158, 0.9);
+  color: white;
+}
+
+/* 头部信息栏 */
+.exchange-market-sticky-header {
+  padding: 10rpx 16rpx;
+}
+
+.user-info {
+  @include flex-between;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.points-info {
+  @include flex-align-center;
+}
+
+.points-label {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.points-value {
+  font-size: $font-size-lg;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.header-quick-actions {
+  @include flex-align-center;
+  gap: 12rpx;
+}
+
+.header-action-btn {
+  padding: 8rpx 16rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20rpx;
+  font-size: $font-size-xs;
+  color: #ffffff;
+}

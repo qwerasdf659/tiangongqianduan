@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "exchange-filter": "../../../shared/exchange-filter/exchange-filter",
+    "pagination": "/components/pagination/pagination",
+    "empty-state": "/components/empty-state/empty-state",
+    "loading-spinner": "/components/loading-spinner/loading-spinner"
+  }
+}
