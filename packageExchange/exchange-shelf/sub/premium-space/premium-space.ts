@@ -53,6 +53,7 @@ Component({
   lifetimes: {
     attached() {
       this.setData({ pageSize: PREMIUM_PAGINATION.GRID_SIZE })
+      this.initData()
     }
   },
 

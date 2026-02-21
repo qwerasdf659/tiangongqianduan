@@ -56,6 +56,19 @@
           >
         </view>
       </view>
+      <view class="filter-row" wx:if="{{stockStatusOptions.length > 0}}">
+        <text class="filter-label">库存状态</text>
+        <view class="filter-options">
+          <view
+            wx:for="{{stockStatusOptions}}"
+            wx:key="value"
+            class="option-btn {{stockStatus === item.value ? 'active' : ''}}"
+            data-status="{{item.value}}"
+            bindtap="onStockStatusChange"
+            >{{item.label}}</view
+          >
+        </view>
+      </view>
       <view class="filter-row" wx:if="{{sortByOptions.length > 0}}">
         <text class="filter-label">排序方式</text>
         <view class="filter-options">
@@ -80,7 +93,7 @@
     <view
       wx:for="{{filteredProducts}}"
       wx:key="id"
-      class="unified-card theme-{{theme || 'E'}} {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
+      class="unified-card {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
       data-product="{{item}}"
       data-card-index="{{index}}"
       data-tab="lucky"

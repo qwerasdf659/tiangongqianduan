@@ -4,7 +4,6 @@
     "lucky-space": "./sub/lucky-space/lucky-space",
     "premium-space": "./sub/premium-space/premium-space",
     "bid-panel": "./sub/bid-panel/bid-panel",
-    "exchange-filter": "../shared/exchange-filter/exchange-filter",
     "exchange-confirm": "../shared/exchange-confirm/exchange-confirm",
     "exchange-result": "../shared/exchange-result/exchange-result",
     "pagination": "/components/pagination/pagination",

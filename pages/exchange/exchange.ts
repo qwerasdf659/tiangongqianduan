@@ -300,7 +300,28 @@ Page({
       return
     }
     this.setData({ viewMode: targetMode })
+    try {
+      wx.setStorageSync('exchange_view_mode', targetMode)
+    } catch {
+      log.warn('视图模式持久化失败')
+    }
     log.info('视图模式切换:', targetMode)
+  },
+
+  /**
+   * 从本地 Storage 恢复用户主题偏好
+   * 优先使用用户本地偏好覆盖后端默认配置
+   */
+  _restoreThemePreferences() {
+    try {
+      const savedViewMode = wx.getStorageSync('exchange_view_mode')
+      if (savedViewMode && (savedViewMode === 'grid' || savedViewMode === 'list')) {
+        this.setData({ viewMode: savedViewMode })
+        log.info('恢复用户视图模式偏好:', savedViewMode)
+      }
+    } catch {
+      log.warn('恢复主题偏好失败，使用后端默认配置')
+    }
   }
 })
 

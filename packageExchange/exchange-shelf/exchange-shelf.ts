@@ -76,7 +76,7 @@ Component({
     showShopResult: false,
     shopResultData: null as any,
 
-    /** 筛选配置（后端下发，通过 property 传给子组件 exchange-filter） */
+    /** 筛选配置（后端下发，通过 property 传给 lucky-space 子组件） */
     luckyBasicFilters: [] as any[],
     categoryOptions: [] as any[],
     costRangeOptions: [] as any[],
