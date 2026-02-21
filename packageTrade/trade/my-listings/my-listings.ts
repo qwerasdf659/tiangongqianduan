@@ -72,7 +72,14 @@ Page({
     totalCount: 0,
 
     /** 撤回操作进行中的挂单ID（防止重复点击） */
-    withdrawingId: 0
+    withdrawingId: 0,
+
+    /** 担保码弹窗（Phase 4：C2C担保交易码） */
+    showEscrowModal: false,
+    escrowCode: '',
+    escrowExpiresAt: '',
+    escrowTradeOrderId: 0,
+    escrowLoading: false
   },
 
   /** loading安全超时定时器ID */
@@ -212,7 +219,9 @@ Page({
             created_at: item.created_at || '',
             statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.on_sale).color,
             kindLabel: LISTING_KIND_LABEL[item.listing_kind] || '未知',
-            formattedTime: parsedDate ? Utils.formatTime(parsedDate) : item.created_at || ''
+            formattedTime: parsedDate ? Utils.formatTime(parsedDate) : item.created_at || '',
+            /** 关联交易订单ID（locked状态时后端返回，用于查看担保码） */
+            trade_order_id: item.trade_order_id || null
           }
         })
 
@@ -342,6 +351,92 @@ Page({
     } finally {
       this.setData({ withdrawingId: 0 })
     }
+  },
+
+  /**
+   * 查看担保码（卖方查看，仅 item_instance + locked 状态）
+   * GET /api/v4/market/trade-orders/:trade_order_id/escrow-code
+   *
+   * ⚠️ 需要后端 Phase 4 EscrowCodeService 实施完成后才可调用
+   *
+   * @param e.currentTarget.dataset.trade_order_id - 交易订单ID
+   */
+  async onViewEscrowCode(e: any) {
+    const tradeOrderId = e.currentTarget.dataset.trade_order_id
+    if (!tradeOrderId) {
+      wx.showToast({ title: '交易订单信息无效', icon: 'none' })
+      return
+    }
+
+    if (this.data.escrowLoading) {
+      return
+    }
+
+    this.setData({ escrowLoading: true, showEscrowModal: true })
+
+    try {
+      const result = await API.getEscrowCode(tradeOrderId)
+
+      if (result.success && result.data) {
+        const { escrow_code, expires_at, trade_order_id } = result.data
+
+        let formattedExpires = ''
+        if (expires_at) {
+          const date = Utils.safeParseDateString
+            ? Utils.safeParseDateString(expires_at)
+            : new Date(expires_at)
+          if (date && !isNaN(date.getTime())) {
+            const h = String(date.getHours()).padStart(2, '0')
+            const m = String(date.getMinutes()).padStart(2, '0')
+            formattedExpires = `${h}:${m}`
+          }
+        }
+
+        this.setData({
+          escrowCode: escrow_code || '',
+          escrowExpiresAt: formattedExpires,
+          escrowTradeOrderId: trade_order_id || tradeOrderId,
+          escrowLoading: false
+        })
+
+        log.info('担保码获取成功:', escrow_code)
+      } else {
+        throw new Error(result.message || '获取担保码失败')
+      }
+    } catch (error: any) {
+      log.error('获取担保码失败:', error)
+      this.setData({ escrowLoading: false, showEscrowModal: false })
+      wx.showToast({ title: error.message || '获取担保码失败', icon: 'none' })
+    }
+  },
+
+  /**
+   * 复制担保码到剪贴板
+   */
+  onCopyEscrowCode() {
+    const code = this.data.escrowCode
+    if (!code) {
+      wx.showToast({ title: '担保码不可用', icon: 'none' })
+      return
+    }
+    wx.setClipboardData({
+      data: code,
+      success: () => {
+        wx.showToast({ title: '担保码已复制', icon: 'success' })
+      }
+    })
+  },
+
+  /**
+   * 关闭担保码弹窗
+   */
+  onCloseEscrowModal() {
+    this.setData({
+      showEscrowModal: false,
+      escrowCode: '',
+      escrowExpiresAt: '',
+      escrowTradeOrderId: 0
+    })
   },
 
   /** 跳转到交易市场页面 */

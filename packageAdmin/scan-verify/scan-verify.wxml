@@ -133,9 +133,22 @@
         </view>
       </view>
       <button class="scan-main-btn" bindtap="startScan">
-        <text class="scan-btn-text">开始扫码核销</text>
+        <text class="scan-btn-text">扫码核销（推荐）</text>
       </button>
       <text class="scan-hint">请对准用户手机上的核销二维码</text>
+    </view>
+
+    <!-- 手动输入文本码（备用入口） -->
+    <view class="manual-input-card">
+      <view class="manual-divider">
+        <view class="divider-line"></view>
+        <text class="divider-text">或</text>
+        <view class="divider-line"></view>
+      </view>
+      <view class="manual-btn" bindtap="onManualInput">
+        <text class="manual-btn-text">手动输入核销码</text>
+      </view>
+      <text class="manual-hint">扫码不便时，可手动输入用户的12位文本核销码</text>
     </view>
 
     <!-- 返回准备步骤 -->
@@ -170,11 +183,11 @@
       <text class="result-main-title success-text">核销成功</text>
       <text class="result-desc">商品已成功核销，用户物品状态已更新</text>
 
-      <!-- 核销详情（字段来自后端 POST /api/v4/shop/redemption/fulfill 响应） -->
+      <!--核销详情（字段来自后端 POST /api/v4/shop/redemption/fulfill 或 /scan 响应）-->
       <view class="result-detail" wx:if="{{verifyResult}}">
-        <view class="detail-row" wx:if="{{verifyResult.order_id}}">
+        <view class="detail-row" wx:if="{{verifyResult.redemption_order_id}}">
           <text class="detail-label">订单编号</text>
-          <text class="detail-value">{{verifyResult.order_id}}</text>
+          <text class="detail-value">{{verifyResult.redemption_order_id}}</text>
         </view>
         <view class="detail-row" wx:if="{{verifyResult.item_name}}">
           <text class="detail-label">核销物品</text>
@@ -183,6 +196,10 @@
         <view class="detail-row" wx:if="{{verifyResult.redeemer_nickname}}">
           <text class="detail-label">用户昵称</text>
           <text class="detail-value">{{verifyResult.redeemer_nickname}}</text>
+        </view>
+        <view class="detail-row" wx:if="{{verifyResult.store_name}}">
+          <text class="detail-label">核销门店</text>
+          <text class="detail-value">{{verifyResult.store_name}}</text>
         </view>
         <view class="detail-row" wx:if="{{verifyResult.fulfilled_at}}">
           <text class="detail-label">核销时间</text>

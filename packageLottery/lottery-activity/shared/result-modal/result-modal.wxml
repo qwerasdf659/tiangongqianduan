@@ -15,10 +15,26 @@
       >
         <view class="title-icon">🎉</view>
         <view class="title-content">
-          <text class="result-title">恭喜中奖！</text>
+          <!--
+            积分/虚拟奖品直接到账（决策3）：prize_type = points/virtual 不进背包
+            实物/优惠券进背包：prize_type = physical/coupon 需到店核销
+          -->
+          <text class="result-title" wx:if="{{drawResult.prize.prize_type === 'points'}}"
+            >积分到账！</text
+          >
+          <text class="result-title" wx:elif="{{drawResult.prize.prize_type === 'virtual'}}"
+            >恭喜获得！</text
+          >
+          <text class="result-title" wx:else>恭喜中奖！</text>
           <text class="result-subtitle" wx:if="{{drawResult.isMultiDraw}}">
             {{drawResult.drawCount}}连抽获得以下奖品
           </text>
+          <text class="result-subtitle" wx:elif="{{drawResult.prize.prize_type === 'points'}}"
+            >{{drawResult.prize.prize_name}} 已自动到账</text
+          >
+          <text class="result-subtitle" wx:elif="{{drawResult.prize.prize_type === 'virtual'}}"
+            >{{drawResult.prize.prize_description || '已自动生效'}}</text
+          >
           <text class="result-subtitle" wx:else>单次抽奖获得精美奖品</text>
         </view>
       </view>
@@ -300,11 +316,16 @@
       </view>
     </view>
 
-    <!-- 弹窗底部 - 确认按钮 -->
+    <!-- 弹窗底部 - 确认按钮（积分/虚拟奖品已自动到账，按钮文案区分） -->
     <view class="result-footer gradient-footer">
       <button class="confirm-btn gradient-confirm-btn" bindtap="onClose">
         <view class="btn-content">
-          <text class="btn-text">确认收下</text>
+          <text
+            class="btn-text"
+            wx:if="{{drawResult.prize.prize_type === 'points' || drawResult.prize.prize_type === 'virtual'}}"
+            >确定</text
+          >
+          <text class="btn-text" wx:else>确认收下</text>
           <text class="btn-icon">✨</text>
         </view>
       </button>

@@ -1,84 +1,77 @@
-<!--packageTrade/trade/market/market.wxml - 瀑布流卡片布局模板v1.0-->
-<!--📋 基于交易市场UI布局优化方案技术文档 - 方案1：瀑布流卡片布局-->
+<!--packageTrade/trade/market/market.wxml - C2C交易市场瀑布流布局-->
+<!--后端API: GET /api/v4/market/listings-->
+<!--字段直接使用后端响应 + 以 _ 为前缀的计算展示字段-->
 
 <view class="waterfall-market-container">
-  <!-- 🌊 瀑布流主容器 -->
+  <!-- 瀑布流主容器 -->
   <view class="waterfall-container" style="height: {{containerHeight}}px;">
-    <!-- 📦 商品卡片列表 - 绝对定位瀑布流 -->
     <view
-      class="product-card waterfall-card"
+      class="product-card waterfall-card {{item._rarityStyle.cssClass || ''}}"
       wx:for="{{products}}"
-      wx:key="productId"
-      style="left: {{item.layoutInfo.left}}px; top: {{item.layoutInfo.top}}px; width: {{item.layoutInfo.width}}px; z-index: {{item.layoutInfo.zIndex}};"
+      wx:key="market_listing_id"
+      style="left: {{item.layoutInfo.left}}px; top: {{item.layoutInfo.top}}px; width: {{item.layoutInfo.width}}px;"
       data-product="{{item}}"
       bindtap="onProductClick"
     >
-      <!-- 🖼️ 商品图片区域 - 支持懒加载 -->
+      <!-- 商品图片区域 -->
       <view class="card-image-container">
         <image
+          wx:if="{{!item._imageError}}"
           class="product-image card-image"
-          src="{{item.image}}"
+          src="{{item._displayImage}}"
           mode="aspectFill"
           lazy-load="{{true}}"
-          data-product-id="{{item.productId}}"
-          show-menu-by-longpress="{{false}}"
+          data-index="{{index}}"
+          binderror="onImageError"
         />
-
-        <!-- 🏷️ 商品标签 -->
-        <view class="product-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-          <text
-            class="product-tag {{item.isHot ? 'hot-tag' : ''}} {{item.isNew ? 'new-tag' : ''}}"
-            wx:for="{{item.tags}}"
-            wx:key="*this"
-            wx:for-item="tag"
-            >{{tag}}</text
-          >
+        <view wx:else class="image-fallback">
+          <text class="fallback-icon">{{item._isFungibleAsset ? '💎' : '📦'}}</text>
+          <text class="fallback-name">{{item._displayName}}</text>
         </view>
 
-        <!-- 📊 销量显示 -->
-        <view class="sales-badge" wx:if="{{item.sales}}">
-          <text class="sales-text">已售{{item.sales}}</text>
+        <!-- 挂单类型标签 -->
+        <view class="listing-kind-tag {{item._isFungibleAsset ? 'asset-tag' : 'item-tag'}}">
+          <text>{{item._isFungibleAsset ? '资产' : '物品'}}</text>
+        </view>
+
+        <!-- 资产数量（仅 fungible_asset 类型显示） -->
+        <view class="amount-badge" wx:if="{{item._isFungibleAsset && item._offerAmount}}">
+          <text class="amount-text">×{{item._offerAmount}}</text>
+        </view>
+
+        <!-- 稀有度标识（仅 item_instance 类型，非 common 时显示） -->
+        <view
+          class="rarity-badge"
+          wx:if="{{!item._isFungibleAsset && item._rarityCode && item._rarityCode !== 'common'}}"
+          style="background-color: {{item._rarityStyle.colorHex}};"
+        >
+          <text class="rarity-text">{{item._rarityStyle.displayName}}</text>
         </view>
       </view>
 
-      <!-- 📝 商品信息区域 -->
+      <!-- 商品信息区域 -->
       <view class="card-content">
-        <!-- 📌 商品标题 -->
         <view class="product-title-section">
-          <text class="product-title">{{item.name}}</text>
+          <text class="product-title">{{item._displayName}}</text>
         </view>
 
-        <!-- 💰 价格信息 -->
+        <!-- 价格信息（后端字段: price_amount + price_asset_code） -->
         <view class="price-section">
           <view class="price-row">
-            <text class="current-price">¥{{item.currentPrice}}</text>
-            <text
-              class="original-price"
-              wx:if="{{item.originalPrice && item.originalPrice > item.currentPrice}}"
-              >¥{{item.originalPrice}}</text
-            >
-          </view>
-
-          <!-- ⭐ 评分和评价 -->
-          <view class="rating-section" wx:if="{{item.rating}}">
-            <text class="rating-stars">★★★★★</text>
-            <text class="rating-score">{{item.rating}}</text>
+            <text class="current-price">{{item.price_amount}}</text>
+            <text class="price-unit">{{item._priceLabel}}</text>
           </view>
         </view>
 
-        <!-- 🏪 商家信息 -->
-        <view class="seller-info" wx:if="{{item.seller}}">
-          <text class="seller-name">{{item.seller.name}}</text>
-          <text class="seller-rating" wx:if="{{item.seller.rating}}">{{item.seller.rating}}分</text>
+        <!-- 卖家信息（后端字段: seller_nickname） -->
+        <view class="seller-info" wx:if="{{item.seller_nickname}}">
+          <text class="seller-name">{{item.seller_nickname}}</text>
         </view>
       </view>
-
-      <!-- 🎭 卡片悬停效果遮罩 -->
-      <view class="card-hover-mask"></view>
     </view>
   </view>
 
-  <!-- ⏳ 加载状态显示 -->
+  <!-- 加载状态 -->
   <view class="loading-section" wx:if="{{loading}}">
     <view class="loading-content">
       <view class="loading-spinner">
@@ -90,77 +83,41 @@
     </view>
   </view>
 
-  <!-- 📊 无更多数据提示 -->
+  <!-- 无更多数据 -->
   <view class="no-more-data" wx:if="{{!hasMore && products.length > 0}}">
     <view class="no-more-content">
-      <text class="no-more-icon">🎉</text>
-      <text class="no-more-text">已加载全部商品</text>
-      <text class="no-more-subtitle">共{{products.length}}件好物等你发现</text>
+      <text class="no-more-text">已加载全部挂单</text>
+      <text class="no-more-subtitle">共{{products.length}}件商品</text>
     </view>
   </view>
 
-  <!-- 🚫 空状态显示 -->
-  <view class="empty-state" wx:if="{{!loading && products.length === 0}}">
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && products.length === 0 && !hasError}}">
     <view class="empty-content">
       <text class="empty-icon">🛒</text>
-      <text class="empty-title">暂无商品</text>
-      <text class="empty-subtitle">快去上架一些好物吧</text>
+      <text class="empty-title">暂无挂单</text>
+      <text class="empty-subtitle">市场暂时没有商品，稍后再来看看</text>
       <button class="empty-retry-btn" bindtap="onPullDownRefresh" size="mini">重新加载</button>
     </view>
   </view>
 
-  <!-- 🔄 下拉刷新提示 -->
-  <view class="refresh-hint" wx:if="{{!loading && products.length > 0}}">
-    <text class="refresh-text">下拉刷新获取最新商品</text>
+  <!-- 错误状态 -->
+  <view class="empty-state" wx:if="{{hasError}}">
+    <view class="empty-content">
+      <text class="empty-icon">⚠️</text>
+      <text class="empty-title">{{errorMessage || '加载失败'}}</text>
+      <button class="empty-retry-btn" bindtap="onPullDownRefresh" size="mini">重试</button>
+    </view>
   </view>
 
-  <!-- 📱 浮动操作按钮 -->
+  <!-- 浮动操作 -->
   <view class="floating-actions">
-    <!-- 🔝 回到顶部按钮 -->
     <view
       class="floating-btn back-to-top-btn"
       bindtap="scrollToTop"
       wx:if="{{products.length > 10}}"
     >
       <text class="btn-icon">↑</text>
-    </view>
-
-    <!-- 📊 性能统计按钮 (开发环境) -->
-    <view
-      class="floating-btn stats-btn"
-      bindtap="showStats"
-      wx:if="{{performanceStats.totalProducts > 0}}"
-    >
-      <text class="btn-icon">📊</text>
-    </view>
-  </view>
-</view>
-
-<!-- 📊 性能统计弹窗 -->
-<view class="stats-modal" wx:if="{{showStatsModal}}">
-  <view class="stats-mask" bindtap="hideStats"></view>
-  <view class="stats-content">
-    <view class="stats-header">
-      <text class="stats-title">📊 性能统计</text>
-      <text class="stats-close" bindtap="hideStats">✕</text>
-    </view>
-    <view class="stats-body">
-      <view class="stats-item">
-        <text class="stats-label">布局计算耗时:</text>
-        <text class="stats-value">{{performanceStats.layoutCalculationTime}}ms</text>
-      </view>
-      <view class="stats-item">
-        <text class="stats-label">商品总数:</text>
-        <text class="stats-value">{{performanceStats.totalProducts}}个</text>
-      </view>
-      <view class="stats-item">
-        <text class="stats-label">当前页码:</text>
-        <text class="stats-value">第{{currentPage}}页</text>
-      </view>
-      <view class="stats-item">
-        <text class="stats-label">容器尺寸:</text>
-        <text class="stats-value">{{containerWidth}}×{{containerHeight}}px</text>
-      </view>
     </view>
   </view>
 </view>

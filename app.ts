@@ -1,9 +1,14 @@
 /**
- * 餐厅积分抽奖系统V5.1主入口- TypeScript版 * 基于V4.0统一引擎架构，JWT双Token机制，Socket.IO实时通信
+ * 餐厅积分抽奖系统V5.2主入口 - TypeScript版
+ * 基于V4.0统一引擎架构，JWT双Token机制，Socket.IO实时通信
  *
- * globalData只保留系统配置 * 业务数据已迁移到MobX Store: store/user.ts, store/points.ts 等 * WebSocket 使用 weapp.socket.io@3.0.0（心跳重连/事件路由全部由Socket.IO 内建管理） * weapp.socket.io 内部用WebSocket 传输适配置wx.connectSocket()，微信小程序专用
+ * globalData只保留系统配置
+ * 业务数据已迁移到MobX Store: store/user.ts, store/points.ts 等
+ * WebSocket 使用 weapp.socket.io@3.0.0（心跳重连/事件路由全部由Socket.IO内建管理）
+ * weapp.socket.io 内部用WebSocket传输适配wx.connectSocket()，微信小程序专用
  *
- * @file 天工餐厅积分系统 - 应用主入口 * @version 5.2.0
+ * @file 天工餐厅积分系统 - 应用主入口
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -21,6 +26,7 @@ const io = require('weapp.socket.io')
 // MobX Store - 业务数据唯一来源
 const { userStore } = require('./store/user')
 const { pointsStore } = require('./store/points')
+const { tradeStore } = require('./store/trade')
 const { Logger, PopupFrequency } = require('./utils/index')
 const log = Logger.createLogger('app')
 
@@ -98,7 +104,7 @@ App({
     }
   },
 
-  /** 初始化系统环境?*/
+  /** 初始化系统环境 */
   async initializeSystem(): Promise<void> {
     const apiConfig = getApiConfig()
     const devConfig = getDevelopmentConfig()
@@ -192,7 +198,12 @@ App({
               status: jwtPayload.status,
               user_role: jwtPayload.user_role || 'user',
               role_level: jwtPayload.role_level || 0,
-              created_at: jwtPayload.created_at || ''
+              created_at: jwtPayload.created_at || '',
+              roles: jwtPayload.roles || [],
+              consecutive_fail_count: jwtPayload.consecutive_fail_count || 0,
+              history_total_points: jwtPayload.history_total_points || 0,
+              last_login: jwtPayload.last_login || '',
+              login_count: jwtPayload.login_count || 0
             } as API.UserProfile
 
             wx.setStorageSync('user_info', userInfo)
@@ -358,6 +369,7 @@ App({
     this.disconnectWebSocket()
     userStore.clearLoginState()
     pointsStore.clearPoints()
+    tradeStore.clearTrade()
   },
 
   /** 设置访问令牌（委托给 userStore，api.ts Token刷新时调用） */
@@ -385,7 +397,7 @@ App({
     })
   },
 
-  /** 应用显示时触发?*/
+  /** 应用显示时触发 */
   onShow(): void {
     log.info('应用进入前台')
     const pages = getCurrentPages()
@@ -393,7 +405,7 @@ App({
       pages.length > 0 && pages[pages.length - 1] ? pages[pages.length - 1].route || '' : ''
   },
 
-  /** 应用隐藏时触发?*/
+  /** 应用隐藏时触发 */
   onHide(): void {
     log.info('应用进入后台')
   },
@@ -425,7 +437,7 @@ App({
     }
   },
 
-  /** 获取微信系统信息（基础?.20.1+新版API?*/
+  /** 获取微信系统信息（基础库2.20.1+新版API） */
   getSafeSystemInfo(): Record<string, any> {
     try {
       const windowInfo = wx.getWindowInfo()
@@ -665,7 +677,7 @@ App({
     this.socketData.pageSubscribers.delete(pageId)
   },
 
-  /** 通知所有订阅页面?*/
+  /** 通知所有订阅页面 */
   notifyPageSubscribers(eventName: string, data: any): void {
     this.socketData.pageSubscribers.forEach(
       (callback: (_evt: string, _payload: any) => void, pageId: string) => {
@@ -710,7 +722,7 @@ App({
     this.socketData.pageSubscribers.clear()
   },
 
-  /** Token使用日志记录（分析Token问题的发生频率和模式?*/
+  /** Token使用日志记录（分析Token问题的发生频率和模式） */
   logTokenUsage(action: string, details: Record<string, any>): void {
     try {
       const logs: TokenLogEntry[] = wx.getStorageSync('token_usage_logs') || []

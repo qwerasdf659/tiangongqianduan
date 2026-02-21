@@ -10,7 +10,7 @@
       <view class="confirm-product-info">
         <image
           class="confirm-product-image"
-          src="{{product.image || '/images/products/default-product.png'}}"
+          src="{{product.image || defaultProductImage}}"
           mode="aspectFill"
         />
         <view class="confirm-product-detail">

@@ -14,9 +14,9 @@
  * @since 2026-02-21
  */
 
-const { API, Wechat, Logger, Utils } = require('../../../utils/index')
+const { API, Wechat, Logger, Utils, ImageHelper } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market-behavior')
-const { getMarketProducts, purchaseMarketProduct, getMyListingStatus } = API
+const { getMarketProducts, purchaseMarketProduct, getMyListingStatus, confirmEscrowCode } = API
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = require('../../utils/product-display')
@@ -79,6 +79,11 @@ module.exports = Behavior({
            * 物品类型: item_info.display_name, item_info.image_url
            * 资产类型: asset_info.display_name, asset_info.icon_url
            */
+          /**
+           * 适配后端 QueryService 嵌套响应，使用 ImageHelper 统一图片降级链
+           * fungible_asset 类型 → 本地材料图标（按 asset_code 映射）
+           * item_instance 类型 → 后端 image_url → 分类图标 → 占位图
+           */
           const processedProducts = items.map((item: any) => {
             const itemInfo = item.item_info || {}
             const assetInfo = item.asset_info || {}
@@ -89,11 +94,11 @@ module.exports = Behavior({
               seller_user_id: item.seller_user_id,
               seller_nickname: item.seller_nickname || '',
               seller_avatar_url: item.seller_avatar_url || null,
-              item_name: itemInfo.display_name || assetInfo.display_name || '未知商品',
+              item_name: ImageHelper.getListingDisplayName(item),
               description: isAsset
-                ? `${assetInfo.asset_code || ''} × ${assetInfo.amount || 0}`
+                ? `${ImageHelper.getAssetDisplayName(assetInfo.asset_code || '')} × ${assetInfo.amount || 0}`
                 : itemInfo.category_code || '',
-              image: itemInfo.image_url || assetInfo.icon_url || '/images/default-product.png',
+              image: ImageHelper.getListingDisplayImage(item),
               price_asset_code: item.price_asset_code,
               price_amount: item.price_amount || 0,
               offer_asset_code: assetInfo.asset_code || null,
@@ -293,13 +298,18 @@ module.exports = Behavior({
       this.setData({ showResult: false, resultData: null })
     },
 
-    /** 图片加载失败 */
+    /** 商品列表图片加载失败 — 替换为占位图 */
     onImageError(e: any) {
       const index = e.currentTarget.dataset.index
       this.setData({
-        [`filteredProducts[${index}].image`]: '/images/products/default-product.png',
+        [`filteredProducts[${index}].image`]: ImageHelper.DEFAULT_PRODUCT_IMAGE,
         [`filteredProducts[${index}].imageStatus`]: 'error'
       })
+    },
+
+    /** 购买确认弹窗图片加载失败 — 替换为占位图 */
+    onConfirmImageError() {
+      this.setData({ 'selectedProduct.image': ImageHelper.DEFAULT_PRODUCT_IMAGE })
     },
 
     /** 图片加载成功 */
@@ -412,6 +422,89 @@ module.exports = Behavior({
     /** 跳转到仓库页面（去上架） */
     onGoToInventory() {
       wx.navigateTo({ url: '/packageTrade/trade/inventory/inventory' })
+    },
+
+    // ===== Phase 4：C2C担保码（买方确认收货） =====
+
+    /**
+     * 打开担保码输入弹窗
+     * 仅 listing_kind = 'item_instance' 的实物交易需要担保码
+     */
+    onOpenEscrowInput(e: any) {
+      const tradeOrderId = e.currentTarget.dataset.trade_order_id
+      if (!tradeOrderId) {
+        showToast('交易订单信息无效')
+        return
+      }
+
+      this.setData({
+        showEscrowInput: true,
+        escrowInputCode: '',
+        escrowTradeOrderId: tradeOrderId,
+        escrowSubmitting: false
+      })
+    },
+
+    /**
+     * 担保码输入事件
+     */
+    onEscrowCodeInput(e: any) {
+      this.setData({ escrowInputCode: e.detail.value || '' })
+    },
+
+    /**
+     * 提交担保码确认收货
+     * POST /api/v4/market/trade-orders/:trade_order_id/confirm-escrow
+     *
+     * ⚠️ 需要后端 Phase 4 EscrowCodeService 实施完成后才可调用
+     */
+    async onSubmitEscrowCode() {
+      const { escrowTradeOrderId, escrowInputCode, escrowSubmitting } = this.data
+
+      if (!escrowTradeOrderId || !escrowInputCode || escrowInputCode.length !== 6) {
+        showToast('请输入完整的6位担保码')
+        return
+      }
+      if (escrowSubmitting) {
+        return
+      }
+
+      this.setData({ escrowSubmitting: true })
+
+      try {
+        const result = await confirmEscrowCode(escrowTradeOrderId, escrowInputCode)
+
+        if (result && result.success) {
+          marketLog.info('担保码确认成功:', escrowTradeOrderId)
+          showToast('交易完成', 'success')
+          this.setData({
+            showEscrowInput: false,
+            showResult: false,
+            escrowInputCode: '',
+            escrowTradeOrderId: 0
+          })
+          this.loadProducts()
+          this.triggerEvent('pointsupdate')
+        } else {
+          throw new Error((result && result.message) || '担保码验证失败')
+        }
+      } catch (error: any) {
+        marketLog.error('担保码确认失败:', error)
+        showToast(error.message || '担保码验证失败，请检查后重试')
+      } finally {
+        this.setData({ escrowSubmitting: false })
+      }
+    },
+
+    /**
+     * 关闭担保码输入弹窗
+     */
+    onCloseEscrowInput() {
+      this.setData({
+        showEscrowInput: false,
+        escrowInputCode: '',
+        escrowTradeOrderId: 0
+      })
     }
   }
 })

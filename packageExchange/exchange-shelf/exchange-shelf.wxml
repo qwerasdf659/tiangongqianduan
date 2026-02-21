@@ -45,6 +45,7 @@
           <text class="points-value">{{pointsBalance}}</text>
         </view>
         <view class="header-quick-actions">
+          <view class="header-action-btn" bindtap="onShowExchangeOrders">📋 我的订单</view>
           <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
           <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
           <view class="view-toggle">
@@ -132,4 +133,7 @@
     orderData="{{shopResultData}}"
     bind:close="onCloseShopResult"
   />
+
+  <!-- 兑换订单管理（Phase 3：确认收货 + 评价） -->
+  <exchange-orders visible="{{showExchangeOrders}}" bind:close="onCloseExchangeOrders" />
 </view>

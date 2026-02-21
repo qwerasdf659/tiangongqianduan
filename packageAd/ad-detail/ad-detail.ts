@@ -19,7 +19,7 @@
  * @since 2026-02-19
  */
 
-const { API, Logger, Wechat } = require('../../utils/index')
+const { API, Logger, Wechat, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('ad-detail')
 
 /** 状态标签样式映射 */
@@ -221,6 +221,16 @@ Page({
         log.error('[ad-detail] 跳转编辑页失败:', err)
       }
     })
+  },
+
+  /** 广告素材图片加载失败 — 替换为占位图 */
+  onCreativeImageError(e: any) {
+    const index = e.currentTarget.dataset.index
+    if (index !== undefined) {
+      this.setData({
+        [`campaign.creatives[${index}].image_url`]: ImageHelper.DEFAULT_PRODUCT_IMAGE
+      })
+    }
   }
 })
 

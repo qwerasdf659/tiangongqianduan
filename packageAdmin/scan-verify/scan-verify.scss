@@ -414,6 +414,55 @@
   color: $color-text-tertiary;
 }
 
+/* ===== 手动输入核销码（备用入口） ===== */
+.manual-input-card {
+  padding: 0 40rpx;
+}
+
+.manual-divider {
+  @include flex-align-center;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.divider-line {
+  flex: 1;
+  height: 2rpx;
+  background: $color-border-light;
+}
+
+.divider-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.manual-btn {
+  @include flex-center;
+  height: 80rpx;
+  background: $color-white;
+  border: 2rpx solid $color-border;
+  border-radius: 40rpx;
+  margin-bottom: 12rpx;
+}
+
+.manual-btn:active {
+  background: $color-bg-grey;
+}
+
+.manual-btn-text {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  font-weight: 500;
+}
+
+.manual-hint {
+  display: block;
+  text-align: center;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 16rpx;
+}
+
 /* 返回准备步骤按钮 */
 .back-action {
   @include flex-center;

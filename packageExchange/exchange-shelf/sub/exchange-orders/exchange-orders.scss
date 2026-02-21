@@ -1,0 +1,378 @@
+/* 兑换订单管理组件样式 */
+@import '../../../../styles/variables';
+@import '../../../../styles/mixins';
+
+/* ===== 订单面板覆盖层 ===== */
+.exchange-orders-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.exchange-orders-panel {
+  width: 100%;
+  max-height: 85vh;
+  background: $color-bg;
+  border-radius: $border-radius-xl $border-radius-xl 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===== 面板头部 ===== */
+.eo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-xl $spacing-xl $spacing-base;
+  background: $color-white;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.eo-title {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.eo-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $border-radius-round;
+  background: $color-bg;
+}
+
+.eo-close-icon {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+/* ===== 筛选Tab ===== */
+.eo-tabs {
+  display: flex;
+  padding: $spacing-md $spacing-lg;
+  background: $color-white;
+  gap: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.eo-tab {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: $border-radius-xl;
+  background: $color-bg-grey;
+  transition: all $transition-fast;
+}
+
+.eo-tab.active {
+  background: $color-primary;
+}
+
+.eo-tab-text {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.eo-tab.active .eo-tab-text {
+  color: $color-white;
+  font-weight: 500;
+}
+
+/* ===== 滚动区域 ===== */
+.eo-scroll {
+  flex: 1;
+  min-height: 300rpx;
+  max-height: 65vh;
+}
+
+/* ===== 加载/空状态 ===== */
+.eo-loading,
+.eo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx $spacing-xxl;
+}
+
+.eo-loading-text,
+.eo-empty-text {
+  font-size: $font-size-base;
+  color: $color-text-tertiary;
+  margin-top: $spacing-md;
+}
+
+.eo-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: $spacing-xs;
+}
+
+.eo-empty-hint {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+/* ===== 订单卡片 ===== */
+.eo-list {
+  padding: $spacing-md $spacing-lg;
+}
+
+.eo-card {
+  background: $color-bg-card;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-base;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+}
+
+.eo-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-base $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.eo-status-badge {
+  padding: 4rpx $spacing-md;
+  border-radius: $spacing-base;
+}
+
+.eo-status-text {
+  font-size: $font-size-xs;
+  color: $color-white;
+  font-weight: 500;
+}
+
+.eo-order-no {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  max-width: 380rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eo-card-body {
+  padding: $spacing-base $spacing-lg;
+}
+
+.eo-product-info {
+  margin-bottom: $spacing-sm;
+}
+
+.eo-product-name {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.eo-product-pay {
+  font-size: $font-size-sm;
+  color: $color-warning;
+  display: block;
+}
+
+.eo-time-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.eo-time {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* ===== 自动确认提示 ===== */
+.eo-auto-tip {
+  padding: $spacing-xs $spacing-lg $spacing-sm;
+}
+
+.eo-auto-text {
+  font-size: $font-size-xs;
+  color: $color-info;
+}
+
+/* ===== 已评价展示 ===== */
+.eo-rating-display {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-lg $spacing-sm;
+}
+
+.eo-rating-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.eo-rating-stars {
+  font-size: $font-size-base;
+  color: #ffb300;
+}
+
+/* ===== 操作按钮 ===== */
+.eo-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  border-top: 1rpx solid $color-divider;
+}
+
+.eo-action-btn {
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $border-radius-xl;
+  text-align: center;
+}
+
+.confirm-btn {
+  background: $color-success;
+}
+
+.rate-btn {
+  background: $color-primary;
+}
+
+.eo-action-text {
+  font-size: $font-size-sm;
+  color: $color-white;
+  font-weight: 500;
+}
+
+/* ===== 底部加载 ===== */
+.eo-footer {
+  text-align: center;
+  padding: $spacing-lg 0 $spacing-xxl;
+}
+
+.eo-footer-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+/* ===== 评价弹窗 ===== */
+.rating-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-modal {
+  width: 600rpx;
+  background: $color-bg-card;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xl;
+}
+
+.rating-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.rating-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.rating-close {
+  width: $icon-size-md;
+  height: $icon-size-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-close-icon {
+  font-size: $font-size-base;
+  color: $color-text-tertiary;
+}
+
+.rating-product {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  display: block;
+  text-align: center;
+  margin-bottom: $spacing-xl;
+}
+
+.rating-stars-row {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.rating-star {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-icon {
+  font-size: 56rpx;
+  color: #ddd;
+  transition: color $transition-fast;
+}
+
+.rating-star.selected .star-icon {
+  color: #ffb300;
+}
+
+.rating-hint {
+  display: block;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xl;
+}
+
+.rating-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.rating-submit-btn {
+  width: 100%;
+  padding: $spacing-base 0;
+  text-align: center;
+  background: $color-primary;
+  border-radius: $spacing-xxl;
+}
+
+.rating-submit-btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.rating-submit-text {
+  font-size: $font-size-md;
+  color: $color-white;
+  font-weight: 500;
+}

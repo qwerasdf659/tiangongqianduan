@@ -15,7 +15,13 @@
   style="{{themeStyle}}"
 >
   <view class="mini-entry">
-    <image wx:if="{{coverImage}}" class="mini-entry__icon" src="{{coverImage}}" mode="aspectFill" />
+    <image
+      wx:if="{{coverImage}}"
+      class="mini-entry__icon"
+      src="{{coverImage}}"
+      mode="aspectFill"
+      binderror="onCoverImageError"
+    />
     <text wx:else class="mini-entry__text">抽奖</text>
   </view>
 </view>

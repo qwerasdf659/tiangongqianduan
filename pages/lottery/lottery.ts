@@ -89,7 +89,11 @@ Page({
     auditRecordsCount: 0,
     auditRecordsData: [] as API.ConsumptionRecord[],
     showAuditModal: false,
-    auditRecordsLoading: false,
+
+    /* ===== 系统公告（后端 GET /api/v4/system/announcements/home 返回，最多5条） ===== */
+    announcements: [] as API.Announcement[],
+    /** 公告区域是否可见（有数据时显示） */
+    showAnnouncements: false,
 
     /* ===== 弹窗横幅（后端 GET /api/v4/system/popup-banners 返回） ===== */
     showPopupBanner: false,
@@ -176,9 +180,10 @@ Page({
     this.setData({ isLoggedIn: true, pointsBalance, userInfo })
     this.updatePointsDisplay(pointsBalance, frozenPoints)
 
-    /* 非首次加载时单独刷新弹窗横幅 */
+    /* 非首次加载时刷新弹窗横幅和系统公告 */
     if (!this._isFirstLoad) {
       this.loadPopupBanners()
+      this.loadHomeAnnouncements()
     }
 
     await this.loadConsumptionRecordsCount()
@@ -206,9 +211,12 @@ Page({
 
   async onPullDownRefresh() {
     try {
-      /* 并行刷新：积分数据 + 位置配置 + 活动列表 */
+      /* 并行刷新：积分数据 + 系统公告 + 位置配置 + 活动列表 */
       await Promise.all([
         this._refreshPoints(),
+        this.loadHomeAnnouncements().catch((announcementError: any) => {
+          log.warn('[lottery] 公告刷新失败（不影响主功能）:', announcementError)
+        }),
         ConfigCache.configCache.forceRefresh().catch((refreshError: any) => {
           log.warn('[lottery] 配置刷新失败（不影响主功能）:', refreshError)
         })
@@ -222,7 +230,14 @@ Page({
     }
   },
 
+  /** TabBar页面切换时上报当前轮播图最后一次曝光（lottery是TabBar页，切标签时触发onHide） */
+  onHide() {
+    this._flushCarouselExposure()
+  },
+
   onUnload() {
+    this._flushCarouselExposure()
+
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
     }
@@ -232,6 +247,18 @@ Page({
     if (this._qrTimer) {
       clearInterval(this._qrTimer)
       this._qrTimer = null
+    }
+  },
+
+  /** 上报当前可见轮播图的最后一次曝光（页面离开时调用，避免曝光数据丢失） */
+  _flushCarouselExposure() {
+    if (
+      this.data.showCarousel &&
+      this.data.carouselItems.length > 0 &&
+      this._carouselExposureStart
+    ) {
+      this._reportCarouselExposure(this.data.carouselCurrent, false, false)
+      this._carouselExposureStart = 0
     }
   },
 
@@ -254,9 +281,12 @@ Page({
         return
       }
 
-      /* 并行加载：积分数据、弹窗横幅、轮播图 */
+      /* 并行加载：积分数据、系统公告、弹窗横幅、轮播图 */
       await Promise.all([
         this._refreshPoints(),
+        this.loadHomeAnnouncements().catch((err: any) => {
+          log.error('[lottery] 系统公告加载失败（不影响主功能）:', err)
+        }),
         this.loadPopupBanners().catch((err: any) => {
           log.error('[lottery] 弹窗横幅加载失败（不影响主功能）:', err)
         }),
@@ -344,14 +374,11 @@ Page({
       })
     } catch (loadError) {
       log.error('[lottery] 加载活动列表失败:', loadError)
-      /* 降级兜底：使用默认 BASIC_LOTTERY，包含完整 placement 结构（WXML模板需要） */
       this.setData({
-        mainCampaign: {
-          campaign_code: 'BASIC_LOTTERY',
-          placement: { page: 'lottery', position: 'main', size: 'full', priority: 100 }
-        },
+        mainCampaign: null,
         extraCampaigns: []
       })
+      wx.showToast({ title: '活动加载失败，请下拉刷新重试', icon: 'none', duration: 2500 })
     }
   },
 
@@ -775,7 +802,6 @@ Page({
       return
     }
 
-    this.setData({ auditRecordsLoading: true })
     wx.showLoading({ title: '加载中...', mask: true })
 
     try {
@@ -809,7 +835,7 @@ Page({
         }
       })
     } finally {
-      this.setData({ auditRecordsLoading: false })
+      /* wx.hideLoading 已在 try/catch 分支中调用 */
     }
   },
 
@@ -873,6 +899,57 @@ Page({
   /** 关闭审核记录弹窗 */
   closeAuditModal() {
     this.setData({ showAuditModal: false, auditRecordsData: [] })
+  },
+
+  // ========================================
+  // 系统公告（后端 GET /api/v4/system/announcements/home）
+  // ========================================
+
+  /**
+   * 加载首页系统公告（公开接口，无需登录）
+   *
+   * 数据流:
+   * API获取活跃公告(Top5) → 空数组则隐藏区域 → 有数据则渲染滚动公告条
+   * 后端按 priority DESC + created_at DESC 排序，每次请求自动累加 view_count
+   */
+  async loadHomeAnnouncements() {
+    try {
+      const result = await API.getHomeAnnouncements()
+      if (!result?.success || !result.data) {
+        return
+      }
+
+      const announcementList: API.Announcement[] = result.data.announcements || []
+      if (!Array.isArray(announcementList) || announcementList.length === 0) {
+        this.setData({ showAnnouncements: false, announcements: [] })
+        return
+      }
+
+      this.setData({
+        announcements: announcementList,
+        showAnnouncements: true
+      })
+
+      log.info('[lottery] 系统公告加载成功:', announcementList.length, '条')
+    } catch (error) {
+      log.error('[lottery] 系统公告加载失败:', error)
+    }
+  },
+
+  /** 公告条点击 — 展示公告详细内容 */
+  onAnnouncementTap(e: WechatMiniprogram.CustomEvent) {
+    const index = e.currentTarget.dataset.index as number
+    const announcement: API.Announcement = this.data.announcements[index]
+    if (!announcement) {
+      return
+    }
+
+    wx.showModal({
+      title: announcement.title,
+      content: announcement.content,
+      showCancel: false,
+      confirmText: '我知道了'
+    })
   },
 
   // ========================================
@@ -1170,6 +1247,20 @@ Page({
 
       default:
         log.warn('[lottery] 未知的轮播图跳转类型:', tappedItem.link_type)
+    }
+  },
+
+  /** 轮播图图片加载失败 — 隐藏该轮播项避免显示破图 */
+  onCarouselImageError(e: WechatMiniprogram.TouchEvent) {
+    const index = e.currentTarget.dataset.index
+    if (index === undefined || index === null) {
+      return
+    }
+    log.warn(`[lottery] 轮播图[${index}]图片加载失败`)
+    const carouselItems = [...this.data.carouselItems]
+    if (carouselItems[index]) {
+      carouselItems[index] = { ...carouselItems[index], image_url: '' }
+      this.setData({ carouselItems })
     }
   },
 

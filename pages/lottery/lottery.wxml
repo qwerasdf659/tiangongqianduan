@@ -151,10 +151,36 @@
             src="{{item.image_url}}"
             mode="aspectFill"
             lazy-load="{{true}}"
+            data-index="{{index}}"
+            binderror="onCarouselImageError"
           />
           <view class="carousel-title-bar" wx:if="{{item.title}}">
             <text class="carousel-title-text">{{item.title}}</text>
           </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <!-- 📢 系统公告条（后端API: GET /api/v4/system/announcements/home） -->
+  <view class="announcement-section" wx:if="{{showAnnouncements && announcements.length > 0}}">
+    <view class="announcement-icon">
+      <text>📢</text>
+    </view>
+    <swiper
+      class="announcement-swiper"
+      vertical="{{true}}"
+      autoplay="{{true}}"
+      circular="{{true}}"
+      interval="{{4000}}"
+      duration="{{500}}"
+    >
+      <swiper-item wx:for="{{announcements}}" wx:key="announcement_id">
+        <view class="announcement-item" data-index="{{index}}" bindtap="onAnnouncementTap">
+          <view class="announcement-tag announcement-tag--{{item.type}}">
+            <text>{{item.type_display}}</text>
+          </view>
+          <text class="announcement-title">{{item.title}}</text>
         </view>
       </swiper-item>
     </swiper>
@@ -237,7 +263,11 @@
 
       <!-- 记录列表 -->
       <scroll-view class="audit-records-list" scroll-y="{{true}}">
-        <view class="audit-record-card {{item.status}}" wx:for="{{auditRecordsData}}" wx:key="id">
+        <view
+          class="audit-record-card {{item.status}}"
+          wx:for="{{auditRecordsData}}"
+          wx:key="consumption_record_id"
+        >
           <!-- 记录编号 + 状态 -->
           <view class="record-header">
             <text class="record-number">🎯 记录 #{{index + 1}}</text>

@@ -17,11 +17,20 @@
  */
 
 // 🔴 统一工具函数导入（通过utils/index.ts）
-const { Utils, Wechat, API, Logger, ApiWrapper } = require('../../../utils/index')
+const {
+  Utils,
+  Wechat,
+  API,
+  Logger,
+  ApiWrapper,
+  QRCode,
+  ImageHelper
+} = require('../../../utils/index')
 const log = Logger.createLogger('inventory')
 const { showToast } = Wechat
 const { checkAuth } = Utils
 const { safeApiCall } = ApiWrapper
+const { getMaterialIconPath } = ImageHelper
 
 // MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -55,19 +64,19 @@ Page({
     totalAssetValue: 0,
 
     // ===== 分类统计（来GET /api/v4/backpack/stats items_by_type====
-    /** ?item_type 分组的物品数量统计，后端权威数据 */
+    /** 按item_type分组的物品数量统计，后端权威数据 */
     categoryStats: {
-      /** 全部物品?*/
+      /** 全部物品 */
       all: 0,
-      /** 奖品（prize?*/
+      /** 奖品（prize） */
       prize: 0,
-      /** 兑换券（voucher?*/
+      /** 兑换券（voucher） */
       voucher: 0,
-      /** 商品（product?*/
+      /** 商品（product） */
       product: 0,
-      /** 可交易物品（tradable_item?*/
+      /** 可交易物品（tradable_item） */
       tradable_item: 0,
-      /** 服务权益（service?*/
+      /** 服务权益（service） */
       service: 0
     },
 
@@ -76,29 +85,57 @@ Page({
     currentCategory: 'all',
     /** 当前排序：newest | oldest | expire_soon */
     currentSort: 'newest',
-    /** 搜索关键?*/
+    /** 搜索关键词 */
     searchKeyword: '',
 
     // ===== 页面状态=====
-    /** 首次加载中（显示loading占位?*/
+    /** 首次加载中（显示loading占位） */
     loading: false,
     /** 静默刷新中（下拉刷新、回到页面时间*/
     refreshing: false,
 
     // ===== UI状态=====
-    /** 筛选面板是否显?*/
+    /** 筛选面板是否显示 */
     showFilterPanel: false,
 
     // ===== 错误状态管=====
     hasError: false,
     errorMessage: '',
-    errorDetail: ''
+    errorDetail: '',
+
+    // ===== 核销码QR码展示（模型A：O2O动态码） =====
+    /** 是否显示核销码QR码弹窗 */
+    showRedemptionQR: false,
+    /** QR码图片临时路径（Canvas导出） */
+    redemptionQRImage: '',
+    /** 12位Base32文本码（备用，格式 XXXX-YYYY-ZZZZ） */
+    redemptionTextCode: '',
+    /** 当前核销的物品名称 */
+    redemptionItemName: '',
+    /** 核销码有效期至（ISO8601，运营配置的核销码过期时间） */
+    redemptionExpiresAt: '',
+    /** QR码倒计时（秒，5分钟=300秒） */
+    qrCountdown: 0,
+    /** QR码倒计时文字（如 "4:30"） */
+    qrCountdownText: '',
+    /** QR码是否已过期（需刷新） */
+    qrExpired: false,
+    /** QR码刷新中状态 */
+    qrRefreshing: false,
+    /** 当前核销物品的 item_instance_id（刷新QR码用） */
+    _redemptionItemId: 0,
+    /** 当前核销按钮文案（"到店领取" / "到店使用" / "核销"） */
+    redemptionActionLabel: ''
   },
 
   // 防抖搜索定时器
   searchTimer: 0 as any,
   // MobX绑定实例
   tradeBindings: null as any,
+  // 核销码QR码倒计时定时器
+  _qrTimer: null as any,
+  // QR码过期时间戳（ms）
+  _qrExpiresAt: 0,
   /**
    * 全量物品数据（仅在JS逻辑层保留，不通过setData传输到WXML层）
    * 解决 setData 传输 1390KB 性能问题：3422个物品 × 每个约400字节
@@ -174,7 +211,7 @@ Page({
    * 返回格式: { success: true, data: { assets: BackpackAsset[], items: BackpackItem[] } }
    *
    * 执行流程   * 1. 调用 getUserInventory() 获取背包数据（通过JWT Token识别用户，无需传userId   * 2. 解析双轨结构：assets（可叠加资产 items（不可叠加物品）
-   * 3. 为每个物品计算前端操作标志（can_use / can_generate_code / can_sell   * 4. 计算分类统计数量
+   * 3. 基于后端 allowed_actions 数组计算 WXML 操作标志（can_use / can_generate_code / can_sell   * 4. 计算分类统计数量
    * 5. 独立加载背包统计数据
    * 6. 应用当前筛选排序条   *
    * @param refresh - true=静默刷新（不显示loading），false=首次加载（显示loading占位   */
@@ -195,24 +232,39 @@ Page({
         const { assets = [], items = [] } = data
 
         /**
-         * 处理可叠加资产（积分、钻石等         * 后端已返is_tradable 字段（boolean），精确控制"上架到市按钮显示
+         * 处理可叠加资产（积分、钻石等）
+         * 后端已返回 is_tradable 字段（boolean），精确控制"上架到市场"按钮显示
          * is_tradable=true 的资产才能上架到交易市场
+         *
+         * icon_path: 由前端 image-helper.ts 根据 asset_code 映射本地PNG图标路径
+         * 图标规格：256×256 PNG，存放于 images/icons/materials/
          */
-        const backpackAssets = assets
-
-        // 为每个物品添加前端计算的操作标志（基于物品状态和字段决定UI按钮显示
-        const processedItems = items.map((item: any) => ({
-          ...item,
-          /**
-           * 前端计算的操作标志：
-           * can_use           = status === 'available'              "立即使用"按钮
-           * can_generate_code = status === 'available' && !has_redemption_code "生成核销按钮
-           * can_sell          = status === 'available'              "上架到市按钮
-           */
-          can_use: item.status === 'available',
-          can_generate_code: item.status === 'available' && !item.has_redemption_code,
-          can_sell: item.status === 'available'
+        const backpackAssets = assets.map((asset: any) => ({
+          ...asset,
+          icon_path: getMaterialIconPath(asset.asset_code)
         }))
+
+        /**
+         * 基于后端 allowed_actions 数组计算 WXML 模板所需的布尔标志
+         *
+         * 数据流: 后端 system_configs(item_type_action_rules) → BackpackService._getItems() → allowed_actions[]
+         *         → 前端 Array.includes() 转布尔 → WXML wx:if 绑定
+         *
+         * 业务规则（后端权威，前端不硬编码）:
+         *   product/voucher → ["redeem","sell"]  实物需到店核销，不支持线上"使用"
+         *   prize           → ["redeem"]         奖品不可交易
+         *   service         → ["use"]            线上权益直接激活
+         *   tradable_item   → ["use","sell"]     虚拟道具可用可交易
+         */
+        const processedItems = items.map((item: any) => {
+          const actions: string[] = Array.isArray(item.allowed_actions) ? item.allowed_actions : []
+          return {
+            ...item,
+            can_use: actions.includes('use'),
+            can_generate_code: actions.includes('redeem') && !item.has_redemption_code,
+            can_sell: actions.includes('sell')
+          }
+        })
 
         log.info('成功加载背包数据:', {
           assetCount: backpackAssets.length,
@@ -469,7 +521,8 @@ Page({
    * 成功返回: { success: true, data: { item_instance_id, status: "used", is_duplicate } }
    *
    * WXML绑定: <button bindtap="onUseItem" data-item="{{item}}">
-   * 前置条件: item.can_use === true（物品状态为available   */
+   * 前置条件: item.can_use === true（后端 allowed_actions 包含 'use'）
+   */
   onUseItem(e: any) {
     const { item } = e.currentTarget.dataset
 
@@ -550,15 +603,20 @@ Page({
   },
 
   /**
-   * 生成核销码（用户到店出示，商家扫码核销   *
-   * 后端API: POST /api/v4/backpack/items/:item_instance_id/redeem
-   * 成功返回:
-   *   {
-   *     order: { redemption_order_id, status: "pending", expires_at },
-   *     code: "ABCD1234EFGH"  12位Base32格式，仅此一次返回明文，30天有   *   }
+   * 生成核销码 → 展示QR码弹窗（Phase 1 升级：QR码 + 文本码并存）
    *
-   * 业务流程: 用户点击"生成核销 后端生成核销用户到店出示 商家扫码核销
-   * WXML绑定: <button bindtap="onGenerateCode" data-item="{{item}}">
+   * 后端API: POST /api/v4/backpack/items/:item_instance_id/redeem
+   * 响应字段（Phase 1 升级后）:
+   *   order:        { redemption_order_id, status: "pending", expires_at }
+   *   code:         "ABCD-1234-EFGH"（12位Base32文本码，仅此一次返回明文）
+   *   qr_payload:   "RQRV1_{base64}_{signature}"（动态HMAC签名QR码内容，5分钟有效）
+   *   qr_expires_at: ISO8601（QR码过期时间）
+   *
+   * 交互流程:
+   *   1. 调用API生成核销码
+   *   2. 弹出QR码展示弹窗（主展示 + 文本码备用）
+   *   3. QR码5分钟自动刷新 + 倒计时显示
+   *   4. 用户到店出示QR码，商家扫码核销
    */
   async onGenerateCode(e: any) {
     const { item } = e.currentTarget.dataset
@@ -577,39 +635,43 @@ Page({
       const response = await API.redeemInventoryItem(item.item_instance_id)
 
       if (response.success && response.data) {
-        /* 后端返回字段: data.code（12位Base32明文核销码，仅此一次返回） */
         const redemptionCode = response.data.code || ''
-        const expiresAt =
-          response.data.order && response.data.order.expires_at
-            ? response.data.order.expires_at
-            : ''
-
+        const orderData = response.data.order || {}
+        const expiresAt = orderData.expires_at || ''
         const itemName = item.name || '物品'
+        const qrPayload = response.data.qr_payload || ''
+        const qrExpiresAt = response.data.qr_expires_at || ''
 
-        /* 构建核销码展示内容：物品名称 + 核销码 + 有效期 + 使用说明 */
-        let modalContent = `物品：${itemName}\n核销码：${redemptionCode}`
-        if (expiresAt) {
-          modalContent += `\n有效期至：${this.formatReadableTime(expiresAt)}`
-        }
-        modalContent +=
-          '\n\n⚠️ 核销码仅显示一次，请妥善保管！\n请在有效期内到店出示此码，由店员扫码完成核销。'
+        const actionLabel =
+          item.item_type === 'product'
+            ? '到店领取'
+            : item.item_type === 'voucher'
+              ? '到店使用'
+              : '核销'
 
-        wx.showModal({
-          title: response.message || '核销码生成成功',
-          content: modalContent,
-          showCancel: false,
-          confirmText: '复制核销码',
-          success: (res: any) => {
-            if (res.confirm && redemptionCode) {
-              wx.setClipboardData({
-                data: redemptionCode,
-                success: () => showToast('核销码已复制到剪贴板')
-              })
+        this.setData(
+          {
+            _redemptionItemId: item.item_instance_id,
+            redemptionTextCode: redemptionCode,
+            redemptionItemName: itemName,
+            redemptionExpiresAt: expiresAt ? this.formatReadableTime(expiresAt) : '',
+            redemptionActionLabel: actionLabel,
+            showRedemptionQR: true,
+            qrExpired: false,
+            qrRefreshing: false,
+            redemptionQRImage: ''
+          },
+          () => {
+            /* setData回调：DOM已更新，Canvas已进入DOM树，可安全执行绑定和绘制 */
+            if (qrPayload) {
+              this.renderRedemptionQR(qrPayload, qrExpiresAt)
+            } else {
+              log.info('后端未返回qr_payload，仅展示文本码')
+              this.setData({ qrCountdownText: '', qrCountdown: 0 })
             }
           }
-        })
+        )
 
-        /* 刷新背包数据（物品状态可能变为 locked） */
         this.loadInventoryData(true)
       } else {
         throw new Error(response.message || '生成失败')
@@ -618,6 +680,191 @@ Page({
       log.error('生成核销码失败', error)
       showToast(error.message || '生成失败，请重试')
     }
+  },
+
+  /**
+   * Canvas渲染核销码QR码 + 启动5分钟倒计时
+   *
+   * 参考 lottery.ts 的 generateUserQRCode() 实现模式：
+   *   QRCode.drawQrcode() → canvasToTempFilePath → setData image
+   *
+   * @param qrContent - RQRV1_前缀的动态QR码内容
+   * @param qrExpiresAt - QR码过期时间（ISO8601）
+   */
+  renderRedemptionQR(qrContent: string, qrExpiresAt: string) {
+    if (!qrContent) {
+      log.warn('QR码内容为空，跳过渲染')
+      return
+    }
+
+    let expiresTimestamp = 0
+    if (qrExpiresAt) {
+      const parsed = Utils.safeParseDateString
+        ? Utils.safeParseDateString(qrExpiresAt)
+        : new Date(qrExpiresAt)
+      expiresTimestamp = (parsed || new Date()).getTime()
+    }
+    this._qrExpiresAt = expiresTimestamp
+
+    QRCode.drawQrcode({
+      canvasId: 'redemptionQRCanvas',
+      text: qrContent,
+      width: 400,
+      height: 400,
+      typeNumber: -1,
+      correctLevel: 2,
+      callback: () => {
+        const tryExport = (attempt: number) => {
+          const delay = attempt === 0 ? 500 : 1000 * attempt
+          setTimeout(() => {
+            wx.canvasToTempFilePath(
+              {
+                canvasId: 'redemptionQRCanvas',
+                width: 400,
+                height: 400,
+                destWidth: 400,
+                destHeight: 400,
+                success: (tempRes: any) => {
+                  log.info('核销码QR码渲染成功')
+
+                  const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+                  const minutes = Math.floor(remaining / 60)
+                  const seconds = remaining % 60
+
+                  this.setData({
+                    redemptionQRImage: tempRes.tempFilePath,
+                    qrCountdown: remaining,
+                    qrExpired: false,
+                    qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+                  })
+
+                  this.startQRCountdown()
+                },
+                fail: (err: any) => {
+                  const maxRetry = 3
+                  if (attempt < maxRetry) {
+                    log.warn(`Canvas导出失败(第${attempt + 1}次)，重试...`, err)
+                    tryExport(attempt + 1)
+                  } else {
+                    log.error('Canvas导出最终失败:', err)
+                  }
+                }
+              },
+              this
+            )
+          }, delay)
+        }
+        tryExport(0)
+      }
+    })
+  },
+
+  /**
+   * 启动QR码5分钟倒计时（每秒更新）
+   * QR码过期后自动刷新（调用 refreshRedemptionQR API）
+   */
+  startQRCountdown() {
+    if (this._qrTimer) {
+      clearInterval(this._qrTimer)
+    }
+
+    this._qrTimer = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((this._qrExpiresAt - Date.now()) / 1000))
+
+      if (remaining <= 0) {
+        clearInterval(this._qrTimer)
+        this._qrTimer = null
+        this.setData({ qrCountdown: 0, qrExpired: true, qrCountdownText: '已过期' })
+        this.autoRefreshRedemptionQR()
+        return
+      }
+
+      const minutes = Math.floor(remaining / 60)
+      const seconds = remaining % 60
+      this.setData({
+        qrCountdown: remaining,
+        qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+      })
+    }, 1000)
+  },
+
+  /**
+   * QR码过期后自动刷新
+   * 后端API: POST /api/v4/backpack/items/:item_instance_id/redeem/refresh-qr
+   */
+  async autoRefreshRedemptionQR() {
+    const itemId = this.data._redemptionItemId
+    if (!itemId || !this.data.showRedemptionQR) {
+      return
+    }
+
+    this.setData({ qrRefreshing: true, qrExpired: true })
+    log.info('QR码已过期，自动刷新...')
+
+    try {
+      const result = await API.refreshRedemptionQR(itemId)
+      if (result.success && result.data) {
+        const { qr_payload, qr_expires_at, text_code } = result.data
+
+        if (text_code) {
+          this.setData({ redemptionTextCode: text_code })
+        }
+
+        this.setData({ qrRefreshing: false, qrExpired: false, redemptionQRImage: '' }, () => {
+          if (qr_payload && this.data.showRedemptionQR) {
+            this.renderRedemptionQR(qr_payload, qr_expires_at)
+          }
+        })
+      } else {
+        throw new Error(result.message || 'QR码刷新失败')
+      }
+    } catch (error: any) {
+      log.error('QR码刷新失败:', error)
+      this.setData({ qrRefreshing: false })
+      showToast('QR码刷新失败，请手动刷新')
+    }
+  },
+
+  /**
+   * 手动刷新QR码（用户点击刷新按钮）
+   */
+  onRefreshRedemptionQR() {
+    if (this.data.qrRefreshing) {
+      return
+    }
+    this.autoRefreshRedemptionQR()
+  },
+
+  /**
+   * 复制文本核销码到剪贴板（备用方案：扫码不便时口述文本码）
+   */
+  onCopyRedemptionCode() {
+    const code = this.data.redemptionTextCode
+    if (!code) {
+      showToast('核销码不可用')
+      return
+    }
+    wx.setClipboardData({
+      data: code,
+      success: () => showToast('核销码已复制', 'success')
+    })
+  },
+
+  /**
+   * 关闭核销码QR码弹窗 + 清理倒计时定时器
+   */
+  closeRedemptionQR() {
+    if (this._qrTimer) {
+      clearInterval(this._qrTimer)
+      this._qrTimer = null
+    }
+    this.setData({
+      showRedemptionQR: false,
+      redemptionQRImage: '',
+      qrCountdown: 0,
+      qrExpired: false,
+      qrRefreshing: false
+    })
   },
 
   /**
@@ -701,29 +948,25 @@ Page({
     }
 
     try {
-      // 调用后端API获取最新物品详情（比列表数据多 is_owner 等字段）
       const result = await API.getInventoryItem(item.item_instance_id)
 
       if (result.success && result.data) {
-        const detail = result.data
-        this.showItemDetailModal(detail)
+        this.showItemDetailModal(result.data)
       } else {
-        // API调用失败，使用列表中的本地数据作为降级方案
-        log.warn('获取物品详情失败，使用列表缓存数据')
-        this.showItemDetailModal(item)
+        log.error('获取物品详情失败:', result.message)
+        showToast(result.message || '获取物品详情失败，请稍后重试')
       }
     } catch (error: any) {
-      log.warn('获取物品详情异常，使用列表缓存数据', error.message)
-      // 降级方案：使用列表传入的本地数据
-      this.showItemDetailModal(item)
+      log.error('获取物品详情异常:', error.message)
+      showToast('获取物品详情失败，请检查网络后重试')
     }
   },
 
   /**
    * 展示物品详情弹窗
-   * 使用后端返回*_display 字段显示中文（后端为权威来源，前端不做映射）
+   * 使用后端返回 *_display 字段显示中文（后端为权威来源，前端不做映射）
    *
-   * @param itemDetail - 物品详情数据（来自后端API或列表缓存）
+   * @param itemDetail - 物品详情数据（来自后端API GET /api/v4/backpack/items/:id）
    */
   showItemDetailModal(itemDetail: any) {
     let details = ''
@@ -963,6 +1206,11 @@ Page({
     }
     // 清除搜索防抖定时器
     clearTimeout(this.searchTimer)
+    // 清除核销码QR码倒计时定时器
+    if (this._qrTimer) {
+      clearInterval(this._qrTimer)
+      this._qrTimer = null
+    }
   },
 
   /**

@@ -16,7 +16,8 @@ const {
   Logger: luckyLogger,
   Waterfall: luckyWaterfall,
   ProductFilter: luckyProductFilter,
-  Utils: luckyUtils
+  Utils: luckyUtils,
+  ImageHelper: luckyImageHelper
 } = require('../../../../utils/index')
 const luckyLog = luckyLogger.createLogger('lucky-space')
 const {
@@ -210,7 +211,7 @@ Component({
             const imageUrl =
               (item.primary_image &&
                 (item.primary_image.url || item.primary_image.thumbnail_url)) ||
-              '/images/products/default-product.png'
+              luckyImageHelper.DEFAULT_PRODUCT_IMAGE
             return {
               id: item.id,
               name: item.name || '',
@@ -393,7 +394,7 @@ Component({
     onImageError(e: any) {
       const index = e.currentTarget.dataset.index
       this.setData({
-        [`filteredProducts[${index}].image`]: '/images/products/default-product.png',
+        [`filteredProducts[${index}].image`]: luckyImageHelper.DEFAULT_PRODUCT_IMAGE,
         [`filteredProducts[${index}]._hasImage`]: false
       })
     },

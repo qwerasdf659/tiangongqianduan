@@ -1,6 +1,9 @@
 /**
  * 背包系统 + 兑换系统 + 竞价系统 API
- * 后端路由: routes/v4/backpack/（双轨结 assets[] + items[] * 兑换路由: routes/v4/backpack/exchange/（用户域 * 竞价路由: routes/v4/backpack/bid/（用户域 *
+ * 后端路由: routes/v4/backpack/（双轨结构 assets[] + items[]）
+ * 兑换路由: routes/v4/backpack/exchange/（用户域）
+ * 竞价路由: routes/v4/backpack/bid/（用户域）
+ *
  * 数据库表: exchange_items / exchange_records / bid_products / bid_records
  *           item_instances / account_asset_balances
  *
@@ -35,9 +38,11 @@ async function getBackpackStats() {
 }
 
 /**
- * 获取物品详情（含 is_owner 标识 * GET /api/v4/backpack/items/:item_instance_id
+ * 获取物品详情（含 is_owner 标识）
+ * GET /api/v4/backpack/items/:item_instance_id
  *
- * @param item_instance_id - 物品实例ID（BIGINT */
+ * @param item_instance_id - 物品实例ID（BIGINT）
+ */
 async function getInventoryItem(item_instance_id: number) {
   return apiClient.request(`/backpack/items/${item_instance_id}`, { method: 'GET', needAuth: true })
 }
@@ -45,9 +50,10 @@ async function getInventoryItem(item_instance_id: number) {
 /**
  * 使用物品
  * POST /api/v4/backpack/items/:item_instance_id/use
- * 业务流程: 验证所有权 status=available consumeItem(status→used) 记录 item_instance_events
+ * 业务流程: 验证所有权 → status=available → consumeItem(status→used) → 记录 item_instance_events
  *
- * @param item_instance_id - 物品实例ID（BIGINT */
+ * @param item_instance_id - 物品实例ID（BIGINT）
+ */
 async function useInventoryItem(item_instance_id: number) {
   return apiClient.request(`/backpack/items/${item_instance_id}/use`, {
     method: 'POST',
@@ -56,11 +62,14 @@ async function useInventoryItem(item_instance_id: number) {
 }
 
 /**
- * 生成核销码（到店出示，商家扫码核销 * POST /api/v4/backpack/items/:item_instance_id/redeem
+ * 生成核销码（到店出示，商家扫码核销）
+ * POST /api/v4/backpack/items/:item_instance_id/redeem
  *
  * 响应: { order: { redemption_order_id: UUID, status, expires_at }, code: "ABCD1234EFGH" }
- * ️ redemption_order_id UUID(CHAR(36))，code 明文仅返回一 *
- * @param item_instance_id - 物品实例ID（BIGINT */
+ * ⚠️ redemption_order_id 为 UUID(CHAR(36))，code 明文仅返回一次
+ *
+ * @param item_instance_id - 物品实例ID（BIGINT）
+ */
 async function redeemInventoryItem(item_instance_id: number) {
   return apiClient.request(`/backpack/items/${item_instance_id}/redeem`, {
     method: 'POST',
@@ -78,18 +87,24 @@ async function redeemInventoryItem(item_instance_id: number) {
  * 获取兑换商品列表
  * GET /api/v4/backpack/exchange/items
  *
- * 后端服务: exchange_query（ExchangeQueryService.getMarketItems * 数据库表: exchange_items（字符 exchange_item_id, item_name, cost_asset_code, cost_amount 等）
+ * 后端服务: exchange_query（ExchangeQueryService.getMarketItems）
+ * 数据库表: exchange_items（字段 exchange_item_id, item_name, cost_asset_code, cost_amount 等）
  *
  * 响应结构: { items: ExchangeItem[], pagination: { page, page_size, total, total_pages }, summary }
- * ️ 后端返回数组字段名是 items，不products
+ * ⚠️ 后端返回数组字段名是 items，不是 products
  *
  * @param params - 查询参数对象
- * @param params.space - 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空
- * @param params.category - 商品分类（对category_defs.category_code * @param params.keyword - 模糊搜索（匹item_name * @param params.status - 商品状态 'active' / 'inactive'，默'active'
- * @param params.asset_code - 材料资产代码筛选（'red_shard', 'DIAMOND' * @param params.min_cost - 最低价格筛 * @param params.max_cost - 最高价格筛 * @param params.stock_status - 库存状态 'in_stock'(>5) / 'low_stock'(1-5)
- * @param params.page - 页码，默
- * @param params.page_size - 每页数量，默0，最0
- * @param params.sort_by - 排序字段，默'sort_order'
+ * @param params.space - 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
+ * @param params.category - 商品分类（对应 category_defs.category_code）
+ * @param params.keyword - 模糊搜索（匹配 item_name）
+ * @param params.status - 商品状态 'active' / 'inactive'，默认 'active'
+ * @param params.asset_code - 材料资产代码筛选（'red_shard', 'DIAMOND'）
+ * @param params.min_cost - 最低价格筛选
+ * @param params.max_cost - 最高价格筛选
+ * @param params.stock_status - 库存状态 'in_stock'(>5) / 'low_stock'(1-5)
+ * @param params.page - 页码，默认 1
+ * @param params.page_size - 每页数量，默认 20，最大 100
+ * @param params.sort_by - 排序字段，默认 'sort_order'
  * @param params.sort_order - 排序方向: 'ASC' / 'DESC'
  */
 async function getExchangeProducts(
@@ -144,10 +159,12 @@ async function getExchangeProducts(
  * 执行商品兑换
  * POST /api/v4/backpack/exchange
  *
- * 后端服务: exchange_core（CoreService.exchangeItem * 业务流程: 幂等键校商品状态校库存校验 BalanceService扣减资产 库存扣减 创建exchange_records
- * 全流程在 TransactionManager.execute() 事务 *
+ * 后端服务: exchange_core（CoreService.exchangeItem）
+ * 业务流程: 幂等键校验 → 商品状态校验 → 库存校验 → BalanceService扣减资产 → 库存扣减 → 创建exchange_records
+ * 全流程在 TransactionManager.execute() 事务中
+ *
  * 响应字段: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
- * ️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
+ * ⚠️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
  *
  * ️ 字段映射关系:
  *   列表 API（GET）返回 id（string，DataSanitizer 脱敏后的通用字段名）
@@ -195,11 +212,20 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
  * 获取兑换订单记录
  * GET /api/v4/backpack/exchange/orders
  *
- * 订单状态枚举（数据库ENUM pending completed shipped / cancelled
+ * 订单状态枚举（Phase 3 扩展后）:
+ *   pending    - 待审核
+ *   approved   - 审核通过
+ *   shipped    - 已发货
+ *   received   - 已收货（用户确认或7天自动确认）
+ *   rated      - 已评价
+ *   rejected   - 审核拒绝
+ *   refunded   - 已退款
+ *   cancelled  - 已取消
  *
- * @param page - 页码，默
- * @param page_size - 每页数量，默0
- * @param status - 订单状态筛 */
+ * @param page - 页码，默认 1
+ * @param page_size - 每页数量，默认 20
+ * @param status - 订单状态筛选
+ */
 async function getExchangeRecords(
   page: number = 1,
   page_size: number = 20,
@@ -213,7 +239,8 @@ async function getExchangeRecords(
  * 取消兑换订单（退还资产）
  * POST /api/v4/backpack/exchange/orders/:order_no/cancel
  *
- * @param order_no - 订单号（exchange_records.order_no，VARCHAR(50) UNIQUE */
+ * @param order_no - 订单号（exchange_records.order_no，VARCHAR(50) UNIQUE）
+ */
 async function cancelExchange(order_no: string) {
   if (!order_no) {
     throw new Error('订单号不能为空')
@@ -248,7 +275,8 @@ async function getExchangeItemDetail(id: number | string) {
  * 获取兑换订单详情
  * GET /api/v4/backpack/exchange/orders/:order_no
  *
- * @param order_no - 订单号（exchange_records.order_no */
+ * @param order_no - 订单号（exchange_records.order_no）
+ */
 async function getExchangeOrderDetail(order_no: string) {
   if (!order_no) {
     throw new Error('订单号不能为空')
@@ -256,6 +284,77 @@ async function getExchangeOrderDetail(order_no: string) {
   return apiClient.request(`/backpack/exchange/orders/${order_no}`, {
     method: 'GET',
     needAuth: true
+  })
+}
+
+// ==================== 确认收货（Phase 3：积分商城发货单追踪） ====================
+
+/**
+ * 确认收货（用户手动 / 发货后7天系统自动确认）
+ * POST /api/v4/backpack/exchange/orders/:order_no/confirm-receipt
+ *
+ * 后端服务: exchange_core（CoreService.confirmReceipt）
+ * 状态流转: shipped → received（auto_confirmed=false 手动确认）
+ * 系统自动: shipped 且 shipped_at + 7天 < NOW() → received（auto_confirmed=true）
+ *
+ * 响应字段:
+ *   order_no      - 订单号
+ *   status        - 更新后状态（received）
+ *   received_at   - 确认收货时间（ISO8601）
+ *
+ * ⚠️ 此API需要后端 Phase 3 实施完成后才可调用
+ *    后端需完成: exchange_records ENUM 扩展 + confirm-receipt 路由
+ *
+ * @param order_no - 订单号（exchange_records.order_no，VARCHAR(50) UNIQUE）
+ */
+async function confirmExchangeReceipt(order_no: string) {
+  if (!order_no) {
+    throw new Error('订单号不能为空')
+  }
+  return apiClient.request(`/backpack/exchange/orders/${order_no}/confirm-receipt`, {
+    method: 'POST',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '确认收货中...',
+    showError: true,
+    errorPrefix: '确认收货失败：'
+  })
+}
+
+/**
+ * 评价兑换订单
+ * POST /api/v4/backpack/exchange/orders/:order_no/rate
+ *
+ * 后端服务: exchange_core（CoreService.rateOrder）
+ * 状态流转: received → rated（评价后不可修改）
+ * 数据库字段: rating(TINYINT 1-5), rated_at(DATETIME) — 已存在于数据库
+ *
+ * 响应字段:
+ *   order_no   - 订单号
+ *   status     - 更新后状态（rated）
+ *   rating     - 评价分数
+ *   rated_at   - 评价时间
+ *
+ * ⚠️ 此API需要后端 Phase 3 状态扩展完成后才可调用
+ *
+ * @param order_no - 订单号
+ * @param rating - 评价分数（1-5，1=非常差 5=非常好）
+ */
+async function rateExchangeOrder(order_no: string, rating: number) {
+  if (!order_no) {
+    throw new Error('订单号不能为空')
+  }
+  if (!rating || rating < 1 || rating > 5) {
+    throw new Error('评价分数必须在1-5之间')
+  }
+  return apiClient.request(`/backpack/exchange/orders/${order_no}/rate`, {
+    method: 'POST',
+    data: { rating },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '提交评价中...',
+    showError: true,
+    errorPrefix: '评价失败：'
   })
 }
 
@@ -291,13 +390,20 @@ async function getExchangeSpaceStats(space: string) {
  *
  * 后端服务: premium（PremiumService.getPremiumStatus * 数据来源: PremiumService 服务层计算返回（️ user_premium_statuses 表不存在） *
  * 已解锁时响应字段:
- * - unlocked: true 当前已解锁（️ 不是 is_unlocked * - is_valid: boolean 是否在有效期 * - unlock_cost: 100 解锁花费（积分）
- * - validity_hours: 24 有效期（小时间 * - remaining_hours: number 剩余有效时间（小时）（不返expires_at * - total_unlock_count: number 累计解锁次数
+ * - unlocked: true 当前已解锁（⚠️ 不是 is_unlocked）
+ * - is_valid: boolean 是否在有效期内
+ * - unlock_cost: 100 解锁花费（积分）
+ * - validity_hours: 24 有效期（小时）
+ * - remaining_hours: number 剩余有效时间（小时）（不返回 expires_at）
+ * - total_unlock_count: number 累计解锁次数
  *
  * 未解锁时响应字段:
- *   - unlocked: false 当前未解锁 *   - is_expired: boolean 是否已过期 *   - can_unlock: boolean 是否满足解锁条件
+ *   - unlocked: false 当前未解锁
+ *   - is_expired: boolean 是否已过期
+ *   - can_unlock: boolean 是否满足解锁条件
  *   - unlock_cost: 100 解锁花费（积分）
- *   - validity_hours: 24 有效期（小时间 *   - conditions: object 解锁条件详情
+ *   - validity_hours: 24 有效期（小时）
+ *   - conditions: object 解锁条件详情
  */
 async function getPremiumStatus() {
   return apiClient.request('/backpack/exchange/premium-status', {
@@ -309,13 +415,17 @@ async function getPremiumStatus() {
 }
 
 /**
- * 解锁臻选空 * POST /api/v4/backpack/exchange/unlock-premium
+ * 解锁臻选空间
+ * POST /api/v4/backpack/exchange/unlock-premium
  *
- * 后端服务: premium（PremiumService.unlockPremium * 业务规则:
+ * 后端服务: premium（PremiumService.unlockPremium）
+ * 业务规则:
  *   1. users.history_total_points >= 100000（历史累计门槛）
- *   2. POINTS 可用余额 >= 100（通过 BalanceService.changeBalance 扣减 *   3. 已解锁且未过期拒绝重复解锁
- *   4. 解锁有效4小时
- *   5. 全流程在 TransactionManager.execute() 事务 */
+ *   2. POINTS 可用余额 >= 100（通过 BalanceService.changeBalance 扣减）
+ *   3. 已解锁且未过期时拒绝重复解锁
+ *   4. 解锁有效24小时
+ *   5. 全流程在 TransactionManager.execute() 事务中
+ */
 async function unlockPremium() {
   return apiClient.request('/backpack/exchange/unlock-premium', {
     method: 'POST',
@@ -333,20 +443,25 @@ async function unlockPremium() {
  * 获取竞价商品列表
  * GET /api/v4/backpack/bid/products
  *
- * 后端服务: bid_query（BidQueryService * 数据库表: bid_products（关exchange_items *
- * 竞价状态枚举（7态）: pending active ended settled / no_bid / cancelled / settlement_failed
+ * 后端服务: bid_query（BidQueryService）
+ * 数据库表: bid_products（关联 exchange_items）
  *
- * 响应字段（基bid_products 表）:
+ * 竞价状态枚举（7态）: pending / active / ended / settled / no_bid / cancelled / settlement_failed
+ *
+ * 响应字段（基于 bid_products 表）:
  *   - bid_product_id: BIGINT PK
  *   - exchange_item_id: BIGINT FK
- * - start_price: BIGINT（起拍价，不是 starting_price * - current_price: BIGINT（当前最高出价）
+ *   - start_price: BIGINT（起拍价，不是 starting_price）
+ *   - current_price: BIGINT（当前最高出价）
  *   - min_bid_increment: BIGINT（最小加价幅度）
- * - price_asset_code: VARCHAR(50)（竞价资产类型，默认 DIAMOND，不是 asset_code * - status: ENUM态）
+ *   - price_asset_code: VARCHAR(50)（竞价资产类型，默认 DIAMOND，不是 asset_code）
+ *   - status: ENUM（7态）
  *   - start_time / end_time: DATETIME
  *   - bid_count: INT
- * - winner_user_id: INT（当前最高出价者，️ 不是 highest_bidder_id *
- * @param page - 页码，默
- * @param page_size - 每页数量，默0
+ *   - winner_user_id: INT（当前最高出价者，⚠️ 不是 highest_bidder_id）
+ *
+ * @param page - 页码，默认 1
+ * @param page_size - 每页数量，默认 20
  * @param status - 竞价状态筛选（active/pending/ended/settled/no_bid/all），默认 'active'
  */
 async function getBidProducts(
@@ -367,7 +482,8 @@ async function getBidProducts(
  * 获取竞价商品详情
  * GET /api/v4/backpack/bid/products/:bid_product_id
  *
- * @param bid_product_id - 竞价商品ID（BIGINT */
+ * @param bid_product_id - 竞价商品ID（BIGINT）
+ */
 async function getBidProductDetail(bid_product_id: number) {
   if (!bid_product_id) {
     throw new Error('竞价商品ID不能为空')
@@ -386,14 +502,19 @@ async function getBidProductDetail(bid_product_id: number) {
  * 提交竞价出价
  * POST /api/v4/backpack/bid
  *
- * 后端服务: bid（BidService.placeBid * 业务流程:
- *   1. 资产白名单校验（material_asset_types.is_tradable = true *   2. 悲观锁定竞价商品
+ * 后端服务: bid（BidService.placeBid）
+ * 业务流程:
+ *   1. 资产白名单校验（material_asset_types.is_tradable = true）
+ *   2. 悲观锁定竞价商品
  *   3. 金额校验: bid_amount >= current_price + min_bid_increment
- *   4. 旧冻结解冻（用户之前出过价，先解冻旧金额 *   5. 新金额冻 *   6. 更新 bid_records（含幂等idempotency_key *   7. 更新 bid_products.current_price
+ *   4. 旧冻结解冻（用户之前出过价，先解冻旧金额）
+ *   5. 新金额冻结
+ *   6. 更新 bid_records（含幂等键 idempotency_key）
+ *   7. 更新 bid_products.current_price
  *
- * ️ 后端口bid_products.price_asset_code 读取竞价资产类型，无需前端传入 asset_code
+ * ⚠️ 后端从 bid_products.price_asset_code 读取竞价资产类型，无需前端传入 asset_code
  *
- * 响应字段（基bid_records 表）:
+ * 响应字段（基于 bid_records 表）:
  *   - bid_record_id: 出价记录ID
  *   - bid_amount: 出价金额
  *   - previous_highest: 出价前最高价
@@ -424,8 +545,8 @@ async function placeBid(bid_product_id: number, bid_amount: number) {
  * 获取用户竞价历史
  * GET /api/v4/backpack/bid/history
  *
- * @param page - 页码，默
- * @param page_size - 每页数量，默0
+ * @param page - 页码，默认 1
+ * @param page_size - 每页数量，默认 20
  */
 async function getBidHistory(page: number = 1, page_size: number = 20) {
   const qs = buildQueryString({ page, page_size })
@@ -437,18 +558,49 @@ async function getBidHistory(page: number = 1, page_size: number = 20) {
   })
 }
 
+/**
+ * 刷新核销码动态QR码（HMAC签名，5分钟有效）
+ * POST /api/v4/backpack/items/:item_instance_id/redeem/refresh-qr
+ *
+ * 后端服务: RedemptionQRSigner.js（独立于消费录入QR系统 QRCodeValidator.js）
+ * QR码格式: RQRV1_{base64(JSON)}_{hmac_sha256_signature}
+ * 密钥: REDEMPTION_QR_SECRET（独立于 CONSUMPTION_QR_SECRET）
+ *
+ * 响应字段:
+ *   qr_payload   - RQRV1_前缀的动态QR码内容（含HMAC签名）
+ *   qr_expires_at - QR码过期时间（ISO8601，5分钟有效）
+ *   text_code    - 12位Base32文本码（备用，不变）
+ *
+ * @param item_instance_id - 物品实例ID（BIGINT，必须有已生成的pending状态核销订单）
+ */
+async function refreshRedemptionQR(item_instance_id: number) {
+  if (!item_instance_id) {
+    throw new Error('物品ID不能为空')
+  }
+  return apiClient.request(`/backpack/items/${item_instance_id}/redeem/refresh-qr`, {
+    method: 'POST',
+    needAuth: true,
+    showLoading: false,
+    showError: true,
+    errorPrefix: 'QR码刷新失败：'
+  })
+}
+
 module.exports = {
   getUserInventory,
   getBackpackStats,
   getInventoryItem,
   useInventoryItem,
   redeemInventoryItem,
+  refreshRedemptionQR,
   getExchangeProducts,
   exchangeProduct,
   getExchangeRecords,
   cancelExchange,
   getExchangeItemDetail,
   getExchangeOrderDetail,
+  confirmExchangeReceipt,
+  rateExchangeOrder,
   getExchangeSpaceStats,
   getPremiumStatus,
   unlockPremium,

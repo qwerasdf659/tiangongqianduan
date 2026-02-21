@@ -67,7 +67,13 @@
       >
         <!-- 活动封面 -->
         <view class="card-cover">
-          <image class="cover-image" src="{{item.cover}}" mode="aspectFill"></image>
+          <image
+            class="cover-image"
+            src="{{item.cover}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            binderror="onCoverImageError"
+          ></image>
           <!-- 状态标签 -->
           <view class="status-badge status-{{item.status}}">
             <text

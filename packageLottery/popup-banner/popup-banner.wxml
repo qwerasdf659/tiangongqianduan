@@ -85,7 +85,7 @@
 
     <!-- ⚫ 多横幅指示器（纯图模式，2个及以上横幅时显示） -->
     <view class="popup-indicators popup-indicators-fullimage" wx:if="{{banners.length > 1}}">
-      <block wx:for="{{banners}}" wx:key="index">
+      <block wx:for="{{banners}}" wx:key="popup_banner_id">
         <view class="indicator-dot {{currentIndex === index ? 'active' : ''}}"></view>
       </block>
       <text class="indicator-text indicator-text-fullimage"
@@ -195,7 +195,7 @@
 
     <!-- ⚫ 多横幅指示器（2个及以上横幅时显示） -->
     <view class="popup-indicators" wx:if="{{banners.length > 1}}">
-      <block wx:for="{{banners}}" wx:key="index">
+      <block wx:for="{{banners}}" wx:key="popup_banner_id">
         <view class="indicator-dot {{currentIndex === index ? 'active' : ''}}"></view>
       </block>
       <text class="indicator-text">{{currentIndex + 1}} / {{banners.length}}</text>

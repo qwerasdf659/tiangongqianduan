@@ -17,7 +17,8 @@ const {
   API: bidAPI,
   Wechat: bidWechat,
   Logger: bidLogger,
-  Utils: bidUtils
+  Utils: bidUtils,
+  ImageHelper: bidImageHelper
 } = require('../../../../utils/index')
 const bidLog = bidLogger.createLogger('bid-panel')
 const {
@@ -105,7 +106,7 @@ Component({
               exchange_item_id: item.exchange_item_id,
               name: item.name || '',
               description: item.description || '',
-              image: item.image_url || '/images/products/default-product.png',
+              image: item.image_url || bidImageHelper.DEFAULT_PRODUCT_IMAGE,
               category: item.category || '',
               start_price: item.start_price || 0,
               current_price: item.current_price || 0,
@@ -170,7 +171,7 @@ Component({
               bid_product_id: detail.bid_product_id,
               name: detail.name || '',
               description: detail.description || '',
-              image: detail.image_url || product.image || '/images/products/default-product.png',
+              image: detail.image_url || product.image || bidImageHelper.DEFAULT_PRODUCT_IMAGE,
               category: detail.category || '',
               start_price: detail.start_price || 0,
               current_price: detail.current_price || 0,
@@ -189,29 +190,24 @@ Component({
             bidModalCountdown: this._formatBidCountdown(detail.end_time)
           })
         } else {
-          this._openBidModalWithFallback(product)
+          bidLog.error('获取竞价详情失败:', detailResponse && detailResponse.message)
+          wx.showToast({ title: '获取竞价详情失败，请稍后重试', icon: 'none' })
         }
         this._startBidModalCountdown()
-      } catch (error) {
-        bidLog.error('获取竞价详情失败，使用列表数据:', error)
-        this._openBidModalWithFallback(product)
-        this._startBidModalCountdown()
+      } catch (error: any) {
+        bidLog.error('获取竞价详情异常:', error.message)
+        wx.showToast({ title: '获取竞价详情失败，请检查网络', icon: 'none' })
       }
     },
 
-    /** 使用列表数据作为降级方案打开弹窗 */
-    _openBidModalWithFallback(product: any) {
-      const fallbackMinBid = (product.current_price || 0) + (product.min_bid_increment || 1)
-      this.setData({
-        selectedBidProduct: product,
-        showBidModal: true,
-        userBidAmount: fallbackMinBid,
-        bidMinAmount: fallbackMinBid,
-        bidAmountValid: true,
-        bidSubmitting: false,
-        showBidRules: false,
-        bidModalCountdown: this._formatBidCountdown(product.end_time)
-      })
+    /** 竞价商品图片加载失败 — 替换为占位图 */
+    onBidImageError(e: any) {
+      const index = e.currentTarget.dataset.index
+      if (index !== undefined) {
+        this.setData({ [`biddingProducts[${index}].image`]: bidImageHelper.DEFAULT_PRODUCT_IMAGE })
+      } else {
+        this.setData({ 'selectedBidProduct.image': bidImageHelper.DEFAULT_PRODUCT_IMAGE })
+      }
     },
 
     /** 竞价金额输入 — 实时校验 */

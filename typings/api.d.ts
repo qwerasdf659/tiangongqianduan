@@ -44,11 +44,33 @@ declare namespace API {
 
   // ===== 认证系统 =====
 
-  /** 登录响应数据 */
+  /**
+   * 登录平台标识（多平台会话隔离）
+   * 后端根据此字段将不同平台的登录会话隔离，同平台新登录替换旧会话，跨平台互不影响
+   */
+  type LoginPlatform = 'wechat_mp' | 'douyin_mp' | 'alipay_mp' | 'web' | 'app'
+
+  /** 登录请求参数 - POST /api/v4/auth/login */
+  interface LoginRequest {
+    /** 手机号（11位，1开头） */
+    mobile: string
+    /** 短信验证码（6位数字） */
+    verification_code: string
+    /** 登录平台标识，微信小程序固定传 'wechat_mp'（用于多平台会话隔离） */
+    platform: LoginPlatform
+  }
+
+  /** 登录响应数据 — 对齐后端 POST /api/v4/auth/login 实际返回格式 */
   interface LoginData {
+    /** JWT访问令牌 */
     access_token: string
+    /** 刷新令牌（用于 POST /api/v4/auth/refresh） */
     refresh_token: string
+    /** 用户资料（users表 + RBAC角色系统） */
     user: UserProfile
+    /** 是否为新注册用户（首次登录自动注册时为true） */
+    is_new_user: boolean
+    /** Token有效期（秒），默认604800（7天） */
     expires_in: number
   }
 
@@ -66,20 +88,20 @@ declare namespace API {
     nickname: string
     /** 角色等级（>= 100 为管理员，来自UUID角色系统） */
     role_level: number
-    /** 角色列表（Array） */
-    roles: string[]
+    /** 角色列表（登录响应返回，JWT恢复时可能缺失） */
+    roles?: string[]
     /** 用户状态: active / inactive / banned */
     status: string
-    /** 连续未中奖次数（保底机制） */
-    consecutive_fail_count: number
-    /** 历史累计积分（用于臻选空间解锁门槛判断） */
-    history_total_points: number
+    /** 连续未中奖次数（保底机制，登录响应返回，JWT恢复时可能缺失） */
+    consecutive_fail_count?: number
+    /** 历史累计积分（用于臻选空间解锁门槛判断，登录响应返回，JWT恢复时可能缺失） */
+    history_total_points?: number
     /** 创建时间（ISO8601 北京时间） */
     created_at: string
-    /** 最后登录时间（ISO8601 北京时间） */
-    last_login: string
-    /** 登录次数 */
-    login_count: number
+    /** 最后登录时间（登录响应返回，JWT恢复时可能缺失） */
+    last_login?: string
+    /** 登录次数（登录响应返回，JWT恢复时可能缺失） */
+    login_count?: number
     /** 头像URL（登录响应返回，profile接口可能不返回） */
     avatar_url?: string
     /**
@@ -291,6 +313,8 @@ declare namespace API {
     rarity: string
     /** 稀有度中文名（后端自动附加） */
     rarity_display: string
+    /** 稀有度颜色十六进制值（后端自动附加，来源 system_dictionaries） */
+    rarity_color: string | null
     /** 物品描述 */
     description: string
     /** 获得时间（YYYY-MM-DD HH:mm:ss 格式） */
@@ -301,6 +325,17 @@ declare namespace API {
     is_owner?: boolean
     /** 是否已生成核销码 */
     has_redemption_code: boolean
+    /**
+     * 后端根据 item_type 和 system_configs(item_type_action_rules) 计算的允许操作列表
+     * 可能值: 'use'(直接使用) / 'redeem'(生成核销码) / 'sell'(上架交易市场)
+     * 业务规则（后端权威）:
+     *   product   → ["redeem", "sell"]   实物商品需到店核销
+     *   voucher   → ["redeem", "sell"]   兑换券需到店核销
+     *   prize     → ["redeem"]           奖品不可交易（防刷号倒卖）
+     *   service   → ["use"]             线上权益直接激活
+     *   tradable_item → ["use", "sell"]  虚拟道具可用可交易
+     */
+    allowed_actions: string[]
   }
 
   // ===== 兑换系统 =====
@@ -357,7 +392,11 @@ declare namespace API {
 
   /**
    * 兑换订单记录（对齐后端 exchange_records 表 + GET /api/v4/backpack/exchange/orders 响应）
-   * 订单状态枚举（数据库ENUM）: pending → completed → shipped / cancelled
+   *
+   * Phase 3 状态扩展后完整流转:
+   *   pending(待审核) → approved(审核通过) → shipped(已发货) → received(已收货) → rated(已评价)
+   *                   → rejected(审核拒绝) → refunded(已退款)
+   *                   → cancelled(用户取消)
    */
   interface ExchangeOrder {
     /** 记录ID（BIGINT PK） */
@@ -372,8 +411,16 @@ declare namespace API {
     pay_amount: number
     /** 兑换数量 */
     quantity: number
-    /** 订单状态: pending / completed / shipped / cancelled */
-    status: string
+    /** 订单状态（Phase 3 扩展） */
+    status:
+      | 'pending'
+      | 'approved'
+      | 'shipped'
+      | 'received'
+      | 'rated'
+      | 'rejected'
+      | 'refunded'
+      | 'cancelled'
     /** 来源（默认 'exchange'） */
     source: string
     /** 商品快照（JSON，兑换时冻结的商品信息副本，字段来自 exchange_items 表） */
@@ -391,6 +438,32 @@ declare namespace API {
     }
     /** 兑换时间 */
     created_at: string
+    /** 发货时间（shipped 状态后由后端填充） */
+    shipped_at?: string
+    /** 确认收货时间（received 状态后由后端填充） */
+    received_at?: string
+    /** 是否系统自动确认（7天未操作自动确认为true） */
+    auto_confirmed?: boolean
+    /** 评价分数（1-5，rated 状态后可用，数据库已有字段 rating TINYINT） */
+    rating?: number
+    /** 评价时间（数据库已有字段 rated_at DATETIME） */
+    rated_at?: string
+  }
+
+  /**
+   * C2C交易担保码信息（Phase 4：担保交易码）
+   * 仅 listing_kind = 'item_instance' 的实物交易使用
+   * fungible_asset 交易自动完成，不需要担保码
+   */
+  interface EscrowCodeInfo {
+    /** 6位数字担保码（如 582917） */
+    escrow_code: string
+    /** 担保码过期时间（ISO8601，Redis存储30分钟有效） */
+    expires_at: string
+    /** 关联的交易订单ID */
+    trade_order_id: number
+    /** 交易订单状态 */
+    status: string
   }
 
   /**
@@ -557,6 +630,8 @@ declare namespace API {
     status_display?: string
     /** 创建时间 */
     created_at: string
+    /** 关联交易订单ID（locked/sold状态时后端返回，用于担保码查询） */
+    trade_order_id?: number | null
   }
 
   // ===== 消费系统 =====
@@ -689,13 +764,41 @@ declare namespace API {
 
   // ===== 系统通用 =====
 
-  /** 系统公告 */
+  /**
+   * 系统公告（对齐后端 system_announcements 表 + GET /api/v4/system/announcements/home 响应）
+   *
+   * 后端 DataSanitizer 统一输出 announcement_id（映射自数据库主键 system_announcement_id）
+   * 公开 API 按优先级DESC+创建时间DESC排序，最多返回5条活跃公告
+   * 每次请求 /home 自动累加 view_count
+   */
   interface Announcement {
-    id: number
+    /** 公告ID（DataSanitizer 映射自数据库主键 system_announcement_id） */
+    announcement_id: number
+    /** 公告标题（VARCHAR(200)） */
     title: string
+    /** 公告内容（TEXT） */
     content: string
-    is_important: boolean
+    /** 公告类型: system=系统公告 / activity=活动公告 / maintenance=维护公告 / notice=通知公告 */
+    type: string
+    /** 类型中文名（后端 attachDisplayNames 自动附加） */
+    type_display: string
+    /** 优先级: high=高 / medium=中 / low=低 */
+    priority: string
+    /** 优先级中文名（后端 attachDisplayNames 自动附加） */
+    priority_display: string
+    /** 浏览次数（每次请求 /home 自动累加） */
+    view_count: number
+    /** 是否活跃 */
+    is_active: boolean
+    /** 创建时间（北京时间格式化字符串） */
     created_at: string
+    /** 过期时间（null表示永不过期） */
+    expires_at: string | null
+    /** 发布者信息（DataSanitizer 脱敏后仅保留 user_id + nickname） */
+    creator: {
+      user_id: number
+      nickname: string
+    } | null
   }
 
   /**
@@ -1074,4 +1177,98 @@ declare namespace API {
     /** 展示优先级（1~99，默认50） */
     priority?: number
   }
+
+  // ===== 核销码系统（模型A：O2O动态码 — 到店核销） =====
+
+  /**
+   * 核销码生成响应（POST /api/v4/backpack/items/:item_instance_id/redeem）
+   *
+   * Phase 1 升级后新增 qr_payload / qr_expires_at 字段（动态HMAC签名QR码）
+   * code（12位Base32文本码）仅此一次返回明文，后端只存 SHA-256 哈希，不可逆
+   */
+  interface RedemptionCreateData {
+    /** 核销订单信息 */
+    order: {
+      /** 订单ID（UUID, CHAR(36)） */
+      redemption_order_id: string
+      /** 订单状态: pending */
+      status: 'pending'
+      /** 核销码过期时间（ISO8601，运营可配置，默认30天） */
+      expires_at: string
+    }
+    /** 12位Base32文本码（明文，仅此一次返回，格式 XXXX-YYYY-ZZZZ） */
+    code: string
+    /** 动态QR码内容（RQRV1_前缀，含HMAC-SHA256签名，5分钟有效） */
+    qr_payload?: string
+    /** QR码过期时间（ISO8601，5分钟有效） */
+    qr_expires_at?: string
+  }
+
+  /**
+   * QR码刷新响应（POST /api/v4/backpack/items/:item_instance_id/redeem/refresh-qr）
+   *
+   * 后端服务: RedemptionQRSigner.js（独立于消费录入QR系统 QRCodeValidator.js）
+   * QR码格式: RQRV1_{base64(JSON.stringify({ oid, ch, ts }))}_{hmac_sha256_signature}
+   * 密钥: REDEMPTION_QR_SECRET（独立于 CONSUMPTION_QR_SECRET）
+   */
+  interface RedemptionQRRefreshData {
+    /** RQRV1_前缀的动态QR码内容（含HMAC签名） */
+    qr_payload: string
+    /** QR码过期时间（ISO8601，5分钟有效） */
+    qr_expires_at: string
+    /** 12位Base32文本码（备用，不变） */
+    text_code: string
+  }
+
+  /**
+   * 核销执行响应（POST /api/v4/shop/redemption/fulfill 或 /scan）
+   *
+   * fulfillRedemption: 商家手动输入12位文本码核销（备用方式）
+   * scanRedemptionQR:  商家扫描RQRV1_动态QR码核销（主要方式）
+   * 两个接口共用后端 RedemptionService.fulfillOrder()
+   *
+   * Phase 1 升级后新增 fulfilled_store_id / fulfilled_by_staff_id / store 字段
+   */
+  interface RedemptionFulfillData {
+    /** 核销订单信息 */
+    order: {
+      /** 订单ID（UUID） */
+      redemption_order_id: string
+      /** 核销完成时间（ISO8601 北京时间） */
+      fulfilled_at: string
+      /** 核销门店ID（store_staff 自动匹配） */
+      fulfilled_store_id?: number
+      /** 核销操作员工ID */
+      fulfilled_by_staff_id?: number
+    }
+    /** 被核销的物品实例 */
+    item_instance: {
+      /** 物品实例ID（BIGINT） */
+      item_instance_id: number
+      /** 物品名称（来自 meta.name） */
+      name: string
+      /** 物品状态（核销后变为 used） */
+      status: string
+    }
+    /** 物品所有者信息（核销码生成者） */
+    redeemer: {
+      /** 用户ID */
+      user_id: number
+      /** 用户昵称 */
+      nickname: string
+    }
+    /** 核销门店信息（Phase 1 新增） */
+    store?: {
+      /** 门店ID */
+      store_id: number
+      /** 门店名称 */
+      store_name: string
+    }
+  }
+
+  /**
+   * 核销订单状态枚举
+   * redemption_orders.status 数据库ENUM
+   */
+  type RedemptionOrderStatus = 'pending' | 'fulfilled' | 'cancelled' | 'expired'
 }

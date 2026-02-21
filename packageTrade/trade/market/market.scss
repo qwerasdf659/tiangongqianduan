@@ -116,80 +116,32 @@
   filter: contrast(1.1) saturate(1.15) brightness(1.05);
 }
 
-/* 🏷️ 商品标签样式 */
-.product-tags {
+/* 🏷️ 挂单类型标签（资产/物品） */
+.listing-kind-tag {
   position: absolute;
   top: 12rpx;
   left: 12rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  backdrop-filter: blur(10rpx);
+  font-weight: 600;
   z-index: 2;
 }
 
-.product-tag {
-  font-size: $font-size-xs;
-  color: $color-text-white;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 4rpx 8rpx;
-  border-radius: 12rpx;
-  backdrop-filter: blur(10rpx);
-  font-weight: 500;
-  max-width: 80rpx;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.listing-kind-tag.asset-tag {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.4);
 }
 
-.product-tag.hot-tag {
+.listing-kind-tag.item-tag {
   background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
-  animation: hotPulse 2s infinite;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
-  font-weight: 700;
 }
 
-.product-tag.new-tag {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  box-shadow: 0 4rpx 12rpx rgba(67, 233, 123, 0.4);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
-  font-weight: 700;
-  animation: newShine 3s ease-in-out infinite;
-}
-
-@keyframes hotPulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-    box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
-  }
-
-  50% {
-    transform: scale(1.05);
-    opacity: 0.95;
-    box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.6);
-  }
-}
-
-/* 🌟 新品标签闪光动画 */
-@keyframes newShine {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  50% {
-    transform: scale(1.02);
-    opacity: 0.95;
-    box-shadow: 0 6rpx 20rpx rgba(67, 233, 123, 0.6);
-  }
-}
-
-/* 📊 销量徽章 */
-.sales-badge {
+/* 📦 资产数量标签 */
+.amount-badge {
   position: absolute;
   bottom: 12rpx;
   right: 12rpx;
@@ -202,8 +154,54 @@
   z-index: 2;
 }
 
-.sales-text {
-  font-weight: 500;
+.amount-text {
+  font-weight: 600;
+}
+
+/* ✨ 稀有度标签 */
+.rarity-badge {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-weight: 600;
+  z-index: 2;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+}
+
+.rarity-text {
+  font-weight: 600;
+}
+
+/* 🖼️ 图片降级占位 */
+.image-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+  border-radius: 20rpx 20rpx 0 0;
+}
+
+.fallback-icon {
+  font-size: 80rpx;
+  margin-bottom: 8rpx;
+  opacity: 0.6;
+}
+
+.fallback-name {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  max-width: 80%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 📝 ========== 内容区域样式 ========== */
@@ -252,40 +250,18 @@
   background-clip: text;
   line-height: 1;
   text-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
-  /* 🎨 为不支持背景裁剪的设备提供后备色 */
   color: #ff4757;
 }
 
-.original-price {
-  font-size: 22rpx;
-  color: $color-text-tertiary;
-  text-decoration: line-through;
-  font-weight: 400;
-}
-
-/* ⭐ 评分区域 */
-.rating-section {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.rating-stars {
+.price-unit {
   font-size: $font-size-xs;
-  color: #ffd700;
-  line-height: 1;
-  letter-spacing: 1rpx;
-}
-
-.rating-score {
-  font-size: 22rpx;
   color: $color-text-secondary;
   font-weight: 500;
+  margin-left: 4rpx;
 }
 
-/* 🏪 商家信息 */
+/* 🏪 卖家信息 */
 .seller-info {
-  @include flex-between;
   font-size: $font-size-xs;
   color: #888888;
   margin-top: 8rpx;
@@ -295,34 +271,9 @@
 
 .seller-name {
   font-weight: 500;
-  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.seller-rating {
-  color: #4caf50;
-  font-weight: 600;
-  margin-left: 12rpx;
-}
-
-/* 🎭 悬停遮罩 */
-.card-hover-mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 107, 53, 0.1);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.waterfall-card:active .card-hover-mask {
-  opacity: 1;
 }
 
 /* ⏳ ========== 加载状态样式 ========== */
@@ -504,125 +455,10 @@
   border: 1rpx solid rgba(255, 255, 255, 0.2);
 }
 
-.stats-btn {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  box-shadow: 0 8rpx 24rpx rgba(67, 233, 123, 0.3);
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
-}
-
 .btn-icon {
   font-size: $font-size-md;
   color: $color-text-white;
   font-weight: 700;
-}
-
-/* 📊 ========== 性能统计弹窗样式 ========== */
-.stats-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-  @include flex-center;
-  animation: modalFadeIn 0.3s ease;
-}
-
-.stats-mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10rpx);
-}
-
-.stats-content {
-  background: $color-white;
-  border-radius: 20rpx;
-  margin: 40rpx;
-  max-width: 600rpx;
-  width: calc(100vw - 80rpx);
-  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
-  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes modalSlideIn {
-  from {
-    transform: translateY(100rpx) scale(0.9);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-
-.stats-header {
-  padding: 40rpx 40rpx 20rpx;
-  @include flex-between;
-  border-bottom: 1rpx solid $color-border-light;
-}
-
-.stats-title {
-  font-size: $font-size-md;
-  font-weight: 700;
-  color: $color-text-primary;
-}
-
-.stats-close {
-  font-size: $font-size-xl;
-  color: $color-text-tertiary;
-  width: 60rpx;
-  height: 60rpx;
-  @include flex-center;
-  border-radius: 30rpx;
-  transition: all 0.2s ease;
-}
-
-.stats-close:active {
-  background: $color-bg-grey;
-  transform: scale(0.9);
-}
-
-.stats-body {
-  padding: 20rpx 40rpx 40rpx;
-}
-
-.stats-item {
-  @include flex-between;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid $color-bg;
-}
-
-.stats-item:last-child {
-  border-bottom: none;
-}
-
-.stats-label {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  font-weight: 500;
-}
-
-.stats-value {
-  font-size: $font-size-base;
-  color: $color-text-primary;
-  font-weight: 600;
 }
 
 /* 🎨 ========== 响应式设计 ========== */
@@ -678,14 +514,6 @@
   }
 
   .product-title {
-    color: $color-text-white;
-  }
-
-  .stats-content {
-    background: $color-text-primary;
-  }
-
-  .stats-title {
     color: $color-text-white;
   }
 }

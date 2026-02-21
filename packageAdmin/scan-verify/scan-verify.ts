@@ -150,8 +150,10 @@ Page({
   /**
    * 启动扫码
    *
-   * @description
-   * 调用微信扫码API扫描用户的核销码二维码，扫码成功后自动执行核销
+   * 调用微信扫码API扫描用户出示的核销码二维码。
+   * 扫码结果按前缀自动分流：
+   *   - RQRV1_ 开头 → 动态QR码核销（POST /api/v4/shop/redemption/scan）
+   *   - 其他文本     → 文本码核销（POST /api/v4/shop/redemption/fulfill）
    */
   startScan() {
     log.info('启动扫码...')
@@ -162,9 +164,7 @@ Page({
       success: res => {
         log.info('扫码成功:', res.result)
         this.setData({ scannedCode: res.result })
-
-        // 扫码成功后自动执行核销
-        this.handleFulfill(res.result)
+        this.dispatchRedemption(res.result)
       },
       fail: error => {
         log.info('扫码取消或失败:', error)
@@ -173,31 +173,44 @@ Page({
   },
 
   /**
-   * 执行核销操作
+   * 手动输入文本码核销入口
    *
-   * @description
-   * 调用后端API完成核销，支持多门店场景传入 store_id。
-   *
-   * 后端路由: POST /api/v4/shop/redemption/fulfill
-   * 请求参数: { redeem_code: "XXXX-YYYY-ZZZZ", store_id?: number }
-   *
-   * 后端响应格式:
-   * {
-   *   order: { order_id, fulfilled_at },
-   *   item_instance: { item_instance_id, name, status },
-   *   redeemer: { user_id, nickname }
-   * }
-   *
-   * 后端错误码:
-   * - BAD_REQUEST: 核销码无效
-   * - EXPIRED: 核销码已过期
-   * - CONFLICT: 核销码已被使用
-   * - MULTIPLE_STORES_REQUIRE_STORE_ID: 多门店商家需选择门店
-   *
-   * @param redeemCode - 扫描到的核销码字符串
+   * 扫码失败或用户无法出示QR码时的备用方案，
+   * 让商家手动输入用户口述的12位Base32文本码（格式 XXXX-YYYY-ZZZZ）。
    */
-  async handleFulfill(redeemCode: string) {
-    if (!redeemCode) {
+  onManualInput() {
+    wx.showModal({
+      title: '手动输入核销码',
+      content: '请输入用户提供的12位核销码（如 ABCD-1234-EFGH）',
+      editable: true,
+      placeholderText: '请输入核销码',
+      success: (res: any) => {
+        if (res.confirm && res.content) {
+          const inputCode = res.content.trim().toUpperCase()
+          if (!inputCode) {
+            showToast('请输入核销码')
+            return
+          }
+          log.info('手动输入核销码:', inputCode)
+          this.setData({ scannedCode: inputCode })
+          this.dispatchRedemption(inputCode)
+        }
+      }
+    })
+  },
+
+  /**
+   * 核销请求分流（根据码格式自动选择API端点）
+   *
+   * RQRV1_ 前缀 → 动态QR码核销（含HMAC签名验证，主要方式）
+   * 其他格式     → 12位Base32文本码核销（备用方式）
+   *
+   * 两种方式共用后端 RedemptionService.fulfillOrder()，区别在于入参来源和签名验证。
+   *
+   * @param codeContent - 扫码结果或手动输入的核销码内容
+   */
+  async dispatchRedemption(codeContent: string) {
+    if (!codeContent) {
       showToast('核销码不能为空')
       return
     }
@@ -209,28 +222,44 @@ Page({
     this.setData({ loading: true })
 
     try {
-      log.info('开始核销，核销码:', redeemCode)
+      const isQRCode = codeContent.startsWith('RQRV1_')
+      log.info('核销分流:', isQRCode ? 'QR码核销' : '文本码核销')
 
-      // 构建请求参数（多门店场景传入 store_id）
-      const fulfillParams: { redeem_code: string; store_id?: number } = {
-        redeem_code: redeemCode
-      }
-      if (this.data.storeId) {
-        fulfillParams.store_id = this.data.storeId
-      }
+      let result: any = null
 
-      const result = await API.fulfillRedemption(fulfillParams)
+      if (isQRCode) {
+        const scanParams: { qr_content: string; store_id?: number } = {
+          qr_content: codeContent
+        }
+        if (this.data.storeId) {
+          scanParams.store_id = this.data.storeId
+        }
+        result = await API.scanRedemptionQR(scanParams)
+      } else {
+        const fulfillParams: { redeem_code: string; store_id?: number } = {
+          redeem_code: codeContent
+        }
+        if (this.data.storeId) {
+          fulfillParams.store_id = this.data.storeId
+        }
+        result = await API.fulfillRedemption(fulfillParams)
+      }
 
       if (result && result.success) {
         log.info('核销成功:', result.data)
 
-        // 将嵌套的后端响应数据展平为模板需要的格式
         const responseData = result.data || {}
+        const orderData = responseData.order || {}
+        const itemData = responseData.item_instance || {}
+        const redeemerData = responseData.redeemer || {}
+        const storeData = responseData.store || {}
+
         const flatResult = {
-          order_id: responseData.order && responseData.order.order_id,
-          fulfilled_at: responseData.order && responseData.order.fulfilled_at,
-          item_name: responseData.item_instance && responseData.item_instance.name,
-          redeemer_nickname: responseData.redeemer && responseData.redeemer.nickname
+          redemption_order_id: orderData.redemption_order_id,
+          fulfilled_at: orderData.fulfilled_at,
+          item_name: itemData.name,
+          redeemer_nickname: redeemerData.nickname,
+          store_name: storeData.store_name
         }
 
         this.setData({
@@ -246,58 +275,73 @@ Page({
       }
     } catch (error: any) {
       log.error('核销失败:', error)
-
-      // 多门店需选择门店 → 缓存门店列表，回到步骤1让商家选择
-      if (error.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
-        const availableStores = (error.data && error.data.available_stores) || []
-        log.info('多门店商家需选择门店:', availableStores)
-
-        if (availableStores.length > 0) {
-          // 缓存门店列表供后续使用（消费录入页也共享此缓存）
-          wx.setStorageSync('merchant_store_list', availableStores)
-
-          this.setData({
-            storeList: availableStores,
-            currentStep: 1,
-            loading: false,
-            scannedCode: ''
-          })
-
-          showToast('请先选择门店')
-          return
-        }
-      }
-
-      // 后端错误码映射为用户友好提示
-      const errorCode = error.code || ''
-      const errorMessages: Record<string, string> = {
-        BAD_REQUEST: '核销码无效，请检查后重试',
-        EXPIRED: '核销码已过期，请联系用户重新生成',
-        CONFLICT: '核销码已被使用'
-      }
-
-      const errorContent = errorMessages[errorCode] || error.message || '请检查核销码是否有效'
-
-      this.setData({
-        currentStep: 3,
-        verifyResult: { error: errorContent },
-        verifySuccess: false,
-        loading: false
-      })
-
-      wx.showModal({
-        title: '核销失败',
-        content: errorContent,
-        showCancel: true,
-        cancelText: '返回',
-        confirmText: '重新核销',
-        success: res => {
-          if (res.confirm) {
-            this.onRescan()
-          }
-        }
-      })
+      this.handleRedemptionError(error)
     }
+  },
+
+  /**
+   * 核销错误统一处理（QR码核销和文本码核销共用）
+   *
+   * 后端错误码说明：
+   *   BAD_REQUEST                        — 核销码无效
+   *   EXPIRED                            — 核销码已过期
+   *   CONFLICT                           — 核销码已被使用
+   *   QR_SIGNATURE_INVALID               — QR码签名验证失败（可能被篡改）
+   *   QR_EXPIRED                         — QR码已过期（超过5分钟，需用户刷新）
+   *   MULTIPLE_STORES_REQUIRE_STORE_ID   — 多门店商家需先选择门店
+   *
+   * @param error - 后端返回的错误对象（含 code / message / data 字段）
+   */
+  handleRedemptionError(error: any) {
+    if (error.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
+      const availableStores = (error.data && error.data.available_stores) || []
+      log.info('多门店商家需选择门店:', availableStores)
+
+      if (availableStores.length > 0) {
+        wx.setStorageSync('merchant_store_list', availableStores)
+
+        this.setData({
+          storeList: availableStores,
+          currentStep: 1,
+          loading: false,
+          scannedCode: ''
+        })
+
+        showToast('请先选择门店')
+        return
+      }
+    }
+
+    const errorCode = error.code || ''
+    const errorMessages: Record<string, string> = {
+      BAD_REQUEST: '核销码无效，请检查后重试',
+      EXPIRED: '核销码已过期，请联系用户重新生成',
+      CONFLICT: '核销码已被使用',
+      QR_SIGNATURE_INVALID: 'QR码签名无效，请让用户刷新二维码后重试',
+      QR_EXPIRED: 'QR码已过期，请让用户刷新二维码后重新扫码'
+    }
+
+    const errorContent = errorMessages[errorCode] || error.message || '请检查核销码是否有效'
+
+    this.setData({
+      currentStep: 3,
+      verifyResult: { error: errorContent },
+      verifySuccess: false,
+      loading: false
+    })
+
+    wx.showModal({
+      title: '核销失败',
+      content: errorContent,
+      showCancel: true,
+      cancelText: '返回',
+      confirmText: '重新核销',
+      success: res => {
+        if (res.confirm) {
+          this.onRescan()
+        }
+      }
+    })
   },
 
   /**

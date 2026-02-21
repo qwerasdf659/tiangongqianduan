@@ -87,7 +87,13 @@
       <view class="card-title">广告素材</view>
       <view class="creative-list">
         <view wx:for="{{campaign.creatives}}" wx:key="ad_creative_id" class="creative-item">
-          <image class="creative-image" src="{{item.image_url}}" mode="aspectFill" />
+          <image
+            class="creative-image"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            binderror="onCreativeImageError"
+          />
           <view class="creative-info">
             <text class="creative-title">{{item.title}}</text>
             <text class="creative-status"

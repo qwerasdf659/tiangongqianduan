@@ -12,7 +12,8 @@
 const {
   API: premiumAPI,
   Logger: premiumLogger,
-  Constants: premiumConstants
+  Constants: premiumConstants,
+  ImageHelper: premiumImageHelper
 } = require('../../../../utils/index')
 const premiumLog = premiumLogger.createLogger('premium-space')
 const {
@@ -140,7 +141,7 @@ Component({
           description: item.description || '',
           image:
             (item.primary_image && (item.primary_image.url || item.primary_image.thumbnail_url)) ||
-            '/images/products/default-product.png',
+            premiumImageHelper.DEFAULT_PRODUCT_IMAGE,
           cost_amount: Number(item.cost_amount) || 0,
           cost_asset_code: item.cost_asset_code || 'POINTS',
           original_price: item.original_price ? Number(item.original_price) : null,
@@ -199,7 +200,7 @@ Component({
     onImageError(e: any) {
       const index = e.currentTarget.dataset.index
       this.setData({
-        [`filteredProducts[${index}].image`]: '/images/products/default-product.png',
+        [`filteredProducts[${index}].image`]: premiumImageHelper.DEFAULT_PRODUCT_IMAGE,
         [`filteredProducts[${index}]._hasImage`]: false
       })
     },

@@ -32,6 +32,7 @@ const productFilterFunctions = require('./product-filter')
 const popupFrequencyFunctions = require('./popup-frequency')
 const drawQrcodeFunction = require('./weapp-qrcode')
 const apiWrapperFunctions = require('./api-wrapper')
+const imageHelperFunctions = require('./image-helper')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -78,6 +79,9 @@ const QRCode = { drawQrcode: drawQrcodeFunction }
 /** API调用包装器 - 统一 try/catch + 响应检查 + 错误处理 */
 const ApiWrapper = { ...apiWrapperFunctions }
 
+/** 图片资源助手 - 材料图标映射 + 分类图标映射 + 稀有度视觉 + 图片降级链 */
+const ImageHelper = { ...imageHelperFunctions }
+
 // WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
@@ -103,7 +107,8 @@ module.exports = {
   ProductFilter,
   PopupFrequency,
   QRCode,
-  ApiWrapper
+  ApiWrapper,
+  ImageHelper
 }
 
 export {}

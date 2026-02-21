@@ -19,10 +19,10 @@ import { createPaginatedActions, createPaginationState } from './helpers'
 export const tradeStore = observable({
   // ===== 可观察状态=====
 
-  /** 市场商品列表（后?GET /api/v4/market/listings 返回?*/
+  /** 市场商品列表（后端 GET /api/v4/market/listings 返回） */
   marketListings: [] as API.MarketListing[],
 
-  /** 用户背包物品列表（后?GET /api/v4/backpack/ ?items[] 返回?*/
+  /** 用户背包物品列表（后端 GET /api/v4/backpack/ 的items[]返回） */
   inventoryItems: [] as API.BackpackItem[],
 
   /** 我的挂单列表 */

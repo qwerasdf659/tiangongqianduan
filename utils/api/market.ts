@@ -342,6 +342,94 @@ async function sellFungibleAssets(params: {
   })
 }
 
+// ==================== C2C担保码（Phase 4：担保交易码） ====================
+
+/**
+ * 获取交易担保码（卖方查看，买方付款后系统生成）
+ * GET /api/v4/market/trade-orders/:trade_order_id/escrow-code
+ *
+ * 适用场景: listing_kind = 'item_instance' 的实物交易
+ * fungible_asset 交易自动完成，不需要担保码
+ *
+ * 担保码规格:
+ *   格式: 6位纯数字短码（如 582917）
+ *   存储: Redis 短期存储（30分钟有效）
+ *   触发: 买方付款（资产冻结）→ 系统生成担保码
+ *   用途: 卖方交付物品后告知买方担保码 → 买方输入确认收货 → 冻结资产转给卖方
+ *
+ * 响应字段:
+ *   escrow_code   - 6位数字担保码
+ *   expires_at    - 担保码过期时间（ISO8601，30分钟有效）
+ *   trade_order_id - 交易订单ID
+ *   status        - 交易订单状态
+ *
+ * ⚠️ 此API需要后端 Phase 4 实施完成后才可调用
+ *    后端需完成: EscrowCodeService + Redis存储 + 交易流程集成
+ *
+ * @param trade_order_id - 交易订单ID（BIGINT）
+ */
+async function getEscrowCode(trade_order_id: number) {
+  if (!trade_order_id) {
+    throw new Error('交易订单ID不能为空')
+  }
+  return apiClient.request(`/market/trade-orders/${trade_order_id}/escrow-code`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '获取担保码...',
+    showError: true,
+    errorPrefix: '获取担保码失败：'
+  })
+}
+
+/**
+ * 买方输入担保码确认收货（释放冻结资产给卖方，完成交易）
+ * POST /api/v4/market/trade-orders/:trade_order_id/confirm-escrow
+ *
+ * 业务流程:
+ *   1. 买方输入卖方提供的6位担保码
+ *   2. 后端验证担保码（Redis查找 + 匹配trade_order_id）
+ *   3. 冻结资产转给卖方
+ *   4. 交易订单状态 → completed
+ *   5. 清理Redis中的担保码
+ *
+ * 超时机制（阶梯式处理 — 决策P3）:
+ *   4h未确认  → 系统推送提醒
+ *   24h未确认 → 自动取消交易，退款给买方
+ *   有异议    → 走管理员后台人工处理
+ *
+ * 响应字段:
+ *   trade_order_id - 交易订单ID
+ *   status         - 更新后状态（completed）
+ *   completed_at   - 交易完成时间
+ *
+ * ⚠️ 此API需要后端 Phase 4 实施完成后才可调用
+ *
+ * @param trade_order_id - 交易订单ID（BIGINT）
+ * @param escrow_code - 6位数字担保码
+ */
+async function confirmEscrowCode(trade_order_id: number, escrow_code: string) {
+  if (!trade_order_id) {
+    throw new Error('交易订单ID不能为空')
+  }
+  if (!escrow_code) {
+    throw new Error('担保码不能为空')
+  }
+  if (!/^\d{6}$/.test(escrow_code)) {
+    throw new Error('担保码格式无效，请输入6位数字')
+  }
+
+  return apiClient.request(`/market/trade-orders/${trade_order_id}/confirm-escrow`, {
+    method: 'POST',
+    data: { escrow_code },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '确认收货中...',
+    showError: true,
+    errorPrefix: '确认失败：'
+  })
+}
+
 module.exports = {
   getMarketProducts,
   getMarketProductDetail,
@@ -353,7 +441,9 @@ module.exports = {
   getMyListings,
   getSettlementCurrencies,
   getMarketFacets,
-  sellFungibleAssets
+  sellFungibleAssets,
+  getEscrowCode,
+  confirmEscrowCode
 }
 
 export {}

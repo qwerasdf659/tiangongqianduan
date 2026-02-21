@@ -56,7 +56,7 @@ interface FilterOptions {
   lowStockThreshold?: number
 }
 
-/** 筛选结?*/
+/** 筛选结果 */
 interface FilterResult {
   /** 筛选后的商品数据*/
   filtered: any[]

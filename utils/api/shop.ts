@@ -12,7 +12,7 @@
 const { apiClient } = require('./client')
 const { buildQueryString } = require('../util')
 
-// ==================== 用户端消====================
+// ==================== 用户端消费 ====================
 
 /**
  * 获取当前用户消费积分二维码 - GET /api/v4/user/consumption/qrcode
@@ -32,7 +32,7 @@ async function getUserQRCode() {
   })
 }
 
-/** 获取当前用户的消费记?- GET /api/v4/shop/consumption/me */
+/** 获取当前用户的消费记录 - GET /api/v4/shop/consumption/me */
 async function getMyConsumptionRecords(
   params: { page?: number; page_size?: number; status?: string | null } = {}
 ) {
@@ -49,10 +49,11 @@ async function getConsumptionDetail(record_id: number) {
   })
 }
 
-// ==================== 商家端消====================
+// ==================== 商家端消费 ====================
 
 /**
- * 根据V2动态二维码获取用户信息（商家扫码后调用户 * GET /api/v4/shop/consumption/user-info?qr_code=xxx&store_id=xxx
+ * 根据V2动态二维码获取用户信息（商家扫码后调用）
+ * GET /api/v4/shop/consumption/user-info?qr_code=xxx&store_id=xxx
  */
 async function getUserInfoByQRCode(qr_code: string, store_id?: number) {
   if (!qr_code) {
@@ -138,7 +139,7 @@ async function getMerchantConsumptionStats() {
 
 // ==================== 商家核销 ====================
 
-/** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限?*/
+/** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限） */
 async function createRedemptionOrder(params: Record<string, any>) {
   return apiClient.request('/shop/redemption/orders', {
     method: 'POST',
@@ -153,7 +154,7 @@ async function createRedemptionOrder(params: Record<string, any>) {
 
 /**
  * 商家核销用户物品 - POST /api/v4/shop/redemption/fulfill
- * 需要商家权role_level>=20)
+ * 需要商家权限（role_level>=20）
  */
 async function fulfillRedemption(params: { redeem_code: string; store_id?: number }) {
   if (!params || !params.redeem_code) {
@@ -161,6 +162,51 @@ async function fulfillRedemption(params: { redeem_code: string; store_id?: numbe
   }
 
   return apiClient.request('/shop/redemption/fulfill', {
+    method: 'POST',
+    data: params,
+    needAuth: true,
+    showLoading: true,
+    loadingText: '核销中...',
+    showError: true,
+    errorPrefix: '核销失败：'
+  })
+}
+
+/**
+ * 商家扫描QR码核销 - POST /api/v4/shop/redemption/scan
+ *
+ * 解析 RQRV1_ 前缀的动态QR码内容，验证HMAC签名后执行核销。
+ * 与 fulfillRedemption 区别：
+ *   - fulfillRedemption: 手动输入12位Base32文本码（备用方式）
+ *   - scanRedemptionQR:  扫描动态QR码（主要方式，含签名验证）
+ *
+ * 两个接口共用后端 RedemptionService.fulfillOrder()，区别在于入参来源。
+ *
+ * 后端服务: RedemptionQRSigner.js 验签 → RedemptionService.fulfillOrder() 核销
+ * 权限要求: role_level >= 20（商家店员及以上）+ store_staff 活跃绑定校验
+ *
+ * 请求参数:
+ *   qr_content - 扫码获取的完整QR码字符串（RQRV1_前缀）
+ *   store_id   - 门店ID（多门店商家必填，单门店自动识别）
+ *
+ * 响应格式（同 fulfillRedemption）:
+ *   order:         { redemption_order_id, fulfilled_at, fulfilled_store_id, fulfilled_by_staff_id }
+ *   item_instance: { item_instance_id, name, status }
+ *   redeemer:      { user_id, nickname }
+ *   store:         { store_id, store_name }
+ *
+ * @param params.qr_content - RQRV1_ 前缀的QR码完整内容
+ * @param params.store_id - 门店ID（可选，多门店场景必填）
+ */
+async function scanRedemptionQR(params: { qr_content: string; store_id?: number }) {
+  if (!params || !params.qr_content) {
+    throw new Error('QR码内容不能为空')
+  }
+  if (!params.qr_content.startsWith('RQRV1_')) {
+    throw new Error('无效的核销QR码格式，请确认扫描的是核销二维码')
+  }
+
+  return apiClient.request('/shop/redemption/scan', {
     method: 'POST',
     data: params,
     needAuth: true,
@@ -180,7 +226,8 @@ module.exports = {
   getMerchantConsumptions,
   getMerchantConsumptionStats,
   createRedemptionOrder,
-  fulfillRedemption
+  fulfillRedemption,
+  scanRedemptionQR
 }
 
 export {}

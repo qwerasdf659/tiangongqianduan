@@ -12,11 +12,11 @@
 /// <reference path="./api.d.ts" />
 /// <reference path="./store.d.ts" />
 
-/** 微信小程序App实例扩展（globalData类型声明?- 与app.ts实际定义严格一?*/
+/** 微信小程序App实例扩展（globalData类型声明）- 与app.ts实际定义严格一致 */
 interface IAppOption {
   globalData: {
     // ===== 系统基础信息 =====
-    /** 系统版本?*/
+    /** 系统版本 */
     version: string
     /** 系统名称 */
     systemName: string
@@ -37,23 +37,27 @@ interface IAppOption {
     /** WebSocket配置 */
     ws_config: any | null
 
+    // ===== 弹窗频率控制 =====
+    /** 当前会话已展示过的弹窗ID集合（用于 once_per_session 频率规则判断） */
+    sessionSeenPopups: Set<number>
+
     // ===== 开发阶段配置=====
-    /** 是否开发模?*/
+    /** 是否开发模式 */
     is_development: boolean
 
     // ===== 多业务线存储配置 =====
     /** 存储配置 */
     storage_config: {
-      /** 最大图片文件大小（字节?*/
+      /** 最大图片文件大小（字节） */
       max_image_size: number
-      /** 允许的图片类?*/
+      /** 允许的图片类型 */
       allowed_image_types: string[]
-      /** 业务线类?*/
+      /** 业务线类型 */
       business_types: string[]
     }
   }
 
-  /** 清空认证数据（委托给 MobX Store?*/
+  /** 清空认证数据（委托给 MobX Store） */
   clearAuthData(): void
   /** 设置访问令牌（委托给 userStore，api.ts Token刷新时调用） */
   setAccessToken(token: string): void
@@ -69,13 +73,13 @@ interface IAppOption {
    * 发Socket.IO 事件消息
    * @param eventName - 事件名称（如 'send_message'admin_register'   * @param data - 消息数据对象（Socket.IO 自动序列化，无需手动 JSON.stringify   */
   emitSocketMessage(eventName: string, data: any): boolean
-  /** 订阅 Socket.IO 消息（页面级?*/
+  /** 订阅 Socket.IO 消息（页面级） */
   subscribeWebSocketMessages(pageId: string, callback: Function): void
   /** 取消订阅 Socket.IO 消息（页面卸载时调用户*/
   unsubscribeWebSocketMessages(pageId: string): void
 }
 
-/** App命名空间 - 项目级类?*/
+/** App命名空间 - 项目级类型 */
 declare namespace App {
   /**
    * 用户信息结构 统一引用 API.UserProfile

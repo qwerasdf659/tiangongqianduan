@@ -2,15 +2,15 @@
 <!--
   后端字段全部使用snake_case（与后端一致）：
   item_instance_id, item_type, item_type_display, name,
-  status, status_display, rarity, rarity_display,
-  description, acquired_at, expires_at, has_redemption_code
+  status, status_display, rarity, rarity_display, rarity_color,
+  description, acquired_at, expires_at, has_redemption_code, allowed_actions
 
   后端 *_display 字段为中文显示用（后端权威来源），前端不做映射
 
-  前端计算的操作标志（布尔值，基于status和字段计算）：
-  can_use           = status === 'available'
-  can_generate_code = status === 'available' && !has_redemption_code
-  can_sell          = status === 'available'
+  操作标志（由后端 allowed_actions 数组驱动，前端仅做 Array.includes() 转布尔）：
+  can_use           = allowed_actions.includes('use')
+  can_generate_code = allowed_actions.includes('redeem') && !has_redemption_code
+  can_sell          = allowed_actions.includes('sell')
 -->
 
 <!-- 🔴 引入WXS模板辅助函数（仅用于图标、时间格式化、过期判断等UI逻辑） -->
@@ -39,7 +39,7 @@
           bind:tap="onSellAsset"
           data-asset="{{item}}"
         >
-          <text class="asset-chip-icon">{{helper.getAssetIcon(item.asset_code)}}</text>
+          <image class="asset-chip-icon-img" src="{{item.icon_path}}" mode="aspectFit" />
           <text class="asset-chip-name">{{item.display_name}}</text>
           <text class="asset-chip-num">{{item.available_amount}}</text>
           <text class="asset-chip-frozen" wx:if="{{item.frozen_amount > 0}}"
@@ -227,7 +227,9 @@
               catchtap="onGenerateCode"
               data-item="{{item}}"
             >
-              <text>🎫 核销码</text>
+              <text wx:if="{{item.item_type === 'product'}}">🎫 到店领取</text>
+              <text wx:elif="{{item.item_type === 'voucher'}}">🎫 到店使用</text>
+              <text wx:else>🎫 核销码</text>
             </button>
             <button
               class="item-action-btn action-sell"
@@ -295,6 +297,99 @@
     <view class="tips-bar-inner">
       <text class="tips-bar-icon">💡</text>
       <text class="tips-bar-text">点击物品查看详情 · 注意查看有效期 · 核销码仅显示一次</text>
+    </view>
+  </view>
+
+  <!-- ====== 核销码QR码展示弹窗（模型A：O2O动态码） ====== -->
+  <!--
+    业务流程（文档步骤1.9）:
+    用户在背包点击"到店领取"/"到店使用" → 生成核销码 → 展示动态QR码（5分钟自动刷新）
+    + 底部12位文本码（备用：扫码不便时口述给商家）
+    商家扫码核销: POST /api/v4/shop/redemption/scan（RQRV1_前缀QR码）
+    商家输码核销: POST /api/v4/shop/redemption/fulfill（12位Base32文本码）
+  -->
+  <view class="redemption-qr-overlay" wx:if="{{showRedemptionQR}}" catchtap="closeRedemptionQR">
+    <view class="redemption-qr-modal" catchtap="">
+      <!-- 弹窗标题 -->
+      <view class="rqr-header">
+        <text class="rqr-title">{{redemptionActionLabel}}码</text>
+        <view class="rqr-close" bindtap="closeRedemptionQR">
+          <text class="rqr-close-icon">✕</text>
+        </view>
+      </view>
+
+      <!-- 物品信息 -->
+      <view class="rqr-item-info">
+        <text class="rqr-item-name">{{redemptionItemName}}</text>
+        <text class="rqr-item-tip"
+          >请在有效期内到店出示此码，由店员扫码完成{{redemptionActionLabel}}</text
+        >
+      </view>
+
+      <!-- QR码展示区域 -->
+      <view class="rqr-code-area">
+        <!-- Canvas（隐藏，仅用于绘制QR码导出图片） -->
+        <canvas
+          canvas-id="redemptionQRCanvas"
+          class="rqr-canvas-hidden"
+          style="width: 400px; height: 400px; position: fixed; left: -9999px; top: -9999px"
+        ></canvas>
+
+        <!-- QR码图片展示 -->
+        <view class="rqr-image-wrapper" wx:if="{{redemptionQRImage && !qrExpired}}">
+          <image class="rqr-image" src="{{redemptionQRImage}}" mode="aspectFit" />
+        </view>
+
+        <!-- QR码过期/刷新中占位 -->
+        <view class="rqr-image-wrapper rqr-expired" wx:elif="{{qrExpired || qrRefreshing}}">
+          <text class="rqr-expired-icon" wx:if="{{qrRefreshing}}">⏳</text>
+          <text class="rqr-expired-icon" wx:else>🔄</text>
+          <text class="rqr-expired-text" wx:if="{{qrRefreshing}}">刷新中...</text>
+          <text class="rqr-expired-text" wx:else>QR码已过期</text>
+          <view class="rqr-refresh-btn" wx:if="{{!qrRefreshing}}" bindtap="onRefreshRedemptionQR">
+            <text class="rqr-refresh-text">点击刷新</text>
+          </view>
+        </view>
+
+        <!-- QR码加载中（首次生成） -->
+        <view class="rqr-image-wrapper rqr-loading" wx:elif="{{!redemptionQRImage && !qrExpired}}">
+          <text class="rqr-loading-icon">⏳</text>
+          <text class="rqr-loading-text">生成中...</text>
+        </view>
+
+        <!-- QR码倒计时 -->
+        <view class="rqr-countdown" wx:if="{{qrCountdownText && !qrExpired}}">
+          <text class="rqr-countdown-label">QR码有效期</text>
+          <text class="rqr-countdown-value {{qrCountdown <= 60 ? 'expiring' : ''}}"
+            >{{qrCountdownText}}</text
+          >
+        </view>
+      </view>
+
+      <!-- 分隔线 + 文本码备用 -->
+      <view class="rqr-divider">
+        <view class="rqr-divider-line"></view>
+        <text class="rqr-divider-text">或出示文本码</text>
+        <view class="rqr-divider-line"></view>
+      </view>
+
+      <view class="rqr-text-code">
+        <text class="rqr-text-code-value">{{redemptionTextCode}}</text>
+        <view class="rqr-copy-btn" bindtap="onCopyRedemptionCode">
+          <text class="rqr-copy-text">复制</text>
+        </view>
+      </view>
+
+      <!-- 核销码有效期 -->
+      <view class="rqr-expires" wx:if="{{redemptionExpiresAt}}">
+        <text class="rqr-expires-text">核销码有效期至：{{redemptionExpiresAt}}</text>
+      </view>
+
+      <!-- 注意事项 -->
+      <view class="rqr-notice">
+        <text class="rqr-notice-icon">⚠️</text>
+        <text class="rqr-notice-text">核销码仅可使用一次，QR码每5分钟自动刷新</text>
+      </view>
     </view>
   </view>
 

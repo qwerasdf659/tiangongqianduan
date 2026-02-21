@@ -1,7 +1,7 @@
 // pages/camera/camera.ts - 发现页面 - 活动聚合入口（方案C：标签页分类）+ MobX响应式状态
 
 // 🔴 统一工具函数导入
-const { Wechat, API, Logger, Utils } = require('../../utils/index')
+const { Wechat, API, Logger, Utils, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('camera')
 const { showToast } = Wechat
 // 🆕 MobX Store绑定
@@ -179,6 +179,14 @@ Page({
    * Tab切换
    * e - 事件对象
    */
+  /** 活动封面图片加载失败 — 替换为占位图 */
+  onCoverImageError(e: any) {
+    const index = e.currentTarget.dataset.index
+    if (index !== undefined) {
+      this.setData({ [`filteredActivities[${index}].cover`]: ImageHelper.DEFAULT_PRODUCT_IMAGE })
+    }
+  },
+
   onTabChange(e: any) {
     const tab = e.currentTarget.dataset.tab
 

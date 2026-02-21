@@ -578,3 +578,161 @@
 .action-btn-outline:active {
   background: rgba(255, 255, 255, 0.1);
 }
+
+/* ===== 担保码按钮（Phase 4） ===== */
+.escrow-btn {
+  padding: 0 24rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  border-radius: 28rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.escrow-btn:active {
+  opacity: 0.8;
+}
+
+/* ===== 担保码弹窗 ===== */
+.escrow-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.escrow-modal {
+  width: 620rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+}
+
+.escrow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.escrow-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.escrow-close {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.escrow-close-icon {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.escrow-loading {
+  padding: 60rpx 32rpx;
+  text-align: center;
+}
+
+.escrow-loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.escrow-body {
+  padding: 32rpx;
+}
+
+.escrow-hint {
+  font-size: 26rpx;
+  color: #666;
+  display: block;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.escrow-code-display {
+  background: #f5f6f8;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.escrow-code-value {
+  font-size: 64rpx;
+  font-weight: 700;
+  color: #333;
+  letter-spacing: 16rpx;
+  font-family: monospace;
+}
+
+.escrow-expire {
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.escrow-expire-text {
+  font-size: 22rpx;
+  color: #ff9800;
+}
+
+.escrow-copy-btn {
+  width: 100%;
+  padding: 20rpx 0;
+  text-align: center;
+  background: #667eea;
+  border-radius: 40rpx;
+  margin-bottom: 24rpx;
+}
+
+.escrow-copy-text {
+  font-size: 30rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+.escrow-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  padding: 16rpx;
+  background: #fff8e1;
+  border-radius: 12rpx;
+}
+
+.escrow-notice-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.escrow-notice-text {
+  font-size: 22rpx;
+  color: #f57c00;
+  line-height: 1.5;
+}
+
+.escrow-error {
+  padding: 60rpx 32rpx;
+  text-align: center;
+}
+
+.escrow-error-text {
+  font-size: 28rpx;
+  color: #f44336;
+}

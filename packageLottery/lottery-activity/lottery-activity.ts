@@ -850,6 +850,11 @@ Component({
       }
     },
 
+    /** 封面图片加载失败 — 隐藏图片显示文字替代 */
+    onCoverImageError() {
+      this.setData({ coverImage: '' })
+    },
+
     /**
      * small/mini模式：点击入口展开全屏弹窗
      */

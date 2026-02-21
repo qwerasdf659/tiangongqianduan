@@ -1,7 +1,15 @@
 // packageUser/auth/auth.ts - V4.0认证页面 + MobX响应式状态
 
 // 🔴 统一工具函数导入
-const { Utils, API, Validation, Wechat, Constants, Logger } = require('../../utils/index')
+const {
+  Utils,
+  API,
+  Validation,
+  Wechat,
+  Constants,
+  Logger,
+  ImageHelper
+} = require('../../utils/index')
 const log = Logger.createLogger('auth')
 const { DELAY, API_CONFIG } = Constants
 // 🆕 MobX Store绑定
@@ -84,7 +92,7 @@ function buildUserInfoObject(rawUserInfo: any, jwtData: any) {
     exp: jwtData.exp,
 
     // 其他可选字段（V4.0统一snake_case）
-    avatar: rawUserInfo.avatar || '/images/default-avatar.png',
+    avatar: rawUserInfo.avatar || ImageHelper.DEFAULT_AVATAR,
     // 积分应通过 GET /api/v4/assets/balance 获取，此处仅为登录响应中的快照值
     points: parseInt(rawUserInfo.points || 0),
     last_login: rawUserInfo.last_login
@@ -586,7 +594,7 @@ Page({
     return {
       title: '餐厅积分抽奖系统',
       path: '/packageUser/auth/auth',
-      imageUrl: '/images/share-auth.png'
+      imageUrl: ImageHelper.DEFAULT_PRODUCT_IMAGE
     }
   },
 
@@ -688,18 +696,24 @@ Page({
    * 🔧 处理发送验证码错误
    */
   handleSendCodeError(error: any) {
+    /**
+     * V4.0错误格式对齐：
+     * APIClient抛出的ApiError包含: { message: string, code: string, statusCode: number }
+     * 客户端验证错误只包含: { message: string }
+     * 网络错误只包含: { message: '请求超时...' | '网络请求失败...' }
+     */
     let errorMessage = '验证码发送失败'
 
-    if (error.code === 1001) {
-      errorMessage = '手机号格式错误'
-    } else if (error.code === 1002) {
+    if (error.statusCode === 429 || error.code === 'RATE_LIMIT_EXCEEDED') {
       errorMessage = '发送太频繁，请稍后重试'
-    } else if (error.code === 1003) {
-      errorMessage = '今日发送次数已达上限'
-    } else if (error.isNetworkError) {
+    } else if (error.statusCode === 400) {
+      errorMessage = error.message || '手机号格式错误'
+    } else if (error.message && error.message.includes('超时')) {
+      errorMessage = '网络超时，请检查网络连接后重试'
+    } else if (error.message && error.message.includes('网络')) {
       errorMessage = '网络连接失败，请检查网络'
-    } else if (error.isBackendError) {
-      errorMessage = error.msg || '服务器异常，请稍后重试'
+    } else if (error.message) {
+      errorMessage = error.message
     }
 
     wx.showModal({
@@ -868,8 +882,9 @@ Page({
    *
    * **后端API**：
    * - 路径：POST /api/v4/auth/login
-   * - 请求参数：{ mobile, verification_code }
-   * - 响应数据：{ success, data: { user, token, refresh_token } }
+   * - 请求参数：{ mobile, verification_code, platform: 'wechat_mp' }
+   *   platform 字段由 API.userLogin 内部自动添加，用于多平台会话隔离
+   * - 响应数据：{ success, data: { access_token, refresh_token, user, expires_in } }
    *
    *
    * @example

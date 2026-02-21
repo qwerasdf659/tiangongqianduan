@@ -15,7 +15,13 @@
       bindtap="onBidTap"
     >
       <view class="bid-card-image">
-        <image src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" />
+        <image
+          src="{{item.image}}"
+          mode="aspectFill"
+          lazy-load="{{true}}"
+          data-index="{{index}}"
+          binderror="onBidImageError"
+        />
         <view class="bid-countdown-badge {{item._isEndingSoon ? 'ending-soon' : ''}}"
           >{{item._countdownText || '加载中'}}</view
         >
@@ -45,7 +51,12 @@
 
     <view class="bid-modal-body" wx:if="{{selectedBidProduct}}">
       <view class="bid-product-info">
-        <image class="bid-product-img" src="{{selectedBidProduct.image}}" mode="aspectFill" />
+        <image
+          class="bid-product-img"
+          src="{{selectedBidProduct.image}}"
+          mode="aspectFill"
+          binderror="onBidImageError"
+        />
         <view class="bid-product-detail">
           <text class="bid-detail-name">{{selectedBidProduct.name}}</text>
           <text class="bid-detail-countdown">剩余 {{bidModalCountdown}}</text>

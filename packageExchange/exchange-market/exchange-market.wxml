@@ -197,7 +197,12 @@
       </view>
       <view class="confirm-body" wx:if="{{selectedProduct}}">
         <view class="confirm-product-info">
-          <image class="confirm-product-image" src="{{selectedProduct.image}}" mode="aspectFill" />
+          <image
+            class="confirm-product-image"
+            src="{{selectedProduct.image}}"
+            mode="aspectFill"
+            binderror="onConfirmImageError"
+          />
           <view class="confirm-product-detail">
             <text class="confirm-product-name">{{selectedProduct.item_name}}</text>
             <text class="confirm-product-price"
@@ -236,8 +241,54 @@
           ><text class="result-value">{{resultData.payAmount}} 积分</text></view
         >
       </view>
+      <!--实物交易提示：买方需等待卖方提供担保码后确认收货（Phase 4）-->
+      <view class="escrow-tip" wx:if="{{resultData.product.listing_kind === 'item_instance'}}">
+        <text class="escrow-tip-icon">🔑</text>
+        <text class="escrow-tip-text"
+          >本次为实物交易，请联系卖方获取6位担保码后点击"确认收货"完成交易</text
+        >
+        <view
+          class="escrow-confirm-btn"
+          bindtap="onOpenEscrowInput"
+          data-trade_order_id="{{resultData.tradeOrderId}}"
+        >
+          <text class="escrow-confirm-text">输入担保码</text>
+        </view>
+      </view>
       <view class="result-footer">
         <view class="result-btn" bindtap="onCloseResult">确定</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 担保码输入弹窗（Phase 4：买方确认收货） -->
+  <view class="escrow-input-overlay" wx:if="{{showEscrowInput}}" catchtap="onCloseEscrowInput">
+    <view class="escrow-input-modal" catchtap="">
+      <view class="escrow-input-header">
+        <text class="escrow-input-title">输入担保码</text>
+        <view class="escrow-input-close" bindtap="onCloseEscrowInput">
+          <text>✕</text>
+        </view>
+      </view>
+      <text class="escrow-input-hint">请输入卖方提供的6位数字担保码，确认后交易完成</text>
+      <input
+        class="escrow-input-field"
+        type="number"
+        maxlength="6"
+        placeholder="请输入6位担保码"
+        value="{{escrowInputCode}}"
+        bindinput="onEscrowCodeInput"
+      />
+      <view class="escrow-input-actions">
+        <view class="escrow-cancel-btn" bindtap="onCloseEscrowInput">
+          <text>取消</text>
+        </view>
+        <view
+          class="escrow-submit-btn {{escrowInputCode.length !== 6 || escrowSubmitting ? 'disabled' : ''}}"
+          bindtap="onSubmitEscrowCode"
+        >
+          <text>{{escrowSubmitting ? '确认中...' : '确认收货'}}</text>
+        </view>
       </view>
     </view>
   </view>

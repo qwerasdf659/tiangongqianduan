@@ -51,14 +51,8 @@
  * @updated 2026-02-08 修复图片裁剪：改用widthFix动态适配，任何尺寸图片都完整显示
  */
 
-/**
- * 后端支持的6种显示模式（与数据库ENUM字段一一对应）
- * 用于前端校验 display_mode 字段值的合法性
- */
 const { Logger } = require('../../utils/index')
 const log = Logger.createLogger('popup-banner')
-
-const VALID_DISPLAY_MODES = ['wide', 'horizontal', 'square', 'tall', 'slim', 'full_image']
 
 Component({
   /**
@@ -87,8 +81,6 @@ Component({
     animateIn: false,
     /** 退场动画是否进行中 */
     animateOut: false,
-    /** 🖼️ 图片是否已加载完成（配合预加载，防止白屏闪烁） */
-    imageReady: false,
     /** 🔴 图片加载是否最终失败（重试耗尽后为true，触发降级占位显示） */
     imageLoadFailed: false,
     /** 当前banner是否为强制弹出模式（不可点击遮罩关闭） */
@@ -116,7 +108,6 @@ Component({
 
         this.setData({
           animateOut: false,
-          imageReady: false,
           imageLoadFailed: false,
           isForceShow: bannerForceShow,
           currentBannerType: bannerType
@@ -133,46 +124,6 @@ Component({
    * 组件方法
    */
   methods: {
-    // ========================================
-    //  📐 显示模式处理（基于后端 display_mode 字段）
-    // ========================================
-
-    /**
-     * 获取当前横幅的显示模式
-     *
-     * @description
-     * 直接读取后端返回的 display_mode 字段，不再前端自动检测。
-     * 如果后端返回的值不在合法范围内，降级为 'wide' 模式。
-     *
-     * banner - 横幅数据对象
-     */
-    getDisplayMode(banner: any) {
-      if (!banner || !banner.display_mode) {
-        log.warn('横幅缺少 display_mode 字段，降级为 wide 模式')
-        return 'wide'
-      }
-
-      if (VALID_DISPLAY_MODES.indexOf(banner.display_mode) === -1) {
-        log.warn('无效的 display_mode 值:', banner.display_mode, '，降级为 wide 模式')
-        return 'wide'
-      }
-
-      return banner.display_mode
-    },
-
-    /**
-     * 判断当前横幅是否为纯图模式
-     *
-     * @description
-     * 纯图模式下弹窗没有白色卡片壳，图片直接作为弹窗展示，
-     * 不显示标题、正文、渐变装饰等内容区域。
-     *
-     * banner - 横幅数据对象
-     */
-    isFullImageMode(banner: any) {
-      return banner && banner.display_mode === 'full_image'
-    },
-
     /**
      * 横幅图片加载成功回调
      *
@@ -189,11 +140,6 @@ Component({
       let loadedHeight = e.detail.height
       let currentBanner = this.data.banners[this.data.currentIndex]
       let displayMode = currentBanner ? currentBanner.display_mode : 'unknown'
-
-      // 🖼️ 标记图片已加载完成（配合预加载机制，确保弹窗内容可见）
-      if (!this.data.imageReady) {
-        this.setData({ imageReady: true })
-      }
 
       log.info(' 横幅图片加载成功:', loadedWidth + '×' + loadedHeight, '显示模式=' + displayMode)
     },

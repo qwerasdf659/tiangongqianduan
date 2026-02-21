@@ -3,6 +3,9 @@
  * @file packageLottery/lottery-activity/sub/wheel/wheel.ts
  */
 
+const { Logger } = require('../../../../utils/index')
+const log = Logger.createLogger('wheel')
+
 /** 转盘盘面半径（rpx），对应 scss 中 wheel-plate 的 width/2 */
 const PLATE_RADIUS = 280
 
@@ -133,9 +136,12 @@ Component({
 
       const count = prizes.length
       const targetIndex = this.properties.targetPrizeIndex as number
-      /* 若父组件未传入有效索引，降级为随机（不应发生） */
-      const finalIndex =
-        targetIndex >= 0 && targetIndex < count ? targetIndex : Math.floor(Math.random() * count)
+      if (targetIndex < 0 || targetIndex >= count) {
+        log.error('[wheel] 父组件传入的 targetPrizeIndex 无效:', targetIndex, '奖品数量:', count)
+        this.setData({ spinning: false })
+        return
+      }
+      const finalIndex = targetIndex
       const sectorAngle = 360 / count
       /*
        * 扇区从12点方向顺时针排列（conic-gradient from -90deg）

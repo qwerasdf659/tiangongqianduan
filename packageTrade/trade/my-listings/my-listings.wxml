@@ -108,6 +108,18 @@
             >
               {{withdrawingId === item.market_listing_id ? '撤回中...' : '撤回挂单'}}
             </button>
+            <view
+              class="status-hint"
+              wx:elif="{{item.status === 'locked' && item.listing_kind === 'item_instance'}}"
+            >
+              <button
+                class="escrow-btn"
+                catchtap="onViewEscrowCode"
+                data-trade_order_id="{{item.trade_order_id}}"
+              >
+                🔑 查看担保码
+              </button>
+            </view>
             <view class="status-hint" wx:elif="{{item.status === 'locked'}}">
               <text class="locked-label">⏳ 买家交易中</text>
             </view>
@@ -148,6 +160,45 @@
       <view class="empty-actions">
         <button class="action-btn-primary" bindtap="goToInventory">📦 去上架</button>
         <button class="action-btn-outline" bindtap="goToMarket">🏪 逛市场</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 担保码弹窗（Phase 4：卖方查看担保码） -->
+  <view class="escrow-overlay" wx:if="{{showEscrowModal}}" catchtap="onCloseEscrowModal">
+    <view class="escrow-modal" catchtap="">
+      <view class="escrow-header">
+        <text class="escrow-title">交易担保码</text>
+        <view class="escrow-close" bindtap="onCloseEscrowModal">
+          <text class="escrow-close-icon">✕</text>
+        </view>
+      </view>
+
+      <view class="escrow-loading" wx:if="{{escrowLoading}}">
+        <text class="escrow-loading-text">获取担保码中...</text>
+      </view>
+
+      <view class="escrow-body" wx:elif="{{escrowCode}}">
+        <text class="escrow-hint">请将以下担保码告知买家，买家输入后完成交易</text>
+        <view class="escrow-code-display">
+          <text class="escrow-code-value">{{escrowCode}}</text>
+        </view>
+        <view class="escrow-expire" wx:if="{{escrowExpiresAt}}">
+          <text class="escrow-expire-text">有效期至 {{escrowExpiresAt}}（30分钟内有效）</text>
+        </view>
+        <view class="escrow-copy-btn" bindtap="onCopyEscrowCode">
+          <text class="escrow-copy-text">复制担保码</text>
+        </view>
+        <view class="escrow-notice">
+          <text class="escrow-notice-icon">⚠️</text>
+          <text class="escrow-notice-text"
+            >请当面交付物品后再告知担保码，担保码仅限本次交易使用</text
+          >
+        </view>
+      </view>
+
+      <view class="escrow-error" wx:else>
+        <text class="escrow-error-text">担保码暂不可用，请稍后重试</text>
       </view>
     </view>
   </view>

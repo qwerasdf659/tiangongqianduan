@@ -68,6 +68,11 @@ Component({
     /** 购买结果弹窗 */
     showResult: false,
     resultData: null as any,
+    /** 担保码输入弹窗（Phase 4：买方确认收货） */
+    showEscrowInput: false,
+    escrowInputCode: '',
+    escrowTradeOrderId: 0,
+    escrowSubmitting: false,
 
     /** 我的交易管理 — 在售挂单数量（来自 GET /api/v4/market/listing-status） */
     myOnSaleCount: 0
