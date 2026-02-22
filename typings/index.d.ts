@@ -70,12 +70,14 @@ interface IAppOption {
   /** 断开 Socket.IO 连接 */
   disconnectWebSocket(): void
   /**
-   * 发Socket.IO 事件消息
-   * @param eventName - 事件名称（如 'send_message'admin_register'   * @param data - 消息数据对象（Socket.IO 自动序列化，无需手动 JSON.stringify   */
+   * 发送 Socket.IO 事件消息
+   * @param eventName - 事件名称（如 'send_message'、'admin_register'）
+   * @param data - 消息数据对象（Socket.IO 自动序列化，无需手动 JSON.stringify）
+   */
   emitSocketMessage(eventName: string, data: any): boolean
   /** 订阅 Socket.IO 消息（页面级） */
   subscribeWebSocketMessages(pageId: string, callback: Function): void
-  /** 取消订阅 Socket.IO 消息（页面卸载时调用户*/
+  /** 取消订阅 Socket.IO 消息（页面卸载时调用） */
   unsubscribeWebSocketMessages(pageId: string): void
 }
 

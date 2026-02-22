@@ -191,7 +191,7 @@
       show-scrollbar="{{false}}"
     >
       <view class="lb-prizes__list">
-        <view class="lb-prizes__item" wx:for="{{prizes}}" wx:key="id">
+        <view class="lb-prizes__item" wx:for="{{prizes}}" wx:key="prize_id">
           <view class="lb-prizes__icon-wrap">
             <text class="lb-prizes__icon">{{item.prize_icon}}</text>
           </view>

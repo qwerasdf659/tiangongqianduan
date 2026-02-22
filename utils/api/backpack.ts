@@ -166,12 +166,11 @@ async function getExchangeProducts(
  * 响应字段: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
  * ⚠️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
  *
- * ️ 字段映射关系:
- *   列表 API（GET）返回 id（string，DataSanitizer 脱敏后的通用字段名）
- *   兑换 API（POST）body 参数名是 exchange_item_id（number，后端路由直接读取）
- *   调用方需先 Number(列表item.id) 转为数字再传入本函数
+ * 字段说明:
+ *   列表 API（GET）和兑换 API（POST）统一使用 exchange_item_id（number）
+ *   调用方直接传入列表项的 exchange_item_id 即可
  *
- * @param exchange_item_id - 兑换商品ID（BIGINT，对应列表 API 返回的 id 字段，需 Number() 转换）
+ * @param exchange_item_id - 兑换商品ID（BIGINT，exchange_items 表主键）
  * @param quantity - 兑换数量，默认 1
  */
 async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
@@ -189,9 +188,8 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
     method: 'POST',
     data: {
       /**
-       * ️ POST body 参数名是 exchange_item_id（后端路由直接读取此字段）
-       * 值从列表 API 的 id（string）字段获取，调用方需先 Number() 转为数字
-       * 列表返回: { id: "958" } → 调用: exchangeProduct(Number("958"), 1)
+       * POST body 参数名是 exchange_item_id（后端路由直接读取此字段）
+       * 列表 API 和兑换 API 统一使用 exchange_item_id（number 类型）
        */
       exchange_item_id,
       quantity
@@ -257,15 +255,15 @@ async function cancelExchange(order_no: string) {
 
 /**
  * 获取兑换商品详情
- * GET /api/v4/backpack/exchange/items/:id
+ * GET /api/v4/backpack/exchange/items/:exchange_item_id
  *
- * @param id - 兑换商品ID（DataSanitizer 输出通用 id）
+ * @param exchange_item_id - 兑换商品ID（exchange_items.exchange_item_id）
  */
-async function getExchangeItemDetail(id: number | string) {
-  if (!id) {
+async function getExchangeItemDetail(exchange_item_id: number | string) {
+  if (!exchange_item_id) {
     throw new Error('商品ID不能为空')
   }
-  return apiClient.request(`/backpack/exchange/items/${id}`, {
+  return apiClient.request(`/backpack/exchange/items/${exchange_item_id}`, {
     method: 'GET',
     needAuth: true
   })

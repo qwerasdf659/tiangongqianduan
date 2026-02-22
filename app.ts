@@ -53,7 +53,8 @@ interface TokenLogEntry {
 App({
   /**
    * 全局数据 - 仅保留系统级配置
-   * 用户认证/积分等业务数据已迁移到MobX Store（store/user.ts、store/points.ts   * 页面通过 createStoreBindings 自动同步，不再读取globalData 业务字段
+   * 用户认证/积分等业务数据已迁移到MobX Store（store/user.ts、store/points.ts）
+   * 页面通过 createStoreBindings 自动同步，不再读取 globalData 业务字段
    */
   globalData: {
     // 系统基础信息
@@ -129,7 +130,10 @@ App({
    * 检查用户认证状态（应用启动初始化阶段）
    *
    * ⚠️ 此处直接读取 Storage 是设计意图：
-   * 应用启动MobX Store 尚未持有数据，需要从 Storage 恢复上次会话   * 恢复成功后通过 userStore.setLoginState() 将数据同步到 Store   * 此后所有业务代码统一从Store 读取，不再直接访问Storage   */
+   * 应用启动时 MobX Store 尚未持有数据，需要从 Storage 恢复上次会话。
+   * 恢复成功后通过 userStore.setLoginState() 将数据同步到 Store，
+   * 此后所有业务代码统一从 Store 读取，不再直接访问 Storage。
+   */
   async checkAuthStatus(): Promise<void> {
     try {
       // 应用启动恢复：从 Storage 读取上次会话的Token和用户信息（token用let因刷新后需更新）
@@ -481,7 +485,7 @@ App({
       return Promise.reject(new Error('用户未登录'))
     }
 
-    // Token 过期检
+    // Token 过期检查
     const { Utils } = require('./utils/index')
     const { isTokenExpired } = Utils
     if (isTokenExpired(userStore.accessToken)) {
@@ -501,12 +505,16 @@ App({
          * 创建 Socket.IO 连接
          *
          * transports: ['websocket']
-         *   微信小程序仅支持 WebSocket 传输（不支持 HTTP long-polling）         *   weapp.socket.io@3.0.0 内部通过 wx-ws.js 适配器将标准 WebSocket API
-         *   映射wx.connectSocket() / wx.sendSocketMessage() / wx.closeSocket()         *
+         *   微信小程序仅支持 WebSocket 传输（不支持 HTTP long-polling）
+         *   weapp.socket.io@3.0.0 内部通过 wx-ws.js 适配器将标准 WebSocket API
+         *   映射为 wx.connectSocket() / wx.sendSocketMessage() / wx.closeSocket()
+         *
          * timeout: 30000ms
-         *   握手超时时间，给 wss 连接经代理建立留足够时间（默0s）         *
+         *   握手超时时间，给 wss 连接经代理建立留足够时间（默认30s）
+         *
          * auth: { token }
-         *   JWT Token 通过 Socket.IO auth 选项传递，不拼URL 上         */
+         *   JWT Token 通过 Socket.IO auth 选项传递，不拼在 URL 上
+         */
         const socket = io(wsConfig.url, {
           transports: ['websocket'],
           auth: { token: userStore.accessToken },
@@ -733,7 +741,7 @@ App({
       }
 
       logs.push(logEntry)
-      // 只保留最0条记
+      // 只保留最新50条记录
       if (logs.length > 50) {
         logs.shift()
       }

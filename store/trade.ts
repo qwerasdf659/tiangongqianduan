@@ -1,7 +1,8 @@
 /**
- * 🏪 交易状态管- MobX Store
+ * 🏪 交易状态管理 - MobX Store
  *
- * 管理内容: 交易市场商品、用户库存背包、上架管 * 数据来源: 后端 GET /api/v4/market/listings、GET /api/v4/backpack/
+ * 管理内容: 交易市场商品、用户库存背包、上架管理
+ * 数据来源: 后端 GET /api/v4/market/listings、GET /api/v4/backpack/
  *
  * 类型定义统一引用 typings/api.d.ts API.MarketListing / API.BackpackItem
  * 类型定义统一引用 typings/api.d.ts API.MarketListing / API.BackpackItem / API.MyListing
@@ -37,7 +38,7 @@ export const tradeStore = observable({
   /** 库存加载状态*/
   inventoryLoading: false as boolean,
 
-  // ===== 操作方法（分页操作由工厂函数统一生成功=====
+  // ===== 操作方法（分页操作由工厂函数统一生成） =====
 
   /** 设置市场商品列表（首页加载） */
   setMarketListings: createPaginatedActions<API.MarketListing>('marketListings', 'marketPagination')
@@ -69,7 +70,7 @@ export const tradeStore = observable({
     this.inventoryLoading = loading
   }),
 
-  /** 清空交易数据（退出登录时调用户*/
+  /** 清空交易数据（退出登录时调用） */
   clearTrade: action(function (this: any) {
     this.marketListings = []
     this.inventoryItems = []

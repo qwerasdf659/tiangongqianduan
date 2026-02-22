@@ -47,8 +47,8 @@ const PRIZE_ICON_MAP: Record<string, string> = {
 /**
  * 为奖品数据添加 UI 展示字段 prize_icon + prize_image_url
  *
- * 后端返回字段: id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
- * - image: 有图片时为 { id, url, mime, thumbnail_url }，无图片时为 null
+ * 后端返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+ * - image: 有图片时为 { image_resource_id, url, mime, thumbnail_url }，无图片时为 null
  * - 前端补充 prize_icon（emoji兜底）和 prize_image_url（图片优先展示）
  */
 function addPrizeIcon(prize: any): any {
@@ -228,7 +228,7 @@ Component({
 
         /**
          * 奖品列表: ApiResponse 标准信封，data 直接是数组
-         * 后端字段: id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+         * 后端字段: prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
          */
         const prizesRaw: any[] = prizesRes.data
 
@@ -581,7 +581,7 @@ Component({
 
         /**
          * 后端统一返回 data.prizes 数组（单抽 length=1，连抽 length=N）
-         * 字段: id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+         * 字段: prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
          */
         const prizes = (result.data.prizes || []).map(addPrizeIcon)
 

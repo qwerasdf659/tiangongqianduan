@@ -2,10 +2,14 @@
  * 图片资源助手模块 — 对齐后端图片管理体系设计方案
  *
  * 核心职责：
- *   1. 材料资产图标映射（15种，按 asset_code 映射本地PNG）
- *   2. 商品分类图标映射（9种，按 category_code 映射本地PNG）
+ *   1. 材料资产图标映射（15种，按 asset_code 映射本地 WebP）
+ *   2. 商品分类图标映射（9种，按 category_code 映射本地 WebP）
  *   3. 稀有度视觉配置（5级，按 rarity_code 返回颜色和CSS类名）
  *   4. 图片降级链工具（后端实图 → 本地图标 → 占位图）
+ *
+ * 图标格式：WebP quality 90（视觉无损，体积比PNG减少60%）
+ *   - 2026-02-22 由 PNG 迁移至 WebP，详见《图标WebP优化方案》
+ *   - 微信小程序基础库 2.9.0+ 原生支持 WebP，<image> 组件可直接加载
  *
  * 设计决策依据（2026-02-21 拍板）：
  *   - 材料图标采用前端静态映射（游戏公司做法，零网络请求）
@@ -14,7 +18,7 @@
  *   - C2C交易市场只显示系统资产图标，不支持用户上传图片（决策5）
  *
  * @file 天工餐厅积分系统 - 图片资源助手
- * @version 1.0.0
+ * @version 1.1.0
  * @since 2026-02-22
  */
 
@@ -31,32 +35,30 @@ const DEFAULT_AVATAR = '/images/default-avatar.png'
 /**
  * asset_code → 本地图标路径映射
  *
- * 图标规格：256×256 PNG，暗黑奢华风（决策1拍板）
+ * 图标规格：256×256 WebP（quality 90，视觉无损），暗黑奢华风
  * 存放目录：images/icons/materials/
- * 数据来源：admin/public/assets/icons/materials/（需复制到小程序项目）
- *
- * ⚠️ 图标文件需从管理台项目复制到本目录，详见后端需求文档
+ * 转换工具：scripts/convert-icons-to-webp.js（Sharp，quality 90, effort 6）
  */
 const MATERIAL_ICONS: Record<string, string> = {
   /* tier 10 - 系统货币 */
-  DIAMOND: '/images/icons/materials/diamond.png',
+  DIAMOND: '/images/icons/materials/diamond.webp',
   /* tier 0 - 基础货币 */
-  POINTS: '/images/icons/materials/points.png',
-  BUDGET_POINTS: '/images/icons/materials/budget-points.png',
+  POINTS: '/images/icons/materials/points.webp',
+  BUDGET_POINTS: '/images/icons/materials/budget-points.webp',
   /* tier 1 - 碎片（6色） */
-  red_shard: '/images/icons/materials/red-shard.png',
-  orange_shard: '/images/icons/materials/orange-shard.png',
-  yellow_shard: '/images/icons/materials/yellow-shard.png',
-  green_shard: '/images/icons/materials/green-shard.png',
-  blue_shard: '/images/icons/materials/blue-shard.png',
-  purple_shard: '/images/icons/materials/purple-shard.png',
+  red_shard: '/images/icons/materials/red-shard.webp',
+  orange_shard: '/images/icons/materials/orange-shard.webp',
+  yellow_shard: '/images/icons/materials/yellow-shard.webp',
+  green_shard: '/images/icons/materials/green-shard.webp',
+  blue_shard: '/images/icons/materials/blue-shard.webp',
+  purple_shard: '/images/icons/materials/purple-shard.webp',
   /* tier 2 - 水晶（6色） */
-  red_crystal: '/images/icons/materials/red-crystal.png',
-  orange_crystal: '/images/icons/materials/orange-crystal.png',
-  yellow_crystal: '/images/icons/materials/yellow-crystal.png',
-  green_crystal: '/images/icons/materials/green-crystal.png',
-  blue_crystal: '/images/icons/materials/blue-crystal.png',
-  purple_crystal: '/images/icons/materials/purple-crystal.png'
+  red_crystal: '/images/icons/materials/red-crystal.webp',
+  orange_crystal: '/images/icons/materials/orange-crystal.webp',
+  yellow_crystal: '/images/icons/materials/yellow-crystal.webp',
+  green_crystal: '/images/icons/materials/green-crystal.webp',
+  blue_crystal: '/images/icons/materials/blue-crystal.webp',
+  purple_crystal: '/images/icons/materials/purple-crystal.webp'
 }
 
 // ===== 分类图标映射（9种，对齐后端 category_defs 表） =====
@@ -64,20 +66,20 @@ const MATERIAL_ICONS: Record<string, string> = {
 /**
  * category_code → 本地图标路径映射
  *
- * 图标规格：256×256 PNG，暗黑奢华风
+ * 图标规格：256×256 WebP（quality 90，视觉无损），暗黑奢华风
  * 存放目录：images/icons/categories/
- * 数据来源：admin/public/assets/icons/categories/（需复制到小程序项目）
+ * 转换工具：scripts/convert-icons-to-webp.js（Sharp，quality 90, effort 6）
  */
 const CATEGORY_ICONS: Record<string, string> = {
-  electronics: '/images/icons/categories/electronics.png',
-  food_drink: '/images/icons/categories/food-drink.png',
-  voucher: '/images/icons/categories/voucher.png',
-  gift_card: '/images/icons/categories/gift-card.png',
-  home_life: '/images/icons/categories/home-life.png',
-  lifestyle: '/images/icons/categories/lifestyle.png',
-  food: '/images/icons/categories/food.png',
-  collectible: '/images/icons/categories/collectible.png',
-  other: '/images/icons/categories/other.png'
+  electronics: '/images/icons/categories/electronics.webp',
+  food_drink: '/images/icons/categories/food-drink.webp',
+  voucher: '/images/icons/categories/voucher.webp',
+  gift_card: '/images/icons/categories/gift-card.webp',
+  home_life: '/images/icons/categories/home-life.webp',
+  lifestyle: '/images/icons/categories/lifestyle.webp',
+  food: '/images/icons/categories/food.webp',
+  collectible: '/images/icons/categories/collectible.webp',
+  other: '/images/icons/categories/other.webp'
 }
 
 // ===== 稀有度视觉配置（5级，对齐后端 rarity_defs 表 color_hex） =====

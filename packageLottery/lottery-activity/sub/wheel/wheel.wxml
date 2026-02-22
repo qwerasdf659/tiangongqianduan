@@ -21,7 +21,7 @@
       <view
         class="wheel-prize"
         wx:for="{{prizes}}"
-        wx:key="index"
+        wx:key="prize_id"
         style="{{prizePositions[index]}}"
       >
         <text class="wheel-prize__icon">{{item.prize_icon || '🎁'}}</text>

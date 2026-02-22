@@ -81,8 +81,8 @@ Component({
             if (!item || typeof item !== 'object') {
               return false
             }
-            if (!item.id) {
-              premiumLog.error(`第${idx}个商品缺少 id（DataSanitizer 脱敏后的主键）`)
+            if (!item.exchange_item_id) {
+              premiumLog.error(`第${idx}个商品缺少 exchange_item_id（主键）`)
               return false
             }
             return true
@@ -136,7 +136,7 @@ Component({
 
       const enrichedProducts = enrichProductDisplayFields(
         currentPageProducts.map((item: any) => ({
-          id: item.id,
+          exchange_item_id: item.exchange_item_id,
           name: item.name || '',
           description: item.description || '',
           image:

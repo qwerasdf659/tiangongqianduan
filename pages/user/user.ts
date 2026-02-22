@@ -55,7 +55,9 @@ Page({
     isAdmin: false,
     roleLevel: 0,
 
-    // 积分信息（GET /api/v4/lottery/points 返回 today_summary.today_earned / today_summary.today_consumed）
+    // 积分信息
+    // totalPoints: GET /api/v4/assets/balance?asset_code=POINTS → available_amount
+    // todayEarned/todayConsumed: GET /api/v4/assets/today-summary?asset_code=POINTS → today_earned / today_consumed
     totalPoints: 0,
     todayEarned: 0,
     todayConsumed: 0,
@@ -457,21 +459,22 @@ Page({
 
   /**
    * 加载积分趋势数据（今日获得/消费）
-   * 后端路由: GET /api/v4/lottery/points
-   * 响应: { success: true, data: { ..., today_summary: { today_earned, today_consumed, transaction_count } } }
+   *
+   * 后端路由: GET /api/v4/assets/today-summary?asset_code=POINTS（决策D-1，资产域通用接口）
+   * 后端服务: AssetQueryService.getTodaySummary({ user_id, asset_code })
+   * 响应: { success: true, data: { asset_code, today_earned, today_consumed, transaction_count } }
+   *
+   * 统计范围: 北京时间当日所有 business_type 的 POINTS 交易
    */
   async loadPointsTrend() {
-    const data = await safeApiCall(() => API.getUserStatistics(), {
-      context: '积分趋势',
+    const data = await safeApiCall(() => API.getTodaySummary('POINTS'), {
+      context: '今日积分汇总',
       silent: true
     })
     if (data) {
-      if (!data.today_summary) {
-        log.warn('后端响应缺少 today_summary 字段，响应data结构:', Object.keys(data))
-      }
       this.setData({
-        todayEarned: data.today_summary?.today_earned ?? 0,
-        todayConsumed: data.today_summary?.today_consumed ?? 0
+        todayEarned: data.today_earned ?? 0,
+        todayConsumed: data.today_consumed ?? 0
       })
     } else {
       this.setData({ todayEarned: 0, todayConsumed: 0 })

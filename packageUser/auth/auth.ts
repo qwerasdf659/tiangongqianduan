@@ -91,8 +91,8 @@ function buildUserInfoObject(rawUserInfo: any, jwtData: any) {
     iat: jwtData.iat,
     exp: jwtData.exp,
 
-    // 其他可选字段（V4.0统一snake_case）
-    avatar: rawUserInfo.avatar || ImageHelper.DEFAULT_AVATAR,
+    // 其他可选字段（V4.0统一snake_case，对齐 users 表实际字段名）
+    avatar_url: rawUserInfo.avatar_url || ImageHelper.DEFAULT_AVATAR,
     // 积分应通过 GET /api/v4/assets/balance 获取，此处仅为登录响应中的快照值
     points: parseInt(rawUserInfo.points || 0),
     last_login: rawUserInfo.last_login

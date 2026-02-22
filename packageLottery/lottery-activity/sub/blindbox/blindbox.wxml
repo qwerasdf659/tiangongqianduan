@@ -129,7 +129,7 @@
         bindscroll="onPrizesScroll"
       >
         <view class="bb-prizes__list">
-          <view class="bb-prizes__item {{item.rarity_code}}" wx:for="{{prizes}}" wx:key="id">
+          <view class="bb-prizes__item {{item.rarity_code}}" wx:for="{{prizes}}" wx:key="prize_id">
             <view class="bb-prizes__icon-wrap">
               <text class="bb-prizes__icon">{{item.prize_icon}}</text>
             </view>

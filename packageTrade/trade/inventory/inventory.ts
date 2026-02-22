@@ -2,8 +2,8 @@
  * 📦 库存管理页面（背包系统） - 对齐后端对接文档
  *
  * 业务功能：用户个人物品库存管理中 * 后端API（对齐后端真实路由） *   - GET  /api/v4/backpack/                        获取用户背包（双轨结构：assets[] + items[] *   - GET  /api/v4/backpack/stats                   获取背包统计（total_assets / total_items / total_asset_value *   - GET  /api/v4/backpack/items/:item_instance_id 物品详情
- *   - POST /api/v4/backpack/items/:id/use           使用物品
- *   - POST /api/v4/backpack/items/:id/redeem        生成核销码（12位Base320天有效，仅返回一次明文）
+ *   - POST /api/v4/backpack/items/:item_instance_id/use    使用物品
+ *   - POST /api/v4/backpack/items/:item_instance_id/redeem 生成核销码（12位Base320天有效，仅返回一次明文）
  *   - POST /api/v4/market/list                      上架物品到交易市场（需Idempotency-Key *
  * 后端返回的物品字段（snake_case，后端为权威来源）：
  *   item_instance_id  - 物品实例唯一ID（bigint *   item_type         - 物品类型编码（prize/product/voucher/tradable_item/service *   item_type_display - 物品类型中文名（后端自动附加 *   name              - 物品名称
@@ -180,8 +180,11 @@ Page({
   },
 
   /**
-   * 初始化库存管理页   *
-   * 执行流程   * 1. 检查用户登录状态（未登录自动跳转认证页   * 2. 设置用户信息
+   * 初始化库存管理页面
+   *
+   * 执行流程：
+   * 1. 检查用户登录状态（未登录自动跳转认证页）
+   * 2. 设置用户信息
    * 3. 首次加载背包数据（显示loading状态）
    */
   async initPage() {
@@ -210,11 +213,16 @@ Page({
    * 后端API: GET /api/v4/backpack/
    * 返回格式: { success: true, data: { assets: BackpackAsset[], items: BackpackItem[] } }
    *
-   * 执行流程   * 1. 调用 getUserInventory() 获取背包数据（通过JWT Token识别用户，无需传userId   * 2. 解析双轨结构：assets（可叠加资产 items（不可叠加物品）
-   * 3. 基于后端 allowed_actions 数组计算 WXML 操作标志（can_use / can_generate_code / can_sell   * 4. 计算分类统计数量
+   * 执行流程：
+   * 1. 调用 getUserInventory() 获取背包数据（通过JWT Token识别用户，无需传userId）
+   * 2. 解析双轨结构：assets（可叠加资产）、items（不可叠加物品）
+   * 3. 基于后端 allowed_actions 数组计算 WXML 操作标志（can_use / can_generate_code / can_sell）
+   * 4. 计算分类统计数量
    * 5. 独立加载背包统计数据
-   * 6. 应用当前筛选排序条   *
-   * @param refresh - true=静默刷新（不显示loading），false=首次加载（显示loading占位   */
+   * 6. 应用当前筛选排序条件
+   *
+   * @param refresh - true=静默刷新（不显示loading），false=首次加载（显示loading占位）
+   */
   async loadInventoryData(refresh: boolean = false) {
     if (refresh) {
       this.setData({ refreshing: true })
@@ -236,8 +244,8 @@ Page({
          * 后端已返回 is_tradable 字段（boolean），精确控制"上架到市场"按钮显示
          * is_tradable=true 的资产才能上架到交易市场
          *
-         * icon_path: 由前端 image-helper.ts 根据 asset_code 映射本地PNG图标路径
-         * 图标规格：256×256 PNG，存放于 images/icons/materials/
+         * icon_path: 由前端 image-helper.ts 根据 asset_code 映射本地 WebP 图标路径
+         * 图标规格：256×256 WebP（quality 90），存放于 images/icons/materials/
          */
         const backpackAssets = assets.map((asset: any) => ({
           ...asset,
@@ -303,8 +311,11 @@ Page({
    *
    * 后端API: GET /api/v4/backpack/stats
    * 返回字段:
-   *   total_assets      - 资产种类数量（有余额的资产类型数据   *   total_items       - 可用物品数量（status=available   *   total_asset_value - 所有资产可用余额总和
-   *   items_by_type     - 按item_type分组的物品数量（后端权威数据   *                       示例: { product: 1505, voucher: 1823, tradable_item: 28, prize: 1 }
+   *   total_assets      - 资产种类数量（有余额的资产类型数）
+   *   total_items       - 可用物品数量（status=available）
+   *   total_asset_value - 所有资产可用余额总和
+   *   items_by_type     - 按item_type分组的物品数量（后端权威数据）
+   *                       示例: { product: 1505, voucher: 1823, tradable_item: 28, prize: 1 }
    *
    * items_by_type 由后端直接返回，前端无需自行遍历 items[] 计算分类统计
    * 非关键数据，加载失败不影响主流程
@@ -362,13 +373,17 @@ Page({
   /**
    * 应用筛选和排序条件
    *
-   * 筛选字段使用后端snake_case命名   *   - 分类筛选：item_type 字段（all | prize | voucher | product | tradable_item | service   *   - 关键词搜索：name + description 字段
+   * 筛选字段使用后端 snake_case 命名：
+   *   - 分类筛选：item_type 字段（all | prize | voucher | product | tradable_item | service）
+   *   - 关键词搜索：name + description 字段
    *
-   * 排序字段使用后端snake_case命名   *   - newest：按 acquired_at 降序（最新优先）
+   * 排序字段使用后端 snake_case 命名：
+   *   - newest：按 acquired_at 降序（最新优先）
    *   - oldest：按 acquired_at 升序（最早优先）
    *   - expire_soon：按 expires_at 升序（即将过期优先）
    *
-   * ⚠️ 背包列表只返status='available' 的物品，因此不提供状态筛   */
+   * ⚠️ 背包列表只返回 status='available' 的物品，因此不提供状态筛选
+   */
   /**
    * 每页加载物品数量（UI常量，前端自主决定）
    * 每页50条约20KB，远低于微信推荐的256KB限制
@@ -475,7 +490,8 @@ Page({
   },
 
   /**
-   * 搜索关键词输入（防抖500ms   * WXML绑定: <input bindinput="onSearchInput" />
+   * 搜索关键词输入（防抖500ms）
+   * WXML绑定: <input bindinput="onSearchInput" />
    */
   onSearchInput(e: any) {
     const keyword = e.detail.value
@@ -490,13 +506,15 @@ Page({
   },
 
   /**
-   * 显示筛选面   */
+   * 显示筛选面板
+   */
   onShowFilter() {
     this.setData({ showFilterPanel: true })
   },
 
   /**
-   * 隐藏筛选面   */
+   * 隐藏筛选面板
+   */
   onHideFilter() {
     this.setData({ showFilterPanel: false })
   },
@@ -868,13 +886,15 @@ Page({
   },
 
   /**
-   * 上架物品到交易市   *
+   * 上架物品到交易市场
+   *
    * 后端API: POST /api/v4/market/list
    * 请求Header: Idempotency-Key: market_list_<timestamp>_<random>（必填）
    * 请求Body: { item_instance_id, price_amount, price_asset_code }
    *
-   * 定价币种: DIAMOND（钻石）red_shard（红水晶碎片）
-   * 上架限制: 用户最多同时上0件商   *
+   * 定价币种: DIAMOND（钻石）/ red_shard（红水晶碎片）
+   * 上架限制: 用户最多同时上架10件商品
+   *
    * WXML绑定: <button bindtap="onSellItem" data-item="{{item}}">
    */
   onSellItem(e: any) {
@@ -900,9 +920,12 @@ Page({
    * 请求Header: Idempotency-Key（防止重复上架）
    * 请求Body: { asset_code, amount, price_amount, price_asset_code }
    *
-   * 上架限制: 用户最多同时上0件商品（物品+材料共享额度   *
-   * 前端根据后端返回is_tradable 字段精确控制"上架到市按钮   *   is_tradable=true  允许上架
-   *   is_tradable=false 不可交易（如普通积分POINTS   *
+   * 上架限制: 用户最多同时上架10件商品（物品+材料共享额度）
+   *
+   * 前端根据后端返回 is_tradable 字段精确控制"上架到市场"按钮：
+   *   is_tradable=true  → 允许上架
+   *   is_tradable=false → 不可交易（如普通积分 POINTS）
+   *
    * WXML绑定: <button bindtap="onSellAsset" data-asset="{{item}}">
    */
   onSellAsset(e: any) {
@@ -913,7 +936,7 @@ Page({
       return
     }
 
-    // 根据后端 is_tradable 字段判断是否可交
+    // 根据后端 is_tradable 字段判断是否可交易
     if (!asset.is_tradable) {
       showToast(`${asset.display_name || '该资产'}不支持交易`)
       return
@@ -1041,7 +1064,8 @@ Page({
   },
 
   /**
-   * 跳转到抽奖页   */
+   * 跳转到抽奖页面
+   */
   goToLottery() {
     log.info('跳转到抽奖页面')
     wx.switchTab({
@@ -1214,7 +1238,8 @@ Page({
   },
 
   /**
-   * 用户点击右上角分   */
+   * 用户点击右上角分享
+   */
   onShareAppMessage() {
     return {
       title: '我的仓库',

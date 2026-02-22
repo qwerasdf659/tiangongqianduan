@@ -260,7 +260,7 @@ const chatMessageHandlers = {
         msgLog.info('用户端收到新消息:', {
           chat_message_id: data.chat_message_id,
           sender_type: data.sender_type,
-          session_id: data.session_id || data.customer_service_session_id
+          customer_service_session_id: data.customer_service_session_id
         })
         if (data.sender_type === 'user') {
           /*

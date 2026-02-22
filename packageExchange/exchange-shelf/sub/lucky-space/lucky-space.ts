@@ -196,7 +196,7 @@ Component({
 
     /**
      * 转换后端商品数据为瀑布流格式
-     * 后端 DataSanitizer 脱敏: exchange_item_id → id, item_name → name
+     * 后端字段: exchange_item_id（主键）、name（商品名称）
      */
     _convertToWaterfallData(items: any[]) {
       if (!items || !Array.isArray(items)) {
@@ -205,7 +205,7 @@ Component({
       try {
         return items
           .map((item: any) => {
-            if (!item || !item.id) {
+            if (!item || !item.exchange_item_id) {
               return null
             }
             const imageUrl =
@@ -213,7 +213,7 @@ Component({
                 (item.primary_image.url || item.primary_image.thumbnail_url)) ||
               luckyImageHelper.DEFAULT_PRODUCT_IMAGE
             return {
-              id: item.id,
+              exchange_item_id: item.exchange_item_id,
               name: item.name || '',
               image: imageUrl,
               primary_image_id: item.primary_image_id || null,

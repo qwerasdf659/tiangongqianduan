@@ -64,11 +64,6 @@ async function getLotteryHistory(page: number = 1, limit: number = 20) {
   return apiClient.request(`/lottery/history?${qs}`, { method: 'GET', needAuth: true })
 }
 
-/** 获取当前用户综合统计 - GET /api/v4/lottery/points */
-async function getUserStatistics() {
-  return apiClient.request('/lottery/points', { method: 'GET', needAuth: true })
-}
-
 /** 获取当前用户抽奖维度统计 - GET /api/v4/lottery/statistics */
 async function getLotteryUserStatistics() {
   return apiClient.request('/lottery/statistics', { method: 'GET', needAuth: true })
@@ -81,7 +76,6 @@ module.exports = {
   getLotteryConfig,
   performLottery,
   getLotteryHistory,
-  getUserStatistics,
   getLotteryUserStatistics
 }
 

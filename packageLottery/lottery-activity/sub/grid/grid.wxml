@@ -3,7 +3,7 @@
   布局顺序（顺时针）: [0][1][2] / [7][BTN][3] / [6][5][4]
   对应 sort_order:    [1][2][3] / [8][🎰][4] / [7][6][5]
   奖品数据来源: 后端 GET /api/v4/lottery/campaigns/:code/prizes
-  后端返回字段: { id, prize_name, prize_type, prize_value, sort_order, rarity_code, status, image }
+  后端返回字段: { prize_id, prize_name, prize_type, prize_value, sort_order, rarity_code, status, image }
   稀有度光效: rarity_code → rarity-effects组件（5级: common/uncommon/rare/epic/legendary）
 -->
 <view class="grid-container">

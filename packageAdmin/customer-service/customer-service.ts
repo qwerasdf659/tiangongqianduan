@@ -217,7 +217,7 @@ Page({
 
     const appInstance = getApp()
     appInstance.emitSocketMessage('admin_register', {
-      adminId: this.data.userInfo?.userId,
+      adminId: this.data.userInfo?.user_id,
       adminName: this.data.userInfo?.nickname || '管理员'
     })
     log.info('管理员注册消息已发送')
@@ -663,7 +663,7 @@ Page({
 
     const tempMessage = {
       id: `temp_${Date.now()}`,
-      senderId: this.data.userInfo?.userId,
+      senderId: this.data.userInfo?.user_id,
       senderType: 'admin',
       content,
       messageType: 'text',
@@ -774,7 +774,7 @@ Page({
     const appInstance = getApp()
     appInstance.emitSocketMessage('admin_typing_start', {
       sessionId: this.data.currentSessionId,
-      adminId: this.data.userInfo?.userId
+      adminId: this.data.userInfo?.user_id
     })
   },
 
@@ -789,7 +789,7 @@ Page({
     const appInstance = getApp()
     appInstance.emitSocketMessage('admin_typing_stop', {
       sessionId: this.data.currentSessionId,
-      adminId: this.data.userInfo?.userId
+      adminId: this.data.userInfo?.user_id
     })
   },
 

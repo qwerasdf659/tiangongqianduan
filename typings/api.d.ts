@@ -125,14 +125,14 @@ declare namespace API {
   /**
    * 奖品信息（后端 DataSanitizer.sanitizePrizes 输出，public级别）
    *
-   * 字段对齐后端实际返回格式（2026-02-18 DataSanitizer字段对齐后）：
-   * - id: 统一为通用 id（数据库实际字段 lottery_prize_id，DataSanitizer 安全映射）
-   * - image: 新增字段，有图片时为 PrizeImage 对象，无图片时为 null（emoji兜底）
+   * 字段对齐后端实际返回格式（2026-02-22 DataSanitizer 主键规范化后）：
+   * - prize_id: 剥离 lottery_ 模块前缀（数据库主键 lottery_prize_id）
+   * - image: 有图片时为 PrizeImage 对象，无图片时为 null（emoji兜底）
    * - icon 字段已移除（后端不再返回，前端根据 prize_type 自行生成 emoji）
    */
   interface Prize {
-    /** 奖品ID（DataSanitizer 统一输出 id，数据库实际字段 lottery_prize_id） */
-    id: number
+    /** 奖品ID（剥离 lottery_ 前缀，数据库主键 lottery_prize_id） */
+    prize_id: number
     /** 奖品名称 */
     prize_name: string
     /** 奖品类型: points/physical/virtual/coupon/service */
@@ -151,7 +151,7 @@ declare namespace API {
     image_resource_id: number | null
     /**
      * 奖品图片对象（DataSanitizer 通过 ImageUrlHelper 生成完整URL）
-     * 有图片时: { id, url, mime, thumbnail_url }
+     * 有图片时: { image_resource_id, url, mime, thumbnail_url }
      * 无图片时: null（前端使用 PRIZE_ICON_MAP[prize_type] emoji 兜底）
      */
     image: PrizeImage | null
@@ -163,8 +163,8 @@ declare namespace API {
 
   /** 奖品关联图片（Sealos 对象存储公网URL） */
   interface PrizeImage {
-    /** 图片资源ID */
-    id: number
+    /** 图片资源ID（image_resources.image_resource_id） */
+    image_resource_id: number
     /** 图片完整公网URL（Sealos 对象存储直连） */
     url: string
     /** MIME 类型（如 image/jpeg） */
@@ -222,12 +222,31 @@ declare namespace API {
 
   // ===== 资产系统 =====
 
-  /** 资产余额 */
+  /** 资产余额（对齐后端 GET /api/v4/assets/balance 响应） */
   interface AssetBalance {
     asset_code: string
     available_amount: number
     frozen_amount: number
     total_amount: number
+  }
+
+  /**
+   * 今日资产汇总（对齐后端 GET /api/v4/assets/today-summary 响应）
+   *
+   * 后端服务: AssetQueryService.getTodaySummary({ user_id, asset_code })
+   * SQL逻辑: delta_amount > 0 汇总为 today_earned，delta_amount < 0 绝对值汇总为 today_consumed
+   * 时间范围: 北京时间当日 00:00:00 ~ 23:59:59（BeijingTimeHelper.todayStart/todayEnd）
+   * 统计范围: 覆盖所有 business_type（不限于抽奖）
+   */
+  interface TodaySummary {
+    /** 资产代码（POINTS / DIAMOND / red_shard 等） */
+    asset_code: string
+    /** 今日获得总额（当日所有 delta_amount > 0 的交易合计） */
+    today_earned: number
+    /** 今日消费总额（当日所有 delta_amount < 0 的交易绝对值合计） */
+    today_consumed: number
+    /** 今日交易笔数 */
+    transaction_count: number
   }
 
   /**
@@ -346,9 +365,9 @@ declare namespace API {
    * 图片通过 primary_image_id 关联 image_resources 表
    */
   interface ExchangeProduct {
-    /** 商品主键（DataSanitizer 输出通用 id，数据库实际字段 exchange_item_id） */
-    id: number
-    /** 商品名称（DataSanitizer 输出通用 name，数据库实际字段 item_name） */
+    /** 商品主键（exchange_items.exchange_item_id） */
+    exchange_item_id: number
+    /** 商品名称（DataSanitizer 输出 name，数据库字段 item_name） */
     name: string
     /** 商品描述（TEXT） */
     description: string

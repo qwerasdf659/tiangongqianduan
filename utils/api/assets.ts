@@ -39,6 +39,33 @@ async function getConversionRules() {
   return apiClient.request('/assets/conversion-rules', { method: 'GET', needAuth: true })
 }
 
-module.exports = { getPointsBalance, getPointsTransactions, getAssetBalances, getConversionRules }
+/**
+ * 获取今日资产汇总 - GET /api/v4/assets/today-summary
+ *
+ * 后端路由: routes/v4/assets/today-summary.js（决策D-1新增，资产域通用接口）
+ * 后端服务: AssetQueryService.getTodaySummary({ user_id, asset_code })
+ *
+ * 响应字段:
+ *   asset_code: 资产代码（如 'POINTS'）
+ *   today_earned: 今日获得总额（delta_amount > 0 的交易合计）
+ *   today_consumed: 今日消费总额（delta_amount < 0 的交易绝对值合计）
+ *   transaction_count: 今日交易笔数
+ *
+ * 支持任意 asset_code（POINTS/DIAMOND/red_shard 等），前端只需更换查询参数
+ *
+ * @param asset_code - 资产代码，默认 'POINTS'（普通积分）
+ */
+async function getTodaySummary(asset_code: string = 'POINTS') {
+  const qs = buildQueryString({ asset_code })
+  return apiClient.request(`/assets/today-summary?${qs}`, { method: 'GET', needAuth: true })
+}
+
+module.exports = {
+  getPointsBalance,
+  getPointsTransactions,
+  getAssetBalances,
+  getConversionRules,
+  getTodaySummary
+}
 
 export {}

@@ -328,7 +328,7 @@ Page({
         if (!createResult?.success || !createResult.data) {
           throw new Error(createResult?.message || '创建失败')
         }
-        targetCampaignId = createResult.data.ad_campaign_id || createResult.data.id
+        targetCampaignId = createResult.data.ad_campaign_id
       }
 
       const createdCampaignId = targetCampaignId

@@ -92,7 +92,7 @@
   <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
     <view
       wx:for="{{filteredProducts}}"
-      wx:key="id"
+      wx:key="exchange_item_id"
       class="unified-card {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
       data-product="{{item}}"
       data-card-index="{{index}}"

@@ -40,10 +40,10 @@ module.exports = {
   /** 认证系统: userLogin / quickLogin / sendVerificationCode / getUserInfo / verifyToken */
   ...authModule,
 
-  /** 抽奖系统: getLotteryCampaigns / getActiveCampaigns / getLotteryPrizes / getLotteryConfig / performLottery / getLotteryHistory / getUserStatistics / getLotteryUserStatistics */
+  /** 抽奖系统: getLotteryCampaigns / getActiveCampaigns / getLotteryPrizes / getLotteryConfig / performLottery / getLotteryHistory / getLotteryUserStatistics */
   ...lotteryModule,
 
-  /** 资产系统: getPointsBalance / getPointsTransactions / getAssetBalances / getConversionRules */
+  /** 资产系统: getPointsBalance / getPointsTransactions / getAssetBalances / getConversionRules / getTodaySummary */
   ...assetsModule,
 
   /** 背包+兑换+竞价: getUserInventory / getBackpackStats / getExchangeProducts / exchangeProduct / getBidProducts / placeBid 等 */
@@ -62,13 +62,7 @@ module.exports = {
   ...consoleModule,
 
   /** 广告系统(P2+P3): getMyAdCampaigns / createAdCampaign / submitAdCampaign / cancelAdCampaign / reportAdImpression / reportAdClick 等 */
-  ...adCampaignsModule,
-
-  /** API版本信息 */
-  version: '5.2.0',
-  lastUpdated: '2026-02-19T00:00:00+08:00',
-  apiCompatibility:
-    'V4.7.0后端对齐+聊天图片上传+臻选空间解锁+商品筛选配置+反馈配置+客服响应统计+竞价系统+广告系统'
+  ...adCampaignsModule
 }
 
 export {}

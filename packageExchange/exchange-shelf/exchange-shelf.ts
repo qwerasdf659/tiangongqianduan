@@ -173,14 +173,14 @@ Component({
 
     /**
      * 商品点击事件（打开兑换确认弹窗）
-     * 后端 DataSanitizer 脱敏: exchange_item_id → id（string）
+     * 后端字段: exchange_item_id（exchange_items 表主键）
      */
     onProductTap(e: any) {
       const product = e.detail ? e.detail.product : e.currentTarget.dataset.product
       shelfLog.info('点击商品:', product)
 
-      if (!product || !product.id) {
-        shelfLog.error('商品数据缺少 id（DataSanitizer 脱敏后的主键），无法兑换')
+      if (!product || !product.exchange_item_id) {
+        shelfLog.error('商品数据缺少 exchange_item_id（主键），无法兑换')
         wx.showToast({ title: '商品数据异常，请刷新页面重试', icon: 'none' })
         return
       }
@@ -224,7 +224,7 @@ Component({
         return
       }
 
-      const shopProductId = selectedShopProduct.id
+      const shopProductId = selectedShopProduct.exchange_item_id
       const costAmount = Number(selectedShopProduct.cost_amount) || 0
       const costAssetCode = selectedShopProduct.cost_asset_code || 'POINTS'
 
