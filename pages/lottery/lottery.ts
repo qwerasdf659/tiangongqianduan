@@ -94,6 +94,8 @@ Page({
     announcements: [] as API.AdDeliveryItem[],
     /** 公告区域是否可见（有数据时显示） */
     showAnnouncements: false,
+    /** 当前公告索引（用于曝光日志上报） */
+    announcementCurrent: 0,
 
     /* ===== 弹窗横幅（后端 GET /api/v4/system/ad-delivery?slot_type=popup 返回） ===== */
     showPopupBanner: false,
@@ -230,9 +232,10 @@ Page({
     }
   },
 
-  /** TabBar页面切换时上报当前轮播图最后一次曝光 + 清理QR刷新定时器 */
+  /** TabBar页面切换时上报轮播/公告最后一次曝光 + 清理QR刷新定时器 */
   onHide() {
     this._flushCarouselExposure()
+    this._flushAnnouncementExposure()
     if (this._qrRefreshTimer) {
       clearTimeout(this._qrRefreshTimer)
       this._qrRefreshTimer = null
@@ -241,6 +244,7 @@ Page({
 
   onUnload() {
     this._flushCarouselExposure()
+    this._flushAnnouncementExposure()
 
     if (this.userStoreBindings) {
       this.userStoreBindings.destroyStoreBindings()
@@ -267,6 +271,18 @@ Page({
     ) {
       this._reportCarouselExposure(this.data.carouselCurrent, false, false)
       this._carouselExposureStart = 0
+    }
+  },
+
+  /** 上报当前可见公告条的最后一次曝光（页面离开时调用，避免曝光数据丢失） */
+  _flushAnnouncementExposure() {
+    if (
+      this.data.showAnnouncements &&
+      this.data.announcements.length > 0 &&
+      this._announcementExposureStart
+    ) {
+      this._reportAnnouncementImpression(this.data.announcementCurrent)
+      this._announcementExposureStart = 0
     }
   },
 
@@ -889,7 +905,7 @@ Page({
   // ========================================
 
   /**
-   * 加载首页系统公告（公开接口，无需登录）
+   * 加载首页系统公告（需要登录认证）
    *
    * 数据流:
    * API获取活跃公告 → 空数组则隐藏区域 → 有数据则渲染滚动公告条
@@ -910,8 +926,13 @@ Page({
 
       this.setData({
         announcements: announcementList,
-        showAnnouncements: true
+        showAnnouncements: true,
+        announcementCurrent: 0
       })
+
+      /* 首条公告曝光：swiper首次渲染自动展示第一条 */
+      this._announcementExposureStart = Date.now()
+      this._reportAnnouncementImpression(0)
 
       log.info('[lottery] 系统公告加载成功:', announcementList.length, '条')
     } catch (error) {
@@ -919,7 +940,48 @@ Page({
     }
   },
 
-  /** 公告条点击 — 展示公告详细内容 */
+  /**
+   * 公告 swiper 切换事件 — 上报前一条曝光日志、记录新一条曝光开始时间
+   * bindchange 触发源: autoplay 自动切换 / 用户手动滑动
+   */
+  onAnnouncementChange(e: WechatMiniprogram.SwiperChange) {
+    const newIndex = e.detail.current
+    const prevIndex = this.data.announcementCurrent
+
+    this._reportAnnouncementImpression(prevIndex)
+
+    this.setData({ announcementCurrent: newIndex })
+    this._announcementExposureStart = Date.now()
+  },
+
+  /**
+   * 上报公告曝光事件（按 campaign_category 分流，静默上报不阻塞UI）
+   * @param slideIndex - 公告索引
+   */
+  _reportAnnouncementImpression(slideIndex: number) {
+    const announcement: API.AdDeliveryItem = this.data.announcements[slideIndex]
+    if (!announcement?.ad_campaign_id) {
+      return
+    }
+
+    const exposureDuration = this._announcementExposureStart
+      ? Date.now() - this._announcementExposureStart
+      : 0
+
+    this._reportAdEvent(announcement, 'impression', {
+      exposure_duration_ms: exposureDuration,
+      slot_type: 'announcement'
+    })
+  },
+
+  /**
+   * 公告条点击 — 上报点击日志 + 展示公告详情 + 按 link_type 执行跳转
+   *
+   * 交互流程:
+   * 用户点击 → 上报 click 类型交互日志 → wx.showModal 展示 text_content
+   *   → 有跳转链接时 confirmText 显示"查看详情"
+   *   → 用户确认后按 link_type 执行 page/miniprogram/webview 跳转
+   */
   onAnnouncementTap(e: WechatMiniprogram.CustomEvent) {
     const index = e.currentTarget.dataset.index as number
     const announcement: API.AdDeliveryItem = this.data.announcements[index]
@@ -927,12 +989,136 @@ Page({
       return
     }
 
+    /* 上报点击事件（按 campaign_category 分流至计费系统或交互日志） */
+    this._reportAdEvent(announcement, 'click', { slot_type: 'announcement' })
+
+    /* 判断是否有跳转链接，决定弹窗按钮文案 */
+    const hasLink =
+      announcement.link_url && announcement.link_type && announcement.link_type !== 'none'
+
     wx.showModal({
       title: announcement.title,
       content: announcement.text_content || '',
-      showCancel: false,
-      confirmText: '我知道了'
+      showCancel: hasLink ? true : false,
+      cancelText: hasLink ? '关闭' : '',
+      confirmText: hasLink ? '查看详情' : '我知道了',
+      success: res => {
+        if (res.confirm && hasLink) {
+          this._handleAdLinkNavigation(announcement)
+        }
+      }
     })
+  },
+
+  // ========================================
+  // 内容投放系统 — 共用工具函数
+  // ========================================
+
+  /**
+   * 统一跳转处理 — 弹窗 / 轮播 / 公告共用
+   * 根据 link_type 执行不同的跳转方式，避免三处重复代码
+   *
+   * @param item - 投放内容项（包含 link_url 和 link_type）
+   */
+  _handleAdLinkNavigation(item: API.AdDeliveryItem) {
+    if (!item.link_url || !item.link_type || item.link_type === 'none') {
+      return
+    }
+
+    switch (item.link_type) {
+      case 'page':
+        wx.navigateTo({
+          url: item.link_url,
+          fail: () => {
+            wx.switchTab({
+              url: item.link_url!,
+              fail: (err: any) => log.error('[lottery] 跳转页面失败:', err)
+            })
+          }
+        })
+        break
+
+      case 'miniprogram':
+        wx.navigateToMiniProgram({
+          appId: item.link_url,
+          fail: (err: any) => log.error('[lottery] 跳转小程序失败:', err)
+        })
+        break
+
+      case 'webview':
+        wx.navigateTo({
+          url: '/pages/webview/webview?url=' + encodeURIComponent(item.link_url),
+          fail: (err: any) => log.error('[lottery] 跳转webview失败:', err)
+        })
+        break
+
+      default:
+        log.warn('[lottery] 未知的跳转类型:', item.link_type)
+    }
+  },
+
+  /**
+   * 内容投放事件上报 — 按 campaign_category 分流
+   *
+   * 数据流:
+   * ┌─────────────────────────────────────────────────────────────────┐
+   * │ campaign_category === 'commercial'                             │
+   * │   → reportAdImpression / reportAdClick                         │
+   * │   → 写入 ad_impression_logs / ad_click_logs                    │
+   * │   → AdBillingService 按日扣费 + AdAntifraudService 反作弊检测  │
+   * ├─────────────────────────────────────────────────────────────────┤
+   * │ campaign_category === 'operational' || 'system'                │
+   * │   → reportInteractionLog                                       │
+   * │   → 写入 ad_interaction_logs                                   │
+   * │   → 运营数据统计                                               │
+   * └─────────────────────────────────────────────────────────────────┘
+   *
+   * @param item - 投放内容项
+   * @param eventType - 事件类型: 'impression' | 'click'
+   * @param extraData - 扩展数据（弹窗/轮播/公告各自的场景数据）
+   */
+  _reportAdEvent(
+    item: API.AdDeliveryItem,
+    eventType: 'impression' | 'click',
+    extraData?: Record<string, any>
+  ) {
+    if (!item?.ad_campaign_id) {
+      return
+    }
+
+    if (item.campaign_category === 'commercial') {
+      /* 商业广告 → 广告计费系统（ad_impression_logs / ad_click_logs） */
+      if (!item.ad_slot_id) {
+        log.error('[lottery] 商业广告缺少 ad_slot_id，无法上报计费事件:', item.ad_campaign_id)
+        return
+      }
+
+      if (eventType === 'impression') {
+        API.reportAdImpression({
+          ad_campaign_id: item.ad_campaign_id,
+          ad_slot_id: item.ad_slot_id
+        }).catch((err: any) => {
+          log.warn('[lottery] 商业广告曝光上报失败:', err)
+        })
+      } else {
+        API.reportAdClick({
+          ad_campaign_id: item.ad_campaign_id,
+          ad_slot_id: item.ad_slot_id,
+          click_target: item.link_url || undefined
+        }).catch((err: any) => {
+          log.warn('[lottery] 商业广告点击上报失败:', err)
+        })
+      }
+    } else {
+      /* 运营内容 / 系统通知 → 统一交互日志（ad_interaction_logs） */
+      API.reportInteractionLog({
+        ad_campaign_id: item.ad_campaign_id,
+        interaction_type: eventType,
+        extra_data: extraData
+      }).catch((err: any) => {
+        log.warn('[lottery] 交互日志上报失败（不影响业务）:', err)
+      })
+    }
   },
 
   // ========================================
@@ -1018,30 +1204,25 @@ Page({
 
   /**
    * 弹窗横幅关闭（队列行为）
-   * 关闭当前弹窗 → 上报统一交互日志 → 队列中有下一个则自动弹出
+   * 关闭当前弹窗 → 按 campaign_category 分流上报 → 队列中有下一个则自动弹出
    */
   onPopupBannerClose(e: WechatMiniprogram.CustomEvent) {
     const closeMethod: string = e?.detail?.close_method || 'close_btn'
     const currentBanners = this.data.popupBanners
     const queueIndex: number = this._popupQueueIndex || 0
 
-    /* 上报当前关闭的弹窗交互日志（统一 ad_interaction_log） */
+    /* 上报当前关闭的弹窗事件（按 campaign_category 分流至不同日志表） */
     if (currentBanners && currentBanners.length > 0) {
       const closedBanner = currentBanners[0]
       if (closedBanner?.ad_campaign_id) {
         PopupFrequency.markBannerDismissed(closedBanner.ad_campaign_id)
 
         const showDuration = this._bannerShowStartTime ? Date.now() - this._bannerShowStartTime : 0
-        API.reportInteractionLog({
-          ad_campaign_id: closedBanner.ad_campaign_id,
-          interaction_type: 'impression',
-          extra_data: {
-            show_duration_ms: showDuration,
-            close_method: closeMethod,
-            queue_position: queueIndex + 1
-          }
-        }).catch((err: any) => {
-          log.warn('[lottery] 弹窗交互日志上报失败（不影响业务）:', err)
+        this._reportAdEvent(closedBanner, 'impression', {
+          show_duration_ms: showDuration,
+          close_method: closeMethod,
+          queue_position: queueIndex + 1,
+          slot_type: 'popup'
         })
       }
     }
@@ -1084,7 +1265,7 @@ Page({
 
   /**
    * 弹窗横幅操作按钮点击
-   * 根据后端 link_type 字段决定跳转方式（与轮播图跳转逻辑一致）
+   * 上报 click 事件（按 campaign_category 分流） → 执行跳转
    */
   onPopupBannerAction(e: any) {
     const { banner } = e.detail
@@ -1092,44 +1273,10 @@ Page({
       return
     }
 
-    switch (banner.link_type) {
-      case 'page':
-        wx.navigateTo({
-          url: banner.link_url,
-          fail: () => {
-            wx.switchTab({
-              url: banner.link_url,
-              fail: (err: any) => log.error('[lottery] 弹窗跳转页面失败:', err)
-            })
-          }
-        })
-        break
+    /* 上报点击事件（商业广告 → reportAdClick，运营内容 → reportInteractionLog） */
+    this._reportAdEvent(banner, 'click', { slot_type: 'popup' })
 
-      case 'miniprogram':
-        wx.navigateToMiniProgram({
-          appId: banner.link_url,
-          fail: (err: any) => log.error('[lottery] 弹窗跳转小程序失败:', err)
-        })
-        break
-
-      case 'webview':
-        wx.navigateTo({
-          url: '/pages/webview/webview?url=' + encodeURIComponent(banner.link_url),
-          fail: (err: any) => log.error('[lottery] 弹窗跳转webview失败:', err)
-        })
-        break
-
-      default:
-        wx.navigateTo({
-          url: banner.link_url,
-          fail: () => {
-            wx.switchTab({
-              url: banner.link_url,
-              fail: (err: any) => log.error('[lottery] 弹窗跳转失败:', err)
-            })
-          }
-        })
-    }
+    this._handleAdLinkNavigation(banner)
   },
 
   // ========================================
@@ -1168,6 +1315,15 @@ Page({
 
       this._carouselExposureStart = Date.now()
 
+      /* 首条轮播图立即上报 impression（onCarouselChange 只在切换时触发，首条需主动上报） */
+      if (carouselList.length > 0 && carouselList[0].ad_campaign_id) {
+        this._reportAdEvent(carouselList[0], 'impression', {
+          slot_type: 'carousel',
+          slide_index: 0,
+          is_initial_load: true
+        })
+      }
+
       log.info('[lottery] 轮播图加载成功:', carouselList.length, '条')
     } catch (error) {
       log.error('[lottery] 轮播图加载失败:', error)
@@ -1187,7 +1343,10 @@ Page({
     this._carouselExposureStart = Date.now()
   },
 
-  /** 轮播图点击事件 */
+  /**
+   * 轮播图点击事件
+   * 上报曝光（结束当前展示） + 上报点击（按 campaign_category 分流） + 执行跳转
+   */
   onCarouselItemTap(e: WechatMiniprogram.CustomEvent) {
     const tappedIndex = e.currentTarget.dataset.index as number
     const tappedItem: API.AdDeliveryItem = this.data.carouselItems[tappedIndex]
@@ -1195,42 +1354,17 @@ Page({
       return
     }
 
+    /* 上报本张轮播图的曝光日志（结束展示统计） */
     this._reportCarouselExposure(tappedIndex, false, true)
 
-    if (!tappedItem.link_url || tappedItem.link_type === 'none') {
-      return
-    }
+    /* 上报点击事件（商业广告 → reportAdClick，运营内容 → reportInteractionLog） */
+    this._reportAdEvent(tappedItem, 'click', {
+      slot_type: 'carousel',
+      slide_index: tappedIndex
+    })
 
-    switch (tappedItem.link_type) {
-      case 'page':
-        wx.navigateTo({
-          url: tappedItem.link_url,
-          fail: () => {
-            wx.switchTab({
-              url: tappedItem.link_url!,
-              fail: err => log.error('[lottery] 轮播图跳转失败:', err)
-            })
-          }
-        })
-        break
-
-      case 'miniprogram':
-        wx.navigateToMiniProgram({
-          appId: tappedItem.link_url,
-          fail: err => log.error('[lottery] 轮播图跳转小程序失败:', err)
-        })
-        break
-
-      case 'webview':
-        wx.navigateTo({
-          url: '/pages/webview/webview?url=' + encodeURIComponent(tappedItem.link_url),
-          fail: err => log.error('[lottery] 轮播图跳转webview失败:', err)
-        })
-        break
-
-      default:
-        log.warn('[lottery] 未知的轮播图跳转类型:', tappedItem.link_type)
-    }
+    /* 执行跳转 */
+    this._handleAdLinkNavigation(tappedItem)
   },
 
   /** 轮播图图片加载失败 — 隐藏该轮播项避免显示破图 */
@@ -1248,7 +1382,7 @@ Page({
   },
 
   /**
-   * 上报轮播图曝光交互日志（静默上报，不阻塞UI）
+   * 上报轮播图曝光事件（按 campaign_category 分流，静默上报不阻塞UI）
    * @param slideIndex - 轮播图索引
    * @param isManualSwipe - 是否手动滑动
    * @param isClicked - 是否被点击
@@ -1263,16 +1397,11 @@ Page({
       ? Date.now() - this._carouselExposureStart
       : 0
 
-    API.reportInteractionLog({
-      ad_campaign_id: carouselItem.ad_campaign_id,
-      interaction_type: 'impression',
-      extra_data: {
-        exposure_duration_ms: exposureDuration,
-        is_manual_swipe: isManualSwipe,
-        is_clicked: isClicked
-      }
-    }).catch((err: any) => {
-      log.warn('[lottery] 轮播交互日志上报失败（不影响业务）:', err)
+    this._reportAdEvent(carouselItem, 'impression', {
+      exposure_duration_ms: exposureDuration,
+      is_manual_swipe: isManualSwipe,
+      is_clicked: isClicked,
+      slot_type: 'carousel'
     })
   },
 

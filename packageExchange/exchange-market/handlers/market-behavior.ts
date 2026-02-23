@@ -82,15 +82,21 @@ module.exports = Behavior({
           /**
            * 适配后端 QueryService 嵌套响应，使用 ImageHelper 统一图片降级链
            * fungible_asset 类型 → 本地材料图标（按 asset_code 映射）
-           * item_instance 类型 → 后端 image_url → 分类图标 → 占位图
+           * item 类型 → 后端 image_url → 分类图标 → 占位图
            */
-          const processedProducts = items.map((item: any) => {
+          const processedProducts = items.map((item: any, idx: number) => {
+            if (!item.market_listing_id) {
+              marketLog.warn(
+                `products[${idx}] 缺少 market_listing_id，后端响应字段:`,
+                Object.keys(item)
+              )
+            }
             const itemInfo = item.item_info || {}
             const assetInfo = item.asset_info || {}
             const isAsset = item.listing_kind === 'fungible_asset'
             return {
               market_listing_id: item.market_listing_id,
-              listing_kind: item.listing_kind || 'item_instance',
+              listing_kind: item.listing_kind || 'item',
               seller_user_id: item.seller_user_id,
               seller_nickname: item.seller_nickname || '',
               seller_avatar_url: item.seller_avatar_url || null,
@@ -106,7 +112,7 @@ module.exports = Behavior({
               offer_asset_group_code: assetInfo.group_code || null,
               offer_item_rarity: itemInfo.rarity_code || null,
               offer_item_category_code: itemInfo.category_code || null,
-              item_instance_id: itemInfo.item_instance_id || null,
+              item_id: itemInfo.item_id || null,
               template_id: itemInfo.template_id || null,
               status: item.status || 'on_sale',
               created_at: item.created_at || '',
@@ -235,6 +241,21 @@ module.exports = Behavior({
     onProductTap(e: any) {
       const product = e.currentTarget.dataset.product
       marketLog.info('点击市场商品:', product)
+
+      if (!product || !product.market_listing_id) {
+        marketLog.error('商品缺少 market_listing_id，无法发起购买', {
+          listing_kind: product?.listing_kind,
+          item_name: product?.item_name,
+          available_keys: product ? Object.keys(product) : []
+        })
+        wx.showModal({
+          title: '数据异常',
+          content: '该商品缺少挂单ID信息，请刷新页面后重试',
+          showCancel: false
+        })
+        return
+      }
+
       this.setData({ selectedProduct: product, showConfirm: true })
     },
 
@@ -428,7 +449,7 @@ module.exports = Behavior({
 
     /**
      * 打开担保码输入弹窗
-     * 仅 listing_kind = 'item_instance' 的实物交易需要担保码
+     * 仅 listing_kind = 'item' 的实物交易需要担保码
      */
     onOpenEscrowInput(e: any) {
       const tradeOrderId = e.currentTarget.dataset.trade_order_id

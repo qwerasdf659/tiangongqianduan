@@ -11,7 +11,7 @@
  *   }
  *
  * 图片策略（对齐图片管理体系设计方案 决策5）:
- *   - item_instance 类型 → 后端 item_info.image_url（完整公网URL）→ 分类图标 → 占位图
+ *   - item 类型 → 后端 item_info.image_url（完整公网URL）→ 分类图标 → 占位图
  *   - fungible_asset 类型 → 本地材料图标（按 asset_code 映射）→ 占位图
  *   - C2C交易市场不支持用户上传图片
  *

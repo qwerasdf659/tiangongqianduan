@@ -45,16 +45,28 @@ const PRIZE_ICON_MAP: Record<string, string> = {
 }
 
 /**
- * 为奖品数据添加 UI 展示字段 prize_icon + prize_image_url
+ * 为奖品数据添加 UI 展示字段
  *
- * 后端返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+ * 后端返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code,
+ *              sort_order, reward_tier, image, is_fallback, stock_quantity
  * - image: 有图片时为 { image_resource_id, url, mime, thumbnail_url }，无图片时为 null
- * - 前端补充 prize_icon（emoji兜底）和 prize_image_url（图片优先展示）
+ * - 前端补充:
+ *   prize_icon      — emoji 兜底图标
+ *   prize_image_url — 图片优先展示 URL
+ *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标）
+ *   is_sold_out     — 库存耗尽标记（stock_quantity===0 时显示"已抢光"遮罩）
  */
 function addPrizeIcon(prize: any): any {
   prize.prize_icon = PRIZE_ICON_MAP[prize.prize_type] || '🎁'
   prize.prize_image_url =
     prize.image && prize.image.url ? prize.image.thumbnail_url || prize.image.url : ''
+
+  /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */
+  prize.is_fallback = !!prize.is_fallback
+
+  /* 库存耗尽标记（stock_quantity 由后端 prize 数据返回，0 表示已抢完） */
+  prize.is_sold_out = typeof prize.stock_quantity === 'number' && prize.stock_quantity === 0
+
   return prize
 }
 /**

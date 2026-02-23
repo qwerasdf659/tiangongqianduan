@@ -609,6 +609,11 @@ Page({
       chatLoadStatus: 'loading',
       // 重置UI交互状态
       showToolbar: false,
+      // 重置满意度评分状态（切换会话时清除上一个会话的评分状态）
+      showSatisfactionCard: false,
+      satisfactionSessionId: null,
+      satisfactionScore: 0,
+      satisfactionSubmitted: false,
       showQuickReplies: true,
       showScrollBottomBtn: false,
       newMsgCount: 0
@@ -623,7 +628,9 @@ Page({
     log.info('关闭聊天弹窗')
     this.setData({
       showChatModal: false,
-      chatLoadStatus: 'idle'
+      chatLoadStatus: 'idle',
+      showSatisfactionCard: false,
+      satisfactionScore: 0
     })
     this.disconnectWebSocket()
   },

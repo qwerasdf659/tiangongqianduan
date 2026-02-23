@@ -44,6 +44,7 @@ async function getPlacementConfig() {
  * 合并原 popup-banners / carousel-items / announcements 三套独立接口
  * 后端通过 Ad System 统一管理弹窗、轮播、公告内容
  *
+ * 认证方式: JWT Bearer Token（后端 authenticateToken 中间件）
  * 响应格式: { success, data: { items: AdDeliveryItem[], slot_type, position, total } }
  *
  * @param params.slot_type - 广告位类型（必填）: popup / carousel / announcement
@@ -59,7 +60,7 @@ async function getAdDelivery(params: { slot_type: string; position?: string }) {
   })
   return apiClient.request(`/system/ad-delivery?${qs}`, {
     method: 'GET',
-    needAuth: false,
+    needAuth: true,
     showLoading: false,
     showError: false
   })

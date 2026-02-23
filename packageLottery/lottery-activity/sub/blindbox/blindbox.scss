@@ -651,6 +651,7 @@
   }
 
   &__icon-wrap {
+    position: relative;
     width: 88rpx;
     height: 88rpx;
     border-radius: $border-radius-md;
@@ -697,4 +698,38 @@
   50% {
     opacity: 1;
   }
+}
+
+/* 兜底奖品（is_fallback=true）— 降低饱和度 */
+.bb-prizes__item--fallback {
+  filter: saturate(0.4);
+  opacity: 0.7;
+}
+
+/* "保底"标签 */
+.bb-prizes__fallback-tag {
+  margin-top: 2rpx;
+  padding: 0 6rpx;
+  font-size: 18rpx;
+  color: #999;
+  background: rgba(153, 153, 153, 0.15);
+  border-radius: 4rpx;
+}
+
+/* 已抢光（stock_quantity=0） */
+.bb-prizes__item--sold-out {
+  opacity: 0.45;
+}
+
+.bb-prizes__sold-out {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  white-space: nowrap;
 }

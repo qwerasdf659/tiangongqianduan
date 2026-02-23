@@ -8,11 +8,7 @@
  *           exchange_items / exchange_records / bid_products / bid_records
  *           account_asset_balances
  *
- * 三表模型迁移说明:
- *   旧表 item_instances → 新表 items（独立一等实体）
- *   旧表 item_instance_events → 新表 item_ledger（双录账本，唯一真相）
- *   旧字段 item_instance_id → 新字段 item_id
- *   旧字段 meta.name → 正式列 item_name
+ * 数据库表: items / item_ledger / item_holds（三表模型）
  *
  * @file 天工餐厅积分系统 - 背包与兑换与竞价API模块
  * @version 5.3.0
@@ -30,7 +26,7 @@ const { buildQueryString } = require('../util')
  *
  * 响应: { assets: BackpackAsset[], items: BackpackItem[] }
  * assets 来源: account_asset_balances JOIN material_asset_types
- * items 来源: items 表 (status='available')，三表模型迁移后不再使用 item_instances
+ * items 来源: items 表 (status='available')
  */
 async function getUserInventory() {
   return apiClient.request('/backpack', { method: 'GET', needAuth: true })
@@ -45,24 +41,24 @@ async function getBackpackStats() {
 }
 
 /**
- * 获取物品详情（含 is_owner 标识）
- * GET /api/v4/backpack/items/:item_instance_id
+ * 获取物品详情（含 is_owner 标识 + tracking_code）
+ * GET /api/v4/backpack/items/:item_id
  *
- * @param item_instance_id - 物品实例ID（BIGINT）
+ * @param item_id - 物品ID（items表主键，BIGINT）
  */
-async function getInventoryItem(item_instance_id: number) {
-  return apiClient.request(`/backpack/items/${item_instance_id}`, { method: 'GET', needAuth: true })
+async function getInventoryItem(item_id: number) {
+  return apiClient.request(`/backpack/items/${item_id}`, { method: 'GET', needAuth: true })
 }
 
 /**
  * 使用物品
- * POST /api/v4/backpack/items/:item_instance_id/use
- * 业务流程: 验证所有权 → status=available → consumeItem(status→used) → 记录 item_instance_events
+ * POST /api/v4/backpack/items/:item_id/use
+ * 业务流程: 验证所有权 → status=available → consumeItem(双录: 用户-1, SYSTEM_BURN+1) → items.status→used
  *
- * @param item_instance_id - 物品实例ID（BIGINT）
+ * @param item_id - 物品ID（items表主键，BIGINT）
  */
-async function useInventoryItem(item_instance_id: number) {
-  return apiClient.request(`/backpack/items/${item_instance_id}/use`, {
+async function useInventoryItem(item_id: number) {
+  return apiClient.request(`/backpack/items/${item_id}/use`, {
     method: 'POST',
     needAuth: true
   })
@@ -70,21 +66,46 @@ async function useInventoryItem(item_instance_id: number) {
 
 /**
  * 生成核销码（到店出示，商家扫码核销）
- * POST /api/v4/backpack/items/:item_instance_id/redeem
+ * POST /api/v4/backpack/items/:item_id/redeem
  *
  * 响应: { order: { redemption_order_id: UUID, status, expires_at }, code: "ABCD1234EFGH" }
  * ⚠️ redemption_order_id 为 UUID(CHAR(36))，code 明文仅返回一次
  *
- * @param item_instance_id - 物品实例ID（BIGINT）
+ * @param item_id - 物品ID（items表主键，BIGINT）
  */
-async function redeemInventoryItem(item_instance_id: number) {
-  return apiClient.request(`/backpack/items/${item_instance_id}/redeem`, {
+async function redeemInventoryItem(item_id: number) {
+  return apiClient.request(`/backpack/items/${item_id}/redeem`, {
     method: 'POST',
     needAuth: true,
     showLoading: true,
     loadingText: '生成核销码中...',
     showError: true,
     errorPrefix: '生成失败：'
+  })
+}
+
+/**
+ * 获取物品流转时间线（用户查看自己物品的完整追踪历史）
+ * GET /api/v4/backpack/items/:item_id/timeline
+ *
+ * 后端服务: ItemLifecycleService 通过 items + item_ledger + item_holds 表 JOIN 拼装
+ * 权限: 仅返回与当前用户相关的记录（通过JWT Token识别）
+ *
+ * 响应: { tracking_code, item, origin, timeline[], ledger_check }
+ *
+ * @param item_id - 物品ID（items表主键，BIGINT）
+ */
+async function getItemTimeline(item_id: number) {
+  if (!item_id) {
+    throw new Error('物品ID不能为空')
+  }
+  return apiClient.request(`/backpack/items/${item_id}/timeline`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载物品追踪...',
+    showError: true,
+    errorPrefix: '获取追踪失败：'
   })
 }
 
@@ -565,7 +586,7 @@ async function getBidHistory(page: number = 1, page_size: number = 20) {
 
 /**
  * 刷新核销码动态QR码（HMAC签名，5分钟有效）
- * POST /api/v4/backpack/items/:item_instance_id/redeem/refresh-qr
+ * POST /api/v4/backpack/items/:item_id/redeem/refresh-qr
  *
  * 后端服务: RedemptionQRSigner.js（独立于消费录入QR系统 QRCodeValidator.js）
  * QR码格式: RQRV1_{base64(JSON)}_{hmac_sha256_signature}
@@ -576,13 +597,13 @@ async function getBidHistory(page: number = 1, page_size: number = 20) {
  *   qr_expires_at - QR码过期时间（ISO8601，5分钟有效）
  *   text_code    - 12位Base32文本码（备用，不变）
  *
- * @param item_instance_id - 物品实例ID（BIGINT，必须有已生成的pending状态核销订单）
+ * @param item_id - 物品ID（items表主键，BIGINT，必须有已生成的pending状态核销订单）
  */
-async function refreshRedemptionQR(item_instance_id: number) {
-  if (!item_instance_id) {
+async function refreshRedemptionQR(item_id: number) {
+  if (!item_id) {
     throw new Error('物品ID不能为空')
   }
-  return apiClient.request(`/backpack/items/${item_instance_id}/redeem/refresh-qr`, {
+  return apiClient.request(`/backpack/items/${item_id}/redeem/refresh-qr`, {
     method: 'POST',
     needAuth: true,
     showLoading: false,
@@ -598,6 +619,7 @@ module.exports = {
   useInventoryItem,
   redeemInventoryItem,
   refreshRedemptionQR,
+  getItemTimeline,
   getExchangeProducts,
   exchangeProduct,
   getExchangeRecords,

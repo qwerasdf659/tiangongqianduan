@@ -2,11 +2,11 @@
  * 交易市场API（C2C用户交易）
  * 后端路由: routes/v4/market/
  *
- * 数据库表: market_listings（双模式: item_instance / fungible_asset）
+ * 数据库表: market_listings（双模式: item / fungible_asset）
  *           trade_orders（状态机: created → frozen → completed / cancelled / failed）
  *
  * 核心概念:
- *   - listing_kind: 'item_instance'（不可叠加物品） / 'fungible_asset'（可叠加资产）
+ *   - listing_kind: 'item'（不可叠加物品） / 'fungible_asset'（可叠加资产）
  *   - price_asset_code: 定价币种（默认 DIAMOND）
  *   - price_amount: 售价（BIGINT整数）
  *   - 挂单状态 on_sale / locked / sold / withdrawn / admin_withdrawn
@@ -34,7 +34,7 @@ const { buildQueryString } = require('../util')
  *
  * 响应字段（根级 — 基于 market_listings 表）:
  *   - market_listing_id: BIGINT PK 挂单ID
- *   - listing_kind: ENUM 'item_instance' / 'fungible_asset'
+ *   - listing_kind: ENUM 'item' / 'fungible_asset'
  *   - seller_user_id: INT FK 卖家用户ID
  *   - seller_nickname: VARCHAR 卖家昵称
  *   - seller_avatar_url: VARCHAR 卖家头像（可null）
@@ -43,9 +43,9 @@ const { buildQueryString } = require('../util')
  *   - status: ENUM on_sale / locked / sold / withdrawn / admin_withdrawn
  *   - created_at: DATETIME
  *
- * 物品类型(item_instance)嵌套对象 item_info:
- *   - item_instance_id: BIGINT 物品实例ID
- *   - display_name: VARCHAR 物品显示名称（来自 ItemTemplate 或 item_instances.meta.name）
+ * 物品类型(item)嵌套对象 item_info:
+ *   - item_id: BIGINT 物品ID（items表主键）
+ *   - display_name: VARCHAR 物品显示名称（items表 item_name 正式列）
  *   - image_url: VARCHAR 物品图片URL（ImageUrlHelper 转完整公网URL，运营未上传时为null）
  *   - category_code: VARCHAR 物品分类编码（可null）
  *   - rarity_code: VARCHAR 物品稀有度编码（可null）
@@ -61,11 +61,11 @@ const { buildQueryString } = require('../util')
  * @param params - 查询参数对象
  * @param params.page - 页码，默认1
  * @param params.limit - 每页数量，默认20
- * @param params.listing_kind - 挂牌类型: 'item_instance' / 'fungible_asset'
+ * @param params.listing_kind - 挂牌类型: 'item' / 'fungible_asset'
  * @param params.asset_code - 资产代码筛选（仅 fungible_asset 有效）
- * @param params.item_category_code - 物品类目代码（仅 item_instance 有效）
+ * @param params.item_category_code - 物品类目代码（仅 item 有效）
  * @param params.asset_group_code - 资产分组代码（仅 fungible_asset 有效）
- * @param params.rarity_code - 稀有度筛选（仅 item_instance 有效）
+ * @param params.rarity_code - 稀有度筛选（仅 item 有效）
  * @param params.min_price - 最低价格
  * @param params.max_price - 最高价格
  * @param params.sort - 排序方式: 'newest' / 'price_asc' / 'price_desc'
@@ -207,16 +207,21 @@ async function withdrawFungibleAsset(market_listing_id: number) {
 }
 
 /**
- * 上架不可叠加物品到交易市 * POST /api/v4/market/list
- * 携带 Idempotency-Key 请求头防止重复上 *
- * @param params.item_instance_id - 物品实例ID（BIGINT * @param params.price_amount - 售价（BIGINT整数据 * @param params.price_asset_code - 定价币种（如 'DIAMOND' */
+ * 上架不可叠加物品到交易市场
+ * POST /api/v4/market/list
+ * 携带 Idempotency-Key 请求头防止重复上架
+ *
+ * @param params.item_id - 物品ID（items表主键，BIGINT）
+ * @param params.price_amount - 售价（BIGINT整数）
+ * @param params.price_asset_code - 定价币种（如 'DIAMOND'）
+ */
 async function sellToMarket(params: {
-  item_instance_id: number
+  item_id: number
   price_amount: number
   price_asset_code: string
 }) {
-  if (!params.item_instance_id) {
-    throw new Error('物品实例ID不能为空')
+  if (!params.item_id) {
+    throw new Error('物品ID不能为空')
   }
   if (!params.price_amount || params.price_amount <= 0) {
     throw new Error('售价必须大于0')
@@ -229,7 +234,7 @@ async function sellToMarket(params: {
   return apiClient.request('/market/list', {
     method: 'POST',
     data: {
-      item_instance_id: params.item_instance_id,
+      item_id: params.item_id,
       price_amount: params.price_amount,
       price_asset_code: params.price_asset_code
     },
@@ -348,7 +353,7 @@ async function sellFungibleAssets(params: {
  * 获取交易担保码（卖方查看，买方付款后系统生成）
  * GET /api/v4/market/trade-orders/:trade_order_id/escrow-code
  *
- * 适用场景: listing_kind = 'item_instance' 的实物交易
+ * 适用场景: listing_kind = 'item' 的实物交易
  * fungible_asset 交易自动完成，不需要担保码
  *
  * 担保码规格:

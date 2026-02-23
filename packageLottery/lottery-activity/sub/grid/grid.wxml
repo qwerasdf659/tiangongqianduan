@@ -3,14 +3,16 @@
   布局顺序（顺时针）: [0][1][2] / [7][BTN][3] / [6][5][4]
   对应 sort_order:    [1][2][3] / [8][🎰][4] / [7][6][5]
   奖品数据来源: 后端 GET /api/v4/lottery/campaigns/:code/prizes
-  后端返回字段: { prize_id, prize_name, prize_type, prize_value, sort_order, rarity_code, status, image }
+  后端返回字段: { prize_id, prize_name, prize_type, prize_value, sort_order, rarity_code, status, image, is_fallback, stock_quantity }
   稀有度光效: rarity_code → rarity-effects组件（5级: common/uncommon/rare/epic/legendary）
+  兜底奖品: is_fallback=true → 降饱和度 + "保底"角标
+  库存耗尽: is_sold_out=true → "已抢光"遮罩
 -->
 <view class="grid-container">
   <view class="prize-grid">
     <!-- 奖品区域0 - 左上角（sort_order=1） -->
     <view
-      class="prize-area {{currentHighlight === 0 ? 'highlighted' : ''}} {{winningIndex === 0 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 0 ? 'highlighted' : ''}} {{winningIndex === 0 ? 'winning' : ''}} {{prizes[0].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[0].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="0"
     >
       <rarity-effects rarity="{{prizes[0].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -23,13 +25,17 @@
           />
           <text wx:else class="prize-icon">{{prizes[0].prize_icon || '🎫'}}</text>
           <text class="prize-name">{{prizes[0].prize_name || ''}}</text>
+          <text wx:if="{{prizes[0].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[0].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>
 
     <!-- 奖品区域1 - 中上（sort_order=2） -->
     <view
-      class="prize-area {{currentHighlight === 1 ? 'highlighted' : ''}} {{winningIndex === 1 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 1 ? 'highlighted' : ''}} {{winningIndex === 1 ? 'winning' : ''}} {{prizes[1].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[1].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="1"
     >
       <rarity-effects rarity="{{prizes[1].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -42,13 +48,17 @@
           />
           <text wx:else class="prize-icon">{{prizes[1].prize_icon || '🎁'}}</text>
           <text class="prize-name">{{prizes[1].prize_name || ''}}</text>
+          <text wx:if="{{prizes[1].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[1].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>
 
     <!-- 奖品区域2 - 右上角（sort_order=3） -->
     <view
-      class="prize-area {{currentHighlight === 2 ? 'highlighted' : ''}} {{winningIndex === 2 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 2 ? 'highlighted' : ''}} {{winningIndex === 2 ? 'winning' : ''}} {{prizes[2].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[2].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="2"
     >
       <rarity-effects rarity="{{prizes[2].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -61,13 +71,17 @@
           />
           <text wx:else class="prize-icon">{{prizes[2].prize_icon || '🏆'}}</text>
           <text class="prize-name">{{prizes[2].prize_name || ''}}</text>
+          <text wx:if="{{prizes[2].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[2].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>
 
     <!-- 奖品区域7 - 左中（sort_order=8） -->
     <view
-      class="prize-area {{currentHighlight === 7 ? 'highlighted' : ''}} {{winningIndex === 7 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 7 ? 'highlighted' : ''}} {{winningIndex === 7 ? 'winning' : ''}} {{prizes[7].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[7].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="7"
     >
       <rarity-effects rarity="{{prizes[7].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -80,6 +94,10 @@
           />
           <text wx:else class="prize-icon">{{prizes[7].prize_icon || '💎'}}</text>
           <text class="prize-name">{{prizes[7].prize_name || ''}}</text>
+          <text wx:if="{{prizes[7].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[7].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>
@@ -97,7 +115,7 @@
 
     <!-- 奖品区域3 - 右中（sort_order=4） -->
     <view
-      class="prize-area {{currentHighlight === 3 ? 'highlighted' : ''}} {{winningIndex === 3 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 3 ? 'highlighted' : ''}} {{winningIndex === 3 ? 'winning' : ''}} {{prizes[3].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[3].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="3"
     >
       <rarity-effects rarity="{{prizes[3].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -110,13 +128,17 @@
           />
           <text wx:else class="prize-icon">{{prizes[3].prize_icon || '🎪'}}</text>
           <text class="prize-name">{{prizes[3].prize_name || ''}}</text>
+          <text wx:if="{{prizes[3].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[3].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>
 
     <!-- 奖品区域6 - 左下角（sort_order=7） -->
     <view
-      class="prize-area {{currentHighlight === 6 ? 'highlighted' : ''}} {{winningIndex === 6 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 6 ? 'highlighted' : ''}} {{winningIndex === 6 ? 'winning' : ''}} {{prizes[6].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[6].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="6"
     >
       <rarity-effects rarity="{{prizes[6].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -129,13 +151,17 @@
           />
           <text wx:else class="prize-icon">{{prizes[6].prize_icon || '🎊'}}</text>
           <text class="prize-name">{{prizes[6].prize_name || ''}}</text>
+          <text wx:if="{{prizes[6].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[6].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>
 
     <!-- 奖品区域5 - 中下（sort_order=6） -->
     <view
-      class="prize-area {{currentHighlight === 5 ? 'highlighted' : ''}} {{winningIndex === 5 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 5 ? 'highlighted' : ''}} {{winningIndex === 5 ? 'winning' : ''}} {{prizes[5].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[5].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="5"
     >
       <rarity-effects rarity="{{prizes[5].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -148,13 +174,17 @@
           />
           <text wx:else class="prize-icon">{{prizes[5].prize_icon || '🎉'}}</text>
           <text class="prize-name">{{prizes[5].prize_name || ''}}</text>
+          <text wx:if="{{prizes[5].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[5].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>
 
     <!-- 奖品区域4 - 右下角（sort_order=5） -->
     <view
-      class="prize-area {{currentHighlight === 4 ? 'highlighted' : ''}} {{winningIndex === 4 ? 'winning' : ''}}"
+      class="prize-area {{currentHighlight === 4 ? 'highlighted' : ''}} {{winningIndex === 4 ? 'winning' : ''}} {{prizes[4].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[4].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="4"
     >
       <rarity-effects rarity="{{prizes[4].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -167,6 +197,10 @@
           />
           <text wx:else class="prize-icon">{{prizes[4].prize_icon || '🎈'}}</text>
           <text class="prize-name">{{prizes[4].prize_name || ''}}</text>
+          <text wx:if="{{prizes[4].is_fallback}}" class="prize-badge--fallback">保底</text>
+          <view wx:if="{{prizes[4].is_sold_out}}" class="prize-sold-out-mask">
+            <text>已抢光</text>
+          </view>
         </view>
       </rarity-effects>
     </view>

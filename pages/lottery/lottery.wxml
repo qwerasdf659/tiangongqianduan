@@ -82,12 +82,7 @@
 
           <!-- 二维码图片（未过期时显示） -->
           <block wx:elif="{{qrCodeImage && !qrExpired}}">
-            <image
-              class="qrcode-image"
-              src="{{qrCodeImage}}"
-              mode="aspectFit"
-              show-menu-by-longpress="{{true}}"
-            />
+            <image class="qrcode-image" src="{{qrCodeImage}}" mode="aspectFit" show-menu-by-longpress="{{true}}" />
             <view class="qrcode-hint" wx:if="{{qrCodeImage}}">
               <text class="hint-icon">🔍</text>
             </view>
@@ -103,9 +98,7 @@
 
         <!-- V2倒计时（二维码下方显示） -->
         <view class="qr-countdown-inline" wx:if="{{qrCodeImage && !qrExpired}}">
-          <text class="countdown-text-small {{qrCountdown <= 60 ? 'countdown-urgent' : ''}}"
-            >{{qrCountdownText}}</text
-          >
+          <text class="countdown-text-small {{qrCountdown <= 60 ? 'countdown-urgent' : ''}}">{{qrCountdownText}}</text>
         </view>
       </view>
     </view>
@@ -133,27 +126,13 @@
 
   <!-- 🎠 轮播图区域（后端API: GET /api/v4/system/ad-delivery?slot_type=carousel） -->
   <view class="carousel-section" wx:if="{{showCarousel && carouselItems.length > 0}}">
-    <swiper
-      class="carousel-swiper"
-      autoplay="{{true}}"
-      circular="{{true}}"
-      interval="{{carouselInterval}}"
-      indicator-dots="{{carouselItems.length > 1}}"
-      indicator-color="rgba(255,255,255,0.4)"
-      indicator-active-color="#ffffff"
-      bindchange="onCarouselChange"
-      current="{{carouselCurrent}}"
-    >
+    <swiper class="carousel-swiper" autoplay="{{true}}" circular="{{true}}" interval="{{carouselInterval}}"
+      indicator-dots="{{carouselItems.length > 1}}" indicator-color="rgba(255,255,255,0.4)"
+      indicator-active-color="#ffffff" bindchange="onCarouselChange" current="{{carouselCurrent}}">
       <swiper-item wx:for="{{carouselItems}}" wx:key="ad_campaign_id">
         <view class="carousel-item" data-index="{{index}}" bindtap="onCarouselItemTap">
-          <image
-            class="carousel-image"
-            src="{{item.image_url}}"
-            mode="aspectFill"
-            lazy-load="{{true}}"
-            data-index="{{index}}"
-            binderror="onCarouselImageError"
-          />
+          <image class="carousel-image" src="{{item.image_url}}" mode="aspectFill" lazy-load="{{true}}"
+            data-index="{{index}}" binderror="onCarouselImageError" />
           <view class="carousel-title-bar" wx:if="{{item.title}}">
             <text class="carousel-title-text">{{item.title}}</text>
           </view>
@@ -167,20 +146,16 @@
     <view class="announcement-icon">
       <text>📢</text>
     </view>
-    <swiper
-      class="announcement-swiper"
-      vertical="{{true}}"
-      autoplay="{{true}}"
-      circular="{{true}}"
-      interval="{{4000}}"
-      duration="{{500}}"
-    >
+    <swiper class="announcement-swiper" vertical="{{true}}" autoplay="{{true}}" circular="{{true}}" interval="{{4000}}"
+      duration="{{500}}" current="{{announcementCurrent}}" bindchange="onAnnouncementChange">
       <swiper-item wx:for="{{announcements}}" wx:key="ad_campaign_id">
         <view class="announcement-item" data-index="{{index}}" bindtap="onAnnouncementTap">
-          <view class="announcement-tag announcement-tag--system">
-            <text>公告</text>
+          <view class="announcement-tag announcement-tag--{{item.campaign_category || 'system'}}">
+            <text>{{item.campaign_category === 'maintenance' ? '维护' : item.campaign_category === 'activity' ? '活动' :
+              item.campaign_category === 'notice' ? '通知' : '公告'}}</text>
           </view>
           <text class="announcement-title">{{item.title}}</text>
+          <text wx:if="{{item.link_url && item.link_type !== 'none'}}" class="announcement-link-indicator">查看 ›</text>
         </view>
       </swiper-item>
     </swiper>
@@ -189,37 +164,23 @@
   <!-- 抽奖万能组件 - 仅登录后渲染（防止未认证时组件发起API请求） -->
   <block wx:if="{{isLoggedIn}}">
     <!-- 主活动（动态加载，位置配置驱动） -->
-    <lottery-activity
-      wx:if="{{mainCampaign}}"
-      campaignCode="{{mainCampaign.campaign_code}}"
-      size="{{mainCampaign.placement.size || 'full'}}"
-      bind:pointsupdate="onPointsUpdate"
-    />
+    <lottery-activity wx:if="{{mainCampaign}}" campaignCode="{{mainCampaign.campaign_code}}"
+      size="{{mainCampaign.placement.size || 'full'}}" bind:pointsupdate="onPointsUpdate" />
     <!-- 降级兜底：活动列表未加载时使用默认 -->
-    <lottery-activity
-      wx:elif="{{!loading}}"
-      campaignCode="BASIC_LOTTERY"
-      size="full"
-      bind:pointsupdate="onPointsUpdate"
-    />
+    <lottery-activity wx:elif="{{!loading}}" campaignCode="BASIC_LOTTERY" size="full"
+      bind:pointsupdate="onPointsUpdate" />
   </block>
 
   <!-- 其他活动（secondary/floating等位置，仅登录后渲染） -->
   <block wx:if="{{isLoggedIn}}" wx:for="{{extraCampaigns}}" wx:key="campaign_code">
     <view class="extra-activity-slot">
-      <lottery-activity
-        campaignCode="{{item.campaign_code}}"
-        size="{{item.placement.size || 'medium'}}"
-        bind:pointsupdate="onPointsUpdate"
-      />
+      <lottery-activity campaignCode="{{item.campaign_code}}" size="{{item.placement.size || 'medium'}}"
+        bind:pointsupdate="onPointsUpdate" />
     </view>
   </block>
 
   <!-- 🆕 隐藏的Canvas用于生成正方形高分辨率二维码（方案B：428×428正方形） -->
-  <canvas
-    canvas-id="qrcodeCanvas"
-    style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px"
-  />
+  <canvas canvas-id="qrcodeCanvas" style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px" />
 
   <!-- 🆕 放大的二维码弹窗 -->
   <view class="qrcode-enlarged-modal" wx:if="{{qrCodeEnlarged}}" bindtap="closeEnlargedQRCode">
@@ -232,12 +193,7 @@
       <!-- 放大的二维码 -->
       <view class="qrcode-enlarged-content">
         <!-- 🔴 方案B：正方形容器(500×500) + 正方形图片(428×428) = 完美填充 -->
-        <image
-          class="qrcode-enlarged-image"
-          src="{{qrCodeImage}}"
-          mode="aspectFit"
-          show-menu-by-longpress="{{true}}"
-        />
+        <image class="qrcode-enlarged-image" src="{{qrCodeImage}}" mode="aspectFit" show-menu-by-longpress="{{true}}" />
 
         <!-- 提示文字 -->
         <view class="qrcode-enlarged-tips">
@@ -263,11 +219,7 @@
 
       <!-- 记录列表 -->
       <scroll-view class="audit-records-list" scroll-y="{{true}}">
-        <view
-          class="audit-record-card {{item.status}}"
-          wx:for="{{auditRecordsData}}"
-          wx:key="consumption_record_id"
-        >
+        <view class="audit-record-card {{item.status}}" wx:for="{{auditRecordsData}}" wx:key="consumption_record_id">
           <!-- 记录编号 + 状态 -->
           <view class="record-header">
             <text class="record-number">🎯 记录 #{{index + 1}}</text>
@@ -326,10 +278,6 @@
   </view>
 
   <!-- 🎨 弹窗横幅组件（后端API: GET /api/v4/system/ad-delivery?slot_type=popup） -->
-  <popup-banner
-    visible="{{showPopupBanner}}"
-    banners="{{popupBanners}}"
-    bind:close="onPopupBannerClose"
-    bind:action="onPopupBannerAction"
-  />
+  <popup-banner visible="{{showPopupBanner}}" banners="{{popupBanners}}" bind:close="onPopupBannerClose"
+    bind:action="onPopupBannerAction" />
 </view>

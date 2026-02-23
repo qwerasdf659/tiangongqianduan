@@ -122,6 +122,15 @@ Page({
         url: '/packageAd/ad-campaigns/ad-campaigns'
       },
       {
+        id: 'my-issues',
+        name: '我的工单',
+        description: '查看客服工单处理进度',
+        icon: '📋',
+        color: '#795548',
+        type: 'page',
+        url: '/packageUser/issues/issues'
+      },
+      {
         id: 'contact-service',
         name: '联系客服',
         description: '在线客服服务支持',

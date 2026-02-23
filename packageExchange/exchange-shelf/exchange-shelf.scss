@@ -66,6 +66,7 @@
     0 4rpx 16rpx rgba(0, 0, 0, 0.06),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   border: 1rpx solid rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
 }
 

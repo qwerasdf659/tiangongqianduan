@@ -1,0 +1,311 @@
+/* 用户工单列表页面样式 */
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.issues-container {
+  padding: 20rpx;
+  background-color: $color-bg;
+  min-height: 100vh;
+}
+
+/* 页面标题 */
+.page-header {
+  padding: 24rpx 16rpx 32rpx;
+}
+
+.header-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.header-desc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+/* 骨架屏 */
+.issue-skeleton {
+  display: flex;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+}
+
+.skeleton-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: $color-bg-grey;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.skeleton-body {
+  flex: 1;
+}
+
+.skeleton-line {
+  height: 24rpx;
+  background: $color-bg-grey;
+  border-radius: 4rpx;
+  margin-bottom: 12rpx;
+}
+
+.skeleton-title {
+  width: 60%;
+}
+
+.skeleton-info {
+  width: 40%;
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+/* 空状态 */
+.empty-state {
+  @include flex-column-center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 96rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: $font-size-md;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-bottom: 32rpx;
+}
+
+.retry-btn {
+  padding: 16rpx 48rpx;
+  background: $color-primary;
+  color: $color-white;
+  border-radius: $border-radius-lg;
+  font-size: $font-size-base;
+}
+
+/* 工单总览 */
+.issues-summary {
+  padding: 0 16rpx 16rpx;
+}
+
+.summary-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+/* 工单卡片 */
+.issue-card {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 工单头部 */
+.issue-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.issue-type-badge {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $color-primary-light 0%, $color-primary 100%);
+  @include flex-center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.type-icon {
+  font-size: 28rpx;
+}
+
+.issue-title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.issue-title {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-primary;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue-type-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+  display: block;
+}
+
+/* 工单状态标签 */
+.issue-status-badge {
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: $font-size-xs;
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+.status-open {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.status-processing {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-resolved {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-closed {
+  background: $color-bg-grey;
+  color: $color-text-tertiary;
+}
+
+/* 工单详情 */
+.issue-details {
+  padding: 16rpx 0;
+  border-top: 1rpx solid $color-border-light;
+  border-bottom: 1rpx solid $color-border-light;
+  margin-bottom: 20rpx;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.detail-label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.detail-value {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: 500;
+}
+
+/* 优先级颜色 */
+.priority-low {
+  color: $color-text-tertiary;
+}
+
+.priority-medium {
+  color: $color-info;
+}
+
+.priority-high {
+  color: $color-warning;
+}
+
+.priority-urgent {
+  color: $color-error;
+  font-weight: 700;
+}
+
+/* 工单进度条 */
+.issue-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.step-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: $color-border;
+  transition: background 0.3s;
+}
+
+.step-active .step-dot {
+  background: $color-primary;
+}
+
+.step-text {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+}
+
+.step-active .step-text {
+  color: $color-primary;
+  font-weight: 500;
+}
+
+.progress-line {
+  flex: 1;
+  height: 4rpx;
+  background: $color-border;
+  margin: 0 8rpx;
+  margin-bottom: 32rpx;
+  transition: background 0.3s;
+}
+
+.line-active {
+  background: $color-primary;
+}
+
+/* 加载更多/没有更多 */
+.load-more,
+.no-more {
+  text-align: center;
+  padding: 32rpx;
+}
+
+.load-more-text,
+.no-more-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}

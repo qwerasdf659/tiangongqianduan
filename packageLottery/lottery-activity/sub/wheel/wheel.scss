@@ -84,6 +84,27 @@
     margin-top: 4rpx;
     text-align: center;
   }
+
+  /* 保底奖品角标（转盘扇区内小标签） */
+  &__badge {
+    font-size: 16rpx;
+    color: #fff;
+    background: rgba(153, 153, 153, 0.7);
+    padding: 0 6rpx;
+    border-radius: 4rpx;
+    line-height: 1.4;
+    margin-top: 2rpx;
+  }
+
+  /* 已抢光的转盘扇区降低饱和度 */
+  &--sold-out {
+    opacity: 0.45;
+  }
+
+  /* 兜底奖品降低饱和度 */
+  &--fallback {
+    opacity: 0.6;
+  }
 }
 
 /* 顶部指针（固定不动） - 使用主题色 */

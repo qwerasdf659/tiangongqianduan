@@ -1849,3 +1849,118 @@
     opacity: 1;
   }
 }
+
+
+/* ===== 奖品池预览（is_fallback / is_sold_out 视觉指示） ===== */
+.sm-prizes {
+  margin-top: 24rpx;
+  padding: 0 16rpx;
+}
+
+.sm-prizes__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.sm-prizes__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.sm-prizes__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--theme-primary, #7c4dff);
+}
+
+.sm-prizes__title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--theme-text, #333);
+}
+
+.sm-prizes__count {
+  font-size: 22rpx;
+  color: var(--theme-text-light, #999);
+}
+
+.sm-prizes__scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.sm-prizes__list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 8rpx 4rpx 16rpx;
+}
+
+.sm-prizes__item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.sm-prizes__icon-wrap {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: var(--theme-bg-light, #fff);
+  border: 2rpx solid var(--theme-border, #eee);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sm-prizes__icon {
+  font-size: 40rpx;
+}
+
+.sm-prizes__name {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--theme-text-light, #666);
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.sm-prizes__item--fallback {
+  filter: saturate(0.4);
+  opacity: 0.7;
+}
+
+.sm-prizes__fallback-tag {
+  margin-top: 2rpx;
+  padding: 0 6rpx;
+  font-size: 18rpx;
+  color: #999;
+  background: rgba(153, 153, 153, 0.15);
+  border-radius: 4rpx;
+}
+
+.sm-prizes__item--sold-out {
+  opacity: 0.45;
+}
+
+.sm-prizes__sold-out {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  white-space: nowrap;
+}

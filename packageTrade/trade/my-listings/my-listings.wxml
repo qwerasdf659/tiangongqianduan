@@ -110,7 +110,7 @@
             </button>
             <view
               class="status-hint"
-              wx:elif="{{item.status === 'locked' && item.listing_kind === 'item_instance'}}"
+              wx:elif="{{item.status === 'locked' && item.listing_kind === 'item'}}"
             >
               <button
                 class="escrow-btn"

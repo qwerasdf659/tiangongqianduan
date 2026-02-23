@@ -36,7 +36,8 @@
         "points-detail/points-detail",
         "feedback/feedback",
         "feedback/detail",
-        "feedback/list"
+        "feedback/list",
+        "issues/issues"
       ]
     },
     {

@@ -194,3 +194,12 @@
   color: $color-text-tertiary;
   font-size: $font-size-sm;
 }
+
+// ===== 毛玻璃效果 =====
+
+/// backdrop-filter 带 -webkit- 前缀（iOS Safari 兼容）
+/// @param {string} $value - blur值，如 blur(10rpx)
+@mixin backdrop-blur($value) {
+  -webkit-backdrop-filter: $value;
+  backdrop-filter: $value;
+}

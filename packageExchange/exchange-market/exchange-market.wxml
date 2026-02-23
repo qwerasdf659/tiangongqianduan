@@ -242,7 +242,7 @@
         >
       </view>
       <!--实物交易提示：买方需等待卖方提供担保码后确认收货（Phase 4）-->
-      <view class="escrow-tip" wx:if="{{resultData.product.listing_kind === 'item_instance'}}">
+      <view class="escrow-tip" wx:if="{{resultData.product.listing_kind === 'item'}}">
         <text class="escrow-tip-icon">🔑</text>
         <text class="escrow-tip-text"
           >本次为实物交易，请联系卖方获取6位担保码后点击"确认收货"完成交易</text

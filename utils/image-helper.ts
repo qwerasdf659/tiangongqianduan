@@ -172,7 +172,7 @@ function getAssetDisplayName(assetCode: string): string {
  * 为交易市场挂单计算展示图片路径
  *
  * 降级链：
- *   item_instance 类型 → item_info.image_url（后端完整URL）→ 分类图标 → 占位图
+ *   item 类型 → item_info.image_url（后端完整URL）→ 分类图标 → 占位图
  *   fungible_asset 类型 → 本地材料图标（按 asset_code 映射）→ 占位图
  *
  * @param listing - 后端返回的 market_listing 对象

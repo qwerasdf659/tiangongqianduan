@@ -250,14 +250,14 @@ Page({
 
         const responseData = result.data || {}
         const orderData = responseData.order || {}
-        const itemData = responseData.item_instance || {}
+        const itemData = responseData.item || {}
         const redeemerData = responseData.redeemer || {}
         const storeData = responseData.store || {}
 
         const flatResult = {
           redemption_order_id: orderData.redemption_order_id,
           fulfilled_at: orderData.fulfilled_at,
-          item_name: itemData.name,
+          item_name: itemData.item_name,
           redeemer_nickname: redeemerData.nickname,
           store_name: storeData.store_name
         }

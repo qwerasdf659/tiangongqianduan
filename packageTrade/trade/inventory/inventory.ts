@@ -1,16 +1,33 @@
 /**
  * 📦 库存管理页面（背包系统） - 对齐后端对接文档
  *
- * 业务功能：用户个人物品库存管理中 * 后端API（对齐后端真实路由） *   - GET  /api/v4/backpack/                        获取用户背包（双轨结构：assets[] + items[] *   - GET  /api/v4/backpack/stats                   获取背包统计（total_assets / total_items / total_asset_value *   - GET  /api/v4/backpack/items/:item_instance_id 物品详情
- *   - POST /api/v4/backpack/items/:item_instance_id/use    使用物品
- *   - POST /api/v4/backpack/items/:item_instance_id/redeem 生成核销码（12位Base320天有效，仅返回一次明文）
- *   - POST /api/v4/market/list                      上架物品到交易市场（需Idempotency-Key *
+ * 业务功能：用户个人物品库存管理
+ * 后端API:
+ *   - GET  /api/v4/backpack/                    获取用户背包（双轨结构：assets[] + items[]）
+ *   - GET  /api/v4/backpack/stats               获取背包统计
+ *   - GET  /api/v4/backpack/items/:item_id      物品详情
+ *   - POST /api/v4/backpack/items/:item_id/use  使用物品
+ *   - POST /api/v4/backpack/items/:item_id/redeem 生成核销码
+ *   - GET  /api/v4/backpack/items/:item_id/timeline 物品流转时间线
+ *   - POST /api/v4/market/list                  上架物品到交易市场（需Idempotency-Key）
+ *
  * 后端返回的物品字段（snake_case，后端为权威来源）：
- *   item_instance_id  - 物品实例唯一ID（bigint *   item_type         - 物品类型编码（prize/product/voucher/tradable_item/service *   item_type_display - 物品类型中文名（后端自动附加 *   name              - 物品名称
- *   status            - 物品状态（available/locked/used/expired/transferred *   status_display    - 物品状态中文名（后端自动附加）
- *   rarity            - 稀有度编码（common/uncommon/rare/epic/legendary *   rarity_display    - 稀有度中文名（后端自动附加 *   description       - 物品描述
- *   acquired_at       - 获得时间（YYYY-MM-DD HH:mm:ss 格式 *   expires_at        - 过期时间（可null *   has_redemption_code - 是否已生成核销 *
- * ⚠️ 注意：背包列表只返回 status = 'available' 的物 *
+ *   item_id           - 物品唯一ID（items表主键，BIGINT）
+ *   tracking_code     - 追踪码（人类可读，如 LT260219028738）
+ *   item_type         - 物品类型编码（prize/product/voucher/tradable_item/service）
+ *   item_type_display - 物品类型中文名（后端自动附加）
+ *   item_name         - 物品名称
+ *   item_value        - 物品价值（积分计）
+ *   status            - 物品状态（available/held/used/expired/destroyed）
+ *   status_display    - 物品状态中文名（后端自动附加）
+ *   rarity_code       - 稀有度编码（common/uncommon/rare/epic/legendary）
+ *   rarity_display    - 稀有度中文名（后端自动附加）
+ *   item_description  - 物品描述
+ *   acquired_at       - 获得时间（YYYY-MM-DD HH:mm:ss 格式）
+ *   expires_at        - 过期时间（可null）
+ *   has_redemption_code - 是否已生成核销码
+ *
+ * ⚠️ 注意：背包列表只返回 status = 'available' 的物品，已使用/已过期/已销毁物品不在列表中
  * @file packageTrade/trade/inventory/inventory.ts
  * @version 5.2.0
  * @since 2026-02-15
@@ -103,6 +120,30 @@ Page({
     errorMessage: '',
     errorDetail: '',
 
+    // ===== 物品详情半屏面板（GET /api/v4/backpack/items/:item_id） =====
+    /** 是否显示物品详情面板 */
+    showItemDetail: false,
+    /** 物品详情加载中 */
+    itemDetailLoading: false,
+    /** 物品详情数据（后端 API 返回的完整字段） */
+    itemDetail: null as any,
+
+    // ===== 物品流转时间线（GET /api/v4/backpack/items/:item_id/timeline） =====
+    /** 是否显示时间线弹窗 */
+    showTimeline: false,
+    /** 时间线加载中 */
+    timelineLoading: false,
+    /** 时间线物品名称 */
+    timelineItemName: '',
+    /** 时间线追踪码 */
+    timelineTrackingCode: '',
+    /** 时间线来源类型 */
+    timelineSource: '',
+    /** 时间线事件列表（后端 timeline[] 数组，按时间正序） */
+    timelineEvents: [] as any[],
+    /** 账本守恒状态: balanced / imbalanced */
+    timelineLedgerStatus: '',
+
     // ===== 核销码QR码展示（模型A：O2O动态码） =====
     /** 是否显示核销码QR码弹窗 */
     showRedemptionQR: false,
@@ -122,7 +163,7 @@ Page({
     qrExpired: false,
     /** QR码刷新中状态 */
     qrRefreshing: false,
-    /** 当前核销物品的 item_instance_id（刷新QR码用） */
+    /** 当前核销物品的 item_id（刷新QR码用） */
     _redemptionItemId: 0,
     /** 当前核销按钮文案（"到店领取" / "到店使用" / "核销"） */
     redemptionActionLabel: ''
@@ -403,8 +444,8 @@ Page({
       const keyword = this.data.searchKeyword.toLowerCase()
       filteredItems = filteredItems.filter(
         (item: any) =>
-          (item.name && item.name.toLowerCase().includes(keyword)) ||
-          (item.description && item.description.toLowerCase().includes(keyword))
+          (item.item_name && item.item_name.toLowerCase().includes(keyword)) ||
+          (item.item_description && item.item_description.toLowerCase().includes(keyword))
       )
     }
 
@@ -535,8 +576,8 @@ Page({
   /**
    * 使用物品
    *
-   * 后端API: POST /api/v4/backpack/items/:item_instance_id/use
-   * 成功返回: { success: true, data: { item_instance_id, status: "used", is_duplicate } }
+   * 后端API: POST /api/v4/backpack/items/:item_id/use
+   * 成功返回: { success: true, data: { item_id, status: "used", is_duplicate } }
    *
    * WXML绑定: <button bindtap="onUseItem" data-item="{{item}}">
    * 前置条件: item.can_use === true（后端 allowed_actions 包含 'use'）
@@ -551,7 +592,7 @@ Page({
 
     wx.showModal({
       title: '确认使用',
-      content: `确定要使用「${item.name}」吗？使用后将无法撤销。`,
+      content: `确定要使用「${item.item_name}」吗？使用后将无法撤销。`,
       success: async (res: any) => {
         if (res.confirm) {
           await this.executeUseItem(item)
@@ -563,26 +604,26 @@ Page({
   /**
    * 执行使用物品
    *
-   * 后端API: POST /api/v4/backpack/items/:item_instance_id/use
-   * 成功返回: { item_instance_id, status: "used", is_duplicate }
+   * 后端API: POST /api/v4/backpack/items/:item_id/use
+   * 成功返回: { item_id, status: "used", is_duplicate }
    * is_duplicate: true 表示幂等回放（重复请求返回首次结果）
    *
    * 使用结果通过 wx.showModal 展示给用户，包含：
-   *   - 物品名称（来自列表传入的 item.name）
+   *   - 物品名称（来自列表传入的 item.item_name）
    *   - 后端返回的 message（使用结果说明）
    *   - 后端返回的 instructions（使用指引，如有）
    *   - 幂等回放提示（is_duplicate 为 true 时）
    *
-   * @param item - 物品对象（包含 item_instance_id、name、item_type 等字段）
+   * @param item - 物品对象（包含 item_id、item_name、item_type 等字段）
    */
   async executeUseItem(item: any) {
     wx.showLoading({ title: '使用中...' })
     try {
-      const result = await API.useInventoryItem(item.item_instance_id)
+      const result = await API.useInventoryItem(item.item_id)
       wx.hideLoading()
 
       if (result.success) {
-        const itemName = item.name || '物品'
+        const itemName = item.item_name || '物品'
         const resultData = result.data || {}
 
         let resultContent = `「${itemName}」${result.message || '使用成功'}`
@@ -623,7 +664,7 @@ Page({
   /**
    * 生成核销码 → 展示QR码弹窗（Phase 1 升级：QR码 + 文本码并存）
    *
-   * 后端API: POST /api/v4/backpack/items/:item_instance_id/redeem
+   * 后端API: POST /api/v4/backpack/items/:item_id/redeem
    * 响应字段（Phase 1 升级后）:
    *   order:        { redemption_order_id, status: "pending", expires_at }
    *   code:         "ABCD-1234-EFGH"（12位Base32文本码，仅此一次返回明文）
@@ -650,13 +691,13 @@ Page({
     }
 
     try {
-      const response = await API.redeemInventoryItem(item.item_instance_id)
+      const response = await API.redeemInventoryItem(item.item_id)
 
       if (response.success && response.data) {
         const redemptionCode = response.data.code || ''
         const orderData = response.data.order || {}
         const expiresAt = orderData.expires_at || ''
-        const itemName = item.name || '物品'
+        const itemName = item.item_name || '物品'
         const qrPayload = response.data.qr_payload || ''
         const qrExpiresAt = response.data.qr_expires_at || ''
 
@@ -669,7 +710,7 @@ Page({
 
         this.setData(
           {
-            _redemptionItemId: item.item_instance_id,
+            _redemptionItemId: item.item_id,
             redemptionTextCode: redemptionCode,
             redemptionItemName: itemName,
             redemptionExpiresAt: expiresAt ? this.formatReadableTime(expiresAt) : '',
@@ -808,7 +849,7 @@ Page({
 
   /**
    * QR码过期后自动刷新
-   * 后端API: POST /api/v4/backpack/items/:item_instance_id/redeem/refresh-qr
+   * 后端API: POST /api/v4/backpack/items/:item_id/redeem/refresh-qr
    */
   async autoRefreshRedemptionQR() {
     const itemId = this.data._redemptionItemId
@@ -890,7 +931,7 @@ Page({
    *
    * 后端API: POST /api/v4/market/list
    * 请求Header: Idempotency-Key: market_list_<timestamp>_<random>（必填）
-   * 请求Body: { item_instance_id, price_amount, price_asset_code }
+   * 请求Body: { item_id, price_amount, price_asset_code }
    *
    * 定价币种: DIAMOND（钻石）/ red_shard（红水晶碎片）
    * 上架限制: 用户最多同时上架10件商品
@@ -953,77 +994,188 @@ Page({
   /**
    * 查看物品详情（调用后端API获取最新数据）
    *
-   * 后端API: GET /api/v4/backpack/items/:item_instance_id
-   * 返回字段（比列表is_owner 字段
-   *   item_instance_id, item_type, item_type_display, item_type_color,
-   *   name, status, status_display, status_color,
-   *   rarity, rarity_display, rarity_color,
-   *   description, acquired_at, expires_at, is_owner, has_redemption_code
+   * 后端API: GET /api/v4/backpack/items/:item_id
+   * 返回字段（比列表多 is_owner 字段）:
+   *   item_id, tracking_code, item_type, item_type_display,
+   *   item_name, item_value, status, status_display,
+   *   rarity_code, rarity_display, rarity_color,
+   *   item_description, acquired_at, expires_at, is_owner, has_redemption_code
    *
    * WXML绑定: <view bindtap="onViewItem" data-item="{{item}}">
    */
   async onViewItem(e: any) {
     const { item } = e.currentTarget.dataset
 
-    if (!item || !item.item_instance_id) {
+    if (!item || !item.item_id) {
       showToast('物品信息无效')
       return
     }
 
+    this.setData({ showItemDetail: true, itemDetailLoading: true, itemDetail: null })
+
     try {
-      const result = await API.getInventoryItem(item.item_instance_id)
+      const result = await API.getInventoryItem(item.item_id)
 
       if (result.success && result.data) {
-        this.showItemDetailModal(result.data)
+        this.showItemDetailPanel(result.data)
       } else {
         log.error('获取物品详情失败:', result.message)
+        this.setData({ showItemDetail: false, itemDetailLoading: false })
         showToast(result.message || '获取物品详情失败，请稍后重试')
       }
     } catch (error: any) {
       log.error('获取物品详情异常:', error.message)
+      this.setData({ showItemDetail: false, itemDetailLoading: false })
       showToast('获取物品详情失败，请检查网络后重试')
     }
   },
 
   /**
-   * 展示物品详情弹窗
+   * 展示物品详情半屏面板
    * 使用后端返回 *_display 字段显示中文（后端为权威来源，前端不做映射）
    *
-   * @param itemDetail - 物品详情数据（来自后端API GET /api/v4/backpack/items/:id）
+   * @param detailData - 物品详情数据（来自后端API GET /api/v4/backpack/items/:item_id）
    */
-  showItemDetailModal(itemDetail: any) {
-    let details = ''
+  showItemDetailPanel(detailData: any) {
+    this.setData({
+      itemDetail: detailData,
+      itemDetailLoading: false,
+      showItemDetail: true
+    })
+  },
 
-    if (itemDetail.description) {
-      details += `描述?{itemDetail.description}\n`
+  /** 关闭物品详情半屏面板 */
+  closeItemDetail() {
+    this.setData({
+      showItemDetail: false,
+      itemDetail: null,
+      itemDetailLoading: false
+    })
+  },
+
+  /**
+   * 从物品详情面板中复制追踪码到剪贴板
+   * 方便用户联系客服时直接粘贴追踪码
+   */
+  onCopyTrackingCode() {
+    const code = this.data.itemDetail?.tracking_code
+    if (!code) {
+      showToast('追踪码不可用')
+      return
     }
-    // 使用后端返回item_type_display 中文
-    if (itemDetail.item_type_display) {
-      details += `类型?{itemDetail.item_type_display}\n`
+    wx.setClipboardData({
+      data: code,
+      success: () => showToast('追踪码已复制', 'success')
+    })
+  },
+
+  /**
+   * 从物品详情面板中发起查看时间线
+   * 复用已有的 onViewTimeline 逻辑
+   */
+  onViewTimelineFromDetail() {
+    const detail = this.data.itemDetail
+    if (!detail || !detail.item_id) {
+      showToast('物品信息无效')
+      return
     }
-    // 使用后端返回status_display 中文
-    if (itemDetail.status_display) {
-      details += `状态：${itemDetail.status_display}\n`
-    }
-    // 使用后端返回rarity_display 中文
-    if (itemDetail.rarity_display) {
-      details += `稀有度?{itemDetail.rarity_display}\n`
-    }
-    if (itemDetail.acquired_at) {
-      details += `获得时间隔{itemDetail.acquired_at}\n`
-    }
-    if (itemDetail.expires_at) {
-      details += `过期时间隔{itemDetail.expires_at}\n`
-    }
-    if (itemDetail.has_redemption_code) {
-      details += `核销码：已生成\n`
+    this.closeItemDetail()
+    this.onViewTimeline({ currentTarget: { dataset: { item: detail } } })
+  },
+
+  /**
+   * 查看物品流转时间线
+   *
+   * 后端API: GET /api/v4/backpack/items/:item_id/timeline
+   * 响应: { tracking_code, item, origin, timeline[], ledger_check }
+   *
+   * 后端通过 items + item_ledger + item_holds 表 JOIN 拼装完整流转历史
+   * 权限: 仅返回与当前用户相关的记录（通过JWT Token识别）
+   *
+   * WXML绑定: <view bindtap="onViewTimeline" data-item="{{item}}">
+   */
+  async onViewTimeline(e: any) {
+    const { item } = e.currentTarget.dataset
+
+    if (!item || !item.item_id) {
+      showToast('物品信息无效')
+      return
     }
 
-    wx.showModal({
-      title: itemDetail.name || '物品详情',
-      content: details || '暂无详情',
-      showCancel: false,
-      confirmText: '知道了'
+    this.setData({ showTimeline: true, timelineLoading: true, timelineEvents: [] })
+
+    try {
+      const result = await API.getItemTimeline(item.item_id)
+
+      if (result.success && result.data) {
+        const {
+          tracking_code = '',
+          item: itemInfo,
+          origin,
+          timeline = [],
+          ledger_check
+        } = result.data
+
+        const sourceLabels: Record<string, string> = {
+          lottery: '抽奖获得',
+          bid_settlement: '竞价获得',
+          exchange: '兑换获得',
+          admin: '管理员赠送',
+          legacy: '历史数据'
+        }
+        const sourceDisplay = origin ? sourceLabels[origin.source] || origin.source : ''
+
+        const eventIcons: Record<string, string> = {
+          mint: '🎁',
+          transfer: '🔄',
+          use: '✅',
+          hold: '🔒',
+          release: '🔓',
+          expire: '⏰',
+          destroy: '🗑️'
+        }
+
+        const processedEvents = timeline.map((ev: any) => ({
+          ...ev,
+          icon: eventIcons[ev.event] || '📌',
+          formatted_time: ev.time ? this.formatReadableTime(ev.time) : ''
+        }))
+
+        this.setData({
+          timelineLoading: false,
+          timelineItemName: (itemInfo && itemInfo.item_name) || item.item_name || '物品',
+          timelineTrackingCode: tracking_code,
+          timelineSource: sourceDisplay,
+          timelineEvents: processedEvents,
+          timelineLedgerStatus: (ledger_check && ledger_check.status) || ''
+        })
+
+        log.info('物品时间线加载成功:', {
+          tracking_code,
+          eventCount: processedEvents.length
+        })
+      } else {
+        throw new Error(result.message || '获取追踪信息失败')
+      }
+    } catch (error: any) {
+      log.error('获取物品时间线失败:', error)
+      this.setData({ timelineLoading: false })
+      showToast(error.message || '获取追踪信息失败')
+    }
+  },
+
+  /**
+   * 关闭时间线弹窗
+   */
+  closeTimeline() {
+    this.setData({
+      showTimeline: false,
+      timelineLoading: false,
+      timelineEvents: [],
+      timelineItemName: '',
+      timelineTrackingCode: '',
+      timelineSource: '',
+      timelineLedgerStatus: ''
     })
   },
 
@@ -1099,7 +1251,7 @@ Page({
           const selectedCurrency = currencyList[sheetRes.tapIndex]
 
           wx.showModal({
-            title: `上架 "${item.name}"`,
+            title: `上架 "${item.item_name}"`,
             content: `请输入售价（单位：${selectedCurrency.display_name}）`,
             editable: true,
             placeholderText: `请输入${selectedCurrency.display_name}数量（正整数）`,
@@ -1114,7 +1266,7 @@ Page({
               }
               try {
                 const result = await API.sellToMarket({
-                  item_instance_id: item.item_instance_id,
+                  item_id: item.item_id,
                   price_amount: priceAmount,
                   price_asset_code: selectedCurrency.asset_code
                 })

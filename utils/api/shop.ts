@@ -189,11 +189,11 @@ async function fulfillRedemption(params: { redeem_code: string; store_id?: numbe
  *   qr_content - 扫码获取的完整QR码字符串（RQRV1_前缀）
  *   store_id   - 门店ID（多门店商家必填，单门店自动识别）
  *
- * 响应格式（同 fulfillRedemption）:
- *   order:         { redemption_order_id, fulfilled_at, fulfilled_store_id, fulfilled_by_staff_id }
- *   item_instance: { item_instance_id, name, status }
- *   redeemer:      { user_id, nickname }
- *   store:         { store_id, store_name }
+ * 响应格式（同 fulfillRedemption，三表模型迁移后 item_instance → item）:
+ *   order:    { redemption_order_id, fulfilled_at, fulfilled_store_id, fulfilled_by_staff_id }
+ *   item:     { item_id, item_name, status }（原 item_instance 字段）
+ *   redeemer: { user_id, nickname }
+ *   store:    { store_id, store_name }
  *
  * @param params.qr_content - RQRV1_ 前缀的QR码完整内容
  * @param params.store_id - 门店ID（可选，多门店场景必填）

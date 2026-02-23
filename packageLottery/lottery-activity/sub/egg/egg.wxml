@@ -171,4 +171,29 @@
       </view>
     </view>
   </block>
+
+
+  <!-- 奖品池预览（is_fallback / is_sold_out 视觉指示） -->
+  <view class="egg-prizes" wx:if="{{prizes.length > 0}}">
+    <view class="egg-prizes__header">
+      <view class="egg-prizes__title-wrap">
+        <text class="egg-prizes__dot"></text>
+        <text class="egg-prizes__title">金蛋好礼</text>
+        <text class="egg-prizes__dot"></text>
+      </view>
+      <text class="egg-prizes__count">{{prizes.length}}种奖品</text>
+    </view>
+    <scroll-view class="egg-prizes__scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="egg-prizes__list">
+        <view class="egg-prizes__item {{item.is_fallback ? 'egg-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'egg-prizes__item--sold-out' : ''}}" wx:for="{{prizes}}" wx:key="prize_id">
+          <view class="egg-prizes__icon-wrap">
+            <text class="egg-prizes__icon">{{item.prize_icon}}</text>
+            <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
+          </view>
+          <text class="egg-prizes__name">{{item.prize_name}}</text>
+          <text wx:if="{{item.is_fallback}}" class="egg-prizes__fallback-tag">保底</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
 </view>

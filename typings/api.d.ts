@@ -159,6 +159,18 @@ declare namespace API {
     material_asset_code: string
     /** 材料数量 */
     material_amount: number
+    /**
+     * 是否为兜底奖品（保底奖品标记）
+     * true 时前端用降低饱和度 + "保底"角标区分展示
+     * ⚠️ 需后端在 /lottery/campaigns/:code/prizes 接口中返回此字段
+     */
+    is_fallback?: boolean
+    /**
+     * 剩余库存数量
+     * 0 时前端显示"已抢光"遮罩
+     * ⚠️ 需后端在 /lottery/campaigns/:code/prizes 接口中返回此字段
+     */
+    stock_quantity?: number
   }
 
   /** 奖品关联图片（Sealos 对象存储公网URL） */
@@ -529,7 +541,7 @@ declare namespace API {
 
   /**
    * C2C交易担保码信息（Phase 4：担保交易码）
-   * 仅 listing_kind = 'item_instance' 的实物交易使用
+   * 仅 listing_kind = 'item' 的实物交易使用
    * fungible_asset 交易自动完成，不需要担保码
    */
   interface EscrowCodeInfo {
@@ -695,7 +707,7 @@ declare namespace API {
     listing_kind: string
     /** 商品显示名称（物品实例 → offer_item_display_name，资产 → offer_asset_display_name） */
     display_name: string
-    /** 物品稀有度编码（仅 item_instance 类型） */
+    /** 物品稀有度编码（仅 item 类型） */
     offer_item_rarity?: string
     /** 资产代码（仅 fungible_asset 类型，如 DIAMOND） */
     offer_asset_code?: string
@@ -765,6 +777,10 @@ declare namespace API {
     customer_service_session_id: number
     /** 会话状态: waiting | assigned | active | closed */
     status: string
+    /** 满意度评分（1-5星，NULL表示未评分） */
+    satisfaction_score: number | null
+    /** 首响时间 */
+    first_response_at: string | null
     /** 创建时间（ISO 8601） */
     created_at: string
     /** 最后更新时间（ISO 8601） */
@@ -800,6 +816,24 @@ declare namespace API {
     message_type: string
     /** 创建时间（ISO 8601） */
     created_at: string
+  }
+
+  /** 用户工单（对齐后端 GET /api/v4/system/chat/issues 返回格式，已脱敏） */
+  interface CustomerServiceIssue {
+    /** 工单主键 */
+    issue_id: number
+    /** 问题类型: asset | trade | lottery | item | account | consumption | feedback | other */
+    issue_type: string
+    /** 优先级: low | medium | high | urgent */
+    priority: string
+    /** 工单状态: open | processing | resolved | closed */
+    status: string
+    /** 问题标题 */
+    title: string
+    /** 创建时间（ISO 8601） */
+    created_at: string
+    /** 解决时间（ISO 8601，未解决时为null） */
+    resolved_at: string | null
   }
 
   /** 背包统计（对齐后端 GET /api/v4/backpack/stats 返回格式） */
@@ -864,10 +898,19 @@ declare namespace API {
   interface AdDeliveryItem {
     /** 广告计划主键（ad_campaigns.ad_campaign_id） */
     ad_campaign_id: number
+    /** 广告位ID（ad_campaigns.ad_slot_id，commercial类型上报计费日志时必需） */
+    ad_slot_id: number
     /** 计划名称（运营后台填写，用于后台管理识别） */
     campaign_name: string
     /** 计划分类: commercial=商业广告 / operational=运营内容 / system=系统通知 */
     campaign_category: string
+    /**
+     * 广告位ID（ad_slots.ad_slot_id）
+     * commercial 类型必需 — reportAdImpression / reportAdClick 依赖此字段
+     * operational / system 类型可为 null
+     * ⚠️ 需后端 ad-delivery API 在响应中返回此字段
+     */
+    ad_slot_id: number | null
     /** 广告创意主键（ad_creatives.ad_creative_id） */
     ad_creative_id: number
     /** 创意标题（面向用户展示的标题） */
@@ -924,6 +967,8 @@ declare namespace API {
     interaction_type: string
     /** 扩展数据（按场景携带不同的交互详情，JSON 格式存储） */
     extra_data?: {
+      /** 广告位类型: popup / carousel / announcement（区分不同投放场景） */
+      slot_type?: string
       /** 弹窗场景：展示时长毫秒（弹出到关闭的时间差） */
       show_duration_ms?: number
       /** 弹窗场景：关闭方式 close_btn / overlay / confirm_btn / auto_timeout */
@@ -936,6 +981,8 @@ declare namespace API {
       is_manual_swipe?: boolean
       /** 轮播场景：是否被点击 */
       is_clicked?: boolean
+      /** 轮播场景：点击的轮播索引 */
+      slide_index?: number
     }
   }
 
@@ -1219,7 +1266,7 @@ declare namespace API {
   // ===== 核销码系统（模型A：O2O动态码 — 到店核销） =====
 
   /**
-   * 核销码生成响应（POST /api/v4/backpack/items/:item_instance_id/redeem）
+   * 核销码生成响应（POST /api/v4/backpack/items/:item_id/redeem）
    *
    * Phase 1 升级后新增 qr_payload / qr_expires_at 字段（动态HMAC签名QR码）
    * code（12位Base32文本码）仅此一次返回明文，后端只存 SHA-256 哈希，不可逆
@@ -1243,7 +1290,7 @@ declare namespace API {
   }
 
   /**
-   * QR码刷新响应（POST /api/v4/backpack/items/:item_instance_id/redeem/refresh-qr）
+   * QR码刷新响应（POST /api/v4/backpack/items/:item_id/redeem/refresh-qr）
    *
    * 后端服务: RedemptionQRSigner.js（独立于消费录入QR系统 QRCodeValidator.js）
    * QR码格式: RQRV1_{base64(JSON.stringify({ oid, ch, ts }))}_{hmac_sha256_signature}

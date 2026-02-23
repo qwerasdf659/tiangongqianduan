@@ -39,7 +39,7 @@
           <text class="amount-text">×{{item._offerAmount}}</text>
         </view>
 
-        <!-- 稀有度标识（仅 item_instance 类型，非 common 时显示） -->
+        <!-- 稀有度标识（仅 item 类型，非 common 时显示） -->
         <view
           class="rarity-badge"
           wx:if="{{!item._isFungibleAsset && item._rarityCode && item._rarityCode !== 'common'}}"

@@ -66,7 +66,18 @@ Page({
     // 发送按钮状态
     sendButtonEnabled: false,
 
-    // 快捷回复模板
+    /**
+     * 快捷回复模板（临时硬编码 — 等待后端API就绪后改为动态加载）
+     *
+     * 后端依赖:
+     *   API: GET /api/v4/console/customer-service/gm-tools/templates
+     *   存储: system_configs 表 config_key='cs_reply_templates'
+     *
+     * 当后端接口就绪后，应在 initChatWorkspace() 中调用API加载模板，
+     * 替换此硬编码数据。
+     *
+     * @todo 后端接口就绪后改为: await API.getQuickReplyTemplates()
+     */
     quickReplies: [
       { id: 1, title: '欢迎', content: '您好！很高兴为您服务，请问有什么可以帮助您的吗？' },
       { id: 2, title: '稍等', content: '好的，请您稍等片刻，我来为您查询处理。' },
@@ -289,6 +300,15 @@ Page({
         this.handleSessionClosed(data)
         break
 
+      /**
+       * 会话状态变更通知（后端: session_id, status, admin_name?, ...）
+       * 多管理员场景: 一个管理员接单后，其他管理员收到此事件刷新会话列表状态
+       * 场景: waiting→assigned / assigned→active / →closed
+       */
+      case 'session_update':
+        this.handleSessionUpdate(data)
+        break
+
       default:
         log.info('管理员端未处理的消息类型:', eventName)
     }
@@ -412,6 +432,34 @@ Page({
         chatExpanded: false
       })
     }
+    this.refreshSessions()
+  },
+
+  /**
+   * 处理 session_update 事件（多管理员会话状态同步）
+   *
+   * 后端推送场景:
+   *   - 管理员A接单: waiting → assigned（其他管理员的会话列表同步更新状态标签）
+   *   - 管理员A开始处理: assigned → active
+   *   - 管理员A关闭会话: → closed
+   *
+   * 当前坐席数=1无实际影响，坐席扩展至2+时此事件保证多管理员视图一致
+   *
+   * @param data - { session_id | customer_service_session_id, status, admin_name?, ... }
+   */
+  handleSessionUpdate(updateData: any) {
+    const targetSessionId = updateData.session_id || updateData.customer_service_session_id
+    const newStatus = updateData.status
+    log.info('会话状态变更:', targetSessionId, '→', newStatus)
+
+    if (targetSessionId === this.data.currentSessionId && newStatus === 'closed') {
+      this.setData({
+        currentSessionId: null,
+        currentMessages: [] as API.ChatMessage[],
+        chatExpanded: false
+      })
+    }
+
     this.refreshSessions()
   },
 

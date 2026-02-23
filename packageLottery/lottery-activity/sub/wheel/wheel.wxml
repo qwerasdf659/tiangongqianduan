@@ -19,13 +19,14 @@
     >
       <!-- 奖品文字（极坐标定位） -->
       <view
-        class="wheel-prize"
+        class="wheel-prize {{item.is_sold_out ? 'wheel-prize--sold-out' : ''}} {{item.is_fallback ? 'wheel-prize--fallback' : ''}}"
         wx:for="{{prizes}}"
         wx:key="prize_id"
         style="{{prizePositions[index]}}"
       >
         <text class="wheel-prize__icon">{{item.prize_icon || '🎁'}}</text>
-        <text class="wheel-prize__name">{{item.prize_name || '奖品'}}</text>
+        <text class="wheel-prize__name">{{item.is_sold_out ? '已抢光' : (item.prize_name || '奖品')}}</text>
+        <text wx:if="{{item.is_fallback}}" class="wheel-prize__badge">保底</text>
       </view>
     </view>
 

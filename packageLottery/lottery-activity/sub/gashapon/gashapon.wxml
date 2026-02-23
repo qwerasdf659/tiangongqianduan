@@ -81,4 +81,29 @@
     <view class="tip-arrow">👆</view>
     <text class="tip-text">点击红色手柄开始抽奖</text>
   </view>
+
+
+  <!-- 奖品池预览（is_fallback / is_sold_out 视觉指示） -->
+  <view class="gp-prizes" wx:if="{{prizes.length > 0}}">
+    <view class="gp-prizes__header">
+      <view class="gp-prizes__title-wrap">
+        <text class="gp-prizes__dot"></text>
+        <text class="gp-prizes__title">扭蛋奖品</text>
+        <text class="gp-prizes__dot"></text>
+      </view>
+      <text class="gp-prizes__count">{{prizes.length}}种奖品</text>
+    </view>
+    <scroll-view class="gp-prizes__scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="gp-prizes__list">
+        <view class="gp-prizes__item {{item.is_fallback ? 'gp-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'gp-prizes__item--sold-out' : ''}}" wx:for="{{prizes}}" wx:key="prize_id">
+          <view class="gp-prizes__icon-wrap">
+            <text class="gp-prizes__icon">{{item.prize_icon}}</text>
+            <text wx:if="{{item.is_sold_out}}" class="gp-prizes__sold-out">抢光</text>
+          </view>
+          <text class="gp-prizes__name">{{item.prize_name}}</text>
+          <text wx:if="{{item.is_fallback}}" class="gp-prizes__fallback-tag">保底</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
 </view>

@@ -847,6 +847,7 @@
   background: rgba(255, 255, 255, 0.15);
   @include flex-center;
   transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 }
 
@@ -976,6 +977,7 @@
   background: rgba(255, 255, 255, 0.15);
   @include flex-center;
   transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 }
 
@@ -1504,6 +1506,7 @@
   left: 0;
   right: 0;
   background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
   border-top: 1rpx solid rgba(0, 0, 0, 0.05);
   padding: 16rpx 0;

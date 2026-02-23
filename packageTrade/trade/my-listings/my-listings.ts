@@ -38,9 +38,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   admin_withdrawn: { label: '管理员撤回', color: '#ff4d4f' }
 }
 
-/** 挂单类型对应的中文（纯前端UI常量） */
+/** 挂单类型对应的中文（纯前端UI常量，三表模型迁移后 item_instance → item） */
 const LISTING_KIND_LABEL: Record<string, string> = {
-  item_instance: '物品',
+  item: '物品',
   fungible_asset: '资产'
 }
 
@@ -206,7 +206,7 @@ Page({
 
           return {
             market_listing_id: item.market_listing_id,
-            listing_kind: item.listing_kind || 'item_instance',
+            listing_kind: item.listing_kind || 'item',
             display_name: displayName,
             offer_item_rarity: item.offer_item_rarity || '',
             offer_asset_code: item.offer_asset_code || '',
@@ -354,7 +354,7 @@ Page({
   },
 
   /**
-   * 查看担保码（卖方查看，仅 item_instance + locked 状态）
+   * 查看担保码（卖方查看，仅 item + locked 状态）
    * GET /api/v4/market/trade-orders/:trade_order_id/escrow-code
    *
    * ⚠️ 需要后端 Phase 4 EscrowCodeService 实施完成后才可调用

@@ -122,6 +122,7 @@
   background: rgba(255, 255, 255, 0.15);
   padding: 6rpx 12rpx;
   border-radius: 12rpx;
+  -webkit-backdrop-filter: blur(5rpx);
   backdrop-filter: blur(5rpx);
 }
 
@@ -215,6 +216,7 @@
   border-radius: 20rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 }
 

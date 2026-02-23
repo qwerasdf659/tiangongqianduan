@@ -205,12 +205,12 @@ const DEFAULT_EXCHANGE_CONFIG: ExchangePageConfig = {
   market_filters: {
     type_filters: [
       { value: 'all', label: '全部', showCount: true },
-      { value: 'item_instance', label: '物品', showCount: false },
+      { value: 'item', label: '物品', showCount: false },
       { value: 'fungible_asset', label: '资产', showCount: false }
     ],
     category_filters: [
       { value: 'all', label: '全部' },
-      { value: 'item_instance', label: '物品实例' },
+      { value: 'item', label: '物品' },
       { value: 'fungible_asset', label: '可叠加资产' }
     ],
     sort_options: [

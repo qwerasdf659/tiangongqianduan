@@ -48,6 +48,7 @@
   padding: 6rpx 12rpx;
   border-radius: $border-radius-md;
   background: rgba(255, 255, 255, 0.25);
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 }
 
@@ -55,6 +56,7 @@
   font-size: 22rpx;
   padding: 6rpx 12rpx;
   border-radius: $border-radius-md;
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 }
 
@@ -497,6 +499,7 @@
   word-wrap: break-word;
   position: relative;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 }
 

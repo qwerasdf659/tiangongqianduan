@@ -226,6 +226,7 @@
   @include flex-center;
   position: relative;
   overflow: hidden;
+  -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
   /* 毛玻璃效果，与页面整体风格保持一致 */
   border: 1rpx solid rgba(200, 215, 255, 0.5);
