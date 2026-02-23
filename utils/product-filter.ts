@@ -208,5 +208,3 @@ function applyProductFilters(products: any[], options: FilterOptions = {}): Filt
 module.exports = {
   applyProductFilters
 }
-
-export {}

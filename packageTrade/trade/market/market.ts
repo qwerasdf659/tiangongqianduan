@@ -16,7 +16,7 @@
  *   - C2C交易市场不支持用户上传图片
  *
  * @file packageTrade/trade/market/market.ts
- * @version 5.3.0
+ * @version 5.2.0
  * @since 2026-02-22
  */
 
@@ -242,5 +242,3 @@ Page({
     wx.pageScrollTo({ scrollTop: 0, duration: 300 })
   }
 })
-
-export {}

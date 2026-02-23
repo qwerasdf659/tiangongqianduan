@@ -16,7 +16,7 @@
  *    外部页面统一从 utils/index.ts 导入 ExchangeConfigCache
  *
  * @file utils/exchange-config-cache.ts
- * @version 5.3.0
+ * @version 5.2.0
  * @since 2026-02-20
  */
 
@@ -438,5 +438,3 @@ module.exports = {
   ExchangeConfigCache,
   DEFAULT_EXCHANGE_CONFIG
 }
-
-export {}

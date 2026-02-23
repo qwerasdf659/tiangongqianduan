@@ -17,13 +17,13 @@
  * 决策D13: 使用 hidden 替代 wx:if，保留组件状态
  *
  * @file pages/exchange/exchange.ts
- * @version 6.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
 const app = getApp()
 
-const { Utils, API, Logger, ExchangeConfig } = require('../../utils/index')
+const { Utils, Logger, ExchangeConfig } = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { checkAuth } = Utils
 
@@ -78,12 +78,12 @@ Page({
   async onLoad(_options: any) {
     log.info('兑换页面加载')
 
-    this.userBindings = createStoreBindings(this, {
+    this.userStoreBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn'],
       actions: []
     })
-    this.pointsBindings = createStoreBindings(this, {
+    this.pointsStoreBindings = createStoreBindings(this, {
       store: pointsStore,
       fields: { pointsBalance: () => pointsStore.availableAmount },
       actions: ['setBalance']
@@ -107,19 +107,12 @@ Page({
       return
     }
 
-    let localUserInfo = userStore.userInfo
-    if (!localUserInfo || !localUserInfo.user_id) {
-      log.warn('userStore.userInfo缺失，尝试从Storage恢复')
-      localUserInfo = wx.getStorageSync('user_info')
-      if (localUserInfo && localUserInfo.user_id) {
-        userStore.updateUserInfo(localUserInfo)
-      }
-    }
+    const localUserInfo = userStore.ensureUserInfo()
 
-    if (localUserInfo && localUserInfo.user_id) {
+    if (localUserInfo) {
       await this._refreshPointsBalance(localUserInfo)
     } else {
-      this.setData({ userInfo: localUserInfo || {}, totalPoints: 0 })
+      this.setData({ userInfo: {}, totalPoints: 0 })
     }
 
     this._connectWebSocket()
@@ -134,11 +127,11 @@ Page({
   /** 页面卸载 */
   onUnload() {
     log.info('兑换页面卸载')
-    if ((this as any).userBindings) {
-      ;(this as any).userBindings.destroyStoreBindings()
+    if ((this as any).userStoreBindings) {
+      ;(this as any).userStoreBindings.destroyStoreBindings()
     }
-    if ((this as any).pointsBindings) {
-      ;(this as any).pointsBindings.destroyStoreBindings()
+    if ((this as any).pointsStoreBindings) {
+      ;(this as any).pointsStoreBindings.destroyStoreBindings()
     }
     this._disconnectWebSocket()
   },
@@ -184,23 +177,14 @@ Page({
     }
   },
 
-  /** 从后端 API 获取最新积分余额 */
+  /** 从后端 API 获取最新积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑） */
   async _refreshPointsBalance(localUserInfo: any) {
     try {
-      const balanceResult = await API.getPointsBalance()
-      if (balanceResult && balanceResult.success && balanceResult.data) {
-        const points = balanceResult.data.available_amount || 0
-        const frozen = balanceResult.data.frozen_amount || 0
-        pointsStore.setBalance(points, frozen)
-        this.setData({ userInfo: localUserInfo, totalPoints: points, frozenPoints: frozen })
-      } else {
-        const storePoints = pointsStore.availableAmount || 0
-        this.setData({ userInfo: localUserInfo, totalPoints: storePoints })
-      }
+      const { available, frozen } = await pointsStore.refreshFromAPI()
+      this.setData({ userInfo: localUserInfo, totalPoints: available, frozenPoints: frozen })
     } catch (error) {
       log.error('获取积分余额异常:', error)
-      const storePoints = pointsStore.availableAmount || 0
-      this.setData({ userInfo: localUserInfo, totalPoints: storePoints })
+      this.setData({ userInfo: localUserInfo, totalPoints: pointsStore.availableAmount || 0 })
     }
   },
 
@@ -324,5 +308,3 @@ Page({
     }
   }
 })
-
-export {}

@@ -14,7 +14,7 @@
  *   - on:   new_message / message_sent / message_error / session_closed / user_typing
  *
  * @file packageUser/chat/chat-message-handlers.ts
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-16
  */
 
@@ -123,31 +123,18 @@ const chatMessageHandlers = {
     }
   },
 
-  /** 格式化消息时间（智能时间显示） */
+  /**
+   * 格式化消息时间（统一委托 Utils.formatDateMessage，消除重复逻辑）
+   * Utils.formatDateMessage 已包含完整的智能时间显示规则：
+   *   <60秒"刚刚"、<60分"N分钟前"、<24小时"N小时前"、昨天、本周、本年、跨年
+   */
   formatMessageTime(timeString: string) {
     try {
       const messageTime = new Date(timeString)
-      const now = new Date()
-      const diffMinutes = Math.floor((now.getTime() - messageTime.getTime()) / (1000 * 60))
-
-      if (diffMinutes < 1) {
-        return '刚刚'
+      if (isNaN(messageTime.getTime())) {
+        return ''
       }
-      if (diffMinutes < 60) {
-        return `${diffMinutes}分钟前`
-      }
-
-      const diffHours = Math.floor(diffMinutes / 60)
-      if (diffHours < 24) {
-        return `${diffHours}小时前`
-      }
-
-      const diffDays = Math.floor(diffHours / 24)
-      if (diffDays < 7) {
-        return `${diffDays}天前`
-      }
-
-      return messageTime.toLocaleDateString()
+      return Utils.formatDateMessage(messageTime.getTime())
     } catch (error) {
       msgLog.warn('时间格式化失败', error)
       return ''
@@ -309,6 +296,26 @@ const chatMessageHandlers = {
 
       case 'session_status':
         this.updateSessionStatus(data)
+        break
+
+      /**
+       * 满意度评分邀请（后端 session_closed → 自动推送）
+       * 后端事件: satisfaction_request { session_id }
+       * 触发: 客服关闭会话时 / 管理端手动点击[请求评分]按钮
+       * 前端: 在聊天页底部渲染内嵌评分卡片（非弹窗，不阻断操作）
+       */
+      case 'satisfaction_request':
+        msgLog.info('收到满意度评分邀请:', data)
+        this.handleSatisfactionRequest(data)
+        break
+
+      /**
+       * 会话状态变更通知（后端: session_id, status, ...）
+       * 场景: 客服接单(waiting→assigned) / 开始处理(assigned→active) / 关闭(→closed)
+       */
+      case 'session_update':
+        msgLog.info('会话状态变更:', data)
+        this.handleSessionUpdate(data)
         break
 
       default:
@@ -1016,9 +1023,127 @@ const chatMessageHandlers = {
     setTimeout(() => {
       this.sendMessage()
     }, 100)
+  },
+
+  // ============================================================================
+  // 满意度评分（M1 — 内嵌评分卡片，非弹窗）
+  // ============================================================================
+
+  /**
+   * 处理满意度评分邀请（后端推送 satisfaction_request 事件）
+   *
+   * 触发场景:
+   *   1. 客服关闭会话 → 后端自动推送 satisfaction_request
+   *   2. 管理端手动点击 [请求评分] 按钮
+   *
+   * 前端行为: 显示内嵌评分卡片，24小时未评分保持 NULL
+   *
+   * @param data - { session_id } 后端推送的数据
+   */
+  handleSatisfactionRequest(data: any) {
+    const targetSessionId = data.session_id || data.customer_service_session_id
+    const currentSessionId = Number(this.data.sessionId)
+
+    if (targetSessionId && Number(targetSessionId) === currentSessionId) {
+      this.setData({
+        showSatisfactionCard: true,
+        satisfactionSessionId: targetSessionId,
+        satisfactionScore: 0,
+        satisfactionSubmitted: false
+      })
+      msgLog.info('显示满意度评分卡片，会话ID:', targetSessionId)
+    }
+  },
+
+  /**
+   * 用户选择评分星级（1-5星）
+   * @param e - 点击事件，通过 data-score 获取选择的星级
+   */
+  onSelectSatisfactionScore(e: WechatMiniprogram.BaseEvent) {
+    const selectedScore = Number(e.currentTarget.dataset.score)
+    if (selectedScore >= 1 && selectedScore <= 5) {
+      this.setData({ satisfactionScore: selectedScore })
+    }
+  },
+
+  /**
+   * 提交满意度评分
+   * 后端API: POST /api/v4/system/chat/sessions/:id/rate
+   * 请求体: { score: 1-5 }
+   */
+  async submitSatisfaction() {
+    const targetScore = this.data.satisfactionScore
+    const targetSessionId = this.data.satisfactionSessionId
+
+    if (!targetScore || targetScore < 1 || targetScore > 5) {
+      msgShowToast('请先选择评分')
+      return
+    }
+
+    if (!targetSessionId) {
+      msgShowToast('会话信息异常')
+      return
+    }
+
+    try {
+      const rateResult = await API.rateSession(Number(targetSessionId), targetScore)
+
+      if (rateResult.success) {
+        this.setData({
+          satisfactionSubmitted: true,
+          showSatisfactionCard: false
+        })
+        msgShowToast('感谢您的评价')
+        msgLog.info('满意度评分提交成功:', targetScore)
+      } else {
+        msgShowToast(rateResult.message || '评分提交失败')
+      }
+    } catch (error: any) {
+      msgLog.error('满意度评分提交失败:', error)
+      msgShowToast(error.message || '评分提交失败，请稍后重试')
+    }
+  },
+
+  /** 关闭满意度评分卡片（用户选择不评分） */
+  dismissSatisfaction() {
+    this.setData({ showSatisfactionCard: false })
+    msgLog.info('用户关闭评分卡片，评分保持NULL')
+  },
+
+  // ============================================================================
+  // 会话状态变更（M4 — WebSocket事件对齐）
+  // ============================================================================
+
+  /**
+   * 处理 session_update 事件（后端推送会话状态变更）
+   *
+   * 场景:
+   *   - 客服接单: waiting → assigned（显示"客服已接单"提示）
+   *   - 开始处理: assigned → active（显示"客服正在处理"提示）
+   *   - 关闭会话: → closed（触发满意度评分）
+   *
+   * @param data - { session_id, status, admin_name?, ... }
+   */
+  handleSessionUpdate(data: any) {
+    const targetSessionId = data.session_id || data.customer_service_session_id
+    const currentSessionId = Number(this.data.sessionId)
+
+    if (targetSessionId && Number(targetSessionId) === currentSessionId) {
+      const newStatus = data.status
+      this.setData({ sessionStatus: newStatus })
+
+      if (newStatus === 'assigned') {
+        msgShowToast('客服已接单')
+      } else if (newStatus === 'active') {
+        msgShowToast('客服正在处理')
+      } else if (newStatus === 'closed') {
+        this.loadSessionData()
+      }
+    }
+
+    /* 刷新会话列表以同步最新状态 */
+    this.loadSessionData()
   }
 }
 
 module.exports = chatMessageHandlers
-
-export {}

@@ -110,5 +110,3 @@ module.exports = {
   ApiWrapper,
   ImageHelper
 }
-
-export {}

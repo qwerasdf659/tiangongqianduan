@@ -4,12 +4,19 @@
  * 兑换路由: routes/v4/backpack/exchange/（用户域）
  * 竞价路由: routes/v4/backpack/bid/（用户域）
  *
- * 数据库表: exchange_items / exchange_records / bid_products / bid_records
- *           item_instances / account_asset_balances
+ * 数据库表: items / item_ledger / item_holds（三表模型，2026-02-22 迁移完成）
+ *           exchange_items / exchange_records / bid_products / bid_records
+ *           account_asset_balances
+ *
+ * 三表模型迁移说明:
+ *   旧表 item_instances → 新表 items（独立一等实体）
+ *   旧表 item_instance_events → 新表 item_ledger（双录账本，唯一真相）
+ *   旧字段 item_instance_id → 新字段 item_id
+ *   旧字段 meta.name → 正式列 item_name
  *
  * @file 天工餐厅积分系统 - 背包与兑换与竞价API模块
- * @version 5.2.0
- * @since 2026-02-16
+ * @version 5.3.0
+ * @since 2026-02-23
  */
 
 const { apiClient } = require('./client')
@@ -21,9 +28,9 @@ const { buildQueryString } = require('../util')
  * 获取用户背包 双轨结构 assets[] + items[]
  * GET /api/v4/backpack/
  *
- * 响应: { assets: AssetBalance[], items: ItemInstance[] }
+ * 响应: { assets: BackpackAsset[], items: BackpackItem[] }
  * assets 来源: account_asset_balances JOIN material_asset_types
- * items 来源: item_instances (status='available') LEFT JOIN item_templates
+ * items 来源: items 表 (status='available')，三表模型迁移后不再使用 item_instances
  */
 async function getUserInventory() {
   return apiClient.request('/backpack', { method: 'GET', needAuth: true })
@@ -607,5 +614,3 @@ module.exports = {
   placeBid,
   getBidHistory
 }
-
-export {}

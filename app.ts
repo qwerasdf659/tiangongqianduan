@@ -81,13 +81,13 @@ App({
       business_types: ['lottery', 'exchange', 'trade', 'uploads']
     },
 
-    /** 弹窗横幅会话级已展示ID集合（每次冷启动重置，用于 once_per_session 规则） */
-    sessionSeenPopups: new Set<number>()
+    /** 内容投放会话级已展示ID集合（每次冷启动重置，用于 once_per_session 规则，key为ad_campaign_id） */
+    sessionSeenCampaigns: new Set<number>()
   },
 
   /** 应用启动初始化 */
   async onLaunch(options: WechatMiniprogram.App.LaunchShowOption): Promise<void> {
-    log.info('餐厅积分抽奖系统v5.0启动中...')
+    log.info('餐厅积分抽奖系统v5.2.0启动中...')
     log.info('启动参数:', options)
 
     try {
@@ -134,9 +134,18 @@ App({
    * 恢复成功后通过 userStore.setLoginState() 将数据同步到 Store，
    * 此后所有业务代码统一从 Store 读取，不再直接访问 Storage。
    */
+  /**
+   * 检查用户认证状态（应用启动初始化阶段）
+   *
+   * Token 校验优化：合并两个分支（有/无 userInfo）为单一流程，
+   * 复用首次完整性验证结果，避免重复校验（从4次减少到1次）。
+   *
+   * 流程:
+   *   Storage读取Token → 完整性校验(1次) → 过期检查(复用Payload) →
+   *   无userInfo时从JWT恢复 → Store恢复 → 服务端验证
+   */
   async checkAuthStatus(): Promise<void> {
     try {
-      // 应用启动恢复：从 Storage 读取上次会话的Token和用户信息（token用let因刷新后需更新）
       let token: string = wx.getStorageSync('access_token')
       let userInfo: API.UserProfile | null = wx.getStorageSync('user_info') || null
 
@@ -146,217 +155,125 @@ App({
         tokenLength: token ? token.length : 0
       })
 
-      // 有token但没有userInfo，从JWT Token中解析恢复
-      if (token && !userInfo) {
-        log.info('检测到Token存在但userInfo缺失，尝试从JWT Token中恢复...')
-        const { Utils, API: AuthAPI } = require('./utils/index')
-        const { decodeJWTPayload, validateJWTTokenIntegrity, isTokenExpired } = Utils
+      if (!token) {
+        log.info('未找到Token，跳过认证恢复')
+        return
+      }
 
-        const integrityCheck = validateJWTTokenIntegrity(token)
-        if (!integrityCheck.isValid) {
-          log.error('Token完整性验证失败，需要重新登录')
-          this.clearAuthData()
-          return
-        }
+      const { Utils } = require('./utils/index')
+      const { decodeJWTPayload, validateJWTTokenIntegrity, mapJWTPayloadToUserProfile } = Utils
 
-        /**
-         * Token过期时尝试自动刷新（而非直接清除）
-         * 正确启动流程: 过期 → refresh → 成功则继续 → 失败则重新登录
-         */
-        if (isTokenExpired(token)) {
-          log.warn('Token已过期，尝试自动刷新...')
-          const refreshToken: string = wx.getStorageSync('refresh_token') || ''
-          if (refreshToken) {
-            try {
-              const refreshResult = await AuthAPI.refreshAccessToken(refreshToken, token)
-              if (refreshResult.success && refreshResult.data) {
-                token = refreshResult.data.access_token
-                const newRefreshToken: string = refreshResult.data.refresh_token || refreshToken
-                wx.setStorageSync('access_token', token)
-                wx.setStorageSync('refresh_token', newRefreshToken)
-                log.info('启动时Token刷新成功（无userInfo场景）')
-              } else {
-                log.warn('Token刷新响应异常，需要重新登录')
+      // 统一完整性校验（仅此一次，后续不再重复调用 validateJWTTokenIntegrity）
+      const integrityCheck = validateJWTTokenIntegrity(token)
+      if (!integrityCheck.isValid) {
+        log.error('Token完整性验证失败:', integrityCheck.error)
+        if (integrityCheck.error && integrityCheck.error.includes('截断')) {
+          wx.showModal({
+            title: '认证令牌异常',
+            content: `检测到认证令牌传输异常。\n\n问题：${integrityCheck.error}\n\n请重新登录。`,
+            showCancel: true,
+            cancelText: '稍后处理',
+            confirmText: '立即修复',
+            success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
+              if (res.confirm) {
                 this.clearAuthData()
-                return
+                wx.redirectTo({ url: '/packageUser/auth/auth' })
               }
-            } catch (refreshError: any) {
-              log.error('启动时Token刷新失败:', refreshError.message)
-              this.clearAuthData()
-              return
             }
-          } else {
-            log.warn('无refresh_token，需要重新登录')
-            this.clearAuthData()
+          })
+        } else {
+          this.clearAuthData()
+        }
+        return
+      }
+
+      /**
+       * 解码JWT Payload（decodeJWTPayload内部会再次校验完整性，
+       * 但因token已通过上方校验，此处主要是Base64解码+JSON解析）
+       */
+      const jwtPayload = decodeJWTPayload(token)
+
+      // 过期检查（直接使用已解码的payload.exp，避免重复解码）
+      if (jwtPayload && jwtPayload.exp) {
+        const isExpired = Math.floor(Date.now() / 1000) >= jwtPayload.exp
+        if (isExpired) {
+          log.warn('Token已过期，尝试自动刷新...')
+          const refreshedToken = await this._tryRefreshToken(token)
+          if (!refreshedToken) {
             return
           }
-        }
-
-        try {
-          const jwtPayload = decodeJWTPayload(token)
-          if (jwtPayload) {
-            userInfo = {
-              user_id: jwtPayload.user_id,
-              mobile: jwtPayload.mobile,
-              nickname: jwtPayload.nickname || '用户',
-              status: jwtPayload.status,
-              user_role: jwtPayload.user_role || 'user',
-              role_level: jwtPayload.role_level || 0,
-              created_at: jwtPayload.created_at || '',
-              roles: jwtPayload.roles || [],
-              consecutive_fail_count: jwtPayload.consecutive_fail_count || 0,
-              history_total_points: jwtPayload.history_total_points || 0,
-              last_login: jwtPayload.last_login || '',
-              login_count: jwtPayload.login_count || 0
-            } as API.UserProfile
-
-            wx.setStorageSync('user_info', userInfo)
-            log.info('从JWT Token恢复userInfo成功')
-          }
-        } catch (decodeError) {
-          log.error('JWT Token解析失败:', decodeError)
-          this.clearAuthData()
-          return
+          token = refreshedToken
         }
       }
 
-      if (token && userInfo) {
-        const { Utils } = require('./utils/index')
-        const { validateJWTTokenIntegrity, isTokenExpired } = Utils
-
-        // 完整性验证
-        const integrityCheck = validateJWTTokenIntegrity(token)
-        if (!integrityCheck.isValid) {
-          log.error(' 检测到Token完整性问题', integrityCheck.error)
-          if (integrityCheck.error.includes('截断')) {
-            wx.showModal({
-              title: '认证令牌异常',
-              content: `检测到认证令牌传输异常。\n\n问题：${integrityCheck.error}\n\n请重新登录。`,
-              showCancel: true,
-              cancelText: '稍后处理',
-              confirmText: '立即修复',
-              success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
-                if (res.confirm) {
-                  this.clearAuthData()
-                  wx.redirectTo({ url: '/packageUser/auth/auth' })
-                }
-              }
-            })
-            return
-          } else {
-            log.warn('Token格式问题，自动清除')
-            this.clearAuthData()
-            return
-          }
-        }
-
-        /**
-         * Token过期时尝试自动刷新（而非直接清除）
-         * 正确启动流程: 过期 → refresh → 成功则继续 → 失败则重新登录
-         */
-        if (isTokenExpired(token)) {
-          log.warn('Token已过期，尝试自动刷新...')
-          const refreshTokenStr: string = wx.getStorageSync('refresh_token') || ''
-          if (refreshTokenStr) {
-            try {
-              const { API: RefreshAPI } = require('./utils/index')
-              const refreshResult = await RefreshAPI.refreshAccessToken(refreshTokenStr, token)
-              if (refreshResult.success && refreshResult.data) {
-                token = refreshResult.data.access_token
-                const newRefreshToken: string = refreshResult.data.refresh_token || refreshTokenStr
-                wx.setStorageSync('access_token', token)
-                wx.setStorageSync('refresh_token', newRefreshToken)
-                log.info('启动时Token刷新成功')
-              } else {
-                log.warn('Token刷新响应异常，需要重新登录')
-                this.clearAuthData()
-                return
-              }
-            } catch (refreshError: any) {
-              log.error('启动时Token刷新失败:', refreshError.message)
-              this.clearAuthData()
-              return
-            }
-          } else {
-            log.warn('无refresh_token，需要重新登录')
-            this.clearAuthData()
-            return
-          }
-        }
-
-        log.info('Token本地健康检查通过')
-
-        // 恢复认证状态到 MobX Store（唯一数据源）
-        const refreshToken: string = wx.getStorageSync('refresh_token') || ''
-        userStore.setLoginState(userInfo, token, refreshToken)
-        // 积分余额应从 GET /api/v4/assets/balance 获取，不依赖 userInfo
-        // 此处仅恢复为0，后续页面加载时会从后端刷新真实余额
-        pointsStore.setBalance(0, 0)
-
-        log.info('用户认证状态恢复成功', {
-          user_id: userInfo.user_id,
-          mobile: userInfo.mobile,
-          role_level: userInfo.role_level,
-          userRole: userStore.userRole
-        })
-
-        /**
-         * 服务端认证会话验证：确认 authentication_sessions.is_active = true
-         *
-         * 本地 JWT 有效 ≠ 服务端会话有效（同平台新登录会使旧会话 is_active=false）
-         * 后端采用方案B平台隔离（user_id + login_platform），Web登录不会影响小程序会话，
-         * 仅同平台（如另一台手机的微信小程序）新登录才会替换当前会话。
-         * 此处调用 GET /api/v4/auth/verify 做服务端确认，失败时静默清理而非自动重新登录，
-         * 避免触发新的登录请求导致同平台其他设备的会话被连锁失效
-         */
-        try {
-          const { API: AuthAPI } = require('./utils/index')
-          const verifyResult = await AuthAPI.verifyToken()
-          if (verifyResult && verifyResult.success) {
-            log.info('服务端认证会话验证通过')
-          }
-        } catch (verifyError: any) {
-          const errorCode: string = verifyError.code || ''
-          log.warn('服务端认证会话验证失败:', errorCode, verifyError.message)
-
-          /**
-           * 认证失败错误码分类处理（对齐后端 middleware/auth.js）
-           *
-           * SESSION_REPLACED  → 同平台其他设备登录，当前会话被替换（方案B平台隔离：跨平台不互踢）
-           * SESSION_EXPIRED   → 会话超时（7天未使用），APIClient 会自动尝试刷新
-           * SESSION_NOT_FOUND → 会话记录被清理任务删除
-           * TOKEN_EXPIRED     → JWT过期，APIClient 会自动尝试刷新
-           * MISSING_TOKEN     → 请求未携带 Authorization 头
-           * INVALID_TOKEN     → Token格式错误或签名无效
-           *
-           * TOKEN_EXPIRED 和 SESSION_EXPIRED 在 APIClient.handleResponse 中
-           * 已自动触发 handleTokenExpired 尝试刷新，如果刷新也失败才会走到这里
-           */
-          const authErrorCodes: string[] = [
-            'SESSION_REPLACED',
-            'SESSION_EXPIRED',
-            'SESSION_NOT_FOUND',
-            'TOKEN_EXPIRED',
-            'MISSING_TOKEN',
-            'INVALID_TOKEN'
-          ]
-
-          if (authErrorCodes.includes(errorCode)) {
-            log.warn('认证会话已失效，清理本地认证数据', { errorCode })
-            this.clearAuthData()
-            return
-          }
-          // 网络错误等非认证失败场景：保留本地状态，不阻断用户使用
-          log.info('服务端验证异常但非认证问题，保留本地认证状态')
-        }
-
-        this.logTokenUsage('restore_success', {
-          tokenLength: token.length,
-          userType: userStore.userRole
-        })
-      } else {
-        log.info('没有存储的认证信息')
+      // 无userInfo时从JWT Payload恢复临时用户信息
+      if (!userInfo && jwtPayload) {
+        log.info('检测到Token存在但userInfo缺失，从JWT Token中恢复')
+        userInfo = mapJWTPayloadToUserProfile(jwtPayload) as API.UserProfile
+        wx.setStorageSync('user_info', userInfo)
+        log.info('从JWT Token恢复userInfo成功')
       }
+
+      if (!userInfo) {
+        log.warn('无法恢复用户信息，清除认证数据')
+        this.clearAuthData()
+        return
+      }
+
+      log.info('Token本地健康检查通过')
+
+      // 恢复认证状态到 MobX Store（唯一数据源）
+      const refreshToken: string = wx.getStorageSync('refresh_token') || ''
+      userStore.setLoginState(userInfo, token, refreshToken)
+      pointsStore.setBalance(0, 0)
+
+      log.info('用户认证状态恢复成功', {
+        user_id: userInfo.user_id,
+        mobile: userInfo.mobile,
+        role_level: userInfo.role_level,
+        userRole: userStore.userRole
+      })
+
+      /**
+       * 服务端认证会话验证：确认 authentication_sessions.is_active = true
+       *
+       * 本地 JWT 有效 ≠ 服务端会话有效（同平台新登录会使旧会话 is_active=false）
+       * 后端采用方案B平台隔离（user_id + login_platform），Web登录不会影响小程序会话，
+       * 仅同平台（如另一台手机的微信小程序）新登录才会替换当前会话。
+       * 此处调用 GET /api/v4/auth/verify 做服务端确认，失败时静默清理而非自动重新登录，
+       * 避免触发新的登录请求导致同平台其他设备的会话被连锁失效
+       */
+      try {
+        const { API: AuthAPI } = require('./utils/index')
+        const verifyResult = await AuthAPI.verifyToken()
+        if (verifyResult && verifyResult.success) {
+          log.info('服务端认证会话验证通过')
+        }
+      } catch (verifyError: any) {
+        const errorCode: string = verifyError.code || ''
+        log.warn('服务端认证会话验证失败:', errorCode, verifyError.message)
+
+        const authErrorCodes: string[] = [
+          'SESSION_REPLACED',
+          'SESSION_EXPIRED',
+          'SESSION_NOT_FOUND',
+          'TOKEN_EXPIRED',
+          'MISSING_TOKEN',
+          'INVALID_TOKEN'
+        ]
+
+        if (authErrorCodes.includes(errorCode)) {
+          log.warn('认证会话已失效，清理本地认证数据', { errorCode })
+          this.clearAuthData()
+          return
+        }
+        log.info('服务端验证异常但非认证问题，保留本地认证状态')
+      }
+
+      this.logTokenUsage('restore_success', {
+        tokenLength: token.length,
+        userType: userStore.userRole
+      })
     } catch (error: any) {
       log.info('认证状态恢复失败', error.message)
       this.logTokenUsage('restore_error', { error: error.message })
@@ -399,6 +316,38 @@ App({
         wx.reLaunch({ url: '/pages/lottery/lottery' })
       }
     })
+  },
+
+  /**
+   * 尝试用 refresh_token 刷新 access_token（内部方法）
+   * 成功时更新 Storage 并返回新 access_token；失败时清理认证数据并返回 null
+   */
+  async _tryRefreshToken(expiredToken: string): Promise<string | null> {
+    const refreshTokenStr: string = wx.getStorageSync('refresh_token') || ''
+    if (!refreshTokenStr) {
+      log.warn('无refresh_token，需要重新登录')
+      this.clearAuthData()
+      return null
+    }
+    try {
+      const { API: RefreshAPI } = require('./utils/index')
+      const refreshResult = await RefreshAPI.refreshAccessToken(refreshTokenStr, expiredToken)
+      if (refreshResult.success && refreshResult.data) {
+        const newAccessToken: string = refreshResult.data.access_token
+        const newRefreshToken: string = refreshResult.data.refresh_token || refreshTokenStr
+        wx.setStorageSync('access_token', newAccessToken)
+        wx.setStorageSync('refresh_token', newRefreshToken)
+        log.info('启动时Token刷新成功')
+        return newAccessToken
+      }
+      log.warn('Token刷新响应异常，需要重新登录')
+      this.clearAuthData()
+      return null
+    } catch (refreshError: any) {
+      log.error('启动时Token刷新失败:', refreshError.message)
+      this.clearAuthData()
+      return null
+    }
   },
 
   /** 应用显示时触发 */
@@ -753,5 +702,3 @@ App({
     }
   }
 })
-
-export {}

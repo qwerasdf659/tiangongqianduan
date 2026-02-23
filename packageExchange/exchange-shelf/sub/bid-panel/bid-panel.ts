@@ -9,7 +9,7 @@
  *   GET  /api/v4/backpack/bid/history    出价历史
  *
  * @file packageExchange/exchange-shelf/sub/bid-panel/bid-panel.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -440,5 +440,3 @@ Component({
     }
   }
 })
-
-export {}

@@ -111,5 +111,3 @@ module.exports = {
   handleJWTExpired,
   handleError
 }
-
-export {}

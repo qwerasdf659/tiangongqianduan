@@ -11,7 +11,7 @@
  * 资产映射数据统一从 utils/image-helper.ts 获取，避免多处硬编码
  *
  * @file packageExchange/utils/product-display.ts
- * @version 1.1.0
+ * @version 5.2.0
  * @since 2026-02-22
  */
 
@@ -66,5 +66,3 @@ module.exports = {
   formatAssetLabel,
   HOLO_RARITIES
 }
-
-export {}

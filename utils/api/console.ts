@@ -339,5 +339,3 @@ module.exports = {
   updateAdminOnlineStatus,
   getAdminOnlineStatus
 }
-
-export {}

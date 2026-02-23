@@ -384,5 +384,3 @@ module.exports = {
   restoreUserInfo,
   checkTokenValidity
 }
-
-export {}

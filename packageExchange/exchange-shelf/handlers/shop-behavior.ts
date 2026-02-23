@@ -14,7 +14,7 @@
  *   - bid-panel: 竞价出价、倒计时
  *
  * @file packageExchange/exchange-shelf/handlers/shop-behavior.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -208,5 +208,3 @@ module.exports = Behavior({
     }
   }
 })
-
-export {}

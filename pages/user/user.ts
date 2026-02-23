@@ -153,8 +153,8 @@ Page({
   _skipNextShow: false as boolean,
 
   /** MobX Store绑定实例引用 */
-  storeBindings: null as any,
-  pointsBindings: null as any,
+  userStoreBindings: null as any,
+  pointsStoreBindings: null as any,
 
   /**
    * 生命周期函数 - 监听页面加载
@@ -164,12 +164,12 @@ Page({
     log.info('用户中心页面加载')
 
     // MobX Store绑定 - 用户状态和积分余额自动同步
-    this.storeBindings = createStoreBindings(this, {
+    this.userStoreBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn', 'userInfo', 'isAdmin', 'userRole'],
       actions: ['setLoginState', 'clearLoginState', 'updateUserInfo']
     })
-    this.pointsBindings = createStoreBindings(this, {
+    this.pointsStoreBindings = createStoreBindings(this, {
       store: pointsStore,
       fields: {
         totalPoints: () => pointsStore.availableAmount,
@@ -201,11 +201,11 @@ Page({
   /** 页面卸载时销毁Store绑定和定时器，避免内存泄漏 */
   onUnload() {
     this.clearLoadingSafetyTimer()
-    if (this.storeBindings) {
-      this.storeBindings.destroyStoreBindings()
+    if (this.userStoreBindings) {
+      this.userStoreBindings.destroyStoreBindings()
     }
-    if (this.pointsBindings) {
-      this.pointsBindings.destroyStoreBindings()
+    if (this.pointsStoreBindings) {
+      this.pointsStoreBindings.destroyStoreBindings()
     }
   },
 
@@ -376,14 +376,7 @@ Page({
    * 不使用auth-helper.restoreUserInfo()，因为该方法会在未登录时强制跳转登录页
    */
   updateUserStatus() {
-    // 从MobX Store获取用户信息，缺失时从Storage恢复（不跳转登录页）
-    let userInfo = userStore.userInfo
-    if (!userInfo || !userInfo.user_id) {
-      userInfo = wx.getStorageSync('user_info')
-      if (userInfo && userInfo.user_id) {
-        userStore.updateUserInfo(userInfo)
-      }
-    }
+    const userInfo = userStore.ensureUserInfo()
 
     const isLoggedIn = userStore.isLoggedIn && !!userStore.accessToken
 
@@ -431,23 +424,10 @@ Page({
         log.info('用户信息加载成功')
       }
 
-      // 第2步：获取用户积分余额
+      // 第2步：获取用户积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑）
       try {
-        const balanceResult = await API.getPointsBalance()
-
-        if (balanceResult && balanceResult.success && balanceResult.data) {
-          // 后端资产余额API返回字段：available_amount（可用余额）、frozen_amount（冻结余额）
-          const availablePoints = balanceResult.data.available_amount || 0
-          const frozenPoints = balanceResult.data.frozen_amount || 0
-          log.info('积分余额获取成功:', { availablePoints, frozenPoints })
-
-          // 更新MobX Store
-          pointsStore.setBalance(availablePoints, frozenPoints)
-          this.setData({ totalPoints: availablePoints })
-        } else {
-          log.warn('积分余额API返回失败，使用MobX Store缓存值')
-          this.setData({ totalPoints: pointsStore.availableAmount || 0 })
-        }
+        const { available } = await pointsStore.refreshFromAPI()
+        this.setData({ totalPoints: available })
       } catch (pointsError) {
         log.error('获取积分余额异常:', pointsError)
         this.setData({ totalPoints: pointsStore.availableAmount || 0 })
@@ -680,5 +660,3 @@ Page({
     })
   }
 })
-
-export {}

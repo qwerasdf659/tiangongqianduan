@@ -130,5 +130,3 @@ module.exports = {
   refreshAccessToken,
   logout
 }
-
-export {}

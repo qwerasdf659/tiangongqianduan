@@ -37,9 +37,9 @@ interface IAppOption {
     /** WebSocket配置 */
     ws_config: any | null
 
-    // ===== 弹窗频率控制 =====
-    /** 当前会话已展示过的弹窗ID集合（用于 once_per_session 频率规则判断） */
-    sessionSeenPopups: Set<number>
+    // ===== 内容投放频率控制 =====
+    /** 当前会话已展示过的 ad_campaign_id 集合（用于 once_per_session 频率规则判断） */
+    sessionSeenCampaigns: Set<number>
 
     // ===== 开发阶段配置=====
     /** 是否开发模式 */

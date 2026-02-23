@@ -5,7 +5,7 @@
  * 事件: bind:confirm / bind:close / bind:quantitychange
  *
  * @file packageExchange/shared/exchange-confirm/exchange-confirm.ts
- * @version 1.0.1
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -42,5 +42,3 @@ Component({
     }
   }
 })
-
-export {}

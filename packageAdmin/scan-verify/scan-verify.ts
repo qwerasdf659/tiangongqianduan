@@ -26,7 +26,7 @@ const { userStore } = require('../../store/user')
  * 权限要求: 商家店员(role_level>=20)及以上
  *
  * @file packageAdmin/scan-verify/scan-verify.ts
- * @version 6.0.0
+ * @version 5.2.0
  * @since 2026-02-20
  */
 Page({
@@ -392,5 +392,3 @@ Page({
     }
   }
 })
-
-export {}

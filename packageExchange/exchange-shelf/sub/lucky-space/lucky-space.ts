@@ -5,7 +5,7 @@
  * 后端API: GET /api/v4/backpack/exchange/items?space=lucky
  *
  * @file packageExchange/exchange-shelf/sub/lucky-space/lucky-space.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -431,5 +431,3 @@ Component({
     }
   }
 })
-
-export {}

@@ -365,6 +365,35 @@
         </view>
       </view>
 
+      <!-- M1: 满意度评分内嵌卡片（非弹窗，融入聊天流底部） -->
+      <view wx:if="{{showSatisfactionCard && !satisfactionSubmitted}}" class="satisfaction-card">
+        <view class="satisfaction-header">
+          <text class="satisfaction-title">请为本次服务评分</text>
+          <view class="satisfaction-dismiss" bindtap="dismissSatisfaction">
+            <text class="dismiss-icon">✕</text>
+          </view>
+        </view>
+        <view class="satisfaction-stars">
+          <view wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="star-item" data-score="{{item}}" bindtap="onSelectSatisfactionScore">
+            <text class="star-icon {{satisfactionScore >= item ? 'star-active' : 'star-inactive'}}">{{satisfactionScore >= item ? '★' : '☆'}}</text>
+          </view>
+        </view>
+        <view class="satisfaction-labels">
+          <text class="satisfaction-label">{{satisfactionScore === 0 ? '点击星星评分' : satisfactionScore === 1 ? '非常不满意' : satisfactionScore === 2 ? '不满意' : satisfactionScore === 3 ? '一般' : satisfactionScore === 4 ? '满意' : '非常满意'}}</text>
+        </view>
+        <view class="satisfaction-actions">
+          <button class="satisfaction-submit-btn {{satisfactionScore > 0 ? 'active' : 'disabled'}}" disabled="{{satisfactionScore === 0}}" bindtap="submitSatisfaction">
+            <text>提交评价</text>
+          </button>
+        </view>
+      </view>
+
+      <!-- 评分已提交状态 -->
+      <view wx:if="{{satisfactionSubmitted}}" class="satisfaction-done">
+        <text class="satisfaction-done-icon">✅</text>
+        <text class="satisfaction-done-text">感谢您的评价</text>
+      </view>
+
       <!-- 滚动锚点 -->
       <view id="message-bottom" style="height: 20rpx"></view>
     </scroll-view>

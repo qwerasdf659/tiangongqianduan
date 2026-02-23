@@ -17,7 +17,7 @@
  *   - 图片URL通过 ImageUrlHelper.getImageUrl(object_key) 自动转换为完整公网URL
  *
  * @file 天工餐厅积分系统 - 交易市场API模块
- * @version 5.3.0
+ * @version 5.2.0
  * @since 2026-02-18
  */
 
@@ -445,5 +445,3 @@ module.exports = {
   getEscrowCode,
   confirmEscrowCode
 }
-
-export {}

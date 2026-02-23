@@ -228,5 +228,3 @@ Component({
     }
   }
 })
-
-export {}

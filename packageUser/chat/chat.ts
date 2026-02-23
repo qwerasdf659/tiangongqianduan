@@ -6,7 +6,7 @@
  *   通过展开运算符合并到 Page({})，WXML不变，用户无感知
  *
  * @file packageUser/chat/chat.ts
- * @version 5.0.0
+ * @version 5.2.0
  * @since 2026-02-10
  */
 
@@ -83,7 +83,13 @@ Page({
     showToolbar: false, // 工具栏展开面板
     showQuickReplies: true, // 快捷回复区域
     showScrollBottomBtn: false, // 回到底部浮动按钮
-    newMsgCount: 0 // 新消息计数（滚动到底部时重置）
+    newMsgCount: 0, // 新消息计数（滚动到底部时重置）
+
+    // 满意度评分卡片（M1 — 内嵌评分，非弹窗）
+    showSatisfactionCard: false, // 是否显示评分卡片
+    satisfactionSessionId: null as number | null, // 评分关联的会话ID
+    satisfactionScore: 0, // 用户选择的评分（1-5，0表示未选）
+    satisfactionSubmitted: false // 是否已提交评分
   },
 
   /**
@@ -627,5 +633,3 @@ Page({
   // ============================================================================
   ...chatMessageHandlers
 })
-
-export {}

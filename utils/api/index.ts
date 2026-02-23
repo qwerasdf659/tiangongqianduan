@@ -55,7 +55,7 @@ module.exports = {
   /** 消费积分系统（用户端+商家端）: getUserQRCode / submitConsumption / createRedemptionOrder 等 */
   ...shopModule,
 
-  /** 系统通用+客服+活动: getPlacementConfig / getAnnouncements / createChatSession / getActivities 等 */
+  /** 系统通用+客服+活动: getPlacementConfig / getAdDelivery / reportInteractionLog / createChatSession / getActivities 等 */
   ...systemModule,
 
   /** 管理员: getPendingConsumption / approveConsumption / getAdminChatSessions / updateAdminOnlineStatus 等 */
@@ -64,5 +64,3 @@ module.exports = {
   /** 广告系统(P2+P3): getMyAdCampaigns / createAdCampaign / submitAdCampaign / cancelAdCampaign / reportAdImpression / reportAdClick 等 */
   ...adCampaignsModule
 }
-
-export {}

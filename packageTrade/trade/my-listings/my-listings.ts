@@ -15,7 +15,7 @@
  * 数据来源: 后端 market_listings 表（seller_user_id = 当前用户）
  *
  * @file packageTrade/trade/my-listings/my-listings.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-18
  */
 
@@ -477,5 +477,3 @@ Page({
     }
   }
 })
-
-export {}

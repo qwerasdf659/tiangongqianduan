@@ -111,5 +111,3 @@ module.exports = {
   UI_STATE,
   RANGE
 }
-
-export {}

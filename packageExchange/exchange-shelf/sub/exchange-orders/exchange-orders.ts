@@ -17,7 +17,7 @@
  *    后端需完成: exchange_records ENUM 扩展 + 路由注册
  *
  * @file packageExchange/exchange-shelf/sub/exchange-orders/exchange-orders.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-22
  */
 
@@ -353,5 +353,3 @@ Component({
     }
   }
 })
-
-export {}

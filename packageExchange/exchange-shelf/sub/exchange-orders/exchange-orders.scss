@@ -88,11 +88,11 @@
   font-weight: 500;
 }
 
-/* ===== 滚动区域 ===== */
+/* ===== 滚动区域（使用calc适配不同屏幕尺寸，扣除导航栏+Tab栏+组件头部） ===== */
 .eo-scroll {
   flex: 1;
   min-height: 300rpx;
-  max-height: 65vh;
+  max-height: calc(100vh - 350rpx);
 }
 
 /* ===== 加载/空状态 ===== */

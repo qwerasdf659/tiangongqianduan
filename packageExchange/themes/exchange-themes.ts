@@ -13,7 +13,7 @@
  *   4. 子组件通过 var(--shelf-card-bg, #ffffff) 读取主题值
  *
  * @file packageExchange/themes/exchange-themes.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -188,5 +188,3 @@ function getExchangeThemeStyle(themeName: string): string {
 }
 
 module.exports = { getExchangeThemeStyle, EXCHANGE_THEME_MAP }
-
-export {}

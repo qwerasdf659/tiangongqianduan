@@ -18,7 +18,7 @@
  *   - C2C交易市场只显示系统资产图标，不支持用户上传图片（决策5）
  *
  * @file 天工餐厅积分系统 - 图片资源助手
- * @version 1.1.0
+ * @version 5.2.0
  * @since 2026-02-22
  */
 
@@ -245,5 +245,3 @@ module.exports = {
   getListingDisplayImage,
   getListingDisplayName
 }
-
-export {}

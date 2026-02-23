@@ -131,7 +131,7 @@
     </view>
   </view>
 
-  <!-- 🎠 轮播图区域（后端API: GET /api/v4/system/carousel-items） -->
+  <!-- 🎠 轮播图区域（后端API: GET /api/v4/system/ad-delivery?slot_type=carousel） -->
   <view class="carousel-section" wx:if="{{showCarousel && carouselItems.length > 0}}">
     <swiper
       class="carousel-swiper"
@@ -144,7 +144,7 @@
       bindchange="onCarouselChange"
       current="{{carouselCurrent}}"
     >
-      <swiper-item wx:for="{{carouselItems}}" wx:key="carousel_item_id">
+      <swiper-item wx:for="{{carouselItems}}" wx:key="ad_campaign_id">
         <view class="carousel-item" data-index="{{index}}" bindtap="onCarouselItemTap">
           <image
             class="carousel-image"
@@ -162,7 +162,7 @@
     </swiper>
   </view>
 
-  <!-- 📢 系统公告条（后端API: GET /api/v4/system/announcements/home） -->
+  <!-- 📢 系统公告条（后端API: GET /api/v4/system/ad-delivery?slot_type=announcement） -->
   <view class="announcement-section" wx:if="{{showAnnouncements && announcements.length > 0}}">
     <view class="announcement-icon">
       <text>📢</text>
@@ -175,10 +175,10 @@
       interval="{{4000}}"
       duration="{{500}}"
     >
-      <swiper-item wx:for="{{announcements}}" wx:key="announcement_id">
+      <swiper-item wx:for="{{announcements}}" wx:key="ad_campaign_id">
         <view class="announcement-item" data-index="{{index}}" bindtap="onAnnouncementTap">
-          <view class="announcement-tag announcement-tag--{{item.type}}">
-            <text>{{item.type_display}}</text>
+          <view class="announcement-tag announcement-tag--system">
+            <text>公告</text>
           </view>
           <text class="announcement-title">{{item.title}}</text>
         </view>
@@ -325,7 +325,7 @@
     </view>
   </view>
 
-  <!-- 🎨 弹窗横幅组件（后端API: GET /api/v4/system/popup-banners） -->
+  <!-- 🎨 弹窗横幅组件（后端API: GET /api/v4/system/ad-delivery?slot_type=popup） -->
   <popup-banner
     visible="{{showPopupBanner}}"
     banners="{{popupBanners}}"

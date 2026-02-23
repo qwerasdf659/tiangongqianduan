@@ -5,7 +5,7 @@
  * 核销路由: routes/v4/shop/redemption/
  *
  * @file 天工餐厅积分系统 - 消费与核销API模块
- * @version 5.3.0
+ * @version 5.2.0
  * @since 2026-02-15
  */
 
@@ -229,5 +229,3 @@ module.exports = {
   fulfillRedemption,
   scanRedemptionQR
 }
-
-export {}

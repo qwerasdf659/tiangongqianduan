@@ -143,7 +143,7 @@ declare namespace API {
     rarity_code: string
     /** 展示排序权重 */
     sort_order: number
-    /** 奖励层级: low/medium/high/premium */
+    /** 奖励层级: low/mid/high（对齐数据库 lottery_prizes.reward_tier 实际枚举值） */
     reward_tier: string
     /** 状态: active / inactive */
     status: string
@@ -312,30 +312,47 @@ declare namespace API {
   }
 
   /**
-   * 背包不可叠加物品（对齐后端 GET /api/v4/backpack/ 的 items[] 返回格式）
+   * 背包不可叠加物品（对齐后端三表模型 items 表 + GET /api/v4/backpack/ 的 items[] 返回格式）
+   *
+   * 三表模型迁移（2026-02-22 完成）:
+   *   旧表 item_instances → 新表 items（独立一等实体）
+   *   旧字段 item_instance_id → 新字段 item_id
+   *   旧字段 meta.name → 正式列 item_name
+   *   旧字段 meta.value → 正式列 item_value
+   *   旧字段 meta.description → 正式列 item_description
+   *   新增字段: tracking_code（人类可读追踪码，如 LT260219028738）
+   *   新增字段: prize_definition_id（关联奖品定义）
+   *   状态变更: locked → held, transferred 已消除
+   *
    * 背包列表只返回 status='available' 的物品
    */
   interface BackpackItem {
-    /** 物品实例唯一ID（bigint） */
-    item_instance_id: number
+    /** 物品唯一ID（items表主键，BIGINT） */
+    item_id: number
+    /** 追踪码（人类可读，格式: {来源2位}{YYMMDD}{item_id补零6位}，如 LT260219028738） */
+    tracking_code: string
     /** 物品类型编码（prize/product/voucher/tradable_item/service） */
     item_type: string
     /** 物品类型中文名（后端自动附加） */
     item_type_display: string
-    /** 物品名称 */
-    name: string
-    /** 物品状态编码（available/locked/used/expired/transferred） */
+    /** 物品名称（items表正式列，原 meta.name） */
+    item_name: string
+    /** 物品价值（积分计，items表正式列，原 meta.value） */
+    item_value: number
+    /** 物品状态编码（available/held/used/expired/destroyed） */
     status: string
     /** 物品状态中文名（后端自动附加） */
     status_display: string
     /** 稀有度编码（common/uncommon/rare/epic/legendary） */
-    rarity: string
+    rarity_code: string
     /** 稀有度中文名（后端自动附加） */
     rarity_display: string
     /** 稀有度颜色十六进制值（后端自动附加，来源 system_dictionaries） */
     rarity_color: string | null
-    /** 物品描述 */
-    description: string
+    /** 物品描述（items表正式列，原 meta.description） */
+    item_description: string
+    /** 来源奖品定义ID（关联 lottery_prizes 表，可为 null） */
+    prize_definition_id: number | null
     /** 获得时间（YYYY-MM-DD HH:mm:ss 格式） */
     acquired_at: string
     /** 过期时间（可为 null） */
@@ -355,6 +372,47 @@ declare namespace API {
      *   tradable_item → ["use", "sell"]  虚拟道具可用可交易
      */
     allowed_actions: string[]
+  }
+
+  /**
+   * 物品流转时间线（用户端 GET /api/v4/backpack/items/:item_id/timeline 响应）
+   * 后端通过 items + item_ledger + item_holds 表 JOIN 拼装完整流转历史
+   */
+  interface ItemTimeline {
+    /** 追踪码（如 LT260219028738） */
+    tracking_code: string
+    /** 物品基础信息 */
+    item: {
+      item_id: number
+      item_name: string
+      item_type: string
+      rarity_code: string
+      status: string
+    }
+    /** 来源信息 */
+    origin: {
+      /** 来源类型: lottery / bid_settlement / exchange / admin */
+      source: string
+      /** 来源关联ID（如 lottery_draw_id） */
+      source_ref_id: string | null
+    }
+    /** 时间线事件列表（按时间正序） */
+    timeline: ItemTimelineEvent[]
+    /** 账本守恒验证（SUM(delta)=0 表示数据一致） */
+    ledger_check: {
+      sum_delta: number
+      status: 'balanced' | 'imbalanced'
+    }
+  }
+
+  /** 物品时间线单个事件 */
+  interface ItemTimelineEvent {
+    /** 事件时间（ISO8601 北京时间） */
+    time: string
+    /** 事件类型: mint / transfer / use / hold / release / expire */
+    event: string
+    /** 事件描述（中文，后端生成） */
+    detail: string
   }
 
   // ===== 兑换系统 =====
@@ -584,18 +642,22 @@ declare namespace API {
 
   /**
    * 市场挂单（对齐后端 market_listings 表 + GET /api/v4/market/listings 响应）
-   * 双模式表: listing_kind 区分不可叠加物品(item_instance)和可叠加资产(fungible_asset)
+   * 双模式表: listing_kind 区分不可叠加物品(item)和可叠加资产(fungible_asset)
    * 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn
+   *
+   * 三表模型迁移（2026-02-22）:
+   *   listing_kind 枚举: item_instance → item
+   *   FK列名: offer_item_instance_id → offer_item_id
    */
   interface MarketListing {
     /** 挂单ID（BIGINT PK） */
     market_listing_id: number
-    /** 挂牌类型: item_instance(不可叠加物品) / fungible_asset(可叠加资产) */
+    /** 挂牌类型: item(不可叠加物品) / fungible_asset(可叠加资产) */
     listing_kind: string
     /** 卖家用户ID */
     seller_user_id: number
-    /** 物品实例ID（item_instance类型使用，可为null） */
-    offer_item_instance_id: number | null
+    /** 物品ID（item类型使用，关联items表，可为null） */
+    offer_item_id: number | null
     /** 物品模板ID（可为null） */
     offer_item_template_id: number | null
     /** 物品显示名称 */
@@ -629,7 +691,7 @@ declare namespace API {
   interface MyListing {
     /** 挂单ID（BIGINT PK） */
     market_listing_id: number
-    /** 挂牌类型: item_instance / fungible_asset */
+    /** 挂牌类型: item / fungible_asset（三表模型迁移后 item_instance → item） */
     listing_kind: string
     /** 商品显示名称（物品实例 → offer_item_display_name，资产 → offer_asset_display_name） */
     display_name: string
@@ -784,154 +846,111 @@ declare namespace API {
   // ===== 系统通用 =====
 
   /**
-   * 系统公告（对齐后端 system_announcements 表 + GET /api/v4/system/announcements/home 响应）
+   * 统一内容投放项（对齐后端 ad_campaigns + ad_creatives 合并输出）
    *
-   * 后端 DataSanitizer 统一输出 announcement_id（映射自数据库主键 system_announcement_id）
-   * 公开 API 按优先级DESC+创建时间DESC排序，最多返回5条活跃公告
-   * 每次请求 /home 自动累加 view_count
+   * 数据来源: GET /api/v4/system/ad-delivery?slot_type=popup|carousel|announcement
+   * 后端将弹窗横幅、轮播图、系统公告统一通过 Ad System 管理和输出
+   *
+   * campaign_category 分类:
+   *   commercial  — 商业广告（广告主付费投放，完整竞价/计费/审核流程）
+   *   operational — 运营内容（运营人员创建的弹窗/轮播，免费，无审核）
+   *   system      — 系统通知（系统公告，强制展示，优先级最高）
+   *
+   * 前端按 slot_type 区分展示形态:
+   *   popup        → 弹窗组件（popup-banner）
+   *   carousel     → 轮播图（swiper）
+   *   announcement → 公告滚动条
    */
-  interface Announcement {
-    /** 公告ID（DataSanitizer 映射自数据库主键 system_announcement_id） */
-    announcement_id: number
-    /** 公告标题（VARCHAR(200)） */
+  interface AdDeliveryItem {
+    /** 广告计划主键（ad_campaigns.ad_campaign_id） */
+    ad_campaign_id: number
+    /** 计划名称（运营后台填写，用于后台管理识别） */
+    campaign_name: string
+    /** 计划分类: commercial=商业广告 / operational=运营内容 / system=系统通知 */
+    campaign_category: string
+    /** 广告创意主键（ad_creatives.ad_creative_id） */
+    ad_creative_id: number
+    /** 创意标题（面向用户展示的标题） */
     title: string
-    /** 公告内容（TEXT） */
-    content: string
-    /** 公告类型: system=系统公告 / activity=活动公告 / maintenance=维护公告 / notice=通知公告 */
-    type: string
-    /** 类型中文名（后端 attachDisplayNames 自动附加） */
-    type_display: string
-    /** 优先级: high=高 / medium=中 / low=低 */
-    priority: string
-    /** 优先级中文名（后端 attachDisplayNames 自动附加） */
-    priority_display: string
-    /** 浏览次数（每次请求 /home 自动累加） */
-    view_count: number
-    /** 是否活跃 */
-    is_active: boolean
-    /** 创建时间（北京时间格式化字符串） */
-    created_at: string
-    /** 过期时间（null表示永不过期） */
-    expires_at: string | null
-    /** 发布者信息（DataSanitizer 脱敏后仅保留 user_id + nickname） */
-    creator: {
-      user_id: number
-      nickname: string
-    } | null
-  }
-
-  /**
-   * 弹窗横幅（对齐后端 popup_banners 表 + GET /api/v4/system/popup-banners 响应）
-   *
-   * 频率控制字段（banner_type / frequency_rule / frequency_value / force_show / priority）
-   * 由后端运营后台配置，前端读取后在客户端执行频率判断逻辑
-   *
-   * @see docs/弹窗横幅频率控制系统设计文档.md
-   */
-  interface PopupBanner {
-    /** 弹窗横幅主键（INT PK） */
-    popup_banner_id: number
-    /** 弹窗标题（后台识别用，VARCHAR(100)） */
-    title: string
-    /** 横幅图片URL（Sealos对象存储，VARCHAR(500)） */
-    image_url: string
-    /**
-     * 显示模式（后端ENUM，运营在管理后台选择模板）
-     * wide=宽屏16:9 / horizontal=横版3:2 / square=方图1:1 /
-     * tall=竖图3:4 / slim=窄长图9:16 / full_image=纯图模式
-     */
-    display_mode: string
-    /** 原图宽度px（后端sharp检测，可为null） */
+    /** 内容类型: image=图片创意 / text=纯文字创意（系统公告） */
+    content_type: string
+    /** 图片URL（Sealos对象存储，content_type='text' 时为 null） */
+    image_url: string | null
+    /** 原图宽度px（后端 sharp 检测，可为 null） */
     image_width: number | null
-    /** 原图高度px（后端sharp检测，可为null） */
+    /** 原图高度px（后端 sharp 检测，可为 null） */
     image_height: number | null
-    /** 跳转链接（可为null，VARCHAR(500)） */
+    /** 文字内容（content_type='text' 时有值，系统公告正文） */
+    text_content: string | null
+    /** 跳转链接（可为 null） */
     link_url: string | null
     /** 跳转类型: none=无跳转 / page=小程序页面 / miniprogram=其他小程序 / webview=网页 */
     link_type: string
-    /** 显示位置（如 home，VARCHAR(50)） */
-    position: string
-    /** 显示顺序（数字小优先，用于列表排列，与priority职责不同） */
-    display_order: number
-    /** 开始展示时间（ISO8601，可为null） */
-    start_time: string | null
-    /** 结束展示时间（ISO8601，可为null） */
-    end_time: string | null
-
-    // ===== 频率控制字段（后端新增，运营后台配置） =====
-
     /**
-     * banner类型分级: notice=系统公告 / event=活动推广 / promo=日常促销
-     * notice: 强制弹出，必须点"我知道了"关闭，关闭后永不再弹
-     * event: 活动期间弹一次，关闭后不再弹
-     * promo: 按frequency_rule控制频率
+     * 显示模式（仅 content_type='image' 时有值）
+     * wide=宽屏16:9 / horizontal=横版3:2 / square=方图1:1 /
+     * tall=竖图3:4 / slim=窄长图9:16 / full_image=纯图模式
      */
-    banner_type: string
+    display_mode: string | null
     /**
-     * 频率规则枚举:
-     * always=每次进入都弹 / once=整个周期只弹一次 / once_per_session=每次冷启动弹一次 /
-     * once_per_day=每天最多弹一次 / once_per_n_days=每N天弹一次 / n_times_total=累计最多弹N次
+     * 频率规则（弹窗专用，轮播/公告可为 null）
+     * always / once / once_per_session / once_per_day / once_per_n_days / n_times_total
      */
-    frequency_rule: string
-    /** 频率参数值（配合once_per_n_days的天数 或 n_times_total的次数） */
+    frequency_rule: string | null
+    /** 频率参数值（配合 once_per_n_days 的天数 或 n_times_total 的次数） */
     frequency_value: number
-    /** 是否强制弹出（true=不可点击遮罩关闭，必须点按钮） */
+    /** 是否强制弹出（true=不可点击遮罩关闭，必须点按钮关闭） */
     force_show: boolean
-    /** 弹出优先级（数字越大越优先弹出，多banner竞争时使用） */
+    /** 展示优先级（数字越大越优先，system:900-999, operational:100-899, commercial:1-99） */
     priority: number
-
-    // ===== 可选字段（部分接口可能返回） =====
-
-    /** 正文内容（可选，部分banner可能包含文案描述） */
-    content?: string
-    /** 描述（可选） */
-    description?: string
+    /** 轮播间隔毫秒（仅 slot_type=carousel 时有值，最小1000ms） */
+    slide_interval_ms: number | null
+    /** 计划开始日期 YYYY-MM-DD */
+    start_date: string | null
+    /** 计划结束日期 YYYY-MM-DD */
+    end_date: string | null
   }
 
   /**
-   * 弹窗横幅本地交互记录（wx.setStorageSync 存储）
-   * Storage Key: 'popup_banner_records'
-   * 数据结构: Record<string, BannerRecord>（key为popup_banner_id字符串）
+   * 统一交互日志上报参数
+   *
+   * 后端API: POST /api/v4/system/ad-events/interaction-log
+   * 合并原 popup_show_log / carousel_show_log 为统一交互日志
    */
-  interface BannerRecord {
+  interface InteractionLogParams {
+    /** 广告计划ID（必填，来自 AdDeliveryItem.ad_campaign_id） */
+    ad_campaign_id: number
+    /** 交互类型: impression=曝光 / click=点击 / close=关闭 / swipe=滑动 */
+    interaction_type: string
+    /** 扩展数据（按场景携带不同的交互详情，JSON 格式存储） */
+    extra_data?: {
+      /** 弹窗场景：展示时长毫秒（弹出到关闭的时间差） */
+      show_duration_ms?: number
+      /** 弹窗场景：关闭方式 close_btn / overlay / confirm_btn / auto_timeout */
+      close_method?: string
+      /** 弹窗场景：弹出队列位置（从1开始） */
+      queue_position?: number
+      /** 轮播场景：曝光时长毫秒 */
+      exposure_duration_ms?: number
+      /** 轮播场景：是否手动滑动触发 */
+      is_manual_swipe?: boolean
+      /** 轮播场景：是否被点击 */
+      is_clicked?: boolean
+    }
+  }
+
+  /**
+   * 内容投放频次本地交互记录（wx.setStorageSync 存储）
+   * Storage Key: 'ad_delivery_records'
+   * 数据结构: Record<string, DeliveryRecord>（key 为 ad_campaign_id 字符串）
+   */
+  interface DeliveryRecord {
     /** 最后一次展示的时间戳（毫秒） */
     lastSeen: number
     /** 累计展示次数 */
     seenCount: number
     /** 是否被用户主动关闭过 */
     dismissed: boolean
-  }
-
-  /**
-   * 轮播图（对齐后端 carousel_items 表 + GET /api/v4/system/carousel-items 响应）
-   * 显示位置: position='home'（首页抽奖页）
-   * 轮播间隔: slide_interval_ms（毫秒，后端配置，最小1000ms）
-   */
-  interface CarouselItem {
-    /** 轮播图主键（INT PK） */
-    carousel_item_id: number
-    /** 轮播图标题 */
-    title: string
-    /** 轮播图图片URL（Sealos对象存储完整公网URL） */
-    image_url: string
-    /** 显示模式: wide / horizontal / square */
-    display_mode: string
-    /** 原图宽度px（后端sharp检测，可为null） */
-    image_width: number | null
-    /** 原图高度px（后端sharp检测，可为null） */
-    image_height: number | null
-    /** 跳转链接 */
-    link_url: string
-    /** 跳转类型: none / page / miniprogram / webview */
-    link_type: string
-    /** 轮播间隔毫秒（默认3000ms，最小1000ms） */
-    slide_interval_ms: number
-    /** 广告标记（竞价结果附加字段，可选） */
-    _is_ad?: boolean
-    /** 广告活动ID（广告竞价结果附加字段，可选） */
-    _ad_campaign_id?: number
-    /** 广告创意ID（广告竞价结果附加字段，可选） */
-    _ad_creative_id?: number
   }
 
   /**
@@ -1260,12 +1279,12 @@ declare namespace API {
       /** 核销操作员工ID */
       fulfilled_by_staff_id?: number
     }
-    /** 被核销的物品实例 */
-    item_instance: {
-      /** 物品实例ID（BIGINT） */
-      item_instance_id: number
-      /** 物品名称（来自 meta.name） */
-      name: string
+    /** 被核销的物品（三表模型迁移后 item_instance → item） */
+    item: {
+      /** 物品ID（BIGINT，items表主键） */
+      item_id: number
+      /** 物品名称（items表 item_name 正式列） */
+      item_name: string
       /** 物品状态（核销后变为 used） */
       status: string
     }

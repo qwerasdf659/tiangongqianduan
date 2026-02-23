@@ -1,26 +1,26 @@
 /**
- * 🎯 弹窗横幅频率控制工具
+ * 🎯 内容投放频率控制工具
  *
  * 服务端驱动 + 客户端执行的弹窗频率控制系统：
- * - 后端通过 banner_type / frequency_rule / frequency_value 配置弹出策略
+ * - 后端通过 campaign_category / frequency_rule / frequency_value 配置弹出策略
  * - 前端读取配置，结合本地存储的交互记录，判断是否展示
  * - 运营通过管理后台即可灵活调整，前端无需发版
  *
- * 本地存储结构: wx.setStorageSync('popup_banner_records')
+ * 本地存储结构: wx.setStorageSync('ad_delivery_records')
  * { "15": { lastSeen: 1740000000000, seenCount: 3, dismissed: true } }
+ * 其中 key 为 ad_campaign_id 字符串
  *
- * @see docs/弹窗横幅频率控制系统设计文档.md
- * @file 天工餐厅积分系统 - 弹窗频率控制工具
- * @version 1.0.0
- * @since 2026-02-18
+ * @file 天工餐厅积分系统 - 内容投放频率控制工具
+ * @version 6.0.0
+ * @since 2026-02-23
  */
 
 // 内部模块直接引用，不通过index.ts（避免循环依赖）
 const loggerModule = require('./logger')
 const log = loggerModule.createLogger('popup-frequency')
 
-/** 本地存储Key（与设计文档一致） */
-const STORAGE_KEY = 'popup_banner_records'
+/** 本地存储Key */
+const STORAGE_KEY = 'ad_delivery_records'
 
 /** 过期记录清理阈值: 90天（毫秒） */
 const EXPIRED_THRESHOLD_MS = 90 * 24 * 60 * 60 * 1000
@@ -29,29 +29,29 @@ const EXPIRED_THRESHOLD_MS = 90 * 24 * 60 * 60 * 1000
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
 /**
- * 读取本地弹窗交互记录
- * @returns 以 popup_banner_id(字符串) 为 key 的记录字典
+ * 读取本地内容投放交互记录
+ * @returns 以 ad_campaign_id(字符串) 为 key 的记录字典
  */
-function getStoredRecords(): Record<string, API.BannerRecord> {
+function getStoredRecords(): Record<string, API.DeliveryRecord> {
   try {
     const stored = wx.getStorageSync(STORAGE_KEY)
     if (stored && typeof stored === 'object') {
       return stored
     }
   } catch (err) {
-    log.error('读取弹窗记录失败:', err)
+    log.error('读取投放记录失败:', err)
   }
   return {}
 }
 
 /**
- * 写入本地弹窗交互记录
+ * 写入本地内容投放交互记录
  */
-function saveStoredRecords(records: Record<string, API.BannerRecord>): void {
+function saveStoredRecords(records: Record<string, API.DeliveryRecord>): void {
   try {
     wx.setStorageSync(STORAGE_KEY, records)
   } catch (err) {
-    log.error('写入弹窗记录失败:', err)
+    log.error('写入投放记录失败:', err)
   }
 }
 
@@ -65,31 +65,31 @@ function getTodayStartTimestamp(): number {
 }
 
 /**
- * 判断 banner 是否应该展示
+ * 判断内容是否应该展示
  *
  * 根据后端配置的 frequency_rule + 本地存储的交互记录，
  * 在客户端执行频率判断逻辑，决定是否弹出。
  *
- * @param banner - 后端返回的banner数据（含频率控制字段）
- * @param record - 本地存储的该banner交互记录（可能为undefined表示从未看过）
- * @param sessionSeenIds - 当前会话已展示过的popup_banner_id集合（用于once_per_session）
+ * @param item - 后端返回的统一投放内容项（含频率控制字段）
+ * @param record - 本地存储的该内容交互记录（可能为undefined表示从未看过）
+ * @param sessionSeenIds - 当前会话已展示过的 ad_campaign_id 集合（用于 once_per_session）
  * @returns true=应该展示，false=跳过
  */
 function shouldShowBanner(
-  banner: API.PopupBanner,
-  record: API.BannerRecord | undefined,
+  item: API.AdDeliveryItem,
+  record: API.DeliveryRecord | undefined,
   sessionSeenIds: Set<number>
 ): boolean {
-  if (!banner || !banner.frequency_rule) {
-    log.warn('banner缺少frequency_rule字段，跳过展示:', banner?.popup_banner_id)
+  if (!item || !item.frequency_rule) {
+    log.warn('投放内容缺少frequency_rule字段，跳过展示:', item?.ad_campaign_id)
     return false
   }
 
-  const rule = banner.frequency_rule
-  const frequencyValue = banner.frequency_value || 1
+  const rule = item.frequency_rule
+  const frequencyValue = item.frequency_value || 1
   const seenCount = record ? record.seenCount : 0
   const lastSeen = record ? record.lastSeen : 0
-  const bannerId = banner.popup_banner_id
+  const campaignId = item.ad_campaign_id
 
   switch (rule) {
     case 'always':
@@ -99,7 +99,7 @@ function shouldShowBanner(
       return seenCount === 0
 
     case 'once_per_session':
-      return !sessionSeenIds.has(bannerId)
+      return !sessionSeenIds.has(campaignId)
 
     case 'once_per_day': {
       if (seenCount === 0) {
@@ -121,72 +121,72 @@ function shouldShowBanner(
       return seenCount < frequencyValue
 
     default:
-      log.warn('未知的frequency_rule:', rule, '，bannerId:', bannerId)
+      log.warn('未知的frequency_rule:', rule, '，campaignId:', campaignId)
       return false
   }
 }
 
 /**
- * 标记 banner 已展示
+ * 标记内容已展示
  *
- * 展示banner后调用，更新本地存储的交互记录：
+ * 展示内容后调用，更新本地存储的交互记录：
  * - seenCount + 1
  * - lastSeen = 当前时间戳
  * - 同时更新会话级已展示集合（用于 once_per_session）
  *
- * @param bannerId - popup_banner_id
+ * @param campaignId - ad_campaign_id
  * @param sessionSeenIds - 当前会话已展示集合（引用传递，直接修改）
  */
-function markBannerSeen(bannerId: number, sessionSeenIds: Set<number>): void {
-  if (!bannerId) {
+function markBannerSeen(campaignId: number, sessionSeenIds: Set<number>): void {
+  if (!campaignId) {
     return
   }
 
   const records = getStoredRecords()
-  const bannerKey = String(bannerId)
-  const existingRecord = records[bannerKey]
+  const campaignKey = String(campaignId)
+  const existingRecord = records[campaignKey]
 
-  records[bannerKey] = {
+  records[campaignKey] = {
     lastSeen: Date.now(),
     seenCount: (existingRecord ? existingRecord.seenCount : 0) + 1,
     dismissed: existingRecord ? existingRecord.dismissed : false
   }
 
   saveStoredRecords(records)
-  sessionSeenIds.add(bannerId)
+  sessionSeenIds.add(campaignId)
 
-  log.info('标记banner已展示:', bannerId, '累计次数:', records[bannerKey].seenCount)
+  log.info('标记内容已展示:', campaignId, '累计次数:', records[campaignKey].seenCount)
 }
 
 /**
- * 标记 banner 被用户主动关闭
+ * 标记内容被用户主动关闭
  *
  * 用户点击关闭按钮或"我知道了"按钮时调用。
  * dismissed=true 配合 frequency_rule 共同决定下次是否再弹。
  *
- * @param bannerId - popup_banner_id
+ * @param campaignId - ad_campaign_id
  */
-function markBannerDismissed(bannerId: number): void {
-  if (!bannerId) {
+function markBannerDismissed(campaignId: number): void {
+  if (!campaignId) {
     return
   }
 
   const records = getStoredRecords()
-  const bannerKey = String(bannerId)
-  const existingRecord = records[bannerKey]
+  const campaignKey = String(campaignId)
+  const existingRecord = records[campaignKey]
 
-  records[bannerKey] = {
+  records[campaignKey] = {
     lastSeen: existingRecord ? existingRecord.lastSeen : Date.now(),
     seenCount: existingRecord ? existingRecord.seenCount : 1,
     dismissed: true
   }
 
   saveStoredRecords(records)
-  log.info('标记banner已关闭:', bannerId)
+  log.info('标记内容已关闭:', campaignId)
 }
 
 /**
- * 清理过期的弹窗交互记录
+ * 清理过期的交互记录
  *
  * 删除 lastSeen 超过90天的记录，防止本地存储无限增长。
  * 建议在小程序 onLaunch 时调用一次。
@@ -204,7 +204,7 @@ function cleanExpiredRecords(): void {
     const now = Date.now()
     let cleanedCount = 0
 
-    const cleanedRecords: Record<string, API.BannerRecord> = {}
+    const cleanedRecords: Record<string, API.DeliveryRecord> = {}
     for (let i = 0; i < recordKeys.length; i++) {
       const recordKey = recordKeys[i]
       const recordItem = records[recordKey]
@@ -217,46 +217,46 @@ function cleanExpiredRecords(): void {
 
     if (cleanedCount > 0) {
       saveStoredRecords(cleanedRecords)
-      log.info('清理过期弹窗记录:', cleanedCount, '条')
+      log.info('清理过期投放记录:', cleanedCount, '条')
     }
   } catch (err) {
-    log.error('清理过期弹窗记录失败:', err)
+    log.error('清理过期投放记录失败:', err)
   }
 }
 
 /**
- * 过滤并排序待展示的banners
+ * 过滤并排序待展示的投放内容
  *
  * 完整的客户端频率过滤流程:
  * 1. 读取本地存储记录
  * 2. 逐个执行 shouldShowBanner 判断
  * 3. 过滤后按 priority 降序排序（数字大的先弹）
  *
- * @param banners - 后端返回的活跃banner列表（已过滤 is_active + 时间范围）
+ * @param items - 后端返回的活跃投放内容列表（已过滤状态和时间范围）
  * @param sessionSeenIds - 当前会话已展示集合
- * @returns 过滤+排序后应该展示的banners
+ * @returns 过滤+排序后应该展示的内容项
  */
 function filterBannersByFrequency(
-  banners: API.PopupBanner[],
+  items: API.AdDeliveryItem[],
   sessionSeenIds: Set<number>
-): API.PopupBanner[] {
-  if (!Array.isArray(banners) || banners.length === 0) {
+): API.AdDeliveryItem[] {
+  if (!Array.isArray(items) || items.length === 0) {
     return []
   }
 
   const records = getStoredRecords()
 
-  const filteredBanners = banners.filter(banner => {
-    const bannerKey = String(banner.popup_banner_id)
-    const bannerRecord = records[bannerKey]
-    return shouldShowBanner(banner, bannerRecord, sessionSeenIds)
+  const filteredItems = items.filter(item => {
+    const campaignKey = String(item.ad_campaign_id)
+    const itemRecord = records[campaignKey]
+    return shouldShowBanner(item, itemRecord, sessionSeenIds)
   })
 
-  filteredBanners.sort((a, b) => (b.priority || 0) - (a.priority || 0))
+  filteredItems.sort((a, b) => (b.priority || 0) - (a.priority || 0))
 
-  log.info('频率过滤结果: 总计', banners.length, '条, 通过', filteredBanners.length, '条')
+  log.info('频率过滤结果: 总计', items.length, '条, 通过', filteredItems.length, '条')
 
-  return filteredBanners
+  return filteredItems
 }
 
 module.exports = {
@@ -268,5 +268,3 @@ module.exports = {
   getStoredRecords,
   STORAGE_KEY
 }
-
-export {}

@@ -13,7 +13,7 @@
  * 4. 获取用户信息 → 多门店时弹出门店选择
  * 5. 确认提交 → POST /api/v4/shop/consumption/submit → 生成待审核记录
  *
- * @version 6.0.0
+ * @version 5.2.0
  * @since 2026-02-20
  */
 
@@ -422,5 +422,3 @@ Page({
     }
   }
 })
-
-export {}

@@ -1,6 +1,9 @@
 <!--
   🎨 popup-banner.wxml - 弹窗横幅组件模板
   
+  数据来源: 后端 GET /api/v4/system/ad-delivery?slot_type=popup
+  数据表: ad_campaigns + ad_creatives（统一内容投放系统）
+  
   📐 显示模式由后端 display_mode 字段决定（运营在管理后台选择模板）：
     wide        → 宽屏模式（16:9）
     horizontal  → 横版模式（3:2）
@@ -13,22 +16,6 @@
     - 宽度撑满容器，高度由图片原始比例自动计算
     - 任何尺寸的图片都完整显示，不裁剪、不留白
     - 运营换图无需担心尺寸问题
-
-  组件结构（常规模式 wide/horizontal/square/tall/slim）：
-  ├─ 遮罩层（半透明毛玻璃背景，点击关闭）
-  └─ 弹窗卡片（白色圆角卡片，居中悬浮）
-     ├─ 关闭按钮（右上角圆形按钮）
-     ├─ 横幅图片区域（按 display_mode 设置容器高度）
-     ├─ 内容区域（标题+正文）
-     ├─ 指示器（多个横幅时显示圆点）
-     └─ 操作按钮区域
-
-  组件结构（纯图模式 full_image）：
-  ├─ 遮罩层
-  └─ 纯图容器（无白色卡片壳）
-     ├─ 关闭按钮
-     ├─ 图片（自适应宽度，按原图比例显示）
-     └─ 操作按钮（悬浮在图片底部）
 -->
 
 <!-- 弹窗最外层容器，visible控制是否渲染 -->
@@ -85,7 +72,7 @@
 
     <!-- ⚫ 多横幅指示器（纯图模式，2个及以上横幅时显示） -->
     <view class="popup-indicators popup-indicators-fullimage" wx:if="{{banners.length > 1}}">
-      <block wx:for="{{banners}}" wx:key="popup_banner_id">
+      <block wx:for="{{banners}}" wx:key="ad_campaign_id">
         <view class="indicator-dot {{currentIndex === index ? 'active' : ''}}"></view>
       </block>
       <text class="indicator-text indicator-text-fullimage"
@@ -95,10 +82,10 @@
 
     <!-- 🔘 纯图模式操作按钮（悬浮在底部） -->
     <view class="popup-actions popup-actions-fullimage">
-      <!-- notice类型强制弹出: "我知道了"确认按钮（必须点此关闭） -->
+      <!-- system类型强制弹出: "我知道了"确认按钮（必须点此关闭） -->
       <button
         class="popup-action-btn primary popup-notice-confirm-btn"
-        wx:if="{{currentBannerType === 'notice' && isForceShow}}"
+        wx:if="{{currentBannerType === 'system' && isForceShow}}"
         bindtap="handleNoticeConfirm"
       >
         我知道了
@@ -107,7 +94,7 @@
       <!-- 有链接时显示"查看详情"按钮 -->
       <button
         class="popup-action-btn primary"
-        wx:if="{{banners[currentIndex].link_url && !(currentBannerType === 'notice' && isForceShow)}}"
+        wx:if="{{banners[currentIndex].link_url && !(currentBannerType === 'system' && isForceShow)}}"
         bindtap="handleAction"
       >
         查看详情
@@ -147,18 +134,11 @@
       <text class="close-icon">✕</text>
     </view>
 
-    <!-- 🖼️ 横幅图片区域（有image_url且图片未最终失败时显示）
-         📐 动态适配方案：
-         - 图片模式 widthFix：宽度撑满容器，高度由图片原始比例自动计算
-         - 任何尺寸的图片都能完整显示，不裁剪、不留白
-         - min-height 按 display_mode 设置，防止图片加载前布局闪烁
-         - max-height: 1000rpx 安全上限，防止极端竖图撑爆弹窗
-    -->
+    <!-- 🖼️ 横幅图片区域 -->
     <view
       class="popup-image-section image-{{banners[currentIndex].display_mode || 'wide'}}"
       wx:if="{{banners[currentIndex].image_url && !imageLoadFailed}}"
     >
-      <!-- 🔴 移除lazy-load：图片已在父页面预加载到缓存，无需懒加载 -->
       <image
         class="popup-image"
         src="{{banners[currentIndex].image_url}}"
@@ -167,7 +147,6 @@
         bindload="handleImageLoad"
         binderror="handleImageError"
       />
-      <!-- 图片底部渐变遮罩（让文字更清晰） -->
       <view class="image-gradient-overlay"></view>
     </view>
 
@@ -182,20 +161,14 @@
       <text class="decor-emoji">🎉</text>
     </view>
 
-    <!-- 📝 内容区域（仅当有正文内容时才显示） -->
-    <view
-      class="popup-content"
-      wx:if="{{banners[currentIndex].content || banners[currentIndex].description}}"
-    >
-      <!-- 正文 -->
-      <text class="popup-desc"
-        >{{banners[currentIndex].content || banners[currentIndex].description}}</text
-      >
+    <!-- 📝 内容区域（纯文字创意 text_content 有值时显示） -->
+    <view class="popup-content" wx:if="{{banners[currentIndex].text_content}}">
+      <text class="popup-desc">{{banners[currentIndex].text_content}}</text>
     </view>
 
     <!-- ⚫ 多横幅指示器（2个及以上横幅时显示） -->
     <view class="popup-indicators" wx:if="{{banners.length > 1}}">
-      <block wx:for="{{banners}}" wx:key="popup_banner_id">
+      <block wx:for="{{banners}}" wx:key="ad_campaign_id">
         <view class="indicator-dot {{currentIndex === index ? 'active' : ''}}"></view>
       </block>
       <text class="indicator-text">{{currentIndex + 1}} / {{banners.length}}</text>
@@ -204,21 +177,21 @@
     <!-- 🔘 操作按钮区域 -->
     <view
       class="popup-actions"
-      wx:if="{{banners[currentIndex].link_url || banners.length > 1 || (currentBannerType === 'notice' && isForceShow)}}"
+      wx:if="{{banners[currentIndex].link_url || banners.length > 1 || (currentBannerType === 'system' && isForceShow)}}"
     >
-      <!-- notice类型强制弹出: "我知道了"确认按钮（必须点此关闭） -->
+      <!-- system类型强制弹出: "我知道了"确认按钮（必须点此关闭） -->
       <button
         class="popup-action-btn primary popup-notice-confirm-btn"
-        wx:if="{{currentBannerType === 'notice' && isForceShow}}"
+        wx:if="{{currentBannerType === 'system' && isForceShow}}"
         bindtap="handleNoticeConfirm"
       >
         我知道了
       </button>
 
-      <!-- 有链接时显示"查看详情"按钮（notice强制弹出模式下隐藏） -->
+      <!-- 有链接时显示"查看详情"按钮（system强制弹出模式下隐藏） -->
       <button
         class="popup-action-btn primary"
-        wx:if="{{banners[currentIndex].link_url && !(currentBannerType === 'notice' && isForceShow)}}"
+        wx:if="{{banners[currentIndex].link_url && !(currentBannerType === 'system' && isForceShow)}}"
         bindtap="handleAction"
       >
         查看详情

@@ -90,17 +90,17 @@ Page({
     auditRecordsData: [] as API.ConsumptionRecord[],
     showAuditModal: false,
 
-    /* ===== 系统公告（后端 GET /api/v4/system/announcements/home 返回，最多5条） ===== */
-    announcements: [] as API.Announcement[],
+    /* ===== 系统公告（后端 GET /api/v4/system/ad-delivery?slot_type=announcement 返回） ===== */
+    announcements: [] as API.AdDeliveryItem[],
     /** 公告区域是否可见（有数据时显示） */
     showAnnouncements: false,
 
-    /* ===== 弹窗横幅（后端 GET /api/v4/system/popup-banners 返回） ===== */
+    /* ===== 弹窗横幅（后端 GET /api/v4/system/ad-delivery?slot_type=popup 返回） ===== */
     showPopupBanner: false,
-    popupBanners: [] as API.PopupBanner[],
+    popupBanners: [] as API.AdDeliveryItem[],
 
-    /* ===== 轮播图（后端 GET /api/v4/system/carousel-items 返回） ===== */
-    carouselItems: [] as API.CarouselItem[],
+    /* ===== 轮播图（后端 GET /api/v4/system/ad-delivery?slot_type=carousel 返回） ===== */
+    carouselItems: [] as API.AdDeliveryItem[],
     /** 轮播间隔毫秒（取首个轮播图配置或默认3000ms） */
     carouselInterval: 3000,
     /** 当前轮播索引（用于展示日志上报） */
@@ -124,12 +124,12 @@ Page({
 
   onLoad() {
     /* MobX Store绑定 - 用户/积分状态自动同步 */
-    this.userBindings = createStoreBindings(this, {
+    this.userStoreBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn', 'isAdmin'],
       actions: []
     })
-    this.pointsBindings = createStoreBindings(this, {
+    this.pointsStoreBindings = createStoreBindings(this, {
       store: pointsStore,
       fields: {
         /* 原始积分值 */
@@ -230,23 +230,31 @@ Page({
     }
   },
 
-  /** TabBar页面切换时上报当前轮播图最后一次曝光（lottery是TabBar页，切标签时触发onHide） */
+  /** TabBar页面切换时上报当前轮播图最后一次曝光 + 清理QR刷新定时器 */
   onHide() {
     this._flushCarouselExposure()
+    if (this._qrRefreshTimer) {
+      clearTimeout(this._qrRefreshTimer)
+      this._qrRefreshTimer = null
+    }
   },
 
   onUnload() {
     this._flushCarouselExposure()
 
-    if (this.userBindings) {
-      this.userBindings.destroyStoreBindings()
+    if (this.userStoreBindings) {
+      this.userStoreBindings.destroyStoreBindings()
     }
-    if (this.pointsBindings) {
-      this.pointsBindings.destroyStoreBindings()
+    if (this.pointsStoreBindings) {
+      this.pointsStoreBindings.destroyStoreBindings()
     }
     if (this._qrTimer) {
       clearInterval(this._qrTimer)
       this._qrTimer = null
+    }
+    if (this._qrRefreshTimer) {
+      clearTimeout(this._qrRefreshTimer)
+      this._qrRefreshTimer = null
     }
   },
 
@@ -447,20 +455,14 @@ Page({
     this._refreshPoints()
   },
 
+  /** 刷新积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑） */
   async _refreshPoints() {
     if (!this.data.isLoggedIn) {
       return
     }
     try {
-      const balanceResult = await API.getPointsBalance()
-      if (balanceResult?.success && balanceResult.data) {
-        const points = balanceResult.data.available_amount || 0
-        const frozen = balanceResult.data.frozen_amount || 0
-        pointsStore.setBalance(points, frozen)
-        this.updatePointsDisplay(points, frozen)
-      } else {
-        this.updatePointsDisplay(pointsStore.availableAmount || 0, pointsStore.frozenAmount || 0)
-      }
+      const { available, frozen } = await pointsStore.refreshFromAPI()
+      this.updatePointsDisplay(available, frozen)
     } catch (err) {
       log.error('[lottery] 刷新积分失败:', err)
       this.updatePointsDisplay(pointsStore.availableAmount || 0, pointsStore.frozenAmount || 0)
@@ -651,8 +653,9 @@ Page({
       qrCountdownText: '刷新中...'
     })
 
-    // 延迟2秒后自动刷新，避免频繁请求
-    setTimeout(() => {
+    // 延迟2秒后自动刷新，避免频繁请求（赋值到实例属性以便 onHide/onUnload 清理）
+    this._qrRefreshTimer = setTimeout(() => {
+      this._qrRefreshTimer = null
       this.generateUserQRCode()
     }, 2000)
   },
@@ -861,7 +864,10 @@ Page({
     })
   },
 
-  /** 格式化相对时间 */
+  /**
+   * 格式化相对时间（统一委托 Utils.formatDateMessage，消除重复逻辑）
+   * 增加空值保护：timestamp 为空或解析失败时返回 '时间未知'
+   */
   _formatRelativeTime(timestamp: any) {
     if (!timestamp) {
       return '时间未知'
@@ -870,30 +876,7 @@ Page({
     if (!parsedDate) {
       return '时间未知'
     }
-
-    const parsedTime = parsedDate.getTime()
-    const diff = Date.now() - parsedTime
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
-
-    if (minutes < 1) {
-      return '刚刚'
-    }
-    if (minutes < 60) {
-      return `${minutes}分钟前`
-    }
-    if (hours < 24) {
-      return `${hours}小时前`
-    }
-    if (days === 1) {
-      return '昨天'
-    }
-    if (days < 7) {
-      return `${days}天前`
-    }
-
-    return Utils.formatTime(parsedDate)
+    return Utils.formatDateMessage(parsedDate.getTime())
   },
 
   /** 关闭审核记录弹窗 */
@@ -902,24 +885,24 @@ Page({
   },
 
   // ========================================
-  // 系统公告（后端 GET /api/v4/system/announcements/home）
+  // 系统公告（后端 GET /api/v4/system/ad-delivery?slot_type=announcement）
   // ========================================
 
   /**
    * 加载首页系统公告（公开接口，无需登录）
    *
    * 数据流:
-   * API获取活跃公告(Top5) → 空数组则隐藏区域 → 有数据则渲染滚动公告条
-   * 后端按 priority DESC + created_at DESC 排序，每次请求自动累加 view_count
+   * API获取活跃公告 → 空数组则隐藏区域 → 有数据则渲染滚动公告条
+   * 后端按 priority DESC 排序，system 类型优先级 900-999
    */
   async loadHomeAnnouncements() {
     try {
-      const result = await API.getHomeAnnouncements()
+      const result = await API.getAdDelivery({ slot_type: 'announcement' })
       if (!result?.success || !result.data) {
         return
       }
 
-      const announcementList: API.Announcement[] = result.data.announcements || []
+      const announcementList: API.AdDeliveryItem[] = result.data.items || []
       if (!Array.isArray(announcementList) || announcementList.length === 0) {
         this.setData({ showAnnouncements: false, announcements: [] })
         return
@@ -939,14 +922,14 @@ Page({
   /** 公告条点击 — 展示公告详细内容 */
   onAnnouncementTap(e: WechatMiniprogram.CustomEvent) {
     const index = e.currentTarget.dataset.index as number
-    const announcement: API.Announcement = this.data.announcements[index]
+    const announcement: API.AdDeliveryItem = this.data.announcements[index]
     if (!announcement) {
       return
     }
 
     wx.showModal({
       title: announcement.title,
-      content: announcement.content,
+      content: announcement.text_content || '',
       showCancel: false,
       confirmText: '我知道了'
     })
@@ -960,31 +943,31 @@ Page({
    * 加载弹窗横幅（含频率控制过滤）
    *
    * 数据流:
-   * API获取活跃banners → 客户端频率过滤(shouldShowBanner) → priority降序排序 → 展示第一条
+   * API获取活跃投放内容 → 客户端频率过滤(shouldShowBanner) → priority降序排序 → 展示第一条
    * 频率规则由后端运营后台配置，前端只负责执行判断逻辑
    */
   async loadPopupBanners() {
     try {
       const app = getApp()
 
-      const result = await API.getPopupBanners()
+      const result = await API.getAdDelivery({ slot_type: 'popup', position: 'home' })
       if (!result?.success || !result.data) {
         return
       }
 
-      const banners = result.data.banners || result.data || []
+      const banners: API.AdDeliveryItem[] = result.data.items || []
       if (!Array.isArray(banners) || banners.length === 0) {
         return
       }
 
-      /* 后端已过滤 is_active + 时间范围 + 按priority DESC排序，前端再做客户端频率过滤 */
-      const sessionSeenIds: Set<number> = app.globalData.sessionSeenPopups || new Set()
+      /* 后端已过滤 status=active + 时间范围 + 按priority DESC排序，前端再做客户端频率过滤 */
+      const sessionSeenIds: Set<number> = app.globalData.sessionSeenCampaigns || new Set()
       const filteredBanners = PopupFrequency.filterBannersByFrequency(banners, sessionSeenIds)
       if (filteredBanners.length === 0) {
         return
       }
 
-      /* 方案B弹窗队列：后端最多返回5个，依次弹出，用户关闭一个再弹下一个 */
+      /* 弹窗队列：后端最多返回5个，依次弹出，用户关闭一个再弹下一个 */
       await this._preloadBannerImages(filteredBanners)
 
       /* 存储完整队列到实例变量（不放data，避免大数组序列化开销） */
@@ -992,7 +975,7 @@ Page({
       this._popupQueueIndex = 0
 
       /* 立即标记第一个为已展示 */
-      PopupFrequency.markBannerSeen(filteredBanners[0].popup_banner_id, sessionSeenIds)
+      PopupFrequency.markBannerSeen(filteredBanners[0].ad_campaign_id, sessionSeenIds)
 
       /* 展示队列中的第一个弹窗 */
       const firstBanner = filteredBanners[0]
@@ -1034,41 +1017,44 @@ Page({
   },
 
   /**
-   * 弹窗横幅关闭（方案B队列行为）
-   * 关闭当前弹窗 → 上报展示日志 → 队列中有下一个则自动弹出
+   * 弹窗横幅关闭（队列行为）
+   * 关闭当前弹窗 → 上报统一交互日志 → 队列中有下一个则自动弹出
    */
   onPopupBannerClose(e: WechatMiniprogram.CustomEvent) {
     const closeMethod: string = e?.detail?.close_method || 'close_btn'
     const currentBanners = this.data.popupBanners
     const queueIndex: number = this._popupQueueIndex || 0
 
-    /* 上报当前关闭的弹窗展示日志 */
+    /* 上报当前关闭的弹窗交互日志（统一 ad_interaction_log） */
     if (currentBanners && currentBanners.length > 0) {
       const closedBanner = currentBanners[0]
-      if (closedBanner?.popup_banner_id) {
-        PopupFrequency.markBannerDismissed(closedBanner.popup_banner_id)
+      if (closedBanner?.ad_campaign_id) {
+        PopupFrequency.markBannerDismissed(closedBanner.ad_campaign_id)
 
         const showDuration = this._bannerShowStartTime ? Date.now() - this._bannerShowStartTime : 0
-        API.reportPopupBannerShowLog({
-          popup_banner_id: closedBanner.popup_banner_id,
-          show_duration_ms: showDuration,
-          close_method: closeMethod,
-          queue_position: queueIndex + 1
+        API.reportInteractionLog({
+          ad_campaign_id: closedBanner.ad_campaign_id,
+          interaction_type: 'impression',
+          extra_data: {
+            show_duration_ms: showDuration,
+            close_method: closeMethod,
+            queue_position: queueIndex + 1
+          }
         }).catch((err: any) => {
-          log.warn('[lottery] 弹窗展示日志上报失败（不影响业务）:', err)
+          log.warn('[lottery] 弹窗交互日志上报失败（不影响业务）:', err)
         })
       }
     }
 
     /* 队列中取下一个弹窗 */
-    const queue: API.PopupBanner[] = this._popupQueue || []
+    const queue: API.AdDeliveryItem[] = this._popupQueue || []
     const nextIndex = queueIndex + 1
 
     if (nextIndex < queue.length) {
       /* 标记下一个为已展示 */
       const app = getApp()
-      const sessionSeenIds: Set<number> = app.globalData.sessionSeenPopups || new Set()
-      PopupFrequency.markBannerSeen(queue[nextIndex].popup_banner_id, sessionSeenIds)
+      const sessionSeenIds: Set<number> = app.globalData.sessionSeenCampaigns || new Set()
+      PopupFrequency.markBannerSeen(queue[nextIndex].ad_campaign_id, sessionSeenIds)
 
       this._popupQueueIndex = nextIndex
 
@@ -1147,24 +1133,24 @@ Page({
   },
 
   // ========================================
-  // 轮播图（后端 GET /api/v4/system/carousel-items）
+  // 轮播图（后端 GET /api/v4/system/ad-delivery?slot_type=carousel）
   // ========================================
 
   /**
    * 加载轮播图数据
    *
    * 数据流:
-   * API获取carousel_items → 空数组则隐藏区域 → 有数据则渲染swiper
+   * API获取统一投放内容(slot_type=carousel) → 空数组则隐藏区域 → 有数据则渲染swiper
    * 轮播间隔由后端 slide_interval_ms 字段配置
    */
   async loadCarouselItems() {
     try {
-      const apiResult = await API.getCarouselItems({ position: 'home' })
+      const apiResult = await API.getAdDelivery({ slot_type: 'carousel', position: 'home' })
       if (!apiResult?.success || !apiResult.data) {
         return
       }
 
-      const carouselList: API.CarouselItem[] = apiResult.data.carousel_items || []
+      const carouselList: API.AdDeliveryItem[] = apiResult.data.items || []
       if (!Array.isArray(carouselList) || carouselList.length === 0) {
         this.setData({ showCarousel: false, carouselItems: [] })
         return
@@ -1180,7 +1166,6 @@ Page({
         carouselCurrent: 0
       })
 
-      // 记录每张轮播图的曝光起始时间（用于展示日志上报）
       this._carouselExposureStart = Date.now()
 
       log.info('[lottery] 轮播图加载成功:', carouselList.length, '条')
@@ -1205,15 +1190,13 @@ Page({
   /** 轮播图点击事件 */
   onCarouselItemTap(e: WechatMiniprogram.CustomEvent) {
     const tappedIndex = e.currentTarget.dataset.index as number
-    const tappedItem: API.CarouselItem = this.data.carouselItems[tappedIndex]
+    const tappedItem: API.AdDeliveryItem = this.data.carouselItems[tappedIndex]
     if (!tappedItem) {
       return
     }
 
-    // 上报点击展示日志
     this._reportCarouselExposure(tappedIndex, false, true)
 
-    // 根据 link_type 执行跳转
     if (!tappedItem.link_url || tappedItem.link_type === 'none') {
       return
     }
@@ -1224,7 +1207,7 @@ Page({
           url: tappedItem.link_url,
           fail: () => {
             wx.switchTab({
-              url: tappedItem.link_url,
+              url: tappedItem.link_url!,
               fail: err => log.error('[lottery] 轮播图跳转失败:', err)
             })
           }
@@ -1265,14 +1248,14 @@ Page({
   },
 
   /**
-   * 上报轮播图曝光日志（静默上报，不阻塞UI）
+   * 上报轮播图曝光交互日志（静默上报，不阻塞UI）
    * @param slideIndex - 轮播图索引
    * @param isManualSwipe - 是否手动滑动
    * @param isClicked - 是否被点击
    */
   _reportCarouselExposure(slideIndex: number, isManualSwipe: boolean, isClicked: boolean) {
-    const carouselItem: API.CarouselItem = this.data.carouselItems[slideIndex]
-    if (!carouselItem?.carousel_item_id) {
+    const carouselItem: API.AdDeliveryItem = this.data.carouselItems[slideIndex]
+    if (!carouselItem?.ad_campaign_id) {
       return
     }
 
@@ -1280,13 +1263,16 @@ Page({
       ? Date.now() - this._carouselExposureStart
       : 0
 
-    API.reportCarouselShowLog({
-      carousel_item_id: carouselItem.carousel_item_id,
-      exposure_duration_ms: exposureDuration,
-      is_manual_swipe: isManualSwipe,
-      is_clicked: isClicked
+    API.reportInteractionLog({
+      ad_campaign_id: carouselItem.ad_campaign_id,
+      interaction_type: 'impression',
+      extra_data: {
+        exposure_duration_ms: exposureDuration,
+        is_manual_swipe: isManualSwipe,
+        is_clicked: isClicked
+      }
     }).catch((err: any) => {
-      log.warn('[lottery] 轮播展示日志上报失败（不影响业务）:', err)
+      log.warn('[lottery] 轮播交互日志上报失败（不影响业务）:', err)
     })
   },
 
@@ -1303,5 +1289,3 @@ Page({
     wx.navigateTo({ url: '/packageTrade/trade/inventory/inventory' })
   }
 })
-
-export {}

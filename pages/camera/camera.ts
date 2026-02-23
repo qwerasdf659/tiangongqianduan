@@ -1,10 +1,16 @@
-// pages/camera/camera.ts - 发现页面 - 活动聚合入口（方案C：标签页分类）+ MobX响应式状态
+/**
+ * pages/camera/camera.ts - 发现页面 - 活动聚合入口（方案C：标签页分类）+ MobX响应式状态
+ *
+ * ⚠️ 目录命名历史遗留：pages/camera/ 实际承载"发现"功能（活动聚合），
+ * 非相机功能。因涉及 app.json tabBar、全项目跳转路径变更，暂保留目录名，
+ * 后续统一重构时再改为 pages/discover/。
+ */
 
 // 🔴 统一工具函数导入
 const { Wechat, API, Logger, Utils, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('camera')
 const { showToast } = Wechat
-// 🆕 MobX Store绑定
+const { checkAuth } = Utils
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 
@@ -48,13 +54,14 @@ Page({
     ],
 
     // 活动列表
-    activities: [],
-    filteredActivities: [], // 筛选后的活动列表
+    activities: [] as any[],
+    filteredActivities: [] as any[],
 
-    // 分页
-    page: 1,
-    pageSize: 10,
+    // 分页状态（后端 GET /api/v4/activities 分页参数）
+    currentPage: 1,
+    pageSize: 20,
     hasMore: true,
+    loadingMore: false,
 
     // 页面状态
     loading: false,
@@ -67,7 +74,7 @@ Page({
     log.info('发现页面（活动聚合）加载', options)
 
     // 🆕 MobX Store绑定
-    this.storeBindings = createStoreBindings(this, {
+    this.userStoreBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn'],
       actions: []
@@ -76,18 +83,22 @@ Page({
     this.initializePage()
   },
 
-  /** 🆕 页面卸载时销毁Store绑定 */
+  /** 页面卸载时清理定时器 + 销毁Store绑定 */
   onUnload() {
-    if (this.storeBindings) {
-      this.storeBindings.destroyStoreBindings()
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer)
+      this.searchTimer = null
+    }
+    if (this.userStoreBindings) {
+      this.userStoreBindings.destroyStoreBindings()
     }
   },
 
   onShow() {
     log.info('发现页面（活动聚合）显示')
 
-    // 检查登录状态（活动页面可以未登录浏览，从 MobX Store 读取）
-    const isLoggedIn = userStore.isLoggedIn && !!userStore.accessToken
+    // 检查登录状态（活动页面可以未登录浏览，不跳转登录页）
+    const isLoggedIn = checkAuth({ redirect: false })
 
     this.setData({
       isLoggedIn,
@@ -96,47 +107,89 @@ Page({
   },
 
   /**
-   * 初始化页面
+   * 初始化页面（重置分页状态并加载首页数据）
    *
-   * @description
-   * 调用后端API获取活动列表数据。
-   * 后端路由: GET /api/v4/activities
+   * 后端路由: GET /api/v4/activities?page=1&page_size=20
    * 如果API调用失败，显示空状态，不使用模拟数据。
    */
   async initializePage() {
-    this.setData({ loading: true })
+    this.setData({ loading: true, currentPage: 1, hasMore: true, activities: [] })
 
     try {
-      // 调用后端活动列表API获取真实数据
-      const result = await API.getActivities({ page: 1, page_size: 50 })
+      const result = await API.getActivities({ page: 1, page_size: this.data.pageSize })
 
       if (result && result.success && result.data) {
-        const activities = result.data.activities || result.data || []
+        const activityList = result.data.activities || result.data || []
+        const pagination = result.data.pagination
 
         this.setData({
-          activities,
+          activities: activityList,
+          currentPage: 1,
+          hasMore: pagination
+            ? pagination.current_page < pagination.total_pages
+            : activityList.length >= this.data.pageSize,
           loading: false
         })
 
-        // 应用筛选（根据当前Tab）
         this.filterActivities()
-
-        log.info('活动数据加载完成，共', activities.length, '个活动')
+        log.info('活动数据加载完成，共', activityList.length, '个活动')
       } else {
-        // API返回失败，显示空状态
-        this.setData({
-          activities: [],
-          loading: false
-        })
+        this.setData({ activities: [], loading: false, hasMore: false })
         log.warn('活动API返回无数据')
       }
     } catch (error: any) {
       log.error('初始化失败:', error)
-      this.setData({
-        loading: false,
-        errorMessage: '加载失败，请重试'
-      })
+      this.setData({ loading: false, errorMessage: '加载失败，请重试' })
       showToast('加载失败，请重试')
+    }
+  },
+
+  /**
+   * 触底加载更多活动（分页）
+   *
+   * 后端路由: GET /api/v4/activities?page=N&page_size=20
+   * 新数据追加到已有列表末尾，筛选条件不变
+   */
+  async onReachBottom() {
+    if (!this.data.hasMore || this.data.loadingMore || this.data.loading) {
+      return
+    }
+
+    const nextPage = this.data.currentPage + 1
+    log.info('加载更多活动, 第', nextPage, '页')
+
+    this.setData({ loadingMore: true })
+
+    try {
+      const result = await API.getActivities({ page: nextPage, page_size: this.data.pageSize })
+
+      if (result && result.success && result.data) {
+        const newActivities = result.data.activities || result.data || []
+        const pagination = result.data.pagination
+
+        if (newActivities.length > 0) {
+          const mergedActivities = [...this.data.activities, ...newActivities]
+          this.setData({
+            activities: mergedActivities,
+            currentPage: nextPage,
+            hasMore: pagination
+              ? pagination.current_page < pagination.total_pages
+              : newActivities.length >= this.data.pageSize,
+            loadingMore: false
+          })
+          this.filterActivities()
+          log.info('追加活动数据', newActivities.length, '条，总计', mergedActivities.length, '条')
+        } else {
+          this.setData({ hasMore: false, loadingMore: false })
+          log.info('已加载全部活动数据')
+        }
+      } else {
+        this.setData({ hasMore: false, loadingMore: false })
+      }
+    } catch (error: any) {
+      log.error('加载更多失败:', error)
+      this.setData({ loadingMore: false })
+      showToast('加载更多失败')
     }
   },
 
@@ -248,13 +301,6 @@ Page({
   },
 
   /**
-   * 上拉加载更多
-   */
-  onReachBottom() {
-    log.info('已显示全部活动')
-  },
-
-  /**
    * 活动点击事件
    * e - 事件对象
    */
@@ -285,11 +331,29 @@ Page({
 
     // 时间信息
     if (activity.status === 'ongoing' && activity.endTime) {
-      const countdown = this.formatCountdown(activity.endTime)
-      content += `⏰ 剩余时间：${countdown}\n`
+      const endDate = Utils.safeParseDateString(activity.endTime)
+      if (endDate) {
+        const diffMs = endDate.getTime() - Date.now()
+        if (diffMs > 0) {
+          const days = Math.floor(diffMs / (24 * 60 * 60 * 1000))
+          const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000))
+          const mins = Math.floor((diffMs % (60 * 60 * 1000)) / (60 * 1000))
+          const countdown =
+            days > 0
+              ? `${days}天${hours}小时`
+              : hours > 0
+                ? `${hours}小时${mins}分钟`
+                : `${mins}分钟`
+          content += `⏰ 剩余时间：${countdown}\n`
+        } else {
+          content += `⏰ 已结束\n`
+        }
+      }
     } else if (activity.status === 'upcoming' && activity.startTime) {
-      const startTime = this.formatTime(activity.startTime)
-      content += `🕐 开始时间：${startTime}\n`
+      const startDate = Utils.safeParseDateString(activity.startTime)
+      if (startDate) {
+        content += `🕐 开始时间：${Utils.formatTime(startDate)}\n`
+      }
     }
 
     // 参与信息
@@ -383,50 +447,6 @@ Page({
   },
 
   /**
-   * 格式化时间
-   * timestamp - 时间戳
-   */
-  formatTime(timestamp: any) {
-    if (!timestamp) {
-      return '-'
-    }
-
-    const date = Utils.safeParseDateString(timestamp) || new Date()
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const hour = String(date.getHours()).padStart(2, '0')
-    const minute = String(date.getMinutes()).padStart(2, '0')
-
-    return `${year}-${month}-${day} ${hour}:${minute}`
-  },
-
-  /**
-   * 格式化倒计时
-   * endTime - 结束时间戳
-   */
-  formatCountdown(endTime: any) {
-    const now = Date.now()
-    const diff = endTime - now
-
-    if (diff <= 0) {
-      return '已结束'
-    }
-
-    const days = Math.floor(diff / (24 * 60 * 60 * 1000))
-    const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000))
-    const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000))
-
-    if (days > 0) {
-      return `${days}天${hours}小时`
-    } else if (hours > 0) {
-      return `${hours}小时${minutes}分钟`
-    } else {
-      return `${minutes}分钟`
-    }
-  },
-
-  /**
    * 分享给好友
    */
   onShareAppMessage() {
@@ -436,5 +456,3 @@ Page({
     }
   }
 })
-
-export {}

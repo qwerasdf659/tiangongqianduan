@@ -12,10 +12,10 @@
  * @since 2026-02-10
  */
 
-import { observable, action } from 'mobx-miniprogram'
+import { action, observable } from 'mobx-miniprogram'
 
 /* 内部模块直接引用，不通过 utils/index.ts（避免循环依赖） */
-const { determineUserRole } = require('../utils/util')
+const { determineUserRole, formatPhoneNumber } = require('../utils/util')
 
 export const userStore = observable({
   // ===== 可观察状态 =====
@@ -55,13 +55,9 @@ export const userStore = observable({
     return this.userInfo?.nickname || '用户'
   },
 
-  /** 脱敏手机号 */
+  /** 脱敏手机号（统一调用 utils/util.ts formatPhoneNumber，消除重复逻辑） */
   get maskedMobile(): string {
-    const mobile = this.userInfo?.mobile || ''
-    if (mobile.length === 11) {
-      return mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
-    }
-    return mobile
+    return formatPhoneNumber(this.userInfo?.mobile || '')
   },
 
   // ===== 操作方法 =====
@@ -133,5 +129,32 @@ export const userStore = observable({
       // 统一角色判断（唯一逻辑入口）
       this.userRole = determineUserRole(userInfo)
     }
+  }),
+
+  /**
+   * 确保 userInfo 可用（Store → Storage 两级恢复，不跳转登录页）
+   *
+   * 消除 user.ts、exchange.ts 等页面中重复的手动恢复逻辑：
+   *   let userInfo = userStore.userInfo
+   *   if (!userInfo || !userInfo.user_id) {
+   *     userInfo = wx.getStorageSync('user_info')
+   *     if (userInfo && userInfo.user_id) userStore.updateUserInfo(userInfo)
+   *   }
+   *
+   * @returns 当前 userInfo，可能为 null（表示用户确实未登录）
+   */
+  ensureUserInfo: action(function (this: any): API.UserProfile | null {
+    if (this.userInfo && this.userInfo.user_id) {
+      return this.userInfo
+    }
+
+    const cached = wx.getStorageSync('user_info')
+    if (cached && cached.user_id) {
+      this.userInfo = cached
+      this.userRole = determineUserRole(cached)
+      return cached
+    }
+
+    return null
   })
 })

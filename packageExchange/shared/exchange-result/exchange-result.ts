@@ -5,7 +5,7 @@
  * 事件: bind:close / bind:vieworder
  *
  * @file packageExchange/shared/exchange-result/exchange-result.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -29,5 +29,3 @@ Component({
     }
   }
 })
-
-export {}

@@ -109,5 +109,3 @@ module.exports = {
   createLogger,
   LOG_LEVEL
 }
-
-export {}

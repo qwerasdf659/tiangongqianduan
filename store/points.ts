@@ -16,6 +16,9 @@ import { action, observable } from 'mobx-miniprogram'
 
 import { createPaginatedActions, createPaginationState } from './helpers'
 
+/* 内部模块直接引用，不通过 utils/index.ts（避免循环依赖） */
+const { formatPoints } = require('../utils/util')
+
 export const pointsStore = observable({
   // ===== 可观察状态 =====
 
@@ -44,16 +47,9 @@ export const pointsStore = observable({
     return this.availableAmount + this.frozenAmount
   },
 
-  /** 积分格式化显示（超1万显示为X.X万） */
+  /** 积分格式化显示（统一调用 utils/util.ts formatPoints，消除重复逻辑） */
   get formattedBalance(): string {
-    const pts = this.availableAmount
-    if (pts >= 10000) {
-      return (pts / 10000).toFixed(1) + '万'
-    }
-    if (pts >= 1000) {
-      return (pts / 1000).toFixed(1) + 'k'
-    }
-    return pts.toString()
+    return formatPoints(this.availableAmount)
   },
 
   // ===== 操作方法 =====
@@ -84,6 +80,44 @@ export const pointsStore = observable({
   /** 设置交易记录加载状态 */
   setTransactionsLoading: action(function (this: any, loading: boolean) {
     this.transactionsLoading = loading
+  }),
+
+  /**
+   * 从后端 API 刷新积分余额（唯一入口）
+   *
+   * 收敛 user.ts / lottery.ts / exchange.ts 三处重复的积分刷新逻辑：
+   *   调用 API.getPointsBalance()
+   *   → 校验 success && data
+   *   → 提取 available_amount / frozen_amount
+   *   → 更新 pointsStore.setBalance()
+   *   → catch 中降级读取 pointsStore 缓存值
+   *
+   * 后端路由: GET /api/v4/assets/balance
+   * @returns {{ available: number, frozen: number }} 余额数据
+   */
+  refreshFromAPI: action(async function (
+    this: any
+  ): Promise<{ available: number; frozen: number }> {
+    this.balanceLoading = true
+    try {
+      const apiFunctions = require('../utils/api/index')
+      const balanceResult = await apiFunctions.getPointsBalance()
+
+      if (balanceResult?.success && balanceResult.data) {
+        const available = balanceResult.data.available_amount || 0
+        const frozen = balanceResult.data.frozen_amount || 0
+        this.availableAmount = available
+        this.frozenAmount = frozen
+        this.balanceLoading = false
+        return { available, frozen }
+      }
+
+      this.balanceLoading = false
+      return { available: this.availableAmount, frozen: this.frozenAmount }
+    } catch (_error) {
+      this.balanceLoading = false
+      return { available: this.availableAmount, frozen: this.frozenAmount }
+    }
   }),
 
   /** 清空资产数据（退出登录时调用） */

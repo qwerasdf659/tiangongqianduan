@@ -13,7 +13,7 @@
  * 决策D13: 使用 hidden 替代 wx:if，组件始终存在
  *
  * @file packageExchange/exchange-shelf/exchange-shelf.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -405,5 +405,3 @@ Component({
     }
   }
 })
-
-export {}

@@ -248,5 +248,3 @@ module.exports = {
   reportAdClick,
   getAvailableAdSlots
 }
-
-export {}

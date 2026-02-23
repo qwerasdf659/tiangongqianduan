@@ -36,6 +36,8 @@ interface RequestOptions {
   header?: Record<string, string>
   /** 内部使用：409冲突重试标记 */
   _retried?: boolean
+  /** 内部使用：Token刷新后重试标记（防止 401→刷新→重试→401 无限循环） */
+  _tokenRefreshed?: boolean
 }
 
 /** API错误对象 */
@@ -251,17 +253,24 @@ class APIClient {
     }
   }
 
-  /** 处理响应数据 - V4.0统一响应格式 */
+  /**
+   * 处理响应数据 - V4.0统一响应格式
+   *
+   * 空值保护: 服务端可能返回空响应体（data 为 null/undefined），
+   * 所有 data 属性访问前统一通过 safeData 安全引用，防止 TypeError 崩溃
+   */
   handleResponse(
     response: any,
     requestOptions?: RequestOptions,
     requestUrl?: string
   ): ApiResponse | Promise<ApiResponse> {
-    const { statusCode, data } = response
+    const { statusCode } = response
+    const safeData: Record<string, any> =
+      response.data && typeof response.data === 'object' ? response.data : {}
 
     if (statusCode === 401) {
-      const serverErrorCode: string = data && (data.code || data.error)
-      const serverMessage: string = data && data.message
+      const serverErrorCode: string = safeData.code || safeData.error || ''
+      const serverMessage: string = safeData.message || ''
       log.error('认证失败(401):', { serverErrorCode, serverMessage })
 
       /**
@@ -273,26 +282,30 @@ class APIClient {
        * SESSION_NOT_FOUND / MISSING_TOKEN / INVALID_TOKEN → 清除Token，跳登录页
        */
       if (serverErrorCode === 'TOKEN_EXPIRED' || serverErrorCode === 'SESSION_EXPIRED') {
+        if (requestOptions?._tokenRefreshed) {
+          log.error('Token刷新后重试仍返回401，清除登录状态')
+          return this.handleTokenInvalid(response.data)
+        }
         log.info(
           serverErrorCode === 'TOKEN_EXPIRED'
-            ? 'Token已过期，尝试自动刷新'
-            : '会话已过期，尝试刷新Token以创建新会话'
+            ? 'Token已过期，尝试自动刷新并重试原始请求'
+            : '会话已过期，尝试刷新Token并重试原始请求'
         )
-        return this.handleTokenExpired()
+        return this.handleTokenExpired(requestUrl, requestOptions)
       }
 
       if (serverErrorCode === 'SESSION_REPLACED') {
         return this.handleSessionReplaced(serverMessage)
       }
 
-      return this.handleTokenInvalid(data)
+      return this.handleTokenInvalid(response.data)
     }
 
     if (statusCode === 403) {
-      log.error(' 权限不足(403):', data && data.code)
+      log.error('权限不足(403):', safeData.code)
       throw this._createApiError(
-        data.message || '权限不足',
-        (data && data.code) || 'FORBIDDEN',
+        safeData.message || '权限不足',
+        safeData.code || 'FORBIDDEN',
         statusCode
       )
     }
@@ -300,14 +313,14 @@ class APIClient {
     if (statusCode === 404) {
       log.error('资源不存在(404)')
       throw this._createApiError(
-        data.message || '请求的资源不存在',
-        (data && data.code) || 'NOT_FOUND',
+        safeData.message || '请求的资源不存在',
+        safeData.code || 'NOT_FOUND',
         statusCode
       )
     }
 
     if (statusCode === 409) {
-      const errorCode: string = data && data.code
+      const errorCode: string = safeData.code || ''
       log.error('冲突(409):', errorCode)
 
       if (errorCode === 'CONCURRENT_CONFLICT' && requestOptions && !requestOptions._retried) {
@@ -315,23 +328,27 @@ class APIClient {
         requestOptions._retried = true
         return this.request(requestUrl!, requestOptions)
       }
-      throw this._createApiError(data.message || '数据冲突', errorCode || 'CONFLICT', statusCode)
+      throw this._createApiError(
+        safeData.message || '数据冲突',
+        errorCode || 'CONFLICT',
+        statusCode
+      )
     }
 
     if (statusCode === 429) {
-      log.error(' 频率限制(429)')
+      log.error('频率限制(429)')
       throw this._createApiError(
-        data.message || '操作过于频繁，请稍后再试',
-        (data && data.code) || 'RATE_LIMIT_EXCEEDED',
+        safeData.message || '操作过于频繁，请稍后再试',
+        safeData.code || 'RATE_LIMIT_EXCEEDED',
         statusCode
       )
     }
 
     if (statusCode === 500) {
-      log.error(' 服务器错误(500)')
+      log.error('服务器错误(500)')
       throw this._createApiError(
-        data.message || '服务器内部错误',
-        (data && data.code) || 'INTERNAL_ERROR',
+        safeData.message || '服务器内部错误',
+        safeData.code || 'INTERNAL_ERROR',
         statusCode
       )
     }
@@ -339,43 +356,45 @@ class APIClient {
     if (statusCode === 503) {
       log.error('服务不可用(503)')
       throw this._createApiError(
-        data.message || '服务暂时不可用，请稍后重试',
-        (data && data.code) || 'SERVICE_UNAVAILABLE',
+        safeData.message || '服务暂时不可用，请稍后重试',
+        safeData.code || 'SERVICE_UNAVAILABLE',
         statusCode
       )
     }
 
     if (statusCode === 400) {
-      log.error('请求错误(400):', data && data.code)
+      log.error('请求错误(400):', safeData.code)
       throw this._createApiError(
-        data.message || '请求参数错误',
-        (data && data.code) || 'BAD_REQUEST',
+        safeData.message || '请求参数错误',
+        safeData.code || 'BAD_REQUEST',
         statusCode,
-        (data && data.data) || null
+        safeData.data || null
       )
     }
 
     if (statusCode === 200 || statusCode === 201) {
-      if (data && typeof data === 'object') {
-        if (data.success === true) {
-          return data
-        } else if (data.success === false) {
-          throw this._createApiError(
-            data.message || '操作失败',
-            data.code || 'BUSINESS_ERROR',
-            statusCode,
-            data.data || null
-          )
-        } else {
-          throw new Error('API响应格式错误：缺少success字段')
-        }
+      if (!response.data || typeof response.data !== 'object') {
+        log.warn('API返回空响应体或非对象响应, statusCode:', statusCode)
+        return { success: true, data: response.data ?? null }
       }
-      return data
+
+      if (safeData.success === true) {
+        return response.data
+      } else if (safeData.success === false) {
+        throw this._createApiError(
+          safeData.message || '操作失败',
+          safeData.code || 'BUSINESS_ERROR',
+          statusCode,
+          safeData.data || null
+        )
+      } else {
+        throw new Error('API响应格式错误：缺少success字段')
+      }
     }
 
     throw this._createApiError(
-      `HTTP ${statusCode}: ${(data && data.message) || '请求失败'}`,
-      (data && data.code) || 'UNKNOWN_ERROR',
+      `HTTP ${statusCode}: ${safeData.message || '请求失败'}`,
+      safeData.code || 'UNKNOWN_ERROR',
       statusCode
     )
   }
@@ -501,11 +520,37 @@ class APIClient {
     throw error
   }
 
-  /** 处理Token过期 - 自动刷新机制（防止并发刷新） */
-  async handleTokenExpired(): Promise<ApiResponse> {
+  /**
+   * 处理Token过期 - 自动刷新 + 重试原始请求
+   *
+   * 核心流程:
+   * 1. 刷新 access_token（防止并发：仅第一个请求触发刷新，其余排队等待）
+   * 2. 刷新成功后，用新 Token 重试触发刷新的那个原始请求
+   * 3. 队列中等待的并发请求，各自用新 Token 重试自己的原始请求
+   *
+   * 防无限循环: 重试请求标记 _tokenRefreshed=true，若仍返回401则直接清除登录状态
+   *
+   * @param originalUrl - 触发401的原始请求路径（用于刷新后重试）
+   * @param originalOptions - 触发401的原始请求选项
+   */
+  async handleTokenExpired(
+    originalUrl?: string,
+    originalOptions?: RequestOptions
+  ): Promise<ApiResponse> {
     if (this.isRefreshing) {
-      return new Promise(resolve => {
-        this.refreshSubscribers.push(resolve)
+      return new Promise<ApiResponse>((resolve, reject) => {
+        this.refreshSubscribers.push((newToken: string | null) => {
+          if (newToken && originalUrl) {
+            this.request(originalUrl, { ...originalOptions, _tokenRefreshed: true })
+              .then(resolve)
+              .catch(reject)
+          } else {
+            const err: ApiError = new Error('Token刷新失败，请重新登录') as ApiError
+            err.isAuthError = true
+            err.code = 'TOKEN_REFRESH_FAILED'
+            reject(err)
+          }
+        })
       })
     }
 
@@ -530,7 +575,7 @@ class APIClient {
         refreshHeaders.Authorization = `Bearer ${oldAccessToken}`
       }
 
-      const response = await this.request('/auth/refresh', {
+      const refreshResponse = await this.request('/auth/refresh', {
         method: 'POST',
         data: { refresh_token: refreshToken },
         needAuth: false,
@@ -539,33 +584,33 @@ class APIClient {
         header: refreshHeaders
       })
 
-      if (response.success && response.data) {
-        const { access_token, refresh_token: newRefreshToken } = response.data
+      if (refreshResponse.success && refreshResponse.data) {
+        const { access_token, refresh_token: newRefreshToken } = refreshResponse.data
 
-        // 通过 Store 统一更新Token（Store内部自动同步到Storage）
         const store = getUserStore()
         if (store) {
           store.updateAccessToken(access_token)
           store.updateRefreshToken(newRefreshToken)
         } else {
-          // Store 尚未初始化时降级直接写 Storage（仅在启动早期可能发生）
           wx.setStorageSync('access_token', access_token)
           wx.setStorageSync('refresh_token', newRefreshToken)
         }
 
-        // 通知App实例（兼容其他需要Token的组件）
         const appInstance = getAppInstance()
         if (appInstance) {
           appInstance.setAccessToken(access_token)
           appInstance.setRefreshToken(newRefreshToken)
         }
 
-        log.info('Token刷新成功')
+        log.info('Token刷新成功，通知', this.refreshSubscribers.length, '个等待请求重试')
 
         this.refreshSubscribers.forEach(callback => callback(access_token))
         this.refreshSubscribers = []
 
-        return response
+        if (originalUrl) {
+          return this.request(originalUrl, { ...originalOptions, _tokenRefreshed: true })
+        }
+        return refreshResponse
       } else {
         throw new Error('Token刷新失败')
       }
@@ -585,5 +630,3 @@ class APIClient {
 const apiClient = new APIClient()
 
 module.exports = { APIClient, apiClient }
-
-export {}

@@ -5,7 +5,7 @@
  * 后端API: GET /api/v4/backpack/exchange/items?space=premium
  *
  * @file packageExchange/exchange-shelf/sub/premium-space/premium-space.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -217,5 +217,3 @@ Component({
     }
   }
 })
-
-export {}

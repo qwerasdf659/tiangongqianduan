@@ -675,5 +675,3 @@ Page({
     return aggregatedRecords
   }
 })
-
-export {}

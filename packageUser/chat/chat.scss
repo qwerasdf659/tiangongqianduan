@@ -1765,6 +1765,125 @@
 }
 
 /* ============================================================================ */
+/* M1: 满意度评分内嵌卡片 */
+/* ============================================================================ */
+.satisfaction-card {
+  margin: 24rpx 32rpx;
+  background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);
+  border-radius: 20rpx;
+  padding: 28rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 193, 7, 0.15);
+  border: 2rpx solid rgba(255, 193, 7, 0.2);
+}
+
+.satisfaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.satisfaction-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #5d4e00;
+}
+
+.satisfaction-dismiss {
+  padding: 8rpx;
+}
+
+.dismiss-icon {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.satisfaction-stars {
+  display: flex;
+  justify-content: center;
+  gap: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.star-item {
+  padding: 8rpx;
+}
+
+.star-icon {
+  font-size: 48rpx;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.star-active {
+  color: #ffc107;
+  transform: scale(1.15);
+}
+
+.star-inactive {
+  color: #d4d4d4;
+}
+
+.satisfaction-labels {
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.satisfaction-label {
+  font-size: 24rpx;
+  color: #8a7600;
+}
+
+.satisfaction-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.satisfaction-submit-btn {
+  min-width: 240rpx;
+  height: 68rpx;
+  border-radius: 34rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.satisfaction-submit-btn.active {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
+}
+
+.satisfaction-submit-btn.disabled {
+  background: #e0e0e0;
+  color: #999;
+}
+
+.satisfaction-done {
+  margin: 24rpx 32rpx;
+  text-align: center;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 20rpx;
+  border: 2rpx solid rgba(76, 175, 80, 0.2);
+}
+
+.satisfaction-done-icon {
+  font-size: 40rpx;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.satisfaction-done-text {
+  font-size: 26rpx;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+/* ============================================================================ */
 /* 响应式设计 */
 /* ============================================================================ */
 @media (max-width: 1000rpx) {

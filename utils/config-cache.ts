@@ -489,5 +489,3 @@ module.exports = {
   ConfigCacheManager,
   validatePlacementConfig
 }
-
-export {}

@@ -403,5 +403,3 @@ Page({
     return `${y}-${m}-${d}`
   }
 })
-
-export {}

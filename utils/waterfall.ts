@@ -221,5 +221,3 @@ module.exports = {
   calculateWaterfallLayout,
   calculateContentHeight
 }
-
-export {}

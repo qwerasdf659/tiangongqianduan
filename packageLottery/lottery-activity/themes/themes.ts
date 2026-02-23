@@ -316,5 +316,3 @@ function getThemeStyle(themeName: string): string {
 }
 
 module.exports = { getThemeStyle, THEME_MAP }
-
-export {}

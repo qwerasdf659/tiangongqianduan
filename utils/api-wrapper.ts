@@ -110,5 +110,3 @@ module.exports = {
   safeApiCall,
   safeApiCallWithLoading
 }
-
-export {}

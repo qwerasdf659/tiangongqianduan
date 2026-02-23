@@ -668,6 +668,36 @@ const determineUserRole = (userInfo: { user_role?: string; role_level?: number }
   return 'user'
 }
 
+// ===== JWT Payload → UserProfile 映射 =====
+
+/**
+ * 将JWT Payload映射为API.UserProfile结构
+ *
+ * 场景: Token存在但userInfo缺失时（如缓存被清理），从JWT中恢复基本用户信息。
+ * 恢复的信息仅作为临时数据使用，下次API调用会获取后端完整数据覆盖。
+ *
+ * ⚠️ JWT Payload字段有限，部分字段使用安全默认值（如 login_count: 0）
+ *
+ * @param jwtPayload - decodeJWTPayload() 解码后的JWT载荷
+ * @returns API.UserProfile 格式的用户信息对象
+ */
+const mapJWTPayloadToUserProfile = (jwtPayload: JWTPayload): Record<string, any> => {
+  return {
+    user_id: jwtPayload.user_id,
+    mobile: jwtPayload.mobile,
+    nickname: jwtPayload.nickname || '用户',
+    status: jwtPayload.status,
+    user_role: jwtPayload.user_role || 'user',
+    role_level: jwtPayload.role_level || 0,
+    created_at: jwtPayload.created_at || '',
+    roles: jwtPayload.roles || [],
+    consecutive_fail_count: jwtPayload.consecutive_fail_count || 0,
+    history_total_points: jwtPayload.history_total_points || 0,
+    last_login: jwtPayload.last_login || '',
+    login_count: jwtPayload.login_count || 0
+  }
+}
+
 // ===== URL查询参数构建 =====
 
 /**
@@ -690,10 +720,33 @@ const buildQueryString = (params: Record<string, any>): string => {
     .join('&')
 }
 
+/**
+ * 格式化倒计时文案（距离目标时间的剩余时长）
+ * @param endTime - 结束时间戳（毫秒）
+ * @returns 可读的倒计时文案，如 "3天12小时" / "2小时30分钟" / "15分钟" / "已结束"
+ */
+function formatCountdown(endTime: number): string {
+  const diff = endTime - Date.now()
+  if (diff <= 0) {
+    return '已结束'
+  }
+  const days = Math.floor(diff / (24 * 60 * 60 * 1000))
+  const hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000))
+  const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000))
+  if (days > 0) {
+    return `${days}天${hours}小时`
+  }
+  if (hours > 0) {
+    return `${hours}小时${minutes}分钟`
+  }
+  return `${minutes}分钟`
+}
+
 // ===== 导出模块 =====
 module.exports = {
   formatTime,
   formatNumber,
+  formatCountdown,
   safeParseDateString,
   base64Decode,
   validateJWTTokenIntegrity,
@@ -710,7 +763,6 @@ module.exports = {
   formatPhoneNumber,
   formatDateMessage,
   determineUserRole,
-  buildQueryString
+  buildQueryString,
+  mapJWTPayloadToUserProfile
 }
-
-export {}

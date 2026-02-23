@@ -745,5 +745,3 @@ Component({
     }
   }
 })
-
-export {}

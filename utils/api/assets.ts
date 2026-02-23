@@ -67,5 +67,3 @@ module.exports = {
   getConversionRules,
   getTodaySummary
 }
-
-export {}

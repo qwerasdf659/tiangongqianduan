@@ -10,7 +10,7 @@
  * 后端API: GET /api/v4/market/listings（QueryService 嵌套响应结构）
  *
  * @file packageExchange/exchange-market/handlers/market-behavior.ts
- * @version 1.0.0
+ * @version 5.2.0
  * @since 2026-02-21
  */
 
@@ -508,5 +508,3 @@ module.exports = Behavior({
     }
   }
 })
-
-export {}

@@ -39,19 +39,56 @@ async function getPlacementConfig() {
 }
 
 /**
- * 获取系统公告列表（带分页）- GET /api/v4/system/announcements
- * @param page - 页码（默认1）
- * @param limit - 每页数量（默认20）
- * @param type - 公告类型筛选: system / activity / maintenance / notice（可选）
+ * 统一内容获取接口 - GET /api/v4/system/ad-delivery
+ *
+ * 合并原 popup-banners / carousel-items / announcements 三套独立接口
+ * 后端通过 Ad System 统一管理弹窗、轮播、公告内容
+ *
+ * 响应格式: { success, data: { items: AdDeliveryItem[], slot_type, position, total } }
+ *
+ * @param params.slot_type - 广告位类型（必填）: popup / carousel / announcement
+ * @param params.position  - 位置（可选，默认 home）: home / lottery / profile
  */
-async function getAnnouncements(page: number = 1, limit: number = 20, type: string | null = null) {
-  const qs = buildQueryString({ page, limit, type })
-  return apiClient.request(`/system/announcements?${qs}`, { method: 'GET', needAuth: true })
+async function getAdDelivery(params: { slot_type: string; position?: string }) {
+  if (!params.slot_type) {
+    throw new Error('slot_type 参数不能为空')
+  }
+  const qs = buildQueryString({
+    slot_type: params.slot_type,
+    position: params.position || 'home'
+  })
+  return apiClient.request(`/system/ad-delivery?${qs}`, {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
 }
 
-/** 获取首页公告 - GET /api/v4/system/announcements/home */
-async function getHomeAnnouncements() {
-  return apiClient.request('/system/announcements/home', { method: 'GET', needAuth: false })
+/**
+ * 统一交互日志上报 - POST /api/v4/system/ad-events/interaction-log
+ *
+ * 合并原 popup-banners/show-log + carousel-items/show-log 两个独立上报接口
+ * 通过 interaction_type 区分交互类型，extra_data 携带场景特有数据
+ *
+ * @param data.ad_campaign_id   - 广告计划ID（必填，来自 ad-delivery 接口返回）
+ * @param data.interaction_type - 交互类型: impression / click / close / swipe
+ * @param data.extra_data       - 场景扩展数据（弹窗: show_duration_ms 等，轮播: exposure_duration_ms 等）
+ */
+async function reportInteractionLog(data: API.InteractionLogParams) {
+  if (!data.ad_campaign_id) {
+    throw new Error('ad_campaign_id 不能为空')
+  }
+  if (!data.interaction_type) {
+    throw new Error('interaction_type 不能为空')
+  }
+  return apiClient.request('/system/ad-events/interaction-log', {
+    method: 'POST',
+    data,
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
 }
 
 /** 提交用户反馈 - POST /api/v4/system/feedback */
@@ -96,90 +133,6 @@ async function getFeedbackDetail(feedbackId: number) {
 /** 获取系统状态- GET /api/v4/system/status */
 async function getSystemStatus() {
   return apiClient.request('/system/status', { method: 'GET', needAuth: true })
-}
-
-/**
- * 获取弹窗横幅列表 - GET /api/v4/system/popup-banners
- * @param params.status - 弹窗状态，普通用户只能传 'active'（默认）
- * @param params.position - 显示位置: 'home' / 'profile'（默认 'home'）
- * @param params.limit - 返回数量上限 1-10（默认 10）
- */
-async function getPopupBanners(
-  params: { status?: string; position?: string; limit?: number } = {}
-) {
-  const qs = buildQueryString({
-    status: params.status || 'active',
-    position: params.position || 'home',
-    limit: params.limit || 10
-  })
-  return apiClient.request(`/system/popup-banners?${qs}`, {
-    method: 'GET',
-    needAuth: false,
-    showLoading: false,
-    showError: false
-  })
-}
-
-/**
- * 获取轮播图列表 - GET /api/v4/system/carousel-items
- * @param params.position - 显示位置: 'home'（默认）
- * @param params.limit - 返回数量上限 1-20（默认 10）
- */
-async function getCarouselItems(params: { position?: string; limit?: number } = {}) {
-  const qs = buildQueryString({
-    position: params.position || 'home',
-    limit: params.limit || 10
-  })
-  return apiClient.request(`/system/carousel-items?${qs}`, {
-    method: 'GET',
-    needAuth: false,
-    showLoading: false,
-    showError: false
-  })
-}
-
-/**
- * 上报弹窗展示日志 - POST /api/v4/system/ad-events/popup-banners/show-log
- * @param data.popup_banner_id - 弹窗ID（必填）
- * @param data.show_duration_ms - 展示时长毫秒（弹出到关闭的时间差）
- * @param data.close_method - 关闭方式: close_btn / overlay / confirm_btn / auto_timeout
- * @param data.queue_position - 弹出队列位置（从1开始）
- */
-async function reportPopupBannerShowLog(data: {
-  popup_banner_id: number
-  show_duration_ms?: number
-  close_method?: string
-  queue_position?: number
-}) {
-  return apiClient.request('/system/ad-events/popup-banners/show-log', {
-    method: 'POST',
-    data,
-    needAuth: true,
-    showLoading: false,
-    showError: false
-  })
-}
-
-/**
- * 上报轮播图展示日志 - POST /api/v4/system/ad-events/carousel-items/show-log
- * @param data.carousel_item_id - 轮播图ID（必填）
- * @param data.exposure_duration_ms - 曝光时长毫秒
- * @param data.is_manual_swipe - 是否手动滑动触发展示
- * @param data.is_clicked - 用户是否点击了该轮播图
- */
-async function reportCarouselShowLog(data: {
-  carousel_item_id: number
-  exposure_duration_ms?: number
-  is_manual_swipe?: boolean
-  is_clicked?: boolean
-}) {
-  return apiClient.request('/system/ad-events/carousel-items/show-log', {
-    method: 'POST',
-    data,
-    needAuth: true,
-    showLoading: false,
-    showError: false
-  })
 }
 
 /** 获取系统字典 - GET /api/v4/system/dictionaries */
@@ -374,6 +327,68 @@ async function searchChatMessages(keyword: string, page: number = 1, page_size: 
   })
 }
 
+// ==================== ⭐ 满意度评分 ====================
+
+/**
+ * 用户提交会话满意度评分
+ * 后端API: POST /api/v4/system/chat/sessions/:id/rate
+ *
+ * 触发时机:
+ *   1. 会话关闭后 WebSocket 推送 satisfaction_request 事件，前端渲染内嵌评分卡片
+ *   2. 用户点击评分后调用此接口
+ *
+ * @param session_id - 会话ID（customer_service_session_id）
+ * @param score - 满意度评分（1-5 的整数）
+ * @returns { success, data: { customer_service_session_id, satisfaction_score } }
+ *
+ * 错误场景:
+ *   - score 不在 1-5 范围 → 400 BAD_REQUEST
+ *   - 会话不存在 → 404 NOT_FOUND
+ *   - 非本人会话 → 403 FORBIDDEN
+ */
+async function rateSession(session_id: number, score: number) {
+  if (!session_id) {
+    throw new Error('会话ID不能为空')
+  }
+  if (!score || score < 1 || score > 5 || !Number.isInteger(score)) {
+    throw new Error('评分必须是1-5的整数')
+  }
+  return apiClient.request(`/system/chat/sessions/${session_id}/rate`, {
+    method: 'POST',
+    data: { score },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '提交评分...',
+    showError: true,
+    errorPrefix: '评分提交失败：'
+  })
+}
+
+// ==================== 📋 用户工单 ====================
+
+/**
+ * 用户查看自己的工单进度
+ * 后端API: GET /api/v4/system/chat/issues
+ *
+ * 数据隔离: 后端根据JWT解码user_id，只返回该用户的工单（已脱敏）
+ * 脱敏规则: 不含 description / resolution / compensation_log / 内部备注
+ *
+ * @param page - 页码，默认1
+ * @param page_size - 每页数量，默认10
+ * @returns { success, data: { rows: Issue[], count, page, page_size } }
+ */
+async function getUserIssues(page: number = 1, page_size: number = 10) {
+  const qs = buildQueryString({ page, page_size })
+  return apiClient.request(`/system/chat/issues?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载工单...',
+    showError: true,
+    errorPrefix: '工单加载失败：'
+  })
+}
+
 // ==================== 👤 用户 ====================
 
 /** 获取用户个人详细信息 - GET /api/v4/user/me */
@@ -393,16 +408,12 @@ async function getActivities(params: { page?: number; page_size?: number } = {})
 module.exports = {
   getSystemGlobalConfig,
   getPlacementConfig,
-  getAnnouncements,
-  getHomeAnnouncements,
+  getAdDelivery,
+  reportInteractionLog,
   submitFeedback,
   getMyFeedbacks,
   getFeedbackDetail,
   getSystemStatus,
-  getPopupBanners,
-  getCarouselItems,
-  reportPopupBannerShowLog,
-  reportCarouselShowLog,
   getDictionaries,
   getNotifications,
   createChatSession,
@@ -411,10 +422,10 @@ module.exports = {
   sendChatMessage,
   uploadChatImage,
   searchChatMessages,
+  rateSession,
+  getUserIssues,
   getExchangePageConfig,
   getFeedbackConfig,
   getUserMe,
   getActivities
 }
-
-export {}
