@@ -4,7 +4,7 @@
  * 后端API: GET /api/v4/market/listings
  * 后端响应结构（QueryService 嵌套格式）:
  *   products[]: {
- *     market_listing_id, listing_kind, seller_user_id, seller_nickname,
+ *     listing_id, listing_kind, seller_user_id, seller_nickname,
  *     price_asset_code, price_amount, status, created_at,
  *     item_info: { display_name, image_url, category_code, rarity_code },  // 物品类型
  *     asset_info: { asset_code, amount, display_name, icon_url }           // 资产类型
@@ -44,7 +44,50 @@ Page({
 
     /** 错误状态 */
     hasError: false,
-    errorMessage: ''
+    errorMessage: '',
+
+    /** 价格走势图（默认收起，用户手动展开） */
+    showPriceChart: false,
+    chartAssetCode: 'red_shard',
+
+    /** 最近成交列表（GET /api/v4/market/price/recent-trades） */
+    recentTrades: [] as any[],
+    recentTradesLoading: false,
+    showRecentTrades: false,
+
+    /** 市场总览数据（GET /api/v4/market/analytics/overview） */
+    marketOverview: null as any,
+    marketOverviewLoading: false,
+    showMarketOverview: false,
+
+    /** 服务端筛选参数（对齐 GET /api/v4/market/listings 查询参数） */
+    filterListingKind: '' as string,
+    filterSort: 'newest' as string,
+    filterMinPrice: '' as string,
+    filterMaxPrice: '' as string,
+    filterCategoryCode: '' as string,
+    filterRarityCode: '' as string,
+
+    /** 高级筛选面板是否展开 */
+    showAdvancedFilter: false,
+
+    /** 筛选维度数据（后端 GET /api/v4/market/listings/facets 返回） */
+    facetsData: null as any,
+    facetsLoaded: false,
+
+    /** 挂牌类型标签（前端UI常量） */
+    kindTabs: [
+      { key: '', label: '全部' },
+      { key: 'item', label: '物品' },
+      { key: 'fungible_asset', label: '资产' }
+    ],
+
+    /** 排序选项（前端UI常量，对齐文档 sort 参数） */
+    sortOptions: [
+      { key: 'newest', label: '最新' },
+      { key: 'price_asc', label: '价格↑' },
+      { key: 'price_desc', label: '价格↓' }
+    ]
   },
 
   /** 页面生命周期 - 加载 */
@@ -97,11 +140,36 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const result = await API.getMarketProducts({ page, limit: this.data.pageSize })
-      const { success, data } = result
+      const listingsParams: Record<string, any> = { page, limit: this.data.pageSize }
+      if (this.data.filterListingKind) {
+        listingsParams.listing_kind = this.data.filterListingKind
+      }
+      if (this.data.filterSort) {
+        listingsParams.sort = this.data.filterSort
+      }
+      if (this.data.filterMinPrice) {
+        const parsedMin = parseInt(this.data.filterMinPrice, 10)
+        if (!isNaN(parsedMin) && parsedMin > 0) {
+          listingsParams.min_price = parsedMin
+        }
+      }
+      if (this.data.filterMaxPrice) {
+        const parsedMax = parseInt(this.data.filterMaxPrice, 10)
+        if (!isNaN(parsedMax) && parsedMax > 0) {
+          listingsParams.max_price = parsedMax
+        }
+      }
+      if (this.data.filterCategoryCode) {
+        listingsParams.item_category_code = this.data.filterCategoryCode
+      }
+      if (this.data.filterRarityCode) {
+        listingsParams.rarity_code = this.data.filterRarityCode
+      }
+      const listingsResult = await API.getMarketProducts(listingsParams)
+      const { success: listingsSuccess, data: listingsData } = listingsResult
 
-      if (success && data && data.products) {
-        const rawProducts = data.products
+      if (listingsSuccess && listingsData && listingsData.products) {
+        const rawProducts = listingsData.products
 
         /**
          * 适配后端 QueryService 嵌套响应，计算前端展示字段
@@ -169,25 +237,215 @@ Page({
     })
   },
 
+  /** 切换价格走势图显示/隐藏 */
+  onTogglePriceChart() {
+    this.setData({ showPriceChart: !this.data.showPriceChart })
+  },
+
+  /** 切换最近成交列表显示/隐藏，首次展开时加载数据 */
+  onToggleRecentTrades() {
+    const willShow = !this.data.showRecentTrades
+    this.setData({ showRecentTrades: willShow })
+    if (willShow && this.data.recentTrades.length === 0) {
+      this.loadRecentTrades()
+    }
+  },
+
+  /**
+   * 加载最近成交列表
+   * 后端API: GET /api/v4/market/price/recent-trades
+   * 响应: { data: [ { trade_order_id, price_amount, display_name, buyer_nickname, ... } ] }
+   */
+  async loadRecentTrades() {
+    this.setData({ recentTradesLoading: true })
+    try {
+      const tradesResponse = await API.getRecentTrades({ limit: 15 })
+      if (tradesResponse && tradesResponse.success && tradesResponse.data) {
+        const tradesList = Array.isArray(tradesResponse.data)
+          ? tradesResponse.data
+          : tradesResponse.data.trades || []
+        this.setData({ recentTrades: tradesList, recentTradesLoading: false })
+        marketLog.info(`最近成交加载完成: ${tradesList.length}笔`)
+      } else {
+        this.setData({ recentTradesLoading: false })
+      }
+    } catch (tradesError) {
+      marketLog.error('加载最近成交失败:', tradesError)
+      this.setData({ recentTradesLoading: false })
+    }
+  },
+
+  /** 切换市场总览面板显示/隐藏，首次展开时加载数据 */
+  onToggleMarketOverview() {
+    const willShow = !this.data.showMarketOverview
+    this.setData({ showMarketOverview: willShow })
+    if (willShow && !this.data.marketOverview) {
+      this.loadMarketOverview()
+    }
+  },
+
+  /**
+   * 加载市场总览数据
+   * 后端API: GET /api/v4/market/analytics/overview
+   *
+   * 响应 data 包含:
+   *   active_listings - 在售挂单数
+   *   total_trades    - 累计成交笔数
+   *   trades_24h      - 24小时成交笔数（WXML引用，后端按需返回，缺失时显示0）
+   *   volume_24h      - 24小时交易额（WXML引用，后端按需返回，缺失时显示0）
+   *   asset_rankings  - 资产成交量排行数组
+   */
+  async loadMarketOverview() {
+    this.setData({ marketOverviewLoading: true })
+    try {
+      const overviewResponse = await API.getMarketOverview()
+      if (overviewResponse && overviewResponse.success && overviewResponse.data) {
+        this.setData({ marketOverview: overviewResponse.data, marketOverviewLoading: false })
+        marketLog.info('市场总览加载完成')
+      } else {
+        this.setData({ marketOverviewLoading: false })
+      }
+    } catch (overviewError) {
+      marketLog.error('加载市场总览失败:', overviewError)
+      this.setData({ marketOverviewLoading: false })
+    }
+  },
+
+  /**
+   * 切换挂牌类型筛选标签（全部 / 物品 / 资产）
+   * 修改后重置分页并重新加载（服务端筛选）
+   */
+  onKindTabChange(e: WechatMiniprogram.TouchEvent) {
+    const kindKey = e.currentTarget.dataset.kind
+    if (kindKey === this.data.filterListingKind) {
+      return
+    }
+    this.setData({
+      filterListingKind: kindKey,
+      products: [],
+      currentPage: 1,
+      hasMore: true,
+      columnHeights: [0, 0]
+    })
+    this.loadProducts(1)
+  },
+
+  /**
+   * 切换排序方式
+   * 修改后重置分页并重新加载（服务端排序）
+   */
+  onSortChange(e: WechatMiniprogram.TouchEvent) {
+    const sortKey = e.currentTarget.dataset.sort
+    if (sortKey === this.data.filterSort) {
+      return
+    }
+    this.setData({
+      filterSort: sortKey,
+      products: [],
+      currentPage: 1,
+      hasMore: true,
+      columnHeights: [0, 0]
+    })
+    this.loadProducts(1)
+  },
+
+  /** 切换高级筛选面板，首次展开时加载分面数据 */
+  onToggleAdvancedFilter() {
+    const willShow = !this.data.showAdvancedFilter
+    this.setData({ showAdvancedFilter: willShow })
+    if (willShow && !this.data.facetsLoaded) {
+      this._loadFacets()
+    }
+  },
+
+  /**
+   * 加载筛选维度数据
+   * 后端API: GET /api/v4/market/listings/facets
+   */
+  async _loadFacets() {
+    try {
+      const facetsResponse = await API.getMarketFacets()
+      if (facetsResponse && facetsResponse.success && facetsResponse.data) {
+        this.setData({ facetsData: facetsResponse.data, facetsLoaded: true })
+        marketLog.info('筛选维度加载成功')
+      }
+    } catch (facetsError) {
+      marketLog.warn('加载筛选维度失败:', facetsError)
+    }
+  },
+
+  /** 最低价格输入 */
+  onMinPriceInput(e: any) {
+    this.setData({ filterMinPrice: (e.detail.value || '').replace(/[^0-9]/g, '') })
+  },
+
+  /** 最高价格输入 */
+  onMaxPriceInput(e: any) {
+    this.setData({ filterMaxPrice: (e.detail.value || '').replace(/[^0-9]/g, '') })
+  },
+
+  /** 选择分类 */
+  onCategorySelect(e: any) {
+    const code = e.currentTarget.dataset.code || ''
+    this.setData({
+      filterCategoryCode: code === this.data.filterCategoryCode ? '' : code
+    })
+  },
+
+  /** 选择稀有度 */
+  onRaritySelect(e: any) {
+    const code = e.currentTarget.dataset.code || ''
+    this.setData({
+      filterRarityCode: code === this.data.filterRarityCode ? '' : code
+    })
+  },
+
+  /** 应用高级筛选 — 关闭面板并重新加载 */
+  onApplyAdvancedFilter() {
+    this.setData({
+      showAdvancedFilter: false,
+      products: [],
+      currentPage: 1,
+      hasMore: true,
+      columnHeights: [0, 0]
+    })
+    this.loadProducts(1)
+  },
+
+  /** 重置高级筛选 */
+  onResetAdvancedFilter() {
+    this.setData({
+      filterMinPrice: '',
+      filterMaxPrice: '',
+      filterCategoryCode: '',
+      filterRarityCode: ''
+    })
+  },
+
+  /** 跳转到我的订单页面 */
+  onGoToMyOrders() {
+    wx.navigateTo({ url: '/packageTrade/trade/my-orders/my-orders' })
+  },
+
   /**
    * 商品点击 — 跳转到挂单详情
-   * 使用后端字段 market_listing_id 作为路由参数
+   * 使用后端字段 listing_id 作为路由参数
    */
   onProductClick(e: WechatMiniprogram.TouchEvent) {
     const product = e.currentTarget.dataset.product
-    if (!product || !product.market_listing_id) {
+    if (!product || !product.listing_id) {
       return
     }
 
     marketLog.info('点击挂单:', product._displayName)
     wx.reportAnalytics('product_click', {
       layout_type: 'waterfall',
-      market_listing_id: product.market_listing_id,
+      listing_id: product.listing_id,
       listing_kind: product.listing_kind
     })
 
     wx.navigateTo({
-      url: `/packageTrade/trade/market/market?market_listing_id=${product.market_listing_id}&source=waterfall_market`
+      url: `/packageTrade/trade/listing-detail/listing-detail?listing_id=${product.listing_id}`
     })
   },
 

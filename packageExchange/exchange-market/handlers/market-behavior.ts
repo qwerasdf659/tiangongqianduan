@@ -16,7 +16,7 @@
 
 const { API, Wechat, Logger, Utils, ImageHelper } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market-behavior')
-const { getMarketProducts, purchaseMarketProduct, getMyListingStatus, confirmEscrowCode } = API
+const { getMarketProducts, purchaseMarketProduct, getMyListingStatus, confirmDelivery } = API
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = require('../../utils/product-display')
@@ -85,9 +85,9 @@ module.exports = Behavior({
            * item 类型 → 后端 image_url → 分类图标 → 占位图
            */
           const processedProducts = items.map((item: any, idx: number) => {
-            if (!item.market_listing_id) {
+            if (!item.listing_id) {
               marketLog.warn(
-                `products[${idx}] 缺少 market_listing_id，后端响应字段:`,
+                `products[${idx}] 缺少 listing_id，后端响应字段:`,
                 Object.keys(item)
               )
             }
@@ -95,7 +95,7 @@ module.exports = Behavior({
             const assetInfo = item.asset_info || {}
             const isAsset = item.listing_kind === 'fungible_asset'
             return {
-              market_listing_id: item.market_listing_id,
+              listing_id: item.listing_id,
               listing_kind: item.listing_kind || 'item',
               seller_user_id: item.seller_user_id,
               seller_nickname: item.seller_nickname || '',
@@ -114,7 +114,7 @@ module.exports = Behavior({
               offer_item_category_code: itemInfo.category_code || null,
               item_id: itemInfo.item_id || null,
               template_id: itemInfo.template_id || null,
-              status: item.status || 'on_sale',
+              status: item.status || 'active',
               created_at: item.created_at || '',
               imageStatus: 'loading'
             }
@@ -242,8 +242,8 @@ module.exports = Behavior({
       const product = e.currentTarget.dataset.product
       marketLog.info('点击市场商品:', product)
 
-      if (!product || !product.market_listing_id) {
-        marketLog.error('商品缺少 market_listing_id，无法发起购买', {
+      if (!product || !product.listing_id) {
+        marketLog.error('商品缺少 listing_id，无法发起购买', {
           listing_kind: product?.listing_kind,
           item_name: product?.item_name,
           available_keys: product ? Object.keys(product) : []
@@ -271,7 +271,7 @@ module.exports = Behavior({
 
       try {
         this.setData({ purchasing: true })
-        const response = await purchaseMarketProduct(selectedProduct.market_listing_id)
+        const response = await purchaseMarketProduct(selectedProduct.listing_id)
 
         if (response && response.success && response.data) {
           marketLog.info('购买成功:', response.data)
@@ -420,15 +420,15 @@ module.exports = Behavior({
     /**
      * 加载当前用户的挂单状态统计
      * 后端API: GET /api/v4/market/listing-status
-     * 用于在交易市场底部管理栏展示在售挂单数量
+     * 响应: { current, limit, remaining, percentage }
      */
     async loadMyListingStatus() {
       try {
         const result = await getMyListingStatus()
         if (result && result.success && result.data) {
-          const onSaleCount = result.data.on_sale_count || 0
+          const onSaleCount = result.data.current || 0
           this.setData({ myOnSaleCount: onSaleCount })
-          marketLog.info('我的挂单统计:', onSaleCount, '个在售')
+          marketLog.info('我的挂单统计:', onSaleCount, '/', result.data.limit || 0)
         }
       } catch (error: any) {
         marketLog.warn('获取挂单状态失败（不影响浏览）:', error.message)
@@ -475,7 +475,7 @@ module.exports = Behavior({
 
     /**
      * 提交担保码确认收货
-     * POST /api/v4/market/trade-orders/:trade_order_id/confirm-escrow
+     * POST /api/v4/market/trade-orders/:trade_order_id/confirm-delivery
      *
      * ⚠️ 需要后端 Phase 4 EscrowCodeService 实施完成后才可调用
      */
@@ -493,7 +493,7 @@ module.exports = Behavior({
       this.setData({ escrowSubmitting: true })
 
       try {
-        const result = await confirmEscrowCode(escrowTradeOrderId, escrowInputCode)
+        const result = await confirmDelivery(escrowTradeOrderId, escrowInputCode)
 
         if (result && result.success) {
           marketLog.info('担保码确认成功:', escrowTradeOrderId)

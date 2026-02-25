@@ -71,7 +71,8 @@ Page({
 
     /** WebSocket 驱动的刷新令牌（值变化触发子组件 observer） */
     _shelfRefreshToken: 0,
-    _marketRefreshToken: 0
+    _marketRefreshToken: 0,
+    _exchangeRateRefreshToken: 0
   },
 
   /** 页面加载 */
@@ -246,8 +247,10 @@ Page({
     log.info('页面级下拉刷新')
     if (this.data.currentTab === 'exchange') {
       this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
-    } else {
+    } else if (this.data.currentTab === 'market') {
       this.setData({ _marketRefreshToken: this.data._marketRefreshToken + 1 })
+    } else if (this.data.currentTab === 'exchange-rate') {
+      this.setData({ _exchangeRateRefreshToken: this.data._exchangeRateRefreshToken + 1 })
     }
     this._refreshPointsBalance(this.data.userInfo)
     wx.stopPullDownRefresh()
@@ -262,6 +265,12 @@ Page({
   /** 购买成功事件（exchange-market 触发） */
   async onPurchaseSuccess(_e: any) {
     log.info('购买成功，刷新积分余额')
+    await this._refreshPointsBalance(this.data.userInfo)
+  },
+
+  /** 汇率兑换成功事件（exchange-rate 触发） */
+  async onExchangeRateSuccess(_e: any) {
+    log.info('汇率兑换成功，刷新积分余额')
     await this._refreshPointsBalance(this.data.userInfo)
   },
 

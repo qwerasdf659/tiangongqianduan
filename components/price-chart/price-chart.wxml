@@ -1,0 +1,49 @@
+<!--价格走势图组件 — Canvas 2D 轻量折线图 + 成交量柱状图-->
+<!--后端API: GET /api/v4/market/price/trend + /volume + /summary-->
+<view class="price-chart-wrap">
+  <view class="chart-header" wx:if="{{title}}">
+    <text class="chart-title">{{title}}</text>
+    <view class="period-tabs">
+      <text wx:for="{{periods}}" wx:key="value" class="period-tab {{currentPeriod === item.value ? 'period-tab--active' : ''}}" data-period="{{item.value}}" bindtap="onPeriodChange">{{item.label}}</text>
+    </view>
+  </view>
+
+  <!--图表标签页：价格走势 / 成交量-->
+  <view class="chart-tab-bar">
+    <text class="chart-tab {{activeChartTab === 'price' ? 'chart-tab--active' : ''}}" data-tab="price" bindtap="onChartTabChange">价格走势</text>
+    <text class="chart-tab {{activeChartTab === 'volume' ? 'chart-tab--active' : ''}}" data-tab="volume" bindtap="onChartTabChange">成交量</text>
+  </view>
+
+  <!--Canvas 2D 绘图区域（价格折线图 / 成交量柱状图 共用同一 Canvas）-->
+  <canvas type="2d" id="priceChartCanvas" class="chart-canvas" style="width: 100%; height: {{canvasHeight}}px;" />
+
+  <!--摘要信息-->
+  <view class="chart-summary" wx:if="{{summary}}">
+    <view class="summary-item">
+      <text class="summary-label">最低</text>
+      <text class="summary-value summary-value--low">{{summary.lowest_ever}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">均价</text>
+      <text class="summary-value">{{summary.avg_price_7d}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">最高</text>
+      <text class="summary-value summary-value--high">{{summary.highest_ever}}</text>
+    </view>
+    <view class="summary-item">
+      <text class="summary-label">成交</text>
+      <text class="summary-value">{{summary.total_trades}}笔</text>
+    </view>
+  </view>
+
+  <!--无数据占位-->
+  <view class="chart-empty" wx:if="{{!loading && dataPoints.length === 0 && volumePoints.length === 0}}">
+    <text class="chart-empty-text">暂无成交数据</text>
+  </view>
+
+  <!--加载状态-->
+  <view class="chart-loading" wx:if="{{loading}}">
+    <text class="chart-loading-text">加载走势...</text>
+  </view>
+</view>

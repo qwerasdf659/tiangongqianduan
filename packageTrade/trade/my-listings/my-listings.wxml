@@ -57,7 +57,7 @@
       <view
         class="listing-card status-{{item.status}}"
         wx:for="{{listings}}"
-        wx:key="market_listing_id"
+        wx:key="listing_id"
       >
         <!-- 卡片头部：类型标签 + 状态标签 -->
         <view class="card-header">
@@ -101,36 +101,21 @@
           <view class="card-actions">
             <button
               class="withdraw-btn"
-              wx:if="{{item.status === 'on_sale'}}"
+              wx:if="{{item.status === 'active'}}"
               catchtap="onWithdrawListing"
               data-listing="{{item}}"
-              disabled="{{withdrawingId === item.market_listing_id}}"
+              disabled="{{withdrawingId === item.listing_id}}"
             >
-              {{withdrawingId === item.market_listing_id ? '撤回中...' : '撤回挂单'}}
+              {{withdrawingId === item.listing_id ? '撤回中...' : '撤回挂单'}}
             </button>
-            <view
-              class="status-hint"
-              wx:elif="{{item.status === 'locked' && item.listing_kind === 'item'}}"
-            >
-              <button
-                class="escrow-btn"
-                catchtap="onViewEscrowCode"
-                data-trade_order_id="{{item.trade_order_id}}"
-              >
-                🔑 查看担保码
-              </button>
-            </view>
-            <view class="status-hint" wx:elif="{{item.status === 'locked'}}">
-              <text class="locked-label">⏳ 买家交易中</text>
-            </view>
             <view class="status-hint" wx:elif="{{item.status === 'sold'}}">
               <text class="sold-label">✅ 交易完成</text>
             </view>
-            <view
-              class="status-hint"
-              wx:elif="{{item.status === 'withdrawn' || item.status === 'admin_withdrawn'}}"
-            >
+            <view class="status-hint" wx:elif="{{item.status === 'withdrawn'}}">
               <text class="withdrawn-label">已退回背包</text>
+            </view>
+            <view class="status-hint" wx:elif="{{item.status === 'expired'}}">
+              <text class="withdrawn-label">已过期</text>
             </view>
           </view>
         </view>
@@ -164,41 +149,33 @@
     </view>
   </view>
 
-  <!-- 担保码弹窗（Phase 4：卖方查看担保码） -->
+  <!-- 担保码状态弹窗（Phase 4：卖方查看交易担保状态） -->
+  <!-- 注意：escrow-status API不返回明文担保码，仅返回状态信息 -->
   <view class="escrow-overlay" wx:if="{{showEscrowModal}}" catchtap="onCloseEscrowModal">
     <view class="escrow-modal" catchtap="">
       <view class="escrow-header">
-        <text class="escrow-title">交易担保码</text>
+        <text class="escrow-title">交易担保状态</text>
         <view class="escrow-close" bindtap="onCloseEscrowModal">
           <text class="escrow-close-icon">✕</text>
         </view>
       </view>
 
       <view class="escrow-loading" wx:if="{{escrowLoading}}">
-        <text class="escrow-loading-text">获取担保码中...</text>
+        <text class="escrow-loading-text">查询担保状态中...</text>
       </view>
 
-      <view class="escrow-body" wx:elif="{{escrowCode}}">
-        <text class="escrow-hint">请将以下担保码告知买家，买家输入后完成交易</text>
-        <view class="escrow-code-display">
-          <text class="escrow-code-value">{{escrowCode}}</text>
+      <view class="escrow-body" wx:elif="{{escrowTradeOrderId}}">
+        <view class="escrow-notice">
+          <text class="escrow-notice-icon">🔑</text>
+          <text class="escrow-notice-text">担保码已生成，请当面交付物品后将担保码告知买家。买家输入担保码后交易完成。</text>
         </view>
         <view class="escrow-expire" wx:if="{{escrowExpiresAt}}">
-          <text class="escrow-expire-text">有效期至 {{escrowExpiresAt}}（30分钟内有效）</text>
-        </view>
-        <view class="escrow-copy-btn" bindtap="onCopyEscrowCode">
-          <text class="escrow-copy-text">复制担保码</text>
-        </view>
-        <view class="escrow-notice">
-          <text class="escrow-notice-icon">⚠️</text>
-          <text class="escrow-notice-text"
-            >请当面交付物品后再告知担保码，担保码仅限本次交易使用</text
-          >
+          <text class="escrow-expire-text">有效期至 {{escrowExpiresAt}}</text>
         </view>
       </view>
 
       <view class="escrow-error" wx:else>
-        <text class="escrow-error-text">担保码暂不可用，请稍后重试</text>
+        <text class="escrow-error-text">担保状态不可用，请稍后重试</text>
       </view>
     </view>
   </view>

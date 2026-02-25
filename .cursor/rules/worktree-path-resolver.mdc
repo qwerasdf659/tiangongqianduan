@@ -1,0 +1,19 @@
+---
+description: Git worktree 路径解析规则 — 当前项目使用 git worktree，IDE 文件树显示主工作树内容，工具默认在 worktree 路径下操作
+alwaysApply: true
+---
+
+# Git Worktree 路径映射
+
+本项目是一个 git worktree，文件在两个路径下存在：
+
+| 路径 | 说明 |
+|------|------|
+| `C:\Users\Administrator\Desktop\tiangongqianduan1\` | **主工作树**（IDE 文件树显示的内容） |
+| `C:\Users\Administrator\.cursor\worktrees\tiangongqianduan1\rpg` | **当前 worktree**（工具默认操作路径） |
+
+## 规则
+
+1. **读写代码文件**：使用当前 worktree 路径（`rpg`）
+2. **读取 docs/ 等共享目录**：如果在 worktree 中找不到，立即尝试主工作树路径 `C:\Users\Administrator\Desktop\tiangongqianduan1\docs\`
+3. **用户用 @ 引用文件时**：优先在 worktree 查找，找不到则查主工作树

@@ -384,6 +384,16 @@ declare namespace API {
      *   tradable_item → ["use", "sell"]  虚拟道具可用可交易
      */
     allowed_actions: string[]
+    /**
+     * 商家ID（多商家架构 P1，来源: items 表 LEFT JOIN merchants 表）
+     * 标识该物品由哪个商家/游戏发放，可为 null（系统发放的物品无商家归属）
+     */
+    merchant_id: number | null
+    /**
+     * 商家名称（多商家架构 P1，来源: merchants.merchant_name）
+     * 用于前端展示"来自：XX商家"标签，可为 null
+     */
+    merchant_name: string | null
   }
 
   /**
@@ -650,20 +660,250 @@ declare namespace API {
     product_status?: string
   }
 
+  // ===== 汇率兑换系统 =====
+
+  /**
+   * 汇率规则（对齐后端 exchange_rates 表 + GET /api/v4/market/exchange-rates 响应）
+   * 表示一条源资产→目标资产的兑换规则
+   */
+  interface ExchangeRate {
+    /** 汇率规则ID（BIGINT PK） */
+    exchange_rate_id: number
+    /** 源资产代码（如 red_shard） */
+    from_asset_code: string
+    /** 目标资产代码（如 DIAMOND） */
+    to_asset_code: string
+    /** 汇率分子 */
+    rate_numerator: number
+    /** 汇率分母 */
+    rate_denominator: number
+    /** 汇率文本描述（如 "10:1"） */
+    rate_display: string
+    /** 最小兑换数量 */
+    min_from_amount: number
+    /** 最大兑换数量（null=不限） */
+    max_from_amount: number | null
+    /** 每用户每日限额（null=不限） */
+    daily_user_limit: number | null
+    /** 手续费率（DECIMAL） */
+    fee_rate: number
+    /** 规则状态: active / paused / disabled */
+    status: string
+    /** 汇率说明（可为null） */
+    description: string | null
+  }
+
+  /**
+   * 兑换预览结果（POST /api/v4/market/exchange-rates/preview 响应）
+   * 仅预览不执行实际兑换，用于前端展示确认信息
+   */
+  interface ExchangeRatePreview {
+    /** 扣减数量 */
+    from_amount: number
+    /** 兑换总量（手续费前） */
+    gross_to_amount: number
+    /** 手续费 */
+    fee_amount: number
+    /** 实际到账量（手续费后） */
+    net_to_amount: number
+    /** 汇率文本 */
+    rate_display: string
+    /** 当前源资产余额 */
+    user_balance: number
+    /** 余额是否充足 */
+    sufficient_balance: boolean
+    /** 每日限额（null=不限） */
+    daily_user_limit: number | null
+    /** 今日已用 */
+    daily_used: number
+    /** 今日剩余（null=不限） */
+    daily_remaining: number | null
+  }
+
+  /**
+   * 兑换执行结果（POST /api/v4/market/exchange-rates/convert 响应）
+   * 携带 Idempotency-Key 请求头防止重复兑换
+   */
+  interface ExchangeRateConvertResult {
+    /** 是否成功 */
+    success: boolean
+    /** 扣减数量 */
+    from_amount: number
+    /** 实际到账量 */
+    net_to_amount: number
+    /** 兑换后源资产余额 */
+    from_balance: number
+    /** 兑换后目标资产余额 */
+    to_balance: number
+    /** 是否幂等重复请求 */
+    is_duplicate: boolean
+  }
+
+  // ===== 价格发现系统 =====
+
+  /**
+   * 价格走势数据点（GET /api/v4/market/price/trend 响应中 data_points 数组项）
+   * 后端按时间聚合 trade_orders JOIN market_listings 计算
+   */
+  interface PriceTrendPoint {
+    /** 时间标签（如 '2026-02-16'） */
+    time: string
+    /** 均价 */
+    avg_price: number
+    /** 最低价 */
+    min_price: number
+    /** 最高价 */
+    max_price: number
+    /** 成交笔数 */
+    trade_count: number
+    /** 总成交量 */
+    total_volume: number
+  }
+
+  /**
+   * 成交量走势数据点（GET /api/v4/market/price/volume 响应中 data_points 数组项）
+   * 与 PriceTrendPoint 结构类似，侧重成交量维度
+   */
+  interface VolumeTrendPoint {
+    /** 时间标签 */
+    time: string
+    /** 成交笔数 */
+    trade_count: number
+    /** 总成交量 */
+    total_volume: number
+    /** 总成交额 */
+    total_value: number
+  }
+
+  /**
+   * 价格摘要统计（GET /api/v4/market/price/summary 响应）
+   * 综合统计某资产/物品的历史成交数据
+   */
+  interface PriceSummary {
+    /** 总成交笔数 */
+    total_trades: number
+    /** 历史最低价 */
+    lowest_ever: number
+    /** 历史最高价 */
+    highest_ever: number
+    /** 中位数价 */
+    median_price: number
+    /** 近7天均价 */
+    avg_price_7d: number
+    /** 近7天成交笔数 */
+    trades_7d: number
+  }
+
+  /**
+   * 最近成交记录（GET /api/v4/market/price/recent-trades 响应中数组项）
+   * 展示实时成交流
+   */
+  interface RecentTrade {
+    /** 交易订单ID */
+    trade_order_id: number
+    /** 成交价格 */
+    price_amount: number
+    /** 定价币种 */
+    price_asset_code: string
+    /** 挂牌类型: item / fungible_asset */
+    listing_kind: string
+    /** 商品显示名称 */
+    display_name: string
+    /** 成交数量（fungible_asset 类型使用） */
+    amount: number | null
+    /** 买家昵称 */
+    buyer_nickname: string
+    /** 卖家昵称 */
+    seller_nickname: string
+    /** 成交时间（ISO 8601） */
+    completed_at: string
+  }
+
+  // ===== 市场数据分析 =====
+
+  /**
+   * 定价建议（GET /api/v4/market/analytics/pricing-advice 响应）
+   * 算法: 建议最低价 = 近7天均价×0.8, 建议参考价 = 近7天均价, 建议最高价 = 近7天均价×1.5
+   */
+  interface PricingAdvice {
+    /** 是否有成交数据（无成交数据时其他字段无意义） */
+    has_trade_data: boolean
+    /** 建议最低价 */
+    suggested_min_price: number
+    /** 建议参考价 */
+    suggested_price: number
+    /** 建议最高价 */
+    suggested_max_price: number
+    /** 当前在售最低价 */
+    lowest_on_sale: number
+    /** 定价建议文本 */
+    advice_text: string
+  }
+
+  /**
+   * 市场总览数据（GET /api/v4/market/analytics/overview 响应）
+   * 各资产成交量排行、总交易额等宏观数据
+   */
+  interface MarketOverview {
+    /** 总挂单数 */
+    total_listings: number
+    /** 在售挂单数 */
+    active_listings: number
+    /** 总成交笔数 */
+    total_trades: number
+    /** 总成交额（DIAMOND计） */
+    total_volume: number
+    /** 24小时成交笔数 */
+    trades_24h: number
+    /** 24小时成交额 */
+    volume_24h: number
+    /** 资产成交量排行（按成交额降序） */
+    asset_rankings: AssetRanking[]
+  }
+
+  /** 市场总览中的资产排行项 */
+  interface AssetRanking {
+    /** 资产代码或分类标识 */
+    asset_code: string
+    /** 资产显示名称 */
+    display_name: string
+    /** 成交笔数 */
+    trade_count: number
+    /** 成交总额 */
+    total_volume: number
+  }
+
+  /**
+   * 价格历史数据（GET /api/v4/market/analytics/history 响应中数组项）
+   * 卖家视角的价格历史，用于定价参考
+   */
+  interface PriceHistoryPoint {
+    /** 日期（YYYY-MM-DD） */
+    date: string
+    /** 均价 */
+    avg_price: number
+    /** 最低价 */
+    min_price: number
+    /** 最高价 */
+    max_price: number
+    /** 成交笔数 */
+    trade_count: number
+  }
+
   // ===== 交易市场 =====
 
   /**
    * 市场挂单（对齐后端 market_listings 表 + GET /api/v4/market/listings 响应）
    * 双模式表: listing_kind 区分不可叠加物品(item)和可叠加资产(fungible_asset)
-   * 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn
+   * 挂单状态: active / sold / withdrawn / expired（文档枚举）
    *
    * 三表模型迁移（2026-02-22）:
    *   listing_kind 枚举: item_instance → item
    *   FK列名: offer_item_instance_id → offer_item_id
    */
   interface MarketListing {
-    /** 挂单ID（BIGINT PK） */
-    market_listing_id: number
+    /** 挂单ID（BIGINT PK，后端API返回字段名为 listing_id） */
+    listing_id: number
     /** 挂牌类型: item(不可叠加物品) / fungible_asset(可叠加资产) */
     listing_kind: string
     /** 卖家用户ID */
@@ -690,22 +930,22 @@ declare namespace API {
     price_asset_code: string
     /** 售价（BIGINT） */
     price_amount: number
-    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
+    /** 挂单状态: active / sold / withdrawn / expired */
     status: string
     /** 创建时间 */
     created_at: string
   }
 
   /**
-   * 我的挂单状态（对齐后端 GET /api/v4/market/listing-status 响应）
+   * 我的挂单（对齐后端 GET /api/v4/market/my-listings 响应）
    * 与 MarketListing 共享核心字段，但字段更精简
    */
   interface MyListing {
-    /** 挂单ID（BIGINT PK） */
-    market_listing_id: number
-    /** 挂牌类型: item / fungible_asset（三表模型迁移后 item_instance → item） */
+    /** 挂单ID（BIGINT PK，后端API返回字段名为 listing_id） */
+    listing_id: number
+    /** 挂牌类型: item / fungible_asset */
     listing_kind: string
-    /** 商品显示名称（物品实例 → offer_item_display_name，资产 → offer_asset_display_name） */
+    /** 商品显示名称 */
     display_name: string
     /** 物品稀有度编码（仅 item 类型） */
     offer_item_rarity?: string
@@ -717,7 +957,7 @@ declare namespace API {
     price_asset_code: string
     /** 售价（BIGINT） */
     price_amount: number
-    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
+    /** 挂单状态: active / sold / withdrawn / expired */
     status: string
     /** 挂单状态中文显示（后端返回） */
     status_display?: string
@@ -898,19 +1138,16 @@ declare namespace API {
   interface AdDeliveryItem {
     /** 广告计划主键（ad_campaigns.ad_campaign_id） */
     ad_campaign_id: number
-    /** 广告位ID（ad_campaigns.ad_slot_id，commercial类型上报计费日志时必需） */
-    ad_slot_id: number
+    /**
+     * 广告位ID（ad_slots.ad_slot_id）
+     * commercial 类型必需 — reportAdImpression / reportAdClick 依赖此字段
+     * operational / system 类型可为 null（运营/系统内容无需广告位绑定）
+     */
+    ad_slot_id: number | null
     /** 计划名称（运营后台填写，用于后台管理识别） */
     campaign_name: string
     /** 计划分类: commercial=商业广告 / operational=运营内容 / system=系统通知 */
     campaign_category: string
-    /**
-     * 广告位ID（ad_slots.ad_slot_id）
-     * commercial 类型必需 — reportAdImpression / reportAdClick 依赖此字段
-     * operational / system 类型可为 null
-     * ⚠️ 需后端 ad-delivery API 在响应中返回此字段
-     */
-    ad_slot_id: number | null
     /** 广告创意主键（ad_creatives.ad_creative_id） */
     ad_creative_id: number
     /** 创意标题（面向用户展示的标题） */

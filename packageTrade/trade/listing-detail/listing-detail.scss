@@ -1,0 +1,560 @@
+/* 挂单详情页样式 */
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+/* ========== 加载状态 ========== */
+.detail-loading {
+  @include flex-column-center;
+  min-height: 80vh;
+  gap: 24rpx;
+}
+
+.loading-spinner {
+  display: flex;
+  gap: 8rpx;
+}
+
+.spinner-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  animation: spinnerBounce 1.4s infinite ease-in-out both;
+}
+
+.spinner-dot.dot1 { animation-delay: -0.32s; }
+.spinner-dot.dot2 { animation-delay: -0.16s; }
+.spinner-dot.dot3 { animation-delay: 0s; }
+
+@keyframes spinnerBounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.loading-text {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+/* ========== 错误状态 ========== */
+.detail-error {
+  @include flex-column-center;
+  min-height: 80vh;
+  gap: 20rpx;
+}
+
+.error-icon { font-size: 80rpx; }
+
+.error-msg {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+.retry-btn {
+  @include btn-primary;
+  padding: 12rpx 40rpx !important;
+  font-size: $font-size-sm !important;
+}
+
+/* ========== 详情主体容器 ========== */
+.detail-container {
+  background: $color-bg;
+  min-height: 100vh;
+  padding-bottom: 140rpx;
+}
+
+/* ========== 商品图片区域 ========== */
+.detail-image-section {
+  position: relative;
+  width: 100%;
+  height: 560rpx;
+  background: linear-gradient(135deg, #f0f0f5, #e8e8f0);
+}
+
+.detail-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-fallback-large {
+  width: 100%;
+  height: 100%;
+  @include flex-column-center;
+  gap: 16rpx;
+  background: linear-gradient(135deg, #f0f0f5, #e8e8f0);
+}
+
+.fallback-icon-lg { font-size: 120rpx; opacity: 0.6; }
+
+.fallback-name-lg {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.detail-kind-tag {
+  position: absolute;
+  top: 24rpx;
+  left: 24rpx;
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+  font-weight: 600;
+}
+
+.detail-kind-tag.asset-tag {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.detail-kind-tag.item-tag {
+  background: linear-gradient(135deg, $color-primary, #f7931e);
+}
+
+.detail-rarity-badge {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+  font-weight: 600;
+}
+
+/* ========== 商品信息卡片 ========== */
+.detail-info-card {
+  @include card-base;
+  margin: -40rpx 24rpx 24rpx;
+  padding: 32rpx;
+  position: relative;
+  z-index: 10;
+}
+
+.detail-title-row {
+  @include flex-between;
+  margin-bottom: 20rpx;
+}
+
+.detail-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.detail-status-tag {
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  background: $color-bg-grey;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+
+  text {
+    font-size: $font-size-xs;
+    color: $color-text-tertiary;
+  }
+}
+
+.detail-price-section {
+  @include flex-align-center;
+  gap: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.detail-price-value {
+  font-size: 56rpx;
+  font-weight: 800;
+  background: linear-gradient(135deg, $color-primary, #f7931e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: $color-primary;
+  line-height: 1;
+}
+
+.detail-price-unit {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  font-weight: 500;
+  margin-top: 8rpx;
+}
+
+.detail-amount-row,
+.detail-desc-row {
+  @include flex-between;
+  padding: 16rpx 0;
+  border-top: 1rpx solid $color-border-light;
+}
+
+.amount-label,
+.desc-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.amount-value {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-primary;
+}
+
+.desc-value {
+  font-size: $font-size-base;
+  color: $color-text-primary;
+}
+
+/* ========== 卖家信息卡片 ========== */
+.detail-seller-card {
+  @include card-base;
+  margin: 0 24rpx 24rpx;
+  padding: 24rpx 32rpx;
+}
+
+.section-title {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.seller-row {
+  @include flex-align-center;
+  gap: 20rpx;
+}
+
+.seller-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.seller-avatar-placeholder {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: $color-bg-grey;
+  @include flex-center;
+  flex-shrink: 0;
+
+  text { font-size: 40rpx; }
+}
+
+.seller-info-col {
+  @include flex-column;
+  gap: 6rpx;
+}
+
+.seller-nickname {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.seller-time {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* ========== 价格摘要卡片 ========== */
+.detail-summary-card {
+  @include card-base;
+  margin: 0 24rpx 24rpx;
+  padding: 24rpx 32rpx;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.summary-item {
+  @include flex-column-center;
+  padding: 16rpx 0;
+  background: $color-bg-grey;
+  border-radius: $border-radius-sm;
+}
+
+.summary-value {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.summary-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 6rpx;
+}
+
+/* ========== 价格走势区域 ========== */
+.detail-chart-section {
+  margin: 0 24rpx 24rpx;
+}
+
+.chart-toggle {
+  @include flex-center;
+  padding: 16rpx;
+  background: $color-white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+
+  text {
+    font-size: $font-size-sm;
+    color: #667eea;
+    font-weight: 500;
+  }
+}
+
+/* ========== 价格历史面板 ========== */
+.detail-history-section {
+  margin: 0 24rpx 24rpx;
+}
+
+.price-history-panel {
+  @include card-base;
+  padding: 20rpx;
+  margin-top: 12rpx;
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.history-header-row {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 2rpx solid $color-border-light;
+  font-weight: 600;
+}
+
+.history-data-row {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+
+  &:last-child { border-bottom: none; }
+}
+
+.history-col-date {
+  flex: 2;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.history-col-avg {
+  flex: 1.5;
+  font-size: $font-size-xs;
+  color: $color-primary;
+  font-weight: 600;
+  text-align: center;
+}
+
+.history-col-range {
+  flex: 2;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+}
+
+.history-col-count {
+  flex: 1;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-align: right;
+}
+
+/* ========== 底部购买栏（固定底部） ========== */
+.detail-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  @include flex-between;
+  background: $color-white;
+  padding: 16rpx 32rpx;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  z-index: 100;
+  @include safe-area-bottom;
+}
+
+.bottom-price-info {
+  @include flex-align-center;
+  gap: 6rpx;
+}
+
+.bottom-price {
+  font-size: $font-size-xl;
+  font-weight: 800;
+  color: $color-primary;
+}
+
+.bottom-unit {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+}
+
+.purchase-btn {
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end) !important;
+  color: $color-text-white !important;
+  border: none !important;
+  border-radius: 48rpx !important;
+  padding: 0 60rpx !important;
+  height: 80rpx !important;
+  line-height: 80rpx !important;
+  font-size: $font-size-base !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3) !important;
+}
+
+.purchase-btn.btn-disabled {
+  opacity: 0.5;
+  box-shadow: none !important;
+}
+
+.sold-bar {
+  justify-content: center;
+}
+
+.sold-text {
+  font-size: $font-size-base;
+  color: $color-text-tertiary;
+  font-weight: 500;
+}
+
+/* ========== 弹窗公共样式 ========== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  @include flex-center;
+}
+
+.modal-content {
+  width: 620rpx;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  padding: 48rpx 40rpx;
+  @include flex-column;
+  align-items: center;
+}
+
+.modal-icon { font-size: 80rpx; margin-bottom: 16rpx; }
+
+.modal-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: 24rpx;
+}
+
+.modal-detail-rows {
+  width: 100%;
+  margin-bottom: 24rpx;
+}
+
+.modal-row {
+  @include flex-between;
+  padding: 10rpx 0;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.row-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.row-value {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: 600;
+}
+
+.modal-btn {
+  width: 100%;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end) !important;
+  color: $color-text-white !important;
+  border: none !important;
+  border-radius: 48rpx !important;
+  height: 80rpx !important;
+  line-height: 80rpx !important;
+  font-size: $font-size-base !important;
+  font-weight: 600 !important;
+  margin-top: 8rpx;
+}
+
+.secondary-btn {
+  background: $color-bg-grey !important;
+  color: $color-text-secondary !important;
+  box-shadow: none !important;
+}
+
+/* ========== 担保码说明弹窗 ========== */
+.escrow-guide {
+  align-items: flex-start;
+}
+
+.escrow-steps {
+  width: 100%;
+  margin-bottom: 20rpx;
+}
+
+.step-item {
+  @include flex-align-center;
+  gap: 16rpx;
+  padding: 14rpx 0;
+}
+
+.step-num {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: 1.5;
+}
+
+.escrow-expire-tip {
+  width: 100%;
+  background: rgba(250, 173, 20, 0.1);
+  border-radius: $border-radius-sm;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
+
+  text {
+    font-size: $font-size-xs;
+    color: $color-warning;
+    line-height: 1.6;
+  }
+}
+
+.escrow-fee-info {
+  width: 100%;
+  margin-bottom: 20rpx;
+}
+
+.escrow-actions {
+  width: 100%;
+  display: flex;
+  gap: 16rpx;
+
+  .modal-btn { flex: 1; }
+}

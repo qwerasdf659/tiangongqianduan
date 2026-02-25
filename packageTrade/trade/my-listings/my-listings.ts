@@ -29,13 +29,12 @@ const { tradeStore } = require('../../../store/trade')
 /** loading安全超时时间（毫秒），防止loading遮罩层永远不消失 */
 const LOADING_SAFETY_TIMEOUT = 8000
 
-/** 挂单状态对应的中文和颜色（纯前端UI常量） */
+/** 挂单状态对应的中文和颜色（纯前端UI常量，对齐文档 status 枚举） */
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  on_sale: { label: '在售', color: '#52c41a' },
-  locked: { label: '交易中', color: '#faad14' },
+  active: { label: '在售', color: '#52c41a' },
   sold: { label: '已成交', color: '#1890ff' },
   withdrawn: { label: '已撤回', color: '#999999' },
-  admin_withdrawn: { label: '管理员撤回', color: '#ff4d4f' }
+  expired: { label: '已过期', color: '#999999' }
 }
 
 /** 挂单类型对应的中文（纯前端UI常量，三表模型迁移后 item_instance → item） */
@@ -49,13 +48,13 @@ Page({
     /** 挂单列表（后端 GET /api/v4/market/my-listings 返回） */
     listings: [] as API.MyListing[],
 
-    /** 当前筛选状态: all / on_sale / sold / withdrawn */
+    /** 当前筛选状态: all / active / sold / withdrawn */
     currentStatus: 'all',
 
-    /** 状态筛选标签页配置 */
+    /** 状态筛选标签页配置（对齐文档 status 查询参数枚举） */
     statusTabs: [
       { key: 'all', label: '全部', count: 0 },
-      { key: 'on_sale', label: '在售', count: 0 },
+      { key: 'active', label: '在售', count: 0 },
       { key: 'sold', label: '已成交', count: 0 },
       { key: 'withdrawn', label: '已撤回', count: 0 }
     ],
@@ -74,9 +73,8 @@ Page({
     /** 撤回操作进行中的挂单ID（防止重复点击） */
     withdrawingId: 0,
 
-    /** 担保码弹窗（Phase 4：C2C担保交易码） */
+    /** 担保码状态弹窗（Phase 4：escrow-status API不返回明文码） */
     showEscrowModal: false,
-    escrowCode: '',
     escrowExpiresAt: '',
     escrowTradeOrderId: 0,
     escrowLoading: false
@@ -183,7 +181,7 @@ Page({
 
         if (!result.data.status_counts) {
           log.warn(
-            '⚠️ 后端未返回 status_counts 字段，各状态计数将显示0。需后端在 GET /api/v4/market/my-listings 响应中添加 status_counts: { on_sale, sold, withdrawn } 聚合字段'
+            '⚠️ 后端未返回 status_counts 字段，各状态计数将显示0。需后端在 GET /api/v4/market/my-listings 响应中添加 status_counts: { active, sold, withdrawn, expired } 聚合字段'
           )
         }
 
@@ -191,7 +189,7 @@ Page({
          * 适配后端 GET /api/v4/market/my-listings 扁平字段格式
          *
          * 后端响应字段（基于 market_listings 表）:
-         *   market_listing_id, listing_kind,
+         *   listing_id, listing_kind,
          *   offer_item_display_name, offer_asset_display_name,
          *   offer_asset_code, offer_amount, offer_item_rarity,
          *   price_asset_code, price_amount, status, status_display, created_at
@@ -205,7 +203,7 @@ Page({
           const parsedDate = Utils.safeParseDateString(item.created_at)
 
           return {
-            market_listing_id: item.market_listing_id,
+            listing_id: item.listing_id,
             listing_kind: item.listing_kind || 'item',
             display_name: displayName,
             offer_item_rarity: item.offer_item_rarity || '',
@@ -213,14 +211,13 @@ Page({
             offer_amount: item.offer_amount || 0,
             price_asset_code: item.price_asset_code,
             price_amount: item.price_amount || 0,
-            status: item.status || 'on_sale',
+            status: item.status || 'active',
             status_display:
               item.status_display || (STATUS_CONFIG[item.status] || {}).label || item.status,
             created_at: item.created_at || '',
-            statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.on_sale).color,
+            statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.active).color,
             kindLabel: LISTING_KIND_LABEL[item.listing_kind] || '未知',
             formattedTime: parsedDate ? Utils.formatTime(parsedDate) : item.created_at || '',
-            /** 关联交易订单ID（locked状态时后端返回，用于查看担保码） */
             trade_order_id: item.trade_order_id || null
           }
         })
@@ -230,12 +227,6 @@ Page({
         const statusTabs = this.data.statusTabs.map((tab: any) => {
           if (tab.key === 'all') {
             return { ...tab, count: pagination.total || 0 }
-          }
-          if (tab.key === 'withdrawn') {
-            return {
-              ...tab,
-              count: (statusCounts.withdrawn || 0) + (statusCounts.admin_withdrawn || 0)
-            }
           }
           return { ...tab, count: statusCounts[tab.key] || 0 }
         })
@@ -297,12 +288,12 @@ Page({
    */
   onWithdrawListing(e: any) {
     const listing = e.currentTarget.dataset.listing
-    if (!listing || !listing.market_listing_id) {
+    if (!listing || !listing.listing_id) {
       log.warn('挂单数据为空')
       return
     }
 
-    if (listing.status !== 'on_sale') {
+    if (listing.status !== 'active') {
       wx.showToast({ title: '仅在售挂单可撤回', icon: 'none' })
       return
     }
@@ -319,7 +310,7 @@ Page({
       confirmColor: '#ff4d4f',
       success: (res: any) => {
         if (res.confirm) {
-          this.executeWithdraw(listing.market_listing_id, listing.listing_kind)
+          this.executeWithdraw(listing.listing_id, listing.listing_kind)
         }
       }
     })
@@ -354,9 +345,10 @@ Page({
   },
 
   /**
-   * 查看担保码（卖方查看，仅 item + locked 状态）
-   * GET /api/v4/market/trade-orders/:trade_order_id/escrow-code
+   * 查看担保码状态（卖方查看）
+   * GET /api/v4/market/trade-orders/:trade_order_id/escrow-status
    *
+   * ⚠️ 不返回明文担保码，仅返回状态信息
    * ⚠️ 需要后端 Phase 4 EscrowCodeService 实施完成后才可调用
    *
    * @param e.currentTarget.dataset.trade_order_id - 交易订单ID
@@ -375,10 +367,10 @@ Page({
     this.setData({ escrowLoading: true, showEscrowModal: true })
 
     try {
-      const result = await API.getEscrowCode(tradeOrderId)
+      const result = await API.getEscrowStatus(tradeOrderId)
 
       if (result.success && result.data) {
-        const { escrow_code, expires_at, trade_order_id } = result.data
+        const { expires_at, trade_order_id: orderId } = result.data
 
         let formattedExpires = ''
         if (expires_at) {
@@ -393,47 +385,26 @@ Page({
         }
 
         this.setData({
-          escrowCode: escrow_code || '',
           escrowExpiresAt: formattedExpires,
-          escrowTradeOrderId: trade_order_id || tradeOrderId,
+          escrowTradeOrderId: orderId || tradeOrderId,
           escrowLoading: false
         })
 
-        log.info('担保码获取成功:', escrow_code)
+        log.info('担保码状态获取成功')
       } else {
-        throw new Error(result.message || '获取担保码失败')
+        throw new Error(result.message || '查询担保状态失败')
       }
     } catch (error: any) {
-      log.error('获取担保码失败:', error)
+      log.error('查询担保状态失败:', error)
       this.setData({ escrowLoading: false, showEscrowModal: false })
-      wx.showToast({ title: error.message || '获取担保码失败', icon: 'none' })
+      wx.showToast({ title: error.message || '查询担保状态失败', icon: 'none' })
     }
   },
 
-  /**
-   * 复制担保码到剪贴板
-   */
-  onCopyEscrowCode() {
-    const code = this.data.escrowCode
-    if (!code) {
-      wx.showToast({ title: '担保码不可用', icon: 'none' })
-      return
-    }
-    wx.setClipboardData({
-      data: code,
-      success: () => {
-        wx.showToast({ title: '担保码已复制', icon: 'success' })
-      }
-    })
-  },
-
-  /**
-   * 关闭担保码弹窗
-   */
+  /** 关闭担保码状态弹窗 */
   onCloseEscrowModal() {
     this.setData({
       showEscrowModal: false,
-      escrowCode: '',
       escrowExpiresAt: '',
       escrowTradeOrderId: 0
     })

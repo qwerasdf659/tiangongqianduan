@@ -246,27 +246,26 @@
   background: linear-gradient(180deg, $gradient-blue-start, $gradient-blue-end);
 }
 
-.listing-card.status-on_sale::after {
+.listing-card.status-active::after {
   background: linear-gradient(180deg, $color-success, #66bb6a);
-}
-
-.listing-card.status-locked::after {
-  background: linear-gradient(180deg, $color-warning, #ffd54f);
 }
 
 .listing-card.status-sold::after {
   background: linear-gradient(180deg, $color-info, #64b5f6);
 }
 
-.listing-card.status-withdrawn::after,
-.listing-card.status-admin_withdrawn::after {
+.listing-card.status-withdrawn::after {
   background: linear-gradient(180deg, #bdbdbd, #e0e0e0);
 }
 
-/* 已成交/已撤回卡片降低不透明度 */
+.listing-card.status-expired::after {
+  background: linear-gradient(180deg, #bdbdbd, #e0e0e0);
+}
+
+/* 非在售状态卡片降低不透明度 */
 .listing-card.status-sold,
 .listing-card.status-withdrawn,
-.listing-card.status-admin_withdrawn {
+.listing-card.status-expired {
   opacity: 0.78;
 }
 
@@ -304,16 +303,10 @@
   border-radius: 20rpx;
 }
 
-.status-tag-on_sale {
+.status-tag-active {
   background: rgba(82, 196, 26, 0.1);
   color: $color-success;
   border: 2rpx solid rgba(82, 196, 26, 0.3);
-}
-
-.status-tag-locked {
-  background: rgba(250, 173, 20, 0.1);
-  color: #d48806;
-  border: 2rpx solid rgba(250, 173, 20, 0.3);
 }
 
 .status-tag-sold {
@@ -322,8 +315,13 @@
   border: 2rpx solid rgba(24, 144, 255, 0.3);
 }
 
-.status-tag-withdrawn,
-.status-tag-admin_withdrawn {
+.status-tag-withdrawn {
+  background: rgba(153, 153, 153, 0.1);
+  color: $color-text-tertiary;
+  border: 2rpx solid rgba(153, 153, 153, 0.3);
+}
+
+.status-tag-expired {
   background: rgba(153, 153, 153, 0.1);
   color: $color-text-tertiary;
   border: 2rpx solid rgba(153, 153, 153, 0.3);

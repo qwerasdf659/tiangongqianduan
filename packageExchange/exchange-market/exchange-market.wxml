@@ -91,7 +91,15 @@
     </view>
   </view>
 
-  <!-- 🔒 可滚动商品列表 -->
+  <!--市场行情概览（可折叠，默认收起）-->
+  <view class="market-chart-section" wx:if="{{showPriceChart}}">
+    <price-chart asset-code="{{chartAssetCode}}" title="市场行情" canvas-height="{{160}}" />
+  </view>
+  <view class="market-chart-toggle" bindtap="onTogglePriceChart">
+    <text class="chart-toggle-text">{{showPriceChart ? '收起行情' : '📈 查看市场行情'}}</text>
+  </view>
+
+  <!--可滚动商品列表-->
   <scroll-view
     class="market-scroll-content"
     scroll-y="{{true}}"
@@ -103,7 +111,7 @@
     <view wx:else class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
       <view
         wx:for="{{filteredProducts}}"
-        wx:key="market_listing_id"
+        wx:key="listing_id"
         class="unified-card {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
         data-product="{{item}}"
         data-card-index="{{index}}"

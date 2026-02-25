@@ -572,6 +572,12 @@ App({
           this.notifyPageSubscribers('exchange_stock_changed', data)
         })
 
+        // 核销状态变更（商家完成核销后，后端推送物品状态更新）
+        socket.on('redemption_status_changed', (data: any) => {
+          log.info('收到核销状态变更:', data)
+          this.notifyPageSubscribers('redemption_status_changed', data)
+        })
+
         // 会话状态变更
         socket.on('session_status', (data: any) => {
           log.info('收到会话状态变更', data)

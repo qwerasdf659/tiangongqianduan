@@ -75,7 +75,11 @@ Component({
     escrowSubmitting: false,
 
     /** 我的交易管理 — 在售挂单数量（来自 GET /api/v4/market/listing-status） */
-    myOnSaleCount: 0
+    myOnSaleCount: 0,
+
+    /** 价格走势图（默认收起，用户手动展开） */
+    showPriceChart: false,
+    chartAssetCode: 'red_shard'
   },
 
   lifetimes: {
@@ -107,5 +111,10 @@ Component({
     }
   },
 
-  methods: {}
+  methods: {
+    /** 切换价格走势图显示/隐藏 */
+    onTogglePriceChart() {
+      this.setData({ showPriceChart: !this.data.showPriceChart })
+    }
+  }
 })

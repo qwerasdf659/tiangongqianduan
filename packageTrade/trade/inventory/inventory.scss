@@ -86,12 +86,10 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: linear-gradient(
-    135deg,
-    $gradient-blue-start 0%,
-    $gradient-blue-end 50%,
-    #f093fb 100%
-  );
+  background: linear-gradient(135deg,
+      $gradient-blue-start 0%,
+      $gradient-blue-end 50%,
+      #f093fb 100%);
   border-radius: 20rpx;
   padding: 24rpx 0;
   box-shadow:
@@ -530,6 +528,7 @@
 }
 
 @keyframes legendaryGlow {
+
   0%,
   100% {
     opacity: 0.8;
@@ -679,6 +678,29 @@
   color: $color-text-tertiary;
   display: block;
   margin-bottom: 4rpx;
+}
+
+.item-merchant-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 2rpx 10rpx;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.08), rgba(255, 193, 7, 0.08));
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(255, 152, 0, 0.15);
+  margin-bottom: 4rpx;
+}
+
+.merchant-tag-icon {
+  font-size: 18rpx;
+}
+
+.merchant-tag-text {
+  font-size: 20rpx;
+  font-weight: 500;
+  color: #e65100;
+  @include text-ellipsis;
+  max-width: 280rpx;
 }
 
 .item-brief {
@@ -904,6 +926,7 @@
 }
 
 @keyframes chestOpen {
+
   0%,
   40% {
     transform: rotateX(0deg);
@@ -916,6 +939,7 @@
 }
 
 @keyframes sparkleFloat {
+
   0%,
   40% {
     opacity: 0;
@@ -1339,6 +1363,7 @@
 }
 
 @keyframes countdown-pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -1847,6 +1872,26 @@
   font-weight: 600;
 }
 
+.merchant-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.08), rgba(255, 193, 7, 0.08));
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 152, 0, 0.15);
+}
+
+.merchant-source-icon {
+  font-size: 22rpx;
+}
+
+.merchant-source-name {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: #e65100;
+}
+
 .grid-value-row {
   display: flex;
   align-items: center;
@@ -1915,4 +1960,30 @@
   font-size: 36rpx;
   color: $color-text-tertiary;
   font-weight: 300;
+}
+
+.detail-view-code-btn {
+  display: flex;
+  align-items: center;
+  margin-left: 16rpx;
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(255, 142, 83, 0.08));
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(255, 107, 53, 0.2);
+}
+
+.detail-view-code-btn:active {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.16), rgba(255, 142, 83, 0.16));
+}
+
+.view-code-btn-text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #ff6b35;
+}
+
+.view-code-btn-arrow {
+  font-size: 28rpx;
+  color: #ff6b35;
+  margin-left: 4rpx;
 }

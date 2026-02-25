@@ -408,3 +408,22 @@
   opacity: 0.5;
   pointer-events: none;
 }
+
+/* ========== 市场行情图切换 ========== */
+.market-chart-section {
+  margin-bottom: 16rpx;
+}
+
+.market-chart-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 0;
+  margin-bottom: 12rpx;
+}
+
+.chart-toggle-text {
+  font-size: 24rpx;
+  color: #667eea;
+  font-weight: 500;
+}

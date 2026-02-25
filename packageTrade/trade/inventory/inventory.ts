@@ -26,6 +26,8 @@
  *   acquired_at       - 获得时间（YYYY-MM-DD HH:mm:ss 格式）
  *   expires_at        - 过期时间（可null）
  *   has_redemption_code - 是否已生成核销码
+ *   merchant_id       - 商家ID（多商家架构P1，LEFT JOIN merchants表，可null）
+ *   merchant_name     - 商家名称（多商家架构P1，用于"来自：XX"标签，可null）
  *
  * ⚠️ 注意：背包列表只返回 status = 'available' 的物品，已使用/已过期/已销毁物品不在列表中
  * @file packageTrade/trade/inventory/inventory.ts
@@ -194,15 +196,16 @@ Page({
    * 生命周期 - 页面加载
    */
   onLoad(_options: any) {
-    log.info(' 仓库页面加载')
+    log.info('仓库页面加载')
 
-    // MobX Store绑定 - 库存加载状态同
+    // MobX Store绑定 - 库存加载状态同步
     this.tradeBindings = createStoreBindings(this, {
       store: tradeStore,
       fields: ['inventoryLoading'],
       actions: ['setInventoryItems', 'setInventoryLoading']
     })
 
+    this.subscribeRedemptionEvents()
     this.initPage()
   },
 
@@ -311,6 +314,7 @@ Page({
             ...item,
             can_use: actions.includes('use'),
             can_generate_code: actions.includes('redeem') && !item.has_redemption_code,
+            can_view_code: item.has_redemption_code && actions.includes('redeem'),
             can_sell: actions.includes('sell')
           }
         })
@@ -927,6 +931,80 @@ Page({
   },
 
   /**
+   * 查看已生成的核销码（刷新QR码后展示弹窗）
+   *
+   * 后端API: POST /api/v4/backpack/items/:item_id/redeem/refresh-qr
+   * 返回: { qr_payload, qr_expires_at, text_code }
+   *
+   * 业务场景: 用户之前已生成核销码但关闭了弹窗，需要再次查看QR码
+   * WXML绑定: <button catchtap="onViewExistingCode" data-item="{{item}}">
+   */
+  async onViewExistingCode(e: any) {
+    const { item } = e.currentTarget.dataset
+
+    if (!item || !item.item_id) {
+      showToast('物品信息无效')
+      return
+    }
+
+    const actionLabel =
+      item.item_type === 'product' ? '到店领取' : item.item_type === 'voucher' ? '到店使用' : '核销'
+
+    this.setData({
+      _redemptionItemId: item.item_id,
+      redemptionItemName: item.item_name || '物品',
+      redemptionActionLabel: actionLabel,
+      showRedemptionQR: true,
+      qrExpired: false,
+      qrRefreshing: true,
+      redemptionQRImage: '',
+      redemptionTextCode: '',
+      redemptionExpiresAt: ''
+    })
+
+    try {
+      const result = await API.refreshRedemptionQR(item.item_id)
+      if (result.success && result.data) {
+        const { qr_payload, qr_expires_at, text_code } = result.data
+
+        this.setData(
+          {
+            redemptionTextCode: text_code || '',
+            qrRefreshing: false,
+            qrExpired: false,
+            redemptionQRImage: ''
+          },
+          () => {
+            if (qr_payload && this.data.showRedemptionQR) {
+              this.renderRedemptionQR(qr_payload, qr_expires_at)
+            }
+          }
+        )
+      } else {
+        throw new Error(result.message || '获取核销码失败')
+      }
+    } catch (error: any) {
+      log.error('获取已有核销码失败:', error)
+      this.setData({ qrRefreshing: false })
+      showToast(error.message || '获取核销码失败，请重试')
+    }
+  },
+
+  /**
+   * 从物品详情面板中查看已有核销码
+   * 关闭详情面板后调用 onViewExistingCode
+   */
+  onViewCodeFromDetail() {
+    const detail = this.data.itemDetail
+    if (!detail || !detail.item_id) {
+      showToast('物品信息无效')
+      return
+    }
+    this.closeItemDetail()
+    this.onViewExistingCode({ currentTarget: { dataset: { item: detail } } })
+  },
+
+  /**
    * 上架物品到交易市场
    *
    * 后端API: POST /api/v4/market/list
@@ -1232,10 +1310,21 @@ Page({
   /**
    * 从后端获取结算币种列表，让用户选择定价币种，然后上架物品实例
    * 后端API: GET /api/v4/market/settlement-currencies
+   * 定价建议API: GET /api/v4/market/analytics/pricing-advice
    * 响应: { currencies: [{ asset_code, display_name }] }
    */
   async _selectCurrencyThenSellItem(item: any) {
     try {
+      /* 上架前额度检查 — GET /api/v4/market/listing-status */
+      const statusResult = await API.getMyListingStatus()
+      if (statusResult && statusResult.success && statusResult.data) {
+        const { remaining, limit: maxLimit } = statusResult.data
+        if (remaining !== undefined && remaining <= 0) {
+          showToast(`上架数量已达上限（${maxLimit}件），请先撤回其他挂单`)
+          return
+        }
+      }
+
       const currencyResult = await API.getSettlementCurrencies()
       if (!currencyResult.success || !currencyResult.data?.currencies?.length) {
         showToast('获取定价币种失败')
@@ -1247,39 +1336,62 @@ Page({
 
       wx.showActionSheet({
         itemList: displayLabels,
-        success: (sheetRes: any) => {
+        success: async (sheetRes: any) => {
           const selectedCurrency = currencyList[sheetRes.tapIndex]
 
+          /* 异步获取定价建议（不阻塞上架流程，失败不影响） */
+          const adviceHint = await this._fetchPricingAdviceHint({
+            template_id: item.template_id || undefined
+          })
+
+          /* 先询问物品状态描述（可选，对齐文档 condition 字段） */
           wx.showModal({
-            title: `上架 "${item.item_name}"`,
-            content: `请输入售价（单位：${selectedCurrency.display_name}）`,
+            title: `物品状态描述（可选）`,
+            content: '简要描述物品的当前状态，留空则跳过',
             editable: true,
-            placeholderText: `请输入${selectedCurrency.display_name}数量（正整数）`,
-            success: async (modalRes: any) => {
-              if (!modalRes.confirm) {
-                return
-              }
-              const priceAmount = parseInt(modalRes.content)
-              if (!modalRes.content || isNaN(priceAmount) || priceAmount <= 0) {
-                showToast('请输入有效的正整数价格')
-                return
-              }
-              try {
-                const result = await API.sellToMarket({
-                  item_id: item.item_id,
-                  price_amount: priceAmount,
-                  price_asset_code: selectedCurrency.asset_code
-                })
-                if (result.success) {
-                  showToast(result.message || '上架成功')
-                  this.loadInventoryData(true)
-                } else {
-                  showToast(result.message || '上架失败，请重试')
+            placeholderText: '如：全新未使用、九成新 等',
+            success: async (conditionRes: any) => {
+              const itemCondition = conditionRes.confirm ? (conditionRes.content || '').trim() : ''
+
+              /* 输入售价 */
+              wx.showModal({
+                title: `上架 "${item.item_name}"`,
+                content: adviceHint
+                  ? `${adviceHint}\n请输入售价（单位：${selectedCurrency.display_name}）`
+                  : `请输入售价（单位：${selectedCurrency.display_name}）`,
+                editable: true,
+                placeholderText: `请输入${selectedCurrency.display_name}数量（正整数）`,
+                success: async (modalRes: any) => {
+                  if (!modalRes.confirm) {
+                    return
+                  }
+                  const priceAmount = parseInt(modalRes.content)
+                  if (!modalRes.content || isNaN(priceAmount) || priceAmount <= 0) {
+                    showToast('请输入有效的正整数价格')
+                    return
+                  }
+                  try {
+                    const sellParams: any = {
+                      item_id: item.item_id,
+                      price_amount: priceAmount,
+                      price_asset_code: selectedCurrency.asset_code
+                    }
+                    if (itemCondition) {
+                      sellParams.condition = itemCondition
+                    }
+                    const listResult = await API.sellToMarket(sellParams)
+                    if (listResult.success) {
+                      showToast(listResult.message || '上架成功')
+                      this.loadInventoryData(true)
+                    } else {
+                      showToast(listResult.message || '上架失败，请重试')
+                    }
+                  } catch (sellError: any) {
+                    log.error('上架到市场失败', sellError)
+                    showToast(sellError.message || '上架失败，请重试')
+                  }
                 }
-              } catch (sellError: any) {
-                log.error('上架到市场失败', sellError)
-                showToast(sellError.message || '上架失败，请重试')
-              }
+              })
             }
           })
         }
@@ -1293,9 +1405,20 @@ Page({
   /**
    * 从后端获取结算币种列表，让用户选择定价币种，然后上架可叠加资产
    * 后端API: GET /api/v4/market/settlement-currencies
+   * 定价建议API: GET /api/v4/market/analytics/pricing-advice
    */
   async _selectCurrencyThenSellAsset(asset: any) {
     try {
+      /* 上架前额度检查 — GET /api/v4/market/listing-status */
+      const assetStatusResult = await API.getMyListingStatus()
+      if (assetStatusResult && assetStatusResult.success && assetStatusResult.data) {
+        const { remaining: assetRemaining, limit: assetMaxLimit } = assetStatusResult.data
+        if (assetRemaining !== undefined && assetRemaining <= 0) {
+          showToast(`上架数量已达上限（${assetMaxLimit}件），请先撤回其他挂单`)
+          return
+        }
+      }
+
       const currencyResult = await API.getSettlementCurrencies()
       if (!currencyResult.success || !currencyResult.data?.currencies?.length) {
         showToast('获取定价币种失败')
@@ -1315,7 +1438,7 @@ Page({
             content: `可用余额: ${asset.available_amount}\n请输入上架数量`,
             editable: true,
             placeholderText: '请输入上架数量（正整数）',
-            success: (amountRes: any) => {
+            success: async (amountRes: any) => {
               if (!amountRes.confirm) {
                 return
               }
@@ -1329,9 +1452,16 @@ Page({
                 return
               }
 
+              /* 异步获取定价建议（不阻塞上架流程，失败不影响） */
+              const adviceHint = await this._fetchPricingAdviceHint({
+                asset_code: asset.asset_code
+              })
+
               wx.showModal({
                 title: `定价（${selectedCurrency.display_name}）`,
-                content: `上架 ${sellAmount} 个${asset.display_name}\n请输入总售价`,
+                content: adviceHint
+                  ? `上架 ${sellAmount} 个${asset.display_name}\n${adviceHint}\n请输入总售价`
+                  : `上架 ${sellAmount} 个${asset.display_name}\n请输入总售价`,
                 editable: true,
                 placeholderText: `请输入${selectedCurrency.display_name}数量（正整数）`,
                 success: async (priceRes: any) => {
@@ -1345,8 +1475,8 @@ Page({
                   }
                   try {
                     const result = await API.sellFungibleAssets({
-                      asset_code: asset.asset_code,
-                      amount: sellAmount,
+                      offer_asset_code: asset.asset_code,
+                      offer_amount: sellAmount,
                       price_amount: priceAmount,
                       price_asset_code: selectedCurrency.asset_code
                     })
@@ -1373,16 +1503,84 @@ Page({
   },
 
   /**
+   * 获取定价建议提示文本（卖家定价参考）
+   * 后端API: GET /api/v4/market/analytics/pricing-advice
+   *
+   * 返回格式示例: "参考价: 100-150 DIAMOND，在售最低: 80"
+   * 失败时返回空字符串（不阻塞上架流程）
+   *
+   * @param params.asset_code - 资产代码（可叠加资产上架时）
+   * @param params.template_id - 物品模板ID（物品实例上架时）
+   */
+  async _fetchPricingAdviceHint(params: {
+    asset_code?: string
+    template_id?: number
+  }): Promise<string> {
+    try {
+      const adviceResponse = await API.getPricingAdvice(params)
+      if (!adviceResponse || !adviceResponse.success || !adviceResponse.data) {
+        return ''
+      }
+      const advice = adviceResponse.data
+      if (!advice.has_trade_data) {
+        return ''
+      }
+
+      const parts: string[] = []
+      if (advice.suggested_price) {
+        parts.push(`建议价: ${advice.suggested_min_price}-${advice.suggested_max_price}`)
+      }
+      if (advice.lowest_on_sale) {
+        parts.push(`在售最低: ${advice.lowest_on_sale}`)
+      }
+      return parts.length > 0 ? `📊 ${parts.join('，')}` : ''
+    } catch (adviceError) {
+      log.warn('获取定价建议失败（不影响上架）:', adviceError)
+      return ''
+    }
+  },
+
+  /**
+   * 订阅 Socket.IO 核销状态变更事件
+   *
+   * 后端事件: redemption_status_changed
+   * 推送时机: 商家扫码/输码完成核销后，后端通过 Socket.IO 推送给用户端
+   * 推送数据: { item_id, status, redemption_order_id }
+   *
+   * 前端处理: 收到推送后静默刷新背包数据，用户无需手动刷新即可看到物品状态变更
+   */
+  subscribeRedemptionEvents() {
+    const app = getApp()
+    if (typeof app.subscribeWebSocketMessages === 'function') {
+      app.subscribeWebSocketMessages('inventory', (eventName: string, _data: any) => {
+        if (eventName === 'redemption_status_changed') {
+          log.info('收到核销状态变更推送，静默刷新背包数据')
+          this.loadInventoryData(true)
+        }
+      })
+      log.info('已订阅核销状态 Socket.IO 事件')
+    }
+  },
+
+  /**
+   * 取消 Socket.IO 核销状态事件订阅
+   */
+  unsubscribeRedemptionEvents() {
+    const app = getApp()
+    if (typeof app.unsubscribeWebSocketMessages === 'function') {
+      app.unsubscribeWebSocketMessages('inventory')
+    }
+  },
+
+  /**
    * 生命周期 - 页面卸载
    */
   onUnload() {
-    // 销毁MobX Store绑定
+    this.unsubscribeRedemptionEvents()
     if (this.tradeBindings) {
       this.tradeBindings.destroyStoreBindings()
     }
-    // 清除搜索防抖定时器
     clearTimeout(this.searchTimer)
-    // 清除核销码QR码倒计时定时器
     if (this._qrTimer) {
       clearInterval(this._qrTimer)
       this._qrTimer = null

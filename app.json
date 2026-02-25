@@ -22,6 +22,8 @@
       "name": "trade",
       "pages": [
         "trade/market/market",
+        "trade/listing-detail/listing-detail",
+        "trade/my-orders/my-orders",
         "trade/inventory/inventory",
         "trade/my-listings/my-listings",
         "records/trade-upload-records/trade-upload-records"
