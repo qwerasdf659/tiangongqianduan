@@ -262,25 +262,30 @@ Page({
     const displayName = this.data.displayName
     const priceLabel = this.data.priceLabel
 
-    const confirmResult = await new Promise<boolean>(resolve => {
+    const modalResult = await new Promise<{ confirmed: boolean; note: string }>(resolve => {
       wx.showModal({
         title: '确认购买',
         content: `确定要购买「${displayName}」吗？\n\n价格: ${detail.price_amount} ${priceLabel}\n\n确认后将从您的余额中扣除`,
         confirmText: '确认购买',
         confirmColor: '#667eea',
         cancelText: '取消',
-        success: (res: any) => resolve(res.confirm)
+        editable: true,
+        placeholderText: '购买备注（选填）',
+        success: (res: any) => resolve({ confirmed: res.confirm, note: res.content || '' })
       })
     })
 
-    if (!confirmResult) {
+    if (!modalResult.confirmed) {
       return
     }
 
     this.setData({ purchasing: true })
 
     try {
-      const result = await API.purchaseMarketProduct(detail.listing_id)
+      const result = await API.purchaseMarketProduct(
+        detail.listing_id,
+        modalResult.note || undefined
+      )
 
       if (result && result.success && result.data) {
         const orderData = result.data

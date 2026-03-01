@@ -74,3 +74,10 @@
 >
   <include src="./lottery-modes.wxml" />
 </view>
+
+<!-- 奖品详情弹窗（全局浮层，所有玩法/尺寸模式共用） -->
+<prize-detail-modal
+  visible="{{showPrizeDetail}}"
+  prize="{{selectedPrize}}"
+  bind:close="onPrizeDetailClose"
+/>

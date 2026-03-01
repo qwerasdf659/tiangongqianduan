@@ -139,27 +139,42 @@
     </view>
   </block>
 
-
-  <!-- 奖品池预览（is_fallback / is_sold_out 视觉指示） -->
-  <view class="cd-prizes" wx:if="{{prizes.length > 0}}">
+  <!-- 奖品池预览（按稀有度降序，大奖前置 + rarity-effects 光效） -->
+  <view class="cd-prizes" wx:if="{{prizesForPreview.length > 0}}">
     <view class="cd-prizes__header">
       <view class="cd-prizes__title-wrap">
         <text class="cd-prizes__dot"></text>
         <text class="cd-prizes__title">卡牌奖品</text>
         <text class="cd-prizes__dot"></text>
       </view>
-      <text class="cd-prizes__count">{{prizes.length}}种奖品</text>
+      <text class="cd-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view class="cd-prizes__scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+    <scroll-view
+      class="cd-prizes__scroll"
+      scroll-x="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
       <view class="cd-prizes__list">
-        <view class="cd-prizes__item {{item.is_fallback ? 'cd-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'cd-prizes__item--sold-out' : ''}}" wx:for="{{prizes}}" wx:key="prize_id">
-          <view class="cd-prizes__icon-wrap">
-            <text class="cd-prizes__icon">{{item.prize_icon}}</text>
-            <text wx:if="{{item.is_sold_out}}" class="cd-prizes__sold-out">抢光</text>
+        <rarity-effects
+          rarity="{{item.rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+          wx:for="{{prizesForPreview}}"
+          wx:key="prize_id"
+          bindtap="onPrizeTap"
+          data-prize="{{item}}"
+        >
+          <view
+            class="cd-prizes__item {{item.is_fallback ? 'cd-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'cd-prizes__item--sold-out' : ''}}"
+          >
+            <view class="cd-prizes__icon-wrap">
+              <text class="cd-prizes__icon">{{item.prize_icon}}</text>
+              <text wx:if="{{item.is_sold_out}}" class="cd-prizes__sold-out">抢光</text>
+            </view>
+            <text class="cd-prizes__name">{{item.prize_name}}</text>
+            <text wx:if="{{item.is_fallback}}" class="cd-prizes__fallback-tag">保底</text>
           </view>
-          <text class="cd-prizes__name">{{item.prize_name}}</text>
-          <text wx:if="{{item.is_fallback}}" class="cd-prizes__fallback-tag">保底</text>
-        </view>
+        </rarity-effects>
       </view>
     </scroll-view>
   </view>

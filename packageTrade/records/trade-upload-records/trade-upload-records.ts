@@ -92,6 +92,9 @@ Page({
     searchKeyword: '',
     showFilterPanel: false,
 
+    /** 来源页面筛选（如 exchange_rate → 仅显示汇率兑换相关流水） */
+    sourceFilter: '' as string,
+
     // 🧾 消费记录相关数据（来自 GET /api/v4/shop/consumption/me）
     consumptionRecords: [] as any[],
     // all, pending, approved, rejected
@@ -136,8 +139,19 @@ Page({
       }
     }
 
+    /**
+     * 来源筛选: source=exchange_rate 时仅显示汇率兑换相关的交易流水
+     * 对应后端 business_type: exchange_rate_debit / exchange_rate_credit
+     */
+    if (options.source) {
+      this.setData({ sourceFilter: options.source })
+    }
+
+    const titleMap: Record<string, string> = {
+      exchange_rate: '兑换记录'
+    }
     wx.setNavigationBarTitle({
-      title: '积分活动记录'
+      title: titleMap[options.source || ''] || '积分活动记录'
     })
   },
 
@@ -277,7 +291,15 @@ Page({
    */
   async loadTransactionData() {
     try {
-      const result = await API.getPointsTransactions()
+      /**
+       * source=exchange_rate 时向后端传 business_type 筛选汇率兑换流水
+       * exchange_rate_debit = 兑出（消耗）, exchange_rate_credit = 兑入（获得）
+       */
+      const sourceBusinessTypeMap: Record<string, string> = {
+        exchange_rate: 'exchange_rate_debit,exchange_rate_credit'
+      }
+      const businessTypeParam = sourceBusinessTypeMap[this.data.sourceFilter] || null
+      const result = await API.getPointsTransactions(1, 200, null, businessTypeParam)
       const { success, data } = result
 
       if (success && data) {

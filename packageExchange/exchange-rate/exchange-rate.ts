@@ -28,7 +28,11 @@ Component({
     /** 刷新令牌（值变化触发重新加载汇率列表） */
     refreshToken: { type: Number, value: 0 },
     /** 组件是否激活（Tab切换控制） */
-    active: { type: Boolean, value: false }
+    active: { type: Boolean, value: false },
+    /** 指定源币种（外部传入时自动定位到对应汇率规则） */
+    fromAssetCode: { type: String, value: '' },
+    /** 指定目标币种（外部传入时自动定位到对应汇率规则） */
+    toAssetCode: { type: String, value: '' }
   },
 
   data: {
@@ -112,6 +116,20 @@ Component({
 
         this.setData({ rateList: enrichedRates, pageLoading: false })
         exchangeRateLog.info(`汇率列表加载成功: ${enrichedRates.length} 条规则`)
+
+        /* 外部传入指定币对时，自动定位并展开对应兑换面板 */
+        const targetFrom = this.properties.fromAssetCode
+        const targetTo = this.properties.toAssetCode
+        if (targetFrom && enrichedRates.length > 0) {
+          const matchedRate = enrichedRates.find(
+            (r: any) =>
+              r.from_asset_code === targetFrom && (!targetTo || r.to_asset_code === targetTo)
+          )
+          if (matchedRate) {
+            this.setData({ selectedRate: matchedRate })
+            exchangeRateLog.info('自动定位到指定币对:', targetFrom, '→', targetTo || '(任意)')
+          }
+        }
       } catch (error: any) {
         exchangeRateLog.error('加载汇率列表异常:', error)
         this.setData({
@@ -298,12 +316,16 @@ Component({
       } catch (error: any) {
         exchangeRateLog.error('兑换异常:', error)
 
-        /* 根据后端错误码提供针对性提示 */
+        /* 根据后端错误码提供针对性提示（对齐文档 Section 17.4 全部7个错误码） */
         let errorTip = error.message || '兑换失败，请稍后重试'
         if (error.code === 'DAILY_LIMIT_EXCEEDED') {
           errorTip = '今日兑换额度已用完，明天再来'
         } else if (error.code === 'AMOUNT_BELOW_MINIMUM') {
           errorTip = `兑换数量低于最小限制`
+        } else if (error.code === 'AMOUNT_ABOVE_MAXIMUM') {
+          errorTip = `兑换数量超过最大限制`
+        } else if (error.code === 'INVALID_AMOUNT') {
+          errorTip = '请输入有效的兑换数量'
         } else if (error.code === 'RATE_NOT_FOUND') {
           errorTip = '该兑换暂未开放'
         }

@@ -190,10 +190,12 @@ async function withdrawMarketProduct(listing_id: number, withdraw_reason?: strin
     requestData.withdraw_reason = withdraw_reason
   }
 
+  const idempotencyKey = `market_withdraw_${listing_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
   return apiClient.request(`/market/listings/${listing_id}/withdraw`, {
     method: 'POST',
     data: requestData,
     needAuth: true,
+    header: { 'Idempotency-Key': idempotencyKey },
     showLoading: true,
     loadingText: '撤回中...',
     showError: true,
@@ -218,10 +220,12 @@ async function withdrawFungibleAsset(listing_id: number, withdraw_reason?: strin
     requestData.withdraw_reason = withdraw_reason
   }
 
+  const idempotencyKey = `market_fungible_withdraw_${listing_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
   return apiClient.request(`/market/fungible-assets/${listing_id}/withdraw`, {
     method: 'POST',
     data: requestData,
     needAuth: true,
+    header: { 'Idempotency-Key': idempotencyKey },
     showLoading: true,
     loadingText: '撤回中...',
     showError: true,
@@ -424,10 +428,12 @@ async function cancelTradeOrder(trade_order_id: number, cancel_reason?: string) 
     requestData.cancel_reason = cancel_reason
   }
 
+  const idempotencyKey = `market_cancel_${trade_order_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
   return apiClient.request(`/market/trade-orders/${trade_order_id}/cancel`, {
     method: 'POST',
     data: requestData,
     needAuth: true,
+    header: { 'Idempotency-Key': idempotencyKey },
     showLoading: true,
     loadingText: '取消中...',
     showError: true,

@@ -196,7 +196,8 @@ declare namespace API {
     per_draw_cost: number
     max_draws_per_user_daily: number
     draw_buttons: DrawButton[]
-    guarantee_info: GuaranteeInfo | null
+    /** 保底（Pity）信息 — 后端 config 接口 pity_info 字段 */
+    pity_info: PityInfo | null
   }
 
   /** 抽奖按钮配置 */
@@ -210,11 +211,14 @@ declare namespace API {
     saved_points: number
   }
 
-  /** 保底信息 */
-  interface GuaranteeInfo {
-    current_pity: number
+  /** 保底（Pity）信息 — 对应后端 pity 系统（非旧版 guarantee） */
+  interface PityInfo {
+    exists: boolean
+    pity_enabled: boolean
     guarantee_threshold: number
-    guaranteed_tier: string
+    current_pity: number
+    remaining: number
+    description: string
   }
 
   /** 抽奖结果（单抽和连抽统一结构） */
@@ -229,7 +233,7 @@ declare namespace API {
     remaining_balance: number
     draw_count: number
     draw_type: string
-    guarantee_info?: GuaranteeInfo | null
+    pity_info?: PityInfo | null
   }
 
   // ===== 资产系统 =====
@@ -1593,4 +1597,53 @@ declare namespace API {
    * redemption_orders.status 数据库ENUM
    */
   type RedemptionOrderStatus = 'pending' | 'fulfilled' | 'cancelled' | 'expired'
+
+  // ===== 用户通知系统（方案B独立化） =====
+
+  /**
+   * 用户通知数据结构
+   * 数据来源: user_notifications 表
+   * API路径: GET /api/v4/user/notifications
+   * WebSocket事件: new_notification
+   * 字段100% snake_case，直接使用后端返回，不做映射
+   */
+  interface UserNotification {
+    /** 通知ID（BIGINT主键） */
+    notification_id: string
+    /** 通知类型（listing_created / purchase_completed / lottery_win 等） */
+    type: string
+    /** 通知标题（可直接展示，如 "📦 挂牌成功"） */
+    title: string
+    /** 通知正文 */
+    content: string
+    /** 附加业务数据（用于跳转对应页面，如 market_listing_id、offer_asset_code） */
+    metadata: Record<string, any> | null
+    /** 已读标记: 0=未读, 1=已读 */
+    is_read: number
+    /** 已读时间（北京时间，未读时为null） */
+    read_at: string | null
+    /** 创建时间（北京时间） */
+    created_at: string
+  }
+
+  /**
+   * 通知类型枚举（后端 user_notifications.type 字段值）
+   * 来源: 后端 NotificationService 的 30 个 notifyXxx() 方法
+   */
+  type NotificationType =
+    | 'listing_created'
+    | 'listing_sold'
+    | 'listing_withdrawn'
+    | 'listing_expired'
+    | 'purchase_completed'
+    | 'trade_complete_seller'
+    | 'trade_complete_buyer'
+    | 'lottery_win'
+    | 'lottery_result'
+    | 'exchange_pending'
+    | 'exchange_approved'
+    | 'exchange_rejected'
+    | 'points_change'
+    | 'announcement'
+    | 'security_event'
 }

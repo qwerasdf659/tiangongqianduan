@@ -85,6 +85,9 @@ Page({
     /* ===== 仓库/背包物品数量（后端 GET /api/v4/backpack/stats 返回） ===== */
     inventoryItemCount: 0,
 
+    /* ===== 通知未读数（后端 GET /api/v4/user/notifications/unread-count 返回） ===== */
+    notificationUnreadCount: 0,
+
     /* ===== 审核记录（后端 GET /api/v4/shop/consumption/me 返回） ===== */
     auditRecordsCount: 0,
     auditRecordsData: [] as API.ConsumptionRecord[],
@@ -190,6 +193,7 @@ Page({
 
     await this.loadConsumptionRecordsCount()
     this.loadInventoryItemCount()
+    this.loadNotificationUnreadCount()
 
     /* V2动态码：从后台恢复时检查二维码是否过期 */
     if (this.data.qrExpiresAt && Date.now() >= this.data.qrExpiresAt) {
@@ -209,6 +213,16 @@ Page({
 
     /* 加载当前页面活动列表（任务27） */
     this._loadCampaigns()
+
+    /* 订阅WebSocket通知事件，铃铛角标实时更新 */
+    const showApp = getApp() as any
+    showApp.subscribeWebSocketMessages('lottery', (eventName: string, _eventData: any) => {
+      if (eventName === 'new_notification') {
+        this.setData({
+          notificationUnreadCount: this.data.notificationUnreadCount + 1
+        })
+      }
+    })
   },
 
   async onPullDownRefresh() {
@@ -232,7 +246,7 @@ Page({
     }
   },
 
-  /** TabBar页面切换时上报轮播/公告最后一次曝光 + 清理QR刷新定时器 */
+  /** TabBar页面切换时上报轮播/公告最后一次曝光 + 清理QR刷新定时器 + 取消WS订阅 */
   onHide() {
     this._flushCarouselExposure()
     this._flushAnnouncementExposure()
@@ -240,6 +254,8 @@ Page({
       clearTimeout(this._qrRefreshTimer)
       this._qrRefreshTimer = null
     }
+    const hideApp = getApp() as any
+    hideApp.unsubscribeWebSocketMessages('lottery')
   },
 
   onUnload() {
@@ -305,7 +321,7 @@ Page({
         return
       }
 
-      /* 并行加载：积分数据、系统公告、弹窗横幅、轮播图 */
+      /* 并行加载：积分数据、系统公告、弹窗横幅、轮播图、通知未读数 */
       await Promise.all([
         this._refreshPoints(),
         this.loadHomeAnnouncements().catch((err: any) => {
@@ -316,6 +332,9 @@ Page({
         }),
         this.loadCarouselItems().catch((err: any) => {
           log.error('[lottery] 轮播图加载失败（不影响主功能）:', err)
+        }),
+        this.loadNotificationUnreadCount().catch((err: any) => {
+          log.warn('[lottery] 通知未读数加载失败（不影响主功能）:', err)
         })
       ])
     } catch (error) {
@@ -791,6 +810,25 @@ Page({
     } catch (inventoryError) {
       log.warn('仓库物品数量加载失败（不影响主流程）:', inventoryError)
     }
+  },
+
+  /** 加载通知未读数量（铃铛角标） — GET /api/v4/user/notifications/unread-count */
+  async loadNotificationUnreadCount() {
+    try {
+      const countResult = await API.getUserNotificationUnreadCount()
+      if (countResult?.success && countResult.data) {
+        this.setData({
+          notificationUnreadCount: countResult.data.unread_count || 0
+        })
+      }
+    } catch (notifyError) {
+      log.warn('通知未读数量加载失败（不影响主流程）:', notifyError)
+    }
+  },
+
+  /** 跳转通知列表页 */
+  goToNotifications() {
+    wx.navigateTo({ url: '/packageUser/notifications/notifications' })
   },
 
   /** 加载消费记录数量（徽章显示） */

@@ -1,0 +1,246 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.notifications-page {
+  min-height: 100vh;
+  background-color: $color-bg;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ===== 顶部操作栏 ===== */
+.action-bar {
+  @include flex-between;
+  padding: $spacing-md $spacing-xl;
+  background: $color-white;
+  border-bottom: 2rpx solid $color-border-light;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.unread-summary {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.mark-all-btn {
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  background: rgba($color-primary, 0.08);
+  border-radius: $border-radius-sm;
+
+  &:active {
+    background: rgba($color-primary, 0.15);
+  }
+
+  &.disabled {
+    color: $color-text-disabled;
+    background: $color-bg-grey;
+    pointer-events: none;
+  }
+}
+
+/* ===== 通知列表 ===== */
+.notification-list {
+  padding: $spacing-xs 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-lg $spacing-xl;
+  background: $color-white;
+  border-bottom: 2rpx solid $color-border-light;
+  transition: background-color $transition-fast;
+
+  &:active {
+    background-color: $color-bg-grey;
+  }
+
+  &.unread {
+    background: rgba($color-info, 0.02);
+  }
+}
+
+/* 类型标签图标 */
+.notification-icon {
+  flex-shrink: 0;
+  margin-right: $spacing-md;
+  padding-top: 4rpx;
+}
+
+.type-tag {
+  @include flex-center;
+  min-width: 64rpx;
+  height: 40rpx;
+  padding: 0 $spacing-sm;
+  border-radius: 4rpx;
+  font-size: $font-size-xs;
+  font-weight: 500;
+
+  /* 默认灰色标签 */
+  color: $color-text-secondary;
+  background: $color-bg-grey;
+
+  /* 交易类-蓝色 */
+  &.tag-trade {
+    color: $color-info;
+    background: rgba($color-info, 0.1);
+  }
+
+  /* 购买成功-绿色 */
+  &.tag-purchase {
+    color: $color-success;
+    background: rgba($color-success, 0.1);
+  }
+
+  /* 中奖-金色 */
+  $color-lottery-gold: #d4a017;
+  &.tag-lottery {
+    color: $color-lottery-gold;
+    background: rgba($color-lottery-gold, 0.1);
+  }
+
+  /* 兑换-橙色 */
+  &.tag-exchange {
+    color: $color-primary;
+    background: rgba($color-primary, 0.1);
+  }
+
+  /* 积分-蓝色 */
+  &.tag-points {
+    color: $color-info;
+    background: rgba($color-info, 0.1);
+  }
+
+  /* 被拒绝-红色 */
+  &.tag-rejected {
+    color: $color-error;
+    background: rgba($color-error, 0.1);
+  }
+
+  /* 撤回/过期-灰色 */
+  &.tag-inactive {
+    color: $color-text-tertiary;
+    background: $color-bg-grey;
+  }
+
+  /* 系统-灰色 */
+  &.tag-system {
+    color: $color-text-secondary;
+    background: $color-bg-grey;
+  }
+}
+
+/* 通知主体 */
+.notification-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-header {
+  @include flex-align-center;
+  margin-bottom: 6rpx;
+}
+
+.notification-title {
+  @include text-ellipsis;
+  flex: 1;
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  line-height: $line-height-tight;
+
+  &.title-unread {
+    font-weight: 600;
+  }
+}
+
+.unread-dot {
+  flex-shrink: 0;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: $color-error;
+  margin-left: $spacing-sm;
+}
+
+.notification-content {
+  @include text-ellipsis-multi(2);
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-base;
+  margin-bottom: 8rpx;
+}
+
+.notification-time {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* 右侧箭头 */
+.notification-arrow {
+  @include flex-center;
+  flex-shrink: 0;
+  width: 40rpx;
+  margin-left: $spacing-sm;
+  align-self: center;
+}
+
+.arrow-icon {
+  font-size: 36rpx;
+  color: $color-text-disabled;
+}
+
+/* ===== 加载更多 ===== */
+.load-more {
+  @include flex-center;
+  padding: $spacing-xl;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}
+
+/* ===== 空状态 ===== */
+.empty-state {
+  @include empty-state;
+  padding-top: 200rpx;
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  margin-bottom: $spacing-xl;
+}
+
+.empty-title {
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.empty-desc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.login-btn {
+  @include btn-primary;
+  margin-top: $spacing-xxl;
+  padding: $spacing-md $spacing-xxl * 2;
+  font-size: $font-size-base;
+}
+
+/* ===== 页面级loading ===== */
+.page-loading {
+  @include flex-column-center;
+  padding-top: 300rpx;
+  color: $color-text-tertiary;
+}
+
+.loading-icon {
+  font-size: 60rpx;
+  margin-bottom: $spacing-md;
+}
+
+.loading-text {
+  font-size: $font-size-sm;
+}

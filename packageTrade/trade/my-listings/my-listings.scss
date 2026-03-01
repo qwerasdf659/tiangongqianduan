@@ -45,6 +45,7 @@
   100% {
     transform: translateX(-100%) translateY(-100%) rotate(45deg);
   }
+
   50% {
     transform: translateX(100%) translateY(100%) rotate(45deg);
   }
@@ -450,6 +451,12 @@
   font-weight: 500;
 }
 
+.sold-hint {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .sold-label {
   font-size: $font-size-sm;
   color: $color-info;
@@ -517,6 +524,7 @@
     transform: scale(1);
     opacity: 0.6;
   }
+
   50% {
     transform: scale(1.1);
     opacity: 1;

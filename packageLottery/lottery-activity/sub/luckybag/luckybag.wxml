@@ -175,14 +175,14 @@
   </block>
 
   <!-- 奖品池预览 -->
-  <view class="lb-prizes" wx:if="{{prizes.length > 0}}">
+  <view class="lb-prizes" wx:if="{{prizesForPreview.length > 0}}">
     <view class="lb-prizes__header">
       <view class="lb-prizes__title-wrap">
         <text class="lb-prizes__dot"></text>
         <text class="lb-prizes__title">福袋好礼</text>
         <text class="lb-prizes__dot"></text>
       </view>
-      <text class="lb-prizes__count">{{prizes.length}}种奖品</text>
+      <text class="lb-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
       class="lb-prizes__scroll"
@@ -191,14 +191,25 @@
       show-scrollbar="{{false}}"
     >
       <view class="lb-prizes__list">
-        <view class="lb-prizes__item {{item.is_fallback ? 'lb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'lb-prizes__item--sold-out' : ''}}" wx:for="{{prizes}}" wx:key="prize_id">
-          <view class="lb-prizes__icon-wrap">
-            <text class="lb-prizes__icon">{{item.prize_icon}}</text>
-            <text wx:if="{{item.is_sold_out}}" class="lb-prizes__sold-out">抢光</text>
+        <rarity-effects
+          rarity="{{item.rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+          wx:for="{{prizesForPreview}}"
+          wx:key="prize_id"
+          bindtap="onPrizeTap"
+          data-prize="{{item}}"
+        >
+          <view
+            class="lb-prizes__item {{item.is_fallback ? 'lb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'lb-prizes__item--sold-out' : ''}}"
+          >
+            <view class="lb-prizes__icon-wrap">
+              <text class="lb-prizes__icon">{{item.prize_icon}}</text>
+              <text wx:if="{{item.is_sold_out}}" class="lb-prizes__sold-out">抢光</text>
+            </view>
+            <text class="lb-prizes__name">{{item.prize_name}}</text>
+            <text wx:if="{{item.is_fallback}}" class="lb-prizes__fallback-tag">保底</text>
           </view>
-          <text class="lb-prizes__name">{{item.prize_name}}</text>
-          <text wx:if="{{item.is_fallback}}" class="lb-prizes__fallback-tag">保底</text>
-        </view>
+        </rarity-effects>
       </view>
     </scroll-view>
   </view>

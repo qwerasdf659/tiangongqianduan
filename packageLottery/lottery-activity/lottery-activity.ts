@@ -45,16 +45,29 @@ const PRIZE_ICON_MAP: Record<string, string> = {
 }
 
 /**
+ * 稀有度排序权重（降序：大奖前置，利用锚定效应）
+ * 对齐后端 rarity_code 枚举：common/uncommon/rare/epic/legendary
+ */
+const RARITY_WEIGHT: Record<string, number> = {
+  legendary: 5,
+  epic: 4,
+  rare: 3,
+  uncommon: 2,
+  common: 1
+}
+
+/**
  * 为奖品数据添加 UI 展示字段
  *
- * 后端返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code,
- *              sort_order, reward_tier, image, is_fallback, stock_quantity
+ * 后端实际返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code,
+ *              sort_order, reward_tier, image, is_fallback, prize_description
  * - image: 有图片时为 { image_resource_id, url, mime, thumbnail_url }，无图片时为 null
+ * - stock_quantity / is_sold_out: 后端不透传（Decision 6/9: 不展示售罄状态）
+ *   is_sold_out 计算逻辑保留但不会触发（后端不返回 stock_quantity 字段）
  * - 前端补充:
  *   prize_icon      — emoji 兜底图标
  *   prize_image_url — 图片优先展示 URL
- *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标）
- *   is_sold_out     — 库存耗尽标记（stock_quantity===0 时显示"已抢光"遮罩）
+ *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标，依赖 B1 完成）
  */
 function addPrizeIcon(prize: any): any {
   prize.prize_icon = PRIZE_ICON_MAP[prize.prize_type] || '🎁'
@@ -64,7 +77,7 @@ function addPrizeIcon(prize: any): any {
   /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */
   prize.is_fallback = !!prize.is_fallback
 
-  /* 库存耗尽标记（stock_quantity 由后端 prize 数据返回，0 表示已抢完） */
+  /* 库存耗尽标记 — 后端当前不透传 stock_quantity（Decision 6/9），此逻辑不会触发 */
   prize.is_sold_out = typeof prize.stock_quantity === 'number' && prize.stock_quantity === 0
 
   return prize
@@ -105,8 +118,10 @@ Component({
     /** 加载错误信息 */
     loadError: '',
 
-    /** 奖品列表（后端数据） */
+    /** 奖品列表（后端数据，按 sort_order 排序 — 游戏区使用，位置不能变） */
     prizes: [] as any[],
+    /** 奖品列表（按稀有度降序排列 — 预览区使用，大奖前置利用锚定效应） */
+    prizesForPreview: [] as any[],
     /** 活动配置 */
     config: null as any,
 
@@ -155,8 +170,8 @@ Component({
     /** 活动名称 */
     campaignName: '',
 
-    /** 保底砸金蛋相关 */
-    guaranteeInfo: null as any,
+    /** 保底（Pity）信息 — 对应后端 config 接口的 pity_info 字段（决策10：精确语义命名） */
+    pityInfo: null as any,
     /** 是否触发保底砸金蛋（current_pity >= guarantee_threshold） */
     showGuaranteeEgg: false,
     /** 保底金蛋状态：idle/shaking/cracked */
@@ -165,7 +180,12 @@ Component({
     guaranteeEggResult: null as any,
 
     /** 连抽按钮是否显示（由 size 和 drawButtons 共同决定，供 lottery-modes.wxml 绑定） */
-    showDrawButtons: false
+    showDrawButtons: false,
+
+    /** 奖品详情弹窗状态 */
+    showPrizeDetail: false,
+    /** 当前选中的奖品（传给 prize-detail-modal） */
+    selectedPrize: null as any
   },
 
   /** 生命周期 */
@@ -255,6 +275,16 @@ Component({
         /* grid 固定8格需要截取，wheel等模式动态渲染全部奖品 */
         const prizes = display.mode === 'grid_3x3' ? allPrizes.slice(0, 8) : allPrizes
 
+        /**
+         * 预览区专用数组：按稀有度降序排列（大奖前置，利用锚定效应）
+         * 同稀有度内保持 sort_order 原序
+         */
+        const prizesForPreview = [...allPrizes].sort((a: any, b: any) => {
+          const weightDiff =
+            (RARITY_WEIGHT[b.rarity_code] || 1) - (RARITY_WEIGHT[a.rarity_code] || 1)
+          return weightDiff !== 0 ? weightDiff : a.sort_order - b.sort_order
+        })
+
         /* 生成主题CSS变量内联样式 */
         const themeStyle = getThemeStyle(display.effect_theme)
 
@@ -264,10 +294,14 @@ Component({
         const drawButtons = this._transformDrawButtons(rawDrawButtons)
 
         const currentSize = this.properties.size || 'full'
+        /** 后端 config 接口返回 pity_info（决策10：精确语义命名） */
+        const pityData = config.pity_info || null
+
         this.setData({
           loading: false,
           config,
           prizes,
+          prizesForPreview,
           displayMode: display.mode,
           displayConfig: display,
           effectTheme: display.effect_theme,
@@ -283,8 +317,8 @@ Component({
             (currentSize === 'full' || currentSize === 'small' || currentSize === 'mini'),
           campaignName: config.campaign_name || '',
           coverImage: config.cover_image || display.background_image_url || '',
-          guaranteeInfo: config.guarantee_info || null,
-          showGuaranteeEgg: this._checkGuaranteeReady(config.guarantee_info)
+          pityInfo: pityData,
+          showGuaranteeEgg: this._checkGuaranteeReady(pityData)
         })
 
         /* 读取用户积分余额（从pointsStore） */
@@ -433,10 +467,11 @@ Component({
         this._notifyPointsChanged()
 
         /* 更新保底进度 */
-        if (result.data.guarantee_info !== undefined) {
+        const whackPityData = result.data.pity_info
+        if (whackPityData !== undefined) {
           this.setData({
-            guaranteeInfo: result.data.guarantee_info,
-            showGuaranteeEgg: this._checkGuaranteeReady(result.data.guarantee_info)
+            pityInfo: whackPityData,
+            showGuaranteeEgg: this._checkGuaranteeReady(whackPityData)
           })
         }
 
@@ -644,11 +679,12 @@ Component({
         /* 通知父页面刷新积分显示（无论后端是否返回remaining_balance都触发） */
         this._notifyPointsChanged()
 
-        /* 更新保底进度（后端每次抽奖可能返回最新guarantee_info） */
-        if (result.data.guarantee_info !== undefined) {
+        /* 更新保底进度 */
+        const drawPityData = result.data.pity_info
+        if (drawPityData !== undefined) {
           this.setData({
-            guaranteeInfo: result.data.guarantee_info,
-            showGuaranteeEgg: this._checkGuaranteeReady(result.data.guarantee_info)
+            pityInfo: drawPityData,
+            showGuaranteeEgg: this._checkGuaranteeReady(drawPityData)
           })
         }
       } catch (err) {
@@ -841,7 +877,7 @@ Component({
               },
               guaranteeEggState: 'idle',
               showGuaranteeEgg: false,
-              guaranteeInfo: null
+              pityInfo: null
             })
             this._syncPointsBalance()
           }, 1300)
@@ -851,6 +887,26 @@ Component({
           this.setData({ guaranteeEggState: 'idle' })
         }
       }, 700)
+    },
+
+    /**
+     * 子组件冒泡：奖品预览项被点击，弹出详情弹窗
+     */
+    onPrizeDetail(e: any) {
+      const prizeData = e?.detail?.prize
+      if (prizeData) {
+        this.setData({
+          showPrizeDetail: true,
+          selectedPrize: prizeData
+        })
+      }
+    },
+
+    /**
+     * 关闭奖品详情弹窗
+     */
+    onPrizeDetailClose() {
+      this.setData({ showPrizeDetail: false })
     },
 
     /**

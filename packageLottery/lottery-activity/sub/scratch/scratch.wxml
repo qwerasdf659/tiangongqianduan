@@ -100,27 +100,42 @@
     <text class="footer-tip done" wx:elif="{{allRevealed}}">全部揭晓！</text>
   </view>
 
-
   <!-- 奖品池预览（is_fallback / is_sold_out 视觉指示） -->
-  <view class="sc-prizes" wx:if="{{prizes.length > 0}}">
+  <view class="sc-prizes" wx:if="{{prizesForPreview.length > 0}}">
     <view class="sc-prizes__header">
       <view class="sc-prizes__title-wrap">
         <text class="sc-prizes__dot"></text>
         <text class="sc-prizes__title">刮卡奖品</text>
         <text class="sc-prizes__dot"></text>
       </view>
-      <text class="sc-prizes__count">{{prizes.length}}种奖品</text>
+      <text class="sc-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view class="sc-prizes__scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+    <scroll-view
+      class="sc-prizes__scroll"
+      scroll-x="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
       <view class="sc-prizes__list">
-        <view class="sc-prizes__item {{item.is_fallback ? 'sc-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'sc-prizes__item--sold-out' : ''}}" wx:for="{{prizes}}" wx:key="prize_id">
-          <view class="sc-prizes__icon-wrap">
-            <text class="sc-prizes__icon">{{item.prize_icon}}</text>
-            <text wx:if="{{item.is_sold_out}}" class="sc-prizes__sold-out">抢光</text>
+        <rarity-effects
+          rarity="{{item.rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+          wx:for="{{prizesForPreview}}"
+          wx:key="prize_id"
+          bindtap="onPrizeTap"
+          data-prize="{{item}}"
+        >
+          <view
+            class="sc-prizes__item {{item.is_fallback ? 'sc-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'sc-prizes__item--sold-out' : ''}}"
+          >
+            <view class="sc-prizes__icon-wrap">
+              <text class="sc-prizes__icon">{{item.prize_icon}}</text>
+              <text wx:if="{{item.is_sold_out}}" class="sc-prizes__sold-out">抢光</text>
+            </view>
+            <text class="sc-prizes__name">{{item.prize_name}}</text>
+            <text wx:if="{{item.is_fallback}}" class="sc-prizes__fallback-tag">保底</text>
           </view>
-          <text class="sc-prizes__name">{{item.prize_name}}</text>
-          <text wx:if="{{item.is_fallback}}" class="sc-prizes__fallback-tag">保底</text>
-        </view>
+        </rarity-effects>
       </view>
     </scroll-view>
   </view>

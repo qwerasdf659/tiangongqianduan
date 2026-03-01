@@ -86,10 +86,12 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: linear-gradient(135deg,
-      $gradient-blue-start 0%,
-      $gradient-blue-end 50%,
-      #f093fb 100%);
+  background: linear-gradient(
+    135deg,
+    $gradient-blue-start 0%,
+    $gradient-blue-end 50%,
+    #f093fb 100%
+  );
   border-radius: 20rpx;
   padding: 24rpx 0;
   box-shadow:
@@ -528,7 +530,6 @@
 }
 
 @keyframes legendaryGlow {
-
   0%,
   100% {
     opacity: 0.8;
@@ -926,7 +927,6 @@
 }
 
 @keyframes chestOpen {
-
   0%,
   40% {
     transform: rotateX(0deg);
@@ -939,7 +939,6 @@
 }
 
 @keyframes sparkleFloat {
-
   0%,
   40% {
     opacity: 0;
@@ -1363,7 +1362,6 @@
 }
 
 @keyframes countdown-pulse {
-
   0%,
   100% {
     opacity: 1;

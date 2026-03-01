@@ -19,13 +19,15 @@
     >
       <!-- 奖品文字（极坐标定位） -->
       <view
-        class="wheel-prize {{item.is_sold_out ? 'wheel-prize--sold-out' : ''}} {{item.is_fallback ? 'wheel-prize--fallback' : ''}}"
+        class="wheel-prize {{item.rarity_code || 'common'}} {{item.is_sold_out ? 'wheel-prize--sold-out' : ''}} {{item.is_fallback ? 'wheel-prize--fallback' : ''}}"
         wx:for="{{prizes}}"
         wx:key="prize_id"
         style="{{prizePositions[index]}}"
       >
         <text class="wheel-prize__icon">{{item.prize_icon || '🎁'}}</text>
-        <text class="wheel-prize__name">{{item.is_sold_out ? '已抢光' : (item.prize_name || '奖品')}}</text>
+        <text class="wheel-prize__name"
+          >{{item.is_sold_out ? '已抢光' : (item.prize_name || '奖品')}}</text
+        >
         <text wx:if="{{item.is_fallback}}" class="wheel-prize__badge">保底</text>
       </view>
     </view>
@@ -42,5 +44,45 @@
         >{{costPoints}}积分</text
       >
     </view>
+  </view>
+
+  <!-- 奖品池预览（按稀有度降序，大奖前置） -->
+  <view class="wheel-prizes" wx:if="{{prizesForPreview.length > 0}}">
+    <view class="wheel-prizes__header">
+      <view class="wheel-prizes__title-wrap">
+        <text class="wheel-prizes__dot"></text>
+        <text class="wheel-prizes__title">转盘奖品</text>
+        <text class="wheel-prizes__dot"></text>
+      </view>
+      <text class="wheel-prizes__count">{{prizesForPreview.length}}种奖品</text>
+    </view>
+    <scroll-view
+      class="wheel-prizes__scroll"
+      scroll-x="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
+      <view class="wheel-prizes__list">
+        <rarity-effects
+          rarity="{{item.rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+          wx:for="{{prizesForPreview}}"
+          wx:key="prize_id"
+          bindtap="onPrizeTap"
+          data-prize="{{item}}"
+        >
+          <view
+            class="wheel-prizes__item {{item.is_fallback ? 'wheel-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wheel-prizes__item--sold-out' : ''}}"
+          >
+            <view class="wheel-prizes__icon-wrap">
+              <text class="wheel-prizes__icon">{{item.prize_icon}}</text>
+              <text wx:if="{{item.is_sold_out}}" class="wheel-prizes__sold-out">抢光</text>
+            </view>
+            <text class="wheel-prizes__name">{{item.prize_name}}</text>
+            <text wx:if="{{item.is_fallback}}" class="wheel-prizes__fallback-tag">保底</text>
+          </view>
+        </rarity-effects>
+      </view>
+    </scroll-view>
   </view>
 </view>

@@ -1,7 +1,6 @@
 <!-- 汇率兑换组件 — 固定汇率资产兑换 -->
 <!-- 后端API: GET /api/v4/market/exchange-rates, POST preview, POST convert -->
 <view class="exchange-rate-container">
-
   <!-- 加载状态 -->
   <loading-spinner wx:if="{{pageLoading}}" text="加载汇率..." />
 
@@ -17,7 +16,6 @@
 
   <!-- 汇率列表 -->
   <view class="rate-list" wx:if="{{!pageLoading && rateList.length > 0}}">
-
     <!-- 页面标题 + 历史入口 -->
     <view class="section-header">
       <view class="section-header__left">
@@ -54,15 +52,26 @@
         </view>
         <view class="rate-card__info">
           <text class="rate-card__rate">{{item.rate_display || item.rateText}}</text>
-          <text class="rate-card__fee" wx:if="{{item.fee_rate > 0}}">手续费 {{item.feePercent}}</text>
+          <text class="rate-card__fee" wx:if="{{item.fee_rate > 0}}"
+            >手续费 {{item.feePercent}}</text
+          >
         </view>
       </view>
 
       <!-- 限额提示 -->
-      <view class="rate-card__limits" wx:if="{{item.min_from_amount > 1 || item.max_from_amount || item.daily_user_limit}}">
-        <text wx:if="{{item.min_from_amount > 1}}" class="limit-tag">最少 {{item.min_from_amount}}</text>
-        <text wx:if="{{item.max_from_amount}}" class="limit-tag">最多 {{item.max_from_amount}}</text>
-        <text wx:if="{{item.daily_user_limit}}" class="limit-tag">日限 {{item.daily_user_limit}}</text>
+      <view
+        class="rate-card__limits"
+        wx:if="{{item.min_from_amount > 1 || item.max_from_amount || item.daily_user_limit}}"
+      >
+        <text wx:if="{{item.min_from_amount > 1}}" class="limit-tag"
+          >最少 {{item.min_from_amount}}</text
+        >
+        <text wx:if="{{item.max_from_amount}}" class="limit-tag"
+          >最多 {{item.max_from_amount}}</text
+        >
+        <text wx:if="{{item.daily_user_limit}}" class="limit-tag"
+          >日限 {{item.daily_user_limit}}</text
+        >
       </view>
 
       <!-- 展开的兑换面板 -->
@@ -95,23 +104,33 @@
         <view class="preview-section" wx:if="{{previewResult}}">
           <view class="preview-row">
             <text class="preview-label">消耗</text>
-            <text class="preview-value preview-value--debit">-{{previewResult.from_amount}} {{item.from_asset_code}}</text>
+            <text class="preview-value preview-value--debit"
+              >-{{previewResult.from_amount}} {{item.from_asset_code}}</text
+            >
           </view>
           <view class="preview-row" wx:if="{{previewResult.fee_amount > 0}}">
             <text class="preview-label">手续费</text>
-            <text class="preview-value preview-value--fee">{{previewResult.fee_amount}} {{item.to_asset_code}}</text>
+            <text class="preview-value preview-value--fee"
+              >{{previewResult.fee_amount}} {{item.to_asset_code}}</text
+            >
           </view>
           <view class="preview-row preview-row--highlight">
             <text class="preview-label">实际获得</text>
-            <text class="preview-value preview-value--credit">+{{previewResult.net_to_amount}} {{item.to_asset_code}}</text>
+            <text class="preview-value preview-value--credit"
+              >+{{previewResult.net_to_amount}} {{item.to_asset_code}}</text
+            >
           </view>
           <view class="preview-row" wx:if="{{previewResult.daily_user_limit}}">
             <text class="preview-label">今日额度</text>
-            <text class="preview-value">已用 {{previewResult.daily_used}} / 限额 {{previewResult.daily_user_limit}}</text>
+            <text class="preview-value"
+              >已用 {{previewResult.daily_used}} / 限额 {{previewResult.daily_user_limit}}</text
+            >
           </view>
           <view class="preview-row">
             <text class="preview-label">当前余额</text>
-            <text class="preview-value">{{previewResult.user_balance}} {{item.from_asset_code}}</text>
+            <text class="preview-value"
+              >{{previewResult.user_balance}} {{item.from_asset_code}}</text
+            >
           </view>
         </view>
 
@@ -163,5 +182,4 @@
       <button class="result-popup__btn" bindtap="onCloseResultPopup">知道了</button>
     </view>
   </view>
-
 </view>

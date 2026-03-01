@@ -25,6 +25,7 @@ const shopModule = require('./shop')
 const systemModule = require('./system')
 const consoleModule = require('./console')
 const adCampaignsModule = require('./ad-campaigns')
+const userNotificationsModule = require('./user-notifications')
 
 /**
  * 展开运算符自动同步所有子模块导出
@@ -62,5 +63,8 @@ module.exports = {
   ...consoleModule,
 
   /** 广告系统(P2+P3): getMyAdCampaigns / createAdCampaign / submitAdCampaign / cancelAdCampaign / reportAdImpression / reportAdClick 等 */
-  ...adCampaignsModule
+  ...adCampaignsModule,
+
+  /** 用户通知系统（方案B独立化）: getUserNotifications / getUserNotificationUnreadCount / markNotificationsAsRead / markSingleNotificationAsRead */
+  ...userNotificationsModule
 }

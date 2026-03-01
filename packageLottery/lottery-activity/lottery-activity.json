@@ -16,6 +16,7 @@
     "cardcollect": "./sub/cardcollect/cardcollect",
     "flashsale": "./sub/flashsale/flashsale",
     "result-modal": "./shared/result-modal/result-modal",
-    "draw-buttons": "./shared/draw-buttons/draw-buttons"
+    "draw-buttons": "./shared/draw-buttons/draw-buttons",
+    "prize-detail-modal": "/components/prize-detail-modal/prize-detail-modal"
   }
 }

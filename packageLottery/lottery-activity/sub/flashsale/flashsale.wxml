@@ -196,4 +196,44 @@
     <!-- 点击关闭层 -->
     <view class="success-close-area" bindtap="onCloseSuccess" />
   </view>
+
+  <!-- 奖品池预览（按稀有度降序，大奖前置） -->
+  <view class="fs-preview" wx:if="{{prizesForPreview.length > 0}}">
+    <view class="fs-preview__header">
+      <view class="fs-preview__title-wrap">
+        <text class="fs-preview__dot"></text>
+        <text class="fs-preview__title">秒杀奖品</text>
+        <text class="fs-preview__dot"></text>
+      </view>
+      <text class="fs-preview__count">{{prizesForPreview.length}}种奖品</text>
+    </view>
+    <scroll-view
+      class="fs-preview__scroll"
+      scroll-x="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
+      <view class="fs-preview__list">
+        <rarity-effects
+          rarity="{{item.rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+          wx:for="{{prizesForPreview}}"
+          wx:key="prize_id"
+          bindtap="onPrizeTap"
+          data-prize="{{item}}"
+        >
+          <view
+            class="fs-preview__item {{item.is_fallback ? 'fs-preview__item--fallback' : ''}} {{item.is_sold_out ? 'fs-preview__item--sold-out' : ''}}"
+          >
+            <view class="fs-preview__icon-wrap">
+              <text class="fs-preview__icon">{{item.prize_icon}}</text>
+              <text wx:if="{{item.is_sold_out}}" class="fs-preview__sold-out">抢光</text>
+            </view>
+            <text class="fs-preview__name">{{item.prize_name}}</text>
+            <text wx:if="{{item.is_fallback}}" class="fs-preview__fallback-tag">保底</text>
+          </view>
+        </rarity-effects>
+      </view>
+    </scroll-view>
+  </view>
 </view>

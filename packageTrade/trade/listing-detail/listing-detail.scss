@@ -22,13 +22,27 @@
   animation: spinnerBounce 1.4s infinite ease-in-out both;
 }
 
-.spinner-dot.dot1 { animation-delay: -0.32s; }
-.spinner-dot.dot2 { animation-delay: -0.16s; }
-.spinner-dot.dot3 { animation-delay: 0s; }
+.spinner-dot.dot1 {
+  animation-delay: -0.32s;
+}
+.spinner-dot.dot2 {
+  animation-delay: -0.16s;
+}
+.spinner-dot.dot3 {
+  animation-delay: 0s;
+}
 
 @keyframes spinnerBounce {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .loading-text {
@@ -43,7 +57,9 @@
   gap: 20rpx;
 }
 
-.error-icon { font-size: 80rpx; }
+.error-icon {
+  font-size: 80rpx;
+}
 
 .error-msg {
   font-size: $font-size-base;
@@ -85,7 +101,10 @@
   background: linear-gradient(135deg, #f0f0f5, #e8e8f0);
 }
 
-.fallback-icon-lg { font-size: 120rpx; opacity: 0.6; }
+.fallback-icon-lg {
+  font-size: 120rpx;
+  opacity: 0.6;
+}
 
 .fallback-name-lg {
   font-size: $font-size-md;
@@ -240,7 +259,9 @@
   @include flex-center;
   flex-shrink: 0;
 
-  text { font-size: 40rpx; }
+  text {
+    font-size: 40rpx;
+  }
 }
 
 .seller-info-col {
@@ -337,7 +358,9 @@
   padding: 12rpx 0;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
 .history-col-date {
@@ -448,7 +471,10 @@
   align-items: center;
 }
 
-.modal-icon { font-size: 80rpx; margin-bottom: 16rpx; }
+.modal-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
 
 .modal-title {
   font-size: $font-size-lg;
@@ -556,5 +582,7 @@
   display: flex;
   gap: 16rpx;
 
-  .modal-btn { flex: 1; }
+  .modal-btn {
+    flex: 1;
+  }
 }

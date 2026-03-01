@@ -7,6 +7,28 @@
   margin-bottom: 16rpx;
 }
 
+.chart-asset-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background: $color-white;
+}
+
+.chart-asset-tag {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  background: $color-bg-grey;
+  color: $color-text-secondary;
+  transition: all 0.2s;
+
+  &.active {
+    background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+    color: $color-text-white;
+  }
+}
+
 .market-overview-toggle {
   display: flex;
   align-items: center;

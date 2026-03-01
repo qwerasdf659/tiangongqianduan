@@ -54,11 +54,7 @@
 
     <!-- 挂单卡片列表 -->
     <block wx:if="{{!loading || listings.length > 0}}">
-      <view
-        class="listing-card status-{{item.status}}"
-        wx:for="{{listings}}"
-        wx:key="listing_id"
-      >
+      <view class="listing-card status-{{item.status}}" wx:for="{{listings}}" wx:key="listing_id">
         <!-- 卡片头部：类型标签 + 状态标签 -->
         <view class="card-header">
           <view class="kind-tag {{item.listing_kind}}">
@@ -108,8 +104,16 @@
             >
               {{withdrawingId === item.listing_id ? '撤回中...' : '撤回挂单'}}
             </button>
-            <view class="status-hint" wx:elif="{{item.status === 'sold'}}">
+            <view class="status-hint sold-hint" wx:elif="{{item.status === 'sold'}}">
               <text class="sold-label">✅ 交易完成</text>
+              <button
+                class="escrow-btn"
+                wx:if="{{item.trade_order_id}}"
+                catchtap="onViewEscrowCode"
+                data-trade_order_id="{{item.trade_order_id}}"
+              >
+                查看担保状态
+              </button>
             </view>
             <view class="status-hint" wx:elif="{{item.status === 'withdrawn'}}">
               <text class="withdrawn-label">已退回背包</text>
@@ -167,7 +171,9 @@
       <view class="escrow-body" wx:elif="{{escrowTradeOrderId}}">
         <view class="escrow-notice">
           <text class="escrow-notice-icon">🔑</text>
-          <text class="escrow-notice-text">担保码已生成，请当面交付物品后将担保码告知买家。买家输入担保码后交易完成。</text>
+          <text class="escrow-notice-text"
+            >担保码已生成，请当面交付物品后将担保码告知买家。买家输入担保码后交易完成。</text
+          >
         </view>
         <view class="escrow-expire" wx:if="{{escrowExpiresAt}}">
           <text class="escrow-expire-text">有效期至 {{escrowExpiresAt}}</text>

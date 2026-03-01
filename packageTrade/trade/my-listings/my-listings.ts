@@ -308,24 +308,26 @@ Page({
       content: `确定要撤回「${listing.display_name}」的挂单吗？撤回后商品/资产将返回您的背包。`,
       confirmText: '确认撤回',
       confirmColor: '#ff4d4f',
+      editable: true,
+      placeholderText: '撤回原因（选填）',
       success: (res: any) => {
         if (res.confirm) {
-          this.executeWithdraw(listing.listing_id, listing.listing_kind)
+          this.executeWithdraw(listing.listing_id, listing.listing_kind, res.content || '')
         }
       }
     })
   },
 
   /** 执行撤回操作（根据 listing_kind 调用不同后端路由） */
-  async executeWithdraw(marketListingId: number, listingKind: string) {
+  async executeWithdraw(marketListingId: number, listingKind: string, withdrawReason: string = '') {
     this.setData({ withdrawingId: marketListingId })
     log.info('撤回挂单:', marketListingId, '类型:', listingKind)
 
     try {
       const result =
         listingKind === 'fungible_asset'
-          ? await API.withdrawFungibleAsset(marketListingId)
-          : await API.withdrawMarketProduct(marketListingId)
+          ? await API.withdrawFungibleAsset(marketListingId, withdrawReason || undefined)
+          : await API.withdrawMarketProduct(marketListingId, withdrawReason || undefined)
 
       if (result && result.success) {
         log.info('挂单撤回成功')

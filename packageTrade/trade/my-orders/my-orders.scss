@@ -8,6 +8,58 @@
   padding-bottom: 32rpx;
 }
 
+/* ========== 状态筛选标签页 ========== */
+.status-tabs {
+  display: flex;
+  background: $color-white;
+  padding: 0 16rpx;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  position: relative;
+  transition: all 0.2s;
+
+  &.active {
+    .tab-label {
+      color: $color-primary;
+      font-weight: 700;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40rpx;
+      height: 4rpx;
+      background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+      border-radius: 2rpx;
+    }
+  }
+}
+
+.tab-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.tab-count {
+  font-size: 20rpx;
+  color: $color-text-white;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  padding: 0 8rpx;
+  border-radius: 16rpx;
+  margin-left: 4rpx;
+  min-width: 24rpx;
+  display: inline-block;
+  text-align: center;
+}
+
 /* ========== 页面头部 ========== */
 .page-header {
   background: $color-white;
@@ -49,13 +101,27 @@
   animation: spinnerBounce 1.4s infinite ease-in-out both;
 }
 
-.spinner-dot.dot1 { animation-delay: -0.32s; }
-.spinner-dot.dot2 { animation-delay: -0.16s; }
-.spinner-dot.dot3 { animation-delay: 0s; }
+.spinner-dot.dot1 {
+  animation-delay: -0.32s;
+}
+.spinner-dot.dot2 {
+  animation-delay: -0.16s;
+}
+.spinner-dot.dot3 {
+  animation-delay: 0s;
+}
 
 @keyframes spinnerBounce {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .loading-text {
@@ -76,8 +142,14 @@
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20rpx); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 订单头部 */
@@ -143,6 +215,28 @@
   color: $color-text-secondary;
 }
 
+/* 手续费明细 */
+.order-fee-detail {
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.fee-row {
+  @include flex-between;
+  padding: 4rpx 0;
+}
+
+.fee-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.fee-value {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  font-weight: 500;
+}
+
 /* 订单操作 */
 .order-actions {
   display: flex;
@@ -190,7 +284,10 @@
   gap: 20rpx;
 }
 
-.empty-icon { font-size: 100rpx; opacity: 0.6; }
+.empty-icon {
+  font-size: 100rpx;
+  opacity: 0.6;
+}
 
 .empty-title {
   font-size: $font-size-md;
@@ -334,7 +431,9 @@
   padding: 40rpx;
   text-align: center;
 
-  text { color: $color-text-secondary; }
+  text {
+    color: $color-text-secondary;
+  }
 }
 
 .status-info {
@@ -357,4 +456,19 @@
   font-size: $font-size-sm;
   color: $color-text-primary;
   font-weight: 600;
+}
+
+/* ========== 加载更多 ========== */
+.load-more {
+  text-align: center;
+  padding: 24rpx 0 40rpx;
+}
+
+.load-more-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+
+  &.no-more {
+    color: $color-text-disabled;
+  }
 }

@@ -49,6 +49,8 @@ Page({
     /** 价格走势图（默认收起，用户手动展开） */
     showPriceChart: false,
     chartAssetCode: 'red_shard',
+    /** 可选资产列表（用于走势图资产选择器，来自 facets 或 settlement-currencies） */
+    chartAssetOptions: [] as any[],
 
     /** 最近成交列表（GET /api/v4/market/price/recent-trades） */
     recentTrades: [] as any[],
@@ -60,13 +62,15 @@ Page({
     marketOverviewLoading: false,
     showMarketOverview: false,
 
-    /** 服务端筛选参数（对齐 GET /api/v4/market/listings 查询参数） */
+    /** 服务端筛选参数（对齐 GET /api/v4/market/listings 全部查询参数） */
     filterListingKind: '' as string,
     filterSort: 'newest' as string,
     filterMinPrice: '' as string,
     filterMaxPrice: '' as string,
     filterCategoryCode: '' as string,
     filterRarityCode: '' as string,
+    filterAssetGroupCode: '' as string,
+    filterAssetCode: '' as string,
 
     /** 高级筛选面板是否展开 */
     showAdvancedFilter: false,
@@ -165,6 +169,12 @@ Page({
       if (this.data.filterRarityCode) {
         listingsParams.rarity_code = this.data.filterRarityCode
       }
+      if (this.data.filterAssetGroupCode) {
+        listingsParams.asset_group_code = this.data.filterAssetGroupCode
+      }
+      if (this.data.filterAssetCode) {
+        listingsParams.asset_code = this.data.filterAssetCode
+      }
       const listingsResult = await API.getMarketProducts(listingsParams)
       const { success: listingsSuccess, data: listingsData } = listingsResult
 
@@ -237,9 +247,37 @@ Page({
     })
   },
 
-  /** 切换价格走势图显示/隐藏 */
+  /** 切换价格走势图显示/隐藏，首次展开时加载可选资产列表 */
   onTogglePriceChart() {
-    this.setData({ showPriceChart: !this.data.showPriceChart })
+    const willShow = !this.data.showPriceChart
+    this.setData({ showPriceChart: willShow })
+    if (willShow && this.data.chartAssetOptions.length === 0) {
+      this._loadChartAssetOptions()
+    }
+  },
+
+  /** 切换走势图资产 */
+  onChartAssetChange(e: any) {
+    const assetCode = e.currentTarget.dataset.code
+    if (assetCode && assetCode !== this.data.chartAssetCode) {
+      this.setData({ chartAssetCode: assetCode })
+    }
+  },
+
+  /** 加载走势图可选资产列表（复用 settlement-currencies 或 facets） */
+  async _loadChartAssetOptions() {
+    try {
+      const response = await API.getSettlementCurrencies()
+      if (response && response.success && response.data) {
+        const currencies = Array.isArray(response.data)
+          ? response.data
+          : response.data.currencies || []
+        this.setData({ chartAssetOptions: currencies })
+        marketLog.info(`走势图资产选项加载: ${currencies.length} 种`)
+      }
+    } catch (optError: any) {
+      marketLog.warn('加载走势图资产选项失败:', optError.message)
+    }
   },
 
   /** 切换最近成交列表显示/隐藏，首次展开时加载数据 */
@@ -400,6 +438,22 @@ Page({
     })
   },
 
+  /** 选择资产分组（对齐文档 asset_group_code 查询参数） */
+  onAssetGroupSelect(e: any) {
+    const code = e.currentTarget.dataset.code || ''
+    this.setData({
+      filterAssetGroupCode: code === this.data.filterAssetGroupCode ? '' : code
+    })
+  },
+
+  /** 选择资产代码（对齐文档 asset_code 查询参数，仅 fungible_asset 有效） */
+  onAssetCodeSelect(e: any) {
+    const code = e.currentTarget.dataset.code || ''
+    this.setData({
+      filterAssetCode: code === this.data.filterAssetCode ? '' : code
+    })
+  },
+
   /** 应用高级筛选 — 关闭面板并重新加载 */
   onApplyAdvancedFilter() {
     this.setData({
@@ -418,7 +472,9 @@ Page({
       filterMinPrice: '',
       filterMaxPrice: '',
       filterCategoryCode: '',
-      filterRarityCode: ''
+      filterRarityCode: '',
+      filterAssetGroupCode: '',
+      filterAssetCode: ''
     })
   },
 

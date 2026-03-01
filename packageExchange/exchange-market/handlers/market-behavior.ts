@@ -86,10 +86,7 @@ module.exports = Behavior({
            */
           const processedProducts = items.map((item: any, idx: number) => {
             if (!item.listing_id) {
-              marketLog.warn(
-                `products[${idx}] 缺少 listing_id，后端响应字段:`,
-                Object.keys(item)
-              )
+              marketLog.warn(`products[${idx}] 缺少 listing_id，后端响应字段:`, Object.keys(item))
             }
             const itemInfo = item.item_info || {}
             const assetInfo = item.asset_info || {}

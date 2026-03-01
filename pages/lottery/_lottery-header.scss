@@ -202,6 +202,84 @@
   }
 }
 
+/* ========================================
+ * 🔔 通知铃铛入口（方案B通知系统独立化）
+ * ======================================== */
+
+.notification-bell-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8rpx;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  flex-shrink: 0;
+}
+
+.notification-bell-container:active {
+  transform: scale(0.92);
+}
+
+.notification-bell-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  height: 48rpx;
+  padding: 0 16rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.8) 100%);
+  box-shadow:
+    0 3rpx 12rpx rgba(102, 126, 234, 0.3),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
+}
+
+.notification-bell-btn .badge-icon {
+  font-size: 26rpx;
+}
+
+.notification-bell-btn .badge-label {
+  font-size: 22rpx;
+  color: $color-text-white;
+  font-weight: 500;
+}
+
+.notification-badge-number {
+  position: absolute;
+  top: -18rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 34rpx;
+  height: 34rpx;
+  background: linear-gradient(135deg, #ff5252 0%, #ff8a65 100%);
+  border-radius: 17rpx;
+  border: 2rpx solid #ffffff;
+  font-size: 20rpx;
+  color: $color-text-white;
+  font-weight: bold;
+  @include flex-center;
+  padding: 0 6rpx;
+  box-shadow:
+    0 3rpx 10rpx rgba(255, 82, 82, 0.4),
+    0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  animation: notificationBadgeBounce 2.5s ease-in-out infinite;
+}
+
+@keyframes notificationBadgeBounce {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  10% {
+    transform: translateX(-50%) scale(1.15);
+  }
+  20% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
 /* 纯净版无文字标题 */
 
 /* 右侧：二维码区域（纯净版，无额外文字） */

@@ -4,18 +4,40 @@
   <view class="chart-header" wx:if="{{title}}">
     <text class="chart-title">{{title}}</text>
     <view class="period-tabs">
-      <text wx:for="{{periods}}" wx:key="value" class="period-tab {{currentPeriod === item.value ? 'period-tab--active' : ''}}" data-period="{{item.value}}" bindtap="onPeriodChange">{{item.label}}</text>
+      <text
+        wx:for="{{periods}}"
+        wx:key="value"
+        class="period-tab {{currentPeriod === item.value ? 'period-tab--active' : ''}}"
+        data-period="{{item.value}}"
+        bindtap="onPeriodChange"
+        >{{item.label}}</text
+      >
     </view>
   </view>
 
   <!--图表标签页：价格走势 / 成交量-->
   <view class="chart-tab-bar">
-    <text class="chart-tab {{activeChartTab === 'price' ? 'chart-tab--active' : ''}}" data-tab="price" bindtap="onChartTabChange">价格走势</text>
-    <text class="chart-tab {{activeChartTab === 'volume' ? 'chart-tab--active' : ''}}" data-tab="volume" bindtap="onChartTabChange">成交量</text>
+    <text
+      class="chart-tab {{activeChartTab === 'price' ? 'chart-tab--active' : ''}}"
+      data-tab="price"
+      bindtap="onChartTabChange"
+      >价格走势</text
+    >
+    <text
+      class="chart-tab {{activeChartTab === 'volume' ? 'chart-tab--active' : ''}}"
+      data-tab="volume"
+      bindtap="onChartTabChange"
+      >成交量</text
+    >
   </view>
 
   <!--Canvas 2D 绘图区域（价格折线图 / 成交量柱状图 共用同一 Canvas）-->
-  <canvas type="2d" id="priceChartCanvas" class="chart-canvas" style="width: 100%; height: {{canvasHeight}}px;" />
+  <canvas
+    type="2d"
+    id="priceChartCanvas"
+    class="chart-canvas"
+    style="width: 100%; height: {{canvasHeight}}px;"
+  />
 
   <!--摘要信息-->
   <view class="chart-summary" wx:if="{{summary}}">
@@ -38,7 +60,10 @@
   </view>
 
   <!--无数据占位-->
-  <view class="chart-empty" wx:if="{{!loading && dataPoints.length === 0 && volumePoints.length === 0}}">
+  <view
+    class="chart-empty"
+    wx:if="{{!loading && dataPoints.length === 0 && volumePoints.length === 0}}"
+  >
     <text class="chart-empty-text">暂无成交数据</text>
   </view>
 

@@ -35,6 +35,7 @@ const log = Logger.createLogger('whackmole')
 Component({
   properties: {
     prizes: { type: Array, value: [] },
+    prizesForPreview: { type: Array, value: [] },
     costPoints: { type: Number, value: 0 },
     pointsBalance: { type: Number, value: 0 },
     isInProgress: { type: Boolean, value: false },
@@ -141,6 +142,14 @@ Component({
   },
 
   methods: {
+    /** 奖品预览项点击 — 触发详情弹窗（冒泡到 lottery-activity 层） */
+    onPrizeTap(e: any) {
+      const prizeData = e.currentTarget.dataset.prize
+      if (prizeData) {
+        this.triggerEvent('prizedetail', { prize: prizeData })
+      }
+    },
+
     /** 初始化背景粒子 */
     _initParticles() {
       const particles = []

@@ -34,6 +34,7 @@ Component({
       type: Array,
       value: []
     },
+    prizesForPreview: { type: Array, value: [] },
     /** 单次抽奖消耗积分 */
     costPoints: {
       type: Number,
@@ -69,6 +70,14 @@ Component({
   },
 
   methods: {
+    /** 奖品预览项点击 — 触发详情弹窗（冒泡到 lottery-activity 层） */
+    onPrizeTap(e: any) {
+      const prizeData = e.currentTarget.dataset.prize
+      if (prizeData) {
+        this.triggerEvent('prizedetail', { prize: prizeData })
+      }
+    },
+
     /**
      * 单抽按钮点击
      * 向父组件触发 draw 事件

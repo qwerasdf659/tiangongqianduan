@@ -24,6 +24,7 @@
     wx:if="{{displayMode === 'grid_3x3' || displayMode === 'grid_4x4'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -33,11 +34,13 @@
     gridCols="{{displayConfig.grid_cols || 3}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <wheel
     wx:elif="{{displayMode === 'wheel'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -47,11 +50,13 @@
     winAnimation="{{winAnimation}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <card
     wx:elif="{{displayMode === 'card_flip' || displayMode === 'flip_card_multi'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -63,11 +68,13 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <egg
     wx:elif="{{displayMode === 'golden_egg'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -78,11 +85,13 @@
     multiDrawResults="{{multiDrawResults}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <scratch
     wx:elif="{{displayMode === 'scratch_card'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -93,11 +102,13 @@
     winAnimation="{{winAnimation}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <blindbox
     wx:elif="{{displayMode === 'blind_box'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -107,11 +118,13 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <gashapon
     wx:elif="{{displayMode === 'gashapon'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -121,11 +134,13 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <luckybag
     wx:elif="{{displayMode === 'lucky_bag'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -137,11 +152,13 @@
     multiDrawResults="{{multiDrawResults}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <redpacket
     wx:elif="{{displayMode === 'red_packet'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -152,11 +169,13 @@
     multiDrawResults="{{multiDrawResults}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <slotmachine
     wx:elif="{{displayMode === 'slot_machine'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -166,11 +185,13 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <whackmole
     wx:elif="{{displayMode === 'whack_mole'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -180,11 +201,13 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <pinball
     wx:elif="{{displayMode === 'pinball'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -195,11 +218,13 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <cardcollect
     wx:elif="{{displayMode === 'card_collect'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -209,11 +234,13 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <flashsale
     wx:elif="{{displayMode === 'flash_sale'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -223,12 +250,14 @@
     displayConfig="{{displayConfig}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
   <!-- wx:else 兜底默认刮刮卡（后端 display.mode 配置异常时降级） -->
   <scratch
     wx:else
     id="lottery-sub"
     prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
@@ -239,6 +268,7 @@
     winAnimation="{{winAnimation}}"
     bind:draw="onChildDraw"
     bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail"
   />
 
   <!-- 保底砸金蛋（达到保底阈值时显示） -->
@@ -269,22 +299,6 @@
     </view>
   </view>
 
-  <!-- 保底进度条（未达到阈值时显示进度） -->
-  <view
-    class="guarantee-progress"
-    wx:elif="{{guaranteeInfo && guaranteeInfo.guarantee_threshold > 0}}"
-  >
-    <text class="guarantee-progress__text"
-      >保底进度：{{guaranteeInfo.current_pity}}/{{guaranteeInfo.guarantee_threshold}}</text
-    >
-    <view class="guarantee-progress__bar">
-      <view
-        class="guarantee-progress__fill"
-        style="width: {{guaranteeInfo.current_pity / guaranteeInfo.guarantee_threshold * 100}}%"
-      ></view>
-    </view>
-  </view>
-
   <!-- 连抽按钮（showDrawButtons 由父组件根据 size 和 drawButtons 计算） -->
   <draw-buttons
     wx:if="{{showDrawButtons}}"
@@ -294,6 +308,23 @@
     displayMode="{{displayMode}}"
     bind:draw="onMultiDraw"
   />
+
+  <!-- 保底进度条（未达到阈值时显示进度，pityInfo 由父组件提供，与 guarantee-egg 互斥） -->
+  <view
+    class="pity-progress"
+    wx:if="{{!showGuaranteeEgg && pityInfo && pityInfo.guarantee_threshold > 0}}"
+  >
+    <text class="pity-progress__text"
+      >距离保底还有 {{pityInfo.remaining || (pityInfo.guarantee_threshold - pityInfo.current_pity)}}
+      次</text
+    >
+    <view class="pity-progress__bar">
+      <view
+        class="pity-progress__fill"
+        style="width: {{pityInfo.current_pity / pityInfo.guarantee_threshold * 100}}%"
+      ></view>
+    </view>
+  </view>
 
   <!-- 结果弹窗（所有玩法共用） -->
   <result-modal

@@ -16,6 +16,7 @@ Component({
   properties: {
     /** 奖品列表 */
     prizes: { type: Array, value: [] },
+    prizesForPreview: { type: Array, value: [] },
     /** 单抽消耗积分 */
     costPoints: { type: Number, value: 0 },
     /** 用户当前积分余额 */
@@ -93,6 +94,14 @@ Component({
   },
 
   methods: {
+    /** 奖品预览项点击 — 触发详情弹窗（冒泡到 lottery-activity 层） */
+    onPrizeTap(e: any) {
+      const prizeData = e.currentTarget.dataset.prize
+      if (prizeData) {
+        this.triggerEvent('prizedetail', { prize: prizeData })
+      }
+    },
+
     // ================================
     // 初始化
     // ================================

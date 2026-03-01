@@ -39,7 +39,8 @@
         "feedback/feedback",
         "feedback/detail",
         "feedback/list",
-        "issues/issues"
+        "issues/issues",
+        "notifications/notifications"
       ]
     },
     {

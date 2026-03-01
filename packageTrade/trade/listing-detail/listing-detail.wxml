@@ -81,6 +81,12 @@
       <text class="desc-label">物品类目</text>
       <text class="desc-value">{{detail.item_info.category_code}}</text>
     </view>
+
+    <!--物品状态描述（对齐文档 condition 字段，卖家上架时填写）-->
+    <view class="detail-desc-row" wx:if="{{detail.condition}}">
+      <text class="desc-label">物品状态</text>
+      <text class="desc-value">{{detail.condition}}</text>
+    </view>
   </view>
 
   <!-- 卖家信息卡片 -->

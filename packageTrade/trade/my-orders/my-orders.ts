@@ -17,7 +17,12 @@
  * @since 2026-02-25
  */
 
-const { API, Logger: OrderLogger, Utils: OrderUtils, Wechat: OrderWechat } = require('../../../utils/index')
+const {
+  API,
+  Logger: OrderLogger,
+  Utils: OrderUtils,
+  Wechat: OrderWechat
+} = require('../../../utils/index')
 const orderLog = OrderLogger.createLogger('my-orders')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -37,11 +42,27 @@ Page({
     /** 订单列表（后端 trade_orders 表） */
     orders: [] as any[],
 
+    /** 当前筛选状态: all / pending / completed / cancelled */
+    currentStatus: 'all',
+
+    /** 状态筛选标签页（对齐后端 GET /api/v4/market/my-orders status 参数枚举） */
+    statusTabs: [
+      { key: 'all', label: '全部', count: 0 },
+      { key: 'pending', label: '待确认', count: 0 },
+      { key: 'completed', label: '已完成', count: 0 },
+      { key: 'cancelled', label: '已取消', count: 0 }
+    ],
+
     /** 页面状态 */
     loading: true,
     isEmpty: false,
     hasError: false,
     errorMessage: '',
+
+    /** 分页参数 */
+    page: 1,
+    pageSize: 20,
+    hasMore: false,
 
     /** 担保码输入弹窗 */
     showEscrowInput: false,
@@ -61,6 +82,9 @@ Page({
 
   storeBindings: null as any,
 
+  /** 首次onShow跳过标记（onLoad已加载数据） */
+  _skipNextShow: false as boolean,
+
   onLoad() {
     orderLog.info('买方订单页面加载')
 
@@ -70,11 +94,16 @@ Page({
       actions: []
     })
 
+    this._skipNextShow = true
     this._loadOrders()
   },
 
   onShow() {
-    if (!this.data.loading && userStore.isLoggedIn) {
+    if (this._skipNextShow) {
+      this._skipNextShow = false
+      return
+    }
+    if (userStore.isLoggedIn) {
       this._loadOrders()
     }
   },
@@ -86,26 +115,38 @@ Page({
   },
 
   /**
-   * 加载买方订单列表
+   * 加载买方订单列表（支持状态筛选 + 分页）
    * 后端API: GET /api/v4/market/my-orders
-   * 响应: { orders: TradeOrder[], pagination: { page, limit, total, total_pages } }
+   * 查询参数: page, limit, status (all/pending/completed/cancelled)
+   * 响应: { orders: TradeOrder[], pagination: { page, limit, total, total_pages }, status_counts?: {} }
    */
   async _loadOrders() {
     if (!userStore.isLoggedIn) {
       orderLog.info('用户未登录')
       this.setData({ loading: false })
       OrderWechat.showToast('请先登录')
-      setTimeout(() => { wx.navigateTo({ url: '/packageUser/auth/auth' }) }, 1500)
+      setTimeout(() => {
+        wx.navigateTo({ url: '/packageUser/auth/auth' })
+      }, 1500)
       return
     }
 
     this.setData({ loading: true, hasError: false })
 
     try {
-      const ordersResponse = await API.getMyOrders({ page: 1, limit: 50 })
+      const { page, pageSize, currentStatus } = this.data
+      const queryParams: Record<string, any> = { page, limit: pageSize }
+      if (currentStatus !== 'all') {
+        queryParams.status = currentStatus
+      }
+
+      orderLog.info('加载买方订单:', queryParams)
+      const ordersResponse = await API.getMyOrders(queryParams)
 
       if (ordersResponse && ordersResponse.success && ordersResponse.data) {
         const rawOrders: any[] = ordersResponse.data.orders || []
+        const pagination = ordersResponse.data.pagination || {}
+        const statusCounts = ordersResponse.data.status_counts || {}
 
         const orderList = rawOrders.map((order: any) => {
           const statusConfig = ORDER_STATUS_CONFIG[order.status] || ORDER_STATUS_CONFIG.created
@@ -118,18 +159,30 @@ Page({
             statusLabel: statusConfig.label,
             statusColor: statusConfig.color,
             kindLabel: order.listing_kind === 'fungible_asset' ? '资产' : '物品',
-            formattedTime: parsedDate ? OrderUtils.formatTime(parsedDate) : (order.created_at || ''),
+            formattedTime: parsedDate ? OrderUtils.formatTime(parsedDate) : order.created_at || '',
             display_name: order.display_name || '商品'
           }
         })
 
+        const newOrders = page === 1 ? orderList : [...this.data.orders, ...orderList]
+
+        /** 更新状态标签页计数（后端按需返回 status_counts 聚合字段） */
+        const updatedTabs = this.data.statusTabs.map((tab: any) => {
+          if (tab.key === 'all') {
+            return { ...tab, count: pagination.total || 0 }
+          }
+          return { ...tab, count: statusCounts[tab.key] || 0 }
+        })
+
         this.setData({
-          orders: orderList,
-          isEmpty: orderList.length === 0,
+          orders: newOrders,
+          statusTabs: updatedTabs,
+          hasMore: page * pageSize < (pagination.total || 0),
+          isEmpty: newOrders.length === 0,
           loading: false
         })
 
-        orderLog.info(`订单加载完成: ${orderList.length} 条`)
+        orderLog.info(`订单加载完成: ${newOrders.length} 条`)
       } else {
         this.setData({ orders: [], isEmpty: true, loading: false })
       }
@@ -141,6 +194,18 @@ Page({
         errorMessage: loadError.message || '加载失败，请重试'
       })
     }
+  },
+
+  /** 切换状态筛选标签 */
+  onStatusTabTap(e: any) {
+    const status = e.currentTarget.dataset.status
+    if (status === this.data.currentStatus) {
+      return
+    }
+
+    orderLog.info('切换订单状态筛选:', status)
+    this.setData({ currentStatus: status, page: 1, orders: [] })
+    this._loadOrders()
   },
 
   /**
@@ -289,14 +354,17 @@ Page({
       content: '确定要取消此交易吗？取消后冻结的资产将返还。',
       confirmText: '确认取消',
       confirmColor: '#ff4d4f',
+      editable: true,
+      placeholderText: '取消原因（选填）',
       success: async (res: any) => {
         if (!res.confirm) {
           return
         }
 
+        const inputReason = res.content || ''
         this.setData({ cancellingOrderId: tradeOrderId })
         try {
-          const cancelResult = await API.cancelTradeOrder(tradeOrderId)
+          const cancelResult = await API.cancelTradeOrder(tradeOrderId, inputReason || undefined)
           if (cancelResult && cancelResult.success) {
             orderLog.info('交易取消成功:', tradeOrderId)
             OrderWechat.showToast('交易已取消', 'success')
@@ -324,11 +392,23 @@ Page({
     }
   },
 
-  /** 下拉刷新 */
+  /** 下拉刷新 — 重置分页并重新加载 */
   onPullDownRefresh() {
+    this.setData({ page: 1, orders: [] })
     this._loadOrders().finally(() => {
       wx.stopPullDownRefresh()
     })
+  },
+
+  /** 触底加载更多 */
+  onReachBottom() {
+    if (!this.data.hasMore || this.data.loading) {
+      return
+    }
+
+    orderLog.info('加载更多订单，当前页:', this.data.page)
+    this.setData({ page: this.data.page + 1 })
+    this._loadOrders()
   },
 
   /** 分享 */

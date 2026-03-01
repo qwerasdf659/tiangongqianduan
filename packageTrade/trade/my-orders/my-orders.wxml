@@ -1,20 +1,31 @@
-<!--买方订单管理页 — 订单列表 + 担保码确认收货 + 取消交易-->
+<!--买方订单管理页 — 订单列表 + 状态筛选 + 分页 + 担保码确认收货 + 取消交易-->
+<!--后端API: GET /api/v4/market/my-orders (status / page / limit)-->
 <!--后端API: GET /api/v4/market/trade-orders/:id/escrow-status-->
 <!--后端API: POST /api/v4/market/trade-orders/:id/confirm-delivery-->
 <!--后端API: POST /api/v4/market/trade-orders/:id/cancel-->
 
 <view class="orders-container">
-  <!--
-    筛选标签栏 — 等待后端提供 GET /api/v4/market/my-orders API 后启用
-    当前使用 getMyListings 临时方案，无法按买方订单状态筛选
-  -->
   <view class="page-header">
     <text class="page-header-title">我的交易订单</text>
     <text class="page-header-subtitle">购买的商品在此管理</text>
   </view>
 
-  <!-- 加载状态 -->
-  <view class="loading-state" wx:if="{{loading}}">
+  <!--状态筛选标签页（对齐 my-listings 页面模式）-->
+  <view class="status-tabs">
+    <view
+      class="tab-item {{currentStatus === item.key ? 'active' : ''}}"
+      wx:for="{{statusTabs}}"
+      wx:key="key"
+      bindtap="onStatusTabTap"
+      data-status="{{item.key}}"
+    >
+      <text class="tab-label">{{item.label}}</text>
+      <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
+    </view>
+  </view>
+
+  <!--加载状态-->
+  <view class="loading-state" wx:if="{{loading && orders.length === 0}}">
     <view class="loading-spinner">
       <view class="spinner-dot dot1"></view>
       <view class="spinner-dot dot2"></view>
@@ -23,91 +34,124 @@
     <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- 订单列表 -->
-  <view class="order-list" wx:elif="{{!isEmpty && !hasError}}">
-    <view
-      class="order-card"
-      wx:for="{{orders}}"
-      wx:key="trade_order_id"
-    >
-      <!-- 订单头部：状态 + 时间 -->
-      <view class="order-header">
-        <view class="order-kind-tag">
-          <text>{{item.kindLabel}}</text>
+  <!--订单列表-->
+  <block wx:if="{{!loading || orders.length > 0}}">
+    <view class="order-list" wx:if="{{orders.length > 0}}">
+      <view class="order-card" wx:for="{{orders}}" wx:key="trade_order_id">
+        <!--订单头部：类型 + 状态-->
+        <view class="order-header">
+          <view class="order-kind-tag">
+            <text>{{item.kindLabel}}</text>
+          </view>
+          <view class="order-status" style="color: {{item.statusColor}};">
+            <text>{{item.statusLabel}}</text>
+          </view>
         </view>
-        <view class="order-status" style="color: {{item.statusColor}};">
-          <text>{{item.statusLabel}}</text>
+
+        <!--订单内容：商品名称 + 价格-->
+        <view
+          class="order-body"
+          data-listing-id="{{item.market_listing_id}}"
+          bindtap="onViewListing"
+        >
+          <view class="order-info">
+            <text class="order-name">{{item.display_name}}</text>
+            <text class="order-time">{{item.formattedTime}}</text>
+          </view>
+          <view class="order-price">
+            <text class="order-price-value">{{item.price_amount}}</text>
+            <text class="order-price-unit">{{item.price_asset_code}}</text>
+          </view>
         </view>
-      </view>
 
-      <!-- 订单内容：商品名称 + 价格 -->
-      <view class="order-body" data-listing-id="{{item.market_listing_id}}" bindtap="onViewListing">
-        <view class="order-info">
-          <text class="order-name">{{item.display_name}}</text>
-          <text class="order-time">{{item.formattedTime}}</text>
+        <!--手续费明细（后端 trade_orders 表 gross_amount / fee_amount / net_amount）-->
+        <view
+          class="order-fee-detail"
+          wx:if="{{item.gross_amount || item.fee_amount || item.net_amount}}"
+        >
+          <view class="fee-row" wx:if="{{item.gross_amount}}">
+            <text class="fee-label">总金额</text>
+            <text class="fee-value">{{item.gross_amount}} {{item.price_asset_code}}</text>
+          </view>
+          <view class="fee-row" wx:if="{{item.fee_amount}}">
+            <text class="fee-label">手续费</text>
+            <text class="fee-value">{{item.fee_amount}} {{item.price_asset_code}}</text>
+          </view>
+          <view class="fee-row" wx:if="{{item.net_amount}}">
+            <text class="fee-label">卖家实收</text>
+            <text class="fee-value">{{item.net_amount}} {{item.price_asset_code}}</text>
+          </view>
         </view>
-        <view class="order-price">
-          <text class="order-price-value">{{item.price_amount}}</text>
-          <text class="order-price-unit">{{item.price_asset_code}}</text>
+
+        <!--订单操作按钮-->
+        <view
+          class="order-actions"
+          wx:if="{{item.status === 'created' || item.status === 'frozen'}}"
+        >
+          <button
+            wx:if="{{item.requires_escrow}}"
+            class="action-btn primary-action"
+            size="mini"
+            data-order-id="{{item.trade_order_id}}"
+            bindtap="onOpenEscrowInput"
+          >
+            输入担保码
+          </button>
+          <button
+            wx:if="{{item.requires_escrow}}"
+            class="action-btn"
+            size="mini"
+            data-order-id="{{item.trade_order_id}}"
+            bindtap="onViewEscrowStatus"
+          >
+            查看状态
+          </button>
+          <button
+            class="action-btn danger-action"
+            size="mini"
+            data-order-id="{{item.trade_order_id}}"
+            disabled="{{cancellingOrderId === item.trade_order_id}}"
+            bindtap="onCancelOrder"
+          >
+            {{cancellingOrderId === item.trade_order_id ? '取消中...' : '取消交易'}}
+          </button>
         </view>
-      </view>
 
-      <!-- 订单操作按钮 -->
-      <view class="order-actions" wx:if="{{item.status === 'created' || item.status === 'frozen'}}">
-        <!-- 实物交易：输入担保码 -->
-        <button
-          wx:if="{{item.requires_escrow}}"
-          class="action-btn primary-action"
-          size="mini"
-          data-order-id="{{item.trade_order_id}}"
-          bindtap="onOpenEscrowInput"
-        >输入担保码</button>
-
-        <!-- 查看担保状态 -->
-        <button
-          wx:if="{{item.requires_escrow}}"
-          class="action-btn"
-          size="mini"
-          data-order-id="{{item.trade_order_id}}"
-          bindtap="onViewEscrowStatus"
-        >查看状态</button>
-
-        <!-- 取消交易 -->
-        <button
-          class="action-btn danger-action"
-          size="mini"
-          data-order-id="{{item.trade_order_id}}"
-          disabled="{{cancellingOrderId === item.trade_order_id}}"
-          bindtap="onCancelOrder"
-        >{{cancellingOrderId === item.trade_order_id ? '取消中...' : '取消交易'}}</button>
-      </view>
-
-      <!-- 订单编号 -->
-      <view class="order-footer">
-        <text class="order-id-label">订单号: {{item.trade_order_id}}</text>
+        <!--订单编号-->
+        <view class="order-footer">
+          <text class="order-id-label">订单号: {{item.trade_order_id}}</text>
+        </view>
       </view>
     </view>
-  </view>
 
-  <!-- 空状态 -->
-  <view class="empty-state" wx:elif="{{isEmpty}}">
+    <!--加载更多提示-->
+    <view class="load-more" wx:if="{{orders.length > 0 && hasMore}}">
+      <text class="load-more-text">{{loading ? '加载中...' : '上拉加载更多'}}</text>
+    </view>
+    <view class="load-more" wx:if="{{orders.length > 0 && !hasMore}}">
+      <text class="load-more-text no-more">已加载全部订单</text>
+    </view>
+  </block>
+
+  <!--空状态-->
+  <view class="empty-state" wx:if="{{!loading && isEmpty}}">
     <text class="empty-icon">📋</text>
-    <text class="empty-title">暂无订单</text>
+    <text class="empty-title">{{currentStatus === 'all' ? '暂无订单' : '该状态下暂无订单'}}</text>
     <text class="empty-subtitle">去交易市场看看有什么好物</text>
     <navigator url="/packageTrade/trade/market/market" class="empty-link">
       <text>逛逛市场</text>
     </navigator>
   </view>
 
-  <!-- 错误状态 -->
-  <view class="empty-state" wx:elif="{{hasError}}">
+  <!--错误状态-->
+  <view class="empty-state" wx:if="{{!loading && hasError}}">
     <text class="empty-icon">⚠️</text>
     <text class="empty-title">{{errorMessage}}</text>
     <button class="retry-btn" size="mini" bindtap="onPullDownRefresh">重试</button>
   </view>
 </view>
 
-<!-- 担保码输入弹窗 -->
+<!--担保码输入弹窗-->
 <view class="modal-overlay" wx:if="{{showEscrowInput}}" bindtap="onCloseEscrowInput">
   <view class="modal-content" catchtap="">
     <text class="modal-title">输入担保码</text>
@@ -138,12 +182,14 @@
         class="modal-btn {{escrowInputValue.length < 6 ? 'btn-disabled' : ''}}"
         disabled="{{escrowInputValue.length < 6 || escrowConfirming}}"
         bindtap="onSubmitEscrowCode"
-      >{{escrowConfirming ? '确认中...' : '确认收货'}}</button>
+      >
+        {{escrowConfirming ? '确认中...' : '确认收货'}}
+      </button>
     </view>
   </view>
 </view>
 
-<!-- 担保码状态弹窗 -->
+<!--担保码状态弹窗-->
 <view class="modal-overlay" wx:if="{{showEscrowStatus}}" bindtap="onCloseEscrowStatus">
   <view class="modal-content" catchtap="">
     <text class="modal-title">担保码状态</text>

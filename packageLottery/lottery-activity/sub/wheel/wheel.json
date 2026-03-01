@@ -1,4 +1,4 @@
 {
   "component": true,
-  "usingComponents": {}
+  "usingComponents": { "rarity-effects": "../../shared/rarity-effects/rarity-effects" }
 }

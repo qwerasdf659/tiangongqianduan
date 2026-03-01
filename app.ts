@@ -551,13 +551,24 @@ App({
           this.notifyPageSubscribers('new_message', data)
         })
 
-        // 系统通知（替代原 system_message）
+        // 管理员系统通知（管理后台推送的系统级通知）
         socket.on('notification', (data: any) => {
-          log.info('收到系统通知:', data)
+          log.info('收到管理员系统通知:', data)
           if (data.level === 'urgent') {
             wx.showModal({ title: '🚨 紧急通知', content: data.content, showCancel: false })
           }
           this.notifyPageSubscribers('notification', data)
+        })
+
+        /**
+         * 用户通知（方案B通知系统独立化 — 后端 ChatWebSocketService.pushNotificationToUser 推送）
+         * 事件名 'new_notification' 与聊天 'new_message' 和管理员 'notification' 区分
+         * 数据结构与 GET /api/v4/user/notifications 列表中单条通知一致:
+         *   { notification_id, type, title, content, metadata, created_at }
+         */
+        socket.on('new_notification', (data: any) => {
+          log.info('收到用户通知:', data)
+          this.notifyPageSubscribers('new_notification', data)
         })
 
         // 商品更新

@@ -111,14 +111,14 @@
   </view>
 
   <!-- 奖品池 -->
-  <view class="bb-prizes" wx:if="{{prizes.length > 0}}">
+  <view class="bb-prizes" wx:if="{{prizesForPreview.length > 0}}">
     <view class="bb-prizes__header">
       <view class="bb-prizes__title-wrap">
         <text class="bb-prizes__dot"></text>
         <text class="bb-prizes__title">奖品池</text>
         <text class="bb-prizes__dot"></text>
       </view>
-      <text class="bb-prizes__count">{{prizes.length}}种奖品</text>
+      <text class="bb-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <view class="bb-prizes__scroll-wrap">
       <scroll-view
@@ -129,17 +129,31 @@
         bindscroll="onPrizesScroll"
       >
         <view class="bb-prizes__list">
-          <view class="bb-prizes__item {{item.rarity_code}} {{item.is_fallback ? 'bb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'bb-prizes__item--sold-out' : ''}}" wx:for="{{prizes}}" wx:key="prize_id">
-            <view class="bb-prizes__icon-wrap">
-              <text class="bb-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="bb-prizes__sold-out">抢光</text>
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="prize_id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="bb-prizes__item {{item.is_fallback ? 'bb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'bb-prizes__item--sold-out' : ''}}"
+            >
+              <view class="bb-prizes__icon-wrap">
+                <text class="bb-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="bb-prizes__sold-out">抢光</text>
+              </view>
+              <text class="bb-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="bb-prizes__fallback-tag">保底</text>
             </view>
-            <text class="bb-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="bb-prizes__fallback-tag">保底</text>
-          </view>
+          </rarity-effects>
         </view>
       </scroll-view>
-      <view class="bb-prizes__scroll-hint" wx:if="{{showScrollHint && prizes.length > 4}}">
+      <view
+        class="bb-prizes__scroll-hint"
+        wx:if="{{showScrollHint && prizesForPreview.length > 4}}"
+      >
         <text>← 滑动查看 →</text>
       </view>
     </view>
