@@ -19,7 +19,7 @@
  * @since 2026-02-25
  */
 
-const { API, Logger, Constants, ApiWrapper } = require('../../utils/index')
+const { API, Utils, Logger, Constants, ApiWrapper } = require('../../utils/index')
 const log = Logger.createLogger('notifications')
 const { safeApiCall } = ApiWrapper
 const { PAGINATION } = Constants
@@ -163,10 +163,29 @@ Page({
   },
 
   onShow() {
-    const app = getApp() as any
-    app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
+    if (!userStore.isLoggedIn) {
+      return
+    }
 
-    if (userStore.isLoggedIn && this.data.notifications.length > 0) {
+    const app = getApp() as any
+
+    /* 主动连接WebSocket（修复隐患3：直接从首页跳入时WebSocket可能未连接） */
+    const tokenStatus = Utils.checkTokenValidity()
+    if (tokenStatus.isValid) {
+      app
+        .connectWebSocket()
+        .then(() => {
+          app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
+        })
+        .catch((_wsErr: any) => {
+          log.warn('[notifications] WebSocket连接失败，回退API拉取')
+          app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
+        })
+    } else {
+      app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
+    }
+
+    if (this.data.notifications.length > 0) {
       this.loadUnreadCount()
     }
   },

@@ -10,7 +10,7 @@
  *   6. 积分显示（格式化、响应式字体、MobX绑定）
  *
  * 抽奖核心逻辑已迁移到 lottery-activity 万能组件：
- *   <lottery-activity campaignCode="BASIC_LOTTERY" size="full" />
+ *   <lottery-activity campaignCode="{{mainCampaign.campaign_code}}" size="full" />
  *
  * @file pages/lottery/lottery.ts
  * @version 5.2.0
@@ -153,6 +153,9 @@ Page({
     this._isFirstLoad = true
     this.checkAdminRole()
     this.initializePage()
+
+    /** WebSocket 通知角标实时更新的页面订阅ID */
+    this._wsPageId = 'lottery'
   },
 
   onReady() {
@@ -214,15 +217,8 @@ Page({
     /* 加载当前页面活动列表（任务27） */
     this._loadCampaigns()
 
-    /* 订阅WebSocket通知事件，铃铛角标实时更新 */
-    const showApp = getApp() as any
-    showApp.subscribeWebSocketMessages('lottery', (eventName: string, _eventData: any) => {
-      if (eventName === 'new_notification') {
-        this.setData({
-          notificationUnreadCount: this.data.notificationUnreadCount + 1
-        })
-      }
-    })
+    /* Tab回前台时重新连接WebSocket并订阅通知事件 */
+    this._setupWebSocketNotification()
   },
 
   async onPullDownRefresh() {
@@ -255,7 +251,7 @@ Page({
       this._qrRefreshTimer = null
     }
     const hideApp = getApp() as any
-    hideApp.unsubscribeWebSocketMessages('lottery')
+    hideApp.unsubscribeWebSocketMessages(this._wsPageId)
   },
 
   onUnload() {
@@ -321,9 +317,12 @@ Page({
         return
       }
 
-      /* 并行加载：积分数据、系统公告、弹窗横幅、轮播图、通知未读数 */
+      /* 并行加载：积分数据、活动列表、系统公告、弹窗横幅、轮播图、通知未读数 */
       await Promise.all([
         this._refreshPoints(),
+        this._loadCampaigns().catch((campaignErr: any) => {
+          log.error('[lottery] 活动列表加载失败:', campaignErr)
+        }),
         this.loadHomeAnnouncements().catch((err: any) => {
           log.error('[lottery] 系统公告加载失败（不影响主功能）:', err)
         }),
@@ -371,6 +370,11 @@ Page({
         this.setData(finalData)
       }
       this._isFirstLoad = false
+
+      /* 首次加载完成后连接WebSocket并订阅通知事件（修复隐患1+2：冷启动铃铛实时更新） */
+      if (this.data.isLoggedIn) {
+        this._setupWebSocketNotification()
+      }
     }
   },
 
@@ -403,8 +407,26 @@ Page({
 
       const activeCampaigns = Array.isArray(campaignsResult.data) ? campaignsResult.data : []
 
+      if (activeCampaigns.length === 0) {
+        log.warn('[lottery] 后端无进行中的活动')
+        this.setData({ mainCampaign: null, extraCampaigns: [] })
+        return
+      }
+
       /* 根据位置配置处理活动列表 */
       const processedResult = this._processCampaignsWithPlacement(activeCampaigns, placementConfig)
+
+      /*
+       * 降级策略：位置配置未匹配到任何活动时，使用后端返回的第一个active活动作为主活动
+       * 避免因位置配置延迟或缓存过期导致抽奖区域空白
+       */
+      if (!processedResult.mainCampaign && activeCampaigns.length > 0) {
+        log.warn('[lottery] 位置配置未匹配到活动，使用第一个active活动作为主活动:', activeCampaigns[0].campaign_code)
+        processedResult.mainCampaign = {
+          ...activeCampaigns[0],
+          placement: { page: 'lottery', position: 'main', size: 'full', priority: 100 }
+        }
+      }
 
       this.setData({
         mainCampaign: processedResult.mainCampaign,
@@ -1446,6 +1468,50 @@ Page({
   // ========================================
   // 页面导航
   // ========================================
+
+  /**
+   * 建立WebSocket连接并订阅通知事件（铃铛角标实时+1）
+   *
+   * 解决3个架构隐患:
+   *   隐患1: initializePage首次加载也订阅WebSocket（不再仅依赖onShow）
+   *   隐患2: 首页主动发起connectWebSocket（不再依赖用户先切到兑换/聊天Tab）
+   *   隐患3: 连接建立后订阅 new_notification 事件
+   *
+   * 数据流: 后端 ChatWebSocketService.pushNotificationToUser()
+   *        → Socket.IO 'new_notification' 事件
+   *        → app.ts notifyPageSubscribers()
+   *        → 本方法回调: notificationUnreadCount +1
+   */
+  _setupWebSocketNotification() {
+    const wsApp = getApp() as any
+    const tokenStatus = Utils.checkTokenValidity()
+    if (!tokenStatus.isValid) {
+      log.warn('[lottery] Token无效，跳过WebSocket连接')
+      return
+    }
+
+    wsApp
+      .connectWebSocket()
+      .then(() => {
+        wsApp.subscribeWebSocketMessages(this._wsPageId, (eventName: string, _eventData: any) => {
+          if (eventName === 'new_notification') {
+            this.setData({
+              notificationUnreadCount: this.data.notificationUnreadCount + 1
+            })
+          }
+        })
+      })
+      .catch((wsErr: any) => {
+        log.warn('[lottery] WebSocket连接失败（铃铛角标回退API拉取）:', wsErr?.message)
+        wsApp.subscribeWebSocketMessages(this._wsPageId, (eventName: string, _eventData: any) => {
+          if (eventName === 'new_notification') {
+            this.setData({
+              notificationUnreadCount: this.data.notificationUnreadCount + 1
+            })
+          }
+        })
+      })
+  },
 
   goToExchange() {
     wx.switchTab({ url: '/pages/exchange/exchange' })

@@ -36,12 +36,18 @@
             bindtap="onSlotSelect"
           >
             <view class="slot-header">
-              <text class="slot-icon">{{item.slot_type === 'popup' ? '💬' : '🎠'}}</text>
+              <text class="slot-icon"
+                >{{item.slot_type === 'popup' ? '💬' : item.slot_type === 'carousel' ? '🎠' :
+                item.slot_type === 'announcement' ? '📢' : item.slot_type === 'feed' ? '📰' :
+                '📋'}}</text
+              >
               <text class="slot-name">{{item.slot_name}}</text>
             </view>
             <view class="slot-info">
               <text class="slot-type"
-                >{{item.slot_type === 'popup' ? '弹窗广告' : '轮播广告'}}</text
+                >{{item.slot_type === 'popup' ? '弹窗广告' : item.slot_type === 'carousel' ?
+                '轮播广告' : item.slot_type === 'announcement' ? '公告广告' : item.slot_type ===
+                'feed' ? '信息流广告' : item.slot_type}}</text
               >
               <text class="slot-price">日价 {{item.daily_price_diamond}} 💎</text>
             </view>
@@ -83,11 +89,23 @@
           bindinput="onFixedDaysInput"
         />
         <view class="cost-preview" wx:if="{{selectedSlot && estimatedTotalDiamond > 0}}">
-          <text class="cost-label">预估总费用:</text>
-          <text class="cost-value">{{estimatedTotalDiamond}} 💎</text>
-          <text class="cost-detail"
+          <view class="cost-main-row">
+            <text class="cost-label">{{pricingPreview ? '总费用:' : '预估总费用:'}}</text>
+            <text class="cost-value">{{estimatedTotalDiamond}} 💎</text>
+            <text class="cost-loading" wx:if="{{pricingLoading}}">计算中...</text>
+          </view>
+          <text class="cost-detail" wx:if="{{!pricingPreview}}"
             >({{selectedSlot.daily_price_diamond}} 💎/天 × {{fixedDays}} 天)</text
           >
+          <block wx:if="{{pricingPreview}}">
+            <text class="cost-detail"
+              >({{pricingPreview.actual_daily_price}} 💎/天 × {{fixedDays}}
+              天{{pricingPreview.discount < 1 ? ' × ' + pricingPreview.discount_label : ''}})</text
+            >
+            <text class="cost-saved" wx:if="{{pricingPreview.saved_diamond > 0}}"
+              >已省 {{pricingPreview.saved_diamond}} 💎</text
+            >
+          </block>
         </view>
       </view>
 
@@ -117,6 +135,34 @@
           />
           <text class="form-tip" wx:if="{{selectedSlot}}"
             >最低总预算: {{selectedSlot.min_budget_diamond}} 钻石，预算耗尽自动停投</text
+          >
+        </view>
+      </block>
+
+      <!-- CPM曝光计费参数（待后端B6任务实现后启用完整功能） -->
+      <block wx:if="{{selectedBillingMode === 'cpm'}}">
+        <view class="form-group">
+          <text class="form-label">CPM单价（钻石/千次曝光）</text>
+          <input
+            class="form-input"
+            type="digit"
+            placeholder="由广告位决定，不可修改"
+            value="{{selectedSlot.cpm_price_diamond || ''}}"
+            disabled="{{true}}"
+          />
+          <text class="form-tip" wx:if="{{selectedSlot}}">CPM单价由广告位自身定价决定</text>
+        </view>
+        <view class="form-group">
+          <text class="form-label">总预算（钻石）</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
+            value="{{budgetTotalDiamond}}"
+            bindinput="onBudgetInput"
+          />
+          <text class="form-tip" wx:if="{{selectedSlot}}"
+            >预算耗尽自动停投，按实际曝光千次扣费</text
           >
         </view>
       </block>

@@ -43,7 +43,7 @@ const CACHE_EXPIRE_TIME = 24 * 60 * 60 * 1000
 
 /** 单个活动的位置配置 */
 interface PlacementItem {
-  /** 活动唯一标识（如 BASIC_LOTTERY、SPRING_2026） */
+  /** 活动唯一标识（后端数据库 lottery_campaigns.campaign_code，如 CAMP20250901001） */
   campaign_code: string
   /** 位置配置详情 */
   placement: {
@@ -380,7 +380,7 @@ class ConfigCacheManager {
    */
   _updateConfigInBackground(): void {
     /* 异步执行，catch防止未处理的Promise rejection */
-    ;(async () => {
+    ; (async () => {
       try {
         const cachedVersion = wx.getStorageSync(PLACEMENT_VERSION_KEY) || '0.0.0'
         const apiResponse = await configCacheApi.getPlacementConfig()
@@ -456,25 +456,17 @@ class ConfigCacheManager {
 
   /**
    * 内置默认配置（降级层级4，代码写死，永不失效）
-   * 保证即使API和缓存全部失败，前端也能正常渲染
+   * 空 placements 数组：活动的 campaign_code 由后端数据库权威提供，
+   * 前端不硬编码任何活动代码。当此降级层触发时，
+   * lottery.ts._loadCampaigns() 的降级策略会使用 API 返回的第一个 active 活动。
    *
-   * @returns 最基础的配置数据
+   * @returns 最基础的配置数据（空位置配置）
    */
   _getBuiltInConfig(): PlacementConfig {
     return {
       version: '0.0.0-builtin',
       updated_at: new Date().toISOString(),
-      placements: [
-        {
-          campaign_code: 'BASIC_LOTTERY',
-          placement: {
-            page: 'lottery',
-            position: 'main',
-            size: 'full',
-            priority: 100
-          }
-        }
-      ]
+      placements: []
     }
   }
 }

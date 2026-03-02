@@ -15,12 +15,20 @@
  *   POST /api/v4/user/ad-campaigns/:id/cancel   — 取消活动
  *
  * @file packageAd/ad-detail/ad-detail.ts
- * @version 5.2.0
+ * @version 6.0.0
  * @since 2026-02-19
  */
 
 const { API, Logger, Wechat, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('ad-detail')
+
+/** 计费模式中文映射（对齐后端 billing_mode 枚举，含所有模式） */
+const BILLING_MODE_TEXT: Record<string, string> = {
+  free: '免费投放',
+  fixed_daily: '固定包天',
+  bidding: '竞价排名',
+  cpm: 'CPM曝光计费'
+}
 
 /** 状态标签样式映射 */
 const STATUS_STYLE_MAP: Record<
@@ -50,6 +58,9 @@ Page({
 
     /* ===== 操作状态 ===== */
     submitting: false,
+
+    /* ===== 竞价排名状态（仅bidding模式，后端有数据时展示） ===== */
+    biddingStatus: null as API.AdBiddingStatus | null,
 
     /* ===== 显示控制 ===== */
     canEdit: false,
@@ -90,7 +101,8 @@ Page({
 
       const campaignData: API.AdCampaign = result.data.campaign || result.data
       const statusStyle = STATUS_STYLE_MAP[campaignData.status] || STATUS_STYLE_MAP.draft
-      const billingModeText = campaignData.billing_mode === 'fixed_daily' ? '固定包天' : '竞价排名'
+      const billingModeText =
+        BILLING_MODE_TEXT[campaignData.billing_mode] || campaignData.billing_mode
 
       const enrichedCampaign = {
         ...campaignData,
@@ -98,8 +110,12 @@ Page({
         billingModeText
       }
 
+      const apiBiddingStatus: API.AdBiddingStatus | null =
+        (campaignData as any).bidding_status || null
+
       this.setData({
         campaign: enrichedCampaign,
+        biddingStatus: apiBiddingStatus,
         canEdit: campaignData.status === 'draft',
         canSubmit: campaignData.status === 'draft',
         canCancel: ['draft', 'pending_review', 'active'].indexOf(campaignData.status) !== -1,
@@ -142,10 +158,14 @@ Page({
       return
     }
 
-    const costDisplay =
-      this.data.campaign.billing_mode === 'fixed_daily'
-        ? `将冻结 ${this.data.campaign.fixed_total_diamond || 0} 钻石`
-        : `将冻结首日出价 ${this.data.campaign.daily_bid_diamond || 0} 钻石`
+    let costDisplay = ''
+    if (this.data.campaign.billing_mode === 'fixed_daily') {
+      costDisplay = `将冻结 ${this.data.campaign.fixed_total_diamond || 0} 钻石`
+    } else if (this.data.campaign.billing_mode === 'bidding') {
+      costDisplay = `将冻结首日出价 ${this.data.campaign.daily_bid_diamond || 0} 钻石`
+    } else if (this.data.campaign.billing_mode === 'cpm') {
+      costDisplay = `将冻结预算 ${this.data.campaign.budget_total_diamond || 0} 钻石`
+    }
 
     const confirmResult = await new Promise<boolean>(resolve => {
       wx.showModal({

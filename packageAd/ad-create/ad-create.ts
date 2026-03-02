@@ -2,8 +2,8 @@
  * 📝 创建广告活动页面
  *
  * 广告主自助创建投放计划:
- *   1. 选择广告位（弹窗/轮播图）
- *   2. 设置计费模式（固定包天/竞价排名）
+ *   1. 选择广告位（弹窗/轮播图/公告/信息流）
+ *   2. 设置计费模式（固定包天/竞价排名/CPM曝光计费）
  *   3. 配置投放参数（天数/出价/预算/日期）
  *   4. 保存草稿 或 直接提交审核（冻结钻石）
  *
@@ -13,14 +13,14 @@
  *   POST /api/v4/user/ad-campaigns/:id/submit — 提交审核
  *
  * @file packageAd/ad-create/ad-create.ts
- * @version 5.2.0
+ * @version 6.0.0
  * @since 2026-02-19
  */
 
-const { API, Logger, Wechat } = require('../../utils/index')
+const { API, Utils, Logger, Wechat } = require('../../utils/index')
 const log = Logger.createLogger('ad-create')
 
-/** 计费模式选项 */
+/** 计费模式选项（对齐后端 billing_mode 枚举: fixed_daily / bidding / cpm） */
 const BILLING_MODES = [
   {
     value: 'fixed_daily',
@@ -31,6 +31,11 @@ const BILLING_MODES = [
     value: 'bidding',
     label: '竞价排名',
     desc: '设定日出价和总预算，出价高者优先展示'
+  },
+  {
+    value: 'cpm',
+    label: 'CPM曝光计费',
+    desc: '按千次曝光计费，适合信息流广告位'
   }
 ]
 
@@ -48,8 +53,12 @@ Page({
 
     /** 固定包天参数 */
     fixedDays: 7,
-    /** 计算得出的总费用（前端预览，以后端为准） */
+    /** 总费用（优先使用后端定价预览，降级时用本地计算） */
     estimatedTotalDiamond: 0,
+    /** 后端定价预览详情（含DAU系数、折扣信息，API可用时填充） */
+    pricingPreview: null as API.AdPricingPreview | null,
+    /** 定价预览加载中 */
+    pricingLoading: false,
 
     /** 竞价参数 */
     dailyBidDiamond: 50,
@@ -183,16 +192,68 @@ Page({
     this.setData({ endDate: e.detail.value as string })
   },
 
-  /** 重算预估费用 */
+  /**
+   * 重算预估费用 — 优先调用后端定价预览API，降级用本地计算
+   *
+   * 数据流:
+   *   用户修改天数/广告位 → 防抖300ms → 调用 /user/ad-pricing/preview
+   *   → 成功: 显示后端真实定价（含DAU系数、阶梯折扣）
+   *   → 失败(404/网络): 降级为本地 dailyPrice × days，标记为预估
+   */
   _recalculateEstimate() {
-    if (this.data.selectedBillingMode === 'fixed_daily' && this.data.selectedSlot) {
-      const dailyPrice = this.data.selectedSlot.daily_price_diamond
-      const totalEstimate = dailyPrice * this.data.fixedDays
-      this.setData({ estimatedTotalDiamond: totalEstimate })
+    if (this.data.selectedBillingMode !== 'fixed_daily' || !this.data.selectedSlot) {
+      this.setData({ estimatedTotalDiamond: 0, pricingPreview: null })
+      return
+    }
+
+    const dailyPrice = this.data.selectedSlot.daily_price_diamond
+    const localEstimate = dailyPrice * this.data.fixedDays
+    this.setData({ estimatedTotalDiamond: localEstimate })
+
+    this._debouncedFetchPricing()
+  },
+
+  /** 防抖调用后端定价预览API（避免每次按键都发请求） */
+  _debouncedFetchPricing: Utils.debounce(function (this: any) {
+    this._fetchPricingPreview()
+  }, 500),
+
+  /** 调用后端广告定价预览API */
+  async _fetchPricingPreview() {
+    const currentSlot = this.data.selectedSlot
+    if (!currentSlot || this.data.fixedDays < 1) {
+      return
+    }
+
+    this.setData({ pricingLoading: true })
+
+    try {
+      const result = await API.getAdPricingPreview({
+        ad_slot_id: currentSlot.ad_slot_id,
+        days: this.data.fixedDays,
+        billing_mode: 'fixed_daily'
+      })
+
+      if (result?.success && result.data) {
+        const preview: API.AdPricingPreview = result.data
+        this.setData({
+          estimatedTotalDiamond: preview.discounted_total,
+          pricingPreview: preview
+        })
+        log.info('[ad-create] 定价预览:', preview.discounted_total, '💎')
+      }
+    } catch (apiError: any) {
+      log.info(
+        '[ad-create] 定价预览API暂不可用，使用本地预估:',
+        apiError.statusCode || apiError.message
+      )
+      this.setData({ pricingPreview: null })
+    } finally {
+      this.setData({ pricingLoading: false })
     }
   },
 
-  /** 表单校验 */
+  /** 表单校验（按 billing_mode 分支验证对应参数） */
   _validateForm(): string | null {
     if (!this.data.campaignName) {
       return '请输入广告活动名称'
@@ -213,11 +274,16 @@ Page({
       if (this.data.budgetTotalDiamond < minBudget) {
         return `总预算不能低于${minBudget}钻石`
       }
+    } else if (this.data.selectedBillingMode === 'cpm') {
+      const cpmMinBudget = this.data.selectedSlot.min_budget_diamond || 500
+      if (this.data.budgetTotalDiamond < cpmMinBudget) {
+        return `CPM模式总预算不能低于${cpmMinBudget}钻石`
+      }
     }
     return null
   },
 
-  /** 构建提交数据 */
+  /** 构建提交数据（按 billing_mode 分支组装不同参数） */
   _buildCampaignData(): API.CreateAdCampaignParams {
     const formData: API.CreateAdCampaignParams = {
       campaign_name: this.data.campaignName,
@@ -228,8 +294,10 @@ Page({
 
     if (this.data.selectedBillingMode === 'fixed_daily') {
       formData.fixed_days = this.data.fixedDays
-    } else {
+    } else if (this.data.selectedBillingMode === 'bidding') {
       formData.daily_bid_diamond = this.data.dailyBidDiamond
+      formData.budget_total_diamond = this.data.budgetTotalDiamond
+    } else if (this.data.selectedBillingMode === 'cpm') {
       formData.budget_total_diamond = this.data.budgetTotalDiamond
     }
 
@@ -290,10 +358,14 @@ Page({
       return
     }
 
-    const costDisplay =
-      this.data.selectedBillingMode === 'fixed_daily'
-        ? `将冻结 ${this.data.estimatedTotalDiamond} 钻石`
-        : `将冻结首日出价 ${this.data.dailyBidDiamond} 钻石`
+    let costDisplay = ''
+    if (this.data.selectedBillingMode === 'fixed_daily') {
+      costDisplay = `将冻结 ${this.data.estimatedTotalDiamond} 钻石`
+    } else if (this.data.selectedBillingMode === 'bidding') {
+      costDisplay = `将冻结首日出价 ${this.data.dailyBidDiamond} 钻石`
+    } else if (this.data.selectedBillingMode === 'cpm') {
+      costDisplay = `将冻结预算 ${this.data.budgetTotalDiamond} 钻石`
+    }
 
     const confirmResult = await new Promise<boolean>(resolve => {
       wx.showModal({
@@ -331,9 +403,7 @@ Page({
         targetCampaignId = createResult.data.ad_campaign_id
       }
 
-      const createdCampaignId = targetCampaignId
-
-      const submitResult = await API.submitAdCampaign(createdCampaignId)
+      const submitResult = await API.submitAdCampaign(targetCampaignId)
       if (submitResult?.success) {
         Wechat.showToast('已提交审核', 'success', 1500)
         const pages = getCurrentPages()

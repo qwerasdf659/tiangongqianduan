@@ -173,6 +173,34 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* ===== 活动列表为空时的占位提示 ===== */
+.no-campaign-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+  margin: 40rpx 0;
+  border-radius: $radius-lg;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.no-campaign-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.no-campaign-text {
+  font-size: $font-size-lg;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 12rpx;
+}
+
+.no-campaign-hint {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 /* ===== 模块化SCSS拆分 ===== */
 
 /* 头部区域 - 用户信息+二维码整合布局 */

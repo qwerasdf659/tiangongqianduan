@@ -1,9 +1,24 @@
 <!--
   📢 我的广告活动列表
   数据来源: GET /api/v4/user/ad-campaigns
+  业务流程: 创建(draft) → 提交审核(pending_review) → 通过/拒绝 → 投放(active) → 完成/取消
 -->
 <view class="ad-campaigns-page">
-  <!-- 状态筛选Tab栏 -->
+  <!-- 页面头部概览 -->
+  <view class="page-header">
+    <view class="header-content">
+      <view class="header-stats">
+        <text class="header-count">{{totalCount}}</text>
+        <text class="header-unit">个广告活动</text>
+      </view>
+      <view class="header-create-btn" bindtap="goToCreate">
+        <text class="header-create-icon">+</text>
+        <text>创建广告</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 状态筛选Tab栏（药丸式） -->
   <scroll-view
     class="status-tab-bar"
     scroll-x="{{true}}"
@@ -23,6 +38,15 @@
     </view>
   </scroll-view>
 
+  <!-- 运营操作提示（可关闭） -->
+  <view class="tips-bar" wx:if="{{showTips}}">
+    <text class="tips-icon">💡</text>
+    <text class="tips-text">流程：创建广告 → 编辑素材 → 提交审核 → 审核通过后自动投放</text>
+    <view class="tips-close" bindtap="onCloseTips">
+      <text>×</text>
+    </view>
+  </view>
+
   <!-- 广告活动列表 -->
   <scroll-view
     class="campaign-list-scroll"
@@ -39,69 +63,118 @@
       data-id="{{item.ad_campaign_id}}"
       bindtap="goToDetail"
     >
-      <!-- 卡片头部: 活动名称 + 状态标签 -->
-      <view class="card-header">
-        <text class="campaign-name">{{item.campaign_name}}</text>
-        <view
-          class="status-badge"
-          style="background: {{item.statusStyle.bgColor}}; color: {{item.statusStyle.color}}"
-        >
-          <text>{{item.statusStyle.text}}</text>
-        </view>
-      </view>
+      <!-- 左侧状态色条 -->
+      <view class="status-bar" style="background-color: {{item.statusStyle.color}}"></view>
 
-      <!-- 卡片信息行 -->
-      <view class="card-body">
-        <view class="info-row">
-          <text class="info-label">计费模式</text>
-          <text class="info-value">{{item.billingModeText}}</text>
-        </view>
-        <view class="info-row" wx:if="{{item.billing_mode === 'fixed_daily'}}">
-          <text class="info-label">投放天数</text>
-          <text class="info-value">{{item.fixed_days}} 天</text>
-        </view>
-        <view class="info-row" wx:if="{{item.billing_mode === 'fixed_daily'}}">
-          <text class="info-label">总费用</text>
-          <text class="info-value highlight">{{item.fixed_total_diamond}} 💎</text>
-        </view>
-        <view class="info-row" wx:if="{{item.billing_mode === 'bidding'}}">
-          <text class="info-label">日出价</text>
-          <text class="info-value highlight">{{item.daily_bid_diamond}} 💎/天</text>
-        </view>
-        <view class="info-row" wx:if="{{item.billing_mode === 'bidding'}}">
-          <text class="info-label">预算/已消耗</text>
-          <text class="info-value"
-            >{{item.budget_spent_diamond}}/{{item.budget_total_diamond}} 💎</text
+      <view class="card-inner">
+        <!-- 卡片头部: 活动名称 + 状态标签 -->
+        <view class="card-header">
+          <text class="campaign-name">{{item.campaign_name}}</text>
+          <view
+            class="status-badge"
+            style="background: {{item.statusStyle.bgColor}}; color: {{item.statusStyle.color}}"
           >
+            <text>{{item.statusStyle.text}}</text>
+          </view>
         </view>
-        <view class="info-row" wx:if="{{item.start_date}}">
-          <text class="info-label">投放周期</text>
-          <text class="info-value">{{item.start_date}} ~ {{item.end_date || '持续'}}</text>
-        </view>
-      </view>
 
-      <!-- 卡片底部操作区 -->
-      <view
-        class="card-footer"
-        wx:if="{{item.status === 'draft' || item.status === 'pending_review'}}"
-      >
-        <view
-          class="action-btn cancel-btn"
-          wx:if="{{item.status === 'pending_review'}}"
-          data-id="{{item.ad_campaign_id}}"
-          catchtap="onCancelCampaign"
-        >
-          <text>取消活动</text>
+        <!-- 卡片信息区 -->
+        <view class="card-body">
+          <!-- 计费模式标签 -->
+          <view class="info-row">
+            <text class="info-label">计费模式</text>
+            <view class="billing-tag {{item.billing_mode === 'free' ? 'free' : ''}}">
+              <text>{{item.billingModeText}}</text>
+            </view>
+          </view>
+
+          <!-- 固定包天 - 投放天数 + 总费用 -->
+          <block wx:if="{{item.billing_mode === 'fixed_daily'}}">
+            <view class="info-row">
+              <text class="info-label">投放天数</text>
+              <text class="info-value">{{item.fixed_days}} 天</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">总费用</text>
+              <text class="info-value highlight">{{item.fixed_total_diamond}} 💎</text>
+            </view>
+          </block>
+
+          <!-- 竞价排名 - 日出价 + 预算消耗 -->
+          <block wx:if="{{item.billing_mode === 'bidding'}}">
+            <view class="info-row">
+              <text class="info-label">日出价</text>
+              <text class="info-value highlight">{{item.daily_bid_diamond}} 💎/天</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">预算 / 已消耗</text>
+              <text class="info-value"
+                >{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text
+              >
+            </view>
+          </block>
+
+          <!-- CPM曝光计费 - CPM单价 + 预算消耗 -->
+          <block wx:if="{{item.billing_mode === 'cpm'}}">
+            <view class="info-row">
+              <text class="info-label">CPM单价</text>
+              <text class="info-value highlight">{{item.cpm_price_diamond}} 💎/千次</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">预算 / 已消耗</text>
+              <text class="info-value"
+                >{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text
+              >
+            </view>
+          </block>
+
+          <!-- 投放周期（所有模式通用） -->
+          <view class="info-row" wx:if="{{item.start_date}}">
+            <text class="info-label">投放周期</text>
+            <text class="info-value date-value"
+              >{{item.start_date}} ~ {{item.end_date || '持续'}}</text
+            >
+          </view>
         </view>
-        <view class="action-btn edit-btn" wx:if="{{item.status === 'draft'}}">
-          <text>编辑</text>
+
+        <!-- 卡片底部操作区 -->
+        <view
+          class="card-footer"
+          wx:if="{{item.status === 'draft' || item.status === 'pending_review'}}"
+        >
+          <!-- 草稿: 提交审核 + 编辑 -->
+          <block wx:if="{{item.status === 'draft'}}">
+            <view
+              class="action-btn submit-btn"
+              data-id="{{item.ad_campaign_id}}"
+              catchtap="onSubmitForReview"
+            >
+              <text>提交审核</text>
+            </view>
+            <view class="action-btn edit-btn" data-id="{{item.ad_campaign_id}}" catchtap="goToEdit">
+              <text>编辑</text>
+            </view>
+          </block>
+          <!-- 待审核: 取消活动 -->
+          <view
+            class="action-btn cancel-btn"
+            wx:if="{{item.status === 'pending_review'}}"
+            data-id="{{item.ad_campaign_id}}"
+            catchtap="onCancelCampaign"
+          >
+            <text>取消活动</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 加载中 -->
+    <!-- 加载更多动画 -->
     <view class="loading-more" wx:if="{{loading && campaigns.length > 0}}">
-      <text>加载中...</text>
+      <view class="loading-dots">
+        <view class="loading-dot"></view>
+        <view class="loading-dot"></view>
+        <view class="loading-dot"></view>
+      </view>
     </view>
 
     <!-- 没有更多 -->
@@ -112,19 +185,26 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{isEmpty && !loading}}">
-    <text class="empty-icon">📢</text>
+    <view class="empty-illustration">
+      <text class="empty-illustration-icon">📢</text>
+    </view>
     <text class="empty-title">暂无广告活动</text>
     <text class="empty-desc">投放广告让更多用户看到你的推广内容</text>
+    <text class="empty-sub-desc">点击下方按钮创建第一个广告活动</text>
     <button class="create-btn-empty" bindtap="goToCreate">创建广告活动</button>
   </view>
 
   <!-- 首次加载 -->
   <view class="first-loading" wx:if="{{loading && campaigns.length === 0 && !isEmpty}}">
-    <text class="loading-icon">⏳</text>
+    <view class="loading-dots">
+      <view class="loading-dot"></view>
+      <view class="loading-dot"></view>
+      <view class="loading-dot"></view>
+    </view>
     <text class="loading-text">加载中...</text>
   </view>
 
-  <!-- 底部创建按钮（悬浮） -->
+  <!-- 底部悬浮创建按钮 -->
   <view class="fab-create-btn" bindtap="goToCreate" wx:if="{{!isEmpty}}">
     <text class="fab-icon">+</text>
     <text class="fab-text">创建广告</text>

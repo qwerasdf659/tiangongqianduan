@@ -1,29 +1,11 @@
-/* 积分活动记录页面样式 - V5.1 项目橙色主题统一版 */
+/* 积分活动记录页面样式 - V6.0 紫蓝主题统一版（与 points-detail 风格一致） */
 @import '../../../styles/variables';
 @import '../../../styles/mixins';
 
-/* 🎨 页面整体布局 - 使用项目主品牌色（橙色） */
 .trade-upload-records-container {
   min-height: 100vh;
-  background: linear-gradient(
-    160deg,
-    $color-primary 0%,
-    $color-primary-light 50%,
-    $color-primary 100%
-  );
-  background-size: 200% 200%;
-  animation: gradientShift 8s ease infinite;
+  background: $gradient-primary;
   padding-bottom: 40rpx;
-}
-
-@keyframes gradientShift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
 }
 
 /* 🔴 Tab切换栏 */
@@ -41,9 +23,7 @@
   backdrop-filter: blur(24rpx);
   border-radius: 24rpx;
   padding: 8rpx;
-  box-shadow:
-    0 8rpx 32rpx rgba(0, 0, 0, 0.08),
-    0 2rpx 8rpx rgba($color-primary, 0.15);
+  box-shadow: $shadow-card;
 }
 
 .tab-item {
@@ -56,8 +36,8 @@
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
-  box-shadow: 0 6rpx 20rpx rgba($color-primary, 0.35);
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.35);
   transform: scale(1.02);
 }
 
@@ -69,7 +49,7 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: rgba($color-primary, 0.1);
+  background: rgba(102, 126, 234, 0.1);
   @include flex-center;
   margin-bottom: 8rpx;
   transition: all 0.3s ease;
@@ -111,6 +91,7 @@
     width: 0;
     opacity: 0;
   }
+
   to {
     width: 48rpx;
     opacity: 1;
@@ -197,9 +178,9 @@
   background: linear-gradient(90deg, $color-warning, #ffb74d);
 }
 
-/* 总资产 - 主品牌色 */
+/* 总资产 - 紫蓝主题色 */
 .main-stat-card.total::before {
-  background: linear-gradient(90deg, $color-primary, $color-primary-light);
+  background: linear-gradient(90deg, $gradient-blue-start, $gradient-blue-end);
 }
 
 .main-stat-card:active {
@@ -223,7 +204,7 @@
 }
 
 .stat-icon-bg.total {
-  background: rgba($color-primary, 0.12);
+  background: rgba(102, 126, 234, 0.12);
 }
 
 .stat-icon {
@@ -256,7 +237,7 @@
 }
 
 .stat-value.total {
-  color: $color-primary;
+  color: $gradient-blue-start;
 }
 
 /* ============================================================================ */
@@ -279,7 +260,7 @@
   display: flex;
   gap: 10rpx;
   margin-bottom: 16rpx;
-  background: rgba($color-primary, 0.06);
+  background: rgba(102, 126, 234, 0.06);
   border-radius: 16rpx;
   padding: 6rpx;
 }
@@ -294,8 +275,8 @@
 }
 
 .filter-chip.active {
-  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
-  box-shadow: 0 4rpx 12rpx rgba($color-primary, 0.3);
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
 }
 
 .filter-chip:active {
@@ -320,19 +301,19 @@
 .filter-btn {
   flex: 1;
   background: transparent;
-  border: 2rpx solid rgba($color-primary, 0.4);
+  border: 2rpx solid rgba(102, 126, 234, 0.4);
   border-radius: 12rpx;
   padding: 14rpx;
   @include flex-center;
   gap: 8rpx;
   font-size: $font-size-sm;
   font-weight: 600;
-  color: $color-primary;
+  color: $gradient-blue-start;
   transition: all 0.3s ease;
 }
 
 .filter-btn:active {
-  background: rgba($color-primary, 0.08);
+  background: rgba(102, 126, 234, 0.08);
   transform: scale(0.97);
 }
 
@@ -431,6 +412,7 @@
     opacity: 0;
     transform: translateY(20rpx);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -468,12 +450,12 @@
 }
 
 .transaction-icon-wrapper.expense {
-  background: linear-gradient(135deg, rgba($color-primary, 0.15), rgba($color-primary, 0.05));
+  background: linear-gradient(135deg, rgba($color-error, 0.15), rgba($color-error, 0.05));
 }
 
 /* 默认图标背景 */
 .transaction-icon-wrapper:not(.income):not(.expense) {
-  background: linear-gradient(135deg, rgba($color-primary, 0.15), rgba($color-primary-light, 0.05));
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.05));
 }
 
 .transaction-icon {
@@ -554,22 +536,22 @@
 }
 
 .action-btn.detail {
-  background: rgba($color-primary, 0.1);
-  color: $color-primary;
+  background: rgba(102, 126, 234, 0.1);
+  color: $gradient-blue-start;
 }
 
 .action-btn.detail:active {
-  background: rgba($color-primary, 0.2);
+  background: rgba(102, 126, 234, 0.2);
   transform: scale(0.97);
 }
 
 .action-btn.primary {
-  background: $color-primary;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
   color: white;
 }
 
 .action-btn.primary:active {
-  background: $color-primary-dark;
+  background: linear-gradient(135deg, #5a6fd6, #6a4292);
   transform: scale(0.97);
 }
 
@@ -611,8 +593,8 @@
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
-  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
   transform: scale(1.02);
 }
 
@@ -782,11 +764,13 @@
 }
 
 @keyframes emptyPulse {
+
   0%,
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
   }
+
   50% {
     transform: scale(1.05);
     box-shadow: 0 0 0 20rpx rgba(255, 255, 255, 0);
@@ -816,7 +800,7 @@
 .activity-action-btn,
 .upload-action-btn {
   background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
-  color: $color-primary;
+  color: $gradient-blue-start;
   border: none;
   border-radius: 48rpx;
   padding: 24rpx 56rpx;
@@ -869,7 +853,7 @@
 .no-more-line {
   flex: 1;
   height: 1rpx;
-  background: rgba(255, 255, 255, 0.25);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
 }
 
 .no-more-text {
@@ -899,6 +883,7 @@
     opacity: 0;
     transform: translateX(-50%) translateY(-20rpx);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -939,6 +924,7 @@
     opacity: 0;
     transform: translateY(16rpx);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

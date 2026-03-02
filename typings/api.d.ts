@@ -516,14 +516,14 @@ declare namespace API {
     quantity: number
     /** 订单状态（Phase 3 扩展） */
     status:
-      | 'pending'
-      | 'approved'
-      | 'shipped'
-      | 'received'
-      | 'rated'
-      | 'rejected'
-      | 'refunded'
-      | 'cancelled'
+    | 'pending'
+    | 'approved'
+    | 'shipped'
+    | 'received'
+    | 'rated'
+    | 'rejected'
+    | 'refunded'
+    | 'cancelled'
     /** 来源（默认 'exchange'） */
     source: string
     /** 商品快照（JSON，兑换时冻结的商品信息副本，字段来自 exchange_items 表） */
@@ -1096,7 +1096,7 @@ declare namespace API {
 
   /** 单个活动的位置配置项（后端 GET /api/v4/system/config/placement 响应中的数组项） */
   interface PlacementItem {
-    /** 活动唯一标识（如 BASIC_LOTTERY、SPRING_2026） */
+    /** 活动唯一标识（后端数据库 lottery_campaigns.campaign_code，如 CAMP20250901001） */
     campaign_code: string
     /** 位置配置详情 */
     placement: {
@@ -1286,7 +1286,7 @@ declare namespace API {
     slot_key: string
     /** 广告位名称（如「首页弹窗位」） */
     slot_name: string
-    /** 广告位类型: popup（弹窗） / carousel（轮播图） */
+    /** 广告位类型: popup（弹窗） / carousel（轮播图） / announcement（公告） / feed（信息流） */
     slot_type: string
     /** 页面位置（home / lottery / profile） */
     position: string
@@ -1294,10 +1294,20 @@ declare namespace API {
     max_display_count: number
     /** 固定包天日价（钻石） */
     daily_price_diamond: number
-    /** 竞价最低日出价（钻石，拍板决策: 50） */
+    /** 竞价最低日出价（钻石） */
     min_bid_diamond: number
-    /** 竞价最低总预算（钻石，拍板决策: 500） */
+    /** 竞价最低总预算（钻石） */
     min_budget_diamond: number
+    /** 包天模式最低日价下限（DAU系数计算结果不得低于此值） */
+    min_daily_price_diamond?: number
+    /** 广告位分类: display（展示类，按天/竞价） / feed（信息流，CPM曝光计费） */
+    slot_category?: string
+    /** CPM每千次曝光价格（钻石，仅 slot_category=feed 时使用） */
+    cpm_price_diamond?: number
+    /** 关联地域ID（NULL=全站级别，关联 ad_target_zones 表） */
+    zone_id?: number | null
+    /** 运营手动覆盖的底价（优先于动态底价自动计算值） */
+    floor_price_override?: number | null
     /** 是否开放投放 */
     is_active: boolean
     /** 广告位描述 */
@@ -1311,7 +1321,7 @@ declare namespace API {
   /**
    * 广告投放计划（对齐后端 ad_campaigns 表 + GET /api/v4/user/ad-campaigns 响应）
    * 状态流转: draft → pending_review → approved/rejected → active → completed/cancelled
-   * 计费模式: fixed_daily（固定包天） / bidding（竞价排名）
+   * 计费模式: fixed_daily（固定包天） / bidding（竞价排名） / cpm（CPM曝光计费）
    */
   interface AdCampaign {
     /** 广告计划ID（INT PK） */
@@ -1324,7 +1334,7 @@ declare namespace API {
     ad_slot_id: number
     /** 计划名称 */
     campaign_name: string
-    /** 计费模式: fixed_daily（固定包天） / bidding（竞价排名） */
+    /** 计费模式: free（免费投放） / fixed_daily（固定包天） / bidding（竞价排名） / cpm（CPM曝光计费） */
     billing_mode: string
     /**
      * 广告状态（8态状态机）:
@@ -1424,7 +1434,7 @@ declare namespace API {
 
   /**
    * 广告计费流水（对齐后端 ad_billing_records 表）
-   * 计费类型: freeze=冻结 / deduct=扣除 / refund=退款 / daily_deduct=竞价日扣费
+   * 计费类型: freeze=冻结 / deduct=扣除 / refund=退款 / daily_deduct=竞价日扣费 / cpm_deduct=CPM曝光日扣费
    */
   interface AdBillingRecord {
     /** 流水ID（BIGINT PK） */
@@ -1439,7 +1449,7 @@ declare namespace API {
     billing_date: string
     /** 钻石金额 */
     amount_diamond: number
-    /** 计费类型: freeze / deduct / refund / daily_deduct */
+    /** 计费类型: freeze / deduct / refund / daily_deduct / cpm_deduct */
     billing_type: string
     /** 关联资产交易流水ID */
     asset_transaction_id: number | null
@@ -1478,17 +1488,58 @@ declare namespace API {
   }
 
   /**
+   * 广告投放价格预览（GET /api/v4/user/ad-pricing/preview 响应 data 字段）
+   * 后端根据 DAU 系数 + 阶梯折扣 + 最低日价下限 综合计算
+   */
+  interface AdPricingPreview {
+    /** 广告位基础日价（ad_slots.daily_price_diamond） */
+    base_daily_price: number
+    /** 当前 DAU 系数（ad_dau_pricing_enabled=false 时为 1.0） */
+    dau_coefficient: number
+    /** 实际日价 = max(base_daily_price × dau_coefficient, min_daily_price) */
+    actual_daily_price: number
+    /** 投放天数 */
+    days: number
+    /** 阶梯折扣率（1.0=无折扣，0.85=85折，ad_discount_enabled=false 时为 1.0） */
+    discount: number
+    /** 折扣档位标签（如"双周85折"，无折扣时为 null） */
+    discount_label: string | null
+    /** 原价总计 = actual_daily_price × days */
+    original_total: number
+    /** 折后总计 = original_total × discount */
+    discounted_total: number
+    /** 节省钻石 = original_total - discounted_total */
+    saved_diamond: number
+  }
+
+  /**
+   * 竞价排名状态（GET /api/v4/user/ad-campaigns/:id 响应中 bidding_status 字段）
+   * 仅 billing_mode='bidding' 且 status='active' 时有值
+   */
+  interface AdBiddingStatus {
+    /** 当前出价排名位次（1=最高出价者） */
+    rank: number
+    /** 是否在展示名额内 */
+    is_winning: boolean
+    /** 当日该广告位竞价参与者总数 */
+    total_bidders: number
+    /** 该广告位最大展示名额（ad_slots.max_display_count） */
+    max_display: number
+  }
+
+  /**
    * 创建广告活动请求体（POST /api/v4/user/ad-campaigns）
    * 业务规则:
    *   fixed_daily模式: 必须传 fixed_days
-   *   bidding模式: 必须传 daily_bid_diamond(≥50) + budget_total_diamond(≥500)
+   *   bidding模式: 必须传 daily_bid_diamond(≥min_bid_diamond) + budget_total_diamond(≥min_budget_diamond)
+   *   cpm模式: 必须传 budget_total_diamond(≥min_budget_diamond)，CPM单价由广告位决定
    */
   interface CreateAdCampaignParams {
     /** 活动名称（必填） */
     campaign_name: string
     /** 广告位ID（必填，从广告位列表获取） */
     ad_slot_id: number
-    /** 计费模式（必填）: fixed_daily / bidding */
+    /** 计费模式（必填）: fixed_daily / bidding / cpm */
     billing_mode: string
     /** 固定包天天数（fixed_daily 模式必填） */
     fixed_days?: number

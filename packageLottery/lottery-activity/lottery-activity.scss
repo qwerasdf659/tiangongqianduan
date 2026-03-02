@@ -239,11 +239,9 @@
   align-items: center;
   padding: 32rpx 24rpx;
   margin: 24rpx 16rpx;
-  background: linear-gradient(
-    135deg,
-    var(--theme-accent-bg-light, #fff8e1) 0%,
-    var(--theme-accent-bg, #ffecb3) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--theme-accent-bg-light, #fff8e1) 0%,
+      var(--theme-accent-bg, #ffecb3) 100%);
   border-radius: $border-radius-md;
   border: 2rpx solid var(--theme-accent-border, #ffd54f);
 
@@ -327,44 +325,149 @@
   }
 }
 
-/* ===== 保底进度条 ===== */
+/* ===== 保底进度 ===== */
 .pity-progress {
-  margin: 16rpx 24rpx;
-  padding: 16rpx 24rpx;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 12rpx;
+  margin: 20rpx 16rpx 24rpx;
+  padding: 24rpx 28rpx 20rpx;
+  background: linear-gradient(135deg,
+      rgba(30, 20, 60, 0.92) 0%,
+      rgba(50, 30, 80, 0.88) 50%,
+      rgba(35, 25, 65, 0.92) 100%);
+  border-radius: $border-radius-lg;
+  border: 2rpx solid rgba(255, 215, 0, 0.2);
+  box-shadow:
+    0 8rpx 32rpx rgba(0, 0, 0, 0.25),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
 
-  &__text {
-    font-size: 22rpx;
-    color: var(--theme-text-light, #666);
-    margin-bottom: 8rpx;
-    display: block;
+  /* 顶部金色光带装饰 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2rpx;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 215, 0, 0.6) 30%,
+        rgba(255, 180, 0, 0.8) 50%,
+        rgba(255, 215, 0, 0.6) 70%,
+        transparent 100%);
   }
 
-  &__bar {
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16rpx;
+  }
+
+  &__shield {
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 180, 0, 0.1));
+    border: 2rpx solid rgba(255, 215, 0, 0.3);
+    @include flex-center;
+    flex-shrink: 0;
+  }
+
+  &__shield-icon {
+    font-size: 32rpx;
+    filter: drop-shadow(0 2rpx 4rpx rgba(255, 180, 0, 0.4));
+  }
+
+  &__title-group {
+    flex: 1;
+    margin-left: 16rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 4rpx;
+  }
+
+  &__title {
+    font-size: $font-size-sm;
+    color: rgba(255, 215, 0, 0.9);
+    font-weight: 600;
+    letter-spacing: 2rpx;
+  }
+
+  &__fraction {
+    font-size: $font-size-xs;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  &__badge {
+    display: flex;
+    align-items: baseline;
+    gap: 4rpx;
+    padding: 8rpx 20rpx;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 180, 0, 0.08));
+    border: 1rpx solid rgba(255, 215, 0, 0.25);
+    border-radius: $border-radius-xl;
+    flex-shrink: 0;
+  }
+
+  &__badge-num {
+    font-size: $font-size-lg;
+    color: #ffd700;
+    font-weight: 700;
+    text-shadow: 0 0 12rpx rgba(255, 215, 0, 0.4);
+  }
+
+  &__badge-unit {
+    font-size: $font-size-xs;
+    color: rgba(255, 215, 0, 0.7);
+  }
+
+  &__track {
     width: 100%;
-    height: 12rpx;
-    background: var(--theme-bg-muted, #e0e0e0);
-    border-radius: 6rpx;
+    height: 16rpx;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8rpx;
     overflow: hidden;
-    margin-top: 8rpx;
+    position: relative;
+    border: 1rpx solid rgba(255, 255, 255, 0.06);
   }
 
   &__fill {
     height: 100%;
-    background: linear-gradient(
-      90deg,
-      var(--theme-accent-light, #ffa726),
-      var(--theme-warning-dark, #e65100)
-    );
-    border-radius: 6rpx;
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, #f59e0b, #f59e0b 40%, #fbbf24 60%, #fcd34d);
+    border-radius: 8rpx;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     min-width: 0;
     max-width: 100%;
+    position: relative;
+    box-shadow: 0 0 12rpx rgba(245, 158, 11, 0.5);
+
+    /* 进度条高光 */
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 100%);
+      border-radius: 8rpx 8rpx 0 0;
+    }
+  }
+
+  &__footer {
+    margin-top: 12rpx;
+    text-align: center;
+  }
+
+  &__hint {
+    font-size: $font-size-xs;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 1rpx;
   }
 }
 
 @keyframes guaranteeShake {
+
   0%,
   100% {
     transform: rotate(0deg);
@@ -416,6 +519,7 @@
 }
 
 @keyframes guaranteeGlow {
+
   0%,
   100% {
     opacity: 0.8;

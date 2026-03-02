@@ -6,7 +6,7 @@
  * P3: 广告曝光/点击事件上报（API 5-6）
  *
  * 状态流转: draft → pending_review → approved/rejected → active → completed/cancelled
- * 计费模式: fixed_daily（固定包天） / bidding（竞价排名）
+ * 计费模式: fixed_daily（固定包天） / bidding（竞价排名） / cpm（CPM曝光计费）
  *
  * @file 天工餐厅积分系统 - 广告系统API模块
  * @version 5.2.0
@@ -236,6 +236,40 @@ async function getAvailableAdSlots(params: { slot_type?: string; position?: stri
   })
 }
 
+// ==================== 广告定价预览 ====================
+
+/**
+ * 获取广告投放价格预览（含DAU系数 + 阶梯折扣）
+ * 后端API: GET /api/v4/user/ad-pricing/preview
+ *
+ * 前端在用户输入投放天数时调用此接口获取真实定价
+ * 后端计算: actual_daily_price = max(base_price × dau_coefficient, min_daily_price) × discount
+ *
+ * @param params.ad_slot_id - 广告位ID（必填）
+ * @param params.days - 投放天数（fixed_daily模式，必填）
+ * @param params.billing_mode - 计费模式（可选，默认 fixed_daily）
+ */
+async function getAdPricingPreview(params: {
+  ad_slot_id: number
+  days: number
+  billing_mode?: string
+}) {
+  if (!params.ad_slot_id || !params.days) {
+    throw new Error('广告位ID和投放天数不能为空')
+  }
+  const qs = buildQueryString({
+    ad_slot_id: params.ad_slot_id,
+    days: params.days,
+    billing_mode: params.billing_mode || 'fixed_daily'
+  })
+  return apiClient.request(`/user/ad-pricing/preview?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
 module.exports = {
   getMyAdCampaigns,
   createAdCampaign,
@@ -246,5 +280,6 @@ module.exports = {
   getAdCampaignReport,
   reportAdImpression,
   reportAdClick,
-  getAvailableAdSlots
+  getAvailableAdSlots,
+  getAdPricingPreview
 }

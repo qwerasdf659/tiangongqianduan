@@ -20,256 +20,87 @@
 </view>
 
 <block wx:else>
-  <grid
-    wx:if="{{displayMode === 'grid_3x3' || displayMode === 'grid_4x4'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    gridCols="{{displayConfig.grid_cols || 3}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <wheel
-    wx:elif="{{displayMode === 'wheel'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    targetPrizeIndex="{{targetPrizeIndex}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <card
-    wx:elif="{{displayMode === 'card_flip' || displayMode === 'flip_card_multi'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
-    multiDrawResults="{{multiDrawResults}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <egg
-    wx:elif="{{displayMode === 'golden_egg'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
-    multiDrawResults="{{multiDrawResults}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <scratch
-    wx:elif="{{displayMode === 'scratch_card'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    drawCount="{{scratchDrawCount}}"
-    drawResults="{{scratchResults}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <blindbox
-    wx:elif="{{displayMode === 'blind_box'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <gashapon
-    wx:elif="{{displayMode === 'gashapon'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <luckybag
-    wx:elif="{{displayMode === 'lucky_bag'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
-    multiDrawResults="{{multiDrawResults}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <redpacket
-    wx:elif="{{displayMode === 'red_packet'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
-    multiDrawResults="{{multiDrawResults}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <slotmachine
-    wx:elif="{{displayMode === 'slot_machine'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <whackmole
-    wx:elif="{{displayMode === 'whack_mole'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <pinball
-    wx:elif="{{displayMode === 'pinball'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    targetPrizeIndex="{{targetPrizeIndex}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <cardcollect
-    wx:elif="{{displayMode === 'card_collect'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
-  <flashsale
-    wx:elif="{{displayMode === 'flash_sale'}}"
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    displayConfig="{{displayConfig}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
+  <grid wx:if="{{displayMode === 'grid_3x3' || displayMode === 'grid_4x4'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" gridCols="{{displayConfig.grid_cols || 3}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <wheel wx:elif="{{displayMode === 'wheel'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" targetPrizeIndex="{{targetPrizeIndex}}" effectTheme="{{effectTheme}}"
+    rarityEffects="{{rarityEffectsEnabled}}" winAnimation="{{winAnimation}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <card wx:elif="{{displayMode === 'card_flip' || displayMode === 'flip_card_multi'}}" id="lottery-sub"
+    prizes="{{prizes}}" prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}"
+    pointsBalance="{{pointsBalance}}" isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}"
+    rarityEffects="{{rarityEffectsEnabled}}" winAnimation="{{winAnimation}}"
+    multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}" multiDrawResults="{{multiDrawResults}}"
+    displayConfig="{{displayConfig}}" bind:draw="onChildDraw" bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail" />
+  <egg wx:elif="{{displayMode === 'golden_egg'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
+    multiDrawResults="{{multiDrawResults}}" bind:draw="onChildDraw" bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail" />
+  <scratch wx:elif="{{displayMode === 'scratch_card'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" drawCount="{{scratchDrawCount}}" drawResults="{{scratchResults}}"
+    effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}" winAnimation="{{winAnimation}}"
+    bind:draw="onChildDraw" bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <blindbox wx:elif="{{displayMode === 'blind_box'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <gashapon wx:elif="{{displayMode === 'gashapon'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <luckybag wx:elif="{{displayMode === 'lucky_bag'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}"
+    multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}" multiDrawResults="{{multiDrawResults}}"
+    bind:draw="onChildDraw" bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <redpacket wx:elif="{{displayMode === 'red_packet'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" multiDrawCount="{{isMultiDraw ? multiDrawResults.length : 0}}"
+    multiDrawResults="{{multiDrawResults}}" bind:draw="onChildDraw" bind:animationEnd="onAnimationEnd"
+    bind:prizedetail="onPrizeDetail" />
+  <slotmachine wx:elif="{{displayMode === 'slot_machine'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <whackmole wx:elif="{{displayMode === 'whack_mole'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <pinball wx:elif="{{displayMode === 'pinball'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" targetPrizeIndex="{{targetPrizeIndex}}" effectTheme="{{effectTheme}}"
+    rarityEffects="{{rarityEffectsEnabled}}" winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}"
+    bind:draw="onChildDraw" bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <cardcollect wx:elif="{{displayMode === 'card_collect'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
+  <flashsale wx:elif="{{displayMode === 'flash_sale'}}" id="lottery-sub" prizes="{{prizes}}"
+    prizesForPreview="{{prizesForPreview}}" costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" effectTheme="{{effectTheme}}" rarityEffects="{{rarityEffectsEnabled}}"
+    winAnimation="{{winAnimation}}" displayConfig="{{displayConfig}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
   <!-- wx:else 兜底默认刮刮卡（后端 display.mode 配置异常时降级） -->
-  <scratch
-    wx:else
-    id="lottery-sub"
-    prizes="{{prizes}}"
-    prizesForPreview="{{prizesForPreview}}"
-    costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    drawCount="{{scratchDrawCount}}"
-    drawResults="{{scratchResults}}"
-    effectTheme="{{effectTheme}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    winAnimation="{{winAnimation}}"
-    bind:draw="onChildDraw"
-    bind:animationEnd="onAnimationEnd"
-    bind:prizedetail="onPrizeDetail"
-  />
+  <scratch wx:else id="lottery-sub" prizes="{{prizes}}" prizesForPreview="{{prizesForPreview}}"
+    costPoints="{{costPerDraw}}" pointsBalance="{{pointsBalance}}" isInProgress="{{isDrawing}}"
+    drawCount="{{scratchDrawCount}}" drawResults="{{scratchResults}}" effectTheme="{{effectTheme}}"
+    rarityEffects="{{rarityEffectsEnabled}}" winAnimation="{{winAnimation}}" bind:draw="onChildDraw"
+    bind:animationEnd="onAnimationEnd" bind:prizedetail="onPrizeDetail" />
 
   <!-- 保底砸金蛋（达到保底阈值时显示） -->
   <view class="guarantee-egg" wx:if="{{showGuaranteeEgg}}">
@@ -279,8 +110,7 @@
     <view class="guarantee-egg__body">
       <view
         class="guarantee-egg__item {{guaranteeEggState === 'shaking' ? 'shaking' : ''}} {{guaranteeEggState === 'cracked' ? 'cracked' : ''}}"
-        bindtap="onGuaranteeEggTap"
-      >
+        bindtap="onGuaranteeEggTap">
         <view class="guarantee-egg__whole" wx:if="{{guaranteeEggState !== 'cracked'}}">
           <text class="guarantee-egg__icon">🥚</text>
           <view class="guarantee-egg__hammer" wx:if="{{guaranteeEggState === 'shaking'}}">
@@ -300,40 +130,39 @@
   </view>
 
   <!-- 连抽按钮（showDrawButtons 由父组件根据 size 和 drawButtons 计算） -->
-  <draw-buttons
-    wx:if="{{showDrawButtons}}"
-    buttons="{{drawButtons}}"
-    pointsBalance="{{pointsBalance}}"
-    isInProgress="{{isDrawing}}"
-    displayMode="{{displayMode}}"
-    bind:draw="onMultiDraw"
-  />
+  <draw-buttons wx:if="{{showDrawButtons}}" buttons="{{drawButtons}}" pointsBalance="{{pointsBalance}}"
+    isInProgress="{{isDrawing}}" displayMode="{{displayMode}}" bind:draw="onMultiDraw" />
 
-  <!-- 保底进度条（未达到阈值时显示进度，pityInfo 由父组件提供，与 guarantee-egg 互斥） -->
-  <view
-    class="pity-progress"
-    wx:if="{{!showGuaranteeEgg && pityInfo && pityInfo.guarantee_threshold > 0}}"
-  >
-    <text class="pity-progress__text"
-      >距离保底还有 {{pityInfo.remaining || (pityInfo.guarantee_threshold - pityInfo.current_pity)}}
-      次</text
-    >
-    <view class="pity-progress__bar">
-      <view
-        class="pity-progress__fill"
-        style="width: {{pityInfo.current_pity / pityInfo.guarantee_threshold * 100}}%"
-      ></view>
+  <!-- 保底进度（未达到阈值时显示进度，pityInfo 由父组件提供，与 guarantee-egg 互斥） -->
+  <view class="pity-progress" wx:if="{{!showGuaranteeEgg && pityInfo && pityInfo.guarantee_threshold > 0}}">
+    <view class="pity-progress__header">
+      <view class="pity-progress__shield">
+        <text class="pity-progress__shield-icon">🛡️</text>
+      </view>
+      <view class="pity-progress__title-group">
+        <text class="pity-progress__title">保底进度</text>
+        <text class="pity-progress__fraction">{{pityInfo.current_pity || 0}} / {{pityInfo.guarantee_threshold}}</text>
+      </view>
+      <view class="pity-progress__badge">
+        <text class="pity-progress__badge-num">{{pityInfo.remaining || (pityInfo.guarantee_threshold -
+          (pityInfo.current_pity ||
+          0))}}</text>
+        <text class="pity-progress__badge-unit">次</text>
+      </view>
+    </view>
+    <view class="pity-progress__track">
+      <view class="pity-progress__fill"
+        style="width: {{(pityInfo.current_pity || 0) / pityInfo.guarantee_threshold * 100}}%"></view>
+    </view>
+    <view class="pity-progress__footer">
+      <text class="pity-progress__hint">再抽 {{pityInfo.remaining || (pityInfo.guarantee_threshold -
+        (pityInfo.current_pity ||
+        0))}} 次必得稀有奖品</text>
     </view>
   </view>
 
   <!-- 结果弹窗（所有玩法共用） -->
-  <result-modal
-    wx:if="{{showResult}}"
-    visible="{{showResult}}"
-    drawResult="{{drawResult}}"
-    winAnimation="{{winAnimation}}"
-    rarityEffects="{{rarityEffectsEnabled}}"
-    bind:close="onResultClose"
-    bind:revealNext="onRevealNext"
-  />
+  <result-modal wx:if="{{showResult}}" visible="{{showResult}}" drawResult="{{drawResult}}"
+    winAnimation="{{winAnimation}}" rarityEffects="{{rarityEffectsEnabled}}" bind:close="onResultClose"
+    bind:revealNext="onRevealNext" />
 </block>
