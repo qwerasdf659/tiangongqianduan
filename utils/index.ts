@@ -26,6 +26,8 @@ const authHelperFunctions = require('./auth-helper')
 const errorFunctions = require('./simple-error')
 const configCacheFunctions = require('./config-cache')
 const exchangeConfigCacheFunctions = require('./exchange-config-cache')
+const themeCacheFunctions = require('./theme-cache')
+const globalThemeFunctions = require('./global-themes')
 const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const productFilterFunctions = require('./product-filter')
@@ -60,6 +62,12 @@ const ConfigCache = { ...configCacheFunctions }
 
 /** 兑换页面配置缓存（ExchangeConfigCache 类 + DEFAULT_EXCHANGE_CONFIG 兜底值） */
 const ExchangeConfig = { ...exchangeConfigCacheFunctions }
+
+/** 全局氛围主题缓存（ThemeCache 类 — 4 层降级策略，同步/异步获取主题） */
+const ThemeCache = { ...themeCacheFunctions }
+
+/** 全局主题 CSS 变量映射（getGlobalThemeStyle / getAvailableThemes / GLOBAL_THEME_MAP） */
+const GlobalTheme = { ...globalThemeFunctions }
 
 /** 统一日志工具 - 环境级别控制 */
 const Logger = { ...loggerFunctions }
@@ -102,6 +110,8 @@ module.exports = {
   Constants,
   ConfigCache,
   ExchangeConfig,
+  ThemeCache,
+  GlobalTheme,
   Logger,
   Waterfall,
   ProductFilter,

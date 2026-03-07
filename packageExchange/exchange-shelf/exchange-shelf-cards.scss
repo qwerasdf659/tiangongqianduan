@@ -1,6 +1,6 @@
-/* 统一卡片主题系统 — CSS 变量版（从 _exchange-card-themes.scss 转换） */
-/* 所有 .theme-X 类名样式转为 var(--shelf-xxx, fallback) 模式 */
-/* fallback 值 = theme-E 默认值，保证无主题注入时显示默认外观 */
+/* 统一卡片主题系统 — CSS 变量版 */
+/* 所有卡片样式通过 var(--shelf-xxx, fallback) 消费全局氛围主题变量 */
+/* fallback 值 = default 主题（暖橙日常）默认值，保证无主题注入时显示默认外观 */
 
 /* 卡片基础结构 */
 .unified-card {
@@ -22,7 +22,7 @@
 }
 
 .type-bar.asset {
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: var(--shelf-cta-bg, linear-gradient(90deg, #667eea, #764ba2));
 }
 
 .type-bar.item {
@@ -388,7 +388,7 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(102, 126, 234, 0.18);
+  background: var(--shelf-accent-light, rgba(102, 126, 234, 0.18));
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10;
@@ -458,11 +458,11 @@
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.9);
-  border: 1rpx solid rgba(102, 126, 234, 0.2);
+  border: 1rpx solid var(--shelf-accent-light, rgba(102, 126, 234, 0.2));
   font-size: 24rpx;
 }
 .view-toggle .toggle-btn.active {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-color: #667eea;
+  background: var(--shelf-cta-bg, linear-gradient(135deg, #667eea, #764ba2));
+  border-color: var(--shelf-accent, #667eea);
   color: #ffffff;
 }

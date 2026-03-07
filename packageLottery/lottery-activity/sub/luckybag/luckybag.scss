@@ -861,6 +861,11 @@
     font-size: 44rpx;
   }
 
+  &__image {
+    width: 64rpx;
+    height: 64rpx;
+  }
+
   &__name {
     font-size: $font-size-xs;
     color: var(--theme-text-light, rgba(255, 255, 255, 0.7));

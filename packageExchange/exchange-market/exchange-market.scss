@@ -24,7 +24,7 @@
 .exchange-market-sticky-header {
   flex-shrink: 0;
   z-index: 10;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--shelf-header-bg, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
   padding: 10rpx 16rpx;
 }
 
@@ -42,20 +42,51 @@
   gap: 12rpx;
 }
 
-.points-info {
-  display: flex;
+/* ===== 钻石和水晶类资产余额展示（替代原 "可用积分" 显示） ===== */
+
+.asset-balances-area {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.asset-balances-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.asset-balances-row {
+  display: inline-flex;
   align-items: center;
+  gap: 12rpx;
+  padding: 4rpx 0;
 }
 
-.points-label {
-  font-size: $font-size-sm;
-  color: rgba(255, 255, 255, 0.9);
+.asset-balance-item {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: $border-radius-md;
+  padding: 6rpx 16rpx;
+  white-space: nowrap;
 }
 
-.points-value {
-  font-size: $font-size-lg;
+.asset-name {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.85);
+  margin-right: 8rpx;
+}
+
+.asset-amount {
+  font-size: $font-size-md;
   font-weight: 800;
   color: #ffffff;
+}
+
+.asset-balance-empty {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
 }
 
 .header-search-box {
@@ -120,7 +151,7 @@
 
 .filter-btn.active {
   background: rgba(255, 255, 255, 0.95);
-  color: #667eea;
+  color: var(--shelf-accent, #667eea);
   font-weight: 600;
 }
 
@@ -139,7 +170,7 @@
 
 .advanced-filter-btn.active {
   background: rgba(255, 255, 255, 0.95);
-  color: #667eea;
+  color: var(--shelf-accent, #667eea);
 }
 
 .advanced-filter-panel {
@@ -300,7 +331,7 @@
 .escrow-confirm-btn {
   margin-top: 8rpx;
   padding: 12rpx 40rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--shelf-cta-bg, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
   border-radius: 32rpx;
 }
 
@@ -397,7 +428,7 @@
   flex: 1;
   padding: 20rpx 0;
   text-align: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--shelf-cta-bg, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
   border-radius: 40rpx;
   font-size: 30rpx;
   color: #fff;
@@ -424,6 +455,6 @@
 
 .chart-toggle-text {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--shelf-accent, #667eea);
   font-weight: 500;
 }

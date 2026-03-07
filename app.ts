@@ -27,7 +27,7 @@ const io = require('weapp.socket.io')
 const { userStore } = require('./store/user')
 const { pointsStore } = require('./store/points')
 const { tradeStore } = require('./store/trade')
-const { Logger, PopupFrequency } = require('./utils/index')
+const { Logger, PopupFrequency, ThemeCache } = require('./utils/index')
 const log = Logger.createLogger('app')
 
 // ===== 类型定义 =====
@@ -94,6 +94,10 @@ App({
       await this.initializeSystem()
       await this.checkAuthStatus()
       await initializeWechatEnvironment()
+
+      // 预加载全局氛围主题到本地缓存（公开API，无需登录）
+      // 页面 onLoad/onShow 中 getThemeNameSync() 依赖此处填充缓存
+      await ThemeCache.getThemeName()
 
       // 冷启动时清理过期弹窗记录（90天以上），防止本地存储无限增长
       PopupFrequency.cleanExpiredRecords()

@@ -239,9 +239,11 @@
   align-items: center;
   padding: 32rpx 24rpx;
   margin: 24rpx 16rpx;
-  background: linear-gradient(135deg,
-      var(--theme-accent-bg-light, #fff8e1) 0%,
-      var(--theme-accent-bg, #ffecb3) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent-bg-light, #fff8e1) 0%,
+    var(--theme-accent-bg, #ffecb3) 100%
+  );
   border-radius: $border-radius-md;
   border: 2rpx solid var(--theme-accent-border, #ffd54f);
 
@@ -329,10 +331,12 @@
 .pity-progress {
   margin: 20rpx 16rpx 24rpx;
   padding: 24rpx 28rpx 20rpx;
-  background: linear-gradient(135deg,
-      rgba(30, 20, 60, 0.92) 0%,
-      rgba(50, 30, 80, 0.88) 50%,
-      rgba(35, 25, 65, 0.92) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 20, 60, 0.92) 0%,
+    rgba(50, 30, 80, 0.88) 50%,
+    rgba(35, 25, 65, 0.92) 100%
+  );
   border-radius: $border-radius-lg;
   border: 2rpx solid rgba(255, 215, 0, 0.2);
   box-shadow:
@@ -349,12 +353,14 @@
     left: 0;
     right: 0;
     height: 2rpx;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 215, 0, 0.6) 30%,
-        rgba(255, 180, 0, 0.8) 50%,
-        rgba(255, 215, 0, 0.6) 70%,
-        transparent 100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 215, 0, 0.6) 30%,
+      rgba(255, 180, 0, 0.8) 50%,
+      rgba(255, 215, 0, 0.6) 70%,
+      transparent 100%
+    );
   }
 
   &__header {
@@ -467,7 +473,6 @@
 }
 
 @keyframes guaranteeShake {
-
   0%,
   100% {
     transform: rotate(0deg);
@@ -519,7 +524,6 @@
 }
 
 @keyframes guaranteeGlow {
-
   0%,
   100% {
     opacity: 0.8;

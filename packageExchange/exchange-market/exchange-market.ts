@@ -14,8 +14,7 @@
  * @since 2026-02-21
  */
 
-const { Constants: mktConstants } = require('../../utils/index')
-const { getExchangeThemeStyle: getMarketThemeStyle } = require('../themes/exchange-themes')
+const { Constants: mktConstants, GlobalTheme: mktGlobalTheme } = require('../../utils/index')
 const marketBehavior = require('./handlers/market-behavior')
 
 const { PAGINATION: MKT_PAGINATION } = mktConstants
@@ -24,10 +23,12 @@ Component({
   behaviors: [marketBehavior],
 
   properties: {
-    /** 可用积分余额 */
+    /** 可用积分余额（保留用于购买校验） */
     pointsBalance: { type: Number, value: 0 },
-    /** 当前主题 */
-    theme: { type: String, value: 'E' },
+    /** 钻石和水晶类资产余额列表（Page 壳从 API.getAssetBalances 获取后下传） */
+    assetBalances: { type: Array, value: [] },
+    /** 全局氛围主题标识（如 'default' / 'gold_luxury'，由 Page 壳从 ThemeCache 获取后下传） */
+    theme: { type: String, value: 'default' },
     /** 增强效果配置 */
     effects: { type: Object, value: {} },
     /** 视图模式 */
@@ -79,21 +80,26 @@ Component({
 
     /** 价格走势图（默认收起，用户手动展开） */
     showPriceChart: false,
-    chartAssetCode: 'red_shard'
+    chartAssetCode: 'red_shard',
+
+    /** 购买确认弹窗：选中商品对应的资产余额 */
+    selectedProductBalance: 0,
+    /** 购买确认弹窗：选中商品对应的资产名称 */
+    selectedProductBalanceLabel: ''
   },
 
   lifetimes: {
     attached() {
       this.setData({
         pageSize: MKT_PAGINATION.GRID_SIZE || 20,
-        marketThemeStyle: getMarketThemeStyle(this.properties.theme)
+        marketThemeStyle: mktGlobalTheme.getGlobalThemeStyle(this.properties.theme)
       })
     }
   },
 
   observers: {
     theme(themeName: string) {
-      this.setData({ marketThemeStyle: getMarketThemeStyle(themeName) })
+      this.setData({ marketThemeStyle: mktGlobalTheme.getGlobalThemeStyle(themeName) })
     },
     refreshToken(val: number) {
       if (val > 0) {
@@ -108,6 +114,10 @@ Component({
       if (isActive) {
         this.loadMyListingStatus()
       }
+    },
+    /** 选中商品变更时，查找对应资产余额用于购买确认弹窗展示 */
+    selectedProduct(product: any) {
+      this._computeSelectedProductBalance(product)
     }
   },
 
@@ -115,6 +125,34 @@ Component({
     /** 切换价格走势图显示/隐藏 */
     onTogglePriceChart() {
       this.setData({ showPriceChart: !this.data.showPriceChart })
+    },
+
+    /**
+     * 根据选中商品的 price_asset_code 从 assetBalances 中查找对应资产余额
+     * 用于购买确认弹窗展示 "当前余额: X 钻石" 而非固定的 "X 积分"
+     */
+    _computeSelectedProductBalance(product: any) {
+      if (!product || !product.price_asset_code) {
+        return
+      }
+      const balances = this.data.assetBalances || []
+      const match = (balances as any[]).find((a: any) => a.asset_code === product.price_asset_code)
+      if (match) {
+        this.setData({
+          selectedProductBalance: match.available_amount,
+          selectedProductBalanceLabel: match.display_name
+        })
+      } else if (product.price_asset_code === 'POINTS') {
+        this.setData({
+          selectedProductBalance: this.properties.pointsBalance,
+          selectedProductBalanceLabel: '积分'
+        })
+      } else {
+        this.setData({
+          selectedProductBalance: 0,
+          selectedProductBalanceLabel: product._priceLabel || product.price_asset_code
+        })
+      }
     }
   }
 })

@@ -129,7 +129,14 @@
             class="sc-prizes__item {{item.is_fallback ? 'sc-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'sc-prizes__item--sold-out' : ''}}"
           >
             <view class="sc-prizes__icon-wrap">
-              <text class="sc-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="sc-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="sc-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="sc-prizes__sold-out">抢光</text>
             </view>
             <text class="sc-prizes__name">{{item.prize_name}}</text>

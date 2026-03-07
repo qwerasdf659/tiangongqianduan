@@ -168,7 +168,14 @@
             class="cd-prizes__item {{item.is_fallback ? 'cd-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'cd-prizes__item--sold-out' : ''}}"
           >
             <view class="cd-prizes__icon-wrap">
-              <text class="cd-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="cd-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="cd-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="cd-prizes__sold-out">抢光</text>
             </view>
             <text class="cd-prizes__name">{{item.prize_name}}</text>

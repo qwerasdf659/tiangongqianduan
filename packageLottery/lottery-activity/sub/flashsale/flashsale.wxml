@@ -226,7 +226,14 @@
             class="fs-preview__item {{item.is_fallback ? 'fs-preview__item--fallback' : ''}} {{item.is_sold_out ? 'fs-preview__item--sold-out' : ''}}"
           >
             <view class="fs-preview__icon-wrap">
-              <text class="fs-preview__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="fs-preview__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="fs-preview__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="fs-preview__sold-out">抢光</text>
             </view>
             <text class="fs-preview__name">{{item.prize_name}}</text>

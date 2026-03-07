@@ -63,9 +63,9 @@
                   wx:key="pi"
                 >
                   <image
-                    wx:if="{{prize.image}}"
+                    wx:if="{{prize.prize_image_url}}"
                     class="reel-img"
-                    src="{{prize.image}}"
+                    src="{{prize.prize_image_url}}"
                     mode="aspectFit"
                   />
                   <text wx:else class="reel-icon">{{prize.prize_icon || '?'}}</text>
@@ -196,7 +196,14 @@
             class="sm-prizes__item {{item.is_fallback ? 'sm-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'sm-prizes__item--sold-out' : ''}}"
           >
             <view class="sm-prizes__icon-wrap">
-              <text class="sm-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="sm-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="sm-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="sm-prizes__sold-out">抢光</text>
             </view>
             <text class="sm-prizes__name">{{item.prize_name}}</text>

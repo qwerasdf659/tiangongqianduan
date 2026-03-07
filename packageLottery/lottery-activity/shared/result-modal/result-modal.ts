@@ -1,8 +1,9 @@
 /**
  * 抽奖结果弹窗 共享组件
  *
- * @description 从 lottery.wxml 提取的结果弹窗，支持单抽中奖、未中奖、
- *   多连抽逐个揭晓、错误状态四种展示模式。
+ * @description 从 lottery.wxml 提取的结果弹窗，支持单抽中奖、
+ *   多连抽逐个揭晓、错误状态三种展示模式。
+ *   业务规则：每次抽奖100%中奖（所有 reward_tier 均为中奖），不存在"未中奖"概念。
  *
  * @file shared/result-modal/result-modal.ts
  */
@@ -159,6 +160,26 @@ Component({
         cardFlipped: true,
         cardEntered: true
       })
+    },
+
+    /** 中奖结果图片加载失败 — 降级为 emoji 兜底 */
+    onResultImageError() {
+      const localDrawResult = this.data.drawResult
+      if (localDrawResult && localDrawResult.prize) {
+        this.setData({
+          'drawResult.prize.prize_image_url': ''
+        })
+      }
+    },
+
+    /** 多连抽揭晓区图片加载失败 */
+    onMultiResultImageError(e: WechatMiniprogram.ImageError) {
+      const revealIdx = e.currentTarget.dataset.revealIdx
+      if (typeof revealIdx === 'number') {
+        this.setData({
+          [`drawResult.prizes[${revealIdx}].prize_image_url`]: ''
+        })
+      }
     },
 
     /**

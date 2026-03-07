@@ -18,7 +18,11 @@
  *   - 入场动画支持
  */
 
+const prizeImageBehavior = require('../../shared/prize-image-behavior')
+
 Component({
+  behaviors: [prizeImageBehavior],
+
   properties: {
     /** 奖品列表 */
     prizes: { type: Array, value: [] },

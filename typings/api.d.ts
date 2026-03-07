@@ -92,7 +92,7 @@ declare namespace API {
     roles?: string[]
     /** 用户状态: active / inactive / banned */
     status: string
-    /** 连续未中奖次数（保底机制，登录响应返回，JWT恢复时可能缺失） */
+    /** 连续低档次数（保底机制计数器，非"未中奖"，后端登录响应返回，JWT恢复时可能缺失） */
     consecutive_fail_count?: number
     /** 历史累计积分（用于臻选空间解锁门槛判断，登录响应返回，JWT恢复时可能缺失） */
     history_total_points?: number
@@ -143,7 +143,7 @@ declare namespace API {
     rarity_code: string
     /** 展示排序权重 */
     sort_order: number
-    /** 奖励层级: low/mid/high（对齐数据库 lottery_prizes.reward_tier 实际枚举值） */
+    /** 奖励层级: low/mid/high/fallback（对齐数据库 lottery_prizes.reward_tier 实际枚举值，所有值均代表中奖） */
     reward_tier: string
     /** 状态: active / inactive */
     status: string
@@ -483,6 +483,10 @@ declare namespace API {
     is_new: boolean
     /** 是否幸运商品 */
     is_lucky: boolean
+    /** 是否限量商品（触发旋转边框特效） */
+    is_limited: boolean
+    /** 稀有度代码（5级: common/uncommon/rare/epic/legendary，后端 B8 新增列） */
+    rarity_code: string
     /** 是否有保修 */
     has_warranty: boolean
     /** 是否包邮 */
@@ -516,14 +520,14 @@ declare namespace API {
     quantity: number
     /** 订单状态（Phase 3 扩展） */
     status:
-    | 'pending'
-    | 'approved'
-    | 'shipped'
-    | 'received'
-    | 'rated'
-    | 'rejected'
-    | 'refunded'
-    | 'cancelled'
+      | 'pending'
+      | 'approved'
+      | 'shipped'
+      | 'received'
+      | 'rated'
+      | 'rejected'
+      | 'refunded'
+      | 'cancelled'
     /** 来源（默认 'exchange'） */
     source: string
     /** 商品快照（JSON，兑换时冻结的商品信息副本，字段来自 exchange_items 表） */
@@ -1489,27 +1493,36 @@ declare namespace API {
 
   /**
    * 广告投放价格预览（GET /api/v4/user/ad-pricing/preview 响应 data 字段）
-   * 后端根据 DAU 系数 + 阶梯折扣 + 最低日价下限 综合计算
+   *
+   * 后端 AdPricingService.calculateFinalDailyPrice() 返回:
+   *   effective_daily_price = max(base_price × dau_coefficient, min_daily_price)
+   *   total_price = effective_daily_price × days × discount
    */
   interface AdPricingPreview {
-    /** 广告位基础日价（ad_slots.daily_price_diamond） */
-    base_daily_price: number
+    /** 广告位ID */
+    ad_slot_id: number
+    /** 广告位标识（如 home_announcement） */
+    slot_key: string
+    /** 基础日价（ad_slots.daily_price_diamond） */
+    base_price: number
     /** 当前 DAU 系数（ad_dau_pricing_enabled=false 时为 1.0） */
     dau_coefficient: number
-    /** 实际日价 = max(base_daily_price × dau_coefficient, min_daily_price) */
-    actual_daily_price: number
+    /** DAU 调整后价格 = base_price × dau_coefficient */
+    adjusted_price: number
+    /** 最低日价下限（ad_slots.min_daily_price） */
+    min_daily_price: number
+    /** 实际日价 = max(adjusted_price, min_daily_price) */
+    effective_daily_price: number
     /** 投放天数 */
     days: number
     /** 阶梯折扣率（1.0=无折扣，0.85=85折，ad_discount_enabled=false 时为 1.0） */
     discount: number
-    /** 折扣档位标签（如"双周85折"，无折扣时为 null） */
-    discount_label: string | null
-    /** 原价总计 = actual_daily_price × days */
-    original_total: number
-    /** 折后总计 = original_total × discount */
-    discounted_total: number
-    /** 节省钻石 = original_total - discounted_total */
-    saved_diamond: number
+    /** 折扣档位标签（如"双周85折"，无折扣时为"无折扣"） */
+    discount_label: string
+    /** 折后总价 = effective_daily_price × days × discount */
+    total_price: number
+    /** 节省钻石 = effective_daily_price × days × (1 - discount) */
+    saved: number
   }
 
   /**

@@ -22,6 +22,8 @@
             class="prize-img"
             src="{{prizes[0].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="0"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[0].prize_icon || '🎫'}}</text>
           <text class="prize-name">{{prizes[0].prize_name || ''}}</text>
@@ -45,6 +47,8 @@
             class="prize-img"
             src="{{prizes[1].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="1"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[1].prize_icon || '🎁'}}</text>
           <text class="prize-name">{{prizes[1].prize_name || ''}}</text>
@@ -68,6 +72,8 @@
             class="prize-img"
             src="{{prizes[2].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="2"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[2].prize_icon || '🏆'}}</text>
           <text class="prize-name">{{prizes[2].prize_name || ''}}</text>
@@ -91,6 +97,8 @@
             class="prize-img"
             src="{{prizes[7].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="7"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[7].prize_icon || '💎'}}</text>
           <text class="prize-name">{{prizes[7].prize_name || ''}}</text>
@@ -125,6 +133,8 @@
             class="prize-img"
             src="{{prizes[3].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="3"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[3].prize_icon || '🎪'}}</text>
           <text class="prize-name">{{prizes[3].prize_name || ''}}</text>
@@ -148,6 +158,8 @@
             class="prize-img"
             src="{{prizes[6].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="6"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[6].prize_icon || '🎊'}}</text>
           <text class="prize-name">{{prizes[6].prize_name || ''}}</text>
@@ -171,6 +183,8 @@
             class="prize-img"
             src="{{prizes[5].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="5"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[5].prize_icon || '🎉'}}</text>
           <text class="prize-name">{{prizes[5].prize_name || ''}}</text>
@@ -194,6 +208,8 @@
             class="prize-img"
             src="{{prizes[4].prize_image_url}}"
             mode="aspectFit"
+            data-grid-idx="4"
+            binderror="onGridPrizeImageError"
           />
           <text wx:else class="prize-icon">{{prizes[4].prize_icon || '🎈'}}</text>
           <text class="prize-name">{{prizes[4].prize_name || ''}}</text>
@@ -235,7 +251,13 @@
             class="grid-prizes__item {{item.is_fallback ? 'grid-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'grid-prizes__item--sold-out' : ''}}"
           >
             <view class="grid-prizes__icon-wrap">
-              <text class="grid-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="grid-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+              />
+              <text wx:else class="grid-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="grid-prizes__sold-out">抢光</text>
             </view>
             <text class="grid-prizes__name">{{item.prize_name}}</text>

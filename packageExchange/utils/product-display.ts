@@ -34,6 +34,10 @@ function formatAssetLabel(assetCode: string): string {
 /**
  * 为商品列表数据附加前端展示用计算字段
  *
+ * 稀有度来源优先级（两种业务场景）：
+ *   - 交易市场挂单（C2C）: offer_item_rarity（来自 item_instances → item_templates）
+ *   - 兑换商品（exchange_items）: rarity_code（exchange_items 表直属列，B8 新增）
+ *
  * @param productList - 后端返回的商品/挂单数据数组
  * @returns 附加了展示字段的商品数据数组
  */
@@ -44,7 +48,7 @@ function enrichProductDisplayFields(productList: any[]): any[] {
 
   return productList.map(function (productItem) {
     const priceCode = productItem.price_asset_code || productItem.cost_asset_code || 'POINTS'
-    const rarityValue = productItem.offer_item_rarity || ''
+    const rarityValue = productItem.offer_item_rarity || productItem.rarity_code || ''
     const imgSrc = productItem.image || ''
     const validImage = imgSrc && imgSrc !== DEFAULT_PRODUCT_IMAGE && !productItem._imageError
 

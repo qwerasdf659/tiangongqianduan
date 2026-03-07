@@ -8,11 +8,8 @@
 
     <!-- 弹窗头部 - 卡片式设计 -->
     <view class="result-header gradient-header-card">
-      <!-- 中奖状态标题卡片 -->
-      <view
-        class="title-card success-card"
-        wx:if="{{!drawResult.isError && !drawResult.isNotWinning}}"
-      >
+      <!-- 中奖状态标题卡片（业务规则：每次抽奖100%中奖，所有档位都是奖品） -->
+      <view class="title-card success-card" wx:if="{{!drawResult.isError}}">
         <view class="title-icon">🎉</view>
         <view class="title-content">
           <!--
@@ -39,15 +36,6 @@
         </view>
       </view>
 
-      <!-- 未中奖状态标题卡片 -->
-      <view class="title-card not-winning-card" wx:if="{{drawResult.isNotWinning}}">
-        <view class="title-icon not-winning-icon">💨</view>
-        <view class="title-content">
-          <text class="result-title not-winning-title">很遗憾，未中奖</text>
-          <text class="result-subtitle not-winning-subtitle">再接再厉，下次好运！</text>
-        </view>
-      </view>
-
       <!-- 错误状态标题卡片 -->
       <view class="title-card error-card" wx:if="{{drawResult.isError}}">
         <view class="title-icon error-icon">❌</view>
@@ -63,7 +51,7 @@
       <!-- ===== 任务10：烟花粒子特效（仅epic/legendary触发） ===== -->
       <view
         class="fireworks-container"
-        wx:if="{{winAnimation === 'fireworks' && !drawResult.isError && !drawResult.isNotWinning && (drawResult.prize.rarity_code === 'epic' || drawResult.prize.rarity_code === 'legendary')}}"
+        wx:if="{{winAnimation === 'fireworks' && !drawResult.isError && (drawResult.prize.rarity_code === 'epic' || drawResult.prize.rarity_code === 'legendary')}}"
       >
         <view class="firework-particle fp-1"></view>
         <view class="firework-particle fp-2"></view>
@@ -90,7 +78,7 @@
       <!-- ===== 单次抽奖：card_flip 卡牌翻转模式（任务9） ===== -->
       <view
         class="card-flip-container single-prize-card"
-        wx:if="{{winAnimation === 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
+        wx:if="{{winAnimation === 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError}}"
       >
         <!-- 🌟 稀有度光效包裹整个卡牌 -->
         <rarity-effects
@@ -113,7 +101,14 @@
             <view class="card-flip-front">
               <view class="prize-card-content">
                 <view class="winning-icon-container">
-                  <text class="winning-icon">🎁</text>
+                  <image
+                    wx:if="{{drawResult.prize.prize_image_url}}"
+                    class="winning-image"
+                    src="{{drawResult.prize.prize_image_url}}"
+                    mode="aspectFit"
+                    binderror="onResultImageError"
+                  />
+                  <text wx:else class="winning-icon">{{drawResult.prize.prize_icon || '🎁'}}</text>
                   <view class="icon-glow"></view>
                 </view>
                 <view class="winning-info">
@@ -134,7 +129,7 @@
       <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
       <view
         class="winning-prize-card single-prize-card"
-        wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError && !drawResult.isNotWinning}}"
+        wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError}}"
       >
         <!-- 🌟 稀有度光效包裹 -->
         <rarity-effects
@@ -145,7 +140,14 @@
             <view class="prize-card-shine"></view>
             <view class="prize-card-content">
               <view class="winning-icon-container">
-                <text class="winning-icon">🎁</text>
+                <image
+                  wx:if="{{drawResult.prize.prize_image_url}}"
+                  class="winning-image"
+                  src="{{drawResult.prize.prize_image_url}}"
+                  mode="aspectFit"
+                  binderror="onResultImageError"
+                />
+                <text wx:else class="winning-icon">{{drawResult.prize.prize_icon || '🎁'}}</text>
                 <view class="icon-glow"></view>
               </view>
               <view class="winning-info">
@@ -160,19 +162,6 @@
             </view>
           </view>
         </rarity-effects>
-      </view>
-
-      <!-- 未中奖提示卡片 -->
-      <view class="not-winning-detail-card single-prize-card" wx:if="{{drawResult.isNotWinning}}">
-        <view class="not-winning-card-bg">
-          <view class="not-winning-icon-container">
-            <text class="not-winning-icon-large">💨</text>
-          </view>
-          <view class="not-winning-info">
-            <text class="not-winning-message">{{drawResult.prize.prize_description}}</text>
-            <text class="not-winning-encourage">继续努力，好运即将到来！</text>
-          </view>
-        </view>
       </view>
 
       <!-- 多连抽奖品逐个揭晓 -->
@@ -211,12 +200,17 @@
               <view class="card-flip-front">
                 <view class="reveal-card-content">
                   <view class="reveal-icon-container">
-                    <text
-                      class="reveal-prize-icon"
-                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].reward_tier !== 'low'}}"
-                      >🎁</text
+                    <image
+                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_image_url}}"
+                      class="reveal-prize-image"
+                      src="{{drawResult.prizes[multiDrawCurrentIndex].prize_image_url}}"
+                      mode="aspectFit"
+                      data-reveal-idx="{{multiDrawCurrentIndex}}"
+                      binderror="onMultiResultImageError"
+                    />
+                    <text wx:else class="reveal-prize-icon"
+                      >{{drawResult.prizes[multiDrawCurrentIndex].prize_icon || '🎁'}}</text
                     >
-                    <text class="reveal-prize-icon not-winner" wx:else>💨</text>
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -244,12 +238,17 @@
               <view class="reveal-card-front">
                 <view class="reveal-card-content">
                   <view class="reveal-icon-container">
-                    <text
-                      class="reveal-prize-icon"
-                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].reward_tier !== 'low'}}"
-                      >🎁</text
+                    <image
+                      wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_image_url}}"
+                      class="reveal-prize-image"
+                      src="{{drawResult.prizes[multiDrawCurrentIndex].prize_image_url}}"
+                      mode="aspectFit"
+                      data-reveal-idx="{{multiDrawCurrentIndex}}"
+                      binderror="onMultiResultImageError"
+                    />
+                    <text wx:else class="reveal-prize-icon"
+                      >{{drawResult.prizes[multiDrawCurrentIndex].prize_icon || '🎁'}}</text
                     >
-                    <text class="reveal-prize-icon not-winner" wx:else>💨</text>
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -295,7 +294,15 @@
               bindtap="switchToRevealedPrize"
               data-index="{{index}}"
             >
-              <text class="mini-card-icon">{{item.reward_tier !== 'low' ? '🎁' : '💨'}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="mini-card-image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-reveal-idx="{{index}}"
+                binderror="onMultiResultImageError"
+              />
+              <text wx:else class="mini-card-icon">{{item.prize_icon || '🎁'}}</text>
               <text class="mini-card-name">{{item.prize_name}}</text>
             </view>
           </view>

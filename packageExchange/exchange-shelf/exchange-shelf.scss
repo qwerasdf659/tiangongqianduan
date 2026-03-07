@@ -12,7 +12,7 @@
   overflow: hidden;
 }
 
-/* ① CSS 变量默认值声明（theme-E 作为 fallback） */
+/* ① CSS 变量默认值声明（全局氛围主题 default 作为 fallback，变量由 JS 端 getGlobalThemeStyle() 注入） */
 .exchange-shelf {
   --shelf-card-bg: #ffffff;
   --shelf-card-radius: 20rpx;
@@ -25,6 +25,11 @@
   --shelf-stock-danger: #ff4d4f;
   --shelf-name-color: #333;
   --shelf-desc-color: #999;
+  --shelf-header-bg: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  --shelf-nav-slider-left: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  --shelf-nav-slider-right: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --shelf-accent: #667eea;
+  --shelf-accent-light: rgba(102, 126, 234, 0.15);
 
   display: flex;
   flex-direction: column;
@@ -39,7 +44,7 @@
   flex-shrink: 0;
   z-index: 10;
   position: relative;
-  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  background: var(--shelf-header-bg, linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%));
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   padding-bottom: 0;
 }
@@ -82,13 +87,13 @@
 
 .selector-slider.slide-left {
   left: 8rpx;
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  background: var(--shelf-nav-slider-left, linear-gradient(135deg, #ff6b35 0%, #f7931e 100%));
   box-shadow: 0 6rpx 24rpx rgba(255, 107, 53, 0.4);
 }
 
 .selector-slider.slide-right {
   left: calc(50%);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--shelf-nav-slider-right, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
   box-shadow: 0 6rpx 24rpx rgba(102, 126, 234, 0.4);
 }
 
@@ -171,19 +176,51 @@
   gap: 12rpx;
 }
 
-.points-info {
-  @include flex-align-center;
+/* ===== 钻石和水晶类资产余额展示（替代原 "可用积分" 显示） ===== */
+
+.asset-balances-area {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.points-label {
-  font-size: $font-size-sm;
-  color: rgba(255, 255, 255, 0.9);
+.asset-balances-scroll {
+  width: 100%;
+  white-space: nowrap;
 }
 
-.points-value {
-  font-size: $font-size-lg;
+.asset-balances-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 4rpx 0;
+}
+
+.asset-balance-item {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: $border-radius-md;
+  padding: 6rpx 16rpx;
+  white-space: nowrap;
+}
+
+.asset-name {
+  font-size: $font-size-xs;
+  color: rgba(255, 255, 255, 0.85);
+  margin-right: 8rpx;
+}
+
+.asset-amount {
+  font-size: $font-size-md;
   font-weight: 800;
   color: #ffffff;
+}
+
+.asset-balance-empty {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
 }
 
 .header-quick-actions {

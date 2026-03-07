@@ -178,7 +178,7 @@
   background: linear-gradient(90deg, $color-warning, #ffb74d);
 }
 
-/* 总资产 - 紫蓝主题色 */
+/* 总积分资产 - 紫蓝主题色 */
 .main-stat-card.total::before {
   background: linear-gradient(90deg, $gradient-blue-start, $gradient-blue-end);
 }
@@ -764,7 +764,6 @@
 }
 
 @keyframes emptyPulse {
-
   0%,
   100% {
     transform: scale(1);

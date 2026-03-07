@@ -244,7 +244,7 @@ Page({
    * 💰 加载积分余额汇总
    * API: GET /api/v4/assets/balance?asset_code=POINTS
    *
-   * 返回字段: available_amount（可用余额）、frozen_amount（冻结余额）、total_amount（总资产）
+   * 返回字段: available_amount（可用余额）、frozen_amount（冻结余额）、total_amount（总积分资产）
    */
   async loadBalanceSummary() {
     try {

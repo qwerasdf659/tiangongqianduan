@@ -3,52 +3,13 @@
  * 品牌色使用变量/mixin（系统设计规范），游戏特有视觉可自由写
  * @file packageExchange/exchange-rate/exchange-rate.scss
  */
-
-/* ===== 品牌级设计变量（全项目统一） ===== */
-$brand-primary: #ff6b35;
-$brand-primary-light: #ff8a5c;
-$brand-success: #52c41a;
-$brand-danger: #ff4d4f;
-$brand-warning: #faad14;
-$text-primary: #333333;
-$text-secondary: #666666;
-$text-hint: #999999;
-$bg-page: #f5f5f5;
-$bg-card: #ffffff;
-$border-color: #e8e8e8;
-$radius-sm: 8rpx;
-$radius-md: 16rpx;
-$radius-lg: 24rpx;
-
-/* ===== Flex 布局 mixin ===== */
-@mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@mixin flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-@mixin flex-col {
-  display: flex;
-  flex-direction: column;
-}
-
-/* ===== 文本省略 mixin ===== */
-@mixin text-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+@import '../../styles/variables';
+@import '../../styles/mixins';
 
 /* ===== 容器 ===== */
 .exchange-rate-container {
   min-height: 100%;
-  background: $bg-page;
+  background: $color-bg-grey;
   padding: 0 24rpx 40rpx;
 }
 
@@ -61,7 +22,7 @@ $radius-lg: 24rpx;
 }
 
 .section-header__left {
-  @include flex-col;
+  @include flex-column;
 }
 
 .section-header__right {
@@ -71,34 +32,34 @@ $radius-lg: 24rpx;
 
 .history-link {
   font-size: 24rpx;
-  color: #667eea;
+  color: var(--shelf-accent, #667eea);
   font-weight: 500;
 }
 
 .section-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: $text-primary;
+  color: $color-text-primary;
 }
 
 .section-subtitle {
   font-size: 24rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-top: 4rpx;
 }
 
 /* ===== 汇率卡片 ===== */
 .rate-card {
-  background: $bg-card;
-  border-radius: $radius-md;
+  background: $color-bg-card;
+  border-radius: $border-radius-md;
   margin-bottom: 20rpx;
   padding: 28rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   transition: all 0.2s ease;
 
   &--expanded {
-    box-shadow: 0 4rpx 24rpx rgba($brand-primary, 0.12);
-    border: 2rpx solid rgba($brand-primary, 0.2);
+    box-shadow: 0 4rpx 24rpx rgba($color-primary, 0.12);
+    border: 2rpx solid rgba($color-primary, 0.2);
   }
 }
 
@@ -127,7 +88,7 @@ $radius-lg: 24rpx;
 .rate-card__code {
   font-size: 26rpx;
   font-weight: 600;
-  color: $text-primary;
+  color: $color-text-primary;
   @include text-ellipsis;
   max-width: 160rpx;
 }
@@ -140,24 +101,24 @@ $radius-lg: 24rpx;
 
 .arrow-icon {
   font-size: 32rpx;
-  color: $brand-primary;
+  color: $color-primary;
   font-weight: 700;
 }
 
 .rate-card__info {
-  @include flex-col;
+  @include flex-column;
   align-items: flex-end;
 }
 
 .rate-card__rate {
   font-size: 28rpx;
   font-weight: 700;
-  color: $brand-primary;
+  color: $color-primary;
 }
 
 .rate-card__fee {
   font-size: 22rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-top: 4rpx;
 }
 
@@ -171,17 +132,17 @@ $radius-lg: 24rpx;
 
 .limit-tag {
   font-size: 22rpx;
-  color: $text-secondary;
-  background: rgba($brand-primary, 0.06);
+  color: $color-text-secondary;
+  background: rgba($color-primary, 0.06);
   padding: 4rpx 12rpx;
-  border-radius: $radius-sm;
+  border-radius: $border-radius-sm;
 }
 
 /* ===== 兑换面板 ===== */
 .rate-card__panel {
   margin-top: 24rpx;
   padding-top: 24rpx;
-  border-top: 1rpx solid $border-color;
+  border-top: 1rpx solid $color-border;
 }
 
 /* ===== 输入区域 ===== */
@@ -196,7 +157,7 @@ $radius-lg: 24rpx;
 
 .convert-input-label {
   font-size: 26rpx;
-  color: $text-secondary;
+  color: $color-text-secondary;
   white-space: nowrap;
 }
 
@@ -204,8 +165,8 @@ $radius-lg: 24rpx;
   flex: 1;
   display: flex;
   align-items: center;
-  background: $bg-page;
-  border-radius: $radius-sm;
+  background: $color-bg-grey;
+  border-radius: $border-radius-sm;
   padding: 0 16rpx;
   height: 72rpx;
 }
@@ -213,13 +174,13 @@ $radius-lg: 24rpx;
 .convert-input {
   flex: 1;
   font-size: 28rpx;
-  color: $text-primary;
+  color: $color-text-primary;
   min-height: 72rpx;
 }
 
 .convert-input-unit {
   font-size: 22rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-left: 8rpx;
   white-space: nowrap;
 }
@@ -230,17 +191,17 @@ $radius-lg: 24rpx;
 
 .max-btn {
   font-size: 24rpx;
-  color: $brand-primary;
+  color: $color-primary;
   font-weight: 600;
   padding: 8rpx 16rpx;
-  border: 2rpx solid $brand-primary;
-  border-radius: $radius-sm;
+  border: 2rpx solid $color-primary;
+  border-radius: $border-radius-sm;
 }
 
 /* ===== 预览结果 ===== */
 .preview-section {
-  background: rgba($brand-primary, 0.03);
-  border-radius: $radius-sm;
+  background: rgba($color-primary, 0.03);
+  border-radius: $border-radius-sm;
   padding: 20rpx;
   margin-bottom: 20rpx;
 }
@@ -252,32 +213,32 @@ $radius-lg: 24rpx;
   &--highlight {
     padding-top: 16rpx;
     margin-top: 8rpx;
-    border-top: 1rpx dashed $border-color;
+    border-top: 1rpx dashed $color-border;
   }
 }
 
 .preview-label {
   font-size: 24rpx;
-  color: $text-secondary;
+  color: $color-text-secondary;
 }
 
 .preview-value {
   font-size: 26rpx;
-  color: $text-primary;
+  color: $color-text-primary;
   font-weight: 500;
 
   &--debit {
-    color: $brand-danger;
+    color: $color-error;
   }
 
   &--credit {
-    color: $brand-success;
+    color: $color-success;
     font-size: 30rpx;
     font-weight: 700;
   }
 
   &--fee {
-    color: $brand-warning;
+    color: $color-warning;
   }
 }
 
@@ -289,19 +250,19 @@ $radius-lg: 24rpx;
 
 .preview-loading-text {
   font-size: 24rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
 }
 
 .error-tip {
   padding: 12rpx 20rpx;
   margin-bottom: 16rpx;
-  background: rgba($brand-danger, 0.06);
-  border-radius: $radius-sm;
+  background: rgba($color-error, 0.06);
+  border-radius: $border-radius-sm;
 }
 
 .error-text {
   font-size: 24rpx;
-  color: $brand-danger;
+  color: $color-error;
 }
 
 /* ===== 兑换按钮 ===== */
@@ -313,11 +274,11 @@ $radius-lg: 24rpx;
   width: 100%;
   height: 80rpx;
   line-height: 80rpx;
-  background: linear-gradient(135deg, $brand-primary 0%, $brand-primary-light 100%);
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
   color: #ffffff;
   font-size: 30rpx;
   font-weight: 600;
-  border-radius: $radius-md;
+  border-radius: $border-radius-md;
   border: none;
   text-align: center;
 
@@ -344,10 +305,10 @@ $radius-lg: 24rpx;
 
 .result-popup {
   width: 560rpx;
-  background: $bg-card;
-  border-radius: $radius-lg;
+  background: $color-bg-card;
+  border-radius: $border-radius-lg;
   padding: 48rpx 40rpx;
-  @include flex-col;
+  @include flex-column;
   align-items: center;
 }
 
@@ -355,7 +316,7 @@ $radius-lg: 24rpx;
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, $brand-success 0%, #73d13d 100%);
+  background: linear-gradient(135deg, $color-success 0%, #73d13d 100%);
   @include flex-center;
   margin-bottom: 24rpx;
 }
@@ -369,14 +330,14 @@ $radius-lg: 24rpx;
 .result-popup__title {
   font-size: 36rpx;
   font-weight: 700;
-  color: $text-primary;
+  color: $color-text-primary;
   margin-bottom: 24rpx;
 }
 
 .result-popup__detail {
   width: 100%;
-  background: $bg-page;
-  border-radius: $radius-sm;
+  background: $color-bg-grey;
+  border-radius: $border-radius-sm;
   padding: 20rpx;
   margin-bottom: 32rpx;
 }
@@ -388,20 +349,20 @@ $radius-lg: 24rpx;
 
 .result-label {
   font-size: 26rpx;
-  color: $text-secondary;
+  color: $color-text-secondary;
 }
 
 .result-value {
   font-size: 28rpx;
-  color: $text-primary;
+  color: $color-text-primary;
   font-weight: 600;
 
   &--debit {
-    color: $brand-danger;
+    color: $color-error;
   }
 
   &--credit {
-    color: $brand-success;
+    color: $color-success;
   }
 }
 
@@ -409,11 +370,11 @@ $radius-lg: 24rpx;
   width: 100%;
   height: 80rpx;
   line-height: 80rpx;
-  background: $brand-primary;
+  background: $color-primary;
   color: #ffffff;
   font-size: 30rpx;
   font-weight: 600;
-  border-radius: $radius-md;
+  border-radius: $border-radius-md;
   border: none;
 
   &::after {

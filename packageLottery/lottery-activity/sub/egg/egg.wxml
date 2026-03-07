@@ -201,7 +201,14 @@
             class="egg-prizes__item {{item.is_fallback ? 'egg-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'egg-prizes__item--sold-out' : ''}}"
           >
             <view class="egg-prizes__icon-wrap">
-              <text class="egg-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="egg-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="egg-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
             </view>
             <text class="egg-prizes__name">{{item.prize_name}}</text>

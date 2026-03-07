@@ -46,7 +46,7 @@ async function quickLogin(mobile: string) {
  *   role_level: INT 角色等级（>= 100 为管理员）
  *   roles: Array 角色列表
  *   status: STRING 用户状态
- *   consecutive_fail_count: INT 连续未中奖次数（保底机制）
+ *   consecutive_fail_count: INT 连续低档次数（保底机制计数器）
  *   history_total_points: INT 历史累计积分（用于臻选空间解锁）
  *   created_at: ISO8601 创建时间（北京时间）
  *   last_login: ISO8601 最后登录时间（北京时间）

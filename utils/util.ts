@@ -554,21 +554,16 @@ const generateRandomString = (length: number = 8): string => {
 }
 
 /**
- * 格式化积分显示（1000→1k，10000→1万）
+ * 格式化积分显示（千分位分隔符，完整数字）
  * 业务场景: 积分列表显示、排行榜显示、统计数据显示
+ * 示例: 99000 → "99,000"  |  38000 → "38,000"  |  500 → "500"
  */
 const formatPoints = (points: number): string => {
   if (typeof points !== 'number') {
     return '0'
   }
 
-  if (points >= 10000) {
-    return (points / 10000).toFixed(1) + '万'
-  } else if (points >= 1000) {
-    return (points / 1000).toFixed(1) + 'k'
-  }
-
-  return points.toString()
+  return points.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 /**

@@ -231,7 +231,8 @@ Component({
               sort_order: item.sort_order || 0,
               is_limited: item.is_limited || false,
               has_warranty: item.has_warranty || false,
-              free_shipping: item.free_shipping || false
+              free_shipping: item.free_shipping || false,
+              rarity_code: item.rarity_code || 'common'
             }
           })
           .filter(Boolean)

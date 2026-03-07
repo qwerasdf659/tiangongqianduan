@@ -47,7 +47,7 @@ export const pointsStore = observable({
     return this.availableAmount + this.frozenAmount
   },
 
-  /** 积分格式化显示（统一调用 utils/util.ts formatPoints，消除重复逻辑） */
+  /** 积分格式化显示 — 千分位完整数字（统一调用 utils/util.ts formatPoints） */
   get formattedBalance(): string {
     return formatPoints(this.availableAmount)
   },

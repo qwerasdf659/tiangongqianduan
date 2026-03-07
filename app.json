@@ -107,7 +107,7 @@
       },
       {
         "pagePath": "pages/exchange/exchange",
-        "text": "兑换",
+        "text": "商城",
         "iconPath": "images/icons/exchange.png",
         "selectedIconPath": "images/icons/exchange-active.png"
       },

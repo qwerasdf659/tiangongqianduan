@@ -337,7 +337,14 @@
             class="wm-prizes__item {{item.is_fallback ? 'wm-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wm-prizes__item--sold-out' : ''}}"
           >
             <view class="wm-prizes__icon-wrap">
-              <text class="wm-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="wm-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="wm-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="wm-prizes__sold-out">抢光</text>
             </view>
             <text class="wm-prizes__name">{{item.prize_name}}</text>

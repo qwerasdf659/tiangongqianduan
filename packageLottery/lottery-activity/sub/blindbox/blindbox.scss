@@ -669,6 +669,11 @@
     font-size: $font-size-xxl;
   }
 
+  &__image {
+    width: 64rpx;
+    height: 64rpx;
+  }
+
   &__name {
     margin-top: 8rpx;
     font-size: $font-size-xs;

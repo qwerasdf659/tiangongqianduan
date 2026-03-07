@@ -243,7 +243,7 @@ async function getAvailableAdSlots(params: { slot_type?: string; position?: stri
  * 后端API: GET /api/v4/user/ad-pricing/preview
  *
  * 前端在用户输入投放天数时调用此接口获取真实定价
- * 后端计算: actual_daily_price = max(base_price × dau_coefficient, min_daily_price) × discount
+ * 后端计算: effective_daily_price = max(base_price × dau_coefficient, min_daily_price); total_price = effective_daily_price × days × discount
  *
  * @param params.ad_slot_id - 广告位ID（必填）
  * @param params.days - 投放天数（fixed_daily模式，必填）

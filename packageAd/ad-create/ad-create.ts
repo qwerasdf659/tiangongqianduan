@@ -8,9 +8,11 @@
  *   4. 保存草稿 或 直接提交审核（冻结钻石）
  *
  * 后端API:
- *   GET  /api/v4/user/ad-slots       — 获取可用广告位列表
- *   POST /api/v4/user/ad-campaigns    — 创建广告活动
- *   POST /api/v4/user/ad-campaigns/:id/submit — 提交审核
+ *   GET  /api/v4/user/ad-slots                — 获取可用广告位列表
+ *   GET  /api/v4/user/ad-pricing/preview      — 定价预览（含DAU系数+阶梯折扣）
+ *   POST /api/v4/user/ad-campaigns            — 创建广告活动
+ *   PUT  /api/v4/user/ad-campaigns/:id        — 更新广告活动（仅draft状态）
+ *   POST /api/v4/user/ad-campaigns/:id/submit — 提交审核（自动冻结钻石）
  *
  * @file packageAd/ad-create/ad-create.ts
  * @version 6.0.0
@@ -53,7 +55,7 @@ Page({
 
     /** 固定包天参数 */
     fixedDays: 7,
-    /** 总费用（优先使用后端定价预览，降级时用本地计算） */
+    /** 总费用（后端定价预览返回的折后总价，API未就绪时显示为0并提示用户） */
     estimatedTotalDiamond: 0,
     /** 后端定价预览详情（含DAU系数、折扣信息，API可用时填充） */
     pricingPreview: null as API.AdPricingPreview | null,
@@ -193,22 +195,18 @@ Page({
   },
 
   /**
-   * 重算预估费用 — 优先调用后端定价预览API，降级用本地计算
+   * 触发后端定价预览 — 所有价格计算由后端完成
    *
    * 数据流:
-   *   用户修改天数/广告位 → 防抖300ms → 调用 /user/ad-pricing/preview
+   *   用户修改天数/广告位 → 防抖500ms → 调用 GET /user/ad-pricing/preview
    *   → 成功: 显示后端真实定价（含DAU系数、阶梯折扣）
-   *   → 失败(404/网络): 降级为本地 dailyPrice × days，标记为预估
+   *   → 失败: 清空费用显示，提示用户"定价服务暂不可用"
    */
   _recalculateEstimate() {
     if (this.data.selectedBillingMode !== 'fixed_daily' || !this.data.selectedSlot) {
       this.setData({ estimatedTotalDiamond: 0, pricingPreview: null })
       return
     }
-
-    const dailyPrice = this.data.selectedSlot.daily_price_diamond
-    const localEstimate = dailyPrice * this.data.fixedDays
-    this.setData({ estimatedTotalDiamond: localEstimate })
 
     this._debouncedFetchPricing()
   },
@@ -218,7 +216,11 @@ Page({
     this._fetchPricingPreview()
   }, 500),
 
-  /** 调用后端广告定价预览API */
+  /**
+   * 调用后端广告定价预览API
+   * 后端API: GET /api/v4/user/ad-pricing/preview
+   * 所有价格由后端计算（含DAU系数、阶梯折扣、最低日价下限），前端仅展示
+   */
   async _fetchPricingPreview() {
     const currentSlot = this.data.selectedSlot
     if (!currentSlot || this.data.fixedDays < 1) {
@@ -237,17 +239,20 @@ Page({
       if (result?.success && result.data) {
         const preview: API.AdPricingPreview = result.data
         this.setData({
-          estimatedTotalDiamond: preview.discounted_total,
+          estimatedTotalDiamond: preview.total_price,
           pricingPreview: preview
         })
-        log.info('[ad-create] 定价预览:', preview.discounted_total, '💎')
+        log.info('[ad-create] 定价预览:', preview.total_price, '💎')
+      } else {
+        throw new Error(result?.message || '定价预览返回数据异常')
       }
     } catch (apiError: any) {
-      log.info(
-        '[ad-create] 定价预览API暂不可用，使用本地预估:',
-        apiError.statusCode || apiError.message
-      )
-      this.setData({ pricingPreview: null })
+      log.error('[ad-create] 定价预览API不可用:', apiError.statusCode || apiError.message)
+      this.setData({
+        estimatedTotalDiamond: 0,
+        pricingPreview: null
+      })
+      Wechat.showToast('定价服务暂不可用，请稍后重试', 'none', 2000)
     } finally {
       this.setData({ pricingLoading: false })
     }
@@ -360,7 +365,10 @@ Page({
 
     let costDisplay = ''
     if (this.data.selectedBillingMode === 'fixed_daily') {
-      costDisplay = `将冻结 ${this.data.estimatedTotalDiamond} 钻石`
+      costDisplay =
+        this.data.estimatedTotalDiamond > 0
+          ? `将冻结 ${this.data.estimatedTotalDiamond} 钻石`
+          : `将冻结钻石（具体金额由后端计算）`
     } else if (this.data.selectedBillingMode === 'bidding') {
       costDisplay = `将冻结首日出价 ${this.data.dailyBidDiamond} 钻石`
     } else if (this.data.selectedBillingMode === 'cpm') {

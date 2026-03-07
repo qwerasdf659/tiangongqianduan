@@ -10,6 +10,7 @@
 
 const { Logger } = require('../../../../utils/index')
 const log = Logger.createLogger('grid')
+const prizeImageBehavior = require('../../shared/prize-image-behavior')
 
 /** 动画配置常量 */
 const ANIMATION_CONFIG = {
@@ -28,6 +29,8 @@ const ANIMATION_CONFIG = {
 }
 
 Component({
+  behaviors: [prizeImageBehavior],
+
   properties: {
     /** 奖品列表（8个，由父组件传入） */
     prizes: {
@@ -165,6 +168,16 @@ Component({
     /** 统一重置接口（父组件调用） */
     reset() {
       this.setData({ currentHighlight: -1 })
+    },
+
+    /** 九宫格奖品图片加载失败 — 降级为 emoji 兜底 */
+    onGridPrizeImageError(e: WechatMiniprogram.ImageError) {
+      const gridIdx = e.currentTarget.dataset.gridIdx
+      if (typeof gridIdx === 'number') {
+        this.setData({
+          [`prizes[${gridIdx}].prize_image_url`]: ''
+        })
+      }
     }
   }
 })

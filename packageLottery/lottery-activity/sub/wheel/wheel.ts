@@ -24,7 +24,11 @@ const SECTOR_COLORS = [
   '#FFEAA7'
 ]
 
+const prizeImageBehavior = require('../../shared/prize-image-behavior')
+
 Component({
+  behaviors: [prizeImageBehavior],
+
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },

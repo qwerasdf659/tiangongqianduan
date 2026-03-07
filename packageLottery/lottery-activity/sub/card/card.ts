@@ -4,7 +4,11 @@
  * @file sub/card/card.ts
  */
 
+const prizeImageBehavior = require('../../shared/prize-image-behavior')
+
 Component({
+  behaviors: [prizeImageBehavior],
+
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },

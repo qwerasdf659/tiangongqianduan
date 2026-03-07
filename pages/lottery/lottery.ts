@@ -421,7 +421,10 @@ Page({
        * 避免因位置配置延迟或缓存过期导致抽奖区域空白
        */
       if (!processedResult.mainCampaign && activeCampaigns.length > 0) {
-        log.warn('[lottery] 位置配置未匹配到活动，使用第一个active活动作为主活动:', activeCampaigns[0].campaign_code)
+        log.warn(
+          '[lottery] 位置配置未匹配到活动，使用第一个active活动作为主活动:',
+          activeCampaigns[0].campaign_code
+        )
         processedResult.mainCampaign = {
           ...activeCampaigns[0],
           placement: { page: 'lottery', position: 'main', size: 'full', priority: 100 }

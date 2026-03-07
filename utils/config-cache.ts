@@ -380,7 +380,7 @@ class ConfigCacheManager {
    */
   _updateConfigInBackground(): void {
     /* 异步执行，catch防止未处理的Promise rejection */
-    ; (async () => {
+    ;(async () => {
       try {
         const cachedVersion = wx.getStorageSync(PLACEMENT_VERSION_KEY) || '0.0.0'
         const apiResponse = await configCacheApi.getPlacementConfig()

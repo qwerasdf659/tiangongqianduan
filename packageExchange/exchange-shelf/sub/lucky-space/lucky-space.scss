@@ -25,7 +25,7 @@
   box-shadow:
     0 8rpx 24rpx rgba(0, 0, 0, 0.08),
     0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  border: 2rpx solid rgba(102, 126, 234, 0.15);
+  border: 2rpx solid var(--shelf-accent-light, rgba(102, 126, 234, 0.15));
 }
 
 .search-input {
@@ -58,20 +58,20 @@
   font-size: $font-size-base;
   font-weight: 500;
   color: $color-text-secondary;
-  border: 2rpx solid rgba(102, 126, 234, 0.15);
+  border: 2rpx solid var(--shelf-accent-light, rgba(102, 126, 234, 0.15));
   transition: all 0.3s;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: var(--shelf-cta-bg, linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end));
   color: $color-text-white;
   border-color: transparent;
-  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.35);
+  box-shadow: 0 8rpx 20rpx var(--shelf-accent-light, rgba(102, 126, 234, 0.35));
 }
 
 .advanced-filter-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: var(--shelf-cta-bg, linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end));
   color: $color-text-white;
   border-color: transparent;
 }
@@ -82,7 +82,7 @@
   padding: 32rpx;
   margin-top: 24rpx;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
-  border: 2rpx solid rgba(102, 126, 234, 0.1);
+  border: 2rpx solid var(--shelf-accent-light, rgba(102, 126, 234, 0.1));
 }
 
 .filter-row {
@@ -111,12 +111,12 @@
   border-radius: 12rpx;
   font-size: 26rpx;
   color: $color-text-secondary;
-  border: 2rpx solid rgba(102, 126, 234, 0.12);
+  border: 2rpx solid var(--shelf-accent-light, rgba(102, 126, 234, 0.12));
   transition: all 0.3s;
 }
 
 .option-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: var(--shelf-cta-bg, linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end));
   color: $color-text-white;
   border-color: transparent;
 }
@@ -124,7 +124,7 @@
 .filter-actions {
   margin-top: 32rpx;
   padding-top: 24rpx;
-  border-top: 2rpx solid rgba(102, 126, 234, 0.1);
+  border-top: 2rpx solid var(--shelf-accent-light, rgba(102, 126, 234, 0.1));
   @include flex-center;
 }
 

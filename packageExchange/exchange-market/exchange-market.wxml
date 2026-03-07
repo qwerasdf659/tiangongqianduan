@@ -4,9 +4,26 @@
   <!-- 🔒 固定头部区域 -->
   <view class="header exchange-market-sticky-header">
     <view class="user-info">
-      <view class="points-info">
-        <text class="points-label">可用积分：</text>
-        <text class="points-value">{{pointsBalance}}</text>
+      <view class="asset-balances-area">
+        <scroll-view
+          class="asset-balances-scroll"
+          scroll-x="{{true}}"
+          enhanced="{{true}}"
+          show-scrollbar="{{false}}"
+        >
+          <view class="asset-balances-row">
+            <view class="asset-balance-item" wx:for="{{assetBalances}}" wx:key="asset_code">
+              <text class="asset-name">{{item.display_name}}</text>
+              <text class="asset-amount">{{item.available_amount}}</text>
+            </view>
+            <view
+              wx:if="{{!assetBalances || assetBalances.length === 0}}"
+              class="asset-balance-empty"
+            >
+              <text class="asset-name">暂无资产数据</text>
+            </view>
+          </view>
+        </scroll-view>
       </view>
       <view class="header-search-box">
         <input
@@ -220,7 +237,9 @@
         </view>
         <view class="confirm-balance-row">
           <text class="confirm-balance-label">当前余额</text>
-          <text class="confirm-balance-value">{{pointsBalance}} 积分</text>
+          <text class="confirm-balance-value"
+            >{{selectedProductBalance}} {{selectedProductBalanceLabel}}</text
+          >
         </view>
       </view>
       <view class="confirm-footer">
@@ -246,7 +265,9 @@
         >
         <view class="result-row"
           ><text class="result-label">支付</text
-          ><text class="result-value">{{resultData.payAmount}} 积分</text></view
+          ><text class="result-value"
+            >{{resultData.payAmount}} {{resultData.product._priceLabel || '积分'}}</text
+          ></view
         >
       </view>
       <!--实物交易提示：买方需等待卖方提供担保码后确认收货（Phase 4）-->

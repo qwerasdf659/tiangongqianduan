@@ -39,7 +39,7 @@
 
       <view class="confirm-balance-row">
         <text class="confirm-balance-label">当前余额</text>
-        <text class="confirm-balance-value">{{pointsBalance}} 积分</text>
+        <text class="confirm-balance-value">{{currentAssetBalance}} {{currentAssetLabel}}</text>
       </view>
     </view>
 

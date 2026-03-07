@@ -33,8 +33,8 @@ Component({
   properties: {
     /** 可用积分余额 */
     pointsBalance: { type: Number, value: 0 },
-    /** 当前主题 */
-    theme: { type: String, value: 'E' },
+    /** 全局氛围主题标识（由 exchange-shelf 下传，如 'default' / 'gold_luxury'） */
+    theme: { type: String, value: 'default' },
     /** 刷新令牌 */
     refreshToken: { type: Number, value: 0 }
   },

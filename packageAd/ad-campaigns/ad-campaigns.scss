@@ -266,9 +266,11 @@
 .empty-illustration {
   width: 200rpx;
   height: 200rpx;
-  background: linear-gradient(135deg,
-      rgba($gradient-blue-start, 0.12),
-      rgba($gradient-blue-end, 0.04));
+  background: linear-gradient(
+    135deg,
+    rgba($gradient-blue-start, 0.12),
+    rgba($gradient-blue-end, 0.04)
+  );
   border-radius: $border-radius-round;
   @include flex-center;
   margin-bottom: 40rpx;
@@ -347,7 +349,6 @@
 }
 
 @keyframes loadingBounce {
-
   0%,
   80%,
   100% {

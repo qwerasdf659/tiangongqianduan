@@ -23,7 +23,7 @@
 
 const app = getApp()
 
-const { Utils, Logger, ExchangeConfig } = require('../../utils/index')
+const { Utils, Logger, ExchangeConfig, ThemeCache, API, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { checkAuth } = Utils
 
@@ -34,10 +34,12 @@ const { pointsStore } = require('../../store/points')
 Page({
   data: {
     userInfo: {} as any,
-    /** 可用积分（MobX + API 双源） */
+    /** 可用积分（MobX + API 双源，保留用于兑换/购买余额校验） */
     totalPoints: 0,
     /** 冻结积分 */
     frozenPoints: 0,
+    /** 钻石和水晶类资产余额列表（后端 GET /api/v4/assets/balances，过滤 DIAMOND + shard + crystal） */
+    assetBalances: [] as any[],
 
     /** 当前 Tab 标识 'exchange' | 'market' */
     currentTab: 'exchange',
@@ -51,8 +53,8 @@ Page({
     loading: true,
     refreshing: false,
 
-    /** 卡片主题系统（后端配置下发，下传给两个组件） */
-    cardTheme: 'E',
+    /** 卡片主题标识（全局氛围主题，由 ThemeCache 缓存管理器提供） */
+    cardTheme: 'default',
     effects: {
       grain: true,
       holo: true,
@@ -100,7 +102,7 @@ Page({
     this.setData({ loading: false })
   },
 
-  /** 页面显示（恢复积分 + WebSocket 连接） */
+  /** 页面显示（恢复积分 + WebSocket 连接 + 刷新主题） */
   async onShow() {
     log.info('兑换页面显示')
 
@@ -108,12 +110,18 @@ Page({
       return
     }
 
+    /* 每次 onShow 重新获取全局主题（后台静默更新或后端切换后生效） */
+    const latestTheme = await ThemeCache.getThemeName()
+    if (latestTheme !== this.data.cardTheme) {
+      this.setData({ cardTheme: latestTheme })
+    }
+
     const localUserInfo = userStore.ensureUserInfo()
 
     if (localUserInfo) {
-      await this._refreshPointsBalance(localUserInfo)
+      await this._refreshAllBalances(localUserInfo)
     } else {
-      this.setData({ userInfo: {}, totalPoints: 0 })
+      this.setData({ userInfo: {}, totalPoints: 0, assetBalances: [] })
     }
 
     this._connectWebSocket()
@@ -148,6 +156,9 @@ Page({
 
       const marketFilters = exchangeConfig.market_filters
 
+      /* 全局氛围主题：异步获取（4层降级，确保首次加载也能拿到后端主题） */
+      const globalThemeName = await ThemeCache.getThemeName()
+
       this.setData({
         tabs: exchangeConfig.tabs
           .filter((t: any) => t.enabled)
@@ -155,7 +166,7 @@ Page({
         marketTypeFilters: marketFilters.type_filters,
         marketCategoryFilters: marketFilters.category_filters,
         marketSortOptions: marketFilters.sort_options,
-        cardTheme: exchangeConfig.card_display.theme,
+        cardTheme: globalThemeName,
         effects: exchangeConfig.card_display.effects,
         viewMode: exchangeConfig.card_display.default_view_mode || 'grid'
       })
@@ -165,12 +176,13 @@ Page({
       const fallback = ExchangeConfig.DEFAULT_EXCHANGE_CONFIG
       if (fallback) {
         const marketFilters = fallback.market_filters
+        const fallbackTheme = await ThemeCache.getThemeName()
         this.setData({
           tabs: fallback.tabs.filter((t: any) => t.enabled),
           marketTypeFilters: marketFilters.type_filters,
           marketCategoryFilters: marketFilters.category_filters,
           marketSortOptions: marketFilters.sort_options,
-          cardTheme: fallback.card_display.theme,
+          cardTheme: fallbackTheme,
           effects: fallback.card_display.effects,
           viewMode: fallback.card_display.default_view_mode || 'grid'
         })
@@ -187,6 +199,46 @@ Page({
       log.error('获取积分余额异常:', error)
       this.setData({ userInfo: localUserInfo, totalPoints: pointsStore.availableAmount || 0 })
     }
+  },
+
+  /**
+   * 获取钻石和水晶类资产余额
+   * 后端API: GET /api/v4/assets/balances
+   * 过滤规则: DIAMOND + *_shard（碎片）+ *_crystal（水晶）
+   */
+  async _refreshAssetBalances() {
+    try {
+      const result = await API.getAssetBalances()
+      if (result?.success && result.data) {
+        /** 后端实际返回 { data: { balances: [...] } }，取 balances 数组 */
+        const apiData = result.data
+        const allBalances = apiData.balances || (Array.isArray(apiData) ? apiData : [])
+        const diamondAndCrystalAssets = allBalances
+          .filter((asset: any) => {
+            const code = asset.asset_code || ''
+            return code === 'DIAMOND' || code.endsWith('_shard') || code.endsWith('_crystal')
+          })
+          .map((asset: any) => ({
+            asset_code: asset.asset_code,
+            display_name:
+              asset.display_name ||
+              ImageHelper.getAssetDisplayName(asset.asset_code) ||
+              asset.asset_code,
+            available_amount: asset.available_amount || 0,
+            frozen_amount: asset.frozen_amount || 0,
+            total_amount: asset.total_amount || 0
+          }))
+        this.setData({ assetBalances: diamondAndCrystalAssets })
+      }
+    } catch (error) {
+      log.error('获取资产余额失败:', error)
+    }
+  },
+
+  /** 统一刷新所有余额（积分 + 钻石/水晶资产，并行请求） */
+  async _refreshAllBalances(localUserInfo?: any) {
+    const userInfo = localUserInfo || this.data.userInfo
+    await Promise.all([this._refreshPointsBalance(userInfo), this._refreshAssetBalances()])
   },
 
   /** 连接 Socket.IO（订阅商品更新 → 递增 refreshToken 驱动子组件刷新） */
@@ -252,31 +304,31 @@ Page({
     } else if (this.data.currentTab === 'exchange-rate') {
       this.setData({ _exchangeRateRefreshToken: this.data._exchangeRateRefreshToken + 1 })
     }
-    this._refreshPointsBalance(this.data.userInfo)
+    this._refreshAllBalances(this.data.userInfo)
     wx.stopPullDownRefresh()
   },
 
   /** 兑换成功事件（exchange-shelf 触发） */
   async onExchangeSuccess(_e: any) {
-    log.info('兑换成功，刷新积分余额')
-    await this._refreshPointsBalance(this.data.userInfo)
+    log.info('兑换成功，刷新余额')
+    await this._refreshAllBalances()
   },
 
   /** 购买成功事件（exchange-market 触发） */
   async onPurchaseSuccess(_e: any) {
-    log.info('购买成功，刷新积分余额')
-    await this._refreshPointsBalance(this.data.userInfo)
+    log.info('购买成功，刷新余额')
+    await this._refreshAllBalances()
   },
 
   /** 汇率兑换成功事件（exchange-rate 触发） */
   async onExchangeRateSuccess(_e: any) {
-    log.info('汇率兑换成功，刷新积分余额')
-    await this._refreshPointsBalance(this.data.userInfo)
+    log.info('汇率兑换成功，刷新余额')
+    await this._refreshAllBalances()
   },
 
-  /** 积分变动事件（两个组件共用） */
+  /** 资产变动事件（两个组件共用） */
   async onPointsUpdate() {
-    await this._refreshPointsBalance(this.data.userInfo)
+    await this._refreshAllBalances()
   },
 
   /** 认证错误事件（组件遇401时触发） */

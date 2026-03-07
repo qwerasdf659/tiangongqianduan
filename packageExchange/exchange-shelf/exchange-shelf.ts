@@ -17,9 +17,13 @@
  * @since 2026-02-21
  */
 
-const { ExchangeConfig, Logger, API: shelfAPI } = require('../../utils/index')
+const {
+  ExchangeConfig,
+  Logger,
+  API: shelfAPI,
+  GlobalTheme: shelfGlobalTheme
+} = require('../../utils/index')
 const { enrichProductDisplayFields } = require('../utils/product-display')
-const { getExchangeThemeStyle } = require('../themes/exchange-themes')
 const shopBehavior = require('./handlers/shop-behavior')
 
 const shelfLog = Logger.createLogger('exchange-shelf')
@@ -28,12 +32,14 @@ Component({
   behaviors: [shopBehavior],
 
   properties: {
-    /** 可用积分余额 */
+    /** 可用积分余额（保留用于兑换余额校验） */
     pointsBalance: { type: Number, value: 0 },
     /** 冻结积分 */
     frozenPoints: { type: Number, value: 0 },
-    /** 当前视觉主题标识 'A'|'B'|'C'|'D'|'E' */
-    theme: { type: String, value: 'E' },
+    /** 钻石和水晶类资产余额列表（Page 壳从 API.getAssetBalances 获取后下传） */
+    assetBalances: { type: Array, value: [] },
+    /** 全局氛围主题标识（如 'default' / 'gold_luxury'，由 Page 壳从 ThemeCache 获取后下传） */
+    theme: { type: String, value: 'default' },
     /** 增强效果开关配置 */
     effects: { type: Object, value: {} },
     /** 视图模式 'grid'|'list' */
@@ -102,9 +108,9 @@ Component({
   },
 
   observers: {
-    /** 主题变化时重新生成 CSS 变量样式字符串 */
+    /** 全局氛围主题变化时重新生成 CSS 变量样式字符串（同时包含 --theme-* 和 --shelf-* 变量） */
     theme(themeName: string) {
-      this.setData({ shelfThemeStyle: getExchangeThemeStyle(themeName) })
+      this.setData({ shelfThemeStyle: shelfGlobalTheme.getGlobalThemeStyle(themeName) })
     },
     /** 空间标识变化时同步内部状态 */
     spaceId(newSpace: string) {
@@ -124,7 +130,7 @@ Component({
     /** 初始化货架（加载配置 + 设置主题 + 初始化子组件） */
     async _initShelf() {
       this.setData({
-        shelfThemeStyle: getExchangeThemeStyle(this.properties.theme)
+        shelfThemeStyle: shelfGlobalTheme.getGlobalThemeStyle(this.properties.theme)
       })
 
       try {

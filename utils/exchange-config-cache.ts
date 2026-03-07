@@ -76,9 +76,13 @@ interface CostRangeOption {
   max: number | null
 }
 
-/** 卡片视觉配置 */
+/**
+ * 卡片视觉配置
+ *
+ * 主题由全局氛围主题系统管理（utils/global-themes.ts + utils/theme-cache.ts）
+ * 后端已移除 card_display.theme 字段（B5-B7 完成），此处不再包含 theme 字段
+ */
 interface CardDisplayConfig {
-  theme: 'A' | 'B' | 'C' | 'D' | 'E'
   effects: {
     grain: boolean
     holo: boolean
@@ -212,7 +216,7 @@ const DEFAULT_EXCHANGE_CONFIG: ExchangePageConfig = {
     category_filters: [
       { value: 'all', label: '全部' },
       { value: 'item', label: '物品' },
-      { value: 'fungible_asset', label: '可叠加资产' }
+      { value: 'fungible_asset', label: '资产' }
     ],
     sort_options: [
       { value: 'default', label: '默认' },
@@ -222,7 +226,6 @@ const DEFAULT_EXCHANGE_CONFIG: ExchangePageConfig = {
     ]
   },
   card_display: {
-    theme: 'E' as const,
     effects: {
       grain: true,
       holo: true,

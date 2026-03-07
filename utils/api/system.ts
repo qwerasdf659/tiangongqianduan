@@ -406,6 +406,24 @@ async function getActivities(params: { page?: number; page_size?: number } = {})
   return apiClient.request(`/activities?${qs}`, { method: 'GET', needAuth: true })
 }
 
+/**
+ * 获取全局氛围主题配置（公开接口，无需登录）
+ * 后端 API：GET /api/v4/system/config/app-theme
+ *
+ * system_configs 表读取 config_key='app_theme'
+ * 响应格式：{ success: true, code: 'APP_THEME_CONFIG_SUCCESS', data: { theme: 'gold_luxury' } }
+ *
+ * ⚠️ 此 API 需要后端实现，详见 docs/后端对接需求-全局氛围主题.md
+ */
+async function getAppThemeConfig() {
+  return apiClient.request('/system/config/app-theme', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
 module.exports = {
   getSystemGlobalConfig,
   getPlacementConfig,
@@ -427,6 +445,7 @@ module.exports = {
   getUserIssues,
   getExchangePageConfig,
   getFeedbackConfig,
+  getAppThemeConfig,
   getUserMe,
   getActivities
 }

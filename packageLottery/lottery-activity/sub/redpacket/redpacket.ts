@@ -10,8 +10,11 @@
 
 /** 默认红包数量（单拆模式） */
 const DEFAULT_PACKET_COUNT = 3
+const prizeImageBehavior = require('../../shared/prize-image-behavior')
 
 Component({
+  behaviors: [prizeImageBehavior],
+
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },

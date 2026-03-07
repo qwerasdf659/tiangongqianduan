@@ -13,7 +13,11 @@
  * @version 5.2.0
  */
 
+const prizeImageBehavior = require('../../shared/prize-image-behavior')
+
 Component({
+  behaviors: [prizeImageBehavior],
+
   properties: {
     /** 奖品列表 */
     prizes: { type: Array, value: [] },

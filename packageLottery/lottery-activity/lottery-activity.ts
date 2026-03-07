@@ -16,11 +16,8 @@
  * @since 2026-02-11
  */
 
-/** 引入主题映射表 */
-const { getThemeStyle } = require('./themes/themes')
-
-/** 引入API工具和认证助手 */
-const { API, Logger, Utils } = require('../../utils/index')
+/** 引入API工具、认证助手、全局主题映射表、全局主题缓存 — 统一从 utils/index 导入 */
+const { API, Logger, Utils, ImageHelper, GlobalTheme, ThemeCache } = require('../../utils/index')
 const log = Logger.createLogger('lottery-activity')
 const { checkAuth } = Utils
 
@@ -71,8 +68,22 @@ const RARITY_WEIGHT: Record<string, number> = {
  */
 function addPrizeIcon(prize: any): any {
   prize.prize_icon = PRIZE_ICON_MAP[prize.prize_type] || '🎁'
-  prize.prize_image_url =
-    prize.image && prize.image.url ? prize.image.thumbnail_url || prize.image.url : ''
+
+  /**
+   * 奖品图片三级降级链：
+   *   1. 后端上传图片（prize.image.url / thumbnail_url）
+   *   2. 本地材料图标（material_asset_code → WebP 256×256）
+   *   3. emoji 兜底（prize_icon）
+   *
+   * material_asset_code 举例: DIAMOND → /images/icons/materials/diamond.webp
+   */
+  if (prize.image && prize.image.url) {
+    prize.prize_image_url = prize.image.thumbnail_url || prize.image.url
+  } else if (prize.material_asset_code) {
+    prize.prize_image_url = ImageHelper.getMaterialIconPath(prize.material_asset_code)
+  } else {
+    prize.prize_image_url = ''
+  }
 
   /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */
   prize.is_fallback = !!prize.is_fallback
@@ -256,7 +267,15 @@ Component({
         const config = configRes.data
 
         /* 先解析display配置，因为mode决定奖品截取策略 */
-        const display = { ...DEFAULT_DISPLAY, ...(config.display || {}) }
+        const configDisplay = config.display || {}
+        /**
+         * 活动级覆盖 + 全局氛围降级：
+         *   1. 活动配置了 effect_theme → 使用活动主题（活动级覆盖）
+         *   2. 活动未配置 → 继承全局氛围主题（ThemeCache 管理，后端 system_configs.app_theme）
+         *   3. ThemeCache 也无数据 → 内置默认 'default'
+         */
+        const activeEffectTheme = configDisplay.effect_theme || await ThemeCache.getThemeName()
+        const display = { ...DEFAULT_DISPLAY, ...configDisplay, effect_theme: activeEffectTheme }
 
         /**
          * 奖品列表: ApiResponse 标准信封，data 直接是数组
@@ -285,8 +304,8 @@ Component({
           return weightDiff !== 0 ? weightDiff : a.sort_order - b.sort_order
         })
 
-        /* 生成主题CSS变量内联样式 */
-        const themeStyle = getThemeStyle(display.effect_theme)
+        /* 生成主题 CSS 变量内联样式（全局统一主题，同时包含 --theme-* 和 --shelf-* 变量） */
+        const themeStyle = GlobalTheme.getGlobalThemeStyle(display.effect_theme)
 
         /* 后端原始 draw_buttons 全量数组（含单抽，用于积分判断） */
         const rawDrawButtons = config.draw_buttons || []
@@ -649,7 +668,6 @@ Component({
             drawResult: {
               prize: item,
               isMultiDraw: false,
-              isNotWinning: item.reward_tier === 'low',
               isError: false
             },
             isMultiDraw: false,
@@ -871,7 +889,6 @@ Component({
               drawResult: {
                 prize: item,
                 isMultiDraw: false,
-                isNotWinning: false,
                 isError: false,
                 isGuarantee: true
               },

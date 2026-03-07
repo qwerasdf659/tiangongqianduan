@@ -75,7 +75,14 @@
             class="wheel-prizes__item {{item.is_fallback ? 'wheel-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wheel-prizes__item--sold-out' : ''}}"
           >
             <view class="wheel-prizes__icon-wrap">
-              <text class="wheel-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="wheel-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="wheel-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="wheel-prizes__sold-out">抢光</text>
             </view>
             <text class="wheel-prizes__name">{{item.prize_name}}</text>

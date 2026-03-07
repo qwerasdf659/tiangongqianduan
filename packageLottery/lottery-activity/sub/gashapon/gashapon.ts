@@ -12,8 +12,11 @@
 
 const { Logger } = require('../../../../utils/index')
 const log = Logger.createLogger('gashapon')
+const prizeImageBehavior = require('../../shared/prize-image-behavior')
 
 Component({
+  behaviors: [prizeImageBehavior],
+
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },

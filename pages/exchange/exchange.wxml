@@ -35,6 +35,7 @@
       active="{{currentTab === 'exchange'}}"
       pointsBalance="{{totalPoints}}"
       frozenPoints="{{frozenPoints}}"
+      assetBalances="{{assetBalances}}"
       theme="{{cardTheme}}"
       effects="{{effects}}"
       viewMode="{{viewMode}}"
@@ -52,6 +53,7 @@
     <exchange-market
       active="{{currentTab === 'market'}}"
       pointsBalance="{{totalPoints}}"
+      assetBalances="{{assetBalances}}"
       theme="{{cardTheme}}"
       effects="{{effects}}"
       viewMode="{{viewMode}}"

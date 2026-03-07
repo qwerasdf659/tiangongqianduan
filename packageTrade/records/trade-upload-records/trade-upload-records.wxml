@@ -61,7 +61,7 @@
             <text class="stat-icon">💎</text>
           </view>
           <view class="stat-body">
-            <text class="stat-label">总资产</text>
+            <text class="stat-label">总积分资产</text>
             <text class="stat-value total">{{balanceSummary.totalAmount}}</text>
           </view>
         </view>

@@ -1,4 +1,4 @@
-﻿/* 抽奖结果弹窗 共享组件样式 */
+/* 抽奖结果弹窗 共享组件样式 */
 @import '../../../../styles/variables';
 @import '../../../../styles/mixins';
 
@@ -103,25 +103,10 @@
   box-shadow: 0 16rpx 32rpx rgba(255, 107, 122, 0.25);
 }
 
-.not-winning-card {
-  background: linear-gradient(
-    135deg,
-    var(--theme-text-muted, #a8a8a8) 0%,
-    var(--theme-text-disabled, #7a7a7a) 100%
-  );
-  box-shadow: 0 16rpx 32rpx rgba(168, 168, 168, 0.25);
-}
-
 .title-icon {
   font-size: $font-size-xxl;
   flex-shrink: 0;
   animation: iconPulse 2s ease-in-out infinite;
-}
-
-.not-winning-icon {
-  font-size: $font-size-xxl;
-  flex-shrink: 0;
-  opacity: 0.9;
 }
 
 .title-content {
@@ -141,19 +126,6 @@
 .result-subtitle {
   font-size: 26rpx;
   color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.9));
-  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
-}
-
-.not-winning-title {
-  font-size: $font-size-lg;
-  font-weight: 700;
-  color: var(--theme-text-inverse, white);
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
-}
-
-.not-winning-subtitle {
-  font-size: 26rpx;
-  color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.85));
   text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
@@ -210,6 +182,13 @@
   animation: prizeFloat 3s ease-in-out infinite;
 }
 
+/* 奖品高清图片（替代emoji，与 winning-icon 同容器） */
+.winning-image {
+  width: 128rpx;
+  height: 128rpx;
+  animation: prizeFloat 3s ease-in-out infinite;
+}
+
 .icon-glow {
   position: absolute;
   width: 120rpx;
@@ -259,52 +238,6 @@
 
 .decoration-dot:nth-child(3) {
   animation-delay: 0.4s;
-}
-
-/* 未中奖卡片 */
-.not-winning-card-bg {
-  position: relative;
-  background: linear-gradient(
-    145deg,
-    var(--theme-text-muted, #a8a8a8),
-    var(--theme-text-disabled, #7a7a7a)
-  );
-  border-radius: 28rpx;
-  padding: 4rpx;
-  box-shadow: 0 20rpx 40rpx rgba(168, 168, 168, 0.3);
-}
-
-.not-winning-icon-container {
-  text-align: center;
-  padding: 40rpx 0 24rpx;
-}
-
-.not-winning-icon-large {
-  font-size: 100rpx;
-  opacity: 0.6;
-}
-
-.not-winning-info {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: $border-radius-lg;
-  padding: 32rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16rpx;
-  text-align: center;
-}
-
-.not-winning-message {
-  font-size: $font-size-md;
-  font-weight: 600;
-  color: var(--theme-text-muted, #7a7a7a);
-}
-
-.not-winning-encourage {
-  font-size: 26rpx;
-  color: var(--theme-text-lighter, #a8a8a8);
-  line-height: 1.4;
 }
 
 /* 多连抽逐个揭晓 */
@@ -399,9 +332,11 @@
   animation: prizeFloat 3s ease-in-out infinite;
 }
 
-.reveal-prize-icon.not-winner {
-  opacity: 0.6;
-  animation: none;
+/* 连抽揭晓高清图片（替代emoji） */
+.reveal-prize-image {
+  width: 128rpx;
+  height: 128rpx;
+  animation: prizeFloat 3s ease-in-out infinite;
 }
 
 .reveal-icon-glow {
@@ -523,6 +458,12 @@
 
 .mini-card-icon {
   font-size: $font-size-base;
+}
+
+/* 已揭晓缩略列表高清图片 */
+.mini-card-image {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .mini-card-name {

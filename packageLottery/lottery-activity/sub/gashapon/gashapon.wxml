@@ -111,7 +111,14 @@
             class="gp-prizes__item {{item.is_fallback ? 'gp-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'gp-prizes__item--sold-out' : ''}}"
           >
             <view class="gp-prizes__icon-wrap">
-              <text class="gp-prizes__icon">{{item.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="gp-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="gp-prizes__icon">{{item.prize_icon}}</text>
               <text wx:if="{{item.is_sold_out}}" class="gp-prizes__sold-out">抢光</text>
             </view>
             <text class="gp-prizes__name">{{item.prize_name}}</text>
