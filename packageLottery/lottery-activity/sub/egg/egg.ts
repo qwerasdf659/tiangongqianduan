@@ -47,7 +47,13 @@ Component({
     /** 尺寸class：size-3 / size-5 / size-10 */
     sizeClass: 'size-3',
     /** 连敲入场动画 */
-    multiEntered: false
+    multiEntered: false,
+
+    /* ===== 奖品池循环滚动 ===== */
+    /** 奖品数量超过可视区域时启用跑马灯 */
+    shouldMarquee: false,
+    /** 跑马灯动画时长（秒），根据奖品数量动态计算 */
+    marqueeSpeed: 10
   },
 
   lifetimes: {
@@ -68,6 +74,17 @@ Component({
     'multiDrawCount, multiDrawResults'(count: number, results: any[]) {
       if (count > 0 && results && results.length > 0) {
         this._initMultiSmash(count, results)
+      }
+    },
+    /** 奖品列表变化时，计算是否需要跑马灯及动画速度 */
+    prizesForPreview(prizes: any[]) {
+      if (prizes && prizes.length > 4) {
+        this.setData({
+          shouldMarquee: true,
+          marqueeSpeed: Math.max(prizes.length * 2.5, 8)
+        })
+      } else {
+        this.setData({ shouldMarquee: false })
       }
     }
   },

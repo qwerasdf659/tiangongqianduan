@@ -116,6 +116,51 @@ const ASSET_DISPLAY_NAMES: Record<string, string> = {
 // ===== 工具函数 =====
 
 /**
+ * 后端材料图片 URL 文件名 → 本地 asset_code 反向映射
+ *
+ * 后端 material_icon URL 格式: .../images/materials/{filename}.png
+ * 本地 MATERIAL_ICONS key 格式: DIAMOND / red_shard / POINTS 等
+ * 文件名与 key 的对应关系: diamond → DIAMOND, red-shard → red_shard, points → POINTS
+ *
+ * 构建方式：遍历 MATERIAL_ICONS，从本地路径提取文件名（不含扩展名），建立反向索引
+ */
+const URL_FILENAME_TO_ASSET_CODE: Record<string, string> = {}
+for (const assetCode of Object.keys(MATERIAL_ICONS)) {
+  /* 从本地路径 /images/icons/materials/diamond.webp 提取 diamond */
+  const localPath = MATERIAL_ICONS[assetCode]
+  const match = localPath.match(/\/([^/]+)\.\w+$/)
+  if (match) {
+    URL_FILENAME_TO_ASSET_CODE[match[1]] = assetCode
+  }
+}
+
+/**
+ * 从后端材料图片 URL 中提取文件名，反向查找本地 WebP 图标路径
+ *
+ * 适用场景：后端 image.source === 'material_icon' 但 prize.material_asset_code 为空时，
+ * 通过 URL 路径反向匹配本地图标，避免使用网络 URL（规避域名白名单问题）
+ *
+ * @param imageUrl - 后端返回的材料图片 URL（如 https://xxx/api/v4/images/materials/diamond.png）
+ * @returns 本地 WebP 路径，未匹配时返回空字符串
+ */
+function getLocalIconFromMaterialUrl(imageUrl: string): string {
+  if (!imageUrl) {
+    return ''
+  }
+  /* 从 URL 提取最后一段文件名（不含扩展名）: .../materials/diamond.png → diamond */
+  const match = imageUrl.match(/\/([^/]+)\.\w+$/)
+  if (!match) {
+    return ''
+  }
+  const filename = match[1]
+  const assetCode = URL_FILENAME_TO_ASSET_CODE[filename]
+  if (assetCode) {
+    return MATERIAL_ICONS[assetCode]
+  }
+  return ''
+}
+
+/**
  * 获取材料资产的本地图标路径
  *
  * @param assetCode - 后端 asset_code（如 'DIAMOND', 'red_shard'）
@@ -243,5 +288,6 @@ module.exports = {
   getRarityStyle,
   getAssetDisplayName,
   getListingDisplayImage,
-  getListingDisplayName
+  getListingDisplayName,
+  getLocalIconFromMaterialUrl
 }

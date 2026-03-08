@@ -150,7 +150,12 @@
               <view class="egg-shell-remain__right"></view>
             </view>
             <view class="multi-egg-prize__info">
-              <text class="multi-egg-prize__icon">{{egg.prize_icon || '🎁'}}</text>
+              <image
+                wx:if="{{egg.prize_image_url}}"
+                class="multi-egg-prize__image"
+                src="{{egg.prize_image_url}}"
+                mode="aspectFit"
+              /><text wx:else class="multi-egg-prize__icon">{{egg.prize_icon || '🎁'}}</text>
               <text class="multi-egg-prize__name">{{egg.prize_name || '奖品'}}</text>
             </view>
           </view>
@@ -182,40 +187,69 @@
       </view>
       <text class="egg-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      class="egg-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="egg-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="prize_id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="egg-prizes__item {{item.is_fallback ? 'egg-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'egg-prizes__item--sold-out' : ''}}"
+    <view class="egg-prizes__scroll">
+      <view
+        class="egg-prizes__track {{shouldMarquee ? 'egg-prizes__track--animate' : ''}}"
+        style="{{shouldMarquee ? 'animation-duration:' + marqueeSpeed + 's' : ''}}"
+      >
+        <view class="egg-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="prize_id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="egg-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="egg-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="egg-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
+            <view
+              class="egg-prizes__item {{item.is_fallback ? 'egg-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'egg-prizes__item--sold-out' : ''}}"
+            >
+              <view class="egg-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="egg-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="egg-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
+              </view>
+              <text class="egg-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="egg-prizes__fallback-tag">保底</text>
             </view>
-            <text class="egg-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="egg-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <!-- 复制一份奖品列表，实现无缝循环滚动 -->
+        <view class="egg-prizes__list" wx:if="{{shouldMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="prize_id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="egg-prizes__item {{item.is_fallback ? 'egg-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'egg-prizes__item--sold-out' : ''}}"
+            >
+              <view class="egg-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="egg-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="egg-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
+              </view>
+              <text class="egg-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="egg-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

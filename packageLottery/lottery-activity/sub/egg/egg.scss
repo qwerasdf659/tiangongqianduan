@@ -596,6 +596,11 @@
     font-size: $font-size-lg;
   }
 
+  .multi-egg-prize__image {
+    width: 48rpx;
+    height: 48rpx;
+  }
+
   .multi-egg-prize__name {
     font-size: 18rpx;
     max-width: 100rpx;
@@ -619,6 +624,13 @@
   &__icon {
     font-size: $font-size-xxl;
     line-height: 1;
+  }
+
+  /* 连敲砸碎后的奖品图片（与预览区视觉一致） */
+  &__image {
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: 8rpx;
   }
 
   &__name {
@@ -871,13 +883,35 @@
 
 .egg-prizes__scroll {
   width: 100%;
+  overflow: hidden;
+}
+
+/* 滚动轨道：承载两份奖品列表，通过 translateX(-50%) 实现无缝循环 */
+.egg-prizes__track {
+  display: inline-flex;
   white-space: nowrap;
+
+  &--animate {
+    animation: eggPrizeMarquee linear infinite;
+    will-change: transform;
+  }
 }
 
 .egg-prizes__list {
   display: inline-flex;
   gap: 16rpx;
   padding: 8rpx 4rpx 16rpx;
+  flex-shrink: 0;
+}
+
+@keyframes eggPrizeMarquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .egg-prizes__item {

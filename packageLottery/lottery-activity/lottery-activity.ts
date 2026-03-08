@@ -32,13 +32,21 @@ const { pointsStore } = require('../../store/points')
  * 数据库 ENUM: points/physical/virtual/coupon/service
  */
 const PRIZE_ICON_MAP: Record<string, string> = {
-  points: '🪙',
+  points: '💰',
   physical: '🎁',
   voucher: '🎫',
   virtual: '💎',
   special: '⭐',
   coupon: '🎁',
   service: '🎁'
+}
+
+/**
+ * prize_type → 默认 material_asset_code 映射
+ * 当后端未提供 image 和 material_asset_code 时，按 prize_type 推断本地材料图标
+ */
+const PRIZE_TYPE_MATERIAL_MAP: Record<string, string> = {
+  points: 'POINTS'
 }
 
 /**
@@ -58,7 +66,8 @@ const RARITY_WEIGHT: Record<string, number> = {
  *
  * 后端实际返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code,
  *              sort_order, reward_tier, image, is_fallback, prize_description
- * - image: 有图片时为 { image_resource_id, url, mime, thumbnail_url }，无图片时为 null
+ * - image: 有图片时为 { image_resource_id, url, mime, thumbnail_url, source }，无图片时为 null
+ *   source 值: 'material_icon'（材料资产图标）/ 'uploaded'（用户上传）/ 'placeholder'（占位图）
  * - stock_quantity / is_sold_out: 后端不透传（Decision 6/9: 不展示售罄状态）
  *   is_sold_out 计算逻辑保留但不会触发（后端不返回 stock_quantity 字段）
  * - 前端补充:
@@ -70,17 +79,31 @@ function addPrizeIcon(prize: any): any {
   prize.prize_icon = PRIZE_ICON_MAP[prize.prize_type] || '🎁'
 
   /**
-   * 奖品图片三级降级链：
-   *   1. 后端上传图片（prize.image.url / thumbnail_url）
-   *   2. 本地材料图标（material_asset_code → WebP 256×256）
-   *   3. emoji 兜底（prize_icon）
+   * 奖品图片降级链：
+   *   1. 后端 image.url 存在 → 直接使用后端网络 URL
+   *   2. 无 image 但有 material_asset_code → 本地材料图标（WebP 256×256）
+   *   3. 按 prize_type 推断材料图标（points → POINTS 等）
+   *   4. emoji 兜底（prize_icon）
    *
-   * material_asset_code 举例: DIAMOND → /images/icons/materials/diamond.webp
+   * 设计决策（2026-03-09 修正）：
+   *   本组件位于 packageLottery 分包，微信真机环境下分包无法引用主包
+   *   images/ 目录的静态资源（开发者工具不限制，真机严格限制）。
+   *   因此材料图标不再映射到本地 /images/icons/materials/*.webp，
+   *   而是直接使用后端图片代理 URL（已验证：12张并发 95ms 全部 200）。
    */
-  if (prize.image && prize.image.url) {
+  const imageUrl = (prize.image && prize.image.url) || ''
+
+  if (imageUrl) {
+    /* 后端返回了图片 URL → 直接使用（含 material_icon / uploaded / placeholder） */
     prize.prize_image_url = prize.image.thumbnail_url || prize.image.url
   } else if (prize.material_asset_code) {
+    /* 无 image 字段但有 material_asset_code → 本地材料图标兜底 */
     prize.prize_image_url = ImageHelper.getMaterialIconPath(prize.material_asset_code)
+  } else if (PRIZE_TYPE_MATERIAL_MAP[prize.prize_type]) {
+    /* 按 prize_type 推断材料图标（如 points → POINTS） */
+    prize.prize_image_url = ImageHelper.getMaterialIconPath(
+      PRIZE_TYPE_MATERIAL_MAP[prize.prize_type]
+    )
   } else {
     prize.prize_image_url = ''
   }
@@ -274,7 +297,7 @@ Component({
          *   2. 活动未配置 → 继承全局氛围主题（ThemeCache 管理，后端 system_configs.app_theme）
          *   3. ThemeCache 也无数据 → 内置默认 'default'
          */
-        const activeEffectTheme = configDisplay.effect_theme || await ThemeCache.getThemeName()
+        const activeEffectTheme = configDisplay.effect_theme || (await ThemeCache.getThemeName())
         const display = { ...DEFAULT_DISPLAY, ...configDisplay, effect_theme: activeEffectTheme }
 
         /**

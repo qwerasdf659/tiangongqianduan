@@ -312,9 +312,14 @@ Page({
   async initializePage() {
     try {
       if (!checkAuth()) {
-        /* 认证失败时保持 loading 遮罩，避免未登录内容闪现 */
         this._isFirstLoad = false
         return
+      }
+
+      /* 首次加载时恢复用户信息（onShow 因 _isFirstLoad=true 会跳过） */
+      const restoredUserInfo = restoreUserInfo()
+      if (restoredUserInfo) {
+        this.setData({ isLoggedIn: true, userInfo: restoredUserInfo })
       }
 
       /* 并行加载：积分数据、活动列表、系统公告、弹窗横幅、轮播图、通知未读数 */
@@ -374,6 +379,11 @@ Page({
       /* 首次加载完成后连接WebSocket并订阅通知事件（修复隐患1+2：冷启动铃铛实时更新） */
       if (this.data.isLoggedIn) {
         this._setupWebSocketNotification()
+      }
+
+      /* 安全网：若 onReady 时 userInfo 尚未就绪导致二维码未生成，此处补偿触发 */
+      if (this.data.isLoggedIn && !this.data.qrCodeImage && this.data.userInfo?.user_id) {
+        this.generateUserQRCode()
       }
     }
   },
