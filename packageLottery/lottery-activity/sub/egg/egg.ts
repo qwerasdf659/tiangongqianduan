@@ -10,11 +10,8 @@
 
 /** 默认金蛋数量（单敲模式） */
 const DEFAULT_EGG_COUNT = 3
-const prizeImageBehavior = require('../../shared/prize-image-behavior')
 
 Component({
-  behaviors: [prizeImageBehavior],
-
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
@@ -90,6 +87,17 @@ Component({
   },
 
   methods: {
+    /* DEBUG: 图片加载成功 */
+    onDebugImageLoad(e: any) {
+      const { prizeName, prizeUrl } = e.currentTarget.dataset
+      console.log('[IMG-OK]', prizeName, '| src=', prizeUrl)
+    },
+    /* DEBUG: 图片加载失败 */
+    onDebugImageError(e: any) {
+      const { prizeName, prizeUrl } = e.currentTarget.dataset
+      console.error('[IMG-FAIL]', prizeName, '| src=', prizeUrl, '| err=', e.detail.errMsg)
+    },
+
     /** 奖品预览项点击 — 触发详情弹窗（冒泡到 lottery-activity 层） */
     onPrizeTap(e: any) {
       const prizeData = e.currentTarget.dataset.prize

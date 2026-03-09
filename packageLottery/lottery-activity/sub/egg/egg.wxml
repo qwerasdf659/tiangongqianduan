@@ -151,11 +151,10 @@
             </view>
             <view class="multi-egg-prize__info">
               <image
-                wx:if="{{egg.prize_image_url}}"
                 class="multi-egg-prize__image"
                 src="{{egg.prize_image_url}}"
                 mode="aspectFit"
-              /><text wx:else class="multi-egg-prize__icon">{{egg.prize_icon || '🎁'}}</text>
+              />
               <text class="multi-egg-prize__name">{{egg.prize_name || '奖品'}}</text>
             </view>
           </view>
@@ -206,13 +205,14 @@
             >
               <view class="egg-prizes__icon-wrap">
                 <image
-                  wx:if="{{item.prize_image_url}}"
                   class="egg-prizes__image"
                   src="{{item.prize_image_url}}"
                   mode="aspectFit"
-                  data-prize-idx="{{index}}"
-                  binderror="onPrizeImageError"
-                /><text wx:else class="egg-prizes__icon">{{item.prize_icon}}</text>
+                  data-prize-name="{{item.prize_name}}"
+                  data-prize-url="{{item.prize_image_url}}"
+                  binderror="onDebugImageError"
+                  bindload="onDebugImageLoad"
+                />
                 <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
               </view>
               <text class="egg-prizes__name">{{item.prize_name}}</text>
@@ -235,13 +235,14 @@
             >
               <view class="egg-prizes__icon-wrap">
                 <image
-                  wx:if="{{item.prize_image_url}}"
                   class="egg-prizes__image"
                   src="{{item.prize_image_url}}"
                   mode="aspectFit"
-                  data-prize-idx="{{index}}"
-                  binderror="onPrizeImageError"
-                /><text wx:else class="egg-prizes__icon">{{item.prize_icon}}</text>
+                  data-prize-name="{{item.prize_name}}"
+                  data-prize-url="{{item.prize_image_url}}"
+                  binderror="onDebugImageError"
+                  bindload="onDebugImageLoad"
+                />
                 <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
               </view>
               <text class="egg-prizes__name">{{item.prize_name}}</text>

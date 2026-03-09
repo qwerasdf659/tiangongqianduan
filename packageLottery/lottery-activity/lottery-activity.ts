@@ -17,37 +17,12 @@
  */
 
 /** 引入API工具、认证助手、全局主题映射表、全局主题缓存 — 统一从 utils/index 导入 */
-const { API, Logger, Utils, ImageHelper, GlobalTheme, ThemeCache } = require('../../utils/index')
+const { API, Logger, Utils, GlobalTheme, ThemeCache } = require('../../utils/index')
 const log = Logger.createLogger('lottery-activity')
 const { checkAuth } = Utils
 
 /** 引入积分Store - 抽奖后同步更新全局积分状态，确保页面头部实时刷新 */
 const { pointsStore } = require('../../store/points')
-
-/**
- * prize_type → emoji 映射（UI展示常量）
- *
- * 后端不再返回 icon 字段（已从 DataSanitizer 移除），
- * 前端根据 prize_type 自行生成展示用 emoji。
- * 数据库 ENUM: points/physical/virtual/coupon/service
- */
-const PRIZE_ICON_MAP: Record<string, string> = {
-  points: '💰',
-  physical: '🎁',
-  voucher: '🎫',
-  virtual: '💎',
-  special: '⭐',
-  coupon: '🎁',
-  service: '🎁'
-}
-
-/**
- * prize_type → 默认 material_asset_code 映射
- * 当后端未提供 image 和 material_asset_code 时，按 prize_type 推断本地材料图标
- */
-const PRIZE_TYPE_MATERIAL_MAP: Record<string, string> = {
-  points: 'POINTS'
-}
 
 /**
  * 稀有度排序权重（降序：大奖前置，利用锚定效应）
@@ -75,38 +50,52 @@ const RARITY_WEIGHT: Record<string, number> = {
  *   prize_image_url — 图片优先展示 URL
  *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标，依赖 B1 完成）
  */
+/**
+ * 通过 wx.downloadFile 将网络图片下载到本地临时路径
+ * 绕过 <image> 组件内置下载机制（真机对部分 URL 返回 404）
+ */
+function downloadPrizeImages(prizes: any[], dataKey: string, ctx: any): void {
+  prizes.forEach((prize: any, idx: number) => {
+    const url = prize.prize_image_url
+    if (!url || !url.startsWith('http')) {
+      return
+    }
+    wx.downloadFile({
+      url,
+      success(res) {
+        if (res.statusCode === 200 && res.tempFilePath) {
+          console.log('[downloadFile-OK]', prize.prize_name, res.tempFilePath)
+          ctx.setData({ [`${dataKey}[${idx}].prize_image_url`]: res.tempFilePath })
+        } else {
+          console.error('[downloadFile-FAIL]', prize.prize_name, 'status=', res.statusCode)
+        }
+      },
+      fail(err) {
+        console.error('[downloadFile-ERR]', prize.prize_name, err.errMsg)
+      }
+    })
+  })
+}
+
 function addPrizeIcon(prize: any): any {
-  prize.prize_icon = PRIZE_ICON_MAP[prize.prize_type] || '🎁'
-
-  /**
-   * 奖品图片降级链：
-   *   1. 后端 image.url 存在 → 直接使用后端网络 URL
-   *   2. 无 image 但有 material_asset_code → 本地材料图标（WebP 256×256）
-   *   3. 按 prize_type 推断材料图标（points → POINTS 等）
-   *   4. emoji 兜底（prize_icon）
-   *
-   * 设计决策（2026-03-09 修正）：
-   *   本组件位于 packageLottery 分包，微信真机环境下分包无法引用主包
-   *   images/ 目录的静态资源（开发者工具不限制，真机严格限制）。
-   *   因此材料图标不再映射到本地 /images/icons/materials/*.webp，
-   *   而是直接使用后端图片代理 URL（已验证：12张并发 95ms 全部 200）。
-   */
+  /* 直接使用后端 image.url，不做本地降级 */
   const imageUrl = (prize.image && prize.image.url) || ''
+  const thumbnailUrl = (prize.image && prize.image.thumbnail_url) || ''
+  prize.prize_image_url = thumbnailUrl || imageUrl || ''
 
-  if (imageUrl) {
-    /* 后端返回了图片 URL → 直接使用（含 material_icon / uploaded / placeholder） */
-    prize.prize_image_url = prize.image.thumbnail_url || prize.image.url
-  } else if (prize.material_asset_code) {
-    /* 无 image 字段但有 material_asset_code → 本地材料图标兜底 */
-    prize.prize_image_url = ImageHelper.getMaterialIconPath(prize.material_asset_code)
-  } else if (PRIZE_TYPE_MATERIAL_MAP[prize.prize_type]) {
-    /* 按 prize_type 推断材料图标（如 points → POINTS） */
-    prize.prize_image_url = ImageHelper.getMaterialIconPath(
-      PRIZE_TYPE_MATERIAL_MAP[prize.prize_type]
-    )
-  } else {
-    prize.prize_image_url = ''
-  }
+  /* DEBUG: 打印每个奖品的图片信息，真机调试用 */
+  console.log(
+    '[addPrizeIcon]',
+    prize.prize_name,
+    '| image.url=',
+    imageUrl,
+    '| thumbnail_url=',
+    thumbnailUrl,
+    '| prize_image_url=',
+    prize.prize_image_url,
+    '| image对象=',
+    JSON.stringify(prize.image)
+  )
 
   /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */
   prize.is_fallback = !!prize.is_fallback
@@ -365,6 +354,10 @@ Component({
 
         /* 读取用户积分余额（从pointsStore） */
         this._syncPointsBalance()
+
+        /* 通过 wx.downloadFile 预下载奖品图片到本地临时路径，绕过 <image> 组件真机 404 */
+        downloadPrizeImages(prizes, 'prizes', this)
+        downloadPrizeImages(prizesForPreview, 'prizesForPreview', this)
       } catch (err) {
         log.error('[lottery-activity] 初始化失败:', err)
         this.setData({ loading: false, loadError: '网络异常，请重试' })
