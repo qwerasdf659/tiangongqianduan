@@ -23,7 +23,7 @@
 
 const app = getApp()
 
-const { Utils, Logger, ExchangeConfig, ThemeCache, API, ImageHelper } = require('../../utils/index')
+const { Utils, Logger, ExchangeConfig, ThemeCache, GlobalTheme, API, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { checkAuth } = Utils
 
@@ -115,6 +115,7 @@ Page({
     if (latestTheme !== this.data.cardTheme) {
       this.setData({ cardTheme: latestTheme })
     }
+    this.applyNativeThemeColors(latestTheme)
 
     const localUserInfo = userStore.ensureUserInfo()
 
@@ -170,6 +171,7 @@ Page({
         effects: exchangeConfig.card_display.effects,
         viewMode: exchangeConfig.card_display.default_view_mode || 'grid'
       })
+      this.applyNativeThemeColors(globalThemeName)
     } catch (error) {
       log.error('加载兑换页面配置失败:', error)
 
@@ -186,6 +188,7 @@ Page({
           effects: fallback.card_display.effects,
           viewMode: fallback.card_display.default_view_mode || 'grid'
         })
+        this.applyNativeThemeColors(fallbackTheme)
       }
     }
   },
@@ -351,6 +354,22 @@ Page({
       log.warn('视图模式持久化失败')
     }
     log.info('视图模式切换:', targetMode)
+  },
+
+  /**
+   * 将微信原生导航栏、TabBar 颜色同步为当前主题色
+   * CSS 变量只能控制 WXML 内元素，导航栏和 TabBar 属于框架层需通过 JS API 设置
+   */
+  applyNativeThemeColors(themeName: string) {
+    const navColors = GlobalTheme.getThemeNavColors(themeName)
+    wx.setNavigationBarColor({
+      frontColor: navColors.navText as '#ffffff' | '#000000',
+      backgroundColor: navColors.navBg,
+      animation: { duration: 300, timingFunc: 'easeIn' }
+    })
+    wx.setTabBarStyle({
+      selectedColor: navColors.tabSelected
+    })
   },
 
   /**

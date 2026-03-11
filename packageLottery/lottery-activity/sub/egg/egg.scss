@@ -894,6 +894,9 @@
   &--animate {
     animation: eggPrizeMarquee linear infinite;
     will-change: transform;
+    /* 独立合成层：使用不与 animation transform 冲突的方式提升合成层 */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 }
 
@@ -906,11 +909,11 @@
 
 @keyframes eggPrizeMarquee {
   from {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -941,6 +944,10 @@
 .egg-prizes__image {
   width: 64rpx;
   height: 64rpx;
+  /* 固定尺寸+合成层：防止组件重渲染时 image 元素因 layout shift 短暂白闪 */
+  min-width: 64rpx;
+  min-height: 64rpx;
+  transform: translateZ(0);
 }
 
 .egg-prizes__name {

@@ -1,0 +1,187 @@
+<!--
+  兑换订单页面 — 独立全页面版
+  后端API: GET /api/v4/backpack/exchange/orders
+  业务流: pending → approved → shipped → received → rated
+-->
+<view class="orders-page">
+  <!-- 页面顶部统计卡片 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-item" bindtap="onTabChange" data-tab="all">
+        <text class="stat-number">{{orderStats.total || 0}}</text>
+        <text class="stat-label">全部订单</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item" bindtap="onTabChange" data-tab="shipped">
+        <text class="stat-number stat-highlight">{{orderStats.shipped || 0}}</text>
+        <text class="stat-label">待收货</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item" bindtap="onTabChange" data-tab="received">
+        <text class="stat-number stat-highlight">{{orderStats.received || 0}}</text>
+        <text class="stat-label">待评价</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item" bindtap="onTabChange" data-tab="pending">
+        <text class="stat-number">{{orderStats.pending || 0}}</text>
+        <text class="stat-label">处理中</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 状态筛选Tab -->
+  <view class="filter-bar">
+    <view wx:for="{{statusTabs}}" wx:key="key" class="filter-tab {{currentTab === item.key ? 'active' : ''}}"
+      data-tab="{{item.key}}" bindtap="onTabChange">
+      <text class="filter-text">{{item.label}}</text>
+      <view class="filter-indicator" wx:if="{{currentTab === item.key}}"></view>
+    </view>
+  </view>
+
+  <!-- 使用引导（首次进入或无订单时展示） -->
+  <view class="guide-banner" wx:if="{{showGuide && !loading}}">
+    <view class="guide-close" bindtap="onCloseGuide">✕</view>
+    <view class="guide-title">📦 订单流程说明</view>
+    <view class="guide-steps">
+      <view class="guide-step">
+        <view class="guide-step-icon" style="background: #FF9800">🛒</view>
+        <text class="guide-step-text">兑换商品</text>
+      </view>
+      <view class="guide-arrow">→</view>
+      <view class="guide-step">
+        <view class="guide-step-icon" style="background: #2196F3">✓</view>
+        <text class="guide-step-text">审核通过</text>
+      </view>
+      <view class="guide-arrow">→</view>
+      <view class="guide-step">
+        <view class="guide-step-icon" style="background: #4CAF50">🚚</view>
+        <text class="guide-step-text">商家发货</text>
+      </view>
+      <view class="guide-arrow">→</view>
+      <view class="guide-step">
+        <view class="guide-step-icon" style="background: #9C27B0">⭐</view>
+        <text class="guide-step-text">确认评价</text>
+      </view>
+    </view>
+    <text class="guide-hint">发货满7天未操作，系统将自动确认收货</text>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="orders-content">
+    <!-- 页面级加载 -->
+    <view class="page-loading" wx:if="{{loading && orders.length === 0}}">
+      <loading-spinner text="加载订单中..." />
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-wrapper" wx:if="{{!loading && orders.length === 0}}">
+      <view class="empty-card">
+        <text class="empty-icon">📭</text>
+        <text class="empty-title">{{emptyText}}</text>
+        <text class="empty-desc">去商城兑换中心挑选喜欢的商品吧</text>
+        <view class="empty-action" bindtap="goToExchange">
+          <text class="empty-action-text">去逛逛商城</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单卡片列表 -->
+    <view class="order-list" wx:if="{{orders.length > 0}}">
+      <view class="order-card" wx:for="{{orders}}" wx:key="order_no">
+        <!-- 卡片头部：状态 + 订单号 -->
+        <view class="card-header">
+          <view class="status-badge" style="background: {{item._statusColor}}">
+            <text class="status-icon">{{item._statusIcon}}</text>
+            <text class="status-label">{{item._statusLabel}}</text>
+          </view>
+          <text class="order-no" bindtap="onCopyOrderNo" data-no="{{item.order_no}}">{{item._shortOrderNo}}</text>
+        </view>
+
+        <!-- 商品信息 -->
+        <view class="card-body">
+          <view class="product-row">
+            <view class="product-info">
+              <text class="product-name">{{item._productName}}</text>
+              <text class="product-cost" wx:if="{{item._payInfo}}">消耗: {{item._payInfo}}</text>
+            </view>
+          </view>
+
+          <!-- 时间线 -->
+          <view class="timeline">
+            <view class="timeline-item" wx:if="{{item._createTime}}">
+              <view class="timeline-dot"></view>
+              <text class="timeline-text">下单时间　{{item._createTime}}</text>
+            </view>
+            <view class="timeline-item" wx:if="{{item._shippedTime}}">
+              <view class="timeline-dot dot-green"></view>
+              <text class="timeline-text">发货时间　{{item._shippedTime}}</text>
+            </view>
+            <view class="timeline-item" wx:if="{{item._receivedTime}}">
+              <view class="timeline-dot dot-blue"></view>
+              <text class="timeline-text">收货时间　{{item._receivedTime}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 自动确认提示 -->
+        <view class="auto-tip" wx:if="{{item._isAutoConfirmed}}">
+          <text class="auto-tip-icon">ℹ️</text>
+          <text class="auto-tip-text">系统已自动确认收货（发货满7天）</text>
+        </view>
+
+        <!-- 已评价展示 -->
+        <view class="rating-display" wx:if="{{item.status === 'rated' && item._ratingStars}}">
+          <text class="rating-label">我的评价</text>
+          <text class="rating-stars">{{item._ratingStars}}</text>
+        </view>
+
+        <!-- 操作按钮区域 -->
+        <view class="card-actions" wx:if="{{item._canConfirmReceipt || item._canRate}}">
+          <view class="action-btn btn-confirm" wx:if="{{item._canConfirmReceipt}}" data-order_no="{{item.order_no}}"
+            data-product_name="{{item._productName}}" bindtap="onConfirmReceipt">
+            <text class="action-text">📦 确认收货</text>
+          </view>
+          <view class="action-btn btn-rate" wx:if="{{item._canRate}}" data-order_no="{{item.order_no}}"
+            data-product_name="{{item._productName}}" bindtap="onOpenRating">
+            <text class="action-text">⭐ 去评价</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载更多 / 没有更多 -->
+      <view class="list-footer">
+        <text class="footer-text" wx:if="{{loadingMore}}">加载更多...</text>
+        <text class="footer-text" wx:elif="{{noMore}}">— 已展示全部订单 —</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 评价弹窗 -->
+<view class="rating-overlay" wx:if="{{showRatingModal}}" catchtap="onCloseRatingModal">
+  <view class="rating-modal" catchtap="">
+    <view class="rating-modal-header">
+      <text class="rating-modal-title">评价商品</text>
+      <view class="rating-modal-close" bindtap="onCloseRatingModal">
+        <text>✕</text>
+      </view>
+    </view>
+
+    <text class="rating-product-name">{{ratingProductName}}</text>
+
+    <!-- 星级选择 -->
+    <view class="rating-stars-row">
+      <view wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="rating-star {{ratingScore >= item ? 'selected' : ''}}"
+        data-score="{{item}}" bindtap="onSelectStar">
+        <text class="star-icon">{{ratingScore >= item ? '★' : '☆'}}</text>
+      </view>
+    </view>
+    <text class="rating-hint">{{ratingHint}}</text>
+
+    <!-- 提交按钮 -->
+    <view class="rating-submit-btn {{ratingScore === 0 || ratingSubmitting ? 'disabled' : ''}}"
+      bindtap="onSubmitRating">
+      <text class="rating-submit-text">{{ratingSubmitting ? '提交中...' : '提交评价'}}</text>
+    </view>
+  </view>
+</view>

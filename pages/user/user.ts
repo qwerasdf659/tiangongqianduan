@@ -1,7 +1,7 @@
 // pages/user/user.ts - 用户中心页面 + MobX响应式状态
 const app = getApp()
 // 统一工具函数导入（从utils/index.ts）
-const { API, Wechat, Logger, ApiWrapper } = require('../../utils/index')
+const { API, Wechat, Logger, ApiWrapper, ThemeCache, GlobalTheme } = require('../../utils/index')
 const log = Logger.createLogger('user')
 const { showToast } = Wechat
 const { safeApiCall } = ApiWrapper
@@ -86,6 +86,15 @@ Page({
         url: '/packageTrade/trade/inventory/inventory'
       },
       {
+        id: 'my-orders',
+        name: '我的订单',
+        description: '查看兑换订单和物流进度',
+        icon: '🛒',
+        color: '#667eea',
+        type: 'page',
+        url: '/packageExchange/exchange-orders/exchange-orders'
+      },
+      {
         id: 'my-listings',
         name: '我的挂单',
         description: '查看和管理市场挂单',
@@ -150,6 +159,11 @@ Page({
       }
     ] as MenuItem[],
 
+    /* 全局氛围主题（后端 GET /api/v4/system/config/app-theme 驱动） */
+    globalThemeStyle: '',
+    /** 当前主题标识（驱动 WXML class 绑定，用于 CSS class 选择器差异化） */
+    currentThemeName: 'default',
+
     // 页面状态
     loading: true,
     refreshing: false
@@ -201,6 +215,18 @@ Page({
       return
     }
     log.info('用户中心页面显示')
+
+    /* 每次 onShow 重新检查全局主题（管理后台切换主题后生效） */
+    const onShowThemeName = ThemeCache.getThemeNameSync()
+    const showThemeStyle = GlobalTheme.getGlobalThemeStyle(onShowThemeName)
+    if (
+      showThemeStyle !== this.data.globalThemeStyle ||
+      onShowThemeName !== this.data.currentThemeName
+    ) {
+      this.setData({ globalThemeStyle: showThemeStyle, currentThemeName: onShowThemeName })
+    }
+    this.applyNativeThemeColors(onShowThemeName)
+
     this.updateUserStatus()
     if (this.data.isLoggedIn) {
       this.refreshUserData()
@@ -216,6 +242,27 @@ Page({
     if (this.pointsStoreBindings) {
       this.pointsStoreBindings.destroyStoreBindings()
     }
+  },
+
+  /**
+   * 将微信原生导航栏、TabBar 颜色同步为当前主题色
+   *
+   * CSS 变量只能控制 WXML 内元素，微信原生导航栏和 TabBar 属于框架层，
+   * 必须通过 wx.setNavigationBarColor / wx.setTabBarStyle 两个 JS API 动态设置。
+   * app.json 中的 #FF6B35 仅作为主题未加载前的兜底色。
+   */
+  applyNativeThemeColors(themeName: string) {
+    const navColors = GlobalTheme.getThemeNavColors(themeName)
+
+    wx.setNavigationBarColor({
+      frontColor: navColors.navText as '#ffffff' | '#000000',
+      backgroundColor: navColors.navBg,
+      animation: { duration: 300, timingFunc: 'easeIn' }
+    })
+
+    wx.setTabBarStyle({
+      selectedColor: navColors.tabSelected
+    })
   },
 
   /** 启动loading安全超时定时器，防止loading遮罩层永远不消失 */
@@ -244,6 +291,14 @@ Page({
   async initializePage() {
     // 启动安全超时，确保loading不会永远阻塞页面
     this.startLoadingSafetyTimer()
+
+    /* 加载全局氛围主题（同步注入 CSS 变量到页面根元素，无需登录） */
+    const userThemeName = await ThemeCache.getThemeName()
+    this.setData({
+      globalThemeStyle: GlobalTheme.getGlobalThemeStyle(userThemeName),
+      currentThemeName: userThemeName
+    })
+    this.applyNativeThemeColors(userThemeName)
 
     try {
       this.updateUserStatus()

@@ -8,25 +8,32 @@
   id="lottery-sub" 统一添加，确保父组件 selectComponent('#lottery-sub') 始终可用。
 -->
 
-<view class="lottery-activity__loading" wx:if="{{loading}}">
+<!--
+  遮罩层叠模式：内容提前渲染在底层，加载遮罩覆盖在上层
+  数据就绪后移除遮罩，避免 wx:if/wx:else DOM交换造成的帧间空白
+-->
+
+<!-- 加载遮罩（绝对定位覆盖在内容区上方，数据就绪后移除） -->
+<view class="lottery-activity__loading-overlay" wx:if="{{loading}}">
   <text class="lottery-activity__loading-text">加载中...</text>
 </view>
 
-<view class="lottery-activity__error" wx:elif="{{loadError}}">
+<!-- 错误状态（仅加载失败时显示，与内容互斥） -->
+<view class="lottery-activity__error" wx:if="{{!loading && loadError}}">
   <text class="lottery-activity__error-text">{{loadError}}</text>
   <view class="lottery-activity__retry-btn" bindtap="onRetry">
     <text>重新加载</text>
   </view>
 </view>
 
-<block wx:else>
+<!-- 游戏内容（displayMode 确定后即渲染，可能在加载遮罩背后预渲染） -->
+<block wx:if="{{displayMode && !loadError}}">
   <grid
     wx:if="{{displayMode === 'grid_3x3' || displayMode === 'grid_4x4'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -42,7 +49,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     targetPrizeIndex="{{targetPrizeIndex}}"
     effectTheme="{{effectTheme}}"
@@ -58,7 +64,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -75,8 +80,9 @@
     id="lottery-sub"
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
+    previewMarquee="{{previewMarquee}}"
+    previewMarqueeSpeed="{{previewMarqueeSpeed}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -93,7 +99,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     drawCount="{{scratchDrawCount}}"
     drawResults="{{scratchResults}}"
@@ -126,7 +131,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -142,7 +146,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -160,7 +163,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -177,7 +179,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -193,7 +194,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -209,7 +209,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     targetPrizeIndex="{{targetPrizeIndex}}"
     effectTheme="{{effectTheme}}"
@@ -226,7 +225,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
@@ -259,7 +257,6 @@
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     drawCount="{{scratchDrawCount}}"
     drawResults="{{scratchResults}}"
@@ -271,8 +268,8 @@
     bind:prizedetail="onPrizeDetail"
   />
 
-  <!-- 保底砸金蛋（达到保底阈值时显示） -->
-  <view class="guarantee-egg" wx:if="{{showGuaranteeEgg}}">
+  <!-- 保底砸金蛋（达到保底阈值时显示，受 showPityUI 总开关控制） -->
+  <view class="guarantee-egg" wx:if="{{showPityUI && showGuaranteeEgg}}">
     <view class="guarantee-egg__title">
       <text>恭喜触发保底！砸金蛋领取奖励</text>
     </view>
@@ -303,16 +300,15 @@
   <draw-buttons
     wx:if="{{showDrawButtons}}"
     buttons="{{drawButtons}}"
-    pointsBalance="{{pointsBalance}}"
     isInProgress="{{isDrawing}}"
     displayMode="{{displayMode}}"
     bind:draw="onMultiDraw"
   />
 
-  <!-- 保底进度（未达到阈值时显示进度，pityInfo 由父组件提供，与 guarantee-egg 互斥） -->
+  <!-- 保底进度（showPityUI=true 且后端 pity_enabled=true 时显示，与 guarantee-egg 互斥） -->
   <view
     class="pity-progress"
-    wx:if="{{!showGuaranteeEgg && pityInfo && pityInfo.guarantee_threshold > 0}}"
+    wx:if="{{showPityUI && !showGuaranteeEgg && pityInfo && pityInfo.pity_enabled && pityInfo.guarantee_threshold > 0}}"
   >
     <view class="pity-progress__header">
       <view class="pity-progress__shield">
@@ -339,7 +335,10 @@
       ></view>
     </view>
     <view class="pity-progress__footer">
-      <text class="pity-progress__hint"
+      <text class="pity-progress__hint" wx:if="{{pityInfo.description}}"
+        >{{pityInfo.description}}</text
+      >
+      <text class="pity-progress__hint" wx:else
         >再抽 {{pityInfo.remaining || (pityInfo.guarantee_threshold - (pityInfo.current_pity ||
         0))}} 次必得稀有奖品</text
       >

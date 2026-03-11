@@ -188,8 +188,8 @@
     </view>
     <view class="egg-prizes__scroll">
       <view
-        class="egg-prizes__track {{shouldMarquee ? 'egg-prizes__track--animate' : ''}}"
-        style="{{shouldMarquee ? 'animation-duration:' + marqueeSpeed + 's' : ''}}"
+        class="egg-prizes__track {{previewMarquee ? 'egg-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
       >
         <view class="egg-prizes__list">
           <rarity-effects
@@ -208,10 +208,6 @@
                   class="egg-prizes__image"
                   src="{{item.prize_image_url}}"
                   mode="aspectFit"
-                  data-prize-name="{{item.prize_name}}"
-                  data-prize-url="{{item.prize_image_url}}"
-                  binderror="onDebugImageError"
-                  bindload="onDebugImageLoad"
                 />
                 <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
               </view>
@@ -221,7 +217,7 @@
           </rarity-effects>
         </view>
         <!-- 复制一份奖品列表，实现无缝循环滚动 -->
-        <view class="egg-prizes__list" wx:if="{{shouldMarquee}}">
+        <view class="egg-prizes__list" wx:if="{{previewMarquee}}">
           <rarity-effects
             rarity="{{item.rarity_code || 'common'}}"
             enabled="{{rarityEffects}}"
@@ -238,10 +234,6 @@
                   class="egg-prizes__image"
                   src="{{item.prize_image_url}}"
                   mode="aspectFit"
-                  data-prize-name="{{item.prize_name}}"
-                  data-prize-url="{{item.prize_image_url}}"
-                  binderror="onDebugImageError"
-                  bindload="onDebugImageLoad"
                 />
                 <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
               </view>

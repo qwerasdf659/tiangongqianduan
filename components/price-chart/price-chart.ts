@@ -12,21 +12,31 @@
  *   <price-chart asset-code="red_shard" title="价格走势" />
  *
  * @file components/price-chart/price-chart.ts
- * @version 5.2.0
+ * @version 5.3.0
  * @since 2026-02-24
  */
 
 const { API: ChartAPI, Logger: ChartLogger } = require('../../utils/index')
 const chartLog = ChartLogger.createLogger('price-chart')
 
-/** 折线图颜色配置（品牌色系） */
+/** 折线图颜色配置（与项目渐变色系保持一致） */
 const CHART_COLORS = {
+  /** 价格折线 — 品牌橙色 */
   line: '#FF6B35',
-  fill: 'rgba(255, 107, 53, 0.10)',
-  grid: '#f0f0f0',
-  text: '#999999',
+  /** 折线下方渐变填充 */
+  fillStart: 'rgba(255, 107, 53, 0.20)',
+  fillEnd: 'rgba(255, 107, 53, 0.01)',
+  /** 网格线 */
+  grid: 'rgba(102, 126, 234, 0.10)',
+  /** 坐标轴文字 */
+  axisText: '#999999',
+  /** 数据圆点 */
   dot: '#FF6B35',
-  dotBorder: '#ffffff'
+  dotBorder: '#ffffff',
+  /** 成交量柱体渐变 — 紫蓝色系 */
+  volumeStart: 'rgba(102, 126, 234, 0.85)',
+  volumeEnd: 'rgba(118, 75, 162, 0.40)',
+  volumeTop: 'rgba(102, 126, 234, 0.95)'
 } as const
 
 Component({
@@ -134,10 +144,10 @@ Component({
           isLongPeriod && queryParams.asset_code
             ? ChartAPI.getPriceHistory({ asset_code: queryParams.asset_code, days: 90 })
             : ChartAPI.getPriceTrend({
-                ...queryParams,
-                period: this.data.currentPeriod,
-                granularity: periodGranularity
-              })
+              ...queryParams,
+              period: this.data.currentPeriod,
+              granularity: periodGranularity
+            })
 
         const [trendResponse, summaryResponse, volumeResponse] = await Promise.all([
           trendPromise,
@@ -173,8 +183,8 @@ Component({
         } else if (this.data.activeChartTab === 'volume' && volumeDataPoints.length > 0) {
           setTimeout(() => this._drawVolumeChart(volumeDataPoints), 100)
         }
-      } catch (error) {
-        chartLog.error('获取走势数据失败:', error)
+      } catch (fetchError) {
+        chartLog.error('获取走势数据失败:', fetchError)
         this.setData({ dataPoints: [], volumePoints: [], summary: null, loading: false })
       }
     },
@@ -214,20 +224,18 @@ Component({
       const plotWidth = chartWidth - padding.left - padding.right
       const plotHeight = chartHeight - padding.top - padding.bottom
 
-      /* 清空画布 */
       ctx.clearRect(0, 0, chartWidth, chartHeight)
 
       if (points.length === 0) {
         return
       }
 
-      /* 计算数据范围 */
       const prices = points.map((p: any) => p.avg_price || 0)
       const minPrice = Math.min(...prices)
       const maxPrice = Math.max(...prices)
       const priceRange = maxPrice - minPrice || 1
 
-      /* 绘制水平网格线（4条） */
+      /* 绘制水平网格线（4条）— 使用品牌色调淡化网格 */
       ctx.strokeStyle = CHART_COLORS.grid
       ctx.lineWidth = 0.5
       ctx.setLineDash([4, 4])
@@ -238,9 +246,8 @@ Component({
         ctx.lineTo(padding.left + plotWidth, gridY)
         ctx.stroke()
 
-        /* Y轴刻度标签 */
         const gridPrice = maxPrice - (priceRange / 3) * gridIdx
-        ctx.fillStyle = CHART_COLORS.text
+        ctx.fillStyle = CHART_COLORS.axisText
         ctx.font = '10px sans-serif'
         ctx.textAlign = 'right'
         ctx.fillText(String(Math.round(gridPrice)), padding.left - 6, gridY + 4)
@@ -254,8 +261,8 @@ Component({
 
       /* 绘制渐变填充区域 */
       const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + plotHeight)
-      gradient.addColorStop(0, 'rgba(255, 107, 53, 0.15)')
-      gradient.addColorStop(1, 'rgba(255, 107, 53, 0.01)')
+      gradient.addColorStop(0, CHART_COLORS.fillStart)
+      gradient.addColorStop(1, CHART_COLORS.fillEnd)
 
       ctx.beginPath()
       ctx.moveTo(pointX(0), pointY(prices[0]))
@@ -268,16 +275,23 @@ Component({
       ctx.fillStyle = gradient
       ctx.fill()
 
-      /* 绘制折线 */
+      /* 绘制折线（带阴影增强立体感） */
+      ctx.shadowColor = 'rgba(255, 107, 53, 0.25)'
+      ctx.shadowBlur = 6
+      ctx.shadowOffsetY = 3
       ctx.beginPath()
       ctx.strokeStyle = CHART_COLORS.line
-      ctx.lineWidth = 2
+      ctx.lineWidth = 2.5
       ctx.lineJoin = 'round'
+      ctx.lineCap = 'round'
       ctx.moveTo(pointX(0), pointY(prices[0]))
       for (let lineIdx = 1; lineIdx < points.length; lineIdx++) {
         ctx.lineTo(pointX(lineIdx), pointY(prices[lineIdx]))
       }
       ctx.stroke()
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetY = 0
 
       /* 绘制数据点（≤15个点时显示圆点） */
       if (points.length <= 15) {
@@ -286,17 +300,17 @@ Component({
           const dy = pointY(prices[dotIdx])
 
           ctx.beginPath()
-          ctx.arc(dx, dy, 4, 0, Math.PI * 2)
+          ctx.arc(dx, dy, 5, 0, Math.PI * 2)
           ctx.fillStyle = CHART_COLORS.dotBorder
           ctx.fill()
           ctx.strokeStyle = CHART_COLORS.dot
-          ctx.lineWidth = 2
+          ctx.lineWidth = 2.5
           ctx.stroke()
         }
       }
 
       /* 绘制X轴标签（均匀取5个标签） */
-      ctx.fillStyle = CHART_COLORS.text
+      ctx.fillStyle = CHART_COLORS.axisText
       ctx.font = '9px sans-serif'
       ctx.textAlign = 'center'
       const labelCount = Math.min(5, points.length)
@@ -339,7 +353,7 @@ Component({
 
     /**
      * 绘制成交量柱状图核心逻辑
-     * 蓝色柱状图展示每个时间段的成交量
+     * 紫蓝渐变柱状图展示每个时间段的成交量
      */
     _renderVolumeBarChart(ctx: any, points: any[], chartWidth: number, chartHeight: number) {
       const padding = { top: 16, right: 16, bottom: 32, left: 48 }
@@ -355,7 +369,7 @@ Component({
       const volumes = points.map((p: any) => p.total_volume || p.trade_count || 0)
       const maxVolume = Math.max(...volumes) || 1
 
-      /* 绘制水平网格线 */
+      /* 绘制水平网格线 — 统一品牌色系 */
       ctx.strokeStyle = CHART_COLORS.grid
       ctx.lineWidth = 0.5
       ctx.setLineDash([4, 4])
@@ -367,48 +381,59 @@ Component({
         ctx.stroke()
 
         const gridValue = maxVolume - (maxVolume / 3) * gridIdx
-        ctx.fillStyle = CHART_COLORS.text
+        ctx.fillStyle = CHART_COLORS.axisText
         ctx.font = '10px sans-serif'
         ctx.textAlign = 'right'
         ctx.fillText(String(Math.round(gridValue)), padding.left - 6, gridY + 4)
       }
       ctx.setLineDash([])
 
-      /* 绘制柱状图 */
+      /* 绘制柱状图 — 紫蓝渐变 */
       const barGap = 4
       const totalBarWidth = plotWidth / points.length
       const barWidth = Math.max(4, totalBarWidth - barGap)
 
       for (let barIdx = 0; barIdx < points.length; barIdx++) {
         const volume = volumes[barIdx]
-        const barHeight = (volume / maxVolume) * plotHeight
+        const barHeight = Math.max(2, (volume / maxVolume) * plotHeight)
         const barX = padding.left + totalBarWidth * barIdx + (totalBarWidth - barWidth) / 2
         const barY = padding.top + plotHeight - barHeight
 
-        /* 蓝色渐变柱体 */
+        /* 紫蓝渐变柱体 */
         const barGradient = ctx.createLinearGradient(barX, barY, barX, barY + barHeight)
-        barGradient.addColorStop(0, 'rgba(102, 126, 234, 0.85)')
-        barGradient.addColorStop(1, 'rgba(102, 126, 234, 0.40)')
+        barGradient.addColorStop(0, CHART_COLORS.volumeStart)
+        barGradient.addColorStop(1, CHART_COLORS.volumeEnd)
 
-        ctx.fillStyle = barGradient
-        ctx.fillRect(barX, barY, barWidth, barHeight)
-
-        /* 圆角顶部 */
-        ctx.fillStyle = 'rgba(102, 126, 234, 0.90)'
+        /* 圆角矩形柱体 */
+        const cornerRadius = Math.min(3, barWidth / 2)
         ctx.beginPath()
-        const cornerRadius = Math.min(2, barWidth / 2)
         ctx.moveTo(barX + cornerRadius, barY)
         ctx.lineTo(barX + barWidth - cornerRadius, barY)
         ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + cornerRadius)
-        ctx.lineTo(barX + barWidth, barY + cornerRadius)
-        ctx.lineTo(barX, barY + cornerRadius)
+        ctx.lineTo(barX + barWidth, barY + barHeight)
+        ctx.lineTo(barX, barY + barHeight)
         ctx.lineTo(barX, barY + cornerRadius)
         ctx.quadraticCurveTo(barX, barY, barX + cornerRadius, barY)
+        ctx.closePath()
+        ctx.fillStyle = barGradient
+        ctx.fill()
+
+        /* 柱顶高光 */
+        ctx.fillStyle = CHART_COLORS.volumeTop
+        ctx.beginPath()
+        ctx.moveTo(barX + cornerRadius, barY)
+        ctx.lineTo(barX + barWidth - cornerRadius, barY)
+        ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + cornerRadius)
+        ctx.lineTo(barX + barWidth, barY + cornerRadius + 1)
+        ctx.lineTo(barX, barY + cornerRadius + 1)
+        ctx.lineTo(barX, barY + cornerRadius)
+        ctx.quadraticCurveTo(barX, barY, barX + cornerRadius, barY)
+        ctx.closePath()
         ctx.fill()
       }
 
       /* X轴标签 */
-      ctx.fillStyle = CHART_COLORS.text
+      ctx.fillStyle = CHART_COLORS.axisText
       ctx.font = '9px sans-serif'
       ctx.textAlign = 'center'
       const volumeLabelCount = Math.min(5, points.length)

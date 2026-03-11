@@ -6,10 +6,9 @@
 /* 🎨 优化整体容器设计 */
 .lottery-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(135deg, var(--theme-page-start, #{$gradient-blue-start}) 0%, var(--theme-page-end, #{$gradient-blue-end}) 100%);
   padding: 20rpx 20rpx 20rpx 20rpx;
   position: relative;
-  /* 🔴 修复顶部白色空缺问题 */
   padding-top: calc(env(safe-area-inset-top) + 20rpx);
 }
 
@@ -50,12 +49,10 @@
   left: 0;
   right: 0;
   height: 2rpx;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0.6) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.6) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.6) 100%);
 }
 
 /* ===== 轮播图区域（后端 carousel_items 数据驱动） ===== */
@@ -215,5 +212,5 @@
 /* 中奖结果弹窗 - 翻牌式结果方案 */
 @import 'lottery-modal';
 
-/* 管理员功能 - 扫码审核、审核记录 */
+/* 管理员功能 - 扫码核销、消费录入、审核详情、审核记录 */
 @import 'lottery-admin';

@@ -4,7 +4,7 @@
  * 职责：
  *   1. 页面生命周期管理（onLoad/onShow/onReady/onUnload）
  *   2. V2动态身份二维码（生成、刷新、倒计时、放大）
- *   3. 管理员功能条（扫码、审核详情跳转）
+ *   3. 管理员功能条（扫码核销、消费录入、审核详情跳转）
  *   4. 审核记录弹窗（消费记录查询）
  *   5. 弹窗横幅（popup-banner组件数据加载）
  *   6. 积分显示（格式化、响应式字体、MobX绑定）
@@ -24,7 +24,9 @@ const {
   ConfigCache,
   Logger,
   PopupFrequency,
-  QRCode
+  QRCode,
+  ThemeCache,
+  GlobalTheme
 } = require('../../utils/index')
 const log = Logger.createLogger('lottery')
 const { showToast } = Wechat
@@ -113,6 +115,9 @@ Page({
     /** 轮播区域是否可见（有数据时显示） */
     showCarousel: false,
 
+    /* ===== 全局氛围主题（后端 GET /api/v4/system/config/app-theme 驱动） ===== */
+    globalThemeStyle: '',
+
     /* ===== 页面状态 ===== */
     loading: true,
 
@@ -182,11 +187,42 @@ Page({
       return
     }
 
-    const pointsBalance = pointsStore.availableAmount || 0
-    const frozenPoints = pointsStore.frozenAmount || 0
+    const currentBalance = pointsStore.availableAmount || 0
+    const currentFrozen = pointsStore.frozenAmount || 0
 
-    this.setData({ isLoggedIn: true, pointsBalance, userInfo })
-    this.updatePointsDisplay(pointsBalance, frozenPoints)
+    /**
+     * 防闪烁优化：合并为单次 setData，仅包含真正变化的字段
+     * 避免多次 setData 触发页面级 WXML 多次求值 → lottery-activity 子组件级联重渲染
+     * → egg 奖品预览区 marquee 动画中断 / <image> 白闪
+     */
+    const showBatchUpdate: Record<string, any> = {}
+    if (!this.data.isLoggedIn) {
+      showBatchUpdate.isLoggedIn = true
+    }
+    if (currentBalance !== this.data.pointsBalance) {
+      showBatchUpdate.pointsBalance = currentBalance
+      showBatchUpdate.pointsClass = getPointsDisplayClass(currentBalance)
+      showBatchUpdate.pointsBalanceFormatted = Utils.formatPoints(currentBalance)
+    }
+    if (currentFrozen !== this.data.frozenPoints) {
+      showBatchUpdate.frozenPoints = currentFrozen
+      showBatchUpdate.frozenClass = getPointsDisplayClass(currentFrozen)
+      showBatchUpdate.frozenPointsFormatted = Utils.formatPoints(currentFrozen)
+    }
+    if (userInfo !== this.data.userInfo) {
+      showBatchUpdate.userInfo = userInfo
+    }
+    if (Object.keys(showBatchUpdate).length > 0) {
+      this.setData(showBatchUpdate)
+    }
+
+    /* 每次 onShow 重新检查全局主题（管理后台切换主题后生效） */
+    const lotteryShowThemeName = ThemeCache.getThemeNameSync()
+    const showThemeStyle = GlobalTheme.getGlobalThemeStyle(lotteryShowThemeName)
+    if (showThemeStyle !== this.data.globalThemeStyle) {
+      this.setData({ globalThemeStyle: showThemeStyle })
+    }
+    this.applyNativeThemeColors(lotteryShowThemeName)
 
     /* 非首次加载时刷新弹窗横幅和系统公告 */
     if (!this._isFirstLoad) {
@@ -305,6 +341,22 @@ Page({
     }
   },
 
+  /**
+   * 将微信原生导航栏、TabBar 颜色同步为当前主题色
+   * CSS 变量只能控制 WXML 内元素，导航栏和 TabBar 属于框架层需通过 JS API 设置
+   */
+  applyNativeThemeColors(themeName: string) {
+    const navColors = GlobalTheme.getThemeNavColors(themeName)
+    wx.setNavigationBarColor({
+      frontColor: navColors.navText as '#ffffff' | '#000000',
+      backgroundColor: navColors.navBg,
+      animation: { duration: 300, timingFunc: 'easeIn' }
+    })
+    wx.setTabBarStyle({
+      selectedColor: navColors.tabSelected
+    })
+  },
+
   // ========================================
   // 页面初始化
   // ========================================
@@ -321,6 +373,11 @@ Page({
       if (restoredUserInfo) {
         this.setData({ isLoggedIn: true, userInfo: restoredUserInfo })
       }
+
+      /* 加载全局氛围主题（同步注入 CSS 变量到页面根元素） */
+      const initThemeName = await ThemeCache.getThemeName()
+      this.setData({ globalThemeStyle: GlobalTheme.getGlobalThemeStyle(initThemeName) })
+      this.applyNativeThemeColors(initThemeName)
 
       /* 并行加载：积分数据、活动列表、系统公告、弹窗横幅、轮播图、通知未读数 */
       await Promise.all([
@@ -441,22 +498,50 @@ Page({
         }
       }
 
-      this.setData({
-        mainCampaign: processedResult.mainCampaign,
-        extraCampaigns: processedResult.extraCampaigns
-      })
+      /*
+       * 防止组件不必要的销毁重建：仅当 campaign_code 真正变化时才更新 mainCampaign
+       * 相同活动只更新 extraCampaigns，避免 setData 替换对象引用导致
+       * lottery-activity 组件被框架销毁→重建→重新 initActivity()→"加载中..."卡住
+       */
+      const existingCode = this.data.mainCampaign?.campaign_code
+      const newCode = processedResult.mainCampaign?.campaign_code
 
-      log.info('[lottery] 活动加载完成', {
-        mainCampaign: processedResult.mainCampaign?.campaign_code || '无',
-        extraCount: processedResult.extraCampaigns.length
-      })
+      if (existingCode && existingCode === newCode) {
+        /**
+         * 防闪烁：extraCampaigns 内容相同时跳过 setData，
+         * 避免页面级 WXML 重新求值波及 lottery-activity 组件
+         */
+        const existingExtraCodes = this.data.extraCampaigns
+          .map((c: any) => c.campaign_code)
+          .join(',')
+        const newExtraCodes = processedResult.extraCampaigns
+          .map((c: any) => c.campaign_code)
+          .join(',')
+        if (existingExtraCodes !== newExtraCodes) {
+          this.setData({ extraCampaigns: processedResult.extraCampaigns })
+        }
+        log.info('[lottery] 活动未变化，跳过 mainCampaign 更新:', existingCode)
+      } else {
+        this.setData({
+          mainCampaign: processedResult.mainCampaign,
+          extraCampaigns: processedResult.extraCampaigns
+        })
+        log.info('[lottery] 活动加载完成', {
+          mainCampaign: newCode || '无',
+          extraCount: processedResult.extraCampaigns.length
+        })
+      }
     } catch (loadError) {
       log.error('[lottery] 加载活动列表失败:', loadError)
-      this.setData({
-        mainCampaign: null,
-        extraCampaigns: []
-      })
-      wx.showToast({ title: '活动加载失败，请下拉刷新重试', icon: 'none', duration: 2500 })
+
+      /*
+       * 容错保护：已有有效活动时不清空 mainCampaign，避免摧毁正在运行的抽奖组件
+       * 仅在首次加载（mainCampaign 为空）时才设为 null，显示"暂无活动"占位
+       */
+      if (!this.data.mainCampaign) {
+        this.setData({ mainCampaign: null, extraCampaigns: [] })
+      }
+      wx.showToast({ title: '活动刷新失败，当前展示缓存数据', icon: 'none', duration: 2500 })
     }
   },
 
@@ -525,17 +610,22 @@ Page({
     this._refreshPoints()
   },
 
-  /** 刷新积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑） */
+  /** 刷新积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑）
+   *
+   * 防闪烁优化：refreshFromAPI 更新 store 后，MobX binding（onLoad 中配置）
+   * 会自动同步 pointsBalance/frozenPoints/pointsBalanceFormatted/pointsClass 等全部字段，
+   * 无需再手动调用 updatePointsDisplay()，避免同一帧内双重 setData
+   * 导致 lottery-activity → egg 子组件级联 diff → 奖品预览区 marquee 动画中断
+   */
   async _refreshPoints() {
     if (!this.data.isLoggedIn) {
       return
     }
     try {
-      const { available, frozen } = await pointsStore.refreshFromAPI()
-      this.updatePointsDisplay(available, frozen)
+      await pointsStore.refreshFromAPI()
+      /* MobX binding 自动同步，无需手动 updatePointsDisplay */
     } catch (err) {
       log.error('[lottery] 刷新积分失败:', err)
-      this.updatePointsDisplay(pointsStore.availableAmount || 0, pointsStore.frozenAmount || 0)
     }
   },
 
@@ -543,16 +633,26 @@ Page({
   // 积分显示（格式化 + 响应式字体）
   // ========================================
 
-  /** 统一更新积分显示（复用模块级 getPointsDisplayClass） */
+  /**
+   * 统一更新积分显示（复用模块级 getPointsDisplayClass）
+   * 防闪烁优化：仅当值真正变化时才 setData，避免页面级 WXML 重新求值
+   * 导致 lottery-activity → egg 子组件级联 diff → 奖品预览区 marquee 动画中断
+   */
   updatePointsDisplay(points: number, frozen: number) {
-    this.setData({
-      pointsBalance: points,
-      frozenPoints: frozen,
-      pointsClass: getPointsDisplayClass(points),
-      frozenClass: getPointsDisplayClass(frozen),
-      pointsBalanceFormatted: Utils.formatPoints(points),
-      frozenPointsFormatted: Utils.formatPoints(frozen)
-    })
+    const patch: Record<string, any> = {}
+    if (points !== this.data.pointsBalance) {
+      patch.pointsBalance = points
+      patch.pointsClass = getPointsDisplayClass(points)
+      patch.pointsBalanceFormatted = Utils.formatPoints(points)
+    }
+    if (frozen !== this.data.frozenPoints) {
+      patch.frozenPoints = frozen
+      patch.frozenClass = getPointsDisplayClass(frozen)
+      patch.frozenPointsFormatted = Utils.formatPoints(frozen)
+    }
+    if (Object.keys(patch).length > 0) {
+      this.setData(patch)
+    }
   },
 
   // ========================================
@@ -778,7 +878,7 @@ Page({
     }
   },
 
-  /** 扫一扫功能（管理员） */
+  /** 扫码核销 — 扫描用户V2动态二维码后跳转消费录入页面（管理员/商家店员） */
   onScanTap() {
     if (!this.data.isAdmin) {
       showToast('无权限访问', 'none', 2000)
@@ -792,6 +892,21 @@ Page({
         if (err.errMsg !== 'scanCode:fail cancel') {
           showToast('扫码失败，请重试', 'none', 2000)
         }
+      }
+    })
+  },
+
+  /** 消费录入 — 直接进入消费录入页面，手动填写消费信息后再扫码识别顾客 */
+  onConsumeEntryTap() {
+    if (!this.data.isAdmin) {
+      showToast('无权限访问', 'none', 2000)
+      return
+    }
+    wx.navigateTo({
+      url: '/packageAdmin/consume-submit/consume-submit',
+      fail: navErr => {
+        log.error('[lottery] 跳转消费录入页面失败:', navErr)
+        showToast('页面跳转失败', 'none', 2000)
       }
     })
   },

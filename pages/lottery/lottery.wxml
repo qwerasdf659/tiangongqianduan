@@ -3,7 +3,7 @@
   本模板仅保留：页面壳、用户信息、二维码、管理员功能条、审核弹窗、弹窗横幅
 -->
 
-<view class="lottery-container">
+<view class="lottery-container" style="{{globalThemeStyle}}">
   <!-- 🔴 首次加载遮罩：覆盖整个页面，数据+弹窗图片全部就绪后才消失 -->
   <view class="first-load-mask" wx:if="{{loading}}">
     <view class="first-load-spinner">
@@ -93,12 +93,7 @@
 
           <!-- 二维码图片（未过期时显示） -->
           <block wx:elif="{{qrCodeImage && !qrExpired}}">
-            <image
-              class="qrcode-image"
-              src="{{qrCodeImage}}"
-              mode="aspectFit"
-              show-menu-by-longpress="{{true}}"
-            />
+            <image class="qrcode-image" src="{{qrCodeImage}}" mode="aspectFit" show-menu-by-longpress="{{true}}" />
             <view class="qrcode-hint" wx:if="{{qrCodeImage}}">
               <text class="hint-icon">🔍</text>
             </view>
@@ -114,25 +109,24 @@
 
         <!-- V2倒计时（二维码下方显示） -->
         <view class="qr-countdown-inline" wx:if="{{qrCodeImage && !qrExpired}}">
-          <text class="countdown-text-small {{qrCountdown <= 60 ? 'countdown-urgent' : ''}}"
-            >{{qrCountdownText}}</text
-          >
+          <text class="countdown-text-small {{qrCountdown <= 60 ? 'countdown-urgent' : ''}}">{{qrCountdownText}}</text>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 管理员专属功能条 — 需同时满足已登录且为管理员 -->
+  <!-- 管理员专属功能条 — 需同时满足已登录且为管理员（三按钮：扫码核销 + 消费录入 + 审核详情） -->
   <view wx:if="{{isLoggedIn && isAdmin}}" class="admin-scan-bar">
-    <!-- 左侧：静态文字 -->
-    <view class="admin-scan-label">
-      <text>商家扫码</text>
-    </view>
-
-    <!-- 中间：扫一扫功能 -->
+    <!-- 左侧：扫码核销（扫描用户V2动态二维码 → 跳转消费录入页面） -->
     <view class="admin-scan-button" bindtap="onScanTap">
       <text class="scan-icon">📷</text>
-      <text class="scan-text">扫一扫</text>
+      <text class="scan-text">扫码核销</text>
+    </view>
+
+    <!-- 中间：消费录入（直接进入消费录入页面，手动填写） -->
+    <view class="admin-consume-button" bindtap="onConsumeEntryTap">
+      <text class="consume-icon">📝</text>
+      <text class="consume-text">消费录入</text>
     </view>
 
     <!-- 右侧：审核详情跳转 -->
@@ -144,27 +138,13 @@
 
   <!-- 🎠 轮播图区域（后端API: GET /api/v4/system/ad-delivery?slot_type=carousel） -->
   <view class="carousel-section" wx:if="{{showCarousel && carouselItems.length > 0}}">
-    <swiper
-      class="carousel-swiper"
-      autoplay="{{true}}"
-      circular="{{true}}"
-      interval="{{carouselInterval}}"
-      indicator-dots="{{carouselItems.length > 1}}"
-      indicator-color="rgba(255,255,255,0.4)"
-      indicator-active-color="#ffffff"
-      bindchange="onCarouselChange"
-      current="{{carouselCurrent}}"
-    >
+    <swiper class="carousel-swiper" autoplay="{{true}}" circular="{{true}}" interval="{{carouselInterval}}"
+      indicator-dots="{{carouselItems.length > 1}}" indicator-color="rgba(255,255,255,0.4)"
+      indicator-active-color="#ffffff" bindchange="onCarouselChange" current="{{carouselCurrent}}">
       <swiper-item wx:for="{{carouselItems}}" wx:key="ad_campaign_id">
         <view class="carousel-item" data-index="{{index}}" bindtap="onCarouselItemTap">
-          <image
-            class="carousel-image"
-            src="{{item.image_url}}"
-            mode="aspectFill"
-            lazy-load="{{true}}"
-            data-index="{{index}}"
-            binderror="onCarouselImageError"
-          />
+          <image class="carousel-image" src="{{item.image_url}}" mode="aspectFill" lazy-load="{{true}}"
+            data-index="{{index}}" binderror="onCarouselImageError" />
           <view class="carousel-title-bar" wx:if="{{item.title}}">
             <text class="carousel-title-text">{{item.title}}</text>
           </view>
@@ -178,30 +158,16 @@
     <view class="announcement-icon">
       <text>📢</text>
     </view>
-    <swiper
-      class="announcement-swiper"
-      vertical="{{true}}"
-      autoplay="{{true}}"
-      circular="{{true}}"
-      interval="{{4000}}"
-      duration="{{500}}"
-      current="{{announcementCurrent}}"
-      bindchange="onAnnouncementChange"
-    >
+    <swiper class="announcement-swiper" vertical="{{true}}" autoplay="{{true}}" circular="{{true}}" interval="{{4000}}"
+      duration="{{500}}" current="{{announcementCurrent}}" bindchange="onAnnouncementChange">
       <swiper-item wx:for="{{announcements}}" wx:key="ad_campaign_id">
         <view class="announcement-item" data-index="{{index}}" bindtap="onAnnouncementTap">
           <view class="announcement-tag announcement-tag--{{item.campaign_category || 'system'}}">
-            <text
-              >{{item.campaign_category === 'maintenance' ? '维护' : item.campaign_category ===
-              'activity' ? '活动' : item.campaign_category === 'notice' ? '通知' : '公告'}}</text
-            >
+            <text>{{item.campaign_category === 'maintenance' ? '维护' : item.campaign_category ===
+              'activity' ? '活动' : item.campaign_category === 'notice' ? '通知' : '公告'}}</text>
           </view>
           <text class="announcement-title">{{item.title}}</text>
-          <text
-            wx:if="{{item.link_url && item.link_type !== 'none'}}"
-            class="announcement-link-indicator"
-            >查看 ›</text
-          >
+          <text wx:if="{{item.link_url && item.link_type !== 'none'}}" class="announcement-link-indicator">查看 ›</text>
         </view>
       </swiper-item>
     </swiper>
@@ -210,12 +176,8 @@
   <!-- 抽奖万能组件 - 仅登录后渲染（防止未认证时组件发起API请求） -->
   <block wx:if="{{isLoggedIn}}">
     <!-- 主活动（动态加载，位置配置驱动） -->
-    <lottery-activity
-      wx:if="{{mainCampaign}}"
-      campaignCode="{{mainCampaign.campaign_code}}"
-      size="{{mainCampaign.placement.size || 'full'}}"
-      bind:pointsupdate="onPointsUpdate"
-    />
+    <lottery-activity wx:if="{{mainCampaign}}" campaignCode="{{mainCampaign.campaign_code}}"
+      size="{{mainCampaign.placement.size || 'full'}}" bind:pointsupdate="onPointsUpdate" />
     <!-- 降级兜底：活动列表加载完成但无匹配活动时显示空状态 -->
     <view wx:elif="{{!loading}}" class="no-campaign-placeholder">
       <text class="no-campaign-icon">🎰</text>
@@ -227,19 +189,13 @@
   <!-- 其他活动（secondary/floating等位置，仅登录后渲染） -->
   <block wx:if="{{isLoggedIn}}" wx:for="{{extraCampaigns}}" wx:key="campaign_code">
     <view class="extra-activity-slot">
-      <lottery-activity
-        campaignCode="{{item.campaign_code}}"
-        size="{{item.placement.size || 'medium'}}"
-        bind:pointsupdate="onPointsUpdate"
-      />
+      <lottery-activity campaignCode="{{item.campaign_code}}" size="{{item.placement.size || 'medium'}}"
+        bind:pointsupdate="onPointsUpdate" />
     </view>
   </block>
 
   <!-- 🆕 隐藏的Canvas用于生成正方形高分辨率二维码（方案B：428×428正方形） -->
-  <canvas
-    canvas-id="qrcodeCanvas"
-    style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px"
-  />
+  <canvas canvas-id="qrcodeCanvas" style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px" />
 
   <!-- 🆕 放大的二维码弹窗 -->
   <view class="qrcode-enlarged-modal" wx:if="{{qrCodeEnlarged}}" bindtap="closeEnlargedQRCode">
@@ -252,17 +208,12 @@
       <!-- 放大的二维码 -->
       <view class="qrcode-enlarged-content">
         <!-- 🔴 方案B：正方形容器(500×500) + 正方形图片(428×428) = 完美填充 -->
-        <image
-          class="qrcode-enlarged-image"
-          src="{{qrCodeImage}}"
-          mode="aspectFit"
-          show-menu-by-longpress="{{true}}"
-        />
+        <image class="qrcode-enlarged-image" src="{{qrCodeImage}}" mode="aspectFit" show-menu-by-longpress="{{true}}" />
 
         <!-- 提示文字 -->
         <view class="qrcode-enlarged-tips">
           <text class="enlarged-tip">👆 长按保存二维码</text>
-          <text class="enlarged-tip">或供商家扫码验证</text>
+          <text class="enlarged-tip">或供商家扫码核销</text>
         </view>
       </view>
     </view>
@@ -283,11 +234,7 @@
 
       <!-- 记录列表 -->
       <scroll-view class="audit-records-list" scroll-y="{{true}}">
-        <view
-          class="audit-record-card {{item.status}}"
-          wx:for="{{auditRecordsData}}"
-          wx:key="consumption_record_id"
-        >
+        <view class="audit-record-card {{item.status}}" wx:for="{{auditRecordsData}}" wx:key="consumption_record_id">
           <!-- 记录编号 + 状态 -->
           <view class="record-header">
             <text class="record-number">🎯 记录 #{{index + 1}}</text>
@@ -346,10 +293,6 @@
   </view>
 
   <!-- 🎨 弹窗横幅组件（后端API: GET /api/v4/system/ad-delivery?slot_type=popup） -->
-  <popup-banner
-    visible="{{showPopupBanner}}"
-    banners="{{popupBanners}}"
-    bind:close="onPopupBannerClose"
-    bind:action="onPopupBannerAction"
-  />
+  <popup-banner visible="{{showPopupBanner}}" banners="{{popupBanners}}" bind:close="onPopupBannerClose"
+    bind:action="onPopupBannerAction" />
 </view>

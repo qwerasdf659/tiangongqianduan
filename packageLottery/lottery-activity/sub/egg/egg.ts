@@ -16,11 +16,14 @@ Component({
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
     costPoints: { type: Number, value: 0 },
-    pointsBalance: { type: Number, value: 0 },
     isInProgress: { type: Boolean, value: false },
     effectTheme: { type: String, value: 'default' },
     rarityEffects: { type: Boolean, value: false },
     winAnimation: { type: String, value: 'simple' },
+    /** 跑马灯启用（父组件预计算，与 prizesForPreview 同帧下发，消除双重渲染闪烁） */
+    previewMarquee: { type: Boolean, value: false },
+    /** 跑马灯动画时长秒（父组件预计算） */
+    previewMarqueeSpeed: { type: Number, value: 10 },
     /** 连敲个数（0=单敲模式） */
     multiDrawCount: { type: Number, value: 0 },
     /** 连敲结果数组（API返回的奖品） */
@@ -44,13 +47,10 @@ Component({
     /** 尺寸class：size-3 / size-5 / size-10 */
     sizeClass: 'size-3',
     /** 连敲入场动画 */
-    multiEntered: false,
+    multiEntered: false
 
-    /* ===== 奖品池循环滚动 ===== */
-    /** 奖品数量超过可视区域时启用跑马灯 */
-    shouldMarquee: false,
-    /** 跑马灯动画时长（秒），根据奖品数量动态计算 */
-    marqueeSpeed: 10
+    /* 跑马灯状态已提升到 properties（previewMarquee / previewMarqueeSpeed），
+       与 prizesForPreview 同帧下发，确保首次渲染即包含完整跑马灯配置 */
   },
 
   lifetimes: {
@@ -72,32 +72,10 @@ Component({
       if (count > 0 && results && results.length > 0) {
         this._initMultiSmash(count, results)
       }
-    },
-    /** 奖品列表变化时，计算是否需要跑马灯及动画速度 */
-    prizesForPreview(prizes: any[]) {
-      if (prizes && prizes.length > 4) {
-        this.setData({
-          shouldMarquee: true,
-          marqueeSpeed: Math.max(prizes.length * 2.5, 8)
-        })
-      } else {
-        this.setData({ shouldMarquee: false })
-      }
     }
   },
 
   methods: {
-    /* DEBUG: 图片加载成功 */
-    onDebugImageLoad(e: any) {
-      const { prizeName, prizeUrl } = e.currentTarget.dataset
-      console.log('[IMG-OK]', prizeName, '| src=', prizeUrl)
-    },
-    /* DEBUG: 图片加载失败 */
-    onDebugImageError(e: any) {
-      const { prizeName, prizeUrl } = e.currentTarget.dataset
-      console.error('[IMG-FAIL]', prizeName, '| src=', prizeUrl, '| err=', e.detail.errMsg)
-    },
-
     /** 奖品预览项点击 — 触发详情弹窗（冒泡到 lottery-activity 层） */
     onPrizeTap(e: any) {
       const prizeData = e.currentTarget.dataset.prize

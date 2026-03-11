@@ -6,31 +6,20 @@
     <!-- 🎯 增强版胶囊式空间切换器 -->
     <view class="space-selector-enhanced">
       <view class="selector-track">
-        <view
-          class="selector-slider {{currentSpace === 'premium' ? 'slide-right' : 'slide-left'}}"
-        ></view>
+        <view class="selector-slider {{currentSpace === 'premium' ? 'slide-right' : 'slide-left'}}"></view>
         <view
           class="space-tab-enhanced {{item.id === currentSpace ? 'active' : ''}} {{item.id === 'premium' && !premiumUnlocked ? 'locked' : ''}}"
-          wx:for="{{spaceList}}"
-          wx:key="id"
-          data-space="{{item.id}}"
-          bindtap="onSpaceChange"
-        >
+          wx:for="{{spaceList}}" wx:key="id" data-space="{{item.id}}" bindtap="onSpaceChange">
           <view class="tab-inner">
             <view class="tab-icon-row">
               <text class="tab-emoji">{{item.id === 'lucky' ? '🍀' : '💎'}}</text>
-              <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}"
-                >{{item.id === 'premium' && !premiumUnlocked ? '🔒 ' : ''}}{{item.name}}</text
-              >
+              <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}">{{item.id === 'premium' &&
+                !premiumUnlocked ? '🔒 ' : ''}}{{item.name}}</text>
             </view>
-            <text class="tab-desc {{item.id === currentSpace ? 'active-desc' : ''}}"
-              >{{item.id === 'premium' && !premiumUnlocked ? '达标可解锁' : item.subtitle}}</text
-            >
+            <text class="tab-desc {{item.id === currentSpace ? 'active-desc' : ''}}">{{item.id === 'premium' &&
+              !premiumUnlocked ? '达标可解锁' : item.subtitle}}</text>
           </view>
-          <view
-            wx:if="{{item.id === 'premium'}}"
-            class="unlock-badge {{premiumUnlocked ? 'unlocked' : 'locked'}}"
-          >
+          <view wx:if="{{item.id === 'premium'}}" class="unlock-badge {{premiumUnlocked ? 'unlocked' : 'locked'}}">
             <text>{{premiumUnlocked ? '已解锁' : (premiumCanUnlock ? '可解锁' : '未解锁')}}</text>
           </view>
         </view>
@@ -41,43 +30,26 @@
     <view class="header exchange-market-sticky-header">
       <view class="user-info">
         <view class="asset-balances-area">
-          <scroll-view
-            class="asset-balances-scroll"
-            scroll-x="{{true}}"
-            enhanced="{{true}}"
-            show-scrollbar="{{false}}"
-          >
+          <scroll-view class="asset-balances-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
             <view class="asset-balances-row">
               <view class="asset-balance-item" wx:for="{{assetBalances}}" wx:key="asset_code">
                 <text class="asset-name">{{item.display_name}}</text>
                 <text class="asset-amount">{{item.available_amount}}</text>
               </view>
-              <view
-                wx:if="{{!assetBalances || assetBalances.length === 0}}"
-                class="asset-balance-empty"
-              >
+              <view wx:if="{{!assetBalances || assetBalances.length === 0}}" class="asset-balance-empty">
                 <text class="asset-name">暂无资产数据</text>
               </view>
             </view>
           </scroll-view>
         </view>
         <view class="header-quick-actions">
-          <view class="header-action-btn" bindtap="onShowExchangeOrders">📋 我的订单</view>
           <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
           <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
           <view class="view-toggle">
-            <view
-              class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}"
-              bindtap="onToggleViewMode"
-              data-mode="grid"
-              >⊞</view
-            >
-            <view
-              class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}"
-              bindtap="onToggleViewMode"
-              data-mode="list"
-              >☰</view
-            >
+            <view class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}" bindtap="onToggleViewMode"
+              data-mode="grid">⊞</view>
+            <view class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}" bindtap="onToggleViewMode"
+              data-mode="list">☰</view>
           </view>
         </view>
       </view>
@@ -85,73 +57,34 @@
   </view>
 
   <!-- 🔒 可滚动内容区域 -->
-  <scroll-view
-    class="shop-scroll-body"
-    scroll-y="{{true}}"
-    enhanced="{{true}}"
-    show-scrollbar="{{false}}"
-  >
+  <scroll-view class="shop-scroll-body" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
     <!-- 🍀 幸运空间子组件 -->
-    <lucky-space
-      id="lucky-space"
-      wx:if="{{currentSpace === 'lucky'}}"
-      pointsBalance="{{pointsBalance}}"
-      effects="{{effects}}"
-      viewMode="{{viewMode}}"
-      basicFilters="{{luckyBasicFilters}}"
-      categoryOptions="{{categoryOptions}}"
-      costRangeOptions="{{costRangeOptions}}"
-      stockStatusOptions="{{stockStatusOptions}}"
-      sortByOptions="{{sortByOptions}}"
-      bind:producttap="onProductTap"
-    />
+    <lucky-space id="lucky-space" wx:if="{{currentSpace === 'lucky'}}" pointsBalance="{{pointsBalance}}"
+      effects="{{effects}}" viewMode="{{viewMode}}" basicFilters="{{luckyBasicFilters}}"
+      categoryOptions="{{categoryOptions}}" costRangeOptions="{{costRangeOptions}}"
+      stockStatusOptions="{{stockStatusOptions}}" sortByOptions="{{sortByOptions}}" bind:producttap="onProductTap" />
 
     <!-- 💎 臻选空间子组件 -->
-    <premium-space
-      id="premium-space"
-      wx:if="{{currentSpace === 'premium'}}"
-      pointsBalance="{{pointsBalance}}"
-      effects="{{effects}}"
-      viewMode="{{viewMode}}"
-      premiumUnlocked="{{premiumUnlocked}}"
-      bind:producttap="onProductTap"
-    />
+    <premium-space id="premium-space" wx:if="{{currentSpace === 'premium'}}" pointsBalance="{{pointsBalance}}"
+      effects="{{effects}}" viewMode="{{viewMode}}" premiumUnlocked="{{premiumUnlocked}}"
+      bind:producttap="onProductTap" />
 
     <!-- 🏷 竞价区域子组件（臻选空间下方，始终可见） -->
-    <bid-panel
-      id="bid-panel"
-      wx:if="{{currentSpace === 'premium' && premiumUnlocked}}"
-      pointsBalance="{{pointsBalance}}"
-      theme="{{theme}}"
-      refreshToken="{{refreshToken}}"
-      bind:bidcomplete="onBidComplete"
-    />
+    <bid-panel id="bid-panel" wx:if="{{currentSpace === 'premium' && premiumUnlocked}}"
+      pointsBalance="{{pointsBalance}}" theme="{{theme}}" refreshToken="{{refreshToken}}"
+      bind:bidcomplete="onBidComplete" />
 
     <!-- 加载状态 -->
     <loading-spinner wx:if="{{loading}}" />
   </scroll-view>
 
   <!-- 兑换确认弹窗 -->
-  <exchange-confirm
-    visible="{{showShopConfirm}}"
-    product="{{selectedShopProduct}}"
-    quantity="{{shopExchangeQuantity}}"
-    pointsBalance="{{pointsBalance}}"
-    assetBalances="{{assetBalances}}"
-    submitting="{{shopExchanging}}"
-    bind:confirm="onConfirmShopExchange"
-    bind:close="onCancelShopExchange"
-    bind:quantitychange="onShopQuantityChange"
-  />
+  <exchange-confirm visible="{{showShopConfirm}}" product="{{selectedShopProduct}}" quantity="{{shopExchangeQuantity}}"
+    pointsBalance="{{pointsBalance}}" assetBalances="{{assetBalances}}" submitting="{{shopExchanging}}"
+    bind:confirm="onConfirmShopExchange" bind:close="onCancelShopExchange" bind:quantitychange="onShopQuantityChange" />
 
   <!-- 兑换结果弹窗 -->
-  <exchange-result
-    visible="{{showShopResult}}"
-    success="{{true}}"
-    orderData="{{shopResultData}}"
-    bind:close="onCloseShopResult"
-  />
+  <exchange-result visible="{{showShopResult}}" success="{{true}}" orderData="{{shopResultData}}"
+    bind:close="onCloseShopResult" />
 
-  <!-- 兑换订单管理（Phase 3：确认收货 + 评价） -->
-  <exchange-orders visible="{{showExchangeOrders}}" bind:close="onCloseExchangeOrders" />
 </view>

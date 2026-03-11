@@ -39,6 +39,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
    * 兑换：吸收原方案 E（彩色分类 + 电商价格），白底暖色
    * ===================================================================== */
   default: {
+    // ── 页面级渐变背景（所有 Tab 页共用） ──
+    '--theme-page-start': '#667eea',
+    '--theme-page-end': '#764ba2',
+
     // ── 抽奖 / 通用变量（--theme-*） ──
     '--theme-primary': '#e67e22',
     '--theme-primary-dark': '#d35400',
@@ -106,7 +110,14 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-nav-slider-left': 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
     '--shelf-nav-slider-right': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     '--shelf-accent': '#667eea',
-    '--shelf-accent-light': 'rgba(102, 126, 234, 0.15)'
+    '--shelf-accent-light': 'rgba(102, 126, 234, 0.15)',
+
+    // ── 内容区块变量（菜单区、卡片列表等非页面背景区域） ──
+    '--theme-section-bg': 'rgba(255, 255, 255, 0.92)',
+    '--theme-item-bg': '#ffffff',
+    '--theme-section-text': '#333333',
+    '--theme-section-text-sub': '#999999',
+    '--theme-section-border': 'rgba(0, 0, 0, 0.06)'
   },
 
   /* =====================================================================
@@ -115,6 +126,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
    * 兑换：吸收原方案 C（暗色游戏风），深色背景 + 金色价格
    * ===================================================================== */
   gold_luxury: {
+    // ── 页面级渐变背景 ──
+    '--theme-page-start': '#2c3e50',
+    '--theme-page-end': '#1a1a2e',
+
     // ── 抽奖 / 通用变量（--theme-*） ──
     '--theme-primary': '#f1c40f',
     '--theme-primary-dark': '#d4ac0d',
@@ -182,7 +197,14 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-nav-slider-left': 'linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%)',
     '--shelf-nav-slider-right': 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
     '--shelf-accent': '#f1c40f',
-    '--shelf-accent-light': 'rgba(241, 196, 15, 0.15)'
+    '--shelf-accent-light': 'rgba(241, 196, 15, 0.15)',
+
+    // ── 内容区块变量（暗色背景 + 亮色文字） ──
+    '--theme-section-bg': 'rgba(42, 42, 78, 0.92)',
+    '--theme-item-bg': 'rgba(58, 58, 94, 0.85)',
+    '--theme-section-text': '#e8e8f0',
+    '--theme-section-text-sub': 'rgba(255, 255, 255, 0.5)',
+    '--theme-section-border': 'rgba(255, 255, 255, 0.08)'
   },
 
   /* =====================================================================
@@ -191,6 +213,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
    * 兑换：基于原方案 C（暗色游戏风），调整为紫色调
    * ===================================================================== */
   purple_mystery: {
+    // ── 页面级渐变背景 ──
+    '--theme-page-start': '#6c3483',
+    '--theme-page-end': '#512e5f',
+
     // ── 抽奖 / 通用变量（--theme-*） ──
     '--theme-primary': '#9b59b6',
     '--theme-primary-dark': '#7d3c98',
@@ -258,7 +284,14 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-nav-slider-left': 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
     '--shelf-nav-slider-right': 'linear-gradient(135deg, #7c4dff 0%, #6c3ce0 100%)',
     '--shelf-accent': '#9b59b6',
-    '--shelf-accent-light': 'rgba(155, 89, 182, 0.15)'
+    '--shelf-accent-light': 'rgba(155, 89, 182, 0.15)',
+
+    // ── 内容区块变量（暗色背景 + 亮色文字） ──
+    '--theme-section-bg': 'rgba(42, 26, 94, 0.92)',
+    '--theme-item-bg': 'rgba(58, 42, 110, 0.85)',
+    '--theme-section-text': '#ecf0f1',
+    '--theme-section-text-sub': 'rgba(255, 255, 255, 0.5)',
+    '--theme-section-border': 'rgba(255, 255, 255, 0.08)'
   },
 
   /* =====================================================================
@@ -267,6 +300,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
    * 兑换：基于原方案 B（暖橙电商风），调整为红金色调
    * ===================================================================== */
   spring_festival: {
+    // ── 页面级渐变背景 ──
+    '--theme-page-start': '#e74c3c',
+    '--theme-page-end': '#c0392b',
+
     // ── 抽奖 / 通用变量（--theme-*） ──
     '--theme-primary': '#e74c3c',
     '--theme-primary-dark': '#c0392b',
@@ -334,7 +371,14 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-nav-slider-left': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
     '--shelf-nav-slider-right': 'linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%)',
     '--shelf-accent': '#e74c3c',
-    '--shelf-accent-light': 'rgba(231, 76, 60, 0.15)'
+    '--shelf-accent-light': 'rgba(231, 76, 60, 0.15)',
+
+    // ── 内容区块变量（浅红暖色调） ──
+    '--theme-section-bg': 'rgba(255, 248, 248, 0.95)',
+    '--theme-item-bg': '#ffffff',
+    '--theme-section-text': '#333333',
+    '--theme-section-text-sub': '#999999',
+    '--theme-section-border': 'rgba(231, 76, 60, 0.08)'
   },
 
   /* =====================================================================
@@ -343,6 +387,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
    * 兑换：基于原方案 E（彩色分类），调整为绿色调
    * ===================================================================== */
   christmas: {
+    // ── 页面级渐变背景 ──
+    '--theme-page-start': '#27ae60',
+    '--theme-page-end': '#1e8449',
+
     // ── 抽奖 / 通用变量（--theme-*） ──
     '--theme-primary': '#27ae60',
     '--theme-primary-dark': '#1e8449',
@@ -410,7 +458,14 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-nav-slider-left': 'linear-gradient(135deg, #27ae60 0%, #1e8449 100%)',
     '--shelf-nav-slider-right': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
     '--shelf-accent': '#27ae60',
-    '--shelf-accent-light': 'rgba(39, 174, 96, 0.15)'
+    '--shelf-accent-light': 'rgba(39, 174, 96, 0.15)',
+
+    // ── 内容区块变量（浅绿色调） ──
+    '--theme-section-bg': 'rgba(240, 255, 240, 0.95)',
+    '--theme-item-bg': 'rgba(248, 255, 248, 0.95)',
+    '--theme-section-text': '#333333',
+    '--theme-section-text-sub': '#999999',
+    '--theme-section-border': 'rgba(39, 174, 96, 0.08)'
   },
 
   /* =====================================================================
@@ -419,6 +474,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
    * 兑换：吸收原方案 A（毛玻璃质感），清透浅色系
    * ===================================================================== */
   summer: {
+    // ── 页面级渐变背景 ──
+    '--theme-page-start': '#3498db',
+    '--theme-page-end': '#2471a3',
+
     // ── 抽奖 / 通用变量（--theme-*） ──
     '--theme-primary': '#3498db',
     '--theme-primary-dark': '#2471a3',
@@ -486,7 +545,14 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-nav-slider-left': 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
     '--shelf-nav-slider-right': 'linear-gradient(135deg, #1abc9c 0%, #16a085 100%)',
     '--shelf-accent': '#3498db',
-    '--shelf-accent-light': 'rgba(52, 152, 219, 0.15)'
+    '--shelf-accent-light': 'rgba(52, 152, 219, 0.15)',
+
+    // ── 内容区块变量（浅蓝色调） ──
+    '--theme-section-bg': 'rgba(240, 248, 255, 0.95)',
+    '--theme-item-bg': '#ffffff',
+    '--theme-section-text': '#333333',
+    '--theme-section-text-sub': '#999999',
+    '--theme-section-border': 'rgba(52, 152, 219, 0.08)'
   }
 }
 
@@ -514,4 +580,22 @@ function getAvailableThemes(): string[] {
   return Object.keys(GLOBAL_THEME_MAP)
 }
 
-module.exports = { getGlobalThemeStyle, getAvailableThemes, GLOBAL_THEME_MAP }
+/**
+ * 获取主题的原生导航组件颜色（用于 wx.setNavigationBarColor / wx.setTabBarStyle）
+ *
+ * CSS 变量只能控制页面 WXML 内的样式，微信原生导航栏和 TabBar 必须通过 JS API 设置。
+ * 此函数从主题配置中提取关键色值，供页面调用原生 API 使用。
+ *
+ * @param themeName 主题标识
+ * @returns { navBg: 导航栏背景色, navText: 导航栏文字色(仅支持#ffffff/#000000), tabSelected: TabBar选中色 }
+ */
+function getThemeNavColors(themeName: string): { navBg: string; navText: string; tabSelected: string } {
+  const theme = GLOBAL_THEME_MAP[themeName] || GLOBAL_THEME_MAP['default']
+  return {
+    navBg: theme['--theme-page-start'] || '#667eea',
+    navText: '#ffffff',
+    tabSelected: theme['--theme-primary'] || '#ff6b35'
+  }
+}
+
+module.exports = { getGlobalThemeStyle, getAvailableThemes, getThemeNavColors, GLOBAL_THEME_MAP }

@@ -4,7 +4,7 @@
 
 .discover-container {
   min-height: 100vh;
-  background: $gradient-primary;
+  background: linear-gradient(135deg, var(--theme-page-start, #{$gradient-blue-start}) 0%, var(--theme-page-end, #{$gradient-blue-end}) 100%);
   padding-bottom: 80rpx;
 }
 
@@ -76,9 +76,9 @@
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
+  background: linear-gradient(135deg, var(--theme-page-start, #{$color-primary}) 0%, var(--theme-page-end, #f7931e) 100%);
   transform: scale(1.05);
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.4);
+  box-shadow: 0 6rpx 20rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.4));
 }
 
 .tab-icon {
@@ -176,7 +176,7 @@
 }
 
 .retry-btn {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(135deg, var(--theme-page-start, #{$gradient-blue-start}) 0%, var(--theme-page-end, #{$gradient-blue-end}) 100%);
   color: $color-text-white;
   border: none;
   border-radius: 50rpx;
@@ -304,7 +304,7 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 16rpx;
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
   border-radius: 20rpx;
 }
 
@@ -314,7 +314,7 @@
 
 .data-text {
   font-size: $font-size-sm;
-  color: $gradient-blue-start;
+  color: var(--theme-page-start, #{$gradient-blue-start});
   font-weight: 500;
 }
 
@@ -398,7 +398,7 @@
 
 .bottom-tip .tip-text {
   font-size: 26rpx;
-  color: $gradient-blue-start;
+  color: var(--theme-page-start, #{$gradient-blue-start});
   font-weight: 500;
 }
 

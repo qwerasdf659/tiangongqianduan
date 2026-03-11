@@ -112,7 +112,11 @@ Component({
         const result = await API.getExchangeRecords(page, this.data.pageSize, statusFilter)
 
         if (result.success && result.data) {
-          const rawOrders = result.data.orders || result.data.records || result.data.items || []
+          /**
+           * 后端响应字段: records（对应 exchange_records 表）
+           * ⚠️ 待后端实现 GET /api/v4/backpack/exchange/orders 后，以后端实际返回字段为准
+           */
+          const rawOrders = result.data.records || []
           const enrichedOrders = rawOrders.map((order: any) => this.enrichOrderDisplay(order))
 
           const totalOrders = reset ? enrichedOrders : [...this.data.orders, ...enrichedOrders]

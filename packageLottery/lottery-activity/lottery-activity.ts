@@ -51,29 +51,60 @@ const RARITY_WEIGHT: Record<string, number> = {
  *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标，依赖 B1 完成）
  */
 /**
- * 通过 wx.downloadFile 将网络图片下载到本地临时路径
- * 绕过 <image> 组件内置下载机制（真机对部分 URL 返回 404）
+ * 批量预下载奖品图片到本地临时路径（在 setData 之前一次性完成）
+ *
+ * 修复问题：原 downloadPrizeImages 在渲染后逐个替换URL，每次触发 setData
+ *          导致 <image> 组件 src 切换时出现短暂空白（用户可见闪烁）
+ * 方案：先下载全部图片，再一次性渲染，消除闪烁
+ *
+ * - 相同URL只下载一次（去重优化）
+ * - 每张图片有5秒超时保护，超时保留原始网络URL
+ * - 直接修改 allPrizeItems 中对象的 prize_image_url 字段（原地更新）
+ *
+ * @param allPrizeItems 奖品数组（prizes 和 prizesForPreview 共享对象引用，修改一处两处生效）
  */
-function downloadPrizeImages(prizes: any[], dataKey: string, ctx: any): void {
-  prizes.forEach((prize: any, idx: number) => {
-    const url = prize.prize_image_url
-    if (!url || !url.startsWith('http')) {
-      return
+async function predownloadPrizeImages(allPrizeItems: any[]): Promise<void> {
+  const PER_IMAGE_TIMEOUT = 5000
+
+  const uniqueUrlMap = new Map<string, string>()
+  allPrizeItems.forEach((prizeItem: any) => {
+    const prizeUrl = prizeItem.prize_image_url
+    if (prizeUrl && prizeUrl.startsWith('http') && !uniqueUrlMap.has(prizeUrl)) {
+      uniqueUrlMap.set(prizeUrl, '')
     }
-    wx.downloadFile({
-      url,
-      success(res) {
-        if (res.statusCode === 200 && res.tempFilePath) {
-          console.log('[downloadFile-OK]', prize.prize_name, res.tempFilePath)
-          ctx.setData({ [`${dataKey}[${idx}].prize_image_url`]: res.tempFilePath })
-        } else {
-          console.error('[downloadFile-FAIL]', prize.prize_name, 'status=', res.statusCode)
+  })
+
+  if (uniqueUrlMap.size === 0) {
+    return
+  }
+
+  const downloadTasks = [...uniqueUrlMap.keys()].map((networkUrl: string) => {
+    return new Promise<void>(resolve => {
+      const timer = setTimeout(resolve, PER_IMAGE_TIMEOUT)
+      wx.downloadFile({
+        url: networkUrl,
+        success(downloadRes) {
+          clearTimeout(timer)
+          if (downloadRes.statusCode === 200 && downloadRes.tempFilePath) {
+            uniqueUrlMap.set(networkUrl, downloadRes.tempFilePath)
+          }
+          resolve()
+        },
+        fail() {
+          clearTimeout(timer)
+          resolve()
         }
-      },
-      fail(err) {
-        console.error('[downloadFile-ERR]', prize.prize_name, err.errMsg)
-      }
+      })
     })
+  })
+
+  await Promise.all(downloadTasks)
+
+  allPrizeItems.forEach((prizeItem: any) => {
+    const localPath = uniqueUrlMap.get(prizeItem.prize_image_url)
+    if (localPath) {
+      prizeItem.prize_image_url = localPath
+    }
   })
 }
 
@@ -82,20 +113,6 @@ function addPrizeIcon(prize: any): any {
   const imageUrl = (prize.image && prize.image.url) || ''
   const thumbnailUrl = (prize.image && prize.image.thumbnail_url) || ''
   prize.prize_image_url = thumbnailUrl || imageUrl || ''
-
-  /* DEBUG: 打印每个奖品的图片信息，真机调试用 */
-  console.log(
-    '[addPrizeIcon]',
-    prize.prize_name,
-    '| image.url=',
-    imageUrl,
-    '| thumbnail_url=',
-    thumbnailUrl,
-    '| prize_image_url=',
-    prize.prize_image_url,
-    '| image对象=',
-    JSON.stringify(prize.image)
-  )
 
   /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */
   prize.is_fallback = !!prize.is_fallback
@@ -145,11 +162,15 @@ Component({
     prizes: [] as any[],
     /** 奖品列表（按稀有度降序排列 — 预览区使用，大奖前置利用锚定效应） */
     prizesForPreview: [] as any[],
+    /** 奖品预览区跑马灯是否启用（奖品数>4时启用，提升到父组件计算消除子组件双重渲染） */
+    previewMarquee: false,
+    /** 奖品预览区跑马灯动画时长（秒） */
+    previewMarqueeSpeed: 10,
     /** 活动配置 */
     config: null as any,
 
-    /** display配置解析后的字段（默认值对齐 DEFAULT_DISPLAY） */
-    displayMode: 'grid_3x3',
+    /** display配置解析后的字段（空字符串：API返回前不创建子组件，避免预创建错误模式） */
+    displayMode: '' as string,
     displayConfig: {} as any,
     effectTheme: 'default',
     rarityEffectsEnabled: false,
@@ -193,9 +214,15 @@ Component({
     /** 活动名称 */
     campaignName: '',
 
+    /**
+     * 保底UI总开关 — 暂时关闭，隐藏所有保底相关UI元素
+     * 后端保底引擎继续静默运行，不受此开关影响
+     * 恢复时改为读取: pity_info.pity_enabled（后端 config 接口已返回）
+     */
+    showPityUI: false,
     /** 保底（Pity）信息 — 对应后端 config 接口的 pity_info 字段（决策10：精确语义命名） */
     pityInfo: null as any,
-    /** 是否触发保底砸金蛋（current_pity >= guarantee_threshold） */
+    /** 是否触发保底砸金蛋（current_pity >= guarantee_threshold，受 showPityUI 控制） */
     showGuaranteeEgg: false,
     /** 保底金蛋状态：idle/shaking/cracked */
     guaranteeEggState: 'idle' as string,
@@ -221,6 +248,19 @@ Component({
 
     detached() {
       this._currentCampaign = null
+      this._isInitializing = false
+    }
+  },
+
+  /**
+   * 页面生命周期钩子 — 处理Tab切换回前台场景
+   * 组件不会被销毁重建，仅在页面重新显示时同步积分余额
+   */
+  pageLifetimes: {
+    show() {
+      if (this._currentCampaign && !this.data.loading) {
+        this._syncPointsBalance()
+      }
     }
   },
 
@@ -250,6 +290,10 @@ Component({
     /**
      * 初始化活动 - 加载配置和奖品
      * 前置校验: 认证状态检查，未登录时显示友好提示而非触发API报错
+     *
+     * 并发守卫: _isInitializing 标记防止多次并发初始化（Tab快速切换场景）
+     * 超时保护: 30秒未完成自动恢复，避免 loading 永久卡住
+     *
      * @param campaignCode 活动标识
      */
     async initActivity(campaignCode: string) {
@@ -258,7 +302,24 @@ Component({
         return
       }
 
+      /* 并发初始化守卫：上一次 initActivity 还在执行中，跳过本次 */
+      if (this._isInitializing) {
+        log.warn('[lottery-activity] initActivity 正在执行中，跳过重复调用:', campaignCode)
+        return
+      }
+      this._isInitializing = true
+
       this.setData({ loading: true, loadError: '' })
+
+      /* 30秒超时保护：防止 API 挂起导致 loading 永远为 true */
+      const INIT_TIMEOUT_MS = 30000
+      const initTimeoutTimer = setTimeout(() => {
+        if (this._isInitializing) {
+          log.error('[lottery-activity] initActivity 超时（30秒），强制恢复:', campaignCode)
+          this._isInitializing = false
+          this.setData({ loading: false, loadError: '加载超时，请下拉刷新重试' })
+        }
+      }, INIT_TIMEOUT_MS)
 
       try {
         /* 并行加载配置和奖品 */
@@ -303,6 +364,9 @@ Component({
           .map(addPrizeIcon)
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
 
+        /* 预下载所有奖品图片到本地临时路径（去重，全部完成后一次性渲染，消除闪烁） */
+        await predownloadPrizeImages(allPrizes)
+
         /* grid 固定8格需要截取，wheel等模式动态渲染全部奖品 */
         const prizes = display.mode === 'grid_3x3' ? allPrizes.slice(0, 8) : allPrizes
 
@@ -319,20 +383,34 @@ Component({
         /* 生成主题 CSS 变量内联样式（全局统一主题，同时包含 --theme-* 和 --shelf-* 变量） */
         const themeStyle = GlobalTheme.getGlobalThemeStyle(display.effect_theme)
 
-        /* 后端原始 draw_buttons 全量数组（含单抽，用于积分判断） */
-        const rawDrawButtons = config.draw_buttons || []
-        /* 将后端 draw_buttons 转换为 draw-buttons 组件所需的渲染格式（仅连抽） */
-        const drawButtons = this._transformDrawButtons(rawDrawButtons)
-
-        const currentSize = this.properties.size || 'full'
         /** 后端 config 接口返回 pity_info（决策10：精确语义命名） */
         const pityData = config.pity_info || null
 
+        /* 后端原始 draw_buttons 全量数组（含单抽，用于积分判断） */
+        const rawDrawButtons = config.draw_buttons || []
+        /* 将后端 draw_buttons 转换为 draw-buttons 组件所需的渲染格式（仅连抽，showGuarantee 受 pity_enabled 控制） */
+        const drawButtons = this._transformDrawButtons(rawDrawButtons, pityData)
+
+        const currentSize = this.properties.size || 'full'
+
+        /* 预计算跑马灯参数（与 prizesForPreview 同帧下发，消除子组件 observer 二次渲染闪烁） */
+        const computedMarquee = prizesForPreview.length > 4
+        const computedMarqueeSpeed = computedMarquee
+          ? Math.max(prizesForPreview.length * 2.5, 8)
+          : 10
+
+        /**
+         * 两阶段渲染：消除 wx:if→wx:else 切换时的帧间空白
+         *
+         * 阶段1: 设置所有数据（displayMode/prizes/跑马灯等），子组件在加载遮罩背后预渲染
+         * 阶段2: 下一帧移除遮罩，此时子组件已完成首次渲染，用户看到无缝切换
+         */
         this.setData({
-          loading: false,
           config,
           prizes,
           prizesForPreview,
+          previewMarquee: computedMarquee,
+          previewMarqueeSpeed: computedMarqueeSpeed,
           displayMode: display.mode,
           displayConfig: display,
           effectTheme: display.effect_theme,
@@ -352,15 +430,22 @@ Component({
           showGuaranteeEgg: this._checkGuaranteeReady(pityData)
         })
 
+        /* 阶段2: 等子组件完成首次渲染后再移除加载遮罩 */
+        await new Promise<void>(resolve => {
+          wx.nextTick(() => {
+            resolve()
+          })
+        })
+        this.setData({ loading: false })
+
         /* 读取用户积分余额（从pointsStore） */
         this._syncPointsBalance()
-
-        /* 通过 wx.downloadFile 预下载奖品图片到本地临时路径，绕过 <image> 组件真机 404 */
-        downloadPrizeImages(prizes, 'prizes', this)
-        downloadPrizeImages(prizesForPreview, 'prizesForPreview', this)
       } catch (err) {
         log.error('[lottery-activity] 初始化失败:', err)
         this.setData({ loading: false, loadError: '网络异常，请重试' })
+      } finally {
+        clearTimeout(initTimeoutTimer)
+        this._isInitializing = false
       }
     },
 
@@ -396,8 +481,10 @@ Component({
      * @param remainingBalance 后端返回的 remaining_balance（扣除后的可用积分）
      */
     _updateBalanceAfterDraw(remainingBalance: number) {
-      /* 更新组件内部积分（用于组件内积分不足判断） */
-      this.setData({ pointsBalance: remainingBalance })
+      /* 仅值变化时更新组件内部积分，减少不必要的子组件重渲染 */
+      if (remainingBalance !== this.data.pointsBalance) {
+        this.setData({ pointsBalance: remainingBalance })
+      }
 
       /* 同步更新全局积分Store */
       const currentFrozen = pointsStore.frozenAmount || 0
@@ -422,13 +509,19 @@ Component({
     /**
      * 同步用户积分余额（从全局pointsStore读取）
      * 用于组件初始化和动画结束后同步最新余额
+     *
+     * 防闪烁优化：仅当值真正变化时才调用 setData，
+     * 避免触发子组件（egg/wheel 等）不必要的 diff 重渲染，
+     * 消除奖品预览区 marquee 动画中断和 <image> 白闪问题
      */
     _syncPointsBalance() {
       try {
-        const pointsBalance = pointsStore.availableAmount || 0
-        this.setData({ pointsBalance })
+        const latestBalance = pointsStore.availableAmount || 0
+        if (latestBalance !== this.data.pointsBalance) {
+          this.setData({ pointsBalance: latestBalance })
+        }
       } catch {
-        /* 获取失败时保持默认值0 */
+        /* 获取失败时保持当前值不变 */
       }
     },
 
@@ -616,7 +709,16 @@ Component({
         /* 通知父页面刷新积分显示（无论后端是否返回remaining_balance都触发） */
         this._notifyPointsChanged()
 
-        /* 🔧 优化用户体验：API调用完成后，延迟500ms解除按钮禁用
+        /* 更新保底进度（连抽后同步后端最新保底状态） */
+        const multiDrawPityData = result.data.pity_info
+        if (multiDrawPityData !== undefined) {
+          this.setData({
+            pityInfo: multiDrawPityData,
+            showGuaranteeEgg: this._checkGuaranteeReady(multiDrawPityData)
+          })
+        }
+
+        /* 优化用户体验：API调用完成后，延迟500ms解除按钮禁用
          * 用户可以边查看当前结果，边继续进行下一次抽奖 */
         setTimeout(() => {
           this.setData({
@@ -733,6 +835,17 @@ Component({
      * 子组件动画播放结束回调
      */
     onAnimationEnd(e: any) {
+      /* 预读积分余额，合并进同一次 setData 避免连续 diff 导致奖品预览区闪烁 */
+      let balancePatch: Record<string, number> = {}
+      try {
+        const latestBalance = pointsStore.availableAmount || 0
+        if (latestBalance !== this.data.pointsBalance) {
+          balancePatch = { pointsBalance: latestBalance }
+        }
+      } catch {
+        /* 获取失败时保持当前值不变 */
+      }
+
       /* 打地鼠模式：游戏结束，显示奖品结果 */
       if (this.data.displayMode === 'whack_mole') {
         const prizeData = e?.detail?.prizeData
@@ -745,23 +858,21 @@ Component({
               isMultiDraw: false,
               isError: false,
               gameStats: e?.detail?.gameStats || {}
-            }
+            },
+            ...balancePatch
           })
         } else {
-          this.setData({ isDrawing: false })
+          this.setData({ isDrawing: false, ...balancePatch })
         }
-        this._syncPointsBalance()
         return
       }
 
       /* 其他模式：标准流程 */
       this.setData({
         isDrawing: false,
-        showResult: true
+        showResult: true,
+        ...balancePatch
       })
-
-      /* 刷新积分余额 */
-      this._syncPointsBalance()
     },
 
     /**
@@ -817,9 +928,10 @@ Component({
      *   draw_count, discount, label, per_draw, total_cost, original_cost, saved_points
      *
      * @param rawButtons 后端返回的 draw_buttons 原始数组
+     * @param pityData 保底信息（用于判断是否显示"保底好礼"文案，受后端 pity_enabled 控制）
      * @returns 转换后的连抽按钮渲染数组
      */
-    _transformDrawButtons(rawButtons: any[]): any[] {
+    _transformDrawButtons(rawButtons: any[], pityData: any): any[] {
       if (!Array.isArray(rawButtons) || rawButtons.length === 0) {
         return []
       }
@@ -830,6 +942,9 @@ Component({
         5: 'five-btn',
         10: 'ten-btn special full-width'
       }
+
+      /** 保底功能是否由后端开启，且前端 showPityUI 开关为 true 时才显示保底文案 */
+      const isPityEnabled = this.data.showPityUI && pityData && pityData.pity_enabled === true
 
       return rawButtons
         .filter((btn: any) => btn.draw_count > 1) /* 过滤掉单抽 */
@@ -842,19 +957,24 @@ Component({
           saved_points: btn.saved_points,
           discount: btn.discount,
           per_draw: btn.per_draw,
-          /* 附加UI渲染属性 */
+          /* 附加UI渲染属性 — showGuarantee 受后端 pity_enabled 控制 */
           btnClass: btnClassMap[btn.draw_count] || 'multi-btn',
           fullWidth: btn.draw_count >= 10,
-          showGuarantee: btn.draw_count >= 10,
-          guaranteeText: btn.draw_count >= 10 ? '保底好礼' : ''
+          showGuarantee: isPityEnabled && btn.draw_count >= 10,
+          guaranteeText: isPityEnabled && btn.draw_count >= 10 ? '保底好礼' : ''
         }))
     },
 
     /**
      * 检查是否达到保底条件
+     * 前置条件: showPityUI 为 true 且 pity_enabled 为 true（由后端控制是否开启保底功能）
+     * showPityUI=false 时始终返回 false，保底砸金蛋不会显示
      */
     _checkGuaranteeReady(info: any): boolean {
-      if (!info) {
+      if (!this.data.showPityUI) {
+        return false
+      }
+      if (!info || !info.pity_enabled) {
         return false
       }
       return info.current_pity >= info.guarantee_threshold
@@ -898,7 +1018,8 @@ Component({
           /* 通知父页面刷新积分显示 */
           this._notifyPointsChanged()
 
-          /* 碎裂动画结束后弹出结果 */
+          /* 碎裂动画结束后弹出结果 — 使用后端返回的 pity_info 更新保底状态 */
+          const guaranteePityData = result.data.pity_info || null
           setTimeout(() => {
             this.setData({
               showResult: true,
@@ -909,8 +1030,8 @@ Component({
                 isGuarantee: true
               },
               guaranteeEggState: 'idle',
-              showGuaranteeEgg: false,
-              pityInfo: null
+              showGuaranteeEgg: this._checkGuaranteeReady(guaranteePityData),
+              pityInfo: guaranteePityData
             })
             this._syncPointsBalance()
           }, 1300)

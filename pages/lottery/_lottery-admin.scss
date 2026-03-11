@@ -1,4 +1,4 @@
-/* 抽奖页面 - 管理员功能条/审核记录/多活动插槽样式 - 从lottery.scss拆分 */
+/* 抽奖页面 - 管理员功能条（扫码核销+消费录入+审核详情）/审核记录/多活动插槽样式 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
@@ -8,32 +8,26 @@
  * 说明：
  * - 设计风格：现代简洁、操作明确、视觉层次清晰
 
-/* 🔴 管理员功能条容器 */
+/* 🔴 管理员功能条容器（三按钮：扫码核销 + 消费录入 + 审核详情） */
 .admin-scan-bar {
-  @include flex-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
   width: 100%;
   height: 120rpx;
-  padding: 0 40rpx;
+  padding: 0 20rpx;
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
   position: relative;
   margin-bottom: 20rpx;
 }
 
-/* 🔴 左侧：静态标签文字 */
-.admin-scan-label {
-  font-size: $font-size-md;
-  font-weight: bold;
-  color: $color-text-white;
-  letter-spacing: 2rpx;
-}
-
-/* 🔴 中间：扫一扫按钮 */
+/* 🔴 左侧：扫码核销按钮（扫描用户V2二维码 → 跳转消费录入页面） */
 .admin-scan-button {
   @include flex-center;
-  gap: 12rpx;
+  gap: 8rpx;
   background-color: $color-text-white;
-  padding: 20rpx 40rpx;
+  padding: 16rpx 28rpx;
   border-radius: 60rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -44,15 +38,45 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
-/* 🔴 扫一扫图标 */
+/* 🔴 扫码核销图标 */
 .scan-icon {
-  font-size: $font-size-xl;
+  font-size: $font-size-md;
   line-height: 1;
 }
 
-/* 🔴 扫一扫文字 */
+/* 🔴 扫码核销文字 */
 .scan-text {
-  font-size: $font-size-base;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $gradient-blue-start;
+  letter-spacing: 1rpx;
+}
+
+/* 🔴 中间：消费录入按钮（直接进入消费录入页面，手动填写） */
+.admin-consume-button {
+  @include flex-center;
+  gap: 8rpx;
+  background-color: $color-text-white;
+  padding: 16rpx 28rpx;
+  border-radius: 60rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.admin-consume-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+/* 🔴 消费录入图标 */
+.consume-icon {
+  font-size: $font-size-md;
+  line-height: 1;
+}
+
+/* 🔴 消费录入文字 */
+.consume-text {
+  font-size: 26rpx;
   font-weight: 600;
   color: $gradient-blue-start;
   letter-spacing: 1rpx;
@@ -62,7 +86,7 @@
 .admin-audit-button {
   @include flex-center;
   gap: 8rpx;
-  padding: 20rpx 32rpx;
+  padding: 16rpx 28rpx;
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 60rpx;
   border: 2rpx solid rgba(255, 255, 255, 0.5);
@@ -199,6 +223,7 @@
 
 /* 脉冲动画 - 柔和的呼吸效果?*/
 @keyframes auditPulse {
+
   0%,
   100% {
     transform: scale(1);
@@ -219,6 +244,7 @@
 
 /* 光晕脉冲动画 */
 @keyframes glowPulse {
+
   0%,
   100% {
     opacity: 0.3;
@@ -233,6 +259,7 @@
 
 /* 数字角标弹跳动画 */
 @keyframes numberBounce {
+
   0%,
   100% {
     transform: translateX(-50%) scale(1);

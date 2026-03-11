@@ -39,21 +39,11 @@ Component({
   observers: {
     'rarity, enabled'(rarity: string, enabled: boolean) {
       const safeRarity = VALID_RARITIES.includes(rarity) ? rarity : 'common'
-      /* enabled=false 时不添加任何class，让硬编码样式作为保底 */
-      this.setData({
-        rarityClass: enabled ? `rarity--${safeRarity}` : ''
-      })
-    }
-  },
-
-  lifetimes: {
-    attached() {
-      const { rarity, enabled } = this.properties
-      const safeRarity = VALID_RARITIES.includes(rarity) ? rarity : 'common'
-      /* enabled=false 时不添加任何class，让硬编码样式作为保底 */
-      this.setData({
-        rarityClass: enabled ? `rarity--${safeRarity}` : ''
-      })
+      const newClass = enabled ? `rarity--${safeRarity}` : ''
+      /* 值未变化时跳过 setData，避免父组件 diff 时级联触发大量子组件重渲染 */
+      if (newClass !== this.data.rarityClass) {
+        this.setData({ rarityClass: newClass })
+      }
     }
   },
 

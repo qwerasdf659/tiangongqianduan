@@ -55,9 +55,7 @@ interface DevelopmentConfig {
 interface LotteryBusinessConfig {
   enabled: boolean
   engineVersion: string
-  defaultStrategy: string
   supportMultipleDraw: boolean
-  enableGuarantee: boolean
 }
 
 /** 库存业务配置 */
@@ -130,10 +128,9 @@ const BASE_BUSINESS_CONFIG: BusinessConfig = {
   lottery: {
     enabled: true,
     engineVersion: '4.0.0',
-    defaultStrategy: 'basic_guarantee',
     /* 单抽消耗由后端API /lottery/campaigns/:code/config 的 per_draw_cost 字段决定 */
-    supportMultipleDraw: true,
-    enableGuarantee: true
+    /* 保底功能开关由后端 pity_info.pity_enabled 控制，前端不做本地配置 */
+    supportMultipleDraw: true
   },
   inventory: {
     enabled: true,

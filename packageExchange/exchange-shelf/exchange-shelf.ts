@@ -74,9 +74,6 @@ Component({
     premiumUnlockCost: 0,
     premiumValidityHours: 24,
 
-    /** 兑换订单面板（Phase 3：确认收货 + 评价） */
-    showExchangeOrders: false,
-
     /** 兑换确认弹窗（两个空间共用） */
     showShopConfirm: false,
     selectedShopProduct: null as any,
@@ -328,20 +325,6 @@ Component({
     onCloseShopResult() {
       shelfLog.info('关闭商品兑换结果弹窗')
       this.setData({ showShopResult: false, shopResultData: null })
-    },
-
-    /**
-     * 显示兑换订单面板（Phase 3：确认收货 + 评价）
-     */
-    onShowExchangeOrders() {
-      this.setData({ showExchangeOrders: true })
-    },
-
-    /**
-     * 关闭兑换订单面板
-     */
-    onCloseExchangeOrders() {
-      this.setData({ showExchangeOrders: false })
     },
 
     /**
