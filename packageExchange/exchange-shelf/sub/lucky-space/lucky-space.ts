@@ -62,9 +62,11 @@ Component({
     stockStatus: 'all',
     sortBy: 'sort_order',
 
-    /** 全部商品（用于前端筛选分页） */
+    /** 原始商品数据（API返回，筛选的数据源，不可被筛选覆盖） */
+    _sourceProducts: [] as any[],
+    /** 筛选后的商品（用于前端分页） */
     allProducts: [] as any[],
-    /** 当前页展示商品（筛选+分页后） */
+    /** 当前页展示商品（分页+瀑布流布局后） */
     filteredProducts: [] as any[],
 
     /** 分页 */
@@ -88,7 +90,7 @@ Component({
   lifetimes: {
     attached() {
       this.setData({
-        pageSize: LUCKY_PAGINATION.GRID_SIZE,
+        pageSize: LUCKY_PAGINATION.WATERFALL_SIZE,
         waterfallPageSize: LUCKY_PAGINATION.WATERFALL_SIZE
       })
       this.initData()
@@ -139,6 +141,7 @@ Component({
           const enrichedProducts = enrichProductDisplayFields(allLayoutProducts)
 
           this.setData({
+            _sourceProducts: enrichedProducts,
             allProducts: enrichedProducts,
             spaceStats: luckyStats,
             loading: false,
@@ -310,7 +313,7 @@ Component({
     /** 应用筛选条件（委托 utils/product-filter.ts） */
     _applyFilters() {
       const {
-        allProducts,
+        _sourceProducts,
         searchKeyword,
         currentFilter,
         categoryFilter,
@@ -321,7 +324,7 @@ Component({
       const costRangeOptions = this.properties.costRangeOptions as any[]
       const selectedRange = costRangeOptions[costRangeIndex] || {}
 
-      const filterResult = luckyProductFilter.applyProductFilters(allProducts, {
+      const filterResult = luckyProductFilter.applyProductFilters(_sourceProducts, {
         searchKeyword,
         currentFilter,
         categoryFilter,
@@ -334,7 +337,7 @@ Component({
       })
 
       const allFiltered = filterResult.filtered || []
-      this.setData({ allProducts: allFiltered })
+      this.setData({ allProducts: allFiltered, currentPage: 1, pageInputValue: '' })
       this._calculateTotalPages()
       this._loadCurrentPageProducts()
     },
