@@ -49,9 +49,11 @@ Page({
     // 多角色权限标识（从JWT Token中的role_level判断）
     // isMerchant = role_level >= 20（商家店员及以上，可访问消费录入、扫码核销）
     // isManager  = role_level >= 40（商家店长及以上）
-    // isAdmin    = role_level >= 100（管理员，可访问审批管理 - 后端console域限制）
+    // isReviewer = role_level >= 60（业务经理及以上，可访问审批管理 - 审核链多级审核人）
+    // isAdmin    = role_level >= 100（超级管理员，可批量审核 + 审核链配置）
     isMerchant: false,
     isManager: false,
+    isReviewer: false,
     isAdmin: false,
     roleLevel: 0,
 
@@ -444,10 +446,11 @@ Page({
 
     const isLoggedIn = userStore.isLoggedIn && !!userStore.accessToken
 
-    // 三级角色判断（基于JWT Token中的role_level字段）
+    // 四级角色判断（基于JWT Token中的role_level字段）
     const roleLevel = userInfo?.role_level || 0
     const isMerchant = roleLevel >= 20
     const isManager = roleLevel >= 40
+    const isReviewer = roleLevel >= 60
     const isAdmin = roleLevel >= 100
 
     this.setData({
@@ -456,6 +459,7 @@ Page({
       roleLevel,
       isMerchant,
       isManager,
+      isReviewer,
       isAdmin,
       totalPoints: pointsStore.availableAmount || 0
     })
@@ -465,6 +469,7 @@ Page({
       roleLevel,
       isMerchant,
       isManager,
+      isReviewer,
       isAdmin,
       userId: userInfo?.user_id,
       totalPoints: this.data.totalPoints
@@ -712,10 +717,10 @@ Page({
     })
   },
 
-  /** 跳转到审批管理页面（仅管理员 role_level>=100 可用，后端console域限制） */
+  /** 跳转到审批管理页面（业务经理 role_level>=60 及以上可用，后端路由 requireRoleLevel(60)） */
   goToAuditList() {
-    if (!this.data.isAdmin) {
-      showToast('需要管理员权限')
+    if (!this.data.isReviewer) {
+      showToast('需要业务经理及以上权限')
       return
     }
 

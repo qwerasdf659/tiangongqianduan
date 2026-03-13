@@ -18,7 +18,10 @@ const { API, Logger, Wechat, Utils } = require('../../utils/index')
 const exchangeOrdersLog = Logger.createLogger('exchange-orders-page')
 const { showToast } = Wechat
 
-/** 订单状态文案映射（后端权威字段 → 前端展示） */
+/**
+ * 订单状态文案映射（后端权威字段 → 前端展示）
+ * 数据库 ENUM 共9态（含 completed 历史兼容态），与后端 exchange_records.status 对齐
+ */
 const ORDER_STATUS_MAP: Record<string, { label: string; color: string; icon: string }> = {
   pending: { label: '待审核', color: '#FF9800', icon: '⏳' },
   approved: { label: '审核通过', color: '#2196F3', icon: '✓' },
@@ -27,7 +30,8 @@ const ORDER_STATUS_MAP: Record<string, { label: string; color: string; icon: str
   rated: { label: '已评价', color: '#9C27B0', icon: '⭐' },
   rejected: { label: '审核拒绝', color: '#F44336', icon: '✕' },
   refunded: { label: '已退款', color: '#607D8B', icon: '↩' },
-  cancelled: { label: '已取消', color: '#9E9E9E', icon: '—' }
+  cancelled: { label: '已取消', color: '#9E9E9E', icon: '—' },
+  completed: { label: '已完成', color: '#4CAF50', icon: '✓' }
 }
 
 /** 筛选Tab配置 */
@@ -154,7 +158,8 @@ Page({
       const result = await API.getExchangeRecords(targetPage, this.data.pageSize, statusFilter)
 
       if (result.success && result.data) {
-        const rawOrders = result.data.orders || result.data.records || result.data.items || []
+        /** 后端 QueryService.getUserOrders() 返回字段名为 orders（M1 适配） */
+        const rawOrders = result.data.orders || []
         const enrichedOrders = rawOrders.map((order: any) => this.enrichOrderDisplay(order))
 
         const mergedOrders = reset ? enrichedOrders : [...this.data.orders, ...enrichedOrders]
@@ -205,9 +210,17 @@ Page({
   /**
    * 丰富订单展示字段（后端snake_case → 前端展示辅助字段）
    * 以 _ 前缀标记为纯展示辅助字段，与后端业务字段区分
+   *
+   * M4 适配: 后端 item_snapshot 脱敏后结构为 { item_name, description, image_url }
+   *   - 取商品名用 .item_name（不是 .name）
+   *   - image_url 可能为 null（商品无图时），用占位图兜底
    */
   enrichOrderDisplay(order: any) {
-    const statusInfo = ORDER_STATUS_MAP[order.status] || { label: order.status, color: '#999', icon: '?' }
+    const statusInfo = ORDER_STATUS_MAP[order.status] || {
+      label: order.status,
+      color: '#999',
+      icon: '?'
+    }
     const itemSnapshot = order.item_snapshot || {}
     const orderNo = order.order_no || ''
 
@@ -216,20 +229,27 @@ Page({
       _statusLabel: statusInfo.label,
       _statusColor: statusInfo.color,
       _statusIcon: statusInfo.icon,
-      _productName: itemSnapshot.name || '兑换商品',
+      _productName: itemSnapshot.item_name || '兑换商品',
+      _productImage: itemSnapshot.image_url || '/images/default-product.png',
+      _hasProductImage: !!itemSnapshot.image_url,
       _payInfo: order.pay_amount ? `${order.pay_amount} ${order.pay_asset_code || ''}` : '',
       _createTime: order.created_at ? this.formatTime(order.created_at) : '',
       _shippedTime: order.shipped_at ? this.formatTime(order.shipped_at) : '',
       _receivedTime: order.received_at ? this.formatTime(order.received_at) : '',
-      _shortOrderNo: orderNo.length > 16 ? `${orderNo.slice(0, 8)}...${orderNo.slice(-4)}` : orderNo,
+      _approvedTime: order.approved_at ? this.formatTime(order.approved_at) : '',
+      _rejectedTime: order.rejected_at ? this.formatTime(order.rejected_at) : '',
+      _shortOrderNo:
+        orderNo.length > 16 ? `${orderNo.slice(0, 8)}...${orderNo.slice(-4)}` : orderNo,
       _canConfirmReceipt: order.status === 'shipped',
       _canRate: order.status === 'received',
+      _canCancel: order.status === 'pending',
       _isAutoConfirmed: order.auto_confirmed === true,
-      _ratingStars: order.rating ? '★'.repeat(order.rating) + '☆'.repeat(5 - order.rating) : ''
+      _ratingStars: order.rating ? '★'.repeat(order.rating) + '☆'.repeat(5 - order.rating) : '',
+      _statusDisplayName: order.status_display_name || statusInfo.label
     }
   },
 
-  /** 格式化时间（ISO8601 → MM-DD HH:mm） */
+  /** 格式化时间（后端返回 YYYY-MM-DD HH:mm:ss 北京时间 → MM-DD HH:mm） */
   formatTime(isoString: string): string {
     try {
       const date = Utils.safeParseDateString
@@ -326,6 +346,51 @@ Page({
     } catch (error: any) {
       exchangeOrdersLog.error('确认收货失败:', error)
       showToast(error.message || '确认收货失败，请稍后重试')
+    }
+  },
+
+  /**
+   * 取消订单（仅 pending 状态可取消，后端自动退还资产）
+   * POST /api/v4/backpack/exchange/orders/:order_no/cancel
+   */
+  onCancelOrder(e: any) {
+    const { order_no, product_name } = e.currentTarget.dataset
+
+    if (!order_no) {
+      showToast('订单号无效')
+      return
+    }
+
+    wx.showModal({
+      title: '取消订单',
+      content: `确认取消「${product_name || '商品'}」的兑换订单？取消后已扣除的资产将原路退还。`,
+      confirmText: '确认取消',
+      confirmColor: '#F44336',
+      cancelText: '再想想',
+      success: async (modalResult: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
+        if (!modalResult.confirm) {
+          return
+        }
+        await this.executeCancelOrder(order_no)
+      }
+    })
+  },
+
+  /** 执行取消订单请求 */
+  async executeCancelOrder(targetOrderNo: string) {
+    try {
+      const cancelResult = await API.cancelExchange(targetOrderNo)
+
+      if (cancelResult.success) {
+        exchangeOrdersLog.info('取消订单成功:', targetOrderNo)
+        showToast('订单已取消，资产已退还', 'success')
+        this.loadOrders(true)
+      } else {
+        throw new Error(cancelResult.message || '取消订单失败')
+      }
+    } catch (cancelError: any) {
+      exchangeOrdersLog.error('取消订单失败:', cancelError)
+      showToast(cancelError.message || '取消订单失败，请稍后重试')
     }
   },
 

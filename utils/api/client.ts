@@ -354,10 +354,16 @@ class APIClient {
     }
 
     if (statusCode === 503) {
-      log.error('服务不可用(503)')
+      const maintenanceCode: string = safeData.code || 'SERVICE_UNAVAILABLE'
+      log.error('服务不可用(503):', maintenanceCode)
+
+      if (maintenanceCode === 'SYSTEM_MAINTENANCE') {
+        this._showMaintenanceModal(safeData.message)
+      }
+
       throw this._createApiError(
         safeData.message || '服务暂时不可用，请稍后重试',
-        safeData.code || 'SERVICE_UNAVAILABLE',
+        maintenanceCode,
         statusCode
       )
     }
@@ -518,6 +524,27 @@ class APIClient {
     error.isAuthError = true
     error.code = 'SESSION_REPLACED'
     throw error
+  }
+
+  /**
+   * 系统维护模式提示（后端清档或数据管理操作期间）
+   * 后端返回 503 + code: SYSTEM_MAINTENANCE 时触发
+   * 使用静态标志防止并发请求导致多次弹窗
+   */
+  private static _maintenanceModalShown: boolean = false
+  _showMaintenanceModal(serverMessage?: string): void {
+    if (APIClient._maintenanceModalShown) {
+      return
+    }
+    APIClient._maintenanceModalShown = true
+    wx.showModal({
+      title: '系统维护中',
+      content: serverMessage || '系统正在进行数据维护，请稍后再试',
+      showCancel: false,
+      success: () => {
+        APIClient._maintenanceModalShown = false
+      }
+    })
   }
 
   /**

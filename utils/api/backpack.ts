@@ -149,6 +149,8 @@ async function getExchangeProducts(
     page_size?: number
     sort_by?: string | null
     sort_order?: string | null
+    /** 是否返回筛选维度聚合计数（C+++联动计数），后端交叉排除逻辑 */
+    with_counts?: boolean
   } = {}
 ) {
   const {
@@ -163,7 +165,8 @@ async function getExchangeProducts(
     page = 1,
     page_size = 20,
     sort_by = null,
-    sort_order = null
+    sort_order = null,
+    with_counts = false
   } = params
 
   const qs = buildQueryString({
@@ -178,7 +181,8 @@ async function getExchangeProducts(
     page,
     page_size,
     sort_by,
-    sort_order
+    sort_order,
+    with_counts: with_counts ? 'true' : null
   })
   return apiClient.request(`/backpack/exchange/items?${qs}`, { method: 'GET', needAuth: true })
 }

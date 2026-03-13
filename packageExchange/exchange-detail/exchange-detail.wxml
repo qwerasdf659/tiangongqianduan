@@ -1,7 +1,6 @@
 <!--
   兑换商品详情页 — 游戏商城风格轻量详情
-  当前阶段使用模拟数据展示，后续对接 API.getExchangeItemDetail
-
+  API: GET /api/v4/backpack/exchange/items/:exchange_item_id
   路由参数: exchange_item_id（exchange_items 表主键）
 -->
 
@@ -34,7 +33,7 @@
       binderror="onImageError" />
     <view wx:else class="ed-hero-fallback">
       <text class="ed-fallback-emoji">🎁</text>
-      <text class="ed-fallback-name">{{product.name}}</text>
+      <text class="ed-fallback-name">{{product.item_name}}</text>
     </view>
 
     <!-- 稀有度角标 -->
@@ -71,7 +70,7 @@
     </view>
 
     <!-- 名称 -->
-    <text class="ed-product-name">{{product.name}}</text>
+    <text class="ed-product-name">{{product.item_name}}</text>
 
     <!-- 价格区域 -->
     <view class="ed-price-section">
@@ -175,7 +174,7 @@
       <view class="ed-confirm-product">
         <image class="ed-confirm-img" src="{{product.image || '/images/default-product.png'}}" mode="aspectFill" />
         <view class="ed-confirm-product-info">
-          <text class="ed-confirm-product-name">{{product.name}}</text>
+          <text class="ed-confirm-product-name">{{product.item_name}}</text>
           <view class="ed-confirm-product-price">
             <text class="ed-confirm-price-num">{{product.cost_amount}}</text>
             <text class="ed-confirm-price-unit">{{product._priceLabel || '积分'}}</text>

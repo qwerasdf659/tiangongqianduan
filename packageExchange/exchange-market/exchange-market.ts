@@ -46,8 +46,7 @@ Component({
   data: {
     /** CSS 变量主题样式 */
     marketThemeStyle: '',
-    /** 挂单数据 */
-    products: [] as any[],
+    /** 挂单数据（服务端筛选结果） */
     filteredProducts: [] as any[],
     /** 筛选状态 */
     searchKeyword: '',

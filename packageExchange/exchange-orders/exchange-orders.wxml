@@ -100,6 +100,7 @@
         <!-- 商品信息 -->
         <view class="card-body">
           <view class="product-row">
+            <image class="product-thumb" src="{{item._productImage}}" mode="aspectFill" />
             <view class="product-info">
               <text class="product-name">{{item._productName}}</text>
               <text class="product-cost" wx:if="{{item._payInfo}}">消耗: {{item._payInfo}}</text>
@@ -112,13 +113,21 @@
               <view class="timeline-dot"></view>
               <text class="timeline-text">下单时间　{{item._createTime}}</text>
             </view>
+            <view class="timeline-item" wx:if="{{item._approvedTime}}">
+              <view class="timeline-dot dot-blue"></view>
+              <text class="timeline-text">审核通过　{{item._approvedTime}}</text>
+            </view>
             <view class="timeline-item" wx:if="{{item._shippedTime}}">
               <view class="timeline-dot dot-green"></view>
               <text class="timeline-text">发货时间　{{item._shippedTime}}</text>
             </view>
             <view class="timeline-item" wx:if="{{item._receivedTime}}">
-              <view class="timeline-dot dot-blue"></view>
+              <view class="timeline-dot dot-cyan"></view>
               <text class="timeline-text">收货时间　{{item._receivedTime}}</text>
+            </view>
+            <view class="timeline-item" wx:if="{{item._rejectedTime}}">
+              <view class="timeline-dot dot-red"></view>
+              <text class="timeline-text">拒绝时间　{{item._rejectedTime}}</text>
             </view>
           </view>
         </view>
@@ -136,13 +145,14 @@
         </view>
 
         <!-- 操作按钮区域 -->
-        <view class="card-actions" wx:if="{{item._canConfirmReceipt || item._canRate}}">
-          <view class="action-btn btn-confirm" wx:if="{{item._canConfirmReceipt}}" data-order_no="{{item.order_no}}"
-            data-product_name="{{item._productName}}" bindtap="onConfirmReceipt">
+        <view class="card-actions" wx:if="{{item._canConfirmReceipt || item._canRate || item._canCancel}}">
+          <view class="action-btn btn-cancel" wx:if="{{item._canCancel}}" data-order_no="{{item.order_no}}" data-product_name="{{item._productName}}" bindtap="onCancelOrder">
+            <text class="action-text">取消订单</text>
+          </view>
+          <view class="action-btn btn-confirm" wx:if="{{item._canConfirmReceipt}}" data-order_no="{{item.order_no}}" data-product_name="{{item._productName}}" bindtap="onConfirmReceipt">
             <text class="action-text">📦 确认收货</text>
           </view>
-          <view class="action-btn btn-rate" wx:if="{{item._canRate}}" data-order_no="{{item.order_no}}"
-            data-product_name="{{item._productName}}" bindtap="onOpenRating">
+          <view class="action-btn btn-rate" wx:if="{{item._canRate}}" data-order_no="{{item.order_no}}" data-product_name="{{item._productName}}" bindtap="onOpenRating">
             <text class="action-text">⭐ 去评价</text>
           </view>
         </view>

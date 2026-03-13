@@ -1,12 +1,18 @@
 /**
- * 幸运空间子组件 — 决策D12: 子组件自行管理筛选/分页状态
+ * 幸运空间子组件 — 服务端筛选 + 瀑布流布局
  *
- * 包含：瀑布流布局、搜索筛选、分页、商品数据加载
- * 后端API: GET /api/v4/backpack/exchange/items?space=lucky
+ * 筛选机制（C+++方案，对齐设计文档第六.3节）：
+ *   - 所有筛选/排序/搜索均通过 API 查询参数传递给后端
+ *   - 后端 QueryService.getMarketItems() 执行 WHERE / ORDER BY / LIMIT
+ *   - 不再在客户端内存中过滤商品数据
+ *   - 支持 with_counts=true 返回各维度聚合计数（交叉排除）
+ *
+ * 后端API: GET /api/v4/backpack/exchange/items?space=lucky&category=xxx&...
+ * 筛选配置API: GET /api/v4/system/config/product-filter
  *
  * @file packageExchange/exchange-shelf/sub/lucky-space/lucky-space.ts
- * @version 5.2.0
- * @since 2026-02-21
+ * @version 6.0.0
+ * @since 2026-03-14
  */
 
 const {
@@ -15,7 +21,6 @@ const {
   Constants: luckyConstants,
   Logger: luckyLogger,
   Waterfall: luckyWaterfall,
-  ProductFilter: luckyProductFilter,
   Utils: luckyUtils,
   ImageHelper: luckyImageHelper
 } = require('../../../../utils/index')
@@ -39,9 +44,9 @@ Component({
     viewMode: { type: String, value: 'grid' },
     /** 基础筛选项（后端下发） */
     basicFilters: { type: Array, value: [] },
-    /** 分类选项（后端下发） */
+    /** 分类选项（后端 product-filter API 下发，使用 category_code） */
     categoryOptions: { type: Array, value: [] },
-    /** 价格区间选项（后端下发） */
+    /** 价格区间选项（后端下发，统一 100/500/1000 区间） */
     costRangeOptions: { type: Array, value: [] },
     /** 库存状态选项（后端下发） */
     stockStatusOptions: { type: Array, value: [] },
@@ -53,7 +58,7 @@ Component({
     /** 加载状态 */
     loading: true,
 
-    /** 搜索和筛选状态 */
+    /** 搜索和筛选状态（变更后触发服务端请求） */
     searchKeyword: '',
     currentFilter: 'all',
     showAdvancedFilter: false,
@@ -62,14 +67,10 @@ Component({
     stockStatus: 'all',
     sortBy: 'sort_order',
 
-    /** 原始商品数据（API返回，筛选的数据源，不可被筛选覆盖） */
-    _sourceProducts: [] as any[],
-    /** 筛选后的商品（用于前端分页） */
-    allProducts: [] as any[],
-    /** 当前页展示商品（分页+瀑布流布局后） */
+    /** 当前页商品（服务端分页 + 瀑布流布局后） */
     filteredProducts: [] as any[],
 
-    /** 分页 */
+    /** 分页（服务端分页） */
     currentPage: 1,
     totalPages: 1,
     pageSize: 0,
@@ -84,7 +85,10 @@ Component({
     columnWidth: 0,
 
     /** 空间统计 */
-    spaceStats: { new_count: 0, avg_discount: 0, flash_deals: 0 }
+    spaceStats: { new_count: 0, avg_discount: 0, flash_deals: 0 },
+
+    /** 筛选维度聚合计数（后端 with_counts=true 返回） */
+    filtersCount: null as any
   },
 
   lifetimes: {
@@ -100,7 +104,7 @@ Component({
   methods: {
     /**
      * 初始化幸运空间数据
-     * 后端API: GET /api/v4/backpack/exchange/items?space=lucky
+     * 并行请求商品列表和空间统计
      */
     async initData() {
       luckyLog.info('初始化幸运空间数据...')
@@ -112,22 +116,34 @@ Component({
         const waterfallPageSize = this.data.waterfallPageSize || LUCKY_PAGINATION.WATERFALL_SIZE
 
         const [response, statsResponse] = await Promise.all([
-          luckyGetExchangeProducts({ space: 'lucky', page: 1, page_size: waterfallPageSize }),
+          luckyGetExchangeProducts({
+            space: 'lucky',
+            page: 1,
+            page_size: waterfallPageSize,
+            with_counts: true
+          }),
           luckyGetExchangeSpaceStats('lucky')
         ])
 
         if (response && response.success && response.data) {
           const items = response.data.items || []
+          const pagination = response.data.pagination || {}
           luckyLog.info(`获取了 ${items.length} 个商品`)
 
           if (items.length < 1) {
-            this.setData({ allProducts: [], filteredProducts: [], loading: false })
+            this.setData({
+              filteredProducts: [],
+              loading: false,
+              totalProducts: 0,
+              totalPages: 1,
+              filtersCount: response.data.filters_count || null
+            })
             return
           }
 
           const waterfallProducts = this._convertToWaterfallData(items) || []
-          const layoutResult = this._calculateWaterfallLayout(waterfallProducts)
-          const allLayoutProducts = layoutResult.layoutProducts || []
+          const enrichedProducts = enrichProductDisplayFields(waterfallProducts)
+          const layoutResult = this._calculateWaterfallLayout(enrichedProducts)
 
           const luckyStats =
             statsResponse && statsResponse.success && statsResponse.data
@@ -138,11 +154,10 @@ Component({
                 }
               : { new_count: 0, avg_discount: 0, flash_deals: 0 }
 
-          const enrichedProducts = enrichProductDisplayFields(allLayoutProducts)
-
           this.setData({
-            _sourceProducts: enrichedProducts,
-            allProducts: enrichedProducts,
+            filteredProducts: layoutResult.layoutProducts || [],
+            containerHeight: layoutResult.containerHeight || 500,
+            columnHeights: layoutResult.columnHeights || [0, 0],
             spaceStats: luckyStats,
             loading: false,
             searchKeyword: '',
@@ -153,11 +168,11 @@ Component({
             sortBy: 'sort_order',
             showAdvancedFilter: false,
             currentPage: 1,
-            pageInputValue: ''
+            pageInputValue: '',
+            totalProducts: pagination.total || items.length,
+            totalPages: pagination.total_pages || 1,
+            filtersCount: response.data.filters_count || null
           })
-
-          this._calculateTotalPages()
-          this._loadCurrentPageProducts()
           luckyLog.info('幸运空间数据初始化完成')
         } else {
           luckyLog.info('API返回失败')
@@ -235,7 +250,8 @@ Component({
               is_limited: item.is_limited || false,
               has_warranty: item.has_warranty || false,
               free_shipping: item.free_shipping || false,
-              rarity_code: item.rarity_code || 'common'
+              rarity_code: item.rarity_code || 'common',
+              category: item.category || null
             }
           })
           .filter(Boolean)
@@ -245,16 +261,16 @@ Component({
       }
     },
 
-    /** 搜索输入处理（500ms防抖） */
+    /** 搜索输入处理（500ms防抖）→ 调用服务端筛选 */
     onSearchInput: luckyDebounce(function (this: any, e: any) {
       this.setData({ searchKeyword: e.detail.value.trim() })
-      this._applyFilters()
+      this._loadFilteredProducts()
     }, 500),
 
-    /** 基础筛选条件变更 */
+    /** 基础筛选条件变更 → 调用服务端筛选 */
     onFilterChange(e: any) {
       this.setData({ currentFilter: e.currentTarget.dataset.filter })
-      this._applyFilters()
+      this._loadFilteredProducts()
     },
 
     /** 切换高级筛选面板 */
@@ -262,31 +278,31 @@ Component({
       this.setData({ showAdvancedFilter: !this.data.showAdvancedFilter })
     },
 
-    /** 分类筛选变更 */
+    /** 分类筛选变更 → 调用服务端筛选 */
     onCategoryFilterChange(e: any) {
       this.setData({ categoryFilter: e.currentTarget.dataset.category })
-      this._applyFilters()
+      this._loadFilteredProducts()
     },
 
-    /** 价格区间筛选变更 */
+    /** 价格区间筛选变更 → 调用服务端筛选 */
     onCostRangeChange(e: any) {
       this.setData({ costRangeIndex: Number(e.currentTarget.dataset.index) || 0 })
-      this._applyFilters()
+      this._loadFilteredProducts()
     },
 
-    /** 排序方式变更 */
+    /** 排序方式变更 → 调用服务端筛选 */
     onSortByChange(e: any) {
       this.setData({ sortBy: e.currentTarget.dataset.sort })
-      this._applyFilters()
+      this._loadFilteredProducts()
     },
 
-    /** 库存状态筛选 */
+    /** 库存状态筛选 → 调用服务端筛选 */
     onStockStatusChange(e: any) {
       this.setData({ stockStatus: e.currentTarget.dataset.status })
-      this._applyFilters()
+      this._loadFilteredProducts()
     },
 
-    /** 重置所有筛选条件 */
+    /** 重置所有筛选条件 → 调用服务端筛选 */
     onResetFilters() {
       this.setData({
         searchKeyword: '',
@@ -297,82 +313,138 @@ Component({
         sortBy: 'sort_order',
         showAdvancedFilter: false
       })
-      this._applyFilters()
+      this._loadFilteredProducts()
       luckyShowToast('筛选已重置', 'success')
     },
 
     /** 按售价排序（外部调用） */
     sortByPrice() {
-      const sorted = [...(this.data.filteredProducts || [])].sort(
-        (a: any, b: any) => (a.cost_amount || 0) - (b.cost_amount || 0)
-      )
-      this.setData({ filteredProducts: sorted, sortBy: 'cost_amount_asc' })
+      this.setData({ sortBy: 'cost_amount_asc' })
+      this._loadFilteredProducts()
       luckyShowToast('已按售价升序排列', 'success')
     },
 
-    /** 应用筛选条件（委托 utils/product-filter.ts） */
-    _applyFilters() {
+    /**
+     * 核心方法：构建筛选参数并请求后端API
+     *
+     * 数据流:
+     *   用户操作筛选UI → setData更新筛选状态 → _loadFilteredProducts()
+     *   → 构建API参数 → GET /api/v4/backpack/exchange/items?space=lucky&...
+     *   → 后端 QueryService WHERE/ORDER BY → 返回筛选结果
+     *   → 瀑布流布局 → setData渲染
+     *
+     * @param page - 请求页码，默认重置到第1页
+     */
+    async _loadFilteredProducts(page: number = 1) {
       const {
-        _sourceProducts,
         searchKeyword,
-        currentFilter,
         categoryFilter,
         costRangeIndex,
         stockStatus,
-        sortBy
+        sortBy,
+        waterfallPageSize
       } = this.data
       const costRangeOptions = this.properties.costRangeOptions as any[]
       const selectedRange = costRangeOptions[costRangeIndex] || {}
 
-      const filterResult = luckyProductFilter.applyProductFilters(_sourceProducts, {
-        searchKeyword,
-        currentFilter,
-        categoryFilter,
-        costRangeMin: selectedRange.min ?? null,
-        costRangeMax: selectedRange.max ?? null,
-        stockStatus,
-        sortBy,
-        totalPoints: this.properties.pointsBalance,
-        priceField: 'cost_amount'
-      })
+      this.setData({ loading: true })
 
-      const allFiltered = filterResult.filtered || []
-      this.setData({ allProducts: allFiltered, currentPage: 1, pageInputValue: '' })
-      this._calculateTotalPages()
-      this._loadCurrentPageProducts()
+      try {
+        /* 构建后端API查询参数（对齐 QueryService 全部 12 个筛选参数） */
+        const apiParams: Record<string, any> = {
+          space: 'lucky',
+          page,
+          page_size: waterfallPageSize || LUCKY_PAGINATION.WATERFALL_SIZE,
+          with_counts: true
+        }
+
+        if (searchKeyword) {
+          apiParams.keyword = searchKeyword
+        }
+        if (categoryFilter && categoryFilter !== 'all') {
+          apiParams.category = categoryFilter
+        }
+
+        /* 价格区间：使用后端 cost_ranges 配置中的 min/max 值 */
+        if (selectedRange.min !== undefined && selectedRange.min !== null) {
+          apiParams.min_cost = selectedRange.min
+        }
+        if (selectedRange.max !== undefined && selectedRange.max !== null) {
+          apiParams.max_cost = selectedRange.max
+        }
+
+        if (stockStatus && stockStatus !== 'all') {
+          apiParams.stock_status = stockStatus
+        }
+
+        /* 排序参数拆分：后端接受 sort_by + sort_order 两个独立参数 */
+        if (sortBy && sortBy !== 'sort_order') {
+          if (sortBy === 'cost_amount_asc') {
+            apiParams.sort_by = 'cost_amount'
+            apiParams.sort_order = 'ASC'
+          } else if (sortBy === 'cost_amount_desc') {
+            apiParams.sort_by = 'cost_amount'
+            apiParams.sort_order = 'DESC'
+          } else if (sortBy === 'created_at_desc') {
+            apiParams.sort_by = 'created_at'
+            apiParams.sort_order = 'DESC'
+          } else if (sortBy === 'sold_count_desc') {
+            apiParams.sort_by = 'sold_count'
+            apiParams.sort_order = 'DESC'
+          }
+        }
+
+        const response = await luckyGetExchangeProducts(apiParams)
+
+        if (response && response.success && response.data) {
+          const items = response.data.items || []
+          const pagination = response.data.pagination || {}
+
+          if (items.length < 1) {
+            this.setData({
+              filteredProducts: [],
+              loading: false,
+              currentPage: page,
+              totalProducts: pagination.total || 0,
+              totalPages: pagination.total_pages || 1,
+              pageInputValue: '',
+              filtersCount: response.data.filters_count || null,
+              containerHeight: 200
+            })
+            return
+          }
+
+          const waterfallProducts = this._convertToWaterfallData(items) || []
+          const enrichedProducts = enrichProductDisplayFields(waterfallProducts)
+          const layoutResult = this._calculateWaterfallLayout(enrichedProducts)
+
+          this.setData({
+            filteredProducts: layoutResult.layoutProducts || [],
+            containerHeight: layoutResult.containerHeight || 500,
+            columnHeights: layoutResult.columnHeights || [0, 0],
+            loading: false,
+            currentPage: page,
+            totalProducts: pagination.total || items.length,
+            totalPages: pagination.total_pages || 1,
+            pageInputValue: '',
+            filtersCount: response.data.filters_count || null
+          })
+        } else {
+          this.setData({ loading: false })
+        }
+      } catch (error) {
+        luckyLog.error('筛选请求失败:', error)
+        this.setData({ loading: false })
+      }
     },
 
     /** pagination组件统一分页事件处理 */
     onPaginationChange(e: any) {
       const targetPage = e.detail.page
       if (targetPage !== this.data.currentPage) {
-        this.setData({ currentPage: targetPage, pageInputValue: '' })
-        this._loadCurrentPageProducts()
+        this.setData({ pageInputValue: '' })
+        this._loadFilteredProducts(targetPage)
       }
-    },
-
-    /** 计算总页数 */
-    _calculateTotalPages() {
-      const { allProducts, pageSize } = this.data
-      const products = allProducts || []
-      const totalPages = Math.max(1, Math.ceil(products.length / pageSize))
-      this.setData({ totalPages, totalProducts: products.length })
-    },
-
-    /** 加载当前页商品数据 */
-    _loadCurrentPageProducts() {
-      const { allProducts, currentPage, pageSize } = this.data
-      const products = allProducts || []
-      const startIndex = (currentPage - 1) * pageSize
-      const endIndex = Math.min(startIndex + pageSize, products.length)
-      const currentPageProducts = products.slice(startIndex, endIndex)
-
-      const layoutResult = this._calculateWaterfallLayout(currentPageProducts)
-      this.setData({
-        filteredProducts: layoutResult.layoutProducts || [],
-        containerHeight: layoutResult.containerHeight || 500,
-        columnHeights: layoutResult.columnHeights || [0, 0]
-      })
     },
 
     /** 涟漪效果（由父组件调用） */
@@ -405,7 +477,7 @@ Component({
 
     /**
      * 卡片按压涟漪效果
-     * 通过 boundingClientRect 计算触点相对坐标，更新 _rippleActive/_rippleX/_rippleY
+     * 通过 boundingClientRect 计算触点相对坐标
      */
     onCardTouchStart(e: any) {
       if (!this.properties.effects || !(this.properties.effects as any).ripple) {

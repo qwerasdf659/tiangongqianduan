@@ -79,6 +79,9 @@ Page({
     facetsData: null as any,
     facetsLoaded: false,
 
+    /** 筛选维度聚合计数（后端 with_counts=true 返回的 filters_count） */
+    filtersCount: null as any,
+
     /** 挂牌类型标签（前端UI常量） */
     kindTabs: [
       { key: '', label: '全部' },
@@ -144,7 +147,11 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const listingsParams: Record<string, any> = { page, limit: this.data.pageSize }
+      const listingsParams: Record<string, any> = {
+        page,
+        limit: this.data.pageSize,
+        with_counts: true
+      }
       if (this.data.filterListingKind) {
         listingsParams.listing_kind = this.data.filterListingKind
       }
@@ -219,7 +226,8 @@ Page({
           columnHeights: layoutResult.columnHeights,
           containerHeight: layoutResult.containerHeight,
           loading: false,
-          hasError: false
+          hasError: false,
+          filtersCount: listingsData.filters_count || null
         })
 
         marketLog.info(`加载完成 - ${layoutResult.layoutProducts.length}条挂单`)

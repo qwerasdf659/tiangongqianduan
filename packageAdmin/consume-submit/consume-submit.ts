@@ -320,9 +320,25 @@ Page({
       this.setData({ submitted: true })
 
       const resultData = submitResult.data || {}
+
+      /**
+       * 提交成功后展示审核链流程信息
+       * 后端在 ContentAuditEngine.submitForAudit() 中自动匹配审核链模板，
+       * 如果匹配到模板则创建审核链实例，响应中可能包含 chain_info 字段
+       */
+      const chainInfo = resultData.chain_info || resultData.approval_chain
+      let successMessage = `消费记录已提交！\n\n预计奖励积分：${resultData.points_to_award || '待审核'}分\n记录状态：${resultData.status_name || '待审核'}`
+
+      if (chainInfo && chainInfo.total_steps) {
+        successMessage += `\n\n审核流程：共${chainInfo.total_steps}步审核`
+        successMessage += `\n当前进度：第${chainInfo.current_step || 1}步`
+      } else {
+        successMessage += '\n\n已进入审核流程，审核通过后积分将自动发放给用户。'
+      }
+
       wx.showModal({
         title: '提交成功',
-        content: `消费记录已提交！\n\n预计奖励积分：${resultData.points_to_award || '待审核'}分\n记录状态：${resultData.status_name || '待审核'}\n\n管理员审核通过后，积分将自动发放给用户。`,
+        content: successMessage,
         showCancel: false,
         success: () => {
           setTimeout(() => {

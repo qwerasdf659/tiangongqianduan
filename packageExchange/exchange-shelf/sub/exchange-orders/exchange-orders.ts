@@ -25,7 +25,10 @@ const { API, Logger, Wechat, Utils } = require('../../../../utils/index')
 const ordersLog = Logger.createLogger('exchange-orders')
 const { showToast } = Wechat
 
-/** 订单状态文案映射（后端权威字段 → 前端展示） */
+/**
+ * 订单状态文案映射（后端权威字段 → 前端展示）
+ * 数据库 ENUM 共9态（含 completed 历史兼容态），与后端 exchange_records.status 对齐
+ */
 const ORDER_STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: '待审核', color: '#FF9800' },
   approved: { label: '审核通过', color: '#2196F3' },
@@ -34,7 +37,8 @@ const ORDER_STATUS_MAP: Record<string, { label: string; color: string }> = {
   rated: { label: '已评价', color: '#9C27B0' },
   rejected: { label: '审核拒绝', color: '#F44336' },
   refunded: { label: '已退款', color: '#607D8B' },
-  cancelled: { label: '已取消', color: '#9E9E9E' }
+  cancelled: { label: '已取消', color: '#9E9E9E' },
+  completed: { label: '已完成', color: '#4CAF50' }
 }
 
 /** 筛选Tab配置 */
@@ -112,11 +116,8 @@ Component({
         const result = await API.getExchangeRecords(page, this.data.pageSize, statusFilter)
 
         if (result.success && result.data) {
-          /**
-           * 后端响应字段: records（对应 exchange_records 表）
-           * ⚠️ 待后端实现 GET /api/v4/backpack/exchange/orders 后，以后端实际返回字段为准
-           */
-          const rawOrders = result.data.records || []
+          /** 后端 QueryService.getUserOrders() 返回字段名为 orders（M1 适配） */
+          const rawOrders = result.data.orders || []
           const enrichedOrders = rawOrders.map((order: any) => this.enrichOrderDisplay(order))
 
           const totalOrders = reset ? enrichedOrders : [...this.data.orders, ...enrichedOrders]
@@ -155,7 +156,7 @@ Component({
         ...order,
         _statusLabel: statusInfo.label,
         _statusColor: statusInfo.color,
-        _productName: itemSnapshot.name || '兑换商品',
+        _productName: itemSnapshot.item_name || '兑换商品',
         _payInfo: order.pay_amount ? `${order.pay_amount} ${order.pay_asset_code || ''}` : '',
         _createTime: order.created_at ? this.formatTime(order.created_at) : '',
         _shippedTime: order.shipped_at ? this.formatTime(order.shipped_at) : '',

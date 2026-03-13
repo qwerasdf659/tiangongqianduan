@@ -20,6 +20,7 @@
   transition:
     opacity 0.45s ease,
     transform 0.45s ease;
+
   &.entered {
     opacity: 1;
     transform: none;
@@ -33,6 +34,7 @@
   pointer-events: none;
   z-index: 0;
 }
+
 .atmo-star {
   position: absolute;
   width: 6rpx;
@@ -40,11 +42,13 @@
   border-radius: 50%;
   background: rgba(255, 215, 0, 0.45);
   animation: aFloat 6s ease-in-out infinite;
+
   &.a1 {
     top: 8%;
     left: 12%;
     animation-delay: 0s;
   }
+
   &.a2 {
     top: 22%;
     right: 8%;
@@ -53,11 +57,13 @@
     height: 4rpx;
     background: rgba(255, 255, 255, 0.35);
   }
+
   &.a3 {
     top: 55%;
     left: 6%;
     animation-delay: 1.6s;
   }
+
   &.a4 {
     top: 75%;
     right: 18%;
@@ -66,6 +72,7 @@
     height: 5rpx;
     background: rgba(186, 147, 255, 0.5);
   }
+
   &.a5 {
     top: 40%;
     left: 85%;
@@ -73,6 +80,7 @@
     width: 4rpx;
     height: 4rpx;
   }
+
   &.a6 {
     top: 15%;
     left: 50%;
@@ -81,6 +89,7 @@
     height: 3rpx;
     background: rgba(255, 255, 255, 0.3);
   }
+
   &.a7 {
     top: 65%;
     left: 35%;
@@ -89,6 +98,7 @@
     height: 5rpx;
     background: rgba(255, 165, 0, 0.4);
   }
+
   &.a8 {
     top: 88%;
     left: 70%;
@@ -114,13 +124,16 @@
   @include flex-between;
   margin-bottom: 24rpx;
 }
+
 .book-title-row {
   @include flex-align-center;
   gap: 10rpx;
 }
+
 .book-icon {
   font-size: 36rpx;
 }
+
 .book-title {
   font-size: 30rpx;
   font-weight: bold;
@@ -137,22 +150,26 @@
   padding: 8rpx 18rpx 8rpx 8rpx;
   border-radius: 40rpx;
 }
+
 .progress-ring-wrap {
   width: 56rpx;
   height: 56rpx;
 }
+
 .progress-ring {
   position: relative;
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
 }
+
 .ring-bg {
   position: absolute;
   inset: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
 }
+
 .ring-fill {
   position: absolute;
   inset: 0;
@@ -161,6 +178,7 @@
   -webkit-mask: radial-gradient(transparent 16rpx, #000 17rpx);
   transition: background 0.6s ease;
 }
+
 .ring-center {
   position: absolute;
   inset: 6rpx;
@@ -168,20 +186,24 @@
   background: rgba(30, 15, 74, 0.85);
   @include flex-center;
 }
+
 .ring-text {
   font-size: 24rpx;
   font-weight: bold;
   color: #ffd700;
   text-shadow: 0 0 8rpx rgba(255, 215, 0, 0.5);
 }
+
 .progress-label {
   display: flex;
   flex-direction: column;
 }
+
 .pl-main {
   font-size: 22rpx;
   color: rgba(255, 255, 255, 0.7);
 }
+
 .pl-sub {
   font-size: 18rpx;
   color: rgba(255, 255, 255, 0.4);
@@ -192,9 +214,11 @@
 .book-grid {
   display: grid;
   gap: 18rpx;
+
   &.cols-3 {
     grid-template-columns: repeat(3, 1fr);
   }
+
   &.cols-2 {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -244,14 +268,12 @@
 .gc-holo {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 215, 0, 0) 0%,
-    rgba(255, 215, 0, 0.08) 25%,
-    rgba(186, 147, 255, 0.1) 50%,
-    rgba(255, 215, 0, 0.08) 75%,
-    rgba(255, 215, 0, 0) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(255, 215, 0, 0) 0%,
+      rgba(255, 215, 0, 0.08) 25%,
+      rgba(186, 147, 255, 0.1) 50%,
+      rgba(255, 215, 0, 0.08) 75%,
+      rgba(255, 215, 0, 0) 100%);
   pointer-events: none;
 }
 
@@ -281,14 +303,12 @@
   left: -140%;
   width: 90%;
   height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.06) 45%,
-    rgba(255, 255, 255, 0.14) 50%,
-    rgba(255, 255, 255, 0.06) 55%,
-    transparent 65%
-  );
+  background: linear-gradient(105deg,
+      transparent 35%,
+      rgba(255, 255, 255, 0.06) 45%,
+      rgba(255, 255, 255, 0.14) 50%,
+      rgba(255, 255, 255, 0.06) 55%,
+      transparent 65%);
   animation: gcShine 5s ease-in-out infinite;
   pointer-events: none;
 }
@@ -310,6 +330,7 @@
     0 8rpx 32rpx rgba(0, 0, 0, 0.3),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.15);
 }
+
 .gc-new .gc-emoji {
   animation: emojiPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -329,26 +350,24 @@
   position: relative;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
 }
+
 .gc-back-deco {
   position: absolute;
   inset: 0;
   background:
-    repeating-linear-gradient(
-      45deg,
+    repeating-linear-gradient(45deg,
       transparent,
       transparent 16rpx,
       rgba(255, 255, 255, 0.03) 16rpx,
-      rgba(255, 255, 255, 0.03) 18rpx
-    ),
-    repeating-linear-gradient(
-      -45deg,
+      rgba(255, 255, 255, 0.03) 18rpx),
+    repeating-linear-gradient(-45deg,
       transparent,
       transparent 16rpx,
       rgba(255, 255, 255, 0.03) 16rpx,
-      rgba(255, 255, 255, 0.03) 18rpx
-    );
+      rgba(255, 255, 255, 0.03) 18rpx);
   pointer-events: none;
 }
+
 .gc-q {
   font-size: 52rpx;
   font-weight: bold;
@@ -356,12 +375,14 @@
   text-shadow: 0 2rpx 8rpx rgba(255, 255, 255, 0.08);
   z-index: 1;
 }
+
 .gc-back-no {
   font-size: 16rpx;
   color: rgba(255, 255, 255, 0.18);
   margin-top: 6rpx;
   z-index: 1;
 }
+
 .gc-back-shine {
   position: absolute;
   top: 0;
@@ -399,11 +420,13 @@
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s ease;
+
   &.show {
     pointer-events: auto;
     opacity: 1;
   }
 }
+
 .reveal-backdrop {
   position: absolute;
   inset: 0;
@@ -411,6 +434,7 @@
   -webkit-backdrop-filter: blur(8rpx);
   backdrop-filter: blur(8rpx);
 }
+
 .reveal-close-area {
   position: absolute;
   inset: 0;
@@ -424,6 +448,7 @@
   pointer-events: none;
   z-index: 2;
 }
+
 .rp {
   position: absolute;
   width: 10rpx;
@@ -433,42 +458,49 @@
   left: 50%;
   animation: rpExplode 1.2s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
 }
+
 .rp1 {
   background: #ffd700;
   animation-delay: 0s;
   --rx: -120rpx;
   --ry: -180rpx;
 }
+
 .rp2 {
   background: #ff6b6b;
   animation-delay: 0.05s;
   --rx: 140rpx;
   --ry: -160rpx;
 }
+
 .rp3 {
   background: #7b68ee;
   animation-delay: 0.1s;
   --rx: -160rpx;
   --ry: 40rpx;
 }
+
 .rp4 {
   background: #4caf50;
   animation-delay: 0.15s;
   --rx: 170rpx;
   --ry: 80rpx;
 }
+
 .rp5 {
   background: #ff9800;
   animation-delay: 0.2s;
   --rx: -80rpx;
   --ry: 200rpx;
 }
+
 .rp6 {
   background: #e91e63;
   animation-delay: 0.25s;
   --rx: 60rpx;
   --ry: -220rpx;
 }
+
 .rp7 {
   background: #00bcd4;
   animation-delay: 0.08s;
@@ -477,6 +509,7 @@
   width: 8rpx;
   height: 8rpx;
 }
+
 .rp8 {
   background: #ffd700;
   animation-delay: 0.12s;
@@ -485,6 +518,7 @@
   width: 7rpx;
   height: 7rpx;
 }
+
 .rp9 {
   background: #ff6b6b;
   animation-delay: 0.18s;
@@ -493,6 +527,7 @@
   width: 6rpx;
   height: 6rpx;
 }
+
 .rp10 {
   background: #ba93ff;
   animation-delay: 0.22s;
@@ -501,6 +536,7 @@
   width: 8rpx;
   height: 8rpx;
 }
+
 .rp11 {
   background: #ffc107;
   animation-delay: 0.06s;
@@ -509,6 +545,7 @@
   width: 6rpx;
   height: 6rpx;
 }
+
 .rp12 {
   background: #8bc34a;
   animation-delay: 0.16s;
@@ -529,11 +566,13 @@
     transform 0.7s cubic-bezier(0.25, 1.3, 0.5, 1),
     opacity 0.3s ease;
   opacity: 0;
+
   &.reveal-card-in {
     transform: scale(1) rotateY(0deg);
     opacity: 1;
   }
 }
+
 .reveal-glow {
   position: absolute;
   top: -40rpx;
@@ -545,6 +584,7 @@
   animation: revealGlow 2s ease-in-out infinite;
   pointer-events: none;
 }
+
 .rc-inner {
   width: 100%;
   height: 100%;
@@ -559,27 +599,28 @@
     0 0 40rpx rgba(255, 215, 0, 0.15),
     inset 0 2rpx 0 rgba(255, 255, 255, 0.15);
 }
+
 .rc-holo {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 215, 0, 0) 0%,
-    rgba(255, 215, 0, 0.1) 20%,
-    rgba(186, 147, 255, 0.15) 40%,
-    rgba(255, 215, 0, 0.05) 60%,
-    rgba(186, 147, 255, 0.1) 80%,
-    rgba(255, 215, 0, 0) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(255, 215, 0, 0) 0%,
+      rgba(255, 215, 0, 0.1) 20%,
+      rgba(186, 147, 255, 0.15) 40%,
+      rgba(255, 215, 0, 0.05) 60%,
+      rgba(186, 147, 255, 0.1) 80%,
+      rgba(255, 215, 0, 0) 100%);
   animation: holoShift 3s ease-in-out infinite;
   pointer-events: none;
 }
+
 .rc-emoji {
   font-size: 120rpx;
   filter: drop-shadow(0 8rpx 16rpx rgba(0, 0, 0, 0.4));
   z-index: 1;
   animation: rcEmojiBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
 }
+
 .rc-name {
   font-size: 34rpx;
   font-weight: bold;
@@ -589,23 +630,23 @@
   z-index: 1;
   animation: rcNameFade 0.5s ease 0.6s both;
 }
+
 .rc-shine {
   position: absolute;
   top: 0;
   left: -150%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.06) 42%,
-    rgba(255, 255, 255, 0.18) 50%,
-    rgba(255, 255, 255, 0.06) 58%,
-    transparent 70%
-  );
+  background: linear-gradient(105deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.06) 42%,
+      rgba(255, 255, 255, 0.18) 50%,
+      rgba(255, 255, 255, 0.06) 58%,
+      transparent 70%);
   animation: rcShine 3s ease-in-out infinite 0.8s;
   pointer-events: none;
 }
+
 .rc-tag {
   position: absolute;
   bottom: 16rpx;
@@ -626,17 +667,20 @@
   transition:
     opacity 0.4s ease 0.5s,
     transform 0.4s ease 0.5s;
+
   &.reveal-hint-in {
     opacity: 1;
     transform: none;
   }
 }
+
 .rh-main {
   font-size: 34rpx;
   font-weight: bold;
   color: #ffd700;
   text-shadow: 0 2rpx 12rpx rgba(255, 215, 0, 0.4);
 }
+
 .rh-sub {
   font-size: 22rpx;
   color: rgba(255, 255, 255, 0.5);
@@ -651,16 +695,19 @@
   margin-top: 24rpx;
   gap: 10rpx;
 }
+
 .draw-btn {
   position: relative;
   padding: 22rpx 72rpx;
   border-radius: 48rpx;
   overflow: hidden;
   transition: all 0.3s ease;
+
   &:active {
     transform: scale(0.93);
   }
 }
+
 .draw-btn-bg {
   position: absolute;
   inset: 0;
@@ -669,29 +716,35 @@
   animation: btnBgShift 4s ease-in-out infinite;
   border-radius: 48rpx;
 }
+
 .draw-btn-inner {
   position: relative;
   z-index: 1;
   @include flex-align-center;
   gap: 10rpx;
 }
+
 .draw-btn-icon {
   font-size: 30rpx;
 }
+
 .draw-btn-text {
   font-size: 30rpx;
   font-weight: bold;
   color: #fff;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
+
 /* 按钮忙碌 */
 .draw-btn-busy {
   opacity: 0.55;
   pointer-events: none;
+
   .draw-btn-icon {
     animation: spin 1s linear infinite;
   }
 }
+
 /* 集齐完成 */
 .draw-btn-done {
   .draw-btn-bg {
@@ -699,6 +752,7 @@
     animation: none;
   }
 }
+
 /* 闲置脉冲 */
 .draw-btn:not(.draw-btn-busy):not(.draw-btn-done) {
   box-shadow: 0 8rpx 28rpx rgba(123, 104, 238, 0.45);
@@ -709,6 +763,7 @@
   font-size: 22rpx;
   color: rgba(255, 255, 255, 0.55);
 }
+
 .cost-val {
   color: #ffd700;
   font-weight: bold;
@@ -729,16 +784,19 @@
   transform: scale(0.8);
   transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
+
   &.cc-done-show {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
   }
 }
+
 .done-emoji {
   font-size: 36rpx;
   animation: shake 2s ease-in-out infinite;
 }
+
 .done-text {
   font-size: 26rpx;
   font-weight: bold;
@@ -751,15 +809,18 @@
 
 /* 氛围星屑漂浮 */
 @keyframes aFloat {
+
   0%,
   100% {
     opacity: 0;
     transform: translateY(0) scale(0.6);
   }
+
   20% {
     opacity: 1;
     transform: translateY(-14rpx) scale(1);
   }
+
   80% {
     opacity: 0.5;
     transform: translateY(-28rpx) scale(0.8);
@@ -772,10 +833,12 @@
     opacity: 0;
     transform: scale(0.88) translateY(24rpx);
   }
+
   70% {
     opacity: 1;
     transform: scale(1.03) translateY(-4rpx);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -787,15 +850,18 @@
   0% {
     left: -140%;
   }
+
   35%,
   100% {
     left: 220%;
   }
 }
+
 @keyframes gcBackShine {
   0% {
     left: -100%;
   }
+
   40%,
   100% {
     left: 220%;
@@ -807,9 +873,11 @@
   0% {
     transform: scale(0.3) rotate(-20deg);
   }
+
   60% {
     transform: scale(1.25) rotate(5deg);
   }
+
   100% {
     transform: scale(1) rotate(0);
   }
@@ -821,6 +889,7 @@
     transform: translate(0, 0) scale(1);
     opacity: 1;
   }
+
   100% {
     transform: translate(var(--rx), var(--ry)) scale(0);
     opacity: 0;
@@ -829,11 +898,13 @@
 
 /* 揭晓卡片光晕 */
 @keyframes revealGlow {
+
   0%,
   100% {
     opacity: 0.4;
     transform: scale(0.95);
   }
+
   50% {
     opacity: 0.8;
     transform: scale(1.05);
@@ -842,10 +913,12 @@
 
 /* 全息偏移 */
 @keyframes holoShift {
+
   0%,
   100% {
     background-position: 0% 0%;
   }
+
   50% {
     background-position: 100% 100%;
   }
@@ -857,31 +930,37 @@
     opacity: 0;
     transform: scale(0) translateY(30rpx);
   }
+
   60% {
     opacity: 1;
     transform: scale(1.2) translateY(-8rpx);
   }
+
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
+
 /* 揭晓卡名称 */
 @keyframes rcNameFade {
   0% {
     opacity: 0;
     transform: translateY(16rpx);
   }
+
   100% {
     opacity: 1;
     transform: none;
   }
 }
+
 /* 揭晓卡流光 */
 @keyframes rcShine {
   0% {
     left: -150%;
   }
+
   40%,
   100% {
     left: 200%;
@@ -890,10 +969,12 @@
 
 /* 按钮背景流动 */
 @keyframes btnBgShift {
+
   0%,
   100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
@@ -901,10 +982,12 @@
 
 /* 按钮脉冲 */
 @keyframes btnPulse {
+
   0%,
   100% {
     box-shadow: 0 8rpx 28rpx rgba(123, 104, 238, 0.45);
   }
+
   50% {
     box-shadow: 0 12rpx 40rpx rgba(123, 104, 238, 0.65);
     transform: translateY(-2rpx);
@@ -916,9 +999,11 @@
   0% {
     transform: scale(0) rotate(-10deg);
   }
+
   60% {
     transform: scale(1.3) rotate(3deg);
   }
+
   100% {
     transform: scale(1) rotate(0);
   }
@@ -929,6 +1014,7 @@
   0% {
     transform: rotate(0);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -936,19 +1022,24 @@
 
 /* 摇晃 */
 @keyframes shake {
+
   0%,
   100% {
     transform: rotate(0) scale(1);
   }
+
   15% {
     transform: rotate(-10deg) scale(1.1);
   }
+
   30% {
     transform: rotate(10deg) scale(1.1);
   }
+
   45% {
     transform: rotate(-6deg);
   }
+
   60% {
     transform: rotate(6deg);
   }
@@ -994,6 +1085,9 @@
 .ccl-prizes__scroll {
   width: 100%;
   white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  contain: paint;
 }
 
 .ccl-prizes__list {

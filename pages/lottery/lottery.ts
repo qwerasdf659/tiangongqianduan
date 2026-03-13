@@ -64,6 +64,8 @@ Page({
     /* ===== 用户状态 ===== */
     isLoggedIn: false,
     isAdmin: false,
+    /** 业务经理及以上(role_level>=60)，可访问审批管理 */
+    isReviewer: false,
     pointsBalance: 0,
     frozenPoints: 0,
     userInfo: {},
@@ -180,47 +182,63 @@ Page({
       return
     }
 
-    this.setData({ loading: false })
-
     const userInfo = restoreUserInfo()
     if (!userInfo) {
       return
     }
 
+    /**
+     * 防闪烁核心优化：将 onShow 中所有同步 setData 合并为单次调用
+     *
+     * 原问题：onShow 中 4 处独立 setData（loading/状态批量/主题/二维码过期），
+     * 每次 setData 触发页面级 WXML 完整重新求值 → lottery-activity 子组件级联 diff
+     * → egg 奖品预览区 CSS marquee 动画帧被中断 → 用户看到短暂空白/白闪
+     *
+     * 修复：合并为单次 setData，仅包含真正变化的字段，一帧内完成所有更新
+     */
+    const onShowPatch: Record<string, any> = {}
+
+    if (this.data.loading) {
+      onShowPatch.loading = false
+    }
+    if (!this.data.isLoggedIn) {
+      onShowPatch.isLoggedIn = true
+    }
+
     const currentBalance = pointsStore.availableAmount || 0
     const currentFrozen = pointsStore.frozenAmount || 0
-
-    /**
-     * 防闪烁优化：合并为单次 setData，仅包含真正变化的字段
-     * 避免多次 setData 触发页面级 WXML 多次求值 → lottery-activity 子组件级联重渲染
-     * → egg 奖品预览区 marquee 动画中断 / <image> 白闪
-     */
-    const showBatchUpdate: Record<string, any> = {}
-    if (!this.data.isLoggedIn) {
-      showBatchUpdate.isLoggedIn = true
-    }
     if (currentBalance !== this.data.pointsBalance) {
-      showBatchUpdate.pointsBalance = currentBalance
-      showBatchUpdate.pointsClass = getPointsDisplayClass(currentBalance)
-      showBatchUpdate.pointsBalanceFormatted = Utils.formatPoints(currentBalance)
+      onShowPatch.pointsBalance = currentBalance
+      onShowPatch.pointsClass = getPointsDisplayClass(currentBalance)
+      onShowPatch.pointsBalanceFormatted = Utils.formatPoints(currentBalance)
     }
     if (currentFrozen !== this.data.frozenPoints) {
-      showBatchUpdate.frozenPoints = currentFrozen
-      showBatchUpdate.frozenClass = getPointsDisplayClass(currentFrozen)
-      showBatchUpdate.frozenPointsFormatted = Utils.formatPoints(currentFrozen)
+      onShowPatch.frozenPoints = currentFrozen
+      onShowPatch.frozenClass = getPointsDisplayClass(currentFrozen)
+      onShowPatch.frozenPointsFormatted = Utils.formatPoints(currentFrozen)
     }
     if (userInfo !== this.data.userInfo) {
-      showBatchUpdate.userInfo = userInfo
-    }
-    if (Object.keys(showBatchUpdate).length > 0) {
-      this.setData(showBatchUpdate)
+      onShowPatch.userInfo = userInfo
     }
 
-    /* 每次 onShow 重新检查全局主题（管理后台切换主题后生效） */
     const lotteryShowThemeName = ThemeCache.getThemeNameSync()
     const showThemeStyle = GlobalTheme.getGlobalThemeStyle(lotteryShowThemeName)
     if (showThemeStyle !== this.data.globalThemeStyle) {
-      this.setData({ globalThemeStyle: showThemeStyle })
+      onShowPatch.globalThemeStyle = showThemeStyle
+    }
+
+    /* V2动态码：从后台恢复时检查二维码是否过期（合并到同一次 setData） */
+    if (this.data.qrExpiresAt && Date.now() >= this.data.qrExpiresAt) {
+      if (this._qrTimer) {
+        clearInterval(this._qrTimer)
+      }
+      onShowPatch.qrCountdown = 0
+      onShowPatch.qrExpired = true
+      onShowPatch.qrCountdownText = '已过期'
+    }
+
+    if (Object.keys(onShowPatch).length > 0) {
+      this.setData(onShowPatch)
     }
     this.applyNativeThemeColors(lotteryShowThemeName)
 
@@ -230,17 +248,8 @@ Page({
       this.loadHomeAnnouncements()
     }
 
-    await this.loadConsumptionRecordsCount()
-    this.loadInventoryItemCount()
-    this.loadNotificationUnreadCount()
-
-    /* V2动态码：从后台恢复时检查二维码是否过期 */
-    if (this.data.qrExpiresAt && Date.now() >= this.data.qrExpiresAt) {
-      if (this._qrTimer) {
-        clearInterval(this._qrTimer)
-      }
-      this.setData({ qrCountdown: 0, qrExpired: true, qrCountdownText: '已过期' })
-    }
+    /* 并行加载角标计数（消费记录/仓库物品/通知未读），合并为单次 setData */
+    this._refreshBadgeCounts()
 
     /* 首次显示且尚未生成二维码时生成 */
     if (!this.data.qrCodeImage && this.data.userInfo?.user_id) {
@@ -865,16 +874,18 @@ Page({
   // 管理员功能
   // ========================================
 
-  /** 检查管理员角色 */
+  /** 检查用户角色等级 */
   checkAdminRole() {
     try {
       const userInfo = userStore.userInfo
-      // 管理员判断统一标准：role_level >= 100（对齐后端 authenticateToken）
-      const isAdmin = typeof userInfo?.role_level === 'number' && userInfo.role_level >= 100
-      this.setData({ isAdmin })
+      const roleLevel = typeof userInfo?.role_level === 'number' ? userInfo.role_level : 0
+      const isAdmin = roleLevel >= 100
+      const isReviewer = roleLevel >= 60
+
+      this.setData({ isAdmin, isReviewer })
     } catch (error) {
       log.error('[lottery] 权限检查失败:', error)
-      this.setData({ isAdmin: false })
+      this.setData({ isAdmin: false, isReviewer: false })
     }
   },
 
@@ -930,10 +941,10 @@ Page({
     })
   },
 
-  /** 跳转到审核详情页（管理员） */
+  /** 跳转到审核详情页（业务经理 role_level>=60 及以上） */
   onAuditTap() {
-    if (!this.data.isAdmin) {
-      showToast('无权限访问', 'none', 2000)
+    if (!this.data.isReviewer) {
+      showToast('需要业务经理及以上权限', 'none', 2000)
       return
     }
     wx.navigateTo({
@@ -948,6 +959,56 @@ Page({
   // ========================================
   // 审核记录弹窗
   // ========================================
+
+  /**
+   * 并行刷新角标计数（消费记录/仓库物品/通知未读），合并为单次 setData
+   *
+   * 防闪烁优化：替代 onShow 中三个独立的异步计数刷新，
+   * 避免三次独立 setData 触发页面级 WXML 重新求值 → 子组件级联 diff
+   *
+   * 数据流:
+   *   Promise.all([消费记录API, 仓库API, 通知API])
+   *   → 值比较过滤未变化字段
+   *   → 仅变化字段合并为单次 setData
+   */
+  async _refreshBadgeCounts() {
+    try {
+      const [recordsResult, statsResult, notifyResult] = await Promise.all([
+        API.getMyConsumptionRecords({ page: 1, page_size: 1, status: 'pending' }).catch(() => null),
+        API.getBackpackStats().catch(() => null),
+        API.getUserNotificationUnreadCount().catch(() => null)
+      ])
+
+      const badgePatch: Record<string, any> = {}
+
+      const latestRecordsCount = recordsResult?.success
+        ? recordsResult.data?.pagination?.total || 0
+        : this.data.auditRecordsCount
+      if (latestRecordsCount !== this.data.auditRecordsCount) {
+        badgePatch.auditRecordsCount = latestRecordsCount
+      }
+
+      const latestInventoryCount = statsResult?.success
+        ? statsResult.data?.total_items || 0
+        : this.data.inventoryItemCount
+      if (latestInventoryCount !== this.data.inventoryItemCount) {
+        badgePatch.inventoryItemCount = latestInventoryCount
+      }
+
+      const latestUnreadCount = notifyResult?.success
+        ? notifyResult.data?.unread_count || 0
+        : this.data.notificationUnreadCount
+      if (latestUnreadCount !== this.data.notificationUnreadCount) {
+        badgePatch.notificationUnreadCount = latestUnreadCount
+      }
+
+      if (Object.keys(badgePatch).length > 0) {
+        this.setData(badgePatch)
+      }
+    } catch (badgeError) {
+      log.warn('[lottery] 角标计数刷新失败（不影响主流程）:', badgeError)
+    }
+  },
 
   /** 加载仓库物品数量（徽章显示） */
   async loadInventoryItemCount() {

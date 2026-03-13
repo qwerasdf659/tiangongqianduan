@@ -311,6 +311,16 @@
   margin-bottom: $spacing-md;
 }
 
+/* 商品缩略图（item_snapshot.image_url） */
+.product-thumb {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $border-radius-md;
+  background: $color-bg-grey;
+  flex-shrink: 0;
+  margin-right: $spacing-md;
+}
+
 .product-info {
   flex: 1;
 }
@@ -359,6 +369,14 @@
 
 .dot-blue {
   background: $color-info;
+}
+
+.dot-cyan {
+  background: #00BCD4;
+}
+
+.dot-red {
+  background: $color-error;
 }
 
 .timeline-text {
@@ -426,6 +444,16 @@
 .btn-confirm {
   background: linear-gradient(135deg, #4CAF50, #66BB6A);
   box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.3);
+}
+
+.btn-cancel {
+  background: $color-white;
+  border: 1rpx solid $color-text-disabled;
+  box-shadow: none;
+
+  .action-text {
+    color: $color-text-secondary;
+  }
 }
 
 .btn-rate {

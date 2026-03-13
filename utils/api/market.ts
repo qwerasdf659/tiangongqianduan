@@ -82,6 +82,8 @@ async function getMarketProducts(
     min_price?: number | null
     max_price?: number | null
     sort?: string | null
+    /** 是否返回筛选维度聚合计数（C+++联动计数），后端交叉排除逻辑 */
+    with_counts?: boolean
   } = {}
 ) {
   const {
@@ -94,7 +96,8 @@ async function getMarketProducts(
     rarity_code = null,
     min_price = null,
     max_price = null,
-    sort = null
+    sort = null,
+    with_counts = false
   } = params
 
   const qs = buildQueryString({
@@ -107,7 +110,8 @@ async function getMarketProducts(
     rarity_code,
     min_price,
     max_price,
-    sort
+    sort,
+    with_counts: with_counts ? 'true' : null
   })
   return apiClient.request(`/market/listings?${qs}`, { method: 'GET', needAuth: true })
 }

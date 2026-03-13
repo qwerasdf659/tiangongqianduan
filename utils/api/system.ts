@@ -424,6 +424,28 @@ async function getAppThemeConfig() {
   })
 }
 
+/**
+ * 获取商品筛选配置（公开接口，无需登录）
+ * 后端API: GET /api/v4/system/config/product-filter
+ *
+ * system_configs 表读取 config_key='product_filter'
+ * 返回筛选维度: categories（分类列表）、cost_ranges（价格区间）、
+ *               sort_options（排序选项）、stock_statuses（库存状态选项）
+ *
+ * 分类数据源: category_defs 表（is_enabled=1），使用 category_code 而非中文名
+ * 价格区间: 统一为 100/500/1000 区间（已决策，以 product_filter 为准）
+ *
+ * 响应格式: { success, data: { categories, cost_ranges, sort_options, stock_statuses } }
+ */
+async function getProductFilterConfig() {
+  return apiClient.request('/system/config/product-filter', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
 module.exports = {
   getSystemGlobalConfig,
   getPlacementConfig,
@@ -447,5 +469,6 @@ module.exports = {
   getFeedbackConfig,
   getAppThemeConfig,
   getUserMe,
-  getActivities
+  getActivities,
+  getProductFilterConfig
 }

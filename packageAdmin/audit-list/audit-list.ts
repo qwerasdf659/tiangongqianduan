@@ -1,24 +1,58 @@
-// packageAdmin/audit-list/audit-list.ts - 审核列表页面（V5.3.0）+ MobX响应式状态
-// 核心功能：分页加载待审核记录 → 单条/批量审核通过或拒绝 → 刷新列表
+/**
+ * 审核管理页面（V6.0 审核链对接版）+ MobX响应式状态
+ *
+ * 双模式视图：
+ * - 「消费审核」标签页：传统消费记录审核（单条/批量），保持原有功能
+ * - 「我的待办」标签页：审核链分配给当前用户的待审核步骤
+ *
+ * 权限：business_manager(role_level>=60) 及以上可访问
+ *   - 消费审核：保持原有API（后端内部已集成审核链路由判断）
+ *   - 审核链步骤：通过 ApprovalChainService.processStep() 精确鉴权
+ *
+ * @file packageAdmin/audit-list/audit-list.ts
+ * @version 6.0.0
+ * @since 2026-03-14
+ */
 
-// 统一工具函数导入（通过 utils/index.ts 入口）
 const { API, Utils, Wechat, Logger } = require('../../utils/index')
-const log = Logger.createLogger('audit-list')
+const auditLog = Logger.createLogger('audit-list')
 const { checkAuth, formatPhoneNumber } = Utils
 const { showToast } = Wechat
 
-// MobX Store绑定 - 用户认证状态自动同步
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
+
+/** 审核链实例状态枚举（后端定义，前端展示用） */
+const CHAIN_STATUS_MAP: Record<string, string> = {
+  in_progress: '审核中',
+  completed: '已通过',
+  rejected: '已拒绝',
+  cancelled: '已取消',
+  timeout: '已超时'
+}
+
+/** 审核链步骤状态枚举 */
+const STEP_STATUS_MAP: Record<string, string> = {
+  waiting: '等待中',
+  pending: '待审核',
+  approved: '已通过',
+  rejected: '已拒绝',
+  skipped: '已跳过',
+  timeout: '已超时'
+}
+
+/** 业务类型中文映射 */
+const AUDITABLE_TYPE_MAP: Record<string, string> = {
+  consumption: '消费审核',
+  merchant_points: '商家积分审核',
+  exchange: '兑换审核'
+}
 
 /**
  * 从日期字符串中直接提取年月日时分秒（不依赖 new Date() 解析）
  *
- * 微信小程序的JS引擎对 ISO 8601 带时区偏移的字符串（如 "+08:00"）解析不可靠，
+ * 微信小程序的JS引擎对 ISO 8601 带时区偏移的字符串解析不可靠，
  * 使用正则直接提取数字分量，确保100%兼容所有运行环境。
- *
- * @param dateStr - 日期字符串（如 "2026-02-02T03:17:19+08:00" 或 "2026-02-02 03:17:19"）
- * @returns 中文格式时间（如 "2026年02月02日 03:17:19"），解析失败返回原始字符串
  */
 function extractDateParts(dateStr: string): string {
   if (!dateStr) {
@@ -42,75 +76,89 @@ function extractDateParts(dateStr: string): string {
   return dateStr
 }
 
-/**
- * 审核列表页面（管理员）
- *
- * 核心功能：
- * 1. 分页加载待审核消费记录列表（每页10条，页码水平导航）
- * 2. 单条审核通过/拒绝
- * 3. 批量勾选 → 批量审核通过/拒绝
- * 4. 下拉刷新
- */
 Page({
   data: {
-    // 列表数据
-    records: [] as any[],
+    // ===== 标签页切换 =====
+    /** 当前激活的标签页: 'consumption' = 消费审核, 'myPending' = 我的待办 */
+    activeTab: 'consumption' as 'consumption' | 'myPending',
 
-    // 分页参数
+    // ===== 消费审核（原有功能） =====
+    records: [] as any[],
     page: 1,
     page_size: 10,
     total: 0,
     total_pages: 0,
     pageNumbers: [] as number[],
-
-    // 页面状态
     loading: false,
-
-    // 批量选择
     selectedCount: 0,
     allSelected: false,
-
-    // 审核弹窗
-    selectedRecord: null,
+    selectedRecord: null as any,
     showRejectModal: false,
     rejectReason: '',
     submitting: false,
     batchRejectMode: false,
-
-    // 批量操作进度
     showBatchProgress: false,
     batchProgressText: '',
-    batchProgressDetail: ''
+    batchProgressDetail: '',
+
+    // ===== 审核链待办（新增功能） =====
+    /** 我的待审核步骤列表 */
+    pendingSteps: [] as any[],
+    /** 待办分页 */
+    pendingPage: 1,
+    pendingPageSize: 10,
+    pendingTotal: 0,
+    pendingTotalPages: 0,
+    pendingPageNumbers: [] as number[],
+    /** 待办加载状态 */
+    pendingLoading: false,
+    /** 当前操作的审核链步骤（用于拒绝弹窗） */
+    selectedStep: null as any,
+    /** 审核链拒绝弹窗 */
+    showChainRejectModal: false,
+    chainRejectReason: '',
+    chainSubmitting: false,
+
+    // ===== 审核链详情弹窗 =====
+    showChainDetailModal: false,
+    chainDetail: null as any,
+
+    // ===== 权限相关 =====
+    /** 当前用户角色等级 */
+    currentRoleLevel: 0,
+    /** 是否为admin（role_level>=100），admin可使用批量审核和传统消费审核 */
+    isAdminUser: false
   },
 
-  // MobX绑定实例引用（在onUnload中销毁）
   userBindings: null as any,
 
   onLoad(_options: any) {
-    log.info('审核列表页面加载')
+    auditLog.info('审核管理页面加载')
 
-    // MobX Store绑定 - 用户认证状态自动同步
     this.userBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn', 'userInfo', 'isAdmin', 'userRole'],
       actions: []
     })
 
-    // 权限验证：必须已登录
     if (!checkAuth()) {
-      log.error('用户未登录，跳转到登录页')
+      auditLog.error('用户未登录，跳转到登录页')
       return
     }
 
-    // 权限检查：仅管理员(role_level>=100)可访问审批功能
     const localUserInfo = userStore.userInfo || wx.getStorageSync('user_info')
     const localRoleLevel = localUserInfo?.role_level || 0
 
-    if (localRoleLevel < 100) {
-      log.error('用户无审批权限，role_level:', localRoleLevel)
+    /**
+     * 权限准入线: role_level >= 60 (business_manager及以上)
+     * 与后端路由 requireRoleLevel(60) 对齐
+     * 具体审核权限由 ApprovalChainService.processStep() 精确校验
+     */
+    if (localRoleLevel < 60) {
+      auditLog.error('用户无审核权限，role_level:', localRoleLevel)
       wx.showModal({
         title: '权限不足',
-        content: '您没有权限访问此页面，仅管理员可查看和审核消费记录。',
+        content: '您没有权限访问此页面，仅业务经理及以上角色可查看和审核消费记录。',
         showCancel: false,
         success: () => {
           wx.navigateBack()
@@ -119,17 +167,55 @@ Page({
       return
     }
 
-    this.loadPendingRecords(1)
+    const isAdminUser = localRoleLevel >= 100
+
+    this.setData({
+      currentRoleLevel: localRoleLevel,
+      isAdminUser
+    })
+
+    /**
+     * 初始加载策略:
+     * - admin(role_level>=100): 默认显示「消费审核」标签页（传统功能）
+     * - 非admin审核人(60<=role_level<100): 默认显示「我的待办」标签页（审核链）
+     */
+    if (isAdminUser) {
+      this.setData({ activeTab: 'consumption' })
+      this.loadPendingRecords(1)
+    } else {
+      this.setData({ activeTab: 'myPending' })
+      this.loadMyPendingSteps(1)
+    }
   },
 
-  // ==================== 数据加载 ====================
+  // ==================== 标签页切换 ====================
+
+  /** 切换标签页 */
+  onTabSwitch(e: any) {
+    const targetTab = e.currentTarget.dataset.tab as 'consumption' | 'myPending'
+    if (targetTab === this.data.activeTab) {
+      return
+    }
+
+    auditLog.info('切换标签页:', targetTab)
+    this.setData({ activeTab: targetTab })
+
+    if (targetTab === 'consumption') {
+      if (this.data.records.length === 0) {
+        this.loadPendingRecords(1)
+      }
+    } else if (targetTab === 'myPending') {
+      if (this.data.pendingSteps.length === 0) {
+        this.loadMyPendingSteps(1)
+      }
+    }
+  },
+
+  // ==================== 消费审核（原有功能，保持不变） ====================
 
   /**
    * 加载待审核消费记录列表
-   *
    * 调用后端API: GET /api/v4/console/consumption/pending
-   *
-   * @param targetPage - 目标页码（默认第1页）
    */
   async loadPendingRecords(targetPage: number = 1) {
     if (this.data.loading) {
@@ -139,7 +225,7 @@ Page({
     this.setData({ loading: true })
 
     try {
-      log.info('加载待审核记录，页码:', targetPage)
+      auditLog.info('加载待审核记录，页码:', targetPage)
 
       const apiResult = await API.getPendingConsumption({
         page: targetPage,
@@ -149,13 +235,12 @@ Page({
       if (apiResult?.success && apiResult.data) {
         const { records: apiRecords, pagination } = apiResult.data
 
-        log.info('待审核记录加载成功:', {
+        auditLog.info('待审核记录加载成功:', {
           count: apiRecords.length,
           page: pagination.page,
           total: pagination.total
         })
 
-        // 格式化时间 + 手机号脱敏 + 添加前端UI选择状态
         const formattedRecords = apiRecords.map((recordItem: any) => ({
           ...recordItem,
           created_at_formatted: this.formatBeijingTime(recordItem.created_at),
@@ -163,7 +248,6 @@ Page({
           selected: false
         }))
 
-        // 当前页无数据但总数>0（批量操作后可能出现），回退到第1页
         if (formattedRecords.length === 0 && pagination.total > 0) {
           this.setData({ loading: false })
           this.loadPendingRecords(1)
@@ -184,18 +268,15 @@ Page({
         throw new Error(apiResult?.message || '加载失败')
       }
     } catch (loadError: any) {
-      log.error('加载待审核记录失败:', loadError)
+      auditLog.error('加载待审核记录失败:', loadError)
       showToast(loadError.message || '加载失败')
     } finally {
       this.setData({ loading: false })
     }
   },
 
-  // ==================== 分页导航 ====================
+  // ==================== 消费审核分页导航 ====================
 
-  /**
-   * 计算分页页码数组（最多显示5个页码，当前页居中）
-   */
   computePageNumbers() {
     const localTotalPages = this.data.total_pages
     const localCurrentPage = this.data.page
@@ -220,7 +301,6 @@ Page({
     this.setData({ pageNumbers: computedNumbers })
   },
 
-  /** 点击页码跳转 */
   goToPage(e: any) {
     const targetPage = e.currentTarget.dataset.page
     if (targetPage === this.data.page) {
@@ -229,7 +309,6 @@ Page({
     this.loadPendingRecords(targetPage)
   },
 
-  /** 上一页 */
   goToPrevPage() {
     if (this.data.page <= 1) {
       return
@@ -237,7 +316,6 @@ Page({
     this.loadPendingRecords(this.data.page - 1)
   },
 
-  /** 下一页 */
   goToNextPage() {
     if (this.data.page >= this.data.total_pages) {
       return
@@ -245,9 +323,8 @@ Page({
     this.loadPendingRecords(this.data.page + 1)
   },
 
-  // ==================== 批量选择 ====================
+  // ==================== 消费审核批量选择 ====================
 
-  /** 切换单条记录选中状态 */
   toggleSelect(e: any) {
     const recordIndex = e.currentTarget.dataset.index
     const currentChecked = this.data.records[recordIndex].selected
@@ -259,7 +336,6 @@ Page({
     this.refreshSelectedCount()
   },
 
-  /** 全选/取消全选 */
   toggleSelectAll() {
     const newAllSelected = !this.data.allSelected
 
@@ -275,7 +351,6 @@ Page({
     })
   },
 
-  /** 重新统计已选数量和全选状态 */
   refreshSelectedCount() {
     const localSelectedCount = this.data.records.filter((r: any) => r.selected).length
     const localAllSelected =
@@ -287,9 +362,8 @@ Page({
     })
   },
 
-  // ==================== 批量审核通过 ====================
+  // ==================== 消费审核批量通过 ====================
 
-  /** 点击批量通过按钮 → 弹出确认框 */
   onBatchApprove() {
     const localCheckedRecords = this.data.records.filter((r: any) => r.selected)
     if (localCheckedRecords.length === 0) {
@@ -308,15 +382,6 @@ Page({
     })
   },
 
-  /**
-   * 执行批量审核通过
-   *
-   * 调用后端统一批量审核接口:
-   * POST /api/v4/console/consumption/batch-review
-   * Body: { record_ids, action: 'approve' }
-   *
-   * 响应: data.stats.success_count / failed_count / skipped_count
-   */
   async executeBatchApprove(batchApproveRecords: any[]) {
     this.setData({
       showBatchProgress: true,
@@ -354,7 +419,7 @@ Page({
       }
     } catch (batchError: any) {
       this.setData({ showBatchProgress: false, submitting: false })
-      log.error('批量审核通过失败:', batchError)
+      auditLog.error('批量审核通过失败:', batchError)
       showToast(batchError.message || '批量审核失败')
     }
 
@@ -363,9 +428,8 @@ Page({
     }, 1500)
   },
 
-  // ==================== 批量审核拒绝 ====================
+  // ==================== 消费审核批量拒绝 ====================
 
-  /** 点击批量拒绝按钮 → 打开拒绝原因弹窗（批量模式） */
   onBatchReject() {
     const localCheckedRecords = this.data.records.filter((r: any) => r.selected)
     if (localCheckedRecords.length === 0) {
@@ -380,15 +444,6 @@ Page({
     })
   },
 
-  /**
-   * 执行批量审核拒绝
-   *
-   * 调用后端统一批量审核接口:
-   * POST /api/v4/console/consumption/batch-review
-   * Body: { record_ids, action: 'reject', reason }
-   *
-   * 响应: data.stats.success_count / failed_count / skipped_count
-   */
   async executeBatchReject(batchRejectRecords: any[], rejectReasonText: string) {
     this.setData({
       showRejectModal: false,
@@ -440,7 +495,7 @@ Page({
         selectedRecord: null,
         rejectReason: ''
       })
-      log.error('批量拒绝失败:', batchError)
+      auditLog.error('批量拒绝失败:', batchError)
       showToast(batchError.message || '批量拒绝失败')
     }
 
@@ -449,17 +504,8 @@ Page({
     }, 1500)
   },
 
-  // ==================== 单条审核 ====================
+  // ==================== 消费审核单条操作 ====================
 
-  /**
-   * 格式化北京时间显示（兼容微信小程序JS引擎）
-   *
-   * 支持格式：
-   * 1. 对象 { iso, display } — 后端标准返回格式
-   * 2. ISO字符串 "2026-02-02T03:17:19+08:00"
-   * 3. 标准字符串 "2026-02-02 03:17:19"
-   * 4. Unix时间戳（毫秒）
-   */
   formatBeijingTime(dateTimeValue: any): string {
     if (!dateTimeValue) {
       return '时间未知'
@@ -483,16 +529,15 @@ Page({
 
       return extractDateParts(String(dateTimeValue))
     } catch (formatError: any) {
-      log.error('时间格式化失败:', formatError, '原始值:', dateTimeValue)
+      auditLog.error('时间格式化失败:', formatError, '原始值:', dateTimeValue)
       return typeof dateTimeValue === 'string' ? dateTimeValue : '时间未知'
     }
   },
 
-  /** 点击审核通过按钮 → 弹出确认框 */
   onApprove(e: any) {
     const approveTargetRecord = e.currentTarget.dataset.record
 
-    log.info('点击审核通过，记录:', approveTargetRecord)
+    auditLog.info('点击审核通过，记录:', approveTargetRecord)
 
     wx.showModal({
       title: '确认审核通过',
@@ -505,38 +550,33 @@ Page({
     })
   },
 
-  /**
-   * 处理单条审核通过
-   * 调用后端API: POST /api/v4/console/consumption/approve/:record_id
-   */
   async handleApprove(approveRecord: any) {
     this.setData({ submitting: true })
 
     try {
-      log.info('开始审核通过，记录ID:', approveRecord.record_id)
+      auditLog.info('开始审核通过，记录ID:', approveRecord.record_id)
 
       const approvalResult = await API.approveConsumption(approveRecord.record_id, {
         admin_notes: '核实无误，审核通过'
       })
 
-      log.info('审核通过成功:', approvalResult)
+      auditLog.info('审核通过成功:', approvalResult)
       showToast(approvalResult.message || '审核通过', 'success')
 
       setTimeout(() => {
         this.loadPendingRecords(this.data.page)
       }, 1500)
     } catch (approveError: any) {
-      log.error('审核通过失败:', approveError)
+      auditLog.error('审核通过失败:', approveError)
       showToast(approveError.message || '审核失败')
     } finally {
       this.setData({ submitting: false })
     }
   },
 
-  /** 点击审核拒绝按钮 → 打开拒绝原因弹窗（单条模式） */
   onReject(e: any) {
     const rejectTargetRecord = e.currentTarget.dataset.record
-    log.info('点击审核拒绝，记录:', rejectTargetRecord)
+    auditLog.info('点击审核拒绝，记录:', rejectTargetRecord)
 
     this.setData({
       selectedRecord: rejectTargetRecord,
@@ -546,15 +586,10 @@ Page({
     })
   },
 
-  /** 拒绝原因输入 */
   onRejectReasonInput(e: any) {
     this.setData({ rejectReason: e.detail.value })
   },
 
-  /**
-   * 确认审核拒绝（单条/批量共用）
-   * 根据 batchRejectMode 区分模式
-   */
   async confirmReject() {
     if (!this.data.rejectReason || this.data.rejectReason.trim().length < 5) {
       showToast('拒绝原因至少5个字符')
@@ -563,24 +598,22 @@ Page({
 
     const trimmedReason = this.data.rejectReason.trim()
 
-    // 批量拒绝模式：收集已勾选记录，调用批量执行
     if (this.data.batchRejectMode) {
       const batchSelectedRecords = this.data.records.filter((r: any) => r.selected)
       await this.executeBatchReject(batchSelectedRecords, trimmedReason)
       return
     }
 
-    // 单条拒绝模式
     this.setData({ submitting: true })
 
     try {
-      log.info('开始审核拒绝，记录ID:', this.data.selectedRecord.record_id)
+      auditLog.info('开始审核拒绝，记录ID:', this.data.selectedRecord.record_id)
 
       const rejectionResult = await API.rejectConsumption(this.data.selectedRecord.record_id, {
         admin_notes: trimmedReason
       })
 
-      log.info('审核拒绝成功:', rejectionResult)
+      auditLog.info('审核拒绝成功:', rejectionResult)
 
       this.setData({
         showRejectModal: false,
@@ -594,19 +627,329 @@ Page({
         this.loadPendingRecords(this.data.page)
       }, 1500)
     } catch (rejectError: any) {
-      log.error('审核拒绝失败:', rejectError)
+      auditLog.error('审核拒绝失败:', rejectError)
       showToast(rejectError.message || '拒绝失败')
     } finally {
       this.setData({ submitting: false })
     }
   },
 
+  // ==================== 审核链：我的待办 ====================
+
+  /**
+   * 加载当前用户的待审核步骤
+   * 调用后端API: GET /api/v4/console/approval-chain/my-pending
+   */
+  async loadMyPendingSteps(targetPage: number = 1) {
+    if (this.data.pendingLoading) {
+      return
+    }
+
+    this.setData({ pendingLoading: true })
+
+    try {
+      auditLog.info('加载我的待办步骤，页码:', targetPage)
+
+      const apiResult = await API.getMyPendingApprovalSteps({
+        page: targetPage,
+        page_size: this.data.pendingPageSize
+      })
+
+      if (apiResult?.success && apiResult.data) {
+        const stepsData = apiResult.data.steps || apiResult.data.records || apiResult.data || []
+        const pagination = apiResult.data.pagination || {
+          page: targetPage,
+          total: stepsData.length,
+          total_pages: 1
+        }
+
+        auditLog.info('待办步骤加载成功:', {
+          count: stepsData.length,
+          page: pagination.page,
+          total: pagination.total
+        })
+
+        const formattedSteps = stepsData.map((stepItem: any) => {
+          /**
+           * 业务快照预计算: WXML不支持 (a||b).field 链式访问，
+           * 在TS层合并 step.business_snapshot 和 instance.business_snapshot
+           */
+          const mergedSnapshot =
+            stepItem.business_snapshot ||
+            (stepItem.instance && stepItem.instance.business_snapshot) ||
+            {}
+
+          return {
+            ...stepItem,
+            created_at_formatted: this.formatBeijingTime(stepItem.created_at),
+            timeout_at_formatted: this.formatBeijingTime(stepItem.timeout_at),
+            auditable_type_text:
+              AUDITABLE_TYPE_MAP[stepItem.auditable_type] || stepItem.auditable_type || '未知类型',
+            status_text: STEP_STATUS_MAP[stepItem.status] || stepItem.status || '未知',
+            chain_status_text: stepItem.instance
+              ? CHAIN_STATUS_MAP[stepItem.instance.status] || stepItem.instance.status
+              : '',
+            step_progress: stepItem.instance
+              ? `第${stepItem.step_number || stepItem.instance?.current_step || '?'}步 / 共${stepItem.instance?.total_steps || '?'}步`
+              : '',
+            is_final_text: stepItem.is_final ? '终审' : '初审',
+            snapshot_consumption_amount: mergedSnapshot.consumption_amount || null,
+            snapshot_points_to_award: mergedSnapshot.points_to_award || null,
+            has_snapshot: !!(mergedSnapshot.consumption_amount || mergedSnapshot.points_to_award)
+          }
+        })
+
+        this.setData({
+          pendingSteps: formattedSteps,
+          pendingPage: pagination.page,
+          pendingTotal: pagination.total,
+          pendingTotalPages: pagination.total_pages
+        })
+
+        this.computePendingPageNumbers()
+      } else {
+        throw new Error(apiResult?.message || '加载失败')
+      }
+    } catch (loadError: any) {
+      auditLog.error('加载待办步骤失败:', loadError)
+      showToast(loadError.message || '加载待办失败')
+    } finally {
+      this.setData({ pendingLoading: false })
+    }
+  },
+
+  // ==================== 审核链分页导航 ====================
+
+  computePendingPageNumbers() {
+    const localTotalPages = this.data.pendingTotalPages
+    const localCurrentPage = this.data.pendingPage
+    const maxVisiblePages = 5
+
+    let computedNumbers: number[] = []
+
+    if (localTotalPages <= maxVisiblePages) {
+      computedNumbers = Array.from({ length: localTotalPages }, (_, idx) => idx + 1)
+    } else {
+      let startPage = Math.max(1, localCurrentPage - Math.floor(maxVisiblePages / 2))
+      let endPage = startPage + maxVisiblePages - 1
+
+      if (endPage > localTotalPages) {
+        endPage = localTotalPages
+        startPage = Math.max(1, endPage - maxVisiblePages + 1)
+      }
+
+      computedNumbers = Array.from({ length: endPage - startPage + 1 }, (_, idx) => startPage + idx)
+    }
+
+    this.setData({ pendingPageNumbers: computedNumbers })
+  },
+
+  goToPendingPage(e: any) {
+    const targetPage = e.currentTarget.dataset.page
+    if (targetPage === this.data.pendingPage) {
+      return
+    }
+    this.loadMyPendingSteps(targetPage)
+  },
+
+  goToPendingPrevPage() {
+    if (this.data.pendingPage <= 1) {
+      return
+    }
+    this.loadMyPendingSteps(this.data.pendingPage - 1)
+  },
+
+  goToPendingNextPage() {
+    if (this.data.pendingPage >= this.data.pendingTotalPages) {
+      return
+    }
+    this.loadMyPendingSteps(this.data.pendingPage + 1)
+  },
+
+  // ==================== 审核链步骤操作 ====================
+
+  /**
+   * 审核链步骤 — 通过
+   * 调用后端API: POST /api/v4/console/approval-chain/steps/:step_id/approve
+   */
+  onChainApprove(e: any) {
+    const approveStep = e.currentTarget.dataset.step
+
+    auditLog.info('审核链步骤通过，步骤:', approveStep)
+
+    const stepDetail = approveStep.instance
+      ? `\n业务类型：${AUDITABLE_TYPE_MAP[approveStep.auditable_type] || approveStep.auditable_type}`
+      : ''
+
+    const finalWarning = approveStep.is_final
+      ? '\n\n此步骤为终审，通过后业务将生效（如积分自动发放），此操作不可撤销。'
+      : '\n\n通过后将推进到下一步审核人。'
+
+    wx.showModal({
+      title: approveStep.is_final ? '确认终审通过' : '确认审核通过',
+      content: `审核步骤：${approveStep.is_final_text}${stepDetail}${finalWarning}`,
+      success: async (confirmResult: any) => {
+        if (confirmResult.confirm) {
+          await this.executeChainApprove(approveStep)
+        }
+      }
+    })
+  },
+
+  async executeChainApprove(approveStep: any) {
+    this.setData({ chainSubmitting: true })
+
+    try {
+      auditLog.info('执行审核链步骤通过，step_id:', approveStep.step_id)
+
+      const approvalResult = await API.approveApprovalStep(approveStep.step_id, {
+        reason: '核实无误，审核通过'
+      })
+
+      auditLog.info('审核链步骤通过成功:', approvalResult)
+      showToast(approvalResult.message || '审核通过', 'success')
+
+      setTimeout(() => {
+        this.loadMyPendingSteps(this.data.pendingPage)
+      }, 1500)
+    } catch (chainApproveError: any) {
+      auditLog.error('审核链步骤通过失败:', chainApproveError)
+      showToast(chainApproveError.message || '审核通过失败')
+    } finally {
+      this.setData({ chainSubmitting: false })
+    }
+  },
+
+  /**
+   * 审核链步骤 — 拒绝（打开拒绝原因弹窗）
+   */
+  onChainReject(e: any) {
+    const rejectStep = e.currentTarget.dataset.step
+    auditLog.info('审核链步骤拒绝，步骤:', rejectStep)
+
+    this.setData({
+      selectedStep: rejectStep,
+      showChainRejectModal: true,
+      chainRejectReason: ''
+    })
+  },
+
+  onChainRejectReasonInput(e: any) {
+    this.setData({ chainRejectReason: e.detail.value })
+  },
+
+  /**
+   * 确认审核链步骤拒绝
+   * 调用后端API: POST /api/v4/console/approval-chain/steps/:step_id/reject
+   */
+  async confirmChainReject() {
+    if (!this.data.chainRejectReason || this.data.chainRejectReason.trim().length < 5) {
+      showToast('拒绝原因至少5个字符')
+      return
+    }
+
+    const trimmedReason = this.data.chainRejectReason.trim()
+    this.setData({ chainSubmitting: true })
+
+    try {
+      auditLog.info('执行审核链步骤拒绝，step_id:', this.data.selectedStep.step_id)
+
+      const rejectionResult = await API.rejectApprovalStep(this.data.selectedStep.step_id, {
+        reason: trimmedReason
+      })
+
+      auditLog.info('审核链步骤拒绝成功:', rejectionResult)
+
+      this.setData({
+        showChainRejectModal: false,
+        selectedStep: null,
+        chainRejectReason: ''
+      })
+
+      showToast(rejectionResult.message || '已拒绝', 'success')
+
+      setTimeout(() => {
+        this.loadMyPendingSteps(this.data.pendingPage)
+      }, 1500)
+    } catch (chainRejectError: any) {
+      auditLog.error('审核链步骤拒绝失败:', chainRejectError)
+      showToast(chainRejectError.message || '拒绝失败')
+    } finally {
+      this.setData({ chainSubmitting: false })
+    }
+  },
+
+  cancelChainReject() {
+    this.setData({
+      showChainRejectModal: false,
+      selectedStep: null,
+      chainRejectReason: ''
+    })
+  },
+
+  // ==================== 审核链详情 ====================
+
+  /**
+   * 查看审核链实例详情（时间线）
+   * 调用后端API: GET /api/v4/console/approval-chain/instances/:id
+   */
+  async onViewChainDetail(e: any) {
+    const instanceId = e.currentTarget.dataset.instanceId
+    if (!instanceId) {
+      return
+    }
+
+    auditLog.info('查看审核链详情，instance_id:', instanceId)
+
+    try {
+      const detailResult = await API.getApprovalChainInstanceDetail(instanceId)
+
+      if (detailResult?.success && detailResult.data) {
+        const detailData = detailResult.data
+
+        const formattedDetail = {
+          ...detailData,
+          submitted_at_formatted: this.formatBeijingTime(detailData.submitted_at),
+          completed_at_formatted: detailData.completed_at
+            ? this.formatBeijingTime(detailData.completed_at)
+            : null,
+          status_text: CHAIN_STATUS_MAP[detailData.status] || detailData.status,
+          auditable_type_text:
+            AUDITABLE_TYPE_MAP[detailData.auditable_type] || detailData.auditable_type,
+          steps: (detailData.steps || []).map((stepItem: any) => ({
+            ...stepItem,
+            status_text: STEP_STATUS_MAP[stepItem.status] || stepItem.status,
+            actioned_at_formatted: stepItem.actioned_at
+              ? this.formatBeijingTime(stepItem.actioned_at)
+              : null,
+            timeout_at_formatted: stepItem.timeout_at
+              ? this.formatBeijingTime(stepItem.timeout_at)
+              : null
+          }))
+        }
+
+        this.setData({
+          chainDetail: formattedDetail,
+          showChainDetailModal: true
+        })
+      }
+    } catch (detailError: any) {
+      auditLog.error('加载审核链详情失败:', detailError)
+      showToast(detailError.message || '加载详情失败')
+    }
+  },
+
+  closeChainDetailModal() {
+    this.setData({
+      showChainDetailModal: false,
+      chainDetail: null
+    })
+  },
+
   // ==================== 弹窗控制 ====================
 
-  /** 阻止事件冒泡（弹窗内容区域，防止点击穿透到遮罩层） */
   stopPropagation() {},
 
-  /** 取消拒绝弹窗 */
   cancelReject() {
     this.setData({
       showRejectModal: false,
@@ -619,19 +962,25 @@ Page({
   // ==================== 生命周期 ====================
 
   onShow() {
-    log.info('审核列表页面显示')
+    auditLog.info('审核管理页面显示')
   },
 
-  /** 下拉刷新 → 重新加载第1页 */
   onPullDownRefresh() {
-    log.info('下拉刷新')
-    this.loadPendingRecords(1).finally(() => {
-      wx.stopPullDownRefresh()
-    })
+    auditLog.info('下拉刷新，当前标签页:', this.data.activeTab)
+
+    if (this.data.activeTab === 'consumption') {
+      this.loadPendingRecords(1).finally(() => {
+        wx.stopPullDownRefresh()
+      })
+    } else {
+      this.loadMyPendingSteps(1).finally(() => {
+        wx.stopPullDownRefresh()
+      })
+    }
   },
 
   onUnload() {
-    log.info('审核列表页面卸载')
+    auditLog.info('审核管理页面卸载')
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
     }

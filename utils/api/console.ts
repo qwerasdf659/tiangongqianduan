@@ -322,6 +322,156 @@ async function getAdminOnlineStatus(admin_ids: number[]) {
   })
 }
 
+// ==================== 🔗 审核链（Approval Chain） ====================
+
+/**
+ * 查询审核链实例列表
+ * 后端路由: GET /api/v4/console/approval-chain/instances
+ * 权限: business_manager(role_level>=60) 及以上
+ *
+ * 支持按 auditable_type（消费/商家积分）和 status（进行中/已完成/已拒绝）筛选
+ *
+ * @param params.auditable_type - 业务类型筛选（consumption / merchant_points）
+ * @param params.status - 实例状态筛选（in_progress / completed / rejected / cancelled / timeout）
+ * @param params.page - 页码（默认1）
+ * @param params.page_size - 每页数量（默认20）
+ */
+async function getApprovalChainInstances(
+  params: {
+    auditable_type?: string
+    status?: string
+    page?: number
+    page_size?: number
+  } = {}
+) {
+  const { page = 1, page_size = 20, auditable_type, status } = params
+  const qs = buildQueryString({
+    page,
+    page_size,
+    auditable_type: auditable_type || null,
+    status: status || null
+  })
+  return apiClient.request(`/console/approval-chain/instances?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载审核链...',
+    showError: true
+  })
+}
+
+/**
+ * 查询审核链实例详情（含完整步骤和审核历史）
+ * 后端路由: GET /api/v4/console/approval-chain/instances/:id
+ * 权限: business_manager(role_level>=60) 及以上
+ *
+ * 返回数据包含: 实例信息 + 所有步骤(steps) + 每步的审核人和操作记录
+ *
+ * @param instanceId - 审核链实例ID（instance_id）
+ */
+async function getApprovalChainInstanceDetail(instanceId: number) {
+  if (!instanceId) {
+    throw new Error('审核链实例ID不能为空')
+  }
+  if (!Number.isInteger(instanceId) || instanceId <= 0) {
+    throw new Error('审核链实例ID必须是正整数')
+  }
+
+  return apiClient.request(`/console/approval-chain/instances/${instanceId}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载详情...',
+    showError: true
+  })
+}
+
+/**
+ * 查询当前登录人的待审核步骤
+ * 后端路由: GET /api/v4/console/approval-chain/my-pending
+ * 权限: business_manager(role_level>=60) 及以上
+ *
+ * 后端按当前用户的 user_id 和 role_id 匹配待处理的审核步骤
+ * 返回: 步骤列表 + 关联的审核链实例和业务数据
+ */
+async function getMyPendingApprovalSteps(params: { page?: number; page_size?: number } = {}) {
+  const { page = 1, page_size = 20 } = params
+  const qs = buildQueryString({ page, page_size })
+  return apiClient.request(`/console/approval-chain/my-pending?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载待办...',
+    showError: true
+  })
+}
+
+/**
+ * 审核链步骤 — 审核通过
+ * 后端路由: POST /api/v4/console/approval-chain/steps/:id/approve
+ * 权限: business_manager(role_level>=60) 及以上（Service层精确鉴权：验证是否为该步骤的合法审核人）
+ *
+ * 通过后:
+ *   - 如果是终审(is_final=true): 整个审核链完成 → 触发业务回调（如积分发放）
+ *   - 如果不是终审: 推进到下一步审核人
+ *
+ * @param stepId - 审核步骤ID（step_id）
+ * @param params.reason - 审核意见（可选）
+ */
+async function approveApprovalStep(stepId: number, params: { reason?: string } = {}) {
+  if (!stepId) {
+    throw new Error('审核步骤ID不能为空')
+  }
+  if (!Number.isInteger(stepId) || stepId <= 0) {
+    throw new Error('审核步骤ID必须是正整数')
+  }
+
+  return apiClient.request(`/console/approval-chain/steps/${stepId}/approve`, {
+    method: 'POST',
+    data: { reason: params.reason || undefined },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '审核中...',
+    showError: true,
+    errorPrefix: '审核通过失败：'
+  })
+}
+
+/**
+ * 审核链步骤 — 审核拒绝
+ * 后端路由: POST /api/v4/console/approval-chain/steps/:id/reject
+ * 权限: business_manager(role_level>=60) 及以上（Service层精确鉴权）
+ *
+ * 拒绝后: 整个审核链标记为 rejected → 触发拒绝回调
+ *
+ * @param stepId - 审核步骤ID（step_id）
+ * @param params.reason - 拒绝原因（必填，至少5个字符）
+ */
+async function rejectApprovalStep(stepId: number, params: { reason: string }) {
+  if (!stepId) {
+    throw new Error('审核步骤ID不能为空')
+  }
+  if (!Number.isInteger(stepId) || stepId <= 0) {
+    throw new Error('审核步骤ID必须是正整数')
+  }
+  if (!params || !params.reason) {
+    throw new Error('拒绝原因不能为空')
+  }
+  if (params.reason.trim().length < 5) {
+    throw new Error('拒绝原因至少5个字符')
+  }
+
+  return apiClient.request(`/console/approval-chain/steps/${stepId}/reject`, {
+    method: 'POST',
+    data: { reason: params.reason },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '处理中...',
+    showError: true,
+    errorPrefix: '审核拒绝失败：'
+  })
+}
+
 module.exports = {
   getPendingConsumption,
   approveConsumption,
@@ -337,5 +487,10 @@ module.exports = {
   getAdminSessionStats,
   getAdminResponseStats,
   updateAdminOnlineStatus,
-  getAdminOnlineStatus
+  getAdminOnlineStatus,
+  getApprovalChainInstances,
+  getApprovalChainInstanceDetail,
+  getMyPendingApprovalSteps,
+  approveApprovalStep,
+  rejectApprovalStep
 }

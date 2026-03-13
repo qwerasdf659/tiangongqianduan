@@ -143,8 +143,8 @@
         </view>
       </view>
 
-      <!-- 审批管理 - 管理员(role_level>=100)可用 -->
-      <view class="mw-card" wx:if="{{isAdmin}}" bindtap="goToAuditList">
+      <!-- 审批管理 - 业务经理(role_level>=60)及以上可用（审核链多级审核人） -->
+      <view class="mw-card" wx:if="{{isReviewer}}" bindtap="goToAuditList">
         <view class="mw-card-icon-wrap mw-icon-audit">
           <text class="mw-card-icon">✅</text>
         </view>

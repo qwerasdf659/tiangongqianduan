@@ -848,6 +848,9 @@
 .egg-prizes {
   margin-top: 24rpx;
   padding: 0 16rpx;
+  /* 创建独立层叠上下文，隔离父组件 WXML diff 对预览区渲染的波及 */
+  position: relative;
+  z-index: 0;
 }
 
 .egg-prizes__header {
@@ -884,6 +887,9 @@
 .egg-prizes__scroll {
   width: 100%;
   overflow: hidden;
+  /* 创建独立合成层上下文，隔离父组件 setData 引起的样式重计算波及跑马灯动画 */
+  isolation: isolate;
+  contain: paint;
 }
 
 /* 滚动轨道：承载两份奖品列表，通过 translateX(-50%) 实现无缝循环 */
@@ -895,8 +901,8 @@
     animation: eggPrizeMarquee linear infinite;
     will-change: transform;
     /* 独立合成层：使用不与 animation transform 冲突的方式提升合成层 */
-    backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 }
 

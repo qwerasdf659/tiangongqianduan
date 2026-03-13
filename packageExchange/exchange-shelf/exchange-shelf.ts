@@ -124,25 +124,50 @@ Component({
   },
 
   methods: {
-    /** 初始化货架（加载配置 + 设置主题 + 初始化子组件） */
+    /**
+     * 初始化货架（加载配置 + 设置主题 + 初始化子组件）
+     *
+     * 筛选配置数据源（对齐设计文档决策1）：
+     *   - 空间配置: exchange-page 配置
+     *   - 商城筛选: product-filter 配置（权威来源，使用 category_defs.category_code）
+     *   - 降级: 如果 product-filter API 失败，回退到 exchange-page 的 shop_filters
+     */
     async _initShelf() {
       this.setData({
         shelfThemeStyle: shelfGlobalTheme.getGlobalThemeStyle(this.properties.theme)
       })
 
       try {
-        const config = await ExchangeConfig.ExchangeConfigCache.getConfig()
-        const shopFilters = config.shop_filters
+        const [config, productFilterResult] = await Promise.all([
+          ExchangeConfig.ExchangeConfigCache.getConfig(),
+          shelfAPI.getProductFilterConfig().catch((filterErr: any) => {
+            shelfLog.warn(
+              'product-filter 配置加载失败，将使用 exchange-page 配置降级:',
+              filterErr.message
+            )
+            return null
+          })
+        ])
+
+        /* 优先使用 product-filter API（权威来源，分类使用 category_defs.category_code） */
+        let filterConfig: any = null
+        if (productFilterResult && productFilterResult.success && productFilterResult.data) {
+          filterConfig = productFilterResult.data
+          shelfLog.info('使用 product-filter API 筛选配置')
+        } else {
+          filterConfig = config.shop_filters
+          shelfLog.info('降级使用 exchange-page shop_filters 配置')
+        }
 
         this.setData({
           spaceList: config.spaces
             .filter((s: any) => s.enabled)
             .sort((a: any, b: any) => a.sort_order - b.sort_order),
-          luckyBasicFilters: shopFilters.basic_filters || [],
-          categoryOptions: shopFilters.categories || [],
-          costRangeOptions: shopFilters.cost_ranges || [],
-          stockStatusOptions: shopFilters.stock_statuses || [],
-          sortByOptions: shopFilters.sort_options || [],
+          luckyBasicFilters: filterConfig.basic_filters || [],
+          categoryOptions: filterConfig.categories || [],
+          costRangeOptions: filterConfig.cost_ranges || [],
+          stockStatusOptions: filterConfig.stock_statuses || [],
+          sortByOptions: filterConfig.sort_options || [],
           loading: false
         })
 
