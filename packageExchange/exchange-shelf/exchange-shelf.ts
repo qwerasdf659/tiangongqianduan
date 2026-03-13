@@ -175,7 +175,7 @@ Component({
     enrichProductDisplayFields,
 
     /**
-     * 商品点击事件（打开兑换确认弹窗）
+     * 商品点击事件 → 跳转详情页
      * 后端字段: exchange_item_id（exchange_items 表主键）
      */
     onProductTap(e: any) {
@@ -183,16 +183,22 @@ Component({
       shelfLog.info('点击商品:', product)
 
       if (!product || !product.exchange_item_id) {
-        shelfLog.error('商品数据缺少 exchange_item_id（主键），无法兑换')
+        shelfLog.error('商品数据缺少 exchange_item_id（主键），无法跳转')
         wx.showToast({ title: '商品数据异常，请刷新页面重试', icon: 'none' })
         return
       }
 
-      this.setData({
-        selectedShopProduct: product,
-        showShopConfirm: true,
-        shopExchangeQuantity: 1,
-        shopExchanging: false
+      wx.navigateTo({
+        url: `/packageExchange/exchange-detail/exchange-detail?exchange_item_id=${product.exchange_item_id}`,
+        fail: (navError: any) => {
+          shelfLog.error('跳转详情页失败，降级为弹窗确认:', navError)
+          this.setData({
+            selectedShopProduct: product,
+            showShopConfirm: true,
+            shopExchangeQuantity: 1,
+            shopExchanging: false
+          })
+        }
       })
     },
 

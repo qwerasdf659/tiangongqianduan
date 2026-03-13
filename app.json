@@ -18,6 +18,7 @@
       "root": "packageExchange",
       "name": "exchange",
       "pages": [
+        "exchange-detail/exchange-detail",
         "exchange-orders/exchange-orders",
         "_placeholder/_placeholder"
       ]

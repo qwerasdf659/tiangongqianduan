@@ -1,0 +1,224 @@
+<!--
+  兑换商品详情页 — 游戏商城风格轻量详情
+  当前阶段使用模拟数据展示，后续对接 API.getExchangeItemDetail
+
+  路由参数: exchange_item_id（exchange_items 表主键）
+-->
+
+<!-- 加载状态 -->
+<view class="ed-loading" wx:if="{{loading}}">
+  <view class="ed-loading-spinner">
+    <view class="ed-spinner-dot ed-dot1"></view>
+    <view class="ed-spinner-dot ed-dot2"></view>
+    <view class="ed-spinner-dot ed-dot3"></view>
+  </view>
+  <text class="ed-loading-text">加载中...</text>
+</view>
+
+<!-- 错误状态 -->
+<view class="ed-error" wx:elif="{{hasError}}">
+  <text class="ed-error-icon">⚠️</text>
+  <text class="ed-error-msg">{{errorMessage}}</text>
+  <button class="ed-retry-btn" size="mini" bindtap="onGoBack">返回</button>
+</view>
+
+<!-- 详情主体 -->
+<view class="ed-container" wx:elif="{{product}}">
+
+  <!-- 顶部大图区域 -->
+  <view class="ed-hero-section {{product._rarityClass || ''}}">
+    <!-- 稀有度氛围光效（epic / legendary 触发） -->
+    <view class="ed-rarity-glow" wx:if="{{product._isLegendary}}"></view>
+
+    <image wx:if="{{product._hasImage}}" class="ed-hero-image" src="{{product.image}}" mode="aspectFill"
+      binderror="onImageError" />
+    <view wx:else class="ed-hero-fallback">
+      <text class="ed-fallback-emoji">🎁</text>
+      <text class="ed-fallback-name">{{product.name}}</text>
+    </view>
+
+    <!-- 稀有度角标 -->
+    <view class="ed-rarity-badge" wx:if="{{rarityStyle && product.rarity_code !== 'common'}}"
+      style="background-color: {{rarityStyle.colorHex}};">
+      <text>{{rarityStyle.displayName}}</text>
+    </view>
+  </view>
+
+  <!-- 标签区 -->
+  <view class="ed-tags-row" wx:if="{{product.is_hot || product.is_new || product.is_limited}}">
+    <view class="ed-tag ed-tag-hot" wx:if="{{product.is_hot}}">
+      <text>🔥 热门</text>
+    </view>
+    <view class="ed-tag ed-tag-limited" wx:if="{{product.is_limited}}">
+      <text>⏰ 限量</text>
+    </view>
+    <view class="ed-tag ed-tag-new" wx:if="{{product.is_new}}">
+      <text>🆕 新品</text>
+    </view>
+    <view class="ed-tag ed-tag-warranty" wx:if="{{product.has_warranty}}">
+      <text>🛡️ 保修</text>
+    </view>
+    <view class="ed-tag ed-tag-shipping" wx:if="{{product.free_shipping}}">
+      <text>📦 包邮</text>
+    </view>
+  </view>
+
+  <!-- 商品信息卡片 -->
+  <view class="ed-info-card">
+    <!-- 来源空间 -->
+    <view class="ed-space-label">
+      <text>{{product.space === 'premium' ? '臻选空间' : '幸运空间'}}</text>
+    </view>
+
+    <!-- 名称 -->
+    <text class="ed-product-name">{{product.name}}</text>
+
+    <!-- 价格区域 -->
+    <view class="ed-price-section">
+      <text class="ed-price-amount">{{product.cost_amount}}</text>
+      <text class="ed-price-unit">{{product._priceLabel || '积分'}}</text>
+      <view class="ed-original-price"
+        wx:if="{{product.original_price && product.original_price > product.cost_amount}}">
+        <text class="ed-original-value">{{product.original_price}}</text>
+        <text class="ed-discount-tag">省{{product.original_price - product.cost_amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 商品介绍卡片 -->
+  <view class="ed-desc-card" wx:if="{{product.description || product.sell_point}}">
+    <text class="ed-section-title">商品介绍</text>
+
+    <view class="ed-sell-point" wx:if="{{product.sell_point}}">
+      <text class="ed-sell-point-icon">✨</text>
+      <text class="ed-sell-point-text">{{product.sell_point}}</text>
+    </view>
+
+    <text class="ed-description" wx:if="{{product.description}}">{{product.description}}</text>
+  </view>
+
+  <!-- 商品属性卡片 -->
+  <view class="ed-attrs-card">
+    <text class="ed-section-title">商品信息</text>
+
+    <view class="ed-attrs-grid">
+      <view class="ed-attr-item">
+        <text class="ed-attr-value">{{product.stock}}</text>
+        <text class="ed-attr-label">库存</text>
+      </view>
+      <view class="ed-attr-item">
+        <text class="ed-attr-value">{{product.sold_count}}</text>
+        <text class="ed-attr-label">已售</text>
+      </view>
+      <view class="ed-attr-item" wx:if="{{product.category}}">
+        <text class="ed-attr-value">{{product.category}}</text>
+        <text class="ed-attr-label">分类</text>
+      </view>
+      <view class="ed-attr-item" wx:if="{{rarityStyle}}">
+        <text class="ed-attr-value" style="color: {{rarityStyle.colorHex}};">{{rarityStyle.displayName}}</text>
+        <text class="ed-attr-label">品质</text>
+      </view>
+    </view>
+
+    <!-- 库存进度条 -->
+    <view class="ed-stock-bar-wrap" wx:if="{{product.stock > 0 && product.sold_count > 0}}">
+      <view class="ed-stock-bar-bg">
+        <view class="ed-stock-bar-fill" style="width: {{stockPercent}}%;"></view>
+      </view>
+      <text class="ed-stock-bar-text">库存剩余 {{stockPercent}}%</text>
+    </view>
+  </view>
+
+  <!-- 标签云（后端 tags 字段） -->
+  <view class="ed-tags-card" wx:if="{{product.tags && product.tags.length > 0}}">
+    <text class="ed-section-title">商品标签</text>
+    <view class="ed-tag-cloud">
+      <view class="ed-cloud-tag" wx:for="{{product.tags}}" wx:key="*this">
+        <text>#{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部占位（防止被固定栏遮挡） -->
+  <view class="ed-bottom-spacer"></view>
+</view>
+
+<!-- 底部固定操作栏 -->
+<view class="ed-bottom-bar" wx:if="{{product && !loading && !hasError}}">
+  <view class="ed-balance-info">
+    <text class="ed-balance-label">{{product._priceLabel || '余额'}}</text>
+    <text class="ed-balance-value">{{currentBalance}}</text>
+  </view>
+  <view
+    class="ed-exchange-btn {{product.stock <= 0 ? 'ed-btn-soldout' : (balanceInsufficient ? 'ed-btn-disabled' : '')}}"
+    bindtap="onExchange">
+    <text wx:if="{{product.stock <= 0}}">已售罄</text>
+    <text wx:elif="{{balanceInsufficient}}">余额不足</text>
+    <text wx:else>立即兑换</text>
+  </view>
+</view>
+
+<!-- 兑换确认弹窗 -->
+<view class="ed-confirm-overlay" wx:if="{{showConfirm}}" bindtap="onCloseConfirm">
+  <view class="ed-confirm-modal" catchtap="">
+    <view class="ed-confirm-bar"></view>
+
+    <view class="ed-confirm-header">
+      <text class="ed-confirm-title">确认兑换</text>
+      <view class="ed-confirm-close" bindtap="onCloseConfirm">
+        <text>✕</text>
+      </view>
+    </view>
+
+    <view class="ed-confirm-body">
+      <!-- 商品简要 -->
+      <view class="ed-confirm-product">
+        <image class="ed-confirm-img" src="{{product.image || '/images/default-product.png'}}" mode="aspectFill" />
+        <view class="ed-confirm-product-info">
+          <text class="ed-confirm-product-name">{{product.name}}</text>
+          <view class="ed-confirm-product-price">
+            <text class="ed-confirm-price-num">{{product.cost_amount}}</text>
+            <text class="ed-confirm-price-unit">{{product._priceLabel || '积分'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 数量选择 -->
+      <view class="ed-confirm-row">
+        <text class="ed-confirm-label">兑换数量</text>
+        <view class="ed-qty-controls">
+          <view class="ed-qty-btn {{exchangeQuantity <= 1 ? 'ed-qty-off' : ''}}" data-action="decrease"
+            bindtap="onQuantityChange">
+            <text>−</text>
+          </view>
+          <text class="ed-qty-num">{{exchangeQuantity}}</text>
+          <view class="ed-qty-btn" data-action="increase" bindtap="onQuantityChange">
+            <text>+</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 合计 -->
+      <view class="ed-confirm-total-row">
+        <text class="ed-confirm-label">合计消耗</text>
+        <view class="ed-confirm-total-val">
+          <text class="ed-confirm-total-num">{{product.cost_amount * exchangeQuantity}}</text>
+          <text class="ed-confirm-total-unit">{{product._priceLabel || '积分'}}</text>
+        </view>
+      </view>
+
+      <!-- 余额 -->
+      <view class="ed-confirm-row">
+        <text class="ed-confirm-label">当前余额</text>
+        <text class="ed-confirm-balance">{{currentBalance}} {{product._priceLabel || '积分'}}</text>
+      </view>
+    </view>
+
+    <view class="ed-confirm-footer">
+      <view class="ed-confirm-cancel" bindtap="onCloseConfirm">取消</view>
+      <view class="ed-confirm-submit {{exchanging ? 'ed-submit-disabled' : ''}}" bindtap="onConfirmExchange">
+        {{exchanging ? '兑换中...' : '确认兑换'}}
+      </view>
+    </view>
+  </view>
+</view>

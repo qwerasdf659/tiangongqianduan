@@ -1,0 +1,761 @@
+/**
+ * 兑换商品详情页样式 — 游戏商城风格
+ *
+ * 设计要点:
+ *   1. 大图视觉冲击（带稀有度光效）
+ *   2. 信息卡片分层（白底 + 圆角 + 阴影）
+ *   3. 底部固定操作栏（余额 + 兑换按钮）
+ *   4. 所有 class 以 ed- 为前缀，避免全局冲突
+ */
+
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+/* ========== 加载 / 错误状态 ========== */
+
+.ed-loading {
+  @include flex-column-center;
+  min-height: 80vh;
+  gap: 24rpx;
+}
+
+.ed-loading-spinner {
+  display: flex;
+  gap: 8rpx;
+}
+
+.ed-spinner-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  animation: edBounce 1.4s infinite ease-in-out both;
+}
+
+.ed-dot1 { animation-delay: -0.32s; }
+.ed-dot2 { animation-delay: -0.16s; }
+.ed-dot3 { animation-delay: 0s; }
+
+@keyframes edBounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.ed-loading-text {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+.ed-error {
+  @include flex-column-center;
+  min-height: 80vh;
+  gap: 20rpx;
+}
+
+.ed-error-icon {
+  font-size: 80rpx;
+}
+
+.ed-error-msg {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+.ed-retry-btn {
+  @include btn-primary;
+  padding: 12rpx 40rpx !important;
+  font-size: $font-size-sm !important;
+}
+
+/* ========== 详情主体 ========== */
+
+.ed-container {
+  background: $color-bg;
+  min-height: 100vh;
+  padding-bottom: 160rpx;
+}
+
+/* ========== 顶部大图区域 ========== */
+
+.ed-hero-section {
+  position: relative;
+  width: 100%;
+  height: 520rpx;
+  background: linear-gradient(180deg, #e8eaf6 0%, #f5f5f5 100%);
+  overflow: hidden;
+}
+
+.ed-hero-section.rarity--legendary {
+  background: linear-gradient(180deg, #fff3e0 0%, #ffe0b2 40%, #f5f5f5 100%);
+}
+
+.ed-hero-section.rarity--epic {
+  background: linear-gradient(180deg, #f3e5f5 0%, #e1bee7 40%, #f5f5f5 100%);
+}
+
+.ed-hero-section.rarity--rare {
+  background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 40%, #f5f5f5 100%);
+}
+
+.ed-hero-section.rarity--uncommon {
+  background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 40%, #f5f5f5 100%);
+}
+
+.ed-rarity-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(255, 152, 0, 0.25) 0%,
+    rgba(255, 152, 0, 0.08) 40%,
+    transparent 70%
+  );
+  animation: edGlowPulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes edGlowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.ed-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+}
+
+.ed-hero-fallback {
+  width: 100%;
+  height: 100%;
+  @include flex-column-center;
+  gap: 16rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.ed-fallback-emoji {
+  font-size: 160rpx;
+  opacity: 0.7;
+  animation: edFloatBounce 3s ease-in-out infinite;
+}
+
+@keyframes edFloatBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16rpx); }
+}
+
+.ed-fallback-name {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  font-weight: 500;
+}
+
+.ed-rarity-badge {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  z-index: 5;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+
+  text {
+    display: block;
+  }
+}
+
+/* ========== 标签区 ========== */
+
+.ed-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  padding: 20rpx 28rpx 0;
+}
+
+.ed-tag {
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: $font-size-xs;
+  font-weight: 600;
+
+  text {
+    display: block;
+    white-space: nowrap;
+  }
+}
+
+.ed-tag-hot {
+  background: rgba(255, 77, 79, 0.1);
+  color: $color-error;
+}
+
+.ed-tag-limited {
+  background: rgba(255, 152, 0, 0.1);
+  color: #f57c00;
+}
+
+.ed-tag-new {
+  background: rgba(33, 150, 243, 0.1);
+  color: $color-info;
+}
+
+.ed-tag-warranty {
+  background: rgba(76, 175, 80, 0.1);
+  color: $color-success;
+}
+
+.ed-tag-shipping {
+  background: rgba(102, 126, 234, 0.1);
+  color: $gradient-blue-start;
+}
+
+/* ========== 信息卡片（名称 + 价格） ========== */
+
+.ed-info-card {
+  @include card-base;
+  margin: 20rpx 24rpx;
+  padding: 28rpx 32rpx;
+}
+
+.ed-space-label {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  margin-bottom: 16rpx;
+
+  text {
+    font-size: $font-size-xs;
+    color: $gradient-blue-start;
+    font-weight: 600;
+  }
+}
+
+.ed-product-name {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: 1.4;
+  margin-bottom: 20rpx;
+}
+
+.ed-price-section {
+  @include flex-align-center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.ed-price-amount {
+  font-size: 56rpx;
+  font-weight: 800;
+  background: linear-gradient(135deg, $color-primary, #f7931e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: $color-primary;
+  line-height: 1;
+}
+
+.ed-price-unit {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  font-weight: 500;
+  margin-top: 8rpx;
+}
+
+.ed-original-price {
+  @include flex-align-center;
+  gap: 8rpx;
+  margin-left: 8rpx;
+  margin-top: 8rpx;
+}
+
+.ed-original-value {
+  font-size: $font-size-sm;
+  color: $color-text-disabled;
+  text-decoration: line-through;
+}
+
+.ed-discount-tag {
+  font-size: 20rpx;
+  color: $color-error;
+  background: rgba(255, 77, 79, 0.08);
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  font-weight: 600;
+}
+
+/* ========== 商品介绍卡片 ========== */
+
+.ed-desc-card {
+  @include card-base;
+  margin: 0 24rpx 20rpx;
+  padding: 28rpx 32rpx;
+}
+
+.ed-section-title {
+  display: block;
+  font-size: $font-size-base;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: 20rpx;
+  padding-left: 16rpx;
+  border-left: 6rpx solid $gradient-blue-start;
+}
+
+.ed-sell-point {
+  @include flex-align-center;
+  gap: 8rpx;
+  padding: 16rpx 20rpx;
+  background: linear-gradient(135deg, #fffbf0, #fff8e6);
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+  border: 1rpx solid rgba(255, 152, 0, 0.15);
+}
+
+.ed-sell-point-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.ed-sell-point-text {
+  font-size: $font-size-sm;
+  color: #bf6c00;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ed-description {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.8;
+}
+
+/* ========== 商品属性卡片 ========== */
+
+.ed-attrs-card {
+  @include card-base;
+  margin: 0 24rpx 20rpx;
+  padding: 28rpx 32rpx;
+}
+
+.ed-attrs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.ed-attr-item {
+  @include flex-column-center;
+  padding: 20rpx 0;
+  background: $color-bg-grey;
+  border-radius: $border-radius-sm;
+}
+
+.ed-attr-value {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: 6rpx;
+}
+
+.ed-attr-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* 库存进度条 */
+
+.ed-stock-bar-wrap {
+  margin-top: 4rpx;
+}
+
+.ed-stock-bar-bg {
+  height: 12rpx;
+  background: $color-bg-grey;
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: 8rpx;
+}
+
+.ed-stock-bar-fill {
+  height: 100%;
+  border-radius: 6rpx;
+  background: linear-gradient(90deg, $color-success, #81c784);
+  transition: width 0.6s ease;
+}
+
+.ed-stock-bar-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* ========== 标签云卡片 ========== */
+
+.ed-tags-card {
+  @include card-base;
+  margin: 0 24rpx 20rpx;
+  padding: 28rpx 32rpx;
+}
+
+.ed-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.ed-cloud-tag {
+  padding: 8rpx 20rpx;
+  background: $color-bg-grey;
+  border-radius: 24rpx;
+  transition: background 0.2s;
+
+  text {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    font-weight: 500;
+  }
+}
+
+/* ========== 底部占位 ========== */
+
+.ed-bottom-spacer {
+  height: 40rpx;
+}
+
+/* ========== 底部固定操作栏 ========== */
+
+.ed-bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  @include flex-between;
+  background: $color-white;
+  padding: 16rpx 32rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  @include safe-area-bottom;
+}
+
+.ed-balance-info {
+  @include flex-column;
+  gap: 2rpx;
+}
+
+.ed-balance-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.ed-balance-value {
+  font-size: $font-size-lg;
+  font-weight: 800;
+  color: $color-text-primary;
+}
+
+.ed-exchange-btn {
+  @include flex-center;
+  min-width: 280rpx;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  box-shadow: 0 8rpx 28rpx rgba(102, 126, 234, 0.35);
+  transition: all 0.2s;
+
+  text {
+    font-size: $font-size-base;
+    font-weight: 700;
+    color: $color-text-white;
+    letter-spacing: 2rpx;
+  }
+}
+
+.ed-exchange-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+}
+
+.ed-btn-soldout {
+  background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.ed-btn-disabled {
+  background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+  box-shadow: none;
+  pointer-events: none;
+
+  text {
+    color: $color-text-tertiary;
+  }
+}
+
+/* ========== 兑换确认弹窗 ========== */
+
+.ed-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9998;
+  @include flex-center;
+  animation: edOverlayIn 0.2s ease;
+}
+
+@keyframes edOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ed-confirm-modal {
+  width: 88%;
+  max-width: 680rpx;
+  background: $color-bg-card;
+  border-radius: 28rpx;
+  overflow: hidden;
+  box-shadow:
+    0 24rpx 80rpx rgba(0, 0, 0, 0.18),
+    0 8rpx 24rpx rgba(0, 0, 0, 0.1);
+  animation: edModalUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes edModalUp {
+  from { opacity: 0; transform: translateY(60rpx) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ed-confirm-bar {
+  height: 8rpx;
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+}
+
+.ed-confirm-header {
+  @include flex-between;
+  padding: 32rpx 32rpx 16rpx;
+}
+
+.ed-confirm-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.ed-confirm-close {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: $color-bg-grey;
+  @include flex-center;
+
+  text {
+    font-size: 24rpx;
+    color: $color-text-tertiary;
+    font-weight: 600;
+  }
+}
+
+.ed-confirm-body {
+  padding: 8rpx 32rpx 24rpx;
+}
+
+.ed-confirm-product {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #f8f9ff, #f3f0ff);
+  border-radius: 20rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid rgba(102, 126, 234, 0.08);
+}
+
+.ed-confirm-img {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.ed-confirm-product-info {
+  @include flex-column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  gap: 12rpx;
+}
+
+.ed-confirm-product-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  @include text-ellipsis-multi(2);
+}
+
+.ed-confirm-product-price {
+  @include flex-align-center;
+  gap: 6rpx;
+}
+
+.ed-confirm-price-num {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: $color-primary;
+  line-height: 1;
+}
+
+.ed-confirm-price-unit {
+  font-size: $font-size-sm;
+  color: $color-primary-light;
+  font-weight: 500;
+}
+
+.ed-confirm-row {
+  @include flex-between;
+  padding: 20rpx 0;
+}
+
+.ed-confirm-row + .ed-confirm-row,
+.ed-confirm-total-row {
+  border-top: 2rpx solid $color-border-light;
+}
+
+.ed-confirm-label {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+}
+
+.ed-confirm-balance {
+  font-size: $font-size-base;
+  color: $color-text-tertiary;
+  font-weight: 500;
+}
+
+/* 数量控制 */
+
+.ed-qty-controls {
+  @include flex-align-center;
+  gap: 4rpx;
+  background: $color-bg-grey;
+  border-radius: 16rpx;
+  padding: 4rpx;
+}
+
+.ed-qty-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 14rpx;
+  background: $color-bg-card;
+  @include flex-center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+
+  text {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: $color-text-primary;
+  }
+}
+
+.ed-qty-btn:active {
+  background: $color-border-light;
+  transform: scale(0.95);
+}
+
+.ed-qty-btn.ed-qty-off {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ed-qty-num {
+  width: 64rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+/* 合计消耗 */
+
+.ed-confirm-total-row {
+  @include flex-between;
+  padding: 24rpx 16rpx;
+  margin: 8rpx -16rpx;
+  background: linear-gradient(135deg, #fff7f0, #fff3ea);
+  border-radius: 16rpx;
+}
+
+.ed-confirm-total-val {
+  @include flex-align-center;
+  gap: 8rpx;
+}
+
+.ed-confirm-total-num {
+  font-size: 44rpx;
+  font-weight: 800;
+  color: $color-primary;
+  line-height: 1;
+}
+
+.ed-confirm-total-unit {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-primary-light;
+}
+
+/* 底部按钮 */
+
+.ed-confirm-footer {
+  display: flex;
+  gap: 20rpx;
+  padding: 12rpx 32rpx 36rpx;
+}
+
+.ed-confirm-cancel {
+  flex: 1;
+  height: 88rpx;
+  @include flex-center;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $color-text-secondary;
+  background: $color-bg-grey;
+}
+
+.ed-confirm-cancel:active {
+  background: $color-border;
+}
+
+.ed-confirm-submit {
+  flex: 2;
+  height: 88rpx;
+  @include flex-center;
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $color-text-white;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  box-shadow: 0 8rpx 28rpx rgba(102, 126, 234, 0.4);
+}
+
+.ed-confirm-submit:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+}
+
+.ed-submit-disabled {
+  background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+  box-shadow: none;
+  pointer-events: none;
+}
