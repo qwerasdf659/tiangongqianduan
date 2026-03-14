@@ -21,6 +21,7 @@ const { showToast } = Wechat
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
+const { auditStore } = require('../../store/audit')
 
 /** 审核链实例状态枚举（后端定义，前端展示用） */
 const CHAIN_STATUS_MAP: Record<string, string> = {
@@ -129,6 +130,9 @@ Page({
     /** 是否为admin（role_level>=100），admin可使用批量审核和传统消费审核 */
     isAdminUser: false
   },
+
+  /** WebSocket 订阅页面ID（用于 app.subscribeWebSocketMessages / unsubscribe） */
+  _pageId: 'audit-list',
 
   userBindings: null as any,
 
@@ -809,6 +813,9 @@ Page({
       auditLog.info('审核链步骤通过成功:', approvalResult)
       showToast(approvalResult.message || '审核通过', 'success')
 
+      /* 同步刷新全局待办角标（user.ts 等页面通过 MobX 绑定自动更新） */
+      auditStore.refreshPendingCount(true)
+
       setTimeout(() => {
         this.loadMyPendingSteps(this.data.pendingPage)
       }, 1500)
@@ -867,6 +874,9 @@ Page({
       })
 
       showToast(rejectionResult.message || '已拒绝', 'success')
+
+      /* 同步刷新全局待办角标 */
+      auditStore.refreshPendingCount(true)
 
       setTimeout(() => {
         this.loadMyPendingSteps(this.data.pendingPage)
@@ -948,7 +958,7 @@ Page({
 
   // ==================== 弹窗控制 ====================
 
-  stopPropagation() {},
+  stopPropagation() { },
 
   cancelReject() {
     this.setData({
@@ -963,6 +973,37 @@ Page({
 
   onShow() {
     auditLog.info('审核管理页面显示')
+
+    const app = getApp() as any
+
+    const tokenStatus = Utils.checkTokenValidity()
+    if (tokenStatus.isValid) {
+      app
+        .connectWebSocket()
+        .then(() => {
+          app.subscribeWebSocketMessages(
+            this._pageId,
+            this.handleWebSocketEvent.bind(this)
+          )
+        })
+        .catch((_wsErr: any) => {
+          auditLog.warn('WebSocket连接失败，仅依赖手动刷新')
+          app.subscribeWebSocketMessages(
+            this._pageId,
+            this.handleWebSocketEvent.bind(this)
+          )
+        })
+    } else {
+      app.subscribeWebSocketMessages(
+        this._pageId,
+        this.handleWebSocketEvent.bind(this)
+      )
+    }
+  },
+
+  onHide() {
+    const app = getApp() as any
+    app.unsubscribeWebSocketMessages(this._pageId)
   },
 
   onPullDownRefresh() {
@@ -981,8 +1022,54 @@ Page({
 
   onUnload() {
     auditLog.info('审核管理页面卸载')
+
+    const app = getApp() as any
+    app.unsubscribeWebSocketMessages(this._pageId)
+
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
+    }
+  },
+
+  // ==================== WebSocket 实时推送处理 ====================
+
+  /**
+   * WebSocket 事件处理 — 收到审核链相关事件时自动刷新当前标签页数据
+   *
+   * 监听事件:
+   *   - approval_timeout_escalation: 超时升级，待办列表可能有新步骤
+   *   - approval_final_timeout_reminder: 终审超时提醒
+   *   - approval_step_assigned: 新步骤分配给当前用户
+   *   - new_notification: 通用通知（审核链类型时刷新）
+   */
+  handleWebSocketEvent(eventName: string, _eventData: any): void {
+    const approvalEvents = [
+      'approval_timeout_escalation',
+      'approval_final_timeout_reminder',
+      'approval_step_assigned'
+    ]
+
+    if (approvalEvents.includes(eventName)) {
+      auditLog.info('收到审核链实时推送，刷新当前视图:', eventName)
+      this.refreshCurrentTab()
+      return
+    }
+
+    if (eventName === 'new_notification' && _eventData) {
+      const notificationType = _eventData.type || ''
+      if (notificationType.startsWith('approval_')) {
+        auditLog.info('收到审核链通知推送，刷新当前视图:', notificationType)
+        this.refreshCurrentTab()
+      }
+    }
+  },
+
+  /** 刷新当前激活标签页的数据 */
+  refreshCurrentTab() {
+    if (this.data.activeTab === 'consumption') {
+      this.loadPendingRecords(1)
+    } else if (this.data.activeTab === 'myPending') {
+      this.loadMyPendingSteps(1)
     }
   }
 })

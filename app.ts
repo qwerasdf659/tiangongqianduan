@@ -27,6 +27,7 @@ const io = require('weapp.socket.io')
 const { userStore } = require('./store/user')
 const { pointsStore } = require('./store/points')
 const { tradeStore } = require('./store/trade')
+const { auditStore } = require('./store/audit')
 const { Logger, PopupFrequency, ThemeCache } = require('./utils/index')
 const log = Logger.createLogger('app')
 
@@ -65,6 +66,9 @@ App({
     // 系统状态
     network_status: 'online' as string,
     current_page: '' as string,
+    /** 503 SYSTEM_MAINTENANCE 维护模式标志（APIClient 写入，maintenance-overlay 组件读取） */
+    isMaintenanceMode: false as boolean,
+    maintenanceMessage: '' as string,
 
     // Socket.IO 配置
     ws_url: null as string | null,
@@ -82,7 +86,10 @@ App({
     },
 
     /** 内容投放会话级已展示ID集合（每次冷启动重置，用于 once_per_session 规则，key为ad_campaign_id） */
-    sessionSeenCampaigns: new Set<number>()
+    sessionSeenCampaigns: new Set<number>(),
+
+    /** 兑换详情页兑换成功标志（exchange-detail 设为 true，exchange 页 onShow 消费后重置） */
+    _exchangeOccurred: false as boolean
   },
 
   /** 应用启动初始化 */
@@ -295,6 +302,7 @@ App({
     userStore.clearLoginState()
     pointsStore.clearPoints()
     tradeStore.clearTrade()
+    auditStore.clearAudit()
   },
 
   /** 设置访问令牌（委托给 userStore，api.ts Token刷新时调用） */
@@ -360,6 +368,11 @@ App({
     const pages = getCurrentPages()
     this.globalData.current_page =
       pages.length > 0 && pages[pages.length - 1] ? pages[pages.length - 1].route || '' : ''
+
+    /* 应用回到前台时，刷新审核链待办数量（role_level<60 时 Store 内部静默跳过） */
+    if (userStore.isLoggedIn) {
+      auditStore.refreshPendingCount()
+    }
   },
 
   /** 应用隐藏时触发 */
@@ -420,6 +433,9 @@ App({
     connected: false,
     pageSubscribers: new Map()
   } as SocketIOData,
+
+  /** 全屏维护遮罩组件实例注册表（组件 attached 注册 / detached 注销） */
+  _maintenanceOverlays: new Set() as Set<any>,
 
   /**
    * 统一 Socket.IO 连接管理
@@ -633,6 +649,41 @@ App({
           log.info('收到认证状态通知:', data)
           this.notifyPageSubscribers('auth_status', data)
         })
+
+        // ===== 审核链事件（对齐后端 ApprovalChainTimeoutService 推送） =====
+
+        /**
+         * 审核链超时升级（非终审步骤超时12小时后，自动升级到上级审核人）
+         * 后端触发: ApprovalChainTimeoutService 定时扫描 → 写入 admin_notifications → Socket.IO 推送
+         * 数据结构: { instance_id, step_id, node_name, escalated_to, timeout_hours }
+         */
+        socket.on('approval_timeout_escalation', (data: any) => {
+          log.info('收到审核链超时升级通知:', data)
+          auditStore.refreshPendingCount(true)
+          this.notifyPageSubscribers('approval_timeout_escalation', data)
+        })
+
+        /**
+         * 审核链终审超时提醒（终审步骤接近超时前的预警）
+         * 后端触发: ApprovalChainTimeoutService 终审超时检查 → 写入 admin_notifications → Socket.IO 推送
+         * 数据结构: { instance_id, step_id, node_name, remaining_hours }
+         */
+        socket.on('approval_final_timeout_reminder', (data: any) => {
+          log.warn('收到审核链终审超时提醒:', data)
+          auditStore.refreshPendingCount(true)
+          this.notifyPageSubscribers('approval_final_timeout_reminder', data)
+        })
+
+        /**
+         * 审核链新步骤分配（审核链推进到下一步时，通知新审核人有待办任务）
+         * 后端触发: ApprovalChainService.advanceToNextStep() → Socket.IO 推送
+         * 数据结构: { instance_id, step_id, node_name, auditable_type, auditable_id }
+         */
+        socket.on('approval_step_assigned', (data: any) => {
+          log.info('收到审核链新步骤分配:', data)
+          auditStore.refreshPendingCount(true)
+          this.notifyPageSubscribers('approval_step_assigned', data)
+        })
       } catch (error: any) {
         log.error('Socket.IO 初始化失败', error)
         reject(error)
@@ -698,6 +749,84 @@ App({
     this.socketData.connected = false
     this.globalData.ws_connected = false
     this.socketData.pageSubscribers.clear()
+  },
+
+  // ===== 🔧 系统维护模式管理 =====
+
+  /** 注册维护遮罩组件实例（组件 attached 生命周期调用） */
+  registerMaintenanceOverlay(overlay: any): void {
+    this._maintenanceOverlays.add(overlay)
+  },
+
+  /** 注销维护遮罩组件实例（组件 detached 生命周期调用） */
+  unregisterMaintenanceOverlay(overlay: any): void {
+    this._maintenanceOverlays.delete(overlay)
+  },
+
+  /**
+   * 进入系统维护模式
+   * APIClient._showMaintenanceModal 检测到 503 SYSTEM_MAINTENANCE 时调用
+   * 通知所有已注册的维护遮罩组件显示全屏遮罩
+   *
+   * 降级策略：当前页面无已注册的 overlay 实例时（如未来新增页面遗漏嵌入标签），
+   * 使用 wx.showModal 弹窗提示 + wx.reLaunch 回到首页（首页有 overlay 全屏遮罩）
+   */
+  enterMaintenanceMode(serverMessage?: string): void {
+    const displayMessage = serverMessage || '系统正在进行数据维护，请稍后再试'
+    this.globalData.isMaintenanceMode = true
+    this.globalData.maintenanceMessage = displayMessage
+    log.info('进入系统维护模式:', displayMessage)
+
+    if (this._maintenanceOverlays.size > 0) {
+      this._maintenanceOverlays.forEach((overlay: any) => {
+        try {
+          overlay.show(displayMessage)
+        } catch (overlayError) {
+          log.warn('通知维护遮罩组件失败:', overlayError)
+        }
+      })
+    } else {
+      log.warn('当前页面无已注册的维护遮罩实例，使用 wx.showModal 降级提示')
+      wx.showModal({
+        title: '系统维护中',
+        content: displayMessage,
+        showCancel: false,
+        confirmText: '返回首页',
+        success: () => {
+          wx.reLaunch({ url: '/pages/lottery/lottery' })
+        }
+      })
+    }
+  },
+
+  /**
+   * 退出系统维护模式（维护结束后恢复正常）
+   * 维护遮罩 onRetry 成功 或 APIClient 健康检查通过时调用
+   */
+  exitMaintenanceMode(): void {
+    this.globalData.isMaintenanceMode = false
+    this.globalData.maintenanceMessage = ''
+    log.info('退出系统维护模式，恢复正常')
+
+    try {
+      const { APIClient: MaintenanceClient } = require('./utils/api/client')
+      MaintenanceClient._maintenanceModalShown = false
+      MaintenanceClient._isMaintenanceMode = false
+      if (MaintenanceClient._healthCheckTimer) {
+        clearInterval(MaintenanceClient._healthCheckTimer)
+        MaintenanceClient._healthCheckTimer = null
+      }
+    } catch (resetError) {
+      log.warn('重置APIClient维护标记失败:', resetError)
+    }
+
+    this._maintenanceOverlays.forEach((overlay: any) => {
+      try {
+        overlay.hide()
+      } catch (overlayError) {
+        log.warn('隐藏维护遮罩失败:', overlayError)
+      }
+    })
   },
 
   /** Token使用日志记录（分析Token问题的发生频率和模式） */

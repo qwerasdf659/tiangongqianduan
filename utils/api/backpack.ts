@@ -8,8 +8,6 @@
  *           exchange_items / exchange_records / bid_products / bid_records
  *           account_asset_balances
  *
- * 数据库表: items / item_ledger / item_holds（三表模型）
- *
  * @file 天工餐厅积分系统 - 背包与兑换与竞价API模块
  * @version 5.3.0
  * @since 2026-02-23
@@ -149,6 +147,8 @@ async function getExchangeProducts(
     page_size?: number
     sort_by?: string | null
     sort_order?: string | null
+    /** 排除指定商品ID（用于详情页"相关推荐"排除当前商品） */
+    exclude_id?: number | null
     /** 是否返回筛选维度聚合计数（C+++联动计数），后端交叉排除逻辑 */
     with_counts?: boolean
   } = {}
@@ -166,6 +166,7 @@ async function getExchangeProducts(
     page_size = 20,
     sort_by = null,
     sort_order = null,
+    exclude_id = null,
     with_counts = false
   } = params
 
@@ -182,6 +183,7 @@ async function getExchangeProducts(
     page_size,
     sort_by,
     sort_order,
+    exclude_id,
     with_counts: with_counts ? 'true' : null
   })
   return apiClient.request(`/backpack/exchange/items?${qs}`, { method: 'GET', needAuth: true })
@@ -242,7 +244,7 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
  * 获取兑换订单记录
  * GET /api/v4/backpack/exchange/orders
  *
- * 订单状态枚举（Phase 3 扩展后）:
+ * 订单状态枚举（9态，Phase 3 扩展后）:
  *   pending    - 待审核
  *   approved   - 审核通过
  *   shipped    - 已发货
@@ -251,6 +253,7 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
  *   rejected   - 审核拒绝
  *   refunded   - 已退款
  *   cancelled  - 已取消
+ *   completed  - 已完成
  *
  * @param page - 页码，默认 1
  * @param page_size - 每页数量，默认 20
@@ -330,7 +333,7 @@ async function getExchangeOrderDetail(order_no: string) {
  * 响应字段:
  *   order_no      - 订单号
  *   status        - 更新后状态（received）
- *   received_at   - 确认收货时间（ISO8601）
+ *   received_at   - 确认收货时间（YYYY-MM-DD HH:mm:ss 北京时间）
  *
  * ⚠️ 此API需要后端 Phase 3 实施完成后才可调用
  *    后端需完成: exchange_records ENUM 扩展 + confirm-receipt 路由

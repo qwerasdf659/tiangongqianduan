@@ -22,7 +22,7 @@
           />
         </view>
         <view class="confirm-product-detail">
-          <text class="confirm-product-name">{{product.name}}</text>
+          <text class="confirm-product-name">{{product.item_name}}</text>
           <view class="confirm-product-price-wrap">
             <text class="confirm-price-amount">{{product.cost_amount}}</text>
             <text class="confirm-price-unit">{{product._priceLabel || '积分'}}</text>

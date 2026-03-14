@@ -106,6 +106,20 @@ interface CardDisplayConfig {
   default_view_mode: 'grid' | 'list'
 }
 
+/**
+ * 详情页配置（exchange_page.detail_page 子节点）
+ *
+ * 后端 system_configs 表 key='exchange_page' 的 JSON 中新增节点
+ * 通过 GET /api/v4/system/config/exchange-page 返回
+ * 后端在数据库缺少此节点时自动补充默认值
+ */
+interface DetailPageConfig {
+  /** 属性区展示模式: 'grid'(网格卡片) / 'list'(文字列表) */
+  attr_display_mode: 'grid' | 'list'
+  /** 标签样式类型: 'game'(游戏风彩色圆角) / 'plain'(灰底黑字) */
+  tag_style_type: 'game' | 'plain'
+}
+
 /** 运营参数配置 */
 interface UIConfig {
   low_stock_threshold: number
@@ -134,6 +148,8 @@ interface ExchangePageConfig {
     sort_options: FilterOption[]
   }
   card_display: CardDisplayConfig
+  /** 详情页配置（属性展示模式 + 标签样式类型） */
+  detail_page?: DetailPageConfig
   ui: UIConfig
 }
 
@@ -180,19 +196,18 @@ const DEFAULT_EXCHANGE_CONFIG: ExchangePageConfig = {
     ],
     categories: [
       { value: 'all', label: '全部' },
-      { value: '数码配件', label: '数码配件' },
-      { value: '品质生活', label: '品质生活' },
-      { value: '日用百货', label: '日用百货' },
-      { value: '创意礼品', label: '创意礼品' },
-      { value: '美食特产', label: '美食特产' },
-      { value: '运动户外', label: '运动户外' }
+      { value: 'home_life', label: '品质生活' },
+      { value: 'lifestyle', label: '日用百货' },
+      { value: 'food', label: '美食特产' },
+      { value: 'collectible', label: '收藏精品' },
+      { value: 'other', label: '其他' }
     ],
     cost_ranges: [
       { label: '全部', min: null, max: null },
-      { label: '50以内', min: 0, max: 50 },
-      { label: '50-200', min: 50, max: 200 },
-      { label: '200-500', min: 200, max: 500 },
-      { label: '500以上', min: 500, max: null }
+      { label: '100以内', min: 0, max: 100 },
+      { label: '100-500', min: 100, max: 500 },
+      { label: '500-1000', min: 500, max: 1000 },
+      { label: '1000以上', min: 1000, max: null }
     ],
     stock_statuses: [
       { value: 'all', label: '全部' },

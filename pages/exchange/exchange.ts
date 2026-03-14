@@ -23,7 +23,15 @@
 
 const app = getApp()
 
-const { Utils, Logger, ExchangeConfig, ThemeCache, GlobalTheme, API, ImageHelper } = require('../../utils/index')
+const {
+  Utils,
+  Logger,
+  ExchangeConfig,
+  ThemeCache,
+  GlobalTheme,
+  API,
+  ImageHelper
+} = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { checkAuth } = Utils
 
@@ -123,6 +131,18 @@ Page({
       await this._refreshAllBalances(localUserInfo)
     } else {
       this.setData({ userInfo: {}, totalPoints: 0, assetBalances: [] })
+    }
+
+    /**
+     * 兑换详情页返回后刷新商品列表
+     * exchange-detail 兑换成功时设置 globalData._exchangeOccurred = true
+     * 此处消费标志并递增 refreshToken 触发 exchange-shelf 刷新商品数据
+     */
+    const appInstance = getApp()
+    if (appInstance && appInstance.globalData && appInstance.globalData._exchangeOccurred) {
+      appInstance.globalData._exchangeOccurred = false
+      this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
+      log.info('检测到兑换详情页返回，刷新商品列表')
     }
 
     this._connectWebSocket()

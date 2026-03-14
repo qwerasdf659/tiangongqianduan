@@ -78,26 +78,21 @@
       <!-- 工单进度条 -->
       <view class="issue-progress">
         <view
-          class="progress-step {{item.status === 'open' || item.status === 'processing' || item.status === 'resolved' || item.status === 'closed' ? 'step-active' : ''}}"
-        >
+          class="progress-step {{item.status === 'open' || item.status === 'processing' || item.status === 'resolved' || item.status === 'closed' ? 'step-active' : ''}}">
           <view class="step-dot"></view>
           <text class="step-text">已提交</text>
         </view>
         <view
-          class="progress-line {{item.status === 'processing' || item.status === 'resolved' || item.status === 'closed' ? 'line-active' : ''}}"
-        ></view>
+          class="progress-line {{item.status === 'processing' || item.status === 'resolved' || item.status === 'closed' ? 'line-active' : ''}}">
+        </view>
         <view
-          class="progress-step {{item.status === 'processing' || item.status === 'resolved' || item.status === 'closed' ? 'step-active' : ''}}"
-        >
+          class="progress-step {{item.status === 'processing' || item.status === 'resolved' || item.status === 'closed' ? 'step-active' : ''}}">
           <view class="step-dot"></view>
           <text class="step-text">处理中</text>
         </view>
-        <view
-          class="progress-line {{item.status === 'resolved' || item.status === 'closed' ? 'line-active' : ''}}"
-        ></view>
-        <view
-          class="progress-step {{item.status === 'resolved' || item.status === 'closed' ? 'step-active' : ''}}"
-        >
+        <view class="progress-line {{item.status === 'resolved' || item.status === 'closed' ? 'line-active' : ''}}">
+        </view>
+        <view class="progress-step {{item.status === 'resolved' || item.status === 'closed' ? 'step-active' : ''}}">
           <view class="step-dot"></view>
           <text class="step-text">已解决</text>
         </view>
@@ -113,4 +108,7 @@
       <text class="no-more-text">— 没有更多了 —</text>
     </view>
   </block>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

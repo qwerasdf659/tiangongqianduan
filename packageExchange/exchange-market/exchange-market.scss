@@ -477,3 +477,105 @@
   font-size: 20rpx;
   color: var(--shelf-accent, #667eea);
 }
+
+/* ========== 高级筛选面板扩展样式 ========== */
+
+/* 筛选标签聚合计数 */
+.filter-count {
+  font-size: 22rpx;
+  opacity: 0.7;
+}
+
+/* 计数为 0 的筛选标签灰显 */
+.option-btn.filter-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  color: #999;
+  border-color: rgba(0, 0, 0, 0.06);
+  background: rgba(248, 250, 252, 0.6);
+}
+
+/* 价格区间输入组 */
+.price-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.price-input {
+  flex: 1;
+  height: 68rpx;
+  line-height: 68rpx;
+  padding: 0 20rpx;
+  background: rgba(248, 250, 252, 0.95);
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  border: 2rpx solid rgba(102, 126, 234, 0.12);
+  text-align: center;
+}
+
+.price-separator {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.price-confirm-btn {
+  height: 68rpx;
+  line-height: 68rpx;
+  padding: 0 24rpx;
+  background: var(--shelf-cta-bg, linear-gradient(135deg, #667eea, #764ba2));
+  color: #fff;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ========== 骨架屏占位 ========== */
+.skeleton-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  padding: 20rpx 0;
+}
+
+.skeleton-card {
+  width: calc(50% - 10rpx);
+  border-radius: 16rpx;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 280rpx;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-body {
+  padding: 20rpx;
+}
+
+.skeleton-line {
+  height: 24rpx;
+  border-radius: 6rpx;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  margin-bottom: 16rpx;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.medium {
+  width: 80%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

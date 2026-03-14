@@ -1,49 +1,119 @@
 /**
- * 兑换商品详情页 — 游戏商城风格轻量详情
+ * 兑换商品详情页 — B+C混合方案（白底密排信息骨架 + 游戏化视觉外衣）
  *
- * 后端API: GET /api/v4/backpack/exchange/items/:exchange_item_id
- * 兑换API: POST /api/v4/backpack/exchange（body: { exchange_item_id, quantity }）
- * 余额API: GET /api/v4/assets/balances
+ * 十大区块:
+ *   ① 图片区（轮播/单图/emoji占位）
+ *   ② 标签区（game风彩色 / plain灰底，由页面配置控制）
+ *   ③ 价格区（大号渐变数字 + 划线原价 + 省XX标签）
+ *   ④ 属性区（grid网格卡片 / list文字列表，由页面配置控制）
+ *   ⑤ 商品介绍区（纯文字 / 长图 / 混排）
+ *   ⑥ 展示图区（0张隐藏 / 1张单图 / 多张网格或横滚）
+ *   ⑦ 使用说明区（后端配置 / 前端通用规则兜底）
+ *   ⑧ 相关推荐区（同分类商品2列卡片）
+ *   ⑨ 标签云（# 前缀水平流式排列）
+ *   ⑩ 吸底操作栏（余额 + 客服 + 兑换按钮）
  *
- * 路由参数: exchange_item_id（exchange_items 表主键）
- * 来源: exchange-shelf 商品卡片点击跳转
+ * 后端API:
+ *   商品详情: GET /api/v4/backpack/exchange/items/:exchange_item_id
+ *   执行兑换: POST /api/v4/backpack/exchange（body: { exchange_item_id, quantity }）
+ *   用户余额: GET /api/v4/assets/balances
+ *   页面配置: GET /api/v4/system/config/exchange-page
+ *   相关推荐: GET /api/v4/backpack/exchange/items?category=xxx&exclude_id=xxx&page_size=4
+ *
+ * 响应层级: detailResponse.data.item（后端统一 ApiResponse 包装）
  *
  * @file packageExchange/exchange-detail/exchange-detail.ts
- * @version 2.0.0
- * @since 2026-03-14
+ * @version 3.0.0
+ * @since 2026-03-15
  */
 
 const {
   API: DetailPageAPI,
   Logger: DetailPageLogger,
-  ImageHelper: detailPageImageHelper
+  ImageHelper: detailPageImageHelper,
+  ExchangeConfig: DetailPageExchangeConfig
 } = require('../../utils/index')
 const { formatAssetLabel } = require('../utils/product-display')
 
 const edLog = DetailPageLogger.createLogger('exchange-detail')
 
-/** 全息效果稀有度白名单 */
+/** 全息效果稀有度白名单（epic / legendary 触发脉冲光效） */
 const HOLO_RARITY_LIST = ['legendary', 'epic']
+
+/** 已售数量展示阈值（< 此值不展示"已售X件"文字，库存进度条不受影响） */
+const SOLD_COUNT_DISPLAY_THRESHOLD = 10
+
+/** 空间名称映射（space 字段值域: lucky / premium / both） */
+const SPACE_LABELS: Record<string, string> = {
+  lucky: '幸运空间',
+  premium: '臻选空间',
+  both: '全空间'
+}
+
+/** 前端通用兑换规则（后端 usage_rules 为空时的兜底文案） */
+const DEFAULT_USAGE_RULES: string[] = [
+  '兑换后物品自动进入背包',
+  '虚拟物品一经兑换不可退还',
+  '实物商品以实际发货为准'
+]
 
 Page({
   data: {
-    /** 路由参数 */
+    /** 路由参数: exchange_items.exchange_item_id */
     exchangeItemId: 0,
 
-    /** 商品详情（API 返回） */
+    /** 商品详情（API返回 + 前端展示字段） */
     product: null as any,
 
-    /** 稀有度样式配置 */
+    /**
+     * 轮播图数组
+     * 数据源: product.images → 每项含 image_resource_id / imageUrl / thumbnails
+     * 无 images 时降级到 primary_image 单图
+     */
+    swiperImages: [] as any[],
+    swiperCurrent: 0,
+
+    /** 稀有度样式（优先 API rarity_def.color_hex，降级到本地 RARITY_STYLES） */
     rarityStyle: null as any,
 
-    /** 库存剩余百分比 */
+    /** 库存剩余百分比（进度条宽度） */
     stockPercent: 100,
 
-    /** 当前资产余额 */
+    /** 当前资产余额（对应 cost_asset_code 的可用余额） */
     currentBalance: 0,
-
-    /** 余额是否不足 */
+    /** 余额 < cost_amount 时为 true */
     balanceInsufficient: false,
+
+    /** 标签样式类型: 'game'(游戏风彩色) / 'plain'(灰底文字) — 来自页面配置 */
+    tagStyleType: 'game' as string,
+    /** 属性展示模式: 'grid'(网格卡片) / 'list'(文字列表) — 来自页面配置 */
+    attrDisplayMode: 'grid' as string,
+
+    /** 详情长图（后端 detail_images 数组，category='detail'） */
+    detailImages: [] as any[],
+    /** 展示图（后端 showcase_images 数组，category='showcase'） */
+    showcaseImages: [] as any[],
+    /** 使用说明（后端 usage_rules JSON数组，或前端通用规则） */
+    usageRules: [] as string[],
+    /** 相关推荐商品（同分类排除当前，最多4条） */
+    relatedProducts: [] as any[],
+
+    /**
+     * 标签数组（统一渲染源）
+     * 优先后端 label_tags 数组（每项含 text + style_type）
+     * 后端不传时从布尔字段（is_hot / is_new 等）自动生成
+     */
+    displayTags: [] as any[],
+
+    /** Phase 4: 可领取优惠券（后端 coupons 数组，空数组时不渲染） */
+    coupons: [] as any[],
+    /** Phase 4: 满减/活动信息（后端 promotions 数组） */
+    promotions: [] as any[],
+    /** Phase 4: 预计到手价（后端 estimated_price，0 时不渲染） */
+    estimatedPrice: 0,
+
+    /** sold_count >= 10 时才展示"已售X件"文字 */
+    showSoldCount: false,
 
     /** 页面状态 */
     loading: true,
@@ -65,16 +135,38 @@ Page({
     }
 
     this.setData({ exchangeItemId: itemId })
+    this._loadPageConfig()
     this._loadProductDetail(itemId)
   },
 
   /**
-   * 加载商品详情（对接真实API）
+   * 加载页面配置（标签样式 + 属性展示模式）
+   *
+   * 数据源: exchange_page_config.detail_page（system_configs 表 key='exchange_page'）
+   * 降级: 配置不存在时保持默认值（game + grid）
+   */
+  async _loadPageConfig() {
+    try {
+      const config = await DetailPageExchangeConfig.ExchangeConfigCache.getConfig()
+      const detailPageConfig = config && config.detail_page
+      if (detailPageConfig) {
+        this.setData({
+          tagStyleType: detailPageConfig.tag_style_type || 'game',
+          attrDisplayMode: detailPageConfig.attr_display_mode || 'grid'
+        })
+        edLog.info('页面配置加载成功:', detailPageConfig)
+      }
+    } catch (error) {
+      edLog.warn('页面配置加载失败，使用默认值:', error)
+    }
+  },
+
+  /**
+   * 加载商品详情 + 用户余额（并行请求）
    *
    * 数据流:
-   *   GET /api/v4/backpack/exchange/items/:id → 商品详情
-   *   GET /api/v4/assets/balances → 用户资产余额
-   *   并行请求后合并渲染
+   *   GET /api/v4/backpack/exchange/items/:id → res.data.item（后端 ApiResponse 包装）
+   *   GET /api/v4/assets/balances → 用户多资产余额
    */
   async _loadProductDetail(itemId: number) {
     this.setData({ loading: true, hasError: false })
@@ -89,42 +181,176 @@ Page({
         throw new Error(detailResponse?.message || '商品不存在或已下架')
       }
 
-      const productData = detailResponse.data
+      /**
+       * 后端统一响应: { success, code, data: { item: {...} } }
+       * 优先按文档格式取 data.item；data.item 为空时降级取 data（防御性容错）
+       */
+      const productData = detailResponse.data.item || detailResponse.data
+      if (!productData || !productData.exchange_item_id) {
+        throw new Error('商品数据格式异常')
+      }
+
       const priceCode: string = productData.cost_asset_code || 'POINTS'
 
       /**
-       * 商品名称字段兼容：
-       * 列表API GET /backpack/exchange/items 返回 name
-       * 详情API可能返回 item_name（数据库字段名）或 name（别名）
-       * exchange-orders 的 item_snapshot 使用 item_name
-       * 此处统一为 item_name，确保 WXML 绑定一致
+       * 稀有度视觉配置优先级:
+       *   1. 后端 rarity_def 联查结果（权威数据: color_hex + display_name）
+       *   2. 本地 RARITY_STYLES 映射（降级兜底）
        */
-      const productDisplayName: string = productData.item_name || productData.name || ''
+      let rarityConfig: any
+      if (productData.rarity_def && productData.rarity_def.color_hex) {
+        rarityConfig = {
+          colorHex: productData.rarity_def.color_hex,
+          displayName: productData.rarity_def.display_name,
+          cssClass: 'rarity--' + (productData.rarity_code || 'common')
+        }
+      } else {
+        rarityConfig = detailPageImageHelper.getRarityStyle(productData.rarity_code || 'common')
+      }
 
-      const rarityConfig = detailPageImageHelper.getRarityStyle(productData.rarity_code || 'common')
+      /**
+       * 光效类型（SCSS 通过子选择器区分颜色）:
+       *   epic → 紫色脉冲  legendary → 金色脉冲  其他 → 无光效
+       */
+      const glowType: string =
+        productData.rarity_code === 'epic'
+          ? 'epic'
+          : productData.rarity_code === 'legendary'
+            ? 'legendary'
+            : 'none'
 
-      const imgSrc: string =
-        (productData.primary_image &&
-          (productData.primary_image.url || productData.primary_image.thumbnail_url)) ||
-        productData.image ||
+      /**
+       * 分类显示名:
+       *   优先 category_def.display_name（后端联查）
+       *   降级 category 原始 code
+       */
+      const categoryDisplayName: string =
+        (productData.category_def && productData.category_def.display_name) ||
+        productData.category ||
         ''
-      const validImage: boolean = !!imgSrc && imgSrc !== detailPageImageHelper.DEFAULT_PRODUCT_IMAGE
 
+      /** 空间显示名（lucky / premium / both） */
+      const spaceLabel: string = SPACE_LABELS[productData.space] || '幸运空间'
+
+      /**
+       * 轮播图处理:
+       *   images 数组有值 → 多图轮播
+       *   无 images → 降级到 primary_image 单图
+       *   都无 → emoji 占位
+       */
+      const swiperImages: any[] = []
+      if (Array.isArray(productData.images) && productData.images.length > 0) {
+        productData.images.forEach((img: any) => {
+          swiperImages.push({
+            image_resource_id: img.image_resource_id,
+            url: img.imageUrl || (img.thumbnails && img.thumbnails.large) || '',
+            thumbnailUrl: (img.thumbnails && img.thumbnails.medium) || img.imageUrl || ''
+          })
+        })
+      } else if (productData.primary_image) {
+        const primaryImg = productData.primary_image
+        swiperImages.push({
+          image_resource_id: primaryImg.image_resource_id,
+          url: primaryImg.url || primaryImg.thumbnail_url || '',
+          thumbnailUrl: primaryImg.thumbnail_url || primaryImg.url || ''
+        })
+      }
+
+      /** 主图URL（确认弹窗和分享封面使用） */
+      const mainImageUrl: string = swiperImages.length > 0 ? swiperImages[0].url : ''
+
+      /** ⑤ 详情长图（后端 detail_images，category='detail'，含可选 caption 图片说明） */
+      const detailImages: any[] = Array.isArray(productData.detail_images)
+        ? productData.detail_images.map((img: any) => ({
+            image_resource_id: img.image_resource_id,
+            url: img.imageUrl || (img.thumbnails && img.thumbnails.large) || '',
+            caption: img.caption || ''
+          }))
+        : []
+
+      /** ⑥ 展示图（后端 showcase_images，category='showcase'） */
+      const showcaseImages: any[] = Array.isArray(productData.showcase_images)
+        ? productData.showcase_images.map((img: any) => ({
+            image_resource_id: img.image_resource_id,
+            url: img.imageUrl || (img.thumbnails && img.thumbnails.large) || ''
+          }))
+        : []
+
+      /** ⑦ 使用说明（后端 usage_rules 或前端通用规则兜底） */
+      const usageRules: string[] =
+        Array.isArray(productData.usage_rules) && productData.usage_rules.length > 0
+          ? productData.usage_rules
+          : DEFAULT_USAGE_RULES
+
+      /**
+       * ② 标签数组统一处理:
+       *   优先: 后端 label_tags 数组（每项含 {text, style_type, emoji?}）
+       *   降级: 从布尔字段（is_hot / is_new 等）自动生成
+       */
+      const processedDisplayTags: any[] = []
+      if (Array.isArray(productData.label_tags) && productData.label_tags.length > 0) {
+        productData.label_tags.forEach((tagItem: any) => {
+          processedDisplayTags.push({
+            text: tagItem.text || '',
+            style_type: tagItem.style_type || 'default',
+            emoji: tagItem.emoji || ''
+          })
+        })
+      } else {
+        if (productData.is_hot) {
+          processedDisplayTags.push({ text: '热门', style_type: 'hot', emoji: '🔥' })
+        }
+        if (productData.is_limited) {
+          processedDisplayTags.push({ text: '限量', style_type: 'limited', emoji: '⏰' })
+        }
+        if (productData.is_new) {
+          processedDisplayTags.push({ text: '新品', style_type: 'new', emoji: '🆕' })
+        }
+        if (productData.has_warranty) {
+          processedDisplayTags.push({ text: '保修', style_type: 'warranty', emoji: '🛡️' })
+        }
+        if (productData.free_shipping) {
+          processedDisplayTags.push({ text: '包邮', style_type: 'shipping', emoji: '📦' })
+        }
+      }
+
+      /** Phase 4: 营销数据提取（后端下发时渲染，不下发时自动隐藏） */
+      const productCoupons: any[] = Array.isArray(productData.coupons)
+        ? productData.coupons
+        : []
+      const productPromotions: any[] = Array.isArray(productData.promotions)
+        ? productData.promotions
+        : []
+      const productEstimatedPrice: number = productData.estimated_price || 0
+
+      /**
+       * 单品级配置覆盖（优先级: 商品字段 > 页面配置 > 默认值）
+       * 后端为不同商品设置不同展示模式时，前端自动响应
+       */
+      const itemAttrMode: string =
+        productData.attr_display_mode || this.data.attrDisplayMode
+      const itemTagStyle: string =
+        productData.tag_style_type || this.data.tagStyleType
+
+      /** 附加前端展示计算字段（下划线前缀，区分后端原始字段） */
       const enrichedProduct = Object.assign({}, productData, {
-        item_name: productDisplayName,
         _priceLabel: formatAssetLabel(priceCode),
-        _rarityClass: rarityConfig ? rarityConfig.cssClass : '',
+        _rarityClass: rarityConfig.cssClass || '',
         _isLegendary: HOLO_RARITY_LIST.includes(productData.rarity_code),
+        _glowType: glowType,
         _isLimited: productData.is_limited === true,
-        _hasImage: validImage,
-        image: imgSrc || ''
+        _hasImage: swiperImages.length > 0,
+        _mainImage: mainImageUrl,
+        _spaceLabel: spaceLabel,
+        _categoryDisplayName: categoryDisplayName
       })
 
+      /** 库存进度条: 剩余百分比 = stock / (stock + sold_count) */
       const totalSupply: number = (productData.stock || 0) + (productData.sold_count || 0)
       const remainPercent: number =
         totalSupply > 0 ? Math.round(((productData.stock || 0) / totalSupply) * 100) : 100
 
-      /* 从余额API提取对应资产的可用余额 */
+      /** 从余额API提取 cost_asset_code 对应的可用余额 */
       let assetBalance = 0
       if (balanceResponse && balanceResponse.success && balanceResponse.data) {
         const allBalances =
@@ -137,18 +363,34 @@ Page({
       }
 
       const insufficient: boolean = assetBalance < (productData.cost_amount || 0)
+      const showSoldCount: boolean = (productData.sold_count || 0) >= SOLD_COUNT_DISPLAY_THRESHOLD
 
       this.setData({
         product: enrichedProduct,
+        swiperImages,
+        swiperCurrent: 0,
         rarityStyle: rarityConfig,
         stockPercent: remainPercent,
         currentBalance: assetBalance,
         balanceInsufficient: insufficient,
+        detailImages,
+        showcaseImages,
+        usageRules,
+        displayTags: processedDisplayTags,
+        coupons: productCoupons,
+        promotions: productPromotions,
+        estimatedPrice: productEstimatedPrice,
+        attrDisplayMode: itemAttrMode,
+        tagStyleType: itemTagStyle,
+        showSoldCount,
         loading: false
       })
 
-      wx.setNavigationBarTitle({ title: productDisplayName || '商品详情' })
-      edLog.info('商品详情加载成功:', productDisplayName)
+      wx.setNavigationBarTitle({ title: productData.item_name || '商品详情' })
+      edLog.info('商品详情加载成功:', productData.item_name)
+
+      /** 异步加载相关推荐（不阻塞主渲染） */
+      this._loadRelatedProducts(productData.category, itemId)
     } catch (error: any) {
       edLog.error('商品详情加载失败:', error)
       this.setData({
@@ -159,28 +401,105 @@ Page({
     }
   },
 
-  /** 商品图片加载失败 */
+  /**
+   * ⑧ 加载相关推荐（异步，不阻塞主渲染）
+   *
+   * API: GET /api/v4/backpack/exchange/items?category=xxx&exclude_id=xxx&page_size=4&status=active
+   * 注意: category 传字符串 code（如 'collectible'），不是数字ID
+   */
+  async _loadRelatedProducts(category: string | null, excludeId: number) {
+    if (!category) {
+      edLog.info('商品无分类，跳过相关推荐')
+      return
+    }
+
+    try {
+      const response = await DetailPageAPI.getExchangeProducts({
+        category,
+        exclude_id: excludeId,
+        page_size: 4,
+        status: 'active'
+      })
+
+      if (response && response.success && response.data) {
+        const items = response.data.items || []
+        if (items.length > 0) {
+          const enrichedItems = items.map((item: any) => {
+            const imgSrc =
+              (item.primary_image &&
+                (item.primary_image.url || item.primary_image.thumbnail_url)) ||
+              ''
+            return Object.assign({}, item, {
+              _priceLabel: formatAssetLabel(item.cost_asset_code || 'POINTS'),
+              _hasImage: !!imgSrc,
+              _mainImage: imgSrc
+            })
+          })
+          this.setData({ relatedProducts: enrichedItems })
+          edLog.info('相关推荐加载成功:', enrichedItems.length, '条')
+        }
+      }
+    } catch (error) {
+      edLog.warn('相关推荐加载失败（不影响主页面）:', error)
+    }
+  },
+
+  /** 轮播图切换事件 */
+  onSwiperChange(e: any) {
+    this.setData({ swiperCurrent: e.detail.current })
+  },
+
+  /** 预览轮播图（wx.previewImage 大图预览） */
+  onPreviewImage(e: any) {
+    const { index } = e.currentTarget.dataset
+    const urls = this.data.swiperImages.map((img: any) => img.url).filter(Boolean)
+    if (urls.length > 0) {
+      wx.previewImage({ current: urls[index] || urls[0], urls })
+    }
+  },
+
+  /** 预览详情长图 */
+  onPreviewDetailImage(e: any) {
+    const { index } = e.currentTarget.dataset
+    const urls = this.data.detailImages.map((img: any) => img.url).filter(Boolean)
+    if (urls.length > 0) {
+      wx.previewImage({ current: urls[index] || urls[0], urls })
+    }
+  },
+
+  /** 预览展示图 */
+  onPreviewShowcaseImage(e: any) {
+    const { index } = e.currentTarget.dataset
+    const urls = this.data.showcaseImages.map((img: any) => img.url).filter(Boolean)
+    if (urls.length > 0) {
+      wx.previewImage({ current: urls[index] || urls[0], urls })
+    }
+  },
+
+  /** 商品图片加载失败降级 */
   onImageError() {
-    const { product } = this.data
-    if (product) {
-      this.setData({
-        'product._hasImage': false
+    if (this.data.product) {
+      this.setData({ 'product._hasImage': false })
+    }
+  },
+
+  /** ⑧ 点击相关推荐商品 → 跳转详情（redirectTo 替换当前页，避免页面栈溢出） */
+  onTapRelatedProduct(e: any) {
+    const itemId = e.currentTarget.dataset.itemId
+    if (itemId) {
+      wx.redirectTo({
+        url: '/packageExchange/exchange-detail/exchange-detail?exchange_item_id=' + itemId
       })
     }
   },
 
-  /** 点击立即兑换 → 打开确认弹窗 */
+  /** ⑩ 点击立即兑换 → 打开确认弹窗 */
   onExchange() {
     const { product } = this.data
     if (!product || product.stock <= 0 || this.data.balanceInsufficient) {
       return
     }
-
-    this.setData({
-      showConfirm: true,
-      exchangeQuantity: 1,
-      exchanging: false
-    })
+    this.setData({ showConfirm: true, exchangeQuantity: 1, exchanging: false })
   },
 
   /** 关闭确认弹窗 */
@@ -207,10 +526,11 @@ Page({
   },
 
   /**
-   * 确认兑换（调用真实API）
+   * 确认兑换
+   *
    * POST /api/v4/backpack/exchange
    * body: { exchange_item_id, quantity }
-   * header: Idempotency-Key
+   * header: Idempotency-Key（API层 exchangeProduct 自动生成）
    */
   async onConfirmExchange() {
     const { product, exchangeQuantity, exchanging, currentBalance } = this.data
@@ -233,16 +553,17 @@ Page({
         exchangeQuantity
       )
 
-      if (response && response.success && response.data) {
+      if (response && response.success) {
         edLog.info('兑换成功:', response.data)
+        this.setData({ exchanging: false, showConfirm: false })
 
-        this.setData({
-          exchanging: false,
-          showConfirm: false
-        })
+        /** 通知 Page 壳刷新余额 + 商品列表（onShow 读取此标志后清除） */
+        const appInstance = getApp()
+        if (appInstance && appInstance.globalData) {
+          appInstance.globalData._exchangeOccurred = true
+        }
 
         wx.showToast({ title: '兑换成功！', icon: 'success', duration: 2000 })
-
         setTimeout(() => {
           wx.navigateBack()
         }, 2000)
@@ -253,18 +574,18 @@ Page({
       edLog.error('兑换失败:', error)
       this.setData({ exchanging: false })
 
-      let errorMessage = '兑换失败，请重试'
+      let exchangeErrorMsg = '兑换失败，请重试'
       if (error.statusCode === 400) {
-        errorMessage = error.message || '请求参数错误'
+        exchangeErrorMsg = error.message || '请求参数错误'
       } else if (error.statusCode === 409) {
-        errorMessage = error.message || '库存不足或余额不足'
+        exchangeErrorMsg = error.message || '库存不足或余额不足'
       } else if (error.message) {
-        errorMessage = error.message
+        exchangeErrorMsg = error.message
       }
 
       wx.showModal({
         title: '兑换失败',
-        content: errorMessage,
+        content: exchangeErrorMsg,
         showCancel: false,
         confirmText: '我知道了'
       })
@@ -280,12 +601,16 @@ Page({
     })
   },
 
-  /** 分享 */
+  /** 分享给好友（含商品主图，提升分享卡片点击率） */
   onShareAppMessage() {
     const productName = this.data.product ? this.data.product.item_name : '精选商品'
+    const shareImageUrl = this.data.product ? this.data.product._mainImage : ''
     return {
-      title: `${productName} - 积分商城`,
-      path: `/packageExchange/exchange-detail/exchange-detail?exchange_item_id=${this.data.exchangeItemId}`
+      title: productName + ' - 积分商城',
+      path:
+        '/packageExchange/exchange-detail/exchange-detail?exchange_item_id=' +
+        this.data.exchangeItemId,
+      imageUrl: shareImageUrl
     }
   }
 })

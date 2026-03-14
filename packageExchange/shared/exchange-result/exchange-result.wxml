@@ -8,7 +8,7 @@
     <view class="result-detail" wx:if="{{orderData && success}}">
       <view class="result-row" wx:if="{{orderData.product}}">
         <text class="result-label">商品名称</text>
-        <text class="result-value">{{orderData.product.name}}</text>
+        <text class="result-value">{{orderData.product.item_name}}</text>
       </view>
       <view class="result-row" wx:if="{{orderData.orderNo}}">
         <text class="result-label">订单编号</text>
@@ -23,7 +23,8 @@
     </view>
 
     <view class="result-footer">
-      <view class="result-btn" bindtap="onClose">确定</view>
+      <view class="result-btn result-btn-secondary" bindtap="onClose">关闭</view>
+      <view class="result-btn result-btn-primary" wx:if="{{success && orderData.orderNo}}" bindtap="onViewOrder">查看订单</view>
     </view>
   </view>
 </view>

@@ -152,6 +152,16 @@ class APIClient {
 
   /** 统一请求方法（集成自动loading和错误提示） */
   async request(url: string, options: RequestOptions = {}): Promise<ApiResponse> {
+    // 维护模式拦截（健康检查通过 wx.request 直接调用，不走此方法）
+    if (APIClient._isMaintenanceMode && url !== '/system/status') {
+      this._showMaintenanceModal()
+      throw this._createApiError(
+        '系统维护中，请稍后重试',
+        'SYSTEM_MAINTENANCE',
+        503
+      )
+    }
+
     const {
       method = 'GET',
       data = {},
@@ -527,24 +537,84 @@ class APIClient {
   }
 
   /**
-   * 系统维护模式提示（后端清档或数据管理操作期间）
-   * 后端返回 503 + code: SYSTEM_MAINTENANCE 时触发
-   * 使用静态标志防止并发请求导致多次弹窗
+   * 系统维护模式 — 持久阻止用户操作
+   *
+   * 后端返回 503 + code: SYSTEM_MAINTENANCE 时进入维护模式:
+   *  1. 设置 _isMaintenanceMode = true，后续所有 API 请求立即拒绝
+   *  2. 通过 App.enterMaintenanceMode() 显示全屏维护遮罩（降级为 wx.showModal）
+   *  3. 启动健康检查定时器（每30秒轮询一次），维护结束后自动恢复
    */
-  private static _maintenanceModalShown: boolean = false
+  static _maintenanceModalShown: boolean = false
+  static _isMaintenanceMode: boolean = false
+  static _healthCheckTimer: ReturnType<typeof setInterval> | null = null
+
   _showMaintenanceModal(serverMessage?: string): void {
     if (APIClient._maintenanceModalShown) {
       return
     }
+    APIClient._isMaintenanceMode = true
     APIClient._maintenanceModalShown = true
-    wx.showModal({
-      title: '系统维护中',
-      content: serverMessage || '系统正在进行数据维护，请稍后再试',
-      showCancel: false,
-      success: () => {
-        APIClient._maintenanceModalShown = false
-      }
-    })
+
+    this._startHealthCheck()
+
+    const appRef = getAppInstance()
+    if (appRef && typeof appRef.enterMaintenanceMode === 'function') {
+      appRef.enterMaintenanceMode(serverMessage)
+    } else {
+      wx.showModal({
+        title: '系统维护中',
+        content: serverMessage || '系统正在进行数据维护，请稍后再试',
+        showCancel: false
+      })
+    }
+  }
+
+  /**
+   * 后台健康检查 — 每30秒向后端发送轻量请求判断维护是否结束
+   * 使用无认证的 /system/status 端点，绕过维护模式拦截
+   */
+  private _startHealthCheck(): void {
+    if (APIClient._healthCheckTimer) {
+      return
+    }
+
+    const healthCheckInterval = 30000
+    log.info('维护模式: 启动健康检查定时器，间隔', healthCheckInterval, 'ms')
+
+    APIClient._healthCheckTimer = setInterval(() => {
+      wx.request({
+        url: `${this.config.fullUrl}/system/status`,
+        method: 'GET',
+        timeout: 5000,
+        success: (res: any) => {
+          if (res.statusCode === 200) {
+            log.info('维护模式: 健康检查通过，服务已恢复')
+            this._onMaintenanceRecovered()
+          }
+        },
+        fail: () => {
+          log.info('维护模式: 健康检查失败，服务仍在维护')
+        }
+      })
+    }, healthCheckInterval)
+  }
+
+  /** 维护结束 — 恢复所有内部状态，通知 App 退出维护模式 */
+  _onMaintenanceRecovered(): void {
+    APIClient._isMaintenanceMode = false
+    APIClient._maintenanceModalShown = false
+
+    if (APIClient._healthCheckTimer) {
+      clearInterval(APIClient._healthCheckTimer)
+      APIClient._healthCheckTimer = null
+    }
+
+    const appRef = getAppInstance()
+    if (appRef && typeof appRef.exitMaintenanceMode === 'function') {
+      appRef.exitMaintenanceMode()
+    }
+
+    wx.showToast({ title: '系统已恢复', icon: 'success', duration: 2000 })
   }
 
   /**

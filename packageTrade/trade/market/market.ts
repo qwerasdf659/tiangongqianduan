@@ -20,7 +20,7 @@
  * @since 2026-02-22
  */
 
-const { API, Logger, Waterfall, Wechat, ImageHelper: imageHelper } = require('../../../utils/index')
+const { API, Logger, Waterfall, Wechat, ImageHelper: imageHelper, Utils: marketUtils } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -357,9 +357,14 @@ Page({
     }
   },
 
+  /** 防抖重载（300ms），避免快速连续切换筛选触发多次API请求 */
+  _debouncedReload: marketUtils.debounce(function (this: any) {
+    this.loadProducts(1)
+  }, 300),
+
   /**
    * 切换挂牌类型筛选标签（全部 / 物品 / 资产）
-   * 修改后重置分页并重新加载（服务端筛选）
+   * 修改后重置分页并防抖加载
    */
   onKindTabChange(e: WechatMiniprogram.TouchEvent) {
     const kindKey = e.currentTarget.dataset.kind
@@ -373,12 +378,12 @@ Page({
       hasMore: true,
       columnHeights: [0, 0]
     })
-    this.loadProducts(1)
+    this._debouncedReload()
   },
 
   /**
    * 切换排序方式
-   * 修改后重置分页并重新加载（服务端排序）
+   * 修改后重置分页并防抖加载
    */
   onSortChange(e: WechatMiniprogram.TouchEvent) {
     const sortKey = e.currentTarget.dataset.sort
@@ -392,7 +397,7 @@ Page({
       hasMore: true,
       columnHeights: [0, 0]
     })
-    this.loadProducts(1)
+    this._debouncedReload()
   },
 
   /** 切换高级筛选面板，首次展开时加载分面数据 */

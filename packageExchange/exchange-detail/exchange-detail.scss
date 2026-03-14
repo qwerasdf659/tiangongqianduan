@@ -1,11 +1,15 @@
 /**
- * 兑换商品详情页样式 — 游戏商城风格
+ * 兑换商品详情页样式 — B+C混合方案
  *
  * 设计要点:
- *   1. 大图视觉冲击（带稀有度光效）
+ *   1. 大图视觉冲击（带稀有度渐变背景 + 光效脉冲）
  *   2. 信息卡片分层（白底 + 圆角 + 阴影）
- *   3. 底部固定操作栏（余额 + 兑换按钮）
+ *   3. 底部固定操作栏（余额 + 客服 + 兑换按钮）
  *   4. 所有 class 以 ed- 为前缀，避免全局冲突
+ *   5. 支持 grid/list 属性区模式、game/plain 标签模式
+ *   6. 新增: 轮播指示器、详情长图、展示图、使用说明、相关推荐
+ *
+ * @version 3.0.0
  */
 
 @import '../../styles/variables';
@@ -32,13 +36,27 @@
   animation: edBounce 1.4s infinite ease-in-out both;
 }
 
-.ed-dot1 { animation-delay: -0.32s; }
-.ed-dot2 { animation-delay: -0.16s; }
-.ed-dot3 { animation-delay: 0s; }
+.ed-dot1 {
+  animation-delay: -0.32s;
+}
+.ed-dot2 {
+  animation-delay: -0.16s;
+}
+.ed-dot3 {
+  animation-delay: 0s;
+}
 
 @keyframes edBounce {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .ed-loading-text {
@@ -75,7 +93,7 @@
   padding-bottom: 160rpx;
 }
 
-/* ========== 顶部大图区域 ========== */
+/* ========== ① 图片区（轮播 / 单图 / 占位） ========== */
 
 .ed-hero-section {
   position: relative;
@@ -104,28 +122,82 @@
 .ed-rarity-glow {
   position: absolute;
   inset: 0;
+  animation: edGlowPulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* legendary: 金色脉冲光效 */
+.ed-glow-legendary {
   background: radial-gradient(
     circle at 50% 40%,
     rgba(255, 152, 0, 0.25) 0%,
     rgba(255, 152, 0, 0.08) 40%,
     transparent 70%
   );
-  animation: edGlowPulse 3s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
+}
+
+/* epic: 紫色脉冲光效 */
+.ed-glow-epic {
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(156, 39, 176, 0.25) 0%,
+    rgba(156, 39, 176, 0.08) 40%,
+    transparent 70%
+  );
 }
 
 @keyframes edGlowPulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.ed-swiper {
+  width: 100%;
+  height: 520rpx;
+  position: relative;
+  z-index: 2;
 }
 
 .ed-hero-image {
   width: 100%;
-  height: 100%;
+  height: 520rpx;
   object-fit: contain;
   position: relative;
   z-index: 2;
+}
+
+/* 自定义轮播指示器 */
+
+.ed-swiper-dots {
+  position: absolute;
+  bottom: 24rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12rpx;
+  z-index: 5;
+}
+
+.ed-swiper-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s;
+}
+
+.ed-swiper-dot.ed-dot-active {
+  width: 28rpx;
+  border-radius: 6rpx;
+  background: $color-white;
 }
 
 .ed-hero-fallback {
@@ -144,8 +216,13 @@
 }
 
 @keyframes edFloatBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-16rpx); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-16rpx);
+  }
 }
 
 .ed-fallback-name {
@@ -172,7 +249,7 @@
   }
 }
 
-/* ========== 标签区 ========== */
+/* ========== ② 标签区（game风 / plain风） ========== */
 
 .ed-tags-row {
   display: flex;
@@ -193,6 +270,7 @@
   }
 }
 
+/* game 风格标签 */
 .ed-tag-hot {
   background: rgba(255, 77, 79, 0.1);
   color: $color-error;
@@ -218,7 +296,20 @@
   color: $gradient-blue-start;
 }
 
-/* ========== 信息卡片（名称 + 价格） ========== */
+/* 后端自定义标签默认样式（未知 style_type 的兜底） */
+.ed-tag-default {
+  background: rgba(102, 126, 234, 0.1);
+  color: $gradient-blue-start;
+}
+
+/* plain 风格标签 */
+.ed-tag-plain {
+  background: $color-bg-grey;
+  color: $color-text-secondary;
+  font-weight: 500;
+}
+
+/* ========== 信息卡片（名称 + ③ 价格） ========== */
 
 .ed-info-card {
   @include card-base;
@@ -295,9 +386,93 @@
   font-weight: 600;
 }
 
-/* ========== 商品介绍卡片 ========== */
+/* ========== Phase 4: 优惠券 / 满减 / 到手价 ========== */
 
-.ed-desc-card {
+.ed-coupon-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx solid $color-border-light;
+}
+
+.ed-coupon-item {
+  @include flex-align-center;
+  gap: 6rpx;
+  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #fff0f0, #fff5f5);
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(255, 77, 79, 0.15);
+}
+
+.ed-coupon-icon {
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.ed-coupon-text {
+  font-size: $font-size-xs;
+  color: $color-error;
+  font-weight: 600;
+}
+
+.ed-promotion-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 16rpx;
+}
+
+.ed-promotion-item {
+  @include flex-align-center;
+  gap: 6rpx;
+}
+
+.ed-promotion-icon {
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.ed-promotion-text {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.ed-estimated-row {
+  @include flex-between;
+  margin-top: 16rpx;
+  padding: 16rpx 20rpx;
+  background: linear-gradient(135deg, #fff7f0, #fff3ea);
+  border-radius: 12rpx;
+}
+
+.ed-estimated-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.ed-estimated-value {
+  @include flex-align-center;
+  gap: 4rpx;
+}
+
+.ed-estimated-num {
+  font-size: $font-size-lg;
+  font-weight: 800;
+  color: $color-primary;
+  line-height: 1;
+}
+
+.ed-estimated-unit {
+  font-size: $font-size-xs;
+  color: $color-primary-light;
+  font-weight: 500;
+}
+
+/* ========== ④ 属性区（grid + list） ========== */
+
+.ed-attrs-card {
   @include card-base;
   margin: 0 24rpx 20rpx;
   padding: 28rpx 32rpx;
@@ -311,6 +486,95 @@
   margin-bottom: 20rpx;
   padding-left: 16rpx;
   border-left: 6rpx solid $gradient-blue-start;
+}
+
+/* grid 模式 */
+
+.ed-attrs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.ed-attr-item {
+  @include flex-column-center;
+  padding: 20rpx 0;
+  background: $color-bg-grey;
+  border-radius: $border-radius-sm;
+}
+
+.ed-attr-value {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-text-primary;
+  margin-bottom: 6rpx;
+}
+
+.ed-attr-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* list 模式 */
+
+.ed-attrs-list {
+  margin-bottom: 20rpx;
+}
+
+.ed-attr-row {
+  @include flex-between;
+  padding: 18rpx 0;
+  border-bottom: 2rpx solid $color-border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ed-attr-row-label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.ed-attr-row-value {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+/* 库存进度条 */
+
+.ed-stock-bar-wrap {
+  margin-top: 4rpx;
+}
+
+.ed-stock-bar-bg {
+  height: 12rpx;
+  background: $color-bg-grey;
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: 8rpx;
+}
+
+.ed-stock-bar-fill {
+  height: 100%;
+  border-radius: 6rpx;
+  background: linear-gradient(90deg, $color-success, #81c784);
+  transition: width 0.6s ease;
+}
+
+.ed-stock-bar-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* ========== ⑤ 商品介绍区 ========== */
+
+.ed-desc-card {
+  @include card-base;
+  margin: 0 24rpx 20rpx;
+  padding: 28rpx 32rpx;
 }
 
 .ed-sell-point {
@@ -340,69 +604,205 @@
   font-size: $font-size-sm;
   color: $color-text-secondary;
   line-height: 1.8;
+  margin-bottom: 16rpx;
 }
 
-/* ========== 商品属性卡片 ========== */
+/* 详情长图（含可选 caption 说明文字） */
 
-.ed-attrs-card {
+.ed-detail-images {
+  margin-top: 16rpx;
+}
+
+.ed-detail-img-wrap {
+  margin-bottom: 16rpx;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.ed-detail-img {
+  width: 100%;
+  border-radius: 12rpx;
+}
+
+.ed-detail-img-caption {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+  margin-top: 8rpx;
+  line-height: 1.5;
+}
+
+/* ========== ⑥ 展示图区 ========== */
+
+.ed-showcase-card {
   @include card-base;
   margin: 0 24rpx 20rpx;
   padding: 28rpx 32rpx;
 }
 
-.ed-attrs-grid {
+/* 单图 */
+
+.ed-showcase-single {
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.ed-showcase-img-single {
+  width: 100%;
+  border-radius: 12rpx;
+}
+
+/* 2-4张网格 */
+
+.ed-showcase-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-  margin-bottom: 20rpx;
+  gap: 16rpx;
 }
 
-.ed-attr-item {
-  @include flex-column-center;
-  padding: 20rpx 0;
-  background: $color-bg-grey;
-  border-radius: $border-radius-sm;
+.ed-showcase-img-grid {
+  width: 100%;
+  height: 260rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
 }
 
-.ed-attr-value {
-  font-size: $font-size-md;
+/* 5+张横滚 */
+
+.ed-showcase-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.ed-showcase-scroll-inner {
+  display: inline-flex;
+  gap: 16rpx;
+  padding-right: 32rpx;
+}
+
+.ed-showcase-img-scroll {
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+/* ========== ⑦ 使用说明区 ========== */
+
+.ed-rules-card {
+  @include card-base;
+  margin: 0 24rpx 20rpx;
+  padding: 28rpx 32rpx;
+}
+
+.ed-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.ed-rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.ed-rule-num {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  color: $color-text-white;
+  font-size: 20rpx;
   font-weight: 700;
-  color: $color-text-primary;
-  margin-bottom: 6rpx;
-}
-
-.ed-attr-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-}
-
-/* 库存进度条 */
-
-.ed-stock-bar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   margin-top: 4rpx;
 }
 
-.ed-stock-bar-bg {
-  height: 12rpx;
+.ed-rule-text {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  flex: 1;
+}
+
+/* ========== ⑧ 相关推荐区 ========== */
+
+.ed-related-card {
+  @include card-base;
+  margin: 0 24rpx 20rpx;
+  padding: 28rpx 32rpx;
+}
+
+.ed-related-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.ed-related-item {
   background: $color-bg-grey;
-  border-radius: 6rpx;
+  border-radius: $border-radius-sm;
   overflow: hidden;
+}
+
+.ed-related-img {
+  width: 100%;
+  height: 200rpx;
+  object-fit: cover;
+}
+
+.ed-related-img-fallback {
+  width: 100%;
+  height: 200rpx;
+  @include flex-center;
+  background: linear-gradient(135deg, #f0f0f0, #e8e8e8);
+
+  text {
+    font-size: 64rpx;
+    opacity: 0.5;
+  }
+}
+
+.ed-related-info {
+  padding: 16rpx;
+}
+
+.ed-related-name {
+  display: block;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin-bottom: 8rpx;
 }
 
-.ed-stock-bar-fill {
-  height: 100%;
-  border-radius: 6rpx;
-  background: linear-gradient(90deg, $color-success, #81c784);
-  transition: width 0.6s ease;
+.ed-related-price {
+  @include flex-align-center;
+  gap: 4rpx;
 }
 
-.ed-stock-bar-text {
+.ed-related-price-num {
+  font-size: $font-size-md;
+  font-weight: 800;
+  color: $color-primary;
+}
+
+.ed-related-price-unit {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
 }
 
-/* ========== 标签云卡片 ========== */
+/* ========== ⑨ 标签云卡片 ========== */
 
 .ed-tags-card {
   @include card-base;
@@ -435,14 +835,15 @@
   height: 40rpx;
 }
 
-/* ========== 底部固定操作栏 ========== */
+/* ========== ⑩ 吸底操作栏 ========== */
 
 .ed-bottom-bar {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  @include flex-between;
+  display: flex;
+  align-items: center;
   background: $color-white;
   padding: 16rpx 32rpx;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
@@ -453,6 +854,7 @@
 .ed-balance-info {
   @include flex-column;
   gap: 2rpx;
+  margin-right: auto;
 }
 
 .ed-balance-label {
@@ -466,14 +868,60 @@
   color: $color-text-primary;
 }
 
+/* 微信客服按钮（覆盖微信默认 button 样式） */
+
+.ed-service-btn {
+  @include flex-column-center;
+  gap: 2rpx;
+  min-width: 80rpx;
+  margin: 0 24rpx;
+  padding: 0;
+  border: none !important;
+  background: none !important;
+  line-height: normal;
+  font-size: inherit;
+
+  &::after {
+    display: none;
+  }
+}
+
+.ed-service-icon {
+  font-size: 36rpx;
+}
+
+.ed-service-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+/* Phase 4: 购物车按钮（暂隐藏，后续启用） */
+
+.ed-cart-btn {
+  @include flex-column-center;
+  gap: 2rpx;
+  min-width: 80rpx;
+  margin-right: 24rpx;
+}
+
+.ed-cart-icon {
+  font-size: 36rpx;
+}
+
+.ed-cart-text {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
 .ed-exchange-btn {
   @include flex-center;
-  min-width: 280rpx;
+  min-width: 240rpx;
   height: 88rpx;
   border-radius: 44rpx;
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
   box-shadow: 0 8rpx 28rpx rgba(102, 126, 234, 0.35);
   transition: all 0.2s;
+  flex-shrink: 0;
 
   text {
     font-size: $font-size-base;
@@ -516,8 +964,12 @@
 }
 
 @keyframes edOverlayIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .ed-confirm-modal {
@@ -533,8 +985,14 @@
 }
 
 @keyframes edModalUp {
-  from { opacity: 0; transform: translateY(60rpx) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(60rpx) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .ed-confirm-bar {
@@ -587,6 +1045,20 @@
   border-radius: 16rpx;
   flex-shrink: 0;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.ed-confirm-img-fallback {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  @include flex-center;
+  background: linear-gradient(135deg, #f0f0f0, #e8e8e8);
+
+  text {
+    font-size: 56rpx;
+    opacity: 0.5;
+  }
 }
 
 .ed-confirm-product-info {

@@ -1,10 +1,99 @@
-<!-- premium-space 臻选空间子组件 — 双列网格展示 -->
+<!-- premium-space 臻选空间子组件 — 服务端筛选 + 双列网格展示 -->
 <view class="premium-space-content">
-  <!-- 加载中 -->
-  <loading-spinner wx:if="{{loading}}" />
+  <!-- 搜索筛选区域 -->
+  <view class="search-filter-section">
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input
+        class="search-input"
+        placeholder="搜索商品名称..."
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+    </view>
+
+    <view class="filter-buttons" wx:if="{{categoryOptions.length > 0 || costRangeOptions.length > 0}}">
+      <view
+        class="filter-btn advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}"
+        bindtap="onToggleAdvancedFilter"
+        >高级筛选 {{showAdvancedFilter ? '▲' : '▼'}}</view
+      >
+    </view>
+
+    <!-- 高级筛选面板 -->
+    <view class="advanced-filter-panel" wx:if="{{showAdvancedFilter}}">
+      <view class="filter-row" wx:if="{{categoryOptions.length > 0}}">
+        <text class="filter-label">商品分类</text>
+        <view class="filter-options">
+          <view
+            wx:for="{{categoryOptions}}"
+            wx:key="value"
+            class="option-btn {{categoryFilter === item.value ? 'active' : ''}} {{filtersCount && filtersCount.categories && item.value !== 'all' && filtersCount.categories[item.value] === 0 ? 'filter-disabled' : ''}}"
+            data-category="{{item.value}}"
+            bindtap="onCategoryFilterChange"
+            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.categories && filtersCount.categories[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.categories[item.value]}})</text></view
+          >
+        </view>
+      </view>
+      <view class="filter-row" wx:if="{{costRangeOptions.length > 0}}">
+        <text class="filter-label">价格区间</text>
+        <view class="filter-options">
+          <view
+            wx:for="{{costRangeOptions}}"
+            wx:key="label"
+            class="option-btn {{costRangeIndex === index ? 'active' : ''}} {{filtersCount && filtersCount.cost_ranges && index > 0 && filtersCount.cost_ranges[index] === 0 ? 'filter-disabled' : ''}}"
+            data-index="{{index}}"
+            bindtap="onCostRangeChange"
+            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.cost_ranges && filtersCount.cost_ranges[index] !== undefined}}" class="filter-count"> ({{filtersCount.cost_ranges[index]}})</text></view
+          >
+        </view>
+      </view>
+      <view class="filter-row" wx:if="{{stockStatusOptions.length > 0}}">
+        <text class="filter-label">库存状态</text>
+        <view class="filter-options">
+          <view
+            wx:for="{{stockStatusOptions}}"
+            wx:key="value"
+            class="option-btn {{stockStatus === item.value ? 'active' : ''}} {{filtersCount && filtersCount.stock_statuses && item.value !== 'all' && filtersCount.stock_statuses[item.value] === 0 ? 'filter-disabled' : ''}}"
+            data-status="{{item.value}}"
+            bindtap="onStockStatusChange"
+            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.stock_statuses && filtersCount.stock_statuses[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.stock_statuses[item.value]}})</text></view
+          >
+        </view>
+      </view>
+      <view class="filter-row" wx:if="{{sortByOptions.length > 0}}">
+        <text class="filter-label">排序方式</text>
+        <view class="filter-options">
+          <view
+            wx:for="{{sortByOptions}}"
+            wx:key="value"
+            class="option-btn {{sortBy === item.value ? 'active' : ''}}"
+            data-sort="{{item.value}}"
+            bindtap="onSortByChange"
+            >{{item.label}}</view
+          >
+        </view>
+      </view>
+      <view class="filter-actions">
+        <view class="reset-btn" bindtap="onResetFilters">重置筛选</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 骨架屏加载态 -->
+  <view class="skeleton-grid" wx:if="{{loading}}">
+    <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+      <view class="skeleton-image"></view>
+      <view class="skeleton-body">
+        <view class="skeleton-line medium"></view>
+        <view class="skeleton-line short"></view>
+        <view class="skeleton-line short"></view>
+      </view>
+    </view>
+  </view>
 
   <!-- 商品网格 -->
-  <view wx:else class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
+  <view wx:if="{{!loading}}" class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
     <view
       wx:for="{{filteredProducts}}"
       wx:key="exchange_item_id"
@@ -27,7 +116,7 @@
         />
         <view wx:else class="image-fallback asset-type">
           <text class="fallback-icon">💎</text>
-          <text class="fallback-name">{{item.name}}</text>
+          <text class="fallback-name">{{item.item_name}}</text>
         </view>
         <view wx:if="{{item.is_hot}}" class="badge-tag hot">热销</view>
         <view wx:elif="{{item.is_new}}" class="badge-tag new">新品</view>
@@ -35,7 +124,7 @@
       </view>
 
       <view class="card-body">
-        <text class="product-name">{{item.name}}</text>
+        <text class="product-name">{{item.item_name}}</text>
         <text class="product-desc" wx:if="{{item.sell_point}}">{{item.sell_point}}</text>
         <view class="price-row">
           <text class="price-unit">{{item._priceLabel || '积分'}}</text>

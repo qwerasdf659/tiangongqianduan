@@ -330,8 +330,10 @@ async function getAdminOnlineStatus(admin_ids: number[]) {
  * 权限: business_manager(role_level>=60) 及以上
  *
  * 支持按 auditable_type（消费/商家积分）和 status（进行中/已完成/已拒绝）筛选
+ * 支持按 auditable_id 精确查询某条业务记录的审核链实例
  *
  * @param params.auditable_type - 业务类型筛选（consumption / merchant_points）
+ * @param params.auditable_id - 业务记录ID（精确查询某条记录的审核链）
  * @param params.status - 实例状态筛选（in_progress / completed / rejected / cancelled / timeout）
  * @param params.page - 页码（默认1）
  * @param params.page_size - 每页数量（默认20）
@@ -339,16 +341,18 @@ async function getAdminOnlineStatus(admin_ids: number[]) {
 async function getApprovalChainInstances(
   params: {
     auditable_type?: string
+    auditable_id?: number
     status?: string
     page?: number
     page_size?: number
   } = {}
 ) {
-  const { page = 1, page_size = 20, auditable_type, status } = params
+  const { page = 1, page_size = 20, auditable_type, auditable_id, status } = params
   const qs = buildQueryString({
     page,
     page_size,
     auditable_type: auditable_type || null,
+    auditable_id: auditable_id || null,
     status: status || null
   })
   return apiClient.request(`/console/approval-chain/instances?${qs}`, {
@@ -393,16 +397,53 @@ async function getApprovalChainInstanceDetail(instanceId: number) {
  *
  * 后端按当前用户的 user_id 和 role_id 匹配待处理的审核步骤
  * 返回: 步骤列表 + 关联的审核链实例和业务数据
+ *
+ * @param params.page - 页码（默认1）
+ * @param params.page_size - 每页数量（默认20）
+ * @param params.showLoading - 是否显示loading（默认true，角标计数等后台场景传false）
  */
-async function getMyPendingApprovalSteps(params: { page?: number; page_size?: number } = {}) {
-  const { page = 1, page_size = 20 } = params
+async function getMyPendingApprovalSteps(
+  params: { page?: number; page_size?: number; showLoading?: boolean } = {}
+) {
+  const { page = 1, page_size = 20, showLoading = true } = params
   const qs = buildQueryString({ page, page_size })
   return apiClient.request(`/console/approval-chain/my-pending?${qs}`, {
     method: 'GET',
     needAuth: true,
-    showLoading: true,
+    showLoading,
     loadingText: '加载待办...',
-    showError: true
+    showError: !showLoading
+  })
+}
+
+/**
+ * 按业务记录查询审核链实例
+ * 后端路由: GET /api/v4/console/approval-chain/instances/by-auditable
+ * 权限: business_manager(role_level>=60) 及以上
+ *
+ * 用于「消费记录列表」等场景：根据 auditable_type + auditable_id 精确查询
+ * 某条业务记录所关联的审核链实例，获取 current_step / total_steps / status 等进度信息
+ *
+ * @param auditableType - 业务类型（consumption / merchant_points）
+ * @param auditableId - 业务记录ID（如 consumption_record_id）
+ */
+async function getInstanceByAuditable(auditableType: string, auditableId: number) {
+  if (!auditableType) {
+    throw new Error('业务类型不能为空')
+  }
+  if (!auditableId || !Number.isInteger(auditableId) || auditableId <= 0) {
+    throw new Error('业务记录ID必须是正整数')
+  }
+
+  const qs = buildQueryString({
+    auditable_type: auditableType,
+    auditable_id: auditableId
+  })
+  return apiClient.request(`/console/approval-chain/instances/by-auditable?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
   })
 }
 
@@ -490,6 +531,7 @@ module.exports = {
   getAdminOnlineStatus,
   getApprovalChainInstances,
   getApprovalChainInstanceDetail,
+  getInstanceByAuditable,
   getMyPendingApprovalSteps,
   approveApprovalStep,
   rejectApprovalStep

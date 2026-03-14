@@ -9,6 +9,7 @@ const { safeApiCall } = ApiWrapper
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
+const { auditStore } = require('../../store/audit')
 
 /** loading安全超时时间（毫秒），防止loading遮罩层永远不消失导致页面无法操作 */
 const LOADING_SAFETY_TIMEOUT = 8000
@@ -63,6 +64,9 @@ Page({
     totalPoints: 0,
     todayEarned: 0,
     todayConsumed: 0,
+
+    /** 审核链待办数量（MobX绑定自 auditStore.pendingCount，role_level>=60 时加载） */
+    approvalPendingCount: 0,
 
     // 系统配置（从 GET /api/v4/system/config 动态获取）
     customerWechat: '' as string,
@@ -180,6 +184,7 @@ Page({
   /** MobX Store绑定实例引用 */
   userStoreBindings: null as any,
   pointsStoreBindings: null as any,
+  auditStoreBindings: null as any,
 
   /**
    * 生命周期函数 - 监听页面加载
@@ -201,6 +206,13 @@ Page({
         frozenPoints: () => pointsStore.frozenAmount
       },
       actions: ['setBalance']
+    })
+    this.auditStoreBindings = createStoreBindings(this, {
+      store: auditStore,
+      fields: {
+        approvalPendingCount: () => auditStore.pendingCount
+      },
+      actions: []
     })
 
     this._skipNextShow = true
@@ -243,6 +255,9 @@ Page({
     }
     if (this.pointsStoreBindings) {
       this.pointsStoreBindings.destroyStoreBindings()
+    }
+    if (this.auditStoreBindings) {
+      this.auditStoreBindings.destroyStoreBindings()
     }
   },
 
@@ -315,14 +330,15 @@ Page({
 
       log.info('用户已登录，开始加载用户数据')
 
-      // 并行加载用户信息、积分趋势、系统配置（Promise.allSettled保证部分失败不影响整体）
+      // 并行加载用户信息、积分趋势、系统配置、审核待办（Promise.allSettled保证部分失败不影响整体）
       const results = await Promise.allSettled([
         this.safeLoadUserInfo(),
         this.safeLoadPointsTrend(),
-        this.safeLoadSystemConfig()
+        this.safeLoadSystemConfig(),
+        this.loadApprovalPendingCount()
       ])
 
-      const taskNames = ['用户信息', '积分趋势', '系统配置']
+      const taskNames = ['用户信息', '积分趋势', '系统配置', '审核待办']
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
           log.warn(`${taskNames[index]}加载失败:`, result.reason)
@@ -404,13 +420,14 @@ Page({
         return
       }
 
-      // 并行刷新用户信息和积分趋势
+      // 并行刷新用户信息、积分趋势、审核待办
       const results = await Promise.allSettled([
         this.safeLoadUserInfo(),
-        this.safeLoadPointsTrend()
+        this.safeLoadPointsTrend(),
+        this.loadApprovalPendingCount()
       ])
 
-      const taskNames = ['用户信息', '积分趋势']
+      const taskNames = ['用户信息', '积分趋势', '审核待办']
       let successCount = 0
       results.forEach((result, index) => {
         if (result.status === 'fulfilled') {
@@ -421,7 +438,7 @@ Page({
         }
       })
 
-      log.info(`用户数据刷新完成，成功项: ${successCount}/2`)
+      log.info(`用户数据刷新完成，成功项: ${successCount}/3`)
 
       // 全部失败时提示用户检查网络
       if (successCount === 0) {
@@ -528,6 +545,17 @@ Page({
     } else {
       this.setData({ todayEarned: 0, todayConsumed: 0 })
     }
+  },
+
+  /**
+   * 刷新审核链待办数量（通过 auditStore 全局管理）
+   * 数据通过 MobX binding 自动同步到 this.data.approvalPendingCount
+   */
+  async loadApprovalPendingCount() {
+    if (!this.data.isReviewer) {
+      return
+    }
+    await auditStore.refreshPendingCount()
   },
 
   /** 点击积分区域，跳转到积分明细页面 */

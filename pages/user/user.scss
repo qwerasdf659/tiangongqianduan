@@ -415,6 +415,28 @@
   @include flex-center;
   border-radius: $border-radius-md;
   flex-shrink: 0;
+  position: relative;
+}
+
+/* 审批管理卡片待办角标 */
+.mw-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  @include flex-center;
+  background: $color-error;
+  border-radius: 16rpx;
+  box-sizing: border-box;
+}
+
+.mw-badge-text {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 600;
+  line-height: 32rpx;
 }
 
 .mw-icon-scan {

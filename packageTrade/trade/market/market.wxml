@@ -95,9 +95,12 @@
   <!-- 筛选栏：类型标签 + 排序 + 筛选按钮 + 我的订单入口 -->
   <view class="filter-bar">
     <view class="kind-tabs">
-      <view class="kind-tab {{filterListingKind === item.key ? 'active' : ''}}" wx:for="{{kindTabs}}" wx:key="key"
-        data-kind="{{item.key}}" bindtap="onKindTabChange">
-        <text>{{item.label}}</text>
+      <view
+        class="kind-tab {{filterListingKind === item.key ? 'active' : ''}} {{filtersCount && filtersCount.listing_kinds && item.key && filtersCount.listing_kinds[item.key] === 0 ? 'filter-disabled' : ''}}"
+        wx:for="{{kindTabs}}" wx:key="key" data-kind="{{item.key}}" bindtap="onKindTabChange">
+        <text>{{item.label}}</text><text
+          wx:if="{{filtersCount && filtersCount.listing_kinds && item.key && filtersCount.listing_kinds[item.key] !== undefined}}"
+          class="filter-count"> ({{filtersCount.listing_kinds[item.key]}})</text>
       </view>
     </view>
     <view class="filter-right">
@@ -134,9 +137,12 @@
     <view class="filter-section" wx:if="{{facetsData && facetsData.categories && facetsData.categories.length > 0}}">
       <text class="filter-section-label">物品类目</text>
       <view class="filter-tags">
-        <view class="filter-tag {{filterCategoryCode === item.code ? 'active' : ''}}" wx:for="{{facetsData.categories}}"
-          wx:key="code" data-code="{{item.code}}" bindtap="onCategorySelect">
-          <text>{{item.display_name || item.code}}</text>
+        <view
+          class="filter-tag {{filterCategoryCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.categories && filtersCount.categories[item.code] === 0 ? 'filter-disabled' : ''}}"
+          wx:for="{{facetsData.categories}}" wx:key="code" data-code="{{item.code}}" bindtap="onCategorySelect">
+          <text>{{item.display_name || item.code}}</text><text
+            wx:if="{{filtersCount && filtersCount.categories && filtersCount.categories[item.code] !== undefined}}"
+            class="filter-count"> ({{filtersCount.categories[item.code]}})</text>
         </view>
       </view>
     </view>
@@ -145,9 +151,12 @@
     <view class="filter-section" wx:if="{{facetsData && facetsData.rarities && facetsData.rarities.length > 0}}">
       <text class="filter-section-label">稀有度</text>
       <view class="filter-tags">
-        <view class="filter-tag {{filterRarityCode === item.code ? 'active' : ''}}" wx:for="{{facetsData.rarities}}"
-          wx:key="code" data-code="{{item.code}}" bindtap="onRaritySelect">
-          <text>{{item.display_name || item.code}}</text>
+        <view
+          class="filter-tag {{filterRarityCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.rarities && filtersCount.rarities[item.code] === 0 ? 'filter-disabled' : ''}}"
+          wx:for="{{facetsData.rarities}}" wx:key="code" data-code="{{item.code}}" bindtap="onRaritySelect">
+          <text>{{item.display_name || item.code}}</text><text
+            wx:if="{{filtersCount && filtersCount.rarities && filtersCount.rarities[item.code] !== undefined}}"
+            class="filter-count"> ({{filtersCount.rarities[item.code]}})</text>
         </view>
       </view>
     </view>
@@ -157,9 +166,12 @@
       wx:if="{{facetsData && facetsData.asset_groups && facetsData.asset_groups.length > 0}}">
       <text class="filter-section-label">资产分组</text>
       <view class="filter-tags">
-        <view class="filter-tag {{filterAssetGroupCode === item.code ? 'active' : ''}}"
+        <view
+          class="filter-tag {{filterAssetGroupCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.asset_groups && filtersCount.asset_groups[item.code] === 0 ? 'filter-disabled' : ''}}"
           wx:for="{{facetsData.asset_groups}}" wx:key="code" data-code="{{item.code}}" bindtap="onAssetGroupSelect">
-          <text>{{item.display_name || item.code}}</text>
+          <text>{{item.display_name || item.code}}</text><text
+            wx:if="{{filtersCount && filtersCount.asset_groups && filtersCount.asset_groups[item.code] !== undefined}}"
+            class="filter-count"> ({{filtersCount.asset_groups[item.code]}})</text>
         </view>
       </view>
     </view>
@@ -168,9 +180,12 @@
     <view class="filter-section" wx:if="{{facetsData && facetsData.asset_codes && facetsData.asset_codes.length > 0}}">
       <text class="filter-section-label">资产代码</text>
       <view class="filter-tags">
-        <view class="filter-tag {{filterAssetCode === item.code ? 'active' : ''}}" wx:for="{{facetsData.asset_codes}}"
-          wx:key="code" data-code="{{item.code}}" bindtap="onAssetCodeSelect">
-          <text>{{item.display_name || item.code}}</text>
+        <view
+          class="filter-tag {{filterAssetCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.asset_codes && filtersCount.asset_codes[item.code] === 0 ? 'filter-disabled' : ''}}"
+          wx:for="{{facetsData.asset_codes}}" wx:key="code" data-code="{{item.code}}" bindtap="onAssetCodeSelect">
+          <text>{{item.display_name || item.code}}</text><text
+            wx:if="{{filtersCount && filtersCount.asset_codes && filtersCount.asset_codes[item.code] !== undefined}}"
+            class="filter-count"> ({{filtersCount.asset_codes[item.code]}})</text>
         </view>
       </view>
     </view>
@@ -241,15 +256,15 @@
     </view>
   </view>
 
-  <!-- 加载状态 -->
-  <view class="loading-section" wx:if="{{loading}}">
-    <view class="loading-content">
-      <view class="loading-spinner">
-        <view class="spinner-dot dot1"></view>
-        <view class="spinner-dot dot2"></view>
-        <view class="spinner-dot dot3"></view>
+  <!-- 骨架屏加载态（对齐 exchange-market / lucky-space / premium-space） -->
+  <view class="skeleton-grid" wx:if="{{loading}}">
+    <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+      <view class="skeleton-image"></view>
+      <view class="skeleton-body">
+        <view class="skeleton-line medium"></view>
+        <view class="skeleton-line short"></view>
+        <view class="skeleton-line short"></view>
       </view>
-      <text class="loading-text">加载中...</text>
     </view>
   </view>
 
@@ -286,4 +301,7 @@
       <text class="btn-icon">↑</text>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

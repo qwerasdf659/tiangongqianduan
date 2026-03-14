@@ -46,7 +46,14 @@ const NOTIFICATION_TYPE_MAP: Record<string, { text: string; tagClass: string }> 
   exchange_rejected: { text: '兑换', tagClass: 'tag-rejected' },
   points_change: { text: '积分', tagClass: 'tag-points' },
   announcement: { text: '系统', tagClass: 'tag-system' },
-  security_event: { text: '安全', tagClass: 'tag-rejected' }
+  security_event: { text: '安全', tagClass: 'tag-rejected' },
+  /* 审核链通知（后端 ApprovalChainService / ApprovalChainTimeoutService 写入 user_notifications） */
+  approval_step_pending: { text: '审核', tagClass: 'tag-approval' },
+  approval_step_assigned: { text: '审核', tagClass: 'tag-approval' },
+  approval_completed: { text: '审核', tagClass: 'tag-purchase' },
+  approval_rejected: { text: '审核', tagClass: 'tag-rejected' },
+  approval_timeout_escalation: { text: '审核', tagClass: 'tag-rejected' },
+  approval_final_timeout_reminder: { text: '审核', tagClass: 'tag-rejected' }
 }
 
 /**
@@ -66,7 +73,14 @@ const NOTIFICATION_LINK_MAP: Record<string, string> = {
   exchange_pending: '/pages/exchange/exchange',
   exchange_approved: '/pages/exchange/exchange',
   exchange_rejected: '/pages/exchange/exchange',
-  points_change: '/packageUser/points-detail/points-detail'
+  points_change: '/packageUser/points-detail/points-detail',
+  /* 审核链通知 → 审批管理页面 */
+  approval_step_pending: '/packageAdmin/audit-list/audit-list',
+  approval_step_assigned: '/packageAdmin/audit-list/audit-list',
+  approval_completed: '/packageAdmin/audit-list/audit-list',
+  approval_rejected: '/packageAdmin/audit-list/audit-list',
+  approval_timeout_escalation: '/packageAdmin/audit-list/audit-list',
+  approval_final_timeout_reminder: '/packageAdmin/audit-list/audit-list'
 }
 
 /** 将后端通知类型转为前端展示标签 */

@@ -26,9 +26,7 @@
       <text class="step-label">扫码识别</text>
     </view>
     <view class="step-connector {{qrCode && userInfo ? 'active' : ''}}"></view>
-    <view
-      class="step {{submitted ? 'done' : (qrCode && userInfo && consumeAmount ? 'active' : '')}}"
-    >
+    <view class="step {{submitted ? 'done' : (qrCode && userInfo && consumeAmount ? 'active' : '')}}">
       <view class="step-circle">
         <text class="step-icon" wx:if="{{submitted}}">✓</text>
         <text class="step-num" wx:else>3</text>
@@ -51,14 +49,8 @@
     <view class="card-body">
       <view class="amount-input-wrapper">
         <text class="amount-symbol">¥</text>
-        <input
-          type="digit"
-          class="amount-input"
-          placeholder="请输入消费金额"
-          value="{{consumeAmount}}"
-          bindinput="onAmountInput"
-          disabled="{{submitted}}"
-        />
+        <input type="digit" class="amount-input" placeholder="请输入消费金额" value="{{consumeAmount}}"
+          bindinput="onAmountInput" disabled="{{submitted}}" />
       </view>
       <view class="amount-footer">
         <text class="amount-range">范围：0.01 ~ 99,999.99 元</text>
@@ -81,15 +73,8 @@
       <text class="optional-badge">选填</text>
     </view>
     <view class="card-body">
-      <textarea
-        class="notes-textarea"
-        placeholder="请输入备注信息，如：消费2份套餐"
-        value="{{merchantNotes}}"
-        bindinput="onNotesInput"
-        maxlength="500"
-        auto-height
-        disabled="{{submitted}}"
-      />
+      <textarea class="notes-textarea" placeholder="请输入备注信息，如：消费2份套餐" value="{{merchantNotes}}" bindinput="onNotesInput"
+        maxlength="500" auto-height disabled="{{submitted}}" />
       <view class="notes-footer">
         <text class="char-counter">{{merchantNotes.length || 0}}/500</text>
       </view>
@@ -108,17 +93,10 @@
       <text class="required-badge">必填</text>
     </view>
     <view class="card-body">
-      <picker
-        mode="selector"
-        range="{{storeList}}"
-        range-key="store_name"
-        value="{{storeIndex}}"
-        bindchange="onStoreChange"
-      >
+      <picker mode="selector" range="{{storeList}}" range-key="store_name" value="{{storeIndex}}"
+        bindchange="onStoreChange">
         <view class="store-picker {{storeId ? 'selected' : ''}}">
-          <text class="picker-value"
-            >{{storeId ? storeList[storeIndex].store_name : '请选择门店'}}</text
-          >
+          <text class="picker-value">{{storeId ? storeList[storeIndex].store_name : '请选择门店'}}</text>
           <text class="picker-arrow">▼</text>
         </view>
       </picker>
@@ -196,19 +174,13 @@
       </view>
 
       <!-- 需要选择门店提示（多门店且未选择时） -->
-      <view
-        class="tip-box warning-tip"
-        wx:if="{{qrCode && !userInfoLoading && !userInfo && storeList.length > 1}}"
-      >
+      <view class="tip-box warning-tip" wx:if="{{qrCode && !userInfoLoading && !userInfo && storeList.length > 1}}">
         <text class="tip-emoji">🏪</text>
         <text class="tip-msg">请先在上方选择门店，系统将自动加载顾客信息</text>
       </view>
 
       <!-- 加载失败提示 -->
-      <view
-        class="tip-box error-tip"
-        wx:if="{{qrCode && !userInfoLoading && !userInfo && storeList.length <= 1}}"
-      >
+      <view class="tip-box error-tip" wx:if="{{qrCode && !userInfoLoading && !userInfo && storeList.length <= 1}}">
         <text class="tip-emoji">⚠️</text>
         <text class="tip-msg">顾客信息加载失败，请检查二维码是否有效</text>
       </view>
@@ -246,14 +218,9 @@
 
   <!-- 底部提交区域 -->
   <view class="submit-bar">
-    <button
-      class="submit-main-btn {{(loading || submitted || !userInfo || !consumeAmount) ? 'disabled' : ''}}"
-      bindtap="onSubmit"
-      disabled="{{loading || submitted || !userInfo || !consumeAmount}}"
-    >
-      <text class="submit-btn-text"
-        >{{loading ? '提交中...' : (submitted ? '✓ 已提交' : '确认提交')}}</text
-      >
+    <button class="submit-main-btn {{(loading || submitted || !userInfo || !consumeAmount) ? 'disabled' : ''}}"
+      bindtap="onSubmit" disabled="{{loading || submitted || !userInfo || !consumeAmount}}">
+      <text class="submit-btn-text">{{loading ? '提交中...' : (submitted ? '✓ 已提交' : '确认提交')}}</text>
     </button>
   </view>
 
@@ -264,4 +231,7 @@
       <text class="loading-label">提交中，请稍候...</text>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

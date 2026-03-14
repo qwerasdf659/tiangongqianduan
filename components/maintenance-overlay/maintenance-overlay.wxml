@@ -1,0 +1,10 @@
+<!-- 全屏维护遮罩 — 503 SYSTEM_MAINTENANCE 时阻断所有用户交互 -->
+<view class="maintenance-overlay" wx:if="{{visible}}" catchtouchmove="preventTouchMove">
+  <view class="maintenance-content">
+    <view class="maintenance-icon">🔧</view>
+    <view class="maintenance-title">系统维护中</view>
+    <view class="maintenance-message">{{message}}</view>
+    <button class="maintenance-retry-btn" disabled="{{retrying}}" bindtap="onRetry">{{retrying ? '检测中...' : '点击重试'}}</button>
+    <view class="maintenance-hint" wx:if="{{retryCount > 0}}">已重试 {{retryCount}} 次，维护可能还需要一些时间</view>
+  </view>
+</view>

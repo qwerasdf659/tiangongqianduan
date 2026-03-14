@@ -70,7 +70,8 @@
       <view class="record-card {{item.selected ? 'selected' : ''}}" wx:for="{{records}}" wx:key="record_id">
         <view class="card-header">
           <view class="header-left">
-            <view class="custom-checkbox {{item.selected ? 'checked' : ''}}" catchtap="toggleSelect" data-index="{{index}}" wx:if="{{isAdminUser}}">
+            <view class="custom-checkbox {{item.selected ? 'checked' : ''}}" catchtap="toggleSelect"
+              data-index="{{index}}" wx:if="{{isAdminUser}}">
               <text class="check-mark" wx:if="{{item.selected}}">✓</text>
             </view>
             <view class="user-avatar">
@@ -129,7 +130,8 @@
         <text>‹</text>
       </view>
       <view class="page-nums">
-        <view wx:for="{{pageNumbers}}" wx:key="*this" class="page-num {{item === page ? 'active' : ''}}" bindtap="goToPage" data-page="{{item}}">
+        <view wx:for="{{pageNumbers}}" wx:key="*this" class="page-num {{item === page ? 'active' : ''}}"
+          bindtap="goToPage" data-page="{{item}}">
           <text>{{item}}</text>
         </view>
       </view>
@@ -190,7 +192,8 @@
         <!-- 审核链进度条 -->
         <view class="chain-progress-bar" wx:if="{{item.instance}}">
           <view class="progress-track">
-            <view class="progress-fill" style="width: {{(item.instance.current_step / item.instance.total_steps) * 100}}%"></view>
+            <view class="progress-fill"
+              style="width: {{(item.instance.current_step / item.instance.total_steps) * 100}}%"></view>
           </view>
           <text class="progress-text">进度 {{item.instance.current_step}}/{{item.instance.total_steps}}</text>
         </view>
@@ -204,7 +207,8 @@
               <text class="number money">{{item.snapshot_consumption_amount}}</text>
             </view>
           </view>
-          <view class="amount-divider" wx:if="{{item.snapshot_consumption_amount && item.snapshot_points_to_award}}"></view>
+          <view class="amount-divider" wx:if="{{item.snapshot_consumption_amount && item.snapshot_points_to_award}}">
+          </view>
           <view class="amount-item" wx:if="{{item.snapshot_points_to_award}}">
             <text class="amount-label">预计积分</text>
             <view class="amount-value">
@@ -232,9 +236,12 @@
 
         <!-- 操作按钮 -->
         <view class="card-actions">
-          <button class="btn-detail" bindtap="onViewChainDetail" data-instance-id="{{item.instance_id}}" wx:if="{{item.instance_id}}">详情</button>
-          <button class="btn-reject" bindtap="onChainReject" data-step="{{item}}" disabled="{{chainSubmitting}}">拒绝</button>
-          <button class="btn-approve" bindtap="onChainApprove" data-step="{{item}}" disabled="{{chainSubmitting}}">通过</button>
+          <button class="btn-detail" bindtap="onViewChainDetail" data-instance-id="{{item.instance_id}}"
+            wx:if="{{item.instance_id}}">详情</button>
+          <button class="btn-reject" bindtap="onChainReject" data-step="{{item}}"
+            disabled="{{chainSubmitting}}">拒绝</button>
+          <button class="btn-approve" bindtap="onChainApprove" data-step="{{item}}"
+            disabled="{{chainSubmitting}}">通过</button>
         </view>
       </view>
     </view>
@@ -245,7 +252,8 @@
         <text>‹</text>
       </view>
       <view class="page-nums">
-        <view wx:for="{{pendingPageNumbers}}" wx:key="*this" class="page-num {{item === pendingPage ? 'active' : ''}}" bindtap="goToPendingPage" data-page="{{item}}">
+        <view wx:for="{{pendingPageNumbers}}" wx:key="*this" class="page-num {{item === pendingPage ? 'active' : ''}}"
+          bindtap="goToPendingPage" data-page="{{item}}">
           <text>{{item}}</text>
         </view>
       </view>
@@ -257,7 +265,8 @@
   </block>
 
   <!-- ===== 首次加载 ===== -->
-  <view class="loading-overlay" wx:if="{{(loading && records.length === 0 && activeTab === 'consumption') || (pendingLoading && pendingSteps.length === 0 && activeTab === 'myPending')}}">
+  <view class="loading-overlay"
+    wx:if="{{(loading && records.length === 0 && activeTab === 'consumption') || (pendingLoading && pendingSteps.length === 0 && activeTab === 'myPending')}}">
     <view class="loading-box">
       <view class="loading-spinner"></view>
       <text class="loading-text">正在加载...</text>
@@ -291,7 +300,8 @@
 
       <view class="modal-body">
         <text class="input-label">拒绝原因（必填，至少5个字符）</text>
-        <textarea class="reject-textarea" placeholder="请输入拒绝原因，如：消费金额与实际不符" value="{{rejectReason}}" bindinput="onRejectReasonInput" maxlength="200" auto-height />
+        <textarea class="reject-textarea" placeholder="请输入拒绝原因，如：消费金额与实际不符" value="{{rejectReason}}"
+          bindinput="onRejectReasonInput" maxlength="200" auto-height />
         <view class="input-meta">
           <text class="char-count">{{rejectReason.length || 0}}/200</text>
           <text class="warning-text">拒绝后用户将收到通知</text>
@@ -330,7 +340,8 @@
 
       <view class="modal-body">
         <text class="input-label">拒绝原因（必填，至少5个字符）</text>
-        <textarea class="reject-textarea" placeholder="请输入拒绝原因" value="{{chainRejectReason}}" bindinput="onChainRejectReasonInput" maxlength="500" auto-height />
+        <textarea class="reject-textarea" placeholder="请输入拒绝原因" value="{{chainRejectReason}}"
+          bindinput="onChainRejectReasonInput" maxlength="500" auto-height />
         <view class="input-meta">
           <text class="char-count">{{chainRejectReason.length || 0}}/500</text>
           <text class="warning-text">拒绝后整个审核链将终止</text>
@@ -390,7 +401,8 @@
         <view class="chain-timeline">
           <text class="timeline-title">审核步骤</text>
           <view class="timeline-list">
-            <view class="timeline-item {{stepItem.status}}" wx:for="{{chainDetail.steps}}" wx:for-item="stepItem" wx:key="step_id">
+            <view class="timeline-item {{stepItem.status}}" wx:for="{{chainDetail.steps}}" wx:for-item="stepItem"
+              wx:key="step_id">
               <view class="timeline-dot {{stepItem.status}}"></view>
               <view class="timeline-line" wx:if="{{index < chainDetail.steps.length - 1}}"></view>
               <view class="timeline-content">
@@ -425,4 +437,7 @@
       </view>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

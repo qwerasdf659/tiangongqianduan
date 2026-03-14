@@ -21,13 +21,9 @@
       <text class="required">*</text>
     </view>
     <view class="category-grid">
-      <view
-        wx:for="{{categories}}"
-        wx:key="value"
-        class="category-item {{selectedCategory === item.value ? 'selected' : ''}}"
-        data-category="{{item.value}}"
-        bindtap="onCategoryChange"
-      >
+      <view wx:for="{{categories}}" wx:key="value"
+        class="category-item {{selectedCategory === item.value ? 'selected' : ''}}" data-category="{{item.value}}"
+        bindtap="onCategoryChange">
         <text class="icon">{{item.icon}}</text>
         <text class="label">{{item.label}}</text>
       </view>
@@ -41,15 +37,8 @@
       <text class="required">*</text>
     </view>
     <view class="content-input-container">
-      <textarea
-        class="content-input"
-        placeholder="请详细描述您遇到的问题或建议，至少10个字符"
-        maxlength="{{maxLength}}"
-        value="{{feedbackContent}}"
-        bindinput="onContentInput"
-        auto-height
-        show-confirm-bar="{{false}}"
-      ></textarea>
+      <textarea class="content-input" placeholder="请详细描述您遇到的问题或建议，至少10个字符" maxlength="{{maxLength}}"
+        value="{{feedbackContent}}" bindinput="onContentInput" auto-height show-confirm-bar="{{false}}"></textarea>
       <view class="input-footer">
         <text class="char-count {{currentLength >= maxLength ? 'limit' : ''}}">
           {{currentLength}}/{{maxLength}}
@@ -66,13 +55,7 @@
     </view>
     <view class="image-upload-container">
       <view wx:for="{{attachedImages}}" wx:key="index" class="image-item">
-        <image
-          class="image"
-          src="{{item.path}}"
-          mode="aspectFill"
-          data-index="{{index}}"
-          bindtap="onPreviewImage"
-        >
+        <image class="image" src="{{item.path}}" mode="aspectFill" data-index="{{index}}" bindtap="onPreviewImage">
         </image>
         <view class="delete-btn" data-index="{{index}}" bindtap="onDeleteImage">
           <text class="icon">×</text>
@@ -88,11 +71,8 @@
 
   <!-- 提交按钮 -->
   <view class="submit-section">
-    <button
-      class="submit-btn {{canSubmit ? 'enabled' : 'disabled'}}"
-      disabled="{{!canSubmit || submitting}}"
-      bindtap="onSubmitFeedback"
-    >
+    <button class="submit-btn {{canSubmit ? 'enabled' : 'disabled'}}" disabled="{{!canSubmit || submitting}}"
+      bindtap="onSubmitFeedback">
       <text wx:if="{{submitting}}">提交中...</text>
       <text wx:else>提交反馈</text>
     </button>
@@ -109,13 +89,8 @@
       <text class="more" bindtap="onViewHistory">查看更多 ></text>
     </view>
     <view class="feedback-history-preview">
-      <view
-        wx:for="{{myFeedbacks}}"
-        wx:key="feedback_id"
-        class="history-item"
-        data-feedback-id="{{item.feedback_id}}"
-        bindtap="onHistoryItemTap"
-      >
+      <view wx:for="{{myFeedbacks}}" wx:key="feedback_id" class="history-item" data-feedback-id="{{item.feedback_id}}"
+        bindtap="onHistoryItemTap">
         <view class="item-header">
           <text class="category">{{item.category}}</text>
           <text class="status {{item.status}}">
@@ -149,13 +124,8 @@
       </view>
 
       <view wx:else class="feedback-list">
-        <view
-          wx:for="{{myFeedbacks}}"
-          wx:key="feedback_id"
-          class="feedback-item"
-          data-feedback-id="{{item.feedback_id}}"
-          bindtap="onHistoryItemTap"
-        >
+        <view wx:for="{{myFeedbacks}}" wx:key="feedback_id" class="feedback-item"
+          data-feedback-id="{{item.feedback_id}}" bindtap="onHistoryItemTap">
           <view class="item-status">
             <text class="status-badge {{item.status}}">
               {{item.status === 'pending' ? '待处理' : item.status === 'replied' ? '已回复' :
@@ -175,4 +145,7 @@
       <button class="view-all-btn" bindtap="onViewHistory">查看全部记录</button>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

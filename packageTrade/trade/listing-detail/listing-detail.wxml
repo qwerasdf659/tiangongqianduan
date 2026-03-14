@@ -22,13 +22,8 @@
 <view class="detail-container" wx:elif="{{detail}}">
   <!-- 商品图片区域 -->
   <view class="detail-image-section">
-    <image
-      wx:if="{{!imageError}}"
-      class="detail-main-image"
-      src="{{displayImage}}"
-      mode="aspectFill"
-      binderror="onImageError"
-    />
+    <image wx:if="{{!imageError}}" class="detail-main-image" src="{{displayImage}}" mode="aspectFill"
+      binderror="onImageError" />
     <view wx:else class="image-fallback-large">
       <text class="fallback-icon-lg">{{isFungibleAsset ? '💎' : '📦'}}</text>
       <text class="fallback-name-lg">{{displayName}}</text>
@@ -40,11 +35,8 @@
     </view>
 
     <!-- 稀有度 -->
-    <view
-      class="detail-rarity-badge"
-      wx:if="{{!isFungibleAsset && rarityCode && rarityCode !== 'common'}}"
-      style="background-color: {{rarityStyle.colorHex}};"
-    >
+    <view class="detail-rarity-badge" wx:if="{{!isFungibleAsset && rarityCode && rarityCode !== 'common'}}"
+      style="background-color: {{rarityStyle.colorHex}};">
       <text>{{rarityStyle.displayName}}</text>
     </view>
   </view>
@@ -54,10 +46,8 @@
     <view class="detail-title-row">
       <text class="detail-title">{{displayName}}</text>
       <view class="detail-status-tag" wx:if="{{detail.status !== 'active'}}">
-        <text
-          >{{detail.status === 'sold' ? '已售出' : detail.status === 'withdrawn' ? '已撤回' :
-          '已过期'}}</text
-        >
+        <text>{{detail.status === 'sold' ? '已售出' : detail.status === 'withdrawn' ? '已撤回' :
+          '已过期'}}</text>
       </view>
     </view>
 
@@ -74,10 +64,7 @@
     </view>
 
     <!-- 物品描述（item 类型） -->
-    <view
-      class="detail-desc-row"
-      wx:if="{{!isFungibleAsset && detail.item_info && detail.item_info.category_code}}"
-    >
+    <view class="detail-desc-row" wx:if="{{!isFungibleAsset && detail.item_info && detail.item_info.category_code}}">
       <text class="desc-label">物品类目</text>
       <text class="desc-value">{{detail.item_info.category_code}}</text>
     </view>
@@ -93,12 +80,8 @@
   <view class="detail-seller-card">
     <text class="section-title">卖家信息</text>
     <view class="seller-row">
-      <image
-        wx:if="{{detail.seller_avatar_url}}"
-        class="seller-avatar"
-        src="{{detail.seller_avatar_url}}"
-        mode="aspectFill"
-      />
+      <image wx:if="{{detail.seller_avatar_url}}" class="seller-avatar" src="{{detail.seller_avatar_url}}"
+        mode="aspectFill" />
       <view wx:else class="seller-avatar-placeholder">
         <text>👤</text>
       </view>
@@ -138,12 +121,9 @@
       <text>{{showPriceChart ? '收起走势图' : '📈 查看价格走势'}}</text>
     </view>
     <view wx:if="{{showPriceChart}}">
-      <price-chart
-        asset-code="{{isFungibleAsset && detail.asset_info ? detail.asset_info.asset_code : ''}}"
-        template-id="{{!isFungibleAsset && detail.item_info ? detail.item_info.template_id : 0}}"
-        title="价格走势"
-        canvas-height="{{180}}"
-      />
+      <price-chart asset-code="{{isFungibleAsset && detail.asset_info ? detail.asset_info.asset_code : ''}}"
+        template-id="{{!isFungibleAsset && detail.item_info ? detail.item_info.template_id : 0}}" title="价格走势"
+        canvas-height="{{180}}" />
     </view>
   </view>
 
@@ -174,11 +154,8 @@
       <text class="bottom-price">{{detail.price_amount}}</text>
       <text class="bottom-unit">{{priceLabel}}</text>
     </view>
-    <button
-      class="purchase-btn {{purchasing ? 'btn-disabled' : ''}}"
-      disabled="{{purchasing || detail.seller_user_id === currentUserId}}"
-      bindtap="onPurchase"
-    >
+    <button class="purchase-btn {{purchasing ? 'btn-disabled' : ''}}"
+      disabled="{{purchasing || detail.seller_user_id === currentUserId}}" bindtap="onPurchase">
       <text wx:if="{{purchasing}}">购买中...</text>
       <text wx:elif="{{detail.seller_user_id === currentUserId}}">自己的商品</text>
       <text wx:else>立即购买</text>
@@ -265,4 +242,7 @@
       <button class="modal-btn" bindtap="onGoToMyOrders">查看我的订单</button>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

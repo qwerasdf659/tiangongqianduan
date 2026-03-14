@@ -43,6 +43,7 @@
           </scroll-view>
         </view>
         <view class="header-quick-actions">
+          <view class="header-action-btn" bindtap="onGoToMyOrders">🛒 我的订单</view>
           <view class="header-action-btn" bindtap="onRefreshProducts">🔄 刷新</view>
           <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
           <view class="view-toggle">
@@ -64,9 +65,11 @@
       categoryOptions="{{categoryOptions}}" costRangeOptions="{{costRangeOptions}}"
       stockStatusOptions="{{stockStatusOptions}}" sortByOptions="{{sortByOptions}}" bind:producttap="onProductTap" />
 
-    <!-- 💎 臻选空间子组件 -->
+    <!-- 💎 臻选空间子组件（共享筛选配置，与幸运空间一致） -->
     <premium-space id="premium-space" wx:if="{{currentSpace === 'premium'}}" pointsBalance="{{pointsBalance}}"
       effects="{{effects}}" viewMode="{{viewMode}}" premiumUnlocked="{{premiumUnlocked}}"
+      categoryOptions="{{categoryOptions}}" costRangeOptions="{{costRangeOptions}}"
+      stockStatusOptions="{{stockStatusOptions}}" sortByOptions="{{sortByOptions}}"
       bind:producttap="onProductTap" />
 
     <!-- 🏷 竞价区域子组件（臻选空间下方，始终可见） -->
@@ -85,6 +88,6 @@
 
   <!-- 兑换结果弹窗 -->
   <exchange-result visible="{{showShopResult}}" success="{{true}}" orderData="{{shopResultData}}"
-    bind:close="onCloseShopResult" />
+    bind:close="onCloseShopResult" bind:vieworder="onViewExchangeOrder" />
 
 </view>

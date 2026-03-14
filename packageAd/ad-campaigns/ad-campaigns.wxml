@@ -19,20 +19,11 @@
   </view>
 
   <!-- 状态筛选Tab栏（药丸式） -->
-  <scroll-view
-    class="status-tab-bar"
-    scroll-x="{{true}}"
-    enhanced="{{true}}"
-    show-scrollbar="{{false}}"
-  >
+  <scroll-view class="status-tab-bar" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
     <view class="status-tab-list">
-      <view
-        wx:for="{{statusTabs}}"
-        wx:key="value"
-        class="status-tab-item {{currentStatusIndex === index ? 'active' : ''}}"
-        data-index="{{index}}"
-        bindtap="onStatusTabTap"
-      >
+      <view wx:for="{{statusTabs}}" wx:key="value"
+        class="status-tab-item {{currentStatusIndex === index ? 'active' : ''}}" data-index="{{index}}"
+        bindtap="onStatusTabTap">
         <text>{{item.label}}</text>
       </view>
     </view>
@@ -48,21 +39,11 @@
   </view>
 
   <!-- 广告活动列表 -->
-  <scroll-view
-    class="campaign-list-scroll"
-    scroll-y="{{true}}"
-    refresher-enabled="{{true}}"
-    refresher-triggered="{{refreshing}}"
-    bindrefresherrefresh="onPullDownRefresh"
-  >
+  <scroll-view class="campaign-list-scroll" scroll-y="{{true}}" refresher-enabled="{{true}}"
+    refresher-triggered="{{refreshing}}" bindrefresherrefresh="onPullDownRefresh">
     <!-- 活动卡片 -->
-    <view
-      wx:for="{{campaigns}}"
-      wx:key="ad_campaign_id"
-      class="campaign-card"
-      data-id="{{item.ad_campaign_id}}"
-      bindtap="goToDetail"
-    >
+    <view wx:for="{{campaigns}}" wx:key="ad_campaign_id" class="campaign-card" data-id="{{item.ad_campaign_id}}"
+      bindtap="goToDetail">
       <!-- 左侧状态色条 -->
       <view class="status-bar" style="background-color: {{item.statusStyle.color}}"></view>
 
@@ -70,10 +51,8 @@
         <!-- 卡片头部: 活动名称 + 状态标签 -->
         <view class="card-header">
           <text class="campaign-name">{{item.campaign_name}}</text>
-          <view
-            class="status-badge"
-            style="background: {{item.statusStyle.bgColor}}; color: {{item.statusStyle.color}}"
-          >
+          <view class="status-badge"
+            style="background: {{item.statusStyle.bgColor}}; color: {{item.statusStyle.color}}">
             <text>{{item.statusStyle.text}}</text>
           </view>
         </view>
@@ -108,9 +87,7 @@
             </view>
             <view class="info-row">
               <text class="info-label">预算 / 已消耗</text>
-              <text class="info-value"
-                >{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text
-              >
+              <text class="info-value">{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text>
             </view>
           </block>
 
@@ -122,33 +99,22 @@
             </view>
             <view class="info-row">
               <text class="info-label">预算 / 已消耗</text>
-              <text class="info-value"
-                >{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text
-              >
+              <text class="info-value">{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text>
             </view>
           </block>
 
           <!-- 投放周期（所有模式通用） -->
           <view class="info-row" wx:if="{{item.start_date}}">
             <text class="info-label">投放周期</text>
-            <text class="info-value date-value"
-              >{{item.start_date}} ~ {{item.end_date || '持续'}}</text
-            >
+            <text class="info-value date-value">{{item.start_date}} ~ {{item.end_date || '持续'}}</text>
           </view>
         </view>
 
         <!-- 卡片底部操作区 -->
-        <view
-          class="card-footer"
-          wx:if="{{item.status === 'draft' || item.status === 'pending_review'}}"
-        >
+        <view class="card-footer" wx:if="{{item.status === 'draft' || item.status === 'pending_review'}}">
           <!-- 草稿: 提交审核 + 编辑 -->
           <block wx:if="{{item.status === 'draft'}}">
-            <view
-              class="action-btn submit-btn"
-              data-id="{{item.ad_campaign_id}}"
-              catchtap="onSubmitForReview"
-            >
+            <view class="action-btn submit-btn" data-id="{{item.ad_campaign_id}}" catchtap="onSubmitForReview">
               <text>提交审核</text>
             </view>
             <view class="action-btn edit-btn" data-id="{{item.ad_campaign_id}}" catchtap="goToEdit">
@@ -156,12 +122,8 @@
             </view>
           </block>
           <!-- 待审核: 取消活动 -->
-          <view
-            class="action-btn cancel-btn"
-            wx:if="{{item.status === 'pending_review'}}"
-            data-id="{{item.ad_campaign_id}}"
-            catchtap="onCancelCampaign"
-          >
+          <view class="action-btn cancel-btn" wx:if="{{item.status === 'pending_review'}}"
+            data-id="{{item.ad_campaign_id}}" catchtap="onCancelCampaign">
             <text>取消活动</text>
           </view>
         </view>
@@ -209,4 +171,7 @@
     <text class="fab-icon">+</text>
     <text class="fab-text">创建广告</text>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

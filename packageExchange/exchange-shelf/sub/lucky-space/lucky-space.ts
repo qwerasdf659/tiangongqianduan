@@ -102,6 +102,11 @@ Component({
   },
 
   methods: {
+    /** 筛选操作防抖加载（300ms），避免用户快速连续点击触发多次API请求 */
+    _debouncedLoadProducts: luckyDebounce(function (this: any) {
+      this._loadFilteredProducts()
+    }, 300),
+
     /**
      * 初始化幸运空间数据
      * 并行请求商品列表和空间统计
@@ -136,7 +141,7 @@ Component({
               loading: false,
               totalProducts: 0,
               totalPages: 1,
-              filtersCount: response.data.filters_count || null
+              filtersCount: this._transformFiltersCount(response.data.filters_count || null)
             })
             return
           }
@@ -171,7 +176,7 @@ Component({
             pageInputValue: '',
             totalProducts: pagination.total || items.length,
             totalPages: pagination.total_pages || 1,
-            filtersCount: response.data.filters_count || null
+            filtersCount: this._transformFiltersCount(response.data.filters_count || null)
           })
           luckyLog.info('幸运空间数据初始化完成')
         } else {
@@ -232,7 +237,7 @@ Component({
               luckyImageHelper.DEFAULT_PRODUCT_IMAGE
             return {
               exchange_item_id: item.exchange_item_id,
-              name: item.name || '',
+              item_name: item.item_name || '',
               image: imageUrl,
               primary_image_id: item.primary_image_id || null,
               cost_amount: Number(item.cost_amount) || 0,
@@ -261,16 +266,44 @@ Component({
       }
     },
 
+    /**
+     * 转换 filters_count.cost_ranges 从后端字符串键对象为前端数组格式
+     * 后端返回: { "0-100": 1, "100-500": 3, "500-1000": 1, "1000+": 0, "total": 5 }
+     * 前端需要: [total, 1, 3, 1, 0]（索引对齐 costRangeOptions 数组）
+     */
+    _transformFiltersCount(rawFiltersCount: any): any {
+      if (!rawFiltersCount || !rawFiltersCount.cost_ranges || Array.isArray(rawFiltersCount.cost_ranges)) {
+        return rawFiltersCount
+      }
+
+      const costRangeOptions = this.properties.costRangeOptions as any[]
+      const rawRanges = rawFiltersCount.cost_ranges
+      const costRangesArray: (number | undefined)[] = []
+
+      costRangeOptions.forEach((option: any, idx: number) => {
+        if (idx === 0) {
+          costRangesArray.push(rawRanges.total)
+          return
+        }
+        const rangeKey = (option.max !== null && option.max !== undefined)
+          ? `${option.min || 0}-${option.max}`
+          : `${option.min || 0}+`
+        costRangesArray.push(rawRanges[rangeKey])
+      })
+
+      return { ...rawFiltersCount, cost_ranges: costRangesArray }
+    },
+
     /** 搜索输入处理（500ms防抖）→ 调用服务端筛选 */
     onSearchInput: luckyDebounce(function (this: any, e: any) {
       this.setData({ searchKeyword: e.detail.value.trim() })
       this._loadFilteredProducts()
     }, 500),
 
-    /** 基础筛选条件变更 → 调用服务端筛选 */
+    /** 基础筛选条件变更 → 防抖加载 */
     onFilterChange(e: any) {
       this.setData({ currentFilter: e.currentTarget.dataset.filter })
-      this._loadFilteredProducts()
+      this._debouncedLoadProducts()
     },
 
     /** 切换高级筛选面板 */
@@ -278,28 +311,28 @@ Component({
       this.setData({ showAdvancedFilter: !this.data.showAdvancedFilter })
     },
 
-    /** 分类筛选变更 → 调用服务端筛选 */
+    /** 分类筛选变更 → 防抖加载 */
     onCategoryFilterChange(e: any) {
       this.setData({ categoryFilter: e.currentTarget.dataset.category })
-      this._loadFilteredProducts()
+      this._debouncedLoadProducts()
     },
 
-    /** 价格区间筛选变更 → 调用服务端筛选 */
+    /** 价格区间筛选变更 → 防抖加载 */
     onCostRangeChange(e: any) {
       this.setData({ costRangeIndex: Number(e.currentTarget.dataset.index) || 0 })
-      this._loadFilteredProducts()
+      this._debouncedLoadProducts()
     },
 
-    /** 排序方式变更 → 调用服务端筛选 */
+    /** 排序方式变更 → 防抖加载 */
     onSortByChange(e: any) {
       this.setData({ sortBy: e.currentTarget.dataset.sort })
-      this._loadFilteredProducts()
+      this._debouncedLoadProducts()
     },
 
-    /** 库存状态筛选 → 调用服务端筛选 */
+    /** 库存状态筛选 → 防抖加载 */
     onStockStatusChange(e: any) {
       this.setData({ stockStatus: e.currentTarget.dataset.status })
-      this._loadFilteredProducts()
+      this._debouncedLoadProducts()
     },
 
     /** 重置所有筛选条件 → 调用服务端筛选 */
@@ -408,7 +441,7 @@ Component({
               totalProducts: pagination.total || 0,
               totalPages: pagination.total_pages || 1,
               pageInputValue: '',
-              filtersCount: response.data.filters_count || null,
+              filtersCount: this._transformFiltersCount(response.data.filters_count || null),
               containerHeight: 200
             })
             return
@@ -427,7 +460,7 @@ Component({
             totalProducts: pagination.total || items.length,
             totalPages: pagination.total_pages || 1,
             pageInputValue: '',
-            filtersCount: response.data.filters_count || null
+            filtersCount: this._transformFiltersCount(response.data.filters_count || null)
           })
         } else {
           this.setData({ loading: false })

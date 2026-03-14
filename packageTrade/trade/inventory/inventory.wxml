@@ -32,19 +32,12 @@
   <view class="asset-bar" wx:if="{{backpackAssets.length > 0}}">
     <scroll-view class="asset-bar-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
       <view class="asset-bar-list">
-        <view
-          class="asset-chip"
-          wx:for="{{backpackAssets}}"
-          wx:key="asset_code"
-          bind:tap="onSellAsset"
-          data-asset="{{item}}"
-        >
+        <view class="asset-chip" wx:for="{{backpackAssets}}" wx:key="asset_code" bind:tap="onSellAsset"
+          data-asset="{{item}}">
           <image class="asset-chip-icon-img" src="{{item.icon_path}}" mode="aspectFit" />
           <text class="asset-chip-name">{{item.display_name}}</text>
           <text class="asset-chip-num">{{item.available_amount}}</text>
-          <text class="asset-chip-frozen" wx:if="{{item.frozen_amount > 0}}"
-            >冻{{item.frozen_amount}}</text
-          >
+          <text class="asset-chip-frozen" wx:if="{{item.frozen_amount > 0}}">冻{{item.frozen_amount}}</text>
         </view>
       </view>
     </scroll-view>
@@ -52,63 +45,40 @@
 
   <!-- ====== 物品分类标签页（胶囊式） ====== -->
   <view class="category-tabs-wrapper">
-    <scroll-view
-      class="category-tabs-scroll"
-      scroll-x="true"
-      enhanced="true"
-      show-scrollbar="false"
-    >
+    <scroll-view class="category-tabs-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
       <view class="category-tabs">
-        <view
-          class="tab-pill {{currentCategory === 'all' ? 'active' : ''}}"
-          bind:tap="onCategoryChange"
-          data-category="all"
-        >
+        <view class="tab-pill {{currentCategory === 'all' ? 'active' : ''}}" bind:tap="onCategoryChange"
+          data-category="all">
           <text class="tab-pill-icon">📦</text>
           <text class="tab-pill-label">全部</text>
           <text class="tab-pill-count">{{categoryStats.all}}</text>
         </view>
-        <view
-          class="tab-pill {{currentCategory === 'prize' ? 'active' : ''}}"
-          bind:tap="onCategoryChange"
-          data-category="prize"
-        >
+        <view class="tab-pill {{currentCategory === 'prize' ? 'active' : ''}}" bind:tap="onCategoryChange"
+          data-category="prize">
           <text class="tab-pill-icon">🏆</text>
           <text class="tab-pill-label">奖品</text>
           <text class="tab-pill-count">{{categoryStats.prize}}</text>
         </view>
-        <view
-          class="tab-pill {{currentCategory === 'voucher' ? 'active' : ''}}"
-          bind:tap="onCategoryChange"
-          data-category="voucher"
-        >
+        <view class="tab-pill {{currentCategory === 'voucher' ? 'active' : ''}}" bind:tap="onCategoryChange"
+          data-category="voucher">
           <text class="tab-pill-icon">🎫</text>
           <text class="tab-pill-label">兑换券</text>
           <text class="tab-pill-count">{{categoryStats.voucher}}</text>
         </view>
-        <view
-          class="tab-pill {{currentCategory === 'product' ? 'active' : ''}}"
-          bind:tap="onCategoryChange"
-          data-category="product"
-        >
+        <view class="tab-pill {{currentCategory === 'product' ? 'active' : ''}}" bind:tap="onCategoryChange"
+          data-category="product">
           <text class="tab-pill-icon">📱</text>
           <text class="tab-pill-label">商品</text>
           <text class="tab-pill-count">{{categoryStats.product}}</text>
         </view>
-        <view
-          class="tab-pill {{currentCategory === 'tradable_item' ? 'active' : ''}}"
-          bind:tap="onCategoryChange"
-          data-category="tradable_item"
-        >
+        <view class="tab-pill {{currentCategory === 'tradable_item' ? 'active' : ''}}" bind:tap="onCategoryChange"
+          data-category="tradable_item">
           <text class="tab-pill-icon">🔄</text>
           <text class="tab-pill-label">可交易</text>
           <text class="tab-pill-count">{{categoryStats.tradable_item}}</text>
         </view>
-        <view
-          class="tab-pill {{currentCategory === 'service' ? 'active' : ''}}"
-          bind:tap="onCategoryChange"
-          data-category="service"
-        >
+        <view class="tab-pill {{currentCategory === 'service' ? 'active' : ''}}" bind:tap="onCategoryChange"
+          data-category="service">
           <text class="tab-pill-icon">🎁</text>
           <text class="tab-pill-label">服务</text>
           <text class="tab-pill-count">{{categoryStats.service}}</text>
@@ -121,12 +91,7 @@
   <view class="search-toolbar">
     <view class="search-pill">
       <text class="search-pill-icon">🔍</text>
-      <input
-        class="search-pill-input"
-        placeholder="搜索物品名称..."
-        value="{{searchKeyword}}"
-        bind:input="onSearchInput"
-      />
+      <input class="search-pill-input" placeholder="搜索物品名称..." value="{{searchKeyword}}" bind:input="onSearchInput" />
     </view>
     <view class="sort-btn" bind:tap="onShowFilter">
       <text class="sort-btn-icon">⚙️</text>
@@ -158,13 +123,8 @@
     <!-- 物品卡片列表 -->
     <view class="item-grid" wx:else>
       <block wx:if="{{filteredItems.length > 0}}">
-        <view
-          class="item-card rarity-border-{{item.rarity_code || 'common'}}"
-          wx:for="{{filteredItems}}"
-          wx:key="item_id"
-          bind:tap="onViewItem"
-          data-item="{{item}}"
-        >
+        <view class="item-card rarity-border-{{item.rarity_code || 'common'}}" wx:for="{{filteredItems}}"
+          wx:key="item_id" bind:tap="onViewItem" data-item="{{item}}">
           <!-- 稀有度光效条 -->
           <view class="rarity-glow rarity-glow-{{item.rarity_code || 'common'}}"></view>
 
@@ -179,11 +139,8 @@
             <view class="item-info">
               <view class="item-name-row">
                 <text class="item-card-name">{{item.item_name}}</text>
-                <text
-                  class="item-rarity-tag rarity-tag-{{item.rarity_code || 'common'}}"
-                  wx:if="{{item.rarity_code && item.rarity_code !== 'common'}}"
-                  >{{item.rarity_display}}</text
-                >
+                <text class="item-rarity-tag rarity-tag-{{item.rarity_code || 'common'}}"
+                  wx:if="{{item.rarity_code && item.rarity_code !== 'common'}}">{{item.rarity_display}}</text>
               </view>
               <view class="item-tracking-row" wx:if="{{item.tracking_code}}">
                 <text class="tracking-code-text">{{item.tracking_code}}</text>
@@ -192,16 +149,12 @@
                   <text class="tracking-timeline-btn-text">流转</text>
                 </view>
               </view>
-              <text class="item-type-label" wx:if="{{item.item_type_display}}"
-                >{{item.item_type_display}}</text
-              >
+              <text class="item-type-label" wx:if="{{item.item_type_display}}">{{item.item_type_display}}</text>
               <view class="item-merchant-tag" wx:if="{{item.merchant_name}}">
                 <text class="merchant-tag-icon">🏪</text>
                 <text class="merchant-tag-text">来自：{{item.merchant_name}}</text>
               </view>
-              <text class="item-brief" wx:if="{{item.item_description}}"
-                >{{item.item_description}}</text
-              >
+              <text class="item-brief" wx:if="{{item.item_description}}">{{item.item_description}}</text>
             </view>
 
             <!-- 右侧：状态 -->
@@ -222,42 +175,24 @@
           </view>
 
           <!-- 操作按钮组 -->
-          <view
-            class="item-action-bar"
-            wx:if="{{item.can_use || item.can_generate_code || item.can_view_code || item.can_sell}}"
-          >
-            <button
-              class="item-action-btn action-use"
-              wx:if="{{item.can_use}}"
-              catchtap="onUseItem"
-              data-item="{{item}}"
-            >
+          <view class="item-action-bar"
+            wx:if="{{item.can_use || item.can_generate_code || item.can_view_code || item.can_sell}}">
+            <button class="item-action-btn action-use" wx:if="{{item.can_use}}" catchtap="onUseItem"
+              data-item="{{item}}">
               <text>✨ 使用</text>
             </button>
-            <button
-              class="item-action-btn action-code"
-              wx:if="{{item.can_generate_code}}"
-              catchtap="onGenerateCode"
-              data-item="{{item}}"
-            >
+            <button class="item-action-btn action-code" wx:if="{{item.can_generate_code}}" catchtap="onGenerateCode"
+              data-item="{{item}}">
               <text wx:if="{{item.item_type === 'product'}}">🎫 到店领取</text>
               <text wx:elif="{{item.item_type === 'voucher'}}">🎫 到店使用</text>
               <text wx:else>🎫 核销码</text>
             </button>
-            <button
-              class="item-action-btn action-code"
-              wx:if="{{item.can_view_code}}"
-              catchtap="onViewExistingCode"
-              data-item="{{item}}"
-            >
+            <button class="item-action-btn action-code" wx:if="{{item.can_view_code}}" catchtap="onViewExistingCode"
+              data-item="{{item}}">
               <text>📱 查看兑换码</text>
             </button>
-            <button
-              class="item-action-btn action-sell"
-              wx:if="{{item.can_sell}}"
-              catchtap="onSellItem"
-              data-item="{{item}}"
-            >
+            <button class="item-action-btn action-sell" wx:if="{{item.can_sell}}" catchtap="onSellItem"
+              data-item="{{item}}">
               <text>🏪 上架</text>
             </button>
           </view>
@@ -268,10 +203,7 @@
       <view class="load-more-tip" wx:if="{{filteredItems.length > 0 && hasMoreItems}}">
         <text class="load-more-text">上滑加载更多...</text>
       </view>
-      <view
-        class="load-more-tip"
-        wx:if="{{filteredItems.length > 0 && !hasMoreItems && filteredItems.length >= 50}}"
-      >
+      <view class="load-more-tip" wx:if="{{filteredItems.length > 0 && !hasMoreItems && filteredItems.length >= 50}}">
         <text class="load-more-text">已显示全部物品</text>
       </view>
 
@@ -337,11 +269,8 @@
             <view class="detail-title-area">
               <view class="detail-name-row">
                 <text class="detail-item-name">{{itemDetail.item_name}}</text>
-                <text
-                  class="detail-rarity-tag rarity-tag-{{itemDetail.rarity_code || 'common'}}"
-                  wx:if="{{itemDetail.rarity_code && itemDetail.rarity_code !== 'common'}}"
-                  >{{itemDetail.rarity_display}}</text
-                >
+                <text class="detail-rarity-tag rarity-tag-{{itemDetail.rarity_code || 'common'}}"
+                  wx:if="{{itemDetail.rarity_code && itemDetail.rarity_code !== 'common'}}">{{itemDetail.rarity_display}}</text>
               </view>
               <text class="detail-type-text">{{itemDetail.item_type_display}}</text>
             </view>
@@ -380,9 +309,7 @@
           <view class="detail-grid-item" wx:if="{{itemDetail.expires_at}}">
             <text class="grid-label">过期时间</text>
             <text
-              class="grid-value {{helper.isExpiringSoon(itemDetail.expires_at) ? 'expiring' : ''}}"
-              >{{helper.formatTime(itemDetail.expires_at)}}</text
-            >
+              class="grid-value {{helper.isExpiringSoon(itemDetail.expires_at) ? 'expiring' : ''}}">{{helper.formatTime(itemDetail.expires_at)}}</text>
           </view>
           <view class="detail-grid-item" wx:if="{{itemDetail.merchant_name}}">
             <text class="grid-label">商家来源</text>
@@ -440,19 +367,14 @@
       <!-- 物品信息 -->
       <view class="rqr-item-info">
         <text class="rqr-item-name">{{redemptionItemName}}</text>
-        <text class="rqr-item-tip"
-          >请在有效期内到店出示此码，由店员扫码完成{{redemptionActionLabel}}</text
-        >
+        <text class="rqr-item-tip">请在有效期内到店出示此码，由店员扫码完成{{redemptionActionLabel}}</text>
       </view>
 
       <!-- QR码展示区域 -->
       <view class="rqr-code-area">
         <!-- Canvas（隐藏，仅用于绘制QR码导出图片） -->
-        <canvas
-          canvas-id="redemptionQRCanvas"
-          class="rqr-canvas-hidden"
-          style="width: 400px; height: 400px; position: fixed; left: -9999px; top: -9999px"
-        ></canvas>
+        <canvas canvas-id="redemptionQRCanvas" class="rqr-canvas-hidden"
+          style="width: 400px; height: 400px; position: fixed; left: -9999px; top: -9999px"></canvas>
 
         <!-- QR码图片展示 -->
         <view class="rqr-image-wrapper" wx:if="{{redemptionQRImage && !qrExpired}}">
@@ -479,9 +401,7 @@
         <!-- QR码倒计时 -->
         <view class="rqr-countdown" wx:if="{{qrCountdownText && !qrExpired}}">
           <text class="rqr-countdown-label">QR码有效期</text>
-          <text class="rqr-countdown-value {{qrCountdown <= 60 ? 'expiring' : ''}}"
-            >{{qrCountdownText}}</text
-          >
+          <text class="rqr-countdown-value {{qrCountdown <= 60 ? 'expiring' : ''}}">{{qrCountdownText}}</text>
         </view>
       </view>
 
@@ -552,8 +472,7 @@
             <view class="timeline-event" wx:for="{{timelineEvents}}" wx:key="index">
               <view class="event-dot-col">
                 <view
-                  class="event-dot {{index === 0 ? 'dot-first' : ''}} {{index === timelineEvents.length - 1 ? 'dot-last' : ''}}"
-                >
+                  class="event-dot {{index === 0 ? 'dot-first' : ''}} {{index === timelineEvents.length - 1 ? 'dot-last' : ''}}">
                   <text class="event-dot-icon">{{item.icon}}</text>
                 </view>
                 <view class="event-line" wx:if="{{index < timelineEvents.length - 1}}"></view>
@@ -568,9 +487,7 @@
 
         <view class="timeline-ledger-check" wx:if="{{timelineLedgerStatus}}">
           <text class="ledger-icon">{{timelineLedgerStatus === 'balanced' ? '✅' : '⚠️'}}</text>
-          <text class="ledger-text"
-            >{{timelineLedgerStatus === 'balanced' ? '账本守恒验证通过' : '账本数据异常'}}</text
-          >
+          <text class="ledger-text">{{timelineLedgerStatus === 'balanced' ? '账本守恒验证通过' : '账本数据异常'}}</text>
         </view>
       </view>
 
@@ -590,31 +507,25 @@
         <text class="sort-sheet-close" bind:tap="onHideFilter">✕</text>
       </view>
       <view class="sort-options">
-        <view
-          class="sort-option {{currentSort === 'newest' ? 'active' : ''}}"
-          bind:tap="onSortChange"
-          data-sort="newest"
-        >
+        <view class="sort-option {{currentSort === 'newest' ? 'active' : ''}}" bind:tap="onSortChange"
+          data-sort="newest">
           <text class="sort-option-icon">🕐</text>
           <text>最新获得</text>
         </view>
-        <view
-          class="sort-option {{currentSort === 'oldest' ? 'active' : ''}}"
-          bind:tap="onSortChange"
-          data-sort="oldest"
-        >
+        <view class="sort-option {{currentSort === 'oldest' ? 'active' : ''}}" bind:tap="onSortChange"
+          data-sort="oldest">
           <text class="sort-option-icon">📅</text>
           <text>最早获得</text>
         </view>
-        <view
-          class="sort-option {{currentSort === 'expire_soon' ? 'active' : ''}}"
-          bind:tap="onSortChange"
-          data-sort="expire_soon"
-        >
+        <view class="sort-option {{currentSort === 'expire_soon' ? 'active' : ''}}" bind:tap="onSortChange"
+          data-sort="expire_soon">
           <text class="sort-option-icon">⏰</text>
           <text>即将过期</text>
         </view>
       </view>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

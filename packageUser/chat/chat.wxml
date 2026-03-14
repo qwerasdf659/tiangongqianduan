@@ -4,15 +4,8 @@
   <view class="search-header">
     <view class="search-bar">
       <view class="search-icon">🔍</view>
-      <input
-        class="search-input"
-        placeholder="搜索聊天记录"
-        placeholder-class="search-placeholder"
-        value="{{searchKeyword}}"
-        bindinput="onSearchInput"
-        bindconfirm="onSearchConfirm"
-        confirm-type="search"
-      />
+      <input class="search-input" placeholder="搜索聊天记录" placeholder-class="search-placeholder" value="{{searchKeyword}}"
+        bindinput="onSearchInput" bindconfirm="onSearchConfirm" confirm-type="search" />
       <view wx:if="{{searchKeyword}}" class="clear-search" bindtap="clearSearch">✕</view>
     </view>
     <view class="new-chat-btn" bindtap="startNewChat">
@@ -21,20 +14,11 @@
   </view>
 
   <!-- 会话列表主体 -->
-  <scroll-view
-    class="sessions-list"
-    scroll-y="{{true}}"
-    enhanced="{{true}}"
-    show-scrollbar="{{false}}"
-  >
+  <scroll-view class="sessions-list" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
     <!-- ===== 状态1：加载中 - 骨架屏（非搜索模式下显示） ===== -->
     <block wx:if="{{sessionLoadStatus === 'loading' && !isSearching}}">
-      <view
-        wx:for="{{[1,2,3,4,5,6]}}"
-        wx:key="*this"
-        class="session-skeleton"
-        style="animation-delay: {{index * 80}}ms;"
-      >
+      <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" class="session-skeleton"
+        style="animation-delay: {{index * 80}}ms;">
         <view class="skeleton-avatar shimmer"></view>
         <view class="skeleton-content">
           <view class="skeleton-line skeleton-line-name shimmer"></view>
@@ -80,14 +64,8 @@
           <text class="search-results-count">{{searchTotal}}条结果</text>
         </view>
 
-        <view
-          wx:for="{{searchResults}}"
-          wx:key="chatMessageId"
-          class="search-result-item"
-          data-session-id="{{item.sessionId}}"
-          data-message-id="{{item.chatMessageId}}"
-          bindtap="onSearchResultTap"
-        >
+        <view wx:for="{{searchResults}}" wx:key="chatMessageId" class="search-result-item"
+          data-session-id="{{item.sessionId}}" data-message-id="{{item.chatMessageId}}" bindtap="onSearchResultTap">
           <!-- 头像 -->
           <view class="result-avatar">
             <view class="avatar-bg customer-service-bg avatar-sm">
@@ -100,9 +78,7 @@
             <!-- 第一行：发送者标签 + 时间 -->
             <view class="result-main-row">
               <text
-                class="result-sender-tag {{item.senderType === 'user' ? 'sender-self' : 'sender-admin'}}"
-                >{{item.senderLabel}}</text
-              >
+                class="result-sender-tag {{item.senderType === 'user' ? 'sender-self' : 'sender-admin'}}">{{item.senderLabel}}</text>
               <text class="result-time">{{item.time}}</text>
             </view>
             <!-- 第二行：消息内容（关键词高亮） -->
@@ -130,23 +106,15 @@
       </view>
 
       <!-- 会话列表（直接渲染后端sessions数组） -->
-      <view
-        wx:for="{{sessions}}"
-        wx:key="sessionId"
-        class="session-item {{item.unread > 0 ? 'has-unread' : ''}}"
-        data-id="{{item.sessionId}}"
-        bindtap="onSessionTap"
-        style="animation-delay: {{index * 60}}ms;"
-      >
+      <view wx:for="{{sessions}}" wx:key="sessionId" class="session-item {{item.unread > 0 ? 'has-unread' : ''}}"
+        data-id="{{item.sessionId}}" bindtap="onSessionTap" style="animation-delay: {{index * 60}}ms;">
         <!-- 头像区域 -->
         <view class="session-avatar">
           <view class="avatar-bg customer-service-bg">
             <text class="avatar-icon">{{item.icon}}</text>
           </view>
           <!-- 在线状态指示器（已结束的会话显示灰色） -->
-          <view
-            class="online-indicator {{item.status === 'closed' ? 'indicator-offline' : ''}}"
-          ></view>
+          <view class="online-indicator {{item.status === 'closed' ? 'indicator-offline' : ''}}"></view>
         </view>
 
         <!-- 会话内容 -->
@@ -194,11 +162,9 @@
           <text class="session-name">{{currentChatName}}</text>
           <view class="session-status-row">
             <view class="status-dot {{wsConnected ? 'dot-online' : 'dot-offline'}}"></view>
-            <text class="session-status-text"
-              >{{sessionStatus === 'active' ? '对话中' : (sessionStatus === 'waiting' ?
+            <text class="session-status-text">{{sessionStatus === 'active' ? '对话中' : (sessionStatus === 'waiting' ?
               '等待接入...' : (sessionStatus === 'closed' ? '已结束' : (wsConnected ? '已连接' :
-              '连接中...')))}}</text
-            >
+              '连接中...')))}}</text>
           </view>
         </view>
       </view>
@@ -218,16 +184,9 @@
     </view>
 
     <!-- 消息列表 -->
-    <scroll-view
-      class="chat-messages"
-      scroll-y="{{true}}"
-      scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
-      scroll-with-animation="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-      catchtap="onMessagesAreaTap"
-      bindscroll="onChatScroll"
-    >
+    <scroll-view class="chat-messages" scroll-y="{{true}}" scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
+      scroll-with-animation="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}" catchtap="onMessagesAreaTap"
+      bindscroll="onChatScroll">
       <!-- 历史消息加载中 -->
       <view wx:if="{{isLoadingHistory}}" class="loading-history">
         <view class="loading-spinner small"></view>
@@ -237,8 +196,7 @@
       <!-- 欢迎卡片（无历史消息时展示） -->
       <view
         wx:if="{{(chatLoadStatus === 'empty' || chatLoadStatus === 'success') && messages.length === 0 && !isLoadingHistory}}"
-        class="welcome-card"
-      >
+        class="welcome-card">
         <view class="welcome-avatar-wrapper">
           <view class="welcome-avatar">
             <text class="welcome-avatar-icon">🎧</text>
@@ -272,21 +230,15 @@
       </view>
 
       <!-- 聊天加载失败 -->
-      <view
-        wx:if="{{chatLoadStatus === 'error' && messages.length === 0 && !isLoadingHistory}}"
-        class="chat-error-state"
-      >
+      <view wx:if="{{chatLoadStatus === 'error' && messages.length === 0 && !isLoadingHistory}}"
+        class="chat-error-state">
         <text class="chat-error-icon">⚠️</text>
         <text class="chat-error-text">消息加载失败</text>
         <text class="chat-error-desc">请检查网络后重试</text>
       </view>
 
       <!-- 消息列表 -->
-      <view
-        wx:for="{{messages}}"
-        wx:key="id"
-        class="message-item {{item.isOwn ? 'own-message' : 'other-message'}}"
-      >
+      <view wx:for="{{messages}}" wx:key="id" class="message-item {{item.isOwn ? 'own-message' : 'other-message'}}">
         <!-- 时间分割线 -->
         <view wx:if="{{item.showTime}}" class="time-divider">
           <text class="time-text">{{item.timeText}}</text>
@@ -311,39 +263,23 @@
             <!-- 消息气泡 -->
             <view class="message-bubble {{item.isOwn ? 'own-bubble' : 'other-bubble'}}">
               <!-- 文字消息 -->
-              <text
-                wx:if="{{item.messageType === 'text'}}"
-                class="message-text"
-                user-select="{{true}}"
-                >{{item.content}}</text
-              >
+              <text wx:if="{{item.messageType === 'text'}}" class="message-text"
+                user-select="{{true}}">{{item.content}}</text>
 
               <!-- 图片消息 -->
-              <image
-                wx:if="{{item.messageType === 'image'}}"
-                class="message-image"
-                src="{{item.attachments[0].url || item.content}}"
-                mode="widthFix"
-                bindtap="previewImage"
-                data-src="{{item.attachments[0].url || item.content}}"
-              ></image>
+              <image wx:if="{{item.messageType === 'image'}}" class="message-image"
+                src="{{item.attachments[0].url || item.content}}" mode="widthFix" bindtap="previewImage"
+                data-src="{{item.attachments[0].url || item.content}}"></image>
             </view>
 
             <!-- 消息状态（自己发送的消息） -->
             <view wx:if="{{item.isOwn}}" class="message-status-row">
               <text wx:if="{{item.status === 'sending'}}" class="status-label sending">发送中</text>
               <text wx:if="{{item.status === 'sent'}}" class="status-label sent">已发送</text>
-              <text wx:if="{{item.status === 'delivered'}}" class="status-label delivered"
-                >已送达</text
-              >
+              <text wx:if="{{item.status === 'delivered'}}" class="status-label delivered">已送达</text>
               <text wx:if="{{item.status === 'read'}}" class="status-label read">已读</text>
-              <text
-                wx:if="{{item.status === 'failed'}}"
-                class="status-label failed"
-                bindtap="resendMessage"
-                data-id="{{item.id}}"
-                >发送失败，点击重试</text
-              >
+              <text wx:if="{{item.status === 'failed'}}" class="status-label failed" bindtap="resendMessage"
+                data-id="{{item.id}}">发送失败，点击重试</text>
             </view>
           </view>
         </view>
@@ -374,31 +310,20 @@
           </view>
         </view>
         <view class="satisfaction-stars">
-          <view
-            wx:for="{{[1,2,3,4,5]}}"
-            wx:key="*this"
-            class="star-item"
-            data-score="{{item}}"
-            bindtap="onSelectSatisfactionScore"
-          >
-            <text class="star-icon {{satisfactionScore >= item ? 'star-active' : 'star-inactive'}}"
-              >{{satisfactionScore >= item ? '★' : '☆'}}</text
-            >
+          <view wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="star-item" data-score="{{item}}"
+            bindtap="onSelectSatisfactionScore">
+            <text class="star-icon {{satisfactionScore >= item ? 'star-active' : 'star-inactive'}}">{{satisfactionScore
+              >= item ? '★' : '☆'}}</text>
           </view>
         </view>
         <view class="satisfaction-labels">
-          <text class="satisfaction-label"
-            >{{satisfactionScore === 0 ? '点击星星评分' : satisfactionScore === 1 ? '非常不满意' :
+          <text class="satisfaction-label">{{satisfactionScore === 0 ? '点击星星评分' : satisfactionScore === 1 ? '非常不满意' :
             satisfactionScore === 2 ? '不满意' : satisfactionScore === 3 ? '一般' :
-            satisfactionScore === 4 ? '满意' : '非常满意'}}</text
-          >
+            satisfactionScore === 4 ? '满意' : '非常满意'}}</text>
         </view>
         <view class="satisfaction-actions">
-          <button
-            class="satisfaction-submit-btn {{satisfactionScore > 0 ? 'active' : 'disabled'}}"
-            disabled="{{satisfactionScore === 0}}"
-            bindtap="submitSatisfaction"
-          >
+          <button class="satisfaction-submit-btn {{satisfactionScore > 0 ? 'active' : 'disabled'}}"
+            disabled="{{satisfactionScore === 0}}" bindtap="submitSatisfaction">
             <text>提交评价</text>
           </button>
         </view>
@@ -417,23 +342,12 @@
     <!-- 回到底部浮动按钮（滚动时显示） -->
     <view wx:if="{{showScrollBottomBtn}}" class="scroll-bottom-fab" catchtap="scrollToLatest">
       <text class="fab-arrow">↓</text>
-      <view wx:if="{{newMsgCount > 0}}" class="fab-badge"
-        >{{newMsgCount > 99 ? '99+' : newMsgCount}}</view
-      >
+      <view wx:if="{{newMsgCount > 0}}" class="fab-badge">{{newMsgCount > 99 ? '99+' : newMsgCount}}</view>
     </view>
 
     <!-- 快捷回复区域（有消息时显示在输入框上方） -->
-    <view
-      wx:if="{{showQuickReplies && messages.length > 0}}"
-      class="quick-replies-bar"
-      catchtap="onQuickRepliesBarTap"
-    >
-      <scroll-view
-        class="quick-replies-scroll"
-        scroll-x="{{true}}"
-        enhanced="{{true}}"
-        show-scrollbar="{{false}}"
-      >
+    <view wx:if="{{showQuickReplies && messages.length > 0}}" class="quick-replies-bar" catchtap="onQuickRepliesBarTap">
+      <scroll-view class="quick-replies-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
         <view class="quick-replies-list">
           <view class="quick-reply-chip" bindtap="onQuickReply" data-text="好的，谢谢">
             <text>好的，谢谢</text>
@@ -467,29 +381,15 @@
 
         <!-- 输入框 -->
         <view class="input-wrapper" catchtap="onInputWrapperTap">
-          <textarea
-            class="message-input"
-            placeholder="输入消息..."
-            placeholder-class="input-placeholder"
-            value="{{inputContent}}"
-            bindinput="onInputChange"
-            bindfocus="onInputFocus"
-            bindblur="onInputBlur"
-            bindconfirm="onInlineSendTap"
-            confirm-type="send"
-            auto-height="{{true}}"
-            show-confirm-bar="{{false}}"
-            maxlength="500"
-            catchtap="onTextareaTap"
-          >
+          <textarea class="message-input" placeholder="输入消息..." placeholder-class="input-placeholder"
+            value="{{inputContent}}" bindinput="onInputChange" bindfocus="onInputFocus" bindblur="onInputBlur"
+            bindconfirm="onInlineSendTap" confirm-type="send" auto-height="{{true}}" show-confirm-bar="{{false}}"
+            maxlength="500" catchtap="onTextareaTap">
           </textarea>
         </view>
 
         <!-- 发送按钮 -->
-        <view
-          class="send-btn {{inputContent.trim() ? 'active' : 'inactive'}}"
-          catchtap="onInlineSendTap"
-        >
+        <view class="send-btn {{inputContent.trim() ? 'active' : 'inactive'}}" catchtap="onInlineSendTap">
           <text class="send-btn-icon">{{inputContent.trim() ? '➤' : '🎤'}}</text>
         </view>
       </view>
@@ -525,4 +425,7 @@
       </view>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

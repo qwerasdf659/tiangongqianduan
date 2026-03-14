@@ -20,9 +20,7 @@
     <view class="balance-footer">
       <view class="balance-stat">
         <view class="stat-dot earn-dot"></view>
-        <text class="stat-text"
-          >获得：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length : 0}}笔</text
-        >
+        <text class="stat-text">获得：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length : 0}}笔</text>
       </view>
       <view class="balance-badge" wx:if="{{filteredPointsRecords.length > 0}}">
         <text class="badge-text">{{filteredPointsRecords.length}}条记录</text>
@@ -33,29 +31,20 @@
   <!-- 筛选功能区域 -->
   <view class="filter-section">
     <view class="filter-tabs">
-      <view
-        class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}"
-        data-filter="all"
-        bindtap="onPointsFilterChange"
-      >
+      <view class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}" data-filter="all"
+        bindtap="onPointsFilterChange">
         <view class="filter-tab-icon">📊</view>
         <text class="filter-tab-text">全部</text>
         <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'all'}}"></view>
       </view>
-      <view
-        class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}"
-        data-filter="earn"
-        bindtap="onPointsFilterChange"
-      >
+      <view class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}" data-filter="earn"
+        bindtap="onPointsFilterChange">
         <view class="filter-tab-icon">💰</view>
         <text class="filter-tab-text">获得</text>
         <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'earn'}}"></view>
       </view>
-      <view
-        class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}"
-        data-filter="consume"
-        bindtap="onPointsFilterChange"
-      >
+      <view class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}" data-filter="consume"
+        bindtap="onPointsFilterChange">
         <view class="filter-tab-icon">🛒</view>
         <text class="filter-tab-text">消费</text>
         <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'consume'}}"></view>
@@ -75,15 +64,11 @@
 
     <!-- 记录列表 -->
     <view class="records-list" wx:if="{{filteredPointsRecords.length > 0}}">
-      <view
-        class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
-        wx:for="{{filteredPointsRecords}}"
-        wx:key="asset_transaction_id"
-      >
+      <view class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
+        wx:for="{{filteredPointsRecords}}" wx:key="asset_transaction_id">
         <!-- 左侧彩色指示条 -->
-        <view
-          class="record-indicator {{item.transaction_type === 'earn' ? 'earn-indicator' : 'consume-indicator'}}"
-        ></view>
+        <view class="record-indicator {{item.transaction_type === 'earn' ? 'earn-indicator' : 'consume-indicator'}}">
+        </view>
 
         <!-- 记录图标 -->
         <view class="record-icon">
@@ -96,17 +81,13 @@
         <view class="record-detail">
           <view class="record-main">
             <view class="record-title">{{item.displayTitle || '积分记录'}}</view>
-            <view
-              class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}"
-            >
+            <view class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}">
               {{item.displayAmount}}
             </view>
           </view>
           <view class="record-meta">
             <text class="record-time">{{item.displayTime}}</text>
-            <text class="record-desc" wx:if="{{item.displayDescription}}"
-              >{{item.displayDescription}}</text
-            >
+            <text class="record-desc" wx:if="{{item.displayDescription}}">{{item.displayDescription}}</text>
           </view>
         </view>
       </view>
@@ -165,3 +146,6 @@
     <text class="loading-desc">正在获取您的积分记录</text>
   </view>
 </view>
+
+<!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+<maintenance-overlay />

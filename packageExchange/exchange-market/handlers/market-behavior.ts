@@ -3,23 +3,27 @@
  *
  * 包含交易市场 Tab 的全部业务方法：
  *   - 挂单列表加载（服务端筛选/排序/分页）
- *   - 搜索/筛选/排序（通过API查询参数传递给后端）
+ *   - 搜索/筛选/排序（全部参数传递给后端 QueryService）
+ *   - 筛选维度从 facets API 动态获取
  *   - 购买弹窗
  *
- * 筛选机制（C+++方案）：
- *   - listing_kind / sort 通过 API 查询参数传递给后端 QueryService
- *   - 关键词搜索为客户端辅助筛选（后端市场API暂不支持 keyword 参数）
+ * 筛选机制（C+++方案，对齐独立交易市场页面 market.ts）：
+ *   - listing_kind / sort / item_category_code / rarity_code / asset_group_code
+ *     / asset_code / min_price / max_price / with_counts 全部通过 API 查询参数传递
+ *   - 筛选维度从 GET /api/v4/market/listings/facets 动态获取
  *
- * 后端API: GET /api/v4/market/listings（QueryService 嵌套响应结构）
+ * 后端API:
+ *   GET /api/v4/market/listings（QueryService 嵌套响应结构）
+ *   GET /api/v4/market/listings/facets（筛选维度字典表）
  *
  * @file packageExchange/exchange-market/handlers/market-behavior.ts
- * @version 6.0.0
- * @since 2026-03-14
+ * @version 7.0.0
+ * @since 2026-03-15
  */
 
 const { API, Wechat, Logger, Utils, ImageHelper } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market-behavior')
-const { getMarketProducts, purchaseMarketProduct, getMyListingStatus, confirmDelivery } = API
+const { getMarketProducts, purchaseMarketProduct, getMyListingStatus, confirmDelivery, getMarketFacets } = API
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = require('../../utils/product-display')
@@ -38,14 +42,28 @@ const SORT_VALUE_MAP: Record<string, string> = {
 
 module.exports = Behavior({
   methods: {
-    /** 初始化筛选条件 */
+    /** 筛选操作防抖加载（300ms），避免用户快速连续点击触发多次API请求 */
+    _debouncedLoadProducts: debounce(function (this: any) {
+      this.loadProducts()
+    }, 300),
+
+    /** 初始化筛选条件 + 加载筛选维度 */
     initFilters() {
       this.setData({
         currentFilter: 'all',
         categoryFilter: 'all',
         sortBy: 'default',
         searchKeyword: '',
-        currentPage: 1
+        currentPage: 1,
+        filterCategoryCode: '',
+        filterRarityCode: '',
+        filterAssetGroupCode: '',
+        filterAssetCode: '',
+        filterMinPrice: '',
+        filterMaxPrice: '',
+        facetsData: null,
+        facetsLoaded: false,
+        filtersCount: null
       })
     },
 
@@ -86,10 +104,29 @@ module.exports = Behavior({
       try {
         const page = this.data.currentPage || 1
         const limit = this.data.pageSize || 20
-        const { categoryFilter, sortBy, searchKeyword } = this.data
+        const {
+          categoryFilter,
+          sortBy,
+          searchKeyword,
+          filterCategoryCode,
+          filterRarityCode,
+          filterAssetGroupCode,
+          filterAssetCode,
+          filterMinPrice,
+          filterMaxPrice
+        } = this.data
 
-        /* 构建后端API查询参数（传递筛选条件给后端 QueryService） */
-        const apiParams: Record<string, any> = { page, limit }
+        /**
+         * 构建后端API查询参数（对齐独立市场页面 market.ts 的完整筛选参数集）
+         * 后端 GET /api/v4/market/listings 支持:
+         *   listing_kind / sort / item_category_code / rarity_code
+         *   asset_group_code / asset_code / min_price / max_price / with_counts
+         */
+        const apiParams: Record<string, any> = {
+          page,
+          limit,
+          with_counts: true
+        }
 
         if (categoryFilter && categoryFilter !== 'all') {
           apiParams.listing_kind = categoryFilter
@@ -97,6 +134,31 @@ module.exports = Behavior({
 
         const mappedSort = SORT_VALUE_MAP[sortBy] || 'newest'
         apiParams.sort = mappedSort
+
+        if (filterCategoryCode) {
+          apiParams.item_category_code = filterCategoryCode
+        }
+        if (filterRarityCode) {
+          apiParams.rarity_code = filterRarityCode
+        }
+        if (filterAssetGroupCode) {
+          apiParams.asset_group_code = filterAssetGroupCode
+        }
+        if (filterAssetCode) {
+          apiParams.asset_code = filterAssetCode
+        }
+        if (filterMinPrice) {
+          const parsedMin = parseInt(filterMinPrice, 10)
+          if (!isNaN(parsedMin) && parsedMin > 0) {
+            apiParams.min_price = parsedMin
+          }
+        }
+        if (filterMaxPrice) {
+          const parsedMax = parseInt(filterMaxPrice, 10)
+          if (!isNaN(parsedMax) && parsedMax > 0) {
+            apiParams.max_price = parsedMax
+          }
+        }
 
         const response = await getMarketProducts(apiParams)
 
@@ -144,7 +206,11 @@ module.exports = Behavior({
           const pagination = response.data.pagination || {}
           const enrichedProducts = enrichProductDisplayFields(processedProducts)
 
-          /* 客户端辅助关键词搜索（后端市场API暂不支持 keyword 参数） */
+          /**
+           * 搜索关键词：后端市场 listings API 暂不支持 keyword 参数
+           * 保留客户端辅助筛选，待后端支持后移除此段
+           * ⚠️ 需要后端在 GET /api/v4/market/listings 新增 keyword 查询参数
+           */
           let displayProducts = enrichedProducts
           if (searchKeyword) {
             const keyword = searchKeyword.toLowerCase()
@@ -159,7 +225,8 @@ module.exports = Behavior({
             loading: false,
             filteredProducts: displayProducts,
             totalCount: pagination.total || enrichedProducts.length,
-            totalPages: Math.ceil((pagination.total || enrichedProducts.length) / limit) || 1
+            totalPages: Math.ceil((pagination.total || enrichedProducts.length) / limit) || 1,
+            filtersCount: response.data.filters_count || null
           })
 
           marketLog.info(`成功加载 ${processedProducts.length} 个交易市场挂单`)
@@ -181,35 +248,30 @@ module.exports = Behavior({
       this.loadProducts()
     }, 500),
 
-    /** 筛选条件变更 → 重新加载 */
+    /** 筛选条件变更 → 防抖加载 */
     onFilterChange(e: any) {
       this.setData({
         currentFilter: e.currentTarget.dataset.filter,
         categoryFilter: e.currentTarget.dataset.filter,
         currentPage: 1
       })
-      this.loadProducts()
+      this._debouncedLoadProducts()
     },
 
-    /** 切换高级筛选面板 */
-    onToggleAdvancedFilter() {
-      this.setData({ showAdvancedFilter: !this.data.showAdvancedFilter })
-    },
-
-    /** 分类筛选变更 → 重新加载 */
+    /** 分类筛选变更 → 防抖加载 */
     onCategoryFilterChange(e: any) {
       this.setData({
         categoryFilter: e.currentTarget.dataset.category,
         currentFilter: e.currentTarget.dataset.category,
         currentPage: 1
       })
-      this.loadProducts()
+      this._debouncedLoadProducts()
     },
 
-    /** 排序方式变更 → 重新加载 */
+    /** 排序方式变更 → 防抖加载 */
     onSortByChange(e: any) {
       this.setData({ sortBy: e.currentTarget.dataset.sort, currentPage: 1 })
-      this.loadProducts()
+      this._debouncedLoadProducts()
     },
 
     /** 重置筛选 → 重新加载 */
@@ -220,10 +282,90 @@ module.exports = Behavior({
         sortBy: 'default',
         searchKeyword: '',
         currentPage: 1,
-        showAdvancedFilter: false
+        showAdvancedFilter: false,
+        filterCategoryCode: '',
+        filterRarityCode: '',
+        filterAssetGroupCode: '',
+        filterAssetCode: '',
+        filterMinPrice: '',
+        filterMaxPrice: ''
       })
       this.loadProducts()
       showToast('筛选已重置', 'success')
+    },
+
+    /**
+     * 加载筛选维度数据（首次展开高级筛选面板时触发）
+     * 后端API: GET /api/v4/market/listings/facets
+     */
+    async loadFacets() {
+      if (this.data.facetsLoaded) {
+        return
+      }
+      try {
+        const facetsResponse = await getMarketFacets()
+        if (facetsResponse && facetsResponse.success && facetsResponse.data) {
+          this.setData({ facetsData: facetsResponse.data, facetsLoaded: true })
+          marketLog.info('筛选维度加载成功')
+        }
+      } catch (facetsError: any) {
+        marketLog.warn('加载筛选维度失败:', facetsError.message)
+      }
+    },
+
+    /** 切换高级筛选面板（首次展开时加载 facets） */
+    onToggleAdvancedFilter() {
+      const willShow = !this.data.showAdvancedFilter
+      this.setData({ showAdvancedFilter: willShow })
+      if (willShow && !this.data.facetsLoaded) {
+        this.loadFacets()
+      }
+    },
+
+    /** 物品分类筛选（来自 facets.categories）→ 防抖加载 */
+    onItemCategorySelect(e: any) {
+      const code = e.currentTarget.dataset.code || ''
+      this.setData({
+        filterCategoryCode: code === this.data.filterCategoryCode ? '' : code,
+        currentPage: 1
+      })
+      this._debouncedLoadProducts()
+    },
+
+    /** 稀有度筛选（来自 facets.rarities）→ 防抖加载 */
+    onRaritySelect(e: any) {
+      const code = e.currentTarget.dataset.code || ''
+      this.setData({
+        filterRarityCode: code === this.data.filterRarityCode ? '' : code,
+        currentPage: 1
+      })
+      this._debouncedLoadProducts()
+    },
+
+    /** 资产分组筛选（来自 facets.asset_groups）→ 防抖加载 */
+    onAssetGroupSelect(e: any) {
+      const code = e.currentTarget.dataset.code || ''
+      this.setData({
+        filterAssetGroupCode: code === this.data.filterAssetGroupCode ? '' : code,
+        currentPage: 1
+      })
+      this._debouncedLoadProducts()
+    },
+
+    /** 最低价格输入 */
+    onMinPriceInput(e: any) {
+      this.setData({ filterMinPrice: (e.detail.value || '').replace(/[^0-9]/g, '') })
+    },
+
+    /** 最高价格输入 */
+    onMaxPriceInput(e: any) {
+      this.setData({ filterMaxPrice: (e.detail.value || '').replace(/[^0-9]/g, '') })
+    },
+
+    /** 价格区间确认筛选 → 重新加载 */
+    onPriceRangeConfirm() {
+      this.setData({ currentPage: 1 })
+      this.loadProducts()
     },
 
     /** pagination组件分页事件处理 */

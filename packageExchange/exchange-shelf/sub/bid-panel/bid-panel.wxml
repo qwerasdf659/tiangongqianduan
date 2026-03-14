@@ -27,7 +27,7 @@
         >
       </view>
       <view class="bid-card-body">
-        <text class="bid-product-name">{{item.name}}</text>
+        <text class="bid-product-name">{{item.item_name}}</text>
         <view class="bid-price-row">
           <text class="bid-current-price">{{item.current_price}} {{item.price_asset_code}}</text>
           <text class="bid-count">{{item.bid_count}}次出价</text>
@@ -58,7 +58,7 @@
           binderror="onBidImageError"
         />
         <view class="bid-product-detail">
-          <text class="bid-detail-name">{{selectedBidProduct.name}}</text>
+          <text class="bid-detail-name">{{selectedBidProduct.item_name}}</text>
           <text class="bid-detail-countdown">剩余 {{bidModalCountdown}}</text>
         </view>
       </view>

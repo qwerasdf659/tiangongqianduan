@@ -26,13 +26,8 @@
 
   <!-- 状态筛选标签页 -->
   <view class="status-tabs">
-    <view
-      class="tab-item {{currentStatus === item.key ? 'active' : ''}}"
-      wx:for="{{statusTabs}}"
-      wx:key="key"
-      bindtap="onStatusTabTap"
-      data-status="{{item.key}}"
-    >
+    <view class="tab-item {{currentStatus === item.key ? 'active' : ''}}" wx:for="{{statusTabs}}" wx:key="key"
+      bindtap="onStatusTabTap" data-status="{{item.key}}">
       <text class="tab-label">{{item.label}}</text>
       <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
     </view>
@@ -70,23 +65,16 @@
           <view class="item-info">
             <text class="item-name">{{item.display_name}}</text>
             <view class="item-meta">
-              <text
-                class="meta-text"
-                wx:if="{{item.listing_kind === 'fungible_asset' && item.offer_amount}}"
-                >数量: {{item.offer_amount}}</text
-              >
-              <text class="meta-text" wx:if="{{item.offer_item_rarity}}"
-                >稀有度: {{item.offer_item_rarity}}</text
-              >
+              <text class="meta-text" wx:if="{{item.listing_kind === 'fungible_asset' && item.offer_amount}}">数量:
+                {{item.offer_amount}}</text>
+              <text class="meta-text" wx:if="{{item.offer_item_rarity}}">稀有度: {{item.offer_item_rarity}}</text>
             </view>
           </view>
           <view class="price-info">
             <text class="price-label">售价</text>
             <view class="price-value-row">
               <text class="price-amount">{{item.price_amount}}</text>
-              <text class="price-unit"
-                >{{item.price_asset_code === 'DIAMOND' ? '💎' : item.price_asset_code}}</text
-              >
+              <text class="price-unit">{{item.price_asset_code === 'DIAMOND' ? '💎' : item.price_asset_code}}</text>
             </view>
           </view>
         </view>
@@ -95,23 +83,14 @@
         <view class="card-footer">
           <text class="created-time">{{item.formattedTime || item.created_at}}</text>
           <view class="card-actions">
-            <button
-              class="withdraw-btn"
-              wx:if="{{item.status === 'active'}}"
-              catchtap="onWithdrawListing"
-              data-listing="{{item}}"
-              disabled="{{withdrawingId === item.listing_id}}"
-            >
+            <button class="withdraw-btn" wx:if="{{item.status === 'active'}}" catchtap="onWithdrawListing"
+              data-listing="{{item}}" disabled="{{withdrawingId === item.listing_id}}">
               {{withdrawingId === item.listing_id ? '撤回中...' : '撤回挂单'}}
             </button>
             <view class="status-hint sold-hint" wx:elif="{{item.status === 'sold'}}">
               <text class="sold-label">✅ 交易完成</text>
-              <button
-                class="escrow-btn"
-                wx:if="{{item.trade_order_id}}"
-                catchtap="onViewEscrowCode"
-                data-trade_order_id="{{item.trade_order_id}}"
-              >
+              <button class="escrow-btn" wx:if="{{item.trade_order_id}}" catchtap="onViewEscrowCode"
+                data-trade_order_id="{{item.trade_order_id}}">
                 查看担保状态
               </button>
             </view>
@@ -142,9 +121,7 @@
         <view class="empty-circle"></view>
         <text class="empty-icon">📋</text>
       </view>
-      <text class="empty-title"
-        >{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</text
-      >
+      <text class="empty-title">{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</text>
       <text class="empty-desc">去仓库上架您的物品或资产，赚取收益吧</text>
       <view class="empty-actions">
         <button class="action-btn-primary" bindtap="goToInventory">📦 去上架</button>
@@ -171,9 +148,7 @@
       <view class="escrow-body" wx:elif="{{escrowTradeOrderId}}">
         <view class="escrow-notice">
           <text class="escrow-notice-icon">🔑</text>
-          <text class="escrow-notice-text"
-            >担保码已生成，请当面交付物品后将担保码告知买家。买家输入担保码后交易完成。</text
-          >
+          <text class="escrow-notice-text">担保码已生成，请当面交付物品后将担保码告知买家。买家输入担保码后交易完成。</text>
         </view>
         <view class="escrow-expire" wx:if="{{escrowExpiresAt}}">
           <text class="escrow-expire-text">有效期至 {{escrowExpiresAt}}</text>
@@ -185,4 +160,7 @@
       </view>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

@@ -34,6 +34,12 @@ const ORDER_STATUS_MAP: Record<string, { label: string; color: string; icon: str
   completed: { label: '已完成', color: '#4CAF50', icon: '✓' }
 }
 
+/** 订单来源标签映射（source 字段区分普通兑换和竞价中标） */
+const SOURCE_LABELS: Record<string, string> = {
+  exchange: '普通兑换',
+  bid: '竞价中标'
+}
+
 /** 筛选Tab配置 */
 const STATUS_TABS = [
   { key: 'all', label: '全部' },
@@ -191,19 +197,30 @@ Page({
 
   /**
    * 更新订单数量统计
-   * 优先使用后端返回的statistics字段，否则从列表数据统计
+   *
+   * ⚠️ 后端 GET /api/v4/backpack/exchange/orders 响应结构为 { orders, pagination }
+   *    不包含 statistics 字段，仅能从 pagination.total 获取当前筛选条件下的总数
+   *    各状态分类计数需后端新增接口支持（已记录到后端需求文档）
    */
   updateOrderStats(responseData: any) {
-    const stats = responseData.statistics || responseData.stats
-    if (stats) {
+    const pagination = responseData.pagination || {}
+    const paginationTotal = pagination.total || 0
+
+    if (this.data.currentTab === 'all') {
       this.setData({
         orderStats: {
-          total: stats.total || 0,
-          shipped: stats.shipped || 0,
-          received: stats.received || 0,
-          pending: (stats.pending || 0) + (stats.approved || 0)
+          total: paginationTotal,
+          shipped: this.data.orderStats.shipped,
+          received: this.data.orderStats.received,
+          pending: this.data.orderStats.pending
         }
       })
+    } else if (this.data.currentTab === 'shipped') {
+      this.setData({ 'orderStats.shipped': paginationTotal })
+    } else if (this.data.currentTab === 'received') {
+      this.setData({ 'orderStats.received': paginationTotal })
+    } else if (this.data.currentTab === 'pending') {
+      this.setData({ 'orderStats.pending': paginationTotal })
     }
   },
 
@@ -237,7 +254,11 @@ Page({
       _shippedTime: order.shipped_at ? this.formatTime(order.shipped_at) : '',
       _receivedTime: order.received_at ? this.formatTime(order.received_at) : '',
       _approvedTime: order.approved_at ? this.formatTime(order.approved_at) : '',
+      _ratedTime: order.rated_at ? this.formatTime(order.rated_at) : '',
       _rejectedTime: order.rejected_at ? this.formatTime(order.rejected_at) : '',
+      _refundedTime: order.refunded_at ? this.formatTime(order.refunded_at) : '',
+      _cancelledTime: order.status === 'cancelled' && order.updated_at ? this.formatTime(order.updated_at) : '',
+      _sourceLabel: SOURCE_LABELS[order.source] || '',
       _shortOrderNo:
         orderNo.length > 16 ? `${orderNo.slice(0, 8)}...${orderNo.slice(-4)}` : orderNo,
       _canConfirmReceipt: order.status === 'shipped',
@@ -280,6 +301,16 @@ Page({
       emptyText: EMPTY_TEXT_MAP[tab] || EMPTY_TEXT_MAP.all
     })
     this.loadOrders(true)
+  },
+
+  /** 点击订单卡片 → 跳转订单详情页 */
+  onTapOrder(e: any) {
+    const orderNo = e.currentTarget.dataset.order_no
+    if (orderNo) {
+      wx.navigateTo({
+        url: `/packageExchange/exchange-order-detail/exchange-order-detail?order_no=${orderNo}`
+      })
+    }
   },
 
   /** 复制订单号 */

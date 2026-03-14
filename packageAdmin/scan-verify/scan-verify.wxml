@@ -5,21 +5,13 @@
   <!-- 横向步骤条（始终显示，跟随 currentStep 变化） -->
   <view class="step-bar">
     <view class="step-item">
-      <view class="step-dot {{currentStep === 1 ? 'active' : (currentStep > 1 ? 'done' : '')}}"
-        >1</view
-      >
-      <text class="step-text {{currentStep === 1 ? 'active' : (currentStep > 1 ? 'done' : '')}}"
-        >核销准备</text
-      >
+      <view class="step-dot {{currentStep === 1 ? 'active' : (currentStep > 1 ? 'done' : '')}}">1</view>
+      <text class="step-text {{currentStep === 1 ? 'active' : (currentStep > 1 ? 'done' : '')}}">核销准备</text>
     </view>
     <view class="step-connector {{currentStep > 1 ? 'active' : ''}}"></view>
     <view class="step-item">
-      <view class="step-dot {{currentStep === 2 ? 'active' : (currentStep > 2 ? 'done' : '')}}"
-        >2</view
-      >
-      <text class="step-text {{currentStep === 2 ? 'active' : (currentStep > 2 ? 'done' : '')}}"
-        >扫码核销</text
-      >
+      <view class="step-dot {{currentStep === 2 ? 'active' : (currentStep > 2 ? 'done' : '')}}">2</view>
+      <text class="step-text {{currentStep === 2 ? 'active' : (currentStep > 2 ? 'done' : '')}}">扫码核销</text>
     </view>
     <view class="step-connector {{currentStep > 2 ? 'active' : ''}}"></view>
     <view class="step-item">
@@ -61,17 +53,10 @@
         <text class="title-text">选择门店</text>
         <text class="required-mark">*</text>
       </view>
-      <picker
-        mode="selector"
-        range="{{storeList}}"
-        range-key="store_name"
-        value="{{storeIndex}}"
-        bindchange="onStoreChange"
-      >
+      <picker mode="selector" range="{{storeList}}" range-key="store_name" value="{{storeIndex}}"
+        bindchange="onStoreChange">
         <view class="picker-box {{storeId ? 'selected' : ''}}">
-          <text class="picker-text"
-            >{{storeId ? storeList[storeIndex].store_name : '请选择门店'}}</text
-          >
+          <text class="picker-text">{{storeId ? storeList[storeIndex].store_name : '请选择门店'}}</text>
           <text class="picker-arrow">▼</text>
         </view>
       </picker>
@@ -215,10 +200,7 @@
   </view>
 
   <!-- ===== 步骤3: 核销失败 ===== -->
-  <view
-    class="main-content"
-    wx:if="{{currentStep === 3 && !verifySuccess && !loading && verifyResult}}"
-  >
+  <view class="main-content" wx:if="{{currentStep === 3 && !verifySuccess && !loading && verifyResult}}">
     <view class="result-card fail">
       <view class="result-icon-box fail-bg">
         <text class="result-icon">❌</text>
@@ -232,4 +214,7 @@
       </button>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

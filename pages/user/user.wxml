@@ -147,6 +147,9 @@
       <view class="mw-card" wx:if="{{isReviewer}}" bindtap="goToAuditList">
         <view class="mw-card-icon-wrap mw-icon-audit">
           <text class="mw-card-icon">✅</text>
+          <view class="mw-badge" wx:if="{{approvalPendingCount > 0}}">
+            <text class="mw-badge-text">{{approvalPendingCount > 99 ? '99+' : approvalPendingCount}}</text>
+          </view>
         </view>
         <view class="mw-card-body">
           <text class="mw-card-title">审批管理</text>
@@ -173,4 +176,7 @@
       <text class="loading-text">加载中...</text>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

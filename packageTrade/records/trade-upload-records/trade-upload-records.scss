@@ -741,6 +741,28 @@
   flex: 1;
 }
 
+/* 审核链进度行（pending状态、后端附带chain_info时显示） */
+.chain-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 12rpx 16rpx;
+  background: rgba($color-warning, 0.06);
+  border-radius: 12rpx;
+}
+
+.chain-progress-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.chain-progress-value {
+  font-size: $font-size-xs;
+  color: $color-warning;
+  font-weight: 600;
+}
+
 /* ============================================================================ */
 /* 空状态 */
 /* ============================================================================ */

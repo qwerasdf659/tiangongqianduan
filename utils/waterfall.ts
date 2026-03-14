@@ -196,7 +196,7 @@ function calculateContentHeight(product: any): number {
   try {
     let baseHeight = 70
 
-    const title: string = product.name || product._displayName || ''
+    const title: string = product.item_name || product._displayName || ''
     if (title.length > 20) {
       baseHeight += 10
     }

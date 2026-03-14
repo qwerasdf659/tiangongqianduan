@@ -295,4 +295,7 @@
   <!-- 🎨 弹窗横幅组件（后端API: GET /api/v4/system/ad-delivery?slot_type=popup） -->
   <popup-banner visible="{{showPopupBanner}}" banners="{{popupBanners}}" bind:close="onPopupBannerClose"
     bind:action="onPopupBannerAction" />
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

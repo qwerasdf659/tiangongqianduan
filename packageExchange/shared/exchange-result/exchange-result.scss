@@ -64,15 +64,25 @@
 
 .result-footer {
   width: 100%;
+  display: flex;
+  gap: 20rpx;
 }
 
 .result-btn {
-  width: 100%;
+  flex: 1;
   height: 88rpx;
   @include flex-center;
   border-radius: $border-radius-md;
   font-size: $font-size-base;
   font-weight: 700;
+}
+
+.result-btn-secondary {
+  color: $color-text-secondary;
+  background: $color-bg-grey;
+}
+
+.result-btn-primary {
   color: $color-text-white;
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
   box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.35);

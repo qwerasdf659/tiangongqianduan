@@ -13,9 +13,7 @@
     <!-- 状态头部 -->
     <view class="status-header" style="background: {{campaign.statusStyle.bgColor}}">
       <text class="status-icon">{{campaign.statusStyle.icon}}</text>
-      <text class="status-text" style="color: {{campaign.statusStyle.color}}"
-        >{{campaign.statusStyle.text}}</text
-      >
+      <text class="status-text" style="color: {{campaign.statusStyle.color}}">{{campaign.statusStyle.text}}</text>
       <text class="campaign-title">{{campaign.campaign_name}}</text>
     </view>
 
@@ -71,16 +69,14 @@
       <block wx:if="{{biddingStatus}}">
         <view class="info-row">
           <text class="info-label">竞价排名</text>
-          <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}"
-            >第 {{biddingStatus.rank}} 名 / 共 {{biddingStatus.total_bidders}} 人</text
-          >
+          <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}">第 {{biddingStatus.rank}} 名 / 共
+            {{biddingStatus.total_bidders}} 人</text>
         </view>
         <view class="info-row">
           <text class="info-label">展示状态</text>
-          <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}"
-            >{{biddingStatus.is_winning ? '在展示名额内' : '未入围（前' + biddingStatus.max_display
-            + '名可展示）'}}</text
-          >
+          <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}">{{biddingStatus.is_winning ?
+            '在展示名额内' : '未入围（前' + biddingStatus.max_display
+            + '名可展示）'}}</text>
         </view>
       </block>
       <block wx:if="{{campaign.billing_mode === 'cpm'}}">
@@ -117,19 +113,12 @@
       <view class="card-title">广告素材</view>
       <view class="creative-list">
         <view wx:for="{{campaign.creatives}}" wx:key="ad_creative_id" class="creative-item">
-          <image
-            class="creative-image"
-            src="{{item.image_url}}"
-            mode="aspectFill"
-            data-index="{{index}}"
-            binderror="onCreativeImageError"
-          />
+          <image class="creative-image" src="{{item.image_url}}" mode="aspectFill" data-index="{{index}}"
+            binderror="onCreativeImageError" />
           <view class="creative-info">
             <text class="creative-title">{{item.title}}</text>
-            <text class="creative-status"
-              >审核: {{item.review_status === 'approved' ? '已通过' : item.review_status ===
-              'rejected' ? '已拒绝' : '待审核'}}</text
-            >
+            <text class="creative-status">审核: {{item.review_status === 'approved' ? '已通过' : item.review_status ===
+              'rejected' ? '已拒绝' : '待审核'}}</text>
           </view>
         </view>
       </view>
@@ -168,23 +157,16 @@
 
     <!-- 底部操作按钮 -->
     <view class="bottom-actions" wx:if="{{canEdit || canSubmit || canCancel}}">
-      <button
-        class="btn-cancel"
-        wx:if="{{canCancel}}"
-        disabled="{{submitting}}"
-        bindtap="onCancelCampaign"
-      >
+      <button class="btn-cancel" wx:if="{{canCancel}}" disabled="{{submitting}}" bindtap="onCancelCampaign">
         取消活动
       </button>
       <button class="btn-edit" wx:if="{{canEdit}}" bindtap="goToEdit">编辑</button>
-      <button
-        class="btn-submit"
-        wx:if="{{canSubmit}}"
-        disabled="{{submitting}}"
-        bindtap="onSubmitForReview"
-      >
+      <button class="btn-submit" wx:if="{{canSubmit}}" disabled="{{submitting}}" bindtap="onSubmitForReview">
         {{submitting ? '提交中...' : '提交审核'}}
       </button>
     </view>
   </block>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

@@ -36,10 +36,10 @@
           <view
             wx:for="{{categoryOptions}}"
             wx:key="value"
-            class="option-btn {{categoryFilter === item.value ? 'active' : ''}}"
+            class="option-btn {{categoryFilter === item.value ? 'active' : ''}} {{filtersCount && filtersCount.categories && item.value !== 'all' && filtersCount.categories[item.value] === 0 ? 'filter-disabled' : ''}}"
             data-category="{{item.value}}"
             bindtap="onCategoryFilterChange"
-            >{{item.label}}</view
+            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.categories && filtersCount.categories[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.categories[item.value]}})</text></view
           >
         </view>
       </view>
@@ -49,10 +49,10 @@
           <view
             wx:for="{{costRangeOptions}}"
             wx:key="label"
-            class="option-btn {{costRangeIndex === index ? 'active' : ''}}"
+            class="option-btn {{costRangeIndex === index ? 'active' : ''}} {{filtersCount && filtersCount.cost_ranges && index > 0 && filtersCount.cost_ranges[index] === 0 ? 'filter-disabled' : ''}}"
             data-index="{{index}}"
             bindtap="onCostRangeChange"
-            >{{item.label}}</view
+            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.cost_ranges && filtersCount.cost_ranges[index] !== undefined}}" class="filter-count"> ({{filtersCount.cost_ranges[index]}})</text></view
           >
         </view>
       </view>
@@ -62,10 +62,10 @@
           <view
             wx:for="{{stockStatusOptions}}"
             wx:key="value"
-            class="option-btn {{stockStatus === item.value ? 'active' : ''}}"
+            class="option-btn {{stockStatus === item.value ? 'active' : ''}} {{filtersCount && filtersCount.stock_statuses && item.value !== 'all' && filtersCount.stock_statuses[item.value] === 0 ? 'filter-disabled' : ''}}"
             data-status="{{item.value}}"
             bindtap="onStockStatusChange"
-            >{{item.label}}</view
+            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.stock_statuses && filtersCount.stock_statuses[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.stock_statuses[item.value]}})</text></view
           >
         </view>
       </view>
@@ -88,8 +88,20 @@
     </view>
   </view>
 
+  <!-- 骨架屏加载态 -->
+  <view class="skeleton-grid" wx:if="{{loading}}">
+    <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+      <view class="skeleton-image"></view>
+      <view class="skeleton-body">
+        <view class="skeleton-line medium"></view>
+        <view class="skeleton-line short"></view>
+        <view class="skeleton-line short"></view>
+      </view>
+    </view>
+  </view>
+
   <!-- 商品列表 -->
-  <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
+  <view class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}" wx:if="{{!loading}}">
     <view
       wx:for="{{filteredProducts}}"
       wx:key="exchange_item_id"
@@ -127,7 +139,7 @@
           class="image-fallback {{item.cost_asset_code === 'POINTS' ? 'asset-type' : 'item-type'}}"
         >
           <text class="fallback-icon">{{item.cost_asset_code === 'POINTS' ? '🪙' : '🎁'}}</text>
-          <text class="fallback-name">{{item.name}}</text>
+          <text class="fallback-name">{{item.item_name}}</text>
         </view>
         <!-- 标签 -->
         <view wx:if="{{item.is_hot}}" class="badge-tag hot">热销</view>
@@ -137,7 +149,7 @@
 
       <!-- 内容区 -->
       <view class="card-body">
-        <text class="product-name">{{item.name}}</text>
+        <text class="product-name">{{item.item_name}}</text>
         <text class="product-desc" wx:if="{{item.sell_point}}">{{item.sell_point}}</text>
 
         <!-- 价格行 -->
@@ -170,7 +182,7 @@
     </view>
   </view>
 
-  <!-- 空状态 -->
+  <!-- 空状态（非加载中且无数据时显示） -->
   <empty-state wx:if="{{!loading && filteredProducts.length === 0}}" />
 
   <!-- 分页 -->

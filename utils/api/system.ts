@@ -244,11 +244,19 @@ async function uploadChatImage(session_id: number, filePath: string) {
       },
       success: (res: WechatMiniprogram.UploadFileSuccessCallbackResult) => {
         try {
-          const data = JSON.parse(res.data)
-          if (data.success) {
-            resolve(data)
+          const parsedData = JSON.parse(res.data)
+
+          // wx.uploadFile 不经过 APIClient.handleResponse，需独立检测 503 维护模式
+          if (res.statusCode === 503 && parsedData.code === 'SYSTEM_MAINTENANCE') {
+            apiClient._showMaintenanceModal(parsedData.message)
+            reject(new Error(parsedData.message || '系统维护中'))
+            return
+          }
+
+          if (parsedData.success) {
+            resolve(parsedData)
           } else {
-            reject(new Error(data.message || '图片上传失败'))
+            reject(new Error(parsedData.message || '图片上传失败'))
           }
         } catch (_parseError) {
           reject(new Error('图片上传响应解析失败'))

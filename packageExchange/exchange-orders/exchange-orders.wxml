@@ -87,14 +87,20 @@
 
     <!-- 订单卡片列表 -->
     <view class="order-list" wx:if="{{orders.length > 0}}">
-      <view class="order-card" wx:for="{{orders}}" wx:key="order_no">
-        <!-- 卡片头部：状态 + 订单号 -->
+      <view class="order-card" wx:for="{{orders}}" wx:key="order_no" data-order_no="{{item.order_no}}"
+        bindtap="onTapOrder">
+        <!-- 卡片头部：状态 + 来源 + 订单号 -->
         <view class="card-header">
-          <view class="status-badge" style="background: {{item._statusColor}}">
-            <text class="status-icon">{{item._statusIcon}}</text>
-            <text class="status-label">{{item._statusLabel}}</text>
+          <view class="card-header-left">
+            <view class="status-badge" style="background: {{item._statusColor}}">
+              <text class="status-icon">{{item._statusIcon}}</text>
+              <text class="status-label">{{item._statusLabel}}</text>
+            </view>
+            <view class="source-tag" wx:if="{{item._sourceLabel}}">
+              <text class="source-text">{{item._sourceLabel}}</text>
+            </view>
           </view>
-          <text class="order-no" bindtap="onCopyOrderNo" data-no="{{item.order_no}}">{{item._shortOrderNo}}</text>
+          <text class="order-no" catchtap="onCopyOrderNo" data-no="{{item.order_no}}">{{item._shortOrderNo}}</text>
         </view>
 
         <!-- 商品信息 -->
@@ -125,9 +131,21 @@
               <view class="timeline-dot dot-cyan"></view>
               <text class="timeline-text">收货时间　{{item._receivedTime}}</text>
             </view>
+            <view class="timeline-item" wx:if="{{item._ratedTime}}">
+              <view class="timeline-dot dot-purple"></view>
+              <text class="timeline-text">评价时间　{{item._ratedTime}}</text>
+            </view>
             <view class="timeline-item" wx:if="{{item._rejectedTime}}">
               <view class="timeline-dot dot-red"></view>
               <text class="timeline-text">拒绝时间　{{item._rejectedTime}}</text>
+            </view>
+            <view class="timeline-item" wx:if="{{item._refundedTime}}">
+              <view class="timeline-dot dot-grey"></view>
+              <text class="timeline-text">退款时间　{{item._refundedTime}}</text>
+            </view>
+            <view class="timeline-item" wx:if="{{item._cancelledTime}}">
+              <view class="timeline-dot dot-grey"></view>
+              <text class="timeline-text">取消时间　{{item._cancelledTime}}</text>
             </view>
           </view>
         </view>
@@ -145,15 +163,18 @@
         </view>
 
         <!-- 操作按钮区域 -->
-        <view class="card-actions" wx:if="{{item._canConfirmReceipt || item._canRate || item._canCancel}}">
-          <view class="action-btn btn-cancel" wx:if="{{item._canCancel}}" data-order_no="{{item.order_no}}" data-product_name="{{item._productName}}" bindtap="onCancelOrder">
+        <view class="card-actions" wx:if="{{item._canConfirmReceipt || item._canRate || item._canCancel}}" catchtap="">
+          <view class="action-btn btn-cancel" wx:if="{{item._canCancel}}" data-order_no="{{item.order_no}}"
+            data-product_name="{{item._productName}}" catchtap="onCancelOrder">
             <text class="action-text">取消订单</text>
           </view>
-          <view class="action-btn btn-confirm" wx:if="{{item._canConfirmReceipt}}" data-order_no="{{item.order_no}}" data-product_name="{{item._productName}}" bindtap="onConfirmReceipt">
-            <text class="action-text">📦 确认收货</text>
+          <view class="action-btn btn-confirm" wx:if="{{item._canConfirmReceipt}}" data-order_no="{{item.order_no}}"
+            data-product_name="{{item._productName}}" catchtap="onConfirmReceipt">
+            <text class="action-text">确认收货</text>
           </view>
-          <view class="action-btn btn-rate" wx:if="{{item._canRate}}" data-order_no="{{item.order_no}}" data-product_name="{{item._productName}}" bindtap="onOpenRating">
-            <text class="action-text">⭐ 去评价</text>
+          <view class="action-btn btn-rate" wx:if="{{item._canRate}}" data-order_no="{{item.order_no}}"
+            data-product_name="{{item._productName}}" catchtap="onOpenRating">
+            <text class="action-text">去评价</text>
           </view>
         </view>
       </view>
@@ -194,4 +215,7 @@
       <text class="rating-submit-text">{{ratingSubmitting ? '提交中...' : '提交评价'}}</text>
     </view>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

@@ -358,6 +358,28 @@ Component({
       this.setData({ showShopResult: false, shopResultData: null })
     },
 
+    /** 兑换成功弹窗 → 查看订单详情（跳转订单详情页） */
+    onViewExchangeOrder(e: any) {
+      const orderNo = e.detail?.orderNo
+      this.setData({ showShopResult: false, shopResultData: null })
+      if (orderNo) {
+        wx.navigateTo({
+          url: `/packageExchange/exchange-order-detail/exchange-order-detail?order_no=${orderNo}`
+        })
+      } else {
+        wx.navigateTo({
+          url: '/packageExchange/exchange-orders/exchange-orders'
+        })
+      }
+    },
+
+    /** 商品货架头部 → 跳转"我的订单"列表页 */
+    onGoToMyOrders() {
+      wx.navigateTo({
+        url: '/packageExchange/exchange-orders/exchange-orders'
+      })
+    },
+
     /**
      * 卡片按压涟漪效果
      * 仅当启用 ripple 效果时生效

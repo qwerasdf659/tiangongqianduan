@@ -119,4 +119,7 @@
     <text class="tip-icon">💡</text>
     <text class="tip-text">点击活动卡片查看详情并参与</text>
   </view>
+
+  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

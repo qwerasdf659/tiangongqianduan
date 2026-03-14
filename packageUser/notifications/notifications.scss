@@ -131,6 +131,12 @@
     color: $color-text-secondary;
     background: $color-bg-grey;
   }
+
+  /* 审核链-橙色（审批管理相关通知） */
+  &.tag-approval {
+    color: $color-warning;
+    background: rgba($color-warning, 0.1);
+  }
 }
 
 /* 通知主体 */

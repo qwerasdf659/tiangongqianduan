@@ -653,24 +653,23 @@ Page({
   },
 
   /**
-   * 🧾 查看消费记录详情
+   * 🧾 查看消费记录详情（含审核链进度）
    *
-   * @description 显示消费记录的详细信息弹窗
    * 字段来源：后端API GET /api/v4/shop/consumption/me 返回的记录
-   * 使用status字段（与WXML模板和后端API一致）
+   * 审核链进度：
+   *   - 优先使用后端在记录中附带的 chain_info 字段（需后端 JOIN approval_chain_instances）
+   *   - 当 chain_info 不存在且当前用户 role_level>=60 时，回退调用审核链实例API查询
    */
-  viewReviewDetail(e: WechatMiniprogram.BaseEvent) {
+  async viewReviewDetail(e: WechatMiniprogram.BaseEvent) {
     const record = e.currentTarget.dataset.record
 
     if (!record) {
       return
     }
 
-    // 🔴 使用status字段（与后端API和WXML模板一致）
     const statusInfo = this.formatReviewStatus(record.status)
     let content = `消费时间：${record.created_at || '未知'}\n审核状态：${statusInfo.text}\n消费金额：${record.consumption_amount || 0}元`
 
-    /* 后端字段: points_to_award（待发放积分数，⚠️ 不是 points_awarded） */
     if (record.status === 'approved' && record.points_to_award) {
       content += `\n获得积分：${formatPoints(record.points_to_award)}`
     }
@@ -683,12 +682,80 @@ Page({
       content += `\n商家备注：${record.merchant_notes}`
     }
 
+    /* 审核链进度展示（pending 状态下尝试获取链路信息） */
+    if (record.status === 'pending') {
+      const chainProgress = await this.fetchChainProgressForRecord(record)
+      if (chainProgress) {
+        content += `\n\n── 审核链进度 ──\n当前进度：第${chainProgress.current_step}步 / 共${chainProgress.total_steps}步\n审核状态：${chainProgress.status_text}`
+        if (chainProgress.current_node_name) {
+          content += `\n当前节点：${chainProgress.current_node_name}`
+        }
+      }
+    }
+
     wx.showModal({
       title: '消费记录详情',
       content,
       showCancel: false,
       confirmText: '知道了'
     })
+  },
+
+  /**
+   * 获取某条消费记录的审核链进度
+   *
+   * 数据来源优先级:
+   *   1. 后端在记录中附带的 chain_info（需后端支持，目前标记为待后端实现）
+   *   2. 当前用户 role_level>=60 时，调用 GET /console/approval-chain/instances 查询
+   *   3. 都不可用时返回 null
+   */
+  async fetchChainProgressForRecord(
+    record: any
+  ): Promise<{
+    current_step: number
+    total_steps: number
+    status_text: string
+    current_node_name?: string
+  } | null> {
+    /* 优先使用后端附带的 chain_info（需后端在 GET /shop/consumption/me 中 JOIN 审核链实例） */
+    if (record.chain_info) {
+      const localChainInfo = record.chain_info
+      return {
+        current_step: localChainInfo.current_step || 1,
+        total_steps: localChainInfo.total_steps || 1,
+        status_text: localChainInfo.status === 'in_progress' ? '审核中' : (localChainInfo.status || '未知'),
+        current_node_name: localChainInfo.current_node_name
+      }
+    }
+
+    /* 回退: 当前用户有审核权限(>=60)时，调用审核链实例API查询 */
+    const localUserInfo = userStore.userInfo || wx.getStorageSync('user_info')
+    const localRoleLevel = localUserInfo?.role_level || 0
+
+    if (localRoleLevel >= 60 && record.consumption_record_id) {
+      try {
+        const chainResult = await API.getApprovalChainInstances({
+          auditable_type: 'consumption',
+          auditable_id: record.consumption_record_id,
+          page: 1,
+          page_size: 1
+        })
+
+        if (chainResult?.success && chainResult.data?.items?.length > 0) {
+          const chainInstance = chainResult.data.items[0]
+          return {
+            current_step: chainInstance.current_step || 1,
+            total_steps: chainInstance.total_steps || 1,
+            status_text: chainInstance.status === 'in_progress' ? '审核中' : (chainInstance.status || '未知'),
+            current_node_name: chainInstance.current_node_name
+          }
+        }
+      } catch (chainQueryError) {
+        log.warn('查询审核链进度失败（非阻断）:', chainQueryError)
+      }
+    }
+
+    return null
   },
 
   /**

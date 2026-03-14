@@ -20,6 +20,7 @@
       "pages": [
         "exchange-detail/exchange-detail",
         "exchange-orders/exchange-orders",
+        "exchange-order-detail/exchange-order-detail",
         "_placeholder/_placeholder"
       ]
     },
@@ -147,6 +148,9 @@
   "networkTimeout": {
     "request": 15000,
     "downloadFile": 15000
+  },
+  "usingComponents": {
+    "maintenance-overlay": "/components/maintenance-overlay/maintenance-overlay"
   },
   "debug": false,
   "sitemapLocation": "sitemap.json",

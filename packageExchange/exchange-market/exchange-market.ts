@@ -81,6 +81,21 @@ Component({
     showPriceChart: false,
     chartAssetCode: 'red_shard',
 
+    /** 高级筛选参数（对齐独立市场页面 market.ts） */
+    filterCategoryCode: '',
+    filterRarityCode: '',
+    filterAssetGroupCode: '',
+    filterAssetCode: '',
+    filterMinPrice: '',
+    filterMaxPrice: '',
+
+    /** 筛选维度数据（后端 GET /api/v4/market/listings/facets 返回） */
+    facetsData: null as any,
+    facetsLoaded: false,
+
+    /** 筛选维度聚合计数（后端 with_counts=true 返回的 filters_count） */
+    filtersCount: null as any,
+
     /** 购买确认弹窗：选中商品对应的资产余额 */
     selectedProductBalance: 0,
     /** 购买确认弹窗：选中商品对应的资产名称 */
@@ -107,7 +122,7 @@ Component({
       }
     },
     active(isActive: boolean) {
-      if (isActive && (!this.data.products || this.data.products.length === 0)) {
+      if (isActive && (!this.data.filteredProducts || this.data.filteredProducts.length === 0)) {
         this.loadProducts()
       }
       if (isActive) {

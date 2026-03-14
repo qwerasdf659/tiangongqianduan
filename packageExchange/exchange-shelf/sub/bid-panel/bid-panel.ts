@@ -104,7 +104,7 @@ Component({
             return {
               bid_product_id: item.bid_product_id,
               exchange_item_id: item.exchange_item_id,
-              name: item.name || '',
+              item_name: item.item_name || '',
               description: item.description || '',
               image: item.image_url || bidImageHelper.DEFAULT_PRODUCT_IMAGE,
               category: item.category || '',
@@ -169,7 +169,7 @@ Component({
           this.setData({
             selectedBidProduct: {
               bid_product_id: detail.bid_product_id,
-              name: detail.name || '',
+              item_name: detail.item_name || '',
               description: detail.description || '',
               image: detail.image_url || product.image || bidImageHelper.DEFAULT_PRODUCT_IMAGE,
               category: detail.category || '',

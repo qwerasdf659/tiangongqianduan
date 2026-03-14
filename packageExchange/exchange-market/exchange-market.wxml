@@ -40,9 +40,9 @@
     <view class="search-filter">
       <view class="filter-buttons">
         <button wx:for="{{marketTypeFilters}}" wx:key="value"
-          class="filter-btn {{currentFilter === item.value ? 'active' : ''}}" bindtap="onFilterChange"
-          data-filter="{{item.value}}">
-          {{item.label}}
+          class="filter-btn {{currentFilter === item.value ? 'active' : ''}} {{filtersCount && filtersCount.listing_kinds && item.value !== 'all' && filtersCount.listing_kinds[item.value] === 0 ? 'filter-disabled' : ''}}"
+          bindtap="onFilterChange" data-filter="{{item.value}}">
+          {{item.label}}<text wx:if="{{filtersCount && filtersCount.listing_kinds && filtersCount.listing_kinds[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.listing_kinds[item.value]}})</text>
         </button>
         <button class="advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}" bindtap="onToggleAdvancedFilter">
           高级筛选 {{showAdvancedFilter ? '▲' : '▼'}}
@@ -54,8 +54,45 @@
           <text class="filter-label">挂单类型</text>
           <view class="filter-options">
             <view wx:for="{{marketCategoryFilters}}" wx:key="value"
-              class="option-btn {{categoryFilter === item.value ? 'active' : ''}}" data-category="{{item.value}}"
-              bindtap="onCategoryFilterChange">{{item.label}}</view>
+              class="option-btn {{categoryFilter === item.value ? 'active' : ''}} {{filtersCount && filtersCount.listing_kinds && filtersCount.listing_kinds[item.value] === 0 ? 'filter-disabled' : ''}}"
+              data-category="{{item.value}}"
+              bindtap="onCategoryFilterChange">{{item.label}}<text wx:if="{{filtersCount && filtersCount.listing_kinds && filtersCount.listing_kinds[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.listing_kinds[item.value]}})</text></view>
+          </view>
+        </view>
+        <view class="filter-row" wx:if="{{facetsData && facetsData.categories && facetsData.categories.length > 0}}">
+          <text class="filter-label">物品分类</text>
+          <view class="filter-options">
+            <view class="option-btn {{filterCategoryCode === '' ? 'active' : ''}}" data-code="" bindtap="onItemCategorySelect">全部</view>
+            <view wx:for="{{facetsData.categories}}" wx:key="code"
+              class="option-btn {{filterCategoryCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.categories && filtersCount.categories[item.code] === 0 ? 'filter-disabled' : ''}}"
+              data-code="{{item.code}}" bindtap="onItemCategorySelect">{{item.display_name || item.code}}<text wx:if="{{filtersCount && filtersCount.categories && filtersCount.categories[item.code] !== undefined}}" class="filter-count"> ({{filtersCount.categories[item.code]}})</text></view>
+          </view>
+        </view>
+        <view class="filter-row" wx:if="{{facetsData && facetsData.rarities && facetsData.rarities.length > 0}}">
+          <text class="filter-label">稀有度</text>
+          <view class="filter-options">
+            <view class="option-btn {{filterRarityCode === '' ? 'active' : ''}}" data-code="" bindtap="onRaritySelect">全部</view>
+            <view wx:for="{{facetsData.rarities}}" wx:key="code"
+              class="option-btn {{filterRarityCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.rarities && filtersCount.rarities[item.code] === 0 ? 'filter-disabled' : ''}}"
+              data-code="{{item.code}}" bindtap="onRaritySelect">{{item.display_name || item.code}}<text wx:if="{{filtersCount && filtersCount.rarities && filtersCount.rarities[item.code] !== undefined}}" class="filter-count"> ({{filtersCount.rarities[item.code]}})</text></view>
+          </view>
+        </view>
+        <view class="filter-row" wx:if="{{facetsData && facetsData.asset_groups && facetsData.asset_groups.length > 0}}">
+          <text class="filter-label">资产分组</text>
+          <view class="filter-options">
+            <view class="option-btn {{filterAssetGroupCode === '' ? 'active' : ''}}" data-code="" bindtap="onAssetGroupSelect">全部</view>
+            <view wx:for="{{facetsData.asset_groups}}" wx:key="code"
+              class="option-btn {{filterAssetGroupCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.asset_groups && filtersCount.asset_groups[item.code] === 0 ? 'filter-disabled' : ''}}"
+              data-code="{{item.code}}" bindtap="onAssetGroupSelect">{{item.display_name || item.code}}<text wx:if="{{filtersCount && filtersCount.asset_groups && filtersCount.asset_groups[item.code] !== undefined}}" class="filter-count"> ({{filtersCount.asset_groups[item.code]}})</text></view>
+          </view>
+        </view>
+        <view class="filter-row">
+          <text class="filter-label">价格区间</text>
+          <view class="price-range-inputs">
+            <input class="price-input" type="number" placeholder="最低价" value="{{filterMinPrice}}" bindinput="onMinPriceInput" />
+            <text class="price-separator">—</text>
+            <input class="price-input" type="number" placeholder="最高价" value="{{filterMaxPrice}}" bindinput="onMaxPriceInput" />
+            <view class="price-confirm-btn" bindtap="onPriceRangeConfirm">确定</view>
           </view>
         </view>
         <view class="filter-row" wx:if="{{marketSortOptions.length > 0}}">
@@ -86,9 +123,19 @@
 
   <!--可滚动商品列表-->
   <scroll-view class="market-scroll-content" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
-    <loading-spinner wx:if="{{loading}}" />
+    <!-- 骨架屏加载态 -->
+    <view class="skeleton-grid" wx:if="{{loading}}">
+      <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+        <view class="skeleton-image"></view>
+        <view class="skeleton-body">
+          <view class="skeleton-line medium"></view>
+          <view class="skeleton-line short"></view>
+          <view class="skeleton-line short"></view>
+        </view>
+      </view>
+    </view>
 
-    <view wx:else class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
+    <view wx:if="{{!loading}}" class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
       <view wx:for="{{filteredProducts}}" wx:key="listing_id"
         class="unified-card {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
         data-product="{{item}}" data-card-index="{{index}}" bindtap="onProductTap" bindtouchstart="onCardTouchStart">
