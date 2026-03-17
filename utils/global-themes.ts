@@ -589,7 +589,11 @@ function getAvailableThemes(): string[] {
  * @param themeName 主题标识
  * @returns { navBg: 导航栏背景色, navText: 导航栏文字色(仅支持#ffffff/#000000), tabSelected: TabBar选中色 }
  */
-function getThemeNavColors(themeName: string): { navBg: string; navText: string; tabSelected: string } {
+function getThemeNavColors(themeName: string): {
+  navBg: string
+  navText: string
+  tabSelected: string
+} {
   const theme = GLOBAL_THEME_MAP[themeName] || GLOBAL_THEME_MAP['default']
   return {
     navBg: theme['--theme-page-start'] || '#667eea',

@@ -10,9 +10,7 @@
     {
       "root": "packageLottery",
       "name": "lottery",
-      "pages": [
-        "_placeholder/_placeholder"
-      ]
+      "pages": ["_placeholder/_placeholder"]
     },
     {
       "root": "packageExchange",
@@ -63,44 +61,25 @@
     {
       "root": "packageAd",
       "name": "ad",
-      "pages": [
-        "ad-campaigns/ad-campaigns",
-        "ad-create/ad-create",
-        "ad-detail/ad-detail"
-      ]
+      "pages": ["ad-campaigns/ad-campaigns", "ad-create/ad-create", "ad-detail/ad-detail"]
     }
   ],
   "preloadRule": {
     "pages/lottery/lottery": {
       "network": "all",
-      "packages": [
-        "trade",
-        "lottery"
-      ]
+      "packages": ["trade", "lottery"]
     },
     "pages/exchange/exchange": {
       "network": "all",
-      "packages": [
-        "trade",
-        "lottery",
-        "exchange"
-      ]
+      "packages": ["trade", "lottery", "exchange"]
     },
     "pages/camera/camera": {
       "network": "all",
-      "packages": [
-        "lottery"
-      ]
+      "packages": ["lottery"]
     },
     "pages/user/user": {
       "network": "all",
-      "packages": [
-        "user-services",
-        "trade",
-        "admin",
-        "lottery",
-        "exchange"
-      ]
+      "packages": ["user-services", "trade", "admin", "lottery", "exchange", "ad"]
     }
   },
   "window": {

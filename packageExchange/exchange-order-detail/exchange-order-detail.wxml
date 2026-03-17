@@ -79,12 +79,48 @@
       <view class="timeline-list">
         <view class="timeline-node" wx:for="{{timeline}}" wx:key="label">
           <view class="timeline-dot-wrap">
-            <view class="timeline-dot {{item.dotClass}} {{index === timeline.length - 1 ? 'dot-active' : ''}}"></view>
+            <view
+              class="timeline-dot {{item.dotClass}} {{index === timeline.length - 1 ? 'dot-active' : ''}}"
+            ></view>
             <view class="timeline-line" wx:if="{{index < timeline.length - 1}}"></view>
           </view>
           <view class="timeline-body">
             <text class="timeline-label">{{item.label}}</text>
             <text class="timeline-time">{{item.time}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 物流信息卡片（有快递单号时展示） -->
+    <view class="info-card" wx:if="{{hasShipping}}">
+      <view class="card-title-row">
+        <text class="card-title">物流信息</text>
+        <view class="shipping-query-btn" bindtap="onQueryShippingTrack">
+          <text class="shipping-query-text">{{shippingLoading ? '查询中...' : '查询物流'}}</text>
+        </view>
+      </view>
+      <view class="info-row">
+        <text class="info-label">快递公司</text>
+        <text class="info-value">{{shippingCompanyName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">快递单号</text>
+        <view class="info-value-row" bindtap="onCopyShippingNo">
+          <text class="info-value">{{shippingNo}}</text>
+          <text class="copy-btn">复制</text>
+        </view>
+      </view>
+      <!-- 物流轨迹时间线 -->
+      <view class="shipping-track-list" wx:if="{{shippingTracks.length > 0}}">
+        <view class="shipping-track-item" wx:for="{{shippingTracks}}" wx:key="time">
+          <view class="track-dot-wrap">
+            <view class="track-dot {{index === 0 ? 'track-dot-active' : ''}}"></view>
+            <view class="track-line" wx:if="{{index < shippingTracks.length - 1}}"></view>
+          </view>
+          <view class="track-body">
+            <text class="track-detail">{{item.detail}}</text>
+            <text class="track-time">{{item.time}}</text>
           </view>
         </view>
       </view>
@@ -107,10 +143,18 @@
 
     <!-- 底部操作区 -->
     <view class="action-bar" wx:if="{{canCancel || canConfirmReceipt || canRate}}">
-      <view class="action-btn-detail btn-cancel-detail" wx:if="{{canCancel}}" bindtap="onCancelOrder">
+      <view
+        class="action-btn-detail btn-cancel-detail"
+        wx:if="{{canCancel}}"
+        bindtap="onCancelOrder"
+      >
         <text class="action-btn-text cancel-text">取消订单</text>
       </view>
-      <view class="action-btn-detail btn-confirm-detail" wx:if="{{canConfirmReceipt}}" bindtap="onConfirmReceipt">
+      <view
+        class="action-btn-detail btn-confirm-detail"
+        wx:if="{{canConfirmReceipt}}"
+        bindtap="onConfirmReceipt"
+      >
         <text class="action-btn-text">确认收货</text>
       </view>
       <view class="action-btn-detail btn-rate-detail" wx:if="{{canRate}}" bindtap="onOpenRating">
@@ -136,19 +180,26 @@
     <text class="rating-product-name">{{productName}}</text>
 
     <view class="rating-stars-row">
-      <view wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="rating-star {{ratingScore >= item ? 'selected' : ''}}"
-        data-score="{{item}}" bindtap="onSelectStar">
+      <view
+        wx:for="{{[1,2,3,4,5]}}"
+        wx:key="*this"
+        class="rating-star {{ratingScore >= item ? 'selected' : ''}}"
+        data-score="{{item}}"
+        bindtap="onSelectStar"
+      >
         <text class="star-icon">{{ratingScore >= item ? '★' : '☆'}}</text>
       </view>
     </view>
     <text class="rating-hint">{{ratingHint}}</text>
 
-    <view class="rating-submit-btn {{ratingScore === 0 || ratingSubmitting ? 'disabled' : ''}}"
-      bindtap="onSubmitRating">
+    <view
+      class="rating-submit-btn {{ratingScore === 0 || ratingSubmitting ? 'disabled' : ''}}"
+      bindtap="onSubmitRating"
+    >
       <text class="rating-submit-text">{{ratingSubmitting ? '提交中...' : '提交评价'}}</text>
     </view>
   </view>
-
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
 </view>
+
+<!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+<maintenance-overlay />

@@ -1,4 +1,4 @@
-/* 登录认证页面样式 - V3.0 Sass版本 */
+/* 登录认证页面样式 - V4.0 全局氛围主题版本 */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
@@ -9,7 +9,11 @@
   left: 0;
   width: 100%;
   height: 100vh;
-  background: $gradient-primary;
+  background: linear-gradient(
+    135deg,
+    var(--theme-page-start, $gradient-blue-start) 0%,
+    var(--theme-page-end, $gradient-blue-end) 100%
+  );
   @include flex-center;
   z-index: 9999;
 }
@@ -53,7 +57,11 @@
   left: 0;
   width: 100%;
   height: 100vh;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-page-start, $gradient-blue-start) 0%,
+    var(--theme-page-end, $gradient-blue-end) 100%
+  );
   @include flex-center;
   padding: 40rpx 20rpx;
   z-index: 9999;
@@ -109,14 +117,18 @@
 }
 
 .retry-btn {
-  background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    45deg,
+    var(--theme-page-start, $gradient-blue-start),
+    var(--theme-page-end, $gradient-blue-end)
+  );
   color: white;
 }
 
 .details-btn {
-  background: rgba(102, 126, 234, 0.1);
-  color: $gradient-blue-start;
-  border: 2rpx solid $gradient-blue-start;
+  background: var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
+  color: var(--theme-page-start, $gradient-blue-start);
+  border: 2rpx solid var(--theme-page-start, $gradient-blue-start);
 }
 
 .error-details {
@@ -144,7 +156,11 @@
 
 .auth-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-page-start, $gradient-blue-start) 0%,
+    var(--theme-page-end, $gradient-blue-end) 100%
+  );
   @include flex-center;
   /* 🔧 修复白色内容框左右对齐问题：确保完美居中 */
   padding: 40rpx 0;
@@ -324,8 +340,8 @@
 }
 
 .input-wrapper:focus-within {
-  border-color: $gradient-blue-start;
-  box-shadow: 0 0 0 6rpx rgba(102, 126, 234, 0.1);
+  border-color: var(--theme-page-start, $gradient-blue-start);
+  box-shadow: 0 0 0 6rpx var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
 }
 
 .input-wrapper.error {
@@ -349,27 +365,23 @@
 }
 
 .code-btn {
-  background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end) !important;
+  background: linear-gradient(
+    45deg,
+    var(--theme-page-start, $gradient-blue-start),
+    var(--theme-page-end, $gradient-blue-end)
+  ) !important;
   color: white !important;
   border: none !important;
   border-radius: $border-radius-md !important;
-  /* 🔧 调整圆角使其与输入框更协调 */
   padding: 20rpx 4rpx !important;
-  /* 🔧 进一步减少左右内边距使总宽度为70rpx */
   font-size: $font-size-base !important;
-  /* 🔧 增大字体使其与输入框字体更协调 */
   font-weight: 600 !important;
   width: 150rpx !important;
-  /* 🔧 设置固定总宽度为150rpx */
   height: 90rpx !important;
-  /* 🔧 高度增加四分之一：72rpx → 90rpx */
-  /* 🔧 设置固定高度确保与输入框高度匹配 */
   transition: all 0.3s ease !important;
-  /* 🔧 修复对齐问题：调整按钮样式避免影响输入框对齐 */
   margin-left: 16rpx !important;
   flex-shrink: 0 !important;
   display: flex !important;
-  /* 🔧 使用flex布局确保文字居中 */
   align-items: center !important;
   justify-content: center !important;
   box-sizing: border-box !important;
@@ -413,14 +425,18 @@
 }
 
 .agreement-link {
-  color: $gradient-blue-start;
+  color: var(--theme-page-start, $gradient-blue-start);
   text-decoration: underline;
 }
 
 /* 提交按钮 */
 .submit-btn {
   width: 100%;
-  background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    45deg,
+    var(--theme-page-start, $gradient-blue-start),
+    var(--theme-page-end, $gradient-blue-end)
+  );
   color: white;
   border: none;
   border-radius: $border-radius-lg;
@@ -450,7 +466,7 @@
 
 .submit-btn:not([disabled]):hover {
   transform: translateY(-2rpx);
-  box-shadow: 0 12rpx 40rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 12rpx 40rpx var(--theme-shadow-strong, rgba(102, 126, 234, 0.4));
 }
 
 .submit-btn.loading {
@@ -490,8 +506,8 @@
 }
 
 .feature-tag {
-  background: rgba(102, 126, 234, 0.1);
-  color: $gradient-blue-start;
+  background: var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
+  color: var(--theme-text-inverse, $gradient-blue-start);
   padding: 12rpx 20rpx;
   border-radius: 50rpx;
   font-size: 22rpx;
@@ -542,7 +558,11 @@
 }
 
 .modal-header {
-  background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    45deg,
+    var(--theme-page-start, $gradient-blue-start),
+    var(--theme-page-end, $gradient-blue-end)
+  );
   color: white;
   padding: 40rpx;
   text-align: center;
@@ -601,7 +621,11 @@
 
 .modal-btn {
   width: 100%;
-  background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    45deg,
+    var(--theme-page-start, $gradient-blue-start),
+    var(--theme-page-end, $gradient-blue-end)
+  );
   color: white;
   border: none;
   border-radius: $border-radius-md;
@@ -610,321 +634,9 @@
   font-weight: 600;
 }
 
-/* ==================== 🔐 管理员登录样式 ==================== */
-
-/* 管理员登录弹窗 */
-.admin-login-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.admin-modal-content {
-  position: relative;
-  width: 90%;
-  max-width: 650rpx;
-  max-height: 85vh;
-  background: white;
-  border-radius: $border-radius-xl;
-  overflow: hidden;
-  animation: adminModalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 30rpx 80rpx rgba(0, 0, 0, 0.3);
-}
-
-@keyframes adminModalSlideIn {
-  from {
-    transform: scale(0.9) translateY(40rpx);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-}
-
-.admin-modal-header {
-  background: linear-gradient(135deg, $color-primary, #f7931e);
-  color: white;
-  padding: 50rpx 40rpx;
-  text-align: center;
-  position: relative;
-}
-
-.admin-modal-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="30" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-  opacity: 0.3;
-}
-
-.admin-modal-title {
-  font-size: 42rpx;
-  font-weight: 700;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 1;
-}
-
-.admin-close-btn {
-  position: absolute;
-  top: 20rpx;
-  right: 30rpx;
-  font-size: 50rpx;
-  cursor: pointer;
-  width: 60rpx;
-  height: 60rpx;
-  @include flex-center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-  z-index: 2;
-}
-
-.admin-close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: rotate(90deg);
-}
-
-.admin-modal-body {
-  padding: 50rpx 40rpx;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-/* 管理员输入组 */
-.admin-input-group {
-  margin-bottom: 45rpx;
-}
-
-.admin-input-label {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.admin-label-text {
-  font-size: $font-size-md;
-  font-weight: 600;
-  color: $color-text-primary;
-}
-
-.admin-input-wrapper {
-  display: flex;
-  align-items: center;
-  background: $color-bg;
-  border: 3rpx solid #e9ecef;
-  border-radius: $border-radius-lg;
-  padding: 28rpx 24rpx;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.admin-input-wrapper:focus-within {
-  border-color: $color-primary;
-  background: #fff;
-  box-shadow: 0 0 0 8rpx rgba(255, 107, 53, 0.1);
-  transform: translateY(-2rpx);
-}
-
-.admin-input-wrapper.error {
-  border-color: #dc3545;
-  background: rgba(220, 53, 69, 0.05);
-  animation: inputShake 0.5s ease-in-out;
-}
-
-@keyframes inputShake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-4rpx);
-  }
-
-  75% {
-    transform: translateX(4rpx);
-  }
-}
-
-.admin-input-prefix {
-  font-size: $font-size-lg;
-  margin-right: 24rpx;
-  color: #6c757d;
-  @include flex-center;
-  width: 40rpx;
-}
-
-.admin-form-input {
-  flex: 1;
-  font-size: $font-size-md;
-  color: $color-text-primary;
-  background: transparent;
-  font-weight: 500;
-}
-
-.admin-password-toggle {
-  font-size: $font-size-lg;
-  cursor: pointer;
-  color: #6c757d;
-  margin-left: 20rpx;
-  transition: all 0.3s ease;
-  padding: 8rpx;
-  border-radius: 50%;
-}
-
-.admin-password-toggle:hover {
-  background: rgba(255, 107, 53, 0.1);
-  color: $color-primary;
-}
-
-.admin-error-tip {
-  font-size: $font-size-sm;
-  color: #dc3545;
-  margin-top: 12rpx;
-  margin-left: 8rpx;
-  animation: errorFadeIn 0.3s ease-out;
-}
-
-@keyframes errorFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8rpx);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 管理员选项 */
-.admin-options {
-  margin: 40rpx 0;
-  padding: 30rpx;
-  background: rgba(255, 107, 53, 0.03);
-  border-radius: 20rpx;
-  border-left: 6rpx solid $color-primary;
-}
-
-.admin-checkbox {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.admin-checkbox-text {
-  font-size: $font-size-base;
-  color: #495057;
-  margin-left: 16rpx;
-  font-weight: 500;
-}
-
-.admin-dev-notice {
-  margin-top: 20rpx;
-  padding: 20rpx;
-  background: rgba(255, 193, 7, 0.1);
-  border-radius: $border-radius-md;
-  border: 2rpx solid rgba(255, 193, 7, 0.3);
-}
-
-.dev-notice-text {
-  font-size: 26rpx;
-  color: #856404;
-  font-weight: 600;
-  text-align: center;
-  display: block;
-}
-
-/* 管理员登录按钮 */
-.admin-submit-btn {
-  width: 100%;
-  background: linear-gradient(135deg, $color-primary, #f7931e);
-  color: white;
-  border: none;
-  border-radius: $border-radius-lg;
-  padding: 35rpx 28rpx;
-  font-size: $font-size-lg;
-  font-weight: 700;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8rpx 25rpx rgba(255, 107, 53, 0.3);
-  margin: 40rpx 0;
-}
-
-.admin-submit-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s ease;
-}
-
-.admin-submit-btn:not([disabled]):hover {
-  transform: translateY(-4rpx);
-  box-shadow: 0 15rpx 40rpx rgba(255, 107, 53, 0.4);
-}
-
-.admin-submit-btn:not([disabled]):hover::before {
-  left: 100%;
-}
-
-.admin-submit-btn:not([disabled]):active {
-  transform: translateY(-2rpx);
-}
-
-.admin-submit-btn.loading {
-  background: #6c757d;
-  opacity: 0.8;
-  transform: none;
-  box-shadow: none;
-}
-
-.admin-submit-btn.loading::before {
-  display: none;
-}
-
-/* 安全提示 */
-.admin-security-tips {
-  margin-top: 30rpx;
-  padding: 25rpx;
-  background: rgba(23, 162, 184, 0.05);
-  border-radius: $border-radius-md;
-  border: 2rpx solid rgba(23, 162, 184, 0.2);
-}
-
-.security-tip {
-  font-size: $font-size-sm;
-  color: #17a2b8;
-  line-height: 1.8;
-  display: block;
-  margin-bottom: 8rpx;
-  font-weight: 500;
-}
-
-.security-tip:last-child {
-  margin-bottom: 0;
-}
-
 /* 响应式适配 */
 @media (max-width: 400px) {
   .auth-form {
-    /* 🔧 修复白色内容框左右对齐问题：小屏幕下保持居中对齐 */
     width: calc(100% - 40rpx);
     margin: 0 auto;
     padding: 40rpx 30rpx;
@@ -946,23 +658,5 @@
 
   .modal-content {
     width: 95%;
-  }
-
-  .admin-modal-content {
-    width: 95%;
-    margin: 20rpx;
-  }
-
-  .admin-modal-body {
-    padding: 40rpx 30rpx;
-  }
-
-  .admin-modal-title {
-    font-size: 38rpx;
-  }
-
-  .admin-submit-btn {
-    font-size: $font-size-md;
-    padding: 32rpx 24rpx;
   }
 }

@@ -155,11 +155,7 @@ class APIClient {
     // 维护模式拦截（健康检查通过 wx.request 直接调用，不走此方法）
     if (APIClient._isMaintenanceMode && url !== '/system/status') {
       this._showMaintenanceModal()
-      throw this._createApiError(
-        '系统维护中，请稍后重试',
-        'SYSTEM_MAINTENANCE',
-        503
-      )
+      throw this._createApiError('系统维护中，请稍后重试', 'SYSTEM_MAINTENANCE', 503)
     }
 
     const {

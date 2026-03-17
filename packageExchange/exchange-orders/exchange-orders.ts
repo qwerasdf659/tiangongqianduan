@@ -257,7 +257,8 @@ Page({
       _ratedTime: order.rated_at ? this.formatTime(order.rated_at) : '',
       _rejectedTime: order.rejected_at ? this.formatTime(order.rejected_at) : '',
       _refundedTime: order.refunded_at ? this.formatTime(order.refunded_at) : '',
-      _cancelledTime: order.status === 'cancelled' && order.updated_at ? this.formatTime(order.updated_at) : '',
+      _cancelledTime:
+        order.status === 'cancelled' && order.updated_at ? this.formatTime(order.updated_at) : '',
       _sourceLabel: SOURCE_LABELS[order.source] || '',
       _shortOrderNo:
         orderNo.length > 16 ? `${orderNo.slice(0, 8)}...${orderNo.slice(-4)}` : orderNo,

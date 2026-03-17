@@ -136,9 +136,7 @@ Component({
                 }
               : { hot_count: 0, avg_rating: 0, trending_count: 0 }
 
-          const enrichedProducts = enrichProductDisplayFields(
-            this._convertToGridData(items)
-          )
+          const enrichedProducts = enrichProductDisplayFields(this._convertToGridData(items))
 
           this.setData({
             filteredProducts: enrichedProducts,
@@ -182,7 +180,9 @@ Component({
             item_name: item.item_name || '',
             description: item.description || '',
             image:
-              (item.primary_image && (item.primary_image.url || item.primary_image.thumbnail_url)) ||
+              (item.primary_media &&
+                (item.primary_media.public_url ||
+                  (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
               premiumImageHelper.DEFAULT_PRODUCT_IMAGE,
             cost_amount: Number(item.cost_amount) || 0,
             cost_asset_code: item.cost_asset_code || 'POINTS',
@@ -197,7 +197,8 @@ Component({
             has_warranty: item.has_warranty || false,
             free_shipping: item.free_shipping || false,
             rarity_code: item.rarity_code || 'common',
-            category: item.category || null
+            category_def_id: item.category_def_id || null,
+            category_code: (item.category_def && item.category_def.category_code) || null
           }
         })
         .filter(Boolean)
@@ -209,7 +210,11 @@ Component({
      * 前端需要: [total, 1, 3, 1, 0]（索引对齐 costRangeOptions 数组）
      */
     _transformFiltersCount(rawFiltersCount: any): any {
-      if (!rawFiltersCount || !rawFiltersCount.cost_ranges || Array.isArray(rawFiltersCount.cost_ranges)) {
+      if (
+        !rawFiltersCount ||
+        !rawFiltersCount.cost_ranges ||
+        Array.isArray(rawFiltersCount.cost_ranges)
+      ) {
         return rawFiltersCount
       }
 
@@ -222,9 +227,10 @@ Component({
           costRangesArray.push(rawRanges.total)
           return
         }
-        const rangeKey = (option.max !== null && option.max !== undefined)
-          ? `${option.min || 0}-${option.max}`
-          : `${option.min || 0}+`
+        const rangeKey =
+          option.max !== null && option.max !== undefined
+            ? `${option.min || 0}-${option.max}`
+            : `${option.min || 0}+`
         costRangesArray.push(rawRanges[rangeKey])
       })
 
@@ -292,14 +298,8 @@ Component({
      * @param page - 请求页码，默认重置到第1页
      */
     async _loadFilteredProducts(page: number = 1) {
-      const {
-        searchKeyword,
-        categoryFilter,
-        costRangeIndex,
-        stockStatus,
-        sortBy,
-        pageSize
-      } = this.data
+      const { searchKeyword, categoryFilter, costRangeIndex, stockStatus, sortBy, pageSize } =
+        this.data
       const costRangeOptions = this.properties.costRangeOptions as any[]
       const selectedRange = costRangeOptions[costRangeIndex] || {}
 
@@ -317,7 +317,7 @@ Component({
           apiParams.keyword = searchKeyword
         }
         if (categoryFilter && categoryFilter !== 'all') {
-          apiParams.category = categoryFilter
+          apiParams.category_code = categoryFilter
         }
         if (selectedRange.min !== undefined && selectedRange.min !== null) {
           apiParams.min_cost = selectedRange.min

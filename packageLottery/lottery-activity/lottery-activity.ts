@@ -40,8 +40,8 @@ const RARITY_WEIGHT: Record<string, number> = {
  * 为奖品数据添加 UI 展示字段
  *
  * 后端实际返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code,
- *              sort_order, reward_tier, image, is_fallback, prize_description
- * - image: 有图片时为 { image_resource_id, url, mime, thumbnail_url, source }，无图片时为 null
+ *              sort_order, reward_tier, primary_media, is_fallback, prize_description
+ * - primary_media: 有图片时为 { media_id, public_url, mime_type, thumbnails, source }，无图片时为 null
  *   source 值: 'material_icon'（材料资产图标）/ 'uploaded'（用户上传）/ 'placeholder'（占位图）
  * - stock_quantity / is_sold_out: 后端不透传（Decision 6/9: 不展示售罄状态）
  *   is_sold_out 计算逻辑保留但不会触发（后端不返回 stock_quantity 字段）
@@ -109,9 +109,13 @@ async function predownloadPrizeImages(allPrizeItems: any[]): Promise<void> {
 }
 
 function addPrizeIcon(prize: any): any {
-  /* 直接使用后端 image.url，不做本地降级 */
-  const imageUrl = (prize.image && prize.image.url) || ''
-  const thumbnailUrl = (prize.image && prize.image.thumbnail_url) || ''
+  /* 直接使用后端 primary_media.public_url，不做本地降级 */
+  const imageUrl = (prize.primary_media && prize.primary_media.public_url) || ''
+  const thumbnailUrl =
+    (prize.primary_media &&
+      prize.primary_media.thumbnails &&
+      prize.primary_media.thumbnails.medium) ||
+    ''
   prize.prize_image_url = thumbnailUrl || imageUrl || ''
 
   /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */

@@ -8,7 +8,9 @@ const {
   Wechat,
   Constants,
   Logger,
-  ImageHelper
+  ImageHelper,
+  ThemeCache,
+  GlobalTheme
 } = require('../../utils/index')
 const log = Logger.createLogger('auth')
 const { DELAY, API_CONFIG } = Constants
@@ -120,6 +122,9 @@ Page({
    * 页面的初始数据
    */
   data: {
+    // 🎨 全局氛围主题 CSS 变量字符串（注入到页面根元素 style）
+    globalThemeStyle: '',
+
     // 🔧 页面加载状态
     pageLoaded: false,
     initError: null,
@@ -238,6 +243,9 @@ Page({
       if (!appInstance) {
         throw new Error('App实例未初始化')
       }
+
+      // 🎨 加载全局氛围主题（登录页无需登录即可显示主题，使用同步方法避免阻塞）
+      this.loadAuthPageTheme()
 
       // V4.0规范：开发环境由后端控制万能验证码123456，前端不做数据模拟
 
@@ -519,10 +527,30 @@ Page({
   },
 
   /**
+   * 🎨 加载认证页面全局氛围主题
+   *
+   * 登录页面无需登录即可显示，优先使用同步方法获取缓存主题（App.onLaunch 中已预加载）。
+   * 如果本地无缓存（首次安装冷启动），异步请求后端获取并更新。
+   */
+  loadAuthPageTheme() {
+    const authThemeName = ThemeCache.getThemeNameSync()
+    const authThemeStyle = GlobalTheme.getGlobalThemeStyle(authThemeName)
+    this.setData({ globalThemeStyle: authThemeStyle })
+    log.info('认证页面主题已加载:', authThemeName)
+  },
+
+  /**
    * 生命周期函数--监听页面显示
    */
   onShow() {
     log.info('认证页面显示')
+
+    // 🎨 每次 onShow 重新检查全局主题（管理后台切换主题后生效）
+    const authShowThemeName = ThemeCache.getThemeNameSync()
+    const authShowThemeStyle = GlobalTheme.getGlobalThemeStyle(authShowThemeName)
+    if (authShowThemeStyle !== this.data.globalThemeStyle) {
+      this.setData({ globalThemeStyle: authShowThemeStyle })
+    }
 
     this.setData({
       loginCompleted: false,

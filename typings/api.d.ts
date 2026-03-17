@@ -125,9 +125,9 @@ declare namespace API {
   /**
    * 奖品信息（后端 DataSanitizer.sanitizePrizes 输出，public级别）
    *
-   * 字段对齐后端实际返回格式（2026-02-22 DataSanitizer 主键规范化后）：
+   * 字段对齐后端 media_files + media_attachments 迁移后的实际返回格式：
    * - prize_id: 剥离 lottery_ 模块前缀（数据库主键 lottery_prize_id）
-   * - image: 有图片时为 PrizeImage 对象，无图片时为 null（emoji兜底）
+   * - primary_media: 有图片时为 MediaObject 对象，无图片时为 null（emoji兜底）
    * - icon 字段已移除（后端不再返回，前端根据 prize_type 自行生成 emoji）
    */
   interface Prize {
@@ -147,14 +147,14 @@ declare namespace API {
     reward_tier: string
     /** 状态: active / inactive */
     status: string
-    /** 图片资源ID（关联 image_resources 表，可为 null） */
-    image_resource_id: number | null
+    /** 主图媒体ID（关联 media_files 表，可为 null） */
+    primary_media_id: number | null
     /**
-     * 奖品图片对象（DataSanitizer 通过 ImageUrlHelper 生成完整URL）
-     * 有图片时: { image_resource_id, url, mime, thumbnail_url }
+     * 奖品图片对象（后端通过 media_files 表 JOIN 生成完整URL）
+     * 有图片时: { media_id, public_url, mime_type, thumbnails }
      * 无图片时: null（前端使用 PRIZE_ICON_MAP[prize_type] emoji 兜底）
      */
-    image: PrizeImage | null
+    primary_media: MediaObject | null
     /** 材料资产代码（如 CRYSTAL） */
     material_asset_code: string
     /** 材料数量 */
@@ -162,27 +162,38 @@ declare namespace API {
     /**
      * 是否为兜底奖品（保底奖品标记）
      * true 时前端用降低饱和度 + "保底"角标区分展示
-     * ⚠️ 需后端在 /lottery/campaigns/:code/prizes 接口中返回此字段
      */
     is_fallback?: boolean
     /**
      * 剩余库存数量
      * 0 时前端显示"已抢光"遮罩
-     * ⚠️ 需后端在 /lottery/campaigns/:code/prizes 接口中返回此字段
      */
     stock_quantity?: number
   }
 
-  /** 奖品关联图片（Sealos 对象存储公网URL） */
-  interface PrizeImage {
-    /** 图片资源ID（image_resources.image_resource_id） */
-    image_resource_id: number
-    /** 图片完整公网URL（Sealos 对象存储直连） */
-    url: string
+  /**
+   * 媒体文件对象（后端 media_files 表 + ImageUrlHelper 拼接的完整URL）
+   * 统一用于奖品图片、商品图片、广告素材等所有业务场景
+   */
+  interface MediaObject {
+    /** 媒体文件ID（media_files.media_id） */
+    media_id: number
+    /** Sealos 存储 object key（如 products/xxx.jpg） */
+    object_key: string
+    /** 图片完整公网URL（后端已拼接，前端直接使用） */
+    public_url: string
     /** MIME 类型（如 image/jpeg） */
-    mime: string
-    /** 缩略图URL（可为 null） */
-    thumbnail_url: string | null
+    mime_type: string
+    /** 图片宽度px（可为 null） */
+    width: number | null
+    /** 图片高度px（可为 null） */
+    height: number | null
+    /** 缩略图完整URL（后端已拼接，三种尺寸 150/300/600px） */
+    thumbnails: {
+      small: string
+      medium: string
+      large: string
+    } | null
   }
 
   /** 抽奖配置（对齐后端 GET /api/v4/lottery/campaigns/:code/config 响应） */
@@ -446,7 +457,7 @@ declare namespace API {
   /**
    * 兑换商品（对齐后端 exchange_items 表 + GET /api/v4/backpack/exchange/items 响应）
    * 后端使用多币种支付模型: cost_asset_code + cost_amount
-   * 图片通过 primary_image_id 关联 image_resources 表
+   * 图片通过 primary_media_id 关联 media_files 表（media_attachments 多态关联）
    */
   interface ExchangeProduct {
     /** 商品主键（exchange_items.exchange_item_id） */
@@ -465,16 +476,24 @@ declare namespace API {
     stock: number
     /** 已售数量 */
     sold_count: number
-    /** 分类编码（关联 category_defs.category_code） */
-    category: string
+    /** 分类定义ID（关联 category_defs.category_def_id，整数FK） */
+    category_def_id: number
+    /** 分类定义对象（后端联查返回） */
+    category_def?: {
+      category_def_id: number
+      category_code: string
+      display_name: string
+    }
     /** 空间类型: lucky(幸运空间) / premium(臻选空间) */
     space: string
     /** 排序权重 */
     sort_order: number
     /** 状态: active / inactive */
     status: string
-    /** 主图ID（关联 image_resources 表，可为null） */
-    primary_image_id: number | null
+    /** 主图媒体ID（关联 media_files 表，可为null） */
+    primary_media_id: number | null
+    /** 主图媒体对象（后端联查返回，可为null） */
+    primary_media: MediaObject | null
     /** 标签数组（JSON） */
     tags: string[]
     /** 是否热销 */
@@ -485,7 +504,7 @@ declare namespace API {
     is_lucky: boolean
     /** 是否限量商品（触发旋转边框特效） */
     is_limited: boolean
-    /** 稀有度代码（5级: common/uncommon/rare/epic/legendary，后端 B8 新增列） */
+    /** 稀有度代码（5级: common/uncommon/rare/epic/legendary） */
     rarity_code: string
     /** 是否有保修 */
     has_warranty: boolean
@@ -613,10 +632,12 @@ declare namespace API {
     name: string
     /** 商品描述 */
     description: string
-    /** 商品图片URL */
-    image_url: string
-    /** 商品分类 */
-    category: string
+    /** 主图媒体ID（关联 media_files 表，可为null） */
+    primary_media_id: number | null
+    /** 主图媒体对象（后端联查返回） */
+    primary_media: MediaObject | null
+    /** 分类定义ID（关联 category_defs.category_def_id） */
+    category_def_id: number
     /** 起拍价（BIGINT，最低出价金额） */
     start_price: number
     /** 当前最高出价（BIGINT） */
@@ -1402,22 +1423,21 @@ declare namespace API {
   }
 
   /**
-   * 广告素材（对齐后端 ad_creatives 表）
+   * 广告素材（对齐后端 ad_creatives 表 — 图片字段已迁移到 media_files 体系）
    * 审核状态: pending=待审核 / approved=已通过 / rejected=已拒绝
+   * 图片物理属性（宽高）由 media_files 表提供，业务属性（display_mode/link_url/link_type）留在 ad_creatives
    */
   interface AdCreative {
     /** 素材ID（INT PK） */
     ad_creative_id: number
     /** 所属广告计划ID */
     ad_campaign_id: number
+    /** 主图媒体ID（关联 media_files 表） */
+    primary_media_id: number | null
+    /** 主图媒体对象（后端联查返回，含 public_url、width、height） */
+    primary_media: MediaObject | null
     /** 素材标题 */
     title: string
-    /** 图片URL（Sealos对象存储，后端自动转CDN） */
-    image_url: string
-    /** 原图宽度px */
-    image_width: number | null
-    /** 原图高度px */
-    image_height: number | null
     /** 跳转链接 */
     link_url: string | null
     /** 跳转类型: none / page / miniprogram / webview */
@@ -1566,6 +1586,33 @@ declare namespace API {
     end_date?: string
     /** 展示优先级（1~99，默认50） */
     priority?: number
+    /** 媒体文件ID（上传图片返回的 media_id，后端通过 media_attachments 关联 AdCreative） */
+    primary_media_id?: number
+    /** 素材内容类型: image=图片 / text=纯文字（默认 image） */
+    content_type?: string
+    /** 纯文字内容（content_type='text' 时使用，如系统公告文字） */
+    text_content?: string
+    /** 展示模式: default=默认 / fullscreen=全屏 / compact=紧凑 */
+    display_mode?: string
+  }
+
+  /**
+   * 广告素材图片上传响应（POST /api/v4/user/images/upload → media_files 体系）
+   * 上传后获取 media_id，创建广告活动时传 primary_media_id 即可
+   */
+  interface MediaUploadResponse {
+    /** 媒体文件ID（用于创建广告活动时的 primary_media_id 字段） */
+    media_id: number
+    /** 对象存储Key（media_files.object_key） */
+    object_key: string
+    /** 公网访问URL（仅用于前端本地预览，不要提交给后端） */
+    public_url: string
+    /** 缩略图列表（自动生成） */
+    thumbnails?: Array<{ size: string; object_key: string; public_url: string }>
+    /** 图片宽度px */
+    width?: number
+    /** 图片高度px */
+    height?: number
   }
 
   // ===== 核销码系统（模型A：O2O动态码 — 到店核销） =====

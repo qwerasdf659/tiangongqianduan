@@ -47,8 +47,8 @@ async function getPlacementConfig() {
  * 认证方式: JWT Bearer Token（后端 authenticateToken 中间件）
  * 响应格式: { success, data: { items: AdDeliveryItem[], slot_type, position, total } }
  *
- * @param params.slot_type - 广告位类型（必填）: popup / carousel / announcement
- * @param params.position  - 位置（可选，默认 home）: home / lottery / profile
+ * @param params.slot_type - 广告位类型（必填）: popup / carousel / announcement / feed
+ * @param params.position  - 位置（可选，默认 home）: home / lottery / profile / market_list / exchange_list
  */
 async function getAdDelivery(params: { slot_type: string; position?: string }) {
   if (!params.slot_type) {
@@ -250,6 +250,16 @@ async function uploadChatImage(session_id: number, filePath: string) {
           if (res.statusCode === 503 && parsedData.code === 'SYSTEM_MAINTENANCE') {
             apiClient._showMaintenanceModal(parsedData.message)
             reject(new Error(parsedData.message || '系统维护中'))
+            return
+          }
+
+          if (res.statusCode === 413) {
+            reject(new Error('图片文件过大，请选择5MB以内的图片'))
+            return
+          }
+
+          if (res.statusCode === 401) {
+            reject(new Error('登录已失效，请重新登录'))
             return
           }
 

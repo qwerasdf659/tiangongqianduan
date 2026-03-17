@@ -709,9 +709,7 @@ Page({
    *   2. 当前用户 role_level>=60 时，调用 GET /console/approval-chain/instances 查询
    *   3. 都不可用时返回 null
    */
-  async fetchChainProgressForRecord(
-    record: any
-  ): Promise<{
+  async fetchChainProgressForRecord(record: any): Promise<{
     current_step: number
     total_steps: number
     status_text: string
@@ -723,7 +721,8 @@ Page({
       return {
         current_step: localChainInfo.current_step || 1,
         total_steps: localChainInfo.total_steps || 1,
-        status_text: localChainInfo.status === 'in_progress' ? '审核中' : (localChainInfo.status || '未知'),
+        status_text:
+          localChainInfo.status === 'in_progress' ? '审核中' : localChainInfo.status || '未知',
         current_node_name: localChainInfo.current_node_name
       }
     }
@@ -746,7 +745,8 @@ Page({
           return {
             current_step: chainInstance.current_step || 1,
             total_steps: chainInstance.total_steps || 1,
-            status_text: chainInstance.status === 'in_progress' ? '审核中' : (chainInstance.status || '未知'),
+            status_text:
+              chainInstance.status === 'in_progress' ? '审核中' : chainInstance.status || '未知',
             current_node_name: chainInstance.current_node_name
           }
         }

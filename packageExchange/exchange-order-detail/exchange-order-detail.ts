@@ -28,7 +28,10 @@ const detailLog = OrderDetailLogger.createLogger('exchange-order-detail')
 const { showToast: detailShowToast } = OrderDetailWechat
 
 /** 订单状态文案映射（9态，与后端 exchange_records.status 对齐） */
-const DETAIL_STATUS_MAP: Record<string, { label: string; color: string; icon: string; desc: string }> = {
+const DETAIL_STATUS_MAP: Record<
+  string,
+  { label: string; color: string; icon: string; desc: string }
+> = {
   pending: { label: '待审核', color: '#FF9800', icon: '⏳', desc: '您的订单正在等待管理员审核' },
   approved: { label: '审核通过', color: '#2196F3', icon: '✓', desc: '订单已通过审核，等待发货' },
   shipped: { label: '已发货', color: '#4CAF50', icon: '🚚', desc: '商品已发出，请注意查收' },
@@ -95,6 +98,14 @@ Page({
     /** 已评价展示 */
     ratingStars: '',
 
+    /** 物流信息（Phase 4: 快递100+快递鸟双通道） */
+    hasShipping: false,
+    shippingCompanyName: '',
+    shippingNo: '',
+    shippingTracks: [] as any[],
+    shippingState: '',
+    shippingLoading: false,
+
     /** 评价弹窗 */
     showRatingModal: false,
     ratingScore: 0,
@@ -148,6 +159,9 @@ Page({
       /** 构建完整时间线 */
       const timeline = this._buildTimeline(order)
 
+      /** 提取物流快递信息（后端 exchange_records 新增字段: shipping_company / shipping_company_name / shipping_no） */
+      const hasShipping = !!(order.shipping_no && order.shipping_company_name)
+
       this.setData({
         order,
         statusLabel: statusInfo.label,
@@ -166,6 +180,9 @@ Page({
         canRate: order.status === 'received',
         isAutoConfirmed: order.auto_confirmed === true,
         ratingStars: order.rating ? '★'.repeat(order.rating) + '☆'.repeat(5 - order.rating) : '',
+        hasShipping,
+        shippingCompanyName: order.shipping_company_name || '',
+        shippingNo: order.shipping_no || '',
         loading: false
       })
 
@@ -191,10 +208,18 @@ Page({
       nodes.push({ label: '提交订单', time: this._formatTime(order.created_at), dotClass: '' })
     }
     if (order.approved_at) {
-      nodes.push({ label: '审核通过', time: this._formatTime(order.approved_at), dotClass: 'dot-blue' })
+      nodes.push({
+        label: '审核通过',
+        time: this._formatTime(order.approved_at),
+        dotClass: 'dot-blue'
+      })
     }
     if (order.shipped_at) {
-      nodes.push({ label: '商家发货', time: this._formatTime(order.shipped_at), dotClass: 'dot-green' })
+      nodes.push({
+        label: '商家发货',
+        time: this._formatTime(order.shipped_at),
+        dotClass: 'dot-green'
+      })
     }
     if (order.received_at) {
       nodes.push({
@@ -204,19 +229,35 @@ Page({
       })
     }
     if (order.rated_at) {
-      nodes.push({ label: '用户评价', time: this._formatTime(order.rated_at), dotClass: 'dot-purple' })
+      nodes.push({
+        label: '用户评价',
+        time: this._formatTime(order.rated_at),
+        dotClass: 'dot-purple'
+      })
     }
     if (order.rejected_at) {
-      nodes.push({ label: '审核拒绝', time: this._formatTime(order.rejected_at), dotClass: 'dot-red' })
+      nodes.push({
+        label: '审核拒绝',
+        time: this._formatTime(order.rejected_at),
+        dotClass: 'dot-red'
+      })
     }
     if (order.refunded_at) {
-      nodes.push({ label: '订单退款', time: this._formatTime(order.refunded_at), dotClass: 'dot-grey' })
+      nodes.push({
+        label: '订单退款',
+        time: this._formatTime(order.refunded_at),
+        dotClass: 'dot-grey'
+      })
     }
     if (order.status === 'cancelled') {
       /** 后端 exchange_records 表无 cancelled_at 列，cancelOrder() 仅更新 status + updated_at，用 updated_at 作为取消时间 */
       const cancelledTime = order.updated_at || order.created_at
       if (cancelledTime) {
-        nodes.push({ label: '订单取消', time: this._formatTime(cancelledTime), dotClass: 'dot-grey' })
+        nodes.push({
+          label: '订单取消',
+          time: this._formatTime(cancelledTime),
+          dotClass: 'dot-grey'
+        })
       }
     }
 
@@ -388,6 +429,54 @@ Page({
       showRatingModal: false,
       ratingScore: 0,
       ratingHint: DETAIL_RATING_HINTS[0]
+    })
+  },
+
+  /**
+   * 查询物流轨迹
+   * GET /api/v4/backpack/exchange/orders/:order_no/track
+   */
+  async onQueryShippingTrack() {
+    const { orderNo, shippingLoading } = this.data
+    if (!orderNo || shippingLoading) {
+      return
+    }
+
+    this.setData({ shippingLoading: true })
+
+    try {
+      const trackResult = await OrderDetailAPI.getExchangeOrderTrack(orderNo)
+
+      if (trackResult && trackResult.success && trackResult.data) {
+        const trackData = trackResult.data
+        const tracks = (trackData.track && trackData.track.tracks) || []
+
+        this.setData({
+          shippingTracks: tracks,
+          shippingState: (trackData.track && trackData.track.state) || '',
+          shippingLoading: false
+        })
+        detailLog.info('物流轨迹查询成功:', tracks.length, '条')
+      } else {
+        this.setData({ shippingLoading: false })
+        detailShowToast(trackResult?.message || '暂无物流信息')
+      }
+    } catch (trackError: any) {
+      detailLog.error('物流查询失败:', trackError)
+      this.setData({ shippingLoading: false })
+      detailShowToast(trackError.message || '物流查询失败')
+    }
+  },
+
+  /** 复制快递单号 */
+  onCopyShippingNo() {
+    const { shippingNo } = this.data
+    if (!shippingNo) {
+      return
+    }
+    wx.setClipboardData({
+      data: shippingNo,
+      success: () => detailShowToast('快递单号已复制', 'success')
     })
   },
 

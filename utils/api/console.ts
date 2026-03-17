@@ -1,5 +1,5 @@
 /**
- * 🔧 管理）控制台API
+ * 🔧 管理员控制台API
  * 后端路由: routes/v4/console/
  * 包含: 消费审核、管理员客服会话、管理员查看用户数据
  *
@@ -13,7 +13,7 @@ const { buildQueryString } = require('../util')
 
 // ==================== 📋 消费审核 ====================
 
-/** 获取待审核消费记录列表?- GET /api/v4/console/consumption/pending */
+/** 获取待审核消费记录列表 - GET /api/v4/console/consumption/pending */
 async function getPendingConsumption(params: { page?: number; page_size?: number } = {}) {
   const { page = 1, page_size = 20 } = params
   const qs = buildQueryString({ page, page_size })
@@ -143,7 +143,7 @@ async function batchReviewConsumption(params: BatchReviewParams) {
 
 // ==================== 👨‍💼 管理员客服 ====================
 
-/** 获取管理员客服会话列表?- GET /api/v4/console/customer-service/sessions */
+/** 获取管理员客服会话列表 - GET /api/v4/console/customer-service/sessions */
 async function getAdminChatSessions(
   params: { page?: number; pageSize?: number; status?: string | null } = {}
 ) {
@@ -159,7 +159,7 @@ async function getAdminChatSessions(
   })
 }
 
-/** 获取管理员客服会话消息历?- GET /api/v4/console/customer-service/sessions/:id/messages */
+/** 获取管理员客服会话消息历史 - GET /api/v4/console/customer-service/sessions/:id/messages */
 async function getAdminChatHistory(
   params: { sessionId?: number; page?: number; pageSize?: number } = {}
 ) {
@@ -210,7 +210,7 @@ async function getAdminUserQRCode(user_id: number) {
   })
 }
 
-/** 管理员查看指定用户抽奖历?- GET /api/v4/console/lottery-user-analysis/history/:user_id */
+/** 管理员查看指定用户抽奖历史 - GET /api/v4/console/lottery-user-analysis/history/:user_id */
 async function getAdminLotteryHistory(user_id: number, page: number = 1, limit: number = 20) {
   const qs = buildQueryString({ page, limit })
   return apiClient.request(`/console/lottery-user-analysis/history/${user_id}?${qs}`, {
@@ -219,7 +219,7 @@ async function getAdminLotteryHistory(user_id: number, page: number = 1, limit: 
   })
 }
 
-/** 管理员查看指定用户综合统?- GET /api/v4/console/lottery-user-analysis/points/:user_id */
+/** 管理员查看指定用户综合统计 - GET /api/v4/console/lottery-user-analysis/points/:user_id */
 async function getAdminUserStatistics(user_id: number) {
   if (!user_id) {
     throw new Error('用户ID不能为空')
@@ -230,7 +230,7 @@ async function getAdminUserStatistics(user_id: number) {
   })
 }
 
-/** 管理员查看指定用户抽奖维度统?- GET /api/v4/console/lottery-user-analysis/statistics/:user_id */
+/** 管理员查看指定用户抽奖维度统计 - GET /api/v4/console/lottery-user-analysis/statistics/:user_id */
 async function getAdminLotteryUserStatistics(user_id: number) {
   if (!user_id) {
     throw new Error('用户ID不能为空')
@@ -265,7 +265,7 @@ async function getAdminSessionStats(admin_id?: number) {
 /**
  * 获取管理员客服响应时长统 * 后端API: GET /api/v4/console/customer-service/sessions/response-stats?days=7
  *
- * @param days - 统计天数（默天）
+ * @param days - 统计天数（默认30天）
  * @returns { summary, distribution, trend, admin_ranking }
  */
 async function getAdminResponseStats(days: number = 7) {

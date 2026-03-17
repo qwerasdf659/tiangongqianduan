@@ -38,14 +38,14 @@
     <block wx:if="{{swiperImages.length > 1}}">
       <swiper class="ed-swiper" indicator-dots="{{false}}" autoplay="{{true}}" interval="{{4000}}" circular="{{true}}"
         bindchange="onSwiperChange">
-        <swiper-item wx:for="{{swiperImages}}" wx:key="image_resource_id">
+        <swiper-item wx:for="{{swiperImages}}" wx:key="media_id">
           <image class="ed-hero-image" src="{{item.url}}" mode="aspectFill" data-index="{{index}}"
             bindtap="onPreviewImage" binderror="onImageError" />
         </swiper-item>
       </swiper>
       <!-- 自定义指示器 -->
       <view class="ed-swiper-dots">
-        <view wx:for="{{swiperImages}}" wx:key="image_resource_id"
+        <view wx:for="{{swiperImages}}" wx:key="media_id"
           class="ed-swiper-dot {{swiperCurrent === index ? 'ed-dot-active' : ''}}"></view>
       </view>
     </block>
@@ -199,6 +199,25 @@
     </view>
   </view>
 
+  <!-- SKU 规格选择区（多规格商品显示，单品商品自动隐藏） -->
+  <view class="ed-sku-card" wx:if="{{hasMultiSku && skuList.length > 1}}">
+    <text class="ed-section-title">规格选择</text>
+    <view class="ed-sku-options">
+      <view
+        class="ed-sku-item {{selectedSkuId === item.sku_id ? 'ed-sku-selected' : ''}} {{item.stock <= 0 ? 'ed-sku-disabled' : ''}}"
+        wx:for="{{skuList}}" wx:key="sku_id" data-sku-id="{{item.sku_id}}" bindtap="onSelectSku">
+        <text class="ed-sku-label">{{item._specLabel || '默认'}}</text>
+        <text class="ed-sku-price">{{item.cost_amount}} {{product._priceLabel || '积分'}}</text>
+        <text class="ed-sku-stock" wx:if="{{item.stock <= 5 && item.stock > 0}}">仅剩{{item.stock}}件</text>
+        <text class="ed-sku-stock ed-sku-soldout" wx:if="{{item.stock <= 0}}">已售罄</text>
+      </view>
+    </view>
+    <view class="ed-sku-selected-info" wx:if="{{selectedSkuInfo}}">
+      <text class="ed-sku-selected-text">已选: {{selectedSkuInfo._specLabel || '默认'}} | {{selectedSkuInfo.cost_amount}}
+        {{product._priceLabel || '积分'}}</text>
+    </view>
+  </view>
+
   <!-- ⑤ 商品介绍区: 卖点高亮 + 纯文字 / 长图 / 混排 -->
   <view class="ed-desc-card" wx:if="{{product.sell_point || product.description || detailImages.length > 0}}">
     <text class="ed-section-title">商品介绍</text>
@@ -214,7 +233,7 @@
 
     <!-- 详情长图（detail_images，含可选 caption 说明文字） -->
     <view class="ed-detail-images" wx:if="{{detailImages.length > 0}}">
-      <view wx:for="{{detailImages}}" wx:key="image_resource_id" class="ed-detail-img-wrap">
+      <view wx:for="{{detailImages}}" wx:key="media_id" class="ed-detail-img-wrap">
         <image class="ed-detail-img" src="{{item.url}}" mode="widthFix" data-index="{{index}}"
           bindtap="onPreviewDetailImage" lazy-load="{{true}}" />
         <text wx:if="{{item.caption}}" class="ed-detail-img-caption">{{item.caption}}</text>
@@ -234,14 +253,14 @@
 
     <!-- 2-4张: 两列网格 -->
     <view class="ed-showcase-grid" wx:elif="{{showcaseImages.length <= 4}}">
-      <image wx:for="{{showcaseImages}}" wx:key="image_resource_id" class="ed-showcase-img-grid" src="{{item.url}}"
+      <image wx:for="{{showcaseImages}}" wx:key="media_id" class="ed-showcase-img-grid" src="{{item.url}}"
         mode="aspectFill" data-index="{{index}}" bindtap="onPreviewShowcaseImage" lazy-load="{{true}}" />
     </view>
 
     <!-- 5+张: 横向可滚动 -->
     <scroll-view wx:else class="ed-showcase-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
       <view class="ed-showcase-scroll-inner">
-        <image wx:for="{{showcaseImages}}" wx:key="image_resource_id" class="ed-showcase-img-scroll" src="{{item.url}}"
+        <image wx:for="{{showcaseImages}}" wx:key="media_id" class="ed-showcase-img-scroll" src="{{item.url}}"
           mode="aspectFill" data-index="{{index}}" bindtap="onPreviewShowcaseImage" lazy-load="{{true}}" />
       </view>
     </scroll-view>
@@ -342,8 +361,9 @@
         </view>
         <view class="ed-confirm-product-info">
           <text class="ed-confirm-product-name">{{product.item_name}}</text>
+          <text class="ed-confirm-sku-spec" wx:if="{{selectedSkuInfo._specLabel}}">{{selectedSkuInfo._specLabel}}</text>
           <view class="ed-confirm-product-price">
-            <text class="ed-confirm-price-num">{{product.cost_amount}}</text>
+            <text class="ed-confirm-price-num">{{selectedSkuInfo.cost_amount || product.cost_amount}}</text>
             <text class="ed-confirm-price-unit">{{product._priceLabel || '积分'}}</text>
           </view>
         </view>
@@ -364,11 +384,12 @@
         </view>
       </view>
 
-      <!-- 合计消耗 -->
+      <!-- 合计消耗（SKU价格优先于SPU价格） -->
       <view class="ed-confirm-total-row">
         <text class="ed-confirm-label">合计消耗</text>
         <view class="ed-confirm-total-val">
-          <text class="ed-confirm-total-num">{{product.cost_amount * exchangeQuantity}}</text>
+          <text class="ed-confirm-total-num">{{(selectedSkuInfo.cost_amount || product.cost_amount) *
+            exchangeQuantity}}</text>
           <text class="ed-confirm-total-unit">{{product._priceLabel || '积分'}}</text>
         </view>
       </view>

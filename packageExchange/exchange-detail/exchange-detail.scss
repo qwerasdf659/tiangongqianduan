@@ -39,20 +39,24 @@
 .ed-dot1 {
   animation-delay: -0.32s;
 }
+
 .ed-dot2 {
   animation-delay: -0.16s;
 }
+
 .ed-dot3 {
   animation-delay: 0s;
 }
 
 @keyframes edBounce {
+
   0%,
   80%,
   100% {
     transform: scale(0);
     opacity: 0.5;
   }
+
   40% {
     transform: scale(1);
     opacity: 1;
@@ -129,30 +133,28 @@
 
 /* legendary: 金色脉冲光效 */
 .ed-glow-legendary {
-  background: radial-gradient(
-    circle at 50% 40%,
-    rgba(255, 152, 0, 0.25) 0%,
-    rgba(255, 152, 0, 0.08) 40%,
-    transparent 70%
-  );
+  background: radial-gradient(circle at 50% 40%,
+      rgba(255, 152, 0, 0.25) 0%,
+      rgba(255, 152, 0, 0.08) 40%,
+      transparent 70%);
 }
 
 /* epic: 紫色脉冲光效 */
 .ed-glow-epic {
-  background: radial-gradient(
-    circle at 50% 40%,
-    rgba(156, 39, 176, 0.25) 0%,
-    rgba(156, 39, 176, 0.08) 40%,
-    transparent 70%
-  );
+  background: radial-gradient(circle at 50% 40%,
+      rgba(156, 39, 176, 0.25) 0%,
+      rgba(156, 39, 176, 0.08) 40%,
+      transparent 70%);
 }
 
 @keyframes edGlowPulse {
+
   0%,
   100% {
     opacity: 0.6;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.05);
@@ -216,10 +218,12 @@
 }
 
 @keyframes edFloatBounce {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-16rpx);
   }
@@ -967,6 +971,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -989,6 +994,7 @@
     opacity: 0;
     transform: translateY(60rpx) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1099,7 +1105,7 @@
   padding: 20rpx 0;
 }
 
-.ed-confirm-row + .ed-confirm-row,
+.ed-confirm-row+.ed-confirm-row,
 .ed-confirm-total-row {
   border-top: 2rpx solid $color-border-light;
 }
@@ -1230,4 +1236,80 @@
   background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
   box-shadow: none;
   pointer-events: none;
+}
+
+/* SKU 规格选择区 */
+.ed-sku-card {
+  background: $color-white;
+  margin: $spacing-md $spacing-base 0;
+  border-radius: $card-radius;
+  padding: $spacing-lg $spacing-base;
+}
+
+.ed-sku-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.ed-sku-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-sm $spacing-base;
+  border: 2rpx solid $color-border;
+  border-radius: $spacing-base;
+  min-width: 160rpx;
+  position: relative;
+}
+
+.ed-sku-selected {
+  border-color: $gradient-blue-start;
+  background: rgba(102, 126, 234, 0.06);
+}
+
+.ed-sku-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ed-sku-label {
+  font-size: $font-size-base;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+
+.ed-sku-price {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+}
+
+.ed-sku-stock {
+  font-size: $font-size-xs;
+  color: #ff6b00;
+  margin-top: 4rpx;
+}
+
+.ed-sku-soldout {
+  color: $color-text-tertiary;
+}
+
+.ed-sku-selected-info {
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 1rpx solid $color-border;
+}
+
+.ed-sku-selected-text {
+  font-size: $font-size-sm;
+  color: $gradient-blue-start;
+}
+
+.ed-confirm-sku-spec {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: 4rpx;
+  display: block;
 }

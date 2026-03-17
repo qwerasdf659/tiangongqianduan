@@ -190,24 +190,26 @@ async function getExchangeProducts(
 }
 
 /**
- * 执行商品兑换
+ * 执行商品兑换（全量SKU模式）
  * POST /api/v4/backpack/exchange
  *
  * 后端服务: exchange_core（CoreService.exchangeItem）
- * 业务流程: 幂等键校验 → 商品状态校验 → 库存校验 → BalanceService扣减资产 → 库存扣减 → 创建exchange_records
+ * 业务流程: 幂等键校验 → 商品状态校验 → SKU库存校验 → BalanceService扣减资产 → SKU库存扣减 → 创建exchange_records
  * 全流程在 TransactionManager.execute() 事务中
  *
- * 响应字段: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
- * ⚠️ 后端不返回 remaining_points（安全考虑，余额需单独查询 GET /api/v4/assets/balance）
+ * 全量SKU模式说明（v4.0 Phase 0）:
+ *   所有商品统一走 exchange_item_skus 表，单品商品有一个默认SKU（spec_values: {}）
+ *   - 单品（skus.length === 1 且 spec_values 为 {}）: 前端自动选中默认SKU
+ *   - 多规格（skus.length > 1）: 用户选择具体规格后传入 sku_id
+ *   - 后端会根据 sku_id 扣减对应SKU的库存和价格
  *
- * 字段说明:
- *   列表 API（GET）和兑换 API（POST）统一使用 exchange_item_id（number）
- *   调用方直接传入列表项的 exchange_item_id 即可
+ * 响应字段: { order_no, exchange_item_id, quantity, pay_asset_code, pay_amount, status, exchange_time }
  *
  * @param exchange_item_id - 兑换商品ID（BIGINT，exchange_items 表主键）
  * @param quantity - 兑换数量，默认 1
+ * @param sku_id - SKU ID（BIGINT，exchange_item_skus 表主键），单品商品传默认SKU的ID
  */
-async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
+async function exchangeProduct(exchange_item_id: number, quantity: number = 1, sku_id?: number) {
   if (!exchange_item_id) {
     throw new Error('兑换商品ID不能为空')
   }
@@ -215,21 +217,22 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1) {
     throw new Error('兑换数量必须大于0')
   }
 
-  /* 生成幂等键，防止重复提交（exchange_records 表唯一约束） */
   const idempotencyKey = `exchange_${exchange_item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
+  const requestData: Record<string, any> = {
+    exchange_item_id,
+    quantity
+  }
+
+  /** 全量SKU模式: 后端要求传入 sku_id（单品商品由后端自动选择默认SKU） */
+  if (sku_id) {
+    requestData.sku_id = sku_id
+  }
 
   return apiClient.request('/backpack/exchange', {
     method: 'POST',
-    data: {
-      /**
-       * POST body 参数名是 exchange_item_id（后端路由直接读取此字段）
-       * 列表 API 和兑换 API 统一使用 exchange_item_id（number 类型）
-       */
-      exchange_item_id,
-      quantity
-    },
+    data: requestData,
     header: {
-      /* 后端要求幂等键通过 HTTP Header 传递，而非请求体 */
       'Idempotency-Key': idempotencyKey
     },
     needAuth: true,
@@ -388,6 +391,46 @@ async function rateExchangeOrder(order_no: string, rating: number) {
     loadingText: '提交评价中...',
     showError: true,
     errorPrefix: '评价失败：'
+  })
+}
+
+// ==================== 物流查询（Phase 4：快递100+快递鸟双通道） ====================
+
+/**
+ * 查询兑换订单物流轨迹
+ * GET /api/v4/backpack/exchange/orders/:order_no/track
+ *
+ * 后端服务: ShippingTrackService（快递100主通道 + 快递鸟备用通道，自动降级）
+ * 缓存策略: Redis TTL 10分钟（已签收延长到24小时）
+ *
+ * 响应字段:
+ *   has_shipping          - boolean 是否有快递信息
+ *   shipping_company_name - string 快递公司名称（如 "顺丰速运"）
+ *   shipping_no           - string 快递单号
+ *   track                 - object 物流轨迹数据
+ *     success             - boolean 查询是否成功
+ *     state               - string 统一状态: in_transit / delivering / delivered / returned
+ *     tracks              - array 轨迹节点数组（按时间倒序）
+ *       time              - string 时间（如 "2026-03-16 14:30"）
+ *       status            - string 节点状态
+ *       detail            - string 轨迹详情
+ *
+ * ⚠️ 后端用户端路由 /backpack/exchange/orders/:order_no/track 需确认已注册
+ *    管理端路由 /console/marketplace/exchange_market/orders/:order_no/track 已实现
+ *
+ * @param order_no - 订单号（exchange_records.order_no，VARCHAR(50) UNIQUE）
+ */
+async function getExchangeOrderTrack(order_no: string) {
+  if (!order_no) {
+    throw new Error('订单号不能为空')
+  }
+  return apiClient.request(`/backpack/exchange/orders/${order_no}/track`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '查询物流中...',
+    showError: true,
+    errorPrefix: '物流查询失败：'
   })
 }
 
@@ -633,6 +676,7 @@ module.exports = {
   cancelExchange,
   getExchangeItemDetail,
   getExchangeOrderDetail,
+  getExchangeOrderTrack,
   confirmExchangeReceipt,
   rateExchangeOrder,
   getExchangeSpaceStats,

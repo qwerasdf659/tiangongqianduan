@@ -15,27 +15,40 @@
       <!-- 活动名称 -->
       <view class="form-group">
         <text class="form-label">活动名称</text>
-        <input class="form-input" placeholder="请输入广告活动名称" value="{{campaignName}}" bindinput="onNameInput"
-          maxlength="100" />
+        <input
+          class="form-input"
+          placeholder="请输入广告活动名称"
+          value="{{campaignName}}"
+          bindinput="onNameInput"
+          maxlength="100"
+        />
       </view>
 
       <!-- 选择广告位 -->
       <view class="form-group">
         <text class="form-label">选择广告位</text>
         <view class="slot-list">
-          <view wx:for="{{adSlots}}" wx:key="ad_slot_id"
-            class="slot-card {{selectedSlotIndex === index ? 'selected' : ''}}" data-index="{{index}}"
-            bindtap="onSlotSelect">
+          <view
+            wx:for="{{adSlots}}"
+            wx:key="ad_slot_id"
+            class="slot-card {{selectedSlotIndex === index ? 'selected' : ''}}"
+            data-index="{{index}}"
+            bindtap="onSlotSelect"
+          >
             <view class="slot-header">
-              <text class="slot-icon">{{item.slot_type === 'popup' ? '💬' : item.slot_type === 'carousel' ? '🎠' :
+              <text class="slot-icon"
+                >{{item.slot_type === 'popup' ? '💬' : item.slot_type === 'carousel' ? '🎠' :
                 item.slot_type === 'announcement' ? '📢' : item.slot_type === 'feed' ? '📰' :
-                '📋'}}</text>
+                '📋'}}</text
+              >
               <text class="slot-name">{{item.slot_name}}</text>
             </view>
             <view class="slot-info">
-              <text class="slot-type">{{item.slot_type === 'popup' ? '弹窗广告' : item.slot_type === 'carousel' ?
+              <text class="slot-type"
+                >{{item.slot_type === 'popup' ? '弹窗广告' : item.slot_type === 'carousel' ?
                 '轮播广告' : item.slot_type === 'announcement' ? '公告广告' : item.slot_type ===
-                'feed' ? '信息流广告' : item.slot_type}}</text>
+                'feed' ? '信息流广告' : item.slot_type}}</text
+              >
               <text class="slot-price">日价 {{item.daily_price_diamond}} 💎</text>
             </view>
             <view class="slot-meta" wx:if="{{item.description}}">
@@ -52,9 +65,13 @@
       <view class="form-group">
         <text class="form-label">计费模式</text>
         <view class="billing-mode-list">
-          <view wx:for="{{billingModes}}" wx:key="value"
+          <view
+            wx:for="{{billingModes}}"
+            wx:key="value"
             class="billing-mode-card {{selectedBillingMode === item.value ? 'selected' : ''}}"
-            data-mode="{{item.value}}" bindtap="onBillingModeChange">
+            data-mode="{{item.value}}"
+            bindtap="onBillingModeChange"
+          >
             <text class="mode-label">{{item.label}}</text>
             <text class="mode-desc">{{item.desc}}</text>
           </view>
@@ -64,8 +81,13 @@
       <!-- 固定包天参数 -->
       <view class="form-group" wx:if="{{selectedBillingMode === 'fixed_daily'}}">
         <text class="form-label">投放天数</text>
-        <input class="form-input" type="number" placeholder="请输入投放天数" value="{{fixedDays}}"
-          bindinput="onFixedDaysInput" />
+        <input
+          class="form-input"
+          type="number"
+          placeholder="请输入投放天数"
+          value="{{fixedDays}}"
+          bindinput="onFixedDaysInput"
+        />
         <view class="cost-preview" wx:if="{{selectedSlot}}">
           <view class="cost-main-row" wx:if="{{pricingLoading}}">
             <text class="cost-loading">正在获取定价...</text>
@@ -75,11 +97,18 @@
               <text class="cost-label">总费用:</text>
               <text class="cost-value">{{estimatedTotalDiamond}} 💎</text>
             </view>
-            <text class="cost-detail">({{pricingPreview.effective_daily_price}} 💎/天 × {{fixedDays}}
-              天{{pricingPreview.discount < 1 ? ' × ' + pricingPreview.discount_label : '' }})</text>
-                <text class="cost-saved" wx:if="{{pricingPreview.saved > 0}}">已省 {{pricingPreview.saved}} 💎</text>
+            <text class="cost-detail"
+              >({{pricingPreview.effective_daily_price}} 💎/天 × {{fixedDays}}
+              天{{pricingPreview.discount < 1 ? ' × ' + pricingPreview.discount_label : '' }})</text
+            >
+            <text class="cost-saved" wx:if="{{pricingPreview.saved > 0}}"
+              >已省 {{pricingPreview.saved}} 💎</text
+            >
           </block>
-          <view wx:elif="{{!pricingLoading && !pricingPreview && fixedDays > 0}}" class="cost-main-row">
+          <view
+            wx:elif="{{!pricingLoading && !pricingPreview && fixedDays > 0}}"
+            class="cost-main-row"
+          >
             <text class="cost-unavailable">定价服务暂不可用，提交时后端将自动计算费用</text>
           </view>
         </view>
@@ -89,15 +118,29 @@
       <block wx:if="{{selectedBillingMode === 'bidding'}}">
         <view class="form-group">
           <text class="form-label">日出价（钻石）</text>
-          <input class="form-input" type="number" placeholder="最低 {{selectedSlot.min_bid_diamond || 50}} 钻石"
-            value="{{dailyBidDiamond}}" bindinput="onDailyBidInput" />
-          <text class="form-tip" wx:if="{{selectedSlot}}">最低日出价: {{selectedSlot.min_bid_diamond}} 钻石</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="最低 {{selectedSlot.min_bid_diamond || 50}} 钻石"
+            value="{{dailyBidDiamond}}"
+            bindinput="onDailyBidInput"
+          />
+          <text class="form-tip" wx:if="{{selectedSlot}}"
+            >最低日出价: {{selectedSlot.min_bid_diamond}} 钻石</text
+          >
         </view>
         <view class="form-group">
           <text class="form-label">总预算（钻石）</text>
-          <input class="form-input" type="number" placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
-            value="{{budgetTotalDiamond}}" bindinput="onBudgetInput" />
-          <text class="form-tip" wx:if="{{selectedSlot}}">最低总预算: {{selectedSlot.min_budget_diamond}} 钻石，预算耗尽自动停投</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
+            value="{{budgetTotalDiamond}}"
+            bindinput="onBudgetInput"
+          />
+          <text class="form-tip" wx:if="{{selectedSlot}}"
+            >最低总预算: {{selectedSlot.min_budget_diamond}} 钻石，预算耗尽自动停投</text
+          >
         </view>
       </block>
 
@@ -105,29 +148,77 @@
       <block wx:if="{{selectedBillingMode === 'cpm'}}">
         <view class="form-group">
           <text class="form-label">CPM单价（钻石/千次曝光）</text>
-          <input class="form-input" type="digit" placeholder="由广告位决定，不可修改"
-            value="{{selectedSlot.cpm_price_diamond || ''}}" disabled="{{true}}" />
+          <input
+            class="form-input"
+            type="digit"
+            placeholder="由广告位决定，不可修改"
+            value="{{selectedSlot.cpm_price_diamond || ''}}"
+            disabled="{{true}}"
+          />
           <text class="form-tip" wx:if="{{selectedSlot}}">CPM单价由广告位自身定价决定</text>
         </view>
         <view class="form-group">
           <text class="form-label">总预算（钻石）</text>
-          <input class="form-input" type="number" placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
-            value="{{budgetTotalDiamond}}" bindinput="onBudgetInput" />
-          <text class="form-tip" wx:if="{{selectedSlot}}">预算耗尽自动停投，按实际曝光千次扣费</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
+            value="{{budgetTotalDiamond}}"
+            bindinput="onBudgetInput"
+          />
+          <text class="form-tip" wx:if="{{selectedSlot}}"
+            >预算耗尽自动停投，按实际曝光千次扣费</text
+          >
         </view>
       </block>
+
+      <!-- 广告素材图片 -->
+      <view class="form-group">
+        <text class="form-label">广告素材图片（可选）</text>
+        <text class="form-sub-label">支持 jpg/png/gif/webp，不超过2MB</text>
+        <view class="image-upload-area">
+          <block wx:if="{{imagePreviewUrl}}">
+            <view class="image-preview-wrap">
+              <image class="image-preview" src="{{imagePreviewUrl}}" mode="aspectFill" />
+              <view class="image-upload-mask" wx:if="{{imageUploading}}">
+                <text class="upload-progress-text">上传中...</text>
+              </view>
+              <view class="image-remove-btn" wx:if="{{!imageUploading}}" bindtap="onRemoveImage">
+                <text>×</text>
+              </view>
+              <view class="image-upload-success" wx:if="{{uploadedMediaId > 0 && !imageUploading}}">
+                <text>✓ 已上传</text>
+              </view>
+            </view>
+          </block>
+          <view class="image-upload-btn" wx:else bindtap="onChooseImage">
+            <text class="upload-icon">+</text>
+            <text class="upload-text">选择图片</text>
+          </view>
+        </view>
+      </view>
 
       <!-- 投放日期 -->
       <view class="form-group">
         <text class="form-label">投放日期（可选）</text>
         <view class="date-row">
-          <picker mode="date" start="{{minDate}}" value="{{startDate}}" bindchange="onStartDateChange">
+          <picker
+            mode="date"
+            start="{{minDate}}"
+            value="{{startDate}}"
+            bindchange="onStartDateChange"
+          >
             <view class="date-picker">
               <text>{{startDate || '开始日期'}}</text>
             </view>
           </picker>
           <text class="date-separator">至</text>
-          <picker mode="date" start="{{startDate || minDate}}" value="{{endDate}}" bindchange="onEndDateChange">
+          <picker
+            mode="date"
+            start="{{startDate || minDate}}"
+            value="{{endDate}}"
+            bindchange="onEndDateChange"
+          >
             <view class="date-picker">
               <text>{{endDate || '结束日期'}}</text>
             </view>

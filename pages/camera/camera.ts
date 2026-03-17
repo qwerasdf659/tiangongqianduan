@@ -7,7 +7,15 @@
  */
 
 // 🔴 统一工具函数导入
-const { Wechat, API, Logger, Utils, ImageHelper, ThemeCache, GlobalTheme } = require('../../utils/index')
+const {
+  Wechat,
+  API,
+  Logger,
+  Utils,
+  ImageHelper,
+  ThemeCache,
+  GlobalTheme
+} = require('../../utils/index')
 const log = Logger.createLogger('camera')
 const { showToast } = Wechat
 const { checkAuth } = Utils

@@ -67,8 +67,8 @@ Page({
 
     /**
      * 轮播图数组
-     * 数据源: product.images → 每项含 image_resource_id / imageUrl / thumbnails
-     * 无 images 时降级到 primary_image 单图
+     * 数据源: product.images → 每项含 media_id / public_url / thumbnails
+     * 无 images 时降级到 primary_media 单图
      */
     swiperImages: [] as any[],
     swiperCurrent: 0,
@@ -123,7 +123,20 @@ Page({
     /** 兑换确认弹窗 */
     showConfirm: false,
     exchangeQuantity: 1,
-    exchanging: false
+    exchanging: false,
+
+    /**
+     * SKU 规格选择（全量SKU模式，v4.0 Phase 0）
+     * 所有商品统一走 exchange_item_skus 表
+     * - 单品（1个SKU，spec_values={}）: 自动选中，不显示选择器
+     * - 多规格: 显示规格选择器，用户点选后确定 sku_id
+     */
+    skuList: [] as any[],
+    selectedSkuId: 0,
+    selectedSkuInfo: null as any,
+    hasMultiSku: false,
+    specNames: [] as string[],
+    specMatrix: {} as Record<string, string[]>
   },
 
   onLoad(options: Record<string, string | undefined>) {
@@ -222,11 +235,11 @@ Page({
       /**
        * 分类显示名:
        *   优先 category_def.display_name（后端联查）
-       *   降级 category 原始 code
+       *   降级 category_def.category_code
        */
       const categoryDisplayName: string =
         (productData.category_def && productData.category_def.display_name) ||
-        productData.category ||
+        (productData.category_def && productData.category_def.category_code) ||
         ''
 
       /** 空间显示名（lucky / premium / both） */
@@ -234,46 +247,52 @@ Page({
 
       /**
        * 轮播图处理:
-       *   images 数组有值 → 多图轮播
-       *   无 images → 降级到 primary_image 单图
+       *   images 数组有值 → 多图轮播（后端通过 media_attachments 返回）
+       *   无 images → 降级到 primary_media 单图
        *   都无 → emoji 占位
        */
       const swiperImages: any[] = []
       if (Array.isArray(productData.images) && productData.images.length > 0) {
         productData.images.forEach((img: any) => {
           swiperImages.push({
-            image_resource_id: img.image_resource_id,
-            url: img.imageUrl || (img.thumbnails && img.thumbnails.large) || '',
-            thumbnailUrl: (img.thumbnails && img.thumbnails.medium) || img.imageUrl || ''
+            media_id: img.media_id,
+            url: img.public_url || (img.thumbnails && img.thumbnails.large) || '',
+            thumbnailUrl: (img.thumbnails && img.thumbnails.medium) || img.public_url || ''
           })
         })
-      } else if (productData.primary_image) {
-        const primaryImg = productData.primary_image
+      } else if (productData.primary_media) {
+        const primaryMedia = productData.primary_media
         swiperImages.push({
-          image_resource_id: primaryImg.image_resource_id,
-          url: primaryImg.url || primaryImg.thumbnail_url || '',
-          thumbnailUrl: primaryImg.thumbnail_url || primaryImg.url || ''
+          media_id: primaryMedia.media_id,
+          url:
+            primaryMedia.public_url ||
+            (primaryMedia.thumbnails && primaryMedia.thumbnails.large) ||
+            '',
+          thumbnailUrl:
+            (primaryMedia.thumbnails && primaryMedia.thumbnails.medium) ||
+            primaryMedia.public_url ||
+            ''
         })
       }
 
       /** 主图URL（确认弹窗和分享封面使用） */
       const mainImageUrl: string = swiperImages.length > 0 ? swiperImages[0].url : ''
 
-      /** ⑤ 详情长图（后端 detail_images，category='detail'，含可选 caption 图片说明） */
+      /** ⑤ 详情长图（后端 detail_images，role='detail'，含可选 caption 图片说明） */
       const detailImages: any[] = Array.isArray(productData.detail_images)
         ? productData.detail_images.map((img: any) => ({
-            image_resource_id: img.image_resource_id,
-            url: img.imageUrl || (img.thumbnails && img.thumbnails.large) || '',
-            caption: img.caption || ''
-          }))
+          media_id: img.media_id,
+          url: img.public_url || (img.thumbnails && img.thumbnails.large) || '',
+          caption: img.caption || ''
+        }))
         : []
 
-      /** ⑥ 展示图（后端 showcase_images，category='showcase'） */
+      /** ⑥ 展示图（后端 showcase_images，role='showcase'） */
       const showcaseImages: any[] = Array.isArray(productData.showcase_images)
         ? productData.showcase_images.map((img: any) => ({
-            image_resource_id: img.image_resource_id,
-            url: img.imageUrl || (img.thumbnails && img.thumbnails.large) || ''
-          }))
+          media_id: img.media_id,
+          url: img.public_url || (img.thumbnails && img.thumbnails.large) || ''
+        }))
         : []
 
       /** ⑦ 使用说明（后端 usage_rules 或前端通用规则兜底） */
@@ -315,9 +334,7 @@ Page({
       }
 
       /** Phase 4: 营销数据提取（后端下发时渲染，不下发时自动隐藏） */
-      const productCoupons: any[] = Array.isArray(productData.coupons)
-        ? productData.coupons
-        : []
+      const productCoupons: any[] = Array.isArray(productData.coupons) ? productData.coupons : []
       const productPromotions: any[] = Array.isArray(productData.promotions)
         ? productData.promotions
         : []
@@ -327,10 +344,8 @@ Page({
        * 单品级配置覆盖（优先级: 商品字段 > 页面配置 > 默认值）
        * 后端为不同商品设置不同展示模式时，前端自动响应
        */
-      const itemAttrMode: string =
-        productData.attr_display_mode || this.data.attrDisplayMode
-      const itemTagStyle: string =
-        productData.tag_style_type || this.data.tagStyleType
+      const itemAttrMode: string = productData.attr_display_mode || this.data.attrDisplayMode
+      const itemTagStyle: string = productData.tag_style_type || this.data.tagStyleType
 
       /** 附加前端展示计算字段（下划线前缀，区分后端原始字段） */
       const enrichedProduct = Object.assign({}, productData, {
@@ -365,6 +380,51 @@ Page({
       const insufficient: boolean = assetBalance < (productData.cost_amount || 0)
       const showSoldCount: boolean = (productData.sold_count || 0) >= SOLD_COUNT_DISPLAY_THRESHOLD
 
+      /**
+       * SKU 规格数据处理（全量SKU模式）
+       * 后端 GET /backpack/exchange/items/:id 返回 skus 数组:
+       *   [{ sku_id, spec_values, cost_amount, stock, status }]
+       * 单品商品: skus.length === 1 且 spec_values 为 {}
+       * 多规格商品: skus.length > 1，每个 SKU 有独立价格和库存
+       */
+      const rawSkus: any[] = Array.isArray(productData.skus) ? productData.skus : []
+      const activeSkus = rawSkus
+        .filter((sku: any) => sku.status === 'active')
+        .map((sku: any) => {
+          const specLabel =
+            sku.spec_values && Object.keys(sku.spec_values).length > 0
+              ? Object.values(sku.spec_values).join(' / ')
+              : '默认'
+          return Object.assign({}, sku, { _specLabel: specLabel })
+        })
+      const isEmptySpec = (sv: any) => !sv || Object.keys(sv).length === 0
+      const hasMultiSku =
+        activeSkus.length > 1 ||
+        (activeSkus.length === 1 && !isEmptySpec(activeSkus[0].spec_values))
+
+      let selectedSkuId = 0
+      let selectedSkuInfo: any = null
+      let specNames: string[] = []
+      let specMatrix: Record<string, string[]> = {}
+
+      if (activeSkus.length === 1 && isEmptySpec(activeSkus[0].spec_values)) {
+        selectedSkuId = activeSkus[0].sku_id
+        selectedSkuInfo = activeSkus[0]
+      }
+
+      if (hasMultiSku && Array.isArray(productData.spec_names)) {
+        specNames = productData.spec_names
+        specNames.forEach((specName: string) => {
+          const values = new Set<string>()
+          activeSkus.forEach((sku: any) => {
+            if (sku.spec_values && sku.spec_values[specName]) {
+              values.add(sku.spec_values[specName])
+            }
+          })
+          specMatrix[specName] = Array.from(values)
+        })
+      }
+
       this.setData({
         product: enrichedProduct,
         swiperImages,
@@ -383,14 +443,22 @@ Page({
         attrDisplayMode: itemAttrMode,
         tagStyleType: itemTagStyle,
         showSoldCount,
+        skuList: activeSkus,
+        selectedSkuId,
+        selectedSkuInfo,
+        hasMultiSku,
+        specNames,
+        specMatrix,
         loading: false
       })
 
       wx.setNavigationBarTitle({ title: productData.item_name || '商品详情' })
       edLog.info('商品详情加载成功:', productData.item_name)
 
-      /** 异步加载相关推荐（不阻塞主渲染） */
-      this._loadRelatedProducts(productData.category, itemId)
+      /** 异步加载相关推荐（不阻塞主渲染，使用 category_code 查询） */
+      const categoryCode =
+        (productData.category_def && productData.category_def.category_code) || ''
+      this._loadRelatedProducts(categoryCode, itemId)
     } catch (error: any) {
       edLog.error('商品详情加载失败:', error)
       this.setData({
@@ -404,8 +472,8 @@ Page({
   /**
    * ⑧ 加载相关推荐（异步，不阻塞主渲染）
    *
-   * API: GET /api/v4/backpack/exchange/items?category=xxx&exclude_id=xxx&page_size=4&status=active
-   * 注意: category 传字符串 code（如 'collectible'），不是数字ID
+   * API: GET /api/v4/backpack/exchange/items?category_code=xxx&exclude_id=xxx&page_size=4&status=active
+   * 注意: category_code 传字符串 code（如 'collectible'），后端兼容 category_code 和 category_def_id 两种参数
    */
   async _loadRelatedProducts(category: string | null, excludeId: number) {
     if (!category) {
@@ -415,7 +483,7 @@ Page({
 
     try {
       const response = await DetailPageAPI.getExchangeProducts({
-        category,
+        category_code: category,
         exclude_id: excludeId,
         page_size: 4,
         status: 'active'
@@ -426,8 +494,9 @@ Page({
         if (items.length > 0) {
           const enrichedItems = items.map((item: any) => {
             const imgSrc =
-              (item.primary_image &&
-                (item.primary_image.url || item.primary_image.thumbnail_url)) ||
+              (item.primary_media &&
+                (item.primary_media.public_url ||
+                  (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
               ''
             return Object.assign({}, item, {
               _priceLabel: formatAssetLabel(item.cost_asset_code || 'POINTS'),
@@ -526,22 +595,60 @@ Page({
   },
 
   /**
-   * 确认兑换
+   * 选择SKU规格（多规格商品用户点选）
+   *
+   * 根据用户选择的规格值匹配对应的 SKU 记录
+   * 匹配成功后更新 selectedSkuId、selectedSkuInfo 和显示价格
+   */
+  onSelectSku(e: any) {
+    const skuId = parseInt(e.currentTarget.dataset.skuId, 10)
+    if (!skuId) {
+      return
+    }
+    const matchedSku = this.data.skuList.find((sku: any) => sku.sku_id === skuId)
+    if (matchedSku) {
+      const skuCost = matchedSku.cost_amount || this.data.product.cost_amount
+      const insufficient = this.data.currentBalance < skuCost
+      this.setData({
+        selectedSkuId: skuId,
+        selectedSkuInfo: matchedSku,
+        balanceInsufficient: insufficient
+      })
+    }
+  },
+
+  /**
+   * 确认兑换（全量SKU模式）
    *
    * POST /api/v4/backpack/exchange
-   * body: { exchange_item_id, quantity }
+   * body: { exchange_item_id, quantity, sku_id }
    * header: Idempotency-Key（API层 exchangeProduct 自动生成）
    */
   async onConfirmExchange() {
-    const { product, exchangeQuantity, exchanging, currentBalance } = this.data
+    const {
+      product,
+      exchangeQuantity,
+      exchanging,
+      currentBalance,
+      selectedSkuId,
+      selectedSkuInfo
+    } = this.data
 
     if (!product || exchanging) {
       return
     }
 
-    const totalCost = product.cost_amount * exchangeQuantity
+    /** SKU价格优先于SPU价格（多规格商品每个SKU独立价格） */
+    const unitCost = (selectedSkuInfo && selectedSkuInfo.cost_amount) || product.cost_amount
+    const totalCost = unitCost * exchangeQuantity
     if (currentBalance < totalCost) {
       wx.showToast({ title: '余额不足', icon: 'none' })
+      return
+    }
+
+    /** 多规格商品必须先选择规格 */
+    if (this.data.hasMultiSku && !selectedSkuId) {
+      wx.showToast({ title: '请先选择商品规格', icon: 'none' })
       return
     }
 
@@ -550,7 +657,8 @@ Page({
     try {
       const response = await DetailPageAPI.exchangeProduct(
         product.exchange_item_id,
-        exchangeQuantity
+        exchangeQuantity,
+        selectedSkuId || undefined
       )
 
       if (response && response.success) {

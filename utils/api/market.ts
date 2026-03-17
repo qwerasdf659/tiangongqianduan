@@ -68,7 +68,7 @@ const { buildQueryString } = require('../util')
  * @param params.rarity_code - 稀有度筛选（仅 item 有效）
  * @param params.min_price - 最低价格
  * @param params.max_price - 最高价格
- * @param params.sort - 排序方式: 'newest' / 'price_asc' / 'price_desc'
+ * @param params.sort - 排序方式: 'recommended'(综合推荐,默认) / 'newest' / 'price_asc' / 'price_desc' / 'hot'(按成交量)
  */
 async function getMarketProducts(
   params: {

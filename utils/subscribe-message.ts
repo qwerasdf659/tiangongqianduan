@@ -35,9 +35,15 @@ const log = loggerModule.createLogger('subscribe-msg')
  *   - 审核结果通知: 包含「审核结果」「审核意见」「业务类型」「处理时间」字段
  */
 const SUBSCRIBE_TEMPLATE_IDS: Record<string, string> = {
-  /** 审核任务提醒（审核人收到，有新待办时推送） — 模板ID待配置 */
+  /**
+   * 审核任务提醒（审核人收到，有新待办时推送）
+   * ⚠️ 【待填写】请在微信公众平台配置模板后，将模板ID填入此处
+   */
   approval_task_reminder: '',
-  /** 审核结果通知（提交者收到，审核完成/拒绝时推送） — 模板ID待配置 */
+  /**
+   * 审核结果通知（提交者收到，审核完成/拒绝时推送）
+   * ⚠️ 【待填写】请在微信公众平台配置模板后，将模板ID填入此处
+   */
   approval_result_notice: ''
 }
 
@@ -51,19 +57,17 @@ const SUBSCRIBE_TEMPLATE_IDS: Record<string, string> = {
  * @param templateKeys - 要订阅的模板 key 数组（对应 SUBSCRIBE_TEMPLATE_IDS 的 key）
  * @returns 授权结果 { [templateId]: 'accept' | 'reject' | 'ban' } 或 null（失败）
  */
-async function requestSubscribe(
-  templateKeys: string[]
-): Promise<Record<string, string> | null> {
+async function requestSubscribe(templateKeys: string[]): Promise<Record<string, string> | null> {
   const tmplIds = templateKeys
-    .map((key) => SUBSCRIBE_TEMPLATE_IDS[key])
-    .filter((templateId) => !!templateId)
+    .map(key => SUBSCRIBE_TEMPLATE_IDS[key])
+    .filter(templateId => !!templateId)
 
   if (tmplIds.length === 0) {
     log.warn('订阅消息模板ID未配置，跳过订阅引导')
     return null
   }
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     wx.requestSubscribeMessage({
       tmplIds,
       success: (res: any) => {

@@ -23,7 +23,13 @@
 
 const { API, Wechat, Logger, Utils, ImageHelper } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market-behavior')
-const { getMarketProducts, purchaseMarketProduct, getMyListingStatus, confirmDelivery, getMarketFacets } = API
+const {
+  getMarketProducts,
+  purchaseMarketProduct,
+  getMyListingStatus,
+  confirmDelivery,
+  getMarketFacets
+} = API
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = require('../../utils/product-display')
@@ -31,13 +37,14 @@ const { userStore: marketUserStore } = require('../../../store/user')
 
 /**
  * 前端排序值 → 后端 sort 参数映射
- * 后端 GET /api/v4/market/listings 支持: newest / price_asc / price_desc
+ * 后端 GET /api/v4/market/listings 支持: recommended / newest / price_asc / price_desc / hot
  */
 const SORT_VALUE_MAP: Record<string, string> = {
-  default: 'newest',
+  default: 'recommended',
   price_amount_asc: 'price_asc',
   price_amount_desc: 'price_desc',
-  created_at_desc: 'newest'
+  created_at_desc: 'newest',
+  recommended: 'recommended'
 }
 
 module.exports = Behavior({
@@ -168,7 +175,7 @@ module.exports = Behavior({
           /**
            * 适配后端 QueryService 嵌套响应，使用 ImageHelper 统一图片降级链
            * fungible_asset 类型 → 本地材料图标（按 asset_code 映射）
-           * item 类型 → 后端 image_url → 分类图标 → 占位图
+           * item 类型 → 后端 primary_media.public_url → 分类图标 → 占位图
            */
           const processedProducts = items.map((item: any, idx: number) => {
             if (!item.listing_id) {

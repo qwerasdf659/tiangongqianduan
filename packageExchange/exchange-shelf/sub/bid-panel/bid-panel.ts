@@ -106,8 +106,10 @@ Component({
               exchange_item_id: item.exchange_item_id,
               item_name: item.item_name || '',
               description: item.description || '',
-              image: item.image_url || bidImageHelper.DEFAULT_PRODUCT_IMAGE,
-              category: item.category || '',
+              image:
+                (item.primary_media && item.primary_media.public_url) ||
+                bidImageHelper.DEFAULT_PRODUCT_IMAGE,
+              category_def_id: item.category_def_id || null,
               start_price: item.start_price || 0,
               current_price: item.current_price || 0,
               min_bid_increment: item.min_bid_increment || 1,
@@ -171,8 +173,11 @@ Component({
               bid_product_id: detail.bid_product_id,
               item_name: detail.item_name || '',
               description: detail.description || '',
-              image: detail.image_url || product.image || bidImageHelper.DEFAULT_PRODUCT_IMAGE,
-              category: detail.category || '',
+              image:
+                (detail.primary_media && detail.primary_media.public_url) ||
+                product.image ||
+                bidImageHelper.DEFAULT_PRODUCT_IMAGE,
+              category_def_id: detail.category_def_id || null,
               start_price: detail.start_price || 0,
               current_price: detail.current_price || 0,
               min_bid_increment: detail.min_bid_increment || 1,

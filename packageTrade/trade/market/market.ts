@@ -20,7 +20,14 @@
  * @since 2026-02-22
  */
 
-const { API, Logger, Waterfall, Wechat, ImageHelper: imageHelper, Utils: marketUtils } = require('../../../utils/index')
+const {
+  API,
+  Logger,
+  Waterfall,
+  Wechat,
+  ImageHelper: imageHelper,
+  Utils: marketUtils
+} = require('../../../utils/index')
 const marketLog = Logger.createLogger('market')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -64,7 +71,7 @@ Page({
 
     /** 服务端筛选参数（对齐 GET /api/v4/market/listings 全部查询参数） */
     filterListingKind: '' as string,
-    filterSort: 'newest' as string,
+    filterSort: 'recommended' as string,
     filterMinPrice: '' as string,
     filterMaxPrice: '' as string,
     filterCategoryCode: '' as string,
@@ -89,8 +96,9 @@ Page({
       { key: 'fungible_asset', label: '资产' }
     ],
 
-    /** 排序选项（前端UI常量，对齐文档 sort 参数） */
+    /** 排序选项（前端UI常量，对齐后端 sort 参数 + v4.0 新增 recommended/hot） */
     sortOptions: [
+      { key: 'recommended', label: '推荐' },
       { key: 'newest', label: '最新' },
       { key: 'price_asc', label: '价格↑' },
       { key: 'price_desc', label: '价格↓' }

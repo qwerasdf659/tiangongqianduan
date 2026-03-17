@@ -10,7 +10,7 @@
 const { apiClient } = require('./client')
 const { buildQueryString } = require('../util')
 
-/** 获取抽奖活动列表（通用查询问- GET /api/v4/lottery/campaigns */
+/** 获取抽奖活动列表（通用查询）- GET /api/v4/lottery/campaigns */
 async function getLotteryCampaigns(status: string = 'active') {
   const qs = buildQueryString({ status })
   return apiClient.request(`/lottery/campaigns?${qs}`, { method: 'GET', needAuth: true })
@@ -58,7 +58,7 @@ async function performLottery(campaign_code: string, draw_count: number = 1) {
   })
 }
 
-/** 获取当前用户抽奖历史（JWT解析身份?- GET /api/v4/lottery/history */
+/** 获取当前用户抽奖历史（JWT解析身份）- GET /api/v4/lottery/history */
 async function getLotteryHistory(page: number = 1, limit: number = 20) {
   const qs = buildQueryString({ page, limit })
   return apiClient.request(`/lottery/history?${qs}`, { method: 'GET', needAuth: true })

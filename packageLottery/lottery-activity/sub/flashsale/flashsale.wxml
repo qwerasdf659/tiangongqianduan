@@ -62,9 +62,9 @@
       <view class="spot-card">
         <view class="spot-holo" />
         <image
-          wx:if="{{spotlightPrize.image_url}}"
+          wx:if="{{spotlightPrize.prize_image_url}}"
           class="spot-img"
-          src="{{spotlightPrize.image_url}}"
+          src="{{spotlightPrize.prize_image_url}}"
           mode="aspectFit"
         />
         <text wx:else class="spot-emoji">{{spotlightPrize.prize_icon || '🎁'}}</text>
@@ -87,9 +87,9 @@
         >
           <view class="ti-border" />
           <image
-            wx:if="{{item.image_url}}"
+            wx:if="{{item.prize_image_url}}"
             class="ti-img"
-            src="{{item.image_url}}"
+            src="{{item.prize_image_url}}"
             mode="aspectFit"
           />
           <text wx:else class="ti-emoji">{{item.prize_icon || '🎁'}}</text>

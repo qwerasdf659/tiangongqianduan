@@ -16,6 +16,80 @@
 const { apiClient } = require('./client')
 const { buildQueryString } = require('../util')
 
+// ==================== 广告素材图片上传 ====================
+
+/**
+ * 上传广告素材图片 - POST /api/v4/user/images/upload
+ *
+ * 使用 wx.uploadFile 直传文件到后端（不经过 APIClient.request，因 wx.request 不支持文件上传）
+ * 后端使用 multer + MediaService 处理上传，限制: 2MB、jpg/png/gif/webp
+ *
+ * 完整流程:
+ *   1. 调用本方法上传图片 → 获取 media_id + object_key
+ *   2. 创建广告活动时传 primary_media_id: media_id
+ *   3. 后端通过 media_attachments 自动关联 AdCreative 与 media_files
+ *
+ * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回的 tempFilePath）
+ * @returns { success, data: MediaUploadResponse }
+ */
+async function uploadAdImage(filePath: string): Promise<API.ApiResponse<API.MediaUploadResponse>> {
+  if (!filePath) {
+    throw new Error('图片文件路径不能为空')
+  }
+
+  const { getApiConfig: _getApiConfig } = require('../../config/env')
+  const { getAccessToken: _getToken } = require('../auth-helper')
+  const config = _getApiConfig()
+  const token = _getToken()
+
+  if (!token) {
+    throw new Error('未登录，请先登录后再上传图片')
+  }
+
+  return new Promise((resolve, reject) => {
+    wx.uploadFile({
+      url: `${config.fullUrl}/user/images/upload`,
+      filePath,
+      name: 'image',
+      header: {
+        Authorization: `Bearer ${token}`
+      },
+      success: (res: WechatMiniprogram.UploadFileSuccessCallbackResult) => {
+        try {
+          const parsedData = JSON.parse(res.data)
+
+          if (res.statusCode === 503 && parsedData.code === 'SYSTEM_MAINTENANCE') {
+            apiClient._showMaintenanceModal(parsedData.message)
+            reject(new Error(parsedData.message || '系统维护中'))
+            return
+          }
+
+          if (res.statusCode === 413) {
+            reject(new Error('图片文件过大，请选择2MB以内的图片'))
+            return
+          }
+
+          if (res.statusCode === 401) {
+            reject(new Error('登录已失效，请重新登录'))
+            return
+          }
+
+          if (parsedData.success) {
+            resolve(parsedData)
+          } else {
+            reject(new Error(parsedData.message || '图片上传失败'))
+          }
+        } catch (_parseError) {
+          reject(new Error('图片上传响应解析失败'))
+        }
+      },
+      fail: (err: WechatMiniprogram.GeneralCallbackResult) => {
+        reject(new Error(err.errMsg || '图片上传网络错误'))
+      }
+    })
+  })
+}
+
 // ==================== 广告主端（P2: 用户自助操作） ====================
 
 /**
@@ -218,8 +292,8 @@ async function reportAdClick(data: {
  * 后端仅返回 is_active=true 的广告位，含日价、最低竞价、最大展示数等配置
  * 认证方式: authenticateToken（JWT Bearer Token，普通用户可调用）
  *
- * @param params.slot_type - 可选筛选，仅允许 popup / carousel（传无效值返回 HTTP 400）
- * @param params.position - 可选筛选，如 home / lottery / profile
+ * @param params.slot_type - 可选筛选: popup / carousel / announcement / feed（传无效值返回 HTTP 400）
+ * @param params.position - 可选筛选: home / lottery / profile / market_list / exchange_list
  *
  * 响应格式: { success, data: { slots: AdSlot[], total: number } }
  */
@@ -271,6 +345,7 @@ async function getAdPricingPreview(params: {
 }
 
 module.exports = {
+  uploadAdImage,
   getMyAdCampaigns,
   createAdCampaign,
   getAdCampaignDetail,

@@ -1385,13 +1385,23 @@ Page({
     try {
       const app = getApp()
 
-      const result = await API.getAdDelivery({ slot_type: 'popup', position: 'home' })
-      if (!result?.success || !result.data) {
-        return
-      }
+      /**
+       * 同时加载 home + lottery 两个 position 的弹窗广告
+       * home_popup (position='home') — 全站首页弹窗
+       * lottery_popup (position='lottery') — 抽奖页专属弹窗
+       */
+      const [homeResult, lotteryResult] = await Promise.all([
+        API.getAdDelivery({ slot_type: 'popup', position: 'home' }),
+        API.getAdDelivery({ slot_type: 'popup', position: 'lottery' })
+      ])
 
-      const banners: API.AdDeliveryItem[] = result.data.items || []
-      if (!Array.isArray(banners) || banners.length === 0) {
+      const homeBanners: API.AdDeliveryItem[] =
+        homeResult?.success && homeResult.data ? homeResult.data.items || [] : []
+      const lotteryBanners: API.AdDeliveryItem[] =
+        lotteryResult?.success && lotteryResult.data ? lotteryResult.data.items || [] : []
+
+      const banners: API.AdDeliveryItem[] = [...homeBanners, ...lotteryBanners]
+      if (banners.length === 0) {
         return
       }
 

@@ -248,7 +248,7 @@ Page({
     const index = e.currentTarget.dataset.index
     if (index !== undefined) {
       this.setData({
-        [`campaign.creatives[${index}].image_url`]: ImageHelper.DEFAULT_PRODUCT_IMAGE
+        [`campaign.creatives[${index}].primary_media.public_url`]: ImageHelper.DEFAULT_PRODUCT_IMAGE
       })
     }
   }

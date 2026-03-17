@@ -75,6 +75,16 @@ Page({
     /** 展示优先级 */
     priority: 50,
 
+    /* ===== 广告素材图片（上传到 POST /api/v4/user/images/upload） ===== */
+    /** 本地预览路径（wx.chooseMedia 返回的 tempFilePath，仅用于前端展示） */
+    imagePreviewUrl: '',
+    /** 上传后返回的 media_id（创建活动时传 primary_media_id） */
+    uploadedMediaId: 0,
+    /** 上传后返回的 object_key（备用引用，创建活动时通过 primary_media_id 关联） */
+    uploadedObjectKey: '',
+    /** 图片上传中状态 */
+    imageUploading: false,
+
     /* ===== 页面状态 ===== */
     loading: true,
     submitting: false,
@@ -258,6 +268,84 @@ Page({
     }
   },
 
+  /**
+   * 选择并上传广告素材图片
+   *
+   * 数据流:
+   *   wx.chooseMedia → 本地预览 → POST /api/v4/user/images/upload
+   *   → 成功: 保存 media_id + object_key（创建活动时提交给后端）
+   *   → 失败: 清空上传状态，提示用户重新上传
+   */
+  async onChooseImage() {
+    try {
+      const mediaResult: WechatMiniprogram.ChooseMediaSuccessCallbackResult = await new Promise(
+        (resolve, reject) => {
+          wx.chooseMedia({
+            count: 1,
+            mediaType: ['image'],
+            sizeType: ['compressed'],
+            sourceType: ['album', 'camera'],
+            success: resolve,
+            fail: reject
+          })
+        }
+      )
+
+      const tempFile = mediaResult.tempFiles[0]
+      if (!tempFile) {
+        return
+      }
+
+      const maxSize = 2 * 1024 * 1024
+      if (tempFile.size > maxSize) {
+        Wechat.showToast('图片不能超过2MB，请重新选择', 'none', 2000)
+        return
+      }
+
+      this.setData({
+        imagePreviewUrl: tempFile.tempFilePath,
+        imageUploading: true
+      })
+
+      const uploadResult = await API.uploadAdImage(tempFile.tempFilePath)
+
+      if (uploadResult?.success && uploadResult.data) {
+        this.setData({
+          uploadedMediaId: uploadResult.data.media_id,
+          uploadedObjectKey: uploadResult.data.object_key,
+          imageUploading: false
+        })
+        log.info('[ad-create] 素材图片上传成功, media_id:', uploadResult.data.media_id)
+      } else {
+        throw new Error(uploadResult?.message || '图片上传失败')
+      }
+    } catch (error: any) {
+      log.error('[ad-create] 图片上传失败:', error)
+      this.setData({
+        imagePreviewUrl: '',
+        uploadedMediaId: 0,
+        uploadedObjectKey: '',
+        imageUploading: false
+      })
+
+      if (error.errMsg && error.errMsg.includes('cancel')) {
+        return
+      }
+      Wechat.showToast(error.message || '图片上传失败', 'none', 2000)
+    }
+  },
+
+  /** 删除已上传的素材图片 */
+  onRemoveImage() {
+    this.setData({
+      imagePreviewUrl: '',
+      uploadedMediaId: 0,
+      uploadedObjectKey: '',
+      imageUploading: false
+    })
+    log.info('[ad-create] 素材图片已移除')
+  },
+
   /** 表单校验（按 billing_mode 分支验证对应参数） */
   _validateForm(): string | null {
     if (!this.data.campaignName) {
@@ -288,7 +376,7 @@ Page({
     return null
   },
 
-  /** 构建提交数据（按 billing_mode 分支组装不同参数） */
+  /** 构建提交数据（按 billing_mode 分支组装不同参数 + 图片素材字段） */
   _buildCampaignData(): API.CreateAdCampaignParams {
     const formData: API.CreateAdCampaignParams = {
       campaign_name: this.data.campaignName,
@@ -311,6 +399,12 @@ Page({
     }
     if (this.data.endDate) {
       formData.end_date = this.data.endDate
+    }
+
+    if (this.data.uploadedMediaId > 0) {
+      formData.primary_media_id = this.data.uploadedMediaId
+      formData.content_type = 'image'
+      formData.display_mode = 'default'
     }
 
     return formData
@@ -452,6 +546,15 @@ Page({
         }
       }
 
+      const creativeImageUrl =
+        campaign.creatives && campaign.creatives.length > 0 && campaign.creatives[0].primary_media
+          ? campaign.creatives[0].primary_media.public_url
+          : ''
+      const creativeMediaId =
+        campaign.creatives && campaign.creatives.length > 0
+          ? campaign.creatives[0].primary_media_id || 0
+          : 0
+
       this.setData({
         campaignName: campaign.campaign_name || '',
         selectedBillingMode: campaign.billing_mode || 'fixed_daily',
@@ -462,7 +565,9 @@ Page({
         budgetTotalDiamond: campaign.budget_total_diamond || 500,
         startDate: campaign.start_date || '',
         endDate: campaign.end_date || '',
-        priority: campaign.priority || 50
+        priority: campaign.priority || 50,
+        imagePreviewUrl: creativeImageUrl,
+        uploadedMediaId: creativeMediaId
       })
 
       this._recalculateEstimate()
