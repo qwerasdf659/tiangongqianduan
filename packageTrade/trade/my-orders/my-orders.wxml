@@ -86,6 +86,12 @@
             {{cancellingOrderId === item.trade_order_id ? '取消中...' : '取消交易'}}
           </button>
         </view>
+        <!--已完成订单的申诉入口（文档 5.4）-->
+        <view class="order-actions" wx:if="{{item.status === 'completed'}}">
+          <button class="action-btn" size="mini" data-order-id="{{item.trade_order_id}}" bindtap="onOpenDispute">
+            发起申诉
+          </button>
+        </view>
 
         <!--订单编号-->
         <view class="order-footer">

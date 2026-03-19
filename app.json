@@ -31,7 +31,8 @@
         "trade/my-orders/my-orders",
         "trade/inventory/inventory",
         "trade/my-listings/my-listings",
-        "records/trade-upload-records/trade-upload-records"
+        "records/trade-upload-records/trade-upload-records",
+        "trade/dispute/dispute"
       ]
     },
     {

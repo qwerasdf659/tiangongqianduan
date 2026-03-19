@@ -136,38 +136,61 @@
     </view>
 
     <view wx:if="{{!loading}}" class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
-      <view wx:for="{{filteredProducts}}" wx:key="listing_id"
-        class="unified-card {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
-        data-product="{{item}}" data-card-index="{{index}}" bindtap="onProductTap" bindtouchstart="onCardTouchStart">
-        <view wx:if="{{effects.ripple && item._rippleActive}}" class="ripple-layer ripple-active"
-          style="left:{{item._rippleX}}px;top:{{item._rippleY}}px"></view>
-        <view class="type-bar {{item.listing_kind === 'fungible_asset' ? 'asset' : 'item'}}"></view>
-
-        <view class="card-image-area">
-          <image wx:if="{{item.imageStatus !== 'error'}}" src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}"
-            data-index="{{index}}" binderror="onImageError" bindload="onImageLoad" />
-          <view wx:else class="image-fallback {{item.listing_kind === 'fungible_asset' ? 'asset-type' : 'item-type'}}">
-            <text class="fallback-icon">{{item.listing_kind === 'fungible_asset' ? '🪙' : '🎁'}}</text>
-            <text class="fallback-name">{{item.item_name}}</text>
+      <block wx:for="{{filteredProducts}}" wx:key="listing_id">
+        <!-- Feed 广告卡片（穿插在商品列表中） -->
+        <view wx:if="{{item._isAdItem}}" class="unified-card feed-ad-card animate-in {{viewMode === 'list' ? 'list-mode' : ''}}"
+          data-ad="{{item._adData}}" bindtap="onExchangeFeedAdTap">
+          <view class="type-bar ad-type"></view>
+          <view class="card-image-area">
+            <image wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}" />
+            <view wx:else class="image-fallback ad-fallback">
+              <text class="fallback-icon">📢</text>
+              <text class="fallback-name">{{item.item_name}}</text>
+            </view>
+            <view class="type-capsule ad-capsule">广告</view>
           </view>
-          <view wx:if="{{item._rarityClass}}" class="badge-tag {{item._rarityClass}}">{{item.offer_item_rarity}}</view>
-          <view class="type-capsule {{item.listing_kind === 'fungible_asset' ? 'asset-capsule' : 'item-capsule'}}">
-            {{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</view>
+          <view class="card-body">
+            <text class="product-name">{{item.item_name}}</text>
+            <view class="ad-action-row" wx:if="{{item._adData.link_url}}">
+              <text class="ad-action-text">查看详情 ›</text>
+            </view>
+          </view>
         </view>
 
-        <view class="card-body">
-          <text class="product-name">{{item.item_name}}</text>
-          <text class="product-desc">{{item.description}}</text>
-          <view class="price-row">
-            <text class="price-unit">{{item._priceLabel || '积分'}}</text>
-            <text class="price-current">{{item.price_amount}}</text>
+        <!-- 普通商品卡片 -->
+        <view wx:else
+          class="unified-card {{effects.grain ? 'grain-overlay' : ''}} {{effects.holo && item._isLegendary ? 'holo-effect' : ''}} {{effects.rotatingBorder && item._isLimited ? 'rotating-border' : ''}} {{effects.fullbleed && item._hasImage ? 'fullbleed-mode' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
+          data-product="{{item}}" data-card-index="{{index}}" bindtap="onProductTap" bindtouchstart="onCardTouchStart">
+          <view wx:if="{{effects.ripple && item._rippleActive}}" class="ripple-layer ripple-active"
+            style="left:{{item._rippleX}}px;top:{{item._rippleY}}px"></view>
+          <view class="type-bar {{item.listing_kind === 'fungible_asset' ? 'asset' : 'item'}}"></view>
+
+          <view class="card-image-area">
+            <image wx:if="{{item.imageStatus !== 'error'}}" src="{{item.image}}" mode="aspectFill" lazy-load="{{true}}"
+              data-index="{{index}}" binderror="onImageError" bindload="onImageLoad" />
+            <view wx:else class="image-fallback {{item.listing_kind === 'fungible_asset' ? 'asset-type' : 'item-type'}}">
+              <text class="fallback-icon">{{item.listing_kind === 'fungible_asset' ? '🪙' : '🎁'}}</text>
+              <text class="fallback-name">{{item.item_name}}</text>
+            </view>
+            <view wx:if="{{item._rarityClass}}" class="badge-tag {{item._rarityClass}}">{{item.offer_item_rarity}}</view>
+            <view class="type-capsule {{item.listing_kind === 'fungible_asset' ? 'asset-capsule' : 'item-capsule'}}">
+              {{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</view>
           </view>
-          <view class="seller-info" wx:if="{{item.seller_nickname}}">
-            <text class="seller-label">卖家：{{item.seller_nickname}}</text>
+
+          <view class="card-body">
+            <text class="product-name">{{item.item_name}}</text>
+            <text class="product-desc">{{item.description}}</text>
+            <view class="price-row">
+              <text class="price-unit">{{item._priceLabel || '积分'}}</text>
+              <text class="price-current">{{item.price_amount}}</text>
+            </view>
+            <view class="seller-info" wx:if="{{item.seller_nickname}}">
+              <text class="seller-label">卖家：{{item.seller_nickname}}</text>
+            </view>
+            <view class="cta-btn">立即购买</view>
           </view>
-          <view class="cta-btn">立即购买</view>
         </view>
-      </view>
+      </block>
     </view>
 
     <empty-state wx:if="{{!loading && filteredProducts.length === 0}}" />

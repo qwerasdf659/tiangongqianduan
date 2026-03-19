@@ -46,8 +46,8 @@
          🔴 移除lazy-load：图片已在父页面预加载到缓存，无需懒加载 -->
     <image
       class="popup-full-image"
-      wx:if="{{banners[currentIndex].image_url && !imageLoadFailed}}"
-      src="{{banners[currentIndex].image_url}}"
+      wx:if="{{banners[currentIndex].primary_media.public_url && !imageLoadFailed}}"
+      src="{{banners[currentIndex].primary_media.public_url}}"
       mode="widthFix"
       lazy-load="{{false}}"
       bindload="handleImageLoad"
@@ -64,9 +64,9 @@
     </view>
 
     <!-- 📦 纯图模式尺寸信息（仅开发调试用，不展示给用户） -->
-    <!-- <view class="popup-full-image-info" wx:if="{{banners[currentIndex].image_width}}">
+    <!-- <view class="popup-full-image-info" wx:if="{{banners[currentIndex].primary_media.width}}">
       <text class="full-image-size-text">
-        {{banners[currentIndex].image_width}}×{{banners[currentIndex].image_height}}
+        {{banners[currentIndex].primary_media.width}}×{{banners[currentIndex].primary_media.height}}
       </text>
     </view> -->
 
@@ -137,11 +137,11 @@
     <!-- 🖼️ 横幅图片区域 -->
     <view
       class="popup-image-section image-{{banners[currentIndex].display_mode || 'wide'}}"
-      wx:if="{{banners[currentIndex].image_url && !imageLoadFailed}}"
+      wx:if="{{banners[currentIndex].primary_media.public_url && !imageLoadFailed}}"
     >
       <image
         class="popup-image"
-        src="{{banners[currentIndex].image_url}}"
+        src="{{banners[currentIndex].primary_media.public_url}}"
         mode="widthFix"
         lazy-load="{{false}}"
         bindload="handleImageLoad"
@@ -153,7 +153,7 @@
     <!-- 🎨 装饰性顶部条纹（没有图片 或 图片加载失败时 显示渐变装饰作为降级） -->
     <view
       class="popup-decor-header"
-      wx:if="{{!banners[currentIndex].image_url || imageLoadFailed}}"
+      wx:if="{{!banners[currentIndex].primary_media.public_url || imageLoadFailed}}"
     >
       <view class="decor-circle decor-circle-1"></view>
       <view class="decor-circle decor-circle-2"></view>

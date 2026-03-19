@@ -339,6 +339,17 @@ Page({
     this.setData({ showEscrowStatus: false, escrowStatusData: null })
   },
 
+  /** 跳转到交易申诉页面（文档 5.4: P2P交易纠纷/申诉） */
+  onOpenDispute(e: any) {
+    const tradeOrderId = e.currentTarget.dataset.orderId
+    if (!tradeOrderId) {
+      return
+    }
+    wx.navigateTo({
+      url: `/packageTrade/trade/dispute/dispute?trade_order_id=${tradeOrderId}`
+    })
+  },
+
   /**
    * 取消交易
    * 后端: POST /api/v4/market/trade-orders/:trade_order_id/cancel

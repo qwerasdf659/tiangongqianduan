@@ -1,7 +1,7 @@
 // pages/user/user.ts - 用户中心页面 + MobX响应式状态
 const app = getApp()
 // 统一工具函数导入（从utils/index.ts）
-const { API, Wechat, Logger, ApiWrapper, ThemeCache, GlobalTheme } = require('../../utils/index')
+const { API, Wechat, Logger, ApiWrapper, ThemeCache, GlobalTheme, PopupFrequency } = require('../../utils/index')
 const log = Logger.createLogger('user')
 const { showToast } = Wechat
 const { safeApiCall } = ApiWrapper
@@ -170,10 +170,19 @@ Page({
     /** 当前主题标识（驱动 WXML class 绑定，用于 CSS class 选择器差异化） */
     currentThemeName: 'default',
 
+    /* ===== 弹窗横幅（后端 GET /api/v4/system/ad-delivery?slot_type=popup&position=profile 返回） ===== */
+    showPopupBanner: false,
+    popupBanners: [] as API.AdDeliveryItem[],
+
     // 页面状态
     loading: true,
     refreshing: false
   },
+
+  /** 弹窗横幅队列（不放 data，避免大数组序列化开销） */
+  _popupQueue: null as API.AdDeliveryItem[] | null,
+  _popupQueueIndex: 0,
+  _bannerShowStartTime: 0,
 
   /** loading安全超时定时器ID */
   loadingSafetyTimer: null as any,
@@ -244,6 +253,7 @@ Page({
     this.updateUserStatus()
     if (this.data.isLoggedIn) {
       this.refreshUserData()
+      this.loadProfilePopup()
     }
   },
 
@@ -330,15 +340,16 @@ Page({
 
       log.info('用户已登录，开始加载用户数据')
 
-      // 并行加载用户信息、积分趋势、系统配置、审核待办（Promise.allSettled保证部分失败不影响整体）
+      // 并行加载用户信息、积分趋势、系统配置、审核待办、弹窗横幅（Promise.allSettled保证部分失败不影响整体）
       const results = await Promise.allSettled([
         this.safeLoadUserInfo(),
         this.safeLoadPointsTrend(),
         this.safeLoadSystemConfig(),
-        this.loadApprovalPendingCount()
+        this.loadApprovalPendingCount(),
+        this.loadProfilePopup()
       ])
 
-      const taskNames = ['用户信息', '积分趋势', '系统配置', '审核待办']
+      const taskNames = ['用户信息', '积分趋势', '系统配置', '审核待办', '弹窗广告']
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
           log.warn(`${taskNames[index]}加载失败:`, result.reason)
@@ -711,6 +722,204 @@ Page({
         log.info('用户取消了客服选择')
       }
     })
+  },
+
+  // ========================================
+  // 弹窗横幅（个人中心弹窗广告 position=profile）
+  // ========================================
+
+  /**
+   * 加载个人中心弹窗横幅（含频率控制过滤）
+   *
+   * 后端API: GET /api/v4/system/ad-delivery?slot_type=popup&position=profile
+   * 对应广告位: profile_popup（ID:4，日价50钻石）
+   *
+   * 数据流:
+   *   API获取活跃投放内容 → 客户端频率过滤 → priority降序排序 → 展示第一条
+   */
+  async loadProfilePopup() {
+    try {
+      const result = await API.getAdDelivery({ slot_type: 'popup', position: 'profile' })
+      if (!result?.success || !result.data) {
+        return
+      }
+
+      const bannerItems: API.AdDeliveryItem[] = result.data.items || []
+      if (!Array.isArray(bannerItems) || bannerItems.length === 0) {
+        return
+      }
+
+      const sessionSeenIds: Set<number> = app.globalData.sessionSeenCampaigns || new Set()
+      const filteredBanners = PopupFrequency.filterBannersByFrequency(bannerItems, sessionSeenIds)
+      if (filteredBanners.length === 0) {
+        return
+      }
+
+      this._popupQueue = filteredBanners
+      this._popupQueueIndex = 0
+
+      PopupFrequency.markBannerSeen(filteredBanners[0].ad_campaign_id, sessionSeenIds)
+
+      this._bannerShowStartTime = Date.now()
+      this.setData({
+        popupBanners: [filteredBanners[0]],
+        showPopupBanner: true
+      })
+
+      log.info('个人中心弹窗广告加载成功:', filteredBanners.length, '条通过频率过滤')
+    } catch (error) {
+      log.warn('个人中心弹窗广告加载失败（不影响主流程）:', error)
+    }
+  },
+
+  /**
+   * 弹窗横幅关闭（队列行为）
+   * 关闭当前弹窗 → 按 campaign_category 分流上报 → 队列中有下一个则自动弹出
+   */
+  onPopupBannerClose(e: WechatMiniprogram.CustomEvent) {
+    const closeMethod: string = e?.detail?.close_method || 'close_btn'
+    const currentBanners = this.data.popupBanners
+    const queueIndex: number = this._popupQueueIndex || 0
+
+    if (currentBanners && currentBanners.length > 0) {
+      const closedBanner = currentBanners[0]
+      if (closedBanner?.ad_campaign_id) {
+        PopupFrequency.markBannerDismissed(closedBanner.ad_campaign_id)
+
+        const showDuration = this._bannerShowStartTime ? Date.now() - this._bannerShowStartTime : 0
+        this._reportAdEvent(closedBanner, 'impression', {
+          show_duration_ms: showDuration,
+          close_method: closeMethod,
+          queue_position: queueIndex + 1,
+          slot_type: 'popup'
+        })
+      }
+    }
+
+    const queue: API.AdDeliveryItem[] = this._popupQueue || []
+    const nextIndex = queueIndex + 1
+
+    if (nextIndex < queue.length) {
+      const sessionSeenIds: Set<number> = app.globalData.sessionSeenCampaigns || new Set()
+      PopupFrequency.markBannerSeen(queue[nextIndex].ad_campaign_id, sessionSeenIds)
+
+      this._popupQueueIndex = nextIndex
+      this.setData({ showPopupBanner: false })
+      setTimeout(() => {
+        this._bannerShowStartTime = Date.now()
+        this.setData({
+          popupBanners: [queue[nextIndex]],
+          showPopupBanner: true
+        })
+      }, 100)
+    } else {
+      this._bannerShowStartTime = 0
+      this._popupQueue = null
+      this._popupQueueIndex = 0
+      this.setData({ showPopupBanner: false })
+    }
+  },
+
+  /**
+   * 弹窗横幅操作按钮点击
+   * 上报 click 事件（按 campaign_category 分流） → 执行跳转
+   */
+  onPopupBannerAction(e: any) {
+    const { banner } = e.detail
+    if (!banner?.link_url || banner.link_type === 'none') {
+      return
+    }
+
+    this._reportAdEvent(banner, 'click', { slot_type: 'popup' })
+    this._handleAdLinkNavigation(banner)
+  },
+
+  /**
+   * 内容投放事件上报 — 按 campaign_category 分流
+   *
+   * commercial → reportAdImpression / reportAdClick（计费系统）
+   * operational / system → reportInteractionLog（交互日志）
+   */
+  _reportAdEvent(
+    item: API.AdDeliveryItem,
+    eventType: 'impression' | 'click',
+    extraData?: Record<string, any>
+  ) {
+    if (!item?.ad_campaign_id) {
+      return
+    }
+
+    if (item.campaign_category === 'commercial') {
+      if (!item.ad_slot_id) {
+        log.error('商业广告缺少 ad_slot_id，无法上报计费事件:', item.ad_campaign_id)
+        return
+      }
+
+      if (eventType === 'impression') {
+        API.reportAdImpression({
+          ad_campaign_id: item.ad_campaign_id,
+          ad_slot_id: item.ad_slot_id
+        }).catch((err: any) => {
+          log.warn('商业广告曝光上报失败:', err)
+        })
+      } else {
+        API.reportAdClick({
+          ad_campaign_id: item.ad_campaign_id,
+          ad_slot_id: item.ad_slot_id,
+          click_target: item.link_url || undefined
+        }).catch((err: any) => {
+          log.warn('商业广告点击上报失败:', err)
+        })
+      }
+    } else {
+      API.reportInteractionLog({
+        ad_campaign_id: item.ad_campaign_id,
+        interaction_type: eventType,
+        extra_data: extraData
+      }).catch((err: any) => {
+        log.warn('交互日志上报失败（不影响业务）:', err)
+      })
+    }
+  },
+
+  /**
+   * 统一跳转处理 — 根据 link_type 执行不同的跳转方式
+   */
+  _handleAdLinkNavigation(item: API.AdDeliveryItem) {
+    if (!item.link_url || !item.link_type || item.link_type === 'none') {
+      return
+    }
+
+    switch (item.link_type) {
+      case 'page':
+        wx.navigateTo({
+          url: item.link_url,
+          fail: () => {
+            wx.switchTab({
+              url: item.link_url!,
+              fail: (err: any) => log.error('跳转页面失败:', err)
+            })
+          }
+        })
+        break
+
+      case 'miniprogram':
+        wx.navigateToMiniProgram({
+          appId: item.link_url,
+          fail: (err: any) => log.error('跳转小程序失败:', err)
+        })
+        break
+
+      case 'webview':
+        wx.navigateTo({
+          url: '/pages/webview/webview?url=' + encodeURIComponent(item.link_url),
+          fail: (err: any) => log.error('跳转webview失败:', err)
+        })
+        break
+
+      default:
+        log.warn('未知的跳转类型:', item.link_type)
+    }
   },
 
   /** 分享小程序 */

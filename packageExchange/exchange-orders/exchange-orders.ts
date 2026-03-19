@@ -246,9 +246,12 @@ Page({
       _statusLabel: statusInfo.label,
       _statusColor: statusInfo.color,
       _statusIcon: statusInfo.icon,
-      _productName: itemSnapshot.item_name || '兑换商品',
-      _productImage: itemSnapshot.image_url || '/images/default-product.png',
-      _hasProductImage: !!itemSnapshot.image_url,
+      _productName: itemSnapshot.name || itemSnapshot.item_name || '兑换商品',
+      _productImage:
+        itemSnapshot.primary_media?.public_url ||
+        itemSnapshot.image_url ||
+        '/images/default-product.png',
+      _hasProductImage: !!(itemSnapshot.primary_media?.public_url || itemSnapshot.image_url),
       _payInfo: order.pay_amount ? `${order.pay_amount} ${order.pay_asset_code || ''}` : '',
       _createTime: order.created_at ? this.formatTime(order.created_at) : '',
       _shippedTime: order.shipped_at ? this.formatTime(order.shipped_at) : '',

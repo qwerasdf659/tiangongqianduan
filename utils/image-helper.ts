@@ -217,7 +217,7 @@ function getAssetDisplayName(assetCode: string): string {
  * 为交易市场挂单计算展示图片路径
  *
  * 降级链：
- *   item 类型 → item_info.image_url（后端完整URL）→ 分类图标 → 占位图
+ *   item 类型 → item_info.primary_media.public_url（后端完整URL）→ 分类图标 → 占位图
  *   fungible_asset 类型 → 本地材料图标（按 asset_code 映射）→ 占位图
  *
  * @param listing - 后端返回的 market_listing 对象
@@ -234,9 +234,11 @@ function getListingDisplayImage(listing: any): string {
     return getMaterialIconPath(assetCode)
   }
 
-  const imageUrl = listing.item_info && listing.item_info.image_url
-  if (imageUrl) {
-    return imageUrl
+  const primaryMediaUrl =
+    listing.item_info?.primary_media?.public_url ||
+    listing.item_info?.primary_media?.thumbnails?.medium
+  if (primaryMediaUrl) {
+    return primaryMediaUrl
   }
 
   const categoryCode = listing.item_info && listing.item_info.category_code

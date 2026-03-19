@@ -1,0 +1,159 @@
+<!--
+  P2P交易纠纷/申诉页面
+  后端API: POST/GET /api/v4/market/trade-orders/:trade_order_id/dispute
+-->
+<view class="dispute-page">
+  <!-- 加载中 -->
+  <loading-spinner wx:if="{{loading}}" text="加载中..." />
+
+  <!-- 错误状态 -->
+  <view class="error-wrapper" wx:if="{{!loading && hasError}}">
+    <text class="error-icon">⚠️</text>
+    <text class="error-text">{{errorMessage}}</text>
+    <view class="error-back" bindtap="onGoBack">
+      <text>返回</text>
+    </view>
+  </view>
+
+  <!-- 申诉表单模式 -->
+  <view class="dispute-form" wx:if="{{!loading && !hasError && mode === 'form'}}">
+    <view class="form-header">
+      <text class="form-title">发起交易申诉</text>
+      <text class="form-subtitle">请如实描述问题，平台将在24小时内处理</text>
+    </view>
+
+    <!-- 申诉类型选择 -->
+    <view class="form-section">
+      <text class="section-title">申诉类型</text>
+      <view class="type-options">
+        <view
+          wx:for="{{disputeTypes}}"
+          wx:key="value"
+          class="type-option {{selectedType === item.value ? 'active' : ''}}"
+          data-type="{{item.value}}"
+          bindtap="onSelectType"
+        >
+          <text class="type-label">{{item.label}}</text>
+          <text class="type-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 问题描述 -->
+    <view class="form-section">
+      <text class="section-title">问题描述</text>
+      <view class="desc-input-wrap">
+        <textarea
+          class="desc-textarea"
+          placeholder="请详细描述您遇到的问题（至少20字）"
+          maxlength="500"
+          value="{{description}}"
+          bindinput="onDescInput"
+        />
+        <text class="desc-counter">{{descLength}}/500</text>
+      </view>
+    </view>
+
+    <!-- 证据图片上传 -->
+    <view class="form-section">
+      <text class="section-title">证据图片（可选，最多5张）</text>
+      <view class="evidence-grid">
+        <view
+          wx:for="{{evidenceImages}}"
+          wx:key="localPath"
+          class="evidence-item"
+          data-index="{{index}}"
+          bindtap="onPreviewEvidence"
+        >
+          <image class="evidence-image" src="{{item.localPath}}" mode="aspectFill" />
+          <view class="evidence-delete" data-index="{{index}}" catchtap="onRemoveImage">
+            <text>✕</text>
+          </view>
+        </view>
+        <view wx:if="{{evidenceImages.length < 5}}" class="evidence-add" bindtap="onChooseImage">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加图片</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="submit-section">
+      <view
+        class="submit-btn {{!selectedType || descLength < 20 || submitting ? 'disabled' : ''}}"
+        bindtap="onSubmitDispute"
+      >
+        <text class="submit-text">{{submitting ? '提交中...' : '提交申诉'}}</text>
+      </view>
+      <text class="submit-tip">提交后无法撤销，请确保信息真实有效</text>
+    </view>
+  </view>
+
+  <!-- 申诉详情/进度模式 -->
+  <view class="dispute-detail" wx:if="{{!loading && !hasError && mode === 'detail' && dispute}}">
+    <!-- 状态卡片 -->
+    <view class="status-card" style="background: {{disputeStatusColor}}">
+      <text class="status-label">{{disputeStatusLabel}}</text>
+      <text class="status-desc">{{disputeStatusDesc}}</text>
+    </view>
+
+    <!-- 仲裁结果（仅 arbitrated 状态展示） -->
+    <view class="result-card" wx:if="{{dispute.status === 'arbitrated' && disputeResultLabel}}">
+      <view class="result-header">
+        <text class="result-title">仲裁结果</text>
+        <text class="result-badge" style="color: {{disputeResultColor}}"
+          >{{disputeResultLabel}}</text
+        >
+      </view>
+      <text class="result-note" wx:if="{{dispute.result_note}}">{{dispute.result_note}}</text>
+    </view>
+
+    <!-- 申诉信息 -->
+    <view class="info-card">
+      <text class="card-title">申诉信息</text>
+      <view class="info-row">
+        <text class="info-label">申诉类型</text>
+        <text class="info-value">{{dispute.dispute_type}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">提交时间</text>
+        <text class="info-value">{{dispute.created_at}}</text>
+      </view>
+      <view class="info-row" wx:if="{{dispute.arbitrated_at}}">
+        <text class="info-label">仲裁时间</text>
+        <text class="info-value">{{dispute.arbitrated_at}}</text>
+      </view>
+    </view>
+
+    <!-- 申诉描述 -->
+    <view class="info-card">
+      <text class="card-title">问题描述</text>
+      <text class="desc-content">{{dispute.description}}</text>
+    </view>
+
+    <!-- 证据图片 -->
+    <view class="info-card" wx:if="{{dispute.evidence_urls && dispute.evidence_urls.length > 0}}">
+      <text class="card-title">证据图片</text>
+      <view class="evidence-grid detail-grid">
+        <image
+          wx:for="{{dispute.evidence_urls}}"
+          wx:key="*this"
+          class="evidence-image"
+          src="{{item}}"
+          mode="aspectFill"
+          data-index="{{index}}"
+          bindtap="onPreviewEvidence"
+        />
+      </view>
+    </view>
+
+    <!-- 返回按钮 -->
+    <view class="back-section">
+      <view class="back-btn" bindtap="onGoBack">
+        <text>返回订单</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<maintenance-overlay />

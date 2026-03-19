@@ -559,8 +559,17 @@ declare namespace API {
       cost_asset_code?: string
       /** 支付金额 */
       cost_amount?: number
-      /** 商品分类 */
-      category?: string
+      /** 分类定义ID */
+      category_def_id?: number
+      /** 主图媒体对象（新订单使用 media 结构） */
+      primary_media?: {
+        /** 图片完整公网URL */
+        public_url: string
+      } | null
+      /** @deprecated 旧订单快照可能仍有此字段，新订单使用 primary_media */
+      image_url?: string
+      /** @deprecated 旧订单快照可能使用 item_name，新订单使用 name */
+      item_name?: string
     }
     /** 兑换时间 */
     created_at: string
@@ -943,8 +952,8 @@ declare namespace API {
     offer_item_template_id: number | null
     /** 物品显示名称 */
     offer_item_display_name: string | null
-    /** 物品分类编码 */
-    offer_item_category_code: string | null
+    /** 物品分类定义ID（关联 category_defs.category_def_id，整数FK） */
+    offer_category_def_id: number | null
     /** 物品稀有度编码 */
     offer_item_rarity: string | null
     /** 资产代码（fungible_asset类型使用，可为null） */
@@ -1183,12 +1192,14 @@ declare namespace API {
     title: string
     /** 内容类型: image=图片创意 / text=纯文字创意（系统公告） */
     content_type: string
-    /** 图片URL（Sealos对象存储，content_type='text' 时为 null） */
-    image_url: string | null
-    /** 原图宽度px（后端 sharp 检测，可为 null） */
-    image_width: number | null
-    /** 原图高度px（后端 sharp 检测，可为 null） */
-    image_height: number | null
+    /** 主图媒体ID（关联 media_files 表，content_type='text' 时为 null） */
+    primary_media_id: number | null
+    /**
+     * 主图媒体对象（后端通过 media_files 表 JOIN 生成完整URL）
+     * content_type='image' 时: { media_id, public_url, width, height, thumbnails }
+     * content_type='text' 时: null
+     */
+    primary_media: MediaObject | null
     /** 文字内容（content_type='text' 时有值，系统公告正文） */
     text_content: string | null
     /** 跳转链接（可为 null） */

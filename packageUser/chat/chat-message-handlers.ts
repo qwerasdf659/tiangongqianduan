@@ -740,7 +740,7 @@ const chatMessageHandlers = {
             this.data.sessionId,
             tempFile.tempFilePath
           )
-          const imageUrl: string = uploadResult.data.image_url
+          const imageUrl: string = uploadResult.data.public_url || uploadResult.data.image_url
 
           /* 第2步: 发送image类型消息（content填图片URL） */
           const sendResult = await API.sendChatMessage(this.data.sessionId, {

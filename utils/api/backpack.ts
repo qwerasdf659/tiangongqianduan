@@ -121,7 +121,7 @@ async function getItemTimeline(item_id: number) {
  *
  * @param params - 查询参数对象
  * @param params.space - 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
- * @param params.category - 商品分类（对应 category_defs.category_code）
+ * @param params.category_def_id - 商品分类定义ID（整数，对应 category_defs.category_def_id）
  * @param params.keyword - 模糊搜索（匹配 item_name）
  * @param params.status - 商品状态 'active' / 'inactive'，默认 'active'
  * @param params.asset_code - 材料资产代码筛选（'red_shard', 'DIAMOND'）
@@ -136,7 +136,7 @@ async function getItemTimeline(item_id: number) {
 async function getExchangeProducts(
   params: {
     space?: string | null
-    category?: string | null
+    category_def_id?: number | null
     keyword?: string | null
     status?: string | null
     asset_code?: string | null
@@ -155,7 +155,7 @@ async function getExchangeProducts(
 ) {
   const {
     space = null,
-    category = null,
+    category_def_id = null,
     keyword = null,
     status = 'active',
     asset_code = null,
@@ -172,7 +172,7 @@ async function getExchangeProducts(
 
   const qs = buildQueryString({
     space,
-    category,
+    category_def_id,
     keyword,
     status,
     asset_code,

@@ -563,9 +563,19 @@ Page({
    * @returns 分组后的主活动和其他活动
    */
   _processCampaignsWithPlacement(activeCampaigns: any[], placementConfig: any) {
-    /* 为每个活动附加位置信息 */
+    const nowMs = Date.now()
+
+    /* 为每个活动附加位置信息 + 展示控制字段处理 */
     const campaignsWithPlacement = activeCampaigns
       .map((campaign: any) => {
+        /**
+         * 防御性过滤: is_hidden === true 的活动不展示
+         * 后端 /lottery/campaigns/active 应已过滤，此处做二次防御
+         */
+        if (campaign.is_hidden === true) {
+          return null
+        }
+
         const matchedPlacement = placementConfig.placements.find(
           (p: any) => p.campaign_code === campaign.campaign_code
         )
@@ -575,9 +585,52 @@ Page({
           return null
         }
 
+        /**
+         * 展示控制字段处理（文档 8.2 / 10.15.6）
+         *
+         * is_featured      - 精选活动高亮展示
+         * display_tags     - 展示标签数组（如 ["限时","新活动","热门"]）
+         * display_start_time - 预热展示开始时间（活动未开始但可展示倒计时）
+         * display_end_time   - 收尾展示结束时间（活动已结束但仍可查看）
+         */
+        const startTimeMs = campaign.start_time ? new Date(campaign.start_time).getTime() : 0
+        const endTimeMs = campaign.end_time ? new Date(campaign.end_time).getTime() : 0
+        const displayStartMs = campaign.display_start_time
+          ? new Date(campaign.display_start_time).getTime()
+          : 0
+        const displayEndMs = campaign.display_end_time
+          ? new Date(campaign.display_end_time).getTime()
+          : 0
+
+        let displayPhase = 'active'
+        let countdownTarget = 0
+
+        if (startTimeMs && nowMs < startTimeMs) {
+          if (displayStartMs && nowMs >= displayStartMs) {
+            displayPhase = 'preview'
+            countdownTarget = startTimeMs
+          } else if (!displayStartMs) {
+            displayPhase = 'upcoming'
+          }
+        } else if (endTimeMs && nowMs > endTimeMs) {
+          if (displayEndMs && nowMs <= displayEndMs) {
+            displayPhase = 'ended'
+          } else if (!displayEndMs) {
+            displayPhase = 'ended'
+          }
+        }
+
+        const parsedDisplayTags: string[] = Array.isArray(campaign.display_tags)
+          ? campaign.display_tags
+          : []
+
         return {
           ...campaign,
-          placement: matchedPlacement.placement
+          placement: matchedPlacement.placement,
+          _isFeatured: campaign.is_featured === true,
+          _displayTags: parsedDisplayTags,
+          _displayPhase: displayPhase,
+          _countdownTarget: countdownTarget
         }
       })
       .filter(Boolean)
@@ -587,14 +640,25 @@ Page({
       (c: any) => c.placement.page === 'lottery'
     )
 
-    /* 主活动：position=main 的第一个 */
+    /* 主活动：position=main 的第一个（is_featured 优先） */
+    const featuredMain = lotteryPageCampaigns.find(
+      (c: any) => c.placement.position === 'main' && c._isFeatured
+    )
     const mainCampaign =
-      lotteryPageCampaigns.find((c: any) => c.placement.position === 'main') || null
+      featuredMain || lotteryPageCampaigns.find((c: any) => c.placement.position === 'main') || null
 
-    /* 其他活动：排除 main 位置，按 priority 降序排列 */
+    /**
+     * 其他活动：排除 main 位置
+     * 排序规则: is_featured 优先 → placement.priority 降序
+     */
     const extraCampaigns = lotteryPageCampaigns
       .filter((c: any) => c.placement.position !== 'main')
-      .sort((a: any, b: any) => (b.placement.priority || 0) - (a.placement.priority || 0))
+      .sort((a: any, b: any) => {
+        if (a._isFeatured !== b._isFeatured) {
+          return a._isFeatured ? -1 : 1
+        }
+        return (b.placement.priority || 0) - (a.placement.priority || 0)
+      })
 
     return { mainCampaign, extraCampaigns }
   },
@@ -1439,16 +1503,19 @@ Page({
   async _preloadBannerImages(banners: any[]) {
     const TIMEOUT = Constants.LOTTERY.IMAGE_PRELOAD_TIMEOUT
     const promises = banners.map((banner, i) => {
-      if (!banner.image_url || typeof banner.image_url !== 'string') {
+      const mediaUrl = banner.primary_media?.public_url
+      if (!mediaUrl || typeof mediaUrl !== 'string') {
         return Promise.resolve()
       }
       return new Promise<void>(resolve => {
         const timer = setTimeout(resolve, TIMEOUT)
         wx.getImageInfo({
-          src: banner.image_url,
+          src: mediaUrl,
           success: res => {
             clearTimeout(timer)
-            banners[i].image_url = res.path
+            if (banners[i].primary_media) {
+              banners[i].primary_media.public_url = res.path
+            }
             resolve()
           },
           fail: () => {
@@ -1635,7 +1702,7 @@ Page({
     log.warn(`[lottery] 轮播图[${index}]图片加载失败`)
     const carouselItems = [...this.data.carouselItems]
     if (carouselItems[index]) {
-      carouselItems[index] = { ...carouselItems[index], image_url: '' }
+      carouselItems[index] = { ...carouselItems[index], primary_media: null }
       this.setData({ carouselItems })
     }
   },

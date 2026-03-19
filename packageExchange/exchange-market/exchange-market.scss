@@ -579,3 +579,32 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* Feed 广告卡片 — 穿插在商品列表中，与普通商品卡片区分 */
+.feed-ad-card {
+  border: 2rpx solid rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+}
+
+.type-bar.ad-type {
+  background: linear-gradient(180deg, #ff9800, #ffc107);
+}
+
+.type-capsule.ad-capsule {
+  background: linear-gradient(135deg, #ff9800, #ffc107);
+  color: #ffffff;
+}
+
+.ad-fallback {
+  background: linear-gradient(135deg, #f0f2ff 0%, #e8ecff 100%);
+}
+
+.ad-action-row {
+  padding: 8rpx 0 4rpx;
+}
+
+.ad-action-text {
+  font-size: 22rpx;
+  color: #667eea;
+  font-weight: 600;
+}

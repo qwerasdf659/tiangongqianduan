@@ -179,7 +179,10 @@ Component({
     effectTheme: 'default',
     rarityEffectsEnabled: false,
     winAnimation: 'simple',
-    /** 活动背景图URL（display.background_image_url，null表示无背景图） */
+    /**
+     * 活动背景图URL（来自 display config JSON，待后端确认字段名）
+     * 当前读取 display.background_image_url，若后端改为 display.background_media.public_url 需同步修改
+     */
     backgroundImageUrl: '' as string,
 
     /** 主题CSS变量内联样式 */

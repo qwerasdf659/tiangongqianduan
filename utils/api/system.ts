@@ -215,7 +215,9 @@ async function sendChatMessage(
  * 上传成功后，需再调sendChatMessage() 发message_type='image'、content=图片URL
  *
  * @param session_id - 会话ID
- * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回tempFilePath * @returns { success: true, data: { image_url: "https://...", object_key: "..." } }
+ * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回tempFilePath）
+ * @returns { success: true, data: { public_url: "https://...", object_key: "...", media_id?: number } }
+ * 待后端确认：聊天图片上传是否已迁移到 MediaService，若未迁移仍返回 image_url
  */
 async function uploadChatImage(session_id: number, filePath: string) {
   if (!session_id) {
@@ -464,6 +466,36 @@ async function getProductFilterConfig() {
   })
 }
 
+/**
+ * 获取分类树形结构（两级分类）
+ * GET /api/v4/system/config/category-tree
+ *
+ * 后端服务: CategoryDef.getTree()
+ * 数据库表: category_defs（字段 category_def_id, category_code, display_name, parent_category_def_id, level, sort_order）
+ *
+ * 响应结构:
+ *   { success, data: { categories: CategoryTreeNode[] } }
+ *
+ * CategoryTreeNode:
+ *   - category_def_id: BIGINT 分类ID
+ *   - category_code: VARCHAR 分类编码（如 'collectible'）
+ *   - display_name: VARCHAR 分类显示名（如 '收藏品'）
+ *   - parent_category_def_id: BIGINT|null 父分类ID（一级分类为 null）
+ *   - level: INT 层级（1=一级, 2=二级）
+ *   - sort_order: INT 排序权重
+ *   - children: CategoryTreeNode[] 子分类数组（仅一级分类有值）
+ *
+ * ⚠️ 此API需要后端实现 CategoryDef.getTree() 并注册路由
+ */
+async function getCategoryTree() {
+  return apiClient.request('/system/config/category-tree', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
 module.exports = {
   getSystemGlobalConfig,
   getPlacementConfig,
@@ -488,5 +520,6 @@ module.exports = {
   getAppThemeConfig,
   getUserMe,
   getActivities,
-  getProductFilterConfig
+  getProductFilterConfig,
+  getCategoryTree
 }

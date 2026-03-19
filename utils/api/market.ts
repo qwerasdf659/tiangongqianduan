@@ -14,7 +14,7 @@
  * QueryService 响应结构（2026-02-18 更新）:
  *   - 物品信息通过 JOIN item_templates 查询，封装在 item_info 嵌套对象中
  *   - 资产信息通过 JOIN material_asset_types 查询，封装在 asset_info 嵌套对象中
- *   - 图片URL通过 ImageUrlHelper.getImageUrl(object_key) 自动转换为完整公网URL
+ *   - 图片通过 media_files 表 JOIN 返回 primary_media 对象（含 public_url）
  *
  * @file 天工餐厅积分系统 - 交易市场API模块
  * @version 5.2.0
@@ -46,8 +46,9 @@ const { buildQueryString } = require('../util')
  * 物品类型(item)嵌套对象 item_info:
  *   - item_id: BIGINT 物品ID（items表主键）
  *   - display_name: VARCHAR 物品显示名称（items表 item_name 正式列）
- *   - image_url: VARCHAR 物品图片URL（ImageUrlHelper 转完整公网URL，运营未上传时为null）
+ *   - primary_media: MediaObject|null 物品图片（media_files JOIN，运营未上传时为null）
  *   - category_code: VARCHAR 物品分类编码（可null）
+ *   - category_display_name: VARCHAR 分类中文显示名（可null）
  *   - rarity_code: VARCHAR 物品稀有度编码（可null）
  *   - template_id: BIGINT 物品模板ID（可null）
  *
@@ -55,7 +56,7 @@ const { buildQueryString } = require('../util')
  *   - asset_code: VARCHAR 资产代码（如 red_shard）
  *   - amount: BIGINT 上架数量
  *   - display_name: VARCHAR 资产显示名称（来自 material_asset_types）
- *   - icon_url: VARCHAR 资产图标URL（ImageUrlHelper 转完整公网URL，运营未上传时为null）
+ *   - primary_media: MediaObject|null 资产图标（media_files JOIN，运营未上传时为null）
  *   - group_code: VARCHAR 资产分组代码
  *
  * @param params - 查询参数对象
@@ -63,7 +64,7 @@ const { buildQueryString } = require('../util')
  * @param params.limit - 每页数量，默认20
  * @param params.listing_kind - 挂牌类型: 'item' / 'fungible_asset'
  * @param params.asset_code - 资产代码筛选（仅 fungible_asset 有效）
- * @param params.item_category_code - 物品类目代码（仅 item 有效）
+ * @param params.category_def_id - 物品类目定义ID（整数，仅 item 有效）
  * @param params.asset_group_code - 资产分组代码（仅 fungible_asset 有效）
  * @param params.rarity_code - 稀有度筛选（仅 item 有效）
  * @param params.min_price - 最低价格
@@ -76,7 +77,7 @@ async function getMarketProducts(
     limit?: number
     listing_kind?: string | null
     asset_code?: string | null
-    item_category_code?: string | null
+    category_def_id?: number | null
     asset_group_code?: string | null
     rarity_code?: string | null
     min_price?: number | null
@@ -91,7 +92,7 @@ async function getMarketProducts(
     limit = 20,
     listing_kind = null,
     asset_code = null,
-    item_category_code = null,
+    category_def_id = null,
     asset_group_code = null,
     rarity_code = null,
     min_price = null,
@@ -105,7 +106,7 @@ async function getMarketProducts(
     limit,
     listing_kind,
     asset_code,
-    item_category_code,
+    category_def_id,
     asset_group_code,
     rarity_code,
     min_price,
@@ -910,6 +911,89 @@ async function getMyOrders(
   })
 }
 
+// ==================== P2P交易纠纷/申诉（文档 5.4） ====================
+
+/**
+ * 发起交易申诉
+ * POST /api/v4/market/trade-orders/:trade_order_id/dispute
+ *
+ * 适用条件: 交易订单 status=completed 且在完成后 N 天内（后端配置）
+ *
+ * 请求体:
+ *   dispute_type  - 申诉类型: 'item_mismatch'(物品不符) / 'not_received'(未收到) / 'quality_issue'(质量问题) / 'other'(其他)
+ *   description   - 申诉描述（必填，20-500字）
+ *   evidence_urls - 证据图片URL数组（可选，最多5张）
+ *
+ * 响应:
+ *   dispute_id     - 申诉记录ID
+ *   status         - 申诉状态: submitted / processing / arbitrated
+ *   created_at     - 提交时间
+ *
+ * ⚠️ 此API需要后端实现申诉路由并连通仲裁流程
+ *
+ * @param trade_order_id - 交易订单ID（BIGINT）
+ * @param disputeData - 申诉表单数据
+ */
+async function createTradeDispute(
+  trade_order_id: number,
+  disputeData: {
+    dispute_type: string
+    description: string
+    evidence_urls?: string[]
+  }
+) {
+  if (!trade_order_id) {
+    throw new Error('交易订单ID不能为空')
+  }
+  if (!disputeData.dispute_type) {
+    throw new Error('请选择申诉类型')
+  }
+  if (!disputeData.description || disputeData.description.length < 20) {
+    throw new Error('申诉描述不能少于20字')
+  }
+
+  return apiClient.request(`/market/trade-orders/${trade_order_id}/dispute`, {
+    method: 'POST',
+    data: disputeData,
+    needAuth: true,
+    showLoading: true,
+    loadingText: '提交申诉中...',
+    showError: true,
+    errorPrefix: '申诉提交失败：'
+  })
+}
+
+/**
+ * 查询交易申诉详情
+ * GET /api/v4/market/trade-orders/:trade_order_id/dispute
+ *
+ * 响应:
+ *   dispute_id     - 申诉记录ID
+ *   dispute_type   - 申诉类型
+ *   description    - 申诉描述
+ *   evidence_urls  - 证据图片URL数组
+ *   status         - 申诉状态: submitted / processing / arbitrated
+ *   result         - 仲裁结果: refund / rejected / partial_refund（仅 arbitrated 状态有值）
+ *   result_note    - 仲裁说明（仅 arbitrated 状态有值）
+ *   created_at     - 提交时间
+ *   arbitrated_at  - 仲裁时间（仅 arbitrated 状态有值）
+ *
+ * @param trade_order_id - 交易订单ID（BIGINT）
+ */
+async function getTradeDispute(trade_order_id: number) {
+  if (!trade_order_id) {
+    throw new Error('交易订单ID不能为空')
+  }
+  return apiClient.request(`/market/trade-orders/${trade_order_id}/dispute`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '查询申诉...',
+    showError: true,
+    errorPrefix: '查询失败：'
+  })
+}
+
 module.exports = {
   getMarketProducts,
   getMarketProductDetail,
@@ -936,5 +1020,7 @@ module.exports = {
   getPricingAdvice,
   getMarketOverview,
   getPriceHistory,
-  getMyOrders
+  getMyOrders,
+  createTradeDispute,
+  getTradeDispute
 }

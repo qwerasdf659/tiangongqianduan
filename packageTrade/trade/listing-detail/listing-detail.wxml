@@ -64,9 +64,9 @@
     </view>
 
     <!-- 物品描述（item 类型） -->
-    <view class="detail-desc-row" wx:if="{{!isFungibleAsset && detail.item_info && detail.item_info.category_code}}">
+    <view class="detail-desc-row" wx:if="{{!isFungibleAsset && detail.item_info && (detail.item_info.category_display_name || detail.item_info.category_code)}}">
       <text class="desc-label">物品类目</text>
-      <text class="desc-value">{{detail.item_info.category_code}}</text>
+      <text class="desc-value">{{detail.item_info.category_display_name || detail.item_info.category_code}}</text>
     </view>
 
     <!--物品状态描述（对齐文档 condition 字段，卖家上架时填写）-->

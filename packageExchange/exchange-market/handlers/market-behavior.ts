@@ -8,7 +8,7 @@
  *   - 购买弹窗
  *
  * 筛选机制（C+++方案，对齐独立交易市场页面 market.ts）：
- *   - listing_kind / sort / item_category_code / rarity_code / asset_group_code
+ *   - listing_kind / sort / category_def_id / rarity_code / asset_group_code
  *     / asset_code / min_price / max_price / with_counts 全部通过 API 查询参数传递
  *   - 筛选维度从 GET /api/v4/market/listings/facets 动态获取
  *
@@ -25,11 +25,18 @@ const { API, Wechat, Logger, Utils, ImageHelper } = require('../../../utils/inde
 const marketLog = Logger.createLogger('market-behavior')
 const {
   getMarketProducts,
+  getAdDelivery,
+  reportAdImpression,
+  reportAdClick,
+  reportInteractionLog,
   purchaseMarketProduct,
   getMyListingStatus,
   confirmDelivery,
   getMarketFacets
 } = API
+
+/** 每隔多少条商品穿插一条 feed 广告 */
+const EXCHANGE_FEED_AD_INTERVAL = 5
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = require('../../utils/product-display')
@@ -54,7 +61,7 @@ module.exports = Behavior({
       this.loadProducts()
     }, 300),
 
-    /** 初始化筛选条件 + 加载筛选维度 */
+    /** 初始化筛选条件 + 加载筛选维度 + feed广告 */
     initFilters() {
       this.setData({
         currentFilter: 'all',
@@ -72,6 +79,7 @@ module.exports = Behavior({
         facetsLoaded: false,
         filtersCount: null
       })
+      this._loadExchangeFeedAds()
     },
 
     /**
@@ -126,7 +134,7 @@ module.exports = Behavior({
         /**
          * 构建后端API查询参数（对齐独立市场页面 market.ts 的完整筛选参数集）
          * 后端 GET /api/v4/market/listings 支持:
-         *   listing_kind / sort / item_category_code / rarity_code
+         *   listing_kind / sort / category_def_id / rarity_code
          *   asset_group_code / asset_code / min_price / max_price / with_counts
          */
         const apiParams: Record<string, any> = {
@@ -143,7 +151,7 @@ module.exports = Behavior({
         apiParams.sort = mappedSort
 
         if (filterCategoryCode) {
-          apiParams.item_category_code = filterCategoryCode
+          apiParams.category_def_id = filterCategoryCode
         }
         if (filterRarityCode) {
           apiParams.rarity_code = filterRarityCode
@@ -201,7 +209,7 @@ module.exports = Behavior({
               offer_amount: assetInfo.amount || null,
               offer_asset_group_code: assetInfo.group_code || null,
               offer_item_rarity: itemInfo.rarity_code || null,
-              offer_item_category_code: itemInfo.category_code || null,
+              offer_category_def_id: itemInfo.category_def_id || null,
               item_id: itemInfo.item_id || null,
               template_id: itemInfo.template_id || null,
               status: item.status || 'active',
@@ -228,9 +236,11 @@ module.exports = Behavior({
             )
           }
 
+          const interleavedProducts = this._interleaveExchangeFeedAds(displayProducts)
+
           this.setData({
             loading: false,
-            filteredProducts: displayProducts,
+            filteredProducts: interleavedProducts,
             totalCount: pagination.total || enrichedProducts.length,
             totalPages: Math.ceil((pagination.total || enrichedProducts.length) / limit) || 1,
             filtersCount: response.data.filters_count || null
@@ -671,6 +681,156 @@ module.exports = Behavior({
         escrowInputCode: '',
         escrowTradeOrderId: 0
       })
+    },
+
+    // ========================================
+    // Feed 信息流广告（后端 GET /api/v4/system/ad-delivery?slot_type=feed&position=exchange_list）
+    // ========================================
+
+    /**
+     * 加载兑换商城 feed 信息流广告
+     *
+     * 对应广告位: exchange_list_feed（ID:15，日价25钻石，CPM 3钻石）
+     * 广告穿插由前端控制，后端只负责下发广告内容
+     */
+    async _loadExchangeFeedAds() {
+      try {
+        const feedResult = await getAdDelivery({ slot_type: 'feed', position: 'exchange_list' })
+        if (!feedResult?.success || !feedResult.data) {
+          return
+        }
+
+        const feedItems: API.AdDeliveryItem[] = feedResult.data.items || []
+        if (!Array.isArray(feedItems) || feedItems.length === 0) {
+          this._exchangeFeedAds = []
+          return
+        }
+
+        this._exchangeFeedAds = feedItems
+        marketLog.info('兑换商城Feed广告加载成功:', feedItems.length, '条')
+      } catch (feedError) {
+        marketLog.warn('兑换商城Feed广告加载失败（不影响商品列表）:', feedError)
+        this._exchangeFeedAds = []
+      }
+    },
+
+    /**
+     * 将 feed 广告穿插到商品列表中
+     * 穿插规则: 每隔 EXCHANGE_FEED_AD_INTERVAL 条商品插入一条广告
+     */
+    _interleaveExchangeFeedAds(products: any[]): any[] {
+      const feedAds = this._exchangeFeedAds
+      if (!feedAds || feedAds.length === 0) {
+        return products
+      }
+
+      const interleavedList: any[] = []
+      let adIndex = 0
+
+      for (let i = 0; i < products.length; i++) {
+        interleavedList.push(products[i])
+
+        if ((i + 1) % EXCHANGE_FEED_AD_INTERVAL === 0 && adIndex < feedAds.length) {
+          const adItem = feedAds[adIndex]
+          interleavedList.push({
+            listing_id: `ad_${adItem.ad_campaign_id}`,
+            _isAdItem: true,
+            _adData: adItem,
+            item_name: adItem.title || '推荐',
+            image: adItem.primary_media?.public_url || '',
+            imageStatus: 'loaded'
+          })
+          adIndex++
+        }
+      }
+
+      return interleavedList
+    },
+
+    /**
+     * Feed 广告点击事件处理
+     */
+    onExchangeFeedAdTap(e: WechatMiniprogram.CustomEvent) {
+      const adData: API.AdDeliveryItem = e.currentTarget.dataset.ad
+      if (!adData) {
+        return
+      }
+
+      this._reportExchangeFeedEvent(adData, 'click')
+
+      if (adData.link_url && adData.link_type && adData.link_type !== 'none') {
+        switch (adData.link_type) {
+          case 'page':
+            wx.navigateTo({
+              url: adData.link_url,
+              fail: () => {
+                wx.switchTab({
+                  url: adData.link_url!,
+                  fail: (err: any) => marketLog.error('广告跳转页面失败:', err)
+                })
+              }
+            })
+            break
+
+          case 'miniprogram':
+            wx.navigateToMiniProgram({
+              appId: adData.link_url,
+              fail: (err: any) => marketLog.error('广告跳转小程序失败:', err)
+            })
+            break
+
+          case 'webview':
+            wx.navigateTo({
+              url: '/pages/webview/webview?url=' + encodeURIComponent(adData.link_url),
+              fail: (err: any) => marketLog.error('广告跳转webview失败:', err)
+            })
+            break
+
+          default:
+            marketLog.warn('未知的广告跳转类型:', adData.link_type)
+        }
+      }
+    },
+
+    /**
+     * Feed 广告事件上报 — 按 campaign_category 分流
+     */
+    _reportExchangeFeedEvent(adItem: API.AdDeliveryItem, eventType: 'impression' | 'click') {
+      if (!adItem?.ad_campaign_id) {
+        return
+      }
+
+      if (adItem.campaign_category === 'commercial') {
+        if (!adItem.ad_slot_id) {
+          marketLog.error('商业Feed广告缺少 ad_slot_id:', adItem.ad_campaign_id)
+          return
+        }
+
+        if (eventType === 'impression') {
+          reportAdImpression({
+            ad_campaign_id: adItem.ad_campaign_id,
+            ad_slot_id: adItem.ad_slot_id
+          }).catch((err: any) => {
+            marketLog.warn('Feed广告曝光上报失败:', err)
+          })
+        } else {
+          reportAdClick({
+            ad_campaign_id: adItem.ad_campaign_id,
+            ad_slot_id: adItem.ad_slot_id,
+            click_target: adItem.link_url || undefined
+          }).catch((err: any) => {
+            marketLog.warn('Feed广告点击上报失败:', err)
+          })
+        }
+      } else {
+        reportInteractionLog({
+          ad_campaign_id: adItem.ad_campaign_id,
+          interaction_type: eventType,
+          extra_data: { slot_type: 'feed', position: 'exchange_list' }
+        }).catch((err: any) => {
+          marketLog.warn('Feed交互日志上报失败:', err)
+        })
+      }
     }
   }
 })

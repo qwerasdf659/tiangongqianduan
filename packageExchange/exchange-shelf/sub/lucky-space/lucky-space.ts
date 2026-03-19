@@ -44,7 +44,7 @@ Component({
     viewMode: { type: String, value: 'grid' },
     /** 基础筛选项（后端下发） */
     basicFilters: { type: Array, value: [] },
-    /** 分类选项（后端 product-filter API 下发，使用 category_code） */
+    /** 分类选项（后端 product-filter API 下发，使用 category_def_id 整数筛选） */
     categoryOptions: { type: Array, value: [] },
     /** 价格区间选项（后端下发，统一 100/500/1000 区间） */
     costRangeOptions: { type: Array, value: [] },
@@ -254,6 +254,8 @@ Component({
               stock: item.stock || 0,
               sort_order: item.sort_order || 0,
               is_limited: item.is_limited || false,
+              is_pinned: item.is_pinned || false,
+              is_recommended: item.is_recommended || false,
               has_warranty: item.has_warranty || false,
               free_shipping: item.free_shipping || false,
               rarity_code: item.rarity_code || 'common',
@@ -318,9 +320,19 @@ Component({
       this.setData({ showAdvancedFilter: !this.data.showAdvancedFilter })
     },
 
-    /** 分类筛选变更 → 防抖加载 */
+    /** 分类筛选变更 → 防抖加载（保留兼容旧的扁平模式调用） */
     onCategoryFilterChange(e: any) {
       this.setData({ categoryFilter: e.currentTarget.dataset.category })
+      this._debouncedLoadProducts()
+    },
+
+    /**
+     * 两级分类联动选择器变更事件
+     * detail: { categoryCode, categoryDefId, level, parentCode }
+     */
+    onCategoryCascadeChange(e: any) {
+      const { categoryCode } = e.detail
+      this.setData({ categoryFilter: categoryCode || 'all' })
       this._debouncedLoadProducts()
     },
 
@@ -402,7 +414,7 @@ Component({
           apiParams.keyword = searchKeyword
         }
         if (categoryFilter && categoryFilter !== 'all') {
-          apiParams.category_code = categoryFilter
+          apiParams.category_def_id = categoryFilter
         }
 
         /* 价格区间：使用后端 cost_ranges 配置中的 min/max 值 */

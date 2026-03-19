@@ -11,7 +11,7 @@
  *   }
  *
  * 图片策略（对齐图片管理体系设计方案 决策5）:
- *   - item 类型 → 后端 item_info.image_url（完整公网URL）→ 分类图标 → 占位图
+ *   - item 类型 → 后端 item_info.primary_media.public_url（完整公网URL）→ 分类图标 → 占位图
  *   - fungible_asset 类型 → 本地材料图标（按 asset_code 映射）→ 占位图
  *   - C2C交易市场不支持用户上传图片
  *
@@ -29,6 +29,9 @@ const {
   Utils: marketUtils
 } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market')
+
+/** 每隔多少条商品穿插一条 feed 广告（前端穿插逻辑，后端只负责下发广告内容） */
+const FEED_AD_INTERVAL = 5
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { tradeStore } = require('../../../store/trade')
@@ -79,6 +82,9 @@ Page({
     filterAssetGroupCode: '' as string,
     filterAssetCode: '' as string,
 
+    /** Feed 信息流广告（后端 GET /api/v4/system/ad-delivery?slot_type=feed&position=market_list 返回） */
+    feedAdItems: [] as API.AdDeliveryItem[],
+
     /** 高级筛选面板是否展开 */
     showAdvancedFilter: false,
 
@@ -100,6 +106,7 @@ Page({
     sortOptions: [
       { key: 'recommended', label: '推荐' },
       { key: 'newest', label: '最新' },
+      { key: 'hot', label: '热门' },
       { key: 'price_asc', label: '价格↑' },
       { key: 'price_desc', label: '价格↓' }
     ]
@@ -117,7 +124,7 @@ Page({
 
     try {
       await this.initializeLayout()
-      await this.loadProducts(1)
+      await Promise.all([this.loadProducts(1), this._loadFeedAds()])
       marketLog.info('交易市场初始化完成')
     } catch (error) {
       marketLog.error('交易市场初始化失败', error)
@@ -179,7 +186,7 @@ Page({
         }
       }
       if (this.data.filterCategoryCode) {
-        listingsParams.item_category_code = this.data.filterCategoryCode
+        listingsParams.category_def_id = this.data.filterCategoryCode
       }
       if (this.data.filterRarityCode) {
         listingsParams.rarity_code = this.data.filterRarityCode
@@ -211,12 +218,16 @@ Page({
           _rarityStyle: imageHelper.getRarityStyle(
             (listing.item_info && listing.item_info.rarity_code) || 'common'
           ),
+          _isRecommended: listing.is_recommended === true,
+          _isPinned: listing.is_pinned === true,
           _imageError: false
         }))
 
+        const interleavedProducts = this._interleaveFeedAds(processedProducts)
+
         const allProducts = append
-          ? [...this.data.products, ...processedProducts]
-          : processedProducts
+          ? [...this.data.products, ...interleavedProducts]
+          : interleavedProducts
 
         const startTime = Date.now()
         const layoutResult = Waterfall.calculateWaterfallLayout(allProducts, {
@@ -531,7 +542,7 @@ Page({
     marketLog.info('下拉刷新')
     try {
       this.setData({ products: [], currentPage: 1, hasMore: true, columnHeights: [0, 0] })
-      await this.loadProducts(1)
+      await Promise.all([this.loadProducts(1), this._loadFeedAds()])
       wx.stopPullDownRefresh()
       Wechat.showToast('刷新成功', 'success', 1500)
     } catch (error) {
@@ -553,6 +564,160 @@ Page({
   onShow() {
     if (this.data.products.length === 0) {
       this.loadProducts(1)
+    }
+  },
+
+  // ========================================
+  // Feed 信息流广告（后端 GET /api/v4/system/ad-delivery?slot_type=feed&position=market_list）
+  // ========================================
+
+  /**
+   * 加载 feed 信息流广告
+   *
+   * 后端API: GET /api/v4/system/ad-delivery?slot_type=feed&position=market_list
+   * 对应广告位: market_list_feed（ID:14，日价30钻石，CPM 5钻石）
+   *
+   * 广告穿插由前端控制（每隔 FEED_AD_INTERVAL 条商品插入1条广告），后端只负责下发广告内容
+   */
+  async _loadFeedAds() {
+    try {
+      const feedResult = await API.getAdDelivery({ slot_type: 'feed', position: 'market_list' })
+      if (!feedResult?.success || !feedResult.data) {
+        return
+      }
+
+      const feedItems: API.AdDeliveryItem[] = feedResult.data.items || []
+      if (!Array.isArray(feedItems) || feedItems.length === 0) {
+        this.setData({ feedAdItems: [] })
+        return
+      }
+
+      this.setData({ feedAdItems: feedItems })
+      marketLog.info('Feed广告加载成功:', feedItems.length, '条')
+    } catch (feedError) {
+      marketLog.warn('Feed广告加载失败（不影响商品列表）:', feedError)
+    }
+  },
+
+  /**
+   * 将 feed 广告穿插到商品列表中
+   * 穿插规则: 每隔 FEED_AD_INTERVAL 条商品插入一条广告
+   * 广告项使用 _isAdItem=true 标记，WXML 通过此标记渲染不同的卡片样式
+   */
+  _interleaveFeedAds(products: any[]): any[] {
+    const feedAds = this.data.feedAdItems
+    if (!feedAds || feedAds.length === 0) {
+      return products
+    }
+
+    const interleavedList: any[] = []
+    let adIndex = 0
+
+    for (let i = 0; i < products.length; i++) {
+      interleavedList.push(products[i])
+
+      if ((i + 1) % FEED_AD_INTERVAL === 0 && adIndex < feedAds.length) {
+        const adItem = feedAds[adIndex]
+        interleavedList.push({
+          listing_id: `ad_${adItem.ad_campaign_id}`,
+          _isAdItem: true,
+          _adData: adItem,
+          _displayName: adItem.title || '推荐',
+          _displayImage: adItem.primary_media?.public_url || '',
+          _imageError: false
+        })
+        adIndex++
+      }
+    }
+
+    return interleavedList
+  },
+
+  /**
+   * Feed 广告点击 — 上报 click 事件 + 执行跳转
+   */
+  onFeedAdTap(e: WechatMiniprogram.CustomEvent) {
+    const adData: API.AdDeliveryItem = e.currentTarget.dataset.ad
+    if (!adData) {
+      return
+    }
+
+    this._reportFeedAdEvent(adData, 'click')
+
+    if (adData.link_url && adData.link_type && adData.link_type !== 'none') {
+      switch (adData.link_type) {
+        case 'page':
+          wx.navigateTo({
+            url: adData.link_url,
+            fail: () => {
+              wx.switchTab({
+                url: adData.link_url!,
+                fail: (err: any) => marketLog.error('广告跳转页面失败:', err)
+              })
+            }
+          })
+          break
+
+        case 'miniprogram':
+          wx.navigateToMiniProgram({
+            appId: adData.link_url,
+            fail: (err: any) => marketLog.error('广告跳转小程序失败:', err)
+          })
+          break
+
+        case 'webview':
+          wx.navigateTo({
+            url: '/pages/webview/webview?url=' + encodeURIComponent(adData.link_url),
+            fail: (err: any) => marketLog.error('广告跳转webview失败:', err)
+          })
+          break
+
+        default:
+          marketLog.warn('未知的广告跳转类型:', adData.link_type)
+      }
+    }
+  },
+
+  /**
+   * Feed 广告事件上报 — 按 campaign_category 分流
+   * commercial → reportAdImpression / reportAdClick（计费系统）
+   * operational / system → reportInteractionLog（交互日志）
+   */
+  _reportFeedAdEvent(adItem: API.AdDeliveryItem, eventType: 'impression' | 'click') {
+    if (!adItem?.ad_campaign_id) {
+      return
+    }
+
+    if (adItem.campaign_category === 'commercial') {
+      if (!adItem.ad_slot_id) {
+        marketLog.error('商业Feed广告缺少 ad_slot_id:', adItem.ad_campaign_id)
+        return
+      }
+
+      if (eventType === 'impression') {
+        API.reportAdImpression({
+          ad_campaign_id: adItem.ad_campaign_id,
+          ad_slot_id: adItem.ad_slot_id
+        }).catch((err: any) => {
+          marketLog.warn('Feed广告曝光上报失败:', err)
+        })
+      } else {
+        API.reportAdClick({
+          ad_campaign_id: adItem.ad_campaign_id,
+          ad_slot_id: adItem.ad_slot_id,
+          click_target: adItem.link_url || undefined
+        }).catch((err: any) => {
+          marketLog.warn('Feed广告点击上报失败:', err)
+        })
+      }
+    } else {
+      API.reportInteractionLog({
+        ad_campaign_id: adItem.ad_campaign_id,
+        interaction_type: eventType,
+        extra_data: { slot_type: 'feed', position: 'market_list' }
+      }).catch((err: any) => {
+        marketLog.warn('Feed交互日志上报失败:', err)
+      })
     }
   },
 

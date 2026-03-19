@@ -18,7 +18,7 @@
  *   执行兑换: POST /api/v4/backpack/exchange（body: { exchange_item_id, quantity }）
  *   用户余额: GET /api/v4/assets/balances
  *   页面配置: GET /api/v4/system/config/exchange-page
- *   相关推荐: GET /api/v4/backpack/exchange/items?category=xxx&exclude_id=xxx&page_size=4
+ *   相关推荐: GET /api/v4/backpack/exchange/items?category_def_id=xxx&exclude_id=xxx&page_size=4
  *
  * 响应层级: detailResponse.data.item（后端统一 ApiResponse 包装）
  *
@@ -281,18 +281,18 @@ Page({
       /** ⑤ 详情长图（后端 detail_images，role='detail'，含可选 caption 图片说明） */
       const detailImages: any[] = Array.isArray(productData.detail_images)
         ? productData.detail_images.map((img: any) => ({
-          media_id: img.media_id,
-          url: img.public_url || (img.thumbnails && img.thumbnails.large) || '',
-          caption: img.caption || ''
-        }))
+            media_id: img.media_id,
+            url: img.public_url || (img.thumbnails && img.thumbnails.large) || '',
+            caption: img.caption || ''
+          }))
         : []
 
       /** ⑥ 展示图（后端 showcase_images，role='showcase'） */
       const showcaseImages: any[] = Array.isArray(productData.showcase_images)
         ? productData.showcase_images.map((img: any) => ({
-          media_id: img.media_id,
-          url: img.public_url || (img.thumbnails && img.thumbnails.large) || ''
-        }))
+            media_id: img.media_id,
+            url: img.public_url || (img.thumbnails && img.thumbnails.large) || ''
+          }))
         : []
 
       /** ⑦ 使用说明（后端 usage_rules 或前端通用规则兜底） */
@@ -455,10 +455,9 @@ Page({
       wx.setNavigationBarTitle({ title: productData.item_name || '商品详情' })
       edLog.info('商品详情加载成功:', productData.item_name)
 
-      /** 异步加载相关推荐（不阻塞主渲染，使用 category_code 查询） */
-      const categoryCode =
-        (productData.category_def && productData.category_def.category_code) || ''
-      this._loadRelatedProducts(categoryCode, itemId)
+      /** 异步加载相关推荐（不阻塞主渲染，使用 category_def_id 整数查询） */
+      const relatedCategoryDefId = productData.category_def_id || null
+      this._loadRelatedProducts(relatedCategoryDefId, itemId)
     } catch (error: any) {
       edLog.error('商品详情加载失败:', error)
       this.setData({
@@ -472,18 +471,17 @@ Page({
   /**
    * ⑧ 加载相关推荐（异步，不阻塞主渲染）
    *
-   * API: GET /api/v4/backpack/exchange/items?category_code=xxx&exclude_id=xxx&page_size=4&status=active
-   * 注意: category_code 传字符串 code（如 'collectible'），后端兼容 category_code 和 category_def_id 两种参数
+   * API: GET /api/v4/backpack/exchange/items?category_def_id=xxx&exclude_id=xxx&page_size=4&status=active
    */
-  async _loadRelatedProducts(category: string | null, excludeId: number) {
-    if (!category) {
+  async _loadRelatedProducts(categoryDefId: number | null, excludeId: number) {
+    if (!categoryDefId) {
       edLog.info('商品无分类，跳过相关推荐')
       return
     }
 
     try {
       const response = await DetailPageAPI.getExchangeProducts({
-        category_code: category,
+        category_def_id: categoryDefId,
         exclude_id: excludeId,
         page_size: 4,
         status: 'active'

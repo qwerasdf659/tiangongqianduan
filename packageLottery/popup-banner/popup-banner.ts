@@ -27,11 +27,13 @@
  *   banners[].ad_campaign_id    {Number} 广告计划主键ID
  *   banners[].title             {String} 创意标题
  *   banners[].text_content      {String} 文字内容（content_type='text' 时有值）
- *   banners[].image_url         {String} 横幅图片URL（可选，content_type='text' 时为 null）
+ *   banners[].primary_media      {Object|null} 主图媒体对象（content_type='text' 时为 null）
+ *     .public_url               {String} 图片完整公网URL（后端已拼接，前端直接使用）
+ *     .width                    {Number} 原图宽度px
+ *     .height                   {Number} 原图高度px
+ *     .thumbnails               {Object|null} 缩略图 { small, medium, large }
  *   banners[].link_url          {String} 点击跳转链接（可选）
  *   banners[].display_mode      {String} 显示模式
- *   banners[].image_width       {Number} 原图宽度px（后端sharp检测）
- *   banners[].image_height      {Number} 原图高度px（后端sharp检测）
  *   banners[].campaign_category {String} 分类: system=系统通知 / operational=运营内容 / commercial=商业广告
  *   banners[].force_show        {Boolean} 强制弹出（不可点遮罩关闭）
  *
@@ -256,30 +258,29 @@ Component({
       this._imageRetryCount++
 
       let currentBanner = this.data.banners[this.data.currentIndex]
-      let imageUrl = currentBanner ? currentBanner.image_url : ''
+      let mediaUrl = currentBanner?.primary_media?.public_url || ''
 
       if (this._imageRetryCount <= MAX_RETRY) {
-        // 🔄 自动重试：添加时间戳参数绕过缓存
-        log.warn('弹窗横幅图片加载失败，第' + this._imageRetryCount + '次重试...', imageUrl)
+        log.warn('弹窗横幅图片加载失败，第' + this._imageRetryCount + '次重试...', mediaUrl)
 
-        // 构造重试URL（添加_retry参数绕过缓存）
-        let retryUrl = imageUrl
+        let retryUrl = mediaUrl
         if (retryUrl && typeof retryUrl === 'string') {
           let separator = retryUrl.indexOf('?') === -1 ? '?' : '&'
           retryUrl = retryUrl + separator + '_retry=' + Date.now()
         }
 
-        // 更新当前横幅的image_url触发重新加载
         let banners = this.data.banners.slice()
-        if (banners[this.data.currentIndex]) {
+        if (banners[this.data.currentIndex] && banners[this.data.currentIndex].primary_media) {
+          let updatedMedia = Object.assign({}, banners[this.data.currentIndex].primary_media, {
+            public_url: retryUrl
+          })
           banners[this.data.currentIndex] = Object.assign({}, banners[this.data.currentIndex], {
-            image_url: retryUrl
+            primary_media: updatedMedia
           })
           this.setData({ banners })
         }
       } else {
-        // ❌ 重试耗尽，标记加载失败，触发降级占位显示
-        log.error('弹窗横幅图片加载失败（已重试' + MAX_RETRY + '次），降级显示占位图:', imageUrl)
+        log.error('弹窗横幅图片加载失败（已重试' + MAX_RETRY + '次），降级显示占位图:', mediaUrl)
         this.setData({ imageLoadFailed: true })
       }
     }

@@ -986,6 +986,46 @@
   border-color: rgba(0, 0, 0, 0.06);
 }
 
+/* 推荐/置顶角标（后端 is_pinned / is_recommended 字段驱动） */
+.badge-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 6rpx 16rpx 6rpx 10rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #ffffff;
+  border-radius: 0 0 14rpx 0;
+  z-index: 3;
+  letter-spacing: 1rpx;
+}
+.badge-tag.pinned {
+  background: linear-gradient(135deg, #ff6b35, #ffa040);
+}
+.badge-tag.recommended {
+  background: linear-gradient(135deg, #1e88e5, #42a5f5);
+}
+
+/* Feed 广告卡片 — 穿插在商品列表中，与普通商品卡片区分 */
+.feed-ad-card {
+  border: 2rpx solid rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+}
+
+.badge-tag.ad-tag {
+  background: linear-gradient(135deg, #ff9800, #ffc107);
+}
+
+.ad-action-hint {
+  padding: 8rpx 0 4rpx;
+}
+
+.ad-action-text {
+  font-size: 22rpx;
+  color: #667eea;
+  font-weight: 600;
+}
+
 .hidden {
   display: none !important;
 }

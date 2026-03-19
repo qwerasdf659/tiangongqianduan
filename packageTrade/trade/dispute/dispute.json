@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "交易申诉",
+  "usingComponents": {
+    "loading-spinner": "/components/loading-spinner/loading-spinner",
+    "maintenance-overlay": "/components/maintenance-overlay/maintenance-overlay"
+  }
+}

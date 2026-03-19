@@ -74,6 +74,12 @@
 .badge-tag.limited {
   background: var(--shelf-tag-limited, linear-gradient(135deg, #7c4dff, #b388ff));
 }
+.badge-tag.pinned {
+  background: var(--shelf-tag-pinned, linear-gradient(135deg, #ff6b35, #ffa040));
+}
+.badge-tag.recommended {
+  background: var(--shelf-tag-recommended, linear-gradient(135deg, #1e88e5, #42a5f5));
+}
 
 /* 类型胶囊标签 */
 .unified-card .type-capsule {

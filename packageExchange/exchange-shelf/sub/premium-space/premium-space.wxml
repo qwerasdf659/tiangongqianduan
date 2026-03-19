@@ -22,18 +22,10 @@
 
     <!-- 高级筛选面板 -->
     <view class="advanced-filter-panel" wx:if="{{showAdvancedFilter}}">
-      <view class="filter-row" wx:if="{{categoryOptions.length > 0}}">
+      <!-- 两级分类联动选择器（后端支持树形时自动升级，否则降级到扁平模式） -->
+      <view class="filter-row">
         <text class="filter-label">商品分类</text>
-        <view class="filter-options">
-          <view
-            wx:for="{{categoryOptions}}"
-            wx:key="value"
-            class="option-btn {{categoryFilter === item.value ? 'active' : ''}} {{filtersCount && filtersCount.categories && item.value !== 'all' && filtersCount.categories[item.value] === 0 ? 'filter-disabled' : ''}}"
-            data-category="{{item.value}}"
-            bindtap="onCategoryFilterChange"
-            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.categories && filtersCount.categories[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.categories[item.value]}})</text></view
-          >
-        </view>
+        <category-cascade value="{{categoryFilter}}" flat-options="{{categoryOptions}}" bind:change="onCategoryCascadeChange" />
       </view>
       <view class="filter-row" wx:if="{{costRangeOptions.length > 0}}">
         <text class="filter-label">价格区间</text>
@@ -118,7 +110,10 @@
           <text class="fallback-icon">💎</text>
           <text class="fallback-name">{{item.item_name}}</text>
         </view>
-        <view wx:if="{{item.is_hot}}" class="badge-tag hot">热销</view>
+        <!-- 标签（优先级: 置顶 > 推荐 > 热销 > 新品 > 限量） -->
+        <view wx:if="{{item.is_pinned}}" class="badge-tag pinned">置顶</view>
+        <view wx:elif="{{item.is_recommended}}" class="badge-tag recommended">推荐</view>
+        <view wx:elif="{{item.is_hot}}" class="badge-tag hot">热销</view>
         <view wx:elif="{{item.is_new}}" class="badge-tag new">新品</view>
         <view wx:elif="{{item.is_limited}}" class="badge-tag limited">限量</view>
       </view>
