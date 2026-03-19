@@ -316,6 +316,12 @@ Page({
           })
         })
       } else {
+        if (productData.is_pinned) {
+          processedDisplayTags.push({ text: '置顶', style_type: 'pinned', emoji: '📌' })
+        }
+        if (productData.is_recommended) {
+          processedDisplayTags.push({ text: '推荐', style_type: 'recommended', emoji: '👍' })
+        }
         if (productData.is_hot) {
           processedDisplayTags.push({ text: '热门', style_type: 'hot', emoji: '🔥' })
         }

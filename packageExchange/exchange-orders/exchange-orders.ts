@@ -228,9 +228,10 @@ Page({
    * 丰富订单展示字段（后端snake_case → 前端展示辅助字段）
    * 以 _ 前缀标记为纯展示辅助字段，与后端业务字段区分
    *
-   * M4 适配: 后端 item_snapshot 脱敏后结构为 { item_name, description, image_url }
-   *   - 取商品名用 .item_name（不是 .name）
-   *   - image_url 可能为 null（商品无图时），用占位图兜底
+   * 新订单快照结构: { name, description, primary_media: { public_url } }
+   * 历史订单兼容: { item_name, description, image_url }
+   *   - 商品名优先 .name，降级 .item_name
+   *   - 图片优先 .primary_media?.public_url，降级 .image_url，兜底占位图
    */
   enrichOrderDisplay(order: any) {
     const statusInfo = ORDER_STATUS_MAP[order.status] || {
