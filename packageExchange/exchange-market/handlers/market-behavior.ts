@@ -79,7 +79,7 @@ module.exports = Behavior({
         facetsLoaded: false,
         filtersCount: null
       })
-      this._loadExchangeFeedAds()
+      this._feedAdsReady = this._loadExchangeFeedAds()
     },
 
     /**
@@ -93,6 +93,10 @@ module.exports = Behavior({
     async loadProducts() {
       marketLog.info('加载交易市场挂单列表...')
       this.setData({ loading: true })
+
+      if (this._feedAdsReady) {
+        await this._feedAdsReady.catch(() => {})
+      }
 
       let token = marketUserStore.accessToken
       if (!token) {
@@ -212,6 +216,8 @@ module.exports = Behavior({
               offer_category_def_id: itemInfo.category_def_id || null,
               item_id: itemInfo.item_id || null,
               template_id: itemInfo.template_id || null,
+              is_pinned: item.is_pinned || false,
+              is_recommended: item.is_recommended || false,
               status: item.status || 'active',
               created_at: item.created_at || '',
               imageStatus: 'loading'

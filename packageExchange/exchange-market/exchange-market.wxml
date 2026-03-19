@@ -172,7 +172,10 @@
               <text class="fallback-icon">{{item.listing_kind === 'fungible_asset' ? '🪙' : '🎁'}}</text>
               <text class="fallback-name">{{item.item_name}}</text>
             </view>
-            <view wx:if="{{item._rarityClass}}" class="badge-tag {{item._rarityClass}}">{{item.offer_item_rarity}}</view>
+            <!-- 角标（优先级: 置顶 > 推荐 > 稀有度） -->
+            <view wx:if="{{item.is_pinned}}" class="badge-tag pinned">置顶</view>
+            <view wx:elif="{{item.is_recommended}}" class="badge-tag recommended">推荐</view>
+            <view wx:elif="{{item._rarityClass}}" class="badge-tag {{item._rarityClass}}">{{item.offer_item_rarity}}</view>
             <view class="type-capsule {{item.listing_kind === 'fungible_asset' ? 'asset-capsule' : 'item-capsule'}}">
               {{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</view>
           </view>

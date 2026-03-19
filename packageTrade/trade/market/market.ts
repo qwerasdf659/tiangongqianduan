@@ -6,8 +6,8 @@
  *   products[]: {
  *     listing_id, listing_kind, seller_user_id, seller_nickname,
  *     price_asset_code, price_amount, status, created_at,
- *     item_info: { display_name, image_url, category_code, rarity_code },  // 物品类型
- *     asset_info: { asset_code, amount, display_name, icon_url }           // 资产类型
+ *     item_info: { display_name, primary_media, category_code, rarity_code },  // 物品类型
+ *     asset_info: { asset_code, amount, display_name, primary_media }        // 资产类型
  *   }
  *
  * 图片策略（对齐图片管理体系设计方案 决策5）:
@@ -124,7 +124,8 @@ Page({
 
     try {
       await this.initializeLayout()
-      await Promise.all([this.loadProducts(1), this._loadFeedAds()])
+      await this._loadFeedAds()
+      await this.loadProducts(1)
       marketLog.info('交易市场初始化完成')
     } catch (error) {
       marketLog.error('交易市场初始化失败', error)
@@ -542,7 +543,8 @@ Page({
     marketLog.info('下拉刷新')
     try {
       this.setData({ products: [], currentPage: 1, hasMore: true, columnHeights: [0, 0] })
-      await Promise.all([this.loadProducts(1), this._loadFeedAds()])
+      await this._loadFeedAds()
+      await this.loadProducts(1)
       wx.stopPullDownRefresh()
       Wechat.showToast('刷新成功', 'success', 1500)
     } catch (error) {
