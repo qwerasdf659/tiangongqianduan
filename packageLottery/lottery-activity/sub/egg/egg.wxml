@@ -204,11 +204,7 @@
               class="egg-prizes__item {{item.is_fallback ? 'egg-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'egg-prizes__item--sold-out' : ''}}"
             >
               <view class="egg-prizes__icon-wrap">
-                <image
-                  class="egg-prizes__image"
-                  src="{{item.prize_image_url}}"
-                  mode="aspectFit"
-                />
+                <image class="egg-prizes__image" src="{{item.prize_image_url}}" mode="aspectFit" />
                 <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
               </view>
               <text class="egg-prizes__name">{{item.prize_name}}</text>
@@ -230,11 +226,7 @@
               class="egg-prizes__item {{item.is_fallback ? 'egg-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'egg-prizes__item--sold-out' : ''}}"
             >
               <view class="egg-prizes__icon-wrap">
-                <image
-                  class="egg-prizes__image"
-                  src="{{item.prize_image_url}}"
-                  mode="aspectFit"
-                />
+                <image class="egg-prizes__image" src="{{item.prize_image_url}}" mode="aspectFit" />
                 <text wx:if="{{item.is_sold_out}}" class="egg-prizes__sold-out">抢光</text>
               </view>
               <text class="egg-prizes__name">{{item.prize_name}}</text>

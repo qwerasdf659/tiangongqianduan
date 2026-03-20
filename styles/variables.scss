@@ -1,19 +1,19 @@
 // ============================================================================
-// 🎨 全局设计Token - Sass变量定义
+// 全局设计Token - Sass变量定义
 // ============================================================================
 //
-// 文件用途: 统一管理品牌色、间距、字体、圆角等设计变量
-// 使用方式: 在页面.scss中通过 @import 引入
-// 修改须知: 修改变量值会影响所有引用该变量的页面
+// 统一管理品牌色、间距、字体、圆角等设计变量
+// 页面 .scss 通过 @import 引入；修改变量值会影响所有引用页面
 //
 // @file 天工餐厅积分系统 - 全局Sass变量
-// @version 3.0.0
-// @since 2026-02-10
+// @version 4.0.0
+// @since 2026-03-21
 
-// ===== 品牌色 =====
+// ===== 品牌色（暖橙方向，全项目唯一主色） =====
 $color-primary: #ff6b35; // 主品牌色（橙色）
-$color-primary-dark: #e55a25; // 主品牌色-深色（hover状态）
+$color-primary-dark: #e55a2b; // 主品牌色-深色（hover/active状态）
 $color-primary-light: #ff8c5a; // 主品牌色-浅色（背景、边框）
+$color-primary-rgb: 255, 107, 53; // 主品牌色 RGB（用于带透明度的品牌色阴影）
 
 // ===== 功能色 =====
 $color-success: #52c41a; // 成功色（绿色）
@@ -22,20 +22,20 @@ $color-error: #ff4d4f; // 错误色（红色）
 $color-info: #1890ff; // 信息色（蓝色）
 
 // ===== 中性色 =====
-$color-white: #ffffff; // 纯白
+$color-white: #ffffff;
 $color-bg: #f8f9fa; // 页面背景色
-$color-bg-card: #ffffff; // 卡片背景色
+$color-bg-card: #ffffff; // 卡片背景色（纯白，不用半透明）
 $color-bg-grey: #f5f5f5; // 灰色背景
-$color-border: #e8e8e8; // 边框色
-$color-border-light: #f0f0f0; // 浅边框色
-$color-divider: #eeeeee; // 分割线色
+$color-border: #e8e8e8;
+$color-border-light: #f0f0f0;
+$color-divider: #eeeeee;
 
 // ===== 文字色 =====
 $color-text-primary: #333333; // 主要文字
 $color-text-secondary: #666666; // 次要文字
 $color-text-tertiary: #999999; // 辅助文字
 $color-text-disabled: #cccccc; // 禁用文字
-$color-text-white: #ffffff; // 白色文字（在深色背景上使用）
+$color-text-white: #ffffff; // 白色文字（深色背景上使用）
 
 // ===== 字体 =====
 $font-family:
@@ -43,73 +43,74 @@ $font-family:
   'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;
 
 // ===== 字号 =====
-$font-size-xs: 20rpx; // 极小字号（标签、角标）
-$font-size-sm: 24rpx; // 小字号（辅助文字）
-$font-size-base: 28rpx; // 基础字号（正文）
-$font-size-md: 32rpx; // 中等字号（页面默认）
-$font-size-lg: 36rpx; // 大字号（标题）
-$font-size-xl: 40rpx; // 特大字号（页面标题）
-$font-size-xxl: 48rpx; // 超大字号（数字高亮）
+$font-size-xs: 20rpx; // 极小（标签、角标）
+$font-size-sm: 24rpx; // 小（辅助文字）
+$font-size-base: 28rpx; // 基础（正文）
+$font-size-md: 32rpx; // 中等（页面默认）
+$font-size-lg: 36rpx; // 大（标题）
+$font-size-xl: 40rpx; // 特大（页面标题）
+$font-size-xxl: 48rpx; // 超大（数字高亮）
 
 // ===== 行高 =====
-$line-height-tight: 1.2; // 紧凑行高
-$line-height-base: 1.6; // 基础行高
-$line-height-loose: 2; // 宽松行高
+$line-height-tight: 1.2;
+$line-height-base: 1.6;
+$line-height-loose: 2;
 
 // ===== 圆角 =====
-$border-radius-sm: 8rpx; // 小圆角（按钮、输入框）
-$border-radius-md: 16rpx; // 中圆角（卡片）
-$border-radius-lg: 24rpx; // 大圆角（弹窗）
-$border-radius-xl: 32rpx; // 特大圆角（标签页）
-$border-radius-round: 50%; // 圆形（头像）
+$border-radius-sm: 8rpx; // 按钮、输入框
+$border-radius-md: 16rpx; // 卡片
+$border-radius-lg: 24rpx; // 弹窗
+$border-radius-xl: 32rpx; // 标签页
+$border-radius-round: 50%; // 头像
 
-// ===== 间距 =====
+// ===== 间距（对比旧版放大 30-50%，增加呼吸空间） =====
 $spacing-xs: 8rpx; // 极小间距
-$spacing-sm: 12rpx; // 小间距
-$spacing-md: 16rpx; // 中间距
-$spacing-base: 20rpx; // 基础间距
-$spacing-lg: 24rpx; // 大间距
-$spacing-xl: 32rpx; // 特大间距
-$spacing-xxl: 40rpx; // 超大间距
+$spacing-sm: 16rpx; // 小间距（旧12rpx → 16rpx）
+$spacing-md: 20rpx; // 中间距（旧16rpx → 20rpx）
+$spacing-base: 24rpx; // 基础间距（旧20rpx → 24rpx）
+$spacing-lg: 32rpx; // 大间距（旧24rpx → 32rpx）
+$spacing-xl: 40rpx; // 特大间距（旧32rpx → 40rpx）
+$spacing-xxl: 48rpx; // 超大间距（旧40rpx → 48rpx）
 
-// ===== 阴影 =====
-$shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.06); // 轻阴影
-$shadow-md: 0 4rpx 12rpx rgba(0, 0, 0, 0.1); // 中阴影（卡片默认）
-$shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.15); // 重阴影（弹窗）
+// ===== 品牌色阴影（替代通用黑色阴影，阴影带主色色调融入画面） =====
+$shadow-sm: 0 4rpx 12rpx rgba($color-primary-rgb, 0.06); // 轻阴影
+$shadow-md:
+  0 8rpx 20rpx rgba($color-primary-rgb, 0.08),
+  0 2rpx 6rpx rgba(0, 0, 0, 0.04); // 中阴影（卡片默认）
+$shadow-lg:
+  0 12rpx 32rpx rgba($color-primary-rgb, 0.12),
+  0 4rpx 10rpx rgba(0, 0, 0, 0.06); // 重阴影（弹窗）
 
 // ===== 尺寸 =====
-$icon-size-sm: 40rpx; // 小图标
-$icon-size-md: 48rpx; // 中图标
-$icon-size-lg: 70rpx; // 大图标
-$avatar-size: 120rpx; // 头像尺寸
+$icon-size-sm: 40rpx;
+$icon-size-md: 48rpx;
+$icon-size-lg: 70rpx;
+$avatar-size: 120rpx;
 
-// ===== 动画 =====
-$transition-fast: 0.15s ease; // 快速过渡
-$transition-base: 0.3s ease; // 基础过渡
-$transition-slow: 0.5s ease; // 慢速过渡
+// ===== 动画（统一 0.2s，克制不花哨） =====
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease; // 全局统一 0.2s
+$transition-slow: 0.3s ease; // 从 0.5s 降到 0.3s
 
 // ===== TabBar =====
-$tabbar-color: #666666; // TabBar默认文字色
-$tabbar-active-color: #ff6b35; // TabBar选中色
-$tabbar-bg: #ffffff; // TabBar背景色
+$tabbar-color: #999999; // TabBar 默认文字色
+$tabbar-active-color: $color-primary; // TabBar 选中色（跟随品牌色）
+$tabbar-bg: #ffffff;
 
 // ===== 导航栏 =====
-$navbar-bg: #ff6b35; // 导航栏背景色
-$navbar-text-color: #ffffff; // 导航栏文字色
+$navbar-bg: $color-primary; // 导航栏背景色（跟随品牌色）
+$navbar-text-color: #ffffff;
 
-// ===== 页面渐变背景 =====
-$gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%); // 主渐变（紫蓝→深紫）
-$gradient-blue-start: #667eea; // 渐变起始色
-$gradient-blue-end: #764ba2; // 渐变结束色
-$gradient-card-bg: linear-gradient(
-  135deg,
-  rgba(255, 255, 255, 0.98),
-  rgba(255, 255, 255, 0.92)
-); // 卡片毛玻璃渐变背景
-
-// ===== 常用组合值 =====
+// ===== 卡片阴影（品牌色调，替代旧版蓝紫色阴影） =====
 $shadow-card:
-  0 12rpx 48rpx rgba(102, 126, 234, 0.12),
-  0 4rpx 24rpx rgba(102, 126, 234, 0.08),
-  inset 0 1rpx 0 rgba(255, 255, 255, 0.8); // 页面卡片阴影（毛玻璃效果）
-$blur-card: blur(15rpx); // 卡片毛玻璃模糊值
+  0 8rpx 20rpx rgba($color-primary-rgb, 0.08),
+  0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+
+// ===== 页面渐变背景（v4.0 统一为暖橙方向，去掉旧版蓝紫渐变） =====
+$gradient-blue-start: #f7931e; // 渐变起始色（暖橙，替代旧版 #667eea 蓝紫）
+$gradient-blue-end: #e67e22; // 渐变结束色（深橙，替代旧版 #764ba2 紫色）
+$gradient-primary: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+
+// ===== 卡片背景（v4.0 纯白底，去掉毛玻璃渐变） =====
+$gradient-card-bg: #ffffff; // 替代旧版半透明渐变
+$blur-card: none; // 去掉卡片毛玻璃模糊（普通卡片不用 backdrop-filter）

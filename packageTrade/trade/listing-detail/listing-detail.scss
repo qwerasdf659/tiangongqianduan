@@ -123,7 +123,7 @@
 }
 
 .detail-kind-tag.asset-tag {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: $gradient-primary;
 }
 
 .detail-kind-tag.item-tag {
@@ -326,7 +326,7 @@
 
   text {
     font-size: $font-size-sm;
-    color: #667eea;
+    color: $gradient-blue-start;
     font-weight: 500;
   }
 }
@@ -432,7 +432,7 @@
   line-height: 80rpx !important;
   font-size: $font-size-base !important;
   font-weight: 600 !important;
-  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3) !important;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3) !important;
 }
 
 .purchase-btn.btn-disabled {

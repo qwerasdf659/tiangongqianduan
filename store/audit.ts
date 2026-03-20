@@ -88,8 +88,8 @@ export const auditStore = observable({
     this.lastRefreshTime = now
 
     try {
-      const consoleApi = require('../utils/api/console')
-      const pendingResult = await consoleApi.getMyPendingApprovalSteps({
+      const { API: auditApi } = require('../utils/index')
+      const pendingResult = await auditApi.getMyPendingApprovalSteps({
         page: 1,
         page_size: 1,
         showLoading: false

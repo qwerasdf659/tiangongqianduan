@@ -173,6 +173,9 @@ Page({
   },
 
   async onShow() {
+    if (typeof this.getTabBar === 'function') {
+      this.getTabBar().setData({ selected: 0 })
+    }
     /* 首次加载由 initializePage() 统一处理认证和数据，onShow 不重复检查 */
     if (this._isFirstLoad) {
       return

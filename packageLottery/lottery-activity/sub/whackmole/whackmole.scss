@@ -11,11 +11,13 @@
   padding: 30rpx 0 60rpx;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg,
-      var(--theme-bg-light, #87ceeb) 0%,
-      var(--theme-bg-mid, #98d8c8) 30%,
-      var(--theme-bg-dark, #4caf50) 60%,
-      var(--theme-bg-darker, #2e7d32) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-light, #87ceeb) 0%,
+    var(--theme-bg-mid, #98d8c8) 30%,
+    var(--theme-bg-dark, #4caf50) 60%,
+    var(--theme-bg-darker, #2e7d32) 100%
+  );
 
   /* 草地纹理 */
   &::before {
@@ -25,11 +27,13 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: repeating-linear-gradient(0deg,
-        transparent,
-        transparent 4rpx,
-        rgba(0, 0, 0, 0.03) 4rpx,
-        rgba(0, 0, 0, 0.03) 8rpx);
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 4rpx,
+      rgba(0, 0, 0, 0.03) 4rpx,
+      rgba(0, 0, 0, 0.03) 8rpx
+    );
     opacity: 0.5;
     pointer-events: none;
     z-index: 0;
@@ -194,7 +198,6 @@
 }
 
 @keyframes badgeGlow {
-
   0%,
   100% {
     opacity: 0;
@@ -206,7 +209,6 @@
 }
 
 @keyframes badgePulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -249,7 +251,6 @@
 }
 
 @keyframes urgentPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -280,33 +281,39 @@
 
 .timer-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg,
-      var(--theme-success, #4caf50),
-      var(--theme-success-light, #8bc34a),
-      var(--theme-warning-light, #cddc39));
+  background: linear-gradient(
+    90deg,
+    var(--theme-success, #4caf50),
+    var(--theme-success-light, #8bc34a),
+    var(--theme-warning-light, #cddc39)
+  );
   border-radius: 6rpx;
   transition: width 1s linear;
   position: relative;
   box-shadow: 0 0 10rpx rgba(76, 175, 80, 0.5);
 
   &.urgent {
-    background: linear-gradient(90deg,
-        var(--theme-danger, #f44336),
-        var(--theme-danger-light, #ff5722),
-        var(--theme-warning, #ff9800));
+    background: linear-gradient(
+      90deg,
+      var(--theme-danger, #f44336),
+      var(--theme-danger-light, #ff5722),
+      var(--theme-warning, #ff9800)
+    );
     animation: timerFlash 0.3s ease-in-out infinite;
     box-shadow: 0 0 15rpx rgba(244, 67, 54, 0.8);
   }
 
   &.carnival {
-    background: linear-gradient(90deg,
-        #ff0080,
-        #ff8c00,
-        #ffd700,
-        #00ff00,
-        #00ced1,
-        #0080ff,
-        #8b00ff);
+    background: linear-gradient(
+      90deg,
+      #ff0080,
+      #ff8c00,
+      #ffd700,
+      #00ff00,
+      #00ced1,
+      #0080ff,
+      #8b00ff
+    );
     background-size: 200% 100%;
     animation: rainbowFlow 2s linear infinite;
   }
@@ -331,9 +338,11 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 20rpx;
-  background: linear-gradient(135deg,
-      var(--theme-primary, #ff0080),
-      var(--theme-secondary, #8b00ff));
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff0080),
+    var(--theme-secondary, #8b00ff)
+  );
   border-radius: $border-radius-lg;
   border: 2rpx solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 4rpx 12rpx var(--theme-secondary-glow, rgba(139, 0, 255, 0.4));
@@ -353,7 +362,6 @@
 }
 
 @keyframes carnivalPulse {
-
   0%,
   100% {
     transform: translateX(-50%) scale(1);
@@ -396,7 +404,6 @@
 }
 
 @keyframes timerFlash {
-
   0%,
   100% {
     opacity: 1;
@@ -470,7 +477,6 @@
 }
 
 @keyframes comboShake {
-
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
@@ -486,7 +492,6 @@
 }
 
 @keyframes comboSparkle {
-
   0%,
   100% {
     transform: scale(1) rotate(0deg);
@@ -541,7 +546,8 @@
   // 火焰锤（5连击）
   &.hammer-fire .hammer-icon {
     font-size: 56rpx;
-    filter: drop-shadow(0 0 12rpx rgba(255, 165, 0, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 12rpx rgba(255, 165, 0, 0.8))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
   // 雷电锤（10连击）
@@ -586,7 +592,6 @@
 }
 
 @keyframes fireFlicker {
-
   0%,
   100% {
     filter: brightness(1);
@@ -598,7 +603,6 @@
 }
 
 @keyframes thunderPulse {
-
   0%,
   100% {
     filter: brightness(1);
@@ -610,7 +614,6 @@
 }
 
 @keyframes fireGlow {
-
   0%,
   100% {
     transform: scale(1);
@@ -624,7 +627,6 @@
 }
 
 @keyframes thunderGlow {
-
   0%,
   100% {
     transform: scale(1);
@@ -701,7 +703,6 @@
 }
 
 @keyframes missShake {
-
   0%,
   100% {
     transform: translateX(0);
@@ -791,7 +792,6 @@
 }
 
 @keyframes bombPulse {
-
   0%,
   100% {
     box-shadow: 0 0 20rpx rgba(255, 0, 0, 0.6);
@@ -823,7 +823,6 @@
 }
 
 @keyframes grassSway {
-
   0%,
   100% {
     transform: rotate(-5deg);
@@ -903,7 +902,6 @@
 }
 
 @keyframes shadowPulse {
-
   0%,
   100% {
     opacity: 0.6;
@@ -956,7 +954,6 @@
 }
 
 @keyframes moleBlink {
-
   0%,
   90%,
   100% {
@@ -978,7 +975,6 @@
 }
 
 @keyframes alertBounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -990,7 +986,6 @@
 }
 
 @keyframes moleHideAlert {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1027,7 +1022,8 @@
 /* 彩虹地鼠 - 超稀有 */
 .rainbow-body {
   .mole-icon {
-    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8)) drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8))
+      drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
     animation: rainbowGlow 0.8s ease-in-out infinite;
   }
 }
@@ -1070,19 +1066,19 @@
 }
 
 @keyframes rainbowGlow {
-
   0%,
   100% {
-    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8)) drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8))
+      drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
   50% {
-    filter: drop-shadow(0 0 30rpx rgba(255, 215, 0, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 30rpx rgba(255, 215, 0, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 }
 
 @keyframes rainbowFloat {
-
   0%,
   100% {
     transform: translateY(0) scale(1);
@@ -1096,7 +1092,6 @@
 }
 
 @keyframes rainbowStar1 {
-
   0%,
   100% {
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -1108,7 +1103,6 @@
 }
 
 @keyframes rainbowStar2 {
-
   0%,
   100% {
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -1120,7 +1114,6 @@
 }
 
 @keyframes rainbowStar3 {
-
   0%,
   100% {
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -1146,7 +1139,6 @@
 }
 
 @keyframes crownBob {
-
   0%,
   100% {
     transform: translateY(0) rotate(-5deg);
@@ -1173,7 +1165,6 @@
 }
 
 @keyframes fuseSpark {
-
   0%,
   100% {
     opacity: 1;
@@ -1188,10 +1179,10 @@
 
 /* 金色地鼠发光效果 */
 @keyframes goldenGlow {
-
   0%,
   100% {
-    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.8))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
   50% {
@@ -1201,7 +1192,6 @@
 
 /* 炸弹地鼠抖动 */
 @keyframes bombShake {
-
   0%,
   100% {
     transform: rotate(0deg);
@@ -1568,8 +1558,11 @@
   }
 
   100% {
-    transform: translate(calc(-50% + 200rpx * cos(var(--angle))),
-        calc(-50% + 200rpx * sin(var(--angle)))) scale(1.5) rotate(360deg);
+    transform: translate(
+        calc(-50% + 200rpx * cos(var(--angle))),
+        calc(-50% + 200rpx * sin(var(--angle)))
+      )
+      scale(1.5) rotate(360deg);
     opacity: 0;
   }
 }
@@ -1630,7 +1623,6 @@
 }
 
 @keyframes introIconSpin {
-
   0%,
   100% {
     transform: rotate(-10deg) scale(1);
@@ -1658,7 +1650,6 @@
 }
 
 @keyframes introFloat {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1679,9 +1670,11 @@
   align-items: center;
   gap: 16rpx;
   padding: 24rpx 80rpx;
-  background: linear-gradient(135deg,
-      var(--theme-primary, #ff6b6b) 0%,
-      var(--theme-primary-dark, #ee5a24) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff6b6b) 0%,
+    var(--theme-primary-dark, #ee5a24) 100%
+  );
   border-radius: 60rpx;
   color: var(--theme-text-inverse, #fff);
   font-size: $font-size-lg;
@@ -1723,7 +1716,6 @@
 }
 
 @keyframes btnIconBounce {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1834,7 +1826,6 @@
 }
 
 @keyframes resultGlow {
-
   0%,
   100% {
     transform: scale(0.8);
@@ -1855,7 +1846,6 @@
 }
 
 @keyframes trophyBounce {
-
   0%,
   100% {
     transform: translateY(0) rotate(-5deg);
@@ -1897,7 +1887,6 @@
 }
 
 @keyframes scoreRingPulse {
-
   0%,
   100% {
     transform: translate(-50%, -50%) scale(1);
@@ -1940,7 +1929,6 @@
 }
 
 @keyframes scoreValuePulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -2024,7 +2012,6 @@
 }
 
 @keyframes costBlink {
-
   0%,
   90%,
   100% {
@@ -2042,7 +2029,6 @@
 }
 
 @keyframes costIconSpin {
-
   0%,
   100% {
     transform: rotate(0deg) scale(1);
@@ -2164,7 +2150,6 @@
 }
 
 @keyframes waitingPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -2178,7 +2163,6 @@
 }
 
 @keyframes waitingIconBounce {
-
   0%,
   100% {
     transform: translateY(0) rotate(0deg);

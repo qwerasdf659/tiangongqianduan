@@ -144,10 +144,10 @@ Component({
           isLongPeriod && queryParams.asset_code
             ? ChartAPI.getPriceHistory({ asset_code: queryParams.asset_code, days: 90 })
             : ChartAPI.getPriceTrend({
-              ...queryParams,
-              period: this.data.currentPeriod,
-              granularity: periodGranularity
-            })
+                ...queryParams,
+                period: this.data.currentPeriod,
+                granularity: periodGranularity
+              })
 
         const [trendResponse, summaryResponse, volumeResponse] = await Promise.all([
           trendPromise,

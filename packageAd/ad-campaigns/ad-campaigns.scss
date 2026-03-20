@@ -134,10 +134,8 @@
   margin-bottom: $spacing-lg;
   overflow: hidden;
   box-shadow: $shadow-card;
-  border: 1rpx solid rgba(255, 255, 255, 0.4);
   display: flex;
   flex-direction: row;
-  @include backdrop-blur($blur-card);
 }
 
 .status-bar {

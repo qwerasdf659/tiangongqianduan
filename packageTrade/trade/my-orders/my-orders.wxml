@@ -12,8 +12,13 @@
 
   <!--状态筛选标签页（对齐 my-listings 页面模式）-->
   <view class="status-tabs">
-    <view class="tab-item {{currentStatus === item.key ? 'active' : ''}}" wx:for="{{statusTabs}}" wx:key="key"
-      bindtap="onStatusTabTap" data-status="{{item.key}}">
+    <view
+      class="tab-item {{currentStatus === item.key ? 'active' : ''}}"
+      wx:for="{{statusTabs}}"
+      wx:key="key"
+      bindtap="onStatusTabTap"
+      data-status="{{item.key}}"
+    >
       <text class="tab-label">{{item.label}}</text>
       <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
     </view>
@@ -44,7 +49,11 @@
         </view>
 
         <!--订单内容：商品名称 + 价格-->
-        <view class="order-body" data-listing-id="{{item.market_listing_id}}" bindtap="onViewListing">
+        <view
+          class="order-body"
+          data-listing-id="{{item.market_listing_id}}"
+          bindtap="onViewListing"
+        >
           <view class="order-info">
             <text class="order-name">{{item.display_name}}</text>
             <text class="order-time">{{item.formattedTime}}</text>
@@ -56,7 +65,10 @@
         </view>
 
         <!--手续费明细（后端 trade_orders 表 gross_amount / fee_amount / net_amount）-->
-        <view class="order-fee-detail" wx:if="{{item.gross_amount || item.fee_amount || item.net_amount}}">
+        <view
+          class="order-fee-detail"
+          wx:if="{{item.gross_amount || item.fee_amount || item.net_amount}}"
+        >
           <view class="fee-row" wx:if="{{item.gross_amount}}">
             <text class="fee-label">总金额</text>
             <text class="fee-value">{{item.gross_amount}} {{item.price_asset_code}}</text>
@@ -72,23 +84,46 @@
         </view>
 
         <!--订单操作按钮-->
-        <view class="order-actions" wx:if="{{item.status === 'created' || item.status === 'frozen'}}">
-          <button wx:if="{{item.requires_escrow}}" class="action-btn primary-action" size="mini"
-            data-order-id="{{item.trade_order_id}}" bindtap="onOpenEscrowInput">
+        <view
+          class="order-actions"
+          wx:if="{{item.status === 'created' || item.status === 'frozen'}}"
+        >
+          <button
+            wx:if="{{item.requires_escrow}}"
+            class="action-btn primary-action"
+            size="mini"
+            data-order-id="{{item.trade_order_id}}"
+            bindtap="onOpenEscrowInput"
+          >
             输入担保码
           </button>
-          <button wx:if="{{item.requires_escrow}}" class="action-btn" size="mini"
-            data-order-id="{{item.trade_order_id}}" bindtap="onViewEscrowStatus">
+          <button
+            wx:if="{{item.requires_escrow}}"
+            class="action-btn"
+            size="mini"
+            data-order-id="{{item.trade_order_id}}"
+            bindtap="onViewEscrowStatus"
+          >
             查看状态
           </button>
-          <button class="action-btn danger-action" size="mini" data-order-id="{{item.trade_order_id}}"
-            disabled="{{cancellingOrderId === item.trade_order_id}}" bindtap="onCancelOrder">
+          <button
+            class="action-btn danger-action"
+            size="mini"
+            data-order-id="{{item.trade_order_id}}"
+            disabled="{{cancellingOrderId === item.trade_order_id}}"
+            bindtap="onCancelOrder"
+          >
             {{cancellingOrderId === item.trade_order_id ? '取消中...' : '取消交易'}}
           </button>
         </view>
         <!--已完成订单的申诉入口（文档 5.4）-->
         <view class="order-actions" wx:if="{{item.status === 'completed'}}">
-          <button class="action-btn" size="mini" data-order-id="{{item.trade_order_id}}" bindtap="onOpenDispute">
+          <button
+            class="action-btn"
+            size="mini"
+            data-order-id="{{item.trade_order_id}}"
+            bindtap="onOpenDispute"
+          >
             发起申诉
           </button>
         </view>
@@ -133,8 +168,16 @@
     <text class="modal-title">输入担保码</text>
     <text class="modal-subtitle">请输入卖家提供的6位数字担保码</text>
     <view class="escrow-input-wrapper" bindtap="onFocusEscrowInput">
-      <input class="escrow-input" id="escrowCodeInput" type="number" maxlength="6" placeholder=""
-        value="{{escrowInputValue}}" bindinput="onEscrowInputChange" focus="{{escrowInputFocused}}" />
+      <input
+        class="escrow-input"
+        id="escrowCodeInput"
+        type="number"
+        maxlength="6"
+        placeholder=""
+        value="{{escrowInputValue}}"
+        bindinput="onEscrowInputChange"
+        focus="{{escrowInputFocused}}"
+      />
       <view class="escrow-input-dots">
         <view class="dot {{escrowInputValue.length > 0 ? 'filled' : ''}}"></view>
         <view class="dot {{escrowInputValue.length > 1 ? 'filled' : ''}}"></view>
@@ -146,8 +189,11 @@
     </view>
     <view class="modal-actions">
       <button class="modal-btn secondary-btn" bindtap="onCloseEscrowInput">取消</button>
-      <button class="modal-btn {{escrowInputValue.length < 6 ? 'btn-disabled' : ''}}"
-        disabled="{{escrowInputValue.length < 6 || escrowConfirming}}" bindtap="onSubmitEscrowCode">
+      <button
+        class="modal-btn {{escrowInputValue.length < 6 ? 'btn-disabled' : ''}}"
+        disabled="{{escrowInputValue.length < 6 || escrowConfirming}}"
+        bindtap="onSubmitEscrowCode"
+      >
         {{escrowConfirming ? '确认中...' : '确认收货'}}
       </button>
     </view>

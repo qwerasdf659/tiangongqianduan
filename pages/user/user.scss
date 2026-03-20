@@ -15,12 +15,11 @@
 /* 未登录引导卡片（已登录时不显示） */
 .login-prompt-card {
   @include flex-column-center;
-  background: $gradient-card-bg;
+  /* 无毛玻璃：纯白卡片底 */
+  background: $color-white;
   border-radius: 28rpx;
   padding: 40rpx 30rpx;
   margin-bottom: $spacing-base;
-  -webkit-backdrop-filter: $blur-card;
-  backdrop-filter: $blur-card;
   box-shadow: $shadow-card;
   border: 1rpx solid rgba(255, 255, 255, 0.4);
   gap: 12rpx;
@@ -55,8 +54,8 @@
   color: white;
   text-align: center;
   box-shadow:
-    0 16rpx 64rpx var(--theme-shadow-medium, rgba(102, 126, 234, 0.25)),
-    0 8rpx 32rpx var(--theme-shadow-soft, rgba(102, 126, 234, 0.15)),
+    0 16rpx 64rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.25)),
+    0 8rpx 32rpx var(--theme-shadow-soft, rgba(255, 107, 53, 0.15)),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
@@ -95,8 +94,8 @@
 .points-card:hover {
   transform: translateY(-8rpx) scale(1.02);
   box-shadow:
-    0 24rpx 80rpx var(--theme-shadow-strong, rgba(102, 126, 234, 0.35)),
-    0 12rpx 48rpx var(--theme-shadow-medium, rgba(102, 126, 234, 0.25));
+    0 24rpx 80rpx var(--theme-shadow-strong, rgba(255, 107, 53, 0.35)),
+    0 12rpx 48rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.25));
 }
 
 /* 积分头部 */
@@ -125,13 +124,12 @@
 
 .points-tips {
   font-size: $font-size-sm;
-  opacity: 0.9;
-  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
-  background: rgba(255, 255, 255, 0.15);
+  color: $color-text-secondary;
+  text-shadow: none;
+  /* 实色底替代半透明+毛玻璃，保证渐变卡片上可读 */
+  background: $color-white;
   padding: 6rpx 12rpx;
   border-radius: 12rpx;
-  -webkit-backdrop-filter: blur(5rpx);
-  backdrop-filter: blur(5rpx);
 }
 
 /* 积分数字 */
@@ -153,18 +151,6 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
-  }
-
-  50% {
-    filter: drop-shadow(0 4rpx 8rpx rgba(255, 255, 255, 0.3));
-  }
 }
 
 .points-unit {
@@ -216,16 +202,15 @@
   color: var(--theme-section-text, #{$color-text-primary});
   margin-bottom: 30rpx;
   padding-bottom: 20rpx;
-  border-bottom: 2rpx solid var(--theme-section-border, rgba(102, 126, 234, 0.1));
+  border-bottom: 2rpx solid var(--theme-section-border, rgba(255, 107, 53, 0.1));
 }
 
 .menu-section {
-  background: var(--theme-section-bg, rgba(255, 255, 255, 0.95));
+  /* 内容区实色底，不使用 backdrop-filter */
+  background: var(--theme-section-bg, #{$color-white});
   border-radius: 20rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
 }
 
 /* 快捷入口行（前5项水平排列） */
@@ -338,10 +323,8 @@
     var(--theme-page-end, #{$gradient-blue-end})
   );
   border-radius: 20rpx 20rpx 0 0;
-  border: 1rpx solid var(--theme-border-light, rgba(102, 126, 234, 0.15));
+  border: 1rpx solid var(--theme-border-light, rgba(255, 107, 53, 0.15));
   border-bottom: none;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
 }
 
 .mw-header-left {
@@ -361,7 +344,7 @@
   );
   border-radius: $border-radius-md;
   font-size: 32rpx;
-  box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(102, 126, 234, 0.3));
+  box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.3));
 }
 
 .mw-header-info {
@@ -381,11 +364,9 @@
 }
 
 .mw-cards {
-  background: var(--theme-section-bg, rgba(255, 255, 255, 0.95));
+  background: var(--theme-section-bg, #{$color-white});
   border-radius: 0 0 20rpx 20rpx;
   padding: 20rpx;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
   box-shadow: $shadow-card;
   border: 1rpx solid var(--theme-section-border, rgba(255, 255, 255, 0.4));
   border-top: none;
@@ -574,27 +555,7 @@
   transition: background 0.6s ease;
 }
 
-/* ---- 方案①④ 主题装饰层（背景纹理 + 飘浮粒子容器） ---- */
-.theme-particles {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  transition: opacity 0.4s ease;
-}
-
-/* ---- 方案④ 粒子基础样式（默认不可见，各主题覆盖 opacity） ---- */
-.decor-p {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* ---- 方案⑨ 区块分隔线定位基础 ---- */
+/* ---- 方案⑨ 区块分隔线定位基础（已移除 theme-particles / decor-p 装饰层，见 UI 动效清理） ---- */
 .menu-section {
   position: relative;
 }
@@ -696,209 +657,18 @@
   }
 }
 
-/* 方案④ 粒子动画 —— 5 套运动轨迹 */
-@keyframes gold-fall {
-  0% {
-    transform: translateY(-10vh) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.8;
-  }
-  90% {
-    opacity: 0.6;
-  }
-  100% {
-    transform: translateY(110vh) translateX(30rpx);
-    opacity: 0;
-  }
-}
-
-@keyframes star-twinkle {
-  0%,
-  100% {
-    opacity: 0.15;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.2);
-  }
-}
-
-@keyframes petal-fall {
-  0% {
-    transform: translateY(-10vh) translateX(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateY(50vh) translateX(-30rpx) rotate(180deg);
-  }
-  90% {
-    opacity: 0.5;
-  }
-  100% {
-    transform: translateY(110vh) translateX(20rpx) rotate(360deg);
-    opacity: 0;
-  }
-}
-
-@keyframes snow-fall {
-  0% {
-    transform: translateY(-10vh) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.8;
-  }
-  50% {
-    transform: translateY(50vh) translateX(15rpx);
-  }
-  90% {
-    opacity: 0.6;
-  }
-  100% {
-    transform: translateY(110vh) translateX(-10rpx);
-    opacity: 0;
-  }
-}
-
-@keyframes bubble-rise {
-  0% {
-    transform: translateY(110vh) scale(0.6);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.5;
-  }
-  50% {
-    transform: translateY(50vh) scale(0.85);
-  }
-  90% {
-    opacity: 0.3;
-  }
-  100% {
-    transform: translateY(-10vh) scale(1.1);
-    opacity: 0;
-  }
-}
-
-/* 方案④ default 柔光浮动（蓝白光点缓慢上下漂移） */
-@keyframes default-float {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0.2;
-  }
-  50% {
-    transform: translateY(-60rpx) scale(1.15);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.2;
-  }
-}
-
-/* 方案② default 卡片柔光呼吸 */
-@keyframes card-glow-breath {
-  0%,
-  100% {
-    box-shadow:
-      0 16rpx 64rpx rgba(102, 126, 234, 0.25),
-      0 8rpx 32rpx rgba(102, 126, 234, 0.15),
-      inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
-  }
-  50% {
-    box-shadow:
-      0 20rpx 72rpx rgba(102, 126, 234, 0.35),
-      0 10rpx 40rpx rgba(102, 126, 234, 0.2),
-      inset 0 1rpx 0 rgba(255, 255, 255, 0.4);
-  }
-}
-
-/* 方案② purple_mystery 卡片霓虹脉冲 */
-@keyframes neon-pulse {
-  0%,
-  100% {
-    box-shadow:
-      0 0 20rpx rgba(155, 89, 182, 0.3),
-      inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
-  }
-  50% {
-    box-shadow:
-      0 0 40rpx rgba(155, 89, 182, 0.5),
-      0 0 60rpx rgba(155, 89, 182, 0.2),
-      inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
-  }
-}
-
 /* ============================================================
    default（默认蓝紫）—— 完整 10 套视觉差异化
    ============================================================ */
 
-/* ① 纹理：细密圆点阵列（白色圆点 15% 透明度，30rpx 间距） */
-.theme-default .theme-particles {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1rpx, transparent 1rpx) 0 0 / 30rpx
-    30rpx;
-}
-
-/* ② 卡片：蓝紫柔光呼吸（box-shadow 缓慢脉动） */
+/* ② 卡片：蓝紫描边（已移除 card-glow-breath 呼吸动效） */
 .theme-default .points-card {
   border: 1rpx solid rgba(255, 255, 255, 0.25);
-  animation: card-glow-breath 5s ease-in-out infinite;
 }
 
 /* ③ 图标容器：16rpx 圆角 + 蓝紫淡光晕 */
 .theme-default .menu-quick-icon {
-  box-shadow: 0 0 12rpx rgba(102, 126, 234, 0.15);
-}
-
-/* ④ 粒子：蓝白柔光浮动（5 个光点缓慢上下漂移，带明显光晕） */
-.theme-default .decor-p {
-  background: rgba(255, 255, 255, 0.65);
-  box-shadow:
-    0 0 20rpx rgba(102, 126, 234, 0.5),
-    0 0 40rpx rgba(102, 126, 234, 0.2);
-  opacity: 1;
-}
-
-.theme-default .decor-p1 {
-  width: 12rpx;
-  height: 12rpx;
-  left: 12%;
-  top: 25%;
-  animation: default-float 7s ease-in-out infinite;
-}
-.theme-default .decor-p2 {
-  width: 16rpx;
-  height: 16rpx;
-  left: 38%;
-  top: 45%;
-  animation: default-float 9s ease-in-out -2s infinite;
-}
-.theme-default .decor-p3 {
-  width: 10rpx;
-  height: 10rpx;
-  left: 55%;
-  top: 15%;
-  animation: default-float 8s ease-in-out -4s infinite;
-}
-.theme-default .decor-p4 {
-  width: 14rpx;
-  height: 14rpx;
-  left: 72%;
-  top: 60%;
-  animation: default-float 10s ease-in-out -3s infinite;
-}
-.theme-default .decor-p5 {
-  width: 12rpx;
-  height: 12rpx;
-  left: 88%;
-  top: 35%;
-  animation: default-float 8s ease-in-out -6s infinite;
+  box-shadow: 0 0 12rpx rgba(255, 107, 53, 0.15);
 }
 
 /* ⑥ 数字：白→浅蓝渐变 + 蓝紫光晕（增强原有效果） */
@@ -908,22 +678,22 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: none;
-  filter: drop-shadow(0 2rpx 12rpx rgba(102, 126, 234, 0.3));
+  filter: drop-shadow(0 2rpx 12rpx rgba(255, 107, 53, 0.3));
 }
 
 /* ⑦ 进场：从下往上滑入（基础层已定义 menu-slide-up，不覆盖） */
 
-/* ⑧ 加载：蓝紫色 spinner + 淡光晕 */
+/* ⑧ 加载：品牌橙 spinner + 淡光晕 */
 .theme-default .loading-spinner {
-  border-top-color: #667eea;
-  box-shadow: 0 0 10rpx rgba(102, 126, 234, 0.2);
+  border-top-color: #ff6b35;
+  box-shadow: 0 0 10rpx rgba(255, 107, 53, 0.2);
 }
 
 .theme-default .loading-text {
-  color: #667eea;
+  color: #ff6b35;
 }
 
-/* ⑨ 分隔：蓝紫色渐隐线（加粗 + 光晕） */
+/* ⑨ 分隔：品牌橙渐隐线（加粗 + 光晕） */
 .theme-default .menu-section::after {
   content: '';
   position: absolute;
@@ -931,31 +701,20 @@
   left: 5%;
   width: 90%;
   height: 3rpx;
-  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.4), transparent);
-  box-shadow: 0 0 8rpx rgba(102, 126, 234, 0.15);
+  background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.4), transparent);
+  box-shadow: 0 0 8rpx rgba(255, 107, 53, 0.15);
 }
 
 /* ⑩ 反馈：缩小 + 蓝紫阴影闪现 */
 .theme-default .menu-quick-item:active,
 .theme-default .menu-item:active {
   transform: scale(0.93);
-  box-shadow: 0 0 16rpx rgba(102, 126, 234, 0.25);
+  box-shadow: 0 0 16rpx rgba(255, 107, 53, 0.25);
 }
 
 /* ============================================================
    gold_luxury（金色奢华）—— 14 个选择器
    ============================================================ */
-
-/* ① 纹理：45° 对角线条纹（加强可见度） */
-.theme-gold_luxury .theme-particles {
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 16rpx,
-    rgba(255, 215, 0, 0.12) 16rpx,
-    rgba(255, 215, 0, 0.12) 18rpx
-  );
-}
 
 /* ② 卡片：金色镶边 + 强内发光 */
 .theme-gold_luxury .points-card {
@@ -972,46 +731,6 @@
   border-radius: 50%;
   border: 1rpx solid rgba(255, 215, 0, 0.4);
   box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.2);
-}
-
-/* ④ 粒子：金粉飘落（更大颗粒 + 金色光晕） */
-.theme-gold_luxury .decor-p {
-  background: rgba(255, 215, 0, 0.8);
-  box-shadow:
-    0 0 16rpx rgba(255, 215, 0, 0.5),
-    0 0 32rpx rgba(255, 215, 0, 0.2);
-  opacity: 1;
-}
-
-.theme-gold_luxury .decor-p1 {
-  width: 14rpx;
-  height: 14rpx;
-  left: 12%;
-  animation: gold-fall 9s linear infinite;
-}
-.theme-gold_luxury .decor-p2 {
-  width: 10rpx;
-  height: 10rpx;
-  left: 35%;
-  animation: gold-fall 12s linear -2s infinite;
-}
-.theme-gold_luxury .decor-p3 {
-  width: 12rpx;
-  height: 12rpx;
-  left: 55%;
-  animation: gold-fall 10s linear -5s infinite;
-}
-.theme-gold_luxury .decor-p4 {
-  width: 10rpx;
-  height: 10rpx;
-  left: 75%;
-  animation: gold-fall 11s linear -3s infinite;
-}
-.theme-gold_luxury .decor-p5 {
-  width: 14rpx;
-  height: 14rpx;
-  left: 88%;
-  animation: gold-fall 8s linear -7s infinite;
 }
 
 /* ⑥ 数字：金色渐变 + 金色光晕 */
@@ -1066,20 +785,9 @@
    purple_mystery（紫色神秘）—— 14 个选择器
    ============================================================ */
 
-/* ① 纹理：多层错位星光点（增强可见度） */
-.theme-purple_mystery .theme-particles {
-  background:
-    radial-gradient(circle, rgba(155, 89, 182, 0.18) 1.5rpx, transparent 1.5rpx) 0 0 / 40rpx 40rpx,
-    radial-gradient(circle, rgba(232, 218, 239, 0.14) 1rpx, transparent 1rpx) 20rpx 20rpx / 60rpx
-      60rpx,
-    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1rpx, transparent 1rpx) 10rpx 30rpx / 35rpx
-      35rpx;
-}
-
-/* ② 卡片：霓虹脉冲发光 */
+/* ② 卡片：紫色描边（已移除 neon-pulse 霓虹脉冲动效） */
 .theme-purple_mystery .points-card {
   border: 1rpx solid rgba(155, 89, 182, 0.3);
-  animation: neon-pulse 4s ease-in-out infinite;
 }
 
 /* ③ 图标容器：圆形 + 紫色光晕 */
@@ -1087,51 +795,6 @@
   border-radius: 50%;
   border: 1rpx solid rgba(155, 89, 182, 0.35);
   box-shadow: 0 0 16rpx rgba(155, 89, 182, 0.2);
-}
-
-/* ④ 粒子：星空闪烁（更大星光 + 强紫色光晕） */
-.theme-purple_mystery .decor-p {
-  background: rgba(232, 218, 239, 0.9);
-  box-shadow:
-    0 0 20rpx rgba(155, 89, 182, 0.6),
-    0 0 40rpx rgba(155, 89, 182, 0.25);
-  opacity: 1;
-}
-
-.theme-purple_mystery .decor-p1 {
-  width: 8rpx;
-  height: 8rpx;
-  left: 15%;
-  top: 20%;
-  animation: star-twinkle 3s ease-in-out infinite;
-}
-.theme-purple_mystery .decor-p2 {
-  width: 12rpx;
-  height: 12rpx;
-  left: 40%;
-  top: 35%;
-  animation: star-twinkle 4s ease-in-out -1s infinite;
-}
-.theme-purple_mystery .decor-p3 {
-  width: 6rpx;
-  height: 6rpx;
-  left: 50%;
-  top: 55%;
-  animation: star-twinkle 3.5s ease-in-out -2s infinite;
-}
-.theme-purple_mystery .decor-p4 {
-  width: 10rpx;
-  height: 10rpx;
-  left: 70%;
-  top: 15%;
-  animation: star-twinkle 5s ease-in-out -3s infinite;
-}
-.theme-purple_mystery .decor-p5 {
-  width: 8rpx;
-  height: 8rpx;
-  left: 85%;
-  top: 70%;
-  animation: star-twinkle 4.5s ease-in-out -1.5s infinite;
 }
 
 /* ⑥ 数字：浅紫渐变 + 霓虹辉光 */
@@ -1188,15 +851,6 @@
    spring_festival（春节红）—— 14 个选择器
    ============================================================ */
 
-/* ① 纹理：祥云状椭圆波浪（增强可见度） */
-.theme-spring_festival .theme-particles {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 107, 107, 0.15) 30%, transparent 70%) 0 0 / 120rpx
-      80rpx,
-    radial-gradient(ellipse at 50% 100%, rgba(255, 215, 0, 0.08) 20%, transparent 60%) 60rpx 40rpx /
-      120rpx 80rpx;
-}
-
 /* ② 卡片：红包造型（金色顶部装饰条 + 上小下大圆角） */
 .theme-spring_festival .points-card {
   border-top: 6rpx solid #ffd700;
@@ -1207,45 +861,6 @@
 .theme-spring_festival .menu-quick-icon {
   border-radius: 12rpx;
   border: 1rpx solid rgba(231, 76, 60, 0.3);
-}
-
-/* ④ 粒子：花瓣纷飞（更大花瓣 + 红色光晕） */
-.theme-spring_festival .decor-p {
-  background: rgba(255, 107, 107, 0.75);
-  border-radius: 50% 0 50% 50%;
-  box-shadow: 0 0 12rpx rgba(255, 107, 107, 0.4);
-  opacity: 1;
-}
-
-.theme-spring_festival .decor-p1 {
-  width: 18rpx;
-  height: 18rpx;
-  left: 10%;
-  animation: petal-fall 10s linear infinite;
-}
-.theme-spring_festival .decor-p2 {
-  width: 14rpx;
-  height: 14rpx;
-  left: 30%;
-  animation: petal-fall 12s linear -3s infinite;
-}
-.theme-spring_festival .decor-p3 {
-  width: 22rpx;
-  height: 22rpx;
-  left: 52%;
-  animation: petal-fall 9s linear -6s infinite;
-}
-.theme-spring_festival .decor-p4 {
-  width: 12rpx;
-  height: 12rpx;
-  left: 72%;
-  animation: petal-fall 11s linear -2s infinite;
-}
-.theme-spring_festival .decor-p5 {
-  width: 16rpx;
-  height: 16rpx;
-  left: 90%;
-  animation: petal-fall 10s linear -8s infinite;
 }
 
 /* ⑥ 数字：金→红金渐变 + 暖金光 */
@@ -1302,43 +917,6 @@
    christmas（圣诞绿）—— 14 个选择器
    ============================================================ */
 
-/* ① 纹理：菱形格纹（增强可见度） */
-.theme-christmas .theme-particles {
-  background:
-    linear-gradient(
-        45deg,
-        rgba(39, 174, 96, 0.1) 25%,
-        transparent 25%,
-        transparent 75%,
-        rgba(39, 174, 96, 0.1) 75%
-      )
-      0 0 / 40rpx 40rpx,
-    linear-gradient(
-        -45deg,
-        rgba(39, 174, 96, 0.1) 25%,
-        transparent 25%,
-        transparent 75%,
-        rgba(39, 174, 96, 0.1) 75%
-      )
-      0 0 / 40rpx 40rpx,
-    linear-gradient(
-        45deg,
-        rgba(39, 174, 96, 0.08) 25%,
-        transparent 25%,
-        transparent 75%,
-        rgba(39, 174, 96, 0.08) 75%
-      )
-      20rpx 20rpx / 40rpx 40rpx,
-    linear-gradient(
-        -45deg,
-        rgba(39, 174, 96, 0.08) 25%,
-        transparent 25%,
-        transparent 75%,
-        rgba(39, 174, 96, 0.08) 75%
-      )
-      20rpx 20rpx / 40rpx 40rpx;
-}
-
 /* ② 卡片：绿色镶边 + 强绿色光晕 */
 .theme-christmas .points-card {
   border: 2rpx solid rgba(46, 204, 113, 0.3);
@@ -1351,46 +929,6 @@
 /* ③ 图标容器：绿色淡光晕 */
 .theme-christmas .menu-quick-icon {
   box-shadow: 0 0 14rpx rgba(39, 174, 96, 0.18);
-}
-
-/* ④ 粒子：雪花飘落（更大雪花 + 白色光晕） */
-.theme-christmas .decor-p {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow:
-    0 0 14rpx rgba(255, 255, 255, 0.6),
-    0 0 28rpx rgba(255, 255, 255, 0.2);
-  opacity: 1;
-}
-
-.theme-christmas .decor-p1 {
-  width: 14rpx;
-  height: 14rpx;
-  left: 10%;
-  animation: snow-fall 11s linear infinite;
-}
-.theme-christmas .decor-p2 {
-  width: 10rpx;
-  height: 10rpx;
-  left: 35%;
-  animation: snow-fall 14s linear -3s infinite;
-}
-.theme-christmas .decor-p3 {
-  width: 18rpx;
-  height: 18rpx;
-  left: 55%;
-  animation: snow-fall 9s linear -5s infinite;
-}
-.theme-christmas .decor-p4 {
-  width: 8rpx;
-  height: 8rpx;
-  left: 75%;
-  animation: snow-fall 13s linear -7s infinite;
-}
-.theme-christmas .decor-p5 {
-  width: 12rpx;
-  height: 12rpx;
-  left: 90%;
-  animation: snow-fall 10s linear -1s infinite;
 }
 
 /* ⑥ 数字：白→浅绿投影（增强光晕） */
@@ -1443,22 +981,12 @@
    summer（夏日蓝）—— 14 个选择器
    ============================================================ */
 
-/* ① 纹理：双层水波圆点（增强可见度） */
-.theme-summer .theme-particles {
-  background:
-    radial-gradient(circle, rgba(52, 152, 219, 0.14) 1.5rpx, transparent 1.5rpx) 0 0 / 50rpx 50rpx,
-    radial-gradient(circle, rgba(255, 255, 255, 0.08) 1rpx, transparent 1rpx) 25rpx 25rpx / 50rpx
-      50rpx;
-}
-
-/* ② 卡片：强毛玻璃质感（增强 backdrop-filter） */
+/* ② 卡片：夏日主题实色渐变（不使用毛玻璃） */
 .theme-summer .points-card {
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
   background: linear-gradient(
     135deg,
-    var(--theme-page-start, rgba(52, 152, 219, 0.7)),
-    var(--theme-page-end, rgba(93, 173, 226, 0.7))
+    var(--theme-page-start, #3498db),
+    var(--theme-page-end, #5dade2)
   );
 }
 
@@ -1466,47 +994,6 @@
 .theme-summer .menu-quick-icon {
   border-radius: 50%;
   box-shadow: 0 0 16rpx rgba(52, 152, 219, 0.2);
-}
-
-/* ④ 粒子：气泡上浮（更大气泡 + 蓝色光晕） */
-.theme-summer .decor-p {
-  background: rgba(255, 255, 255, 0.1);
-  border: 3rpx solid rgba(255, 255, 255, 0.45);
-  box-shadow:
-    0 0 12rpx rgba(52, 152, 219, 0.3),
-    inset 0 0 8rpx rgba(255, 255, 255, 0.15);
-  opacity: 1;
-}
-
-.theme-summer .decor-p1 {
-  width: 28rpx;
-  height: 28rpx;
-  left: 15%;
-  animation: bubble-rise 10s linear infinite;
-}
-.theme-summer .decor-p2 {
-  width: 20rpx;
-  height: 20rpx;
-  left: 35%;
-  animation: bubble-rise 12s linear -2s infinite;
-}
-.theme-summer .decor-p3 {
-  width: 36rpx;
-  height: 36rpx;
-  left: 55%;
-  animation: bubble-rise 8s linear -4s infinite;
-}
-.theme-summer .decor-p4 {
-  width: 22rpx;
-  height: 22rpx;
-  left: 78%;
-  animation: bubble-rise 11s linear -6s infinite;
-}
-.theme-summer .decor-p5 {
-  width: 30rpx;
-  height: 30rpx;
-  left: 88%;
-  animation: bubble-rise 9s linear -1s infinite;
 }
 
 /* ⑥ 数字：白→浅蓝水光（增强光晕） */

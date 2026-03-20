@@ -1,7 +1,15 @@
 // pages/user/user.ts - 用户中心页面 + MobX响应式状态
 const app = getApp()
 // 统一工具函数导入（从utils/index.ts）
-const { API, Wechat, Logger, ApiWrapper, ThemeCache, GlobalTheme, PopupFrequency } = require('../../utils/index')
+const {
+  API,
+  Wechat,
+  Logger,
+  ApiWrapper,
+  ThemeCache,
+  GlobalTheme,
+  PopupFrequency
+} = require('../../utils/index')
 const log = Logger.createLogger('user')
 const { showToast } = Wechat
 const { safeApiCall } = ApiWrapper
@@ -96,7 +104,7 @@ Page({
         name: '我的订单',
         description: '查看兑换订单和物流进度',
         icon: '🛒',
-        color: '#667eea',
+        color: '#ff6b35',
         type: 'page',
         url: '/packageExchange/exchange-orders/exchange-orders'
       },
@@ -233,6 +241,9 @@ Page({
    * 从其他页面返回 / 从后台切回前台时刷新数据（首次进入由 onLoad 处理，跳过）
    */
   onShow() {
+    if (typeof this.getTabBar === 'function') {
+      this.getTabBar().setData({ selected: 3 })
+    }
     if (this._skipNextShow) {
       this._skipNextShow = false
       return

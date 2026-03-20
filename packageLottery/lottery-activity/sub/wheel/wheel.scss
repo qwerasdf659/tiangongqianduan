@@ -20,9 +20,11 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg,
-      var(--theme-bg-dark, #2c3e50),
-      var(--theme-bg-darker, #34495e));
+  background: linear-gradient(
+    135deg,
+    var(--theme-bg-dark, #2c3e50),
+    var(--theme-bg-darker, #34495e)
+  );
   box-shadow: 0 8rpx 30rpx var(--theme-shadow-strong, rgba(0, 0, 0, 0.3));
 }
 
@@ -132,9 +134,11 @@
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg,
-      var(--theme-primary, #ff6b6b),
-      var(--theme-primary-dark, #ee5a24));
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff6b6b),
+    var(--theme-primary-dark, #ee5a24)
+  );
   @include flex-column-center;
   box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(238, 90, 36, 0.4));
   z-index: 10;

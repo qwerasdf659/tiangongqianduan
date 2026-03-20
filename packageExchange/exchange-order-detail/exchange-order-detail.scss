@@ -109,7 +109,6 @@
   border-radius: $border-radius-lg;
   padding: $spacing-xl;
   margin-bottom: $spacing-base;
-  @include backdrop-blur($blur-card);
   box-shadow: $shadow-card;
 }
 
@@ -323,8 +322,7 @@
   gap: $spacing-md;
   padding: $spacing-lg $spacing-xl;
   padding-bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.95);
-  @include backdrop-blur($blur-card);
+  background: #ffffff;
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
@@ -356,7 +354,7 @@
 
 .btn-rate-detail {
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
 }
 
 .action-btn-text {
@@ -455,7 +453,7 @@
   text-align: center;
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
   border-radius: $spacing-xxl;
-  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
 }
 
 .rating-submit-btn.disabled {

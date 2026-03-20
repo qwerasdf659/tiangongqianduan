@@ -4,7 +4,8 @@
 
 /* 🎨 现代化导航模块样式 - 美化版 */
 .nav-module {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+  /* 兑换导航：纯白实底，无 backdrop-filter */
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 28rpx;
   padding: 30rpx;
   margin-bottom: 25rpx;
@@ -12,8 +13,6 @@
     0 8rpx 32rpx rgba(0, 0, 0, 0.12),
     0 2rpx 8rpx rgba(0, 0, 0, 0.08),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
@@ -47,12 +46,7 @@
 }
 
 .nav-module.horizontal {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(248, 250, 252, 0.95) 50%,
-    rgba(241, 245, 249, 0.95) 100%
-  );
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
   border-radius: 16rpx;
   padding: 8rpx 14rpx;
   /* 🔧 极致压缩：减小内边距，最大化商品展示空间 */
@@ -61,8 +55,6 @@
   box-shadow:
     0 4rpx 16rpx rgba(0, 0, 0, 0.1),
     0 1rpx 4rpx rgba(0, 0, 0, 0.05);
-  -webkit-backdrop-filter: blur(25rpx);
-  backdrop-filter: blur(25rpx);
   border: 1rpx solid rgba(255, 255, 255, 0.5);
   position: relative;
   z-index: 2;
@@ -80,7 +72,7 @@
   bottom: 0;
   background:
     radial-gradient(circle at 20% 20%, rgba(255, 107, 53, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(102, 126, 234, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 80% 80%, rgba(255, 107, 53, 0.05) 0%, transparent 50%);
   pointer-events: none;
   z-index: -1;
 }
@@ -184,7 +176,7 @@
   right: 8rpx;
   width: 8rpx;
   height: 8rpx;
-  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  background: var(--shelf-header-bg, #e67e22);
   border-radius: 50%;
   transform: translateY(-50%);
   box-shadow: 0 0 8rpx rgba(78, 205, 196, 0.6);

@@ -223,7 +223,6 @@
 
 /* 脉冲动画 - 柔和的呼吸效果?*/
 @keyframes auditPulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -244,7 +243,6 @@
 
 /* 光晕脉冲动画 */
 @keyframes glowPulse {
-
   0%,
   100% {
     opacity: 0.3;
@@ -259,7 +257,6 @@
 
 /* 数字角标弹跳动画 */
 @keyframes numberBounce {
-
   0%,
   100% {
     transform: translateX(-50%) scale(1);

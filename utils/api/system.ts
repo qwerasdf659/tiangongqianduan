@@ -410,13 +410,6 @@ async function getUserIssues(page: number = 1, page_size: number = 10) {
   })
 }
 
-// ==================== 👤 用户 ====================
-
-/** 获取用户个人详细信息 - GET /api/v4/user/me */
-async function getUserMe() {
-  return apiClient.request('/user/me', { method: 'GET', needAuth: true })
-}
-
 // ==================== 🔔 活动 ====================
 
 /** 获取活动列表 - GET /api/v4/activities */
@@ -518,7 +511,6 @@ module.exports = {
   getExchangePageConfig,
   getFeedbackConfig,
   getAppThemeConfig,
-  getUserMe,
   getActivities,
   getProductFilterConfig,
   getCategoryTree

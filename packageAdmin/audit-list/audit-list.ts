@@ -958,7 +958,7 @@ Page({
 
   // ==================== 弹窗控制 ====================
 
-  stopPropagation() { },
+  stopPropagation() {},
 
   cancelReject() {
     this.setData({
@@ -981,23 +981,14 @@ Page({
       app
         .connectWebSocket()
         .then(() => {
-          app.subscribeWebSocketMessages(
-            this._pageId,
-            this.handleWebSocketEvent.bind(this)
-          )
+          app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
         })
         .catch((_wsErr: any) => {
           auditLog.warn('WebSocket连接失败，仅依赖手动刷新')
-          app.subscribeWebSocketMessages(
-            this._pageId,
-            this.handleWebSocketEvent.bind(this)
-          )
+          app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
         })
     } else {
-      app.subscribeWebSocketMessages(
-        this._pageId,
-        this.handleWebSocketEvent.bind(this)
-      )
+      app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
     }
   },
 

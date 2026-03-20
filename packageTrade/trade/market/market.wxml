@@ -7,15 +7,22 @@
   <view class="market-overview-section" wx:if="{{showPriceChart}}">
     <!--资产选择器（从 settlement-currencies 加载可选资产）-->
     <view class="chart-asset-selector" wx:if="{{chartAssetOptions.length > 0}}">
-      <view class="chart-asset-tag {{chartAssetCode === item.asset_code ? 'active' : ''}}"
-        wx:for="{{chartAssetOptions}}" wx:key="asset_code" data-code="{{item.asset_code}}" bindtap="onChartAssetChange">
+      <view
+        class="chart-asset-tag {{chartAssetCode === item.asset_code ? 'active' : ''}}"
+        wx:for="{{chartAssetOptions}}"
+        wx:key="asset_code"
+        data-code="{{item.asset_code}}"
+        bindtap="onChartAssetChange"
+      >
         <text>{{item.display_name || item.asset_code}}</text>
       </view>
     </view>
     <price-chart asset-code="{{chartAssetCode}}" title="市场行情" canvas-height="{{160}}" />
   </view>
-  <view class="market-overview-toggle {{showPriceChart ? 'market-overview-toggle--expanded' : ''}}"
-    bindtap="onTogglePriceChart">
+  <view
+    class="market-overview-toggle {{showPriceChart ? 'market-overview-toggle--expanded' : ''}}"
+    bindtap="onTogglePriceChart"
+  >
     <view class="toggle-inner">
       <text class="toggle-text">{{showPriceChart ? '收起行情' : '📈 查看市场行情'}}</text>
       <text class="toggle-arrow">{{showPriceChart ? '︿' : '﹀'}}</text>
@@ -50,8 +57,10 @@
         </view>
       </view>
       <!--资产成交量排行-->
-      <view class="ranking-section"
-        wx:if="{{marketOverview.asset_rankings && marketOverview.asset_rankings.length > 0}}">
+      <view
+        class="ranking-section"
+        wx:if="{{marketOverview.asset_rankings && marketOverview.asset_rankings.length > 0}}"
+      >
         <text class="ranking-title">成交排行</text>
         <view class="ranking-list">
           <view class="ranking-item" wx:for="{{marketOverview.asset_rankings}}" wx:key="asset_code">
@@ -97,16 +106,29 @@
     <view class="kind-tabs">
       <view
         class="kind-tab {{filterListingKind === item.key ? 'active' : ''}} {{filtersCount && filtersCount.listing_kinds && item.key && filtersCount.listing_kinds[item.key] === 0 ? 'filter-disabled' : ''}}"
-        wx:for="{{kindTabs}}" wx:key="key" data-kind="{{item.key}}" bindtap="onKindTabChange">
-        <text>{{item.label}}</text><text
+        wx:for="{{kindTabs}}"
+        wx:key="key"
+        data-kind="{{item.key}}"
+        bindtap="onKindTabChange"
+      >
+        <text>{{item.label}}</text
+        ><text
           wx:if="{{filtersCount && filtersCount.listing_kinds && item.key && filtersCount.listing_kinds[item.key] !== undefined}}"
-          class="filter-count"> ({{filtersCount.listing_kinds[item.key]}})</text>
+          class="filter-count"
+        >
+          ({{filtersCount.listing_kinds[item.key]}})</text
+        >
       </view>
     </view>
     <view class="filter-right">
       <view class="sort-tabs">
-        <view class="sort-tab {{filterSort === item.key ? 'active' : ''}}" wx:for="{{sortOptions}}" wx:key="key"
-          data-sort="{{item.key}}" bindtap="onSortChange">
+        <view
+          class="sort-tab {{filterSort === item.key ? 'active' : ''}}"
+          wx:for="{{sortOptions}}"
+          wx:key="key"
+          data-sort="{{item.key}}"
+          bindtap="onSortChange"
+        >
           <text>{{item.label}}</text>
         </view>
       </view>
@@ -125,67 +147,120 @@
     <view class="filter-section">
       <text class="filter-section-label">价格区间</text>
       <view class="price-range-row">
-        <input class="price-input" type="number" placeholder="最低价" value="{{filterMinPrice}}"
-          bindinput="onMinPriceInput" />
+        <input
+          class="price-input"
+          type="number"
+          placeholder="最低价"
+          value="{{filterMinPrice}}"
+          bindinput="onMinPriceInput"
+        />
         <text class="price-separator">—</text>
-        <input class="price-input" type="number" placeholder="最高价" value="{{filterMaxPrice}}"
-          bindinput="onMaxPriceInput" />
+        <input
+          class="price-input"
+          type="number"
+          placeholder="最高价"
+          value="{{filterMaxPrice}}"
+          bindinput="onMaxPriceInput"
+        />
       </view>
     </view>
 
     <!-- 分类筛选（来自 facets） -->
-    <view class="filter-section" wx:if="{{facetsData && facetsData.categories && facetsData.categories.length > 0}}">
+    <view
+      class="filter-section"
+      wx:if="{{facetsData && facetsData.categories && facetsData.categories.length > 0}}"
+    >
       <text class="filter-section-label">物品类目</text>
       <view class="filter-tags">
         <view
           class="filter-tag {{filterCategoryCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.categories && filtersCount.categories[item.code] === 0 ? 'filter-disabled' : ''}}"
-          wx:for="{{facetsData.categories}}" wx:key="code" data-code="{{item.code}}" bindtap="onCategorySelect">
-          <text>{{item.display_name || item.code}}</text><text
+          wx:for="{{facetsData.categories}}"
+          wx:key="code"
+          data-code="{{item.code}}"
+          bindtap="onCategorySelect"
+        >
+          <text>{{item.display_name || item.code}}</text
+          ><text
             wx:if="{{filtersCount && filtersCount.categories && filtersCount.categories[item.code] !== undefined}}"
-            class="filter-count"> ({{filtersCount.categories[item.code]}})</text>
+            class="filter-count"
+          >
+            ({{filtersCount.categories[item.code]}})</text
+          >
         </view>
       </view>
     </view>
 
     <!-- 稀有度筛选（来自 facets） -->
-    <view class="filter-section" wx:if="{{facetsData && facetsData.rarities && facetsData.rarities.length > 0}}">
+    <view
+      class="filter-section"
+      wx:if="{{facetsData && facetsData.rarities && facetsData.rarities.length > 0}}"
+    >
       <text class="filter-section-label">稀有度</text>
       <view class="filter-tags">
         <view
           class="filter-tag {{filterRarityCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.rarities && filtersCount.rarities[item.code] === 0 ? 'filter-disabled' : ''}}"
-          wx:for="{{facetsData.rarities}}" wx:key="code" data-code="{{item.code}}" bindtap="onRaritySelect">
-          <text>{{item.display_name || item.code}}</text><text
+          wx:for="{{facetsData.rarities}}"
+          wx:key="code"
+          data-code="{{item.code}}"
+          bindtap="onRaritySelect"
+        >
+          <text>{{item.display_name || item.code}}</text
+          ><text
             wx:if="{{filtersCount && filtersCount.rarities && filtersCount.rarities[item.code] !== undefined}}"
-            class="filter-count"> ({{filtersCount.rarities[item.code]}})</text>
+            class="filter-count"
+          >
+            ({{filtersCount.rarities[item.code]}})</text
+          >
         </view>
       </view>
     </view>
 
     <!--资产分组筛选（对齐文档 asset_group_code 查询参数，数据来自 facets）-->
-    <view class="filter-section"
-      wx:if="{{facetsData && facetsData.asset_groups && facetsData.asset_groups.length > 0}}">
+    <view
+      class="filter-section"
+      wx:if="{{facetsData && facetsData.asset_groups && facetsData.asset_groups.length > 0}}"
+    >
       <text class="filter-section-label">资产分组</text>
       <view class="filter-tags">
         <view
           class="filter-tag {{filterAssetGroupCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.asset_groups && filtersCount.asset_groups[item.code] === 0 ? 'filter-disabled' : ''}}"
-          wx:for="{{facetsData.asset_groups}}" wx:key="code" data-code="{{item.code}}" bindtap="onAssetGroupSelect">
-          <text>{{item.display_name || item.code}}</text><text
+          wx:for="{{facetsData.asset_groups}}"
+          wx:key="code"
+          data-code="{{item.code}}"
+          bindtap="onAssetGroupSelect"
+        >
+          <text>{{item.display_name || item.code}}</text
+          ><text
             wx:if="{{filtersCount && filtersCount.asset_groups && filtersCount.asset_groups[item.code] !== undefined}}"
-            class="filter-count"> ({{filtersCount.asset_groups[item.code]}})</text>
+            class="filter-count"
+          >
+            ({{filtersCount.asset_groups[item.code]}})</text
+          >
         </view>
       </view>
     </view>
 
     <!--资产代码筛选（对齐文档 asset_code 查询参数，仅 fungible_asset 类型有效，数据来自 facets）-->
-    <view class="filter-section" wx:if="{{facetsData && facetsData.asset_codes && facetsData.asset_codes.length > 0}}">
+    <view
+      class="filter-section"
+      wx:if="{{facetsData && facetsData.asset_codes && facetsData.asset_codes.length > 0}}"
+    >
       <text class="filter-section-label">资产代码</text>
       <view class="filter-tags">
         <view
           class="filter-tag {{filterAssetCode === item.code ? 'active' : ''}} {{filtersCount && filtersCount.asset_codes && filtersCount.asset_codes[item.code] === 0 ? 'filter-disabled' : ''}}"
-          wx:for="{{facetsData.asset_codes}}" wx:key="code" data-code="{{item.code}}" bindtap="onAssetCodeSelect">
-          <text>{{item.display_name || item.code}}</text><text
+          wx:for="{{facetsData.asset_codes}}"
+          wx:key="code"
+          data-code="{{item.code}}"
+          bindtap="onAssetCodeSelect"
+        >
+          <text>{{item.display_name || item.code}}</text
+          ><text
             wx:if="{{filtersCount && filtersCount.asset_codes && filtersCount.asset_codes[item.code] !== undefined}}"
-            class="filter-count"> ({{filtersCount.asset_codes[item.code]}})</text>
+            class="filter-count"
+          >
+            ({{filtersCount.asset_codes[item.code]}})</text
+          >
         </view>
       </view>
     </view>
@@ -205,11 +280,21 @@
   <view class="waterfall-container" style="height: {{containerHeight}}px;">
     <block wx:for="{{products}}" wx:key="listing_id">
       <!-- Feed 广告卡片（穿插在商品列表中，_isAdItem=true 区分） -->
-      <view wx:if="{{item._isAdItem}}" class="product-card waterfall-card feed-ad-card"
+      <view
+        wx:if="{{item._isAdItem}}"
+        class="product-card waterfall-card feed-ad-card"
         style="left: {{item.layoutInfo.left}}px; top: {{item.layoutInfo.top}}px; width: {{item.layoutInfo.width}}px;"
-        data-ad="{{item._adData}}" bindtap="onFeedAdTap">
+        data-ad="{{item._adData}}"
+        bindtap="onFeedAdTap"
+      >
         <view class="card-image-container">
-          <image wx:if="{{item._displayImage}}" class="product-image card-image" src="{{item._displayImage}}" mode="aspectFill" lazy-load="{{true}}" />
+          <image
+            wx:if="{{item._displayImage}}"
+            class="product-image card-image"
+            src="{{item._displayImage}}"
+            mode="aspectFill"
+            lazy-load="{{true}}"
+          />
           <view wx:else class="image-fallback">
             <text class="fallback-icon">📢</text>
             <text class="fallback-name">{{item._displayName}}</text>
@@ -227,12 +312,23 @@
       </view>
 
       <!-- 普通商品卡片 -->
-      <view wx:else class="product-card waterfall-card {{item._rarityStyle.cssClass || ''}}"
+      <view
+        wx:else
+        class="product-card waterfall-card {{item._rarityStyle.cssClass || ''}}"
         style="left: {{item.layoutInfo.left}}px; top: {{item.layoutInfo.top}}px; width: {{item.layoutInfo.width}}px;"
-        data-product="{{item}}" bindtap="onProductClick">
+        data-product="{{item}}"
+        bindtap="onProductClick"
+      >
         <view class="card-image-container">
-          <image wx:if="{{!item._imageError}}" class="product-image card-image" src="{{item._displayImage}}"
-            mode="aspectFill" lazy-load="{{true}}" data-index="{{index}}" binderror="onImageError" />
+          <image
+            wx:if="{{!item._imageError}}"
+            class="product-image card-image"
+            src="{{item._displayImage}}"
+            mode="aspectFill"
+            lazy-load="{{true}}"
+            data-index="{{index}}"
+            binderror="onImageError"
+          />
           <view wx:else class="image-fallback">
             <text class="fallback-icon">{{item._isFungibleAsset ? '💎' : '📦'}}</text>
             <text class="fallback-name">{{item._displayName}}</text>
@@ -249,9 +345,11 @@
             <text class="amount-text">×{{item._offerAmount}}</text>
           </view>
 
-          <view class="rarity-badge"
+          <view
+            class="rarity-badge"
             wx:if="{{!item._isFungibleAsset && item._rarityCode && item._rarityCode !== 'common'}}"
-            style="background-color: {{item._rarityStyle.colorHex}};">
+            style="background-color: {{item._rarityStyle.colorHex}};"
+          >
             <text class="rarity-text">{{item._rarityStyle.displayName}}</text>
           </view>
         </view>
@@ -317,7 +415,11 @@
 
   <!-- 浮动操作 -->
   <view class="floating-actions">
-    <view class="floating-btn back-to-top-btn" bindtap="scrollToTop" wx:if="{{products.length > 10}}">
+    <view
+      class="floating-btn back-to-top-btn"
+      bindtap="scrollToTop"
+      wx:if="{{products.length > 10}}"
+    >
       <text class="btn-icon">↑</text>
     </view>
   </view>

@@ -18,9 +18,7 @@
 
 .tab-list {
   display: flex;
-  background: rgba(255, 255, 255, 0.92);
-  -webkit-backdrop-filter: blur(24rpx);
-  backdrop-filter: blur(24rpx);
+  background: #ffffff;
   border-radius: 24rpx;
   padding: 8rpx;
   box-shadow: $shadow-card;
@@ -37,7 +35,7 @@
 
 .tab-item.active {
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.35);
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.35);
   transform: scale(1.02);
 }
 
@@ -49,7 +47,7 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(255, 107, 53, 0.1);
   @include flex-center;
   margin-bottom: 8rpx;
   transition: all 0.3s ease;
@@ -144,9 +142,7 @@
 }
 
 .main-stat-card {
-  background: rgba(255, 255, 255, 0.95);
-  -webkit-backdrop-filter: blur(12rpx);
-  backdrop-filter: blur(12rpx);
+  background: #ffffff;
   border-radius: 20rpx;
   padding: 24rpx 16rpx;
   box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
@@ -204,7 +200,7 @@
 }
 
 .stat-icon-bg.total {
-  background: rgba(102, 126, 234, 0.12);
+  background: rgba(255, 107, 53, 0.12);
 }
 
 .stat-icon {
@@ -248,9 +244,7 @@
 }
 
 .filter-content {
-  background: rgba(255, 255, 255, 0.92);
-  -webkit-backdrop-filter: blur(12rpx);
-  backdrop-filter: blur(12rpx);
+  background: #ffffff;
   border-radius: 20rpx;
   padding: 20rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
@@ -260,7 +254,7 @@
   display: flex;
   gap: 10rpx;
   margin-bottom: 16rpx;
-  background: rgba(102, 126, 234, 0.06);
+  background: rgba(255, 107, 53, 0.06);
   border-radius: 16rpx;
   padding: 6rpx;
 }
@@ -276,7 +270,7 @@
 
 .filter-chip.active {
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
 
 .filter-chip:active {
@@ -301,7 +295,7 @@
 .filter-btn {
   flex: 1;
   background: transparent;
-  border: 2rpx solid rgba(102, 126, 234, 0.4);
+  border: 2rpx solid rgba(255, 107, 53, 0.4);
   border-radius: 12rpx;
   padding: 14rpx;
   @include flex-center;
@@ -313,7 +307,7 @@
 }
 
 .filter-btn:active {
-  background: rgba(102, 126, 234, 0.08);
+  background: rgba(255, 107, 53, 0.08);
   transform: scale(0.97);
 }
 
@@ -337,9 +331,7 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  background: rgba(255, 255, 255, 0.92);
-  -webkit-backdrop-filter: blur(12rpx);
-  backdrop-filter: blur(12rpx);
+  background: #ffffff;
   border-radius: 48rpx;
   padding: 16rpx 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
@@ -394,9 +386,7 @@
 
 .transaction-card,
 .record-card {
-  background: rgba(255, 255, 255, 0.95);
-  -webkit-backdrop-filter: blur(12rpx);
-  backdrop-filter: blur(12rpx);
+  background: #ffffff;
   border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -455,7 +445,7 @@
 
 /* 默认图标背景 */
 .transaction-icon-wrapper:not(.income):not(.expense) {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.05));
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(229, 90, 43, 0.05));
 }
 
 .transaction-icon {
@@ -536,12 +526,12 @@
 }
 
 .action-btn.detail {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(255, 107, 53, 0.1);
   color: $gradient-blue-start;
 }
 
 .action-btn.detail:active {
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(255, 107, 53, 0.2);
   transform: scale(0.97);
 }
 
@@ -571,9 +561,7 @@
 .filter-tabs {
   display: flex;
   gap: 10rpx;
-  background: rgba(255, 255, 255, 0.92);
-  -webkit-backdrop-filter: blur(12rpx);
-  backdrop-filter: blur(12rpx);
+  background: #ffffff;
   border-radius: 20rpx;
   padding: 8rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
@@ -594,7 +582,7 @@
 
 .filter-tab.active {
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
   transform: scale(1.02);
 }
 
@@ -890,9 +878,7 @@
   top: 20rpx;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
-  -webkit-backdrop-filter: blur(16rpx);
-  backdrop-filter: blur(16rpx);
+  background: rgba(0, 0, 0, 0.85);
   border-radius: 48rpx;
   padding: 16rpx 36rpx;
   z-index: 1000;

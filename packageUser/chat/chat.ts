@@ -467,7 +467,7 @@ Page({
    * @returns 带高亮标签的HTML字符串
    *
    * 示例: highlightKeyword("你好世界", "你好")
-   *   → '<span style="color:#667eea;font-weight:bold;">你好</span>世界'
+   *   → '<span style="color:#ff6b35;font-weight:bold;">你好</span>世界'
    */
   highlightKeyword(content: string, keyword: string): string {
     if (!content || !keyword) {
@@ -476,7 +476,7 @@ Page({
     // 转义正则特殊字符，防止用户输入的特殊符号导致正则错误
     const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const regex = new RegExp(`(${escapedKeyword})`, 'gi')
-    return content.replace(regex, '<span style="color:#667eea;font-weight:bold;">$1</span>')
+    return content.replace(regex, '<span style="color:#ff6b35;font-weight:bold;">$1</span>')
   },
 
   /**

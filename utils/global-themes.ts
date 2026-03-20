@@ -1,9 +1,7 @@
 /**
  * 全局氛围主题 CSS 变量映射表（统一 source of truth）
  *
- * 合并原 packageLottery/lottery-activity/themes/themes.ts（6 套抽奖主题 --theme-* 变量）
- * 和 packageExchange/themes/exchange-themes.ts（5 套兑换主题 --shelf-* 变量）
- * 为 6 套全局统一主题，每套同时包含 --theme-* 和 --shelf-* 两组变量。
+ * 合并抽奖主题（--theme-*）和兑换主题（--shelf-*）为 6 套全局统一主题。
  *
  * 架构：全局氛围 + 活动级覆盖
  *   - 全局氛围：后端 system_configs 表 config_key='app_theme'，控制所有 Tab 页
@@ -11,19 +9,24 @@
  *
  * 6 套主题标识：default / gold_luxury / purple_mystery / spring_festival / christmas / summer
  *
+ * 设计规范（v4.0 去塑料感重构）：
+ *   1. 每套主题只有 1 个主色方向，渐变仅保留在页面头部
+ *   2. 卡片/标签/按钮等一律改纯色，去掉玻璃拟态和渐变
+ *   3. 内容区块用纯色背景（去掉 rgba 半透明）
+ *   4. 阴影带主题色调，融入画面
+ *
  * 变量命名规范：
  *   --theme-*  系列：抽奖模块、通用页面使用（主色调、文字、背景、阴影、光效、状态色）
  *   --shelf-*  系列：兑换模块使用（卡片、价格、按钮、库存、标签）
  *
  * 保底机制：所有组件的 var() 均带 fallback 默认值。
- * 当后端未返回主题配置时，CSS 变量不设置，组件自动回退到各自的硬编码保底色。
  *
  * ⚠️ 内部模块，不通过 utils/index.ts 引用其他工具（避免循环依赖）
  *    外部页面统一从 utils/index.ts 导入 GlobalTheme
  *
  * @file utils/global-themes.ts
- * @version 6.0.0
- * @since 2026-03-06
+ * @version 7.0.0
+ * @since 2026-03-21
  */
 
 /**
@@ -35,17 +38,17 @@
 const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
   /* =====================================================================
    * 默认主题（暖橙日常活动）
-   * 抽奖：暖橙色主色调，浅暖色背景
-   * 兑换：吸收原方案 E（彩色分类 + 电商价格），白底暖色
+   * v4.0 重构：蓝紫色全部清除，统一走暖橙方向
+   * 头部渐变改为暖橙，卡片纯白底，标签纯色
    * ===================================================================== */
   default: {
-    // ── 页面级渐变背景（所有 Tab 页共用） ──
-    '--theme-page-start': '#667eea',
-    '--theme-page-end': '#764ba2',
+    // ── 页面级渐变背景（头部区域，暖橙方向统一） ──
+    '--theme-page-start': '#f7931e',
+    '--theme-page-end': '#e67e22',
 
     // ── 抽奖 / 通用变量（--theme-*） ──
-    '--theme-primary': '#e67e22',
-    '--theme-primary-dark': '#d35400',
+    '--theme-primary': '#ff6b35',
+    '--theme-primary-dark': '#e55a2b',
     '--theme-primary-light': '#f39c12',
     '--theme-primary-lighter': '#f5b041',
     '--theme-secondary': '#ff8c42',
@@ -60,37 +63,37 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-text-lighter': 'rgba(255, 255, 255, 0.5)',
     '--theme-text-inverse': '#ffffff',
     '--theme-text-dark': '#7b241c',
-    '--theme-background': '#fff8f0',
+    '--theme-background': '#faf6f1',
     '--theme-bg-dark': '#2c1810',
     '--theme-bg-darker': '#1a0e08',
     '--theme-bg-light': '#fffdf7',
     '--theme-bg-lighter': '#fff5eb',
-    '--theme-shadow-strong': 'rgba(230, 126, 34, 0.4)',
-    '--theme-shadow-medium': 'rgba(230, 126, 34, 0.25)',
-    '--theme-shadow-soft': 'rgba(230, 126, 34, 0.15)',
-    '--theme-glow-intense': 'rgba(230, 126, 34, 0.9)',
-    '--theme-glow-medium': 'rgba(230, 126, 34, 0.6)',
-    '--theme-glow-soft': 'rgba(230, 126, 34, 0.35)',
+    '--theme-shadow-strong': 'rgba(255, 107, 53, 0.4)',
+    '--theme-shadow-medium': 'rgba(255, 107, 53, 0.25)',
+    '--theme-shadow-soft': 'rgba(255, 107, 53, 0.15)',
+    '--theme-glow-intense': 'rgba(255, 107, 53, 0.9)',
+    '--theme-glow-medium': 'rgba(255, 107, 53, 0.6)',
+    '--theme-glow-soft': 'rgba(255, 107, 53, 0.35)',
     '--theme-border': '#eeeeee',
-    '--theme-border-light': 'rgba(230, 126, 34, 0.2)',
-    '--theme-highlight': 'rgba(230, 126, 34, 0.3)',
+    '--theme-border-light': 'rgba(255, 107, 53, 0.2)',
+    '--theme-highlight': 'rgba(255, 107, 53, 0.3)',
     '--theme-success': '#27ae60',
     '--theme-danger': '#e74c3c',
     '--theme-warning': '#f39c12',
 
-    // ── 兑换变量（--shelf-*）── 吸收原方案 E：彩色分类 + 电商价格
+    // ── 兑换变量（--shelf-*）── 纯色化，去掉所有渐变和玻璃拟态
     '--shelf-card-bg': '#ffffff',
     '--shelf-card-radius': '20rpx',
-    '--shelf-card-shadow': '0 4rpx 20rpx rgba(0,0,0,0.06)',
+    '--shelf-card-shadow': '0 4rpx 20rpx rgba(255,107,53,0.06)',
     '--shelf-card-border': 'none',
-    '--shelf-card-hover-shadow': '0 8rpx 28rpx rgba(0,0,0,0.1)',
+    '--shelf-card-hover-shadow': '0 8rpx 28rpx rgba(255,107,53,0.1)',
     '--shelf-card-hover-translate': '-2rpx',
     '--shelf-card-image-bg': '#f5f7fa',
     '--shelf-price-color': '#ff6b35',
     '--shelf-price-unit': '#ff6b35',
-    '--shelf-price-row-bg': 'linear-gradient(90deg, rgba(255,107,53,0.06), transparent)',
+    '--shelf-price-row-bg': 'transparent',
     '--shelf-price-original': '#bbb',
-    '--shelf-cta-bg': 'linear-gradient(135deg, #e67e22, #d35400)',
+    '--shelf-cta-bg': '#ff6b35',
     '--shelf-cta-text': '#ffffff',
     '--shelf-cta-radius': '14rpx',
     '--shelf-cta-shadow': 'none',
@@ -101,19 +104,19 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-stock-warn': '#faad14',
     '--shelf-stock-danger': '#ff4d4f',
     '--shelf-stock-bar-bg': '#f0f0f0',
-    '--shelf-tag-hot': 'linear-gradient(135deg, #ff4757, #ff6b81)',
-    '--shelf-tag-new': 'linear-gradient(135deg, #2ed573, #7bed9f)',
-    '--shelf-tag-limited': 'linear-gradient(135deg, #7c4dff, #b388ff)',
-    '--shelf-fallback-bg': 'linear-gradient(135deg, #f5f5f5, #e8e8e8)',
+    '--shelf-tag-hot': '#ff4757',
+    '--shelf-tag-new': '#2ed573',
+    '--shelf-tag-limited': '#7c4dff',
+    '--shelf-fallback-bg': '#f5f5f5',
     '--shelf-capsule-bg': 'rgba(0,0,0,0.55)',
-    '--shelf-header-bg': 'linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)',
-    '--shelf-nav-slider-left': 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
-    '--shelf-nav-slider-right': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    '--shelf-accent': '#667eea',
-    '--shelf-accent-light': 'rgba(102, 126, 234, 0.15)',
+    '--shelf-header-bg': '#e67e22',
+    '--shelf-nav-slider-left': '#ff6b35',
+    '--shelf-nav-slider-right': '#e67e22',
+    '--shelf-accent': '#e67e22',
+    '--shelf-accent-light': 'rgba(230, 126, 34, 0.15)',
 
-    // ── 内容区块变量（菜单区、卡片列表等非页面背景区域） ──
-    '--theme-section-bg': 'rgba(255, 255, 255, 0.92)',
+    // ── 内容区块变量（纯白底，去掉半透明） ──
+    '--theme-section-bg': '#ffffff',
     '--theme-item-bg': '#ffffff',
     '--theme-section-text': '#333333',
     '--theme-section-text-sub': '#999999',
@@ -122,11 +125,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
 
   /* =====================================================================
    * 金色奢华主题（高端活动）
-   * 抽奖：金色主色调，深色背景
-   * 兑换：吸收原方案 C（暗色游戏风），深色背景 + 金色价格
+   * v4.0 重构：金色从大面积降为线条/文字，卡片去渐变改纯深色
    * ===================================================================== */
   gold_luxury: {
-    // ── 页面级渐变背景 ──
+    // ── 页面级渐变背景（保留头部深蓝渐变） ──
     '--theme-page-start': '#2c3e50',
     '--theme-page-end': '#1a1a2e',
 
@@ -165,19 +167,19 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-danger': '#e74c3c',
     '--theme-warning': '#f39c12',
 
-    // ── 兑换变量（--shelf-*）── 吸收原方案 C：暗色游戏风，金色价格
-    '--shelf-card-bg': 'linear-gradient(145deg, #1a1a2e, #16213e)',
+    // ── 兑换变量（--shelf-*）── 卡片去渐变改纯色深底
+    '--shelf-card-bg': '#232340',
     '--shelf-card-radius': '20rpx',
     '--shelf-card-shadow': '0 8rpx 32rpx rgba(0,0,0,0.25)',
     '--shelf-card-border': '1rpx solid rgba(241,196,15,0.15)',
     '--shelf-card-hover-shadow': '0 0 20rpx rgba(241,196,15,0.2)',
     '--shelf-card-hover-translate': '0',
-    '--shelf-card-image-bg': 'linear-gradient(135deg, #1a1a2e, #2a2a4e)',
+    '--shelf-card-image-bg': '#2a2a4e',
     '--shelf-price-color': '#ffd700',
     '--shelf-price-unit': '#ffd700',
     '--shelf-price-row-bg': 'transparent',
     '--shelf-price-original': 'rgba(255,255,255,0.35)',
-    '--shelf-cta-bg': 'linear-gradient(135deg, #f1c40f, #d4ac0d)',
+    '--shelf-cta-bg': '#f1c40f',
     '--shelf-cta-text': '#1a1a2e',
     '--shelf-cta-radius': '14rpx',
     '--shelf-cta-shadow': '0 0 16rpx rgba(241,196,15,0.35)',
@@ -188,20 +190,20 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-stock-warn': '#faad14',
     '--shelf-stock-danger': '#ff4d4f',
     '--shelf-stock-bar-bg': 'rgba(255,255,255,0.1)',
-    '--shelf-tag-hot': 'linear-gradient(135deg, #ff4757, #ff6b81)',
-    '--shelf-tag-new': 'linear-gradient(135deg, #2ed573, #7bed9f)',
-    '--shelf-tag-limited': 'linear-gradient(135deg, #7c4dff, #b388ff)',
-    '--shelf-fallback-bg': 'linear-gradient(135deg, #1a1a2e, #2a2a4e)',
+    '--shelf-tag-hot': '#ff4757',
+    '--shelf-tag-new': '#2ed573',
+    '--shelf-tag-limited': '#7c4dff',
+    '--shelf-fallback-bg': '#1a1a2e',
     '--shelf-capsule-bg': 'rgba(241,196,15,0.12)',
-    '--shelf-header-bg': 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-    '--shelf-nav-slider-left': 'linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%)',
-    '--shelf-nav-slider-right': 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+    '--shelf-header-bg': '#1a1a2e',
+    '--shelf-nav-slider-left': '#f1c40f',
+    '--shelf-nav-slider-right': '#f39c12',
     '--shelf-accent': '#f1c40f',
     '--shelf-accent-light': 'rgba(241, 196, 15, 0.15)',
 
-    // ── 内容区块变量（暗色背景 + 亮色文字） ──
-    '--theme-section-bg': 'rgba(42, 42, 78, 0.92)',
-    '--theme-item-bg': 'rgba(58, 58, 94, 0.85)',
+    // ── 内容区块变量（纯色深底，去掉半透明） ──
+    '--theme-section-bg': '#232340',
+    '--theme-item-bg': '#2a2a50',
     '--theme-section-text': '#e8e8f0',
     '--theme-section-text-sub': 'rgba(255, 255, 255, 0.5)',
     '--theme-section-border': 'rgba(255, 255, 255, 0.08)'
@@ -209,11 +211,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
 
   /* =====================================================================
    * 紫色神秘主题（神秘活动）
-   * 抽奖：紫色主色调，深紫背景
-   * 兑换：基于原方案 C（暗色游戏风），调整为紫色调
+   * v4.0 重构：简化为单色深紫底 + 浅紫卡片，去掉多层叠加
    * ===================================================================== */
   purple_mystery: {
-    // ── 页面级渐变背景 ──
+    // ── 页面级渐变背景（保留头部紫色渐变） ──
     '--theme-page-start': '#6c3483',
     '--theme-page-end': '#512e5f',
 
@@ -252,19 +253,19 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-danger': '#e74c3c',
     '--theme-warning': '#f39c12',
 
-    // ── 兑换变量（--shelf-*）── 基于方案 C 调整为紫色调
-    '--shelf-card-bg': 'linear-gradient(145deg, #1a1a3e, #16163a)',
+    // ── 兑换变量（--shelf-*）── 卡片去渐变改纯色深紫
+    '--shelf-card-bg': '#2a2050',
     '--shelf-card-radius': '20rpx',
     '--shelf-card-shadow': '0 8rpx 32rpx rgba(0,0,0,0.25)',
     '--shelf-card-border': '1rpx solid rgba(155,89,182,0.15)',
     '--shelf-card-hover-shadow': '0 0 20rpx rgba(155,89,182,0.2)',
     '--shelf-card-hover-translate': '0',
-    '--shelf-card-image-bg': 'linear-gradient(135deg, #1a1a3e, #2a1a5e)',
+    '--shelf-card-image-bg': '#2a1a5e',
     '--shelf-price-color': '#e8daef',
     '--shelf-price-unit': '#d7bde2',
     '--shelf-price-row-bg': 'transparent',
     '--shelf-price-original': 'rgba(255,255,255,0.35)',
-    '--shelf-cta-bg': 'linear-gradient(135deg, #9b59b6, #6c3483)',
+    '--shelf-cta-bg': '#9b59b6',
     '--shelf-cta-text': '#ffffff',
     '--shelf-cta-radius': '14rpx',
     '--shelf-cta-shadow': '0 0 16rpx rgba(155,89,182,0.35)',
@@ -275,20 +276,20 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-stock-warn': '#faad14',
     '--shelf-stock-danger': '#ff4d4f',
     '--shelf-stock-bar-bg': 'rgba(255,255,255,0.1)',
-    '--shelf-tag-hot': 'linear-gradient(135deg, #ff4757, #ff6b81)',
-    '--shelf-tag-new': 'linear-gradient(135deg, #2ed573, #7bed9f)',
-    '--shelf-tag-limited': 'linear-gradient(135deg, #9b59b6, #d7bde2)',
-    '--shelf-fallback-bg': 'linear-gradient(135deg, #1a1a3e, #2a1a5e)',
+    '--shelf-tag-hot': '#ff4757',
+    '--shelf-tag-new': '#2ed573',
+    '--shelf-tag-limited': '#9b59b6',
+    '--shelf-fallback-bg': '#1a1a3e',
     '--shelf-capsule-bg': 'rgba(155,89,182,0.12)',
-    '--shelf-header-bg': 'linear-gradient(135deg, #2c1654 0%, #1a0a3e 100%)',
-    '--shelf-nav-slider-left': 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
-    '--shelf-nav-slider-right': 'linear-gradient(135deg, #7c4dff 0%, #6c3ce0 100%)',
+    '--shelf-header-bg': '#2c1654',
+    '--shelf-nav-slider-left': '#9b59b6',
+    '--shelf-nav-slider-right': '#7c4dff',
     '--shelf-accent': '#9b59b6',
     '--shelf-accent-light': 'rgba(155, 89, 182, 0.15)',
 
-    // ── 内容区块变量（暗色背景 + 亮色文字） ──
-    '--theme-section-bg': 'rgba(42, 26, 94, 0.92)',
-    '--theme-item-bg': 'rgba(58, 42, 110, 0.85)',
+    // ── 内容区块变量（纯色深紫底，去掉半透明） ──
+    '--theme-section-bg': '#2a2050',
+    '--theme-item-bg': '#322860',
     '--theme-section-text': '#ecf0f1',
     '--theme-section-text-sub': 'rgba(255, 255, 255, 0.5)',
     '--theme-section-border': 'rgba(255, 255, 255, 0.08)'
@@ -296,11 +297,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
 
   /* =====================================================================
    * 春节主题（红金喜庆）
-   * 抽奖：中国红主色调，浅红背景
-   * 兑换：基于原方案 B（暖橙电商风），调整为红金色调
+   * v4.0 重构：红色收缩到头部+按钮，正文改灰色，大面积暖白底
    * ===================================================================== */
   spring_festival: {
-    // ── 页面级渐变背景 ──
+    // ── 页面级渐变背景（保留头部红色） ──
     '--theme-page-start': '#e74c3c',
     '--theme-page-end': '#c0392b',
 
@@ -316,12 +316,12 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-accent-dark': '#b8860b',
     '--theme-accent-light': '#ffe44d',
     '--theme-accent-bright': '#ff8c00',
-    '--theme-text': '#c0392b',
-    '--theme-text-light': '#e74c3c',
+    '--theme-text': '#333333',
+    '--theme-text-light': '#666666',
     '--theme-text-lighter': 'rgba(255, 255, 255, 0.5)',
     '--theme-text-inverse': '#ffffff',
     '--theme-text-dark': '#7b241c',
-    '--theme-background': '#fff5f5',
+    '--theme-background': '#fff8f5',
     '--theme-bg-dark': '#7b241c',
     '--theme-bg-darker': '#5a1a14',
     '--theme-bg-light': '#fff0f0',
@@ -339,8 +339,8 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-danger': '#c0392b',
     '--theme-warning': '#f39c12',
 
-    // ── 兑换变量（--shelf-*）── 基于方案 B 调整为红金色调
-    '--shelf-card-bg': 'linear-gradient(180deg, #fff5f5 0%, #ffffff 30%)',
+    // ── 兑换变量（--shelf-*）── 卡片纯白底，标签纯色
+    '--shelf-card-bg': '#ffffff',
     '--shelf-card-radius': '24rpx',
     '--shelf-card-shadow': '0 4rpx 20rpx rgba(231,76,60,0.08)',
     '--shelf-card-border': 'none',
@@ -351,7 +351,7 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-price-unit': '#e74c3c',
     '--shelf-price-row-bg': 'transparent',
     '--shelf-price-original': '#bbb',
-    '--shelf-cta-bg': 'linear-gradient(135deg, #e74c3c, #c0392b)',
+    '--shelf-cta-bg': '#e74c3c',
     '--shelf-cta-text': '#ffffff',
     '--shelf-cta-radius': '0 0 24rpx 24rpx',
     '--shelf-cta-shadow': 'none',
@@ -362,19 +362,19 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-stock-warn': '#faad14',
     '--shelf-stock-danger': '#ff4d4f',
     '--shelf-stock-bar-bg': '#f5f5f5',
-    '--shelf-tag-hot': 'linear-gradient(135deg, #e74c3c, #ff6b81)',
-    '--shelf-tag-new': 'linear-gradient(135deg, #f1c40f, #ffd700)',
-    '--shelf-tag-limited': 'linear-gradient(135deg, #7c4dff, #b388ff)',
-    '--shelf-fallback-bg': 'linear-gradient(135deg, #fff5f5, #ffe0e0)',
+    '--shelf-tag-hot': '#e74c3c',
+    '--shelf-tag-new': '#f1c40f',
+    '--shelf-tag-limited': '#7c4dff',
+    '--shelf-fallback-bg': '#fff5f5',
     '--shelf-capsule-bg': 'rgba(0,0,0,0.55)',
-    '--shelf-header-bg': 'linear-gradient(135deg, #c0392b 0%, #a93226 100%)',
-    '--shelf-nav-slider-left': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
-    '--shelf-nav-slider-right': 'linear-gradient(135deg, #f1c40f 0%, #d4ac0d 100%)',
+    '--shelf-header-bg': '#c0392b',
+    '--shelf-nav-slider-left': '#e74c3c',
+    '--shelf-nav-slider-right': '#f1c40f',
     '--shelf-accent': '#e74c3c',
     '--shelf-accent-light': 'rgba(231, 76, 60, 0.15)',
 
-    // ── 内容区块变量（浅红暖色调） ──
-    '--theme-section-bg': 'rgba(255, 248, 248, 0.95)',
+    // ── 内容区块变量（纯白底，去掉半透明） ──
+    '--theme-section-bg': '#ffffff',
     '--theme-item-bg': '#ffffff',
     '--theme-section-text': '#333333',
     '--theme-section-text-sub': '#999999',
@@ -382,12 +382,11 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
   },
 
   /* =====================================================================
-   * 圣诞主题（红绿配色）
-   * 抽奖：圣诞绿主色调，浅绿背景
-   * 兑换：基于原方案 E（彩色分类），调整为绿色调
+   * 圣诞主题（绿色主调 + 极小面积红色点缀）
+   * v4.0 重构：红色从副色降到 ≤3%，强调色换金色，正文改灰色
    * ===================================================================== */
   christmas: {
-    // ── 页面级渐变背景 ──
+    // ── 页面级渐变背景（保留头部绿色） ──
     '--theme-page-start': '#27ae60',
     '--theme-page-end': '#1e8449',
 
@@ -399,16 +398,16 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-secondary': '#e74c3c',
     '--theme-secondary-dark': '#c0392b',
     '--theme-secondary-light': '#f1948a',
-    '--theme-accent': '#e74c3c',
-    '--theme-accent-dark': '#c0392b',
-    '--theme-accent-light': '#f1948a',
+    '--theme-accent': '#ffd700',
+    '--theme-accent-dark': '#b8860b',
+    '--theme-accent-light': '#ffe44d',
     '--theme-accent-bright': '#ffd700',
-    '--theme-text': '#27ae60',
-    '--theme-text-light': '#2ecc71',
+    '--theme-text': '#333333',
+    '--theme-text-light': '#666666',
     '--theme-text-lighter': 'rgba(255, 255, 255, 0.45)',
     '--theme-text-inverse': '#ffffff',
     '--theme-text-dark': '#1a3c2a',
-    '--theme-background': '#f0fff0',
+    '--theme-background': '#f0fff5',
     '--theme-bg-dark': '#1a3c2a',
     '--theme-bg-darker': '#0e2a1e',
     '--theme-bg-light': '#e8f8e8',
@@ -426,7 +425,7 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-danger': '#e74c3c',
     '--theme-warning': '#f39c12',
 
-    // ── 兑换变量（--shelf-*）── 基于方案 E 调整为绿色调
+    // ── 兑换变量（--shelf-*）── 标签纯色，导航滑块统一绿色
     '--shelf-card-bg': '#ffffff',
     '--shelf-card-radius': '20rpx',
     '--shelf-card-shadow': '0 4rpx 20rpx rgba(0,0,0,0.06)',
@@ -436,9 +435,9 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-card-image-bg': '#f0fff0',
     '--shelf-price-color': '#27ae60',
     '--shelf-price-unit': '#27ae60',
-    '--shelf-price-row-bg': 'linear-gradient(90deg, rgba(39,174,96,0.06), transparent)',
+    '--shelf-price-row-bg': 'transparent',
     '--shelf-price-original': '#bbb',
-    '--shelf-cta-bg': 'linear-gradient(135deg, #27ae60, #1e8449)',
+    '--shelf-cta-bg': '#27ae60',
     '--shelf-cta-text': '#ffffff',
     '--shelf-cta-radius': '14rpx',
     '--shelf-cta-shadow': 'none',
@@ -449,20 +448,20 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-stock-warn': '#faad14',
     '--shelf-stock-danger': '#ff4d4f',
     '--shelf-stock-bar-bg': '#f0f0f0',
-    '--shelf-tag-hot': 'linear-gradient(135deg, #e74c3c, #ff6b81)',
-    '--shelf-tag-new': 'linear-gradient(135deg, #27ae60, #82e0aa)',
-    '--shelf-tag-limited': 'linear-gradient(135deg, #7c4dff, #b388ff)',
-    '--shelf-fallback-bg': 'linear-gradient(135deg, #f0fff0, #e8f8e8)',
+    '--shelf-tag-hot': '#e74c3c',
+    '--shelf-tag-new': '#27ae60',
+    '--shelf-tag-limited': '#7c4dff',
+    '--shelf-fallback-bg': '#f0fff0',
     '--shelf-capsule-bg': 'rgba(0,0,0,0.55)',
-    '--shelf-header-bg': 'linear-gradient(135deg, #27ae60 0%, #1e8449 100%)',
-    '--shelf-nav-slider-left': 'linear-gradient(135deg, #27ae60 0%, #1e8449 100%)',
-    '--shelf-nav-slider-right': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+    '--shelf-header-bg': '#27ae60',
+    '--shelf-nav-slider-left': '#27ae60',
+    '--shelf-nav-slider-right': '#27ae60',
     '--shelf-accent': '#27ae60',
     '--shelf-accent-light': 'rgba(39, 174, 96, 0.15)',
 
-    // ── 内容区块变量（浅绿色调） ──
-    '--theme-section-bg': 'rgba(240, 255, 240, 0.95)',
-    '--theme-item-bg': 'rgba(248, 255, 248, 0.95)',
+    // ── 内容区块变量（纯白底，去掉半透明） ──
+    '--theme-section-bg': '#ffffff',
+    '--theme-item-bg': '#ffffff',
     '--theme-section-text': '#333333',
     '--theme-section-text-sub': '#999999',
     '--theme-section-border': 'rgba(39, 174, 96, 0.08)'
@@ -470,11 +469,10 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
 
   /* =====================================================================
    * 夏日主题（清爽蓝色）
-   * 抽奖：天空蓝主色调，浅蓝背景
-   * 兑换：吸收原方案 A（毛玻璃质感），清透浅色系
+   * v4.0 重构：青绿色完全移除，统一走纯蓝，卡片去玻璃拟态改纯白
    * ===================================================================== */
   summer: {
-    // ── 页面级渐变背景 ──
+    // ── 页面级渐变背景（保留头部蓝色） ──
     '--theme-page-start': '#3498db',
     '--theme-page-end': '#2471a3',
 
@@ -483,15 +481,15 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-primary-dark': '#2471a3',
     '--theme-primary-light': '#5dade2',
     '--theme-primary-lighter': '#85c1e9',
-    '--theme-secondary': '#1abc9c',
-    '--theme-secondary-dark': '#148f77',
-    '--theme-secondary-light': '#48c9b0',
+    '--theme-secondary': '#2471a3',
+    '--theme-secondary-dark': '#2471a3',
+    '--theme-secondary-light': '#5dade2',
     '--theme-accent': '#f39c12',
     '--theme-accent-dark': '#d68910',
     '--theme-accent-light': '#f7c948',
     '--theme-accent-bright': '#ff8c00',
-    '--theme-text': '#2980b9',
-    '--theme-text-light': '#5dade2',
+    '--theme-text': '#333333',
+    '--theme-text-light': '#666666',
     '--theme-text-lighter': 'rgba(255, 255, 255, 0.45)',
     '--theme-text-inverse': '#ffffff',
     '--theme-text-dark': '#1a2a3e',
@@ -513,19 +511,19 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--theme-danger': '#e74c3c',
     '--theme-warning': '#f39c12',
 
-    // ── 兑换变量（--shelf-*）── 吸收原方案 A：毛玻璃质感
-    '--shelf-card-bg': 'rgba(255,255,255,0.78)',
+    // ── 兑换变量（--shelf-*）── 去玻璃拟态改纯白底
+    '--shelf-card-bg': '#ffffff',
     '--shelf-card-radius': '20rpx',
-    '--shelf-card-shadow': '0 8rpx 32rpx rgba(0,0,0,0.06), inset 0 1rpx 0 rgba(255,255,255,0.9)',
-    '--shelf-card-border': '1rpx solid rgba(255,255,255,0.6)',
-    '--shelf-card-hover-shadow': '0 4rpx 16rpx rgba(0,0,0,0.04)',
+    '--shelf-card-shadow': '0 8rpx 32rpx rgba(52,152,219,0.06)',
+    '--shelf-card-border': 'none',
+    '--shelf-card-hover-shadow': '0 4rpx 16rpx rgba(52,152,219,0.04)',
     '--shelf-card-hover-translate': '0',
-    '--shelf-card-image-bg': 'linear-gradient(135deg, #e8f4fd, #f0f8ff)',
+    '--shelf-card-image-bg': '#f0f8ff',
     '--shelf-price-color': '#3498db',
     '--shelf-price-unit': '#3498db',
-    '--shelf-price-row-bg': 'linear-gradient(90deg, rgba(52,152,219,0.06), transparent)',
+    '--shelf-price-row-bg': 'transparent',
     '--shelf-price-original': '#bbb',
-    '--shelf-cta-bg': 'linear-gradient(135deg, #3498db, #2471a3)',
+    '--shelf-cta-bg': '#3498db',
     '--shelf-cta-text': '#ffffff',
     '--shelf-cta-radius': '14rpx',
     '--shelf-cta-shadow': 'none',
@@ -536,19 +534,19 @@ const GLOBAL_THEME_MAP: Record<string, Record<string, string>> = {
     '--shelf-stock-warn': '#faad14',
     '--shelf-stock-danger': '#ff4d4f',
     '--shelf-stock-bar-bg': '#f0f0f0',
-    '--shelf-tag-hot': 'linear-gradient(135deg, #ff4757, #ff6b81)',
-    '--shelf-tag-new': 'linear-gradient(135deg, #3498db, #85c1e9)',
-    '--shelf-tag-limited': 'linear-gradient(135deg, #7c4dff, #b388ff)',
-    '--shelf-fallback-bg': 'linear-gradient(135deg, #f0f8ff, #e8f4fd)',
+    '--shelf-tag-hot': '#ff4757',
+    '--shelf-tag-new': '#3498db',
+    '--shelf-tag-limited': '#7c4dff',
+    '--shelf-fallback-bg': '#f0f8ff',
     '--shelf-capsule-bg': 'rgba(0,0,0,0.55)',
-    '--shelf-header-bg': 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
-    '--shelf-nav-slider-left': 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
-    '--shelf-nav-slider-right': 'linear-gradient(135deg, #1abc9c 0%, #16a085 100%)',
+    '--shelf-header-bg': '#3498db',
+    '--shelf-nav-slider-left': '#3498db',
+    '--shelf-nav-slider-right': '#3498db',
     '--shelf-accent': '#3498db',
     '--shelf-accent-light': 'rgba(52, 152, 219, 0.15)',
 
-    // ── 内容区块变量（浅蓝色调） ──
-    '--theme-section-bg': 'rgba(240, 248, 255, 0.95)',
+    // ── 内容区块变量（纯白底，去掉半透明） ──
+    '--theme-section-bg': '#ffffff',
     '--theme-item-bg': '#ffffff',
     '--theme-section-text': '#333333',
     '--theme-section-text-sub': '#999999',
@@ -596,7 +594,7 @@ function getThemeNavColors(themeName: string): {
 } {
   const theme = GLOBAL_THEME_MAP[themeName] || GLOBAL_THEME_MAP['default']
   return {
-    navBg: theme['--theme-page-start'] || '#667eea',
+    navBg: theme['--theme-page-start'] || '#f7931e',
     navText: '#ffffff',
     tabSelected: theme['--theme-primary'] || '#ff6b35'
   }

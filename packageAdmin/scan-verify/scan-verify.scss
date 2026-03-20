@@ -40,7 +40,7 @@
 .step-dot.active {
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
   color: $color-text-white;
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.35);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.35);
 }
 
 /* 步骤完成态 - 成功色 */
@@ -345,14 +345,14 @@
 .scan-ring.outer {
   width: 220rpx;
   height: 220rpx;
-  border: 3rpx solid rgba(102, 126, 234, 0.15);
+  border: 3rpx solid rgba(255, 107, 53, 0.15);
   animation: scan-ripple 3s ease-out infinite;
 }
 
 .scan-ring.inner {
   width: 170rpx;
   height: 170rpx;
-  border: 3rpx solid rgba(102, 126, 234, 0.25);
+  border: 3rpx solid rgba(255, 107, 53, 0.25);
   animation: scan-ripple 3s ease-out 1s infinite;
 }
 
@@ -374,7 +374,7 @@
   @include flex-center;
   background: $gradient-primary;
   border-radius: 50%;
-  box-shadow: 0 8rpx 32rpx rgba(102, 126, 234, 0.35);
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.35);
   z-index: 1;
 }
 

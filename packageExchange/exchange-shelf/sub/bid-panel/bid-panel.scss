@@ -65,7 +65,7 @@
 
 .bid-countdown-badge.ending-soon {
   background: rgba(255, 77, 79, 0.85);
-  animation: breatheGlow 2s ease-in-out infinite alternate;
+  /* 已移除 breatheGlow 呼吸阴影动效，保留即将结束态高亮底色 */
 }
 
 .bid-card-body {
@@ -322,15 +322,4 @@
   background: #cccccc;
   box-shadow: none;
   pointer-events: none;
-}
-
-@keyframes breatheGlow {
-  from {
-    box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.1);
-  }
-  to {
-    box-shadow:
-      0 4rpx 20rpx rgba(255, 107, 53, 0.3),
-      0 0 60rpx rgba(255, 107, 53, 0.15);
-  }
 }

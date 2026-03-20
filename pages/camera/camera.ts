@@ -122,6 +122,9 @@ Page({
   },
 
   onShow() {
+    if (typeof this.getTabBar === 'function') {
+      this.getTabBar().setData({ selected: 1 })
+    }
     log.info('发现页面（活动聚合）显示')
 
     /* 每次 onShow 重新检查全局主题（管理后台切换主题后生效） */
@@ -370,8 +373,8 @@ Page({
     content += `📋 状态：${statusText}\n`
 
     // 时间信息
-    if (activity.status === 'ongoing' && activity.endTime) {
-      const endDate = Utils.safeParseDateString(activity.endTime)
+    if (activity.status === 'ongoing' && activity.end_time) {
+      const endDate = Utils.safeParseDateString(activity.end_time)
       if (endDate) {
         const diffMs = endDate.getTime() - Date.now()
         if (diffMs > 0) {
@@ -389,8 +392,8 @@ Page({
           content += `⏰ 已结束\n`
         }
       }
-    } else if (activity.status === 'upcoming' && activity.startTime) {
-      const startDate = Utils.safeParseDateString(activity.startTime)
+    } else if (activity.status === 'upcoming' && activity.start_time) {
+      const startDate = Utils.safeParseDateString(activity.start_time)
       if (startDate) {
         content += `🕐 开始时间：${Utils.formatTime(startDate)}\n`
       }

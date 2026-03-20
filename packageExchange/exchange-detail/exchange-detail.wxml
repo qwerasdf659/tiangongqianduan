@@ -31,29 +31,52 @@
   <!-- ① 图片区: 多图轮播 / 单图展示 / emoji占位 -->
   <view class="ed-hero-section {{product._rarityClass || ''}}">
     <!-- 稀有度氛围光效: epic=紫色脉冲 legendary=金色脉冲 -->
-    <view class="ed-rarity-glow {{product._glowType === 'epic' ? 'ed-glow-epic' : 'ed-glow-legendary'}}"
-      wx:if="{{product._glowType !== 'none'}}"></view>
+    <view
+      class="ed-rarity-glow {{product._glowType === 'epic' ? 'ed-glow-epic' : 'ed-glow-legendary'}}"
+      wx:if="{{product._glowType !== 'none'}}"
+    ></view>
 
     <!-- 多图轮播 -->
     <block wx:if="{{swiperImages.length > 1}}">
-      <swiper class="ed-swiper" indicator-dots="{{false}}" autoplay="{{true}}" interval="{{4000}}" circular="{{true}}"
-        bindchange="onSwiperChange">
+      <swiper
+        class="ed-swiper"
+        indicator-dots="{{false}}"
+        autoplay="{{true}}"
+        interval="{{4000}}"
+        circular="{{true}}"
+        bindchange="onSwiperChange"
+      >
         <swiper-item wx:for="{{swiperImages}}" wx:key="media_id">
-          <image class="ed-hero-image" src="{{item.url}}" mode="aspectFill" data-index="{{index}}"
-            bindtap="onPreviewImage" binderror="onImageError" />
+          <image
+            class="ed-hero-image"
+            src="{{item.url}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            bindtap="onPreviewImage"
+            binderror="onImageError"
+          />
         </swiper-item>
       </swiper>
       <!-- 自定义指示器 -->
       <view class="ed-swiper-dots">
-        <view wx:for="{{swiperImages}}" wx:key="media_id"
-          class="ed-swiper-dot {{swiperCurrent === index ? 'ed-dot-active' : ''}}"></view>
+        <view
+          wx:for="{{swiperImages}}"
+          wx:key="media_id"
+          class="ed-swiper-dot {{swiperCurrent === index ? 'ed-dot-active' : ''}}"
+        ></view>
       </view>
     </block>
 
     <!-- 单图展示 -->
     <block wx:elif="{{swiperImages.length === 1}}">
-      <image class="ed-hero-image" src="{{swiperImages[0].url}}" mode="aspectFill" data-index="0"
-        bindtap="onPreviewImage" binderror="onImageError" />
+      <image
+        class="ed-hero-image"
+        src="{{swiperImages[0].url}}"
+        mode="aspectFill"
+        data-index="0"
+        bindtap="onPreviewImage"
+        binderror="onImageError"
+      />
     </block>
 
     <!-- emoji占位（无图片） -->
@@ -63,8 +86,11 @@
     </view>
 
     <!-- 稀有度角标（common不显示） -->
-    <view class="ed-rarity-badge" wx:if="{{rarityStyle && product.rarity_code !== 'common'}}"
-      style="background-color: {{rarityStyle.colorHex}};">
+    <view
+      class="ed-rarity-badge"
+      wx:if="{{rarityStyle && product.rarity_code !== 'common'}}"
+      style="background-color: {{rarityStyle.colorHex}};"
+    >
       <text>{{rarityStyle.displayName}}</text>
     </view>
   </view>
@@ -86,8 +112,9 @@
   <!-- 商品信息卡片（空间 + 名称 + ③ 价格区） -->
   <view class="ed-info-card">
     <view class="ed-space-label">
-      <text wx:if="{{rarityStyle && product.rarity_code !== 'common'}}">★ {{rarityStyle.displayName}} ·
-        {{product._spaceLabel}}</text>
+      <text wx:if="{{rarityStyle && product.rarity_code !== 'common'}}"
+        >★ {{rarityStyle.displayName}} · {{product._spaceLabel}}</text
+      >
       <text wx:else>{{product._spaceLabel}}</text>
     </view>
 
@@ -97,8 +124,10 @@
     <view class="ed-price-section">
       <text class="ed-price-amount">{{product.cost_amount}}</text>
       <text class="ed-price-unit">{{product._priceLabel || '积分'}}</text>
-      <view class="ed-original-price"
-        wx:if="{{product.original_price && product.original_price > product.cost_amount}}">
+      <view
+        class="ed-original-price"
+        wx:if="{{product.original_price && product.original_price > product.cost_amount}}"
+      >
         <text class="ed-original-value">{{product.original_price}}</text>
         <text class="ed-discount-tag">省{{product.original_price - product.cost_amount}}</text>
       </view>
@@ -121,7 +150,10 @@
     </view>
 
     <!-- Phase 4: 预计到手价（estimated_price < cost_amount 时渲染） -->
-    <view class="ed-estimated-row" wx:if="{{estimatedPrice > 0 && estimatedPrice < product.cost_amount}}">
+    <view
+      class="ed-estimated-row"
+      wx:if="{{estimatedPrice > 0 && estimatedPrice < product.cost_amount}}"
+    >
       <text class="ed-estimated-label">预计到手价</text>
       <view class="ed-estimated-value">
         <text class="ed-estimated-num">{{estimatedPrice}}</text>
@@ -149,7 +181,9 @@
         <text class="ed-attr-label">分类</text>
       </view>
       <view class="ed-attr-item" wx:if="{{rarityStyle}}">
-        <text class="ed-attr-value" style="color: {{rarityStyle.colorHex}};">{{rarityStyle.displayName}}</text>
+        <text class="ed-attr-value" style="color: {{rarityStyle.colorHex}};"
+          >{{rarityStyle.displayName}}</text
+        >
         <text class="ed-attr-label">品质</text>
       </view>
       <view class="ed-attr-item" wx:if="{{product.has_warranty}}">
@@ -178,7 +212,9 @@
       </view>
       <view class="ed-attr-row" wx:if="{{rarityStyle}}">
         <text class="ed-attr-row-label">品质</text>
-        <text class="ed-attr-row-value" style="color: {{rarityStyle.colorHex}};">{{rarityStyle.displayName}}</text>
+        <text class="ed-attr-row-value" style="color: {{rarityStyle.colorHex}};"
+          >{{rarityStyle.displayName}}</text
+        >
       </view>
       <view class="ed-attr-row" wx:if="{{product.has_warranty}}">
         <text class="ed-attr-row-label">保修</text>
@@ -205,21 +241,32 @@
     <view class="ed-sku-options">
       <view
         class="ed-sku-item {{selectedSkuId === item.sku_id ? 'ed-sku-selected' : ''}} {{item.stock <= 0 ? 'ed-sku-disabled' : ''}}"
-        wx:for="{{skuList}}" wx:key="sku_id" data-sku-id="{{item.sku_id}}" bindtap="onSelectSku">
+        wx:for="{{skuList}}"
+        wx:key="sku_id"
+        data-sku-id="{{item.sku_id}}"
+        bindtap="onSelectSku"
+      >
         <text class="ed-sku-label">{{item._specLabel || '默认'}}</text>
         <text class="ed-sku-price">{{item.cost_amount}} {{product._priceLabel || '积分'}}</text>
-        <text class="ed-sku-stock" wx:if="{{item.stock <= 5 && item.stock > 0}}">仅剩{{item.stock}}件</text>
+        <text class="ed-sku-stock" wx:if="{{item.stock <= 5 && item.stock > 0}}"
+          >仅剩{{item.stock}}件</text
+        >
         <text class="ed-sku-stock ed-sku-soldout" wx:if="{{item.stock <= 0}}">已售罄</text>
       </view>
     </view>
     <view class="ed-sku-selected-info" wx:if="{{selectedSkuInfo}}">
-      <text class="ed-sku-selected-text">已选: {{selectedSkuInfo._specLabel || '默认'}} | {{selectedSkuInfo.cost_amount}}
-        {{product._priceLabel || '积分'}}</text>
+      <text class="ed-sku-selected-text"
+        >已选: {{selectedSkuInfo._specLabel || '默认'}} | {{selectedSkuInfo.cost_amount}}
+        {{product._priceLabel || '积分'}}</text
+      >
     </view>
   </view>
 
   <!-- ⑤ 商品介绍区: 卖点高亮 + 纯文字 / 长图 / 混排 -->
-  <view class="ed-desc-card" wx:if="{{product.sell_point || product.description || detailImages.length > 0}}">
+  <view
+    class="ed-desc-card"
+    wx:if="{{product.sell_point || product.description || detailImages.length > 0}}"
+  >
     <text class="ed-section-title">商品介绍</text>
 
     <!-- 卖点高亮（金底卡片） -->
@@ -234,8 +281,14 @@
     <!-- 详情长图（detail_images，含可选 caption 说明文字） -->
     <view class="ed-detail-images" wx:if="{{detailImages.length > 0}}">
       <view wx:for="{{detailImages}}" wx:key="media_id" class="ed-detail-img-wrap">
-        <image class="ed-detail-img" src="{{item.url}}" mode="widthFix" data-index="{{index}}"
-          bindtap="onPreviewDetailImage" lazy-load="{{true}}" />
+        <image
+          class="ed-detail-img"
+          src="{{item.url}}"
+          mode="widthFix"
+          data-index="{{index}}"
+          bindtap="onPreviewDetailImage"
+          lazy-load="{{true}}"
+        />
         <text wx:if="{{item.caption}}" class="ed-detail-img-caption">{{item.caption}}</text>
       </view>
     </view>
@@ -247,21 +300,49 @@
 
     <!-- 单图 -->
     <view class="ed-showcase-single" wx:if="{{showcaseImages.length === 1}}">
-      <image class="ed-showcase-img-single" src="{{showcaseImages[0].url}}" mode="widthFix" data-index="0"
-        bindtap="onPreviewShowcaseImage" lazy-load="{{true}}" />
+      <image
+        class="ed-showcase-img-single"
+        src="{{showcaseImages[0].url}}"
+        mode="widthFix"
+        data-index="0"
+        bindtap="onPreviewShowcaseImage"
+        lazy-load="{{true}}"
+      />
     </view>
 
     <!-- 2-4张: 两列网格 -->
     <view class="ed-showcase-grid" wx:elif="{{showcaseImages.length <= 4}}">
-      <image wx:for="{{showcaseImages}}" wx:key="media_id" class="ed-showcase-img-grid" src="{{item.url}}"
-        mode="aspectFill" data-index="{{index}}" bindtap="onPreviewShowcaseImage" lazy-load="{{true}}" />
+      <image
+        wx:for="{{showcaseImages}}"
+        wx:key="media_id"
+        class="ed-showcase-img-grid"
+        src="{{item.url}}"
+        mode="aspectFill"
+        data-index="{{index}}"
+        bindtap="onPreviewShowcaseImage"
+        lazy-load="{{true}}"
+      />
     </view>
 
     <!-- 5+张: 横向可滚动 -->
-    <scroll-view wx:else class="ed-showcase-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+    <scroll-view
+      wx:else
+      class="ed-showcase-scroll"
+      scroll-x="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
       <view class="ed-showcase-scroll-inner">
-        <image wx:for="{{showcaseImages}}" wx:key="media_id" class="ed-showcase-img-scroll" src="{{item.url}}"
-          mode="aspectFill" data-index="{{index}}" bindtap="onPreviewShowcaseImage" lazy-load="{{true}}" />
+        <image
+          wx:for="{{showcaseImages}}"
+          wx:key="media_id"
+          class="ed-showcase-img-scroll"
+          src="{{item.url}}"
+          mode="aspectFill"
+          data-index="{{index}}"
+          bindtap="onPreviewShowcaseImage"
+          lazy-load="{{true}}"
+        />
       </view>
     </scroll-view>
   </view>
@@ -281,9 +362,19 @@
   <view class="ed-related-card" wx:if="{{relatedProducts.length > 0}}">
     <text class="ed-section-title">相关推荐</text>
     <view class="ed-related-grid">
-      <view class="ed-related-item" wx:for="{{relatedProducts}}" wx:key="exchange_item_id"
-        data-item-id="{{item.exchange_item_id}}" bindtap="onTapRelatedProduct">
-        <image wx:if="{{item._hasImage}}" class="ed-related-img" src="{{item._mainImage}}" mode="aspectFill" />
+      <view
+        class="ed-related-item"
+        wx:for="{{relatedProducts}}"
+        wx:key="exchange_item_id"
+        data-item-id="{{item.exchange_item_id}}"
+        bindtap="onTapRelatedProduct"
+      >
+        <image
+          wx:if="{{item._hasImage}}"
+          class="ed-related-img"
+          src="{{item._mainImage}}"
+          mode="aspectFill"
+        />
         <view wx:else class="ed-related-img-fallback">
           <text>🎁</text>
         </view>
@@ -333,7 +424,8 @@
 
   <view
     class="ed-exchange-btn {{product.stock <= 0 ? 'ed-btn-soldout' : (balanceInsufficient ? 'ed-btn-disabled' : '')}}"
-    bindtap="onExchange">
+    bindtap="onExchange"
+  >
     <text wx:if="{{product.stock <= 0}}">已售罄</text>
     <text wx:elif="{{balanceInsufficient}}">余额不足</text>
     <text wx:else>立即兑换</text>
@@ -355,15 +447,24 @@
     <view class="ed-confirm-body">
       <!-- 商品简要 -->
       <view class="ed-confirm-product">
-        <image wx:if="{{product._hasImage}}" class="ed-confirm-img" src="{{product._mainImage}}" mode="aspectFill" />
+        <image
+          wx:if="{{product._hasImage}}"
+          class="ed-confirm-img"
+          src="{{product._mainImage}}"
+          mode="aspectFill"
+        />
         <view wx:else class="ed-confirm-img-fallback">
           <text>🎁</text>
         </view>
         <view class="ed-confirm-product-info">
           <text class="ed-confirm-product-name">{{product.item_name}}</text>
-          <text class="ed-confirm-sku-spec" wx:if="{{selectedSkuInfo._specLabel}}">{{selectedSkuInfo._specLabel}}</text>
+          <text class="ed-confirm-sku-spec" wx:if="{{selectedSkuInfo._specLabel}}"
+            >{{selectedSkuInfo._specLabel}}</text
+          >
           <view class="ed-confirm-product-price">
-            <text class="ed-confirm-price-num">{{selectedSkuInfo.cost_amount || product.cost_amount}}</text>
+            <text class="ed-confirm-price-num"
+              >{{selectedSkuInfo.cost_amount || product.cost_amount}}</text
+            >
             <text class="ed-confirm-price-unit">{{product._priceLabel || '积分'}}</text>
           </view>
         </view>
@@ -373,8 +474,11 @@
       <view class="ed-confirm-row">
         <text class="ed-confirm-label">兑换数量</text>
         <view class="ed-qty-controls">
-          <view class="ed-qty-btn {{exchangeQuantity <= 1 ? 'ed-qty-off' : ''}}" data-action="decrease"
-            bindtap="onQuantityChange">
+          <view
+            class="ed-qty-btn {{exchangeQuantity <= 1 ? 'ed-qty-off' : ''}}"
+            data-action="decrease"
+            bindtap="onQuantityChange"
+          >
             <text>−</text>
           </view>
           <text class="ed-qty-num">{{exchangeQuantity}}</text>
@@ -388,8 +492,9 @@
       <view class="ed-confirm-total-row">
         <text class="ed-confirm-label">合计消耗</text>
         <view class="ed-confirm-total-val">
-          <text class="ed-confirm-total-num">{{(selectedSkuInfo.cost_amount || product.cost_amount) *
-            exchangeQuantity}}</text>
+          <text class="ed-confirm-total-num"
+            >{{(selectedSkuInfo.cost_amount || product.cost_amount) * exchangeQuantity}}</text
+          >
           <text class="ed-confirm-total-unit">{{product._priceLabel || '积分'}}</text>
         </view>
       </view>
@@ -403,7 +508,10 @@
 
     <view class="ed-confirm-footer">
       <view class="ed-confirm-cancel" bindtap="onCloseConfirm">取消</view>
-      <view class="ed-confirm-submit {{exchanging ? 'ed-submit-disabled' : ''}}" bindtap="onConfirmExchange">
+      <view
+        class="ed-confirm-submit {{exchanging ? 'ed-submit-disabled' : ''}}"
+        bindtap="onConfirmExchange"
+      >
         {{exchanging ? '兑换中...' : '确认兑换'}}
       </view>
     </view>

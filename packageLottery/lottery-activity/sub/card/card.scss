@@ -98,9 +98,11 @@
 
     .card-glow {
       opacity: 0.5;
-      background: radial-gradient(ellipse at center,
-          var(--theme-primary-glow, rgba(102, 126, 234, 0.5)) 0%,
-          transparent 70%);
+      background: radial-gradient(
+        ellipse at center,
+        var(--theme-primary-glow, rgba(255, 107, 53, 0.5)) 0%,
+        transparent 70%
+      );
       animation: glowPulse 1s ease-in-out infinite;
     }
   }
@@ -117,9 +119,11 @@
   opacity: 0;
   pointer-events: none;
   z-index: -1;
-  background: radial-gradient(ellipse at center,
-      var(--theme-accent-glow, rgba(255, 215, 0, 0.6)) 0%,
-      transparent 70%);
+  background: radial-gradient(
+    ellipse at center,
+    var(--theme-accent-glow, rgba(255, 215, 0, 0.6)) 0%,
+    transparent 70%
+  );
 
   &.glow-pulse {
     animation: glowPulse 1.5s ease-in-out infinite;
@@ -150,9 +154,11 @@
 
 /* ===== 卡背 ===== */
 .card-back {
-  background: linear-gradient(135deg,
-      var(--theme-primary, #667eea),
-      var(--theme-primary-dark, #764ba2));
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff6b35),
+    var(--theme-primary-dark, #e55a2b)
+  );
   border: 3rpx solid rgba(255, 255, 255, 0.3);
 }
 
@@ -181,10 +187,12 @@
 
 /* ===== 卡正面 ===== */
 .card-front {
-  background: linear-gradient(135deg,
-      var(--theme-bg-light, #fffbe6),
-      var(--theme-bg-lighter, #fff8e1),
-      var(--theme-bg-lightest, #fff));
+  background: linear-gradient(
+    135deg,
+    var(--theme-bg-light, #fffbe6),
+    var(--theme-bg-lighter, #fff8e1),
+    var(--theme-bg-lightest, #fff)
+  );
   transform: rotateY(180deg);
   border: 3rpx solid var(--theme-accent-border, rgba(255, 215, 0, 0.3));
 }
@@ -231,7 +239,6 @@
 
 /* 待选悬浮呼吸 */
 @keyframes idleFloat {
-
   0%,
   100% {
     transform: translateY(0) scale(1);
@@ -259,7 +266,6 @@
 
 /* 揭晓光晕脉冲 */
 @keyframes glowPulse {
-
   0%,
   100% {
     opacity: 0.4;
@@ -292,7 +298,6 @@
 
 /* 等待后端：轻微摇晃 + 浮动 */
 @keyframes cardWaiting {
-
   0%,
   100% {
     transform: translateY(-20rpx) scale(1.08) rotate(0deg);
@@ -400,14 +405,16 @@
 .flip-all-btn {
   margin-top: 30rpx;
   padding: 16rpx 48rpx;
-  background: linear-gradient(135deg,
-      var(--theme-primary, #667eea),
-      var(--theme-primary-dark, #764ba2));
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff6b35),
+    var(--theme-primary-dark, #e55a2b)
+  );
   border-radius: 40rpx;
   color: var(--theme-text-inverse, #fff);
   font-size: $font-size-base;
   font-weight: 500;
-  box-shadow: 0 6rpx 20rpx var(--theme-shadow-medium, rgba(102, 126, 234, 0.4));
+  box-shadow: 0 6rpx 20rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.4));
   transition: opacity 0.3s ease;
 
   &:active {

@@ -4,16 +4,19 @@
 
 .discover-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--theme-page-start, #{$gradient-blue-start}) 0%, var(--theme-page-end, #{$gradient-blue-end}) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-page-start, #{$gradient-blue-start}) 0%,
+    var(--theme-page-end, #{$gradient-blue-end}) 100%
+  );
   padding-bottom: 80rpx;
 }
 
 /* ========== 顶部搜索栏 ========== */
 .search-bar {
   padding: 20rpx;
-  background: rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
+  /* 发现页顶栏：实色白底，无毛玻璃 */
+  background: $color-white;
 }
 
 .search-input-wrapper {
@@ -76,7 +79,11 @@
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, var(--theme-page-start, #{$color-primary}) 0%, var(--theme-page-end, #f7931e) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-page-start, #{$color-primary}) 0%,
+    var(--theme-page-end, #f7931e) 100%
+  );
   transform: scale(1.05);
   box-shadow: 0 6rpx 20rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.4));
 }
@@ -176,7 +183,11 @@
 }
 
 .retry-btn {
-  background: linear-gradient(135deg, var(--theme-page-start, #{$gradient-blue-start}) 0%, var(--theme-page-end, #{$gradient-blue-end}) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--theme-page-start, #{$gradient-blue-start}) 0%,
+    var(--theme-page-end, #{$gradient-blue-end}) 100%
+  );
   color: $color-text-white;
   border: none;
   border-radius: 50rpx;
@@ -230,20 +241,18 @@
   font-size: $font-size-sm;
   color: $color-text-white;
   font-weight: 600;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
 }
 
 .status-badge.status-ongoing {
-  background: rgba(39, 174, 96, 0.9);
+  background: #27ae60;
 }
 
 .status-badge.status-upcoming {
-  background: rgba(243, 156, 18, 0.9);
+  background: #f39c12;
 }
 
 .status-badge.status-ended {
-  background: rgba(149, 165, 166, 0.9);
+  background: #95a5a6;
 }
 
 /* 热门标签 */
@@ -304,7 +313,7 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 16rpx;
-  background: var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
+  background: var(--theme-shadow-soft, rgba(255, 107, 53, 0.1));
   border-radius: 20rpx;
 }
 

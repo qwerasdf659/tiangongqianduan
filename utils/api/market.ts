@@ -952,9 +952,12 @@ async function createTradeDispute(
     throw new Error('申诉描述不能少于20字')
   }
 
+  const idempotencyKey = `dispute_${trade_order_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request(`/market/trade-orders/${trade_order_id}/dispute`, {
     method: 'POST',
     data: disputeData,
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,
     loadingText: '提交申诉中...',

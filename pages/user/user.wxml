@@ -1,14 +1,6 @@
 <!--pages/user/user.wxml - 用户中心页面模板 -->
 
 <view class="user-container theme-{{currentThemeName}}" style="{{globalThemeStyle}}">
-  <!-- 主题装饰层：背景纹理 + 飘浮粒子动效（不响应触摸，纯视觉装饰） -->
-  <view class="theme-particles">
-    <view class="decor-p decor-p1"></view>
-    <view class="decor-p decor-p2"></view>
-    <view class="decor-p decor-p3"></view>
-    <view class="decor-p decor-p4"></view>
-    <view class="decor-p decor-p5"></view>
-  </view>
 
   <!-- 未登录状态：登录引导卡片（已登录时不显示，积分卡片已体现登录状态） -->
   <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
@@ -148,7 +140,9 @@
         <view class="mw-card-icon-wrap mw-icon-audit">
           <text class="mw-card-icon">✅</text>
           <view class="mw-badge" wx:if="{{approvalPendingCount > 0}}">
-            <text class="mw-badge-text">{{approvalPendingCount > 99 ? '99+' : approvalPendingCount}}</text>
+            <text class="mw-badge-text"
+              >{{approvalPendingCount > 99 ? '99+' : approvalPendingCount}}</text
+            >
           </view>
         </view>
         <view class="mw-card-body">

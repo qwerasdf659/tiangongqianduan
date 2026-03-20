@@ -12,16 +12,16 @@
   flex-wrap: wrap;
   gap: 12rpx;
   padding: 16rpx 24rpx;
-  background: rgba(255, 255, 255, 0.6);
+  /* 资产选择条：实色白底，无 backdrop-filter */
+  background: $color-white;
   border-radius: $border-radius-md;
-  @include backdrop-blur(blur(8rpx));
 }
 
 .chart-asset-tag {
   font-size: 22rpx;
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
-  background: rgba(102, 126, 234, 0.06);
+  background: rgba(255, 107, 53, 0.06);
   color: $color-text-secondary;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1rpx solid transparent;
@@ -29,7 +29,7 @@
   &.active {
     background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
     color: $color-text-white;
-    box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.30);
+    box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
   }
 }
 
@@ -50,25 +50,25 @@
   @include flex-center;
   gap: 8rpx;
   padding: 10rpx 28rpx;
-  background: rgba(102, 126, 234, 0.06);
+  background: rgba(255, 107, 53, 0.06);
   border-radius: 24rpx;
-  border: 1rpx solid rgba(102, 126, 234, 0.10);
+  border: 1rpx solid rgba(255, 107, 53, 0.1);
   transition: all 0.3s ease;
 
   &:active {
-    background: rgba(102, 126, 234, 0.12);
+    background: rgba(255, 107, 53, 0.12);
   }
 }
 
 .toggle-text {
   font-size: 24rpx;
-  color: #667eea;
+  color: $gradient-blue-start;
   font-weight: 500;
 }
 
 .toggle-arrow {
   font-size: 20rpx;
-  color: #667eea;
+  color: $gradient-blue-start;
   transition: transform 0.3s ease;
 }
 
@@ -83,12 +83,10 @@
 
 /* ========== 市场总览面板 ========== */
 .market-overview-panel {
-  background: rgba(255, 255, 255, 0.92);
+  background: $color-white;
   border-radius: $border-radius-lg;
   padding: 20rpx;
   margin-bottom: 16rpx;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
 }
 
 .overview-stats-row {
@@ -104,7 +102,7 @@
   flex-direction: column;
   align-items: center;
   padding: 16rpx 0;
-  background: rgba(102, 126, 234, 0.06);
+  background: rgba(255, 107, 53, 0.06);
   border-radius: 12rpx;
 }
 
@@ -160,12 +158,10 @@
 
 /* ========== 最近成交列表 ========== */
 .recent-trades-panel {
-  background: rgba(255, 255, 255, 0.92);
+  background: $color-white;
   border-radius: $border-radius-lg;
   padding: 20rpx;
   margin-bottom: 16rpx;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
 }
 
 .trades-list {
@@ -244,20 +240,20 @@
 /* 🌊 ========== 主容器样式 - 方案1优化版本 ========== */
 .waterfall-market-container {
   min-height: 100vh;
-  background: linear-gradient(135deg,
-      rgba(102, 126, 234, 0.08) 0%,
-      rgba(118, 75, 162, 0.08) 30%,
-      rgba(255, 107, 53, 0.08) 70%,
-      rgba(64, 196, 255, 0.08) 100%);
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 53, 0.08) 0%,
+    rgba(229, 90, 43, 0.08) 30%,
+    rgba(255, 107, 53, 0.08) 70%,
+    rgba(64, 196, 255, 0.08) 100%
+  );
   padding: 24rpx;
   position: relative;
   overflow-x: hidden;
   /* 🎨 添加微妙的纹理效果 */
   background-image:
     radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 75% 75%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
 }
 
 /* ========== 筛选栏 ========== */
@@ -265,9 +261,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
+  background: $color-white;
   border-radius: $border-radius-md;
   padding: 12rpx 16rpx;
   margin-bottom: 16rpx;
@@ -313,9 +307,9 @@
   transition: all 0.2s;
 
   &.active {
-    color: #667eea;
+    color: $gradient-blue-start;
     font-weight: 600;
-    background: rgba(102, 126, 234, 0.1);
+    background: rgba(255, 107, 53, 0.1);
   }
 }
 
@@ -331,9 +325,7 @@
 
 /* ========== 高级筛选面板 ========== */
 .advanced-filter-panel {
-  background: rgba(255, 255, 255, 0.95);
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
+  background: $color-white;
   border-radius: $border-radius-md;
   padding: 20rpx;
   margin-bottom: 16rpx;
@@ -423,7 +415,7 @@
   justify-content: center;
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
   border-radius: 32rpx;
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 
   text {
     font-size: $font-size-sm;
@@ -443,27 +435,26 @@
 /* 📦 ========== 商品卡片样式 - 方案1现代化设计 ========== */
 .waterfall-card {
   position: absolute !important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  /* 商品卡片：实色浅白渐变，无 backdrop-filter */
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
   border-radius: $border-radius-lg;
   overflow: hidden;
   box-shadow:
-    0 12rpx 40rpx rgba(102, 126, 234, 0.15),
+    0 12rpx 40rpx rgba(255, 107, 53, 0.15),
     0 4rpx 16rpx rgba(0, 0, 0, 0.08),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   will-change: transform, box-shadow;
   backface-visibility: hidden;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
   animation: cardFadeIn 0.6s ease-out backwards;
 }
 
 .waterfall-card:active {
   transform: scale(0.96) translateY(-4rpx);
   box-shadow:
-    0 20rpx 60rpx rgba(102, 126, 234, 0.25),
-    0 8rpx 32rpx rgba(118, 75, 162, 0.15),
+    0 20rpx 60rpx rgba(255, 107, 53, 0.25),
+    0 8rpx 32rpx rgba(229, 90, 43, 0.15),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
 }
 
@@ -494,10 +485,12 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 20rpx 20rpx 0 0;
   /* 🎨 添加渐变遮罩增强视觉效果 */
-  background-image: linear-gradient(45deg,
-      rgba(102, 126, 234, 0.05) 0%,
-      rgba(118, 75, 162, 0.05) 50%,
-      rgba(255, 107, 53, 0.05) 100%);
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 107, 53, 0.05) 0%,
+    rgba(229, 90, 43, 0.05) 50%,
+    rgba(255, 107, 53, 0.05) 100%
+  );
 }
 
 .card-image {
@@ -505,11 +498,13 @@
   height: 100%;
   object-fit: cover;
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  background: linear-gradient(45deg,
-      rgba(102, 126, 234, 0.1) 25%,
-      transparent 25%,
-      transparent 75%,
-      rgba(102, 126, 234, 0.1) 75%);
+  background: linear-gradient(
+    45deg,
+    rgba(255, 107, 53, 0.1) 25%,
+    transparent 25%,
+    transparent 75%,
+    rgba(255, 107, 53, 0.1) 75%
+  );
   background-size: 20rpx 20rpx;
   background-position:
     0 0,
@@ -533,15 +528,13 @@
   color: $color-text-white;
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
   font-weight: 600;
   z-index: 2;
 }
 
 .listing-kind-tag.asset-tag {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.4);
+  background: $gradient-primary;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
 }
 
 .listing-kind-tag.item-tag {
@@ -554,13 +547,11 @@
   position: absolute;
   bottom: 12rpx;
   right: 12rpx;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.78);
   color: $color-text-white;
   font-size: $font-size-xs;
   padding: 4rpx 10rpx;
   border-radius: 12rpx;
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
   z-index: 2;
 }
 
@@ -731,8 +722,12 @@
 }
 
 @keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* 📊 ========== 状态提示样式 ========== */
@@ -805,16 +800,14 @@
   font-size: 26rpx !important;
   font-weight: 600 !important;
   border: none !important;
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3) !important;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3) !important;
 }
 
 /* 🔄 刷新提示 */
 .refresh-hint {
   padding: 20rpx;
   text-align: center;
-  background: rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
+  background: $color-white;
   margin-top: 20rpx;
   border-radius: 12rpx;
 }
@@ -842,8 +835,6 @@
   @include flex-center;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
 }
 
 .floating-btn:active {
@@ -852,7 +843,7 @@
 
 .back-to-top-btn {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
   border: 1rpx solid rgba(255, 255, 255, 0.2);
 }
 
@@ -1008,7 +999,7 @@
 
 /* Feed 广告卡片 — 穿插在商品列表中，与普通商品卡片区分 */
 .feed-ad-card {
-  border: 2rpx solid rgba(102, 126, 234, 0.2);
+  border: 2rpx solid rgba(255, 107, 53, 0.2);
   background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
 }
 
@@ -1022,7 +1013,7 @@
 
 .ad-action-text {
   font-size: 22rpx;
-  color: #667eea;
+  color: $gradient-blue-start;
   font-weight: 600;
 }
 

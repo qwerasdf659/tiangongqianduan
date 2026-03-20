@@ -181,8 +181,8 @@ const DEFAULT_EXCHANGE_CONFIG: ExchangePageConfig = {
       subtitle: '混合精品展示',
       description: '解锁高级商品',
       layout: 'simple',
-      color: '#667eea',
-      bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      color: '#ff6b35',
+      bgGradient: 'linear-gradient(135deg, #f7931e 0%, #e67e22 100%)',
       locked: true,
       enabled: true,
       sort_order: 2

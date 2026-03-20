@@ -33,19 +33,15 @@
   position: relative;
   width: 90%;
   max-width: 600rpx;
-  background: linear-gradient(135deg, rgba(240, 242, 255, 0.98) 0%, rgba(220, 230, 255, 0.98) 100%);
-  /* 浅蓝白色渐变，与页面紫色主题协调 */
+  background: #ffffff;
   border-radius: $border-radius-xl;
   /* 增加圆角，更现代化?*/
   padding: 48rpx;
   box-shadow:
-    0 20rpx 60rpx rgba(102, 126, 234, 0.3),
+    0 20rpx 60rpx rgba(255, 107, 53, 0.3),
     0 8rpx 32rpx rgba(0, 0, 0, 0.2),
     inset 0 2rpx 0 rgba(255, 255, 255, 0.6);
   /* 增强阴影效果，添加内阴影高光 */
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
-  /* 毛玻璃效果?*/
   border: 2rpx solid rgba(255, 255, 255, 0.5);
   /* 白色边框，精致感 */
   animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -77,7 +73,7 @@
   z-index: 10;
   transition: all 0.3s ease;
   box-shadow:
-    0 4rpx 16rpx rgba(102, 126, 234, 0.4),
+    0 4rpx 16rpx rgba(255, 107, 53, 0.4),
     0 2rpx 8rpx rgba(0, 0, 0, 0.2);
   /* 紫色阴影，增强立体感 */
   border: 2rpx solid rgba(255, 255, 255, 0.3);
@@ -87,7 +83,7 @@
 .qrcode-close-btn:active {
   transform: scale(0.92);
   box-shadow:
-    0 2rpx 8rpx rgba(102, 126, 234, 0.5),
+    0 2rpx 8rpx rgba(255, 107, 53, 0.5),
     0 1rpx 4rpx rgba(0, 0, 0, 0.3);
 }
 
@@ -115,7 +111,7 @@
   border-radius: 20rpx;
   /* 澧炲姞鍦嗚 */
   box-shadow:
-    0 12rpx 40rpx rgba(102, 126, 234, 0.2),
+    0 12rpx 40rpx rgba(255, 107, 53, 0.2),
     0 6rpx 20rpx rgba(0, 0, 0, 0.15),
     inset 0 0 0 1rpx rgba(255, 255, 255, 0.3);
   /* 增强阴影效果，添加内边框高光 */
@@ -138,7 +134,7 @@
   border-radius: 20rpx;
   width: 100%;
   box-shadow:
-    0 8rpx 24rpx rgba(102, 126, 234, 0.3),
+    0 8rpx 24rpx rgba(255, 107, 53, 0.3),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
   /* 增强阴影和内高光 */
   border: 1rpx solid rgba(255, 255, 255, 0.2);

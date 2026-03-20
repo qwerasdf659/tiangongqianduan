@@ -12,10 +12,12 @@
   padding: 40rpx 0 80rpx;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg,
-      var(--theme-bg-dark, #2c1810) 0%,
-      var(--theme-bg-darker, #3d2415) 50%,
-      var(--theme-bg-dark, #2c1810) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #2c1810) 0%,
+    var(--theme-bg-darker, #3d2415) 50%,
+    var(--theme-bg-dark, #2c1810) 100%
+  );
 
   /* 复古纹理背景 */
   &::before {
@@ -26,16 +28,20 @@
     right: 0;
     bottom: 0;
     background:
-      repeating-linear-gradient(0deg,
+      repeating-linear-gradient(
+        0deg,
         transparent,
         transparent 2rpx,
         rgba(0, 0, 0, 0.05) 2rpx,
-        rgba(0, 0, 0, 0.05) 4rpx),
-      repeating-linear-gradient(90deg,
+        rgba(0, 0, 0, 0.05) 4rpx
+      ),
+      repeating-linear-gradient(
+        90deg,
         transparent,
         transparent 2rpx,
         rgba(0, 0, 0, 0.05) 2rpx,
-        rgba(0, 0, 0, 0.05) 4rpx);
+        rgba(0, 0, 0, 0.05) 4rpx
+      );
     opacity: 0.3;
     pointer-events: none;
     z-index: 0;
@@ -50,9 +56,11 @@
     transform: translateX(-50%);
     width: 300rpx;
     height: 300rpx;
-    background: radial-gradient(circle,
-        var(--theme-accent-glow, rgba(255, 170, 51, 0.15)) 0%,
-        transparent 70%);
+    background: radial-gradient(
+      circle,
+      var(--theme-accent-glow, rgba(255, 170, 51, 0.15)) 0%,
+      transparent 70%
+    );
     filter: blur(60rpx);
     pointer-events: none;
     z-index: 1;
@@ -77,11 +85,13 @@
     left: -15rpx;
     right: -15rpx;
     bottom: -40rpx;
-    background: linear-gradient(135deg,
-        var(--theme-frame, #8b4513) 0%,
-        var(--theme-frame-dark, #6f3609) 30%,
-        var(--theme-frame-darker, #5c2e08) 60%,
-        var(--theme-frame-darkest, #4a2507) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--theme-frame, #8b4513) 0%,
+      var(--theme-frame-dark, #6f3609) 30%,
+      var(--theme-frame-darker, #5c2e08) 60%,
+      var(--theme-frame-darkest, #4a2507) 100%
+    );
     border-radius: 20rpx;
     box-shadow:
       inset 0 4rpx 8rpx rgba(0, 0, 0, 0.4),
@@ -90,11 +100,13 @@
     z-index: -1;
 
     /* 木质纹理 */
-    background-image: repeating-linear-gradient(90deg,
-        transparent 0rpx,
-        rgba(0, 0, 0, 0.1) 2rpx,
-        transparent 4rpx,
-        transparent 20rpx);
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0rpx,
+      rgba(0, 0, 0, 0.1) 2rpx,
+      transparent 4rpx,
+      transparent 20rpx
+    );
   }
 
   /* 黄铜装饰条 */
@@ -106,12 +118,14 @@
     transform: translateX(-50%);
     width: 340rpx;
     height: 20rpx;
-    background: linear-gradient(90deg,
-        var(--theme-accent-dark, #b8860b) 0%,
-        var(--theme-accent, #daa520) 20%,
-        var(--theme-accent-mid, #cd7f32) 50%,
-        var(--theme-accent, #daa520) 80%,
-        var(--theme-accent-dark, #b8860b) 100%);
+    background: linear-gradient(
+      90deg,
+      var(--theme-accent-dark, #b8860b) 0%,
+      var(--theme-accent, #daa520) 20%,
+      var(--theme-accent-mid, #cd7f32) 50%,
+      var(--theme-accent, #daa520) 80%,
+      var(--theme-accent-dark, #b8860b) 100%
+    );
     border-radius: 10rpx;
     box-shadow:
       0 4rpx 12rpx rgba(0, 0, 0, 0.4),
@@ -119,10 +133,12 @@
       inset 0 -2rpx 4rpx rgba(0, 0, 0, 0.3);
 
     /* 黄铜锈迹 */
-    background-image: repeating-linear-gradient(90deg,
-        transparent 0rpx,
-        rgba(46, 125, 50, 0.1) 10rpx,
-        transparent 20rpx);
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0rpx,
+      rgba(46, 125, 50, 0.1) 10rpx,
+      transparent 20rpx
+    );
   }
 }
 
@@ -134,11 +150,13 @@
   width: 340rpx;
   height: 300rpx;
   margin: 0 auto;
-  background: linear-gradient(180deg,
-      rgba(255, 228, 181, 0.6) 0%,
-      rgba(245, 222, 179, 0.5) 30%,
-      rgba(222, 184, 135, 0.4) 60%,
-      rgba(210, 180, 140, 0.3) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 228, 181, 0.6) 0%,
+    rgba(245, 222, 179, 0.5) 30%,
+    rgba(222, 184, 135, 0.4) 60%,
+    rgba(210, 180, 140, 0.3) 100%
+  );
   border-radius: 170rpx 170rpx 35rpx 35rpx;
   border: 12rpx solid var(--theme-frame, #8b4513);
   border-bottom-color: var(--theme-frame-darkest, #654321);
@@ -158,10 +176,12 @@
     left: 18%;
     width: 45%;
     height: 35%;
-    background: radial-gradient(ellipse at center,
-        rgba(255, 228, 181, 0.5) 0%,
-        rgba(255, 228, 181, 0.3) 40%,
-        transparent 70%);
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 228, 181, 0.5) 0%,
+      rgba(255, 228, 181, 0.3) 40%,
+      transparent 70%
+    );
     border-radius: 50%;
     filter: blur(10rpx);
     pointer-events: none;
@@ -204,10 +224,12 @@
     left: 25%;
     width: 18rpx;
     height: 18rpx;
-    background: radial-gradient(circle,
-        rgba(255, 248, 220, 0.7) 0%,
-        rgba(255, 248, 220, 0.4) 50%,
-        transparent 100%);
+    background: radial-gradient(
+      circle,
+      rgba(255, 248, 220, 0.7) 0%,
+      rgba(255, 248, 220, 0.4) 50%,
+      transparent 100%
+    );
     border-radius: 50%;
     filter: blur(2rpx);
   }
@@ -252,10 +274,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: repeating-linear-gradient(90deg,
-        transparent 0rpx,
-        rgba(255, 255, 255, 0.05) 2rpx,
-        transparent 4rpx);
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0rpx,
+      rgba(255, 255, 255, 0.05) 2rpx,
+      transparent 4rpx
+    );
     pointer-events: none;
   }
 
@@ -343,11 +367,13 @@
   width: 54rpx;
   height: 54rpx;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 35% 30%,
-      #d2691e 0%,
-      #a0522d 40%,
-      #8b4513 70%,
-      #654321 100%);
+  background: radial-gradient(
+    ellipse at 35% 30%,
+    #d2691e 0%,
+    #a0522d 40%,
+    #8b4513 70%,
+    #654321 100%
+  );
   box-shadow:
     0 5rpx 12rpx rgba(0, 0, 0, 0.5),
     inset 0 -3rpx 6rpx rgba(0, 0, 0, 0.4),
@@ -363,10 +389,12 @@
     left: 16rpx;
     width: 16rpx;
     height: 16rpx;
-    background: radial-gradient(circle,
-        rgba(255, 228, 181, 0.6) 0%,
-        rgba(255, 228, 181, 0.3) 50%,
-        transparent 100%);
+    background: radial-gradient(
+      circle,
+      rgba(255, 228, 181, 0.6) 0%,
+      rgba(255, 228, 181, 0.3) 50%,
+      transparent 100%
+    );
     border-radius: 50%;
     filter: blur(2rpx);
   }
@@ -381,11 +409,13 @@
     width: 80%;
     height: 80%;
     border-radius: 50%;
-    background: repeating-linear-gradient(120deg,
-        transparent 0rpx,
-        rgba(0, 0, 0, 0.1) 1rpx,
-        transparent 2rpx,
-        transparent 8rpx);
+    background: repeating-linear-gradient(
+      120deg,
+      transparent 0rpx,
+      rgba(0, 0, 0, 0.1) 1rpx,
+      transparent 2rpx,
+      transparent 8rpx
+    );
     pointer-events: none;
   }
 }
@@ -394,10 +424,12 @@
 .handle-arm {
   width: 38rpx;
   height: 14rpx;
-  background: linear-gradient(180deg,
-      var(--theme-accent, #daa520) 0%,
-      var(--theme-accent-mid, #cd7f32) 40%,
-      var(--theme-accent-dark, #b8860b) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-accent, #daa520) 0%,
+    var(--theme-accent-mid, #cd7f32) 40%,
+    var(--theme-accent-dark, #b8860b) 100%
+  );
   margin-left: -6rpx;
   border-radius: 7rpx;
   border: 2rpx solid var(--theme-accent-darker, #8b6914);
@@ -407,11 +439,13 @@
     inset 0 -2rpx 3rpx rgba(0, 0, 0, 0.3);
 
   /* 金属磨损纹理 */
-  background-image: repeating-linear-gradient(90deg,
-      transparent 0rpx,
-      rgba(0, 0, 0, 0.05) 1rpx,
-      transparent 2rpx,
-      transparent 6rpx);
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0rpx,
+    rgba(0, 0, 0, 0.05) 1rpx,
+    transparent 2rpx,
+    transparent 6rpx
+  );
 }
 
 /* ================================
@@ -436,9 +470,11 @@
 .gashapon-cost {
   margin-top: 16rpx;
   padding: 12rpx 28rpx;
-  background: linear-gradient(180deg,
-      var(--theme-bg-dark, #2c1810) 0%,
-      var(--theme-bg-darkest, #1a0f08) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #2c1810) 0%,
+    var(--theme-bg-darkest, #1a0f08) 100%
+  );
   border-radius: $border-radius-sm;
   font-size: 26rpx;
   font-weight: bold;
@@ -640,8 +676,11 @@
   }
 
   100% {
-    transform: translate(calc(-50% + 120rpx * cos(var(--angle))),
-        calc(-50% + 120rpx * sin(var(--angle)))) scale(1.2);
+    transform: translate(
+        calc(-50% + 120rpx * cos(var(--angle))),
+        calc(-50% + 120rpx * sin(var(--angle)))
+      )
+      scale(1.2);
     opacity: 0;
   }
 }
@@ -678,9 +717,11 @@
   color: var(--theme-accent-light, #ffeb3b);
   text-align: center;
   padding: 14rpx 30rpx;
-  background: linear-gradient(180deg,
-      var(--theme-bg-darker, #3d2415) 0%,
-      var(--theme-bg-dark, #2c1810) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-darker, #3d2415) 0%,
+    var(--theme-bg-dark, #2c1810) 100%
+  );
   border: 4rpx solid var(--theme-frame, #8b4513);
   border-radius: 12rpx;
   box-shadow:
@@ -702,11 +743,13 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: repeating-linear-gradient(90deg,
-        transparent 0rpx,
-        rgba(0, 0, 0, 0.05) 1rpx,
-        transparent 2rpx,
-        transparent 8rpx);
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0rpx,
+      rgba(0, 0, 0, 0.05) 1rpx,
+      transparent 2rpx,
+      transparent 8rpx
+    );
     border-radius: $border-radius-sm;
     pointer-events: none;
   }
@@ -729,7 +772,6 @@
 
 /* 扭蛋球复古浮动 - 缓慢悠闲 */
 @keyframes capsuleBobRetro {
-
   0%,
   100% {
     transform: translateY(0);
@@ -763,7 +805,6 @@
 
 /* 提示文字缓慢跳动 */
 @keyframes tipBounceRetro {
-
   0%,
   100% {
     transform: translateY(0);
@@ -776,7 +817,6 @@
 
 /* 箭头简单跳动 */
 @keyframes arrowBounceRetro {
-
   0%,
   100% {
     transform: translateY(0);

@@ -9,11 +9,13 @@
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx;
-  background: linear-gradient(180deg,
-      var(--theme-bg-dark, #8b1a1a) 0%,
-      var(--theme-primary, #c0392b) 30%,
-      var(--theme-primary-dark, #a93226) 70%,
-      var(--theme-bg-darker, #7b241c) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--theme-bg-dark, #8b1a1a) 0%,
+    var(--theme-primary, #c0392b) 30%,
+    var(--theme-primary-dark, #a93226) 70%,
+    var(--theme-bg-darker, #7b241c) 100%
+  );
   border-radius: $border-radius-md;
   overflow: hidden;
   position: relative;
@@ -63,9 +65,11 @@
 .red-packet {
   width: 180rpx;
   height: 260rpx;
-  background: linear-gradient(180deg,
-      var(--theme-primary, #ff4444),
-      var(--theme-primary-dark, #cc0000));
+  background: linear-gradient(
+    180deg,
+    var(--theme-primary, #ff4444),
+    var(--theme-primary-dark, #cc0000)
+  );
   border-radius: $border-radius-md;
   position: relative;
   overflow: hidden;
@@ -92,9 +96,11 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg,
-      var(--theme-accent, #ffd700),
-      var(--theme-accent-light, #ffa500));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-light, #ffa500)
+  );
   @include flex-center;
   box-shadow: 0 4rpx 16rpx var(--theme-accent-shadow, rgba(255, 165, 0, 0.5));
   margin-bottom: 12rpx;
@@ -125,9 +131,11 @@
   transform: translateX(-50%);
   width: 36rpx;
   height: 36rpx;
-  background: linear-gradient(135deg,
-      var(--theme-accent, #ffd700),
-      var(--theme-accent-light, #daa520));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-light, #daa520)
+  );
   border-radius: 50%;
   @include flex-center;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
@@ -387,9 +395,11 @@
 
 .multi-open-all-btn {
   padding: 14rpx 48rpx;
-  background: linear-gradient(135deg,
-      var(--theme-accent, #ffd700),
-      var(--theme-accent-bright, #ff8c00));
+  background: linear-gradient(
+    135deg,
+    var(--theme-accent, #ffd700),
+    var(--theme-accent-bright, #ff8c00)
+  );
   border-radius: 40rpx;
   box-shadow: 0 4rpx 16rpx var(--theme-accent-shadow, rgba(255, 140, 0, 0.4));
 
@@ -469,7 +479,6 @@
 }
 
 @keyframes sparkle {
-
   0%,
   100% {
     opacity: 0.6;

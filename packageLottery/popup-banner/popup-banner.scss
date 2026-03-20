@@ -445,12 +445,12 @@
 .popup-action-btn.primary {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   color: $color-text-white;
-  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.35);
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35);
 }
 
 .popup-action-btn.primary:active {
   transform: scale(0.97);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
 
 /* 次要按钮 - 浅色背景 */

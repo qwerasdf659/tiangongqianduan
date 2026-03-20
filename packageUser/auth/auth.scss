@@ -20,11 +20,10 @@
 
 .loading-content {
   @include flex-column-center;
-  background: rgba(255, 255, 255, 0.95);
+  /* 登录页加载块：纯白底，无 backdrop-filter */
+  background: $color-white;
   border-radius: $border-radius-xl;
   padding: 80rpx 60rpx;
-  -webkit-backdrop-filter: $blur-card;
-  backdrop-filter: $blur-card;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
 }
 
@@ -70,11 +69,9 @@
 .error-content {
   width: 100%;
   max-width: 600rpx;
-  background: rgba(255, 255, 255, 0.95);
+  background: $color-white;
   border-radius: $border-radius-xl;
   padding: 60rpx 40rpx;
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
   text-align: center;
 }
@@ -126,7 +123,7 @@
 }
 
 .details-btn {
-  background: var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
+  background: var(--theme-shadow-soft, rgba(255, 107, 53, 0.1));
   color: var(--theme-page-start, $gradient-blue-start);
   border: 2rpx solid var(--theme-page-start, $gradient-blue-start);
 }
@@ -226,11 +223,10 @@
 .auth-form {
   width: calc(100% - 40rpx);
   max-width: 600rpx;
-  background: rgba(255, 255, 255, 0.95);
+  /* 登录主卡片：纯白底 */
+  background: $color-white;
   border-radius: $border-radius-xl;
   padding: 60rpx 40rpx;
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 2;
@@ -341,7 +337,7 @@
 
 .input-wrapper:focus-within {
   border-color: var(--theme-page-start, $gradient-blue-start);
-  box-shadow: 0 0 0 6rpx var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
+  box-shadow: 0 0 0 6rpx var(--theme-shadow-soft, rgba(255, 107, 53, 0.1));
 }
 
 .input-wrapper.error {
@@ -466,7 +462,7 @@
 
 .submit-btn:not([disabled]):hover {
   transform: translateY(-2rpx);
-  box-shadow: 0 12rpx 40rpx var(--theme-shadow-strong, rgba(102, 126, 234, 0.4));
+  box-shadow: 0 12rpx 40rpx var(--theme-shadow-strong, rgba(255, 107, 53, 0.4));
 }
 
 .submit-btn.loading {
@@ -506,7 +502,7 @@
 }
 
 .feature-tag {
-  background: var(--theme-shadow-soft, rgba(102, 126, 234, 0.1));
+  background: var(--theme-shadow-soft, rgba(255, 107, 53, 0.1));
   color: var(--theme-text-inverse, $gradient-blue-start);
   padding: 12rpx 20rpx;
   border-radius: 50rpx;

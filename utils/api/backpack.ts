@@ -281,8 +281,12 @@ async function cancelExchange(order_no: string) {
   if (!order_no) {
     throw new Error('订单号不能为空')
   }
+
+  const idempotencyKey = `exchange_cancel_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request(`/backpack/exchange/orders/${order_no}/cancel`, {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,
     loadingText: '取消订单中...',
@@ -347,8 +351,12 @@ async function confirmExchangeReceipt(order_no: string) {
   if (!order_no) {
     throw new Error('订单号不能为空')
   }
+
+  const idempotencyKey = `exchange_confirm_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request(`/backpack/exchange/orders/${order_no}/confirm-receipt`, {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,
     loadingText: '确认收货中...',
@@ -383,9 +391,12 @@ async function rateExchangeOrder(order_no: string, rating: number) {
   if (!rating || rating < 1 || rating > 5) {
     throw new Error('评价分数必须在1-5之间')
   }
+  const idempotencyKey = `exchange_rate_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request(`/backpack/exchange/orders/${order_no}/rate`, {
     method: 'POST',
     data: { rating },
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,
     loadingText: '提交评价中...',
@@ -503,8 +514,11 @@ async function getPremiumStatus() {
  *   5. 全流程在 TransactionManager.execute() 事务中
  */
 async function unlockPremium() {
+  const idempotencyKey = `unlock_premium_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request('/backpack/exchange/unlock-premium', {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,
     loadingText: '解锁中...',
@@ -606,9 +620,13 @@ async function placeBid(bid_product_id: number, bid_amount: number) {
   if (!bid_amount || bid_amount <= 0) {
     throw new Error('出价金额必须大于0')
   }
+
+  const idempotencyKey = `bid_${bid_product_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request('/backpack/bid', {
     method: 'POST',
     data: { bid_product_id, bid_amount },
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,
     loadingText: '提交竞价中...',

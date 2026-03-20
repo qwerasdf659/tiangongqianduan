@@ -11,10 +11,17 @@
 
   <!-- 反馈列表 -->
   <view wx:else class="list-container">
-    <view wx:for="{{feedbacks}}" wx:key="feedback_id" class="feedback-item" bindtap="onFeedbackTap"
-      data-id="{{item.feedback_id}}">
+    <view
+      wx:for="{{feedbacks}}"
+      wx:key="feedback_id"
+      class="feedback-item"
+      bindtap="onFeedbackTap"
+      data-id="{{item.feedback_id}}"
+    >
       <view class="item-header">
-        <text class="status-tag status-{{item.status}}">{{statusMap[item.status] || item.status}}</text>
+        <text class="status-tag status-{{item.status}}"
+          >{{statusMap[item.status] || item.status}}</text
+        >
         <text class="item-time">{{item.created_at}}</text>
       </view>
       <view class="item-content">

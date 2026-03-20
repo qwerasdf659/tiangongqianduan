@@ -12,7 +12,10 @@
       />
     </view>
 
-    <view class="filter-buttons" wx:if="{{categoryOptions.length > 0 || costRangeOptions.length > 0}}">
+    <view
+      class="filter-buttons"
+      wx:if="{{categoryOptions.length > 0 || costRangeOptions.length > 0}}"
+    >
       <view
         class="filter-btn advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}"
         bindtap="onToggleAdvancedFilter"
@@ -25,7 +28,11 @@
       <!-- 两级分类联动选择器（后端支持树形时自动升级，否则降级到扁平模式） -->
       <view class="filter-row">
         <text class="filter-label">商品分类</text>
-        <category-cascade value="{{categoryFilter}}" flat-options="{{categoryOptions}}" bind:change="onCategoryCascadeChange" />
+        <category-cascade
+          value="{{categoryFilter}}"
+          flat-options="{{categoryOptions}}"
+          bind:change="onCategoryCascadeChange"
+        />
       </view>
       <view class="filter-row" wx:if="{{costRangeOptions.length > 0}}">
         <text class="filter-label">价格区间</text>
@@ -36,7 +43,12 @@
             class="option-btn {{costRangeIndex === index ? 'active' : ''}} {{filtersCount && filtersCount.cost_ranges && index > 0 && filtersCount.cost_ranges[index] === 0 ? 'filter-disabled' : ''}}"
             data-index="{{index}}"
             bindtap="onCostRangeChange"
-            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.cost_ranges && filtersCount.cost_ranges[index] !== undefined}}" class="filter-count"> ({{filtersCount.cost_ranges[index]}})</text></view
+            >{{item.label}}<text
+              wx:if="{{filtersCount && filtersCount.cost_ranges && filtersCount.cost_ranges[index] !== undefined}}"
+              class="filter-count"
+            >
+              ({{filtersCount.cost_ranges[index]}})</text
+            ></view
           >
         </view>
       </view>
@@ -49,7 +61,12 @@
             class="option-btn {{stockStatus === item.value ? 'active' : ''}} {{filtersCount && filtersCount.stock_statuses && item.value !== 'all' && filtersCount.stock_statuses[item.value] === 0 ? 'filter-disabled' : ''}}"
             data-status="{{item.value}}"
             bindtap="onStockStatusChange"
-            >{{item.label}}<text wx:if="{{filtersCount && filtersCount.stock_statuses && filtersCount.stock_statuses[item.value] !== undefined}}" class="filter-count"> ({{filtersCount.stock_statuses[item.value]}})</text></view
+            >{{item.label}}<text
+              wx:if="{{filtersCount && filtersCount.stock_statuses && filtersCount.stock_statuses[item.value] !== undefined}}"
+              class="filter-count"
+            >
+              ({{filtersCount.stock_statuses[item.value]}})</text
+            ></view
           >
         </view>
       </view>
@@ -85,7 +102,10 @@
   </view>
 
   <!-- 商品网格 -->
-  <view wx:if="{{!loading}}" class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}">
+  <view
+    wx:if="{{!loading}}"
+    class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}"
+  >
     <view
       wx:for="{{filteredProducts}}"
       wx:key="exchange_item_id"

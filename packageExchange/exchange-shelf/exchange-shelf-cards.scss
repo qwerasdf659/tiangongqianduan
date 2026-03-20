@@ -27,7 +27,7 @@
 }
 
 .type-bar.asset {
-  background: var(--shelf-cta-bg, linear-gradient(90deg, #667eea, #764ba2));
+  background: var(--shelf-cta-bg, #ff6b35);
 }
 
 .type-bar.item {
@@ -35,7 +35,7 @@
 }
 
 .type-bar.lucky {
-  background: linear-gradient(90deg, #4ecdc4, #44a08d);
+  background: var(--shelf-header-bg, #e67e22);
 }
 
 /* 图片区域 */
@@ -86,14 +86,12 @@
   position: absolute;
   right: 12rpx;
   bottom: 12rpx;
-  background: var(--shelf-capsule-bg, rgba(0, 0, 0, 0.5));
+  background: var(--shelf-capsule-bg, #000000);
   color: #ffffff;
   font-size: 20rpx;
   padding: 4rpx 14rpx;
   border-radius: 16rpx;
   z-index: 3;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
 }
 
 /* 无图片占位 */
@@ -248,15 +246,15 @@
   align-items: center;
   justify-content: center;
   border: none;
-  background: var(--shelf-cta-bg, linear-gradient(135deg, #667eea, #764ba2));
-  box-shadow: 0 6rpx 20rpx rgba(102, 126, 234, 0.3);
+  background: var(--shelf-cta-bg, #ff6b35);
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
   letter-spacing: 2rpx;
   transition: all 0.2s;
 }
 
 .unified-card .cta-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 3rpx 12rpx rgba(102, 126, 234, 0.2);
+  box-shadow: 0 3rpx 12rpx rgba(255, 107, 53, 0.2);
 }
 
 .unified-card .cta-btn.btn-disabled {
@@ -370,55 +368,13 @@
   pointer-events: none;
   z-index: 5;
   mix-blend-mode: color-dodge;
+  /* 已移除 holoShimmer 动效，保留结构便于后续静态叠色 */
   opacity: 0;
-  animation: holoShimmer 3s ease-in-out infinite;
-}
-@keyframes holoShimmer {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
 }
 
-/* 增强效果 — 旋转渐变边框 */
+/* 增强效果 — 旋转渐变边框（静态描边，已移除 rotatingBorderColor 动效） */
 .unified-card.rotating-border {
   border: 2rpx solid rgba(255, 107, 53, 0.6);
-  animation: rotatingBorderColor 3s linear infinite;
-}
-@keyframes rotatingBorderColor {
-  0% {
-    border-color: rgba(255, 107, 53, 0.6);
-  }
-  25% {
-    border-color: rgba(255, 215, 0, 0.6);
-  }
-  50% {
-    border-color: rgba(78, 205, 196, 0.6);
-  }
-  75% {
-    border-color: rgba(102, 126, 234, 0.6);
-  }
-  100% {
-    border-color: rgba(255, 107, 53, 0.6);
-  }
-}
-
-/* 增强效果 — 呼吸光圈 */
-.breathing-glow {
-  animation: breatheGlow 2s ease-in-out infinite alternate;
-}
-@keyframes breatheGlow {
-  from {
-    box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.1);
-  }
-  to {
-    box-shadow:
-      0 4rpx 20rpx rgba(255, 107, 53, 0.3),
-      0 0 60rpx rgba(255, 107, 53, 0.15);
-  }
 }
 
 /* 增强效果 — 涟漪 */
@@ -427,26 +383,12 @@
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: var(--shelf-accent-light, rgba(102, 126, 234, 0.18));
+  background: var(--shelf-accent-light, rgba(255, 107, 53, 0.18));
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10;
 }
-.unified-card .ripple-layer.ripple-active {
-  animation: rippleSpread 0.5s ease-out forwards;
-}
-@keyframes rippleSpread {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 0.5;
-  }
-  100% {
-    width: 400rpx;
-    height: 400rpx;
-    opacity: 0;
-  }
-}
+/* rippleSpread 动效已移除，.ripple-layer 基础定位样式仍保留 */
 
 /* 增强效果 — 全图叠字 */
 .unified-card.fullbleed-mode .card-image-area {
@@ -497,11 +439,11 @@
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.9);
-  border: 1rpx solid var(--shelf-accent-light, rgba(102, 126, 234, 0.2));
+  border: 1rpx solid var(--shelf-accent-light, rgba(255, 107, 53, 0.2));
   font-size: 24rpx;
 }
 .view-toggle .toggle-btn.active {
-  background: var(--shelf-cta-bg, linear-gradient(135deg, #667eea, #764ba2));
-  border-color: var(--shelf-accent, #667eea);
+  background: var(--shelf-cta-bg, #ff6b35);
+  border-color: var(--shelf-accent, #e67e22);
   color: #ffffff;
 }

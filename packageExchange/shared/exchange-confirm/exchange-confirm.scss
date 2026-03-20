@@ -45,7 +45,7 @@
 /* 顶部渐变装饰条 */
 .confirm-accent-bar {
   height: 8rpx;
-  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+  background: #ff6b35;
 }
 
 .confirm-header {
@@ -91,7 +91,7 @@
   background: linear-gradient(135deg, #f8f9ff, #f3f0ff);
   border-radius: 20rpx;
   margin-bottom: 28rpx;
-  border: 2rpx solid rgba(102, 126, 234, 0.08);
+  border: 2rpx solid rgba(255, 107, 53, 0.08);
 }
 
 .confirm-product-image-wrap {
@@ -272,13 +272,13 @@
   font-weight: 700;
   color: $color-text-white;
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  box-shadow: 0 8rpx 28rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8rpx 28rpx rgba(255, 107, 53, 0.4);
   transition: all 0.2s;
 }
 
 .confirm-submit-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
 }
 
 .confirm-submit-btn.disabled {

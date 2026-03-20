@@ -24,7 +24,12 @@
 
     <view class="result-footer">
       <view class="result-btn result-btn-secondary" bindtap="onClose">关闭</view>
-      <view class="result-btn result-btn-primary" wx:if="{{success && orderData.orderNo}}" bindtap="onViewOrder">查看订单</view>
+      <view
+        class="result-btn result-btn-primary"
+        wx:if="{{success && orderData.orderNo}}"
+        bindtap="onViewOrder"
+        >查看订单</view
+      >
     </view>
   </view>
 </view>

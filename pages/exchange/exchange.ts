@@ -112,6 +112,9 @@ Page({
 
   /** 页面显示（恢复积分 + WebSocket 连接 + 刷新主题） */
   async onShow() {
+    if (typeof this.getTabBar === 'function') {
+      this.getTabBar().setData({ selected: 2 })
+    }
     log.info('兑换页面显示')
 
     if (!checkAuth()) {

@@ -18,18 +18,18 @@
   --shelf-card-radius: 20rpx;
   --shelf-card-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
   --shelf-price-color: #ff6b35;
-  --shelf-cta-bg: linear-gradient(135deg, #667eea, #764ba2);
+  --shelf-cta-bg: #ff6b35;
   --shelf-cta-text: #ffffff;
   --shelf-stock-normal: #52c41a;
   --shelf-stock-warn: #faad14;
   --shelf-stock-danger: #ff4d4f;
   --shelf-name-color: #333;
   --shelf-desc-color: #999;
-  --shelf-header-bg: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  --shelf-header-bg: #e67e22;
   --shelf-nav-slider-left: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  --shelf-nav-slider-right: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --shelf-accent: #667eea;
-  --shelf-accent-light: rgba(102, 126, 234, 0.15);
+  --shelf-nav-slider-right: #e67e22;
+  --shelf-accent: #e67e22;
+  --shelf-accent-light: rgba(255, 107, 53, 0.15);
 
   display: flex;
   flex-direction: column;
@@ -44,7 +44,7 @@
   flex-shrink: 0;
   z-index: 10;
   position: relative;
-  background: var(--shelf-header-bg, linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%));
+  background: var(--shelf-header-bg, #e67e22);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   padding-bottom: 0;
 }
@@ -63,7 +63,8 @@
 
 .selector-track {
   display: flex;
-  background: rgba(255, 255, 255, 0.95);
+  /* 空间切换轨道：实色白底 */
+  background: $color-white;
   border-radius: 22rpx;
   padding: 4rpx;
   position: relative;
@@ -71,8 +72,6 @@
     0 4rpx 16rpx rgba(0, 0, 0, 0.06),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
   border: 1rpx solid rgba(255, 255, 255, 0.6);
-  -webkit-backdrop-filter: blur(20rpx);
-  backdrop-filter: blur(20rpx);
 }
 
 .selector-slider {
@@ -93,8 +92,8 @@
 
 .selector-slider.slide-right {
   left: calc(50%);
-  background: var(--shelf-nav-slider-right, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-  box-shadow: 0 6rpx 24rpx rgba(102, 126, 234, 0.4);
+  background: var(--shelf-nav-slider-right, #e67e22);
+  box-shadow: 0 6rpx 24rpx rgba(255, 107, 53, 0.4);
 }
 
 .space-tab-enhanced {

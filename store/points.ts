@@ -100,8 +100,8 @@ export const pointsStore = observable({
   ): Promise<{ available: number; frozen: number }> {
     this.balanceLoading = true
     try {
-      const apiFunctions = require('../utils/api/index')
-      const balanceResult = await apiFunctions.getPointsBalance()
+      const { API: pointsApi } = require('../utils/index')
+      const balanceResult = await pointsApi.getPointsBalance()
 
       if (balanceResult?.success && balanceResult.data) {
         const available = balanceResult.data.available_amount || 0

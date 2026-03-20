@@ -268,12 +268,14 @@
 .gc-holo {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg,
-      rgba(255, 215, 0, 0) 0%,
-      rgba(255, 215, 0, 0.08) 25%,
-      rgba(186, 147, 255, 0.1) 50%,
-      rgba(255, 215, 0, 0.08) 75%,
-      rgba(255, 215, 0, 0) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0) 0%,
+    rgba(255, 215, 0, 0.08) 25%,
+    rgba(186, 147, 255, 0.1) 50%,
+    rgba(255, 215, 0, 0.08) 75%,
+    rgba(255, 215, 0, 0) 100%
+  );
   pointer-events: none;
 }
 
@@ -303,12 +305,14 @@
   left: -140%;
   width: 90%;
   height: 100%;
-  background: linear-gradient(105deg,
-      transparent 35%,
-      rgba(255, 255, 255, 0.06) 45%,
-      rgba(255, 255, 255, 0.14) 50%,
-      rgba(255, 255, 255, 0.06) 55%,
-      transparent 65%);
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.06) 55%,
+    transparent 65%
+  );
   animation: gcShine 5s ease-in-out infinite;
   pointer-events: none;
 }
@@ -344,7 +348,11 @@
 .gc-back {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #546bea, #764ba2);
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary, #ff6b35),
+    var(--theme-primary-dark, #e55a2b)
+  );
   border: 2rpx solid rgba(255, 255, 255, 0.15);
   @include flex-column-center;
   position: relative;
@@ -355,16 +363,20 @@
   position: absolute;
   inset: 0;
   background:
-    repeating-linear-gradient(45deg,
+    repeating-linear-gradient(
+      45deg,
       transparent,
       transparent 16rpx,
       rgba(255, 255, 255, 0.03) 16rpx,
-      rgba(255, 255, 255, 0.03) 18rpx),
-    repeating-linear-gradient(-45deg,
+      rgba(255, 255, 255, 0.03) 18rpx
+    ),
+    repeating-linear-gradient(
+      -45deg,
       transparent,
       transparent 16rpx,
       rgba(255, 255, 255, 0.03) 16rpx,
-      rgba(255, 255, 255, 0.03) 18rpx);
+      rgba(255, 255, 255, 0.03) 18rpx
+    );
   pointer-events: none;
 }
 
@@ -603,13 +615,15 @@
 .rc-holo {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg,
-      rgba(255, 215, 0, 0) 0%,
-      rgba(255, 215, 0, 0.1) 20%,
-      rgba(186, 147, 255, 0.15) 40%,
-      rgba(255, 215, 0, 0.05) 60%,
-      rgba(186, 147, 255, 0.1) 80%,
-      rgba(255, 215, 0, 0) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0) 0%,
+    rgba(255, 215, 0, 0.1) 20%,
+    rgba(186, 147, 255, 0.15) 40%,
+    rgba(255, 215, 0, 0.05) 60%,
+    rgba(186, 147, 255, 0.1) 80%,
+    rgba(255, 215, 0, 0) 100%
+  );
   animation: holoShift 3s ease-in-out infinite;
   pointer-events: none;
 }
@@ -637,12 +651,14 @@
   left: -150%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(105deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.06) 42%,
-      rgba(255, 255, 255, 0.18) 50%,
-      rgba(255, 255, 255, 0.06) 58%,
-      transparent 70%);
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.06) 42%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.06) 58%,
+    transparent 70%
+  );
   animation: rcShine 3s ease-in-out infinite 0.8s;
   pointer-events: none;
 }
@@ -809,7 +825,6 @@
 
 /* 氛围星屑漂浮 */
 @keyframes aFloat {
-
   0%,
   100% {
     opacity: 0;
@@ -898,7 +913,6 @@
 
 /* 揭晓卡片光晕 */
 @keyframes revealGlow {
-
   0%,
   100% {
     opacity: 0.4;
@@ -913,7 +927,6 @@
 
 /* 全息偏移 */
 @keyframes holoShift {
-
   0%,
   100% {
     background-position: 0% 0%;
@@ -969,7 +982,6 @@
 
 /* 按钮背景流动 */
 @keyframes btnBgShift {
-
   0%,
   100% {
     background-position: 0% 50%;
@@ -982,7 +994,6 @@
 
 /* 按钮脉冲 */
 @keyframes btnPulse {
-
   0%,
   100% {
     box-shadow: 0 8rpx 28rpx rgba(123, 104, 238, 0.45);
@@ -1022,7 +1033,6 @@
 
 /* 摇晃 */
 @keyframes shake {
-
   0%,
   100% {
     transform: rotate(0) scale(1);

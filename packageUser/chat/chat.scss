@@ -38,8 +38,8 @@
 
 .search-bar:focus-within {
   background: $color-white;
-  border-color: rgba(102, 126, 234, 0.3);
-  box-shadow: 0 0 0 4rpx rgba(102, 126, 234, 0.08);
+  border-color: rgba(255, 107, 53, 0.3);
+  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.08);
 }
 
 .search-icon {
@@ -85,13 +85,13 @@
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   border-radius: 50%;
   @include flex-center;
-  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.35);
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.35);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .new-chat-btn:active {
   transform: scale(0.9);
-  box-shadow: 0 4rpx 10rpx rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4rpx 10rpx rgba(255, 107, 53, 0.25);
 }
 
 .new-chat-icon {
@@ -150,7 +150,7 @@
 }
 
 .session-item:active {
-  background: rgba(102, 126, 234, 0.06);
+  background: rgba(255, 107, 53, 0.06);
   transform: scale(0.98);
 }
 
@@ -506,7 +506,7 @@
 }
 
 .search-result-item:active {
-  background: rgba(102, 126, 234, 0.04);
+  background: rgba(255, 107, 53, 0.04);
 }
 
 /* 搜索结果头像 */
@@ -550,7 +550,7 @@
 /* "我"标签 — 蓝色 */
 .sender-self {
   color: $gradient-blue-start;
-  background: rgba(102, 126, 234, 0.08);
+  background: rgba(255, 107, 53, 0.08);
 }
 
 /* "客服"标签 — 青色 */
@@ -715,13 +715,13 @@
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   border-radius: 48rpx;
   padding: 24rpx 64rpx;
-  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .retry-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.2);
 }
 
 .retry-btn-text {
@@ -830,7 +830,7 @@
   flex: 0 0 auto;
   flex-shrink: 0;
   min-height: 80rpx;
-  box-shadow: 0 4rpx 20rpx rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.2);
 }
 
 .header-left {
@@ -844,11 +844,10 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  /* 头部按钮实色底，无 backdrop-filter */
+  background: rgba(255, 255, 255, 0.22);
   @include flex-center;
   transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
 }
 
 .back-btn-wrapper:active {
@@ -974,11 +973,9 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.22);
   @include flex-center;
   transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
 }
 
 .more-btn-wrapper:active {
@@ -1166,14 +1163,14 @@
 
 .quick-action-item {
   padding: 14rpx 28rpx;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 226, 0.06));
-  border: 2rpx solid rgba(102, 126, 234, 0.15);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(118, 75, 226, 0.06));
+  border: 2rpx solid rgba(255, 107, 53, 0.15);
   border-radius: 32rpx;
   transition: all 0.25s ease;
 }
 
 .quick-action-item:active {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.16), rgba(118, 75, 226, 0.12));
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.16), rgba(118, 75, 226, 0.12));
   transform: scale(0.95);
 }
 
@@ -1325,7 +1322,7 @@
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
   color: $color-text-white;
   border-top-right-radius: 6rpx;
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.25);
 }
 
 .message-text {
@@ -1505,9 +1502,8 @@
   bottom: 160rpx;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  -webkit-backdrop-filter: blur(10rpx);
-  backdrop-filter: blur(10rpx);
+  /* 快捷回复条：纯白实底 */
+  background: $color-white;
   border-top: 1rpx solid rgba(0, 0, 0, 0.05);
   padding: 16rpx 0;
   z-index: 99;
@@ -1550,8 +1546,8 @@
 }
 
 .quick-reply-chip:active {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: rgba(102, 126, 234, 0.2);
+  background: rgba(255, 107, 53, 0.1);
+  border-color: rgba(255, 107, 53, 0.2);
   transform: scale(0.95);
 }
 
@@ -1609,7 +1605,7 @@
 }
 
 .expand-btn.active {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(255, 107, 53, 0.1);
   transform: rotate(45deg);
 }
 
@@ -1640,8 +1636,8 @@
 
 .input-wrapper:focus-within {
   background: $color-white;
-  border-color: rgba(102, 126, 234, 0.25);
-  box-shadow: 0 0 0 4rpx rgba(102, 126, 234, 0.06);
+  border-color: rgba(255, 107, 53, 0.25);
+  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.06);
 }
 
 .message-input {
@@ -1677,12 +1673,12 @@
 
 .send-btn.active {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  box-shadow: 0 4rpx 14rpx rgba(102, 126, 234, 0.35);
+  box-shadow: 0 4rpx 14rpx rgba(255, 107, 53, 0.35);
 }
 
 .send-btn.active:active {
   transform: scale(0.88);
-  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.2);
 }
 
 .send-btn-icon {
@@ -1739,8 +1735,8 @@
 }
 
 .toolbar-item:active .toolbar-item-icon-wrapper {
-  background: rgba(102, 126, 234, 0.08);
-  border-color: rgba(102, 126, 234, 0.12);
+  background: rgba(255, 107, 53, 0.08);
+  border-color: rgba(255, 107, 53, 0.12);
 }
 
 .toolbar-item-icon {
