@@ -290,6 +290,16 @@
   color: $color-info;
 }
 
+.ed-tag-pinned {
+  background: rgba(255, 107, 53, 0.1);
+  color: $color-primary;
+}
+
+.ed-tag-recommended {
+  background: rgba(30, 136, 229, 0.1);
+  color: #1e88e5;
+}
+
 .ed-tag-warranty {
   background: rgba(76, 175, 80, 0.1);
   color: $color-success;

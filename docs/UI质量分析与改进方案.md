@@ -139,6 +139,120 @@ $shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
 
 **参考图做法**：都很静态、克制，只在关键交互点有微动效。
 
+### 2.7 项目特效完整清单与保留决策
+
+全项目扫描后，特效总量如下：
+
+| 类别 | 数量级 |
+|------|--------|
+| @keyframes 动画定义 | 200+ |
+| backdrop-filter 玻璃拟态 | 80+ 处 |
+| linear-gradient 渐变 | 150+ 处 |
+| 彩色 glow box-shadow | 50+ 处 |
+| filter（blur/brightness/drop-shadow） | 60+ 处 |
+| transform 装饰效果 | 200+ 处 |
+| transition 过渡 | 150+ 处 |
+| JS/TS 粒子系统 | 6 个 |
+
+#### A. 抽奖游戏特效（≈150+ 个动画）— 全部保留
+
+这些是游戏玩法的核心体验，砍掉等于把游戏变成静态图片，不在"去塑料感"范围内。
+
+| 玩法 | 所在目录 | 代表性特效 | 数量 |
+|------|----------|-----------|------|
+| 弹珠机 | `sub/pinball/` | 灯泡追逐、球发射、爆裂飞散、金币下落、聚光灯呼吸 | 30+ |
+| 打地鼠 | `sub/whackmole/` | 地鼠弹出、锤子挥击、爆裂粒子 1-4、冲击波扩散 | 50+ |
+| 老虎机 | `sub/slotmachine/` | LED 追灯、霓虹流光、卷轴旋转、冲击波、爆裂增强 | 20+ |
+| 扭蛋机 | `sub/gashapon/` | 胶囊掉落/拖尾、手柄旋转、光线旋转、爆裂弹出 | 10+ |
+| 集卡 | `sub/cardcollect/` | 卡片翻转、全息光泽、emoji 弹出、3D 翻面 | 15+ |
+| 刮刮卡 | `sub/scratch/` | 格子溶解、奖品弹入、引导滑动、提示脉冲 | 5+ |
+| 九宫格 | `sub/grid/` | 高亮脉冲、中奖脉冲、按钮发光、旋转、脉搏 | 6+ |
+| 盲盒 | `sub/blindbox/` | 蛋摇晃、曲柄旋转、蛋掉落弹跳、裂开、奖品弹出 | 10+ |
+| 红包 | `sub/redpacket/` | 红包抖动、内容揭示、闪光 | 3 |
+| 砸蛋 | `sub/egg/` | 蛋抖动、锤子挥动、碎片飞射 1-6、闪光 | 8+ |
+| 福袋 | `sub/luckybag/` | 袋子抖动、福字闪光、浮起 | 3 |
+| 闪购 | `sub/flashsale/` | 霓虹边框、数字翻转、全息偏移、火焰浮动 | 10+ |
+| 转盘 | `sub/wheel/` | 灯光闪烁 + conic-gradient 扇区 | 2 |
+| 翻牌 | `sub/card/` | 卡片入场、空闲漂浮、光泽脉冲 | 6 |
+| 共享动效 | `shared/` | 爆裂环、爆裂星、闪光、稀有度发光、结果弹窗动画 | 15+ |
+
+另外有 6 个 JS/TS 粒子系统（whackmole、slotmachine、pinball、luckybag、gashapon、blindbox），以 DOM 元素 + CSS 动画实现，均属于游戏内效果。
+
+#### B. 页面级装饰特效（≈15 个动画）— 建议全部移除
+
+这些不属于任何游戏玩法，纯粹是页面"氛围装饰"，是"塑料感"的主要来源：
+
+| 特效名 | 文件 | 表现 | 循环时长 |
+|--------|------|------|----------|
+| `card-glow-breath` | `pages/user/user.scss` | 卡片边缘呼吸式发光 | 5s 无限循环 |
+| `neon-pulse` | `pages/user/user.scss` | 霓虹脉冲 | 无限循环 |
+| `pulse-glow` | `pages/user/user.scss` | 脉冲发光 | 无限循环 |
+| `gold-fall` | `pages/user/user.scss` | 金币从天而降 | 9s 无限循环 |
+| `star-twinkle` | `pages/user/user.scss` | 星星闪烁 | 无限循环 |
+| `petal-fall` | `pages/user/user.scss` | 花瓣飘落 | 10s 无限循环 |
+| `snow-fall` | `pages/user/user.scss` | 雪花飘落 | 11s 无限循环 |
+| `bubble-rise` | `pages/user/user.scss` | 气泡上升 | 10s 无限循环 |
+| `default-float` | `pages/user/user.scss` | 默认浮动粒子 | 无限循环 |
+| `breatheGlow` | exchange-shelf-cards / bid-panel | 商品卡片呼吸发光 | 2s 无限循环 |
+| `holoShimmer` | exchange-shelf-cards | 全息闪光 | 3s 无限循环 |
+| `rotatingBorderColor` | exchange-shelf-cards | 边框颜色旋转 | 无限循环 |
+| `rippleSpread` | exchange-shelf-cards | 涟漪扩散 | 无限循环 |
+
+用户页面（`pages/user/user.scss`）是重灾区，集中了 6 种主题粒子特效（金币、星星、花瓣、雪花、气泡、默认浮动）+ 卡片呼吸发光。
+
+#### C. 玻璃拟态 backdrop-filter（≈80+ 处）— 弹窗保留，卡片移除
+
+| 使用区域 | blur 值 | 建议 |
+|----------|---------|------|
+| 抽奖结果弹窗 / 兑换确认弹窗 | 20-40rpx | ✅ 保留 — 弹窗毛玻璃是合理的聚焦手法 |
+| 用户页个人信息卡、菜单区 | 5-20rpx | ❌ 移除 — 改纯白底 |
+| 抽奖页头部、内容区 | 15-25rpx | ❌ 移除 — 改纯色底 |
+| 登录页登录卡片 | 20rpx | ❌ 移除 — 改纯白底 |
+| 交易市场瀑布流卡片、面板 | 10-20rpx | ❌ 移除 — 改纯白底 |
+| 聊天页消息区域 | 10rpx | ❌ 移除 — 改纯白底 |
+| 管理后台审核列表 | 10-20rpx | ❌ 移除 — 改纯白底 |
+| 游戏内 UI（打地鼠、弹珠机等） | 10-20rpx | ✅ 保留 — 属于游戏沉浸感 |
+
+#### D. 页面级渐变（不含游戏内渐变）— 只保留头部
+
+除游戏内渐变外，页面级渐变集中在：
+
+| 渐变用途 | 处理 |
+|----------|------|
+| 页面头部背景（6 套主题各一种） | ✅ 保留 |
+| CTA 行动按钮（1-2 个/页面） | ✅ 保留 |
+| 卡片背景渐变 | ❌ 改纯色 |
+| 库存条渐变（绿/黄/红三种） | ❌ 改纯色 |
+| 标签渐变（热门红、新品绿、限定紫） | ❌ 改纯色 |
+| 货架头部青绿渐变 | ❌ 改为跟随主题色 |
+| 导航激活态渐变 | ❌ 改纯色下划线/圆点 |
+| 按钮渐变（非核心 CTA） | ❌ 改纯色 |
+
+#### E. 功能性 UI 特效 — 全部保留
+
+| 特效 | 所在位置 | 用途 |
+|------|----------|------|
+| `skeleton-shimmer` | 多个页面 | 骨架屏加载 |
+| `fadeIn` | 多个页面 | 页面/列表项渐入 |
+| `modalSlideUp` / `overlayFadeIn` | 弹窗组件 | 弹窗入场 |
+| `cardFadeIn` / `fadeInUp` | 列表页面 | 列表卡片渐入 |
+| `spin` | loading-spinner 等 | 加载旋转 |
+| `dotBounce` | loading-spinner / price-chart | 加载点跳动 |
+| transition 0.2-0.3s | 全局 | 状态切换过渡 |
+| `scaleIn` | QR 码等 | 元素入场缩放 |
+
+#### 分类决策汇总
+
+| 分类 | 数量级 | 决策 | 理由 |
+|------|--------|------|------|
+| 抽奖游戏特效 | 150+ 动画 + 6 粒子系统 | **全部保留** | 游戏核心体验 |
+| 页面装饰特效 | ≈15 个循环动画 | **全部移除** | "塑料感"主源 |
+| 玻璃拟态 | 80+ 处 | **弹窗/游戏内保留，普通卡片移除** | 点缀可以，全局滥用不行 |
+| 页面级渐变 | 大量 | **头部 + CTA 保留，其余改纯色** | 渐变越多越碎 |
+| 功能性 UI 特效 | ≈10 种 | **全部保留** | 标准 UX 反馈 |
+
+> 核心原则：**游戏里的一个不动，页面上的装饰是砍的重点**。两类泾渭分明，不会误伤。
+
 ---
 
 ## 三、当前项目样式系统现状
@@ -274,22 +388,52 @@ WXML 渲染
 
 ## 五、6 套主题逐个重构方案
 
+### 5.0 变化总览
+
+一眼看出每套主题的核心变化：
+
+| 主题 | 头部渐变 | 页面底色 | 卡片背景 | 核心改动 |
+|------|----------|----------|----------|----------|
+| **default** | 蓝紫 → **暖橙** | 渐变 → **`#faf6f1` 暖米白** | 玻璃拟态 → **`#fff`** | 最大改动：蓝紫色全部清除 |
+| **gold_luxury** | 不变 | 渐变 → **`#1a1a2e` 纯深蓝** | 渐变 → **`#232340` 纯深色** | 金色从大面积降为线条/文字 |
+| **purple_mystery** | 不变 | 多层渐变 → **`#1a1a3e` 纯深紫** | 渐变 → **`#2a2050` 纯深紫** | 删掉多余紫色层叠 |
+| **spring_festival** | 不变 | 红渐变 → **`#fff8f5` 暖白** | 渐变 → **`#fff`** | 红色收缩到头部+按钮 |
+| **christmas** | 不变 | 绿渐变 → **`#f0fff5` 浅绿白** | 不变（已是白底） | 红色从副色降到 ≤3% |
+| **summer** | 不变 | 蓝渐变 → **`#f0f8ff` 浅蓝白** | 毛玻璃 → **`#fff`** | 青绿色完全移除 |
+
 ### 5.1 default（暖橙日常） — 重构力度：大
 
 **核心问题**：背景蓝紫 `#667eea → #764ba2` 和按钮橙色 `#e67e22` 方向完全矛盾。
 
 **重构方向**：统一走暖橙方向，蓝紫色全部移除。
 
-| 属性 | 当前值 | 重构值 |
-|------|--------|--------|
-| 页面渐变（头部） | `#667eea → #764ba2`（蓝紫） | `#f7931e → #e67e22`（暖橙） |
-| 页面背景（非头部） | 蓝紫渐变 + 径向叠加 | 单色 `#faf6f1`（暖米白） |
-| Primary 色 | `#e67e22` | `#e67e22`（不变） |
-| Accent 色 | `#ffd700`（金） | `#ffd700`（不变，仅小面积） |
-| 卡片背景 | 玻璃拟态 | `#ffffff` |
-| 阴影色 | `rgba(0,0,0,x)` | `rgba(231,126,34, x)`（暖橙阴影） |
-| 文字主色 | `#333333` | `#333333`（不变） |
-| 文字次色 | `#666666` | `#666666`（不变） |
+**视觉变化**：从"蓝紫头部 + 橙色按钮"变为"暖橙一体化"，整个页面色温统一。
+
+**CSS 变量变更明细**（改动文件：`utils/global-themes.ts` → `default` 对象）：
+
+| CSS 变量 | 当前值 | 重构值 | 原因 |
+|----------|--------|--------|------|
+| `--theme-page-start` | `#667eea`（蓝紫） | `#f7931e`（暖橙） | 统一色彩方向 |
+| `--theme-page-end` | `#764ba2`（紫色） | `#e67e22`（深橙） | 统一色彩方向 |
+| `--theme-primary` | `#e67e22` | `#ff6b35` | 统一为全局主色 `$color-primary`，消除双橙色冲突 |
+| `--theme-primary-dark` | `#d35400` | `#e55a2b` | 跟随主色调整 |
+| `--theme-accent` | `#ffd700`（金） | 不变（仅小面积） | — |
+| `--theme-background` | `#fff8f0` | `#faf6f1`（暖米白） | 更柔和的底色 |
+| `--theme-text` | `#333333` | 不变 | — |
+| `--theme-text-light` | `#666666` | 不变 | — |
+| `--theme-section-bg` | `rgba(255,255,255,0.92)` | `#ffffff` | 去掉半透明 |
+| `--theme-item-bg` | `#ffffff` | 不变 | — |
+| `--shelf-card-bg` | `#ffffff` | 不变（已是纯色） | — |
+| `--shelf-header-bg` | `linear-gradient(135deg, #4ecdc4, #44a08d)`（青绿） | 跟随主题橙色 | 去掉第三色 |
+| `--shelf-nav-slider-right` | `linear-gradient(135deg, #667eea, #764ba2)`（蓝紫） | 跟随主题橙色 | 去掉蓝紫残留 |
+| `--shelf-accent` | `#667eea`（蓝紫） | `#e67e22`（橙） | 去掉蓝紫残留 |
+| `--shelf-accent-light` | `rgba(102,126,234,0.15)` | `rgba(230,126,34,0.15)` | 跟随 accent 变化 |
+| `--shelf-tag-hot` | `linear-gradient(135deg, #ff4757, #ff6b81)` | `#ff4757`（纯色） | 标签去渐变 |
+| `--shelf-tag-new` | `linear-gradient(135deg, #2ed573, #7bed9f)` | `#2ed573`（纯色） | 标签去渐变 |
+| `--shelf-tag-limited` | `linear-gradient(135deg, #7c4dff, #b388ff)` | `#7c4dff`（纯色） | 标签去渐变 |
+| `--shelf-cta-bg` | `linear-gradient(135deg, #e67e22, #d35400)` | `#e67e22`（纯色） | CTA 按钮去渐变 |
+| `--shelf-price-row-bg` | `linear-gradient(90deg, rgba(255,107,53,0.06), transparent)` | `transparent` | 去渐变 |
+| `--shelf-fallback-bg` | `linear-gradient(135deg, #f5f5f5, #e8e8e8)` | `#f5f5f5`（纯色） | 去渐变 |
 
 ### 5.2 gold_luxury（金色奢华） — 重构力度：中
 
@@ -297,14 +441,26 @@ WXML 渲染
 
 **重构方向**：保持深色底 + 金色路线，但金色降为线条和文字级别，不做大面积填充。
 
-| 属性 | 当前值 | 重构值 |
-|------|--------|--------|
-| 页面渐变（头部） | `#2c3e50 → #1a1a2e` | `#2c3e50 → #1a1a2e`（不变） |
-| 页面背景（非头部） | 深蓝渐变 | 单色 `#1a1a2e` |
-| Primary 色 | `#f1c40f`（金色大面积） | `#f1c40f`（降为线条/文字/图标） |
-| 卡片背景 | 玻璃拟态 | `#232340`（深色卡片） |
-| 阴影色 | `rgba(0,0,0,x)` | `rgba(241,196,15, x)`（金色光晕阴影） |
-| 按钮 | 金色渐变 | 纯色 `#f1c40f` + 深色文字 |
+**视觉变化**：金色从"铺满全身"收缩为"线条 + 文字 + 图标"，深色底更沉稳，奢华感反而上来了。
+
+**CSS 变量变更明细**（改动文件：`utils/global-themes.ts` → `gold_luxury` 对象）：
+
+| CSS 变量 | 当前值 | 重构值 | 原因 |
+|----------|--------|--------|------|
+| `--theme-page-start` | `#2c3e50` | 不变 | 头部深蓝渐变保留 |
+| `--theme-page-end` | `#1a1a2e` | 不变 | — |
+| `--theme-primary` | `#f1c40f` | 不变（面积收缩） | 金色降为线条/文字/图标 |
+| `--theme-background` | `#1a1a2e` | 不变 | 已是纯色深底 |
+| `--theme-section-bg` | `rgba(42,42,78,0.92)` | `#232340`（纯色） | 去半透明 |
+| `--theme-item-bg` | `rgba(58,58,94,0.85)` | `#2a2a50`（纯色） | 去半透明 |
+| `--shelf-card-bg` | `linear-gradient(145deg, #1a1a2e, #16213e)` | `#232340`（纯色） | 卡片去渐变 |
+| `--shelf-card-image-bg` | `linear-gradient(135deg, #1a1a2e, #2a2a4e)` | `#2a2a4e`（纯色） | 去渐变 |
+| `--shelf-cta-bg` | `linear-gradient(135deg, #f1c40f, #d4ac0d)` | `#f1c40f`（纯色） | 按钮去渐变 |
+| `--shelf-tag-hot` | `linear-gradient(135deg, #ff4757, #ff6b81)` | `#ff4757`（纯色） | 标签去渐变 |
+| `--shelf-tag-new` | `linear-gradient(135deg, #2ed573, #7bed9f)` | `#2ed573`（纯色） | 标签去渐变 |
+| `--shelf-tag-limited` | `linear-gradient(135deg, #7c4dff, #b388ff)` | `#7c4dff`（纯色） | 标签去渐变 |
+| `--shelf-fallback-bg` | `linear-gradient(135deg, #1a1a2e, #2a2a4e)` | `#1a1a2e`（纯色） | 去渐变 |
+| `--shelf-header-bg` | `linear-gradient(135deg, #1a1a2e, #16213e)` | `#1a1a2e`（纯色） | 去渐变 |
 
 ### 5.3 purple_mystery（紫色神秘） — 重构力度：中
 
@@ -312,14 +468,26 @@ WXML 渲染
 
 **重构方向**：简化为单色深紫背景 + 浅紫卡片，渐变只留头部。
 
-| 属性 | 当前值 | 重构值 |
-|------|--------|--------|
-| 页面渐变（头部） | `#6c3483 → #512e5f` | `#6c3483 → #512e5f`（不变） |
-| 页面背景（非头部） | 多层紫色渐变叠加 | 单色 `#1a1a3e` |
-| Primary 色 | `#9b59b6` | `#9b59b6`（不变） |
-| 卡片背景 | 玻璃拟态 | `#2a2050`（深紫卡片） |
-| 阴影色 | `rgba(0,0,0,x)` | `rgba(155,89,182, x)`（紫色阴影） |
-| Accent | `#e8daef` | `#e8daef`（不变，仅小面积） |
+**视觉变化**：从"多层紫色叠在一起变成一坨暗紫"变为"层次清晰的深紫底 + 浅紫卡片"。
+
+**CSS 变量变更明细**（改动文件：`utils/global-themes.ts` → `purple_mystery` 对象）：
+
+| CSS 变量 | 当前值 | 重构值 | 原因 |
+|----------|--------|--------|------|
+| `--theme-page-start` | `#6c3483` | 不变 | 头部渐变保留 |
+| `--theme-page-end` | `#512e5f` | 不变 | — |
+| `--theme-primary` | `#9b59b6` | 不变 | — |
+| `--theme-background` | `#1a1a3e` | 不变 | 已是纯色 |
+| `--theme-section-bg` | `rgba(42,26,94,0.92)` | `#2a2050`（纯色） | 去半透明 |
+| `--theme-item-bg` | `rgba(58,42,110,0.85)` | `#322860`（纯色） | 去半透明 |
+| `--shelf-card-bg` | `linear-gradient(145deg, #1a1a3e, #16163a)` | `#2a2050`（纯色） | 卡片去渐变 |
+| `--shelf-card-image-bg` | `linear-gradient(135deg, #1a1a3e, #2a1a5e)` | `#2a1a5e`（纯色） | 去渐变 |
+| `--shelf-cta-bg` | `linear-gradient(135deg, #9b59b6, #6c3483)` | `#9b59b6`（纯色） | 按钮去渐变 |
+| `--shelf-tag-hot` | `linear-gradient(135deg, #ff4757, #ff6b81)` | `#ff4757`（纯色） | 标签去渐变 |
+| `--shelf-tag-new` | `linear-gradient(135deg, #2ed573, #7bed9f)` | `#2ed573`（纯色） | 标签去渐变 |
+| `--shelf-tag-limited` | `linear-gradient(135deg, #9b59b6, #d7bde2)` | `#9b59b6`（纯色） | 标签去渐变 |
+| `--shelf-fallback-bg` | `linear-gradient(135deg, #1a1a3e, #2a1a5e)` | `#1a1a3e`（纯色） | 去渐变 |
+| `--shelf-header-bg` | `linear-gradient(135deg, #2c1654, #1a0a3e)` | `#2c1654`（纯色） | 去渐变 |
 
 ### 5.4 spring_festival（春节红金） — 重构力度：大
 
@@ -327,14 +495,27 @@ WXML 渲染
 
 **重构方向**：大面积用暖白底，红色收缩到头部和按钮，金色只做装饰线。
 
-| 属性 | 当前值 | 重构值 |
-|------|--------|--------|
-| 页面渐变（头部） | `#e74c3c → #c0392b` | `#e74c3c → #c0392b`（不变，头部保留） |
-| 页面背景（非头部） | 红色渐变 | 单色 `#fff8f5`（暖白偏红） |
-| Primary 色 | `#e74c3c`（大面积红） | `#e74c3c`（收缩到头部 + 按钮） |
-| Secondary 色 | `#f1c40f`（金色大面积） | `#f1c40f`（仅装饰线、角标） |
-| 卡片背景 | 玻璃拟态 | `#ffffff` |
-| 阴影色 | `rgba(0,0,0,x)` | `rgba(231,76,60, x)`（红色阴影） |
+**视觉变化**：从"满眼红色"变为"白底 + 红色头部/按钮点缀 + 金色极小面积装饰"，喜庆但不刺眼。
+
+**CSS 变量变更明细**（改动文件：`utils/global-themes.ts` → `spring_festival` 对象）：
+
+| CSS 变量 | 当前值 | 重构值 | 原因 |
+|----------|--------|--------|------|
+| `--theme-page-start` | `#e74c3c` | 不变 | 头部红色保留 |
+| `--theme-page-end` | `#c0392b` | 不变 | — |
+| `--theme-primary` | `#e74c3c` | 不变（面积收缩） | 收缩到头部 + 按钮 |
+| `--theme-background` | `#fff5f5` | `#fff8f5`（更浅暖白） | 红底色再减淡 |
+| `--theme-text` | `#c0392b`（红色文字） | `#333333`（深灰） | 正文红色太累眼 |
+| `--theme-text-light` | `#e74c3c`（红色） | `#666666`（灰色） | 次要文字不用红 |
+| `--theme-section-bg` | `rgba(255,248,248,0.95)` | `#ffffff`（纯白） | 去半透明 + 减红 |
+| `--theme-item-bg` | `#ffffff` | 不变 | — |
+| `--shelf-card-bg` | `linear-gradient(180deg, #fff5f5, #ffffff)` | `#ffffff`（纯色） | 卡片去渐变 |
+| `--shelf-cta-bg` | `linear-gradient(135deg, #e74c3c, #c0392b)` | `#e74c3c`（纯色） | 按钮去渐变 |
+| `--shelf-tag-hot` | `linear-gradient(135deg, #e74c3c, #ff6b81)` | `#e74c3c`（纯色） | 标签去渐变 |
+| `--shelf-tag-new` | `linear-gradient(135deg, #f1c40f, #ffd700)` | `#f1c40f`（纯色） | 标签去渐变 |
+| `--shelf-tag-limited` | `linear-gradient(135deg, #7c4dff, #b388ff)` | `#7c4dff`（纯色） | 标签去渐变 |
+| `--shelf-fallback-bg` | `linear-gradient(135deg, #fff5f5, #ffe0e0)` | `#fff5f5`（纯色） | 去渐变 |
+| `--shelf-header-bg` | `linear-gradient(135deg, #c0392b, #a93226)` | `#c0392b`（纯色） | 去渐变 |
 
 ### 5.5 christmas（圣诞绿红） — 重构力度：大
 
@@ -342,212 +523,213 @@ WXML 渲染
 
 **重构方向**：绿色做主调，红色极小面积做点缀（角标、价格），白色做大面积底色。
 
-| 属性 | 当前值 | 重构值 |
-|------|--------|--------|
-| 页面渐变（头部） | `#27ae60 → #1e8449` | `#27ae60 → #1e8449`（不变） |
-| 页面背景（非头部） | 绿色渐变 | 单色 `#f0fff5`（极浅绿白） |
-| Primary 色 | `#27ae60` | `#27ae60`（头部 + 按钮） |
-| Secondary 色 | `#e74c3c`（红色大面积） | `#e74c3c`（仅角标、小图标，面积 ≤ 3%） |
-| 卡片背景 | 玻璃拟态 | `#ffffff` |
-| 阴影色 | `rgba(0,0,0,x)` | `rgba(39,174,96, x)`（绿色阴影） |
+**视觉变化**：从"红绿大面积对撞"变为"绿色主调 + 白底 + 红色仅在角标/价格等极小区域出现"。
+
+**CSS 变量变更明细**（改动文件：`utils/global-themes.ts` → `christmas` 对象）：
+
+| CSS 变量 | 当前值 | 重构值 | 原因 |
+|----------|--------|--------|------|
+| `--theme-page-start` | `#27ae60` | 不变 | 头部绿色保留 |
+| `--theme-page-end` | `#1e8449` | 不变 | — |
+| `--theme-primary` | `#27ae60` | 不变 | 头部 + 按钮 |
+| `--theme-secondary` | `#e74c3c`（红色） | 不变（面积压缩到 ≤3%） | 只做角标/小图标 |
+| `--theme-accent` | `#e74c3c`（红色） | `#ffd700`（金色） | 强调色换掉红色 |
+| `--theme-accent-dark` | `#c0392b`（红色） | `#b8860b`（金色） | 跟随 accent 变化 |
+| `--theme-accent-light` | `#f1948a`（红色） | `#ffe44d`（金色） | 跟随 accent 变化 |
+| `--theme-background` | `#f0fff0` | `#f0fff5`（更偏白） | 绿底色减淡 |
+| `--theme-text` | `#27ae60`（绿色文字） | `#333333`（深灰） | 正文绿色阅读性差 |
+| `--theme-text-light` | `#2ecc71`（绿色） | `#666666`（灰色） | 次要文字不用绿 |
+| `--theme-section-bg` | `rgba(240,255,240,0.95)` | `#ffffff`（纯白） | 去半透明 |
+| `--theme-item-bg` | `rgba(248,255,248,0.95)` | `#ffffff`（纯白） | 去半透明 |
+| `--shelf-nav-slider-right` | `linear-gradient(135deg, #e74c3c, #c0392b)`（红色） | `#27ae60`（绿色纯色，与左滑块同色） | 导航滑块统一主题色，消除红绿撞色 |
+| `--shelf-cta-bg` | `linear-gradient(135deg, #27ae60, #1e8449)` | `#27ae60`（纯色） | 按钮去渐变 |
+| `--shelf-tag-hot` | `linear-gradient(135deg, #e74c3c, #ff6b81)` | `#e74c3c`（纯色，小面积） | 标签去渐变 |
+| `--shelf-tag-new` | `linear-gradient(135deg, #27ae60, #82e0aa)` | `#27ae60`（纯色） | 标签去渐变 |
+| `--shelf-tag-limited` | `linear-gradient(135deg, #7c4dff, #b388ff)` | `#7c4dff`（纯色） | 标签去渐变 |
+| `--shelf-fallback-bg` | `linear-gradient(135deg, #f0fff0, #e8f8e8)` | `#f0fff0`（纯色） | 去渐变 |
+| `--shelf-header-bg` | `linear-gradient(135deg, #27ae60, #1e8449)` | `#27ae60`（纯色） | 去渐变 |
+| `--shelf-price-row-bg` | `linear-gradient(90deg, rgba(39,174,96,0.06), transparent)` | `transparent` | 去渐变 |
 
 ### 5.6 summer（夏日蓝） — 重构力度：中
 
-**核心问题**：蓝 `#3498db` 和青绿 `#1abc9c` 两个冷色竞争，方向模糊。
+**核心问题**：蓝 `#3498db` 和青绿 `#1abc9c` 两个冷色竞争，方向模糊。并且兑换卡片使用了毛玻璃 `rgba(255,255,255,0.78)` + border。
 
 **重构方向**：统一走清爽蓝，青绿色去掉。
 
-| 属性 | 当前值 | 重构值 |
-|------|--------|--------|
-| 页面渐变（头部） | `#3498db → #2471a3` | `#3498db → #2471a3`（不变） |
-| 页面背景（非头部） | 蓝色渐变 | 单色 `#f0f8ff`（极浅蓝白） |
-| Primary 色 | `#3498db` | `#3498db`（不变） |
-| Secondary 色 | `#1abc9c`（青绿） | ❌ 移除，不再使用 |
-| 卡片背景 | 玻璃拟态 | `#ffffff` |
-| 阴影色 | `rgba(0,0,0,x)` | `rgba(52,152,219, x)`（蓝色阴影） |
+**视觉变化**：从"蓝 + 青绿双色模糊"变为"纯蓝一个方向"，清爽感更强。
+
+**CSS 变量变更明细**（改动文件：`utils/global-themes.ts` → `summer` 对象）：
+
+| CSS 变量 | 当前值 | 重构值 | 原因 |
+|----------|--------|--------|------|
+| `--theme-page-start` | `#3498db` | 不变 | 头部蓝色保留 |
+| `--theme-page-end` | `#2471a3` | 不变 | — |
+| `--theme-primary` | `#3498db` | 不变 | — |
+| `--theme-secondary` | `#1abc9c`（青绿） | ❌ 移除 | 不再使用第二色 |
+| `--theme-secondary-dark` | `#148f77`（青绿） | 蓝色系替代 `#2471a3` | 统一蓝色方向 |
+| `--theme-secondary-light` | `#48c9b0`（青绿） | 蓝色系替代 `#5dade2` | 统一蓝色方向 |
+| `--theme-section-bg` | `rgba(240,248,255,0.95)` | `#ffffff`（纯白） | 去半透明 |
+| `--theme-item-bg` | `#ffffff` | 不变 | — |
+| `--shelf-card-bg` | `rgba(255,255,255,0.78)`（毛玻璃） | `#ffffff`（纯白） | 去玻璃拟态 |
+| `--shelf-card-border` | `1rpx solid rgba(255,255,255,0.6)` | `none` | 配合去玻璃 |
+| `--shelf-card-image-bg` | `linear-gradient(135deg, #e8f4fd, #f0f8ff)` | `#f0f8ff`（纯色） | 去渐变 |
+| `--shelf-nav-slider-right` | `linear-gradient(135deg, #1abc9c, #16a085)`（青绿） | `#3498db`（蓝色纯色，与左滑块同色） | 导航滑块统一主题色，消除蓝绿撞色 |
+| `--shelf-cta-bg` | `linear-gradient(135deg, #3498db, #2471a3)` | `#3498db`（纯色） | 按钮去渐变 |
+| `--shelf-tag-hot` | `linear-gradient(135deg, #ff4757, #ff6b81)` | `#ff4757`（纯色） | 标签去渐变 |
+| `--shelf-tag-new` | `linear-gradient(135deg, #3498db, #85c1e9)` | `#3498db`（纯色） | 标签去渐变 |
+| `--shelf-tag-limited` | `linear-gradient(135deg, #7c4dff, #b388ff)` | `#7c4dff`（纯色） | 标签去渐变 |
+| `--shelf-fallback-bg` | `linear-gradient(135deg, #f0f8ff, #e8f4fd)` | `#f0f8ff`（纯色） | 去渐变 |
+| `--shelf-header-bg` | `linear-gradient(135deg, #3498db, #2980b9)` | `#3498db`（纯色） | 去渐变 |
+| `--shelf-price-row-bg` | `linear-gradient(90deg, rgba(52,152,219,0.06), transparent)` | `transparent` | 去渐变 |
+
+### 5.7 全主题共性改动汇总
+
+以下变量在 **6 套主题中全部按统一规则处理**，不分主题单独豁免：
+
+| 变量类别 | 统一改法 | 涉及变量 |
+|----------|----------|----------|
+| 标签渐变 | 全部改纯色 | `--shelf-tag-hot`、`--shelf-tag-new`、`--shelf-tag-limited` |
+| CTA 按钮 | 渐变改纯色 | `--shelf-cta-bg` |
+| 价格行背景 | 渐变改透明 | `--shelf-price-row-bg` |
+| 兜底背景 | 渐变改纯色 | `--shelf-fallback-bg` |
+| 货架头部 | 渐变改纯色 | `--shelf-header-bg` |
+| 内容区背景 | `rgba(...)` 改纯色 | `--theme-section-bg`、`--theme-item-bg` |
+| 卡片背景 | 玻璃拟态/渐变改纯色 | `--shelf-card-bg`、`--shelf-card-image-bg` |
 
 ---
 
-## 六、方案 D：引入视觉资产层（需设计师配合）
+## 六、视觉资产设计方案（批次 6）
 
-此方案 Cursor 无法独立完成，需要设计师出图后由 Cursor 接入代码。
+### 6.1 行业调研：各类公司怎么做的
 
-### 6.1 需要设计师提供的资产清单
+#### 头部背景纹理 — 行业做法
 
-| 资产 | 数量 | 用途 | 格式建议 | 优先级 |
-|------|------|------|----------|--------|
-| 功能图标集 | 20-30 个 | 用户页、商家页功能入口 | SVG | P0 |
-| 头部背景纹理 | 6 张（每主题 1 张） | 页面头部装饰 | PNG @2x/@3x | P1 |
-| 排行榜奖牌 | 3 个（金/银/铜） | 排行榜前三名 | SVG 或 PNG | P1 |
-| VIP 卡片背景 | 2-3 张 | 会员卡片 | PNG @2x/@3x | P1 |
-| Tab 图标 | 10 个（5 个 × 线性/填充） | 底部导航 | SVG | P1 |
-| 空状态插画 | 3-5 张 | 无数据/无网络/无权限等 | PNG @2x/@3x | P2 |
-| 品牌加载动画 | 1 个 | 全局加载状态 | Lottie JSON | P3 |
+| 类型 | 代表 | 头部做法 | 是否有纹理 |
+|------|------|----------|-----------|
+| 大厂 App | 美团、支付宝、京东 | 纯色或简单渐变，无纹理 | 不用 |
+| 大厂小程序 | 美团外卖、京东购物 | 纯色头部，内容区白底 | 不用 |
+| 游戏交易平台 | BUFF、交易猫、5173 | 纯色/单渐变头部，内容白底 | 不用 |
+| 游戏 App | 原神、王者荣耀 | 游戏内才用纹理/粒子，设置页/商城页无纹理 | 仅游戏场景 |
+| 活动策划 H5 | 各种抽奖/红包活动 | 活动页有氛围纹理，常规页面不用 | 仅活动页 |
+| 二手平台 | 闲鱼、转转 | 纯白底 + 绿/蓝头部纯色 | 不用 |
 
-### 6.2 Cursor 可做的接入工作（资产到位后）
+**结论**：头部纹理在常规页面几乎没人用。纹理只出现在活动营销页和游戏沉浸场景。
 
-- 将 CSS 渐变背景替换为 `background-image: url(...)` 引用图片
-- 配置图片路径、尺寸适配、`background-size/position`
-- 替换排行榜 CSS 圆圈为 `<image>` 标签引用奖牌图
-- 替换 Tab 图标配置（`app.json` 中的 `tabBar.list.iconPath/selectedIconPath`）
-- 替换空状态组件的纯文字为插画图片
+#### 功能菜单图标 — 行业做法
 
----
+| 类型 | 代表 | 图标方案 | 技术实现 |
+|------|------|----------|----------|
+| 大厂 | 美团、支付宝、微信 | 自有设计团队出整套图标 | Iconfont（字体图标，Base64 嵌入） |
+| 中厂 | 饿了么、哈啰 | 阿里 iconfont 平台 + 定制 | Iconfont |
+| 小公司 | 大量小程序 | 阿里 iconfont 平台选图标 | Iconfont 或 PNG |
+| 游戏交易 | BUFF、交易猫 | 统一线性图标集 | Iconfont / SVG |
+| 低成本 | 模板小程序 | emoji | text 标签直接渲染 |
 
-## 七、执行计划 — Cursor 可独立完成的部分
+**结论**：没有任何正式上线的商业产品用 emoji 做菜单图标。emoji 是原型/demo 阶段的占位符。正式产品最低标准是 iconfont。
 
-### 7.1 执行批次总览
+#### Tab 底部导航 — 行业做法
 
-| 批次 | 内容 | 涉及方案 | Cursor 独立完成 | 预计工作量 |
-|------|------|----------|----------------|-----------|
-| **批次 1** | 全局基础变量重构 | A + C | ✅ 是 | 中 |
-| **批次 2** | 6 套主题色值重构 | A | ✅ 是 | 大 |
-| **批次 3** | 全项目去渐变化 | B | ✅ 是 | 中 |
-| **批次 4** | 动效清理 | F | ✅ 是 | 低 |
-| **批次 5** | 间距优化 | E | ✅ 是（需真机验收） | 低 |
-| **批次 6** | 视觉资产接入 | D | ⚠️ 需资产到位后 | 中 |
+| 类型 | 代表 | Tab 方案 | 是否跟主题变色 |
+|------|------|----------|---------------|
+| 大厂 | 美团、京东、淘宝 | 原生 tabBar | 不变色（品牌色固定） |
+| 游戏交易 | BUFF、交易猫 | 原生 tabBar | 不变色 |
+| 主题型产品 | QQ（皮肤）、微博（夜间模式） | 自定义 tabBar | 跟主题变色 |
+| 节日运营 | 支付宝（春节/双十一） | 自定义 tabBar | 活动期间临时换图标 |
+| 二手平台 | 闲鱼、转转 | 原生 tabBar（闲鱼中间 + 号自定义） | 不变色 |
 
-### 7.2 批次 1：全局基础变量重构
+**结论**：只有品牌色固定不变的产品用原生 tabBar；有主题/皮肤/节日换肤需求的产品一定用自定义 tabBar。本项目有 6 套主题 → 自定义 tabBar 是必然选择。
 
-**改动文件**：`styles/variables.scss`
+#### 图标技术方案对比（微信小程序环境）
 
-| 改动项 | 具体操作 |
-|--------|----------|
-| `$color-primary` | 确认保持 `#ff6b35` 或调整 |
-| `$gradient-blue-start` / `$gradient-blue-end` | 移除蓝紫渐变变量（它不应该是全局的，它属于 purple_mystery 主题） |
-| `$shadow-sm` / `$shadow-md` / `$shadow-lg` | 改为品牌色阴影公式 |
-| `$shadow-card` | 改为品牌色双层阴影 |
-| `$transition-fast` / `$transition-base` | 统一为 0.15s / 0.2s |
-| `$spacing-*` 系列 | 全局放大 30-50% |
-| 新增 `$color-bg-warm` | `#faf6f1`（default 主题的页面底色） |
+| 维度 | Iconfont（字体图标） | SVG 文件 | PNG 图片 | Emoji（当前） |
+|------|---------------------|----------|----------|---------------|
+| 小程序兼容性 | 最好 | 需用 image 组件 | 最稳 | 不同设备显示不一致 |
+| 主题换色 | CSS `color` 一行搞定 | 需正则替换 fill 属性 | 每色一张图 | 不可能 |
+| 包体积 | 一个字体文件包全部图标 | 每个图标一个文件 | 每个图标一张图 | 零（但质量也是零） |
+| 6 套主题适配 | `color: var(--theme-primary)` 自动跟主题 | 需额外处理 | 需 6×N 张图 | 不支持 |
+| 长期维护 | 阿里 iconfont 平台管理，团队可协作 | 手工管理文件 | 手工管理文件 | — |
+| 性能 | 本质是文字，渲染性能最佳 | 节点多，渲染略差 | 性能稳定 | — |
 
-### 7.3 批次 2：6 套主题色值重构
+### 6.2 方案决策（已定）
 
-**改动文件**：`utils/global-themes.ts`
+基于行业调研和项目实际情况（6 套后端控制主题、未上线无旧接口包袱、追求低长期维护成本），做出以下决策：
 
-逐主题修改 `GLOBAL_THEME_MAP` 中的 CSS 变量值，按第五章的逐主题方案执行。每个主题需改动的变量类别：
+| 决策项 | 方案 | 理由 |
+|--------|------|------|
+| **头部纹理** | **暂不实施** | 行业无先例，增加 6 主题维护成本，与"做减法"方向矛盾。后续如需质感由设计师出头部背景图 |
+| **菜单图标** | **Iconfont（Base64 嵌入）** | 兼容性最好，`color` 属性直接跟主题变色，零额外文件 |
+| **Tab 方案** | **自定义 tabBar + Iconfont** | 6 套主题必须自定义 tabBar 才能主题化，图标和菜单共用一套 iconfont 字体 |
+| **Tab 主题变色** | **做**（跟主题走） | 已选自定义 tabBar，变色是零额外成本 |
 
-| CSS 变量类别 | 数量 | 改动内容 |
-|-------------|------|----------|
-| `--theme-page-start` / `--theme-page-end` | 2 | 头部渐变色保留，但非头部区域用单色 |
-| `--theme-primary` / `--theme-primary-light` | 2-3 | 按各主题方案调整 |
-| `--theme-shadow-*` | 2-3 | 改为品牌色阴影 |
-| `--theme-card-bg` | 1 | 改为纯色（白或深色） |
-| `--theme-bg-*` | 2-3 | 去渐变，改单色 |
-| `--shelf-*` 系列 | 5-10 | 对齐主题色，去渐变 |
+**一句话总结**：全部用 Iconfont，菜单图标和 Tab 图标共用一个 Base64 字体文件，自定义 tabBar 让 Tab 也跟主题变色，头部纹理不加。整个图标系统只有一个字体文件，6 套主题通过 CSS 变量自动适配，长期维护成本最低。
 
-**同步改动文件**：`pages/user/user.scss`
+### 6.3 现状诊断
 
-6 个 `.theme-xxx` 选择器块中：
-- 移除粒子效果相关样式
-- 移除 card-glow-breath 动画
-- 卡片背景改为纯色
-- 阴影改为品牌色阴影
-
-### 7.4 批次 3：全项目去渐变化
-
-**改动文件及操作**：
-
-| 文件 | 操作 |
-|------|------|
-| `pages/lottery/lottery.scss` 及 partial 文件 | 页面背景渐变简化，卡片改纯色底 |
-| `pages/user/user.scss` | 积分卡片去多层渐变，菜单区去玻璃拟态 |
-| `packageExchange/exchange-shelf-cards.scss` | 标签渐变改纯色，库存条渐变改纯色，CTA 渐变改纯色 |
-| `packageExchange/exchange-market.scss` | 头部保留渐变，筛选栏去渐变，资产余额去玻璃 |
-| `packageTrade/trade/market/market.scss` | 瀑布流卡片去玻璃拟态，标签去渐变 |
-| `packageUser/auth/auth.scss` | 登录页背景简化 |
-| `app.scss` | 全局 `.btn-primary` 去渐变改纯色 |
-| `styles/mixins.scss` | `card-base` mixin 去玻璃拟态，`btn-primary` mixin 去渐变 |
-
-### 7.5 批次 4：动效清理
-
-**全项目搜索并移除**：
-
-| 搜索关键词 | 操作 |
-|-----------|------|
-| `card-glow-breath` | 删除 `@keyframes` 定义 + 所有 `animation:` 引用 |
-| `particle` | 删除粒子相关 CSS 类、`@keyframes`、JS/TS 逻辑 |
-| `pulse` | 删除脉搏动画定义和引用 |
-| `@keyframes fadeIn` | 简化：去掉 `transform: translateY()`，只保留 `opacity` |
-| `transition:` | 统一为 `0.2s ease`（原来 0.3s 和 0.5s 的全部缩短） |
-
-**改动文件**：
-- `pages/user/user.scss`（粒子 + 呼吸发光最集中的位置）
-- `pages/lottery/` 下的 partial SCSS 文件
-- `packageExchange/exchange-shelf-cards.scss`
-- `packageTrade/trade/market/market.scss`
-- 各组件 SCSS
-
-### 7.6 批次 5：间距优化
-
-**改动文件**：`styles/variables.scss`
-
-| 变量 | 当前值 | 目标值 |
-|------|--------|--------|
-| `$spacing-xs` | 8rpx | 10rpx |
-| `$spacing-sm` | 12rpx | 16rpx |
-| `$spacing-base` | 20rpx | 24rpx |
-| `$spacing-md` | 24rpx | 28rpx |
-| `$spacing-lg` | 32rpx | 36rpx |
-| `$spacing-xl` | 36rpx | 40rpx |
-| `$spacing-xxl` | 40rpx | 48rpx |
-
-由于间距通过变量引用，改变量值后全项目自动生效。少数硬编码间距需手动调整。
-
----
-
-## 八、视觉资产设计方案（批次 6）
-
-### 8.1 现状诊断
-
-| 资产类型 | 当前实现 | 问题 |
-|----------|----------|------|
-| 功能菜单图标 | **emoji 字符**（💰📦🛒📋📊🧾📢📞🚪） | 不同设备显示不一致，廉价感严重 |
-| Tab 图标 | PNG 图片（`images/icons/*.png`），4 组 8 张 | 需评估是否和新设计语言统一 |
-| 空状态 | emoji + 纯文字（组件 `empty-state`） | 没有插画，观感简陋 |
-| 排行榜装饰 | CSS 实现 | 缺少皇冠/奖牌等辨识元素 |
-| 头部背景 | 纯 CSS 渐变 | 缺少纹理质感 |
+| 资产类型 | 当前实现 | 问题 | 决策 |
+|----------|----------|------|------|
+| 功能菜单图标 | **emoji 字符**（💰📦🛒📋📊🧾📢📞🚪） | 不同设备显示不一致，廉价感严重 | → Iconfont 替换 |
+| Tab 图标 | 原生 tabBar + PNG 图片 4 组 8 张 | 不跟主题变色，无法主题化 | → 自定义 tabBar + Iconfont |
+| 空状态 | emoji + 纯文字（组件 `empty-state`） | 没有插画，观感简陋 | → SVG 插画 |
+| 排行榜装饰 | CSS 实现 | 缺少皇冠/奖牌等辨识元素 | → SVG 奖牌 |
+| 头部背景 | 纯 CSS 渐变 | — | → 暂不加纹理 |
 
 **功能菜单用 emoji 做图标是"塑料感"的重要来源之一**。
 
-### 8.2 统一设计语言规范
+### 6.4 统一设计语言规范
 
 所有视觉资产遵循同一套规范，确保从 Tab 到菜单到空状态"看起来像同一个人画的"：
 
 ```
+图标技术：Iconfont（Base64 WOFF 嵌入 app.wxss）
 线条粗细：2px（全局统一）
 端点样式：圆角（round cap / round join）
 填充方式：普通态 — 线性描边（空心）；激活态 — 填充（实心）
-色彩来源：从当前主题的主色中取
-最大用色数：每个图标 ≤ 3 色（主色 + 深色阴影 + 白色/透明）
+色彩来源：CSS 变量 var(--theme-primary)，自动跟 6 套主题变色
+最大用色数：每个图标 ≤ 2 色（主色 + 透明）
 风格：扁平、几何、无光泽、无 3D、无渐变
 ```
 
-### 8.3 Cursor 可独立完成 vs 需设计师的分类
+### 6.5 Cursor 可独立完成 vs 需设计师的分类
 
 | 资产 | Cursor 可做 | 需设计师 | 说明 |
 |------|-------------|----------|------|
-| 功能菜单图标（10 个） | ✅ | — | 手写 SVG 或集成开源图标库 |
-| Tab 图标（4 组 8 张） | ✅ | — | 手写 SVG → 导出 PNG 81×81px |
+| 功能菜单图标（10 个） | ✅ | — | 从 iconfont.cn 选取统一风格图标集 |
+| 自定义 tabBar 组件 | ✅ | — | `custom-tab-bar/` 官方方案 |
+| Tab 图标（4 个） | ✅ | — | Iconfont，与菜单共用一个字体文件 |
 | 排行榜皇冠/奖牌（3 个） | ✅ | — | 手写 SVG，简单几何图形 |
-| 头部背景纹理 | ✅ | — | CSS 几何图案或 SVG pattern |
 | 空状态插画（3-4 张） | ✅ | — | SVG 简笔线条画 |
 | 品牌吉祥物/角色形象 | — | ✅ | 需要独特品牌辨识度 |
 | VIP 卡片背景（金属质感） | — | ✅ | 需要位图光影纹理 |
 | 品牌加载动画（Lottie） | — | ✅ | 需 After Effects + Bodymovin |
 
-### 8.4 功能菜单图标设计方案（10 个 SVG）
+### 6.6 功能菜单图标方案（Iconfont 替换 emoji）
 
 **当前**：`icon: '💰'` + `style="background: {{item.color}}"` 圆形色底
 
-**改为**：SVG 图标文件 + 保留圆形色底（CSS 实现）
+**改为**：Iconfont 字体图标 + 保留圆形色底（CSS 实现）
 
-**存放路径**：`images/icons/menu/`
+**技术实现步骤**：
 
-**实现方式**：WXML 中 `<image src>` 替换 `<text>{{icon}}</text>`
+1. 去 [iconfont.cn](https://www.iconfont.cn) 创建项目，选 10 个线性图标（用"线性"标签筛选，确保风格统一）
+2. 下载为 Base64 格式的 WOFF 字体文件
+3. 嵌入到 `app.wxss` 的 `@font-face` 中
+4. `pages/user/user.ts` — `menuItems` 的 `icon` 字段从 emoji 改为 iconfont class 名
+5. `pages/user/user.wxml` — `<text>{{item.icon}}</text>` 改为 `<text class="iconfont {{item.iconClass}}"></text>`
+6. 商家区域的 emoji（📱💰✅）同步替换
 
-| 功能 | 当前 emoji | SVG 图标描述 | 底色 |
-|------|-----------|-------------|------|
+**代码改动范围**：
+
+| 文件 | 改动 |
+|------|------|
+| `app.wxss` | 新增 `@font-face` + `.iconfont` 基础样式 |
+| `pages/user/user.ts` | `menuItems` 的 `icon` 字段改为 iconfont class |
+| `pages/user/user.wxml` | `<text>` 渲染方式改为 iconfont |
+| `pages/user/user.scss` | 图标样式调整（`font-size` 替代固定尺寸） |
+
+**图标映射表**：
+
+| 功能 | 当前 emoji | Iconfont 图标描述 | 底色 |
+|------|-----------|------------------|------|
 | 积分明细 | 💰 | 圆形硬币 + 上箭头（收支含义） | `#4CAF50` 绿 |
 | 我的背包 | 📦 | 背包/箱子轮廓 | `#00BCD4` 青 |
 | 兑换订单 | 🛒 | 购物袋轮廓 | `#667eea` 蓝紫 |
@@ -559,37 +741,62 @@ WXML 渲染
 | 在线客服 | 📞 | 耳机/话筒轮廓 | `#607D8B` 灰蓝 |
 | 退出登录 | 🚪 | 门 + 右箭头 | `#F44336` 红 |
 
-图标尺寸：48rpx × 48rpx，线条白色 `#ffffff`（在色底上显示为白色线条图标）。
+图标渲染尺寸：48rpx，线条白色 `#ffffff`（在色底上显示为白色线条图标）。主题色自动跟随 `var(--theme-primary)`。
 
-### 8.5 Tab 图标设计方案（4 组 × 2 态 = 8 张 PNG）
+### 6.7 自定义 tabBar + Iconfont 方案（替代原生 tabBar）
 
-**约束**：微信小程序 tabBar 强制 PNG 格式，推荐 81×81px。
+**当前方案**：原生 tabBar + 8 张 PNG 图标，`selectedColor` 固定为 `#FF6B35`，不跟主题变色。
 
-**存放路径**：`images/icons/`（覆盖现有文件）
+**改为**：自定义 tabBar 组件 + Iconfont 字体图标，图标/文字颜色跟主题走。
 
-**当前 Tab 配置**（`app.json`）：
+**为什么必须改**：
 
-| Tab | pagePath | 当前图标文件 |
-|-----|----------|-------------|
-| 抽奖 | `pages/lottery/lottery` | `lottery.png` / `lottery-active.png` |
-| 发现 | `pages/camera/camera` | `home.png` / `home-active.png` |
-| 商城 | `pages/exchange/exchange` | `exchange.png` / `exchange-active.png` |
-| 我的 | `pages/user/user` | `profile.png` / `profile-active.png` |
+| 原生 tabBar | 自定义 tabBar |
+|------------|--------------|
+| `selectedColor` 只能设一个固定色 | `color: var(--theme-primary)` 跟 6 套主题走 |
+| 强制 PNG 81×81px，8 张图 | Iconfont，和菜单图标共用一套字体文件 |
+| 改图标 = 换 8 张 PNG 文件 | 改图标 = 改一个 unicode 字符 |
+| 如果后续要主题化 Tab 必须重写 | 一步到位，零技术债 |
 
-**设计方案**：
+**技术实现步骤**：
 
-| Tab | 图标描述 | 普通态 | 激活态 |
-|-----|----------|--------|--------|
-| 抽奖 | 四叶草或转盘 | 灰色线性描边 `#999999` | 主题色填充 `#FF6B35` |
-| 发现 | 指南针或望远镜 | 灰色线性描边 `#999999` | 主题色填充 `#FF6B35` |
-| 商城 | 商店门面轮廓 | 灰色线性描边 `#999999` | 主题色填充 `#FF6B35` |
-| 我的 | 人物头像轮廓 | 灰色线性描边 `#999999` | 主题色填充 `#FF6B35` |
+1. 创建 `custom-tab-bar/` 目录（微信官方约定路径）
+2. `app.json` 的 `tabBar` 加 `"custom": true`（保留原配置做降级兜底）
+3. 自定义组件内使用 Iconfont 渲染图标（和菜单图标共用同一个字体文件）
+4. 图标色和文字色读 CSS 变量：未选中 `#999999`，选中 `var(--theme-primary)`
+5. 每个 tab 页 `onShow` 中调用 `this.getTabBar().setData({ selected: N })` 同步选中态
+6. 删掉 `images/icons/` 下的 8 张 PNG（减少包体积）
 
-风格与功能菜单图标统一（2px 线条、圆角端点）。激活色 `#FF6B35` 对应 `app.json` 中的 `selectedColor`。
+**代码改动范围**：
 
-> 注意：如需主题切换时 Tab 颜色也变化，后续需改为自定义 tabBar 组件，这是独立的改造项。
+| 文件 | 改动 |
+|------|------|
+| `custom-tab-bar/index.ts` | 新增：自定义 tabBar 组件逻辑 |
+| `custom-tab-bar/index.wxml` | 新增：自定义 tabBar 模板 |
+| `custom-tab-bar/index.scss` | 新增：自定义 tabBar 样式 |
+| `custom-tab-bar/index.json` | 新增：`{ "component": true }` |
+| `app.json` | tabBar 加 `"custom": true` |
+| `pages/lottery/lottery.ts` | onShow 加 `getTabBar().setData({ selected: 0 })` |
+| `pages/camera/camera.ts` | onShow 加 `getTabBar().setData({ selected: 1 })` |
+| `pages/exchange/exchange.ts` | onShow 加 `getTabBar().setData({ selected: 2 })` |
+| `pages/user/user.ts` | onShow 加 `getTabBar().setData({ selected: 3 })` |
+| `images/icons/*.png` | 删除 8 张 PNG 图标文件 |
 
-### 8.6 排行榜皇冠/奖牌设计方案（3 个 SVG）
+**Tab 图标映射表**：
+
+| Tab | 图标描述 | 未选中 | 选中 |
+|-----|----------|--------|------|
+| 抽奖 | 转盘 | 灰色 `#999999` | `var(--theme-primary)` 跟主题 |
+| 发现 | 指南针 | 灰色 `#999999` | `var(--theme-primary)` 跟主题 |
+| 商城 | 商店门面轮廓 | 灰色 `#999999` | `var(--theme-primary)` 跟主题 |
+| 我的 | 人物头像轮廓 | 灰色 `#999999` | `var(--theme-primary)` 跟主题 |
+
+**防闪烁要点**（基于微信官方最佳实践）：
+- 不在 `custom-tab-bar` 的 `switchTab` 方法内调用 `this.setData()`
+- 选中态更新统一由各 tab 页面的 `onShow` 驱动
+- 使用绝对路径：`wx.switchTab({ url: '/pages/lottery/lottery' })`
+
+### 6.8 排行榜皇冠/奖牌设计方案（3 个 SVG）
 
 **存放路径**：`images/icons/rank/`
 
@@ -601,21 +808,22 @@ WXML 渲染
 
 风格：扁平化，纯色 + 一层深色做简单层次，不加光泽、不加 3D 效果。
 
-### 8.7 头部背景纹理设计方案（CSS 实现）
+### 6.9 头部背景纹理 — 暂不实施
 
-不需要图片文件，用 CSS 在头部渐变之上叠加一层极低透明度的几何图案。
+~~不需要图片文件，用 CSS 在头部渐变之上叠加一层极低透明度的几何图案。~~
 
-**三种可选风格**：
+**决策：暂不实施**。原因如下：
 
-| 风格 | 描述 | 实现方式 | 透明度 |
-|------|------|----------|--------|
-| A. 圆点阵列 | 均匀分布的小圆点 | CSS `radial-gradient` repeat | `rgba(255,255,255, 0.05)` |
-| B. 斜线纹理 | 45° 方向的平行细线 | CSS `repeating-linear-gradient` | `rgba(255,255,255, 0.03)` |
-| C. 底部波浪 | 头部底缘一条柔和波浪线 | SVG path 做 `background-image` | `rgba(255,255,255, 0.08)` |
+| 考量 | 分析 |
+|------|------|
+| 行业惯例 | 美团/京东/BUFF/交易猫/闲鱼等同类产品均无头部纹理 |
+| 6 套主题维护 | 纹理 × 6 主题 = 透明度/对比度需逐主题调参，维护成本翻倍 |
+| 减法原则 | 本方案核心方向是"做减法"，不应一边砍特效一边加新纹理 |
+| 真正的质感来源 | 参考图的质感来自定制插画/品牌图形，不是 CSS 图案 |
 
-**关键原则**：透明度极低（3-8%），肉眼只能隐约感知"有纹理"但说不清是什么。增加质感但不抢内容。6 个主题共用同一套纹理图案，只是叠加在各自的头部渐变上。
+**后续路径**：如确实需要头部质感，正确做法是让设计师出 6 张头部背景图（每主题一张），用 `background-image` 替换纯色渐变。代码层面已预留 `--theme-page-start/end` 变量，改为图片路径即可。
 
-### 8.8 空状态插画设计方案（3-4 张 SVG）
+### 6.10 空状态插画设计方案（3-4 张 SVG）
 
 **当前**：`<text class="empty-icon">{{icon}}</text>` + 纯文字
 
@@ -632,7 +840,7 @@ WXML 渲染
 
 尺寸：240rpx × 240rpx。风格：极简线条画，线条粗细和功能图标统一（2px），不超过 3 种颜色。
 
-### 8.9 Cursor 暂不能做的资产（需设计师后续补充）
+### 6.11 Cursor 暂不能做的资产（需设计师后续补充）
 
 | 资产 | 原因 | 建议 |
 |------|------|------|
@@ -640,11 +848,11 @@ WXML 渲染
 | VIP 卡片背景（金属/光泽质感） | 需要位图级别的光影纹理 | 设计师出图，Cursor 接入代码 |
 | 品牌加载动画（Lottie） | 需要 After Effects + Bodymovin 插件 | 动效设计师出 JSON，Cursor 集成 `lottie-miniprogram` |
 
-> 批次 6 分两步执行：Cursor 先完成 8.4-8.8 的资产，设计师后续补充 8.9 的资产。代码层面只需换图片路径，结构不用动。
+> 批次 6 分两步执行：Cursor 先完成 6.6-6.10 的资产和自定义 tabBar 改造，设计师后续补充 6.11 的资产。代码层面只需换图片路径，结构不用动。
 
 ---
 
-## 九、核心结论
+## 七、核心结论
 
 ### 一句话诊断
 
@@ -663,26 +871,38 @@ WXML 渲染
   - 阴影：通用黑色 → 品牌色阴影
   - 间距：偏紧凑 → 放大 30-50%
 
-加法（Cursor 可做部分，批次 6）：
-  + 功能菜单 SVG 图标（替换 emoji）  ← Cursor
-  + Tab 图标重制（线性 + 填充）       ← Cursor
-  + 排行榜皇冠/奖牌 SVG              ← Cursor
-  + 头部 CSS 纹理                     ← Cursor
-  + 空状态 SVG 插画                   ← Cursor
-  + 品牌吉祥物 / VIP 背景 / Lottie   ← 设计师
+加法（Cursor 可做部分，批次 6-7）：
+  + 功能菜单 Iconfont（替换 emoji）            ← Cursor
+  + 自定义 tabBar + Iconfont（替换原生 tabBar） ← Cursor
+  + 排行榜皇冠/奖牌 SVG                        ← Cursor
+  + 空状态 SVG 插画                             ← Cursor
+  + 品牌吉祥物 / VIP 背景 / Lottie             ← 设计师
+
+不做：
+  × 头部 CSS 纹理 — 行业无先例，6 主题维护成本高，暂不实施
 ```
 
-### 执行批次总览（更新版）
+### 执行批次总览（最终版）
 
 | 批次 | 内容 | Cursor 独立 | 工作量 |
 |------|------|-------------|--------|
 | **1** | 全局基础变量重构（色彩 + 阴影 + 间距 + transition） | ✅ | 中 |
-| **2** | 6 套主题色值重构 | ✅ | 大 |
+| **2** | 6 套主题色值重构（`utils/global-themes.ts`） | ✅ | 大 |
 | **3** | 全项目去渐变化 | ✅ | 中 |
-| **4** | 动效清理 | ✅ | 低 |
+| **4** | 动效清理（页面级装饰动效，不动游戏特效） | ✅ | 低 |
 | **5** | 间距优化 | ✅ | 低 |
-| **6a** | 视觉资产 — Cursor 制作（图标、奖牌、纹理、空状态） | ✅ | 中 |
-| **6b** | 视觉资产 — 设计师补充（吉祥物、VIP 背景、Lottie） | ⚠️ 需设计师 | — |
+| **6** | Iconfont 图标系统（菜单图标 + 自定义 tabBar + 排行榜奖牌 + 空状态插画） | ✅ | 中 |
+| **7** | 设计师补充资产（吉祥物、VIP 背景、Lottie 加载动画） | ⚠️ 需设计师 | — |
+
+### 关键技术决策记录
+
+| 决策项 | 方案 | 决策依据 |
+|--------|------|----------|
+| 菜单图标 | Iconfont（Base64 WOFF 嵌入） | 微信小程序兼容性最好，CSS color 直接跟主题变色 |
+| Tab 导航 | 自定义 tabBar + Iconfont | 6 套主题必须自定义 tabBar，与菜单共用一个字体文件 |
+| Tab 主题变色 | 做（跟主题走） | 已选自定义 tabBar，变色零额外成本 |
+| 头部纹理 | 暂不实施 | 行业无先例，维护成本高，与减法方向矛盾 |
+| 图标技术栈 | 统一 Iconfont | 菜单 + Tab + 商家区 emoji 全部用同一个字体文件 |
 
 ### 参考设计中最值得学习的三点
 
@@ -692,5 +912,5 @@ WXML 渲染
 
 ---
 
-*本文档基于对项目完整样式系统（variables.scss、mixins.scss、global-themes.ts、各页面 SCSS、组件样式）的深度分析，结合三套参考设计图的对比评审生成。*  
+*本文档基于对项目完整样式系统（variables.scss、mixins.scss、global-themes.ts、各页面 SCSS、组件样式）的深度分析，结合三套参考设计图的对比评审和行业调研生成。*  
 *最后更新：2026年3月20日*

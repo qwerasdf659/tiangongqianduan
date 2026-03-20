@@ -564,6 +564,7 @@ Page({
    */
   _processCampaignsWithPlacement(activeCampaigns: any[], placementConfig: any) {
     const nowMs = Date.now()
+    const placements = (placementConfig && placementConfig.placements) || []
 
     /* 为每个活动附加位置信息 + 展示控制字段处理 */
     const campaignsWithPlacement = activeCampaigns
@@ -576,7 +577,7 @@ Page({
           return null
         }
 
-        const matchedPlacement = placementConfig.placements.find(
+        const matchedPlacement = placements.find(
           (p: any) => p.campaign_code === campaign.campaign_code
         )
 
