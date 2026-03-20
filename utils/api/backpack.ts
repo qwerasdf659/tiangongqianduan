@@ -56,8 +56,11 @@ async function getInventoryItem(item_id: number) {
  * @param item_id - 物品ID（items表主键，BIGINT）
  */
 async function useInventoryItem(item_id: number) {
+  const idempotencyKey = `backpack_use_${item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request(`/backpack/items/${item_id}/use`, {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true
   })
 }
@@ -72,8 +75,11 @@ async function useInventoryItem(item_id: number) {
  * @param item_id - 物品ID（items表主键，BIGINT）
  */
 async function redeemInventoryItem(item_id: number) {
+  const idempotencyKey = `backpack_redeem_${item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request(`/backpack/items/${item_id}/redeem`, {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,
     loadingText: '生成核销码中...',
@@ -671,8 +677,12 @@ async function refreshRedemptionQR(item_id: number) {
   if (!item_id) {
     throw new Error('物品ID不能为空')
   }
+
+  const idempotencyKey = `redeem_refresh_${item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+
   return apiClient.request(`/backpack/items/${item_id}/redeem/refresh-qr`, {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: false,
     showError: true,
