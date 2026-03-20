@@ -152,6 +152,9 @@ id:5 结束 → "本次服务到此结束，祝您生活愉快！如有问题请
 | backpack | confirmExchangeReceipt | POST /backpack/exchange/orders/:no/confirm-receipt | `exchange_confirm_{no}_{ts}_{rand}` |
 | backpack | rateExchangeOrder | POST /backpack/exchange/orders/:no/rate | `exchange_rate_{no}_{ts}_{rand}` |
 | backpack | unlockPremium | POST /backpack/exchange/unlock-premium | `unlock_premium_{ts}_{rand}` |
+| backpack | useInventoryItem | POST /backpack/items/:id/use | `backpack_use_{id}_{ts}_{rand}` |
+| backpack | redeemInventoryItem | POST /backpack/items/:id/redeem | `backpack_redeem_{id}_{ts}_{rand}` |
+| backpack | refreshRedemptionQR | POST /backpack/items/:id/redeem/refresh-qr | `redeem_refresh_{id}_{ts}_{rand}` |
 | market | purchaseMarketProduct | POST /market/listings/:id/purchase | `market_purchase_{id}_{ts}_{rand}` |
 | market | withdrawMarketProduct | POST /market/listings/:id/withdraw | `market_withdraw_{id}_{ts}_{rand}` |
 | market | sellToMarket | POST /market/list | `market_list_{ts}_{rand}` |
@@ -224,6 +227,6 @@ id:5 结束 → "本次服务到此结束，祝您生活愉快！如有问题请
 
 | 操作 | 文件 | 说明 |
 |------|------|------|
-| 修改 | utils/api/backpack.ts | 为 placeBid / cancelExchange / confirmExchangeReceipt / rateExchangeOrder / unlockPremium 添加 Idempotency-Key |
+| 修改 | utils/api/backpack.ts | 为 placeBid / cancelExchange / confirmExchangeReceipt / rateExchangeOrder / unlockPremium / useInventoryItem / redeemInventoryItem / refreshRedemptionQR 共8个POST函数添加 Idempotency-Key |
 | 修改 | utils/api/market.ts | 为 createTradeDispute 添加 Idempotency-Key |
 | 删除 | _tmp_write.js | 清理临时脚本文件（211字节） |
