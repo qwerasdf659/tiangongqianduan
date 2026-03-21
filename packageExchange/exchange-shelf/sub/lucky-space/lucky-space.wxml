@@ -162,6 +162,11 @@
       <view class="card-body">
         <text class="product-name">{{item.item_name}}</text>
         <text class="product-desc" wx:if="{{item.sell_point}}">{{item.sell_point}}</text>
+        <!-- 铸造标识（mint_instance=true 时展示，表示兑换后铸造物品实例） -->
+        <view class="mint-mini-tag" wx:if="{{item._mintInstance}}">
+          <text class="mint-mini-icon">⚒️</text>
+          <text class="mint-mini-text">可铸造</text>
+        </view>
 
         <!-- 价格行 -->
         <view class="price-row">

@@ -44,14 +44,16 @@ const { userStore: marketUserStore } = require('../../../store/user')
 
 /**
  * 前端排序值 → 后端 sort 参数映射
- * 后端 GET /api/v4/market/listings 支持: recommended / newest / price_asc / price_desc / hot
+ * 后端 GET /api/v4/market/listings 支持: recommended / newest / price_asc / price_desc / hot / quality_score_desc / quality_score_asc
  */
 const SORT_VALUE_MAP: Record<string, string> = {
   default: 'recommended',
   price_amount_asc: 'price_asc',
   price_amount_desc: 'price_desc',
   created_at_desc: 'newest',
-  recommended: 'recommended'
+  recommended: 'recommended',
+  quality_score_desc: 'quality_score_desc',
+  quality_score_asc: 'quality_score_asc'
 }
 
 module.exports = Behavior({
@@ -75,6 +77,7 @@ module.exports = Behavior({
         filterAssetCode: '',
         filterMinPrice: '',
         filterMaxPrice: '',
+        filterQualityGrade: '',
         facetsData: null,
         facetsLoaded: false,
         filtersCount: null
@@ -132,7 +135,8 @@ module.exports = Behavior({
           filterAssetGroupCode,
           filterAssetCode,
           filterMinPrice,
-          filterMaxPrice
+          filterMaxPrice,
+          filterQualityGrade
         } = this.data
 
         /**
@@ -178,6 +182,9 @@ module.exports = Behavior({
             apiParams.max_price = parsedMax
           }
         }
+        if (filterQualityGrade) {
+          apiParams.quality_grade = filterQualityGrade
+        }
 
         const response = await getMarketProducts(apiParams)
 
@@ -196,6 +203,20 @@ module.exports = Behavior({
             const itemInfo = item.item_info || {}
             const assetInfo = item.asset_info || {}
             const isAsset = item.listing_kind === 'fungible_asset'
+
+            /* 品质等级视觉配置（后端 item_info.instance_attributes） */
+            const instanceAttrs = itemInfo.instance_attributes || {}
+            const qualityGrade = instanceAttrs.quality_grade || ''
+            const qualityStyle = qualityGrade
+              ? ImageHelper.getQualityGradeStyle(qualityGrade)
+              : null
+
+            /* 限量编号（后端 item_info.serial_number + item_info.edition_total） */
+            const editionText = ImageHelper.formatEdition(
+              itemInfo.serial_number,
+              itemInfo.edition_total
+            )
+
             return {
               listing_id: item.listing_id,
               listing_kind: item.listing_kind || 'item',
@@ -220,7 +241,13 @@ module.exports = Behavior({
               is_recommended: item.is_recommended || false,
               status: item.status || 'active',
               created_at: item.created_at || '',
-              imageStatus: 'loading'
+              imageStatus: 'loading',
+              _qualityGrade: qualityGrade,
+              _qualityScore: instanceAttrs.quality_score || null,
+              _qualityColorHex: qualityStyle ? qualityStyle.colorHex : '',
+              _qualityCssClass: qualityStyle ? qualityStyle.cssClass : '',
+              _patternId: instanceAttrs.pattern_id || null,
+              _editionText: editionText
             }
           })
 
@@ -311,7 +338,8 @@ module.exports = Behavior({
         filterAssetGroupCode: '',
         filterAssetCode: '',
         filterMinPrice: '',
-        filterMaxPrice: ''
+        filterMaxPrice: '',
+        filterQualityGrade: ''
       })
       this.loadProducts()
       showToast('筛选已重置', 'success')
@@ -360,6 +388,16 @@ module.exports = Behavior({
       const code = e.currentTarget.dataset.code || ''
       this.setData({
         filterRarityCode: code === this.data.filterRarityCode ? '' : code,
+        currentPage: 1
+      })
+      this._debouncedLoadProducts()
+    },
+
+    /** 品质等级筛选（完美无瑕/精良/良好/普通/微瑕）→ 防抖加载 */
+    onQualityGradeSelect(e: any) {
+      const grade = e.currentTarget.dataset.grade || ''
+      this.setData({
+        filterQualityGrade: grade === this.data.filterQualityGrade ? '' : grade,
         currentPage: 1
       })
       this._debouncedLoadProducts()

@@ -27,7 +27,7 @@
   border: 1rpx solid transparent;
 
   &.active {
-    background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+    background: $gradient-blue-start;
     color: $color-text-white;
     box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
   }
@@ -240,20 +240,10 @@
 /* 🌊 ========== 主容器样式 - 方案1优化版本 ========== */
 .waterfall-market-container {
   min-height: 100vh;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 107, 53, 0.08) 0%,
-    rgba(229, 90, 43, 0.08) 30%,
-    rgba(255, 107, 53, 0.08) 70%,
-    rgba(64, 196, 255, 0.08) 100%
-  );
+  background: rgba(255, 107, 53, 0.08);
   padding: 24rpx;
   position: relative;
   overflow-x: hidden;
-  /* 🎨 添加微妙的纹理效果 */
-  background-image:
-    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
 }
 
 /* ========== 筛选栏 ========== */
@@ -283,7 +273,7 @@
 
   &.active {
     color: $color-text-white;
-    background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+    background: $gradient-blue-start;
     font-weight: 600;
   }
 }
@@ -381,7 +371,7 @@
 
   &.active {
     color: $color-text-white;
-    background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+    background: $gradient-blue-start;
     font-weight: 600;
   }
 }
@@ -435,8 +425,8 @@
 /* 📦 ========== 商品卡片样式 - 方案1现代化设计 ========== */
 .waterfall-card {
   position: absolute !important;
-  /* 商品卡片：实色浅白渐变，无 backdrop-filter */
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  /* 商品卡片：实色白底，无 backdrop-filter */
+  background: #ffffff;
   border-radius: $border-radius-lg;
   overflow: hidden;
   box-shadow:
@@ -458,39 +448,14 @@
     inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
 }
 
-.waterfall-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.waterfall-card:hover::before {
-  opacity: 1;
-}
-
 /* 🖼️ ========== 图片区域样式 - 方案1图片优先设计 ========== */
 .card-image-container {
   position: relative;
   width: 100%;
   height: 240rpx;
   overflow: hidden;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: #f8f9fa;
   border-radius: 20rpx 20rpx 0 0;
-  /* 🎨 添加渐变遮罩增强视觉效果 */
-  background-image: linear-gradient(
-    45deg,
-    rgba(255, 107, 53, 0.05) 0%,
-    rgba(229, 90, 43, 0.05) 50%,
-    rgba(255, 107, 53, 0.05) 100%
-  );
 }
 
 .card-image {
@@ -498,17 +463,7 @@
   height: 100%;
   object-fit: cover;
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  background: linear-gradient(
-    45deg,
-    rgba(255, 107, 53, 0.1) 25%,
-    transparent 25%,
-    transparent 75%,
-    rgba(255, 107, 53, 0.1) 75%
-  );
-  background-size: 20rpx 20rpx;
-  background-position:
-    0 0,
-    10rpx 10rpx;
+  background: #f0f0f0;
   border-radius: 20rpx 20rpx 0 0;
   /* 🎨 增强图片显示效果 */
   filter: contrast(1.05) saturate(1.1);
@@ -538,7 +493,7 @@
 }
 
 .listing-kind-tag.item-tag {
-  background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
+  background: $color-primary;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
 }
 
@@ -585,7 +540,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0f0f5 0%, #e8e8f0 100%);
+  background: #f0f0f5;
   border-radius: 20rpx 20rpx 0 0;
 }
 
@@ -842,7 +797,7 @@
 }
 
 .back-to-top-btn {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: $gradient-blue-start;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
   border: 1rpx solid rgba(255, 255, 255, 0.2);
 }
@@ -897,7 +852,7 @@
 /* 🌙 深色模式支持 */
 @media (prefers-color-scheme: dark) {
   .waterfall-market-container {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    background: #1a1a1a;
   }
 
   .waterfall-card {
@@ -991,20 +946,20 @@
   letter-spacing: 1rpx;
 }
 .badge-tag.pinned {
-  background: linear-gradient(135deg, #ff6b35, #ffa040);
+  background: #ff6b35;
 }
 .badge-tag.recommended {
-  background: linear-gradient(135deg, #1e88e5, #42a5f5);
+  background: #1e88e5;
 }
 
 /* Feed 广告卡片 — 穿插在商品列表中，与普通商品卡片区分 */
 .feed-ad-card {
   border: 2rpx solid rgba(255, 107, 53, 0.2);
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  background: #f8f9ff;
 }
 
 .badge-tag.ad-tag {
-  background: linear-gradient(135deg, #ff9800, #ffc107);
+  background: #ff9800;
 }
 
 .ad-action-hint {
@@ -1015,6 +970,46 @@
   font-size: 22rpx;
   color: $gradient-blue-start;
   font-weight: 600;
+}
+
+// ===== 品质等级 + 限量编号（市场瀑布流卡片内） =====
+
+.edition-mini-tag {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-family: 'Courier New', monospace;
+  margin-left: 6rpx;
+  flex-shrink: 0;
+}
+
+.quality-mini-row {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-top: 4rpx;
+  flex-wrap: wrap;
+}
+
+.quality-mini-badge {
+  display: inline-block;
+  font-size: 18rpx;
+  font-weight: 700;
+  padding: 1rpx 8rpx;
+  border: 1rpx solid;
+  border-radius: 4rpx;
+  line-height: 1.4;
+}
+
+.quality-mini-score {
+  font-size: 18rpx;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.pattern-mini-tag {
+  font-size: 18rpx;
+  color: $color-text-tertiary;
+  font-family: 'Courier New', monospace;
 }
 
 .hidden {

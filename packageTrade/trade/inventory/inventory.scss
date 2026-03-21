@@ -1940,6 +1940,173 @@
   font-weight: 300;
 }
 
+// ===== 品质等级 + 限量编号 + 冷却期（物品卡片 + 详情面板） =====
+
+.item-quality-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 6rpx;
+}
+
+.quality-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 2rpx 10rpx;
+  border: 1rpx solid;
+  border-radius: 6rpx;
+}
+
+.quality-badge-text {
+  font-size: $font-size-xs;
+  font-weight: 700;
+}
+
+.quality-score-text {
+  font-size: $font-size-xs;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.edition-tag {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  font-family: 'Courier New', monospace;
+}
+
+.pattern-tag {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.item-cooldown-row {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  margin-top: 8rpx;
+  background: rgba(250, 173, 20, 0.08);
+  border-radius: $border-radius-sm;
+  border: 1rpx solid rgba(250, 173, 20, 0.15);
+}
+
+.cooldown-icon {
+  font-size: 24rpx;
+}
+
+.cooldown-text {
+  font-size: $font-size-xs;
+  color: $color-warning;
+  font-weight: 500;
+}
+
+// ===== 物品详情面板 — 品质等级区域 =====
+
+.detail-quality-section {
+  padding: 16rpx $spacing-base;
+  display: flex;
+  gap: 16rpx;
+}
+
+.detail-quality-card {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-md;
+  padding: 16rpx;
+}
+
+.detail-quality-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-quality-label {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.detail-quality-grade {
+  font-size: $font-size-base;
+  font-weight: 700;
+}
+
+.detail-quality-score-row,
+.detail-pattern-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.detail-quality-score-label,
+.detail-pattern-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.detail-quality-score-value {
+  font-size: $font-size-sm;
+  font-weight: 600;
+}
+
+.detail-pattern-value {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-family: 'Courier New', monospace;
+}
+
+.detail-edition-card {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: $border-radius-md;
+  padding: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 180rpx;
+}
+
+.detail-edition-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 8rpx;
+}
+
+.detail-edition-value {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-text-primary;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2rpx;
+}
+
+.detail-cooldown-bar {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx $spacing-base;
+  margin: 0 $spacing-base;
+  background: rgba(250, 173, 20, 0.06);
+  border-radius: $border-radius-sm;
+  border: 1rpx solid rgba(250, 173, 20, 0.12);
+}
+
+.detail-cooldown-icon {
+  font-size: 28rpx;
+}
+
+.detail-cooldown-text {
+  font-size: $font-size-sm;
+  color: $color-warning;
+  font-weight: 500;
+}
+
 .detail-view-code-btn {
   display: flex;
   align-items: center;

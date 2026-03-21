@@ -11,8 +11,8 @@
   height: 100%;
   background: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.15) 0%,
-    rgba(118, 75, 162, 0.15) 50%,
+    rgba(255, 107, 53, 0.15) 0%,
+    rgba(229, 90, 43, 0.15) 50%,
     rgba(255, 107, 53, 0.15) 100%
   );
   -webkit-backdrop-filter: blur(20rpx);
@@ -87,7 +87,7 @@
 
 .success-card {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.25);
+  box-shadow: 0 16rpx 32rpx rgba(255, 107, 53, 0.25);
 }
 
 .error-card {
@@ -138,7 +138,7 @@
   background: linear-gradient(145deg, $gradient-blue-start, $gradient-blue-end);
   border-radius: 28rpx;
   padding: 4rpx;
-  box-shadow: 0 20rpx 40rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 20rpx 40rpx rgba(255, 107, 53, 0.3);
 }
 
 .prize-card-shine {
@@ -178,7 +178,7 @@
   position: absolute;
   width: 120rpx;
   height: 120rpx;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.2) 0%, transparent 70%);
   border-radius: 50%;
   animation: glowPulse 2s ease-in-out infinite;
 }
@@ -256,13 +256,13 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(255, 107, 53, 0.2);
   transition: all 0.4s ease;
 }
 
 .progress-dot.revealed {
   background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
   transform: scale(1.2);
 }
 
@@ -313,7 +313,7 @@
   background: linear-gradient(145deg, $gradient-blue-start, $gradient-blue-end);
   border-radius: 28rpx;
   padding: 4rpx;
-  box-shadow: 0 20rpx 40rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 20rpx 40rpx rgba(255, 107, 53, 0.3);
 }
 
 .reveal-card-content {
@@ -346,7 +346,7 @@
   position: absolute;
   width: 120rpx;
   height: 120rpx;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.2) 0%, transparent 70%);
   border-radius: 50%;
   animation: glowPulse 2s ease-in-out infinite;
 }
@@ -414,7 +414,7 @@
 .reveal-complete-hint {
   text-align: center;
   padding: 16rpx 32rpx;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(229, 90, 43, 0.1));
   border-radius: $border-radius-lg;
 }
 
@@ -448,7 +448,7 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 16rpx;
-  background: rgba(102, 126, 234, 0.08);
+  background: rgba(255, 107, 53, 0.08);
   border-radius: $border-radius-md;
   white-space: nowrap;
   flex-shrink: 0;
@@ -457,9 +457,9 @@
 }
 
 .revealed-mini-card.current {
-  background: rgba(102, 126, 234, 0.15);
-  border-color: rgba(102, 126, 234, 0.3);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.15);
+  background: rgba(255, 107, 53, 0.15);
+  border-color: rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.15);
 }
 
 .revealed-mini-card:active {
@@ -497,7 +497,7 @@
 .grid-count {
   font-size: $font-size-sm;
   color: #7f8c8d;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(255, 107, 53, 0.1);
   padding: 8rpx 16rpx;
   border-radius: $border-radius-md;
 }
@@ -523,12 +523,12 @@
 }
 
 .prize-cards-container::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.3);
+  background: rgba(255, 107, 53, 0.3);
   border-radius: 6rpx;
 }
 
 .prize-cards-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 126, 234, 0.5);
+  background: rgba(255, 107, 53, 0.5);
 }
 
 /* 🔍 滚动提示样式 */
@@ -536,14 +536,14 @@
   text-align: center;
   margin: 8rpx 0 16rpx 0;
   padding: 12rpx;
-  background: rgba(102, 126, 234, 0.08);
+  background: rgba(255, 107, 53, 0.08);
   border-radius: $border-radius-md;
   animation: hintPulse 2s ease-in-out infinite;
 }
 
 .scroll-hint-text {
   font-size: $font-size-sm;
-  color: rgba(102, 126, 234, 0.8);
+  color: rgba(255, 107, 53, 0.8);
   font-weight: 500;
 }
 
@@ -610,17 +610,17 @@
 /* 🌈 渐变色彩系统 - 4种交替渐变 */
 .gradient-prize-1 {
   background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  box-shadow: 0 12rpx 24rpx rgba(102, 126, 234, 0.2);
+  box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.2);
 }
 
 .gradient-prize-2 {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  box-shadow: 0 12rpx 24rpx rgba(240, 147, 251, 0.2);
+  background: linear-gradient(135deg, #ff8c5a 0%, #e55a2b 100%);
+  box-shadow: 0 12rpx 24rpx rgba(255, 140, 90, 0.2);
 }
 
 .gradient-prize-3 {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  box-shadow: 0 12rpx 24rpx rgba(79, 172, 254, 0.2);
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+  box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.2);
 }
 
 .gradient-prize-4 {
@@ -787,7 +787,7 @@
   padding: 0;
   font-size: $font-size-md;
   font-weight: 600;
-  box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 16rpx 32rpx rgba(255, 107, 53, 0.3);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
@@ -810,7 +810,7 @@
 
 .gradient-confirm-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 8rpx 16rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8rpx 16rpx rgba(255, 107, 53, 0.4);
 }
 
 .btn-content {

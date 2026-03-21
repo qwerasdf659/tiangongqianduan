@@ -357,6 +357,25 @@
         <view class="card-content">
           <view class="product-title-section">
             <text class="product-title">{{item._displayName}}</text>
+            <text class="edition-mini-tag" wx:if="{{item._editionText}}"
+              >{{item._editionText}}</text
+            >
+          </view>
+
+          <!-- 品质等级标签（后端 instance_attributes.quality_grade） -->
+          <view class="quality-mini-row" wx:if="{{item._qualityGrade}}">
+            <text
+              class="quality-mini-badge"
+              style="color: {{item._qualityColorHex}}; border-color: {{item._qualityColorHex}}"
+              >{{item._qualityGrade}}</text
+            >
+            <text
+              class="quality-mini-score"
+              wx:if="{{item._qualityScore}}"
+              style="color: {{item._qualityColorHex}}"
+              >{{item._qualityScore}}</text
+            >
+            <text class="pattern-mini-tag" wx:if="{{item._patternId}}">#{{item._patternId}}</text>
           </view>
 
           <view class="price-section">

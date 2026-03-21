@@ -30,9 +30,9 @@ interface MenuItem {
   name: string
   /** 菜单项描述文字 */
   description: string
-  /** 菜单项图标（emoji） */
-  icon: string
-  /** 菜单项主题色 */
+  /** Iconfont CSS class（如 'icon-coin'），app.scss 中定义 ::before 伪元素渲染字形 */
+  iconClass: string
+  /** 菜单项主题色（用于快捷入口圆形底色） */
   color: string
   /** 类型: page=页面跳转, action=执行方法 */
   type: 'page' | 'action'
@@ -85,7 +85,7 @@ Page({
         id: 'points-detail',
         name: '积分明细',
         description: '查看积分获得和消费记录',
-        icon: '💰',
+        iconClass: 'icon-coin',
         color: '#4CAF50',
         type: 'page',
         url: '/packageUser/points-detail/points-detail'
@@ -94,7 +94,7 @@ Page({
         id: 'my-inventory',
         name: '我的仓库',
         description: '管理我的所有物品',
-        icon: '📦',
+        iconClass: 'icon-box',
         color: '#00BCD4',
         type: 'page',
         url: '/packageTrade/trade/inventory/inventory'
@@ -103,7 +103,7 @@ Page({
         id: 'my-orders',
         name: '我的订单',
         description: '查看兑换订单和物流进度',
-        icon: '🛒',
+        iconClass: 'icon-shopping-bag',
         color: '#ff6b35',
         type: 'page',
         url: '/packageExchange/exchange-orders/exchange-orders'
@@ -112,7 +112,7 @@ Page({
         id: 'my-listings',
         name: '我的挂单',
         description: '查看和管理市场挂单',
-        icon: '📋',
+        iconClass: 'icon-tag',
         color: '#FF9800',
         type: 'page',
         url: '/packageTrade/trade/my-listings/my-listings'
@@ -121,7 +121,7 @@ Page({
         id: 'trade-records',
         name: '交易记录',
         description: '查看完整交易历史记录',
-        icon: '📊',
+        iconClass: 'icon-chart',
         color: '#3F51B5',
         type: 'page',
         url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=0'
@@ -130,7 +130,7 @@ Page({
         id: 'consumption-records',
         name: '消费记录',
         description: '查看消费积分记录',
-        icon: '🧾',
+        iconClass: 'icon-receipt',
         color: '#9C27B0',
         type: 'page',
         url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=1'
@@ -139,7 +139,7 @@ Page({
         id: 'my-ads',
         name: '我的广告',
         description: '管理广告投放活动',
-        icon: '📢',
+        iconClass: 'icon-megaphone',
         color: '#FF6B35',
         type: 'page',
         url: '/packageAd/ad-campaigns/ad-campaigns'
@@ -148,7 +148,7 @@ Page({
         id: 'my-issues',
         name: '我的工单',
         description: '查看客服工单处理进度',
-        icon: '📋',
+        iconClass: 'icon-chat',
         color: '#795548',
         type: 'page',
         url: '/packageUser/issues/issues'
@@ -157,7 +157,7 @@ Page({
         id: 'contact-service',
         name: '联系客服',
         description: '在线客服服务支持',
-        icon: '📞',
+        iconClass: 'icon-headset',
         color: '#607D8B',
         type: 'action',
         action: 'onContactService'
@@ -166,7 +166,7 @@ Page({
         id: 'logout',
         name: '退出登录',
         description: '安全退出当前账号',
-        icon: '🚪',
+        iconClass: 'icon-logout',
         color: '#F44336',
         type: 'action',
         action: 'logout'

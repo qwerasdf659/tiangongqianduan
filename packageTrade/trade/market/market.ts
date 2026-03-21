@@ -102,13 +102,26 @@ Page({
       { key: 'fungible_asset', label: '资产' }
     ],
 
-    /** 排序选项（前端UI常量，对齐后端 sort 参数 + v4.0 新增 recommended/hot） */
+    /** 排序选项（对齐后端 sort 参数，含品质分排序） */
     sortOptions: [
       { key: 'recommended', label: '推荐' },
       { key: 'newest', label: '最新' },
       { key: 'hot', label: '热门' },
       { key: 'price_asc', label: '价格↑' },
-      { key: 'price_desc', label: '价格↓' }
+      { key: 'price_desc', label: '价格↓' },
+      { key: 'quality_score_desc', label: '品质↓' },
+      { key: 'quality_score_asc', label: '品质↑' }
+    ],
+
+    /** 品质等级筛选（后端 quality_grade 参数，对齐 AttributeRuleEngine 的 5 档等级） */
+    filterQualityGrade: '' as string,
+    qualityGradeOptions: [
+      { key: '', label: '全部品质' },
+      { key: '完美无瑕', label: '完美无瑕', color: '#FFD700' },
+      { key: '精良', label: '精良', color: '#9B59B6' },
+      { key: '良好', label: '良好', color: '#3498DB' },
+      { key: '普通', label: '普通', color: '#FFFFFF' },
+      { key: '微瑕', label: '微瑕', color: '#95A5A6' }
     ]
   },
 
@@ -198,6 +211,9 @@ Page({
       if (this.data.filterAssetCode) {
         listingsParams.asset_code = this.data.filterAssetCode
       }
+      if (this.data.filterQualityGrade) {
+        listingsParams.quality_grade = this.data.filterQualityGrade
+      }
       const listingsResult = await API.getMarketProducts(listingsParams)
       const { success: listingsSuccess, data: listingsData } = listingsResult
 
@@ -208,21 +224,40 @@ Page({
          * 适配后端 QueryService 嵌套响应，计算前端展示字段
          * 不做字段重命名，保留全部后端原始字段，仅追加以 _ 为前缀的展示字段
          */
-        const processedProducts = rawProducts.map((listing: any) => ({
-          ...listing,
-          _displayName: imageHelper.getListingDisplayName(listing),
-          _displayImage: imageHelper.getListingDisplayImage(listing),
-          _priceLabel: imageHelper.getAssetDisplayName(listing.price_asset_code),
-          _isFungibleAsset: listing.listing_kind === 'fungible_asset',
-          _offerAmount: listing.asset_info && listing.asset_info.amount,
-          _rarityCode: listing.item_info && listing.item_info.rarity_code,
-          _rarityStyle: imageHelper.getRarityStyle(
-            (listing.item_info && listing.item_info.rarity_code) || 'common'
-          ),
-          _isRecommended: listing.is_recommended === true,
-          _isPinned: listing.is_pinned === true,
-          _imageError: false
-        }))
+        const processedProducts = rawProducts.map((listing: any) => {
+          const itemInfo = listing.item_info || {}
+          const instanceAttrs = itemInfo.instance_attributes || {}
+
+          /* 品质等级视觉配置（后端 item_info.instance_attributes） */
+          const qualityGrade = instanceAttrs.quality_grade || ''
+          const qualityStyle = qualityGrade ? imageHelper.getQualityGradeStyle(qualityGrade) : null
+
+          /* 限量编号（后端 item_info.serial_number + item_info.edition_total） */
+          const editionText = imageHelper.formatEdition(
+            itemInfo.serial_number,
+            itemInfo.edition_total
+          )
+
+          return {
+            ...listing,
+            _displayName: imageHelper.getListingDisplayName(listing),
+            _displayImage: imageHelper.getListingDisplayImage(listing),
+            _priceLabel: imageHelper.getAssetDisplayName(listing.price_asset_code),
+            _isFungibleAsset: listing.listing_kind === 'fungible_asset',
+            _offerAmount: listing.asset_info && listing.asset_info.amount,
+            _rarityCode: itemInfo.rarity_code,
+            _rarityStyle: imageHelper.getRarityStyle(itemInfo.rarity_code || 'common'),
+            _isRecommended: listing.is_recommended === true,
+            _isPinned: listing.is_pinned === true,
+            _imageError: false,
+            _qualityGrade: qualityGrade,
+            _qualityScore: instanceAttrs.quality_score || null,
+            _qualityColorHex: qualityStyle ? qualityStyle.colorHex : '',
+            _qualityCssClass: qualityStyle ? qualityStyle.cssClass : '',
+            _patternId: instanceAttrs.pattern_id || null,
+            _editionText: editionText
+          }
+        })
 
         const interleavedProducts = this._interleaveFeedAds(processedProducts)
 
@@ -487,6 +522,14 @@ Page({
     })
   },
 
+  /** 选择品质等级筛选（后端 quality_grade 参数） */
+  onQualityGradeSelect(e: any) {
+    const grade = e.currentTarget.dataset.grade || ''
+    this.setData({
+      filterQualityGrade: grade === this.data.filterQualityGrade ? '' : grade
+    })
+  },
+
   /** 应用高级筛选 — 关闭面板并重新加载 */
   onApplyAdvancedFilter() {
     this.setData({
@@ -507,7 +550,8 @@ Page({
       filterCategoryCode: '',
       filterRarityCode: '',
       filterAssetGroupCode: '',
-      filterAssetCode: ''
+      filterAssetCode: '',
+      filterQualityGrade: ''
     })
   },
 

@@ -1,8 +1,45 @@
 /**app.scss - 全局样式（从app.wxss迁移到Sass）**/
-/* 全局样式文件 - V3.0 Sass版本 */
+/* 全局样式文件 - V4.0 Sass版本 */
 
 @import './styles/variables';
 @import './styles/mixins';
+
+/* ============================================================
+   Iconfont 字体图标系统 — tiangong-icons
+   14 个图标：10 个菜单 + 4 个 Tab
+   由 SVG → svgicons2svgfont → svg2ttf → ttf2woff2 管线生成
+   ============================================================ */
+
+@font-face {
+  font-family: 'tiangong-icons';
+  src: url('data:font/woff2;charset=utf-8;base64,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') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.iconfont {
+  font-family: 'tiangong-icons' !important;
+  font-size: 48rpx;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-coin::before { content: '\e600'; }
+.icon-box::before { content: '\e601'; }
+.icon-shopping-bag::before { content: '\e602'; }
+.icon-tag::before { content: '\e603'; }
+.icon-chart::before { content: '\e604'; }
+.icon-receipt::before { content: '\e605'; }
+.icon-megaphone::before { content: '\e606'; }
+.icon-chat::before { content: '\e607'; }
+.icon-headset::before { content: '\e608'; }
+.icon-logout::before { content: '\e609'; }
+.icon-wheel::before { content: '\e60a'; }
+.icon-compass::before { content: '\e60b'; }
+.icon-store::before { content: '\e60c'; }
+.icon-user::before { content: '\e60d'; }
 
 /* 页面基础样式 */
 page {

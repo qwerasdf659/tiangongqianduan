@@ -10,12 +10,7 @@
 
 /* ========== 组件容器 — 渐变背景卡片 ========== */
 .price-chart-wrap {
-  background: linear-gradient(
-    160deg,
-    rgba(255, 107, 53, 0.06) 0%,
-    rgba(229, 90, 43, 0.04) 40%,
-    rgba(255, 107, 53, 0.04) 100%
-  );
+  background: #ffffff;
   border-radius: $border-radius-lg;
   padding: 28rpx 24rpx;
   margin-bottom: 20rpx;
@@ -25,18 +20,6 @@
     0 2rpx 8rpx rgba(0, 0, 0, 0.03);
   position: relative;
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -60rpx;
-    right: -40rpx;
-    width: 200rpx;
-    height: 200rpx;
-    background: radial-gradient(circle, rgba(255, 107, 53, 0.08) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-  }
 }
 
 /* ========== 头部区域 — 标题 + 周期选择 ========== */
@@ -83,7 +66,7 @@
 
   &--active {
     color: $color-text-white;
-    background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+    background: $gradient-blue-start;
     box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.35);
     font-weight: 600;
   }
@@ -106,7 +89,7 @@
   left: 4rpx;
   width: calc(50% - 4rpx);
   height: calc(100% - 8rpx);
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  background: $color-primary;
   border-radius: 16rpx;
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
@@ -169,26 +152,22 @@
   }
 
   &--low {
-    background: linear-gradient(160deg, rgba(82, 196, 26, 0.1) 0%, rgba(82, 196, 26, 0.03) 100%);
+    background: rgba(82, 196, 26, 0.08);
     border: 1rpx solid rgba(82, 196, 26, 0.15);
   }
 
   &--avg {
-    background: linear-gradient(
-      160deg,
-      rgba(255, 107, 53, 0.1) 0%,
-      rgba(255, 107, 53, 0.03) 100%
-    );
+    background: rgba(255, 107, 53, 0.08);
     border: 1rpx solid rgba(255, 107, 53, 0.15);
   }
 
   &--high {
-    background: linear-gradient(160deg, rgba(255, 77, 79, 0.1) 0%, rgba(255, 77, 79, 0.03) 100%);
+    background: rgba(255, 77, 79, 0.08);
     border: 1rpx solid rgba(255, 77, 79, 0.15);
   }
 
   &--trades {
-    background: linear-gradient(160deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 107, 53, 0.03) 100%);
+    background: rgba(255, 107, 53, 0.08);
     border: 1rpx solid rgba(255, 107, 53, 0.15);
   }
 }
@@ -239,7 +218,7 @@
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(229, 90, 43, 0.06));
+  background: rgba(255, 107, 53, 0.08);
   @include flex-center;
   margin-bottom: 20rpx;
 }
@@ -276,7 +255,7 @@
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: rgba(255, 107, 53, 0.08);
   animation: dotBounce 1.2s ease-in-out infinite;
 
   &:nth-child(2) {

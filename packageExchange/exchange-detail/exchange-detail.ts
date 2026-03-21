@@ -363,7 +363,11 @@ Page({
         _hasImage: swiperImages.length > 0,
         _mainImage: mainImageUrl,
         _spaceLabel: spaceLabel,
-        _categoryDisplayName: categoryDisplayName
+        _categoryDisplayName: categoryDisplayName,
+        /** 铸造开关标识（后端 mint_instance 字段，true=兑换后自动铸造物品实例进入背包） */
+        _mintInstance: productData.mint_instance === true,
+        /** 关联物品模板ID（后端 item_template_id 字段） */
+        _hasItemTemplate: !!productData.item_template_id
       })
 
       /** 库存进度条: 剩余百分比 = stock / (stock + sold_count) */
@@ -675,10 +679,45 @@ Page({
           appInstance.globalData._exchangeOccurred = true
         }
 
-        wx.showToast({ title: '兑换成功！', icon: 'success', duration: 2000 })
-        setTimeout(() => {
-          wx.navigateBack()
-        }, 2000)
+        /**
+         * 铸造物品展示（mint_instance=true 时后端返回 minted_item）
+         * 包含: item_id, tracking_code, serial_number, edition_total, instance_attributes
+         */
+        const mintedItem = response.data && response.data.minted_item
+        if (mintedItem) {
+          const { formatEdition: edFormatEdition } = detailPageImageHelper
+          const attrs = mintedItem.instance_attributes || {}
+          const editionDisplay = edFormatEdition(mintedItem.serial_number, mintedItem.edition_total)
+
+          let mintedContent = '兑换成功！物品已进入背包'
+          if (editionDisplay) {
+            mintedContent += `\n限量编号: ${editionDisplay}`
+          }
+          if (attrs.quality_grade) {
+            mintedContent += `\n品质等级: ${attrs.quality_grade}`
+          }
+          if (attrs.quality_score) {
+            mintedContent += ` (${attrs.quality_score}分)`
+          }
+          if (attrs.pattern_id) {
+            mintedContent += `\n纹理编号: #${attrs.pattern_id}`
+          }
+
+          wx.showModal({
+            title: '🎉 铸造成功',
+            content: mintedContent,
+            showCancel: false,
+            confirmText: '查看背包',
+            success: () => {
+              wx.navigateTo({ url: '/packageTrade/trade/inventory/inventory' })
+            }
+          })
+        } else {
+          wx.showToast({ title: '兑换成功！', icon: 'success', duration: 2000 })
+          setTimeout(() => {
+            wx.navigateBack()
+          }, 2000)
+        }
       } else {
         throw new Error((response && response.message) || '兑换失败')
       }

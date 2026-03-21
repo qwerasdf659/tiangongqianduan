@@ -113,6 +113,150 @@ const ASSET_DISPLAY_NAMES: Record<string, string> = {
   purple_crystal: '紫水晶'
 }
 
+// ===== 品质等级视觉配置（对齐后端 item_templates.meta.attribute_rules 品质分分布） =====
+
+/**
+ * quality_grade → 颜色+CSS类名+中文名映射
+ *
+ * 后端铸造物品实例时，由 AttributeRuleEngine 根据概率分布生成：
+ *   quality_score (0.00~100.00) → quality_grade (5档)
+ * 前端读取 items.instance_attributes.quality_grade 字段展示
+ */
+const QUALITY_GRADE_STYLES: Record<
+  string,
+  { colorHex: string; cssClass: string; displayName: string; glowClass: string }
+> = {
+  完美无瑕: {
+    colorHex: '#FFD700',
+    cssClass: 'quality--perfect',
+    displayName: '完美无瑕',
+    glowClass: 'quality-glow-gold'
+  },
+  精良: {
+    colorHex: '#9B59B6',
+    cssClass: 'quality--excellent',
+    displayName: '精良',
+    glowClass: 'quality-glow-purple'
+  },
+  良好: {
+    colorHex: '#3498DB',
+    cssClass: 'quality--good',
+    displayName: '良好',
+    glowClass: 'quality-glow-blue'
+  },
+  普通: {
+    colorHex: '#FFFFFF',
+    cssClass: 'quality--normal',
+    displayName: '普通',
+    glowClass: 'quality-glow-white'
+  },
+  微瑕: {
+    colorHex: '#95A5A6',
+    cssClass: 'quality--flawed',
+    displayName: '微瑕',
+    glowClass: 'quality-glow-gray'
+  }
+}
+
+/**
+ * 获取品质等级视觉配置
+ *
+ * @param qualityGrade - 后端 instance_attributes.quality_grade（完美无瑕/精良/良好/普通/微瑕）
+ * @returns 颜色、CSS类名、中文名、光效类名
+ */
+function getQualityGradeStyle(qualityGrade: string): {
+  colorHex: string
+  cssClass: string
+  displayName: string
+  glowClass: string
+} {
+  return QUALITY_GRADE_STYLES[qualityGrade] || QUALITY_GRADE_STYLES['普通']
+}
+
+/**
+ * 格式化限量编号展示文本
+ *
+ * 后端字段: items.serial_number + items.edition_total
+ * 展示格式: #0042 / 0100（补零到 edition_total 位数）
+ *
+ * @param serialNumber - 限量编号（如 42）
+ * @param editionTotal - 限量总数（如 100）
+ * @returns 格式化文本（如 "#0042 / 0100"），数据缺失时返回空字符串
+ */
+function formatEdition(serialNumber: number | null, editionTotal: number | null): string {
+  if (!serialNumber || !editionTotal) {
+    return ''
+  }
+  const digits = String(editionTotal).length
+  return `#${String(serialNumber).padStart(digits, '0')} / ${String(editionTotal).padStart(digits, '0')}`
+}
+
+/**
+ * 计算冷却期剩余时间文本
+ *
+ * 后端字段: item_holds[].expires_at（ISO8601，hold_type='trade_cooldown'）
+ * 前端计算倒计时，展示"X天Y小时"或"已结束"
+ *
+ * @param expiresAt - 冷却期结束时间（ISO8601 字符串）
+ * @returns { remaining: string, isActive: boolean }
+ */
+function formatCooldownRemaining(expiresAt: string): {
+  remaining: string
+  isActive: boolean
+} {
+  if (!expiresAt) {
+    return { remaining: '', isActive: false }
+  }
+
+  const now = Date.now()
+  const expiresTime = new Date(expiresAt).getTime()
+  if (isNaN(expiresTime)) {
+    return { remaining: '', isActive: false }
+  }
+
+  const diffMs = expiresTime - now
+  if (diffMs <= 0) {
+    return { remaining: '已结束', isActive: false }
+  }
+
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+
+  if (days > 0) {
+    return { remaining: `${days}天${hours}小时`, isActive: true }
+  }
+  if (hours > 0) {
+    return { remaining: `${hours}小时${minutes}分钟`, isActive: true }
+  }
+  return { remaining: `${minutes}分钟`, isActive: true }
+}
+
+/**
+ * 从物品数据中提取交易冷却期信息
+ *
+ * 后端返回物品详情时，holds 数组中包含 hold_type='trade_cooldown' 的记录
+ * 冷却期内物品可见可用但不可上架交易
+ *
+ * @param holds - 后端返回的 holds 数组
+ * @returns 活跃的冷却期信息，无冷却时返回 null
+ */
+function getTradeCooldown(
+  holds: any[]
+): { remaining: string; isActive: boolean; expiresAt: string } | null {
+  if (!Array.isArray(holds)) {
+    return null
+  }
+  const cooldownHold = holds.find(
+    (h: any) => h.hold_type === 'trade_cooldown' && h.status === 'active'
+  )
+  if (!cooldownHold || !cooldownHold.expires_at) {
+    return null
+  }
+  const { remaining, isActive } = formatCooldownRemaining(cooldownHold.expires_at)
+  return { remaining, isActive, expiresAt: cooldownHold.expires_at }
+}
+
 // ===== 工具函数 =====
 
 /**
@@ -282,14 +426,19 @@ module.exports = {
   MATERIAL_ICONS,
   CATEGORY_ICONS,
   RARITY_STYLES,
+  QUALITY_GRADE_STYLES,
   ASSET_DISPLAY_NAMES,
   DEFAULT_PRODUCT_IMAGE,
   DEFAULT_AVATAR,
   getMaterialIconPath,
   getCategoryIconPath,
   getRarityStyle,
+  getQualityGradeStyle,
   getAssetDisplayName,
   getListingDisplayImage,
   getListingDisplayName,
-  getLocalIconFromMaterialUrl
+  getLocalIconFromMaterialUrl,
+  formatEdition,
+  formatCooldownRemaining,
+  getTradeCooldown
 }

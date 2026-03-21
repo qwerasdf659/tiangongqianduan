@@ -1,6 +1,6 @@
 /**
  * 自定义 tabBar 样式
- * 底部安全区域适配 + 主题色跟随
+ * 底部安全区域适配 + 主题色跟随 + Iconfont 图标
  */
 
 .tab-bar {
@@ -41,14 +41,14 @@
   justify-content: center;
 }
 
-.icon-text {
+.tab-icon .iconfont {
   font-size: 44rpx;
   line-height: 1;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.tab-icon.active .icon-text {
-  /* Iconfont 替换后用 color: var(--theme-primary, #ff6b35) 跟主题 */
-  transform: scale(1.05);
+.tab-icon.active .iconfont {
+  transform: scale(1.08);
 }
 
 .tab-text {

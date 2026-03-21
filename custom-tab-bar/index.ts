@@ -1,10 +1,10 @@
 /**
  * 自定义 tabBar 组件
  * 替代原生 tabBar，支持 6 套主题动态变色
- * 图标使用 Unicode 字符占位（后续替换为 Iconfont）
+ * 图标使用 Iconfont 字体图标（tiangong-icons），CSS color 直接跟主题变色
  *
  * @file custom-tab-bar/index.ts
- * @version 1.0.0
+ * @version 2.0.0
  * @since 2026-03-21
  */
 Component({
@@ -18,22 +18,22 @@ Component({
       {
         pagePath: '/pages/lottery/lottery',
         text: '抽奖',
-        iconText: '🎰'
+        iconClass: 'icon-wheel'
       },
       {
         pagePath: '/pages/camera/camera',
         text: '发现',
-        iconText: '🧭'
+        iconClass: 'icon-compass'
       },
       {
         pagePath: '/pages/exchange/exchange',
         text: '商城',
-        iconText: '🏪'
+        iconClass: 'icon-store'
       },
       {
         pagePath: '/pages/user/user',
         text: '我的',
-        iconText: '👤'
+        iconClass: 'icon-user'
       }
     ] as any[],
     /** 主题样式字符串（从页面传入） */

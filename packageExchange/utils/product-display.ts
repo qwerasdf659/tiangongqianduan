@@ -60,7 +60,9 @@ function enrichProductDisplayFields(productList: any[]): any[] {
       _rarityClass: rarityClass,
       _isLegendary: HOLO_RARITIES.includes(rarityValue),
       _isLimited: productItem.is_limited === true,
-      _hasImage: validImage
+      _hasImage: validImage,
+      /** 铸造开关标识（后端 mint_instance 字段，true=兑换后自动铸造物品实例） */
+      _mintInstance: productItem.mint_instance === true
     })
   })
 }

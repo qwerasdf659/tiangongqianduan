@@ -162,6 +162,12 @@
     </view>
   </view>
 
+  <!-- 铸造标识（后端 mint_instance=true 时展示，表示兑换后将铸造物品实例进入背包） -->
+  <view class="ed-mint-badge" wx:if="{{product._mintInstance}}">
+    <text class="ed-mint-icon">⚒️</text>
+    <text class="ed-mint-text">兑换后将铸造专属物品实例 · 可在交易市场挂牌</text>
+  </view>
+
   <!-- ④ 属性区: grid网格卡片模式 / list文字列表模式 -->
   <view class="ed-attrs-card">
     <text class="ed-section-title">商品信息</text>

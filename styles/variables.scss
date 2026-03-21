@@ -13,7 +13,6 @@
 $color-primary: #ff6b35; // 主品牌色（橙色）
 $color-primary-dark: #e55a2b; // 主品牌色-深色（hover/active状态）
 $color-primary-light: #ff8c5a; // 主品牌色-浅色（背景、边框）
-$color-primary-rgb: 255, 107, 53; // 主品牌色 RGB（用于带透明度的品牌色阴影）
 
 // ===== 功能色 =====
 $color-success: #52c41a; // 成功色（绿色）
@@ -73,12 +72,12 @@ $spacing-xl: 40rpx; // 特大间距（旧32rpx → 40rpx）
 $spacing-xxl: 48rpx; // 超大间距（旧40rpx → 48rpx）
 
 // ===== 品牌色阴影（替代通用黑色阴影，阴影带主色色调融入画面） =====
-$shadow-sm: 0 4rpx 12rpx rgba($color-primary-rgb, 0.06); // 轻阴影
+$shadow-sm: 0 4rpx 12rpx rgba($color-primary, 0.06); // 轻阴影
 $shadow-md:
-  0 8rpx 20rpx rgba($color-primary-rgb, 0.08),
+  0 8rpx 20rpx rgba($color-primary, 0.08),
   0 2rpx 6rpx rgba(0, 0, 0, 0.04); // 中阴影（卡片默认）
 $shadow-lg:
-  0 12rpx 32rpx rgba($color-primary-rgb, 0.12),
+  0 12rpx 32rpx rgba($color-primary, 0.12),
   0 4rpx 10rpx rgba(0, 0, 0, 0.06); // 重阴影（弹窗）
 
 // ===== 尺寸 =====
@@ -103,7 +102,7 @@ $navbar-text-color: #ffffff;
 
 // ===== 卡片阴影（品牌色调，替代旧版蓝紫色阴影） =====
 $shadow-card:
-  0 8rpx 20rpx rgba($color-primary-rgb, 0.08),
+  0 8rpx 20rpx rgba($color-primary, 0.08),
   0 2rpx 6rpx rgba(0, 0, 0, 0.04);
 
 // ===== 页面渐变背景（v4.0 统一为暖橙方向，去掉旧版蓝紫渐变） =====

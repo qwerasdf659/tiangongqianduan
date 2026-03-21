@@ -16,8 +16,8 @@
   width: 100%;
   height: 120rpx;
   padding: 0 20rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+  background: $gradient-blue-start;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
   position: relative;
   margin-bottom: 20rpx;
 }
@@ -148,25 +148,21 @@
 
 /* 有记录状态 - 紫色渐变 + 光环效果 + 脉冲动画 */
 .audit-badge-btn.has-records {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: $gradient-blue-start;
   box-shadow:
-    0 4rpx 16rpx rgba(102, 126, 234, 0.4),
-    0 2rpx 8rpx rgba(118, 75, 162, 0.3),
+    0 4rpx 16rpx rgba(255, 107, 53, 0.4),
+    0 2rpx 8rpx rgba(229, 90, 43, 0.3),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
   animation: auditPulse 2.5s ease-in-out infinite;
 }
 
-/* 无记录状态 - 半透明白色，融入背景 */
+/* 无记录状态 - 浅色实底，融入背景 */
 .audit-badge-btn.no-records {
-  background: rgba(255, 255, 255, 0.25);
-  box-shadow:
-    0 2rpx 8rpx rgba(0, 0, 0, 0.1),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
-  -webkit-backdrop-filter: blur(8rpx);
-  backdrop-filter: blur(8rpx);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
 }
 
-/* 徽章光晕效果（仅有记录时）
+/* 徽章光晕效果（仅有记录时） */
 .audit-badge-btn.has-records::before {
   content: '';
   position: absolute;
@@ -174,7 +170,7 @@
   left: -2rpx;
   right: -2rpx;
   bottom: -2rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: $gradient-blue-start;
   border-radius: 24rpx;
   opacity: 0.3;
   filter: blur(8rpx);
@@ -207,7 +203,7 @@
   transform: translateX(-50%);
   min-width: 32rpx;
   height: 32rpx;
-  background: linear-gradient(135deg, #ff5252 0%, #ff8a65 100%);
+  background: #ff5252;
   border-radius: 16rpx;
   border: 2rpx solid #ffffff;
   font-size: 20rpx;
@@ -227,16 +223,16 @@
   100% {
     transform: scale(1);
     box-shadow:
-      0 4rpx 16rpx rgba(102, 126, 234, 0.4),
-      0 2rpx 8rpx rgba(118, 75, 162, 0.3),
+      0 4rpx 16rpx rgba(255, 107, 53, 0.4),
+      0 2rpx 8rpx rgba(229, 90, 43, 0.3),
       inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
   }
 
   50% {
     transform: scale(1.08);
     box-shadow:
-      0 6rpx 24rpx rgba(102, 126, 234, 0.6),
-      0 3rpx 12rpx rgba(118, 75, 162, 0.5),
+      0 6rpx 24rpx rgba(255, 107, 53, 0.6),
+      0 3rpx 12rpx rgba(229, 90, 43, 0.5),
       inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
   }
 }
@@ -375,7 +371,7 @@
 .audit-modal-header {
   padding: 40rpx 30rpx 20rpx 30rpx;
   border-bottom: 2rpx solid $color-border-light;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: $gradient-blue-start;
   border-radius: 32rpx 32rpx 0 0;
 }
 
@@ -395,13 +391,13 @@
 
 /* 记录卡片 - 渐变边框设计 */
 .audit-record-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 50%, #ffffff 100%);
+  background: #f8f9ff;
   border-radius: 20rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   border-left: 6rpx solid $gradient-blue-start;
   box-shadow:
-    0 4rpx 16rpx rgba(102, 126, 234, 0.08),
+    0 4rpx 16rpx rgba(255, 107, 53, 0.08),
     0 2rpx 8rpx rgba(0, 0, 0, 0.04);
   position: relative;
   transition: all 0.3s ease;
@@ -415,7 +411,7 @@
   bottom: 0;
   width: 6rpx;
   border-radius: 6rpx 0 0 6rpx;
-  background: linear-gradient(180deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: $gradient-blue-start;
 }
 
 .audit-record-card.approved {
@@ -423,7 +419,7 @@
 }
 
 .audit-record-card.approved::before {
-  background: linear-gradient(180deg, #4caf50 0%, #66bb6a 100%);
+  background: #4caf50;
 }
 
 .audit-record-card.rejected {
@@ -431,7 +427,7 @@
 }
 
 .audit-record-card.rejected::before {
-  background: linear-gradient(180deg, #f44336 0%, #ef5350 100%);
+  background: #f44336;
 }
 
 .audit-record-card.pending {
@@ -439,7 +435,7 @@
 }
 
 .audit-record-card.pending::before {
-  background: linear-gradient(180deg, #ff9800 0%, #ffa726 100%);
+  background: #ff9800;
 }
 
 /* 记录头部（编号+状态） */
@@ -578,7 +574,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, #ff6b35, #ffa040);
+  background: #ff6b35;
   color: #ffffff;
   font-size: 20rpx;
   font-weight: 700;
@@ -598,7 +594,7 @@
 
 .display-tag {
   display: inline-block;
-  background: linear-gradient(135deg, #ff4757, #ff6b81);
+  background: #ff4757;
   color: #ffffff;
   font-size: 20rpx;
   font-weight: 600;
@@ -609,7 +605,7 @@
 
 /* 预热倒计时条 */
 .preview-countdown-bar {
-  background: linear-gradient(90deg, #ff9800, #ffc107);
+  background: #ff9800;
   padding: 12rpx 20rpx;
   border-radius: 8rpx;
   margin-bottom: 8rpx;

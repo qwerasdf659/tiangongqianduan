@@ -264,7 +264,7 @@
 .card-header {
   @include flex-between;
   padding: $spacing-lg $spacing-xl;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.04), rgba(229, 90, 43, 0.03));
+  background: rgba(255, 107, 53, 0.04);
   border-bottom: 1rpx solid rgba(255, 107, 53, 0.06);
 }
 
@@ -460,7 +460,7 @@
 }
 
 .btn-confirm {
-  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  background: #4caf50;
   box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.3);
 }
 

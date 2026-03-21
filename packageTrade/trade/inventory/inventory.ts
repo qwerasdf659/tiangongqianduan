@@ -49,7 +49,7 @@ const log = Logger.createLogger('inventory')
 const { showToast } = Wechat
 const { checkAuth } = Utils
 const { safeApiCall } = ApiWrapper
-const { getMaterialIconPath } = ImageHelper
+const { getMaterialIconPath, getQualityGradeStyle, formatEdition, getTradeCooldown } = ImageHelper
 
 // MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -310,12 +310,34 @@ Page({
          */
         const processedItems = items.map((item: any) => {
           const actions: string[] = Array.isArray(item.allowed_actions) ? item.allowed_actions : []
+
+          /* 品质等级视觉配置（后端 instance_attributes 中的 quality_grade 字段） */
+          const attrs = item.instance_attributes || {}
+          const qualityGrade = attrs.quality_grade || ''
+          const qualityStyle = qualityGrade ? getQualityGradeStyle(qualityGrade) : null
+
+          /* 限量编号展示文本（后端 serial_number + edition_total） */
+          const editionText = formatEdition(item.serial_number, item.edition_total)
+
+          /* 交易冷却期（后端 holds 数组中 hold_type='trade_cooldown'） */
+          const cooldownInfo = getTradeCooldown(item.holds)
+
           return {
             ...item,
             can_use: actions.includes('use'),
             can_generate_code: actions.includes('redeem') && !item.has_redemption_code,
             can_view_code: item.has_redemption_code && actions.includes('redeem'),
-            can_sell: actions.includes('sell')
+            can_sell: actions.includes('sell') && (!cooldownInfo || !cooldownInfo.isActive),
+            _qualityGrade: qualityGrade,
+            _qualityScore: attrs.quality_score || null,
+            _qualityColorHex: qualityStyle ? qualityStyle.colorHex : '',
+            _qualityCssClass: qualityStyle ? qualityStyle.cssClass : '',
+            _qualityGlowClass: qualityStyle ? qualityStyle.glowClass : '',
+            _patternId: attrs.pattern_id || null,
+            _editionText: editionText,
+            _hasCooldown: cooldownInfo ? cooldownInfo.isActive : false,
+            _cooldownRemaining: cooldownInfo ? cooldownInfo.remaining : '',
+            _cooldownExpiresAt: cooldownInfo ? cooldownInfo.expiresAt : ''
           }
         })
 
@@ -1115,8 +1137,27 @@ Page({
    * @param detailData - 物品详情数据（来自后端API GET /api/v4/backpack/items/:item_id）
    */
   showItemDetailPanel(detailData: any) {
+    /* 品质等级/限量编号/冷却期展示字段（与列表处理逻辑一致） */
+    const attrs = detailData.instance_attributes || {}
+    const qualityGrade = attrs.quality_grade || ''
+    const qualityStyle = qualityGrade ? getQualityGradeStyle(qualityGrade) : null
+    const editionText = formatEdition(detailData.serial_number, detailData.edition_total)
+    const cooldownInfo = getTradeCooldown(detailData.holds)
+
+    const enrichedDetail = {
+      ...detailData,
+      _qualityGrade: qualityGrade,
+      _qualityScore: attrs.quality_score || null,
+      _qualityColorHex: qualityStyle ? qualityStyle.colorHex : '',
+      _qualityCssClass: qualityStyle ? qualityStyle.cssClass : '',
+      _patternId: attrs.pattern_id || null,
+      _editionText: editionText,
+      _hasCooldown: cooldownInfo ? cooldownInfo.isActive : false,
+      _cooldownRemaining: cooldownInfo ? cooldownInfo.remaining : ''
+    }
+
     this.setData({
-      itemDetail: detailData,
+      itemDetail: enrichedDetail,
       itemDetailLoading: false,
       showItemDetail: true
     })

@@ -40,7 +40,7 @@
   <!-- 功能菜单 -->
   <view class="menu-section">
     <view class="section-title">
-      <text>🔧 功能菜单</text>
+      <text>功能菜单</text>
     </view>
     <!-- 快捷入口（前5项水平排列） -->
     <view class="menu-quick-row">
@@ -52,7 +52,7 @@
         bindtap="onMenuItemTap"
         data-item="{{item}}"
       >
-        <view class="menu-quick-icon" style="background: {{item.color}}">{{item.icon}}</view>
+        <view class="menu-quick-icon" style="background: {{item.color}}"><text class="iconfont {{item.iconClass}}"></text></view>
         <text class="menu-quick-name">{{item.name}}</text>
       </view>
     </view>
@@ -68,7 +68,7 @@
         data-item="{{item}}"
         style="border-left: 4rpx solid {{item.color}}"
       >
-        <view class="menu-icon" style="color: {{item.color}}">{{item.icon}}</view>
+        <text class="iconfont {{item.iconClass}} menu-icon" style="color: {{item.color}}"></text>
         <view class="menu-content">
           <text class="menu-name">{{item.name}}</text>
           <text class="menu-desc">{{item.description}}</text>
@@ -83,7 +83,7 @@
     <!-- 工作台头部 -->
     <view class="mw-header">
       <view class="mw-header-left">
-        <view class="mw-header-icon">🏪</view>
+        <view class="mw-header-icon"><text class="iconfont icon-store"></text></view>
         <view class="mw-header-info">
           <text class="mw-header-title">商家工作台</text>
           <text class="mw-header-role">{{isAdmin ? '管理员' : (isManager ? '店长' : '店员')}}</text>
@@ -96,7 +96,7 @@
       <!-- 扫码核销 - 商家店员(level>=20)可用 -->
       <view class="mw-card" bindtap="goToScanVerify">
         <view class="mw-card-icon-wrap mw-icon-scan">
-          <text class="mw-card-icon">📱</text>
+          <text class="iconfont icon-compass mw-card-icon"></text>
         </view>
         <view class="mw-card-body">
           <text class="mw-card-title">扫码核销</text>
@@ -117,7 +117,7 @@
       <!-- 消费录入 - 商家店员(level>=20)可用 -->
       <view class="mw-card" bindtap="goToConsumeSubmit">
         <view class="mw-card-icon-wrap mw-icon-consume">
-          <text class="mw-card-icon">💰</text>
+          <text class="iconfont icon-coin mw-card-icon"></text>
         </view>
         <view class="mw-card-body">
           <text class="mw-card-title">消费录入</text>
@@ -138,7 +138,7 @@
       <!-- 审批管理 - 业务经理(role_level>=60)及以上可用（审核链多级审核人） -->
       <view class="mw-card" wx:if="{{isReviewer}}" bindtap="goToAuditList">
         <view class="mw-card-icon-wrap mw-icon-audit">
-          <text class="mw-card-icon">✅</text>
+          <text class="iconfont icon-receipt mw-card-icon"></text>
           <view class="mw-badge" wx:if="{{approvalPendingCount > 0}}">
             <text class="mw-badge-text"
               >{{approvalPendingCount > 99 ? '99+' : approvalPendingCount}}</text

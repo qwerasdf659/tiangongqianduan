@@ -142,7 +142,7 @@
 }
 
 .amount-icon {
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  background: $color-primary;
 
   text {
     color: $color-white;
@@ -152,7 +152,7 @@
 }
 
 .note-icon {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
 
   text {
     font-size: $font-size-sm;
@@ -160,7 +160,7 @@
 }
 
 .store-icon {
-  background: linear-gradient(135deg, $color-success, #66bb6a);
+  background: $color-success;
 
   text {
     font-size: $font-size-sm;
@@ -168,7 +168,7 @@
 }
 
 .customer-icon {
-  background: linear-gradient(135deg, $color-info, #40a9ff);
+  background: $color-info;
 
   text {
     font-size: $font-size-sm;
@@ -176,7 +176,7 @@
 }
 
 .summary-icon {
-  background: linear-gradient(135deg, $color-warning, #ffc53d);
+  background: $color-warning;
 
   text {
     font-size: $font-size-sm;
@@ -455,7 +455,7 @@
   align-items: center;
   gap: 16rpx;
   padding: 16rpx 20rpx;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.04), rgba(229, 90, 43, 0.04));
+  background: rgba(255, 107, 53, 0.04);
   border-radius: $border-radius-md;
 }
 
@@ -463,7 +463,7 @@
   width: 64rpx;
   height: 64rpx;
   @include flex-center;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
   border-radius: 50%;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
   flex-shrink: 0;
@@ -634,7 +634,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.95), rgba(229, 90, 43, 0.95));
+  background: rgba(255, 107, 53, 0.95);
   @include flex-center;
   z-index: 9999;
 }

@@ -265,7 +265,7 @@
   font-size: $font-size-sm;
   color: $color-text-white;
   font-weight: 600;
-  background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
+  background: $color-primary;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
 }
 

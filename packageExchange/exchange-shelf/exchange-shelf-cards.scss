@@ -31,7 +31,7 @@
 }
 
 .type-bar.item {
-  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  background: var(--shelf-cta-bg, #ff6b35);
 }
 
 .type-bar.lucky {
@@ -43,7 +43,7 @@
   height: 280rpx;
   position: relative;
   overflow: hidden;
-  background: var(--shelf-card-image-bg, linear-gradient(180deg, #f8f9fa, #f0f2f5));
+  background: var(--shelf-card-image-bg, #f5f7fa);
 }
 
 .unified-card .card-image-area image {
@@ -66,19 +66,19 @@
 }
 
 .badge-tag.hot {
-  background: var(--shelf-tag-hot, linear-gradient(135deg, #ff4757, #ff6b81));
+  background: var(--shelf-tag-hot, #ff4757);
 }
 .badge-tag.new {
-  background: var(--shelf-tag-new, linear-gradient(135deg, #2ed573, #7bed9f));
+  background: var(--shelf-tag-new, #2ed573);
 }
 .badge-tag.limited {
-  background: var(--shelf-tag-limited, linear-gradient(135deg, #7c4dff, #b388ff));
+  background: var(--shelf-tag-limited, #7c4dff);
 }
 .badge-tag.pinned {
-  background: var(--shelf-tag-pinned, linear-gradient(135deg, #ff6b35, #ffa040));
+  background: var(--shelf-tag-pinned, #ff6b35);
 }
 .badge-tag.recommended {
-  background: var(--shelf-tag-recommended, linear-gradient(135deg, #1e88e5, #42a5f5));
+  background: var(--shelf-tag-recommended, #1e88e5);
 }
 
 /* 类型胶囊标签 */
@@ -103,7 +103,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1;
-  background: var(--shelf-fallback-bg, linear-gradient(135deg, #f0f2f5, #e4e8ec));
+  background: var(--shelf-fallback-bg, #f0f2f5);
 }
 
 .image-fallback .fallback-icon {
@@ -167,10 +167,7 @@
   padding: 8rpx 14rpx;
   border-radius: 12rpx;
   margin: 8rpx 0;
-  background: var(
-    --shelf-price-bg,
-    linear-gradient(135deg, rgba(255, 107, 53, 0.06), rgba(255, 107, 53, 0.02))
-  );
+  background: var(--shelf-price-row-bg, transparent);
 }
 
 .unified-card .price-unit {
@@ -206,13 +203,13 @@
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .stock-fill.fill-high {
-  background: var(--shelf-stock-normal, linear-gradient(90deg, #52c41a, #73d13d));
+  background: var(--shelf-stock-normal, #52c41a);
 }
 .stock-fill.fill-medium {
-  background: var(--shelf-stock-warn, linear-gradient(90deg, #faad14, #ffc53d));
+  background: var(--shelf-stock-warn, #faad14);
 }
 .stock-fill.fill-low {
-  background: var(--shelf-stock-danger, linear-gradient(90deg, #ff4d4f, #ff7875));
+  background: var(--shelf-stock-danger, #ff4d4f);
 }
 
 .unified-card .stock-text {
@@ -258,7 +255,7 @@
 }
 
 .unified-card .cta-btn.btn-disabled {
-  background: linear-gradient(135deg, #d0d0d0, #b8b8b8);
+  background: #d0d0d0;
   color: rgba(255, 255, 255, 0.7);
   box-shadow: none;
 }
@@ -446,4 +443,24 @@
   background: var(--shelf-cta-bg, #ff6b35);
   border-color: var(--shelf-accent, #e67e22);
   color: #ffffff;
+}
+
+/* 铸造标识（mint_instance=true 时展示，表示兑换后铸造物品实例进入背包） */
+.mint-mini-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  margin-top: 6rpx;
+  padding: 2rpx 10rpx;
+  background: rgba(52, 152, 219, 0.08);
+  border: 1rpx solid rgba(52, 152, 219, 0.15);
+  border-radius: 6rpx;
+}
+.mint-mini-icon {
+  font-size: 20rpx;
+}
+.mint-mini-text {
+  font-size: 20rpx;
+  color: #3498db;
+  font-weight: 500;
 }

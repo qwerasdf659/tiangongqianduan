@@ -46,6 +46,18 @@ Page({
     rarityCode: '',
     rarityStyle: null as any,
 
+    /** 品质等级展示字段（后端 item_info.instance_attributes） */
+    qualityGrade: '',
+    qualityScore: null as number | null,
+    qualityColorHex: '',
+    qualityCssClass: '',
+    patternId: null as number | null,
+    /** 限量编号展示文本（格式 #0042 / 0100） */
+    editionText: '',
+    /** 交易冷却期状态 */
+    hasCooldown: false,
+    cooldownRemaining: '',
+
     /** 价格摘要（后端 GET /api/v4/market/price/summary 返回） */
     priceSummary: null as any,
 
@@ -129,6 +141,21 @@ Page({
       const listing = detailResult.data
       const isFungible = listing.listing_kind === 'fungible_asset'
 
+      /* 品质等级和限量编号（后端 item_info 中的实例属性） */
+      const itemInfo = listing.item_info || {}
+      const instanceAttrs = itemInfo.instance_attributes || {}
+      const qualityGrade = instanceAttrs.quality_grade || ''
+      const qualityStyle = qualityGrade
+        ? detailImageHelper.getQualityGradeStyle(qualityGrade)
+        : null
+      const editionText = detailImageHelper.formatEdition(
+        itemInfo.serial_number,
+        itemInfo.edition_total
+      )
+
+      /* 冷却期信息（后端 item_info.holds 数组） */
+      const cooldownInfo = detailImageHelper.getTradeCooldown(itemInfo.holds)
+
       this.setData({
         detail: listing,
         displayName: detailImageHelper.getListingDisplayName(listing),
@@ -136,10 +163,16 @@ Page({
         priceLabel: detailImageHelper.getAssetDisplayName(listing.price_asset_code),
         isFungibleAsset: isFungible,
         offerAmount: listing.asset_info ? listing.asset_info.amount : 0,
-        rarityCode: (listing.item_info && listing.item_info.rarity_code) || '',
-        rarityStyle: detailImageHelper.getRarityStyle(
-          (listing.item_info && listing.item_info.rarity_code) || 'common'
-        ),
+        rarityCode: itemInfo.rarity_code || '',
+        rarityStyle: detailImageHelper.getRarityStyle(itemInfo.rarity_code || 'common'),
+        qualityGrade,
+        qualityScore: instanceAttrs.quality_score || null,
+        qualityColorHex: qualityStyle ? qualityStyle.colorHex : '',
+        qualityCssClass: qualityStyle ? qualityStyle.cssClass : '',
+        patternId: instanceAttrs.pattern_id || null,
+        editionText,
+        hasCooldown: cooldownInfo ? cooldownInfo.isActive : false,
+        cooldownRemaining: cooldownInfo ? cooldownInfo.remaining : '',
         loading: false
       })
 

@@ -1,9 +1,9 @@
-<!--自定义 tabBar 模板：支持主题变色-->
+<!--自定义 tabBar 模板：Iconfont 图标 + 主题变色-->
 <view class="tab-bar" style="{{themeStyle}}">
   <view class="tab-bar-border"></view>
   <view wx:for="{{list}}" wx:key="pagePath" class="tab-bar-item" data-path="{{item.pagePath}}" data-index="{{index}}" bindtap="switchTab">
     <view class="tab-icon {{selected === index ? 'active' : ''}}">
-      <text class="icon-text">{{item.iconText}}</text>
+      <text class="iconfont {{item.iconClass}}" style="color: {{selected === index ? 'var(--theme-primary, #ff6b35)' : color}}"></text>
     </view>
     <view class="tab-text" style="color: {{selected === index ? 'var(--theme-primary, #ff6b35)' : color}}">{{item.text}}</view>
   </view>

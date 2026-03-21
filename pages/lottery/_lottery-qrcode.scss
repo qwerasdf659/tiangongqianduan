@@ -66,7 +66,7 @@
   right: 16rpx;
   width: 56rpx;
   height: 56rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: $gradient-blue-start;
   /* 使用页面主题紫色渐变 */
   border-radius: 50%;
   @include flex-center;
@@ -130,7 +130,7 @@
   align-items: center;
   gap: 12rpx;
   padding: 24rpx 32rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: $gradient-blue-start;
   border-radius: 20rpx;
   width: 100%;
   box-shadow:

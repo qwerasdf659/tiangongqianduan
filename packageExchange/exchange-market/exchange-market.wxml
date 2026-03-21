@@ -155,6 +155,48 @@
             >
           </view>
         </view>
+        <!-- 品质等级筛选（后端 instance_attributes.quality_grade，仅物品类型有效） -->
+        <view class="filter-row">
+          <text class="filter-label">品质等级</text>
+          <view class="filter-options">
+            <view
+              class="option-btn {{filterQualityGrade === '' ? 'active' : ''}}"
+              data-grade=""
+              bindtap="onQualityGradeSelect"
+              >全部</view
+            >
+            <view
+              class="option-btn {{filterQualityGrade === '完美无瑕' ? 'active' : ''}}"
+              data-grade="完美无瑕"
+              bindtap="onQualityGradeSelect"
+              >完美无瑕</view
+            >
+            <view
+              class="option-btn {{filterQualityGrade === '精良' ? 'active' : ''}}"
+              data-grade="精良"
+              bindtap="onQualityGradeSelect"
+              >精良</view
+            >
+            <view
+              class="option-btn {{filterQualityGrade === '良好' ? 'active' : ''}}"
+              data-grade="良好"
+              bindtap="onQualityGradeSelect"
+              >良好</view
+            >
+            <view
+              class="option-btn {{filterQualityGrade === '普通' ? 'active' : ''}}"
+              data-grade="普通"
+              bindtap="onQualityGradeSelect"
+              >普通</view
+            >
+            <view
+              class="option-btn {{filterQualityGrade === '微瑕' ? 'active' : ''}}"
+              data-grade="微瑕"
+              bindtap="onQualityGradeSelect"
+              >微瑕</view
+            >
+          </view>
+        </view>
         <view
           class="filter-row"
           wx:if="{{facetsData && facetsData.asset_groups && facetsData.asset_groups.length > 0}}"
@@ -340,6 +382,18 @@
           <view class="card-body">
             <text class="product-name">{{item.item_name}}</text>
             <text class="product-desc">{{item.description}}</text>
+            <!-- 品质等级标签（后端 instance_attributes.quality_grade） -->
+            <view class="quality-row" wx:if="{{item._qualityGrade}}">
+              <view class="quality-badge" style="background-color:{{item._qualityColorHex}}">
+                <text class="quality-text">{{item._qualityGrade}}</text>
+              </view>
+              <text class="quality-score" wx:if="{{item._qualityScore}}"
+                >{{item._qualityScore}}分</text
+              >
+              <text class="pattern-id" wx:if="{{item._patternId}}">纹理#{{item._patternId}}</text>
+            </view>
+            <!-- 限量编号（后端 serial_number + edition_total） -->
+            <text class="edition-text" wx:if="{{item._editionText}}">{{item._editionText}}</text>
             <view class="price-row">
               <text class="price-unit">{{item._priceLabel || '积分'}}</text>
               <text class="price-current">{{item.price_amount}}</text>

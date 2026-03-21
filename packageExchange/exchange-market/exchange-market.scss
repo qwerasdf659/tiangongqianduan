@@ -202,7 +202,7 @@
 }
 
 .option-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
   color: #ffffff;
   border-color: transparent;
 }
@@ -218,7 +218,7 @@
   height: 68rpx;
   line-height: 68rpx;
   text-align: center;
-  background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+  background: #ff6b6b;
   color: #ffffff;
   border-radius: $border-radius-md;
   font-size: $font-size-sm;
@@ -248,7 +248,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(229, 90, 43, 0.08));
+  background: rgba(255, 107, 53, 0.08);
   border-radius: $border-radius-md;
   padding: 16rpx 0;
 }
@@ -584,23 +584,67 @@
   }
 }
 
+// ===== 品质等级 + 限量编号（交易市场卡片内） =====
+
+.quality-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin: 8rpx 0;
+  flex-wrap: wrap;
+}
+
+.quality-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+}
+
+.quality-text {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.quality-score {
+  font-size: 18rpx;
+  font-weight: 500;
+  color: var(--shelf-text-secondary, #999);
+}
+
+.pattern-id {
+  font-size: 18rpx;
+  color: var(--shelf-text-secondary, #999);
+  font-family: 'Courier New', monospace;
+}
+
+.edition-text {
+  display: block;
+  font-size: 20rpx;
+  color: var(--shelf-text-secondary, #999);
+  font-family: 'Courier New', monospace;
+  margin-bottom: 4rpx;
+}
+
 /* Feed 广告卡片 — 穿插在商品列表中，与普通商品卡片区分 */
 .feed-ad-card {
   border: 2rpx solid rgba(255, 107, 53, 0.2);
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  background: #f8f9ff;
 }
 
 .type-bar.ad-type {
-  background: linear-gradient(180deg, #ff9800, #ffc107);
+  background: #ff9800;
 }
 
 .type-capsule.ad-capsule {
-  background: linear-gradient(135deg, #ff9800, #ffc107);
+  background: #ff9800;
   color: #ffffff;
 }
 
 .ad-fallback {
-  background: linear-gradient(135deg, #f0f2ff 0%, #e8ecff 100%);
+  background: #f0f2ff;
 }
 
 .ad-action-row {

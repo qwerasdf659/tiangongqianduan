@@ -130,7 +130,7 @@
   height: 54rpx;
   padding: 0 20rpx;
   border-radius: 27rpx;
-  background: linear-gradient(135deg, rgba(255, 175, 0, 0.7) 0%, rgba(255, 120, 0, 0.8) 100%);
+  background: rgba(255, 175, 0, 0.75);
   box-shadow:
     0 4rpx 16rpx rgba(255, 150, 0, 0.35),
     0 2rpx 8rpx rgba(255, 100, 0, 0.25),
@@ -157,7 +157,7 @@
   transform: translateX(-50%);
   min-width: 38rpx;
   height: 38rpx;
-  background: linear-gradient(135deg, #ff5252 0%, #ff8a65 100%);
+  background: #ff5252;
   border-radius: 19rpx;
   border: 2rpx solid #ffffff;
   font-size: 22rpx;
@@ -230,7 +230,7 @@
   height: 48rpx;
   padding: 0 16rpx;
   border-radius: 24rpx;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.7) 0%, rgba(229, 90, 43, 0.8) 100%);
+  background: rgba(255, 107, 53, 0.75);
   box-shadow:
     0 3rpx 12rpx rgba(255, 107, 53, 0.3),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
@@ -253,7 +253,7 @@
   transform: translateX(-50%);
   min-width: 34rpx;
   height: 34rpx;
-  background: linear-gradient(135deg, #ff5252 0%, #ff8a65 100%);
+  background: #ff5252;
   border-radius: 17rpx;
   border: 2rpx solid #ffffff;
   font-size: 20rpx;
@@ -399,32 +399,6 @@
 }
 
 /* 纯净版无提示文字 */
-
-/* 二维码光晕效果 */
-.qrcode-container::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
-  animation: qrGlow 3s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes qrGlow {
-  0%,
-  100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-}
 
 /* 🎎 点击提示图标 */
 .qrcode-hint {

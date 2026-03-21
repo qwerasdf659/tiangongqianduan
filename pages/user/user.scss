@@ -240,9 +240,12 @@
   border-radius: $border-radius-md;
   @include flex-center;
   margin-bottom: 12rpx;
-  font-size: 36rpx;
-  color: $color-white;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
+
+  .iconfont {
+    font-size: 40rpx;
+    color: $color-white;
+  }
 }
 
 .menu-quick-name {
@@ -279,10 +282,13 @@
 }
 
 .menu-icon {
-  font-size: $font-size-md;
   margin-right: 24rpx;
   width: 48rpx;
   text-align: center;
+
+  &.iconfont {
+    font-size: 36rpx;
+  }
 }
 
 .menu-content {

@@ -26,7 +26,7 @@
   padding: 16rpx 40rpx;
   background: $color-primary;
   color: $color-white;
-  border-radius: $radius-round;
+  border-radius: $border-radius-round;
   font-size: $font-size-sm;
 }
 
@@ -38,7 +38,7 @@
   display: block;
   font-size: 40rpx;
   font-weight: 700;
-  color: $color-text;
+  color: $color-text-primary;
   margin-bottom: 8rpx;
 }
 .form-subtitle {
@@ -50,7 +50,7 @@
 /* 表单区块 */
 .form-section {
   background: $color-bg-card;
-  border-radius: $radius-lg;
+  border-radius: $border-radius-lg;
   padding: 28rpx;
   margin-bottom: 24rpx;
 }
@@ -58,7 +58,7 @@
   display: block;
   font-size: $font-size-base;
   font-weight: 600;
-  color: $color-text;
+  color: $color-text-primary;
   margin-bottom: 20rpx;
 }
 
@@ -71,7 +71,7 @@
 .type-option {
   padding: 20rpx 24rpx;
   border: 2rpx solid $color-border;
-  border-radius: $radius-base;
+  border-radius: $border-radius-md;
   transition: all 0.2s ease;
 
   &.active {
@@ -83,7 +83,7 @@
   display: block;
   font-size: $font-size-base;
   font-weight: 600;
-  color: $color-text;
+  color: $color-text-primary;
 }
 .type-desc {
   display: block;
@@ -100,19 +100,19 @@
   width: 100%;
   min-height: 200rpx;
   font-size: $font-size-base;
-  color: $color-text;
+  color: $color-text-primary;
   line-height: 1.6;
   padding: 16rpx;
   box-sizing: border-box;
   background: $color-bg-grey;
-  border-radius: $radius-base;
+  border-radius: $border-radius-md;
 }
 .desc-counter {
   position: absolute;
   right: 16rpx;
   bottom: 12rpx;
   font-size: $font-size-xs;
-  color: $color-text-light;
+  color: $color-text-tertiary;
 }
 
 /* 证据图片网格 */
@@ -125,7 +125,7 @@
   position: relative;
   width: 180rpx;
   height: 180rpx;
-  border-radius: $radius-base;
+  border-radius: $border-radius-md;
   overflow: hidden;
 }
 .evidence-image {
@@ -148,23 +148,23 @@
   width: 180rpx;
   height: 180rpx;
   border: 2rpx dashed $color-border;
-  border-radius: $radius-base;
+  border-radius: $border-radius-md;
   @include flex-center;
   flex-direction: column;
   gap: 8rpx;
 }
 .add-icon {
   font-size: 48rpx;
-  color: $color-text-light;
+  color: $color-text-tertiary;
 }
 .add-text {
   font-size: $font-size-xs;
-  color: $color-text-light;
+  color: $color-text-tertiary;
 }
 .detail-grid .evidence-image {
   width: 180rpx;
   height: 180rpx;
-  border-radius: $radius-base;
+  border-radius: $border-radius-md;
 }
 
 /* 提交区 */
@@ -178,7 +178,7 @@
   color: $color-white;
   font-size: $font-size-base;
   font-weight: 700;
-  border-radius: $radius-round;
+  border-radius: $border-radius-round;
   text-align: center;
 
   &.disabled {
@@ -192,14 +192,14 @@
 .submit-tip {
   display: block;
   font-size: $font-size-xs;
-  color: $color-text-light;
+  color: $color-text-tertiary;
   margin-top: 16rpx;
 }
 
 /* 状态卡片 */
 .status-card {
   padding: 32rpx;
-  border-radius: $radius-lg;
+  border-radius: $border-radius-lg;
   margin-bottom: 24rpx;
   color: $color-white;
 }
@@ -218,7 +218,7 @@
 /* 仲裁结果卡片 */
 .result-card {
   background: $color-bg-card;
-  border-radius: $radius-lg;
+  border-radius: $border-radius-lg;
   padding: 28rpx;
   margin-bottom: 24rpx;
 }
@@ -230,7 +230,7 @@
 .result-title {
   font-size: $font-size-base;
   font-weight: 600;
-  color: $color-text;
+  color: $color-text-primary;
 }
 .result-badge {
   font-size: $font-size-base;
@@ -247,7 +247,7 @@
 /* 信息卡片 */
 .info-card {
   background: $color-bg-card;
-  border-radius: $radius-lg;
+  border-radius: $border-radius-lg;
   padding: 28rpx;
   margin-bottom: 24rpx;
 }
@@ -255,7 +255,7 @@
   display: block;
   font-size: $font-size-base;
   font-weight: 600;
-  color: $color-text;
+  color: $color-text-primary;
   margin-bottom: 16rpx;
 }
 .info-row {
@@ -269,12 +269,12 @@
 }
 .info-value {
   font-size: $font-size-sm;
-  color: $color-text;
+  color: $color-text-primary;
 }
 .desc-content {
   display: block;
   font-size: $font-size-sm;
-  color: $color-text;
+  color: $color-text-primary;
   line-height: 1.6;
 }
 
@@ -287,7 +287,7 @@
   display: inline-block;
   padding: 16rpx 60rpx;
   background: $color-bg-grey;
-  color: $color-text;
+  color: $color-text-primary;
   font-size: $font-size-base;
-  border-radius: $radius-round;
+  border-radius: $border-radius-round;
 }

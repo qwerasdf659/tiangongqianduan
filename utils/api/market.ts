@@ -69,7 +69,8 @@ const { buildQueryString } = require('../util')
  * @param params.rarity_code - 稀有度筛选（仅 item 有效）
  * @param params.min_price - 最低价格
  * @param params.max_price - 最高价格
- * @param params.sort - 排序方式: 'recommended'(综合推荐,默认) / 'newest' / 'price_asc' / 'price_desc' / 'hot'(按成交量)
+ * @param params.sort - 排序方式: 'recommended'(综合推荐,默认) / 'newest' / 'price_asc' / 'price_desc' / 'hot'(按成交量) / 'quality_score_desc' / 'quality_score_asc'
+ * @param params.quality_grade - 品质等级筛选（完美无瑕/精良/良好/普通/微瑕）
  */
 async function getMarketProducts(
   params: {
@@ -83,6 +84,8 @@ async function getMarketProducts(
     min_price?: number | null
     max_price?: number | null
     sort?: string | null
+    /** 品质等级筛选（后端 instance_attributes.quality_grade） */
+    quality_grade?: string | null
     /** 是否返回筛选维度聚合计数（C+++联动计数），后端交叉排除逻辑 */
     with_counts?: boolean
   } = {}
@@ -98,6 +101,7 @@ async function getMarketProducts(
     min_price = null,
     max_price = null,
     sort = null,
+    quality_grade = null,
     with_counts = false
   } = params
 
@@ -112,6 +116,7 @@ async function getMarketProducts(
     min_price,
     max_price,
     sort,
+    quality_grade,
     with_counts: with_counts ? 'true' : null
   })
   return apiClient.request(`/market/listings?${qs}`, { method: 'GET', needAuth: true })

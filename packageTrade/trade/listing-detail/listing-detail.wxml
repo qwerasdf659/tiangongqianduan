@@ -89,6 +89,40 @@
       <text class="desc-label">物品状态</text>
       <text class="desc-value">{{detail.condition}}</text>
     </view>
+
+    <!-- 品质等级+限量编号（后端 item_info.instance_attributes / serial_number） -->
+    <view class="detail-quality-section" wx:if="{{qualityGrade || editionText}}">
+      <view class="detail-quality-row" wx:if="{{qualityGrade}}">
+        <text class="quality-label">品质等级</text>
+        <view class="quality-value-area">
+          <text
+            class="quality-grade-badge"
+            style="color: {{qualityColorHex}}; border-color: {{qualityColorHex}}"
+            >{{qualityGrade}}</text
+          >
+          <text
+            class="quality-score-value"
+            wx:if="{{qualityScore}}"
+            style="color: {{qualityColorHex}}"
+            >{{qualityScore}}分</text
+          >
+        </view>
+      </view>
+      <view class="detail-quality-row" wx:if="{{patternId}}">
+        <text class="quality-label">纹理编号</text>
+        <text class="quality-value">#{{patternId}}</text>
+      </view>
+      <view class="detail-quality-row" wx:if="{{editionText}}">
+        <text class="quality-label">限量编号</text>
+        <text class="quality-value edition-highlight">{{editionText}}</text>
+      </view>
+    </view>
+
+    <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
+    <view class="detail-cooldown-notice" wx:if="{{hasCooldown}}">
+      <text class="cooldown-notice-icon">🔒</text>
+      <text class="cooldown-notice-text">交易冷却中 · 剩余 {{cooldownRemaining}}</text>
+    </view>
   </view>
 
   <!-- 卖家信息卡片 -->

@@ -21,32 +21,9 @@
   overflow: hidden;
 }
 
-/* 卡片装饰性光效 */
+/* 卡片装饰性光效已关闭 */
 .points-balance-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 107, 53, 0.06) 50%,
-    transparent 70%
-  );
-  animation: shimmer 4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes shimmer {
-  0%,
-  100% {
-    transform: translateX(-100%) translateY(-100%) rotate(45deg);
-  }
-  50% {
-    transform: translateX(100%) translateY(100%) rotate(45deg);
-  }
+  content: none;
 }
 
 /* 卡片头部 */
@@ -66,7 +43,7 @@
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
   box-shadow: 0 0 8rpx rgba(255, 107, 53, 0.5);
 }
 
@@ -164,7 +141,7 @@
 }
 
 .balance-badge {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
   border-radius: $border-radius-round;
   padding: 4rpx 16rpx;
 }
@@ -206,7 +183,7 @@
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
   color: $color-text-white;
   transform: translateY(-4rpx);
   box-shadow: 0 12rpx 28rpx rgba(255, 107, 53, 0.3);
@@ -317,11 +294,11 @@
 }
 
 .earn-indicator {
-  background: linear-gradient(180deg, $color-success, #66bb6a);
+  background: $color-success;
 }
 
 .consume-indicator {
-  background: linear-gradient(180deg, $color-error, #ef5350);
+  background: $color-error;
 }
 
 .record-item:active {
@@ -352,12 +329,12 @@
 }
 
 .earn-bg {
-  background: linear-gradient(135deg, $color-success, #66bb6a);
+  background: $color-success;
   box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.25);
 }
 
 .consume-bg {
-  background: linear-gradient(135deg, $color-error, #ef5350);
+  background: $color-error;
   box-shadow: 0 4rpx 12rpx rgba(244, 67, 54, 0.25);
 }
 
@@ -443,7 +420,7 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(229, 90, 43, 0.08));
+  background: rgba(255, 107, 53, 0.08);
   animation: emptyPulse 3s ease-in-out infinite;
 }
 
@@ -523,7 +500,7 @@
 }
 
 .load-more-btn:active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
   color: $color-text-white;
   transform: scale(0.96);
 }
@@ -583,8 +560,8 @@
 
 .no-more-line {
   flex: 1;
-  height: 1rpx;
-  background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.15), transparent);
+  height: 0;
+  border-top: 1rpx solid rgba(255, 107, 53, 0.15);
 }
 
 .no-more-text {
@@ -613,7 +590,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.95), rgba(229, 90, 43, 0.95));
+  background: rgba(255, 107, 53, 0.95);
   @include flex-center;
   z-index: 1000;
   -webkit-backdrop-filter: blur(10rpx);

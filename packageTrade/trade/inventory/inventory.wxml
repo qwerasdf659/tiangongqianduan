@@ -185,6 +185,30 @@
                   >{{item.rarity_display}}</text
                 >
               </view>
+
+              <!-- 品质等级 + 限量编号（后端 instance_attributes / serial_number） -->
+              <view class="item-quality-row" wx:if="{{item._qualityGrade || item._editionText}}">
+                <view
+                  class="quality-badge {{item._qualityCssClass}}"
+                  wx:if="{{item._qualityGrade}}"
+                  style="border-color: {{item._qualityColorHex}}"
+                >
+                  <text class="quality-badge-text" style="color: {{item._qualityColorHex}}"
+                    >{{item._qualityGrade}}</text
+                  >
+                  <text
+                    class="quality-score-text"
+                    wx:if="{{item._qualityScore}}"
+                    style="color: {{item._qualityColorHex}}"
+                    >{{item._qualityScore}}</text
+                  >
+                </view>
+                <text class="edition-tag" wx:if="{{item._editionText}}">{{item._editionText}}</text>
+                <text class="pattern-tag" wx:if="{{item._patternId}}"
+                  >纹理#{{item._patternId}}</text
+                >
+              </view>
+
               <view class="item-tracking-row" wx:if="{{item.tracking_code}}">
                 <text class="tracking-code-text">{{item.tracking_code}}</text>
                 <view class="tracking-timeline-btn" catchtap="onViewTimeline" data-item="{{item}}">
@@ -210,6 +234,12 @@
                 <text>{{item.status_display || '可用'}}</text>
               </view>
             </view>
+          </view>
+
+          <!-- 交易冷却期倒计时（后端 item_holds hold_type='trade_cooldown'） -->
+          <view class="item-cooldown-row" wx:if="{{item._hasCooldown}}">
+            <text class="cooldown-icon">🔒</text>
+            <text class="cooldown-text">交易冷却中 · 剩余 {{item._cooldownRemaining}}</text>
           </view>
 
           <!-- 过期/时间提示 -->
@@ -360,6 +390,45 @@
             <text class="tracking-copy-text">复制</text>
           </view>
         </view>
+        <!-- 品质等级+限量编号区域（后端 instance_attributes / serial_number / edition_total） -->
+        <view
+          class="detail-quality-section"
+          wx:if="{{itemDetail._qualityGrade || itemDetail._editionText}}"
+        >
+          <view class="detail-quality-card" wx:if="{{itemDetail._qualityGrade}}">
+            <view class="detail-quality-header">
+              <text class="detail-quality-label">品质等级</text>
+              <text class="detail-quality-grade" style="color: {{itemDetail._qualityColorHex}}"
+                >{{itemDetail._qualityGrade}}</text
+              >
+            </view>
+            <view class="detail-quality-score-row" wx:if="{{itemDetail._qualityScore}}">
+              <text class="detail-quality-score-label">品质分</text>
+              <text
+                class="detail-quality-score-value"
+                style="color: {{itemDetail._qualityColorHex}}"
+                >{{itemDetail._qualityScore}}</text
+              >
+            </view>
+            <view class="detail-pattern-row" wx:if="{{itemDetail._patternId}}">
+              <text class="detail-pattern-label">纹理编号</text>
+              <text class="detail-pattern-value">#{{itemDetail._patternId}}</text>
+            </view>
+          </view>
+          <view class="detail-edition-card" wx:if="{{itemDetail._editionText}}">
+            <text class="detail-edition-label">限量编号</text>
+            <text class="detail-edition-value">{{itemDetail._editionText}}</text>
+          </view>
+        </view>
+
+        <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
+        <view class="detail-cooldown-bar" wx:if="{{itemDetail._hasCooldown}}">
+          <text class="detail-cooldown-icon">🔒</text>
+          <text class="detail-cooldown-text"
+            >交易冷却中 · 剩余 {{itemDetail._cooldownRemaining}}</text
+          >
+        </view>
+
         <view class="detail-grid">
           <view class="detail-grid-item" wx:if="{{itemDetail.status_display}}">
             <text class="grid-label">状态</text>

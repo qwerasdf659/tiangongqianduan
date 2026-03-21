@@ -23,9 +23,8 @@ const chartLog = ChartLogger.createLogger('price-chart')
 const CHART_COLORS = {
   /** 价格折线 — 品牌橙色 */
   line: '#FF6B35',
-  /** 折线下方渐变填充 */
-  fillStart: 'rgba(255, 107, 53, 0.20)',
-  fillEnd: 'rgba(255, 107, 53, 0.01)',
+  /** 折线下方填充（实色，与 $gradient-blue-start 一致） */
+  fillSolid: '#f7931e',
   /** 网格线 */
   grid: 'rgba(102, 126, 234, 0.10)',
   /** 坐标轴文字 */
@@ -33,10 +32,8 @@ const CHART_COLORS = {
   /** 数据圆点 */
   dot: '#FF6B35',
   dotBorder: '#ffffff',
-  /** 成交量柱体渐变 — 紫蓝色系 */
-  volumeStart: 'rgba(102, 126, 234, 0.85)',
-  volumeEnd: 'rgba(118, 75, 162, 0.40)',
-  volumeTop: 'rgba(102, 126, 234, 0.95)'
+  /** 成交量柱体（实色 $color-primary） */
+  volumeBar: '#FF6B35'
 } as const
 
 Component({
@@ -259,11 +256,7 @@ Component({
       const pointY = (price: number) =>
         padding.top + plotHeight - ((price - minPrice) / priceRange) * plotHeight
 
-      /* 绘制渐变填充区域 */
-      const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + plotHeight)
-      gradient.addColorStop(0, CHART_COLORS.fillStart)
-      gradient.addColorStop(1, CHART_COLORS.fillEnd)
-
+      /* 折线下方填充区域 — 实色 */
       ctx.beginPath()
       ctx.moveTo(pointX(0), pointY(prices[0]))
       for (let fillIdx = 1; fillIdx < points.length; fillIdx++) {
@@ -272,7 +265,7 @@ Component({
       ctx.lineTo(pointX(points.length - 1), padding.top + plotHeight)
       ctx.lineTo(pointX(0), padding.top + plotHeight)
       ctx.closePath()
-      ctx.fillStyle = gradient
+      ctx.fillStyle = CHART_COLORS.fillSolid
       ctx.fill()
 
       /* 绘制折线（带阴影增强立体感） */
@@ -353,7 +346,7 @@ Component({
 
     /**
      * 绘制成交量柱状图核心逻辑
-     * 紫蓝渐变柱状图展示每个时间段的成交量
+     * 品牌色实色柱体展示每个时间段的成交量
      */
     _renderVolumeBarChart(ctx: any, points: any[], chartWidth: number, chartHeight: number) {
       const padding = { top: 16, right: 16, bottom: 32, left: 48 }
@@ -388,7 +381,7 @@ Component({
       }
       ctx.setLineDash([])
 
-      /* 绘制柱状图 — 紫蓝渐变 */
+      /* 绘制柱状图 — 品牌色实色 */
       const barGap = 4
       const totalBarWidth = plotWidth / points.length
       const barWidth = Math.max(4, totalBarWidth - barGap)
@@ -399,12 +392,6 @@ Component({
         const barX = padding.left + totalBarWidth * barIdx + (totalBarWidth - barWidth) / 2
         const barY = padding.top + plotHeight - barHeight
 
-        /* 紫蓝渐变柱体 */
-        const barGradient = ctx.createLinearGradient(barX, barY, barX, barY + barHeight)
-        barGradient.addColorStop(0, CHART_COLORS.volumeStart)
-        barGradient.addColorStop(1, CHART_COLORS.volumeEnd)
-
-        /* 圆角矩形柱体 */
         const cornerRadius = Math.min(3, barWidth / 2)
         ctx.beginPath()
         ctx.moveTo(barX + cornerRadius, barY)
@@ -415,20 +402,7 @@ Component({
         ctx.lineTo(barX, barY + cornerRadius)
         ctx.quadraticCurveTo(barX, barY, barX + cornerRadius, barY)
         ctx.closePath()
-        ctx.fillStyle = barGradient
-        ctx.fill()
-
-        /* 柱顶高光 */
-        ctx.fillStyle = CHART_COLORS.volumeTop
-        ctx.beginPath()
-        ctx.moveTo(barX + cornerRadius, barY)
-        ctx.lineTo(barX + barWidth - cornerRadius, barY)
-        ctx.quadraticCurveTo(barX + barWidth, barY, barX + barWidth, barY + cornerRadius)
-        ctx.lineTo(barX + barWidth, barY + cornerRadius + 1)
-        ctx.lineTo(barX, barY + cornerRadius + 1)
-        ctx.lineTo(barX, barY + cornerRadius)
-        ctx.quadraticCurveTo(barX, barY, barX + cornerRadius, barY)
-        ctx.closePath()
+        ctx.fillStyle = CHART_COLORS.volumeBar
         ctx.fill()
       }
 

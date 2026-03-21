@@ -32,7 +32,7 @@
 
 .error-retry {
   padding: 16rpx 48rpx;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: $gradient-blue-start;
   border-radius: $border-radius-xl;
   margin-bottom: $spacing-md;
 }
@@ -348,7 +348,7 @@
 }
 
 .btn-confirm-detail {
-  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  background: #4caf50;
   box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.3);
 }
 
