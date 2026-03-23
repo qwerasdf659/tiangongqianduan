@@ -8,7 +8,7 @@
  *   - 购买弹窗
  *
  * 筛选机制（C+++方案，对齐独立交易市场页面 market.ts）：
- *   - listing_kind / sort / category_def_id / rarity_code / asset_group_code
+ *   - listing_kind / sort / category_id / rarity_code / asset_group_code
  *     / asset_code / min_price / max_price / with_counts 全部通过 API 查询参数传递
  *   - 筛选维度从 GET /api/v4/market/listings/facets 动态获取
  *
@@ -142,7 +142,7 @@ module.exports = Behavior({
         /**
          * 构建后端API查询参数（对齐独立市场页面 market.ts 的完整筛选参数集）
          * 后端 GET /api/v4/market/listings 支持:
-         *   listing_kind / sort / category_def_id / rarity_code
+         *   listing_kind / sort / category_id / rarity_code
          *   asset_group_code / asset_code / min_price / max_price / with_counts
          */
         const apiParams: Record<string, any> = {
@@ -159,7 +159,7 @@ module.exports = Behavior({
         apiParams.sort = mappedSort
 
         if (filterCategoryCode) {
-          apiParams.category_def_id = filterCategoryCode
+          apiParams.category_id = filterCategoryCode
         }
         if (filterRarityCode) {
           apiParams.rarity_code = filterRarityCode
@@ -234,7 +234,7 @@ module.exports = Behavior({
               offer_amount: assetInfo.amount || null,
               offer_asset_group_code: assetInfo.group_code || null,
               offer_item_rarity: itemInfo.rarity_code || null,
-              offer_category_def_id: itemInfo.category_def_id || null,
+              offer_category_id: itemInfo.category_id || null,
               item_id: itemInfo.item_id || null,
               template_id: itemInfo.template_id || null,
               is_pinned: item.is_pinned || false,

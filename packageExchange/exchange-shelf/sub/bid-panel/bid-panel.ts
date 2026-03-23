@@ -109,7 +109,7 @@ Component({
               image:
                 (item.primary_media && item.primary_media.public_url) ||
                 bidImageHelper.DEFAULT_PRODUCT_IMAGE,
-              category_def_id: item.category_def_id || null,
+              category_id: item.category_id || null,
               start_price: item.start_price || 0,
               current_price: item.current_price || 0,
               min_bid_increment: item.min_bid_increment || 1,
@@ -177,7 +177,7 @@ Component({
                 (detail.primary_media && detail.primary_media.public_url) ||
                 product.image ||
                 bidImageHelper.DEFAULT_PRODUCT_IMAGE,
-              category_def_id: detail.category_def_id || null,
+              category_id: detail.category_id || null,
               start_price: detail.start_price || 0,
               current_price: detail.current_price || 0,
               min_bid_increment: detail.min_bid_increment || 1,

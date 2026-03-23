@@ -129,7 +129,7 @@ Component({
      *
      * 筛选配置数据源（对齐设计文档决策1）：
      *   - 空间配置: exchange-page 配置
-     *   - 商城筛选: product-filter 配置（权威来源，使用 category_defs.category_code）
+     *   - 商城筛选: product-filter 配置（权威来源，使用 categories.category_code）
      *   - 降级: 如果 product-filter API 失败，回退到 exchange-page 的 shop_filters
      */
     async _initShelf() {
@@ -149,7 +149,7 @@ Component({
           })
         ])
 
-        /* 优先使用 product-filter API（权威来源，分类使用 category_defs.category_code） */
+        /* 优先使用 product-filter API（权威来源，分类使用 categories.category_code） */
         let filterConfig: any = null
         if (productFilterResult && productFilterResult.success && productFilterResult.data) {
           filterConfig = productFilterResult.data

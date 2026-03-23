@@ -445,7 +445,7 @@ async function getAppThemeConfig() {
  * 返回筛选维度: categories（分类列表）、cost_ranges（价格区间）、
  *               sort_options（排序选项）、stock_statuses（库存状态选项）
  *
- * 分类数据源: category_defs 表（is_enabled=1），使用 category_code 而非中文名
+ * 分类数据源: categories 表（is_enabled=1），使用 category_code 而非中文名
  * 价格区间: 统一为 100/500/1000 区间（已决策，以 product_filter 为准）
  *
  * 响应格式: { success, data: { categories, cost_ranges, sort_options, stock_statuses } }
@@ -463,22 +463,20 @@ async function getProductFilterConfig() {
  * 获取分类树形结构（两级分类）
  * GET /api/v4/system/config/category-tree
  *
- * 后端服务: CategoryDef.getTree()
- * 数据库表: category_defs（字段 category_def_id, category_code, display_name, parent_category_def_id, level, sort_order）
+ * 后端服务: Category.getTree()
+ * 数据库表: categories（字段 category_id, category_code, category_name, parent_category_id, level, sort_order）
  *
  * 响应结构:
  *   { success, data: { categories: CategoryTreeNode[] } }
  *
  * CategoryTreeNode:
- *   - category_def_id: BIGINT 分类ID
+ *   - category_id: BIGINT 分类ID
  *   - category_code: VARCHAR 分类编码（如 'collectible'）
- *   - display_name: VARCHAR 分类显示名（如 '收藏品'）
- *   - parent_category_def_id: BIGINT|null 父分类ID（一级分类为 null）
+ *   - category_name: VARCHAR 分类显示名（如 '收藏品'）
+ *   - parent_category_id: BIGINT|null 父分类ID（一级分类为 null）
  *   - level: INT 层级（1=一级, 2=二级）
  *   - sort_order: INT 排序权重
  *   - children: CategoryTreeNode[] 子分类数组（仅一级分类有值）
- *
- * ⚠️ 此API需要后端实现 CategoryDef.getTree() 并注册路由
  */
 async function getCategoryTree() {
   return apiClient.request('/system/config/category-tree', {

@@ -200,7 +200,7 @@ Page({
         }
       }
       if (this.data.filterCategoryCode) {
-        listingsParams.category_def_id = this.data.filterCategoryCode
+        listingsParams.category_id = this.data.filterCategoryCode
       }
       if (this.data.filterRarityCode) {
         listingsParams.rarity_code = this.data.filterRarityCode

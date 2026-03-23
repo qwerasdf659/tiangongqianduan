@@ -64,7 +64,7 @@ const { buildQueryString } = require('../util')
  * @param params.limit - 每页数量，默认20
  * @param params.listing_kind - 挂牌类型: 'item' / 'fungible_asset'
  * @param params.asset_code - 资产代码筛选（仅 fungible_asset 有效）
- * @param params.category_def_id - 物品类目定义ID（整数，仅 item 有效）
+ * @param params.category_id - 物品类目ID（整数，仅 item 有效）
  * @param params.asset_group_code - 资产分组代码（仅 fungible_asset 有效）
  * @param params.rarity_code - 稀有度筛选（仅 item 有效）
  * @param params.min_price - 最低价格
@@ -78,7 +78,7 @@ async function getMarketProducts(
     limit?: number
     listing_kind?: string | null
     asset_code?: string | null
-    category_def_id?: number | null
+    category_id?: number | null
     asset_group_code?: string | null
     rarity_code?: string | null
     min_price?: number | null
@@ -95,7 +95,7 @@ async function getMarketProducts(
     limit = 20,
     listing_kind = null,
     asset_code = null,
-    category_def_id = null,
+    category_id = null,
     asset_group_code = null,
     rarity_code = null,
     min_price = null,
@@ -110,7 +110,7 @@ async function getMarketProducts(
     limit,
     listing_kind,
     asset_code,
-    category_def_id,
+    category_id,
     asset_group_code,
     rarity_code,
     min_price,

@@ -1,6 +1,6 @@
 <!--
   两级分类联动选择器组件
-  后端API: GET /api/v4/system/config/category-tree（CategoryDef.getTree()）
+  后端API: GET /api/v4/system/config/category-tree（Category.getTree()）
   降级方案: 使用 flatOptions 扁平分类列表（后端 product-filter API）
 -->
 
@@ -11,7 +11,7 @@
     <view
       class="parent-item {{selectedCode === 'all' ? 'active' : ''}}"
       data-code="all"
-      data-def-id=""
+      data-category-id=""
       bindtap="onTapParent"
     >
       <text class="parent-text">全部</text>
@@ -21,10 +21,10 @@
       wx:key="category_code"
       class="parent-item {{selectedCode === item.category_code || expandedParent === item.category_code ? 'active' : ''}}"
       data-code="{{item.category_code}}"
-      data-def-id="{{item.category_def_id}}"
+      data-category-id="{{item.category_id}}"
       bindtap="onTapParent"
     >
-      <text class="parent-text">{{item.display_name}}</text>
+      <text class="parent-text">{{item.category_name}}</text>
       <text wx:if="{{item.children && item.children.length > 0}}" class="parent-arrow"
         >{{expandedParent === item.category_code ? '▲' : '▼'}}</text
       >
@@ -44,11 +44,11 @@
           wx:key="category_code"
           class="child-item {{selectedCode === child.category_code ? 'active' : ''}}"
           data-code="{{child.category_code}}"
-          data-def-id="{{child.category_def_id}}"
+          data-category-id="{{child.category_id}}"
           data-parent-code="{{item.category_code}}"
           bindtap="onTapChild"
         >
-          <text class="child-text">{{child.display_name}}</text>
+          <text class="child-text">{{child.category_name}}</text>
         </view>
       </view>
     </block>

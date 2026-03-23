@@ -61,7 +61,7 @@ const MATERIAL_ICONS: Record<string, string> = {
   purple_crystal: '/images/icons/materials/purple-crystal.webp'
 }
 
-// ===== 分类图标映射（9种，对齐后端 category_defs 表） =====
+// ===== 分类图标映射（9种，对齐后端 categories 表） =====
 
 /**
  * category_code → 本地图标路径映射

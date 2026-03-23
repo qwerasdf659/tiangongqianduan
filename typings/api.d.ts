@@ -476,13 +476,13 @@ declare namespace API {
     stock: number
     /** 已售数量 */
     sold_count: number
-    /** 分类定义ID（关联 category_defs.category_def_id，整数FK） */
-    category_def_id: number
-    /** 分类定义对象（后端联查返回） */
-    category_def?: {
-      category_def_id: number
+    /** 分类ID（关联 categories.category_id，整数FK） */
+    category_id: number
+    /** 分类对象（后端联查返回） */
+    category?: {
+      category_id: number
       category_code: string
-      display_name: string
+      category_name: string
     }
     /** 空间类型: lucky(幸运空间) / premium(臻选空间) */
     space: string
@@ -559,8 +559,8 @@ declare namespace API {
       cost_asset_code?: string
       /** 支付金额 */
       cost_amount?: number
-      /** 分类定义ID */
-      category_def_id?: number
+      /** 分类ID */
+      category_id?: number
       /** 主图媒体对象（新订单使用 media 结构） */
       primary_media?: {
         /** 图片完整公网URL */
@@ -645,8 +645,8 @@ declare namespace API {
     primary_media_id: number | null
     /** 主图媒体对象（后端联查返回） */
     primary_media: MediaObject | null
-    /** 分类定义ID（关联 category_defs.category_def_id） */
-    category_def_id: number
+    /** 分类ID（关联 categories.category_id） */
+    category_id: number
     /** 起拍价（BIGINT，最低出价金额） */
     start_price: number
     /** 当前最高出价（BIGINT） */
@@ -952,8 +952,8 @@ declare namespace API {
     offer_item_template_id: number | null
     /** 物品显示名称 */
     offer_item_display_name: string | null
-    /** 物品分类定义ID（关联 category_defs.category_def_id，整数FK） */
-    offer_category_def_id: number | null
+    /** 物品分类ID（关联 categories.category_id，整数FK） */
+    offer_category_id: number | null
     /** 物品稀有度编码 */
     offer_item_rarity: string | null
     /** 资产代码（fungible_asset类型使用，可为null） */

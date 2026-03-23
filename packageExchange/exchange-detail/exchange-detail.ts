@@ -18,7 +18,7 @@
  *   执行兑换: POST /api/v4/backpack/exchange（body: { exchange_item_id, quantity }）
  *   用户余额: GET /api/v4/assets/balances
  *   页面配置: GET /api/v4/system/config/exchange-page
- *   相关推荐: GET /api/v4/backpack/exchange/items?category_def_id=xxx&exclude_id=xxx&page_size=4
+ *   相关推荐: GET /api/v4/backpack/exchange/items?category_id=xxx&exclude_id=xxx&page_size=4
  *
  * 响应层级: detailResponse.data.item（后端统一 ApiResponse 包装）
  *
@@ -234,12 +234,12 @@ Page({
 
       /**
        * 分类显示名:
-       *   优先 category_def.display_name（后端联查）
-       *   降级 category_def.category_code
+       *   优先 category.category_name（后端联查）
+       *   降级 category.category_code
        */
       const categoryDisplayName: string =
-        (productData.category_def && productData.category_def.display_name) ||
-        (productData.category_def && productData.category_def.category_code) ||
+        (productData.category && productData.category.category_name) ||
+        (productData.category && productData.category.category_code) ||
         ''
 
       /** 空间显示名（lucky / premium / both） */
@@ -465,9 +465,9 @@ Page({
       wx.setNavigationBarTitle({ title: productData.item_name || '商品详情' })
       edLog.info('商品详情加载成功:', productData.item_name)
 
-      /** 异步加载相关推荐（不阻塞主渲染，使用 category_def_id 整数查询） */
-      const relatedCategoryDefId = productData.category_def_id || null
-      this._loadRelatedProducts(relatedCategoryDefId, itemId)
+      /** 异步加载相关推荐（不阻塞主渲染，使用 category_id 整数查询） */
+      const relatedCategoryId = productData.category_id || null
+      this._loadRelatedProducts(relatedCategoryId, itemId)
     } catch (error: any) {
       edLog.error('商品详情加载失败:', error)
       this.setData({
@@ -481,17 +481,17 @@ Page({
   /**
    * ⑧ 加载相关推荐（异步，不阻塞主渲染）
    *
-   * API: GET /api/v4/backpack/exchange/items?category_def_id=xxx&exclude_id=xxx&page_size=4&status=active
+   * API: GET /api/v4/backpack/exchange/items?category_id=xxx&exclude_id=xxx&page_size=4&status=active
    */
-  async _loadRelatedProducts(categoryDefId: number | null, excludeId: number) {
-    if (!categoryDefId) {
+  async _loadRelatedProducts(categoryId: number | null, excludeId: number) {
+    if (!categoryId) {
       edLog.info('商品无分类，跳过相关推荐')
       return
     }
 
     try {
       const response = await DetailPageAPI.getExchangeProducts({
-        category_def_id: categoryDefId,
+        category_id: categoryId,
         exclude_id: excludeId,
         page_size: 4,
         status: 'active'

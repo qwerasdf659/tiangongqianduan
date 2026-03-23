@@ -41,7 +41,7 @@ Component({
     viewMode: { type: String, value: 'grid' },
     /** 臻选空间是否已解锁 */
     premiumUnlocked: { type: Boolean, value: false },
-    /** 分类选项（后端 product-filter API 下发，使用 category_def_id 整数筛选） */
+    /** 分类选项（后端 product-filter API 下发，使用 category_id 整数筛选） */
     categoryOptions: { type: Array, value: [] },
     /** 价格区间选项（后端下发，统一 100/500/1000 区间） */
     costRangeOptions: { type: Array, value: [] },
@@ -199,8 +199,8 @@ Component({
             has_warranty: item.has_warranty || false,
             free_shipping: item.free_shipping || false,
             rarity_code: item.rarity_code || 'common',
-            category_def_id: item.category_def_id || null,
-            category_code: (item.category_def && item.category_def.category_code) || null
+            category_id: item.category_id || null,
+            category_code: (item.category && item.category.category_code) || null
           }
         })
         .filter(Boolean)
@@ -329,7 +329,7 @@ Component({
           apiParams.keyword = searchKeyword
         }
         if (categoryFilter && categoryFilter !== 'all') {
-          apiParams.category_def_id = categoryFilter
+          apiParams.category_id = categoryFilter
         }
         if (selectedRange.min !== undefined && selectedRange.min !== null) {
           apiParams.min_cost = selectedRange.min

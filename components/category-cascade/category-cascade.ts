@@ -2,16 +2,16 @@
  * 两级分类联动选择器组件
  *
  * 业务场景: 兑换商品和交易市场的分类筛选（文档 8.5 / 10.15.4）
- * 数据来源: 后端 CategoryDef.getTree() 返回的树形分类结构
+ * 数据来源: 后端 Category.getTree() 返回的树形分类结构
  *
  * 交互模式:
  *   - 横向滚动展示一级分类
  *   - 点击一级分类展开二级子分类列表
- *   - 选择一级分类时自动包含所有子分类（传 category_def_id 给后端）
+ *   - 选择一级分类时自动包含所有子分类（传 category_id 给后端）
  *   - 选择二级分类时精确筛选（传子分类 category_code 给后端）
  *
  * 对外事件:
- *   bind:change - 分类选择变更，detail: { categoryCode, categoryDefId, level, parentCode }
+ *   bind:change - 分类选择变更，detail: { categoryCode, categoryId, level, parentCode }
  *
  * @file components/category-cascade/category-cascade.ts
  * @version 1.0.0
@@ -29,7 +29,7 @@ Component({
   },
 
   data: {
-    /** 树形分类数据（后端 CategoryDef.getTree() 返回） */
+    /** 树形分类数据（后端 Category.getTree() 返回） */
     categoryTree: [] as any[],
     /** 是否成功加载树形数据（false 时降级到扁平模式） */
     treeLoaded: false,
@@ -59,7 +59,7 @@ Component({
   methods: {
     /**
      * 加载分类树形结构
-     * 优先使用后端 CategoryDef.getTree() API
+     * 优先使用后端 Category.getTree() API
      * 失败时降级到 flatOptions（单级扁平模式）
      */
     async _loadCategoryTree() {
@@ -92,7 +92,7 @@ Component({
     /** 点击一级分类: 展开/收起子分类 或 直接选中（无子分类时） */
     onTapParent(e: any) {
       const parentCode = e.currentTarget.dataset.code
-      const parentDefId = e.currentTarget.dataset.defId
+      const parentCategoryId = e.currentTarget.dataset.categoryId
 
       if (!parentCode) {
         return
@@ -102,7 +102,7 @@ Component({
         this.setData({ selectedCode: 'all', expandedParent: '' })
         this.triggerEvent('change', {
           categoryCode: 'all',
-          categoryDefId: null,
+          categoryId: null,
           level: 0,
           parentCode: ''
         })
@@ -119,7 +119,7 @@ Component({
           this.setData({ selectedCode: parentCode })
           this.triggerEvent('change', {
             categoryCode: parentCode,
-            categoryDefId: parentDefId,
+            categoryId: parentCategoryId,
             level: 1,
             parentCode: ''
           })
@@ -128,7 +128,7 @@ Component({
         this.setData({ selectedCode: parentCode, expandedParent: '' })
         this.triggerEvent('change', {
           categoryCode: parentCode,
-          categoryDefId: parentDefId,
+          categoryId: parentCategoryId,
           level: 1,
           parentCode: ''
         })
@@ -138,7 +138,7 @@ Component({
     /** 点击二级子分类: 精确选中 */
     onTapChild(e: any) {
       const childCode = e.currentTarget.dataset.code
-      const childDefId = e.currentTarget.dataset.defId
+      const childCategoryId = e.currentTarget.dataset.categoryId
       const parentCode = e.currentTarget.dataset.parentCode
 
       if (!childCode) {
@@ -148,7 +148,7 @@ Component({
       this.setData({ selectedCode: childCode })
       this.triggerEvent('change', {
         categoryCode: childCode,
-        categoryDefId: childDefId,
+        categoryId: childCategoryId,
         level: 2,
         parentCode
       })
@@ -160,7 +160,7 @@ Component({
       this.setData({ selectedCode: categoryCode || 'all' })
       this.triggerEvent('change', {
         categoryCode: categoryCode || 'all',
-        categoryDefId: null,
+        categoryId: null,
         level: 1,
         parentCode: ''
       })
