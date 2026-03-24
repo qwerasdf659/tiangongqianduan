@@ -1,7 +1,7 @@
 /**
  * 背包系统 + 兑换系统 + 竞价系统 API
  * 后端路由: routes/v4/backpack/（双轨结构 assets[] + items[]）
- * 兑换路由: routes/v4/backpack/exchange/（用户域）
+ * 兑换路由（用户域 B2C）: `/api/v4/exchange/*`（Phase 3，与 marketplace-stats-api 设计方案 §3.2 一致；已废弃旧路径前缀 backpack/exchange）
  * 竞价路由: routes/v4/backpack/bid/（用户域）
  *
  * 数据库表: items / item_ledger / item_holds（三表模型，2026-02-22 迁移完成）
@@ -117,7 +117,7 @@ async function getItemTimeline(item_id: number) {
 
 /**
  * 获取兑换商品列表
- * GET /api/v4/backpack/exchange/items
+ * GET /api/v4/exchange/items
  *
  * 后端服务: exchange_query（ExchangeQueryService.getMarketItems）
  * 数据库表: exchange_items（字段 exchange_item_id, item_name, cost_asset_code, cost_amount 等）
@@ -192,12 +192,12 @@ async function getExchangeProducts(
     exclude_id,
     with_counts: with_counts ? 'true' : null
   })
-  return apiClient.request(`/backpack/exchange/items?${qs}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/exchange/items?${qs}`, { method: 'GET', needAuth: true })
 }
 
 /**
  * 执行商品兑换（全量SKU模式）
- * POST /api/v4/backpack/exchange
+ * POST /api/v4/exchange
  *
  * 后端服务: exchange_core（CoreService.exchangeItem）
  * 业务流程: 幂等键校验 → 商品状态校验 → SKU库存校验 → BalanceService扣减资产 → SKU库存扣减 → 创建exchange_records
@@ -230,12 +230,15 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1, s
     quantity
   }
 
-  /** 全量SKU模式: 后端要求传入 sku_id（单品商品由后端自动选择默认SKU） */
-  if (sku_id) {
+  /**
+   * 全量 SKU 模式: 请求体须带 sku_id（单品为唯一默认 SKU 的 id）
+   * 幂等键仅放在 Header（Idempotency-Key），不得放入 body
+   */
+  if (typeof sku_id === 'number' && sku_id > 0) {
     requestData.sku_id = sku_id
   }
 
-  return apiClient.request('/backpack/exchange', {
+  return apiClient.request('/exchange', {
     method: 'POST',
     data: requestData,
     header: {
@@ -251,7 +254,7 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1, s
 
 /**
  * 获取兑换订单记录
- * GET /api/v4/backpack/exchange/orders
+ * GET /api/v4/exchange/orders
  *
  * 订单状态枚举（9态，Phase 3 扩展后）:
  *   pending    - 待审核
@@ -274,12 +277,12 @@ async function getExchangeRecords(
   status: string | null = null
 ) {
   const qs = buildQueryString({ page, page_size, status })
-  return apiClient.request(`/backpack/exchange/orders?${qs}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/exchange/orders?${qs}`, { method: 'GET', needAuth: true })
 }
 
 /**
  * 取消兑换订单（退还资产）
- * POST /api/v4/backpack/exchange/orders/:order_no/cancel
+ * POST /api/v4/exchange/orders/:order_no/cancel
  *
  * @param order_no - 订单号（exchange_records.order_no，VARCHAR(50) UNIQUE）
  */
@@ -290,7 +293,7 @@ async function cancelExchange(order_no: string) {
 
   const idempotencyKey = `exchange_cancel_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
-  return apiClient.request(`/backpack/exchange/orders/${order_no}/cancel`, {
+  return apiClient.request(`/exchange/orders/${order_no}/cancel`, {
     method: 'POST',
     header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
@@ -303,7 +306,7 @@ async function cancelExchange(order_no: string) {
 
 /**
  * 获取兑换商品详情
- * GET /api/v4/backpack/exchange/items/:exchange_item_id
+ * GET /api/v4/exchange/items/:exchange_item_id
  *
  * @param exchange_item_id - 兑换商品ID（exchange_items.exchange_item_id）
  */
@@ -311,7 +314,7 @@ async function getExchangeItemDetail(exchange_item_id: number | string) {
   if (!exchange_item_id) {
     throw new Error('商品ID不能为空')
   }
-  return apiClient.request(`/backpack/exchange/items/${exchange_item_id}`, {
+  return apiClient.request(`/exchange/items/${exchange_item_id}`, {
     method: 'GET',
     needAuth: true
   })
@@ -319,7 +322,7 @@ async function getExchangeItemDetail(exchange_item_id: number | string) {
 
 /**
  * 获取兑换订单详情
- * GET /api/v4/backpack/exchange/orders/:order_no
+ * GET /api/v4/exchange/orders/:order_no
  *
  * @param order_no - 订单号（exchange_records.order_no）
  */
@@ -327,7 +330,7 @@ async function getExchangeOrderDetail(order_no: string) {
   if (!order_no) {
     throw new Error('订单号不能为空')
   }
-  return apiClient.request(`/backpack/exchange/orders/${order_no}`, {
+  return apiClient.request(`/exchange/orders/${order_no}`, {
     method: 'GET',
     needAuth: true
   })
@@ -337,7 +340,7 @@ async function getExchangeOrderDetail(order_no: string) {
 
 /**
  * 确认收货（用户手动 / 发货后7天系统自动确认）
- * POST /api/v4/backpack/exchange/orders/:order_no/confirm-receipt
+ * POST /api/v4/exchange/orders/:order_no/confirm-receipt
  *
  * 后端服务: exchange_core（CoreService.confirmReceipt）
  * 状态流转: shipped → received（auto_confirmed=false 手动确认）
@@ -360,7 +363,7 @@ async function confirmExchangeReceipt(order_no: string) {
 
   const idempotencyKey = `exchange_confirm_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
-  return apiClient.request(`/backpack/exchange/orders/${order_no}/confirm-receipt`, {
+  return apiClient.request(`/exchange/orders/${order_no}/confirm-receipt`, {
     method: 'POST',
     header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
@@ -373,7 +376,7 @@ async function confirmExchangeReceipt(order_no: string) {
 
 /**
  * 评价兑换订单
- * POST /api/v4/backpack/exchange/orders/:order_no/rate
+ * POST /api/v4/exchange/orders/:order_no/rate
  *
  * 后端服务: exchange_core（CoreService.rateOrder）
  * 状态流转: received → rated（评价后不可修改）
@@ -399,7 +402,7 @@ async function rateExchangeOrder(order_no: string, rating: number) {
   }
   const idempotencyKey = `exchange_rate_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
-  return apiClient.request(`/backpack/exchange/orders/${order_no}/rate`, {
+  return apiClient.request(`/exchange/orders/${order_no}/rate`, {
     method: 'POST',
     data: { rating },
     header: { 'Idempotency-Key': idempotencyKey },
@@ -415,7 +418,7 @@ async function rateExchangeOrder(order_no: string, rating: number) {
 
 /**
  * 查询兑换订单物流轨迹
- * GET /api/v4/backpack/exchange/orders/:order_no/track
+ * GET /api/v4/exchange/orders/:order_no/track
  *
  * 后端服务: ShippingTrackService（快递100主通道 + 快递鸟备用通道，自动降级）
  * 缓存策略: Redis TTL 10分钟（已签收延长到24小时）
@@ -432,8 +435,8 @@ async function rateExchangeOrder(order_no: string, rating: number) {
  *       status            - string 节点状态
  *       detail            - string 轨迹详情
  *
- * ⚠️ 后端用户端路由 /backpack/exchange/orders/:order_no/track 需确认已注册
- *    管理端路由 /console/marketplace/exchange_market/orders/:order_no/track 已实现
+ * ⚠️ 用户端与运营端须分别注册：GET /api/v4/exchange/orders/:order_no/track（小程序）
+ *    运营端参考：GET /api/v4/console/exchange/orders/:order_no/track（与 marketplace-stats-api 路由拆分一致）
  *
  * @param order_no - 订单号（exchange_records.order_no，VARCHAR(50) UNIQUE）
  */
@@ -441,7 +444,7 @@ async function getExchangeOrderTrack(order_no: string) {
   if (!order_no) {
     throw new Error('订单号不能为空')
   }
-  return apiClient.request(`/backpack/exchange/orders/${order_no}/track`, {
+  return apiClient.request(`/exchange/orders/${order_no}/track`, {
     method: 'GET',
     needAuth: true,
     showLoading: true,
@@ -455,7 +458,7 @@ async function getExchangeOrderTrack(order_no: string) {
 
 /**
  * 获取兑换空间统计数据
- * GET /api/v4/backpack/exchange/space-stats
+ * GET /api/v4/exchange/space-stats
  *
  * 后端服务: exchange_query（ExchangeQueryService）
  * 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
@@ -467,7 +470,7 @@ async function getExchangeSpaceStats(space: string) {
     throw new Error('空间类型不能为空')
   }
   const qs = buildQueryString({ space })
-  return apiClient.request(`/backpack/exchange/space-stats?${qs}`, {
+  return apiClient.request(`/exchange/space-stats?${qs}`, {
     method: 'GET',
     needAuth: true,
     showLoading: false,
@@ -479,7 +482,7 @@ async function getExchangeSpaceStats(space: string) {
 
 /**
  * 查询臻选空间解锁状态
- * GET /api/v4/backpack/exchange/premium-status
+ * GET /api/v4/exchange/premium-status
  *
  * 后端服务: premium（PremiumService.getPremiumStatus * 数据来源: PremiumService 服务层计算返回（️ user_premium_statuses 表不存在） *
  * 已解锁时响应字段:
@@ -499,7 +502,7 @@ async function getExchangeSpaceStats(space: string) {
  *   - conditions: object 解锁条件详情
  */
 async function getPremiumStatus() {
-  return apiClient.request('/backpack/exchange/premium-status', {
+  return apiClient.request('/exchange/premium-status', {
     method: 'GET',
     needAuth: true,
     showLoading: false,
@@ -509,7 +512,7 @@ async function getPremiumStatus() {
 
 /**
  * 解锁臻选空间
- * POST /api/v4/backpack/exchange/unlock-premium
+ * POST /api/v4/exchange/unlock-premium
  *
  * 后端服务: premium（PremiumService.unlockPremium）
  * 业务规则:
@@ -522,7 +525,7 @@ async function getPremiumStatus() {
 async function unlockPremium() {
   const idempotencyKey = `unlock_premium_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
-  return apiClient.request('/backpack/exchange/unlock-premium', {
+  return apiClient.request('/exchange/unlock-premium', {
     method: 'POST',
     header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,

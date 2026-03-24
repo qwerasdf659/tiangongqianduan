@@ -14,11 +14,11 @@
  *   ⑩ 吸底操作栏（余额 + 客服 + 兑换按钮）
  *
  * 后端API:
- *   商品详情: GET /api/v4/backpack/exchange/items/:exchange_item_id
- *   执行兑换: POST /api/v4/backpack/exchange（body: { exchange_item_id, quantity }）
+ *   商品详情: GET /api/v4/exchange/items/:exchange_item_id
+ *   执行兑换: POST /api/v4/exchange（body: { exchange_item_id, quantity, sku_id }，sku_id 全量 SKU 模式必填）
  *   用户余额: GET /api/v4/assets/balances
  *   页面配置: GET /api/v4/system/config/exchange-page
- *   相关推荐: GET /api/v4/backpack/exchange/items?category_id=xxx&exclude_id=xxx&page_size=4
+ *   相关推荐: GET /api/v4/exchange/items?category_id=xxx&exclude_id=xxx&page_size=4
  *
  * 响应层级: detailResponse.data.item（后端统一 ApiResponse 包装）
  *
@@ -178,7 +178,7 @@ Page({
    * 加载商品详情 + 用户余额（并行请求）
    *
    * 数据流:
-   *   GET /api/v4/backpack/exchange/items/:id → res.data.item（后端 ApiResponse 包装）
+   *   GET /api/v4/exchange/items/:id → res.data.item（后端 ApiResponse 包装）
    *   GET /api/v4/assets/balances → 用户多资产余额
    */
   async _loadProductDetail(itemId: number) {
@@ -196,11 +196,11 @@ Page({
 
       /**
        * 后端统一响应: { success, code, data: { item: {...} } }
-       * 优先按文档格式取 data.item；data.item 为空时降级取 data（防御性容错）
+       * 仅使用 data.item，与 ApiResponse 契约一致（不做旧版扁平 data 兼容）
        */
-      const productData = detailResponse.data.item || detailResponse.data
+      const productData = detailResponse.data.item
       if (!productData || !productData.exchange_item_id) {
-        throw new Error('商品数据格式异常')
+        throw new Error('商品数据格式异常：缺少 data.item 或 exchange_item_id')
       }
 
       const priceCode: string = productData.cost_asset_code || 'POINTS'
@@ -387,12 +387,11 @@ Page({
         assetBalance = matchedAsset ? matchedAsset.available_amount || 0 : 0
       }
 
-      const insufficient: boolean = assetBalance < (productData.cost_amount || 0)
       const showSoldCount: boolean = (productData.sold_count || 0) >= SOLD_COUNT_DISPLAY_THRESHOLD
 
       /**
        * SKU 规格数据处理（全量SKU模式）
-       * 后端 GET /backpack/exchange/items/:id 返回 skus 数组:
+       * 后端 GET /exchange/items/:id 返回 skus 数组:
        *   [{ sku_id, spec_values, cost_amount, stock, status }]
        * 单品商品: skus.length === 1 且 spec_values 为 {}
        * 多规格商品: skus.length > 1，每个 SKU 有独立价格和库存
@@ -434,6 +433,31 @@ Page({
           specMatrix[specName] = Array.from(values)
         })
       }
+
+      /** 全量 SKU：无可用上架规格则不可兑换（避免前端假装有库存） */
+      if (activeSkus.length === 0) {
+        throw new Error('该商品暂无可售规格（SKU），请稍后再试或联系客服')
+      }
+
+      /**
+       * 余额是否不足：多规格时在用户未选规格前，用「有货 SKU 的最低单价」与余额比（仅展示提示，不替代后端扣款校验）
+       * 单默认 SKU 或已选 SKU 时用对应 cost_amount
+       */
+      let referenceUnitCost = productData.cost_amount || 0
+      if (hasMultiSku) {
+        const inStockSkus = activeSkus.filter((s: any) => (s.stock || 0) > 0)
+        const costs = inStockSkus
+          .map((s: any) => (typeof s.cost_amount === 'number' ? s.cost_amount : null))
+          .filter((c: number | null) => c !== null) as number[]
+        if (costs.length > 0) {
+          referenceUnitCost = Math.min(...costs)
+        }
+      } else if (selectedSkuInfo && typeof selectedSkuInfo.cost_amount === 'number') {
+        referenceUnitCost = selectedSkuInfo.cost_amount
+      } else if (activeSkus[0] && typeof activeSkus[0].cost_amount === 'number') {
+        referenceUnitCost = activeSkus[0].cost_amount
+      }
+      const insufficient: boolean = assetBalance < referenceUnitCost
 
       this.setData({
         product: enrichedProduct,
@@ -481,7 +505,7 @@ Page({
   /**
    * ⑧ 加载相关推荐（异步，不阻塞主渲染）
    *
-   * API: GET /api/v4/backpack/exchange/items?category_id=xxx&exclude_id=xxx&page_size=4&status=active
+   * API: GET /api/v4/exchange/items?category_id=xxx&exclude_id=xxx&page_size=4&status=active
    */
   async _loadRelatedProducts(categoryId: number | null, excludeId: number) {
     if (!categoryId) {
@@ -572,8 +596,23 @@ Page({
 
   /** ⑩ 点击立即兑换 → 打开确认弹窗 */
   onExchange() {
-    const { product } = this.data
-    if (!product || product.stock <= 0 || this.data.balanceInsufficient) {
+    const { product, hasMultiSku, selectedSkuInfo, skuList } = this.data
+    if (!product || this.data.balanceInsufficient) {
+      return
+    }
+    /** 多规格须先选 SKU；单默认 SKU 用选中行或唯一行的 stock，与后端 skus[].stock 对齐 */
+    let effStock = 0
+    if (hasMultiSku) {
+      effStock =
+        selectedSkuInfo && typeof selectedSkuInfo.stock === 'number' ? selectedSkuInfo.stock : 0
+    } else if (selectedSkuInfo && typeof selectedSkuInfo.stock === 'number') {
+      effStock = selectedSkuInfo.stock
+    } else if (skuList.length === 1 && typeof skuList[0].stock === 'number') {
+      effStock = skuList[0].stock
+    } else if (typeof product.stock === 'number') {
+      effStock = product.stock
+    }
+    if (effStock <= 0) {
       return
     }
     this.setData({ showConfirm: true, exchangeQuantity: 1, exchanging: false })
@@ -591,7 +630,11 @@ Page({
   onQuantityChange(e: any) {
     const action = e.currentTarget.dataset.action
     let { exchangeQuantity } = this.data
-    const maxQty = Math.min(this.data.product.stock, 99)
+    const skuStock =
+      this.data.selectedSkuInfo && typeof this.data.selectedSkuInfo.stock === 'number'
+        ? this.data.selectedSkuInfo.stock
+        : this.data.product.stock
+    const maxQty = Math.min(skuStock || 0, 99)
 
     if (action === 'increase') {
       exchangeQuantity = Math.min(exchangeQuantity + 1, maxQty)
@@ -628,7 +671,7 @@ Page({
   /**
    * 确认兑换（全量SKU模式）
    *
-   * POST /api/v4/backpack/exchange
+   * POST /api/v4/exchange
    * body: { exchange_item_id, quantity, sku_id }
    * header: Idempotency-Key（API层 exchangeProduct 自动生成）
    */
@@ -660,13 +703,19 @@ Page({
       return
     }
 
+    /** 全量 SKU：列表非空则必须带 sku_id 提交（单品默认 SKU 在加载时已自动选中） */
+    if (this.data.skuList.length > 0 && (!selectedSkuId || selectedSkuId <= 0)) {
+      wx.showToast({ title: '缺少商品规格信息，请刷新页面重试', icon: 'none' })
+      return
+    }
+
     this.setData({ exchanging: true })
 
     try {
       const response = await DetailPageAPI.exchangeProduct(
         product.exchange_item_id,
         exchangeQuantity,
-        selectedSkuId || undefined
+        selectedSkuId
       )
 
       if (response && response.success) {

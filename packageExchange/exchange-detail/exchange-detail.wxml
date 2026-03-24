@@ -1,6 +1,6 @@
 <!--
   兑换商品详情页 — B+C混合方案（白底密排 + 游戏化视觉）
-  后端API: GET /api/v4/backpack/exchange/items/:exchange_item_id
+  后端API: GET /api/v4/exchange/items/:exchange_item_id
   响应层级: res.data.data.item
 
   十大区块:

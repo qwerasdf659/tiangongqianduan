@@ -61,7 +61,7 @@ const { buildQueryString } = require('../util')
  *
  * @param params - 查询参数对象
  * @param params.page - 页码，默认1
- * @param params.limit - 每页数量，默认20
+ * @param params.page_size - 每页数量，默认20
  * @param params.listing_kind - 挂牌类型: 'item' / 'fungible_asset'
  * @param params.asset_code - 资产代码筛选（仅 fungible_asset 有效）
  * @param params.category_id - 物品类目ID（整数，仅 item 有效）
@@ -75,7 +75,7 @@ const { buildQueryString } = require('../util')
 async function getMarketProducts(
   params: {
     page?: number
-    limit?: number
+    page_size?: number
     listing_kind?: string | null
     asset_code?: string | null
     category_id?: number | null
@@ -92,7 +92,7 @@ async function getMarketProducts(
 ) {
   const {
     page = 1,
-    limit = 20,
+    page_size = 20,
     listing_kind = null,
     asset_code = null,
     category_id = null,
@@ -107,7 +107,7 @@ async function getMarketProducts(
 
   const qs = buildQueryString({
     page,
-    limit,
+    page_size,
     listing_kind,
     asset_code,
     category_id,
@@ -307,18 +307,18 @@ async function getMyListingStatus() {
  *   status, created_at
  *
  * @param params.page - 页码，默认1
- * @param params.limit - 每页数量，默认20
+ * @param params.page_size - 每页数量，默认20
  * @param params.status - 挂单状态筛选: active / sold / withdrawn / expired（可选，不传返回全部）
  */
 async function getMyListings(
   params: {
     page?: number
-    limit?: number
+    page_size?: number
     status?: string | null
   } = {}
 ) {
-  const { page = 1, limit = 20, status = null } = params
-  const qs = buildQueryString({ page, limit, status })
+  const { page = 1, page_size = 20, status = null } = params
+  const qs = buildQueryString({ page, page_size, status })
   return apiClient.request(`/market/my-listings?${qs}`, {
     method: 'GET',
     needAuth: true
@@ -878,7 +878,7 @@ async function getPriceHistory(params: { asset_code: string; days?: number }) {
  *
  * 后端通过JWT Token识别当前用户（买方），返回该用户的所有购买订单
  *
- * 响应结构: { orders: TradeOrder[], pagination: { page, limit, total, total_pages } }
+ * 响应结构: { orders: TradeOrder[], pagination: { page, page_size, total, total_pages } }
  *
  * TradeOrder 字段:
  *   trade_order_id    - BIGINT 交易订单ID
@@ -898,18 +898,18 @@ async function getPriceHistory(params: { asset_code: string; days?: number }) {
  *   seller_nickname   - VARCHAR 卖家昵称
  *
  * @param params.page - 页码，默认1
- * @param params.limit - 每页数量，默认20
+ * @param params.page_size - 每页数量，默认20
  * @param params.status - 状态筛选: all / pending / completed / cancelled（可选）
  */
 async function getMyOrders(
   params: {
     page?: number
-    limit?: number
+    page_size?: number
     status?: string | null
   } = {}
 ) {
-  const { page = 1, limit = 20, status = null } = params
-  const qs = buildQueryString({ page, limit, status })
+  const { page = 1, page_size = 20, status = null } = params
+  const qs = buildQueryString({ page, page_size, status })
   return apiClient.request(`/market/my-orders?${qs}`, {
     method: 'GET',
     needAuth: true

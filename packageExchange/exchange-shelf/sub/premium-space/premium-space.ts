@@ -6,7 +6,7 @@
  *   - 后端 QueryService.getMarketItems() 执行 WHERE / ORDER BY / LIMIT
  *   - 支持 with_counts=true 返回各维度聚合计数
  *
- * 后端API: GET /api/v4/backpack/exchange/items?space=premium&...
+ * 后端API: GET /api/v4/exchange/items?space=premium&...
  *
  * @file packageExchange/exchange-shelf/sub/premium-space/premium-space.ts
  * @version 7.0.0
@@ -92,7 +92,7 @@ Component({
 
     /**
      * 初始化臻选空间数据（服务端分页 + with_counts）
-     * 后端API: GET /api/v4/backpack/exchange/items?space=premium
+     * 后端API: GET /api/v4/exchange/items?space=premium
      */
     async initData() {
       premiumLog.info('初始化臻选空间数据...')
@@ -258,7 +258,7 @@ Component({
 
     /**
      * 两级分类联动选择器变更事件
-     * detail: { categoryCode, categoryDefId, level, parentCode }
+     * detail: { categoryCode, categoryId, level, parentCode }
      */
     onCategoryCascadeChange(e: any) {
       const { categoryCode } = e.detail

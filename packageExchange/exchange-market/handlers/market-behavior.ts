@@ -125,7 +125,7 @@ module.exports = Behavior({
 
       try {
         const page = this.data.currentPage || 1
-        const limit = this.data.pageSize || 20
+        const pageSize = this.data.pageSize || 20
         const {
           categoryFilter,
           sortBy,
@@ -147,7 +147,7 @@ module.exports = Behavior({
          */
         const apiParams: Record<string, any> = {
           page,
-          limit,
+          page_size: pageSize,
           with_counts: true
         }
 
@@ -275,7 +275,7 @@ module.exports = Behavior({
             loading: false,
             filteredProducts: interleavedProducts,
             totalCount: pagination.total || enrichedProducts.length,
-            totalPages: Math.ceil((pagination.total || enrichedProducts.length) / limit) || 1,
+            totalPages: Math.ceil((pagination.total || enrichedProducts.length) / pageSize) || 1,
             filtersCount: response.data.filters_count || null
           })
 

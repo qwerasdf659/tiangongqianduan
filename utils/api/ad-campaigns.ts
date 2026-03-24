@@ -96,13 +96,15 @@ async function uploadAdImage(filePath: string): Promise<API.ApiResponse<API.Medi
  * [API 7] 获取我的广告活动列表 - GET /api/v4/user/ad-campaigns
  * @param params.status - 筛选状态: draft/pending_review/approved/active/paused/completed/rejected/cancelled（不传返回全部）
  * @param params.page - 页码（默认1）
- * @param params.limit - 每页数量（默认20）
+ * @param params.page_size - 每页数量（默认20）
  */
-async function getMyAdCampaigns(params: { status?: string; page?: number; limit?: number } = {}) {
+async function getMyAdCampaigns(
+  params: { status?: string; page?: number; page_size?: number } = {}
+) {
   const qs = buildQueryString({
     status: params.status || undefined,
     page: params.page || 1,
-    limit: params.limit || 20
+    page_size: params.page_size || 20
   })
   return apiClient.request(`/user/ad-campaigns?${qs}`, {
     method: 'GET',

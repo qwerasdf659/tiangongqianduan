@@ -6,10 +6,10 @@
  *   → received(已收货) → rated(已评价)
  *
  * 后端API:
- *   GET  /api/v4/backpack/exchange/orders                            — 获取兑换订单列表
- *   GET  /api/v4/backpack/exchange/orders/:order_no                  — 获取订单详情
- *   POST /api/v4/backpack/exchange/orders/:order_no/confirm-receipt  — 确认收货
- *   POST /api/v4/backpack/exchange/orders/:order_no/rate             — 评价订单
+ *   GET  /api/v4/exchange/orders                            — 获取兑换订单列表
+ *   GET  /api/v4/exchange/orders/:order_no                  — 获取订单详情
+ *   POST /api/v4/exchange/orders/:order_no/confirm-receipt  — 确认收货
+ *   POST /api/v4/exchange/orders/:order_no/rate             — 评价订单
  *
  * @file packageExchange/exchange-orders/exchange-orders.ts
  */
@@ -146,7 +146,7 @@ Page({
 
   /**
    * 加载兑换订单列表
-   * GET /api/v4/backpack/exchange/orders
+   * GET /api/v4/exchange/orders
    *
    * @param reset - 是否重置列表（切换Tab或下拉刷新时为true）
    */
@@ -198,7 +198,7 @@ Page({
   /**
    * 更新订单数量统计
    *
-   * ⚠️ 后端 GET /api/v4/backpack/exchange/orders 响应结构为 { orders, pagination }
+   * ⚠️ 后端 GET /api/v4/exchange/orders 响应结构为 { orders, pagination }
    *    不包含 statistics 字段，仅能从 pagination.total 获取当前筛选条件下的总数
    *    各状态分类计数需后端新增接口支持（已记录到后端需求文档）
    */
@@ -343,7 +343,7 @@ Page({
 
   /**
    * 确认收货
-   * POST /api/v4/backpack/exchange/orders/:order_no/confirm-receipt
+   * POST /api/v4/exchange/orders/:order_no/confirm-receipt
    */
   onConfirmReceipt(e: any) {
     const { order_no, product_name } = e.currentTarget.dataset
@@ -387,7 +387,7 @@ Page({
 
   /**
    * 取消订单（仅 pending 状态可取消，后端自动退还资产）
-   * POST /api/v4/backpack/exchange/orders/:order_no/cancel
+   * POST /api/v4/exchange/orders/:order_no/cancel
    */
   onCancelOrder(e: any) {
     const { order_no, product_name } = e.currentTarget.dataset
@@ -461,7 +461,7 @@ Page({
 
   /**
    * 提交评价
-   * POST /api/v4/backpack/exchange/orders/:order_no/rate
+   * POST /api/v4/exchange/orders/:order_no/rate
    */
   async onSubmitRating() {
     const { ratingOrderNo, ratingScore } = this.data

@@ -23,7 +23,10 @@ const {
   API: shelfAPI,
   GlobalTheme: shelfGlobalTheme
 } = require('../../utils/index')
-const { enrichProductDisplayFields } = require('../utils/product-display')
+const {
+  enrichProductDisplayFields,
+  resolveQuickExchangeSkuId: shelfResolveQuickExchangeSkuId
+} = require('../utils/product-display')
 const shopBehavior = require('./handlers/shop-behavior')
 
 const shelfLog = Logger.createLogger('exchange-shelf')
@@ -239,9 +242,9 @@ Component({
 
     /**
      * 确认商品兑换操作
-     * 后端API: POST /api/v4/backpack/exchange
-     * 请求体: { exchange_item_id: number, quantity: number }
-     * 请求头: Idempotency-Key（幂等键，防止重复提交）
+     * 后端API: POST /api/v4/exchange
+     * 请求体: { exchange_item_id, quantity, sku_id }（全量 SKU 模式下 sku_id 由后端校验库存与价）
+     * 请求头: Idempotency-Key（幂等键，HTTP Header，非 body）
      */
     async onConfirmShopExchange() {
       const { selectedShopProduct, shopExchangeQuantity, shopExchanging } = this.data
@@ -277,15 +280,49 @@ Component({
         return
       }
 
+      /** 货架一键兑换：仅「单默认 SKU」可直接传 sku_id；多规格必须进详情（与详情页全量 SKU 逻辑一致） */
+      const skuResolve = shelfResolveQuickExchangeSkuId(selectedShopProduct)
+      if (!skuResolve.ok) {
+        if (skuResolve.reason === 'need_detail') {
+          wx.showModal({
+            title: '需要选择规格',
+            content: skuResolve.message || '请进入商品详情选择规格',
+            confirmText: '去详情',
+            cancelText: '取消',
+            success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
+              if (res.confirm) {
+                wx.navigateTo({
+                  url:
+                    '/packageExchange/exchange-detail/exchange-detail?exchange_item_id=' +
+                    shopProductId
+                })
+              }
+            }
+          })
+        } else {
+          wx.showToast({
+            title: skuResolve.message || '暂时无法兑换',
+            icon: 'none',
+            duration: 2800
+          })
+        }
+        return
+      }
+
       this.setData({ shopExchanging: true })
 
       try {
         const exchangeItemIdNum = Number(shopProductId)
         shelfLog.info('执行商品兑换:', {
           exchangeItemId: exchangeItemIdNum,
-          quantity: shopExchangeQuantity
+          quantity: shopExchangeQuantity,
+          sku_id: skuResolve.sku_id
         })
-        const response = await shelfAPI.exchangeProduct(exchangeItemIdNum, shopExchangeQuantity)
+        const response = await shelfAPI.exchangeProduct(
+          exchangeItemIdNum,
+          shopExchangeQuantity,
+          skuResolve.sku_id
+        )
 
         if (response && response.success && response.data) {
           shelfLog.info('兑换成功:', response.data)

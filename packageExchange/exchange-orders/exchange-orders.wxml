@@ -1,6 +1,6 @@
 <!--
   兑换订单页面 — 独立全页面版
-  后端API: GET /api/v4/backpack/exchange/orders
+  后端API: GET /api/v4/exchange/orders
   业务流: pending → approved → shipped → received → rated
 -->
 <view class="orders-page">

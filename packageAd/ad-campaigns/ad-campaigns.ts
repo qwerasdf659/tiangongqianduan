@@ -128,7 +128,7 @@ Page({
       const result = await API.getMyAdCampaigns({
         status: this.data.currentStatus || undefined,
         page: targetPage,
-        limit: this.data.pageSize
+        page_size: this.data.pageSize
       })
 
       if (!result?.success || !result.data) {

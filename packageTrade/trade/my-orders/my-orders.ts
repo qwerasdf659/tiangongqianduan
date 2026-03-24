@@ -135,7 +135,7 @@ Page({
 
     try {
       const { page, pageSize, currentStatus } = this.data
-      const queryParams: Record<string, any> = { page, limit: pageSize }
+      const queryParams: Record<string, any> = { page, page_size: pageSize }
       if (currentStatus !== 'all') {
         queryParams.status = currentStatus
       }

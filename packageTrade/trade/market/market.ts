@@ -178,7 +178,7 @@ Page({
     try {
       const listingsParams: Record<string, any> = {
         page,
-        limit: this.data.pageSize,
+        page_size: this.data.pageSize,
         with_counts: true
       }
       if (this.data.filterListingKind) {

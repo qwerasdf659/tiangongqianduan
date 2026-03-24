@@ -7,7 +7,7 @@
  *   - 不再在客户端内存中过滤商品数据
  *   - 支持 with_counts=true 返回各维度聚合计数（交叉排除）
  *
- * 后端API: GET /api/v4/backpack/exchange/items?space=lucky&category=xxx&...
+ * 后端API: GET /api/v4/exchange/items?space=lucky&category=xxx&...
  * 筛选配置API: GET /api/v4/system/config/product-filter
  *
  * @file packageExchange/exchange-shelf/sub/lucky-space/lucky-space.ts
@@ -328,7 +328,7 @@ Component({
 
     /**
      * 两级分类联动选择器变更事件
-     * detail: { categoryCode, categoryDefId, level, parentCode }
+     * detail: { categoryCode, categoryId, level, parentCode }
      */
     onCategoryCascadeChange(e: any) {
       const { categoryCode } = e.detail
@@ -381,7 +381,7 @@ Component({
      *
      * 数据流:
      *   用户操作筛选UI → setData更新筛选状态 → _loadFilteredProducts()
-     *   → 构建API参数 → GET /api/v4/backpack/exchange/items?space=lucky&...
+     *   → 构建API参数 → GET /api/v4/exchange/items?space=lucky&...
      *   → 后端 QueryService WHERE/ORDER BY → 返回筛选结果
      *   → 瀑布流布局 → setData渲染
      *

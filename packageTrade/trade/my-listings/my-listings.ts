@@ -166,7 +166,10 @@ Page({
 
     try {
       const { page, pageSize, currentStatus } = this.data
-      const params: { page: number; limit: number; status?: string } = { page, limit: pageSize }
+      const params: { page: number; page_size: number; status?: string } = {
+        page,
+        page_size: pageSize
+      }
       if (currentStatus !== 'all') {
         params.status = currentStatus
       }

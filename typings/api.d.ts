@@ -409,6 +409,48 @@ declare namespace API {
      * 用于前端展示"来自：XX商家"标签，可为 null
      */
     merchant_name: string | null
+
+    /**
+     * 关联物品模板ID（items.item_template_id → item_templates 表）
+     * 兑换铸造时从 exchange_items.item_template_id 继承
+     */
+    item_template_id: number | null
+    /**
+     * 实例独有属性（JSON，铸造时由 AttributeRuleEngine 生成）
+     * 含 quality_score（品质分 0~100）、quality_grade（品质等级中文）、pattern_id（纹理编号）
+     * 以及 SKU 规格副本（如 颜色、尺码）
+     */
+    instance_attributes: {
+      quality_score?: number
+      quality_grade?: string
+      pattern_id?: number
+      [key: string]: any
+    } | null
+    /**
+     * 限量编号（如 42，表示第 42 件）
+     * 前端展示格式: #0042 / 0100（配合 edition_total 使用）
+     */
+    serial_number: number | null
+    /** 限量总数快照（铸造时从 item_templates.max_edition 复制） */
+    edition_total: number | null
+    /**
+     * 物品持有锁列表（后端 item_holds 表，含交易冷却期）
+     * hold_type: 'trade' | 'redemption' | 'security' | 'trade_cooldown'
+     * 冷却期内物品可见可用但不可上架交易
+     */
+    holds?: ItemHold[]
+  }
+
+  /** 物品持有锁（对齐后端 item_holds 表） */
+  interface ItemHold {
+    /** 锁定类型: trade(交易中) / redemption(核销中) / security(安全冻结) / trade_cooldown(新物品冷却期) */
+    hold_type: 'trade' | 'redemption' | 'security' | 'trade_cooldown'
+    /** 锁定状态: active / released / expired */
+    status: 'active' | 'released' | 'expired'
+    /** 锁定原因（中文说明） */
+    reason: string
+    /** 锁定过期时间（ISO8601 北京时间） */
+    expires_at: string
   }
 
   /**
@@ -455,7 +497,7 @@ declare namespace API {
   // ===== 兑换系统 =====
 
   /**
-   * 兑换商品（对齐后端 exchange_items 表 + GET /api/v4/backpack/exchange/items 响应）
+   * 兑换商品（对齐后端 exchange_items 表 + GET /api/v4/exchange/items 响应）
    * 后端使用多币种支付模型: cost_asset_code + cost_amount
    * 图片通过 primary_media_id 关联 media_files 表（media_attachments 多态关联）
    */
@@ -514,10 +556,86 @@ declare namespace API {
     sell_point: string
     /** 创建时间 */
     created_at: string
+    /** 是否推荐商品 */
+    is_recommended: boolean
+    /** 是否置顶 */
+    is_pinned: boolean
+    /**
+     * 铸造开关（控制兑换后是否自动铸造 Item 实例进入用户背包）
+     * true: 兑换后调用 ItemService.mintItem() 铸造实例（虚拟物品）
+     * false: 纯实物发货，不产出实例（纸巾、杯子等）
+     */
+    mint_instance: boolean
+    /** 关联物品模板ID（指定用哪个模板铸造，可为 null 表示运营未配置） */
+    item_template_id: number | null
+    /**
+     * SKU 规格列表（对齐后端 exchange_item_skus 表）
+     * 多规格商品包含多条，单规格商品包含一条默认 SKU
+     */
+    skus?: ExchangeItemSku[]
+  }
+
+  /** 兑换商品 SKU 规格（对齐后端 exchange_item_skus 表） */
+  interface ExchangeItemSku {
+    /** SKU主键 */
+    sku_id: number
+    /** SKU编码（如 dragon_gem_blue_L） */
+    sku_code: string
+    /** 上架状态: active / inactive（列表与详情筛选可售 SKU 时依赖此字段） */
+    status?: string
+    /** SPU 展示用单价回退；多规格时以本字段为权威单价（与 cost_asset_code 对应） */
+    cost_amount?: number
+    /** 规格维度键值（如 { 颜色: '红', 尺码: 'L' }），单品默认 SKU 常为空对象 */
+    spec_values?: Record<string, string>
+    /** SKU独立库存 */
+    stock: number
+    /** SKU已售数量 */
+    sold_count: number
+    /**
+     * SKU 属性值列表（EAV 模式，后端联查 attribute + option）
+     * 示例: [{ attribute_name: "颜色", option_value: "冰蓝" }]
+     */
+    attributeValues?: {
+      attribute_id: number
+      option_id: number
+      attribute: { attribute_name: string }
+      option: { option_value: string }
+    }[]
+    /**
+     * 渠道定价列表（支持多材料资产支付）
+     * 示例: [{ cost_asset_code: "red_shard", cost_amount: 10, is_enabled: true }]
+     */
+    channelPrices?: {
+      cost_asset_code: string
+      cost_amount: number
+      is_enabled: boolean
+    }[]
   }
 
   /**
-   * 兑换订单记录（对齐后端 exchange_records 表 + GET /api/v4/backpack/exchange/orders 响应）
+   * 兑换成功时铸造的物品实例信息（当 mint_instance=true 且 item_template_id 已配置时返回）
+   * 用于兑换结果弹窗展示铸造物品的品质、编号等信息
+   */
+  interface MintedItem {
+    /** 铸造的物品ID（items 表主键） */
+    item_id: number
+    /** 追踪码（如 LT260322123456） */
+    tracking_code: string
+    /** 限量编号（如 42） */
+    serial_number: number | null
+    /** 限量总数（如 100） */
+    edition_total: number | null
+    /** 实例属性（品质分 + 纹理编号 + SKU规格副本） */
+    instance_attributes: {
+      quality_score?: number
+      quality_grade?: string
+      pattern_id?: number
+      [key: string]: any
+    } | null
+  }
+
+  /**
+   * 兑换订单记录（对齐后端 exchange_records 表 + GET /api/v4/exchange/orders 响应）
    *
    * Phase 3 状态扩展后完整流转:
    *   pending(待审核) → approved(审核通过) → shipped(已发货) → received(已收货) → rated(已评价)
@@ -583,6 +701,10 @@ declare namespace API {
     rating?: number
     /** 评价时间（数据库已有字段 rated_at DATETIME） */
     rated_at?: string
+    /** 本次兑换产出的物品实例ID（mint_instance=true 时有值，FK → items） */
+    item_id: number | null
+    /** 本次兑换铸造的物品实例详情（仅兑换成功响应中返回） */
+    minted_item?: MintedItem
   }
 
   /**
@@ -602,7 +724,7 @@ declare namespace API {
   }
 
   /**
-   * 兑换空间统计数据（后端 GET /api/v4/backpack/exchange/space-stats 响应）
+   * 兑换空间统计数据（后端 GET /api/v4/exchange/space-stats 响应）
    * 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
    * ⚠️ 统计数据由后端计算返回，前端不自行统计
    */

@@ -376,6 +376,15 @@
   }
 }
 
+.quality-dot {
+  display: inline-block;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 6rpx;
+  vertical-align: middle;
+}
+
 .filter-actions {
   display: flex;
   gap: 16rpx;

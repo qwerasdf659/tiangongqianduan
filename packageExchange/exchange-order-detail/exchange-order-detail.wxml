@@ -1,6 +1,6 @@
 <!--
   兑换订单详情页
-  后端API: GET /api/v4/backpack/exchange/orders/:order_no
+  后端API: GET /api/v4/exchange/orders/:order_no
 -->
 <view class="detail-page">
   <!-- 加载中 -->

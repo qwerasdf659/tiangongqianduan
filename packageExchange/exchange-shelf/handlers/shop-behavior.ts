@@ -62,7 +62,7 @@ module.exports = Behavior({
 
     /**
      * 检查臻选空间解锁状态
-     * 后端API: GET /api/v4/backpack/exchange/premium-status
+     * 后端API: GET /api/v4/exchange/premium-status
      */
     async checkPremiumUnlockStatus() {
       try {
@@ -89,7 +89,7 @@ module.exports = Behavior({
 
     /**
      * 处理臻选空间解锁（用户点击解锁按钮）
-     * 后端API: POST /api/v4/backpack/exchange/unlock-premium
+     * 后端API: POST /api/v4/exchange/unlock-premium
      */
     async handlePremiumUnlock() {
       await this.checkPremiumUnlockStatus()
@@ -127,7 +127,7 @@ module.exports = Behavior({
 
     /**
      * 执行臻选空间解锁请求
-     * 后端API: POST /api/v4/backpack/exchange/unlock-premium
+     * 后端API: POST /api/v4/exchange/unlock-premium
      */
     async unlockPremiumSpace() {
       try {

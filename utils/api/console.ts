@@ -150,7 +150,7 @@ async function getAdminChatSessions(
   const { page = 1, pageSize = 20, status = null } = params
   const qs = buildQueryString({
     page,
-    limit: pageSize,
+    page_size: pageSize,
     status: status && status !== 'all' ? status : null
   })
   return apiClient.request(`/console/customer-service/sessions?${qs}`, {
@@ -167,7 +167,7 @@ async function getAdminChatHistory(
   if (!sessionId) {
     throw new Error('会话ID不能为空')
   }
-  const qs = buildQueryString({ page, limit: pageSize })
+  const qs = buildQueryString({ page, page_size: pageSize })
   return apiClient.request(`/console/customer-service/sessions/${sessionId}/messages?${qs}`, {
     method: 'GET',
     needAuth: true
@@ -211,8 +211,8 @@ async function getAdminUserQRCode(user_id: number) {
 }
 
 /** 管理员查看指定用户抽奖历史 - GET /api/v4/console/lottery-user-analysis/history/:user_id */
-async function getAdminLotteryHistory(user_id: number, page: number = 1, limit: number = 20) {
-  const qs = buildQueryString({ page, limit })
+async function getAdminLotteryHistory(user_id: number, page: number = 1, page_size: number = 20) {
+  const qs = buildQueryString({ page, page_size })
   return apiClient.request(`/console/lottery-user-analysis/history/${user_id}?${qs}`, {
     method: 'GET',
     needAuth: true

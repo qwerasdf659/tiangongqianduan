@@ -59,8 +59,8 @@ async function performLottery(campaign_code: string, draw_count: number = 1) {
 }
 
 /** 获取当前用户抽奖历史（JWT解析身份）- GET /api/v4/lottery/history */
-async function getLotteryHistory(page: number = 1, limit: number = 20) {
-  const qs = buildQueryString({ page, limit })
+async function getLotteryHistory(page: number = 1, page_size: number = 20) {
+  const qs = buildQueryString({ page, page_size })
   return apiClient.request(`/lottery/history?${qs}`, { method: 'GET', needAuth: true })
 }
 

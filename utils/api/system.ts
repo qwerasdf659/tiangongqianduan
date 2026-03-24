@@ -107,8 +107,8 @@ async function submitFeedback(
 }
 
 /** 获取用户反馈列表 - GET /api/v4/system/feedback/my */
-async function getMyFeedbacks(page: number = 1, limit: number = 20) {
-  const qs = buildQueryString({ page, limit })
+async function getMyFeedbacks(page: number = 1, page_size: number = 20) {
+  const qs = buildQueryString({ page, page_size })
   return apiClient.request(`/system/feedback/my?${qs}`, { method: 'GET', needAuth: true })
 }
 
@@ -168,8 +168,8 @@ async function getChatSessions() {
 }
 
 /** 获取会话消息历史 - GET /api/v4/system/chat/sessions/:id/messages */
-async function getChatHistory(session_id: number, page: number = 1, limit: number = 50) {
-  const qs = buildQueryString({ page, limit })
+async function getChatHistory(session_id: number, page: number = 1, page_size: number = 50) {
+  const qs = buildQueryString({ page, page_size })
   return apiClient.request(`/system/chat/sessions/${session_id}/messages?${qs}`, {
     method: 'GET',
     needAuth: true

@@ -9,10 +9,10 @@
  *   - 操作按钮（取消 / 确认收货 / 评价）
  *
  * 后端API:
- *   GET  /api/v4/backpack/exchange/orders/:order_no          — 获取订单详情
- *   POST /api/v4/backpack/exchange/orders/:order_no/cancel    — 取消订单
- *   POST /api/v4/backpack/exchange/orders/:order_no/confirm-receipt — 确认收货
- *   POST /api/v4/backpack/exchange/orders/:order_no/rate      — 评价订单
+ *   GET  /api/v4/exchange/orders/:order_no          — 获取订单详情
+ *   POST /api/v4/exchange/orders/:order_no/cancel    — 取消订单
+ *   POST /api/v4/exchange/orders/:order_no/confirm-receipt — 确认收货
+ *   POST /api/v4/exchange/orders/:order_no/rate      — 评价订单
  *
  * @file packageExchange/exchange-order-detail/exchange-order-detail.ts
  */
@@ -132,7 +132,7 @@ Page({
 
   /**
    * 加载订单详情
-   * GET /api/v4/backpack/exchange/orders/:order_no
+   * GET /api/v4/exchange/orders/:order_no
    */
   async _loadOrderDetail(orderNo: string) {
     this.setData({ loading: true, hasError: false })
@@ -298,7 +298,7 @@ Page({
 
   /**
    * 取消订单
-   * POST /api/v4/backpack/exchange/orders/:order_no/cancel
+   * POST /api/v4/exchange/orders/:order_no/cancel
    */
   onCancelOrder() {
     const { orderNo, productName } = this.data
@@ -334,7 +334,7 @@ Page({
 
   /**
    * 确认收货
-   * POST /api/v4/backpack/exchange/orders/:order_no/confirm-receipt
+   * POST /api/v4/exchange/orders/:order_no/confirm-receipt
    */
   onConfirmReceipt() {
     const { orderNo, productName } = this.data
@@ -389,7 +389,7 @@ Page({
 
   /**
    * 提交评价
-   * POST /api/v4/backpack/exchange/orders/:order_no/rate
+   * POST /api/v4/exchange/orders/:order_no/rate
    */
   async onSubmitRating() {
     const { orderNo, ratingScore } = this.data
@@ -434,7 +434,7 @@ Page({
 
   /**
    * 查询物流轨迹
-   * GET /api/v4/backpack/exchange/orders/:order_no/track
+   * GET /api/v4/exchange/orders/:order_no/track
    */
   async onQueryShippingTrack() {
     const { orderNo, shippingLoading } = this.data
