@@ -1,5 +1,5 @@
 <!--价格走势图组件 — Canvas 2D 轻量折线图 + 成交量柱状图-->
-<!--后端API: GET /api/v4/market/price/trend + /volume + /summary-->
+<!--后端API: GET /api/v4/marketplace/price/trend + /volume + /summary-->
 <view class="price-chart-wrap">
   <!--顶部渐变头部区域：标题 + 时间周期选择-->
   <view class="chart-header" wx:if="{{title}}">

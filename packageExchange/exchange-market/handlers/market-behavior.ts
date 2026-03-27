@@ -10,11 +10,11 @@
  * 筛选机制（C+++方案，对齐独立交易市场页面 market.ts）：
  *   - listing_kind / sort / category_id / rarity_code / asset_group_code
  *     / asset_code / min_price / max_price / with_counts 全部通过 API 查询参数传递
- *   - 筛选维度从 GET /api/v4/market/listings/facets 动态获取
+ *   - 筛选维度从 GET /api/v4/marketplace/listings/facets 动态获取
  *
  * 后端API:
- *   GET /api/v4/market/listings（QueryService 嵌套响应结构）
- *   GET /api/v4/market/listings/facets（筛选维度字典表）
+ *   GET /api/v4/marketplace/listings（QueryService 嵌套响应结构）
+ *   GET /api/v4/marketplace/listings/facets（筛选维度字典表）
  *
  * @file packageExchange/exchange-market/handlers/market-behavior.ts
  * @version 7.0.0
@@ -44,7 +44,7 @@ const { userStore: marketUserStore } = require('../../../store/user')
 
 /**
  * 前端排序值 → 后端 sort 参数映射
- * 后端 GET /api/v4/market/listings 支持: recommended / newest / price_asc / price_desc / hot / quality_score_desc / quality_score_asc
+ * 后端 GET /api/v4/marketplace/listings 支持: recommended / newest / price_asc / price_desc / hot / quality_score_desc / quality_score_asc
  */
 const SORT_VALUE_MAP: Record<string, string> = {
   default: 'recommended',
@@ -89,7 +89,7 @@ module.exports = Behavior({
      * 从后端API加载交易市场挂单列表（服务端筛选）
      *
      * 数据流:
-     *   筛选状态 → 构建API参数 → GET /api/v4/market/listings?listing_kind=xxx&sort=xxx
+     *   筛选状态 → 构建API参数 → GET /api/v4/marketplace/listings?listing_kind=xxx&sort=xxx
      *   → 后端 QueryService WHERE/ORDER BY → 返回筛选结果
      *   → enrichProductDisplayFields → setData渲染
      */
@@ -141,7 +141,7 @@ module.exports = Behavior({
 
         /**
          * 构建后端API查询参数（对齐独立市场页面 market.ts 的完整筛选参数集）
-         * 后端 GET /api/v4/market/listings 支持:
+         * 后端 GET /api/v4/marketplace/listings 支持:
          *   listing_kind / sort / category_id / rarity_code
          *   asset_group_code / asset_code / min_price / max_price / with_counts
          */
@@ -257,7 +257,7 @@ module.exports = Behavior({
           /**
            * 搜索关键词：后端市场 listings API 暂不支持 keyword 参数
            * 保留客户端辅助筛选，待后端支持后移除此段
-           * ⚠️ 需要后端在 GET /api/v4/market/listings 新增 keyword 查询参数
+           * ⚠️ 需要后端在 GET /api/v4/marketplace/listings 新增 keyword 查询参数
            */
           let displayProducts = enrichedProducts
           if (searchKeyword) {
@@ -347,7 +347,7 @@ module.exports = Behavior({
 
     /**
      * 加载筛选维度数据（首次展开高级筛选面板时触发）
-     * 后端API: GET /api/v4/market/listings/facets
+     * 后端API: GET /api/v4/marketplace/listings/facets
      */
     async loadFacets() {
       if (this.data.facetsLoaded) {
@@ -462,7 +462,7 @@ module.exports = Behavior({
 
     /**
      * 确认购买市场挂单
-     * 后端API: POST /api/v4/market/listings/:id/purchase
+     * 后端API: POST /api/v4/marketplace/listings/:id/purchase
      */
     async onConfirmPurchase() {
       const { selectedProduct } = this.data
@@ -618,7 +618,7 @@ module.exports = Behavior({
 
     /**
      * 加载当前用户的挂单状态统计
-     * 后端API: GET /api/v4/market/listing-status
+     * 后端API: GET /api/v4/marketplace/listing-status
      * 响应: { current, limit, remaining, percentage }
      */
     async loadMyListingStatus() {
@@ -674,7 +674,7 @@ module.exports = Behavior({
 
     /**
      * 提交担保码确认收货
-     * POST /api/v4/market/trade-orders/:trade_order_id/confirm-delivery
+     * POST /api/v4/marketplace/trade-orders/:trade_order_id/confirm-delivery
      *
      * ⚠️ 需要后端 Phase 4 EscrowCodeService 实施完成后才可调用
      */

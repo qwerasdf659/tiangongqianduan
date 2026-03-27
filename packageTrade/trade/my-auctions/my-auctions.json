@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "我的拍卖",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "usingComponents": {
+    "loading-spinner": "/components/loading-spinner/loading-spinner",
+    "empty-state": "/components/empty-state/empty-state"
+  }
+}

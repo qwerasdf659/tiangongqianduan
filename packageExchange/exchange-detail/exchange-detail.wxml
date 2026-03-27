@@ -1,7 +1,7 @@
 <!--
   兑换商品详情页 — B+C混合方案（白底密排 + 游戏化视觉）
   后端API: GET /api/v4/exchange/items/:exchange_item_id
-  响应层级: res.data.data.item
+  响应层级: res.data.item（APIClient 统一解包后）
 
   十大区块:
     ① 图片区  ② 标签区  ③ 价格区  ④ 属性区

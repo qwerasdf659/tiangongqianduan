@@ -3,10 +3,10 @@
  *
  * 自行管理竞价数据、出价弹窗、倒计时等全部状态
  * 后端API:
- *   GET  /api/v4/backpack/bid/products   竞价商品列表
- *   GET  /api/v4/backpack/bid/products/:id  竞价商品详情
- *   POST /api/v4/backpack/bid            提交出价
- *   GET  /api/v4/backpack/bid/history    出价历史
+ *   GET  /api/v4/exchange/bid/products   竞价商品列表
+ *   GET  /api/v4/exchange/bid/products/:id  竞价商品详情
+ *   POST /api/v4/exchange/bid            提交出价
+ *   GET  /api/v4/exchange/bid/history    出价历史
  *
  * @file packageExchange/exchange-shelf/sub/bid-panel/bid-panel.ts
  * @version 5.2.0
@@ -81,7 +81,7 @@ Component({
   methods: {
     /**
      * 加载竞价商品列表
-     * 后端API: GET /api/v4/backpack/bid/products
+     * 后端API: GET /api/v4/exchange/bid/products
      */
     async loadBidProducts() {
       bidLog.info('加载竞价商品列表...')
@@ -275,7 +275,7 @@ Component({
 
     /**
      * 确认竞价
-     * 后端API: POST /api/v4/backpack/bid
+     * 后端API: POST /api/v4/exchange/bid
      */
     async onConfirmBid() {
       const { selectedBidProduct, userBidAmount, bidSubmitting } = this.data

@@ -32,7 +32,12 @@
         "trade/inventory/inventory",
         "trade/my-listings/my-listings",
         "records/trade-upload-records/trade-upload-records",
-        "trade/dispute/dispute"
+        "trade/dispute/dispute",
+        "trade/auction-hall/auction-hall",
+        "trade/auction-detail/auction-detail",
+        "trade/auction-create/auction-create",
+        "trade/my-auctions/my-auctions",
+        "trade/my-auction-bids/my-auction-bids"
       ]
     },
     {

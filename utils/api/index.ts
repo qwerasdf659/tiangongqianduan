@@ -26,6 +26,7 @@ const systemModule = require('./system')
 const consoleModule = require('./console')
 const adCampaignsModule = require('./ad-campaigns')
 const userNotificationsModule = require('./user-notifications')
+const auctionModule = require('./auction')
 
 /**
  * 展开运算符自动同步所有子模块导出
@@ -44,13 +45,13 @@ module.exports = {
   /** 抽奖系统: getLotteryCampaigns / getActiveCampaigns / getLotteryPrizes / getLotteryConfig / performLottery / getLotteryHistory / getLotteryUserStatistics */
   ...lotteryModule,
 
-  /** 资产系统: getPointsBalance / getPointsTransactions / getAssetBalances / getConversionRules / getTodaySummary */
+  /** 资产系统+汇率兑换: getPointsBalance / getPointsTransactions / getAssetBalances / getConversionRules / getTodaySummary / getExchangeRates / previewExchangeRate / executeExchangeRate */
   ...assetsModule,
 
-  /** 背包+兑换+竞价: getUserInventory / getBackpackStats / getExchangeProducts / exchangeProduct / getBidProducts / placeBid 等 */
+  /** 背包+B2C兑换+竞价: getUserInventory / getBackpackStats / getExchangeProducts / exchangeProduct / getBidProducts / placeBid 等 */
   ...backpackModule,
 
-  /** 交易市场: getMarketProducts / purchaseMarketProduct / sellToMarket / getMarketFacets / sellFungibleAssets 等 */
+  /** C2C交易市场: getMarketProducts / purchaseMarketProduct / sellToMarket / getMarketFacets / sellFungibleAssets / confirmDelivery / cancelTradeOrder 等 */
   ...marketModule,
 
   /** 消费积分系统（用户端+商家端）: getUserQRCode / submitConsumption / createRedemptionOrder 等 */
@@ -66,5 +67,8 @@ module.exports = {
   ...adCampaignsModule,
 
   /** 用户通知系统（方案B独立化）: getUserNotifications / getUserNotificationUnreadCount / markNotificationsAsRead / markSingleNotificationAsRead */
-  ...userNotificationsModule
+  ...userNotificationsModule,
+
+  /** C2C竞拍系统: getAuctionListings / getAuctionDetail / createAuction / placeAuctionBid / getMyAuctions / cancelAuction / getMyAuctionBids / createAuctionDispute */
+  ...auctionModule
 }

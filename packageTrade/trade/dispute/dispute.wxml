@@ -1,6 +1,6 @@
 <!--
   P2P交易纠纷/申诉页面
-  后端API: POST/GET /api/v4/market/trade-orders/:trade_order_id/dispute
+  后端API: POST/GET /api/v4/marketplace/trade-orders/:trade_order_id/dispute
 -->
 <view class="dispute-page">
   <!-- 加载中 -->

@@ -8,9 +8,9 @@
  *   - 下拉刷新 + 触底加载更多
  *
  * 后端API:
- *   - GET /api/v4/market/my-listings（获取挂单列表）
- *   - POST /api/v4/market/listings/:id/withdraw（撤回物品实例挂单）
- *   - POST /api/v4/market/fungible-assets/:id/withdraw（撤回可叠加资产挂单）
+ *   - GET /api/v4/marketplace/my-listings（获取挂单列表）
+ *   - POST /api/v4/marketplace/listings/:id/withdraw（撤回物品实例挂单）
+ *   - POST /api/v4/marketplace/fungible-assets/:id/withdraw（撤回可叠加资产挂单）
  *
  * 数据来源: 后端 market_listings 表（seller_user_id = 当前用户）
  *
@@ -45,7 +45,7 @@ const LISTING_KIND_LABEL: Record<string, string> = {
 
 Page({
   data: {
-    /** 挂单列表（后端 GET /api/v4/market/my-listings 返回） */
+    /** 挂单列表（后端 GET /api/v4/marketplace/my-listings 返回） */
     listings: [] as API.MyListing[],
 
     /** 当前筛选状态: all / active / sold / withdrawn */
@@ -149,7 +149,7 @@ Page({
 
   /**
    * 加载我的挂单列表
-   * 后端API: GET /api/v4/market/my-listings
+   * 后端API: GET /api/v4/marketplace/my-listings
    */
   async loadMyListings() {
     if (!userStore.isLoggedIn) {
@@ -184,12 +184,12 @@ Page({
 
         if (!result.data.status_counts) {
           log.warn(
-            '⚠️ 后端未返回 status_counts 字段，各状态计数将显示0。需后端在 GET /api/v4/market/my-listings 响应中添加 status_counts: { active, sold, withdrawn, expired } 聚合字段'
+            '⚠️ 后端未返回 status_counts 字段，各状态计数将显示0。需后端在 GET /api/v4/marketplace/my-listings 响应中添加 status_counts: { active, sold, withdrawn, expired } 聚合字段'
           )
         }
 
         /**
-         * 适配后端 GET /api/v4/market/my-listings 扁平字段格式
+         * 适配后端 GET /api/v4/marketplace/my-listings 扁平字段格式
          *
          * 后端响应字段（基于 market_listings 表）:
          *   listing_id, listing_kind,
@@ -259,7 +259,7 @@ Page({
       }
 
       if (error.statusCode === 404) {
-        log.error('GET /api/v4/market/my-listings 返回404，请确认后端部署')
+        log.error('GET /api/v4/marketplace/my-listings 返回404，请确认后端部署')
         wx.showToast({ title: '服务暂不可用，请稍后再试', icon: 'none', duration: 3000 })
         this.setData({ isEmpty: true, listings: [] })
         return
@@ -286,8 +286,8 @@ Page({
 
   /**
    * 撤回挂单操作
-   * 物品实例: POST /api/v4/market/listings/:id/withdraw
-   * 可叠加资产: POST /api/v4/market/fungible-assets/:id/withdraw
+   * 物品实例: POST /api/v4/marketplace/listings/:id/withdraw
+   * 可叠加资产: POST /api/v4/marketplace/fungible-assets/:id/withdraw
    */
   onWithdrawListing(e: any) {
     const listing = e.currentTarget.dataset.listing
@@ -351,7 +351,7 @@ Page({
 
   /**
    * 查看担保码状态（卖方查看）
-   * GET /api/v4/market/trade-orders/:trade_order_id/escrow-status
+   * GET /api/v4/marketplace/trade-orders/:trade_order_id/escrow-status
    *
    * ⚠️ 不返回明文担保码，仅返回状态信息
    * ⚠️ 需要后端 Phase 4 EscrowCodeService 实施完成后才可调用

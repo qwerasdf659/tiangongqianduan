@@ -7,7 +7,7 @@
  *   3. 通过 CSS 变量注入主题
  *   4. 通过 triggerEvent 通知 Page 壳
  *
- * 后端API: GET /api/v4/market/listings
+ * 后端API: GET /api/v4/marketplace/listings
  *
  * @file packageExchange/exchange-market/exchange-market.ts
  * @version 5.2.0
@@ -74,7 +74,7 @@ Component({
     escrowTradeOrderId: 0,
     escrowSubmitting: false,
 
-    /** 我的交易管理 — 在售挂单数量（来自 GET /api/v4/market/listing-status） */
+    /** 我的交易管理 — 在售挂单数量（来自 GET /api/v4/marketplace/listing-status） */
     myOnSaleCount: 0,
 
     /** 价格走势图（默认收起，用户手动展开） */
@@ -89,7 +89,7 @@ Component({
     filterMinPrice: '',
     filterMaxPrice: '',
 
-    /** 筛选维度数据（后端 GET /api/v4/market/listings/facets 返回） */
+    /** 筛选维度数据（后端 GET /api/v4/marketplace/listings/facets 返回） */
     facetsData: null as any,
     facetsLoaded: false,
 

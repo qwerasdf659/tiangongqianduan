@@ -1,16 +1,16 @@
 /**
- * 背包系统 + 兑换系统 + 竞价系统 API
- * 后端路由: routes/v4/backpack/（双轨结构 assets[] + items[]）
- * 兑换路由（用户域 B2C）: `/api/v4/exchange/*`（Phase 3，与 marketplace-stats-api 设计方案 §3.2 一致；已废弃旧路径前缀 backpack/exchange）
- * 竞价路由: routes/v4/backpack/bid/（用户域）
+ * 背包系统 + B2C兑换系统 + 竞价系统 API
+ * 背包路由: routes/v4/backpack/（双轨结构 assets[] + items[]，仅保留物品查询/核销/使用）
+ * 兑换路由（用户域 B2C）: `/api/v4/exchange/*`（Phase 3 迁移完成）
+ * 竞价路由（用户域 B2C）: `/api/v4/exchange/bid/*`（Phase 3 迁移完成，从 /backpack/bid/ 移至 /exchange/bid/）
  *
  * 数据库表: items / item_ledger / item_holds（三表模型，2026-02-22 迁移完成）
  *           exchange_items / exchange_records / bid_products / bid_records
  *           account_asset_balances
  *
  * @file 天工餐厅积分系统 - 背包与兑换与竞价API模块
- * @version 5.3.0
- * @since 2026-02-23
+ * @version 6.0.0
+ * @since 2026-03-25（Phase 3 路径迁移: /backpack/bid/ → /exchange/bid/）
  */
 
 const { apiClient } = require('./client')
@@ -540,7 +540,7 @@ async function unlockPremium() {
 
 /**
  * 获取竞价商品列表
- * GET /api/v4/backpack/bid/products
+ * GET /api/v4/exchange/bid/products
  *
  * 后端服务: bid_query（BidQueryService）
  * 数据库表: bid_products（关联 exchange_items）
@@ -569,7 +569,7 @@ async function getBidProducts(
   status: string | null = null
 ) {
   const qs = buildQueryString({ page, page_size, status })
-  return apiClient.request(`/backpack/bid/products?${qs}`, {
+  return apiClient.request(`/exchange/bid/products?${qs}`, {
     method: 'GET',
     needAuth: true,
     showLoading: false,
@@ -579,7 +579,7 @@ async function getBidProducts(
 
 /**
  * 获取竞价商品详情
- * GET /api/v4/backpack/bid/products/:bid_product_id
+ * GET /api/v4/exchange/bid/products/:bid_product_id
  *
  * @param bid_product_id - 竞价商品ID（BIGINT）
  */
@@ -587,7 +587,7 @@ async function getBidProductDetail(bid_product_id: number) {
   if (!bid_product_id) {
     throw new Error('竞价商品ID不能为空')
   }
-  return apiClient.request(`/backpack/bid/products/${bid_product_id}`, {
+  return apiClient.request(`/exchange/bid/products/${bid_product_id}`, {
     method: 'GET',
     needAuth: true,
     showLoading: true,
@@ -599,7 +599,7 @@ async function getBidProductDetail(bid_product_id: number) {
 
 /**
  * 提交竞价出价
- * POST /api/v4/backpack/bid
+ * POST /api/v4/exchange/bid
  *
  * 后端服务: bid（BidService.placeBid）
  * 业务流程:
@@ -632,7 +632,7 @@ async function placeBid(bid_product_id: number, bid_amount: number) {
 
   const idempotencyKey = `bid_${bid_product_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
-  return apiClient.request('/backpack/bid', {
+  return apiClient.request('/exchange/bid', {
     method: 'POST',
     data: { bid_product_id, bid_amount },
     header: { 'Idempotency-Key': idempotencyKey },
@@ -646,14 +646,14 @@ async function placeBid(bid_product_id: number, bid_amount: number) {
 
 /**
  * 获取用户竞价历史
- * GET /api/v4/backpack/bid/history
+ * GET /api/v4/exchange/bid/history
  *
  * @param page - 页码，默认 1
  * @param page_size - 每页数量，默认 20
  */
 async function getBidHistory(page: number = 1, page_size: number = 20) {
   const qs = buildQueryString({ page, page_size })
-  return apiClient.request(`/backpack/bid/history?${qs}`, {
+  return apiClient.request(`/exchange/bid/history?${qs}`, {
     method: 'GET',
     needAuth: true,
     showLoading: false,

@@ -1,5 +1,5 @@
 <!-- 汇率兑换组件 — 固定汇率资产兑换 -->
-<!-- 后端API: GET /api/v4/market/exchange-rates, POST preview, POST convert -->
+<!-- 后端API: GET /api/v4/assets/rates, POST preview, POST convert -->
 <view class="exchange-rate-container">
   <!-- 加载状态 -->
   <loading-spinner wx:if="{{pageLoading}}" text="加载汇率..." />

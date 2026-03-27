@@ -1,8 +1,8 @@
 <!--买方订单管理页 — 订单列表 + 状态筛选 + 分页 + 担保码确认收货 + 取消交易-->
-<!--后端API: GET /api/v4/market/my-orders (status / page / limit)-->
-<!--后端API: GET /api/v4/market/trade-orders/:id/escrow-status-->
-<!--后端API: POST /api/v4/market/trade-orders/:id/confirm-delivery-->
-<!--后端API: POST /api/v4/market/trade-orders/:id/cancel-->
+<!--后端API: GET /api/v4/marketplace/my-orders (status / page / limit)-->
+<!--后端API: GET /api/v4/marketplace/trade-orders/:id/escrow-status-->
+<!--后端API: POST /api/v4/marketplace/trade-orders/:id/confirm-delivery-->
+<!--后端API: POST /api/v4/marketplace/trade-orders/:id/cancel-->
 
 <view class="orders-container">
   <view class="page-header">
@@ -128,9 +128,11 @@
           </button>
         </view>
 
-        <!--订单编号-->
+        <!--订单编号（后端 trade_orders.order_no，TO前缀16位定长编号）-->
         <view class="order-footer">
-          <text class="order-id-label">订单号: {{item.trade_order_id}}</text>
+          <text class="order-id-label" catchtap="onCopyOrderNo" data-order-no="{{item.order_no}}"
+            >订单号: {{item.order_no || item.trade_order_id}}</text
+          >
         </view>
       </view>
     </view>
@@ -209,8 +211,10 @@
     </view>
     <view wx:elif="{{escrowStatusData}}" class="status-info">
       <view class="status-row">
-        <text class="status-label">订单ID</text>
-        <text class="status-value">{{escrowStatusData.trade_order_id}}</text>
+        <text class="status-label">订单号</text>
+        <text class="status-value"
+          >{{escrowStatusData.order_no || escrowStatusData.trade_order_id}}</text
+        >
       </view>
       <view class="status-row" wx:if="{{escrowStatusData.expires_at}}">
         <text class="status-label">过期时间</text>

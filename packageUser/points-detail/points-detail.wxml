@@ -105,6 +105,7 @@
           </view>
           <view class="record-meta">
             <text class="record-time">{{item.displayTime}}</text>
+            <text class="record-no" wx:if="{{item.transaction_no}}">{{item.transaction_no}}</text>
             <text class="record-desc" wx:if="{{item.displayDescription}}"
               >{{item.displayDescription}}</text
             >

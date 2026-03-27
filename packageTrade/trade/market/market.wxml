@@ -1,5 +1,5 @@
 <!--packageTrade/trade/market/market.wxml - C2C交易市场瀑布流布局-->
-<!--后端API: GET /api/v4/market/listings-->
+<!--后端API: GET /api/v4/marketplace/listings-->
 <!--字段直接使用后端响应 + 以 _ 为前缀的计算展示字段-->
 
 <view class="waterfall-market-container">

@@ -159,6 +159,9 @@
                     >{{item.description}}</text
                   >
                   <text class="transaction-time">{{helpers.formatTime(item.created_at)}}</text>
+                  <text class="transaction-no" wx:if="{{item.transaction_no}}"
+                    >{{item.transaction_no}}</text
+                  >
                 </view>
               </view>
               <view class="transaction-right">
@@ -229,6 +232,7 @@
               <view class="record-meta">
                 <!-- 🔴 使用WXS helpers.formatTime()格式化时间，防止[object Object] -->
                 <text class="record-time">{{helpers.formatTime(item.created_at)}}</text>
+                <text class="record-order-no" wx:if="{{item.order_no}}">{{item.order_no}}</text>
               </view>
               <view class="record-status {{item.status}}">
                 <text class="status-icon"

@@ -12,9 +12,7 @@
  * @since 2026-02-21
  */
 
-const {
-  ImageHelper: resultImageHelper
-} = require('../../../../utils/index')
+const { ImageHelper: resultImageHelper } = require('../../../../utils/index')
 const { getQualityGradeStyle, formatEdition } = resultImageHelper
 
 Component({
@@ -29,7 +27,7 @@ Component({
 
   observers: {
     /** 铸造物品变更时计算展示字段 */
-    'mintedItem': function (item: any) {
+    mintedItem(item: any) {
       if (!item) {
         this.setData({ _hasMinted: false })
         return

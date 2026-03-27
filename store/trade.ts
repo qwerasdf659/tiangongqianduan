@@ -2,7 +2,7 @@
  * 🏪 交易状态管理 - MobX Store
  *
  * 管理内容: 交易市场商品、用户库存背包、上架管理
- * 数据来源: 后端 GET /api/v4/market/listings、GET /api/v4/backpack/
+ * 数据来源: 后端 GET /api/v4/marketplace/listings、GET /api/v4/backpack/
  *
  * 类型定义统一引用 typings/api.d.ts API.MarketListing / API.BackpackItem
  * 类型定义统一引用 typings/api.d.ts API.MarketListing / API.BackpackItem / API.MyListing
@@ -20,7 +20,7 @@ import { createPaginatedActions, createPaginationState } from './helpers'
 export const tradeStore = observable({
   // ===== 可观察状态=====
 
-  /** 市场商品列表（后端 GET /api/v4/market/listings 返回） */
+  /** 市场商品列表（后端 GET /api/v4/marketplace/listings 返回） */
   marketListings: [] as API.MarketListing[],
 
   /** 用户背包物品列表（后端 GET /api/v4/backpack/ 的items[]返回） */

@@ -5,8 +5,8 @@
  * 不引入 echarts（400KB+），适合小程序包体积限制
  *
  * 后端API:
- *   GET /api/v4/market/price/trend   → 价格走势数据点
- *   GET /api/v4/market/price/summary → 价格摘要统计
+ *   GET /api/v4/marketplace/price/trend   → 价格走势数据点
+ *   GET /api/v4/marketplace/price/summary → 价格摘要统计
  *
  * 使用方式:
  *   <price-chart asset-code="red_shard" title="价格走势" />
@@ -61,7 +61,7 @@ Component({
     ] as any[],
     /** 走势数据点（后端返回） */
     dataPoints: [] as any[],
-    /** 成交量走势数据（后端 GET /api/v4/market/price/volume 返回） */
+    /** 成交量走势数据（后端 GET /api/v4/marketplace/price/volume 返回） */
     volumePoints: [] as any[],
     /** 价格摘要统计 */
     summary: null as any,
@@ -114,9 +114,9 @@ Component({
     /**
      * 并行获取走势数据 + 摘要数据 + 成交量数据
      * 后端API:
-     *   GET /api/v4/market/price/trend   → 价格走势
-     *   GET /api/v4/market/price/summary → 价格摘要
-     *   GET /api/v4/market/price/volume  → 成交量走势
+     *   GET /api/v4/marketplace/price/trend   → 价格走势
+     *   GET /api/v4/marketplace/price/summary → 价格摘要
+     *   GET /api/v4/marketplace/price/volume  → 成交量走势
      */
     async _fetchData() {
       this.setData({ loading: true })
@@ -317,7 +317,7 @@ Component({
 
     /**
      * Canvas 2D 绘制成交量柱状图
-     * 后端API: GET /api/v4/market/price/volume → data_points[]
+     * 后端API: GET /api/v4/marketplace/price/volume → data_points[]
      */
     _drawVolumeChart(volumeData: any[]) {
       const query = this.createSelectorQuery()

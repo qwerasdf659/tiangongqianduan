@@ -241,14 +241,15 @@ async function getAdminLotteryUserStatistics(user_id: number) {
   })
 }
 
-// ==================== 📊 管理员客服统====================
+// ==================== 📊 管理员客服统计 ====================
 
 /**
- * 获取管理员客服会话统 * 后端API: GET /api/v4/console/customer-service/sessions/stats
+ * 获取管理员客服会话统计
+ * 后端API: GET /api/v4/console/customer-service/sessions/stats
  *
- * ⚠️ 路径注意: 后端实际路径/sessions/stats（在sessions子路由下 *    前端文档中曾/customer-service/stats，已对齐为后端实际路 *
  * @param admin_id - 可选，筛选指定客服的统计
- * @returns 统计数据（total_sessions, completed_sessions, avg_response_time, customer_satisfaction */
+ * @returns 统计数据（total_sessions, completed_sessions, avg_response_time, customer_satisfaction）
+ */
 async function getAdminSessionStats(admin_id?: number) {
   const qs = buildQueryString({ admin_id: admin_id || null })
   const url: string = qs
@@ -263,7 +264,8 @@ async function getAdminSessionStats(admin_id?: number) {
 }
 
 /**
- * 获取管理员客服响应时长统 * 后端API: GET /api/v4/console/customer-service/sessions/response-stats?days=7
+ * 获取管理员客服响应时长统计
+ * 后端API: GET /api/v4/console/customer-service/sessions/response-stats?days=7
  *
  * @param days - 统计天数（默认30天）
  * @returns { summary, distribution, trend, admin_ranking }
@@ -278,12 +280,12 @@ async function getAdminResponseStats(days: number = 7) {
   })
 }
 
-// ==================== 🟢 管理员在线状态====================
+// ==================== 🟢 管理员在线状态 ====================
 
 /**
- * 更新管理员在线状态 * 后端API: POST /api/v4/console/customer-service/sessions/status
+ * 更新管理员在线状态
+ * 后端API: POST /api/v4/console/customer-service/sessions/status
  *
- * ⚠️ 路径注意: 后端实际路径/sessions/status（在sessions子路由下 *    前端文档中曾/customer-service/status，已对齐为后端实际路 *
  * 状态存储在 Redis 中（key: cs:admin_status:{admin_id}），4小时自动过期
  *
  * @param status - 在线状态枚举 'online' | 'busy' | 'offline'
@@ -304,10 +306,13 @@ async function updateAdminOnlineStatus(status: 'online' | 'busy' | 'offline') {
 }
 
 /**
- * 批量查询管理员在线状态 * 后端API: GET /api/v4/console/customer-service/sessions/status?admin_ids=31,32
+ * 批量查询管理员在线状态
+ * 后端API: GET /api/v4/console/customer-service/sessions/status?admin_ids=31,32
  *
- * 未设置或已过期的管理员视'offline'（Redis 4小时自动过期 *
- * @param admin_ids - 管理员ID数组（如 [31, 32] * @returns data: [{ admin_id, status }]
+ * 未设置或已过期的管理员视为 'offline'（Redis 4小时自动过期）
+ *
+ * @param admin_ids - 管理员ID数组（如 [31, 32]）
+ * @returns data: [{ admin_id, status }]
  */
 async function getAdminOnlineStatus(admin_ids: number[]) {
   if (!admin_ids || admin_ids.length === 0) {

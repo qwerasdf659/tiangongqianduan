@@ -6,12 +6,15 @@
  *   - 查看进度: 已提交 / 处理中 / 已仲裁
  *   - 仲裁结果: 退款 / 驳回 / 部分退款
  *
- * 后端API:
- *   POST /api/v4/market/trade-orders/:trade_order_id/dispute — 提交申诉
- *   GET  /api/v4/market/trade-orders/:trade_order_id/dispute — 查询申诉详情
+ * 支持两种来源（通过路由参数 source 区分）:
+ *   source=trade（默认）: C2C固定价交易订单争议
+ *     POST /api/v4/market/trade-orders/:trade_order_id/dispute
+ *     GET  /api/v4/market/trade-orders/:trade_order_id/dispute
+ *   source=auction: C2C拍卖争议
+ *     POST /api/v4/marketplace/auctions/:auction_listing_id/dispute
  *
  * @file packageTrade/trade/dispute/dispute.ts
- * @version 1.0.0
+ * @version 5.2.0
  */
 
 const {
@@ -46,8 +49,12 @@ const DISPUTE_RESULT_MAP: Record<string, { label: string; color: string }> = {
 
 Page({
   data: {
-    /** 路由参数 */
+    /** 争议来源: 'trade'(C2C固定价交易) / 'auction'(C2C拍卖) */
+    disputeSource: 'trade' as string,
+    /** 路由参数（交易订单ID，source=trade时使用） */
     tradeOrderId: 0,
+    /** 路由参数（拍卖ID，source=auction时使用） */
+    auctionListingId: 0,
 
     /** 页面模式: 'form'(提交申诉) / 'detail'(查看进度) */
     mode: 'form' as string,
@@ -81,6 +88,19 @@ Page({
   },
 
   onLoad(options: Record<string, string | undefined>) {
+    const source = options.source || 'trade'
+
+    if (source === 'auction') {
+      const auctionListingId = parseInt(options.auction_listing_id || '0', 10)
+      if (!auctionListingId) {
+        disputeLog.error('缺少 auction_listing_id 路由参数')
+        this.setData({ loading: false, hasError: true, errorMessage: '拍卖信息无效' })
+        return
+      }
+      this.setData({ disputeSource: 'auction', auctionListingId, mode: 'form', loading: false })
+      return
+    }
+
     const tradeOrderId = parseInt(options.trade_order_id || '0', 10)
     if (!tradeOrderId) {
       disputeLog.error('缺少 trade_order_id 路由参数')
@@ -88,7 +108,7 @@ Page({
       return
     }
 
-    this.setData({ tradeOrderId })
+    this.setData({ disputeSource: 'trade', tradeOrderId })
     this._checkExistingDispute(tradeOrderId)
   },
 
@@ -209,9 +229,17 @@ Page({
     }
   },
 
-  /** 提交申诉 */
+  /** 提交申诉（支持交易订单和拍卖两种来源） */
   async onSubmitDispute() {
-    const { tradeOrderId, selectedType, description, evidenceImages, submitting } = this.data
+    const {
+      disputeSource,
+      tradeOrderId,
+      auctionListingId,
+      selectedType,
+      description,
+      evidenceImages,
+      submitting
+    } = this.data
     if (submitting) {
       return
     }
@@ -240,12 +268,23 @@ Page({
         disputePayload.evidence_urls = evidenceUrls
       }
 
-      const response = await DisputeAPI.createTradeDispute(tradeOrderId, disputePayload)
+      let response: any
+      if (disputeSource === 'auction') {
+        response = await DisputeAPI.createAuctionDispute(auctionListingId, disputePayload)
+      } else {
+        response = await DisputeAPI.createTradeDispute(tradeOrderId, disputePayload)
+      }
 
       if (response && response.success) {
         disputeLog.info('申诉提交成功')
         disputeShowToast('申诉提交成功', 'success')
-        this._checkExistingDispute(tradeOrderId)
+        if (disputeSource === 'trade') {
+          this._checkExistingDispute(tradeOrderId)
+        } else {
+          setTimeout(() => {
+            wx.navigateBack()
+          }, 1500)
+        }
       } else {
         throw new Error((response && response.message) || '提交失败')
       }

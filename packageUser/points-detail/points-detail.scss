@@ -393,6 +393,13 @@
   color: $color-text-tertiary;
 }
 
+/* 流水号（后端 asset_transactions.transaction_no，TX前缀16位编号） */
+.record-no {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-family: 'Menlo', 'Courier New', monospace;
+}
+
 .record-desc {
   font-size: $font-size-xs;
   color: $color-text-tertiary;

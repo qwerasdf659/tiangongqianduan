@@ -320,7 +320,7 @@ Component({
       this.setData({ showAdvancedFilter: !this.data.showAdvancedFilter })
     },
 
-    /** 分类筛选变更 → 防抖加载（保留兼容旧的扁平模式调用） */
+    /** 分类筛选变更 → 防抖加载 */
     onCategoryFilterChange(e: any) {
       this.setData({ categoryFilter: e.currentTarget.dataset.category })
       this._debouncedLoadProducts()

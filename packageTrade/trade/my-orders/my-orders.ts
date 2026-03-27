@@ -7,10 +7,10 @@
  *   资产交易（listing_kind='fungible_asset'）自动完成，无需担保码。
  *
  * 后端API:
- *   GET  /api/v4/market/my-orders                         → 买方订单列表
- *   GET  /api/v4/market/trade-orders/:id/escrow-status   → 查询担保码状态
- *   POST /api/v4/market/trade-orders/:id/confirm-delivery → 输入担保码确认收货
- *   POST /api/v4/market/trade-orders/:id/cancel           → 取消交易
+ *   GET  /api/v4/marketplace/my-orders                         → 买方订单列表
+ *   GET  /api/v4/marketplace/trade-orders/:id/escrow-status   → 查询担保码状态
+ *   POST /api/v4/marketplace/trade-orders/:id/confirm-delivery → 输入担保码确认收货
+ *   POST /api/v4/marketplace/trade-orders/:id/cancel           → 取消交易
  *
  * @file packageTrade/trade/my-orders/my-orders.ts
  * @version 5.2.0
@@ -45,7 +45,7 @@ Page({
     /** 当前筛选状态: all / pending / completed / cancelled */
     currentStatus: 'all',
 
-    /** 状态筛选标签页（对齐后端 GET /api/v4/market/my-orders status 参数枚举） */
+    /** 状态筛选标签页（对齐后端 GET /api/v4/marketplace/my-orders status 参数枚举） */
     statusTabs: [
       { key: 'all', label: '全部', count: 0 },
       { key: 'pending', label: '待确认', count: 0 },
@@ -116,9 +116,9 @@ Page({
 
   /**
    * 加载买方订单列表（支持状态筛选 + 分页）
-   * 后端API: GET /api/v4/market/my-orders
-   * 查询参数: page, limit, status (all/pending/completed/cancelled)
-   * 响应: { orders: TradeOrder[], pagination: { page, limit, total, total_pages }, status_counts?: {} }
+   * 后端API: GET /api/v4/marketplace/my-orders
+   * 查询参数: page, page_size, status (all/pending/completed/cancelled)
+   * 响应: { orders: TradeOrder[], pagination: { page, page_size, total, total_pages }, status_counts?: {} }
    */
   async _loadOrders() {
     if (!userStore.isLoggedIn) {
@@ -250,7 +250,7 @@ Page({
 
   /**
    * 提交担保码确认收货
-   * 后端: POST /api/v4/market/trade-orders/:trade_order_id/confirm-delivery
+   * 后端: POST /api/v4/marketplace/trade-orders/:trade_order_id/confirm-delivery
    */
   async onSubmitEscrowCode() {
     const { escrowOrderId, escrowInputValue, escrowConfirming } = this.data
@@ -304,7 +304,7 @@ Page({
 
   /**
    * 查询担保码状态
-   * 后端: GET /api/v4/market/trade-orders/:trade_order_id/escrow-status
+   * 后端: GET /api/v4/marketplace/trade-orders/:trade_order_id/escrow-status
    */
   async onViewEscrowStatus(e: any) {
     const tradeOrderId = e.currentTarget.dataset.orderId
@@ -352,7 +352,7 @@ Page({
 
   /**
    * 取消交易
-   * 后端: POST /api/v4/market/trade-orders/:trade_order_id/cancel
+   * 后端: POST /api/v4/marketplace/trade-orders/:trade_order_id/cancel
    */
   onCancelOrder(e: any) {
     const tradeOrderId = e.currentTarget.dataset.orderId
@@ -390,6 +390,18 @@ Page({
           this.setData({ cancellingOrderId: 0 })
         }
       }
+    })
+  },
+
+  /** 复制订单号（TO前缀16位编号） */
+  onCopyOrderNo(e: any) {
+    const orderNo = e.currentTarget.dataset.orderNo
+    if (!orderNo) {
+      return
+    }
+    wx.setClipboardData({
+      data: orderNo,
+      success: () => OrderWechat.showToast('订单号已复制', 'success')
     })
   },
 

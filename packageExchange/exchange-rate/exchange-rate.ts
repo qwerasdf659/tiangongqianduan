@@ -4,14 +4,14 @@
  * 职责：
  *   1. 展示所有可用汇率规则（exchange_rates 表活跃规则）
  *   2. 用户选择币对后输入数量，实时预览兑换结果
- *   3. 执行兑换（POST /api/v4/market/exchange-rates/convert）
+ *   3. 执行兑换（POST /api/v4/assets/rates/convert）
  *   4. 展示每日限额使用情况
  *   5. 通过 triggerEvent 通知 Page 壳刷新积分余额
  *
  * 后端API:
- *   GET  /api/v4/market/exchange-rates         → 汇率列表
- *   POST /api/v4/market/exchange-rates/preview  → 预览兑换
- *   POST /api/v4/market/exchange-rates/convert  → 执行兑换
+ *   GET  /api/v4/assets/rates         → 汇率列表
+ *   POST /api/v4/assets/rates/preview  → 预览兑换
+ *   POST /api/v4/assets/rates/convert  → 执行兑换
  *
  * @file packageExchange/exchange-rate/exchange-rate.ts
  * @version 5.2.0
@@ -88,7 +88,7 @@ Component({
   methods: {
     /**
      * 加载所有可用汇率规则
-     * 后端: GET /api/v4/market/exchange-rates
+     * 后端: GET /api/v4/assets/rates
      */
     async _loadExchangeRates() {
       this.setData({ pageLoading: true, errorMessage: '' })
@@ -195,7 +195,7 @@ Component({
 
     /**
      * 调用预览API
-     * 后端: POST /api/v4/market/exchange-rates/preview
+     * 后端: POST /api/v4/assets/rates/preview
      */
     async _doPreview() {
       const currentRate = this.data.selectedRate

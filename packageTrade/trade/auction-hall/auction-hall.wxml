@@ -1,0 +1,155 @@
+<!--packageTrade/trade/auction-hall/auction-hall.wxml - C2C拍卖大厅-->
+<!--后端API: GET /api/v4/marketplace/auctions-->
+
+<view class="auction-hall-container">
+  <!--顶部操作栏：我的拍卖/我的出价/发起拍卖-->
+  <view class="auction-hall-header">
+    <view class="header-actions">
+      <view class="header-action-btn" bindtap="onGoMyAuctions">
+        <text class="action-icon">📦</text>
+        <text class="action-text">我的拍卖</text>
+      </view>
+      <view class="header-action-btn" bindtap="onGoMyBids">
+        <text class="action-icon">🏷️</text>
+        <text class="action-text">我的出价</text>
+      </view>
+      <view class="header-action-btn header-action-btn--primary" bindtap="onCreateAuction">
+        <text class="action-icon">🔨</text>
+        <text class="action-text">发起拍卖</text>
+      </view>
+    </view>
+  </view>
+
+  <!--状态筛选标签-->
+  <view class="auction-status-tabs">
+    <view
+      class="status-tab {{currentStatus === item.key ? 'status-tab--active' : ''}}"
+      wx:for="{{statusTabs}}"
+      wx:key="key"
+      data-status="{{item.key}}"
+      bindtap="onStatusTabChange"
+    >
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <!--排序栏-->
+  <view class="auction-sort-bar">
+    <view class="sort-current" bindtap="onToggleSortPicker">
+      <text class="sort-label">排序：</text>
+      <text class="sort-value">{{sortOptions[0].label}}</text>
+      <text class="sort-arrow">{{showSortPicker ? '︿' : '﹀'}}</text>
+    </view>
+    <!--排序下拉面板-->
+    <view class="sort-dropdown" wx:if="{{showSortPicker}}">
+      <view
+        class="sort-option {{currentSort === item.key ? 'sort-option--active' : ''}}"
+        wx:for="{{sortOptions}}"
+        wx:key="key"
+        data-sort="{{item.key}}"
+        bindtap="onSortChange"
+      >
+        <text>{{item.label}}</text>
+        <text class="sort-check" wx:if="{{currentSort === item.key}}">✓</text>
+      </view>
+    </view>
+  </view>
+
+  <!--加载中-->
+  <view class="auction-loading" wx:if="{{loading && auctions.length === 0}}">
+    <loading-spinner text="加载拍卖列表..." />
+  </view>
+
+  <!--错误状态-->
+  <view class="auction-error" wx:elif="{{hasError}}">
+    <view class="error-content">
+      <text class="error-icon">😵</text>
+      <text class="error-text">{{errorMessage}}</text>
+      <view class="error-retry-btn" bindtap="onRetry">
+        <text>重新加载</text>
+      </view>
+    </view>
+  </view>
+
+  <!--空状态-->
+  <view class="auction-empty" wx:elif="{{isEmpty}}">
+    <view class="empty-content">
+      <text class="empty-icon">🔨</text>
+      <text class="empty-text">暂无{{currentStatus === 'active' ? '进行中的' : ''}}拍卖</text>
+      <view class="empty-create-btn" bindtap="onCreateAuction">
+        <text>发起第一个拍卖</text>
+      </view>
+    </view>
+  </view>
+
+  <!--拍卖列表-->
+  <view class="auction-list" wx:else>
+    <view
+      class="auction-card"
+      wx:for="{{auctions}}"
+      wx:key="auction_listing_id"
+      data-auction="{{item}}"
+      bindtap="onAuctionItemTap"
+    >
+      <!--物品图片区域-->
+      <view class="auction-card-image">
+        <image class="item-image" src="{{item._displayImage}}" mode="aspectFill" lazy-load />
+        <!--状态角标-->
+        <view class="auction-status-badge" style="background-color: {{item._statusColor}}">
+          <text>{{item._statusIcon}} {{item._statusLabel}}</text>
+        </view>
+        <!--一口价角标-->
+        <view class="buyout-badge" wx:if="{{item._hasBuyout}}">
+          <text>💎 一口价</text>
+        </view>
+      </view>
+
+      <!--商品信息-->
+      <view class="auction-card-info">
+        <text class="auction-item-name">{{item._displayName}}</text>
+        <text class="auction-item-rarity" wx:if="{{item._rarityLabel}}">{{item._rarityLabel}}</text>
+
+        <!--价格信息-->
+        <view class="auction-price-row">
+          <text class="price-label">{{item._priceLabel}}</text>
+          <text class="price-value">{{item._displayPrice}}</text>
+          <text class="price-asset">{{item.price_asset_code}}</text>
+        </view>
+
+        <!--一口价信息-->
+        <view class="auction-buyout-row" wx:if="{{item._hasBuyout}}">
+          <text class="buyout-label">一口价</text>
+          <text class="buyout-value">{{item.buyout_price}}</text>
+          <text class="buyout-asset">{{item.price_asset_code}}</text>
+        </view>
+
+        <!--出价统计和倒计时-->
+        <view class="auction-meta-row">
+          <text class="meta-bids">{{item.bid_count}}次出价</text>
+          <text class="meta-bidders">{{item.unique_bidders}}人参与</text>
+        </view>
+
+        <!--倒计时-->
+        <view class="auction-countdown" wx:if="{{item._isActive && item._countdownText}}">
+          <text class="countdown-text">⏰ {{item._countdownText}}</text>
+        </view>
+
+        <!--卖方信息-->
+        <view class="auction-seller-row">
+          <text class="seller-label">卖方：</text>
+          <text class="seller-name">{{item.seller_nickname || '匿名用户'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!--加载更多-->
+    <view class="auction-load-more" wx:if="{{hasMore}}">
+      <loading-spinner text="加载更多..." wx:if="{{loading}}" />
+    </view>
+
+    <!--没有更多-->
+    <view class="auction-no-more" wx:if="{{!hasMore && auctions.length > 0}}">
+      <text>— 没有更多了 —</text>
+    </view>
+  </view>
+</view>

@@ -752,7 +752,7 @@ declare namespace API {
   /**
    * 竞价商品（后端 bid_products 表，7态状态机）
    * 状态流转: pending → active → settled/no_bid/cancelled
-   * 后端API: GET /api/v4/backpack/bid/products
+   * 后端API: GET /api/v4/exchange/bid/products
    */
   interface BidProduct {
     /** 竞价商品ID（主键） */
@@ -795,7 +795,7 @@ declare namespace API {
 
   /**
    * 竞价出价记录（后端 bid_records 表，含幂等键+冻结流水）
-   * 后端API: GET /api/v4/backpack/bid/history
+   * 后端API: GET /api/v4/exchange/bid/history
    */
   interface BidRecord {
     /** 出价记录ID（主键） */
@@ -823,7 +823,7 @@ declare namespace API {
   // ===== 汇率兑换系统 =====
 
   /**
-   * 汇率规则（对齐后端 exchange_rates 表 + GET /api/v4/market/exchange-rates 响应）
+   * 汇率规则（对齐后端 exchange_rates 表 + GET /api/v4/assets/rates 响应）
    * 表示一条源资产→目标资产的兑换规则
    */
   interface ExchangeRate {
@@ -854,7 +854,7 @@ declare namespace API {
   }
 
   /**
-   * 兑换预览结果（POST /api/v4/market/exchange-rates/preview 响应）
+   * 兑换预览结果（POST /api/v4/assets/rates/preview 响应）
    * 仅预览不执行实际兑换，用于前端展示确认信息
    */
   interface ExchangeRatePreview {
@@ -881,7 +881,7 @@ declare namespace API {
   }
 
   /**
-   * 兑换执行结果（POST /api/v4/market/exchange-rates/convert 响应）
+   * 兑换执行结果（POST /api/v4/assets/rates/convert 响应）
    * 携带 Idempotency-Key 请求头防止重复兑换
    */
   interface ExchangeRateConvertResult {
@@ -902,7 +902,7 @@ declare namespace API {
   // ===== 价格发现系统 =====
 
   /**
-   * 价格走势数据点（GET /api/v4/market/price/trend 响应中 data_points 数组项）
+   * 价格走势数据点（GET /api/v4/marketplace/price/trend 响应中 data_points 数组项）
    * 后端按时间聚合 trade_orders JOIN market_listings 计算
    */
   interface PriceTrendPoint {
@@ -921,7 +921,7 @@ declare namespace API {
   }
 
   /**
-   * 成交量走势数据点（GET /api/v4/market/price/volume 响应中 data_points 数组项）
+   * 成交量走势数据点（GET /api/v4/marketplace/price/volume 响应中 data_points 数组项）
    * 与 PriceTrendPoint 结构类似，侧重成交量维度
    */
   interface VolumeTrendPoint {
@@ -936,7 +936,7 @@ declare namespace API {
   }
 
   /**
-   * 价格摘要统计（GET /api/v4/market/price/summary 响应）
+   * 价格摘要统计（GET /api/v4/marketplace/price/summary 响应）
    * 综合统计某资产/物品的历史成交数据
    */
   interface PriceSummary {
@@ -955,7 +955,7 @@ declare namespace API {
   }
 
   /**
-   * 最近成交记录（GET /api/v4/market/price/recent-trades 响应中数组项）
+   * 最近成交记录（GET /api/v4/marketplace/price/recent-trades 响应中数组项）
    * 展示实时成交流
    */
   interface RecentTrade {
@@ -982,7 +982,7 @@ declare namespace API {
   // ===== 市场数据分析 =====
 
   /**
-   * 定价建议（GET /api/v4/market/analytics/pricing-advice 响应）
+   * 定价建议（GET /api/v4/marketplace/analytics/pricing-advice 响应）
    * 算法: 建议最低价 = 近7天均价×0.8, 建议参考价 = 近7天均价, 建议最高价 = 近7天均价×1.5
    */
   interface PricingAdvice {
@@ -1001,7 +1001,7 @@ declare namespace API {
   }
 
   /**
-   * 市场总览数据（GET /api/v4/market/analytics/overview 响应）
+   * 市场总览数据（GET /api/v4/marketplace/analytics/overview 响应）
    * 各资产成交量排行、总交易额等宏观数据
    */
   interface MarketOverview {
@@ -1034,7 +1034,7 @@ declare namespace API {
   }
 
   /**
-   * 价格历史数据（GET /api/v4/market/analytics/history 响应中数组项）
+   * 价格历史数据（GET /api/v4/marketplace/analytics/history 响应中数组项）
    * 卖家视角的价格历史，用于定价参考
    */
   interface PriceHistoryPoint {
@@ -1053,7 +1053,7 @@ declare namespace API {
   // ===== 交易市场 =====
 
   /**
-   * 市场挂单（对齐后端 market_listings 表 + GET /api/v4/market/listings 响应）
+   * 市场挂单（对齐后端 market_listings 表 + GET /api/v4/marketplace/listings 响应）
    * 双模式表: listing_kind 区分不可叠加物品(item)和可叠加资产(fungible_asset)
    * 挂单状态: active / sold / withdrawn / expired（文档枚举）
    *
@@ -1097,7 +1097,7 @@ declare namespace API {
   }
 
   /**
-   * 我的挂单（对齐后端 GET /api/v4/market/my-listings 响应）
+   * 我的挂单（对齐后端 GET /api/v4/marketplace/my-listings 响应）
    * 与 MarketListing 共享核心字段，但字段更精简
    */
   interface MyListing {
@@ -1890,4 +1890,182 @@ declare namespace API {
     | 'points_change'
     | 'announcement'
     | 'security_event'
+    | 'auction_outbid'
+    | 'auction_won'
+    | 'auction_lost'
+    | 'auction_new_bid'
+
+  // ===== C2C竞拍系统（auction_listings + auction_bids） =====
+
+  /**
+   * C2C拍卖状态枚举（对齐后端 auction_listings.status 7态状态机）
+   * 与 bid_products 完全相同的 ENUM 顺序
+   */
+  type AuctionStatus =
+    | 'pending'
+    | 'active'
+    | 'ended'
+    | 'cancelled'
+    | 'settled'
+    | 'settlement_failed'
+    | 'no_bid'
+
+  /**
+   * 拍卖物品快照（创建拍卖时冻结的物品状态，用于争议举证）
+   * 数据来源: auction_listings.item_snapshot JSON字段
+   */
+  interface AuctionItemSnapshot {
+    /** 物品名称（items.item_name） */
+    item_name: string
+    /** 物品类型 */
+    item_type: string
+    /** 稀有度编码 */
+    rarity_code: string | null
+    /** 物品价值 */
+    item_value: number
+    /** 物品模板ID */
+    item_template_id: number | null
+    /** 实例属性（品质等级等） */
+    instance_attributes: Record<string, any> | null
+  }
+
+  /**
+   * C2C拍卖挂牌信息（auction_listings表）
+   * 后端API: GET /api/v4/marketplace/auctions
+   */
+  interface AuctionListing {
+    /** 拍卖ID（PK） */
+    auction_listing_id: number
+    /** 卖方用户ID */
+    seller_user_id: number
+    /** 卖方昵称（JOIN users） */
+    seller_nickname?: string
+    /** 拍卖物品ID（items表FK） */
+    item_id: number
+    /** 物品快照JSON */
+    item_snapshot: AuctionItemSnapshot | null
+    /** 出价资产类型（默认DIAMOND） */
+    price_asset_code: string
+    /** 起拍价 */
+    start_price: number
+    /** 当前最高出价（无人出价时为0） */
+    current_price: number
+    /** 最小加价幅度 */
+    min_bid_increment: number
+    /** 一口价（null=不支持） */
+    buyout_price: number | null
+    /** 拍卖开始时间（北京时间ISO8601） */
+    start_time: string
+    /** 拍卖结束时间（北京时间ISO8601） */
+    end_time: string
+    /** 中标者用户ID（仅settled状态有值） */
+    winner_user_id: number | null
+    /** 中标出价记录ID */
+    winner_bid_id: number | null
+    /** 拍卖状态 */
+    status: AuctionStatus
+    /** 手续费率（默认0.0500 = 5%） */
+    fee_rate: number
+    /** 成交总额（=中标价，仅settled有值） */
+    gross_amount: number | null
+    /** 手续费（仅settled有值） */
+    fee_amount: number | null
+    /** 卖方实收（仅settled有值） */
+    net_amount: number | null
+    /** 出价次数 */
+    bid_count: number
+    /** 独立出价人数 */
+    unique_bidders: number
+    /** 创建时间 */
+    created_at: string
+    /** 更新时间 */
+    updated_at: string
+  }
+
+  /**
+   * C2C拍卖出价记录（auction_bids表）
+   * 后端API: GET /api/v4/marketplace/auctions/my-bids
+   */
+  interface AuctionBid {
+    /** 出价记录ID（PK） */
+    auction_bid_id: number
+    /** 关联拍卖ID */
+    auction_listing_id: number
+    /** 出价用户ID */
+    user_id: number
+    /** 出价用户昵称 */
+    nickname?: string
+    /** 出价金额 */
+    bid_amount: number
+    /** 出价前最高价 */
+    previous_highest: number
+    /** 当前是否领先 */
+    is_winning: boolean
+    /** 是否最终中标 */
+    is_final_winner: boolean
+    /** 出价时间 */
+    created_at: string
+  }
+
+  /** 我的出价记录（含关联拍卖摘要信息） */
+  interface MyAuctionBidRecord extends AuctionBid {
+    /** 关联拍卖摘要（后端JOIN查询） */
+    auction_info: {
+      item_snapshot: AuctionItemSnapshot | null
+      status: AuctionStatus
+      current_price: number
+      end_time: string
+      price_asset_code: string
+      seller_nickname: string
+    }
+  }
+
+  /**
+   * 拍卖详情响应（含出价排行和我的出价）
+   * 后端API: GET /api/v4/marketplace/auctions/:auction_listing_id
+   */
+  interface AuctionDetailResponse {
+    /** 拍卖主信息 */
+    auction: AuctionListing
+    /** 出价排行前10 */
+    top_bids: AuctionBid[]
+    /** 当前用户在此拍卖的出价记录（仅登录用户） */
+    my_bids: AuctionBid[]
+  }
+
+  // ===== C2C竞拍WebSocket事件数据 =====
+
+  /** WebSocket: auction_outbid — 你的出价被超越 */
+  interface AuctionOutbidEvent {
+    auction_listing_id: number
+    item_name: string
+    new_highest: number
+    price_asset_code: string
+  }
+
+  /** WebSocket: auction_won — 你中标了 */
+  interface AuctionWonEvent {
+    auction_listing_id: number
+    item_name: string
+    winning_amount: number
+    price_asset_code: string
+  }
+
+  /** WebSocket: auction_lost — 你落选了（冻结已解冻） */
+  interface AuctionLostEvent {
+    auction_listing_id: number
+    item_name: string
+    my_bid_amount: number
+    winning_amount: number
+    price_asset_code: string
+  }
+
+  /** WebSocket: auction_new_bid — 你的拍卖有新出价（卖方收） */
+  interface AuctionNewBidEvent {
+    auction_listing_id: number
+    item_name: string
+    bid_amount: number
+    bidder_user_id: number
+    price_asset_code: string
+  }
 }

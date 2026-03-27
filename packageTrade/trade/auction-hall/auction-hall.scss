@@ -1,0 +1,356 @@
+/* C2C拍卖大厅样式 */
+
+/* 品牌色变量（对齐全局设计规范） */
+$primary-color: #FF6B35;
+$primary-light: #FFF3ED;
+$success-color: #52c41a;
+$warning-color: #faad14;
+$danger-color: #ff4d4f;
+$text-primary: #333333;
+$text-secondary: #666666;
+$text-hint: #999999;
+$bg-page: #f5f5f5;
+$bg-card: #ffffff;
+$border-color: #eeeeee;
+$radius-sm: 8rpx;
+$radius-md: 12rpx;
+$radius-lg: 16rpx;
+
+.auction-hall-container {
+  min-height: 100vh;
+  background-color: $bg-page;
+  padding-bottom: 40rpx;
+}
+
+/* 顶部操作栏 */
+.auction-hall-header {
+  background-color: $bg-card;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid $border-color;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.header-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  border-radius: $radius-md;
+  background-color: $bg-page;
+
+  &--primary {
+    background-color: $primary-light;
+  }
+}
+
+.action-icon {
+  font-size: 36rpx;
+  margin-bottom: 4rpx;
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: $text-secondary;
+}
+
+/* 状态筛选标签 */
+.auction-status-tabs {
+  display: flex;
+  background-color: $bg-card;
+  padding: 16rpx 24rpx;
+  border-bottom: 1rpx solid $border-color;
+}
+
+.status-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  font-size: 28rpx;
+  color: $text-secondary;
+  border-bottom: 4rpx solid transparent;
+  transition: all 0.3s;
+
+  &--active {
+    color: $primary-color;
+    font-weight: 600;
+    border-bottom-color: $primary-color;
+  }
+}
+
+/* 排序栏 */
+.auction-sort-bar {
+  background-color: $bg-card;
+  padding: 16rpx 24rpx;
+  border-bottom: 1rpx solid $border-color;
+  position: relative;
+}
+
+.sort-current {
+  display: flex;
+  align-items: center;
+}
+
+.sort-label {
+  font-size: 26rpx;
+  color: $text-hint;
+}
+
+.sort-value {
+  font-size: 26rpx;
+  color: $text-primary;
+  margin-left: 8rpx;
+}
+
+.sort-arrow {
+  font-size: 20rpx;
+  color: $text-hint;
+  margin-left: 8rpx;
+}
+
+.sort-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: $bg-card;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  border-radius: 0 0 $radius-md $radius-md;
+}
+
+.sort-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  font-size: 28rpx;
+  color: $text-primary;
+  border-bottom: 1rpx solid $border-color;
+
+  &--active {
+    color: $primary-color;
+    font-weight: 600;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.sort-check {
+  color: $primary-color;
+  font-size: 28rpx;
+}
+
+/* 加载/空/错误状态 */
+.auction-loading,
+.auction-error,
+.auction-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400rpx;
+  padding: 80rpx 40rpx;
+}
+
+.error-content,
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.error-text,
+.empty-text {
+  font-size: 28rpx;
+  color: $text-hint;
+  margin-bottom: 32rpx;
+}
+
+.error-retry-btn,
+.empty-create-btn {
+  padding: 16rpx 48rpx;
+  background-color: $primary-color;
+  color: #ffffff;
+  border-radius: $radius-lg;
+  font-size: 28rpx;
+}
+
+/* 拍卖列表 */
+.auction-list {
+  padding: 16rpx 24rpx;
+}
+
+.auction-card {
+  display: flex;
+  background-color: $bg-card;
+  border-radius: $radius-lg;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.auction-card-image {
+  position: relative;
+  width: 240rpx;
+  min-height: 240rpx;
+  flex-shrink: 0;
+}
+
+.item-image {
+  width: 100%;
+  height: 100%;
+  background-color: $bg-page;
+}
+
+.auction-status-badge {
+  position: absolute;
+  top: 12rpx;
+  left: 0;
+  padding: 4rpx 16rpx;
+  border-radius: 0 $radius-sm $radius-sm 0;
+  font-size: 20rpx;
+  color: #ffffff;
+}
+
+.buyout-badge {
+  position: absolute;
+  bottom: 12rpx;
+  right: 8rpx;
+  padding: 4rpx 12rpx;
+  background-color: rgba(255, 107, 53, 0.9);
+  border-radius: $radius-sm;
+  font-size: 20rpx;
+  color: #ffffff;
+}
+
+/* 卡片信息区 */
+.auction-card-info {
+  flex: 1;
+  padding: 20rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auction-item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auction-item-rarity {
+  font-size: 22rpx;
+  color: $text-hint;
+  margin-top: 4rpx;
+}
+
+.auction-price-row {
+  display: flex;
+  align-items: baseline;
+  margin-top: 12rpx;
+}
+
+.price-label {
+  font-size: 24rpx;
+  color: $text-hint;
+  margin-right: 8rpx;
+}
+
+.price-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: $danger-color;
+}
+
+.price-asset {
+  font-size: 22rpx;
+  color: $text-hint;
+  margin-left: 6rpx;
+}
+
+.auction-buyout-row {
+  display: flex;
+  align-items: baseline;
+  margin-top: 4rpx;
+}
+
+.buyout-label {
+  font-size: 22rpx;
+  color: $primary-color;
+  margin-right: 8rpx;
+}
+
+.buyout-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $primary-color;
+}
+
+.buyout-asset {
+  font-size: 20rpx;
+  color: $text-hint;
+  margin-left: 4rpx;
+}
+
+.auction-meta-row {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+  gap: 16rpx;
+}
+
+.meta-bids,
+.meta-bidders {
+  font-size: 22rpx;
+  color: $text-hint;
+}
+
+.auction-countdown {
+  margin-top: 8rpx;
+}
+
+.countdown-text {
+  font-size: 24rpx;
+  color: $warning-color;
+  font-weight: 500;
+}
+
+.auction-seller-row {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.seller-label {
+  font-size: 22rpx;
+  color: $text-hint;
+}
+
+.seller-name {
+  font-size: 22rpx;
+  color: $text-secondary;
+}
+
+/* 底部加载/无更多 */
+.auction-load-more,
+.auction-no-more {
+  text-align: center;
+  padding: 32rpx 0;
+  font-size: 24rpx;
+  color: $text-hint;
+}

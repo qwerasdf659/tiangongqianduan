@@ -152,7 +152,7 @@ Page({
         ? styledCampaigns
         : [...this.data.campaigns, ...styledCampaigns]
 
-      const apiTotalCount = pagination?.total ?? pagination?.total_count ?? mergedCampaigns.length
+      const apiTotalCount = pagination?.total ?? mergedCampaigns.length
 
       this.setData({
         campaigns: mergedCampaigns,

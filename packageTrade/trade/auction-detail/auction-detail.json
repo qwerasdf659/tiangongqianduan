@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "拍卖详情",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "loading-spinner": "/components/loading-spinner/loading-spinner"
+  }
+}

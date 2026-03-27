@@ -1,7 +1,7 @@
 /**
  * C2C交易市场页面 — 瀑布流卡片布局
  *
- * 后端API: GET /api/v4/market/listings
+ * 后端API: GET /api/v4/marketplace/listings
  * 后端响应结构（QueryService 嵌套格式）:
  *   products[]: {
  *     listing_id, listing_kind, seller_user_id, seller_nickname,
@@ -33,9 +33,6 @@ const marketLog = Logger.createLogger('market')
 /** 每隔多少条商品穿插一条 feed 广告（前端穿插逻辑，后端只负责下发广告内容） */
 const FEED_AD_INTERVAL = 5
 
-const { createStoreBindings } = require('mobx-miniprogram-bindings')
-const { tradeStore } = require('../../../store/trade')
-
 Page({
   data: {
     /** 处理后的挂单列表（带布局定位 + 展示字段） */
@@ -62,17 +59,17 @@ Page({
     /** 可选资产列表（用于走势图资产选择器，来自 facets 或 settlement-currencies） */
     chartAssetOptions: [] as any[],
 
-    /** 最近成交列表（GET /api/v4/market/price/recent-trades） */
+    /** 最近成交列表（GET /api/v4/marketplace/price/recent-trades） */
     recentTrades: [] as any[],
     recentTradesLoading: false,
     showRecentTrades: false,
 
-    /** 市场总览数据（GET /api/v4/market/analytics/overview） */
+    /** 市场总览数据（GET /api/v4/marketplace/analytics/overview） */
     marketOverview: null as any,
     marketOverviewLoading: false,
     showMarketOverview: false,
 
-    /** 服务端筛选参数（对齐 GET /api/v4/market/listings 全部查询参数） */
+    /** 服务端筛选参数（对齐 GET /api/v4/marketplace/listings 全部查询参数） */
     filterListingKind: '' as string,
     filterSort: 'recommended' as string,
     filterMinPrice: '' as string,
@@ -88,7 +85,7 @@ Page({
     /** 高级筛选面板是否展开 */
     showAdvancedFilter: false,
 
-    /** 筛选维度数据（后端 GET /api/v4/market/listings/facets 返回） */
+    /** 筛选维度数据（后端 GET /api/v4/marketplace/listings/facets 返回） */
     facetsData: null as any,
     facetsLoaded: false,
 
@@ -129,12 +126,6 @@ Page({
   async onLoad(_options: Record<string, string | undefined>) {
     marketLog.info('C2C交易市场页面加载')
 
-    this.tradeBindings = createStoreBindings(this, {
-      store: tradeStore,
-      fields: ['marketListings', 'marketLoading'],
-      actions: ['setMarketListings', 'appendMarketListings', 'setMarketLoading']
-    })
-
     try {
       await this.initializeLayout()
       await this._loadFeedAds()
@@ -158,7 +149,7 @@ Page({
   /**
    * 加载交易市场挂单数据
    *
-   * 后端API: GET /api/v4/market/listings
+   * 后端API: GET /api/v4/marketplace/listings
    * 响应: { products: MarketListing[], pagination: { page, page_size, total } }
    *
    * 数据处理流程:
@@ -354,7 +345,7 @@ Page({
 
   /**
    * 加载最近成交列表
-   * 后端API: GET /api/v4/market/price/recent-trades
+   * 后端API: GET /api/v4/marketplace/price/recent-trades
    * 响应: { data: [ { trade_order_id, price_amount, display_name, buyer_nickname, ... } ] }
    */
   async loadRecentTrades() {
@@ -387,7 +378,7 @@ Page({
 
   /**
    * 加载市场总览数据
-   * 后端API: GET /api/v4/market/analytics/overview
+   * 后端API: GET /api/v4/marketplace/analytics/overview
    *
    * 响应 data 包含:
    *   active_listings - 在售挂单数
@@ -466,7 +457,7 @@ Page({
 
   /**
    * 加载筛选维度数据
-   * 后端API: GET /api/v4/market/listings/facets
+   * 后端API: GET /api/v4/marketplace/listings/facets
    */
   async _loadFacets() {
     try {
@@ -767,12 +758,7 @@ Page({
     }
   },
 
-  /** 页面卸载 */
-  onUnload() {
-    if (this.tradeBindings) {
-      this.tradeBindings.destroyStoreBindings()
-    }
-  },
+  onUnload() {},
 
   /** 分享 */
   onShareAppMessage() {

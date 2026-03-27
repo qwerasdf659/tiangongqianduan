@@ -480,6 +480,14 @@
   display: block;
 }
 
+/* 流水号（后端 asset_transactions.transaction_no，TX前缀16位编号） */
+.transaction-no {
+  font-size: $font-size-xs;
+  color: $color-text-disabled;
+  display: block;
+  font-family: 'Menlo', 'Courier New', monospace;
+}
+
 .transaction-right {
   text-align: right;
   flex-shrink: 0;
@@ -617,6 +625,14 @@
 .record-time {
   font-size: $font-size-sm;
   color: $color-text-tertiary;
+}
+
+/* 消费单号（后端 consumption_records.order_no，CS前缀16位编号） */
+.record-order-no {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-left: 12rpx;
+  font-family: 'Menlo', 'Courier New', monospace;
 }
 
 .record-status {

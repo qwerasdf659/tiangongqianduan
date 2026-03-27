@@ -255,6 +255,7 @@ Page({
         const storeData = responseData.store || {}
 
         const flatResult = {
+          order_no: orderData.order_no,
           redemption_order_id: orderData.redemption_order_id,
           fulfilled_at: orderData.fulfilled_at,
           item_name: itemData.item_name,

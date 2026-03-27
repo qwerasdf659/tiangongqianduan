@@ -2,9 +2,9 @@
  * 挂单详情页 — 展示挂单完整信息 + 购买入口 + 价格摘要
  *
  * 后端API:
- *   GET  /api/v4/market/listings/:listing_id     → 挂单详情
- *   GET  /api/v4/market/price/summary             → 价格摘要
- *   POST /api/v4/market/listings/:id/purchase     → 购买（Idempotency-Key）
+ *   GET  /api/v4/marketplace/listings/:listing_id     → 挂单详情
+ *   GET  /api/v4/marketplace/price/summary             → 价格摘要
+ *   POST /api/v4/marketplace/listings/:id/purchase     → 购买（Idempotency-Key）
  *
  * 路由参数: listing_id（BIGINT，来自市场列表或瀑布流卡片点击）
  *
@@ -34,7 +34,7 @@ Page({
     /** 挂单ID（路由参数） */
     listingId: 0,
 
-    /** 挂单详情数据（后端 GET /api/v4/market/listings/:id 返回） */
+    /** 挂单详情数据（后端 GET /api/v4/marketplace/listings/:id 返回） */
     detail: null as any,
 
     /** 前端计算的展示字段 */
@@ -58,7 +58,7 @@ Page({
     hasCooldown: false,
     cooldownRemaining: '',
 
-    /** 价格摘要（后端 GET /api/v4/market/price/summary 返回） */
+    /** 价格摘要（后端 GET /api/v4/marketplace/price/summary 返回） */
     priceSummary: null as any,
 
     /** 页面状态 */
@@ -81,7 +81,7 @@ Page({
     showPriceChart: false,
 
     /**
-     * 价格历史数据（后端 GET /api/v4/market/analytics/history 返回）
+     * 价格历史数据（后端 GET /api/v4/marketplace/analytics/history 返回）
      * 卖家/买家定价参考 — 每日维度的历史均价、最低/最高价、成交笔数
      */
     priceHistoryList: [] as any[],
@@ -125,8 +125,8 @@ Page({
 
   /**
    * 加载挂单详情 + 价格摘要（并行请求）
-   * 后端: GET /api/v4/market/listings/:listing_id
-   * 后端: GET /api/v4/market/price/summary
+   * 后端: GET /api/v4/marketplace/listings/:listing_id
+   * 后端: GET /api/v4/marketplace/price/summary
    */
   async _loadDetail(listingId: number) {
     this.setData({ loading: true, hasError: false })
@@ -195,7 +195,7 @@ Page({
 
   /**
    * 加载价格摘要（非阻塞，失败静默处理）
-   * 后端: GET /api/v4/market/price/summary
+   * 后端: GET /api/v4/marketplace/price/summary
    */
   async _loadPriceSummary(listing: any) {
     try {
@@ -222,7 +222,7 @@ Page({
 
   /**
    * 加载价格历史数据（非阻塞，失败静默处理）
-   * 后端: GET /api/v4/market/analytics/history
+   * 后端: GET /api/v4/marketplace/analytics/history
    * 返回每日维度的均价、最低价、最高价、成交笔数
    */
   async _loadPriceHistory(listing: any) {
@@ -271,7 +271,7 @@ Page({
 
   /**
    * 购买商品 — 二次确认后调用购买API
-   * 后端: POST /api/v4/market/listings/:listing_id/purchase
+   * 后端: POST /api/v4/marketplace/listings/:listing_id/purchase
    *
    * 防止重复提交: purchasing 状态锁 + Idempotency-Key
    * 自买自卖检测: 前端 seller_user_id === currentUserId 提示

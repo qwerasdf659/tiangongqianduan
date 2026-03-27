@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "拍卖大厅",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "usingComponents": {
+    "loading-spinner": "/components/loading-spinner/loading-spinner",
+    "empty-state": "/components/empty-state/empty-state"
+  }
+}

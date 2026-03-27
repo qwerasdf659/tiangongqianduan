@@ -185,9 +185,14 @@
 
       <!--核销详情（字段来自后端 POST /api/v4/shop/redemption/fulfill 或 /scan 响应）-->
       <view class="result-detail" wx:if="{{verifyResult}}">
-        <view class="detail-row" wx:if="{{verifyResult.redemption_order_id}}">
-          <text class="detail-label">订单编号</text>
-          <text class="detail-value">{{verifyResult.redemption_order_id}}</text>
+        <view
+          class="detail-row"
+          wx:if="{{verifyResult.order_no || verifyResult.redemption_order_id}}"
+        >
+          <text class="detail-label">核销单号</text>
+          <text class="detail-value"
+            >{{verifyResult.order_no || verifyResult.redemption_order_id}}</text
+          >
         </view>
         <view class="detail-row" wx:if="{{verifyResult.item_name}}">
           <text class="detail-label">核销物品</text>

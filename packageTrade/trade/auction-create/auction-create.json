@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "发起拍卖",
+  "usingComponents": {
+    "loading-spinner": "/components/loading-spinner/loading-spinner"
+  }
+}

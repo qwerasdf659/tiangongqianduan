@@ -1,5 +1,5 @@
 <!--挂单详情页 — 展示商品详情 + 购买入口 + 价格摘要-->
-<!--后端API: GET /api/v4/market/listings/:listing_id-->
+<!--后端API: GET /api/v4/marketplace/listings/:listing_id-->
 
 <!-- 加载状态 -->
 <view class="detail-loading" wx:if="{{loading}}">
@@ -183,7 +183,7 @@
     </view>
   </view>
 
-  <!--价格历史面板（可折叠，后端 GET /api/v4/market/analytics/history）-->
+  <!--价格历史面板（可折叠，后端 GET /api/v4/marketplace/analytics/history）-->
   <view class="detail-history-section" wx:if="{{priceHistoryList.length > 0}}">
     <view class="chart-toggle" bindtap="onTogglePriceHistory">
       <text>{{showPriceHistory ? '收起价格历史' : '📊 近30天价格历史'}}</text>
@@ -241,7 +241,7 @@
     <view class="modal-detail-rows" wx:if="{{purchaseResult}}">
       <view class="modal-row">
         <text class="row-label">订单编号</text>
-        <text class="row-value">{{purchaseResult.trade_order_id}}</text>
+        <text class="row-value">{{purchaseResult.order_no || purchaseResult.trade_order_id}}</text>
       </view>
       <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
         <text class="row-label">总金额</text>
@@ -285,7 +285,7 @@
     <view class="escrow-fee-info" wx:if="{{purchaseResult}}">
       <view class="modal-row">
         <text class="row-label">订单编号</text>
-        <text class="row-value">{{purchaseResult.trade_order_id}}</text>
+        <text class="row-value">{{purchaseResult.order_no || purchaseResult.trade_order_id}}</text>
       </view>
       <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
         <text class="row-label">总金额</text>

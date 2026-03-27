@@ -9,7 +9,7 @@
  *   - POST /api/v4/backpack/items/:item_id/use  使用物品
  *   - POST /api/v4/backpack/items/:item_id/redeem 生成核销码
  *   - GET  /api/v4/backpack/items/:item_id/timeline 物品流转时间线
- *   - POST /api/v4/market/list                  上架物品到交易市场（需Idempotency-Key）
+ *   - POST /api/v4/marketplace/list                  上架物品到交易市场（需Idempotency-Key）
  *
  * 后端返回的物品字段（snake_case，后端为权威来源）：
  *   item_id           - 物品唯一ID（items表主键，BIGINT）
@@ -1029,7 +1029,7 @@ Page({
   /**
    * 上架物品到交易市场
    *
-   * 后端API: POST /api/v4/market/list
+   * 后端API: POST /api/v4/marketplace/list
    * 请求Header: Idempotency-Key: market_list_<timestamp>_<random>（必填）
    * 请求Body: { item_id, price_amount, price_asset_code }
    *
@@ -1057,7 +1057,7 @@ Page({
   /**
    * 上架可叠加资产到交易市场
    *
-   * 后端API: POST /api/v4/market/fungible-assets/list
+   * 后端API: POST /api/v4/marketplace/fungible-assets/list
    * 请求Header: Idempotency-Key（防止重复上架）
    * 请求Body: { asset_code, amount, price_amount, price_asset_code }
    *
@@ -1350,13 +1350,13 @@ Page({
 
   /**
    * 从后端获取结算币种列表，让用户选择定价币种，然后上架物品实例
-   * 后端API: GET /api/v4/market/settlement-currencies
-   * 定价建议API: GET /api/v4/market/analytics/pricing-advice
+   * 后端API: GET /api/v4/marketplace/settlement-currencies
+   * 定价建议API: GET /api/v4/marketplace/analytics/pricing-advice
    * 响应: { currencies: [{ asset_code, display_name }] }
    */
   async _selectCurrencyThenSellItem(item: any) {
     try {
-      /* 上架前额度检查 — GET /api/v4/market/listing-status */
+      /* 上架前额度检查 — GET /api/v4/marketplace/listing-status */
       const statusResult = await API.getMyListingStatus()
       if (statusResult && statusResult.success && statusResult.data) {
         const { remaining, limit: maxLimit } = statusResult.data
@@ -1445,12 +1445,12 @@ Page({
 
   /**
    * 从后端获取结算币种列表，让用户选择定价币种，然后上架可叠加资产
-   * 后端API: GET /api/v4/market/settlement-currencies
-   * 定价建议API: GET /api/v4/market/analytics/pricing-advice
+   * 后端API: GET /api/v4/marketplace/settlement-currencies
+   * 定价建议API: GET /api/v4/marketplace/analytics/pricing-advice
    */
   async _selectCurrencyThenSellAsset(asset: any) {
     try {
-      /* 上架前额度检查 — GET /api/v4/market/listing-status */
+      /* 上架前额度检查 — GET /api/v4/marketplace/listing-status */
       const assetStatusResult = await API.getMyListingStatus()
       if (assetStatusResult && assetStatusResult.success && assetStatusResult.data) {
         const { remaining: assetRemaining, limit: assetMaxLimit } = assetStatusResult.data
@@ -1545,7 +1545,7 @@ Page({
 
   /**
    * 获取定价建议提示文本（卖家定价参考）
-   * 后端API: GET /api/v4/market/analytics/pricing-advice
+   * 后端API: GET /api/v4/marketplace/analytics/pricing-advice
    *
    * 返回格式示例: "参考价: 100-150 DIAMOND，在售最低: 80"
    * 失败时返回空字符串（不阻塞上架流程）
