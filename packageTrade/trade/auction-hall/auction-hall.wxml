@@ -37,7 +37,7 @@
   <view class="auction-sort-bar">
     <view class="sort-current" bindtap="onToggleSortPicker">
       <text class="sort-label">排序：</text>
-      <text class="sort-value">{{sortOptions[0].label}}</text>
+      <text class="sort-value">{{currentSortLabel}}</text>
       <text class="sort-arrow">{{showSortPicker ? '︿' : '﹀'}}</text>
     </view>
     <!--排序下拉面板-->

@@ -25,43 +25,12 @@ const {
   API,
   Logger: AuctionDetailLogger,
   Wechat: AuctionDetailWechat,
-  ImageHelper: AuctionDetailImageHelper
+  AuctionHelpers: AuctionDetailHelpers
 } = require('../../../utils/index')
-
-/** 根据物品快照获取展示图片 */
-function getAuctionItemImage(snapshot: any): string {
-  if (!snapshot) {
-    return AuctionDetailImageHelper.DEFAULT_PRODUCT_IMAGE
-  }
-  if (snapshot.item_type) {
-    return AuctionDetailImageHelper.getMaterialIconPath(snapshot.item_type)
-  }
-  return AuctionDetailImageHelper.DEFAULT_PRODUCT_IMAGE
-}
-
-/** 根据稀有度编码获取中文显示名 */
-function getAuctionRarityLabel(rarityCode: string | null): string {
-  if (!rarityCode) {
-    return ''
-  }
-  const style = AuctionDetailImageHelper.getRarityStyle(rarityCode)
-  return style ? style.displayName : ''
-}
 const auctionDetailLog = AuctionDetailLogger.createLogger('auction-detail')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../../store/user')
-
-/** 拍卖状态UI配置 */
-const AUCTION_STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending: { label: '即将开始', color: '#faad14' },
-  active: { label: '竞拍中', color: '#52c41a' },
-  ended: { label: '已结束', color: '#999999' },
-  settled: { label: '已成交', color: '#1890ff' },
-  no_bid: { label: '流拍', color: '#999999' },
-  cancelled: { label: '已取消', color: '#999999' },
-  settlement_failed: { label: '结算异常', color: '#ff4d4f' }
-}
 
 Page({
   data: {
@@ -145,6 +114,18 @@ Page({
     }
   },
 
+  /** 页面隐藏时暂停倒计时定时器，防止后台持续运行 */
+  onHide() {
+    this._stopCountdown()
+  },
+
+  /** 页面重新显示时恢复倒计时 */
+  onShow() {
+    if (this.data.auctionListingId) {
+      this._startCountdown()
+    }
+  },
+
   onPullDownRefresh() {
     this._loadDetail(this.data.auctionListingId).finally(() => {
       wx.stopPullDownRefresh()
@@ -189,7 +170,7 @@ Page({
   /** 处理并设置详情数据 */
   _processDetailData(auction: any, topBids: any[], myBids: any[]) {
     const snapshot = auction.item_snapshot || {}
-    const statusConfig = AUCTION_STATUS_MAP[auction.status] || AUCTION_STATUS_MAP.active
+    const statusConfig = AuctionDetailHelpers.getAuctionStatusConfig(auction.status)
     const currentUserId = (this.data as any).userInfo?.user_id
 
     const isSeller = currentUserId && auction.seller_user_id === currentUserId
@@ -208,11 +189,15 @@ Page({
       topBids,
       myBids,
       displayName: snapshot.item_name || '未知物品',
-      displayImage: getAuctionItemImage(snapshot),
-      rarityLabel: getAuctionRarityLabel(snapshot.rarity_code),
+      displayImage: AuctionDetailHelpers.getAuctionItemImage(snapshot),
+      rarityLabel: AuctionDetailHelpers.getAuctionRarityLabel(snapshot.rarity_code),
       statusLabel: statusConfig.label,
       statusColor: statusConfig.color,
-      countdownText: this._calcCountdown(auction.end_time, auction.status),
+      countdownText: AuctionDetailHelpers.calcAuctionCountdown(
+        auction.end_time,
+        auction.status,
+        auction.start_time
+      ),
       isSeller,
       isWinner,
       hasActiveBid,
@@ -224,34 +209,9 @@ Page({
     this._startCountdown()
   },
 
-  /** 计算倒计时 */
+  /** 计算倒计时（委托公共模块） */
   _calcCountdown(endTime: string, status: string): string {
-    if (status !== 'active' && status !== 'pending') {
-      return ''
-    }
-
-    const now = Date.now()
-    const targetTime =
-      status === 'pending'
-        ? new Date(this.data.auction?.start_time || endTime).getTime()
-        : new Date(endTime).getTime()
-    const diff = targetTime - now
-
-    if (diff <= 0) {
-      return status === 'pending' ? '即将开始' : '已结束'
-    }
-
-    const hours = Math.floor(diff / 3600000)
-    const minutes = Math.floor((diff % 3600000) / 60000)
-    const seconds = Math.floor((diff % 60000) / 1000)
-
-    if (hours > 24) {
-      return `${Math.floor(hours / 24)}天${hours % 24}小时${minutes}分`
-    }
-    if (hours > 0) {
-      return `${hours}小时${minutes}分${seconds}秒`
-    }
-    return `${minutes}分${seconds}秒`
+    return AuctionDetailHelpers.calcAuctionCountdown(endTime, status, this.data.auction?.start_time)
   },
 
   _startCountdown() {
@@ -382,6 +342,34 @@ Page({
     const increment = e.currentTarget.dataset.increment
     const current = parseInt(this.data.bidInputValue, 10) || this.data.minBidAmount
     this.setData({ bidInputValue: String(current + increment) })
+  },
+
+  /** 一口价按钮 — 自动填入一口价金额并打开出价弹窗 */
+  onBuyoutBid() {
+    const { auction, isSeller } = this.data
+    if (!auction || !auction.buyout_price) {
+      return
+    }
+
+    if (isSeller) {
+      AuctionDetailWechat.showToast('不能出价自己的拍卖', 'none')
+      return
+    }
+
+    if (auction.status !== 'active') {
+      AuctionDetailWechat.showToast('该拍卖不在竞拍状态', 'none')
+      return
+    }
+
+    if (!(this.data as any).isLoggedIn) {
+      wx.navigateTo({ url: '/packageUser/auth/auth' })
+      return
+    }
+
+    this.setData({
+      showBidInput: true,
+      bidInputValue: String(auction.buyout_price)
+    })
   },
 
   // ==================== 争议操作（仅settled+中标者） ====================

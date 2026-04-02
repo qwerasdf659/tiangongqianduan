@@ -2068,4 +2068,198 @@ declare namespace API {
     bidder_user_id: number
     price_asset_code: string
   }
+
+  // ===== DIY饰品设计引擎 =====
+
+  /** 槽位形状类型 */
+  type SlotShapeType = 'circle' | 'oval' | 'square' | 'rectangle'
+
+  /** 布局形状类型 */
+  type LayoutShapeType = 'circle' | 'ellipse' | 'arc' | 'line' | 'slots'
+
+  /** 款式类型标识 */
+  type TemplateType = 'bracelet' | 'necklace' | 'ring' | 'pendant'
+
+  /**
+   * 槽位定义（镶嵌模式专用）
+   * 后端通过 Web 管理后台可视化标注工具生成
+   */
+  interface DiySlotDefinition {
+    /** 槽位唯一标识 */
+    slot_id: string
+    /** 槽位显示名（如"主石位"） */
+    label: string
+    /** 槽位中心 X 坐标百分比（0~1） */
+    x: number
+    /** 槽位中心 Y 坐标百分比（0~1） */
+    y: number
+    /** 槽位宽度百分比（0~1） */
+    width: number
+    /** 槽位高度百分比（0~1） */
+    height: number
+    /** 槽位形状 */
+    slot_shape: SlotShapeType
+    /** 该槽位可容纳的宝石直径（mm），空数组表示不限 */
+    allowed_diameters: number[]
+    /** 该槽位允许的宝石形状，空/不传表示仅匹配 slot_shape */
+    allowed_shapes?: string[]
+    /** 该槽位允许的宝石分类 ID，空/不传则继承模板级 category_ids */
+    allowed_category_ids?: string[]
+    /** 是否为必填槽位 */
+    required: boolean
+  }
+
+  /** 排列形状参数（联合体，根据 shape 不同参数不同） */
+  interface DiyLayoutParams {
+    /** 椭圆横轴半径比例 */
+    radius_ratio_x?: number
+    /** 椭圆纵轴半径比例 */
+    radius_ratio_y?: number
+    /** 弧线张角（度） */
+    arc_angle?: number
+    /** 弧线开口方向 */
+    open_direction?: 'top' | 'bottom'
+    /** 直线方向 */
+    direction?: 'horizontal' | 'vertical'
+    /** 镶嵌模式背景图 URL */
+    background_image?: string
+    /** 背景图设计宽度（px） */
+    background_width?: number
+    /** 背景图设计高度（px） */
+    background_height?: number
+    /** 预定义槽位列表 */
+    slots?: DiySlotDefinition[]
+  }
+
+  /** 排列形状配置 */
+  interface DiyLayout {
+    /** 形状类型 */
+    shape: LayoutShapeType
+    /** 形状参数 */
+    params: DiyLayoutParams
+  }
+
+  /** 尺寸规则（串珠模式必填） */
+  interface DiySizing {
+    /** 尺寸标签（如"手围"） */
+    label: string
+    /** 单位 */
+    unit: string
+    /** 可选尺寸档位 */
+    options: number[]
+    /** 默认值 */
+    default_value: number
+    /** 弹性余量（mm） */
+    margin: number
+  }
+
+  /** 容量规则 */
+  interface DiyCapacity {
+    /** 最少珠子/宝石数 */
+    min_beads: number
+    /** 最多珠子/宝石数（0=仅受尺寸限制） */
+    max_beads: number
+    /** 该款式可用的珠子/宝石直径（mm） */
+    allowed_diameters: number[]
+  }
+
+  /**
+   * DIY 款式模板（后端定义，前端根据模板参数动态渲染）
+   * 后端API: GET /api/v4/diy/templates
+   */
+  interface DiyTemplate {
+    /** 款式 ID */
+    id: string
+    /** 款式名称 */
+    name: string
+    /** 款式类型标识 */
+    type: TemplateType
+    /** 款式图标 URL */
+    icon: string
+    /** 排列形状参数 */
+    layout: DiyLayout
+    /** 尺寸规则（串珠模式必填，镶嵌模式为 null） */
+    sizing: DiySizing | null
+    /** 容量规则 */
+    capacity: DiyCapacity
+    /** 专属素材分类 ID 列表 */
+    category_ids: string[]
+  }
+
+  /** DIY 素材分类 */
+  interface DiyCategory {
+    /** 分类 ID */
+    id: string
+    /** 分类名称 */
+    name: string
+    /** 分类图标 URL */
+    icon: string
+    /** 排序权重 */
+    sort_order: number
+  }
+
+  /**
+   * DIY 珠子/宝石素材
+   * 后端API: GET /api/v4/diy/beads?category_id=xxx
+   */
+  interface DiyBead {
+    /** 珠子 ID */
+    id: string
+    /** 珠子名称 */
+    name: string
+    /** 珠子图片 URL（PNG 透明底） */
+    image_url: string
+    /** 缩略图 URL */
+    thumbnail_url: string
+    /** 直径（mm） */
+    diameter: number
+    /** 切割形状 */
+    shape: string
+    /** 单价（资产单位） */
+    price: number
+    /** 定价币种 */
+    price_asset_code: string
+    /** 材质名称 */
+    material: string
+    /** 库存 */
+    stock: number
+    /** 可叠加标识 */
+    stackable: boolean
+  }
+
+  /** DIY 设计保存请求（串珠模式） */
+  interface DiyDesignBeadsRequest {
+    template_id: string
+    mode: 'beads'
+    selected_size: number
+    beads: { bead_id: string; position: number }[]
+    total_price: number
+  }
+
+  /** DIY 设计保存请求（镶嵌模式） */
+  interface DiyDesignSlotsRequest {
+    template_id: string
+    mode: 'slots'
+    slot_fillings: { slot_id: string; bead_id: string }[]
+    total_price: number
+  }
+
+  /** DIY 设计保存响应 */
+  interface DiyDesignSaveResponse {
+    design_id: string
+    share_token: string
+  }
+
+  /** DIY 设计还原响应 */
+  interface DiyDesignDetail {
+    design_id: string
+    template: DiyTemplate
+    mode: 'beads' | 'slots'
+    selected_size?: number
+    beads?: { bead_id: string; position: number; bead: DiyBead }[]
+    slot_fillings?: { slot_id: string; bead: DiyBead }[]
+    total_price: number
+    creator_nickname: string
+    created_at: string
+  }
 }

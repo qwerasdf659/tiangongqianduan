@@ -31,6 +31,11 @@ Component({
         iconClass: 'icon-store'
       },
       {
+        pagePath: '/pages/diy/diy',
+        text: 'DIY',
+        iconClass: 'icon-tag'
+      },
+      {
         pagePath: '/pages/user/user',
         text: '我的',
         iconClass: 'icon-user'

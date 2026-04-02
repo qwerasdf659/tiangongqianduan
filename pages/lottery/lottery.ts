@@ -298,6 +298,11 @@ Page({
       clearTimeout(this._qrRefreshTimer)
       this._qrRefreshTimer = null
     }
+    /* 清理QR倒计时定时器（setInterval），防止TabBar切换后后台持续运行 */
+    if (this._qrTimer) {
+      clearInterval(this._qrTimer)
+      this._qrTimer = null
+    }
     const hideApp = getApp() as any
     hideApp.unsubscribeWebSocketMessages(this._wsPageId)
   },

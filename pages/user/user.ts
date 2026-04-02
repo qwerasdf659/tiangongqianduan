@@ -242,7 +242,7 @@ Page({
    */
   onShow() {
     if (typeof this.getTabBar === 'function') {
-      this.getTabBar().setData({ selected: 3 })
+      this.getTabBar().setData({ selected: 4 })
     }
     if (this._skipNextShow) {
       this._skipNextShow = false

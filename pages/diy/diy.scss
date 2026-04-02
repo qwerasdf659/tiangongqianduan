@@ -1,0 +1,14 @@
+/**
+ * DIY tab 入口页样式
+ */
+.diy-tab-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-hint {
+  color: #999;
+  font-size: 28rpx;
+}

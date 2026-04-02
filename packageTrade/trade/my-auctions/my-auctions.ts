@@ -18,34 +18,12 @@ const {
   API,
   Logger: MyAuctionsLogger,
   Wechat: MyAuctionsWechat,
-  ImageHelper: MyAuctionsImageHelper
+  AuctionHelpers: MyAuctionsHelpers
 } = require('../../../utils/index')
-
-/** 根据物品快照获取展示图片 */
-function getAuctionItemImage(snapshot: any): string {
-  if (!snapshot) {
-    return MyAuctionsImageHelper.DEFAULT_PRODUCT_IMAGE
-  }
-  if (snapshot.item_type) {
-    return MyAuctionsImageHelper.getMaterialIconPath(snapshot.item_type)
-  }
-  return MyAuctionsImageHelper.DEFAULT_PRODUCT_IMAGE
-}
 const myAuctionsLog = MyAuctionsLogger.createLogger('my-auctions')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../../store/user')
-
-/** 拍卖状态UI配置 */
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  pending: { label: '即将开始', color: '#faad14' },
-  active: { label: '竞拍中', color: '#52c41a' },
-  ended: { label: '已结束', color: '#999999' },
-  settled: { label: '已成交', color: '#1890ff' },
-  no_bid: { label: '流拍', color: '#999999' },
-  cancelled: { label: '已取消', color: '#999999' },
-  settlement_failed: { label: '结算异常', color: '#ff4d4f' }
-}
 
 Page({
   data: {
@@ -183,12 +161,12 @@ Page({
 
   _processItem(auction: any) {
     const snapshot = auction.item_snapshot || {}
-    const config = STATUS_CONFIG[auction.status] || STATUS_CONFIG.active
+    const config = MyAuctionsHelpers.getAuctionStatusConfig(auction.status)
 
     return {
       ...auction,
       _displayName: snapshot.item_name || '未知物品',
-      _displayImage: getAuctionItemImage(snapshot),
+      _displayImage: MyAuctionsHelpers.getAuctionItemImage(snapshot),
       _statusLabel: config.label,
       _statusColor: config.color,
       _displayPrice: auction.current_price > 0 ? auction.current_price : auction.start_price,

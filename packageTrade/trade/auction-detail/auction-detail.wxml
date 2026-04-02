@@ -174,7 +174,7 @@
         <view class="bid-action-btn" bindtap="onShowBidInput">
           <text>💰 出价</text>
         </view>
-        <view class="buyout-action-btn" wx:if="{{auction.buyout_price}}" bindtap="onShowBidInput">
+        <view class="buyout-action-btn" wx:if="{{auction.buyout_price}}" bindtap="onBuyoutBid">
           <text>💎 一口价 {{auction.buyout_price}}</text>
         </view>
       </view>

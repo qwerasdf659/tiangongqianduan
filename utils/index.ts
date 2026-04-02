@@ -35,6 +35,7 @@ const drawQrcodeFunction = require('./weapp-qrcode')
 const apiWrapperFunctions = require('./api-wrapper')
 const imageHelperFunctions = require('./image-helper')
 const subscribeMessageFunctions = require('./subscribe-message')
+const auctionHelperFunctions = require('./auction-helpers')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -90,6 +91,9 @@ const ImageHelper = { ...imageHelperFunctions }
 /** 微信订阅消息工具 - 审核任务提醒 + 审核结果通知 */
 const SubscribeMessage = { ...subscribeMessageFunctions }
 
+/** C2C竞拍公共辅助函数 - 状态映射/图片获取/稀有度标签/倒计时计算 */
+const AuctionHelpers = { ...auctionHelperFunctions }
+
 // WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
@@ -118,5 +122,6 @@ module.exports = {
   QRCode,
   ApiWrapper,
   ImageHelper,
-  SubscribeMessage
+  SubscribeMessage,
+  AuctionHelpers
 }

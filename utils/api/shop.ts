@@ -141,8 +141,11 @@ async function getMerchantConsumptionStats() {
 
 /** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限） */
 async function createRedemptionOrder(params: Record<string, any>) {
+  const idempotencyKey: string = `redemption_create_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+
   return apiClient.request('/shop/redemption/orders', {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     data: params,
     needAuth: true,
     showLoading: true,
@@ -161,8 +164,11 @@ async function fulfillRedemption(params: { redeem_code: string; store_id?: numbe
     throw new Error('核销码不能为空')
   }
 
+  const idempotencyKey: string = `redemption_fulfill_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+
   return apiClient.request('/shop/redemption/fulfill', {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     data: params,
     needAuth: true,
     showLoading: true,
@@ -206,8 +212,11 @@ async function scanRedemptionQR(params: { qr_content: string; store_id?: number 
     throw new Error('无效的核销QR码格式，请确认扫描的是核销二维码')
   }
 
+  const idempotencyKey: string = `redemption_scan_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+
   return apiClient.request('/shop/redemption/scan', {
     method: 'POST',
+    header: { 'Idempotency-Key': idempotencyKey },
     data: params,
     needAuth: true,
     showLoading: true,

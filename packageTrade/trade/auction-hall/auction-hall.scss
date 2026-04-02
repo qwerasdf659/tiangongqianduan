@@ -1,32 +1,21 @@
 /* C2C拍卖大厅样式 */
+@import '../../../styles/variables';
 
-/* 品牌色变量（对齐全局设计规范） */
-$primary-color: #FF6B35;
-$primary-light: #FFF3ED;
-$success-color: #52c41a;
-$warning-color: #faad14;
-$danger-color: #ff4d4f;
-$text-primary: #333333;
-$text-secondary: #666666;
-$text-hint: #999999;
-$bg-page: #f5f5f5;
-$bg-card: #ffffff;
-$border-color: #eeeeee;
-$radius-sm: 8rpx;
-$radius-md: 12rpx;
-$radius-lg: 16rpx;
+/* 竞拍模块专用补充变量（公共变量文件中未覆盖的） */
+$color-primary-bg: #FFF3ED; /* 主色浅背景（用于选中态背景） */
+$border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .auction-hall-container {
   min-height: 100vh;
-  background-color: $bg-page;
+  background-color: $color-bg-grey;
   padding-bottom: 40rpx;
 }
 
 /* 顶部操作栏 */
 .auction-hall-header {
-  background-color: $bg-card;
+  background-color: $color-bg-card;
   padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid $border-color;
+  border-bottom: 1rpx solid $color-divider;
 }
 
 .header-actions {
@@ -40,11 +29,11 @@ $radius-lg: 16rpx;
   flex-direction: column;
   align-items: center;
   padding: 16rpx 24rpx;
-  border-radius: $radius-md;
-  background-color: $bg-page;
+  border-radius: $border-radius-auction-md;
+  background-color: $color-bg-grey;
 
   &--primary {
-    background-color: $primary-light;
+    background-color: $color-primary-bg;
   }
 }
 
@@ -55,15 +44,15 @@ $radius-lg: 16rpx;
 
 .action-text {
   font-size: 24rpx;
-  color: $text-secondary;
+  color: $color-text-secondary;
 }
 
 /* 状态筛选标签 */
 .auction-status-tabs {
   display: flex;
-  background-color: $bg-card;
+  background-color: $color-bg-card;
   padding: 16rpx 24rpx;
-  border-bottom: 1rpx solid $border-color;
+  border-bottom: 1rpx solid $color-divider;
 }
 
 .status-tab {
@@ -71,22 +60,22 @@ $radius-lg: 16rpx;
   text-align: center;
   padding: 12rpx 0;
   font-size: 28rpx;
-  color: $text-secondary;
+  color: $color-text-secondary;
   border-bottom: 4rpx solid transparent;
   transition: all 0.3s;
 
   &--active {
-    color: $primary-color;
+    color: $color-primary;
     font-weight: 600;
-    border-bottom-color: $primary-color;
+    border-bottom-color: $color-primary;
   }
 }
 
 /* 排序栏 */
 .auction-sort-bar {
-  background-color: $bg-card;
+  background-color: $color-bg-card;
   padding: 16rpx 24rpx;
-  border-bottom: 1rpx solid $border-color;
+  border-bottom: 1rpx solid $color-divider;
   position: relative;
 }
 
@@ -97,18 +86,18 @@ $radius-lg: 16rpx;
 
 .sort-label {
   font-size: 26rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
 }
 
 .sort-value {
   font-size: 26rpx;
-  color: $text-primary;
+  color: $color-text-primary;
   margin-left: 8rpx;
 }
 
 .sort-arrow {
   font-size: 20rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-left: 8rpx;
 }
 
@@ -117,10 +106,10 @@ $radius-lg: 16rpx;
   top: 100%;
   left: 0;
   right: 0;
-  background-color: $bg-card;
+  background-color: $color-bg-card;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
   z-index: 100;
-  border-radius: 0 0 $radius-md $radius-md;
+  border-radius: 0 0 $border-radius-auction-md $border-radius-auction-md;
 }
 
 .sort-option {
@@ -129,11 +118,11 @@ $radius-lg: 16rpx;
   align-items: center;
   padding: 24rpx 32rpx;
   font-size: 28rpx;
-  color: $text-primary;
-  border-bottom: 1rpx solid $border-color;
+  color: $color-text-primary;
+  border-bottom: 1rpx solid $color-divider;
 
   &--active {
-    color: $primary-color;
+    color: $color-primary;
     font-weight: 600;
   }
 
@@ -143,7 +132,7 @@ $radius-lg: 16rpx;
 }
 
 .sort-check {
-  color: $primary-color;
+  color: $color-primary;
   font-size: 28rpx;
 }
 
@@ -174,16 +163,16 @@ $radius-lg: 16rpx;
 .error-text,
 .empty-text {
   font-size: 28rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-bottom: 32rpx;
 }
 
 .error-retry-btn,
 .empty-create-btn {
   padding: 16rpx 48rpx;
-  background-color: $primary-color;
+  background-color: $color-primary;
   color: #ffffff;
-  border-radius: $radius-lg;
+  border-radius: $border-radius-md;
   font-size: 28rpx;
 }
 
@@ -194,8 +183,8 @@ $radius-lg: 16rpx;
 
 .auction-card {
   display: flex;
-  background-color: $bg-card;
-  border-radius: $radius-lg;
+  background-color: $color-bg-card;
+  border-radius: $border-radius-md;
   margin-bottom: 20rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
@@ -211,7 +200,7 @@ $radius-lg: 16rpx;
 .item-image {
   width: 100%;
   height: 100%;
-  background-color: $bg-page;
+  background-color: $color-bg-grey;
 }
 
 .auction-status-badge {
@@ -219,7 +208,7 @@ $radius-lg: 16rpx;
   top: 12rpx;
   left: 0;
   padding: 4rpx 16rpx;
-  border-radius: 0 $radius-sm $radius-sm 0;
+  border-radius: 0 $border-radius-sm $border-radius-sm 0;
   font-size: 20rpx;
   color: #ffffff;
 }
@@ -230,7 +219,7 @@ $radius-lg: 16rpx;
   right: 8rpx;
   padding: 4rpx 12rpx;
   background-color: rgba(255, 107, 53, 0.9);
-  border-radius: $radius-sm;
+  border-radius: $border-radius-sm;
   font-size: 20rpx;
   color: #ffffff;
 }
@@ -247,7 +236,7 @@ $radius-lg: 16rpx;
 .auction-item-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: $text-primary;
+  color: $color-text-primary;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -255,7 +244,7 @@ $radius-lg: 16rpx;
 
 .auction-item-rarity {
   font-size: 22rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-top: 4rpx;
 }
 
@@ -267,19 +256,19 @@ $radius-lg: 16rpx;
 
 .price-label {
   font-size: 24rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-right: 8rpx;
 }
 
 .price-value {
   font-size: 36rpx;
   font-weight: 700;
-  color: $danger-color;
+  color: $color-error;
 }
 
 .price-asset {
   font-size: 22rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-left: 6rpx;
 }
 
@@ -291,19 +280,19 @@ $radius-lg: 16rpx;
 
 .buyout-label {
   font-size: 22rpx;
-  color: $primary-color;
+  color: $color-primary;
   margin-right: 8rpx;
 }
 
 .buyout-value {
   font-size: 28rpx;
   font-weight: 600;
-  color: $primary-color;
+  color: $color-primary;
 }
 
 .buyout-asset {
   font-size: 20rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
   margin-left: 4rpx;
 }
 
@@ -317,7 +306,7 @@ $radius-lg: 16rpx;
 .meta-bids,
 .meta-bidders {
   font-size: 22rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
 }
 
 .auction-countdown {
@@ -326,7 +315,7 @@ $radius-lg: 16rpx;
 
 .countdown-text {
   font-size: 24rpx;
-  color: $warning-color;
+  color: $color-warning;
   font-weight: 500;
 }
 
@@ -338,12 +327,12 @@ $radius-lg: 16rpx;
 
 .seller-label {
   font-size: 22rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
 }
 
 .seller-name {
   font-size: 22rpx;
-  color: $text-secondary;
+  color: $color-text-secondary;
 }
 
 /* 底部加载/无更多 */
@@ -352,5 +341,5 @@ $radius-lg: 16rpx;
   text-align: center;
   padding: 32rpx 0;
   font-size: 24rpx;
-  color: $text-hint;
+  color: $color-text-tertiary;
 }

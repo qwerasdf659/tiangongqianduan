@@ -1,0 +1,124 @@
+<view class="diy-design-page">
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-full">
+    <view class="loading-spinner" />
+    <text>加载模板中...</text>
+  </view>
+
+  <block wx:else>
+    <!-- ===== 顶部工具栏 ===== -->
+    <view class="toolbar">
+      <view class="toolbar-left">
+        <text class="template-label">{{templateName}}</text>
+      </view>
+      <view class="toolbar-right">
+        <view class="tool-btn {{canUndo ? '' : 'disabled'}}" bind:tap="onUndo">
+          <text>↩</text>
+        </view>
+        <view class="tool-btn {{canRedo ? '' : 'disabled'}}" bind:tap="onRedo">
+          <text>↪</text>
+        </view>
+        <view class="tool-btn" bind:tap="onClearDesign">
+          <text>🗑</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ===== 尺寸选择（串珠模式） ===== -->
+    <view wx:if="{{!isSlotMode && sizing}}" class="size-bar">
+      <text class="size-label">{{sizing.label}}：</text>
+      <picker
+        mode="selector"
+        range="{{sizeOptions}}"
+        range-key="label"
+        value="{{sizeIndex}}"
+        bindchange="onSizeChange"
+      >
+        <view class="size-picker">
+          <text class="size-value">{{selectedSize}}{{sizing.unit}}</text>
+          <text class="size-arrow">▾</text>
+        </view>
+      </picker>
+      <view class="capacity-info">
+        <text class="capacity-text">剩余空间: {{remainingSpace}}mm</text>
+        <view class="capacity-bar">
+          <view class="capacity-fill" style="width: {{usedPercent}}%;" />
+        </view>
+      </view>
+    </view>
+
+    <!-- ===== 槽位状态（镶嵌模式） ===== -->
+    <view wx:if="{{isSlotMode}}" class="slot-bar">
+      <text class="slot-label">已填充 {{filledSlotCount}}/{{totalSlotCount}}</text>
+      <text wx:if="{{activeSlotLabel}}" class="slot-active-label">当前：{{activeSlotLabel}}</text>
+    </view>
+
+    <!-- ===== Canvas 预览区 ===== -->
+    <view class="preview-area">
+      <shape-renderer
+        id="shapeRenderer"
+        canvasWidth="{{canvasWidth}}"
+        canvasHeight="{{canvasHeight}}"
+        bind:beadtap="onBeadTap"
+        bind:slottap="onSlotTap"
+      />
+    </view>
+
+    <!-- ===== 串珠模式：多选操作栏 ===== -->
+    <view wx:if="{{!isSlotMode && highlightedCount > 0}}" class="selection-bar">
+      <text class="selection-text">已选择 {{highlightedCount}} 颗</text>
+      <view class="selection-btn" bind:tap="onDeleteSelected">删除选中</view>
+      <view class="selection-btn secondary" bind:tap="onClearSelection">取消</view>
+    </view>
+
+    <!-- ===== 底部：素材选择区 ===== -->
+    <view class="material-area">
+      <!-- 分类导航 -->
+      <category-nav
+        categories="{{categories}}"
+        activeId="{{activeCategory}}"
+        bind:change="onCategoryChange"
+      />
+
+      <!-- 搜索栏 -->
+      <view class="search-bar">
+        <input
+          class="search-input"
+          placeholder="搜索素材..."
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
+      </view>
+
+      <!-- 素材网格 -->
+      <scroll-view class="bead-grid-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="bead-grid">
+          <bead-card
+            wx:for="{{filteredBeads}}"
+            wx:key="id"
+            bead="{{item}}"
+            disabled="{{item._disabled}}"
+            bind:select="onBeadSelect"
+          />
+        </view>
+        <view wx:if="{{filteredBeads.length === 0}}" class="bead-empty">
+          <text>暂无匹配素材</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- ===== 底部操作栏 ===== -->
+    <view class="bottom-bar">
+      <view class="price-info">
+        <text class="price-label">总价</text>
+        <text class="price-amount">💎 {{totalPrice}}</text>
+      </view>
+      <view class="submit-btn {{canSubmit ? '' : 'disabled'}}" bind:tap="onSubmit">
+        <text>完成设计</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 飞入动画 -->
+  <fly-animation id="flyAnim" bind:complete="onFlyComplete" />
+</view>

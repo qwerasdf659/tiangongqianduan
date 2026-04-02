@@ -1,0 +1,7 @@
+<!-- 飞入动画浮动层 -->
+<view
+  wx:if="{{show}}"
+  class="fly-element"
+  style="left: {{startX}}px; top: {{startY}}px; --end-x: {{endX - startX}}px; --end-y: {{endY - startY}}px; width: {{size}}px; height: {{size}}px; background: {{color}};"
+  animation="{{animData}}"
+/>

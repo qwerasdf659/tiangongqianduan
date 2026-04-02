@@ -1,0 +1,43 @@
+<view class="diy-result-page">
+  <!-- 成功图标 -->
+  <view class="success-header">
+    <view class="success-icon-wrap">
+      <text class="success-icon">✓</text>
+    </view>
+    <text class="success-title">设计保存成功!</text>
+    <text class="success-subtitle">{{templateName}}</text>
+  </view>
+
+  <!-- 价格卡片 -->
+  <view class="price-card">
+    <view class="price-row">
+      <text class="price-label">设计总价</text>
+      <text class="price-value">💎 {{totalPrice}}</text>
+    </view>
+    <view class="price-row">
+      <text class="price-label">设计编号</text>
+      <text class="price-value design-id">{{designId}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-area">
+    <view class="action-btn primary" bind:tap="onShare">
+      <text>分享给朋友</text>
+    </view>
+    <view class="action-btn secondary" bind:tap="onSavePoster">
+      <text>保存海报</text>
+    </view>
+    <view class="action-btn outline" bind:tap="onBackToDesign">
+      <text>继续编辑</text>
+    </view>
+    <view class="action-btn outline" bind:tap="onBackToSelect">
+      <text>设计新款式</text>
+    </view>
+  </view>
+
+  <!-- 提示 -->
+  <view class="tip-area">
+    <text class="tip-text">设计已保存，分享链接给朋友可直接查看你的设计</text>
+  </view>
+</view>

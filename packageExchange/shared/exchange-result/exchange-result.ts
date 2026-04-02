@@ -12,7 +12,7 @@
  * @since 2026-02-21
  */
 
-const { ImageHelper: resultImageHelper } = require('../../../../utils/index')
+const { ImageHelper: resultImageHelper } = require('../../../utils/index')
 const { getQualityGradeStyle, formatEdition } = resultImageHelper
 
 Component({

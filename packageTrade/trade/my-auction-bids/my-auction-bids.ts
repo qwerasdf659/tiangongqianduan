@@ -17,34 +17,11 @@
  * @since 2026-03-25
  */
 
-const {
-  API,
-  Logger: MyBidsLogger,
-  ImageHelper: MyBidsImageHelper
-} = require('../../../utils/index')
+const { API, Logger: MyBidsLogger, AuctionHelpers: MyBidsHelpers } = require('../../../utils/index')
 const myBidsLog = MyBidsLogger.createLogger('my-auction-bids')
-
-/** 根据物品快照获取展示图片 */
-function getAuctionItemImage(snapshot: any): string {
-  if (!snapshot) {
-    return MyBidsImageHelper.DEFAULT_PRODUCT_IMAGE
-  }
-  if (snapshot.item_type) {
-    return MyBidsImageHelper.getMaterialIconPath(snapshot.item_type)
-  }
-  return MyBidsImageHelper.DEFAULT_PRODUCT_IMAGE
-}
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../../store/user')
-
-/** 出价状态UI配置 */
-const BID_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  winning: { label: '当前领先 👑', color: '#52c41a' },
-  outbid: { label: '已被超越', color: '#faad14' },
-  won: { label: '已中标 🎉', color: '#1890ff' },
-  lost: { label: '未中标', color: '#999999' }
-}
 
 Page({
   data: {
@@ -181,12 +158,12 @@ Page({
       bidStatus = 'outbid'
     }
 
-    const statusConfig = BID_STATUS_CONFIG[bidStatus] || BID_STATUS_CONFIG.outbid
+    const statusConfig = MyBidsHelpers.getBidStatusConfig(bidStatus)
 
     return {
       ...bid,
       _displayName: snapshot.item_name || '未知物品',
-      _displayImage: getAuctionItemImage(snapshot),
+      _displayImage: MyBidsHelpers.getAuctionItemImage(snapshot),
       _bidStatusLabel: statusConfig.label,
       _bidStatusColor: statusConfig.color,
       _auctionStatus: auctionInfo.status || '',

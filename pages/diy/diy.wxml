@@ -1,0 +1,6 @@
+<!--DIY tab 入口页：展示款式选择列表，由分包组件渲染-->
+<view class="diy-tab-page">
+  <view class="loading-hint" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

@@ -25,25 +25,8 @@ const {
   API,
   Logger: AuctionCreateLogger,
   Wechat: AuctionCreateWechat,
-  ImageHelper: AuctionCreateImageHelper
+  AuctionHelpers: AuctionCreateHelpers
 } = require('../../../utils/index')
-
-/** 根据物品快照/属性获取展示图片 */
-function getAuctionItemImage(itemType: string | null): string {
-  if (itemType) {
-    return AuctionCreateImageHelper.getMaterialIconPath(itemType)
-  }
-  return AuctionCreateImageHelper.DEFAULT_PRODUCT_IMAGE
-}
-
-/** 根据稀有度编码获取中文显示名 */
-function getAuctionRarityLabel(rarityCode: string | null): string {
-  if (!rarityCode) {
-    return ''
-  }
-  const style = AuctionCreateImageHelper.getRarityStyle(rarityCode)
-  return style ? style.displayName : ''
-}
 const auctionCreateLog = AuctionCreateLogger.createLogger('auction-create')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -133,8 +116,8 @@ Page({
           .map((item: any) => ({
             ...item,
             _displayName: item.item_name || item.display_name || '未知物品',
-            _displayImage: getAuctionItemImage(item.item_type),
-            _rarityLabel: getAuctionRarityLabel(item.rarity_code)
+            _displayImage: AuctionCreateHelpers.getAuctionItemImageByType(item.item_type),
+            _rarityLabel: AuctionCreateHelpers.getAuctionRarityLabel(item.rarity_code)
           }))
 
         this.setData({

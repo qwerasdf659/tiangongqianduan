@@ -1,0 +1,20 @@
+.fly-element {
+  position: fixed;
+  z-index: 9999;
+  border-radius: 50%;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  animation: flyX 350ms ease-out forwards, flyY 350ms ease-in forwards;
+}
+
+@keyframes flyX {
+  to {
+    transform: translateX(var(--end-x));
+  }
+}
+
+@keyframes flyY {
+  to {
+    transform: translateY(var(--end-y));
+  }
+}

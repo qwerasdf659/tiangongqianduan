@@ -19,10 +19,10 @@
   background: $color-white;
   border-radius: 35rpx;
   box-shadow:
-    0 20rpx 40rpx rgba($color-primary-rgb, 0.12),
-    0 8rpx 25rpx rgba($color-primary-rgb, 0.08),
+    0 20rpx 40rpx rgba($color-primary, 0.12),
+    0 8rpx 25rpx rgba($color-primary, 0.08),
     0 0 0 5rpx rgba(255, 255, 255, 0.8),
-    0 0 0 8rpx rgba($color-primary-rgb, 0.08);
+    0 0 0 8rpx rgba($color-primary, 0.08);
   position: relative;
   overflow: hidden;
   z-index: 1;
@@ -72,7 +72,7 @@
 /* 🎨 放大的奖品区域基础样式 - 提升视觉效果 */
 .prize-area {
   background: $color-white;
-  border: 2rpx solid rgba($color-primary-rgb, 0.08);
+  border: 2rpx solid rgba($color-primary, 0.08);
   border-radius: 20rpx;
   @include flex-column-center;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -586,7 +586,7 @@
 }
 
 .lottery-grid {
-  box-shadow: 0 12rpx 30rpx rgba($color-primary-rgb, 0.12);
+  box-shadow: 0 12rpx 30rpx rgba($color-primary, 0.12);
 }
 
 /* 🎨 确保放大后的文字在各种屏幕上都可读 */

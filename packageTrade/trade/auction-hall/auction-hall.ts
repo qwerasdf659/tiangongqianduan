@@ -18,54 +18,18 @@
  * @since 2026-03-25
  */
 
-const { API, Logger: AuctionHallLogger, ImageHelper } = require('../../../utils/index')
-
-/**
- * 根据物品快照获取展示图片
- * item_snapshot中的item_type/rarity_code → ImageHelper中已有的getMaterialIconPath/getCategoryIconPath
- */
-function getAuctionItemImage(snapshot: any): string {
-  if (!snapshot) {
-    return ImageHelper.DEFAULT_PRODUCT_IMAGE
-  }
-  if (snapshot.item_type) {
-    return ImageHelper.getMaterialIconPath(snapshot.item_type)
-  }
-  return ImageHelper.DEFAULT_PRODUCT_IMAGE
-}
-
-/** 根据稀有度编码获取中文显示名 */
-function getAuctionRarityLabel(rarityCode: string | null): string {
-  if (!rarityCode) {
-    return ''
-  }
-  const style = ImageHelper.getRarityStyle(rarityCode)
-  return style ? style.displayName : ''
-}
+const {
+  API,
+  Logger: AuctionHallLogger,
+  AuctionHelpers: AuctionHallHelpers
+} = require('../../../utils/index')
 const auctionHallLog = AuctionHallLogger.createLogger('auction-hall')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../../store/user')
 
-/** 拍卖状态UI配置（对齐后端 auction_listings 7态状态机） */
-const AUCTION_STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  pending: { label: '即将开始', color: '#faad14', icon: '⏳' },
-  active: { label: '竞拍中', color: '#52c41a', icon: '🔥' },
-  ended: { label: '已结束', color: '#999999', icon: '⏰' },
-  settled: { label: '已成交', color: '#1890ff', icon: '✅' },
-  no_bid: { label: '流拍', color: '#999999', icon: '😞' },
-  cancelled: { label: '已取消', color: '#999999', icon: '❌' },
-  settlement_failed: { label: '结算异常', color: '#ff4d4f', icon: '⚠️' }
-}
-
-/** 排序选项（对齐后端 AuctionQueryService 支持的排序字段） */
-const SORT_OPTIONS = [
-  { key: 'end_time_asc', label: '即将结束', sort_by: 'end_time', sort_order: 'asc' },
-  { key: 'current_price_desc', label: '价格最高', sort_by: 'current_price', sort_order: 'desc' },
-  { key: 'current_price_asc', label: '价格最低', sort_by: 'current_price', sort_order: 'asc' },
-  { key: 'bid_count_desc', label: '最多出价', sort_by: 'bid_count', sort_order: 'desc' },
-  { key: 'created_at_desc', label: '最新发布', sort_by: 'created_at', sort_order: 'desc' }
-]
+/** 排序选项（从公共模块引用） */
+const SORT_OPTIONS = AuctionHallHelpers.AUCTION_SORT_OPTIONS
 
 Page({
   data: {
@@ -85,6 +49,8 @@ Page({
 
     /** 当前排序 */
     currentSort: 'end_time_asc',
+    /** 当前排序显示文本 */
+    currentSortLabel: '即将结束',
     sortOptions: SORT_OPTIONS,
     showSortPicker: false,
 
@@ -244,13 +210,13 @@ Page({
    */
   _processAuctionItem(auction: any) {
     const snapshot = auction.item_snapshot || {}
-    const statusConfig = AUCTION_STATUS_CONFIG[auction.status] || AUCTION_STATUS_CONFIG.active
+    const statusConfig = AuctionHallHelpers.getAuctionStatusConfig(auction.status)
 
     return {
       ...auction,
       _displayName: snapshot.item_name || '未知物品',
-      _displayImage: getAuctionItemImage(snapshot),
-      _rarityLabel: getAuctionRarityLabel(snapshot.rarity_code),
+      _displayImage: AuctionHallHelpers.getAuctionItemImage(snapshot),
+      _rarityLabel: AuctionHallHelpers.getAuctionRarityLabel(snapshot.rarity_code),
       _statusLabel: statusConfig.label,
       _statusColor: statusConfig.color,
       _statusIcon: statusConfig.icon,
@@ -397,7 +363,12 @@ Page({
       return
     }
 
-    this.setData({ currentSort: sortKey, showSortPicker: false })
+    const sortOption = SORT_OPTIONS.find((s: any) => s.key === sortKey)
+    this.setData({
+      currentSort: sortKey,
+      currentSortLabel: sortOption ? sortOption.label : '即将结束',
+      showSortPicker: false
+    })
     this._loadAuctions()
   },
 

@@ -8,8 +8,8 @@
  *
  * 支持两种来源（通过路由参数 source 区分）:
  *   source=trade（默认）: C2C固定价交易订单争议
- *     POST /api/v4/market/trade-orders/:trade_order_id/dispute
- *     GET  /api/v4/market/trade-orders/:trade_order_id/dispute
+ *     POST /api/v4/marketplace/trade-orders/:trade_order_id/dispute
+ *     GET  /api/v4/marketplace/trade-orders/:trade_order_id/dispute
  *   source=auction: C2C拍卖争议
  *     POST /api/v4/marketplace/auctions/:auction_listing_id/dispute
  *

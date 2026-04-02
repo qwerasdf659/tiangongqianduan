@@ -223,6 +223,14 @@ Page({
     }
   },
 
+  /** 页面隐藏时清理QR倒计时定时器，防止后台持续运行 */
+  onHide() {
+    if (this._qrTimer) {
+      clearInterval(this._qrTimer)
+      this._qrTimer = null
+    }
+  },
+
   /**
    * 初始化库存管理页面
    *

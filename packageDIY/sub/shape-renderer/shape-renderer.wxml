@@ -1,0 +1,9 @@
+<view class="shape-renderer">
+  <canvas
+    type="2d"
+    id="diy-canvas"
+    class="diy-canvas"
+    style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+    bindtap="onCanvasTap"
+  />
+</view>

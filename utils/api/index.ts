@@ -27,6 +27,7 @@ const consoleModule = require('./console')
 const adCampaignsModule = require('./ad-campaigns')
 const userNotificationsModule = require('./user-notifications')
 const auctionModule = require('./auction')
+const diyModule = require('./diy')
 
 /**
  * 展开运算符自动同步所有子模块导出
@@ -70,5 +71,8 @@ module.exports = {
   ...userNotificationsModule,
 
   /** C2C竞拍系统: getAuctionListings / getAuctionDetail / createAuction / placeAuctionBid / getMyAuctions / cancelAuction / getMyAuctionBids / createAuctionDispute */
-  ...auctionModule
+  ...auctionModule,
+
+  /** DIY饰品设计引擎: getDiyTemplates / getDiyTemplateById / getDiyCategories / getDiyBeadsByCategory / saveDiyDesign / getDiyDesignById */
+  ...diyModule
 }

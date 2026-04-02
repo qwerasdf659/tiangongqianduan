@@ -1,0 +1,59 @@
+<view class="diy-select-page">
+  <!-- 头部 Banner -->
+  <view class="page-header">
+    <view class="header-bg">
+      <text class="header-title">DIY 饰品工坊</text>
+      <text class="header-subtitle">选择你喜欢的款式，开始创作专属饰品</text>
+    </view>
+  </view>
+
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <view class="loading-spinner" />
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{hasError}}" class="error-wrap">
+    <text class="error-icon">⚠️</text>
+    <text class="error-text">{{errorMessage}}</text>
+    <view class="retry-btn" bind:tap="loadTemplates">重试</view>
+  </view>
+
+  <!-- 款式列表 -->
+  <view wx:else class="template-grid">
+    <view
+      wx:for="{{templates}}"
+      wx:key="id"
+      class="template-card"
+      bind:tap="onSelectTemplate"
+      data-index="{{index}}"
+    >
+      <!-- 款式图标 -->
+      <view class="template-icon-wrap">
+        <view class="template-icon-placeholder template-icon-{{item.type}}" />
+      </view>
+
+      <!-- 款式信息 -->
+      <view class="template-info">
+        <text class="template-name">{{item.name}}</text>
+        <text class="template-type">{{item._typeLabel}}</text>
+        <view class="template-tags">
+          <text class="tag" wx:if="{{item._modeLabel}}">{{item._modeLabel}}</text>
+          <text class="tag" wx:if="{{item._shapeLabel}}">{{item._shapeLabel}}</text>
+        </view>
+      </view>
+
+      <!-- 箭头 -->
+      <view class="template-arrow">
+        <text class="arrow-icon">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空态 -->
+  <view wx:if="{{!loading && !hasError && templates.length === 0}}" class="empty-wrap">
+    <text class="empty-icon">💎</text>
+    <text class="empty-text">暂无可用款式</text>
+  </view>
+</view>
