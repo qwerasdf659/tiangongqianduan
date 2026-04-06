@@ -1,15 +1,20 @@
 /**
- * 资产系统API（余额 + 流水 + 汇率兑换）
+ * 资产系统API（余额 + 流水 + 资产转换）
  * 后端路由: routes/v4/assets/（通过Token识别用户）
  *
  * 包含功能:
  *   1. 余额查询: 单币种/多币种余额、今日汇总
  *   2. 流水查询: 资产交易记录
- *   3. 汇率兑换: 规则查询/预览/执行（Phase 3 从 /market/exchange-rates 迁移到 /assets/rates）
+ *   3. 资产转换: 统一转换规则查询/预览/执行（对齐后端 asset_conversion_rules 统一表）
+ *
+ * 后端统一方案（2026-04-05）:
+ *   旧 exchange_rates + material_conversion_rules 两套表已合并为 asset_conversion_rules
+ *   旧 /assets/rates/* 路径已废弃，统一迁移到 /assets/conversion/*
+ *   旧 exchange_rate_id 字段已更名为 conversion_rule_id
  *
  * @file 天工餐厅积分系统 - 资产API模块
- * @version 6.0.0
- * @since 2026-03-25（Phase 3 路径迁移: 汇率兑换 /market/exchange-rates → /assets/rates）
+ * @version 7.0.0
+ * @since 2026-04-07（资产转换规则统一: /assets/rates → /assets/conversion）
  */
 
 const { apiClient } = require('./client')
@@ -42,11 +47,6 @@ async function getAssetBalances() {
   return apiClient.request('/assets/balances', { method: 'GET', needAuth: true })
 }
 
-/** 获取资产转换规则 - GET /api/v4/assets/conversion-rules */
-async function getConversionRules() {
-  return apiClient.request('/assets/conversion-rules', { method: 'GET', needAuth: true })
-}
-
 /**
  * 获取今日资产汇总 - GET /api/v4/assets/today-summary
  *
@@ -68,31 +68,46 @@ async function getTodaySummary(asset_code: string = 'points') {
   return apiClient.request(`/assets/today-summary?${qs}`, { method: 'GET', needAuth: true })
 }
 
-// ==================== 汇率兑换（固定汇率兑换系统，Phase 3 迁移到资产域） ====================
+// ==================== 资产转换（统一转换规则系统，对齐后端 asset_conversion_rules 表） ====================
 
 /**
- * 获取所有可用汇率规则
- * GET /api/v4/assets/rates
+ * 获取所有可用资产转换规则
+ * GET /api/v4/assets/conversion/rules
  *
- * 后端服务: ExchangeRateService.getAllRates()
- * 数据来源: exchange_rates 表（status='active' 且在生效时间窗内）
+ * 后端服务: AssetConversionRuleService.getAvailableRules()
+ * 数据来源: asset_conversion_rules 表（status='active' + is_visible=true + 时间窗内）
  *
  * 响应 data 为数组，每条包含:
- *   exchange_rate_id - BIGINT 汇率规则ID
- *   from_asset_code  - VARCHAR 源资产代码（如 red_core_shard）
- *   to_asset_code    - VARCHAR 目标资产代码（如 star_stone）
- *   rate_numerator   - BIGINT 汇率分子
- *   rate_denominator - BIGINT 汇率分母
- *   rate_display     - VARCHAR 汇率文本描述（如 "10:1"）
- *   min_from_amount  - BIGINT 最小兑换数量
- *   max_from_amount  - BIGINT|null 最大兑换数量
- *   daily_user_limit - BIGINT|null 每用户每日限额
- *   fee_rate         - DECIMAL 手续费率
- *   status           - ENUM active/paused/disabled
- *   description      - VARCHAR|null 汇率说明
+ *   conversion_rule_id - BIGINT 转换规则ID（主键）
+ *   from_asset_code    - VARCHAR 源资产代码（如 red_core_shard）
+ *   to_asset_code      - VARCHAR 目标资产代码（如 star_stone）
+ *   rate_numerator     - STRING 汇率分子（后端返回字符串，前端需 Number() 转换）
+ *   rate_denominator   - STRING 汇率分母（后端返回字符串，前端需 Number() 转换）
+ *   rounding_mode      - ENUM floor/ceil/round 舍入模式
+ *   min_from_amount    - STRING 最小转换数量
+ *   max_from_amount    - STRING|null 最大转换数量
+ *   daily_user_limit   - STRING|null 每用户每日限额
+ *   fee_rate           - STRING 手续费率（DECIMAL，后端返回字符串）
+ *   fee_min_amount     - STRING 最低手续费
+ *   title              - VARCHAR|null 规则标题
+ *   description        - TEXT|null 规则说明
+ *   display_icon       - VARCHAR|null 展示图标
+ *   display_category   - VARCHAR|null 运营自定义展示分类
+ *   priority           - INT 优先级
+ *   conversion_type    - VARCHAR 虚拟字段：compose（合成）/ decompose（分解）/ exchange（兑换）
+ *   conversion_label   - VARCHAR 虚拟字段：中文标签（合成/分解/兑换）
+ *   type_source        - VARCHAR 虚拟字段：auto（tier自动推导）/ manual（运营手动设置）
+ *   from_display_name  - VARCHAR 源资产中文名
+ *   to_display_name    - VARCHAR 目标资产中文名
+ *   from_form          - VARCHAR 源资产形态（shard/gem/currency）
+ *   to_form            - VARCHAR 目标资产形态
+ *   from_tier          - INT 源资产阶级
+ *   to_tier            - INT 目标资产阶级
+ *   from_group_code    - VARCHAR 源资产颜色组（red/blue/...）
+ *   to_group_code      - VARCHAR 目标资产颜色组
  */
-async function getExchangeRates() {
-  return apiClient.request('/assets/rates', {
+async function getConversionRules() {
+  return apiClient.request('/assets/conversion/rules', {
     method: 'GET',
     needAuth: true,
     showLoading: false,
@@ -101,50 +116,33 @@ async function getExchangeRates() {
 }
 
 /**
- * 获取特定币对汇率
- * GET /api/v4/assets/rates/:from/:to
+ * 预览资产转换结果（不执行实际转换）
+ * POST /api/v4/assets/conversion/preview
  *
- * @param fromAssetCode - 源资产代码（如 'red_core_shard'）
- * @param toAssetCode - 目标资产代码（如 'star_stone'）
- */
-async function getExchangeRatePair(fromAssetCode: string, toAssetCode: string) {
-  if (!fromAssetCode || !toAssetCode) {
-    throw new Error('源资产代码和目标资产代码不能为空')
-  }
-  return apiClient.request(`/assets/rates/${fromAssetCode}/${toAssetCode}`, {
-    method: 'GET',
-    needAuth: true,
-    showLoading: false,
-    showError: true,
-    errorPrefix: '获取汇率失败：'
-  })
-}
-
-/**
- * 预览兑换结果（不执行实际兑换）
- * POST /api/v4/assets/rates/preview
- *
- * 后端服务: ExchangeRateService.previewConvert()
+ * 后端服务: AssetConversionRuleService.previewConvert()
  *
  * 请求体: { from_asset_code, to_asset_code, from_amount }
  *
  * 响应 data 包含:
- *   from_amount       - BIGINT 扣减数量
- *   gross_to_amount   - BIGINT 兑换总量（手续费前）
- *   fee_amount        - BIGINT 手续费
- *   net_to_amount     - BIGINT 实际到账量（手续费后）
- *   rate_display      - VARCHAR 汇率文本
- *   user_balance      - BIGINT 当前源资产余额
- *   sufficient_balance - BOOLEAN 余额是否充足
- *   daily_user_limit  - BIGINT|null 每日限额
- *   daily_used        - BIGINT 今日已用
- *   daily_remaining   - BIGINT|null 今日剩余
+ *   conversion_rule_id - STRING 匹配的转换规则ID
+ *   from_asset_code    - VARCHAR 源资产代码
+ *   to_asset_code      - VARCHAR 目标资产代码
+ *   from_amount        - INT 扣减数量
+ *   gross_amount       - INT 转换总量（手续费前）
+ *   fee_amount         - INT 手续费
+ *   net_amount         - INT 实际到账量（手续费后）
+ *   fee_rate           - STRING 手续费率
+ *   rate_numerator     - STRING 汇率分子
+ *   rate_denominator   - STRING 汇率分母
+ *   rounding_mode      - ENUM 舍入模式
+ *   from_balance       - INT 当前源资产余额
+ *   sufficient         - BOOLEAN 余额是否充足
  *
  * @param params.from_asset_code - 源资产代码
  * @param params.to_asset_code - 目标资产代码
- * @param params.from_amount - 兑换数量
+ * @param params.from_amount - 转换数量（正整数）
  */
-async function previewExchangeRate(params: {
+async function previewConversion(params: {
   from_asset_code: string
   to_asset_code: string
   from_amount: number
@@ -156,10 +154,10 @@ async function previewExchangeRate(params: {
     throw new Error('目标资产代码不能为空')
   }
   if (!params.from_amount || params.from_amount <= 0) {
-    throw new Error('兑换数量必须大于0')
+    throw new Error('转换数量必须大于0')
   }
 
-  return apiClient.request('/assets/rates/preview', {
+  return apiClient.request('/assets/conversion/preview', {
     method: 'POST',
     data: {
       from_asset_code: params.from_asset_code,
@@ -169,40 +167,42 @@ async function previewExchangeRate(params: {
     needAuth: true,
     showLoading: false,
     showError: true,
-    errorPrefix: '预览兑换失败：'
+    errorPrefix: '预览转换失败：'
   })
 }
 
 /**
- * 执行汇率兑换
- * POST /api/v4/assets/rates/convert
- * 携带 Idempotency-Key 请求头（幂等键属于请求元数据，放在 Header 中）
+ * 执行资产转换
+ * POST /api/v4/assets/conversion/convert
+ * 携带 Idempotency-Key 请求头（幂等键属于请求元数据，放在 Header 中，非请求体字段）
  *
- * 后端服务: ExchangeRateService.executeConvert()（事务内双录记账）
+ * 后端服务: AssetConversionRuleService.executeConvert()（事务内三方记账）
  *
  * 核心流程:
- *   1. 查 exchange_rates 表匹配汇率规则
- *   2. 计算 to_amount = FLOOR(from_amount × rate_numerator ÷ rate_denominator)
+ *   1. 查 asset_conversion_rules 表匹配转换规则（时间窗+优先级+status=active）
+ *   2. 计算 to_amount = rounding_mode(from_amount × rate_numerator ÷ rate_denominator)
  *   3. 校验 daily_user_limit / daily_global_limit
- *   4. assertAndGetTransaction 事务内：
- *      a. BalanceService.changeBalance: 用户扣减源资产（business_type='exchange_rate_debit'）
- *      b. BalanceService.changeBalance: 用户增加目标资产（business_type='exchange_rate_credit'）
- *      c. 手续费入 SYSTEM_PLATFORM_FEE（business_type='exchange_rate_fee'）
+ *   4. 事务内三方记账：
+ *      a. BalanceService.changeBalance: 用户扣减源资产（business_type='asset_convert_debit', counterpart=SYSTEM_BURN）
+ *      b. BalanceService.changeBalance: 用户增加目标资产（business_type='asset_convert_credit', counterpart=SYSTEM_MINT）
+ *      c. 手续费入 SYSTEM_PLATFORM_FEE（business_type='asset_convert_fee'）
  *   5. 双录记账流水自动产生
  *
  * 响应 data 包含:
- *   success       - BOOLEAN 是否成功
- *   from_amount   - BIGINT 扣减数量
- *   net_to_amount - BIGINT 实际到账量
- *   from_balance  - BIGINT 兑换后源资产余额
- *   to_balance    - BIGINT 兑换后目标资产余额
- *   is_duplicate  - BOOLEAN 是否幂等重复请求
+ *   conversion_rule_id - INT 匹配的转换规则ID
+ *   from_asset_code    - VARCHAR 源资产代码
+ *   to_asset_code      - VARCHAR 目标资产代码
+ *   from_amount        - INT 扣减数量
+ *   gross_amount       - INT 转换总量（手续费前）
+ *   fee_amount         - INT 手续费
+ *   net_amount         - INT 实际到账量
+ *   idempotency_key    - VARCHAR 幂等键
  *
  * @param params.from_asset_code - 源资产代码
  * @param params.to_asset_code - 目标资产代码
- * @param params.from_amount - 兑换数量
+ * @param params.from_amount - 转换数量（正整数）
  */
-async function executeExchangeRate(params: {
+async function executeConversion(params: {
   from_asset_code: string
   to_asset_code: string
   from_amount: number
@@ -214,11 +214,12 @@ async function executeExchangeRate(params: {
     throw new Error('目标资产代码不能为空')
   }
   if (!params.from_amount || params.from_amount <= 0) {
-    throw new Error('兑换数量必须大于0')
+    throw new Error('转换数量必须大于0')
   }
 
-  const idempotencyKey = `exchange_rate_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-  return apiClient.request('/assets/rates/convert', {
+  /* 幂等键格式: convert_{user_id}_{from}_{to}_{amount}_{timestamp}（文档建议格式） */
+  const idempotencyKey = `convert_${params.from_asset_code}_${params.to_asset_code}_${params.from_amount}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  return apiClient.request('/assets/conversion/convert', {
     method: 'POST',
     data: {
       from_asset_code: params.from_asset_code,
@@ -228,9 +229,9 @@ async function executeExchangeRate(params: {
     needAuth: true,
     header: { 'Idempotency-Key': idempotencyKey },
     showLoading: true,
-    loadingText: '兑换中...',
+    loadingText: '转换中...',
     showError: true,
-    errorPrefix: '兑换失败：'
+    errorPrefix: '转换失败：'
   })
 }
 
@@ -240,8 +241,6 @@ module.exports = {
   getAssetBalances,
   getConversionRules,
   getTodaySummary,
-  getExchangeRates,
-  getExchangeRatePair,
-  previewExchangeRate,
-  executeExchangeRate
+  previewConversion,
+  executeConversion
 }

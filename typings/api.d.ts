@@ -820,83 +820,124 @@ declare namespace API {
     product_status?: string
   }
 
-  // ===== 汇率兑换系统 =====
+  // ===== 资产转换规则系统（统一 asset_conversion_rules 表） =====
 
   /**
-   * 汇率规则（对齐后端 exchange_rates 表 + GET /api/v4/assets/rates 响应）
-   * 表示一条源资产→目标资产的兑换规则
+   * 资产转换规则（对齐后端 asset_conversion_rules 统一表 + GET /api/v4/assets/conversion/rules 响应）
+   * 旧 exchange_rates + material_conversion_rules 两套表已合并
+   * 注意：后端 DECIMAL/BIGINT 字段返回字符串，前端使用时需 Number() 转换
    */
-  interface ExchangeRate {
-    /** 汇率规则ID（BIGINT PK） */
-    exchange_rate_id: number
+  interface ConversionRule {
+    /** 转换规则ID（BIGINT PK，旧 exchange_rate_id 已更名） */
+    conversion_rule_id: number
     /** 源资产代码（如 red_core_shard） */
     from_asset_code: string
     /** 目标资产代码（如 star_stone） */
     to_asset_code: string
-    /** 汇率分子 */
-    rate_numerator: number
-    /** 汇率分母 */
-    rate_denominator: number
-    /** 汇率文本描述（如 "10:1"） */
-    rate_display: string
-    /** 最小兑换数量 */
-    min_from_amount: number
-    /** 最大兑换数量（null=不限） */
-    max_from_amount: number | null
+    /** 汇率分子（后端返回字符串，前端需 Number() 转换） */
+    rate_numerator: string
+    /** 汇率分母（后端返回字符串，前端需 Number() 转换） */
+    rate_denominator: string
+    /** 舍入模式: floor / ceil / round */
+    rounding_mode: string
+    /** 最小转换数量（后端返回字符串） */
+    min_from_amount: string
+    /** 最大转换数量（null=不限） */
+    max_from_amount: string | null
     /** 每用户每日限额（null=不限） */
-    daily_user_limit: number | null
-    /** 手续费率（DECIMAL） */
-    fee_rate: number
-    /** 规则状态: active / paused / disabled */
-    status: string
-    /** 汇率说明（可为null） */
+    daily_user_limit: string | null
+    /** 手续费率（DECIMAL，后端返回字符串如 "0.0000"） */
+    fee_rate: string
+    /** 最低手续费（后端返回字符串） */
+    fee_min_amount: string
+    /** 规则标题（可为null） */
+    title: string | null
+    /** 规则说明（可为null） */
     description: string | null
+    /** 展示图标URL（可为null） */
+    display_icon: string | null
+    /** 运营自定义展示分类（null则由系统根据资产tier自动推导） */
+    display_category: string | null
+    /** 优先级（数字越大越优先） */
+    priority: number
+    /** 转换类型 — 虚拟字段，后端根据 tier 自动推导: compose（合成）/ decompose（分解）/ exchange（兑换） */
+    conversion_type: string
+    /** 转换类型中文标签 — 虚拟字段: 合成 / 分解 / 兑换 */
+    conversion_label: string
+    /** 推导来源 — 虚拟字段: auto（tier自动推导）/ manual（运营手动设置） */
+    type_source: string
+    /** 源资产中文名（后端 JOIN material_asset_types 返回） */
+    from_display_name: string
+    /** 目标资产中文名 */
+    to_display_name: string
+    /** 源资产形态: shard / gem / currency */
+    from_form: string
+    /** 目标资产形态 */
+    to_form: string
+    /** 源资产阶级（数字，用于推导 conversion_type） */
+    from_tier: number
+    /** 目标资产阶级 */
+    to_tier: number
+    /** 源资产颜色组: red / orange / yellow / green / blue / purple / currency */
+    from_group_code: string
+    /** 目标资产颜色组 */
+    to_group_code: string
   }
 
   /**
-   * 兑换预览结果（POST /api/v4/assets/rates/preview 响应）
-   * 仅预览不执行实际兑换，用于前端展示确认信息
+   * 转换预览结果（POST /api/v4/assets/conversion/preview 响应）
+   * 仅预览不执行实际转换，用于前端展示确认信息
    */
-  interface ExchangeRatePreview {
+  interface ConversionPreview {
+    /** 匹配的转换规则ID */
+    conversion_rule_id: string
+    /** 源资产代码 */
+    from_asset_code: string
+    /** 目标资产代码 */
+    to_asset_code: string
     /** 扣减数量 */
     from_amount: number
-    /** 兑换总量（手续费前） */
-    gross_to_amount: number
+    /** 转换总量（手续费前） */
+    gross_amount: number
     /** 手续费 */
     fee_amount: number
     /** 实际到账量（手续费后） */
-    net_to_amount: number
-    /** 汇率文本 */
-    rate_display: string
+    net_amount: number
+    /** 手续费率 */
+    fee_rate: string
+    /** 汇率分子 */
+    rate_numerator: string
+    /** 汇率分母 */
+    rate_denominator: string
+    /** 舍入模式 */
+    rounding_mode: string
     /** 当前源资产余额 */
-    user_balance: number
+    from_balance: number
     /** 余额是否充足 */
-    sufficient_balance: boolean
-    /** 每日限额（null=不限） */
-    daily_user_limit: number | null
-    /** 今日已用 */
-    daily_used: number
-    /** 今日剩余（null=不限） */
-    daily_remaining: number | null
+    sufficient: boolean
   }
 
   /**
-   * 兑换执行结果（POST /api/v4/assets/rates/convert 响应）
-   * 携带 Idempotency-Key 请求头防止重复兑换
+   * 转换执行结果（POST /api/v4/assets/conversion/convert 响应）
+   * 携带 Idempotency-Key 请求头防止重复转换
    */
-  interface ExchangeRateConvertResult {
-    /** 是否成功 */
-    success: boolean
+  interface ConversionResult {
+    /** 匹配的转换规则ID */
+    conversion_rule_id: number
+    /** 源资产代码 */
+    from_asset_code: string
+    /** 目标资产代码 */
+    to_asset_code: string
     /** 扣减数量 */
     from_amount: number
+    /** 转换总量（手续费前） */
+    gross_amount: number
+    /** 手续费 */
+    fee_amount: number
     /** 实际到账量 */
-    net_to_amount: number
-    /** 兑换后源资产余额 */
-    from_balance: number
-    /** 兑换后目标资产余额 */
-    to_balance: number
-    /** 是否幂等重复请求 */
-    is_duplicate: boolean
+    net_amount: number
+    /** 幂等键 */
+    idempotency_key: string
   }
 
   // ===== 价格发现系统 =====
