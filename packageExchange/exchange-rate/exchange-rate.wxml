@@ -1,5 +1,5 @@
-<!-- 汇率兑换组件 — 固定汇率资产兑换 -->
-<!-- 后端API: GET /api/v4/assets/rates, POST preview, POST convert -->
+<!-- 资产转换组件 — 统一资产转换规则（合成/分解/兑换） -->
+<!-- 后端API: GET /api/v4/assets/conversion/rules, POST preview, POST convert -->
 <view class="exchange-rate-container">
   <!-- 加载状态 -->
   <loading-spinner wx:if="{{pageLoading}}" text="加载汇率..." />
@@ -30,9 +30,9 @@
     <!-- 汇率卡片列表 -->
     <view
       wx:for="{{rateList}}"
-      wx:key="exchange_rate_id"
-      class="rate-card {{selectedRate && selectedRate.exchange_rate_id === item.exchange_rate_id ? 'rate-card--expanded' : ''}}"
-      data-rate-id="{{item.exchange_rate_id}}"
+      wx:key="conversion_rule_id"
+      class="rate-card {{selectedRate && selectedRate.conversion_rule_id === item.conversion_rule_id ? 'rate-card--expanded' : ''}}"
+      data-rate-id="{{item.conversion_rule_id}}"
       bindtap="onSelectRate"
     >
       <!-- 汇率信息行 -->
@@ -77,7 +77,7 @@
       <!-- 展开的兑换面板 -->
       <view
         class="rate-card__panel"
-        wx:if="{{selectedRate && selectedRate.exchange_rate_id === item.exchange_rate_id}}"
+        wx:if="{{selectedRate && selectedRate.conversion_rule_id === item.conversion_rule_id}}"
         catchtap=""
       >
         <!-- 输入区域 -->
@@ -102,7 +102,7 @@
           </view>
         </view>
 
-        <!-- 预览结果 -->
+        <!-- 预览结果 — 响应字段: net_amount（旧 net_to_amount）, sufficient（旧 sufficient_balance）, from_balance（旧 user_balance） -->
         <view class="preview-section" wx:if="{{previewResult}}">
           <view class="preview-row">
             <text class="preview-label">消耗</text>
@@ -119,19 +119,13 @@
           <view class="preview-row preview-row--highlight">
             <text class="preview-label">实际获得</text>
             <text class="preview-value preview-value--credit"
-              >+{{previewResult.net_to_amount}} {{item.toDisplayName || item.to_asset_code}}</text
-            >
-          </view>
-          <view class="preview-row" wx:if="{{previewResult.daily_user_limit}}">
-            <text class="preview-label">今日额度</text>
-            <text class="preview-value"
-              >已用 {{previewResult.daily_used}} / 限额 {{previewResult.daily_user_limit}}</text
+              >+{{previewResult.net_amount}} {{item.toDisplayName || item.to_asset_code}}</text
             >
           </view>
           <view class="preview-row">
             <text class="preview-label">当前余额</text>
             <text class="preview-value"
-              >{{previewResult.user_balance}} {{item.fromDisplayName || item.from_asset_code}}</text
+              >{{previewResult.from_balance}} {{item.fromDisplayName || item.from_asset_code}}</text
             >
           </view>
         </view>
@@ -146,11 +140,11 @@
           <text class="error-text">{{errorMessage}}</text>
         </view>
 
-        <!-- 兑换按钮 -->
+        <!-- 兑换按钮 — sufficient 字段（旧 sufficient_balance） -->
         <view class="convert-action">
           <button
-            class="convert-btn {{(!previewResult || !previewResult.sufficient_balance || converting) ? 'convert-btn--disabled' : ''}}"
-            disabled="{{!previewResult || !previewResult.sufficient_balance || converting}}"
+            class="convert-btn {{(!previewResult || !previewResult.sufficient || converting) ? 'convert-btn--disabled' : ''}}"
+            disabled="{{!previewResult || !previewResult.sufficient || converting}}"
             bindtap="onConfirmConvert"
           >
             {{converting ? '兑换中...' : '确认兑换'}}
@@ -166,7 +160,7 @@
       <view class="result-popup__icon">
         <text class="result-icon-text">✓</text>
       </view>
-      <text class="result-popup__title">兑换成功</text>
+      <text class="result-popup__title">转换成功</text>
       <view class="result-popup__detail" wx:if="{{convertResult}}">
         <view class="result-row">
           <text class="result-label">消耗</text>
@@ -174,11 +168,7 @@
         </view>
         <view class="result-row">
           <text class="result-label">获得</text>
-          <text class="result-value result-value--credit">+{{convertResult.net_to_amount}}</text>
-        </view>
-        <view class="result-row">
-          <text class="result-label">剩余</text>
-          <text class="result-value">{{convertResult.from_balance}}</text>
+          <text class="result-value result-value--credit">+{{convertResult.net_amount}}</text>
         </view>
       </view>
       <button class="result-popup__btn" bindtap="onCloseResultPopup">知道了</button>

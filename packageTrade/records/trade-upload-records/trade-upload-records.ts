@@ -92,7 +92,7 @@ Page({
     searchKeyword: '',
     showFilterPanel: false,
 
-    /** 来源页面筛选（如 exchange_rate → 仅显示汇率兑换相关流水） */
+    /** 来源页面筛选（如 asset_convert → 仅显示资产转换相关流水） */
     sourceFilter: '' as string,
 
     // 🧾 消费记录相关数据（来自 GET /api/v4/shop/consumption/me）
@@ -140,15 +140,16 @@ Page({
     }
 
     /**
-     * 来源筛选: source=exchange_rate 时仅显示汇率兑换相关的交易流水
-     * 对应后端 business_type: exchange_rate_debit / exchange_rate_credit
+     * 来源筛选: source=asset_convert 时仅显示资产转换相关的交易流水
+     * 对应后端 business_type: asset_convert_debit / asset_convert_credit
+     * （后端已将旧 exchange_rate_* / material_convert_* 统一迁移为 asset_convert_*）
      */
     if (options.source) {
       this.setData({ sourceFilter: options.source })
     }
 
     const titleMap: Record<string, string> = {
-      exchange_rate: '兑换记录'
+      asset_convert: '转换记录'
     }
     wx.setNavigationBarTitle({
       title: titleMap[options.source || ''] || '积分活动记录'
@@ -292,11 +293,12 @@ Page({
   async loadTransactionData() {
     try {
       /**
-       * source=exchange_rate 时向后端传 business_type 筛选汇率兑换流水
-       * exchange_rate_debit = 兑出（消耗）, exchange_rate_credit = 兑入（获得）
+       * source=asset_convert 时向后端传 business_type 筛选资产转换流水
+       * asset_convert_debit = 转出（消耗）, asset_convert_credit = 转入（获得）
+       * （后端已将旧 exchange_rate_* / material_convert_* 统一迁移为 asset_convert_*）
        */
       const sourceBusinessTypeMap: Record<string, string> = {
-        exchange_rate: 'exchange_rate_debit,exchange_rate_credit'
+        asset_convert: 'asset_convert_debit,asset_convert_credit'
       }
       const businessTypeParam = sourceBusinessTypeMap[this.data.sourceFilter] || null
       const result = await API.getPointsTransactions(1, 200, null, businessTypeParam)

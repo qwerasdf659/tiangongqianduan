@@ -121,8 +121,10 @@ Component({
           fromIcon: ExRateImageHelper.getMaterialIconPath(rule.from_asset_code),
           toIcon: ExRateImageHelper.getMaterialIconPath(rule.to_asset_code),
           /* 优先使用后端返回的中文名，降级到 ImageHelper 本地映射 */
-          fromDisplayName: rule.from_display_name || ExRateImageHelper.getAssetDisplayName(rule.from_asset_code),
-          toDisplayName: rule.to_display_name || ExRateImageHelper.getAssetDisplayName(rule.to_asset_code),
+          fromDisplayName:
+            rule.from_display_name || ExRateImageHelper.getAssetDisplayName(rule.from_asset_code),
+          toDisplayName:
+            rule.to_display_name || ExRateImageHelper.getAssetDisplayName(rule.to_asset_code),
           /* 转换比例展示文案: {rate_denominator}个{from} = {rate_numerator}个{to} */
           rateText: `${rule.rate_denominator} : ${rule.rate_numerator}`,
           feePercent: Number(rule.fee_rate) ? `${(Number(rule.fee_rate) * 100).toFixed(1)}%` : '0%'
@@ -271,7 +273,7 @@ Component({
       }
     },
 
-    /** 用户点击"确认兑换"按钮 */
+    /** 用户点击"确认转换"按钮 */
     async onConfirmConvert() {
       const currentRate = this.data.selectedRate
       const preview = this.data.previewResult
@@ -283,17 +285,18 @@ Component({
         return
       }
 
-      if (!preview.sufficient_balance) {
+      /* 后端新字段名: sufficient（旧 sufficient_balance） */
+      if (!preview.sufficient) {
         wx.showToast({ title: '余额不足', icon: 'none' })
         return
       }
 
-      /* 二次确认弹窗 */
+      /* 二次确认弹窗 — 响应字段: net_amount（旧 net_to_amount） */
       const confirmResult = await new Promise<boolean>(resolve => {
         wx.showModal({
-          title: '确认兑换',
-          content: `消耗 ${preview.from_amount} ${currentRate.fromDisplayName}\n获得 ${preview.net_to_amount} ${currentRate.toDisplayName}\n${preview.fee_amount > 0 ? `手续费: ${preview.fee_amount}` : ''}`,
-          confirmText: '确认兑换',
+          title: '确认转换',
+          content: `消耗 ${preview.from_amount} ${currentRate.fromDisplayName}\n获得 ${preview.net_amount} ${currentRate.toDisplayName}\n${preview.fee_amount > 0 ? `手续费: ${preview.fee_amount}` : ''}`,
+          confirmText: '确认转换',
           cancelText: '取消',
           success: (res: any) => resolve(res.confirm)
         })
@@ -306,14 +309,14 @@ Component({
       this.setData({ converting: true })
 
       try {
-        const response = await API.executeExchangeRate({
+        const response = await API.executeConversion({
           from_asset_code: currentRate.from_asset_code,
           to_asset_code: currentRate.to_asset_code,
           from_amount: preview.from_amount
         })
 
         if (response && response.success && response.data) {
-          exchangeRateLog.info('兑换成功:', response.data)
+          exchangeRateLog.info('转换成功:', response.data)
           this.setData({
             converting: false,
             convertResult: response.data,
@@ -325,25 +328,25 @@ Component({
           /* 通知 Page 壳刷新积分余额 */
           this.triggerEvent('exchangeratesuccess', response.data)
         } else {
-          const apiMessage = (response && response.message) || '兑换失败'
+          const apiMessage = (response && response.message) || '转换失败'
           wx.showToast({ title: apiMessage, icon: 'none', duration: 2500 })
           this.setData({ converting: false })
         }
       } catch (error: any) {
-        exchangeRateLog.error('兑换异常:', error)
+        exchangeRateLog.error('转换异常:', error)
 
-        /* 根据后端错误码提供针对性提示（对齐文档 Section 17.4 全部7个错误码） */
-        let errorTip = error.message || '兑换失败，请稍后重试'
+        /* 根据后端错误码提供针对性提示 */
+        let errorTip = error.message || '转换失败，请稍后重试'
         if (error.code === 'DAILY_LIMIT_EXCEEDED') {
-          errorTip = '今日兑换额度已用完，明天再来'
+          errorTip = '今日转换额度已用完，明天再来'
         } else if (error.code === 'AMOUNT_BELOW_MINIMUM') {
-          errorTip = `兑换数量低于最小限制`
+          errorTip = '转换数量低于最小限制'
         } else if (error.code === 'AMOUNT_ABOVE_MAXIMUM') {
-          errorTip = `兑换数量超过最大限制`
+          errorTip = '转换数量超过最大限制'
         } else if (error.code === 'INVALID_AMOUNT') {
-          errorTip = '请输入有效的兑换数量'
+          errorTip = '请输入有效的转换数量'
         } else if (error.code === 'RATE_NOT_FOUND') {
-          errorTip = '该兑换暂未开放'
+          errorTip = '该转换暂未开放'
         }
 
         wx.showToast({ title: errorTip, icon: 'none', duration: 2500 })
@@ -364,8 +367,9 @@ Component({
       }
 
       /* 根据预览返回的余额确定最大值，否则用 properties 积分余额做粗估 */
+      /* 后端新字段名: from_balance（旧 user_balance） */
       const preview = this.data.previewResult
-      const userBalance = preview ? preview.user_balance : this.data.pointsBalance
+      const userBalance = preview ? preview.from_balance : this.data.pointsBalance
 
       let maxAmount = userBalance
       if (currentRate.max_from_amount && currentRate.max_from_amount < maxAmount) {
@@ -378,15 +382,15 @@ Component({
       }
     },
 
-    /** 手动刷新汇率列表 */
+    /** 手动刷新转换规则列表 */
     onRefreshRates() {
-      this._loadExchangeRates()
+      this._loadConversionRules()
     },
 
-    /** 跳转到交易记录页面（查看兑换历史） */
+    /** 跳转到交易记录页面（查看转换历史） */
     onViewExchangeHistory() {
       wx.navigateTo({
-        url: '/packageTrade/records/trade-upload-records/trade-upload-records?source=exchange_rate'
+        url: '/packageTrade/records/trade-upload-records/trade-upload-records?source=asset_convert'
       })
     }
   }

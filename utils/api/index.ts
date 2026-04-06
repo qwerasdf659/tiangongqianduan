@@ -46,7 +46,7 @@ module.exports = {
   /** 抽奖系统: getLotteryCampaigns / getActiveCampaigns / getLotteryPrizes / getLotteryConfig / performLottery / getLotteryHistory / getLotteryUserStatistics */
   ...lotteryModule,
 
-  /** 资产系统+汇率兑换: getPointsBalance / getPointsTransactions / getAssetBalances / getConversionRules / getTodaySummary / getExchangeRates / previewExchangeRate / executeExchangeRate */
+  /** 资产系统+资产转换: getPointsBalance / getPointsTransactions / getAssetBalances / getConversionRules / getTodaySummary / previewConversion / executeConversion */
   ...assetsModule,
 
   /** 背包+B2C兑换+竞价: getUserInventory / getBackpackStats / getExchangeProducts / exchangeProduct / getBidProducts / placeBid 等 */
