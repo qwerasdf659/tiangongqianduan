@@ -85,7 +85,7 @@
             <view class="price-value-row">
               <text class="price-amount">{{item.price_amount}}</text>
               <text class="price-unit"
-                >{{item.price_asset_code === 'DIAMOND' ? '💎' : item.price_asset_code}}</text
+                >{{item._priceAssetLabel === '星石' ? '💎' : item._priceAssetLabel}}</text
               >
             </view>
           </view>

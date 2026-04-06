@@ -23,7 +23,7 @@ const exchangeRateLog = ExRateLogger.createLogger('exchange-rate')
 
 Component({
   properties: {
-    /** 可用积分余额（DIAMOND，Page壳下传） */
+    /** 可用积分余额（star_stone，Page壳下传） */
     pointsBalance: { type: Number, value: 0 },
     /** 刷新令牌（值变化触发重新加载汇率列表） */
     refreshToken: { type: Number, value: 0 },
@@ -276,7 +276,7 @@ Component({
       const confirmResult = await new Promise<boolean>(resolve => {
         wx.showModal({
           title: '确认兑换',
-          content: `消耗 ${preview.from_amount} ${currentRate.from_asset_code}\n获得 ${preview.net_to_amount} ${currentRate.to_asset_code}\n${preview.fee_amount > 0 ? `手续费: ${preview.fee_amount}` : ''}`,
+          content: `消耗 ${preview.from_amount} ${currentRate.fromDisplayName}\n获得 ${preview.net_to_amount} ${currentRate.toDisplayName}\n${preview.fee_amount > 0 ? `手续费: ${preview.fee_amount}` : ''}`,
           confirmText: '确认兑换',
           cancelText: '取消',
           success: (res: any) => resolve(res.confirm)

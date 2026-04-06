@@ -407,6 +407,13 @@
   max-width: 300rpx;
 }
 
+/* 余额变动快照（后端 balance_before → balance_after，审计追踪用） */
+.record-balance {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  opacity: 0.7;
+}
+
 /* ========== 空状态 ========== */
 .empty-state {
   text-align: center;

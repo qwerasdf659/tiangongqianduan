@@ -114,6 +114,8 @@ Component({
               current_price: item.current_price || 0,
               min_bid_increment: item.min_bid_increment || 1,
               price_asset_code: item.price_asset_code,
+              /** 结算资产中文名（用于UI展示，如"星石"） */
+              _priceAssetLabel: bidImageHelper.getAssetDisplayName(item.price_asset_code || ''),
               status: item.status,
               start_time: item.start_time,
               end_time: item.end_time,
@@ -182,6 +184,8 @@ Component({
               current_price: detail.current_price || 0,
               min_bid_increment: detail.min_bid_increment || 1,
               price_asset_code: detail.price_asset_code,
+              /** 结算资产中文名（用于UI展示） */
+              _priceAssetLabel: bidImageHelper.getAssetDisplayName(detail.price_asset_code || ''),
               status: detail.status,
               end_time: detail.end_time,
               bid_count: detail.bid_count || 0
@@ -286,13 +290,15 @@ Component({
       const confirmMinBid =
         (selectedBidProduct.current_price || 0) + (selectedBidProduct.min_bid_increment || 1)
       if (userBidAmount < confirmMinBid) {
-        bidShowToast(`出价不能低于 ${confirmMinBid} ${selectedBidProduct.price_asset_code}`)
+        bidShowToast(
+          `出价不能低于 ${confirmMinBid} ${bidImageHelper.getAssetDisplayName(selectedBidProduct.price_asset_code || '')}`
+        )
         return
       }
 
       wx.showModal({
         title: '确认竞价',
-        content: `您将以 ${userBidAmount} ${selectedBidProduct.price_asset_code} 出价，资产将被冻结直到被超越或竞价结束。`,
+        content: `您将以 ${userBidAmount} ${bidImageHelper.getAssetDisplayName(selectedBidProduct.price_asset_code || '')} 出价，资产将被冻结直到被超越或竞价结束。`,
         confirmText: '确认出价',
         cancelText: '再想想',
         success: async (modalRes: WechatMiniprogram.ShowModalSuccessCallbackResult) => {

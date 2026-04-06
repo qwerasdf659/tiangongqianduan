@@ -30,10 +30,13 @@ const {
   ThemeCache,
   GlobalTheme,
   API,
-  ImageHelper
+  ImageHelper,
+  AssetCodes
 } = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { checkAuth } = Utils
+/** 资产分类辅助函数 — 判断 asset_code 是否为可兑换资产 */
+const assetCodesHelper = AssetCodes
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
@@ -46,7 +49,7 @@ Page({
     totalPoints: 0,
     /** 冻结积分 */
     frozenPoints: 0,
-    /** 钻石和水晶类资产余额列表（后端 GET /api/v4/assets/balances，过滤 DIAMOND + shard + crystal） */
+    /** 星石和源晶类资产余额列表（后端 GET /api/v4/assets/balances，过滤 star_stone + core_shard + core_gem） */
     assetBalances: [] as any[],
 
     /** 当前 Tab 标识 'exchange' | 'market' */
@@ -228,9 +231,9 @@ Page({
   },
 
   /**
-   * 获取钻石和水晶类资产余额
+   * 获取星石和源晶类资产余额
    * 后端API: GET /api/v4/assets/balances
-   * 过滤规则: DIAMOND + *_shard（碎片）+ *_crystal（水晶）
+   * 过滤规则: star_stone + *_core_shard（碎片）+ *_core_gem（源晶）
    */
   async _refreshAssetBalances() {
     try {
@@ -239,10 +242,11 @@ Page({
         /** 后端实际返回 { data: { balances: [...] } }，取 balances 数组 */
         const apiData = result.data
         const allBalances = apiData.balances || (Array.isArray(apiData) ? apiData : [])
-        const diamondAndCrystalAssets = allBalances
+        const starStoneAndGemAssets = allBalances
           .filter((asset: any) => {
             const code = asset.asset_code || ''
-            return code === 'DIAMOND' || code.endsWith('_shard') || code.endsWith('_crystal')
+            /** 使用 AssetCodes 辅助函数判断是否为可兑换资产（星石 + 碎片 + 完整源晶） */
+            return assetCodesHelper.isExchangeableAsset(code)
           })
           .map((asset: any) => ({
             asset_code: asset.asset_code,
@@ -254,14 +258,14 @@ Page({
             frozen_amount: asset.frozen_amount || 0,
             total_amount: asset.total_amount || 0
           }))
-        this.setData({ assetBalances: diamondAndCrystalAssets })
+        this.setData({ assetBalances: starStoneAndGemAssets })
       }
     } catch (error) {
       log.error('获取资产余额失败:', error)
     }
   },
 
-  /** 统一刷新所有余额（积分 + 钻石/水晶资产，并行请求） */
+  /** 统一刷新所有余额（积分 + 星石/源晶资产，并行请求） */
   async _refreshAllBalances(localUserInfo?: any) {
     const userInfo = localUserInfo || this.data.userInfo
     await Promise.all([this._refreshPointsBalance(userInfo), this._refreshAssetBalances()])

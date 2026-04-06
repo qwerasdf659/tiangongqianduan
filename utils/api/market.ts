@@ -7,7 +7,7 @@
  *
  * 核心概念:
  *   - listing_kind: 'item'（不可叠加物品） / 'fungible_asset'（可叠加资产）
- *   - price_asset_code: 定价币种（默认 DIAMOND）
+ *   - price_asset_code: 定价币种（默认 star_stone）
  *   - price_amount: 售价（BIGINT整数）
  *   - 挂单状态 active / sold / withdrawn / expired（文档层枚举）
  *
@@ -40,7 +40,7 @@ const { buildQueryString } = require('../util')
  *   - seller_user_id: INT FK 卖家用户ID
  *   - seller_nickname: VARCHAR 卖家昵称
  *   - seller_avatar_url: VARCHAR 卖家头像（可null）
- *   - price_asset_code: VARCHAR(50) 定价币种（默认 DIAMOND）
+ *   - price_asset_code: VARCHAR(50) 定价币种（默认 star_stone）
  *   - price_amount: BIGINT 售价
  *   - status: ENUM active / sold / withdrawn / expired（文档层枚举）
  *   - created_at: DATETIME
@@ -55,7 +55,7 @@ const { buildQueryString } = require('../util')
  *   - template_id: BIGINT 物品模板ID（可null）
  *
  * 资产类型(fungible_asset)嵌套对象 asset_info:
- *   - asset_code: VARCHAR 资产代码（如 red_shard）
+ *   - asset_code: VARCHAR 资产代码（如 red_core_shard）
  *   - amount: BIGINT 上架数量
  *   - display_name: VARCHAR 资产显示名称（来自 material_asset_types）
  *   - primary_media: MediaObject|null 资产图标（media_files JOIN，运营未上传时为null）
@@ -253,7 +253,7 @@ async function withdrawFungibleAsset(listing_id: number, withdraw_reason?: strin
  *
  * @param params.item_id - 物品ID（items表主键，BIGINT）
  * @param params.price_amount - 售价（BIGINT整数）
- * @param params.price_asset_code - 定价币种（如 'DIAMOND'）
+ * @param params.price_asset_code - 定价币种（如 'star_stone'）
  * @param params.condition - 物品状态描述（可选，对齐文档2.3节）
  */
 async function sellToMarket(params: {
@@ -332,7 +332,7 @@ async function getMyListings(
  * 获取结算币种列表（用户可选的定价币种）
  * GET /api/v4/marketplace/settlement-currencies
  *
- * 响应: { currencies: [{ asset_code: "DIAMOND", display_name: "钻石" }, ...] }
+ * 响应: { currencies: [{ asset_code: "star_stone", display_name: "星石" }, ...] }
  * 数据来源: system_settings.allowed_settlement_assets 白名单 + material_asset_types.display_name
  */
 async function getSettlementCurrencies() {
@@ -355,10 +355,10 @@ async function getMarketFacets() {
  * 携带 Idempotency-Key 请求头防止重复上架
  * 业务规则: 资产必须 is_tradable = true（material_asset_types 表控制）
  *
- * @param params.offer_asset_code - 出售的资产代码（如 'DIAMOND'）
+ * @param params.offer_asset_code - 出售的资产代码（如 'star_stone'）
  * @param params.offer_amount - 出售数量
  * @param params.price_amount - 挂牌价格
- * @param params.price_asset_code - 结算币种代码（如 'red_shard'）
+ * @param params.price_asset_code - 结算币种代码（如 'red_core_shard'）
  */
 async function sellFungibleAssets(params: {
   offer_asset_code: string

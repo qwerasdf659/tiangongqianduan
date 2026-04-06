@@ -288,7 +288,7 @@ Page({
     const confirmResult = await new Promise<boolean>(resolve => {
       wx.showModal({
         title: '确认取消',
-        content: '取消后冻结的钻石将退回账户，确认取消此广告活动？',
+        content: '取消后冻结的星石将退回账户，确认取消此广告活动？',
         confirmText: '确认取消',
         cancelText: '再想想',
         success: modalRes => resolve(modalRes.confirm)
@@ -305,7 +305,7 @@ Page({
       wx.hideLoading()
 
       if (result?.success) {
-        Wechat.showToast('已取消，钻石已退回', 'success', 2000)
+        Wechat.showToast('已取消，星石已退回', 'success', 2000)
         this.loadCampaigns(true)
       } else {
         throw new Error(result?.message || '取消失败')

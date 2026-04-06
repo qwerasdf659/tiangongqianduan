@@ -64,7 +64,7 @@
         <text class="form-label">出价币种</text>
         <picker mode="selector" range="{{currencies}}" range-key="display_name" value="{{selectedCurrencyIndex}}" bindchange="onCurrencyChange">
           <view class="form-picker">
-            <text>{{currencies[selectedCurrencyIndex].display_name || 'DIAMOND'}}</text>
+            <text>{{currencies[selectedCurrencyIndex].display_name || '星石'}}</text>
             <text class="picker-arrow">▼</text>
           </view>
         </picker>

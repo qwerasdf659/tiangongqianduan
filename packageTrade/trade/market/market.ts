@@ -26,7 +26,8 @@ const {
   Waterfall,
   Wechat,
   ImageHelper: imageHelper,
-  Utils: marketUtils
+  Utils: marketUtils,
+  AssetCodes: marketAssetCodes
 } = require('../../../utils/index')
 const marketLog = Logger.createLogger('market')
 
@@ -55,7 +56,7 @@ Page({
 
     /** 价格走势图（默认收起，用户手动展开） */
     showPriceChart: false,
-    chartAssetCode: 'red_shard',
+    chartAssetCode: marketAssetCodes.RED_CORE_SHARD,
     /** 可选资产列表（用于走势图资产选择器，来自 facets 或 settlement-currencies） */
     chartAssetOptions: [] as any[],
 
@@ -356,7 +357,12 @@ Page({
         const tradesList = Array.isArray(tradesResponse.data)
           ? tradesResponse.data
           : tradesResponse.data.trades || []
-        this.setData({ recentTrades: tradesList, recentTradesLoading: false })
+        /** 为最近成交记录补充结算资产中文名 */
+        const enrichedTrades = tradesList.map((trade: any) => ({
+          ...trade,
+          _priceAssetLabel: imageHelper.getAssetDisplayName(trade.price_asset_code || '')
+        }))
+        this.setData({ recentTrades: enrichedTrades, recentTradesLoading: false })
         marketLog.info(`最近成交加载完成: ${tradesList.length}笔`)
       } else {
         this.setData({ recentTradesLoading: false })
@@ -612,7 +618,7 @@ Page({
    * 加载 feed 信息流广告
    *
    * 后端API: GET /api/v4/system/ad-delivery?slot_type=feed&position=market_list
-   * 对应广告位: market_list_feed（ID:14，日价30钻石，CPM 5钻石）
+   * 对应广告位: market_list_feed（ID:14，日价30星石，CPM 5星石）
    *
    * 广告穿插由前端控制（每隔 FEED_AD_INTERVAL 条商品插入1条广告），后端只负责下发广告内容
    */

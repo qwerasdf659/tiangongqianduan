@@ -25,7 +25,8 @@ const {
   API,
   Logger: AuctionCreateLogger,
   Wechat: AuctionCreateWechat,
-  AuctionHelpers: AuctionCreateHelpers
+  AuctionHelpers: AuctionCreateHelpers,
+  AssetCodes: auctionAssetCodes
 } = require('../../../utils/index')
 const auctionCreateLog = AuctionCreateLogger.createLogger('auction-create')
 
@@ -289,7 +290,9 @@ Page({
     const endTime = new Date(startTime.getTime() + durationNum * 3600000)
 
     const priceAssetCode =
-      currencies.length > 0 ? currencies[selectedCurrencyIndex]?.asset_code || 'DIAMOND' : 'DIAMOND'
+      currencies.length > 0
+        ? currencies[selectedCurrencyIndex]?.asset_code || auctionAssetCodes.STAR_STONE
+        : auctionAssetCodes.STAR_STONE
 
     const confirmResult = await new Promise<boolean>(resolve => {
       wx.showModal({

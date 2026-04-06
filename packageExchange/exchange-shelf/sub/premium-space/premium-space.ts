@@ -19,7 +19,8 @@ const {
   Logger: premiumLogger,
   Constants: premiumConstants,
   Utils: premiumUtils,
-  ImageHelper: premiumImageHelper
+  ImageHelper: premiumImageHelper,
+  AssetCodes: premiumAssetCodes
 } = require('../../../../utils/index')
 const premiumLog = premiumLogger.createLogger('premium-space')
 const {
@@ -185,7 +186,7 @@ Component({
                   (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
               premiumImageHelper.DEFAULT_PRODUCT_IMAGE,
             cost_amount: Number(item.cost_amount) || 0,
-            cost_asset_code: item.cost_asset_code || 'POINTS',
+            cost_asset_code: item.cost_asset_code || premiumAssetCodes.POINTS,
             original_price: item.original_price ? Number(item.original_price) : null,
             stock: item.stock || 0,
             sold_count: item.sold_count || 0,

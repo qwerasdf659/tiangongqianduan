@@ -115,7 +115,7 @@
       data-tab="premium"
       bindtap="onProductTap"
     >
-      <view class="type-bar {{item.cost_asset_code === 'POINTS' ? 'asset' : 'item'}}"></view>
+      <view class="type-bar {{item.cost_asset_code === 'points' ? 'asset' : 'item'}}"></view>
 
       <view class="card-image-area">
         <image

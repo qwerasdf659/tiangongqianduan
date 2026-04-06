@@ -130,7 +130,7 @@
 
       <!-- 类型色条 -->
       <view
-        class="type-bar {{item.cost_asset_code === 'POINTS' ? 'asset' : (item.is_lucky ? 'lucky' : 'item')}}"
+        class="type-bar {{item.cost_asset_code === 'points' ? 'asset' : (item.is_lucky ? 'lucky' : 'item')}}"
       ></view>
 
       <!-- 图片区域 -->
@@ -145,9 +145,9 @@
         />
         <view
           wx:else
-          class="image-fallback {{item.cost_asset_code === 'POINTS' ? 'asset-type' : 'item-type'}}"
+          class="image-fallback {{item.cost_asset_code === 'points' ? 'asset-type' : 'item-type'}}"
         >
-          <text class="fallback-icon">{{item.cost_asset_code === 'POINTS' ? '🪙' : '🎁'}}</text>
+          <text class="fallback-icon">{{item.cost_asset_code === 'points' ? '🪙' : '🎁'}}</text>
           <text class="fallback-name">{{item.item_name}}</text>
         </view>
         <!-- 标签（优先级: 置顶 > 推荐 > 热销 > 新品 > 限量） -->

@@ -60,7 +60,7 @@
           </view>
           <view class="order-price">
             <text class="order-price-value">{{item.price_amount}}</text>
-            <text class="order-price-unit">{{item.price_asset_code}}</text>
+            <text class="order-price-unit">{{item._priceAssetLabel}}</text>
           </view>
         </view>
 
@@ -71,15 +71,15 @@
         >
           <view class="fee-row" wx:if="{{item.gross_amount}}">
             <text class="fee-label">总金额</text>
-            <text class="fee-value">{{item.gross_amount}} {{item.price_asset_code}}</text>
+            <text class="fee-value">{{item.gross_amount}} {{item._priceAssetLabel}}</text>
           </view>
           <view class="fee-row" wx:if="{{item.fee_amount}}">
             <text class="fee-label">手续费</text>
-            <text class="fee-value">{{item.fee_amount}} {{item.price_asset_code}}</text>
+            <text class="fee-value">{{item.fee_amount}} {{item._priceAssetLabel}}</text>
           </view>
           <view class="fee-row" wx:if="{{item.net_amount}}">
             <text class="fee-label">卖家实收</text>
-            <text class="fee-value">{{item.net_amount}} {{item.price_asset_code}}</text>
+            <text class="fee-value">{{item.net_amount}} {{item._priceAssetLabel}}</text>
           </view>
         </view>
 

@@ -9,16 +9,16 @@
  * @since 2026-02-21
  */
 
-const { ImageHelper: confirmImageHelper } = require('../../../utils/index')
+const { ImageHelper: confirmImageHelper, AssetCodes: confirmAssetCodes } = require('../../../utils/index')
 
 Component({
   properties: {
     visible: { type: Boolean, value: false },
     product: { type: Object, value: null },
     quantity: { type: Number, value: 1 },
-    /** 积分余额（保留用于 POINTS 类型商品的余额展示） */
+    /** 积分余额（保留用于 points 类型商品的余额展示） */
     pointsBalance: { type: Number, value: 0 },
-    /** 钻石和水晶类资产余额列表（用于查找商品对应的资产余额） */
+    /** 星石和源晶类资产余额列表（用于查找商品对应的资产余额） */
     assetBalances: { type: Array, value: [] },
     submitting: { type: Boolean, value: false }
   },
@@ -39,7 +39,7 @@ Component({
       if (!product) {
         return
       }
-      const costCode = product.cost_asset_code || 'POINTS'
+      const costCode = product.cost_asset_code || confirmAssetCodes.POINTS
       const balances = this.data.assetBalances || []
 
       const match = (balances as any[]).find((a: any) => a.asset_code === costCode)
@@ -48,7 +48,7 @@ Component({
           currentAssetBalance: match.available_amount,
           currentAssetLabel: match.display_name
         })
-      } else if (costCode === 'POINTS') {
+      } else if (costCode === confirmAssetCodes.POINTS) {
         this.setData({
           currentAssetBalance: this.data.pointsBalance,
           currentAssetLabel: '积分'

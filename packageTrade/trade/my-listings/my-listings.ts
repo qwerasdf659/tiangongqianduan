@@ -19,7 +19,7 @@
  * @since 2026-02-18
  */
 
-const { API, Logger, Utils } = require('../../../utils/index')
+const { API, Logger, Utils, ImageHelper: listingsImageHelper } = require('../../../utils/index')
 const log = Logger.createLogger('my-listings')
 
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -213,6 +213,8 @@ Page({
             offer_asset_code: item.offer_asset_code || '',
             offer_amount: item.offer_amount || 0,
             price_asset_code: item.price_asset_code,
+            /** 结算资产中文名（用于UI展示，如"星石"） */
+            _priceAssetLabel: listingsImageHelper.getAssetDisplayName(item.price_asset_code || ''),
             price_amount: item.price_amount || 0,
             status: item.status || 'active',
             status_display:

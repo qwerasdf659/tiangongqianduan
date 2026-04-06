@@ -50,21 +50,21 @@
         </view>
         <view class="info-row">
           <text class="info-label">总费用</text>
-          <text class="info-value highlight">{{campaign.fixed_total_diamond}} 💎</text>
+          <text class="info-value highlight">{{campaign.fixed_total_star_stone}} 💎</text>
         </view>
       </block>
       <block wx:if="{{campaign.billing_mode === 'bidding'}}">
         <view class="info-row">
           <text class="info-label">日出价</text>
-          <text class="info-value highlight">{{campaign.daily_bid_diamond}} 💎/天</text>
+          <text class="info-value highlight">{{campaign.daily_bid_star_stone}} 💎/天</text>
         </view>
         <view class="info-row">
           <text class="info-label">总预算</text>
-          <text class="info-value">{{campaign.budget_total_diamond}} 💎</text>
+          <text class="info-value">{{campaign.budget_total_star_stone}} 💎</text>
         </view>
         <view class="info-row">
           <text class="info-label">已消耗</text>
-          <text class="info-value">{{campaign.budget_spent_diamond}} 💎</text>
+          <text class="info-value">{{campaign.budget_spent_star_stone}} 💎</text>
         </view>
       </block>
       <!-- 竞价排名状态（后端返回 bidding_status 时展示） -->
@@ -86,15 +86,15 @@
       <block wx:if="{{campaign.billing_mode === 'cpm'}}">
         <view class="info-row">
           <text class="info-label">CPM单价</text>
-          <text class="info-value highlight">{{campaign.cpm_price_diamond}} 💎/千次曝光</text>
+          <text class="info-value highlight">{{campaign.cpm_price_star_stone}} 💎/千次曝光</text>
         </view>
         <view class="info-row">
           <text class="info-label">总预算</text>
-          <text class="info-value">{{campaign.budget_total_diamond}} 💎</text>
+          <text class="info-value">{{campaign.budget_total_star_stone}} 💎</text>
         </view>
         <view class="info-row">
           <text class="info-label">已消耗</text>
-          <text class="info-value">{{campaign.budget_spent_diamond}} 💎</text>
+          <text class="info-value">{{campaign.budget_spent_star_stone}} 💎</text>
         </view>
       </block>
     </view>
@@ -157,8 +157,8 @@
             <text class="report-label">点击率</text>
           </view>
           <view class="report-item">
-            <text class="report-number">{{report.spend_diamond}} 💎</text>
-            <text class="report-label">消耗钻石</text>
+            <text class="report-number">{{report.spend_star_stone}} 💎</text>
+            <text class="report-label">消耗星石</text>
           </view>
         </view>
       </block>

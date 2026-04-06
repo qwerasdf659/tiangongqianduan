@@ -8,7 +8,7 @@
  * 核心概念:
  *   - seller_user_id: 卖方用户ID（普通用户，非管理员）
  *   - item_id: 拍卖物品ID（items表实例，非exchange_items）
- *   - price_asset_code: 出价资产类型（默认 DIAMOND，白名单校验）
+ *   - price_asset_code: 出价资产类型（默认 star_stone，白名单校验）
  *   - buyout_price: 一口价（null=不支持，有值时出价>=此价即时结算）
  *   - item_snapshot: 物品快照JSON（创建时冻结物品状态，用于争议举证）
  *
@@ -47,7 +47,7 @@ const { buildQueryString } = require('../util')
  *   seller_nickname    - VARCHAR 卖方昵称（JOIN users）
  *   item_id            - BIGINT FK 拍卖物品ID
  *   item_snapshot      - JSON 物品快照（item_name/item_type/rarity_code/item_value等）
- *   price_asset_code   - VARCHAR 出价资产类型（默认DIAMOND）
+ *   price_asset_code   - VARCHAR 出价资产类型（默认star_stone）
  *   start_price        - BIGINT 起拍价
  *   current_price      - BIGINT 当前最高出价
  *   min_bid_increment  - BIGINT 最小加价幅度
@@ -146,7 +146,7 @@ async function getAuctionDetail(auctionListingId: number) {
  * @param params - 拍卖参数
  * @param params.item_id - 拍卖物品ID（items表主键，必须为available状态）
  * @param params.start_price - 起拍价（大于0的整数）
- * @param params.price_asset_code - 出价资产类型（默认DIAMOND，白名单校验）
+ * @param params.price_asset_code - 出价资产类型（默认star_stone，白名单校验）
  * @param params.min_bid_increment - 最小加价幅度（默认10）
  * @param params.buyout_price - 一口价（null=不支持，有值时出价>=此价即时结算）
  * @param params.start_time - 开始时间（ISO8601格式，北京时间）

@@ -31,7 +31,8 @@ const {
   API: DetailPageAPI,
   Logger: DetailPageLogger,
   ImageHelper: detailPageImageHelper,
-  ExchangeConfig: DetailPageExchangeConfig
+  ExchangeConfig: DetailPageExchangeConfig,
+  AssetCodes: detailAssetCodes
 } = require('../../utils/index')
 const { formatAssetLabel } = require('../utils/product-display')
 
@@ -203,7 +204,7 @@ Page({
         throw new Error('商品数据格式异常：缺少 data.item 或 exchange_item_id')
       }
 
-      const priceCode: string = productData.cost_asset_code || 'POINTS'
+      const priceCode: string = productData.cost_asset_code || detailAssetCodes.POINTS
 
       /**
        * 稀有度视觉配置优先级:
@@ -531,7 +532,7 @@ Page({
                   (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
               ''
             return Object.assign({}, item, {
-              _priceLabel: formatAssetLabel(item.cost_asset_code || 'POINTS'),
+              _priceLabel: formatAssetLabel(item.cost_asset_code || detailAssetCodes.POINTS),
               _hasImage: !!imgSrc,
               _mainImage: imgSrc
             })

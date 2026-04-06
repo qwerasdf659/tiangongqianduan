@@ -92,7 +92,7 @@
         </view>
         <view class="trade-price-col">
           <text class="trade-price">{{item.price_amount}}</text>
-          <text class="trade-currency">{{item.price_asset_code}}</text>
+          <text class="trade-currency">{{item._priceAssetLabel}}</text>
         </view>
       </view>
     </view>
@@ -269,8 +269,18 @@
     <view class="filter-section">
       <text class="filter-section-label">品质等级</text>
       <view class="filter-tags">
-        <view class="filter-tag {{filterQualityGrade === item.key ? 'active' : ''}}" wx:for="{{qualityGradeOptions}}" wx:key="key" data-grade="{{item.key}}" bindtap="onQualityGradeSelect">
-          <text wx:if="{{item.color}}" class="quality-dot" style="background-color: {{item.color}};"></text>
+        <view
+          class="filter-tag {{filterQualityGrade === item.key ? 'active' : ''}}"
+          wx:for="{{qualityGradeOptions}}"
+          wx:key="key"
+          data-grade="{{item.key}}"
+          bindtap="onQualityGradeSelect"
+        >
+          <text
+            wx:if="{{item.color}}"
+            class="quality-dot"
+            style="background-color: {{item.color}};"
+          ></text>
           <text>{{item.label}}</text>
         </view>
       </view>

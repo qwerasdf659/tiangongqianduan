@@ -2,7 +2,7 @@
  * 商品展示字段增强 — 纯函数（无 this 依赖）
  *
  * 为后端返回的商品/挂单数据附加前端展示用计算字段：
- *   _priceLabel:   资产代码中文化（DIAMOND→钻石）
+ *   _priceLabel:   资产代码中文化（star_stone→星石）
  *   _rarityClass:  稀有度 CSS class（对齐 rarity-effects 组件）
  *   _isLegendary:  是否触发全息光效
  *   _isLimited:    是否限量（触发旋转边框）
@@ -15,20 +15,22 @@
  * @since 2026-02-22
  */
 
-const { ImageHelper } = require('../../utils/index')
-const { ASSET_DISPLAY_NAMES, DEFAULT_PRODUCT_IMAGE, RARITY_STYLES } = ImageHelper
+const { ImageHelper, AssetCodes: displayAssetCodes } = require('../../utils/index')
+const { DEFAULT_PRODUCT_IMAGE, RARITY_STYLES, getAssetDisplayName } = ImageHelper
 
 /** 触发全息光效的稀有度等级（epic + legendary） */
 const HOLO_RARITIES = ['legendary', 'epic']
 
 /**
  * 将 asset_code 转换为中文显示名
+ * 统一走 getAssetDisplayName 链路（后端 display_name 优先 → 本地映射兜底 → 原样返回）
  *
- * @param assetCode - 后端资产代码（如 'DIAMOND', 'red_shard'）
- * @returns 中文显示名（如 '钻石'），未知代码原样返回
+ * @param assetCode - 后端资产代码（如 'star_stone', 'red_core_shard'）
+ * @param backendDisplayName - 后端返回的 display_name（可选，优先使用）
+ * @returns 中文显示名（如 '星石'），未知代码原样返回
  */
-function formatAssetLabel(assetCode: string): string {
-  return ASSET_DISPLAY_NAMES[assetCode] || assetCode
+function formatAssetLabel(assetCode: string, backendDisplayName?: string): string {
+  return getAssetDisplayName(assetCode, backendDisplayName)
 }
 
 /**
@@ -47,7 +49,8 @@ function enrichProductDisplayFields(productList: any[]): any[] {
   }
 
   return productList.map(function (productItem) {
-    const priceCode = productItem.price_asset_code || productItem.cost_asset_code || 'POINTS'
+    const priceCode =
+      productItem.price_asset_code || productItem.cost_asset_code || displayAssetCodes.POINTS
     const rarityValue = productItem.offer_item_rarity || productItem.rarity_code || ''
     const imgSrc = productItem.image || ''
     const validImage = imgSrc && imgSrc !== DEFAULT_PRODUCT_IMAGE && !productItem._imageError

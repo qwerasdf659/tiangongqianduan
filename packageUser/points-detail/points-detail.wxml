@@ -109,6 +109,11 @@
             <text class="record-desc" wx:if="{{item.displayDescription}}"
               >{{item.displayDescription}}</text
             >
+            <text
+              class="record-balance"
+              wx:if="{{item.balance_before !== undefined && item.balance_after !== undefined}}"
+              >余额 {{item.balance_before}} → {{item.balance_after}}</text
+            >
           </view>
         </view>
       </view>

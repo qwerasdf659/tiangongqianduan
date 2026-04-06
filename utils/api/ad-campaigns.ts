@@ -116,8 +116,8 @@ async function getMyAdCampaigns(
  * [API 8] 创建广告活动 - POST /api/v4/user/ad-campaigns
  *
  * 业务规则:
- *   fixed_daily模式: 必须传 fixed_days，总价 = daily_price_diamond × fixed_days（后端计算）
- *   bidding模式: 必须传 daily_bid_diamond(≥50) + budget_total_diamond(≥500)
+ *   fixed_daily模式: 必须传 fixed_days，总价 = daily_price_star_stone × fixed_days（后端计算）
+ *   bidding模式: 必须传 daily_bid_star_stone(≥50) + budget_total_star_stone(≥500)
  *
  * @param campaignData - 广告计划数据
  */
@@ -178,9 +178,9 @@ async function updateAdCampaign(
 /**
  * [API 11] 提交广告活动审核 - POST /api/v4/user/ad-campaigns/:id/submit
  *
- * 提交时后端自动冻结钻石:
- *   fixed_daily模式: 冻结 daily_price_diamond × fixed_days 钻石
- *   bidding模式: 冻结首日出价钻石
+ * 提交时后端自动冻结星石:
+ *   fixed_daily模式: 冻结 daily_price_star_stone × fixed_days 星石
+ *   bidding模式: 冻结首日出价星石
  * 余额不足时返回400错误
  *
  * @param campaignId - 广告计划ID
@@ -198,7 +198,7 @@ async function submitAdCampaign(campaignId: number) {
 
 /**
  * [API 12] 取消广告活动 - POST /api/v4/user/ad-campaigns/:id/cancel
- * 冻结的钻石自动退回用户账户，状态变为 cancelled
+ * 冻结的星石自动退回用户账户，状态变为 cancelled
  * @param campaignId - 广告计划ID
  */
 async function cancelAdCampaign(campaignId: number) {
@@ -214,7 +214,7 @@ async function cancelAdCampaign(campaignId: number) {
 
 /**
  * [API 13] 获取广告活动数据报表 - GET /api/v4/user/ad-campaigns/:id/report
- * 返回曝光数、点击数、消耗钻石等统计数据
+ * 返回曝光数、点击数、消耗星石等统计数据
  * @param campaignId - 广告计划ID
  * @param params.start_date - 报表起始日期 YYYY-MM-DD（可选）
  * @param params.end_date - 报表结束日期 YYYY-MM-DD（可选）

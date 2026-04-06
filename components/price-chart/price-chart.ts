@@ -9,7 +9,7 @@
  *   GET /api/v4/marketplace/price/summary → 价格摘要统计
  *
  * 使用方式:
- *   <price-chart asset-code="red_shard" title="价格走势" />
+ *   <price-chart asset-code="red_core_shard" title="价格走势" />
  *
  * @file components/price-chart/price-chart.ts
  * @version 5.3.0
@@ -38,7 +38,7 @@ const CHART_COLORS = {
 
 Component({
   properties: {
-    /** 资产代码（如 'red_shard'），与 templateId 二选一 */
+    /** 资产代码（如 'red_core_shard'），与 templateId 二选一 */
     assetCode: { type: String, value: '' },
     /** 物品模板ID，与 assetCode 二选一 */
     templateId: { type: Number, value: 0 },

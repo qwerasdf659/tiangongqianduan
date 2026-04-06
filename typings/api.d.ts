@@ -155,7 +155,7 @@ declare namespace API {
      * 无图片时: null（前端使用 PRIZE_ICON_MAP[prize_type] emoji 兜底）
      */
     primary_media: MediaObject | null
-    /** 材料资产代码（如 CRYSTAL） */
+    /** 材料资产代码（如 red_core_gem、star_stone） */
     material_asset_code: string
     /** 材料数量 */
     material_amount: number
@@ -266,7 +266,7 @@ declare namespace API {
    * 统计范围: 覆盖所有 business_type（不限于抽奖）
    */
   interface TodaySummary {
-    /** 资产代码（POINTS / DIAMOND / red_shard 等） */
+    /** 资产代码（points / star_stone / red_core_shard 等） */
     asset_code: string
     /** 今日获得总额（当日所有 delta_amount > 0 的交易合计） */
     today_earned: number
@@ -285,7 +285,7 @@ declare namespace API {
   interface AssetTransaction {
     /** 交易流水ID（BIGINT PK，对齐后端字段 asset_transaction_id） */
     asset_transaction_id: number
-    /** 资产代码（POINTS / DIAMOND / red_shard 等） */
+    /** 资产代码（points / star_stone / red_core_shard 等） */
     asset_code: string
     /** 变动金额（正数=增加/earn，负数=扣减/consume），后端字段名为 delta_amount */
     delta_amount: number
@@ -313,10 +313,10 @@ declare namespace API {
 
   /**
    * 背包可叠加资产（对齐后端 GET /api/v4/backpack/ 的 assets[] 返回格式）
-   * 示例: DIAMOND(钻石)、red_shard(红水晶碎片)
+   * 示例: star_stone(星石)、red_core_shard(红源晶碎片)
    */
   interface BackpackAsset {
-    /** 资产类型编码（如 DIAMOND, red_shard） */
+    /** 资产类型编码（如 star_stone, red_core_shard） */
     asset_code: string
     /** 资产中文名称 */
     display_name: string
@@ -508,7 +508,7 @@ declare namespace API {
     name: string
     /** 商品描述（TEXT） */
     description: string
-    /** 支付资产代码（如 red_shard、DIAMOND、POINTS） */
+    /** 支付资产代码（如 red_core_shard、star_stone、points） */
     cost_asset_code: string
     /** 支付资产数量（BIGINT） */
     cost_amount: number
@@ -603,7 +603,7 @@ declare namespace API {
     }[]
     /**
      * 渠道定价列表（支持多材料资产支付）
-     * 示例: [{ cost_asset_code: "red_shard", cost_amount: 10, is_enabled: true }]
+     * 示例: [{ cost_asset_code: "red_core_shard", cost_amount: 10, is_enabled: true }]
      */
     channelPrices?: {
       cost_asset_code: string
@@ -775,7 +775,7 @@ declare namespace API {
     current_price: number
     /** 最小加价幅度（BIGINT） */
     min_bid_increment: number
-    /** 竞价使用的资产类型编码（如 DIAMOND、red_shard） */
+    /** 竞价使用的资产类型编码（如 star_stone、red_core_shard） */
     price_asset_code: string
     /** 竞价状态（7态）: pending/active/ended/settled/no_bid/cancelled/settlement_failed */
     status: string
@@ -829,9 +829,9 @@ declare namespace API {
   interface ExchangeRate {
     /** 汇率规则ID（BIGINT PK） */
     exchange_rate_id: number
-    /** 源资产代码（如 red_shard） */
+    /** 源资产代码（如 red_core_shard） */
     from_asset_code: string
-    /** 目标资产代码（如 DIAMOND） */
+    /** 目标资产代码（如 star_stone） */
     to_asset_code: string
     /** 汇率分子 */
     rate_numerator: number
@@ -1011,7 +1011,7 @@ declare namespace API {
     active_listings: number
     /** 总成交笔数 */
     total_trades: number
-    /** 总成交额（DIAMOND计） */
+    /** 总成交额（star_stone计） */
     total_volume: number
     /** 24小时成交笔数 */
     trades_24h: number
@@ -1086,7 +1086,7 @@ declare namespace API {
     offer_asset_display_name: string | null
     /** 上架数量（fungible_asset类型使用，可为null） */
     offer_amount: number | null
-    /** 定价币种（默认 DIAMOND） */
+    /** 定价币种（默认 star_stone） */
     price_asset_code: string
     /** 售价（BIGINT） */
     price_amount: number
@@ -1109,11 +1109,11 @@ declare namespace API {
     display_name: string
     /** 物品稀有度编码（仅 item 类型） */
     offer_item_rarity?: string
-    /** 资产代码（仅 fungible_asset 类型，如 DIAMOND） */
+    /** 资产代码（仅 fungible_asset 类型，如 star_stone） */
     offer_asset_code?: string
     /** 上架数量（仅 fungible_asset 类型） */
     offer_amount?: number
-    /** 定价币种（默认 DIAMOND） */
+    /** 定价币种（默认 star_stone） */
     price_asset_code: string
     /** 售价（BIGINT） */
     price_amount: number
@@ -1450,18 +1450,18 @@ declare namespace API {
     position: string
     /** 该位每次最多展示广告数 */
     max_display_count: number
-    /** 固定包天日价（钻石） */
-    daily_price_diamond: number
-    /** 竞价最低日出价（钻石） */
-    min_bid_diamond: number
-    /** 竞价最低总预算（钻石） */
-    min_budget_diamond: number
+    /** 固定包天日价（星石） */
+    daily_price_star_stone: number
+    /** 竞价最低日出价（星石） */
+    min_bid_star_stone: number
+    /** 竞价最低总预算（星石） */
+    min_budget_star_stone: number
     /** 包天模式最低日价下限（DAU系数计算结果不得低于此值） */
-    min_daily_price_diamond?: number
+    min_daily_price_star_stone?: number
     /** 广告位分类: display（展示类，按天/竞价） / feed（信息流，CPM曝光计费） */
     slot_category?: string
-    /** CPM每千次曝光价格（钻石，仅 slot_category=feed 时使用） */
-    cpm_price_diamond?: number
+    /** CPM每千次曝光价格（星石，仅 slot_category=feed 时使用） */
+    cpm_price_star_stone?: number
     /** 关联地域ID（NULL=全站级别，关联 ad_target_zones 表） */
     zone_id?: number | null
     /** 运营手动覆盖的底价（优先于动态底价自动计算值） */
@@ -1500,16 +1500,16 @@ declare namespace API {
      * paused=已暂停 / completed=已完成 / rejected=已拒绝 / cancelled=已取消
      */
     status: string
-    /** 竞价日出价（钻石，bidding 模式使用） */
-    daily_bid_diamond: number | null
-    /** 总预算（钻石，bidding 模式使用） */
-    budget_total_diamond: number | null
-    /** 已消耗钻石 */
-    budget_spent_diamond: number
+    /** 竞价日出价（星石，bidding 模式使用） */
+    daily_bid_star_stone: number | null
+    /** 总预算（星石，bidding 模式使用） */
+    budget_total_star_stone: number | null
+    /** 已消耗星石 */
+    budget_spent_star_stone: number
     /** 固定包天天数（fixed_daily 模式使用） */
     fixed_days: number | null
-    /** 固定包天总价 = daily_price × days（钻石） */
-    fixed_total_diamond: number | null
+    /** 固定包天总价 = daily_price × days（星石） */
+    fixed_total_star_stone: number | null
     /** 定向规则（Phase 5 启用，JSON） */
     targeting_rules: AdTargetingRules | null
     /** 展示优先级（广告范围 1~99） */
@@ -1547,7 +1547,7 @@ declare namespace API {
 
   /** 定向条件（单条规则） */
   interface AdTargetCondition {
-    /** 标签键（如 lottery_active_7d / diamond_balance） */
+    /** 标签键（如 lottery_active_7d / star_stone_balance） */
     tag_key: string
     /** 比较运算符: eq / neq / gt / gte / lt / lte */
     operator: string
@@ -1604,8 +1604,8 @@ declare namespace API {
     advertiser_user_id: number
     /** 计费日期（YYYY-MM-DD） */
     billing_date: string
-    /** 钻石金额 */
-    amount_diamond: number
+    /** 星石金额 */
+    amount_star_stone: number
     /** 计费类型: freeze / deduct / refund / daily_deduct / cpm_deduct */
     billing_type: string
     /** 关联资产交易流水ID */
@@ -1633,8 +1633,8 @@ declare namespace API {
     clicks_valid: number
     /** 转化数 */
     conversions: number
-    /** 消耗钻石总量 */
-    spend_diamond: number
+    /** 消耗星石总量 */
+    spend_star_stone: number
     /** 点击率（clicks_valid / impressions_valid × 100） */
     ctr: number
     /** 报表数据区间 */
@@ -1656,7 +1656,7 @@ declare namespace API {
     ad_slot_id: number
     /** 广告位标识（如 home_announcement） */
     slot_key: string
-    /** 基础日价（ad_slots.daily_price_diamond） */
+    /** 基础日价（ad_slots.daily_price_star_stone） */
     base_price: number
     /** 当前 DAU 系数（ad_dau_pricing_enabled=false 时为 1.0） */
     dau_coefficient: number
@@ -1674,7 +1674,7 @@ declare namespace API {
     discount_label: string
     /** 折后总价 = effective_daily_price × days × discount */
     total_price: number
-    /** 节省钻石 = effective_daily_price × days × (1 - discount) */
+    /** 节省星石 = effective_daily_price × days × (1 - discount) */
     saved: number
   }
 
@@ -1697,8 +1697,8 @@ declare namespace API {
    * 创建广告活动请求体（POST /api/v4/user/ad-campaigns）
    * 业务规则:
    *   fixed_daily模式: 必须传 fixed_days
-   *   bidding模式: 必须传 daily_bid_diamond(≥min_bid_diamond) + budget_total_diamond(≥min_budget_diamond)
-   *   cpm模式: 必须传 budget_total_diamond(≥min_budget_diamond)，CPM单价由广告位决定
+   *   bidding模式: 必须传 daily_bid_star_stone(≥min_bid_star_stone) + budget_total_star_stone(≥min_budget_star_stone)
+   *   cpm模式: 必须传 budget_total_star_stone(≥min_budget_star_stone)，CPM单价由广告位决定
    */
   interface CreateAdCampaignParams {
     /** 活动名称（必填） */
@@ -1709,10 +1709,10 @@ declare namespace API {
     billing_mode: string
     /** 固定包天天数（fixed_daily 模式必填） */
     fixed_days?: number
-    /** 竞价日出价钻石数（bidding 模式必填，≥50） */
-    daily_bid_diamond?: number
-    /** 竞价总预算钻石数（bidding 模式必填，≥500） */
-    budget_total_diamond?: number
+    /** 竞价日出价星石数（bidding 模式必填，≥50） */
+    daily_bid_star_stone?: number
+    /** 竞价总预算星石数（bidding 模式必填，≥500） */
+    budget_total_star_stone?: number
     /** 投放开始日期（YYYY-MM-DD） */
     start_date?: string
     /** 投放结束日期（YYYY-MM-DD） */
@@ -1944,7 +1944,7 @@ declare namespace API {
     item_id: number
     /** 物品快照JSON */
     item_snapshot: AuctionItemSnapshot | null
-    /** 出价资产类型（默认DIAMOND） */
+    /** 出价资产类型（默认star_stone） */
     price_asset_code: string
     /** 起拍价 */
     start_price: number
@@ -2069,197 +2069,388 @@ declare namespace API {
     price_asset_code: string
   }
 
-  // ===== DIY饰品设计引擎 =====
+  // ===== DIY饰品设计引擎（对齐后端数据库真实状态 2026-04-02） =====
 
-  /** 槽位形状类型 */
+  /** 槽位形状类型（决定渲染裁剪蒙版和空槽位轮廓） */
   type SlotShapeType = 'circle' | 'oval' | 'square' | 'rectangle'
 
-  /** 布局形状类型 */
+  /** 布局形状类型（串珠: circle/ellipse/arc/line，镶嵌: slots） */
   type LayoutShapeType = 'circle' | 'ellipse' | 'arc' | 'line' | 'slots'
 
-  /** 款式类型标识 */
+  /** 款式类型标识（bracelet手链/necklace项链/ring戒指/pendant吊坠） */
   type TemplateType = 'bracelet' | 'necklace' | 'ring' | 'pendant'
+
+  /** 作品状态（三步状态机: draft→frozen→completed/cancelled） */
+  type DiyWorkStatus = 'draft' | 'frozen' | 'completed' | 'cancelled'
+
+  /** 材料形态（shard碎片tier=1 / gem完整宝石tier=2） */
+  type MaterialForm = 'shard' | 'gem' | 'currency' | 'quota'
 
   /**
    * 槽位定义（镶嵌模式专用）
-   * 后端通过 Web 管理后台可视化标注工具生成
+   * 由 Web 管理后台可视化标注工具（Konva.js）生成
+   * 存储在 diy_templates.layout.slot_definitions JSON字段中
    */
   interface DiySlotDefinition {
-    /** 槽位唯一标识 */
+    /** 槽位唯一标识（后端生成，如 "slot_center"） */
     slot_id: string
-    /** 槽位显示名（如"主石位"） */
+    /** 槽位显示名（如"主石位"），用于UI提示 */
     label: string
-    /** 槽位中心 X 坐标百分比（0~1） */
+    /** 槽位中心 X 坐标百分比（0~1，相对backgroundWidth） */
     x: number
-    /** 槽位中心 Y 坐标百分比（0~1） */
+    /** 槽位中心 Y 坐标百分比（0~1，相对backgroundHeight） */
     y: number
     /** 槽位宽度百分比（0~1） */
     width: number
     /** 槽位高度百分比（0~1） */
     height: number
-    /** 槽位形状 */
-    slot_shape: SlotShapeType
+    /** 槽位旋转角度（度），标注工具设置 */
+    rotation?: number
+    /** 槽位形状（决定渲染裁剪蒙版） */
+    slot_shape?: SlotShapeType
     /** 该槽位可容纳的宝石直径（mm），空数组表示不限 */
-    allowed_diameters: number[]
+    allowed_diameters?: number[]
     /** 该槽位允许的宝石形状，空/不传表示仅匹配 slot_shape */
     allowed_shapes?: string[]
-    /** 该槽位允许的宝石分类 ID，空/不传则继承模板级 category_ids */
-    allowed_category_ids?: string[]
-    /** 是否为必填槽位 */
+    /** 该槽位允许的宝石分组code（对应 asset_group_defs.group_code），空/不传则继承模板级 material_group_codes */
+    allowed_group_codes?: string[]
+    /** 是否为必填槽位（影响结算校验） */
     required: boolean
   }
 
-  /** 排列形状参数（联合体，根据 shape 不同参数不同） */
+  /**
+   * 排列形状参数（后端 diy_templates.layout JSON字段）
+   * 根据 shape 值分为两大模式:
+   *   串珠模式（circle/ellipse/arc/line）— 珠子沿几何形状排列
+   *   镶嵌模式（slots）— 宝石填入预定义槽位
+   */
   interface DiyLayoutParams {
-    /** 椭圆横轴半径比例 */
-    radius_ratio_x?: number
-    /** 椭圆纵轴半径比例 */
-    radius_ratio_y?: number
+    // ---- 串珠模式参数 ----
+    /** 圆形/椭圆形 半径X（后端 layout.radius_x） */
+    radius_x?: number
+    /** 圆形/椭圆形 半径Y（后端 layout.radius_y） */
+    radius_y?: number
+    /** 珠子数量（后端 layout.bead_count） */
+    bead_count?: number
     /** 弧线张角（度） */
     arc_angle?: number
     /** 弧线开口方向 */
     open_direction?: 'top' | 'bottom'
     /** 直线方向 */
     direction?: 'horizontal' | 'vertical'
-    /** 镶嵌模式背景图 URL */
-    background_image?: string
-    /** 背景图设计宽度（px） */
+
+    // ---- 镶嵌模式参数 ----
+    /** 背景图宽度（px，用于坐标映射） */
     background_width?: number
-    /** 背景图设计高度（px） */
+    /** 背景图高度（px） */
     background_height?: number
-    /** 预定义槽位列表 */
-    slots?: DiySlotDefinition[]
+    /** 槽位定义列表（Web管理后台标注生成） */
+    slot_definitions?: DiySlotDefinition[]
   }
 
-  /** 排列形状配置 */
+  /** 排列形状配置（后端 diy_templates.layout JSON） */
   interface DiyLayout {
-    /** 形状类型 */
+    /** 形状类型（前端据此判断串珠/镶嵌模式） */
     shape: LayoutShapeType
-    /** 形状参数 */
-    params: DiyLayoutParams
+    /** 形状参数（不同shape参数不同） */
+    [key: string]: any
   }
 
-  /** 尺寸规则（串珠模式必填） */
-  interface DiySizing {
-    /** 尺寸标签（如"手围"） */
-    label: string
-    /** 单位 */
-    unit: string
-    /** 可选尺寸档位 */
-    options: number[]
-    /** 默认值 */
-    default_value: number
-    /** 弹性余量（mm） */
+  /**
+   * 珠子规则（后端 diy_templates.bead_rules JSON）
+   * 串珠模式: margin弹性余量 + allowed_diameters可用直径
+   */
+  interface DiyBeadRules {
+    /** 弹性余量（mm），默认10，行业标准 π×绳径≈10mm */
     margin: number
-  }
-
-  /** 容量规则 */
-  interface DiyCapacity {
-    /** 最少珠子/宝石数 */
-    min_beads: number
-    /** 最多珠子/宝石数（0=仅受尺寸限制） */
-    max_beads: number
-    /** 该款式可用的珠子/宝石直径（mm） */
+    /** 默认珠子直径（mm） */
+    default_diameter: number
+    /** 可用珠子直径列表（mm），如 [6, 8, 10, 12] */
     allowed_diameters: number[]
   }
 
   /**
-   * DIY 款式模板（后端定义，前端根据模板参数动态渲染）
-   * 后端API: GET /api/v4/diy/templates
+   * 尺寸规则（后端 diy_templates.sizing_rules JSON）
+   * 串珠模式必填，镶嵌模式为null
    */
-  interface DiyTemplate {
-    /** 款式 ID */
-    id: string
-    /** 款式名称 */
-    name: string
-    /** 款式类型标识 */
-    type: TemplateType
-    /** 款式图标 URL */
-    icon: string
-    /** 排列形状参数 */
-    layout: DiyLayout
-    /** 尺寸规则（串珠模式必填，镶嵌模式为 null） */
-    sizing: DiySizing | null
-    /** 容量规则 */
-    capacity: DiyCapacity
-    /** 专属素材分类 ID 列表 */
-    category_ids: string[]
+  interface DiySizingRules {
+    /** 默认尺码（如 "M"） */
+    default_size: string
+    /** 尺码选项列表 */
+    size_options: DiySizeOption[]
   }
 
-  /** DIY 素材分类 */
-  interface DiyCategory {
-    /** 分类 ID */
-    id: string
-    /** 分类名称 */
-    name: string
-    /** 分类图标 URL */
-    icon: string
-    /** 排序权重 */
-    sort_order: number
+  /** 单个尺码选项 */
+  interface DiySizeOption {
+    /** 尺码标识（如 "S" / "M" / "L"） */
+    label: string
+    /** 显示文案（如 "小号 (约15cm)"） */
+    display: string
+    /** 该尺码对应的半径X */
+    radius_x: number
+    /** 该尺码对应的半径Y */
+    radius_y: number
+    /** 该尺码建议的珠子数量 */
+    bead_count: number
   }
 
   /**
-   * DIY 珠子/宝石素材
-   * 后端API: GET /api/v4/diy/beads?category_id=xxx
+   * 容量规则（后端 diy_templates.capacity_rules JSON）
+   */
+  interface DiyCapacityRules {
+    /** 最少珠子/宝石数 */
+    min_beads: number
+    /** 最多珠子/宝石数（串珠模式0=仅受尺寸限制，镶嵌模式=总槽位数） */
+    max_beads: number
+  }
+
+  /**
+   * DIY 款式模板（后端 diy_templates 表，Sequelize 模型）
+   * 后端API: GET /api/v4/diy/templates / GET /api/v4/diy/templates/:id
+   *
+   * 后端真实数据: 7条（3 published + 4 draft）
+   * 主键: diy_template_id（BIGINT自增）
+   */
+  interface DiyTemplate {
+    /** 模板主键（后端 diy_template_id） */
+    diy_template_id: number
+    /** 模板编码（后端 template_code，如 'DT26033100000154'） */
+    template_code: string
+    /** 模板名称（后端 display_name） */
+    display_name: string
+    /** 分类ID（后端 category_id，关联 categories 表的DIY子分类 191-194） */
+    category_id: number
+    /** 排列形状配置（后端 layout JSON，含 shape + 几何参数 + slot_definitions） */
+    layout: DiyLayout
+    /** 珠子规则（后端 bead_rules JSON，含 margin/default_diameter/allowed_diameters） */
+    bead_rules: DiyBeadRules | null
+    /** 尺寸规则（后端 sizing_rules JSON，串珠模式含 size_options） */
+    sizing_rules: DiySizingRules | null
+    /** 容量规则（后端 capacity_rules JSON，含 min_beads/max_beads） */
+    capacity_rules: DiyCapacityRules | null
+    /** 该款式可用的材料分组code列表（后端 material_group_codes JSON，如 ["red","blue","green"]，空数组[]表示不限制） */
+    material_group_codes: string[]
+    /** 预览图媒体ID（后端 preview_media_id，关联 media_files） */
+    preview_media_id?: number
+    /** 镶嵌模式底图媒体ID（后端 base_image_media_id） */
+    base_image_media_id?: number
+    /** 状态（draft/published/archived） */
+    status: string
+    /** 是否启用（0/1） */
+    is_enabled: number
+    /** 排序权重 */
+    sort_order: number
+    /** 扩展字段（后端 meta JSON） */
+    meta?: Record<string, any>
+    /** 创建时间 */
+    created_at: string
+    /** 更新时间 */
+    updated_at: string
+    /** 关联的分类信息（后端 include Category） */
+    category?: {
+      category_id: number
+      category_name: string
+      category_code: string
+    }
+    /** 预览图信息（后端 include MediaFile as preview_media） */
+    preview_media?: {
+      media_id: number
+      object_key: string
+      thumbnail_keys?: Record<string, string>
+    }
+    /** 底图信息（后端 include MediaFile as base_image，镶嵌模式用） */
+    base_image?: {
+      media_id: number
+      object_key: string
+      thumbnail_keys?: Record<string, string>
+    }
+  }
+
+  /**
+   * DIY 虚拟资产材料（后端 MaterialAssetType 表，通过 templates/:id/materials 返回）
+   * 这是用户账户中的源晶碎片/源晶，NOT实物珠子
+   *
+   * 后端API: GET /api/v4/diy/templates/:id/materials
+   * 按 group_code 分组展示: 红red/橙orange/黄yellow/绿green/蓝blue/紫purple
+   */
+  interface DiyMaterial {
+    /** 材料唯一标识（后端 asset_code，如 "red_core_shard"） */
+    asset_code: string
+    /** 展示名称（如 "红源晶碎片"） */
+    display_name: string
+    /** 分组code（颜色，如 "red"，对应 asset_group_defs.group_code） */
+    group_code: string
+    /** 形态（shard碎片tier=1 / gem完整宝石tier=2） */
+    form: MaterialForm
+    /** 等级（1=碎片，2=宝石，用于排序） */
+    tier: number
+    /** 价值点数（展示用，计算总价） */
+    visible_value_points: number
+    /** 材料图片 URL */
+    image_url: string
+    /** 用户当前可用数量（0时灰显不可选） */
+    available_amount: number
+    /** 用户已冻结数量 */
+    frozen_amount: number
+  }
+
+  /**
+   * 材料分组（后端 asset_group_defs 表）
+   * 后端API: GET /api/v4/diy/material-groups
+   * 6个颜色分组 + 3个系统分组
+   */
+  interface DiyMaterialGroup {
+    /** 分组唯一标识（如 "red"、"blue"） */
+    group_code: string
+    /** 分组显示名（如 "红色系"） */
+    display_name: string
+    /** 分组类型（material材料分组 / system系统分组） */
+    group_type?: string
+  }
+
+  /**
+   * DIY 实物珠子/宝石素材（后端 diy_materials 表，61条数据）
+   * 后端API: GET /api/v4/diy/templates/:id/beads
+   *
+   * 注意区分: DiyMaterial=虚拟资产（账户余额），DiyBead=实物商品（独立定价库存）
    */
   interface DiyBead {
-    /** 珠子 ID */
-    id: string
-    /** 珠子名称 */
-    name: string
-    /** 珠子图片 URL（PNG 透明底） */
-    image_url: string
-    /** 缩略图 URL */
-    thumbnail_url: string
-    /** 直径（mm） */
+    /** 珠子主键（后端 diy_material_id） */
+    diy_material_id: number
+    /** 珠子编码（后端 material_code，如 "amethyst_8mm"） */
+    material_code: string
+    /** 展示名称（后端 display_name，如 "紫水晶"） */
+    display_name: string
+    /** 材质名称（后端 material_name） */
+    material_name: string
+    /** 分组code（颜色，如 "purple"） */
+    group_code: string
+    /** 直径（mm，如 8.0） */
     diameter: number
-    /** 切割形状 */
+    /** 切割形状（circle/ellipse/oval/square/heart/teardrop） */
     shape: string
-    /** 单价（资产单位） */
+    /** 价格（星石 star_stone 计价） */
     price: number
-    /** 定价币种 */
+    /** 定价资产代码（实际数据全部为 star_stone） */
     price_asset_code: string
-    /** 材质名称 */
-    material: string
-    /** 库存 */
+    /** 库存（-1表示无限库存） */
     stock: number
     /** 可叠加标识 */
-    stackable: boolean
+    is_stackable: number
+    /** 图片媒体ID */
+    image_media_id?: number
+    /** 分类ID */
+    category_id?: number
+    /** 排序权重 */
+    sort_order: number
+    /** 是否启用 */
+    is_enabled: number
   }
 
-  /** DIY 设计保存请求（串珠模式） */
-  interface DiyDesignBeadsRequest {
-    template_id: string
-    mode: 'beads'
-    selected_size: number
-    beads: { bead_id: string; position: number }[]
-    total_price: number
-  }
-
-  /** DIY 设计保存请求（镶嵌模式） */
-  interface DiyDesignSlotsRequest {
-    template_id: string
-    mode: 'slots'
-    slot_fillings: { slot_id: string; bead_id: string }[]
-    total_price: number
-  }
-
-  /** DIY 设计保存响应 */
-  interface DiyDesignSaveResponse {
-    design_id: string
-    share_token: string
-  }
-
-  /** DIY 设计还原响应 */
-  interface DiyDesignDetail {
-    design_id: string
-    template: DiyTemplate
-    mode: 'beads' | 'slots'
-    selected_size?: number
-    beads?: { bead_id: string; position: number; bead: DiyBead }[]
-    slot_fillings?: { slot_id: string; bead: DiyBead }[]
-    total_price: number
-    creator_nickname: string
+  /**
+   * DIY 作品（后端 diy_works 表）
+   * 后端API: GET /api/v4/diy/works / GET /api/v4/diy/works/:id
+   *
+   * 状态机: draft(设计中) → frozen(已冻结) → completed(已完成) / cancelled(已取消)
+   * 超时保护: frozen状态超过24小时自动cancel
+   */
+  interface DiyWork {
+    /** 作品主键（后端 diy_work_id） */
+    diy_work_id: number
+    /** 作品编号（后端 work_code，OrderNoGenerator生成） */
+    work_code: string
+    /** 账户ID（后端 account_id） */
+    account_id: number
+    /** 模板ID（后端 diy_template_id） */
+    diy_template_id: number
+    /** 作品名称（用户自定义） */
+    work_name: string
+    /** 设计数据（串珠: { mode:'beading', beads:[...] }，镶嵌: { mode:'slots', fillings:{...} }） */
+    design_data: DiyDesignData
+    /** 总消耗（[{ asset_code, amount }]） */
+    total_cost: DiyTotalCostItem[]
+    /** 预览图媒体ID */
+    preview_media_id?: number
+    /** 铸造的物品实例ID（completed后才有值） */
+    item_id?: number
+    /** 作品状态 */
+    status: DiyWorkStatus
+    /** 幂等键 */
+    idempotency_key?: string
+    /** 冻结时间 */
+    frozen_at?: string
+    /** 完成时间 */
+    completed_at?: string
+    /** 创建时间 */
     created_at: string
+    /** 更新时间 */
+    updated_at: string
+    /** 关联的模板数据（后端 include DiyTemplate） */
+    template?: DiyTemplate
+    /** 预览图 */
+    preview_media?: {
+      media_id: number
+      object_key: string
+      thumbnail_keys?: Record<string, string>
+    }
+  }
+
+  /** 设计数据（联合类型，由 mode 字段区分） */
+  interface DiyDesignData {
+    /** 模式标识（beading串珠 / slots镶嵌） */
+    mode: 'beading' | 'slots'
+    /** 串珠模式: 选择的尺码 */
+    selected_size?: string
+    /** 串珠模式: 珠子列表 */
+    beads?: { position: number; asset_code: string; diameter?: number; size?: string }[]
+    /** 镶嵌模式: 槽位填充数据 */
+    fillings?: Record<string, { asset_code: string }>
+  }
+
+  /** 材料消耗明细项 */
+  interface DiyTotalCostItem {
+    /** 资产代码（如 "red_core_shard"） */
+    asset_code: string
+    /** 消耗数量 */
+    amount: number
+  }
+
+  /**
+   * 保存设计草稿请求（POST /api/v4/diy/works）
+   * 后端校验模板+材料合法性，计算total_cost
+   */
+  interface DiyWorkCreateRequest {
+    /** 模板主键 */
+    diy_template_id: number
+    /** 作品名称 */
+    work_name: string
+    /** 设计数据 */
+    design_data: DiyDesignData
+    /** 材料消耗明细 */
+    total_cost: DiyTotalCostItem[]
+  }
+
+  /** 保存设计草稿响应 */
+  interface DiyWorkCreateResponse {
+    /** 作品主键 */
+    diy_work_id: number
+    /** 作品编号 */
+    work_code: string
+    /** 作品状态 */
+    status: DiyWorkStatus
+  }
+
+  /** 作品状态变更响应（confirm/complete/cancel共用） */
+  interface DiyWorkStatusResponse {
+    /** 作品主键 */
+    diy_work_id: number
+    /** 新状态 */
+    status: DiyWorkStatus
+    /** 冻结时间（confirm时返回） */
+    frozen_at?: string
+    /** 完成时间（complete时返回） */
+    completed_at?: string
+    /** 铸造的物品实例ID（complete时返回） */
+    item_id?: number
   }
 }

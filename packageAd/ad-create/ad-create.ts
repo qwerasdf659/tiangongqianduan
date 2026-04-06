@@ -5,14 +5,14 @@
  *   1. 选择广告位（弹窗/轮播图/公告/信息流）
  *   2. 设置计费模式（固定包天/竞价排名/CPM曝光计费）
  *   3. 配置投放参数（天数/出价/预算/日期）
- *   4. 保存草稿 或 直接提交审核（冻结钻石）
+ *   4. 保存草稿 或 直接提交审核（冻结星石）
  *
  * 后端API:
  *   GET  /api/v4/user/ad-slots                — 获取可用广告位列表
  *   GET  /api/v4/user/ad-pricing/preview      — 定价预览（含DAU系数+阶梯折扣）
  *   POST /api/v4/user/ad-campaigns            — 创建广告活动
  *   PUT  /api/v4/user/ad-campaigns/:id        — 更新广告活动（仅draft状态）
- *   POST /api/v4/user/ad-campaigns/:id/submit — 提交审核（自动冻结钻石）
+ *   POST /api/v4/user/ad-campaigns/:id/submit — 提交审核（自动冻结星石）
  *
  * @file packageAd/ad-create/ad-create.ts
  * @version 6.0.0
@@ -27,7 +27,7 @@ const BILLING_MODES = [
   {
     value: 'fixed_daily',
     label: '固定包天',
-    desc: '选定天数，一次性支付钻石购买展示时段'
+    desc: '选定天数，一次性支付星石购买展示时段'
   },
   {
     value: 'bidding',
@@ -56,15 +56,15 @@ Page({
     /** 固定包天参数 */
     fixedDays: 7,
     /** 总费用（后端定价预览返回的折后总价，API未就绪时显示为0并提示用户） */
-    estimatedTotalDiamond: 0,
+    estimatedTotalStarStone: 0,
     /** 后端定价预览详情（含DAU系数、折扣信息，API可用时填充） */
     pricingPreview: null as API.AdPricingPreview | null,
     /** 定价预览加载中 */
     pricingLoading: false,
 
     /** 竞价参数 */
-    dailyBidDiamond: 50,
-    budgetTotalDiamond: 500,
+    dailyBidStarStone: 50,
+    budgetTotalStarStone: 500,
 
     /** 投放日期 */
     startDate: '',
@@ -151,8 +151,8 @@ Page({
     this.setData({
       selectedSlotIndex: slotIndex,
       selectedSlot,
-      dailyBidDiamond: selectedSlot.min_bid_diamond || 50,
-      budgetTotalDiamond: selectedSlot.min_budget_diamond || 500
+      dailyBidStarStone: selectedSlot.min_bid_star_stone || 50,
+      budgetTotalStarStone: selectedSlot.min_budget_star_stone || 500
     })
     this._recalculateEstimate()
   },
@@ -182,7 +182,7 @@ Page({
   onDailyBidInput(e: WechatMiniprogram.Input) {
     const bid = parseInt(e.detail.value, 10)
     if (!isNaN(bid) && bid > 0) {
-      this.setData({ dailyBidDiamond: bid })
+      this.setData({ dailyBidStarStone: bid })
     }
   },
 
@@ -190,7 +190,7 @@ Page({
   onBudgetInput(e: WechatMiniprogram.Input) {
     const budget = parseInt(e.detail.value, 10)
     if (!isNaN(budget) && budget > 0) {
-      this.setData({ budgetTotalDiamond: budget })
+      this.setData({ budgetTotalStarStone: budget })
     }
   },
 
@@ -214,7 +214,7 @@ Page({
    */
   _recalculateEstimate() {
     if (this.data.selectedBillingMode !== 'fixed_daily' || !this.data.selectedSlot) {
-      this.setData({ estimatedTotalDiamond: 0, pricingPreview: null })
+      this.setData({ estimatedTotalStarStone: 0, pricingPreview: null })
       return
     }
 
@@ -249,7 +249,7 @@ Page({
       if (result?.success && result.data) {
         const preview: API.AdPricingPreview = result.data
         this.setData({
-          estimatedTotalDiamond: preview.total_price,
+          estimatedTotalStarStone: preview.total_price,
           pricingPreview: preview
         })
         log.info('[ad-create] 定价预览:', preview.total_price, '💎')
@@ -259,7 +259,7 @@ Page({
     } catch (apiError: any) {
       log.error('[ad-create] 定价预览API不可用:', apiError.statusCode || apiError.message)
       this.setData({
-        estimatedTotalDiamond: 0,
+        estimatedTotalStarStone: 0,
         pricingPreview: null
       })
       Wechat.showToast('定价服务暂不可用，请稍后重试', 'none', 2000)
@@ -359,18 +359,18 @@ Page({
         return '投放天数至少为1天'
       }
     } else if (this.data.selectedBillingMode === 'bidding') {
-      const minBid = this.data.selectedSlot.min_bid_diamond || 50
-      if (this.data.dailyBidDiamond < minBid) {
-        return `日出价不能低于${minBid}钻石`
+      const minBid = this.data.selectedSlot.min_bid_star_stone || 50
+      if (this.data.dailyBidStarStone < minBid) {
+        return `日出价不能低于${minBid}星石`
       }
-      const minBudget = this.data.selectedSlot.min_budget_diamond || 500
-      if (this.data.budgetTotalDiamond < minBudget) {
-        return `总预算不能低于${minBudget}钻石`
+      const minBudget = this.data.selectedSlot.min_budget_star_stone || 500
+      if (this.data.budgetTotalStarStone < minBudget) {
+        return `总预算不能低于${minBudget}星石`
       }
     } else if (this.data.selectedBillingMode === 'cpm') {
-      const cpmMinBudget = this.data.selectedSlot.min_budget_diamond || 500
-      if (this.data.budgetTotalDiamond < cpmMinBudget) {
-        return `CPM模式总预算不能低于${cpmMinBudget}钻石`
+      const cpmMinBudget = this.data.selectedSlot.min_budget_star_stone || 500
+      if (this.data.budgetTotalStarStone < cpmMinBudget) {
+        return `CPM模式总预算不能低于${cpmMinBudget}星石`
       }
     }
     return null
@@ -388,10 +388,10 @@ Page({
     if (this.data.selectedBillingMode === 'fixed_daily') {
       formData.fixed_days = this.data.fixedDays
     } else if (this.data.selectedBillingMode === 'bidding') {
-      formData.daily_bid_diamond = this.data.dailyBidDiamond
-      formData.budget_total_diamond = this.data.budgetTotalDiamond
+      formData.daily_bid_star_stone = this.data.dailyBidStarStone
+      formData.budget_total_star_stone = this.data.budgetTotalStarStone
     } else if (this.data.selectedBillingMode === 'cpm') {
-      formData.budget_total_diamond = this.data.budgetTotalDiamond
+      formData.budget_total_star_stone = this.data.budgetTotalStarStone
     }
 
     if (this.data.startDate) {
@@ -460,13 +460,13 @@ Page({
     let costDisplay = ''
     if (this.data.selectedBillingMode === 'fixed_daily') {
       costDisplay =
-        this.data.estimatedTotalDiamond > 0
-          ? `将冻结 ${this.data.estimatedTotalDiamond} 钻石`
-          : `将冻结钻石（具体金额由后端计算）`
+        this.data.estimatedTotalStarStone > 0
+          ? `将冻结 ${this.data.estimatedTotalStarStone} 星石`
+          : `将冻结星石（具体金额由后端计算）`
     } else if (this.data.selectedBillingMode === 'bidding') {
-      costDisplay = `将冻结首日出价 ${this.data.dailyBidDiamond} 钻石`
+      costDisplay = `将冻结首日出价 ${this.data.dailyBidStarStone} 星石`
     } else if (this.data.selectedBillingMode === 'cpm') {
-      costDisplay = `将冻结预算 ${this.data.budgetTotalDiamond} 钻石`
+      costDisplay = `将冻结预算 ${this.data.budgetTotalStarStone} 星石`
     }
 
     const confirmResult = await new Promise<boolean>(resolve => {
@@ -561,8 +561,8 @@ Page({
         selectedSlotIndex: matchedSlotIndex,
         selectedSlot: matchedSlot,
         fixedDays: campaign.fixed_days || 7,
-        dailyBidDiamond: campaign.daily_bid_diamond || 50,
-        budgetTotalDiamond: campaign.budget_total_diamond || 500,
+        dailyBidStarStone: campaign.daily_bid_star_stone || 50,
+        budgetTotalStarStone: campaign.budget_total_star_stone || 500,
         startDate: campaign.start_date || '',
         endDate: campaign.end_date || '',
         priority: campaign.priority || 50,

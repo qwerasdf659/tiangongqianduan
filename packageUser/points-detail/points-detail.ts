@@ -156,7 +156,7 @@ Page({
    *
    * 后端实际返回字段（对齐 typings/api.d.ts AssetTransaction）：
    *   asset_transaction_id - 交易流水ID（BIGINT PK）
-   *   asset_code           - 资产代码（POINTS / DIAMOND / red_shard）
+   *   asset_code           - 资产代码（points / star_stone / red_core_shard）
    *   delta_amount         - 变动金额（正数=获得/earn，负数=消费/consume）
    *   balance_before       - 变动前余额
    *   balance_after        - 变动后余额

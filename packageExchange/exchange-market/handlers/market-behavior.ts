@@ -734,7 +734,7 @@ module.exports = Behavior({
     /**
      * 加载兑换商城 feed 信息流广告
      *
-     * 对应广告位: exchange_list_feed（ID:15，日价25钻石，CPM 3钻石）
+     * 对应广告位: exchange_list_feed（ID:15，日价25星石，CPM 3星石）
      * 广告穿插由前端控制，后端只负责下发广告内容
      */
     async _loadExchangeFeedAds() {

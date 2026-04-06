@@ -1,12 +1,18 @@
+@import '../../../styles/variables.scss';
+
+/* 飞入动画浮动层元素 */
 .fly-element {
   position: fixed;
   z-index: 9999;
-  border-radius: 50%;
+  border-radius: $border-radius-round;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
   pointer-events: none;
-  animation: flyX 350ms ease-out forwards, flyY 350ms ease-in forwards;
+  animation:
+    flyX 350ms linear forwards,
+    flyY 350ms ease-in forwards;
 }
 
+/* X轴匀速移动 + Y轴加速移动 = 组合成弧线飞入效果 */
 @keyframes flyX {
   to {
     transform: translateX(var(--end-x));

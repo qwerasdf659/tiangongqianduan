@@ -14,7 +14,7 @@
  * @since 2026-02-21
  */
 
-const { Constants: mktConstants, GlobalTheme: mktGlobalTheme } = require('../../utils/index')
+const { Constants: mktConstants, GlobalTheme: mktGlobalTheme, AssetCodes: mktAssetCodes } = require('../../utils/index')
 const marketBehavior = require('./handlers/market-behavior')
 
 const { PAGINATION: MKT_PAGINATION } = mktConstants
@@ -25,7 +25,7 @@ Component({
   properties: {
     /** 可用积分余额（保留用于购买校验） */
     pointsBalance: { type: Number, value: 0 },
-    /** 钻石和水晶类资产余额列表（Page 壳从 API.getAssetBalances 获取后下传） */
+    /** 星石和源晶类资产余额列表（Page 壳从 API.getAssetBalances 获取后下传） */
     assetBalances: { type: Array, value: [] },
     /** 全局氛围主题标识（如 'default' / 'gold_luxury'，由 Page 壳从 ThemeCache 获取后下传） */
     theme: { type: String, value: 'default' },
@@ -79,7 +79,7 @@ Component({
 
     /** 价格走势图（默认收起，用户手动展开） */
     showPriceChart: false,
-    chartAssetCode: 'red_shard',
+    chartAssetCode: mktAssetCodes.RED_CORE_SHARD,
 
     /** 高级筛选参数（对齐独立市场页面 market.ts） */
     filterCategoryCode: '',
@@ -143,7 +143,7 @@ Component({
 
     /**
      * 根据选中商品的 price_asset_code 从 assetBalances 中查找对应资产余额
-     * 用于购买确认弹窗展示 "当前余额: X 钻石" 而非固定的 "X 积分"
+     * 用于购买确认弹窗展示 "当前余额: X 星石" 而非固定的 "X 积分"
      */
     _computeSelectedProductBalance(product: any) {
       if (!product || !product.price_asset_code) {
@@ -156,7 +156,7 @@ Component({
           selectedProductBalance: match.available_amount,
           selectedProductBalanceLabel: match.display_name
         })
-      } else if (product.price_asset_code === 'POINTS') {
+      } else if (product.price_asset_code === mktAssetCodes.POINTS) {
         this.setData({
           selectedProductBalance: this.properties.pointsBalance,
           selectedProductBalanceLabel: '积分'

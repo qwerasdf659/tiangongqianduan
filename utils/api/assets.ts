@@ -18,10 +18,10 @@ const { buildQueryString } = require('../util')
 // ==================== 余额与流水 ====================
 
 /**
- * 获取当前用户积分余额 - GET /api/v4/assets/balance
+ * 获取当前用户资产余额 - GET /api/v4/assets/balance
  * 响应字段: asset_code, available_amount, frozen_amount, total_amount
  */
-async function getPointsBalance(asset_code: string = 'POINTS') {
+async function getPointsBalance(asset_code: string = 'points') {
   const qs = buildQueryString({ asset_code })
   return apiClient.request(`/assets/balance?${qs}`, { method: 'GET', needAuth: true })
 }
@@ -54,16 +54,16 @@ async function getConversionRules() {
  * 后端服务: AssetQueryService.getTodaySummary({ user_id, asset_code })
  *
  * 响应字段:
- *   asset_code: 资产代码（如 'POINTS'）
+ *   asset_code: 资产代码（如 'points'）
  *   today_earned: 今日获得总额（delta_amount > 0 的交易合计）
  *   today_consumed: 今日消费总额（delta_amount < 0 的交易绝对值合计）
  *   transaction_count: 今日交易笔数
  *
- * 支持任意 asset_code（POINTS/DIAMOND/red_shard 等），前端只需更换查询参数
+ * 支持任意 asset_code（points/star_stone/red_core_shard 等），前端只需更换查询参数
  *
- * @param asset_code - 资产代码，默认 'POINTS'（普通积分）
+ * @param asset_code - 资产代码，默认 'points'（积分）
  */
-async function getTodaySummary(asset_code: string = 'POINTS') {
+async function getTodaySummary(asset_code: string = 'points') {
   const qs = buildQueryString({ asset_code })
   return apiClient.request(`/assets/today-summary?${qs}`, { method: 'GET', needAuth: true })
 }
@@ -79,8 +79,8 @@ async function getTodaySummary(asset_code: string = 'POINTS') {
  *
  * 响应 data 为数组，每条包含:
  *   exchange_rate_id - BIGINT 汇率规则ID
- *   from_asset_code  - VARCHAR 源资产代码（如 red_shard）
- *   to_asset_code    - VARCHAR 目标资产代码（如 DIAMOND）
+ *   from_asset_code  - VARCHAR 源资产代码（如 red_core_shard）
+ *   to_asset_code    - VARCHAR 目标资产代码（如 star_stone）
  *   rate_numerator   - BIGINT 汇率分子
  *   rate_denominator - BIGINT 汇率分母
  *   rate_display     - VARCHAR 汇率文本描述（如 "10:1"）
@@ -104,8 +104,8 @@ async function getExchangeRates() {
  * 获取特定币对汇率
  * GET /api/v4/assets/rates/:from/:to
  *
- * @param fromAssetCode - 源资产代码（如 'red_shard'）
- * @param toAssetCode - 目标资产代码（如 'DIAMOND'）
+ * @param fromAssetCode - 源资产代码（如 'red_core_shard'）
+ * @param toAssetCode - 目标资产代码（如 'star_stone'）
  */
 async function getExchangeRatePair(fromAssetCode: string, toAssetCode: string) {
   if (!fromAssetCode || !toAssetCode) {

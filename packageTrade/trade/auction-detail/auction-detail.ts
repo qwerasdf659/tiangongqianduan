@@ -25,7 +25,8 @@ const {
   API,
   Logger: AuctionDetailLogger,
   Wechat: AuctionDetailWechat,
-  AuctionHelpers: AuctionDetailHelpers
+  AuctionHelpers: AuctionDetailHelpers,
+  ImageHelper: auctionDetailImageHelper
 } = require('../../../utils/index')
 const auctionDetailLog = AuctionDetailLogger.createLogger('auction-detail')
 
@@ -52,6 +53,9 @@ Page({
 
     /** 倒计时 */
     countdownText: '',
+
+    /** 结算资产中文名（用于UI展示，如"星石"） */
+    priceAssetLabel: '',
 
     /** 页面状态 */
     loading: true,
@@ -186,6 +190,8 @@ Page({
 
     this.setData({
       auction,
+      /** 结算资产中文名（用于UI展示，如"星石"） */
+      priceAssetLabel: auctionDetailImageHelper.getAssetDisplayName(auction.price_asset_code || ''),
       topBids,
       myBids,
       displayName: snapshot.item_name || '未知物品',
@@ -296,9 +302,10 @@ Page({
     }
 
     const isBuyout = auction.buyout_price && bidAmount >= auction.buyout_price
+    const priceLabel = auctionDetailImageHelper.getAssetDisplayName(auction.price_asset_code || '')
     const confirmMessage = isBuyout
-      ? `确认以一口价 ${bidAmount} ${auction.price_asset_code} 立即购买？`
-      : `确认出价 ${bidAmount} ${auction.price_asset_code}？\n出价成功后对应金额将被冻结`
+      ? `确认以一口价 ${bidAmount} ${priceLabel} 立即购买？`
+      : `确认出价 ${bidAmount} ${priceLabel}？\n出价成功后对应金额将被冻结`
 
     const confirmResult = await new Promise<boolean>(resolve => {
       wx.showModal({

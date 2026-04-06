@@ -7,6 +7,21 @@
     </view>
   </view>
 
+  <!-- 分类 Tab 栏（手链/项链/戒指/吊坠，对齐后端 categories 表 id=191~194） -->
+  <scroll-view class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="category-tabs-inner">
+      <view
+        wx:for="{{categoryTabs}}"
+        wx:key="category_id"
+        class="category-tab {{item.category_id === activeCategoryId ? 'active' : ''}}"
+        bind:tap="onCategoryChange"
+        data-category-id="{{item.category_id}}"
+      >
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
   <!-- 加载态 -->
   <view wx:if="{{loading}}" class="loading-wrap">
     <view class="loading-spinner" />
@@ -15,7 +30,6 @@
 
   <!-- 错误态 -->
   <view wx:elif="{{hasError}}" class="error-wrap">
-    <text class="error-icon">⚠️</text>
     <text class="error-text">{{errorMessage}}</text>
     <view class="retry-btn" bind:tap="loadTemplates">重试</view>
   </view>
@@ -24,19 +38,26 @@
   <view wx:else class="template-grid">
     <view
       wx:for="{{templates}}"
-      wx:key="id"
+      wx:key="diy_template_id"
       class="template-card"
       bind:tap="onSelectTemplate"
       data-index="{{index}}"
     >
-      <!-- 款式图标 -->
+      <!-- 款式预览图（优先后端真实图片，无图时显示分类占位图标） -->
       <view class="template-icon-wrap">
-        <view class="template-icon-placeholder template-icon-{{item.type}}" />
+        <image
+          wx:if="{{item._previewUrl}}"
+          class="template-preview-img"
+          src="{{item._previewUrl}}"
+          mode="aspectFill"
+          lazy-load
+        />
+        <view wx:else class="template-icon-placeholder template-icon-{{item.category_id}}" />
       </view>
 
       <!-- 款式信息 -->
       <view class="template-info">
-        <text class="template-name">{{item.name}}</text>
+        <text class="template-name">{{item.display_name}}</text>
         <text class="template-type">{{item._typeLabel}}</text>
         <view class="template-tags">
           <text class="tag" wx:if="{{item._modeLabel}}">{{item._modeLabel}}</text>
@@ -46,14 +67,13 @@
 
       <!-- 箭头 -->
       <view class="template-arrow">
-        <text class="arrow-icon">›</text>
+        <text class="arrow-icon">></text>
       </view>
     </view>
   </view>
 
   <!-- 空态 -->
   <view wx:if="{{!loading && !hasError && templates.length === 0}}" class="empty-wrap">
-    <text class="empty-icon">💎</text>
-    <text class="empty-text">暂无可用款式</text>
+    <text class="empty-text">该分类暂无可用款式</text>
   </view>
 </view>

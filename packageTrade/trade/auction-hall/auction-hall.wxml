@@ -113,14 +113,14 @@
         <view class="auction-price-row">
           <text class="price-label">{{item._priceLabel}}</text>
           <text class="price-value">{{item._displayPrice}}</text>
-          <text class="price-asset">{{item.price_asset_code}}</text>
+          <text class="price-asset">{{item._priceAssetLabel}}</text>
         </view>
 
         <!--一口价信息-->
         <view class="auction-buyout-row" wx:if="{{item._hasBuyout}}">
           <text class="buyout-label">一口价</text>
           <text class="buyout-value">{{item.buyout_price}}</text>
-          <text class="buyout-asset">{{item.price_asset_code}}</text>
+          <text class="buyout-asset">{{item._priceAssetLabel}}</text>
         </view>
 
         <!--出价统计和倒计时-->

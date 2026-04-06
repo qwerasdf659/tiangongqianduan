@@ -21,7 +21,8 @@ const {
   API,
   Logger: OrderLogger,
   Utils: OrderUtils,
-  Wechat: OrderWechat
+  Wechat: OrderWechat,
+  ImageHelper: orderImageHelper
 } = require('../../../utils/index')
 const orderLog = OrderLogger.createLogger('my-orders')
 
@@ -160,7 +161,9 @@ Page({
             statusColor: statusConfig.color,
             kindLabel: order.listing_kind === 'fungible_asset' ? '资产' : '物品',
             formattedTime: parsedDate ? OrderUtils.formatTime(parsedDate) : order.created_at || '',
-            display_name: order.display_name || '商品'
+            display_name: order.display_name || '商品',
+            /** 结算资产中文名（用于UI展示，如"星石"） */
+            _priceAssetLabel: orderImageHelper.getAssetDisplayName(order.price_asset_code || '')
           }
         })
 

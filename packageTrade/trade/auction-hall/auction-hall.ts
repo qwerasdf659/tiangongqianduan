@@ -21,7 +21,8 @@
 const {
   API,
   Logger: AuctionHallLogger,
-  AuctionHelpers: AuctionHallHelpers
+  AuctionHelpers: AuctionHallHelpers,
+  ImageHelper: auctionHallImageHelper
 } = require('../../../utils/index')
 const auctionHallLog = AuctionHallLogger.createLogger('auction-hall')
 
@@ -222,6 +223,8 @@ Page({
       _statusIcon: statusConfig.icon,
       _displayPrice: auction.current_price > 0 ? auction.current_price : auction.start_price,
       _priceLabel: auction.current_price > 0 ? '当前价' : '起拍价',
+      /** 结算资产中文名（用于UI展示，如"星石"） */
+      _priceAssetLabel: auctionHallImageHelper.getAssetDisplayName(auction.price_asset_code || ''),
       _hasBuyout: auction.buyout_price !== null && auction.buyout_price > 0,
       _countdownText: this._calcCountdown(auction.end_time, auction.status),
       _isActive: auction.status === 'active'

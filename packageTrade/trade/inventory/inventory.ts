@@ -64,7 +64,7 @@ Page({
 
     // ===== 可叠加资产数据（后端 assets[] ====
     /**
-     * 可叠加资产列表（积分、钻石、碎片等     * 后端字段：asset_code, display_name, total_amount, frozen_amount, available_amount, category, rarity, rarity_display
+     * 可叠加资产列表（积分、星石、碎片等     * 后端字段：asset_code, display_name, total_amount, frozen_amount, available_amount, category, rarity, rarity_display
      */
     backpackAssets: [] as API.BackpackAsset[],
 
@@ -292,7 +292,7 @@ Page({
         const { assets = [], items = [] } = data
 
         /**
-         * 处理可叠加资产（积分、钻石等）
+         * 处理可叠加资产（积分、星石等）
          * 后端已返回 is_tradable 字段（boolean），精确控制"上架到市场"按钮显示
          * is_tradable=true 的资产才能上架到交易市场
          *
@@ -1041,7 +1041,7 @@ Page({
    * 请求Header: Idempotency-Key: market_list_<timestamp>_<random>（必填）
    * 请求Body: { item_id, price_amount, price_asset_code }
    *
-   * 定价币种: DIAMOND（钻石）/ red_shard（红水晶碎片）
+   * 定价币种: star_stone（星石）/ red_core_shard（红源晶碎片）
    * 上架限制: 用户最多同时上架10件商品
    *
    * WXML绑定: <button bindtap="onSellItem" data-item="{{item}}">
@@ -1073,7 +1073,7 @@ Page({
    *
    * 前端根据后端返回 is_tradable 字段精确控制"上架到市场"按钮：
    *   is_tradable=true  → 允许上架
-   *   is_tradable=false → 不可交易（如普通积分 POINTS）
+   *   is_tradable=false → 不可交易（如普通积分 points）
    *
    * WXML绑定: <button bindtap="onSellAsset" data-asset="{{item}}">
    */
@@ -1555,7 +1555,7 @@ Page({
    * 获取定价建议提示文本（卖家定价参考）
    * 后端API: GET /api/v4/marketplace/analytics/pricing-advice
    *
-   * 返回格式示例: "参考价: 100-150 DIAMOND，在售最低: 80"
+   * 返回格式示例: "参考价: 100-150 star_stone，在售最低: 80"
    * 失败时返回空字符串（不阻塞上架流程）
    *
    * @param params.asset_code - 资产代码（可叠加资产上架时）

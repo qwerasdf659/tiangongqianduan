@@ -1,10 +1,12 @@
 # 处理行结束符
 * text=auto
 *.js text eol=lf
+*.ts text eol=lf
 *.json text eol=lf
-*.md text eol=lf
 *.wxss text eol=lf
+*.scss text eol=lf
 *.wxml text eol=lf
+*.wxs text eol=lf
 
 # 二进制文件
 *.png binary
@@ -12,8 +14,9 @@
 *.jpeg binary
 *.gif binary
 *.ico binary
+*.webp binary
 *.woff binary
 *.woff2 binary
 
-# 中文文件名处理
-*.md -text 
+# 中文文件名处理（微信小程序项目中文md文件较多）
+*.md -text

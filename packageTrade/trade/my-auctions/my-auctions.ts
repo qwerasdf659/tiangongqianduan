@@ -18,7 +18,8 @@ const {
   API,
   Logger: MyAuctionsLogger,
   Wechat: MyAuctionsWechat,
-  AuctionHelpers: MyAuctionsHelpers
+  AuctionHelpers: MyAuctionsHelpers,
+  ImageHelper: myAuctionsImageHelper
 } = require('../../../utils/index')
 const myAuctionsLog = MyAuctionsLogger.createLogger('my-auctions')
 
@@ -171,6 +172,8 @@ Page({
       _statusColor: config.color,
       _displayPrice: auction.current_price > 0 ? auction.current_price : auction.start_price,
       _priceLabel: auction.current_price > 0 ? '当前价' : '起拍价',
+      /** 结算资产中文名（用于UI展示，如"星石"） */
+      _priceAssetLabel: myAuctionsImageHelper.getAssetDisplayName(auction.price_asset_code || ''),
       _canCancel:
         (auction.status === 'pending' || auction.status === 'active') && auction.bid_count === 0
     }

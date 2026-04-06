@@ -5,7 +5,7 @@
  *   - 活动基本信息（名称、状态、计费模式、投放周期）
  *   - 费用信息（已消耗/总预算、日出价）
  *   - 素材列表（图片、标题、审核状态）
- *   - 数据报表（曝光、点击、转化、消耗钻石）
+ *   - 数据报表（曝光、点击、转化、消耗星石）
  *   - 操作按钮（提交审核/取消/编辑）
  *
  * 后端API:
@@ -160,11 +160,11 @@ Page({
 
     let costDisplay = ''
     if (this.data.campaign.billing_mode === 'fixed_daily') {
-      costDisplay = `将冻结 ${this.data.campaign.fixed_total_diamond || 0} 钻石`
+      costDisplay = `将冻结 ${this.data.campaign.fixed_total_star_stone || 0} 星石`
     } else if (this.data.campaign.billing_mode === 'bidding') {
-      costDisplay = `将冻结首日出价 ${this.data.campaign.daily_bid_diamond || 0} 钻石`
+      costDisplay = `将冻结首日出价 ${this.data.campaign.daily_bid_star_stone || 0} 星石`
     } else if (this.data.campaign.billing_mode === 'cpm') {
-      costDisplay = `将冻结预算 ${this.data.campaign.budget_total_diamond || 0} 钻石`
+      costDisplay = `将冻结预算 ${this.data.campaign.budget_total_star_stone || 0} 星石`
     }
 
     const confirmResult = await new Promise<boolean>(resolve => {
@@ -203,7 +203,7 @@ Page({
     const confirmResult = await new Promise<boolean>(resolve => {
       wx.showModal({
         title: '确认取消',
-        content: '取消后冻结的钻石将退回账户，此操作不可撤销。',
+        content: '取消后冻结的星石将退回账户，此操作不可撤销。',
         confirmText: '确认取消',
         cancelText: '再想想',
         confirmColor: '#F44336',
@@ -220,7 +220,7 @@ Page({
     try {
       const result = await API.cancelAdCampaign(this.data.campaignId)
       if (result?.success) {
-        Wechat.showToast('已取消，钻石已退回', 'success', 1500)
+        Wechat.showToast('已取消，星石已退回', 'success', 1500)
         this.loadDetail()
       } else {
         throw new Error(result?.message || '取消失败')

@@ -67,8 +67,8 @@ Page({
     roleLevel: 0,
 
     // 积分信息
-    // totalPoints: GET /api/v4/assets/balance?asset_code=POINTS → available_amount
-    // todayEarned/todayConsumed: GET /api/v4/assets/today-summary?asset_code=POINTS → today_earned / today_consumed
+    // totalPoints: GET /api/v4/assets/balance?asset_code=points → available_amount
+    // todayEarned/todayConsumed: GET /api/v4/assets/today-summary?asset_code=points → today_earned / today_consumed
     totalPoints: 0,
     todayEarned: 0,
     todayConsumed: 0,
@@ -548,14 +548,14 @@ Page({
   /**
    * 加载积分趋势数据（今日获得/消费）
    *
-   * 后端路由: GET /api/v4/assets/today-summary?asset_code=POINTS（决策D-1，资产域通用接口）
+   * 后端路由: GET /api/v4/assets/today-summary?asset_code=points（决策D-1，资产域通用接口）
    * 后端服务: AssetQueryService.getTodaySummary({ user_id, asset_code })
    * 响应: { success: true, data: { asset_code, today_earned, today_consumed, transaction_count } }
    *
-   * 统计范围: 北京时间当日所有 business_type 的 POINTS 交易
+   * 统计范围: 北京时间当日所有 business_type 的 points 交易
    */
   async loadPointsTrend() {
-    const data = await safeApiCall(() => API.getTodaySummary('POINTS'), {
+    const data = await safeApiCall(() => API.getTodaySummary('points'), {
       context: '今日积分汇总',
       silent: true
     })
@@ -743,7 +743,7 @@ Page({
    * 加载个人中心弹窗横幅（含频率控制过滤）
    *
    * 后端API: GET /api/v4/system/ad-delivery?slot_type=popup&position=profile
-   * 对应广告位: profile_popup（ID:4，日价50钻石）
+   * 对应广告位: profile_popup（ID:4，日价50星石）
    *
    * 数据流:
    *   API获取活跃投放内容 → 客户端频率过滤 → priority降序排序 → 展示第一条

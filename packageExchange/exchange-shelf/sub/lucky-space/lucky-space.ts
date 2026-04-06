@@ -22,7 +22,8 @@ const {
   Logger: luckyLogger,
   Waterfall: luckyWaterfall,
   Utils: luckyUtils,
-  ImageHelper: luckyImageHelper
+  ImageHelper: luckyImageHelper,
+  AssetCodes: luckyAssetCodes
 } = require('../../../../utils/index')
 const luckyLog = luckyLogger.createLogger('lucky-space')
 const {
@@ -242,7 +243,7 @@ Component({
               image: imageUrl,
               primary_media_id: item.primary_media_id || null,
               cost_amount: Number(item.cost_amount) || 0,
-              cost_asset_code: item.cost_asset_code || 'POINTS',
+              cost_asset_code: item.cost_asset_code || luckyAssetCodes.POINTS,
               original_price: item.original_price ? Number(item.original_price) : null,
               sold_count: item.sold_count || 0,
               tags: item.tags || [],

@@ -49,7 +49,7 @@
                 '轮播广告' : item.slot_type === 'announcement' ? '公告广告' : item.slot_type ===
                 'feed' ? '信息流广告' : item.slot_type}}</text
               >
-              <text class="slot-price">日价 {{item.daily_price_diamond}} 💎</text>
+              <text class="slot-price">日价 {{item.daily_price_star_stone}} 💎</text>
             </view>
             <view class="slot-meta" wx:if="{{item.description}}">
               <text>{{item.description}}</text>
@@ -92,10 +92,10 @@
           <view class="cost-main-row" wx:if="{{pricingLoading}}">
             <text class="cost-loading">正在获取定价...</text>
           </view>
-          <block wx:elif="{{pricingPreview && estimatedTotalDiamond > 0}}">
+          <block wx:elif="{{pricingPreview && estimatedTotalStarStone > 0}}">
             <view class="cost-main-row">
               <text class="cost-label">总费用:</text>
-              <text class="cost-value">{{estimatedTotalDiamond}} 💎</text>
+              <text class="cost-value">{{estimatedTotalStarStone}} 💎</text>
             </view>
             <text class="cost-detail"
               >({{pricingPreview.effective_daily_price}} 💎/天 × {{fixedDays}}
@@ -117,29 +117,29 @@
       <!-- 竞价参数 -->
       <block wx:if="{{selectedBillingMode === 'bidding'}}">
         <view class="form-group">
-          <text class="form-label">日出价（钻石）</text>
+          <text class="form-label">日出价（星石）</text>
           <input
             class="form-input"
             type="number"
-            placeholder="最低 {{selectedSlot.min_bid_diamond || 50}} 钻石"
-            value="{{dailyBidDiamond}}"
+            placeholder="最低 {{selectedSlot.min_bid_star_stone || 50}} 星石"
+            value="{{dailyBidStarStone}}"
             bindinput="onDailyBidInput"
           />
           <text class="form-tip" wx:if="{{selectedSlot}}"
-            >最低日出价: {{selectedSlot.min_bid_diamond}} 钻石</text
+            >最低日出价: {{selectedSlot.min_bid_star_stone}} 星石</text
           >
         </view>
         <view class="form-group">
-          <text class="form-label">总预算（钻石）</text>
+          <text class="form-label">总预算（星石）</text>
           <input
             class="form-input"
             type="number"
-            placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
-            value="{{budgetTotalDiamond}}"
+            placeholder="最低 {{selectedSlot.min_budget_star_stone || 500}} 星石"
+            value="{{budgetTotalStarStone}}"
             bindinput="onBudgetInput"
           />
           <text class="form-tip" wx:if="{{selectedSlot}}"
-            >最低总预算: {{selectedSlot.min_budget_diamond}} 钻石，预算耗尽自动停投</text
+            >最低总预算: {{selectedSlot.min_budget_star_stone}} 星石，预算耗尽自动停投</text
           >
         </view>
       </block>
@@ -147,23 +147,23 @@
       <!-- CPM曝光计费参数（待后端B6任务实现后启用完整功能） -->
       <block wx:if="{{selectedBillingMode === 'cpm'}}">
         <view class="form-group">
-          <text class="form-label">CPM单价（钻石/千次曝光）</text>
+          <text class="form-label">CPM单价（星石/千次曝光）</text>
           <input
             class="form-input"
             type="digit"
             placeholder="由广告位决定，不可修改"
-            value="{{selectedSlot.cpm_price_diamond || ''}}"
+            value="{{selectedSlot.cpm_price_star_stone || ''}}"
             disabled="{{true}}"
           />
           <text class="form-tip" wx:if="{{selectedSlot}}">CPM单价由广告位自身定价决定</text>
         </view>
         <view class="form-group">
-          <text class="form-label">总预算（钻石）</text>
+          <text class="form-label">总预算（星石）</text>
           <input
             class="form-input"
             type="number"
-            placeholder="最低 {{selectedSlot.min_budget_diamond || 500}} 钻石"
-            value="{{budgetTotalDiamond}}"
+            placeholder="最低 {{selectedSlot.min_budget_star_stone || 500}} 星石"
+            value="{{budgetTotalStarStone}}"
             bindinput="onBudgetInput"
           />
           <text class="form-tip" wx:if="{{selectedSlot}}"

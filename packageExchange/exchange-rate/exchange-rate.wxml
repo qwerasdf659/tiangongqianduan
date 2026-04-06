@@ -88,11 +88,13 @@
               <input
                 class="convert-input"
                 type="number"
-                placeholder="输入{{item.from_asset_code}}数量"
+                placeholder="输入{{item.fromDisplayName || item.from_asset_code}}数量"
                 value="{{inputAmount}}"
                 bindinput="onAmountInput"
               />
-              <text class="convert-input-unit">{{item.from_asset_code}}</text>
+              <text class="convert-input-unit"
+                >{{item.fromDisplayName || item.from_asset_code}}</text
+              >
             </view>
             <view class="convert-input-max" bindtap="onFillMaxAmount" catchtap="onFillMaxAmount">
               <text class="max-btn">MAX</text>
@@ -105,19 +107,19 @@
           <view class="preview-row">
             <text class="preview-label">消耗</text>
             <text class="preview-value preview-value--debit"
-              >-{{previewResult.from_amount}} {{item.from_asset_code}}</text
+              >-{{previewResult.from_amount}} {{item.fromDisplayName || item.from_asset_code}}</text
             >
           </view>
           <view class="preview-row" wx:if="{{previewResult.fee_amount > 0}}">
             <text class="preview-label">手续费</text>
             <text class="preview-value preview-value--fee"
-              >{{previewResult.fee_amount}} {{item.to_asset_code}}</text
+              >{{previewResult.fee_amount}} {{item.toDisplayName || item.to_asset_code}}</text
             >
           </view>
           <view class="preview-row preview-row--highlight">
             <text class="preview-label">实际获得</text>
             <text class="preview-value preview-value--credit"
-              >+{{previewResult.net_to_amount}} {{item.to_asset_code}}</text
+              >+{{previewResult.net_to_amount}} {{item.toDisplayName || item.to_asset_code}}</text
             >
           </view>
           <view class="preview-row" wx:if="{{previewResult.daily_user_limit}}">
@@ -129,7 +131,7 @@
           <view class="preview-row">
             <text class="preview-label">当前余额</text>
             <text class="preview-value"
-              >{{previewResult.user_balance}} {{item.from_asset_code}}</text
+              >{{previewResult.user_balance}} {{item.fromDisplayName || item.from_asset_code}}</text
             >
           </view>
         </view>

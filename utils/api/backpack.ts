@@ -130,7 +130,7 @@ async function getItemTimeline(item_id: number) {
  * @param params.category_id - 商品分类ID（整数，对应 categories.category_id）
  * @param params.keyword - 模糊搜索（匹配 item_name）
  * @param params.status - 商品状态 'active' / 'inactive'，默认 'active'
- * @param params.asset_code - 材料资产代码筛选（'red_shard', 'DIAMOND'）
+ * @param params.asset_code - 材料资产代码筛选（'red_core_shard', 'star_stone'）
  * @param params.min_cost - 最低价格筛选
  * @param params.max_cost - 最高价格筛选
  * @param params.stock_status - 库存状态 'in_stock'(>5) / 'low_stock'(1-5)
@@ -517,7 +517,7 @@ async function getPremiumStatus() {
  * 后端服务: premium（PremiumService.unlockPremium）
  * 业务规则:
  *   1. users.history_total_points >= 100000（历史累计门槛）
- *   2. POINTS 可用余额 >= 100（通过 BalanceService.changeBalance 扣减）
+ *   2. points 可用余额 >= 100（通过 BalanceService.changeBalance 扣减）
  *   3. 已解锁且未过期时拒绝重复解锁
  *   4. 解锁有效24小时
  *   5. 全流程在 TransactionManager.execute() 事务中
@@ -553,7 +553,7 @@ async function unlockPremium() {
  *   - start_price: BIGINT（起拍价，不是 starting_price）
  *   - current_price: BIGINT（当前最高出价）
  *   - min_bid_increment: BIGINT（最小加价幅度）
- *   - price_asset_code: VARCHAR(50)（竞价资产类型，默认 DIAMOND，不是 asset_code）
+ *   - price_asset_code: VARCHAR(50)（竞价资产类型，默认 star_stone，不是 asset_code）
  *   - status: ENUM（7态）
  *   - start_time / end_time: DATETIME
  *   - bid_count: INT

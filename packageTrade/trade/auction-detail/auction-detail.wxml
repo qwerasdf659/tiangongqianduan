@@ -43,8 +43,10 @@
         <view class="price-block">
           <text class="price-label">{{auction.current_price > 0 ? '当前最高价' : '起拍价'}}</text>
           <view class="price-value-row">
-            <text class="price-value">{{auction.current_price > 0 ? auction.current_price : auction.start_price}}</text>
-            <text class="price-asset">{{auction.price_asset_code}}</text>
+            <text class="price-value"
+              >{{auction.current_price > 0 ? auction.current_price : auction.start_price}}</text
+            >
+            <text class="price-asset">{{priceAssetLabel}}</text>
           </view>
         </view>
         <!--一口价-->
@@ -52,7 +54,7 @@
           <text class="price-label">一口价</text>
           <view class="price-value-row">
             <text class="price-value buyout-color">{{auction.buyout_price}}</text>
-            <text class="price-asset">{{auction.price_asset_code}}</text>
+            <text class="price-asset">{{priceAssetLabel}}</text>
           </view>
         </view>
       </view>
@@ -89,15 +91,15 @@
       <view class="settlement-info" wx:if="{{auction.status === 'settled'}}">
         <view class="settlement-row">
           <text class="settlement-label">成交价</text>
-          <text class="settlement-value">{{auction.gross_amount}} {{auction.price_asset_code}}</text>
+          <text class="settlement-value">{{auction.gross_amount}} {{priceAssetLabel}}</text>
         </view>
         <view class="settlement-row">
           <text class="settlement-label">手续费</text>
-          <text class="settlement-value">{{auction.fee_amount}} {{auction.price_asset_code}}</text>
+          <text class="settlement-value">{{auction.fee_amount}} {{priceAssetLabel}}</text>
         </view>
         <view class="settlement-row">
           <text class="settlement-label">卖方实收</text>
-          <text class="settlement-value highlight">{{auction.net_amount}} {{auction.price_asset_code}}</text>
+          <text class="settlement-value highlight">{{auction.net_amount}} {{priceAssetLabel}}</text>
         </view>
       </view>
     </view>
@@ -107,14 +109,14 @@
       <view class="section-title">我的出价</view>
       <view class="my-bid-status">
         <text class="my-bid-label">我的最高出价：</text>
-        <text class="my-bid-value">{{myHighestBid}} {{auction.price_asset_code}}</text>
+        <text class="my-bid-value">{{myHighestBid}} {{priceAssetLabel}}</text>
         <text class="my-bid-badge winning" wx:if="{{hasActiveBid}}">领先</text>
         <text class="my-bid-badge losing" wx:else>已被超越</text>
       </view>
       <!--我的出价历史-->
       <view class="my-bid-history">
         <view class="bid-history-item" wx:for="{{myBids}}" wx:key="auction_bid_id">
-          <text class="bid-amount">{{item.bid_amount}} {{auction.price_asset_code}}</text>
+          <text class="bid-amount">{{item.bid_amount}} {{priceAssetLabel}}</text>
           <text class="bid-time">{{item.created_at}}</text>
           <text class="bid-status winning" wx:if="{{item.is_winning}}">领先</text>
           <text class="bid-status" wx:else>已超越</text>
@@ -135,7 +137,7 @@
           </view>
           <view class="bid-amount-col">
             <text class="bid-amount-text">{{item.bid_amount}}</text>
-            <text class="bid-asset-text">{{auction.price_asset_code}}</text>
+            <text class="bid-asset-text">{{priceAssetLabel}}</text>
           </view>
           <view class="bid-winning-badge" wx:if="{{item.is_winning}}">
             <text>👑</text>
@@ -203,12 +205,19 @@
         </view>
 
         <view class="popup-hint">
-          <text>最低出价：{{minBidAmount}} {{auction.price_asset_code}}</text>
+          <text>最低出价：{{minBidAmount}} {{priceAssetLabel}}</text>
         </view>
 
         <view class="popup-input-row">
-          <input class="bid-input-field" type="number" value="{{bidInputValue}}" bindinput="onBidInputChange" placeholder="输入出价金额" focus="{{showBidInput}}" />
-          <text class="bid-input-asset">{{auction.price_asset_code}}</text>
+          <input
+            class="bid-input-field"
+            type="number"
+            value="{{bidInputValue}}"
+            bindinput="onBidInputChange"
+            placeholder="输入出价金额"
+            focus="{{showBidInput}}"
+          />
+          <text class="bid-input-asset">{{priceAssetLabel}}</text>
         </view>
 
         <!--快速加价按钮-->
@@ -229,7 +238,7 @@
 
         <!--一口价提示-->
         <view class="buyout-hint" wx:if="{{auction.buyout_price}}">
-          <text>💡 一口价 {{auction.buyout_price}} {{auction.price_asset_code}} 可立即成交</text>
+          <text>💡 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
         </view>
 
         <view class="popup-submit-btn {{bidding ? 'disabled' : ''}}" bindtap="onSubmitBid">

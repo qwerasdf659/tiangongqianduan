@@ -21,7 +21,8 @@ const {
   ExchangeConfig,
   Logger,
   API: shelfAPI,
-  GlobalTheme: shelfGlobalTheme
+  GlobalTheme: shelfGlobalTheme,
+  AssetCodes: shelfAssetCodes
 } = require('../../utils/index')
 const {
   enrichProductDisplayFields,
@@ -39,7 +40,7 @@ Component({
     pointsBalance: { type: Number, value: 0 },
     /** 冻结积分 */
     frozenPoints: { type: Number, value: 0 },
-    /** 钻石和水晶类资产余额列表（Page 壳从 API.getAssetBalances 获取后下传） */
+    /** 星石和源晶类资产余额列表（Page 壳从 API.getAssetBalances 获取后下传） */
     assetBalances: { type: Array, value: [] },
     /** 全局氛围主题标识（如 'default' / 'gold_luxury'，由 Page 壳从 ThemeCache 获取后下传） */
     theme: { type: String, value: 'default' },
@@ -263,7 +264,7 @@ Component({
 
       const shopProductId = selectedShopProduct.exchange_item_id
       const costAmount = Number(selectedShopProduct.cost_amount) || 0
-      const costAssetCode = selectedShopProduct.cost_asset_code || 'POINTS'
+      const costAssetCode = selectedShopProduct.cost_asset_code || shelfAssetCodes.POINTS
 
       if (!shopProductId) {
         shelfLog.error('商品ID无效:', selectedShopProduct)
@@ -272,7 +273,7 @@ Component({
       }
 
       if (
-        costAssetCode === 'POINTS' &&
+        costAssetCode === shelfAssetCodes.POINTS &&
         costAmount > 0 &&
         totalPoints < costAmount * shopExchangeQuantity
       ) {

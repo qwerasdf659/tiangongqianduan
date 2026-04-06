@@ -29,7 +29,7 @@
       <view class="bid-card-body">
         <text class="bid-product-name">{{item.item_name}}</text>
         <view class="bid-price-row">
-          <text class="bid-current-price">{{item.current_price}} {{item.price_asset_code}}</text>
+          <text class="bid-current-price">{{item.current_price}} {{item._priceAssetLabel}}</text>
           <text class="bid-count">{{item.bid_count}}次出价</text>
         </view>
         <view class="bid-action-btn {{item.status !== 'active' ? 'disabled' : ''}}"
@@ -67,13 +67,13 @@
         <view class="bid-info-row">
           <text class="bid-info-label">当前最高价</text>
           <text class="bid-info-value"
-            >{{selectedBidProduct.current_price}} {{selectedBidProduct.price_asset_code}}</text
+            >{{selectedBidProduct.current_price}} {{selectedBidProduct._priceAssetLabel}}</text
           >
         </view>
         <view class="bid-info-row">
           <text class="bid-info-label">最低出价</text>
           <text class="bid-info-value"
-            >{{bidMinAmount}} {{selectedBidProduct.price_asset_code}}</text
+            >{{bidMinAmount}} {{selectedBidProduct._priceAssetLabel}}</text
           >
         </view>
       </view>

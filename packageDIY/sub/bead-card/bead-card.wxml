@@ -1,29 +1,22 @@
 <view class="bead-card {{disabled ? 'disabled' : ''}}" bind:tap="onTap" data-bead="{{bead}}">
-  <!-- 宝石预览（优先使用图片，无图片时显示材质色块） -->
+  <!-- 宝石预览（优先后端真实图片，无图时显示材质色块 fallback） -->
   <view class="bead-preview">
-    <block wx:if="{{bead.image_url}}">
-      <image class="bead-image" src="{{bead.thumbnail_url || bead.image_url}}" mode="aspectFit" />
-    </block>
-    <block wx:else>
-      <view
-        class="bead-color-preview"
-        style="width: {{previewSize}}rpx; height: {{previewSize}}rpx;"
-      />
-    </block>
+    <image wx:if="{{bead.image_url}}" class="bead-image" src="{{bead.image_url}}" mode="aspectFill" lazy-load />
+    <view wx:else class="bead-color-preview" style="width: {{previewSize}}rpx; height: {{previewSize}}rpx;" />
   </view>
 
-  <!-- 信息区 -->
+  <!-- 信息区（使用后端蛇形字段名） -->
   <view class="bead-info">
-    <text class="bead-name">{{bead.name}}</text>
-    <text class="bead-spec">{{bead.diameter}}mm · {{bead.material}}</text>
+    <text class="bead-name">{{bead.display_name}}</text>
+    <text class="bead-spec">{{bead.diameter}}mm · {{bead.material_name}}</text>
     <view class="bead-price-row">
       <text class="bead-price">{{bead.price}}</text>
-      <text class="bead-unit">💎</text>
+      <text class="bead-unit">星石</text>
     </view>
   </view>
 
-  <!-- 库存不足 -->
-  <view wx:if="{{bead.stock <= 0}}" class="bead-sold-out">
+  <!-- 库存不足（stock=0时售罄，stock=-1表示无限库存） -->
+  <view wx:if="{{bead.stock === 0}}" class="bead-sold-out">
     <text>售罄</text>
   </view>
 </view>

@@ -99,6 +99,9 @@ const AuctionHelpers = { ...auctionHelperFunctions }
 /** 项目核心常量 */
 const Constants = require('../config/constants')
 
+/** 虚拟资产代码常量 — 对齐后端 constants/AssetCode.js，消除业务逻辑中的字符串字面量硬编码 */
+const AssetCodes = require('../config/asset-codes')
+
 // ===== 统一导出接口 =====
 
 /**
@@ -112,6 +115,7 @@ module.exports = {
   Wechat,
   ErrorHandler,
   Constants,
+  AssetCodes,
   ConfigCache,
   ExchangeConfig,
   ThemeCache,

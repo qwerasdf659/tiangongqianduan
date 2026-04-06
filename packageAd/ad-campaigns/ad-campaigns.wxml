@@ -96,7 +96,7 @@
             </view>
             <view class="info-row">
               <text class="info-label">总费用</text>
-              <text class="info-value highlight">{{item.fixed_total_diamond}} 💎</text>
+              <text class="info-value highlight">{{item.fixed_total_star_stone}} 💎</text>
             </view>
           </block>
 
@@ -104,12 +104,12 @@
           <block wx:if="{{item.billing_mode === 'bidding'}}">
             <view class="info-row">
               <text class="info-label">日出价</text>
-              <text class="info-value highlight">{{item.daily_bid_diamond}} 💎/天</text>
+              <text class="info-value highlight">{{item.daily_bid_star_stone}} 💎/天</text>
             </view>
             <view class="info-row">
               <text class="info-label">预算 / 已消耗</text>
               <text class="info-value"
-                >{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text
+                >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} 💎</text
               >
             </view>
           </block>
@@ -118,12 +118,12 @@
           <block wx:if="{{item.billing_mode === 'cpm'}}">
             <view class="info-row">
               <text class="info-label">CPM单价</text>
-              <text class="info-value highlight">{{item.cpm_price_diamond}} 💎/千次</text>
+              <text class="info-value highlight">{{item.cpm_price_star_stone}} 💎/千次</text>
             </view>
             <view class="info-row">
               <text class="info-label">预算 / 已消耗</text>
               <text class="info-value"
-                >{{item.budget_spent_diamond}} / {{item.budget_total_diamond}} 💎</text
+                >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} 💎</text
               >
             </view>
           </block>

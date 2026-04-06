@@ -47,7 +47,7 @@
         <text class="auction-name">{{item._displayName}}</text>
         <view class="auction-price-row">
           <text class="price-label">{{item._priceLabel}}</text>
-          <text class="price-value">{{item._displayPrice}} {{item.price_asset_code}}</text>
+          <text class="price-value">{{item._displayPrice}} {{item._priceAssetLabel}}</text>
         </view>
         <view class="auction-stats">
           <text class="stat-text">{{item.bid_count}}次出价 · {{item.unique_bidders}}人参与</text>
@@ -58,12 +58,17 @@
 
         <!--结算信息-->
         <view class="settled-info" wx:if="{{item.status === 'settled'}}">
-          <text class="settled-text">实收 {{item.net_amount}} {{item.price_asset_code}}</text>
+          <text class="settled-text">实收 {{item.net_amount}} {{item._priceAssetLabel}}</text>
         </view>
       </view>
 
       <!--取消按钮-->
-      <view class="cancel-btn" wx:if="{{item._canCancel}}" data-auction="{{item}}" catchtap="onCancelAuction">
+      <view
+        class="cancel-btn"
+        wx:if="{{item._canCancel}}"
+        data-auction="{{item}}"
+        catchtap="onCancelAuction"
+      >
         <text>取消</text>
       </view>
     </view>

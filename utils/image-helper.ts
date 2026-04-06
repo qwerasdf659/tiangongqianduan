@@ -2,7 +2,7 @@
  * 图片资源助手模块 — 对齐后端图片管理体系设计方案
  *
  * 核心职责：
- *   1. 材料资产图标映射（15种，按 asset_code 映射本地 WebP）
+ *   1. 材料资产图标映射（16种，按 asset_code 映射本地 WebP）
  *   2. 商品分类图标映射（9种，按 category_code 映射本地 WebP）
  *   3. 稀有度视觉配置（5级，按 rarity_code 返回颜色和CSS类名）
  *   4. 图片降级链工具（后端实图 → 本地图标 → 占位图）
@@ -30,35 +30,45 @@ const DEFAULT_PRODUCT_IMAGE = '/images/default-product.png'
 /** 默认头像 */
 const DEFAULT_AVATAR = '/images/default-avatar.png'
 
-// ===== 材料资产图标映射（15种，对齐后端 material_asset_types 表） =====
+// ===== 材料资产图标映射（16种，对齐后端 material_asset_types 表） =====
 
 /**
  * asset_code → 本地图标路径映射
  *
+ * 命名规则：全部 lower_snake_case（对齐后端 Node.js/Sequelize 生态）
  * 图标规格：256×256 WebP（quality 90，视觉无损），暗黑奢华风
  * 存放目录：images/icons/materials/
  * 转换工具：scripts/convert-icons-to-webp.js（Sharp，quality 90, effort 6）
+ *
+ * 2026-04-03 重构：对齐后端虚拟资产命名体系（星石与源晶）
+ *   - DIAMOND → star_stone（星石，主货币）
+ *   - POINTS → points（积分）
+ *   - BUDGET_POINTS → budget_points（预算积分）
+ *   - {color}_shard → {color}_core_shard（源晶碎片）
+ *   - {color}_crystal → {color}_core_gem（源晶完整体）
  */
 const MATERIAL_ICONS: Record<string, string> = {
-  /* tier 10 - 系统货币 */
-  DIAMOND: '/images/icons/materials/diamond.webp',
+  /* tier 10 - 系统货币（星石） */
+  star_stone: '/images/icons/materials/star-stone.webp',
+  /* tier 0 - 系统配额（星石配额） */
+  star_stone_quota: '/images/icons/materials/star-stone-quota.webp',
   /* tier 0 - 基础货币 */
-  POINTS: '/images/icons/materials/points.webp',
-  BUDGET_POINTS: '/images/icons/materials/budget-points.webp',
-  /* tier 1 - 碎片（6色） */
-  red_shard: '/images/icons/materials/red-shard.webp',
-  orange_shard: '/images/icons/materials/orange-shard.webp',
-  yellow_shard: '/images/icons/materials/yellow-shard.webp',
-  green_shard: '/images/icons/materials/green-shard.webp',
-  blue_shard: '/images/icons/materials/blue-shard.webp',
-  purple_shard: '/images/icons/materials/purple-shard.webp',
-  /* tier 2 - 水晶（6色） */
-  red_crystal: '/images/icons/materials/red-crystal.webp',
-  orange_crystal: '/images/icons/materials/orange-crystal.webp',
-  yellow_crystal: '/images/icons/materials/yellow-crystal.webp',
-  green_crystal: '/images/icons/materials/green-crystal.webp',
-  blue_crystal: '/images/icons/materials/blue-crystal.webp',
-  purple_crystal: '/images/icons/materials/purple-crystal.webp'
+  points: '/images/icons/materials/points.webp',
+  budget_points: '/images/icons/materials/budget-points.webp',
+  /* tier 1 - 源晶碎片（6色） */
+  red_core_shard: '/images/icons/materials/red-core-shard.webp',
+  orange_core_shard: '/images/icons/materials/orange-core-shard.webp',
+  yellow_core_shard: '/images/icons/materials/yellow-core-shard.webp',
+  green_core_shard: '/images/icons/materials/green-core-shard.webp',
+  blue_core_shard: '/images/icons/materials/blue-core-shard.webp',
+  purple_core_shard: '/images/icons/materials/purple-core-shard.webp',
+  /* tier 2 - 源晶完整体（6色） */
+  red_core_gem: '/images/icons/materials/red-core-gem.webp',
+  orange_core_gem: '/images/icons/materials/orange-core-gem.webp',
+  yellow_core_gem: '/images/icons/materials/yellow-core-gem.webp',
+  green_core_gem: '/images/icons/materials/green-core-gem.webp',
+  blue_core_gem: '/images/icons/materials/blue-core-gem.webp',
+  purple_core_gem: '/images/icons/materials/purple-core-gem.webp'
 }
 
 // ===== 分类图标映射（9种，对齐后端 categories 表） =====
@@ -93,24 +103,30 @@ const RARITY_STYLES: Record<string, { colorHex: string; cssClass: string; displa
   legendary: { colorHex: '#FF9800', cssClass: 'rarity--legendary', displayName: '传说' }
 }
 
-// ===== 资产代码 → 中文显示名（完整15种，对齐后端 material_asset_types.display_name） =====
+// ===== 资产代码 → 中文显示名（备用映射，优先使用后端 display_name） =====
 
+/**
+ * 🔴 注意：此映射仅作为后端 display_name 不可用时的本地兜底
+ * 主数据源是后端 GET /api/v4/assets/balances 返回的 display_name 字段
+ * 对齐后端 material_asset_types.display_name（2026-04-03 重构）
+ */
 const ASSET_DISPLAY_NAMES: Record<string, string> = {
-  DIAMOND: '钻石',
-  POINTS: '普通积分',
-  BUDGET_POINTS: '预算积分',
-  red_shard: '红水晶碎片',
-  orange_shard: '橙水晶碎片',
-  yellow_shard: '黄水晶碎片',
-  green_shard: '绿水晶碎片',
-  blue_shard: '蓝水晶碎片',
-  purple_shard: '紫水晶碎片',
-  red_crystal: '红水晶',
-  orange_crystal: '橙水晶',
-  yellow_crystal: '黄水晶',
-  green_crystal: '绿水晶',
-  blue_crystal: '蓝水晶',
-  purple_crystal: '紫水晶'
+  star_stone: '星石',
+  star_stone_quota: '星石配额',
+  points: '积分',
+  budget_points: '预算积分',
+  red_core_shard: '红源晶碎片',
+  orange_core_shard: '橙源晶碎片',
+  yellow_core_shard: '黄源晶碎片',
+  green_core_shard: '绿源晶碎片',
+  blue_core_shard: '蓝源晶碎片',
+  purple_core_shard: '紫源晶碎片',
+  red_core_gem: '红源晶',
+  orange_core_gem: '橙源晶',
+  yellow_core_gem: '黄源晶',
+  green_core_gem: '绿源晶',
+  blue_core_gem: '蓝源晶',
+  purple_core_gem: '紫源晶'
 }
 
 // ===== 品质等级视觉配置（对齐后端 item_templates.meta.attribute_rules 品质分分布） =====
@@ -263,14 +279,14 @@ function getTradeCooldown(
  * 后端材料图片 URL 文件名 → 本地 asset_code 反向映射
  *
  * 后端 material_icon URL 格式: .../images/materials/{filename}.png
- * 本地 MATERIAL_ICONS key 格式: DIAMOND / red_shard / POINTS 等
- * 文件名与 key 的对应关系: diamond → DIAMOND, red-shard → red_shard, points → POINTS
+ * 本地 MATERIAL_ICONS key 格式: star_stone / red_core_shard / points 等
+ * 文件名与 key 的对应关系: star-stone → star_stone, red-core-shard → red_core_shard
  *
  * 构建方式：遍历 MATERIAL_ICONS，从本地路径提取文件名（不含扩展名），建立反向索引
  */
 const URL_FILENAME_TO_ASSET_CODE: Record<string, string> = {}
 for (const assetCode of Object.keys(MATERIAL_ICONS)) {
-  /* 从本地路径 /images/icons/materials/diamond.webp 提取 diamond */
+  /* 从本地路径 /images/icons/materials/star-stone.webp 提取 star-stone */
   const localPath = MATERIAL_ICONS[assetCode]
   const match = localPath.match(/\/([^/]+)\.\w+$/)
   if (match) {
@@ -284,14 +300,14 @@ for (const assetCode of Object.keys(MATERIAL_ICONS)) {
  * 适用场景：后端 image.source === 'material_icon' 但 prize.material_asset_code 为空时，
  * 通过 URL 路径反向匹配本地图标，避免使用网络 URL（规避域名白名单问题）
  *
- * @param imageUrl - 后端返回的材料图片 URL（如 https://xxx/api/v4/images/materials/diamond.png）
+ * @param imageUrl - 后端返回的材料图片 URL（如 https://xxx/api/v4/images/materials/star-stone.png）
  * @returns 本地 WebP 路径，未匹配时返回空字符串
  */
 function getLocalIconFromMaterialUrl(imageUrl: string): string {
   if (!imageUrl) {
     return ''
   }
-  /* 从 URL 提取最后一段文件名（不含扩展名）: .../materials/diamond.png → diamond */
+  /* 从 URL 提取最后一段文件名（不含扩展名）: .../materials/star-stone.png → star-stone */
   const match = imageUrl.match(/\/([^/]+)\.\w+$/)
   if (!match) {
     return ''
@@ -307,7 +323,7 @@ function getLocalIconFromMaterialUrl(imageUrl: string): string {
 /**
  * 获取材料资产的本地图标路径
  *
- * @param assetCode - 后端 asset_code（如 'DIAMOND', 'red_shard'）
+ * @param assetCode - 后端 asset_code（如 'star_stone', 'red_core_shard'）
  * @returns 本地图标路径，未匹配时返回默认商品图
  */
 function getMaterialIconPath(assetCode: string): string {
@@ -347,13 +363,24 @@ function getRarityStyle(rarityCode: string): {
 /**
  * 获取资产代码的中文显示名
  *
- * @param assetCode - 后端 asset_code
+ * 数据源优先级（对齐文档第十四节原则：优先使用后端返回的 display_name）：
+ *   1. 调用方传入的 backendDisplayName（后端 API 返回的 display_name 字段）
+ *   2. 本地 ASSET_DISPLAY_NAMES 映射表（兜底，仅在后端数据不可用时使用）
+ *   3. 原样返回 assetCode（未知资产代码）
+ *
+ * @param assetCode - 后端 asset_code（如 'star_stone'、'red_core_shard'）
+ * @param backendDisplayName - 后端 API 返回的 display_name 字段值（可选，优先使用）
  * @returns 中文名称，未知代码原样返回
  */
-function getAssetDisplayName(assetCode: string): string {
+function getAssetDisplayName(assetCode: string, backendDisplayName?: string): string {
   if (!assetCode) {
     return ''
   }
+  /** 优先使用后端返回的 display_name（数据权威来源） */
+  if (backendDisplayName) {
+    return backendDisplayName
+  }
+  /** 兜底：本地映射表（后端 display_name 不可用时） */
   return ASSET_DISPLAY_NAMES[assetCode] || assetCode
 }
 

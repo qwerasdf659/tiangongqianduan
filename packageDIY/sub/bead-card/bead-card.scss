@@ -1,13 +1,15 @@
+@import '../../../styles/variables.scss';
+
 .bead-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 12rpx;
-  background: #fff;
-  border-radius: 16rpx;
+  padding: $spacing-sm 12rpx;
+  background: $color-bg-card;
+  border-radius: $border-radius-md;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   position: relative;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform $transition-fast, box-shadow $transition-fast;
 
   &:active {
     transform: scale(0.96);
@@ -26,17 +28,20 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 8rpx;
+  margin-bottom: $spacing-xs;
 }
 
+/* 后端真实珠子图片 */
 .bead-image {
   width: 80rpx;
   height: 80rpx;
+  border-radius: $border-radius-round;
 }
 
+/* 无图时的颜色占位圆 */
 .bead-color-preview {
-  border-radius: 50%;
-  background: #999;
+  border-radius: $border-radius-round;
+  background: $color-text-tertiary;
   box-shadow: inset 0 -4rpx 8rpx rgba(0, 0, 0, 0.2), 0 2rpx 6rpx rgba(0, 0, 0, 0.15);
 }
 
@@ -48,8 +53,8 @@
 }
 
 .bead-name {
-  font-size: 22rpx;
-  color: #333;
+  font-size: $font-size-xs + 2rpx;
+  color: $color-text-primary;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -59,7 +64,7 @@
 
 .bead-spec {
   font-size: 18rpx;
-  color: #999;
+  color: $color-text-tertiary;
   margin-top: 2rpx;
 }
 
@@ -70,8 +75,8 @@
 }
 
 .bead-price {
-  font-size: 24rpx;
-  color: #FF6B35;
+  font-size: $font-size-sm;
+  color: $color-primary;
   font-weight: 600;
 }
 
@@ -90,11 +95,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 16rpx;
+  border-radius: $border-radius-md;
 
   text {
-    font-size: 24rpx;
-    color: #999;
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
     font-weight: 500;
   }
 }

@@ -3,7 +3,6 @@
   "usingComponents": {
     "shape-renderer": "../sub/shape-renderer/shape-renderer",
     "bead-card": "../sub/bead-card/bead-card",
-    "category-nav": "../sub/category-nav/category-nav",
     "fly-animation": "../sub/fly-animation/fly-animation"
   },
   "enablePullDownRefresh": false
