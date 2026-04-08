@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "设计完成",
-  "usingComponents": {}
+  "usingComponents": {
+    "payment-panel": "../sub/payment-panel/payment-panel"
+  }
 }

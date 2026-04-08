@@ -1,0 +1,76 @@
+<!-- DIY 支付确认面板 — 展示费用明细 + 用户资产余额 + 余额充足性校验 -->
+<view class="payment-overlay" wx:if="{{visible}}" bindtap="onClose">
+  <view class="payment-modal" catchtap="">
+    <!-- 顶部装饰条 -->
+    <view class="payment-accent-bar"></view>
+
+    <view class="payment-header">
+      <text class="payment-title">确认设计</text>
+      <view class="payment-close" bindtap="onClose">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+
+    <view class="payment-body">
+      <!-- 加载中状态 -->
+      <view class="payment-loading" wx:if="{{balanceLoading}}">
+        <view class="loading-dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+        <text class="loading-text">加载资产余额...</text>
+      </view>
+
+      <!-- 加载失败状态 -->
+      <view class="payment-error" wx:elif="{{balanceError}}">
+        <text class="error-text">余额加载失败</text>
+        <view class="retry-btn" bindtap="onRetryLoadBalance">
+          <text>重试</text>
+        </view>
+      </view>
+
+      <!-- 正常展示: 费用明细列表 -->
+      <block wx:else>
+        <view class="payment-section-title">
+          <text>费用明细</text>
+        </view>
+
+        <!-- 每种资产的费用行 -->
+        <view class="payment-item {{item.sufficient ? '' : 'insufficient'}}" wx:for="{{paymentItems}}" wx:key="asset_code">
+          <view class="payment-item-left">
+            <text class="payment-asset-name">{{item.asset_name}}</text>
+            <text class="payment-bead-count">{{item.bead_count}}颗珠子</text>
+          </view>
+          <view class="payment-item-right">
+            <view class="payment-cost-row">
+              <text class="payment-cost-label">需要</text>
+              <text class="payment-cost-amount">{{item.amount}}</text>
+            </view>
+            <view class="payment-balance-row">
+              <text class="payment-balance-label">余额</text>
+              <text class="payment-balance-amount {{item.sufficient ? 'sufficient' : 'insufficient-text'}}">{{item.available_amount}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 余额不足提示 -->
+        <view class="payment-warning" wx:if="{{!allSufficient}}">
+          <text class="warning-text">部分资产余额不足，无法确认设计</text>
+        </view>
+
+        <!-- 冻结说明 -->
+        <view class="payment-notice">
+          <text class="notice-text">确认后将冻结所需资产，24小时内需完成或取消设计</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="payment-footer">
+      <view class="payment-cancel-btn" bindtap="onClose">取消</view>
+      <view class="payment-confirm-btn {{(!allSufficient || submitting || balanceLoading || balanceError) ? 'disabled' : ''}}" bindtap="onConfirm">
+        {{submitting ? '确认中...' : '确认设计'}}
+      </view>
+    </view>
+  </view>
+</view>

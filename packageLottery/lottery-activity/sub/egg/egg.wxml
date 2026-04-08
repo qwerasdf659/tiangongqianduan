@@ -43,11 +43,11 @@
             </view>
             <!-- 编号 -->
             <view class="egg-number">
-              <text>{{item.id + 1}}</text>
+              <text class="count-text">{{item.id + 1}}</text>
             </view>
             <!-- 点击提示（未选中时） -->
             <view class="egg-tap-hint" wx:if="{{canSelect && selectedEgg < 0}}">
-              <text>点我</text>
+              <text class="hint-text">点我</text>
             </view>
           </view>
 
@@ -135,7 +135,7 @@
             </view>
             <!-- 编号 -->
             <view class="egg-number">
-              <text>{{egg.index + 1}}</text>
+              <text class="count-text">{{egg.index + 1}}</text>
             </view>
           </view>
 
@@ -171,7 +171,7 @@
     <!-- 一键全砸按钮 -->
     <view class="multi-actions" wx:if="{{!allCracked}}">
       <view class="multi-smash-all-btn" bindtap="onSmashAll">
-        <text>全部砸开</text>
+        <text class="btn-text">全部砸开</text>
       </view>
     </view>
   </block>

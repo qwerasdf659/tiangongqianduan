@@ -15,25 +15,29 @@
  *
  * 注意：后端 DECIMAL/BIGINT 字段返回字符串，前端使用时需 Number() 转换
  *
- * @file packageExchange/exchange-rate/exchange-rate.ts
- * @version 7.0.0
+ * @file packageExchange/asset-conversion/asset-conversion.ts
+ * @version 7.1.0
  * @since 2026-04-07（资产转换规则统一: /assets/rates → /assets/conversion）
  */
 
-const { API, Logger: ExRateLogger, ImageHelper: ExRateImageHelper } = require('../../utils/index')
-const exchangeRateLog = ExRateLogger.createLogger('exchange-rate')
+const {
+  API,
+  Logger: AssetConversionLogger,
+  ImageHelper: AssetConversionImageHelper
+} = require('../../utils/index')
+const assetConversionLog = AssetConversionLogger.createLogger('asset-conversion')
 
 Component({
   properties: {
     /** 可用积分余额（star_stone，Page壳下传） */
     pointsBalance: { type: Number, value: 0 },
-    /** 刷新令牌（值变化触发重新加载汇率列表） */
+    /** 刷新令牌（值变化触发重新加载转换规则列表） */
     refreshToken: { type: Number, value: 0 },
     /** 组件是否激活（Tab切换控制） */
     active: { type: Boolean, value: false },
-    /** 指定源币种（外部传入时自动定位到对应汇率规则） */
+    /** 指定源币种（外部传入时自动定位到对应转换规则） */
     fromAssetCode: { type: String, value: '' },
-    /** 指定目标币种（外部传入时自动定位到对应汇率规则） */
+    /** 指定目标币种（外部传入时自动定位到对应转换规则） */
     toAssetCode: { type: String, value: '' }
   },
 
@@ -42,6 +46,13 @@ Component({
     pageLoading: true,
     /** 所有可用转换规则列表（后端 asset_conversion_rules 表） */
     rateList: [] as any[],
+
+    /** 按 conversion_type 分组后的 Tab 列表（后端虚拟字段: compose/decompose/exchange） */
+    conversionTabs: [] as any[],
+    /** 当前激活的 Tab（conversion_type 值，空字符串表示"全部"） */
+    activeTab: '',
+    /** 当前 Tab 下过滤后的规则列表 */
+    filteredRules: [] as any[],
 
     /** 当前选中的转换规则（用户点击某条规则后） */
     selectedRate: null as any,
@@ -80,7 +91,7 @@ Component({
 
   lifetimes: {
     attached() {
-      exchangeRateLog.info('资产转换组件挂载')
+      assetConversionLog.info('资产转换组件挂载')
       if (this.data.active) {
         this._loadConversionRules()
       }
@@ -100,7 +111,7 @@ Component({
         const response = await API.getConversionRules()
         if (!response || !response.success) {
           const apiMessage = (response && response.message) || '获取转换规则列表失败'
-          exchangeRateLog.warn('转换规则API返回非成功:', apiMessage)
+          assetConversionLog.warn('转换规则API返回非成功:', apiMessage)
           this.setData({ pageLoading: false, rateList: [], errorMessage: apiMessage })
           return
         }
@@ -118,20 +129,48 @@ Component({
           fee_rate: Number(rule.fee_rate),
           fee_min_amount: Number(rule.fee_min_amount),
           /* 前端展示字段 */
-          fromIcon: ExRateImageHelper.getMaterialIconPath(rule.from_asset_code),
-          toIcon: ExRateImageHelper.getMaterialIconPath(rule.to_asset_code),
+          fromIcon: AssetConversionImageHelper.getMaterialIconPath(rule.from_asset_code),
+          toIcon: AssetConversionImageHelper.getMaterialIconPath(rule.to_asset_code),
           /* 优先使用后端返回的中文名，降级到 ImageHelper 本地映射 */
           fromDisplayName:
-            rule.from_display_name || ExRateImageHelper.getAssetDisplayName(rule.from_asset_code),
+            rule.from_display_name ||
+            AssetConversionImageHelper.getAssetDisplayName(rule.from_asset_code),
           toDisplayName:
-            rule.to_display_name || ExRateImageHelper.getAssetDisplayName(rule.to_asset_code),
+            rule.to_display_name ||
+            AssetConversionImageHelper.getAssetDisplayName(rule.to_asset_code),
           /* 转换比例展示文案: {rate_denominator}个{from} = {rate_numerator}个{to} */
           rateText: `${rule.rate_denominator} : ${rule.rate_numerator}`,
           feePercent: Number(rule.fee_rate) ? `${(Number(rule.fee_rate) * 100).toFixed(1)}%` : '0%'
         }))
 
-        this.setData({ rateList: enrichedRules, pageLoading: false })
-        exchangeRateLog.info(`转换规则加载成功: ${enrichedRules.length} 条规则`)
+        /* 按 conversion_type 构建 Tab 分组（后端虚拟字段: compose/decompose/exchange） */
+        const typeMap: Record<string, string> = {}
+        enrichedRules.forEach((rule: any) => {
+          if (rule.conversion_type && !typeMap[rule.conversion_type]) {
+            typeMap[rule.conversion_type] = rule.conversion_label || rule.conversion_type
+          }
+        })
+        const tabs = Object.keys(typeMap).map(type => ({
+          type,
+          label: typeMap[type]
+        }))
+
+        /* 默认激活第一个 Tab；只有一种类型时不显示 Tab 栏 */
+        const defaultTab = tabs.length > 0 ? tabs[0].type : ''
+        const filtered = defaultTab
+          ? enrichedRules.filter((r: any) => r.conversion_type === defaultTab)
+          : enrichedRules
+
+        this.setData({
+          rateList: enrichedRules,
+          conversionTabs: tabs,
+          activeTab: defaultTab,
+          filteredRules: filtered,
+          pageLoading: false
+        })
+        assetConversionLog.info(
+          `转换规则加载成功: ${enrichedRules.length} 条规则, ${tabs.length} 种类型`
+        )
 
         /* 外部传入指定币对时，自动定位并展开对应转换面板 */
         const targetFrom = this.properties.fromAssetCode
@@ -143,11 +182,11 @@ Component({
           )
           if (matchedRule) {
             this.setData({ selectedRate: matchedRule })
-            exchangeRateLog.info('自动定位到指定币对:', targetFrom, '→', targetTo || '(任意)')
+            assetConversionLog.info('自动定位到指定币对:', targetFrom, '→', targetTo || '(任意)')
           }
         }
       } catch (error: any) {
-        exchangeRateLog.error('加载转换规则异常:', error)
+        assetConversionLog.error('加载转换规则异常:', error)
         this.setData({
           pageLoading: false,
           rateList: [],
@@ -212,7 +251,7 @@ Component({
     /**
      * 调用预览API
      * 后端: POST /api/v4/assets/conversion/preview
-     * 响应字段变更: sufficient_balance → sufficient, gross_to_amount → gross_amount, net_to_amount → net_amount
+     * 响应字段: sufficient, gross_amount, net_amount, from_balance, fee_amount
      */
     async _doPreview() {
       const currentRate = this.data.selectedRate
@@ -256,7 +295,6 @@ Component({
           this.setData({
             previewResult: response.data,
             previewing: false,
-            /* 后端新字段名: sufficient（旧 sufficient_balance） */
             errorMessage: response.data.sufficient ? '' : '余额不足'
           })
         } else {
@@ -264,7 +302,7 @@ Component({
           this.setData({ previewResult: null, previewing: false, errorMessage: apiMessage })
         }
       } catch (error: any) {
-        exchangeRateLog.error('预览转换异常:', error)
+        assetConversionLog.error('预览转换异常:', error)
         this.setData({
           previewResult: null,
           previewing: false,
@@ -285,13 +323,12 @@ Component({
         return
       }
 
-      /* 后端新字段名: sufficient（旧 sufficient_balance） */
       if (!preview.sufficient) {
         wx.showToast({ title: '余额不足', icon: 'none' })
         return
       }
 
-      /* 二次确认弹窗 — 响应字段: net_amount（旧 net_to_amount） */
+      /* 二次确认弹窗 */
       const confirmResult = await new Promise<boolean>(resolve => {
         wx.showModal({
           title: '确认转换',
@@ -316,7 +353,7 @@ Component({
         })
 
         if (response && response.success && response.data) {
-          exchangeRateLog.info('转换成功:', response.data)
+          assetConversionLog.info('转换成功:', response.data)
           this.setData({
             converting: false,
             convertResult: response.data,
@@ -326,14 +363,14 @@ Component({
           })
 
           /* 通知 Page 壳刷新积分余额 */
-          this.triggerEvent('exchangeratesuccess', response.data)
+          this.triggerEvent('conversionsuccess', response.data)
         } else {
           const apiMessage = (response && response.message) || '转换失败'
           wx.showToast({ title: apiMessage, icon: 'none', duration: 2500 })
           this.setData({ converting: false })
         }
       } catch (error: any) {
-        exchangeRateLog.error('转换异常:', error)
+        assetConversionLog.error('转换异常:', error)
 
         /* 根据后端错误码提供针对性提示 */
         let errorTip = error.message || '转换失败，请稍后重试'
@@ -367,7 +404,6 @@ Component({
       }
 
       /* 根据预览返回的余额确定最大值，否则用 properties 积分余额做粗估 */
-      /* 后端新字段名: from_balance（旧 user_balance） */
       const preview = this.data.previewResult
       const userBalance = preview ? preview.from_balance : this.data.pointsBalance
 
@@ -385,6 +421,23 @@ Component({
     /** 手动刷新转换规则列表 */
     onRefreshRates() {
       this._loadConversionRules()
+    },
+
+    /** 切换转换类型 Tab（合成/分解/兑换） */
+    onSwitchTab(e: any) {
+      const tabType = e.currentTarget.dataset.type
+      if (tabType === this.data.activeTab) {
+        return
+      }
+      const filtered = this.data.rateList.filter((r: any) => r.conversion_type === tabType)
+      this.setData({
+        activeTab: tabType,
+        filteredRules: filtered,
+        selectedRate: null,
+        inputAmount: '',
+        previewResult: null,
+        errorMessage: ''
+      })
     },
 
     /** 跳转到交易记录页面（查看转换历史） */

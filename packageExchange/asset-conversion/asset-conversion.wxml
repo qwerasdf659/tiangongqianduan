@@ -1,41 +1,54 @@
 <!-- 资产转换组件 — 统一资产转换规则（合成/分解/兑换） -->
 <!-- 后端API: GET /api/v4/assets/conversion/rules, POST preview, POST convert -->
-<view class="exchange-rate-container">
+<view class="asset-conversion-container">
   <!-- 加载状态 -->
-  <loading-spinner wx:if="{{pageLoading}}" text="加载汇率..." />
+  <loading-spinner wx:if="{{pageLoading}}" text="加载转换规则..." />
 
   <!-- 错误/空状态 -->
   <empty-state
     wx:if="{{!pageLoading && rateList.length === 0}}"
     icon="info"
-    title="暂无可用汇率"
-    description="{{errorMessage || '当前没有开放的兑换规则'}}"
+    title="暂无可用转换规则"
+    description="{{errorMessage || '当前没有开放的转换规则'}}"
     actionText="刷新"
     bind:action="onRefreshRates"
   />
 
-  <!-- 汇率列表 -->
+  <!-- 转换规则列表 -->
   <view class="rate-list" wx:if="{{!pageLoading && rateList.length > 0}}">
     <!-- 页面标题 + 历史入口 -->
     <view class="section-header">
       <view class="section-header__left">
-        <text class="section-title">汇率兑换</text>
-        <text class="section-subtitle">按固定汇率兑换资产</text>
+        <text class="section-title">资产转换</text>
+        <text class="section-subtitle">按规则转换虚拟资产</text>
       </view>
       <view class="section-header__right" bindtap="onViewExchangeHistory">
-        <text class="history-link">兑换记录 →</text>
+        <text class="history-link">转换记录 →</text>
       </view>
     </view>
 
-    <!-- 汇率卡片列表 -->
+    <!-- 转换类型 Tab 栏（多种类型时显示，按后端 conversion_type 分组） -->
+    <view class="conversion-tabs" wx:if="{{conversionTabs.length > 1}}">
+      <view
+        wx:for="{{conversionTabs}}"
+        wx:key="type"
+        class="conversion-tab {{activeTab === item.type ? 'conversion-tab--active' : ''}}"
+        data-type="{{item.type}}"
+        bindtap="onSwitchTab"
+      >
+        <text class="conversion-tab__text">{{item.label}}</text>
+      </view>
+    </view>
+
+    <!-- 转换规则卡片列表（按当前 Tab 过滤） -->
     <view
-      wx:for="{{rateList}}"
+      wx:for="{{filteredRules}}"
       wx:key="conversion_rule_id"
       class="rate-card {{selectedRate && selectedRate.conversion_rule_id === item.conversion_rule_id ? 'rate-card--expanded' : ''}}"
       data-rate-id="{{item.conversion_rule_id}}"
       bindtap="onSelectRate"
     >
-      <!-- 汇率信息行 -->
+      <!-- 转换信息行 -->
       <view class="rate-card__header">
         <view class="rate-card__pair">
           <view class="rate-card__asset">
@@ -102,7 +115,7 @@
           </view>
         </view>
 
-        <!-- 预览结果 — 响应字段: net_amount（旧 net_to_amount）, sufficient（旧 sufficient_balance）, from_balance（旧 user_balance） -->
+        <!-- 预览结果 — 响应字段: net_amount, sufficient, from_balance -->
         <view class="preview-section" wx:if="{{previewResult}}">
           <view class="preview-row">
             <text class="preview-label">消耗</text>
@@ -140,7 +153,7 @@
           <text class="error-text">{{errorMessage}}</text>
         </view>
 
-        <!-- 兑换按钮 — sufficient 字段（旧 sufficient_balance） -->
+        <!-- 兑换按钮 -->
         <view class="convert-action">
           <button
             class="convert-btn {{(!previewResult || !previewResult.sufficient || converting) ? 'convert-btn--disabled' : ''}}"

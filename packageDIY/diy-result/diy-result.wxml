@@ -29,7 +29,15 @@
     <!-- 步骤1: 确认设计（draft → frozen） -->
     <view wx:if="{{workStatus === 'draft'}}" class="step-card">
       <text class="step-title">第一步: 确认设计</text>
-      <text class="step-desc">确认后将冻结所需材料（{{totalPrice}}星石），冻结期间材料不可用于其他操作</text>
+      <text class="step-desc">确认后将冻结所需材料，冻结期间材料不可用于其他操作</text>
+      <!-- 费用预览（多币种分组展示） -->
+      <view class="cost-preview" wx:if="{{costBreakdown.length > 0}}">
+        <view class="cost-preview-item" wx:for="{{costBreakdown}}" wx:key="asset_code">
+          <text class="cost-preview-amount">{{item.amount}}</text>
+          <text class="cost-preview-asset">{{item.asset_name}}</text>
+          <text class="cost-preview-count">({{item.bead_count}}颗)</text>
+        </view>
+      </view>
       <view class="action-btn primary {{processing ? 'disabled' : ''}}" bind:tap="onConfirmDesign">
         <text>确认设计并冻结材料</text>
       </view>
@@ -88,4 +96,14 @@
 
   <!-- 海报离屏Canvas（不可见，仅用于生成海报图片） -->
   <canvas type="2d" id="posterCanvas" class="poster-canvas" />
+
+  <!-- 支付确认面板（确认设计时弹出，展示费用明细 + 资产余额） -->
+  <payment-panel
+    visible="{{paymentPanelVisible}}"
+    costBreakdown="{{costBreakdown}}"
+    submitting="{{processing}}"
+    templateId="{{templateId}}"
+    bind:confirm="onPaymentConfirm"
+    bind:close="onPaymentPanelClose"
+  />
 </view>

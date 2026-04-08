@@ -306,7 +306,7 @@
     box-shadow: 0 3rpx 10rpx var(--theme-accent-shadow, rgba(255, 165, 0, 0.4));
     animation: fuShine 3s ease-in-out infinite;
 
-    text {
+    .fu-text {
       font-size: 42rpx;
       font-weight: 900;
       color: var(--theme-primary-dark, #a8071a);
@@ -355,7 +355,7 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
   border: 2rpx solid rgba(255, 255, 255, 0.5);
 
-  text {
+  .count-text {
     font-size: $font-size-xs;
     font-weight: bold;
     color: var(--theme-primary-dark, #a8071a);
@@ -371,7 +371,7 @@
   white-space: nowrap;
   animation: hintBounce 1.5s ease-in-out infinite;
 
-  text {
+  .hint-text {
     font-size: $font-size-xs;
     color: var(--theme-accent-dim, rgba(255, 215, 0, 0.9));
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
@@ -715,7 +715,7 @@
   border-radius: 40rpx;
   box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(207, 19, 34, 0.4));
 
-  text {
+  .btn-text {
     font-size: $font-size-base;
     font-weight: bold;
     color: var(--theme-accent, #ffd700);

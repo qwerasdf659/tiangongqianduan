@@ -107,7 +107,7 @@ function isCoreGem(assetCode: string): boolean {
 }
 
 /**
- * 判断 asset_code 是否为可在汇率兑换页面展示的资产
+ * 判断 asset_code 是否为可在资产转换页面展示的资产
  * 包含：星石、所有碎片、所有完整源晶
  *
  * @param assetCode - 后端返回的 asset_code 字段值

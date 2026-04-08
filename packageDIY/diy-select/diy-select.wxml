@@ -5,6 +5,10 @@
       <text class="header-title">DIY 饰品工坊</text>
       <text class="header-subtitle">选择你喜欢的款式，开始创作专属饰品</text>
     </view>
+    <!-- 我的设计入口 -->
+    <view class="my-works-entry" bindtap="onGoToMyWorks">
+      <text>我的设计</text>
+    </view>
   </view>
 
   <!-- 分类 Tab 栏（手链/项链/戒指/吊坠，对齐后端 categories 表 id=191~194） -->

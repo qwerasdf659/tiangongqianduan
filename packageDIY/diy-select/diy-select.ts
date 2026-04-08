@@ -15,7 +15,7 @@
  */
 
 /* 统一工具函数导入 */
-const { API, ImageHelper } = require('../../utils/index')
+const { API } = require('../../utils/index')
 
 /**
  * DIY 二级分类 Tab 列表（对齐后端 categories 表 id=191~194）
@@ -168,6 +168,13 @@ Page({
     /* 使用 diy_template_id 作为路由参数 */
     wx.navigateTo({
       url: `/packageDIY/diy-design/diy-design?templateId=${template.diy_template_id}`
+    })
+  },
+
+  /** 跳转到我的设计作品列表页 */
+  onGoToMyWorks() {
+    wx.navigateTo({
+      url: '/packageDIY/diy-works/diy-works'
     })
   },
 

@@ -512,9 +512,10 @@ Page({
       merchant_points_reward: '商户积分奖励',
       // 开账
       opening_balance: '开账余额',
-      // 材料转换
-      material_convert_debit: '材料转换扣减',
-      material_convert_credit: '材料转换获得',
+      // 资产转换（后端统一 asset_conversion_rules 表，business_type: asset_convert_*）
+      asset_convert_debit: '资产转换扣减',
+      asset_convert_credit: '资产转换获得',
+      asset_convert_fee: '资产转换手续费',
       // 交易市场
       order_freeze_buyer: '交易冻结',
       order_settle_seller: '交易收款',

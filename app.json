@@ -76,7 +76,8 @@
       "pages": [
         "diy-select/diy-select",
         "diy-design/diy-design",
-        "diy-result/diy-result"
+        "diy-result/diy-result",
+        "diy-works/diy-works"
       ]
     }
   ],

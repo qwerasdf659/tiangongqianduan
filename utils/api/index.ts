@@ -73,6 +73,6 @@ module.exports = {
   /** C2C竞拍系统: getAuctionListings / getAuctionDetail / createAuction / placeAuctionBid / getMyAuctions / cancelAuction / getMyAuctionBids / createAuctionDispute */
   ...auctionModule,
 
-  /** DIY饰品设计引擎: getDiyTemplates / getDiyTemplateById / getDiyTemplateMaterials / getDiyTemplateBeads / getDiyUserMaterials / getDiyMaterialGroups / getDiyWorks / getDiyWorkById / saveDiyWork / deleteDiyWork / confirmDiyWork / completeDiyWork / cancelDiyWork */
+  /** DIY饰品设计引擎: getDiyTemplates / getDiyTemplateById / getDiyPaymentAssets / getDiyTemplateBeads / getDiyMaterialGroups / getDiyWorks / getDiyWorkById / saveDiyWork / deleteDiyWork / confirmDiyWork / completeDiyWork / cancelDiyWork */
   ...diyModule
 }

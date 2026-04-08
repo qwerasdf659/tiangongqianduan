@@ -29,7 +29,7 @@
           <text class="prize-name">{{prizes[0].prize_name || ''}}</text>
           <text wx:if="{{prizes[0].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[0].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>
@@ -54,7 +54,7 @@
           <text class="prize-name">{{prizes[1].prize_name || ''}}</text>
           <text wx:if="{{prizes[1].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[1].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>
@@ -79,7 +79,7 @@
           <text class="prize-name">{{prizes[2].prize_name || ''}}</text>
           <text wx:if="{{prizes[2].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[2].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>
@@ -104,7 +104,7 @@
           <text class="prize-name">{{prizes[7].prize_name || ''}}</text>
           <text wx:if="{{prizes[7].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[7].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>
@@ -140,7 +140,7 @@
           <text class="prize-name">{{prizes[3].prize_name || ''}}</text>
           <text wx:if="{{prizes[3].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[3].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>
@@ -165,7 +165,7 @@
           <text class="prize-name">{{prizes[6].prize_name || ''}}</text>
           <text wx:if="{{prizes[6].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[6].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>
@@ -190,7 +190,7 @@
           <text class="prize-name">{{prizes[5].prize_name || ''}}</text>
           <text wx:if="{{prizes[5].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[5].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>
@@ -215,7 +215,7 @@
           <text class="prize-name">{{prizes[4].prize_name || ''}}</text>
           <text wx:if="{{prizes[4].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[4].is_sold_out}}" class="prize-sold-out-mask">
-            <text>已抢光</text>
+            <text class="sold-out-text">已抢光</text>
           </view>
         </view>
       </rarity-effects>

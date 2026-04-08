@@ -10,7 +10,7 @@
   "usingComponents": {
     "exchange-shelf": "/packageExchange/exchange-shelf/exchange-shelf",
     "exchange-market": "/packageExchange/exchange-market/exchange-market",
-    "exchange-rate": "/packageExchange/exchange-rate/exchange-rate",
+    "asset-conversion": "/packageExchange/asset-conversion/asset-conversion",
     "pagination": "/components/pagination/pagination",
     "empty-state": "/components/empty-state/empty-state",
     "loading-spinner": "/components/loading-spinner/loading-spinner"
@@ -18,6 +18,6 @@
   "componentPlaceholder": {
     "exchange-shelf": "view",
     "exchange-market": "view",
-    "exchange-rate": "view"
+    "asset-conversion": "view"
   }
 }

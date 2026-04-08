@@ -48,7 +48,7 @@
   border-radius: 40rpx;
   border: none;
 
-  &[disabled] {
+  &.is-disabled {
     background: #ccc;
     color: #999;
   }

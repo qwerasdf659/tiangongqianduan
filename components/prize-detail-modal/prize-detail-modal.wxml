@@ -13,7 +13,7 @@
     <view class="prize-modal__card rarity-card--{{prize.rarity_code || 'common'}}">
       <!-- 关闭按钮 -->
       <view class="prize-modal__close" bindtap="onClose">
-        <text>✕</text>
+        <text class="close-text">✕</text>
       </view>
 
       <!-- 奖品图标/图片 -->
@@ -40,7 +40,7 @@
 
       <!-- 奖品描述 -->
       <view class="prize-modal__desc" wx:if="{{prize.prize_description}}">
-        <text>{{prize.prize_description}}</text>
+        <text class="desc-text">{{prize.prize_description}}</text>
       </view>
 
       <!-- 保底标记 -->

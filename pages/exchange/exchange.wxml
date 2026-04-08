@@ -1,5 +1,5 @@
 <!-- pages/exchange/exchange.wxml — 兑换中心页面壳 -->
-<!-- 组件化架构: exchange-shelf（商品兑换Tab）+ exchange-market（交易市场Tab）+ exchange-rate（汇率兑换Tab） -->
+<!-- 组件化架构: exchange-shelf（商品兑换Tab）+ exchange-market（交易市场Tab）+ asset-conversion（资产转换Tab，后端tab key仍为exchange-rate） -->
 <!-- D13决策: 使用 hidden 替代 wx:if，保留组件状态（筛选/分页/搜索/滚动位置） -->
 <view class="exchange-container">
   <!-- 页面级加载状态（初始化期间tabs为空，显示loading遮罩避免短暂空白） -->
@@ -68,13 +68,13 @@
     />
   </view>
 
-  <!-- 汇率兑换组件（view 包装器控制 hidden，组件始终存活保留状态） -->
+  <!-- 资产转换组件（view 包装器控制 hidden，组件始终存活保留状态） -->
   <view class="tab-content-wrapper" hidden="{{loading || currentTab !== 'exchange-rate'}}">
-    <exchange-rate
+    <asset-conversion
       active="{{currentTab === 'exchange-rate'}}"
       pointsBalance="{{totalPoints}}"
       refreshToken="{{_exchangeRateRefreshToken}}"
-      bind:exchangeratesuccess="onExchangeRateSuccess"
+      bind:conversionsuccess="onConversionSuccess"
     />
   </view>
 

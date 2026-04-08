@@ -350,9 +350,9 @@ Page({
     await this._refreshAllBalances()
   },
 
-  /** 汇率兑换成功事件（exchange-rate 触发） */
-  async onExchangeRateSuccess(_e: any) {
-    log.info('汇率兑换成功，刷新余额')
+  /** 资产转换成功事件（asset-conversion 组件触发） */
+  async onConversionSuccess(_e: any) {
+    log.info('资产转换成功，刷新余额')
     await this._refreshAllBalances()
   },
 

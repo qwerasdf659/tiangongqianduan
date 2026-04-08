@@ -1,0 +1,282 @@
+/**
+ * DIY 支付确认面板样式
+ * 对齐 exchange-confirm 组件的视觉规范
+ */
+
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+/* ===== 遮罩层 ===== */
+.payment-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* ===== 弹窗主体 ===== */
+.payment-modal {
+  width: 100%;
+  max-height: 80vh;
+  background: $color-white;
+  border-radius: $border-radius-lg $border-radius-lg 0 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部品牌色装饰条 */
+.payment-accent-bar {
+  height: 6rpx;
+  background: linear-gradient(90deg, $color-primary, lighten($color-primary, 15%));
+}
+
+/* ===== 头部 ===== */
+.payment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-border;
+}
+
+.payment-title {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text;
+}
+
+.payment-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-icon {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+/* ===== 内容区 ===== */
+.payment-body {
+  padding: $spacing-md $spacing-lg;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 加载中 */
+.payment-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-xxl 0;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 12rpx;
+}
+
+.loading-dots .dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: $color-primary;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+.loading-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+.loading-text {
+  margin-top: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+/* 加载失败 */
+.payment-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-xxl 0;
+}
+
+.error-text {
+  font-size: $font-size-sm;
+  color: $color-error;
+  margin-bottom: $spacing-md;
+}
+
+.retry-btn {
+  padding: $spacing-xs $spacing-lg;
+  border: 1rpx solid $color-primary;
+  border-radius: $border-radius-sm;
+  color: $color-primary;
+  font-size: $font-size-sm;
+}
+
+/* 区块标题 */
+.payment-section-title {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+/* ===== 费用明细行 ===== */
+.payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.payment-item:last-of-type {
+  border-bottom: none;
+}
+
+/* 余额不足时整行标红背景 */
+.payment-item.insufficient {
+  background: rgba($color-error, 0.05);
+  margin: 0 (-$spacing-lg);
+  padding: $spacing-md $spacing-lg;
+  border-radius: $border-radius-sm;
+}
+
+.payment-item-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-asset-name {
+  font-size: $font-size-md;
+  font-weight: 500;
+  color: $color-text;
+}
+
+.payment-bead-count {
+  font-size: $font-size-xs;
+  color: $color-text-placeholder;
+  margin-top: 4rpx;
+}
+
+.payment-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.payment-cost-row,
+.payment-balance-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.payment-cost-label,
+.payment-balance-label {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.payment-cost-amount {
+  font-size: $font-size-md;
+  font-weight: 600;
+  color: $color-primary;
+}
+
+.payment-balance-amount {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.payment-balance-amount.sufficient {
+  color: $color-success;
+}
+
+.payment-balance-amount.insufficient-text {
+  color: $color-error;
+  font-weight: 500;
+}
+
+/* 余额不足警告 */
+.payment-warning {
+  margin-top: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: rgba($color-error, 0.08);
+  border-radius: $border-radius-sm;
+  text-align: center;
+}
+
+.warning-text {
+  font-size: $font-size-sm;
+  color: $color-error;
+}
+
+/* 冻结说明 */
+.payment-notice {
+  margin-top: $spacing-md;
+  text-align: center;
+}
+
+.notice-text {
+  font-size: $font-size-xs;
+  color: $color-text-placeholder;
+}
+
+/* ===== 底部按钮 ===== */
+.payment-footer {
+  display: flex;
+  padding: $spacing-md $spacing-lg;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  gap: $spacing-md;
+  border-top: 1rpx solid $color-border;
+}
+
+.payment-cancel-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid $color-border;
+  border-radius: $border-radius-md;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.payment-confirm-btn {
+  flex: 2;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-primary;
+  border-radius: $border-radius-md;
+  font-size: $font-size-md;
+  font-weight: 500;
+  color: $color-white;
+}
+
+.payment-confirm-btn.disabled {
+  opacity: 0.5;
+}

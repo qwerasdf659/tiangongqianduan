@@ -167,19 +167,23 @@ Page({
       const beadsRes = await API.getDiyTemplateBeads(templateId)
       if (beadsRes.success && beadsRes.data) {
         diyStore.setAllBeads(beadsRes.data)
-        /* 从珠子数据中提取实际的分组列表 */
-        const groupMap = new Map<string, string>()
+        /* 从珠子数据中提取实际的分组列表（统计每组数量和示例名称） */
+        const groupMap = new Map<string, { count: number; sampleName: string }>()
         beadsRes.data.forEach((b: API.DiyBead) => {
-          if (!groupMap.has(b.group_code)) {
-            groupMap.set(b.group_code, b.group_code)
+          const existing = groupMap.get(b.group_code)
+          if (existing) {
+            existing.count += 1
+          } else {
+            groupMap.set(b.group_code, { count: 1, sampleName: b.display_name })
           }
         })
-        const groups: API.DiyMaterialGroup[] = Array.from(groupMap.keys()).map(code => ({
+        /** 对齐后端 GET /api/v4/diy/material-groups 返回格式 */
+        const apiGroups: API.DiyMaterialGroup[] = Array.from(groupMap.entries()).map(([code, info]) => ({
           group_code: code,
-          display_name: GROUP_NAME_MAP[code] || code,
-          group_type: 'material'
+          count: String(info.count),
+          sample_name: info.sampleName
         }))
-        diyStore.setMaterialGroups(groups)
+        diyStore.setMaterialGroups(apiGroups)
       } else {
         this.setData({ beadLoadError: true })
       }
@@ -236,14 +240,20 @@ Page({
             diyStore.setSize(designData.selected_size)
           }
           for (const beadRef of designData.beads) {
-            const matched = allBeads.find((b: API.DiyBead) => b.material_code === beadRef.asset_code)
+            /* 使用 material_code 匹配珠子（对齐后端 diy_materials 表主键） */
+            const matched = allBeads.find(
+              (b: API.DiyBead) => b.material_code === beadRef.material_code
+            )
             if (matched) {
               diyStore.addBead(matched)
             }
           }
         } else if (designData.mode === 'slots' && designData.fillings) {
           for (const [slotId, filling] of Object.entries(designData.fillings)) {
-            const matched = allBeads.find((b: API.DiyBead) => b.material_code === (filling as any).asset_code)
+            /* 使用 material_code 匹配珠子（对齐后端 diy_materials 表主键） */
+            const matched = allBeads.find(
+              (b: API.DiyBead) => b.material_code === (filling as any).material_code
+            )
             if (matched) {
               diyStore.fillSlot(matched, slotId)
             }
@@ -271,7 +281,10 @@ Page({
     const updates: Record<string, any> = {
       templateName: template.display_name,
       isSlotMode,
-      materialGroups: diyStore.materialGroups,
+      materialGroups: diyStore.availableGroups.map((g: API.DiyMaterialGroup) => ({
+        group_code: g.group_code,
+        display_name: GROUP_NAME_MAP[g.group_code] || g.group_code
+      })),
       activeGroupCode: diyStore.activeGroupCode,
       canUndo: diyStore.canUndo,
       canRedo: diyStore.canRedo,
@@ -282,7 +295,9 @@ Page({
       updates.filledSlotCount = diyStore.filledSlotCount
       updates.totalSlotCount = diyStore.totalSlotCount
       const slotDefs = (template.layout as any).slot_definitions || []
-      const activeSlot = slotDefs.find((s: API.DiySlotDefinition) => s.slot_id === diyStore.activeSlotId)
+      const activeSlot = slotDefs.find(
+        (s: API.DiySlotDefinition) => s.slot_id === diyStore.activeSlotId
+      )
       updates.activeSlotLabel = activeSlot ? activeSlot.label : ''
     } else {
       updates.selectedSizeLabel = diyStore.selectedSizeLabel
@@ -290,8 +305,13 @@ Page({
       updates.maxBeadCount = diyStore.currentBeadCount
       updates.highlightedCount = diyStore.highlightedIndices.length
       const sizeOptions = template.sizing_rules?.size_options || []
-      updates.sizeOptions = sizeOptions.map((o: API.DiySizeOption) => ({ label: o.label, display: o.display }))
-      const currentIdx = sizeOptions.findIndex((o: API.DiySizeOption) => o.label === diyStore.selectedSizeLabel)
+      updates.sizeOptions = sizeOptions.map((o: API.DiySizeOption) => ({
+        label: o.label,
+        display: o.display
+      }))
+      const currentIdx = sizeOptions.findIndex(
+        (o: API.DiySizeOption) => o.label === diyStore.selectedSizeLabel
+      )
       updates.sizeIndex = currentIdx >= 0 ? currentIdx : 0
       if (sizeOptions.length > 0) {
         updates.selectedSizeDisplay = sizeOptions[updates.sizeIndex]?.display || ''
@@ -312,7 +332,11 @@ Page({
     const template = diyStore.currentTemplate
     /* 关键词搜索过滤 */
     if (keyword) {
-      beads = beads.filter((b: API.DiyBead) => b.display_name.toLowerCase().includes(keyword) || b.material_name.toLowerCase().includes(keyword))
+      beads = beads.filter(
+        (b: API.DiyBead) =>
+          b.display_name.toLowerCase().includes(keyword) ||
+          b.material_name.toLowerCase().includes(keyword)
+      )
     }
     /* 镶嵌模式: 根据激活槽位约束标记不可选 */
     if (template?.layout?.shape === 'slots' && diyStore.activeSlotId) {
@@ -321,13 +345,25 @@ Page({
       if (slot) {
         beads = beads.map((b: API.DiyBead) => {
           let disabled = false
-          if (slot.allowed_diameters && slot.allowed_diameters.length > 0 && !slot.allowed_diameters.includes(b.diameter)) {
+          if (
+            slot.allowed_diameters &&
+            slot.allowed_diameters.length > 0 &&
+            !slot.allowed_diameters.includes(b.diameter)
+          ) {
             disabled = true
           }
-          if (slot.allowed_shapes && slot.allowed_shapes.length > 0 && !slot.allowed_shapes.includes(b.shape)) {
+          if (
+            slot.allowed_shapes &&
+            slot.allowed_shapes.length > 0 &&
+            !slot.allowed_shapes.includes(b.shape)
+          ) {
             disabled = true
           }
-          if (slot.allowed_group_codes && slot.allowed_group_codes.length > 0 && !slot.allowed_group_codes.includes(b.group_code)) {
+          if (
+            slot.allowed_group_codes &&
+            slot.allowed_group_codes.length > 0 &&
+            !slot.allowed_group_codes.includes(b.group_code)
+          ) {
             disabled = true
           }
           if (b.stock === 0) {
@@ -354,7 +390,9 @@ Page({
 
   /** 撤销 */
   onUndo() {
-    if (!diyStore.canUndo) { return }
+    if (!diyStore.canUndo) {
+      return
+    }
     diyStore.undo()
     this._syncState()
     this._triggerRender()
@@ -362,7 +400,9 @@ Page({
 
   /** 重做 */
   onRedo() {
-    if (!diyStore.canRedo) { return }
+    if (!diyStore.canRedo) {
+      return
+    }
     diyStore.redo()
     this._syncState()
     this._triggerRender()
@@ -387,7 +427,9 @@ Page({
   onSizeChange(e: WechatMiniprogram.PickerChange) {
     const index = Number(e.detail.value)
     const template = diyStore.currentTemplate
-    if (!template?.sizing_rules) { return }
+    if (!template?.sizing_rules) {
+      return
+    }
     const sizeOption = template.sizing_rules.size_options[index]
     if (sizeOption) {
       diyStore.setSize(sizeOption.label)
@@ -398,7 +440,9 @@ Page({
 
   /** 材料分组Tab切换 */
   onGroupChange(e: WechatMiniprogram.BaseEvent) {
-    const groupCode = (e.currentTarget.dataset.groupCode || e.currentTarget.dataset['group-code'] || '') as string
+    const groupCode = (e.currentTarget.dataset.groupCode ||
+      e.currentTarget.dataset['group-code'] ||
+      '') as string
     diyStore.setActiveGroupCode(groupCode)
     this.setData({ activeGroupCode: groupCode })
     this._applyBeadFilter()
@@ -408,14 +452,18 @@ Page({
   onSearchInput(e: WechatMiniprogram.Input) {
     const keyword = e.detail.value
     this.setData({ searchKeyword: keyword })
-    if (this._searchTimer) { clearTimeout(this._searchTimer) }
+    if (this._searchTimer) {
+      clearTimeout(this._searchTimer)
+    }
     this._searchTimer = setTimeout(() => this._applyBeadFilter(), 200)
   },
 
   /** 选择素材（串珠: 添加珠子，镶嵌: 填入槽位） */
   onBeadSelect(e: WechatMiniprogram.CustomEvent) {
     const bead = e.detail.bead as API.DiyBead
-    if (!bead || !diyStore.currentTemplate) { return }
+    if (!bead || !diyStore.currentTemplate) {
+      return
+    }
     if (diyStore.isSlotMode) {
       const ok = diyStore.fillSlot(bead)
       if (!ok) {
@@ -521,9 +569,13 @@ Page({
   /** 珠子左移（串珠模式排序） */
   onMoveBeadLeft() {
     const indices = diyStore.highlightedIndices
-    if (indices.length !== 1) { return }
+    if (indices.length !== 1) {
+      return
+    }
     const fromIndex = indices[0]
-    if (fromIndex <= 0) { return }
+    if (fromIndex <= 0) {
+      return
+    }
     diyStore.moveBead(fromIndex, fromIndex - 1)
     /* 更新选中索引跟随移动 */
     diyStore.clearSelection()
@@ -536,9 +588,13 @@ Page({
   /** 珠子右移（串珠模式排序） */
   onMoveBeadRight() {
     const indices = diyStore.highlightedIndices
-    if (indices.length !== 1) { return }
+    if (indices.length !== 1) {
+      return
+    }
     const fromIndex = indices[0]
-    if (fromIndex >= diyStore.selectedBeads.length - 1) { return }
+    if (fromIndex >= diyStore.selectedBeads.length - 1) {
+      return
+    }
     diyStore.moveBead(fromIndex, fromIndex + 1)
     diyStore.clearSelection()
     diyStore.toggleBeadSelection(fromIndex + 1)
@@ -552,34 +608,36 @@ Page({
    * 后端API: POST /api/v4/diy/works
    */
   async onSubmit() {
-    if (!diyStore.canSubmit) { return }
+    if (!diyStore.canSubmit) {
+      return
+    }
     wx.showLoading({ title: '保存中...' })
     try {
       const template = diyStore.currentTemplate!
+      /**
+       * 保存草稿请求体
+       * 文档决策 F9: saveWork 不传 total_cost，由 confirmDesign 时后端服务端计算
+       * design_data 只记录珠子选择（material_code），不记录支付信息
+       */
       const workData: API.DiyWorkCreateRequest = {
         diy_template_id: template.diy_template_id,
         work_name: `我的${template.display_name}`,
-        design_data: { mode: 'beading' },
-        total_cost: []
+        design_data: { mode: 'beading' }
       }
       if (diyStore.isSlotMode) {
-        const fillings: Record<string, { asset_code: string }> = {}
-        const costMap = new Map<string, number>()
+        /* 镶嵌模式: 记录每个槽位填入的珠子 material_code */
+        const fillings: Record<string, { material_code: string }> = {}
         for (const [slotId, bead] of Object.entries(diyStore.slotFillings)) {
           const beadObj = bead as API.DiyBead
-          fillings[slotId] = { asset_code: beadObj.material_code }
-          costMap.set(beadObj.material_code, (costMap.get(beadObj.material_code) || 0) + 1)
+          fillings[slotId] = { material_code: beadObj.material_code }
         }
         workData.design_data = { mode: 'slots', fillings }
-        workData.total_cost = Array.from(costMap.entries()).map(([assetCode, amount]) => ({ asset_code: assetCode, amount }))
       } else {
-        const costMap = new Map<string, number>()
+        /* 串珠模式: 记录每颗珠子的 material_code + 位置 + 直径 */
         const beads = diyStore.selectedBeads.map((b: API.DiyBead, i: number) => {
-          costMap.set(b.material_code, (costMap.get(b.material_code) || 0) + 1)
-          return { position: i, asset_code: b.material_code, diameter: b.diameter }
+          return { slot_index: i, material_code: b.material_code, diameter: b.diameter }
         })
         workData.design_data = { mode: 'beading', selected_size: diyStore.selectedSizeLabel, beads }
-        workData.total_cost = Array.from(costMap.entries()).map(([assetCode, amount]) => ({ asset_code: assetCode, amount }))
       }
       const saveRes = await API.saveDiyWork(workData)
       wx.hideLoading()
@@ -587,8 +645,10 @@ Page({
         const workId = saveRes.data.diy_work_id
         this._currentWorkId = workId
         diyStore.clearCache()
+        /** 将费用明细 JSON 编码传递给结果页（支付面板需要） */
+        const costBreakdownParam = encodeURIComponent(JSON.stringify(diyStore.costBreakdown))
         wx.navigateTo({
-          url: `/packageDIY/diy-result/diy-result?workId=${workId}&totalPrice=${diyStore.totalPrice}&templateName=${encodeURIComponent(template.display_name)}`
+          url: `/packageDIY/diy-result/diy-result?workId=${workId}&totalPrice=${diyStore.totalPrice}&templateName=${encodeURIComponent(template.display_name)}&templateId=${template.diy_template_id}&costBreakdown=${costBreakdownParam}`
         })
       } else {
         wx.showToast({ title: saveRes.message || '保存失败', icon: 'none' })

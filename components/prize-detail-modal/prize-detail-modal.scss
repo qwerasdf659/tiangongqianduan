@@ -55,7 +55,7 @@
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.05);
 
-  text {
+  .close-text {
     font-size: 28rpx;
     color: #999;
   }
@@ -136,7 +136,7 @@
   padding: 20rpx 24rpx;
   margin-bottom: 20rpx;
 
-  text {
+  .desc-text {
     font-size: 26rpx;
     color: #666;
     line-height: 1.6;

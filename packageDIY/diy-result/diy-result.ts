@@ -370,7 +370,7 @@ Page({
   data: {
     /** 作品主键（后端 diy_work_id） */
     workId: 0,
-    /** 设计总价（星石） */
+    /** 设计总价（所有珠子价格之和，单一币种时直接展示） */
     totalPrice: 0,
     /** 模板名称 */
     templateName: '',
@@ -381,15 +381,36 @@ Page({
     /** 海报生成中 */
     posterGenerating: false,
     /** 作品完整数据（从后端获取，用于海报渲染） */
-    _workData: null as any
+    _workData: null as any,
+    /** 按 price_asset_code 分组的费用明细（从设计页传入，用于支付面板） */
+    costBreakdown: [] as any[],
+    /** 支付确认面板是否可见 */
+    paymentPanelVisible: false,
+    /** 模板ID（用于支付面板获取资产余额） */
+    templateId: 0
   },
 
   onLoad(options: Record<string, string | undefined>) {
     const workId = Number(options.workId || 0)
+    /**
+     * costBreakdown 通过 URL 参数 JSON 编码传入
+     * 格式: [{ asset_code, amount, bead_count }]
+     * 来源: diy-design.ts onSubmit → diyStore.costBreakdown
+     */
+    let costBreakdown: any[] = []
+    if (options.costBreakdown) {
+      try {
+        costBreakdown = JSON.parse(decodeURIComponent(options.costBreakdown))
+      } catch (_e) {
+        /* 解析失败使用空数组，支付面板会从后端重新计算 */
+      }
+    }
     this.setData({
       workId,
       totalPrice: Number(options.totalPrice || 0),
-      templateName: decodeURIComponent(options.templateName || '')
+      templateName: decodeURIComponent(options.templateName || ''),
+      templateId: Number(options.templateId || 0),
+      costBreakdown
     })
     /* 异步获取作品完整数据（含模板+设计数据，用于海报饰品渲染） */
     if (workId) {
@@ -407,6 +428,10 @@ Page({
       const res = await API.getDiyWorkById(workId)
       if (res.success && res.data) {
         this.data._workData = res.data
+        /* 如果 templateId 未通过 URL 传入，从作品数据中获取 */
+        if (!this.data.templateId && res.data.diy_template_id) {
+          this.setData({ templateId: res.data.diy_template_id })
+        }
       }
     } catch (_err) {
       /* 获取失败不阻塞页面，海报渲染时降级为纯文字 */
@@ -414,42 +439,54 @@ Page({
   },
 
   /**
-   * 确认设计 — 冻结材料（draft → frozen）
-   * 后端API: POST /api/v4/diy/works/:id/confirm
+   * 确认设计 — 打开支付确认面板
+   * 用户点击"确认设计"按钮 → 弹出支付面板展示费用明细和资产余额
+   * 实际冻结操作在 onPaymentConfirm 中执行
    */
-  async onConfirmDesign() {
+  onConfirmDesign() {
     if (this.data.processing || !this.data.workId) {
       return
     }
-    this.setData({ processing: true })
-    wx.showModal({
-      title: '确认设计',
-      content: `确认后将冻结所需的${this.data.totalPrice}星石材料，24小时内需完成或取消。`,
-      confirmText: '确认',
-      cancelText: '稍后再说',
-      success: async modalRes => {
-        if (!modalRes.confirm) {
-          this.setData({ processing: false })
-          return
-        }
-        wx.showLoading({ title: '确认中...' })
-        try {
-          const res = await API.confirmDiyWork(this.data.workId)
-          wx.hideLoading()
-          if (res.success && res.data) {
-            this.setData({ workStatus: res.data.status, processing: false })
-            wx.showToast({ title: '材料已冻结', icon: 'success' })
-          } else {
-            this.setData({ processing: false })
-            wx.showToast({ title: res.message || '确认失败', icon: 'none' })
-          }
-        } catch (_err) {
-          wx.hideLoading()
-          this.setData({ processing: false })
-          wx.showToast({ title: '网络异常，请重试', icon: 'none' })
-        }
+    if (this.data.costBreakdown.length === 0) {
+      wx.showToast({ title: '费用明细为空，请返回重新设计', icon: 'none' })
+      return
+    }
+    this.setData({ paymentPanelVisible: true })
+  },
+
+  /** 关闭支付确认面板 */
+  onPaymentPanelClose() {
+    this.setData({ paymentPanelVisible: false })
+  },
+
+  /**
+   * 支付面板确认回调 — 执行冻结操作（draft → frozen）
+   * 后端API: POST /api/v4/diy/works/:id/confirm
+   * 携带 payments 数组（从支付面板组件 triggerEvent 传入）
+   */
+  async onPaymentConfirm(e: WechatMiniprogram.CustomEvent) {
+    const payments = e.detail.payments as API.DiyTotalCostItem[]
+    if (!payments || payments.length === 0) {
+      wx.showToast({ title: '支付明细为空', icon: 'none' })
+      return
+    }
+    this.setData({ processing: true, paymentPanelVisible: false })
+    wx.showLoading({ title: '确认中...' })
+    try {
+      const res = await API.confirmDiyWork(this.data.workId, payments)
+      wx.hideLoading()
+      if (res.success && res.data) {
+        this.setData({ workStatus: res.data.status, processing: false })
+        wx.showToast({ title: '材料已冻结', icon: 'success' })
+      } else {
+        this.setData({ processing: false })
+        wx.showToast({ title: res.message || '确认失败', icon: 'none' })
       }
-    })
+    } catch (_err) {
+      wx.hideLoading()
+      this.setData({ processing: false })
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+    }
   },
 
   /**

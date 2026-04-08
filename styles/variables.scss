@@ -30,9 +30,11 @@ $color-border-light: #f0f0f0;
 $color-divider: #eeeeee;
 
 // ===== 文字色 =====
+$color-text: #333333; // 通用文字色（等同主要文字）
 $color-text-primary: #333333; // 主要文字
 $color-text-secondary: #666666; // 次要文字
 $color-text-tertiary: #999999; // 辅助文字
+$color-text-placeholder: #c0c0c0; // 占位符/提示文字
 $color-text-disabled: #cccccc; // 禁用文字
 $color-text-white: #ffffff; // 白色文字（深色背景上使用）
 

@@ -5,9 +5,9 @@
  * 后端服务: DIYService.js (1345行)
  * 后端表: diy_templates(7条) + diy_works(0条) + diy_materials(61条)
  *
- * 接口清单（用户端13个）:
+ * 接口清单（用户端12个 + 海报1个）:
  *   模板: GET templates / GET templates/:id
- *   材料: GET templates/:id/materials / GET templates/:id/beads / GET materials/user / GET material-groups
+ *   材料: GET templates/:id/payment-assets / GET templates/:id/beads / GET material-groups
  *   作品: GET works / GET works/:id / POST works / DELETE works/:id
  *   流程: POST works/:id/confirm / POST works/:id/complete / POST works/:id/cancel
  *   海报: GET works/:id/qrcode（⚠️ 需后端实现）
@@ -58,24 +58,20 @@ async function getDiyTemplateById(templateId: number): Promise<API.ApiResponse<A
 // ========== 材料相关 ==========
 
 /**
- * 获取模板可用的虚拟资产材料列表（含用户持有量）
- * GET /api/v4/diy/templates/:id/materials
+ * 获取用户支付资产余额（需登录）
+ * GET /api/v4/diy/templates/:id/payment-assets
  *
- * 后端逻辑: 查 MaterialAssetType（按模板的 material_group_codes 过滤）
- *          + MediaFile（icon图片）+ AccountAssetBalance（用户持有量）
+ * 返回该模板下珠子使用的定价货币 + 用户余额，用于确认设计前展示钱包
  *
  * 返回字段: asset_code, display_name, group_code, form, tier,
  *          visible_value_points, image_url, available_amount, frozen_amount
  *
- * 前端按 group_code 分组展示（红red/橙orange/黄yellow/绿green/蓝blue/紫purple）
- * available_amount = 0 时灰显不可选
+ * 前端用途: 确认设计时弹出支付面板，展示用户可用资产余额
  *
  * @param templateId - 模板主键 diy_template_id
  */
-async function getDiyTemplateMaterials(
-  templateId: number
-): Promise<API.ApiResponse<API.DiyMaterial[]>> {
-  return apiClient.request(`/diy/templates/${templateId}/materials`, { method: 'GET' })
+async function getDiyPaymentAssets(templateId: number): Promise<API.ApiResponse<API.DiyMaterial[]>> {
+  return apiClient.request(`/diy/templates/${templateId}/payment-assets`, { method: 'GET' })
 }
 
 /**
@@ -85,30 +81,37 @@ async function getDiyTemplateMaterials(
  * 后端逻辑: 按模板的 material_group_codes 过滤 diy_materials 表
  * 返回实物珠子商品信息: material_code, display_name, group_code, diameter, shape, price等
  *
- * 注意: 与 materials 接口不同 —
- *   materials 返回虚拟资产（源晶碎片/源晶，存在用户账户余额中）
- *   beads 返回实物珠子（diy_materials表，有独立库存和定价）
+ * 查询参数:
+ *   slot_id    — 传入槽位 ID 后，后端自动按该槽位的 allowed_diameters 过滤
+ *   group_code — 按颜色分组筛选：red/orange/yellow/green/blue/purple
+ *   diameter   — 按直径筛选（mm）
+ *   keyword    — 关键词搜索
  *
  * @param templateId - 模板主键 diy_template_id
+ * @param params - 可选查询参数（slot_id / group_code / diameter / keyword）
  */
-async function getDiyTemplateBeads(templateId: number): Promise<API.ApiResponse<API.DiyBead[]>> {
-  return apiClient.request(`/diy/templates/${templateId}/beads`, { method: 'GET' })
-}
-
-/**
- * 获取用户持有的材料列表
- * GET /api/v4/diy/materials/user?template_id=xxx
- *
- * 支持按模板筛选，查 AccountAssetBalance + MaterialAssetType
- *
- * @param templateId - 可选，按模板筛选可用材料
- */
-async function getDiyUserMaterials(
-  templateId?: number
-): Promise<API.ApiResponse<API.DiyMaterial[]>> {
-  let url = '/diy/materials/user'
-  if (templateId) {
-    url += `?template_id=${templateId}`
+async function getDiyTemplateBeads(
+  templateId: number,
+  params?: { slot_id?: string; group_code?: string; diameter?: number; keyword?: string }
+): Promise<API.ApiResponse<API.DiyBead[]>> {
+  let url = `/diy/templates/${templateId}/beads`
+  if (params) {
+    const queryParts: string[] = []
+    if (params.slot_id) {
+      queryParts.push(`slot_id=${encodeURIComponent(params.slot_id)}`)
+    }
+    if (params.group_code) {
+      queryParts.push(`group_code=${encodeURIComponent(params.group_code)}`)
+    }
+    if (params.diameter !== undefined) {
+      queryParts.push(`diameter=${params.diameter}`)
+    }
+    if (params.keyword) {
+      queryParts.push(`keyword=${encodeURIComponent(params.keyword)}`)
+    }
+    if (queryParts.length > 0) {
+      url += `?${queryParts.join('&')}`
+    }
   }
   return apiClient.request(url, { method: 'GET' })
 }
@@ -117,7 +120,7 @@ async function getDiyUserMaterials(
  * 获取所有材料分组列表
  * GET /api/v4/diy/material-groups
  *
- * 返回: group_code + display_name 列表
+ * 返回: [{ group_code, count, sample_name }]
  * 6个颜色分组: red(红)/orange(橙)/yellow(黄)/green(绿)/blue(蓝)/purple(紫)
  */
 async function getDiyMaterialGroups(): Promise<API.ApiResponse<API.DiyMaterialGroup[]>> {
@@ -212,15 +215,25 @@ async function getDiyWorkQrcode(workId: number): Promise<API.ApiResponse<{ qrcod
  * 确认设计 — 冻结材料（draft → frozen）
  * POST /api/v4/diy/works/:id/confirm
  *
- * 后端逻辑: 事务内逐项 BalanceService.freeze → 更新状态为 frozen
- * 冻结后材料被锁定不会被其他操作消耗
+ * 后端逻辑:
+ *   1. 根据 design_data 查 diy_materials 当前价格计算 total_price
+ *   2. 校验 payments 总额覆盖 total_price
+ *   3. 事务内逐项 BalanceService.freeze → 更新状态为 frozen
+ *   4. 生成 total_cost 快照保存到 diy_works
  *
  * 返回: { diy_work_id, status: 'frozen', frozen_at }
  *
  * @param workId - 作品主键 diy_work_id
+ * @param payments - 支付明细（按 asset_code 分组，每项指定用哪种资产支付多少）
  */
-async function confirmDiyWork(workId: number): Promise<API.ApiResponse<API.DiyWorkStatusResponse>> {
-  return apiClient.request(`/diy/works/${workId}/confirm`, { method: 'POST' })
+async function confirmDiyWork(
+  workId: number,
+  payments: API.DiyTotalCostItem[]
+): Promise<API.ApiResponse<API.DiyWorkStatusResponse>> {
+  return apiClient.request(`/diy/works/${workId}/confirm`, {
+    method: 'POST',
+    data: { payments }
+  })
 }
 
 /**
@@ -235,11 +248,20 @@ async function confirmDiyWork(workId: number): Promise<API.ApiResponse<API.DiyWo
  * 返回: { diy_work_id, status: 'completed', item_id, completed_at }
  *
  * @param workId - 作品主键 diy_work_id
+ * @param addressId - 可选，收货地址ID，传入后后端快照收货地址到 exchange_records
  */
 async function completeDiyWork(
-  workId: number
+  workId: number,
+  addressId?: number
 ): Promise<API.ApiResponse<API.DiyWorkStatusResponse>> {
-  return apiClient.request(`/diy/works/${workId}/complete`, { method: 'POST' })
+  const requestData: Record<string, any> = {}
+  if (addressId) {
+    requestData.address_id = addressId
+  }
+  return apiClient.request(`/diy/works/${workId}/complete`, {
+    method: 'POST',
+    data: requestData
+  })
 }
 
 /**
@@ -262,9 +284,8 @@ module.exports = {
   getDiyTemplates,
   getDiyTemplateById,
   /* 材料 */
-  getDiyTemplateMaterials,
+  getDiyPaymentAssets,
   getDiyTemplateBeads,
-  getDiyUserMaterials,
   getDiyMaterialGroups,
   /* 作品 */
   getDiyWorks,

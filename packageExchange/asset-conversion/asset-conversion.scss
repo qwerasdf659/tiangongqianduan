@@ -1,13 +1,13 @@
 /**
- * 汇率兑换组件样式
+ * 资产转换组件样式
  * 品牌色使用变量/mixin（系统设计规范），游戏特有视觉可自由写
- * @file packageExchange/exchange-rate/exchange-rate.scss
+ * @file packageExchange/asset-conversion/asset-conversion.scss
  */
 @import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ===== 容器 ===== */
-.exchange-rate-container {
+.asset-conversion-container {
   min-height: 100%;
   background: $color-bg-grey;
   padding: 0 24rpx 40rpx;
@@ -48,7 +48,41 @@
   margin-top: 4rpx;
 }
 
-/* ===== 汇率卡片 ===== */
+/* ===== 转换类型 Tab 栏（按 conversion_type 分组: 合成/分解/兑换） ===== */
+.conversion-tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+  padding: 0 4rpx;
+}
+
+.conversion-tab {
+  flex: 1;
+  @include flex-center;
+  height: 64rpx;
+  border-radius: $border-radius-sm;
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  transition: all 0.2s ease;
+
+  &--active {
+    background: rgba($color-primary, 0.1);
+    border-color: $color-primary;
+  }
+}
+
+.conversion-tab__text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: $color-text-secondary;
+
+  .conversion-tab--active & {
+    color: $color-primary;
+    font-weight: 600;
+  }
+}
+
+/* ===== 转换规则卡片 ===== */
 .rate-card {
   background: $color-bg-card;
   border-radius: $border-radius-md;

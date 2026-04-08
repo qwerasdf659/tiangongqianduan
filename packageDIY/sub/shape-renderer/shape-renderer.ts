@@ -152,7 +152,11 @@ Component({
     /** 镶嵌模式底图缓存（避免每次重绘重新加载） */
     _bgImage: null as any,
     /** 底图加载状态 */
-    _bgImageLoaded: false
+    _bgImageLoaded: false,
+    /** 珠子图片缓存（key: public_url → value: Image 对象） */
+    _beadImageCache: {} as Record<string, any>,
+    /** 珠子图片加载中的 URL 集合（防止重复加载，用对象模拟 Set） */
+    _beadImageLoading: {} as Record<string, boolean>
   },
 
   lifetimes: {
@@ -347,14 +351,18 @@ Component({
       ctx.stroke()
       ctx.setLineDash([])
 
-      /* 绘制珠子 */
+      /* 绘制珠子（优先真实图片，无图降级颜色块） */
       const highlighted = new Set(diyStore.highlightedIndices)
       for (let i = 0; i < n; i++) {
         const bead = beads[i]
         const { x, y } = coords[i]
         const radius = Math.max(8, bead.diameter * 1.5)
-        const color = getGemColor(bead)
-        drawGem(ctx, x, y, radius, color, bead.shape || 'circle')
+        /* 尝试绘制真实图片，失败则用颜色块 */
+        const drawnImage = this._drawBeadImage(ctx, bead, x, y, radius)
+        if (!drawnImage) {
+          const color = getGemColor(bead)
+          drawGem(ctx, x, y, radius, color, bead.shape || 'circle')
+        }
         /* 选中高亮（品牌橙色边框） */
         if (highlighted.has(i)) {
           ctx.beginPath()
@@ -438,6 +446,78 @@ Component({
       return ''
     },
 
+    /**
+     * 获取珠子图片 URL
+     * 降级链: image_media.thumbnails.medium → image_media.public_url → 空
+     */
+    _getBeadImageUrl(bead: any): string {
+      const media = bead.image_media
+      if (media) {
+        return media.thumbnails?.medium || media.public_url || ''
+      }
+      return ''
+    },
+
+    /**
+     * 加载珠子图片到缓存（异步，加载完成后自动触发重绘）
+     * 使用 _beadImageLoading 防止同一 URL 重复加载
+     */
+    _loadBeadImage(url: string) {
+      if (!url || !this.data._canvas) return
+      if (this.data._beadImageCache[url] || this.data._beadImageLoading[url]) return
+
+      this.data._beadImageLoading[url] = true
+      const img = this.data._canvas.createImage()
+      img.onload = () => {
+        this.data._beadImageCache[url] = img
+        delete this.data._beadImageLoading[url]
+        /* 图片加载完成，触发重绘让珠子显示真实图片 */
+        this.render()
+      }
+      img.onerror = () => {
+        delete this.data._beadImageLoading[url]
+        /* 加载失败不缓存，下次重绘仍用颜色块 fallback */
+      }
+      img.src = url
+    },
+
+    /**
+     * 在 Canvas 上绘制珠子图片（圆形裁剪）
+     * 如果图片已缓存则直接绘制，否则触发异步加载并先用颜色块占位
+     *
+     * @returns true=已绘制图片, false=无图片需要 fallback
+     */
+    _drawBeadImage(ctx: any, bead: any, cx: number, cy: number, radius: number, slotW?: number, slotH?: number): boolean {
+      const url = this._getBeadImageUrl(bead)
+      if (!url) return false
+
+      const cachedImg = this.data._beadImageCache[url]
+      if (!cachedImg) {
+        /* 图片未缓存，触发异步加载，本次用颜色块 */
+        this._loadBeadImage(url)
+        return false
+      }
+
+      ctx.save()
+      if (slotW && slotH) {
+        /* 镶嵌模式: 按槽位矩形区域绘制，自动填满后端定义的 width × height */
+        const halfW = slotW / 2
+        const halfH = slotH / 2
+        ctx.beginPath()
+        ctx.ellipse(cx, cy, halfW, halfH, 0, 0, Math.PI * 2)
+        ctx.clip()
+        ctx.drawImage(cachedImg, cx - halfW, cy - halfH, slotW, slotH)
+      } else {
+        /* 串珠模式: 圆形裁剪绘制 */
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+        ctx.clip()
+        ctx.drawImage(cachedImg, cx - radius, cy - radius, radius * 2, radius * 2)
+      }
+      ctx.restore()
+      return true
+    },
+
     /** 绘制几何占位底图（后端未上传底图时的 fallback） */
     _drawFallbackBackground(
       ctx: any,
@@ -514,17 +594,20 @@ Component({
         const sh = slot.height * drawH
         const gem = fillings[slot.slot_id]
         if (gem) {
-          /* 已填入宝石 */
-          const r = Math.min(sw, sh) / 2
-          const color = getGemColor(gem)
-          drawGem(ctx, sx, sy, r, color, gem.shape || 'circle')
+          /* 已填入宝石 — 按后端槽位 width × height 自动填满 */
+          const fillRadius = Math.min(sw, sh) / 2
+          const drawnImage = this._drawBeadImage(ctx, gem, sx, sy, fillRadius, sw, sh)
+          if (!drawnImage) {
+            const color = getGemColor(gem)
+            drawGem(ctx, sx, sy, fillRadius, color, gem.shape || 'circle')
+          }
         } else {
           /* 空槽位: 虚线轮廓 + "+" 提示 */
           ctx.save()
           ctx.setLineDash([4, 4])
           ctx.strokeStyle = '#9CA3AF'
           ctx.lineWidth = 1.5
-          drawSlotOutline(ctx, slot.slot_shape, sx, sy, sw, sh)
+          drawSlotOutline(ctx, slot.slot_shape || 'circle', sx, sy, sw, sh)
           ctx.restore()
           ctx.fillStyle = '#9CA3AF'
           ctx.font = `${Math.min(sw, sh) * 0.4}px sans-serif`
@@ -538,7 +621,7 @@ Component({
           ctx.strokeStyle = '#FF6B35'
           ctx.lineWidth = 2.5
           ctx.setLineDash([])
-          drawSlotOutline(ctx, slot.slot_shape, sx, sy, sw + 4, sh + 4)
+          drawSlotOutline(ctx, slot.slot_shape || 'circle', sx, sy, sw + 4, sh + 4)
           ctx.restore()
         }
         slotPositions.push({ x: sx, y: sy, w: sw, h: sh, slotId: slot.slot_id })

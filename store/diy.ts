@@ -23,6 +23,27 @@ import { action, observable } from 'mobx-miniprogram'
 /** 虚拟资产代码常量（消除 'star_stone' 字符串字面量硬编码） */
 const diyAssetCodes = require('../config/asset-codes')
 
+/**
+ * asset_code → 中文名称映射（UI展示用）
+ * 后端 material_asset_types.display_name 是权威来源
+ * 此处用于 costBreakdown 的本地展示（不依赖额外接口请求）
+ */
+const ASSET_DISPLAY_NAME: Record<string, string> = {
+  star_stone: '星石',
+  red_core_shard: '红源晶碎片',
+  red_core_gem: '红源晶',
+  orange_core_shard: '橙源晶碎片',
+  orange_core_gem: '橙源晶',
+  yellow_core_shard: '黄源晶碎片',
+  yellow_core_gem: '黄源晶',
+  green_core_shard: '绿源晶碎片',
+  green_core_gem: '绿源晶',
+  blue_core_shard: '蓝源晶碎片',
+  blue_core_gem: '蓝源晶',
+  purple_core_shard: '紫源晶碎片',
+  purple_core_gem: '紫源晶'
+}
+
 /** 撤销/重做快照（按模式区分） */
 interface Snapshot {
   /** 模式标识 */
@@ -56,8 +77,10 @@ interface DraftCache {
     diy_material_id: number
     material_code: string
     display_name: string
+    material_name: string
     diameter: number
     price: number
+    price_asset_code: string
     shape: string
     group_code: string
   }[]
@@ -68,8 +91,10 @@ interface DraftCache {
       diy_material_id: number
       material_code: string
       display_name: string
+      material_name: string
       diameter: number
       price: number
+      price_asset_code: string
       shape: string
       group_code: string
     }
@@ -81,7 +106,7 @@ interface DraftCache {
 }
 
 /** 缓存版本号（修改缓存结构时递增） */
-const CACHE_VERSION = 5
+const CACHE_VERSION = 6
 /** 缓存有效期: 7天 */
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000
 /** 撤销栈最大深度 */
@@ -254,15 +279,65 @@ export const diyStore = observable({
       .every((s: API.DiySlotDefinition) => !!this.slotFillings[s.slot_id])
   },
 
-  /** 总价（串珠: sum(selectedBeads.price)，镶嵌: sum(slotFillings.values().price)） */
+  /**
+   * 按 price_asset_code 分组的费用明细
+   * 文档架构决策: 珠子可以有不同的 price_asset_code（星石、源晶、碎片）
+   * 确认设计时按 price_asset_code 分组汇总，逐种资产冻结
+   *
+   * 示例: 10颗巴西黄水晶(32星石/颗) + 4颗粉水晶(5红源晶/颗)
+   *   → [{ asset_code:'star_stone', amount:320, bead_count:10 },
+   *      { asset_code:'red_core_gem', amount:20, bead_count:4 }]
+   */
+  get costBreakdown(): API.DiyCostBreakdownItem[] {
+    const beads: API.DiyBead[] = this.isSlotMode
+      ? (Object.values(this.slotFillings) as API.DiyBead[])
+      : this.selectedBeads
+    if (beads.length === 0) {
+      return []
+    }
+    /** 按 price_asset_code 分组汇总 */
+    const groupMap = new Map<string, { amount: number; bead_count: number }>()
+    for (const b of beads) {
+      const code = b.price_asset_code
+      const existing = groupMap.get(code)
+      if (existing) {
+        existing.amount += b.price
+        existing.bead_count += 1
+      } else {
+        groupMap.set(code, { amount: b.price, bead_count: 1 })
+      }
+    }
+    return Array.from(groupMap.entries()).map(([asset_code, info]) => ({
+      asset_code,
+      amount: info.amount,
+      bead_count: info.bead_count,
+      asset_name: ASSET_DISPLAY_NAME[asset_code] || asset_code
+    }))
+  },
+
+  /**
+   * 总价（所有珠子价格之和，不区分 price_asset_code）
+   * 仅当所有珠子使用同一种 price_asset_code 时此值有明确业务含义
+   * 多币种场景下应使用 costBreakdown 分组展示
+   */
   get totalPrice(): number {
     if (this.isSlotMode) {
-      return Object.values(this.slotFillings).reduce(
+      return (Object.values(this.slotFillings) as API.DiyBead[]).reduce(
         (sum: number, b: API.DiyBead) => sum + b.price,
         0
       )
     }
     return this.selectedBeads.reduce((sum: number, b: API.DiyBead) => sum + b.price, 0)
+  },
+
+  /**
+   * 是否为单一币种定价（所有珠子的 price_asset_code 相同）
+   * true: 可以直接展示 totalPrice + 单一资产名称
+   * false: 需要按 costBreakdown 分组展示多行费用
+   */
+  get isSingleCurrency(): boolean {
+    const breakdown = this.costBreakdown
+    return breakdown.length <= 1
   },
 
   /** 是否可撤销 */
@@ -710,8 +785,10 @@ export const diyStore = observable({
         diy_material_id: b.diy_material_id,
         material_code: b.material_code,
         display_name: b.display_name,
+        material_name: b.material_name,
         diameter: b.diameter,
         price: b.price,
+        price_asset_code: b.price_asset_code,
         shape: b.shape,
         group_code: b.group_code
       }))
@@ -723,8 +800,10 @@ export const diyStore = observable({
           diy_material_id: bead.diy_material_id,
           material_code: bead.material_code,
           display_name: bead.display_name,
+          material_name: bead.material_name,
           diameter: bead.diameter,
           price: bead.price,
+          price_asset_code: bead.price_asset_code,
           shape: bead.shape,
           group_code: bead.group_code
         }
@@ -769,12 +848,12 @@ export const diyStore = observable({
               diy_material_id: b.diy_material_id,
               material_code: b.material_code,
               display_name: b.display_name,
-              material_name: b.display_name,
+              material_name: b.material_name || b.display_name,
               group_code: b.group_code,
               diameter: b.diameter,
               shape: b.shape,
               price: b.price,
-              price_asset_code: diyAssetCodes.STAR_STONE,
+              price_asset_code: b.price_asset_code || diyAssetCodes.STAR_STONE,
               stock: -1,
               is_stackable: 1,
               sort_order: 0,
@@ -788,12 +867,12 @@ export const diyStore = observable({
             diy_material_id: b.diy_material_id,
             material_code: b.material_code,
             display_name: b.display_name,
-            material_name: b.display_name,
+            material_name: b.material_name || b.display_name,
             group_code: b.group_code,
             diameter: b.diameter,
             shape: b.shape,
             price: b.price,
-            price_asset_code: diyAssetCodes.STAR_STONE,
+            price_asset_code: b.price_asset_code || diyAssetCodes.STAR_STONE,
             stock: -1,
             is_stackable: 1,
             sort_order: 0,

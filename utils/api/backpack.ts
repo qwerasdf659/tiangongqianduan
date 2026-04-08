@@ -400,7 +400,7 @@ async function rateExchangeOrder(order_no: string, rating: number) {
   if (!rating || rating < 1 || rating > 5) {
     throw new Error('评价分数必须在1-5之间')
   }
-  const idempotencyKey = `exchange_rate_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = `order_rating_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
   return apiClient.request(`/exchange/orders/${order_no}/rate`, {
     method: 'POST',

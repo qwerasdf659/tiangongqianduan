@@ -133,7 +133,8 @@ Page({
     this.setData({ loading: true, hasError: false, page: 1 })
 
     try {
-      const sortConfig = SORT_OPTIONS.find(s => s.key === this.data.currentSort) || SORT_OPTIONS[0]
+      const sortConfig =
+        SORT_OPTIONS.find((s: any) => s.key === this.data.currentSort) || SORT_OPTIONS[0]
 
       const result = await API.getAuctionListings({
         page: 1,
@@ -176,7 +177,8 @@ Page({
     this.setData({ loading: true })
 
     try {
-      const sortConfig = SORT_OPTIONS.find(s => s.key === this.data.currentSort) || SORT_OPTIONS[0]
+      const sortConfig =
+        SORT_OPTIONS.find((s: any) => s.key === this.data.currentSort) || SORT_OPTIONS[0]
 
       const result = await API.getAuctionListings({
         page: nextPage,

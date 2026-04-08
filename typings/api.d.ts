@@ -2157,6 +2157,12 @@ declare namespace API {
     allowed_group_codes?: string[]
     /** 是否为必填槽位（影响结算校验） */
     required: boolean
+    /**
+     * 渲染直径(mm)，小程序渲染珠子时用此值控制显示大小
+     * 有值: 珠子图片按此直径等比渲染，居中放置在槽位区域内
+     * null: 珠子图片拉伸填满槽位区域
+     */
+    render_diameter?: number | null
   }
 
   /**
@@ -2343,10 +2349,10 @@ declare namespace API {
   interface DiyMaterialGroup {
     /** 分组唯一标识（如 "red"、"blue"） */
     group_code: string
-    /** 分组显示名（如 "红色系"） */
-    display_name: string
-    /** 分组类型（material材料分组 / system系统分组） */
-    group_type?: string
+    /** 该分组下的素材数量 */
+    count: string
+    /** 该分组下的示例素材名称 */
+    sample_name: string
   }
 
   /**
@@ -2380,6 +2386,8 @@ declare namespace API {
     is_stackable: number
     /** 图片媒体ID */
     image_media_id?: number
+    /** 图片媒体对象（后端 JOIN media_files 返回，含 public_url） */
+    image_media?: MediaObject | null
     /** 分类ID */
     category_id?: number
     /** 排序权重 */
@@ -2442,33 +2450,58 @@ declare namespace API {
     mode: 'beading' | 'slots'
     /** 串珠模式: 选择的尺码 */
     selected_size?: string
-    /** 串珠模式: 珠子列表 */
-    beads?: { position: number; asset_code: string; diameter?: number; size?: string }[]
-    /** 镶嵌模式: 槽位填充数据 */
-    fillings?: Record<string, { asset_code: string }>
+    /** 串珠模式: 珠子列表（material_code 对齐后端 diy_materials 表主键） */
+    beads?: { slot_index: number; material_code: string; diameter?: number }[]
+    /** 镶嵌模式: 槽位填充数据（material_code 对齐后端 diy_materials 表主键） */
+    fillings?: Record<string, { material_code: string }>
   }
 
-  /** 材料消耗明细项 */
+  /** 材料消耗明细项（后端 total_cost JSON 数组元素） */
   interface DiyTotalCostItem {
-    /** 资产代码（如 "red_core_shard"） */
+    /** 资产代码（如 "star_stone"、"red_core_shard"） */
     asset_code: string
     /** 消耗数量 */
     amount: number
   }
 
   /**
+   * 按 price_asset_code 分组的费用明细（前端计算，用于支付面板展示）
+   * 从已选珠子的 price + price_asset_code 汇总而来
+   */
+  interface DiyCostBreakdownItem {
+    /** 定价资产代码（对应 material_asset_types.asset_code，如 "star_stone"） */
+    asset_code: string
+    /** 该资产的汇总金额（所有使用该 price_asset_code 定价的珠子价格之和） */
+    amount: number
+    /** 涉及的珠子数量（用于展示"N颗珠子"） */
+    bead_count: number
+    /** 资产中文名称（用于 UI 展示，如 "星石"、"红源晶碎片"） */
+    asset_name: string
+  }
+
+  /**
+   * 确认设计请求体（POST /api/v4/diy/works/:id/confirm）
+   * 文档第二部分 4.2 节: 前端提交 payments（用户选择的支付方式）
+   * 后端根据 design_data 查 diy_materials 当前价格计算 total_price 并校验
+   */
+  interface DiyConfirmRequest {
+    /** 支付明细（按 asset_code 分组，每项指定用哪种资产支付多少） */
+    payments: DiyTotalCostItem[]
+  }
+
+  /**
    * 保存设计草稿请求（POST /api/v4/diy/works）
-   * 后端校验模板+材料合法性，计算total_cost
+   * 后端校验模板+材料合法性，由 confirmDesign 时服务端计算 total_cost
    */
   interface DiyWorkCreateRequest {
     /** 模板主键 */
     diy_template_id: number
     /** 作品名称 */
     work_name: string
-    /** 设计数据 */
+    /** 设计数据（只记录珠子选择，不记录支付方式） */
     design_data: DiyDesignData
-    /** 材料消耗明细 */
-    total_cost: DiyTotalCostItem[]
+    /** 材料消耗明细（前端传空数组，由后端 confirmDesign 时计算） */
+    total_cost?: DiyTotalCostItem[]
   }
 
   /** 保存设计草稿响应 */

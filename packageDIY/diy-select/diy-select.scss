@@ -11,6 +11,7 @@
 .page-header {
   padding: 0 $spacing-base;
   padding-top: $spacing-md;
+  position: relative;
 }
 
 .header-bg {
@@ -19,6 +20,18 @@
   padding: $spacing-xxl $spacing-lg;
   display: flex;
   flex-direction: column;
+}
+
+/* 我的设计入口按钮（头部右上角） */
+.my-works-entry {
+  position: absolute;
+  top: $spacing-lg;
+  right: $spacing-lg;
+  padding: $spacing-xs $spacing-md;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+  color: $color-white;
 }
 
 .header-title {

@@ -1,0 +1,188 @@
+/**
+ * DIY 我的作品列表页样式
+ * 对齐 my-orders 页面的视觉规范
+ */
+
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.diy-works-page {
+  min-height: 100vh;
+  background: $color-bg;
+  padding-bottom: calc(#{$spacing-xxl} + env(safe-area-inset-bottom));
+}
+
+/* ===== 状态筛选 Tab ===== */
+.status-tabs {
+  display: flex;
+  background: $color-white;
+  padding: 0 $spacing-sm;
+  border-bottom: 1rpx solid $color-border;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.status-tab {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  position: relative;
+}
+
+.status-tab.active {
+  color: $color-primary;
+  font-weight: 500;
+}
+
+.status-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background: $color-primary;
+  border-radius: 2rpx;
+}
+
+/* ===== 错误状态 ===== */
+.error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx $spacing-lg;
+}
+
+.error-text {
+  font-size: $font-size-sm;
+  color: $color-error;
+  margin-bottom: $spacing-md;
+}
+
+.retry-btn {
+  padding: $spacing-xs $spacing-lg;
+  border: 1rpx solid $color-primary;
+  border-radius: $border-radius-sm;
+  color: $color-primary;
+  font-size: $font-size-sm;
+}
+
+/* ===== 作品列表 ===== */
+.works-list {
+  padding: $spacing-md;
+}
+
+/* ===== 作品卡片 ===== */
+.work-card {
+  background: $color-white;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-md;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.work-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.work-name {
+  font-size: $font-size-md;
+  font-weight: 500;
+  color: $color-text;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.work-status {
+  font-size: $font-size-xs;
+  padding: 4rpx 16rpx;
+  border-radius: $border-radius-sm;
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+}
+
+.work-status.status-draft {
+  background: rgba($color-info, 0.1);
+  color: $color-info;
+}
+
+.work-status.status-frozen {
+  background: rgba($color-warning, 0.1);
+  color: $color-warning;
+}
+
+.work-status.status-completed {
+  background: rgba($color-success, 0.1);
+  color: $color-success;
+}
+
+.work-status.status-cancelled {
+  background: rgba($color-text-placeholder, 0.1);
+  color: $color-text-placeholder;
+}
+
+.work-card-body {
+  padding: $spacing-sm $spacing-lg;
+}
+
+.work-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.work-info-label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.work-info-value {
+  font-size: $font-size-sm;
+  color: $color-text;
+}
+
+.work-cost-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  justify-content: flex-end;
+}
+
+.work-cost-item {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  background: rgba($color-primary, 0.08);
+  padding: 2rpx 12rpx;
+  border-radius: 4rpx;
+}
+
+.work-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm $spacing-lg;
+  border-top: 1rpx solid $color-divider;
+}
+
+.work-action-hint {
+  font-size: $font-size-xs;
+  color: $color-text-placeholder;
+}
+
+.work-arrow {
+  font-size: $font-size-sm;
+  color: $color-text-placeholder;
+}

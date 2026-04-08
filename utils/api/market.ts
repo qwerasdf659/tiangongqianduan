@@ -16,7 +16,7 @@
  *   - 资产信息通过 JOIN material_asset_types 查询，封装在 asset_info 嵌套对象中
  *   - 图片通过 media_files 表 JOIN 返回 primary_media 对象（含 public_url）
  *
- * ⚠️ 汇率兑换API已迁移到 utils/api/assets.ts（对齐后端 /api/v4/assets/rates/）
+ * ⚠️ 资产转换API已迁移到 utils/api/assets.ts（对齐后端 /api/v4/assets/conversion/）
  *
  * @file 天工餐厅积分系统 - C2C交易市场API模块
  * @version 6.0.0

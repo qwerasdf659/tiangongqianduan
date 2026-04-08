@@ -85,6 +85,39 @@
   color: $color-success;
 }
 
+/* ===== 费用预览（多币种分组展示） ===== */
+.cost-preview {
+  margin-top: $spacing-sm;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.cost-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  background: rgba($color-primary, 0.08);
+  padding: 6rpx 16rpx;
+  border-radius: $border-radius-sm;
+}
+
+.cost-preview-amount {
+  font-size: $font-size-md;
+  font-weight: 600;
+  color: $color-primary;
+}
+
+.cost-preview-asset {
+  font-size: $font-size-sm;
+  color: $color-primary;
+}
+
+.cost-preview-count {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
 /* ===== 结算流程 ===== */
 .settlement-area {
   width: 100%;

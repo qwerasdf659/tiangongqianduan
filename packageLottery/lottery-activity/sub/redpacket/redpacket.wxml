@@ -27,11 +27,11 @@
           </view>
           <!-- 编号 -->
           <view class="packet-number">
-            <text>{{item.id + 1}}</text>
+            <text class="count-text">{{item.id + 1}}</text>
           </view>
           <!-- 点击提示 -->
           <view class="packet-tap-hint" wx:if="{{canSelect && selectedPacket < 0}}">
-            <text>点我</text>
+            <text class="hint-text">点我</text>
           </view>
         </view>
 
@@ -93,7 +93,7 @@
               <text class="deco-text">恭喜发财</text>
             </view>
             <view class="packet-number">
-              <text>{{packet.index + 1}}</text>
+              <text class="count-text">{{packet.index + 1}}</text>
             </view>
           </view>
 
@@ -111,7 +111,7 @@
     <!-- 一键全拆按钮 -->
     <view class="multi-actions" wx:if="{{!allOpened}}">
       <view class="multi-open-all-btn" bindtap="onOpenAll">
-        <text>全部拆开</text>
+        <text class="btn-text">全部拆开</text>
       </view>
     </view>
   </block>
