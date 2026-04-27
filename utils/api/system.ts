@@ -413,7 +413,13 @@ async function getUserIssues(page: number = 1, page_size: number = 10) {
 
 // ==================== 🔔 活动 ====================
 
-/** 获取活动列表 - GET /api/v4/activities（公开接口，无需登录） */
+/** 
+ * 获取活动列表 - GET /api/v4/activities（公开接口，无需登录）
+ * 
+ * ⚠️ 后端现状: 该路由当前配置了 authenticateToken 中间件，
+ *    未登录时返回 401 MISSING_TOKEN。需后端移除认证中间件或改为可选认证。
+ *    前端已做防护: needAuth=false 的请求收到401不会清除用户登录状态。
+ */
 async function getActivities(params: { page?: number; page_size?: number } = {}) {
   const { page = 1, page_size = 20 } = params
   const qs = buildQueryString({ page, page_size })
