@@ -85,7 +85,8 @@ const chatMessageHandlers = {
           const isOwn = msg.sender_type === 'user'
 
           return {
-            id: msg.chat_message_id,
+            messageId: `server_${msg.chat_message_id}`,
+            chat_message_id: msg.chat_message_id,
             content: msg.content || '',
             messageType: msg.message_type || 'text',
             isOwn,
@@ -332,7 +333,10 @@ const chatMessageHandlers = {
 
     msgLog.info('admin消息字段:', Object.keys(messageData))
     const adminMessage = {
-      id: messageData.chat_message_id || `admin_msg_${Date.now()}`,
+      messageId: messageData.chat_message_id
+        ? `server_${messageData.chat_message_id}`
+        : `admin_msg_${Date.now()}`,
+      chat_message_id: messageData.chat_message_id || null,
       content: messageData.content,
       messageType: messageData.message_type || 'text',
       senderId: messageData.sender_id,
@@ -369,7 +373,12 @@ const chatMessageHandlers = {
     const messages = this.data.messages.map((msg: any) => {
       if (!updated && msg.isOwn && msg.status === 'sending') {
         updated = true
-        return { ...msg, status: 'sent', id: serverMsgId }
+        return {
+          ...msg,
+          status: 'sent',
+          chat_message_id: serverMsgId,
+          messageId: `server_${serverMsgId}`
+        }
       }
       return msg
     })
@@ -418,15 +427,15 @@ const chatMessageHandlers = {
    * 判断消息方向: sender_type='user' → 自己发的(右侧)，其余 → 对方发的(左侧)
    */
   addMessage(messageData: any) {
-    const msgId = messageData.chat_message_id || messageData.id
+    const serverMsgId = messageData.chat_message_id || null
     /*
      * 去重检查: 防止同一条消息被重复添加
      * 场景: Socket.IO 网络抖动、重连后补推、或 new_message 与 message_sent 竞态
      */
-    if (msgId) {
-      const exists = this.data.messages.some((msg: any) => msg.id === msgId)
+    if (serverMsgId) {
+      const exists = this.data.messages.some((msg: any) => msg.chat_message_id === serverMsgId)
       if (exists) {
-        msgLog.info('消息去重 — 已存在相同ID的消息，跳过:', msgId)
+        msgLog.info('消息去重 — 已存在相同ID的消息，跳过:', serverMsgId)
         return
       }
     }
@@ -439,7 +448,10 @@ const chatMessageHandlers = {
       (messageData.created_at ? new Date(messageData.created_at).getTime() : Date.now())
 
     const newMessage = {
-      id: msgId || `msg_${Date.now()}`,
+      messageId: serverMsgId
+        ? `server_${serverMsgId}`
+        : messageData.messageId || `local_${Date.now()}`,
+      chat_message_id: serverMsgId,
       content: messageData.content || '',
       messageType: messageData.messageType || messageData.message_type || 'text',
       isOwn,
@@ -587,7 +599,8 @@ const chatMessageHandlers = {
 
     const localMsgId = `local_${Date.now()}`
     const message = {
-      id: localMsgId,
+      messageId: localMsgId,
+      chat_message_id: null,
       content,
       messageType: 'text',
       isOwn: true,
@@ -640,7 +653,7 @@ const chatMessageHandlers = {
       msgShowToast('发送消息时出现错误')
 
       const failedMessages = this.data.messages.map((msg: any) =>
-        msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
+        msg.messageId === localMsgId ? { ...msg, status: 'failed' } : msg
       )
       this.setData({ messages: failedMessages })
     } finally {
@@ -664,22 +677,29 @@ const chatMessageHandlers = {
       if (apiResult.success) {
         msgLog.info('API 降级发送成功')
         const updatedMessages = this.data.messages.map((msg: any) =>
-          msg.id === localMsgId
-            ? { ...msg, status: 'sent', id: apiResult.data?.chat_message_id || msg.id }
+          msg.messageId === localMsgId
+            ? {
+                ...msg,
+                status: 'sent',
+                chat_message_id: apiResult.data?.chat_message_id || null,
+                messageId: apiResult.data?.chat_message_id
+                  ? `server_${apiResult.data.chat_message_id}`
+                  : msg.messageId
+              }
             : msg
         )
         this.setData({ messages: updatedMessages })
       } else {
         msgLog.error('API 降级发送失败:', apiResult.message)
         const failedMessages = this.data.messages.map((msg: any) =>
-          msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
+          msg.messageId === localMsgId ? { ...msg, status: 'failed' } : msg
         )
         this.setData({ messages: failedMessages })
       }
     } catch (apiError) {
       msgLog.error('API 降级发送异常:', apiError)
       const failedMessages = this.data.messages.map((msg: any) =>
-        msg.id === localMsgId ? { ...msg, status: 'failed' } : msg
+        msg.messageId === localMsgId ? { ...msg, status: 'failed' } : msg
       )
       this.setData({ messages: failedMessages })
     }
@@ -720,7 +740,8 @@ const chatMessageHandlers = {
 
         /* 本地乐观消息 */
         const localMsg = {
-          id: `img_${Date.now()}`,
+          messageId: `img_${Date.now()}`,
+          chat_message_id: null,
           content: tempFile.tempFilePath,
           messageType: 'image',
           isOwn: true,
@@ -752,12 +773,15 @@ const chatMessageHandlers = {
           if (sendResult.success) {
             msgLog.info('图片消息发送成功')
             const updatedMessages = this.data.messages.map((msg: any) =>
-              msg.id === localMsg.id
+              msg.messageId === localMsg.messageId
                 ? {
                     ...msg,
                     content: imageUrl,
                     status: 'sent',
-                    id: sendResult.data?.chat_message_id || msg.id
+                    chat_message_id: sendResult.data?.chat_message_id || null,
+                    messageId: sendResult.data?.chat_message_id
+                      ? `server_${sendResult.data.chat_message_id}`
+                      : msg.messageId
                   }
                 : msg
             )
@@ -767,7 +791,7 @@ const chatMessageHandlers = {
           msgLog.error('图片发送失败:', error)
           msgShowToast(error.message || '图片发送失败')
           const failedMessages = this.data.messages.map((msg: any) =>
-            msg.id === localMsg.id ? { ...msg, status: 'failed' } : msg
+            msg.messageId === localMsg.messageId ? { ...msg, status: 'failed' } : msg
           )
           this.setData({ messages: failedMessages })
         }
@@ -781,7 +805,8 @@ const chatMessageHandlers = {
     wx.chooseLocation({
       success: (res: WechatMiniprogram.ChooseLocationSuccessCallbackResult) => {
         const locMessage = {
-          id: `loc_${Date.now()}`,
+          messageId: `loc_${Date.now()}`,
+          chat_message_id: null,
           content: `[位置] ${res.name}`,
           messageType: 'location',
           isOwn: true,
@@ -999,15 +1024,15 @@ const chatMessageHandlers = {
 
   /**
    * 重新发送失败的消息
-   * @param e - 点击事件，通过 data-id 获取消息ID
+   * @param e - 点击事件，通过 data-message-id 获取消息ID
    */
   resendMessage(e: WechatMiniprogram.BaseEvent) {
-    const messageId = e.currentTarget.dataset.id as string
+    const messageId = e.currentTarget.dataset.messageId as string
     if (!messageId) {
       return
     }
 
-    const failedMessage = this.data.messages.find((msg: any) => msg.id === messageId)
+    const failedMessage = this.data.messages.find((msg: any) => msg.messageId === messageId)
     if (!failedMessage) {
       return
     }
@@ -1015,7 +1040,7 @@ const chatMessageHandlers = {
     msgLog.info('重新发送消息:', messageId)
 
     /* 移除旧的失败消息 */
-    const filteredMessages = this.data.messages.filter((msg: any) => msg.id !== messageId)
+    const filteredMessages = this.data.messages.filter((msg: any) => msg.messageId !== messageId)
     this.setData({ messages: filteredMessages })
 
     /* 重新设置输入内容并发送 */

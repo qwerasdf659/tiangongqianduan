@@ -299,7 +299,7 @@
 
   <!--瀑布流主容器-->
   <view class="waterfall-container" style="height: {{containerHeight}}px;">
-    <block wx:for="{{products}}" wx:key="listing_id">
+    <block wx:for="{{products}}" wx:key="market_listing_id">
       <!-- Feed 广告卡片（穿插在商品列表中，_isAdItem=true 区分） -->
       <view
         wx:if="{{item._isAdItem}}"

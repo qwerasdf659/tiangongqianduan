@@ -14,7 +14,7 @@
  */
 
 const { apiClient } = require('./client')
-const { buildQueryString } = require('../util')
+const { buildQueryString, generateIdempotencyKey } = require('../util')
 
 // ==================== 背包 ====================
 
@@ -56,7 +56,7 @@ async function getInventoryItem(item_id: number) {
  * @param item_id - 物品ID（items表主键，BIGINT）
  */
 async function useInventoryItem(item_id: number) {
-  const idempotencyKey = `backpack_use_${item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('backpack_use', item_id)
 
   return apiClient.request(`/backpack/items/${item_id}/use`, {
     method: 'POST',
@@ -75,7 +75,7 @@ async function useInventoryItem(item_id: number) {
  * @param item_id - 物品ID（items表主键，BIGINT）
  */
 async function redeemInventoryItem(item_id: number) {
-  const idempotencyKey = `backpack_redeem_${item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('backpack_redeem', item_id)
 
   return apiClient.request(`/backpack/items/${item_id}/redeem`, {
     method: 'POST',
@@ -223,7 +223,7 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1, s
     throw new Error('兑换数量必须大于0')
   }
 
-  const idempotencyKey = `exchange_${exchange_item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('exchange', exchange_item_id)
 
   const requestData: Record<string, any> = {
     exchange_item_id,
@@ -291,7 +291,7 @@ async function cancelExchange(order_no: string) {
     throw new Error('订单号不能为空')
   }
 
-  const idempotencyKey = `exchange_cancel_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('exchange_cancel', order_no)
 
   return apiClient.request(`/exchange/orders/${order_no}/cancel`, {
     method: 'POST',
@@ -361,7 +361,7 @@ async function confirmExchangeReceipt(order_no: string) {
     throw new Error('订单号不能为空')
   }
 
-  const idempotencyKey = `exchange_confirm_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('exchange_confirm', order_no)
 
   return apiClient.request(`/exchange/orders/${order_no}/confirm-receipt`, {
     method: 'POST',
@@ -400,7 +400,7 @@ async function rateExchangeOrder(order_no: string, rating: number) {
   if (!rating || rating < 1 || rating > 5) {
     throw new Error('评价分数必须在1-5之间')
   }
-  const idempotencyKey = `order_rating_${order_no}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('order_rating', order_no)
 
   return apiClient.request(`/exchange/orders/${order_no}/rate`, {
     method: 'POST',
@@ -523,7 +523,7 @@ async function getPremiumStatus() {
  *   5. 全流程在 TransactionManager.execute() 事务中
  */
 async function unlockPremium() {
-  const idempotencyKey = `unlock_premium_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('unlock_premium')
 
   return apiClient.request('/exchange/unlock-premium', {
     method: 'POST',
@@ -630,7 +630,7 @@ async function placeBid(bid_product_id: number, bid_amount: number) {
     throw new Error('出价金额必须大于0')
   }
 
-  const idempotencyKey = `bid_${bid_product_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('bid', bid_product_id)
 
   return apiClient.request('/exchange/bid', {
     method: 'POST',
@@ -681,7 +681,7 @@ async function refreshRedemptionQR(item_id: number) {
     throw new Error('物品ID不能为空')
   }
 
-  const idempotencyKey = `redeem_refresh_${item_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('redeem_refresh', item_id)
 
   return apiClient.request(`/backpack/items/${item_id}/redeem/refresh-qr`, {
     method: 'POST',

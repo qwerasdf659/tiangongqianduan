@@ -73,12 +73,11 @@ class ThemeCache {
         themeCacheLog.info('使用本地缓存主题:', cachedTheme)
 
         const lastUpdate = wx.getStorageSync(APP_THEME_LAST_UPDATE_KEY) || 0
-        if (Date.now() - lastUpdate > THEME_CACHE_EXPIRE) {
+        const cacheAge = Date.now() - lastUpdate
+        if (cacheAge > THEME_CACHE_EXPIRE) {
           themeCacheLog.info('主题缓存已过期（超过 24 小时），后台静默更新')
+          ThemeCache._silentUpdate()
         }
-
-        /* 后台静默更新（不阻塞当前渲染） */
-        ThemeCache._silentUpdate()
 
         return cachedTheme
       }
@@ -221,27 +220,25 @@ class ThemeCache {
 
   /**
    * 后台静默更新主题（不阻塞主流程，失败不影响用户使用）
+   * 使用 void Promise 确保所有异常被内部消化，不产生控制台红色报错
    */
   static _silentUpdate(): void {
-    ;(async () => {
-      try {
-        const remoteTheme = await ThemeCache._fetchFromAPI()
+    ThemeCache._fetchFromAPI()
+      .then((remoteTheme: string | null) => {
         if (!remoteTheme) {
           return
         }
-
         const cachedTheme = ThemeCache._getLocalCache()
         if (cachedTheme === remoteTheme) {
           themeCacheLog.info('后台检查: 主题已是最新:', cachedTheme)
           return
         }
-
         themeCacheLog.info(`发现新主题: ${cachedTheme} → ${remoteTheme}，静默更新`)
         ThemeCache._saveToLocal(remoteTheme)
-      } catch (error) {
-        themeCacheLog.warn('后台静默更新主题失败（不影响使用）:', error)
-      }
-    })()
+      })
+      .catch((error: any) => {
+        themeCacheLog.warn('后台静默更新主题失败（不影响使用）:', error?.message || error)
+      })
   }
 }
 

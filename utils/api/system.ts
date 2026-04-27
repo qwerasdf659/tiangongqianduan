@@ -242,7 +242,8 @@ async function uploadChatImage(session_id: number, filePath: string) {
       filePath,
       name: 'image',
       header: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'x-platform': 'wechat_mp'
       },
       success: (res: WechatMiniprogram.UploadFileSuccessCallbackResult) => {
         try {
@@ -412,11 +413,16 @@ async function getUserIssues(page: number = 1, page_size: number = 10) {
 
 // ==================== 🔔 活动 ====================
 
-/** 获取活动列表 - GET /api/v4/activities */
+/** 获取活动列表 - GET /api/v4/activities（公开接口，无需登录） */
 async function getActivities(params: { page?: number; page_size?: number } = {}) {
   const { page = 1, page_size = 20 } = params
   const qs = buildQueryString({ page, page_size })
-  return apiClient.request(`/activities?${qs}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/activities?${qs}`, {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
 }
 
 /**

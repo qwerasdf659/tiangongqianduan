@@ -91,9 +91,10 @@ Page({
     const source = options.source || 'trade'
 
     if (source === 'auction') {
-      const auctionListingId = parseInt(options.auction_listing_id || '0', 10)
-      if (!auctionListingId) {
-        disputeLog.error('缺少 auction_listing_id 路由参数')
+      const auctionListingIdText = options.auction_listing_id || ''
+      const auctionListingId = Number(auctionListingIdText)
+      if (!auctionListingIdText || !Number.isInteger(auctionListingId) || auctionListingId <= 0) {
+        disputeLog.error('缺少有效的 auction_listing_id 路由参数')
         this.setData({ loading: false, hasError: true, errorMessage: '拍卖信息无效' })
         return
       }
@@ -101,9 +102,10 @@ Page({
       return
     }
 
-    const tradeOrderId = parseInt(options.trade_order_id || '0', 10)
-    if (!tradeOrderId) {
-      disputeLog.error('缺少 trade_order_id 路由参数')
+    const tradeOrderIdText = options.trade_order_id || ''
+    const tradeOrderId = Number(tradeOrderIdText)
+    if (!tradeOrderIdText || !Number.isInteger(tradeOrderId) || tradeOrderId <= 0) {
+      disputeLog.error('缺少有效的 trade_order_id 路由参数')
       this.setData({ loading: false, hasError: true, errorMessage: '订单信息无效' })
       return
     }

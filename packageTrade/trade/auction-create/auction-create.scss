@@ -2,7 +2,7 @@
 @import '../../../styles/variables';
 
 /* 竞拍模块专用补充变量 */
-$color-primary-bg: #FFF3ED;
+$color-primary-bg: #fff3ed;
 $border-radius-auction-md: 12rpx;
 
 .auction-create-container {
@@ -47,9 +47,19 @@ $border-radius-auction-md: 12rpx;
   padding: 80rpx 40rpx;
 }
 
-.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
-.empty-text { font-size: 28rpx; color: $color-text-tertiary; }
-.empty-hint { font-size: 24rpx; color: $color-text-tertiary; margin-top: 8rpx; }
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+.empty-text {
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+}
+.empty-hint {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+  margin-top: 8rpx;
+}
 
 .items-grid {
   display: flex;
@@ -110,9 +120,21 @@ $border-radius-auction-md: 12rpx;
   background-color: $color-bg-grey;
 }
 
-.preview-info { flex: 1; }
-.preview-name { font-size: 28rpx; font-weight: 600; color: $color-text-primary; display: block; }
-.preview-rarity { font-size: 24rpx; color: $color-text-tertiary; margin-top: 4rpx; display: block; }
+.preview-info {
+  flex: 1;
+}
+.preview-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+  display: block;
+}
+.preview-rarity {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+  display: block;
+}
 
 /* 表单 */
 .form-section {
@@ -140,7 +162,9 @@ $border-radius-auction-md: 12rpx;
   margin-bottom: 16rpx;
 }
 
-.required { color: #ff4d4f; }
+.required {
+  color: #ff4d4f;
+}
 
 .form-input {
   width: 100%;
@@ -165,7 +189,10 @@ $border-radius-auction-md: 12rpx;
   color: $color-text-primary;
 }
 
-.picker-arrow { color: $color-text-tertiary; font-size: 22rpx; }
+.picker-arrow {
+  color: $color-text-tertiary;
+  font-size: 22rpx;
+}
 
 .form-hint {
   font-size: 22rpx;

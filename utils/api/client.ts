@@ -178,6 +178,7 @@ class APIClient {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'x-platform': 'wechat_mp',
       ...customHeaders
     }
 
@@ -582,6 +583,9 @@ class APIClient {
         url: `${this.config.fullUrl}/system/status`,
         method: 'GET',
         timeout: 5000,
+        header: {
+          'x-platform': 'wechat_mp'
+        },
         success: (res: any) => {
           if (res.statusCode === 200) {
             log.info('维护模式: 健康检查通过，服务已恢复')
@@ -679,6 +683,15 @@ class APIClient {
 
       if (refreshResponse.success && refreshResponse.data) {
         const { access_token, refresh_token: newRefreshToken } = refreshResponse.data
+
+        if (
+          typeof access_token !== 'string' ||
+          access_token.trim() === '' ||
+          typeof newRefreshToken !== 'string' ||
+          newRefreshToken.trim() === ''
+        ) {
+          throw new Error('刷新令牌响应缺少有效的 access_token 或 refresh_token')
+        }
 
         const store = getUserStore()
         if (store) {

@@ -283,6 +283,26 @@ function checkTokenValidity(): {
   isNormalUnauth?: boolean
   info?: Record<string, any>
 } {
+  let appInstance: any = null
+  try {
+    if (typeof getApp === 'function') {
+      appInstance = getApp()
+    }
+  } catch (_error) {
+    appInstance = null
+  }
+
+  if (!appInstance) {
+    log.warn('应用尚未完成初始化')
+    return {
+      isValid: false,
+      error: 'APP_NOT_INITIALIZED',
+      message: '应用尚未完成初始化',
+      needsRelogin: false,
+      isNormalUnauth: false
+    }
+  }
+
   const store = getUserStore()
 
   // 检查登录状态

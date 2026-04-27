@@ -21,7 +21,7 @@
       <view
         class="wheel-prize {{item.rarity_code || 'common'}} {{item.is_sold_out ? 'wheel-prize--sold-out' : ''}} {{item.is_fallback ? 'wheel-prize--fallback' : ''}}"
         wx:for="{{prizes}}"
-        wx:key="prize_id"
+        wx:key="lottery_prize_id"
         style="{{prizePositions[index]}}"
       >
         <text class="wheel-prize__icon">{{item.prize_icon || '🎁'}}</text>
@@ -67,7 +67,7 @@
           rarity="{{item.rarity_code || 'common'}}"
           enabled="{{rarityEffects}}"
           wx:for="{{prizesForPreview}}"
-          wx:key="prize_id"
+          wx:key="lottery_prize_id"
           bindtap="onPrizeTap"
           data-prize="{{item}}"
         >

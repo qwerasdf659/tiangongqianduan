@@ -355,6 +355,14 @@
   flex-wrap: wrap;
 }
 
+.order-no-text {
+  display: block;
+  margin-top: 12rpx;
+  font-size: $font-size-xs;
+  color: $color-info;
+  word-break: break-all;
+}
+
 .meta-text {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
@@ -454,6 +462,20 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
+}
+
+.sold-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+
+.sold-order-no {
+  font-size: $font-size-xs;
+  color: $color-info;
+  word-break: break-all;
+  text-align: right;
 }
 
 .sold-label {
@@ -661,6 +683,30 @@
 
 .escrow-body {
   padding: 32rpx;
+}
+
+.escrow-order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+  padding: 20rpx 24rpx;
+  background: #f5f6f8;
+  border-radius: 16rpx;
+}
+
+.escrow-order-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.escrow-order-value {
+  font-size: 24rpx;
+  color: $color-info;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
 }
 
 .escrow-hint {

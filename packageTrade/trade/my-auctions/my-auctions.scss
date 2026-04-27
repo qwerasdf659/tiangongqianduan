@@ -2,7 +2,7 @@
 @import '../../../styles/variables';
 
 /* 竞拍模块专用补充变量 */
-$color-primary-bg: #FFF3ED;
+$color-primary-bg: #fff3ed;
 $border-radius-auction-md: 12rpx;
 
 .my-auctions-container {
@@ -44,10 +44,19 @@ $border-radius-auction-md: 12rpx;
   padding: 80rpx 40rpx;
 }
 
-.error-text, .empty-text { font-size: 28rpx; color: $color-text-tertiary; margin-bottom: 24rpx; }
-.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
+.error-text,
+.empty-text {
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+  margin-bottom: 24rpx;
+}
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
 
-.retry-btn, .create-btn {
+.retry-btn,
+.create-btn {
   padding: 16rpx 48rpx;
   background-color: $color-primary;
   color: #fff;
@@ -100,11 +109,23 @@ $border-radius-auction-md: 12rpx;
   gap: 8rpx;
 }
 
-.auction-price-row .price-label { font-size: 22rpx; color: $color-text-tertiary; }
-.auction-price-row .price-value { font-size: 28rpx; font-weight: 600; color: $color-error; }
+.auction-price-row .price-label {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+.auction-price-row .price-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-error;
+}
 
-.auction-stats { margin-top: 4rpx; }
-.stat-text { font-size: 22rpx; color: $color-text-tertiary; }
+.auction-stats {
+  margin-top: 4rpx;
+}
+.stat-text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
 
 .auction-status {
   margin-top: 4rpx;
@@ -112,8 +133,14 @@ $border-radius-auction-md: 12rpx;
   font-weight: 500;
 }
 
-.settled-info { margin-top: 4rpx; }
-.settled-text { font-size: 24rpx; color: $color-success; font-weight: 500; }
+.settled-info {
+  margin-top: 4rpx;
+}
+.settled-text {
+  font-size: 24rpx;
+  color: $color-success;
+  font-weight: 500;
+}
 
 .cancel-btn {
   padding: 12rpx 24rpx;
@@ -130,4 +157,7 @@ $border-radius-auction-md: 12rpx;
   padding: 32rpx 0;
 }
 
-.no-more { font-size: 24rpx; color: $color-text-tertiary; }
+.no-more {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+}

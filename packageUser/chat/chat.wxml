@@ -284,7 +284,7 @@
       <!-- 消息列表 -->
       <view
         wx:for="{{messages}}"
-        wx:key="id"
+        wx:key="messageId"
         class="message-item {{item.isOwn ? 'own-message' : 'other-message'}}"
       >
         <!-- 时间分割线 -->
@@ -341,7 +341,7 @@
                 wx:if="{{item.status === 'failed'}}"
                 class="status-label failed"
                 bindtap="resendMessage"
-                data-id="{{item.id}}"
+                data-message-id="{{item.messageId}}"
                 >发送失败，点击重试</text
               >
             </view>

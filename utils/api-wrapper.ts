@@ -10,6 +10,7 @@
 
 const { createLogger } = require('./logger')
 const { handleError: handleGlobalError } = require('./simple-error')
+const { showLoading, hideLoading } = require('./wechat')
 const log = createLogger('api-wrapper')
 
 /** API统一响应格式 */
@@ -98,11 +99,11 @@ async function safeApiCallWithLoading<T = any>(
 ): Promise<T | null> {
   const loadingTitle = options.context ? `${options.context}中...` : '加载中...'
 
-  wx.showLoading({ title: loadingTitle, mask: true })
+  showLoading(loadingTitle)
   try {
     return await safeApiCall<T>(apiFn, options)
   } finally {
-    wx.hideLoading()
+    hideLoading()
   }
 }
 

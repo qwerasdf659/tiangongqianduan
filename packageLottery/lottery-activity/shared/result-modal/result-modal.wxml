@@ -33,6 +33,9 @@
             >{{drawResult.prize.prize_description || '已自动生效'}}</text
           >
           <text class="result-subtitle" wx:else>单次抽奖获得精美奖品</text>
+          <text class="result-order-no" wx:if="{{drawResult.order_no}}"
+            >抽奖单号: {{drawResult.order_no}}</text
+          >
         </view>
       </view>
 
@@ -306,6 +309,16 @@
               <text class="mini-card-name">{{item.prize_name}}</text>
             </view>
           </view>
+        </view>
+
+        <view
+          class="multi-order-no-list"
+          wx:if="{{drawResult.order_nos && drawResult.order_nos.length > 0}}"
+        >
+          <text class="multi-order-no-title">抽奖单号</text>
+          <text class="multi-order-no-item" wx:for="{{drawResult.order_nos}}" wx:key="*this"
+            >{{item}}</text
+          >
         </view>
       </view>
 

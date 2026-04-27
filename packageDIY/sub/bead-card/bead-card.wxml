@@ -1,8 +1,18 @@
 <view class="bead-card {{disabled ? 'disabled' : ''}}" bind:tap="onTap" data-bead="{{bead}}">
   <!-- 宝石预览（优先后端 image_media.public_url 真实图片，无图时显示材质色块 fallback） -->
   <view class="bead-preview">
-    <image wx:if="{{bead.image_media.public_url}}" class="bead-image" src="{{bead.image_media.public_url}}" mode="aspectFill" lazy-load />
-    <view wx:else class="bead-color-preview" style="width: {{previewSize}}rpx; height: {{previewSize}}rpx;" />
+    <image
+      wx:if="{{bead.image_media.public_url}}"
+      class="bead-image"
+      src="{{bead.image_media.public_url}}"
+      mode="aspectFill"
+      lazy-load
+    />
+    <view
+      wx:else
+      class="bead-color-preview"
+      style="width: {{previewSize}}rpx; height: {{previewSize}}rpx;"
+    />
   </view>
 
   <!-- 信息区（使用后端蛇形字段名） -->

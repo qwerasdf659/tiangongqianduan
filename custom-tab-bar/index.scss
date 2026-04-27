@@ -44,7 +44,9 @@
 .tab-icon .iconfont {
   font-size: 44rpx;
   line-height: 1;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .tab-icon.active .iconfont {

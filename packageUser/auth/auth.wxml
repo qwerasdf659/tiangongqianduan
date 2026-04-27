@@ -122,15 +122,27 @@
           </checkbox-group>
         </view>
 
-        <!-- 🔴 权限简化：统一登录按钮 -->
-        <button
-          class="submit-btn {{logging ? 'loading' : ''}}"
-          disabled="{{logging}}"
-          bindtap="onSubmitLogin"
-        >
-          <text wx:if="{{!logging}}">立即登录</text>
-          <text wx:if="{{logging}}">登录中...</text>
-        </button>
+        <!-- 双登录入口：短信验证码登录 + 微信手机号一键登录 -->
+        <view class="submit-actions">
+          <button
+            class="submit-btn {{logging ? 'loading' : ''}}"
+            disabled="{{logging}}"
+            bindtap="onSubmitLogin"
+          >
+            <text wx:if="{{!logging}}">验证码登录</text>
+            <text wx:if="{{logging}}">登录中...</text>
+          </button>
+
+          <button
+            class="submit-btn wechat-btn {{logging ? 'loading' : ''}}"
+            disabled="{{logging}}"
+            open-type="getPhoneNumber"
+            bindgetphonenumber="onGetPhoneNumber"
+          >
+            <text wx:if="{{!logging}}">微信一键登录</text>
+            <text wx:if="{{logging}}">登录中...</text>
+          </button>
+        </view>
 
         <!-- 🔴 权限提示已移除 - 根据用户需求清除管理员权限相关提示 -->
 

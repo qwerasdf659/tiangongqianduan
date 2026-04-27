@@ -553,6 +553,76 @@ const generateRandomString = (length: number = 8): string => {
   return result
 }
 
+/** ArrayBuffer/Uint8Array → 十六进制字符串 */
+const bytesToHex = (bytes: Uint8Array): string => {
+  return Array.from(bytes)
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+/**
+ * 获取密码学安全随机十六进制串
+ * 优先使用标准 Web Crypto，微信小程序环境降级到 wx.getRandomValues
+ */
+const generateSecureRandomHex = async (byteLength: number = 8): Promise<string> => {
+  const globalObject: any = typeof globalThis !== 'undefined' ? globalThis : {}
+  const webCrypto = globalObject.crypto
+
+  if (webCrypto && typeof webCrypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(byteLength)
+    webCrypto.getRandomValues(bytes)
+    return bytesToHex(bytes)
+  }
+
+  if (typeof wx !== 'undefined' && typeof (wx as any).getRandomValues === 'function') {
+    return new Promise((resolve, reject) => {
+      ;(wx as any).getRandomValues({
+        length: byteLength,
+        success(res: { randomValues?: ArrayBuffer }) {
+          if (!res || !(res.randomValues instanceof ArrayBuffer)) {
+            reject(new Error('安全随机数接口返回格式错误'))
+            return
+          }
+
+          const bytes = new Uint8Array(res.randomValues)
+          if (bytes.byteLength !== byteLength) {
+            reject(new Error('安全随机数长度不符合预期'))
+            return
+          }
+
+          resolve(bytesToHex(bytes))
+        },
+        fail(error: { errMsg?: string }) {
+          reject(new Error(error?.errMsg || '获取安全随机数失败'))
+        }
+      })
+    })
+  }
+
+  throw new Error('当前运行环境不支持安全随机数接口，无法生成幂等键')
+}
+
+/**
+ * 统一生成 Idempotency-Key
+ * 结构：{prefix}_{业务片段...}_{timestamp}_{16位hex随机段}
+ */
+const generateIdempotencyKey = async (
+  prefix: string,
+  ...parts: Array<string | number | null | undefined>
+): Promise<string> => {
+  if (!prefix || typeof prefix !== 'string') {
+    throw new Error('幂等键前缀不能为空')
+  }
+
+  const normalizedParts = parts
+    .filter(part => part !== null && part !== undefined && part !== '')
+    .map(part => String(part).trim())
+    .filter(Boolean)
+
+  const randomHex = await generateSecureRandomHex(8)
+  return [prefix, ...normalizedParts, String(Date.now()), randomHex].join('_')
+}
+
 /**
  * 格式化积分显示（千分位分隔符，完整数字）
  * 业务场景: 积分列表显示、排行榜显示、统计数据显示
@@ -752,6 +822,8 @@ module.exports = {
   throttle,
   formatFileSize,
   generateRandomString,
+  generateSecureRandomHex,
+  generateIdempotencyKey,
   isEmpty,
   safeJsonParse,
   formatPoints,

@@ -18,7 +18,7 @@
  */
 
 const { apiClient } = require('./client')
-const { buildQueryString } = require('../util')
+const { buildQueryString, generateIdempotencyKey } = require('../util')
 
 // ==================== 余额与流水 ====================
 
@@ -218,7 +218,12 @@ async function executeConversion(params: {
   }
 
   /* 幂等键格式: convert_{user_id}_{from}_{to}_{amount}_{timestamp}（文档建议格式） */
-  const idempotencyKey = `convert_${params.from_asset_code}_${params.to_asset_code}_${params.from_amount}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  const idempotencyKey = await generateIdempotencyKey(
+    'convert',
+    params.from_asset_code,
+    params.to_asset_code,
+    params.from_amount
+  )
   return apiClient.request('/assets/conversion/convert', {
     method: 'POST',
     data: {

@@ -463,8 +463,12 @@ Component({
      * 使用 _beadImageLoading 防止同一 URL 重复加载
      */
     _loadBeadImage(url: string) {
-      if (!url || !this.data._canvas) return
-      if (this.data._beadImageCache[url] || this.data._beadImageLoading[url]) return
+      if (!url || !this.data._canvas) {
+        return
+      }
+      if (this.data._beadImageCache[url] || this.data._beadImageLoading[url]) {
+        return
+      }
 
       this.data._beadImageLoading[url] = true
       const img = this.data._canvas.createImage()
@@ -487,9 +491,19 @@ Component({
      *
      * @returns true=已绘制图片, false=无图片需要 fallback
      */
-    _drawBeadImage(ctx: any, bead: any, cx: number, cy: number, radius: number, slotW?: number, slotH?: number): boolean {
+    _drawBeadImage(
+      ctx: any,
+      bead: any,
+      cx: number,
+      cy: number,
+      radius: number,
+      slotW?: number,
+      slotH?: number
+    ): boolean {
       const url = this._getBeadImageUrl(bead)
-      if (!url) return false
+      if (!url) {
+        return false
+      }
 
       const cachedImg = this.data._beadImageCache[url]
       if (!cachedImg) {

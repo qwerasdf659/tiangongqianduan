@@ -2,7 +2,7 @@
 @import '../../../styles/variables';
 
 /* 竞拍模块专用补充变量 */
-$color-primary-bg: #FFF3ED;
+$color-primary-bg: #fff3ed;
 $border-radius-auction-md: 12rpx;
 
 .my-bids-container {
@@ -21,9 +21,20 @@ $border-radius-auction-md: 12rpx;
   padding: 80rpx 40rpx;
 }
 
-.error-text, .empty-text { font-size: 28rpx; color: $color-text-tertiary; margin-bottom: 24rpx; }
-.empty-icon { font-size: 80rpx; margin-bottom: 24rpx; }
-.empty-hint { font-size: 24rpx; color: $color-text-tertiary; }
+.error-text,
+.empty-text {
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+  margin-bottom: 24rpx;
+}
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+.empty-hint {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+}
 
 .retry-btn {
   padding: 16rpx 48rpx;
@@ -78,9 +89,20 @@ $border-radius-auction-md: 12rpx;
   gap: 8rpx;
 }
 
-.amount-label, .current-label { font-size: 22rpx; color: $color-text-tertiary; }
-.amount-value { font-size: 28rpx; font-weight: 600; color: $color-error; }
-.current-value { font-size: 24rpx; color: $color-text-secondary; }
+.amount-label,
+.current-label {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+.amount-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $color-error;
+}
+.current-value {
+  font-size: 24rpx;
+  color: $color-text-secondary;
+}
 
 .bid-status-row {
   display: flex;
@@ -89,15 +111,29 @@ $border-radius-auction-md: 12rpx;
   margin-top: 8rpx;
 }
 
-.bid-status-text { font-size: 24rpx; font-weight: 600; }
-.bid-time { font-size: 22rpx; color: $color-text-tertiary; }
+.bid-status-text {
+  font-size: 24rpx;
+  font-weight: 600;
+}
+.bid-time {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
 
-.bid-seller-row { margin-top: 4rpx; }
-.seller-text { font-size: 22rpx; color: $color-text-tertiary; }
+.bid-seller-row {
+  margin-top: 4rpx;
+}
+.seller-text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
 
 .list-footer {
   text-align: center;
   padding: 32rpx 0;
 }
 
-.no-more { font-size: 24rpx; color: $color-text-tertiary; }
+.no-more {
+  font-size: 24rpx;
+  color: $color-text-tertiary;
+}

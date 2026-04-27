@@ -60,7 +60,13 @@ declare namespace API {
     platform: LoginPlatform
   }
 
-  /** 登录响应数据 — 对齐后端 POST /api/v4/auth/login 实际返回格式 */
+  /** 微信小程序静默登录请求参数 - POST /api/v4/auth/wx-code-login */
+  interface WxCodeLoginRequest {
+    /** wx.login 返回的临时登录凭证 code */
+    code: string
+  }
+
+  /** 登录响应数据 — 对齐后端 POST /api/v4/auth/login 与 POST /api/v4/auth/wx-code-login 实际返回格式 */
   interface LoginData {
     /** JWT访问令牌 */
     access_token: string
@@ -123,16 +129,18 @@ declare namespace API {
   // ===== 抽奖系统 =====
 
   /**
-   * 奖品信息（后端 DataSanitizer.sanitizePrizes 输出，public级别）
+   * 奖品信息（后端抽奖活动奖品列表与抽奖结果统一字段）
    *
-   * 字段对齐后端 media_files + media_attachments 迁移后的实际返回格式：
-   * - prize_id: 剥离 lottery_ 模块前缀（数据库主键 lottery_prize_id）
+   * 字段对齐后端真实返回格式：
+   * - lottery_prize_id: 抽奖奖品主键（数据库主键 lottery_prize_id）
    * - primary_media: 有图片时为 MediaObject 对象，无图片时为 null（emoji兜底）
    * - icon 字段已移除（后端不再返回，前端根据 prize_type 自行生成 emoji）
    */
   interface Prize {
-    /** 奖品ID（剥离 lottery_ 前缀，数据库主键 lottery_prize_id） */
-    prize_id: number
+    /** 奖品ID（后端真实主键字段 lottery_prize_id） */
+    lottery_prize_id: number
+    /** 抽奖单号（lottery_draws.order_no，LT前缀16位编号） */
+    order_no?: string
     /** 奖品名称 */
     prize_name: string
     /** 奖品类型: points/physical/virtual/coupon/service */
@@ -715,6 +723,8 @@ declare namespace API {
   interface EscrowCodeInfo {
     /** 6位数字担保码（如 582917） */
     escrow_code: string
+    /** 交易订单号（trade_orders.order_no，TO前缀16位编号） */
+    order_no?: string
     /** 担保码过期时间（ISO8601，Redis存储30分钟有效） */
     expires_at: string
     /** 关联的交易订单ID */
@@ -1096,15 +1106,15 @@ declare namespace API {
   /**
    * 市场挂单（对齐后端 market_listings 表 + GET /api/v4/marketplace/listings 响应）
    * 双模式表: listing_kind 区分不可叠加物品(item)和可叠加资产(fungible_asset)
-   * 挂单状态: active / sold / withdrawn / expired（文档枚举）
+   * 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn
    *
    * 三表模型迁移（2026-02-22）:
    *   listing_kind 枚举: item_instance → item
    *   FK列名: offer_item_instance_id → offer_item_id
    */
   interface MarketListing {
-    /** 挂单ID（BIGINT PK，后端API返回字段名为 listing_id） */
-    listing_id: number
+    /** 挂单ID（BIGINT PK，后端API返回字段名为 market_listing_id） */
+    market_listing_id: number
     /** 挂牌类型: item(不可叠加物品) / fungible_asset(可叠加资产) */
     listing_kind: string
     /** 卖家用户ID */
@@ -1131,7 +1141,7 @@ declare namespace API {
     price_asset_code: string
     /** 售价（BIGINT） */
     price_amount: number
-    /** 挂单状态: active / sold / withdrawn / expired */
+    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
     status: string
     /** 创建时间 */
     created_at: string
@@ -1142,8 +1152,10 @@ declare namespace API {
    * 与 MarketListing 共享核心字段，但字段更精简
    */
   interface MyListing {
-    /** 挂单ID（BIGINT PK，后端API返回字段名为 listing_id） */
-    listing_id: number
+    /** 挂单ID（BIGINT PK，后端API返回字段名为 market_listing_id） */
+    market_listing_id: number
+    /** 交易订单号（trade_orders.order_no，TO前缀16位编号） */
+    order_no?: string
     /** 挂牌类型: item / fungible_asset */
     listing_kind: string
     /** 商品显示名称 */
@@ -1158,7 +1170,7 @@ declare namespace API {
     price_asset_code: string
     /** 售价（BIGINT） */
     price_amount: number
-    /** 挂单状态: active / sold / withdrawn / expired */
+    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
     status: string
     /** 挂单状态中文显示（后端返回） */
     status_display?: string

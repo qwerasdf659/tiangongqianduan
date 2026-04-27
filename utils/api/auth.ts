@@ -14,11 +14,18 @@ const { apiClient } = require('./client')
  *
  * 请求体携带 platform: 'wechat_mp' 标识当前登录来源为微信小程序，
  * 后端据此实现多平台会话隔离（Web/微信/抖音各平台登录互不踢出）
+ *
+ * openid 可选：微信静默登录返回 need_bind 后，用户输入手机号+验证码时
+ * 附带 openid 让后端将微信账号与手机号绑定
  */
-async function userLogin(mobile: string, verification_code: string) {
+async function userLogin(mobile: string, verification_code: string, openid?: string) {
+  const data: Record<string, string> = { mobile, verification_code, platform: 'wechat_mp' }
+  if (openid) {
+    data.openid = openid
+  }
   return apiClient.request('/auth/login', {
     method: 'POST',
-    data: { mobile, verification_code, platform: 'wechat_mp' },
+    data,
     needAuth: false
   })
 }
@@ -29,6 +36,30 @@ async function quickLogin(mobile: string) {
     method: 'POST',
     data: { mobile },
     needAuth: false
+  })
+}
+
+/**
+ * 微信小程序登录 - POST /api/v4/auth/wx-code-login
+ *
+ * 两种模式：
+ *   1. 仅 wx_code（静默登录）→ 后端换 openid，已绑定用户直接返回 Token，未绑定返回 need_bind
+ *   2. wx_code + phone_code（一键登录）→ 后端同时换 openid 和手机号，自动绑定并返回 Token
+ */
+async function wxCodeLogin(code: string, phoneCode?: string) {
+  if (!code) {
+    throw new Error('微信登录凭证不能为空')
+  }
+  const data: Record<string, string> = { wx_code: code }
+  if (phoneCode) {
+    data.phone_code = phoneCode
+  }
+  return apiClient.request('/auth/wx-code-login', {
+    method: 'POST',
+    data,
+    needAuth: false,
+    showLoading: false,
+    showError: false
   })
 }
 
@@ -124,6 +155,7 @@ async function logout() {
 module.exports = {
   userLogin,
   quickLogin,
+  wxCodeLogin,
   getUserInfo,
   sendVerificationCode,
   verifyToken,

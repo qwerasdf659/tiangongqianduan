@@ -1,7 +1,6 @@
 <!--pages/user/user.wxml - 用户中心页面模板 -->
 
 <view class="user-container theme-{{currentThemeName}}" style="{{globalThemeStyle}}">
-
   <!-- 未登录状态：登录引导卡片（已登录时不显示，积分卡片已体现登录状态） -->
   <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
     <view class="login-avatar">👤</view>
@@ -52,7 +51,9 @@
         bindtap="onMenuItemTap"
         data-item="{{item}}"
       >
-        <view class="menu-quick-icon" style="background: {{item.color}}"><text class="iconfont {{item.iconClass}}"></text></view>
+        <view class="menu-quick-icon" style="background: {{item.color}}"
+          ><text class="iconfont {{item.iconClass}}"></text
+        ></view>
         <text class="menu-quick-name">{{item.name}}</text>
       </view>
     </view>

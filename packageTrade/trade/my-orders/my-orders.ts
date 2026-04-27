@@ -410,10 +410,10 @@ Page({
 
   /** 跳转到挂单详情 */
   onViewListing(e: any) {
-    const listingId = e.currentTarget.dataset.listingId
-    if (listingId) {
+    const marketListingId = e.currentTarget.dataset.listingId
+    if (marketListingId) {
       wx.navigateTo({
-        url: `/packageTrade/trade/listing-detail/listing-detail?listing_id=${listingId}`
+        url: `/packageTrade/trade/listing-detail/listing-detail?market_listing_id=${marketListingId}`
       })
     }
   },

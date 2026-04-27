@@ -29,7 +29,7 @@
  */
 
 const { apiClient } = require('./client')
-const { buildQueryString } = require('../util')
+const { buildQueryString, generateIdempotencyKey } = require('../util')
 
 // ==================== 拍卖列表与详情（买家/浏览视角） ====================
 
@@ -191,7 +191,7 @@ async function createAuction(params: {
     requestBody.buyout_price = params.buyout_price
   }
 
-  const idempotencyKey = `auction_create_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('auction_create')
   return apiClient.request('/marketplace/auctions', {
     method: 'POST',
     data: requestBody,
@@ -234,7 +234,7 @@ async function placeAuctionBid(auctionListingId: number, bidAmount: number) {
     throw new Error('出价金额必须大于0')
   }
 
-  const idempotencyKey = `auction_bid_${auctionListingId}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('auction_bid', auctionListingId)
   return apiClient.request(`/marketplace/auctions/${auctionListingId}/bid`, {
     method: 'POST',
     data: { bid_amount: bidAmount },
@@ -295,7 +295,7 @@ async function cancelAuction(auctionListingId: number) {
     throw new Error('拍卖ID不能为空')
   }
 
-  const idempotencyKey = `auction_cancel_${auctionListingId}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('auction_cancel', auctionListingId)
   return apiClient.request(`/marketplace/auctions/${auctionListingId}/cancel`, {
     method: 'POST',
     data: {},
@@ -384,7 +384,7 @@ async function createAuctionDispute(
     throw new Error('争议描述不能超过500字')
   }
 
-  const idempotencyKey = `auction_dispute_${auctionListingId}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('auction_dispute', auctionListingId)
   return apiClient.request(`/marketplace/auctions/${auctionListingId}/dispute`, {
     method: 'POST',
     data: disputeData,

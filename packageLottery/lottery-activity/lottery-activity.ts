@@ -39,7 +39,7 @@ const RARITY_WEIGHT: Record<string, number> = {
 /**
  * 为奖品数据添加 UI 展示字段
  *
- * 后端实际返回字段: prize_id, prize_name, prize_type, prize_value, rarity_code,
+ * 后端实际返回字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code,
  *              sort_order, reward_tier, primary_media, is_fallback, prize_description
  * - primary_media: 有图片时为 { media_id, public_url, mime_type, thumbnails, source }，无图片时为 null
  *   source 值: 'material_icon'（材料资产图标）/ 'uploaded'（用户上传）/ 'placeholder'（占位图）
@@ -359,7 +359,7 @@ Component({
 
         /**
          * 奖品列表: ApiResponse 标准信封，data 直接是数组
-         * 后端字段: prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+         * 后端字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
          */
         const prizesRaw: any[] = prizesRes.data
 
@@ -615,6 +615,7 @@ Component({
         this.setData({
           drawResult: {
             prize: whackmolePrize,
+            order_no: whackmolePrize.order_no || '',
             isMultiDraw: false,
             isError: false
           }
@@ -701,6 +702,9 @@ Component({
         this.setData({
           drawResult: {
             prizes,
+            order_nos: prizes
+              .map((prize: any) => prize.order_no)
+              .filter((orderNo: string | undefined) => typeof orderNo === 'string' && orderNo),
             isMultiDraw: true,
             drawCount: count,
             isError: false
@@ -772,7 +776,7 @@ Component({
 
         /**
          * 后端统一返回 data.prizes 数组（单抽 length=1，连抽 length=N）
-         * 字段: prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+         * 字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
          */
         const prizes = (result.data.prizes || []).map(addPrizeIcon)
 
@@ -792,6 +796,7 @@ Component({
             targetPrizeIndex,
             drawResult: {
               prize: item,
+              order_no: item.order_no || '',
               isMultiDraw: false,
               isError: false
             },
@@ -804,6 +809,9 @@ Component({
           this.setData({
             drawResult: {
               prizes,
+              order_nos: prizes
+                .map((prize: any) => prize.order_no)
+                .filter((orderNo: string | undefined) => typeof orderNo === 'string' && orderNo),
               isMultiDraw: true,
               drawCount: count,
               isError: false
@@ -862,6 +870,7 @@ Component({
             showResult: true,
             drawResult: {
               prize: prizeData.prizes[0],
+              order_no: prizeData.prizes[0]?.order_no || '',
               isMultiDraw: false,
               isError: false,
               gameStats: e?.detail?.gameStats || {}
@@ -1032,6 +1041,7 @@ Component({
               showResult: true,
               drawResult: {
                 prize: item,
+                order_no: item.order_no || '',
                 isMultiDraw: false,
                 isError: false,
                 isGuarantee: true

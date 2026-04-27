@@ -54,7 +54,11 @@
 
     <!-- 挂单卡片列表 -->
     <block wx:if="{{!loading || listings.length > 0}}">
-      <view class="listing-card status-{{item.status}}" wx:for="{{listings}}" wx:key="listing_id">
+      <view
+        class="listing-card status-{{item.status}}"
+        wx:for="{{listings}}"
+        wx:key="market_listing_id"
+      >
         <!-- 卡片头部：类型标签 + 状态标签 -->
         <view class="card-header">
           <view class="kind-tag {{item.listing_kind}}">
@@ -79,6 +83,13 @@
                 >稀有度: {{item.offer_item_rarity}}</text
               >
             </view>
+            <text
+              class="order-no-text"
+              wx:if="{{item.order_no}}"
+              catchtap="onCopyOrderNo"
+              data-order-no="{{item.order_no}}"
+              >订单号: {{item.order_no}}</text
+            >
           </view>
           <view class="price-info">
             <text class="price-label">售价</text>
@@ -97,15 +108,24 @@
           <view class="card-actions">
             <button
               class="withdraw-btn"
-              wx:if="{{item.status === 'active'}}"
+              wx:if="{{item.status === 'on_sale'}}"
               catchtap="onWithdrawListing"
               data-listing="{{item}}"
-              disabled="{{withdrawingId === item.listing_id}}"
+              disabled="{{withdrawingId === item.market_listing_id}}"
             >
-              {{withdrawingId === item.listing_id ? '撤回中...' : '撤回挂单'}}
+              {{withdrawingId === item.market_listing_id ? '撤回中...' : '撤回挂单'}}
             </button>
             <view class="status-hint sold-hint" wx:elif="{{item.status === 'sold'}}">
-              <text class="sold-label">✅ 交易完成</text>
+              <view class="sold-info">
+                <text class="sold-label">✅ 交易完成</text>
+                <text
+                  class="sold-order-no"
+                  wx:if="{{item.order_no}}"
+                  catchtap="onCopyOrderNo"
+                  data-order-no="{{item.order_no}}"
+                  >订单号: {{item.order_no}}</text
+                >
+              </view>
               <button
                 class="escrow-btn"
                 wx:if="{{item.trade_order_id}}"
@@ -118,8 +138,11 @@
             <view class="status-hint" wx:elif="{{item.status === 'withdrawn'}}">
               <text class="withdrawn-label">已退回背包</text>
             </view>
-            <view class="status-hint" wx:elif="{{item.status === 'expired'}}">
-              <text class="withdrawn-label">已过期</text>
+            <view class="status-hint" wx:elif="{{item.status === 'locked'}}">
+              <text class="withdrawn-label">交易进行中</text>
+            </view>
+            <view class="status-hint" wx:elif="{{item.status === 'admin_withdrawn'}}">
+              <text class="withdrawn-label">平台已下架</text>
             </view>
           </view>
         </view>
@@ -169,6 +192,15 @@
       </view>
 
       <view class="escrow-body" wx:elif="{{escrowTradeOrderId}}">
+        <view class="escrow-order-row" wx:if="{{escrowOrderNo}}">
+          <text class="escrow-order-label">订单号</text>
+          <text
+            class="escrow-order-value"
+            catchtap="onCopyOrderNo"
+            data-order-no="{{escrowOrderNo}}"
+            >{{escrowOrderNo}}</text
+          >
+        </view>
         <view class="escrow-notice">
           <text class="escrow-notice-icon">🔑</text>
           <text class="escrow-notice-text"

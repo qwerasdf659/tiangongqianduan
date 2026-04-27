@@ -4,7 +4,7 @@
  * 后端API: GET /api/v4/marketplace/listings
  * 后端响应结构（QueryService 嵌套格式）:
  *   products[]: {
- *     listing_id, listing_kind, seller_user_id, seller_nickname,
+ *     market_listing_id, listing_kind, seller_user_id, seller_nickname,
  *     price_asset_code, price_amount, status, created_at,
  *     item_info: { display_name, primary_media, category_code, rarity_code },  // 物品类型
  *     asset_info: { asset_code, amount, display_name, primary_media }        // 资产类型
@@ -559,23 +559,23 @@ Page({
 
   /**
    * 商品点击 — 跳转到挂单详情
-   * 使用后端字段 listing_id 作为路由参数
+   * 使用后端字段 market_listing_id 作为路由参数
    */
   onProductClick(e: WechatMiniprogram.TouchEvent) {
     const product = e.currentTarget.dataset.product
-    if (!product || !product.listing_id) {
+    if (!product || !product.market_listing_id) {
       return
     }
 
     marketLog.info('点击挂单:', product._displayName)
     wx.reportAnalytics('product_click', {
       layout_type: 'waterfall',
-      listing_id: product.listing_id,
+      market_listing_id: product.market_listing_id,
       listing_kind: product.listing_kind
     })
 
     wx.navigateTo({
-      url: `/packageTrade/trade/listing-detail/listing-detail?listing_id=${product.listing_id}`
+      url: `/packageTrade/trade/listing-detail/listing-detail?market_listing_id=${product.market_listing_id}`
     })
   },
 
@@ -662,7 +662,7 @@ Page({
       if ((i + 1) % FEED_AD_INTERVAL === 0 && adIndex < feedAds.length) {
         const adItem = feedAds[adIndex]
         interleavedList.push({
-          listing_id: `ad_${adItem.ad_campaign_id}`,
+          market_listing_id: `ad_${adItem.ad_campaign_id}`,
           _isAdItem: true,
           _adData: adItem,
           _displayName: adItem.title || '推荐',

@@ -157,7 +157,11 @@ Page({
 
     // 用户协议
     agreementChecked: true,
-    showAgreement: false
+    showAgreement: false,
+
+    // 微信静默登录后需要绑定手机号的状态
+    needBindMobile: false,
+    wxOpenId: ''
   },
 
   /**
@@ -277,14 +281,16 @@ Page({
   initAPIReferences() {
     try {
       // 🔴 使用顶部统一导入的API模块（utils/index.js统一入口）
-      const { userLogin, sendVerificationCode } = API
+      const { userLogin, sendVerificationCode, wxCodeLogin } = API
       this.userLogin = userLogin
       this.sendVerificationCode = sendVerificationCode
+      this.wxCodeLogin = wxCodeLogin
       log.info('API引用初始化成功')
     } catch (error) {
       log.error('API引用初始化失败:', error)
       this.userLogin = () => Promise.reject(new Error('API未初始化'))
       this.sendVerificationCode = () => Promise.reject(new Error('API未初始化'))
+      this.wxCodeLogin = () => Promise.reject(new Error('API未初始化'))
       throw new Error('API模块加载失败: ' + (error as any).message)
     }
   },
@@ -820,28 +826,7 @@ Page({
    * 🔧 提交登录
    *
    * @description
-   * 处理用户点击登录按钮的事件，执行表单验证并提交登录请求。
-   *
-   * **验证流程**：
-   * 1. 防止重复提交（检查submitting和loginCompleted状态）
-   * 2. 验证用户协议勾选状态
-   * 3. 验证表单数据（手机号和验证码格式）
-   * 4. 调用performUnifiedLogin执行登录
-   *
-   * **V4.0特性**：
-   * - 使用verification_code字段名（snake_case）
-   * - 统一错误提示机制
-   * - 防重复提交保护
-   *
-   * **业务场景**：
-   * - 用户点击"登录"按钮时触发
-   * - 表单验证失败时显示Toast提示
-   * - 验证成功后显示loading状态
-   *
-   *
-   * @example
-   * // WXML绑定
-   * <button bindtap="onSubmitLogin">登录</button>
+   * 处理用户点击验证码登录按钮的事件，执行手机号+验证码校验并发起短信验证码登录。
    */
   onSubmitLogin() {
     if (this.data.submitting || this.data.loginCompleted) {
@@ -876,12 +861,200 @@ Page({
       loginCompleted: false
     })
 
-    log.info('开始统一登录流程 - 权限简化版v2.2.0')
+    log.info('开始短信验证码登录流程')
     this.performUnifiedLogin(formData)
   },
 
   /**
-   * 🔴 执行统一登录 - V4.0统一认证系统
+   * 微信手机号一键登录 — open-type="getPhoneNumber" 回调
+   *
+   * 流程：用户授权手机号 → 拿到 phone_code → 同时 wx.login 拿 login_code
+   *       → POST /api/v4/auth/wx-code-login { wx_code, phone_code }
+   *       → 后端用 phone_code 换手机号 + login_code 换 openid → 自动绑定 → 返回 Token
+   */
+  onGetPhoneNumber(e: any) {
+    if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+      log.info('用户拒绝授权手机号')
+      Wechat.showToast('需要授权手机号才能登录')
+      return
+    }
+
+    if (this.data.submitting || this.data.loginCompleted) {
+      log.info('登录正在进行中或已完成，忽略重复提交')
+      return
+    }
+
+    if (!this.data.agreementChecked) {
+      Wechat.showToast('请同意用户协议')
+      return
+    }
+
+    const phoneCode = e.detail.code
+    if (!phoneCode) {
+      log.error('微信手机号授权成功但未返回code')
+      Wechat.showToast('获取手机号失败，请重试')
+      return
+    }
+
+    this.setData({
+      submitting: true,
+      logging: true,
+      loginCompleted: false
+    })
+
+    log.info('微信手机号一键登录：已获取phone_code，开始wx.login获取login_code')
+
+    const loginTimeout = setTimeout(() => {
+      if (!this.data.loginCompleted) {
+        log.warn('微信一键登录超时')
+        this.setData({ submitting: false, logging: false })
+        wx.showModal({
+          title: '登录超时',
+          content: '请检查网络后重试',
+          showCancel: false
+        })
+      }
+    }, 15000)
+
+    wx.login({
+      success: res => {
+        if (!res.code) {
+          clearTimeout(loginTimeout)
+          this.handleLoginFailure(new Error('微信登录凭证获取失败'))
+          return
+        }
+
+        log.info('wx.login成功，发起一键登录请求')
+        API.wxCodeLogin(res.code, phoneCode)
+          .then((result: any) => {
+            clearTimeout(loginTimeout)
+            if (this.data.loginCompleted) {
+              return
+            }
+
+            if (result && result.success === true) {
+              log.info('微信一键登录成功')
+              this.handleV4LoginSuccess(result)
+            } else {
+              this.handleLoginFailure(result || new Error('登录失败'))
+            }
+          })
+          .catch((error: any) => {
+            clearTimeout(loginTimeout)
+            if (this.data.loginCompleted) {
+              return
+            }
+            log.error('微信一键登录失败:', error)
+            this.handleLoginFailure(error)
+          })
+      },
+      fail: error => {
+        clearTimeout(loginTimeout)
+        log.error('wx.login调用失败:', error)
+        this.handleLoginFailure(new Error('微信登录初始化失败'))
+      }
+    })
+  },
+
+  /**
+   * 🔧 提交微信静默登录（备用，仅 wx.login code 无手机号授权）
+   *
+   * @description
+   * 调用 wx.login 获取 code，再通过 POST /api/v4/auth/wx-code-login 完成登录。
+   */
+  onSubmitWechatLogin() {
+    if (this.data.submitting || this.data.loginCompleted) {
+      log.info('登录正在进行中或已完成，忽略重复提交')
+      return
+    }
+
+    if (!this.data.agreementChecked) {
+      Wechat.showToast('请同意用户协议')
+      return
+    }
+
+    this.setData({
+      submitting: true,
+      logging: true,
+      loginCompleted: false
+    })
+
+    log.info('开始微信静默登录流程')
+    this.performWechatLogin()
+  },
+
+  /**
+   * 🔴 执行微信静默登录
+   *
+   * @description
+   * 调用 wx.login 获取 code，并通过 wx-code-login 换取 access_token / refresh_token。
+   */
+  performWechatLogin() {
+    const loginTimeout = setTimeout(() => {
+      if (!this.data.loginCompleted) {
+        log.warn('微信静默登录超时，强制结束')
+        this.setData({
+          submitting: false,
+          logging: false,
+          loginTimeoutTriggered: true
+        })
+
+        wx.showModal({
+          title: '登录超时',
+          content: '微信登录请求超时，请检查网络连接后重试。',
+          showCancel: false,
+          confirmText: '重新登录'
+        })
+      }
+    }, 15000)
+
+    wx.login({
+      success: res => {
+        if (!res.code) {
+          clearTimeout(loginTimeout)
+          this.handleLoginFailure(new Error('微信登录凭证获取失败'))
+          return
+        }
+
+        this.wxCodeLogin(res.code)
+          .then((result: any) => {
+            clearTimeout(loginTimeout)
+
+            if (this.data.loginCompleted) {
+              log.info('登录已完成，忽略后续响应')
+              return
+            }
+
+            if (result && result.success === true) {
+              log.info('微信静默登录成功:', result)
+              this.handleV4LoginSuccess(result)
+            } else {
+              log.info('微信静默登录失败:', result)
+              this.handleLoginFailure(result || new Error('登录失败，未收到有效响应'))
+            }
+          })
+          .catch((error: any) => {
+            clearTimeout(loginTimeout)
+
+            if (this.data.loginCompleted) {
+              log.info('登录已完成，忽略错误响应')
+              return
+            }
+
+            log.error('微信静默登录失败:', error)
+            this.handleLoginFailure(error)
+          })
+      },
+      fail: error => {
+        clearTimeout(loginTimeout)
+        log.error('wx.login 调用失败:', error)
+        this.handleLoginFailure(new Error('微信登录初始化失败'))
+      }
+    })
+  },
+
+  /**
+   * 🔴 执行短信验证码登录
    *
    * formData - 登录表单数据
    * formData.mobile - 手机号（11位，1开头）
@@ -889,12 +1062,12 @@ Page({
    * [retryCount=0] - 重试次数（用于网络失败重试）
    *
    * @description
-   * 执行V4.0统一登录流程，调用后端API进行身份验证。
+   * 调用 POST /api/v4/auth/login 完成短信验证码登录。
    *
    * **登录流程**：
    * 1. 设置15秒超时保护
-   * 2. 调用API.userLogin进行验证
-   * 3. 验证成功：保存Token和用户信息，跳转到主页面
+   * 2. 调用 API.userLogin 进行验证
+   * 3. 验证成功：保存 Token 和用户信息，跳转到主页面
    * 4. 验证失败：显示错误提示，提供重试选项
    *
    * **V4.0特性**：
@@ -924,13 +1097,9 @@ Page({
    */
   performUnifiedLogin(
     formData: { mobile: string; verification_code: string },
-    retryCount: number = 0
+    _retryCount: number = 0
   ) {
-    log.info('执行V4.0统一登录:', {
-      mobile: formData.mobile,
-      verification_code: formData.verification_code,
-      retryCount
-    })
+    log.info('开始短信验证码登录...')
 
     const loginTimeout = setTimeout(() => {
       if (!this.data.loginCompleted) {
@@ -951,7 +1120,12 @@ Page({
     }, 15000)
 
     // 🔴 V4.0: 使用userLogin函数，传入verification_code
-    this.userLogin(formData.mobile, formData.verification_code)
+    // 如果是微信绑定手机号场景，附带 openid 让后端关联微信账号
+    const wxOpenId = this.data.wxOpenId || ''
+    if (wxOpenId) {
+      log.info('携带微信openid进行手机号绑定登录')
+    }
+    this.userLogin(formData.mobile, formData.verification_code, wxOpenId)
       .then((result: any) => {
         clearTimeout(loginTimeout)
 
@@ -1002,13 +1176,38 @@ Page({
     try {
       const responseData = loginData.data
 
+      /**
+       * 后端 wx-code-login 两种响应：
+       * 1. need_bind: true → 微信openid未绑定手机号，需要用户输入手机号+验证码完成绑定
+       * 2. need_bind: false/不存在 → 已绑定用户，直接返回 access_token + user
+       */
+      if (responseData.need_bind === true) {
+        log.info('微信账号未绑定手机号，需要用户绑定:', {
+          openid: responseData.openid ? '已获取' : '缺失'
+        })
+
+        /* 保存 openid 供后续绑定手机号接口使用 */
+        this.setData({
+          submitting: false,
+          logging: false,
+          needBindMobile: true,
+          wxOpenId: responseData.openid || ''
+        })
+
+        wx.showToast({
+          title: '请先绑定手机号',
+          icon: 'none',
+          duration: 2000
+        })
+        return
+      }
+
       const accessToken = responseData.access_token
-      const refreshToken = responseData.refresh_token
       const rawUserInfo = responseData.user
 
       log.info('V4 Token信息:', {
         hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
+        hasRawUserInfo: !!rawUserInfo,
         expiresIn: responseData.expires_in
       })
 
@@ -1033,6 +1232,8 @@ Page({
       })
 
       log.info('步骤5：保存认证数据...')
+      /* refresh_token 由后端通过 HttpOnly Cookie 管理，前端不需要手动存储 */
+      const refreshToken = responseData.refresh_token || ''
       saveAuthDataToStorage(accessToken, refreshToken, userInfo)
 
       log.info('验证存储的用户信息:', {
@@ -1333,7 +1534,11 @@ Page({
 
       setTimeout(() => {
         log.info('开始重新登录...')
-        this.performUnifiedLogin(currentFormData, 1)
+        if (currentFormData.verification_code) {
+          this.performUnifiedLogin(currentFormData, 1)
+        } else {
+          this.performWechatLogin()
+        }
       }, DELAY.TOAST_SHORT)
     } catch (error) {
       log.error('Token缓存清理失败:', error)
@@ -1356,10 +1561,10 @@ Page({
       verification_code: this.data.verification_code
     }
 
-    if (!formData.mobile || !formData.verification_code) {
+    if (!formData.mobile) {
       wx.showModal({
         title: '重试失败',
-        content: '请重新输入手机号和验证码',
+        content: '请重新输入手机号',
         showCancel: false
       })
       return

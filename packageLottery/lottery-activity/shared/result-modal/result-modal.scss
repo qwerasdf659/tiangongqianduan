@@ -129,6 +129,12 @@
   text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
+.result-order-no {
+  font-size: 22rpx;
+  color: var(--theme-text-inverse-dim, rgba(255, 255, 255, 0.9));
+  word-break: break-all;
+}
+
 /* 弹窗主体 */
 .gradient-body-container {
   padding: 0 32rpx 24rpx;
@@ -474,6 +480,28 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.multi-order-no-list {
+  margin-top: 20rpx;
+  padding: 20rpx 24rpx;
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: $border-radius-md;
+}
+
+.multi-order-no-title {
+  display: block;
+  margin-bottom: 12rpx;
+  font-size: $font-size-sm;
+  color: var(--theme-text-secondary, #7f8c8d);
+}
+
+.multi-order-no-item {
+  display: block;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--theme-text-dark, #2c3e50);
+  word-break: break-all;
 }
 
 /* 错误信息卡片 */

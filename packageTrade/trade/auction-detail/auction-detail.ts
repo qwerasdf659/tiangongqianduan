@@ -88,8 +88,9 @@ Page({
   _wsSubscribed: false as boolean,
 
   onLoad(options: Record<string, string | undefined>) {
-    const auctionListingId = parseInt(options.auction_listing_id || '0', 10)
-    if (!auctionListingId) {
+    const auctionListingIdText = options.auction_listing_id || ''
+    const auctionListingId = Number(auctionListingIdText)
+    if (!auctionListingIdText || !Number.isInteger(auctionListingId) || auctionListingId <= 0) {
       this.setData({
         loading: false,
         hasError: true,

@@ -197,8 +197,11 @@ module.exports = Behavior({
            * item 类型 → 后端 primary_media.public_url → 分类图标 → 占位图
            */
           const processedProducts = items.map((item: any, idx: number) => {
-            if (!item.listing_id) {
-              marketLog.warn(`products[${idx}] 缺少 listing_id，后端响应字段:`, Object.keys(item))
+            if (!item.market_listing_id) {
+              marketLog.warn(
+                `products[${idx}] 缺少 market_listing_id，后端响应字段:`,
+                Object.keys(item)
+              )
             }
             const itemInfo = item.item_info || {}
             const assetInfo = item.asset_info || {}
@@ -218,7 +221,7 @@ module.exports = Behavior({
             )
 
             return {
-              listing_id: item.listing_id,
+              market_listing_id: item.market_listing_id,
               listing_kind: item.listing_kind || 'item',
               seller_user_id: item.seller_user_id,
               seller_nickname: item.seller_nickname || '',
@@ -239,7 +242,7 @@ module.exports = Behavior({
               template_id: itemInfo.template_id || null,
               is_pinned: item.is_pinned || false,
               is_recommended: item.is_recommended || false,
-              status: item.status || 'active',
+              status: item.status || 'on_sale',
               created_at: item.created_at || '',
               imageStatus: 'loading',
               _qualityGrade: qualityGrade,
@@ -443,8 +446,8 @@ module.exports = Behavior({
       const product = e.currentTarget.dataset.product
       marketLog.info('点击市场商品:', product)
 
-      if (!product || !product.listing_id) {
-        marketLog.error('商品缺少 listing_id，无法发起购买', {
+      if (!product || !product.market_listing_id) {
+        marketLog.error('商品缺少 market_listing_id，无法发起购买', {
           listing_kind: product?.listing_kind,
           item_name: product?.item_name,
           available_keys: product ? Object.keys(product) : []
@@ -472,7 +475,7 @@ module.exports = Behavior({
 
       try {
         this.setData({ purchasing: true })
-        const response = await purchaseMarketProduct(selectedProduct.listing_id)
+        const response = await purchaseMarketProduct(selectedProduct.market_listing_id)
 
         if (response && response.success && response.data) {
           marketLog.info('购买成功:', response.data)
@@ -483,6 +486,7 @@ module.exports = Behavior({
             showResult: true,
             resultData: {
               product: selectedProduct,
+              orderNo: response.data.order_no || '',
               tradeOrderId: response.data.trade_order_id || '',
               payAmount: response.data.price_amount || selectedProduct.price_amount
             }
@@ -777,7 +781,7 @@ module.exports = Behavior({
         if ((i + 1) % EXCHANGE_FEED_AD_INTERVAL === 0 && adIndex < feedAds.length) {
           const adItem = feedAds[adIndex]
           interleavedList.push({
-            listing_id: `ad_${adItem.ad_campaign_id}`,
+            market_listing_id: `ad_${adItem.ad_campaign_id}`,
             _isAdItem: true,
             _adData: adItem,
             item_name: adItem.title || '推荐',

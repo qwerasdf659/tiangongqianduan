@@ -9,7 +9,9 @@
   border-radius: $border-radius-md;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   position: relative;
-  transition: transform $transition-fast, box-shadow $transition-fast;
+  transition:
+    transform $transition-fast,
+    box-shadow $transition-fast;
 
   &:active {
     transform: scale(0.96);
@@ -42,7 +44,9 @@
 .bead-color-preview {
   border-radius: $border-radius-round;
   background: $color-text-tertiary;
-  box-shadow: inset 0 -4rpx 8rpx rgba(0, 0, 0, 0.2), 0 2rpx 6rpx rgba(0, 0, 0, 0.15);
+  box-shadow:
+    inset 0 -4rpx 8rpx rgba(0, 0, 0, 0.2),
+    0 2rpx 6rpx rgba(0, 0, 0, 0.15);
 }
 
 .bead-info {

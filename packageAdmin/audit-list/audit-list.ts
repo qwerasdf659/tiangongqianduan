@@ -977,19 +977,20 @@ Page({
     const app = getApp() as any
 
     const tokenStatus = Utils.checkTokenValidity()
-    if (tokenStatus.isValid) {
-      app
-        .connectWebSocket()
-        .then(() => {
-          app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
-        })
-        .catch((_wsErr: any) => {
-          auditLog.warn('WebSocket连接失败，仅依赖手动刷新')
-          app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
-        })
-    } else {
-      app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
+    if (!tokenStatus.isValid) {
+      auditLog.warn('Token无效，跳过WebSocket订阅', tokenStatus)
+      return
     }
+
+    app
+      .connectWebSocket()
+      .then(() => {
+        app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
+      })
+      .catch((_wsErr: any) => {
+        auditLog.warn('WebSocket连接失败，仅依赖手动刷新')
+        app.subscribeWebSocketMessages(this._pageId, this.handleWebSocketEvent.bind(this))
+      })
   },
 
   onHide() {

@@ -27,7 +27,13 @@
     <!-- ===== 尺码选择（串珠模式） ===== -->
     <view wx:if="{{!isSlotMode && sizeOptions.length > 0}}" class="size-bar">
       <text class="size-label">尺码:</text>
-      <picker mode="selector" range="{{sizeOptions}}" range-key="display" value="{{sizeIndex}}" bindchange="onSizeChange">
+      <picker
+        mode="selector"
+        range="{{sizeOptions}}"
+        range-key="display"
+        value="{{sizeIndex}}"
+        bindchange="onSizeChange"
+      >
         <view class="size-picker">
           <text class="size-value">{{selectedSizeDisplay || selectedSizeLabel}}</text>
           <text class="size-arrow">▾</text>
@@ -49,7 +55,13 @@
 
     <!-- ===== Canvas 预览区 ===== -->
     <view class="preview-area">
-      <shape-renderer id="shapeRenderer" canvasWidth="{{canvasWidth}}" canvasHeight="{{canvasHeight}}" bind:beadtap="onBeadTap" bind:slottap="onSlotTap" />
+      <shape-renderer
+        id="shapeRenderer"
+        canvasWidth="{{canvasWidth}}"
+        canvasHeight="{{canvasHeight}}"
+        bind:beadtap="onBeadTap"
+        bind:slottap="onSlotTap"
+      />
     </view>
 
     <!-- ===== 串珠模式: 多选操作栏（含左移/右移排序按钮） ===== -->
@@ -69,7 +81,13 @@
       <!-- 材料分组导航Tab -->
       <scroll-view class="group-nav" scroll-x enhanced show-scrollbar="{{false}}">
         <view class="group-nav-inner">
-          <view wx:for="{{materialGroups}}" wx:key="group_code" class="group-tab {{item.group_code === activeGroupCode ? 'active' : ''}}" bind:tap="onGroupChange" data-group-code="{{item.group_code}}">
+          <view
+            wx:for="{{materialGroups}}"
+            wx:key="group_code"
+            class="group-tab {{item.group_code === activeGroupCode ? 'active' : ''}}"
+            bind:tap="onGroupChange"
+            data-group-code="{{item.group_code}}"
+          >
             <text>{{item.display_name}}</text>
           </view>
         </view>
@@ -77,7 +95,12 @@
 
       <!-- 搜索栏 -->
       <view class="search-bar">
-        <input class="search-input" placeholder="搜索素材名称..." value="{{searchKeyword}}" bindinput="onSearchInput" />
+        <input
+          class="search-input"
+          placeholder="搜索素材名称..."
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
       </view>
 
       <!-- 素材加载失败重试 -->
@@ -89,7 +112,13 @@
       <!-- 素材网格 -->
       <scroll-view wx:else class="bead-grid-scroll" scroll-y enhanced show-scrollbar="{{false}}">
         <view class="bead-grid">
-          <bead-card wx:for="{{filteredBeads}}" wx:key="diy_material_id" bead="{{item}}" disabled="{{item._disabled}}" bind:select="onBeadSelect" />
+          <bead-card
+            wx:for="{{filteredBeads}}"
+            wx:key="diy_material_id"
+            bead="{{item}}"
+            disabled="{{item._disabled}}"
+            bind:select="onBeadSelect"
+          />
         </view>
         <view wx:if="{{filteredBeads.length === 0}}" class="bead-empty">
           <text>暂无匹配素材</text>

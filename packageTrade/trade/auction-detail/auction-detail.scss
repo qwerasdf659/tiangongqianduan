@@ -2,7 +2,7 @@
 @import '../../../styles/variables';
 
 /* 竞拍模块专用补充变量 */
-$color-primary-bg: #FFF3ED;
+$color-primary-bg: #fff3ed;
 $border-radius-auction-md: 12rpx;
 
 .auction-detail-container {
@@ -21,8 +21,15 @@ $border-radius-auction-md: 12rpx;
   padding: 80rpx 40rpx;
 }
 
-.error-icon { font-size: 80rpx; margin-bottom: 24rpx; }
-.error-text { font-size: 28rpx; color: $color-text-tertiary; margin-bottom: 32rpx; }
+.error-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+.error-text {
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+  margin-bottom: 32rpx;
+}
 .error-retry-btn {
   padding: 16rpx 48rpx;
   background-color: $color-primary;
@@ -82,8 +89,14 @@ $border-radius-auction-md: 12rpx;
   margin-top: 16rpx;
 }
 
-.seller-label { font-size: 26rpx; color: $color-text-tertiary; }
-.seller-name { font-size: 26rpx; color: $color-text-secondary; }
+.seller-label {
+  font-size: 26rpx;
+  color: $color-text-tertiary;
+}
+.seller-name {
+  font-size: 26rpx;
+  color: $color-text-secondary;
+}
 
 /* 价格区 */
 .detail-price-section {
@@ -138,9 +151,20 @@ $border-radius-auction-md: 12rpx;
   border-radius: $border-radius-auction-md;
 }
 
-.countdown-icon { font-size: 32rpx; margin-right: 8rpx; }
-.countdown-label { font-size: 26rpx; color: $color-text-secondary; margin-right: 12rpx; }
-.countdown-value { font-size: 30rpx; font-weight: 600; color: $color-primary; }
+.countdown-icon {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+.countdown-label {
+  font-size: 26rpx;
+  color: $color-text-secondary;
+  margin-right: 12rpx;
+}
+.countdown-value {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $color-primary;
+}
 
 .bid-stats-row {
   display: flex;
@@ -156,15 +180,26 @@ $border-radius-auction-md: 12rpx;
   align-items: center;
 }
 
-.bid-stat .stat-value { font-size: 32rpx; font-weight: 600; color: $color-text-primary; }
-.bid-stat .stat-label { font-size: 22rpx; color: $color-text-tertiary; margin-top: 4rpx; }
+.bid-stat .stat-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+.bid-stat .stat-label {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
 
 .fee-hint {
   margin-top: 16rpx;
   text-align: center;
 }
 
-.fee-text { font-size: 22rpx; color: $color-text-tertiary; }
+.fee-text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
 
 /* 结算信息 */
 .settlement-info {
@@ -180,9 +215,19 @@ $border-radius-auction-md: 12rpx;
   padding: 8rpx 0;
 }
 
-.settlement-label { font-size: 26rpx; color: $color-text-secondary; }
-.settlement-value { font-size: 26rpx; color: $color-text-primary; font-weight: 500; }
-.settlement-value.highlight { color: $color-success; font-weight: 700; }
+.settlement-label {
+  font-size: 26rpx;
+  color: $color-text-secondary;
+}
+.settlement-value {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: 500;
+}
+.settlement-value.highlight {
+  color: $color-success;
+  font-weight: 700;
+}
 
 /* 我的出价 */
 .my-bid-section,
@@ -209,18 +254,31 @@ $border-radius-auction-md: 12rpx;
   gap: 8rpx;
 }
 
-.my-bid-label { font-size: 26rpx; color: $color-text-secondary; }
-.my-bid-value { font-size: 30rpx; font-weight: 600; color: $color-error; }
+.my-bid-label {
+  font-size: 26rpx;
+  color: $color-text-secondary;
+}
+.my-bid-value {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $color-error;
+}
 .my-bid-badge {
   padding: 4rpx 12rpx;
   border-radius: $border-radius-sm;
   font-size: 22rpx;
   color: #fff;
 }
-.my-bid-badge.winning { background-color: $color-success; }
-.my-bid-badge.losing { background-color: $color-text-tertiary; }
+.my-bid-badge.winning {
+  background-color: $color-success;
+}
+.my-bid-badge.losing {
+  background-color: $color-text-tertiary;
+}
 
-.my-bid-history { margin-top: 16rpx; }
+.my-bid-history {
+  margin-top: 16rpx;
+}
 
 .bid-history-item {
   display: flex;
@@ -230,10 +288,23 @@ $border-radius-auction-md: 12rpx;
   gap: 16rpx;
 }
 
-.bid-history-item .bid-amount { font-size: 26rpx; color: $color-text-primary; font-weight: 500; flex: 1; }
-.bid-history-item .bid-time { font-size: 22rpx; color: $color-text-tertiary; }
-.bid-history-item .bid-status { font-size: 22rpx; color: $color-text-tertiary; }
-.bid-history-item .bid-status.winning { color: $color-success; }
+.bid-history-item .bid-amount {
+  font-size: 26rpx;
+  color: $color-text-primary;
+  font-weight: 500;
+  flex: 1;
+}
+.bid-history-item .bid-time {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+.bid-history-item .bid-status {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+.bid-history-item .bid-status.winning {
+  color: $color-success;
+}
 
 /* 出价排行 */
 .top-bid-item {
@@ -242,21 +313,50 @@ $border-radius-auction-md: 12rpx;
   padding: 16rpx 0;
   border-bottom: 1rpx solid $color-divider;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
-.bid-rank { width: 60rpx; text-align: center; }
-.rank-number { font-size: 28rpx; color: $color-text-tertiary; font-weight: 600; }
-.rank-number.rank-top { color: $color-primary; }
+.bid-rank {
+  width: 60rpx;
+  text-align: center;
+}
+.rank-number {
+  font-size: 28rpx;
+  color: $color-text-tertiary;
+  font-weight: 600;
+}
+.rank-number.rank-top {
+  color: $color-primary;
+}
 
-.bid-user { flex: 1; }
-.bid-nickname { font-size: 26rpx; color: $color-text-primary; }
+.bid-user {
+  flex: 1;
+}
+.bid-nickname {
+  font-size: 26rpx;
+  color: $color-text-primary;
+}
 
-.bid-amount-col { text-align: right; margin-right: 16rpx; }
-.bid-amount-text { font-size: 28rpx; color: $color-text-primary; font-weight: 600; }
-.bid-asset-text { font-size: 22rpx; color: $color-text-tertiary; margin-left: 4rpx; }
+.bid-amount-col {
+  text-align: right;
+  margin-right: 16rpx;
+}
+.bid-amount-text {
+  font-size: 28rpx;
+  color: $color-text-primary;
+  font-weight: 600;
+}
+.bid-asset-text {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-left: 4rpx;
+}
 
-.bid-winning-badge { font-size: 28rpx; }
+.bid-winning-badge {
+  font-size: 28rpx;
+}
 
 /* 物品快照 */
 .snapshot-row {
@@ -265,11 +365,19 @@ $border-radius-auction-md: 12rpx;
   padding: 12rpx 0;
   border-bottom: 1rpx solid $color-divider;
 
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
-.snapshot-label { font-size: 26rpx; color: $color-text-tertiary; }
-.snapshot-value { font-size: 26rpx; color: $color-text-primary; }
+.snapshot-label {
+  font-size: 26rpx;
+  color: $color-text-tertiary;
+}
+.snapshot-value {
+  font-size: 26rpx;
+  color: $color-text-primary;
+}
 
 /* 底部操作栏 */
 .detail-bottom-bar {
@@ -358,8 +466,16 @@ $border-radius-auction-md: 12rpx;
   margin-bottom: 24rpx;
 }
 
-.popup-title { font-size: 32rpx; font-weight: 600; color: $color-text-primary; }
-.popup-close { font-size: 36rpx; color: $color-text-tertiary; padding: 8rpx; }
+.popup-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+.popup-close {
+  font-size: 36rpx;
+  color: $color-text-tertiary;
+  padding: 8rpx;
+}
 
 .popup-hint {
   font-size: 24rpx;

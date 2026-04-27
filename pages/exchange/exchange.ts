@@ -63,6 +63,8 @@ Page({
     /** 页面加载状态 */
     loading: true,
     refreshing: false,
+    hasConfigError: false,
+    configErrorMessage: '',
 
     /** 卡片主题标识（全局氛围主题，由 ThemeCache 缓存管理器提供） */
     cardTheme: 'default',
@@ -173,13 +175,21 @@ Page({
   },
 
   /**
-   * 加载兑换页面配置（4层降级：缓存→API→过期缓存→内置默认）
+   * 加载兑换页面配置（仅接受后端真实配置或已缓存的真实配置）
    * 配置来源: GET /api/v4/system/config/exchange-page
    */
   async _loadExchangePageConfig() {
     try {
       const exchangeConfig = await ExchangeConfig.ExchangeConfigCache.getConfig()
-      log.info('兑换页面配置加载成功:', exchangeConfig.updated_at || '内置默认')
+      const isBuiltInFallback = !exchangeConfig.updated_at
+
+      if (isBuiltInFallback) {
+        throw new Error(
+          '后端未提供兑换页面真实配置，请后端检查 /api/v4/system/config/exchange-page'
+        )
+      }
+
+      log.info('兑换页面配置加载成功:', exchangeConfig.updated_at)
 
       const marketFilters = exchangeConfig.market_filters
 
@@ -187,6 +197,8 @@ Page({
       const globalThemeName = await ThemeCache.getThemeName()
 
       this.setData({
+        hasConfigError: false,
+        configErrorMessage: '',
         tabs: exchangeConfig.tabs
           .filter((t: any) => t.enabled)
           .sort((a: any, b: any) => a.sort_order - b.sort_order),
@@ -198,24 +210,17 @@ Page({
         viewMode: exchangeConfig.card_display.default_view_mode || 'grid'
       })
       this.applyNativeThemeColors(globalThemeName)
-    } catch (error) {
+    } catch (error: any) {
       log.error('加载兑换页面配置失败:', error)
-
-      const fallback = ExchangeConfig.DEFAULT_EXCHANGE_CONFIG
-      if (fallback) {
-        const marketFilters = fallback.market_filters
-        const fallbackTheme = await ThemeCache.getThemeName()
-        this.setData({
-          tabs: fallback.tabs.filter((t: any) => t.enabled),
-          marketTypeFilters: marketFilters.type_filters,
-          marketCategoryFilters: marketFilters.category_filters,
-          marketSortOptions: marketFilters.sort_options,
-          cardTheme: fallbackTheme,
-          effects: fallback.card_display.effects,
-          viewMode: fallback.card_display.default_view_mode || 'grid'
-        })
-        this.applyNativeThemeColors(fallbackTheme)
-      }
+      this.setData({
+        hasConfigError: true,
+        configErrorMessage: error.message || '兑换页面配置加载失败，请后端检查真实配置是否已提供',
+        tabs: [],
+        marketTypeFilters: [],
+        marketCategoryFilters: [],
+        marketSortOptions: []
+      })
+      throw error
     }
   },
 
@@ -324,18 +329,34 @@ Page({
     log.info('切换到Tab:', tabKey)
   },
 
-  /** 下拉刷新 — 递增 refreshToken 驱动组件刷新 */
-  onPullDownRefresh() {
+  /** 下拉刷新 — 配置缺失时优先重拉后端配置，其余场景刷新子组件与余额 */
+  async onPullDownRefresh() {
     log.info('页面级下拉刷新')
-    if (this.data.currentTab === 'exchange') {
-      this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
-    } else if (this.data.currentTab === 'market') {
-      this.setData({ _marketRefreshToken: this.data._marketRefreshToken + 1 })
-    } else if (this.data.currentTab === 'exchange-rate') {
-      this.setData({ _exchangeRateRefreshToken: this.data._exchangeRateRefreshToken + 1 })
+
+    try {
+      if (this.data.hasConfigError) {
+        this.setData({ loading: true })
+        await this._loadExchangePageConfig()
+        this._restoreThemePreferences()
+        this.setData({ loading: false })
+        return
+      }
+
+      if (this.data.currentTab === 'exchange') {
+        this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
+      } else if (this.data.currentTab === 'market') {
+        this.setData({ _marketRefreshToken: this.data._marketRefreshToken + 1 })
+      } else if (this.data.currentTab === 'exchange-rate') {
+        this.setData({ _exchangeRateRefreshToken: this.data._exchangeRateRefreshToken + 1 })
+      }
+
+      await this._refreshAllBalances(this.data.userInfo)
+    } catch (error) {
+      log.error('页面级下拉刷新失败:', error)
+    } finally {
+      this.setData({ loading: false })
+      wx.stopPullDownRefresh()
     }
-    this._refreshAllBalances(this.data.userInfo)
-    wx.stopPullDownRefresh()
   },
 
   /** 兑换成功事件（exchange-shelf 触发） */

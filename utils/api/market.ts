@@ -9,7 +9,7 @@
  *   - listing_kind: 'item'（不可叠加物品） / 'fungible_asset'（可叠加资产）
  *   - price_asset_code: 定价币种（默认 star_stone）
  *   - price_amount: 售价（BIGINT整数）
- *   - 挂单状态 active / sold / withdrawn / expired（文档层枚举）
+ *   - 挂单状态 on_sale / sold / withdrawn / expired / locked / admin_withdrawn
  *
  * QueryService 响应结构（2026-02-18 更新）:
  *   - 物品信息通过 JOIN item_templates 查询，封装在 item_info 嵌套对象中
@@ -24,7 +24,7 @@
  */
 
 const { apiClient } = require('./client')
-const { buildQueryString } = require('../util')
+const { buildQueryString, generateIdempotencyKey } = require('../util')
 
 /**
  * 获取交易市场挂单列表
@@ -35,14 +35,14 @@ const { buildQueryString } = require('../util')
  * 响应结构: { products: MarketListing[], pagination: { page, page_size, total } }
  *
  * 响应字段（根级 — 基于 market_listings 表）:
- *   - listing_id: BIGINT PK 挂单ID（API响应字段名）
+ *   - market_listing_id: BIGINT PK 挂单ID（后端真实主键字段）
  *   - listing_kind: ENUM 'item' / 'fungible_asset'
  *   - seller_user_id: INT FK 卖家用户ID
  *   - seller_nickname: VARCHAR 卖家昵称
  *   - seller_avatar_url: VARCHAR 卖家头像（可null）
  *   - price_asset_code: VARCHAR(50) 定价币种（默认 star_stone）
  *   - price_amount: BIGINT 售价
- *   - status: ENUM active / sold / withdrawn / expired（文档层枚举）
+ *   - status: ENUM on_sale / sold / withdrawn / expired / locked / admin_withdrawn
  *   - created_at: DATETIME
  *
  * 物品类型(item)嵌套对象 item_info:
@@ -126,15 +126,15 @@ async function getMarketProducts(
 
 /**
  * 获取市场商品详情
- * GET /api/v4/marketplace/listings/:listing_id
+ * GET /api/v4/marketplace/listings/:market_listing_id
  *
- * @param listing_id - 挂单ID（BIGINT）
+ * @param market_listing_id - 挂单ID（BIGINT）
  */
-async function getMarketProductDetail(listing_id: number) {
-  if (!listing_id) {
+async function getMarketProductDetail(market_listing_id: number) {
+  if (!market_listing_id) {
     throw new Error('挂单ID不能为空')
   }
-  return apiClient.request(`/marketplace/listings/${listing_id}`, {
+  return apiClient.request(`/marketplace/listings/${market_listing_id}`, {
     method: 'GET',
     needAuth: true
   })
@@ -142,7 +142,7 @@ async function getMarketProductDetail(listing_id: number) {
 
 /**
  * 购买市场商品
- * POST /api/v4/marketplace/listings/:listing_id/purchase
+ * POST /api/v4/marketplace/listings/:market_listing_id/purchase
  * 携带 Idempotency-Key 请求头防止重复购买
  *
  * 后端服务: TradeOrderService
@@ -160,11 +160,11 @@ async function getMarketProductDetail(listing_id: number) {
  *          gross_amount, fee_amount, net_amount, requires_escrow_confirmation,
  *          escrow_expires_at, status }
  *
- * @param listing_id - 挂单ID（BIGINT）
+ * @param market_listing_id - 挂单ID（BIGINT）
  * @param purchase_note - 购买备注（可选）
  */
-async function purchaseMarketProduct(listing_id: number, purchase_note?: string) {
-  if (!listing_id) {
+async function purchaseMarketProduct(market_listing_id: number, purchase_note?: string) {
+  if (!market_listing_id) {
     throw new Error('挂单ID不能为空')
   }
 
@@ -173,8 +173,8 @@ async function purchaseMarketProduct(listing_id: number, purchase_note?: string)
     requestData.purchase_note = purchase_note
   }
 
-  const idempotencyKey = `market_purchase_${listing_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
-  return apiClient.request(`/marketplace/listings/${listing_id}/purchase`, {
+  const idempotencyKey = await generateIdempotencyKey('market_purchase', market_listing_id)
+  return apiClient.request(`/marketplace/listings/${market_listing_id}/purchase`, {
     method: 'POST',
     data: requestData,
     needAuth: true,
@@ -188,13 +188,13 @@ async function purchaseMarketProduct(listing_id: number, purchase_note?: string)
 
 /**
  * 撤回物品实例挂单
- * POST /api/v4/marketplace/listings/:listing_id/withdraw
+ * POST /api/v4/marketplace/listings/:market_listing_id/withdraw
  *
- * @param listing_id - 挂单ID（BIGINT）
+ * @param market_listing_id - 挂单ID（BIGINT）
  * @param withdraw_reason - 撤回原因（可选）
  */
-async function withdrawMarketProduct(listing_id: number, withdraw_reason?: string) {
-  if (!listing_id) {
+async function withdrawMarketProduct(market_listing_id: number, withdraw_reason?: string) {
+  if (!market_listing_id) {
     throw new Error('挂单ID不能为空')
   }
 
@@ -203,8 +203,8 @@ async function withdrawMarketProduct(listing_id: number, withdraw_reason?: strin
     requestData.withdraw_reason = withdraw_reason
   }
 
-  const idempotencyKey = `market_withdraw_${listing_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
-  return apiClient.request(`/marketplace/listings/${listing_id}/withdraw`, {
+  const idempotencyKey = await generateIdempotencyKey('market_withdraw', market_listing_id)
+  return apiClient.request(`/marketplace/listings/${market_listing_id}/withdraw`, {
     method: 'POST',
     data: requestData,
     needAuth: true,
@@ -218,13 +218,13 @@ async function withdrawMarketProduct(listing_id: number, withdraw_reason?: strin
 
 /**
  * 撤回可叠加资产挂单
- * POST /api/v4/marketplace/fungible-assets/:listing_id/withdraw
+ * POST /api/v4/marketplace/fungible-assets/:market_listing_id/withdraw
  *
- * @param listing_id - 挂单ID（BIGINT）
+ * @param market_listing_id - 挂单ID（BIGINT）
  * @param withdraw_reason - 撤回原因（可选）
  */
-async function withdrawFungibleAsset(listing_id: number, withdraw_reason?: string) {
-  if (!listing_id) {
+async function withdrawFungibleAsset(market_listing_id: number, withdraw_reason?: string) {
+  if (!market_listing_id) {
     throw new Error('挂单ID不能为空')
   }
 
@@ -233,8 +233,8 @@ async function withdrawFungibleAsset(listing_id: number, withdraw_reason?: strin
     requestData.withdraw_reason = withdraw_reason
   }
 
-  const idempotencyKey = `market_fungible_withdraw_${listing_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
-  return apiClient.request(`/marketplace/fungible-assets/${listing_id}/withdraw`, {
+  const idempotencyKey = await generateIdempotencyKey('market_fungible_withdraw', market_listing_id)
+  return apiClient.request(`/marketplace/fungible-assets/${market_listing_id}/withdraw`, {
     method: 'POST',
     data: requestData,
     needAuth: true,
@@ -281,7 +281,7 @@ async function sellToMarket(params: {
     requestBody.condition = params.condition
   }
 
-  const idempotencyKey = `market_list_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('market_list')
   return apiClient.request('/marketplace/list', {
     method: 'POST',
     data: requestBody,
@@ -305,13 +305,13 @@ async function getMyListingStatus() {
  *
  * 后端通过JWT Token识别当前用户，返回该用户的所有挂单记录
  * 响应字段（基于 market_listings 表）:
- *   listing_id, listing_kind, offer_item_display_name, offer_asset_display_name,
+ *   market_listing_id, listing_kind, offer_item_display_name, offer_asset_display_name,
  *   offer_asset_code, offer_amount, offer_item_rarity, price_asset_code, price_amount,
  *   status, created_at
  *
  * @param params.page - 页码，默认1
  * @param params.page_size - 每页数量，默认20
- * @param params.status - 挂单状态筛选: active / sold / withdrawn / expired（可选，不传返回全部）
+ * @param params.status - 挂单状态筛选: on_sale / sold / withdrawn / locked / admin_withdrawn（可选，不传返回全部）
  */
 async function getMyListings(
   params: {
@@ -379,7 +379,7 @@ async function sellFungibleAssets(params: {
     throw new Error('定价币种不能为空')
   }
 
-  const idempotencyKey = `market_fungible_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('market_fungible_list')
   return apiClient.request('/marketplace/fungible-assets/list', {
     method: 'POST',
     data: {
@@ -439,7 +439,7 @@ async function cancelTradeOrder(trade_order_id: number, cancel_reason?: string) 
     requestData.cancel_reason = cancel_reason
   }
 
-  const idempotencyKey = `market_cancel_${trade_order_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('market_cancel', trade_order_id)
   return apiClient.request(`/marketplace/trade-orders/${trade_order_id}/cancel`, {
     method: 'POST',
     data: requestData,
@@ -487,7 +487,7 @@ async function confirmDelivery(trade_order_id: number, escrow_code: string) {
     throw new Error('担保码格式无效，请输入6位数字')
   }
 
-  const idempotencyKey = `escrow_confirm_${trade_order_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  const idempotencyKey = await generateIdempotencyKey('escrow_confirm', trade_order_id)
   return apiClient.request(`/marketplace/trade-orders/${trade_order_id}/confirm-delivery`, {
     method: 'POST',
     data: { escrow_code },
@@ -788,7 +788,7 @@ async function createTradeDispute(
     throw new Error('申诉描述不能少于20字')
   }
 
-  const idempotencyKey = `dispute_${trade_order_id}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('trade_dispute', trade_order_id)
 
   return apiClient.request(`/marketplace/trade-orders/${trade_order_id}/dispute`, {
     method: 'POST',

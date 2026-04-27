@@ -5,8 +5,17 @@
   <!-- 页面级加载状态（初始化期间tabs为空，显示loading遮罩避免短暂空白） -->
   <loading-spinner wx:if="{{loading}}" text="加载中..." />
 
+  <empty-state
+    wx:if="{{!loading && hasConfigError}}"
+    icon="⚠️"
+    title="兑换配置缺失"
+    subtitle="{{configErrorMessage}}"
+    buttonText="重新加载"
+    bind:retry="onPullDownRefresh"
+  />
+
   <!-- 水平排列导航模块（后端 exchange_page 配置下发） -->
-  <view class="nav-module horizontal" hover-class="none" wx:if="{{!loading}}">
+  <view class="nav-module horizontal" hover-class="none" wx:if="{{!loading && !hasConfigError}}">
     <view class="nav-buttons-row" hover-class="none">
       <view
         wx:for="{{tabs}}"
@@ -30,7 +39,10 @@
   </view>
 
   <!-- 商品货架组件（view 包装器控制 hidden，组件始终存活保留状态） -->
-  <view class="tab-content-wrapper" hidden="{{loading || currentTab !== 'exchange'}}">
+  <view
+    class="tab-content-wrapper"
+    hidden="{{loading || hasConfigError || currentTab !== 'exchange'}}"
+  >
     <exchange-shelf
       active="{{currentTab === 'exchange'}}"
       pointsBalance="{{totalPoints}}"
@@ -49,7 +61,10 @@
   </view>
 
   <!-- 交易市场组件（view 包装器控制 hidden，组件始终存活保留状态） -->
-  <view class="tab-content-wrapper" hidden="{{loading || currentTab !== 'market'}}">
+  <view
+    class="tab-content-wrapper"
+    hidden="{{loading || hasConfigError || currentTab !== 'market'}}"
+  >
     <exchange-market
       active="{{currentTab === 'market'}}"
       pointsBalance="{{totalPoints}}"
@@ -69,7 +84,10 @@
   </view>
 
   <!-- 资产转换组件（view 包装器控制 hidden，组件始终存活保留状态） -->
-  <view class="tab-content-wrapper" hidden="{{loading || currentTab !== 'exchange-rate'}}">
+  <view
+    class="tab-content-wrapper"
+    hidden="{{loading || hasConfigError || currentTab !== 'exchange-rate'}}"
+  >
     <asset-conversion
       active="{{currentTab === 'exchange-rate'}}"
       pointsBalance="{{totalPoints}}"

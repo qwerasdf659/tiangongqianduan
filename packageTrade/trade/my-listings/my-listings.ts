@@ -9,8 +9,8 @@
  *
  * 后端API:
  *   - GET /api/v4/marketplace/my-listings（获取挂单列表）
- *   - POST /api/v4/marketplace/listings/:id/withdraw（撤回物品实例挂单）
- *   - POST /api/v4/marketplace/fungible-assets/:id/withdraw（撤回可叠加资产挂单）
+ *   - POST /api/v4/marketplace/listings/:market_listing_id/withdraw（撤回物品实例挂单）
+ *   - POST /api/v4/marketplace/fungible-assets/:market_listing_id/withdraw（撤回可叠加资产挂单）
  *
  * 数据来源: 后端 market_listings 表（seller_user_id = 当前用户）
  *
@@ -29,12 +29,13 @@ const { tradeStore } = require('../../../store/trade')
 /** loading安全超时时间（毫秒），防止loading遮罩层永远不消失 */
 const LOADING_SAFETY_TIMEOUT = 8000
 
-/** 挂单状态对应的中文和颜色（纯前端UI常量，对齐文档 status 枚举） */
+/** 挂单状态对应的中文和颜色（纯前端UI常量，对齐后端 status 枚举） */
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: '在售', color: '#52c41a' },
+  on_sale: { label: '在售', color: '#52c41a' },
+  locked: { label: '交易中', color: '#faad14' },
   sold: { label: '已成交', color: '#1890ff' },
   withdrawn: { label: '已撤回', color: '#999999' },
-  expired: { label: '已过期', color: '#999999' }
+  admin_withdrawn: { label: '平台下架', color: '#999999' }
 }
 
 /** 挂单类型对应的中文（纯前端UI常量，三表模型迁移后 item_instance → item） */
@@ -48,13 +49,13 @@ Page({
     /** 挂单列表（后端 GET /api/v4/marketplace/my-listings 返回） */
     listings: [] as API.MyListing[],
 
-    /** 当前筛选状态: all / active / sold / withdrawn */
+    /** 当前筛选状态: all / on_sale / sold / withdrawn */
     currentStatus: 'all',
 
-    /** 状态筛选标签页配置（对齐文档 status 查询参数枚举） */
+    /** 状态筛选标签页配置（对齐后端 status 查询参数枚举） */
     statusTabs: [
       { key: 'all', label: '全部', count: 0 },
-      { key: 'active', label: '在售', count: 0 },
+      { key: 'on_sale', label: '在售', count: 0 },
       { key: 'sold', label: '已成交', count: 0 },
       { key: 'withdrawn', label: '已撤回', count: 0 }
     ],
@@ -76,6 +77,7 @@ Page({
     /** 担保码状态弹窗（Phase 4：escrow-status API不返回明文码） */
     showEscrowModal: false,
     escrowExpiresAt: '',
+    escrowOrderNo: '',
     escrowTradeOrderId: 0,
     escrowLoading: false
   },
@@ -184,7 +186,7 @@ Page({
 
         if (!result.data.status_counts) {
           log.warn(
-            '⚠️ 后端未返回 status_counts 字段，各状态计数将显示0。需后端在 GET /api/v4/marketplace/my-listings 响应中添加 status_counts: { active, sold, withdrawn, expired } 聚合字段'
+            '⚠️ 后端未返回 status_counts 字段，各状态计数将显示0。需后端在 GET /api/v4/marketplace/my-listings 响应中添加 status_counts: { on_sale, sold, withdrawn, locked, admin_withdrawn } 聚合字段'
           )
         }
 
@@ -192,7 +194,7 @@ Page({
          * 适配后端 GET /api/v4/marketplace/my-listings 扁平字段格式
          *
          * 后端响应字段（基于 market_listings 表）:
-         *   listing_id, listing_kind,
+         *   market_listing_id, listing_kind,
          *   offer_item_display_name, offer_asset_display_name,
          *   offer_asset_code, offer_amount, offer_item_rarity,
          *   price_asset_code, price_amount, status, status_display, created_at
@@ -206,7 +208,7 @@ Page({
           const parsedDate = Utils.safeParseDateString(item.created_at)
 
           return {
-            listing_id: item.listing_id,
+            market_listing_id: item.market_listing_id,
             listing_kind: item.listing_kind || 'item',
             display_name: displayName,
             offer_item_rarity: item.offer_item_rarity || '',
@@ -216,14 +218,15 @@ Page({
             /** 结算资产中文名（用于UI展示，如"星石"） */
             _priceAssetLabel: listingsImageHelper.getAssetDisplayName(item.price_asset_code || ''),
             price_amount: item.price_amount || 0,
-            status: item.status || 'active',
+            order_no: item.order_no || '',
+            trade_order_id: item.trade_order_id || null,
+            status: item.status || 'on_sale',
             status_display:
               item.status_display || (STATUS_CONFIG[item.status] || {}).label || item.status,
             created_at: item.created_at || '',
-            statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.active).color,
+            statusColor: (STATUS_CONFIG[item.status] || STATUS_CONFIG.on_sale).color,
             kindLabel: LISTING_KIND_LABEL[item.listing_kind] || '未知',
-            formattedTime: parsedDate ? Utils.formatTime(parsedDate) : item.created_at || '',
-            trade_order_id: item.trade_order_id || null
+            formattedTime: parsedDate ? Utils.formatTime(parsedDate) : item.created_at || ''
           }
         })
 
@@ -293,12 +296,12 @@ Page({
    */
   onWithdrawListing(e: any) {
     const listing = e.currentTarget.dataset.listing
-    if (!listing || !listing.listing_id) {
+    if (!listing || !listing.market_listing_id) {
       log.warn('挂单数据为空')
       return
     }
 
-    if (listing.status !== 'active') {
+    if (listing.status !== 'on_sale') {
       wx.showToast({ title: '仅在售挂单可撤回', icon: 'none' })
       return
     }
@@ -317,7 +320,7 @@ Page({
       placeholderText: '撤回原因（选填）',
       success: (res: any) => {
         if (res.confirm) {
-          this.executeWithdraw(listing.listing_id, listing.listing_kind, res.content || '')
+          this.executeWithdraw(listing.market_listing_id, listing.listing_kind, res.content || '')
         }
       }
     })
@@ -377,7 +380,7 @@ Page({
       const result = await API.getEscrowStatus(tradeOrderId)
 
       if (result.success && result.data) {
-        const { expires_at, trade_order_id: orderId } = result.data
+        const { expires_at, order_no, trade_order_id: orderId } = result.data
 
         let formattedExpires = ''
         if (expires_at) {
@@ -393,6 +396,7 @@ Page({
 
         this.setData({
           escrowExpiresAt: formattedExpires,
+          escrowOrderNo: order_no || '',
           escrowTradeOrderId: orderId || tradeOrderId,
           escrowLoading: false
         })
@@ -413,7 +417,21 @@ Page({
     this.setData({
       showEscrowModal: false,
       escrowExpiresAt: '',
+      escrowOrderNo: '',
       escrowTradeOrderId: 0
+    })
+  },
+
+  /** 复制订单号 */
+  onCopyOrderNo(e: any) {
+    const orderNo = e.currentTarget.dataset.orderNo
+    if (!orderNo) {
+      return
+    }
+
+    wx.setClipboardData({
+      data: orderNo,
+      success: () => wx.showToast({ title: '订单号已复制', icon: 'success' })
     })
   },
 

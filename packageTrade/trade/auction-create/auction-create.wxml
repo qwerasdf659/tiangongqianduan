@@ -53,7 +53,9 @@
       <image class="preview-image" src="{{selectedItem._displayImage}}" mode="aspectFill" />
       <view class="preview-info">
         <text class="preview-name">{{selectedItem._displayName}}</text>
-        <text class="preview-rarity" wx:if="{{selectedItem._rarityLabel}}">{{selectedItem._rarityLabel}}</text>
+        <text class="preview-rarity" wx:if="{{selectedItem._rarityLabel}}"
+          >{{selectedItem._rarityLabel}}</text
+        >
       </view>
     </view>
 
@@ -62,7 +64,13 @@
       <!--出价币种-->
       <view class="form-group" wx:if="{{currencies.length > 0}}">
         <text class="form-label">出价币种</text>
-        <picker mode="selector" range="{{currencies}}" range-key="display_name" value="{{selectedCurrencyIndex}}" bindchange="onCurrencyChange">
+        <picker
+          mode="selector"
+          range="{{currencies}}"
+          range-key="display_name"
+          value="{{selectedCurrencyIndex}}"
+          bindchange="onCurrencyChange"
+        >
           <view class="form-picker">
             <text>{{currencies[selectedCurrencyIndex].display_name || '星石'}}</text>
             <text class="picker-arrow">▼</text>
@@ -73,13 +81,25 @@
       <!--起拍价-->
       <view class="form-group">
         <text class="form-label">起拍价 <text class="required">*</text></text>
-        <input class="form-input" type="number" placeholder="请输入起拍价" value="{{startPrice}}" bindinput="onStartPriceInput" />
+        <input
+          class="form-input"
+          type="number"
+          placeholder="请输入起拍价"
+          value="{{startPrice}}"
+          bindinput="onStartPriceInput"
+        />
       </view>
 
       <!--最小加价幅度-->
       <view class="form-group">
         <text class="form-label">最小加价幅度</text>
-        <input class="form-input" type="number" placeholder="默认10" value="{{minBidIncrement}}" bindinput="onMinBidIncrementInput" />
+        <input
+          class="form-input"
+          type="number"
+          placeholder="默认10"
+          value="{{minBidIncrement}}"
+          bindinput="onMinBidIncrementInput"
+        />
       </view>
 
       <!--一口价-->
@@ -88,7 +108,14 @@
           <text class="form-label">一口价</text>
           <switch checked="{{enableBuyout}}" bindchange="onToggleBuyout" color="#FF6B35" />
         </view>
-        <input class="form-input" wx:if="{{enableBuyout}}" type="number" placeholder="出价达到此金额立即成交" value="{{buyoutPrice}}" bindinput="onBuyoutPriceInput" />
+        <input
+          class="form-input"
+          wx:if="{{enableBuyout}}"
+          type="number"
+          placeholder="出价达到此金额立即成交"
+          value="{{buyoutPrice}}"
+          bindinput="onBuyoutPriceInput"
+        />
         <text class="form-hint" wx:if="{{enableBuyout}}">一口价必须大于起拍价，达到后立即结算</text>
       </view>
 
@@ -96,10 +123,18 @@
       <view class="form-group">
         <text class="form-label">开始时间</text>
         <view class="time-type-row">
-          <view class="time-type-btn {{startTimeType === 'now' ? 'active' : ''}}" data-type="now" bindtap="onStartTimeTypeChange">
+          <view
+            class="time-type-btn {{startTimeType === 'now' ? 'active' : ''}}"
+            data-type="now"
+            bindtap="onStartTimeTypeChange"
+          >
             <text>立即开始</text>
           </view>
-          <view class="time-type-btn {{startTimeType === 'custom' ? 'active' : ''}}" data-type="custom" bindtap="onStartTimeTypeChange">
+          <view
+            class="time-type-btn {{startTimeType === 'custom' ? 'active' : ''}}"
+            data-type="custom"
+            bindtap="onStartTimeTypeChange"
+          >
             <text>定时开始</text>
           </view>
         </view>
@@ -116,7 +151,13 @@
       <!--拍卖时长-->
       <view class="form-group">
         <text class="form-label">拍卖时长（小时）</text>
-        <input class="form-input" type="number" placeholder="默认24小时（最少2小时）" value="{{durationHours}}" bindinput="onDurationChange" />
+        <input
+          class="form-input"
+          type="number"
+          placeholder="默认24小时（最少2小时）"
+          value="{{durationHours}}"
+          bindinput="onDurationChange"
+        />
         <text class="form-hint">最小时长2小时，建议24小时以获得更多出价</text>
       </view>
     </view>

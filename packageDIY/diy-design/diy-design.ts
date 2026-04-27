@@ -178,11 +178,13 @@ Page({
           }
         })
         /** 对齐后端 GET /api/v4/diy/material-groups 返回格式 */
-        const apiGroups: API.DiyMaterialGroup[] = Array.from(groupMap.entries()).map(([code, info]) => ({
-          group_code: code,
-          count: String(info.count),
-          sample_name: info.sampleName
-        }))
+        const apiGroups: API.DiyMaterialGroup[] = Array.from(groupMap.entries()).map(
+          ([code, info]) => ({
+            group_code: code,
+            count: String(info.count),
+            sample_name: info.sampleName
+          })
+        )
         diyStore.setMaterialGroups(apiGroups)
       } else {
         this.setData({ beadLoadError: true })

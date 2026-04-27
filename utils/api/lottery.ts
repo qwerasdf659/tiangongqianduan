@@ -8,7 +8,7 @@
  */
 
 const { apiClient } = require('./client')
-const { buildQueryString } = require('../util')
+const { buildQueryString, generateIdempotencyKey } = require('../util')
 
 /** 获取抽奖活动列表（通用查询）- GET /api/v4/lottery/campaigns */
 async function getLotteryCampaigns(status: string = 'active') {
@@ -49,7 +49,7 @@ async function getLotteryConfig(campaign_code: string) {
  *       data.total_points_cost / data.discount / data.saved_points 消费和折扣信息
  */
 async function performLottery(campaign_code: string, draw_count: number = 1) {
-  const idempotencyKey = `lottery_${campaign_code}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('lottery', campaign_code)
   return apiClient.request('/lottery/draw', {
     method: 'POST',
     data: { campaign_code, draw_count },

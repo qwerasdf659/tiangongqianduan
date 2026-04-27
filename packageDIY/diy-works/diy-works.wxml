@@ -24,7 +24,11 @@
   </view>
 
   <!-- 空状态 -->
-  <empty-state wx:elif="{{isEmpty}}" title="暂无设计作品" description="去设计你的第一件专属饰品吧" />
+  <empty-state
+    wx:elif="{{isEmpty}}"
+    title="暂无设计作品"
+    description="去设计你的第一件专属饰品吧"
+  />
 
   <!-- 作品列表 -->
   <view class="works-list" wx:else>
@@ -55,7 +59,13 @@
         <view class="work-info-row" wx:if="{{item.total_cost.length > 0}}">
           <text class="work-info-label">费用</text>
           <view class="work-cost-list">
-            <text class="work-cost-item" wx:for="{{item.total_cost}}" wx:for-item="cost" wx:key="asset_code">{{cost.amount}} {{cost.asset_code}}</text>
+            <text
+              class="work-cost-item"
+              wx:for="{{item.total_cost}}"
+              wx:for-item="cost"
+              wx:key="asset_code"
+              >{{cost.amount}} {{cost.asset_code}}</text
+            >
           </view>
         </view>
       </view>

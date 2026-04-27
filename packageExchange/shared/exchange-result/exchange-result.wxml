@@ -2,14 +2,18 @@
 <view class="result-overlay" wx:if="{{visible}}" bindtap="onClose">
   <view class="result-modal" catchtap="">
     <view class="result-icon">{{success ? (_hasMinted ? '⚒️' : '✅') : '❌'}}</view>
-    <text class="result-title">{{success ? (_hasMinted ? '铸造成功' : '兑换成功') : '兑换失败'}}</text>
+    <text class="result-title"
+      >{{success ? (_hasMinted ? '铸造成功' : '兑换成功') : '兑换失败'}}</text
+    >
     <text class="result-message" wx:if="{{message}}">{{message}}</text>
 
     <!-- 铸造物品详情（mint_instance=true 时展示品质、编号等实例属性） -->
     <view class="result-detail result-mint-detail" wx:if="{{_hasMinted && success}}">
       <view class="result-row" wx:if="{{_qualityGrade}}">
         <text class="result-label">品质等级</text>
-        <text class="result-value result-quality-tag" style="color: {{_qualityColorHex}};">{{_qualityGrade}}</text>
+        <text class="result-value result-quality-tag" style="color: {{_qualityColorHex}};"
+          >{{_qualityGrade}}</text
+        >
       </view>
       <view class="result-row" wx:if="{{_qualityScore}}">
         <text class="result-label">品质分</text>
@@ -42,14 +46,26 @@
       </view>
       <view class="result-row" wx:if="{{orderData.payAmount}}">
         <text class="result-label">消耗</text>
-        <text class="result-value">{{orderData.payAmount}} {{orderData.payAssetCode || '积分'}}</text>
+        <text class="result-value"
+          >{{orderData.payAmount}} {{orderData.payAssetCode || '积分'}}</text
+        >
       </view>
     </view>
 
     <view class="result-footer">
       <view class="result-btn result-btn-secondary" bindtap="onClose">关闭</view>
-      <view class="result-btn result-btn-primary" wx:if="{{success && _hasMinted}}" bindtap="onViewBackpack">查看背包</view>
-      <view class="result-btn result-btn-primary" wx:elif="{{success && orderData.orderNo}}" bindtap="onViewOrder">查看订单</view>
+      <view
+        class="result-btn result-btn-primary"
+        wx:if="{{success && _hasMinted}}"
+        bindtap="onViewBackpack"
+        >查看背包</view
+      >
+      <view
+        class="result-btn result-btn-primary"
+        wx:elif="{{success && orderData.orderNo}}"
+        bindtap="onViewOrder"
+        >查看订单</view
+      >
     </view>
   </view>
 </view>

@@ -103,8 +103,11 @@ App({
       await initializeWechatEnvironment()
 
       // 预加载全局氛围主题到本地缓存（公开API，无需登录）
+      // 非阻塞：主题获取不应阻塞 onLaunch，失败时降级到内置默认主题
       // 页面 onLoad/onShow 中 getThemeNameSync() 依赖此处填充缓存
-      await ThemeCache.getThemeName()
+      ThemeCache.getThemeName().catch((err: any) => {
+        log.warn('主题预加载失败（不影响启动）:', err?.message || err)
+      })
 
       // 冷启动时清理过期弹窗记录（90天以上），防止本地存储无限增长
       PopupFrequency.cleanExpiredRecords()

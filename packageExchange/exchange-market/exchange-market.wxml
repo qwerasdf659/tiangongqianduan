@@ -299,7 +299,7 @@
       wx:if="{{!loading}}"
       class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}"
     >
-      <block wx:for="{{filteredProducts}}" wx:key="listing_id">
+      <block wx:for="{{filteredProducts}}" wx:key="market_listing_id">
         <!-- Feed 广告卡片（穿插在商品列表中） -->
         <view
           wx:if="{{item._isAdItem}}"
@@ -481,6 +481,10 @@
       <view class="result-icon">✅</view>
       <text class="result-title">购买成功</text>
       <view class="result-detail" wx:if="{{resultData}}">
+        <view class="result-row" wx:if="{{resultData.orderNo}}"
+          ><text class="result-label">订单号</text
+          ><text class="result-value">{{resultData.orderNo}}</text></view
+        >
         <view class="result-row"
           ><text class="result-label">商品</text
           ><text class="result-value">{{resultData.product.item_name}}</text></view

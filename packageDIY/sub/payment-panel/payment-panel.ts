@@ -100,7 +100,7 @@ Component({
         const res = await API.getDiyPaymentAssets(templateId)
         if (res.success && res.data) {
           /** 缓存余额数据，用于后续匹配 */
-          this._assetBalances = res.data
+          ;(this as any)._assetBalances = res.data
           this._mergeBreakdownWithBalances()
         } else {
           this.setData({ balanceError: true })
@@ -112,16 +112,13 @@ Component({
       }
     },
 
-    /** 缓存的资产余额列表（不放 data 中，避免序列化开销） */
-    _assetBalances: [] as any[],
-
     /**
      * 将 costBreakdown 与用户资产余额合并
      * 生成 paymentItems 用于 WXML 渲染
      */
     _mergeBreakdownWithBalances() {
       const breakdown = this.properties.costBreakdown as API.DiyCostBreakdownItem[]
-      const balances = this._assetBalances || []
+      const balances = (this as any)._assetBalances || []
 
       const paymentItems = breakdown.map((item: API.DiyCostBreakdownItem) => {
         /** 从余额列表中查找对应资产 */

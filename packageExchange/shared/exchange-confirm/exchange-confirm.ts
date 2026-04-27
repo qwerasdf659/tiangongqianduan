@@ -9,7 +9,10 @@
  * @since 2026-02-21
  */
 
-const { ImageHelper: confirmImageHelper, AssetCodes: confirmAssetCodes } = require('../../../utils/index')
+const {
+  ImageHelper: confirmImageHelper,
+  AssetCodes: confirmAssetCodes
+} = require('../../../utils/index')
 
 Component({
   properties: {

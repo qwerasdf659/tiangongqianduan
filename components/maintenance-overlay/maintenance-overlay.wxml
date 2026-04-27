@@ -4,7 +4,11 @@
     <view class="maintenance-icon">🔧</view>
     <view class="maintenance-title">系统维护中</view>
     <view class="maintenance-message">{{message}}</view>
-    <button class="maintenance-retry-btn {{retrying ? 'is-disabled' : ''}}" disabled="{{retrying}}" bindtap="onRetry">
+    <button
+      class="maintenance-retry-btn {{retrying ? 'is-disabled' : ''}}"
+      disabled="{{retrying}}"
+      bindtap="onRetry"
+    >
       {{retrying ? '检测中...' : '点击重试'}}
     </button>
     <view class="maintenance-hint" wx:if="{{retryCount > 0}}"

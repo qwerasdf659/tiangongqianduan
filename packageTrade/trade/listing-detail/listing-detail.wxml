@@ -1,5 +1,5 @@
 <!--挂单详情页 — 展示商品详情 + 购买入口 + 价格摘要-->
-<!--后端API: GET /api/v4/marketplace/listings/:listing_id-->
+<!--后端API: GET /api/v4/marketplace/listings/:market_listing_id-->
 
 <!-- 加载状态 -->
 <view class="detail-loading" wx:if="{{loading}}">
@@ -53,10 +53,11 @@
   <view class="detail-info-card">
     <view class="detail-title-row">
       <text class="detail-title">{{displayName}}</text>
-      <view class="detail-status-tag" wx:if="{{detail.status !== 'active'}}">
+      <view class="detail-status-tag" wx:if="{{detail.status !== 'on_sale'}}">
         <text
           >{{detail.status === 'sold' ? '已售出' : detail.status === 'withdrawn' ? '已撤回' :
-          '已过期'}}</text
+          detail.status === 'locked' ? '交易中' : detail.status === 'admin_withdrawn' ? '平台下架' :
+          '已下架'}}</text
         >
       </view>
     </view>
@@ -205,7 +206,7 @@
   </view>
 
   <!-- 底部购买栏（固定底部） -->
-  <view class="detail-bottom-bar" wx:if="{{detail.status === 'active'}}">
+  <view class="detail-bottom-bar" wx:if="{{detail.status === 'on_sale'}}">
     <view class="bottom-price-info">
       <text class="bottom-price">{{detail.price_amount}}</text>
       <text class="bottom-unit">{{priceLabel}}</text>
@@ -239,9 +240,9 @@
     <text class="modal-icon">🎉</text>
     <text class="modal-title">购买成功</text>
     <view class="modal-detail-rows" wx:if="{{purchaseResult}}">
-      <view class="modal-row">
+      <view class="modal-row" wx:if="{{purchaseResult.order_no}}">
         <text class="row-label">订单编号</text>
-        <text class="row-value">{{purchaseResult.order_no || purchaseResult.trade_order_id}}</text>
+        <text class="row-value">{{purchaseResult.order_no}}</text>
       </view>
       <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
         <text class="row-label">总金额</text>
@@ -283,9 +284,9 @@
       <text>⏰ 请在 {{escrowExpiresAt}} 前完成确认，超时将自动取消</text>
     </view>
     <view class="escrow-fee-info" wx:if="{{purchaseResult}}">
-      <view class="modal-row">
+      <view class="modal-row" wx:if="{{purchaseResult.order_no}}">
         <text class="row-label">订单编号</text>
-        <text class="row-value">{{purchaseResult.order_no || purchaseResult.trade_order_id}}</text>
+        <text class="row-value">{{purchaseResult.order_no}}</text>
       </view>
       <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
         <text class="row-label">总金额</text>

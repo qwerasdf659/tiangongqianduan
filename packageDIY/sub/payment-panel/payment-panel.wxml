@@ -37,7 +37,11 @@
         </view>
 
         <!-- 每种资产的费用行 -->
-        <view class="payment-item {{item.sufficient ? '' : 'insufficient'}}" wx:for="{{paymentItems}}" wx:key="asset_code">
+        <view
+          class="payment-item {{item.sufficient ? '' : 'insufficient'}}"
+          wx:for="{{paymentItems}}"
+          wx:key="asset_code"
+        >
           <view class="payment-item-left">
             <text class="payment-asset-name">{{item.asset_name}}</text>
             <text class="payment-bead-count">{{item.bead_count}}颗珠子</text>
@@ -49,7 +53,10 @@
             </view>
             <view class="payment-balance-row">
               <text class="payment-balance-label">余额</text>
-              <text class="payment-balance-amount {{item.sufficient ? 'sufficient' : 'insufficient-text'}}">{{item.available_amount}}</text>
+              <text
+                class="payment-balance-amount {{item.sufficient ? 'sufficient' : 'insufficient-text'}}"
+                >{{item.available_amount}}</text
+              >
             </view>
           </view>
         </view>
@@ -68,7 +75,10 @@
 
     <view class="payment-footer">
       <view class="payment-cancel-btn" bindtap="onClose">取消</view>
-      <view class="payment-confirm-btn {{(!allSufficient || submitting || balanceLoading || balanceError) ? 'disabled' : ''}}" bindtap="onConfirm">
+      <view
+        class="payment-confirm-btn {{(!allSufficient || submitting || balanceLoading || balanceError) ? 'disabled' : ''}}"
+        bindtap="onConfirm"
+      >
         {{submitting ? '确认中...' : '确认设计'}}
       </view>
     </view>

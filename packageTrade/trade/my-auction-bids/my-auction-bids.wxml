@@ -47,7 +47,9 @@
 
         <!--出价状态-->
         <view class="bid-status-row">
-          <text class="bid-status-text" style="color: {{item._bidStatusColor}}">{{item._bidStatusLabel}}</text>
+          <text class="bid-status-text" style="color: {{item._bidStatusColor}}"
+            >{{item._bidStatusLabel}}</text
+          >
           <text class="bid-time">{{item.created_at}}</text>
         </view>
 

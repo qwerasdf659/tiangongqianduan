@@ -10,7 +10,7 @@
  */
 
 const { apiClient } = require('./client')
-const { buildQueryString } = require('../util')
+const { buildQueryString, generateIdempotencyKey } = require('../util')
 
 // ==================== 用户端消费 ====================
 
@@ -103,7 +103,7 @@ async function submitConsumption(params: SubmitConsumptionParams) {
     throw new Error('商家备注不能超过500字')
   }
 
-  const idempotencyKey: string = `consumption_submit_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+  const idempotencyKey: string = await generateIdempotencyKey('consumption_submit')
 
   return apiClient.request('/shop/consumption/submit', {
     method: 'POST',
@@ -141,7 +141,7 @@ async function getMerchantConsumptionStats() {
 
 /** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限） */
 async function createRedemptionOrder(params: Record<string, any>) {
-  const idempotencyKey: string = `redemption_create_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+  const idempotencyKey: string = await generateIdempotencyKey('redemption_create')
 
   return apiClient.request('/shop/redemption/orders', {
     method: 'POST',
@@ -164,7 +164,7 @@ async function fulfillRedemption(params: { redeem_code: string; store_id?: numbe
     throw new Error('核销码不能为空')
   }
 
-  const idempotencyKey: string = `redemption_fulfill_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+  const idempotencyKey: string = await generateIdempotencyKey('redemption_fulfill')
 
   return apiClient.request('/shop/redemption/fulfill', {
     method: 'POST',
@@ -212,7 +212,7 @@ async function scanRedemptionQR(params: { qr_content: string; store_id?: number 
     throw new Error('无效的核销QR码格式，请确认扫描的是核销二维码')
   }
 
-  const idempotencyKey: string = `redemption_scan_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+  const idempotencyKey: string = await generateIdempotencyKey('redemption_scan')
 
   return apiClient.request('/shop/redemption/scan', {
     method: 'POST',

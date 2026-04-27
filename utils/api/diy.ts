@@ -21,6 +21,7 @@
  */
 
 const { apiClient } = require('./client')
+const { generateIdempotencyKey } = require('../util')
 
 // ========== 模板相关 ==========
 
@@ -70,7 +71,9 @@ async function getDiyTemplateById(templateId: number): Promise<API.ApiResponse<A
  *
  * @param templateId - 模板主键 diy_template_id
  */
-async function getDiyPaymentAssets(templateId: number): Promise<API.ApiResponse<API.DiyMaterial[]>> {
+async function getDiyPaymentAssets(
+  templateId: number
+): Promise<API.ApiResponse<API.DiyMaterial[]>> {
   return apiClient.request(`/diy/templates/${templateId}/payment-assets`, { method: 'GET' })
 }
 
@@ -168,7 +171,7 @@ async function saveDiyWork(
   workData: API.DiyWorkCreateRequest
 ): Promise<API.ApiResponse<API.DiyWorkCreateResponse>> {
   /** 生成幂等键（时间戳 + 随机数，防止重复提交） */
-  const idempotencyKey = `diy_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
+  const idempotencyKey = await generateIdempotencyKey('diy_save_work')
   return apiClient.request('/diy/works', {
     method: 'POST',
     data: workData,

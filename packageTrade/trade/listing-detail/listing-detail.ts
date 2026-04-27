@@ -2,11 +2,11 @@
  * 挂单详情页 — 展示挂单完整信息 + 购买入口 + 价格摘要
  *
  * 后端API:
- *   GET  /api/v4/marketplace/listings/:listing_id     → 挂单详情
- *   GET  /api/v4/marketplace/price/summary             → 价格摘要
- *   POST /api/v4/marketplace/listings/:id/purchase     → 购买（Idempotency-Key）
+ *   GET  /api/v4/marketplace/listings/:market_listing_id     → 挂单详情
+ *   GET  /api/v4/marketplace/price/summary                   → 价格摘要
+ *   POST /api/v4/marketplace/listings/:market_listing_id/purchase → 购买（Idempotency-Key）
  *
- * 路由参数: listing_id（BIGINT，来自市场列表或瀑布流卡片点击）
+ * 路由参数: market_listing_id（BIGINT，来自市场列表或瀑布流卡片点击）
  *
  * 购买响应关键字段:
  *   requires_escrow_confirmation — true: 实物交易需担保码 → 弹出担保码说明
@@ -32,7 +32,7 @@ const { userStore } = require('../../../store/user')
 Page({
   data: {
     /** 挂单ID（路由参数） */
-    listingId: 0,
+    marketListingId: 0,
 
     /** 挂单详情数据（后端 GET /api/v4/marketplace/listings/:id 返回） */
     detail: null as any,
@@ -98,9 +98,10 @@ Page({
   storeBindings: null as any,
 
   async onLoad(options: Record<string, string | undefined>) {
-    const listingId = parseInt(options.listing_id || '0', 10)
-    if (!listingId) {
-      detailLog.error('缺少 listing_id 路由参数')
+    const marketListingIdText = options.market_listing_id || ''
+    const marketListingId = Number(marketListingIdText)
+    if (!marketListingIdText || !Number.isInteger(marketListingId) || marketListingId <= 0) {
+      detailLog.error('缺少有效的 market_listing_id 路由参数')
       this.setData({ loading: false, hasError: true, errorMessage: '商品信息无效' })
       return
     }
@@ -112,9 +113,9 @@ Page({
     })
 
     const currentUserId = (userStore.userInfo && userStore.userInfo.user_id) || 0
-    this.setData({ listingId, currentUserId })
+    this.setData({ marketListingId, currentUserId })
 
-    await this._loadDetail(listingId)
+    await this._loadDetail(marketListingId)
   },
 
   onUnload() {
@@ -125,14 +126,14 @@ Page({
 
   /**
    * 加载挂单详情 + 价格摘要（并行请求）
-   * 后端: GET /api/v4/marketplace/listings/:listing_id
+   * 后端: GET /api/v4/marketplace/listings/:market_listing_id
    * 后端: GET /api/v4/marketplace/price/summary
    */
-  async _loadDetail(listingId: number) {
+  async _loadDetail(marketListingId: number) {
     this.setData({ loading: true, hasError: false })
 
     try {
-      const detailResult = await API.getMarketProductDetail(listingId)
+      const detailResult = await API.getMarketProductDetail(marketListingId)
 
       if (!detailResult || !detailResult.success || !detailResult.data) {
         throw new Error((detailResult && detailResult.message) || '获取商品详情失败')
@@ -182,7 +183,7 @@ Page({
       this._loadPriceSummary(listing)
       this._loadPriceHistory(listing)
 
-      detailLog.info('挂单详情加载成功:', listing.listing_id)
+      detailLog.info('挂单详情加载成功:', listing.market_listing_id)
     } catch (error: any) {
       detailLog.error('加载挂单详情失败:', error)
       this.setData({
@@ -271,7 +272,7 @@ Page({
 
   /**
    * 购买商品 — 二次确认后调用购买API
-   * 后端: POST /api/v4/marketplace/listings/:listing_id/purchase
+   * 后端: POST /api/v4/marketplace/listings/:market_listing_id/purchase
    *
    * 防止重复提交: purchasing 状态锁 + Idempotency-Key
    * 自买自卖检测: 前端 seller_user_id === currentUserId 提示
@@ -282,7 +283,7 @@ Page({
       return
     }
 
-    if (detail.status !== 'active') {
+    if (detail.status !== 'on_sale') {
       DetailWechat.showToast('该商品已下架或已售出')
       return
     }
@@ -316,7 +317,7 @@ Page({
 
     try {
       const result = await API.purchaseMarketProduct(
-        detail.listing_id,
+        detail.market_listing_id,
         modalResult.note || undefined
       )
 
@@ -412,7 +413,7 @@ Page({
     const displayName = this.data.displayName || '精选商品'
     return {
       title: `${displayName} - 交易市场`,
-      path: `/packageTrade/trade/listing-detail/listing-detail?listing_id=${this.data.listingId}`
+      path: `/packageTrade/trade/listing-detail/listing-detail?market_listing_id=${this.data.marketListingId}`
     }
   }
 })

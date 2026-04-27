@@ -25,11 +25,11 @@ describe('JWT Token处理 - 完整测试套件', () => {
   const VALID_JWT_TOKENS = {
     // 标准JWT Token（包含 - 和 _ 字符）
     standard:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsIm1vYmlsZSI6IjEzODEyMzQ1Njc4IiwiaXNfYWRtaW4iOmZhbHNlLCJleHAiOjE3MzA0NTk0MDAsImlhdCI6MTczMDM3MzAwMH0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsIm1vYmlsZSI6IjEzODEyMzQ1Njc4IiwidXNlcl9yb2xlIjoidXNlciIsInJvbGVfbGV2ZWwiOjAsImV4cCI6MTczMDQ1OTQwMCwiaWF0IjoxNzMwMzczMDAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
 
     // 长payload（测试长度验证）
     longPayload:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsIm1vYmlsZSI6IjEzODEyMzQ1Njc4IiwiaXNfYWRtaW4iOmZhbHNlLCJ1c2VyX3JvbGUiOiJ1c2VyIiwicm9sZV9sZXZlbCI6MCwicGVybWlzc2lvbnMiOlsicmVhZCIsIndyaXRlIl0sImV4cCI6MTczMDQ1OTQwMCwiaWF0IjoxNzMwMzczMDAwfQ.abcdefghijklmnopqrstuvwxyz0123456789-_'
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsIm1vYmlsZSI6IjEzODEyMzQ1Njc4IiwidXNlcl9yb2xlIjoidXNlciIsInJvbGVfbGV2ZWwiOjAsInBlcm1pc3Npb25zIjpbInJlYWQiLCJ3cml0ZSJdLCJleHAiOjE3MzA0NTk0MDAsImlhdCI6MTczMDM3MzAwMH0.abcdefghijklmnopqrstuvwxyz0123456789-_'
   }
 
   const INVALID_JWT_TOKENS = {
@@ -144,13 +144,14 @@ describe('JWT Token处理 - 完整测试套件', () => {
 
   describe('decodeJWTPayload - JWT Token解码', () => {
     test('✅ 应该成功解码有效的JWT Token', () => {
-      // 这个Token的payload是: {"user_id":123,"mobile":"13812345678","is_admin":false,"exp":1730459400,"iat":1730373000}
+      // 这个Token的payload是: {"user_id":123,"mobile":"13812345678","user_role":"user","role_level":0,"exp":1730459400,"iat":1730373000}
       const payload = decodeJWTPayload(VALID_JWT_TOKENS.standard)
 
       expect(payload).not.toBeNull()
       expect(payload.user_id).toBe(123)
       expect(payload.mobile).toBe('13812345678')
-      expect(payload.is_admin).toBe(false)
+      expect(payload.user_role).toBe('user')
+      expect(payload.role_level).toBe(0)
       expect(payload.exp).toBeDefined()
       expect(payload.iat).toBeDefined()
     })
@@ -230,7 +231,7 @@ describe('JWT Token处理 - 完整测试套件', () => {
     test('🐛 [BUG-2025-11-08] Base64 URL字符应该被接受', () => {
       // 这个测试确保之前修复的问题不会再次出现
       const tokenWithUrlChars =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsIm1vYmlsZSI6IjEzODEyMzQ1Njc4IiwiaXNfYWRtaW4iOmZhbHNlLCJ1c2VyX3JvbGUiOiJ1c2VyIiwicm9sZV9sZXZlbCI6MCwiZXhwIjoxNzMwNDU5NDAwLCJpYXQiOjE3MzAzNzMwMDB9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsIm1vYmlsZSI6IjEzODEyMzQ1Njc4IiwidXNlcl9yb2xlIjoidXNlciIsInJvbGVfbGV2ZWwiOjAsImV4cCI6MTczMDQ1OTQwMCwiaWF0IjoxNzMwMzczMDAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
 
       const result = validateJWTTokenIntegrity(tokenWithUrlChars)
 
