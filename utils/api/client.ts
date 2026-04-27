@@ -281,6 +281,20 @@ class APIClient {
       log.error('认证失败(401):', { serverErrorCode, serverMessage })
 
       /**
+       * needAuth=false 的公开接口收到401时，不应清除用户登录状态
+       * 场景: 后端对公开接口误加了 authenticateToken 中间件
+       * 处理: 仅抛出业务错误，不触发 handleTokenInvalid / 弹窗 / 跳转登录页
+       */
+      if (requestOptions && requestOptions.needAuth === false) {
+        log.warn('公开接口(needAuth=false)收到401，不清除登录状态，仅抛出错误')
+        throw this._createApiError(
+          serverMessage || '接口认证异常',
+          serverErrorCode || 'PUBLIC_API_AUTH_ERROR',
+          statusCode
+        )
+      }
+
+      /**
        * 401 错误码分类处理（对齐后端 middleware/auth.js 细分错误码）
        *
        * TOKEN_EXPIRED    → JWT 过期，自动刷新 Token
