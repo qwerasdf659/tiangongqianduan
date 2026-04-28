@@ -10,6 +10,8 @@
     var(--theme-page-end, #{$gradient-blue-end}) 100%
   );
   padding: $spacing-base;
+  /* 底部预留 tabBar 高度 + 安全区域，防止内容被遮挡 */
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
 
 /* 未登录引导卡片（已登录时不显示） */

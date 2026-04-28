@@ -28,7 +28,12 @@ const { buildQueryString, generateIdempotencyKey } = require('../util')
  */
 async function getPointsBalance(asset_code: string = 'points') {
   const qs = buildQueryString({ asset_code })
-  return apiClient.request(`/assets/balance?${qs}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/assets/balance?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
 }
 
 /** 获取用户资产流水 - GET /api/v4/assets/transactions */
@@ -65,7 +70,12 @@ async function getAssetBalances() {
  */
 async function getTodaySummary(asset_code: string = 'points') {
   const qs = buildQueryString({ asset_code })
-  return apiClient.request(`/assets/today-summary?${qs}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/assets/today-summary?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
 }
 
 // ==================== 资产转换（统一转换规则系统，对齐后端 asset_conversion_rules 表） ====================

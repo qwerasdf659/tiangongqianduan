@@ -413,19 +413,19 @@ async function getUserIssues(page: number = 1, page_size: number = 10) {
 
 // ==================== 🔔 活动 ====================
 
-/** 
- * 获取活动列表 - GET /api/v4/activities（公开接口，无需登录）
- * 
- * ⚠️ 后端现状: 该路由当前配置了 authenticateToken 中间件，
- *    未登录时返回 401 MISSING_TOKEN。需后端移除认证中间件或改为可选认证。
- *    前端已做防护: needAuth=false 的请求收到401不会清除用户登录状态。
+/**
+ * 获取活动条件配置列表（管理员接口）- GET /api/v4/activities
+ *
+ * ⚠️ 此接口为管理员后台专用（authenticateToken + requireRoleLevel(100)）
+ * 用于配置活动参与条件、测试用户资格等管理功能
+ * 普通用户浏览活动请使用 lottery.ts 中的 getActiveCampaigns()
  */
 async function getActivities(params: { page?: number; page_size?: number } = {}) {
   const { page = 1, page_size = 20 } = params
   const qs = buildQueryString({ page, page_size })
   return apiClient.request(`/activities?${qs}`, {
     method: 'GET',
-    needAuth: false,
+    needAuth: true,
     showLoading: false,
     showError: false
   })

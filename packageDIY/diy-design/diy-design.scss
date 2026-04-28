@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: $color-bg-grey;
+  background: $color-bg;
   overflow: hidden;
 }
 
@@ -25,317 +25,269 @@
   }
 }
 
-/* ===== 顶部工具栏 ===== */
-.toolbar {
-  @include flex-between;
-  padding: 12rpx $spacing-base;
+/* ===== 上半部分：工作区（预览+参数） ===== */
+.workspace-area {
+  position: relative;
+  flex-shrink: 0;
+  padding: $spacing-sm $spacing-base;
   background: $color-bg-card;
-  border-bottom: 1rpx solid $color-border-light;
-  flex-shrink: 0;
 }
 
-.toolbar-left {
+/* 右上角操作按钮组 */
+.action-buttons {
+  position: absolute;
+  top: $spacing-sm;
+  right: $spacing-base;
+  z-index: 10;
   display: flex;
-  align-items: center;
-}
-
-.template-label {
-  font-size: $font-size-base;
-  font-weight: 600;
-  color: $color-text-primary;
-}
-
-.toolbar-right {
-  display: flex;
-  gap: $spacing-sm;
-}
-
-.tool-btn {
-  width: 56rpx;
-  height: 56rpx;
-  @include flex-center;
-  background: $color-bg-grey;
-  border-radius: $border-radius-sm;
-  font-size: $font-size-base;
-
-  &:active {
-    background: $color-border;
-  }
-
-  &.disabled {
-    opacity: 0.3;
-    pointer-events: none;
-  }
-}
-
-/* ===== 尺寸栏（串珠模式） ===== */
-.size-bar {
-  display: flex;
-  align-items: center;
-  padding: 12rpx $spacing-base;
-  background: $color-bg-card;
-  border-bottom: 1rpx solid $color-border-light;
-  flex-shrink: 0;
-  gap: $spacing-sm;
-}
-
-.size-label {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  flex-shrink: 0;
-}
-
-.size-picker {
-  display: flex;
-  align-items: center;
-  background: $color-bg-grey;
-  padding: $spacing-xs $spacing-sm;
-  border-radius: $border-radius-sm;
-}
-
-.size-value {
-  font-size: $font-size-base;
-  font-weight: 600;
-  color: $color-primary;
-}
-
-.size-arrow {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  margin-left: $spacing-xs;
-}
-
-.capacity-info {
-  flex: 1;
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: $spacing-xs;
 }
 
-.capacity-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  flex-shrink: 0;
-}
-
-.capacity-bar {
-  flex: 1;
-  height: 8rpx;
-  background: $color-divider;
-  border-radius: 4rpx;
-  overflow: hidden;
-}
-
-.capacity-fill {
-  height: 100%;
-  background: linear-gradient(90deg, $color-success, $color-primary);
-  border-radius: 4rpx;
-  transition: width $transition-slow;
-}
-
-/* ===== 槽位栏（镶嵌模式） ===== */
-.slot-bar {
-  display: flex;
-  align-items: center;
-  padding: 12rpx $spacing-base;
-  background: $color-bg-card;
-  border-bottom: 1rpx solid $color-border-light;
-  flex-shrink: 0;
-  gap: $spacing-md;
-}
-
-.slot-label {
+.action-btn {
+  padding: $spacing-xs $spacing-lg;
+  border-radius: $border-radius-xl;
   font-size: $font-size-sm;
-  color: $color-text-secondary;
-}
+  text-align: center;
 
-.slot-active-label {
-  font-size: $font-size-sm;
-  color: $color-primary;
-  font-weight: 500;
-}
+  &-dark {
+    background: $color-text-primary;
+    color: $color-text-white;
+  }
 
-/* ===== Canvas 预览区 ===== */
-.preview-area {
-  flex-shrink: 0;
-  @include flex-center;
-  padding: $spacing-md 0;
-  background: linear-gradient(180deg, #fafafa, #f0ede8);
-}
-
-/* ===== 多选操作栏（含排序按钮） ===== */
-.selection-bar {
-  display: flex;
-  align-items: center;
-  padding: 12rpx $spacing-base;
-  background: rgba($color-primary, 0.06);
-  border-top: 1rpx solid rgba($color-primary, 0.15);
-  flex-shrink: 0;
-  gap: $spacing-sm;
-}
-
-.selection-text {
-  font-size: $font-size-sm;
-  color: $color-primary;
-  flex: 1;
-}
-
-.selection-btn {
-  font-size: $font-size-sm;
-  color: $color-text-white;
-  background: $color-primary;
-  padding: $spacing-xs $spacing-base;
-  border-radius: $border-radius-sm;
-
-  &.secondary {
-    background: $color-border;
-    color: $color-text-secondary;
+  &-primary {
+    background: $color-primary;
+    color: $color-text-white;
   }
 }
 
-/* 珠子排序按钮（左移/右移） */
-.move-btn {
-  min-width: 56rpx;
-  text-align: center;
+/* 预览画布区域 */
+.preview-section {
+  @include flex-center;
+  padding: $spacing-lg 0;
+  min-height: 400rpx;
+}
+
+/* 右侧参数面板 */
+.params-panel {
+  position: absolute;
+  right: $spacing-base;
+  top: 180rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.param-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: $spacing-xs;
+}
+
+.param-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.param-value {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
   font-weight: 600;
 }
 
-/* ===== 素材选择区 ===== */
-.material-area {
+.price-highlight {
+  color: $color-primary;
+}
+
+/* ===== 左侧浮动工具栏 ===== */
+.side-tools {
+  position: absolute;
+  left: $spacing-base;
+  bottom: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  z-index: 10;
+}
+
+.side-tool-item {
+  @include flex-column-center;
+}
+
+.side-tool-icon {
+  font-size: 48rpx;
+  color: $color-text-primary;
+}
+
+.side-tool-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+/* 工具箱弹出面板 */
+.toolbox-panel {
+  position: absolute;
+  left: 100rpx;
+  bottom: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $border-radius-md;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.12);
+  padding: $spacing-sm;
+  z-index: 20;
+}
+
+.toolbox-item {
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  white-space: nowrap;
+
+  &.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  &:active {
+    background: $color-bg-grey;
+    border-radius: $border-radius-sm;
+  }
+}
+
+/* ===== 下半部分：素材选择面板 ===== */
+.material-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
   background: $color-bg-card;
-  border-top-left-radius: $border-radius-lg;
-  border-top-right-radius: $border-radius-lg;
+  border-top: 1rpx solid $color-border-light;
   overflow: hidden;
-  min-height: 0;
 }
 
-.group-nav {
-  flex-shrink: 0;
-  white-space: nowrap;
-  border-bottom: 1rpx solid $color-border-light;
-}
-
-.group-nav-inner {
-  display: inline-flex;
-  padding: 12rpx $spacing-md;
-  gap: $spacing-sm;
-}
-
-.group-tab {
-  display: inline-flex;
+/* 素材类型Tab栏 */
+.material-type-tabs {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 10rpx $spacing-base;
-  border-radius: $border-radius-xl;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  background: $color-bg-grey;
+  padding: $spacing-sm $spacing-base;
+  border-bottom: 1rpx solid $color-border-light;
   flex-shrink: 0;
-  transition: all $transition-base;
+}
+
+.material-type-tab {
+  flex: 1;
+  text-align: center;
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  padding-bottom: $spacing-xs;
+  position: relative;
 
   &.active {
-    color: $color-text-white;
-    background: linear-gradient(135deg, $color-primary, $color-primary-light);
-    font-weight: 500;
-  }
+    color: $color-text-primary;
+    font-weight: 600;
 
-  &:active {
-    opacity: 0.8;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 25%;
+      width: 50%;
+      height: 4rpx;
+      background: $color-text-primary;
+      border-radius: 2rpx;
+    }
   }
 }
 
+/* 搜索栏 */
 .search-bar {
-  padding: $spacing-xs $spacing-md;
+  padding: $spacing-xs $spacing-base;
+  flex-shrink: 0;
 }
 
 .search-input {
   background: $color-bg-grey;
-  border-radius: $border-radius-sm;
-  padding: 12rpx $spacing-md;
-  font-size: $font-size-sm;
-}
-
-/* 素材加载失败重试 */
-.bead-error-wrap {
-  @include flex-column-center;
-  padding: 60rpx 0;
-}
-
-.bead-error-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-}
-
-.bead-retry-btn {
-  margin-top: $spacing-sm;
-  padding: $spacing-xs $spacing-lg;
-  background: $color-primary;
-  color: $color-text-white;
-  font-size: $font-size-sm;
   border-radius: $border-radius-xl;
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
 }
 
-.bead-grid-scroll {
-  flex: 1;
-  min-height: 0;
-}
-
-.bead-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12rpx;
-  padding: 12rpx $spacing-md;
-  padding-bottom: $spacing-md;
-}
-
-.bead-empty {
-  @include flex-center;
-  padding: 60rpx 0;
-
-  text {
-    font-size: $font-size-sm;
-    color: $color-text-disabled;
-  }
-}
-
-/* ===== 底部操作栏 ===== */
-.bottom-bar {
-  display: flex;
-  align-items: center;
-  padding: $spacing-sm $spacing-base;
-  padding-bottom: calc($spacing-sm + env(safe-area-inset-bottom));
-  background: $color-bg-card;
-  border-top: 1rpx solid $color-border-light;
+/* 提示条 */
+.material-tip {
+  @include flex-align-center;
+  padding: $spacing-xs $spacing-base;
+  background: #fffbe6;
   flex-shrink: 0;
 }
 
-.price-info {
+.tip-icon {
+  margin-right: $spacing-xs;
+}
+
+.tip-text {
+  flex: 1;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.tip-close {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  padding: 0 $spacing-xs;
+}
+
+/* 素材内容区：左侧分类 + 右侧网格 */
+.material-content {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  overflow: hidden;
 }
 
-.price-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+/* 左侧分类列表 */
+.material-groups {
+  width: 140rpx;
+  flex-shrink: 0;
+  border-right: 1rpx solid $color-border-light;
+  background: $color-bg;
 }
 
-.price-amount {
-  font-size: $font-size-lg;
-  font-weight: 700;
-  color: $color-primary;
+.group-item {
+  padding: $spacing-sm 0;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+
+  &.active {
+    color: $color-primary;
+    font-weight: 600;
+    background: $color-bg-card;
+    border-left: 4rpx solid $color-primary;
+  }
 }
 
-.submit-btn {
-  @include btn-primary;
-  padding: $spacing-md $spacing-xxl;
-  border-radius: $border-radius-xl;
+/* 右侧素材网格 */
+.material-grid-wrap {
+  flex: 1;
+  padding: $spacing-xs;
+}
 
-  &.disabled {
-    opacity: 0.4;
-    pointer-events: none;
+.material-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.material-item {
+  width: calc(33.33% - 16rpx);
+}
+
+.material-empty {
+  @include flex-center;
+  padding: $spacing-xxl 0;
+  width: 100%;
+
+  text {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
   }
 }

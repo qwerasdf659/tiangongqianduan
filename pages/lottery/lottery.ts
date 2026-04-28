@@ -704,8 +704,15 @@ Page({
       return
     }
     try {
-      await pointsStore.refreshFromAPI()
-      /* MobX binding 自动同步，无需手动 updatePointsDisplay */
+      const { available, frozen } = await pointsStore.refreshFromAPI()
+      // 双保险：MobX绑定 + 手动setData
+      const { formatPoints: fmtPts } = require('../../utils/util')
+      this.setData({
+        pointsBalance: available,
+        frozenPoints: frozen,
+        pointsBalanceFormatted: fmtPts(available),
+        frozenPointsFormatted: fmtPts(frozen)
+      })
     } catch (err) {
       log.error('[lottery] 刷新积分失败:', err)
     }

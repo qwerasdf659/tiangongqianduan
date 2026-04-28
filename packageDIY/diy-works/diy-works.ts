@@ -88,8 +88,23 @@ Page({
     try {
       const res = await worksAPI.getDiyWorks()
       if (res.success && res.data) {
-        /** 全量作品列表（后端返回） */
-        const allWorks = (res.data as API.DiyWork[]).map((work: API.DiyWork) => ({
+        /**
+         * 后端返回格式适配:
+         *   数组格式: res.data = [work1, work2, ...]
+         *   分页格式: res.data = { items: [...], total: N }
+         *   对象包裹: res.data = { works: [...] }
+         */
+        let rawList: API.DiyWork[]
+        if (Array.isArray(res.data)) {
+          rawList = res.data
+        } else if (Array.isArray((res.data as any).items)) {
+          rawList = (res.data as any).items
+        } else if (Array.isArray((res.data as any).works)) {
+          rawList = (res.data as any).works
+        } else {
+          rawList = []
+        }
+        const allWorks = rawList.map((work: API.DiyWork) => ({
           ...work,
           /** 状态中文标签 */
           _statusLabel: STATUS_LABEL_MAP[work.status] || work.status,

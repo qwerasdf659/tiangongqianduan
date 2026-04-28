@@ -499,8 +499,7 @@ Page({
       isMerchant,
       isManager,
       isReviewer,
-      isAdmin,
-      totalPoints: pointsStore.availableAmount || 0
+      isAdmin
     })
 
     log.info('用户状态更新:', {
@@ -510,8 +509,7 @@ Page({
       isManager,
       isReviewer,
       isAdmin,
-      userId: userInfo?.user_id,
-      totalPoints: this.data.totalPoints
+      userId: userInfo?.user_id
     })
   },
 
@@ -532,13 +530,16 @@ Page({
         log.info('用户信息加载成功')
       }
 
-      // 第2步：获取用户积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑）
+      // 第2步：获取用户积分余额（委托 pointsStore.refreshFromAPI）
       try {
-        const { available } = await pointsStore.refreshFromAPI()
-        this.setData({ totalPoints: available })
+        const { available, frozen } = await pointsStore.refreshFromAPI()
+        // 双保险：MobX绑定 + 手动setData，确保页面一定能更新
+        this.setData({
+          totalPoints: available,
+          frozenPoints: frozen
+        })
       } catch (pointsError) {
         log.error('获取积分余额异常:', pointsError)
-        this.setData({ totalPoints: pointsStore.availableAmount || 0 })
       }
     } catch (error) {
       log.error('加载用户信息失败', error)

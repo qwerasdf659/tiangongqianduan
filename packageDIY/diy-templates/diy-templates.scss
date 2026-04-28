@@ -1,0 +1,150 @@
+@import '../../styles/variables.scss';
+@import '../../styles/mixins.scss';
+
+.diy-templates-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: $color-bg-grey;
+}
+
+/* ===== 分类 Tab 栏 ===== */
+.category-tabs {
+  background: $color-bg-card;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-bottom: 1rpx solid $color-border-light;
+}
+
+.category-tabs-inner {
+  display: inline-flex;
+  padding: $spacing-sm $spacing-base;
+  gap: $spacing-md;
+}
+
+.category-tab {
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  border-radius: $border-radius-xl;
+  border: 1rpx solid $color-border;
+  flex-shrink: 0;
+
+  &.active {
+    color: $color-primary;
+    border-color: $color-primary;
+    background: rgba($color-primary, 0.08);
+    font-weight: 600;
+  }
+}
+
+/* ===== 模板列表 ===== */
+.template-list {
+  flex: 1;
+  padding: $spacing-sm $spacing-base;
+}
+
+.template-card {
+  @include flex-align-center;
+  @include card-base;
+  padding: $spacing-base;
+  margin-bottom: $spacing-sm;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.template-thumb {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $border-radius-md;
+  flex-shrink: 0;
+  background: $color-bg-grey;
+}
+
+.template-info {
+  flex: 1;
+  margin-left: $spacing-base;
+  overflow: hidden;
+}
+
+.template-name {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.template-category {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.template-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 8rpx;
+}
+
+.template-tag {
+  font-size: $font-size-xs;
+  color: $color-primary;
+  padding: 2rpx 12rpx;
+  background: rgba($color-primary, 0.08);
+  border-radius: $border-radius-sm;
+}
+
+.arrow-icon {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+}
+
+/* ===== 加载/错误/空态 ===== */
+.loading-wrap {
+  @include flex-column-center;
+  padding: $spacing-xxl 0;
+}
+
+.loading-spinner {
+  @include loading-state;
+}
+
+.loading-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-top: $spacing-sm;
+}
+
+.error-wrap {
+  @include flex-column-center;
+  padding: $spacing-xxl 0;
+}
+
+.error-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.retry-btn {
+  margin-top: $spacing-base;
+  padding: 12rpx $spacing-xl;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-base;
+  border-radius: $border-radius-xl;
+}
+
+.empty-wrap {
+  @include flex-column-center;
+  padding: $spacing-xxl 0;
+}
+
+.empty-text {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}

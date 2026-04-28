@@ -67,12 +67,28 @@ Page({
     activeGroupCode: '',
     filteredBeads: [] as any[],
     searchKeyword: '',
+    /** 当前选中的素材类型Tab（饰品/配饰/吊坠） */
+    activeMaterialType: 'beads',
+    /** 是否显示搜索栏 */
+    showSearch: false,
+    /** 是否显示素材提示条 */
+    showMaterialTip: true,
 
     /* 工具栏 */
     canUndo: false,
     canRedo: false,
     totalPrice: 0,
     canSubmit: false,
+    /** 是否显示工具箱弹出面板 */
+    showToolbox: false,
+    /** 总重量（后端返回，前端仅展示） */
+    totalWeight: '0.00g',
+    /** 手围尺寸（后端返回） */
+    braceletSize: '16cm',
+    /** 戴法（后端返回） */
+    wearStyle: '单圈',
+    /** 最大周长（后端返回） */
+    maxPerimeter: '17.6cm',
 
     /* 素材加载失败重试 */
     beadLoadError: false
@@ -97,8 +113,9 @@ Page({
     const templateId = Number(options.templateId || 0)
 
     if (!templateId && !workId) {
-      wx.showToast({ title: '缺少模板参数', icon: 'none' })
-      setTimeout(() => wx.navigateBack(), 1500)
+      /* 未传模板ID — 自动获取模板列表，使用第一个可用模板 */
+      this.setData({ canvasWidth, canvasHeight })
+      this._initFromTemplateList()
       return
     }
 
@@ -118,6 +135,28 @@ Page({
     diyStore.saveToCache()
     if (this._searchTimer) {
       clearTimeout(this._searchTimer)
+    }
+  },
+
+  /**
+   * 未传 templateId 时，自动获取模板列表并使用第一个可用模板
+   * 后端API: GET /api/v4/diy/templates
+   */
+  async _initFromTemplateList() {
+    try {
+      const res = await API.getDiyTemplates()
+      if (res.success && res.data && res.data.length > 0) {
+        const firstTemplate = res.data[0]
+        const templateId = firstTemplate.diy_template_id
+        this.setData({ templateId })
+        this._initDesign(templateId)
+      } else {
+        this.setData({ loading: false })
+        wx.showToast({ title: '暂无可用模板', icon: 'none' })
+      }
+    } catch (_err) {
+      this.setData({ loading: false })
+      wx.showToast({ title: '获取模板失败，请稍后重试', icon: 'none' })
     }
   },
 
@@ -659,6 +698,64 @@ Page({
       wx.hideLoading()
       wx.showToast({ title: '网络异常，请检查网络后重试', icon: 'none' })
     }
+  },
+
+  /**
+   * 保存草稿（不跳转结果页，仅保存当前设计状态）
+   * 后端API: POST /api/v4/diy/works
+   */
+  async onSaveDraft() {
+    if (!diyStore.canSubmit) {
+      wx.showToast({ title: '请先添加素材', icon: 'none' })
+      return
+    }
+    wx.showLoading({ title: '保存中...' })
+    try {
+      const template = diyStore.currentTemplate!
+      const workData: API.DiyWorkCreateRequest = {
+        diy_template_id: template.diy_template_id,
+        work_name: `我的${template.display_name}`,
+        design_data: { mode: 'beading' }
+      }
+      const saveRes = await API.saveDiyWork(workData)
+      wx.hideLoading()
+      if (saveRes.success && saveRes.data) {
+        this._currentWorkId = saveRes.data.diy_work_id
+        wx.showToast({ title: '保存成功', icon: 'success' })
+      } else {
+        wx.showToast({ title: saveRes.message || '保存失败', icon: 'none' })
+      }
+    } catch (_err) {
+      wx.hideLoading()
+      wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
+    }
+  },
+
+  /** 切换工具箱面板显示/隐藏 */
+  onToggleToolbox() {
+    this.setData({ showToolbox: !this.data.showToolbox })
+  },
+
+  /** 切换素材类型Tab（饰品/配饰/吊坠） */
+  onMaterialTypeChange(e: WechatMiniprogram.TouchEvent) {
+    const materialType = e.currentTarget.dataset.type as string
+    if (materialType === this.data.activeMaterialType) return
+    this.setData({ activeMaterialType: materialType })
+  },
+
+  /** 切换搜索栏显示/隐藏 */
+  onToggleSearch() {
+    this.setData({ showSearch: !this.data.showSearch, searchKeyword: '' })
+  },
+
+  /** 显示购物车（⚠️ 需后端提供购物车API） */
+  onShowCart() {
+    wx.showToast({ title: '购物车功能即将上线', icon: 'none' })
+  },
+
+  /** 关闭素材提示条 */
+  onCloseMaterialTip() {
+    this.setData({ showMaterialTip: false })
   },
 
   /** 飞入动画完成回调 */

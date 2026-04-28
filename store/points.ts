@@ -104,18 +104,19 @@ export const pointsStore = observable({
       const balanceResult = await pointsApi.getPointsBalance()
 
       if (balanceResult?.success && balanceResult.data) {
-        const available = balanceResult.data.available_amount || 0
-        const frozen = balanceResult.data.frozen_amount || 0
-        this.availableAmount = available
-        this.frozenAmount = frozen
-        this.balanceLoading = false
+        const available = balanceResult.data.available_amount ?? 0
+        const frozen = balanceResult.data.frozen_amount ?? 0
+        // 使用已定义的同步 action 更新值，确保 MobX 响应式更新
+        pointsStore.setBalance(available, frozen)
+        pointsStore.setBalanceLoading(false)
         return { available, frozen }
       }
 
-      this.balanceLoading = false
+      pointsStore.setBalanceLoading(false)
       return { available: this.availableAmount, frozen: this.frozenAmount }
-    } catch (_error) {
-      this.balanceLoading = false
+    } catch (refreshError) {
+      console.error('[pointsStore] refreshFromAPI 异常:', refreshError)
+      pointsStore.setBalanceLoading(false)
       return { available: this.availableAmount, frozen: this.frozenAmount }
     }
   }),

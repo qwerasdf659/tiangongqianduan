@@ -386,18 +386,22 @@ Component({
       if (slotDefs.length === 0) {
         return
       }
-      /* 计算底图绘制区域（保持宽高比，居中） */
-      const bgW = layout.background_width || 400
-      const bgH = layout.background_height || 500
+      /**
+       * 计算底图绘制区域（保持宽高比，居中）
+       * background_width/height 由后端 diy_templates.layout 提供（底图原始像素尺寸）
+       * 严格按后端数据等比缩放填满 Canvas，不做任何额外放大/缩小
+       */
+      const bgW = layout.background_width || 800
+      const bgH = layout.background_height || 1000
       const bgAspect = bgW / bgH
       const canvasAspect = w / h
       let drawW: number
       let drawH: number
       if (bgAspect > canvasAspect) {
-        drawW = w * 0.85
+        drawW = w
         drawH = drawW / bgAspect
       } else {
-        drawH = h * 0.85
+        drawH = h
         drawW = drawH * bgAspect
       }
       const ox = (w - drawW) / 2
@@ -589,7 +593,17 @@ Component({
       }
     },
 
-    /** 绘制槽位覆盖层（空槽位轮廓 / 已填宝石 / 激活高亮） */
+    /**
+     * 绘制槽位覆盖层（空槽位轮廓 / 已填宝石 / 激活高亮）
+     *
+     * 后端坐标语义（归一化 0~1，相对于底图原始尺寸）:
+     *   slot.x / slot.y   — 槽位【中心点】坐标
+     *   slot.width / slot.height — 槽位宽高
+     *
+     * 像素坐标转换:
+     *   中心点 = (ox + slot.x * drawW, oy + slot.y * drawH)
+     *   宝石绘制以中心点为基准，向四周扩展 width/2 和 height/2
+     */
     _drawSlotOverlay(
       ctx: any,
       slotDefs: API.DiySlotDefinition[],
@@ -601,19 +615,22 @@ Component({
       const slotPositions: any[] = []
       const fillings = diyStore.slotFillings
       const activeId = diyStore.activeSlotId
+
       for (const slot of slotDefs) {
-        const sx = ox + slot.x * drawW
-        const sy = oy + slot.y * drawH
+        /* 槽位中心点像素坐标（x,y 是归一化中心点） */
+        const centerX = ox + slot.x * drawW
+        const centerY = oy + slot.y * drawH
+        /* 槽位像素尺寸 */
         const sw = slot.width * drawW
         const sh = slot.height * drawH
         const gem = fillings[slot.slot_id]
         if (gem) {
-          /* 已填入宝石 — 按后端槽位 width × height 自动填满 */
+          /* 已填入宝石 — 以中心点为基准绘制 */
           const fillRadius = Math.min(sw, sh) / 2
-          const drawnImage = this._drawBeadImage(ctx, gem, sx, sy, fillRadius, sw, sh)
+          const drawnImage = this._drawBeadImage(ctx, gem, centerX, centerY, fillRadius, sw, sh)
           if (!drawnImage) {
             const color = getGemColor(gem)
-            drawGem(ctx, sx, sy, fillRadius, color, gem.shape || 'circle')
+            drawGem(ctx, centerX, centerY, fillRadius, color, gem.shape || 'circle')
           }
         } else {
           /* 空槽位: 虚线轮廓 + "+" 提示 */
@@ -621,24 +638,25 @@ Component({
           ctx.setLineDash([4, 4])
           ctx.strokeStyle = '#9CA3AF'
           ctx.lineWidth = 1.5
-          drawSlotOutline(ctx, slot.slot_shape || 'circle', sx, sy, sw, sh)
+          drawSlotOutline(ctx, slot.slot_shape || 'circle', centerX, centerY, sw, sh)
           ctx.restore()
           ctx.fillStyle = '#9CA3AF'
           ctx.font = `${Math.min(sw, sh) * 0.4}px sans-serif`
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
-          ctx.fillText('+', sx, sy)
+          ctx.fillText('+', centerX, centerY)
         }
+
         /* 激活槽位高亮（品牌橙色实线边框） */
         if (slot.slot_id === activeId) {
           ctx.save()
           ctx.strokeStyle = '#FF6B35'
           ctx.lineWidth = 2.5
           ctx.setLineDash([])
-          drawSlotOutline(ctx, slot.slot_shape || 'circle', sx, sy, sw + 4, sh + 4)
+          drawSlotOutline(ctx, slot.slot_shape || 'circle', centerX, centerY, sw + 4, sh + 4)
           ctx.restore()
         }
-        slotPositions.push({ x: sx, y: sy, w: sw, h: sh, slotId: slot.slot_id })
+        slotPositions.push({ x: centerX, y: centerY, w: sw, h: sh, slotId: slot.slot_id })
       }
       this.data._slotPositions = slotPositions
     },

@@ -50,11 +50,11 @@ Page({
   onLoad(_options) {
     log.info('积分明细页面加载 - v2.0实现')
 
-    // 🆕 MobX Store绑定 - 积分余额自动同步
+    // MobX Store绑定 - 积分余额自动同步（字段名与WXML模板 {{totalPoints}} 对齐）
     this.pointsBindings = createStoreBindings(this, {
       store: pointsStore,
       fields: {
-        availablePoints: () => pointsStore.availableAmount,
+        totalPoints: () => pointsStore.availableAmount,
         frozenPoints: () => pointsStore.frozenAmount
       },
       actions: ['setBalance']
@@ -142,6 +142,16 @@ Page({
       userInfo,
       totalPoints
     })
+
+    // 主动刷新积分余额（确保从后端获取最新数据，而非仅依赖Store缓存）
+    pointsStore
+      .refreshFromAPI()
+      .then((result: { available: number }) => {
+        this.setData({ totalPoints: result.available })
+      })
+      .catch((err: any) => {
+        log.warn('初始化刷新积分余额失败:', err)
+      })
 
     // 加载积分记录
     this.loadPointsRecords()
@@ -385,8 +395,7 @@ Page({
       const result = await API.getPointsBalance()
       if (result.success && result.data) {
         this.setData({
-          // 后端资产余额API返回字段：available_amount（可用余额）
-          totalPoints: result.data.available_amount || 0
+          totalPoints: result.data.available_amount ?? 0
         })
       }
     } catch (error: any) {

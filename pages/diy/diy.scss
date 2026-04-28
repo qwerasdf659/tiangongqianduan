@@ -1,14 +1,122 @@
+@import '../../styles/variables.scss';
+@import '../../styles/mixins.scss';
+
 /**
  * DIY tab 入口页样式
+ * 底部预留 tabBar 高度 + 安全区域，避免内容被遮挡
  */
-.diy-tab-page {
+.diy-select-page {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: $color-bg;
+  padding: $spacing-xl $spacing-base;
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
 
-.loading-hint {
-  color: #999;
-  font-size: 28rpx;
+/* ===== 页面标题区域 ===== */
+.page-title-section {
+  @include flex-column;
+  margin-bottom: $spacing-xl;
+}
+
+.page-main-title {
+  font-size: $font-size-xl;
+  font-weight: 700;
+  color: $color-text-primary;
+  line-height: $line-height-tight;
+}
+
+.page-sub-title {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+/* ===== 我的设计入口卡片（橙色背景） ===== */
+.my-design-card {
+  @include flex-between;
+  background: $color-primary;
+  border-radius: $border-radius-md;
+  padding: $spacing-lg $spacing-base;
+  margin-bottom: $spacing-xl;
+
+  &:active {
+    background: $color-primary-dark;
+  }
+}
+
+.my-design-info {
+  @include flex-column;
+}
+
+.my-design-title {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-white;
+}
+
+.my-design-desc {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 6rpx;
+}
+
+.my-design-arrow .arrow-icon {
+  font-size: $font-size-xl;
+  color: $color-text-white;
+}
+
+/* ===== 设计模式卡片 ===== */
+.design-mode-card {
+  @include flex-column-center;
+  @include card-base;
+  padding: $spacing-xxl $spacing-lg;
+  margin-bottom: $spacing-lg;
+  transition: transform $transition-fast;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.mode-icon-wrap {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: $spacing-lg;
+  @include flex-center;
+}
+
+.mode-icon-img {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+/* 占位图标（后端未提供真实图片时） */
+.mode-icon-placeholder {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $border-radius-round;
+  background: $color-bg-grey;
+}
+
+.mode-icon-free {
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+}
+
+.mode-icon-plaza {
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+}
+
+.mode-title {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.mode-desc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+  line-height: $line-height-base;
+  padding: 0 $spacing-base;
 }

@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "DIY 设计",
+  "navigationBarTitleText": "工作台",
   "usingComponents": {
     "shape-renderer": "../sub/shape-renderer/shape-renderer",
     "bead-card": "../sub/bead-card/bead-card",

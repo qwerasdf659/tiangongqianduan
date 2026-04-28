@@ -3,99 +3,70 @@
 
 .diy-select-page {
   min-height: 100vh;
-  background: $color-bg-grey;
+  background: $color-bg;
+  padding: $spacing-xl $spacing-base;
   padding-bottom: calc($spacing-xl + env(safe-area-inset-bottom));
 }
 
-/* ===== 头部 Banner ===== */
-.page-header {
-  padding: 0 $spacing-base;
-  padding-top: $spacing-md;
-  position: relative;
+/* ===== 页面标题区域 ===== */
+.page-title-section {
+  @include flex-column;
+  margin-bottom: $spacing-xl;
 }
 
-.header-bg {
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
-  border-radius: $border-radius-lg;
-  padding: $spacing-xxl $spacing-lg;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 我的设计入口按钮（头部右上角） */
-.my-works-entry {
-  position: absolute;
-  top: $spacing-lg;
-  right: $spacing-lg;
-  padding: $spacing-xs $spacing-md;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: $border-radius-sm;
-  font-size: $font-size-xs;
-  color: $color-white;
-}
-
-.header-title {
+.page-main-title {
   font-size: $font-size-xl;
   font-weight: 700;
-  color: $color-text-white;
+  color: $color-text-primary;
+  line-height: $line-height-tight;
 }
 
-.header-subtitle {
+.page-sub-title {
   font-size: $font-size-sm;
-  color: rgba(255, 255, 255, 0.85);
+  color: $color-text-tertiary;
   margin-top: $spacing-xs;
 }
 
-/* ===== 分类 Tab 栏 ===== */
-.category-tabs {
-  white-space: nowrap;
-  background: $color-bg-card;
-  border-bottom: 1rpx solid $color-border-light;
-  margin-top: $spacing-md;
-}
-
-.category-tabs-inner {
-  display: inline-flex;
-  padding: $spacing-sm $spacing-base;
-  gap: $spacing-sm;
-}
-
-.category-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: $spacing-xs $spacing-base;
-  border-radius: $border-radius-xl;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  background: $color-bg-grey;
-  flex-shrink: 0;
-  transition: all $transition-base;
-
-  &.active {
-    color: $color-text-white;
-    background: linear-gradient(135deg, $color-primary, $color-primary-light);
-    font-weight: 500;
-  }
+/* ===== 我的设计入口卡片（红/橙色背景） ===== */
+.my-design-card {
+  @include flex-between;
+  background: $color-primary;
+  border-radius: $border-radius-md;
+  padding: $spacing-lg $spacing-base;
+  margin-bottom: $spacing-xl;
 
   &:active {
-    opacity: 0.8;
+    background: $color-primary-dark;
   }
 }
 
-/* ===== 款式网格 ===== */
-.template-grid {
-  padding: $spacing-base;
+.my-design-info {
+  @include flex-column;
 }
 
-.template-card {
-  display: flex;
-  align-items: center;
-  background: $color-bg-card;
-  border-radius: $spacing-md;
-  padding: $spacing-base;
-  margin-bottom: $spacing-md;
-  box-shadow: $shadow-sm;
+.my-design-title {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-white;
+}
+
+.my-design-desc {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 6rpx;
+}
+
+.my-design-arrow .arrow-icon {
+  font-size: $font-size-xl;
+  color: $color-text-white;
+}
+
+/* ===== 设计模式卡片（自由定制 / 设计广场） ===== */
+.design-mode-card {
+  @include flex-column-center;
+  @include card-base;
+  padding: $spacing-xxl $spacing-lg;
+  margin-bottom: $spacing-lg;
   transition: transform $transition-fast;
 
   &:active {
@@ -103,133 +74,45 @@
   }
 }
 
-/* 款式图标容器 */
-.template-icon-wrap {
+.mode-icon-wrap {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: $spacing-lg;
+  @include flex-center;
+}
+
+.mode-icon-img {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+/* 占位图标（后端未提供真实图片时的 fallback） */
+.mode-icon-placeholder {
   width: 120rpx;
   height: 120rpx;
-  border-radius: $spacing-md;
-  overflow: hidden;
-  flex-shrink: 0;
-  margin-right: $spacing-base;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #f8f4f0, #ede5dc);
-}
-
-/* 后端真实预览图 */
-.template-preview-img {
-  width: 120rpx;
-  height: 120rpx;
-}
-
-/* 模板图标占位（后端未上传预览图时的 fallback） */
-.template-icon-placeholder {
-  width: 80rpx;
-  height: 80rpx;
-}
-
-/* 各分类占位图标样式 */
-.template-icon-191 {
-  border: 6rpx solid #d4af37;
   border-radius: $border-radius-round;
+  background: $color-bg-grey;
 }
 
-.template-icon-192 {
-  border: 4rpx solid #d4af37;
-  border-radius: $border-radius-round;
-  width: 60rpx;
-  height: 80rpx;
+.mode-icon-free {
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
 }
 
-.template-icon-193 {
-  width: 60rpx;
-  height: 60rpx;
-  border: 6rpx solid #c0c0c0;
-  border-radius: $border-radius-round;
+.mode-icon-plaza {
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
 }
 
-.template-icon-194 {
-  width: 50rpx;
-  height: 70rpx;
-  background: linear-gradient(180deg, #d4af37, #b8860b);
-  border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
-}
-
-/* 款式信息 */
-.template-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.template-name {
-  font-size: 30rpx;
+.mode-title {
+  font-size: $font-size-lg;
   font-weight: 600;
   color: $color-text-primary;
+  margin-bottom: $spacing-sm;
 }
 
-.template-type {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
-  margin-top: 6rpx;
-}
-
-.template-tags {
-  display: flex;
-  margin-top: 10rpx;
-  gap: $spacing-xs;
-}
-
-.tag {
-  font-size: $font-size-xs;
-  color: $color-primary;
-  background: rgba($color-primary, 0.08);
-  padding: 4rpx 12rpx;
-  border-radius: 6rpx;
-}
-
-/* 箭头 */
-.template-arrow {
-  flex-shrink: 0;
-  margin-left: $spacing-xs;
-}
-
-.arrow-icon {
-  font-size: $font-size-xl;
-  color: $color-text-disabled;
-}
-
-/* ===== 状态 ===== */
-.loading-wrap,
-.error-wrap,
-.empty-wrap {
-  @include flex-column-center;
-  padding: 120rpx 0;
-}
-
-.loading-spinner {
-  @include loading-state;
-}
-
-.loading-text {
+.mode-desc {
   font-size: $font-size-sm;
   color: $color-text-tertiary;
-  margin-top: $spacing-sm;
-}
-
-.error-text,
-.empty-text {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
-  margin-top: $spacing-sm;
-}
-
-.retry-btn {
-  margin-top: $spacing-base;
-  padding: 12rpx $spacing-xl;
-  background: $color-primary;
-  color: $color-text-white;
-  font-size: $font-size-base;
-  border-radius: $border-radius-xl;
+  text-align: center;
+  line-height: $line-height-base;
+  padding: 0 $spacing-base;
 }

@@ -1,83 +1,38 @@
 <view class="diy-select-page">
-  <!-- 头部 Banner -->
-  <view class="page-header">
-    <view class="header-bg">
-      <text class="header-title">DIY 饰品工坊</text>
-      <text class="header-subtitle">选择你喜欢的款式，开始创作专属饰品</text>
-    </view>
-    <!-- 我的设计入口 -->
-    <view class="my-works-entry" bindtap="onGoToMyWorks">
-      <text>我的设计</text>
-    </view>
+  <!-- 页面标题区域 -->
+  <view class="page-title-section">
+    <text class="page-main-title">开始您的饰品设计之旅</text>
+    <text class="page-sub-title">选择您喜欢的设计方式</text>
   </view>
 
-  <!-- 分类 Tab 栏（手链/项链/戒指/吊坠，对齐后端 categories 表 id=191~194） -->
-  <scroll-view class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
-    <view class="category-tabs-inner">
-      <view
-        wx:for="{{categoryTabs}}"
-        wx:key="category_id"
-        class="category-tab {{item.category_id === activeCategoryId ? 'active' : ''}}"
-        bind:tap="onCategoryChange"
-        data-category-id="{{item.category_id}}"
-      >
-        <text>{{item.label}}</text>
-      </view>
+  <!-- 我的设计入口卡片（红色背景） -->
+  <view class="my-design-card" bindtap="onGoToMyWorks">
+    <view class="my-design-info">
+      <text class="my-design-title">我的设计</text>
+      <text class="my-design-desc">查看已保存的设计记录</text>
     </view>
-  </scroll-view>
-
-  <!-- 加载态 -->
-  <view wx:if="{{loading}}" class="loading-wrap">
-    <view class="loading-spinner" />
-    <text class="loading-text">加载中...</text>
-  </view>
-
-  <!-- 错误态 -->
-  <view wx:elif="{{hasError}}" class="error-wrap">
-    <text class="error-text">{{errorMessage}}</text>
-    <view class="retry-btn" bind:tap="loadTemplates">重试</view>
-  </view>
-
-  <!-- 款式列表 -->
-  <view wx:else class="template-grid">
-    <view
-      wx:for="{{templates}}"
-      wx:key="diy_template_id"
-      class="template-card"
-      bind:tap="onSelectTemplate"
-      data-index="{{index}}"
-    >
-      <!-- 款式预览图（优先后端真实图片，无图时显示分类占位图标） -->
-      <view class="template-icon-wrap">
-        <image
-          wx:if="{{item._previewUrl}}"
-          class="template-preview-img"
-          src="{{item._previewUrl}}"
-          mode="aspectFill"
-          lazy-load
-        />
-        <view wx:else class="template-icon-placeholder template-icon-{{item.category_id}}" />
-      </view>
-
-      <!-- 款式信息 -->
-      <view class="template-info">
-        <text class="template-name">{{item.display_name}}</text>
-        <text class="template-type">{{item._typeLabel}}</text>
-        <view class="template-tags">
-          <text class="tag" wx:if="{{item._modeLabel}}">{{item._modeLabel}}</text>
-          <text class="tag" wx:if="{{item._shapeLabel}}">{{item._shapeLabel}}</text>
-        </view>
-      </view>
-
-      <!-- 箭头 -->
-      <view class="template-arrow">
-        <text class="arrow-icon">></text>
-      </view>
+    <view class="my-design-arrow">
+      <text class="arrow-icon">></text>
     </view>
   </view>
 
-  <!-- 空态 -->
-  <view wx:if="{{!loading && !hasError && templates.length === 0}}" class="empty-wrap">
-    <text class="empty-text">该分类暂无可用款式</text>
+  <!-- 自由定制饰品卡片 -->
+  <view class="design-mode-card" bindtap="onFreeDesign">
+    <view class="mode-icon-wrap">
+      <image wx:if="{{freeDesignIcon}}" class="mode-icon-img" src="{{freeDesignIcon}}" mode="aspectFit" />
+      <view wx:else class="mode-icon-placeholder mode-icon-free" />
+    </view>
+    <text class="mode-title">自由定制饰品</text>
+    <text class="mode-desc">从零开始，发挥您的创意，自由选择材料形状和尺寸，打造您最满意的饰品</text>
+  </view>
+
+  <!-- 设计广场卡片 -->
+  <view class="design-mode-card" bindtap="onDesignPlaza">
+    <view class="mode-icon-wrap">
+      <image wx:if="{{designPlazaIcon}}" class="mode-icon-img" src="{{designPlazaIcon}}" mode="aspectFit" />
+      <view wx:else class="mode-icon-placeholder mode-icon-plaza" />
+    </view>
+    <text class="mode-title">设计广场</text>
+    <text class="mode-desc">汲取灵感，查看来自世界各地的珠宝设计，选择一款作为您的蓝图</text>
   </view>
 </view>

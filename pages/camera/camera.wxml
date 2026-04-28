@@ -1,4 +1,4 @@
-<!--pages/camera/camera.wxml - 发现页面（活动聚合入口 - 方案C：标签页分类）-->
+<!--pages/camera/camera.wxml - 发现页面（抽奖活动聚合入口）-->
 
 <view class="discover-container" style="{{globalThemeStyle}}">
   <!-- 顶部搜索栏 -->
@@ -16,24 +16,6 @@
     </view>
   </view>
 
-  <!-- Tab 分类导航 -->
-  <view class="tab-bar">
-    <scroll-view class="tab-scroll" scroll-x="true" scroll-with-animation="true">
-      <view class="tab-list">
-        <view
-          class="tab-item {{currentTab === item.key ? 'active' : ''}}"
-          wx:for="{{tabs}}"
-          wx:key="key"
-          data-tab="{{item.key}}"
-          bindtap="onTabChange"
-        >
-          <text class="tab-icon">{{item.icon}}</text>
-          <text class="tab-name">{{item.name}}</text>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
-
   <!-- 活动列表 -->
   <view class="activity-list">
     <!-- 加载状态 -->
@@ -42,11 +24,20 @@
       <text class="loading-text">加载中...</text>
     </view>
 
+    <!-- 未登录提示 -->
+    <view class="empty-state" wx:if="{{!loading && !isLoggedIn}}">
+      <text class="empty-icon">🔐</text>
+      <text class="empty-text">登录后查看精彩活动</text>
+      <button class="retry-btn" bindtap="goLogin">去登录</button>
+    </view>
+
     <!-- 空状态提示 -->
-    <view class="empty-state" wx:if="{{!loading && isEmpty}}">
+    <view class="empty-state" wx:if="{{!loading && isLoggedIn && isEmpty}}">
       <text class="empty-icon">📭</text>
-      <text class="empty-text">{{searchKeyword ? '没有找到相关活动' : '暂时没有活动'}}</text>
-      <text class="empty-hint">换个关键词试试，或者浏览其他分类</text>
+      <text class="empty-text"
+        >{{searchKeyword ? '没有找到相关活动' : '暂时没有进行中的活动'}}</text
+      >
+      <text class="empty-hint">{{searchKeyword ? '换个关键词试试' : '敬请期待新活动上线'}}</text>
     </view>
 
     <!-- 错误提示 -->
@@ -57,92 +48,74 @@
     </view>
 
     <!-- 活动卡片列表 -->
-    <view class="activity-items" wx:if="{{!loading && !isEmpty && !errorMessage}}">
+    <view class="activity-items" wx:if="{{!loading && isLoggedIn && !isEmpty && !errorMessage}}">
       <view
         class="activity-card"
-        wx:for="{{filteredActivities}}"
-        wx:key="id"
-        data-activity="{{item}}"
+        wx:for="{{filteredCampaigns}}"
+        wx:key="campaign_code"
+        data-campaign="{{item}}"
         bindtap="onActivityTap"
       >
-        <!-- 活动封面 -->
-        <view class="card-cover">
-          <image
-            class="cover-image"
-            src="{{item.cover}}"
-            mode="aspectFill"
-            data-index="{{index}}"
-            binderror="onCoverImageError"
-          ></image>
+        <!-- 活动信息 -->
+        <view class="card-content">
+          <!-- 标题 -->
+          <view class="card-header">
+            <text class="card-title">{{item.campaign_name}}</text>
+            <text class="card-subtitle">{{item.campaign_type}}</text>
+          </view>
+
           <!-- 状态标签 -->
           <view class="status-badge status-{{item.status}}">
             <text
-              >{{item.status === 'ongoing' ? '进行中' : item.status === 'upcoming' ? '即将开始' :
+              >{{item.status === 'active' ? '进行中' : item.status === 'upcoming' ? '即将开始' :
               '已结束'}}</text
             >
           </view>
-          <!-- 热门标签 -->
-          <view class="hot-badge" wx:if="{{item.hot_score >= 90}}">
-            <text>🔥 热门</text>
-          </view>
-        </view>
 
-        <!-- 活动信息 -->
-        <view class="card-content">
-          <!-- 标题和副标题 -->
-          <view class="card-header">
-            <text class="card-title">{{item.title}}</text>
-            <text class="card-subtitle">{{item.subtitle}}</text>
+          <!-- 精选标签 -->
+          <view class="hot-badge" wx:if="{{item.is_featured}}">
+            <text>🔥 精选</text>
           </view>
 
-          <!-- 活动数据 -->
+          <!-- 展示标签 -->
+          <view class="card-tags" wx:if="{{item.display_tags && item.display_tags.length > 0}}">
+            <text class="tag" wx:for="{{item.display_tags}}" wx:for-item="tag" wx:key="*this"
+              >{{tag}}</text
+            >
+          </view>
+
+          <!-- 时间信息 -->
           <view class="card-data">
-            <!-- 参与人数 -->
-            <view class="data-item" wx:if="{{item.participants_count}}">
-              <text class="data-icon">👥</text>
-              <text class="data-text">{{item.participants_count}}人参与</text>
+            <view class="data-item" wx:if="{{item.start_time}}">
+              <text class="data-icon">🕐</text>
+              <text class="data-text">{{item.start_time}}</text>
             </view>
-
-            <!-- 名额信息 -->
-            <view class="data-item" wx:if="{{item.quota_total}}">
-              <text class="data-icon">📊</text>
-              <text class="data-text">剩余{{item.quota_left}}/{{item.quota_total}}</text>
-            </view>
-
-            <!-- 奖励信息 -->
-            <view class="data-item" wx:if="{{item.reward_type === 'points' && item.reward_value}}">
-              <text class="data-icon">🎁</text>
-              <text class="data-text">{{item.reward_value}}积分</text>
+            <view class="data-item" wx:if="{{item.end_time}}">
+              <text class="data-icon">⏰</text>
+              <text class="data-text">{{item.end_time}}</text>
             </view>
           </view>
 
-          <!-- 标签 -->
-          <view class="card-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-            <text class="tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
-          </view>
-
-          <!-- CTA按钮 -->
+          <!-- 操作按钮 -->
           <view class="card-footer">
-            <button class="cta-btn {{item.status === 'ongoing' ? 'primary' : 'secondary'}}">
-              {{item.cta_text}}
-            </button>
+            <button class="cta-btn primary">去抽奖</button>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 加载更多提示 -->
-    <view class="load-more-tip" wx:if="{{filteredActivities.length > 0 && !loading}}">
+    <!-- 底部提示 -->
+    <view class="load-more-tip" wx:if="{{filteredCampaigns.length > 0 && !loading}}">
       <text class="tip-text">已显示全部活动</text>
     </view>
   </view>
 
   <!-- 底部提示 -->
-  <view class="bottom-tip" wx:if="{{!loading && filteredActivities.length > 0}}">
+  <view class="bottom-tip" wx:if="{{!loading && filteredCampaigns.length > 0}}">
     <text class="tip-icon">💡</text>
-    <text class="tip-text">点击活动卡片查看详情并参与</text>
+    <text class="tip-text">点击活动卡片进入抽奖</text>
   </view>
 
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
   <maintenance-overlay />
 </view>
