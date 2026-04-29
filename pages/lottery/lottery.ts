@@ -784,8 +784,7 @@ Page({
         ).getTime()
       }
 
-      QRCode.drawQrcode({
-        canvasId: 'qrcodeCanvas',
+      QRCode.drawQrcodeToImage(this, '#qrcodeCanvas', {
         text: qrContent,
         width: 428,
         height: 428,
@@ -793,52 +792,24 @@ Page({
         correctLevel: 2,
         background: '#ffffff',
         foreground: '#000000',
-        callback: () => {
-          const maxRetries = 3
-          const tryExport = (attempt: number) => {
-            const delay = attempt === 0 ? 500 : 1000 * attempt
-            setTimeout(() => {
-              wx.canvasToTempFilePath(
-                {
-                  canvasId: 'qrcodeCanvas',
-                  width: 428,
-                  height: 428,
-                  destWidth: 428,
-                  destHeight: 428,
-                  success: tempRes => {
-                    const remaining = Math.max(
-                      0,
-                      Math.floor((expiresTimestamp - Date.now()) / 1000)
-                    )
-                    const minutes = Math.floor(remaining / 60)
-                    const seconds = remaining % 60
-                    this.setData({
-                      qrCodeImage: tempRes.tempFilePath,
-                      qrCountdown: remaining,
-                      qrExpired: false,
-                      qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
-                      qrExpiresAt: expiresTimestamp
-                    })
-                    this.startQrCountdown()
-                  },
-                  fail: err => {
-                    if (attempt < maxRetries) {
-                      log.info(
-                        `[lottery] 二维码导出第${attempt + 1}次失败，${1000 * (attempt + 1)}ms后重试`
-                      )
-                      tryExport(attempt + 1)
-                    } else {
-                      log.error('[lottery] 二维码转图片失败(已重试3次):', err)
-                      showToast('二维码生成失败', 'none', 2000)
-                    }
-                  }
-                },
-                this
-              )
-            }, delay)
-          }
-          tryExport(0)
-        }
+      }).then((tempFilePath: string) => {
+        const remaining = Math.max(
+          0,
+          Math.floor((expiresTimestamp - Date.now()) / 1000)
+        )
+        const minutes = Math.floor(remaining / 60)
+        const seconds = remaining % 60
+        this.setData({
+          qrCodeImage: tempFilePath,
+          qrCountdown: remaining,
+          qrExpired: false,
+          qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
+          qrExpiresAt: expiresTimestamp
+        })
+        this.startQrCountdown()
+      }).catch((err: any) => {
+        log.error('[lottery] 二维码转图片失败:', err)
+        showToast('二维码生成失败', 'none', 2000)
       })
     } catch (error: any) {
       log.error('[lottery] 生成V2二维码异常:', error)

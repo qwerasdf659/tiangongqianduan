@@ -31,7 +31,7 @@ const globalThemeFunctions = require('./global-themes')
 const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const popupFrequencyFunctions = require('./popup-frequency')
-const drawQrcodeFunction = require('./weapp-qrcode')
+const drawQrcodeFunction = require('./qrcode/qr-renderer')
 const apiWrapperFunctions = require('./api-wrapper')
 const imageHelperFunctions = require('./image-helper')
 const subscribeMessageFunctions = require('./subscribe-message')
@@ -79,8 +79,8 @@ const Waterfall = { ...waterfallFunctions }
 /** 弹窗横幅频率控制 - 服务端驱动客户端执行的频率判断 */
 const PopupFrequency = { ...popupFrequencyFunctions }
 
-/** 二维码生成工具 - weapp-qrcode Canvas绘制 */
-const QRCode = { drawQrcode: drawQrcodeFunction }
+/** 二维码生成工具 - Canvas 2D 新接口（兼容 WebView + Skyline） */
+const QRCode = { drawQrcode: drawQrcodeFunction.drawQrcode, drawQrcodeToImage: drawQrcodeFunction.drawQrcodeToImage }
 
 /** API调用包装器 - 统一 try/catch + 响应检查 + 错误处理 */
 const ApiWrapper = { ...apiWrapperFunctions }

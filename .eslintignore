@@ -1,6 +1,4 @@
 # 第三方库文件 - 不进行ESLint检查
-utils/weapp-qrcode.js
-
 # 依赖包
 node_modules/
 miniprogram_npm/

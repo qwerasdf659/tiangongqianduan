@@ -518,7 +518,8 @@
       <view class="rqr-code-area">
         <!-- Canvas（隐藏，仅用于绘制QR码导出图片） -->
         <canvas
-          canvas-id="redemptionQRCanvas"
+          id="redemptionQRCanvas"
+          type="2d"
           class="rqr-canvas-hidden"
           style="width: 400px; height: 400px; position: fixed; left: -9999px; top: -9999px"
         ></canvas>

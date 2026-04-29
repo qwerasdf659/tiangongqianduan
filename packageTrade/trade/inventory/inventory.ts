@@ -799,56 +799,29 @@ Page({
     }
     this._qrExpiresAt = expiresTimestamp
 
-    QRCode.drawQrcode({
-      canvasId: 'redemptionQRCanvas',
+    QRCode.drawQrcodeToImage(this, '#redemptionQRCanvas', {
       text: qrContent,
       width: 400,
       height: 400,
       typeNumber: -1,
       correctLevel: 2,
-      callback: () => {
-        const tryExport = (attempt: number) => {
-          const delay = attempt === 0 ? 500 : 1000 * attempt
-          setTimeout(() => {
-            wx.canvasToTempFilePath(
-              {
-                canvasId: 'redemptionQRCanvas',
-                width: 400,
-                height: 400,
-                destWidth: 400,
-                destHeight: 400,
-                success: (tempRes: any) => {
-                  log.info('核销码QR码渲染成功')
+    }).then((tempFilePath: string) => {
+      log.info('核销码QR码渲染成功')
 
-                  const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
-                  const minutes = Math.floor(remaining / 60)
-                  const seconds = remaining % 60
+      const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+      const minutes = Math.floor(remaining / 60)
+      const seconds = remaining % 60
 
-                  this.setData({
-                    redemptionQRImage: tempRes.tempFilePath,
-                    qrCountdown: remaining,
-                    qrExpired: false,
-                    qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
-                  })
+      this.setData({
+        redemptionQRImage: tempFilePath,
+        qrCountdown: remaining,
+        qrExpired: false,
+        qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+      })
 
-                  this.startQRCountdown()
-                },
-                fail: (err: any) => {
-                  const maxRetry = 3
-                  if (attempt < maxRetry) {
-                    log.warn(`Canvas导出失败(第${attempt + 1}次)，重试...`, err)
-                    tryExport(attempt + 1)
-                  } else {
-                    log.error('Canvas导出最终失败:', err)
-                  }
-                }
-              },
-              this
-            )
-          }, delay)
-        }
-        tryExport(0)
-      }
+      this.startQRCountdown()
+    }).catch((err: any) => {
+      log.error('Canvas导出最终失败:', err)
     })
   },
 
