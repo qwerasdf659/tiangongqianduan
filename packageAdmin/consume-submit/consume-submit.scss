@@ -269,7 +269,8 @@
   box-sizing: border-box;
 }
 
-.notes-textarea:focus {
+/* Skyline: 使用 JS class 替代 :focus */
+.notes-textarea-focused {
   border-color: var(--tg-gradient-primary-start);
   background: var(--tg-color-white);
 }

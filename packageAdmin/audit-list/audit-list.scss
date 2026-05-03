@@ -668,7 +668,8 @@
   box-sizing: border-box;
 }
 
-.reject-textarea:focus {
+/* Skyline: 使用 JS class 替代 :focus */
+.reject-textarea-focused {
   border-color: var(--tg-color-error);
   background: var(--tg-color-white);
 }

@@ -535,24 +535,7 @@
   padding-right: 8rpx;
 }
 
-/* 🎨 美化滚动条 */
-.prize-cards-container::-webkit-scrollbar {
-  width: 6rpx;
-}
-
-.prize-cards-container::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 6rpx;
-}
-
-.prize-cards-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 107, 53, 0.3);
-  border-radius: 6rpx;
-}
-
-.prize-cards-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 107, 53, 0.5);
-}
+/* Skyline: 不支持 ::-webkit-scrollbar，已删除自定义滚动条样式 */
 
 /* 🔍 滚动提示样式 */
 .scroll-hint {

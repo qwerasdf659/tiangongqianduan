@@ -35,7 +35,8 @@
   border: 2rpx solid transparent;
 }
 
-.search-bar:focus-within {
+/* Skyline: 使用 JS class 替代 :focus-within */
+.search-bar-focused {
   background: var(--tg-color-white);
   border-color: rgba(255, 107, 53, 0.3);
   box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.08);
@@ -1618,7 +1619,8 @@
   box-sizing: border-box;
 }
 
-.input-wrapper:focus-within {
+/* Skyline: 使用 JS class 替代 :focus-within */
+.input-wrapper-focused {
   background: var(--tg-color-white);
   border-color: rgba(255, 107, 53, 0.25);
   box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.06);

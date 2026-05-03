@@ -355,7 +355,8 @@
   color: #fff;
 }
 
-.btn-draft[disabled],
-.btn-submit[disabled] {
+/* Skyline: 使用 .disabled class 替代 [disabled] */
+.btn-draft.disabled,
+.btn-submit.disabled {
   opacity: 0.5;
 }

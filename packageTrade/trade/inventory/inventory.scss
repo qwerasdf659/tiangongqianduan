@@ -296,7 +296,8 @@
   transition: border-color 0.25s;
 }
 
-.search-pill:focus-within {
+/* Skyline: 使用 JS class 替代 :focus-within */
+.search-pill-focused {
   border-color: rgba(255, 107, 53, 0.4);
   box-shadow:
     0 4rpx 16rpx rgba(0, 0, 0, 0.06),

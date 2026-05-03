@@ -84,7 +84,8 @@
   }
 }
 
-.points-card:hover {
+/* Skyline: 使用 hover-class 替代 :hover */
+.points-card-hover {
   transform: translateY(-8rpx) scale(1.02);
   box-shadow:
     0 24rpx 80rpx rgba(var(--td-brand-color-rgb), 0.35),
@@ -265,7 +266,8 @@
   /* Skyline 不支持 cursor 属性 */
 }
 
-.menu-item:hover {
+/* Skyline: 使用 hover-class 替代 :hover */
+.menu-item-hover {
   transform: translateX(8rpx);
   box-shadow: 0 4rpx 20rpx rgba(var(--tg-color-black-rgb), 0.1);
 }

@@ -110,8 +110,8 @@
   overflow: hidden;
 }
 
-/* 未激活状态的悬停效果 */
-.nav-item-horizontal:not(.active):hover {
+/* Skyline: 使用 hover-class 替代 :hover */
+.nav-item-horizontal-hover {
   background: rgba(var(--tg-color-white-rgb), 0.9);
   box-shadow:
     0 8rpx 24rpx rgba(0, 0, 0, 0.12),
@@ -227,7 +227,8 @@
   transition: transform 0.3s ease;
 }
 
-.nav-item-horizontal:hover .icon-wrapper {
+/* Skyline: 使用 hover-class 替代 :hover */
+.nav-item-horizontal-hover .icon-wrapper {
   transform: scale(1.1) rotate(5deg);
 }
 
@@ -256,7 +257,8 @@
   letter-spacing: 0.5rpx;
 }
 
-.nav-item-horizontal:hover .nav-text {
+/* Skyline: 使用 hover-class 替代 :hover */
+.nav-item-horizontal-hover .nav-text {
   color: var(--td-brand-color);
   transform: scale(1.02);
 }

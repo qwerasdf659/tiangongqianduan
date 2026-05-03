@@ -435,7 +435,8 @@
   transform: scale(0.96);
 }
 
-.withdraw-btn[disabled] {
+/* Skyline: 使用 .disabled class 替代 [disabled] */
+.withdraw-btn.disabled {
   opacity: 0.5;
   color: var(--tg-text-disabled);
   border-color: var(--tg-color-border);

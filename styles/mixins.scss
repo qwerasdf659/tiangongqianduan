@@ -168,7 +168,8 @@
   box-sizing: border-box;
   transition: border-color 0.15s ease;
 
-  &:focus {
+  /* Skyline: 使用 JS class 替代 :focus */
+  &-focused {
     border-color: var(--td-brand-color);
   }
 }
@@ -205,11 +206,9 @@
 
 // ===== 滚动条隐藏 =====
 
-/// 隐藏滚动条
+/* Skyline: 不支持 ::-webkit-scrollbar，已删除 */
 @mixin hide-scrollbar {
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  overflow: hidden;
 }
 
 // ===== 空状态 =====

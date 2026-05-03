@@ -142,7 +142,8 @@
   position: relative;
 }
 
-.session-item:hover {
+/* Skyline: 使用 hover-class 替代 :hover */
+.session-item-hover {
   background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
 }
 
@@ -399,7 +400,8 @@
   box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
 }
 
-.back-btn:hover {
+/* Skyline: 使用 hover-class 替代 :hover */
+.back-btn-hover {
   transform: translateX(-4rpx);
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
 }
@@ -591,7 +593,8 @@
   border: 1rpx solid #dee2e6;
 }
 
-.quick-reply-item:hover {
+/* Skyline: 使用 hover-class 替代 :hover */
+.quick-reply-item-hover {
   background: linear-gradient(
     135deg,
     var(--tg-gradient-primary-start) 0%,
@@ -649,7 +652,8 @@
   transition: all 0.3s ease;
 }
 
-.message-input:focus {
+/* Skyline: 使用 JS class 替代 :focus */
+.message-input-focused {
   border-color: var(--tg-gradient-primary-start);
   background: var(--tg-color-white);
   box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.1);
