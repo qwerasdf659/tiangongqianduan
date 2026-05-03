@@ -331,7 +331,7 @@
   white-space: nowrap;
   transition: all 0.3s ease;
 
-  text {
+  .bc-msg-text {
     font-size: 22rpx;
     color: rgba(255, 255, 255, 0.65);
   }
@@ -464,7 +464,7 @@
   border-radius: 0 28rpx 0 16rpx;
   box-shadow: 0 4rpx 12rpx rgba(255, 59, 48, 0.5);
 
-  text {
+  .spot-tag-text {
     font-size: 20rpx;
     font-weight: bold;
     color: #fff;

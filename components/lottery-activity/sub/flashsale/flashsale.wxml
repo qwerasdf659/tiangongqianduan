@@ -49,7 +49,7 @@
     <text class="bc-icon">📢</text>
     <view class="bc-track">
       <view class="bc-msg {{msgSliding ? 'bc-out' : 'bc-in'}}">
-        <text>{{rollingMessages[currentMsgIndex].text}}</text>
+        <text class="bc-msg-text">{{rollingMessages[currentMsgIndex].text}}</text>
       </view>
     </view>
   </view>
@@ -73,13 +73,19 @@
         >
         <view class="spot-shine" />
         <view class="spot-tag">
-          <text>主打</text>
+          <text class="spot-tag-text">主打</text>
         </view>
       </view>
     </view>
 
     <!-- 缩略奖品横排（可横向滚动） -->
-    <scroll-view class="thumb-scroll" scroll-x enable-flex wx:if="{{thumbnailPrizes.length > 0}}">
+    <scroll-view
+      type="custom"
+      class="thumb-scroll"
+      scroll-x
+      enable-flex
+      wx:if="{{thumbnailPrizes.length > 0}}"
+    >
       <view class="thumb-row">
         <view
           class="thumb-item {{item.is_fallback ? 'thumb-item--fallback' : ''}} {{item.is_sold_out ? 'thumb-item--sold-out' : ''}}"
@@ -154,8 +160,8 @@
         </view>
         <!-- 表面扫光 -->
         <view class="grab-btn-shine" wx:if="{{state === 'idle' && stockRemaining > 0}}" />
-        <!-- 点击涟漪 -->
-        <view class="grab-ripple {{showRipple ? 'ripple-active' : ''}}" />
+        <!-- 点击涟漪 — Worklet 驱动缩放和透明度 -->
+        <view class="grab-ripple" />
       </view>
     </view>
     <view class="fs-cost-row" wx:if="{{costPoints > 0}}">
@@ -166,7 +172,7 @@
   </view>
 
   <!-- ===== 抢购成功弹层（全息卡 + 12粒子 + 文字动画） ===== -->
-  <view class="success-overlay {{showSuccess ? 'show' : ''}}" catchtouchmove="noop">
+  <view class="success-overlay {{showSuccess ? 'show' : ''}}" catch:touchmove="noop">
     <view class="success-backdrop" />
 
     <!-- 庆祝粒子 -->
@@ -210,6 +216,7 @@
       <text class="fs-preview__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="fs-preview__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

@@ -145,7 +145,13 @@
       <!-- 素材内容区：左侧分类 + 右侧网格 -->
       <view class="material-content">
         <!-- 左侧分类列表 -->
-        <scroll-view class="material-groups" scroll-y enhanced show-scrollbar="{{false}}">
+        <scroll-view
+          type="list"
+          class="material-groups"
+          scroll-y
+          enhanced
+          show-scrollbar="{{false}}"
+        >
           <view
             class="group-item {{activeGroupCode === '' ? 'active' : ''}}"
             bind:tap="onGroupChange"
@@ -165,7 +171,13 @@
         </scroll-view>
 
         <!-- 右侧素材网格 -->
-        <scroll-view class="material-grid-wrap" scroll-y enhanced show-scrollbar="{{false}}">
+        <scroll-view
+          type="list"
+          class="material-grid-wrap"
+          scroll-y
+          enhanced
+          show-scrollbar="{{false}}"
+        >
           <view class="material-grid">
             <view wx:for="{{filteredBeads}}" wx:key="diy_material_id" class="material-item">
               <bead-card bead="{{item}}" bind:select="onBeadSelect" />

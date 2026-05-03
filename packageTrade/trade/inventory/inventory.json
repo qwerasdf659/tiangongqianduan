@@ -11,5 +11,6 @@
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 200,
   "navigationBarTitleText": "我的仓库",
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

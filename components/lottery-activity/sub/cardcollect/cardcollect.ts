@@ -9,10 +9,11 @@
  *   5. 环形进度 + 集齐彩蛋
  *
  * @file sub/cardcollect/cardcollect.ts
- * @version 5.2.0
+ * @version 6.0.0 — Skyline Worklet 动画升级
  */
 
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
+const { shared, timing } = wx.worklet
 
 Component({
   behaviors: [prizeImageBehavior],
@@ -95,6 +96,36 @@ Component({
 
   lifetimes: {
     attached() {
+      /* Worklet 驱动入场动画：opacity + translateY */
+      this._enterOpacity = shared(0)
+      this._enterTranslateY = shared(30)
+      this._tapScale = shared(1)
+
+      this.applyAnimatedStyle('.cc', () => {
+        'worklet'
+        return {
+          opacity: this._enterOpacity.value,
+          transform: `translateY(${this._enterTranslateY.value}px)`
+        }
+      })
+
+      /* 延迟触发入场过渡 */
+      this._enterOpacity.value = timing(
+        1,
+        { duration: 400, easing: (wx.worklet.Easing as any).ease },
+        (() => {
+          'worklet'
+        }) as any
+      )
+      this._enterTranslateY.value = timing(
+        0,
+        { duration: 400, easing: (wx.worklet.Easing as any).ease },
+        (() => {
+          'worklet'
+        }) as any
+      )
+
+      /* 低频状态标记保留 setData（供 wxml 条件渲染） */
       setTimeout(() => this.setData({ entered: true }), 80)
     }
   },
@@ -279,21 +310,43 @@ Component({
     // 卡片点击交互
     // ================================
 
-    /** 点击卡片（已收集的缩放反馈） */
+    /** 点击卡片（已收集的缩放反馈 — Worklet 驱动） */
     onTapCard(e: any) {
       const idx = e.currentTarget.dataset.idx
       if (idx === undefined || idx === null) {
         return
       }
 
-      /* 只对已收集的卡生效 */
       const card = this.data.cards[idx]
       if (!card || !card.collected) {
         return
       }
 
-      this.setData({ tappedIndex: idx })
-      setTimeout(() => this.setData({ tappedIndex: -1 }), 300)
+      /* Worklet 驱动缩放动画，避免 setData 开销 */
+      if (!this._cardScales) {
+        this._cardScales = {}
+      }
+      if (!this._cardScales[idx]) {
+        this._cardScales[idx] = shared(1)
+        this.applyAnimatedStyle(`.gc-${idx}`, () => {
+          'worklet'
+          return {
+            transform: `scale(${this._cardScales[idx].value})`
+          }
+        })
+      }
+      this._cardScales[idx].value = timing(0.92, { duration: 120 }, (() => {
+        'worklet'
+      }) as any)
+      setTimeout(() => {
+        this._cardScales[idx].value = timing(
+          1,
+          { duration: 180, easing: (wx.worklet.Easing as any).ease },
+          (() => {
+            'worklet'
+          }) as any
+        )
+      }, 120)
     },
 
     /** 阻止弹层滚动穿透 */

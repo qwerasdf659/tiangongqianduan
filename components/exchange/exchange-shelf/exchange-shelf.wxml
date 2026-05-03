@@ -41,6 +41,7 @@
       <view class="user-info">
         <view class="asset-balances-area">
           <scroll-view
+            type="custom"
             class="asset-balances-scroll"
             scroll-x="{{true}}"
             enhanced="{{true}}"
@@ -85,6 +86,7 @@
 
   <!-- 🔒 可滚动内容区域 -->
   <scroll-view
+    type="list"
     class="shop-scroll-body"
     scroll-y="{{true}}"
     enhanced="{{true}}"

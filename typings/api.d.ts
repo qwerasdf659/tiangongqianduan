@@ -255,6 +255,66 @@ declare namespace API {
     pity_info?: PityInfo | null
   }
 
+  /**
+   * 抽奖历史记录（对齐后端 GET /api/v4/lottery/history 响应）
+   *
+   * 数据库: lottery_draws 表
+   * 主键: lottery_draw_id (VARCHAR(50))，格式如 draw_modhyodt_31_647967
+   * 100%出奖系统: 每次抽奖必出奖品，无"未中奖"概念
+   * 使用 reward_tier !== 'fallback' 判断是否"中大奖"
+   */
+  interface LotteryHistoryRecord {
+    /** 抽奖记录主键（VARCHAR(50)，非BIGINT） */
+    lottery_draw_id: string
+    /** 抽奖单号（LT前缀16位编号） */
+    order_no: string
+    /** 奖品名称 */
+    prize_name: string
+    /** 奖品类型: points/physical/virtual/coupon/service */
+    prize_type: string
+    /** 奖品数值 */
+    prize_value: number
+    /** 奖励档位: high/mid/low/fallback（所有值均代表中奖） */
+    reward_tier: string
+    /** 稀有度代码 */
+    rarity_code: string
+    /** 活动编码（⚠️ 需后端 JOIN lottery_campaigns 表确认是否返回） */
+    campaign_code?: string
+    /** 活动名称（⚠️ 需后端 JOIN lottery_campaigns 表确认是否返回） */
+    campaign_name?: string
+    /** 抽奖时间 */
+    created_at: string
+  }
+
+  /**
+   * 用户抽奖统计（对齐后端 GET /api/v4/lottery/statistics 响应）
+   *
+   * 100%出奖系统: 无传统"中奖率"概念
+   * 使用 high_tier_rate 代替 win_rate（高档奖励率）
+   * 使用 total_high_tier_wins 代替 total_wins（高档奖励次数）
+   */
+  interface LotteryUserStatistics {
+    /** 总抽奖次数 */
+    total_draws: number
+    /** 高档奖励次数（reward_tier = 'high'） */
+    total_high_tier_wins: number
+    /** 高档奖励率（小数，如 0.15 表示 15%） */
+    high_tier_rate: number
+    /** 今日抽奖次数 */
+    today_draws: number
+    /** 各档位分布统计 */
+    reward_tier_distribution: {
+      /** 高档次数 */
+      high: number
+      /** 中档次数 */
+      mid: number
+      /** 低档次数 */
+      low: number
+      /** 保底次数 */
+      fallback: number
+    }
+  }
+
   // ===== 资产系统 =====
 
   /** 资产余额（对齐后端 GET /api/v4/assets/balance 响应） */
@@ -1208,6 +1268,10 @@ declare namespace API {
     admin_notes?: string
     /** 门店ID */
     store_id: number
+    /** 门店名称（⚠️ 需后端 JOIN stores 表确认是否返回） */
+    store_name?: string
+    /** 审核时间（后端字段名 reviewed_at，非 approved_at） */
+    reviewed_at?: string | null
     /** 创建时间 */
     created_at: string
   }

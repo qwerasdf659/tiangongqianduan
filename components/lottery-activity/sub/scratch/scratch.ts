@@ -124,28 +124,47 @@ Component({
       return Math.min(Math.floor(relX / cellWidthPx), this.data.cells.length - 1)
     },
 
-    onTouchStart(e: any) {
+    /**
+     * pan-gesture-handler 手势回调（Worklet 线程执行）
+     * state: 1=began, 2=changed, 4=ended/cancelled
+     */
+    onScratchGesture(event: any) {
+      'worklet'
+      const { state, absoluteX } = event
+      if (state === 1) {
+        wx.worklet.runOnJS(this._handleScratchStart.bind(this))(absoluteX)
+      } else if (state === 2) {
+        wx.worklet.runOnJS(this._handleScratchMove.bind(this))(absoluteX)
+      } else if (state >= 4) {
+        wx.worklet.runOnJS(this._handleScratchEnd.bind(this))
+      }
+    },
+
+    /** 手势开始 — 从 Worklet 线程回调到 JS 线程 */
+    _handleScratchStart(absoluteX: number) {
       if (this.data.allRevealed) {
         return
       }
       this.setData({ scratching: true, showGuide: false })
-      const cellIndex = this._getCellIndexByX(e.touches[0].clientX)
+      const cellIndex = this._getCellIndexByX(absoluteX)
       if (cellIndex >= 0) {
         this._tryRevealCell(cellIndex)
       }
     },
 
-    onTouchMove(e: any) {
+    /** 手势移动 — 从 Worklet 线程回调到 JS 线程 */
+    _handleScratchMove(absoluteX: number) {
       if (!this.data.scratching || this.data.allRevealed) {
         return
       }
-      const cellIndex = this._getCellIndexByX(e.touches[0].clientX)
+      const cellIndex = this._getCellIndexByX(absoluteX)
       if (cellIndex >= 0) {
         this._tryRevealCell(cellIndex)
       }
     },
 
-    onTouchEnd() {
+    /** 手势结束 — 从 Worklet 线程回调到 JS 线程 */
+    _handleScratchEnd() {
       if (!this.data.scratching) {
         return
       }
@@ -227,16 +246,20 @@ Component({
       })
     },
 
+    /** 自动补完剩余未刮格子（递归逐格，避免同时创建大量定时器） */
     _autoRevealRemaining() {
       const remaining = this.data.cells
         .filter((c: CellData) => c.state === 'covered')
         .map((c: CellData) => c.index)
 
-      remaining.forEach((cellIndex: number, i: number) => {
-        setTimeout(() => {
-          this._tryRevealCell(cellIndex)
-        }, i * 150)
-      })
+      const revealNext = (i: number) => {
+        if (i >= remaining.length) {
+          return
+        }
+        this._tryRevealCell(remaining[i])
+        setTimeout(() => revealNext(i + 1), 150)
+      }
+      revealNext(0)
     },
 
     _vibrate(prize: any) {

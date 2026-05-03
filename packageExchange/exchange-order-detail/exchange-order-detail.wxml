@@ -4,168 +4,170 @@
 -->
 <custom-navbar title="订单详情" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 <view class="detail-page">
-  <!-- 加载中 -->
-  <view class="page-loading" wx:if="{{loading}}">
-    <t-loading loading="{{true}}" text="加载订单详情..." theme="spinner" />
-  </view>
-
-  <!-- 错误状态 -->
-  <view class="error-wrapper" wx:if="{{!loading && hasError}}">
-    <text class="error-icon">⚠️</text>
-    <text class="error-text">{{errorMessage}}</text>
-    <view class="error-retry" bindtap="onRetry">
-      <text class="error-retry-text">重试</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 加载中 -->
+    <view class="page-loading" wx:if="{{loading}}">
+      <t-loading loading="{{true}}" text="加载订单详情..." theme="spinner" />
     </view>
-    <view class="error-back" bindtap="onGoBack">
-      <text class="error-back-text">返回</text>
-    </view>
-  </view>
 
-  <!-- 订单详情内容 -->
-  <view class="detail-content" wx:if="{{!loading && !hasError && order}}">
-    <!-- 状态卡片 -->
-    <view class="status-card" style="background: {{statusColor}}">
-      <view class="status-main">
-        <text class="status-icon">{{statusIcon}}</text>
-        <text class="status-label">{{statusLabel}}</text>
+    <!-- 错误状态 -->
+    <view class="error-wrapper" wx:if="{{!loading && hasError}}">
+      <text class="error-icon">⚠️</text>
+      <text class="error-text">{{errorMessage}}</text>
+      <view class="error-retry" bindtap="onRetry">
+        <text class="error-retry-text">重试</text>
       </view>
-      <text class="status-desc">{{statusDesc}}</text>
-      <view class="source-tag-detail" wx:if="{{sourceLabel}}">
-        <text class="source-tag-text">{{sourceLabel}}</text>
+      <view class="error-back" bindtap="onGoBack">
+        <text class="error-back-text">返回</text>
       </view>
     </view>
 
-    <!-- 商品信息卡片 -->
-    <view class="info-card">
-      <view class="card-title-row">
-        <text class="card-title">商品信息</text>
-      </view>
-      <view class="product-section">
-        <image class="product-image" src="{{productImage}}" mode="aspectFill" />
-        <view class="product-detail">
-          <text class="product-name">{{productName}}</text>
-          <text class="product-desc" wx:if="{{productDescription}}">{{productDescription}}</text>
-          <text class="product-pay" wx:if="{{payInfo}}">消耗: {{payInfo}}</text>
+    <!-- 订单详情内容 -->
+    <view class="detail-content" wx:if="{{!loading && !hasError && order}}">
+      <!-- 状态卡片 -->
+      <view class="status-card" style="background: {{statusColor}}">
+        <view class="status-main">
+          <text class="status-icon">{{statusIcon}}</text>
+          <text class="status-label">{{statusLabel}}</text>
+        </view>
+        <text class="status-desc">{{statusDesc}}</text>
+        <view class="source-tag-detail" wx:if="{{sourceLabel}}">
+          <text class="source-tag-text">{{sourceLabel}}</text>
         </view>
       </view>
-    </view>
 
-    <!-- 订单信息卡片 -->
-    <view class="info-card">
-      <view class="card-title-row">
-        <text class="card-title">订单信息</text>
-      </view>
-      <view class="info-row">
-        <text class="info-label">订单号</text>
-        <view class="info-value-row" bindtap="onCopyOrderNo">
-          <text class="info-value">{{orderNo}}</text>
-          <text class="copy-btn">复制</text>
+      <!-- 商品信息卡片 -->
+      <view class="info-card">
+        <view class="card-title-row">
+          <text class="card-title">商品信息</text>
         </view>
-      </view>
-      <view class="info-row" wx:if="{{order.quantity}}">
-        <text class="info-label">兑换数量</text>
-        <text class="info-value">{{order.quantity}}</text>
-      </view>
-      <view class="info-row" wx:if="{{sourceLabel}}">
-        <text class="info-label">订单来源</text>
-        <text class="info-value">{{sourceLabel}}</text>
-      </view>
-    </view>
-
-    <!-- 时间线卡片 -->
-    <view class="info-card" wx:if="{{timeline.length > 0}}">
-      <view class="card-title-row">
-        <text class="card-title">订单进度</text>
-      </view>
-      <view class="timeline-list">
-        <view class="timeline-node" wx:for="{{timeline}}" wx:key="label">
-          <view class="timeline-dot-wrap">
-            <view
-              class="timeline-dot {{item.dotClass}} {{index === timeline.length - 1 ? 'dot-active' : ''}}"
-            ></view>
-            <view class="timeline-line" wx:if="{{index < timeline.length - 1}}"></view>
-          </view>
-          <view class="timeline-body">
-            <text class="timeline-label">{{item.label}}</text>
-            <text class="timeline-time">{{item.time}}</text>
+        <view class="product-section">
+          <image class="product-image" src="{{productImage}}" mode="aspectFill" />
+          <view class="product-detail">
+            <text class="product-name">{{productName}}</text>
+            <text class="product-desc" wx:if="{{productDescription}}">{{productDescription}}</text>
+            <text class="product-pay" wx:if="{{payInfo}}">消耗: {{payInfo}}</text>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- 物流信息卡片（有快递单号时展示） -->
-    <view class="info-card" wx:if="{{hasShipping}}">
-      <view class="card-title-row">
-        <text class="card-title">物流信息</text>
-        <view class="shipping-query-btn" bindtap="onQueryShippingTrack">
-          <text class="shipping-query-text">{{shippingLoading ? '查询中...' : '查询物流'}}</text>
+      <!-- 订单信息卡片 -->
+      <view class="info-card">
+        <view class="card-title-row">
+          <text class="card-title">订单信息</text>
         </view>
-      </view>
-      <view class="info-row">
-        <text class="info-label">快递公司</text>
-        <text class="info-value">{{shippingCompanyName}}</text>
-      </view>
-      <view class="info-row">
-        <text class="info-label">快递单号</text>
-        <view class="info-value-row" bindtap="onCopyShippingNo">
-          <text class="info-value">{{shippingNo}}</text>
-          <text class="copy-btn">复制</text>
-        </view>
-      </view>
-      <!-- 物流轨迹时间线 -->
-      <view class="shipping-track-list" wx:if="{{shippingTracks.length > 0}}">
-        <view class="shipping-track-item" wx:for="{{shippingTracks}}" wx:key="time">
-          <view class="track-dot-wrap">
-            <view class="track-dot {{index === 0 ? 'track-dot-active' : ''}}"></view>
-            <view class="track-line" wx:if="{{index < shippingTracks.length - 1}}"></view>
-          </view>
-          <view class="track-body">
-            <text class="track-detail">{{item.detail}}</text>
-            <text class="track-time">{{item.time}}</text>
+        <view class="info-row">
+          <text class="info-label">订单号</text>
+          <view class="info-value-row" bindtap="onCopyOrderNo">
+            <text class="info-value">{{orderNo}}</text>
+            <text class="copy-btn">复制</text>
           </view>
         </view>
+        <view class="info-row" wx:if="{{order.quantity}}">
+          <text class="info-label">兑换数量</text>
+          <text class="info-value">{{order.quantity}}</text>
+        </view>
+        <view class="info-row" wx:if="{{sourceLabel}}">
+          <text class="info-label">订单来源</text>
+          <text class="info-value">{{sourceLabel}}</text>
+        </view>
       </view>
-    </view>
 
-    <!-- 自动确认提示 -->
-    <view class="info-card auto-confirm-card" wx:if="{{isAutoConfirmed}}">
-      <text class="auto-confirm-text">系统已自动确认收货（发货满7天未操作）</text>
-    </view>
+      <!-- 时间线卡片 -->
+      <view class="info-card" wx:if="{{timeline.length > 0}}">
+        <view class="card-title-row">
+          <text class="card-title">订单进度</text>
+        </view>
+        <view class="timeline-list">
+          <view class="timeline-node" wx:for="{{timeline}}" wx:key="label">
+            <view class="timeline-dot-wrap">
+              <view
+                class="timeline-dot {{item.dotClass}} {{index === timeline.length - 1 ? 'dot-active' : ''}}"
+              ></view>
+              <view class="timeline-line" wx:if="{{index < timeline.length - 1}}"></view>
+            </view>
+            <view class="timeline-body">
+              <text class="timeline-label">{{item.label}}</text>
+              <text class="timeline-time">{{item.time}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
 
-    <!-- 已评价展示 -->
-    <view class="info-card" wx:if="{{order.status === 'rated' && ratingStars}}">
-      <view class="card-title-row">
-        <text class="card-title">我的评价</text>
+      <!-- 物流信息卡片（有快递单号时展示） -->
+      <view class="info-card" wx:if="{{hasShipping}}">
+        <view class="card-title-row">
+          <text class="card-title">物流信息</text>
+          <view class="shipping-query-btn" bindtap="onQueryShippingTrack">
+            <text class="shipping-query-text">{{shippingLoading ? '查询中...' : '查询物流'}}</text>
+          </view>
+        </view>
+        <view class="info-row">
+          <text class="info-label">快递公司</text>
+          <text class="info-value">{{shippingCompanyName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">快递单号</text>
+          <view class="info-value-row" bindtap="onCopyShippingNo">
+            <text class="info-value">{{shippingNo}}</text>
+            <text class="copy-btn">复制</text>
+          </view>
+        </view>
+        <!-- 物流轨迹时间线 -->
+        <view class="shipping-track-list" wx:if="{{shippingTracks.length > 0}}">
+          <view class="shipping-track-item" wx:for="{{shippingTracks}}" wx:key="time">
+            <view class="track-dot-wrap">
+              <view class="track-dot {{index === 0 ? 'track-dot-active' : ''}}"></view>
+              <view class="track-line" wx:if="{{index < shippingTracks.length - 1}}"></view>
+            </view>
+            <view class="track-body">
+              <text class="track-detail">{{item.detail}}</text>
+              <text class="track-time">{{item.time}}</text>
+            </view>
+          </view>
+        </view>
       </view>
-      <view class="rating-show">
-        <text class="rating-show-stars">{{ratingStars}}</text>
-      </view>
-    </view>
 
-    <!-- 底部操作区 -->
-    <view class="action-bar" wx:if="{{canCancel || canConfirmReceipt || canRate}}">
-      <view
-        class="action-btn-detail btn-cancel-detail"
-        wx:if="{{canCancel}}"
-        bindtap="onCancelOrder"
-      >
-        <text class="action-btn-text cancel-text">取消订单</text>
+      <!-- 自动确认提示 -->
+      <view class="info-card auto-confirm-card" wx:if="{{isAutoConfirmed}}">
+        <text class="auto-confirm-text">系统已自动确认收货（发货满7天未操作）</text>
       </view>
-      <view
-        class="action-btn-detail btn-confirm-detail"
-        wx:if="{{canConfirmReceipt}}"
-        bindtap="onConfirmReceipt"
-      >
-        <text class="action-btn-text">确认收货</text>
-      </view>
-      <view class="action-btn-detail btn-rate-detail" wx:if="{{canRate}}" bindtap="onOpenRating">
-        <text class="action-btn-text">去评价</text>
-      </view>
-    </view>
 
-    <!-- 底部安全区占位 -->
-    <view class="safe-bottom" wx:if="{{canCancel || canConfirmReceipt || canRate}}"></view>
-  </view>
+      <!-- 已评价展示 -->
+      <view class="info-card" wx:if="{{order.status === 'rated' && ratingStars}}">
+        <view class="card-title-row">
+          <text class="card-title">我的评价</text>
+        </view>
+        <view class="rating-show">
+          <text class="rating-show-stars">{{ratingStars}}</text>
+        </view>
+      </view>
+
+      <!-- 底部操作区 -->
+      <view class="action-bar" wx:if="{{canCancel || canConfirmReceipt || canRate}}">
+        <view
+          class="action-btn-detail btn-cancel-detail"
+          wx:if="{{canCancel}}"
+          bindtap="onCancelOrder"
+        >
+          <text class="action-btn-text cancel-text">取消订单</text>
+        </view>
+        <view
+          class="action-btn-detail btn-confirm-detail"
+          wx:if="{{canConfirmReceipt}}"
+          bindtap="onConfirmReceipt"
+        >
+          <text class="action-btn-text">确认收货</text>
+        </view>
+        <view class="action-btn-detail btn-rate-detail" wx:if="{{canRate}}" bindtap="onOpenRating">
+          <text class="action-btn-text">去评价</text>
+        </view>
+      </view>
+
+      <!-- 底部安全区占位 -->
+      <view class="safe-bottom" wx:if="{{canCancel || canConfirmReceipt || canRate}}"></view>
+    </view>
+  </scroll-view>
 </view>
 
 <!-- 评价弹窗 -->

@@ -1,10 +1,18 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* packageAdmin/consume-submit/consume-submit.scss - 商家消费录入页面样式 */
 /* 设计风格：紫蓝渐变 + 毛玻璃卡片，与管理后台其他页面保持一致 */
 @import '../../styles/mixins';
 
 /* ===== 页面容器（紫蓝渐变背景） ===== */
 .consume-page {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--tg-gradient-primary);
   padding: 20rpx 24rpx 160rpx;
 }
@@ -143,7 +151,7 @@
 .amount-icon {
   background: var(--td-brand-color);
 
-  text {
+  .amount-icon-text {
     color: var(--tg-color-white);
     font-weight: bold;
     font-size: var(--td-font-size-s);
@@ -153,7 +161,7 @@
 .note-icon {
   background: var(--tg-gradient-primary-start);
 
-  text {
+  .note-icon-text {
     font-size: var(--td-font-size-s);
   }
 }
@@ -161,7 +169,7 @@
 .store-icon {
   background: var(--tg-color-success);
 
-  text {
+  .store-icon-text {
     font-size: var(--td-font-size-s);
   }
 }
@@ -169,7 +177,7 @@
 .customer-icon {
   background: var(--tg-color-info);
 
-  text {
+  .customer-icon-text {
     font-size: var(--td-font-size-s);
   }
 }
@@ -177,7 +185,7 @@
 .summary-icon {
   background: var(--tg-color-warning);
 
-  text {
+  .summary-icon-text {
     font-size: var(--td-font-size-s);
   }
 }
@@ -334,7 +342,7 @@
   background: var(--tg-color-success);
   border-radius: 20rpx;
 
-  text {
+  .auto-tag-text {
     font-size: var(--tg-font-size-xs);
     color: var(--tg-color-white);
   }
@@ -417,7 +425,7 @@
   background: rgba(255, 107, 53, 0.08);
   border-radius: 20rpx;
 
-  text {
+  .rescan-tag-text {
     font-size: var(--tg-font-size-xs);
     color: var(--td-brand-color);
     font-weight: 500;
@@ -500,7 +508,7 @@
   border-radius: 20rpx;
   flex-shrink: 0;
 
-  text {
+  .verified-badge-text {
     font-size: var(--tg-font-size-xs);
     color: var(--tg-color-success);
     font-weight: 600;
@@ -581,7 +589,7 @@
   background: rgba(250, 173, 20, 0.06);
   border-radius: var(--td-radius-small);
 
-  text {
+  .summary-notice-text {
     font-size: var(--tg-font-size-xs);
     color: var(--tg-color-warning);
     line-height: var(--tg-line-height-base);

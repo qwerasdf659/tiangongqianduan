@@ -11,5 +11,6 @@
   "componentPlaceholder": {
     "popup-banner": "view"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

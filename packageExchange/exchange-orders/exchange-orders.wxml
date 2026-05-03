@@ -6,227 +6,234 @@
 <wxs src="./exchange-orders.wxs" module="ordersHelper" />
 <custom-navbar title="我的订单" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 <view class="orders-page">
-  <!-- 页面顶部统计卡片 -->
-  <view class="stats-card">
-    <view class="stats-row">
-      <view class="stat-item" bindtap="onTabChange" data-tab="all">
-        <text class="stat-number">{{orderStats.total || 0}}</text>
-        <text class="stat-label">全部订单</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item" bindtap="onTabChange" data-tab="shipped">
-        <text class="stat-number stat-highlight">{{orderStats.shipped || 0}}</text>
-        <text class="stat-label">待收货</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item" bindtap="onTabChange" data-tab="received">
-        <text class="stat-number stat-highlight">{{orderStats.received || 0}}</text>
-        <text class="stat-label">待评价</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item" bindtap="onTabChange" data-tab="pending">
-        <text class="stat-number">{{orderStats.pending || 0}}</text>
-        <text class="stat-label">处理中</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 状态筛选Tab -->
-  <view class="filter-bar">
-    <t-tabs
-      value="{{currentTab}}"
-      bind:change="onTabChange"
-      theme="line"
-      split="{{false}}"
-      spaceEvenly="{{true}}"
-      sticky="{{false}}"
-      swipeable="{{false}}"
-    >
-      <t-tab-panel wx:for="{{statusTabs}}" wx:key="key" value="{{item.key}}" label="{{item.label}}">
-      </t-tab-panel>
-    </t-tabs>
-  </view>
-
-  <!-- 使用引导（首次进入或无订单时展示） -->
-  <view class="guide-banner" wx:if="{{showGuide && !loading}}">
-    <view class="guide-close" bindtap="onCloseGuide">✕</view>
-    <view class="guide-title">📦 订单流程说明</view>
-    <view class="guide-steps">
-      <view class="guide-step">
-        <view class="guide-step-icon guide-step-icon--pending">🛒</view>
-        <text class="guide-step-text">兑换商品</text>
-      </view>
-      <view class="guide-arrow">→</view>
-      <view class="guide-step">
-        <view class="guide-step-icon guide-step-icon--approved">✓</view>
-        <text class="guide-step-text">审核通过</text>
-      </view>
-      <view class="guide-arrow">→</view>
-      <view class="guide-step">
-        <view class="guide-step-icon guide-step-icon--shipped">🚚</view>
-        <text class="guide-step-text">商家发货</text>
-      </view>
-      <view class="guide-arrow">→</view>
-      <view class="guide-step">
-        <view class="guide-step-icon guide-step-icon--rated">⭐</view>
-        <text class="guide-step-text">确认评价</text>
-      </view>
-    </view>
-    <text class="guide-hint">发货满7天未操作，系统将自动确认收货</text>
-  </view>
-
-  <!-- 订单列表 -->
-  <view class="orders-content">
-    <!-- 页面级加载 -->
-    <view class="page-loading" wx:if="{{loading && orders.length === 0}}">
-      <t-loading loading="{{true}}" text="加载订单中..." theme="spinner" />
-    </view>
-
-    <!-- 空状态 -->
-    <view class="empty-wrapper" wx:if="{{!loading && orders.length === 0}}">
-      <view class="empty-card">
-        <t-empty description="{{emptyText}}">
-          <text slot="description">去商城兑换中心挑选喜欢的商品吧</text>
-        </t-empty>
-        <view class="empty-action" bindtap="goToExchange">
-          <text class="empty-action-text">去逛逛商城</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面顶部统计卡片 -->
+    <view class="stats-card">
+      <view class="stats-row">
+        <view class="stat-item" bindtap="onTabChange" data-tab="all">
+          <text class="stat-number">{{orderStats.total || 0}}</text>
+          <text class="stat-label">全部订单</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item" bindtap="onTabChange" data-tab="shipped">
+          <text class="stat-number stat-highlight">{{orderStats.shipped || 0}}</text>
+          <text class="stat-label">待收货</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item" bindtap="onTabChange" data-tab="received">
+          <text class="stat-number stat-highlight">{{orderStats.received || 0}}</text>
+          <text class="stat-label">待评价</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item" bindtap="onTabChange" data-tab="pending">
+          <text class="stat-number">{{orderStats.pending || 0}}</text>
+          <text class="stat-label">处理中</text>
         </view>
       </view>
     </view>
 
-    <!-- 订单卡片列表 -->
-    <view class="order-list" wx:if="{{orders.length > 0}}">
-      <view
-        class="order-card"
-        wx:for="{{orders}}"
-        wx:key="order_no"
-        data-order_no="{{item.order_no}}"
-        bindtap="onTapOrder"
+    <!-- 状态筛选Tab -->
+    <view class="filter-bar">
+      <t-tabs
+        value="{{currentTab}}"
+        bind:change="onTabChange"
+        theme="line"
+        split="{{false}}"
+        spaceEvenly="{{true}}"
+        sticky="{{false}}"
+        swipeable="{{false}}"
       >
-        <!-- 卡片头部：状态 + 来源 + 订单号 -->
-        <view class="card-header">
-          <view class="card-header-left">
-            <t-tag theme="{{item._statusTheme}}" variant="dark" size="small" shape="round">
-              {{item._statusIcon}} {{item._statusLabel}}
-            </t-tag>
-            <t-tag wx:if="{{item._sourceLabel}}" theme="default" variant="light" size="small">
-              {{item._sourceLabel}}
-            </t-tag>
-          </view>
-          <text class="order-no" catchtap="onCopyOrderNo" data-no="{{item.order_no}}"
-            >{{item._shortOrderNo}}</text
-          >
-        </view>
-
-        <!-- 商品信息 -->
-        <view class="card-body">
-          <view class="product-row">
-            <image class="product-thumb" src="{{item._productImage}}" mode="aspectFill" />
-            <view class="product-info">
-              <text class="product-name">{{item._productName}}</text>
-              <text class="product-cost" wx:if="{{item._payInfo}}">消耗: {{item._payInfo}}</text>
-            </view>
-          </view>
-
-          <!-- 时间线 -->
-          <view class="timeline">
-            <view class="timeline-item" wx:if="{{item._createTime}}">
-              <view class="timeline-dot"></view>
-              <text class="timeline-text">下单时间　{{item._createTime}}</text>
-            </view>
-            <view class="timeline-item" wx:if="{{item._approvedTime}}">
-              <view class="timeline-dot dot-blue"></view>
-              <text class="timeline-text">审核通过　{{item._approvedTime}}</text>
-            </view>
-            <view class="timeline-item" wx:if="{{item._shippedTime}}">
-              <view class="timeline-dot dot-green"></view>
-              <text class="timeline-text">发货时间　{{item._shippedTime}}</text>
-            </view>
-            <view class="timeline-item" wx:if="{{item._receivedTime}}">
-              <view class="timeline-dot dot-cyan"></view>
-              <text class="timeline-text">收货时间　{{item._receivedTime}}</text>
-            </view>
-            <view class="timeline-item" wx:if="{{item._ratedTime}}">
-              <view class="timeline-dot dot-purple"></view>
-              <text class="timeline-text">评价时间　{{item._ratedTime}}</text>
-            </view>
-            <view class="timeline-item" wx:if="{{item._rejectedTime}}">
-              <view class="timeline-dot dot-red"></view>
-              <text class="timeline-text">拒绝时间　{{item._rejectedTime}}</text>
-            </view>
-            <view class="timeline-item" wx:if="{{item._refundedTime}}">
-              <view class="timeline-dot dot-grey"></view>
-              <text class="timeline-text">退款时间　{{item._refundedTime}}</text>
-            </view>
-            <view class="timeline-item" wx:if="{{item._cancelledTime}}">
-              <view class="timeline-dot dot-grey"></view>
-              <text class="timeline-text">取消时间　{{item._cancelledTime}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 自动确认提示 -->
-        <view class="auto-tip" wx:if="{{item._isAutoConfirmed}}">
-          <text class="auto-tip-icon">ℹ️</text>
-          <text class="auto-tip-text">系统已自动确认收货（发货满7天）</text>
-        </view>
-
-        <!-- 已评价展示 -->
-        <view class="rating-display" wx:if="{{item.status === 'rated' && item._ratingStars}}">
-          <text class="rating-label">我的评价</text>
-          <text class="rating-stars">{{item._ratingStars}}</text>
-        </view>
-
-        <!-- 操作按钮区域 -->
-        <view
-          class="card-actions"
-          wx:if="{{item._canConfirmReceipt || item._canRate || item._canCancel}}"
-          catchtap=""
+        <t-tab-panel
+          wx:for="{{statusTabs}}"
+          wx:key="key"
+          value="{{item.key}}"
+          label="{{item.label}}"
         >
-          <t-button
-            wx:if="{{item._canCancel}}"
-            theme="default"
-            variant="outline"
-            size="small"
-            shape="round"
-            data-order_no="{{item.order_no}}"
-            data-product_name="{{item._productName}}"
-            bind:tap="onCancelOrder"
-          >
-            取消订单
-          </t-button>
-          <t-button
-            wx:if="{{item._canConfirmReceipt}}"
-            theme="success"
-            size="small"
-            shape="round"
-            data-order_no="{{item.order_no}}"
-            data-product_name="{{item._productName}}"
-            bind:tap="onConfirmReceipt"
-          >
-            确认收货
-          </t-button>
-          <t-button
-            wx:if="{{item._canRate}}"
-            theme="primary"
-            size="small"
-            shape="round"
-            data-order_no="{{item.order_no}}"
-            data-product_name="{{item._productName}}"
-            bind:tap="onOpenRating"
-          >
-            去评价
-          </t-button>
+        </t-tab-panel>
+      </t-tabs>
+    </view>
+
+    <!-- 使用引导（首次进入或无订单时展示） -->
+    <view class="guide-banner" wx:if="{{showGuide && !loading}}">
+      <view class="guide-close" bindtap="onCloseGuide">✕</view>
+      <view class="guide-title">📦 订单流程说明</view>
+      <view class="guide-steps">
+        <view class="guide-step">
+          <view class="guide-step-icon guide-step-icon--pending">🛒</view>
+          <text class="guide-step-text">兑换商品</text>
+        </view>
+        <view class="guide-arrow">→</view>
+        <view class="guide-step">
+          <view class="guide-step-icon guide-step-icon--approved">✓</view>
+          <text class="guide-step-text">审核通过</text>
+        </view>
+        <view class="guide-arrow">→</view>
+        <view class="guide-step">
+          <view class="guide-step-icon guide-step-icon--shipped">🚚</view>
+          <text class="guide-step-text">商家发货</text>
+        </view>
+        <view class="guide-arrow">→</view>
+        <view class="guide-step">
+          <view class="guide-step-icon guide-step-icon--rated">⭐</view>
+          <text class="guide-step-text">确认评价</text>
+        </view>
+      </view>
+      <text class="guide-hint">发货满7天未操作，系统将自动确认收货</text>
+    </view>
+
+    <!-- 订单列表 -->
+    <view class="orders-content">
+      <!-- 页面级加载 -->
+      <view class="page-loading" wx:if="{{loading && orders.length === 0}}">
+        <t-loading loading="{{true}}" text="加载订单中..." theme="spinner" />
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-wrapper" wx:if="{{!loading && orders.length === 0}}">
+        <view class="empty-card">
+          <t-empty description="{{emptyText}}">
+            <text slot="description">去商城兑换中心挑选喜欢的商品吧</text>
+          </t-empty>
+          <view class="empty-action" bindtap="goToExchange">
+            <text class="empty-action-text">去逛逛商城</text>
+          </view>
         </view>
       </view>
 
-      <!-- 加载更多 / 没有更多 -->
-      <view class="list-footer">
-        <text class="footer-text" wx:if="{{loadingMore}}">加载更多...</text>
-        <text class="footer-text" wx:elif="{{noMore}}">— 已展示全部订单 —</text>
+      <!-- 订单卡片列表 -->
+      <view class="order-list" wx:if="{{orders.length > 0}}">
+        <view
+          class="order-card"
+          wx:for="{{orders}}"
+          wx:key="order_no"
+          data-order_no="{{item.order_no}}"
+          bindtap="onTapOrder"
+        >
+          <!-- 卡片头部：状态 + 来源 + 订单号 -->
+          <view class="card-header">
+            <view class="card-header-left">
+              <t-tag theme="{{item._statusTheme}}" variant="dark" size="small" shape="round">
+                {{item._statusIcon}} {{item._statusLabel}}
+              </t-tag>
+              <t-tag wx:if="{{item._sourceLabel}}" theme="default" variant="light" size="small">
+                {{item._sourceLabel}}
+              </t-tag>
+            </view>
+            <text class="order-no" catchtap="onCopyOrderNo" data-no="{{item.order_no}}"
+              >{{item._shortOrderNo}}</text
+            >
+          </view>
+
+          <!-- 商品信息 -->
+          <view class="card-body">
+            <view class="product-row">
+              <image class="product-thumb" src="{{item._productImage}}" mode="aspectFill" />
+              <view class="product-info">
+                <text class="product-name">{{item._productName}}</text>
+                <text class="product-cost" wx:if="{{item._payInfo}}">消耗: {{item._payInfo}}</text>
+              </view>
+            </view>
+
+            <!-- 时间线 -->
+            <view class="timeline">
+              <view class="timeline-item" wx:if="{{item._createTime}}">
+                <view class="timeline-dot"></view>
+                <text class="timeline-text">下单时间　{{item._createTime}}</text>
+              </view>
+              <view class="timeline-item" wx:if="{{item._approvedTime}}">
+                <view class="timeline-dot dot-blue"></view>
+                <text class="timeline-text">审核通过　{{item._approvedTime}}</text>
+              </view>
+              <view class="timeline-item" wx:if="{{item._shippedTime}}">
+                <view class="timeline-dot dot-green"></view>
+                <text class="timeline-text">发货时间　{{item._shippedTime}}</text>
+              </view>
+              <view class="timeline-item" wx:if="{{item._receivedTime}}">
+                <view class="timeline-dot dot-cyan"></view>
+                <text class="timeline-text">收货时间　{{item._receivedTime}}</text>
+              </view>
+              <view class="timeline-item" wx:if="{{item._ratedTime}}">
+                <view class="timeline-dot dot-purple"></view>
+                <text class="timeline-text">评价时间　{{item._ratedTime}}</text>
+              </view>
+              <view class="timeline-item" wx:if="{{item._rejectedTime}}">
+                <view class="timeline-dot dot-red"></view>
+                <text class="timeline-text">拒绝时间　{{item._rejectedTime}}</text>
+              </view>
+              <view class="timeline-item" wx:if="{{item._refundedTime}}">
+                <view class="timeline-dot dot-grey"></view>
+                <text class="timeline-text">退款时间　{{item._refundedTime}}</text>
+              </view>
+              <view class="timeline-item" wx:if="{{item._cancelledTime}}">
+                <view class="timeline-dot dot-grey"></view>
+                <text class="timeline-text">取消时间　{{item._cancelledTime}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 自动确认提示 -->
+          <view class="auto-tip" wx:if="{{item._isAutoConfirmed}}">
+            <text class="auto-tip-icon">ℹ️</text>
+            <text class="auto-tip-text">系统已自动确认收货（发货满7天）</text>
+          </view>
+
+          <!-- 已评价展示 -->
+          <view class="rating-display" wx:if="{{item.status === 'rated' && item._ratingStars}}">
+            <text class="rating-label">我的评价</text>
+            <text class="rating-stars">{{item._ratingStars}}</text>
+          </view>
+
+          <!-- 操作按钮区域 -->
+          <view
+            class="card-actions"
+            wx:if="{{item._canConfirmReceipt || item._canRate || item._canCancel}}"
+            catchtap=""
+          >
+            <t-button
+              wx:if="{{item._canCancel}}"
+              theme="default"
+              variant="outline"
+              size="small"
+              shape="round"
+              data-order_no="{{item.order_no}}"
+              data-product_name="{{item._productName}}"
+              bind:tap="onCancelOrder"
+            >
+              取消订单
+            </t-button>
+            <t-button
+              wx:if="{{item._canConfirmReceipt}}"
+              theme="success"
+              size="small"
+              shape="round"
+              data-order_no="{{item.order_no}}"
+              data-product_name="{{item._productName}}"
+              bind:tap="onConfirmReceipt"
+            >
+              确认收货
+            </t-button>
+            <t-button
+              wx:if="{{item._canRate}}"
+              theme="primary"
+              size="small"
+              shape="round"
+              data-order_no="{{item.order_no}}"
+              data-product_name="{{item._productName}}"
+              bind:tap="onOpenRating"
+            >
+              去评价
+            </t-button>
+          </view>
+        </view>
+
+        <!-- 加载更多 / 没有更多 -->
+        <view class="list-footer">
+          <text class="footer-text" wx:if="{{loadingMore}}">加载更多...</text>
+          <text class="footer-text" wx:elif="{{noMore}}">— 已展示全部订单 —</text>
+        </view>
       </view>
     </view>
-  </view>
+  </scroll-view>
 </view>
 
 <!-- 评价弹窗 -->

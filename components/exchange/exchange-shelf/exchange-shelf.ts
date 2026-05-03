@@ -437,7 +437,7 @@ Component({
       const cardIndex = e.currentTarget.dataset.cardIndex
       const tabSource = e.currentTarget.dataset.tab || this.data.currentSpace
 
-      const query = wx.createSelectorQuery().in(this)
+      const query = this.createSelectorQuery()
       query
         .select(`[data-card-index="${cardIndex}"][data-tab="${tabSource}"]`)
         .boundingClientRect((rect: any) => {

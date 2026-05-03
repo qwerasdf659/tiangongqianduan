@@ -150,6 +150,7 @@
       <text class="cd-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="cd-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

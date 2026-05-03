@@ -16,10 +16,9 @@ import { action, observable } from 'mobx-miniprogram'
 
 import { createPaginatedActions, createPaginationState } from './helpers'
 
-const { Utils } = require('../utils/index')
-const { createLogger } = require('../utils/logger')
+const { Utils, Logger } = require('../utils/index')
 const { formatPoints } = Utils
-const log = createLogger('points-store')
+const log = Logger.createLogger('points-store')
 
 export const pointsStore = observable({
   // ===== 可观察状态 =====

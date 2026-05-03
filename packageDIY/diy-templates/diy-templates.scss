@@ -1,9 +1,15 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 @import '../../styles/mixins.scss';
 
 .diy-templates-page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  flex: 1;
   background: var(--tg-diy-canvas-bg);
 }
 

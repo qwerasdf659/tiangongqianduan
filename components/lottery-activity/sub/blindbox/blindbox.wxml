@@ -122,6 +122,7 @@
     </view>
     <view class="bb-prizes__scroll-wrap">
       <scroll-view
+        type="custom"
         class="bb-prizes__scroll"
         scroll-x="{{true}}"
         enhanced="{{true}}"

@@ -20,15 +20,6 @@ interface WechatInitResult {
   developmentMode: boolean
 }
 
-/** 用户信息获取结果 */
-interface UserProfileResult {
-  success: boolean
-  userInfo?: WechatMiniprogram.UserInfo
-  source?: string
-  error?: any
-  message?: string
-}
-
 /** 授权结果 */
 interface AuthorizationResult {
   success: boolean
@@ -72,36 +63,6 @@ class WechatUtils {
       version: '5.2.0',
       developmentMode: devConfig.enableUnifiedAuth
     }
-  }
-
-  /**
-   * 获取微信用户信息
-   * V4.0规范: 统一使用微信官方API
-   * 用户信息完全由后端JWT Token提供，此处仅获取微信昵称头像
-   * 业务场景: 用户首次登录时获取资料、完善用户档案
-   */
-  static getUserProfile(): Promise<UserProfileResult> {
-    return new Promise((resolve, reject) => {
-      wx.getUserProfile({
-        desc: '用于完善会员资料',
-        success(res: WechatMiniprogram.GetUserProfileSuccessCallbackResult) {
-          log.info('获取用户信息成功', res.userInfo)
-          resolve({
-            success: true,
-            userInfo: res.userInfo,
-            source: 'wechat_official'
-          })
-        },
-        fail(err: WechatMiniprogram.GeneralCallbackResult) {
-          log.error('获取用户信息失败', err)
-          reject({
-            success: false,
-            error: err,
-            message: '获取用户信息失败，请重试'
-          })
-        }
-      })
-    })
   }
 
   /**
@@ -260,7 +221,6 @@ class WechatUtils {
 module.exports = {
   WechatUtils,
   initializeWechatEnvironment: WechatUtils.initializeWechatEnvironment,
-  getUserProfile: WechatUtils.getUserProfile,
   showToast: WechatUtils.showToast,
   showLoading: WechatUtils.showLoading,
   hideLoading: WechatUtils.hideLoading,

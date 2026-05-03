@@ -48,13 +48,15 @@
               <view class="bag-shape__neck"></view>
               <view class="bag-shape__body">
                 <view class="bag-shape__shine"></view>
-                <view class="bag-shape__fu"><text class="fu-text">福</text></view>
+                <view class="bag-shape__fu"
+                  ><text class="fu-text bag-shape__fu-text">福</text></view
+                >
                 <view class="bag-shape__pattern"></view>
               </view>
             </view>
             <!-- 编号 -->
             <view class="bag-number">
-              <text class="count-text">{{item.id + 1}}</text>
+              <text class="count-text bag-number-text">{{item.id + 1}}</text>
             </view>
             <!-- 点击提示 -->
             <view class="bag-tap-hint" wx:if="{{canSelect && selectedBag < 0}}">
@@ -137,11 +139,13 @@
               <view class="bag-shape__neck"></view>
               <view class="bag-shape__body">
                 <view class="bag-shape__shine"></view>
-                <view class="bag-shape__fu"><text class="fu-text">福</text></view>
+                <view class="bag-shape__fu"
+                  ><text class="fu-text bag-shape__fu-text">福</text></view
+                >
               </view>
             </view>
             <view class="bag-number">
-              <text class="count-text">{{bag.index + 1}}</text>
+              <text class="count-text bag-number-text">{{bag.index + 1}}</text>
             </view>
           </view>
 
@@ -185,6 +189,7 @@
       <text class="lb-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="lb-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

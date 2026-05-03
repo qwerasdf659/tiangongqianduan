@@ -1,24 +1,22 @@
 /**
  * 弹珠机 子组件 - Plinko风格弹珠台
  * @file sub/pinball/pinball.ts
- * @version 5.2.0
+ * @version 6.0.0 — Skyline Worklet 动画升级
  *
  * 核心流程（与父组件 lottery-activity 协同）：
  *   1. 用户点"发射弹珠" → 触发 draw 事件 → 父组件调用后端API
  *   2. 父组件设置 isInProgress=true + targetPrizeIndex → 本组件开始动画
- *   3. 弹珠沿预计算路径在钉阵中弹跳下落（含尾迹+碰撞波纹）
+ *   3. 弹珠沿预计算路径在钉阵中弹跳下落（Worklet 驱动位移）
  *   4. 弹珠落入目标奖品槽 → 庆祝特效 → 触发 animationEnd
  *
- * v6.0 优化：
- *   - 金色金属弹珠 + 动态旋转角度
- *   - 弹珠尾迹粒子（5个拖尾光点）
- *   - 碰撞冲击波视觉反馈
- *   - 更多中间路径点（更自然的物理弹跳）
- *   - 优化动画时序（更丝滑的节奏感）
- *   - 入场动画支持
+ * Worklet 优化：
+ *   - 弹珠位置 (ballX, ballY) 使用 shared value + applyAnimatedStyle
+ *   - 弹珠旋转角度使用 shared value
+ *   - 减少动画过程中的 setData 调用（钉子高亮等低频操作保留）
  */
 
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
+const { shared, timing } = wx.worklet
 
 Component({
   behaviors: [prizeImageBehavior],
@@ -78,6 +76,23 @@ Component({
     attached() {
       this._initBoard()
       this._initParticles()
+
+      /* Worklet shared values: 弹珠位置 + 旋转角度 */
+      this._ballXShared = shared(50)
+      this._ballYShared = shared(3)
+      this._ballAngleShared = shared(0)
+      this._ballOpacity = shared(1)
+
+      /* applyAnimatedStyle 驱动弹珠位移，替代高频 setData */
+      this.applyAnimatedStyle('.ball-wrap', () => {
+        'worklet'
+        return {
+          left: `${this._ballXShared.value}%`,
+          top: `${this._ballYShared.value}%`,
+          opacity: this._ballOpacity.value,
+          transform: `translate(-50%, -50%) rotate(${this._ballAngleShared.value}deg)`
+        }
+      })
     },
     detached() {
       this._cleanupTimers()
@@ -169,14 +184,20 @@ Component({
         slots: generatedSlots,
         slotCount,
         ballState: 'ready',
-        ballX: 50,
-        ballY: 3,
         ballAngle: 0,
         showCelebration: false,
         landedSlot: -1,
         trailDots: [],
         impactRipple: { show: false, x: 0, y: 0 }
       })
+
+      /* Worklet 重置弹珠位置 */
+      if (this._ballXShared) {
+        this._ballXShared.value = 50
+        this._ballYShared.value = 3
+        this._ballAngleShared.value = 0
+        this._ballOpacity.value = 1
+      }
     },
 
     /** 初始化背景装饰粒子 */
@@ -210,8 +231,6 @@ Component({
       /* 切换到 launching 状态，等待API返回 */
       this.setData({
         ballState: 'launching',
-        ballX: 50,
-        ballY: 3,
         ballAngle: 0,
         showCelebration: false,
         pegs: resetPegs,
@@ -219,6 +238,11 @@ Component({
         trailDots: [],
         impactRipple: { show: false, x: 0, y: 0 }
       })
+
+      /* Worklet 重置弹珠位置 */
+      this._ballXShared.value = 50
+      this._ballYShared.value = 3
+      this._ballAngleShared.value = 0
 
       /* 触发 draw 事件，父组件调用后端API */
       this.triggerEvent('draw', { count: 1 })
@@ -236,15 +260,16 @@ Component({
       const { slotCount, pegRows } = this.data
       const safeTargetSlot = Math.min(targetSlotIndex, slotCount - 1)
 
-      /* 生成弹珠下落路径（含中间插值点，更自然的物理轨迹） */
       const generatedPath = this._generatePath(safeTargetSlot, slotCount, pegRows)
-
-      /* 初始化尾迹历史队列 */
-      this._trailHistory = []
 
       this.setData({ ballState: 'bouncing' })
 
-      /* 开始逐帧动画 */
+      /* 重置 Worklet 弹珠位置 */
+      this._ballXShared.value = 50
+      this._ballYShared.value = 3
+      this._ballAngleShared.value = 0
+      this._ballOpacity.value = 1
+
       this._animateStep(0, generatedPath, safeTargetSlot)
     },
 
@@ -323,7 +348,7 @@ Component({
     },
 
     /**
-     * 逐步执行弹珠动画：沿路径移动弹珠 + 尾迹 + 碰撞反馈
+     * 逐步执行弹珠动画 — Worklet 驱动位移，减少 setData
      *
      * @param step 当前步骤索引
      * @param path 路径点数组
@@ -337,44 +362,57 @@ Component({
 
       const point = path[step]
       const prevPoint = step > 0 ? path[step - 1] : point
-      const updateData: any = {
-        ballX: point.x,
-        ballY: point.y
+
+      /* Worklet 驱动弹珠位移（无 setData 开销） */
+      const deltaX = point.x - prevPoint.x
+      const newAngle = (this.data.ballAngle + deltaX * 8) % 360
+
+      /* 计算动态延迟 */
+      const progress = step / path.length
+      let stepDelay: number
+      if (progress < 0.1) {
+        stepDelay = 340
+      } else if (progress > 0.88) {
+        stepDelay = 280
+      } else if (point.isCollision) {
+        stepDelay = 200 + Math.random() * 40
+      } else {
+        stepDelay = 140 + Math.random() * 50
       }
 
-      /* 计算弹珠旋转角度（基于水平移动方向） */
-      const deltaX = point.x - prevPoint.x
-      updateData.ballAngle = (this.data.ballAngle + deltaX * 8) % 360
+      /* Worklet timing 驱动弹珠平滑移动 */
+      this._ballXShared.value = timing(point.x, { duration: stepDelay * 0.8 }, (() => {
+        'worklet'
+      }) as any)
+      this._ballYShared.value = timing(point.y, { duration: stepDelay * 0.8 }, (() => {
+        'worklet'
+      }) as any)
+      this._ballAngleShared.value = timing(newAngle, { duration: stepDelay * 0.6 }, (() => {
+        'worklet'
+      }) as any)
 
-      /* 更新弹珠尾迹 */
-      this._updateTrail(point.x, point.y, updateData)
+      /* 同步更新 data 中的角度（供后续计算） */
+      this.data.ballAngle = newAngle
 
-      /* 碰撞检测 + 钉子发光 + 冲击波 */
+      /* 低频 setData：仅碰撞点更新钉子高亮和冲击波 */
       const isMiddlePhase = step > 1 && step < path.length - 3
-      if (isMiddlePhase) {
+      if (isMiddlePhase && point.isCollision) {
         const litPegs = this.data.pegs.map((peg: any) => {
           const dist = Math.sqrt(Math.pow(point.x - peg.x, 2) + Math.pow(point.y - peg.y, 2))
           return { ...peg, lit: dist < 10 }
         })
-        updateData.pegs = litPegs
+        this.setData({
+          pegs: litPegs,
+          impactRipple: { show: true, x: point.x, y: point.y }
+        })
 
-        /* 碰撞点触发冲击波 */
-        if (point.isCollision) {
-          updateData.impactRipple = { show: true, x: point.x, y: point.y }
-          /* 定时隐藏冲击波 */
-          if (this._rippleTimer) {
-            clearTimeout(this._rippleTimer)
-          }
-          this._rippleTimer = setTimeout(() => {
-            this.setData({ 'impactRipple.show': false })
-          }, 500)
+        if (this._rippleTimer) {
+          clearTimeout(this._rippleTimer)
         }
-      }
+        this._rippleTimer = setTimeout(() => {
+          this.setData({ 'impactRipple.show': false })
+        }, 500)
 
-      this.setData(updateData)
-
-      /* 碰撞点震动反馈 */
-      if (point.isCollision && isMiddlePhase) {
         try {
           wx.vibrateShort({ type: 'light' })
         } catch (_e) {
@@ -382,59 +420,9 @@ Component({
         }
       }
 
-      /**
-       * 动态延迟（v6.0优化版）：
-       *   - 发射阶段（前10%）：较慢，体现蓄力
-       *   - 碰撞点：稍慢（模拟碰撞停顿）
-       *   - 弹跳点：较快（弹开感）
-       *   - 接近底部（后15%）：减速收敛
-       */
-      const progress = step / path.length
-      let stepDelay: number
-      if (progress < 0.1) {
-        stepDelay = 340 // 发射蓄力
-      } else if (progress > 0.88) {
-        stepDelay = 280 // 底部减速
-      } else if (point.isCollision) {
-        stepDelay = 200 + Math.random() * 40 // 碰撞稍停
-      } else {
-        stepDelay = 140 + Math.random() * 50 // 弹跳较快
-      }
-
       this._stepTimer = setTimeout(() => {
         this._animateStep(step + 1, path, targetSlot)
       }, stepDelay)
-    },
-
-    /**
-     * 更新弹珠尾迹粒子（维护最多5个拖尾点）
-     */
-    _updateTrail(x: number, y: number, updateData: any) {
-      if (!this._trailHistory) {
-        this._trailHistory = []
-      }
-
-      /* 记录当前位置 */
-      this._trailHistory.push({ x, y })
-
-      /* 保留最近6个位置点 */
-      if (this._trailHistory.length > 6) {
-        this._trailHistory.shift()
-      }
-
-      /* 生成5个尾迹粒子（越远越透明越小） */
-      const trailDots = this._trailHistory.slice(0, -1).map((pos: any, i: number) => {
-        const age = this._trailHistory.length - 1 - i
-        return {
-          id: i,
-          x: pos.x,
-          y: pos.y,
-          opacity: Math.max(0.1, 0.6 - age * 0.12),
-          scale: Math.max(0.2, 0.8 - age * 0.12)
-        }
-      })
-
-      updateData.trailDots = trailDots
     },
 
     // ========================================
@@ -483,7 +471,6 @@ Component({
     /** 重置弹珠状态（父组件调用） */
     resetBall() {
       this._cleanupTimers()
-      this._trailHistory = []
       this._initBoard()
     },
 

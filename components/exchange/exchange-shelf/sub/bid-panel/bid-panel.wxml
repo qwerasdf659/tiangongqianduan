@@ -103,9 +103,9 @@
         <text>{{showBidRules ? '收起规则 ▲' : '竞价规则 ▼'}}</text>
       </view>
       <view class="bid-rules-content" wx:if="{{showBidRules}}">
-        <text>1. 出价后资产将被冻结，直到被超越或竞价结束</text>
-        <text>2. 每次出价需高于当前最高价 + 最小加价幅度</text>
-        <text>3. 竞价结束时，最高出价者获得商品</text>
+        <text class="bid-rules-content-text">1. 出价后资产将被冻结，直到被超越或竞价结束</text>
+        <text class="bid-rules-content-text">2. 每次出价需高于当前最高价 + 最小加价幅度</text>
+        <text class="bid-rules-content-text">3. 竞价结束时，最高出价者获得商品</text>
       </view>
     </view>
 

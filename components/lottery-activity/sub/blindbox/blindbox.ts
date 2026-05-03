@@ -1,7 +1,10 @@
 /**
  * 扭蛋机组件 - 完整扭蛋机交互
  * @file sub/blindbox/blindbox.ts
+ * @version 6.0.0 — Skyline Worklet 动画驱动
  */
+
+const { shared, timing, runOnJS } = wx.worklet
 
 /** 扭蛋配色方案 */
 const EGG_COLORS = [
@@ -139,13 +142,10 @@ Component({
       this.setData({ eggs })
     },
 
-    /** 出蛋动画 */
+    /** 出蛋动画 — Worklet timing 驱动多阶段编排 */
     _dispenseEgg() {
-      // 随机选一个蛋掉出来
       const idx = Math.floor(Math.random() * this.data.eggs.length)
       const chosen = { ...this.data.eggs[idx] }
-
-      // 从蛋堆中移除
       const eggs = this.data.eggs.filter((_: any, i: number) => i !== idx)
 
       this.setData({
@@ -154,16 +154,23 @@ Component({
         dispensedState: 'dispensing'
       })
 
-      // 蛋落到出口
-      this._dispenseTimer1 = setTimeout(() => {
-        this.setData({
-          crankState: 'idle',
-          dispensedState: 'landed'
-        })
-      }, 800)
+      // Worklet timing 驱动掉落阶段（替代 setTimeout 800ms）
+      this._dispenseProgress = shared(0)
+      this._dispenseProgress.value = timing(1, { duration: 800 }, () => {
+        'worklet'
+        runOnJS(this._onEggLanded.bind(this))()
+      })
     },
 
-    /** 点击掉出来的蛋 - 打开 */
+    /** 扭蛋落地回调 */
+    _onEggLanded() {
+      this.setData({
+        crankState: 'idle',
+        dispensedState: 'landed'
+      })
+    },
+
+    /** 点击掉出来的蛋 - 打开 — Worklet timing 编排开蛋序列 */
     onTapDispensed() {
       if (this.data.dispensedState !== 'landed') {
         return
@@ -174,12 +181,28 @@ Component({
         burstParticles: this._generateBurst()
       })
 
-      this._openTimer1 = setTimeout(() => {
-        this.setData({ dispensedState: 'opened' })
-        this._openTimer2 = setTimeout(() => {
-          this.triggerEvent('animationEnd')
-        }, 600)
-      }, 800)
+      // Worklet 驱动：cracking → opened（替代 setTimeout 800ms）
+      this._crackProgress = shared(0)
+      this._crackProgress.value = timing(1, { duration: 800 }, () => {
+        'worklet'
+        runOnJS(this._onEggOpened.bind(this))()
+      })
+    },
+
+    /** 扭蛋打开回调 */
+    _onEggOpened() {
+      this.setData({ dispensedState: 'opened' })
+      // Worklet 驱动动画结束通知（替代 setTimeout 600ms）
+      this._openDoneProgress = shared(0)
+      this._openDoneProgress.value = timing(1, { duration: 600 }, () => {
+        'worklet'
+        runOnJS(this._onOpenAnimationEnd.bind(this))()
+      })
+    },
+
+    /** 开蛋动画结束回调 */
+    _onOpenAnimationEnd() {
+      this.triggerEvent('animationEnd')
     },
 
     /** 生成爆炸粒子 */
@@ -226,17 +249,15 @@ Component({
     },
 
     _clearTimers() {
-      if (this._dispenseTimer1) {
-        clearTimeout(this._dispenseTimer1)
-        this._dispenseTimer1 = null
+      // Worklet 共享变量重置（替代 clearTimeout）
+      if (this._dispenseProgress) {
+        this._dispenseProgress.value = 0
       }
-      if (this._openTimer1) {
-        clearTimeout(this._openTimer1)
-        this._openTimer1 = null
+      if (this._crackProgress) {
+        this._crackProgress.value = 0
       }
-      if (this._openTimer2) {
-        clearTimeout(this._openTimer2)
-        this._openTimer2 = null
+      if (this._openDoneProgress) {
+        this._openDoneProgress.value = 0
       }
     }
   }

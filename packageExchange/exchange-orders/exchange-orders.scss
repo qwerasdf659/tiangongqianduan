@@ -1,8 +1,16 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 兑换订单页面 — 独立全页面样式 */
 @import '../../styles/mixins';
 
 .orders-page {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(
     --tg-page-gradient,
     linear-gradient(

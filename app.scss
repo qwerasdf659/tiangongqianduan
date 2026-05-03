@@ -72,6 +72,9 @@
 
 /* 页面基础样式 */
 page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   background-color: var(--tg-page-bg);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB',

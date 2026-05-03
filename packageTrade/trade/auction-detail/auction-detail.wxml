@@ -3,249 +3,255 @@
 <custom-navbar title="拍卖详情" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="auction-detail-container">
-  <!--加载中-->
-  <view class="detail-loading" wx:if="{{loading}}">
-    <t-loading loading="{{true}}" text="加载拍卖详情..." theme="spinner" />
-  </view>
-
-  <!--错误状态-->
-  <view class="detail-error" wx:elif="{{hasError}}">
-    <text class="error-icon">😵</text>
-    <text class="error-text">{{errorMessage}}</text>
-    <view class="error-retry-btn" bindtap="onRetry">
-      <text>重新加载</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!--加载中-->
+    <view class="detail-loading" wx:if="{{loading}}">
+      <t-loading loading="{{true}}" text="加载拍卖详情..." theme="spinner" />
     </view>
-  </view>
 
-  <!--详情主体-->
-  <block wx:elif="{{auction}}">
-    <!--物品图片区-->
-    <view class="detail-image-section">
-      <image class="detail-item-image" src="{{displayImage}}" mode="aspectFit" />
-      <view class="detail-status-badge" style="background-color: {{statusColor}}">
-        <text>{{statusLabel}}</text>
+    <!--错误状态-->
+    <view class="detail-error" wx:elif="{{hasError}}">
+      <text class="error-icon">😵</text>
+      <text class="error-text">{{errorMessage}}</text>
+      <view class="error-retry-btn" bindtap="onRetry">
+        <text>重新加载</text>
       </view>
     </view>
 
-    <!--物品信息-->
-    <view class="detail-info-section">
-      <text class="detail-item-name">{{displayName}}</text>
-      <text class="detail-item-rarity" wx:if="{{rarityLabel}}">{{rarityLabel}}</text>
-      <view class="detail-seller-info">
-        <text class="seller-label">卖方：</text>
-        <text class="seller-name">{{auction.seller_nickname || '匿名用户'}}</text>
+    <!--详情主体-->
+    <block wx:elif="{{auction}}">
+      <!--物品图片区-->
+      <view class="detail-image-section">
+        <image class="detail-item-image" src="{{displayImage}}" mode="aspectFit" />
+        <view class="detail-status-badge" style="background-color: {{statusColor}}">
+          <text>{{statusLabel}}</text>
+        </view>
       </view>
-    </view>
 
-    <!--价格与倒计时区-->
-    <view class="detail-price-section">
-      <!--当前价/起拍价-->
-      <view class="price-main-row">
-        <view class="price-block">
-          <text class="price-label">{{auction.current_price > 0 ? '当前最高价' : '起拍价'}}</text>
-          <view class="price-value-row">
-            <text class="price-value"
-              >{{auction.current_price > 0 ? auction.current_price : auction.start_price}}</text
+      <!--物品信息-->
+      <view class="detail-info-section">
+        <text class="detail-item-name">{{displayName}}</text>
+        <text class="detail-item-rarity" wx:if="{{rarityLabel}}">{{rarityLabel}}</text>
+        <view class="detail-seller-info">
+          <text class="seller-label">卖方：</text>
+          <text class="seller-name">{{auction.seller_nickname || '匿名用户'}}</text>
+        </view>
+      </view>
+
+      <!--价格与倒计时区-->
+      <view class="detail-price-section">
+        <!--当前价/起拍价-->
+        <view class="price-main-row">
+          <view class="price-block">
+            <text class="price-label">{{auction.current_price > 0 ? '当前最高价' : '起拍价'}}</text>
+            <view class="price-value-row">
+              <text class="price-value"
+                >{{auction.current_price > 0 ? auction.current_price : auction.start_price}}</text
+              >
+              <text class="price-asset">{{priceAssetLabel}}</text>
+            </view>
+          </view>
+          <!--一口价-->
+          <view class="price-block" wx:if="{{auction.buyout_price}}">
+            <text class="price-label">一口价</text>
+            <view class="price-value-row">
+              <text class="price-value buyout-color">{{auction.buyout_price}}</text>
+              <text class="price-asset">{{priceAssetLabel}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!--倒计时-->
+        <view class="countdown-row" wx:if="{{countdownText}}">
+          <text class="countdown-icon">⏰</text>
+          <text class="countdown-label"
+            >{{auction.status === 'pending' ? '距开始' : '距结束'}}</text
+          >
+          <text class="countdown-value">{{countdownText}}</text>
+        </view>
+
+        <!--出价统计-->
+        <view class="bid-stats-row">
+          <view class="bid-stat">
+            <text class="stat-value">{{auction.bid_count}}</text>
+            <text class="stat-label">次出价</text>
+          </view>
+          <view class="bid-stat">
+            <text class="stat-value">{{auction.unique_bidders}}</text>
+            <text class="stat-label">人参与</text>
+          </view>
+          <view class="bid-stat">
+            <text class="stat-value">{{auction.min_bid_increment}}</text>
+            <text class="stat-label">最小加价</text>
+          </view>
+        </view>
+
+        <!--手续费提示（仅活跃状态展示） -->
+        <view class="fee-hint" wx:if="{{auction.status === 'active'}}">
+          <text class="fee-text">平台手续费 {{auction.fee_rate * 100}}%（由卖方承担）</text>
+        </view>
+
+        <!--结算信息（仅settled状态）-->
+        <view class="settlement-info" wx:if="{{auction.status === 'settled'}}">
+          <view class="settlement-row">
+            <text class="settlement-label">成交价</text>
+            <text class="settlement-value">{{auction.gross_amount}} {{priceAssetLabel}}</text>
+          </view>
+          <view class="settlement-row">
+            <text class="settlement-label">手续费</text>
+            <text class="settlement-value">{{auction.fee_amount}} {{priceAssetLabel}}</text>
+          </view>
+          <view class="settlement-row">
+            <text class="settlement-label">卖方实收</text>
+            <text class="settlement-value highlight"
+              >{{auction.net_amount}} {{priceAssetLabel}}</text
             >
-            <text class="price-asset">{{priceAssetLabel}}</text>
-          </view>
-        </view>
-        <!--一口价-->
-        <view class="price-block" wx:if="{{auction.buyout_price}}">
-          <text class="price-label">一口价</text>
-          <view class="price-value-row">
-            <text class="price-value buyout-color">{{auction.buyout_price}}</text>
-            <text class="price-asset">{{priceAssetLabel}}</text>
           </view>
         </view>
       </view>
 
-      <!--倒计时-->
-      <view class="countdown-row" wx:if="{{countdownText}}">
-        <text class="countdown-icon">⏰</text>
-        <text class="countdown-label">{{auction.status === 'pending' ? '距开始' : '距结束'}}</text>
-        <text class="countdown-value">{{countdownText}}</text>
-      </view>
-
-      <!--出价统计-->
-      <view class="bid-stats-row">
-        <view class="bid-stat">
-          <text class="stat-value">{{auction.bid_count}}</text>
-          <text class="stat-label">次出价</text>
+      <!--我的出价状态-->
+      <view class="my-bid-section" wx:if="{{myBids.length > 0}}">
+        <view class="section-title">我的出价</view>
+        <view class="my-bid-status">
+          <text class="my-bid-label">我的最高出价：</text>
+          <text class="my-bid-value">{{myHighestBid}} {{priceAssetLabel}}</text>
+          <text class="my-bid-badge winning" wx:if="{{hasActiveBid}}">领先</text>
+          <text class="my-bid-badge losing" wx:else>已被超越</text>
         </view>
-        <view class="bid-stat">
-          <text class="stat-value">{{auction.unique_bidders}}</text>
-          <text class="stat-label">人参与</text>
-        </view>
-        <view class="bid-stat">
-          <text class="stat-value">{{auction.min_bid_increment}}</text>
-          <text class="stat-label">最小加价</text>
-        </view>
-      </view>
-
-      <!--手续费提示（仅活跃状态展示） -->
-      <view class="fee-hint" wx:if="{{auction.status === 'active'}}">
-        <text class="fee-text">平台手续费 {{auction.fee_rate * 100}}%（由卖方承担）</text>
-      </view>
-
-      <!--结算信息（仅settled状态）-->
-      <view class="settlement-info" wx:if="{{auction.status === 'settled'}}">
-        <view class="settlement-row">
-          <text class="settlement-label">成交价</text>
-          <text class="settlement-value">{{auction.gross_amount}} {{priceAssetLabel}}</text>
-        </view>
-        <view class="settlement-row">
-          <text class="settlement-label">手续费</text>
-          <text class="settlement-value">{{auction.fee_amount}} {{priceAssetLabel}}</text>
-        </view>
-        <view class="settlement-row">
-          <text class="settlement-label">卖方实收</text>
-          <text class="settlement-value highlight">{{auction.net_amount}} {{priceAssetLabel}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!--我的出价状态-->
-    <view class="my-bid-section" wx:if="{{myBids.length > 0}}">
-      <view class="section-title">我的出价</view>
-      <view class="my-bid-status">
-        <text class="my-bid-label">我的最高出价：</text>
-        <text class="my-bid-value">{{myHighestBid}} {{priceAssetLabel}}</text>
-        <text class="my-bid-badge winning" wx:if="{{hasActiveBid}}">领先</text>
-        <text class="my-bid-badge losing" wx:else>已被超越</text>
-      </view>
-      <!--我的出价历史-->
-      <view class="my-bid-history">
-        <view class="bid-history-item" wx:for="{{myBids}}" wx:key="auction_bid_id">
-          <text class="bid-amount">{{item.bid_amount}} {{priceAssetLabel}}</text>
-          <text class="bid-time">{{item.created_at}}</text>
-          <text class="bid-status winning" wx:if="{{item.is_winning}}">领先</text>
-          <text class="bid-status" wx:else>已超越</text>
-        </view>
-      </view>
-    </view>
-
-    <!--出价排行-->
-    <view class="top-bids-section" wx:if="{{topBids.length > 0}}">
-      <view class="section-title">出价排行 TOP10</view>
-      <view class="top-bids-list">
-        <view class="top-bid-item" wx:for="{{topBids}}" wx:key="auction_bid_id">
-          <view class="bid-rank">
-            <text class="rank-number {{index < 3 ? 'rank-top' : ''}}">{{index + 1}}</text>
-          </view>
-          <view class="bid-user">
-            <text class="bid-nickname">{{item.nickname || '匿名用户'}}</text>
-          </view>
-          <view class="bid-amount-col">
-            <text class="bid-amount-text">{{item.bid_amount}}</text>
-            <text class="bid-asset-text">{{priceAssetLabel}}</text>
-          </view>
-          <view class="bid-winning-badge" wx:if="{{item.is_winning}}">
-            <text>👑</text>
+        <!--我的出价历史-->
+        <view class="my-bid-history">
+          <view class="bid-history-item" wx:for="{{myBids}}" wx:key="auction_bid_id">
+            <text class="bid-amount">{{item.bid_amount}} {{priceAssetLabel}}</text>
+            <text class="bid-time">{{item.created_at}}</text>
+            <text class="bid-status winning" wx:if="{{item.is_winning}}">领先</text>
+            <text class="bid-status" wx:else>已超越</text>
           </view>
         </view>
       </view>
-    </view>
 
-    <!--物品快照信息-->
-    <view class="snapshot-section" wx:if="{{auction.item_snapshot}}">
-      <view class="section-title">物品信息</view>
-      <view class="snapshot-detail">
-        <view class="snapshot-row">
-          <text class="snapshot-label">物品名称</text>
-          <text class="snapshot-value">{{auction.item_snapshot.name}}</text>
-        </view>
-        <view class="snapshot-row" wx:if="{{auction.item_snapshot.item_type}}">
-          <text class="snapshot-label">物品类型</text>
-          <text class="snapshot-value">{{auction.item_snapshot.item_type}}</text>
-        </view>
-        <view class="snapshot-row" wx:if="{{auction.item_snapshot.rarity_code}}">
-          <text class="snapshot-label">稀有度</text>
-          <text class="snapshot-value">{{auction.item_snapshot.rarity_code}}</text>
-        </view>
-        <view class="snapshot-row" wx:if="{{auction.item_snapshot.item_value}}">
-          <text class="snapshot-label">物品价值</text>
-          <text class="snapshot-value">{{auction.item_snapshot.item_value}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!--底部操作栏-->
-    <view class="detail-bottom-bar">
-      <!--竞拍中 → 出价按钮（非卖方）-->
-      <view class="bottom-bar-inner" wx:if="{{auction.status === 'active' && !isSeller}}">
-        <view class="bid-action-btn" bindtap="onShowBidInput">
-          <text>💰 出价</text>
-        </view>
-        <view class="buyout-action-btn" wx:if="{{auction.buyout_price}}" bindtap="onBuyoutBid">
-          <text>💎 一口价 {{auction.buyout_price}}</text>
-        </view>
-      </view>
-
-      <!--自己的拍卖（卖方视角）-->
-      <view class="bottom-bar-inner" wx:elif="{{isSeller}}">
-        <view class="seller-hint">
-          <text>这是你发起的拍卖</text>
-        </view>
-      </view>
-
-      <!--已结算且中标者 → 争议入口-->
-      <view class="bottom-bar-inner" wx:elif="{{auction.status === 'settled' && isWinner}}">
-        <view class="dispute-btn" bindtap="onCreateDispute">
-          <text>⚠️ 发起争议</text>
-        </view>
-      </view>
-    </view>
-
-    <!--出价输入弹窗-->
-    <view class="bid-input-mask" wx:if="{{showBidInput}}" catchtap="onCloseBidInput">
-      <view class="bid-input-popup" catchtap="">
-        <view class="popup-header">
-          <text class="popup-title">出价竞拍</text>
-          <text class="popup-close" bindtap="onCloseBidInput">✕</text>
-        </view>
-
-        <view class="popup-hint">
-          <text>最低出价：{{minBidAmount}} {{priceAssetLabel}}</text>
-        </view>
-
-        <view class="popup-input-row">
-          <input
-            class="bid-input-field"
-            type="number"
-            value="{{bidInputValue}}"
-            bindinput="onBidInputChange"
-            placeholder="输入出价金额"
-            focus="{{showBidInput}}"
-          />
-          <text class="bid-input-asset">{{priceAssetLabel}}</text>
-        </view>
-
-        <!--快速加价按钮-->
-        <view class="quick-bid-row">
-          <view class="quick-bid-btn" data-increment="{{10}}" bindtap="onQuickBid">
-            <text>+10</text>
+      <!--出价排行-->
+      <view class="top-bids-section" wx:if="{{topBids.length > 0}}">
+        <view class="section-title">出价排行 TOP10</view>
+        <view class="top-bids-list">
+          <view class="top-bid-item" wx:for="{{topBids}}" wx:key="auction_bid_id">
+            <view class="bid-rank">
+              <text class="rank-number {{index < 3 ? 'rank-top' : ''}}">{{index + 1}}</text>
+            </view>
+            <view class="bid-user">
+              <text class="bid-nickname">{{item.nickname || '匿名用户'}}</text>
+            </view>
+            <view class="bid-amount-col">
+              <text class="bid-amount-text">{{item.bid_amount}}</text>
+              <text class="bid-asset-text">{{priceAssetLabel}}</text>
+            </view>
+            <view class="bid-winning-badge" wx:if="{{item.is_winning}}">
+              <text>👑</text>
+            </view>
           </view>
-          <view class="quick-bid-btn" data-increment="{{50}}" bindtap="onQuickBid">
-            <text>+50</text>
+        </view>
+      </view>
+
+      <!--物品快照信息-->
+      <view class="snapshot-section" wx:if="{{auction.item_snapshot}}">
+        <view class="section-title">物品信息</view>
+        <view class="snapshot-detail">
+          <view class="snapshot-row">
+            <text class="snapshot-label">物品名称</text>
+            <text class="snapshot-value">{{auction.item_snapshot.name}}</text>
           </view>
-          <view class="quick-bid-btn" data-increment="{{100}}" bindtap="onQuickBid">
-            <text>+100</text>
+          <view class="snapshot-row" wx:if="{{auction.item_snapshot.item_type}}">
+            <text class="snapshot-label">物品类型</text>
+            <text class="snapshot-value">{{auction.item_snapshot.item_type}}</text>
           </view>
-          <view class="quick-bid-btn" data-increment="{{500}}" bindtap="onQuickBid">
-            <text>+500</text>
+          <view class="snapshot-row" wx:if="{{auction.item_snapshot.rarity_code}}">
+            <text class="snapshot-label">稀有度</text>
+            <text class="snapshot-value">{{auction.item_snapshot.rarity_code}}</text>
+          </view>
+          <view class="snapshot-row" wx:if="{{auction.item_snapshot.item_value}}">
+            <text class="snapshot-label">物品价值</text>
+            <text class="snapshot-value">{{auction.item_snapshot.item_value}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!--底部操作栏-->
+      <view class="detail-bottom-bar">
+        <!--竞拍中 → 出价按钮（非卖方）-->
+        <view class="bottom-bar-inner" wx:if="{{auction.status === 'active' && !isSeller}}">
+          <view class="bid-action-btn" bindtap="onShowBidInput">
+            <text>💰 出价</text>
+          </view>
+          <view class="buyout-action-btn" wx:if="{{auction.buyout_price}}" bindtap="onBuyoutBid">
+            <text>💎 一口价 {{auction.buyout_price}}</text>
           </view>
         </view>
 
-        <!--一口价提示-->
-        <view class="buyout-hint" wx:if="{{auction.buyout_price}}">
-          <text>💡 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
+        <!--自己的拍卖（卖方视角）-->
+        <view class="bottom-bar-inner" wx:elif="{{isSeller}}">
+          <view class="seller-hint">
+            <text>这是你发起的拍卖</text>
+          </view>
         </view>
 
-        <view class="popup-submit-btn {{bidding ? 'disabled' : ''}}" bindtap="onSubmitBid">
-          <text>{{bidding ? '出价中...' : '确认出价'}}</text>
+        <!--已结算且中标者 → 争议入口-->
+        <view class="bottom-bar-inner" wx:elif="{{auction.status === 'settled' && isWinner}}">
+          <view class="dispute-btn" bindtap="onCreateDispute">
+            <text>⚠️ 发起争议</text>
+          </view>
         </view>
       </view>
-    </view>
-  </block>
+
+      <!--出价输入弹窗-->
+      <view class="bid-input-mask" wx:if="{{showBidInput}}" catchtap="onCloseBidInput">
+        <view class="bid-input-popup" catchtap="">
+          <view class="popup-header">
+            <text class="popup-title">出价竞拍</text>
+            <text class="popup-close" bindtap="onCloseBidInput">✕</text>
+          </view>
+
+          <view class="popup-hint">
+            <text>最低出价：{{minBidAmount}} {{priceAssetLabel}}</text>
+          </view>
+
+          <view class="popup-input-row">
+            <input
+              class="bid-input-field"
+              type="number"
+              value="{{bidInputValue}}"
+              bindinput="onBidInputChange"
+              placeholder="输入出价金额"
+              focus="{{showBidInput}}"
+            />
+            <text class="bid-input-asset">{{priceAssetLabel}}</text>
+          </view>
+
+          <!--快速加价按钮-->
+          <view class="quick-bid-row">
+            <view class="quick-bid-btn" data-increment="{{10}}" bindtap="onQuickBid">
+              <text>+10</text>
+            </view>
+            <view class="quick-bid-btn" data-increment="{{50}}" bindtap="onQuickBid">
+              <text>+50</text>
+            </view>
+            <view class="quick-bid-btn" data-increment="{{100}}" bindtap="onQuickBid">
+              <text>+100</text>
+            </view>
+            <view class="quick-bid-btn" data-increment="{{500}}" bindtap="onQuickBid">
+              <text>+500</text>
+            </view>
+          </view>
+
+          <!--一口价提示-->
+          <view class="buyout-hint" wx:if="{{auction.buyout_price}}">
+            <text>💡 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
+          </view>
+
+          <view class="popup-submit-btn {{bidding ? 'disabled' : ''}}" bindtap="onSubmitBid">
+            <text>{{bidding ? '出价中...' : '确认出价'}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
 </view>

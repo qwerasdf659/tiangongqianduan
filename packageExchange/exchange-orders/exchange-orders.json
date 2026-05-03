@@ -13,5 +13,6 @@
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

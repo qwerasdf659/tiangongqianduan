@@ -8,7 +8,7 @@
       wx:key="id"
       style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
     >
-      <text>{{item.prize_icon}}</text>
+      <text class="particle-text">{{item.prize_icon}}</text>
     </view>
   </view>
 
@@ -27,9 +27,9 @@
 
     <!-- 出口区域 -->
     <view class="machine-outlet">
-      <!-- 掉落的胶囊 -->
+      <!-- 掉落的胶囊 — Worklet 驱动掉落动画 -->
       <view
-        class="capsule-dropping {{machineState === 'dropping' ? 'animate' : ''}}"
+        class="capsule-dropping"
         wx:if="{{machineState === 'dropping' || machineState === 'done'}}"
         style="background: {{currentCapsuleColor}};"
       >
@@ -37,9 +37,9 @@
       </view>
     </view>
 
-    <!-- 手柄组件 -->
+    <!-- 手柄组件 — Worklet 驱动旋转，不再依赖 CSS class -->
     <view
-      class="machine-handle {{machineState === 'turning' ? 'turning' : ''}}"
+      class="machine-handle"
       bindtap="onTurnHandle"
       hover-class="handle-active"
       hover-stay-time="100"
@@ -93,6 +93,7 @@
       <text class="gp-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="gp-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

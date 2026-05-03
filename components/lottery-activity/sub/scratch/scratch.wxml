@@ -13,46 +13,46 @@
 
   <!-- 刮卡长条主体 -->
   <view class="scratch-strip-wrapper">
-    <view
-      class="scratch-strip count-{{cells.length}}"
-      bindtouchstart="onTouchStart"
-      bindtouchmove="onTouchMove"
-      bindtouchend="onTouchEnd"
-    >
-      <!-- 逐格渲染 -->
-      <view
-        class="cell cell--{{item.state}}"
-        wx:for="{{cells}}"
-        wx:key="index"
-        style="width: {{100 / cells.length}}%;"
-      >
-        <!-- 底层：奖品内容 -->
-        <view class="cell-prize">
-          <text class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
-            {{item.prize.prize_icon || '🎁'}}
-          </text>
-          <text class="cell-prize-name" wx:if="{{item.state === 'revealed' && cells.length <= 5}}">
-            {{item.prize.prize_name || ''}}
-          </text>
-        </view>
-
-        <!-- 覆盖涂层 -->
+    <pan-gesture-handler worklet:ongesture="onScratchGesture">
+      <view class="scratch-strip count-{{cells.length}}">
+        <!-- 逐格渲染 -->
         <view
-          class="cell-cover {{item.state === 'dissolving' ? 'dissolving' : ''}} {{item.state === 'revealed' ? 'gone' : ''}}"
+          class="cell cell--{{item.state}}"
+          wx:for="{{cells}}"
+          wx:key="index"
+          style="width: {{100 / cells.length}}%;"
         >
-          <view class="cell-cover-texture"></view>
-          <text class="cell-number">{{item.index + 1}}</text>
+          <!-- 底层：奖品内容 -->
+          <view class="cell-prize">
+            <text class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
+              {{item.prize.prize_icon || '🎁'}}
+            </text>
+            <text
+              class="cell-prize-name"
+              wx:if="{{item.state === 'revealed' && cells.length <= 5}}"
+            >
+              {{item.prize.prize_name || ''}}
+            </text>
+          </view>
+
+          <!-- 覆盖涂层 -->
+          <view
+            class="cell-cover {{item.state === 'dissolving' ? 'dissolving' : ''}} {{item.state === 'revealed' ? 'gone' : ''}}"
+          >
+            <view class="cell-cover-texture"></view>
+            <text class="cell-number">{{item.index + 1}}</text>
+          </view>
+
+          <!-- 格子分割线 -->
+          <view class="cell-divider" wx:if="{{item.index < cells.length - 1}}"></view>
         </view>
 
-        <!-- 格子分割线 -->
-        <view class="cell-divider" wx:if="{{item.index < cells.length - 1}}"></view>
+        <!-- 引导手势 -->
+        <view class="guide-finger" wx:if="{{showGuide && !scratching}}">
+          <text class="guide-icon">👆</text>
+        </view>
       </view>
-
-      <!-- 引导手势 -->
-      <view class="guide-finger" wx:if="{{showGuide && !scratching}}">
-        <text class="guide-icon">👆</text>
-      </view>
-    </view>
+    </pan-gesture-handler>
 
     <!-- 装饰边框 -->
     <view class="strip-border">
@@ -73,6 +73,7 @@
 
   <!-- 底部战报条 -->
   <scroll-view
+    type="custom"
     class="report-bar"
     scroll-x
     enable-flex
@@ -111,6 +112,7 @@
       <text class="sc-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="sc-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

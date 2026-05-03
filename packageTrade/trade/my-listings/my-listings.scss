@@ -1,8 +1,16 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 我的挂单页面样式 - 增强UI美感 */
 @import '../../../styles/mixins';
 
 .my-listings-container {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--tg-gradient-primary);
   padding: var(--tg-spacing-md);
   padding-bottom: calc(var(--tg-spacing-xxl) + env(safe-area-inset-bottom));
@@ -390,9 +398,6 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .price-unit {

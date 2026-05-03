@@ -1,118 +1,126 @@
 <custom-navbar title="设计完成" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="diy-result-page">
-  <!-- 成功图标 -->
-  <view class="success-header">
-    <view class="success-icon-wrap">
-      <text class="success-icon">✓</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 成功图标 -->
+    <view class="success-header">
+      <view class="success-icon-wrap">
+        <text class="success-icon">✓</text>
+      </view>
+      <text class="success-title">设计保存成功!</text>
+      <text class="success-subtitle">{{templateName}}</text>
     </view>
-    <text class="success-title">设计保存成功!</text>
-    <text class="success-subtitle">{{templateName}}</text>
-  </view>
 
-  <!-- 价格卡片 -->
-  <view class="price-card">
-    <view class="price-row">
-      <text class="price-label">设计总价</text>
-      <text class="price-value">{{totalPrice}} 星石</text>
+    <!-- 价格卡片 -->
+    <view class="price-card">
+      <view class="price-row">
+        <text class="price-label">设计总价</text>
+        <text class="price-value">{{totalPrice}} 星石</text>
+      </view>
+      <view class="price-row">
+        <text class="price-label">作品编号</text>
+        <text class="price-value work-id">{{workId}}</text>
+      </view>
+      <view class="price-row">
+        <text class="price-label">当前状态</text>
+        <text class="price-value {{workStatus === 'completed' ? 'status-completed' : ''}}"
+          >{{workStatus === 'draft' ? '草稿' : workStatus === 'frozen' ? '材料已冻结' : workStatus
+          === 'completed' ? '已完成' : '已取消'}}</text
+        >
+      </view>
     </view>
-    <view class="price-row">
-      <text class="price-label">作品编号</text>
-      <text class="price-value work-id">{{workId}}</text>
-    </view>
-    <view class="price-row">
-      <text class="price-label">当前状态</text>
-      <text class="price-value {{workStatus === 'completed' ? 'status-completed' : ''}}"
-        >{{workStatus === 'draft' ? '草稿' : workStatus === 'frozen' ? '材料已冻结' : workStatus ===
-        'completed' ? '已完成' : '已取消'}}</text
-      >
-    </view>
-  </view>
 
-  <!-- 三步结算流程 -->
-  <view class="settlement-area">
-    <!-- 步骤1: 确认设计（draft → frozen） -->
-    <view wx:if="{{workStatus === 'draft'}}" class="step-card">
-      <text class="step-title">第一步: 确认设计</text>
-      <text class="step-desc">确认后将冻结所需材料，冻结期间材料不可用于其他操作</text>
-      <!-- 费用预览（多币种分组展示） -->
-      <view class="cost-preview" wx:if="{{costBreakdown.length > 0}}">
-        <view class="cost-preview-item" wx:for="{{costBreakdown}}" wx:key="asset_code">
-          <text class="cost-preview-amount">{{item.amount}}</text>
-          <text class="cost-preview-asset">{{item.asset_name}}</text>
-          <text class="cost-preview-count">({{item.bead_count}}颗)</text>
+    <!-- 三步结算流程 -->
+    <view class="settlement-area">
+      <!-- 步骤1: 确认设计（draft → frozen） -->
+      <view wx:if="{{workStatus === 'draft'}}" class="step-card">
+        <text class="step-title">第一步: 确认设计</text>
+        <text class="step-desc">确认后将冻结所需材料，冻结期间材料不可用于其他操作</text>
+        <!-- 费用预览（多币种分组展示） -->
+        <view class="cost-preview" wx:if="{{costBreakdown.length > 0}}">
+          <view class="cost-preview-item" wx:for="{{costBreakdown}}" wx:key="asset_code">
+            <text class="cost-preview-amount">{{item.amount}}</text>
+            <text class="cost-preview-asset">{{item.asset_name}}</text>
+            <text class="cost-preview-count">({{item.bead_count}}颗)</text>
+          </view>
+        </view>
+        <view
+          class="action-btn primary {{processing ? 'disabled' : ''}}"
+          bind:tap="onConfirmDesign"
+        >
+          <text>确认设计并冻结材料</text>
         </view>
       </view>
-      <view class="action-btn primary {{processing ? 'disabled' : ''}}" bind:tap="onConfirmDesign">
-        <text>确认设计并冻结材料</text>
+
+      <!-- 步骤2: 完成设计（frozen → completed） -->
+      <view wx:if="{{workStatus === 'frozen'}}" class="step-card">
+        <text class="step-title">第二步: 完成设计</text>
+        <text class="step-desc">确认后将从冻结余额中扣除材料并铸造饰品，饰品将进入你的背包</text>
+        <view
+          class="action-btn primary {{processing ? 'disabled' : ''}}"
+          bind:tap="onCompleteDesign"
+        >
+          <text>完成设计并铸造饰品</text>
+        </view>
+        <view class="action-btn outline {{processing ? 'disabled' : ''}}" bind:tap="onCancelDesign">
+          <text>取消设计（解冻材料）</text>
+        </view>
+      </view>
+
+      <!-- 完成状态 -->
+      <view wx:if="{{workStatus === 'completed'}}" class="step-card completed">
+        <text class="step-title">饰品铸造完成!</text>
+        <text class="step-desc">你的专属饰品已铸造成功，请在背包中查看</text>
+      </view>
+
+      <!-- 已取消状态 -->
+      <view wx:if="{{workStatus === 'cancelled'}}" class="step-card cancelled">
+        <text class="step-title">设计已取消</text>
+        <text class="step-desc">冻结的材料已解冻归还</text>
       </view>
     </view>
 
-    <!-- 步骤2: 完成设计（frozen → completed） -->
-    <view wx:if="{{workStatus === 'frozen'}}" class="step-card">
-      <text class="step-title">第二步: 完成设计</text>
-      <text class="step-desc">确认后将从冻结余额中扣除材料并铸造饰品，饰品将进入你的背包</text>
-      <view class="action-btn primary {{processing ? 'disabled' : ''}}" bind:tap="onCompleteDesign">
-        <text>完成设计并铸造饰品</text>
+    <!-- 操作按钮 -->
+    <view class="action-area">
+      <view class="action-btn secondary" bind:tap="onShare">
+        <text>分享给朋友</text>
       </view>
-      <view class="action-btn outline {{processing ? 'disabled' : ''}}" bind:tap="onCancelDesign">
-        <text>取消设计（解冻材料）</text>
+      <view
+        class="action-btn secondary {{posterGenerating ? 'disabled' : ''}}"
+        bind:tap="onSavePoster"
+      >
+        <text>{{posterGenerating ? '生成中...' : '保存海报'}}</text>
+      </view>
+      <view class="action-btn outline" bind:tap="onBackToDesign">
+        <text>继续编辑</text>
+      </view>
+      <view class="action-btn outline" bind:tap="onBackToSelect">
+        <text>设计新款式</text>
+      </view>
+      <!-- 删除草稿（仅 draft 状态显示） -->
+      <view wx:if="{{workStatus === 'draft'}}" class="action-btn danger" bind:tap="onDeleteDraft">
+        <text>删除草稿</text>
       </view>
     </view>
 
-    <!-- 完成状态 -->
-    <view wx:if="{{workStatus === 'completed'}}" class="step-card completed">
-      <text class="step-title">饰品铸造完成!</text>
-      <text class="step-desc">你的专属饰品已铸造成功，请在背包中查看</text>
+    <!-- 提示 -->
+    <view class="tip-area">
+      <text class="tip-text">设计已保存，分享链接给朋友可直接查看你的设计</text>
+      <text wx:if="{{workStatus === 'frozen'}}" class="tip-text warn"
+        >注意: 冻结状态超过24小时将自动取消并解冻材料</text
+      >
     </view>
 
-    <!-- 已取消状态 -->
-    <view wx:if="{{workStatus === 'cancelled'}}" class="step-card cancelled">
-      <text class="step-title">设计已取消</text>
-      <text class="step-desc">冻结的材料已解冻归还</text>
-    </view>
-  </view>
+    <!-- 海报离屏Canvas（不可见，仅用于生成海报图片） -->
+    <canvas type="2d" id="posterCanvas" class="poster-canvas" />
 
-  <!-- 操作按钮 -->
-  <view class="action-area">
-    <view class="action-btn secondary" bind:tap="onShare">
-      <text>分享给朋友</text>
-    </view>
-    <view
-      class="action-btn secondary {{posterGenerating ? 'disabled' : ''}}"
-      bind:tap="onSavePoster"
-    >
-      <text>{{posterGenerating ? '生成中...' : '保存海报'}}</text>
-    </view>
-    <view class="action-btn outline" bind:tap="onBackToDesign">
-      <text>继续编辑</text>
-    </view>
-    <view class="action-btn outline" bind:tap="onBackToSelect">
-      <text>设计新款式</text>
-    </view>
-    <!-- 删除草稿（仅 draft 状态显示） -->
-    <view wx:if="{{workStatus === 'draft'}}" class="action-btn danger" bind:tap="onDeleteDraft">
-      <text>删除草稿</text>
-    </view>
-  </view>
-
-  <!-- 提示 -->
-  <view class="tip-area">
-    <text class="tip-text">设计已保存，分享链接给朋友可直接查看你的设计</text>
-    <text wx:if="{{workStatus === 'frozen'}}" class="tip-text warn"
-      >注意: 冻结状态超过24小时将自动取消并解冻材料</text
-    >
-  </view>
-
-  <!-- 海报离屏Canvas（不可见，仅用于生成海报图片） -->
-  <canvas type="2d" id="posterCanvas" class="poster-canvas" />
-
-  <!-- 支付确认面板（确认设计时弹出，展示费用明细 + 资产余额） -->
-  <payment-panel
-    visible="{{paymentPanelVisible}}"
-    costBreakdown="{{costBreakdown}}"
-    submitting="{{processing}}"
-    templateId="{{templateId}}"
-    bind:confirm="onPaymentConfirm"
-    bind:close="onPaymentPanelClose"
-  />
+    <!-- 支付确认面板（确认设计时弹出，展示费用明细 + 资产余额） -->
+    <payment-panel
+      visible="{{paymentPanelVisible}}"
+      costBreakdown="{{costBreakdown}}"
+      submitting="{{processing}}"
+      templateId="{{templateId}}"
+      bind:confirm="onPaymentConfirm"
+      bind:close="onPaymentPanelClose"
+    />
+  </scroll-view>
 </view>

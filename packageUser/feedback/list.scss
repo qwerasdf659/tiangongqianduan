@@ -1,6 +1,14 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 反馈列表页样式 */
 .feedback-list-page {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: #f5f5f5;
   padding: 24rpx;
 }

@@ -58,7 +58,7 @@
         <text>✕</text>
       </view>
     </view>
-    <scroll-view class="lottery-popup__body" scroll-y>
+    <scroll-view type="list" class="lottery-popup__body" scroll-y>
       <include src="./lottery-modes.wxml" />
     </scroll-view>
   </view>

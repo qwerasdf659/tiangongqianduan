@@ -158,6 +158,7 @@
       <!-- 图片区域 -->
       <view class="card-image-area">
         <image
+          class="card-image-area-image"
           wx:if="{{item._hasImage}}"
           src="{{item.image}}"
           mode="aspectFill"

@@ -12,5 +12,6 @@
     "escrow-status-dialog": "/components/exchange/shared/escrow-status-dialog/escrow-status-dialog",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

@@ -1,8 +1,16 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 用户中心页面样式 */
 @import '../../styles/mixins';
 
 .user-container {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(135deg, var(--td-brand-color) 0%, var(--td-brand-color-active) 100%);
   padding: var(--tg-spacing-md);
   /* 底部预留 tabBar 高度 + 安全区域，防止内容被遮挡 */
@@ -141,9 +149,6 @@
     0 4rpx 16rpx rgba(var(--tg-color-black-rgb), 0.2),
     0 2rpx 8rpx rgba(var(--tg-color-black-rgb), 0.1);
   background: linear-gradient(135deg, var(--tg-color-white), rgba(var(--tg-color-white-rgb), 0.94));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2rpx 4rpx rgba(var(--tg-color-black-rgb), 0.1));
 }
 

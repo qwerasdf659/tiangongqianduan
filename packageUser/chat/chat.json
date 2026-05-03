@@ -5,7 +5,7 @@
   "backgroundColor": "#f5f5f5",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
-  "disableScroll": false,
+  "disableScroll": true,
   "backgroundTextStyle": "dark",
   "usingComponents": {
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",

@@ -97,6 +97,9 @@ App({
     log.info('餐厅积分抽奖系统v5.2.0启动中...')
     log.info('启动参数:', options)
 
+    /* 强制更新机制：检测到新版本时提示用户重启 */
+    this.checkForUpdate()
+
     try {
       await this.initializeSystem()
       await this.checkAuthStatus()
@@ -110,6 +113,37 @@ App({
       log.error('系统初始化失败', error)
       this.handleInitializationError(error)
     }
+  },
+
+  /**
+   * 小程序强制更新机制
+   * 检测到新版本时弹窗提示用户重启，确保线上用户使用最新代码
+   */
+  checkForUpdate(): void {
+    if (!wx.canIUse('getUpdateManager')) {
+      return
+    }
+    const updateManager = wx.getUpdateManager()
+    updateManager.onCheckForUpdate((res: any) => {
+      if (res.hasUpdate) {
+        log.info('检测到新版本')
+      }
+    })
+    updateManager.onUpdateReady(() => {
+      wx.showModal({
+        title: '更新提示',
+        content: '新版本已准备好，是否重启应用？',
+        confirmText: '立即重启',
+        success(modalRes: any) {
+          if (modalRes.confirm) {
+            updateManager.applyUpdate()
+          }
+        }
+      })
+    })
+    updateManager.onUpdateFailed(() => {
+      log.error('新版本下载失败')
+    })
   },
 
   /** 初始化系统环境 */

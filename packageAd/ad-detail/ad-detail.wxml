@@ -4,191 +4,193 @@
 -->
 <custom-navbar title="广告活动详情" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 <view class="ad-detail-page">
-  <!-- 加载中 -->
-  <view class="page-loading" wx:if="{{loading}}">
-    <t-loading loading="{{true}}" text="加载活动详情..." theme="spinner" />
-  </view>
-
-  <block wx:if="{{!loading && campaign}}">
-    <!-- 状态头部 -->
-    <view class="status-header" style="background: {{campaign.statusStyle.bgColor}}">
-      <text class="status-icon">{{campaign.statusStyle.icon}}</text>
-      <text class="status-text" style="color: {{campaign.statusStyle.color}}"
-        >{{campaign.statusStyle.text}}</text
-      >
-      <text class="campaign-title">{{campaign.campaign_name}}</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 加载中 -->
+    <view class="page-loading" wx:if="{{loading}}">
+      <t-loading loading="{{true}}" text="加载活动详情..." theme="spinner" />
     </view>
 
-    <!-- 基本信息卡片 -->
-    <view class="info-card">
-      <view class="card-title">基本信息</view>
-      <view class="info-row">
-        <text class="info-label">计费模式</text>
-        <text class="info-value">{{campaign.billingModeText}}</text>
+    <block wx:if="{{!loading && campaign}}">
+      <!-- 状态头部 -->
+      <view class="status-header" style="background: {{campaign.statusStyle.bgColor}}">
+        <text class="status-icon">{{campaign.statusStyle.icon}}</text>
+        <text class="status-text" style="color: {{campaign.statusStyle.color}}"
+          >{{campaign.statusStyle.text}}</text
+        >
+        <text class="campaign-title">{{campaign.campaign_name}}</text>
       </view>
-      <view class="info-row">
-        <text class="info-label">展示优先级</text>
-        <text class="info-value">{{campaign.priority}}</text>
-      </view>
-      <view class="info-row" wx:if="{{campaign.start_date}}">
-        <text class="info-label">投放周期</text>
-        <text class="info-value">{{campaign.start_date}} ~ {{campaign.end_date || '持续'}}</text>
-      </view>
-      <view class="info-row">
-        <text class="info-label">创建时间</text>
-        <text class="info-value">{{campaign.created_at}}</text>
-      </view>
-    </view>
 
-    <!-- 费用信息卡片 -->
-    <view class="info-card">
-      <view class="card-title">费用信息</view>
-      <block wx:if="{{campaign.billing_mode === 'fixed_daily'}}">
+      <!-- 基本信息卡片 -->
+      <view class="info-card">
+        <view class="card-title">基本信息</view>
         <view class="info-row">
-          <text class="info-label">投放天数</text>
-          <text class="info-value">{{campaign.fixed_days}} 天</text>
+          <text class="info-label">计费模式</text>
+          <text class="info-value">{{campaign.billingModeText}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">总费用</text>
-          <text class="info-value highlight">{{campaign.fixed_total_star_stone}} 💎</text>
+          <text class="info-label">展示优先级</text>
+          <text class="info-value">{{campaign.priority}}</text>
         </view>
-      </block>
-      <block wx:if="{{campaign.billing_mode === 'bidding'}}">
-        <view class="info-row">
-          <text class="info-label">日出价</text>
-          <text class="info-value highlight">{{campaign.daily_bid_star_stone}} 💎/天</text>
+        <view class="info-row" wx:if="{{campaign.start_date}}">
+          <text class="info-label">投放周期</text>
+          <text class="info-value">{{campaign.start_date}} ~ {{campaign.end_date || '持续'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">总预算</text>
-          <text class="info-value">{{campaign.budget_total_star_stone}} 💎</text>
+          <text class="info-label">创建时间</text>
+          <text class="info-value">{{campaign.created_at}}</text>
         </view>
-        <view class="info-row">
-          <text class="info-label">已消耗</text>
-          <text class="info-value">{{campaign.budget_spent_star_stone}} 💎</text>
-        </view>
-      </block>
-      <!-- 竞价排名状态（后端返回 bidding_status 时展示） -->
-      <block wx:if="{{biddingStatus}}">
-        <view class="info-row">
-          <text class="info-label">竞价排名</text>
-          <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}"
-            >第 {{biddingStatus.rank}} 名 / 共 {{biddingStatus.total_bidders}} 人</text
-          >
-        </view>
-        <view class="info-row">
-          <text class="info-label">展示状态</text>
-          <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}"
-            >{{biddingStatus.is_winning ? '在展示名额内' : '未入围（前' + biddingStatus.max_display
-            + '名可展示）'}}</text
-          >
-        </view>
-      </block>
-      <block wx:if="{{campaign.billing_mode === 'cpm'}}">
-        <view class="info-row">
-          <text class="info-label">CPM单价</text>
-          <text class="info-value highlight">{{campaign.cpm_price_star_stone}} 💎/千次曝光</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">总预算</text>
-          <text class="info-value">{{campaign.budget_total_star_stone}} 💎</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">已消耗</text>
-          <text class="info-value">{{campaign.budget_spent_star_stone}} 💎</text>
-        </view>
-      </block>
-    </view>
-
-    <!-- 审核信息（有审核备注时显示） -->
-    <view class="info-card" wx:if="{{campaign.review_note}}">
-      <view class="card-title">审核信息</view>
-      <view class="info-row">
-        <text class="info-label">审核备注</text>
-        <text class="info-value">{{campaign.review_note}}</text>
       </view>
-      <view class="info-row" wx:if="{{campaign.reviewed_at}}">
-        <text class="info-label">审核时间</text>
-        <text class="info-value">{{campaign.reviewed_at}}</text>
-      </view>
-    </view>
 
-    <!-- 素材列表 -->
-    <view class="info-card" wx:if="{{campaign.creatives && campaign.creatives.length > 0}}">
-      <view class="card-title">广告素材</view>
-      <view class="creative-list">
-        <view wx:for="{{campaign.creatives}}" wx:key="ad_creative_id" class="creative-item">
-          <image
-            class="creative-image"
-            src="{{item.primary_media.public_url}}"
-            mode="aspectFill"
-            data-index="{{index}}"
-            binderror="onCreativeImageError"
-            wx:if="{{item.primary_media}}"
-          />
-          <view class="creative-info">
-            <text class="creative-title">{{item.title}}</text>
-            <text class="creative-status"
-              >审核: {{item.review_status === 'approved' ? '已通过' : item.review_status ===
-              'rejected' ? '已拒绝' : '待审核'}}</text
+      <!-- 费用信息卡片 -->
+      <view class="info-card">
+        <view class="card-title">费用信息</view>
+        <block wx:if="{{campaign.billing_mode === 'fixed_daily'}}">
+          <view class="info-row">
+            <text class="info-label">投放天数</text>
+            <text class="info-value">{{campaign.fixed_days}} 天</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">总费用</text>
+            <text class="info-value highlight">{{campaign.fixed_total_star_stone}} 💎</text>
+          </view>
+        </block>
+        <block wx:if="{{campaign.billing_mode === 'bidding'}}">
+          <view class="info-row">
+            <text class="info-label">日出价</text>
+            <text class="info-value highlight">{{campaign.daily_bid_star_stone}} 💎/天</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">总预算</text>
+            <text class="info-value">{{campaign.budget_total_star_stone}} 💎</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">已消耗</text>
+            <text class="info-value">{{campaign.budget_spent_star_stone}} 💎</text>
+          </view>
+        </block>
+        <!-- 竞价排名状态（后端返回 bidding_status 时展示） -->
+        <block wx:if="{{biddingStatus}}">
+          <view class="info-row">
+            <text class="info-label">竞价排名</text>
+            <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}"
+              >第 {{biddingStatus.rank}} 名 / 共 {{biddingStatus.total_bidders}} 人</text
             >
           </view>
+          <view class="info-row">
+            <text class="info-label">展示状态</text>
+            <text class="info-value {{biddingStatus.is_winning ? 'highlight' : 'warning'}}"
+              >{{biddingStatus.is_winning ? '在展示名额内' : '未入围（前' +
+              biddingStatus.max_display + '名可展示）'}}</text
+            >
+          </view>
+        </block>
+        <block wx:if="{{campaign.billing_mode === 'cpm'}}">
+          <view class="info-row">
+            <text class="info-label">CPM单价</text>
+            <text class="info-value highlight">{{campaign.cpm_price_star_stone}} 💎/千次曝光</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">总预算</text>
+            <text class="info-value">{{campaign.budget_total_star_stone}} 💎</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">已消耗</text>
+            <text class="info-value">{{campaign.budget_spent_star_stone}} 💎</text>
+          </view>
+        </block>
+      </view>
+
+      <!-- 审核信息（有审核备注时显示） -->
+      <view class="info-card" wx:if="{{campaign.review_note}}">
+        <view class="card-title">审核信息</view>
+        <view class="info-row">
+          <text class="info-label">审核备注</text>
+          <text class="info-value">{{campaign.review_note}}</text>
+        </view>
+        <view class="info-row" wx:if="{{campaign.reviewed_at}}">
+          <text class="info-label">审核时间</text>
+          <text class="info-value">{{campaign.reviewed_at}}</text>
         </view>
       </view>
-    </view>
 
-    <!-- 数据报表（仅投放中/已完成状态显示） -->
-    <view class="info-card" wx:if="{{showReport}}">
-      <view class="card-title">数据报表</view>
-      <view class="report-loading" wx:if="{{reportLoading}}">
-        <t-loading loading="{{true}}" text="加载报表数据..." theme="spinner" size="40rpx" />
-      </view>
-      <block wx:elif="{{report}}">
-        <view class="report-grid">
-          <view class="report-item">
-            <text class="report-number">{{report.impressions_valid}}</text>
-            <text class="report-label">有效曝光</text>
-          </view>
-          <view class="report-item">
-            <text class="report-number">{{report.clicks_valid}}</text>
-            <text class="report-label">有效点击</text>
-          </view>
-          <view class="report-item">
-            <text class="report-number">{{report.ctr || 0}}%</text>
-            <text class="report-label">点击率</text>
-          </view>
-          <view class="report-item">
-            <text class="report-number">{{report.spend_star_stone}} 💎</text>
-            <text class="report-label">消耗星石</text>
+      <!-- 素材列表 -->
+      <view class="info-card" wx:if="{{campaign.creatives && campaign.creatives.length > 0}}">
+        <view class="card-title">广告素材</view>
+        <view class="creative-list">
+          <view wx:for="{{campaign.creatives}}" wx:key="ad_creative_id" class="creative-item">
+            <image
+              class="creative-image"
+              src="{{item.primary_media.public_url}}"
+              mode="aspectFill"
+              data-index="{{index}}"
+              binderror="onCreativeImageError"
+              wx:if="{{item.primary_media}}"
+            />
+            <view class="creative-info">
+              <text class="creative-title">{{item.title}}</text>
+              <text class="creative-status"
+                >审核: {{item.review_status === 'approved' ? '已通过' : item.review_status ===
+                'rejected' ? '已拒绝' : '待审核'}}</text
+              >
+            </view>
           </view>
         </view>
-      </block>
-      <t-empty wx:else description="暂无报表数据">
-        <view slot="image">📊</view>
-      </t-empty>
-    </view>
+      </view>
 
-    <!-- 底部操作按钮 -->
-    <view class="bottom-actions" wx:if="{{canEdit || canSubmit || canCancel}}">
-      <button
-        class="btn-cancel"
-        wx:if="{{canCancel}}"
-        disabled="{{submitting}}"
-        bindtap="onCancelCampaign"
-      >
-        取消活动
-      </button>
-      <button class="btn-edit" wx:if="{{canEdit}}" bindtap="goToEdit">编辑</button>
-      <button
-        class="btn-submit"
-        wx:if="{{canSubmit}}"
-        disabled="{{submitting}}"
-        bindtap="onSubmitForReview"
-      >
-        {{submitting ? '提交中...' : '提交审核'}}
-      </button>
-    </view>
-  </block>
+      <!-- 数据报表（仅投放中/已完成状态显示） -->
+      <view class="info-card" wx:if="{{showReport}}">
+        <view class="card-title">数据报表</view>
+        <view class="report-loading" wx:if="{{reportLoading}}">
+          <t-loading loading="{{true}}" text="加载报表数据..." theme="spinner" size="40rpx" />
+        </view>
+        <block wx:elif="{{report}}">
+          <view class="report-grid">
+            <view class="report-item">
+              <text class="report-number">{{report.impressions_valid}}</text>
+              <text class="report-label">有效曝光</text>
+            </view>
+            <view class="report-item">
+              <text class="report-number">{{report.clicks_valid}}</text>
+              <text class="report-label">有效点击</text>
+            </view>
+            <view class="report-item">
+              <text class="report-number">{{report.ctr || 0}}%</text>
+              <text class="report-label">点击率</text>
+            </view>
+            <view class="report-item">
+              <text class="report-number">{{report.spend_star_stone}} 💎</text>
+              <text class="report-label">消耗星石</text>
+            </view>
+          </view>
+        </block>
+        <t-empty wx:else description="暂无报表数据">
+          <view slot="image">📊</view>
+        </t-empty>
+      </view>
 
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
+      <!-- 底部操作按钮 -->
+      <view class="bottom-actions" wx:if="{{canEdit || canSubmit || canCancel}}">
+        <button
+          class="btn-cancel"
+          wx:if="{{canCancel}}"
+          disabled="{{submitting}}"
+          bindtap="onCancelCampaign"
+        >
+          取消活动
+        </button>
+        <button class="btn-edit" wx:if="{{canEdit}}" bindtap="goToEdit">编辑</button>
+        <button
+          class="btn-submit"
+          wx:if="{{canSubmit}}"
+          disabled="{{submitting}}"
+          bindtap="onSubmitForReview"
+        >
+          {{submitting ? '提交中...' : '提交审核'}}
+        </button>
+      </view>
+    </block>
+
+    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
 </view>

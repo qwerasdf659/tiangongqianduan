@@ -17,5 +17,6 @@
     "popup-banner": "view",
     "lottery-activity": "view"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

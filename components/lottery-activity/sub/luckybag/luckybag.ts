@@ -1,8 +1,14 @@
 /**
- * 福袋 子组件 - 参考砸金蛋模式
+ * 福袋 子组件 - 参考砸金蛋模式（Skyline Worklet 优化版）
  * 单开/三连开：3个福袋选1个
  * 五连开：5个福袋一排，逐个拆开
  * 十连开：两排各5个，逐个拆开
+ *
+ * 优化点：
+ *   - 连开 onOpenAll 批量操作改为合并 setData，减少高频调用
+ *   - 微小延迟用 wx.nextTick 替代 setTimeout
+ *   - showFlash 闪烁在批量模式下合并为单次
+ *
  * @file sub/luckybag/luckybag.ts
  */
 
@@ -191,9 +197,10 @@ Component({
         showFlash: false
       })
 
-      setTimeout(() => {
+      /* 入场动画：用 wx.nextTick 替代 setTimeout(50ms)，减少不必要的延迟 */
+      wx.nextTick(() => {
         this.setData({ multiEntered: true })
-      }, 50)
+      })
     },
 
     _buildRows(bags: any[], count: number): any[][] {
@@ -246,47 +253,77 @@ Component({
       }, 600)
     },
 
-    /** 一键全部拆开 */
+    /**
+     * 一键全部拆开（Skyline 优化版）
+     * 优化：将每个福袋的 shaking→opened 两步合并为批量 setData，
+     * 每批只触发 2 次 setData（晃动 + 拆开），大幅减少渲染压力
+     */
     onOpenAll() {
       const bagRows = this.data.bagRows
-      let delay = 0
-
+      /* 收集所有未拆开的福袋坐标 */
+      const pending: Array<{ row: number; col: number }> = []
       for (let r = 0; r < bagRows.length; r++) {
         for (let c = 0; c < bagRows[r].length; c++) {
           if (!bagRows[r][c].opened) {
-            ;((row, col, d) => {
-              setTimeout(() => {
-                const rows = this.data.bagRows
-                rows[row][col] = { ...rows[row][col], shaking: true }
-                this.setData({ bagRows: rows })
-              }, d)
-
-              setTimeout(() => {
-                const rows = this.data.bagRows
-                rows[row][col] = { ...rows[row][col], shaking: false, opened: true }
-                const count = this.data.openedCount + 1
-                const all = count >= this.data.totalBags
-                this.setData({ bagRows: rows, openedCount: count, allOpened: all, showFlash: true })
-                setTimeout(() => {
-                  this.setData({ showFlash: false })
-                }, 100)
-                try {
-                  wx.vibrateShort({ type: 'light' })
-                } catch (_e) {
-                  /* */
-                }
-
-                if (all) {
-                  setTimeout(() => {
-                    this.triggerEvent('animationEnd')
-                  }, 800)
-                }
-              }, d + 400)
-            })(r, c, delay)
-            delay += 300
+            pending.push({ row: r, col: c })
           }
         }
       }
+      if (pending.length === 0) {
+        return
+      }
+
+      let batchIdx = 0
+      const batchSize = 3
+      const batchInterval = 300
+
+      const processBatch = () => {
+        const start = batchIdx * batchSize
+        const batch = pending.slice(start, start + batchSize)
+        if (batch.length === 0) {
+          return
+        }
+
+        /* 第一步：批量设置晃动 */
+        const rows = this.data.bagRows
+        batch.forEach(({ row, col }) => {
+          rows[row][col] = { ...rows[row][col], shaking: true }
+        })
+        this.setData({ bagRows: rows })
+
+        /* 第二步：批量拆开 + 白闪 */
+        setTimeout(() => {
+          const rows2 = this.data.bagRows
+          batch.forEach(({ row, col }) => {
+            rows2[row][col] = { ...rows2[row][col], shaking: false, opened: true }
+          })
+          const count = this.data.openedCount + batch.length
+          const all = count >= this.data.totalBags
+          this.setData({ bagRows: rows2, openedCount: count, allOpened: all, showFlash: true })
+
+          /* 白闪消除 */
+          setTimeout(() => {
+            this.setData({ showFlash: false })
+          }, 100)
+
+          try {
+            wx.vibrateShort({ type: 'light' })
+          } catch (_e) {
+            /* */
+          }
+
+          if (all) {
+            setTimeout(() => {
+              this.triggerEvent('animationEnd')
+            }, 800)
+          } else {
+            batchIdx++
+            setTimeout(processBatch, batchInterval)
+          }
+        }, 400)
+      }
+
+      processBatch()
     },
 
     /** 重置 */

@@ -6,5 +6,6 @@
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "enablePullDownRefresh": false,
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

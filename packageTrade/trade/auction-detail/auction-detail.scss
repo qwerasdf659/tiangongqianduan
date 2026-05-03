@@ -1,9 +1,17 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* C2C拍卖详情页样式 */
 
 /* 竞拍模块专用补充变量 */
 
 .auction-detail-container {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background-color: var(--tg-color-bg-grey);
   padding-bottom: 160rpx;
 }

@@ -2,185 +2,194 @@
 <custom-navbar title="我的" bgColor="#ffffff" textColor="#000000" />
 
 <view class="user-container">
-  <!-- 未登录状态：登录引导卡片（已登录时不显示，积分卡片已体现登录状态） -->
-  <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
-    <view class="login-avatar">👤</view>
-    <text class="login-text">点击登录</text>
-    <text class="login-desc">登录后查看完整功能</text>
-  </view>
-
-  <!-- 积分余额卡片 -->
-  <view class="points-card" hover-class="points-card-hover" bindtap="onPointsTap" wx:if="{{isLoggedIn}}">
-    <view class="points-header">
-      <text class="points-title">我的积分</text>
-      <view class="header-tips">
-        <text class="points-tips">点击查看明细 👇</text>
-      </view>
-    </view>
-    <view class="points-amount">
-      <text class="points-number">{{totalPoints}}</text>
-      <text class="points-unit">分</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 未登录状态：登录引导卡片（已登录时不显示，积分卡片已体现登录状态） -->
+    <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
+      <view class="login-avatar">👤</view>
+      <text class="login-text">点击登录</text>
+      <text class="login-desc">登录后查看完整功能</text>
     </view>
 
-    <!-- 积分趋势 -->
-    <view class="points-trend">
-      <view class="trend-item">
-        <text class="trend-label">今日获得</text>
-        <text class="trend-value earned">+{{todayEarned || 0}}</text>
+    <!-- 积分余额卡片 -->
+    <view
+      class="points-card"
+      hover-class="points-card-hover"
+      bindtap="onPointsTap"
+      wx:if="{{isLoggedIn}}"
+    >
+      <view class="points-header">
+        <text class="points-title">我的积分</text>
+        <view class="header-tips">
+          <text class="points-tips">点击查看明细 👇</text>
+        </view>
       </view>
-      <view class="trend-item">
-        <text class="trend-label">今日消费</text>
-        <text class="trend-value consumed"
-          >{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text
+      <view class="points-amount">
+        <text class="points-number">{{totalPoints}}</text>
+        <text class="points-unit">分</text>
+      </view>
+
+      <!-- 积分趋势 -->
+      <view class="points-trend">
+        <view class="trend-item">
+          <text class="trend-label">今日获得</text>
+          <text class="trend-value earned">+{{todayEarned || 0}}</text>
+        </view>
+        <view class="trend-item">
+          <text class="trend-label">今日消费</text>
+          <text class="trend-value consumed"
+            >{{todayConsumed > 0 ? '-' : ''}}{{todayConsumed || 0}}</text
+          >
+        </view>
+      </view>
+    </view>
+
+    <!-- 功能菜单 -->
+    <view class="menu-section">
+      <view class="section-title">
+        <text>功能菜单</text>
+      </view>
+      <!-- 快捷入口（前5项水平排列） -->
+      <view class="menu-quick-row">
+        <view
+          class="menu-quick-item"
+          wx:for="{{menuItems}}"
+          wx:key="id"
+          wx:if="{{index < 5}}"
+          bindtap="onMenuItemTap"
+          data-item="{{item}}"
         >
-      </view>
-    </view>
-  </view>
-
-  <!-- 功能菜单 -->
-  <view class="menu-section">
-    <view class="section-title">
-      <text>功能菜单</text>
-    </view>
-    <!-- 快捷入口（前5项水平排列） -->
-    <view class="menu-quick-row">
-      <view
-        class="menu-quick-item"
-        wx:for="{{menuItems}}"
-        wx:key="id"
-        wx:if="{{index < 5}}"
-        bindtap="onMenuItemTap"
-        data-item="{{item}}"
-      >
-        <view class="menu-quick-icon" style="background: {{item.color}}"
-          ><text class="iconfont {{item.iconClass}}"></text
-        ></view>
-        <text class="menu-quick-name">{{item.name}}</text>
-      </view>
-    </view>
-
-    <!-- 其他功能（剩余项列表排列） -->
-    <view class="menu-list">
-      <view
-        class="menu-item"
-        hover-class="menu-item-hover"
-        wx:for="{{menuItems}}"
-        wx:key="id"
-        wx:if="{{index >= 5}}"
-        bindtap="onMenuItemTap"
-        data-item="{{item}}"
-        style="border-left: 4rpx solid {{item.color}}"
-      >
-        <text class="iconfont {{item.iconClass}} menu-icon" style="color: {{item.color}}"></text>
-        <view class="menu-content">
-          <text class="menu-name">{{item.name}}</text>
-          <text class="menu-desc">{{item.description}}</text>
-        </view>
-        <text class="menu-arrow">▶</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 商家工作台 - 商家店员(role_level>=20)及以上可见 -->
-  <view class="mw-section" wx:if="{{isLoggedIn && isMerchant}}">
-    <!-- 工作台头部 -->
-    <view class="mw-header">
-      <view class="mw-header-left">
-        <view class="mw-header-icon"><text class="iconfont icon-store"></text></view>
-        <view class="mw-header-info">
-          <text class="mw-header-title">商家工作台</text>
-          <text class="mw-header-role">{{isAdmin ? '管理员' : (isManager ? '店长' : '店员')}}</text>
+          <view class="menu-quick-icon" style="background: {{item.color}}"
+            ><text class="iconfont {{item.iconClass}}"></text
+          ></view>
+          <text class="menu-quick-name">{{item.name}}</text>
         </view>
       </view>
-    </view>
 
-    <!-- 功能卡片列表 -->
-    <view class="mw-cards">
-      <!-- 扫码核销 - 商家店员(level>=20)可用 -->
-      <view class="mw-card" bindtap="goToScanVerify">
-        <view class="mw-card-icon-wrap mw-icon-scan">
-          <text class="iconfont icon-compass mw-card-icon"></text>
-        </view>
-        <view class="mw-card-body">
-          <text class="mw-card-title">扫码核销</text>
-          <text class="mw-card-desc">扫描用户核销码，完成商品兑换核销</text>
-          <view class="mw-card-steps">
-            <text class="mw-step">用户出示核销码</text>
-            <text class="mw-step-arrow">→</text>
-            <text class="mw-step">扫码验证</text>
-            <text class="mw-step-arrow">→</text>
-            <text class="mw-step">核销完成</text>
+      <!-- 其他功能（剩余项列表排列） -->
+      <view class="menu-list">
+        <view
+          class="menu-item"
+          hover-class="menu-item-hover"
+          wx:for="{{menuItems}}"
+          wx:key="id"
+          wx:if="{{index >= 5}}"
+          bindtap="onMenuItemTap"
+          data-item="{{item}}"
+          style="border-left: 4rpx solid {{item.color}}"
+        >
+          <text class="iconfont {{item.iconClass}} menu-icon" style="color: {{item.color}}"></text>
+          <view class="menu-content">
+            <text class="menu-name">{{item.name}}</text>
+            <text class="menu-desc">{{item.description}}</text>
           </view>
-        </view>
-        <view class="mw-card-go">
-          <text class="mw-go-icon">›</text>
+          <text class="menu-arrow">▶</text>
         </view>
       </view>
+    </view>
 
-      <!-- 消费录入 - 商家店员(level>=20)可用 -->
-      <view class="mw-card" bindtap="goToConsumeSubmit">
-        <view class="mw-card-icon-wrap mw-icon-consume">
-          <text class="iconfont icon-coin mw-card-icon"></text>
-        </view>
-        <view class="mw-card-body">
-          <text class="mw-card-title">消费录入</text>
-          <text class="mw-card-desc">录入顾客本次消费金额，赚取积分</text>
-          <view class="mw-card-steps">
-            <text class="mw-step">扫码识别顾客</text>
-            <text class="mw-step-arrow">→</text>
-            <text class="mw-step">输入金额</text>
-            <text class="mw-step-arrow">→</text>
-            <text class="mw-step">提交审核</text>
-          </view>
-        </view>
-        <view class="mw-card-go">
-          <text class="mw-go-icon">›</text>
-        </view>
-      </view>
-
-      <!-- 审批管理 - 业务经理(role_level>=60)及以上可用（审核链多级审核人） -->
-      <view class="mw-card" wx:if="{{isReviewer}}" bindtap="goToAuditList">
-        <view class="mw-card-icon-wrap mw-icon-audit">
-          <text class="iconfont icon-receipt mw-card-icon"></text>
-          <view class="mw-badge" wx:if="{{approvalPendingCount > 0}}">
-            <text class="mw-badge-text"
-              >{{approvalPendingCount > 99 ? '99+' : approvalPendingCount}}</text
+    <!-- 商家工作台 - 商家店员(role_level>=20)及以上可见 -->
+    <view class="mw-section" wx:if="{{isLoggedIn && isMerchant}}">
+      <!-- 工作台头部 -->
+      <view class="mw-header">
+        <view class="mw-header-left">
+          <view class="mw-header-icon"><text class="iconfont icon-store"></text></view>
+          <view class="mw-header-info">
+            <text class="mw-header-title">商家工作台</text>
+            <text class="mw-header-role"
+              >{{isAdmin ? '管理员' : (isManager ? '店长' : '店员')}}</text
             >
           </view>
         </view>
-        <view class="mw-card-body">
-          <text class="mw-card-title">审批管理</text>
-          <text class="mw-card-desc">审核店员提交的消费记录，通过后自动发放积分</text>
-          <view class="mw-card-steps">
-            <text class="mw-step">查看待审核</text>
-            <text class="mw-step-arrow">→</text>
-            <text class="mw-step">审核通过/拒绝</text>
-            <text class="mw-step-arrow">→</text>
-            <text class="mw-step">积分自动到账</text>
+      </view>
+
+      <!-- 功能卡片列表 -->
+      <view class="mw-cards">
+        <!-- 扫码核销 - 商家店员(level>=20)可用 -->
+        <view class="mw-card" bindtap="goToScanVerify">
+          <view class="mw-card-icon-wrap mw-icon-scan">
+            <text class="iconfont icon-compass mw-card-icon"></text>
+          </view>
+          <view class="mw-card-body">
+            <text class="mw-card-title">扫码核销</text>
+            <text class="mw-card-desc">扫描用户核销码，完成商品兑换核销</text>
+            <view class="mw-card-steps">
+              <text class="mw-step">用户出示核销码</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">扫码验证</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">核销完成</text>
+            </view>
+          </view>
+          <view class="mw-card-go">
+            <text class="mw-go-icon">›</text>
           </view>
         </view>
-        <view class="mw-card-go">
-          <text class="mw-go-icon">›</text>
+
+        <!-- 消费录入 - 商家店员(level>=20)可用 -->
+        <view class="mw-card" bindtap="goToConsumeSubmit">
+          <view class="mw-card-icon-wrap mw-icon-consume">
+            <text class="iconfont icon-coin mw-card-icon"></text>
+          </view>
+          <view class="mw-card-body">
+            <text class="mw-card-title">消费录入</text>
+            <text class="mw-card-desc">录入顾客本次消费金额，赚取积分</text>
+            <view class="mw-card-steps">
+              <text class="mw-step">扫码识别顾客</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">输入金额</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">提交审核</text>
+            </view>
+          </view>
+          <view class="mw-card-go">
+            <text class="mw-go-icon">›</text>
+          </view>
+        </view>
+
+        <!-- 审批管理 - 业务经理(role_level>=60)及以上可用（审核链多级审核人） -->
+        <view class="mw-card" wx:if="{{isReviewer}}" bindtap="goToAuditList">
+          <view class="mw-card-icon-wrap mw-icon-audit">
+            <text class="iconfont icon-receipt mw-card-icon"></text>
+            <view class="mw-badge" wx:if="{{approvalPendingCount > 0}}">
+              <text class="mw-badge-text"
+                >{{approvalPendingCount > 99 ? '99+' : approvalPendingCount}}</text
+              >
+            </view>
+          </view>
+          <view class="mw-card-body">
+            <text class="mw-card-title">审批管理</text>
+            <text class="mw-card-desc">审核店员提交的消费记录，通过后自动发放积分</text>
+            <view class="mw-card-steps">
+              <text class="mw-step">查看待审核</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">审核通过/拒绝</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">积分自动到账</text>
+            </view>
+          </view>
+          <view class="mw-card-go">
+            <text class="mw-go-icon">›</text>
+          </view>
         </view>
       </view>
     </view>
-  </view>
 
-  <!-- 加载遮罩层 - 页面初始化时显示，数据加载完成后自动隐藏 -->
-  <view class="loading-overlay" wx:if="{{loading}}">
-    <view class="loading-content">
-      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
+    <!-- 加载遮罩层 - 页面初始化时显示，数据加载完成后自动隐藏 -->
+    <view class="loading-overlay" wx:if="{{loading}}">
+      <view class="loading-content">
+        <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
+      </view>
     </view>
-  </view>
 
-  <!-- 弹窗横幅广告（后端 GET /api/v4/system/ad-delivery?slot_type=popup&position=profile） -->
-  <popup-banner
-    visible="{{showPopupBanner}}"
-    banners="{{popupBanners}}"
-    bind:close="onPopupBannerClose"
-    bind:action="onPopupBannerAction"
-  />
+    <!-- 弹窗横幅广告（后端 GET /api/v4/system/ad-delivery?slot_type=popup&position=profile） -->
+    <popup-banner
+      visible="{{showPopupBanner}}"
+      banners="{{popupBanners}}"
+      bind:close="onPopupBannerClose"
+      bind:action="onPopupBannerAction"
+    />
 
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
+    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
 </view>

@@ -9,9 +9,13 @@
  * 4. 跑马灯LED装饰灯
  * 5. 中奖庆祝特效 + 金币雨
  * 6. 完善的定时器清理
+ * 7. Skyline Worklet 驱动手柄拉动 + 庆祝特效动画
+ *
+ * @version 6.0.0 — Skyline Worklet 动画升级
  */
 
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
+const { shared, timing } = wx.worklet
 
 Component({
   behaviors: [prizeImageBehavior],
@@ -48,6 +52,24 @@ Component({
     attached() {
       this._initReels()
       this._initParticles()
+
+      /* Worklet: 手柄拉动动画 — translateY 驱动 */
+      this._handlePullY = shared(0)
+      this.applyAnimatedStyle('.handle-assembly', () => {
+        'worklet'
+        return {
+          transform: `translateY(${this._handlePullY.value}px)`
+        }
+      })
+
+      /* Worklet: 庆祝特效透明度 */
+      this._celebrationOpacity = shared(0)
+      this.applyAnimatedStyle('.celebration-effect', () => {
+        'worklet'
+        return {
+          opacity: this._celebrationOpacity.value
+        }
+      })
     },
     detached() {
       this._cleanupTimers()
@@ -117,7 +139,7 @@ Component({
       this.setData({ particles })
     },
 
-    /** 拉动手柄 */
+    /** 拉动手柄 — Worklet 驱动手柄位移动画 */
     onPullHandle() {
       if (this.data.machineState !== 'idle') {
         return
@@ -126,7 +148,24 @@ Component({
       this._vibrate('heavy')
       this.setData({ machineState: 'pulling' })
 
-      // 手柄动画完成后启动卷轴旋转
+      /* Worklet 驱动手柄下拉 + 回弹 */
+      this._handlePullY.value = timing(
+        40,
+        { duration: 300, easing: (wx.worklet.Easing as any).in((wx.worklet.Easing as any).ease) },
+        (() => {
+          'worklet'
+        }) as any
+      )
+      setTimeout(() => {
+        this._handlePullY.value = timing(
+          0,
+          { duration: 200, easing: (wx.worklet.Easing as any).ease },
+          (() => {
+            'worklet'
+          }) as any
+        )
+      }, 300)
+
       this._pullTimer = setTimeout(() => {
         const prizes = this.properties.prizes as any[]
         const reels = this.data.reels.map((r: any, _i: number) => {
@@ -143,7 +182,6 @@ Component({
         this.setData({ reels, machineState: 'spinning', stoppedCount: 0 })
         this._vibrate('light')
 
-        // 触发父组件抽奖
         this.triggerEvent('draw', { count: 1 })
       }, 500)
     },
@@ -224,12 +262,22 @@ Component({
       this.triggerEvent('animationEnd')
     },
 
-    /** 显示庆祝特效 */
+    /** 显示庆祝特效 — Worklet 驱动淡入淡出 */
     _showCelebration() {
       this.setData({ showCelebration: true })
+      /* Worklet 淡入 */
+      this._celebrationOpacity.value = timing(1, { duration: 300 }, (() => {
+        'worklet'
+      }) as any)
       this._celebrationTimer = setTimeout(() => {
-        this.setData({ showCelebration: false })
-      }, 2500)
+        /* Worklet 淡出 */
+        this._celebrationOpacity.value = timing(0, { duration: 400 }, (() => {
+          'worklet'
+        }) as any)
+        setTimeout(() => {
+          this.setData({ showCelebration: false })
+        }, 400)
+      }, 2100)
     },
 
     /** 触觉反馈 */

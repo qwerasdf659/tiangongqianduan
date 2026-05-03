@@ -1,9 +1,17 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 积分详情页面样式 - 增强UI美感 */
 @import '../../styles/mixins';
 
 /* 页面容器 */
 .points-detail-container {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--tg-lottery-bg);
   padding: var(--tg-spacing-md);
   padding-bottom: calc(var(--tg-spacing-xl) + env(safe-area-inset-bottom));
@@ -50,9 +58,6 @@
   font-size: var(--td-font-size-m);
   font-weight: 700;
   background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 /* 刷新按钮 */
@@ -87,9 +92,6 @@
   font-weight: 800;
   margin-right: 12rpx;
   background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2rpx 4rpx rgba(var(--tg-color-black-rgb), 0.08));
   animation: pulseGlow 3s ease-in-out infinite;
   line-height: 1.2;

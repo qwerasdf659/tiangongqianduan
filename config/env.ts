@@ -282,8 +282,32 @@ const ENV_CONFIG: AllEnvironmentConfig = {
 
 // ===== 当前环境设置 =====
 
-/** 当前环境: development | mobile | testing | production */
-let CURRENT_ENV: string = 'testing'
+/**
+ * 根据微信小程序运行环境自动判断当前环境
+ *
+ * wx.getAccountInfoSync().miniProgram.envVersion 返回值:
+ *   'develop'  → 开发者工具 → 映射到 development
+ *   'trial'    → 体验版    → 映射到 testing
+ *   'release'  → 正式版    → 映射到 production
+ *
+ * 降级策略: 获取失败时默认 development（最安全）
+ */
+function detectEnv(): string {
+  try {
+    const accountInfo = wx.getAccountInfoSync()
+    const envVersion = accountInfo.miniProgram.envVersion
+    const envMap: Record<string, string> = {
+      develop: 'development',
+      trial: 'testing',
+      release: 'production'
+    }
+    return envMap[envVersion] || 'development'
+  } catch (_err) {
+    return 'development'
+  }
+}
+
+let CURRENT_ENV: string = detectEnv()
 
 // ===== 配置获取函数 =====
 
@@ -368,6 +392,7 @@ function getCurrentEnv(): string {
 function setEnv(envName: string): boolean {
   if (ENV_CONFIG[envName]) {
     CURRENT_ENV = envName
+    /* config/env 是 Logger 的上游依赖（Logger → config/env），此处使用 console 避免循环引用 */
     console.log(` 环境已切换到: ${envName}`)
     return true
   }

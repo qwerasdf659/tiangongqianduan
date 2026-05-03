@@ -3,7 +3,7 @@
 .diy-design-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex: 1;
   background: var(--tg-page-bg);
   overflow: hidden;
 }
@@ -13,7 +13,7 @@
   @include flex-column-center;
   height: 100vh;
 
-  text {
+  .loading-full-text {
     font-size: var(--td-font-size-base);
     color: var(--tg-text-tertiary);
     margin-top: var(--tg-spacing-sm);
@@ -281,7 +281,7 @@
   padding: 48rpx 0;
   width: 100%;
 
-  text {
+  .material-empty-text {
     font-size: var(--td-font-size-s);
     color: var(--tg-text-tertiary);
   }

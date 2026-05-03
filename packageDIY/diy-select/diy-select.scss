@@ -1,7 +1,15 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 @import '../../styles/mixins.scss';
 
 .diy-select-page {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--tg-page-bg);
   padding: var(--tg-spacing-xl) var(--tg-spacing-md);
   padding-bottom: calc(var(--tg-spacing-xl) + env(safe-area-inset-bottom));

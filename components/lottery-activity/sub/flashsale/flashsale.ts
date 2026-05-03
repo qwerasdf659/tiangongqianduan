@@ -10,10 +10,11 @@
  *   6. 成功卡片弹层（全息揭晓 + 12粒子 + 文字动画）
  *
  * @file sub/flashsale/flashsale.ts
- * @version 5.2.0
+ * @version 6.0.0 — Skyline Worklet 动画升级
  */
 
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
+const { shared, timing } = wx.worklet
 
 Component({
   behaviors: [prizeImageBehavior],
@@ -101,6 +102,45 @@ Component({
 
   lifetimes: {
     attached() {
+      /* Worklet 驱动入场动画 */
+      this._enterOpacity = shared(0)
+      this._enterTranslateY = shared(20)
+
+      this.applyAnimatedStyle('.fs', () => {
+        'worklet'
+        return {
+          opacity: this._enterOpacity.value,
+          transform: `translateY(${this._enterTranslateY.value}px)`
+        }
+      })
+
+      this._enterOpacity.value = timing(
+        1,
+        { duration: 350, easing: (wx.worklet.Easing as any).ease },
+        (() => {
+          'worklet'
+        }) as any
+      )
+      this._enterTranslateY.value = timing(
+        0,
+        { duration: 350, easing: (wx.worklet.Easing as any).ease },
+        (() => {
+          'worklet'
+        }) as any
+      )
+
+      /* Worklet 驱动按钮涟漪缩放 */
+      this._rippleScale = shared(0)
+      this._rippleOpacity = shared(0)
+      this.applyAnimatedStyle('.grab-ripple', () => {
+        'worklet'
+        return {
+          transform: `scale(${this._rippleScale.value})`,
+          opacity: this._rippleOpacity.value
+        }
+      })
+
+      /* 低频状态标记保留 */
       setTimeout(() => this.setData({ entered: true }), 60)
     },
     detached() {
@@ -276,9 +316,25 @@ Component({
         return
       }
 
-      this.setData({ state: 'grabbing', showRipple: true })
-      /* 涟漪动画结束后隐藏 */
-      setTimeout(() => this.setData({ showRipple: false }), 600)
+      this.setData({ state: 'grabbing' })
+
+      /* Worklet 驱动涟漪动画，替代 showRipple setData */
+      this._rippleScale.value = 0
+      this._rippleOpacity.value = 0.6
+      this._rippleScale.value = timing(
+        2.5,
+        { duration: 500, easing: (wx.worklet.Easing as any).ease },
+        (() => {
+          'worklet'
+        }) as any
+      )
+      this._rippleOpacity.value = timing(
+        0,
+        { duration: 500, easing: (wx.worklet.Easing as any).ease },
+        (() => {
+          'worklet'
+        }) as any
+      )
 
       this.triggerEvent('draw', { count: 1 })
 

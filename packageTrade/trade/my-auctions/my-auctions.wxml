@@ -3,85 +3,87 @@
 <custom-navbar title="我的拍卖" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="my-auctions-container">
-  <!--状态筛选-->
-  <scroll-view class="status-tabs-scroll" scroll-x enable-flex>
-    <view
-      class="status-tab {{currentStatus === item.key ? 'active' : ''}}"
-      wx:for="{{statusTabs}}"
-      wx:key="key"
-      data-status="{{item.key}}"
-      bindtap="onStatusTabChange"
-    >
-      <text>{{item.label}}</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!--状态筛选-->
+    <scroll-view type="custom" class="status-tabs-scroll" scroll-x enable-flex>
+      <view
+        class="status-tab {{currentStatus === item.key ? 'active' : ''}}"
+        wx:for="{{statusTabs}}"
+        wx:key="key"
+        data-status="{{item.key}}"
+        bindtap="onStatusTabChange"
+      >
+        <text>{{item.label}}</text>
+      </view>
+    </scroll-view>
+
+    <!--加载中-->
+    <view class="page-loading" wx:if="{{loading && auctions.length === 0}}">
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
+    </view>
+
+    <!--错误-->
+    <view class="page-error" wx:elif="{{hasError}}">
+      <text class="error-text">{{errorMessage}}</text>
+      <view class="retry-btn" bindtap="onRetry"><text>重试</text></view>
+    </view>
+
+    <!--空状态-->
+    <view class="page-empty" wx:elif="{{isEmpty}}">
+      <t-empty description="暂无拍卖记录" />
+      <view class="create-btn" bindtap="onCreateAuction"><text>发起拍卖</text></view>
+    </view>
+
+    <!--拍卖列表-->
+    <view class="auction-list" wx:else>
+      <view
+        class="auction-item"
+        wx:for="{{auctions}}"
+        wx:key="auction_listing_id"
+        data-auction="{{item}}"
+        bindtap="onAuctionTap"
+      >
+        <image class="auction-thumb" src="{{item._displayImage}}" mode="aspectFill" lazy-load />
+        <view class="auction-info">
+          <text class="auction-name">{{item._displayName}}</text>
+          <view class="auction-price-row">
+            <text class="price-label">{{item._priceLabel}}</text>
+            <text class="price-value">{{item._displayPrice}} {{item._priceAssetLabel}}</text>
+          </view>
+          <view class="auction-stats">
+            <text class="stat-text">{{item.bid_count}}次出价 · {{item.unique_bidders}}人参与</text>
+          </view>
+          <view class="auction-status" style="color: {{item._statusColor}}">
+            <text>{{item._statusLabel}}</text>
+          </view>
+
+          <!--结算信息-->
+          <view class="settled-info" wx:if="{{item.status === 'settled'}}">
+            <text class="settled-text">实收 {{item.net_amount}} {{item._priceAssetLabel}}</text>
+          </view>
+        </view>
+
+        <!--取消按钮-->
+        <view
+          class="cancel-btn"
+          wx:if="{{item._canCancel}}"
+          data-auction="{{item}}"
+          catchtap="onCancelAuction"
+        >
+          <text>取消</text>
+        </view>
+      </view>
+
+      <!--加载更多/没有更多-->
+      <view class="list-footer">
+        <t-loading
+          wx:if="{{hasMore && loading}}"
+          loading="{{true}}"
+          text="加载更多..."
+          theme="spinner"
+        />
+        <text class="no-more" wx:if="{{!hasMore && auctions.length > 0}}">— 没有更多了 —</text>
+      </view>
     </view>
   </scroll-view>
-
-  <!--加载中-->
-  <view class="page-loading" wx:if="{{loading && auctions.length === 0}}">
-    <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
-  </view>
-
-  <!--错误-->
-  <view class="page-error" wx:elif="{{hasError}}">
-    <text class="error-text">{{errorMessage}}</text>
-    <view class="retry-btn" bindtap="onRetry"><text>重试</text></view>
-  </view>
-
-  <!--空状态-->
-  <view class="page-empty" wx:elif="{{isEmpty}}">
-    <t-empty description="暂无拍卖记录" />
-    <view class="create-btn" bindtap="onCreateAuction"><text>发起拍卖</text></view>
-  </view>
-
-  <!--拍卖列表-->
-  <view class="auction-list" wx:else>
-    <view
-      class="auction-item"
-      wx:for="{{auctions}}"
-      wx:key="auction_listing_id"
-      data-auction="{{item}}"
-      bindtap="onAuctionTap"
-    >
-      <image class="auction-thumb" src="{{item._displayImage}}" mode="aspectFill" lazy-load />
-      <view class="auction-info">
-        <text class="auction-name">{{item._displayName}}</text>
-        <view class="auction-price-row">
-          <text class="price-label">{{item._priceLabel}}</text>
-          <text class="price-value">{{item._displayPrice}} {{item._priceAssetLabel}}</text>
-        </view>
-        <view class="auction-stats">
-          <text class="stat-text">{{item.bid_count}}次出价 · {{item.unique_bidders}}人参与</text>
-        </view>
-        <view class="auction-status" style="color: {{item._statusColor}}">
-          <text>{{item._statusLabel}}</text>
-        </view>
-
-        <!--结算信息-->
-        <view class="settled-info" wx:if="{{item.status === 'settled'}}">
-          <text class="settled-text">实收 {{item.net_amount}} {{item._priceAssetLabel}}</text>
-        </view>
-      </view>
-
-      <!--取消按钮-->
-      <view
-        class="cancel-btn"
-        wx:if="{{item._canCancel}}"
-        data-auction="{{item}}"
-        catchtap="onCancelAuction"
-      >
-        <text>取消</text>
-      </view>
-    </view>
-
-    <!--加载更多/没有更多-->
-    <view class="list-footer">
-      <t-loading
-        wx:if="{{hasMore && loading}}"
-        loading="{{true}}"
-        text="加载更多..."
-        theme="spinner"
-      />
-      <text class="no-more" wx:if="{{!hasMore && auctions.length > 0}}">— 没有更多了 —</text>
-    </view>
-  </view>
 </view>

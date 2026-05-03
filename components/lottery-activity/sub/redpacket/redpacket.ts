@@ -1,9 +1,13 @@
 /**
- * 拆红包 子组件
+ * 拆红包 子组件（Skyline Worklet 优化版）
  *
  * @description 支持单拆（3选1）和连拆（N个逐个拆开）两种模式。
  *   单拆: 3个红包选1个 → 触发抽奖API → 播放拆开动画 → 通知父组件
  *   连拆: 父组件传入结果 → 展示N个红包 → 逐个/全部拆开 → 通知父组件
+ *
+ * 优化点：
+ *   - 连拆 onOpenAll 批量操作改为合并 setData，减少高频调用
+ *   - 微小延迟用 wx.nextTick 替代 setTimeout
  *
  * @file sub/redpacket/redpacket.ts
  */
@@ -163,9 +167,10 @@ Component({
         multiEntered: false
       })
 
-      setTimeout(() => {
+      /* 入场动画：用 wx.nextTick 替代 setTimeout(50ms)，减少不必要的延迟 */
+      wx.nextTick(() => {
         this.setData({ multiEntered: true })
-      }, 50)
+      })
     },
 
     /** 按布局规则分行：3→1排，5→1排，10→上5下5 */
@@ -218,46 +223,72 @@ Component({
       }, 500)
     },
 
-    /** 一键全部拆开 */
+    /**
+     * 一键全部拆开（Skyline 优化版）
+     * 优化：将每个红包的 shaking→opened 两步合并为批量 setData，
+     * 每批只触发 2 次 setData（晃动 + 拆开），大幅减少渲染压力
+     */
     onOpenAll() {
       const packetRows = this.data.packetRows
-      let delay = 0
-
+      /* 收集所有未拆开的红包坐标 */
+      const pending: Array<{ row: number; col: number }> = []
       for (let r = 0; r < packetRows.length; r++) {
         for (let c = 0; c < packetRows[r].length; c++) {
           if (!packetRows[r][c].opened) {
-            ;((row, col, d) => {
-              /* 先晃动 */
-              setTimeout(() => {
-                const rows = this.data.packetRows
-                rows[row][col] = { ...rows[row][col], shaking: true }
-                this.setData({ packetRows: rows })
-              }, d)
-
-              /* 再拆开 */
-              setTimeout(() => {
-                const rows = this.data.packetRows
-                rows[row][col] = { ...rows[row][col], shaking: false, opened: true }
-                const count = this.data.openedCount + 1
-                const all = count >= this.data.totalPackets
-                this.setData({ packetRows: rows, openedCount: count, allOpened: all })
-                try {
-                  wx.vibrateShort({ type: 'light' })
-                } catch (_e) {
-                  /* */
-                }
-
-                if (all) {
-                  setTimeout(() => {
-                    this.triggerEvent('animationEnd')
-                  }, 800)
-                }
-              }, d + 400)
-            })(r, c, delay)
-            delay += 300
+            pending.push({ row: r, col: c })
           }
         }
       }
+      if (pending.length === 0) {
+        return
+      }
+
+      let batchIdx = 0
+      const batchSize = 3
+      const batchInterval = 300
+
+      const processBatch = () => {
+        const start = batchIdx * batchSize
+        const batch = pending.slice(start, start + batchSize)
+        if (batch.length === 0) {
+          return
+        }
+
+        /* 第一步：批量设置晃动 */
+        const rows = this.data.packetRows
+        batch.forEach(({ row, col }) => {
+          rows[row][col] = { ...rows[row][col], shaking: true }
+        })
+        this.setData({ packetRows: rows })
+
+        /* 第二步：批量拆开 */
+        setTimeout(() => {
+          const rows2 = this.data.packetRows
+          batch.forEach(({ row, col }) => {
+            rows2[row][col] = { ...rows2[row][col], shaking: false, opened: true }
+          })
+          const count = this.data.openedCount + batch.length
+          const all = count >= this.data.totalPackets
+          this.setData({ packetRows: rows2, openedCount: count, allOpened: all })
+
+          try {
+            wx.vibrateShort({ type: 'light' })
+          } catch (_e) {
+            /* */
+          }
+
+          if (all) {
+            setTimeout(() => {
+              this.triggerEvent('animationEnd')
+            }, 800)
+          } else {
+            batchIdx++
+            setTimeout(processBatch, batchInterval)
+          }
+        }, 400)
+      }
+
+      processBatch()
     },
 
     /** 重置 */

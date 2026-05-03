@@ -8,5 +8,6 @@
     "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

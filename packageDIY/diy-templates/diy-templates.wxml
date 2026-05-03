@@ -1,73 +1,76 @@
 <custom-navbar title="选择款式" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="diy-templates-page">
-  <!-- 分类 Tab 栏（对齐后端 categories 表 id=191~194） -->
-  <scroll-view class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
-    <view class="category-tabs-inner">
-      <view
-        wx:for="{{categoryTabs}}"
-        wx:key="category_id"
-        class="category-tab {{item.category_id === activeCategoryId ? 'active' : ''}}"
-        bind:tap="onCategoryChange"
-        data-category-id="{{item.category_id}}"
-      >
-        <text>{{item.label}}</text>
-      </view>
-    </view>
-  </scroll-view>
-
-  <!-- 加载态 -->
-  <view wx:if="{{loading}}" class="loading-wrap">
-    <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
-  </view>
-
-  <!-- 错误态 -->
-  <view wx:elif="{{hasError}}" class="error-wrap">
-    <text class="error-text">{{errorMessage}}</text>
-    <view class="retry-btn" bindtap="onRetry">
-      <text>重新加载</text>
-    </view>
-  </view>
-
-  <!-- 模板列表 -->
-  <scroll-view
-    wx:elif="{{templates.length > 0}}"
-    class="template-list"
-    scroll-y
-    enhanced
-    show-scrollbar="{{false}}"
-  >
-    <view
-      wx:for="{{templates}}"
-      wx:key="diy_template_id"
-      class="template-card"
-      bind:tap="onSelectTemplate"
-      data-template-id="{{item.diy_template_id}}"
-    >
-      <image
-        class="template-thumb"
-        src="{{item.preview_media.thumbnails.small || item.preview_media.public_url || ''}}"
-        mode="aspectFill"
-        lazy-load
-      />
-      <view class="template-info">
-        <text class="template-name">{{item.display_name}}</text>
-        <text class="template-category">{{item.category_name || ''}}</text>
-        <view class="template-tags">
-          <text
-            wx:for="{{item.material_group_codes}}"
-            wx:for-item="tag"
-            wx:key="*this"
-            class="template-tag"
-            >{{tag}}</text
-          >
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 分类 Tab 栏（对齐后端 categories 表 id=191~194） -->
+    <scroll-view type="custom" class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="category-tabs-inner">
+        <view
+          wx:for="{{categoryTabs}}"
+          wx:key="category_id"
+          class="category-tab {{item.category_id === activeCategoryId ? 'active' : ''}}"
+          bind:tap="onCategoryChange"
+          data-category-id="{{item.category_id}}"
+        >
+          <text>{{item.label}}</text>
         </view>
       </view>
-      <text class="arrow-icon">></text>
+    </scroll-view>
+
+    <!-- 加载态 -->
+    <view wx:if="{{loading}}" class="loading-wrap">
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
+    </view>
+
+    <!-- 错误态 -->
+    <view wx:elif="{{hasError}}" class="error-wrap">
+      <text class="error-text">{{errorMessage}}</text>
+      <view class="retry-btn" bindtap="onRetry">
+        <text>重新加载</text>
+      </view>
+    </view>
+
+    <!-- 模板列表 -->
+    <scroll-view
+      type="list"
+      wx:elif="{{templates.length > 0}}"
+      class="template-list"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+    >
+      <view
+        wx:for="{{templates}}"
+        wx:key="diy_template_id"
+        class="template-card"
+        bind:tap="onSelectTemplate"
+        data-template-id="{{item.diy_template_id}}"
+      >
+        <image
+          class="template-thumb"
+          src="{{item.preview_media.thumbnails.small || item.preview_media.public_url || ''}}"
+          mode="aspectFill"
+          lazy-load
+        />
+        <view class="template-info">
+          <text class="template-name">{{item.display_name}}</text>
+          <text class="template-category">{{item.category_name || ''}}</text>
+          <view class="template-tags">
+            <text
+              wx:for="{{item.material_group_codes}}"
+              wx:for-item="tag"
+              wx:key="*this"
+              class="template-tag"
+              >{{tag}}</text
+            >
+          </view>
+        </view>
+        <text class="arrow-icon">></text>
+      </view>
+    </scroll-view>
+
+    <!-- 空态 -->
+    <view wx:elif="{{!loading && !hasError}}" class="empty-wrap">
+      <t-empty description="该分类暂无可用款式" />
     </view>
   </scroll-view>
-
-  <!-- 空态 -->
-  <view wx:elif="{{!loading && !hasError}}" class="empty-wrap">
-    <t-empty description="该分类暂无可用款式" />
-  </view>
 </view>

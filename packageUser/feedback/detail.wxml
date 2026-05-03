@@ -3,70 +3,72 @@
 -->
 <custom-navbar title="反馈详情" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="feedback-detail-page">
-  <!-- 加载中 -->
-  <view wx:if="{{loading}}" class="loading-container">
-    <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
-  </view>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 加载中 -->
+    <view wx:if="{{loading}}" class="loading-container">
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
+    </view>
 
-  <!-- 加载失败 -->
-  <t-empty wx:elif="{{loadError}}" description="加载失败">
-    <view slot="image">😞</view>
-    <view slot="action" class="retry-btn" bindtap="onRetry">重新加载</view>
-  </t-empty>
+    <!-- 加载失败 -->
+    <t-empty wx:elif="{{loadError}}" description="加载失败">
+      <view slot="image">😞</view>
+      <view slot="action" class="retry-btn" bindtap="onRetry">重新加载</view>
+    </t-empty>
 
-  <!-- 反馈详情 -->
-  <view wx:elif="{{feedbackDetail}}" class="detail-container">
-    <!-- 状态头部 -->
-    <view class="status-header status-{{feedbackDetail.status}}">
-      <text class="status-label"
-        >{{statusMap[feedbackDetail.status] || feedbackDetail.status}}</text
+    <!-- 反馈详情 -->
+    <view wx:elif="{{feedbackDetail}}" class="detail-container">
+      <!-- 状态头部 -->
+      <view class="status-header status-{{feedbackDetail.status}}">
+        <text class="status-label"
+          >{{statusMap[feedbackDetail.status] || feedbackDetail.status}}</text
+        >
+        <text class="feedback-time">{{feedbackDetail.created_at}}</text>
+      </view>
+
+      <!-- 反馈内容 -->
+      <view class="content-section">
+        <view class="section-title">反馈内容</view>
+        <view class="section-body">
+          <text class="category-tag">{{feedbackDetail.category}}</text>
+          <text class="feedback-content">{{feedbackDetail.content}}</text>
+        </view>
+      </view>
+
+      <!-- 附件图片 -->
+      <view
+        wx:if="{{feedbackDetail.attachments && feedbackDetail.attachments.length}}"
+        class="attachments-section"
       >
-      <text class="feedback-time">{{feedbackDetail.created_at}}</text>
-    </view>
+        <view class="section-title">附件图片</view>
+        <view class="image-grid">
+          <image
+            wx:for="{{feedbackDetail.attachments}}"
+            wx:key="index"
+            src="{{item.url || item}}"
+            mode="aspectFill"
+            class="attachment-image"
+            bindtap="onPreviewImage"
+            data-url="{{item.url || item}}"
+          ></image>
+        </view>
+      </view>
 
-    <!-- 反馈内容 -->
-    <view class="content-section">
-      <view class="section-title">反馈内容</view>
-      <view class="section-body">
-        <text class="category-tag">{{feedbackDetail.category}}</text>
-        <text class="feedback-content">{{feedbackDetail.content}}</text>
+      <!-- 客服回复（后端字段: reply_content，未回复时为 null） -->
+      <view wx:if="{{feedbackDetail.reply_content}}" class="reply-section">
+        <view class="section-title">客服回复</view>
+        <view class="reply-body">
+          <text class="reply-content-text">{{feedbackDetail.reply_content}}</text>
+          <text class="reply-time">回复时间: {{feedbackDetail.replied_at}}</text>
+        </view>
+      </view>
+
+      <!-- 无回复提示 -->
+      <view wx:else class="no-reply-section">
+        <text class="no-reply-text">暂无回复，客服正在处理中...</text>
       </view>
     </view>
 
-    <!-- 附件图片 -->
-    <view
-      wx:if="{{feedbackDetail.attachments && feedbackDetail.attachments.length}}"
-      class="attachments-section"
-    >
-      <view class="section-title">附件图片</view>
-      <view class="image-grid">
-        <image
-          wx:for="{{feedbackDetail.attachments}}"
-          wx:key="index"
-          src="{{item.url || item}}"
-          mode="aspectFill"
-          class="attachment-image"
-          bindtap="onPreviewImage"
-          data-url="{{item.url || item}}"
-        ></image>
-      </view>
-    </view>
-
-    <!-- 客服回复（后端字段: reply_content，未回复时为 null） -->
-    <view wx:if="{{feedbackDetail.reply_content}}" class="reply-section">
-      <view class="section-title">客服回复</view>
-      <view class="reply-body">
-        <text class="reply-content-text">{{feedbackDetail.reply_content}}</text>
-        <text class="reply-time">回复时间: {{feedbackDetail.replied_at}}</text>
-      </view>
-    </view>
-
-    <!-- 无回复提示 -->
-    <view wx:else class="no-reply-section">
-      <text class="no-reply-text">暂无回复，客服正在处理中...</text>
-    </view>
-  </view>
-
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
+    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
 </view>

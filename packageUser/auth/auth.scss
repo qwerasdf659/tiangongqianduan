@@ -1,3 +1,9 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 登录认证页面样式 - V4.0 全局氛围主题版本 */
 @import '../../styles/mixins';
 
@@ -135,16 +141,18 @@
 }
 
 .auth-container {
-  min-height: 100vh;
+  /* Skyline flex 布局：占满 page 剩余高度（page 已设 flex-direction: column） */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(
     135deg,
     var(--tg-gradient-primary-start) 0%,
     var(--tg-gradient-primary-end) 100%
   );
-  @include flex-center;
-  /* 🔧 修复白色内容框左右对齐问题：确保完美居中 */
   padding: 40rpx 0;
-  margin: 0 auto;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;

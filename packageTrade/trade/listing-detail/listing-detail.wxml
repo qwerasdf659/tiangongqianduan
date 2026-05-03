@@ -2,303 +2,309 @@
 <!--后端API: GET /api/v4/marketplace/listings/:market_listing_id-->
 <custom-navbar title="商品详情" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 
-<!-- 加载状态 -->
-<view class="detail-loading" wx:if="{{loading}}">
-  <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="48rpx" />
-</view>
-
-<!-- 错误状态 -->
-<view class="detail-error" wx:elif="{{hasError}}">
-  <text class="error-icon">⚠️</text>
-  <text class="error-msg">{{errorMessage}}</text>
-  <button class="retry-btn" size="mini" bindtap="onGoBack">返回</button>
-</view>
-
-<!-- 详情主体 -->
-<view class="detail-container" wx:elif="{{detail}}">
-  <!-- 商品图片区域 -->
-  <view class="detail-image-section">
-    <image
-      wx:if="{{!imageError}}"
-      class="detail-main-image"
-      src="{{displayImage}}"
-      mode="aspectFill"
-      binderror="onImageError"
-    />
-    <view wx:else class="image-fallback-large">
-      <text class="fallback-icon-lg">{{isFungibleAsset ? '💎' : '📦'}}</text>
-      <text class="fallback-name-lg">{{displayName}}</text>
-    </view>
-
-    <!-- 类型标签 -->
-    <view class="detail-kind-tag {{isFungibleAsset ? 'asset-tag' : 'item-tag'}}">
-      <text>{{isFungibleAsset ? '资产' : '物品'}}</text>
-    </view>
-
-    <!-- 稀有度 -->
-    <view
-      class="detail-rarity-badge"
-      wx:if="{{!isFungibleAsset && rarityCode && rarityCode !== 'common'}}"
-      style="background-color: {{rarityStyle.colorHex}};"
-    >
-      <text>{{rarityStyle.displayName}}</text>
-    </view>
+<scroll-view type="list" scroll-y class="page-scroll-view">
+  <!-- 加载状态 -->
+  <view class="detail-loading" wx:if="{{loading}}">
+    <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="48rpx" />
   </view>
 
-  <!-- 商品信息卡片 -->
-  <view class="detail-info-card">
-    <view class="detail-title-row">
-      <text class="detail-title">{{displayName}}</text>
-      <view class="detail-status-tag" wx:if="{{detail.status !== 'on_sale'}}">
-        <text
-          >{{detail.status === 'sold' ? '已售出' : detail.status === 'withdrawn' ? '已撤回' :
-          detail.status === 'locked' ? '交易中' : detail.status === 'admin_withdrawn' ? '平台下架' :
-          '已下架'}}</text
-        >
+  <!-- 错误状态 -->
+  <view class="detail-error" wx:elif="{{hasError}}">
+    <text class="error-icon">⚠️</text>
+    <text class="error-msg">{{errorMessage}}</text>
+    <button class="retry-btn" size="mini" bindtap="onGoBack">返回</button>
+  </view>
+
+  <!-- 详情主体 -->
+  <view class="detail-container" wx:elif="{{detail}}">
+    <!-- 商品图片区域 -->
+    <view class="detail-image-section">
+      <image
+        wx:if="{{!imageError}}"
+        class="detail-main-image"
+        src="{{displayImage}}"
+        mode="aspectFill"
+        binderror="onImageError"
+      />
+      <view wx:else class="image-fallback-large">
+        <text class="fallback-icon-lg">{{isFungibleAsset ? '💎' : '📦'}}</text>
+        <text class="fallback-name-lg">{{displayName}}</text>
+      </view>
+
+      <!-- 类型标签 -->
+      <view class="detail-kind-tag {{isFungibleAsset ? 'asset-tag' : 'item-tag'}}">
+        <text>{{isFungibleAsset ? '资产' : '物品'}}</text>
+      </view>
+
+      <!-- 稀有度 -->
+      <view
+        class="detail-rarity-badge"
+        wx:if="{{!isFungibleAsset && rarityCode && rarityCode !== 'common'}}"
+        style="background-color: {{rarityStyle.colorHex}};"
+      >
+        <text>{{rarityStyle.displayName}}</text>
       </view>
     </view>
 
-    <!-- 价格区域 -->
-    <view class="detail-price-section">
-      <text class="detail-price-value">{{detail.price_amount}}</text>
-      <text class="detail-price-unit">{{priceLabel}}</text>
-    </view>
-
-    <!-- 资产数量（仅 fungible_asset） -->
-    <view class="detail-amount-row" wx:if="{{isFungibleAsset && offerAmount}}">
-      <text class="amount-label">出售数量</text>
-      <text class="amount-value">×{{offerAmount}}</text>
-    </view>
-
-    <!-- 物品描述（item 类型） -->
-    <view
-      class="detail-desc-row"
-      wx:if="{{!isFungibleAsset && detail.item_info && (detail.item_info.category_display_name || detail.item_info.category_code)}}"
-    >
-      <text class="desc-label">物品类目</text>
-      <text class="desc-value"
-        >{{detail.item_info.category_display_name || detail.item_info.category_code}}</text
-      >
-    </view>
-
-    <!--物品状态描述（对齐文档 condition 字段，卖家上架时填写）-->
-    <view class="detail-desc-row" wx:if="{{detail.condition}}">
-      <text class="desc-label">物品状态</text>
-      <text class="desc-value">{{detail.condition}}</text>
-    </view>
-
-    <!-- 品质等级+限量编号（后端 item_info.instance_attributes / serial_number） -->
-    <view class="detail-quality-section" wx:if="{{qualityGrade || editionText}}">
-      <view class="detail-quality-row" wx:if="{{qualityGrade}}">
-        <text class="quality-label">品质等级</text>
-        <view class="quality-value-area">
+    <!-- 商品信息卡片 -->
+    <view class="detail-info-card">
+      <view class="detail-title-row">
+        <text class="detail-title">{{displayName}}</text>
+        <view class="detail-status-tag" wx:if="{{detail.status !== 'on_sale'}}">
           <text
-            class="quality-grade-badge"
-            style="color: {{qualityColorHex}}; border-color: {{qualityColorHex}}"
-            >{{qualityGrade}}</text
-          >
-          <text
-            class="quality-score-value"
-            wx:if="{{qualityScore}}"
-            style="color: {{qualityColorHex}}"
-            >{{qualityScore}}分</text
+            >{{detail.status === 'sold' ? '已售出' : detail.status === 'withdrawn' ? '已撤回' :
+            detail.status === 'locked' ? '交易中' : detail.status === 'admin_withdrawn' ? '平台下架'
+            : '已下架'}}</text
           >
         </view>
       </view>
-      <view class="detail-quality-row" wx:if="{{patternId}}">
-        <text class="quality-label">纹理编号</text>
-        <text class="quality-value">#{{patternId}}</text>
+
+      <!-- 价格区域 -->
+      <view class="detail-price-section">
+        <text class="detail-price-value">{{detail.price_amount}}</text>
+        <text class="detail-price-unit">{{priceLabel}}</text>
       </view>
-      <view class="detail-quality-row" wx:if="{{editionText}}">
-        <text class="quality-label">限量编号</text>
-        <text class="quality-value edition-highlight">{{editionText}}</text>
+
+      <!-- 资产数量（仅 fungible_asset） -->
+      <view class="detail-amount-row" wx:if="{{isFungibleAsset && offerAmount}}">
+        <text class="amount-label">出售数量</text>
+        <text class="amount-value">×{{offerAmount}}</text>
+      </view>
+
+      <!-- 物品描述（item 类型） -->
+      <view
+        class="detail-desc-row"
+        wx:if="{{!isFungibleAsset && detail.item_info && (detail.item_info.category_display_name || detail.item_info.category_code)}}"
+      >
+        <text class="desc-label">物品类目</text>
+        <text class="desc-value"
+          >{{detail.item_info.category_display_name || detail.item_info.category_code}}</text
+        >
+      </view>
+
+      <!--物品状态描述（对齐文档 condition 字段，卖家上架时填写）-->
+      <view class="detail-desc-row" wx:if="{{detail.condition}}">
+        <text class="desc-label">物品状态</text>
+        <text class="desc-value">{{detail.condition}}</text>
+      </view>
+
+      <!-- 品质等级+限量编号（后端 item_info.instance_attributes / serial_number） -->
+      <view class="detail-quality-section" wx:if="{{qualityGrade || editionText}}">
+        <view class="detail-quality-row" wx:if="{{qualityGrade}}">
+          <text class="quality-label">品质等级</text>
+          <view class="quality-value-area">
+            <text
+              class="quality-grade-badge"
+              style="color: {{qualityColorHex}}; border-color: {{qualityColorHex}}"
+              >{{qualityGrade}}</text
+            >
+            <text
+              class="quality-score-value"
+              wx:if="{{qualityScore}}"
+              style="color: {{qualityColorHex}}"
+              >{{qualityScore}}分</text
+            >
+          </view>
+        </view>
+        <view class="detail-quality-row" wx:if="{{patternId}}">
+          <text class="quality-label">纹理编号</text>
+          <text class="quality-value">#{{patternId}}</text>
+        </view>
+        <view class="detail-quality-row" wx:if="{{editionText}}">
+          <text class="quality-label">限量编号</text>
+          <text class="quality-value edition-highlight">{{editionText}}</text>
+        </view>
+      </view>
+
+      <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
+      <view class="detail-cooldown-notice" wx:if="{{hasCooldown}}">
+        <text class="cooldown-notice-icon">🔒</text>
+        <text class="cooldown-notice-text">交易冷却中 · 剩余 {{cooldownRemaining}}</text>
       </view>
     </view>
 
-    <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
-    <view class="detail-cooldown-notice" wx:if="{{hasCooldown}}">
-      <text class="cooldown-notice-icon">🔒</text>
-      <text class="cooldown-notice-text">交易冷却中 · 剩余 {{cooldownRemaining}}</text>
+    <!-- 卖家信息卡片 -->
+    <view class="detail-seller-card">
+      <text class="section-title">卖家信息</text>
+      <view class="seller-row">
+        <image
+          wx:if="{{detail.seller_avatar_url}}"
+          class="seller-avatar"
+          src="{{detail.seller_avatar_url}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="seller-avatar-placeholder">
+          <text class="seller-avatar-placeholder-text">👤</text>
+        </view>
+        <view class="seller-info-col">
+          <text class="seller-nickname">{{detail.seller_nickname || '匿名卖家'}}</text>
+          <text class="seller-time">上架于 {{detail.created_at}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 价格摘要卡片（后端 GET /price/summary 返回） -->
+    <view class="detail-summary-card" wx:if="{{priceSummary}}">
+      <text class="section-title">价格参考</text>
+      <view class="summary-grid">
+        <view class="summary-item">
+          <text class="summary-value">{{priceSummary.avg_price_7d || '--'}}</text>
+          <text class="summary-label">7日均价</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{priceSummary.lowest_ever || '--'}}</text>
+          <text class="summary-label">历史最低</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{priceSummary.highest_ever || '--'}}</text>
+          <text class="summary-label">历史最高</text>
+        </view>
+        <view class="summary-item">
+          <text class="summary-value">{{priceSummary.trades_7d || 0}}</text>
+          <text class="summary-label">7日成交</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 价格走势图（可折叠） -->
+    <view class="detail-chart-section">
+      <view class="chart-toggle" bindtap="onTogglePriceChart">
+        <text class="chart-toggle-text">{{showPriceChart ? '收起走势图' : '📈 查看价格走势'}}</text>
+      </view>
+      <view wx:if="{{showPriceChart}}">
+        <price-chart
+          asset-code="{{isFungibleAsset && detail.asset_info ? detail.asset_info.asset_code : ''}}"
+          template-id="{{!isFungibleAsset && detail.item_info ? detail.item_info.template_id : 0}}"
+          title="价格走势"
+          canvas-height="{{180}}"
+        />
+      </view>
+    </view>
+
+    <!--价格历史面板（可折叠，后端 GET /api/v4/marketplace/analytics/history）-->
+    <view class="detail-history-section" wx:if="{{priceHistoryList.length > 0}}">
+      <view class="chart-toggle" bindtap="onTogglePriceHistory">
+        <text class="chart-toggle-text"
+          >{{showPriceHistory ? '收起价格历史' : '📊 近30天价格历史'}}</text
+        >
+      </view>
+      <view class="price-history-panel" wx:if="{{showPriceHistory}}">
+        <view class="history-header-row">
+          <text class="history-col-date">日期</text>
+          <text class="history-col-avg">均价</text>
+          <text class="history-col-range">最低~最高</text>
+          <text class="history-col-count">成交</text>
+        </view>
+        <view class="history-data-row" wx:for="{{priceHistoryList}}" wx:key="date">
+          <text class="history-col-date">{{item.date}}</text>
+          <text class="history-col-avg">{{item.avg_price}}</text>
+          <text class="history-col-range">{{item.min_price}}~{{item.max_price}}</text>
+          <text class="history-col-count">{{item.trade_count}}笔</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部购买栏（固定底部） -->
+    <view class="detail-bottom-bar" wx:if="{{detail.status === 'on_sale'}}">
+      <view class="bottom-price-info">
+        <text class="bottom-price">{{detail.price_amount}}</text>
+        <text class="bottom-unit">{{priceLabel}}</text>
+      </view>
+      <button
+        class="purchase-btn {{purchasing ? 'btn-disabled' : ''}}"
+        disabled="{{purchasing || detail.seller_user_id === currentUserId}}"
+        bindtap="onPurchase"
+      >
+        <text wx:if="{{purchasing}}">购买中...</text>
+        <text wx:elif="{{detail.seller_user_id === currentUserId}}">自己的商品</text>
+        <text wx:else>立即购买</text>
+      </button>
+    </view>
+
+    <!-- 已下架/已售出提示 -->
+    <view class="detail-bottom-bar sold-bar" wx:elif="{{detail.status === 'sold'}}">
+      <text class="sold-text">该商品已售出</text>
+    </view>
+    <view class="detail-bottom-bar sold-bar" wx:elif="{{detail.status === 'withdrawn'}}">
+      <text class="sold-text">该商品已撤回</text>
+    </view>
+    <view class="detail-bottom-bar sold-bar" wx:elif="{{detail.status === 'expired'}}">
+      <text class="sold-text">该商品已过期</text>
     </view>
   </view>
 
-  <!-- 卖家信息卡片 -->
-  <view class="detail-seller-card">
-    <text class="section-title">卖家信息</text>
-    <view class="seller-row">
-      <image
-        wx:if="{{detail.seller_avatar_url}}"
-        class="seller-avatar"
-        src="{{detail.seller_avatar_url}}"
-        mode="aspectFill"
-      />
-      <view wx:else class="seller-avatar-placeholder">
-        <text>👤</text>
+  <!-- 购买成功弹窗（资产交易 — 自动完成） -->
+  <view class="modal-overlay" wx:if="{{showPurchaseResult}}" bindtap="onClosePurchaseResult">
+    <view class="modal-content" catchtap="">
+      <text class="modal-icon">🎉</text>
+      <text class="modal-title">购买成功</text>
+      <view class="modal-detail-rows" wx:if="{{purchaseResult}}">
+        <view class="modal-row" wx:if="{{purchaseResult.order_no}}">
+          <text class="row-label">订单编号</text>
+          <text class="row-value">{{purchaseResult.order_no}}</text>
+        </view>
+        <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
+          <text class="row-label">总金额</text>
+          <text class="row-value">{{purchaseResult.gross_amount}}</text>
+        </view>
+        <view class="modal-row" wx:if="{{purchaseResult.fee_amount}}">
+          <text class="row-label">手续费</text>
+          <text class="row-value">{{purchaseResult.fee_amount}}</text>
+        </view>
+        <view class="modal-row" wx:if="{{purchaseResult.net_amount}}">
+          <text class="row-label">卖家实收</text>
+          <text class="row-value">{{purchaseResult.net_amount}}</text>
+        </view>
       </view>
-      <view class="seller-info-col">
-        <text class="seller-nickname">{{detail.seller_nickname || '匿名卖家'}}</text>
-        <text class="seller-time">上架于 {{detail.created_at}}</text>
-      </view>
+      <button class="modal-btn" bindtap="onClosePurchaseResult">确定</button>
     </view>
   </view>
 
-  <!-- 价格摘要卡片（后端 GET /price/summary 返回） -->
-  <view class="detail-summary-card" wx:if="{{priceSummary}}">
-    <text class="section-title">价格参考</text>
-    <view class="summary-grid">
-      <view class="summary-item">
-        <text class="summary-value">{{priceSummary.avg_price_7d || '--'}}</text>
-        <text class="summary-label">7日均价</text>
+  <!-- 担保码说明弹窗（实物交易 — 需确认收货） -->
+  <view class="modal-overlay" wx:if="{{showEscrowGuide}}" bindtap="onCloseEscrowGuide">
+    <view class="modal-content escrow-guide" catchtap="">
+      <text class="modal-icon">🔐</text>
+      <text class="modal-title">购买成功 — 需确认收货</text>
+      <view class="escrow-steps">
+        <view class="step-item">
+          <text class="step-num">1</text>
+          <text class="step-text">联系卖家获取6位担保码</text>
+        </view>
+        <view class="step-item">
+          <text class="step-num">2</text>
+          <text class="step-text">在「我的订单」中输入担保码确认收货</text>
+        </view>
+        <view class="step-item">
+          <text class="step-num">3</text>
+          <text class="step-text">确认后交易完成，资产自动转给卖家</text>
+        </view>
       </view>
-      <view class="summary-item">
-        <text class="summary-value">{{priceSummary.lowest_ever || '--'}}</text>
-        <text class="summary-label">历史最低</text>
+      <view class="escrow-expire-tip" wx:if="{{escrowExpiresAt}}">
+        <text class="escrow-expire-tip-text"
+          >⏰ 请在 {{escrowExpiresAt}} 前完成确认，超时将自动取消</text
+        >
       </view>
-      <view class="summary-item">
-        <text class="summary-value">{{priceSummary.highest_ever || '--'}}</text>
-        <text class="summary-label">历史最高</text>
+      <view class="escrow-fee-info" wx:if="{{purchaseResult}}">
+        <view class="modal-row" wx:if="{{purchaseResult.order_no}}">
+          <text class="row-label">订单编号</text>
+          <text class="row-value">{{purchaseResult.order_no}}</text>
+        </view>
+        <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
+          <text class="row-label">总金额</text>
+          <text class="row-value">{{purchaseResult.gross_amount}}</text>
+        </view>
+        <view class="modal-row" wx:if="{{purchaseResult.fee_amount}}">
+          <text class="row-label">手续费</text>
+          <text class="row-value">{{purchaseResult.fee_amount}}</text>
+        </view>
       </view>
-      <view class="summary-item">
-        <text class="summary-value">{{priceSummary.trades_7d || 0}}</text>
-        <text class="summary-label">7日成交</text>
+      <view class="escrow-actions">
+        <button class="modal-btn secondary-btn" bindtap="onCloseEscrowGuide">稍后处理</button>
+        <button class="modal-btn" bindtap="onGoToMyOrders">查看我的订单</button>
       </view>
     </view>
-  </view>
 
-  <!-- 价格走势图（可折叠） -->
-  <view class="detail-chart-section">
-    <view class="chart-toggle" bindtap="onTogglePriceChart">
-      <text>{{showPriceChart ? '收起走势图' : '📈 查看价格走势'}}</text>
-    </view>
-    <view wx:if="{{showPriceChart}}">
-      <price-chart
-        asset-code="{{isFungibleAsset && detail.asset_info ? detail.asset_info.asset_code : ''}}"
-        template-id="{{!isFungibleAsset && detail.item_info ? detail.item_info.template_id : 0}}"
-        title="价格走势"
-        canvas-height="{{180}}"
-      />
-    </view>
+    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
   </view>
-
-  <!--价格历史面板（可折叠，后端 GET /api/v4/marketplace/analytics/history）-->
-  <view class="detail-history-section" wx:if="{{priceHistoryList.length > 0}}">
-    <view class="chart-toggle" bindtap="onTogglePriceHistory">
-      <text>{{showPriceHistory ? '收起价格历史' : '📊 近30天价格历史'}}</text>
-    </view>
-    <view class="price-history-panel" wx:if="{{showPriceHistory}}">
-      <view class="history-header-row">
-        <text class="history-col-date">日期</text>
-        <text class="history-col-avg">均价</text>
-        <text class="history-col-range">最低~最高</text>
-        <text class="history-col-count">成交</text>
-      </view>
-      <view class="history-data-row" wx:for="{{priceHistoryList}}" wx:key="date">
-        <text class="history-col-date">{{item.date}}</text>
-        <text class="history-col-avg">{{item.avg_price}}</text>
-        <text class="history-col-range">{{item.min_price}}~{{item.max_price}}</text>
-        <text class="history-col-count">{{item.trade_count}}笔</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 底部购买栏（固定底部） -->
-  <view class="detail-bottom-bar" wx:if="{{detail.status === 'on_sale'}}">
-    <view class="bottom-price-info">
-      <text class="bottom-price">{{detail.price_amount}}</text>
-      <text class="bottom-unit">{{priceLabel}}</text>
-    </view>
-    <button
-      class="purchase-btn {{purchasing ? 'btn-disabled' : ''}}"
-      disabled="{{purchasing || detail.seller_user_id === currentUserId}}"
-      bindtap="onPurchase"
-    >
-      <text wx:if="{{purchasing}}">购买中...</text>
-      <text wx:elif="{{detail.seller_user_id === currentUserId}}">自己的商品</text>
-      <text wx:else>立即购买</text>
-    </button>
-  </view>
-
-  <!-- 已下架/已售出提示 -->
-  <view class="detail-bottom-bar sold-bar" wx:elif="{{detail.status === 'sold'}}">
-    <text class="sold-text">该商品已售出</text>
-  </view>
-  <view class="detail-bottom-bar sold-bar" wx:elif="{{detail.status === 'withdrawn'}}">
-    <text class="sold-text">该商品已撤回</text>
-  </view>
-  <view class="detail-bottom-bar sold-bar" wx:elif="{{detail.status === 'expired'}}">
-    <text class="sold-text">该商品已过期</text>
-  </view>
-</view>
-
-<!-- 购买成功弹窗（资产交易 — 自动完成） -->
-<view class="modal-overlay" wx:if="{{showPurchaseResult}}" bindtap="onClosePurchaseResult">
-  <view class="modal-content" catchtap="">
-    <text class="modal-icon">🎉</text>
-    <text class="modal-title">购买成功</text>
-    <view class="modal-detail-rows" wx:if="{{purchaseResult}}">
-      <view class="modal-row" wx:if="{{purchaseResult.order_no}}">
-        <text class="row-label">订单编号</text>
-        <text class="row-value">{{purchaseResult.order_no}}</text>
-      </view>
-      <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
-        <text class="row-label">总金额</text>
-        <text class="row-value">{{purchaseResult.gross_amount}}</text>
-      </view>
-      <view class="modal-row" wx:if="{{purchaseResult.fee_amount}}">
-        <text class="row-label">手续费</text>
-        <text class="row-value">{{purchaseResult.fee_amount}}</text>
-      </view>
-      <view class="modal-row" wx:if="{{purchaseResult.net_amount}}">
-        <text class="row-label">卖家实收</text>
-        <text class="row-value">{{purchaseResult.net_amount}}</text>
-      </view>
-    </view>
-    <button class="modal-btn" bindtap="onClosePurchaseResult">确定</button>
-  </view>
-</view>
-
-<!-- 担保码说明弹窗（实物交易 — 需确认收货） -->
-<view class="modal-overlay" wx:if="{{showEscrowGuide}}" bindtap="onCloseEscrowGuide">
-  <view class="modal-content escrow-guide" catchtap="">
-    <text class="modal-icon">🔐</text>
-    <text class="modal-title">购买成功 — 需确认收货</text>
-    <view class="escrow-steps">
-      <view class="step-item">
-        <text class="step-num">1</text>
-        <text class="step-text">联系卖家获取6位担保码</text>
-      </view>
-      <view class="step-item">
-        <text class="step-num">2</text>
-        <text class="step-text">在「我的订单」中输入担保码确认收货</text>
-      </view>
-      <view class="step-item">
-        <text class="step-num">3</text>
-        <text class="step-text">确认后交易完成，资产自动转给卖家</text>
-      </view>
-    </view>
-    <view class="escrow-expire-tip" wx:if="{{escrowExpiresAt}}">
-      <text>⏰ 请在 {{escrowExpiresAt}} 前完成确认，超时将自动取消</text>
-    </view>
-    <view class="escrow-fee-info" wx:if="{{purchaseResult}}">
-      <view class="modal-row" wx:if="{{purchaseResult.order_no}}">
-        <text class="row-label">订单编号</text>
-        <text class="row-value">{{purchaseResult.order_no}}</text>
-      </view>
-      <view class="modal-row" wx:if="{{purchaseResult.gross_amount}}">
-        <text class="row-label">总金额</text>
-        <text class="row-value">{{purchaseResult.gross_amount}}</text>
-      </view>
-      <view class="modal-row" wx:if="{{purchaseResult.fee_amount}}">
-        <text class="row-label">手续费</text>
-        <text class="row-value">{{purchaseResult.fee_amount}}</text>
-      </view>
-    </view>
-    <view class="escrow-actions">
-      <button class="modal-btn secondary-btn" bindtap="onCloseEscrowGuide">稍后处理</button>
-      <button class="modal-btn" bindtap="onGoToMyOrders">查看我的订单</button>
-    </view>
-  </view>
-
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
-</view>
+</scroll-view>

@@ -1,3 +1,9 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* ============================================================================
  * 🏰 我的仓库 - 统一紫蓝毛玻璃设计风格
  * ============================================================================
@@ -10,7 +16,9 @@
 
 /* ===== 页面容器 ===== */
 .warehouse-page {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(
     135deg,
     var(--tg-gradient-primary-start) 0%,
@@ -83,9 +91,6 @@
   font-size: 34rpx;
   font-weight: 800;
   background: linear-gradient(135deg, var(--tg-text-primary), var(--tg-gradient-primary-start));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   letter-spacing: 1rpx;
 }
 
@@ -975,9 +980,6 @@
   font-size: 36rpx;
   font-weight: 800;
   background: linear-gradient(135deg, var(--tg-text-primary), var(--tg-gradient-primary-start));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   margin-bottom: 12rpx;
   position: relative;
   z-index: 2;
@@ -1034,9 +1036,6 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   font-weight: 800;
   margin-bottom: 28rpx;
 }

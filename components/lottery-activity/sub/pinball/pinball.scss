@@ -134,7 +134,7 @@
   opacity: 0;
   animation: particleFloat linear infinite;
 
-  text {
+  .particle-text {
     display: block;
   }
 }
@@ -331,8 +331,6 @@
     var(--tg-lottery-accent-bright, #ffa500) 80%,
     #cc7700 100%
   );
-  -webkit-background-clip: text;
-  background-clip: text;
   text-shadow: none;
   filter: drop-shadow(0 3rpx 8rpx var(--tg-lottery-accent-glow-soft, rgba(255, 200, 0, 0.6)));
 }

@@ -127,8 +127,17 @@ async function getDiyTemplateBeads(
  * 获取所有材料分组列表
  * GET /api/v4/diy/material-groups
  *
+ * 后端路由: routes/v4/diy.js 第81行
+ * 服务层: DIYService.getMaterialGroups()
+ * 数据库: diy_materials 表（21条材料），通过 group_code 字段 GROUP BY 聚合
+ * 无独立 diy_material_groups 表
+ *
  * 返回: [{ group_code, count, sample_name }]
- * 6个颜色分组: red(红)/orange(橙)/yellow(黄)/green(绿)/blue(蓝)/purple(紫)
+ * 6个颜色分组: red(红3)/orange(橙2)/yellow(黄8)/green(绿3)/blue(蓝2)/purple(紫3)
+ *
+ * ⚠️ 需后端确认: sample_name 字段是否在 Service 层返回
+ *    前端 Tab 上需要显示每组的代表材料名
+ *    当前前端 diy-design.ts 从珠子数据自行聚合生成 sample_name 作为备用方案
  */
 async function getDiyMaterialGroups(): Promise<API.ApiResponse<API.DiyMaterialGroup[]>> {
   return apiClient.request('/diy/material-groups', { method: 'GET' })

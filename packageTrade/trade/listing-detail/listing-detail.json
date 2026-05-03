@@ -12,5 +12,6 @@
     "t-dialog": "/miniprogram_npm/tdesign-miniprogram/dialog/dialog",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "disableScroll": true
 }

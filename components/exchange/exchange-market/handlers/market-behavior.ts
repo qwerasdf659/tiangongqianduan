@@ -553,7 +553,7 @@ module.exports = Behavior({
         return
       }
       const cardIndex = e.currentTarget.dataset.cardIndex
-      const query = wx.createSelectorQuery().in(this)
+      const query = this.createSelectorQuery()
       query
         .select(`[data-card-index="${cardIndex}"]`)
         .boundingClientRect((rect: any) => {

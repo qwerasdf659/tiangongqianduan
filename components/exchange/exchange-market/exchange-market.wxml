@@ -5,6 +5,7 @@
     <!-- 资产余额独占一行：横向可滚动，动态适配任意数量资产 -->
     <view class="asset-balances-area">
       <scroll-view
+        type="custom"
         class="asset-balances-scroll"
         scroll-x="{{true}}"
         enhanced="{{true}}"
@@ -280,6 +281,7 @@
 
   <!--可滚动商品列表-->
   <scroll-view
+    type="list"
     class="market-scroll-content"
     scroll-y="{{true}}"
     enhanced="{{true}}"
@@ -314,6 +316,7 @@
           <view class="type-bar ad-type"></view>
           <view class="card-image-area">
             <image
+              class="card-image-area-image"
               wx:if="{{item.image}}"
               src="{{item.image}}"
               mode="aspectFill"
@@ -353,6 +356,7 @@
 
           <view class="card-image-area">
             <image
+              class="card-image-area-image"
               wx:if="{{item.imageStatus !== 'error'}}"
               src="{{item.image}}"
               mode="aspectFill"
@@ -435,7 +439,7 @@
         <text class="manage-bar-icon">📋</text>
         <text class="manage-bar-text">我的挂单</text>
         <view class="manage-bar-badge" wx:if="{{myOnSaleCount > 0}}">
-          <text>{{myOnSaleCount > 99 ? '99+' : myOnSaleCount}}</text>
+          <text class="manage-bar-badge-text">{{myOnSaleCount > 99 ? '99+' : myOnSaleCount}}</text>
         </view>
       </view>
       <view class="manage-bar-divider"></view>

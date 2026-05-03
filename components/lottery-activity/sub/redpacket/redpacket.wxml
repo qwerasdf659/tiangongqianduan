@@ -27,7 +27,7 @@
           </view>
           <!-- 编号 -->
           <view class="packet-number">
-            <text class="count-text">{{item.id + 1}}</text>
+            <text class="count-text packet-number-text">{{item.id + 1}}</text>
           </view>
           <!-- 点击提示 -->
           <view class="packet-tap-hint" wx:if="{{canSelect && selectedPacket < 0}}">
@@ -93,7 +93,7 @@
               <text class="deco-text">恭喜发财</text>
             </view>
             <view class="packet-number">
-              <text class="count-text">{{packet.index + 1}}</text>
+              <text class="count-text packet-number-text">{{packet.index + 1}}</text>
             </view>
           </view>
 
@@ -127,6 +127,7 @@
       <text class="rp-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="rp-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

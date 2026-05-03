@@ -1,8 +1,16 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 积分活动记录页面样式 - V6.0 紫蓝主题统一版（与 points-detail 风格一致） */
 @import '../../../styles/mixins';
 
 .trade-upload-records-container {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--tg-gradient-primary);
   padding-bottom: 40rpx;
 }
@@ -10,8 +18,7 @@
 /* 🔴 Tab切换栏 */
 .tab-section {
   padding: 20rpx;
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 100;
 }
 

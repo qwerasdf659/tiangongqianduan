@@ -43,7 +43,7 @@
     <!-- 卡片网格（2列或3列，根据总数自适应） -->
     <view class="book-grid cols-{{gridCols}}">
       <view
-        class="gc {{item.collected ? 'gc-got' : 'gc-miss'}} {{item.isNew ? 'gc-new' : ''}} {{revealingIndex === item.index ? 'gc-fly' : ''}} {{tappedIndex === item.index ? 'gc-tap' : ''}}"
+        class="gc gc-{{item.index}} {{item.collected ? 'gc-got' : 'gc-miss'}} {{item.isNew ? 'gc-new' : ''}} {{revealingIndex === item.index ? 'gc-fly' : ''}}"
         wx:for="{{cards}}"
         wx:key="index"
         data-idx="{{item.index}}"
@@ -79,7 +79,7 @@
   </view>
 
   <!-- ===== 中央舞台揭晓弹层 ===== -->
-  <view class="reveal-overlay {{showReveal ? 'show' : ''}}" catchtouchmove="noop">
+  <view class="reveal-overlay {{showReveal ? 'show' : ''}}" catch:touchmove="noop">
     <view class="reveal-backdrop" />
 
     <!-- 爆炸粒子 -->
@@ -158,6 +158,7 @@
       <text class="ccl-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="ccl-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

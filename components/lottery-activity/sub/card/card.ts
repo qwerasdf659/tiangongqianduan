@@ -2,9 +2,12 @@
  * 卡牌翻转 子组件 - 3张卡牌选1张翻转（增强动效版）
  * 支持单抽（3选1）、连翻（N张逐张翻开）和选牌（M选N）三种模式
  * @file sub/card/card.ts
+ * @version 6.0.0 — Skyline Worklet 动画驱动
  */
 
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
+
+const { shared, timing, runOnJS } = wx.worklet
 
 Component({
   behaviors: [prizeImageBehavior],
@@ -135,18 +138,23 @@ Component({
         showGlow: false
       })
 
-      /* 交错入场：每张卡牌依次出现，全部入场后才可选择 */
-      setTimeout(() => {
-        this.setData({ entered: true })
-      }, 50)
+      // Worklet 驱动入场动画编排
+      this._entryProgress = shared(0)
+      const totalDelay = 50 + cards.length * 150 + 500
+      this._entryProgress.value = timing(1, { duration: 50 }, () => {
+        'worklet'
+        runOnJS(this._onEntryStart.bind(this))()
+      })
 
-      /* 入场动画结束后开放选择 */
-      setTimeout(
-        () => {
-          this.setData({ canSelect: true })
-        },
-        50 + cards.length * 150 + 500
-      )
+      // 入场动画结束后开放选择
+      this._entryTimer = setTimeout(() => {
+        this.setData({ canSelect: true })
+      }, totalDelay)
+    },
+
+    /** 入场动画开始回调 */
+    _onEntryStart() {
+      this.setData({ entered: true })
     },
 
     /** 选择卡牌 - 单抽模式 */
@@ -164,7 +172,7 @@ Component({
       this.triggerEvent('draw', { count: 1 })
     },
 
-    /** 翻转选中的卡牌 - 单抽模式 */
+    /** 翻转选中的卡牌 — Worklet timing 驱动 3D rotateY */
     _flipCard() {
       const { selectedIndex, cards } = this.data
       const drawResult = (this.properties.drawResult as any) || null
@@ -184,30 +192,55 @@ Component({
           : card
       )
 
+      // 先更新数据，再用 Worklet 驱动翻转
       const step1 = nextCards.map((c: any, i: number) => ({
         ...c,
         flipped: i === selectedIndex
       }))
       this.setData({ cards: step1, flipped: true, waiting: false })
 
-      setTimeout(() => {
-        this.setData({ showGlow: true })
-        wx.vibrateShort({ type: 'heavy' })
-      }, 800)
+      // Worklet 驱动光晕显示（替代 setTimeout 800ms）
+      this._glowOpacity = shared(0)
+      this._glowOpacity.value = timing(1, { duration: 800 }, () => {
+        'worklet'
+        runOnJS(this._onGlowReady.bind(this))()
+      })
 
-      setTimeout(() => {
-        const allFlipped = nextCards.map((c: any) => ({ ...c, flipped: true }))
-        this.setData({ cards: allFlipped })
-      }, 1200)
+      // Worklet 驱动其余卡牌翻开（替代 setTimeout 1200ms）
+      this._revealProgress = shared(0)
+      this._revealProgress.value = timing(1, { duration: 1200 }, () => {
+        'worklet'
+        runOnJS(this._onAllCardsReveal.bind(this, nextCards))()
+      })
 
-      setTimeout(() => {
-        this.triggerEvent('animationEnd')
-      }, 2200)
+      // Worklet 驱动动画结束通知（替代 setTimeout 2200ms）
+      this._endProgress = shared(0)
+      this._endProgress.value = timing(1, { duration: 2200 }, () => {
+        'worklet'
+        runOnJS(this._onFlipAnimationEnd.bind(this))()
+      })
+    },
+
+    /** 光晕就绪回调 */
+    _onGlowReady() {
+      this.setData({ showGlow: true })
+      wx.vibrateShort({ type: 'heavy' })
+    },
+
+    /** 所有卡牌翻开回调 */
+    _onAllCardsReveal(nextCards: any[]) {
+      const allFlipped = nextCards.map((c: any) => ({ ...c, flipped: true }))
+      this.setData({ cards: allFlipped })
+    },
+
+    /** 翻转动画结束回调 */
+    _onFlipAnimationEnd() {
+      this.triggerEvent('animationEnd')
     },
 
     /* ===== 连翻模式方法 ===== */
 
-    /** 初始化连翻卡牌 */
+    /** 初始化连翻卡牌 — Worklet 驱动入场 */
     _initMultiFlipCards(count: number, results: any[]) {
       const cards = results.map((prize: any, i: number) => ({
         ...prize,
@@ -229,10 +262,17 @@ Component({
         multiEntered: false
       })
 
-      /* 入场动画 */
-      setTimeout(() => {
-        this.setData({ multiEntered: true })
-      }, 50)
+      // Worklet 驱动入场动画（替代 setTimeout 50ms）
+      this._multiEntryProgress = shared(0)
+      this._multiEntryProgress.value = timing(1, { duration: 50 }, () => {
+        'worklet'
+        runOnJS(this._onMultiEntryReady.bind(this))()
+      })
+    },
+
+    /** 连翻入场就绪回调 */
+    _onMultiEntryReady() {
+      this.setData({ multiEntered: true })
     },
 
     /** 按布局规则分行：3→1排，5→1排，10→上5下5 */
@@ -244,7 +284,7 @@ Component({
       return [cards.slice(0, 5), cards.slice(5)]
     },
 
-    /** 逐张点击翻开 */
+    /** 逐张点击翻开 — Worklet 驱动完成通知 */
     onTapMultiCard(e: any) {
       const rowIdx = e.currentTarget.dataset.row
       const colIdx = e.currentTarget.dataset.col
@@ -255,7 +295,6 @@ Component({
         return
       }
 
-      /* 翻开这张卡 */
       cardRows[rowIdx][colIdx] = { ...card, flipped: true }
       const flippedCount = this.data.flippedCount + 1
       const allFlipped = flippedCount >= this.data.totalCards
@@ -266,45 +305,58 @@ Component({
         allFlipped
       })
 
-      /* 触觉反馈 */
       wx.vibrateShort({ type: 'medium' })
 
-      /* 全部翻完后通知父组件 */
+      // 全部翻完后用 Worklet timing 延迟通知（替代 setTimeout 800ms）
       if (allFlipped) {
-        setTimeout(() => {
-          this.triggerEvent('animationEnd')
-        }, 800)
+        this._multiDoneProgress = shared(0)
+        this._multiDoneProgress.value = timing(1, { duration: 800 }, () => {
+          'worklet'
+          runOnJS(this._onFlipAnimationEnd.bind(this))()
+        })
       }
     },
 
-    /** 一键全部翻开 */
+    /** 一键全部翻开 — Worklet timing 编排逐张翻开 */
     onFlipAll() {
       const cardRows = this.data.cardRows
       let delay = 0
+      const unflippedCards: { row: number; col: number; delay: number }[] = []
 
       for (let r = 0; r < cardRows.length; r++) {
         for (let c = 0; c < cardRows[r].length; c++) {
           if (!cardRows[r][c].flipped) {
-            /* 逐张翻开，间隔150ms */
-            ;((row, col, d) => {
-              setTimeout(() => {
-                const rows = this.data.cardRows
-                rows[row][col] = { ...rows[row][col], flipped: true }
-                const count = this.data.flippedCount + 1
-                const all = count >= this.data.totalCards
-                this.setData({ cardRows: rows, flippedCount: count, allFlipped: all })
-                wx.vibrateShort({ type: 'light' })
-
-                if (all) {
-                  setTimeout(() => {
-                    this.triggerEvent('animationEnd')
-                  }, 800)
-                }
-              }, d)
-            })(r, c, delay)
+            unflippedCards.push({ row: r, col: c, delay })
             delay += 150
           }
         }
+      }
+
+      // 用 Worklet timing 逐张翻开
+      unflippedCards.forEach(item => {
+        const progress = shared(0)
+        progress.value = timing(1, { duration: item.delay + 1 }, () => {
+          'worklet'
+          runOnJS(this._flipOneMultiCard.bind(this, item.row, item.col))()
+        })
+      })
+    },
+
+    /** 翻开连翻模式中的单张卡牌 */
+    _flipOneMultiCard(row: number, col: number) {
+      const rows = this.data.cardRows
+      rows[row][col] = { ...rows[row][col], flipped: true }
+      const count = this.data.flippedCount + 1
+      const all = count >= this.data.totalCards
+      this.setData({ cardRows: rows, flippedCount: count, allFlipped: all })
+      wx.vibrateShort({ type: 'light' })
+
+      if (all) {
+        this._flipAllDone = shared(0)
+        this._flipAllDone.value = timing(1, { duration: 800 }, () => {
+          'worklet'
+          runOnJS(this._onFlipAnimationEnd.bind(this))()
+        })
       }
     },
 
@@ -374,30 +426,52 @@ Component({
       }
     },
 
-    /** 选牌模式：依次翻开选中卡牌 */
+    /** 选牌模式：依次翻开选中卡牌 — Worklet timing 编排 */
     _flipPickedCards() {
       const { selectedIndices } = this.data
       let delay = 0
+
       selectedIndices.forEach((idx: number) => {
-        setTimeout(() => {
-          const updated = this.data.cards.map((c: any, i: number) => ({
-            ...c,
-            flipped: c.flipped || i === idx
-          }))
-          this.setData({ cards: updated })
-          wx.vibrateShort({ type: 'light' })
-        }, delay)
+        const progress = shared(0)
+        progress.value = timing(1, { duration: delay + 1 }, () => {
+          'worklet'
+          runOnJS(this._flipOnePickCard.bind(this, idx))()
+        })
         delay += 400
       })
 
-      setTimeout(() => {
-        this.setData({ pickPhase: 'done' })
-        this.triggerEvent('animationEnd')
-      }, delay + 800)
+      // 全部翻完后通知
+      const doneProgress = shared(0)
+      doneProgress.value = timing(1, { duration: delay + 800 }, () => {
+        'worklet'
+        runOnJS(this._onPickFlipDone.bind(this))()
+      })
+    },
+
+    /** 翻开选牌模式中的单张卡牌 */
+    _flipOnePickCard(idx: number) {
+      const updated = this.data.cards.map((c: any, i: number) => ({
+        ...c,
+        flipped: c.flipped || i === idx
+      }))
+      this.setData({ cards: updated })
+      wx.vibrateShort({ type: 'light' })
+    },
+
+    /** 选牌翻转完成回调 */
+    _onPickFlipDone() {
+      this.setData({ pickPhase: 'done' })
+      this.triggerEvent('animationEnd')
     },
 
     /** 重置卡牌 */
     resetCards() {
+      // 清理 Worklet 定时器
+      if (this._entryTimer) {
+        clearTimeout(this._entryTimer)
+        this._entryTimer = null
+      }
+
       /* 清除连翻状态 */
       this.setData({
         isMultiFlip: false,

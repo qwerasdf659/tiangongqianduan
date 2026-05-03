@@ -1,9 +1,17 @@
 /**
- * 砸金蛋 子组件
+ * 砸金蛋 子组件（Skyline CSS 动画驱动）
  *
  * @description 支持单敲（3选1）和连敲（N个逐个砸开）两种模式。
  *   单敲: 选蛋 → 触发抽奖API → 播放砸蛋动画 → 通知父组件动画结束
  *   连敲: 父组件传入结果 → 展示N个蛋 → 逐个/全部砸开 → 通知父组件
+ *
+ * 动画策略：砸金蛋为离散状态切换（shaking→cracked），
+ * 使用 CSS @keyframes 驱动更合适，无需 Worklet 连续动画。
+ *
+ * 优化点：
+ *   - 连敲 onSmashAll 批量操作改为合并 setData，减少高频调用
+ *   - 微小延迟用 wx.nextTick 替代 setTimeout
+ *   - showFlash 闪烁在批量模式下合并为单次
  *
  * @file sub/egg/egg.ts
  */
@@ -179,9 +187,10 @@ Component({
         showFlash: false
       })
 
-      setTimeout(() => {
+      /* 入场动画：用 wx.nextTick 替代 setTimeout(50ms)，减少不必要的延迟 */
+      wx.nextTick(() => {
         this.setData({ multiEntered: true })
-      }, 50)
+      })
     },
 
     /** 按布局规则分行：3→1排，5→1排，10→上5下5 */
@@ -237,54 +246,82 @@ Component({
       }, 600)
     },
 
-    /** 一键全部砸开 */
+    /**
+     * 一键全部砸开（Skyline 优化版）
+     * 优化：将每个蛋的 shaking→cracked 两步合并为批量 setData，
+     * 每批只触发 2 次 setData（晃动 + 砸碎），大幅减少渲染压力
+     */
     onSmashAll() {
       const eggRows = this.data.eggRows
-      let delay = 0
-
+      /* 收集所有未砸碎的蛋坐标 */
+      const pending: Array<{ row: number; col: number }> = []
       for (let r = 0; r < eggRows.length; r++) {
         for (let c = 0; c < eggRows[r].length; c++) {
           if (!eggRows[r][c].cracked) {
-            ;((row, col, d) => {
-              /* 先晃动 */
-              setTimeout(() => {
-                const rows = this.data.eggRows
-                rows[row][col] = { ...rows[row][col], shaking: true }
-                this.setData({ eggRows: rows })
-              }, d)
-
-              /* 再砸碎 */
-              setTimeout(() => {
-                const rows = this.data.eggRows
-                rows[row][col] = { ...rows[row][col], shaking: false, cracked: true }
-                const count = this.data.crackedCount + 1
-                const all = count >= this.data.totalEggs
-                this.setData({
-                  eggRows: rows,
-                  crackedCount: count,
-                  allCracked: all,
-                  showFlash: true
-                })
-                setTimeout(() => {
-                  this.setData({ showFlash: false })
-                }, 100)
-                try {
-                  wx.vibrateShort({ type: 'light' })
-                } catch (_e) {
-                  /* */
-                }
-
-                if (all) {
-                  setTimeout(() => {
-                    this.triggerEvent('animationEnd')
-                  }, 800)
-                }
-              }, d + 400)
-            })(r, c, delay)
-            delay += 300
+            pending.push({ row: r, col: c })
           }
         }
       }
+      if (pending.length === 0) {
+        return
+      }
+
+      let batchIdx = 0
+      const batchSize = 3
+      const batchInterval = 300
+
+      const processBatch = () => {
+        const start = batchIdx * batchSize
+        const batch = pending.slice(start, start + batchSize)
+        if (batch.length === 0) {
+          return
+        }
+
+        /* 第一步：批量设置晃动 */
+        const rows = this.data.eggRows
+        batch.forEach(({ row, col }) => {
+          rows[row][col] = { ...rows[row][col], shaking: true }
+        })
+        this.setData({ eggRows: rows })
+
+        /* 第二步：批量砸碎 + 白闪 */
+        setTimeout(() => {
+          const rows2 = this.data.eggRows
+          batch.forEach(({ row, col }) => {
+            rows2[row][col] = { ...rows2[row][col], shaking: false, cracked: true }
+          })
+          const count = this.data.crackedCount + batch.length
+          const all = count >= this.data.totalEggs
+          this.setData({
+            eggRows: rows2,
+            crackedCount: count,
+            allCracked: all,
+            showFlash: true
+          })
+
+          /* 白闪消除 */
+          setTimeout(() => {
+            this.setData({ showFlash: false })
+          }, 100)
+
+          try {
+            wx.vibrateShort({ type: 'light' })
+          } catch (_e) {
+            /* */
+          }
+
+          if (all) {
+            setTimeout(() => {
+              this.triggerEvent('animationEnd')
+            }, 800)
+          } else {
+            batchIdx++
+            setTimeout(processBatch, batchInterval)
+          }
+        }, 400)
+      }
+
+      processBatch()
     },
 
     /** 重置 */

@@ -27,6 +27,6 @@
 
   <!-- 库存不足（stock=0时售罄，stock=-1表示无限库存） -->
   <view wx:if="{{bead.stock === 0}}" class="bead-sold-out">
-    <text>售罄</text>
+    <text class="bead-sold-out-text">售罄</text>
   </view>
 </view>

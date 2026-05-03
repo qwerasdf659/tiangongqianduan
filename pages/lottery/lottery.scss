@@ -1,10 +1,19 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 抽奖页面样式 - V5.1 Sass模块化版本 */
 /* 从2721行拆分为6个文件: 公共样式 + 5个模块partial */
 @import '../../styles/mixins';
 
 /* 🎨 优化整体容器设计 */
 .lottery-container {
-  min-height: 100vh;
+  /* Skyline flex 布局：占满 page 剩余高度 */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(
     135deg,
     var(--tg-gradient-primary-start) 0%,
@@ -12,7 +21,6 @@
   );
   padding: 20rpx 20rpx 20rpx 20rpx;
   position: relative;
-  padding-top: calc(env(safe-area-inset-top) + 20rpx);
 }
 
 /* 装饰性径向渐变已移除（去塑料感） */

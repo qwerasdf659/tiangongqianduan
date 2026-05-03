@@ -583,7 +583,7 @@
   animation: particleFloatRetro linear infinite;
   opacity: 0.5;
 
-  text {
+  .particle-text {
     filter: drop-shadow(2rpx 2rpx 0 rgba(0, 0, 0, 0.5));
   }
 

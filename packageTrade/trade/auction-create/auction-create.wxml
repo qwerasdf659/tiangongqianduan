@@ -3,171 +3,175 @@
 <custom-navbar title="发起拍卖" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="auction-create-container">
-  <!--步骤1：选择物品-->
-  <block wx:if="{{step === 'select_item'}}">
-    <view class="step-header">
-      <text class="step-title">选择拍卖物品</text>
-      <text class="step-hint">从背包中选择一个可交易的物品</text>
-    </view>
-
-    <!--加载中-->
-    <view class="items-loading" wx:if="{{itemsLoading}}">
-      <t-loading loading="{{true}}" text="加载背包物品..." theme="spinner" />
-    </view>
-
-    <!--空状态-->
-    <view class="items-empty" wx:elif="{{itemsEmpty}}">
-      <t-empty description="暂无可拍卖的物品">
-        <text slot="description">只有available状态且允许交易的物品可以拍卖</text>
-      </t-empty>
-    </view>
-
-    <!--物品列表-->
-    <view class="items-grid" wx:else>
-      <view
-        class="item-card"
-        wx:for="{{availableItems}}"
-        wx:key="item_id"
-        data-item="{{item}}"
-        bindtap="onSelectItem"
-      >
-        <image class="item-image" src="{{item._displayImage}}" mode="aspectFill" lazy-load />
-        <view class="item-info">
-          <text class="item-name">{{item._displayName}}</text>
-          <text class="item-rarity" wx:if="{{item._rarityLabel}}">{{item._rarityLabel}}</text>
-        </view>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!--步骤1：选择物品-->
+    <block wx:if="{{step === 'select_item'}}">
+      <view class="step-header">
+        <text class="step-title">选择拍卖物品</text>
+        <text class="step-hint">从背包中选择一个可交易的物品</text>
       </view>
-    </view>
-  </block>
 
-  <!--步骤2：设置参数-->
-  <block wx:elif="{{step === 'set_params'}}">
-    <view class="step-header">
-      <view class="back-btn" bindtap="onBackToSelectItem">
-        <text>← 重新选择</text>
+      <!--加载中-->
+      <view class="items-loading" wx:if="{{itemsLoading}}">
+        <t-loading loading="{{true}}" text="加载背包物品..." theme="spinner" />
       </view>
-      <text class="step-title">设置拍卖参数</text>
-    </view>
 
-    <!--选中的物品预览-->
-    <view class="selected-item-preview" wx:if="{{selectedItem}}">
-      <image class="preview-image" src="{{selectedItem._displayImage}}" mode="aspectFill" />
-      <view class="preview-info">
-        <text class="preview-name">{{selectedItem._displayName}}</text>
-        <text class="preview-rarity" wx:if="{{selectedItem._rarityLabel}}"
-          >{{selectedItem._rarityLabel}}</text
+      <!--空状态-->
+      <view class="items-empty" wx:elif="{{itemsEmpty}}">
+        <t-empty description="暂无可拍卖的物品">
+          <text slot="description">只有available状态且允许交易的物品可以拍卖</text>
+        </t-empty>
+      </view>
+
+      <!--物品列表-->
+      <view class="items-grid" wx:else>
+        <view
+          class="item-card"
+          wx:for="{{availableItems}}"
+          wx:key="item_id"
+          data-item="{{item}}"
+          bindtap="onSelectItem"
         >
-      </view>
-    </view>
-
-    <!--参数表单-->
-    <view class="form-section">
-      <!--出价币种-->
-      <view class="form-group" wx:if="{{currencies.length > 0}}">
-        <text class="form-label">出价币种</text>
-        <picker
-          mode="selector"
-          range="{{currencies}}"
-          range-key="display_name"
-          value="{{selectedCurrencyIndex}}"
-          bindchange="onCurrencyChange"
-        >
-          <view class="form-picker">
-            <text>{{currencies[selectedCurrencyIndex].display_name || '星石'}}</text>
-            <text class="picker-arrow">▼</text>
-          </view>
-        </picker>
-      </view>
-
-      <!--起拍价-->
-      <view class="form-group">
-        <text class="form-label">起拍价 <text class="required">*</text></text>
-        <input
-          class="form-input"
-          type="number"
-          placeholder="请输入起拍价"
-          value="{{startPrice}}"
-          bindinput="onStartPriceInput"
-        />
-      </view>
-
-      <!--最小加价幅度-->
-      <view class="form-group">
-        <text class="form-label">最小加价幅度</text>
-        <input
-          class="form-input"
-          type="number"
-          placeholder="默认10"
-          value="{{minBidIncrement}}"
-          bindinput="onMinBidIncrementInput"
-        />
-      </view>
-
-      <!--一口价-->
-      <view class="form-group">
-        <view class="form-label-row">
-          <text class="form-label">一口价</text>
-          <switch checked="{{enableBuyout}}" bindchange="onToggleBuyout" color="#FF6B35" />
-        </view>
-        <input
-          class="form-input"
-          wx:if="{{enableBuyout}}"
-          type="number"
-          placeholder="出价达到此金额立即成交"
-          value="{{buyoutPrice}}"
-          bindinput="onBuyoutPriceInput"
-        />
-        <text class="form-hint" wx:if="{{enableBuyout}}">一口价必须大于起拍价，达到后立即结算</text>
-      </view>
-
-      <!--开始时间-->
-      <view class="form-group">
-        <text class="form-label">开始时间</text>
-        <view class="time-type-row">
-          <view
-            class="time-type-btn {{startTimeType === 'now' ? 'active' : ''}}"
-            data-type="now"
-            bindtap="onStartTimeTypeChange"
-          >
-            <text>立即开始</text>
-          </view>
-          <view
-            class="time-type-btn {{startTimeType === 'custom' ? 'active' : ''}}"
-            data-type="custom"
-            bindtap="onStartTimeTypeChange"
-          >
-            <text>定时开始</text>
+          <image class="item-image" src="{{item._displayImage}}" mode="aspectFill" lazy-load />
+          <view class="item-info">
+            <text class="item-name">{{item._displayName}}</text>
+            <text class="item-rarity" wx:if="{{item._rarityLabel}}">{{item._rarityLabel}}</text>
           </view>
         </view>
-        <view class="custom-time-row" wx:if="{{startTimeType === 'custom'}}">
-          <picker mode="date" bindchange="onCustomStartDateChange" value="{{customStartDate}}">
-            <view class="date-picker">{{customStartDate || '选择日期'}}</view>
-          </picker>
-          <picker mode="time" bindchange="onCustomStartTimeChange" value="{{customStartTime}}">
-            <view class="time-picker">{{customStartTime || '选择时间'}}</view>
+      </view>
+    </block>
+
+    <!--步骤2：设置参数-->
+    <block wx:elif="{{step === 'set_params'}}">
+      <view class="step-header">
+        <view class="back-btn" bindtap="onBackToSelectItem">
+          <text>← 重新选择</text>
+        </view>
+        <text class="step-title">设置拍卖参数</text>
+      </view>
+
+      <!--选中的物品预览-->
+      <view class="selected-item-preview" wx:if="{{selectedItem}}">
+        <image class="preview-image" src="{{selectedItem._displayImage}}" mode="aspectFill" />
+        <view class="preview-info">
+          <text class="preview-name">{{selectedItem._displayName}}</text>
+          <text class="preview-rarity" wx:if="{{selectedItem._rarityLabel}}"
+            >{{selectedItem._rarityLabel}}</text
+          >
+        </view>
+      </view>
+
+      <!--参数表单-->
+      <view class="form-section">
+        <!--出价币种-->
+        <view class="form-group" wx:if="{{currencies.length > 0}}">
+          <text class="form-label">出价币种</text>
+          <picker
+            mode="selector"
+            range="{{currencies}}"
+            range-key="display_name"
+            value="{{selectedCurrencyIndex}}"
+            bindchange="onCurrencyChange"
+          >
+            <view class="form-picker">
+              <text>{{currencies[selectedCurrencyIndex].display_name || '星石'}}</text>
+              <text class="picker-arrow">▼</text>
+            </view>
           </picker>
         </view>
+
+        <!--起拍价-->
+        <view class="form-group">
+          <text class="form-label">起拍价 <text class="required">*</text></text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="请输入起拍价"
+            value="{{startPrice}}"
+            bindinput="onStartPriceInput"
+          />
+        </view>
+
+        <!--最小加价幅度-->
+        <view class="form-group">
+          <text class="form-label">最小加价幅度</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="默认10"
+            value="{{minBidIncrement}}"
+            bindinput="onMinBidIncrementInput"
+          />
+        </view>
+
+        <!--一口价-->
+        <view class="form-group">
+          <view class="form-label-row">
+            <text class="form-label">一口价</text>
+            <switch checked="{{enableBuyout}}" bindchange="onToggleBuyout" color="#FF6B35" />
+          </view>
+          <input
+            class="form-input"
+            wx:if="{{enableBuyout}}"
+            type="number"
+            placeholder="出价达到此金额立即成交"
+            value="{{buyoutPrice}}"
+            bindinput="onBuyoutPriceInput"
+          />
+          <text class="form-hint" wx:if="{{enableBuyout}}"
+            >一口价必须大于起拍价，达到后立即结算</text
+          >
+        </view>
+
+        <!--开始时间-->
+        <view class="form-group">
+          <text class="form-label">开始时间</text>
+          <view class="time-type-row">
+            <view
+              class="time-type-btn {{startTimeType === 'now' ? 'active' : ''}}"
+              data-type="now"
+              bindtap="onStartTimeTypeChange"
+            >
+              <text>立即开始</text>
+            </view>
+            <view
+              class="time-type-btn {{startTimeType === 'custom' ? 'active' : ''}}"
+              data-type="custom"
+              bindtap="onStartTimeTypeChange"
+            >
+              <text>定时开始</text>
+            </view>
+          </view>
+          <view class="custom-time-row" wx:if="{{startTimeType === 'custom'}}">
+            <picker mode="date" bindchange="onCustomStartDateChange" value="{{customStartDate}}">
+              <view class="date-picker">{{customStartDate || '选择日期'}}</view>
+            </picker>
+            <picker mode="time" bindchange="onCustomStartTimeChange" value="{{customStartTime}}">
+              <view class="time-picker">{{customStartTime || '选择时间'}}</view>
+            </picker>
+          </view>
+        </view>
+
+        <!--拍卖时长-->
+        <view class="form-group">
+          <text class="form-label">拍卖时长（小时）</text>
+          <input
+            class="form-input"
+            type="number"
+            placeholder="默认24小时（最少2小时）"
+            value="{{durationHours}}"
+            bindinput="onDurationChange"
+          />
+          <text class="form-hint">最小时长2小时，建议24小时以获得更多出价</text>
+        </view>
       </view>
 
-      <!--拍卖时长-->
-      <view class="form-group">
-        <text class="form-label">拍卖时长（小时）</text>
-        <input
-          class="form-input"
-          type="number"
-          placeholder="默认24小时（最少2小时）"
-          value="{{durationHours}}"
-          bindinput="onDurationChange"
-        />
-        <text class="form-hint">最小时长2小时，建议24小时以获得更多出价</text>
+      <!--提交按钮-->
+      <view class="submit-section">
+        <view class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmitAuction">
+          <text>{{submitting ? '创建中...' : '🔨 发起拍卖'}}</text>
+        </view>
       </view>
-    </view>
-
-    <!--提交按钮-->
-    <view class="submit-section">
-      <view class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmitAuction">
-        <text>{{submitting ? '创建中...' : '🔨 发起拍卖'}}</text>
-      </view>
-    </view>
-  </block>
+    </block>
+  </scroll-view>
 </view>

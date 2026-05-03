@@ -170,14 +170,15 @@ Page({
       return
     }
 
-    wx.chooseImage({
+    wx.chooseMedia({
       count: maxImages - currentCount,
+      mediaType: ['image'],
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: res => {
-        const newImages = res.tempFilePaths.map(path => ({
-          path,
-          size: 0,
+        const newImages = res.tempFiles.map((file: any) => ({
+          path: file.tempFilePath,
+          size: file.size || 0,
           name: `feedback_${Date.now()}.jpg`
         }))
 

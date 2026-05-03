@@ -131,16 +131,53 @@ async function getFeedbackDetail(feedbackId: number) {
   })
 }
 
-/** 获取系统状态- GET /api/v4/system/status */
+/**
+ * 获取系统状态（健康检查）- GET /api/v4/system/status
+ *
+ * 后端使用 optionalAuth 中间件 — 未登录也可调用
+ * 已登录管理员（role_level >= 100）额外返回 statistics 字段
+ * 前端判断 success: true 即表示服务正常
+ *
+ * 响应格式:
+ *   { success, data: { system: { server_time, status, version, statistics? } } }
+ */
 async function getSystemStatus() {
-  return apiClient.request('/system/status', { method: 'GET', needAuth: true })
+  return apiClient.request('/system/status', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
 }
 
-/** 获取系统字典 - GET /api/v4/system/dictionaries */
-async function getDictionaries(params: Record<string, any> = {}) {
-  const qs = buildQueryString(params)
-  const url: string = qs ? `/system/dictionaries?${qs}` : '/system/dictionaries'
-  return apiClient.request(url, {
+/**
+ * 获取所有字典类型列表 - GET /api/v4/system/dictionaries/types
+ *
+ * 后端无 /system/dictionaries 根路径列表接口
+ * 实际提供4个子接口: /types、/type/:dictType、/lookup、/:dictId
+ * 此函数获取所有字典类型列表（无需认证）
+ *
+ * 数据库: system_dictionaries 表（412条数据，83种字典类型）
+ */
+async function getDictionaryTypes() {
+  return apiClient.request('/system/dictionaries/types', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 获取指定类型的字典项 - GET /api/v4/system/dictionaries/type/:dictType
+ *
+ * @param dictType - 字典类型代码（如 user_status、campaign_status、prize_type、consumption_status 等）
+ */
+async function getDictionaryByType(dictType: string) {
+  if (!dictType) {
+    throw new Error('字典类型不能为空')
+  }
+  return apiClient.request(`/system/dictionaries/type/${dictType}`, {
     method: 'GET',
     needAuth: false,
     showLoading: false,
@@ -372,10 +409,14 @@ async function getUserIssues(page: number = 1, page_size: number = 10) {
  * ⚠️ 此接口为管理员后台专用（authenticateToken + requireRoleLevel(100)）
  * 用于配置活动参与条件、测试用户资格等管理功能
  * 普通用户浏览活动请使用 lottery.ts 中的 getActiveCampaigns()
+ *
+ * 后端实际参数: status（可选筛选）、page_size（作为 limit 限制数量）
+ * 后端不使用 page 参数（无分页偏移），返回格式: { activities: [...], total: number }
+ * 底层查询 lottery_campaigns 表（当前4条活动）
  */
-async function getActivities(params: { page?: number; page_size?: number } = {}) {
-  const { page = 1, page_size = 20 } = params
-  const qs = buildQueryString({ page, page_size })
+async function getActivities(params: { status?: string; page_size?: number } = {}) {
+  const { status, page_size = 20 } = params
+  const qs = buildQueryString({ status, page_size })
   return apiClient.request(`/activities?${qs}`, {
     method: 'GET',
     needAuth: true,
@@ -443,7 +484,8 @@ module.exports = {
   getMyFeedbacks,
   getFeedbackDetail,
   getSystemStatus,
-  getDictionaries,
+  getDictionaryTypes,
+  getDictionaryByType,
   getNotifications,
   createChatSession,
   getChatSessions,

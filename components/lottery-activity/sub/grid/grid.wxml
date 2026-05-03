@@ -12,7 +12,8 @@
   <view class="prize-grid">
     <!-- 奖品区域0 - 左上角（sort_order=1） -->
     <view
-      class="prize-area {{currentHighlight === 0 ? 'highlighted' : ''}} {{winningIndex === 0 ? 'winning' : ''}} {{prizes[0].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[0].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-0"
+      class="prize-area {{prizes[0].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[0].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="0"
     >
       <rarity-effects rarity="{{prizes[0].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -37,7 +38,8 @@
 
     <!-- 奖品区域1 - 中上（sort_order=2） -->
     <view
-      class="prize-area {{currentHighlight === 1 ? 'highlighted' : ''}} {{winningIndex === 1 ? 'winning' : ''}} {{prizes[1].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[1].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-1"
+      class="prize-area {{prizes[1].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[1].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="1"
     >
       <rarity-effects rarity="{{prizes[1].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -62,7 +64,8 @@
 
     <!-- 奖品区域2 - 右上角（sort_order=3） -->
     <view
-      class="prize-area {{currentHighlight === 2 ? 'highlighted' : ''}} {{winningIndex === 2 ? 'winning' : ''}} {{prizes[2].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[2].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-2"
+      class="prize-area {{prizes[2].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[2].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="2"
     >
       <rarity-effects rarity="{{prizes[2].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -87,7 +90,8 @@
 
     <!-- 奖品区域7 - 左中（sort_order=8） -->
     <view
-      class="prize-area {{currentHighlight === 7 ? 'highlighted' : ''}} {{winningIndex === 7 ? 'winning' : ''}} {{prizes[7].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[7].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-7"
+      class="prize-area {{prizes[7].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[7].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="7"
     >
       <rarity-effects rarity="{{prizes[7].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -123,7 +127,8 @@
 
     <!-- 奖品区域3 - 右中（sort_order=4） -->
     <view
-      class="prize-area {{currentHighlight === 3 ? 'highlighted' : ''}} {{winningIndex === 3 ? 'winning' : ''}} {{prizes[3].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[3].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-3"
+      class="prize-area {{prizes[3].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[3].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="3"
     >
       <rarity-effects rarity="{{prizes[3].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -148,7 +153,8 @@
 
     <!-- 奖品区域6 - 左下角（sort_order=7） -->
     <view
-      class="prize-area {{currentHighlight === 6 ? 'highlighted' : ''}} {{winningIndex === 6 ? 'winning' : ''}} {{prizes[6].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[6].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-6"
+      class="prize-area {{prizes[6].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[6].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="6"
     >
       <rarity-effects rarity="{{prizes[6].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -173,7 +179,8 @@
 
     <!-- 奖品区域5 - 中下（sort_order=6） -->
     <view
-      class="prize-area {{currentHighlight === 5 ? 'highlighted' : ''}} {{winningIndex === 5 ? 'winning' : ''}} {{prizes[5].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[5].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-5"
+      class="prize-area {{prizes[5].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[5].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="5"
     >
       <rarity-effects rarity="{{prizes[5].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -198,7 +205,8 @@
 
     <!-- 奖品区域4 - 右下角（sort_order=5） -->
     <view
-      class="prize-area {{currentHighlight === 4 ? 'highlighted' : ''}} {{winningIndex === 4 ? 'winning' : ''}} {{prizes[4].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[4].is_sold_out ? 'prize-area--sold-out' : ''}}"
+      id="prize-cell-4"
+      class="prize-area {{prizes[4].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[4].is_sold_out ? 'prize-area--sold-out' : ''}}"
       data-index="4"
     >
       <rarity-effects rarity="{{prizes[4].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
@@ -233,6 +241,7 @@
       <text class="grid-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="grid-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

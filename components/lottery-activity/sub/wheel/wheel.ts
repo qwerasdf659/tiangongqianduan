@@ -1,5 +1,6 @@
 /**
  * 转盘 子组件 - conic-gradient扇区 + 极坐标文字定位
+ * 使用 Skyline Worklet 动画驱动旋转
  * @file components/lottery-activity/sub/wheel/wheel.ts
  */
 
@@ -26,6 +27,8 @@ const SECTOR_COLORS = [
 
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
 
+const { shared, timing } = wx.worklet
+
 Component({
   behaviors: [prizeImageBehavior],
 
@@ -43,8 +46,6 @@ Component({
   },
 
   data: {
-    /** 转盘旋转角度 */
-    rotateAngle: 0,
     /** 是否正在旋转 */
     spinning: false,
     /** 每个扇区角度（度） */
@@ -53,6 +54,22 @@ Component({
     conicGradient: '',
     /** 每个奖品的绝对定位样式（极坐标转直角坐标） */
     prizePositions: [] as string[]
+  },
+
+  lifetimes: {
+    attached() {
+      /* 创建 worklet shared value 驱动旋转角度 */
+      this._rotation = shared(0)
+
+      /* 将 shared value 绑定到转盘盘面的 transform 样式 */
+      const rotation = this._rotation
+      this.applyAnimatedStyle('.wheel-plate', () => {
+        'worklet'
+        return {
+          transform: `rotate(${rotation.value}deg)`
+        }
+      })
+    }
   },
 
   observers: {
@@ -136,7 +153,7 @@ Component({
     },
 
     /**
-     * 开始旋转动画
+     * 开始旋转动画（Worklet 驱动）
      * 转盘停止位置由父组件传入的 targetPrizeIndex 决定，与API中奖结果一致
      */
     _startSpin() {
@@ -156,33 +173,32 @@ Component({
       }
       const finalIndex = targetIndex
       const sectorAngle = 360 / count
-      /*
-       * 扇区从12点方向顺时针排列（conic-gradient from -90deg）
-       * 指针固定在12点方向
-       * 盘面最终停止角度 R，指针指向扇区角度 = (360 - R % 360) % 360
-       * 要指向扇区 finalIndex 中心 = finalIndex * sectorAngle + sectorAngle/2
-       * 所以 R % 360 = (360 - finalIndex * sectorAngle - sectorAngle / 2) % 360
-       *
-       * 用绝对角度计算，避免累积误差：
-       * 先将当前角度向上取整到360的倍数，再加额外圈数和目标偏移
-       */
-      const currentAngle = this.data.rotateAngle
+
+      const currentAngle = this._rotation.value
       const baseAngle = Math.ceil(currentAngle / 360) * 360
       const extraRounds = (5 + Math.floor(Math.random() * 4)) * 360
       const stopOffset = (360 - finalIndex * sectorAngle - sectorAngle / 2 + 360) % 360
       const finalAngle = baseAngle + extraRounds + stopOffset
 
-      this.setData({ rotateAngle: finalAngle })
-
-      /* 动画持续约4秒（CSS transition控制），结束后通知父组件 */
-      setTimeout(() => {
+      /* 使用 worklet timing 驱动旋转动画，替代 CSS transition + setTimeout */
+      const onComplete = () => {
         this.setData({ spinning: false })
         this.triggerEvent('animationEnd')
-      }, 4000)
+      }
+
+      this._rotation.value = timing(
+        finalAngle,
+        { duration: 4000, easing: (wx.worklet.Easing as any).bezier(0.17, 0.67, 0.12, 0.99) },
+        () => {
+          'worklet'
+          wx.worklet.runOnJS(onComplete)()
+        }
+      )
     },
 
     /** 统一重置接口（父组件调用） */
     reset() {
+      this._rotation.value = 0
       this.setData({ spinning: false })
     }
   }

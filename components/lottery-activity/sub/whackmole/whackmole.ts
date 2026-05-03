@@ -1,7 +1,7 @@
 /**
  * 打地鼠 子组件 - 趣味性全面增强版
  * @file sub/whackmole/whackmole.ts
- * @version 5.2.0
+ * @version 6.0.0 — Skyline Worklet 动画升级
  *
  * 核心流程（先扣积分）：
  *   1. 用户点"开始游戏" → 调用抽奖接口扣积分 → 后端返回奖品数据
@@ -9,29 +9,17 @@
  *   3. 开始打地鼠游戏（10秒基础 + 连锤加时）
  *   4. 游戏结束 → 播放结算动画 → 揭晓奖品
  *
- * 趣味性增强：
- *   1. 🎨 特殊地鼠类型：
- *      - 金色地鼠：全屏特效 + 连击不断
- *      - 炸弹地鼠：-3秒 + 断连击
- *      - 彩虹地鼠：触发狂欢模式（3秒减速）
- *   2. 🔥 Combo系统：
- *      - 连击飘字 x2、x3...
- *      - 锤子外观变化（普通→火焰→雷电）
- *   3. 📈 节奏变化：
- *      - 前8秒：慢速单洞
- *      - 8-15秒：加速双洞
- *      - 15秒后：高速3洞 + 特殊地鼠
- *   4. 📊 结算表演：
- *      - 总命中数、最高连击、命中率
- *      - 趣味评价（地鼠克星/手速一般/下次加油）
- *   5. ⚠️ Miss惩罚：
- *      - 点空地 -1秒
- *      - 灰尘动画提示
+ * Worklet 优化：
+ *   - 锤子位置 + 缩放动画使用 shared value
+ *   - Miss 特效透明度 + 位移使用 shared value
+ *   - Combo 提示缩放使用 shared value
+ *   - 减少游戏过程中的 setData 调用
  */
 
 const { Logger } = require('../../../../utils/index')
 const log = Logger.createLogger('whackmole')
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
+const { shared, timing } = wx.worklet
 
 Component({
   behaviors: [prizeImageBehavior],
@@ -124,6 +112,35 @@ Component({
   lifetimes: {
     attached() {
       this._initParticles()
+
+      /* Worklet: 锤子缩放动画 */
+      this._hammerScale = shared(0)
+      this.applyAnimatedStyle('.hammer-cursor', () => {
+        'worklet'
+        return {
+          transform: `scale(${this._hammerScale.value})`
+        }
+      })
+
+      /* Worklet: Miss 特效透明度 + 上浮 */
+      this._missOpacity = shared(0)
+      this._missTranslateY = shared(0)
+      this.applyAnimatedStyle('.miss-effect', () => {
+        'worklet'
+        return {
+          opacity: this._missOpacity.value,
+          transform: `translateY(${this._missTranslateY.value}px)`
+        }
+      })
+
+      /* Worklet: Combo 提示缩放 */
+      this._comboScale = shared(0)
+      this.applyAnimatedStyle('.combo-tip', () => {
+        'worklet'
+        return {
+          transform: `scale(${this._comboScale.value})`
+        }
+      })
     },
     detached() {
       this._cleanupAllTimers()
@@ -221,29 +238,30 @@ Component({
       this._startCountdown()
     },
 
-    /** 触摸开始 - 显示锤子 */
-    onTouchStart(e: any) {
-      if (this.data.gameState !== 'playing') {
-        return
+    /**
+     * Skyline 手势回调 — tap-gesture-handler 触发
+     * state: 0=possible, 1=began, 2=changed, 3=failed, 4=ended(tap 识别成功), 5=cancelled
+     */
+    onMoleTap(event: any) {
+      'worklet'
+      const { state } = event
+      // state === 4 表示 tap 手势识别完成
+      if (state === 4) {
+        wx.worklet.runOnJS(this._handleMoleTapOnJS.bind(this))(event)
       }
-
-      const touch = e.touches[0]
-      this.setData({
-        hammerX: touch.clientX || touch.x,
-        hammerY: touch.clientY || touch.y,
-        showHammer: true
-      })
     },
 
-    /** 触摸结束 - 隐藏锤子 */
-    onTouchEnd() {
-      if (this.data.gameState !== 'playing') {
+    /** 在 JS 线程处理地鼠点击（由 worklet 回调触发） */
+    _handleMoleTapOnJS(event: any) {
+      if (this.data.gameState !== 'playing' && !this.data.isCarnival) {
         return
       }
-
-      setTimeout(() => {
-        this.setData({ showHammer: false })
-      }, 200)
+      // 从 tap-gesture-handler 的 dataset 获取洞索引
+      const idx = event.currentTarget?.dataset?.index
+      if (idx === undefined) {
+        return
+      }
+      this._doWhack(idx, event)
     },
 
     /** 地鼠生成器 - 节奏变化 + 特殊地鼠 */
@@ -415,20 +433,18 @@ Component({
       }, 1000)
     },
 
-    /** 锤击地鼠 - 包含特殊效果和Miss惩罚 */
-    onWhack(e: any) {
+    /** 锤击地鼠 — 由手势回调 _handleMoleTapOnJS 调用 */
+    _doWhack(idx: number, e: any) {
       if (this.data.gameState !== 'playing' && !this.data.isCarnival) {
         return
       }
 
-      const idx = e.currentTarget.dataset.index
       const moleType = this.data.holes[idx]
       const totalClicks = this.data.totalClicks + 1
 
-      // 更新锤子位置
-      const touch = e.detail || e.touches?.[0] || { x: 0, y: 0 }
-      const hammerX = touch.x || touch.clientX || 0
-      const hammerY = touch.y || touch.clientY || 0
+      // 从手势事件获取锤子位置
+      const hammerX = e.absoluteX || e.x || 0
+      const hammerY = e.absoluteY || e.y || 0
 
       this.setData({
         hammerX,
@@ -437,18 +453,33 @@ Component({
         totalClicks
       })
 
-      // 延迟隐藏锤子
+      /* Worklet 弹出锤子 */
+      this._hammerScale.value = 0
+      this._hammerScale.value = timing(1.2, { duration: 80 }, (() => {
+        'worklet'
+      }) as any)
+      setTimeout(() => {
+        this._hammerScale.value = timing(1, { duration: 60 }, (() => {
+          'worklet'
+        }) as any)
+      }, 80)
+
       if (this._hammerTimer) {
         clearTimeout(this._hammerTimer)
       }
       this._hammerTimer = setTimeout(() => {
-        this.setData({ showHammer: false })
-      }, 300)
+        this._hammerScale.value = timing(0, { duration: 120 }, (() => {
+          'worklet'
+        }) as any)
+        setTimeout(() => {
+          this.setData({ showHammer: false })
+        }, 120)
+      }, 200)
 
       // Miss 惩罚：点空地
       if (!moleType) {
         const missCount = this.data.missCount + 1
-        const missTimeLeft = Math.max(0, this.data.timeLeft - 1) // -1秒
+        const missTimeLeft = Math.max(0, this.data.timeLeft - 1)
 
         this.setData({
           missCount,
@@ -459,12 +490,29 @@ Component({
           missEffectY: hammerY
         })
 
+        /* Worklet 驱动 Miss 特效上浮 + 淡出 */
+        this._missOpacity.value = 1
+        this._missTranslateY.value = 0
+        this._missOpacity.value = timing(
+          0,
+          { duration: 500, easing: (wx.worklet.Easing as any).ease },
+          (() => {
+            'worklet'
+          }) as any
+        )
+        this._missTranslateY.value = timing(
+          -30,
+          { duration: 500, easing: (wx.worklet.Easing as any).ease },
+          (() => {
+            'worklet'
+          }) as any
+        )
+
         this._vibrate('light')
 
-        // Miss动画消失
         setTimeout(() => {
           this.setData({ showMissEffect: false })
-        }, 600)
+        }, 500)
 
         log.info('[打地鼠] Miss！-1秒，剩余:', missTimeLeft)
         return
@@ -559,14 +607,37 @@ Component({
         this.setData({ whackedHoles: wh })
       }, 600)
 
-      // combo提示自动消失
+      // combo提示 — Worklet 驱动弹出 + 自动消失
       if (combo >= 2) {
+        /* Worklet 弹出 combo 提示 */
+        this._comboScale.value = 0
+        this._comboScale.value = timing(
+          1,
+          { duration: 200, easing: (wx.worklet.Easing as any).ease },
+          (() => {
+            'worklet'
+          }) as any
+        )
+
         if (this._comboTimer) {
           clearTimeout(this._comboTimer)
         }
         this._comboTimer = setTimeout(() => {
-          this.setData({ showCombo: false })
-        }, 1000)
+          /* Worklet 缩小消失 */
+          this._comboScale.value = timing(
+            0,
+            {
+              duration: 200,
+              easing: (wx.worklet.Easing as any).in((wx.worklet.Easing as any).ease)
+            },
+            (() => {
+              'worklet'
+            }) as any
+          )
+          setTimeout(() => {
+            this.setData({ showCombo: false })
+          }, 200)
+        }, 800)
       }
     },
 

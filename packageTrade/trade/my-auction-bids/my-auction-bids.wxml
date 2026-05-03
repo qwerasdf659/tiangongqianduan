@@ -3,73 +3,77 @@
 <custom-navbar title="我的出价" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="my-bids-container">
-  <!--加载中-->
-  <view class="page-loading" wx:if="{{loading && bids.length === 0}}">
-    <t-loading loading="{{true}}" text="加载出价记录..." theme="spinner" />
-  </view>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!--加载中-->
+    <view class="page-loading" wx:if="{{loading && bids.length === 0}}">
+      <t-loading loading="{{true}}" text="加载出价记录..." theme="spinner" />
+    </view>
 
-  <!--错误-->
-  <view class="page-error" wx:elif="{{hasError}}">
-    <text class="error-text">{{errorMessage}}</text>
-    <view class="retry-btn" bindtap="onRetry"><text>重试</text></view>
-  </view>
+    <!--错误-->
+    <view class="page-error" wx:elif="{{hasError}}">
+      <text class="error-text">{{errorMessage}}</text>
+      <view class="retry-btn" bindtap="onRetry"><text>重试</text></view>
+    </view>
 
-  <!--空状态-->
-  <view class="page-empty" wx:elif="{{isEmpty}}">
-    <t-empty description="暂无出价记录">
-      <text slot="description">去拍卖大厅看看有什么好物品吧</text>
-    </t-empty>
-  </view>
+    <!--空状态-->
+    <view class="page-empty" wx:elif="{{isEmpty}}">
+      <t-empty description="暂无出价记录">
+        <text slot="description">去拍卖大厅看看有什么好物品吧</text>
+      </t-empty>
+    </view>
 
-  <!--出价记录列表-->
-  <view class="bids-list" wx:else>
-    <view
-      class="bid-card"
-      wx:for="{{bids}}"
-      wx:key="auction_bid_id"
-      data-bid="{{item}}"
-      bindtap="onBidTap"
-    >
-      <image class="bid-thumb" src="{{item._displayImage}}" mode="aspectFill" lazy-load />
-      <view class="bid-info">
-        <text class="bid-item-name">{{item._displayName}}</text>
+    <!--出价记录列表-->
+    <view class="bids-list" wx:else>
+      <view
+        class="bid-card"
+        wx:for="{{bids}}"
+        wx:key="auction_bid_id"
+        data-bid="{{item}}"
+        bindtap="onBidTap"
+      >
+        <image class="bid-thumb" src="{{item._displayImage}}" mode="aspectFill" lazy-load />
+        <view class="bid-info">
+          <text class="bid-item-name">{{item._displayName}}</text>
 
-        <!--我的出价金额-->
-        <view class="bid-amount-row">
-          <text class="amount-label">我的出价</text>
-          <text class="amount-value">{{item.bid_amount}} {{item._priceAssetCode}}</text>
-        </view>
+          <!--我的出价金额-->
+          <view class="bid-amount-row">
+            <text class="amount-label">我的出价</text>
+            <text class="amount-value">{{item.bid_amount}} {{item._priceAssetCode}}</text>
+          </view>
 
-        <!--当前最高价-->
-        <view class="current-price-row" wx:if="{{item._auctionCurrentPrice > 0}}">
-          <text class="current-label">当前最高</text>
-          <text class="current-value">{{item._auctionCurrentPrice}} {{item._priceAssetCode}}</text>
-        </view>
+          <!--当前最高价-->
+          <view class="current-price-row" wx:if="{{item._auctionCurrentPrice > 0}}">
+            <text class="current-label">当前最高</text>
+            <text class="current-value"
+              >{{item._auctionCurrentPrice}} {{item._priceAssetCode}}</text
+            >
+          </view>
 
-        <!--出价状态-->
-        <view class="bid-status-row">
-          <text class="bid-status-text" style="color: {{item._bidStatusColor}}"
-            >{{item._bidStatusLabel}}</text
-          >
-          <text class="bid-time">{{item.created_at}}</text>
-        </view>
+          <!--出价状态-->
+          <view class="bid-status-row">
+            <text class="bid-status-text" style="color: {{item._bidStatusColor}}"
+              >{{item._bidStatusLabel}}</text
+            >
+            <text class="bid-time">{{item.created_at}}</text>
+          </view>
 
-        <!--卖方信息-->
-        <view class="bid-seller-row">
-          <text class="seller-text">卖方：{{item._sellerNickname}}</text>
+          <!--卖方信息-->
+          <view class="bid-seller-row">
+            <text class="seller-text">卖方：{{item._sellerNickname}}</text>
+          </view>
         </view>
       </view>
-    </view>
 
-    <!--加载更多/没有更多-->
-    <view class="list-footer">
-      <t-loading
-        wx:if="{{hasMore && loading}}"
-        loading="{{true}}"
-        text="加载更多..."
-        theme="spinner"
-      />
-      <text class="no-more" wx:if="{{!hasMore && bids.length > 0}}">— 没有更多了 —</text>
+      <!--加载更多/没有更多-->
+      <view class="list-footer">
+        <t-loading
+          wx:if="{{hasMore && loading}}"
+          loading="{{true}}"
+          text="加载更多..."
+          theme="spinner"
+        />
+        <text class="no-more" wx:if="{{!hasMore && bids.length > 0}}">— 没有更多了 —</text>
+      </view>
     </view>
-  </view>
+  </scroll-view>
 </view>

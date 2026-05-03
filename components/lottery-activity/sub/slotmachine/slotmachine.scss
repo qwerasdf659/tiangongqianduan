@@ -1397,7 +1397,7 @@
   opacity: 0.4;
   font-weight: bold;
 
-  text {
+  .particle-text {
     display: inline-block;
     filter: drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
     color: var(--tg-lottery-accent-dim, rgba(255, 215, 0, 0.8));

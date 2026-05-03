@@ -1,18 +1,21 @@
 /**
  * 扭蛋机 子组件 - 扭动手柄+胶囊掉落（增强版）
  * @file sub/gashapon/gashapon.ts
- * @version 5.2.0
+ * @version 6.0.0 — Skyline Worklet 动画驱动
  *
  * 优化内容：
  * 1. 添加触觉反馈（震动）
  * 2. 增强动画流畅度
  * 3. 添加粒子特效
  * 4. 优化状态管理
+ * 5. Worklet 驱动动画状态切换，减少 setData 调用
  */
 
 const { Logger } = require('../../../../utils/index')
 const log = Logger.createLogger('gashapon')
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
+
+const { shared, timing, runOnJS } = wx.worklet
 
 Component({
   behaviors: [prizeImageBehavior],
@@ -59,11 +62,10 @@ Component({
 
   lifetimes: {
     attached() {
-      // 组件挂载时初始化
       this._initParticles()
+      this._initWorklet()
     },
     detached() {
-      // 组件卸载时清理定时器
       this._cleanupTimers()
     }
   },
@@ -135,36 +137,96 @@ Component({
       this.triggerEvent('draw', { count: 1 })
     },
 
-    /** 胶囊掉落动画 - 复古简化版 */
-    _dropCapsule() {
-      // 第一阶段：手柄转动完成，胶囊开始掉落
-      this._dropTimer1 = setTimeout(() => {
-        this.setData({ machineState: 'dropping' })
+    /** 初始化 Worklet 共享变量与动画样式绑定 */
+    _initWorklet() {
+      // 手柄旋转角度（Worklet 驱动）
+      this._handleRotation = shared(0)
+      // 胶囊掉落进度 0→1（Worklet 驱动）
+      this._capsuleProgress = shared(0)
+      // 庆祝特效透明度（Worklet 驱动）
+      this._celebrationOpacity = shared(0)
 
-        // 掉落时单次震动
-        this._vibrate('medium')
+      // 绑定手柄旋转动画
+      this.applyAnimatedStyle('.machine-handle', () => {
+        'worklet'
+        return {
+          transform: `rotate(${this._handleRotation.value}deg)`
+        }
+      })
 
-        // 第二阶段：胶囊落到出口
-        this._dropTimer2 = setTimeout(() => {
-          this.setData({ machineState: 'done' })
+      // 绑定胶囊掉落动画
+      this.applyAnimatedStyle('.capsule-dropping', () => {
+        'worklet'
+        const p = this._capsuleProgress.value
+        const translateY = -80 + p * 80
+        const scale = 0.8 + p * 0.2
+        const opacity = Math.min(p * 3, 1)
+        return {
+          transform: `translateY(${translateY}rpx) scale(${scale})`,
+          opacity: `${opacity}`
+        }
+      })
 
-          // 显示庆祝特效
-          this._showCelebrationEffect()
-
-          // 通知父组件动画结束
-          this.triggerEvent('animationEnd')
-        }, 1500)
-      }, 800)
+      // 绑定庆祝特效透明度
+      this.applyAnimatedStyle('.celebration-effect', () => {
+        'worklet'
+        return { opacity: `${this._celebrationOpacity.value}` }
+      })
     },
 
-    /** 显示庆祝特效 */
+    /** 胶囊掉落动画 — Worklet 驱动 */
+    _dropCapsule() {
+      const self = this
+
+      // 第一阶段：手柄转动（Worklet timing 驱动旋转）
+      this._handleRotation.value = timing(360, { duration: 800 }, () => {
+        'worklet'
+        // 手柄转完后重置角度
+        self._handleRotation.value = 0
+
+        // 通知主线程切换到 dropping 状态
+        runOnJS(self._onHandleTurnDone.bind(self))()
+      })
+    },
+
+    /** 手柄转动完成回调（主线程） */
+    _onHandleTurnDone() {
+      this.setData({ machineState: 'dropping' })
+      this._vibrate('medium')
+
+      // 第二阶段：胶囊掉落动画（Worklet timing）
+      this._capsuleProgress.value = 0
+      this._capsuleProgress.value = timing(1, { duration: 1500 }, () => {
+        'worklet'
+        runOnJS(this._onCapsuleLanded.bind(this))()
+      })
+    },
+
+    /** 胶囊落地回调（主线程） */
+    _onCapsuleLanded() {
+      this.setData({ machineState: 'done' })
+      this._showCelebrationEffect()
+      this.triggerEvent('animationEnd')
+    },
+
+    /** 显示庆祝特效 — Worklet 驱动淡入淡出 */
     _showCelebrationEffect() {
       this.setData({ showCelebration: true })
 
-      // 2秒后隐藏特效
-      this._celebrationTimer = setTimeout(() => {
-        this.setData({ showCelebration: false })
-      }, 2000)
+      // Worklet 驱动淡入
+      this._celebrationOpacity.value = timing(1, { duration: 300 }, () => {
+        'worklet'
+        // 淡入完成后延迟淡出
+        this._celebrationOpacity.value = timing(0, { duration: 500 }, () => {
+          'worklet'
+          runOnJS(this._onCelebrationDone.bind(this))()
+        })
+      })
+    },
+
+    /** 庆祝特效结束回调 */
+    _onCelebrationDone() {
+      this.setData({ showCelebration: false })
     },
 
     /** 触觉反馈封装 */
@@ -188,20 +250,19 @@ Component({
       }
     },
 
-    /** 清理定时器 */
+    /** 清理定时器和 Worklet 共享变量 */
     _cleanupTimers() {
-      if (this._dropTimer1) {
-        clearTimeout(this._dropTimer1)
-        this._dropTimer1 = null
+      // 重置 Worklet 共享变量
+      if (this._handleRotation) {
+        this._handleRotation.value = 0
       }
-      if (this._dropTimer2) {
-        clearTimeout(this._dropTimer2)
-        this._dropTimer2 = null
+      if (this._capsuleProgress) {
+        this._capsuleProgress.value = 0
       }
-      if (this._celebrationTimer) {
-        clearTimeout(this._celebrationTimer)
-        this._celebrationTimer = null
+      if (this._celebrationOpacity) {
+        this._celebrationOpacity.value = 0
       }
+      // 清理遗留的粒子刷新定时器
       if (this._particleRefreshTimer) {
         clearInterval(this._particleRefreshTimer)
         this._particleRefreshTimer = null
@@ -211,6 +272,16 @@ Component({
     /** 重置扭蛋机状态 */
     resetMachine() {
       this._cleanupTimers()
+      // 重置 Worklet 共享变量
+      if (this._handleRotation) {
+        this._handleRotation.value = 0
+      }
+      if (this._capsuleProgress) {
+        this._capsuleProgress.value = 0
+      }
+      if (this._celebrationOpacity) {
+        this._celebrationOpacity.value = 0
+      }
       this.setData({
         machineState: 'idle',
         showCelebration: false

@@ -11,8 +11,8 @@
  * @version 5.2.0
  */
 
-const { createLogger } = require('../../utils/logger')
-const maintenanceLog = createLogger('maintenance')
+const { Logger } = require('../../utils/index')
+const maintenanceLog = Logger.createLogger('maintenance')
 
 Component({
   data: {

@@ -1,8 +1,14 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* 📢 我的广告活动列表 - 样式（对齐项目紫蓝渐变+毛玻璃设计体系） */
 @import '../../styles/mixins.scss';
 
 .ad-campaigns-page {
-  min-height: 100vh;
+  flex: 1;
   background: var(--tg-page-bg);
   @include flex-column;
 }
@@ -57,8 +63,7 @@
   background: #ffffff;
   white-space: nowrap;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 10;
 }
 

@@ -19,10 +19,9 @@
  */
 
 /* 统一工具函数导入 */
-const { API } = require('../../utils/index')
-const { createLogger } = require('../../utils/logger')
+const { API, Logger } = require('../../utils/index')
 const { userStore } = require('../../store/user')
-const log = createLogger('diy-result')
+const log = Logger.createLogger('diy-result')
 
 /* ===== 海报 UI 常量（代码写死，无需后端提供） ===== */
 

@@ -6,162 +6,164 @@
 <custom-navbar title="我的订单" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="orders-container">
-  <view class="page-header">
-    <text class="page-header-title">我的交易订单</text>
-    <text class="page-header-subtitle">购买的商品在此管理</text>
-  </view>
-
-  <!--状态筛选标签页（对齐 my-listings 页面模式）-->
-  <view class="status-tabs">
-    <view
-      class="tab-item {{currentStatus === item.key ? 'active' : ''}}"
-      wx:for="{{statusTabs}}"
-      wx:key="key"
-      bindtap="onStatusTabTap"
-      data-status="{{item.key}}"
-    >
-      <text class="tab-label">{{item.label}}</text>
-      <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <view class="page-header">
+      <text class="page-header-title">我的交易订单</text>
+      <text class="page-header-subtitle">购买的商品在此管理</text>
     </view>
-  </view>
 
-  <!--加载状态-->
-  <view class="loading-state" wx:if="{{loading && orders.length === 0}}">
-    <t-loading loading="{{true}}" text="加载订单中..." theme="spinner" />
-  </view>
-
-  <!--订单列表-->
-  <block wx:if="{{!loading || orders.length > 0}}">
-    <view class="order-list" wx:if="{{orders.length > 0}}">
-      <view class="order-card" wx:for="{{orders}}" wx:key="trade_order_id">
-        <!--订单头部：类型 + 状态-->
-        <view class="order-header">
-          <view class="order-kind-tag">
-            <text>{{item.kindLabel}}</text>
-          </view>
-          <view class="order-status" style="color: {{item.statusColor}};">
-            <text>{{item.statusLabel}}</text>
-          </view>
-        </view>
-
-        <!--订单内容：商品名称 + 价格-->
-        <view
-          class="order-body"
-          data-listing-id="{{item.market_listing_id}}"
-          bindtap="onViewListing"
-        >
-          <view class="order-info">
-            <text class="order-name">{{item.display_name}}</text>
-            <text class="order-time">{{item.formattedTime}}</text>
-          </view>
-          <view class="order-price">
-            <text class="order-price-value">{{item.price_amount}}</text>
-            <text class="order-price-unit">{{item._priceAssetLabel}}</text>
-          </view>
-        </view>
-
-        <!--手续费明细（后端 trade_orders 表 gross_amount / fee_amount / net_amount）-->
-        <view
-          class="order-fee-detail"
-          wx:if="{{item.gross_amount || item.fee_amount || item.net_amount}}"
-        >
-          <view class="fee-row" wx:if="{{item.gross_amount}}">
-            <text class="fee-label">总金额</text>
-            <text class="fee-value">{{item.gross_amount}} {{item._priceAssetLabel}}</text>
-          </view>
-          <view class="fee-row" wx:if="{{item.fee_amount}}">
-            <text class="fee-label">手续费</text>
-            <text class="fee-value">{{item.fee_amount}} {{item._priceAssetLabel}}</text>
-          </view>
-          <view class="fee-row" wx:if="{{item.net_amount}}">
-            <text class="fee-label">卖家实收</text>
-            <text class="fee-value">{{item.net_amount}} {{item._priceAssetLabel}}</text>
-          </view>
-        </view>
-
-        <!--订单操作按钮-->
-        <view
-          class="order-actions"
-          wx:if="{{item.status === 'created' || item.status === 'frozen'}}"
-        >
-          <button
-            wx:if="{{item.requires_escrow}}"
-            class="action-btn primary-action"
-            size="mini"
-            data-order-id="{{item.trade_order_id}}"
-            bindtap="onOpenEscrowInput"
-          >
-            输入担保码
-          </button>
-          <button
-            wx:if="{{item.requires_escrow}}"
-            class="action-btn"
-            size="mini"
-            data-order-id="{{item.trade_order_id}}"
-            bindtap="onViewEscrowStatus"
-          >
-            查看状态
-          </button>
-          <button
-            class="action-btn danger-action"
-            size="mini"
-            data-order-id="{{item.trade_order_id}}"
-            disabled="{{cancellingOrderId === item.trade_order_id}}"
-            bindtap="onCancelOrder"
-          >
-            {{cancellingOrderId === item.trade_order_id ? '取消中...' : '取消交易'}}
-          </button>
-        </view>
-        <!--已完成订单的申诉入口（文档 5.4）-->
-        <view class="order-actions" wx:if="{{item.status === 'completed'}}">
-          <button
-            class="action-btn"
-            size="mini"
-            data-order-id="{{item.trade_order_id}}"
-            bindtap="onOpenDispute"
-          >
-            发起申诉
-          </button>
-        </view>
-
-        <!--订单编号（后端 trade_orders.order_no，TO前缀16位定长编号）-->
-        <view class="order-footer" wx:if="{{item.order_no}}">
-          <text class="order-id-label" catchtap="onCopyOrderNo" data-order-no="{{item.order_no}}"
-            >订单号: {{item.order_no}}</text
-          >
-        </view>
+    <!--状态筛选标签页（对齐 my-listings 页面模式）-->
+    <view class="status-tabs">
+      <view
+        class="tab-item {{currentStatus === item.key ? 'active' : ''}}"
+        wx:for="{{statusTabs}}"
+        wx:key="key"
+        bindtap="onStatusTabTap"
+        data-status="{{item.key}}"
+      >
+        <text class="tab-label">{{item.label}}</text>
+        <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
       </view>
     </view>
 
-    <!--加载更多提示-->
-    <view class="load-more" wx:if="{{orders.length > 0 && hasMore}}">
-      <text class="load-more-text">{{loading ? '加载中...' : '上拉加载更多'}}</text>
+    <!--加载状态-->
+    <view class="loading-state" wx:if="{{loading && orders.length === 0}}">
+      <t-loading loading="{{true}}" text="加载订单中..." theme="spinner" />
     </view>
-    <view class="load-more" wx:if="{{orders.length > 0 && !hasMore}}">
-      <text class="load-more-text no-more">已加载全部订单</text>
-    </view>
-  </block>
 
-  <!--空状态-->
-  <t-empty
-    wx:if="{{!loading && isEmpty}}"
-    description="{{currentStatus === 'all' ? '去交易市场看看有什么好物' : '当前筛选状态下还没有订单'}}"
-  >
-    <view slot="image" class="empty-slot-icon">📋</view>
-    <view slot="action">
-      <navigator url="/packageTrade/trade/market/market" class="empty-link">
-        <text>逛逛市场</text>
-      </navigator>
-    </view>
-  </t-empty>
+    <!--订单列表-->
+    <block wx:if="{{!loading || orders.length > 0}}">
+      <view class="order-list" wx:if="{{orders.length > 0}}">
+        <view class="order-card" wx:for="{{orders}}" wx:key="trade_order_id">
+          <!--订单头部：类型 + 状态-->
+          <view class="order-header">
+            <view class="order-kind-tag">
+              <text>{{item.kindLabel}}</text>
+            </view>
+            <view class="order-status" style="color: {{item.statusColor}};">
+              <text>{{item.statusLabel}}</text>
+            </view>
+          </view>
 
-  <!--错误状态-->
-  <t-empty wx:if="{{!loading && hasError}}" description="{{errorMessage}}">
-    <view slot="image" class="empty-slot-icon">⚠️</view>
-    <view slot="action">
-      <button class="retry-btn" size="mini" bindtap="onPullDownRefresh">重试</button>
-    </view>
-  </t-empty>
+          <!--订单内容：商品名称 + 价格-->
+          <view
+            class="order-body"
+            data-listing-id="{{item.market_listing_id}}"
+            bindtap="onViewListing"
+          >
+            <view class="order-info">
+              <text class="order-name">{{item.display_name}}</text>
+              <text class="order-time">{{item.formattedTime}}</text>
+            </view>
+            <view class="order-price">
+              <text class="order-price-value">{{item.price_amount}}</text>
+              <text class="order-price-unit">{{item._priceAssetLabel}}</text>
+            </view>
+          </view>
+
+          <!--手续费明细（后端 trade_orders 表 gross_amount / fee_amount / net_amount）-->
+          <view
+            class="order-fee-detail"
+            wx:if="{{item.gross_amount || item.fee_amount || item.net_amount}}"
+          >
+            <view class="fee-row" wx:if="{{item.gross_amount}}">
+              <text class="fee-label">总金额</text>
+              <text class="fee-value">{{item.gross_amount}} {{item._priceAssetLabel}}</text>
+            </view>
+            <view class="fee-row" wx:if="{{item.fee_amount}}">
+              <text class="fee-label">手续费</text>
+              <text class="fee-value">{{item.fee_amount}} {{item._priceAssetLabel}}</text>
+            </view>
+            <view class="fee-row" wx:if="{{item.net_amount}}">
+              <text class="fee-label">卖家实收</text>
+              <text class="fee-value">{{item.net_amount}} {{item._priceAssetLabel}}</text>
+            </view>
+          </view>
+
+          <!--订单操作按钮-->
+          <view
+            class="order-actions"
+            wx:if="{{item.status === 'created' || item.status === 'frozen'}}"
+          >
+            <button
+              wx:if="{{item.requires_escrow}}"
+              class="action-btn primary-action"
+              size="mini"
+              data-order-id="{{item.trade_order_id}}"
+              bindtap="onOpenEscrowInput"
+            >
+              输入担保码
+            </button>
+            <button
+              wx:if="{{item.requires_escrow}}"
+              class="action-btn"
+              size="mini"
+              data-order-id="{{item.trade_order_id}}"
+              bindtap="onViewEscrowStatus"
+            >
+              查看状态
+            </button>
+            <button
+              class="action-btn danger-action"
+              size="mini"
+              data-order-id="{{item.trade_order_id}}"
+              disabled="{{cancellingOrderId === item.trade_order_id}}"
+              bindtap="onCancelOrder"
+            >
+              {{cancellingOrderId === item.trade_order_id ? '取消中...' : '取消交易'}}
+            </button>
+          </view>
+          <!--已完成订单的申诉入口（文档 5.4）-->
+          <view class="order-actions" wx:if="{{item.status === 'completed'}}">
+            <button
+              class="action-btn"
+              size="mini"
+              data-order-id="{{item.trade_order_id}}"
+              bindtap="onOpenDispute"
+            >
+              发起申诉
+            </button>
+          </view>
+
+          <!--订单编号（后端 trade_orders.order_no，TO前缀16位定长编号）-->
+          <view class="order-footer" wx:if="{{item.order_no}}">
+            <text class="order-id-label" catchtap="onCopyOrderNo" data-order-no="{{item.order_no}}"
+              >订单号: {{item.order_no}}</text
+            >
+          </view>
+        </view>
+      </view>
+
+      <!--加载更多提示-->
+      <view class="load-more" wx:if="{{orders.length > 0 && hasMore}}">
+        <text class="load-more-text">{{loading ? '加载中...' : '上拉加载更多'}}</text>
+      </view>
+      <view class="load-more" wx:if="{{orders.length > 0 && !hasMore}}">
+        <text class="load-more-text no-more">已加载全部订单</text>
+      </view>
+    </block>
+
+    <!--空状态-->
+    <t-empty
+      wx:if="{{!loading && isEmpty}}"
+      description="{{currentStatus === 'all' ? '去交易市场看看有什么好物' : '当前筛选状态下还没有订单'}}"
+    >
+      <view slot="image" class="empty-slot-icon">📋</view>
+      <view slot="action">
+        <navigator url="/packageTrade/trade/market/market" class="empty-link">
+          <text class="empty-link-text">逛逛市场</text>
+        </navigator>
+      </view>
+    </t-empty>
+
+    <!--错误状态-->
+    <t-empty wx:if="{{!loading && hasError}}" description="{{errorMessage}}">
+      <view slot="image" class="empty-slot-icon">⚠️</view>
+      <view slot="action">
+        <button class="retry-btn" size="mini" bindtap="onPullDownRefresh">重试</button>
+      </view>
+    </t-empty>
+  </scroll-view>
 </view>
 
 <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->

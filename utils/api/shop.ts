@@ -41,7 +41,19 @@ async function getMyConsumptionRecords(
   return apiClient.request(`/shop/consumption/me?${qs}`, { method: 'GET', needAuth: true })
 }
 
-/** 获取单条消费记录详情 - GET /api/v4/shop/consumption/detail/:id */
+/**
+ * 获取单条消费记录详情 - GET /api/v4/shop/consumption/detail/:id
+ *
+ * 后端路由: routes/v4/shop/consumption/query.js 第86行
+ * 服务层: ConsumptionQueryService.getConsumptionDetailWithAuth(recordId, userId, isAdmin, options)
+ * 数据库: consumption_records 表（当前48条真实数据）
+ *
+ * 注意: 路径参数名是 :id（不是 :record_id）
+ * 权限: 支持三种身份 — 记录所有者(user_owner)、关联商家(merchant_owner)、管理员(admin_privilege)
+ *
+ * ⚠️ 需后端确认: Service 层是否通过 store_id JOIN stores 表返回 store_name
+ *    前端详情页需要展示门店名称
+ */
 async function getConsumptionDetail(record_id: number) {
   return apiClient.request(`/shop/consumption/detail/${record_id}`, {
     method: 'GET',
@@ -139,19 +151,35 @@ async function getMerchantConsumptionStats() {
 
 // ==================== 商家核销 ====================
 
-/** 商家创建核销订单 - POST /api/v4/shop/redemption/orders（需商家权限） */
-async function createRedemptionOrder(params: Record<string, any>) {
+/**
+ * 用户创建核销订单（为自己的物品生成核销码）- POST /api/v4/shop/redemption/orders
+ *
+ * ⚠️ 业务澄清: 是用户自己为自己的物品生成核销码，不是商家为用户创建
+ * req.user.user_id 作为 creator_user_id
+ *
+ * 请求Body: 仅需 { item_id: number }（item_id 必须是正整数）
+ * 返回: 12位Base32格式核销码 XXXX-YYYY-ZZZZ（仅返回一次，系统不存储明文，只存SHA-256哈希）
+ * 有效期: 30天（expires_at 字段标记过期时间）
+ * 防重复: 依赖 code_hash 唯一约束（SHA-256），当前路由未读取 Header 幂等键
+ *
+ * Idempotency-Key 仍通过 Header 发送（符合 HTTP 标准实践，待后端补充读取逻辑）
+ */
+async function createRedemptionOrder(item_id: number) {
+  if (!item_id || item_id <= 0 || !Number.isInteger(item_id)) {
+    throw new Error('物品ID必须是正整数')
+  }
+
   const idempotencyKey: string = await generateIdempotencyKey('redemption_create')
 
   return apiClient.request('/shop/redemption/orders', {
     method: 'POST',
     header: { 'Idempotency-Key': idempotencyKey },
-    data: params,
+    data: { item_id },
     needAuth: true,
     showLoading: true,
-    loadingText: '创建核销订单中...',
+    loadingText: '生成核销码中...',
     showError: true,
-    errorPrefix: '创建失败：'
+    errorPrefix: '生成失败：'
   })
 }
 

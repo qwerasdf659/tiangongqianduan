@@ -2,148 +2,150 @@
 <custom-navbar title="积分明细" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="points-detail-container">
-  <!-- 积分余额展示卡片 -->
-  <view class="points-balance-card">
-    <view class="balance-header">
-      <view class="balance-label">
-        <view class="balance-dot"></view>
-        <text class="balance-title">可用积分</text>
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 积分余额展示卡片 -->
+    <view class="points-balance-card">
+      <view class="balance-header">
+        <view class="balance-label">
+          <view class="balance-dot"></view>
+          <text class="balance-title">可用积分</text>
+        </view>
+        <view class="balance-refresh" bindtap="handleManualRefresh">
+          <text class="refresh-icon">🔄</text>
+        </view>
       </view>
-      <view class="balance-refresh" bindtap="handleManualRefresh">
-        <text class="refresh-icon">🔄</text>
+      <view class="balance-amount">
+        <text class="balance-number">{{totalPoints || 0}}</text>
+        <text class="balance-unit">积分</text>
       </view>
-    </view>
-    <view class="balance-amount">
-      <text class="balance-number">{{totalPoints || 0}}</text>
-      <text class="balance-unit">积分</text>
-    </view>
-    <!-- 余额信息底栏 -->
-    <view class="balance-footer">
-      <view class="balance-stat">
-        <view class="stat-dot earn-dot"></view>
-        <text class="stat-text"
-          >获得：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length : 0}}笔</text
-        >
+      <!-- 余额信息底栏 -->
+      <view class="balance-footer">
+        <view class="balance-stat">
+          <view class="stat-dot earn-dot"></view>
+          <text class="stat-text"
+            >获得：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length : 0}}笔</text
+          >
+        </view>
+        <view class="balance-badge" wx:if="{{filteredPointsRecords.length > 0}}">
+          <text class="badge-text">{{filteredPointsRecords.length}}条记录</text>
+        </view>
       </view>
-      <view class="balance-badge" wx:if="{{filteredPointsRecords.length > 0}}">
-        <text class="badge-text">{{filteredPointsRecords.length}}条记录</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 筛选功能区域 -->
-  <view class="filter-section">
-    <t-tabs
-      value="{{pointsFilter}}"
-      bind:change="onPointsFilterChange"
-      theme="line"
-      split="{{false}}"
-      spaceEvenly="{{true}}"
-      sticky="{{false}}"
-      swipeable="{{false}}"
-    >
-      <t-tab-panel value="all" label="全部"></t-tab-panel>
-      <t-tab-panel value="earn" label="获得"></t-tab-panel>
-      <t-tab-panel value="consume" label="消费"></t-tab-panel>
-    </t-tabs>
-  </view>
-
-  <!-- 积分记录列表 -->
-  <view class="records-section">
-    <view class="records-header">
-      <view class="records-title-row">
-        <view class="records-title-icon">📋</view>
-        <text class="records-title">积分明细</text>
-      </view>
-      <view class="records-count">共 {{filteredPointsRecords.length || 0}} 条</view>
     </view>
 
-    <!-- 记录列表 -->
-    <view class="records-list" wx:if="{{filteredPointsRecords.length > 0}}">
-      <view
-        class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
-        wx:for="{{filteredPointsRecords}}"
-        wx:key="asset_transaction_id"
+    <!-- 筛选功能区域 -->
+    <view class="filter-section">
+      <t-tabs
+        value="{{pointsFilter}}"
+        bind:change="onPointsFilterChange"
+        theme="line"
+        split="{{false}}"
+        spaceEvenly="{{true}}"
+        sticky="{{false}}"
+        swipeable="{{false}}"
       >
-        <!-- 左侧彩色指示条 -->
+        <t-tab-panel value="all" label="全部"></t-tab-panel>
+        <t-tab-panel value="earn" label="获得"></t-tab-panel>
+        <t-tab-panel value="consume" label="消费"></t-tab-panel>
+      </t-tabs>
+    </view>
+
+    <!-- 积分记录列表 -->
+    <view class="records-section">
+      <view class="records-header">
+        <view class="records-title-row">
+          <view class="records-title-icon">📋</view>
+          <text class="records-title">积分明细</text>
+        </view>
+        <view class="records-count">共 {{filteredPointsRecords.length || 0}} 条</view>
+      </view>
+
+      <!-- 记录列表 -->
+      <view class="records-list" wx:if="{{filteredPointsRecords.length > 0}}">
         <view
-          class="record-indicator {{item.transaction_type === 'earn' ? 'earn-indicator' : 'consume-indicator'}}"
+          class="record-item {{item.transaction_type === 'earn' ? 'earn-type' : 'consume-type'}}"
+          wx:for="{{filteredPointsRecords}}"
+          wx:key="asset_transaction_id"
         >
-        </view>
-
-        <!-- 记录图标 -->
-        <view class="record-icon">
-          <view class="icon-bg {{item.transaction_type === 'earn' ? 'earn-bg' : 'consume-bg'}}">
-            <text class="icon-symbol">{{item.transaction_type === 'earn' ? '↑' : '↓'}}</text>
+          <!-- 左侧彩色指示条 -->
+          <view
+            class="record-indicator {{item.transaction_type === 'earn' ? 'earn-indicator' : 'consume-indicator'}}"
+          >
           </view>
-        </view>
 
-        <!-- 记录详情 -->
-        <view class="record-detail">
-          <view class="record-main">
-            <view class="record-title">{{item.displayTitle || '积分记录'}}</view>
-            <view
-              class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}"
-            >
-              {{item.displayAmount}}
+          <!-- 记录图标 -->
+          <view class="record-icon">
+            <view class="icon-bg {{item.transaction_type === 'earn' ? 'earn-bg' : 'consume-bg'}}">
+              <text class="icon-symbol">{{item.transaction_type === 'earn' ? '↑' : '↓'}}</text>
             </view>
           </view>
-          <view class="record-meta">
-            <text class="record-time">{{item.displayTime}}</text>
-            <text class="record-no" wx:if="{{item.transaction_no}}">{{item.transaction_no}}</text>
-            <text class="record-desc" wx:if="{{item.displayDescription}}"
-              >{{item.displayDescription}}</text
-            >
-            <text
-              class="record-balance"
-              wx:if="{{item.balance_before !== undefined && item.balance_after !== undefined}}"
-              >余额 {{item.balance_before}} → {{item.balance_after}}</text
-            >
+
+          <!-- 记录详情 -->
+          <view class="record-detail">
+            <view class="record-main">
+              <view class="record-title">{{item.displayTitle || '积分记录'}}</view>
+              <view
+                class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}"
+              >
+                {{item.displayAmount}}
+              </view>
+            </view>
+            <view class="record-meta">
+              <text class="record-time">{{item.displayTime}}</text>
+              <text class="record-no" wx:if="{{item.transaction_no}}">{{item.transaction_no}}</text>
+              <text class="record-desc" wx:if="{{item.displayDescription}}"
+                >{{item.displayDescription}}</text
+              >
+              <text
+                class="record-balance"
+                wx:if="{{item.balance_before !== undefined && item.balance_after !== undefined}}"
+                >余额 {{item.balance_before}} → {{item.balance_after}}</text
+              >
+            </view>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- 空状态展示 -->
-    <t-empty
-      wx:if="{{filteredPointsRecords.length === 0 && !loading}}"
-      description="{{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ? '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}"
-    >
-      <view slot="image" class="empty-slot-icon">💳</view>
-      <t-button slot="action" theme="primary" shape="round" size="small" bind:tap="onBackTap"
-        >返回用户中心</t-button
+      <!-- 空状态展示 -->
+      <t-empty
+        wx:if="{{filteredPointsRecords.length === 0 && !loading}}"
+        description="{{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ? '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}"
       >
-    </t-empty>
+        <view slot="image" class="empty-slot-icon">💳</view>
+        <t-button slot="action" theme="primary" shape="round" size="small" bind:tap="onBackTap"
+          >返回用户中心</t-button
+        >
+      </t-empty>
 
-    <!-- 加载更多 -->
-    <view class="load-more-section" wx:if="{{hasMoreRecords}}">
-      <t-button
-        wx:if="{{!loading}}"
-        theme="default"
-        variant="outline"
-        shape="round"
-        size="small"
-        bind:tap="loadMoreRecords"
-      >
-        加载更多
-      </t-button>
-      <view class="loading-inline" wx:if="{{loading}}">
-        <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="32rpx" />
+      <!-- 加载更多 -->
+      <view class="load-more-section" wx:if="{{hasMoreRecords}}">
+        <t-button
+          wx:if="{{!loading}}"
+          theme="default"
+          variant="outline"
+          shape="round"
+          size="small"
+          bind:tap="loadMoreRecords"
+        >
+          加载更多
+        </t-button>
+        <view class="loading-inline" wx:if="{{loading}}">
+          <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="32rpx" />
+        </view>
+      </view>
+
+      <!-- 没有更多记录提示 -->
+      <view class="no-more-section" wx:if="{{!hasMoreRecords && filteredPointsRecords.length > 0}}">
+        <view class="no-more-line"></view>
+        <text class="no-more-text">已加载全部记录</text>
+        <view class="no-more-line"></view>
       </view>
     </view>
 
-    <!-- 没有更多记录提示 -->
-    <view class="no-more-section" wx:if="{{!hasMoreRecords && filteredPointsRecords.length > 0}}">
-      <view class="no-more-line"></view>
-      <text class="no-more-text">已加载全部记录</text>
-      <view class="no-more-line"></view>
+    <!-- 最后更新时间 -->
+    <view class="update-info" wx:if="{{lastUpdateTime}}">
+      <text class="update-time">最后更新：{{lastUpdateTime}}</text>
     </view>
-  </view>
-
-  <!-- 最后更新时间 -->
-  <view class="update-info" wx:if="{{lastUpdateTime}}">
-    <text class="update-time">最后更新：{{lastUpdateTime}}</text>
-  </view>
+  </scroll-view>
 </view>
 
 <!-- 全屏加载状态 -->

@@ -1,203 +1,212 @@
 <!--pages/admin/customer-service/customer-service.wxml - 管理员客服管理页面-->
 <custom-navbar title="客服管理" bgColor="#4CAF50" textColor="#ffffff" showBack="{{true}}" />
 <view class="customer-service-container">
-  <!-- 🔴 实时聊天模式 -->
-  <view class="chat-mode-container">
-    <!-- 管理员状态栏（状态可切换: online / busy / offline） -->
-    <view class="admin-status-bar">
-      <view class="status-info">
-        <text class="status-text">当前状态：</text>
-        <text
-          class="status-badge {{adminStatus}}"
-          bindtap="onToggleAdminStatus"
-          data-status="{{adminStatus === 'online' ? 'busy' : 'online'}}"
-        >
-          {{adminStatus === 'online' ? '🟢 在线' : adminStatus === 'busy' ? '🟡 忙碌' : '🔴 离线'}}
-        </text>
-      </view>
-      <view class="connection-info">
-        <text class="ws-status {{wsConnected ? 'connected' : 'disconnected'}}">
-          {{wsConnected ? '🔗 已连接' : '❌ 未连接'}}
-        </text>
-      </view>
-    </view>
-
-    <!-- 聊天工作台主区域 -->
-    <view class="chat-workspace {{chatExpanded ? 'expanded' : ''}}">
-      <!-- 会话列表 -->
-      <view wx:if="{{!chatExpanded}}" class="sessions-panel">
-        <view class="panel-header">
-          <text class="panel-title">活跃会话</text>
-          <text class="session-count">({{sessions.length}})</text>
-        </view>
-
-        <view wx:if="{{loadingSessions}}" class="loading-sessions">
-          <text>加载会话中...</text>
-        </view>
-
-        <view wx:elif="{{sessions.length === 0}}" class="empty-sessions">
-          <t-empty description="暂无活跃会话" />
-        </view>
-
-        <view wx:else class="sessions-list">
-          <view
-            wx:for="{{sessions}}"
-            wx:key="sessionId"
-            class="session-item {{currentSessionId === item.sessionId ? 'active' : ''}}"
-            hover-class="session-item-hover"
-            data-session-id="{{item.sessionId}}"
-            bindtap="onSelectSession"
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 🔴 实时聊天模式 -->
+    <view class="chat-mode-container">
+      <!-- 管理员状态栏（状态可切换: online / busy / offline） -->
+      <view class="admin-status-bar">
+        <view class="status-info">
+          <text class="status-text">当前状态：</text>
+          <text
+            class="status-badge {{adminStatus}}"
+            bindtap="onToggleAdminStatus"
+            data-status="{{adminStatus === 'online' ? 'busy' : 'online'}}"
           >
-            <view class="session-avatar">
-              <text class="avatar-text"
-                >{{item.userInfo.nickname ? item.userInfo.nickname.charAt(0) : '用'}}</text
-              >
-            </view>
-            <view class="session-info">
-              <view class="session-header">
-                <text class="user-name">{{item.userInfo.nickname || '用户' + item.userId}}</text>
-                <text class="session-time">{{item.lastMessageTime}}</text>
-              </view>
-              <view class="session-preview">
-                <text class="last-message">{{item.lastMessage || '等待客服回复...'}}</text>
-                <view wx:if="{{item.unreadCount > 0}}" class="unread-badge"
-                  >{{item.unreadCount}}</view
+            {{adminStatus === 'online' ? '🟢 在线' : adminStatus === 'busy' ? '🟡 忙碌' : '🔴
+            离线'}}
+          </text>
+        </view>
+        <view class="connection-info">
+          <text class="ws-status {{wsConnected ? 'connected' : 'disconnected'}}">
+            {{wsConnected ? '🔗 已连接' : '❌ 未连接'}}
+          </text>
+        </view>
+      </view>
+
+      <!-- 聊天工作台主区域 -->
+      <view class="chat-workspace {{chatExpanded ? 'expanded' : ''}}">
+        <!-- 会话列表 -->
+        <view wx:if="{{!chatExpanded}}" class="sessions-panel">
+          <view class="panel-header">
+            <text class="panel-title">活跃会话</text>
+            <text class="session-count">({{sessions.length}})</text>
+          </view>
+
+          <view wx:if="{{loadingSessions}}" class="loading-sessions">
+            <text>加载会话中...</text>
+          </view>
+
+          <view wx:elif="{{sessions.length === 0}}" class="empty-sessions">
+            <t-empty description="暂无活跃会话" />
+          </view>
+
+          <view wx:else class="sessions-list">
+            <view
+              wx:for="{{sessions}}"
+              wx:key="sessionId"
+              class="session-item {{currentSessionId === item.sessionId ? 'active' : ''}}"
+              hover-class="session-item-hover"
+              data-session-id="{{item.sessionId}}"
+              bindtap="onSelectSession"
+            >
+              <view class="session-avatar">
+                <text class="avatar-text"
+                  >{{item.userInfo.nickname ? item.userInfo.nickname.charAt(0) : '用'}}</text
                 >
               </view>
-              <view class="session-status">
-                <text class="status-tag {{item.status}}">
-                  {{item.status === 'waiting' ? '等待回复' : item.status === 'active' ? '进行中' :
-                  '已结束'}}
-                </text>
+              <view class="session-info">
+                <view class="session-header">
+                  <text class="user-name">{{item.userInfo.nickname || '用户' + item.userId}}</text>
+                  <text class="session-time">{{item.lastMessageTime}}</text>
+                </view>
+                <view class="session-preview">
+                  <text class="last-message">{{item.lastMessage || '等待客服回复...'}}</text>
+                  <view wx:if="{{item.unreadCount > 0}}" class="unread-badge"
+                    >{{item.unreadCount}}</view
+                  >
+                </view>
+                <view class="session-status">
+                  <text class="status-tag {{item.status}}">
+                    {{item.status === 'waiting' ? '等待回复' : item.status === 'active' ? '进行中' :
+                    '已结束'}}
+                  </text>
+                </view>
               </view>
             </view>
           </view>
         </view>
-      </view>
 
-      <!-- 聊天区域 -->
-      <view class="chat-panel {{chatExpanded ? 'expanded' : ''}}">
-        <view wx:if="{{!currentSessionId}}" class="no-session-selected">
-          <text class="no-session-icon">💬</text>
-          <text class="no-session-text">请选择一个会话开始聊天</text>
-        </view>
-
-        <view wx:else class="chat-container">
-          <!-- 聊天头部 -->
-          <view class="chat-header">
-            <view wx:if="{{chatExpanded}}" class="back-btn" hover-class="back-btn-hover" bindtap="onCloseChatExpanded">
-              <text class="back-icon">←</text>
-              <text class="back-text">返回列表</text>
-            </view>
-            <view class="chat-user-info">
-              <text class="chat-user-name">{{currentSessionUserName || '用户'}}</text>
-              <text class="chat-session-id">会话ID: {{currentSessionId}}</text>
-            </view>
-            <view class="chat-actions">
-              <button class="action-btn" bindtap="onEndSession">结束会话</button>
-            </view>
+        <!-- 聊天区域 -->
+        <view class="chat-panel {{chatExpanded ? 'expanded' : ''}}">
+          <view wx:if="{{!currentSessionId}}" class="no-session-selected">
+            <text class="no-session-icon">💬</text>
+            <text class="no-session-text">请选择一个会话开始聊天</text>
           </view>
 
-          <!-- 聊天消息区域 -->
-          <scroll-view
-            class="messages-container"
-            scroll-y
-            scroll-top="{{scrollToBottom ? 99999 : 0}}"
-            scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
-          >
-            <view wx:if="{{currentMessages.length === 0}}" class="empty-messages">
-              <text class="empty-text">会话开始，请礼貌回复用户</text>
-            </view>
-
-            <view wx:else class="messages-list">
+          <view wx:else class="chat-container">
+            <!-- 聊天头部 -->
+            <view class="chat-header">
               <view
-                wx:for="{{currentMessages}}"
-                wx:key="id"
-                class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}"
+                wx:if="{{chatExpanded}}"
+                class="back-btn"
+                hover-class="back-btn-hover"
+                bindtap="onCloseChatExpanded"
               >
-                <view class="message-avatar">
-                  <text class="avatar-text">{{item.senderType === 'admin' ? '客' : '用'}}</text>
-                </view>
-                <view class="message-content">
-                  <view class="message-bubble">
-                    <text class="message-text">{{item.content}}</text>
+                <text class="back-icon">←</text>
+                <text class="back-text">返回列表</text>
+              </view>
+              <view class="chat-user-info">
+                <text class="chat-user-name">{{currentSessionUserName || '用户'}}</text>
+                <text class="chat-session-id">会话ID: {{currentSessionId}}</text>
+              </view>
+              <view class="chat-actions">
+                <button class="action-btn" bindtap="onEndSession">结束会话</button>
+              </view>
+            </view>
+
+            <!-- 聊天消息区域 -->
+            <scroll-view
+              type="list"
+              class="messages-container"
+              scroll-y
+              scroll-top="{{scrollToBottom ? 99999 : 0}}"
+              scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
+            >
+              <view wx:if="{{currentMessages.length === 0}}" class="empty-messages">
+                <text class="empty-text">会话开始，请礼貌回复用户</text>
+              </view>
+
+              <view wx:else class="messages-list">
+                <view
+                  wx:for="{{currentMessages}}"
+                  wx:key="id"
+                  class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}"
+                >
+                  <view class="message-avatar">
+                    <text class="avatar-text">{{item.senderType === 'admin' ? '客' : '用'}}</text>
                   </view>
-                  <view class="message-meta">
-                    <text class="message-time">{{item.createdAt}}</text>
-                    <text
-                      wx:if="{{item.senderType === 'admin'}}"
-                      class="message-status {{item.status}}"
-                    >
-                      {{item.status === 'sending' ? '发送中' : item.status === 'sent' ? '已发送' :
-                      item.status === 'failed' ? '发送失败' : ''}}
-                    </text>
+                  <view class="message-content">
+                    <view class="message-bubble">
+                      <text class="message-text">{{item.content}}</text>
+                    </view>
+                    <view class="message-meta">
+                      <text class="message-time">{{item.createdAt}}</text>
+                      <text
+                        wx:if="{{item.senderType === 'admin'}}"
+                        class="message-status {{item.status}}"
+                      >
+                        {{item.status === 'sending' ? '发送中' : item.status === 'sent' ? '已发送' :
+                        item.status === 'failed' ? '发送失败' : ''}}
+                      </text>
+                    </view>
                   </view>
                 </view>
               </view>
-            </view>
-            <view id="message-bottom"></view>
-          </scroll-view>
+              <view id="message-bottom"></view>
+            </scroll-view>
 
-          <!-- 聊天输入区域 -->
-          <view class="chat-input-container">
-            <!-- 输入框和发送按钮 -->
-            <view class="input-area">
-              <textarea
-                class="message-input"
-                placeholder="输入回复内容..."
-                value="{{inputContent}}"
-                bindinput="onChatInputChange"
-                bindfocus="onChatInputFocus"
-                bindblur="onChatInputBlur"
-                maxlength="500"
-                auto-height
-                show-confirm-bar="{{false}}"
-              ></textarea>
-              <button
-                class="send-btn {{sendButtonEnabled ? 'active' : 'disabled'}}"
-                disabled="{{!sendButtonEnabled}}"
-                bindtap="sendChatMessage"
-              >
-                <text class="send-icon">📤</text>
-                <text class="send-text">发送</text>
-              </button>
-            </view>
+            <!-- 聊天输入区域 -->
+            <view class="chat-input-container">
+              <!-- 输入框和发送按钮 -->
+              <view class="input-area">
+                <textarea
+                  class="message-input"
+                  placeholder="输入回复内容..."
+                  value="{{inputContent}}"
+                  bindinput="onChatInputChange"
+                  bindfocus="onChatInputFocus"
+                  bindblur="onChatInputBlur"
+                  maxlength="500"
+                  auto-height
+                  show-confirm-bar="{{false}}"
+                ></textarea>
+                <button
+                  class="send-btn {{sendButtonEnabled ? 'active' : 'disabled'}}"
+                  disabled="{{!sendButtonEnabled}}"
+                  bindtap="sendChatMessage"
+                >
+                  <text class="send-icon">📤</text>
+                  <text class="send-text">发送</text>
+                </button>
+              </view>
 
-            <!-- 输入状态提示 -->
-            <view wx:if="{{isTyping}}" class="typing-indicator">
-              <text>正在输入...</text>
+              <!-- 输入状态提示 -->
+              <view wx:if="{{isTyping}}" class="typing-indicator">
+                <text>正在输入...</text>
+              </view>
             </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 今日统计 -->
+      <view class="today-stats">
+        <view class="stats-header">
+          <text class="stats-title">今日统计</text>
+        </view>
+        <view class="stats-grid">
+          <view class="stat-card">
+            <text class="stat-number">{{todayStats.totalSessions}}</text>
+            <text class="stat-label">总会话数</text>
+          </view>
+          <view class="stat-card">
+            <text class="stat-number">{{todayStats.completedSessions}}</text>
+            <text class="stat-label">已完成</text>
+          </view>
+          <view class="stat-card">
+            <text class="stat-number">{{todayStats.avgResponseTime}}</text>
+            <text class="stat-label">平均响应</text>
+          </view>
+          <view class="stat-card">
+            <text class="stat-number">{{todayStats.customerSatisfaction}}%</text>
+            <text class="stat-label">满意度</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 今日统计 -->
-    <view class="today-stats">
-      <view class="stats-header">
-        <text class="stats-title">今日统计</text>
-      </view>
-      <view class="stats-grid">
-        <view class="stat-card">
-          <text class="stat-number">{{todayStats.totalSessions}}</text>
-          <text class="stat-label">总会话数</text>
-        </view>
-        <view class="stat-card">
-          <text class="stat-number">{{todayStats.completedSessions}}</text>
-          <text class="stat-label">已完成</text>
-        </view>
-        <view class="stat-card">
-          <text class="stat-number">{{todayStats.avgResponseTime}}</text>
-          <text class="stat-label">平均响应</text>
-        </view>
-        <view class="stat-card">
-          <text class="stat-number">{{todayStats.customerSatisfaction}}%</text>
-          <text class="stat-label">满意度</text>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
+    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
 </view>

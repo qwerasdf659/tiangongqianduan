@@ -8,7 +8,7 @@
       wx:key="id"
       style="left: {{item.x}}%; top: {{item.y}}%; animation-delay: {{item.delay}}s; animation-duration: {{item.duration}}s;"
     >
-      <text>{{item.prize_icon}}</text>
+      <text class="particle-text">{{item.prize_icon}}</text>
     </view>
   </view>
 
@@ -87,11 +87,8 @@
         ></view>
       </view>
 
-      <!-- 弹珠 -->
-      <view
-        class="ball-wrap {{ballState}}"
-        style="left: {{ballX}}%; top: {{ballY}}%; --ball-angle: {{ballAngle}}deg;"
-      >
+      <!-- 弹珠 — 位置由 Worklet applyAnimatedStyle 驱动 -->
+      <view class="ball-wrap {{ballState}}">
         <view class="ball">
           <view class="ball-highlight"></view>
           <view class="ball-highlight-secondary"></view>
@@ -254,6 +251,7 @@
       <text class="pb-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
     <scroll-view
+      type="custom"
       class="pb-prizes__scroll"
       scroll-x="{{true}}"
       enhanced="{{true}}"

@@ -32,7 +32,7 @@ const CHART_COLORS = {
   /** 数据圆点 */
   dot: '#FF6B35',
   dotBorder: '#ffffff',
-  /** 成交量柱体（实色 $color-primary） */
+  /** 成交量柱体（品牌主色） */
   volumeBar: '#FF6B35'
 } as const
 

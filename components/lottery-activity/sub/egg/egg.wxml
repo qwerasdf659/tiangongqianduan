@@ -43,7 +43,7 @@
             </view>
             <!-- 编号 -->
             <view class="egg-number">
-              <text class="count-text">{{item.id + 1}}</text>
+              <text class="count-text egg-number-text">{{item.id + 1}}</text>
             </view>
             <!-- 点击提示（未选中时） -->
             <view class="egg-tap-hint" wx:if="{{canSelect && selectedEgg < 0}}">
@@ -135,7 +135,7 @@
             </view>
             <!-- 编号 -->
             <view class="egg-number">
-              <text class="count-text">{{egg.index + 1}}</text>
+              <text class="count-text egg-number-text">{{egg.index + 1}}</text>
             </view>
           </view>
 

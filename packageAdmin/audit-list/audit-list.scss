@@ -1,10 +1,18 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* packageAdmin/audit-list/audit-list.scss - 审批管理页面样式 */
 /* 设计风格：紫蓝渐变 + 毛玻璃卡片 + 视觉层次分明的审批操作界面 */
 @import '../../styles/mixins';
 
 /* ===== 页面容器 ===== */
 .audit-page {
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--tg-gradient-primary);
   padding-bottom: calc(60rpx + env(safe-area-inset-bottom));
 }
@@ -73,7 +81,7 @@
   border-radius: 14rpx;
 }
 
-.tab-badge text {
+.tab-badge .tab-badge-text {
   font-size: 18rpx;
   color: var(--tg-color-white);
   font-weight: 700;
@@ -140,8 +148,7 @@
 
 /* ===== 操作工具栏（置顶） ===== */
 .toolbar {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 50;
   display: flex;
   align-items: center;
@@ -324,7 +331,7 @@
   background: rgba(var(--tg-color-warning-strong-rgb), 0.12);
 }
 
-.status-tag.pending text {
+.status-tag.pending .status-tag-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-color-warning-strong);
   font-weight: 600;
@@ -400,9 +407,6 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .unit {
@@ -576,7 +580,7 @@
   border-radius: 50%;
 }
 
-.modal-header-icon text {
+.modal-header-icon .modal-header-icon-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-error);
   font-weight: bold;
@@ -596,7 +600,7 @@
   background: var(--tg-color-bg-grey);
 }
 
-.modal-close text {
+.modal-close .modal-close-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
 }
@@ -755,7 +759,7 @@
   flex-shrink: 0;
 }
 
-.chain-type-badge text {
+.chain-type-badge .chain-type-badge-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-gradient-primary-start);
   font-weight: 600;
@@ -1001,6 +1005,6 @@
   background: rgba(var(--td-brand-color-rgb), 0.08) !important;
 }
 
-.detail-icon text {
+.detail-icon .detail-icon-text {
   color: var(--tg-gradient-primary-start) !important;
 }

@@ -5,79 +5,88 @@
 <custom-navbar title="消息通知" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="notifications-page">
-  <!-- 顶部操作栏：全部已读按钮 -->
-  <view class="action-bar" wx:if="{{isLoggedIn && notifications.length > 0}}">
-    <view class="unread-summary">
-      <text wx:if="{{unreadCount > 0}}">{{unreadCount}}条未读</text>
-      <text wx:else>全部已读</text>
-    </view>
-    <view class="mark-all-btn {{unreadCount === 0 ? 'disabled' : ''}}" bindtap="handleMarkAllRead">
-      <text>全部已读</text>
-    </view>
-  </view>
-
-  <!-- 通知列表 -->
-  <view class="notification-list" wx:if="{{isLoggedIn && notifications.length > 0}}">
-    <view
-      class="notification-item {{item.is_read === 0 ? 'unread' : 'read'}}"
-      wx:for="{{notifications}}"
-      wx:key="notification_id"
-      bindtap="handleNotificationTap"
-      data-notification="{{item}}"
-    >
-      <!-- 左侧：类型标签图标 -->
-      <view class="notification-icon">
-        <view class="type-tag {{item._tagClass}}">
-          <text>{{item._tagText}}</text>
-        </view>
-      </view>
-
-      <!-- 中间：标题+内容 -->
-      <view class="notification-body">
-        <view class="notification-header">
-          <text class="notification-title {{item.is_read === 0 ? 'title-unread' : ''}}"
-            >{{item.title}}</text
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <sticky-section>
+      <!-- 顶部操作栏：全部已读按钮 -->
+      <sticky-header>
+        <view class="action-bar" wx:if="{{isLoggedIn && notifications.length > 0}}">
+          <view class="unread-summary">
+            <text wx:if="{{unreadCount > 0}}">{{unreadCount}}条未读</text>
+            <text wx:else>全部已读</text>
+          </view>
+          <view
+            class="mark-all-btn {{unreadCount === 0 ? 'disabled' : ''}}"
+            bindtap="handleMarkAllRead"
           >
-          <view class="unread-dot" wx:if="{{item.is_read === 0}}"></view>
+            <text>全部已读</text>
+          </view>
         </view>
-        <text class="notification-content">{{item.content}}</text>
-        <text class="notification-time">{{item._displayTime}}</text>
+      </sticky-header>
+
+      <!-- 通知列表 -->
+      <view class="notification-list" wx:if="{{isLoggedIn && notifications.length > 0}}">
+        <view
+          class="notification-item {{item.is_read === 0 ? 'unread' : 'read'}}"
+          wx:for="{{notifications}}"
+          wx:key="notification_id"
+          bindtap="handleNotificationTap"
+          data-notification="{{item}}"
+        >
+          <!-- 左侧：类型标签图标 -->
+          <view class="notification-icon">
+            <view class="type-tag {{item._tagClass}}">
+              <text>{{item._tagText}}</text>
+            </view>
+          </view>
+
+          <!-- 中间：标题+内容 -->
+          <view class="notification-body">
+            <view class="notification-header">
+              <text class="notification-title {{item.is_read === 0 ? 'title-unread' : ''}}"
+                >{{item.title}}</text
+              >
+              <view class="unread-dot" wx:if="{{item.is_read === 0}}"></view>
+            </view>
+            <text class="notification-content">{{item.content}}</text>
+            <text class="notification-time">{{item._displayTime}}</text>
+          </view>
+
+          <!-- 右侧：箭头（有跳转目标时显示） -->
+          <view class="notification-arrow" wx:if="{{item._hasLink}}">
+            <text class="arrow-icon">›</text>
+          </view>
+        </view>
       </view>
 
-      <!-- 右侧：箭头（有跳转目标时显示） -->
-      <view class="notification-arrow" wx:if="{{item._hasLink}}">
-        <text class="arrow-icon">›</text>
+      <!-- 加载更多提示 -->
+      <view class="load-more" wx:if="{{isLoggedIn && notifications.length > 0}}">
+        <text wx:if="{{loadingMore}}">加载中...</text>
+        <text wx:elif="{{!hasMore}}">— 没有更多通知了 —</text>
       </view>
-    </view>
-  </view>
 
-  <!-- 加载更多提示 -->
-  <view class="load-more" wx:if="{{isLoggedIn && notifications.length > 0}}">
-    <text wx:if="{{loadingMore}}">加载中...</text>
-    <text wx:elif="{{!hasMore}}">— 没有更多通知了 —</text>
-  </view>
+      <!-- 空状态 -->
+      <t-empty
+        wx:if="{{isLoggedIn && !loading && notifications.length === 0}}"
+        description="交易、中奖等消息将在这里显示"
+      >
+        <view slot="image" class="empty-slot-icon">🔔</view>
+      </t-empty>
 
-  <!-- 空状态 -->
-  <t-empty
-    wx:if="{{isLoggedIn && !loading && notifications.length === 0}}"
-    description="交易、中奖等消息将在这里显示"
-  >
-    <view slot="image" class="empty-slot-icon">🔔</view>
-  </t-empty>
+      <!-- 未登录状态 -->
+      <t-empty wx:if="{{!isLoggedIn && !loading}}" description="登录后查看您的通知消息">
+        <view slot="image" class="empty-slot-icon">🔒</view>
+        <view slot="action" class="login-btn" bindtap="goToLogin">
+          <text>去登录</text>
+        </view>
+      </t-empty>
 
-  <!-- 未登录状态 -->
-  <t-empty wx:if="{{!isLoggedIn && !loading}}" description="登录后查看您的通知消息">
-    <view slot="image" class="empty-slot-icon">🔒</view>
-    <view slot="action" class="login-btn" bindtap="goToLogin">
-      <text>去登录</text>
-    </view>
-  </t-empty>
+      <!-- 页面级loading -->
+      <view class="page-loading" wx:if="{{loading}}">
+        <t-loading loading="{{true}}" text="加载通知中..." theme="spinner" />
+      </view>
 
-  <!-- 页面级loading -->
-  <view class="page-loading" wx:if="{{loading}}">
-    <t-loading loading="{{true}}" text="加载通知中..." theme="spinner" />
-  </view>
-
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
+      <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+      <maintenance-overlay />
+    </sticky-section>
+  </scroll-view>
 </view>
