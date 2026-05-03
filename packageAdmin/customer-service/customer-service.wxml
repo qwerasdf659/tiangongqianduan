@@ -44,6 +44,7 @@
             wx:for="{{sessions}}"
             wx:key="sessionId"
             class="session-item {{currentSessionId === item.sessionId ? 'active' : ''}}"
+            hover-class="session-item-hover"
             data-session-id="{{item.sessionId}}"
             bindtap="onSelectSession"
           >
@@ -84,7 +85,7 @@
         <view wx:else class="chat-container">
           <!-- 聊天头部 -->
           <view class="chat-header">
-            <view wx:if="{{chatExpanded}}" class="back-btn" bindtap="onCloseChatExpanded">
+            <view wx:if="{{chatExpanded}}" class="back-btn" hover-class="back-btn-hover" bindtap="onCloseChatExpanded">
               <text class="back-icon">←</text>
               <text class="back-text">返回列表</text>
             </view>

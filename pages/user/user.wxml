@@ -10,7 +10,7 @@
   </view>
 
   <!-- 积分余额卡片 -->
-  <view class="points-card" bindtap="onPointsTap" wx:if="{{isLoggedIn}}">
+  <view class="points-card" hover-class="points-card-hover" bindtap="onPointsTap" wx:if="{{isLoggedIn}}">
     <view class="points-header">
       <text class="points-title">我的积分</text>
       <view class="header-tips">
@@ -63,6 +63,7 @@
     <view class="menu-list">
       <view
         class="menu-item"
+        hover-class="menu-item-hover"
         wx:for="{{menuItems}}"
         wx:key="id"
         wx:if="{{index >= 5}}"

@@ -80,7 +80,7 @@
         </view>
       </view>
 
-      <view wx:if="{{attachedImages.length < 3}}" class="add-image-btn" bindtap="onAddImage">
+      <view wx:if="{{attachedImages.length < 3}}" class="add-image-btn" hover-class="add-image-btn-hover" bindtap="onAddImage">
         <text class="icon">📷</text>
         <text class="text">添加图片</text>
       </view>
@@ -114,6 +114,7 @@
         wx:for="{{myFeedbacks}}"
         wx:key="feedback_id"
         class="history-item"
+        hover-class="history-item-hover"
         data-feedback-id="{{item.feedback_id}}"
         bindtap="onHistoryItemTap"
       >
@@ -136,7 +137,7 @@
   <view class="modal-content" catchtap="">
     <view class="modal-header">
       <text class="modal-title">我的反馈记录</text>
-      <view class="close-btn" bindtap="onHideHistoryModal">×</view>
+      <view class="close-btn" hover-class="close-btn-hover" bindtap="onHideHistoryModal">×</view>
     </view>
 
     <view class="modal-body">
@@ -153,6 +154,7 @@
           wx:for="{{myFeedbacks}}"
           wx:key="feedback_id"
           class="feedback-item"
+          hover-class="feedback-item-hover"
           data-feedback-id="{{item.feedback_id}}"
           bindtap="onHistoryItemTap"
         >

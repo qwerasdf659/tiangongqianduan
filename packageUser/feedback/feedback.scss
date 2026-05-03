@@ -141,7 +141,8 @@
   box-sizing: border-box;
 }
 
-.content-input:focus {
+/* Skyline: 使用 JS class 替代 :focus */
+.content-input-focused {
   border-color: #3498db;
   background-color: white;
 }
