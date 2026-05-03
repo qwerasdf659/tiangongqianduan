@@ -1,7 +1,7 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
 .page-scroll-view {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
 }
 
 /* 兑换页面样式 — 薄壳 Page Shell */
@@ -13,7 +13,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 0;
   background: linear-gradient(
     135deg,
     rgba(255, 107, 53, 0.08) 0%,
@@ -44,7 +44,6 @@
 .tab-content-wrapper {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   position: relative;

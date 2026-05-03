@@ -4,6 +4,7 @@
 > 日期：2026-05-04
 > 基于：`docs/前端功能求证-需后端确认.md` 确认结果
 > 更新：2026-05-04 — 补充前端代码位置和类型定义信息
+> 更新：2026-05-04 — 追加商品兑换/交易市场空白问题的后端排查项
 
 ---
 
@@ -162,3 +163,90 @@
 | 时间格式 | 数据库 UTC 存储，API 返回北京时间 |
 | 分页格式 | `{ page, page_size, total, total_pages }` |
 | API 版本 | 统一 `/api/v4/` 前缀 |
+
+---
+
+## 六、商品兑换/交易市场页面空白 — 后端排查项（2026-05-04 新增）
+
+### 问题现象
+
+微信小程序"商城"Tab 页面中，"商品兑换"和"交易市场"两个子 Tab 内容均为空白。前端已排查确认：前端代码逻辑正确，API 调用链路完整，问题出在后端数据或配置层。
+
+### 6.1 兑换页面配置接口（最高优先级）
+
+| 项目 | 内容 |
+|------|------|
+| **接口路径** | `GET /api/v4/system/config/exchange-page` |
+| **前端调用位置** | `utils/exchange-config-cache.ts` -> `ExchangeConfigCache.getConfig()` |
+| **前端依赖** | 此接口返回的 `tabs` 数组决定页面显示哪些 Tab，如果返回空或接口报错，整个商城页面为空白 |
+
+**请后端确认：**
+1. 此接口是否已实现并部署？
+2. 返回的 `tabs` 数组是否包含 `exchange`（商品兑换）和 `market`（交易市场）两个 enabled 的 Tab？
+3. 返回的 `theme` 配置是否完整？
+
+**前端期望返回格式：**
+
+```json
+{
+  "success": true,
+  "data": {
+    "tabs": [
+      { "key": "exchange", "label": "商品兑换", "enabled": true },
+      { "key": "market", "label": "交易市场", "enabled": true },
+      { "key": "exchange-rate", "label": "资产转换", "enabled": true }
+    ],
+    "theme": {
+      "primary_color": "#FF6B35",
+      "card_style": "elevated"
+    },
+    "updated_at": "2026-05-04T00:00:00+08:00"
+  }
+}
+```
+
+### 6.2 商品列表接口
+
+| 项目 | 内容 |
+|------|------|
+| **接口路径** | `GET /api/v4/exchange/items?space=lucky&page=1&page_size=20&with_counts=true` |
+| **前端调用位置** | `utils/api/backpack.ts` -> `getExchangeProducts()` |
+| **前端依赖** | 商品兑换 Tab 的商品列表数据 |
+
+**请后端确认：**
+1. `exchange_items` 表中是否有 `status='active'` 且 `space='lucky'` 的商品数据？
+2. 接口是否正常返回分页数据？
+
+### 6.3 交易市场挂单列表接口
+
+| 项目 | 内容 |
+|------|------|
+| **接口路径** | `GET /api/v4/marketplace/listings?page=1&page_size=20` |
+| **前端调用位置** | `utils/api/market.ts` -> `getMarketProducts()` |
+| **前端依赖** | 交易市场 Tab 的挂单列表数据 |
+
+**请后端确认：**
+1. `marketplace_listings` 表中是否有 `status='active'` 的挂单数据？
+2. 接口是否正常返回分页数据？
+
+### 6.4 商品筛选配置接口
+
+| 项目 | 内容 |
+|------|------|
+| **接口路径** | `GET /api/v4/system/config/product-filter` |
+| **前端调用位置** | `lucky-space.ts` -> 筛选条件初始化 |
+
+### 6.5 交易市场筛选维度接口
+
+| 项目 | 内容 |
+|------|------|
+| **接口路径** | `GET /api/v4/marketplace/listings/facets` |
+| **前端调用位置** | `market-behavior.ts` -> `initFilters()` |
+
+### 排查建议
+
+请后端开发人员按以下顺序排查：
+
+1. **先检查 `GET /api/v4/system/config/exchange-page`** — 这是商城页面的入口配置，如果此接口返回异常，整个页面都会空白
+2. **再检查商品数据** — 确认数据库中有可展示的商品/挂单数据
+3. **最后检查日志** — 查看后端日志中是否有 500 错误或数据库查询异常

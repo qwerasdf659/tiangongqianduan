@@ -117,6 +117,7 @@ Component({
     },
     active(isActive: boolean) {
       if (isActive && (!this.data.filteredProducts || this.data.filteredProducts.length === 0)) {
+        this.initFilters()
         this.loadProducts()
       }
       if (isActive) {

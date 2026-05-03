@@ -99,8 +99,12 @@ Page({
     }
 
     Utils.restoreUserInfo()
-    await this._loadExchangePageConfig()
-    this._restoreThemePreferences()
+    try {
+      await this._loadExchangePageConfig()
+      this._restoreThemePreferences()
+    } catch (configError) {
+      log.error('兑换页面配置加载异常，页面将显示错误提示:', configError)
+    }
     this.setData({ loading: false })
   },
 
