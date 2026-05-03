@@ -3,7 +3,11 @@
   "usingComponents": {
     "shape-renderer": "../sub/shape-renderer/shape-renderer",
     "bead-card": "../sub/bead-card/bead-card",
-    "fly-animation": "../sub/fly-animation/fly-animation"
+    "fly-animation": "../sub/fly-animation/fly-animation",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
-  "enablePullDownRefresh": false
+  "enablePullDownRefresh": false,
+  "navigationStyle": "custom"
 }

@@ -1,0 +1,166 @@
+﻿/* 连抽按钮组 共享组件样式 */
+
+.draw-buttons-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 25rpx;
+  padding: 35rpx 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow:
+    0 8rpx 30rpx rgba(0, 0, 0, 0.12),
+    0 4rpx 15rpx rgba(0, 0, 0, 0.08);
+  -webkit-backdrop-filter: blur(15rpx);
+  backdrop-filter: blur(15rpx);
+}
+
+.multi-draw-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.grid-row {
+  display: flex;
+  gap: 20rpx;
+}
+
+/* 连抽按钮基础样式 */
+.grid-draw-btn {
+  flex: 1;
+  height: 140rpx;
+  border: none;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  font-size: var(--td-font-size-base);
+  font-weight: 600;
+  box-shadow:
+    0 8rpx 20rpx var(--tg-lottery-shadow-medium, rgba(0, 0, 0, 0.2)),
+    0 4rpx 12rpx var(--tg-lottery-shadow-soft, rgba(0, 0, 0, 0.15));
+  transition: all 0.3s ease;
+}
+
+.grid-draw-btn:active {
+  transform: translateY(-4rpx) scale(0.98);
+  box-shadow:
+    0 12rpx 30rpx rgba(0, 0, 0, 0.25),
+    0 6rpx 15rpx rgba(0, 0, 0, 0.2);
+}
+
+.grid-draw-btn:disabled {
+  opacity: 0.6;
+  transform: none !important;
+}
+
+/* 三连抽 - 使用主题色 */
+.triple-btn {
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-primary, var(--tg-gradient-primary-start)),
+    var(--tg-lottery-primary-dark, var(--tg-gradient-primary-end))
+  );
+  color: var(--tg-lottery-text-inverse, white);
+}
+
+/* 五连抽 */
+.five-btn {
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-secondary-light, #f093fb),
+    var(--tg-lottery-secondary, #f5576c)
+  );
+  color: var(--tg-lottery-text-inverse, white);
+}
+
+/* 十连抽 */
+.ten-btn {
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-accent-blue, #4facfe),
+    var(--tg-lottery-accent-cyan, #00f2fe)
+  );
+  color: var(--tg-lottery-text-inverse, white);
+}
+
+.ten-btn.full-width {
+  width: 100%;
+}
+
+.ten-btn.special {
+  position: relative;
+  overflow: hidden;
+}
+
+.ten-btn.special::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+/* 按钮内容布局 */
+.btn-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.btn-main-text {
+  font-size: var(--td-font-size-m);
+  font-weight: 700;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.btn-sub-text {
+  font-size: var(--td-font-size-s);
+  opacity: 0.9;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 折扣价格行（划线价 + 实付价 + 省多少） */
+.btn-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 划线原价（折扣前） */
+.btn-original-cost {
+  font-size: var(--tg-font-size-xs);
+  opacity: 0.6;
+  text-decoration: line-through;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 省多少积分标签 */
+.btn-saved {
+  font-size: var(--tg-font-size-xs);
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
+  opacity: 0.95;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.15);
+}
+
+.btn-guarantee {
+  font-size: var(--tg-font-size-xs);
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  margin-top: 4rpx;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
+}

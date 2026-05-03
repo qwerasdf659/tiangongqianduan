@@ -1,10 +1,9 @@
 /* 积分活动记录页面样式 - V6.0 紫蓝主题统一版（与 points-detail 风格一致） */
-@import '../../../styles/variables';
 @import '../../../styles/mixins';
 
 .trade-upload-records-container {
   min-height: 100vh;
-  background: $gradient-primary;
+  background: var(--tg-gradient-primary);
   padding-bottom: 40rpx;
 }
 
@@ -21,20 +20,24 @@
   background: #ffffff;
   border-radius: 24rpx;
   padding: 8rpx;
-  box-shadow: $shadow-card;
+  box-shadow: var(--tg-shadow-card);
 }
 
 .tab-item {
   flex: 1;
   @include flex-column-center;
   padding: 20rpx 10rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   position: relative;
   transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.35);
   transform: scale(1.02);
 }
@@ -65,7 +68,7 @@
 .tab-name {
   font-size: 26rpx;
   font-weight: 600;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
   transition: color 0.3s ease;
 }
 
@@ -106,24 +109,8 @@
   @include flex-column-center;
 }
 
-.loading-spinner {
-  width: 64rpx;
-  height: 64rpx;
-  border: 4rpx solid rgba(255, 255, 255, 0.25);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 24rpx;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .loading-text {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
 }
@@ -166,17 +153,21 @@
 
 /* 可用积分 - 绿色 */
 .main-stat-card.available::before {
-  background: linear-gradient(90deg, $color-success, #66bb6a);
+  background: linear-gradient(90deg, var(--tg-color-success), #66bb6a);
 }
 
 /* 冻结积分 - 橙色 */
 .main-stat-card.frozen::before {
-  background: linear-gradient(90deg, $color-warning, #ffb74d);
+  background: linear-gradient(90deg, var(--tg-color-warning), #ffb74d);
 }
 
 /* 总积分资产 - 紫蓝主题色 */
 .main-stat-card.total::before {
-  background: linear-gradient(90deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    90deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
 }
 
 .main-stat-card:active {
@@ -192,11 +183,11 @@
 }
 
 .stat-icon-bg.available {
-  background: rgba($color-success, 0.12);
+  background: rgba(var(--tg-color-success-rgb), 0.12);
 }
 
 .stat-icon-bg.frozen {
-  background: rgba($color-warning, 0.12);
+  background: rgba(var(--tg-color-warning-rgb), 0.12);
 }
 
 .stat-icon-bg.total {
@@ -212,28 +203,28 @@
 }
 
 .stat-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: 6rpx;
 }
 
 .stat-value {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
   display: block;
 }
 
 .stat-value.available {
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 .stat-value.frozen {
-  color: $color-warning;
+  color: var(--tg-color-warning);
 }
 
 .stat-value.total {
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 /* ============================================================================ */
@@ -269,7 +260,11 @@
 }
 
 .filter-chip.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
 
@@ -278,9 +273,9 @@
 }
 
 .chip-text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 
 .filter-chip.active .chip-text {
@@ -300,9 +295,9 @@
   padding: 14rpx;
   @include flex-center;
   gap: 8rpx;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   transition: all 0.3s ease;
 }
 
@@ -313,7 +308,7 @@
 
 .filter-btn.secondary {
   border-color: rgba(0, 0, 0, 0.12);
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .filter-btn.secondary:active {
@@ -345,12 +340,12 @@
 
 .search-input {
   flex: 1;
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
 }
 
 .search-placeholder {
-  color: $color-text-disabled;
+  color: var(--tg-text-disabled);
 }
 
 .search-clear {
@@ -363,7 +358,7 @@
 
 .clear-icon {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 /* 记录数量提示 */
@@ -372,7 +367,7 @@
 }
 
 .count-text {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
 }
@@ -436,11 +431,19 @@
 }
 
 .transaction-icon-wrapper.income {
-  background: linear-gradient(135deg, rgba($color-success, 0.15), rgba($color-success, 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-success-rgb), 0.15),
+    rgba(var(--tg-color-success-rgb), 0.05)
+  );
 }
 
 .transaction-icon-wrapper.expense {
-  background: linear-gradient(135deg, rgba($color-error, 0.15), rgba($color-error, 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-error-rgb), 0.15),
+    rgba(var(--tg-color-error-rgb), 0.05)
+  );
 }
 
 /* 默认图标背景 */
@@ -458,32 +461,32 @@
 }
 
 .transaction-title {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   display: block;
   margin-bottom: 6rpx;
   @include text-ellipsis;
 }
 
 .transaction-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: 4rpx;
   @include text-ellipsis;
 }
 
 .transaction-time {
-  font-size: $font-size-xs;
-  color: $color-text-disabled;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-disabled);
   display: block;
 }
 
 /* 流水号（后端 asset_transactions.transaction_no，TX前缀16位编号） */
 .transaction-no {
-  font-size: $font-size-xs;
-  color: $color-text-disabled;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-disabled);
   display: block;
   font-family: 'Menlo', 'Courier New', monospace;
 }
@@ -495,18 +498,18 @@
 }
 
 .amount-value {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
   display: block;
   line-height: 1.4;
 }
 
 .amount-value.income {
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 .amount-value.expense {
-  color: $color-error;
+  color: var(--tg-color-error);
 }
 
 /* ============================================================================ */
@@ -526,7 +529,7 @@
   padding: 14rpx;
   border-radius: 12rpx;
   border: none;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
   @include flex-center;
   gap: 8rpx;
@@ -535,7 +538,7 @@
 
 .action-btn.detail {
   background: rgba(255, 107, 53, 0.1);
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 .action-btn.detail:active {
@@ -544,7 +547,11 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   color: white;
 }
 
@@ -554,13 +561,13 @@
 }
 
 .action-btn.warning {
-  background: rgba($color-warning, 0.12);
+  background: rgba(var(--tg-color-warning-rgb), 0.12);
   color: #f59e0b;
 }
 
 .action-btn.danger {
-  background: rgba($color-error, 0.12);
-  color: $color-error;
+  background: rgba(var(--tg-color-error-rgb), 0.12);
+  color: var(--tg-color-error);
 }
 
 /* ============================================================================ */
@@ -589,7 +596,11 @@
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
   transform: scale(1.02);
 }
@@ -603,9 +614,9 @@
 }
 
 .filter-name {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 600;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 
 .filter-tab.active .filter-name {
@@ -623,14 +634,14 @@
 }
 
 .record-time {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 消费单号（后端 consumption_records.order_no，CS前缀16位编号） */
 .record-order-no {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-left: 12rpx;
   font-family: 'Menlo', 'Courier New', monospace;
 }
@@ -646,32 +657,32 @@
 
 /* 消费记录状态标签样式 */
 .record-status.approved {
-  background: rgba($color-success, 0.1);
+  background: rgba(var(--tg-color-success-rgb), 0.1);
 }
 
 .record-status.rejected {
-  background: rgba($color-error, 0.1);
+  background: rgba(var(--tg-color-error-rgb), 0.1);
 }
 
 .record-status.pending {
-  background: rgba($color-warning, 0.1);
+  background: rgba(var(--tg-color-warning-rgb), 0.1);
 }
 
 .status-icon {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
 }
 
 .status-text {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 600;
 }
 
 .record-status.approved .status-text {
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 .record-status.rejected .status-text {
-  color: $color-error;
+  color: var(--tg-color-error);
 }
 
 .record-status.pending .status-text {
@@ -690,14 +701,14 @@
 }
 
 .consumption-label {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 .consumption-value {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .points-info {
@@ -708,20 +719,24 @@
   display: inline-flex;
   align-items: center;
   gap: 8rpx;
-  background: linear-gradient(135deg, rgba($color-success, 0.12), rgba($color-success, 0.06));
-  color: $color-success;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-success-rgb), 0.12),
+    rgba(var(--tg-color-success-rgb), 0.06)
+  );
+  color: var(--tg-color-success);
   padding: 10rpx 20rpx;
   border-radius: 20rpx;
 }
 
 .points-icon {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
 }
 
 .points-earned {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 700;
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 .merchant-notes {
@@ -734,14 +749,14 @@
 }
 
 .notes-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
 }
 
 .notes-content {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   flex: 1;
 }
 
@@ -751,19 +766,19 @@
   align-items: center;
   gap: 4rpx;
   padding: 12rpx 16rpx;
-  background: rgba($color-warning, 0.06);
+  background: rgba(var(--tg-color-warning-rgb), 0.06);
   border-radius: 12rpx;
 }
 
 .chain-progress-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
 }
 
 .chain-progress-value {
-  font-size: $font-size-xs;
-  color: $color-warning;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-warning);
   font-weight: 600;
 }
 
@@ -807,7 +822,7 @@
 }
 
 .empty-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
   color: white;
   display: block;
@@ -816,7 +831,7 @@
 }
 
 .empty-subtitle {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   color: rgba(255, 255, 255, 0.75);
   display: block;
   margin-bottom: 48rpx;
@@ -825,11 +840,11 @@
 .activity-action-btn,
 .upload-action-btn {
   background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   border: none;
   border-radius: 48rpx;
   padding: 24rpx 56rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
   display: inline-flex;
@@ -857,12 +872,6 @@
   gap: 12rpx;
 }
 
-.loading-spinner.small {
-  width: 36rpx;
-  height: 36rpx;
-  border-width: 3rpx;
-}
-
 .load-more-text {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.7);
@@ -882,7 +891,7 @@
 }
 
 .no-more-text {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   color: rgba(255, 255, 255, 0.5);
 }
 

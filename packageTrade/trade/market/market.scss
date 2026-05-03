@@ -1,5 +1,4 @@
 /* 交易市场页面样式 - V3.0 Sass版本 */
-@import '../../../styles/variables';
 @import '../../../styles/mixins';
 
 /* ========== 市场行情概览 ========== */
@@ -13,23 +12,23 @@
   gap: 12rpx;
   padding: 16rpx 24rpx;
   /* 资产选择条：实色白底，无 backdrop-filter */
-  background: $color-white;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
 }
 
 .chart-asset-tag {
   font-size: 22rpx;
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
-  background: rgba(255, 107, 53, 0.06);
-  color: $color-text-secondary;
+  background: var(--tg-color-brand-soft);
+  color: var(--tg-text-secondary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1rpx solid transparent;
 
   &.active {
-    background: $gradient-blue-start;
-    color: $color-text-white;
-    box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+    background: var(--tg-gradient-primary-start);
+    color: var(--tg-color-white);
+    box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
   }
 }
 
@@ -41,7 +40,7 @@
 
   &--expanded {
     .toggle-text {
-      color: $color-text-secondary;
+      color: var(--tg-text-secondary);
     }
   }
 }
@@ -50,25 +49,25 @@
   @include flex-center;
   gap: 8rpx;
   padding: 10rpx 28rpx;
-  background: rgba(255, 107, 53, 0.06);
+  background: var(--tg-color-brand-soft);
   border-radius: 24rpx;
-  border: 1rpx solid rgba(255, 107, 53, 0.1);
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.1);
   transition: all 0.3s ease;
 
   &:active {
-    background: rgba(255, 107, 53, 0.12);
+    background: var(--tg-color-brand-soft-strong);
   }
 }
 
 .toggle-text {
   font-size: 24rpx;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   font-weight: 500;
 }
 
 .toggle-arrow {
   font-size: 20rpx;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   transition: transform 0.3s ease;
 }
 
@@ -83,8 +82,8 @@
 
 /* ========== 市场总览面板 ========== */
 .market-overview-panel {
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 20rpx;
   margin-bottom: 16rpx;
 }
@@ -102,32 +101,32 @@
   flex-direction: column;
   align-items: center;
   padding: 16rpx 0;
-  background: rgba(255, 107, 53, 0.06);
+  background: var(--tg-color-brand-soft);
   border-radius: 12rpx;
 }
 
 .stat-value {
   font-size: 30rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .stat-label {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   margin-top: 4rpx;
 }
 
 .ranking-section {
   margin-top: 12rpx;
   padding-top: 12rpx;
-  border-top: 1rpx solid $color-border-light;
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 .ranking-title {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
 
@@ -139,27 +138,27 @@
 
 .ranking-index {
   width: 40rpx;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 700;
-  color: $color-primary;
+  color: var(--td-brand-color);
   text-align: center;
 }
 
 .ranking-name {
   flex: 1;
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
 }
 
 .ranking-volume {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
 }
 
 /* ========== 最近成交列表 ========== */
 .recent-trades-panel {
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 20rpx;
   margin-bottom: 16rpx;
 }
@@ -189,17 +188,17 @@
 }
 
 .trade-name {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 500;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .trade-parties {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
 }
 
@@ -214,12 +213,12 @@
 .trade-price {
   font-size: 28rpx;
   font-weight: 700;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .trade-currency {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
 }
 
 /* ========== 空状态和加载状态（面板内） ========== */
@@ -233,14 +232,14 @@
 
 .overview-loading-text,
 .overview-empty-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 🌊 ========== 主容器样式 - 方案1优化版本 ========== */
 .waterfall-market-container {
   min-height: 100vh;
-  background: rgba(255, 107, 53, 0.08);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
   padding: 24rpx;
   position: relative;
   overflow-x: hidden;
@@ -251,11 +250,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: $color-white;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
   padding: 12rpx 16rpx;
   margin-bottom: 16rpx;
-  box-shadow: $shadow-sm;
+  box-shadow: var(--tg-shadow-sm);
 }
 
 .kind-tabs {
@@ -264,16 +263,16 @@
 }
 
 .kind-tab {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
   background: transparent;
   transition: all 0.2s;
 
   &.active {
-    color: $color-text-white;
-    background: $gradient-blue-start;
+    color: var(--tg-color-white);
+    background: var(--tg-gradient-primary-start);
     font-weight: 600;
   }
 }
@@ -290,14 +289,14 @@
 }
 
 .sort-tab {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   padding: 4rpx 10rpx;
   border-radius: 12rpx;
   transition: all 0.2s;
 
   &.active {
-    color: $gradient-blue-start;
+    color: var(--tg-gradient-primary-start);
     font-weight: 600;
     background: rgba(255, 107, 53, 0.1);
   }
@@ -315,11 +314,11 @@
 
 /* ========== 高级筛选面板 ========== */
 .advanced-filter-panel {
-  background: $color-white;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
   padding: 20rpx;
   margin-bottom: 16rpx;
-  box-shadow: $shadow-sm;
+  box-shadow: var(--tg-shadow-sm);
 }
 
 .filter-section {
@@ -328,8 +327,8 @@
 
 .filter-section-label {
   display: block;
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   font-weight: 600;
   margin-bottom: 12rpx;
 }
@@ -343,16 +342,16 @@
 .price-input {
   flex: 1;
   height: 60rpx;
-  border: 2rpx solid $color-border;
-  border-radius: $border-radius-sm;
+  border: 2rpx solid var(--tg-color-border);
+  border-radius: var(--td-radius-small);
   padding: 0 16rpx;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   text-align: center;
 }
 
 .price-separator {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .filter-tags {
@@ -362,16 +361,16 @@
 }
 
 .filter-tag {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   transition: all 0.2s;
 
   &.active {
-    color: $color-text-white;
-    background: $gradient-blue-start;
+    color: var(--tg-color-white);
+    background: var(--tg-gradient-primary-start);
     font-weight: 600;
   }
 }
@@ -397,12 +396,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   border-radius: 32rpx;
 
   text {
-    font-size: $font-size-sm;
-    color: $color-text-secondary;
+    font-size: var(--td-font-size-s);
+    color: var(--tg-text-secondary);
   }
 }
 
@@ -412,13 +411,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   border-radius: 32rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 
   text {
-    font-size: $font-size-sm;
-    color: $color-text-white;
+    font-size: var(--td-font-size-s);
+    color: var(--tg-color-white);
     font-weight: 600;
   }
 }
@@ -435,13 +438,13 @@
 .waterfall-card {
   position: absolute !important;
   /* 商品卡片：实色白底，无 backdrop-filter */
-  background: #ffffff;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   overflow: hidden;
   box-shadow:
-    0 12rpx 40rpx rgba(255, 107, 53, 0.15),
-    0 4rpx 16rpx rgba(0, 0, 0, 0.08),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
+    0 12rpx 40rpx rgba(var(--td-brand-color-rgb), 0.15),
+    0 4rpx 16rpx rgba(var(--tg-color-black-rgb), 0.08),
+    inset 0 1rpx 0 rgba(var(--tg-color-white-rgb), 0.8);
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   will-change: transform, box-shadow;
   backface-visibility: hidden;
@@ -452,9 +455,9 @@
 .waterfall-card:active {
   transform: scale(0.96) translateY(-4rpx);
   box-shadow:
-    0 20rpx 60rpx rgba(255, 107, 53, 0.25),
-    0 8rpx 32rpx rgba(229, 90, 43, 0.15),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+    0 20rpx 60rpx rgba(var(--td-brand-color-rgb), 0.25),
+    0 8rpx 32rpx rgba(var(--td-brand-color-rgb), 0.15),
+    inset 0 1rpx 0 rgba(var(--tg-color-white-rgb), 0.9);
 }
 
 /* 🖼️ ========== 图片区域样式 - 方案1图片优先设计 ========== */
@@ -463,7 +466,7 @@
   width: 100%;
   height: 240rpx;
   overflow: hidden;
-  background: #f8f9fa;
+  background: var(--tg-color-bg);
   border-radius: 20rpx 20rpx 0 0;
 }
 
@@ -472,7 +475,7 @@
   height: 100%;
   object-fit: cover;
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  background: #f0f0f0;
+  background: var(--tg-color-border-light);
   border-radius: 20rpx 20rpx 0 0;
   /* 🎨 增强图片显示效果 */
   filter: contrast(1.05) saturate(1.1);
@@ -488,8 +491,8 @@
   position: absolute;
   top: 12rpx;
   left: 12rpx;
-  font-size: $font-size-xs;
-  color: $color-text-white;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-white);
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
   font-weight: 600;
@@ -497,13 +500,13 @@
 }
 
 .listing-kind-tag.asset-tag {
-  background: $gradient-primary;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
+  background: var(--tg-gradient-primary);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.4);
 }
 
 .listing-kind-tag.item-tag {
-  background: $color-primary;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
+  background: var(--td-brand-color);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.4);
 }
 
 /* 📦 资产数量标签 */
@@ -511,9 +514,9 @@
   position: absolute;
   bottom: 12rpx;
   right: 12rpx;
-  background: rgba(0, 0, 0, 0.78);
-  color: $color-text-white;
-  font-size: $font-size-xs;
+  background: rgba(var(--tg-color-black-rgb), 0.78);
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-xs);
   padding: 4rpx 10rpx;
   border-radius: 12rpx;
   z-index: 2;
@@ -528,8 +531,8 @@
   position: absolute;
   top: 12rpx;
   right: 12rpx;
-  color: $color-text-white;
-  font-size: $font-size-xs;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-xs);
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
   font-weight: 600;
@@ -549,7 +552,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f0f0f5;
+  background: var(--tg-color-bg-panel);
   border-radius: 20rpx 20rpx 0 0;
 }
 
@@ -560,8 +563,8 @@
 }
 
 .fallback-name {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   max-width: 80%;
   text-align: center;
   overflow: hidden;
@@ -584,7 +587,7 @@
 .product-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   line-height: 1.4;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -609,29 +612,33 @@
 .current-price {
   font-size: 34rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, $color-primary 0%, #f7931e 100%);
+  background: linear-gradient(
+    135deg,
+    var(--td-brand-color) 0%,
+    var(--tg-gradient-primary-start) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
-  text-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
-  color: #ff4757;
+  text-shadow: 0 2rpx 8rpx rgba(var(--td-brand-color-rgb), 0.3);
+  color: var(--tg-color-error);
 }
 
 .price-unit {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   font-weight: 500;
   margin-left: 4rpx;
 }
 
 /* 🏪 卖家信息 */
 .seller-info {
-  font-size: $font-size-xs;
-  color: #888888;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 8rpx;
   padding-top: 8rpx;
-  border-top: 1rpx solid $color-border-light;
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 .seller-name {
@@ -713,14 +720,14 @@
 }
 
 .no-more-text {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 600;
 }
 
 .no-more-subtitle {
-  font-size: $font-size-sm;
-  color: #888888;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 🚫 空状态样式 */
@@ -745,21 +752,25 @@
 }
 
 .empty-title {
-  font-size: $font-size-md;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-primary);
   font-weight: 600;
 }
 
 .empty-subtitle {
   font-size: 26rpx;
-  color: #888888;
+  color: var(--tg-text-tertiary);
   margin-bottom: 20rpx;
 }
 
 .empty-retry-btn {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%) !important;
-  color: $color-text-white !important;
-  border-radius: $border-radius-lg !important;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  ) !important;
+  color: var(--tg-color-white) !important;
+  border-radius: var(--td-radius-large) !important;
   padding: 16rpx 32rpx !important;
   font-size: 26rpx !important;
   font-weight: 600 !important;
@@ -771,14 +782,14 @@
 .refresh-hint {
   padding: 20rpx;
   text-align: center;
-  background: $color-white;
+  background: var(--tg-color-white);
   margin-top: 20rpx;
   border-radius: 12rpx;
 }
 
 .refresh-text {
-  font-size: $font-size-sm;
-  color: #888888;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 📱 ========== 浮动按钮样式 ========== */
@@ -806,14 +817,14 @@
 }
 
 .back-to-top-btn {
-  background: $gradient-blue-start;
+  background: var(--tg-gradient-primary-start);
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
   border: 1rpx solid rgba(255, 255, 255, 0.2);
 }
 
 .btn-icon {
-  font-size: $font-size-md;
-  color: $color-text-white;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-color-white);
   font-weight: 700;
 }
 
@@ -828,11 +839,11 @@
   }
 
   .product-title {
-    font-size: $font-size-sm;
+    font-size: var(--td-font-size-s);
   }
 
   .current-price {
-    font-size: $font-size-base;
+    font-size: var(--td-font-size-base);
   }
 }
 
@@ -854,7 +865,7 @@
   }
 
   .btn-icon {
-    font-size: $font-size-base;
+    font-size: var(--td-font-size-base);
   }
 }
 
@@ -865,12 +876,12 @@
   }
 
   .waterfall-card {
-    background: $color-text-primary;
-    color: $color-text-white;
+    background: var(--tg-text-primary);
+    color: var(--tg-color-white);
   }
 
   .product-title {
-    color: $color-text-white;
+    color: var(--tg-color-white);
   }
 }
 
@@ -968,7 +979,7 @@
 }
 
 .badge-tag.ad-tag {
-  background: #ff9800;
+  background: var(--tg-color-warning);
 }
 
 .ad-action-hint {
@@ -977,15 +988,15 @@
 
 .ad-action-text {
   font-size: 22rpx;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   font-weight: 600;
 }
 
 // ===== 品质等级 + 限量编号（市场瀑布流卡片内） =====
 
 .edition-mini-tag {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   font-family: 'Courier New', monospace;
   margin-left: 6rpx;
   flex-shrink: 0;
@@ -1017,7 +1028,7 @@
 
 .pattern-mini-tag {
   font-size: 18rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   font-family: 'Courier New', monospace;
 }
 

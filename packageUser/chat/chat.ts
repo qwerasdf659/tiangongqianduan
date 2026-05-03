@@ -81,7 +81,9 @@ Page({
 
     // UI交互状态 - V6.0新增
     showToolbar: false, // 工具栏展开面板
-    showQuickReplies: true, // 快捷回复区域
+    showQuickReplies: false, // 快捷回复区域（后端未开通时默认隐藏）
+    quickRepliesAvailable: false, // 快捷回复接口是否已开通
+    quickRepliesUnavailableMessage: '快捷回复服务暂未开通，请直接输入问题内容',
     showScrollBottomBtn: false, // 回到底部浮动按钮
     newMsgCount: 0, // 新消息计数（滚动到底部时重置）
 
@@ -614,7 +616,7 @@ Page({
       satisfactionSessionId: null,
       satisfactionScore: 0,
       satisfactionSubmitted: false,
-      showQuickReplies: true,
+      showQuickReplies: false,
       showScrollBottomBtn: false,
       newMsgCount: 0
     })

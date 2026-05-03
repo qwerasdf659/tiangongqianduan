@@ -1,13 +1,10 @@
 /* C2C拍卖详情页样式 */
-@import '../../../styles/variables';
 
 /* 竞拍模块专用补充变量 */
-$color-primary-bg: #fff3ed;
-$border-radius-auction-md: 12rpx;
 
 .auction-detail-container {
   min-height: 100vh;
-  background-color: $color-bg-grey;
+  background-color: var(--tg-color-bg-grey);
   padding-bottom: 160rpx;
 }
 
@@ -27,14 +24,14 @@ $border-radius-auction-md: 12rpx;
 }
 .error-text {
   font-size: 28rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-bottom: 32rpx;
 }
 .error-retry-btn {
   padding: 16rpx 48rpx;
-  background-color: $color-primary;
+  background-color: var(--td-brand-color);
   color: #fff;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   font-size: 28rpx;
 }
 
@@ -43,7 +40,7 @@ $border-radius-auction-md: 12rpx;
   position: relative;
   width: 100%;
   height: 500rpx;
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
 }
 
 .detail-item-image {
@@ -56,7 +53,7 @@ $border-radius-auction-md: 12rpx;
   top: 24rpx;
   left: 0;
   padding: 8rpx 24rpx;
-  border-radius: 0 $border-radius-auction-md $border-radius-auction-md 0;
+  border-radius: 0 var(--tg-radius-auction-md) var(--tg-radius-auction-md) 0;
   color: #fff;
   font-size: 26rpx;
   font-weight: 600;
@@ -64,21 +61,21 @@ $border-radius-auction-md: 12rpx;
 
 /* 物品信息 */
 .detail-info-section {
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
 }
 
 .detail-item-name {
   font-size: 36rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   display: block;
 }
 
 .detail-item-rarity {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-top: 8rpx;
   display: block;
 }
@@ -91,16 +88,16 @@ $border-radius-auction-md: 12rpx;
 
 .seller-label {
   font-size: 26rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 .seller-name {
   font-size: 26rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 
 /* 价格区 */
 .detail-price-section {
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   padding: 24rpx 32rpx;
   margin-top: 16rpx;
 }
@@ -116,7 +113,7 @@ $border-radius-auction-md: 12rpx;
 
 .price-label {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: 8rpx;
 }
@@ -129,16 +126,16 @@ $border-radius-auction-md: 12rpx;
 .price-value {
   font-size: 48rpx;
   font-weight: 700;
-  color: $color-error;
+  color: var(--tg-color-error);
 }
 
 .price-value.buyout-color {
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .price-asset {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-left: 8rpx;
 }
 
@@ -147,8 +144,8 @@ $border-radius-auction-md: 12rpx;
   align-items: center;
   margin-top: 24rpx;
   padding: 16rpx 20rpx;
-  background-color: $color-primary-bg;
-  border-radius: $border-radius-auction-md;
+  background-color: var(--tg-brand-bg-soft);
+  border-radius: var(--tg-radius-auction-md);
 }
 
 .countdown-icon {
@@ -157,13 +154,13 @@ $border-radius-auction-md: 12rpx;
 }
 .countdown-label {
   font-size: 26rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
   margin-right: 12rpx;
 }
 .countdown-value {
   font-size: 30rpx;
   font-weight: 600;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .bid-stats-row {
@@ -171,7 +168,7 @@ $border-radius-auction-md: 12rpx;
   justify-content: space-around;
   margin-top: 24rpx;
   padding-top: 24rpx;
-  border-top: 1rpx solid $color-divider;
+  border-top: 1rpx solid var(--tg-color-divider);
 }
 
 .bid-stat {
@@ -183,11 +180,11 @@ $border-radius-auction-md: 12rpx;
 .bid-stat .stat-value {
   font-size: 32rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 .bid-stat .stat-label {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
 }
 
@@ -198,7 +195,7 @@ $border-radius-auction-md: 12rpx;
 
 .fee-text {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 /* 结算信息 */
@@ -206,7 +203,7 @@ $border-radius-auction-md: 12rpx;
   margin-top: 24rpx;
   padding: 20rpx;
   background-color: #f0f7ff;
-  border-radius: $border-radius-auction-md;
+  border-radius: var(--tg-radius-auction-md);
 }
 
 .settlement-row {
@@ -217,15 +214,15 @@ $border-radius-auction-md: 12rpx;
 
 .settlement-label {
   font-size: 26rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 .settlement-value {
   font-size: 26rpx;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 .settlement-value.highlight {
-  color: $color-success;
+  color: var(--tg-color-success);
   font-weight: 700;
 }
 
@@ -233,7 +230,7 @@ $border-radius-auction-md: 12rpx;
 .my-bid-section,
 .top-bids-section,
 .snapshot-section {
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   padding: 24rpx 32rpx;
   margin-top: 16rpx;
 }
@@ -241,10 +238,10 @@ $border-radius-auction-md: 12rpx;
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
 }
 
 .my-bid-status {
@@ -256,24 +253,24 @@ $border-radius-auction-md: 12rpx;
 
 .my-bid-label {
   font-size: 26rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 .my-bid-value {
   font-size: 30rpx;
   font-weight: 600;
-  color: $color-error;
+  color: var(--tg-color-error);
 }
 .my-bid-badge {
   padding: 4rpx 12rpx;
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   font-size: 22rpx;
   color: #fff;
 }
 .my-bid-badge.winning {
-  background-color: $color-success;
+  background-color: var(--tg-color-success);
 }
 .my-bid-badge.losing {
-  background-color: $color-text-tertiary;
+  background-color: var(--tg-text-tertiary);
 }
 
 .my-bid-history {
@@ -284,26 +281,26 @@ $border-radius-auction-md: 12rpx;
   display: flex;
   align-items: center;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
   gap: 16rpx;
 }
 
 .bid-history-item .bid-amount {
   font-size: 26rpx;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   font-weight: 500;
   flex: 1;
 }
 .bid-history-item .bid-time {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 .bid-history-item .bid-status {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 .bid-history-item .bid-status.winning {
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 /* 出价排行 */
@@ -311,7 +308,7 @@ $border-radius-auction-md: 12rpx;
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
 
   &:last-child {
     border-bottom: none;
@@ -324,11 +321,11 @@ $border-radius-auction-md: 12rpx;
 }
 .rank-number {
   font-size: 28rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   font-weight: 600;
 }
 .rank-number.rank-top {
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .bid-user {
@@ -336,7 +333,7 @@ $border-radius-auction-md: 12rpx;
 }
 .bid-nickname {
   font-size: 26rpx;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .bid-amount-col {
@@ -345,12 +342,12 @@ $border-radius-auction-md: 12rpx;
 }
 .bid-amount-text {
   font-size: 28rpx;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   font-weight: 600;
 }
 .bid-asset-text {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-left: 4rpx;
 }
 
@@ -363,7 +360,7 @@ $border-radius-auction-md: 12rpx;
   display: flex;
   justify-content: space-between;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
 
   &:last-child {
     border-bottom: none;
@@ -372,11 +369,11 @@ $border-radius-auction-md: 12rpx;
 
 .snapshot-label {
   font-size: 26rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 .snapshot-value {
   font-size: 26rpx;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 /* 底部操作栏 */
@@ -385,7 +382,7 @@ $border-radius-auction-md: 12rpx;
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   padding: 20rpx 32rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
@@ -401,9 +398,9 @@ $border-radius-auction-md: 12rpx;
   flex: 1;
   text-align: center;
   padding: 20rpx 0;
-  background-color: $color-primary;
+  background-color: var(--td-brand-color);
   color: #fff;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   font-size: 30rpx;
   font-weight: 600;
 }
@@ -412,9 +409,9 @@ $border-radius-auction-md: 12rpx;
   flex: 1;
   text-align: center;
   padding: 20rpx 0;
-  background-color: $color-error;
+  background-color: var(--tg-color-error);
   color: #fff;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   font-size: 30rpx;
   font-weight: 600;
 }
@@ -424,16 +421,16 @@ $border-radius-auction-md: 12rpx;
   text-align: center;
   padding: 20rpx 0;
   font-size: 28rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .dispute-btn {
   flex: 1;
   text-align: center;
   padding: 20rpx 0;
-  background-color: $color-warning;
+  background-color: var(--tg-color-warning);
   color: #fff;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   font-size: 30rpx;
   font-weight: 600;
 }
@@ -453,8 +450,8 @@ $border-radius-auction-md: 12rpx;
 
 .bid-input-popup {
   width: 100%;
-  background-color: $color-bg-card;
-  border-radius: $border-radius-md $border-radius-md 0 0;
+  background-color: var(--tg-color-bg-card);
+  border-radius: var(--td-radius-default) var(--td-radius-default) 0 0;
   padding: 32rpx;
   padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
 }
@@ -469,25 +466,25 @@ $border-radius-auction-md: 12rpx;
 .popup-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 .popup-close {
   font-size: 36rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   padding: 8rpx;
 }
 
 .popup-hint {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-bottom: 20rpx;
 }
 
 .popup-input-row {
   display: flex;
   align-items: center;
-  border: 2rpx solid $color-divider;
-  border-radius: $border-radius-auction-md;
+  border: 2rpx solid var(--tg-color-divider);
+  border-radius: var(--tg-radius-auction-md);
   padding: 16rpx 20rpx;
   margin-bottom: 20rpx;
 }
@@ -496,12 +493,12 @@ $border-radius-auction-md: 12rpx;
   flex: 1;
   font-size: 36rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .bid-input-asset {
   font-size: 26rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-left: 12rpx;
 }
 
@@ -515,25 +512,25 @@ $border-radius-auction-md: 12rpx;
   flex: 1;
   text-align: center;
   padding: 12rpx 0;
-  background-color: $color-bg-grey;
-  border-radius: $border-radius-sm;
+  background-color: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-small);
   font-size: 26rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 
 .buyout-hint {
   text-align: center;
   margin-bottom: 20rpx;
   font-size: 24rpx;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .popup-submit-btn {
   text-align: center;
   padding: 24rpx 0;
-  background-color: $color-primary;
+  background-color: var(--td-brand-color);
   color: #fff;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   font-size: 30rpx;
   font-weight: 600;
 

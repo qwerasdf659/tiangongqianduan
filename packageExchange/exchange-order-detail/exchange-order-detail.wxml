@@ -2,10 +2,11 @@
   兑换订单详情页
   后端API: GET /api/v4/exchange/orders/:order_no
 -->
+<custom-navbar title="订单详情" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 <view class="detail-page">
   <!-- 加载中 -->
   <view class="page-loading" wx:if="{{loading}}">
-    <loading-spinner text="加载订单详情..." />
+    <t-loading loading="{{true}}" text="加载订单详情..." theme="spinner" />
   </view>
 
   <!-- 错误状态 -->

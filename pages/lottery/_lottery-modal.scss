@@ -1,5 +1,4 @@
 /* 抽奖页面 - 中奖结果弹窗样式（卡片渐变方案） - 从lottery.scss拆分 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* 🎨 整体弹窗容器 - 渐变背景 */
@@ -11,9 +10,9 @@
   height: 100%;
   background: linear-gradient(
     135deg,
-    rgba(255, 107, 53, 0.15) 0%,
-    rgba(229, 90, 43, 0.15) 50%,
-    rgba(255, 107, 53, 0.15) 100%
+    rgba(var(--td-brand-color-rgb), 0.15) 0%,
+    rgba(var(--td-brand-color-rgb), 0.15) 50%,
+    rgba(var(--td-brand-color-rgb), 0.15) 100%
   );
   -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
@@ -23,8 +22,12 @@
 }
 
 .gradient-card-container {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  border-radius: $border-radius-xl;
+  background: linear-gradient(
+    145deg,
+    rgba(var(--tg-color-white-rgb), 0.95) 0%,
+    rgba(var(--tg-color-white-rgb), 0.85) 100%
+  );
+  border-radius: var(--tg-radius-xl);
   width: 92%;
   max-width: 540rpx;
   max-height: 85vh;
@@ -59,7 +62,7 @@
 
 .close-icon {
   color: white;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
   line-height: 1;
 }
@@ -80,13 +83,17 @@
   align-items: center;
   gap: 24rpx;
   padding: 32rpx;
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   position: relative;
   overflow: hidden;
 }
 
 .success-card {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
   box-shadow: 0 16rpx 32rpx rgba(255, 107, 53, 0.25);
 }
 
@@ -96,7 +103,7 @@
 }
 
 .title-icon {
-  font-size: $font-size-xxl;
+  font-size: var(--tg-font-size-xxl);
   flex-shrink: 0;
   animation: iconPulse 2s ease-in-out infinite;
 }
@@ -109,7 +116,7 @@
 }
 
 .result-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
   color: white;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
@@ -135,7 +142,11 @@
 
 .prize-card-bg {
   position: relative;
-  background: linear-gradient(145deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    145deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   border-radius: 28rpx;
   padding: 4rpx;
   box-shadow: 0 20rpx 40rpx rgba(255, 107, 53, 0.3);
@@ -154,7 +165,7 @@
 
 .prize-card-content {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   padding: 40rpx 32rpx;
   position: relative;
   display: flex;
@@ -191,14 +202,14 @@
 }
 
 .winning-name {
-  font-size: $font-size-xl;
+  font-size: var(--tg-font-size-xl);
   font-weight: 700;
   color: #2c3e50;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .winning-desc {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   color: #7f8c8d;
   line-height: 1.4;
 }
@@ -212,7 +223,11 @@
 .decoration-dot {
   width: 12rpx;
   height: 12rpx;
-  background: linear-gradient(45deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    45deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   border-radius: 50%;
   animation: dotBounce 1.5s ease-in-out infinite;
 }
@@ -240,9 +255,9 @@
 }
 
 .reveal-progress-text {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 .reveal-progress-dots {
@@ -261,7 +276,11 @@
 }
 
 .progress-dot.revealed {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
   transform: scale(1.2);
 }
@@ -310,7 +329,11 @@
 
 /* 🎁 卡片正面 */
 .reveal-card-front {
-  background: linear-gradient(145deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    145deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   border-radius: 28rpx;
   padding: 4rpx;
   box-shadow: 0 20rpx 40rpx rgba(255, 107, 53, 0.3);
@@ -318,7 +341,7 @@
 
 .reveal-card-content {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   padding: 40rpx 32rpx;
   display: flex;
   flex-direction: column;
@@ -359,14 +382,14 @@
 }
 
 .reveal-prize-name {
-  font-size: $font-size-xl;
+  font-size: var(--tg-font-size-xl);
   font-weight: 700;
   color: #2c3e50;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .reveal-prize-desc {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   color: #7f8c8d;
   line-height: 1.4;
 }
@@ -379,7 +402,7 @@
 }
 
 .reveal-next-btn {
-  background: linear-gradient(135deg, $color-primary, #ff8c42) !important;
+  background: linear-gradient(135deg, var(--td-brand-color), #ff8c42) !important;
   color: white !important;
   border: none !important;
   border-radius: 48rpx !important;
@@ -415,13 +438,13 @@
   text-align: center;
   padding: 16rpx 32rpx;
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(229, 90, 43, 0.1));
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
 }
 
 .reveal-complete-text {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 /* 📋 已揭晓奖品缩略列表 */
@@ -430,7 +453,7 @@
 }
 
 .revealed-list-title {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #7f8c8d;
   margin-bottom: 12rpx;
   display: block;
@@ -449,7 +472,7 @@
   gap: 8rpx;
   padding: 12rpx 16rpx;
   background: rgba(255, 107, 53, 0.08);
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.3s ease;
@@ -467,7 +490,7 @@
 }
 
 .mini-card-icon {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
 }
 
 .mini-card-name {
@@ -489,17 +512,17 @@
 }
 
 .grid-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
   color: #2c3e50;
 }
 
 .grid-count {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #7f8c8d;
   background: rgba(255, 107, 53, 0.1);
   padding: 8rpx 16rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
 }
 
 .prize-cards-container {
@@ -537,12 +560,12 @@
   margin: 8rpx 0 16rpx 0;
   padding: 12rpx;
   background: rgba(255, 107, 53, 0.08);
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   animation: hintPulse 2s ease-in-out infinite;
 }
 
 .scroll-hint-text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: rgba(255, 107, 53, 0.8);
   font-weight: 500;
 }
@@ -609,7 +632,11 @@
 
 /* 🌈 渐变色彩系统 - 4种交替渐变 */
 .gradient-prize-1 {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
   box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.2);
 }
 
@@ -663,7 +690,7 @@
 }
 
 .prize-number {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 700;
   color: rgba(0, 0, 0, 0.7);
 }
@@ -683,7 +710,7 @@
 }
 
 .prize-icon {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   animation: iconRotate 4s linear infinite;
 }
 
@@ -735,7 +762,7 @@
 
 .error-card-bg {
   background: linear-gradient(135deg, #ff6b7a 0%, #c44569 100%);
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   padding: 32rpx;
   display: flex;
   align-items: center;
@@ -748,7 +775,7 @@
 }
 
 .error-icon {
-  font-size: $font-size-xxl;
+  font-size: var(--tg-font-size-xxl);
   animation: errorShake 1s ease-in-out infinite;
 }
 
@@ -760,14 +787,14 @@
 }
 
 .error-message {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
   color: white;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .error-suggestion {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
 }
@@ -780,12 +807,16 @@
 
 .gradient-confirm-btn {
   width: 100%;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
   color: white;
   border: none;
   border-radius: 20rpx;
   padding: 0;
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
   box-shadow: 0 16rpx 32rpx rgba(255, 107, 53, 0.3);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -820,14 +851,14 @@
 }
 
 .btn-text {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
   color: white;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .btn-icon {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   animation: sparkleRotate 2s linear infinite;
 }
 

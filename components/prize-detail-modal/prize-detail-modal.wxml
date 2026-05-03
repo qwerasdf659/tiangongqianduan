@@ -4,19 +4,13 @@
   稀有度视觉通过弹窗自有 CSS 类实现（.rarity-common ~ .rarity-legendary）
   （rarity-effects 组件在子包 packageLottery 中，主包不可跨包引用）
 -->
-<view
-  class="prize-modal-mask {{visible ? 'show' : ''}}"
-  catchtouchmove="preventTouchMove"
-  bindtap="onClose"
->
-  <view class="prize-modal-content {{visible ? 'slide-up' : ''}}" catchtap="preventTouchMove">
+<t-popup visible="{{visible}}" placement="center" bind:visible-change="onPopupVisibleChange">
+  <view class="prize-modal-content" catchtap="preventTouchMove">
     <view class="prize-modal__card rarity-card--{{prize.rarity_code || 'common'}}">
-      <!-- 关闭按钮 -->
       <view class="prize-modal__close" bindtap="onClose">
         <text class="close-text">✕</text>
       </view>
 
-      <!-- 奖品图标/图片 -->
       <view class="prize-modal__icon-area">
         <image
           wx:if="{{prize.prize_image_url}}"
@@ -27,27 +21,21 @@
         <text wx:else class="prize-modal__emoji">{{prize.prize_icon || '🎁'}}</text>
       </view>
 
-      <!-- 稀有度标签 -->
       <view class="prize-modal__rarity rarity-{{prize.rarity_code || 'common'}}">
         <text>{{rarityLabel}}</text>
       </view>
 
-      <!-- 奖品名称 -->
       <text class="prize-modal__name">{{prize.prize_name || '未知奖品'}}</text>
-
-      <!-- 奖品类型 -->
       <text class="prize-modal__type">{{prizeTypeLabel}}</text>
 
-      <!-- 奖品描述 -->
       <view class="prize-modal__desc" wx:if="{{prize.prize_description}}">
         <text class="desc-text">{{prize.prize_description}}</text>
       </view>
 
-      <!-- 保底标记 -->
       <view class="prize-modal__fallback" wx:if="{{prize.is_fallback}}">
         <text class="prize-modal__fallback-badge">保底奖品</text>
         <text class="prize-modal__fallback-hint">连续抽奖达到保底次数时必得</text>
       </view>
     </view>
   </view>
-</view>
+</t-popup>

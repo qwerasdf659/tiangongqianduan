@@ -1,0 +1,48 @@
+<view class="escrow-status-overlay" wx:if="{{visible}}" catchtap="onClose">
+  <view class="escrow-status-modal" catchtap="">
+    <view class="escrow-status-header">
+      <text class="escrow-status-title">{{title}}</text>
+      <view class="escrow-status-close" bindtap="onClose">
+        <text class="escrow-status-close-icon">✕</text>
+      </view>
+    </view>
+
+    <view class="escrow-status-loading" wx:if="{{loading}}">
+      <t-loading loading="{{true}}" text="查询中..." theme="spinner" size="40rpx" />
+    </view>
+
+    <view class="escrow-status-body" wx:elif="{{hasData}}">
+      <view class="escrow-status-row" wx:if="{{orderNo}}">
+        <text class="escrow-status-label">订单号</text>
+        <text
+          class="escrow-status-value {{showCopyOrderNo ? 'escrow-status-value--copyable' : ''}}"
+          catchtap="onCopyOrderNo"
+          >{{orderNo}}</text
+        >
+      </view>
+      <view class="escrow-status-row" wx:if="{{statusText}}">
+        <text class="escrow-status-label">状态</text>
+        <text class="escrow-status-value">{{statusText}}</text>
+      </view>
+      <view class="escrow-status-row" wx:if="{{expiresAt}}">
+        <text class="escrow-status-label">有效期</text>
+        <text class="escrow-status-value">{{expiresAt}}</text>
+      </view>
+
+      <view class="escrow-status-notice" wx:if="{{notice}}">
+        <text class="escrow-status-notice-icon">🔑</text>
+        <text class="escrow-status-notice-text">{{notice}}</text>
+      </view>
+    </view>
+
+    <view class="escrow-status-error" wx:else>
+      <text class="escrow-status-error-text">{{errorText}}</text>
+    </view>
+
+    <view class="escrow-status-footer">
+      <view class="escrow-status-btn" bindtap="onClose">
+        <text>关闭</text>
+      </view>
+    </view>
+  </view>
+</view>

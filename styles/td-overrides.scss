@@ -1,0 +1,133 @@
+// styles/td-overrides.scss
+// 单主题设计令牌入口：统一输出 TDesign 变量和项目业务变量。
+
+page {
+  --td-brand-color: #ff6b35;
+  --td-brand-color-light: #fff3ed;
+  --td-brand-color-focus: #ff8c5a;
+  --td-brand-color-active: #e55a2b;
+  --td-brand-color-disabled: #ffcbb3;
+  --td-brand-color-rgb: 255, 107, 53;
+
+  --td-radius-default: 16rpx;
+  --td-radius-small: 8rpx;
+  --td-radius-large: 24rpx;
+  --td-radius-round: 999px;
+  --td-radius-circle: 50%;
+
+  --td-font-size-xs: 20rpx;
+  --td-font-size-base: 28rpx;
+  --td-font-size-s: 24rpx;
+  --td-font-size-m: 32rpx;
+  --td-font-size-l: 36rpx;
+
+  --tg-font-size-xs: 20rpx;
+  --tg-font-size-xl: 40rpx;
+  --tg-font-size-xxl: 48rpx;
+
+  --tg-line-height-tight: 1.2;
+  --tg-line-height-base: 1.6;
+  --tg-line-height-loose: 2;
+
+  --tg-spacing-xs: 8rpx;
+  --tg-spacing-sm: 16rpx;
+  --tg-spacing-md: 24rpx;
+  --tg-spacing-lg: 32rpx;
+  --tg-spacing-xl: 40rpx;
+  --tg-spacing-xxl: 48rpx;
+
+  --tg-radius-xl: 32rpx;
+  --tg-radius-auction-md: 12rpx;
+
+  --tg-color-white: #ffffff;
+  --tg-color-white-rgb: 255, 255, 255;
+  --tg-color-black: #000000;
+  --tg-color-black-rgb: 0, 0, 0;
+  --tg-color-success-strong: #27ae60;
+  --tg-color-success-strong-rgb: 39, 174, 96;
+  --tg-color-success: var(--tg-color-success-strong);
+  --tg-color-success-rgb: var(--tg-color-success-strong-rgb);
+  --tg-color-warning-strong: #f57c00;
+  --tg-color-warning-strong-rgb: 245, 124, 0;
+  --tg-color-warning: var(--tg-color-warning-strong);
+  --tg-color-warning-rgb: var(--tg-color-warning-strong-rgb);
+  --tg-color-warning-soft: #fff8e1;
+  --tg-color-warning-soft-rgb: 255, 248, 225;
+  --tg-color-info-strong: #3498db;
+  --tg-color-info-strong-rgb: 52, 152, 219;
+  --tg-color-info: var(--tg-color-info-strong);
+  --tg-color-info-rgb: var(--tg-color-info-strong-rgb);
+  --tg-color-danger-strong: #c44569;
+  --tg-color-danger-strong-rgb: 196, 69, 105;
+  --tg-color-error: var(--tg-color-danger-strong);
+  --tg-color-error-rgb: var(--tg-color-danger-strong-rgb);
+  --tg-color-brand-soft: rgba(var(--td-brand-color-rgb), 0.06);
+  --tg-color-brand-soft-strong: rgba(var(--td-brand-color-rgb), 0.12);
+  --tg-color-bg: #f8f9fa;
+  --tg-color-bg-rgb: 248, 249, 250;
+  --tg-color-bg-card: #ffffff;
+  --tg-color-bg-panel: #f5f6fa;
+  --tg-color-bg-panel-rgb: 245, 246, 250;
+  --tg-color-bg-muted: #f8fafc;
+  --tg-color-bg-muted-rgb: 248, 250, 252;
+  --tg-color-bg-grey: #f5f5f5;
+  --tg-color-bg-grey-rgb: 245, 245, 245;
+  --tg-color-bg-accent-soft: #fff5f0;
+  --tg-color-bg-accent-soft-rgb: 255, 245, 240;
+  --tg-color-border: #e8e8e8;
+  --tg-color-border-rgb: 232, 232, 232;
+  --tg-color-border-light: #f0f0f0;
+  --tg-color-border-light-rgb: 240, 240, 240;
+  --tg-color-border-muted: #e9ecef;
+  --tg-color-border-muted-rgb: 233, 236, 239;
+  --tg-color-divider: #eeeeee;
+  --tg-color-divider-rgb: 238, 238, 238;
+
+  --tg-page-bg: #faf6f1;
+  --tg-card-bg: #ffffff;
+  --tg-card-bg-muted: #fffdf7;
+  --tg-text-primary: #333333;
+  --tg-text-primary-rgb: 51, 51, 51;
+  --tg-text-primary-strong: #2c3e50;
+  --tg-text-primary-strong-rgb: 44, 62, 80;
+  --tg-text-secondary: #666666;
+  --tg-text-secondary-rgb: 102, 102, 102;
+  --tg-text-secondary-muted: #6c757d;
+  --tg-text-secondary-muted-rgb: 108, 117, 125;
+  --tg-text-tertiary: #999999;
+  --tg-text-tertiary-rgb: 153, 153, 153;
+  --tg-text-tertiary-muted: #95a5a6;
+  --tg-text-tertiary-muted-rgb: 149, 165, 166;
+  --tg-text-placeholder: #c0c0c0;
+  --tg-text-disabled: #cccccc;
+  --tg-border-color: #eeeeee;
+
+  --tg-gradient-primary-start: #f7931e;
+  --tg-gradient-primary-end: #e67e22;
+  --tg-gradient-primary: linear-gradient(135deg, #f7931e 0%, #e67e22 100%);
+  --tg-brand-bg-soft: #fff3ed;
+
+  --tg-shadow-sm: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.06);
+  --tg-shadow-md:
+    0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+  --tg-shadow-lg:
+    0 12rpx 32rpx rgba(var(--td-brand-color-rgb), 0.12), 0 4rpx 10rpx rgba(0, 0, 0, 0.06);
+  --tg-shadow-card:
+    0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+
+  --tg-transition-fast: 0.15s ease;
+  --tg-transition-base: 0.2s ease;
+  --tg-transition-slow: 0.3s ease;
+
+  --tg-icon-size-sm: 40rpx;
+  --tg-icon-size-md: 48rpx;
+  --tg-icon-size-lg: 70rpx;
+  --tg-avatar-size: 120rpx;
+
+  --tg-lottery-bg: linear-gradient(135deg, #fff5f0, #ffffff);
+  --tg-trade-accent: #1890ff;
+  --tg-diy-canvas-bg: #f5f5f5;
+  --tg-price-up: #e74c3c;
+  --tg-price-down: #27ae60;
+  --tg-auction-highlight: #ff6b35;
+}

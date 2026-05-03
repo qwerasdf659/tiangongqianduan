@@ -154,7 +154,7 @@ Page({
       }
 
       const itemSnapshot = order.item_snapshot || {}
-      const imageUrl = itemSnapshot.primary_media?.public_url || itemSnapshot.image_url || ''
+      const imageUrl = itemSnapshot.primary_media?.public_url || ''
 
       /** 构建完整时间线 */
       const timeline = this._buildTimeline(order)
@@ -168,7 +168,7 @@ Page({
         statusColor: statusInfo.color,
         statusIcon: statusInfo.icon,
         statusDesc: statusInfo.desc,
-        productName: itemSnapshot.name || itemSnapshot.item_name || '兑换商品',
+        productName: itemSnapshot.name || '兑换商品',
         productImage: imageUrl || '/images/default-product.png',
         productDescription: itemSnapshot.description || '',
         hasProductImage: !!imageUrl,

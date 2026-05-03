@@ -1,0 +1,2308 @@
+@import '../../shared/common-animations';
+
+/* ================================
+   打地鼠容器 - 草地游戏厅风格
+   ================================ */
+.whackmole-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30rpx 0 60rpx;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    var(--tg-lottery-bg-light, #87ceeb) 0%,
+    var(--tg-lottery-bg-mid, #98d8c8) 30%,
+    var(--tg-lottery-bg-dark, #4caf50) 60%,
+    var(--tg-lottery-bg-darker, #2e7d32) 100%
+  );
+
+  /* 草地纹理 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 4rpx,
+      rgba(0, 0, 0, 0.03) 4rpx,
+      rgba(0, 0, 0, 0.03) 8rpx
+    );
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 阳光晕染 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400rpx;
+    height: 300rpx;
+    background: radial-gradient(circle, rgba(255, 235, 59, 0.2) 0%, transparent 70%);
+    filter: blur(40rpx);
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* ================================
+   背景粒子系统
+   ================================ */
+.bg-particles {
+  @include bg-particles();
+}
+
+.particle {
+  position: absolute;
+  font-size: var(--td-font-size-s);
+  animation: particleFloat linear infinite;
+  opacity: 0.4;
+
+  text {
+    filter: drop-shadow(1rpx 1rpx 0 rgba(0, 0, 0, 0.3));
+  }
+
+  &:nth-child(odd) {
+    animation-duration: 10s;
+  }
+
+  &:nth-child(even) {
+    animation-duration: 14s;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.4;
+  }
+
+  90% {
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: translateY(-100vh);
+    opacity: 0;
+  }
+}
+
+/* ================================
+   顶部信息栏 - 增强版
+   ================================ */
+.whack-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 620rpx;
+  margin-bottom: 16rpx;
+  padding: 16rpx 24rpx;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 100%);
+  border-radius: 20rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(10rpx);
+  backdrop-filter: blur(10rpx);
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.3);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.title-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12rpx;
+}
+
+.whack-title {
+  font-size: var(--td-font-size-l);
+  color: #fff;
+  font-weight: bold;
+  text-shadow:
+    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
+    0 0 20rpx rgba(255, 235, 59, 0.3);
+  letter-spacing: 2rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.title-shine {
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: titleShine 3s ease-in-out infinite;
+}
+
+@keyframes titleShine {
+  0% {
+    left: -100%;
+  }
+
+  50%,
+  100% {
+    left: 200%;
+  }
+}
+
+.header-right {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+}
+
+.score-badge,
+.time-badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 20rpx;
+  border-radius: var(--td-radius-large);
+  background: rgba(0, 0, 0, 0.4);
+  border: 2rpx solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  transition: all 0.3s ease;
+
+  &.animated {
+    animation: badgePulse 0.3s ease-out;
+  }
+}
+
+.badge-glow {
+  position: absolute;
+  inset: -4rpx;
+  border-radius: var(--td-radius-large);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), transparent);
+  opacity: 0;
+  animation: badgeGlow 2s ease-in-out infinite;
+}
+
+@keyframes badgeGlow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes badgePulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.score-icon,
+.time-icon {
+  font-size: 26rpx;
+}
+
+.score-value {
+  font-size: 30rpx;
+  color: var(--tg-lottery-accent, #ffd700);
+  font-weight: bold;
+  text-shadow:
+    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
+    0 0 10rpx rgba(255, 215, 0, 0.5);
+}
+
+.time-value {
+  font-size: 30rpx;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+.time-badge.urgent {
+  background: rgba(255, 0, 0, 0.5);
+  border-color: rgba(255, 0, 0, 0.6);
+  animation: urgentPulse 0.4s ease-in-out infinite;
+
+  .time-value {
+    color: var(--tg-lottery-danger, #ff6b6b);
+  }
+}
+
+@keyframes urgentPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(255, 0, 0, 0);
+  }
+
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 20rpx rgba(255, 0, 0, 0.6);
+  }
+}
+
+/* ================================
+   倒计时进度条 - 增强版
+   ================================ */
+.timer-bar-container {
+  width: 620rpx;
+  height: 12rpx;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6rpx;
+  margin-bottom: 20rpx;
+  overflow: visible; // 允许徽章溢出
+  position: relative;
+  z-index: 2;
+  border: 2rpx solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.timer-bar-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--tg-lottery-success, #4caf50),
+    var(--tg-lottery-success-light, #8bc34a),
+    var(--tg-lottery-warning-light, #cddc39)
+  );
+  border-radius: 6rpx;
+  transition: width 1s linear;
+  position: relative;
+  box-shadow: 0 0 10rpx rgba(76, 175, 80, 0.5);
+
+  &.urgent {
+    background: linear-gradient(
+      90deg,
+      var(--tg-lottery-danger, #f44336),
+      var(--tg-lottery-danger-light, #ff5722),
+      var(--tg-lottery-warning, #ff9800)
+    );
+    animation: timerFlash 0.3s ease-in-out infinite;
+    box-shadow: 0 0 15rpx rgba(244, 67, 54, 0.8);
+  }
+
+  &.carnival {
+    background: linear-gradient(
+      90deg,
+      #ff0080,
+      #ff8c00,
+      #ffd700,
+      #00ff00,
+      #00ced1,
+      #0080ff,
+      #8b00ff
+    );
+    background-size: 200% 100%;
+    animation: rainbowFlow 2s linear infinite;
+  }
+}
+
+@keyframes rainbowFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.carnival-badge {
+  position: absolute;
+  top: -40rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 20rpx;
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-primary, #ff0080),
+    var(--tg-lottery-secondary, #8b00ff)
+  );
+  border-radius: var(--td-radius-large);
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4rpx 12rpx var(--tg-lottery-secondary-glow, rgba(139, 0, 255, 0.4));
+  animation: carnivalPulse 0.5s ease-in-out infinite;
+}
+
+.carnival-icon {
+  font-size: var(--td-font-size-s);
+  animation: carnivalIconSpin 1s linear infinite;
+}
+
+.carnival-text {
+  font-size: var(--td-font-size-s);
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+@keyframes carnivalPulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+@keyframes carnivalIconSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.timer-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: timerShine 2s ease-in-out infinite;
+}
+
+@keyframes timerShine {
+  0% {
+    left: -100%;
+  }
+
+  50%,
+  100% {
+    left: 200%;
+  }
+}
+
+@keyframes timerFlash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ================================
+   Combo 提示 - 超强视觉效果
+   ================================ */
+.combo-tip {
+  position: absolute;
+  top: 180rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  animation: comboPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.combo-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.combo-text {
+  font-size: var(--tg-font-size-xl);
+  font-weight: bold;
+  color: var(--tg-lottery-primary, #ff6b6b);
+  text-shadow:
+    3rpx 3rpx 0 #000,
+    -3rpx -3rpx 0 #000,
+    3rpx -3rpx 0 #000,
+    -3rpx 3rpx 0 #000,
+    0 6rpx 12rpx rgba(255, 107, 107, 0.8);
+  letter-spacing: 4rpx;
+  animation: comboShake 0.5s ease-in-out infinite;
+}
+
+.combo-spark {
+  font-size: var(--td-font-size-m);
+  animation: comboSparkle 0.8s ease-in-out infinite;
+}
+
+.combo-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120rpx;
+  height: 120rpx;
+  border: 4rpx solid rgba(255, 107, 107, 0.6);
+  border-radius: 50%;
+  animation: comboRing 1s ease-out infinite;
+}
+
+@keyframes comboPopIn {
+  0% {
+    transform: translateX(-50%) scale(0.3) rotate(-10deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(-50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes comboShake {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-4rpx) rotate(-2deg);
+  }
+
+  75% {
+    transform: translateY(-4rpx) rotate(2deg);
+  }
+}
+
+@keyframes comboSparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.3) rotate(180deg);
+    opacity: 0.6;
+  }
+}
+
+@keyframes comboRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ================================
+   地鼠场地
+   ================================ */
+.mole-field {
+  position: relative;
+  z-index: 2;
+  padding: 20rpx;
+  background: radial-gradient(ellipse at center, rgba(76, 175, 80, 0.3) 0%, transparent 70%);
+  border-radius: var(--td-radius-large);
+}
+
+/* ================================
+   🔨 跟随光标的锤子 - 带样式升级
+   ================================ */
+.hammer-cursor {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  transition: opacity 0.15s ease;
+  opacity: 0;
+
+  &.active {
+    opacity: 1;
+    animation: hammerSwing 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  // 火焰锤（5连击）
+  &.hammer-fire .hammer-icon {
+    font-size: 56rpx;
+    filter: drop-shadow(0 0 12rpx rgba(255, 165, 0, 0.8))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  }
+
+  // 雷电锤（10连击）
+  &.hammer-thunder .hammer-icon {
+    font-size: 64rpx;
+    filter: drop-shadow(0 0 20rpx rgba(138, 43, 226, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  }
+}
+
+.hammer-icon {
+  font-size: var(--tg-font-size-xxl);
+  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  display: block;
+
+  &.fire-hammer {
+    animation: fireFlicker 0.3s ease-in-out infinite;
+  }
+
+  &.thunder-hammer {
+    animation: thunderPulse 0.5s ease-in-out infinite;
+  }
+}
+
+.hammer-glow {
+  position: absolute;
+  inset: -10rpx;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+
+  &.fire {
+    background: radial-gradient(circle, rgba(255, 165, 0, 0.4), transparent);
+    opacity: 1;
+    animation: fireGlow 0.5s ease-in-out infinite;
+  }
+
+  &.thunder {
+    background: radial-gradient(circle, rgba(138, 43, 226, 0.5), transparent);
+    opacity: 1;
+    animation: thunderGlow 0.3s ease-in-out infinite;
+  }
+}
+
+@keyframes fireFlicker {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes thunderPulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.5) hue-rotate(20deg);
+  }
+}
+
+@keyframes fireGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+@keyframes thunderGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 0.8;
+  }
+}
+
+/* ================================
+   ⚠️ Miss 特效
+   ================================ */
+.miss-effect {
+  position: fixed;
+  z-index: 95;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+
+  &.active {
+    opacity: 1;
+    animation: missEffectPop 0.6s ease-out forwards;
+  }
+}
+
+.miss-text {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: var(--tg-lottery-danger, #ff5252);
+  text-shadow:
+    2rpx 2rpx 0 #000,
+    -2rpx -2rpx 0 #000,
+    2rpx -2rpx 0 #000,
+    -2rpx 2rpx 0 #000;
+  animation: missShake 0.3s ease-in-out;
+}
+
+.miss-penalty {
+  font-size: var(--td-font-size-m);
+  font-weight: bold;
+  color: var(--tg-lottery-warning, #ffa726);
+  text-shadow:
+    1rpx 1rpx 0 #000,
+    -1rpx -1rpx 0 #000;
+}
+
+.dust-cloud {
+  font-size: var(--td-font-size-l);
+  animation: dustSpread 0.5s ease-out forwards;
+}
+
+@keyframes missEffectPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+
+  30% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -70%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes missShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-8rpx) rotate(-5deg);
+  }
+
+  75% {
+    transform: translateX(8rpx) rotate(5deg);
+  }
+}
+
+@keyframes dustSpread {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes hammerSwing {
+  0% {
+    transform: translate(-50%, -50%) rotate(-45deg) scale(1);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) rotate(-20deg) scale(1.3);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) rotate(-45deg) scale(1);
+  }
+}
+
+.mole-grid {
+  display: flex;
+  flex-wrap: wrap;
+  width: 560rpx;
+  gap: 12rpx;
+  justify-content: center;
+}
+
+/* ================================
+   地鼠洞 - 3D效果增强
+   ================================ */
+.mole-hole {
+  width: 168rpx;
+  height: 140rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* 改为居中对齐，让地鼠出现在洞的中间 */
+  justify-content: center;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.active .mole {
+    animation: molePopUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  &.whacked .mole {
+    animation: moleHit 0.4s ease-out forwards;
+  }
+
+  &.golden .hole-rim {
+    box-shadow:
+      0 0 20rpx rgba(255, 215, 0, 0.8),
+      inset 0 2rpx 4rpx rgba(255, 255, 255, 0.1);
+    border: 2rpx solid rgba(255, 215, 0, 0.4);
+  }
+
+  &.bomb .hole-rim {
+    box-shadow:
+      0 0 20rpx rgba(255, 0, 0, 0.6),
+      inset 0 2rpx 4rpx rgba(255, 255, 255, 0.1);
+    animation: bombPulse 0.5s ease-in-out infinite;
+  }
+}
+
+@keyframes bombPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20rpx rgba(255, 0, 0, 0.6);
+  }
+
+  50% {
+    box-shadow: 0 0 30rpx rgba(255, 0, 0, 0.9);
+  }
+}
+
+/* 草丛装饰 */
+.grass-deco {
+  position: absolute;
+  top: 10rpx;
+  font-size: var(--tg-font-size-xs);
+  z-index: 4;
+  animation: grassSway 2s ease-in-out infinite;
+  filter: drop-shadow(1rpx 1rpx 0 rgba(0, 0, 0, 0.3));
+
+  &.grass-left {
+    left: 0;
+    animation-delay: 0s;
+  }
+
+  &.grass-right {
+    right: 0;
+    animation-delay: 0.5s;
+  }
+}
+
+@keyframes grassSway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+/* 土堆效果 */
+.dirt-pile {
+  position: absolute;
+  bottom: 20rpx;
+  width: 40rpx;
+  height: 30rpx;
+  background: radial-gradient(ellipse, #8d6e63 0%, #6d4c41 60%, transparent 100%);
+  border-radius: 50%;
+  z-index: 4;
+  /* 提高层级，让土堆显示在地鼠上方（营造土堆在洞口边缘的效果） */
+
+  &.dirt-left {
+    left: 10rpx;
+    transform: rotate(-10deg);
+  }
+
+  &.dirt-right {
+    right: 10rpx;
+    transform: rotate(10deg);
+  }
+}
+
+.hole-rim {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150rpx;
+  height: 28rpx;
+  background: linear-gradient(180deg, #8d6e63 0%, #6d4c41 50%, #5d4037 100%);
+  border-radius: 50%;
+  z-index: -1;
+  /* 降低层级到-1，让圆形土壤边缘显示在黑色洞口下方 */
+  box-shadow:
+    0 4rpx 8rpx rgba(0, 0, 0, 0.4),
+    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.1),
+    inset 0 -2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.hole-rim-inner {
+  position: absolute;
+  inset: 4rpx;
+  background: radial-gradient(ellipse, rgba(93, 64, 55, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hole-bg {
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130rpx;
+  height: 55rpx;
+  background: radial-gradient(ellipse, #2c1810 0%, #1a0f08 60%, #0a0504 100%);
+  border-radius: 50%;
+  z-index: 1;
+  /* 提高层级到1，让黑色洞口显示在圆形土壤边缘上方 */
+  box-shadow: inset 0 8rpx 16rpx rgba(0, 0, 0, 0.8);
+}
+
+.hole-shadow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: shadowPulse 2s ease-in-out infinite;
+}
+
+@keyframes shadowPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.mole {
+  position: relative;
+  z-index: 3;
+  /* 提高层级，确保地鼠显示在土壤上方 */
+  transform: translateY(80rpx);
+  /* 增加初始偏移，让地鼠从更深的位置弹出 */
+  opacity: 0;
+
+  &.hiding {
+    animation: moleHideAlert 0.2s ease-in-out infinite;
+  }
+}
+
+.mole-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mole-icon {
+  font-size: 68rpx;
+  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  position: relative;
+  z-index: 1;
+}
+
+/* 地鼠眼睛 */
+.mole-eyes {
+  position: absolute;
+  top: 15rpx;
+  display: flex;
+  gap: 20rpx;
+  animation: moleBlink 3s ease-in-out infinite;
+
+  .eye {
+    font-size: 12rpx;
+    filter: drop-shadow(0 1rpx 2rpx rgba(0, 0, 0, 0.3));
+  }
+}
+
+@keyframes moleBlink {
+  0%,
+  90%,
+  100% {
+    opacity: 1;
+  }
+
+  95% {
+    opacity: 0;
+  }
+}
+
+/* 地鼠警觉提示 */
+.mole-alert-icon {
+  position: absolute;
+  top: -20rpx;
+  right: -10rpx;
+  font-size: var(--td-font-size-s);
+  animation: alertBounce 0.3s ease-in-out infinite;
+}
+
+@keyframes alertBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8rpx);
+  }
+}
+
+@keyframes moleHideAlert {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4rpx);
+  }
+}
+
+/* 金色地鼠增强 */
+.golden-body {
+  .mole-icon {
+    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    animation: goldenGlow 0.6s ease-in-out infinite;
+  }
+}
+
+.golden-sparkle {
+  position: absolute;
+  top: 10rpx;
+  left: -15rpx;
+  font-size: var(--td-font-size-s);
+  animation: sparkleRotate 2s linear infinite;
+}
+
+.golden-crown {
+  position: absolute;
+  top: -15rpx;
+  font-size: var(--td-font-size-base);
+  animation: crownBob 1s ease-in-out infinite;
+}
+
+/* 彩虹地鼠 - 超稀有 */
+.rainbow-body {
+  .mole-icon {
+    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8))
+      drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    animation: rainbowGlow 0.8s ease-in-out infinite;
+  }
+}
+
+.rainbow-aura {
+  position: absolute;
+  top: -20rpx;
+  font-size: var(--td-font-size-l);
+  animation: rainbowFloat 2s ease-in-out infinite;
+}
+
+.rainbow-stars {
+  position: absolute;
+  inset: -30rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rainbow-star {
+  position: absolute;
+  font-size: var(--tg-font-size-xs);
+
+  &:nth-child(1) {
+    top: -10rpx;
+    left: -10rpx;
+    animation: rainbowStar1 1.5s ease-in-out infinite;
+  }
+
+  &:nth-child(2) {
+    top: -10rpx;
+    right: -10rpx;
+    animation: rainbowStar2 1.5s 0.3s ease-in-out infinite;
+  }
+
+  &:nth-child(3) {
+    bottom: 10rpx;
+    animation: rainbowStar3 1.5s 0.6s ease-in-out infinite;
+  }
+}
+
+@keyframes rainbowGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 20rpx rgba(255, 0, 128, 0.8))
+      drop-shadow(0 0 20rpx rgba(138, 43, 226, 0.8)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 30rpx rgba(255, 215, 0, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  }
+}
+
+@keyframes rainbowFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(-15rpx) scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+@keyframes rainbowStar1 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translate(-15rpx, -15rpx) rotate(180deg) scale(1.3);
+  }
+}
+
+@keyframes rainbowStar2 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translate(15rpx, -15rpx) rotate(-180deg) scale(1.3);
+  }
+}
+
+@keyframes rainbowStar3 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translate(0, 15rpx) rotate(360deg) scale(1.5);
+  }
+}
+
+@keyframes sparkleRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes crownBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  50% {
+    transform: translateY(-6rpx) rotate(5deg);
+  }
+}
+
+/* 炸弹地鼠增强 */
+.bomb-body {
+  .mole-icon {
+    animation: bombShake 0.25s ease-in-out infinite;
+  }
+}
+
+.bomb-fuse {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  font-size: var(--tg-font-size-xs);
+  animation: fuseSpark 0.5s ease-in-out infinite;
+}
+
+@keyframes fuseSpark {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.3);
+  }
+}
+
+/* 金色地鼠发光效果 */
+@keyframes goldenGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.8))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 24rpx rgba(255, 215, 0, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+  }
+}
+
+/* 炸弹地鼠抖动 */
+@keyframes bombShake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-8deg);
+  }
+
+  50% {
+    transform: rotate(8deg);
+  }
+
+  75% {
+    transform: rotate(-8deg);
+  }
+}
+
+/* ================================
+   地鼠动画 - 增强版
+   ================================ */
+@keyframes molePopUp {
+  0% {
+    transform: translateY(80rpx) scale(0.8);
+    /* 从更深的位置开始 */
+    opacity: 0;
+  }
+
+  60% {
+    transform: translateY(-8rpx) scale(1.1);
+    /* 轻微超出中间位置 */
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    /* 最终停在洞的中间 */
+    opacity: 1;
+  }
+}
+
+@keyframes moleHit {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+
+  30% {
+    transform: translateY(-12rpx) scale(1.3) rotate(10deg);
+  }
+
+  100% {
+    transform: translateY(70rpx) scale(0.3) rotate(-20deg);
+    opacity: 0;
+  }
+}
+
+/* ================================
+   锤击特效 - 超强爆炸效果
+   ================================ */
+.whack-effect {
+  position: absolute;
+  top: -20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.whack-star {
+  font-size: 56rpx;
+  animation: whackBurst 0.5s ease-out forwards;
+  filter: drop-shadow(0 0 10rpx rgba(255, 165, 0, 0.8));
+
+  &.main {
+    font-size: 72rpx;
+  }
+}
+
+/* 粒子爆炸系统 */
+.particle-burst {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100rpx;
+  height: 100rpx;
+}
+
+.burst-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: var(--td-font-size-base);
+
+  &.p1 {
+    animation: burstParticle1 0.6s ease-out forwards;
+  }
+
+  &.p2 {
+    animation: burstParticle2 0.6s ease-out forwards;
+  }
+
+  &.p3 {
+    animation: burstParticle3 0.6s ease-out forwards;
+  }
+
+  &.p4 {
+    animation: burstParticle4 0.6s ease-out forwards;
+  }
+}
+
+@keyframes burstParticle1 {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(calc(-50% - 60rpx), calc(-50% - 60rpx)) scale(1) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes burstParticle2 {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(calc(-50% + 60rpx), calc(-50% - 60rpx)) scale(1) rotate(-360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes burstParticle3 {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(calc(-50% - 60rpx), calc(-50% + 60rpx)) scale(1) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes burstParticle4 {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(calc(-50% + 60rpx), calc(-50% + 60rpx)) scale(1) rotate(-360deg);
+    opacity: 0;
+  }
+}
+
+/* 分数弹出 */
+.score-popup {
+  margin-top: 10rpx;
+}
+
+.whack-score {
+  font-size: var(--td-font-size-m);
+  font-weight: bold;
+  color: var(--tg-lottery-success, #4caf50);
+  text-shadow:
+    2rpx 2rpx 0 #000,
+    -2rpx -2rpx 0 #000,
+    2rpx -2rpx 0 #000,
+    -2rpx 2rpx 0 #000,
+    0 0 15rpx rgba(76, 175, 80, 0.8);
+  animation: scoreFloat 0.8s ease-out forwards;
+
+  &.penalty {
+    color: var(--tg-lottery-danger, #ff5252);
+    text-shadow:
+      2rpx 2rpx 0 #000,
+      -2rpx -2rpx 0 #000,
+      2rpx -2rpx 0 #000,
+      -2rpx 2rpx 0 #000,
+      0 0 15rpx rgba(255, 82, 82, 0.8);
+  }
+}
+
+/* 冲击波效果 */
+.shockwave {
+  position: absolute;
+  top: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100rpx;
+  height: 100rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: shockwaveExpand 0.5s ease-out forwards;
+}
+
+@keyframes shockwaveExpand {
+  0% {
+    transform: translateX(-50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-50%) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes whackBurst {
+  0% {
+    transform: scale(0.3) rotate(0deg);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.8) rotate(180deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(2.5) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes scoreFloat {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateY(-40rpx) scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-80rpx) scale(1);
+    opacity: 0;
+  }
+}
+
+/* ================================
+   庆祝特效 - 增强版
+   ================================ */
+.celebration-effect {
+  @include celebration-effect(500rpx, 500rpx);
+}
+
+.celebration-burst {
+  @include celebration-burst;
+}
+
+.burst-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 44rpx;
+  animation: burstOut 1.2s ease-out forwards;
+
+  &:nth-child(1) {
+    --angle: 0deg;
+  }
+
+  &:nth-child(2) {
+    --angle: 30deg;
+  }
+
+  &:nth-child(3) {
+    --angle: 60deg;
+  }
+
+  &:nth-child(4) {
+    --angle: 90deg;
+  }
+
+  &:nth-child(5) {
+    --angle: 120deg;
+  }
+
+  &:nth-child(6) {
+    --angle: 150deg;
+  }
+
+  &:nth-child(7) {
+    --angle: 180deg;
+  }
+
+  &:nth-child(8) {
+    --angle: 210deg;
+  }
+
+  &:nth-child(9) {
+    --angle: 240deg;
+  }
+
+  &:nth-child(10) {
+    --angle: 270deg;
+  }
+
+  &:nth-child(11) {
+    --angle: 300deg;
+  }
+
+  &:nth-child(12) {
+    --angle: 330deg;
+  }
+}
+
+.celebration-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 215, 0, 0.6);
+
+  &.ring-1 {
+    width: 200rpx;
+    height: 200rpx;
+    animation: ringExpand 1s ease-out forwards;
+  }
+
+  &.ring-2 {
+    width: 200rpx;
+    height: 200rpx;
+    animation: ringExpand 1s 0.2s ease-out forwards;
+  }
+}
+
+.celebration-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 56rpx;
+  font-weight: bold;
+  color: var(--tg-lottery-accent, #ffd700);
+  text-shadow:
+    3rpx 3rpx 0 #000,
+    -3rpx -3rpx 0 #000,
+    3rpx -3rpx 0 #000,
+    -3rpx 3rpx 0 #000,
+    0 0 30rpx rgba(255, 215, 0, 0.8);
+  animation: celebrationTextPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes burstOut {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(
+        calc(-50% + 200rpx * cos(var(--angle))),
+        calc(-50% + 200rpx * sin(var(--angle)))
+      )
+      scale(1.5) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes ringExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes celebrationTextPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(-10deg);
+    opacity: 0;
+  }
+
+  70% {
+    transform: translate(-50%, -50%) scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* ================================
+   开始按钮区域 - 游戏化设计
+   ================================ */
+.whack-start-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40rpx;
+  z-index: 2;
+}
+
+.game-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 40rpx;
+  animation: introFloat 2s ease-in-out infinite;
+}
+
+.intro-icon {
+  font-size: 80rpx;
+  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3));
+  animation: introIconSpin 3s ease-in-out infinite;
+}
+
+@keyframes introIconSpin {
+  0%,
+  100% {
+    transform: rotate(-10deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(10deg) scale(1.1);
+  }
+}
+
+.intro-title {
+  font-size: var(--tg-font-size-xl);
+  font-weight: bold;
+  color: #fff;
+  text-shadow:
+    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
+    0 0 20rpx rgba(255, 235, 59, 0.4);
+}
+
+.intro-desc {
+  font-size: var(--td-font-size-base);
+  color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.85));
+  text-align: center;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+@keyframes introFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10rpx);
+  }
+}
+
+.start-btn-wrapper {
+  position: relative;
+  margin-bottom: 30rpx;
+}
+
+.start-btn {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 80rpx;
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-primary, #ff6b6b) 0%,
+    var(--tg-lottery-primary-dark, #ee5a24) 100%
+  );
+  border-radius: 60rpx;
+  color: #fff;
+  font-size: var(--td-font-size-l);
+  font-weight: bold;
+  box-shadow:
+    0 12rpx 32rpx rgba(238, 90, 36, 0.5),
+    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3),
+    inset 0 -2rpx 4rpx rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+
+  &--active {
+    transform: scale(0.92);
+    box-shadow: 0 6rpx 16rpx rgba(238, 90, 36, 0.4);
+  }
+}
+
+.btn-shine {
+  @include btn-shine();
+}
+
+.start-btn-shadow {
+  position: absolute;
+  bottom: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: 20rpx;
+  background: radial-gradient(ellipse, rgba(238, 90, 36, 0.4), transparent);
+  border-radius: 50%;
+  filter: blur(8rpx);
+}
+
+.start-btn__icon {
+  font-size: var(--tg-font-size-xl);
+  animation: btnIconBounce 1s ease-in-out infinite;
+}
+
+@keyframes btnIconBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4rpx);
+  }
+}
+
+.start-btn__text {
+  letter-spacing: 6rpx;
+}
+
+/* 游戏规则说明 */
+.game-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  justify-content: center;
+  max-width: 620rpx;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 20rpx;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: var(--td-radius-large);
+  border: 2rpx solid rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10rpx);
+  backdrop-filter: blur(10rpx);
+
+  &.golden {
+    border-color: rgba(255, 215, 0, 0.4);
+    background: rgba(255, 215, 0, 0.1);
+  }
+
+  &.bomb {
+    border-color: rgba(255, 0, 0, 0.4);
+    background: rgba(255, 0, 0, 0.1);
+  }
+
+  &.combo {
+    border-color: rgba(255, 107, 107, 0.4);
+    background: rgba(255, 107, 107, 0.1);
+  }
+}
+
+.rule-icon {
+  font-size: var(--td-font-size-base);
+}
+
+.rule-text {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.9));
+  font-weight: 500;
+}
+
+/* ================================
+   游戏结束 - 精美结果界面
+   ================================ */
+.whack-result-area {
+  margin-top: 40rpx;
+  z-index: 2;
+  animation: resultFadeIn 0.5s ease-out;
+}
+
+@keyframes resultFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 60rpx;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 100%);
+  border-radius: var(--tg-radius-xl);
+  border: 3rpx solid rgba(255, 215, 0, 0.4);
+  -webkit-backdrop-filter: blur(20rpx);
+  backdrop-filter: blur(20rpx);
+  box-shadow:
+    0 12rpx 40rpx rgba(0, 0, 0, 0.5),
+    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+    animation: resultGlow 2s ease-in-out infinite;
+  }
+}
+
+@keyframes resultGlow {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+.result-trophy {
+  font-size: 100rpx;
+  margin-bottom: 20rpx;
+  animation: trophyBounce 1s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  filter: drop-shadow(0 8rpx 16rpx rgba(255, 215, 0, 0.5));
+}
+
+@keyframes trophyBounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  50% {
+    transform: translateY(-20rpx) rotate(5deg);
+  }
+}
+
+.result-title {
+  font-size: 42rpx;
+  color: var(--tg-lottery-accent, #ffd700);
+  font-weight: bold;
+  text-shadow:
+    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
+    0 0 30rpx rgba(255, 215, 0, 0.6);
+  margin-bottom: 30rpx;
+  letter-spacing: 4rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.result-score-wrapper {
+  position: relative;
+  margin-bottom: 30rpx;
+}
+
+.result-score-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 180rpx;
+  height: 180rpx;
+  border: 4rpx solid rgba(255, 215, 0, 0.3);
+  border-radius: 50%;
+  animation: scoreRingPulse 2s ease-in-out infinite;
+}
+
+@keyframes scoreRingPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 1;
+  }
+}
+
+.result-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 30rpx;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  border: 3rpx solid rgba(255, 215, 0, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.result-score__label {
+  font-size: 26rpx;
+  color: var(--tg-lottery-text-light, rgba(255, 255, 255, 0.8));
+  font-weight: 500;
+}
+
+.result-score__value {
+  font-size: 72rpx;
+  font-weight: bold;
+  color: var(--tg-lottery-accent, #ffd700);
+  text-shadow:
+    0 0 30rpx rgba(255, 215, 0, 0.8),
+    0 4rpx 8rpx rgba(0, 0, 0, 0.5);
+  animation: scoreValuePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes scoreValuePulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.result-evaluation {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 32rpx;
+  background: rgba(76, 175, 80, 0.2);
+  border-radius: var(--td-radius-large);
+  border: 2rpx solid rgba(76, 175, 80, 0.4);
+  margin-bottom: 24rpx;
+  animation: evalSlideIn 0.5s 0.3s ease-out backwards;
+}
+
+@keyframes evalSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-40rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes statsSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.stat-value {
+  font-size: var(--tg-font-size-xl);
+  font-weight: bold;
+  color: var(--tg-lottery-accent, #ffd700);
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: var(--tg-lottery-text-light, rgba(255, 255, 255, 0.7));
+}
+
+/* ================================
+   消耗积分提示 - 增强版
+   ================================ */
+.whack-cost {
+  margin-top: 24rpx;
+  padding: 14rpx 32rpx;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%);
+  border-radius: var(--td-radius-large);
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  border: 2rpx solid rgba(255, 215, 0, 0.3);
+  z-index: 2;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
+  animation: costBlink 2s ease-in-out infinite;
+}
+
+@keyframes costBlink {
+  0%,
+  90%,
+  100% {
+    opacity: 1;
+  }
+
+  95% {
+    opacity: 0.7;
+  }
+}
+
+.cost-icon {
+  font-size: var(--td-font-size-base);
+  animation: costIconSpin 3s ease-in-out infinite;
+}
+
+@keyframes costIconSpin {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(15deg) scale(1.1);
+  }
+}
+
+.cost-text {
+  font-size: var(--td-font-size-base);
+  font-weight: bold;
+  color: var(--tg-lottery-accent, #ffd700);
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+/* ================================
+   趣味评价和详细统计
+   ================================ */
+.funny-comment {
+  width: 100%;
+  margin-bottom: 24rpx;
+  padding: 20rpx 32rpx;
+  background: rgba(76, 175, 80, 0.15);
+  border-radius: 20rpx;
+  border: 2rpx solid rgba(76, 175, 80, 0.4);
+  animation: evalSlideIn 0.5s 0.3s ease-out backwards;
+}
+
+.funny-text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+  line-height: 1.5;
+}
+
+.result-stats-detailed {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.stat-row {
+  display: flex;
+  gap: 16rpx;
+  justify-content: center;
+
+  .stat-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    padding: 16rpx 20rpx;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--td-radius-default);
+    border: 2rpx solid rgba(255, 255, 255, 0.1);
+    animation: statsSlideIn 0.5s ease-out backwards;
+
+    &:nth-child(1) {
+      animation-delay: 0.4s;
+    }
+
+    &:nth-child(2) {
+      animation-delay: 0.5s;
+    }
+  }
+}
+
+.stat-icon {
+  font-size: var(--td-font-size-m);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+
+  .stat-value {
+    font-size: var(--td-font-size-m);
+    font-weight: bold;
+    color: var(--tg-lottery-accent, #ffd700);
+    text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+  }
+
+  .stat-label {
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-lottery-text-light, rgba(255, 255, 255, 0.7));
+  }
+}
+
+.prize-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: var(--td-radius-default);
+  border: 2rpx solid rgba(255, 215, 0, 0.3);
+  animation: waitingPulse 1.5s ease-in-out infinite;
+}
+
+.waiting-icon {
+  font-size: var(--tg-font-size-xxl);
+  animation: waitingIconBounce 1s ease-in-out infinite;
+}
+
+.waiting-text {
+  font-size: 26rpx;
+  color: var(--tg-lottery-accent, #ffd700);
+  font-weight: bold;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+@keyframes waitingPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+@keyframes waitingIconBounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10rpx) rotate(10deg);
+  }
+}
+
+/* ================================
+   游戏规则 - 新增样式
+   ================================ */
+.rule-item.rainbow {
+  border-color: rgba(255, 0, 128, 0.4);
+  background: rgba(255, 0, 128, 0.1);
+}
+
+.rule-item.miss {
+  border-color: rgba(255, 82, 82, 0.4);
+  background: rgba(255, 82, 82, 0.1);
+}
+
+/* ===== 奖品池预览（is_fallback / is_sold_out 视觉指示） ===== */
+.wm-prizes {
+  margin-top: 24rpx;
+  padding: 0 16rpx;
+}
+
+.wm-prizes__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.wm-prizes__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.wm-prizes__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--tg-lottery-primary, #7c4dff);
+}
+
+.wm-prizes__title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--tg-lottery-text, #333);
+}
+
+.wm-prizes__count {
+  font-size: 22rpx;
+  color: var(--tg-lottery-text-light, #999);
+}
+
+.wm-prizes__scroll {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  contain: paint;
+}
+
+.wm-prizes__list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 8rpx 4rpx 16rpx;
+}
+
+.wm-prizes__item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.wm-prizes__icon-wrap {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: var(--tg-lottery-bg-light, #fff);
+  border: 2rpx solid var(--tg-lottery-border, #eee);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wm-prizes__icon {
+  font-size: 40rpx;
+}
+
+.wm-prizes__image {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.wm-prizes__name {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--tg-lottery-text-light, #666);
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.wm-prizes__item--fallback {
+  filter: saturate(0.4);
+  opacity: 0.7;
+}
+
+.wm-prizes__fallback-tag {
+  margin-top: 2rpx;
+  padding: 0 6rpx;
+  font-size: 18rpx;
+  color: #999;
+  background: rgba(153, 153, 153, 0.15);
+  border-radius: 4rpx;
+}
+
+.wm-prizes__item--sold-out {
+  opacity: 0.45;
+}
+
+.wm-prizes__sold-out {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  white-space: nowrap;
+}

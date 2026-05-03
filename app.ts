@@ -18,7 +18,8 @@ const {
   getWebSocketConfig,
   getCurrentEnv
 } = require('./config/env')
-const { initializeWechatEnvironment } = require('./utils/index').Wechat
+const { API, Logger, PopupFrequency, Wechat } = require('./utils/index')
+const { initializeWechatEnvironment } = Wechat
 
 // Socket.IO 客户端（weapp.socket.io 适配微信小程序环境）
 const io = require('weapp.socket.io')
@@ -28,7 +29,6 @@ const { userStore } = require('./store/user')
 const { pointsStore } = require('./store/points')
 const { tradeStore } = require('./store/trade')
 const { auditStore } = require('./store/audit')
-const { Logger, PopupFrequency, ThemeCache } = require('./utils/index')
 const log = Logger.createLogger('app')
 
 // ===== 类型定义 =====
@@ -101,13 +101,6 @@ App({
       await this.initializeSystem()
       await this.checkAuthStatus()
       await initializeWechatEnvironment()
-
-      // 预加载全局氛围主题到本地缓存（公开API，无需登录）
-      // 非阻塞：主题获取不应阻塞 onLaunch，失败时降级到内置默认主题
-      // 页面 onLoad/onShow 中 getThemeNameSync() 依赖此处填充缓存
-      ThemeCache.getThemeName().catch((err: any) => {
-        log.warn('主题预加载失败（不影响启动）:', err?.message || err)
-      })
 
       // 冷启动时清理过期弹窗记录（90天以上），防止本地存储无限增长
       PopupFrequency.cleanExpiredRecords()
@@ -838,7 +831,7 @@ App({
     log.info('退出系统维护模式，恢复正常')
 
     try {
-      const { APIClient: MaintenanceClient } = require('./utils/api/client')
+      const { APIClient: MaintenanceClient } = API
       MaintenanceClient._maintenanceModalShown = false
       MaintenanceClient._isMaintenanceMode = false
       if (MaintenanceClient._healthCheckTimer) {

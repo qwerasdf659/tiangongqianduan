@@ -69,54 +69,91 @@
 
 /// 标准卡片样式（白色背景+圆角+阴影）
 @mixin card-base {
-  background: $color-white;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-md;
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
+  box-shadow:
+    0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08),
+    0 2rpx 6rpx rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
 /// 卡片带边距
 @mixin card-with-margin {
   @include card-base;
-  margin-bottom: $spacing-base;
+  margin-bottom: var(--tg-spacing-md);
 }
 
 // ===== 按钮 =====
 
 /// 主要按钮样式
 @mixin btn-primary {
-  background-color: $color-primary;
-  color: $color-text-white;
+  background-color: var(--td-brand-color);
+  color: #ffffff;
   border: none;
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   text-align: center;
-  transition: background-color $transition-fast;
+  transition: background-color 0.15s ease;
 
   &:active {
-    background-color: $color-primary-dark;
+    background-color: var(--td-brand-color-active);
   }
 }
 
 /// 次要按钮样式（边框）
 @mixin btn-outline {
   background-color: transparent;
-  color: $color-primary;
-  border: 2rpx solid $color-primary;
-  border-radius: $border-radius-sm;
+  color: var(--td-brand-color);
+  border: 2rpx solid var(--td-brand-color);
+  border-radius: var(--td-radius-small);
   text-align: center;
-  transition: all $transition-fast;
+  transition: all 0.15s ease;
 
   &:active {
-    background-color: rgba($color-primary, 0.1);
+    background-color: rgba(var(--td-brand-color-rgb), 0.1);
   }
 }
 
 /// 禁用按钮样式
 @mixin btn-disabled {
-  background-color: $color-bg-grey;
-  color: $color-text-disabled;
+  background-color: #f5f5f5;
+  color: #cccccc;
   border: none;
   pointer-events: none;
+}
+
+/// 通用面板头部
+@mixin panel-header($padding: 24rpx 30rpx) {
+  @include flex-between;
+  padding: $padding;
+  border-bottom: 2rpx solid var(--tg-color-border-muted);
+  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
+}
+
+/// 通用状态圆角标签
+@mixin pill-tag($bg, $color, $radius: 20rpx) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx 16rpx;
+  border-radius: $radius;
+  background: $bg;
+  color: $color;
+  font-weight: 600;
+}
+
+/// 系统级渐变主按钮
+@mixin gradient-primary-button($height: 80rpx, $radius: 40rpx) {
+  height: $height;
+  @include flex-center;
+  border-radius: $radius;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
+  color: var(--tg-color-white);
+  font-size: var(--td-font-size-base);
+  font-weight: 600;
 }
 
 // ===== 输入框 =====
@@ -124,15 +161,15 @@
 /// 标准输入框样式
 @mixin input-base {
   width: 100%;
-  padding: $spacing-base;
-  border: 2rpx solid $color-border;
-  border-radius: $border-radius-sm;
-  font-size: $font-size-base;
+  padding: var(--tg-spacing-md);
+  border: 2rpx solid var(--tg-border-color);
+  border-radius: var(--td-radius-small);
+  font-size: var(--td-font-size-base);
   box-sizing: border-box;
-  transition: border-color $transition-fast;
+  transition: border-color 0.15s ease;
 
   &:focus {
-    border-color: $color-primary;
+    border-color: var(--td-brand-color);
   }
 }
 
@@ -141,8 +178,8 @@
 /// 水平分割线
 @mixin divider {
   height: 2rpx;
-  background-color: $color-divider;
-  margin: $spacing-md 0;
+  background-color: var(--tg-border-color);
+  margin: var(--tg-spacing-md) 0;
 }
 
 // ===== 状态标签 =====
@@ -154,7 +191,7 @@
   display: inline-block;
   padding: 4rpx 12rpx;
   border-radius: 4rpx;
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   color: $text;
   background-color: $bg;
 }
@@ -180,9 +217,9 @@
 /// 空状态容器
 @mixin empty-state {
   @include flex-column-center;
-  padding: 80rpx $spacing-base;
-  color: $color-text-tertiary;
-  font-size: $font-size-base;
+  padding: 80rpx var(--tg-spacing-md);
+  color: var(--tg-text-tertiary);
+  font-size: var(--td-font-size-base);
 }
 
 // ===== 加载状态 =====
@@ -191,8 +228,8 @@
 @mixin loading-state {
   @include flex-center;
   padding: 40rpx;
-  color: $color-text-tertiary;
-  font-size: $font-size-sm;
+  color: var(--tg-text-tertiary);
+  font-size: var(--td-font-size-s);
 }
 
 // ===== 毛玻璃效果 =====

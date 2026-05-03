@@ -1,10 +1,17 @@
 /* 兑换订单详情页样式 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 .detail-page {
   min-height: 100vh;
-  background: $gradient-primary;
+  background: var(
+    --tg-page-gradient,
+    linear-gradient(
+      135deg,
+      rgba(255, 107, 53, 0.08) 0%,
+      rgba(229, 90, 43, 0.12) 50%,
+      rgba(76, 205, 196, 0.08) 100%
+    )
+  );
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -21,25 +28,25 @@
 
 .error-icon {
   font-size: 80rpx;
-  margin-bottom: $spacing-lg;
+  margin-bottom: var(--tg-spacing-lg);
 }
 
 .error-text {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  margin-bottom: $spacing-xl;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
+  margin-bottom: var(--tg-spacing-xl);
 }
 
 .error-retry {
   padding: 16rpx 48rpx;
-  background: $gradient-blue-start;
-  border-radius: $border-radius-xl;
-  margin-bottom: $spacing-md;
+  background: var(--td-brand-color-focus);
+  border-radius: var(--td-radius-large);
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .error-retry-text {
-  font-size: $font-size-base;
-  color: $color-white;
+  font-size: var(--td-font-size-base);
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -48,20 +55,20 @@
 }
 
 .error-back-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 内容区 ===== */
 .detail-content {
-  padding: $spacing-base;
+  padding: var(--tg-spacing-md);
 }
 
 /* ===== 状态卡片 ===== */
 .status-card {
-  border-radius: $border-radius-xl;
+  border-radius: var(--td-radius-large);
   padding: 40rpx 32rpx;
-  margin-bottom: $spacing-base;
+  margin-bottom: var(--tg-spacing-md);
   position: relative;
   overflow: hidden;
 }
@@ -79,12 +86,12 @@
 
 .status-label {
   font-size: 36rpx;
-  color: $color-white;
+  color: #ffffff;
   font-weight: 700;
 }
 
 .status-desc {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: rgba(255, 255, 255, 0.85);
   display: block;
 }
@@ -95,33 +102,36 @@
   right: 24rpx;
   padding: 4rpx 14rpx;
   background: rgba(255, 255, 255, 0.25);
-  border-radius: $spacing-base;
+  border-radius: var(--tg-spacing-md);
 }
 
 .source-tag-text {
   font-size: 20rpx;
-  color: $color-white;
+  color: #ffffff;
 }
 
 /* ===== 通用信息卡片 ===== */
 .info-card {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: $border-radius-lg;
-  padding: $spacing-xl;
-  margin-bottom: $spacing-base;
-  box-shadow: $shadow-card;
+  border-radius: var(--td-radius-large);
+  padding: var(--tg-spacing-xl);
+  margin-bottom: var(--tg-spacing-md);
+  box-shadow:
+    0 8rpx 32rpx rgba(255, 107, 53, 0.1),
+    0 2rpx 12rpx rgba(255, 107, 53, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.8);
 }
 
 .card-title-row {
-  margin-bottom: $spacing-lg;
-  padding-bottom: $spacing-sm;
-  border-bottom: 1rpx solid $color-divider;
+  margin-bottom: var(--tg-spacing-lg);
+  padding-bottom: var(--tg-spacing-sm);
+  border-bottom: 1rpx solid var(--tg-border-color);
 }
 
 .card-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 /* ===== 商品信息 ===== */
@@ -133,10 +143,10 @@
 .product-image {
   width: 160rpx;
   height: 160rpx;
-  border-radius: $border-radius-md;
-  background: $color-bg-grey;
+  border-radius: var(--td-radius-default);
+  background: var(--tg-page-bg);
   flex-shrink: 0;
-  margin-right: $spacing-lg;
+  margin-right: var(--tg-spacing-lg);
 }
 
 .product-detail {
@@ -145,24 +155,24 @@
 
 .product-name {
   display: block;
-  font-size: $font-size-md;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-primary);
   font-weight: 600;
   margin-bottom: 8rpx;
 }
 
 .product-desc {
   display: block;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   margin-bottom: 8rpx;
   line-height: 1.5;
 }
 
 .product-pay {
   display: block;
-  font-size: $font-size-sm;
-  color: $color-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--td-brand-color);
   font-weight: 500;
 }
 
@@ -171,7 +181,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: $spacing-sm 0;
+  padding: var(--tg-spacing-sm) 0;
 }
 
 .info-row + .info-row {
@@ -179,15 +189,15 @@
 }
 
 .info-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
-  margin-right: $spacing-lg;
+  margin-right: var(--tg-spacing-lg);
 }
 
 .info-value {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   text-align: right;
   word-break: break-all;
 }
@@ -195,15 +205,15 @@
 .info-value-row {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: var(--tg-spacing-sm);
 }
 
 .copy-btn {
   font-size: 20rpx;
-  color: $color-primary;
+  color: var(--td-brand-color);
   padding: 2rpx 10rpx;
-  border: 1rpx solid $color-primary;
-  border-radius: $spacing-xs;
+  border: 1rpx solid var(--td-brand-color);
+  border-radius: var(--tg-spacing-xs);
 }
 
 /* ===== 时间线 ===== */
@@ -230,8 +240,8 @@
 .timeline-dot {
   width: 16rpx;
   height: 16rpx;
-  border-radius: $border-radius-round;
-  background: $color-text-disabled;
+  border-radius: var(--td-radius-round);
+  background: var(--tg-text-tertiary);
   flex-shrink: 0;
 }
 
@@ -242,11 +252,11 @@
 }
 
 .dot-blue {
-  background: $color-info;
+  background: #1890ff;
 }
 
 .dot-green {
-  background: $color-success;
+  background: #52c41a;
 }
 
 .dot-cyan {
@@ -258,36 +268,36 @@
 }
 
 .dot-red {
-  background: $color-error;
+  background: #ff4d4f;
 }
 
 .dot-grey {
-  background: $color-text-disabled;
+  background: var(--tg-text-tertiary);
 }
 
 .timeline-line {
   width: 2rpx;
   flex: 1;
-  background: $color-divider;
+  background: var(--tg-border-color);
   margin: 4rpx 0;
 }
 
 .timeline-body {
   flex: 1;
-  padding: 0 0 $spacing-md $spacing-sm;
+  padding: 0 0 var(--tg-spacing-md) var(--tg-spacing-sm);
 }
 
 .timeline-label {
   display: block;
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .timeline-time {
   display: block;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 2rpx;
 }
 
@@ -297,14 +307,14 @@
 }
 
 .auto-confirm-text {
-  font-size: $font-size-sm;
-  color: $color-info;
+  font-size: var(--td-font-size-s);
+  color: #1890ff;
 }
 
 /* ===== 已评价 ===== */
 .rating-show {
   text-align: center;
-  padding: $spacing-sm 0;
+  padding: var(--tg-spacing-sm) 0;
 }
 
 .rating-show-stars {
@@ -319,9 +329,9 @@
   left: 0;
   right: 0;
   display: flex;
-  gap: $spacing-md;
-  padding: $spacing-lg $spacing-xl;
-  padding-bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
+  gap: var(--tg-spacing-md);
+  padding: var(--tg-spacing-lg) var(--tg-spacing-xl);
+  padding-bottom: calc(var(--tg-spacing-lg) + env(safe-area-inset-bottom));
   background: #ffffff;
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
@@ -329,9 +339,9 @@
 .action-btn-detail {
   flex: 1;
   padding: 22rpx 0;
-  border-radius: $border-radius-xl;
+  border-radius: var(--td-radius-large);
   text-align: center;
-  transition: all $transition-fast;
+  transition: all 0.15s ease;
 }
 
 .action-btn-detail:active {
@@ -339,12 +349,12 @@
 }
 
 .btn-cancel-detail {
-  background: $color-white;
-  border: 1rpx solid $color-text-disabled;
+  background: #ffffff;
+  border: 1rpx solid var(--tg-text-tertiary);
 }
 
 .cancel-text {
-  color: $color-text-secondary !important;
+  color: var(--tg-text-secondary) !important;
 }
 
 .btn-confirm-detail {
@@ -353,13 +363,13 @@
 }
 
 .btn-rate-detail {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
   box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
 }
 
 .action-btn-text {
-  font-size: $font-size-md;
-  color: $color-white;
+  font-size: var(--td-font-size-m);
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -381,46 +391,48 @@
 
 .rating-modal {
   width: 600rpx;
-  background: $color-bg-card;
-  border-radius: $border-radius-lg;
-  padding: $spacing-xl;
-  box-shadow: $shadow-lg;
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-large);
+  padding: var(--tg-spacing-xl);
+  box-shadow:
+    0 12rpx 32rpx rgba(255, 107, 53, 0.12),
+    0 4rpx 10rpx rgba(0, 0, 0, 0.06);
 }
 
 .rating-modal-header {
   @include flex-between;
-  margin-bottom: $spacing-lg;
+  margin-bottom: var(--tg-spacing-lg);
 }
 
 .rating-modal-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .rating-modal-close {
-  width: $icon-size-md;
-  height: $icon-size-md;
+  width: 48rpx;
+  height: 48rpx;
   @include flex-center;
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
-  border-radius: $border-radius-round;
-  background: $color-bg-grey;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
+  border-radius: var(--td-radius-round);
+  background: var(--tg-page-bg);
 }
 
 .rating-product-name {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
   display: block;
   text-align: center;
-  margin-bottom: $spacing-xl;
+  margin-bottom: var(--tg-spacing-xl);
 }
 
 .rating-stars-row {
   display: flex;
   justify-content: center;
-  gap: $spacing-lg;
-  margin-bottom: $spacing-md;
+  gap: var(--tg-spacing-lg);
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .rating-star {
@@ -432,7 +444,7 @@
 .star-icon {
   font-size: 56rpx;
   color: #ddd;
-  transition: color $transition-fast;
+  transition: color 0.15s ease;
 }
 
 .rating-star.selected .star-icon {
@@ -442,17 +454,17 @@
 .rating-hint {
   display: block;
   text-align: center;
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  margin-bottom: $spacing-xl;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  margin-bottom: var(--tg-spacing-xl);
 }
 
 .rating-submit-btn {
   width: 100%;
-  padding: $spacing-base 0;
+  padding: var(--tg-spacing-md) 0;
   text-align: center;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  border-radius: $spacing-xxl;
+  background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
+  border-radius: var(--td-radius-round);
   box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
 }
 
@@ -462,32 +474,32 @@
 }
 
 .rating-submit-text {
-  font-size: $font-size-md;
-  color: $color-white;
+  font-size: var(--td-font-size-m);
+  color: #ffffff;
   font-weight: 500;
 }
 
 /* 物流信息样式 */
 .shipping-query-btn {
-  padding: $spacing-xs $spacing-base;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
   background: rgba(33, 150, 243, 0.1);
-  border-radius: $spacing-base;
+  border-radius: var(--tg-spacing-md);
 }
 
 .shipping-query-text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #2196f3;
 }
 
 .shipping-track-list {
-  margin-top: $spacing-base;
-  padding-top: $spacing-base;
+  margin-top: var(--tg-spacing-md);
+  padding-top: var(--tg-spacing-md);
   border-top: 1rpx solid rgba(0, 0, 0, 0.06);
 }
 
 .shipping-track-item {
   display: flex;
-  padding-bottom: $spacing-base;
+  padding-bottom: var(--tg-spacing-md);
 }
 
 .track-dot-wrap {
@@ -519,19 +531,19 @@
 
 .track-body {
   flex: 1;
-  padding-left: $spacing-sm;
+  padding-left: var(--tg-spacing-sm);
 }
 
 .track-detail {
   display: block;
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   line-height: 1.5;
 }
 
 .track-time {
   display: block;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
 }

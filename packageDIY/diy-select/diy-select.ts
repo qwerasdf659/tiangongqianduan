@@ -37,16 +37,12 @@ Page({
 
   /**
    * 设计广场 — 浏览模板列表
-   * ⚠️ 需要新建 /packageDIY/diy-plaza/diy-plaza 页面
-   *    将原 diy-select 的模板列表+分类Tab逻辑迁移到该页面
-   *    当前暂时跳转到 diy-design 页面，待 diy-plaza 页面创建后替换路由
+   * 复用 diy-templates 页面（同一个后端 API: GET /api/v4/diy/templates）
+   * 通过 source 参数标识入口来源，便于后续业务扩展
    */
   onDesignPlaza() {
-    /* TODO: 待创建 diy-plaza 页面后替换为正确路由 */
-    wx.showToast({
-      title: '设计广场即将上线',
-      icon: 'none',
-      duration: 2000
+    wx.navigateTo({
+      url: '/packageDIY/diy-templates/diy-templates?source=plaza'
     })
   },
 

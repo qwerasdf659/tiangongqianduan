@@ -1,10 +1,10 @@
 <!--packageUser/auth/auth.wxml - 权限简化版v2.2.0 + 全局氛围主题-->
-<view class="auth-container" style="{{globalThemeStyle}}">
-  <!-- 🔧 页面加载状态 -->
+<custom-navbar title="" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
+<view class="auth-container">
+  <!-- 页面加载状态 -->
   <view class="loading-container" wx:if="{{!pageLoaded}}">
     <view class="loading-content">
-      <view class="loading-spinner">⏳</view>
-      <text class="loading-text">页面加载中...</text>
+      <t-loading loading="{{true}}" text="页面加载中..." theme="spinner" />
     </view>
   </view>
 
@@ -97,6 +97,7 @@
             />
             <button
               class="code-btn {{codeDisabled ? 'disabled' : ''}}"
+              hover-class="code-btn-hover"
               disabled="{{codeDisabled}}"
               bindtap="onSendCode"
             >
@@ -106,7 +107,6 @@
           <text class="error-tip" wx:if="{{formErrors.verification_code}}"
             >{{formErrors.verification_code}}</text
           >
-          <!-- 🔴 开发阶段提示已移除 - 根据用户需求清除开发环境提示 -->
         </view>
 
         <!-- 用户协议 -->
@@ -126,6 +126,7 @@
         <view class="submit-actions">
           <button
             class="submit-btn {{logging ? 'loading' : ''}}"
+            hover-class="submit-btn-hover"
             disabled="{{logging}}"
             bindtap="onSubmitLogin"
           >
@@ -135,6 +136,7 @@
 
           <button
             class="submit-btn wechat-btn {{logging ? 'loading' : ''}}"
+            hover-class="submit-btn-hover"
             disabled="{{logging}}"
             open-type="getPhoneNumber"
             bindgetphonenumber="onGetPhoneNumber"
@@ -143,10 +145,6 @@
             <text wx:if="{{logging}}">登录中...</text>
           </button>
         </view>
-
-        <!-- 🔴 权限提示已移除 - 根据用户需求清除管理员权限相关提示 -->
-
-        <!-- 🔴 开发环境跳过登录按钮已移除 - 根据用户需求清除开发环境按钮 -->
       </view>
 
       <!-- 底部说明 -->
@@ -222,9 +220,6 @@
       </view>
     </view>
   </view>
-
-  <!-- 🔴 权限简化v2.2.0：删除管理员独立登录弹窗 -->
-  <!-- 原有的admin-login-modal已删除，改为统一登录方式 -->
 
   <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
   <maintenance-overlay />

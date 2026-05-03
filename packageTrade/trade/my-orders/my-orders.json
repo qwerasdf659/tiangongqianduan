@@ -1,9 +1,16 @@
 {
   "navigationBarTitleText": "我的订单",
-  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarBackgroundColor": "#FF6B35",
   "navigationBarTextStyle": "white",
-  "backgroundColor": "#f8f9fa",
+  "backgroundColor": "#FAF6F1",
   "backgroundTextStyle": "light",
   "enablePullDownRefresh": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "escrow-code-dialog": "/components/exchange/shared/escrow-code-dialog/escrow-code-dialog",
+    "escrow-status-dialog": "/components/exchange/shared/escrow-status-dialog/escrow-status-dialog",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

@@ -6,7 +6,7 @@
  *   2. 保存到微信小程序本地缓存（wx.setStorageSync）
  *   3. 读取本地缓存，优先使用缓存保证加载速度
  *   4. 版本对比（updated_at 时间戳） + 后台静默更新
- *   5. 4层降级策略：本地缓存 → 远程API → 过期缓存 → 内置默认配置
+ *   5. 仅保留真实配置缓存，不再回退到前端内置业务默认值
  *
  * 使用方式：
  *   const { ExchangeConfigCache } = require('./exchange-config-cache')
@@ -79,8 +79,8 @@ interface CostRangeOption {
 /**
  * 卡片视觉配置
  *
- * 主题由全局氛围主题系统管理（utils/global-themes.ts + utils/theme-cache.ts）
- * 后端已移除 card_display.theme 字段（B5-B7 完成），此处不再包含 theme 字段
+ * 货架与卡片视觉统一由 CSS 设计令牌控制（--td-* / --tg-*），
+ * 后端已移除 card_display.theme 字段（B5-B7 完成），此处不再包含 theme 字段。
  */
 interface CardDisplayConfig {
   effects: {
@@ -153,139 +153,20 @@ interface ExchangePageConfig {
   ui: UIConfig
 }
 
-// ===== 内置默认配置（降级层级4 — 代码写死，永不失效） =====
-// 数据来源：后端 system_configs 的初始 JSON（B8 修正后），确保后端不可用时页面表现一致
-
-const DEFAULT_EXCHANGE_CONFIG: ExchangePageConfig = {
-  tabs: [
-    { key: 'exchange', label: '商品兑换', icon: 'download', enabled: true, sort_order: 1 },
-    { key: 'market', label: '交易市场', icon: 'success', enabled: true, sort_order: 2 },
-    { key: 'exchange-rate', label: '资产转换', icon: 'waiting', enabled: true, sort_order: 3 }
-  ],
-  spaces: [
-    {
-      id: 'lucky',
-      name: '🎁 幸运空间',
-      subtitle: '瀑布流卡片',
-      description: '发现随机好物',
-      layout: 'waterfall',
-      color: '#52c41a',
-      bgGradient: 'linear-gradient(135deg, #52c41a 0%, #95de64 100%)',
-      locked: false,
-      enabled: true,
-      sort_order: 1
-    },
-    {
-      id: 'premium',
-      name: '💎 臻选空间',
-      subtitle: '混合精品展示',
-      description: '解锁高级商品',
-      layout: 'simple',
-      color: '#ff6b35',
-      bgGradient: 'linear-gradient(135deg, #f7931e 0%, #e67e22 100%)',
-      locked: true,
-      enabled: true,
-      sort_order: 2
-    }
-  ],
-  shop_filters: {
-    basic_filters: [
-      { value: 'all', label: '全部', showCount: true },
-      { value: 'available', label: '可兑换', showCount: false },
-      { value: 'low-price', label: '低价好物', showCount: false }
-    ],
-    categories: [
-      { value: 'all', label: '全部' },
-      { value: 'home_life', label: '品质生活' },
-      { value: 'lifestyle', label: '日用百货' },
-      { value: 'food', label: '美食特产' },
-      { value: 'collectible', label: '收藏精品' },
-      { value: 'other', label: '其他' }
-    ],
-    cost_ranges: [
-      { label: '全部', min: null, max: null },
-      { label: '100以内', min: 0, max: 100 },
-      { label: '100-500', min: 100, max: 500 },
-      { label: '500-1000', min: 500, max: 1000 },
-      { label: '1000以上', min: 1000, max: null }
-    ],
-    stock_statuses: [
-      { value: 'all', label: '全部' },
-      { value: 'in_stock', label: '库存充足' },
-      { value: 'low_stock', label: '即将售罄' }
-    ],
-    sort_options: [
-      { value: 'sort_order', label: '默认排序' },
-      { value: 'cost_amount_asc', label: '价格从低到高' },
-      { value: 'cost_amount_desc', label: '价格从高到低' },
-      { value: 'created_at_desc', label: '最新上架' },
-      { value: 'sold_count_desc', label: '销量最高' }
-    ]
-  },
-  market_filters: {
-    type_filters: [
-      { value: 'all', label: '全部', showCount: true },
-      { value: 'item', label: '物品', showCount: false },
-      { value: 'fungible_asset', label: '资产', showCount: false }
-    ],
-    category_filters: [
-      { value: 'all', label: '全部' },
-      { value: 'item', label: '物品' },
-      { value: 'fungible_asset', label: '资产' }
-    ],
-    sort_options: [
-      { value: 'default', label: '默认' },
-      { value: 'created_at_desc', label: '最新上架' },
-      { value: 'price_amount_asc', label: '价格升序' },
-      { value: 'price_amount_desc', label: '价格降序' }
-    ]
-  },
-  card_display: {
-    effects: {
-      grain: true,
-      holo: true,
-      rotatingBorder: true,
-      breathingGlow: true,
-      ripple: true,
-      fullbleed: true,
-      listView: false
-    },
-    shop_cta_text: '立即兑换',
-    market_cta_text: '立即购买',
-    show_stock_bar: true,
-    stock_display_mode: 'bar' as const,
-    show_sold_count: true,
-    show_tags: true,
-    price_display_mode: 'highlight' as const,
-    image_placeholder_style: 'gradient' as const,
-    press_effect: 'ripple' as const,
-    show_type_badge: true,
-    price_color_mode: 'type_based' as const,
-    default_view_mode: 'grid' as const
-  },
-  ui: {
-    low_stock_threshold: 10,
-    grid_page_size: 4,
-    waterfall_page_size: 20,
-    default_api_page_size: 20,
-    search_debounce_ms: 500
-  }
-}
-
 // ===== 缓存管理类 =====
 
 /**
  * 兑换页面配置缓存管理器（静态方法类）
  *
- * 加载流程（4层降级，与 ConfigCacheManager 架构一致）：
- *   1. 本地缓存（未过期）→ 立即返回，后台静默更新
+ * 加载流程（收紧为真实配置优先，与当前页面错误策略一致）：
+ *   1. 本地缓存（结构有效）→ 立即返回，后台静默更新
  *   2. API 远程获取 → GET /api/v4/system/config/exchange-page
- *   3. 过期缓存（兜底）
- *   4. 内置默认值（终极兜底，= 后端初始JSON的拷贝）
+ *   3. API失败时回退到本地缓存（即使缓存已过期，只要结构有效）
+ *   4. 无真实缓存且API失败 → 抛出错误，由页面明确提示后端缺失真实配置
  */
 class ExchangeConfigCache {
   /**
-   * 获取兑换页面配置（4层降级，保证始终返回有效配置）
+   * 获取兑换页面配置（仅接受后端真实配置或真实缓存）
    */
   static async getConfig(): Promise<ExchangePageConfig> {
     try {
@@ -308,7 +189,7 @@ class ExchangeConfigCache {
         return cachedConfig
       }
 
-      /* 层级2：无缓存，同步请求后端API */
+      /* 无缓存，同步请求后端API */
       exchangeConfigLog.info('无本地缓存，从后端API获取兑换页面配置...')
       const remoteConfig = await ExchangeConfigCache._fetchFromAPI()
       if (remoteConfig) {
@@ -316,22 +197,18 @@ class ExchangeConfigCache {
         return remoteConfig
       }
 
-      /* 层级3+4 降级到默认值 */
-      exchangeConfigLog.warn('API获取失败，使用内置默认配置')
-      return DEFAULT_EXCHANGE_CONFIG
+      throw new Error('后端未提供兑换页面真实配置，请检查 /api/v4/system/config/exchange-page')
     } catch (error) {
       exchangeConfigLog.error('获取兑换页面配置异常:', error)
 
-      /* 层级3：尝试使用过期缓存 */
+      /* API失败时回退到真实缓存（即使缓存已过期，只要结构有效） */
       const fallbackCache = ExchangeConfigCache._getLocalCache()
       if (fallbackCache) {
-        exchangeConfigLog.warn('使用过期缓存作为降级（层级3）')
+        exchangeConfigLog.warn('API失败，回退到本地真实缓存')
         return fallbackCache
       }
 
-      /* 层级4：内置默认配置 */
-      exchangeConfigLog.warn('使用内置默认配置（降级层级4）')
-      return DEFAULT_EXCHANGE_CONFIG
+      throw error
     }
   }
 
@@ -436,7 +313,7 @@ class ExchangeConfigCache {
       ExchangeConfigCache._saveToLocal(config)
       return config
     }
-    return DEFAULT_EXCHANGE_CONFIG
+    throw new Error('后端未返回兑换页面真实配置，无法完成强制刷新')
   }
 
   /**
@@ -454,6 +331,5 @@ class ExchangeConfigCache {
 }
 
 module.exports = {
-  ExchangeConfigCache,
-  DEFAULT_EXCHANGE_CONFIG
+  ExchangeConfigCache
 }

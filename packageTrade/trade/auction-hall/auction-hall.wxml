@@ -1,5 +1,6 @@
 <!--packageTrade/trade/auction-hall/auction-hall.wxml - C2C拍卖大厅-->
 <!--后端API: GET /api/v4/marketplace/auctions-->
+<custom-navbar title="拍卖大厅" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="auction-hall-container">
   <!--顶部操作栏：我的拍卖/我的出价/发起拍卖-->
@@ -57,7 +58,7 @@
 
   <!--加载中-->
   <view class="auction-loading" wx:if="{{loading && auctions.length === 0}}">
-    <loading-spinner text="加载拍卖列表..." />
+    <t-loading loading="{{true}}" text="加载拍卖列表..." theme="spinner" />
   </view>
 
   <!--错误状态-->
@@ -74,8 +75,7 @@
   <!--空状态-->
   <view class="auction-empty" wx:elif="{{isEmpty}}">
     <view class="empty-content">
-      <text class="empty-icon">🔨</text>
-      <text class="empty-text">暂无{{currentStatus === 'active' ? '进行中的' : ''}}拍卖</text>
+      <t-empty description="暂无{{currentStatus === 'active' ? '进行中的' : ''}}拍卖" />
       <view class="empty-create-btn" bindtap="onCreateAuction">
         <text>发起第一个拍卖</text>
       </view>
@@ -144,7 +144,7 @@
 
     <!--加载更多-->
     <view class="auction-load-more" wx:if="{{hasMore}}">
-      <loading-spinner text="加载更多..." wx:if="{{loading}}" />
+      <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载更多..." theme="spinner" />
     </view>
 
     <!--没有更多-->

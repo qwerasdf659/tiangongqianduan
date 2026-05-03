@@ -1,4 +1,9 @@
 {
   "component": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
+    "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty"
+  }
 }

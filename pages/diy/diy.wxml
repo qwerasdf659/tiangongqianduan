@@ -2,6 +2,7 @@
   DIY tab 入口页
   直接在 tabBar 页面内展示设计入口，底部 tab 始终可见
 -->
+<custom-navbar title="DIY 设计" bgColor="#ffffff" textColor="#000000" />
 <view class="diy-select-page">
   <!-- 页面标题区域 -->
   <view class="page-title-section">
@@ -23,17 +24,29 @@
   <!-- 自由定制饰品卡片 -->
   <view class="design-mode-card" bindtap="onFreeDesign">
     <view class="mode-icon-wrap">
-      <image wx:if="{{freeDesignIcon}}" class="mode-icon-img" src="{{freeDesignIcon}}" mode="aspectFit" />
+      <image
+        wx:if="{{freeDesignIcon}}"
+        class="mode-icon-img"
+        src="{{freeDesignIcon}}"
+        mode="aspectFit"
+      />
       <view wx:else class="mode-icon-placeholder mode-icon-free" />
     </view>
     <text class="mode-title">自由定制饰品</text>
-    <text class="mode-desc">从零开始，发挥您的创意，自由选择材料形状和尺寸，打造您最满意的饰品</text>
+    <text class="mode-desc"
+      >从零开始，发挥您的创意，自由选择材料形状和尺寸，打造您最满意的饰品</text
+    >
   </view>
 
   <!-- 设计广场卡片 -->
   <view class="design-mode-card" bindtap="onDesignPlaza">
     <view class="mode-icon-wrap">
-      <image wx:if="{{designPlazaIcon}}" class="mode-icon-img" src="{{designPlazaIcon}}" mode="aspectFit" />
+      <image
+        wx:if="{{designPlazaIcon}}"
+        class="mode-icon-img"
+        src="{{designPlazaIcon}}"
+        mode="aspectFit"
+      />
       <view wx:else class="mode-icon-placeholder mode-icon-plaza" />
     </view>
     <text class="mode-title">设计广场</text>

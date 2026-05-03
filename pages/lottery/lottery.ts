@@ -24,9 +24,7 @@ const {
   ConfigCache,
   Logger,
   PopupFrequency,
-  QRCode,
-  ThemeCache,
-  GlobalTheme
+  QRCode
 } = require('../../utils/index')
 const log = Logger.createLogger('lottery')
 const { showToast } = Wechat
@@ -34,6 +32,12 @@ const { checkAuth, restoreUserInfo } = Utils
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
+
+const DEFAULT_NAV_THEME = {
+  navBg: '#ff6b35',
+  navText: '#ffffff',
+  tabSelected: '#ff6b35'
+}
 
 /** 积分千分位格式化 — 供MobX computed使用 */
 const formatPointsDisplay = Utils.formatPoints
@@ -116,9 +120,6 @@ Page({
     carouselCurrent: 0,
     /** 轮播区域是否可见（有数据时显示） */
     showCarousel: false,
-
-    /* ===== 全局氛围主题（后端 GET /api/v4/system/config/app-theme 驱动） ===== */
-    globalThemeStyle: '',
 
     /* ===== 页面状态 ===== */
     loading: true,
@@ -224,12 +225,6 @@ Page({
       onShowPatch.userInfo = userInfo
     }
 
-    const lotteryShowThemeName = ThemeCache.getThemeNameSync()
-    const showThemeStyle = GlobalTheme.getGlobalThemeStyle(lotteryShowThemeName)
-    if (showThemeStyle !== this.data.globalThemeStyle) {
-      onShowPatch.globalThemeStyle = showThemeStyle
-    }
-
     /* V2动态码：从后台恢复时检查二维码是否过期（合并到同一次 setData） */
     if (this.data.qrExpiresAt && Date.now() >= this.data.qrExpiresAt) {
       if (this._qrTimer) {
@@ -243,7 +238,7 @@ Page({
     if (Object.keys(onShowPatch).length > 0) {
       this.setData(onShowPatch)
     }
-    this.applyNativeThemeColors(lotteryShowThemeName)
+    this.applyNativeThemeColors()
 
     /* 非首次加载时刷新弹窗横幅和系统公告 */
     if (!this._isFirstLoad) {
@@ -362,15 +357,14 @@ Page({
    * 将微信原生导航栏、TabBar 颜色同步为当前主题色
    * CSS 变量只能控制 WXML 内元素，导航栏和 TabBar 属于框架层需通过 JS API 设置
    */
-  applyNativeThemeColors(themeName: string) {
-    const navColors = GlobalTheme.getThemeNavColors(themeName)
+  applyNativeThemeColors() {
     wx.setNavigationBarColor({
-      frontColor: navColors.navText as '#ffffff' | '#000000',
-      backgroundColor: navColors.navBg,
+      frontColor: DEFAULT_NAV_THEME.navText as '#ffffff' | '#000000',
+      backgroundColor: DEFAULT_NAV_THEME.navBg,
       animation: { duration: 300, timingFunc: 'easeIn' }
     })
     wx.setTabBarStyle({
-      selectedColor: navColors.tabSelected
+      selectedColor: DEFAULT_NAV_THEME.tabSelected
     })
   },
 
@@ -391,10 +385,7 @@ Page({
         this.setData({ isLoggedIn: true, userInfo: restoredUserInfo })
       }
 
-      /* 加载全局氛围主题（同步注入 CSS 变量到页面根元素） */
-      const initThemeName = await ThemeCache.getThemeName()
-      this.setData({ globalThemeStyle: GlobalTheme.getGlobalThemeStyle(initThemeName) })
-      this.applyNativeThemeColors(initThemeName)
+      this.applyNativeThemeColors()
 
       /* 并行加载：积分数据、活动列表、系统公告、弹窗横幅、轮播图、通知未读数 */
       await Promise.all([
@@ -705,13 +696,11 @@ Page({
     }
     try {
       const { available, frozen } = await pointsStore.refreshFromAPI()
-      // 双保险：MobX绑定 + 手动setData
-      const { formatPoints: fmtPts } = require('../../utils/util')
       this.setData({
         pointsBalance: available,
         frozenPoints: frozen,
-        pointsBalanceFormatted: fmtPts(available),
-        frozenPointsFormatted: fmtPts(frozen)
+        pointsBalanceFormatted: Utils.formatPoints(available),
+        frozenPointsFormatted: Utils.formatPoints(frozen)
       })
     } catch (err) {
       log.error('[lottery] 刷新积分失败:', err)
@@ -791,26 +780,25 @@ Page({
         typeNumber: -1,
         correctLevel: 2,
         background: '#ffffff',
-        foreground: '#000000',
-      }).then((tempFilePath: string) => {
-        const remaining = Math.max(
-          0,
-          Math.floor((expiresTimestamp - Date.now()) / 1000)
-        )
-        const minutes = Math.floor(remaining / 60)
-        const seconds = remaining % 60
-        this.setData({
-          qrCodeImage: tempFilePath,
-          qrCountdown: remaining,
-          qrExpired: false,
-          qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
-          qrExpiresAt: expiresTimestamp
-        })
-        this.startQrCountdown()
-      }).catch((err: any) => {
-        log.error('[lottery] 二维码转图片失败:', err)
-        showToast('二维码生成失败', 'none', 2000)
+        foreground: '#000000'
       })
+        .then((tempFilePath: string) => {
+          const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+          const minutes = Math.floor(remaining / 60)
+          const seconds = remaining % 60
+          this.setData({
+            qrCodeImage: tempFilePath,
+            qrCountdown: remaining,
+            qrExpired: false,
+            qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
+            qrExpiresAt: expiresTimestamp
+          })
+          this.startQrCountdown()
+        })
+        .catch((err: any) => {
+          log.error('[lottery] 二维码转图片失败:', err)
+          showToast('二维码生成失败', 'none', 2000)
+        })
     } catch (error: any) {
       log.error('[lottery] 生成V2二维码异常:', error)
 
@@ -920,6 +908,9 @@ Page({
   closeEnlargedQRCode() {
     this.setData({ qrCodeEnlarged: false })
   },
+
+  /** 阻止弹窗内容点击冒泡到遮罩层 */
+  stopTap() {},
 
   // ========================================
   // 管理员功能

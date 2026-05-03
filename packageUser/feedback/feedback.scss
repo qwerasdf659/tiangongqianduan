@@ -1,26 +1,25 @@
 /* 客服反馈提交页面样式 - V3.0 Sass版本 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* 🎨 全局容器 */
 .feedback-container {
-  padding: $spacing-base;
-  background-color: $color-bg;
+  padding: var(--tg-spacing-md);
+  background-color: var(--tg-color-bg);
   min-height: 100vh;
 }
 
 /* 📋 页面头部 */
 .page-header {
   @include flex-between;
-  padding: 30rpx $spacing-base;
-  background: $gradient-primary;
-  border-radius: $border-radius-md;
+  padding: 30rpx var(--tg-spacing-md);
+  background: var(--tg-gradient-primary);
+  border-radius: var(--td-radius-default);
   margin-bottom: 30rpx;
-  color: $color-text-white;
+  color: var(--tg-color-white);
 }
 
 .header-title .title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 600;
   display: block;
   margin-bottom: 8rpx;
@@ -38,20 +37,20 @@
   border: none;
   border-radius: 20rpx;
   padding: 16rpx 24rpx;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   display: flex;
   align-items: center;
   gap: 8rpx;
 }
 
 .history-btn .icon {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
 }
 
 /* 📝 表单区块 */
 .section {
   background-color: white;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   padding: 30rpx 24rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.08);
@@ -72,20 +71,20 @@
 
 .section-title .required {
   color: #e74c3c;
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
 }
 
 .section-title .optional {
   color: #95a5a6;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
 }
 
 .section-title .more {
   color: #3498db;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   margin-left: auto;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
 }
 
 /* 🏷️ 分类选择 */
@@ -104,7 +103,7 @@
   border-radius: 12rpx;
   background-color: #fafbfc;
   transition: all 0.3s ease;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
 }
 
 .category-item.selected {
@@ -113,13 +112,13 @@
 }
 
 .category-item .icon {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   margin-bottom: 8rpx;
   display: block;
 }
 
 .category-item .label {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #2c3e50;
   text-align: center;
   display: block;
@@ -136,7 +135,7 @@
   padding: 20rpx;
   border: 2rpx solid #ecf0f1;
   border-radius: 12rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   line-height: 1.5;
   background-color: #fafbfc;
   box-sizing: border-box;
@@ -154,7 +153,7 @@
 }
 
 .char-count {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #95a5a6;
 }
 
@@ -192,9 +191,9 @@
   border-radius: 50%;
   @include flex-center;
   color: white;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
 }
 
 .add-image-btn {
@@ -204,7 +203,7 @@
   border-radius: 12rpx;
   @include flex-column-center;
   background-color: #fafbfc;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s ease;
 }
 
@@ -214,14 +213,14 @@
 }
 
 .add-image-btn .icon {
-  font-size: $font-size-xxl;
+  font-size: var(--tg-font-size-xxl);
   color: #bdc3c7;
   margin-bottom: 8rpx;
   display: block;
 }
 
 .add-image-btn .text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #7f8c8d;
   display: block;
 }
@@ -236,7 +235,7 @@
   width: 100%;
   height: 88rpx;
   border-radius: 44rpx;
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
   border: none;
   transition: all 0.3s ease;
@@ -257,7 +256,7 @@
 }
 
 .submit-tips .tip {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #7f8c8d;
 }
 
@@ -270,10 +269,10 @@
 
 .history-item {
   padding: 20rpx;
-  background-color: $color-bg;
+  background-color: var(--tg-color-bg);
   border-radius: 12rpx;
   border-left: 6rpx solid #3498db;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s ease;
 }
 
@@ -289,14 +288,14 @@
 }
 
 .item-header .category {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #7f8c8d;
 }
 
 .item-header .status {
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 500;
 }
 
@@ -357,7 +356,7 @@
   max-width: 640rpx;
   max-height: 80vh;
   background-color: white;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   display: flex;
   flex-direction: column;
   transform: scale(0.9);
@@ -377,7 +376,7 @@
 }
 
 .modal-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
   color: #2c3e50;
 }
@@ -386,9 +385,9 @@
   width: 48rpx;
   height: 48rpx;
   @include flex-center;
-  font-size: $font-size-xl;
+  font-size: var(--tg-font-size-xl);
   color: #95a5a6;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   border-radius: 50%;
   transition: all 0.3s ease;
 }
@@ -417,7 +416,7 @@
 }
 
 .empty-state .message {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   display: block;
 }
 
@@ -434,7 +433,7 @@
   padding: 20rpx;
   border: 2rpx solid #ecf0f1;
   border-radius: 12rpx;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s ease;
 }
 
@@ -445,8 +444,8 @@
 
 .item-status .status-badge {
   padding: 6rpx 16rpx;
-  border-radius: $border-radius-md;
-  font-size: $font-size-xs;
+  border-radius: var(--td-radius-default);
+  font-size: var(--tg-font-size-xs);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -475,7 +474,7 @@
 
 .item-arrow {
   color: #bdc3c7;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
 }
 
@@ -491,7 +490,7 @@
   color: white;
   border: none;
   border-radius: 38rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 500;
 }
 

@@ -1,6 +1,7 @@
 <!--pages/user/user.wxml - 用户中心页面模板 -->
+<custom-navbar title="我的" bgColor="#ffffff" textColor="#000000" />
 
-<view class="user-container theme-{{currentThemeName}}" style="{{globalThemeStyle}}">
+<view class="user-container">
   <!-- 未登录状态：登录引导卡片（已登录时不显示，积分卡片已体现登录状态） -->
   <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
     <view class="login-avatar">👤</view>
@@ -167,8 +168,7 @@
   <!-- 加载遮罩层 - 页面初始化时显示，数据加载完成后自动隐藏 -->
   <view class="loading-overlay" wx:if="{{loading}}">
     <view class="loading-content">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
     </view>
   </view>
 

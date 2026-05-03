@@ -1,3 +1,4 @@
+<custom-navbar title="选择款式" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="diy-templates-page">
   <!-- 分类 Tab 栏（对齐后端 categories 表 id=191~194） -->
   <scroll-view class="category-tabs" scroll-x enhanced show-scrollbar="{{false}}">
@@ -16,8 +17,7 @@
 
   <!-- 加载态 -->
   <view wx:if="{{loading}}" class="loading-wrap">
-    <view class="loading-spinner" />
-    <text class="loading-text">加载中...</text>
+    <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
   </view>
 
   <!-- 错误态 -->
@@ -58,7 +58,8 @@
             wx:for-item="tag"
             wx:key="*this"
             class="template-tag"
-          >{{tag}}</text>
+            >{{tag}}</text
+          >
         </view>
       </view>
       <text class="arrow-icon">></text>
@@ -67,6 +68,6 @@
 
   <!-- 空态 -->
   <view wx:elif="{{!loading && !hasError}}" class="empty-wrap">
-    <text class="empty-text">该分类暂无可用款式</text>
+    <t-empty description="该分类暂无可用款式" />
   </view>
 </view>

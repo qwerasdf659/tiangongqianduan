@@ -1,72 +1,71 @@
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 .notifications-page {
   min-height: 100vh;
-  background-color: $color-bg;
+  background-color: var(--tg-page-bg);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* ===== 顶部操作栏 ===== */
 .action-bar {
   @include flex-between;
-  padding: $spacing-md $spacing-xl;
-  background: $color-white;
-  border-bottom: 2rpx solid $color-border-light;
+  padding: var(--tg-spacing-md) var(--tg-spacing-xl);
+  background: var(--tg-card-bg);
+  border-bottom: 2rpx solid var(--tg-border-color);
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .unread-summary {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 .mark-all-btn {
-  padding: $spacing-xs $spacing-md;
-  font-size: $font-size-sm;
-  color: $color-primary;
-  background: rgba($color-primary, 0.08);
-  border-radius: $border-radius-sm;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  font-size: var(--td-font-size-s);
+  color: var(--td-brand-color);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
+  border-radius: var(--td-radius-small);
 
   &:active {
-    background: rgba($color-primary, 0.15);
+    background: rgba(var(--td-brand-color-rgb), 0.15);
   }
 
   &.disabled {
-    color: $color-text-disabled;
-    background: $color-bg-grey;
+    color: var(--tg-text-disabled);
+    background: var(--tg-color-bg-grey);
     pointer-events: none;
   }
 }
 
 /* ===== 通知列表 ===== */
 .notification-list {
-  padding: $spacing-xs 0;
+  padding: var(--tg-spacing-xs) 0;
 }
 
 .notification-item {
   display: flex;
   align-items: flex-start;
-  padding: $spacing-lg $spacing-xl;
-  background: $color-white;
-  border-bottom: 2rpx solid $color-border-light;
-  transition: background-color $transition-fast;
+  padding: var(--tg-spacing-lg) var(--tg-spacing-xl);
+  background: var(--tg-card-bg);
+  border-bottom: 2rpx solid var(--tg-border-color);
+  transition: background-color var(--tg-transition-fast);
 
   &:active {
-    background-color: $color-bg-grey;
+    background-color: var(--tg-color-bg-grey);
   }
 
   &.unread {
-    background: rgba($color-info, 0.02);
+    background: rgba(var(--tg-color-info-rgb), 0.02);
   }
 }
 
 /* 类型标签图标 */
 .notification-icon {
   flex-shrink: 0;
-  margin-right: $spacing-md;
+  margin-right: var(--tg-spacing-md);
   padding-top: 4rpx;
 }
 
@@ -74,68 +73,67 @@
   @include flex-center;
   min-width: 64rpx;
   height: 40rpx;
-  padding: 0 $spacing-sm;
+  padding: 0 var(--tg-spacing-sm);
   border-radius: 4rpx;
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 500;
 
   /* 默认灰色标签 */
-  color: $color-text-secondary;
-  background: $color-bg-grey;
+  color: var(--tg-text-secondary);
+  background: var(--tg-color-bg-grey);
 
   /* 交易类-蓝色 */
   &.tag-trade {
-    color: $color-info;
-    background: rgba($color-info, 0.1);
+    color: var(--tg-color-info);
+    background: rgba(var(--tg-color-info-rgb), 0.1);
   }
 
   /* 购买成功-绿色 */
   &.tag-purchase {
-    color: $color-success;
-    background: rgba($color-success, 0.1);
+    color: var(--tg-color-success);
+    background: rgba(var(--tg-color-success-rgb), 0.1);
   }
 
   /* 中奖-金色 */
-  $color-lottery-gold: #d4a017;
   &.tag-lottery {
-    color: $color-lottery-gold;
-    background: rgba($color-lottery-gold, 0.1);
+    color: #d4a017;
+    background: rgba(#d4a017, 0.1);
   }
 
   /* 兑换-橙色 */
   &.tag-exchange {
-    color: $color-primary;
-    background: rgba($color-primary, 0.1);
+    color: var(--td-brand-color);
+    background: rgba(var(--td-brand-color-rgb), 0.1);
   }
 
   /* 积分-蓝色 */
   &.tag-points {
-    color: $color-info;
-    background: rgba($color-info, 0.1);
+    color: var(--tg-color-info);
+    background: rgba(var(--tg-color-info-rgb), 0.1);
   }
 
   /* 被拒绝-红色 */
   &.tag-rejected {
-    color: $color-error;
-    background: rgba($color-error, 0.1);
+    color: var(--tg-color-error);
+    background: rgba(var(--tg-color-error-rgb), 0.1);
   }
 
   /* 撤回/过期-灰色 */
   &.tag-inactive {
-    color: $color-text-tertiary;
-    background: $color-bg-grey;
+    color: var(--tg-text-tertiary);
+    background: var(--tg-color-bg-grey);
   }
 
   /* 系统-灰色 */
   &.tag-system {
-    color: $color-text-secondary;
-    background: $color-bg-grey;
+    color: var(--tg-text-secondary);
+    background: var(--tg-color-bg-grey);
   }
 
   /* 审核链-橙色（审批管理相关通知） */
   &.tag-approval {
-    color: $color-warning;
-    background: rgba($color-warning, 0.1);
+    color: var(--tg-color-warning);
+    background: rgba(var(--tg-color-warning-rgb), 0.1);
   }
 }
 
@@ -153,9 +151,9 @@
 .notification-title {
   @include text-ellipsis;
   flex: 1;
-  font-size: $font-size-base;
-  color: $color-text-primary;
-  line-height: $line-height-tight;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
+  line-height: var(--tg-line-height-tight);
 
   &.title-unread {
     font-weight: 600;
@@ -167,21 +165,21 @@
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: $color-error;
-  margin-left: $spacing-sm;
+  background: var(--tg-color-error);
+  margin-left: var(--tg-spacing-sm);
 }
 
 .notification-content {
   @include text-ellipsis-multi(2);
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  line-height: $line-height-base;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  line-height: var(--tg-line-height-base);
   margin-bottom: 8rpx;
 }
 
 .notification-time {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* 右侧箭头 */
@@ -189,64 +187,39 @@
   @include flex-center;
   flex-shrink: 0;
   width: 40rpx;
-  margin-left: $spacing-sm;
+  margin-left: var(--tg-spacing-sm);
   align-self: center;
 }
 
 .arrow-icon {
   font-size: 36rpx;
-  color: $color-text-disabled;
+  color: var(--tg-text-disabled);
 }
 
 /* ===== 加载更多 ===== */
 .load-more {
   @include flex-center;
-  padding: $spacing-xl;
-  color: $color-text-tertiary;
-  font-size: $font-size-sm;
+  padding: var(--tg-spacing-xl);
+  color: var(--tg-text-tertiary);
+  font-size: var(--td-font-size-s);
 }
 
-/* ===== 空状态 ===== */
-.empty-state {
-  @include empty-state;
-  padding-top: 200rpx;
-}
-
-.empty-icon {
+/* ===== 空状态 / Loading 插槽 ===== */
+.empty-slot-icon {
   font-size: 100rpx;
-  margin-bottom: $spacing-xl;
-}
-
-.empty-title {
-  font-size: $font-size-lg;
-  color: $color-text-primary;
-  margin-bottom: $spacing-sm;
-}
-
-.empty-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  margin-bottom: var(--tg-spacing-lg);
 }
 
 .login-btn {
   @include btn-primary;
-  margin-top: $spacing-xxl;
-  padding: $spacing-md $spacing-xxl * 2;
-  font-size: $font-size-base;
+  margin-top: var(--tg-spacing-xxl);
+  padding: var(--tg-spacing-md) calc(var(--tg-spacing-xxl) * 2);
+  font-size: var(--td-font-size-base);
 }
 
 /* ===== 页面级loading ===== */
 .page-loading {
   @include flex-column-center;
   padding-top: 300rpx;
-  color: $color-text-tertiary;
-}
-
-.loading-icon {
-  font-size: 60rpx;
-  margin-bottom: $spacing-md;
-}
-
-.loading-text {
-  font-size: $font-size-sm;
+  color: var(--tg-text-tertiary);
 }

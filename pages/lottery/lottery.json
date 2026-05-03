@@ -7,11 +7,15 @@
   "backgroundTextStyle": "light",
   "backgroundColor": "#667eea",
   "usingComponents": {
-    "popup-banner": "/packageLottery/popup-banner/popup-banner",
-    "lottery-activity": "/packageLottery/lottery-activity/lottery-activity"
+    "popup-banner": "/components/popup-banner/popup-banner",
+    "lottery-activity": "/components/lottery-activity/lottery-activity",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "componentPlaceholder": {
     "popup-banner": "view",
     "lottery-activity": "view"
-  }
+  },
+  "navigationStyle": "custom"
 }

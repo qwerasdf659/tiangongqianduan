@@ -1,55 +1,54 @@
-@import '../../styles/variables.scss';
 @import '../../styles/mixins.scss';
 
 .diy-result-page {
   min-height: 100vh;
-  background: $color-bg-grey;
+  background: var(--tg-diy-canvas-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60rpx $spacing-lg;
+  padding: 60rpx var(--tg-spacing-lg);
   padding-bottom: calc(60rpx + env(safe-area-inset-bottom));
 }
 
 /* ===== 成功头部 ===== */
 .success-header {
   @include flex-column-center;
-  margin-bottom: $spacing-xxl;
+  margin-bottom: 48rpx;
 }
 
 .success-icon-wrap {
   width: 120rpx;
   height: 120rpx;
-  background: linear-gradient(135deg, $color-success, #66bb6a);
-  border-radius: $border-radius-round;
+  background: linear-gradient(135deg, var(--tg-color-success), var(--tg-color-success-strong));
+  border-radius: var(--td-radius-circle);
   @include flex-center;
-  box-shadow: 0 8rpx 24rpx rgba($color-success, 0.3);
-  margin-bottom: $spacing-base;
+  box-shadow: 0 8rpx 24rpx rgba(var(--tg-color-success-rgb), 0.3);
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .success-icon {
   font-size: 56rpx;
-  color: $color-text-white;
+  color: var(--tg-color-white);
   font-weight: 700;
 }
 
 .success-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .success-subtitle {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
-  margin-top: $spacing-xs;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
+  margin-top: var(--tg-spacing-xs);
 }
 
 /* ===== 价格卡片 ===== */
 .price-card {
   width: 100%;
   @include card-base;
-  margin-bottom: $spacing-xxl;
+  margin-bottom: 48rpx;
 }
 
 .price-row {
@@ -57,92 +56,92 @@
   padding: 12rpx 0;
 
   & + & {
-    border-top: 1rpx solid $color-bg-grey;
-    margin-top: $spacing-xs;
-    padding-top: $spacing-md;
+    border-top: 1rpx solid var(--tg-diy-canvas-bg);
+    margin-top: var(--tg-spacing-xs);
+    padding-top: var(--tg-spacing-md);
   }
 }
 
 .price-label {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
 }
 
 .price-value {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .work-id {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 400;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
   font-family: monospace;
 }
 
 .status-completed {
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 /* ===== 费用预览（多币种分组展示） ===== */
 .cost-preview {
-  margin-top: $spacing-sm;
+  margin-top: var(--tg-spacing-sm);
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-xs;
+  gap: var(--tg-spacing-xs);
 }
 
 .cost-preview-item {
   display: flex;
   align-items: center;
   gap: 6rpx;
-  background: rgba($color-primary, 0.08);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
   padding: 6rpx 16rpx;
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
 }
 
 .cost-preview-amount {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .cost-preview-asset {
-  font-size: $font-size-sm;
-  color: $color-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--td-brand-color);
 }
 
 .cost-preview-count {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 结算流程 ===== */
 .settlement-area {
   width: 100%;
-  margin-bottom: $spacing-lg;
+  margin-bottom: var(--tg-spacing-lg);
 }
 
 .step-card {
   @include card-base;
-  margin-bottom: $spacing-md;
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .step-title {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   display: block;
-  margin-bottom: $spacing-xs;
+  margin-bottom: var(--tg-spacing-xs);
 }
 
 .step-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   display: block;
-  margin-bottom: $spacing-md;
-  line-height: $line-height-base;
+  margin-bottom: var(--tg-spacing-md);
+  line-height: 1.6;
 }
 
 /* ===== 操作按钮 ===== */
@@ -150,17 +149,17 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: var(--tg-spacing-md);
 }
 
 .action-btn {
   width: 100%;
-  padding: $spacing-base 0;
+  padding: var(--tg-spacing-md) 0;
   text-align: center;
-  border-radius: $border-radius-xl;
-  font-size: $font-size-base;
+  border-radius: var(--td-radius-large);
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  transition: opacity $transition-base;
+  transition: opacity 0.2s ease;
 
   &:active {
     opacity: 0.8;
@@ -173,46 +172,46 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
-  color: $color-text-white;
-  box-shadow: 0 4rpx 16rpx rgba($color-primary, 0.3);
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
+  color: var(--tg-color-white);
+  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .action-btn.secondary {
-  background: linear-gradient(135deg, $color-success, #66bb6a);
-  color: $color-text-white;
-  box-shadow: 0 4rpx 16rpx rgba($color-success, 0.2);
+  background: linear-gradient(135deg, var(--tg-color-success), var(--tg-color-success-strong));
+  color: var(--tg-color-white);
+  box-shadow: 0 4rpx 16rpx rgba(var(--tg-color-success-rgb), 0.2);
 }
 
 .action-btn.outline {
-  background: $color-bg-card;
-  color: $color-text-secondary;
-  border: 2rpx solid $color-border;
+  background: var(--tg-card-bg);
+  color: var(--tg-text-secondary);
+  border: 2rpx solid var(--tg-border-color);
 }
 
 .action-btn.danger {
-  background: $color-bg-card;
-  color: $color-error;
-  border: 2rpx solid rgba($color-error, 0.3);
+  background: var(--tg-card-bg);
+  color: var(--tg-color-error);
+  border: 2rpx solid rgba(var(--tg-color-error-rgb), 0.3);
 }
 
 /* ===== 提示 ===== */
 .tip-area {
-  margin-top: $spacing-xl;
+  margin-top: var(--tg-spacing-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $spacing-xs;
+  gap: var(--tg-spacing-xs);
 }
 
 .tip-text {
-  font-size: $font-size-xs;
-  color: $color-text-disabled;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-disabled);
   text-align: center;
 }
 
 .tip-text.warn {
-  color: $color-warning;
+  color: var(--tg-color-warning);
 }
 
 /* ===== 海报离屏Canvas（不可见） ===== */

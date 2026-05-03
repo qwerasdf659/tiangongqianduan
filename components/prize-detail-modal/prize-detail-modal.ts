@@ -69,6 +69,12 @@ Component({
       this.triggerEvent('close')
     },
 
+    onPopupVisibleChange(e: any) {
+      if (!e.detail?.visible) {
+        this.onClose()
+      }
+    },
+
     /** 阻止事件穿透 */
     preventTouchMove() {
       return

@@ -1,5 +1,6 @@
 <!--packageAdmin/consume-submit/consume-submit.wxml - 商家消费录入页面-->
 <!--业务流程: 商家先填写消费金额/备注 → 扫描用户V2动态二维码 → 获取用户信息 → 确认提交-->
+<custom-navbar title="消费录入" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="consume-page">
   <!-- 操作引导（帮助首次使用的商家理解流程） -->
@@ -260,8 +261,7 @@
   <!-- 加载遮罩 -->
   <view class="loading-overlay" wx:if="{{loading}}">
     <view class="loading-panel">
-      <view class="loading-spinner"></view>
-      <text class="loading-label">提交中，请稍候...</text>
+      <t-loading loading="{{true}}" text="提交中，请稍候..." theme="spinner" />
     </view>
   </view>
 

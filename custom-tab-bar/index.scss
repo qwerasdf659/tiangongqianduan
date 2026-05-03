@@ -1,62 +1,12 @@
-/**
- * 自定义 tabBar 样式
- * 底部安全区域适配 + 主题色跟随 + Iconfont 图标
- */
+/* TDesign 自定义 tabBar 轻量样式覆盖 */
 
-.tab-bar {
-  display: flex;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100rpx;
-  background: #ffffff;
-  padding-bottom: env(safe-area-inset-bottom);
-  z-index: 999;
-}
-
-.tab-bar-border {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 1rpx;
-  background: #e8e8e8;
-}
-
-.tab-bar-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 8rpx 0;
-}
-
-.tab-icon {
-  width: 54rpx;
-  height: 54rpx;
+.tab-bar-icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.tab-icon .iconfont {
-  font-size: 44rpx;
+.tab-bar-icon-wrap .iconfont {
+  font-size: 40rpx;
   line-height: 1;
-  transition:
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.tab-icon.active .iconfont {
-  transform: scale(1.08);
-}
-
-.tab-text {
-  font-size: 20rpx;
-  line-height: 1;
-  margin-top: 4rpx;
-  color: #999999;
-  transition: color 0.2s ease;
 }

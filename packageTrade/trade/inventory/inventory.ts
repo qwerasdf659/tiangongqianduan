@@ -804,25 +804,27 @@ Page({
       width: 400,
       height: 400,
       typeNumber: -1,
-      correctLevel: 2,
-    }).then((tempFilePath: string) => {
-      log.info('核销码QR码渲染成功')
-
-      const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
-      const minutes = Math.floor(remaining / 60)
-      const seconds = remaining % 60
-
-      this.setData({
-        redemptionQRImage: tempFilePath,
-        qrCountdown: remaining,
-        qrExpired: false,
-        qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
-      })
-
-      this.startQRCountdown()
-    }).catch((err: any) => {
-      log.error('Canvas导出最终失败:', err)
+      correctLevel: 2
     })
+      .then((tempFilePath: string) => {
+        log.info('核销码QR码渲染成功')
+
+        const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+        const minutes = Math.floor(remaining / 60)
+        const seconds = remaining % 60
+
+        this.setData({
+          redemptionQRImage: tempFilePath,
+          qrCountdown: remaining,
+          qrExpired: false,
+          qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+        })
+
+        this.startQRCountdown()
+      })
+      .catch((err: any) => {
+        log.error('Canvas导出最终失败:', err)
+      })
   },
 
   /**
@@ -1220,10 +1222,10 @@ Page({
           lottery: '抽奖获得',
           bid_settlement: '竞价获得',
           exchange: '兑换获得',
-          admin: '管理员赠送',
-          legacy: '历史数据'
+          admin: '管理员赠送'
         }
-        const sourceDisplay = origin ? sourceLabels[origin.source] || origin.source : ''
+        const sourceDisplay =
+          origin && sourceLabels[origin.source] ? sourceLabels[origin.source] : ''
 
         const eventIcons: Record<string, string> = {
           mint: '🎁',

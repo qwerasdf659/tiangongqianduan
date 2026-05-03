@@ -12,6 +12,7 @@
   can_view_code     = has_redemption_code && allowed_actions.includes('redeem')
   can_sell          = allowed_actions.includes('sell')
 -->
+<custom-navbar title="我的仓库" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <!-- 🔴 引入WXS模板辅助函数（仅用于图标、时间格式化、过期判断等UI逻辑） -->
 <wxs module="helper" src="./inventory.wxs" />
@@ -645,8 +646,7 @@
       </view>
 
       <view class="timeline-empty" wx:else>
-        <text class="timeline-empty-icon">📭</text>
-        <text class="timeline-empty-text">暂无追踪记录</text>
+        <t-empty description="暂无追踪记录" />
       </view>
     </view>
   </view>

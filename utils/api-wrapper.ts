@@ -26,7 +26,7 @@ interface SafeApiCallOptions {
   /** 操作描述（用于日志和错误提示） */
   context?: string
   /** 自定义错误处理（返回true表示已处理，不再走默认逻辑） */
-  onError?: (error: any) => boolean | void
+  onError?: (_error: any) => boolean | void
   /** 静默模式（不弹出错误提示，仅记录日志） */
   silent?: boolean
 }
@@ -73,6 +73,11 @@ async function safeApiCall<T = any>(
       if (handled) {
         return null
       }
+    }
+
+    if (error?.isAuthError === true) {
+      log.warn(`${context}中断：认证状态已由APIClient处理`, error.code || '')
+      return null
     }
 
     if (!silent) {

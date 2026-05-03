@@ -1,10 +1,18 @@
 {
   "navigationBarTitleText": "积分明细",
-  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarBackgroundColor": "#FF6B35",
   "navigationBarTextStyle": "white",
-  "backgroundColor": "#667eea",
+  "backgroundColor": "#FAF6F1",
   "backgroundTextStyle": "light",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
-  "usingComponents": {}
+  "usingComponents": {
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
+    "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
+    "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

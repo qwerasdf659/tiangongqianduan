@@ -375,6 +375,448 @@ Skyline 不支持原生导航栏，需要 `"navigationStyle": "custom"` + 自定
 
 ---
 
+## 十一、代码扫描结果与精确执行计划
+
+> 扫描日期：2026-05-03
+> 扫描方式：全项目自动化搜索（排除 node_modules / miniprogram_npm）
+> 状态：待执行
+
+### 项目现状扫描摘要
+
+| 检查项 | 结果 | 说明 |
+|--------|------|------|
+| `app.json` renderer | `"renderer": "skyline"` 已配置 | 无需修改 |
+| `componentFramework` | `"glass-easel"` 已配置 | 无需修改 |
+| `rendererOptions` | `defaultDisplayBlock: true`, `defaultContentBox: true` 已配置 | 无需修改 |
+| `lazyCodeLoading` | `"requiredComponents"` 已配置 | 无需修改 |
+| `window.navigationStyle` | 未设置（使用默认原生导航栏） | 需改为 `"custom"` |
+| `compileWorklet` | `false` | 需改为 `true` |
+| `skylineRenderEnable` | `false` | 需改为 `true` |
+| Canvas 旧 API | `wx.createCanvasContext` 零调用 | 无需适配 |
+| Canvas 2D | 全部 7 处 canvas 均为 `type="2d"` | 无需适配 |
+| `wx.createAnimation` | 零调用 | 无需适配 |
+| `this.animate()` | 零调用 | 无需适配 |
+| 通配符选择器 `*` | 零使用 | 无需适配 |
+| 页面根节点 | 34 个页面全部单根 `<view>` | 无需适配 |
+| `page-meta` 组件 | 零使用 | 无需适配 |
+| 第三方库 | tdesign（官方支持 Skyline）、MobX（纯逻辑层）、Socket.IO（纯网络层） | 无需适配 |
+
+---
+
+### Step 1: 全局配置（预计 0.5 天）
+
+#### 1.1 app.json
+
+`renderer`、`componentFramework`、`rendererOptions`、`lazyCodeLoading` 已就绪，只需在 `window` 中添加：
+
+```jsonc
+"window": {
+  "navigationStyle": "custom",   // 新增：Skyline 不支持原生导航栏
+  // ... 其余保留
+}
+```
+
+#### 1.2 project.config.json
+
+```jsonc
+"setting": {
+  "compileWorklet": true   // false → true
+}
+```
+
+#### 1.3 project.private.config.json
+
+```jsonc
+"setting": {
+  "skylineRenderEnable": true   // false → true
+}
+```
+
+#### 1.4 每个页面 .json
+
+所有 34 个页面 + 组件的 `.json` 中添加：
+
+```jsonc
+{
+  "disableScroll": true   // Skyline 不支持页面全局滚动
+}
+```
+
+涉及的页面 JSON 文件（34 个）：
+
+**主包（6 个）：**
+- `pages/lottery/lottery.json`
+- `pages/exchange/exchange.json`
+- `pages/user/user.json`
+- `pages/diy/diy.json`
+- `pages/camera/camera.json`
+- `pages/webview/webview.json`
+
+**packageUser（8 个）：**
+- `packageUser/auth/auth.json`
+- `packageUser/chat/chat.json`
+- `packageUser/points-detail/points-detail.json`
+- `packageUser/feedback/feedback.json`
+- `packageUser/feedback/detail.json`
+- `packageUser/feedback/list.json`
+- `packageUser/issues/issues.json`
+- `packageUser/notifications/notifications.json`
+
+**packageAdmin（4 个）：**
+- `packageAdmin/consume-submit/consume-submit.json`
+- `packageAdmin/audit-list/audit-list.json`
+- `packageAdmin/scan-verify/scan-verify.json`
+- `packageAdmin/customer-service/customer-service.json`
+
+**packageTrade（12 个）：**
+- `packageTrade/trade/market/market.json`
+- `packageTrade/trade/listing-detail/listing-detail.json`
+- `packageTrade/trade/my-orders/my-orders.json`
+- `packageTrade/trade/inventory/inventory.json`
+- `packageTrade/trade/my-listings/my-listings.json`
+- `packageTrade/records/trade-upload-records/trade-upload-records.json`
+- `packageTrade/trade/dispute/dispute.json`
+- `packageTrade/trade/auction-hall/auction-hall.json`
+- `packageTrade/trade/auction-create/auction-create.json`
+- `packageTrade/trade/my-auctions/my-auctions.json`
+- `packageTrade/trade/my-auction-bids/my-auction-bids.json`
+- `packageTrade/trade/auction-detail/auction-detail.json`
+
+**packageExchange（3 个）：**
+- `packageExchange/exchange-detail/exchange-detail.json`
+- `packageExchange/exchange-orders/exchange-orders.json`
+- `packageExchange/exchange-order-detail/exchange-order-detail.json`
+
+**packageAd（3 个）：**
+- `packageAd/ad-campaigns/ad-campaigns.json`
+- `packageAd/ad-create/ad-create.json`
+- `packageAd/ad-detail/ad-detail.json`
+
+**packageDIY（5 个）：**
+- `packageDIY/diy-select/diy-select.json`
+- `packageDIY/diy-templates/diy-templates.json`
+- `packageDIY/diy-design/diy-design.json`
+- `packageDIY/diy-result/diy-result.json`
+- `packageDIY/diy-works/diy-works.json`
+
+---
+
+### Step 2: 自定义导航栏组件（预计 1 天）
+
+项目当前无自定义导航栏组件。Skyline 下原生导航栏不可用，需要创建。
+
+#### 2.1 创建 `components/custom-navbar/`
+
+文件清单：
+- `components/custom-navbar/custom-navbar.wxml`
+- `components/custom-navbar/custom-navbar.ts`
+- `components/custom-navbar/custom-navbar.scss`
+- `components/custom-navbar/custom-navbar.json`
+
+功能需求：
+- 安全区适配：`wx.getWindowInfo()` 获取 `statusBarHeight`，计算导航栏总高度 = statusBarHeight + 44px
+- 返回按钮：页面栈 > 1 时显示，点击调用 `wx.navigateBack()`
+- 标题文字：通过 `title` 属性传入
+- 背景色：通过 `bgColor` 属性传入，默认 `#FF6B35`（品牌色）
+- 文字颜色：通过 `textColor` 属性传入，默认 `#ffffff`
+- 自定义右侧 slot：支持放置按钮（如通知铃铛）
+- tabBar 页面特殊处理：不显示返回按钮
+
+#### 2.2 全局注册
+
+在 `app.json` 的 `usingComponents` 中添加：
+
+```jsonc
+"usingComponents": {
+  "maintenance-overlay": "/components/maintenance-overlay/maintenance-overlay",
+  "custom-navbar": "/components/custom-navbar/custom-navbar"   // 新增
+}
+```
+
+#### 2.3 所有页面插入导航栏
+
+在每个页面 WXML 的根 `<view>` 内部最顶部插入：
+
+```xml
+<custom-navbar title="页面标题" />
+```
+
+title 取自各页面 JSON 的 `navigationBarTitleText`，bgColor 取自 `navigationBarBackgroundColor`。
+
+各页面的导航栏参数：
+
+| 页面 | title | bgColor | 特殊处理 |
+|------|-------|---------|---------|
+| `pages/lottery` | 幸运抽奖 | #667eea | tabBar 页，无返回按钮 |
+| `pages/exchange` | 积分商城 | #667eea | tabBar 页，无返回按钮 |
+| `pages/user` | 个人中心 | #667eea | tabBar 页，无返回按钮 |
+| `pages/diy` | DIY 工坊 | #667eea | tabBar 页，无返回按钮 |
+| `pages/camera` | 发现 | #667eea | tabBar 页，无返回按钮 |
+| `packageUser/auth` | （无标题） | 默认 | 登录页，无返回按钮 |
+| `packageUser/chat` | 在线客服 | #667eea | |
+| `packageUser/points-detail` | 积分明细 | #667eea | |
+| `packageAdmin/consume-submit` | 消费录入 | #667eea | |
+| `packageAdmin/audit-list` | 审核管理 | #667eea | |
+| `packageAdmin/scan-verify` | 扫码核销 | #667eea | |
+| `packageAdmin/customer-service` | 客服管理 | #4CAF50 | |
+| `packageTrade/trade/market` | 交易市场 | #667eea | |
+| `packageTrade/trade/listing-detail` | 商品详情 | #667eea | |
+| `packageExchange/exchange-detail` | 商品详情 | #667eea | |
+| `packageExchange/exchange-orders` | 我的订单 | #667eea | |
+| `packageExchange/exchange-order-detail` | 订单详情 | #667eea | |
+| `packageAd/ad-campaigns` | 广告活动 | #FF6B35 | |
+| `packageAd/ad-create` | 创建广告活动 | #FF6B35 | |
+| `packageAd/ad-detail` | 广告详情 | #FF6B35 | |
+| `packageDIY/diy-select` | DIY 设计 | 默认 | |
+| `packageDIY/diy-templates` | 选择款式 | 默认 | |
+| `packageDIY/diy-design` | 工作台 | 默认 | |
+| `packageDIY/diy-result` | 设计完成 | 默认 | |
+| `packageDIY/diy-works` | 我的设计 | 默认 | |
+| 其余页面 | 取自各自 JSON | 取自各自 JSON | |
+
+---
+
+### Step 3: scroll-view 适配（预计 1 天）
+
+#### 3.1 添加 type 属性
+
+扫描发现 28 个文件、约 45 处 scroll-view 缺少 `type` 属性。规则：
+
+- 纵向滚动列表（`scroll-y`）→ 添加 `type="list"`
+- 横向滚动（`scroll-x`，如分类 Tab 栏）→ 添加 `type="custom"`
+- 已有 `enhanced` 属性的保留
+
+涉及文件（28 个）：
+
+| 文件 | scroll-view 数量 | 类型 |
+|------|-----------------|------|
+| `packageTrade/trade/inventory/inventory.wxml` | 3 | list + custom |
+| `packageUser/chat/chat.wxml` | 3 | list |
+| `packageDIY/diy-design/diy-design.wxml` | 2 | list + custom |
+| `packageDIY/diy-templates/diy-templates.wxml` | 2 | list + custom |
+| `packageAd/ad-campaigns/ad-campaigns.wxml` | 2 | list + custom |
+| `components/exchange/exchange-market/exchange-market.wxml` | 2 | list + custom |
+| `components/exchange/exchange-shelf/exchange-shelf.wxml` | 2 | list + custom |
+| `components/lottery-activity/sub/scratch/scratch.wxml` | 2 | list |
+| `components/lottery-activity/sub/flashsale/flashsale.wxml` | 2 | list |
+| 其余 19 个文件 | 各 1 | list 或 custom |
+
+#### 3.2 页面级滚动包裹
+
+Skyline 不支持页面全局滚动。检查所有页面，如果页面内容没有被 scroll-view 包裹，需要在根 `<view>` 内部用 `<scroll-view type="list" scroll-y style="height: 100vh">` 包裹全部内容（custom-navbar 除外）。
+
+---
+
+### Step 4: CSS 兼容性修复（预计 3 天）
+
+#### 4a. 后代选择器替换（55 处，21 个文件）
+
+Skyline 对以标签名结尾的后代选择器（`.parent text {}`）性能差，需改为 class 选择器。
+
+同时修改 SCSS 和 WXML：
+- SCSS: `.parent text {}` → `.parent .parent-text {}`
+- WXML: 对应的 `<text>` 添加 `class="parent-text"`
+
+**SCSS 嵌套形式（32 处，12 个文件）：**
+
+| 文件 | 数量 |
+|------|------|
+| `packageAdmin/consume-submit/consume-submit.scss` | 9 |
+| `packageExchange/exchange-detail/exchange-detail.scss` | 7 |
+| `packageTrade/trade/listing-detail/listing-detail.scss` | 4 |
+| `packageTrade/trade/market/market.scss` | 2 |
+| `packageDIY/diy-design/diy-design.scss` | 2 |
+| `components/lottery-activity/sub/flashsale/flashsale.scss` | 2 |
+| `packageTrade/trade/my-orders/my-orders.scss` | 1 |
+| `packageDIY/sub/bead-card/bead-card.scss` | 1 |
+| `components/lottery-activity/sub/whackmole/whackmole.scss` | 1 |
+| `components/lottery-activity/sub/slotmachine/slotmachine.scss` | 1 |
+| `components/lottery-activity/sub/gashapon/gashapon.scss` | 1 |
+| `components/lottery-activity/sub/pinball/pinball.scss` | 1 |
+
+**平铺形式 `.parent text {}`（21 处，8 个文件）：**
+
+| 文件 | 数量 |
+|------|------|
+| `packageAdmin/audit-list/audit-list.scss` | 6 |
+| `components/lottery-activity/sub/luckybag/luckybag.scss` | 6 |
+| `components/lottery-activity/sub/egg/egg.scss` | 3 |
+| `components/lottery-activity/sub/redpacket/redpacket.scss` | 2 |
+| `packageUser/chat/chat.scss` | 1 |
+| `packageAdmin/customer-service/customer-service.scss` | 1 |
+| `components/exchange/exchange-market/exchange-market.scss` | 1 |
+| `components/exchange/exchange-shelf/sub/bid-panel/bid-panel.scss` | 1 |
+
+**image 标签后代选择器（2 处）：**
+
+| 文件 | 数量 |
+|------|------|
+| `components/exchange/exchange-shelf/exchange-shelf-cards.scss` | 1 |
+| `packageExchange/exchange-detail/exchange-detail.scss` | 1 |
+
+#### 4b. position: sticky 适配（5 个文件）
+
+改为 scroll-view 内的 `sticky-section` / `sticky-header` 方案：
+
+| 文件 | 当前用途 |
+|------|---------|
+| `packageAdmin/audit-list/audit-list.scss` | 筛选栏吸顶 |
+| `packageDIY/diy-works/diy-works.scss` | Tab 栏吸顶 |
+| `packageTrade/records/trade-upload-records/trade-upload-records.scss` | Tab 栏吸顶 |
+| `packageAd/ad-campaigns/ad-campaigns.scss` | 筛选栏吸顶 |
+| `packageUser/notifications/notifications.scss` | 分类栏吸顶 |
+
+#### 4c. ::-webkit- 前缀移除（5 处）
+
+直接删除或替换为标准属性：
+
+| 文件 | 属性 |
+|------|------|
+| 搜索 `::-webkit-scrollbar` | 隐藏滚动条（Skyline 用 `show-scrollbar="{{false}}"` 替代） |
+| 搜索 `::-webkit-input-placeholder` | 改为 `::placeholder` |
+
+---
+
+### Step 5: Canvas 兼容性验证（预计 0.5 天）
+
+项目 Canvas 已全部使用 `type="2d"` API，Skyline 兼容。需要确认的点：
+
+| 组件 | Canvas 用途 | 检查项 |
+|------|------------|--------|
+| `components/price-chart/price-chart.ts` | 价格走势图绘制 | `createSelectorQuery` 在 Skyline 下改用 `this.createSelectorQuery()` |
+| `packageDIY/diy-result/diy-result.ts` | DIY 海报合成 | 同上 |
+| `packageDIY/sub/shape-renderer/shape-renderer.ts` | 形状渲染 | 同上 |
+| `utils/qrcode/qr-renderer.ts` | 二维码生成 | 同上 |
+| `components/lottery-activity/sub/scratch/scratch.ts` | 刮刮卡 | 同上 |
+
+主要工作：确保所有 `wx.createSelectorQuery()` 改为组件内的 `this.createSelectorQuery()`（Skyline 下推荐用法）。
+
+---
+
+### Step 6: Worklet 动画升级（预计 3-5 天）
+
+#### 核心策略
+
+CSS @keyframes 在 Skyline 下兼容，不需要全部重写。重点是将 setTimeout 链式动画中的 setData 调用优化为 Worklet shared values，减少跨线程通信。
+
+#### 14 种抽奖游戏分批处理
+
+**批次 1 — 简单（CSS transition 驱动，改动最小）：**
+
+| 组件 | 动画机制 | Worklet 升级方案 |
+|------|---------|-----------------|
+| wheel（转盘） | CSS `transition: transform 4s` + setData | 旋转角度改用 `shared()` + `timing()` |
+| grid（九宫格） | setTimeout 链 + setData 高亮 | 高亮索引改用 `shared()` + `sequence()` |
+| scratch（刮刮卡） | CSS transition + touch 事件 | 保留 CSS，touch 改手势（Step 7） |
+
+**批次 2 — 中等（CSS @keyframes + setTimeout 链）：**
+
+| 组件 | 动画机制 | Worklet 升级方案 |
+|------|---------|-----------------|
+| redpacket（红包） | @keyframes burstRing/burstStar + setTimeout | 保留 @keyframes，编排层改 Worklet `delay()` |
+| luckybag（福袋） | @keyframes floatUp/bagShake + setTimeout | 同上 |
+| egg（砸金蛋） | @keyframes eggShake/hammerSwing + setTimeout | 同上 |
+| gashapon（扭蛋v2） | CSS transition + 状态机 | 状态切换改 `shared()` |
+
+**批次 3 — 复杂（大量 @keyframes + 复杂状态机）：**
+
+| 组件 | 动画机制 | Worklet 升级方案 |
+|------|---------|-----------------|
+| card（卡牌翻转） | CSS 3D transform + @keyframes | 3D 翻转改 Worklet `timing()` + `withTiming()` |
+| blindbox（扭蛋机） | @keyframes eggWobble/eggDrop/eggBounce + setTimeout 链 | 编排层改 Worklet `sequence()` |
+| cardcollect（集卡） | @keyframes + 多卡片状态管理 | 卡片翻转/收集动画改 Worklet |
+
+**批次 4 — 极复杂（1500+ 行 SCSS + 复杂动画编排）：**
+
+| 组件 | 动画机制 | Worklet 升级方案 |
+|------|---------|-----------------|
+| slotmachine（老虎机） | @keyframes slotSpin + 多列独立控制 | 每列滚动改 Worklet `shared()` + `timing()` |
+| pinball（弹珠机） | @keyframes + 物理模拟 | 弹珠轨迹改 Worklet `withSpring()` |
+| flashsale（限时秒杀） | @keyframes + 倒计时 + 列表动画 | 倒计时保留 JS，列表入场改 Worklet |
+| whackmole（打地鼠） | @keyframes + touch 计时 | 地鼠出没改 Worklet，touch 改手势（Step 7） |
+
+#### 每个组件的 Worklet 升级模式
+
+```typescript
+// 改之前：setData 驱动
+this.setData({ spinning: true })
+setTimeout(() => {
+  this.setData({ spinning: false, result: prize })
+}, 4000)
+
+// 改之后：Worklet shared value 驱动
+const rotation = wx.worklet.shared(0)
+wx.worklet.timing(rotation, { toValue: 1440 + targetAngle, duration: 4000 }, () => {
+  'worklet'
+  // 动画完成回调
+})
+```
+
+---
+
+### Step 7: 手势系统迁移（预计 1 天）
+
+#### 需要真正手势迁移的组件（2 个）
+
+| 组件 | 当前实现 | 迁移方案 |
+|------|---------|---------|
+| scratch（刮刮卡） | `bindtouchstart/move/end` 追踪滑动轨迹 | 改为 `<pan-gesture-handler>`，在渲染线程处理滑动 |
+| whackmole（打地鼠） | `catchtouchstart/end` 处理点击计时 | 改为 `<tap-gesture-handler>`，在渲染线程处理点击 |
+
+#### 其他 touch 事件适配
+
+| 场景 | 当前实现 | 迁移方案 |
+|------|---------|---------|
+| `catchtouchmove="noop"`（3 处） | 阻止滚动穿透 | 改为 Skyline 的 `disableScroll` 或 `catch:touchmove` |
+| ripple 效果（2 处） | `bindtouchstart` 获取坐标 | 保留，Skyline 兼容 |
+| DIY 设计器拖拽 | `bindtouchstart/move/end` | 改为 `<pan-gesture-handler>` + `<pinch-gesture-handler>` |
+
+---
+
+### Step 8: 第三方库兼容性验证（预计 0.5 天）
+
+| 库 | 兼容性 | 需要改动 |
+|----|--------|---------|
+| tdesign-miniprogram ^1.14.0 | 官方支持 Skyline | 无需改动 |
+| mobx-miniprogram ^6.12.3 | 纯逻辑层，不涉及渲染 | 无需改动 |
+| mobx-miniprogram-bindings ^3.1.1 | 纯逻辑层 | 无需改动 |
+| weapp.socket.io ^1.7.2 | 纯网络层 | 无需改动 |
+| custom-tab-bar（t-tab-bar） | TDesign 组件，Skyline 兼容 | 确认渲染行为 |
+
+---
+
+### 最终验证清单
+
+| 验证项 | 方式 |
+|--------|------|
+| ESLint 零错误 | `npm run lint` |
+| TypeScript 零错误 | `npx tsc --noEmit` |
+| Prettier 格式一致 | `npm run format:check` |
+| 微信开发者工具编译 | 手动操作，确认 Skyline 模式下无报错 |
+| 真机 Android 测试 | 重点：抽奖动画、DIY 拖拽、长列表滚动 |
+| 真机 iOS 测试 | 重点：导航栏安全区、Canvas 渲染、手势响应 |
+
+---
+
+### 修订后的工作量预估
+
+| 任务 | 文件数 | 预估工时 |
+|------|--------|---------|
+| Step 1: 全局配置 + 34 个页面 JSON | 37 | 0.5 天 |
+| Step 2: custom-navbar 组件 + 34 个页面插入 | 38 | 1 天 |
+| Step 3: scroll-view type 属性 + 页面滚动包裹 | 28 | 1 天 |
+| Step 4a: 后代选择器替换 | 21 SCSS + 21 WXML | 2 天 |
+| Step 4b: position: sticky 适配 | 5 | 0.5 天 |
+| Step 4c: ::-webkit- 前缀移除 | 5 | 0.5 天 |
+| Step 5: Canvas 兼容性验证 | 5 | 0.5 天 |
+| Step 6: Worklet 动画升级（4 批 14 个组件） | 14 | 3-5 天 |
+| Step 7: 手势系统迁移 | 5 | 1 天 |
+| Step 8: 第三方库验证 | — | 0.5 天 |
+| 最终验证 + 修 bug | — | 2-3 天 |
+| **总计** | **约 160+ 文件** | **约 12-18 个工作日** |
+
+---
+
 ## 参考资料
 
 - [微信官方 Skyline 介绍](https://developers.weixin.qq.com/miniprogram/dev/framework/runtime/skyline/introduction.html)

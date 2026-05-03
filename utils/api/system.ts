@@ -217,7 +217,7 @@ async function sendChatMessage(
  * @param session_id - 会话ID
  * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回tempFilePath）
  * @returns { success: true, data: { public_url: "https://...", object_key: "...", media_id?: number } }
- * 待后端确认：聊天图片上传是否已迁移到 MediaService，若未迁移仍返回 image_url
+ * 前端约束：聊天图片URL权威字段固定为 public_url，未返回该字段视为接口契约不完整
  */
 async function uploadChatImage(session_id: number, filePath: string) {
   if (!session_id) {
@@ -227,58 +227,11 @@ async function uploadChatImage(session_id: number, filePath: string) {
     throw new Error('图片文件路径不能为空')
   }
 
-  const { getApiConfig: _getApiConfig } = require('../../config/env')
-  const { getAccessToken: _getToken } = require('../auth-helper')
-  const config = _getApiConfig()
-  const token = _getToken()
-
-  if (!token) {
-    throw new Error('未登录，请先登录后再上传图片')
-  }
-
-  return new Promise((resolve, reject) => {
-    wx.uploadFile({
-      url: `${config.fullUrl}/system/chat/sessions/${session_id}/upload`,
-      filePath,
-      name: 'image',
-      header: {
-        Authorization: `Bearer ${token}`,
-        'x-platform': 'wechat_mp'
-      },
-      success: (res: WechatMiniprogram.UploadFileSuccessCallbackResult) => {
-        try {
-          const parsedData = JSON.parse(res.data)
-
-          // wx.uploadFile 不经过 APIClient.handleResponse，需独立检测 503 维护模式
-          if (res.statusCode === 503 && parsedData.code === 'SYSTEM_MAINTENANCE') {
-            apiClient._showMaintenanceModal(parsedData.message)
-            reject(new Error(parsedData.message || '系统维护中'))
-            return
-          }
-
-          if (res.statusCode === 413) {
-            reject(new Error('图片文件过大，请选择5MB以内的图片'))
-            return
-          }
-
-          if (res.statusCode === 401) {
-            reject(new Error('登录已失效，请重新登录'))
-            return
-          }
-
-          if (parsedData.success) {
-            resolve(parsedData)
-          } else {
-            reject(new Error(parsedData.message || '图片上传失败'))
-          }
-        } catch (_parseError) {
-          reject(new Error('图片上传响应解析失败'))
-        }
-      },
-      fail: (err: WechatMiniprogram.GeneralCallbackResult) => {
-        reject(new Error(err.errMsg || '图片上传网络错误'))
-      }
-    })
+  return apiClient.uploadFile(`/system/chat/sessions/${session_id}/upload`, filePath, {
+    name: 'image',
+    needAuth: true,
+    showError: false,
+    errorPrefix: '聊天图片上传失败：'
   })
 }
 
@@ -432,24 +385,6 @@ async function getActivities(params: { page?: number; page_size?: number } = {})
 }
 
 /**
- * 获取全局氛围主题配置（公开接口，无需登录）
- * 后端 API：GET /api/v4/system/config/app-theme
- *
- * system_configs 表读取 config_key='app_theme'
- * 响应格式：{ success: true, code: 'APP_THEME_CONFIG_SUCCESS', data: { theme: 'gold_luxury' } }
- *
- * ⚠️ 此 API 需要后端实现，详见 docs/后端对接需求-全局氛围主题.md
- */
-async function getAppThemeConfig() {
-  return apiClient.request('/system/config/app-theme', {
-    method: 'GET',
-    needAuth: false,
-    showLoading: false,
-    showError: false
-  })
-}
-
-/**
  * 获取商品筛选配置（公开接口，无需登录）
  * 后端API: GET /api/v4/system/config/product-filter
  *
@@ -520,7 +455,6 @@ module.exports = {
   getUserIssues,
   getExchangePageConfig,
   getFeedbackConfig,
-  getAppThemeConfig,
   getActivities,
   getProductFilterConfig,
   getCategoryTree

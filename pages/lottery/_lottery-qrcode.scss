@@ -1,5 +1,4 @@
 /* 抽奖页面 - 二维码弹窗样式 - 从lottery.scss拆分 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ========================================
@@ -34,7 +33,7 @@
   width: 90%;
   max-width: 600rpx;
   background: #ffffff;
-  border-radius: $border-radius-xl;
+  border-radius: var(--tg-radius-xl);
   /* 增加圆角，更现代化?*/
   padding: 48rpx;
   box-shadow:
@@ -66,7 +65,7 @@
   right: 16rpx;
   width: 56rpx;
   height: 56rpx;
-  background: $gradient-blue-start;
+  background: var(--tg-gradient-primary-start);
   /* 使用页面主题紫色渐变 */
   border-radius: 50%;
   @include flex-center;
@@ -88,8 +87,8 @@
 }
 
 .qrcode-close-btn .close-icon {
-  font-size: $font-size-md;
-  color: $color-text-white;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-color-white);
   font-weight: 300;
   line-height: 1;
 }
@@ -130,7 +129,7 @@
   align-items: center;
   gap: 12rpx;
   padding: 24rpx 32rpx;
-  background: $gradient-blue-start;
+  background: var(--tg-gradient-primary-start);
   border-radius: 20rpx;
   width: 100%;
   box-shadow:
@@ -142,9 +141,9 @@
 }
 
 .enlarged-tip {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   /* 绋嶅井澧炲ぇ瀛楀彿 */
-  color: $color-text-white;
+  color: var(--tg-color-white);
   font-weight: 500;
   text-align: center;
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
@@ -167,7 +166,7 @@
   }
 
   .enlarged-tip {
-    font-size: $font-size-sm;
+    font-size: var(--td-font-size-s);
   }
 }
 
@@ -207,6 +206,6 @@
   }
 
   .points-number {
-    font-size: $font-size-base;
+    font-size: var(--td-font-size-base);
   }
 }

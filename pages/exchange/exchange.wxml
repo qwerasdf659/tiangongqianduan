@@ -1,44 +1,34 @@
 <!-- pages/exchange/exchange.wxml — 兑换中心页面壳 -->
 <!-- 组件化架构: exchange-shelf（商品兑换Tab）+ exchange-market（交易市场Tab）+ asset-conversion（资产转换Tab，后端tab key仍为exchange-rate） -->
 <!-- D13决策: 使用 hidden 替代 wx:if，保留组件状态（筛选/分页/搜索/滚动位置） -->
+<custom-navbar title="积分商城" bgColor="#FF6B35" textColor="#ffffff" />
 <view class="exchange-container">
-  <!-- 页面级加载状态（初始化期间tabs为空，显示loading遮罩避免短暂空白） -->
-  <loading-spinner wx:if="{{loading}}" text="加载中..." />
+  <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载中..." theme="spinner" />
 
-  <empty-state
-    wx:if="{{!loading && hasConfigError}}"
-    icon="⚠️"
-    title="兑换配置缺失"
-    subtitle="{{configErrorMessage}}"
-    buttonText="重新加载"
-    bind:retry="onPullDownRefresh"
-  />
+  <t-empty wx:if="{{!loading && hasConfigError}}" description="{{configErrorMessage}}">
+    <view slot="image">⚠️</view>
+    <view slot="action" class="exchange-empty-action" bindtap="onPullDownRefresh">重新加载</view>
+  </t-empty>
 
-  <!-- 水平排列导航模块（后端 exchange_page 配置下发） -->
   <view class="nav-module horizontal" hover-class="none" wx:if="{{!loading && !hasConfigError}}">
-    <view class="nav-buttons-row" hover-class="none">
-      <view
+    <t-tabs
+      value="{{currentTab}}"
+      bind:change="onTabChange"
+      theme="line"
+      split="{{false}}"
+      spaceEvenly="{{false}}"
+      sticky="{{false}}"
+      swipeable="{{false}}"
+    >
+      <t-tab-panel
         wx:for="{{tabs}}"
         wx:key="key"
-        class="nav-item nav-item-horizontal {{currentTab === item.key ? 'active' : ''}}"
-        data-tab="{{item.key}}"
-        bindtap="onTabChange"
-        hover-class="none"
-      >
-        <view class="nav-content" hover-class="none">
-          <view class="icon-wrapper" hover-class="none">
-            <icon class="nav-icon" type="{{item.icon}}" size="20" />
-          </view>
-          <view class="text-wrapper" hover-class="none">
-            <text class="nav-text">{{item.label}}</text>
-          </view>
-        </view>
-        <view class="nav-status current" wx:if="{{currentTab === item.key}}">当前</view>
-      </view>
-    </view>
+        value="{{item.key}}"
+        label="{{item.label}}"
+      ></t-tab-panel>
+    </t-tabs>
   </view>
 
-  <!-- 商品货架组件（view 包装器控制 hidden，组件始终存活保留状态） -->
   <view
     class="tab-content-wrapper"
     hidden="{{loading || hasConfigError || currentTab !== 'exchange'}}"
@@ -48,7 +38,6 @@
       pointsBalance="{{totalPoints}}"
       frozenPoints="{{frozenPoints}}"
       assetBalances="{{assetBalances}}"
-      theme="{{cardTheme}}"
       effects="{{effects}}"
       viewMode="{{viewMode}}"
       spaceId="{{currentSpace}}"
@@ -60,7 +49,6 @@
     />
   </view>
 
-  <!-- 交易市场组件（view 包装器控制 hidden，组件始终存活保留状态） -->
   <view
     class="tab-content-wrapper"
     hidden="{{loading || hasConfigError || currentTab !== 'market'}}"
@@ -69,7 +57,6 @@
       active="{{currentTab === 'market'}}"
       pointsBalance="{{totalPoints}}"
       assetBalances="{{assetBalances}}"
-      theme="{{cardTheme}}"
       effects="{{effects}}"
       viewMode="{{viewMode}}"
       refreshToken="{{_marketRefreshToken}}"
@@ -83,7 +70,6 @@
     />
   </view>
 
-  <!-- 资产转换组件（view 包装器控制 hidden，组件始终存活保留状态） -->
   <view
     class="tab-content-wrapper"
     hidden="{{loading || hasConfigError || currentTab !== 'exchange-rate'}}"
@@ -96,6 +82,5 @@
     />
   </view>
 
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
   <maintenance-overlay />
 </view>

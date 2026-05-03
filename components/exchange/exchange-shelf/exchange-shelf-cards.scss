@@ -1,0 +1,469 @@
+/* 统一卡片主题系统 — CSS 变量版 */
+/* Exchange 主链卡片统一消费 --td-* / --tg-* 变量体系 */
+/* fallback 值保持默认暖橙风格，保证无局部覆盖时显示稳定 */
+
+/* 卡片基础结构 */
+.unified-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: var(--tg-exchange-card-bg, var(--tg-color-white));
+  border-radius: var(--tg-exchange-card-radius, 24rpx);
+  box-shadow: var(
+    --tg-exchange-card-shadow,
+    0 4rpx 24rpx rgba(var(--tg-color-black-rgb), 0.06),
+    0 1rpx 4rpx rgba(var(--tg-color-black-rgb), 0.04)
+  );
+}
+
+.unified-card:active {
+  transform: translateY(var(--tg-exchange-card-hover-translate, -4rpx));
+  box-shadow: var(
+    --tg-exchange-card-hover-shadow,
+    0 12rpx 36rpx rgba(var(--tg-color-black-rgb), 0.12)
+  );
+}
+
+/* 类型色条 */
+.unified-card .type-bar {
+  height: 6rpx;
+}
+
+.type-bar.asset {
+  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
+}
+
+.type-bar.item {
+  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
+}
+
+.type-bar.lucky {
+  background: var(--tg-exchange-header-bg, var(--td-brand-color-active));
+}
+
+/* 图片区域 */
+.unified-card .card-image-area {
+  height: 280rpx;
+  position: relative;
+  overflow: hidden;
+  background: var(--tg-exchange-card-image-bg, var(--tg-color-bg-panel));
+}
+
+.unified-card .card-image-area image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 标签角标 */
+.unified-card .badge-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 6rpx 16rpx 6rpx 10rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--tg-color-white);
+  border-radius: 0 0 14rpx 0;
+  z-index: 3;
+  letter-spacing: 1rpx;
+}
+
+.badge-tag.hot {
+  background: var(--tg-exchange-tag-hot, #ff4757);
+}
+.badge-tag.new {
+  background: var(--tg-exchange-tag-new, #2ed573);
+}
+.badge-tag.limited {
+  background: var(--tg-exchange-tag-limited, #7c4dff);
+}
+.badge-tag.pinned {
+  background: var(--tg-exchange-tag-pinned, #ff6b35);
+}
+.badge-tag.recommended {
+  background: var(--tg-exchange-tag-recommended, #1e88e5);
+}
+
+/* 类型胶囊标签 */
+.unified-card .type-capsule {
+  position: absolute;
+  right: 12rpx;
+  bottom: 12rpx;
+  background: var(--tg-exchange-capsule-bg, #000000);
+  color: var(--tg-color-white);
+  font-size: 20rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 16rpx;
+  z-index: 3;
+}
+
+/* 无图片占位 */
+.unified-card .image-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  background: var(--tg-exchange-fallback-bg, var(--tg-color-border-light));
+}
+
+.image-fallback .fallback-icon {
+  font-size: 64rpx;
+}
+.image-fallback .fallback-name {
+  font-size: 22rpx;
+  color: var(--tg-text-tertiary);
+  margin-top: 10rpx;
+  max-width: 80%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 售罄遮罩 */
+.unified-card .sold-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--tg-color-black-rgb), 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tg-color-white);
+  font-size: 28rpx;
+  font-weight: 700;
+  z-index: 5;
+}
+
+/* 卡片内容区 */
+.unified-card .card-body {
+  padding: 18rpx 20rpx 14rpx;
+}
+
+.unified-card .product-name {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--tg-exchange-name-color, var(--tg-text-primary-strong));
+  line-height: 1.45;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-bottom: 8rpx;
+}
+
+.unified-card .product-desc {
+  font-size: 22rpx;
+  color: var(--tg-exchange-desc-color, var(--tg-text-tertiary-muted));
+  line-height: 1.3;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-bottom: 8rpx;
+}
+
+/* 价格行 */
+.unified-card .price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 12rpx;
+  margin: 8rpx 0;
+  background: var(--tg-exchange-price-row-bg, transparent);
+}
+
+.unified-card .price-unit {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: var(--tg-exchange-price-color, var(--td-brand-color));
+}
+.unified-card .price-current {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: var(--tg-exchange-price-color, var(--td-brand-color));
+  line-height: 1;
+}
+.unified-card .price-original {
+  font-size: 20rpx;
+  color: var(--tg-exchange-price-original, var(--tg-text-placeholder));
+  text-decoration: line-through;
+  margin-left: 8rpx;
+}
+
+/* 库存进度条 */
+.unified-card .stock-bar {
+  height: 10rpx;
+  background: var(--tg-exchange-stock-bar-bg, var(--tg-color-border-light));
+  border-radius: 5rpx;
+  margin: 10rpx 0 6rpx;
+  overflow: hidden;
+}
+
+.unified-card .stock-fill {
+  height: 100%;
+  border-radius: 5rpx;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.stock-fill.fill-high {
+  background: var(--tg-exchange-stock-normal, #52c41a);
+}
+.stock-fill.fill-medium {
+  background: var(--tg-exchange-stock-warn, #faad14);
+}
+.stock-fill.fill-low {
+  background: var(--tg-exchange-stock-danger, #ff4d4f);
+}
+
+.unified-card .stock-text {
+  font-size: 20rpx;
+  padding: 0 2rpx;
+  font-weight: 500;
+}
+.stock-text.stock-high {
+  color: #52c41a;
+}
+.stock-text.stock-medium {
+  color: #faad14;
+}
+.stock-text.stock-low {
+  color: var(--tg-color-error);
+  font-weight: 600;
+}
+.stock-text.stock-out {
+  color: var(--tg-text-placeholder);
+}
+
+/* CTA 按钮 */
+.unified-card .cta-btn {
+  margin: 12rpx 0 14rpx;
+  height: 68rpx;
+  color: var(--tg-exchange-cta-text, var(--tg-color-white));
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
+  box-shadow: 0 6rpx 20rpx rgba(var(--td-brand-color-rgb), 0.3);
+  letter-spacing: 2rpx;
+  transition: all 0.2s;
+}
+
+.unified-card .cta-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 3rpx 12rpx rgba(var(--td-brand-color-rgb), 0.2);
+}
+
+.unified-card .cta-btn.btn-disabled {
+  background: var(--tg-text-disabled);
+  color: rgba(var(--tg-color-white-rgb), 0.7);
+  box-shadow: none;
+}
+
+/* 卡片网格 */
+.unified-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx 16rpx;
+  padding: 8rpx 0;
+}
+
+.unified-cards-grid.grid-list-mode {
+  grid-template-columns: 1fr;
+  gap: 16rpx 0;
+}
+
+/* 列表视图 */
+.unified-card.list-mode {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 20rpx;
+  min-height: 200rpx;
+}
+
+.unified-card.list-mode .type-bar {
+  display: none;
+}
+.unified-card.list-mode .card-image-area {
+  width: 180rpx;
+  height: 180rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+}
+.unified-card.list-mode .card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 180rpx;
+  padding: 0;
+}
+.unified-card.list-mode .cta-btn {
+  align-self: flex-end;
+  width: auto;
+  padding: 0 32rpx;
+  height: 60rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  margin: 0;
+}
+
+/* 进场动画 */
+.unified-card.animate-in {
+  animation: cardFadeIn 0.35s ease forwards;
+}
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(24rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 增强效果 — 噪点纹理 */
+.grain-overlay {
+  position: relative;
+}
+.grain-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/ui/grain-texture.png');
+  background-repeat: repeat;
+  background-size: 100rpx;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+  border-radius: inherit;
+}
+
+/* 增强效果 — 全息光效 */
+.holo-effect {
+  position: relative;
+}
+.holo-effect::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.04),
+    rgba(255, 154, 0, 0.04),
+    rgba(208, 222, 33, 0.04),
+    rgba(79, 220, 74, 0.04),
+    rgba(63, 218, 216, 0.04),
+    rgba(28, 127, 238, 0.04),
+    rgba(95, 21, 242, 0.04)
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  mix-blend-mode: color-dodge;
+  /* 已移除 holoShimmer 动效，保留结构便于后续静态叠色 */
+  opacity: 0;
+}
+
+/* 增强效果 — 旋转渐变边框（静态描边，已移除 rotatingBorderColor 动效） */
+.unified-card.rotating-border {
+  border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.6);
+}
+
+/* 增强效果 — 涟漪 */
+.unified-card .ripple-layer {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--tg-exchange-accent-light, rgba(255, 107, 53, 0.18));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+/* rippleSpread 动效已移除，.ripple-layer 基础定位样式仍保留 */
+
+/* 增强效果 — 全图叠字 */
+.unified-card.fullbleed-mode .card-image-area {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  z-index: 0;
+}
+.unified-card.fullbleed-mode .card-image-area::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 65%;
+  background: linear-gradient(transparent, rgba(var(--tg-color-black-rgb), 0.75));
+  z-index: 1;
+}
+.unified-card.fullbleed-mode .card-body {
+  position: relative;
+  z-index: 2;
+  padding-top: 200rpx;
+}
+.unified-card.fullbleed-mode .product-name {
+  color: var(--tg-color-white);
+  text-shadow: 0 2rpx 8rpx rgba(var(--tg-color-black-rgb), 0.3);
+}
+.unified-card.fullbleed-mode .product-desc {
+  color: rgba(255, 255, 255, 0.75);
+}
+.unified-card.fullbleed-mode .price-current {
+  color: #ffd700;
+}
+.unified-card.fullbleed-mode .price-unit {
+  color: #ffd700;
+}
+
+/* 视图切换按钮 */
+.view-toggle {
+  display: flex;
+  gap: 8rpx;
+}
+.view-toggle .toggle-btn {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--tg-color-white-rgb), 0.9);
+  border: 1rpx solid var(--tg-exchange-accent-light, rgba(255, 107, 53, 0.2));
+  font-size: 24rpx;
+}
+.view-toggle .toggle-btn.active {
+  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
+  border-color: var(--tg-exchange-accent, var(--td-brand-color-active));
+  color: var(--tg-color-white);
+}
+
+/* 铸造标识（mint_instance=true 时展示，表示兑换后铸造物品实例进入背包） */
+.mint-mini-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  margin-top: 6rpx;
+  padding: 2rpx 10rpx;
+  background: rgba(52, 152, 219, 0.08);
+  border: 1rpx solid rgba(52, 152, 219, 0.15);
+  border-radius: 6rpx;
+}
+.mint-mini-icon {
+  font-size: 20rpx;
+}
+.mint-mini-text {
+  font-size: 20rpx;
+  color: #3498db;
+  font-weight: 500;
+}

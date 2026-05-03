@@ -2,6 +2,8 @@
   "navigationBarTitleText": "拍卖详情",
   "enablePullDownRefresh": true,
   "usingComponents": {
-    "loading-spinner": "/components/loading-spinner/loading-spinner"
-  }
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

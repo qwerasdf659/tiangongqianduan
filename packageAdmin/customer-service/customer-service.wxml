@@ -1,4 +1,5 @@
 <!--pages/admin/customer-service/customer-service.wxml - 管理员客服管理页面-->
+<custom-navbar title="客服管理" bgColor="#4CAF50" textColor="#ffffff" showBack="{{true}}" />
 <view class="customer-service-container">
   <!-- 🔴 实时聊天模式 -->
   <view class="chat-mode-container">
@@ -35,8 +36,7 @@
         </view>
 
         <view wx:elif="{{sessions.length === 0}}" class="empty-sessions">
-          <text class="empty-icon">💬</text>
-          <text class="empty-text">暂无活跃会话</text>
+          <t-empty description="暂无活跃会话" />
         </view>
 
         <view wx:else class="sessions-list">
@@ -139,45 +139,6 @@
 
           <!-- 聊天输入区域 -->
           <view class="chat-input-container">
-            <!-- 快捷回复 -->
-            <view wx:if="{{showQuickReplies}}" class="quick-replies-panel">
-              <view
-                class="quick-reply-item"
-                data-content="您好，我是客服，有什么可以帮助您的吗？"
-                bindtap="onQuickReplySelect"
-              >
-                <text>您好，我是客服，有什么可以帮助您的吗？</text>
-              </view>
-              <view
-                class="quick-reply-item"
-                data-content="感谢您的反馈，我们会尽快处理。"
-                bindtap="onQuickReplySelect"
-              >
-                <text>感谢您的反馈，我们会尽快处理。</text>
-              </view>
-              <view
-                class="quick-reply-item"
-                data-content="请您稍等，我帮您查询一下。"
-                bindtap="onQuickReplySelect"
-              >
-                <text>请您稍等，我帮您查询一下。</text>
-              </view>
-              <view
-                class="quick-reply-item"
-                data-content="问题已解决，如有其他问题请随时联系。"
-                bindtap="onQuickReplySelect"
-              >
-                <text>问题已解决，如有其他问题请随时联系。</text>
-              </view>
-            </view>
-
-            <!-- 输入框工具栏 -->
-            <view class="input-toolbar">
-              <button class="toolbar-btn" bindtap="toggleQuickReplies">
-                <text class="btn-icon">⚡</text>
-              </button>
-            </view>
-
             <!-- 输入框和发送按钮 -->
             <view class="input-area">
               <textarea

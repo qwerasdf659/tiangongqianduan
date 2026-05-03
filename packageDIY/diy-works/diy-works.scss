@@ -3,21 +3,21 @@
  * 对齐 my-orders 页面的视觉规范
  */
 
-@import '../../styles/variables';
 @import '../../styles/mixins';
+@import '../../styles/td-overrides';
 
 .diy-works-page {
   min-height: 100vh;
-  background: $color-bg;
-  padding-bottom: calc(#{$spacing-xxl} + env(safe-area-inset-bottom));
+  background: var(--tg-page-bg);
+  padding-bottom: calc(var(--tg-spacing-xl) + env(safe-area-inset-bottom));
 }
 
 /* ===== 状态筛选 Tab ===== */
 .status-tabs {
   display: flex;
-  background: $color-white;
-  padding: 0 $spacing-sm;
-  border-bottom: 1rpx solid $color-border;
+  background: var(--tg-card-bg);
+  padding: 0 var(--tg-spacing-sm);
+  border-bottom: 1rpx solid var(--tg-border-color);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -29,13 +29,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   position: relative;
 }
 
 .status-tab.active {
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-weight: 500;
 }
 
@@ -47,7 +47,7 @@
   transform: translateX(-50%);
   width: 48rpx;
   height: 4rpx;
-  background: $color-primary;
+  background: var(--td-brand-color);
   border-radius: 2rpx;
 }
 
@@ -56,49 +56,49 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 120rpx $spacing-lg;
+  padding: 120rpx var(--tg-spacing-lg);
 }
 
 .error-text {
-  font-size: $font-size-sm;
-  color: $color-error;
-  margin-bottom: $spacing-md;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-error);
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .retry-btn {
-  padding: $spacing-xs $spacing-lg;
-  border: 1rpx solid $color-primary;
-  border-radius: $border-radius-sm;
-  color: $color-primary;
-  font-size: $font-size-sm;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-lg);
+  border: 1rpx solid var(--td-brand-color);
+  border-radius: var(--td-radius-small);
+  color: var(--td-brand-color);
+  font-size: var(--td-font-size-s);
 }
 
 /* ===== 作品列表 ===== */
 .works-list {
-  padding: $spacing-md;
+  padding: var(--tg-spacing-md);
 }
 
 /* ===== 作品卡片 ===== */
 .work-card {
-  background: $color-white;
-  border-radius: $border-radius-md;
-  margin-bottom: $spacing-md;
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
+  margin-bottom: var(--tg-spacing-md);
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx rgba(var(--tg-color-black-rgb), 0.04);
 }
 
 .work-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: $spacing-md $spacing-lg;
-  border-bottom: 1rpx solid $color-divider;
+  padding: var(--tg-spacing-md) var(--tg-spacing-lg);
+  border-bottom: 1rpx solid var(--tg-color-divider);
 }
 
 .work-name {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 500;
-  color: $color-text;
+  color: var(--tg-text-primary);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -106,35 +106,35 @@
 }
 
 .work-status {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   padding: 4rpx 16rpx;
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   flex-shrink: 0;
-  margin-left: $spacing-sm;
+  margin-left: var(--tg-spacing-sm);
 }
 
 .work-status.status-draft {
-  background: rgba($color-info, 0.1);
-  color: $color-info;
+  background: rgba(var(--tg-color-info-rgb), 0.1);
+  color: var(--tg-color-info);
 }
 
 .work-status.status-frozen {
-  background: rgba($color-warning, 0.1);
-  color: $color-warning;
+  background: rgba(var(--tg-color-warning-rgb), 0.1);
+  color: var(--tg-color-warning);
 }
 
 .work-status.status-completed {
-  background: rgba($color-success, 0.1);
-  color: $color-success;
+  background: rgba(var(--tg-color-success-rgb), 0.1);
+  color: var(--tg-color-success);
 }
 
 .work-status.status-cancelled {
-  background: rgba($color-text-placeholder, 0.1);
-  color: $color-text-placeholder;
+  background: rgba(var(--tg-text-placeholder-rgb), 0.1);
+  color: var(--tg-text-placeholder);
 }
 
 .work-card-body {
-  padding: $spacing-sm $spacing-lg;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-lg);
 }
 
 .work-info-row {
@@ -145,13 +145,13 @@
 }
 
 .work-info-label {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 .work-info-value {
-  font-size: $font-size-sm;
-  color: $color-text;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
 }
 
 .work-cost-list {
@@ -162,9 +162,9 @@
 }
 
 .work-cost-item {
-  font-size: $font-size-xs;
-  color: $color-primary;
-  background: rgba($color-primary, 0.08);
+  font-size: var(--tg-font-size-xs);
+  color: var(--td-brand-color);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
   padding: 2rpx 12rpx;
   border-radius: 4rpx;
 }
@@ -173,16 +173,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: $spacing-sm $spacing-lg;
-  border-top: 1rpx solid $color-divider;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-lg);
+  border-top: 1rpx solid var(--tg-color-divider);
 }
 
 .work-action-hint {
-  font-size: $font-size-xs;
-  color: $color-text-placeholder;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-placeholder);
 }
 
 .work-arrow {
-  font-size: $font-size-sm;
-  color: $color-text-placeholder;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-placeholder);
 }

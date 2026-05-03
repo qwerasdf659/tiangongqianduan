@@ -2,11 +2,11 @@
   📊 广告活动详情
   后端API: GET /api/v4/user/ad-campaigns/:id
 -->
+<custom-navbar title="广告活动详情" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 <view class="ad-detail-page">
   <!-- 加载中 -->
   <view class="page-loading" wx:if="{{loading}}">
-    <text class="loading-icon">⏳</text>
-    <text class="loading-text">加载活动详情...</text>
+    <t-loading loading="{{true}}" text="加载活动详情..." theme="spinner" />
   </view>
 
   <block wx:if="{{!loading && campaign}}">
@@ -140,7 +140,7 @@
     <view class="info-card" wx:if="{{showReport}}">
       <view class="card-title">数据报表</view>
       <view class="report-loading" wx:if="{{reportLoading}}">
-        <text>加载报表数据...</text>
+        <t-loading loading="{{true}}" text="加载报表数据..." theme="spinner" size="40rpx" />
       </view>
       <block wx:elif="{{report}}">
         <view class="report-grid">
@@ -162,9 +162,9 @@
           </view>
         </view>
       </block>
-      <view class="report-empty" wx:else>
-        <text>暂无报表数据</text>
-      </view>
+      <t-empty wx:else description="暂无报表数据">
+        <view slot="image">📊</view>
+      </t-empty>
     </view>
 
     <!-- 底部操作按钮 -->

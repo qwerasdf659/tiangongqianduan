@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-popup": "/miniprogram_npm/tdesign-miniprogram/popup/popup",
+    "t-cascader": "/miniprogram_npm/tdesign-miniprogram/cascader/cascader"
+  }
+}

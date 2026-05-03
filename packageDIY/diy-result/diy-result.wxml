@@ -1,3 +1,4 @@
+<custom-navbar title="设计完成" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="diy-result-page">
   <!-- 成功图标 -->
   <view class="success-header">

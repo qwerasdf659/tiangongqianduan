@@ -1,0 +1,23 @@
+<!-- 通用自定义导航栏组件（Skyline 渲染模式必需）
+  Skyline 不支持原生导航栏，所有页面需设置 navigationStyle: custom 并使用本组件
+  支持: 标题文字、背景色、文字颜色、返回按钮（自动判断页面栈）、自定义右侧插槽 -->
+<view class="custom-navbar" style="padding-top: {{statusBarHeight}}px; background: {{bgColor}};">
+  <view class="navbar-content" style="height: {{navBarHeight}}px;">
+    <view class="navbar-left">
+      <view class="back-btn" wx:if="{{showBack}}" bindtap="onBack" hover-class="back-btn-hover">
+        <text class="back-icon" style="color: {{textColor}};">←</text>
+      </view>
+      <view class="home-btn" wx:elif="{{showHome}}" bindtap="onHome" hover-class="back-btn-hover">
+        <text class="home-icon" style="color: {{textColor}};">🏠</text>
+      </view>
+    </view>
+    <view class="navbar-title">
+      <text class="title-text" style="color: {{textColor}};">{{title}}</text>
+    </view>
+    <view class="navbar-right">
+      <slot name="right"></slot>
+    </view>
+  </view>
+</view>
+<!-- 占位块：防止页面内容被导航栏遮挡 -->
+<view style="height: {{statusBarHeight + navBarHeight}}px;"></view>

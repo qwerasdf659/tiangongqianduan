@@ -1,0 +1,86 @@
+<!-- 兑换确认弹窗组件 -->
+<view class="confirm-overlay" wx:if="{{visible}}" bindtap="onClose">
+  <view class="confirm-modal" catchtap="">
+    <!-- 顶部装饰条 -->
+    <view class="confirm-accent-bar"></view>
+
+    <view class="confirm-header">
+      <text class="confirm-title">确认兑换</text>
+      <view class="confirm-close" bindtap="onClose">
+        <text class="close-icon">✕</text>
+      </view>
+    </view>
+
+    <view class="confirm-body" wx:if="{{product}}">
+      <!-- 商品信息卡片 -->
+      <view class="confirm-product-card">
+        <view class="confirm-product-image-wrap">
+          <image
+            class="confirm-product-image"
+            src="{{product.image || defaultProductImage}}"
+            mode="aspectFill"
+          />
+        </view>
+        <view class="confirm-product-detail">
+          <text class="confirm-product-name">{{product.item_name}}</text>
+          <text
+            class="confirm-product-sku"
+            wx:if="{{selectedSkuInfo && selectedSkuInfo._specLabel}}"
+            >{{selectedSkuInfo._specLabel}}</text
+          >
+          <view class="confirm-product-price-wrap">
+            <text class="confirm-price-amount"
+              >{{(selectedSkuInfo && selectedSkuInfo.cost_amount) || product.cost_amount}}</text
+            >
+            <text class="confirm-price-unit">{{product._priceLabel || '积分'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 数量选择 -->
+      <view class="confirm-row confirm-quantity-row">
+        <text class="confirm-row-label">兑换数量</text>
+        <view class="confirm-quantity-controls">
+          <view
+            class="qty-btn {{quantity <= 1 ? 'qty-disabled' : ''}}"
+            data-action="decrease"
+            bindtap="onQuantityChange"
+          >
+            <text class="qty-btn-text">−</text>
+          </view>
+          <view class="qty-value-wrap">
+            <text class="qty-value">{{quantity}}</text>
+          </view>
+          <view class="qty-btn" data-action="increase" bindtap="onQuantityChange">
+            <text class="qty-btn-text">+</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 合计消耗（高亮） -->
+      <view class="confirm-row confirm-total-row">
+        <text class="confirm-row-label">合计消耗</text>
+        <view class="confirm-total-value-wrap">
+          <text class="confirm-total-amount"
+            >{{((selectedSkuInfo && selectedSkuInfo.cost_amount) || product.cost_amount) *
+            quantity}}</text
+          >
+          <text class="confirm-total-unit">{{product._priceLabel || '积分'}}</text>
+        </view>
+      </view>
+
+      <!-- 当前余额 -->
+      <view class="confirm-row confirm-balance-row">
+        <text class="confirm-row-label">当前余额</text>
+        <text class="confirm-balance-value">{{currentAssetBalance}} {{currentAssetLabel}}</text>
+      </view>
+    </view>
+
+    <view class="confirm-footer">
+      <view class="confirm-cancel-btn" bindtap="onClose">取消</view>
+      <view class="confirm-submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onConfirm">
+        {{submitting ? '兑换中...' : '确认兑换'}}
+      </view>
+    </view>
+  </view>
+</view>

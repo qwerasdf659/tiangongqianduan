@@ -1,0 +1,1003 @@
+@import '../../../../styles/mixins';
+@import '../../shared/common-animations';
+
+/* ===== 砸金蛋 - 精装版样式 ===== */
+
+.egg-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0 30rpx;
+  background: linear-gradient(
+    180deg,
+    var(--tg-lottery-bg-dark, #8b1a1a) 0%,
+    var(--tg-lottery-primary, #c0392b) 30%,
+    var(--tg-lottery-primary-dark, #a93226) 70%,
+    var(--tg-lottery-bg-darker, #7b241c) 100%
+  );
+  border-radius: var(--td-radius-default);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===== 碎裂白闪遮罩 ===== */
+.egg-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 100;
+  animation: flashFade 0.2s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ===== 顶部横幅 ===== */
+.egg-banner {
+  @include flex-center;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+  padding: 12rpx 32rpx;
+
+  &__ribbon {
+    width: 48rpx;
+    height: 4rpx;
+    background: linear-gradient(90deg, transparent, var(--tg-lottery-accent, #ffd700), transparent);
+    border-radius: 2rpx;
+  }
+
+  &__text {
+    font-size: 30rpx;
+    font-weight: bold;
+    color: var(--tg-lottery-accent, #ffd700);
+    text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
+    letter-spacing: 2rpx;
+  }
+}
+
+/* ===== 舞台区域 ===== */
+.egg-stage {
+  position: relative;
+  width: 100%;
+  padding: 20rpx 0 40rpx;
+  display: flex;
+  justify-content: center;
+
+  &__glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 60rpx;
+    background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.25) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+}
+
+.eggs-row {
+  display: flex;
+  justify-content: center;
+  gap: 24rpx;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 单个蛋槽位 ===== */
+.egg-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 180rpx;
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
+
+  /* 未选中的蛋变暗 */
+  &.is-dimmed {
+    opacity: 0.45;
+    filter: grayscale(0.3) brightness(0.7);
+    pointer-events: none;
+  }
+
+  /* 按压反馈 */
+  &:active .egg-body.is-idle {
+    transform: scale(0.92);
+  }
+}
+
+/* ===== 底座 ===== */
+.egg-pedestal {
+  position: relative;
+  width: 120rpx;
+  margin-top: -16rpx;
+  z-index: 0;
+
+  &__top {
+    width: 100%;
+    height: 16rpx;
+    background: linear-gradient(
+      180deg,
+      var(--tg-lottery-accent-light, #daa520),
+      var(--tg-lottery-accent-dark, #b8860b)
+    );
+    border-radius: 50%;
+    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  }
+
+  &__body {
+    width: 90%;
+    height: 12rpx;
+    margin: 0 auto;
+    background: linear-gradient(
+      180deg,
+      var(--tg-lottery-accent-dark, #b8860b),
+      var(--tg-lottery-accent-darker, #8b6914)
+    );
+    border-radius: 0 0 8rpx 8rpx;
+  }
+}
+
+/* ===== 金蛋本体 ===== */
+.egg-body {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+
+  /* 待选状态：微妙浮动呼吸感 */
+  &.is-idle {
+    animation: eggFloat 2.5s ease-in-out infinite;
+  }
+
+  &.is-selected {
+    transform: scale(1.05);
+    animation: none;
+  }
+
+  &.is-shaking {
+    animation: eggShake 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+}
+
+/* ===== CSS绘制的蛋形 ===== */
+.egg-shape {
+  width: 130rpx;
+  height: 170rpx;
+  background: linear-gradient(
+    160deg,
+    #fff6d5 0%,
+    #ffe066 15%,
+    #ffd700 30%,
+    #daa520 50%,
+    #b8860b 70%,
+    #996515 85%,
+    #8b6914 100%
+  );
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  position: relative;
+  box-shadow:
+    0 8rpx 24rpx rgba(0, 0, 0, 0.35),
+    inset 0 -8rpx 16rpx rgba(139, 105, 20, 0.4),
+    inset 0 4rpx 12rpx rgba(255, 246, 213, 0.5);
+  overflow: hidden;
+
+  /* 高光 */
+  &__highlight {
+    position: absolute;
+    top: 18rpx;
+    left: 22rpx;
+    width: 50rpx;
+    height: 70rpx;
+    background: radial-gradient(
+      ellipse at 40% 30%,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0.2) 40%,
+      transparent 70%
+    );
+    border-radius: 50%;
+    transform: rotate(-15deg);
+  }
+
+  /* 金色腰带装饰 */
+  &__band {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 20rpx;
+    transform: translateY(-50%);
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 215, 0, 0.4) 30%,
+      rgba(218, 165, 32, 0.6) 50%,
+      rgba(255, 215, 0, 0.4) 70%,
+      transparent 100%
+    );
+  }
+
+  /* 闪烁星点 */
+  &__sparkle {
+    position: absolute;
+    width: 8rpx;
+    height: 8rpx;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 6rpx 2rpx rgba(255, 255, 255, 0.6);
+
+    &--1 {
+      top: 30rpx;
+      right: 24rpx;
+      animation: sparkle 2s ease-in-out 0s infinite;
+    }
+
+    &--2 {
+      top: 80rpx;
+      left: 18rpx;
+      animation: sparkle 2s ease-in-out 1s infinite;
+    }
+  }
+}
+
+/* ===== 蛋编号 ===== */
+.egg-number {
+  position: absolute;
+  bottom: -8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 40rpx;
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-accent, #ffd700),
+    var(--tg-lottery-accent-light, #daa520)
+  );
+  border-radius: 50%;
+  @include flex-center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+
+  .count-text {
+    font-size: 22rpx;
+    font-weight: bold;
+    color: var(--tg-lottery-text-dark, #7b241c);
+  }
+}
+
+/* ===== 点击提示 ===== */
+.egg-tap-hint {
+  position: absolute;
+  bottom: -36rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  animation: hintBounce 1.5s ease-in-out infinite;
+
+  .hint-text {
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-lottery-accent-dim, rgba(255, 215, 0, 0.9));
+    text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* ===== 锤子 ===== */
+.egg-hammer {
+  position: absolute;
+  top: -50rpx;
+  right: -40rpx;
+  z-index: 10;
+  transform-origin: 80% 90%;
+  animation: hammerSwing 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+
+  &__handle {
+    width: 12rpx;
+    height: 70rpx;
+    background: linear-gradient(180deg, #8b4513, #a0522d, #6b3410);
+    border-radius: 4rpx;
+    position: absolute;
+    top: 20rpx;
+    right: 14rpx;
+    transform: rotate(-30deg);
+    box-shadow: 1rpx 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  }
+
+  &__head {
+    width: 48rpx;
+    height: 32rpx;
+    background: linear-gradient(180deg, #c0c0c0, #808080, #696969);
+    border-radius: 6rpx;
+    position: relative;
+    box-shadow:
+      0 2rpx 6rpx rgba(0, 0, 0, 0.4),
+      inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* ===== 碎裂状态 ===== */
+.egg-cracked {
+  position: relative;
+  width: 130rpx;
+  height: 170rpx;
+  @include flex-center;
+}
+
+/* ===== 碎片粒子 ===== */
+.egg-shard {
+  position: absolute;
+  width: 24rpx;
+  height: 30rpx;
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-accent, #ffd700),
+    var(--tg-lottery-accent-light, #daa520),
+    var(--tg-lottery-accent-dark, #b8860b)
+  );
+  border-radius: 4rpx 8rpx 4rpx 2rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+
+  &--1 {
+    animation: shardFly1 0.8s ease-out forwards;
+  }
+
+  &--2 {
+    animation: shardFly2 0.8s ease-out forwards;
+  }
+
+  &--3 {
+    animation: shardFly3 0.8s ease-out forwards;
+    width: 18rpx;
+    height: 22rpx;
+  }
+
+  &--4 {
+    animation: shardFly4 0.8s ease-out forwards;
+    width: 20rpx;
+    height: 26rpx;
+  }
+
+  &--5 {
+    animation: shardFly5 0.8s ease-out forwards;
+    width: 16rpx;
+    height: 20rpx;
+  }
+
+  &--6 {
+    animation: shardFly6 0.8s ease-out forwards;
+    width: 14rpx;
+    height: 18rpx;
+  }
+}
+
+/* ===== 中心爆发光效 ===== */
+.egg-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  &__ring {
+    width: 120rpx;
+    height: 120rpx;
+    border: 4rpx solid rgba(255, 215, 0, 0.6);
+    border-radius: 50%;
+    animation: burstRing 1s ease-out forwards;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+
+    &--delay {
+      animation-delay: 0.15s;
+      border-color: rgba(255, 180, 0, 0.4);
+    }
+  }
+
+  &__star {
+    width: 60rpx;
+    height: 60rpx;
+    background: radial-gradient(
+      circle,
+      #fff 0%,
+      var(--tg-lottery-accent, #ffd700) 40%,
+      transparent 70%
+    );
+    border-radius: 50%;
+    animation: burstStar 1.2s ease-in-out infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ===== 蛋壳残留 ===== */
+.egg-shell-remain {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8rpx;
+
+  &__left,
+  &__right {
+    width: 50rpx;
+    height: 40rpx;
+    background: linear-gradient(
+      160deg,
+      var(--tg-lottery-accent-lighter, #ffe066),
+      var(--tg-lottery-accent-light, #daa520),
+      var(--tg-lottery-accent-dark, #b8860b)
+    );
+    box-shadow: inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3);
+  }
+
+  &__left {
+    border-radius: 0 0 0 40rpx;
+    transform: rotate(-8deg);
+    clip-path: polygon(10% 0%, 100% 0%, 80% 100%, 0% 80%);
+  }
+
+  &__right {
+    border-radius: 0 0 40rpx 0;
+    transform: rotate(8deg);
+    clip-path: polygon(0% 0%, 90% 0%, 100% 80%, 20% 100%);
+  }
+}
+
+/* ===== 积分消耗提示 ===== */
+.egg-cost {
+  @include flex-center;
+  gap: 8rpx;
+  margin-top: 20rpx;
+  padding: 8rpx 28rpx;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--td-radius-large);
+
+  &__icon {
+    width: 20rpx;
+    height: 20rpx;
+    background: radial-gradient(
+      circle,
+      var(--tg-lottery-accent, #ffd700),
+      var(--tg-lottery-accent-light, #daa520)
+    );
+    border-radius: 50%;
+    box-shadow: 0 0 6rpx var(--tg-lottery-accent-glow, rgba(255, 215, 0, 0.5));
+  }
+
+  &__text {
+    font-size: var(--td-font-size-s);
+    color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.85));
+  }
+}
+
+/* ===== 连敲模式 - 行布局 ===== */
+.multi-row {
+  display: flex;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+/* ===== 连敲模式 - 单个蛋槽 ===== */
+.multi-egg-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  animation: multiEggEnter 0.4s ease-out backwards;
+  transition: transform 0.2s ease;
+
+  &:active:not(.is-cracked) {
+    transform: scale(0.92);
+  }
+}
+
+/* ===== 尺寸适配 ===== */
+.multi-stage.size-3 {
+  .multi-egg-slot {
+    width: 180rpx;
+  }
+
+  .egg-shape {
+    width: 130rpx;
+    height: 170rpx;
+  }
+
+  .egg-pedestal {
+    width: 120rpx;
+  }
+
+  .egg-number {
+    width: 40rpx;
+    height: 40rpx;
+  }
+
+  .egg-number text {
+    font-size: 22rpx;
+  }
+
+  .multi-row {
+    gap: 24rpx;
+  }
+}
+
+.multi-stage.size-5 {
+  .multi-egg-slot {
+    width: 130rpx;
+  }
+
+  .egg-shape {
+    width: 100rpx;
+    height: 130rpx;
+  }
+
+  .egg-pedestal {
+    width: 90rpx;
+  }
+
+  .egg-number {
+    width: 34rpx;
+    height: 34rpx;
+  }
+
+  .egg-number text {
+    font-size: var(--tg-font-size-xs);
+  }
+
+  .egg-shape__sparkle {
+    display: none;
+  }
+
+  .multi-row {
+    gap: 12rpx;
+  }
+}
+
+.multi-stage.size-10 {
+  .multi-egg-slot {
+    width: 120rpx;
+  }
+
+  .egg-shape {
+    width: 88rpx;
+    height: 114rpx;
+  }
+
+  .egg-pedestal {
+    width: 80rpx;
+  }
+
+  .egg-number {
+    width: 30rpx;
+    height: 30rpx;
+  }
+
+  .egg-number text {
+    font-size: 18rpx;
+  }
+
+  .egg-shape__sparkle {
+    display: none;
+  }
+
+  .egg-shape__band {
+    display: none;
+  }
+
+  .multi-row {
+    gap: 8rpx;
+  }
+
+  .multi-egg-prize {
+    min-height: 114rpx;
+  }
+
+  .multi-egg-prize__icon {
+    font-size: var(--td-font-size-l);
+  }
+
+  .multi-egg-prize__image {
+    width: 48rpx;
+    height: 48rpx;
+  }
+
+  .multi-egg-prize__name {
+    font-size: 18rpx;
+    max-width: 100rpx;
+  }
+}
+
+/* ===== 连敲模式 - 砸碎后奖品展示 ===== */
+.multi-egg-prize {
+  position: relative;
+  @include flex-column-center;
+  min-height: 130rpx;
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  &__icon {
+    font-size: var(--tg-font-size-xxl);
+    line-height: 1;
+  }
+
+  /* 连敲砸碎后的奖品图片（与预览区视觉一致） */
+  &__image {
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: 8rpx;
+  }
+
+  &__name {
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-lottery-accent, #ffd700);
+    text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
+    margin-top: 4rpx;
+    max-width: 120rpx;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+  }
+}
+
+/* ===== 连敲模式 - 操作按钮 ===== */
+.multi-actions {
+  display: flex;
+  justify-content: center;
+  padding: 8rpx 0 16rpx;
+}
+
+.multi-smash-all-btn {
+  padding: 14rpx 48rpx;
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-accent, #ffd700),
+    var(--tg-lottery-accent-bright, #ff8c00)
+  );
+  border-radius: 40rpx;
+  box-shadow: 0 4rpx 16rpx var(--tg-lottery-accent-shadow, rgba(255, 140, 0, 0.4));
+
+  .btn-text {
+    font-size: var(--td-font-size-base);
+    font-weight: bold;
+    color: var(--tg-lottery-text-dark, #7b241c);
+    letter-spacing: 2rpx;
+  }
+
+  &:active {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+}
+
+/* ===== 动画关键帧 ===== */
+
+@keyframes eggShake {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  10% {
+    transform: rotate(-12deg) scale(1.02);
+  }
+
+  20% {
+    transform: rotate(12deg) scale(1.04);
+  }
+
+  30% {
+    transform: rotate(-14deg) scale(1.03);
+  }
+
+  40% {
+    transform: rotate(14deg) scale(1.05);
+  }
+
+  50% {
+    transform: rotate(-12deg) scale(1.04);
+  }
+
+  60% {
+    transform: rotate(10deg) scale(1.03);
+  }
+
+  70% {
+    transform: rotate(-8deg) scale(1.02);
+  }
+
+  80% {
+    transform: rotate(6deg) scale(1.01);
+  }
+
+  90% {
+    transform: rotate(-3deg) scale(1);
+  }
+
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes hammerSwing {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-60deg);
+  }
+
+  45% {
+    transform: rotate(10deg);
+  }
+
+  60% {
+    transform: rotate(-50deg);
+  }
+
+  75% {
+    transform: rotate(5deg);
+  }
+
+  85% {
+    transform: rotate(-40deg);
+  }
+
+  100% {
+    transform: rotate(-35deg);
+  }
+}
+
+/* 碎片飞散 - 6个方向 */
+@keyframes shardFly1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-80rpx, -100rpx) rotate(-120deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shardFly2 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(80rpx, -90rpx) rotate(150deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shardFly3 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-100rpx, -40rpx) rotate(-90deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shardFly4 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(100rpx, -50rpx) rotate(100deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shardFly5 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50rpx, -120rpx) rotate(-160deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shardFly6 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(60rpx, -110rpx) rotate(130deg);
+    opacity: 0;
+  }
+}
+
+@include item-float(eggFloat);
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@include multi-item-enter(multiEggEnter);
+
+/* ===== 奖品池预览（is_fallback / is_sold_out 视觉指示） ===== */
+.egg-prizes {
+  margin-top: 24rpx;
+  padding: 0 16rpx;
+  /* 创建独立层叠上下文，隔离父组件 WXML diff 对预览区渲染的波及 */
+  position: relative;
+  z-index: 0;
+}
+
+.egg-prizes__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.egg-prizes__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.egg-prizes__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--tg-lottery-primary, #7c4dff);
+}
+
+.egg-prizes__title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--tg-lottery-text, #333);
+}
+
+.egg-prizes__count {
+  font-size: 22rpx;
+  color: var(--tg-lottery-text-light, #999);
+}
+
+.egg-prizes__scroll {
+  width: 100%;
+  overflow: hidden;
+  /* 创建独立合成层上下文，隔离父组件 setData 引起的样式重计算波及跑马灯动画 */
+  isolation: isolate;
+  contain: paint;
+}
+
+/* 滚动轨道：承载两份奖品列表，通过 translateX(-50%) 实现无缝循环 */
+.egg-prizes__track {
+  display: inline-flex;
+  white-space: nowrap;
+
+  &--animate {
+    animation: eggPrizeMarquee linear infinite;
+    will-change: transform;
+    /* 独立合成层：使用不与 animation transform 冲突的方式提升合成层 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+.egg-prizes__list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 8rpx 4rpx 16rpx;
+  flex-shrink: 0;
+}
+
+@keyframes eggPrizeMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.egg-prizes__item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.egg-prizes__icon-wrap {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: var(--tg-lottery-bg-light, #fff);
+  border: 2rpx solid var(--tg-lottery-border, #eee);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.egg-prizes__icon {
+  font-size: 40rpx;
+}
+
+.egg-prizes__image {
+  width: 64rpx;
+  height: 64rpx;
+  /* 固定尺寸+合成层：防止组件重渲染时 image 元素因 layout shift 短暂白闪 */
+  min-width: 64rpx;
+  min-height: 64rpx;
+  transform: translateZ(0);
+}
+
+.egg-prizes__name {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--tg-lottery-text-light, #666);
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.egg-prizes__item--fallback {
+  filter: saturate(0.4);
+  opacity: 0.7;
+}
+
+.egg-prizes__fallback-tag {
+  margin-top: 2rpx;
+  padding: 0 6rpx;
+  font-size: 18rpx;
+  color: #999;
+  background: rgba(153, 153, 153, 0.15);
+  border-radius: 4rpx;
+}
+
+.egg-prizes__item--sold-out {
+  opacity: 0.45;
+}
+
+.egg-prizes__sold-out {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  white-space: nowrap;
+}

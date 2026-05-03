@@ -14,8 +14,8 @@
 
 import { action, observable } from 'mobx-miniprogram'
 
-/* 内部模块直接引用，不通过 utils/index.ts（避免循环依赖） */
-const { determineUserRole, formatPhoneNumber } = require('../utils/util')
+const { Utils } = require('../utils/index')
+const { determineUserRole, formatPhoneNumber } = Utils
 
 export const userStore = observable({
   // ===== 可观察状态 =====

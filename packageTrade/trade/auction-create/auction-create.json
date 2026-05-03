@@ -1,6 +1,9 @@
 {
   "navigationBarTitleText": "发起拍卖",
   "usingComponents": {
-    "loading-spinner": "/components/loading-spinner/loading-spinner"
-  }
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

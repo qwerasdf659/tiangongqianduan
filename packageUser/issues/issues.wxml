@@ -1,4 +1,5 @@
 <!--packageUser/issues/issues.wxml - 用户工单进度查看页面-->
+<custom-navbar title="我的工单" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 <view class="issues-container">
   <!-- 页面标题 -->
   <view class="page-header">
@@ -18,21 +19,15 @@
   </block>
 
   <!-- 加载失败 -->
-  <view wx:elif="{{loadStatus === 'error'}}" class="empty-state">
-    <text class="empty-icon">📡</text>
-    <text class="empty-title">加载失败</text>
-    <text class="empty-desc">请检查网络连接后重试</text>
-    <view class="retry-btn" bindtap="retryLoad">
-      <text>重新加载</text>
-    </view>
-  </view>
+  <t-empty wx:elif="{{loadStatus === 'error'}}" description="请检查网络连接后重试">
+    <view slot="image">📡</view>
+    <view slot="action" class="retry-btn" bindtap="retryLoad">重新加载</view>
+  </t-empty>
 
   <!-- 空状态 -->
-  <view wx:elif="{{loadStatus === 'empty'}}" class="empty-state">
-    <text class="empty-icon">📋</text>
-    <text class="empty-title">暂无工单</text>
-    <text class="empty-desc">您还没有客服工单记录</text>
-  </view>
+  <t-empty wx:elif="{{loadStatus === 'empty'}}" description="您还没有客服工单记录">
+    <view slot="image">📋</view>
+  </t-empty>
 
   <!-- 工单列表 -->
   <block wx:else>

@@ -1,6 +1,5 @@
 /* 抽奖页面样式 - V5.1 Sass模块化版本 */
 /* 从2721行拆分为6个文件: 公共样式 + 5个模块partial */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* 🎨 优化整体容器设计 */
@@ -8,8 +7,8 @@
   min-height: 100vh;
   background: linear-gradient(
     135deg,
-    var(--theme-page-start, #{$gradient-blue-start}) 0%,
-    var(--theme-page-end, #{$gradient-blue-end}) 100%
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
   );
   padding: 20rpx 20rpx 20rpx 20rpx;
   position: relative;
@@ -23,10 +22,10 @@
   /* 与页面同系实色渐变，保留白字可读性，去掉毛玻璃 */
   background: linear-gradient(
     135deg,
-    var(--theme-page-start, #{$gradient-blue-start}) 0%,
-    var(--theme-page-end, #{$gradient-blue-end}) 100%
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
   );
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   padding: 0 24rpx;
   margin: 0 0 25rpx 0;
   box-shadow:
@@ -56,16 +55,16 @@
 /* ===== 轮播图区域（后端 carousel_items 数据驱动） ===== */
 .carousel-section {
   margin: 16rpx 0;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   overflow: hidden;
-  box-shadow: $shadow-md;
+  box-shadow: var(--tg-shadow-md);
   position: relative;
 }
 
 .carousel-swiper {
   width: 100%;
   height: 320rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
 }
 
 .carousel-item {
@@ -77,7 +76,7 @@
 .carousel-image {
   width: 100%;
   height: 100%;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
 }
 
 .carousel-title-bar {
@@ -87,12 +86,12 @@
   right: 0;
   padding: 12rpx 20rpx;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
-  border-radius: 0 0 $border-radius-md $border-radius-md;
+  border-radius: 0 0 var(--td-radius-default) var(--td-radius-default);
 }
 
 .carousel-title-text {
-  font-size: $font-size-sm;
-  color: $color-text-white;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-white);
   @include text-ellipsis;
 }
 
@@ -103,16 +102,16 @@
   padding: 0 20rpx;
   height: 64rpx;
   /* 公告条实色白底，标题改深色系 */
-  background: $color-white;
-  border-radius: $border-radius-md;
-  border: 1rpx solid $color-border-light;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
+  border: 1rpx solid var(--tg-color-border-light);
   overflow: hidden;
 }
 
 .announcement-icon {
   flex-shrink: 0;
   margin-right: 12rpx;
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   line-height: 1;
 }
 
@@ -132,39 +131,39 @@
   padding: 2rpx 12rpx;
   margin-right: 12rpx;
   border-radius: 6rpx;
-  font-size: $font-size-xs;
-  color: $color-text-white;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-white);
   line-height: 1.6;
 }
 
 .announcement-tag--system {
-  background: $color-info;
+  background: var(--tg-color-info);
 }
 
 .announcement-tag--activity {
-  background: $color-primary;
+  background: var(--td-brand-color);
 }
 
 .announcement-tag--maintenance {
-  background: $color-warning;
+  background: var(--tg-color-warning);
 }
 
 .announcement-tag--notice {
-  background: $color-success;
+  background: var(--tg-color-success);
 }
 
 .announcement-title {
   @include text-ellipsis;
   flex: 1;
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
 }
 
 .announcement-link-indicator {
   flex-shrink: 0;
   margin-left: 8rpx;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 活动列表为空时的占位提示 ===== */
@@ -175,7 +174,7 @@
   justify-content: center;
   padding: 120rpx 40rpx;
   margin: 40rpx 0;
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -185,13 +184,13 @@
 }
 
 .no-campaign-text {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   color: rgba(255, 255, 255, 0.85);
   margin-bottom: 12rpx;
 }
 
 .no-campaign-hint {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: rgba(255, 255, 255, 0.5);
 }
 

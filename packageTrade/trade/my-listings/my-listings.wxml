@@ -1,4 +1,5 @@
 <!--packageTrade/trade/my-listings/my-listings.wxml - 我的挂单页面模板 -->
+<custom-navbar title="我的挂单" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="my-listings-container">
   <!-- 顶部统计卡片 -->
@@ -48,8 +49,7 @@
   <view class="listings-wrapper">
     <!-- 加载状态 -->
     <view class="loading-state" wx:if="{{loading && listings.length === 0}}">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
     </view>
 
     <!-- 挂单卡片列表 -->
@@ -160,63 +160,31 @@
     </block>
 
     <!-- 空状态 -->
-    <view class="empty-state" wx:if="{{!loading && isEmpty}}">
-      <view class="empty-illustration">
-        <view class="empty-circle"></view>
-        <text class="empty-icon">📋</text>
-      </view>
-      <text class="empty-title"
-        >{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</text
+    <t-empty wx:if="{{!loading && isEmpty}}" description="去仓库上架您的物品或资产，赚取收益吧">
+      <view slot="image">📋</view>
+      <view slot="description" class="empty-title"
+        >{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</view
       >
-      <text class="empty-desc">去仓库上架您的物品或资产，赚取收益吧</text>
-      <view class="empty-actions">
+      <view slot="action" class="empty-actions">
         <button class="action-btn-primary" bindtap="goToInventory">📦 去上架</button>
         <button class="action-btn-outline" bindtap="goToMarket">🏪 逛市场</button>
       </view>
-    </view>
+    </t-empty>
   </view>
 
   <!-- 担保码状态弹窗（Phase 4：卖方查看交易担保状态） -->
-  <!-- 注意：escrow-status API不返回明文担保码，仅返回状态信息 -->
-  <view class="escrow-overlay" wx:if="{{showEscrowModal}}" catchtap="onCloseEscrowModal">
-    <view class="escrow-modal" catchtap="">
-      <view class="escrow-header">
-        <text class="escrow-title">交易担保状态</text>
-        <view class="escrow-close" bindtap="onCloseEscrowModal">
-          <text class="escrow-close-icon">✕</text>
-        </view>
-      </view>
-
-      <view class="escrow-loading" wx:if="{{escrowLoading}}">
-        <text class="escrow-loading-text">查询担保状态中...</text>
-      </view>
-
-      <view class="escrow-body" wx:elif="{{escrowTradeOrderId}}">
-        <view class="escrow-order-row" wx:if="{{escrowOrderNo}}">
-          <text class="escrow-order-label">订单号</text>
-          <text
-            class="escrow-order-value"
-            catchtap="onCopyOrderNo"
-            data-order-no="{{escrowOrderNo}}"
-            >{{escrowOrderNo}}</text
-          >
-        </view>
-        <view class="escrow-notice">
-          <text class="escrow-notice-icon">🔑</text>
-          <text class="escrow-notice-text"
-            >担保码已生成，请当面交付物品后将担保码告知买家。买家输入担保码后交易完成。</text
-          >
-        </view>
-        <view class="escrow-expire" wx:if="{{escrowExpiresAt}}">
-          <text class="escrow-expire-text">有效期至 {{escrowExpiresAt}}</text>
-        </view>
-      </view>
-
-      <view class="escrow-error" wx:else>
-        <text class="escrow-error-text">担保状态不可用，请稍后重试</text>
-      </view>
-    </view>
-  </view>
+  <escrow-status-dialog
+    visible="{{showEscrowModal}}"
+    loading="{{escrowLoading}}"
+    title="交易担保状态"
+    orderNo="{{escrowOrderNo}}"
+    expiresAt="{{escrowExpiresAt}}"
+    notice="担保码已生成，请当面交付物品后将担保码告知买家。买家输入担保码后交易完成。"
+    hasData="{{!!escrowTradeOrderId}}"
+    showCopyOrderNo="{{!!escrowOrderNo}}"
+    bind:close="onCloseEscrowModal"
+    bind:copyorderno="onCopyOrderNoFromDialog"
+  />
 
   <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
   <maintenance-overlay />

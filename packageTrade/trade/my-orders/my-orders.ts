@@ -230,8 +230,9 @@ Page({
 
   /** 担保码输入值变化 — 仅允许6位数字 */
   onEscrowInputChange(e: any) {
-    const rawValue = (e.detail.value || '').replace(/[^0-9]/g, '').slice(0, 6)
-    this.setData({ escrowInputValue: rawValue })
+    const rawValue = e.detail?.value || ''
+    const normalizedValue = rawValue.replace(/[^0-9]/g, '').slice(0, 6)
+    this.setData({ escrowInputValue: normalizedValue })
   },
 
   /** 关闭担保码输入弹窗 */
@@ -255,7 +256,7 @@ Page({
    * 提交担保码确认收货
    * 后端: POST /api/v4/marketplace/trade-orders/:trade_order_id/confirm-delivery
    */
-  async onSubmitEscrowCode() {
+  async onSubmitEscrowCode(_e?: any) {
     const { escrowOrderId, escrowInputValue, escrowConfirming } = this.data
     if (!escrowOrderId || escrowConfirming) {
       return

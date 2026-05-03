@@ -422,6 +422,19 @@ Page({
     })
   },
 
+  /** 从担保状态弹窗复制订单号 */
+  onCopyOrderNoFromDialog(e: any) {
+    const orderNo = e.detail?.orderNo
+    if (!orderNo) {
+      return
+    }
+
+    wx.setClipboardData({
+      data: orderNo,
+      success: () => wx.showToast({ title: '订单号已复制', icon: 'success' })
+    })
+  },
+
   /** 复制订单号 */
   onCopyOrderNo(e: any) {
     const orderNo = e.currentTarget.dataset.orderNo

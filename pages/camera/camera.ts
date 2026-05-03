@@ -13,7 +13,7 @@
  */
 
 // 统一工具函数导入
-const { Wechat, API, Logger, Utils, ThemeCache, GlobalTheme } = require('../../utils/index')
+const { Wechat, API, Logger, Utils } = require('../../utils/index')
 const log = Logger.createLogger('camera')
 const { showToast } = Wechat
 const { checkAuth } = Utils
@@ -31,9 +31,6 @@ Page({
     // 活动列表（后端 GET /api/v4/lottery/campaigns/active 返回）
     campaigns: [] as any[],
     filteredCampaigns: [] as any[],
-
-    /* 全局氛围主题（后端 GET /api/v4/system/config/app-theme 驱动） */
-    globalThemeStyle: '',
 
     // 页面状态
     loading: false,
@@ -66,35 +63,18 @@ Page({
     }
   },
 
-  /**
-   * 将微信原生导航栏、TabBar 颜色同步为当前主题色
-   * CSS 变量只能控制 WXML 内元素，导航栏和 TabBar 属于框架层需通过 JS API 设置
-   */
-  applyNativeThemeColors(themeName: string) {
-    const navColors = GlobalTheme.getThemeNavColors(themeName)
-    wx.setNavigationBarColor({
-      frontColor: navColors.navText as '#ffffff' | '#000000',
-      backgroundColor: navColors.navBg,
-      animation: { duration: 300, timingFunc: 'easeIn' }
-    })
-    wx.setTabBarStyle({
-      selectedColor: navColors.tabSelected
-    })
-  },
-
   onShow() {
     if (typeof this.getTabBar === 'function') {
       this.getTabBar().setData({ selected: 1 })
     }
     log.info('发现页面（活动聚合）显示')
 
-    /* 每次 onShow 重新检查全局主题（管理后台切换主题后生效） */
-    const discoverShowThemeName = ThemeCache.getThemeNameSync()
-    const discoverShowThemeStyle = GlobalTheme.getGlobalThemeStyle(discoverShowThemeName)
-    if (discoverShowThemeStyle !== this.data.globalThemeStyle) {
-      this.setData({ globalThemeStyle: discoverShowThemeStyle })
-    }
-    this.applyNativeThemeColors(discoverShowThemeName)
+    wx.setNavigationBarColor({
+      frontColor: '#ffffff',
+      backgroundColor: '#ff6b35',
+      animation: { duration: 300, timingFunc: 'easeIn' }
+    })
+    wx.setTabBarStyle({ selectedColor: '#ff6b35' })
 
     // 检查登录状态（活动页面可以未登录浏览，不跳转登录页）
     const isLoggedIn = checkAuth({ redirect: false })
@@ -112,10 +92,12 @@ Page({
    * API方法: API.getActiveCampaigns()
    */
   async initializePage() {
-    /* 加载全局氛围主题（同步注入 CSS 变量到页面根元素，无需登录） */
-    const discoverThemeName = await ThemeCache.getThemeName()
-    this.setData({ globalThemeStyle: GlobalTheme.getGlobalThemeStyle(discoverThemeName) })
-    this.applyNativeThemeColors(discoverThemeName)
+    wx.setNavigationBarColor({
+      frontColor: '#ffffff',
+      backgroundColor: '#ff6b35',
+      animation: { duration: 300, timingFunc: 'easeIn' }
+    })
+    wx.setTabBarStyle({ selectedColor: '#ff6b35' })
 
     // 未登录时不请求需认证的接口，仅显示空状态引导登录
     if (!checkAuth({ redirect: false })) {

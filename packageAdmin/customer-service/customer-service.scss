@@ -1,11 +1,10 @@
 /* 客服管理页面样式 - V3.0 Sass版本 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* 🎨 全局容器 */
 .customer-service-container {
   padding: 20rpx;
-  background-color: $color-bg;
+  background-color: var(--tg-color-bg);
   min-height: 100vh;
 }
 
@@ -16,7 +15,7 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - 180rpx);
-  background: #f5f6fa;
+  background: var(--tg-color-bg-panel);
 }
 
 /* 管理员状态栏 */
@@ -24,12 +23,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
+  color: var(--tg-color-white);
   padding: 20rpx 30rpx;
   border-radius: 12rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 20rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .status-info {
@@ -46,24 +49,24 @@
 .status-badge {
   font-size: 22rpx;
   padding: 6rpx 12rpx;
-  border-radius: $border-radius-md;
-  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--td-radius-default);
+  background: rgba(var(--tg-color-white-rgb), 0.85);
 }
 
 .connection-info .ws-status {
   font-size: 22rpx;
   padding: 6rpx 12rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
 }
 
 .ws-status.connected {
-  background: rgba(46, 204, 113, 0.25);
-  color: #2ecc71;
+  background: rgba(var(--tg-color-success-rgb), 0.25);
+  color: var(--tg-color-success);
 }
 
 .ws-status.disconnected {
-  background: rgba(231, 76, 60, 0.25);
-  color: #e74c3c;
+  background: rgba(var(--tg-color-error-rgb), 0.25);
+  color: var(--tg-color-error);
 }
 
 /* 聊天工作台 */
@@ -82,9 +85,9 @@
 /* 会话列表面板 */
 .sessions-panel {
   width: 420rpx;
-  background: white;
-  border-radius: $border-radius-md;
-  box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
+  box-shadow: 0 2rpx 20rpx rgba(var(--tg-color-black-rgb), 0.06);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -92,21 +95,21 @@
 
 .panel-header {
   padding: 24rpx 30rpx;
-  border-bottom: 2rpx solid #f1f2f6;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2rpx solid var(--tg-color-border-light);
+  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
   @include flex-between;
 }
 
 .panel-title {
   font-size: 30rpx;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--tg-text-primary-strong);
 }
 
 .session-count {
   font-size: 22rpx;
-  color: #6c757d;
-  background: #e9ecef;
+  color: var(--tg-text-secondary-muted);
+  background: var(--tg-color-border-muted);
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
 }
@@ -115,19 +118,12 @@
 .empty-sessions {
   padding: 60rpx 20rpx;
   text-align: center;
-  color: #95a5a6;
-}
-
-.empty-icon {
-  font-size: 64rpx;
-  display: block;
-  margin-bottom: 16rpx;
-  opacity: 0.6;
+  color: var(--tg-text-tertiary-muted);
 }
 
 .empty-text {
   font-size: 26rpx;
-  color: #95a5a6;
+  color: var(--tg-text-tertiary-muted);
 }
 
 .sessions-list {
@@ -140,19 +136,19 @@
   display: flex;
   align-items: center;
   padding: 16rpx 24rpx;
-  border-bottom: 1rpx solid #f1f2f6;
-  cursor: pointer;
+  border-bottom: 1rpx solid var(--tg-color-border-light);
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s ease;
   position: relative;
 }
 
 .session-item:hover {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
 }
 
 .session-item.active {
-  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-  border-left: 4rpx solid $gradient-blue-start;
+  background: linear-gradient(135deg, var(--tg-color-bg-accent-soft) 0%, #f3e5f5 100%);
+  border-left: 4rpx solid var(--tg-gradient-primary-start);
 }
 
 .session-item.active::before {
@@ -162,22 +158,30 @@
   top: 0;
   bottom: 0;
   width: 4rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
 }
 
 .session-avatar {
   width: 60rpx;
   height: 60rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
   @include flex-center;
   margin-right: 16rpx;
   flex-shrink: 0;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .avatar-text {
-  color: white;
+  color: var(--tg-color-white);
   font-size: 22rpx;
   font-weight: 600;
 }
@@ -195,9 +199,9 @@
 }
 
 .user-name {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--tg-text-primary-strong);
   max-width: 160rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -205,8 +209,8 @@
 }
 
 .session-time {
-  font-size: $font-size-xs;
-  color: #95a5a6;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary-muted);
 }
 
 .session-preview {
@@ -217,8 +221,8 @@
 }
 
 .last-message {
-  font-size: $font-size-xs;
-  color: #7f8c8d;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -227,8 +231,8 @@
 }
 
 .unread-badge {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--tg-color-error), #c44569 100%);
+  color: var(--tg-color-white);
   font-size: 18rpx;
   padding: 4rpx 10rpx;
   border-radius: 12rpx;
@@ -245,28 +249,32 @@
   font-size: 18rpx;
   padding: 4rpx 10rpx;
   border-radius: 10rpx;
-  color: white;
+  color: var(--tg-color-white);
   font-weight: 500;
 }
 
 .status-tag.waiting {
-  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  background: linear-gradient(135deg, var(--tg-color-warning), #e67e22 100%);
 }
 
 .status-tag.active {
-  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  background: linear-gradient(135deg, var(--tg-color-success), #73d13d 100%);
 }
 
 .status-tag.ended {
-  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-text-tertiary-muted) 0%,
+    var(--tg-text-secondary) 100%
+  );
 }
 
 /* 聊天面板 */
 .chat-panel {
   flex: 1;
-  background: white;
-  border-radius: $border-radius-md;
-  box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
+  box-shadow: 0 2rpx 20rpx rgba(var(--tg-color-black-rgb), 0.06);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -284,7 +292,7 @@
   margin: 0;
   padding: 0;
   box-shadow: none;
-  background: #f5f6fa;
+  background: var(--tg-color-bg-panel);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -303,8 +311,8 @@
 
 .chat-panel.expanded .chat-input-container {
   position: relative;
-  background: white;
-  border-top: 2rpx solid #f1f2f6;
+  background: var(--tg-color-white);
+  border-top: 2rpx solid var(--tg-color-border-light);
   padding: 20rpx;
 }
 
@@ -313,7 +321,7 @@
   padding: 20rpx;
   gap: 16rpx;
   align-items: flex-end;
-  background: white;
+  background: var(--tg-color-white);
 }
 
 .chat-panel.expanded .send-btn {
@@ -326,7 +334,7 @@
   justify-content: center;
   gap: 8rpx;
   padding: 0 20rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   transition: all 0.3s ease;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
@@ -334,8 +342,8 @@
 
 .chat-panel.expanded .chat-header {
   position: relative;
-  background: white;
-  border-bottom: 2rpx solid #f1f2f6;
+  background: var(--tg-color-white);
+  border-bottom: 2rpx solid var(--tg-color-border-light);
   padding: 20rpx;
   flex-shrink: 0;
 }
@@ -343,8 +351,8 @@
 .no-session-selected {
   flex: 1;
   @include flex-column-center;
-  color: #95a5a6;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: var(--tg-text-tertiary-muted);
+  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
 }
 
 .no-session-icon {
@@ -354,8 +362,8 @@
 }
 
 .no-session-text {
-  font-size: $font-size-base;
-  color: #95a5a6;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary-muted);
 }
 
 .chat-container {
@@ -367,8 +375,8 @@
 /* 聊天头部 */
 .chat-header {
   padding: 24rpx 30rpx;
-  border-bottom: 2rpx solid #f1f2f6;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2rpx solid var(--tg-color-border-light);
+  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -379,10 +387,14 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 20rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
+  color: var(--tg-color-white);
   border-radius: 20rpx;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s ease;
   box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
 }
@@ -393,7 +405,7 @@
 }
 
 .back-icon {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: bold;
 }
 
@@ -409,19 +421,19 @@
 }
 
 .chat-user-name {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--tg-text-primary-strong);
 }
 
 .chat-session-id {
-  font-size: $font-size-xs;
-  color: #95a5a6;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary-muted);
 }
 
 .chat-actions .action-btn {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--tg-color-error), #c44569 100%);
+  color: var(--tg-color-white);
   padding: 12rpx 24rpx;
   border-radius: 20rpx;
   font-size: 22rpx;
@@ -440,7 +452,7 @@
 .empty-messages {
   text-align: center;
   padding: 60rpx 20rpx;
-  color: #95a5a6;
+  color: var(--tg-text-tertiary-muted);
 }
 
 /* 消息项 */
@@ -469,12 +481,16 @@
 }
 
 .message-item.admin .message-avatar {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
 }
 
 .message-avatar .avatar-text {
-  color: white;
-  font-size: $font-size-xs;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-xs);
   font-weight: 600;
 }
 
@@ -500,14 +516,18 @@
 
 .message-item.user .message-bubble {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  color: #2c3e50;
+  color: var(--tg-text-primary-strong);
   border-bottom-left-radius: 6rpx;
-  border: 1rpx solid #e9ecef;
+  border: 1rpx solid var(--tg-color-border-muted);
 }
 
 .message-item.admin .message-bubble {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
+  color: var(--tg-color-white);
   border-bottom-right-radius: 6rpx;
 }
 
@@ -522,7 +542,7 @@
   gap: 12rpx;
   margin-top: 6rpx;
   font-size: 18rpx;
-  color: #95a5a6;
+  color: var(--tg-text-tertiary-muted);
 }
 
 .message-item.admin .message-meta {
@@ -546,54 +566,62 @@
 }
 
 .message-status.failed {
-  color: #e74c3c;
+  color: var(--tg-color-error);
 }
 
 /* 聊天输入区域 */
 .chat-input-container {
-  border-top: 2rpx solid #f1f2f6;
-  background: white;
+  border-top: 2rpx solid var(--tg-color-border-light);
+  background: var(--tg-color-white);
 }
 
 .quick-replies-panel {
   padding: 20rpx 30rpx;
-  border-bottom: 1rpx solid #f1f2f6;
+  border-bottom: 1rpx solid var(--tg-color-border-light);
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
 .quick-reply-item {
   padding: 12rpx 20rpx;
   margin: 6rpx 0;
-  background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+  background: linear-gradient(135deg, var(--tg-color-border-muted) 0%, var(--tg-color-bg) 100%);
   border-radius: 20rpx;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s ease;
   border: 1rpx solid #dee2e6;
 }
 
 .quick-reply-item:hover {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
+  color: var(--tg-color-white);
   transform: translateY(-2rpx);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .quick-reply-item text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: inherit;
 }
 
 .input-toolbar {
   padding: 16rpx 30rpx;
-  border-bottom: 1rpx solid #f1f2f6;
+  border-bottom: 1rpx solid var(--tg-color-border-light);
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
 .toolbar-btn {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
+  color: var(--tg-color-white);
   padding: 10rpx 20rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   font-size: 22rpx;
   border: none;
   box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
@@ -605,7 +633,7 @@
   padding: 20rpx 30rpx;
   gap: 16rpx;
   align-items: flex-end;
-  background: white;
+  background: var(--tg-color-white);
 }
 
 .message-input {
@@ -613,17 +641,17 @@
   min-height: 72rpx;
   max-height: 160rpx;
   padding: 16rpx 20rpx;
-  border: 2rpx solid #e9ecef;
-  border-radius: $border-radius-lg;
+  border: 2rpx solid var(--tg-color-border-muted);
+  border-radius: var(--td-radius-large);
   font-size: 26rpx;
-  background: $color-bg;
+  background: var(--tg-color-bg);
   resize: none;
   transition: all 0.3s ease;
 }
 
 .message-input:focus {
-  border-color: $gradient-blue-start;
-  background: white;
+  border-color: var(--tg-gradient-primary-start);
+  background: var(--tg-color-white);
   box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.1);
 }
 
@@ -636,29 +664,33 @@
   @include flex-center;
   gap: 8rpx;
   padding: 0 20rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   transition: all 0.3s ease;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
-  background: #e9ecef;
-  color: #95a5a6;
+  background: var(--tg-color-border-muted);
+  color: var(--tg-text-tertiary-muted);
 }
 
 .send-btn.active {
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
+  color: var(--tg-color-white);
   transform: scale(1.05);
   box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.4);
 }
 
 .send-btn.disabled {
-  background: #e9ecef;
-  color: #95a5a6;
+  background: var(--tg-color-border-muted);
+  color: var(--tg-text-tertiary-muted);
   transform: scale(1);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .send-icon {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
 }
 
 .send-text {
@@ -670,30 +702,30 @@
   padding: 12rpx 30rpx;
   text-align: center;
   font-size: 22rpx;
-  color: #95a5a6;
+  color: var(--tg-text-tertiary-muted);
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-top: 1rpx solid #f1f2f6;
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 /* 今日统计 */
 .today-stats {
   margin-top: 20rpx;
-  background: white;
-  border-radius: $border-radius-md;
-  box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.06);
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
+  box-shadow: 0 2rpx 20rpx rgba(var(--tg-color-black-rgb), 0.06);
   overflow: hidden;
 }
 
 .stats-header {
   padding: 24rpx 30rpx;
-  border-bottom: 2rpx solid #f1f2f6;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2rpx solid var(--tg-color-border-light);
+  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
 }
 
 .stats-title {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--tg-text-primary-strong);
 }
 
 .stats-grid {
@@ -715,13 +747,17 @@
   top: 20%;
   bottom: 20%;
   width: 1rpx;
-  background: linear-gradient(to bottom, transparent, #e9ecef, transparent);
+  background: linear-gradient(to bottom, transparent, var(--tg-color-border-muted), transparent);
 }
 
 .stat-card .stat-number {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -731,7 +767,7 @@
 
 .stat-card .stat-label {
   font-size: 22rpx;
-  color: #95a5a6;
+  color: var(--tg-text-tertiary-muted);
   display: block;
 }
 
@@ -740,7 +776,7 @@
 /* 工具栏调试按钮 */
 .debug-toggle-btn {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-  color: white;
+  color: var(--tg-color-white);
   border: 2rpx solid #ff4757;
 }
 
@@ -752,7 +788,11 @@
 /* 聊天调试面板 */
 .chat-debug-panel {
   margin-top: 16rpx;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
   border-radius: 12rpx;
   overflow: hidden;
   border: 2rpx solid #5f6caf;
@@ -782,9 +822,9 @@
 }
 
 .debug-panel-title {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
-  color: white;
+  color: var(--tg-color-white);
 }
 
 .debug-status-bar {
@@ -793,11 +833,11 @@
 }
 
 .status-item {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.2);
   padding: 4rpx 8rpx;
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
 }
 
 /* 快速操作按钮区域 */
@@ -815,9 +855,9 @@
   align-items: center;
   padding: 12rpx 8rpx;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   border: none;
-  color: white;
+  color: var(--tg-color-white);
   min-width: 80rpx;
   transition: all 0.3s ease;
 }
@@ -828,7 +868,7 @@
 }
 
 .debug-quick-btn .btn-icon {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   margin-bottom: 4rpx;
 }
 
@@ -851,7 +891,7 @@
 }
 
 .debug-section-title-compact {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 8rpx;
@@ -868,7 +908,7 @@
   font-size: 18rpx;
   padding: 8rpx 12rpx;
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: var(--tg-color-white);
   border-radius: 6rpx;
   border: none;
   min-width: 80rpx;
@@ -889,9 +929,9 @@
 }
 
 .debug-info-title-compact {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 600;
-  color: white;
+  color: var(--tg-color-white);
   margin-bottom: 8rpx;
   display: block;
 }

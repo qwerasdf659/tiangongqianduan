@@ -3,5 +3,16 @@
   "navigationBarBackgroundColor": "#667eea",
   "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
+    "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
+    "t-dialog": "/miniprogram_npm/tdesign-miniprogram/dialog/dialog",
+    "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "t-textarea": "/miniprogram_npm/tdesign-miniprogram/textarea/textarea",
+    "t-tag": "/miniprogram_npm/tdesign-miniprogram/tag/tag",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

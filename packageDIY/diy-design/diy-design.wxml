@@ -1,8 +1,8 @@
+<custom-navbar title="工作台" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="diy-design-page">
   <!-- 加载态 -->
   <view wx:if="{{loading}}" class="loading-full">
-    <view class="loading-spinner" />
-    <text>加载模板中...</text>
+    <t-loading loading="{{true}}" text="加载模板中..." theme="spinner" />
   </view>
 
   <block wx:else>
@@ -60,7 +60,11 @@
 
     <!-- 左侧工具栏（浮动） -->
     <view class="side-tools">
-      <view class="side-tool-item" bind:tap="onSizeChange" wx:if="{{!isSlotMode && sizeOptions.length > 0}}">
+      <view
+        class="side-tool-item"
+        bind:tap="onSizeChange"
+        wx:if="{{!isSlotMode && sizeOptions.length > 0}}"
+      >
         <text class="side-tool-icon">⊕</text>
         <text class="side-tool-label">手围设置</text>
       </view>
@@ -90,13 +94,25 @@
     <view class="material-panel">
       <!-- 素材类型Tab栏（饰品/配饰/吊坠/搜索/购物车） -->
       <view class="material-type-tabs">
-        <view class="material-type-tab {{activeMaterialType === 'beads' ? 'active' : ''}}" bind:tap="onMaterialTypeChange" data-type="beads">
+        <view
+          class="material-type-tab {{activeMaterialType === 'beads' ? 'active' : ''}}"
+          bind:tap="onMaterialTypeChange"
+          data-type="beads"
+        >
           <text>饰品</text>
         </view>
-        <view class="material-type-tab {{activeMaterialType === 'accessories' ? 'active' : ''}}" bind:tap="onMaterialTypeChange" data-type="accessories">
+        <view
+          class="material-type-tab {{activeMaterialType === 'accessories' ? 'active' : ''}}"
+          bind:tap="onMaterialTypeChange"
+          data-type="accessories"
+        >
           <text>配饰</text>
         </view>
-        <view class="material-type-tab {{activeMaterialType === 'pendants' ? 'active' : ''}}" bind:tap="onMaterialTypeChange" data-type="pendants">
+        <view
+          class="material-type-tab {{activeMaterialType === 'pendants' ? 'active' : ''}}"
+          bind:tap="onMaterialTypeChange"
+          data-type="pendants"
+        >
           <text>吊坠</text>
         </view>
         <view class="material-type-tab" bind:tap="onToggleSearch">
@@ -109,7 +125,12 @@
 
       <!-- 搜索栏（点击搜索图标时展开） -->
       <view wx:if="{{showSearch}}" class="search-bar">
-        <input class="search-input" placeholder="搜索材料名称" value="{{searchKeyword}}" bindinput="onSearchInput" />
+        <input
+          class="search-input"
+          placeholder="搜索材料名称"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+        />
       </view>
 
       <!-- 提示条 -->
@@ -125,10 +146,20 @@
       <view class="material-content">
         <!-- 左侧分类列表 -->
         <scroll-view class="material-groups" scroll-y enhanced show-scrollbar="{{false}}">
-          <view class="group-item {{activeGroupCode === '' ? 'active' : ''}}" bind:tap="onGroupChange" data-group-code="">
+          <view
+            class="group-item {{activeGroupCode === '' ? 'active' : ''}}"
+            bind:tap="onGroupChange"
+            data-group-code=""
+          >
             <text>全部</text>
           </view>
-          <view wx:for="{{materialGroups}}" wx:key="group_code" class="group-item {{activeGroupCode === item.group_code ? 'active' : ''}}" bind:tap="onGroupChange" data-group-code="{{item.group_code}}">
+          <view
+            wx:for="{{materialGroups}}"
+            wx:key="group_code"
+            class="group-item {{activeGroupCode === item.group_code ? 'active' : ''}}"
+            bind:tap="onGroupChange"
+            data-group-code="{{item.group_code}}"
+          >
             <text>{{item.display_name}}</text>
           </view>
         </scroll-view>
@@ -141,7 +172,7 @@
             </view>
           </view>
           <view wx:if="{{filteredBeads.length === 0}}" class="material-empty">
-            <text>暂无素材</text>
+            <t-empty description="暂无素材" />
           </view>
         </scroll-view>
       </view>

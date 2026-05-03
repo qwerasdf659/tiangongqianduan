@@ -1,10 +1,11 @@
 <!--packageTrade/trade/auction-detail/auction-detail.wxml - C2C拍卖详情+出价-->
 <!--后端API: GET /api/v4/marketplace/auctions/:auction_listing_id-->
+<custom-navbar title="拍卖详情" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="auction-detail-container">
   <!--加载中-->
   <view class="detail-loading" wx:if="{{loading}}">
-    <loading-spinner text="加载拍卖详情..." />
+    <t-loading loading="{{true}}" text="加载拍卖详情..." theme="spinner" />
   </view>
 
   <!--错误状态-->
@@ -152,7 +153,7 @@
       <view class="snapshot-detail">
         <view class="snapshot-row">
           <text class="snapshot-label">物品名称</text>
-          <text class="snapshot-value">{{auction.item_snapshot.item_name}}</text>
+          <text class="snapshot-value">{{auction.item_snapshot.name}}</text>
         </view>
         <view class="snapshot-row" wx:if="{{auction.item_snapshot.item_type}}">
           <text class="snapshot-label">物品类型</text>

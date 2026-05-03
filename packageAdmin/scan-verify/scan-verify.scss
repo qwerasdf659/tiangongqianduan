@@ -1,11 +1,10 @@
 /* packageAdmin/scan-verify/scan-verify.scss - 商家扫码核销页面样式（表单优先模式） */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* 页面容器 */
 .scan-verify-page {
   min-height: 100vh;
-  background: $color-bg;
+  background: var(--tg-color-bg);
 }
 
 /* ===== 横向步骤条 ===== */
@@ -14,9 +13,9 @@
   align-items: center;
   justify-content: center;
   padding: 32rpx 40rpx;
-  background: $color-white;
+  background: var(--tg-color-white);
   margin-bottom: 24rpx;
-  box-shadow: $shadow-sm;
+  box-shadow: var(--tg-shadow-sm);
 }
 
 .step-item {
@@ -29,46 +28,50 @@
   height: 48rpx;
   @include flex-center;
   border-radius: 50%;
-  background: $color-bg-grey;
-  color: $color-text-tertiary;
-  font-size: $font-size-sm;
+  background: var(--tg-color-bg-grey);
+  color: var(--tg-text-tertiary);
+  font-size: var(--td-font-size-s);
   font-weight: bold;
   transition: all 0.3s;
 }
 
 /* 步骤激活态 - 蓝紫渐变 */
 .step-dot.active {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  color: $color-text-white;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.35);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
+  color: var(--tg-color-white);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.35);
 }
 
 /* 步骤完成态 - 成功色 */
 .step-dot.done {
-  background: $color-success;
-  color: $color-text-white;
+  background: var(--tg-color-success);
+  color: var(--tg-color-white);
 }
 
 .step-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   font-weight: 500;
 }
 
 .step-text.active {
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   font-weight: 600;
 }
 
 .step-text.done {
-  color: $color-success;
+  color: var(--tg-color-success);
   font-weight: 600;
 }
 
 .step-connector {
   width: 60rpx;
   height: 2rpx;
-  background: $color-border-light;
+  background: var(--tg-color-border-light);
   margin: 0 16rpx;
   margin-bottom: 28rpx;
   transition: all 0.3s;
@@ -76,7 +79,7 @@
 
 /* 步骤连接线激活态 */
 .step-connector.active {
-  background: $color-success;
+  background: var(--tg-color-success);
 }
 
 /* ===== 主内容区 ===== */
@@ -86,11 +89,11 @@
 
 /* ===== 操作指引卡片（步骤1） ===== */
 .guide-card {
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 30rpx;
   margin-bottom: 24rpx;
-  box-shadow: $shadow-card;
+  box-shadow: var(--tg-shadow-card);
 }
 
 .guide-header {
@@ -100,19 +103,19 @@
 }
 
 .guide-icon {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
 }
 
 .guide-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: bold;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .guide-desc {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  line-height: $line-height-base;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  line-height: var(--tg-line-height-base);
   margin-bottom: 24rpx;
 }
 
@@ -126,35 +129,35 @@
   @include flex-align-center;
   gap: 14rpx;
   padding: 16rpx 20rpx;
-  background: #f0f9eb;
-  border-radius: $border-radius-md;
+  background: rgba(var(--tg-color-success-rgb), 0.08);
+  border-radius: var(--td-radius-default);
 }
 
 .check-dot {
   width: 28rpx;
   height: 28rpx;
   border-radius: 50%;
-  background: $color-border-light;
+  background: var(--tg-color-border-light);
   flex-shrink: 0;
 }
 
 .check-dot.done {
-  background: $color-success;
+  background: var(--tg-color-success);
 }
 
 .check-text {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  line-height: $line-height-base;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  line-height: var(--tg-line-height-base);
 }
 
 /* ===== 表单卡片（步骤1：门店选择） ===== */
 .form-card {
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 30rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 16rpx rgba(var(--tg-color-black-rgb), 0.04);
 }
 
 .card-title {
@@ -163,23 +166,23 @@
   gap: 10rpx;
   margin-bottom: 24rpx;
   padding-bottom: 16rpx;
-  border-bottom: 2rpx solid $color-border-light;
+  border-bottom: 2rpx solid var(--tg-color-border-light);
 }
 
 .title-icon {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
 }
 
 .card-title .title-text {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: bold;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   flex: 1;
 }
 
 .required-mark {
-  font-size: $font-size-base;
-  color: $color-error;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-color-error);
   font-weight: bold;
 }
 
@@ -187,64 +190,64 @@
 .picker-box {
   @include flex-between;
   padding: 20rpx 24rpx;
-  background: $color-bg-grey;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
   border: 2rpx solid transparent;
   transition: all 0.3s;
 }
 
 .picker-box.selected {
-  border-color: $color-primary;
-  background: #fff5f0;
+  border-color: var(--td-brand-color);
+  background: var(--tg-color-bg-accent-soft);
 }
 
 .picker-text {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
 }
 
 .picker-box.selected .picker-text {
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .picker-arrow {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 单门店自动显示 */
 .store-auto {
   @include flex-between;
   padding: 20rpx 24rpx;
-  background: #f0f9eb;
-  border-radius: $border-radius-md;
+  background: rgba(var(--tg-color-success-rgb), 0.08);
+  border-radius: var(--td-radius-default);
 }
 
 .store-name {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .auto-badge {
   padding: 4rpx 12rpx;
-  background: $color-success;
+  background: var(--tg-color-success);
   border-radius: 8rpx;
 }
 
 .auto-text {
-  font-size: $font-size-xs;
-  color: $color-text-white;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-white);
 }
 
 /* ===== 温馨提示卡片 ===== */
 .tips-card {
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 28rpx 30rpx;
   margin-bottom: 32rpx;
-  box-shadow: $shadow-sm;
+  box-shadow: var(--tg-shadow-sm);
 }
 
 .tips-header {
@@ -254,13 +257,13 @@
 }
 
 .tips-icon {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
 }
 
 .tips-title {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .tips-list {
@@ -277,14 +280,14 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: $gradient-blue-start;
+  background: var(--tg-gradient-primary-start);
   flex-shrink: 0;
 }
 
 .tip-text {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  line-height: $line-height-base;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  line-height: var(--tg-line-height-base);
 }
 
 /* ===== 操作按钮区域 ===== */
@@ -300,33 +303,33 @@
   height: 96rpx;
   border-radius: 48rpx;
   border: none;
-  transition: all $transition-base;
+  transition: all var(--tg-transition-base);
 }
 
 .action-btn.primary-btn {
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
-  color: $color-text-white;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
+  color: var(--tg-color-white);
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .action-btn.primary-btn:active {
   transform: translateY(3rpx);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .action-btn-text {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: bold;
 }
 
 /* ===== 扫码操作卡片（步骤2） ===== */
 .scan-action-card {
   @include flex-column-center;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 48rpx 40rpx 40rpx;
   margin-bottom: 24rpx;
-  box-shadow: $shadow-card;
+  box-shadow: var(--tg-shadow-card);
 }
 
 .scan-anim-wrapper {
@@ -345,14 +348,14 @@
 .scan-ring.outer {
   width: 220rpx;
   height: 220rpx;
-  border: 3rpx solid rgba(255, 107, 53, 0.15);
+  border: 3rpx solid rgba(var(--td-brand-color-rgb), 0.15);
   animation: scan-ripple 3s ease-out infinite;
 }
 
 .scan-ring.inner {
   width: 170rpx;
   height: 170rpx;
-  border: 3rpx solid rgba(255, 107, 53, 0.25);
+  border: 3rpx solid rgba(var(--td-brand-color-rgb), 0.25);
   animation: scan-ripple 3s ease-out 1s infinite;
 }
 
@@ -372,9 +375,9 @@
   width: 120rpx;
   height: 120rpx;
   @include flex-center;
-  background: $gradient-primary;
+  background: var(--tg-gradient-primary);
   border-radius: 50%;
-  box-shadow: 0 8rpx 32rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 8rpx 32rpx rgba(var(--td-brand-color-rgb), 0.35);
   z-index: 1;
 }
 
@@ -388,30 +391,30 @@
   justify-content: center;
   width: 85%;
   height: 96rpx;
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
-  color: $color-text-white;
-  font-size: $font-size-md;
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
+  color: var(--tg-color-white);
+  font-size: var(--td-font-size-m);
   font-weight: bold;
   border-radius: 48rpx;
   border: none;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35);
-  transition: all $transition-base;
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.35);
+  transition: all var(--tg-transition-base);
   margin-bottom: 16rpx;
 }
 
 .scan-main-btn:active {
   transform: translateY(4rpx);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .scan-btn-text {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: bold;
 }
 
 .scan-hint {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 手动输入核销码（备用入口） ===== */
@@ -428,38 +431,38 @@
 .divider-line {
   flex: 1;
   height: 2rpx;
-  background: $color-border-light;
+  background: var(--tg-color-border-light);
 }
 
 .divider-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .manual-btn {
   @include flex-center;
   height: 80rpx;
-  background: $color-white;
-  border: 2rpx solid $color-border;
+  background: var(--tg-color-white);
+  border: 2rpx solid var(--tg-color-border);
   border-radius: 40rpx;
   margin-bottom: 12rpx;
 }
 
 .manual-btn:active {
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
 }
 
 .manual-btn-text {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
   font-weight: 500;
 }
 
 .manual-hint {
   display: block;
   text-align: center;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-bottom: 16rpx;
 }
 
@@ -474,17 +477,17 @@
 }
 
 .back-btn-text {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 /* ===== 核销处理中 ===== */
 .processing-card {
   @include flex-column-center;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 80rpx 40rpx 60rpx;
-  box-shadow: $shadow-card;
+  box-shadow: var(--tg-shadow-card);
 }
 
 .processing-anim {
@@ -494,8 +497,8 @@
 .processing-spinner {
   width: 80rpx;
   height: 80rpx;
-  border: 6rpx solid $color-border-light;
-  border-top-color: $gradient-blue-start;
+  border: 6rpx solid var(--tg-color-border-light);
+  border-top-color: var(--tg-gradient-primary-start);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -507,15 +510,15 @@
 }
 
 .processing-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: bold;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 12rpx;
 }
 
 .processing-desc {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
   margin-bottom: 30rpx;
 }
 
@@ -523,18 +526,18 @@
   @include flex-align-center;
   gap: 12rpx;
   padding: 16rpx 24rpx;
-  background: $color-bg-grey;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
 }
 
 .code-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .code-value {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   @include text-ellipsis;
   max-width: 400rpx;
 }
@@ -542,18 +545,18 @@
 /* ===== 核销结果卡片（步骤3） ===== */
 .result-card {
   @include flex-column-center;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 60rpx 40rpx 48rpx;
-  box-shadow: $shadow-card;
+  box-shadow: var(--tg-shadow-card);
 }
 
 .result-card.success {
-  border-top: 6rpx solid $color-success;
+  border-top: 6rpx solid var(--tg-color-success);
 }
 
 .result-card.fail {
-  border-top: 6rpx solid $color-error;
+  border-top: 6rpx solid var(--tg-color-error);
 }
 
 .result-icon-box {
@@ -565,11 +568,19 @@
 }
 
 .result-icon-box.success-bg {
-  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-success-rgb), 0.12),
+    rgba(var(--tg-color-success-rgb), 0.24)
+  );
 }
 
 .result-icon-box.fail-bg {
-  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-error-rgb), 0.12),
+    rgba(var(--tg-color-error-rgb), 0.24)
+  );
 }
 
 .result-icon {
@@ -577,24 +588,24 @@
 }
 
 .result-main-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: bold;
   margin-bottom: 12rpx;
 }
 
 .result-main-title.success-text {
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 .result-main-title.fail-text {
-  color: $color-error;
+  color: var(--tg-color-error);
 }
 
 .result-desc {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
   text-align: center;
-  line-height: $line-height-base;
+  line-height: var(--tg-line-height-base);
   margin-bottom: 30rpx;
   padding: 0 20rpx;
 }
@@ -602,8 +613,8 @@
 /* 核销详情 */
 .result-detail {
   width: 100%;
-  background: $color-bg-grey;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
   padding: 20rpx 24rpx;
   margin-bottom: 32rpx;
 }
@@ -614,24 +625,24 @@
 }
 
 .detail-row + .detail-row {
-  border-top: 2rpx solid $color-border-light;
+  border-top: 2rpx solid var(--tg-color-border-light);
 }
 
 .detail-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   min-width: 140rpx;
 }
 
 .detail-value {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 500;
   text-align: right;
   flex: 1;
 }
 
 .detail-value.item-highlight {
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   font-weight: 600;
 }

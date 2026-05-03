@@ -6,7 +6,7 @@
  *   2. 保存到微信小程序本地缓存（wx.setStorageSync）
  *   3. 读取本地缓存，优先使用缓存保证加载速度
  *   4. 版本对比 + 后台静默更新
- *   5. 多层降级策略：远程API → 本地缓存 → 内置默认配置
+ *   5. 仅接受后端真实配置或本地真实缓存，不再使用前端内置业务默认配置
  *
  * 使用方式：
  *   const { configCache } = require('./config-cache')
@@ -209,14 +209,14 @@ function validatePlacementConfig(config: PlacementConfig): ValidationResult {
  * 加载流程：
  *   1. 读取本地缓存 → 有缓存则立即返回，同时后台静默更新
  *   2. 无缓存 → 同步请求后端API → 成功则缓存并返回
- *   3. API失败 → 读取过期缓存（降级层级2）
- *   4. 无任何缓存 → 返回内置默认配置（降级层级3）
+ *   3. API失败 → 读取过期缓存（仍属后端真实缓存）
+ *   4. 无任何真实缓存 → 抛出错误，由页面明确提示后端缺少真实配置
  */
 class ConfigCacheManager {
   /**
    * 获取活动位置配置（缓存优先策略）
    *
-   * @returns 位置配置数据，始终不为null（最差返回内置默认配置）
+   * @returns 位置配置数据（仅后端真实配置或本地真实缓存）
    */
   async getConfig(): Promise<PlacementConfig> {
     try {
@@ -253,9 +253,7 @@ class ConfigCacheManager {
         return fallbackCachedConfig
       }
 
-      /* 层级4：无任何缓存，返回内置默认配置 */
-      log.warn('[配置缓存] 使用内置默认配置（降级层级4）')
-      return this._getBuiltInConfig()
+      throw new Error('后端未提供活动位置真实配置，请检查 /api/v4/system/config/placement')
     }
   }
 
@@ -452,22 +450,6 @@ class ConfigCacheManager {
     }
 
     return false
-  }
-
-  /**
-   * 内置默认配置（降级层级4，代码写死，永不失效）
-   * 空 placements 数组：活动的 campaign_code 由后端数据库权威提供，
-   * 前端不硬编码任何活动代码。当此降级层触发时，
-   * lottery.ts._loadCampaigns() 的降级策略会使用 API 返回的第一个 active 活动。
-   *
-   * @returns 最基础的配置数据（空位置配置）
-   */
-  _getBuiltInConfig(): PlacementConfig {
-    return {
-      version: '0.0.0-builtin',
-      updated_at: new Date().toISOString(),
-      placements: []
-    }
   }
 }
 

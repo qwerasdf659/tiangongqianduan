@@ -739,7 +739,9 @@ Page({
   /** 切换素材类型Tab（饰品/配饰/吊坠） */
   onMaterialTypeChange(e: WechatMiniprogram.TouchEvent) {
     const materialType = e.currentTarget.dataset.type as string
-    if (materialType === this.data.activeMaterialType) return
+    if (materialType === this.data.activeMaterialType) {
+      return
+    }
     this.setData({ activeMaterialType: materialType })
   },
 

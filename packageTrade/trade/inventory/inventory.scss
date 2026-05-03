@@ -6,13 +6,16 @@
  * 布局理念：游戏仓库式信息层级 + 电商级操作引导
  */
 
-@import '../../../styles/variables';
 @import '../../../styles/mixins';
 
 /* ===== 页面容器 ===== */
 .warehouse-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, $gradient-blue-start 0%, $gradient-blue-end 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
+  );
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
   position: relative;
 }
@@ -41,11 +44,11 @@
 
 .overview-card {
   /* 总览卡片：纯白实底，无 backdrop-filter */
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 32rpx;
-  box-shadow: $shadow-card;
-  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  box-shadow: var(--tg-shadow-card);
+  border: 1rpx solid rgba(var(--tg-color-white-rgb), 0.4);
   position: relative;
   overflow: hidden;
 }
@@ -57,7 +60,12 @@
   left: 0;
   right: 0;
   height: 4rpx;
-  background: linear-gradient(90deg, $gradient-blue-start, $gradient-blue-end, #f093fb);
+  background: linear-gradient(
+    90deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end),
+    var(--td-brand-color-focus)
+  );
 }
 
 .warehouse-badge {
@@ -74,7 +82,7 @@
 .badge-label {
   font-size: 34rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, $color-text-primary, $gradient-blue-start);
+  background: linear-gradient(135deg, var(--tg-text-primary), var(--tg-gradient-primary-start));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -87,15 +95,15 @@
   justify-content: space-around;
   background: linear-gradient(
     135deg,
-    $gradient-blue-start 0%,
-    $gradient-blue-end 50%,
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 50%,
     #f093fb 100%
   );
   border-radius: 20rpx;
   padding: 24rpx 0;
   box-shadow:
-    0 8rpx 24rpx rgba(255, 107, 53, 0.25),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
+    0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.25),
+    inset 0 1rpx 0 rgba(var(--tg-color-white-rgb), 0.2);
 }
 
 .overview-stat {
@@ -114,7 +122,7 @@
 .stat-value-num {
   font-size: 44rpx;
   font-weight: 900;
-  color: #fff;
+  color: var(--tg-color-white);
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.15);
   line-height: 1.1;
 }
@@ -179,7 +187,7 @@
 .asset-chip-num {
   font-size: 28rpx;
   font-weight: 800;
-  color: #fff;
+  color: var(--tg-color-white);
   text-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.15);
 }
 
@@ -238,7 +246,7 @@
 }
 
 .tab-pill.active .tab-pill-label {
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   font-weight: 700;
 }
 
@@ -254,8 +262,12 @@
 }
 
 .tab-pill.active .tab-pill-count {
-  color: #fff;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  color: var(--tg-color-white);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
 }
 
 /* ===== 搜索 + 排序工具栏 ===== */
@@ -273,7 +285,7 @@
   display: flex;
   align-items: center;
   gap: 10rpx;
-  background: $color-white;
+  background: var(--tg-color-white);
   border-radius: 40rpx;
   padding: 0 24rpx;
   height: 76rpx;
@@ -294,7 +306,7 @@
 .search-pill-icon {
   font-size: 26rpx;
   flex-shrink: 0;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 .search-pill-input {
@@ -303,7 +315,7 @@
   font-size: 26rpx;
   border: none;
   background: transparent;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .sort-btn {
@@ -312,7 +324,11 @@
   gap: 6rpx;
   height: 76rpx;
   padding: 0 28rpx;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   border-radius: 40rpx;
   box-shadow:
     0 6rpx 20rpx rgba(255, 107, 53, 0.3),
@@ -327,7 +343,7 @@
 .sort-btn-text {
   font-size: 24rpx;
   font-weight: 600;
-  color: #fff;
+  color: var(--tg-color-white);
 }
 
 /* ===== 物品列表区域 ===== */
@@ -348,7 +364,7 @@
   display: flex;
   align-items: center;
   gap: 20rpx;
-  background: $color-white;
+  background: var(--tg-color-white);
   border-radius: 20rpx;
   padding: 28rpx;
   border: 1rpx solid rgba(255, 255, 255, 0.3);
@@ -402,10 +418,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 80rpx 40rpx;
-  box-shadow: $shadow-card;
+  box-shadow: var(--tg-shadow-card);
   border: 1rpx solid rgba(255, 255, 255, 0.3);
 }
 
@@ -417,21 +433,25 @@
 .error-msg {
   font-size: 30rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 12rpx;
 }
 
 .error-sub {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-bottom: 36rpx;
   text-align: center;
   line-height: 1.5;
 }
 
 .retry-action-btn {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
+  color: var(--tg-color-white);
   border: none;
   border-radius: 40rpx;
   padding: 18rpx 56rpx;
@@ -448,7 +468,7 @@
 }
 
 .item-card {
-  background: $color-white;
+  background: var(--tg-color-white);
   border-radius: 20rpx;
   overflow: hidden;
   position: relative;
@@ -590,7 +610,7 @@
 .item-card-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   @include text-ellipsis;
 }
 
@@ -634,7 +654,7 @@
 .tracking-code-text {
   font-size: 20rpx;
   font-family: 'Courier New', monospace;
-  color: $color-primary;
+  color: var(--td-brand-color);
   background: rgba(24, 144, 255, 0.06);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;
@@ -658,12 +678,12 @@
 .tracking-timeline-btn-text {
   font-size: 18rpx;
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 .item-type-label {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: 4rpx;
 }
@@ -693,7 +713,7 @@
 
 .item-brief {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   @include text-ellipsis;
   display: block;
   line-height: 1.3;
@@ -725,7 +745,7 @@
 
 .status-pill-used {
   background: rgba(0, 0, 0, 0.04);
-  color: $color-text-disabled;
+  color: var(--tg-text-disabled);
 }
 
 .status-pill-expired {
@@ -752,7 +772,7 @@
 
 .meta-text {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .meta-text.expiring {
@@ -785,20 +805,24 @@
 }
 
 .action-use {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
+  color: var(--tg-color-white);
   box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
 }
 
 .action-code {
   background: linear-gradient(135deg, #ff9800, #ffc107);
-  color: #fff;
+  color: var(--tg-color-white);
   box-shadow: 0 4rpx 16rpx rgba(255, 152, 0, 0.25);
 }
 
 .action-sell {
   background: linear-gradient(135deg, #e91e63, #f06292);
-  color: #fff;
+  color: var(--tg-color-white);
   box-shadow: 0 4rpx 16rpx rgba(233, 30, 99, 0.25);
 }
 
@@ -807,10 +831,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: $color-white;
-  border-radius: $border-radius-xl;
+  background: var(--tg-color-white);
+  border-radius: var(--tg-radius-xl);
   padding: 80rpx 40rpx 60rpx;
-  box-shadow: $shadow-card;
+  box-shadow: var(--tg-shadow-card);
   border: 1rpx solid rgba(255, 255, 255, 0.3);
   position: relative;
   overflow: hidden;
@@ -949,7 +973,7 @@
 .empty-title-text {
   font-size: 36rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, $color-text-primary, $gradient-blue-start);
+  background: linear-gradient(135deg, var(--tg-text-primary), var(--tg-gradient-primary-start));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -960,7 +984,7 @@
 
 .empty-subtitle-text {
   font-size: 26rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
   margin-bottom: 48rpx;
   line-height: 1.5;
   position: relative;
@@ -998,13 +1022,17 @@
 
 .guide-step-label {
   font-size: 22rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
   font-weight: 600;
 }
 
 .guide-arrow {
   font-size: 28rpx;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1014,7 +1042,7 @@
 
 .go-lottery-btn {
   background: linear-gradient(135deg, #ff9800, #ffc107, #ffeb3b);
-  color: #fff;
+  color: var(--tg-color-white);
   border: none;
   border-radius: 40rpx;
   padding: 22rpx 64rpx;
@@ -1065,10 +1093,10 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  background: $color-white;
+  background: var(--tg-color-white);
   border-radius: 16rpx;
   padding: 16rpx 20rpx;
-  border: 1rpx solid $color-border-light;
+  border: 1rpx solid var(--tg-color-border-light);
 }
 
 .tips-bar-icon {
@@ -1078,7 +1106,7 @@
 
 .tips-bar-text {
   font-size: 22rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
   line-height: 1.5;
 }
 
@@ -1115,7 +1143,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: $color-white;
+  background: var(--tg-color-white);
   border-radius: 28rpx 28rpx 0 0;
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -1131,10 +1159,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid $color-border-light;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  border-bottom: 1rpx solid var(--tg-color-border-light);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   border-radius: 28rpx 28rpx 0 0;
-  color: #fff;
+  color: var(--tg-color-white);
 }
 
 .sort-sheet-title {
@@ -1148,7 +1180,7 @@
   line-height: 48rpx;
   text-align: center;
   font-size: 28rpx;
-  color: #fff;
+  color: var(--tg-color-white);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
 }
@@ -1167,14 +1199,14 @@
   padding: 24rpx 20rpx;
   border-radius: 16rpx;
   font-size: 28rpx;
-  color: $color-text-primary;
-  background: $color-bg;
+  color: var(--tg-text-primary);
+  background: var(--tg-color-bg);
   transition: all 0.2s ease;
 }
 
 .sort-option.active {
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.06), rgba(229, 90, 43, 0.06));
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   font-weight: 600;
   border: 2rpx solid rgba(255, 107, 53, 0.15);
 }
@@ -1193,7 +1225,7 @@
 
 .load-more-text {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 /* ====== 核销码QR码展示弹窗（模型A：O2O动态码） ====== */
@@ -1210,8 +1242,8 @@
 
 .redemption-qr-modal {
   width: 620rpx;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 40rpx 36rpx 32rpx;
   position: relative;
   max-height: 90vh;
@@ -1224,9 +1256,9 @@
 }
 
 .rqr-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: bold;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .rqr-close {
@@ -1234,12 +1266,12 @@
   height: 56rpx;
   @include flex-center;
   border-radius: 50%;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
 }
 
 .rqr-close-icon {
-  font-size: $font-size-md;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-tertiary);
 }
 
 .rqr-item-info {
@@ -1249,17 +1281,17 @@
 }
 
 .rqr-item-name {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   margin-bottom: 8rpx;
 }
 
 .rqr-item-tip {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   text-align: center;
-  line-height: $line-height-base;
+  line-height: var(--tg-line-height-base);
 }
 
 .rqr-code-area {
@@ -1277,9 +1309,9 @@
   width: 400rpx;
   height: 400rpx;
   @include flex-center;
-  background: $color-white;
-  border: 2rpx solid $color-border-light;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-white);
+  border: 2rpx solid var(--tg-color-border-light);
+  border-radius: var(--td-radius-default);
   margin-bottom: 16rpx;
   overflow: hidden;
 }
@@ -1293,7 +1325,7 @@
 .rqr-image-wrapper.rqr-loading {
   @include flex-column-center;
   gap: 12rpx;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
 }
 
 .rqr-expired-icon,
@@ -1303,20 +1335,20 @@
 
 .rqr-expired-text,
 .rqr-loading-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .rqr-refresh-btn {
   margin-top: 12rpx;
   padding: 10rpx 32rpx;
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
   border-radius: 30rpx;
 }
 
 .rqr-refresh-text {
-  font-size: $font-size-sm;
-  color: $color-text-white;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-white);
   font-weight: 500;
 }
 
@@ -1326,18 +1358,18 @@
 }
 
 .rqr-countdown-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .rqr-countdown-value {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: bold;
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 .rqr-countdown-value.expiring {
-  color: $color-error;
+  color: var(--tg-color-error);
   animation: countdown-pulse 1s ease-in-out infinite;
 }
 
@@ -1361,12 +1393,12 @@
 .rqr-divider-line {
   flex: 1;
   height: 2rpx;
-  background: $color-border-light;
+  background: var(--tg-color-border-light);
 }
 
 .rqr-divider-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   white-space: nowrap;
 }
 
@@ -1374,29 +1406,29 @@
   @include flex-center;
   gap: 16rpx;
   padding: 16rpx 24rpx;
-  background: $color-bg-grey;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
   margin-bottom: 16rpx;
 }
 
 .rqr-text-code-value {
   font-size: 36rpx;
   font-weight: bold;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   letter-spacing: 4rpx;
   font-family: 'Courier New', monospace;
 }
 
 .rqr-copy-btn {
   padding: 8rpx 20rpx;
-  background: $color-primary;
+  background: var(--td-brand-color);
   border-radius: 20rpx;
   flex-shrink: 0;
 }
 
 .rqr-copy-text {
-  font-size: $font-size-xs;
-  color: $color-text-white;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-white);
 }
 
 .rqr-expires {
@@ -1405,8 +1437,8 @@
 }
 
 .rqr-expires-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .rqr-notice {
@@ -1416,12 +1448,12 @@
 }
 
 .rqr-notice-icon {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
 }
 
 .rqr-notice-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ====== 物品流转时间线弹窗 ====== */
@@ -1439,8 +1471,8 @@
 .timeline-modal {
   width: 650rpx;
   max-height: 80vh;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1449,13 +1481,17 @@
 .timeline-header {
   @include flex-between;
   padding: 28rpx 32rpx;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
 }
 
 .timeline-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: bold;
-  color: #fff;
+  color: var(--tg-color-white);
 }
 
 .timeline-close {
@@ -1467,8 +1503,8 @@
 }
 
 .timeline-close-icon {
-  font-size: $font-size-sm;
-  color: #fff;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-white);
 }
 
 .timeline-loading {
@@ -1482,8 +1518,8 @@
 }
 
 .timeline-loading-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .timeline-body {
@@ -1500,7 +1536,7 @@
 .timeline-item-name {
   font-size: 32rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   display: block;
   margin-bottom: 12rpx;
 }
@@ -1513,27 +1549,27 @@
 }
 
 .timeline-meta-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
 }
 
 .timeline-meta-value {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   font-weight: 500;
 }
 
 .timeline-meta-value.monospace {
   font-family: 'Courier New', monospace;
-  color: $color-primary;
+  color: var(--td-brand-color);
   letter-spacing: 1rpx;
 }
 
 .timeline-divider {
   height: 2rpx;
   margin: 0 32rpx;
-  background: $color-border-light;
+  background: var(--tg-color-border-light);
 }
 
 .timeline-scroll {
@@ -1570,7 +1606,11 @@
 }
 
 .event-dot.dot-first {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   border: none;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
@@ -1592,16 +1632,16 @@
 }
 
 .event-detail {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   line-height: 1.5;
   display: block;
   margin-bottom: 4rpx;
 }
 
 .event-time {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .timeline-ledger-check {
@@ -1610,16 +1650,16 @@
   justify-content: center;
   gap: 8rpx;
   padding: 16rpx 32rpx 24rpx;
-  border-top: 1rpx solid $color-border-light;
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 .ledger-icon {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
 }
 
 .ledger-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .timeline-empty {
@@ -1633,8 +1673,8 @@
 }
 
 .timeline-empty-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* ====== 物品详情半屏面板 ====== */
@@ -1653,7 +1693,7 @@
 .detail-sheet {
   width: 100%;
   max-height: 85vh;
-  background: $color-white;
+  background: var(--tg-color-white);
   border-radius: 32rpx 32rpx 0 0;
   overflow-y: auto;
   position: relative;
@@ -1681,8 +1721,8 @@
 }
 
 .detail-loading-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .detail-header {
@@ -1727,7 +1767,7 @@
 .detail-item-name {
   font-size: 32rpx;
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1743,8 +1783,8 @@
 }
 
 .detail-type-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .detail-close-btn {
@@ -1752,14 +1792,14 @@
   height: 56rpx;
   @include flex-center;
   border-radius: 50%;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   flex-shrink: 0;
   margin-left: 16rpx;
 }
 
 .detail-close-icon {
-  font-size: $font-size-md;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-tertiary);
 }
 
 .detail-rarity-bar {
@@ -1786,28 +1826,28 @@
 }
 
 .tracking-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .tracking-value {
   font-size: 28rpx;
   font-weight: 700;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
   font-family: 'Courier New', monospace;
   letter-spacing: 2rpx;
 }
 
 .tracking-copy-btn {
   padding: 10rpx 24rpx;
-  background: $color-primary;
+  background: var(--td-brand-color);
   border-radius: 24rpx;
   flex-shrink: 0;
 }
 
 .tracking-copy-text {
-  font-size: $font-size-xs;
-  color: $color-text-white;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-white);
   font-weight: 500;
 }
 
@@ -1828,15 +1868,15 @@
 }
 
 .grid-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: 6rpx;
 }
 
 .grid-value {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
@@ -1865,7 +1905,7 @@
 }
 
 .merchant-source-name {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
   color: #e65100;
 }
@@ -1885,26 +1925,26 @@
 .detail-desc-area {
   margin: 16rpx 32rpx 0;
   padding-top: 16rpx;
-  border-top: 1rpx solid $color-border-light;
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 .detail-desc-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: 8rpx;
 }
 
 .detail-desc-content {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   line-height: 1.6;
 }
 
 .detail-actions {
   margin: 24rpx 32rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid $color-border-light;
+  border-top: 1rpx solid var(--tg-color-border-light);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -1929,14 +1969,14 @@
 
 .timeline-btn-text {
   flex: 1;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 .timeline-btn-arrow {
   font-size: 36rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   font-weight: 300;
 }
 
@@ -1960,19 +2000,19 @@
 }
 
 .quality-badge-text {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 700;
 }
 
 .quality-score-text {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 500;
   opacity: 0.85;
 }
 
 .edition-tag {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   background: rgba(0, 0, 0, 0.04);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;
@@ -1980,8 +2020,8 @@
 }
 
 .pattern-tag {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .item-cooldown-row {
@@ -1991,7 +2031,7 @@
   padding: 6rpx 16rpx;
   margin-top: 8rpx;
   background: rgba(250, 173, 20, 0.08);
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   border: 1rpx solid rgba(250, 173, 20, 0.15);
 }
 
@@ -2000,15 +2040,15 @@
 }
 
 .cooldown-text {
-  font-size: $font-size-xs;
-  color: $color-warning;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-warning);
   font-weight: 500;
 }
 
 // ===== 物品详情面板 — 品质等级区域 =====
 
 .detail-quality-section {
-  padding: 16rpx $spacing-base;
+  padding: 16rpx var(--tg-spacing-md);
   display: flex;
   gap: 16rpx;
 }
@@ -2016,7 +2056,7 @@
 .detail-quality-card {
   flex: 1;
   background: rgba(0, 0, 0, 0.02);
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   padding: 16rpx;
 }
 
@@ -2027,12 +2067,12 @@
 }
 
 .detail-quality-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .detail-quality-grade {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 700;
 }
 
@@ -2046,24 +2086,24 @@
 
 .detail-quality-score-label,
 .detail-pattern-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .detail-quality-score-value {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
 }
 
 .detail-pattern-value {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   font-family: 'Courier New', monospace;
 }
 
 .detail-edition-card {
   background: rgba(0, 0, 0, 0.02);
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   padding: 16rpx;
   display: flex;
   flex-direction: column;
@@ -2073,15 +2113,15 @@
 }
 
 .detail-edition-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-bottom: 8rpx;
 }
 
 .detail-edition-value {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   font-family: 'Courier New', monospace;
   letter-spacing: 2rpx;
 }
@@ -2090,10 +2130,10 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  padding: 12rpx $spacing-base;
-  margin: 0 $spacing-base;
+  padding: 12rpx var(--tg-spacing-md);
+  margin: 0 var(--tg-spacing-md);
   background: rgba(250, 173, 20, 0.06);
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   border: 1rpx solid rgba(250, 173, 20, 0.12);
 }
 
@@ -2102,8 +2142,8 @@
 }
 
 .detail-cooldown-text {
-  font-size: $font-size-sm;
-  color: $color-warning;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-warning);
   font-weight: 500;
 }
 

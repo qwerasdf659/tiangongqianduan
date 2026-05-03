@@ -1,5 +1,4 @@
 /* 📊 广告活动详情 - 样式 */
-@import '../../styles/variables.scss';
 
 .ad-detail-page {
   min-height: 100vh;
@@ -82,7 +81,7 @@
   text-align: right;
 }
 .info-value.highlight {
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-weight: 600;
 }
 
@@ -196,7 +195,7 @@
   color: #2196f3;
 }
 .btn-submit {
-  background: $color-primary;
+  background: var(--td-brand-color);
   color: #fff;
 }
 

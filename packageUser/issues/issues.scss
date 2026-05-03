@@ -1,10 +1,9 @@
 /* 用户工单列表页面样式 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 .issues-container {
   padding: 20rpx;
-  background-color: $color-bg;
+  background-color: var(--tg-color-bg);
   min-height: 100vh;
 }
 
@@ -14,16 +13,16 @@
 }
 
 .header-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   display: block;
   margin-bottom: 8rpx;
 }
 
 .header-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 骨架屏 */
@@ -31,15 +30,15 @@
   display: flex;
   padding: 24rpx;
   margin-bottom: 16rpx;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
 }
 
 .skeleton-icon {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   margin-right: 20rpx;
   flex-shrink: 0;
 }
@@ -50,7 +49,7 @@
 
 .skeleton-line {
   height: 24rpx;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   border-radius: 4rpx;
   margin-bottom: 12rpx;
 }
@@ -92,24 +91,24 @@
 }
 
 .empty-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 12rpx;
 }
 
 .empty-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   margin-bottom: 32rpx;
 }
 
 .retry-btn {
   padding: 16rpx 48rpx;
-  background: $color-primary;
-  color: $color-white;
-  border-radius: $border-radius-lg;
-  font-size: $font-size-base;
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  font-size: var(--td-font-size-base);
 }
 
 /* 工单总览 */
@@ -118,14 +117,14 @@
 }
 
 .summary-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 工单卡片 */
 .issue-card {
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 28rpx;
   margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -142,7 +141,7 @@
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, $color-primary-light 0%, $color-primary 100%);
+  background: linear-gradient(135deg, var(--td-brand-color-focus) 0%, var(--td-brand-color) 100%);
   @include flex-center;
   margin-right: 16rpx;
   flex-shrink: 0;
@@ -158,9 +157,9 @@
 }
 
 .issue-title {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -168,8 +167,8 @@
 }
 
 .issue-type-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
   display: block;
 }
@@ -178,7 +177,7 @@
 .issue-status-badge {
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: 500;
   flex-shrink: 0;
   margin-left: 12rpx;
@@ -200,15 +199,15 @@
 }
 
 .status-closed {
-  background: $color-bg-grey;
-  color: $color-text-tertiary;
+  background: var(--tg-color-bg-grey);
+  color: var(--tg-text-tertiary);
 }
 
 /* 工单详情 */
 .issue-details {
   padding: 16rpx 0;
-  border-top: 1rpx solid $color-border-light;
-  border-bottom: 1rpx solid $color-border-light;
+  border-top: 1rpx solid var(--tg-color-border-light);
+  border-bottom: 1rpx solid var(--tg-color-border-light);
   margin-bottom: 20rpx;
 }
 
@@ -220,31 +219,31 @@
 }
 
 .detail-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .detail-value {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   font-weight: 500;
 }
 
 /* 优先级颜色 */
 .priority-low {
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .priority-medium {
-  color: $color-info;
+  color: var(--tg-color-info);
 }
 
 .priority-high {
-  color: $color-warning;
+  color: var(--tg-color-warning);
 }
 
 .priority-urgent {
-  color: $color-error;
+  color: var(--tg-color-error);
   font-weight: 700;
 }
 
@@ -266,35 +265,35 @@
   width: 20rpx;
   height: 20rpx;
   border-radius: 50%;
-  background: $color-border;
+  background: var(--tg-color-border);
   transition: background 0.3s;
 }
 
 .step-active .step-dot {
-  background: $color-primary;
+  background: var(--td-brand-color);
 }
 
 .step-text {
   font-size: 20rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .step-active .step-text {
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-weight: 500;
 }
 
 .progress-line {
   flex: 1;
   height: 4rpx;
-  background: $color-border;
+  background: var(--tg-color-border);
   margin: 0 8rpx;
   margin-bottom: 32rpx;
   transition: background 0.3s;
 }
 
 .line-active {
-  background: $color-primary;
+  background: var(--td-brand-color);
 }
 
 /* 加载更多/没有更多 */
@@ -306,6 +305,6 @@
 
 .load-more-text,
 .no-more-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }

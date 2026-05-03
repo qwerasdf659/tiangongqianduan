@@ -1,4 +1,5 @@
 <!--packageUser/feedback/feedback.wxml - 客服反馈提交页面-->
+<custom-navbar title="联系客服" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 <view class="feedback-container">
   <!-- 页面头部 -->
   <view class="page-header">
@@ -140,13 +141,12 @@
 
     <view class="modal-body">
       <view wx:if="{{loadingHistory}}" class="loading-state">
-        <text>加载中...</text>
+        <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="40rpx" />
       </view>
 
-      <view wx:elif="{{myFeedbacks.length === 0}}" class="empty-state">
-        <text class="icon">📝</text>
-        <text class="message">暂无反馈记录</text>
-      </view>
+      <t-empty wx:elif="{{myFeedbacks.length === 0}}" description="暂无反馈记录">
+        <view slot="image">📝</view>
+      </t-empty>
 
       <view wx:else class="feedback-list">
         <view

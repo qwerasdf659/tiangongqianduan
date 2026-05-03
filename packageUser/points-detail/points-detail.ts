@@ -431,7 +431,7 @@ Page({
    * 后端API的asset_code参数用于资产类型筛选（如POINTS），不是交易方向筛选
    */
   onPointsFilterChange(e: any) {
-    const filter = e.currentTarget.dataset.filter
+    const filter = e.detail?.value || e.currentTarget?.dataset?.filter
     log.info('切换积分筛选', filter)
 
     this.setData({ pointsFilter: filter })

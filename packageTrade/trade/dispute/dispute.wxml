@@ -2,9 +2,10 @@
   P2P交易纠纷/申诉页面
   后端API: POST/GET /api/v4/marketplace/trade-orders/:trade_order_id/dispute
 -->
+<custom-navbar title="交易申诉" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="dispute-page">
   <!-- 加载中 -->
-  <loading-spinner wx:if="{{loading}}" text="加载中..." />
+  <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载中..." theme="spinner" />
 
   <!-- 错误状态 -->
   <view class="error-wrapper" wx:if="{{!loading && hasError}}">

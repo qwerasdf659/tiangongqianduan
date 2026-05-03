@@ -1,13 +1,13 @@
 <!--
   反馈列表页面 - 查看全部反馈历史
 -->
+<custom-navbar title="我的反馈" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="feedback-list-page">
   <!-- 空状态 -->
-  <view wx:if="{{!loading && feedbacks.length === 0}}" class="empty-state">
-    <text class="empty-icon">📝</text>
-    <text class="empty-text">暂无反馈记录</text>
-    <button class="new-feedback-btn" bindtap="onNewFeedback">提交反馈</button>
-  </view>
+  <t-empty wx:if="{{!loading && feedbacks.length === 0}}" description="暂无反馈记录">
+    <view slot="image">📝</view>
+    <view slot="action" class="new-feedback-btn" bindtap="onNewFeedback">提交反馈</view>
+  </t-empty>
 
   <!-- 反馈列表 -->
   <view wx:else class="list-container">
@@ -35,8 +35,7 @@
 
     <!-- 加载更多 -->
     <view wx:if="{{loading}}" class="loading-more">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="40rpx" />
     </view>
 
     <!-- 没有更多 -->

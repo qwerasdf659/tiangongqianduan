@@ -761,7 +761,10 @@ const chatMessageHandlers = {
             this.data.sessionId,
             tempFile.tempFilePath
           )
-          const imageUrl: string = uploadResult.data.public_url || uploadResult.data.image_url
+          const imageUrl: string = uploadResult?.data?.public_url || ''
+          if (!imageUrl) {
+            throw new Error('聊天图片上传接口未返回 public_url')
+          }
 
           /* 第2步: 发送image类型消息（content填图片URL） */
           const sendResult = await API.sendChatMessage(this.data.sessionId, {
@@ -962,6 +965,10 @@ const chatMessageHandlers = {
 
   /** 切换快捷回复区域的显示/隐藏 */
   toggleQuickReplies() {
+    if (!this.data.quickRepliesAvailable) {
+      msgShowToast(this.data.quickRepliesUnavailableMessage || '快捷回复服务暂未开通')
+      return
+    }
     this.setData({ showQuickReplies: !this.data.showQuickReplies })
   },
 
@@ -970,6 +977,11 @@ const chatMessageHandlers = {
    * @param e - 点击事件，通过 data-text 获取预设文字内容
    */
   onQuickReply(e: WechatMiniprogram.BaseEvent) {
+    if (!this.data.quickRepliesAvailable) {
+      msgShowToast(this.data.quickRepliesUnavailableMessage || '快捷回复服务暂未开通')
+      return
+    }
+
     const replyText = e.currentTarget.dataset.text as string
     if (!replyText) {
       return

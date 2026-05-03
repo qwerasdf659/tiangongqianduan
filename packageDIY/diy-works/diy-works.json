@@ -1,7 +1,9 @@
 {
   "navigationBarTitleText": "我的设计",
   "usingComponents": {
-    "loading-spinner": "../../components/loading-spinner/loading-spinner",
-    "empty-state": "../../components/empty-state/empty-state"
-  }
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

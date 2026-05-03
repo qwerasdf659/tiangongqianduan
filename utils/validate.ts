@@ -1,14 +1,12 @@
 /**
  * 数据验证工具类v5.0 - 餐厅积分抽奖系统
  * 支持多业务线分层存储架构
- * 包含开发阶段123456万能验证码验证（后端控制）
+ * 验证码有效性由后端判定，前端仅做格式校验
  *
  * @file 天工餐厅积分系统 - 数据验证工具
  * @version 5.2.0
  * @since 2026-02-10
  */
-
-const { getDevelopmentConfig } = require('../config/env')
 
 // ===== 验证结果类型定义 =====
 
@@ -129,37 +127,21 @@ const validatePhoneNumber = (phone: string): PhoneValidationResult => {
 }
 
 /**
- * 验证码验证（支持开发环境万能验证码123456）
+ * 验证码验证（格式校验）
  *
- * 🔴 特殊说明: 开发/测试环境支持万能验证码123456（后端控制）
- * 通过 config/env.ts 的 enableUnifiedAuth 配置控制
+ * 🔴 验证码有效性由后端判定，前端仅做格式校验（6位数字）
  * 业务场景: 用户手机号登录验证、敏感操作二次验证
  *
  * @example
- * validateVerificationCode('123456') // 开发环境 => { isValid: true, isDevelopmentCode: true }
- * validateVerificationCode('654321') // => { isValid: true, isDevelopmentCode: false }
+ * validateVerificationCode('654321') // => { isValid: true }
  */
 const validateVerificationCode = (code: string): CodeValidationResult => {
-  const devConfig = getDevelopmentConfig()
-
   if (!code || typeof code !== 'string') {
     return { isValid: false, message: '请输入验证码' }
   }
 
-  // 去除空格
   const cleanCode: string = code.replace(/\s+/g, '')
 
-  // 开发阶段: 支持123456万能验证码（后端控制）
-  if (devConfig.enableUnifiedAuth && cleanCode === '123456') {
-    return {
-      isValid: true,
-      cleanCode,
-      message: '开发阶段万能验证码验证通过',
-      isDevelopmentCode: true
-    }
-  }
-
-  // 正常验证码格式: 6位数字
   const codeRegex = /^\d{6}$/
 
   if (!codeRegex.test(cleanCode)) {

@@ -1,0 +1,223 @@
+<!-- 福袋抽奖组件 - 多袋网格版（参考砸金蛋模式） -->
+<view class="luckybag-wrap">
+  <!-- 白闪遮罩 -->
+  <view class="bag-flash" wx:if="{{showFlash}}"></view>
+
+  <!-- 浮动装饰粒子 -->
+  <view
+    class="float-particle"
+    wx:for="{{particles}}"
+    wx:key="id"
+    style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; font-size:{{item.size}}rpx;"
+  >
+    <text>{{item.prize_icon}}</text>
+  </view>
+
+  <!-- ===== 单开模式（3选1） ===== -->
+  <block wx:if="{{!isMultiOpen}}">
+    <!-- 顶部横幅 -->
+    <view class="lb-banner">
+      <view class="lb-banner__ribbon"></view>
+      <text class="lb-banner__text">选一个福袋开启试手气</text>
+      <view class="lb-banner__ribbon"></view>
+    </view>
+
+    <!-- 舞台区域 -->
+    <view class="lb-stage">
+      <view class="lb-stage__glow"></view>
+
+      <view class="bags-row">
+        <view
+          class="bag-slot {{selectedBag >= 0 && selectedBag !== item.id && !item.opened ? 'is-dimmed' : ''}}"
+          wx:for="{{bags}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onTapBag"
+        >
+          <!-- 完整福袋 -->
+          <view
+            class="bag-item {{item.shaking ? 'is-shaking' : ''}} {{selectedBag === item.id && !item.opened ? 'is-selected' : ''}} {{canSelect ? 'is-idle' : ''}}"
+            wx:if="{{!item.opened}}"
+          >
+            <view class="bag-shape">
+              <view class="bag-shape__tie">
+                <view class="bag-shape__tie-knot"></view>
+                <view class="bag-shape__tie-ribbon left"></view>
+                <view class="bag-shape__tie-ribbon right"></view>
+              </view>
+              <view class="bag-shape__neck"></view>
+              <view class="bag-shape__body">
+                <view class="bag-shape__shine"></view>
+                <view class="bag-shape__fu"><text class="fu-text">福</text></view>
+                <view class="bag-shape__pattern"></view>
+              </view>
+            </view>
+            <!-- 编号 -->
+            <view class="bag-number">
+              <text class="count-text">{{item.id + 1}}</text>
+            </view>
+            <!-- 点击提示 -->
+            <view class="bag-tap-hint" wx:if="{{canSelect && selectedBag < 0}}">
+              <text class="hint-text">点我</text>
+            </view>
+          </view>
+
+          <!-- 拆开状态 -->
+          <view class="bag-opened-effect" wx:else>
+            <view class="bag-burst">
+              <view class="bag-burst__ring"></view>
+              <view class="bag-burst__ring bag-burst__ring--delay"></view>
+              <view class="bag-burst__star"></view>
+            </view>
+          </view>
+
+          <!-- 底座 -->
+          <view class="bag-pedestal">
+            <view class="bag-pedestal__top"></view>
+            <view class="bag-pedestal__body"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 消耗积分提示 -->
+    <view class="lb-cost" wx:if="{{costPoints > 0}}">
+      <view class="lb-cost__icon"></view>
+      <text class="lb-cost__text">消耗 {{costPoints}} 积分/次</text>
+    </view>
+  </block>
+
+  <!-- ===== 连开模式（N个福袋） ===== -->
+  <block wx:else>
+    <!-- 顶部横幅 -->
+    <view class="lb-banner">
+      <view class="lb-banner__ribbon"></view>
+      <text class="lb-banner__text">点击福袋逐个开启</text>
+      <view class="lb-banner__ribbon"></view>
+    </view>
+
+    <!-- 进度计数 -->
+    <view class="multi-progress">
+      <text class="multi-progress__text">{{openedCount}} / {{totalBags}}</text>
+      <view class="multi-progress__bar">
+        <view
+          class="multi-progress__fill"
+          style="width: {{totalBags > 0 ? openedCount / totalBags * 100 : 0}}%"
+        ></view>
+      </view>
+    </view>
+
+    <!-- 福袋阵列 -->
+    <view class="multi-stage {{multiEntered ? 'is-entered' : ''}} {{sizeClass}}">
+      <view class="lb-stage__glow"></view>
+
+      <view class="multi-row" wx:for="{{bagRows}}" wx:for-index="rowIdx" wx:key="rowIdx">
+        <view
+          class="multi-bag-slot {{bag.opened ? 'is-opened' : ''}} {{bag.shaking ? 'is-shaking-slot' : ''}}"
+          wx:for="{{item}}"
+          wx:for-item="bag"
+          wx:for-index="colIdx"
+          wx:key="index"
+          data-row="{{rowIdx}}"
+          data-col="{{colIdx}}"
+          bindtap="onTapMultiBag"
+          style="animation-delay: {{bag.enterDelay}}ms"
+        >
+          <!-- 未拆开的福袋 -->
+          <view
+            class="bag-item {{bag.shaking ? 'is-shaking' : ''}} {{!bag.opened ? 'is-idle' : ''}}"
+            wx:if="{{!bag.opened}}"
+          >
+            <view class="bag-shape">
+              <view class="bag-shape__tie">
+                <view class="bag-shape__tie-knot"></view>
+                <view class="bag-shape__tie-ribbon left"></view>
+                <view class="bag-shape__tie-ribbon right"></view>
+              </view>
+              <view class="bag-shape__neck"></view>
+              <view class="bag-shape__body">
+                <view class="bag-shape__shine"></view>
+                <view class="bag-shape__fu"><text class="fu-text">福</text></view>
+              </view>
+            </view>
+            <view class="bag-number">
+              <text class="count-text">{{bag.index + 1}}</text>
+            </view>
+          </view>
+
+          <!-- 拆开后显示奖品 -->
+          <view class="multi-bag-prize" wx:else>
+            <view class="bag-burst">
+              <view class="bag-burst__ring"></view>
+              <view class="bag-burst__star"></view>
+            </view>
+            <view class="multi-bag-prize__info">
+              <text class="multi-bag-prize__icon">{{bag.prize_icon || '🎁'}}</text>
+              <text class="multi-bag-prize__name">{{bag.prize_name || ''}}</text>
+            </view>
+          </view>
+
+          <!-- 底座 -->
+          <view class="bag-pedestal">
+            <view class="bag-pedestal__top"></view>
+            <view class="bag-pedestal__body"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 一键全开按钮 -->
+    <view class="multi-actions" wx:if="{{!allOpened}}">
+      <view class="multi-open-all-btn" bindtap="onOpenAll">
+        <text class="btn-text">全部开启</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 奖品池预览 -->
+  <view class="lb-prizes" wx:if="{{prizesForPreview.length > 0}}">
+    <view class="lb-prizes__header">
+      <view class="lb-prizes__title-wrap">
+        <text class="lb-prizes__dot"></text>
+        <text class="lb-prizes__title">福袋好礼</text>
+        <text class="lb-prizes__dot"></text>
+      </view>
+      <text class="lb-prizes__count">{{prizesForPreview.length}}种奖品</text>
+    </view>
+    <scroll-view
+      class="lb-prizes__scroll"
+      scroll-x="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
+      <view class="lb-prizes__list">
+        <rarity-effects
+          rarity="{{item.rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+          wx:for="{{prizesForPreview}}"
+          wx:key="lottery_prize_id"
+          bindtap="onPrizeTap"
+          data-prize="{{item}}"
+        >
+          <view
+            class="lb-prizes__item {{item.is_fallback ? 'lb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'lb-prizes__item--sold-out' : ''}}"
+          >
+            <view class="lb-prizes__icon-wrap">
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="lb-prizes__image"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+                data-prize-idx="{{index}}"
+                binderror="onPrizeImageError"
+              /><text wx:else class="lb-prizes__icon">{{item.prize_icon}}</text>
+              <text wx:if="{{item.is_sold_out}}" class="lb-prizes__sold-out">抢光</text>
+            </view>
+            <text class="lb-prizes__name">{{item.prize_name}}</text>
+            <text wx:if="{{item.is_fallback}}" class="lb-prizes__fallback-tag">保底</text>
+          </view>
+        </rarity-effects>
+      </view>
+    </scroll-view>
+  </view>
+</view>

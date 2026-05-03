@@ -12,7 +12,6 @@
  * @version 3.0.0
  */
 
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ========== 加载 / 错误状态 ========== */
@@ -21,50 +20,6 @@
   @include flex-column-center;
   min-height: 80vh;
   gap: 24rpx;
-}
-
-.ed-loading-spinner {
-  display: flex;
-  gap: 8rpx;
-}
-
-.ed-spinner-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  animation: edBounce 1.4s infinite ease-in-out both;
-}
-
-.ed-dot1 {
-  animation-delay: -0.32s;
-}
-
-.ed-dot2 {
-  animation-delay: -0.16s;
-}
-
-.ed-dot3 {
-  animation-delay: 0s;
-}
-
-@keyframes edBounce {
-  0%,
-  80%,
-  100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.ed-loading-text {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
 }
 
 .ed-error {
@@ -78,20 +33,20 @@
 }
 
 .ed-error-msg {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
 }
 
 .ed-retry-btn {
   @include btn-primary;
   padding: 12rpx 40rpx !important;
-  font-size: $font-size-sm !important;
+  font-size: var(--td-font-size-s) !important;
 }
 
 /* ========== 详情主体 ========== */
 
 .ed-container {
-  background: $color-bg;
+  background: var(--tg-page-bg);
   min-height: 100vh;
   padding-bottom: 160rpx;
 }
@@ -191,7 +146,7 @@
 .ed-swiper-dot.ed-dot-active {
   width: 28rpx;
   border-radius: 6rpx;
-  background: $color-white;
+  background: #ffffff;
 }
 
 .ed-hero-fallback {
@@ -221,8 +176,8 @@
 }
 
 .ed-fallback-name {
-  font-size: $font-size-md;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-tertiary);
   font-weight: 500;
 }
 
@@ -230,8 +185,8 @@
   position: absolute;
   top: 24rpx;
   right: 24rpx;
-  color: $color-text-white;
-  font-size: $font-size-xs;
+  color: #ffffff;
+  font-size: var(--td-font-size-xs);
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
   font-weight: 700;
@@ -256,7 +211,7 @@
 .ed-tag {
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
-  font-size: $font-size-xs;
+  font-size: var(--td-font-size-xs);
   font-weight: 600;
 
   text {
@@ -268,7 +223,7 @@
 /* game 风格标签 */
 .ed-tag-hot {
   background: rgba(255, 77, 79, 0.1);
-  color: $color-error;
+  color: #ff4d4f;
 }
 
 .ed-tag-limited {
@@ -278,12 +233,12 @@
 
 .ed-tag-new {
   background: rgba(33, 150, 243, 0.1);
-  color: $color-info;
+  color: #1890ff;
 }
 
 .ed-tag-pinned {
   background: rgba(255, 107, 53, 0.1);
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .ed-tag-recommended {
@@ -293,24 +248,24 @@
 
 .ed-tag-warranty {
   background: rgba(76, 175, 80, 0.1);
-  color: $color-success;
+  color: #52c41a;
 }
 
 .ed-tag-shipping {
   background: rgba(255, 107, 53, 0.1);
-  color: $gradient-blue-start;
+  color: var(--td-brand-color-focus);
 }
 
 /* 后端自定义标签默认样式（未知 style_type 的兜底） */
 .ed-tag-default {
   background: rgba(255, 107, 53, 0.1);
-  color: $gradient-blue-start;
+  color: var(--td-brand-color-focus);
 }
 
 /* plain 风格标签 */
 .ed-tag-plain {
-  background: $color-bg-grey;
-  color: $color-text-secondary;
+  background: var(--tg-page-bg);
+  color: var(--tg-text-secondary);
   font-weight: 500;
 }
 
@@ -330,17 +285,17 @@
   margin-bottom: 16rpx;
 
   text {
-    font-size: $font-size-xs;
-    color: $gradient-blue-start;
+    font-size: var(--td-font-size-xs);
+    color: var(--td-brand-color-focus);
     font-weight: 600;
   }
 }
 
 .ed-product-name {
   display: block;
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   line-height: 1.4;
   margin-bottom: 20rpx;
 }
@@ -354,17 +309,17 @@
 .ed-price-amount {
   font-size: 56rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, $color-primary, #f7931e);
+  background: linear-gradient(135deg, var(--td-brand-color), #f7931e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: $color-primary;
+  color: var(--td-brand-color);
   line-height: 1;
 }
 
 .ed-price-unit {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
   font-weight: 500;
   margin-top: 8rpx;
 }
@@ -377,14 +332,14 @@
 }
 
 .ed-original-value {
-  font-size: $font-size-sm;
-  color: $color-text-disabled;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   text-decoration: line-through;
 }
 
 .ed-discount-tag {
   font-size: 20rpx;
-  color: $color-error;
+  color: #ff4d4f;
   background: rgba(255, 77, 79, 0.08);
   padding: 2rpx 10rpx;
   border-radius: 6rpx;
@@ -399,7 +354,7 @@
   gap: 12rpx;
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 2rpx solid $color-border-light;
+  border-top: 2rpx solid var(--tg-border-color);
 }
 
 .ed-coupon-item {
@@ -417,8 +372,8 @@
 }
 
 .ed-coupon-text {
-  font-size: $font-size-xs;
-  color: $color-error;
+  font-size: var(--td-font-size-xs);
+  color: #ff4d4f;
   font-weight: 600;
 }
 
@@ -440,8 +395,8 @@
 }
 
 .ed-promotion-text {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-secondary);
 }
 
 .ed-estimated-row {
@@ -453,8 +408,8 @@
 }
 
 .ed-estimated-label {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 .ed-estimated-value {
@@ -463,15 +418,15 @@
 }
 
 .ed-estimated-num {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 800;
-  color: $color-primary;
+  color: var(--td-brand-color);
   line-height: 1;
 }
 
 .ed-estimated-unit {
-  font-size: $font-size-xs;
-  color: $color-primary-light;
+  font-size: var(--td-font-size-xs);
+  color: var(--td-brand-color)-light;
   font-weight: 500;
 }
 
@@ -485,12 +440,12 @@
 
 .ed-section-title {
   display: block;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   padding-left: 16rpx;
-  border-left: 6rpx solid $gradient-blue-start;
+  border-left: 6rpx solid var(--td-brand-color-focus);
 }
 
 /* grid 模式 */
@@ -505,20 +460,20 @@
 .ed-attr-item {
   @include flex-column-center;
   padding: 20rpx 0;
-  background: $color-bg-grey;
-  border-radius: $border-radius-sm;
+  background: var(--tg-page-bg);
+  border-radius: var(--td-radius-small);
 }
 
 .ed-attr-value {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 6rpx;
 }
 
 .ed-attr-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* list 模式 */
@@ -530,7 +485,7 @@
 .ed-attr-row {
   @include flex-between;
   padding: 18rpx 0;
-  border-bottom: 2rpx solid $color-border-light;
+  border-bottom: 2rpx solid var(--tg-border-color);
 
   &:last-child {
     border-bottom: none;
@@ -538,13 +493,13 @@
 }
 
 .ed-attr-row-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .ed-attr-row-value {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
@@ -556,7 +511,7 @@
 
 .ed-stock-bar-bg {
   height: 12rpx;
-  background: $color-bg-grey;
+  background: var(--tg-page-bg);
   border-radius: 6rpx;
   overflow: hidden;
   margin-bottom: 8rpx;
@@ -565,13 +520,13 @@
 .ed-stock-bar-fill {
   height: 100%;
   border-radius: 6rpx;
-  background: $color-success;
+  background: #52c41a;
   transition: width 0.6s ease;
 }
 
 .ed-stock-bar-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ========== ⑤ 商品介绍区 ========== */
@@ -598,7 +553,7 @@
 }
 
 .ed-sell-point-text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #bf6c00;
   font-weight: 600;
   line-height: 1.5;
@@ -606,8 +561,8 @@
 
 .ed-description {
   display: block;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   line-height: 1.8;
   margin-bottom: 16rpx;
 }
@@ -633,8 +588,8 @@
 
 .ed-detail-img-caption {
   display: block;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
   text-align: center;
   margin-top: 8rpx;
   line-height: 1.5;
@@ -720,8 +675,8 @@
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
-  background: $gradient-blue-start;
-  color: $color-text-white;
+  background: var(--td-brand-color-focus);
+  color: #ffffff;
   font-size: 20rpx;
   font-weight: 700;
   display: flex;
@@ -732,8 +687,8 @@
 }
 
 .ed-rule-text {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   line-height: 1.6;
   flex: 1;
 }
@@ -753,8 +708,8 @@
 }
 
 .ed-related-item {
-  background: $color-bg-grey;
-  border-radius: $border-radius-sm;
+  background: var(--tg-page-bg);
+  border-radius: var(--td-radius-small);
   overflow: hidden;
 }
 
@@ -782,9 +737,9 @@
 
 .ed-related-name {
   display: block;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -797,14 +752,14 @@
 }
 
 .ed-related-price-num {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 800;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .ed-related-price-unit {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ========== ⑨ 标签云卡片 ========== */
@@ -823,13 +778,13 @@
 
 .ed-cloud-tag {
   padding: 8rpx 20rpx;
-  background: $color-bg-grey;
+  background: var(--tg-page-bg);
   border-radius: 24rpx;
   transition: background 0.2s;
 
   text {
-    font-size: $font-size-xs;
-    color: $color-text-secondary;
+    font-size: var(--td-font-size-xs);
+    color: var(--tg-text-secondary);
     font-weight: 500;
   }
 }
@@ -849,7 +804,7 @@
   bottom: 0;
   display: flex;
   align-items: center;
-  background: $color-white;
+  background: #ffffff;
   padding: 16rpx 32rpx;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
   z-index: 100;
@@ -863,14 +818,14 @@
 }
 
 .ed-balance-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .ed-balance-value {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 800;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 /* 微信客服按钮（覆盖微信默认 button 样式） */
@@ -896,8 +851,8 @@
 }
 
 .ed-service-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* Phase 4: 购物车按钮（暂隐藏，后续启用） */
@@ -914,8 +869,8 @@
 }
 
 .ed-cart-text {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .ed-exchange-btn {
@@ -923,15 +878,15 @@
   min-width: 240rpx;
   height: 88rpx;
   border-radius: 44rpx;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
+  background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
   box-shadow: 0 8rpx 28rpx rgba(255, 107, 53, 0.35);
   transition: all 0.2s;
   flex-shrink: 0;
 
   text {
-    font-size: $font-size-base;
+    font-size: var(--td-font-size-base);
     font-weight: 700;
-    color: $color-text-white;
+    color: #ffffff;
     letter-spacing: 2rpx;
   }
 }
@@ -953,320 +908,38 @@
   pointer-events: none;
 
   text {
-    color: $color-text-tertiary;
+    color: var(--tg-text-tertiary);
   }
-}
-
-/* ========== 兑换确认弹窗 ========== */
-
-.ed-confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 9998;
-  @include flex-center;
-  animation: edOverlayIn 0.2s ease;
-}
-
-@keyframes edOverlayIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.ed-confirm-modal {
-  width: 88%;
-  max-width: 680rpx;
-  background: $color-bg-card;
-  border-radius: 28rpx;
-  overflow: hidden;
-  box-shadow:
-    0 24rpx 80rpx rgba(0, 0, 0, 0.18),
-    0 8rpx 24rpx rgba(0, 0, 0, 0.1);
-  animation: edModalUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes edModalUp {
-  from {
-    opacity: 0;
-    transform: translateY(60rpx) scale(0.96);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.ed-confirm-bar {
-  height: 8rpx;
-  background: #ff6b35;
-}
-
-.ed-confirm-header {
-  @include flex-between;
-  padding: 32rpx 32rpx 16rpx;
-}
-
-.ed-confirm-title {
-  font-size: $font-size-lg;
-  font-weight: 700;
-  color: $color-text-primary;
-}
-
-.ed-confirm-close {
-  width: 52rpx;
-  height: 52rpx;
-  border-radius: 50%;
-  background: $color-bg-grey;
-  @include flex-center;
-
-  text {
-    font-size: 24rpx;
-    color: $color-text-tertiary;
-    font-weight: 600;
-  }
-}
-
-.ed-confirm-body {
-  padding: 8rpx 32rpx 24rpx;
-}
-
-.ed-confirm-product {
-  display: flex;
-  gap: 24rpx;
-  padding: 24rpx;
-  background: #f8f9ff;
-  border-radius: 20rpx;
-  margin-bottom: 24rpx;
-  border: 2rpx solid rgba(255, 107, 53, 0.08);
-}
-
-.ed-confirm-img {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 16rpx;
-  flex-shrink: 0;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
-}
-
-.ed-confirm-img-fallback {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: 16rpx;
-  flex-shrink: 0;
-  @include flex-center;
-  background: #f0f0f0;
-
-  text {
-    font-size: 56rpx;
-    opacity: 0.5;
-  }
-}
-
-.ed-confirm-product-info {
-  @include flex-column;
-  justify-content: center;
-  flex: 1;
-  min-width: 0;
-  gap: 12rpx;
-}
-
-.ed-confirm-product-name {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: $color-text-primary;
-  @include text-ellipsis-multi(2);
-}
-
-.ed-confirm-product-price {
-  @include flex-align-center;
-  gap: 6rpx;
-}
-
-.ed-confirm-price-num {
-  font-size: 40rpx;
-  font-weight: 800;
-  color: $color-primary;
-  line-height: 1;
-}
-
-.ed-confirm-price-unit {
-  font-size: $font-size-sm;
-  color: $color-primary-light;
-  font-weight: 500;
-}
-
-.ed-confirm-row {
-  @include flex-between;
-  padding: 20rpx 0;
-}
-
-.ed-confirm-row + .ed-confirm-row,
-.ed-confirm-total-row {
-  border-top: 2rpx solid $color-border-light;
-}
-
-.ed-confirm-label {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-}
-
-.ed-confirm-balance {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
-  font-weight: 500;
-}
-
-/* 数量控制 */
-
-.ed-qty-controls {
-  @include flex-align-center;
-  gap: 4rpx;
-  background: $color-bg-grey;
-  border-radius: 16rpx;
-  padding: 4rpx;
-}
-
-.ed-qty-btn {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 14rpx;
-  background: $color-bg-card;
-  @include flex-center;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-
-  text {
-    font-size: 32rpx;
-    font-weight: 600;
-    color: $color-text-primary;
-  }
-}
-
-.ed-qty-btn:active {
-  background: $color-border-light;
-  transform: scale(0.95);
-}
-
-.ed-qty-btn.ed-qty-off {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.ed-qty-num {
-  width: 64rpx;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: $color-text-primary;
-}
-
-/* 合计消耗 */
-
-.ed-confirm-total-row {
-  @include flex-between;
-  padding: 24rpx 16rpx;
-  margin: 8rpx -16rpx;
-  background: #fff7f0;
-  border-radius: 16rpx;
-}
-
-.ed-confirm-total-val {
-  @include flex-align-center;
-  gap: 8rpx;
-}
-
-.ed-confirm-total-num {
-  font-size: 44rpx;
-  font-weight: 800;
-  color: $color-primary;
-  line-height: 1;
-}
-
-.ed-confirm-total-unit {
-  font-size: $font-size-sm;
-  font-weight: 600;
-  color: $color-primary-light;
-}
-
-/* 底部按钮 */
-
-.ed-confirm-footer {
-  display: flex;
-  gap: 20rpx;
-  padding: 12rpx 32rpx 36rpx;
-}
-
-.ed-confirm-cancel {
-  flex: 1;
-  height: 88rpx;
-  @include flex-center;
-  border-radius: 20rpx;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: $color-text-secondary;
-  background: $color-bg-grey;
-}
-
-.ed-confirm-cancel:active {
-  background: $color-border;
-}
-
-.ed-confirm-submit {
-  flex: 2;
-  height: 88rpx;
-  @include flex-center;
-  border-radius: 20rpx;
-  font-size: 30rpx;
-  font-weight: 700;
-  color: $color-text-white;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end);
-  box-shadow: 0 8rpx 28rpx rgba(255, 107, 53, 0.4);
-}
-
-.ed-confirm-submit:active {
-  transform: scale(0.98);
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
-}
-
-.ed-submit-disabled {
-  background: #c0c0c0;
-  box-shadow: none;
-  pointer-events: none;
 }
 
 /* SKU 规格选择区 */
 .ed-sku-card {
-  background: $color-white;
-  margin: $spacing-md $spacing-base 0;
-  border-radius: $border-radius-md;
-  padding: $spacing-lg $spacing-base;
+  background: #ffffff;
+  margin: var(--tg-spacing-sm) var(--tg-spacing-md) 0;
+  border-radius: var(--td-radius-default);
+  padding: var(--tg-spacing-lg) var(--tg-spacing-md);
 }
 
 .ed-sku-options {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-sm;
-  margin-top: $spacing-sm;
+  gap: var(--tg-spacing-sm);
+  margin-top: var(--tg-spacing-sm);
 }
 
 .ed-sku-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: $spacing-sm $spacing-base;
-  border: 2rpx solid $color-border;
-  border-radius: $spacing-base;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  border: 2rpx solid var(--tg-border-color);
+  border-radius: var(--tg-spacing-md);
   min-width: 160rpx;
   position: relative;
 }
 
 .ed-sku-selected {
-  border-color: $gradient-blue-start;
+  border-color: var(--td-brand-color-focus);
   background: rgba(255, 107, 53, 0.06);
 }
 
@@ -1276,25 +949,25 @@
 }
 
 .ed-sku-label {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .ed-sku-price {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   margin-top: 4rpx;
 }
 
 .ed-sku-stock {
-  font-size: $font-size-xs;
+  font-size: var(--td-font-size-xs);
   color: #ff6b00;
   margin-top: 4rpx;
 }
 
 .ed-sku-soldout {
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 // ===== 铸造标识（mint_instance=true 时展示） =====
@@ -1303,10 +976,10 @@
   display: flex;
   align-items: center;
   gap: 10rpx;
-  margin: $spacing-sm $spacing-base;
+  margin: var(--tg-spacing-sm) var(--tg-spacing-md);
   padding: 16rpx 20rpx;
   background: linear-gradient(135deg, rgba(52, 152, 219, 0.06), rgba(155, 89, 182, 0.06));
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   border: 1rpx solid rgba(52, 152, 219, 0.15);
 }
 
@@ -1316,26 +989,26 @@
 }
 
 .ed-mint-text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #3498db;
   font-weight: 500;
   line-height: 1.5;
 }
 
 .ed-sku-selected-info {
-  margin-top: $spacing-sm;
-  padding-top: $spacing-sm;
-  border-top: 1rpx solid $color-border;
+  margin-top: var(--tg-spacing-sm);
+  padding-top: var(--tg-spacing-sm);
+  border-top: 1rpx solid var(--tg-border-color);
 }
 
 .ed-sku-selected-text {
-  font-size: $font-size-sm;
-  color: $gradient-blue-start;
+  font-size: var(--td-font-size-s);
+  color: var(--td-brand-color-focus);
 }
 
 .ed-confirm-sku-spec {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   margin-top: 4rpx;
   display: block;
 }

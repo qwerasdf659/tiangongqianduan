@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "DIY 设计",
-  "usingComponents": {}
+  "usingComponents": {
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

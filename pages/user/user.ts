@@ -1,18 +1,16 @@
 // pages/user/user.ts - 用户中心页面 + MobX响应式状态
 const app = getApp()
 // 统一工具函数导入（从utils/index.ts）
-const {
-  API,
-  Wechat,
-  Logger,
-  ApiWrapper,
-  ThemeCache,
-  GlobalTheme,
-  PopupFrequency
-} = require('../../utils/index')
+const { API, Wechat, Logger, ApiWrapper, PopupFrequency } = require('../../utils/index')
 const log = Logger.createLogger('user')
 const { showToast } = Wechat
 const { safeApiCall } = ApiWrapper
+
+const DEFAULT_NAV_THEME = {
+  navBg: '#ff6b35',
+  navText: '#ffffff',
+  tabSelected: '#ff6b35'
+}
 // MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
@@ -173,11 +171,6 @@ Page({
       }
     ] as MenuItem[],
 
-    /* 全局氛围主题（后端 GET /api/v4/system/config/app-theme 驱动） */
-    globalThemeStyle: '',
-    /** 当前主题标识（驱动 WXML class 绑定，用于 CSS class 选择器差异化） */
-    currentThemeName: 'default',
-
     /* ===== 弹窗横幅（后端 GET /api/v4/system/ad-delivery?slot_type=popup&position=profile 返回） ===== */
     showPopupBanner: false,
     popupBanners: [] as API.AdDeliveryItem[],
@@ -250,16 +243,7 @@ Page({
     }
     log.info('用户中心页面显示')
 
-    /* 每次 onShow 重新检查全局主题（管理后台切换主题后生效） */
-    const onShowThemeName = ThemeCache.getThemeNameSync()
-    const showThemeStyle = GlobalTheme.getGlobalThemeStyle(onShowThemeName)
-    if (
-      showThemeStyle !== this.data.globalThemeStyle ||
-      onShowThemeName !== this.data.currentThemeName
-    ) {
-      this.setData({ globalThemeStyle: showThemeStyle, currentThemeName: onShowThemeName })
-    }
-    this.applyNativeThemeColors(onShowThemeName)
+    this.applyNativeThemeColors()
 
     this.updateUserStatus()
     if (this.data.isLoggedIn) {
@@ -289,17 +273,15 @@ Page({
    * 必须通过 wx.setNavigationBarColor / wx.setTabBarStyle 两个 JS API 动态设置。
    * app.json 中的 #FF6B35 仅作为主题未加载前的兜底色。
    */
-  applyNativeThemeColors(themeName: string) {
-    const navColors = GlobalTheme.getThemeNavColors(themeName)
-
+  applyNativeThemeColors() {
     wx.setNavigationBarColor({
-      frontColor: navColors.navText as '#ffffff' | '#000000',
-      backgroundColor: navColors.navBg,
+      frontColor: DEFAULT_NAV_THEME.navText as '#ffffff' | '#000000',
+      backgroundColor: DEFAULT_NAV_THEME.navBg,
       animation: { duration: 300, timingFunc: 'easeIn' }
     })
 
     wx.setTabBarStyle({
-      selectedColor: navColors.tabSelected
+      selectedColor: DEFAULT_NAV_THEME.tabSelected
     })
   },
 
@@ -330,13 +312,7 @@ Page({
     // 启动安全超时，确保loading不会永远阻塞页面
     this.startLoadingSafetyTimer()
 
-    /* 加载全局氛围主题（同步注入 CSS 变量到页面根元素，无需登录） */
-    const userThemeName = await ThemeCache.getThemeName()
-    this.setData({
-      globalThemeStyle: GlobalTheme.getGlobalThemeStyle(userThemeName),
-      currentThemeName: userThemeName
-    })
-    this.applyNativeThemeColors(userThemeName)
+    this.applyNativeThemeColors()
 
     try {
       this.updateUserStatus()

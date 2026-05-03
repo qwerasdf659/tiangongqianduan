@@ -19,6 +19,21 @@ const auditLog = Logger.createLogger('audit-list')
 const { checkAuth, formatPhoneNumber } = Utils
 const { showToast } = Wechat
 
+const AUDIT_TAB_ITEMS = [
+  { key: 'consumption', label: '消费审核' },
+  { key: 'myPending', label: '我的待办' }
+]
+
+function buildAuditTabs(total: number, pendingTotal: number) {
+  return AUDIT_TAB_ITEMS.map((tabItem: any) => {
+    const count = tabItem.key === 'consumption' ? total : pendingTotal
+    return {
+      ...tabItem,
+      badgeProps: count > 0 ? { count: count > 99 ? '99+' : count } : null
+    }
+  })
+}
+
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../store/user')
 const { auditStore } = require('../../store/audit')
@@ -82,6 +97,7 @@ Page({
     // ===== 标签页切换 =====
     /** 当前激活的标签页: 'consumption' = 消费审核, 'myPending' = 我的待办 */
     activeTab: 'consumption' as 'consumption' | 'myPending',
+    auditTabs: buildAuditTabs(0, 0),
 
     // ===== 消费审核（原有功能） =====
     records: [] as any[],
@@ -89,8 +105,9 @@ Page({
     page_size: 10,
     total: 0,
     total_pages: 0,
-    pageNumbers: [] as number[],
     loading: false,
+    loadingMore: false,
+    noMore: false,
     selectedCount: 0,
     allSelected: false,
     selectedRecord: null as any,
@@ -110,9 +127,10 @@ Page({
     pendingPageSize: 10,
     pendingTotal: 0,
     pendingTotalPages: 0,
-    pendingPageNumbers: [] as number[],
     /** 待办加载状态 */
     pendingLoading: false,
+    pendingLoadingMore: false,
+    pendingNoMore: false,
     /** 当前操作的审核链步骤（用于拒绝弹窗） */
     selectedStep: null as any,
     /** 审核链拒绝弹窗 */
@@ -196,7 +214,9 @@ Page({
 
   /** 切换标签页 */
   onTabSwitch(e: any) {
-    const targetTab = e.currentTarget.dataset.tab as 'consumption' | 'myPending'
+    const targetTab = (e.detail?.value || e.currentTarget?.dataset?.tab) as
+      | 'consumption'
+      | 'myPending'
     if (targetTab === this.data.activeTab) {
       return
     }
@@ -221,12 +241,15 @@ Page({
    * 加载待审核消费记录列表
    * 调用后端API: GET /api/v4/console/consumption/pending
    */
-  async loadPendingRecords(targetPage: number = 1) {
-    if (this.data.loading) {
+  async loadPendingRecords(targetPage: number = 1, append: boolean = false) {
+    if (this.data.loading || this.data.loadingMore) {
       return
     }
 
-    this.setData({ loading: true })
+    this.setData({
+      loading: !append,
+      loadingMore: append
+    })
 
     try {
       auditLog.info('加载待审核记录，页码:', targetPage)
@@ -252,22 +275,27 @@ Page({
           selected: false
         }))
 
-        if (formattedRecords.length === 0 && pagination.total > 0) {
-          this.setData({ loading: false })
+        if (!append && formattedRecords.length === 0 && pagination.total > 0 && targetPage !== 1) {
+          this.setData({ loading: false, loadingMore: false })
           this.loadPendingRecords(1)
           return
         }
 
+        const mergedRecords = append
+          ? [...this.data.records, ...formattedRecords]
+          : formattedRecords
+        const noMore = pagination.page >= pagination.total_pages
+
         this.setData({
-          records: formattedRecords,
+          records: mergedRecords,
           page: pagination.page,
           total: pagination.total,
           total_pages: pagination.total_pages,
           selectedCount: 0,
-          allSelected: false
+          allSelected: false,
+          noMore,
+          auditTabs: buildAuditTabs(pagination.total, this.data.pendingTotal)
         })
-
-        this.computePageNumbers()
       } else {
         throw new Error(apiResult?.message || '加载失败')
       }
@@ -275,56 +303,16 @@ Page({
       auditLog.error('加载待审核记录失败:', loadError)
       showToast(loadError.message || '加载失败')
     } finally {
-      this.setData({ loading: false })
+      this.setData({ loading: false, loadingMore: false })
     }
   },
 
-  // ==================== 消费审核分页导航 ====================
-
-  computePageNumbers() {
-    const localTotalPages = this.data.total_pages
-    const localCurrentPage = this.data.page
-    const maxVisiblePages = 5
-
-    let computedNumbers: number[] = []
-
-    if (localTotalPages <= maxVisiblePages) {
-      computedNumbers = Array.from({ length: localTotalPages }, (_, idx) => idx + 1)
-    } else {
-      let startPage = Math.max(1, localCurrentPage - Math.floor(maxVisiblePages / 2))
-      let endPage = startPage + maxVisiblePages - 1
-
-      if (endPage > localTotalPages) {
-        endPage = localTotalPages
-        startPage = Math.max(1, endPage - maxVisiblePages + 1)
-      }
-
-      computedNumbers = Array.from({ length: endPage - startPage + 1 }, (_, idx) => startPage + idx)
-    }
-
-    this.setData({ pageNumbers: computedNumbers })
-  },
-
-  goToPage(e: any) {
-    const targetPage = e.currentTarget.dataset.page
-    if (targetPage === this.data.page) {
+  loadMorePendingRecords() {
+    if (this.data.loading || this.data.loadingMore || this.data.noMore) {
       return
     }
-    this.loadPendingRecords(targetPage)
-  },
 
-  goToPrevPage() {
-    if (this.data.page <= 1) {
-      return
-    }
-    this.loadPendingRecords(this.data.page - 1)
-  },
-
-  goToNextPage() {
-    if (this.data.page >= this.data.total_pages) {
-      return
-    }
-    this.loadPendingRecords(this.data.page + 1)
+    this.loadPendingRecords(this.data.page + 1, true)
   },
 
   // ==================== 消费审核批量选择 ====================
@@ -539,7 +527,8 @@ Page({
   },
 
   onApprove(e: any) {
-    const approveTargetRecord = e.currentTarget.dataset.record
+    const approveTargetRecord =
+      e.currentTarget?.dataset?.record || e.detail?.currentTarget?.dataset?.record
 
     auditLog.info('点击审核通过，记录:', approveTargetRecord)
 
@@ -579,7 +568,8 @@ Page({
   },
 
   onReject(e: any) {
-    const rejectTargetRecord = e.currentTarget.dataset.record
+    const rejectTargetRecord =
+      e.currentTarget?.dataset?.record || e.detail?.currentTarget?.dataset?.record
     auditLog.info('点击审核拒绝，记录:', rejectTargetRecord)
 
     this.setData({
@@ -591,7 +581,7 @@ Page({
   },
 
   onRejectReasonInput(e: any) {
-    this.setData({ rejectReason: e.detail.value })
+    this.setData({ rejectReason: e.detail?.value || '' })
   },
 
   async confirmReject() {
@@ -644,12 +634,15 @@ Page({
    * 加载当前用户的待审核步骤
    * 调用后端API: GET /api/v4/console/approval-chain/my-pending
    */
-  async loadMyPendingSteps(targetPage: number = 1) {
-    if (this.data.pendingLoading) {
+  async loadMyPendingSteps(targetPage: number = 1, append: boolean = false) {
+    if (this.data.pendingLoading || this.data.pendingLoadingMore) {
       return
     }
 
-    this.setData({ pendingLoading: true })
+    this.setData({
+      pendingLoading: !append,
+      pendingLoadingMore: append
+    })
 
     try {
       auditLog.info('加载我的待办步骤，页码:', targetPage)
@@ -703,14 +696,19 @@ Page({
           }
         })
 
+        const mergedPendingSteps = append
+          ? [...this.data.pendingSteps, ...formattedSteps]
+          : formattedSteps
+        const pendingNoMore = pagination.page >= pagination.total_pages
+
         this.setData({
-          pendingSteps: formattedSteps,
+          pendingSteps: mergedPendingSteps,
           pendingPage: pagination.page,
           pendingTotal: pagination.total,
-          pendingTotalPages: pagination.total_pages
+          pendingTotalPages: pagination.total_pages,
+          pendingNoMore,
+          auditTabs: buildAuditTabs(this.data.total, pagination.total)
         })
-
-        this.computePendingPageNumbers()
       } else {
         throw new Error(apiResult?.message || '加载失败')
       }
@@ -718,56 +716,16 @@ Page({
       auditLog.error('加载待办步骤失败:', loadError)
       showToast(loadError.message || '加载待办失败')
     } finally {
-      this.setData({ pendingLoading: false })
+      this.setData({ pendingLoading: false, pendingLoadingMore: false })
     }
   },
 
-  // ==================== 审核链分页导航 ====================
-
-  computePendingPageNumbers() {
-    const localTotalPages = this.data.pendingTotalPages
-    const localCurrentPage = this.data.pendingPage
-    const maxVisiblePages = 5
-
-    let computedNumbers: number[] = []
-
-    if (localTotalPages <= maxVisiblePages) {
-      computedNumbers = Array.from({ length: localTotalPages }, (_, idx) => idx + 1)
-    } else {
-      let startPage = Math.max(1, localCurrentPage - Math.floor(maxVisiblePages / 2))
-      let endPage = startPage + maxVisiblePages - 1
-
-      if (endPage > localTotalPages) {
-        endPage = localTotalPages
-        startPage = Math.max(1, endPage - maxVisiblePages + 1)
-      }
-
-      computedNumbers = Array.from({ length: endPage - startPage + 1 }, (_, idx) => startPage + idx)
-    }
-
-    this.setData({ pendingPageNumbers: computedNumbers })
-  },
-
-  goToPendingPage(e: any) {
-    const targetPage = e.currentTarget.dataset.page
-    if (targetPage === this.data.pendingPage) {
+  loadMoreMyPendingSteps() {
+    if (this.data.pendingLoading || this.data.pendingLoadingMore || this.data.pendingNoMore) {
       return
     }
-    this.loadMyPendingSteps(targetPage)
-  },
 
-  goToPendingPrevPage() {
-    if (this.data.pendingPage <= 1) {
-      return
-    }
-    this.loadMyPendingSteps(this.data.pendingPage - 1)
-  },
-
-  goToPendingNextPage() {
-    if (this.data.pendingPage >= this.data.pendingTotalPages) {
-      return
-    }
-    this.loadMyPendingSteps(this.data.pendingPage + 1)
+    this.loadMyPendingSteps(this.data.pendingPage + 1, true)
   },
 
   // ==================== 审核链步骤操作 ====================
@@ -777,7 +735,7 @@ Page({
    * 调用后端API: POST /api/v4/console/approval-chain/steps/:step_id/approve
    */
   onChainApprove(e: any) {
-    const approveStep = e.currentTarget.dataset.step
+    const approveStep = e.currentTarget?.dataset?.step || e.detail?.currentTarget?.dataset?.step
 
     auditLog.info('审核链步骤通过，步骤:', approveStep)
 
@@ -831,7 +789,7 @@ Page({
    * 审核链步骤 — 拒绝（打开拒绝原因弹窗）
    */
   onChainReject(e: any) {
-    const rejectStep = e.currentTarget.dataset.step
+    const rejectStep = e.currentTarget?.dataset?.step || e.detail?.currentTarget?.dataset?.step
     auditLog.info('审核链步骤拒绝，步骤:', rejectStep)
 
     this.setData({
@@ -842,7 +800,7 @@ Page({
   },
 
   onChainRejectReasonInput(e: any) {
-    this.setData({ chainRejectReason: e.detail.value })
+    this.setData({ chainRejectReason: e.detail?.value || '' })
   },
 
   /**
@@ -904,7 +862,8 @@ Page({
    * 调用后端API: GET /api/v4/console/approval-chain/instances/:id
    */
   async onViewChainDetail(e: any) {
-    const instanceId = e.currentTarget.dataset.instanceId
+    const instanceId =
+      e.currentTarget?.dataset?.instanceId || e.detail?.currentTarget?.dataset?.instanceId
     if (!instanceId) {
       return
     }
@@ -1009,6 +968,16 @@ Page({
       this.loadMyPendingSteps(1).finally(() => {
         wx.stopPullDownRefresh()
       })
+    }
+  },
+
+  onReachBottom() {
+    auditLog.info('触底加载，当前标签页:', this.data.activeTab)
+
+    if (this.data.activeTab === 'consumption') {
+      this.loadMorePendingRecords()
+    } else {
+      this.loadMoreMyPendingSteps()
     }
   },
 

@@ -3,7 +3,6 @@
  * 对齐 exchange-confirm 组件的视觉规范
  */
 
-@import '../../../styles/variables';
 @import '../../../styles/mixins';
 
 /* ===== 遮罩层 ===== */
@@ -13,7 +12,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(var(--tg-color-black-rgb), 0.5);
   z-index: 9998;
   display: flex;
   align-items: flex-end;
@@ -24,8 +23,8 @@
 .payment-modal {
   width: 100%;
   max-height: 80vh;
-  background: $color-white;
-  border-radius: $border-radius-lg $border-radius-lg 0 0;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large) var(--td-radius-large) 0 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -34,7 +33,7 @@
 /* 顶部品牌色装饰条 */
 .payment-accent-bar {
   height: 6rpx;
-  background: linear-gradient(90deg, $color-primary, lighten($color-primary, 15%));
+  background: linear-gradient(90deg, var(--td-brand-color), lighten(var(--td-brand-color), 15%));
 }
 
 /* ===== 头部 ===== */
@@ -42,14 +41,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: $spacing-md $spacing-lg;
-  border-bottom: 1rpx solid $color-border;
+  padding: var(--tg-spacing-md) var(--tg-spacing-lg);
+  border-bottom: 1rpx solid var(--tg-color-border);
 }
 
 .payment-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 600;
-  color: $color-text;
+  color: var(--tg-text-primary);
 }
 
 .payment-close {
@@ -61,13 +60,13 @@
 }
 
 .close-icon {
-  font-size: $font-size-md;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-secondary);
 }
 
 /* ===== 内容区 ===== */
 .payment-body {
-  padding: $spacing-md $spacing-lg;
+  padding: var(--tg-spacing-md) var(--tg-spacing-lg);
   overflow-y: auto;
   flex: 1;
 }
@@ -77,7 +76,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: $spacing-xxl 0;
+  padding: var(--tg-spacing-xxl) 0;
 }
 
 .loading-dots {
@@ -89,7 +88,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: $color-primary;
+  background: var(--td-brand-color);
   animation: dotPulse 1.2s ease-in-out infinite;
 }
 
@@ -115,9 +114,9 @@
 }
 
 .loading-text {
-  margin-top: $spacing-sm;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  margin-top: var(--tg-spacing-sm);
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 /* 加载失败 */
@@ -125,28 +124,28 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: $spacing-xxl 0;
+  padding: var(--tg-spacing-xxl) 0;
 }
 
 .error-text {
-  font-size: $font-size-sm;
-  color: $color-error;
-  margin-bottom: $spacing-md;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-error);
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .retry-btn {
-  padding: $spacing-xs $spacing-lg;
-  border: 1rpx solid $color-primary;
-  border-radius: $border-radius-sm;
-  color: $color-primary;
-  font-size: $font-size-sm;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-lg);
+  border: 1rpx solid var(--td-brand-color);
+  border-radius: var(--td-radius-small);
+  color: var(--td-brand-color);
+  font-size: var(--td-font-size-s);
 }
 
 /* 区块标题 */
 .payment-section-title {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  margin-bottom: $spacing-sm;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  margin-bottom: var(--tg-spacing-sm);
 }
 
 /* ===== 费用明细行 ===== */
@@ -154,8 +153,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: $spacing-md 0;
-  border-bottom: 1rpx solid $color-divider;
+  padding: var(--tg-spacing-md) 0;
+  border-bottom: 1rpx solid var(--tg-color-divider);
 }
 
 .payment-item:last-of-type {
@@ -164,10 +163,10 @@
 
 /* 余额不足时整行标红背景 */
 .payment-item.insufficient {
-  background: rgba($color-error, 0.05);
-  margin: 0 (-$spacing-lg);
-  padding: $spacing-md $spacing-lg;
-  border-radius: $border-radius-sm;
+  background: rgba(var(--tg-color-error-rgb), 0.05);
+  margin: 0 (-var(--tg-spacing-lg));
+  padding: var(--tg-spacing-md) var(--tg-spacing-lg);
+  border-radius: var(--td-radius-small);
 }
 
 .payment-item-left {
@@ -176,14 +175,14 @@
 }
 
 .payment-asset-name {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 500;
-  color: $color-text;
+  color: var(--tg-text-primary);
 }
 
 .payment-bead-count {
-  font-size: $font-size-xs;
-  color: $color-text-placeholder;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-placeholder);
   margin-top: 4rpx;
 }
 
@@ -202,62 +201,62 @@
 
 .payment-cost-label,
 .payment-balance-label {
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
 }
 
 .payment-cost-amount {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .payment-balance-amount {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 .payment-balance-amount.sufficient {
-  color: $color-success;
+  color: var(--tg-color-success);
 }
 
 .payment-balance-amount.insufficient-text {
-  color: $color-error;
+  color: var(--tg-color-error);
   font-weight: 500;
 }
 
 /* 余额不足警告 */
 .payment-warning {
-  margin-top: $spacing-md;
-  padding: $spacing-sm $spacing-md;
-  background: rgba($color-error, 0.08);
-  border-radius: $border-radius-sm;
+  margin-top: var(--tg-spacing-md);
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  background: rgba(var(--tg-color-error-rgb), 0.08);
+  border-radius: var(--td-radius-small);
   text-align: center;
 }
 
 .warning-text {
-  font-size: $font-size-sm;
-  color: $color-error;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-error);
 }
 
 /* 冻结说明 */
 .payment-notice {
-  margin-top: $spacing-md;
+  margin-top: var(--tg-spacing-md);
   text-align: center;
 }
 
 .notice-text {
-  font-size: $font-size-xs;
-  color: $color-text-placeholder;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-placeholder);
 }
 
 /* ===== 底部按钮 ===== */
 .payment-footer {
   display: flex;
-  padding: $spacing-md $spacing-lg;
-  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
-  gap: $spacing-md;
-  border-top: 1rpx solid $color-border;
+  padding: var(--tg-spacing-md) var(--tg-spacing-lg);
+  padding-bottom: calc(var(--tg-spacing-md) + env(safe-area-inset-bottom));
+  gap: var(--tg-spacing-md);
+  border-top: 1rpx solid var(--tg-color-border);
 }
 
 .payment-cancel-btn {
@@ -266,10 +265,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1rpx solid $color-border;
-  border-radius: $border-radius-md;
-  font-size: $font-size-md;
-  color: $color-text-secondary;
+  border: 1rpx solid var(--tg-color-border);
+  border-radius: var(--td-radius-default);
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-secondary);
 }
 
 .payment-confirm-btn {
@@ -278,11 +277,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $color-primary;
-  border-radius: $border-radius-md;
-  font-size: $font-size-md;
+  background: var(--td-brand-color);
+  border-radius: var(--td-radius-default);
+  font-size: var(--td-font-size-m);
   font-weight: 500;
-  color: $color-white;
+  color: var(--tg-color-white);
 }
 
 .payment-confirm-btn.disabled {

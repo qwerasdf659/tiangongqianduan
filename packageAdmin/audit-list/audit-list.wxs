@@ -1,0 +1,54 @@
+/**
+ * audit-list WXS 辅助模块
+ * Skyline 不支持 WXML 内联对象字面量（如 confirmBtn='{{{"content":"xxx"}}}'）
+ * 使用 WXS 函数在模板层动态构建 t-dialog confirmBtn 配置对象
+ */
+
+/**
+ * 构建 t-dialog confirmBtn 配置
+ * @param {string} content - 按钮文案
+ * @param {boolean} loading - 是否加载中
+ * @param {boolean} disabled - 是否禁用
+ * @return {object} confirmBtn 配置对象
+ */
+function buildConfirmBtn(content, loading, disabled) {
+  var btn = { content: content }
+  if (loading) {
+    btn.loading = true
+  }
+  if (disabled) {
+    btn.disabled = true
+  }
+  return btn
+}
+
+/**
+ * 消费审核拒绝弹窗确认按钮
+ * @param {boolean} submitting - 提交中
+ * @param {boolean} batchMode - 批量模式
+ */
+function rejectBtn(submitting, batchMode) {
+  if (submitting) {
+    var text = batchMode ? '批量提交中...' : '提交中...'
+    return buildConfirmBtn(text, true, true)
+  }
+  var label = batchMode ? '确认批量拒绝' : '确认拒绝'
+  return buildConfirmBtn(label, false, false)
+}
+
+/**
+ * 审核链拒绝弹窗确认按钮
+ * @param {boolean} chainSubmitting - 提交中
+ */
+function chainRejectBtn(chainSubmitting) {
+  if (chainSubmitting) {
+    return buildConfirmBtn('提交中...', true, true)
+  }
+  return buildConfirmBtn('确认拒绝', false, false)
+}
+
+module.exports = {
+  buildConfirmBtn: buildConfirmBtn,
+  rejectBtn: rejectBtn,
+  chainRejectBtn: chainRejectBtn
+}

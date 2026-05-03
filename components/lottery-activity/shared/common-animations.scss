@@ -1,0 +1,197 @@
+/* ===== 抽奖模式公共动画 & 布局 =====
+ * 提取自 egg / luckybag / redpacket 等多游戏模式共享的相同代码
+ * 各子组件通过 @import 引入，避免跨文件重复
+ */
+
+/* ── 爆裂环动画（中奖爆发效果外圈） ── */
+@keyframes burstRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* ── 爆裂星动画（中奖爆发效果星星闪烁） ── */
+@keyframes burstStar {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+}
+
+/* ── 闪白消失动画（点击瞬间的白色闪光遮罩） ── */
+@keyframes flashFade {
+  0% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── 提示弹跳动画（底部操作提示文案上下弹跳） ── */
+@keyframes hintBounce {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-6rpx);
+  }
+}
+
+/* ── 连开模式 - 进度条 ── */
+.multi-progress {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 0 32rpx;
+  margin-bottom: 16rpx;
+
+  &__text {
+    font-size: 26rpx;
+    font-weight: bold;
+    color: var(--tg-lottery-accent, #ffd700);
+    white-space: nowrap;
+  }
+
+  &__bar {
+    flex: 1;
+    height: 12rpx;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6rpx;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      var(--tg-lottery-accent, #ffd700),
+      var(--tg-lottery-accent-bright, #ff8c00)
+    );
+    border-radius: 6rpx;
+    transition: width 0.3s ease;
+  }
+}
+
+/* ── 连开模式 - 舞台容器（进入时缩放淡入） ── */
+.multi-stage {
+  position: relative;
+  width: 100%;
+  padding: 20rpx 16rpx 30rpx;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+
+  &.is-entered {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── 背景粒子容器（各游戏模式共享的粒子背景层） ── */
+@mixin bg-particles($z-index: 0, $perspective: null) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: $z-index;
+
+  @if $perspective {
+    perspective: $perspective;
+  }
+}
+
+/* ── 庆祝爆发效果（中奖时的居中爆发容器） ── */
+@mixin celebration-effect($width: 300rpx, $height: 300rpx, $z-index: 10) {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: $width;
+  height: $height;
+  pointer-events: none;
+  z-index: $z-index;
+}
+
+/* ── 庆祝爆发容器 ── */
+@mixin celebration-burst {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── 按钮光泽扫过效果 ── */
+@mixin btn-shine($top: -50%, $width: 50%, $height: 200%, $opacity: 0.4) {
+  position: absolute;
+  top: $top;
+  left: -100%;
+  width: $width;
+  height: $height;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, $opacity), transparent);
+  animation: btnShine 2.5s ease-in-out infinite;
+}
+
+@keyframes btnShine {
+  0% {
+    left: -100%;
+  }
+
+  50%,
+  100% {
+    left: 200%;
+  }
+}
+
+/* ── Mixin：悬浮动画（各模式用不同名称） ── */
+@mixin item-float($name) {
+  @keyframes #{$name} {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-8rpx);
+    }
+  }
+}
+
+/* ── Mixin：连开进入动画（各模式用不同名称） ── */
+@mixin multi-item-enter($name) {
+  @keyframes #{$name} {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translateY(40rpx);
+    }
+
+    60% {
+      opacity: 1;
+      transform: scale(1.05) translateY(-4rpx);
+    }
+
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+}

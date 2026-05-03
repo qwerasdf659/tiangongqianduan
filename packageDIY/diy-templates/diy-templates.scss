@@ -1,39 +1,38 @@
-@import '../../styles/variables.scss';
 @import '../../styles/mixins.scss';
 
 .diy-templates-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: $color-bg-grey;
+  background: var(--tg-diy-canvas-bg);
 }
 
 /* ===== 分类 Tab 栏 ===== */
 .category-tabs {
-  background: $color-bg-card;
+  background: var(--tg-card-bg);
   flex-shrink: 0;
   white-space: nowrap;
-  border-bottom: 1rpx solid $color-border-light;
+  border-bottom: 1rpx solid var(--tg-border-color);
 }
 
 .category-tabs-inner {
   display: inline-flex;
-  padding: $spacing-sm $spacing-base;
-  gap: $spacing-md;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  gap: var(--tg-spacing-md);
 }
 
 .category-tab {
-  padding: $spacing-xs $spacing-md;
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  border-radius: $border-radius-xl;
-  border: 1rpx solid $color-border;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
+  border-radius: var(--td-radius-large);
+  border: 1rpx solid var(--tg-border-color);
   flex-shrink: 0;
 
   &.active {
-    color: $color-primary;
-    border-color: $color-primary;
-    background: rgba($color-primary, 0.08);
+    color: var(--td-brand-color);
+    border-color: var(--td-brand-color);
+    background: rgba(var(--td-brand-color-rgb), 0.08);
     font-weight: 600;
   }
 }
@@ -41,14 +40,14 @@
 /* ===== 模板列表 ===== */
 .template-list {
   flex: 1;
-  padding: $spacing-sm $spacing-base;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
 }
 
 .template-card {
   @include flex-align-center;
   @include card-base;
-  padding: $spacing-base;
-  margin-bottom: $spacing-sm;
+  padding: var(--tg-spacing-md);
+  margin-bottom: var(--tg-spacing-sm);
 
   &:active {
     transform: scale(0.98);
@@ -58,27 +57,27 @@
 .template-thumb {
   width: 120rpx;
   height: 120rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   flex-shrink: 0;
-  background: $color-bg-grey;
+  background: var(--tg-diy-canvas-bg);
 }
 
 .template-info {
   flex: 1;
-  margin-left: $spacing-base;
+  margin-left: var(--tg-spacing-md);
   overflow: hidden;
 }
 
 .template-name {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   @include text-ellipsis;
 }
 
 .template-category {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
 }
 
@@ -90,61 +89,57 @@
 }
 
 .template-tag {
-  font-size: $font-size-xs;
-  color: $color-primary;
+  font-size: var(--td-font-size-xs);
+  color: var(--td-brand-color);
   padding: 2rpx 12rpx;
-  background: rgba($color-primary, 0.08);
-  border-radius: $border-radius-sm;
+  background: rgba(var(--td-brand-color-rgb), 0.08);
+  border-radius: var(--td-radius-small);
 }
 
 .arrow-icon {
-  font-size: $font-size-lg;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-l);
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
-  margin-left: $spacing-sm;
+  margin-left: var(--tg-spacing-sm);
 }
 
 /* ===== 加载/错误/空态 ===== */
 .loading-wrap {
   @include flex-column-center;
-  padding: $spacing-xxl 0;
-}
-
-.loading-spinner {
-  @include loading-state;
+  padding: 48rpx 0;
 }
 
 .loading-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-  margin-top: $spacing-sm;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  margin-top: var(--tg-spacing-sm);
 }
 
 .error-wrap {
   @include flex-column-center;
-  padding: $spacing-xxl 0;
+  padding: 48rpx 0;
 }
 
 .error-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .retry-btn {
-  margin-top: $spacing-base;
-  padding: 12rpx $spacing-xl;
-  background: $color-primary;
-  color: $color-text-white;
-  font-size: $font-size-base;
-  border-radius: $border-radius-xl;
+  margin-top: var(--tg-spacing-md);
+  padding: 12rpx var(--tg-spacing-xl);
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  font-size: var(--td-font-size-base);
+  border-radius: var(--td-radius-large);
 }
 
 .empty-wrap {
   @include flex-column-center;
-  padding: $spacing-xxl 0;
+  padding: 48rpx 0;
 }
 
 .empty-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }

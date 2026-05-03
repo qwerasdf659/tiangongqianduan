@@ -1,12 +1,11 @@
 /* packageAdmin/consume-submit/consume-submit.scss - 商家消费录入页面样式 */
 /* 设计风格：紫蓝渐变 + 毛玻璃卡片，与管理后台其他页面保持一致 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ===== 页面容器（紫蓝渐变背景） ===== */
 .consume-page {
   min-height: 100vh;
-  background: $gradient-primary;
+  background: var(--tg-gradient-primary);
   padding: 20rpx 24rpx 160rpx;
 }
 
@@ -16,20 +15,20 @@
   align-items: center;
   padding: 14rpx 20rpx;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   margin-bottom: 20rpx;
   gap: 8rpx;
 }
 
 .guide-icon {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   flex-shrink: 0;
 }
 
 .guide-text {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   color: rgba(255, 255, 255, 0.85);
-  line-height: $line-height-base;
+  line-height: var(--tg-line-height-base);
 }
 
 /* ===== 顶部步骤条（紫蓝渐变主题） ===== */
@@ -56,39 +55,39 @@
 }
 
 .step.active .step-circle {
-  background: $color-white;
+  background: var(--tg-color-white);
   box-shadow: 0 4rpx 16rpx rgba(255, 255, 255, 0.4);
 }
 
 .step.done .step-circle {
-  background: $color-success;
+  background: var(--tg-color-success);
   box-shadow: 0 4rpx 12rpx rgba(82, 196, 26, 0.4);
 }
 
 .step-num {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: rgba(255, 255, 255, 0.5);
   font-weight: bold;
 }
 
 .step.active .step-num {
-  color: $gradient-blue-start;
+  color: var(--tg-gradient-primary-start);
 }
 
 .step-icon {
-  font-size: $font-size-sm;
-  color: $color-white;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-white);
   font-weight: bold;
 }
 
 .step-label {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   color: rgba(255, 255, 255, 0.5);
   transition: all 0.3s;
 }
 
 .step.active .step-label {
-  color: $color-white;
+  color: var(--tg-color-white);
   font-weight: 500;
 }
 
@@ -108,15 +107,15 @@
 }
 
 .step-connector.active {
-  background: $color-success;
+  background: var(--tg-color-success);
 }
 
 /* ===== 毛玻璃卡片（统一容器） ===== */
 .glass-card {
-  background: $gradient-card-bg;
-  border-radius: $border-radius-xl;
-  box-shadow: $shadow-card;
-  margin-bottom: $spacing-md;
+  background: var(--tg-color-bg-card);
+  border-radius: var(--tg-radius-xl);
+  box-shadow: var(--tg-shadow-card);
+  margin-bottom: var(--tg-spacing-md);
   overflow: hidden;
 }
 
@@ -142,56 +141,56 @@
 }
 
 .amount-icon {
-  background: $color-primary;
+  background: var(--td-brand-color);
 
   text {
-    color: $color-white;
+    color: var(--tg-color-white);
     font-weight: bold;
-    font-size: $font-size-sm;
+    font-size: var(--td-font-size-s);
   }
 }
 
 .note-icon {
-  background: $gradient-blue-start;
+  background: var(--tg-gradient-primary-start);
 
   text {
-    font-size: $font-size-sm;
+    font-size: var(--td-font-size-s);
   }
 }
 
 .store-icon {
-  background: $color-success;
+  background: var(--tg-color-success);
 
   text {
-    font-size: $font-size-sm;
+    font-size: var(--td-font-size-s);
   }
 }
 
 .customer-icon {
-  background: $color-info;
+  background: var(--tg-color-info);
 
   text {
-    font-size: $font-size-sm;
+    font-size: var(--td-font-size-s);
   }
 }
 
 .summary-icon {
-  background: $color-warning;
+  background: var(--tg-color-warning);
 
   text {
-    font-size: $font-size-sm;
+    font-size: var(--td-font-size-s);
   }
 }
 
 .header-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .required-badge {
-  font-size: $font-size-xs;
-  color: $color-error;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-error);
   font-weight: 600;
   padding: 4rpx 14rpx;
   background: rgba(255, 77, 79, 0.08);
@@ -199,10 +198,10 @@
 }
 
 .optional-badge {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   padding: 4rpx 14rpx;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   border-radius: 20rpx;
 }
 
@@ -214,8 +213,8 @@
 .amount-input-wrapper {
   display: flex;
   align-items: center;
-  background: $color-bg-grey;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
   padding: 20rpx 24rpx;
   border: 2rpx solid transparent;
   transition: all 0.3s;
@@ -223,15 +222,15 @@
 
 .amount-symbol {
   font-size: 44rpx;
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-weight: bold;
   margin-right: 16rpx;
 }
 
 .amount-input {
   flex: 1;
-  font-size: $font-size-lg;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-l);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
@@ -241,13 +240,13 @@
 }
 
 .amount-range {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .points-tag {
-  font-size: $font-size-xs;
-  color: $color-primary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--td-brand-color);
   background: rgba(255, 107, 53, 0.08);
   padding: 4rpx 14rpx;
   border-radius: 20rpx;
@@ -259,20 +258,20 @@
   width: 100%;
   min-height: 140rpx;
   max-height: 280rpx;
-  background: $color-bg-grey;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
   padding: 20rpx 24rpx;
-  font-size: $font-size-base;
-  color: $color-text-primary;
-  line-height: $line-height-base;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
+  line-height: var(--tg-line-height-base);
   border: 2rpx solid transparent;
   transition: all 0.3s;
   box-sizing: border-box;
 }
 
 .notes-textarea:focus {
-  border-color: $gradient-blue-start;
-  background: $color-white;
+  border-color: var(--tg-gradient-primary-start);
+  background: var(--tg-color-white);
 }
 
 .notes-footer {
@@ -281,16 +280,16 @@
 }
 
 .char-counter {
-  font-size: $font-size-xs;
-  color: $color-text-disabled;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-disabled);
 }
 
 /* ===== 门店选择器 ===== */
 .store-picker {
   @include flex-between;
   padding: 20rpx 24rpx;
-  background: $color-bg-grey;
-  border-radius: $border-radius-md;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
   border: 2rpx solid transparent;
   transition: all 0.3s;
 }
@@ -301,18 +300,18 @@
 }
 
 .picker-value {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
 }
 
 .store-picker.selected .picker-value {
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .picker-arrow {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* 单门店自动显示 */
@@ -320,23 +319,23 @@
   @include flex-between;
   padding: 16rpx 20rpx;
   background: rgba(82, 196, 26, 0.06);
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
 }
 
 .store-auto-name {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .auto-tag {
   padding: 4rpx 14rpx;
-  background: $color-success;
+  background: var(--tg-color-success);
   border-radius: 20rpx;
 
   text {
-    font-size: $font-size-xs;
-    color: $color-white;
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-color-white);
   }
 }
 
@@ -384,7 +383,7 @@
   width: 100rpx;
   height: 100rpx;
   @include flex-center;
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
   border-radius: 50%;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35);
   position: relative;
@@ -400,14 +399,14 @@
 }
 
 .scan-cta {
-  font-size: $font-size-md;
-  color: $color-primary;
+  font-size: var(--td-font-size-m);
+  color: var(--td-brand-color);
   font-weight: 600;
 }
 
 .scan-hint {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   text-align: center;
 }
 
@@ -418,8 +417,8 @@
   border-radius: 20rpx;
 
   text {
-    font-size: $font-size-xs;
-    color: $color-primary;
+    font-size: var(--tg-font-size-xs);
+    color: var(--td-brand-color);
     font-weight: 500;
   }
 }
@@ -434,15 +433,15 @@
 .loading-ring {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid $color-border-light;
-  border-top-color: $gradient-blue-start;
+  border: 4rpx solid var(--tg-color-border-light);
+  border-top-color: var(--tg-gradient-primary-start);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .loading-msg {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 用户信息展示（头像+昵称+手机号） ===== */
@@ -456,22 +455,22 @@
   gap: 16rpx;
   padding: 16rpx 20rpx;
   background: rgba(255, 107, 53, 0.04);
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
 }
 
 .user-avatar-circle {
   width: 64rpx;
   height: 64rpx;
   @include flex-center;
-  background: $gradient-blue-start;
+  background: var(--tg-gradient-primary-start);
   border-radius: 50%;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
   flex-shrink: 0;
 }
 
 .avatar-letter {
-  font-size: $font-size-base;
-  color: $color-white;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-color-white);
   font-weight: bold;
 }
 
@@ -483,15 +482,15 @@
 }
 
 .user-nickname {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 600;
   @include text-ellipsis;
 }
 
 .user-mobile {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .verified-badge {
@@ -501,8 +500,8 @@
   flex-shrink: 0;
 
   text {
-    font-size: $font-size-xs;
-    color: $color-success;
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-color-success);
     font-weight: 600;
   }
 }
@@ -511,7 +510,7 @@
 .tip-box {
   @include flex-column-center;
   padding: 30rpx 20rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   gap: 12rpx;
 }
 
@@ -528,17 +527,17 @@
 }
 
 .tip-msg {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   text-align: center;
-  line-height: $line-height-base;
+  line-height: var(--tg-line-height-base);
 }
 
 .warning-tip .tip-msg {
-  color: $color-warning;
+  color: var(--tg-color-warning);
 }
 
 .error-tip .tip-msg {
-  color: $color-error;
+  color: var(--tg-color-error);
 }
 
 /* ===== 提交前汇总预览卡片 ===== */
@@ -556,22 +555,22 @@
 }
 
 .summary-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
 }
 
 .summary-val {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 500;
   flex: 1;
   text-align: right;
 }
 
 .summary-val.highlight {
-  color: $color-primary;
-  font-size: $font-size-lg;
+  color: var(--td-brand-color);
+  font-size: var(--td-font-size-l);
   font-weight: 700;
 }
 
@@ -579,12 +578,12 @@
   margin-top: 12rpx;
   padding: 12rpx 16rpx;
   background: rgba(250, 173, 20, 0.06);
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
 
   text {
-    font-size: $font-size-xs;
-    color: $color-warning;
-    line-height: $line-height-base;
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-color-warning);
+    line-height: var(--tg-line-height-base);
   }
 }
 
@@ -603,8 +602,8 @@
 .submit-main-btn {
   width: 100%;
   height: 96rpx;
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
-  color: $color-text-white;
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
+  color: var(--tg-color-white);
   border-radius: 48rpx;
   border: none;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.4);
@@ -623,7 +622,7 @@
 }
 
 .submit-btn-text {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: bold;
 }
 
@@ -642,25 +641,4 @@
 .loading-panel {
   @include flex-column-center;
   gap: 24rpx;
-}
-
-.loading-spinner {
-  width: 56rpx;
-  height: 56rpx;
-  border: 4rpx solid rgba(255, 255, 255, 0.2);
-  border-top-color: $color-white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.loading-label {
-  font-size: $font-size-md;
-  font-weight: 600;
-  color: $color-white;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }

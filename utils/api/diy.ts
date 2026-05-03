@@ -23,6 +23,10 @@
 const { apiClient } = require('./client')
 const { generateIdempotencyKey } = require('../util')
 
+/** DIY 小程序码接口未开通时的前端提示文案（避免生成伪二维码或静默降级为真实码） */
+const DIY_QRCODE_UNAVAILABLE_MESSAGE =
+  '后端暂未开通 DIY 小程序码接口，请让后端提供 GET /api/v4/diy/works/:id/qrcode'
+
 // ========== 模板相关 ==========
 
 /**
@@ -209,7 +213,22 @@ async function deleteDiyWork(workId: number): Promise<API.ApiResponse<void>> {
  * @param workId - 作品主键 diy_work_id
  */
 async function getDiyWorkQrcode(workId: number): Promise<API.ApiResponse<{ qrcode_url: string }>> {
-  return apiClient.request(`/diy/works/${workId}/qrcode`, { method: 'GET' })
+  try {
+    return await apiClient.request(`/diy/works/${workId}/qrcode`, { method: 'GET' })
+  } catch (error: any) {
+    const normalizedError = error || {}
+    if (
+      normalizedError.code === 'NOT_FOUND' ||
+      normalizedError.statusCode === 404 ||
+      normalizedError.code === 'BAD_REQUEST'
+    ) {
+      const unavailableError: any = new Error(DIY_QRCODE_UNAVAILABLE_MESSAGE)
+      unavailableError.code = 'DIY_QRCODE_API_UNAVAILABLE'
+      unavailableError.statusCode = normalizedError.statusCode || 404
+      throw unavailableError
+    }
+    throw error
+  }
 }
 
 // ========== 结算流程（三步状态机: draft → frozen → completed/cancelled） ==========

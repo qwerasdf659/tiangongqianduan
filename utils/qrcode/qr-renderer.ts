@@ -27,11 +27,16 @@ export interface QRCodeOptions {
 /** 纠错等级数字到枚举的映射（兼容旧调用方的数字参数） */
 function toErrorCorrectLevel(level?: number): ErrorCorrectLevel {
   switch (level) {
-    case 0: return ErrorCorrectLevel.M
-    case 1: return ErrorCorrectLevel.L
-    case 2: return ErrorCorrectLevel.H
-    case 3: return ErrorCorrectLevel.Q
-    default: return ErrorCorrectLevel.H
+    case 0:
+      return ErrorCorrectLevel.M
+    case 1:
+      return ErrorCorrectLevel.L
+    case 2:
+      return ErrorCorrectLevel.H
+    case 3:
+      return ErrorCorrectLevel.Q
+    default:
+      return ErrorCorrectLevel.H
   }
 }
 
@@ -42,7 +47,9 @@ function toErrorCorrectLevel(level?: number): ErrorCorrectLevel {
  * @param options - QR 码配置
  */
 export function drawQrcode(canvas: WechatMiniprogram.Canvas, options: QRCodeOptions): void {
-  const ctx = canvas.getContext('2d') as WechatMiniprogram.CanvasRenderingContext.CanvasRenderingContext2D
+  const ctx = canvas.getContext(
+    '2d'
+  ) as WechatMiniprogram.CanvasRenderingContext.CanvasRenderingContext2D
   const dpr = wx.getWindowInfo().pixelRatio
 
   canvas.width = options.width * dpr
@@ -109,14 +116,14 @@ export function drawQrcodeToImage(
                 height: options.height * dpr,
                 destWidth: options.width,
                 destHeight: options.height,
-                success: (tempRes) => resolve(tempRes.tempFilePath),
-                fail: (err) => {
+                success: tempRes => resolve(tempRes.tempFilePath),
+                fail: err => {
                   if (attempt < 3) {
                     tryExport(attempt + 1)
                   } else {
                     reject(err)
                   }
-                },
+                }
               },
               component
             )

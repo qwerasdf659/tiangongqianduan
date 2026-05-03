@@ -1,7 +1,6 @@
 /* 兑换页面样式 — 薄壳 Page Shell */
 /* 组件化后仅保留: 容器布局 + Tab导航 */
 /* 商品/市场/卡片样式已迁入 packageExchange/ 各组件 SCSS */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 .exchange-container {

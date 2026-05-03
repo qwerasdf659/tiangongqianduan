@@ -1,24 +1,14 @@
-<!--自定义 tabBar 模板：Iconfont 图标 + 主题变色-->
-<view class="tab-bar" style="{{themeStyle}}">
-  <view class="tab-bar-border"></view>
-  <view
-    wx:for="{{list}}"
-    wx:key="pagePath"
-    class="tab-bar-item"
-    data-path="{{item.pagePath}}"
-    data-index="{{index}}"
-    bindtap="switchTab"
-  >
-    <view class="tab-icon {{selected === index ? 'active' : ''}}">
-      <text
-        class="iconfont {{item.iconClass}}"
-        style="color: {{selected === index ? 'var(--theme-primary, #ff6b35)' : color}}"
-      ></text>
+<t-tab-bar
+  value="{{selected}}"
+  bind:change="onTabChange"
+  fixed="{{true}}"
+  bordered="{{true}}"
+  safeAreaInsetBottom="{{true}}"
+>
+  <t-tab-bar-item wx:for="{{list}}" wx:key="pagePath" value="{{index}}">
+    <view slot="icon" class="tab-bar-icon-wrap">
+      <text class="iconfont {{item.iconClass}}"></text>
     </view>
-    <view
-      class="tab-text"
-      style="color: {{selected === index ? 'var(--theme-primary, #ff6b35)' : color}}"
-      >{{item.text}}</view
-    >
-  </view>
-</view>
+    {{item.text}}
+  </t-tab-bar-item>
+</t-tab-bar>

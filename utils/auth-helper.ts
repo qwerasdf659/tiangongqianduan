@@ -19,7 +19,7 @@
 
 const { createLogger } = require('./logger')
 /* 内部模块直接引用，不通过 utils/index.ts（避免循环依赖） */
-const { determineUserRole } = require('./util')
+const { determineUserRole, validateJWTTokenIntegrity, isTokenExpired } = require('./util')
 const log = createLogger('auth-helper')
 
 // ===== 类型定义 =====
@@ -81,11 +81,14 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
     storeToken.trim() !== '' &&
     storeToken !== 'undefined'
 
-  const isAuthenticated: boolean = hasValidToken && store.isLoggedIn
+  const integrityCheck = hasValidToken ? validateJWTTokenIntegrity(storeToken) : { isValid: false }
+  const tokenUsable = hasValidToken && integrityCheck.isValid && !isTokenExpired(storeToken)
+  const isAuthenticated: boolean = tokenUsable && store.isLoggedIn
 
   log.info('认证状态检查', {
     storeHasToken: !!storeToken,
     storeIsLoggedIn: store.isLoggedIn,
+    tokenUsable,
     isAuthenticated
   })
 
@@ -333,8 +336,7 @@ function checkTokenValidity(): {
   }
 
   // JWT 解码和过期检查
-  const utilFunctions = require('./util')
-  const { decodeJWTPayload, isTokenExpired } = utilFunctions
+  const { decodeJWTPayload } = require('./util')
 
   try {
     const payload = decodeJWTPayload(accessToken)

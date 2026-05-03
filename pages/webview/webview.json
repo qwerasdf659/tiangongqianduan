@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "网页浏览",
-  "usingComponents": {}
+  "usingComponents": {
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

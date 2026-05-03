@@ -8,16 +8,19 @@
   "onReachBottomDistance": 100,
   "backgroundTextStyle": "dark",
   "usingComponents": {
-    "exchange-shelf": "/packageExchange/exchange-shelf/exchange-shelf",
-    "exchange-market": "/packageExchange/exchange-market/exchange-market",
-    "asset-conversion": "/packageExchange/asset-conversion/asset-conversion",
-    "pagination": "/components/pagination/pagination",
-    "empty-state": "/components/empty-state/empty-state",
-    "loading-spinner": "/components/loading-spinner/loading-spinner"
+    "exchange-shelf": "/components/exchange/exchange-shelf/exchange-shelf",
+    "exchange-market": "/components/exchange/exchange-market/exchange-market",
+    "asset-conversion": "/components/exchange/asset-conversion/asset-conversion",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
+    "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "componentPlaceholder": {
     "exchange-shelf": "view",
     "exchange-market": "view",
     "asset-conversion": "view"
-  }
+  },
+  "navigationStyle": "custom"
 }

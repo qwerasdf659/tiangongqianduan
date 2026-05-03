@@ -1,0 +1,573 @@
+/**
+ * lottery-activity 万能抽奖组件 - 公共样式
+ * 主题CSS变量挂载点 + 尺寸适配 + 加载/错误状态
+ *
+ * @file packageLottery/lottery-activity/lottery-activity.scss
+ */
+@import '../../styles/mixins';
+
+/* ===== 主题CSS变量默认值（被 themeStyle 内联覆盖） ===== */
+/* 当后端未返回主题配置时，这里的默认值生效（default主题色） */
+/* 子组件的 var(--xxx, fallback) 中的 fallback 是各组件独立的保底色 */
+.lottery-activity {
+  /* 主色调 */
+  --tg-lottery-primary: #e67e22;
+  --tg-lottery-primary-dark: #d35400;
+  --tg-lottery-primary-light: #f39c12;
+  --tg-lottery-primary-lighter: #f5b041;
+  /* 次色调 */
+  --tg-lottery-secondary: #ff8c42;
+  --tg-lottery-secondary-dark: #e07830;
+  --tg-lottery-secondary-light: #ffab70;
+  /* 强调色 */
+  --tg-lottery-accent: #ffd700;
+  --tg-lottery-accent-dark: #ccac00;
+  --tg-lottery-accent-darker: #b8860b;
+  --tg-lottery-accent-light: #ffe44d;
+  --tg-lottery-accent-lighter: #fff176;
+  --tg-lottery-accent-bright: #ff8c00;
+  --tg-lottery-accent-bg: #ffecb3;
+  --tg-lottery-accent-bg-light: #fff8e1;
+  --tg-lottery-accent-border: #ffd54f;
+  --tg-lottery-accent-dim: rgba(255, 215, 0, 0.9);
+  --tg-lottery-accent-glow: rgba(255, 215, 0, 0.5);
+  --tg-lottery-accent-shadow: rgba(255, 140, 0, 0.4);
+  /* 文字颜色 */
+  --tg-lottery-text: #333333;
+  --tg-lottery-text-light: #666666;
+  --tg-lottery-text-secondary: #7f8c8d;
+  --tg-lottery-text-lighter: rgba(255, 255, 255, 0.5);
+  --tg-lottery-text-inverse: #ffffff;
+  --tg-lottery-text-inverse-dim: rgba(255, 255, 255, 0.9);
+  --tg-lottery-text-dark: #7b241c;
+  /* 背景色 */
+  --tg-lottery-background: #fff8f0;
+  --tg-lottery-bg-dark: #2c1810;
+  --tg-lottery-bg-darkest: #1a0e08;
+  --tg-lottery-bg-darker: #1a0e08;
+  --tg-lottery-bg-light: #fffdf7;
+  --tg-lottery-bg-lighter: #fff5eb;
+  /* 阴影 / 光效 */
+  --tg-lottery-shadow-strong: rgba(230, 126, 34, 0.4);
+  --tg-lottery-shadow-medium: rgba(230, 126, 34, 0.25);
+  --tg-lottery-shadow-soft: rgba(230, 126, 34, 0.15);
+  --tg-lottery-shadow-intense: rgba(255, 107, 53, 0.6);
+  --tg-lottery-shadow-bright: rgba(255, 107, 53, 0.3);
+  --tg-lottery-shadow-glow: rgba(255, 107, 53, 0.2);
+  --tg-lottery-glow-intense: rgba(230, 126, 34, 0.9);
+  --tg-lottery-glow-medium: rgba(230, 126, 34, 0.6);
+  --tg-lottery-glow-soft: rgba(230, 126, 34, 0.35);
+  --tg-lottery-accent-glow-intense: rgba(255, 215, 0, 1);
+  --tg-lottery-accent-glow-strong: rgba(255, 215, 0, 0.8);
+  --tg-lottery-accent-glow-soft: rgba(255, 215, 0, 0.5);
+  --tg-lottery-accent-glow-max: rgba(255, 215, 0, 1);
+  --tg-lottery-accent-glow-bright: rgba(255, 215, 0, 0.9);
+  --tg-lottery-accent-glow-medium: rgba(255, 215, 0, 0.6);
+  /* 边框 */
+  --tg-lottery-border: var(--tg-color-divider);
+  --tg-lottery-border-light: rgba(230, 126, 34, 0.2);
+  --tg-lottery-highlight: rgba(230, 126, 34, 0.3);
+  --tg-lottery-frame: #8b4513;
+  --tg-lottery-frame-light: #b8b8b8;
+  --tg-lottery-frame-dark: #6f3609;
+  --tg-lottery-frame-darker: #5c2e08;
+  --tg-lottery-frame-darkest: #4a2507;
+  /* 状态色 */
+  --tg-lottery-success: #27ae60;
+  --tg-lottery-success-light: #8bc34a;
+  --tg-lottery-danger: #e74c3c;
+  --tg-lottery-danger-light: #ff6b7a;
+  --tg-lottery-warning: #f39c12;
+  --tg-lottery-warning-light: #cddc39;
+  --tg-lottery-warning-dark: #e65100;
+
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--tg-lottery-background);
+  border-radius: var(--td-radius-default);
+  overflow: hidden;
+}
+
+/* ===== 尺寸适配（任务26） ===== */
+.lottery-activity--full {
+  width: 100%;
+  min-height: 600rpx;
+}
+
+.lottery-activity--medium {
+  width: 100%;
+  min-height: 400rpx;
+}
+
+.lottery-activity--small {
+  width: 300rpx;
+  min-height: auto;
+  /* Skyline 不支持 cursor 属性 */
+}
+
+.lottery-activity--mini {
+  width: 100rpx;
+  height: 100rpx;
+  min-height: auto;
+  border-radius: 50%;
+  /* Skyline 不支持 cursor 属性 */
+  position: fixed;
+  right: 24rpx;
+  bottom: 200rpx;
+  z-index: 100;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+}
+
+/* ===== small模式：封面卡片入口 ===== */
+.small-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  border-radius: var(--td-radius-default);
+
+  &__cover {
+    width: 100%;
+    height: 180rpx;
+  }
+
+  &__info {
+    width: 100%;
+    padding: 16rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8rpx;
+  }
+
+  &__name {
+    font-size: var(--td-font-size-s);
+    color: var(--tg-lottery-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  &__btn {
+    font-size: 22rpx;
+    color: var(--tg-lottery-primary);
+    padding: 6rpx 24rpx;
+    border: 1rpx solid var(--tg-lottery-primary);
+    border-radius: var(--td-radius-large);
+  }
+}
+
+/* ===== mini模式：悬浮圆形入口 ===== */
+.mini-entry {
+  width: 100%;
+  height: 100%;
+  @include flex-center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--tg-lottery-primary);
+
+  &__icon {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__text {
+    font-size: var(--td-font-size-s);
+    color: #fff;
+    font-weight: bold;
+  }
+}
+
+/* ===== small/mini全屏弹窗 ===== */
+.lottery-popup-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  @include flex-center;
+}
+
+.lottery-popup {
+  width: 90%;
+  max-height: 85vh;
+  background: var(--tg-lottery-background);
+  border-radius: var(--td-radius-large);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    @include flex-between;
+    padding: 24rpx 32rpx;
+    border-bottom: 1rpx solid var(--tg-lottery-border);
+  }
+
+  &__title {
+    font-size: var(--td-font-size-m);
+    font-weight: bold;
+    color: var(--tg-lottery-text);
+  }
+
+  &__close {
+    width: 56rpx;
+    height: 56rpx;
+    @include flex-center;
+    font-size: var(--td-font-size-m);
+    color: var(--tg-lottery-text-light);
+  }
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16rpx;
+  }
+}
+
+/* ===== 加载遮罩（绝对定位，覆盖在子组件上方，数据就绪后移除） ===== */
+.lottery-activity__loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  @include flex-center;
+  min-height: 400rpx;
+  background: inherit;
+}
+
+.lottery-activity__loading-text {
+  font-size: var(--td-font-size-base);
+  color: var(--tg-lottery-text-light);
+}
+
+/* ===== 错误状态 ===== */
+.lottery-activity__error {
+  @include flex-column-center;
+  min-height: 400rpx;
+  padding: 40rpx;
+}
+
+.lottery-activity__error-text {
+  font-size: var(--td-font-size-base);
+  color: var(--tg-lottery-danger);
+  margin-bottom: 24rpx;
+  text-align: center;
+}
+
+.lottery-activity__retry-btn {
+  padding: 16rpx 48rpx;
+  background-color: var(--tg-lottery-primary);
+  color: #ffffff;
+  border-radius: var(--tg-radius-xl);
+  font-size: var(--td-font-size-base);
+}
+
+/* ===== 保底砸金蛋 ===== */
+.guarantee-egg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32rpx 24rpx;
+  margin: 24rpx 16rpx;
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-accent-bg-light) 0%,
+    var(--tg-lottery-accent-bg) 100%
+  );
+  border-radius: var(--td-radius-default);
+  border: 2rpx solid var(--tg-lottery-accent-border);
+
+  &__title {
+    font-size: var(--td-font-size-base);
+    color: var(--tg-lottery-warning-dark);
+    font-weight: bold;
+    margin-bottom: 24rpx;
+    text-align: center;
+  }
+
+  &__body {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__item {
+    position: relative;
+    width: 200rpx;
+    height: 240rpx;
+    @include flex-center;
+
+    &.shaking {
+      animation: guaranteeShake 0.6s ease-in-out;
+    }
+
+    &.cracked .guarantee-egg__broken {
+      animation: guaranteeCrack 0.5s ease-out forwards;
+    }
+  }
+
+  &__whole {
+    position: relative;
+    @include flex-center;
+  }
+
+  &__icon {
+    font-size: 160rpx;
+    filter: saturate(2) brightness(1.2) drop-shadow(0 4rpx 8rpx rgba(255, 160, 0, 0.4));
+  }
+
+  &__hammer {
+    position: absolute;
+    top: -40rpx;
+    right: -30rpx;
+    font-size: 64rpx;
+    animation: guaranteeHammer 0.6s ease-in-out;
+  }
+
+  &__broken {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    @include flex-center;
+  }
+
+  &__shell-left,
+  &__shell-right {
+    font-size: 100rpx;
+    position: absolute;
+    opacity: 0.5;
+  }
+
+  &__shell-left {
+    transform: rotate(-30deg) translateX(-30rpx);
+  }
+
+  &__shell-right {
+    transform: rotate(30deg) translateX(30rpx);
+  }
+
+  &__light {
+    font-size: 80rpx;
+    animation: guaranteeGlow 1s ease-in-out infinite;
+  }
+
+  &__hint {
+    margin-top: 16rpx;
+    font-size: var(--td-font-size-s);
+    color: var(--tg-lottery-warning-dark);
+  }
+}
+
+/* ===== 保底进度 ===== */
+.pity-progress {
+  margin: 20rpx 16rpx 24rpx;
+  padding: 24rpx 28rpx 20rpx;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 20, 60, 0.92) 0%,
+    rgba(50, 30, 80, 0.88) 50%,
+    rgba(35, 25, 65, 0.92) 100%
+  );
+  border-radius: var(--td-radius-large);
+  border: 2rpx solid rgba(255, 215, 0, 0.2);
+  box-shadow:
+    0 8rpx 32rpx rgba(0, 0, 0, 0.25),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+
+  /* 顶部金色光带装饰 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2rpx;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 215, 0, 0.6) 30%,
+      rgba(255, 180, 0, 0.8) 50%,
+      rgba(255, 215, 0, 0.6) 70%,
+      transparent 100%
+    );
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16rpx;
+  }
+
+  &__shield {
+    width: 64rpx;
+    height: 64rpx;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 180, 0, 0.1));
+    border: 2rpx solid rgba(255, 215, 0, 0.3);
+    @include flex-center;
+    flex-shrink: 0;
+  }
+
+  &__shield-icon {
+    font-size: 32rpx;
+    filter: drop-shadow(0 2rpx 4rpx rgba(255, 180, 0, 0.4));
+  }
+
+  &__title-group {
+    flex: 1;
+    margin-left: 16rpx;
+    display: flex;
+    flex-direction: column;
+    gap: 4rpx;
+  }
+
+  &__title {
+    font-size: var(--td-font-size-s);
+    color: rgba(255, 215, 0, 0.9);
+    font-weight: 600;
+    letter-spacing: 2rpx;
+  }
+
+  &__fraction {
+    font-size: var(--tg-font-size-xs);
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  &__badge {
+    display: flex;
+    align-items: baseline;
+    gap: 4rpx;
+    padding: 8rpx 20rpx;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 180, 0, 0.08));
+    border: 1rpx solid rgba(255, 215, 0, 0.25);
+    border-radius: var(--tg-radius-xl);
+    flex-shrink: 0;
+  }
+
+  &__badge-num {
+    font-size: var(--td-font-size-l);
+    color: #ffd700;
+    font-weight: 700;
+    text-shadow: 0 0 12rpx rgba(255, 215, 0, 0.4);
+  }
+
+  &__badge-unit {
+    font-size: var(--tg-font-size-xs);
+    color: rgba(255, 215, 0, 0.7);
+  }
+
+  &__track {
+    width: 100%;
+    height: 16rpx;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8rpx;
+    overflow: hidden;
+    position: relative;
+    border: 1rpx solid rgba(255, 255, 255, 0.06);
+  }
+
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #f59e0b 40%, #fbbf24 60%, #fcd34d);
+    border-radius: 8rpx;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+    max-width: 100%;
+    position: relative;
+    box-shadow: 0 0 12rpx rgba(245, 158, 11, 0.5);
+
+    /* 进度条高光 */
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 100%);
+      border-radius: 8rpx 8rpx 0 0;
+    }
+  }
+
+  &__footer {
+    margin-top: 12rpx;
+    text-align: center;
+  }
+
+  &__hint {
+    font-size: var(--tg-font-size-xs);
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 1rpx;
+  }
+}
+
+@keyframes guaranteeShake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  20% {
+    transform: rotate(-12deg);
+  }
+
+  40% {
+    transform: rotate(12deg);
+  }
+
+  60% {
+    transform: rotate(-10deg);
+  }
+
+  80% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes guaranteeHammer {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(-50deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes guaranteeCrack {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes guaranteeGlow {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}

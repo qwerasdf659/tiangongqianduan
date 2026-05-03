@@ -1,5 +1,4 @@
 /* 挂单详情页样式 */
-@import '../../../styles/variables';
 @import '../../../styles/mixins';
 
 /* ========== 加载状态 ========== */
@@ -9,45 +8,9 @@
   gap: 24rpx;
 }
 
-.loading-spinner {
-  display: flex;
-  gap: 8rpx;
-}
-
-.spinner-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: $gradient-blue-start;
-  animation: spinnerBounce 1.4s infinite ease-in-out both;
-}
-
-.spinner-dot.dot1 {
-  animation-delay: -0.32s;
-}
-.spinner-dot.dot2 {
-  animation-delay: -0.16s;
-}
-.spinner-dot.dot3 {
-  animation-delay: 0s;
-}
-
-@keyframes spinnerBounce {
-  0%,
-  80%,
-  100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 .loading-text {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
 }
 
 /* ========== 错误状态 ========== */
@@ -62,19 +25,19 @@
 }
 
 .error-msg {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
 }
 
 .retry-btn {
   @include btn-primary;
   padding: 12rpx 40rpx !important;
-  font-size: $font-size-sm !important;
+  font-size: var(--td-font-size-s) !important;
 }
 
 /* ========== 详情主体容器 ========== */
 .detail-container {
-  background: $color-bg;
+  background: var(--tg-color-bg);
   min-height: 100vh;
   padding-bottom: 140rpx;
 }
@@ -107,35 +70,35 @@
 }
 
 .fallback-name-lg {
-  font-size: $font-size-md;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-tertiary);
 }
 
 .detail-kind-tag {
   position: absolute;
   top: 24rpx;
   left: 24rpx;
-  font-size: $font-size-xs;
-  color: $color-text-white;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-color-white);
   padding: 6rpx 16rpx;
   border-radius: 12rpx;
   font-weight: 600;
 }
 
 .detail-kind-tag.asset-tag {
-  background: $gradient-primary;
+  background: var(--tg-gradient-primary);
 }
 
 .detail-kind-tag.item-tag {
-  background: $color-primary;
+  background: var(--td-brand-color);
 }
 
 .detail-rarity-badge {
   position: absolute;
   top: 24rpx;
   right: 24rpx;
-  color: $color-text-white;
-  font-size: $font-size-xs;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-xs);
   padding: 6rpx 16rpx;
   border-radius: 12rpx;
   font-weight: 600;
@@ -156,9 +119,9 @@
 }
 
 .detail-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   flex: 1;
   line-height: 1.4;
 }
@@ -166,13 +129,13 @@
 .detail-status-tag {
   padding: 4rpx 16rpx;
   border-radius: 8rpx;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   margin-left: 12rpx;
   flex-shrink: 0;
 
   text {
-    font-size: $font-size-xs;
-    color: $color-text-tertiary;
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-text-tertiary);
   }
 }
 
@@ -185,17 +148,17 @@
 .detail-price-value {
   font-size: 56rpx;
   font-weight: 800;
-  background: linear-gradient(135deg, $color-primary, #f7931e);
+  background: linear-gradient(135deg, var(--td-brand-color), #f7931e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: $color-primary;
+  color: var(--td-brand-color);
   line-height: 1;
 }
 
 .detail-price-unit {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
   font-weight: 500;
   margin-top: 8rpx;
 }
@@ -204,24 +167,24 @@
 .detail-desc-row {
   @include flex-between;
   padding: 16rpx 0;
-  border-top: 1rpx solid $color-border-light;
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 .amount-label,
 .desc-label {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 .amount-value {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .desc-value {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
 }
 
 /* ========== 卖家信息卡片 ========== */
@@ -232,9 +195,9 @@
 }
 
 .section-title {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   display: block;
 }
@@ -255,7 +218,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   @include flex-center;
   flex-shrink: 0;
 
@@ -270,14 +233,14 @@
 }
 
 .seller-nickname {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .seller-time {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ========== 价格摘要卡片 ========== */
@@ -296,19 +259,19 @@
 .summary-item {
   @include flex-column-center;
   padding: 16rpx 0;
-  background: $color-bg-grey;
-  border-radius: $border-radius-sm;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-small);
 }
 
 .summary-value {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .summary-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 6rpx;
 }
 
@@ -320,13 +283,13 @@
 .chart-toggle {
   @include flex-center;
   padding: 16rpx;
-  background: $color-white;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-sm;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-default);
+  box-shadow: var(--tg-shadow-sm);
 
   text {
-    font-size: $font-size-sm;
-    color: $gradient-blue-start;
+    font-size: var(--td-font-size-s);
+    color: var(--tg-gradient-primary-start);
     font-weight: 500;
   }
 }
@@ -348,7 +311,7 @@
   display: flex;
   align-items: center;
   padding: 12rpx 0;
-  border-bottom: 2rpx solid $color-border-light;
+  border-bottom: 2rpx solid var(--tg-color-border-light);
   font-weight: 600;
 }
 
@@ -365,29 +328,29 @@
 
 .history-col-date {
   flex: 2;
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
 }
 
 .history-col-avg {
   flex: 1.5;
-  font-size: $font-size-xs;
-  color: $color-primary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--td-brand-color);
   font-weight: 600;
   text-align: center;
 }
 
 .history-col-range {
   flex: 2;
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   text-align: center;
 }
 
 .history-col-count {
   flex: 1;
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-secondary);
   text-align: right;
 }
 
@@ -398,7 +361,7 @@
   right: 0;
   bottom: 0;
   @include flex-between;
-  background: $color-white;
+  background: var(--tg-color-white);
   padding: 16rpx 32rpx;
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
   z-index: 100;
@@ -411,26 +374,30 @@
 }
 
 .bottom-price {
-  font-size: $font-size-xl;
+  font-size: var(--tg-font-size-xl);
   font-weight: 800;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .bottom-unit {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   margin-top: 4rpx;
 }
 
 .purchase-btn {
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end) !important;
-  color: $color-text-white !important;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  ) !important;
+  color: var(--tg-color-white) !important;
   border: none !important;
   border-radius: 48rpx !important;
   padding: 0 60rpx !important;
   height: 80rpx !important;
   line-height: 80rpx !important;
-  font-size: $font-size-base !important;
+  font-size: var(--td-font-size-base) !important;
   font-weight: 600 !important;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3) !important;
 }
@@ -445,8 +412,8 @@
 }
 
 .sold-text {
-  font-size: $font-size-base;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
   font-weight: 500;
 }
 
@@ -464,8 +431,8 @@
 
 .modal-content {
   width: 620rpx;
-  background: $color-white;
-  border-radius: $border-radius-lg;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
   padding: 48rpx 40rpx;
   @include flex-column;
   align-items: center;
@@ -477,9 +444,9 @@
 }
 
 .modal-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-bottom: 24rpx;
 }
 
@@ -491,36 +458,40 @@
 .modal-row {
   @include flex-between;
   padding: 10rpx 0;
-  border-bottom: 1rpx solid $color-border-light;
+  border-bottom: 1rpx solid var(--tg-color-border-light);
 }
 
 .row-label {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 }
 
 .row-value {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   font-weight: 600;
 }
 
 .modal-btn {
   width: 100%;
-  background: linear-gradient(135deg, $gradient-blue-start, $gradient-blue-end) !important;
-  color: $color-text-white !important;
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  ) !important;
+  color: var(--tg-color-white) !important;
   border: none !important;
   border-radius: 48rpx !important;
   height: 80rpx !important;
   line-height: 80rpx !important;
-  font-size: $font-size-base !important;
+  font-size: var(--td-font-size-base) !important;
   font-weight: 600 !important;
   margin-top: 8rpx;
 }
 
 .secondary-btn {
-  background: $color-bg-grey !important;
-  color: $color-text-secondary !important;
+  background: var(--tg-color-bg-grey) !important;
+  color: var(--tg-text-secondary) !important;
   box-shadow: none !important;
 }
 
@@ -544,30 +515,30 @@
   width: 44rpx;
   height: 44rpx;
   border-radius: 50%;
-  background: $gradient-blue-start;
-  color: $color-text-white;
-  font-size: $font-size-sm;
+  background: var(--tg-gradient-primary-start);
+  color: var(--tg-color-white);
+  font-size: var(--td-font-size-s);
   font-weight: 700;
   @include flex-center;
   flex-shrink: 0;
 }
 
 .step-text {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   line-height: 1.5;
 }
 
 .escrow-expire-tip {
   width: 100%;
   background: rgba(250, 173, 20, 0.1);
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   padding: 16rpx;
   margin-bottom: 16rpx;
 
   text {
-    font-size: $font-size-xs;
-    color: $color-warning;
+    font-size: var(--tg-font-size-xs);
+    color: var(--tg-color-warning);
     line-height: 1.6;
   }
 }
@@ -590,9 +561,9 @@
 // ===== 品质等级 + 限量编号 + 冷却期（挂牌详情页） =====
 
 .detail-quality-section {
-  margin-top: $spacing-sm;
-  padding-top: $spacing-sm;
-  border-top: 1rpx solid $color-border-light;
+  margin-top: var(--tg-spacing-sm);
+  padding-top: var(--tg-spacing-sm);
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 .detail-quality-row {
@@ -603,8 +574,8 @@
 }
 
 .quality-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 .quality-value-area {
@@ -614,7 +585,7 @@
 }
 
 .quality-grade-badge {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 700;
   padding: 2rpx 12rpx;
   border: 1rpx solid;
@@ -622,19 +593,19 @@
 }
 
 .quality-score-value {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
 }
 
 .quality-value {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   font-family: 'Courier New', monospace;
 }
 
 .edition-highlight {
   font-weight: 700;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   letter-spacing: 2rpx;
 }
 
@@ -642,10 +613,10 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  margin-top: $spacing-sm;
+  margin-top: var(--tg-spacing-sm);
   padding: 12rpx 16rpx;
   background: rgba(250, 173, 20, 0.06);
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   border: 1rpx solid rgba(250, 173, 20, 0.12);
 }
 
@@ -654,7 +625,7 @@
 }
 
 .cooldown-notice-text {
-  font-size: $font-size-sm;
-  color: $color-warning;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-warning);
   font-weight: 500;
 }

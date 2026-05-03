@@ -1,0 +1,81 @@
+<!--
+  lottery-activity 万能抽奖组件
+  根据后端 display.mode 条件渲染对应子组件
+  使用方式: <lottery-activity campaign_code="SPRING_2026" size="full" />
+
+  14种玩法的 wx:elif 渲染链提取到 lottery-modes.wxml，
+  弹窗模式(popup)和完整模式(full/medium)通过 <include> 共享同一份代码。
+-->
+
+<!-- ===== mini模式：悬浮圆形图标入口 ===== -->
+<view
+  class="lottery-activity lottery-activity--mini"
+  wx:if="{{size === 'mini' && !showFullPopup}}"
+  bindtap="onTapEntry"
+>
+  <view class="mini-entry">
+    <image
+      wx:if="{{coverImage}}"
+      class="mini-entry__icon"
+      src="{{coverImage}}"
+      mode="aspectFill"
+      binderror="onCoverImageError"
+    />
+    <text wx:else class="mini-entry__text">抽奖</text>
+  </view>
+</view>
+
+<!-- ===== small模式：封面卡片入口 ===== -->
+<view
+  class="lottery-activity lottery-activity--small"
+  wx:elif="{{size === 'small' && !showFullPopup}}"
+  bindtap="onTapEntry"
+>
+  <view class="small-entry">
+    <image
+      wx:if="{{coverImage}}"
+      class="small-entry__cover"
+      src="{{coverImage}}"
+      mode="aspectFill"
+    />
+    <view class="small-entry__info">
+      <text class="small-entry__name">{{campaignName || '抽奖活动'}}</text>
+      <text class="small-entry__btn">点击参与</text>
+    </view>
+  </view>
+</view>
+
+<!-- ===== small/mini模式：全屏弹窗（展开后渲染完整游戏） ===== -->
+<view
+  class="lottery-popup-mask"
+  wx:elif="{{(size === 'small' || size === 'mini') && showFullPopup}}"
+  catchtap="onClosePopup"
+>
+  <view class="lottery-popup" catchtap="">
+    <view class="lottery-popup__header">
+      <text class="lottery-popup__title">{{campaignName || '抽奖活动'}}</text>
+      <view class="lottery-popup__close" bindtap="onClosePopup">
+        <text>✕</text>
+      </view>
+    </view>
+    <scroll-view class="lottery-popup__body" scroll-y>
+      <include src="./lottery-modes.wxml" />
+    </scroll-view>
+  </view>
+</view>
+
+<!-- ===== full/medium模式：完整抽奖内容 ===== -->
+<view
+  class="lottery-activity lottery-activity--{{size}}"
+  wx:elif="{{size === 'full' || size === 'medium'}}"
+  style="{{backgroundImageUrl ? 'background-image:url(' + backgroundImageUrl + ');background-size:cover;background-position:center' : ''}}"
+>
+  <include src="./lottery-modes.wxml" />
+</view>
+
+<!-- 奖品详情弹窗（全局浮层，所有玩法/尺寸模式共用） -->
+<prize-detail-modal
+  visible="{{showPrizeDetail}}"
+  prize="{{selectedPrize}}"
+  bind:close="onPrizeDetailClose"
+/>

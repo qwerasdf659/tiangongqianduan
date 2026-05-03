@@ -1,16 +1,15 @@
 /* 📢 我的广告活动列表 - 样式（对齐项目紫蓝渐变+毛玻璃设计体系） */
-@import '../../styles/variables.scss';
 @import '../../styles/mixins.scss';
 
 .ad-campaigns-page {
   min-height: 100vh;
-  background: $color-bg;
+  background: var(--tg-page-bg);
   @include flex-column;
 }
 
-/* ===== 页面头部概览（紫蓝渐变，对齐全项目 $gradient-primary） ===== */
+/* ===== 页面头部概览（紫蓝渐变，对齐全项目 linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active))） ===== */
 .page-header {
-  background: $gradient-primary;
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
   padding: 24rpx 32rpx 36rpx;
 }
 
@@ -25,13 +24,13 @@
 .header-count {
   font-size: 56rpx;
   font-weight: 700;
-  color: $color-text-white;
+  color: #ffffff;
   margin-right: 8rpx;
-  line-height: $line-height-tight;
+  line-height: 1.2;
 }
 
 .header-unit {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: rgba(255, 255, 255, 0.8);
   margin-top: 12rpx;
 }
@@ -39,23 +38,23 @@
 .header-create-btn {
   @include flex-align-center;
   background: rgba(255, 255, 255, 0.18);
-  color: $color-text-white;
+  color: #ffffff;
   padding: 12rpx 28rpx;
   border-radius: 32rpx;
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 500;
   border: 2rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .header-create-icon {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   margin-right: 6rpx;
   font-weight: 600;
 }
 
 /* ===== 状态筛选Tab ===== */
 .status-tab-bar {
-  background: $color-white;
+  background: #ffffff;
   white-space: nowrap;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
   position: sticky;
@@ -65,25 +64,25 @@
 
 .status-tab-list {
   display: inline-flex;
-  padding: $spacing-sm $spacing-md;
-  gap: $spacing-xs;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  gap: var(--tg-spacing-xs);
 }
 
 .status-tab-item {
   display: inline-flex;
   align-items: center;
   padding: 12rpx 24rpx;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  border-radius: $border-radius-xl;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  border-radius: var(--td-radius-large);
   background: transparent;
-  transition: all $transition-fast;
+  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
 .status-tab-item.active {
-  color: $gradient-blue-start;
-  background: rgba($gradient-blue-start, 0.1);
+  color: var(--td-brand-color);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
   font-weight: 600;
 }
 
@@ -91,21 +90,21 @@
 .tips-bar {
   @include flex-align-center;
   padding: 16rpx 24rpx;
-  background: rgba($gradient-blue-start, 0.05);
-  margin: $spacing-md 24rpx 0;
-  border-radius: $border-radius-sm;
-  border: 1rpx solid rgba($gradient-blue-start, 0.1);
+  background: rgba(var(--td-brand-color-rgb), 0.05);
+  margin: var(--tg-spacing-md) 24rpx 0;
+  border-radius: var(--td-radius-small);
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.1);
 }
 
 .tips-icon {
-  font-size: $font-size-base;
-  margin-right: $spacing-xs;
+  font-size: var(--td-font-size-base);
+  margin-right: var(--tg-spacing-xs);
   flex-shrink: 0;
 }
 
 .tips-text {
-  font-size: $font-size-xs;
-  color: $gradient-blue-start;
+  font-size: var(--td-font-size-xs);
+  color: var(--td-brand-color);
   flex: 1;
   line-height: 1.4;
 }
@@ -114,26 +113,28 @@
   width: 40rpx;
   height: 40rpx;
   @include flex-center;
-  color: $color-text-tertiary;
-  font-size: $font-size-base;
+  color: var(--tg-text-tertiary);
+  font-size: var(--td-font-size-base);
   flex-shrink: 0;
-  margin-left: $spacing-xs;
+  margin-left: var(--tg-spacing-xs);
 }
 
 /* ===== 活动卡片列表 ===== */
 .campaign-list-scroll {
   flex: 1;
-  padding: $spacing-md 24rpx;
+  padding: var(--tg-spacing-md) 24rpx;
   padding-bottom: 180rpx;
 }
 
-/* 毛玻璃卡片（对齐项目 $gradient-card-bg + $shadow-card） */
+/* 毛玻璃卡片（对齐项目 var(--tg-card-bg) + 0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08), 0 2rpx 6rpx rgba(0, 0, 0, 0.04)） */
 .campaign-card {
-  background: $gradient-card-bg;
-  border-radius: $border-radius-xl;
-  margin-bottom: $spacing-lg;
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-large);
+  margin-bottom: var(--tg-spacing-lg);
   overflow: hidden;
-  box-shadow: $shadow-card;
+  box-shadow:
+    0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08),
+    0 2rpx 6rpx rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: row;
 }
@@ -151,29 +152,29 @@
 
 .card-header {
   @include flex-between;
-  margin-bottom: $spacing-md;
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .campaign-name {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   flex: 1;
   @include text-ellipsis;
-  margin-right: $spacing-md;
+  margin-right: var(--tg-spacing-md);
 }
 
 .status-badge {
   padding: 6rpx 20rpx;
   border-radius: 6rpx;
-  font-size: $font-size-xs;
+  font-size: var(--td-font-size-xs);
   flex-shrink: 0;
   font-weight: 500;
 }
 
 /* ===== 卡片信息区 ===== */
 .card-body {
-  padding: $spacing-xs 0;
+  padding: var(--tg-spacing-xs) 0;
 }
 
 .info-row {
@@ -182,19 +183,19 @@
 }
 
 .info-label {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
 }
 
 .info-value {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .info-value.highlight {
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-weight: 700;
 }
 
@@ -203,37 +204,37 @@
   align-items: center;
   padding: 4rpx 16rpx;
   border-radius: 6rpx;
-  font-size: $font-size-xs;
-  background: rgba($gradient-blue-start, 0.08);
-  color: $gradient-blue-start;
+  font-size: var(--td-font-size-xs);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
+  color: var(--td-brand-color);
   font-weight: 500;
 }
 
 .billing-tag.free {
-  background: rgba($color-success, 0.08);
-  color: $color-success;
+  background: rgba(var(--td-success-color, #52c41a), 0.08);
+  color: var(--td-success-color, #52c41a);
 }
 
 .date-value {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 卡片底部操作 ===== */
 .card-footer {
   display: flex;
   justify-content: flex-end;
-  gap: $spacing-md;
-  padding-top: $spacing-base;
-  border-top: 1rpx solid $color-border-light;
+  gap: var(--tg-spacing-md);
+  padding-top: var(--tg-spacing-md);
+  border-top: 1rpx solid var(--tg-border-color);
 }
 
 .action-btn {
   padding: 10rpx 28rpx;
-  border-radius: $border-radius-sm;
-  font-size: $font-size-sm;
+  border-radius: var(--td-radius-small);
+  font-size: var(--td-font-size-s);
   font-weight: 500;
-  transition: opacity $transition-fast;
+  transition: opacity 0.15s ease;
 
   &:active {
     opacity: 0.7;
@@ -241,18 +242,18 @@
 }
 
 .cancel-btn {
-  background: rgba($color-error, 0.08);
-  color: $color-error;
+  background: rgba(var(--td-error-color, #ff4d4f), 0.08);
+  color: var(--td-error-color, #ff4d4f);
 }
 
 .edit-btn {
-  background: $color-primary;
-  color: $color-text-white;
+  background: var(--td-brand-color);
+  color: #ffffff;
 }
 
 .submit-btn {
-  background: rgba($gradient-blue-start, 0.08);
-  color: $gradient-blue-start;
+  background: rgba(var(--td-brand-color-rgb), 0.08);
+  color: var(--td-brand-color);
 }
 
 /* ===== 空状态 ===== */
@@ -266,10 +267,10 @@
   height: 200rpx;
   background: linear-gradient(
     135deg,
-    rgba($gradient-blue-start, 0.12),
-    rgba($gradient-blue-end, 0.04)
+    rgba(var(--td-brand-color-rgb), 0.12),
+    rgba(var(--td-brand-color-rgb), 0.04)
   );
-  border-radius: $border-radius-round;
+  border-radius: var(--td-radius-circle);
   @include flex-center;
   margin-bottom: 40rpx;
 }
@@ -279,25 +280,25 @@
 }
 
 .empty-title {
-  font-size: $font-size-lg;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-l);
+  color: var(--tg-text-primary);
   font-weight: 600;
-  margin-bottom: $spacing-sm;
+  margin-bottom: var(--tg-spacing-sm);
 }
 
 .empty-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   text-align: center;
-  margin-bottom: $spacing-xs;
-  line-height: $line-height-base;
+  margin-bottom: var(--tg-spacing-xs);
+  line-height: 1.6;
 }
 
 .empty-sub-desc {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   text-align: center;
-  margin-bottom: $spacing-xxl;
+  margin-bottom: 48rpx;
 }
 
 .create-btn-empty {
@@ -306,7 +307,7 @@
   padding: 0 72rpx;
   height: 88rpx;
   line-height: 88rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.25);
 }
 
@@ -314,9 +315,9 @@
 .loading-more,
 .no-more {
   text-align: center;
-  padding: $spacing-lg;
-  color: $color-text-tertiary;
-  font-size: $font-size-xs;
+  padding: var(--tg-spacing-lg);
+  color: var(--tg-text-tertiary);
+  font-size: var(--td-font-size-xs);
 }
 
 .first-loading {
@@ -326,15 +327,15 @@
 
 .loading-dots {
   display: flex;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-md;
+  gap: var(--tg-spacing-sm);
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .loading-dot {
   width: 16rpx;
   height: 16rpx;
-  background: $gradient-blue-start;
-  border-radius: $border-radius-round;
+  background: var(--td-brand-color);
+  border-radius: var(--td-radius-circle);
   animation: loadingBounce 1.2s ease-in-out infinite;
 }
 
@@ -361,8 +362,8 @@
 }
 
 .loading-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 悬浮创建按钮（橙色CTA，全项目统一） ===== */
@@ -371,13 +372,13 @@
   right: 32rpx;
   bottom: 100rpx;
   @include flex-center;
-  background: linear-gradient(135deg, $color-primary, $color-primary-dark);
-  color: $color-text-white;
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  color: #ffffff;
   padding: 20rpx 36rpx;
   border-radius: 44rpx;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35);
   z-index: 100;
-  transition: transform $transition-fast;
+  transition: transform 0.15s ease;
 
   &:active {
     transform: scale(0.95);
@@ -385,12 +386,12 @@
 }
 
 .fab-icon {
-  font-size: $font-size-md;
-  margin-right: $spacing-xs;
+  font-size: var(--td-font-size-m);
+  margin-right: var(--tg-spacing-xs);
   font-weight: 600;
 }
 
 .fab-text {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   font-weight: 600;
 }

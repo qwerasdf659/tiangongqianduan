@@ -2,6 +2,7 @@
   网页浏览器页面 - web-view 组件
   用于轮播图广告跳转外部链接（link_type = 'webview'）
 -->
+<custom-navbar title="网页浏览" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <web-view
   wx:if="{{webviewUrl}}"
   src="{{webviewUrl}}"

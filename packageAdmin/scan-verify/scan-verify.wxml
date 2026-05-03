@@ -1,5 +1,6 @@
 <!--packageAdmin/scan-verify/scan-verify.wxml - 商家扫码核销页面（表单优先模式）-->
 <!--业务流程: 核销准备(门店选择+操作确认) → 扫码核销 → POST /api/v4/shop/redemption/fulfill → 核销结果-->
+<custom-navbar title="扫码核销" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="scan-verify-page">
   <!-- 横向步骤条（始终显示，跟随 currentStep 变化） -->
@@ -115,9 +116,9 @@
 
     <!-- 准备就绪按钮 -->
     <view class="action-area">
-      <button class="action-btn primary-btn" bindtap="onGoToScan">
-        <text class="action-btn-text">准备就绪，开始扫码</text>
-      </button>
+      <t-button theme="primary" shape="round" size="large" block="{{true}}" bind:tap="onGoToScan"
+        >准备就绪，开始扫码</t-button
+      >
     </view>
   </view>
 
@@ -132,9 +133,9 @@
           <text class="center-icon-text">📷</text>
         </view>
       </view>
-      <button class="scan-main-btn" bindtap="startScan">
-        <text class="scan-btn-text">扫码核销（推荐）</text>
-      </button>
+      <t-button theme="primary" shape="round" size="large" bind:tap="startScan"
+        >扫码核销（推荐）</t-button
+      >
       <text class="scan-hint">请对准用户手机上的核销二维码</text>
     </view>
 
@@ -145,9 +146,14 @@
         <text class="divider-text">或</text>
         <view class="divider-line"></view>
       </view>
-      <view class="manual-btn" bindtap="onManualInput">
-        <text class="manual-btn-text">手动输入核销码</text>
-      </view>
+      <t-button
+        theme="default"
+        variant="outline"
+        shape="round"
+        size="medium"
+        bind:tap="onManualInput"
+        >手动输入核销码</t-button
+      >
       <text class="manual-hint">扫码不便时，可手动输入用户的12位文本核销码</text>
     </view>
 
@@ -163,7 +169,7 @@
   <view class="main-content" wx:if="{{loading}}">
     <view class="processing-card">
       <view class="processing-anim">
-        <view class="processing-spinner"></view>
+        <t-loading loading="{{true}}" text="正在核销" theme="spinner" size="80rpx" />
       </view>
       <text class="processing-title">正在核销</text>
       <text class="processing-desc">正在验证核销码，请稍候...</text>
@@ -208,9 +214,14 @@
       </view>
 
       <!-- 继续核销：保留门店选择，直接进入扫码步骤 -->
-      <button class="action-btn primary-btn" bindtap="onContinueScan">
-        <text class="action-btn-text">继续核销</text>
-      </button>
+      <t-button
+        theme="primary"
+        shape="round"
+        size="large"
+        block="{{true}}"
+        bind:tap="onContinueScan"
+        >继续核销</t-button
+      >
     </view>
   </view>
 
@@ -227,9 +238,9 @@
       <text class="result-desc">{{verifyResult.error || '核销码无效或已过期，请核实后重试'}}</text>
 
       <!-- 重新核销：回到准备步骤重新操作 -->
-      <button class="action-btn primary-btn" bindtap="onRescan">
-        <text class="action-btn-text">重新核销</text>
-      </button>
+      <t-button theme="primary" shape="round" size="large" block="{{true}}" bind:tap="onRescan"
+        >重新核销</t-button
+      >
     </view>
   </view>
 

@@ -6,5 +6,10 @@
   "backgroundTextStyle": "light",
   "backgroundColor": "#667eea",
   "onReachBottomDistance": 50,
-  "usingComponents": {}
+  "usingComponents": {
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

@@ -2,14 +2,12 @@
   抽奖核心UI已迁移到 lottery-activity 万能组件
   本模板仅保留：页面壳、用户信息、二维码、管理员功能条、审核弹窗、弹窗横幅
 -->
+<custom-navbar title="🎰 幸运抽奖" bgColor="#667eea" textColor="#ffffff" />
 
-<view class="lottery-container" style="{{globalThemeStyle}}">
-  <!-- 🔴 首次加载遮罩：覆盖整个页面，数据+弹窗图片全部就绪后才消失 -->
+<view class="lottery-container">
+  <!-- 首次加载遮罩：覆盖整个页面，数据+弹窗图片全部就绪后才消失 -->
   <view class="first-load-mask" wx:if="{{loading}}">
-    <view class="first-load-spinner">
-      <text class="spinner-icon">🎰</text>
-      <text class="spinner-text">正在加载...</text>
-    </view>
+    <t-loading loading="{{true}}" text="正在加载..." theme="spinner" size="48rpx" />
   </view>
 
   <!-- 页面头部（仅登录后渲染，防止未认证时闪现空数据UI） -->
@@ -219,9 +217,9 @@
     />
     <!-- 降级兜底：活动列表加载完成但无匹配活动时显示空状态 -->
     <view wx:elif="{{!loading}}" class="no-campaign-placeholder">
-      <text class="no-campaign-icon">🎰</text>
-      <text class="no-campaign-text">暂无进行中的活动</text>
-      <text class="no-campaign-hint">下拉刷新试试</text>
+      <t-empty description="暂无进行中的活动">
+        <text slot="description">下拉刷新试试</text>
+      </t-empty>
     </view>
   </block>
 
@@ -267,7 +265,7 @@
 
   <!-- 🆕 放大的二维码弹窗 -->
   <view class="qrcode-enlarged-modal" wx:if="{{qrCodeEnlarged}}" bindtap="closeEnlargedQRCode">
-    <view class="qrcode-enlarged-container" catchtap="{{''}}">
+    <view class="qrcode-enlarged-container" catchtap="stopTap">
       <!-- 关闭按钮 -->
       <view class="qrcode-close-btn" bindtap="closeEnlargedQRCode">
         <text class="close-icon">✕</text>
@@ -294,7 +292,7 @@
 
   <!-- 🆕 审核记录弹窗 -->
   <view class="audit-modal" wx:if="{{showAuditModal}}" bindtap="closeAuditModal">
-    <view class="audit-modal-content" catchtap="{{''}}">
+    <view class="audit-modal-content" catchtap="stopTap">
       <!-- 关闭按钮 -->
       <view class="audit-modal-close" bindtap="closeAuditModal">
         <text class="close-icon">✕</text>

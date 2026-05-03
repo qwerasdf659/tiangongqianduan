@@ -3,9 +3,13 @@
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
   "usingComponents": {
-    "popup-banner": "/packageLottery/popup-banner/popup-banner"
+    "popup-banner": "/components/popup-banner/popup-banner",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "componentPlaceholder": {
     "popup-banner": "view"
-  }
+  },
+  "navigationStyle": "custom"
 }

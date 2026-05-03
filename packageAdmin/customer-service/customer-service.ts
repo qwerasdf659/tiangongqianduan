@@ -1,7 +1,7 @@
 /**
  * 管理员实时客服聊天页面 + MobX响应式状态
  *
- * 功能：实时聊天、会话管理、快捷回复
+ * 功能：实时聊天、会话管理
  *
  * 后端API：
  * - GET /api/v4/console/customer-service/sessions  （管理员会话列表）
@@ -58,33 +58,12 @@ Page({
     wsConnected: false,
     reconnectCount: 0,
     scrollToBottom: false,
-    showQuickReplies: false,
 
     // Socket.IO 连接质量（心跳+重连由 Socket.IO 内建管理）
     connectionQuality: 'good', // good, poor, lost
 
     // 发送按钮状态
     sendButtonEnabled: false,
-
-    /**
-     * 快捷回复模板（临时硬编码 — 等待后端API就绪后改为动态加载）
-     *
-     * 后端依赖:
-     *   API: GET /api/v4/console/customer-service/gm-tools/templates
-     *   存储: system_configs 表 config_key='cs_reply_templates'
-     *
-     * 当后端接口就绪后，应在 initChatWorkspace() 中调用API加载模板，
-     * 替换此硬编码数据。
-     *
-     * @todo 后端接口就绪后改为: await API.getQuickReplyTemplates()
-     */
-    quickReplies: [
-      { id: 1, title: '欢迎', content: '您好！很高兴为您服务，请问有什么可以帮助您的吗？' },
-      { id: 2, title: '稍等', content: '好的，请您稍等片刻，我来为您查询处理。' },
-      { id: 3, title: '核实信息', content: '为了更好的为您处理，请提供您的订单号或联系方式。' },
-      { id: 4, title: '感谢', content: '感谢您的耐心等待，如还有其他问题请随时联系我们。' },
-      { id: 5, title: '结束', content: '本次服务到此结束，祝您生活愉快！如有问题请随时联系。' }
-    ],
 
     // 今日工作统计
     todayStats: {
@@ -130,6 +109,12 @@ Page({
   onUnload() {
     log.info('管理员客服页面卸载，清理资源')
 
+    // 停止正在输入状态
+    this.stopTyping()
+
+    // 离开页面时更新管理员状态为 offline
+    this.updateOnlineStatus('offline')
+
     // 销毁MobX Store绑定
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
@@ -143,7 +128,10 @@ Page({
 
     this.setData({
       wsConnected: false,
-      connectionQuality: 'lost'
+      connectionQuality: 'lost',
+      currentSessionId: null,
+      currentMessages: [] as API.ChatMessage[],
+      sessions: [] as API.ChatSession[]
     })
   },
 
@@ -842,21 +830,6 @@ Page({
   },
 
   // ============================================================================
-  // 快捷回复
-  // ============================================================================
-
-  /** 切换快捷回复面板 */
-  toggleQuickReplies() {
-    this.setData({ showQuickReplies: !this.data.showQuickReplies })
-  },
-
-  /** 选择快捷回复 */
-  onQuickReplySelect(e: WechatMiniprogram.BaseEvent) {
-    const content = e.currentTarget.dataset.content
-    this.setData({ inputContent: content, showQuickReplies: false })
-  },
-
-  // ============================================================================
   // 会话管理操作
   // ============================================================================
 
@@ -985,26 +958,5 @@ Page({
     if (status && ['online', 'busy', 'offline'].includes(status)) {
       this.updateOnlineStatus(status)
     }
-  },
-
-  /** 清理所有资源 */
-  cleanup() {
-    this.stopTyping()
-
-    // 离开页面时更新管理员状态为 offline
-    this.updateOnlineStatus('offline')
-
-    // 取消 Socket.IO 消息订阅
-    const appInstance = getApp()
-    if (appInstance && typeof appInstance.unsubscribeWebSocketMessages === 'function') {
-      appInstance.unsubscribeWebSocketMessages('admin_customer_service')
-    }
-
-    this.setData({
-      wsConnected: false,
-      currentSessionId: null,
-      currentMessages: [] as API.ChatMessage[],
-      sessions: [] as API.ChatSession[]
-    })
   }
 })

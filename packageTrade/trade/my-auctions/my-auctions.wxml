@@ -1,5 +1,6 @@
 <!--packageTrade/trade/my-auctions/my-auctions.wxml - 我的拍卖（卖方视角）-->
 <!--后端API: GET /api/v4/marketplace/auctions/my-->
+<custom-navbar title="我的拍卖" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="my-auctions-container">
   <!--状态筛选-->
@@ -17,7 +18,7 @@
 
   <!--加载中-->
   <view class="page-loading" wx:if="{{loading && auctions.length === 0}}">
-    <loading-spinner text="加载中..." />
+    <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
   </view>
 
   <!--错误-->
@@ -28,8 +29,7 @@
 
   <!--空状态-->
   <view class="page-empty" wx:elif="{{isEmpty}}">
-    <text class="empty-icon">📦</text>
-    <text class="empty-text">暂无拍卖记录</text>
+    <t-empty description="暂无拍卖记录" />
     <view class="create-btn" bindtap="onCreateAuction"><text>发起拍卖</text></view>
   </view>
 
@@ -75,7 +75,12 @@
 
     <!--加载更多/没有更多-->
     <view class="list-footer">
-      <loading-spinner text="加载更多..." wx:if="{{hasMore && loading}}" />
+      <t-loading
+        wx:if="{{hasMore && loading}}"
+        loading="{{true}}"
+        text="加载更多..."
+        theme="spinner"
+      />
       <text class="no-more" wx:if="{{!hasMore && auctions.length > 0}}">— 没有更多了 —</text>
     </view>
   </view>

@@ -40,6 +40,24 @@ interface RequestOptions {
   _tokenRefreshed?: boolean
 }
 
+/** 文件上传选项 */
+interface UploadFileOptions {
+  /** 表单字段名 */
+  name?: string
+  /** 额外表单数据 */
+  formData?: Record<string, any>
+  /** 是否需要认证（默认true） */
+  needAuth?: boolean
+  /** 是否自动显示错误toast（默认true） */
+  showError?: boolean
+  /** 错误提示前缀 */
+  errorPrefix?: string
+  /** 自定义请求头 */
+  header?: Record<string, string>
+  /** 内部使用：Token刷新后重试标记 */
+  _tokenRefreshed?: boolean
+}
+
 /** API错误对象 */
 interface ApiError extends Error {
   code?: string
@@ -134,7 +152,7 @@ class APIClient {
   /** Token刷新状态（防止并发刷新） */
   private isRefreshing: boolean
   /** 等待Token刷新的请求队列（并发请求等待Token刷新后统一resolve） */
-  private refreshSubscribers: Array<(value: any) => void>
+  private refreshSubscribers: Array<(_value: any) => void>
 
   constructor() {
     this.config = getApiConfig()
@@ -260,6 +278,91 @@ class APIClient {
     }
   }
 
+  /** 统一文件上传方法（复用 JWT 校验、401 刷新、维护模式与错误模型） */
+  async uploadFile(
+    url: string,
+    filePath: string,
+    options: UploadFileOptions = {}
+  ): Promise<ApiResponse> {
+    if (APIClient._isMaintenanceMode && url !== '/system/status') {
+      this._showMaintenanceModal()
+      throw this._createApiError('系统维护中，请稍后重试', 'SYSTEM_MAINTENANCE', 503)
+    }
+
+    const {
+      name = 'file',
+      formData = {},
+      needAuth = true,
+      showError = true,
+      errorPrefix = '',
+      header: customHeaders = {},
+      _tokenRefreshed = false
+    } = options
+
+    const fullUrl: string = `${this.config.fullUrl}${url}`
+    const headers: Record<string, string> = {
+      'x-platform': 'wechat_mp',
+      ...customHeaders
+    }
+
+    if (needAuth) {
+      const token: string = getAccessToken()
+      if (token) {
+        const integrityCheck = validateJWTTokenIntegrity(token)
+        if (!integrityCheck.isValid) {
+          log.error('上传 Token完整性检查失败', integrityCheck.error)
+          return this.handleTokenInvalid()
+        }
+        headers.Authorization = `Bearer ${token}`
+      } else {
+        log.error('上传未找到access_token')
+        return this.handleTokenMissing()
+      }
+    }
+
+    try {
+      const response: any = await new Promise((resolve, reject) => {
+        wx.uploadFile({
+          url: fullUrl,
+          filePath,
+          name,
+          formData,
+          header: headers,
+          success: resolve,
+          fail: reject
+        })
+      })
+
+      const parsedData = response.data ? JSON.parse(response.data) : null
+      const uploadResponse = {
+        statusCode: response.statusCode,
+        data: parsedData
+      }
+
+      return await this._handleUploadResponse(uploadResponse, url, filePath, {
+        name,
+        formData,
+        needAuth,
+        showError,
+        errorPrefix,
+        header: customHeaders,
+        _tokenRefreshed
+      })
+    } catch (error: any) {
+      const normalizedError =
+        error instanceof Error ? error : new Error(error?.errMsg || '文件上传网络错误')
+
+      if (showError) {
+        const errorMessage = errorPrefix
+          ? `${errorPrefix}${normalizedError.message}`
+          : normalizedError.message
+        wechatUtils.showToast(errorMessage, 'none', 2000)
+      }
+
+      throw this.handleError(normalizedError)
+    }
+  }
+
   /**
    * 处理响应数据 - V4.0统一响应格式
    *
@@ -331,9 +434,11 @@ class APIClient {
       log.error('冲突(409):', errorCode)
 
       if (errorCode === 'CONCURRENT_CONFLICT' && requestOptions && !requestOptions._retried) {
-        log.info('CONCURRENT_CONFLICT 自动重试')
+        log.info('CONCURRENT_CONFLICT 自动重试（延迟500ms）')
         requestOptions._retried = true
-        return this.request(requestUrl!, requestOptions)
+        return new Promise<ApiResponse>(resolve => {
+          setTimeout(() => resolve(this.request(requestUrl!, requestOptions)), 500)
+        })
       }
       throw this._createApiError(
         safeData.message || '数据冲突',
@@ -412,8 +517,56 @@ class APIClient {
     )
   }
 
+  private async _handleUploadResponse(
+    response: any,
+    requestUrl: string,
+    filePath: string,
+    uploadOptions: UploadFileOptions
+  ): Promise<ApiResponse> {
+    const safeData: Record<string, any> =
+      response.data && typeof response.data === 'object' ? response.data : {}
+
+    if (response.statusCode === 401) {
+      const serverErrorCode: string = safeData.code || safeData.error || ''
+      const serverMessage: string = safeData.message || ''
+
+      if (serverErrorCode === 'TOKEN_EXPIRED' || serverErrorCode === 'SESSION_EXPIRED') {
+        if (uploadOptions._tokenRefreshed) {
+          return this.handleTokenInvalid(response.data)
+        }
+        await this.handleTokenExpired()
+        return this.uploadFile(requestUrl, filePath, {
+          ...uploadOptions,
+          _tokenRefreshed: true
+        })
+      }
+
+      if (serverErrorCode === 'SESSION_REPLACED') {
+        return this.handleSessionReplaced(serverMessage)
+      }
+
+      return this.handleTokenInvalid(response.data)
+    }
+
+    if (response.statusCode === 413) {
+      throw this._createApiError(
+        safeData.message || '上传文件超过限制',
+        safeData.code || 'PAYLOAD_TOO_LARGE',
+        response.statusCode,
+        safeData.data || null
+      )
+    }
+
+    return this.handleResponse(response, undefined, requestUrl) as ApiResponse
+  }
+
   /** 创建带业务错误码的Error对象 */
-  _createApiError(message: string, code: string, httpStatus: number, errorData?: any): ApiError {
+  private _createApiError(
+    message: string,
+    code: string,
+    httpStatus: number,
+    errorData?: any
+  ): ApiError {
     const apiError: ApiError = new Error(message) as ApiError
     apiError.code = code
     apiError.statusCode = httpStatus
@@ -440,6 +593,10 @@ class APIClient {
    * 使用静态标志防止并发请求导致多次弹窗
    */
   handleTokenMissing(): never {
+    const error: ApiError = new Error('请先登录后再进行操作') as ApiError
+    error.isAuthError = true
+    error.code = 'MISSING_TOKEN'
+
     if (!APIClient._tokenMissingModalShown) {
       APIClient._tokenMissingModalShown = true
       wx.showModal({
@@ -452,7 +609,7 @@ class APIClient {
         }
       })
     }
-    throw new Error('未登录')
+    throw error
   }
 
   /**
@@ -544,6 +701,10 @@ class APIClient {
   static _maintenanceModalShown: boolean = false
   static _isMaintenanceMode: boolean = false
   static _healthCheckTimer: ReturnType<typeof setInterval> | null = null
+  /** 健康检查已执行次数（上限20次 = 10分钟后停止轮询） */
+  static _healthCheckCount: number = 0
+  /** 健康检查最大次数（30秒×20次 = 10分钟） */
+  static readonly _healthCheckMaxAttempts: number = 20
 
   _showMaintenanceModal(serverMessage?: string): void {
     if (APIClient._maintenanceModalShown) {
@@ -553,6 +714,8 @@ class APIClient {
     APIClient._maintenanceModalShown = true
 
     this._startHealthCheck()
+
+    APIClient._healthCheckCount = 0
 
     const appRef = getAppInstance()
     if (appRef && typeof appRef.enterMaintenanceMode === 'function') {
@@ -579,6 +742,15 @@ class APIClient {
     log.info('维护模式: 启动健康检查定时器，间隔', healthCheckInterval, 'ms')
 
     APIClient._healthCheckTimer = setInterval(() => {
+      APIClient._healthCheckCount++
+      if (APIClient._healthCheckCount > APIClient._healthCheckMaxAttempts) {
+        log.warn('维护模式: 健康检查超过最大次数', APIClient._healthCheckMaxAttempts, '，停止轮询')
+        if (APIClient._healthCheckTimer) {
+          clearInterval(APIClient._healthCheckTimer)
+          APIClient._healthCheckTimer = null
+        }
+        return
+      }
       wx.request({
         url: `${this.config.fullUrl}/system/status`,
         method: 'GET',

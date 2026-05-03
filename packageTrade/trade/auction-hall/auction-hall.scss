@@ -1,21 +1,18 @@
 /* C2C拍卖大厅样式 */
-@import '../../../styles/variables';
 
 /* 竞拍模块专用补充变量（公共变量文件中未覆盖的） */
-$color-primary-bg: #fff3ed; /* 主色浅背景（用于选中态背景） */
-$border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .auction-hall-container {
   min-height: 100vh;
-  background-color: $color-bg-grey;
+  background-color: var(--tg-color-bg-grey);
   padding-bottom: 40rpx;
 }
 
 /* 顶部操作栏 */
 .auction-hall-header {
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
 }
 
 .header-actions {
@@ -29,11 +26,11 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   flex-direction: column;
   align-items: center;
   padding: 16rpx 24rpx;
-  border-radius: $border-radius-auction-md;
-  background-color: $color-bg-grey;
+  border-radius: var(--tg-radius-auction-md);
+  background-color: var(--tg-color-bg-grey);
 
   &--primary {
-    background-color: $color-primary-bg;
+    background-color: var(--tg-brand-bg-soft);
   }
 }
 
@@ -44,15 +41,15 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .action-text {
   font-size: 24rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 
 /* 状态筛选标签 */
 .auction-status-tabs {
   display: flex;
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   padding: 16rpx 24rpx;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
 }
 
 .status-tab {
@@ -60,22 +57,22 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   text-align: center;
   padding: 12rpx 0;
   font-size: 28rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
   border-bottom: 4rpx solid transparent;
   transition: all 0.3s;
 
   &--active {
-    color: $color-primary;
+    color: var(--td-brand-color);
     font-weight: 600;
-    border-bottom-color: $color-primary;
+    border-bottom-color: var(--td-brand-color);
   }
 }
 
 /* 排序栏 */
 .auction-sort-bar {
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   padding: 16rpx 24rpx;
-  border-bottom: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid var(--tg-color-divider);
   position: relative;
 }
 
@@ -86,18 +83,18 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .sort-label {
   font-size: 26rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .sort-value {
   font-size: 26rpx;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   margin-left: 8rpx;
 }
 
 .sort-arrow {
   font-size: 20rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-left: 8rpx;
 }
 
@@ -106,10 +103,10 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   top: 100%;
   left: 0;
   right: 0;
-  background-color: $color-bg-card;
+  background-color: var(--tg-color-bg-card);
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
   z-index: 100;
-  border-radius: 0 0 $border-radius-auction-md $border-radius-auction-md;
+  border-radius: 0 0 var(--tg-radius-auction-md) var(--tg-radius-auction-md);
 }
 
 .sort-option {
@@ -118,11 +115,11 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   align-items: center;
   padding: 24rpx 32rpx;
   font-size: 28rpx;
-  color: $color-text-primary;
-  border-bottom: 1rpx solid $color-divider;
+  color: var(--tg-text-primary);
+  border-bottom: 1rpx solid var(--tg-color-divider);
 
   &--active {
-    color: $color-primary;
+    color: var(--td-brand-color);
     font-weight: 600;
   }
 
@@ -132,7 +129,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 }
 
 .sort-check {
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-size: 28rpx;
 }
 
@@ -154,25 +151,23 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   align-items: center;
 }
 
-.error-icon,
-.empty-icon {
+.error-icon {
   font-size: 80rpx;
   margin-bottom: 24rpx;
 }
 
-.error-text,
-.empty-text {
+.error-text {
   font-size: 28rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-bottom: 32rpx;
 }
 
 .error-retry-btn,
 .empty-create-btn {
   padding: 16rpx 48rpx;
-  background-color: $color-primary;
+  background-color: var(--td-brand-color);
   color: #ffffff;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   font-size: 28rpx;
 }
 
@@ -183,8 +178,8 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .auction-card {
   display: flex;
-  background-color: $color-bg-card;
-  border-radius: $border-radius-md;
+  background-color: var(--tg-color-bg-card);
+  border-radius: var(--td-radius-default);
   margin-bottom: 20rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
@@ -200,7 +195,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 .item-image {
   width: 100%;
   height: 100%;
-  background-color: $color-bg-grey;
+  background-color: var(--tg-color-bg-grey);
 }
 
 .auction-status-badge {
@@ -208,7 +203,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   top: 12rpx;
   left: 0;
   padding: 4rpx 16rpx;
-  border-radius: 0 $border-radius-sm $border-radius-sm 0;
+  border-radius: 0 var(--td-radius-small) var(--td-radius-small) 0;
   font-size: 20rpx;
   color: #ffffff;
 }
@@ -219,7 +214,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   right: 8rpx;
   padding: 4rpx 12rpx;
   background-color: rgba(255, 107, 53, 0.9);
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
   font-size: 20rpx;
   color: #ffffff;
 }
@@ -236,7 +231,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 .auction-item-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -244,7 +239,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .auction-item-rarity {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
 }
 
@@ -256,19 +251,19 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .price-label {
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-right: 8rpx;
 }
 
 .price-value {
   font-size: 36rpx;
   font-weight: 700;
-  color: $color-error;
+  color: var(--tg-color-error);
 }
 
 .price-asset {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-left: 6rpx;
 }
 
@@ -280,19 +275,19 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .buyout-label {
   font-size: 22rpx;
-  color: $color-primary;
+  color: var(--td-brand-color);
   margin-right: 8rpx;
 }
 
 .buyout-value {
   font-size: 28rpx;
   font-weight: 600;
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 .buyout-asset {
   font-size: 20rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
   margin-left: 4rpx;
 }
 
@@ -306,7 +301,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 .meta-bids,
 .meta-bidders {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .auction-countdown {
@@ -315,7 +310,7 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .countdown-text {
   font-size: 24rpx;
-  color: $color-warning;
+  color: var(--tg-color-warning);
   font-weight: 500;
 }
 
@@ -327,12 +322,12 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
 
 .seller-label {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 .seller-name {
   font-size: 22rpx;
-  color: $color-text-secondary;
+  color: var(--tg-text-secondary);
 }
 
 /* 底部加载/无更多 */
@@ -341,5 +336,5 @@ $border-radius-auction-md: 12rpx; /* 竞拍卡片中等圆角 */
   text-align: center;
   padding: 32rpx 0;
   font-size: 24rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }

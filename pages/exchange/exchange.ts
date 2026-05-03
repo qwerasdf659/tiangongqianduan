@@ -23,16 +23,7 @@
 
 const app = getApp()
 
-const {
-  Utils,
-  Logger,
-  ExchangeConfig,
-  ThemeCache,
-  GlobalTheme,
-  API,
-  ImageHelper,
-  AssetCodes
-} = require('../../utils/index')
+const { Utils, Logger, ExchangeConfig, API, ImageHelper, AssetCodes } = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { checkAuth } = Utils
 /** 资产分类辅助函数 — 判断 asset_code 是否为可兑换资产 */
@@ -66,8 +57,6 @@ Page({
     hasConfigError: false,
     configErrorMessage: '',
 
-    /** 卡片主题标识（全局氛围主题，由 ThemeCache 缓存管理器提供） */
-    cardTheme: 'default',
     effects: {
       grain: true,
       holo: true,
@@ -115,7 +104,7 @@ Page({
     this.setData({ loading: false })
   },
 
-  /** 页面显示（恢复积分 + WebSocket 连接 + 刷新主题） */
+  /** 页面显示（恢复积分 + WebSocket 连接 + 刷新样式配置） */
   async onShow() {
     if (typeof this.getTabBar === 'function') {
       this.getTabBar().setData({ selected: 2 })
@@ -126,12 +115,7 @@ Page({
       return
     }
 
-    /* 每次 onShow 重新获取全局主题（后台静默更新或后端切换后生效） */
-    const latestTheme = await ThemeCache.getThemeName()
-    if (latestTheme !== this.data.cardTheme) {
-      this.setData({ cardTheme: latestTheme })
-    }
-    this.applyNativeThemeColors(latestTheme)
+    this.applyNativeThemeColors()
 
     const localUserInfo = userStore.ensureUserInfo()
 
@@ -193,9 +177,6 @@ Page({
 
       const marketFilters = exchangeConfig.market_filters
 
-      /* 全局氛围主题：异步获取（4层降级，确保首次加载也能拿到后端主题） */
-      const globalThemeName = await ThemeCache.getThemeName()
-
       this.setData({
         hasConfigError: false,
         configErrorMessage: '',
@@ -205,11 +186,10 @@ Page({
         marketTypeFilters: marketFilters.type_filters,
         marketCategoryFilters: marketFilters.category_filters,
         marketSortOptions: marketFilters.sort_options,
-        cardTheme: globalThemeName,
         effects: exchangeConfig.card_display.effects,
         viewMode: exchangeConfig.card_display.default_view_mode || 'grid'
       })
-      this.applyNativeThemeColors(globalThemeName)
+      this.applyNativeThemeColors()
     } catch (error: any) {
       log.error('加载兑换页面配置失败:', error)
       this.setData({
@@ -321,7 +301,7 @@ Page({
 
   /** Tab 切换入口 */
   onTabChange(e: any) {
-    const tabKey = e.currentTarget.dataset.tab
+    const tabKey = e.detail?.value || e.currentTarget?.dataset?.tab
     if (!tabKey || tabKey === this.data.currentTab) {
       return
     }
@@ -405,23 +385,22 @@ Page({
   },
 
   /**
-   * 将微信原生导航栏、TabBar 颜色同步为当前主题色
+   * 将微信原生导航栏、TabBar 颜色同步为当前品牌色
    * CSS 变量只能控制 WXML 内元素，导航栏和 TabBar 属于框架层需通过 JS API 设置
    */
-  applyNativeThemeColors(themeName: string) {
-    const navColors = GlobalTheme.getThemeNavColors(themeName)
+  applyNativeThemeColors() {
     wx.setNavigationBarColor({
-      frontColor: navColors.navText as '#ffffff' | '#000000',
-      backgroundColor: navColors.navBg,
+      frontColor: '#ffffff',
+      backgroundColor: '#ff6b35',
       animation: { duration: 300, timingFunc: 'easeIn' }
     })
     wx.setTabBarStyle({
-      selectedColor: navColors.tabSelected
+      selectedColor: '#ff6b35'
     })
   },
 
   /**
-   * 从本地 Storage 恢复用户主题偏好
+   * 从本地 Storage 恢复用户视图偏好
    * 优先使用用户本地偏好覆盖后端默认配置
    */
   _restoreThemePreferences() {
@@ -432,7 +411,7 @@ Page({
         log.info('恢复用户视图模式偏好:', savedViewMode)
       }
     } catch {
-      log.warn('恢复主题偏好失败，使用后端默认配置')
+      log.warn('恢复视图偏好失败，使用后端默认配置')
     }
   }
 })

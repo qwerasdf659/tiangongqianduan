@@ -1,6 +1,7 @@
 <!--pages/camera/camera.wxml - 发现页面（抽奖活动聚合入口）-->
+<custom-navbar title="发现活动" bgColor="#667eea" textColor="#ffffff" />
 
-<view class="discover-container" style="{{globalThemeStyle}}">
+<view class="discover-container">
   <!-- 顶部搜索栏 -->
   <view class="search-bar">
     <view class="search-input-wrapper">
@@ -20,25 +21,25 @@
   <view class="activity-list">
     <!-- 加载状态 -->
     <view class="loading-container" wx:if="{{loading && !refreshing}}">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
     </view>
 
     <!-- 未登录提示 -->
-    <view class="empty-state" wx:if="{{!loading && !isLoggedIn}}">
-      <text class="empty-icon">🔐</text>
-      <text class="empty-text">登录后查看精彩活动</text>
-      <button class="retry-btn" bindtap="goLogin">去登录</button>
-    </view>
+    <t-empty wx:if="{{!loading && !isLoggedIn}}" description="登录后查看精彩活动">
+      <view slot="image">🔐</view>
+      <view slot="action" class="retry-btn" bindtap="goLogin">去登录</view>
+    </t-empty>
 
     <!-- 空状态提示 -->
-    <view class="empty-state" wx:if="{{!loading && isLoggedIn && isEmpty}}">
-      <text class="empty-icon">📭</text>
-      <text class="empty-text"
-        >{{searchKeyword ? '没有找到相关活动' : '暂时没有进行中的活动'}}</text
+    <t-empty
+      wx:if="{{!loading && isLoggedIn && isEmpty}}"
+      description="{{searchKeyword ? '没有找到相关活动' : '暂时没有进行中的活动'}}"
+    >
+      <view slot="image">📭</view>
+      <view slot="description" class="empty-hint"
+        >{{searchKeyword ? '换个关键词试试' : '敬请期待新活动上线'}}</view
       >
-      <text class="empty-hint">{{searchKeyword ? '换个关键词试试' : '敬请期待新活动上线'}}</text>
-    </view>
+    </t-empty>
 
     <!-- 错误提示 -->
     <view class="error-state" wx:if="{{!loading && errorMessage}}">

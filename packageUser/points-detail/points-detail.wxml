@@ -1,4 +1,5 @@
 <!--packageUser/points-detail/points-detail.wxml - 积分详情页面模板-->
+<custom-navbar title="积分明细" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="points-detail-container">
   <!-- 积分余额展示卡片 -->
@@ -32,35 +33,19 @@
 
   <!-- 筛选功能区域 -->
   <view class="filter-section">
-    <view class="filter-tabs">
-      <view
-        class="filter-tab {{pointsFilter === 'all' ? 'active' : ''}}"
-        data-filter="all"
-        bindtap="onPointsFilterChange"
-      >
-        <view class="filter-tab-icon">📊</view>
-        <text class="filter-tab-text">全部</text>
-        <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'all'}}"></view>
-      </view>
-      <view
-        class="filter-tab {{pointsFilter === 'earn' ? 'active' : ''}}"
-        data-filter="earn"
-        bindtap="onPointsFilterChange"
-      >
-        <view class="filter-tab-icon">💰</view>
-        <text class="filter-tab-text">获得</text>
-        <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'earn'}}"></view>
-      </view>
-      <view
-        class="filter-tab {{pointsFilter === 'consume' ? 'active' : ''}}"
-        data-filter="consume"
-        bindtap="onPointsFilterChange"
-      >
-        <view class="filter-tab-icon">🛒</view>
-        <text class="filter-tab-text">消费</text>
-        <view class="filter-tab-indicator" wx:if="{{pointsFilter === 'consume'}}"></view>
-      </view>
-    </view>
+    <t-tabs
+      value="{{pointsFilter}}"
+      bind:change="onPointsFilterChange"
+      theme="line"
+      split="{{false}}"
+      spaceEvenly="{{true}}"
+      sticky="{{false}}"
+      swipeable="{{false}}"
+    >
+      <t-tab-panel value="all" label="全部"></t-tab-panel>
+      <t-tab-panel value="earn" label="获得"></t-tab-panel>
+      <t-tab-panel value="consume" label="消费"></t-tab-panel>
+    </t-tabs>
   </view>
 
   <!-- 积分记录列表 -->
@@ -120,33 +105,30 @@
     </view>
 
     <!-- 空状态展示 -->
-    <view class="empty-state" wx:if="{{filteredPointsRecords.length === 0 && !loading}}">
-      <view class="empty-illustration">
-        <view class="empty-circle"></view>
-        <view class="empty-icon">💳</view>
-      </view>
-      <view class="empty-title">
-        {{pointsFilter === 'all' ? '暂无积分记录' : (pointsFilter === 'earn' ? '暂无积分获得记录' :
-        '暂无积分消费记录')}}
-      </view>
-      <view class="empty-desc">
-        {{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ?
-        '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}
-      </view>
-      <view class="empty-actions">
-        <view class="empty-btn primary-btn" bindtap="onBackTap">返回用户中心</view>
-      </view>
-    </view>
+    <t-empty
+      wx:if="{{filteredPointsRecords.length === 0 && !loading}}"
+      description="{{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ? '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}"
+    >
+      <view slot="image" class="empty-slot-icon">💳</view>
+      <t-button slot="action" theme="primary" shape="round" size="small" bind:tap="onBackTap"
+        >返回用户中心</t-button
+      >
+    </t-empty>
 
     <!-- 加载更多 -->
     <view class="load-more-section" wx:if="{{hasMoreRecords}}">
-      <view class="load-more-btn" bindtap="loadMoreRecords" wx:if="{{!loading}}">
-        <text class="load-more-text">加载更多</text>
-        <view class="load-more-arrow">↓</view>
-      </view>
+      <t-button
+        wx:if="{{!loading}}"
+        theme="default"
+        variant="outline"
+        shape="round"
+        size="small"
+        bind:tap="loadMoreRecords"
+      >
+        加载更多
+      </t-button>
       <view class="loading-inline" wx:if="{{loading}}">
-        <view class="loading-spinner"></view>
-        <text class="loading-text">加载中...</text>
+        <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="32rpx" />
       </view>
     </view>
 
@@ -167,9 +149,7 @@
 <!-- 全屏加载状态 -->
 <view class="fullscreen-loading" wx:if="{{loading && filteredPointsRecords.length === 0}}">
   <view class="loading-content">
-    <view class="loading-spinner-large"></view>
-    <text class="loading-title">加载中...</text>
-    <text class="loading-desc">正在获取您的积分记录</text>
+    <t-loading loading="{{true}}" text="正在获取您的积分记录" theme="spinner" />
   </view>
 </view>
 

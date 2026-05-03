@@ -8,15 +8,11 @@
     ⑤ 介绍区  ⑥ 展示图  ⑦ 使用说明  ⑧ 相关推荐
     ⑨ 标签云  ⑩ 吸底操作栏
 -->
+<custom-navbar title="商品详情" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 
 <!-- 加载状态 -->
 <view class="ed-loading" wx:if="{{loading}}">
-  <view class="ed-loading-spinner">
-    <view class="ed-spinner-dot ed-dot1"></view>
-    <view class="ed-spinner-dot ed-dot2"></view>
-    <view class="ed-spinner-dot ed-dot3"></view>
-  </view>
-  <text class="ed-loading-text">加载中...</text>
+  <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="48rpx" />
 </view>
 
 <!-- 错误状态 -->
@@ -353,8 +349,8 @@
     </scroll-view>
   </view>
 
-  <!-- ⑦ 使用说明区 -->
-  <view class="ed-rules-card">
+  <!-- ⑦ 使用说明区（仅后端提供 usage_rules 时展示） -->
+  <view class="ed-rules-card" wx:if="{{usageRules.length > 0}}">
     <text class="ed-section-title">使用说明</text>
     <view class="ed-rules-list">
       <view class="ed-rule-item" wx:for="{{usageRules}}" wx:key="*this">
@@ -439,90 +435,15 @@
 </view>
 
 <!-- 兑换确认弹窗 -->
-<view class="ed-confirm-overlay" wx:if="{{showConfirm}}" bindtap="onCloseConfirm">
-  <view class="ed-confirm-modal" catchtap="">
-    <view class="ed-confirm-bar"></view>
-
-    <view class="ed-confirm-header">
-      <text class="ed-confirm-title">确认兑换</text>
-      <view class="ed-confirm-close" bindtap="onCloseConfirm">
-        <text>✕</text>
-      </view>
-    </view>
-
-    <view class="ed-confirm-body">
-      <!-- 商品简要 -->
-      <view class="ed-confirm-product">
-        <image
-          wx:if="{{product._hasImage}}"
-          class="ed-confirm-img"
-          src="{{product._mainImage}}"
-          mode="aspectFill"
-        />
-        <view wx:else class="ed-confirm-img-fallback">
-          <text>🎁</text>
-        </view>
-        <view class="ed-confirm-product-info">
-          <text class="ed-confirm-product-name">{{product.item_name}}</text>
-          <text class="ed-confirm-sku-spec" wx:if="{{selectedSkuInfo._specLabel}}"
-            >{{selectedSkuInfo._specLabel}}</text
-          >
-          <view class="ed-confirm-product-price">
-            <text class="ed-confirm-price-num"
-              >{{selectedSkuInfo.cost_amount || product.cost_amount}}</text
-            >
-            <text class="ed-confirm-price-unit">{{product._priceLabel || '积分'}}</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 数量选择 -->
-      <view class="ed-confirm-row">
-        <text class="ed-confirm-label">兑换数量</text>
-        <view class="ed-qty-controls">
-          <view
-            class="ed-qty-btn {{exchangeQuantity <= 1 ? 'ed-qty-off' : ''}}"
-            data-action="decrease"
-            bindtap="onQuantityChange"
-          >
-            <text>−</text>
-          </view>
-          <text class="ed-qty-num">{{exchangeQuantity}}</text>
-          <view class="ed-qty-btn" data-action="increase" bindtap="onQuantityChange">
-            <text>+</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 合计消耗（SKU价格优先于SPU价格） -->
-      <view class="ed-confirm-total-row">
-        <text class="ed-confirm-label">合计消耗</text>
-        <view class="ed-confirm-total-val">
-          <text class="ed-confirm-total-num"
-            >{{(selectedSkuInfo.cost_amount || product.cost_amount) * exchangeQuantity}}</text
-          >
-          <text class="ed-confirm-total-unit">{{product._priceLabel || '积分'}}</text>
-        </view>
-      </view>
-
-      <!-- 余额 -->
-      <view class="ed-confirm-row">
-        <text class="ed-confirm-label">当前余额</text>
-        <text class="ed-confirm-balance">{{currentBalance}} {{product._priceLabel || '积分'}}</text>
-      </view>
-    </view>
-
-    <view class="ed-confirm-footer">
-      <view class="ed-confirm-cancel" bindtap="onCloseConfirm">取消</view>
-      <view
-        class="ed-confirm-submit {{exchanging ? 'ed-submit-disabled' : ''}}"
-        bindtap="onConfirmExchange"
-      >
-        {{exchanging ? '兑换中...' : '确认兑换'}}
-      </view>
-    </view>
-  </view>
-
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
-</view>
+<exchange-confirm
+  visible="{{showConfirm}}"
+  product="{{product}}"
+  quantity="{{exchangeQuantity}}"
+  selectedSkuInfo="{{selectedSkuInfo}}"
+  currentBalance="{{currentBalance}}"
+  currentBalanceLabel="{{product._priceLabel || '积分'}}"
+  submitting="{{exchanging}}"
+  bind:confirm="onConfirmExchange"
+  bind:close="onCloseConfirm"
+  bind:quantitychange="onQuantityChange"
+/>

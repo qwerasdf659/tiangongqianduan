@@ -1,10 +1,11 @@
 <!--packageTrade/trade/my-auction-bids/my-auction-bids.wxml - 我的出价记录（买方视角）-->
 <!--后端API: GET /api/v4/marketplace/auctions/my-bids-->
+<custom-navbar title="我的出价" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="my-bids-container">
   <!--加载中-->
   <view class="page-loading" wx:if="{{loading && bids.length === 0}}">
-    <loading-spinner text="加载出价记录..." />
+    <t-loading loading="{{true}}" text="加载出价记录..." theme="spinner" />
   </view>
 
   <!--错误-->
@@ -15,9 +16,9 @@
 
   <!--空状态-->
   <view class="page-empty" wx:elif="{{isEmpty}}">
-    <text class="empty-icon">🏷️</text>
-    <text class="empty-text">暂无出价记录</text>
-    <text class="empty-hint">去拍卖大厅看看有什么好物品吧</text>
+    <t-empty description="暂无出价记录">
+      <text slot="description">去拍卖大厅看看有什么好物品吧</text>
+    </t-empty>
   </view>
 
   <!--出价记录列表-->
@@ -62,7 +63,12 @@
 
     <!--加载更多/没有更多-->
     <view class="list-footer">
-      <loading-spinner text="加载更多..." wx:if="{{hasMore && loading}}" />
+      <t-loading
+        wx:if="{{hasMore && loading}}"
+        loading="{{true}}"
+        text="加载更多..."
+        theme="spinner"
+      />
       <text class="no-more" wx:if="{{!hasMore && bids.length > 0}}">— 没有更多了 —</text>
     </view>
   </view>

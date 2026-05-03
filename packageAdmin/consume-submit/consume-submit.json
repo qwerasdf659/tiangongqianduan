@@ -3,5 +3,9 @@
   "navigationBarBackgroundColor": "#667eea",
   "navigationBarTextStyle": "white",
   "enablePullDownRefresh": false,
-  "usingComponents": {}
+  "usingComponents": {
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

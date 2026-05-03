@@ -1,6 +1,15 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
+    "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
+    "t-dialog": "/miniprogram_npm/tdesign-miniprogram/dialog/dialog",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 200,
-  "navigationBarTitleText": "我的仓库"
+  "navigationBarTitleText": "我的仓库",
+  "navigationStyle": "custom"
 }

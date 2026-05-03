@@ -5,5 +5,10 @@
   "backgroundColor": "#f8f9fa",
   "backgroundTextStyle": "light",
   "enablePullDownRefresh": false,
-  "usingComponents": {}
+  "usingComponents": {
+    "exchange-confirm": "/components/exchange/shared/exchange-confirm/exchange-confirm",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

@@ -1,6 +1,8 @@
 {
   "navigationBarTitleText": "设计完成",
   "usingComponents": {
-    "payment-panel": "../sub/payment-panel/payment-panel"
-  }
+    "payment-panel": "../sub/payment-panel/payment-panel",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

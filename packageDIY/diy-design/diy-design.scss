@@ -1,11 +1,10 @@
-@import '../../styles/variables.scss';
 @import '../../styles/mixins.scss';
 
 .diy-design-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: $color-bg;
+  background: var(--tg-page-bg);
   overflow: hidden;
 }
 
@@ -14,14 +13,10 @@
   @include flex-column-center;
   height: 100vh;
 
-  .loading-spinner {
-    @include loading-state;
-  }
-
   text {
-    font-size: $font-size-base;
-    color: $color-text-tertiary;
-    margin-top: $spacing-sm;
+    font-size: var(--td-font-size-base);
+    color: var(--tg-text-tertiary);
+    margin-top: var(--tg-spacing-sm);
   }
 }
 
@@ -29,49 +24,49 @@
 .workspace-area {
   position: relative;
   flex-shrink: 0;
-  padding: $spacing-sm $spacing-base;
-  background: $color-bg-card;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  background: var(--tg-card-bg);
 }
 
 /* 右上角操作按钮组 */
 .action-buttons {
   position: absolute;
-  top: $spacing-sm;
-  right: $spacing-base;
+  top: var(--tg-spacing-sm);
+  right: var(--tg-spacing-md);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: var(--tg-spacing-xs);
 }
 
 .action-btn {
-  padding: $spacing-xs $spacing-lg;
-  border-radius: $border-radius-xl;
-  font-size: $font-size-sm;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-lg);
+  border-radius: var(--td-radius-large);
+  font-size: var(--td-font-size-s);
   text-align: center;
 
   &-dark {
-    background: $color-text-primary;
-    color: $color-text-white;
+    background: var(--tg-text-primary);
+    color: var(--tg-color-white);
   }
 
   &-primary {
-    background: $color-primary;
-    color: $color-text-white;
+    background: var(--td-brand-color);
+    color: var(--tg-color-white);
   }
 }
 
 /* 预览画布区域 */
 .preview-section {
   @include flex-center;
-  padding: $spacing-lg 0;
+  padding: var(--tg-spacing-lg) 0;
   min-height: 400rpx;
 }
 
 /* 右侧参数面板 */
 .params-panel {
   position: absolute;
-  right: $spacing-base;
+  right: var(--tg-spacing-md);
   top: 180rpx;
   display: flex;
   flex-direction: column;
@@ -82,32 +77,32 @@
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: $spacing-xs;
+  gap: var(--tg-spacing-xs);
 }
 
 .param-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 .param-value {
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   font-weight: 600;
 }
 
 .price-highlight {
-  color: $color-primary;
+  color: var(--td-brand-color);
 }
 
 /* ===== 左侧浮动工具栏 ===== */
 .side-tools {
   position: absolute;
-  left: $spacing-base;
-  bottom: $spacing-lg;
+  left: var(--tg-spacing-md);
+  bottom: var(--tg-spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: var(--tg-spacing-md);
   z-index: 10;
 }
 
@@ -117,12 +112,12 @@
 
 .side-tool-icon {
   font-size: 48rpx;
-  color: $color-text-primary;
+  color: var(--tg-text-primary);
 }
 
 .side-tool-label {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
 }
 
@@ -130,18 +125,18 @@
 .toolbox-panel {
   position: absolute;
   left: 100rpx;
-  bottom: $spacing-lg;
-  background: $color-bg-card;
-  border-radius: $border-radius-md;
-  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.12);
-  padding: $spacing-sm;
+  bottom: var(--tg-spacing-lg);
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
+  box-shadow: 0 4rpx 24rpx rgba(var(--tg-color-black-rgb), 0.12);
+  padding: var(--tg-spacing-sm);
   z-index: 20;
 }
 
 .toolbox-item {
-  padding: $spacing-xs $spacing-md;
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
   white-space: nowrap;
 
   &.disabled {
@@ -150,8 +145,8 @@
   }
 
   &:active {
-    background: $color-bg-grey;
-    border-radius: $border-radius-sm;
+    background: var(--tg-diy-canvas-bg);
+    border-radius: var(--td-radius-small);
   }
 }
 
@@ -160,8 +155,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: $color-bg-card;
-  border-top: 1rpx solid $color-border-light;
+  background: var(--tg-card-bg);
+  border-top: 1rpx solid var(--tg-border-color);
   overflow: hidden;
 }
 
@@ -169,21 +164,21 @@
 .material-type-tabs {
   display: flex;
   align-items: center;
-  padding: $spacing-sm $spacing-base;
-  border-bottom: 1rpx solid $color-border-light;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  border-bottom: 1rpx solid var(--tg-border-color);
   flex-shrink: 0;
 }
 
 .material-type-tab {
   flex: 1;
   text-align: center;
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  padding-bottom: $spacing-xs;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
+  padding-bottom: var(--tg-spacing-xs);
   position: relative;
 
   &.active {
-    color: $color-text-primary;
+    color: var(--tg-text-primary);
     font-weight: 600;
 
     &::after {
@@ -193,7 +188,7 @@
       left: 25%;
       width: 50%;
       height: 4rpx;
-      background: $color-text-primary;
+      background: var(--tg-text-primary);
       border-radius: 2rpx;
     }
   }
@@ -201,39 +196,39 @@
 
 /* 搜索栏 */
 .search-bar {
-  padding: $spacing-xs $spacing-base;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
   flex-shrink: 0;
 }
 
 .search-input {
-  background: $color-bg-grey;
-  border-radius: $border-radius-xl;
-  padding: $spacing-xs $spacing-md;
-  font-size: $font-size-sm;
+  background: var(--tg-diy-canvas-bg);
+  border-radius: var(--td-radius-large);
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  font-size: var(--td-font-size-s);
 }
 
 /* 提示条 */
 .material-tip {
   @include flex-align-center;
-  padding: $spacing-xs $spacing-base;
-  background: #fffbe6;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  background: var(--tg-color-warning-soft);
   flex-shrink: 0;
 }
 
 .tip-icon {
-  margin-right: $spacing-xs;
+  margin-right: var(--tg-spacing-xs);
 }
 
 .tip-text {
   flex: 1;
-  font-size: $font-size-xs;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-secondary);
 }
 
 .tip-close {
-  font-size: $font-size-lg;
-  color: $color-text-tertiary;
-  padding: 0 $spacing-xs;
+  font-size: var(--td-font-size-l);
+  color: var(--tg-text-tertiary);
+  padding: 0 var(--tg-spacing-xs);
 }
 
 /* 素材内容区：左侧分类 + 右侧网格 */
@@ -247,34 +242,34 @@
 .material-groups {
   width: 140rpx;
   flex-shrink: 0;
-  border-right: 1rpx solid $color-border-light;
-  background: $color-bg;
+  border-right: 1rpx solid var(--tg-border-color);
+  background: var(--tg-page-bg);
 }
 
 .group-item {
-  padding: $spacing-sm 0;
+  padding: var(--tg-spacing-sm) 0;
   text-align: center;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
 
   &.active {
-    color: $color-primary;
+    color: var(--td-brand-color);
     font-weight: 600;
-    background: $color-bg-card;
-    border-left: 4rpx solid $color-primary;
+    background: var(--tg-card-bg);
+    border-left: 4rpx solid var(--td-brand-color);
   }
 }
 
 /* 右侧素材网格 */
 .material-grid-wrap {
   flex: 1;
-  padding: $spacing-xs;
+  padding: var(--tg-spacing-xs);
 }
 
 .material-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-sm;
+  gap: var(--tg-spacing-sm);
 }
 
 .material-item {
@@ -283,11 +278,11 @@
 
 .material-empty {
   @include flex-center;
-  padding: $spacing-xxl 0;
+  padding: 48rpx 0;
   width: 100%;
 
   text {
-    font-size: $font-size-sm;
-    color: $color-text-tertiary;
+    font-size: var(--td-font-size-s);
+    color: var(--tg-text-tertiary);
   }
 }

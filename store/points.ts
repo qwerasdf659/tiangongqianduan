@@ -16,8 +16,10 @@ import { action, observable } from 'mobx-miniprogram'
 
 import { createPaginatedActions, createPaginationState } from './helpers'
 
-/* 内部模块直接引用，不通过 utils/index.ts（避免循环依赖） */
-const { formatPoints } = require('../utils/util')
+const { Utils } = require('../utils/index')
+const { createLogger } = require('../utils/logger')
+const { formatPoints } = Utils
+const log = createLogger('points-store')
 
 export const pointsStore = observable({
   // ===== 可观察状态 =====
@@ -115,7 +117,7 @@ export const pointsStore = observable({
       pointsStore.setBalanceLoading(false)
       return { available: this.availableAmount, frozen: this.frozenAmount }
     } catch (refreshError) {
-      console.error('[pointsStore] refreshFromAPI 异常:', refreshError)
+      log.error('refreshFromAPI 异常:', refreshError)
       pointsStore.setBalanceLoading(false)
       return { available: this.availableAmount, frozen: this.frozenAmount }
     }

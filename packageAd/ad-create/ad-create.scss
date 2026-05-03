@@ -1,5 +1,4 @@
 /* 📝 创建广告活动 - 样式 */
-@import '../../styles/variables.scss';
 
 .ad-create-page {
   min-height: 100vh;
@@ -75,7 +74,7 @@
 }
 
 .slot-card.selected {
-  border-color: $color-primary;
+  border-color: var(--td-brand-color);
   background: rgba(255, 107, 53, 0.04);
 }
 
@@ -109,7 +108,7 @@
 
 .slot-price {
   font-size: 24rpx;
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-weight: 600;
 }
 
@@ -134,7 +133,7 @@
 }
 
 .billing-mode-card.selected {
-  border-color: $color-primary;
+  border-color: var(--td-brand-color);
   background: rgba(255, 107, 53, 0.04);
 }
 
@@ -176,7 +175,7 @@
 
 .cost-value {
   font-size: 32rpx;
-  color: $color-primary;
+  color: var(--td-brand-color);
   font-weight: 700;
   margin-right: 8rpx;
 }
@@ -352,7 +351,7 @@
 }
 
 .btn-submit {
-  background: $color-primary;
+  background: var(--td-brand-color);
   color: #fff;
 }
 

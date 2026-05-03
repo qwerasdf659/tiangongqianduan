@@ -6,5 +6,12 @@
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
   "disableScroll": false,
-  "backgroundTextStyle": "dark"
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

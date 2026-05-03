@@ -1,5 +1,4 @@
 /* 登录认证页面样式 - V4.0 全局氛围主题版本 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* 🔧 页面加载状态样式 */
@@ -11,8 +10,8 @@
   height: 100vh;
   background: linear-gradient(
     135deg,
-    var(--theme-page-start, $gradient-blue-start) 0%,
-    var(--theme-page-end, $gradient-blue-end) 100%
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
   );
   @include flex-center;
   z-index: 9999;
@@ -21,31 +20,15 @@
 .loading-content {
   @include flex-column-center;
   /* 登录页加载块：纯白底，无 backdrop-filter */
-  background: $color-white;
-  border-radius: $border-radius-xl;
+  background: var(--tg-color-white);
+  border-radius: var(--tg-radius-xl);
   padding: 80rpx 60rpx;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
 }
 
-.loading-spinner {
-  font-size: 80rpx;
-  margin-bottom: 30rpx;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .loading-text {
-  font-size: $font-size-md;
-  color: var(--text-color);
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
@@ -58,8 +41,8 @@
   height: 100vh;
   background: linear-gradient(
     135deg,
-    var(--theme-page-start, $gradient-blue-start) 0%,
-    var(--theme-page-end, $gradient-blue-end) 100%
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
   );
   @include flex-center;
   padding: 40rpx 20rpx;
@@ -69,8 +52,8 @@
 .error-content {
   width: 100%;
   max-width: 600rpx;
-  background: $color-white;
-  border-radius: $border-radius-xl;
+  background: var(--tg-color-white);
+  border-radius: var(--tg-radius-xl);
   padding: 60rpx 40rpx;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -83,7 +66,7 @@
 
 .error-title {
   display: block;
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 600;
   color: #f44336;
   margin-bottom: 20rpx;
@@ -91,8 +74,8 @@
 
 .error-message {
   display: block;
-  font-size: $font-size-base;
-  color: var(--gray-color);
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
   line-height: 1.5;
   margin-bottom: 40rpx;
 }
@@ -108,7 +91,7 @@
   border: none;
   border-radius: 20rpx;
   padding: 20rpx 40rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
   transition: all 0.3s ease;
 }
@@ -116,16 +99,16 @@
 .retry-btn {
   background: linear-gradient(
     45deg,
-    var(--theme-page-start, $gradient-blue-start),
-    var(--theme-page-end, $gradient-blue-end)
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
   );
   color: white;
 }
 
 .details-btn {
-  background: var(--theme-shadow-soft, rgba(255, 107, 53, 0.1));
-  color: var(--theme-page-start, $gradient-blue-start);
-  border: 2rpx solid var(--theme-page-start, $gradient-blue-start);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
+  color: var(--tg-gradient-primary-start);
+  border: 2rpx solid var(--tg-gradient-primary-start);
 }
 
 .error-details {
@@ -137,8 +120,8 @@
 }
 
 .error-details-text {
-  font-size: $font-size-sm;
-  color: var(--gray-color);
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   line-height: 1.6;
   text-align: left;
   white-space: pre-line;
@@ -155,8 +138,8 @@
   min-height: 100vh;
   background: linear-gradient(
     135deg,
-    var(--theme-page-start, $gradient-blue-start) 0%,
-    var(--theme-page-end, $gradient-blue-end) 100%
+    var(--tg-gradient-primary-start) 0%,
+    var(--tg-gradient-primary-end) 100%
   );
   @include flex-center;
   /* 🔧 修复白色内容框左右对齐问题：确保完美居中 */
@@ -224,8 +207,8 @@
   width: calc(100% - 40rpx);
   max-width: 600rpx;
   /* 登录主卡片：纯白底 */
-  background: $color-white;
-  border-radius: $border-radius-xl;
+  background: var(--tg-color-white);
+  border-radius: var(--tg-radius-xl);
   padding: 60rpx 40rpx;
   box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
   position: relative;
@@ -279,16 +262,16 @@
 }
 
 .title {
-  font-size: $font-size-xxl;
+  font-size: var(--tg-font-size-xxl);
   font-weight: 700;
-  color: var(--text-color);
+  color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   display: block;
 }
 
 .subtitle {
-  font-size: $font-size-base;
-  color: var(--gray-color);
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
   line-height: 1.5;
   display: block;
 }
@@ -311,13 +294,13 @@
 }
 
 .label-text {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--tg-text-primary);
 }
 
 .required {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   color: #f44336;
   margin-left: 8rpx;
 }
@@ -325,8 +308,8 @@
 .input-wrapper {
   display: flex;
   align-items: center;
-  background: var(--bg-color);
-  border: 3rpx solid var(--border-color);
+  background: var(--tg-color-bg);
+  border: 3rpx solid var(--tg-color-border);
   border-radius: 20rpx;
   padding: 24rpx;
   transition: all 0.3s ease;
@@ -335,9 +318,10 @@
   box-sizing: border-box;
 }
 
-.input-wrapper:focus-within {
-  border-color: var(--theme-page-start, $gradient-blue-start);
-  box-shadow: 0 0 0 6rpx var(--theme-shadow-soft, rgba(255, 107, 53, 0.1));
+/* Skyline 不支持 :focus-within，使用 JS 控制 .input-focused class 替代 */
+.input-wrapper.input-focused {
+  border-color: var(--tg-gradient-primary-start);
+  box-shadow: 0 0 0 6rpx rgba(var(--td-brand-color-rgb), 0.1);
 }
 
 .input-wrapper.error {
@@ -346,15 +330,15 @@
 }
 
 .input-prefix {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   margin-right: 20rpx;
-  color: var(--gray-color);
+  color: var(--tg-text-tertiary);
 }
 
 .form-input {
   flex: 1;
-  font-size: $font-size-md;
-  color: var(--text-color);
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-primary);
   background: transparent;
   /* 🔧 修复对齐问题：确保输入框宽度一致 */
   min-width: 0;
@@ -363,14 +347,14 @@
 .code-btn {
   background: linear-gradient(
     45deg,
-    var(--theme-page-start, $gradient-blue-start),
-    var(--theme-page-end, $gradient-blue-end)
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
   ) !important;
   color: white !important;
   border: none !important;
-  border-radius: $border-radius-md !important;
+  border-radius: var(--td-radius-default) !important;
   padding: 20rpx 4rpx !important;
-  font-size: $font-size-base !important;
+  font-size: var(--td-font-size-base) !important;
   font-weight: 600 !important;
   width: 150rpx !important;
   height: 90rpx !important;
@@ -386,16 +370,17 @@
 }
 
 .code-btn.disabled {
-  background: var(--gray-color);
+  background: var(--tg-text-tertiary);
   opacity: 0.6;
 }
 
-.code-btn:not(.disabled):hover {
+/* Skyline 不支持 :hover/:not() 伪类，手机端无鼠标悬停，使用 hover-class 替代 */
+.code-btn-hover {
   transform: scale(1.05);
 }
 
 .error-tip {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   color: #f44336;
   margin-top: 12rpx;
   margin-left: 20rpx;
@@ -415,13 +400,13 @@
 
 .agreement-text {
   font-size: 26rpx;
-  color: var(--gray-color);
+  color: var(--tg-text-tertiary);
   line-height: 1.5;
   flex: 1;
 }
 
 .agreement-link {
-  color: var(--theme-page-start, $gradient-blue-start);
+  color: var(--tg-gradient-primary-start);
   text-decoration: underline;
 }
 
@@ -430,14 +415,14 @@
   width: 100%;
   background: linear-gradient(
     45deg,
-    var(--theme-page-start, $gradient-blue-start),
-    var(--theme-page-end, $gradient-blue-end)
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
   );
   color: white;
   border: none;
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   padding: 36rpx;
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 700;
   margin-bottom: 30rpx;
   transition: all 0.3s ease;
@@ -456,28 +441,29 @@
   transition: left 0.5s;
 }
 
-.submit-btn:hover::before {
+/* Skyline 不支持 :hover 伪类，使用 hover-class 替代 */
+.submit-btn-hover::before {
   left: 100%;
 }
 
-.submit-btn:not([disabled]):hover {
+.submit-btn-hover {
   transform: translateY(-2rpx);
-  box-shadow: 0 12rpx 40rpx var(--theme-shadow-strong, rgba(255, 107, 53, 0.4));
+  box-shadow: 0 12rpx 40rpx rgba(var(--td-brand-color-rgb), 0.4);
 }
 
 .submit-btn.loading {
-  background: var(--gray-color);
+  background: var(--tg-text-tertiary);
   opacity: 0.8;
 }
 
 .skip-btn {
   width: 100%;
   background: rgba(255, 255, 255, 0.5);
-  color: var(--text-color);
-  border: 2rpx solid var(--border-color);
+  color: var(--tg-text-primary);
+  border: 2rpx solid var(--tg-color-border);
   border-radius: 20rpx;
   padding: 28rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
 }
 
@@ -487,8 +473,8 @@
 }
 
 .tips {
-  font-size: $font-size-sm;
-  color: var(--gray-color);
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   margin-bottom: 30rpx;
   display: block;
   line-height: 1.5;
@@ -502,8 +488,8 @@
 }
 
 .feature-tag {
-  background: var(--theme-shadow-soft, rgba(255, 107, 53, 0.1));
-  color: var(--theme-text-inverse, $gradient-blue-start);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
+  color: var(--tg-gradient-primary-start);
   padding: 12rpx 20rpx;
   border-radius: 50rpx;
   font-size: 22rpx;
@@ -536,7 +522,7 @@
   max-width: 700rpx;
   max-height: 80vh;
   background: white;
-  border-radius: $border-radius-lg;
+  border-radius: var(--td-radius-large);
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
 }
@@ -556,8 +542,8 @@
 .modal-header {
   background: linear-gradient(
     45deg,
-    var(--theme-page-start, $gradient-blue-start),
-    var(--theme-page-end, $gradient-blue-end)
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
   );
   color: white;
   padding: 40rpx;
@@ -566,7 +552,7 @@
 }
 
 .modal-title {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   font-weight: 600;
 }
 
@@ -575,7 +561,7 @@
   top: 20rpx;
   right: 30rpx;
   font-size: 50rpx;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   width: 60rpx;
   height: 60rpx;
   @include flex-center;
@@ -595,16 +581,16 @@
 }
 
 .section-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   display: block;
 }
 
 .section-content {
-  font-size: $font-size-base;
-  color: var(--gray-color);
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-tertiary);
   line-height: 1.8;
   display: block;
   white-space: pre-line;
@@ -612,21 +598,21 @@
 
 .modal-footer {
   padding: 30rpx 40rpx;
-  background: var(--bg-color);
+  background: var(--tg-color-bg);
 }
 
 .modal-btn {
   width: 100%;
   background: linear-gradient(
     45deg,
-    var(--theme-page-start, $gradient-blue-start),
-    var(--theme-page-end, $gradient-blue-end)
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
   );
   color: white;
   border: none;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   padding: 28rpx;
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
 }
 
@@ -639,11 +625,11 @@
   }
 
   .title {
-    font-size: $font-size-xl;
+    font-size: var(--tg-font-size-xl);
   }
 
   .submit-btn {
-    font-size: $font-size-md;
+    font-size: var(--td-font-size-m);
     padding: 32rpx;
   }
 

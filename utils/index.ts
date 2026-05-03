@@ -26,8 +26,6 @@ const authHelperFunctions = require('./auth-helper')
 const errorFunctions = require('./simple-error')
 const configCacheFunctions = require('./config-cache')
 const exchangeConfigCacheFunctions = require('./exchange-config-cache')
-const themeCacheFunctions = require('./theme-cache')
-const globalThemeFunctions = require('./global-themes')
 const loggerFunctions = require('./logger')
 const waterfallFunctions = require('./waterfall')
 const popupFrequencyFunctions = require('./popup-frequency')
@@ -61,14 +59,8 @@ const ErrorHandler = { ...errorFunctions }
 /** 活动位置配置缓存管理器（单例） */
 const ConfigCache = { ...configCacheFunctions }
 
-/** 兑换页面配置缓存（ExchangeConfigCache 类 + DEFAULT_EXCHANGE_CONFIG 兜底值） */
+/** 兑换页面配置缓存（ExchangeConfigCache 类，仅读取后端真实配置与真实缓存） */
 const ExchangeConfig = { ...exchangeConfigCacheFunctions }
-
-/** 全局氛围主题缓存（ThemeCache 类 — 4 层降级策略，同步/异步获取主题） */
-const ThemeCache = { ...themeCacheFunctions }
-
-/** 全局主题 CSS 变量映射（getGlobalThemeStyle / getAvailableThemes / GLOBAL_THEME_MAP） */
-const GlobalTheme = { ...globalThemeFunctions }
 
 /** 统一日志工具 - 环境级别控制 */
 const Logger = { ...loggerFunctions }
@@ -80,7 +72,10 @@ const Waterfall = { ...waterfallFunctions }
 const PopupFrequency = { ...popupFrequencyFunctions }
 
 /** 二维码生成工具 - Canvas 2D 新接口（兼容 WebView + Skyline） */
-const QRCode = { drawQrcode: drawQrcodeFunction.drawQrcode, drawQrcodeToImage: drawQrcodeFunction.drawQrcodeToImage }
+const QRCode = {
+  drawQrcode: drawQrcodeFunction.drawQrcode,
+  drawQrcodeToImage: drawQrcodeFunction.drawQrcodeToImage
+}
 
 /** API调用包装器 - 统一 try/catch + 响应检查 + 错误处理 */
 const ApiWrapper = { ...apiWrapperFunctions }
@@ -118,8 +113,6 @@ module.exports = {
   AssetCodes,
   ConfigCache,
   ExchangeConfig,
-  ThemeCache,
-  GlobalTheme,
   Logger,
   Waterfall,
   PopupFrequency,

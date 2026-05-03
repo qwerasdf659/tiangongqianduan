@@ -3,6 +3,8 @@
   后端API: GET /api/v4/exchange/orders
   业务流: pending → approved → shipped → received → rated
 -->
+<wxs src="./exchange-orders.wxs" module="ordersHelper" />
+<custom-navbar title="我的订单" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 <view class="orders-page">
   <!-- 页面顶部统计卡片 -->
   <view class="stats-card">
@@ -31,16 +33,18 @@
 
   <!-- 状态筛选Tab -->
   <view class="filter-bar">
-    <view
-      wx:for="{{statusTabs}}"
-      wx:key="key"
-      class="filter-tab {{currentTab === item.key ? 'active' : ''}}"
-      data-tab="{{item.key}}"
-      bindtap="onTabChange"
+    <t-tabs
+      value="{{currentTab}}"
+      bind:change="onTabChange"
+      theme="line"
+      split="{{false}}"
+      spaceEvenly="{{true}}"
+      sticky="{{false}}"
+      swipeable="{{false}}"
     >
-      <text class="filter-text">{{item.label}}</text>
-      <view class="filter-indicator" wx:if="{{currentTab === item.key}}"></view>
-    </view>
+      <t-tab-panel wx:for="{{statusTabs}}" wx:key="key" value="{{item.key}}" label="{{item.label}}">
+      </t-tab-panel>
+    </t-tabs>
   </view>
 
   <!-- 使用引导（首次进入或无订单时展示） -->
@@ -49,22 +53,22 @@
     <view class="guide-title">📦 订单流程说明</view>
     <view class="guide-steps">
       <view class="guide-step">
-        <view class="guide-step-icon" style="background: #ff9800">🛒</view>
+        <view class="guide-step-icon guide-step-icon--pending">🛒</view>
         <text class="guide-step-text">兑换商品</text>
       </view>
       <view class="guide-arrow">→</view>
       <view class="guide-step">
-        <view class="guide-step-icon" style="background: #2196f3">✓</view>
+        <view class="guide-step-icon guide-step-icon--approved">✓</view>
         <text class="guide-step-text">审核通过</text>
       </view>
       <view class="guide-arrow">→</view>
       <view class="guide-step">
-        <view class="guide-step-icon" style="background: #4caf50">🚚</view>
+        <view class="guide-step-icon guide-step-icon--shipped">🚚</view>
         <text class="guide-step-text">商家发货</text>
       </view>
       <view class="guide-arrow">→</view>
       <view class="guide-step">
-        <view class="guide-step-icon" style="background: #9c27b0">⭐</view>
+        <view class="guide-step-icon guide-step-icon--rated">⭐</view>
         <text class="guide-step-text">确认评价</text>
       </view>
     </view>
@@ -75,15 +79,15 @@
   <view class="orders-content">
     <!-- 页面级加载 -->
     <view class="page-loading" wx:if="{{loading && orders.length === 0}}">
-      <loading-spinner text="加载订单中..." />
+      <t-loading loading="{{true}}" text="加载订单中..." theme="spinner" />
     </view>
 
     <!-- 空状态 -->
     <view class="empty-wrapper" wx:if="{{!loading && orders.length === 0}}">
       <view class="empty-card">
-        <text class="empty-icon">📭</text>
-        <text class="empty-title">{{emptyText}}</text>
-        <text class="empty-desc">去商城兑换中心挑选喜欢的商品吧</text>
+        <t-empty description="{{emptyText}}">
+          <text slot="description">去商城兑换中心挑选喜欢的商品吧</text>
+        </t-empty>
         <view class="empty-action" bindtap="goToExchange">
           <text class="empty-action-text">去逛逛商城</text>
         </view>
@@ -102,13 +106,12 @@
         <!-- 卡片头部：状态 + 来源 + 订单号 -->
         <view class="card-header">
           <view class="card-header-left">
-            <view class="status-badge" style="background: {{item._statusColor}}">
-              <text class="status-icon">{{item._statusIcon}}</text>
-              <text class="status-label">{{item._statusLabel}}</text>
-            </view>
-            <view class="source-tag" wx:if="{{item._sourceLabel}}">
-              <text class="source-text">{{item._sourceLabel}}</text>
-            </view>
+            <t-tag theme="{{item._statusTheme}}" variant="dark" size="small" shape="round">
+              {{item._statusIcon}} {{item._statusLabel}}
+            </t-tag>
+            <t-tag wx:if="{{item._sourceLabel}}" theme="default" variant="light" size="small">
+              {{item._sourceLabel}}
+            </t-tag>
           </view>
           <text class="order-no" catchtap="onCopyOrderNo" data-no="{{item.order_no}}"
             >{{item._shortOrderNo}}</text
@@ -180,33 +183,40 @@
           wx:if="{{item._canConfirmReceipt || item._canRate || item._canCancel}}"
           catchtap=""
         >
-          <view
-            class="action-btn btn-cancel"
+          <t-button
             wx:if="{{item._canCancel}}"
+            theme="default"
+            variant="outline"
+            size="small"
+            shape="round"
             data-order_no="{{item.order_no}}"
             data-product_name="{{item._productName}}"
-            catchtap="onCancelOrder"
+            bind:tap="onCancelOrder"
           >
-            <text class="action-text">取消订单</text>
-          </view>
-          <view
-            class="action-btn btn-confirm"
+            取消订单
+          </t-button>
+          <t-button
             wx:if="{{item._canConfirmReceipt}}"
+            theme="success"
+            size="small"
+            shape="round"
             data-order_no="{{item.order_no}}"
             data-product_name="{{item._productName}}"
-            catchtap="onConfirmReceipt"
+            bind:tap="onConfirmReceipt"
           >
-            <text class="action-text">确认收货</text>
-          </view>
-          <view
-            class="action-btn btn-rate"
+            确认收货
+          </t-button>
+          <t-button
             wx:if="{{item._canRate}}"
+            theme="primary"
+            size="small"
+            shape="round"
             data-order_no="{{item.order_no}}"
             data-product_name="{{item._productName}}"
-            catchtap="onOpenRating"
+            bind:tap="onOpenRating"
           >
-            <text class="action-text">去评价</text>
-          </view>
+            去评价
+          </t-button>
         </view>
       </view>
 
@@ -220,18 +230,20 @@
 </view>
 
 <!-- 评价弹窗 -->
-<view class="rating-overlay" wx:if="{{showRatingModal}}" catchtap="onCloseRatingModal">
-  <view class="rating-modal" catchtap="">
-    <view class="rating-modal-header">
-      <text class="rating-modal-title">评价商品</text>
-      <view class="rating-modal-close" bindtap="onCloseRatingModal">
-        <text>✕</text>
-      </view>
-    </view>
-
+<t-dialog
+  visible="{{showRatingModal}}"
+  title="评价商品"
+  closeBtn="{{true}}"
+  closeOnOverlayClick="{{true}}"
+  confirmBtn="{{ordersHelper.ratingBtn(ratingSubmitting, ratingScore)}}"
+  cancelBtn="取消"
+  bind:confirm="onSubmitRating"
+  bind:close="onCloseRatingModal"
+  bind:cancel="onCloseRatingModal"
+>
+  <view slot="content" class="rating-dialog-content">
     <text class="rating-product-name">{{ratingProductName}}</text>
 
-    <!-- 星级选择 -->
     <view class="rating-stars-row">
       <view
         wx:for="{{[1,2,3,4,5]}}"
@@ -244,16 +256,8 @@
       </view>
     </view>
     <text class="rating-hint">{{ratingHint}}</text>
-
-    <!-- 提交按钮 -->
-    <view
-      class="rating-submit-btn {{ratingScore === 0 || ratingSubmitting ? 'disabled' : ''}}"
-      bindtap="onSubmitRating"
-    >
-      <text class="rating-submit-text">{{ratingSubmitting ? '提交中...' : '提交评价'}}</text>
-    </view>
   </view>
+</t-dialog>
 
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
-</view>
+<!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+<maintenance-overlay />

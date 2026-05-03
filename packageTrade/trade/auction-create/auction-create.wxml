@@ -1,5 +1,6 @@
 <!--packageTrade/trade/auction-create/auction-create.wxml - 创建C2C拍卖-->
 <!--后端API: POST /api/v4/marketplace/auctions-->
+<custom-navbar title="发起拍卖" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
 <view class="auction-create-container">
   <!--步骤1：选择物品-->
@@ -11,14 +12,14 @@
 
     <!--加载中-->
     <view class="items-loading" wx:if="{{itemsLoading}}">
-      <loading-spinner text="加载背包物品..." />
+      <t-loading loading="{{true}}" text="加载背包物品..." theme="spinner" />
     </view>
 
     <!--空状态-->
     <view class="items-empty" wx:elif="{{itemsEmpty}}">
-      <text class="empty-icon">📦</text>
-      <text class="empty-text">暂无可拍卖的物品</text>
-      <text class="empty-hint">只有available状态且允许交易的物品可以拍卖</text>
+      <t-empty description="暂无可拍卖的物品">
+        <text slot="description">只有available状态且允许交易的物品可以拍卖</text>
+      </t-empty>
     </view>
 
     <!--物品列表-->

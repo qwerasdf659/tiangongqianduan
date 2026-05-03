@@ -1,19 +1,18 @@
 <!--
   反馈详情页面 - 查看单条反馈和客服回复
 -->
+<custom-navbar title="反馈详情" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="feedback-detail-page">
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="loading-container">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
+    <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
   </view>
 
   <!-- 加载失败 -->
-  <view wx:elif="{{loadError}}" class="error-container">
-    <text class="error-icon">😞</text>
-    <text class="error-text">加载失败</text>
-    <button class="retry-btn" bindtap="onRetry">重新加载</button>
-  </view>
+  <t-empty wx:elif="{{loadError}}" description="加载失败">
+    <view slot="image">😞</view>
+    <view slot="action" class="retry-btn" bindtap="onRetry">重新加载</view>
+  </t-empty>
 
   <!-- 反馈详情 -->
   <view wx:elif="{{feedbackDetail}}" class="detail-container">

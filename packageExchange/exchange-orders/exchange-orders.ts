@@ -18,6 +18,18 @@ const { API, Logger, Wechat, Utils } = require('../../utils/index')
 const exchangeOrdersLog = Logger.createLogger('exchange-orders-page')
 const { showToast } = Wechat
 
+const ORDER_STATUS_THEME_MAP: Record<string, string> = {
+  pending: 'warning',
+  approved: 'primary',
+  shipped: 'success',
+  received: 'primary',
+  rated: 'primary',
+  rejected: 'danger',
+  refunded: 'default',
+  cancelled: 'default',
+  completed: 'success'
+}
+
 /**
  * 订单状态文案映射（后端权威字段 → 前端展示）
  * 数据库 ENUM 共9态（含 completed 历史兼容态），与后端 exchange_records.status 对齐
@@ -228,10 +240,8 @@ Page({
    * 丰富订单展示字段（后端snake_case → 前端展示辅助字段）
    * 以 _ 前缀标记为纯展示辅助字段，与后端业务字段区分
    *
-   * 新订单快照结构: { name, description, primary_media: { public_url } }
-   * 历史订单兼容: { item_name, description, image_url }
-   *   - 商品名优先 .name，降级 .item_name
-   *   - 图片优先 .primary_media?.public_url，降级 .image_url，兜底占位图
+   * 订单快照以当前后端结构为准：
+   *   { name, description, primary_media: { public_url } }
    */
   enrichOrderDisplay(order: any) {
     const statusInfo = ORDER_STATUS_MAP[order.status] || {
@@ -247,12 +257,9 @@ Page({
       _statusLabel: statusInfo.label,
       _statusColor: statusInfo.color,
       _statusIcon: statusInfo.icon,
-      _productName: itemSnapshot.name || itemSnapshot.item_name || '兑换商品',
-      _productImage:
-        itemSnapshot.primary_media?.public_url ||
-        itemSnapshot.image_url ||
-        '/images/default-product.png',
-      _hasProductImage: !!(itemSnapshot.primary_media?.public_url || itemSnapshot.image_url),
+      _productName: itemSnapshot.name || '兑换商品',
+      _productImage: itemSnapshot.primary_media?.public_url || '/images/default-product.png',
+      _hasProductImage: !!itemSnapshot.primary_media?.public_url,
       _payInfo: order.pay_amount ? `${order.pay_amount} ${order.pay_asset_code || ''}` : '',
       _createTime: order.created_at ? this.formatTime(order.created_at) : '',
       _shippedTime: order.shipped_at ? this.formatTime(order.shipped_at) : '',
@@ -270,7 +277,7 @@ Page({
       _canRate: order.status === 'received',
       _canCancel: order.status === 'pending',
       _isAutoConfirmed: order.auto_confirmed === true,
-      _ratingStars: order.rating ? '★'.repeat(order.rating) + '☆'.repeat(5 - order.rating) : '',
+      _statusTheme: ORDER_STATUS_THEME_MAP[order.status] || 'default',
       _statusDisplayName: order.status_display_name || statusInfo.label
     }
   },
@@ -296,7 +303,7 @@ Page({
 
   /** 切换筛选Tab */
   onTabChange(e: any) {
-    const tab = e.currentTarget.dataset.tab
+    const tab = e.detail?.value || e.currentTarget?.dataset?.tab
     if (tab === this.data.currentTab) {
       return
     }
@@ -346,7 +353,8 @@ Page({
    * POST /api/v4/exchange/orders/:order_no/confirm-receipt
    */
   onConfirmReceipt(e: any) {
-    const { order_no, product_name } = e.currentTarget.dataset
+    const dataset = e.currentTarget?.dataset || e.detail?.currentTarget?.dataset || {}
+    const { order_no, product_name } = dataset
 
     if (!order_no) {
       showToast('订单号无效')
@@ -390,7 +398,8 @@ Page({
    * POST /api/v4/exchange/orders/:order_no/cancel
    */
   onCancelOrder(e: any) {
-    const { order_no, product_name } = e.currentTarget.dataset
+    const dataset = e.currentTarget?.dataset || e.detail?.currentTarget?.dataset || {}
+    const { order_no, product_name } = dataset
 
     if (!order_no) {
       showToast('订单号无效')
@@ -432,7 +441,8 @@ Page({
 
   /** 打开评价弹窗 */
   onOpenRating(e: any) {
-    const { order_no, product_name } = e.currentTarget.dataset
+    const dataset = e.currentTarget?.dataset || e.detail?.currentTarget?.dataset || {}
+    const { order_no, product_name } = dataset
 
     if (!order_no) {
       showToast('订单号无效')

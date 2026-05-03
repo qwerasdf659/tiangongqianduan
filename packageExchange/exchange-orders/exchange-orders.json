@@ -4,7 +4,14 @@
   "navigationBarTextStyle": "white",
   "enablePullDownRefresh": true,
   "usingComponents": {
-    "empty-state": "/components/empty-state/empty-state",
-    "loading-spinner": "/components/loading-spinner/loading-spinner"
-  }
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
+    "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
+    "t-tag": "/miniprogram_npm/tdesign-miniprogram/tag/tag",
+    "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "t-dialog": "/miniprogram_npm/tdesign-miniprogram/dialog/dialog",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom"
 }

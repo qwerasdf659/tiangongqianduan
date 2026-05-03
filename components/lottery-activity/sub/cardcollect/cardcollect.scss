@@ -1,0 +1,1177 @@
+@import '../../../../styles/mixins';
+
+/* ============================================================
+ * 集卡组件 V2 — 魔法卡册
+ * ============================================================ */
+
+/* ---------- 根容器 ---------- */
+.cc {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 0 8rpx;
+  overflow: hidden;
+  /* 入场淡入 */
+  opacity: 0;
+  transform: translateY(16rpx);
+  transition:
+    opacity 0.45s ease,
+    transform 0.45s ease;
+
+  &.entered {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==================== 氛围层 ==================== */
+.cc-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.atmo-star {
+  position: absolute;
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: rgba(255, 215, 0, 0.45);
+  animation: aFloat 6s ease-in-out infinite;
+
+  &.a1 {
+    top: 8%;
+    left: 12%;
+    animation-delay: 0s;
+  }
+
+  &.a2 {
+    top: 22%;
+    right: 8%;
+    animation-delay: 0.8s;
+    width: 4rpx;
+    height: 4rpx;
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  &.a3 {
+    top: 55%;
+    left: 6%;
+    animation-delay: 1.6s;
+  }
+
+  &.a4 {
+    top: 75%;
+    right: 18%;
+    animation-delay: 2.4s;
+    width: 5rpx;
+    height: 5rpx;
+    background: rgba(186, 147, 255, 0.5);
+  }
+
+  &.a5 {
+    top: 40%;
+    left: 85%;
+    animation-delay: 3.2s;
+    width: 4rpx;
+    height: 4rpx;
+  }
+
+  &.a6 {
+    top: 15%;
+    left: 50%;
+    animation-delay: 4s;
+    width: 3rpx;
+    height: 3rpx;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  &.a7 {
+    top: 65%;
+    left: 35%;
+    animation-delay: 4.8s;
+    width: 5rpx;
+    height: 5rpx;
+    background: rgba(255, 165, 0, 0.4);
+  }
+
+  &.a8 {
+    top: 88%;
+    left: 70%;
+    animation-delay: 5.6s;
+  }
+}
+
+/* ==================== 卡册主体 ==================== */
+.cc-book {
+  position: relative;
+  z-index: 1;
+  width: 660rpx;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2rpx solid rgba(255, 255, 255, 0.12);
+  border-radius: 28rpx;
+  padding: 24rpx 20rpx 28rpx;
+  -webkit-backdrop-filter: blur(12rpx);
+  backdrop-filter: blur(12rpx);
+}
+
+/* ----- 标题栏 ----- */
+.book-header {
+  @include flex-between;
+  margin-bottom: 24rpx;
+}
+
+.book-title-row {
+  @include flex-align-center;
+  gap: 10rpx;
+}
+
+.book-icon {
+  font-size: 36rpx;
+}
+
+.book-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  letter-spacing: 6rpx;
+  color: #fff;
+  text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
+}
+
+/* ----- 环形进度 ----- */
+.book-progress-pill {
+  @include flex-align-center;
+  gap: 12rpx;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8rpx 18rpx 8rpx 8rpx;
+  border-radius: 40rpx;
+}
+
+.progress-ring-wrap {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.progress-ring {
+  position: relative;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+}
+
+.ring-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ring-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  mask: radial-gradient(transparent 16rpx, #000 17rpx);
+  -webkit-mask: radial-gradient(transparent 16rpx, #000 17rpx);
+  transition: background 0.6s ease;
+}
+
+.ring-center {
+  position: absolute;
+  inset: 6rpx;
+  border-radius: 50%;
+  background: rgba(30, 15, 74, 0.85);
+  @include flex-center;
+}
+
+.ring-text {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 8rpx rgba(255, 215, 0, 0.5);
+}
+
+.progress-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.pl-main {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pl-sub {
+  font-size: 18rpx;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2rpx;
+}
+
+/* ==================== 卡片网格 ==================== */
+.book-grid {
+  display: grid;
+  gap: 18rpx;
+
+  &.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ----- 单张卡片 ----- */
+.gc {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 16rpx;
+  /* 入场 */
+  opacity: 0;
+  transform: scale(0.88) translateY(24rpx);
+  animation: gcEnter 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.gc-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16rpx;
+  overflow: hidden;
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.35s ease;
+}
+
+/* 点击反馈 */
+.gc-tap .gc-wrap {
+  transform: scale(0.92);
+}
+
+/* ---- 已收集卡面（正面） ---- */
+.gc-front {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(155deg, #2a1a5e 0%, #4a2c8a 50%, #1e0f4a 100%);
+  border: 2rpx solid rgba(255, 215, 0, 0.25);
+  @include flex-column-center;
+  position: relative;
+  box-shadow:
+    0 6rpx 24rpx rgba(0, 0, 0, 0.25),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.1);
+}
+
+/* 全息光效 */
+.gc-holo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0) 0%,
+    rgba(255, 215, 0, 0.08) 25%,
+    rgba(186, 147, 255, 0.1) 50%,
+    rgba(255, 215, 0, 0.08) 75%,
+    rgba(255, 215, 0, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.gc-emoji {
+  font-size: 56rpx;
+  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.35));
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.gc-label {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  margin-top: 8rpx;
+  max-width: 90%;
+  @include text-ellipsis;
+  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
+/* 流光 */
+.gc-shine {
+  position: absolute;
+  top: 0;
+  left: -140%;
+  width: 90%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.06) 55%,
+    transparent 65%
+  );
+  animation: gcShine 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.gc-no {
+  position: absolute;
+  bottom: 6rpx;
+  right: 8rpx;
+  font-size: 16rpx;
+  color: rgba(255, 255, 255, 0.18);
+  font-weight: bold;
+}
+
+/* 新卡获得 → 金色边框 + 光晕 */
+.gc-new .gc-front {
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow:
+    0 0 24rpx rgba(255, 215, 0, 0.35),
+    0 8rpx 32rpx rgba(0, 0, 0, 0.3),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.15);
+}
+
+.gc-new .gc-emoji {
+  animation: emojiPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 收集态hover辉光 */
+.gc-got .gc-wrap {
+  box-shadow: 0 4rpx 16rpx rgba(74, 44, 138, 0.3);
+}
+
+/* ---- 未收集卡面（背面） ---- */
+.gc-back {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    var(--tg-lottery-primary, #ff6b35),
+    var(--tg-lottery-primary-dark, #e55a2b)
+  );
+  border: 2rpx solid rgba(255, 255, 255, 0.15);
+  @include flex-column-center;
+  position: relative;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+}
+
+.gc-back-deco {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 16rpx,
+      rgba(255, 255, 255, 0.03) 16rpx,
+      rgba(255, 255, 255, 0.03) 18rpx
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 16rpx,
+      rgba(255, 255, 255, 0.03) 16rpx,
+      rgba(255, 255, 255, 0.03) 18rpx
+    );
+  pointer-events: none;
+}
+
+.gc-q {
+  font-size: 52rpx;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.28);
+  text-shadow: 0 2rpx 8rpx rgba(255, 255, 255, 0.08);
+  z-index: 1;
+}
+
+.gc-back-no {
+  font-size: 16rpx;
+  color: rgba(255, 255, 255, 0.18);
+  margin-top: 6rpx;
+  z-index: 1;
+}
+
+.gc-back-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: gcBackShine 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ---- NEW 徽章 ---- */
+.gc-badge {
+  position: absolute;
+  top: -2rpx;
+  right: -2rpx;
+  background: linear-gradient(135deg, #ff4444, #ff6b6b);
+  color: #fff;
+  font-size: 16rpx;
+  font-weight: bold;
+  padding: 3rpx 12rpx;
+  border-radius: 0 16rpx 0 10rpx;
+  z-index: 10;
+  box-shadow: 0 4rpx 12rpx rgba(255, 68, 68, 0.5);
+  animation: badgePop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  letter-spacing: 1rpx;
+}
+
+/* ==================== 中央揭晓弹层 ==================== */
+.reveal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  @include flex-column-center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  &.show {
+    pointer-events: auto;
+    opacity: 1;
+  }
+}
+
+.reveal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  -webkit-backdrop-filter: blur(8rpx);
+  backdrop-filter: blur(8rpx);
+}
+
+.reveal-close-area {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+
+/* -- 爆炸粒子 -- */
+.reveal-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.rp {
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  animation: rpExplode 1.2s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+}
+
+.rp1 {
+  background: #ffd700;
+  animation-delay: 0s;
+  --rx: -120rpx;
+  --ry: -180rpx;
+}
+
+.rp2 {
+  background: #ff6b6b;
+  animation-delay: 0.05s;
+  --rx: 140rpx;
+  --ry: -160rpx;
+}
+
+.rp3 {
+  background: #7b68ee;
+  animation-delay: 0.1s;
+  --rx: -160rpx;
+  --ry: 40rpx;
+}
+
+.rp4 {
+  background: #4caf50;
+  animation-delay: 0.15s;
+  --rx: 170rpx;
+  --ry: 80rpx;
+}
+
+.rp5 {
+  background: #ff9800;
+  animation-delay: 0.2s;
+  --rx: -80rpx;
+  --ry: 200rpx;
+}
+
+.rp6 {
+  background: #e91e63;
+  animation-delay: 0.25s;
+  --rx: 60rpx;
+  --ry: -220rpx;
+}
+
+.rp7 {
+  background: #00bcd4;
+  animation-delay: 0.08s;
+  --rx: 200rpx;
+  --ry: -40rpx;
+  width: 8rpx;
+  height: 8rpx;
+}
+
+.rp8 {
+  background: #ffd700;
+  animation-delay: 0.12s;
+  --rx: -200rpx;
+  --ry: -100rpx;
+  width: 7rpx;
+  height: 7rpx;
+}
+
+.rp9 {
+  background: #ff6b6b;
+  animation-delay: 0.18s;
+  --rx: 100rpx;
+  --ry: 180rpx;
+  width: 6rpx;
+  height: 6rpx;
+}
+
+.rp10 {
+  background: #ba93ff;
+  animation-delay: 0.22s;
+  --rx: -50rpx;
+  --ry: -250rpx;
+  width: 8rpx;
+  height: 8rpx;
+}
+
+.rp11 {
+  background: #ffc107;
+  animation-delay: 0.06s;
+  --rx: 220rpx;
+  --ry: 120rpx;
+  width: 6rpx;
+  height: 6rpx;
+}
+
+.rp12 {
+  background: #8bc34a;
+  animation-delay: 0.16s;
+  --rx: -180rpx;
+  --ry: 160rpx;
+  width: 7rpx;
+  height: 7rpx;
+}
+
+/* -- 放大的卡面 -- */
+.reveal-card {
+  position: relative;
+  z-index: 10;
+  width: 360rpx;
+  height: 480rpx;
+  transform: scale(0) rotateY(180deg);
+  transition:
+    transform 0.7s cubic-bezier(0.25, 1.3, 0.5, 1),
+    opacity 0.3s ease;
+  opacity: 0;
+
+  &.reveal-card-in {
+    transform: scale(1) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.reveal-glow {
+  position: absolute;
+  top: -40rpx;
+  left: -40rpx;
+  right: -40rpx;
+  bottom: -40rpx;
+  border-radius: 32rpx;
+  background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.35) 0%, transparent 70%);
+  animation: revealGlow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.rc-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 24rpx;
+  background: linear-gradient(155deg, #2a1a5e 0%, #4a2c8a 40%, #6a3cba 70%, #2a1a5e 100%);
+  border: 3rpx solid rgba(255, 215, 0, 0.4);
+  @include flex-column-center;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 16rpx 48rpx rgba(0, 0, 0, 0.4),
+    0 0 40rpx rgba(255, 215, 0, 0.15),
+    inset 0 2rpx 0 rgba(255, 255, 255, 0.15);
+}
+
+.rc-holo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0) 0%,
+    rgba(255, 215, 0, 0.1) 20%,
+    rgba(186, 147, 255, 0.15) 40%,
+    rgba(255, 215, 0, 0.05) 60%,
+    rgba(186, 147, 255, 0.1) 80%,
+    rgba(255, 215, 0, 0) 100%
+  );
+  animation: holoShift 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.rc-emoji {
+  font-size: 120rpx;
+  filter: drop-shadow(0 8rpx 16rpx rgba(0, 0, 0, 0.4));
+  z-index: 1;
+  animation: rcEmojiBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+
+.rc-name {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-top: 20rpx;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  animation: rcNameFade 0.5s ease 0.6s both;
+}
+
+.rc-shine {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.06) 42%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.06) 58%,
+    transparent 70%
+  );
+  animation: rcShine 3s ease-in-out infinite 0.8s;
+  pointer-events: none;
+}
+
+.rc-tag {
+  position: absolute;
+  bottom: 16rpx;
+  right: 20rpx;
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.25);
+  font-weight: bold;
+}
+
+/* 揭晓提示文字 */
+.reveal-hint {
+  position: relative;
+  z-index: 10;
+  margin-top: 40rpx;
+  @include flex-column-center;
+  opacity: 0;
+  transform: translateY(20rpx);
+  transition:
+    opacity 0.4s ease 0.5s,
+    transform 0.4s ease 0.5s;
+
+  &.reveal-hint-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rh-main {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 2rpx 12rpx rgba(255, 215, 0, 0.4);
+}
+
+.rh-sub {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 10rpx;
+}
+
+/* ==================== 抽卡按钮 ==================== */
+.cc-action {
+  position: relative;
+  z-index: 1;
+  @include flex-column-center;
+  margin-top: 24rpx;
+  gap: 10rpx;
+}
+
+.draw-btn {
+  position: relative;
+  padding: 22rpx 72rpx;
+  border-radius: 48rpx;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:active {
+    transform: scale(0.93);
+  }
+}
+
+.draw-btn-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #7b68ee, #6a5acd, #9370db);
+  background-size: 200% 200%;
+  animation: btnBgShift 4s ease-in-out infinite;
+  border-radius: 48rpx;
+}
+
+.draw-btn-inner {
+  position: relative;
+  z-index: 1;
+  @include flex-align-center;
+  gap: 10rpx;
+}
+
+.draw-btn-icon {
+  font-size: 30rpx;
+}
+
+.draw-btn-text {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 按钮忙碌 */
+.draw-btn-busy {
+  opacity: 0.55;
+  pointer-events: none;
+
+  .draw-btn-icon {
+    animation: spin 1s linear infinite;
+  }
+}
+
+/* 集齐完成 */
+.draw-btn-done {
+  .draw-btn-bg {
+    background: linear-gradient(135deg, #52c41a, #73d13d);
+    animation: none;
+  }
+}
+
+/* 闲置脉冲 */
+.draw-btn:not(.draw-btn-busy):not(.draw-btn-done) {
+  box-shadow: 0 8rpx 28rpx rgba(123, 104, 238, 0.45);
+  animation: btnPulse 2.5s ease-in-out infinite;
+}
+
+.cc-cost {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.cost-val {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* ==================== 集齐彩蛋 ==================== */
+.cc-done {
+  position: relative;
+  z-index: 1;
+  margin-top: 20rpx;
+  padding: 16rpx 36rpx;
+  background: rgba(255, 215, 0, 0.12);
+  border: 2rpx solid rgba(255, 215, 0, 0.25);
+  border-radius: 20rpx;
+  @include flex-align-center;
+  gap: 10rpx;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+
+  &.cc-done-show {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+}
+
+.done-emoji {
+  font-size: 36rpx;
+  animation: shake 2s ease-in-out infinite;
+}
+
+.done-text {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+/* ============================================================
+ * 关键帧动画
+ * ============================================================ */
+
+/* 氛围星屑漂浮 */
+@keyframes aFloat {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translateY(-14rpx) scale(1);
+  }
+
+  80% {
+    opacity: 0.5;
+    transform: translateY(-28rpx) scale(0.8);
+  }
+}
+
+/* 卡片入场 */
+@keyframes gcEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(24rpx);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.03) translateY(-4rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 卡面流光 */
+@keyframes gcShine {
+  0% {
+    left: -140%;
+  }
+
+  35%,
+  100% {
+    left: 220%;
+  }
+}
+
+@keyframes gcBackShine {
+  0% {
+    left: -100%;
+  }
+
+  40%,
+  100% {
+    left: 220%;
+  }
+}
+
+/* emoji 弹出 */
+@keyframes emojiPop {
+  0% {
+    transform: scale(0.3) rotate(-20deg);
+  }
+
+  60% {
+    transform: scale(1.25) rotate(5deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* 粒子爆炸 */
+@keyframes rpExplode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--rx), var(--ry)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* 揭晓卡片光晕 */
+@keyframes revealGlow {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.95);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* 全息偏移 */
+@keyframes holoShift {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+
+  50% {
+    background-position: 100% 100%;
+  }
+}
+
+/* 揭晓卡emoji */
+@keyframes rcEmojiBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(30rpx);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.2) translateY(-8rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 揭晓卡名称 */
+@keyframes rcNameFade {
+  0% {
+    opacity: 0;
+    transform: translateY(16rpx);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 揭晓卡流光 */
+@keyframes rcShine {
+  0% {
+    left: -150%;
+  }
+
+  40%,
+  100% {
+    left: 200%;
+  }
+}
+
+/* 按钮背景流动 */
+@keyframes btnBgShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 按钮脉冲 */
+@keyframes btnPulse {
+  0%,
+  100% {
+    box-shadow: 0 8rpx 28rpx rgba(123, 104, 238, 0.45);
+  }
+
+  50% {
+    box-shadow: 0 12rpx 40rpx rgba(123, 104, 238, 0.65);
+    transform: translateY(-2rpx);
+  }
+}
+
+/* 徽章弹出 */
+@keyframes badgePop {
+  0% {
+    transform: scale(0) rotate(-10deg);
+  }
+
+  60% {
+    transform: scale(1.3) rotate(3deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* 旋转 */
+@keyframes spin {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 摇晃 */
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0) scale(1);
+  }
+
+  15% {
+    transform: rotate(-10deg) scale(1.1);
+  }
+
+  30% {
+    transform: rotate(10deg) scale(1.1);
+  }
+
+  45% {
+    transform: rotate(-6deg);
+  }
+
+  60% {
+    transform: rotate(6deg);
+  }
+}
+
+/* ===== 奖品池预览（is_fallback / is_sold_out 视觉指示） ===== */
+.ccl-prizes {
+  margin-top: 24rpx;
+  padding: 0 16rpx;
+}
+
+.ccl-prizes__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.ccl-prizes__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.ccl-prizes__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--tg-lottery-primary, #7c4dff);
+}
+
+.ccl-prizes__title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--tg-lottery-text, #333);
+}
+
+.ccl-prizes__count {
+  font-size: 22rpx;
+  color: var(--tg-lottery-text-light, #999);
+}
+
+.ccl-prizes__scroll {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  contain: paint;
+}
+
+.ccl-prizes__list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 8rpx 4rpx 16rpx;
+}
+
+.ccl-prizes__item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120rpx;
+  flex-shrink: 0;
+}
+
+.ccl-prizes__icon-wrap {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: var(--tg-lottery-bg-light, #fff);
+  border: 2rpx solid var(--tg-lottery-border, #eee);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ccl-prizes__icon {
+  font-size: 40rpx;
+}
+
+.ccl-prizes__image {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.ccl-prizes__name {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--tg-lottery-text-light, #666);
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.ccl-prizes__item--fallback {
+  filter: saturate(0.4);
+  opacity: 0.7;
+}
+
+.ccl-prizes__fallback-tag {
+  margin-top: 2rpx;
+  padding: 0 6rpx;
+  font-size: 18rpx;
+  color: #999;
+  background: rgba(153, 153, 153, 0.15);
+  border-radius: 4rpx;
+}
+
+.ccl-prizes__item--sold-out {
+  opacity: 0.45;
+}
+
+.ccl-prizes__sold-out {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  white-space: nowrap;
+}

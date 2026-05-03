@@ -1,6 +1,7 @@
 <!--packageTrade/trade/market/market.wxml - C2C交易市场瀑布流布局-->
 <!--后端API: GET /api/v4/marketplace/listings-->
 <!--字段直接使用后端响应 + 以 _ 为前缀的计算展示字段-->
+<custom-navbar title="🌊 发现好物" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="waterfall-market-container">
   <!--市场行情概览（可折叠，默认收起）-->
@@ -435,23 +436,20 @@
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-state" wx:if="{{!loading && products.length === 0 && !hasError}}">
-    <view class="empty-content">
-      <text class="empty-icon">🛒</text>
-      <text class="empty-title">暂无挂单</text>
-      <text class="empty-subtitle">市场暂时没有商品，稍后再来看看</text>
-      <button class="empty-retry-btn" bindtap="onPullDownRefresh" size="mini">重新加载</button>
-    </view>
-  </view>
+  <t-empty
+    wx:if="{{!loading && products.length === 0 && !hasError}}"
+    description="市场暂时没有商品，稍后再来看看"
+  >
+    <view slot="image">🛒</view>
+    <view slot="description" class="empty-title">暂无挂单</view>
+    <view slot="action" class="empty-retry-btn" bindtap="onPullDownRefresh">重新加载</view>
+  </t-empty>
 
   <!-- 错误状态 -->
-  <view class="empty-state" wx:if="{{hasError}}">
-    <view class="empty-content">
-      <text class="empty-icon">⚠️</text>
-      <text class="empty-title">{{errorMessage || '加载失败'}}</text>
-      <button class="empty-retry-btn" bindtap="onPullDownRefresh" size="mini">重试</button>
-    </view>
-  </view>
+  <t-empty wx:if="{{hasError}}" description="{{errorMessage || '加载失败'}}">
+    <view slot="image">⚠️</view>
+    <view slot="action" class="empty-retry-btn" bindtap="onPullDownRefresh">重试</view>
+  </t-empty>
 
   <!-- 浮动操作 -->
   <view class="floating-actions">

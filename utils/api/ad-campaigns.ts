@@ -37,56 +37,11 @@ async function uploadAdImage(filePath: string): Promise<API.ApiResponse<API.Medi
     throw new Error('图片文件路径不能为空')
   }
 
-  const { getApiConfig: _getApiConfig } = require('../../config/env')
-  const { getAccessToken: _getToken } = require('../auth-helper')
-  const config = _getApiConfig()
-  const token = _getToken()
-
-  if (!token) {
-    throw new Error('未登录，请先登录后再上传图片')
-  }
-
-  return new Promise((resolve, reject) => {
-    wx.uploadFile({
-      url: `${config.fullUrl}/user/images/upload`,
-      filePath,
-      name: 'image',
-      header: {
-        Authorization: `Bearer ${token}`
-      },
-      success: (res: WechatMiniprogram.UploadFileSuccessCallbackResult) => {
-        try {
-          const parsedData = JSON.parse(res.data)
-
-          if (res.statusCode === 503 && parsedData.code === 'SYSTEM_MAINTENANCE') {
-            apiClient._showMaintenanceModal(parsedData.message)
-            reject(new Error(parsedData.message || '系统维护中'))
-            return
-          }
-
-          if (res.statusCode === 413) {
-            reject(new Error('图片文件过大，请选择2MB以内的图片'))
-            return
-          }
-
-          if (res.statusCode === 401) {
-            reject(new Error('登录已失效，请重新登录'))
-            return
-          }
-
-          if (parsedData.success) {
-            resolve(parsedData)
-          } else {
-            reject(new Error(parsedData.message || '图片上传失败'))
-          }
-        } catch (_parseError) {
-          reject(new Error('图片上传响应解析失败'))
-        }
-      },
-      fail: (err: WechatMiniprogram.GeneralCallbackResult) => {
-        reject(new Error(err.errMsg || '图片上传网络错误'))
-      }
-    })
+  return apiClient.uploadFile('/user/images/upload', filePath, {
+    name: 'image',
+    needAuth: true,
+    showError: false,
+    errorPrefix: '广告图片上传失败：'
   })
 }
 

@@ -1,15 +1,10 @@
 /* 用户中心页面样式 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 .user-container {
   min-height: 100vh;
-  background: linear-gradient(
-    135deg,
-    var(--theme-page-start, #{$gradient-blue-start}) 0%,
-    var(--theme-page-end, #{$gradient-blue-end}) 100%
-  );
-  padding: $spacing-base;
+  background: linear-gradient(135deg, var(--td-brand-color) 0%, var(--td-brand-color-active) 100%);
+  padding: var(--tg-spacing-md);
   /* 底部预留 tabBar 高度 + 安全区域，防止内容被遮挡 */
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
@@ -18,47 +13,43 @@
 .login-prompt-card {
   @include flex-column-center;
   /* 无毛玻璃：纯白卡片底 */
-  background: $color-white;
+  background: var(--tg-color-white);
   border-radius: 28rpx;
   padding: 40rpx 30rpx;
-  margin-bottom: $spacing-base;
-  box-shadow: $shadow-card;
-  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  margin-bottom: var(--tg-spacing-md);
+  box-shadow: var(--tg-shadow-card);
+  border: 1rpx solid rgba(var(--tg-color-white-rgb), 0.4);
   gap: 12rpx;
 }
 
 .login-avatar {
   font-size: 60rpx;
-  color: $color-text-disabled;
+  color: var(--tg-text-disabled);
 }
 
 .login-text {
-  font-size: $font-size-base;
-  color: $color-text-primary;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   font-weight: 600;
 }
 
 .login-desc {
   font-size: 22rpx;
-  color: $color-text-tertiary;
+  color: var(--tg-text-tertiary);
 }
 
 /* 积分卡片 */
 .points-card {
-  background: linear-gradient(
-    135deg,
-    var(--theme-page-start, #{$gradient-blue-start}),
-    var(--theme-page-end, #{$gradient-blue-end})
-  );
-  border-radius: $border-radius-xl;
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  border-radius: var(--tg-radius-xl);
   padding: 30rpx;
-  margin-bottom: $spacing-base;
+  margin-bottom: var(--tg-spacing-md);
   color: white;
   text-align: center;
   box-shadow:
-    0 16rpx 64rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.25)),
-    0 8rpx 32rpx var(--theme-shadow-soft, rgba(255, 107, 53, 0.15)),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
+    0 16rpx 64rpx rgba(var(--td-brand-color-rgb), 0.25),
+    0 8rpx 32rpx rgba(var(--td-brand-color-rgb), 0.15),
+    inset 0 1rpx 0 rgba(var(--tg-color-white-rgb), 0.3);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
@@ -75,7 +66,7 @@
   background: linear-gradient(
     -45deg,
     transparent 40%,
-    rgba(255, 255, 255, 0.1) 50%,
+    rgba(var(--tg-color-white-rgb), 0.1) 50%,
     transparent 60%
   );
   animation: flow 6s ease-in-out infinite;
@@ -96,8 +87,8 @@
 .points-card:hover {
   transform: translateY(-8rpx) scale(1.02);
   box-shadow:
-    0 24rpx 80rpx var(--theme-shadow-strong, rgba(255, 107, 53, 0.35)),
-    0 12rpx 48rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.25));
+    0 24rpx 80rpx rgba(var(--td-brand-color-rgb), 0.35),
+    0 12rpx 48rpx rgba(var(--td-brand-color-rgb), 0.25);
 }
 
 /* 积分头部 */
@@ -111,9 +102,9 @@
 }
 
 .points-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2rpx 8rpx rgba(var(--tg-color-black-rgb), 0.1);
   position: relative;
   z-index: 2;
 }
@@ -125,11 +116,11 @@
 }
 
 .points-tips {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
   text-shadow: none;
   /* 实色底替代半透明+毛玻璃，保证渐变卡片上可读 */
-  background: $color-white;
+  background: var(--tg-color-white);
   padding: 6rpx 12rpx;
   border-radius: 12rpx;
 }
@@ -146,20 +137,20 @@
   font-weight: 800;
   margin-right: 16rpx;
   text-shadow:
-    0 4rpx 16rpx rgba(0, 0, 0, 0.2),
-    0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, #ffffff, #f0f8ff);
+    0 4rpx 16rpx rgba(var(--tg-color-black-rgb), 0.2),
+    0 2rpx 8rpx rgba(var(--tg-color-black-rgb), 0.1);
+  background: linear-gradient(135deg, var(--tg-color-white), rgba(var(--tg-color-white-rgb), 0.94));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 2rpx 4rpx rgba(var(--tg-color-black-rgb), 0.1));
 }
 
 .points-unit {
-  font-size: $font-size-lg;
+  font-size: var(--td-font-size-l);
   opacity: 0.9;
   font-weight: 600;
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2rpx 8rpx rgba(var(--tg-color-black-rgb), 0.1);
 }
 
 /* 积分趋势样式 */
@@ -168,7 +159,7 @@
   justify-content: space-between;
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-top: 1rpx solid rgba(var(--tg-color-white-rgb), 0.2);
 }
 
 .trend-item {
@@ -179,37 +170,37 @@
 
 .trend-label {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(var(--tg-color-white-rgb), 0.8);
   margin-bottom: 8rpx;
 }
 
 .trend-value {
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 700;
 }
 
 .trend-value.earned {
-  color: #4caf50;
+  color: var(--tg-color-success);
 }
 
 .trend-value.consumed {
-  color: #ff5722;
+  color: var(--tg-color-error);
 }
 
 /* 功能菜单 */
 .section-title {
   @include flex-between;
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: var(--theme-section-text, #{$color-text-primary});
+  color: var(--tg-text-primary);
   margin-bottom: 30rpx;
   padding-bottom: 20rpx;
-  border-bottom: 2rpx solid var(--theme-section-border, rgba(255, 107, 53, 0.1));
+  border-bottom: 2rpx solid rgba(var(--td-brand-color-rgb), 0.1);
 }
 
 .menu-section {
   /* 内容区实色底，不使用 backdrop-filter */
-  background: var(--theme-section-bg, #{$color-white});
+  background: var(--tg-card-bg);
   border-radius: 20rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
@@ -221,7 +212,7 @@
   justify-content: space-between;
   padding-bottom: 24rpx;
   margin-bottom: 20rpx;
-  border-bottom: 1rpx solid var(--theme-section-border, rgba(0, 0, 0, 0.06));
+  border-bottom: 1rpx solid rgba(var(--tg-color-black-rgb), 0.06);
 }
 
 .menu-quick-item {
@@ -229,7 +220,7 @@
   flex-direction: column;
   align-items: center;
   width: 20%;
-  transition: all $transition-base;
+  transition: all var(--tg-transition-base);
 }
 
 .menu-quick-item:active {
@@ -239,20 +230,20 @@
 .menu-quick-icon {
   width: 80rpx;
   height: 80rpx;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   @include flex-center;
   margin-bottom: 12rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4rpx 12rpx rgba(var(--tg-color-black-rgb), 0.12);
 
   .iconfont {
     font-size: 40rpx;
-    color: $color-white;
+    color: var(--tg-color-white);
   }
 }
 
 .menu-quick-name {
   font-size: 22rpx;
-  color: var(--theme-section-text, #{$color-text-primary});
+  color: var(--tg-text-primary);
   text-align: center;
   @include text-ellipsis;
   max-width: 100%;
@@ -267,16 +258,16 @@
   display: flex;
   align-items: center;
   padding: 32rpx 24rpx;
-  background: var(--theme-item-bg, #{$color-white});
-  border-radius: $border-radius-md;
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
   margin-bottom: 16rpx;
   transition: all 0.3s ease;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
 }
 
 .menu-item:hover {
   transform: translateX(8rpx);
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4rpx 20rpx rgba(var(--tg-color-black-rgb), 0.1);
 }
 
 .menu-item:last-child {
@@ -299,39 +290,35 @@
 }
 
 .menu-name {
-  font-size: $font-size-base;
-  color: var(--theme-section-text, #{$color-text-primary});
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
   flex: 1;
 }
 
 .menu-desc {
   font-size: 22rpx;
-  color: var(--theme-section-text-sub, #{$color-text-tertiary});
+  color: var(--tg-text-tertiary);
   margin-top: 4rpx;
   display: block;
 }
 
 .menu-arrow {
-  font-size: $font-size-xs;
-  color: var(--theme-section-text-sub, #{$color-text-tertiary});
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 商家工作台 ===== */
 
 .mw-section {
-  margin-bottom: $spacing-base;
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .mw-header {
   @include flex-between;
   padding: 24rpx 28rpx;
-  background: linear-gradient(
-    135deg,
-    var(--theme-page-start, #{$gradient-blue-start}),
-    var(--theme-page-end, #{$gradient-blue-end})
-  );
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
   border-radius: 20rpx 20rpx 0 0;
-  border: 1rpx solid var(--theme-border-light, rgba(255, 107, 53, 0.15));
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.15);
   border-bottom: none;
 }
 
@@ -345,14 +332,10 @@
   width: 64rpx;
   height: 64rpx;
   @include flex-center;
-  background: linear-gradient(
-    135deg,
-    var(--theme-page-start, #{$gradient-blue-start}),
-    var(--theme-page-end, #{$gradient-blue-end})
-  );
-  border-radius: $border-radius-md;
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  border-radius: var(--td-radius-default);
   font-size: 32rpx;
-  box-shadow: 0 4rpx 16rpx var(--theme-shadow-medium, rgba(255, 107, 53, 0.3));
+  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .mw-header-info {
@@ -361,22 +344,22 @@
 }
 
 .mw-header-title {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 700;
-  color: $color-white;
+  color: var(--tg-color-white);
 }
 
 .mw-header-role {
-  font-size: $font-size-xs;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--tg-font-size-xs);
+  color: rgba(var(--tg-color-white-rgb), 0.7);
 }
 
 .mw-cards {
-  background: var(--theme-section-bg, #{$color-white});
+  background: var(--tg-card-bg);
   border-radius: 0 0 20rpx 20rpx;
   padding: 20rpx;
-  box-shadow: $shadow-card;
-  border: 1rpx solid var(--theme-section-border, rgba(255, 255, 255, 0.4));
+  box-shadow: var(--tg-shadow-card);
+  border: 1rpx solid rgba(var(--tg-color-white-rgb), 0.4);
   border-top: none;
   display: flex;
   flex-direction: column;
@@ -387,22 +370,22 @@
   display: flex;
   align-items: center;
   padding: 24rpx;
-  background: var(--theme-item-bg, #{$color-white});
-  border-radius: $border-radius-md;
-  border: 1rpx solid var(--theme-section-border, #{$color-border-light});
-  transition: all $transition-base;
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
+  border: 1rpx solid var(--tg-border-color);
+  transition: all var(--tg-transition-base);
 }
 
 .mw-card:active {
   transform: scale(0.98);
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
 }
 
 .mw-card-icon-wrap {
   width: 80rpx;
   height: 80rpx;
   @include flex-center;
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   flex-shrink: 0;
   position: relative;
 }
@@ -416,31 +399,31 @@
   height: 32rpx;
   padding: 0 8rpx;
   @include flex-center;
-  background: $color-error;
+  background: var(--tg-color-error);
   border-radius: 16rpx;
   box-sizing: border-box;
 }
 
 .mw-badge-text {
   font-size: 20rpx;
-  color: #fff;
+  color: var(--tg-color-white);
   font-weight: 600;
   line-height: 32rpx;
 }
 
 .mw-icon-scan {
   background: linear-gradient(135deg, #e91e63, #f06292);
-  box-shadow: 0 4rpx 16rpx rgba(233, 30, 99, 0.25);
+  box-shadow: 0 4rpx 16rpx rgba(var(--tg-color-danger-strong-rgb), 0.25);
 }
 
 .mw-icon-consume {
-  background: linear-gradient(135deg, $color-primary, $color-primary-light);
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.25);
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
+  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.25);
 }
 
 .mw-icon-audit {
-  background: linear-gradient(135deg, $color-success, #73d13d);
-  box-shadow: 0 4rpx 16rpx rgba(82, 196, 26, 0.25);
+  background: linear-gradient(135deg, var(--tg-color-success), #73d13d);
+  box-shadow: 0 4rpx 16rpx rgba(var(--tg-color-success-strong-rgb), 0.25);
 }
 
 .mw-card-icon {
@@ -455,16 +438,16 @@
 
 .mw-card-title {
   display: block;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 600;
-  color: var(--theme-section-text, #{$color-text-primary});
+  color: var(--tg-text-primary);
   margin-bottom: 6rpx;
 }
 
 .mw-card-desc {
   display: block;
-  font-size: $font-size-xs;
-  color: var(--theme-section-text-sub, #{$color-text-tertiary});
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
   line-height: 1.4;
   margin-bottom: 12rpx;
 }
@@ -478,15 +461,15 @@
 
 .mw-step {
   font-size: 18rpx;
-  color: $color-info;
+  color: var(--tg-color-info);
   padding: 2rpx 10rpx;
-  background: rgba(24, 144, 255, 0.08);
+  background: rgba(var(--tg-color-info-rgb), 0.08);
   border-radius: 6rpx;
 }
 
 .mw-step-arrow {
   font-size: 16rpx;
-  color: $color-text-disabled;
+  color: var(--tg-text-disabled);
 }
 
 .mw-card-go {
@@ -494,14 +477,14 @@
   width: 48rpx;
   height: 48rpx;
   @include flex-center;
-  background: $color-bg-grey;
+  background: var(--tg-color-bg-grey);
   border-radius: 50%;
   margin-left: 12rpx;
 }
 
 .mw-go-icon {
-  font-size: $font-size-lg;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-l);
+  color: var(--tg-text-tertiary);
   font-weight: 300;
   line-height: 1;
 }
@@ -513,7 +496,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(var(--tg-color-black-rgb), 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -527,523 +510,7 @@
   text-align: center;
 }
 
-.loading-spinner {
-  width: 60rpx;
-  height: 60rpx;
-  border: 6rpx solid #f3f3f3;
-  border-top: 6rpx solid var(--theme-page-start, #{$gradient-blue-start});
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 30rpx;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .loading-text {
-  font-size: $font-size-base;
-  color: $color-text-primary;
-}
-
-/* ============================================================
-   主题视觉差异化样式 — 十合一方案
-   驱动方式：.theme-{themeName} CSS class（WXML → SCSS 选择器）
-   不修改 global-themes.ts，纯 CSS class 方案
-   ============================================================ */
-
-/* ---- 方案⑤ 主题切换过渡动画 — 基础过渡属性 ---- */
-.user-container {
-  transition: background 0.6s ease;
-}
-
-/* ---- 方案⑨ 区块分隔线定位基础（已移除 theme-particles / decor-p 装饰层，见 UI 动效清理） ---- */
-.menu-section {
-  position: relative;
-}
-
-/* ---- 方案⑦ 菜单进场动画基础（default 主题：从下往上） ---- */
-.menu-quick-row {
-  animation: menu-slide-up 0.35s ease-out both;
-}
-
-.menu-item {
-  animation: menu-slide-up 0.3s ease-out both;
-
-  &:nth-child(1) {
-    animation-delay: 0.06s;
-  }
-  &:nth-child(2) {
-    animation-delay: 0.12s;
-  }
-  &:nth-child(3) {
-    animation-delay: 0.18s;
-  }
-  &:nth-child(4) {
-    animation-delay: 0.24s;
-  }
-  &:nth-child(5) {
-    animation-delay: 0.3s;
-  }
-}
-
-/* ============================================================
-   @keyframes 动画定义
-   仅使用 transform / opacity / box-shadow，确保 GPU 加速
-   ============================================================ */
-
-/* 方案⑦ 进场动画 —— 6 套主题各自的运动方向 */
-@keyframes menu-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(30rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes menu-slide-right {
-  from {
-    opacity: 0;
-    transform: translateX(40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes menu-fade-scale {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes menu-bounce-right {
-  from {
-    opacity: 0;
-    transform: translateX(-40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes menu-slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-30rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes menu-float-up {
-  from {
-    opacity: 0;
-    transform: translateY(20rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ============================================================
-   default（默认蓝紫）—— 完整 10 套视觉差异化
-   ============================================================ */
-
-/* ② 卡片：蓝紫描边（已移除 card-glow-breath 呼吸动效） */
-.theme-default .points-card {
-  border: 1rpx solid rgba(255, 255, 255, 0.25);
-}
-
-/* ③ 图标容器：16rpx 圆角 + 蓝紫淡光晕 */
-.theme-default .menu-quick-icon {
-  box-shadow: 0 0 12rpx rgba(255, 107, 53, 0.15);
-}
-
-/* ⑥ 数字：白→浅蓝渐变 + 蓝紫光晕（增强原有效果） */
-.theme-default .points-number {
-  background: linear-gradient(135deg, #ffffff, #dbe9ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 2rpx 12rpx rgba(255, 107, 53, 0.3));
-}
-
-/* ⑦ 进场：从下往上滑入（基础层已定义 menu-slide-up，不覆盖） */
-
-/* ⑧ 加载：品牌橙 spinner + 淡光晕 */
-.theme-default .loading-spinner {
-  border-top-color: #ff6b35;
-  box-shadow: 0 0 10rpx rgba(255, 107, 53, 0.2);
-}
-
-.theme-default .loading-text {
-  color: #ff6b35;
-}
-
-/* ⑨ 分隔：品牌橙渐隐线（加粗 + 光晕） */
-.theme-default .menu-section::after {
-  content: '';
-  position: absolute;
-  bottom: -15rpx;
-  left: 5%;
-  width: 90%;
-  height: 3rpx;
-  background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.4), transparent);
-  box-shadow: 0 0 8rpx rgba(255, 107, 53, 0.15);
-}
-
-/* ⑩ 反馈：缩小 + 蓝紫阴影闪现 */
-.theme-default .menu-quick-item:active,
-.theme-default .menu-item:active {
-  transform: scale(0.93);
-  box-shadow: 0 0 16rpx rgba(255, 107, 53, 0.25);
-}
-
-/* ============================================================
-   gold_luxury（金色奢华）—— 14 个选择器
-   ============================================================ */
-
-/* ② 卡片：金色镶边 + 强内发光 */
-.theme-gold_luxury .points-card {
-  border: 3rpx solid rgba(255, 215, 0, 0.45);
-  box-shadow:
-    0 16rpx 64rpx rgba(255, 215, 0, 0.3),
-    0 8rpx 32rpx rgba(255, 215, 0, 0.18),
-    inset 0 1rpx 0 rgba(255, 215, 0, 0.5),
-    0 0 40rpx rgba(255, 215, 0, 0.1);
-}
-
-/* ③ 图标容器：圆形 + 金色边框 + 光晕 */
-.theme-gold_luxury .menu-quick-icon {
-  border-radius: 50%;
-  border: 1rpx solid rgba(255, 215, 0, 0.4);
-  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.2);
-}
-
-/* ⑥ 数字：金色渐变 + 金色光晕 */
-.theme-gold_luxury .points-number {
-  background: linear-gradient(135deg, #ffd700, #f1c40f);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 0 20rpx rgba(255, 215, 0, 0.5));
-}
-
-/* ⑦ 进场：从右往左铺展 */
-.theme-gold_luxury .menu-quick-row {
-  animation-name: menu-slide-right;
-}
-.theme-gold_luxury .menu-item {
-  animation-name: menu-slide-right;
-}
-
-/* ⑧ 加载：金色 spinner + 深色弹窗 */
-.theme-gold_luxury .loading-spinner {
-  border-top-color: #f1c40f;
-}
-.theme-gold_luxury .loading-text {
-  color: #d4ac0d;
-}
-.theme-gold_luxury .loading-content {
-  background: #2a2a4e;
-}
-
-/* ⑨ 分隔：金色渐隐线（加粗 + 金色光晕） */
-.theme-gold_luxury .menu-section::after {
-  content: '';
-  position: absolute;
-  bottom: -15rpx;
-  left: 5%;
-  width: 90%;
-  height: 3rpx;
-  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
-  box-shadow: 0 0 8rpx rgba(255, 215, 0, 0.2);
-}
-
-/* ⑩ 反馈：微缩 + 金色阴影闪现 */
-.theme-gold_luxury .menu-quick-item:active,
-.theme-gold_luxury .menu-item:active {
-  transform: scale(0.95);
-  box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3);
-}
-
-/* ============================================================
-   purple_mystery（紫色神秘）—— 14 个选择器
-   ============================================================ */
-
-/* ② 卡片：紫色描边（已移除 neon-pulse 霓虹脉冲动效） */
-.theme-purple_mystery .points-card {
-  border: 1rpx solid rgba(155, 89, 182, 0.3);
-}
-
-/* ③ 图标容器：圆形 + 紫色光晕 */
-.theme-purple_mystery .menu-quick-icon {
-  border-radius: 50%;
-  border: 1rpx solid rgba(155, 89, 182, 0.35);
-  box-shadow: 0 0 16rpx rgba(155, 89, 182, 0.2);
-}
-
-/* ⑥ 数字：浅紫渐变 + 霓虹辉光 */
-.theme-purple_mystery .points-number {
-  background: linear-gradient(135deg, #e8daef, #ffffff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 0 24rpx rgba(155, 89, 182, 0.4));
-}
-
-/* ⑦ 进场：原地淡入放大 */
-.theme-purple_mystery .menu-quick-row {
-  animation-name: menu-fade-scale;
-}
-.theme-purple_mystery .menu-item {
-  animation-name: menu-fade-scale;
-}
-
-/* ⑧ 加载：紫色 spinner + 发光 + 深色弹窗 */
-.theme-purple_mystery .loading-spinner {
-  border-top-color: #9b59b6;
-  box-shadow: 0 0 16rpx rgba(155, 89, 182, 0.3);
-}
-
-.theme-purple_mystery .loading-text {
-  color: #c39bd3;
-}
-.theme-purple_mystery .loading-content {
-  background: #1a1a2e;
-}
-
-/* ⑨ 分隔：紫色发光渐隐线（加粗 + 更强光晕） */
-.theme-purple_mystery .menu-section::after {
-  content: '';
-  position: absolute;
-  bottom: -15rpx;
-  left: 5%;
-  width: 90%;
-  height: 3rpx;
-  background: linear-gradient(90deg, transparent, rgba(155, 89, 182, 0.5), transparent);
-  box-shadow: 0 0 12rpx rgba(155, 89, 182, 0.3);
-}
-
-/* ⑩ 反馈：微缩 + 紫色外发光 */
-.theme-purple_mystery .menu-quick-item:active,
-.theme-purple_mystery .menu-item:active {
-  transform: scale(0.96);
-  box-shadow: 0 0 24rpx rgba(155, 89, 182, 0.25);
-}
-
-/* ============================================================
-   spring_festival（春节红）—— 14 个选择器
-   ============================================================ */
-
-/* ② 卡片：红包造型（金色顶部装饰条 + 上小下大圆角） */
-.theme-spring_festival .points-card {
-  border-top: 6rpx solid #ffd700;
-  border-radius: 16rpx 16rpx 28rpx 28rpx;
-}
-
-/* ③ 图标容器：12rpx 小圆角 + 淡红边框 */
-.theme-spring_festival .menu-quick-icon {
-  border-radius: 12rpx;
-  border: 1rpx solid rgba(231, 76, 60, 0.3);
-}
-
-/* ⑥ 数字：金→红金渐变 + 暖金光 */
-.theme-spring_festival .points-number {
-  background: linear-gradient(135deg, #ffd700, #ff6b6b);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.3));
-}
-
-/* ⑦ 进场：从左弹入（弹性缓动） */
-.theme-spring_festival .menu-quick-row {
-  animation-name: menu-bounce-right;
-  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.theme-spring_festival .menu-item {
-  animation-name: menu-bounce-right;
-  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* ⑧ 加载：红色 spinner */
-.theme-spring_festival .loading-spinner {
-  border-top-color: #e74c3c;
-}
-.theme-spring_festival .loading-text {
-  color: #e74c3c;
-}
-
-/* ⑨ 分隔：红色祥云波浪线 */
-.theme-spring_festival .menu-section::after {
-  content: '';
-  position: absolute;
-  bottom: -15rpx;
-  left: 5%;
-  width: 90%;
-  height: 4rpx;
-  background:
-    radial-gradient(circle at 25% 50%, rgba(231, 76, 60, 0.25) 30%, transparent 31%) 0 0 / 24rpx
-      4rpx,
-    radial-gradient(circle at 75% 50%, rgba(231, 76, 60, 0.25) 30%, transparent 31%) 12rpx 0 / 24rpx
-      4rpx;
-}
-
-/* ⑩ 反馈：缩小 + 轻微旋转 */
-.theme-spring_festival .menu-quick-item:active,
-.theme-spring_festival .menu-item:active {
-  transform: scale(0.92) rotate(-1deg);
-}
-
-/* ============================================================
-   christmas（圣诞绿）—— 14 个选择器
-   ============================================================ */
-
-/* ② 卡片：绿色镶边 + 强绿色光晕 */
-.theme-christmas .points-card {
-  border: 2rpx solid rgba(46, 204, 113, 0.3);
-  box-shadow:
-    0 16rpx 64rpx rgba(39, 174, 96, 0.3),
-    0 8rpx 32rpx rgba(39, 174, 96, 0.18),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.35);
-}
-
-/* ③ 图标容器：绿色淡光晕 */
-.theme-christmas .menu-quick-icon {
-  box-shadow: 0 0 14rpx rgba(39, 174, 96, 0.18);
-}
-
-/* ⑥ 数字：白→浅绿投影（增强光晕） */
-.theme-christmas .points-number {
-  background: linear-gradient(135deg, #ffffff, #c8f0c8);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 4rpx 16rpx rgba(39, 174, 96, 0.45));
-}
-
-/* ⑦ 进场：从上往下飘入 */
-.theme-christmas .menu-quick-row {
-  animation-name: menu-slide-down;
-}
-.theme-christmas .menu-item {
-  animation-name: menu-slide-down;
-}
-
-/* ⑧ 加载：绿色 spinner */
-.theme-christmas .loading-spinner {
-  border-top-color: #27ae60;
-}
-.theme-christmas .loading-text {
-  color: #27ae60;
-}
-
-/* ⑨ 分隔：绿色短虚线（加粗 + 更宽） */
-.theme-christmas .menu-section::after {
-  content: '';
-  position: absolute;
-  bottom: -15rpx;
-  left: 5%;
-  width: 90%;
-  height: 0;
-  border-top: 3rpx dashed rgba(39, 174, 96, 0.45);
-}
-
-/* ⑩ 反馈：微缩 + 绿色光晕闪现 */
-.theme-christmas .menu-quick-item:active,
-.theme-christmas .menu-item:active {
-  transform: scale(0.94);
-  box-shadow:
-    0 0 20rpx rgba(39, 174, 96, 0.3),
-    0 8rpx 24rpx rgba(39, 174, 96, 0.2);
-}
-
-/* ============================================================
-   summer（夏日蓝）—— 14 个选择器
-   ============================================================ */
-
-/* ② 卡片：夏日主题实色渐变（不使用毛玻璃） */
-.theme-summer .points-card {
-  background: linear-gradient(
-    135deg,
-    var(--theme-page-start, #3498db),
-    var(--theme-page-end, #5dade2)
-  );
-}
-
-/* ③ 图标容器：圆形 + 淡蓝光晕 */
-.theme-summer .menu-quick-icon {
-  border-radius: 50%;
-  box-shadow: 0 0 16rpx rgba(52, 152, 219, 0.2);
-}
-
-/* ⑥ 数字：白→浅蓝水光（增强光晕） */
-.theme-summer .points-number {
-  background: linear-gradient(135deg, #ffffff, #d0eaff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 0 20rpx rgba(52, 152, 219, 0.4));
-}
-
-/* ⑦ 进场：从下浮入（气泡浮升感） */
-.theme-summer .menu-quick-row {
-  animation-name: menu-float-up;
-}
-.theme-summer .menu-item {
-  animation-name: menu-float-up;
-}
-
-/* ⑧ 加载：蓝色 spinner */
-.theme-summer .loading-spinner {
-  border-top-color: #3498db;
-}
-.theme-summer .loading-text {
-  color: #3498db;
-}
-
-/* ⑨ 分隔：蓝色渐隐线（加粗 + 光晕） */
-.theme-summer .menu-section::after {
-  content: '';
-  position: absolute;
-  bottom: -15rpx;
-  left: 5%;
-  width: 90%;
-  height: 3rpx;
-  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.4), transparent);
-  box-shadow: 0 0 6rpx rgba(52, 152, 219, 0.15);
-}
-
-/* ⑩ 反馈：按压下沉感 */
-.theme-summer .menu-quick-item:active,
-.theme-summer .menu-item:active {
-  transform: scale(0.96) translateY(4rpx);
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
 }

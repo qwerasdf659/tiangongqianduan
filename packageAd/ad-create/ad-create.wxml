@@ -2,11 +2,11 @@
   📝 创建广告活动
   后端API: POST /api/v4/user/ad-campaigns
 -->
+<custom-navbar title="创建广告活动" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 <view class="ad-create-page">
   <!-- 加载中 -->
   <view class="page-loading" wx:if="{{loading}}">
-    <text class="loading-icon">⏳</text>
-    <text class="loading-text">加载广告位信息...</text>
+    <t-loading loading="{{true}}" text="加载广告位信息..." theme="spinner" />
   </view>
 
   <block wx:if="{{!loading}}">
@@ -57,7 +57,7 @@
           </view>
         </view>
         <view class="form-tip" wx:if="{{adSlots.length === 0}}">
-          <text>暂无可用广告位</text>
+          <t-empty description="暂无可用广告位" />
         </view>
       </view>
 

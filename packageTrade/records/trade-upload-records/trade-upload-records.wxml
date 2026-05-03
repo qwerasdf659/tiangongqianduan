@@ -1,5 +1,6 @@
 <!--packageTrade/records/trade-upload-records/trade-upload-records.wxml - 积分活动记录页面（交易+消费合并）-->
 <!-- 引入WXS模板辅助函数（用于模板中的数据格式化） -->
+<custom-navbar title="积分活动记录" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 <wxs src="./trade-upload-records.wxs" module="helpers" />
 <view class="trade-upload-records-container">
   <!-- 🔴 Tab切换栏 -->
@@ -21,11 +22,10 @@
     </view>
   </view>
 
-  <!-- 🔴 加载状态 -->
+  <!-- 加载状态 -->
   <view class="loading-container" wx:if="{{loading}}">
     <view class="loading-content">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
+      <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
     </view>
   </view>
 
@@ -185,10 +185,10 @@
         <view class="empty-state" wx:if="{{filteredRecords.length === 0}}">
           <view class="empty-content">
             <view class="empty-icon-wrapper">
-              <text class="empty-icon">📊</text>
+              <t-empty description="暂无交易记录">
+                <text slot="description">快去参与活动赚取积分吧！</text>
+              </t-empty>
             </view>
-            <text class="empty-title">暂无交易记录</text>
-            <text class="empty-subtitle">快去参与活动赚取积分吧！</text>
             <button class="activity-action-btn" bind:tap="goToActivity">
               <text class="btn-icon">🎉</text>
               <text class="btn-text">开始赚取积分</text>
@@ -288,11 +288,9 @@
         <!-- 空状态 -->
         <view class="empty-state" wx:if="{{consumptionRecords.length === 0}}">
           <view class="empty-content">
-            <view class="empty-icon-wrapper">
-              <text class="empty-icon">🧾</text>
-            </view>
-            <text class="empty-title">还没有消费记录</text>
-            <text class="empty-subtitle">在商家消费后，记录将显示在这里</text>
+            <t-empty description="还没有消费记录">
+              <text slot="description">在商家消费后，记录将显示在这里</text>
+            </t-empty>
             <button class="upload-action-btn" bind:tap="goToActivity">
               <text class="btn-icon">🎉</text>
               <text class="btn-text">去参与活动</text>
@@ -306,8 +304,7 @@
           wx:if="{{consumptionHasMore && consumptionRecords.length > 0}}"
         >
           <view class="load-more-content" wx:if="{{loadingMore}}">
-            <view class="loading-spinner small"></view>
-            <text class="loading-text">加载更多...</text>
+            <t-loading loading="{{true}}" text="加载更多..." theme="spinner" size="40rpx" />
           </view>
           <view class="load-more-content" wx:else>
             <text class="load-more-text">上拉加载更多</text>

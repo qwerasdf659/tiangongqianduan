@@ -1,8 +1,8 @@
 /**app.scss - 全局样式（从app.wxss迁移到Sass）**/
 /* 全局样式文件 - V4.0 Sass版本 */
 
-@import './styles/variables';
 @import './styles/mixins';
+@import './styles/td-overrides';
 
 /* ============================================================
    Iconfont 字体图标系统 — tiangong-icons
@@ -21,7 +21,7 @@
 
 .iconfont {
   font-family: 'tiangong-icons' !important;
-  font-size: 48rpx;
+  font-size: var(--tg-icon-size-md);
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -72,27 +72,29 @@
 
 /* 页面基础样式 */
 page {
-  background-color: $color-bg;
-  font-family: $font-family;
-  font-size: $font-size-md;
-  color: $color-text-primary;
-  line-height: $line-height-base;
+  background-color: var(--tg-page-bg);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;
+  font-size: var(--td-font-size-m);
+  color: var(--tg-text-primary);
+  line-height: 1.6;
 }
 
 /* 通用容器样式 */
 .container {
-  padding: $spacing-base;
+  padding: var(--tg-spacing-md);
   min-height: 100vh;
 }
 
 /* 通用按钮样式 */
 .btn {
   display: inline-block;
-  padding: $spacing-base $spacing-xxl;
-  border-radius: $border-radius-sm;
+  padding: var(--tg-spacing-md) var(--tg-spacing-xl);
+  border-radius: var(--td-radius-small);
   text-align: center;
   text-decoration: none;
-  transition: all $transition-base;
+  transition: all 0.2s ease;
 }
 
 .btn-primary {
@@ -137,38 +139,38 @@ page {
 
 /* 通用间距样式 */
 .mt-10 {
-  margin-top: 10rpx;
+  margin-top: var(--tg-spacing-xs);
 }
 .mt-20 {
-  margin-top: $spacing-base;
+  margin-top: var(--tg-spacing-md);
 }
 .mb-10 {
-  margin-bottom: 10rpx;
+  margin-bottom: var(--tg-spacing-xs);
 }
 .mb-20 {
-  margin-bottom: $spacing-base;
+  margin-bottom: var(--tg-spacing-md);
 }
 .ml-10 {
-  margin-left: 10rpx;
+  margin-left: var(--tg-spacing-xs);
 }
 .mr-10 {
-  margin-right: 10rpx;
+  margin-right: var(--tg-spacing-xs);
 }
 .pt-10 {
-  padding-top: 10rpx;
+  padding-top: var(--tg-spacing-xs);
 }
 .pt-20 {
-  padding-top: $spacing-base;
+  padding-top: var(--tg-spacing-md);
 }
 .pb-10 {
-  padding-bottom: 10rpx;
+  padding-bottom: var(--tg-spacing-xs);
 }
 .pb-20 {
-  padding-bottom: $spacing-base;
+  padding-bottom: var(--tg-spacing-md);
 }
 .pl-10 {
-  padding-left: 10rpx;
+  padding-left: var(--tg-spacing-xs);
 }
 .pr-10 {
-  padding-right: 10rpx;
+  padding-right: var(--tg-spacing-xs);
 }

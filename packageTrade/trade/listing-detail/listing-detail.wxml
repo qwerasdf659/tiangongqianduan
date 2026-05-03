@@ -1,14 +1,10 @@
 <!--挂单详情页 — 展示商品详情 + 购买入口 + 价格摘要-->
 <!--后端API: GET /api/v4/marketplace/listings/:market_listing_id-->
+<custom-navbar title="商品详情" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 
 <!-- 加载状态 -->
 <view class="detail-loading" wx:if="{{loading}}">
-  <view class="loading-spinner">
-    <view class="spinner-dot dot1"></view>
-    <view class="spinner-dot dot2"></view>
-    <view class="spinner-dot dot3"></view>
-  </view>
-  <text class="loading-text">加载中...</text>
+  <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="48rpx" />
 </view>
 
 <!-- 错误状态 -->

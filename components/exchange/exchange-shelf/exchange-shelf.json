@@ -1,0 +1,11 @@
+{
+  "component": true,
+  "usingComponents": {
+    "lucky-space": "./sub/lucky-space/lucky-space",
+    "premium-space": "./sub/premium-space/premium-space",
+    "bid-panel": "./sub/bid-panel/bid-panel",
+    "exchange-confirm": "../shared/exchange-confirm/exchange-confirm",
+    "exchange-result": "../shared/exchange-result/exchange-result",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading"
+  }
+}

@@ -3,6 +3,7 @@
 <!--后端API: GET /api/v4/marketplace/trade-orders/:id/escrow-status-->
 <!--后端API: POST /api/v4/marketplace/trade-orders/:id/confirm-delivery-->
 <!--后端API: POST /api/v4/marketplace/trade-orders/:id/cancel-->
+<custom-navbar title="我的订单" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="orders-container">
   <view class="page-header">
@@ -26,12 +27,7 @@
 
   <!--加载状态-->
   <view class="loading-state" wx:if="{{loading && orders.length === 0}}">
-    <view class="loading-spinner">
-      <view class="spinner-dot dot1"></view>
-      <view class="spinner-dot dot2"></view>
-      <view class="spinner-dot dot3"></view>
-    </view>
-    <text class="loading-text">加载中...</text>
+    <t-loading loading="{{true}}" text="加载订单中..." theme="spinner" />
   </view>
 
   <!--订单列表-->
@@ -147,85 +143,52 @@
   </block>
 
   <!--空状态-->
-  <view class="empty-state" wx:if="{{!loading && isEmpty}}">
-    <text class="empty-icon">📋</text>
-    <text class="empty-title">{{currentStatus === 'all' ? '暂无订单' : '该状态下暂无订单'}}</text>
-    <text class="empty-subtitle">去交易市场看看有什么好物</text>
-    <navigator url="/packageTrade/trade/market/market" class="empty-link">
-      <text>逛逛市场</text>
-    </navigator>
-  </view>
+  <t-empty
+    wx:if="{{!loading && isEmpty}}"
+    description="{{currentStatus === 'all' ? '去交易市场看看有什么好物' : '当前筛选状态下还没有订单'}}"
+  >
+    <view slot="image" class="empty-slot-icon">📋</view>
+    <view slot="action">
+      <navigator url="/packageTrade/trade/market/market" class="empty-link">
+        <text>逛逛市场</text>
+      </navigator>
+    </view>
+  </t-empty>
 
   <!--错误状态-->
-  <view class="empty-state" wx:if="{{!loading && hasError}}">
-    <text class="empty-icon">⚠️</text>
-    <text class="empty-title">{{errorMessage}}</text>
-    <button class="retry-btn" size="mini" bindtap="onPullDownRefresh">重试</button>
-  </view>
+  <t-empty wx:if="{{!loading && hasError}}" description="{{errorMessage}}">
+    <view slot="image" class="empty-slot-icon">⚠️</view>
+    <view slot="action">
+      <button class="retry-btn" size="mini" bindtap="onPullDownRefresh">重试</button>
+    </view>
+  </t-empty>
 </view>
+
+<!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+<maintenance-overlay />
 
 <!--担保码输入弹窗-->
-<view class="modal-overlay" wx:if="{{showEscrowInput}}" bindtap="onCloseEscrowInput">
-  <view class="modal-content" catchtap="">
-    <text class="modal-title">输入担保码</text>
-    <text class="modal-subtitle">请输入卖家提供的6位数字担保码</text>
-    <view class="escrow-input-wrapper" bindtap="onFocusEscrowInput">
-      <input
-        class="escrow-input"
-        id="escrowCodeInput"
-        type="number"
-        maxlength="6"
-        placeholder=""
-        value="{{escrowInputValue}}"
-        bindinput="onEscrowInputChange"
-        focus="{{escrowInputFocused}}"
-      />
-      <view class="escrow-input-dots">
-        <view class="dot {{escrowInputValue.length > 0 ? 'filled' : ''}}"></view>
-        <view class="dot {{escrowInputValue.length > 1 ? 'filled' : ''}}"></view>
-        <view class="dot {{escrowInputValue.length > 2 ? 'filled' : ''}}"></view>
-        <view class="dot {{escrowInputValue.length > 3 ? 'filled' : ''}}"></view>
-        <view class="dot {{escrowInputValue.length > 4 ? 'filled' : ''}}"></view>
-        <view class="dot {{escrowInputValue.length > 5 ? 'filled' : ''}}"></view>
-      </view>
-    </view>
-    <view class="modal-actions">
-      <button class="modal-btn secondary-btn" bindtap="onCloseEscrowInput">取消</button>
-      <button
-        class="modal-btn {{escrowInputValue.length < 6 ? 'btn-disabled' : ''}}"
-        disabled="{{escrowInputValue.length < 6 || escrowConfirming}}"
-        bindtap="onSubmitEscrowCode"
-      >
-        {{escrowConfirming ? '确认中...' : '确认收货'}}
-      </button>
-    </view>
-  </view>
-</view>
+<escrow-code-dialog
+  visible="{{showEscrowInput}}"
+  value="{{escrowInputValue}}"
+  submitting="{{escrowConfirming}}"
+  hint="请输入卖家提供的6位数字担保码"
+  inputMode="dots"
+  focused="{{escrowInputFocused}}"
+  bind:close="onCloseEscrowInput"
+  bind:inputchange="onEscrowInputChange"
+  bind:focusinput="onFocusEscrowInput"
+  bind:submit="onSubmitEscrowCode"
+/>
 
 <!--担保码状态弹窗-->
-<view class="modal-overlay" wx:if="{{showEscrowStatus}}" bindtap="onCloseEscrowStatus">
-  <view class="modal-content" catchtap="">
-    <text class="modal-title">担保码状态</text>
-    <view wx:if="{{escrowStatusLoading}}" class="status-loading">
-      <text>查询中...</text>
-    </view>
-    <view wx:elif="{{escrowStatusData}}" class="status-info">
-      <view class="status-row" wx:if="{{escrowStatusData.order_no}}">
-        <text class="status-label">订单号</text>
-        <text class="status-value">{{escrowStatusData.order_no}}</text>
-      </view>
-      <view class="status-row" wx:if="{{escrowStatusData.expires_at}}">
-        <text class="status-label">过期时间</text>
-        <text class="status-value">{{escrowStatusData.expires_at}}</text>
-      </view>
-      <view class="status-row" wx:if="{{escrowStatusData.status}}">
-        <text class="status-label">状态</text>
-        <text class="status-value">{{escrowStatusData.status}}</text>
-      </view>
-    </view>
-    <button class="modal-btn" bindtap="onCloseEscrowStatus">关闭</button>
-  </view>
-
-  <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-  <maintenance-overlay />
-</view>
+<escrow-status-dialog
+  visible="{{showEscrowStatus}}"
+  loading="{{escrowStatusLoading}}"
+  title="担保码状态"
+  orderNo="{{escrowStatusData.order_no || ''}}"
+  statusText="{{escrowStatusData.status || ''}}"
+  expiresAt="{{escrowStatusData.expires_at || ''}}"
+  hasData="{{!!escrowStatusData}}"
+  bind:close="onCloseEscrowStatus"
+/>

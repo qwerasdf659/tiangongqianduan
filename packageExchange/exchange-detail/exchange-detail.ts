@@ -51,13 +51,6 @@ const SPACE_LABELS: Record<string, string> = {
   both: '全空间'
 }
 
-/** 前端通用兑换规则（后端 usage_rules 为空时的兜底文案） */
-const DEFAULT_USAGE_RULES: string[] = [
-  '兑换后物品自动进入背包',
-  '虚拟物品一经兑换不可退还',
-  '实物商品以实际发货为准'
-]
-
 Page({
   data: {
     /** 路由参数: exchange_items.exchange_item_id */
@@ -296,11 +289,11 @@ Page({
           }))
         : []
 
-      /** ⑦ 使用说明（后端 usage_rules 或前端通用规则兜底） */
+      /** ⑦ 使用说明（仅以后端 usage_rules 为准，缺失时明确为空） */
       const usageRules: string[] =
         Array.isArray(productData.usage_rules) && productData.usage_rules.length > 0
           ? productData.usage_rules
-          : DEFAULT_USAGE_RULES
+          : []
 
       /**
        * ② 标签数组统一处理:

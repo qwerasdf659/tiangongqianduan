@@ -1,5 +1,4 @@
 /* 抽奖页面 - 头部布局样式（用户信息+二维码） - 从lottery.scss拆分 */
-@import '../../styles/variables';
 @import '../../styles/mixins';
 
 /* ========================================
@@ -31,9 +30,9 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  font-size: $font-size-base;
+  font-size: var(--td-font-size-base);
   font-weight: 700;
-  color: $color-text-white;
+  color: var(--tg-color-white);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
   margin-bottom: 8rpx;
 }
@@ -71,7 +70,7 @@
 
 /* 积分数字 - 多级响应式字体（支持超长数字） */
 .points-number {
-  font-size: $font-size-md;
+  font-size: var(--td-font-size-m);
   font-weight: 800;
   color: #ffd700;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
@@ -96,7 +95,7 @@
 
 /* 积分图标 */
 .points-icon {
-  font-size: $font-size-sm;
+  font-size: var(--td-font-size-s);
   opacity: 0.9;
 }
 
@@ -112,7 +111,7 @@
   justify-content: center;
   margin-left: 12rpx;
   padding: 0;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   flex-shrink: 0;
 }
@@ -161,7 +160,7 @@
   border-radius: 19rpx;
   border: 2rpx solid #ffffff;
   font-size: 22rpx;
-  color: $color-text-white;
+  color: var(--tg-color-white);
   font-weight: bold;
   @include flex-center;
   padding: 0 6rpx;
@@ -213,7 +212,7 @@
   justify-content: center;
   margin-left: 8rpx;
   padding: 0;
-  cursor: pointer;
+  /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   flex-shrink: 0;
 }
@@ -242,7 +241,7 @@
 
 .notification-bell-btn .badge-label {
   font-size: 22rpx;
-  color: $color-text-white;
+  color: var(--tg-color-white);
   font-weight: 500;
 }
 
@@ -257,7 +256,7 @@
   border-radius: 17rpx;
   border: 2rpx solid #ffffff;
   font-size: 20rpx;
-  color: $color-text-white;
+  color: var(--tg-color-white);
   font-weight: bold;
   @include flex-center;
   padding: 0 6rpx;
@@ -295,7 +294,7 @@
   /* 实色浅蓝底，便于扫码对比，无 backdrop-filter */
   background: #dce6ff;
   /* 浅蓝色调更明显，与紫色背景同色系，视觉协调且扫描性能优秀 */
-  border-radius: $border-radius-md;
+  border-radius: var(--td-radius-default);
   padding: 2rpx;
   box-shadow:
     0 8rpx 24rpx rgba(0, 0, 0, 0.15),
@@ -313,7 +312,7 @@
 .qrcode-image {
   width: 176rpx;
   height: 176rpx;
-  border-radius: $border-radius-sm;
+  border-radius: var(--td-radius-small);
 }
 
 /* 二维码加载状态 - 正方形加载区域 */
@@ -333,11 +332,11 @@
 }
 
 .expired-icon-small {
-  font-size: $font-size-xl;
+  font-size: var(--tg-font-size-xl);
 }
 
 .expired-text-small {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   color: #ff9900;
   font-weight: bold;
 }
@@ -355,14 +354,14 @@
 }
 
 .countdown-text-small {
-  font-size: $font-size-xs;
+  font-size: var(--tg-font-size-xs);
   font-weight: bold;
   color: rgba(255, 255, 255, 0.85);
 }
 
 /* 倒计时紧急状态（最后30秒闪烁） */
 .countdown-urgent {
-  color: $color-error;
+  color: var(--tg-color-error);
   animation: blink 1s ease-in-out infinite;
 }
 
@@ -378,13 +377,13 @@
 }
 
 .loading-icon {
-  font-size: $font-size-xl;
+  font-size: var(--tg-font-size-xl);
   animation: rotate 2s linear infinite;
 }
 
 .loading-text {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   font-weight: 500;
 }
 

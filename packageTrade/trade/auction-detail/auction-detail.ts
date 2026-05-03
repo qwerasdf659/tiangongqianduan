@@ -195,7 +195,7 @@ Page({
       priceAssetLabel: auctionDetailImageHelper.getAssetDisplayName(auction.price_asset_code || ''),
       topBids,
       myBids,
-      displayName: snapshot.item_name || '未知物品',
+      displayName: snapshot.name || '未知物品',
       displayImage: AuctionDetailHelpers.getAuctionItemImage(snapshot),
       rarityLabel: AuctionDetailHelpers.getAuctionRarityLabel(snapshot.rarity_code),
       statusLabel: statusConfig.label,

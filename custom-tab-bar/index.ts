@@ -1,7 +1,6 @@
 /**
  * 自定义 tabBar 组件
- * 替代原生 tabBar，支持 6 套主题动态变色
- * 图标使用 Iconfont 字体图标（tiangong-icons），CSS color 直接跟主题变色
+ * 使用 TDesign tab-bar 承接底部导航，图标继续复用项目 Iconfont
  *
  * @file custom-tab-bar/index.ts
  * @version 2.0.0
@@ -11,8 +10,6 @@ Component({
   data: {
     /** 当前选中的 tab 索引 */
     selected: 0,
-    /** 未选中态文字颜色 */
-    color: '#999999',
     /** tab 列表配置 */
     list: [
       {
@@ -40,33 +37,17 @@ Component({
         text: '我的',
         iconClass: 'icon-user'
       }
-    ] as any[],
-    /** 主题样式字符串（从页面传入） */
-    themeStyle: ''
+    ] as any[]
   },
 
   methods: {
-    /**
-     * 切换 tab 页面
-     * 注意：不在此方法内 setData({ selected })，由各 tab 页面 onShow 驱动（防闪烁）
-     */
-    switchTab(e: WechatMiniprogram.TouchEvent) {
-      const dataset = e.currentTarget.dataset
-      const url = dataset.path
-      const index = dataset.index
-      if (this.data.selected === index) {
+    onTabChange(e: WechatMiniprogram.CustomEvent) {
+      const targetIndex = e.detail.value
+      const targetItem = this.data.list[targetIndex]
+      if (!targetItem || this.data.selected === targetIndex) {
         return
       }
-      wx.switchTab({ url })
-    },
-
-    /**
-     * 更新主题样式（由各 tab 页面在 onShow 中调用）
-     */
-    updateTheme(themeStyle: string) {
-      if (themeStyle !== this.data.themeStyle) {
-        this.setData({ themeStyle })
-      }
+      wx.switchTab({ url: targetItem.pagePath })
     }
   }
 })

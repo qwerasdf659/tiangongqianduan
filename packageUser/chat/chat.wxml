@@ -1,4 +1,5 @@
 <!--packageUser/chat/chat.wxml - 用户端聊天会话列表界面 V6.0 UI优化版-->
+<custom-navbar title="在线客服" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
 <view class="chat-sessions-container">
   <!-- 顶部搜索栏 -->
   <view class="search-header">
@@ -60,8 +61,7 @@
     <block wx:elif="{{isSearching}}">
       <!-- 搜索加载中 -->
       <view wx:if="{{searchLoading}}" class="search-loading-state">
-        <view class="loading-spinner small"></view>
-        <text class="search-loading-text">搜索中...</text>
+        <t-loading loading="{{true}}" text="搜索中..." theme="spinner" size="40rpx" />
       </view>
 
       <!-- 搜索无结果 -->
@@ -122,11 +122,9 @@
     <block wx:else>
       <!-- 空状态：暂无会话 -->
       <view wx:if="{{sessions.length === 0}}" class="error-state">
-        <view class="error-icon-wrapper">
-          <text class="error-icon-text">💬</text>
-        </view>
-        <text class="error-title">暂无会话记录</text>
-        <text class="error-desc">点击右上角"+"开始新的客服咨询</text>
+        <t-empty description="暂无会话记录">
+          <text slot="description">点击右上角"+"开始新的客服咨询</text>
+        </t-empty>
       </view>
 
       <!-- 会话列表（直接渲染后端sessions数组） -->
@@ -230,8 +228,7 @@
     >
       <!-- 历史消息加载中 -->
       <view wx:if="{{isLoadingHistory}}" class="loading-history">
-        <view class="loading-spinner small"></view>
-        <text class="loading-text">加载历史消息...</text>
+        <t-loading loading="{{true}}" text="加载历史消息..." theme="spinner" size="40rpx" />
       </view>
 
       <!-- 欢迎卡片（无历史消息时展示） -->
@@ -257,17 +254,8 @@
             <text class="tip-text">请描述您的问题，我们会尽快回复</text>
           </view>
         </view>
-        <!-- 快捷问题 -->
-        <view class="welcome-quick-actions">
-          <view class="quick-action-item" bindtap="onQuickReply" data-text="如何查看我的积分？">
-            <text>查看积分</text>
-          </view>
-          <view class="quick-action-item" bindtap="onQuickReply" data-text="如何兑换商品？">
-            <text>兑换商品</text>
-          </view>
-          <view class="quick-action-item" bindtap="onQuickReply" data-text="我的订单有问题">
-            <text>订单问题</text>
-          </view>
+        <view wx:if="{{!quickRepliesAvailable}}" class="quick-reply-unavailable-card">
+          <text class="quick-reply-unavailable-text">{{quickRepliesUnavailableMessage}}</text>
         </view>
       </view>
 
@@ -424,7 +412,7 @@
 
     <!-- 快捷回复区域（有消息时显示在输入框上方） -->
     <view
-      wx:if="{{showQuickReplies && messages.length > 0}}"
+      wx:if="{{showQuickReplies && messages.length > 0 && quickRepliesAvailable}}"
       class="quick-replies-bar"
       catchtap="onQuickRepliesBarTap"
     >
@@ -434,23 +422,7 @@
         enhanced="{{true}}"
         show-scrollbar="{{false}}"
       >
-        <view class="quick-replies-list">
-          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="好的，谢谢">
-            <text>好的，谢谢</text>
-          </view>
-          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="请稍等">
-            <text>请稍等</text>
-          </view>
-          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="还有其他问题">
-            <text>还有问题</text>
-          </view>
-          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="问题已解决">
-            <text>已解决</text>
-          </view>
-          <view class="quick-reply-chip" bindtap="onQuickReply" data-text="如何查看积分余额？">
-            <text>查看积分</text>
-          </view>
-        </view>
+        <view class="quick-replies-list"></view>
       </scroll-view>
       <view class="quick-replies-toggle" bindtap="toggleQuickReplies">
         <text class="toggle-icon">{{showQuickReplies ? '▾' : '▴'}}</text>

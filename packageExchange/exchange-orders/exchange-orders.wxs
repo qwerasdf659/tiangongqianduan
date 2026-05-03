@@ -1,0 +1,28 @@
+/**
+ * exchange-orders WXS 辅助模块
+ * Skyline 不支持 WXML 内联对象字面量
+ * 使用 WXS 函数在模板层动态构建 t-dialog confirmBtn 配置对象
+ */
+
+/**
+ * 评价弹窗确认按钮
+ * @param {boolean} submitting - 提交中
+ * @param {number} score - 评分（0 表示未评分）
+ */
+function ratingBtn(submitting, score) {
+  var btn = {}
+  if (submitting) {
+    btn.content = '提交中...'
+    btn.loading = true
+    btn.disabled = true
+  } else {
+    btn.content = '提交评价'
+    btn.loading = false
+    btn.disabled = score === 0
+  }
+  return btn
+}
+
+module.exports = {
+  ratingBtn: ratingBtn
+}

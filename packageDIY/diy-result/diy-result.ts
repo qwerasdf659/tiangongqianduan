@@ -20,7 +20,9 @@
 
 /* 统一工具函数导入 */
 const { API } = require('../../utils/index')
+const { createLogger } = require('../../utils/logger')
 const { userStore } = require('../../store/user')
+const log = createLogger('diy-result')
 
 /* ===== 海报 UI 常量（代码写死，无需后端提供） ===== */
 
@@ -767,7 +769,7 @@ Page({
         /*
          * 小程序码（200x200）
          * 调用 GET /api/v4/diy/works/:id/qrcode 获取小程序码图片URL
-         * 下载后绘制到海报底部，扫码路径: /packageDIY/diy-design/diy-design?workId={id}
+         * 若后端接口未开通，前端明确提示并显示占位区，不生成伪二维码
          */
         let qrcodeDrawn = false
         try {
@@ -803,9 +805,13 @@ Page({
               qrcodeDrawn = true
             }
           }
-        } catch (_e) {
-          /* 小程序码获取失败不阻塞海报生成，降级为占位提示 */
-          console.warn('海报小程序码获取失败，使用占位提示')
+        } catch (qrcodeError: any) {
+          /* 小程序码获取失败不阻塞海报生成，明确区分接口未开通与普通下载失败 */
+          if (qrcodeError?.code === 'DIY_QRCODE_API_UNAVAILABLE') {
+            wx.showToast({ title: '小程序码接口未开通', icon: 'none' })
+          } else {
+            log.warn('海报小程序码获取失败，使用占位提示')
+          }
         }
         /* 小程序码获取失败时的降级占位 */
         if (!qrcodeDrawn) {
