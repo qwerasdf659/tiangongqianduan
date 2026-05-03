@@ -94,6 +94,10 @@ function extractDateParts(dateStr: string): string {
 
 Page({
   data: {
+    // ===== textarea autosize 配置（WXML 不支持对象字面量） =====
+    autosizeSmall: { minRows: 4, maxRows: 6 },
+    autosizeLarge: { minRows: 4, maxRows: 8 },
+
     // ===== 标签页切换 =====
     /** 当前激活的标签页: 'consumption' = 消费审核, 'myPending' = 我的待办 */
     activeTab: 'consumption' as 'consumption' | 'myPending',

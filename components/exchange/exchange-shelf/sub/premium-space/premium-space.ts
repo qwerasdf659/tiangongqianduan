@@ -59,6 +59,7 @@ Component({
   },
 
   data: {
+    cascaderKeys: { label: 'label', value: 'value', children: 'children' },
     loading: true,
     loadingMore: false,
     categoryPopupVisible: false,

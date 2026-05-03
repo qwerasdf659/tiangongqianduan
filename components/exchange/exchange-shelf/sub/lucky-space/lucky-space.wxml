@@ -54,7 +54,7 @@
             <t-cascader
               value="{{categoryFilter === 'all' ? null : Number(categoryFilter)}}"
               options="{{categoryCascaderOptions}}"
-              keys="{{ { label: 'label', value: 'value', children: 'children' } }}"
+              keys="{{cascaderKeys}}"
               theme="tab"
               bind:change="onCategoryCascaderChange"
             />

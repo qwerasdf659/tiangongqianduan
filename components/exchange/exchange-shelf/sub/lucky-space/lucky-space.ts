@@ -62,6 +62,7 @@ Component({
   },
 
   data: {
+    cascaderKeys: { label: 'label', value: 'value', children: 'children' },
     /** 加载状态 */
     loading: true,
     loadingMore: false,

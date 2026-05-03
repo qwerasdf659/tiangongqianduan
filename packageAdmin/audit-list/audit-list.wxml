@@ -377,7 +377,7 @@
             placeholder="请输入拒绝原因，如：消费金额与实际不符"
             maxlength="200"
             indicator="{{true}}"
-            autosize='{{{"minRows": 4, "maxRows": 6}}}'
+            autosize="{{autosizeSmall}}"
             bind:change="onRejectReasonInput"
           />
           <view class="input-meta">
@@ -415,7 +415,7 @@
             placeholder="请输入拒绝原因"
             maxlength="500"
             indicator="{{true}}"
-            autosize='{{{"minRows": 4, "maxRows": 8}}}'
+            autosize="{{autosizeLarge}}"
             bind:change="onChainRejectReasonInput"
           />
           <view class="input-meta">

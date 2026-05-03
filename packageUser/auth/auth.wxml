@@ -70,7 +70,7 @@
               <view class="input-prefix">📱</view>
               <input
                 class="form-input"
-                type="text"
+                type="number"
                 placeholder="请输入手机号"
                 value="{{mobile}}"
                 bindinput="onMobileInput"

@@ -33,7 +33,7 @@
 /* 顶部品牌色装饰条 */
 .payment-accent-bar {
   height: 6rpx;
-  background: linear-gradient(90deg, var(--td-brand-color), lighten(var(--td-brand-color), 15%));
+  background: linear-gradient(90deg, var(--td-brand-color), var(--td-brand-color-focus));
 }
 
 /* ===== 头部 ===== */

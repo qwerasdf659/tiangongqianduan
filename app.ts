@@ -493,9 +493,14 @@ App({
     }
 
     const wsConfig = getWebSocketConfig()
+    const tokenPreview = userStore.accessToken
+      ? userStore.accessToken.substring(0, 20) + '...'
+      : 'EMPTY'
     log.info('启动 Socket.IO 连接...', {
       url: wsConfig.url,
-      timeout: wsConfig.timeout
+      timeout: wsConfig.timeout,
+      tokenPreview,
+      tokenLength: userStore.accessToken ? userStore.accessToken.length : 0
     })
 
     return new Promise((resolve, reject) => {

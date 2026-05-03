@@ -177,7 +177,7 @@ const ENV_CONFIG: AllEnvironmentConfig = {
   /** 开发环境配置（微信开发者工具） */
   development: {
     api: {
-      baseUrl: 'http://localhost:3000',
+      baseUrl: 'https://omqktqrtntnn.sealosbja.site',
       apiPrefix: '/api/v4',
       timeout: 30000,
       retryTimes: 3,
@@ -187,7 +187,7 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       enableAutoRetry: true
     },
     websocket: {
-      url: 'http://localhost:3000',
+      url: 'https://omqktqrtntnn.sealosbja.site',
       reconnectionDelay: 3000,
       reconnectionAttempts: 5,
       timeout: 30000
@@ -213,7 +213,7 @@ const ENV_CONFIG: AllEnvironmentConfig = {
       enableAutoRetry: true
     },
     websocket: {
-      url: 'http://192.168.43.12:3000',
+      url: 'https://omqktqrtntnn.sealosbja.site',
       reconnectionDelay: 3000,
       reconnectionAttempts: 5,
       timeout: 30000
