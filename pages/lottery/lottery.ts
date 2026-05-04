@@ -34,9 +34,9 @@ const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
 
 const DEFAULT_NAV_THEME = {
-  navBg: '#ff6b35',
+  navBg: '#5B7A5E',
   navText: '#ffffff',
-  tabSelected: '#ff6b35'
+  tabSelected: '#5B7A5E'
 }
 
 /** 积分千分位格式化 — 供MobX computed使用 */

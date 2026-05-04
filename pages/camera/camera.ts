@@ -71,10 +71,10 @@ Page({
 
     wx.setNavigationBarColor({
       frontColor: '#ffffff',
-      backgroundColor: '#ff6b35',
+      backgroundColor: '#5B7A5E',
       animation: { duration: 300, timingFunc: 'easeIn' }
     })
-    wx.setTabBarStyle({ selectedColor: '#ff6b35' })
+    wx.setTabBarStyle({ selectedColor: '#5B7A5E' })
 
     // 检查登录状态（活动页面可以未登录浏览，不跳转登录页）
     const isLoggedIn = checkAuth({ redirect: false })
@@ -94,10 +94,10 @@ Page({
   async initializePage() {
     wx.setNavigationBarColor({
       frontColor: '#ffffff',
-      backgroundColor: '#ff6b35',
+      backgroundColor: '#5B7A5E',
       animation: { duration: 300, timingFunc: 'easeIn' }
     })
-    wx.setTabBarStyle({ selectedColor: '#ff6b35' })
+    wx.setTabBarStyle({ selectedColor: '#5B7A5E' })
 
     // 未登录时不请求需认证的接口，仅显示空状态引导登录
     if (!checkAuth({ redirect: false })) {

@@ -7,9 +7,9 @@ const { showToast } = Wechat
 const { safeApiCall } = ApiWrapper
 
 const DEFAULT_NAV_THEME = {
-  navBg: '#ff6b35',
+  navBg: '#5B7A5E',
   navText: '#ffffff',
-  tabSelected: '#ff6b35'
+  tabSelected: '#5B7A5E'
 }
 // MobX Store绑定 - 替代手动globalData取值
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -102,7 +102,7 @@ Page({
         name: '我的订单',
         description: '查看兑换订单和物流进度',
         iconClass: 'icon-shopping-bag',
-        color: '#ff6b35',
+        color: '#5B7A5E',
         type: 'page',
         url: '/packageExchange/exchange-orders/exchange-orders'
       },
@@ -138,7 +138,7 @@ Page({
         name: '我的广告',
         description: '管理广告投放活动',
         iconClass: 'icon-megaphone',
-        color: '#FF6B35',
+        color: '#5B7A5E',
         type: 'page',
         url: '/packageAd/ad-campaigns/ad-campaigns'
       },
@@ -271,7 +271,7 @@ Page({
    *
    * CSS 变量只能控制 WXML 内元素，微信原生导航栏和 TabBar 属于框架层，
    * 必须通过 wx.setNavigationBarColor / wx.setTabBarStyle 两个 JS API 动态设置。
-   * app.json 中的 #FF6B35 仅作为主题未加载前的兜底色。
+   * app.json 中的 #5B7A5E 仅作为主题未加载前的兜底色。
    */
   applyNativeThemeColors() {
     wx.setNavigationBarColor({
