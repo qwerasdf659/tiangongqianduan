@@ -108,7 +108,7 @@
         <view class="form-group">
           <view class="form-label-row">
             <text class="form-label">一口价</text>
-            <switch checked="{{enableBuyout}}" bindchange="onToggleBuyout" color="#FF6B35" />
+            <switch checked="{{enableBuyout}}" bindchange="onToggleBuyout" color="#5B7A5E" />
           </view>
           <input
             class="form-input"
