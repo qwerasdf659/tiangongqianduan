@@ -395,11 +395,11 @@ Page({
   applyNativeThemeColors() {
     wx.setNavigationBarColor({
       frontColor: '#ffffff',
-      backgroundColor: '#ff6b35',
+      backgroundColor: '#5B7A5E',
       animation: { duration: 300, timingFunc: 'easeIn' }
     })
     wx.setTabBarStyle({
-      selectedColor: '#ff6b35'
+      selectedColor: '#5B7A5E'
     })
   },
 

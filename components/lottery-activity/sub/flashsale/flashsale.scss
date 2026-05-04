@@ -194,7 +194,7 @@
   position: absolute;
   inset: -2rpx;
   border-radius: 22rpx;
-  background: linear-gradient(135deg, #ff3b30, #ff6b35, #ffd700, #ff3b30);
+  background: linear-gradient(135deg, #ff3b30, #5B7A5E, #ffd700, #ff3b30);
   background-size: 300% 300%;
   animation: neonBorder 4s ease-in-out infinite;
   opacity: 0.6;
@@ -213,7 +213,7 @@
 .banner-badge {
   @include flex-align-center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #ff3b30, #ff6b35);
+  background: linear-gradient(135deg, #ff3b30, #5B7A5E);
   padding: 10rpx 22rpx;
   border-radius: 28rpx;
   box-shadow: 0 4rpx 20rpx rgba(255, 59, 48, 0.5);
@@ -459,7 +459,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, #ff6b35, #ff3b30);
+  background: linear-gradient(135deg, #5B7A5E, #ff3b30);
   padding: 6rpx 18rpx;
   border-radius: 0 28rpx 0 16rpx;
   box-shadow: 0 4rpx 12rpx rgba(255, 59, 48, 0.5);
@@ -572,7 +572,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff3b30, #ff6b35);
+  background: linear-gradient(135deg, #ff3b30, #5B7A5E);
   @include flex-column-center;
   box-shadow: 0 4rpx 16rpx rgba(255, 59, 48, 0.45);
   flex-shrink: 0;
@@ -649,7 +649,7 @@
 .stock-bar-fill {
   position: relative;
   height: 100%;
-  background: linear-gradient(90deg, #ff6b35, #ff3b30, #ff6b35);
+  background: linear-gradient(90deg, #5B7A5E, #ff3b30, #5B7A5E);
   background-size: 200% 100%;
   border-radius: 12rpx;
   transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -749,7 +749,7 @@
 .grab-btn-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #ff3b30, #ff6b35, #ff8c00, #ff3b30);
+  background: linear-gradient(135deg, #ff3b30, #5B7A5E, #ff8c00, #ff3b30);
   background-size: 300% 300%;
   animation: grabBgFlow 5s ease-in-out infinite;
   border-radius: 52rpx;
@@ -979,7 +979,7 @@
 .sp8 {
   width: 8rpx;
   height: 8rpx;
-  background: #ff6b35;
+  background: #5B7A5E;
   animation-delay: 0.14s;
   --sx: -200rpx;
   --sy: -100rpx;
@@ -1569,7 +1569,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #ff6b35);
+  background: var(--tg-lottery-primary, #5B7A5E);
 }
 
 .fs-preview__title {
