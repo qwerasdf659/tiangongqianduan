@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   padding: 14rpx 20rpx;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(139, 115, 85, 0.08);
   border-radius: var(--td-radius-default);
   margin-bottom: 20rpx;
   gap: 8rpx;
@@ -35,7 +35,7 @@
 
 .guide-text {
   font-size: var(--tg-font-size-xs);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--tg-text-secondary);
   line-height: var(--tg-line-height-base);
 }
 
@@ -58,13 +58,13 @@
   height: 52rpx;
   @include flex-center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(139, 115, 85, 0.1);
   transition: all 0.3s;
 }
 
 .step.active .step-circle {
   background: var(--tg-color-white);
-  box-shadow: 0 4rpx 16rpx rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4rpx 16rpx rgba(139, 115, 85, 0.2);
 }
 
 .step.done .step-circle {
@@ -74,7 +74,7 @@
 
 .step-num {
   font-size: var(--td-font-size-s);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--tg-text-disabled);
   font-weight: bold;
 }
 
@@ -90,24 +90,24 @@
 
 .step-label {
   font-size: var(--tg-font-size-xs);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--tg-text-disabled);
   transition: all 0.3s;
 }
 
 .step.active .step-label {
-  color: var(--tg-color-white);
+  color: var(--tg-text-primary);
   font-weight: 500;
 }
 
 .step.done .step-label {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--tg-text-secondary);
   font-weight: 500;
 }
 
 .step-connector {
   width: 60rpx;
   height: 3rpx;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(139, 115, 85, 0.15);
   margin: 0 12rpx;
   margin-bottom: 24rpx;
   border-radius: 2rpx;
@@ -604,7 +604,7 @@
   right: 0;
   padding: 20rpx 30rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(76, 95, 175, 0.95);
+  background: rgba(245, 240, 232, 0.95);
   z-index: 10;
 }
 
@@ -625,9 +625,9 @@
 }
 
 .submit-main-btn.disabled {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.06);
   box-shadow: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--tg-text-disabled);
 }
 
 .submit-btn-text {
@@ -642,7 +642,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 107, 53, 0.95);
+  background: rgba(139, 115, 85, 0.85);
   @include flex-center;
   z-index: 9999;
 }

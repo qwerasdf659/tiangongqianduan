@@ -37,17 +37,17 @@ Component({
     machineState: 'idle',
     /** 胶囊颜色列表 - 更丰富的配色 */
     capsuleColors: [
-      '#FF6B6B', // 红色
+      '#7A9E7E', // 红色
       '#4ECDC4', // 青色
       '#FFD93D', // 金色
       '#9775FA', // 紫色
-      '#FF8C42', // 橙色
+      '#7A9E7E', // 橙色
       '#6BCF7F', // 绿色
       '#FF6AC1', // 粉色
       '#5DADE2' // 蓝色
     ],
     /** 当前掉落胶囊颜色 */
-    currentCapsuleColor: '#FF6B6B',
+    currentCapsuleColor: '#7A9E7E',
     /** 粒子特效数组 - 多层粒子 */
     particles: [] as any[],
     /** 显示庆祝特效 */

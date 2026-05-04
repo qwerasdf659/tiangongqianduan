@@ -23,7 +23,8 @@ const {
   Waterfall: luckyWaterfall,
   Utils: luckyUtils,
   ImageHelper: luckyImageHelper,
-  AssetCodes: luckyAssetCodes
+  AssetCodes: luckyAssetCodes,
+  ProductDisplay: luckyProductDisplay
 } = require('../../../../../utils/index')
 const luckyLog = luckyLogger.createLogger('lucky-space')
 const {
@@ -33,9 +34,7 @@ const {
 const { showToast: luckyShowToast } = luckyWechat
 const { debounce: luckyDebounce } = luckyUtils
 const { PAGINATION: LUCKY_PAGINATION } = luckyConstants
-const {
-  enrichProductDisplayFields
-} = require('../../../../../packageExchange/utils/product-display')
+const { enrichProductDisplayFields } = luckyProductDisplay
 
 Component({
   properties: {

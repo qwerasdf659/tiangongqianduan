@@ -182,11 +182,11 @@
 .guide-tip {
   @include flex-align-center;
   gap: var(--tg-spacing-xs);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(139, 115, 85, 0.06);
   border-radius: var(--td-radius-large);
   padding: 16rpx 24rpx;
   margin-bottom: var(--tg-spacing-lg);
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  border: 1rpx solid rgba(139, 115, 85, 0.1);
 }
 
 .guide-icon {
@@ -196,7 +196,7 @@
 
 .guide-text {
   font-size: var(--tg-font-size-xs);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--tg-text-secondary);
   line-height: var(--tg-line-height-base);
 }
 
@@ -213,7 +213,7 @@
 
 .loading-text {
   font-size: var(--td-font-size-base);
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 挂单卡片 ===== */
@@ -501,17 +501,17 @@
 .no-more-line {
   flex: 1;
   height: 1rpx;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(139, 115, 85, 0.15), transparent);
   max-width: 120rpx;
 }
 
 .load-more-text {
   font-size: var(--td-font-size-s);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--tg-text-tertiary);
 }
 
 .load-more-text.no-more {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--tg-text-disabled);
   font-size: var(--tg-font-size-xs);
   white-space: nowrap;
 }
@@ -536,7 +536,7 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+  background: linear-gradient(135deg, rgba(139, 115, 85, 0.08), rgba(139, 115, 85, 0.03));
   animation: emptyPulse 3s ease-in-out infinite;
 }
 
@@ -564,13 +564,13 @@
 .empty-title {
   font-size: var(--td-font-size-m);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--tg-text-primary);
   margin-bottom: 12rpx;
 }
 
 .empty-desc {
   font-size: var(--td-font-size-s);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--tg-text-tertiary);
   margin-bottom: 40rpx;
 }
 
@@ -597,14 +597,14 @@
   font-size: var(--td-font-size-base);
   font-weight: 600;
   border-radius: 36rpx;
-  color: var(--tg-color-white);
+  color: var(--tg-text-primary);
   background: transparent;
-  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  border: 2rpx solid rgba(139, 115, 85, 0.3);
   transition: all 0.3s ease;
 }
 
 .action-btn-outline:active {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(139, 115, 85, 0.06);
 }
 
 /* ===== 担保码按钮（Phase 4） ===== */

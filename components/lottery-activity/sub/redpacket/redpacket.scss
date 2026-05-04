@@ -25,7 +25,7 @@
   margin-bottom: 24rpx;
   font-size: 30rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
   letter-spacing: 2rpx;
 }
@@ -66,7 +66,7 @@
   height: 260rpx;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-primary, #ff4444),
+    var(--tg-lottery-primary, #3D5940),
     var(--tg-lottery-primary-dark, #cc0000)
   );
   border-radius: var(--td-radius-default);
@@ -83,7 +83,7 @@
   &.is-selected {
     transform: scale(1.08);
     animation: none;
-    box-shadow: 0 12rpx 36rpx rgba(255, 215, 0, 0.5);
+    box-shadow: 0 12rpx 36rpx rgba(197, 165, 114, 0.5);
   }
 
   &.is-shaking {
@@ -97,11 +97,11 @@
   border-radius: 50%;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #ffd700),
-    var(--tg-lottery-accent-light, #ffa500)
+    var(--tg-lottery-accent, #C5A572),
+    var(--tg-lottery-accent-light, #A8884A)
   );
   @include flex-center;
-  box-shadow: 0 4rpx 16rpx var(--tg-lottery-accent-shadow, rgba(255, 165, 0, 0.5));
+  box-shadow: 0 4rpx 16rpx var(--tg-lottery-accent-shadow, rgba(197, 165, 114, 0.5));
   margin-bottom: 12rpx;
 }
 
@@ -117,7 +117,7 @@
 
 .deco-text {
   font-size: 22rpx;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   font-weight: bold;
   letter-spacing: 4rpx;
 }
@@ -132,7 +132,7 @@
   height: 36rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #ffd700),
+    var(--tg-lottery-accent, #C5A572),
     var(--tg-lottery-accent-light, #daa520)
   );
   border-radius: 50%;
@@ -158,7 +158,7 @@
 
   .hint-text {
     font-size: var(--tg-font-size-xs);
-    color: var(--tg-lottery-accent-dim, rgba(255, 215, 0, 0.9));
+    color: var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.9));
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
   }
 }
@@ -175,7 +175,7 @@
     position: absolute;
     width: 120rpx;
     height: 120rpx;
-    border: 4rpx solid rgba(255, 215, 0, 0.6);
+    border: 4rpx solid rgba(197, 165, 114, 0.6);
     border-radius: 50%;
     animation: burstRing 1s ease-out forwards;
     top: 50%;
@@ -190,7 +190,7 @@
 
   &__text {
     font-size: var(--td-font-size-s);
-    color: var(--tg-lottery-accent, #ffd700);
+    color: var(--tg-lottery-accent, #C5A572);
     font-weight: bold;
   }
 
@@ -374,7 +374,7 @@
 
   &__name {
     font-size: var(--tg-font-size-xs);
-    color: var(--tg-lottery-accent, #ffd700);
+    color: var(--tg-lottery-accent, #C5A572);
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
     margin-top: 4rpx;
     max-width: 120rpx;
@@ -396,8 +396,8 @@
   padding: 14rpx 48rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #ffd700),
-    var(--tg-lottery-accent-bright, #ff8c00)
+    var(--tg-lottery-accent, #C5A572),
+    var(--tg-lottery-accent-bright, #C5A572)
   );
   border-radius: 40rpx;
   box-shadow: 0 4rpx 16rpx var(--tg-lottery-accent-shadow, rgba(255, 140, 0, 0.4));

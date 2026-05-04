@@ -30,9 +30,9 @@
     bottom: 0;
     background:
       radial-gradient(circle at 20% 20%, rgba(0, 200, 255, 0.08) 0%, transparent 40%),
-      radial-gradient(circle at 80% 55%, rgba(255, 165, 0, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 80% 55%, rgba(197, 165, 114, 0.06) 0%, transparent 40%),
       radial-gradient(circle at 50% 80%, rgba(120, 80, 255, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 50% 10%, rgba(255, 215, 0, 0.04) 0%, transparent 35%);
+      radial-gradient(circle at 50% 10%, rgba(197, 165, 114, 0.04) 0%, transparent 35%);
     pointer-events: none;
     z-index: 0;
   }
@@ -204,7 +204,7 @@
     right: -16rpx;
     bottom: -16rpx;
     border-radius: 26rpx 26rpx 16rpx 16rpx;
-    border: 2rpx solid var(--tg-lottery-accent-border, rgba(255, 200, 50, 0.18));
+    border: 2rpx solid var(--tg-lottery-accent-border, rgba(197, 165, 114, 0.18));
     pointer-events: none;
     z-index: 3;
   }
@@ -234,9 +234,9 @@
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-accent-dim, rgba(255, 200, 50, 0.2));
+  background: var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.2));
   animation: bulbChase 1.6s ease-in-out infinite;
-  box-shadow: 0 0 4rpx var(--tg-lottery-accent-dim, rgba(255, 200, 50, 0.2));
+  box-shadow: 0 0 4rpx var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.2));
   transition: background 0.2s;
 
   &:nth-child(even) {
@@ -253,16 +253,16 @@
   0%,
   42%,
   100% {
-    background: var(--tg-lottery-accent-dim, rgba(255, 200, 50, 0.2));
-    box-shadow: 0 0 3rpx var(--tg-lottery-accent-dim, rgba(255, 200, 50, 0.15));
+    background: var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.2));
+    box-shadow: 0 0 3rpx var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.15));
   }
 
   48%,
   92% {
-    background: var(--tg-lottery-accent, #ffd700);
+    background: var(--tg-lottery-accent, #C5A572);
     box-shadow:
-      0 0 14rpx var(--tg-lottery-accent-glow, rgba(255, 215, 0, 0.9)),
-      0 0 28rpx var(--tg-lottery-accent-glow-soft, rgba(255, 215, 0, 0.4));
+      0 0 14rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.9)),
+      0 0 28rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.4));
   }
 }
 
@@ -270,16 +270,16 @@
   0%,
   48%,
   100% {
-    background: var(--tg-lottery-accent, #ffd700);
+    background: var(--tg-lottery-accent, #C5A572);
     box-shadow:
-      0 0 14rpx var(--tg-lottery-accent-glow, rgba(255, 215, 0, 0.9)),
-      0 0 28rpx var(--tg-lottery-accent-glow-soft, rgba(255, 215, 0, 0.4));
+      0 0 14rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.9)),
+      0 0 28rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.4));
   }
 
   5%,
   42% {
-    background: var(--tg-lottery-accent-dim, rgba(255, 200, 50, 0.2));
-    box-shadow: 0 0 3rpx var(--tg-lottery-accent-dim, rgba(255, 200, 50, 0.15));
+    background: var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.2));
+    box-shadow: 0 0 3rpx var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.15));
   }
 }
 
@@ -295,8 +295,8 @@
   92% {
     background: #5B7A5E;
     box-shadow:
-      0 0 14rpx rgba(255, 107, 53, 0.9),
-      0 0 28rpx rgba(255, 107, 53, 0.4);
+      0 0 14rpx rgba(91, 122, 94, 0.9),
+      0 0 28rpx rgba(91, 122, 94, 0.4);
   }
 }
 
@@ -325,14 +325,14 @@
   color: transparent;
   background: linear-gradient(
     180deg,
-    #fff8e1 0%,
-    var(--tg-lottery-accent-light, #ffe066) 20%,
-    var(--tg-lottery-accent, #ffd700) 50%,
-    var(--tg-lottery-accent-bright, #ffa500) 80%,
+    #F5EFE0 0%,
+    var(--tg-lottery-accent-light, #D4C4A0) 20%,
+    var(--tg-lottery-accent, #C5A572) 50%,
+    var(--tg-lottery-accent-bright, #A8884A) 80%,
     #cc7700 100%
   );
   text-shadow: none;
-  filter: drop-shadow(0 3rpx 8rpx var(--tg-lottery-accent-glow-soft, rgba(255, 200, 0, 0.6)));
+  filter: drop-shadow(0 3rpx 8rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.6)));
 }
 
 @keyframes titleBounceL {
@@ -495,14 +495,14 @@
   height: 10rpx;
   background: linear-gradient(
     180deg,
-    #ffe066 0%,
-    var(--tg-lottery-accent, #ffd700) 40%,
+    #D4C4A0 0%,
+    var(--tg-lottery-accent, #C5A572) 40%,
     var(--tg-lottery-accent-dark, #cc9900) 100%
   );
   border-radius: 5rpx;
   margin-top: -3rpx;
   box-shadow:
-    0 0 12rpx var(--tg-lottery-accent-glow-soft, rgba(255, 215, 0, 0.5)),
+    0 0 12rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.5)),
     inset 0 1rpx 3rpx rgba(255, 255, 255, 0.4);
 }
 
@@ -556,8 +556,8 @@
 
   .launcher-ring {
     box-shadow:
-      0 0 22rpx var(--tg-lottery-accent-glow, rgba(255, 215, 0, 0.8)),
-      0 0 40rpx var(--tg-lottery-accent-glow-soft, rgba(255, 215, 0, 0.3));
+      0 0 22rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.8)),
+      0 0 40rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.3));
   }
 }
 
@@ -700,7 +700,7 @@
 
   &.r2 {
     animation: rippleExpand 0.5s ease-out 0.1s forwards;
-    border-color: rgba(255, 215, 0, 0.4);
+    border-color: rgba(197, 165, 114, 0.4);
   }
 }
 
@@ -738,8 +738,8 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 200, 50, 0.7) 0%,
-    rgba(255, 160, 0, 0.3) 50%,
+    rgba(197, 165, 114, 0.7) 0%,
+    rgba(197, 165, 114, 0.3) 50%,
     transparent 70%
   );
   transition: opacity 0.15s ease;
@@ -781,17 +781,17 @@
   /* 金色金属弹珠 - 更醒目的配色 */
   background: radial-gradient(
     circle at 28% 28%,
-    #fffde7 0%,
-    #ffe082 15%,
-    #ffd54f 30%,
-    #ffca28 50%,
-    #ffb300 70%,
-    #ff8f00 90%,
-    #e65100 100%
+    #F5EFE0 0%,
+    #D4C4A0 15%,
+    #C5A572 30%,
+    #C5A572 50%,
+    #A8884A 70%,
+    #A8884A 90%,
+    #3D5940 100%
   );
   box-shadow:
     0 4rpx 14rpx rgba(0, 0, 0, 0.5),
-    0 0 20rpx rgba(255, 180, 0, 0.4),
+    0 0 20rpx rgba(197, 165, 114, 0.4),
     inset 0 3rpx 8rpx rgba(255, 255, 255, 0.5),
     inset 0 -3rpx 8rpx rgba(180, 100, 0, 0.4);
   transform: rotate(var(--ball-angle, 0deg));
@@ -833,8 +833,8 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 200, 50, 0.4) 0%,
-    rgba(255, 160, 0, 0.15) 45%,
+    rgba(197, 165, 114, 0.4) 0%,
+    rgba(197, 165, 114, 0.15) 45%,
     transparent 70%
   );
   pointer-events: none;
@@ -863,7 +863,7 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 180, 0, 0.15) 0%,
+    rgba(197, 165, 114, 0.15) 0%,
     rgba(255, 140, 0, 0.05) 50%,
     transparent 70%
   );
@@ -966,8 +966,8 @@
     transform: translate(-50%, -50%) scale(1.5);
     background: radial-gradient(
       circle,
-      rgba(255, 215, 0, 0.6) 0%,
-      rgba(255, 180, 0, 0.2) 45%,
+      rgba(197, 165, 114, 0.6) 0%,
+      rgba(197, 165, 114, 0.2) 45%,
       transparent 70%
     );
   }
@@ -1007,11 +1007,11 @@
   &.active {
     background: linear-gradient(
       180deg,
-      rgba(255, 215, 0, 0.12) 0%,
-      rgba(255, 200, 0, 0.22) 30%,
-      rgba(255, 180, 0, 0.32) 100%
+      rgba(197, 165, 114, 0.12) 0%,
+      rgba(197, 165, 114, 0.22) 30%,
+      rgba(197, 165, 114, 0.32) 100%
     );
-    border-top-color: rgba(255, 215, 0, 0.7);
+    border-top-color: rgba(197, 165, 114, 0.7);
   }
 
   /* 中奖闪烁 */
@@ -1099,9 +1099,9 @@
 
   .active &,
   .winner & {
-    color: var(--tg-lottery-accent, #ffd700);
+    color: var(--tg-lottery-accent, #C5A572);
     font-weight: bold;
-    text-shadow: 0 0 10rpx var(--tg-lottery-accent-glow-soft, rgba(255, 215, 0, 0.5));
+    text-shadow: 0 0 10rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.5));
   }
 }
 
@@ -1114,7 +1114,7 @@
   bottom: 0;
   background: radial-gradient(
     ellipse at center bottom,
-    rgba(255, 215, 0, 0.35) 0%,
+    rgba(197, 165, 114, 0.35) 0%,
     transparent 65%
   );
   animation: winnerGlowPulse 0.8s ease-in-out infinite alternate;
@@ -1132,8 +1132,8 @@
   background: linear-gradient(
     180deg,
     transparent,
-    rgba(255, 215, 0, 0.15) 30%,
-    rgba(255, 215, 0, 0.3) 100%
+    rgba(197, 165, 114, 0.15) 30%,
+    rgba(197, 165, 114, 0.3) 100%
   );
   filter: blur(10rpx);
   pointer-events: none;
@@ -1168,18 +1168,18 @@
   from {
     background: linear-gradient(
       180deg,
-      rgba(255, 215, 0, 0.08) 0%,
-      rgba(255, 200, 0, 0.18) 30%,
-      rgba(255, 180, 0, 0.28) 100%
+      rgba(197, 165, 114, 0.08) 0%,
+      rgba(197, 165, 114, 0.18) 30%,
+      rgba(197, 165, 114, 0.28) 100%
     );
   }
 
   to {
     background: linear-gradient(
       180deg,
-      rgba(255, 215, 0, 0.2) 0%,
-      rgba(255, 200, 0, 0.38) 30%,
-      rgba(255, 180, 0, 0.5) 100%
+      rgba(197, 165, 114, 0.2) 0%,
+      rgba(197, 165, 114, 0.38) 30%,
+      rgba(197, 165, 114, 0.5) 100%
     );
   }
 }
@@ -1397,7 +1397,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 3rpx solid rgba(255, 215, 0, 0.7);
+  border: 3rpx solid rgba(197, 165, 114, 0.7);
   animation: ringExpand 1.2s ease-out forwards;
 
   &.ring-1 {
@@ -1411,7 +1411,7 @@
 
   &.ring-3 {
     animation-delay: 0.3s;
-    border-color: rgba(255, 100, 50, 0.5);
+    border-color: rgba(91, 122, 94, 0.5);
   }
 }
 
@@ -1486,7 +1486,7 @@
     transform: scale(0);
     box-shadow:
       0 0 10rpx #fff,
-      0 0 20rpx rgba(255, 215, 0, 0.5);
+      0 0 20rpx rgba(197, 165, 114, 0.5);
   }
 
   50% {
@@ -1539,7 +1539,7 @@
   50% {
     opacity: 0.6;
     transform: translate(-50%, -55%) scale(1.08);
-    border-color: rgba(255, 160, 0, 0.5);
+    border-color: rgba(197, 165, 114, 0.5);
     box-shadow: 0 0 20rpx rgba(255, 140, 0, 0.2);
   }
 }
@@ -1550,9 +1550,9 @@
   padding: 22rpx 60rpx;
   background: linear-gradient(
     135deg,
-    #ff9800 0%,
-    var(--tg-lottery-primary, #ff8c00) 30%,
-    var(--tg-lottery-primary-dark, #ff6b00) 60%,
+    #C5A572 0%,
+    var(--tg-lottery-primary, #C5A572) 30%,
+    var(--tg-lottery-primary-dark, #4A6B4D) 60%,
     #f57c00 100%
   );
   border-radius: 50rpx;
@@ -1560,17 +1560,17 @@
   overflow: hidden;
   box-shadow:
     0 8rpx 28rpx rgba(255, 140, 0, 0.5),
-    0 3rpx 10rpx rgba(255, 100, 0, 0.35),
+    0 3rpx 10rpx rgba(168, 136, 74, 0.35),
     inset 0 3rpx 8rpx rgba(255, 255, 255, 0.25),
     inset 0 -3rpx 8rpx rgba(200, 80, 0, 0.3);
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 2rpx solid rgba(255, 200, 100, 0.3);
+  border: 2rpx solid rgba(197, 165, 114, 0.3);
 
   &--active {
     transform: scale(0.93);
     box-shadow:
       0 4rpx 14rpx rgba(255, 140, 0, 0.4),
-      0 1rpx 5rpx rgba(255, 100, 0, 0.25);
+      0 1rpx 5rpx rgba(168, 136, 74, 0.25);
   }
 
   /* 进行中态 */
@@ -1585,18 +1585,18 @@
   &.winner-btn {
     background: linear-gradient(
       135deg,
-      #ffe082 0%,
-      var(--tg-lottery-accent, #ffd700) 30%,
-      var(--tg-lottery-accent-bright, #ffa500) 60%,
-      var(--tg-lottery-accent, #ffd700) 100%
+      #D4C4A0 0%,
+      var(--tg-lottery-accent, #C5A572) 30%,
+      var(--tg-lottery-accent-bright, #A8884A) 60%,
+      var(--tg-lottery-accent, #C5A572) 100%
     );
     box-shadow:
-      0 8rpx 28rpx rgba(255, 215, 0, 0.6),
-      0 0 50rpx rgba(255, 215, 0, 0.3),
+      0 8rpx 28rpx rgba(197, 165, 114, 0.6),
+      0 0 50rpx rgba(197, 165, 114, 0.3),
       inset 0 3rpx 8rpx rgba(255, 255, 255, 0.4);
     animation: winnerBtnPulse 1s ease-in-out infinite alternate;
     pointer-events: none;
-    border-color: rgba(255, 240, 180, 0.5);
+    border-color: rgba(197, 165, 114, 0.5);
   }
 }
 
@@ -1689,14 +1689,14 @@
 @keyframes winnerBtnPulse {
   from {
     box-shadow:
-      0 6rpx 24rpx rgba(255, 215, 0, 0.4),
-      0 0 35rpx rgba(255, 215, 0, 0.2);
+      0 6rpx 24rpx rgba(197, 165, 114, 0.4),
+      0 0 35rpx rgba(197, 165, 114, 0.2);
   }
 
   to {
     box-shadow:
-      0 10rpx 36rpx rgba(255, 215, 0, 0.7),
-      0 0 60rpx rgba(255, 215, 0, 0.4);
+      0 10rpx 36rpx rgba(197, 165, 114, 0.7),
+      0 0 60rpx rgba(197, 165, 114, 0.4);
   }
 }
 

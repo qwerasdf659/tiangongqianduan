@@ -1,11 +1,11 @@
 {
   "navigationBarTitleText": "🎰 幸运抽奖",
-  "navigationBarBackgroundColor": "#f7931e",
-  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#F5F0E8",
+  "navigationBarTextStyle": "black",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
   "backgroundTextStyle": "light",
-  "backgroundColor": "#f7931e",
+  "backgroundColor": "#F5F0E8",
   "usingComponents": {
     "popup-banner": "/components/popup-banner/popup-banner",
     "lottery-activity": "/components/lottery-activity/lottery-activity",

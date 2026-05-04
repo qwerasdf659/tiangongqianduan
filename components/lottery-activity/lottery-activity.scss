@@ -11,26 +11,26 @@
 /* 子组件的 var(--xxx, fallback) 中的 fallback 是各组件独立的保底色 */
 .lottery-activity {
   /* 主色调 */
-  --tg-lottery-primary: #e67e22;
+  --tg-lottery-primary: #4A6B4D;
   --tg-lottery-primary-dark: #d35400;
   --tg-lottery-primary-light: #f39c12;
   --tg-lottery-primary-lighter: #f5b041;
   /* 次色调 */
-  --tg-lottery-secondary: #ff8c42;
+  --tg-lottery-secondary: #7A9E7E;
   --tg-lottery-secondary-dark: #e07830;
   --tg-lottery-secondary-light: #ffab70;
   /* 强调色 */
-  --tg-lottery-accent: #ffd700;
+  --tg-lottery-accent: #C5A572;
   --tg-lottery-accent-dark: #ccac00;
   --tg-lottery-accent-darker: #b8860b;
   --tg-lottery-accent-light: #ffe44d;
-  --tg-lottery-accent-lighter: #fff176;
-  --tg-lottery-accent-bright: #ff8c00;
+  --tg-lottery-accent-lighter: #E5D9C0;
+  --tg-lottery-accent-bright: #C5A572;
   --tg-lottery-accent-bg: #ffecb3;
-  --tg-lottery-accent-bg-light: #fff8e1;
-  --tg-lottery-accent-border: #ffd54f;
-  --tg-lottery-accent-dim: rgba(255, 215, 0, 0.9);
-  --tg-lottery-accent-glow: rgba(255, 215, 0, 0.5);
+  --tg-lottery-accent-bg-light: #F5EFE0;
+  --tg-lottery-accent-border: #C5A572;
+  --tg-lottery-accent-dim: rgba(197, 165, 114, 0.9);
+  --tg-lottery-accent-glow: rgba(197, 165, 114, 0.5);
   --tg-lottery-accent-shadow: rgba(255, 140, 0, 0.4);
   /* 文字颜色 */
   --tg-lottery-text: #333333;
@@ -45,24 +45,24 @@
   --tg-lottery-bg-dark: #2c1810;
   --tg-lottery-bg-darkest: #1a0e08;
   --tg-lottery-bg-darker: #1a0e08;
-  --tg-lottery-bg-light: #fffdf7;
-  --tg-lottery-bg-lighter: #fff5eb;
+  --tg-lottery-bg-light: #F5EFE0;
+  --tg-lottery-bg-lighter: #F5EFE0;
   /* 阴影 / 光效 */
   --tg-lottery-shadow-strong: rgba(230, 126, 34, 0.4);
   --tg-lottery-shadow-medium: rgba(230, 126, 34, 0.25);
   --tg-lottery-shadow-soft: rgba(230, 126, 34, 0.15);
-  --tg-lottery-shadow-intense: rgba(255, 107, 53, 0.6);
-  --tg-lottery-shadow-bright: rgba(255, 107, 53, 0.3);
-  --tg-lottery-shadow-glow: rgba(255, 107, 53, 0.2);
+  --tg-lottery-shadow-intense: rgba(91, 122, 94, 0.6);
+  --tg-lottery-shadow-bright: rgba(91, 122, 94, 0.3);
+  --tg-lottery-shadow-glow: rgba(91, 122, 94, 0.2);
   --tg-lottery-glow-intense: rgba(230, 126, 34, 0.9);
   --tg-lottery-glow-medium: rgba(230, 126, 34, 0.6);
   --tg-lottery-glow-soft: rgba(230, 126, 34, 0.35);
-  --tg-lottery-accent-glow-intense: rgba(255, 215, 0, 1);
-  --tg-lottery-accent-glow-strong: rgba(255, 215, 0, 0.8);
-  --tg-lottery-accent-glow-soft: rgba(255, 215, 0, 0.5);
-  --tg-lottery-accent-glow-max: rgba(255, 215, 0, 1);
-  --tg-lottery-accent-glow-bright: rgba(255, 215, 0, 0.9);
-  --tg-lottery-accent-glow-medium: rgba(255, 215, 0, 0.6);
+  --tg-lottery-accent-glow-intense: rgba(197, 165, 114, 1);
+  --tg-lottery-accent-glow-strong: rgba(197, 165, 114, 0.8);
+  --tg-lottery-accent-glow-soft: rgba(197, 165, 114, 0.5);
+  --tg-lottery-accent-glow-max: rgba(197, 165, 114, 1);
+  --tg-lottery-accent-glow-bright: rgba(197, 165, 114, 0.9);
+  --tg-lottery-accent-glow-medium: rgba(197, 165, 114, 0.6);
   /* 边框 */
   --tg-lottery-border: var(--tg-color-divider);
   --tg-lottery-border-light: rgba(230, 126, 34, 0.2);
@@ -76,10 +76,10 @@
   --tg-lottery-success: #27ae60;
   --tg-lottery-success-light: #8bc34a;
   --tg-lottery-danger: #e74c3c;
-  --tg-lottery-danger-light: #ff6b7a;
+  --tg-lottery-danger-light: #7A9E7E;
   --tg-lottery-warning: #f39c12;
   --tg-lottery-warning-light: #cddc39;
-  --tg-lottery-warning-dark: #e65100;
+  --tg-lottery-warning-dark: #3D5940;
 
   position: relative;
   width: 100%;
@@ -318,7 +318,7 @@
 
   &__icon {
     font-size: 160rpx;
-    filter: saturate(2) brightness(1.2) drop-shadow(0 4rpx 8rpx rgba(255, 160, 0, 0.4));
+    filter: saturate(2) brightness(1.2) drop-shadow(0 4rpx 8rpx rgba(197, 165, 114, 0.4));
   }
 
   &__hammer {
@@ -374,7 +374,7 @@
     rgba(35, 25, 65, 0.92) 100%
   );
   border-radius: var(--td-radius-large);
-  border: 2rpx solid rgba(255, 215, 0, 0.2);
+  border: 2rpx solid rgba(197, 165, 114, 0.2);
   box-shadow:
     0 8rpx 32rpx rgba(0, 0, 0, 0.25),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.08);
@@ -392,9 +392,9 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255, 215, 0, 0.6) 30%,
-      rgba(255, 180, 0, 0.8) 50%,
-      rgba(255, 215, 0, 0.6) 70%,
+      rgba(197, 165, 114, 0.6) 30%,
+      rgba(197, 165, 114, 0.8) 50%,
+      rgba(197, 165, 114, 0.6) 70%,
       transparent 100%
     );
   }
@@ -409,15 +409,15 @@
     width: 64rpx;
     height: 64rpx;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 180, 0, 0.1));
-    border: 2rpx solid rgba(255, 215, 0, 0.3);
+    background: linear-gradient(135deg, rgba(197, 165, 114, 0.2), rgba(197, 165, 114, 0.1));
+    border: 2rpx solid rgba(197, 165, 114, 0.3);
     @include flex-center;
     flex-shrink: 0;
   }
 
   &__shield-icon {
     font-size: 32rpx;
-    filter: drop-shadow(0 2rpx 4rpx rgba(255, 180, 0, 0.4));
+    filter: drop-shadow(0 2rpx 4rpx rgba(197, 165, 114, 0.4));
   }
 
   &__title-group {
@@ -430,7 +430,7 @@
 
   &__title {
     font-size: var(--td-font-size-s);
-    color: rgba(255, 215, 0, 0.9);
+    color: rgba(197, 165, 114, 0.9);
     font-weight: 600;
     letter-spacing: 2rpx;
   }
@@ -445,22 +445,22 @@
     align-items: baseline;
     gap: 4rpx;
     padding: 8rpx 20rpx;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 180, 0, 0.08));
-    border: 1rpx solid rgba(255, 215, 0, 0.25);
+    background: linear-gradient(135deg, rgba(197, 165, 114, 0.15), rgba(197, 165, 114, 0.08));
+    border: 1rpx solid rgba(197, 165, 114, 0.25);
     border-radius: var(--tg-radius-xl);
     flex-shrink: 0;
   }
 
   &__badge-num {
     font-size: var(--td-font-size-l);
-    color: #ffd700;
+    color: #C5A572;
     font-weight: 700;
-    text-shadow: 0 0 12rpx rgba(255, 215, 0, 0.4);
+    text-shadow: 0 0 12rpx rgba(197, 165, 114, 0.4);
   }
 
   &__badge-unit {
     font-size: var(--tg-font-size-xs);
-    color: rgba(255, 215, 0, 0.7);
+    color: rgba(197, 165, 114, 0.7);
   }
 
   &__track {

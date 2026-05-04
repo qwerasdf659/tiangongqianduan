@@ -11,11 +11,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
+  background: var(--tg-page-bg);
   padding-bottom: 80rpx;
 }
 
@@ -125,7 +121,7 @@
 
 .loading-text {
   font-size: var(--td-font-size-base);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--tg-text-secondary);
 }
 
 /* ========== 空状态 ========== */
@@ -164,11 +160,7 @@
 }
 
 .retry-btn {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
+  background: var(--td-brand-color);
   color: var(--tg-color-white);
   border: none;
   border-radius: 50rpx;
@@ -247,7 +239,7 @@
   color: var(--tg-color-white);
   font-weight: 600;
   background: var(--td-brand-color);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.4);
 }
 
 /* 活动内容 */
@@ -304,7 +296,7 @@
 
 .data-text {
   font-size: var(--td-font-size-s);
-  color: var(--tg-gradient-primary-start);
+  color: var(--td-brand-color);
   font-weight: 500;
 }
 
@@ -321,7 +313,7 @@
   border-radius: 20rpx;
   font-size: 22rpx;
   color: var(--td-brand-color);
-  border: 1rpx solid rgba(255, 107, 53, 0.3);
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 /* CTA按钮 */
@@ -341,9 +333,9 @@
 }
 
 .cta-btn.primary {
-  background: linear-gradient(135deg, var(--td-brand-color) 0%, #f7931e 100%);
+  background: linear-gradient(135deg, var(--td-brand-color) 0%, #A08060 100%);
   color: var(--tg-color-white);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .cta-btn.primary:active {
@@ -368,7 +360,7 @@
 
 .tip-text {
   font-size: var(--td-font-size-s);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--tg-text-tertiary);
 }
 
 /* ========== 底部提示 ========== */
@@ -388,7 +380,7 @@
 
 .bottom-tip .tip-text {
   font-size: 26rpx;
-  color: var(--tg-gradient-primary-start);
+  color: var(--td-brand-color);
   font-weight: 500;
 }
 

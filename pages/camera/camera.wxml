@@ -1,5 +1,5 @@
 <!--pages/camera/camera.wxml - 发现页面（抽奖活动聚合入口）-->
-<custom-navbar title="发现活动" bgColor="#667eea" textColor="#ffffff" />
+<custom-navbar title="发现活动" bgColor="#F5F0E8" textColor="#4A3728" />
 
 <view class="discover-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">

@@ -34,6 +34,7 @@ const apiWrapperFunctions = require('./api-wrapper')
 const imageHelperFunctions = require('./image-helper')
 const subscribeMessageFunctions = require('./subscribe-message')
 const auctionHelperFunctions = require('./auction-helpers')
+const productDisplayFunctions = require('./product-display')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -89,6 +90,9 @@ const SubscribeMessage = { ...subscribeMessageFunctions }
 /** C2C竞拍公共辅助函数 - 状态映射/图片获取/稀有度标签/倒计时计算 */
 const AuctionHelpers = { ...auctionHelperFunctions }
 
+/** 商品展示字段增强 - 资产中文化/稀有度CSS/全息光效/SKU快捷兑换判断 */
+const ProductDisplay = { ...productDisplayFunctions }
+
 // WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
@@ -120,5 +124,6 @@ module.exports = {
   ApiWrapper,
   ImageHelper,
   SubscribeMessage,
-  AuctionHelpers
+  AuctionHelpers,
+  ProductDisplay
 }

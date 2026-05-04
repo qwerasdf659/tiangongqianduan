@@ -84,7 +84,7 @@ Page({
         name: '积分明细',
         description: '查看积分获得和消费记录',
         iconClass: 'icon-coin',
-        color: '#4CAF50',
+        color: '#C5A572',
         type: 'page',
         url: '/packageUser/points-detail/points-detail'
       },
@@ -93,7 +93,7 @@ Page({
         name: '我的仓库',
         description: '管理我的所有物品',
         iconClass: 'icon-box',
-        color: '#00BCD4',
+        color: '#8B7355',
         type: 'page',
         url: '/packageTrade/trade/inventory/inventory'
       },
@@ -102,7 +102,7 @@ Page({
         name: '我的订单',
         description: '查看兑换订单和物流进度',
         iconClass: 'icon-shopping-bag',
-        color: '#5B7A5E',
+        color: '#A08B6E',
         type: 'page',
         url: '/packageExchange/exchange-orders/exchange-orders'
       },
@@ -111,7 +111,7 @@ Page({
         name: '我的挂单',
         description: '查看和管理市场挂单',
         iconClass: 'icon-tag',
-        color: '#FF9800',
+        color: '#C5A572',
         type: 'page',
         url: '/packageTrade/trade/my-listings/my-listings'
       },
@@ -120,7 +120,7 @@ Page({
         name: '交易记录',
         description: '查看完整交易历史记录',
         iconClass: 'icon-chart',
-        color: '#3F51B5',
+        color: '#8B7355',
         type: 'page',
         url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=0'
       },
@@ -129,7 +129,7 @@ Page({
         name: '消费记录',
         description: '查看消费积分记录',
         iconClass: 'icon-receipt',
-        color: '#9C27B0',
+        color: '#A08B6E',
         type: 'page',
         url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=1'
       },
@@ -138,7 +138,7 @@ Page({
         name: '我的广告',
         description: '管理广告投放活动',
         iconClass: 'icon-megaphone',
-        color: '#5B7A5E',
+        color: '#C5A572',
         type: 'page',
         url: '/packageAd/ad-campaigns/ad-campaigns'
       },
@@ -147,7 +147,7 @@ Page({
         name: '我的工单',
         description: '查看客服工单处理进度',
         iconClass: 'icon-chat',
-        color: '#795548',
+        color: '#8B7355',
         type: 'page',
         url: '/packageUser/issues/issues'
       },
@@ -156,7 +156,7 @@ Page({
         name: '联系客服',
         description: '在线客服服务支持',
         iconClass: 'icon-headset',
-        color: '#607D8B',
+        color: '#A08B6E',
         type: 'action',
         action: 'onContactService'
       },
@@ -165,7 +165,7 @@ Page({
         name: '退出登录',
         description: '安全退出当前账号',
         iconClass: 'icon-logout',
-        color: '#F44336',
+        color: '#c44569',
         type: 'action',
         action: 'logout'
       }

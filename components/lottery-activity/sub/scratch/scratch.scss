@@ -98,9 +98,9 @@
   height: 100%;
   background: linear-gradient(
     145deg,
-    var(--tg-lottery-bg-light, #fffdf7) 0%,
-    var(--tg-lottery-bg-lighter, #fff5eb) 40%,
-    var(--tg-lottery-bg-lightest, #fff0e0) 100%
+    var(--tg-lottery-bg-light, #F5EFE0) 0%,
+    var(--tg-lottery-bg-lighter, #F5EFE0) 40%,
+    var(--tg-lottery-bg-lightest, #F5EFE0) 100%
   );
   @include flex-column-center;
   gap: 4rpx;
@@ -324,7 +324,7 @@
   background: linear-gradient(
     90deg,
     var(--tg-lottery-primary, var(--td-brand-color)),
-    var(--tg-lottery-accent, #ffd700)
+    var(--tg-lottery-accent, #C5A572)
   );
   border-radius: 5rpx;
   transition: width 0.3s ease;
@@ -360,7 +360,7 @@
     transform 0.3s ease;
 
   &.revealed {
-    background: var(--tg-lottery-primary-bg-light, rgba(255, 107, 53, 0.1));
+    background: var(--tg-lottery-primary-bg-light, rgba(91, 122, 94, 0.1));
     transform: scale(1.05);
   }
 }

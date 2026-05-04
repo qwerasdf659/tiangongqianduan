@@ -107,17 +107,17 @@
   "window": {
     "navigationStyle": "custom",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#5B7A5E",
+    "navigationBarBackgroundColor": "#8B7355",
     "navigationBarTitleText": "餐厅积分系统",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F7F5F0",
+    "backgroundColor": "#FFFFFF",
     "enablePullDownRefresh": true,
     "onReachBottomDistance": 50
   },
   "tabBar": {
     "custom": true,
     "color": "#666",
-    "selectedColor": "#5B7A5E",
+    "selectedColor": "#8B7355",
     "backgroundColor": "#fff",
     "borderStyle": "black",
     "position": "bottom",
@@ -174,6 +174,9 @@
   },
   "componentFramework": "glass-easel",
   "lazyCodeLoading": "requiredComponents",
+  "optimization": {
+    "subPackages": true
+  },
   "permission": {
     "scope.userLocation": {
       "desc": "您的位置信息将用于小程序位置接口的效果展示"

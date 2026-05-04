@@ -21,12 +21,11 @@ const {
   ExchangeConfig,
   Logger,
   API: shelfAPI,
-  AssetCodes: shelfAssetCodes
+  AssetCodes: shelfAssetCodes,
+  ProductDisplay: shelfProductDisplay
 } = require('../../../utils/index')
-const {
-  enrichProductDisplayFields,
-  resolveQuickExchangeSkuId: shelfResolveQuickExchangeSkuId
-} = require('../../../packageExchange/utils/product-display')
+const { enrichProductDisplayFields, resolveQuickExchangeSkuId: shelfResolveQuickExchangeSkuId } =
+  shelfProductDisplay
 const shopBehavior = require('./handlers/shop-behavior')
 
 const shelfLog = Logger.createLogger('exchange-shelf')

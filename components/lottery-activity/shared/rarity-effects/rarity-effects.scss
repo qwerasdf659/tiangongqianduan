@@ -7,7 +7,7 @@
  *   uncommon  → #4CAF50 绿色边框
  *   rare      → #2196F3 蓝色呼吸光 pulse
  *   epic      → #9C27B0 紫色闪烁光环 flicker
- *   legendary → #FF9800 金色旋转光环 + 星星飘落
+ *   legendary → #C5A572 金色旋转光环 + 星星飘落
  *
  * 🔴 enabled=false 时不添加任何样式，让内部硬编码样式完全显示作为保底
  */
@@ -76,7 +76,7 @@
 
 /* ===== legendary: 金色旋转光环 + 星星 ===== */
 .rarity--legendary {
-  border: 2rpx solid var(--rarity-legendary, #ff9800);
+  border: 2rpx solid var(--rarity-legendary, #C5A572);
   box-shadow: 0 0 20rpx var(--rarity-legendary-glow, rgba(255, 152, 0, 0.5));
   animation: rarity-legendary-glow 2s ease-in-out infinite;
 }
@@ -132,7 +132,7 @@
   position: absolute;
   width: 8rpx;
   height: 8rpx;
-  background: var(--rarity-legendary, #ff9800);
+  background: var(--rarity-legendary, #C5A572);
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;

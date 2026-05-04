@@ -64,7 +64,7 @@
   &__text {
     font-size: 26rpx;
     font-weight: bold;
-    color: var(--tg-lottery-accent, #ffd700);
+    color: var(--tg-lottery-accent, #C5A572);
     white-space: nowrap;
   }
 
@@ -80,8 +80,8 @@
     height: 100%;
     background: linear-gradient(
       90deg,
-      var(--tg-lottery-accent, #ffd700),
-      var(--tg-lottery-accent-bright, #ff8c00)
+      var(--tg-lottery-accent, #C5A572),
+      var(--tg-lottery-accent-bright, #C5A572)
     );
     border-radius: 6rpx;
     transition: width 0.3s ease;

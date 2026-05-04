@@ -19,5 +19,21 @@
     "draw-buttons": "./shared/draw-buttons/draw-buttons",
     "prize-detail-modal": "/components/prize-detail-modal/prize-detail-modal",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading"
+  },
+  "componentPlaceholder": {
+    "grid": "view",
+    "wheel": "view",
+    "card": "view",
+    "egg": "view",
+    "scratch": "view",
+    "blindbox": "view",
+    "gashapon": "view",
+    "luckybag": "view",
+    "redpacket": "view",
+    "slotmachine": "view",
+    "whackmole": "view",
+    "pinball": "view",
+    "cardcollect": "view",
+    "flashsale": "view"
   }
 }

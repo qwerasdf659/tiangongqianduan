@@ -47,7 +47,7 @@
     transform: translateX(-50%);
     width: 400rpx;
     height: 300rpx;
-    background: radial-gradient(circle, rgba(255, 235, 59, 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(197, 165, 114, 0.2) 0%, transparent 70%);
     filter: blur(40rpx);
     pointer-events: none;
     z-index: 1;
@@ -137,7 +137,7 @@
   font-weight: bold;
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
-    0 0 20rpx rgba(255, 235, 59, 0.3);
+    0 0 20rpx rgba(197, 165, 114, 0.3);
   letter-spacing: 2rpx;
   position: relative;
   z-index: 1;
@@ -191,7 +191,7 @@
   position: absolute;
   inset: -4rpx;
   border-radius: var(--td-radius-large);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), transparent);
+  background: linear-gradient(135deg, rgba(197, 165, 114, 0.3), transparent);
   opacity: 0;
   animation: badgeGlow 2s ease-in-out infinite;
 }
@@ -225,11 +225,11 @@
 
 .score-value {
   font-size: 30rpx;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   font-weight: bold;
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
-    0 0 10rpx rgba(255, 215, 0, 0.5);
+    0 0 10rpx rgba(197, 165, 114, 0.5);
 }
 
 .time-value {
@@ -245,7 +245,7 @@
   animation: urgentPulse 0.4s ease-in-out infinite;
 
   .time-value {
-    color: var(--tg-lottery-danger, #ff6b6b);
+    color: var(--tg-lottery-danger, #7A9E7E);
   }
 }
 
@@ -296,7 +296,7 @@
       90deg,
       var(--tg-lottery-danger, #f44336),
       var(--tg-lottery-danger-light, #ff5722),
-      var(--tg-lottery-warning, #ff9800)
+      var(--tg-lottery-warning, #C5A572)
     );
     animation: timerFlash 0.3s ease-in-out infinite;
     box-shadow: 0 0 15rpx rgba(244, 67, 54, 0.8);
@@ -305,9 +305,9 @@
   &.carnival {
     background: linear-gradient(
       90deg,
-      #ff0080,
-      #ff8c00,
-      #ffd700,
+      #C5A572,
+      #C5A572,
+      #C5A572,
       #00ff00,
       #00ced1,
       #0080ff,
@@ -339,7 +339,7 @@
   padding: 8rpx 20rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-primary, #ff0080),
+    var(--tg-lottery-primary, #C5A572),
     var(--tg-lottery-secondary, #8b00ff)
   );
   border-radius: var(--td-radius-large);
@@ -435,13 +435,13 @@
 .combo-text {
   font-size: var(--tg-font-size-xl);
   font-weight: bold;
-  color: var(--tg-lottery-primary, #ff6b6b);
+  color: var(--tg-lottery-primary, #7A9E7E);
   text-shadow:
     3rpx 3rpx 0 #000,
     -3rpx -3rpx 0 #000,
     3rpx -3rpx 0 #000,
     -3rpx 3rpx 0 #000,
-    0 6rpx 12rpx rgba(255, 107, 107, 0.8);
+    0 6rpx 12rpx rgba(91, 122, 94, 0.8);
   letter-spacing: 4rpx;
   animation: comboShake 0.5s ease-in-out infinite;
 }
@@ -458,7 +458,7 @@
   transform: translate(-50%, -50%);
   width: 120rpx;
   height: 120rpx;
-  border: 4rpx solid rgba(255, 107, 107, 0.6);
+  border: 4rpx solid rgba(91, 122, 94, 0.6);
   border-radius: 50%;
   animation: comboRing 1s ease-out infinite;
 }
@@ -545,7 +545,7 @@
   // 火焰锤（5连击）
   &.hammer-fire .hammer-icon {
     font-size: 56rpx;
-    filter: drop-shadow(0 0 12rpx rgba(255, 165, 0, 0.8))
+    filter: drop-shadow(0 0 12rpx rgba(197, 165, 114, 0.8))
       drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
@@ -578,7 +578,7 @@
   pointer-events: none;
 
   &.fire {
-    background: radial-gradient(circle, rgba(255, 165, 0, 0.4), transparent);
+    background: radial-gradient(circle, rgba(197, 165, 114, 0.4), transparent);
     opacity: 1;
     animation: fireGlow 0.5s ease-in-out infinite;
   }
@@ -777,9 +777,9 @@
 
   &.golden .hole-rim {
     box-shadow:
-      0 0 20rpx rgba(255, 215, 0, 0.8),
+      0 0 20rpx rgba(197, 165, 114, 0.8),
       inset 0 2rpx 4rpx rgba(255, 255, 255, 0.1);
-    border: 2rpx solid rgba(255, 215, 0, 0.4);
+    border: 2rpx solid rgba(197, 165, 114, 0.4);
   }
 
   &.bomb .hole-rim {
@@ -998,7 +998,7 @@
 /* 金色地鼠增强 */
 .golden-body {
   .mole-icon {
-    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 16rpx rgba(197, 165, 114, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
     animation: goldenGlow 0.6s ease-in-out infinite;
   }
 }
@@ -1072,7 +1072,7 @@
   }
 
   50% {
-    filter: drop-shadow(0 0 30rpx rgba(255, 215, 0, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1))
+    filter: drop-shadow(0 0 30rpx rgba(197, 165, 114, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1))
       drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 }
@@ -1180,12 +1180,12 @@
 @keyframes goldenGlow {
   0%,
   100% {
-    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.8))
+    filter: drop-shadow(0 0 16rpx rgba(197, 165, 114, 0.8))
       drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 
   50% {
-    filter: drop-shadow(0 0 24rpx rgba(255, 215, 0, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 24rpx rgba(197, 165, 114, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 }
 
@@ -1266,7 +1266,7 @@
 .whack-star {
   font-size: 56rpx;
   animation: whackBurst 0.5s ease-out forwards;
-  filter: drop-shadow(0 0 10rpx rgba(255, 165, 0, 0.8));
+  filter: drop-shadow(0 0 10rpx rgba(197, 165, 114, 0.8));
 
   &.main {
     font-size: 72rpx;
@@ -1378,7 +1378,7 @@
       -2rpx -2rpx 0 #000,
       2rpx -2rpx 0 #000,
       -2rpx 2rpx 0 #000,
-      0 0 15rpx rgba(255, 82, 82, 0.8);
+      0 0 15rpx rgba(91, 122, 94, 0.8);
   }
 }
 
@@ -1514,7 +1514,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 4rpx solid rgba(255, 215, 0, 0.6);
+  border: 4rpx solid rgba(197, 165, 114, 0.6);
 
   &.ring-1 {
     width: 200rpx;
@@ -1536,13 +1536,13 @@
   transform: translate(-50%, -50%);
   font-size: 56rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow:
     3rpx 3rpx 0 #000,
     -3rpx -3rpx 0 #000,
     3rpx -3rpx 0 #000,
     -3rpx 3rpx 0 #000,
-    0 0 30rpx rgba(255, 215, 0, 0.8);
+    0 0 30rpx rgba(197, 165, 114, 0.8);
   animation: celebrationTextPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
@@ -1638,7 +1638,7 @@
   color: #fff;
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
-    0 0 20rpx rgba(255, 235, 59, 0.4);
+    0 0 20rpx rgba(197, 165, 114, 0.4);
 }
 
 .intro-desc {
@@ -1671,7 +1671,7 @@
   padding: 24rpx 80rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-primary, #ff6b6b) 0%,
+    var(--tg-lottery-primary, #7A9E7E) 0%,
     var(--tg-lottery-primary-dark, #ee5a24) 100%
   );
   border-radius: 60rpx;
@@ -1750,8 +1750,8 @@
   backdrop-filter: blur(10rpx);
 
   &.golden {
-    border-color: rgba(255, 215, 0, 0.4);
-    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(197, 165, 114, 0.4);
+    background: rgba(197, 165, 114, 0.1);
   }
 
   &.bomb {
@@ -1760,8 +1760,8 @@
   }
 
   &.combo {
-    border-color: rgba(255, 107, 107, 0.4);
-    background: rgba(255, 107, 107, 0.1);
+    border-color: rgba(91, 122, 94, 0.4);
+    background: rgba(91, 122, 94, 0.1);
   }
 }
 
@@ -1803,7 +1803,7 @@
   padding: 40rpx 60rpx;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 100%);
   border-radius: var(--tg-radius-xl);
-  border: 3rpx solid rgba(255, 215, 0, 0.4);
+  border: 3rpx solid rgba(197, 165, 114, 0.4);
   -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
   box-shadow:
@@ -1819,7 +1819,7 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(197, 165, 114, 0.1) 0%, transparent 70%);
     animation: resultGlow 2s ease-in-out infinite;
   }
 }
@@ -1841,7 +1841,7 @@
   font-size: 100rpx;
   margin-bottom: 20rpx;
   animation: trophyBounce 1s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
-  filter: drop-shadow(0 8rpx 16rpx rgba(255, 215, 0, 0.5));
+  filter: drop-shadow(0 8rpx 16rpx rgba(197, 165, 114, 0.5));
 }
 
 @keyframes trophyBounce {
@@ -1857,11 +1857,11 @@
 
 .result-title {
   font-size: 42rpx;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   font-weight: bold;
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
-    0 0 30rpx rgba(255, 215, 0, 0.6);
+    0 0 30rpx rgba(197, 165, 114, 0.6);
   margin-bottom: 30rpx;
   letter-spacing: 4rpx;
   position: relative;
@@ -1880,7 +1880,7 @@
   transform: translate(-50%, -50%);
   width: 180rpx;
   height: 180rpx;
-  border: 4rpx solid rgba(255, 215, 0, 0.3);
+  border: 4rpx solid rgba(197, 165, 114, 0.3);
   border-radius: 50%;
   animation: scoreRingPulse 2s ease-in-out infinite;
 }
@@ -1906,7 +1906,7 @@
   padding: 30rpx;
   background: rgba(0, 0, 0, 0.4);
   border-radius: 50%;
-  border: 3rpx solid rgba(255, 215, 0, 0.3);
+  border: 3rpx solid rgba(197, 165, 114, 0.3);
   position: relative;
   z-index: 1;
 }
@@ -1920,9 +1920,9 @@
 .result-score__value {
   font-size: 72rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow:
-    0 0 30rpx rgba(255, 215, 0, 0.8),
+    0 0 30rpx rgba(197, 165, 114, 0.8),
     0 4rpx 8rpx rgba(0, 0, 0, 0.5);
   animation: scoreValuePulse 1.5s ease-in-out infinite;
 }
@@ -1984,7 +1984,7 @@
 .stat-value {
   font-size: var(--tg-font-size-xl);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -2004,7 +2004,7 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  border: 2rpx solid rgba(255, 215, 0, 0.3);
+  border: 2rpx solid rgba(197, 165, 114, 0.3);
   z-index: 2;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
   animation: costBlink 2s ease-in-out infinite;
@@ -2041,7 +2041,7 @@
 .cost-text {
   font-size: var(--td-font-size-base);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -2114,7 +2114,7 @@
   .stat-value {
     font-size: var(--td-font-size-m);
     font-weight: bold;
-    color: var(--tg-lottery-accent, #ffd700);
+    color: var(--tg-lottery-accent, #C5A572);
     text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
   }
 
@@ -2130,9 +2130,9 @@
   align-items: center;
   gap: 12rpx;
   padding: 20rpx;
-  background: rgba(255, 215, 0, 0.1);
+  background: rgba(197, 165, 114, 0.1);
   border-radius: var(--td-radius-default);
-  border: 2rpx solid rgba(255, 215, 0, 0.3);
+  border: 2rpx solid rgba(197, 165, 114, 0.3);
   animation: waitingPulse 1.5s ease-in-out infinite;
 }
 
@@ -2143,7 +2143,7 @@
 
 .waiting-text {
   font-size: 26rpx;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   font-weight: bold;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
@@ -2181,8 +2181,8 @@
 }
 
 .rule-item.miss {
-  border-color: rgba(255, 82, 82, 0.4);
-  background: rgba(255, 82, 82, 0.1);
+  border-color: rgba(91, 122, 94, 0.4);
+  background: rgba(91, 122, 94, 0.1);
 }
 
 /* ===== 奖品池预览（is_fallback / is_sold_out 视觉指示） ===== */

@@ -28,8 +28,8 @@
     right: 0;
     bottom: 0;
     background:
-      radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.06) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(255, 107, 107, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 20% 30%, rgba(197, 165, 114, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(91, 122, 94, 0.05) 0%, transparent 40%),
       radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.08) 0%, transparent 60%);
     pointer-events: none;
     z-index: 0;
@@ -46,8 +46,8 @@
     height: 400rpx;
     background: radial-gradient(
       ellipse,
-      rgba(255, 215, 0, 0.1) 0%,
-      rgba(255, 215, 0, 0.04) 40%,
+      rgba(197, 165, 114, 0.1) 0%,
+      rgba(197, 165, 114, 0.04) 40%,
       transparent 70%
     );
     filter: blur(40rpx);
@@ -101,7 +101,7 @@
     right: -12rpx;
     bottom: -12rpx;
     border-radius: 18rpx 18rpx 14rpx 14rpx;
-    border: 2rpx solid rgba(255, 215, 0, 0.25);
+    border: 2rpx solid rgba(197, 165, 114, 0.25);
     pointer-events: none;
     z-index: 3;
   }
@@ -134,11 +134,11 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-accent, #ffd700);
+  background: var(--tg-lottery-accent, #C5A572);
   box-shadow:
-    0 0 8rpx var(--tg-lottery-accent-glow, rgba(255, 215, 0, 1)),
-    0 0 16rpx var(--tg-lottery-accent-glow-mid, rgba(255, 215, 0, 0.7)),
-    0 0 28rpx var(--tg-lottery-accent-glow-far, rgba(255, 215, 0, 0.3)),
+    0 0 8rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 1)),
+    0 0 16rpx var(--tg-lottery-accent-glow-mid, rgba(197, 165, 114, 0.7)),
+    0 0 28rpx var(--tg-lottery-accent-glow-far, rgba(197, 165, 114, 0.3)),
     inset 0 1rpx 2rpx rgba(255, 255, 255, 0.6);
   animation: ledChaseEnhanced 2s ease-in-out infinite;
   position: relative;
@@ -149,7 +149,7 @@
     position: absolute;
     inset: -4rpx;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(197, 165, 114, 0.4) 0%, transparent 70%);
     animation: ledGlow 2s ease-in-out infinite;
   }
 }
@@ -157,16 +157,16 @@
 @keyframes ledChaseEnhanced {
   0%,
   100% {
-    background: #ffd700;
+    background: #C5A572;
     box-shadow:
-      0 0 8rpx rgba(255, 215, 0, 1),
-      0 0 16rpx rgba(255, 215, 0, 0.7),
-      0 0 28rpx rgba(255, 215, 0, 0.3);
+      0 0 8rpx rgba(197, 165, 114, 1),
+      0 0 16rpx rgba(197, 165, 114, 0.7),
+      0 0 28rpx rgba(197, 165, 114, 0.3);
     transform: scale(1);
   }
 
   25% {
-    background: #ff0080;
+    background: #C5A572;
     box-shadow:
       0 0 8rpx rgba(255, 0, 128, 1),
       0 0 16rpx rgba(255, 0, 128, 0.7),
@@ -224,14 +224,14 @@
       90deg,
       transparent 0%,
       rgba(255, 0, 128, 0.6) 15%,
-      rgba(255, 215, 0, 0.9) 35%,
+      rgba(197, 165, 114, 0.9) 35%,
       rgba(0, 255, 255, 0.9) 50%,
-      rgba(255, 215, 0, 0.9) 65%,
+      rgba(197, 165, 114, 0.9) 65%,
       rgba(255, 0, 128, 0.6) 85%,
       transparent 100%
     );
     animation: neonBarFlow 3s linear infinite;
-    box-shadow: 0 0 10rpx rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 10rpx rgba(197, 165, 114, 0.6);
   }
 
   /* 外发光晕 */
@@ -245,8 +245,8 @@
     height: 150%;
     background: radial-gradient(
       ellipse,
-      rgba(255, 215, 0, 0.15) 0%,
-      rgba(255, 128, 0, 0.08) 40%,
+      rgba(197, 165, 114, 0.15) 0%,
+      rgba(168, 136, 74, 0.08) 40%,
       transparent 70%
     );
     filter: blur(20rpx);
@@ -281,16 +281,16 @@
 .title-text {
   font-size: var(--tg-font-size-xl);
   font-weight: 900;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   /* 多层霓虹光晕 - 更深、更广、更亮 */
   text-shadow:
     /* 核心发光层 */
     0 0 5rpx rgba(255, 255, 255, 1),
-    0 0 10rpx rgba(255, 215, 0, 1),
-    0 0 20rpx rgba(255, 215, 0, 0.9),
-    0 0 30rpx rgba(255, 215, 0, 0.7),
-    0 0 50rpx rgba(255, 170, 0, 0.5),
-    0 0 80rpx rgba(255, 128, 0, 0.3),
+    0 0 10rpx rgba(197, 165, 114, 1),
+    0 0 20rpx rgba(197, 165, 114, 0.9),
+    0 0 30rpx rgba(197, 165, 114, 0.7),
+    0 0 50rpx rgba(197, 165, 114, 0.5),
+    0 0 80rpx rgba(168, 136, 74, 0.3),
     /* 彩色光晕 */ 0 0 100rpx rgba(255, 0, 128, 0.2),
     0 0 120rpx rgba(128, 0, 255, 0.15),
     /* 3D立体阴影 */ 3rpx 3rpx 0 #8b6914,
@@ -392,7 +392,7 @@
   border: 4rpx solid var(--tg-lottery-accent-dark, #b8860b);
   box-shadow:
     inset 0 6rpx 20rpx rgba(0, 0, 0, 0.7),
-    inset 0 -4rpx 12rpx rgba(255, 215, 0, 0.08),
+    inset 0 -4rpx 12rpx rgba(197, 165, 114, 0.08),
     0 8rpx 24rpx rgba(0, 0, 0, 0.4),
     0 0 20rpx rgba(184, 134, 11, 0.15);
 
@@ -405,7 +405,7 @@
     right: 3rpx;
     bottom: 3rpx;
     border-radius: 11rpx;
-    border: 1rpx solid rgba(255, 215, 0, 0.1);
+    border: 1rpx solid rgba(197, 165, 114, 0.1);
     pointer-events: none;
     z-index: 6;
   }
@@ -477,7 +477,7 @@
     inset 0 -12rpx 24rpx rgba(0, 0, 0, 0.18),
     inset 4rpx 0 8rpx rgba(0, 0, 0, 0.05),
     inset -4rpx 0 8rpx rgba(0, 0, 0, 0.05),
-    0 0 10rpx rgba(255, 215, 0, 0.15);
+    0 0 10rpx rgba(197, 165, 114, 0.15);
   position: relative;
   transition: box-shadow 0.3s ease;
 
@@ -487,8 +487,8 @@
     box-shadow:
       inset 0 12rpx 24rpx rgba(0, 0, 0, 0.18),
       inset 0 -12rpx 24rpx rgba(0, 0, 0, 0.18),
-      0 0 20rpx rgba(255, 215, 0, 0.4),
-      0 0 40rpx rgba(255, 215, 0, 0.2);
+      0 0 20rpx rgba(197, 165, 114, 0.4),
+      0 0 40rpx rgba(197, 165, 114, 0.2);
   }
 
   /* 顶部渐变遮罩 - 柔化边缘 */
@@ -553,7 +553,7 @@
         180deg,
         transparent 0%,
         rgba(255, 255, 255, 0.4) 10%,
-        rgba(255, 215, 0, 0.3) 20%,
+        rgba(197, 165, 114, 0.3) 20%,
         transparent 30%,
         transparent 100%
       );
@@ -678,12 +678,12 @@
   0%,
   100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 4rpx rgba(255, 215, 0, 0.3));
+    filter: drop-shadow(0 0 4rpx rgba(197, 165, 114, 0.3));
   }
 
   50% {
     transform: scale(1.08);
-    filter: drop-shadow(0 0 12rpx rgba(255, 215, 0, 0.8));
+    filter: drop-shadow(0 0 12rpx rgba(197, 165, 114, 0.8));
   }
 }
 
@@ -696,7 +696,7 @@
 
   /* 旋转时的模糊效果增强 */
   .is-spinning & {
-    filter: blur(3rpx) drop-shadow(0 0 8rpx rgba(255, 215, 0, 0.4));
+    filter: blur(3rpx) drop-shadow(0 0 8rpx rgba(197, 165, 114, 0.4));
     animation: iconBlur 0.3s linear infinite;
   }
 
@@ -825,19 +825,19 @@
     .payline-line {
       background: linear-gradient(
         90deg,
-        #ffd700 0%,
-        #ffa500 25%,
-        #ffd700 50%,
-        #ffa500 75%,
-        #ffd700 100%
+        #C5A572 0%,
+        #A8884A 25%,
+        #C5A572 50%,
+        #A8884A 75%,
+        #C5A572 100%
       );
       background-size: 200% 100%;
       height: 6rpx;
       box-shadow:
-        0 0 12rpx rgba(255, 215, 0, 1),
-        0 0 28rpx rgba(255, 215, 0, 0.8),
-        0 0 52rpx rgba(255, 215, 0, 0.5),
-        0 0 80rpx rgba(255, 128, 0, 0.3),
+        0 0 12rpx rgba(197, 165, 114, 1),
+        0 0 28rpx rgba(197, 165, 114, 0.8),
+        0 0 52rpx rgba(197, 165, 114, 0.5),
+        0 0 80rpx rgba(168, 136, 74, 0.3),
         /* 内发光 */ inset 0 0 8rpx rgba(255, 255, 255, 0.8);
       animation:
         paylineGlowEnhanced 0.6s ease-in-out infinite alternate,
@@ -865,15 +865,15 @@
 
     .payline-arrow {
       border-color: transparent;
-      filter: drop-shadow(0 0 10rpx rgba(255, 215, 0, 1));
+      filter: drop-shadow(0 0 10rpx rgba(197, 165, 114, 1));
       animation: arrowPulse 0.5s ease-in-out infinite;
 
       &.payline-left {
-        border-right-color: var(--tg-lottery-accent, #ffd700);
+        border-right-color: var(--tg-lottery-accent, #C5A572);
       }
 
       &.payline-right {
-        border-left-color: var(--tg-lottery-accent, #ffd700);
+        border-left-color: var(--tg-lottery-accent, #C5A572);
       }
     }
   }
@@ -882,17 +882,17 @@
 @keyframes paylineGlowEnhanced {
   from {
     box-shadow:
-      0 0 12rpx rgba(255, 215, 0, 1),
-      0 0 28rpx rgba(255, 215, 0, 0.8),
-      0 0 52rpx rgba(255, 215, 0, 0.5);
+      0 0 12rpx rgba(197, 165, 114, 1),
+      0 0 28rpx rgba(197, 165, 114, 0.8),
+      0 0 52rpx rgba(197, 165, 114, 0.5);
   }
 
   to {
     box-shadow:
-      0 0 20rpx rgba(255, 215, 0, 1),
-      0 0 45rpx rgba(255, 215, 0, 1),
-      0 0 80rpx rgba(255, 215, 0, 0.7),
-      0 0 120rpx rgba(255, 128, 0, 0.5);
+      0 0 20rpx rgba(197, 165, 114, 1),
+      0 0 45rpx rgba(197, 165, 114, 1),
+      0 0 80rpx rgba(197, 165, 114, 0.7),
+      0 0 120rpx rgba(168, 136, 74, 0.5);
   }
 }
 
@@ -1035,18 +1035,18 @@
     var(--tg-lottery-bg-darkest, #0d0d1a) 100%
   );
   border-radius: 6rpx;
-  border: 2rpx solid var(--tg-lottery-accent-border, rgba(255, 215, 0, 0.3));
+  border: 2rpx solid var(--tg-lottery-accent-border, rgba(197, 165, 114, 0.3));
   box-shadow:
     inset 0 2rpx 6rpx rgba(0, 0, 0, 0.4),
-    0 0 8rpx rgba(255, 215, 0, 0.1);
+    0 0 8rpx rgba(197, 165, 114, 0.1);
 }
 
 .label-text {
   font-size: 22rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   letter-spacing: 4rpx;
-  text-shadow: 0 0 6rpx rgba(255, 215, 0, 0.5);
+  text-shadow: 0 0 6rpx rgba(197, 165, 114, 0.5);
   font-family: 'Georgia', serif;
 }
 
@@ -1300,7 +1300,7 @@
   border-radius: 0 0 10rpx 10rpx;
   box-shadow:
     0 8rpx 20rpx rgba(0, 0, 0, 0.5),
-    inset 0 2rpx 4rpx rgba(255, 228, 181, 0.4),
+    inset 0 2rpx 4rpx rgba(197, 165, 114, 0.4),
     inset 0 -3rpx 6rpx rgba(0, 0, 0, 0.3);
   border: 2rpx solid var(--tg-lottery-accent-darker, #8b6914);
   border-top: none;
@@ -1337,10 +1337,10 @@
   margin-top: 32rpx;
   font-size: var(--td-font-size-base);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow:
-    0 0 8rpx rgba(255, 215, 0, 0.6),
-    0 0 16rpx rgba(255, 215, 0, 0.3),
+    0 0 8rpx rgba(197, 165, 114, 0.6),
+    0 0 16rpx rgba(197, 165, 114, 0.3),
     2rpx 2rpx 0 rgba(0, 0, 0, 0.7);
   letter-spacing: 4rpx;
   z-index: 2;
@@ -1373,11 +1373,11 @@
   border-radius: var(--td-radius-small);
   font-size: var(--td-font-size-s);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
-  border: 2rpx solid rgba(255, 215, 0, 0.25);
+  color: var(--tg-lottery-accent, #C5A572);
+  border: 2rpx solid rgba(197, 165, 114, 0.25);
   box-shadow:
     0 4rpx 12rpx rgba(0, 0, 0, 0.5),
-    inset 0 1rpx 3rpx rgba(255, 215, 0, 0.15);
+    inset 0 1rpx 3rpx rgba(197, 165, 114, 0.15);
   z-index: 2;
   letter-spacing: 3rpx;
   font-family: 'Georgia', serif;
@@ -1399,8 +1399,8 @@
 
   .particle-text {
     display: inline-block;
-    filter: drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
-    color: var(--tg-lottery-accent-dim, rgba(255, 215, 0, 0.8));
+    filter: drop-shadow(0 0 6rpx rgba(197, 165, 114, 0.6));
+    color: var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.8));
     animation:
       particleRotate 4s linear infinite,
       particleColor 3s linear infinite;
@@ -1475,7 +1475,7 @@
 @keyframes particleColor {
   0%,
   100% {
-    filter: hue-rotate(0deg) drop-shadow(0 0 6rpx rgba(255, 215, 0, 0.6));
+    filter: hue-rotate(0deg) drop-shadow(0 0 6rpx rgba(197, 165, 114, 0.6));
   }
 
   25% {
@@ -1514,7 +1514,7 @@
     width: 100rpx;
     height: 100rpx;
     border-radius: 50%;
-    border: 6rpx solid rgba(255, 215, 0, 0.8);
+    border: 6rpx solid rgba(197, 165, 114, 0.8);
     animation: shockwave 1s ease-out forwards;
   }
 
@@ -1528,7 +1528,7 @@
     width: 100rpx;
     height: 100rpx;
     border-radius: 50%;
-    border: 6rpx solid rgba(255, 128, 0, 0.6);
+    border: 6rpx solid rgba(168, 136, 74, 0.6);
     animation: shockwave 1s ease-out 0.15s forwards;
   }
 }
@@ -1560,10 +1560,10 @@
   left: 50%;
   font-size: var(--tg-font-size-xxl);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow:
-    0 0 15rpx rgba(255, 215, 0, 1),
-    0 0 30rpx rgba(255, 128, 0, 0.8),
+    0 0 15rpx rgba(197, 165, 114, 1),
+    0 0 30rpx rgba(168, 136, 74, 0.8),
     0 0 50rpx rgba(255, 0, 128, 0.5);
   animation: burstOutEnhanced 1.5s ease-out forwards;
 
@@ -1690,10 +1690,10 @@
   top: -20%;
   font-size: 52rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   text-shadow:
     0 3rpx 6rpx rgba(0, 0, 0, 0.6),
-    0 0 15rpx rgba(255, 215, 0, 0.8);
+    0 0 15rpx rgba(197, 165, 114, 0.8);
   animation: coinFallEnhanced 2.5s ease-in forwards;
 
   &:nth-child(1) {
@@ -1742,8 +1742,8 @@
     position: absolute;
     top: 0;
     left: 0;
-    color: var(--tg-lottery-accent-glow-dim, rgba(255, 128, 0, 0.5));
-    text-shadow: 0 0 20rpx rgba(255, 128, 0, 0.8);
+    color: var(--tg-lottery-accent-glow-dim, rgba(168, 136, 74, 0.5));
+    text-shadow: 0 0 20rpx rgba(168, 136, 74, 0.8);
     z-index: -1;
     animation: coinGlow 0.3s ease-in-out infinite;
   }
@@ -1806,19 +1806,19 @@
 
 .tip-hand {
   font-size: var(--td-font-size-base);
-  color: var(--tg-lottery-accent, #ffd700);
+  color: var(--tg-lottery-accent, #C5A572);
   animation: tipArrowSlide 1s ease-in-out infinite;
   font-weight: bold;
-  text-shadow: 0 0 8rpx rgba(255, 215, 0, 0.6);
+  text-shadow: 0 0 8rpx rgba(197, 165, 114, 0.6);
 }
 
 .tip-text {
   font-size: 22rpx;
-  color: var(--tg-lottery-accent-text, rgba(255, 215, 0, 0.7));
+  color: var(--tg-lottery-accent-text, rgba(197, 165, 114, 0.7));
   padding: 8rpx 20rpx;
   background: var(--tg-lottery-primary-bg, rgba(74, 21, 165, 0.5));
   border-radius: 6rpx;
-  border: 1rpx solid var(--tg-lottery-accent-border, rgba(255, 215, 0, 0.15));
+  border: 1rpx solid var(--tg-lottery-accent-border, rgba(197, 165, 114, 0.15));
   letter-spacing: 1rpx;
   font-family: 'Georgia', serif;
 }

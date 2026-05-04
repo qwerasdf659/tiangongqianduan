@@ -32,9 +32,10 @@ const {
   Logger: DetailPageLogger,
   ImageHelper: detailPageImageHelper,
   ExchangeConfig: DetailPageExchangeConfig,
-  AssetCodes: detailAssetCodes
+  AssetCodes: detailAssetCodes,
+  ProductDisplay: detailProductDisplay
 } = require('../../utils/index')
-const { formatAssetLabel } = require('../utils/product-display')
+const { formatAssetLabel } = detailProductDisplay
 
 const edLog = DetailPageLogger.createLogger('exchange-detail')
 

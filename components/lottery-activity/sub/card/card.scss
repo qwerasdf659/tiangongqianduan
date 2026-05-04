@@ -99,7 +99,7 @@
       opacity: 0.5;
       background: radial-gradient(
         ellipse at center,
-        var(--tg-lottery-primary-glow, rgba(255, 107, 53, 0.5)) 0%,
+        var(--tg-lottery-primary-glow, rgba(91, 122, 94, 0.5)) 0%,
         transparent 70%
       );
       animation: glowPulse 1s ease-in-out infinite;
@@ -120,7 +120,7 @@
   z-index: -1;
   background: radial-gradient(
     ellipse at center,
-    var(--tg-lottery-accent-glow, rgba(255, 215, 0, 0.6)) 0%,
+    var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.6)) 0%,
     transparent 70%
   );
 
@@ -156,7 +156,7 @@
   background: linear-gradient(
     135deg,
     var(--tg-lottery-primary, #5B7A5E),
-    var(--tg-lottery-primary-dark, #e55a2b)
+    var(--tg-lottery-primary-dark, #4A6B4D)
   );
   border: 3rpx solid rgba(255, 255, 255, 0.3);
 }
@@ -188,12 +188,12 @@
 .card-front {
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-bg-light, #fffbe6),
-    var(--tg-lottery-bg-lighter, #fff8e1),
+    var(--tg-lottery-bg-light, #F5EFE0),
+    var(--tg-lottery-bg-lighter, #F5EFE0),
     var(--tg-lottery-bg-lightest, #fff)
   );
   transform: rotateY(180deg);
-  border: 3rpx solid var(--tg-lottery-accent-border, rgba(255, 215, 0, 0.3));
+  border: 3rpx solid var(--tg-lottery-accent-border, rgba(197, 165, 114, 0.3));
 }
 
 .card-prize-icon {
@@ -407,7 +407,7 @@
   background: linear-gradient(
     135deg,
     var(--tg-lottery-primary, #5B7A5E),
-    var(--tg-lottery-primary-dark, #e55a2b)
+    var(--tg-lottery-primary-dark, #4A6B4D)
   );
   border-radius: 40rpx;
   color: #fff;
@@ -467,7 +467,7 @@
   }
 
   &.pick-selected .card-inner {
-    box-shadow: 0 0 16rpx var(--tg-lottery-accent-glow, rgba(255, 215, 0, 0.6));
+    box-shadow: 0 0 16rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.6));
   }
 }
 

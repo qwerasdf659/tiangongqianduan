@@ -24,7 +24,7 @@ const CHART_COLORS = {
   /** 价格折线 — 品牌橙色 */
   line: '#5B7A5E',
   /** 折线下方填充（实色，与 $gradient-blue-start 一致） */
-  fillSolid: '#f7931e',
+  fillSolid: '#5B7A5E',
   /** 网格线 */
   grid: 'rgba(102, 126, 234, 0.10)',
   /** 坐标轴文字 */

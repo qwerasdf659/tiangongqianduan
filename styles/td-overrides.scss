@@ -2,12 +2,12 @@
 // 单主题设计令牌入口：统一输出 TDesign 变量和项目业务变量。
 
 page {
-  --td-brand-color: #5B7A5E;
-  --td-brand-color-light: #EEF3EE;
-  --td-brand-color-focus: #7A9E7E;
-  --td-brand-color-active: #4A6B4D;
-  --td-brand-color-disabled: #B8CDB9;
-  --td-brand-color-rgb: 91, 122, 94;
+  --td-brand-color: #8B7355;
+  --td-brand-color-light: #F5F0E8;
+  --td-brand-color-focus: #A08B6E;
+  --td-brand-color-active: #6B5B45;
+  --td-brand-color-disabled: #C8BBAA;
+  --td-brand-color-rgb: 139, 115, 85;
 
   --td-radius-default: 16rpx;
   --td-radius-small: 8rpx;
@@ -72,8 +72,8 @@ page {
   --tg-color-bg-muted-rgb: 248, 250, 252;
   --tg-color-bg-grey: #f5f5f5;
   --tg-color-bg-grey-rgb: 245, 245, 245;
-  --tg-color-bg-accent-soft: #F0F4F0;
-  --tg-color-bg-accent-soft-rgb: 240, 244, 240;
+  --tg-color-bg-accent-soft: #F5F0E8;
+  --tg-color-bg-accent-soft-rgb: 245, 240, 232;
   --tg-color-border: #e8e8e8;
   --tg-color-border-rgb: 232, 232, 232;
   --tg-color-border-light: #f0f0f0;
@@ -83,7 +83,7 @@ page {
   --tg-color-divider: #eeeeee;
   --tg-color-divider-rgb: 238, 238, 238;
 
-  --tg-page-bg: #F7F5F0;
+  --tg-page-bg: #FFFFFF;
   --tg-card-bg: #ffffff;
   --tg-card-bg-muted: #FAFAF7;
   --tg-text-primary: #333333;
@@ -102,10 +102,10 @@ page {
   --tg-text-disabled: #cccccc;
   --tg-border-color: #eeeeee;
 
-  --tg-gradient-primary-start: #6B8F6E;
-  --tg-gradient-primary-end: #4A6B4D;
-  --tg-gradient-primary: linear-gradient(135deg, #6B8F6E 0%, #4A6B4D 100%);
-  --tg-brand-bg-soft: #EEF3EE;
+  --tg-gradient-primary-start: #F5F0E8;
+  --tg-gradient-primary-end: #EDE6D8;
+  --tg-gradient-primary: linear-gradient(135deg, #F5F0E8 0%, #EDE6D8 100%);
+  --tg-brand-bg-soft: #F5F0E8;
 
   --tg-accent-gold: #C5A572;
   --tg-accent-gold-active: #A8884A;
@@ -129,8 +129,8 @@ page {
   --tg-icon-size-lg: 70rpx;
   --tg-avatar-size: 120rpx;
 
-  --tg-lottery-bg: linear-gradient(135deg, #F0F4F0, #ffffff);
-  --tg-trade-accent: #5B7A5E;
+  --tg-lottery-bg: linear-gradient(135deg, #F5F0E8, #ffffff);
+  --tg-trade-accent: #8B7355;
   --tg-diy-canvas-bg: #f5f5f5;
   --tg-price-up: #e74c3c;
   --tg-price-down: #27ae60;

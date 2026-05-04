@@ -2,7 +2,7 @@
   抽奖核心UI已迁移到 lottery-activity 万能组件
   本模板仅保留：页面壳、用户信息、二维码、管理员功能条、审核弹窗、弹窗横幅
 -->
-<custom-navbar title="🎰 幸运抽奖" bgColor="#f7931e" textColor="#ffffff" />
+<custom-navbar title="🎰 幸运抽奖" bgColor="#F5F0E8" textColor="#4A3728" />
 
 <view class="lottery-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">

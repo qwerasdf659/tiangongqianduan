@@ -149,8 +149,8 @@
 .audit-badge-btn.has-records {
   background: var(--tg-gradient-primary-start);
   box-shadow:
-    0 4rpx 16rpx rgba(255, 107, 53, 0.4),
-    0 2rpx 8rpx rgba(229, 90, 43, 0.3),
+    0 4rpx 16rpx rgba(91, 122, 94, 0.4),
+    0 2rpx 8rpx rgba(74, 107, 77, 0.3),
     inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
   animation: auditPulse 2.5s ease-in-out infinite;
 }
@@ -202,7 +202,7 @@
   transform: translateX(-50%);
   min-width: 32rpx;
   height: 32rpx;
-  background: #ff5252;
+  background: #C5A572;
   border-radius: 16rpx;
   border: 2rpx solid #ffffff;
   font-size: 20rpx;
@@ -211,7 +211,7 @@
   @include flex-center;
   padding: 0 6rpx;
   box-shadow:
-    0 4rpx 12rpx rgba(255, 82, 82, 0.4),
+    0 4rpx 12rpx rgba(91, 122, 94, 0.4),
     0 2rpx 4rpx rgba(0, 0, 0, 0.2);
   animation: numberBounce 2.5s ease-in-out infinite;
 }
@@ -222,16 +222,16 @@
   100% {
     transform: scale(1);
     box-shadow:
-      0 4rpx 16rpx rgba(255, 107, 53, 0.4),
-      0 2rpx 8rpx rgba(229, 90, 43, 0.3),
+      0 4rpx 16rpx rgba(91, 122, 94, 0.4),
+      0 2rpx 8rpx rgba(74, 107, 77, 0.3),
       inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
   }
 
   50% {
     transform: scale(1.08);
     box-shadow:
-      0 6rpx 24rpx rgba(255, 107, 53, 0.6),
-      0 3rpx 12rpx rgba(229, 90, 43, 0.5),
+      0 6rpx 24rpx rgba(91, 122, 94, 0.6),
+      0 3rpx 12rpx rgba(74, 107, 77, 0.5),
       inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
   }
 }
@@ -396,7 +396,7 @@
   margin-bottom: 20rpx;
   border-left: 6rpx solid var(--tg-gradient-primary-start);
   box-shadow:
-    0 4rpx 16rpx rgba(255, 107, 53, 0.08),
+    0 4rpx 16rpx rgba(91, 122, 94, 0.08),
     0 2rpx 8rpx rgba(0, 0, 0, 0.04);
   position: relative;
   transition: all 0.3s ease;
@@ -430,11 +430,11 @@
 }
 
 .audit-record-card.pending {
-  border-left-color: #ff9800;
+  border-left-color: #C5A572;
 }
 
 .audit-record-card.pending::before {
-  background: #ff9800;
+  background: #C5A572;
 }
 
 /* 记录头部（编号+状态） */
@@ -499,7 +499,7 @@
 }
 
 .row-value.amount {
-  color: #ff6b6b;
+  color: #C5A572;
   font-weight: bold;
   font-size: var(--td-font-size-m);
 }
@@ -597,7 +597,7 @@
 
 .display-tag {
   display: inline-block;
-  background: #ff4757;
+  background: #c44569;
   color: #ffffff;
   font-size: 20rpx;
   font-weight: 600;
@@ -608,7 +608,7 @@
 
 /* 预热倒计时条 */
 .preview-countdown-bar {
-  background: #ff9800;
+  background: #C5A572;
   padding: 12rpx 20rpx;
   border-radius: 8rpx;
   margin-bottom: 8rpx;

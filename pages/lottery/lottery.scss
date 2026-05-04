@@ -14,11 +14,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
+  background: var(--tg-color-bg-accent-soft);
   padding: 0 20rpx 20rpx 20rpx;
   position: relative;
 }
@@ -164,7 +160,8 @@
   padding: 120rpx 40rpx;
   margin: 40rpx 0;
   border-radius: var(--td-radius-large);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--tg-card-bg);
+  box-shadow: var(--tg-shadow-card);
 }
 
 .no-campaign-icon {
@@ -174,13 +171,13 @@
 
 .no-campaign-text {
   font-size: var(--td-font-size-l);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--tg-text-primary);
   margin-bottom: 12rpx;
 }
 
 .no-campaign-hint {
   font-size: var(--td-font-size-s);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 模块化SCSS拆分 ===== */

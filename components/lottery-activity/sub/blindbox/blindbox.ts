@@ -8,7 +8,7 @@ const { shared, timing, runOnJS } = wx.worklet
 
 /** 扭蛋配色方案 */
 const EGG_COLORS = [
-  { gradient: 'linear-gradient(135deg, #ff6b6b, #ee5a24)', bandColor: 'rgba(255,255,255,0.4)' },
+  { gradient: 'linear-gradient(135deg, #7A9E7E, #ee5a24)', bandColor: 'rgba(255,255,255,0.4)' },
   { gradient: 'linear-gradient(135deg, #ffd93d, #f0932b)', bandColor: 'rgba(255,255,255,0.4)' },
   { gradient: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', bandColor: 'rgba(255,255,255,0.35)' },
   { gradient: 'linear-gradient(135deg, #00cec9, #81ecec)', bandColor: 'rgba(255,255,255,0.4)' },

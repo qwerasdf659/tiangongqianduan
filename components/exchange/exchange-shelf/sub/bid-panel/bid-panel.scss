@@ -101,7 +101,7 @@
   width: 100%;
   height: 60rpx;
   @include flex-center;
-  background: linear-gradient(135deg, var(--td-brand-color), #f7931e);
+  background: linear-gradient(135deg, var(--td-brand-color), #6B8F6E);
   color: #ffffff;
   border-radius: var(--td-radius-small);
   font-size: var(--td-font-size-s);
@@ -309,7 +309,7 @@
   flex: 2;
   height: 88rpx;
   @include flex-center;
-  background: linear-gradient(135deg, var(--td-brand-color), #f7931e);
+  background: linear-gradient(135deg, var(--td-brand-color), #6B8F6E);
   border-radius: var(--td-radius-default);
   font-size: var(--td-font-size-base);
   font-weight: 700;

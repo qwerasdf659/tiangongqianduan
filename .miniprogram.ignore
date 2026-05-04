@@ -35,9 +35,19 @@ Thumbs.db
 
 # 配置文件（保留必要的）
 .eslintrc.js
+.eslintrc.custom-rules.js
+.eslintignore
 .prettierrc
+.prettierignore
 .editorconfig
 .gitignore
+.gitattributes
+.clauderc
+.claude/
+package-lock.json
+tsconfig.json
+jest.config.js
+Cursor.lnk
 
 # 其他开发资源
 scripts/

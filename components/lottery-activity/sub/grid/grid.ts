@@ -36,12 +36,12 @@ const ANIMATION_CONFIG = {
  * 通过 worklet applyAnimatedStyle 在渲染线程直接应用，避免 setData 跨线程通信
  */
 const HIGHLIGHT_STYLE = {
-  background: 'linear-gradient(145deg, #5B7A5E 0%, #ff8a65 50%, #ffab91 100%)',
+  background: 'linear-gradient(145deg, #5B7A5E 0%, #7A9E7E 50%, #B8CDB9 100%)',
   borderWidth: '3rpx',
   borderStyle: 'solid',
-  borderColor: '#ff4444',
+  borderColor: '#3D5940',
   boxShadow:
-    '0 0 40rpx rgba(255,107,53,0.9), 0 0 80rpx rgba(255,107,53,0.6), 0 15rpx 35rpx rgba(255,107,53,0.4)',
+    '0 0 40rpx rgba(91,122,94,0.9), 0 0 80rpx rgba(91,122,94,0.6), 0 15rpx 35rpx rgba(91,122,94,0.4)',
   transform: 'translateY(-8rpx) scale(1.05)'
 }
 
@@ -49,12 +49,12 @@ const HIGHLIGHT_STYLE = {
  * 中奖样式常量（与 .winning CSS 类对应）
  */
 const WINNING_STYLE = {
-  background: 'linear-gradient(145deg, #ffd700 0%, #ffed4a 30%, #fff176 70%, #ffd700 100%)',
+  background: 'linear-gradient(145deg, #C5A572 0%, #D4C4A0 30%, #E5D9C0 70%, #C5A572 100%)',
   borderWidth: '4rpx',
   borderStyle: 'solid',
   borderColor: '#f59e0b',
   boxShadow:
-    '0 0 60rpx rgba(255,215,0,1), 0 0 120rpx rgba(255,215,0,0.8), 0 20rpx 40rpx rgba(255,215,0,0.5)',
+    '0 0 60rpx rgba(197,165,114,1), 0 0 120rpx rgba(197,165,114,0.8), 0 20rpx 40rpx rgba(197,165,114,0.5)',
   transform: 'translateY(-12rpx) scale(1.1)'
 }
 

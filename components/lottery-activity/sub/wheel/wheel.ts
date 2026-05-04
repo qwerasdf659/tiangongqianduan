@@ -15,7 +15,7 @@ const TEXT_RADIUS_RATIO = 0.65
 
 /** 扇区配色（循环使用） */
 const SECTOR_COLORS = [
-  '#FF6B6B',
+  '#7A9E7E',
   '#4ECDC4',
   '#FFD93D',
   '#9775FA',

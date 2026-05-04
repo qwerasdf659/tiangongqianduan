@@ -23,7 +23,7 @@
   background: var(--tg-gradient-primary);
   border-radius: var(--td-radius-default);
   margin-bottom: 30rpx;
-  color: var(--tg-color-white);
+  color: var(--tg-text-primary);
 }
 
 .header-title .title {
@@ -35,13 +35,13 @@
 
 .header-title .subtitle {
   font-size: 26rpx;
-  opacity: 0.8;
+  color: var(--tg-text-secondary);
   display: block;
 }
 
 .history-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  background-color: rgba(139, 115, 85, 0.08);
+  color: var(--tg-text-secondary);
   border: none;
   border-radius: 20rpx;
   padding: 16rpx 24rpx;

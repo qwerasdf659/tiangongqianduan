@@ -20,7 +20,8 @@ const {
   Constants: premiumConstants,
   Utils: premiumUtils,
   ImageHelper: premiumImageHelper,
-  AssetCodes: premiumAssetCodes
+  AssetCodes: premiumAssetCodes,
+  ProductDisplay: premiumProductDisplay
 } = require('../../../../../utils/index')
 const premiumLog = premiumLogger.createLogger('premium-space')
 const {
@@ -30,9 +31,7 @@ const {
 const { showToast: premiumShowToast } = premiumWechat
 const { debounce: premiumDebounce } = premiumUtils
 const { PAGINATION: PREMIUM_PAGINATION } = premiumConstants
-const {
-  enrichProductDisplayFields
-} = require('../../../../../packageExchange/utils/product-display')
+const { enrichProductDisplayFields } = premiumProductDisplay
 
 Component({
   properties: {

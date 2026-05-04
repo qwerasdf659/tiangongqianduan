@@ -9,7 +9,7 @@
  *   uncommon  → #4CAF50 绿色边框
  *   rare      → #2196F3 蓝色呼吸光，CSS pulse动画
  *   epic      → #9C27B0 紫色闪烁光环，CSS box-shadow闪烁
- *   legendary → #FF9800 金色旋转光环，conic-gradient + rotate + 星星
+ *   legendary → #C5A572 古铜金旋转光环，conic-gradient + rotate + 星星
  *
  * @file shared/rarity-effects/rarity-effects.ts
  */

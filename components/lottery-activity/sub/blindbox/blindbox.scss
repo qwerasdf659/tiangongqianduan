@@ -83,7 +83,7 @@
   border-radius: 40rpx 40rpx 0 0;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-primary, #ff6b6b),
+    var(--tg-lottery-primary, #7A9E7E),
     var(--tg-lottery-primary-dark, #ee5a24)
   );
   box-shadow: 0 -4rpx 12rpx rgba(238, 90, 36, 0.3);
@@ -321,7 +321,7 @@
     top: 60rpx;
     left: 50%;
     transform: translateX(-50%) scale(1.2);
-    box-shadow: 0 0 40rpx var(--tg-lottery-accent-shadow, rgba(255, 215, 0, 0.5));
+    box-shadow: 0 0 40rpx var(--tg-lottery-accent-shadow, rgba(197, 165, 114, 0.5));
   }
 }
 
@@ -488,14 +488,14 @@
 
 .hint-shaking {
   font-size: var(--td-font-size-base);
-  color: var(--tg-lottery-warning, #ff9800);
+  color: var(--tg-lottery-warning, #C5A572);
   animation: textPulse 0.4s ease-in-out infinite;
 }
 
 .hint-exploding {
   font-size: var(--td-font-size-m);
   font-weight: bold;
-  color: var(--tg-lottery-danger, #e65100);
+  color: var(--tg-lottery-danger, #3D5940);
   animation: textPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -635,8 +635,8 @@
     flex-shrink: 0;
 
     &.legendary .bb-prizes__icon-wrap {
-      border-color: var(--rarity-legendary, #ffd700);
-      box-shadow: 0 0 12rpx var(--rarity-legendary-shadow, rgba(255, 215, 0, 0.4));
+      border-color: var(--rarity-legendary, #C5A572);
+      box-shadow: 0 0 12rpx var(--rarity-legendary-shadow, rgba(197, 165, 114, 0.4));
     }
 
     &.epic .bb-prizes__icon-wrap {

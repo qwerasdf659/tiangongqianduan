@@ -12,7 +12,7 @@
     135deg,
     rgba(102, 126, 234, 0.15) 0%,
     rgba(118, 75, 162, 0.15) 50%,
-    rgba(255, 107, 53, 0.15) 100%
+    rgba(91, 122, 94, 0.15) 100%
   );
   -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
@@ -50,7 +50,7 @@
   height: 64rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-danger-light, #ff6b7a),
+    var(--tg-lottery-danger-light, #7A9E7E),
     var(--tg-lottery-danger, #c44569)
   );
   border-radius: 50%;
@@ -100,10 +100,10 @@
 .error-card {
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-danger-light, #ff6b7a) 0%,
+    var(--tg-lottery-danger-light, #7A9E7E) 0%,
     var(--tg-lottery-danger, #c44569) 100%
   );
-  box-shadow: 0 16rpx 32rpx rgba(255, 107, 122, 0.25);
+  box-shadow: 0 16rpx 32rpx rgba(91, 122, 94, 0.25);
 }
 
 .title-icon {
@@ -404,7 +404,7 @@
   background: linear-gradient(
     135deg,
     var(--tg-lottery-primary, var(--td-brand-color)),
-    var(--tg-lottery-secondary, #ff8c42)
+    var(--tg-lottery-secondary, #7A9E7E)
   ) !important;
   color: var(--tg-lottery-text-inverse, white) !important;
   border: none !important;
@@ -412,13 +412,13 @@
   padding: 20rpx 60rpx !important;
   font-size: 30rpx;
   font-weight: 600;
-  box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 12rpx 24rpx rgba(91, 122, 94, 0.35);
   animation: nextBtnPulse 2s ease-in-out infinite;
 }
 
 .reveal-next-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 6rpx 12rpx rgba(255, 107, 53, 0.4);
+  box-shadow: 0 6rpx 12rpx rgba(91, 122, 94, 0.4);
 }
 
 .reveal-next-text {
@@ -531,7 +531,7 @@
 .error-card-bg {
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-danger-light, #ff6b7a) 0%,
+    var(--tg-lottery-danger-light, #7A9E7E) 0%,
     var(--tg-lottery-danger, #c44569) 100%
   );
   border-radius: var(--td-radius-large);
@@ -539,7 +539,7 @@
   display: flex;
   align-items: center;
   gap: 24rpx;
-  box-shadow: 0 16rpx 32rpx rgba(255, 107, 122, 0.25);
+  box-shadow: 0 16rpx 32rpx rgba(91, 122, 94, 0.25);
 }
 
 .error-icon-container {
@@ -704,11 +704,11 @@
 @keyframes nextBtnPulse {
   0%,
   100% {
-    box-shadow: 0 12rpx 24rpx rgba(255, 107, 53, 0.35);
+    box-shadow: 0 12rpx 24rpx rgba(91, 122, 94, 0.35);
   }
 
   50% {
-    box-shadow: 0 16rpx 32rpx rgba(255, 107, 53, 0.5);
+    box-shadow: 0 16rpx 32rpx rgba(91, 122, 94, 0.5);
   }
 }
 
@@ -901,7 +901,7 @@
 }
 
 .fp-2 {
-  background: #e67e22;
+  background: #4A6B4D;
   animation: fw-burst 1.2s 0.15s ease-out forwards;
 }
 
@@ -926,7 +926,7 @@
 }
 
 .fp-7 {
-  background: #e67e22;
+  background: #4A6B4D;
   animation: fw-burst 1.2s 0.08s ease-out forwards;
 }
 
@@ -956,7 +956,7 @@
 }
 
 .fp-13 {
-  background: #e67e22;
+  background: #4A6B4D;
   animation: fw-burst 1.2s 0.09s ease-out forwards;
 }
 
@@ -981,7 +981,7 @@
 }
 
 .fp-18 {
-  background: #e67e22;
+  background: #4A6B4D;
   animation: fw-burst 1.2s 0.11s ease-out forwards;
 }
 

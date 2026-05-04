@@ -21,7 +21,14 @@
  * @since 2026-03-15
  */
 
-const { API, Wechat, Logger, Utils, ImageHelper } = require('../../../../utils/index')
+const {
+  API,
+  Wechat,
+  Logger,
+  Utils,
+  ImageHelper,
+  ProductDisplay: marketProductDisplay
+} = require('../../../../utils/index')
 const marketLog = Logger.createLogger('market-behavior')
 const {
   getMarketProducts,
@@ -39,7 +46,7 @@ const {
 const EXCHANGE_FEED_AD_INTERVAL = 5
 const { showToast } = Wechat
 const { debounce } = Utils
-const { enrichProductDisplayFields } = require('../../../../packageExchange/utils/product-display')
+const { enrichProductDisplayFields } = marketProductDisplay
 const { userStore: marketUserStore } = require('../../../../store/user')
 
 /**

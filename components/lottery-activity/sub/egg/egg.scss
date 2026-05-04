@@ -43,14 +43,14 @@
   &__ribbon {
     width: 48rpx;
     height: 4rpx;
-    background: linear-gradient(90deg, transparent, var(--tg-lottery-accent, #ffd700), transparent);
+    background: linear-gradient(90deg, transparent, var(--tg-lottery-accent, #C5A572), transparent);
     border-radius: 2rpx;
   }
 
   &__text {
     font-size: 30rpx;
     font-weight: bold;
-    color: var(--tg-lottery-accent, #ffd700);
+    color: var(--tg-lottery-accent, #C5A572);
     text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
     letter-spacing: 2rpx;
   }
@@ -71,7 +71,7 @@
     transform: translateX(-50%);
     width: 80%;
     height: 60rpx;
-    background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.25) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(197, 165, 114, 0.25) 0%, transparent 70%);
     border-radius: 50%;
   }
 }
@@ -168,8 +168,8 @@
   background: linear-gradient(
     160deg,
     #fff6d5 0%,
-    #ffe066 15%,
-    #ffd700 30%,
+    #D4C4A0 15%,
+    #C5A572 30%,
     #daa520 50%,
     #b8860b 70%,
     #996515 85%,
@@ -211,9 +211,9 @@
     background: linear-gradient(
       180deg,
       transparent 0%,
-      rgba(255, 215, 0, 0.4) 30%,
+      rgba(197, 165, 114, 0.4) 30%,
       rgba(218, 165, 32, 0.6) 50%,
-      rgba(255, 215, 0, 0.4) 70%,
+      rgba(197, 165, 114, 0.4) 70%,
       transparent 100%
     );
   }
@@ -251,7 +251,7 @@
   height: 40rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #ffd700),
+    var(--tg-lottery-accent, #C5A572),
     var(--tg-lottery-accent-light, #daa520)
   );
   border-radius: 50%;
@@ -277,7 +277,7 @@
 
   .hint-text {
     font-size: var(--tg-font-size-xs);
-    color: var(--tg-lottery-accent-dim, rgba(255, 215, 0, 0.9));
+    color: var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.9));
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
   }
 }
@@ -330,7 +330,7 @@
   height: 30rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #ffd700),
+    var(--tg-lottery-accent, #C5A572),
     var(--tg-lottery-accent-light, #daa520),
     var(--tg-lottery-accent-dark, #b8860b)
   );
@@ -380,7 +380,7 @@
   &__ring {
     width: 120rpx;
     height: 120rpx;
-    border: 4rpx solid rgba(255, 215, 0, 0.6);
+    border: 4rpx solid rgba(197, 165, 114, 0.6);
     border-radius: 50%;
     animation: burstRing 1s ease-out forwards;
     position: absolute;
@@ -390,7 +390,7 @@
 
     &--delay {
       animation-delay: 0.15s;
-      border-color: rgba(255, 180, 0, 0.4);
+      border-color: rgba(197, 165, 114, 0.4);
     }
   }
 
@@ -400,7 +400,7 @@
     background: radial-gradient(
       circle,
       #fff 0%,
-      var(--tg-lottery-accent, #ffd700) 40%,
+      var(--tg-lottery-accent, #C5A572) 40%,
       transparent 70%
     );
     border-radius: 50%;
@@ -427,7 +427,7 @@
     height: 40rpx;
     background: linear-gradient(
       160deg,
-      var(--tg-lottery-accent-lighter, #ffe066),
+      var(--tg-lottery-accent-lighter, #D4C4A0),
       var(--tg-lottery-accent-light, #daa520),
       var(--tg-lottery-accent-dark, #b8860b)
     );
@@ -461,11 +461,11 @@
     height: 20rpx;
     background: radial-gradient(
       circle,
-      var(--tg-lottery-accent, #ffd700),
+      var(--tg-lottery-accent, #C5A572),
       var(--tg-lottery-accent-light, #daa520)
     );
     border-radius: 50%;
-    box-shadow: 0 0 6rpx var(--tg-lottery-accent-glow, rgba(255, 215, 0, 0.5));
+    box-shadow: 0 0 6rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.5));
   }
 
   &__text {
@@ -639,7 +639,7 @@
 
   &__name {
     font-size: var(--tg-font-size-xs);
-    color: var(--tg-lottery-accent, #ffd700);
+    color: var(--tg-lottery-accent, #C5A572);
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
     margin-top: 4rpx;
     max-width: 120rpx;
@@ -661,8 +661,8 @@
   padding: 14rpx 48rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #ffd700),
-    var(--tg-lottery-accent-bright, #ff8c00)
+    var(--tg-lottery-accent, #C5A572),
+    var(--tg-lottery-accent-bright, #C5A572)
   );
   border-radius: 40rpx;
   box-shadow: 0 4rpx 16rpx var(--tg-lottery-accent-shadow, rgba(255, 140, 0, 0.4));

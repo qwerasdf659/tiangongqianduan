@@ -11,9 +11,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, var(--td-brand-color) 0%, var(--td-brand-color-active) 100%);
+  background: var(--tg-page-bg);
   padding: var(--tg-spacing-md);
-  /* 底部预留 tabBar 高度 + 安全区域，防止内容被遮挡 */
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
 
@@ -48,15 +47,15 @@
 
 /* 积分卡片 */
 .points-card {
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  background: linear-gradient(135deg, var(--tg-accent-gold), var(--tg-accent-gold-active));
   border-radius: var(--tg-radius-xl);
   padding: 30rpx;
   margin-bottom: var(--tg-spacing-md);
   color: white;
   text-align: center;
   box-shadow:
-    0 16rpx 64rpx rgba(var(--td-brand-color-rgb), 0.25),
-    0 8rpx 32rpx rgba(var(--td-brand-color-rgb), 0.15),
+    0 16rpx 64rpx rgba(var(--tg-accent-gold-rgb), 0.2),
+    0 8rpx 32rpx rgba(var(--tg-accent-gold-rgb), 0.12),
     inset 0 1rpx 0 rgba(var(--tg-color-white-rgb), 0.3);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
@@ -96,8 +95,8 @@
 .points-card-hover {
   transform: translateY(-8rpx) scale(1.02);
   box-shadow:
-    0 24rpx 80rpx rgba(var(--td-brand-color-rgb), 0.35),
-    0 12rpx 48rpx rgba(var(--td-brand-color-rgb), 0.25);
+    0 24rpx 80rpx rgba(var(--tg-accent-gold-rgb), 0.3),
+    0 12rpx 48rpx rgba(var(--tg-accent-gold-rgb), 0.2);
 }
 
 /* 积分头部 */
@@ -201,7 +200,7 @@
   color: var(--tg-text-primary);
   margin-bottom: 30rpx;
   padding-bottom: 20rpx;
-  border-bottom: 2rpx solid rgba(var(--td-brand-color-rgb), 0.1);
+  border-bottom: 2rpx solid rgba(var(--tg-accent-gold-rgb), 0.15);
 }
 
 .menu-section {
@@ -323,9 +322,9 @@
 .mw-header {
   @include flex-between;
   padding: 24rpx 28rpx;
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  background: linear-gradient(135deg, var(--tg-accent-gold), var(--tg-accent-gold-active));
   border-radius: 20rpx 20rpx 0 0;
-  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.15);
+  border: 1rpx solid rgba(var(--tg-accent-gold-rgb), 0.15);
   border-bottom: none;
 }
 
@@ -339,10 +338,10 @@
   width: 64rpx;
   height: 64rpx;
   @include flex-center;
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  background: rgba(var(--tg-color-white-rgb), 0.2);
   border-radius: var(--td-radius-default);
   font-size: 32rpx;
-  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(var(--tg-accent-gold-rgb), 0.2);
 }
 
 .mw-header-info {
@@ -424,8 +423,8 @@
 }
 
 .mw-icon-consume {
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
-  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.25);
+  background: linear-gradient(135deg, var(--tg-accent-gold), var(--tg-accent-gold-active));
+  box-shadow: 0 4rpx 16rpx rgba(var(--tg-accent-gold-rgb), 0.25);
 }
 
 .mw-icon-audit {

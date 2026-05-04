@@ -1,5 +1,10 @@
 /* TDesign 自定义 tabBar 轻量样式覆盖 */
 
+:host {
+  --td-tab-bar-active-color: #8B7355;
+  --td-brand-color: #8B7355;
+}
+
 .tab-bar-icon-wrap {
   display: flex;
   align-items: center;
