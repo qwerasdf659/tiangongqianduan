@@ -301,7 +301,7 @@ Page({
         title: '确认购买',
         content: `确定要购买「${displayName}」吗？\n\n价格: ${detail.price_amount} ${priceLabel}\n\n确认后将从您的余额中扣除`,
         confirmText: '确认购买',
-        confirmColor: '#ff6b35',
+        confirmColor: '#5B7A5E',
         cancelText: '取消',
         editable: true,
         placeholderText: '购买备注（选填）',

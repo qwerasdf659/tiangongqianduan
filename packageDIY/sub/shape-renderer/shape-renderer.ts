@@ -367,7 +367,7 @@ Component({
         if (highlighted.has(i)) {
           ctx.beginPath()
           ctx.arc(x, y, radius + 3, 0, Math.PI * 2)
-          ctx.strokeStyle = '#FF6B35'
+          ctx.strokeStyle = '#5B7A5E'
           ctx.lineWidth = 2.5
           ctx.stroke()
         }
@@ -650,7 +650,7 @@ Component({
         /* 激活槽位高亮（品牌橙色实线边框） */
         if (slot.slot_id === activeId) {
           ctx.save()
-          ctx.strokeStyle = '#FF6B35'
+          ctx.strokeStyle = '#5B7A5E'
           ctx.lineWidth = 2.5
           ctx.setLineDash([])
           drawSlotOutline(ctx, slot.slot_shape || 'circle', centerX, centerY, sw + 4, sh + 4)

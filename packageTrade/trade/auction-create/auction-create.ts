@@ -299,7 +299,7 @@ Page({
         title: '确认发起拍卖',
         content: `物品：${selectedItem._displayName}\n起拍价：${startPriceNum} ${priceAssetCode}\n时长：${durationNum}小时${buyoutPriceNum ? `\n一口价：${buyoutPriceNum} ${priceAssetCode}` : ''}`,
         confirmText: '确认发起',
-        confirmColor: '#FF6B35',
+        confirmColor: '#5B7A5E',
         success: res => resolve(res.confirm)
       })
     })
