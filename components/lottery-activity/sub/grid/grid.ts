@@ -36,7 +36,7 @@ const ANIMATION_CONFIG = {
  * 通过 worklet applyAnimatedStyle 在渲染线程直接应用，避免 setData 跨线程通信
  */
 const HIGHLIGHT_STYLE = {
-  background: 'linear-gradient(145deg, #ff6b35 0%, #ff8a65 50%, #ffab91 100%)',
+  background: 'linear-gradient(145deg, #5B7A5E 0%, #ff8a65 50%, #ffab91 100%)',
   borderWidth: '3rpx',
   borderStyle: 'solid',
   borderColor: '#ff4444',

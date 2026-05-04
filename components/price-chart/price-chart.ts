@@ -22,7 +22,7 @@ const chartLog = ChartLogger.createLogger('price-chart')
 /** 折线图颜色配置（与项目渐变色系保持一致） */
 const CHART_COLORS = {
   /** 价格折线 — 品牌橙色 */
-  line: '#FF6B35',
+  line: '#5B7A5E',
   /** 折线下方填充（实色，与 $gradient-blue-start 一致） */
   fillSolid: '#f7931e',
   /** 网格线 */
@@ -30,10 +30,10 @@ const CHART_COLORS = {
   /** 坐标轴文字 */
   axisText: '#999999',
   /** 数据圆点 */
-  dot: '#FF6B35',
+  dot: '#5B7A5E',
   dotBorder: '#ffffff',
   /** 成交量柱体（品牌主色） */
-  volumeBar: '#FF6B35'
+  volumeBar: '#5B7A5E'
 } as const
 
 Component({

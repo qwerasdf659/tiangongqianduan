@@ -327,7 +327,7 @@ Page({
           showCancel: true,
           cancelText: '稍后重试',
           confirmText: '知道了',
-          confirmColor: '#FF6B35'
+          confirmColor: '#5B7A5E'
         })
         return
       }
@@ -349,7 +349,7 @@ Page({
           showCancel: true,
           cancelText: '重新加载',
           confirmText: '返回上页',
-          confirmColor: '#FF6B35',
+          confirmColor: '#5B7A5E',
           success: res => {
             if (res.confirm) {
               wx.navigateBack()
@@ -368,7 +368,7 @@ Page({
         showCancel: true,
         cancelText: '重新加载',
         confirmText: '返回上页',
-        confirmColor: '#FF6B35',
+        confirmColor: '#5B7A5E',
         success: res => {
           if (res.confirm) {
             wx.navigateBack()

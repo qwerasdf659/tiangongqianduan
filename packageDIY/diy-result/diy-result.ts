@@ -31,7 +31,7 @@ const POSTER_HEIGHT = 1334
 /** 海报暖灰白背景色 */
 const POSTER_BG_COLOR = '#F8F6F3'
 /** 品牌橙色 */
-const POSTER_BRAND_COLOR = '#FF6B35'
+const POSTER_BRAND_COLOR = '#5B7A5E'
 
 /* ===== 海报饰品渲染用颜色映射（与 shape-renderer 保持一致） ===== */
 

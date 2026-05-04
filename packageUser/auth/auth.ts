@@ -1332,7 +1332,7 @@ Page({
       showCancel: true,
       cancelText: '重试',
       confirmText: '知道了',
-      confirmColor: '#FF6B35',
+      confirmColor: '#5B7A5E',
       success: res => {
         if (res.cancel) {
           // 用户选择重试

@@ -535,7 +535,7 @@ Page({
     const startY = touch?.clientY ?? this.data.canvasHeight
     const endX = this.data.canvasWidth / 2
     const endY = this.data.canvasHeight / 2 + 60
-    flyAnim.fly({ startX, startY, endX, endY, color: '#FF6B35', size: 24 })
+    flyAnim.fly({ startX, startY, endX, endY, color: '#5B7A5E', size: 24 })
   },
 
   /** Canvas珠子点击（串珠模式 - 切换选中状态） */

@@ -313,7 +313,7 @@ Page({
         title: isBuyout ? '一口价购买' : '确认出价',
         content: confirmMessage,
         confirmText: isBuyout ? '立即购买' : '确认出价',
-        confirmColor: '#FF6B35',
+        confirmColor: '#5B7A5E',
         success: res => resolve(res.confirm)
       })
     })
