@@ -7,7 +7,7 @@
  * 说明：
  * - 设计风格：现代简洁、操作明确、视觉层次清晰
 
-/* 🔴 管理员功能条容器（三按钮：扫码核销 + 消费录入 + 审核详情） */
+/* 🔴 管理员功能条容器 — 透明背景，与页面一体化 */
 .admin-scan-bar {
   display: flex;
   align-items: center;
@@ -15,10 +15,10 @@
   width: 100%;
   height: 120rpx;
   padding: 0 20rpx;
-  background: var(--tg-gradient-primary-start);
-  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3);
+  background: transparent;
+  box-shadow: none;
   position: relative;
-  margin-bottom: 20rpx;
+  margin-bottom: 0;
 }
 
 /* 🔴 左侧：扫码核销按钮（扫描用户V2二维码 → 跳转消费录入页面） */

@@ -8,7 +8,7 @@
 /* 从2721行拆分为6个文件: 公共样式 + 5个模块partial */
 @import '../../styles/mixins';
 
-/* 🎨 优化整体容器设计 */
+/* 🎨 整体容器 — 一体化设计 */
 .lottery-container {
   /* Skyline flex 布局：占满 page 剩余高度 */
   flex: 1;
@@ -19,46 +19,27 @@
     var(--tg-gradient-primary-start) 0%,
     var(--tg-gradient-primary-end) 100%
   );
-  padding: 20rpx 20rpx 20rpx 20rpx;
+  padding: 0 20rpx 20rpx 20rpx;
   position: relative;
 }
 
 /* 装饰性径向渐变已移除（去塑料感） */
 
-/* 🎨 优化页面头部设计 - 融入背景 */
+/* 🎨 页面头部 - 与页面背景一体化（无圆角、无边框、无阴影） */
 .header {
-  /* 与页面同系实色渐变，保留白字可读性，去掉毛玻璃 */
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  border-radius: var(--td-radius-large);
+  /* 透明背景，继承 lottery-container 的渐变，实现一体化 */
+  background: transparent;
+  border-radius: 0;
   padding: 0 24rpx;
-  margin: 0 0 25rpx 0;
-  box-shadow:
-    0 4rpx 20rpx rgba(255, 255, 255, 0.1),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
-  border: 1rpx solid rgba(255, 255, 255, 0.25);
+  margin: 0;
+  border: none;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
   z-index: 1;
 }
 
-.header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2rpx;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0.6) 100%
-  );
-}
+/* 装饰线已移除 — 一体化设计不需要顶部分割线 */
 
 /* ===== 轮播图区域（后端 carousel_items 数据驱动） ===== */
 .carousel-section {

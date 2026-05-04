@@ -19,5 +19,5 @@
     </view>
   </view>
 </view>
-<!-- 占位块：防止页面内容被导航栏遮挡 -->
-<view style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+<!-- 占位块：防止页面内容被导航栏遮挡，背景色与导航栏一致实现一体化 -->
+<view style="height: {{statusBarHeight + navBarHeight}}px; background: {{bgColor}};"></view>

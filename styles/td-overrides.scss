@@ -2,12 +2,12 @@
 // 单主题设计令牌入口：统一输出 TDesign 变量和项目业务变量。
 
 page {
-  --td-brand-color: #ff6b35;
-  --td-brand-color-light: #fff3ed;
-  --td-brand-color-focus: #ff8c5a;
-  --td-brand-color-active: #e55a2b;
-  --td-brand-color-disabled: #ffcbb3;
-  --td-brand-color-rgb: 255, 107, 53;
+  --td-brand-color: #5B7A5E;
+  --td-brand-color-light: #EEF3EE;
+  --td-brand-color-focus: #7A9E7E;
+  --td-brand-color-active: #4A6B4D;
+  --td-brand-color-disabled: #B8CDB9;
+  --td-brand-color-rgb: 91, 122, 94;
 
   --td-radius-default: 16rpx;
   --td-radius-small: 8rpx;
@@ -47,8 +47,8 @@ page {
   --tg-color-success-strong-rgb: 39, 174, 96;
   --tg-color-success: var(--tg-color-success-strong);
   --tg-color-success-rgb: var(--tg-color-success-strong-rgb);
-  --tg-color-warning-strong: #f57c00;
-  --tg-color-warning-strong-rgb: 245, 124, 0;
+  --tg-color-warning-strong: #C5A572;
+  --tg-color-warning-strong-rgb: 197, 165, 114;
   --tg-color-warning: var(--tg-color-warning-strong);
   --tg-color-warning-rgb: var(--tg-color-warning-strong-rgb);
   --tg-color-warning-soft: #fff8e1;
@@ -72,8 +72,8 @@ page {
   --tg-color-bg-muted-rgb: 248, 250, 252;
   --tg-color-bg-grey: #f5f5f5;
   --tg-color-bg-grey-rgb: 245, 245, 245;
-  --tg-color-bg-accent-soft: #fff5f0;
-  --tg-color-bg-accent-soft-rgb: 255, 245, 240;
+  --tg-color-bg-accent-soft: #F0F4F0;
+  --tg-color-bg-accent-soft-rgb: 240, 244, 240;
   --tg-color-border: #e8e8e8;
   --tg-color-border-rgb: 232, 232, 232;
   --tg-color-border-light: #f0f0f0;
@@ -83,9 +83,9 @@ page {
   --tg-color-divider: #eeeeee;
   --tg-color-divider-rgb: 238, 238, 238;
 
-  --tg-page-bg: #faf6f1;
+  --tg-page-bg: #F7F5F0;
   --tg-card-bg: #ffffff;
-  --tg-card-bg-muted: #fffdf7;
+  --tg-card-bg-muted: #FAFAF7;
   --tg-text-primary: #333333;
   --tg-text-primary-rgb: 51, 51, 51;
   --tg-text-primary-strong: #2c3e50;
@@ -102,10 +102,15 @@ page {
   --tg-text-disabled: #cccccc;
   --tg-border-color: #eeeeee;
 
-  --tg-gradient-primary-start: #f7931e;
-  --tg-gradient-primary-end: #e67e22;
-  --tg-gradient-primary: linear-gradient(135deg, #f7931e 0%, #e67e22 100%);
-  --tg-brand-bg-soft: #fff3ed;
+  --tg-gradient-primary-start: #6B8F6E;
+  --tg-gradient-primary-end: #4A6B4D;
+  --tg-gradient-primary: linear-gradient(135deg, #6B8F6E 0%, #4A6B4D 100%);
+  --tg-brand-bg-soft: #EEF3EE;
+
+  --tg-accent-gold: #C5A572;
+  --tg-accent-gold-active: #A8884A;
+  --tg-accent-gold-light: #F5EFE0;
+  --tg-accent-gold-rgb: 197, 165, 114;
 
   --tg-shadow-sm: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.06);
   --tg-shadow-md:
@@ -124,10 +129,10 @@ page {
   --tg-icon-size-lg: 70rpx;
   --tg-avatar-size: 120rpx;
 
-  --tg-lottery-bg: linear-gradient(135deg, #fff5f0, #ffffff);
-  --tg-trade-accent: #1890ff;
+  --tg-lottery-bg: linear-gradient(135deg, #F0F4F0, #ffffff);
+  --tg-trade-accent: #5B7A5E;
   --tg-diy-canvas-bg: #f5f5f5;
   --tg-price-up: #e74c3c;
   --tg-price-down: #27ae60;
-  --tg-auction-highlight: #ff6b35;
+  --tg-auction-highlight: #C5A572;
 }
