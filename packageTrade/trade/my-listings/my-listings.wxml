@@ -1,5 +1,5 @@
 <!--packageTrade/trade/my-listings/my-listings.wxml - 我的挂单页面模板 -->
-<custom-navbar title="我的挂单" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="我的挂单" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="my-listings-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">

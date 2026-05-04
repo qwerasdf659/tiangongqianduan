@@ -2,7 +2,7 @@
   对接通知系统独立化方案B
   统一列表 + 类型标签，按时间倒序，支持下拉刷新和上拉加载更多
 -->
-<custom-navbar title="消息通知" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="消息通知" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="notifications-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">

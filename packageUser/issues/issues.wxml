@@ -1,5 +1,5 @@
 <!--packageUser/issues/issues.wxml - 用户工单进度查看页面-->
-<custom-navbar title="我的工单" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="我的工单" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 <view class="issues-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 页面标题 -->

@@ -3,7 +3,7 @@
   数据来源: GET /api/v4/user/ad-campaigns
   业务流程: 创建(draft) → 提交审核(pending_review) → 通过/拒绝 → 投放(active) → 完成/取消
 -->
-<custom-navbar title="我的广告活动" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="我的广告活动" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 <view class="ad-campaigns-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 页面头部概览 -->

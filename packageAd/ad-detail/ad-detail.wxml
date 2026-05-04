@@ -2,7 +2,7 @@
   📊 广告活动详情
   后端API: GET /api/v4/user/ad-campaigns/:id
 -->
-<custom-navbar title="广告活动详情" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="广告活动详情" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 <view class="ad-detail-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 加载中 -->

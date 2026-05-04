@@ -3,7 +3,7 @@
 <!--后端API: GET /api/v4/marketplace/trade-orders/:id/escrow-status-->
 <!--后端API: POST /api/v4/marketplace/trade-orders/:id/confirm-delivery-->
 <!--后端API: POST /api/v4/marketplace/trade-orders/:id/cancel-->
-<custom-navbar title="我的订单" bgColor="#FF6B35" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="我的订单" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="orders-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
