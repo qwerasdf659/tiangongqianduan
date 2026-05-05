@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1777923654026, function(require, module, exports) {
+__DEFINE__(1777994585464, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Decoder = exports.Encoder = exports.PacketType = exports.protocol = void 0;
@@ -289,8 +289,8 @@ class BinaryReconstructor {
     }
 }
 
-}, function(modId) {var map = {"./binary":1777923654027,"./is-binary":1777923654028}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654027, function(require, module, exports) {
+}, function(modId) {var map = {"./binary":1777994585465,"./is-binary":1777994585466}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585465, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reconstructPacket = exports.deconstructPacket = void 0;
@@ -380,8 +380,8 @@ function _reconstructPacket(data, buffers) {
     return data;
 }
 
-}, function(modId) { var map = {"./is-binary":1777923654028}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654028, function(require, module, exports) {
+}, function(modId) { var map = {"./is-binary":1777994585466}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585466, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasBinary = exports.isBinary = void 0;
@@ -439,7 +439,7 @@ function hasBinary(obj, toJSON) {
 exports.hasBinary = hasBinary;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1777923654026);
+return __REQUIRE__(1777994585464);
 })()
 //miniprogram-npm-outsideDeps=["component-emitter","debug"]
 //# sourceMappingURL=index.js.map

@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1777923653993, function(require, module, exports) {
+__DEFINE__(1777994585431, function(require, module, exports) {
 const Socket = require("./socket");
 
 module.exports = (uri, opts) => new Socket(uri, opts);
@@ -20,8 +20,8 @@ module.exports.Transport = require("./transport");
 module.exports.transports = require("./transports/index");
 module.exports.parser = require("engine.io-parser");
 
-}, function(modId) {var map = {"./socket":1777923653994,"./transport":1777923653998,"./transports/index":1777923653995}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923653994, function(require, module, exports) {
+}, function(modId) {var map = {"./socket":1777994585432,"./transport":1777994585436,"./transports/index":1777994585433}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585432, function(require, module, exports) {
 const transports = require("./transports/index");
 const Emitter = require("component-emitter");
 const debug = require("debug")("engine.io-client:socket");
@@ -703,8 +703,8 @@ function clone(obj) {
 
 module.exports = Socket;
 
-}, function(modId) { var map = {"./transports/index":1777923653995}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923653995, function(require, module, exports) {
+}, function(modId) { var map = {"./transports/index":1777994585433}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585433, function(require, module, exports) {
 const XMLHttpRequest = require("xmlhttprequest-ssl");
 const XHR = require("./polling-xhr");
 const JSONP = require("./polling-jsonp");
@@ -751,8 +751,8 @@ function polling(opts) {
   }
 }
 
-}, function(modId) { var map = {"./polling-xhr":1777923653996,"./polling-jsonp":1777923654001,"./websocket":1777923654002}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923653996, function(require, module, exports) {
+}, function(modId) { var map = {"./polling-xhr":1777994585434,"./polling-jsonp":1777994585439,"./websocket":1777994585440}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585434, function(require, module, exports) {
 /* global attachEvent */
 
 const XMLHttpRequest = require("xmlhttprequest-ssl");
@@ -1090,8 +1090,8 @@ function unloadHandler() {
 module.exports = XHR;
 module.exports.Request = Request;
 
-}, function(modId) { var map = {"./polling":1777923653997,"../util":1777923653999,"../globalThis":1777923654000}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923653997, function(require, module, exports) {
+}, function(modId) { var map = {"./polling":1777994585435,"../util":1777994585437,"../globalThis":1777994585438}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585435, function(require, module, exports) {
 const Transport = require("../transport");
 const parseqs = require("parseqs");
 const parser = require("engine.io-parser");
@@ -1303,8 +1303,8 @@ class Polling extends Transport {
 
 module.exports = Polling;
 
-}, function(modId) { var map = {"../transport":1777923653998}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923653998, function(require, module, exports) {
+}, function(modId) { var map = {"../transport":1777994585436}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585436, function(require, module, exports) {
 const parser = require("engine.io-parser");
 const Emitter = require("component-emitter");
 const debug = require("debug")("engine.io-client:transport");
@@ -1426,7 +1426,7 @@ class Transport extends Emitter {
 module.exports = Transport;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923653999, function(require, module, exports) {
+__DEFINE__(1777994585437, function(require, module, exports) {
 module.exports.pick = (obj, ...attr) => {
   return attr.reduce((acc, k) => {
     if (obj.hasOwnProperty(k)) {
@@ -1437,11 +1437,11 @@ module.exports.pick = (obj, ...attr) => {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654000, function(require, module, exports) {
+__DEFINE__(1777994585438, function(require, module, exports) {
 module.exports = global;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654001, function(require, module, exports) {
+__DEFINE__(1777994585439, function(require, module, exports) {
 const Polling = require("./polling");
 const globalThis = require("../globalThis");
 
@@ -1643,8 +1643,8 @@ class JSONPPolling extends Polling {
 
 module.exports = JSONPPolling;
 
-}, function(modId) { var map = {"./polling":1777923653997,"../globalThis":1777923654000}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654002, function(require, module, exports) {
+}, function(modId) { var map = {"./polling":1777994585435,"../globalThis":1777994585438}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585440, function(require, module, exports) {
 const Transport = require("../transport");
 const parser = require("engine.io-parser");
 const parseqs = require("parseqs");
@@ -1915,8 +1915,8 @@ class WS extends Transport {
 
 module.exports = WS;
 
-}, function(modId) { var map = {"../transport":1777923653998,"../util":1777923653999,"./websocket-constructor":1777923654003}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654003, function(require, module, exports) {
+}, function(modId) { var map = {"../transport":1777994585436,"../util":1777994585437,"./websocket-constructor":1777994585441}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585441, function(require, module, exports) {
 module.exports = {
   WebSocket: require("ws"),
   usingBrowserWebSocket: false,
@@ -1924,7 +1924,7 @@ module.exports = {
 };
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1777923653993);
+return __REQUIRE__(1777994585431);
 })()
 //miniprogram-npm-outsideDeps=["engine.io-parser","component-emitter","debug","parseuri","parseqs","xmlhttprequest-ssl","yeast","ws"]
 //# sourceMappingURL=index.js.map

@@ -4,7 +4,7 @@ var __DEFINE__ = function(modId, func, req) { var m = { exports: {}, _tempexport
 var __REQUIRE__ = function(modId, source) { if(!__MODS__[modId]) return require(source); if(!__MODS__[modId].status) { var m = __MODS__[modId].m; m._exports = m._tempexports; var desp = Object.getOwnPropertyDescriptor(m, "exports"); if (desp && desp.configurable) Object.defineProperty(m, "exports", { set: function (val) { if(typeof val === "object" && val !== m._exports) { m._exports.__proto__ = val.__proto__; Object.keys(val).forEach(function (k) { m._exports[k] = val[k]; }); } m._tempexports = val }, get: function () { return m._tempexports; } }); __MODS__[modId].status = 1; __MODS__[modId].func(__MODS__[modId].req, m, m.exports); } return __MODS__[modId].m.exports; };
 var __REQUIRE_WILDCARD__ = function(obj) { if(obj && obj.__esModule) { return obj; } else { var newObj = {}; if(obj != null) { for(var k in obj) { if (Object.prototype.hasOwnProperty.call(obj, k)) newObj[k] = obj[k]; } } newObj.default = obj; return newObj; } };
 var __REQUIRE_DEFAULT__ = function(obj) { return obj && obj.__esModule ? obj.default : obj; };
-__DEFINE__(1777923654017, function(require, module, exports) {
+__DEFINE__(1777994585455, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Socket = exports.io = exports.Manager = exports.protocol = void 0;
@@ -76,8 +76,8 @@ exports.connect = lookup;
 var manager_2 = require("./manager");
 Object.defineProperty(exports, "Manager", { enumerable: true, get: function () { return manager_2.Manager; } });
 
-}, function(modId) {var map = {"./url":1777923654018,"./manager":1777923654019,"./socket":1777923654020}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654018, function(require, module, exports) {
+}, function(modId) {var map = {"./url":1777994585456,"./manager":1777994585457,"./socket":1777994585458}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585456, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.url = void 0;
@@ -146,7 +146,7 @@ function url(uri, path = "", loc) {
 exports.url = url;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654019, function(require, module, exports) {
+__DEFINE__(1777994585457, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Manager = void 0;
@@ -517,8 +517,8 @@ class Manager extends Emitter {
 }
 exports.Manager = Manager;
 
-}, function(modId) { var map = {"./socket":1777923654020,"./on":1777923654021}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654020, function(require, module, exports) {
+}, function(modId) { var map = {"./socket":1777994585458,"./on":1777994585459}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585458, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Socket = void 0;
@@ -981,8 +981,8 @@ class Socket extends Emitter {
 }
 exports.Socket = Socket;
 
-}, function(modId) { var map = {"./on":1777923654021}; return __REQUIRE__(map[modId], modId); })
-__DEFINE__(1777923654021, function(require, module, exports) {
+}, function(modId) { var map = {"./on":1777994585459}; return __REQUIRE__(map[modId], modId); })
+__DEFINE__(1777994585459, function(require, module, exports) {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.on = void 0;
@@ -995,7 +995,7 @@ function on(obj, ev, fn) {
 exports.on = on;
 
 }, function(modId) { var map = {}; return __REQUIRE__(map[modId], modId); })
-return __REQUIRE__(1777923654017);
+return __REQUIRE__(1777994585455);
 })()
 //miniprogram-npm-outsideDeps=["debug","socket.io-parser","parseuri","engine.io-client","component-emitter","backo2"]
 //# sourceMappingURL=index.js.map

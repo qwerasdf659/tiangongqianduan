@@ -8,9 +8,9 @@
   "onReachBottomDistance": 100,
   "backgroundTextStyle": "dark",
   "usingComponents": {
-    "exchange-shelf": "/components/exchange/exchange-shelf/exchange-shelf",
-    "exchange-market": "/components/exchange/exchange-market/exchange-market",
-    "asset-conversion": "/components/exchange/asset-conversion/asset-conversion",
+    "exchange-shelf": "/packageExchange/components/exchange/exchange-shelf/exchange-shelf",
+    "exchange-market": "/packageExchange/components/exchange/exchange-market/exchange-market",
+    "asset-conversion": "/packageExchange/components/exchange/asset-conversion/asset-conversion",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
     "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",

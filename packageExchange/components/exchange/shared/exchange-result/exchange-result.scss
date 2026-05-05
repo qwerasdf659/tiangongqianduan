@@ -1,0 +1,116 @@
+@import '../../../../../styles/mixins';
+
+.result-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  @include flex-center;
+}
+
+.result-modal {
+  width: 80%;
+  max-width: 640rpx;
+  background: var(--tg-color-bg-card);
+  border-radius: var(--td-radius-large);
+  padding: 48rpx 40rpx;
+  @include flex-column-center;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.2);
+}
+
+.result-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.result-title {
+  font-size: var(--td-font-size-l);
+  font-weight: 700;
+  color: var(--tg-text-primary);
+  margin-bottom: 16rpx;
+}
+
+.result-message {
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
+  margin-bottom: 32rpx;
+  text-align: center;
+}
+
+.result-detail {
+  width: 100%;
+  background: var(--tg-color-bg);
+  border-radius: var(--td-radius-default);
+  padding: 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.result-extra {
+  width: 100%;
+  margin-top: -8rpx;
+  margin-bottom: 24rpx;
+}
+
+.result-row {
+  @include flex-between;
+  padding: 12rpx 0;
+}
+
+.result-label {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+}
+
+.result-value {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
+  font-weight: 500;
+}
+
+.result-footer {
+  width: 100%;
+  display: flex;
+  gap: 20rpx;
+}
+
+.result-btn {
+  flex: 1;
+  height: 88rpx;
+  @include flex-center;
+  border-radius: var(--td-radius-default);
+  font-size: var(--td-font-size-base);
+  font-weight: 700;
+}
+
+.result-btn-secondary {
+  color: var(--tg-text-secondary);
+  background: var(--tg-color-bg-grey);
+}
+
+.result-btn-primary {
+  color: var(--tg-color-white);
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
+  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.35);
+}
+
+.result-mint-detail {
+  border: 1rpx solid rgba(255, 215, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(155, 89, 182, 0.05));
+}
+
+.result-quality-tag {
+  font-weight: 700;
+}
+
+.result-mint-tip {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.1);
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
+  text-align: center;
+}

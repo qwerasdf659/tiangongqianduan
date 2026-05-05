@@ -6,7 +6,7 @@
   "backgroundTextStyle": "light",
   "enablePullDownRefresh": false,
   "usingComponents": {
-    "price-chart": "/components/price-chart/price-chart",
+    "price-chart": "/packageTrade/components/price-chart/price-chart",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
     "t-dialog": "/miniprogram_npm/tdesign-miniprogram/dialog/dialog",

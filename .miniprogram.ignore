@@ -49,6 +49,10 @@ tsconfig.json
 jest.config.js
 Cursor.lnk
 
+# 类型声明文件（仅开发时使用）
+typings/
+*.d.ts
+
 # 其他开发资源
 scripts/
 build/

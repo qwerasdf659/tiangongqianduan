@@ -1,0 +1,98 @@
+<!--价格走势图组件 — Canvas 2D 轻量折线图 + 成交量柱状图-->
+<!--后端API: GET /api/v4/marketplace/price/trend + /volume + /summary-->
+<view class="price-chart-wrap">
+  <!--顶部渐变头部区域：标题 + 时间周期选择-->
+  <view class="chart-header" wx:if="{{title}}">
+    <view class="header-left">
+      <view class="header-icon-dot"></view>
+      <text class="chart-title">{{title}}</text>
+    </view>
+    <view class="period-tabs">
+      <view
+        wx:for="{{periods}}"
+        wx:key="value"
+        class="period-tab {{currentPeriod === item.value ? 'period-tab--active' : ''}}"
+        data-period="{{item.value}}"
+        bindtap="onPeriodChange"
+      >
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!--图表标签页：价格走势 / 成交量（滑块指示器风格）-->
+  <view class="chart-tab-bar">
+    <view
+      class="tab-slider"
+      style="transform: translateX({{activeChartTab === 'volume' ? '100%' : '0'}})"
+    ></view>
+    <view
+      class="chart-tab {{activeChartTab === 'price' ? 'chart-tab--active' : ''}}"
+      data-tab="price"
+      bindtap="onChartTabChange"
+    >
+      <text class="tab-icon">📈</text>
+      <text>价格走势</text>
+    </view>
+    <view
+      class="chart-tab {{activeChartTab === 'volume' ? 'chart-tab--active' : ''}}"
+      data-tab="volume"
+      bindtap="onChartTabChange"
+    >
+      <text class="tab-icon">📊</text>
+      <text>成交量</text>
+    </view>
+  </view>
+
+  <!--Canvas 2D 绘图区域（价格折线图 / 成交量柱状图 共用同一 Canvas）-->
+  <view class="chart-canvas-wrap">
+    <canvas
+      type="2d"
+      id="priceChartCanvas"
+      class="chart-canvas"
+      style="width: 100%; height: {{canvasHeight}}px;"
+    />
+  </view>
+
+  <!--摘要信息 — 彩色数据卡片-->
+  <view class="chart-summary" wx:if="{{summary}}">
+    <view class="summary-card summary-card--low">
+      <text class="summary-card-label">最低</text>
+      <text class="summary-card-value">{{summary.lowest_ever || '--'}}</text>
+    </view>
+    <view class="summary-card summary-card--avg">
+      <text class="summary-card-label">均价</text>
+      <text class="summary-card-value">{{summary.avg_price_7d || '--'}}</text>
+    </view>
+    <view class="summary-card summary-card--high">
+      <text class="summary-card-label">最高</text>
+      <text class="summary-card-value">{{summary.highest_ever || '--'}}</text>
+    </view>
+    <view class="summary-card summary-card--trades">
+      <text class="summary-card-label">成交</text>
+      <text class="summary-card-value"
+        >{{summary.total_trades || 0}}<text class="summary-unit">笔</text></text
+      >
+    </view>
+  </view>
+
+  <!--无数据占位（增强引导信息）-->
+  <view
+    class="chart-empty"
+    wx:if="{{!loading && dataPoints.length === 0 && volumePoints.length === 0}}"
+  >
+    <t-empty description="暂无成交数据">
+      <text slot="description">当前时段还没有交易记录，切换周期试试</text>
+    </t-empty>
+  </view>
+
+  <!--加载状态（品牌色脉冲动画）-->
+  <view class="chart-loading" wx:if="{{loading}}">
+    <view class="loading-dots">
+      <view class="loading-dot"></view>
+      <view class="loading-dot"></view>
+      <view class="loading-dot"></view>
+    </view>
+    <text class="chart-loading-text">加载走势中...</text>
+  </view>
+</view>

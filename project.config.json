@@ -1,6 +1,6 @@
 {
   "compileType": "miniprogram",
-  "libVersion": "3.15.0",
+  "libVersion": "3.12.1",
   "packOptions": {
     "ignore": [
       {
@@ -296,10 +296,6 @@
         "type": "folder"
       },
       {
-        "value": "miniprogram_npm/tdesign-miniprogram/mixins",
-        "type": "folder"
-      },
-      {
         "value": "miniprogram_npm/tdesign-miniprogram/navbar",
         "type": "folder"
       },
@@ -408,10 +404,6 @@
         "type": "folder"
       },
       {
-        "value": "miniprogram_npm/tdesign-miniprogram/transition",
-        "type": "folder"
-      },
-      {
         "value": "miniprogram_npm/tdesign-miniprogram/tree-select",
         "type": "folder"
       },
@@ -421,6 +413,98 @@
       },
       {
         "value": "miniprogram_npm/tdesign-miniprogram/watermark",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/cascader",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/textarea",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/dialog",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/tag",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/radio",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/radio-group",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/common/shared/color-picker",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/common/shared/calendar",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/tdesign-miniprogram/common/shared/qrcode",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/ws",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/xmlhttprequest-ssl",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/has-cors",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/base64-arraybuffer",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/engine.io-client",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/engine.io-parser",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/socket.io-client",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/socket.io-parser",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/component-emitter",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/parseqs",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/parseuri",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/backo2",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/ms",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram_npm/yeast",
         "type": "folder"
       },
       {
@@ -437,7 +521,12 @@
     "minified": true,
     "enhance": true,
     "showShadowRootInWxmlPanel": true,
-    "packNpmRelationList": [],
+    "packNpmRelationList": [
+      {
+        "packageJsonPath": "./package.json",
+        "miniprogramNpmDistDir": "./"
+      }
+    ],
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
@@ -446,7 +535,7 @@
     "compileWorklet": true,
     "uglifyFileName": false,
     "uploadWithSourceMap": false,
-    "packNpmManually": false,
+    "packNpmManually": true,
     "minifyWXSS": true,
     "minifyWXML": true,
     "localPlugins": false,

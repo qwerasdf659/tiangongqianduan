@@ -8,7 +8,7 @@
   "backgroundColor": "#F5F0E8",
   "usingComponents": {
     "popup-banner": "/components/popup-banner/popup-banner",
-    "lottery-activity": "/components/lottery-activity/lottery-activity",
+    "lottery-activity": "/packageLottery/lottery-activity/lottery-activity",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
     "custom-navbar": "/components/custom-navbar/custom-navbar"

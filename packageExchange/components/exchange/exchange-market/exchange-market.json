@@ -1,0 +1,12 @@
+{
+  "component": true,
+  "usingComponents": {
+    "price-chart": "/packageExchange/components/price-chart/price-chart",
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "exchange-confirm": "/packageExchange/components/exchange/shared/exchange-confirm/exchange-confirm",
+    "exchange-result": "/packageExchange/components/exchange/shared/exchange-result/exchange-result",
+    "escrow-code-dialog": "/packageExchange/components/exchange/shared/escrow-code-dialog/escrow-code-dialog"
+  }
+}
