@@ -22,7 +22,7 @@ const {
   ImageHelper: luckyImageHelper,
   AssetCodes: luckyAssetCodes,
   ProductDisplay: luckyProductDisplay
-} = require('/utils/index')
+} = require('../../../../../../utils/index')
 const luckyLog = luckyLogger.createLogger('lucky-space')
 const {
   getExchangeProducts: luckyGetExchangeProducts,

@@ -21,7 +21,7 @@ const {
   ImageHelper: premiumImageHelper,
   AssetCodes: premiumAssetCodes,
   ProductDisplay: premiumProductDisplay
-} = require('/utils/index')
+} = require('../../../../../../utils/index')
 const premiumLog = premiumLogger.createLogger('premium-space')
 const {
   getExchangeProducts: premiumGetExchangeProducts,

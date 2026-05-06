@@ -11,7 +11,7 @@
  * @since 2026-02-21
  */
 
-const { Constants: mktConstants, AssetCodes: mktAssetCodes } = require('/utils/index')
+const { Constants: mktConstants, AssetCodes: mktAssetCodes } = require('../../../../utils/index')
 const marketBehavior = require('./handlers/market-behavior')
 
 const { PAGINATION: MKT_PAGINATION } = mktConstants

@@ -265,15 +265,23 @@
 
 /* 卡片网格 */
 .unified-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 20rpx 16rpx;
   padding: 8rpx 0;
 }
 
+.unified-cards-grid .unified-card {
+  width: calc(50% - 8rpx);
+}
+
 .unified-cards-grid.grid-list-mode {
-  grid-template-columns: 1fr;
+  flex-direction: column;
   gap: 16rpx 0;
+}
+
+.unified-cards-grid.grid-list-mode .unified-card {
+  width: 100%;
 }
 
 /* 列表视图 */

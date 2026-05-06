@@ -18,7 +18,7 @@ const {
   API: shelfAPI,
   AssetCodes: shelfAssetCodes,
   ProductDisplay: shelfProductDisplay
-} = require('/utils/index')
+} = require('../../../../utils/index')
 const { enrichProductDisplayFields, resolveQuickExchangeSkuId: shelfResolveQuickExchangeSkuId } =
   shelfProductDisplay
 const shopBehavior = require('./handlers/shop-behavior')

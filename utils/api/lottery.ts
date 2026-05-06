@@ -65,14 +65,19 @@ async function performLottery(campaign_code: string, draw_count: number = 1) {
  * 服务层: LotteryQueryService.getUserHistory(user_id, { page, limit })
  * 数据库: lottery_draws 表（当前3770条真实数据）
  *
- * ⚠️ 后端需确认: Service 层是否 JOIN lottery_campaigns 表返回 campaign_code / campaign_name
- *    前端需要展示"这次抽奖属于哪个活动"
+ * 后端已确认: Service 层 JOIN lottery_campaigns 表返回 campaign_code / campaign_name
  *
- * 响应字段:
+ * 响应字段（后端 Service 层重映射后的字段名）:
  *   lottery_draw_id (VARCHAR) — 抽奖记录主键（如 draw_modhyodt_31_647967）
- *   reward_tier — 奖品档位: high/mid/low/fallback（100%出奖系统，所有值均代表中奖）
- *   campaign_code — 活动编码（需后端 JOIN 确认）
- *   campaign_name — 活动名称（需后端 JOIN 确认）
+ *   lottery_campaign_id — 活动ID
+ *   campaign_name — 活动名称（已通过 JOIN 返回）
+ *   campaign_code — 活动编码（已通过 JOIN 返回）
+ *   reward_tier — 奖品档位: high/mid/low/fallback
+ *   prize — 奖品对象 { id, name, type, value, primary_media_id }
+ *   points_cost — 消耗积分（⚠️ 非 cost_points）
+ *   probability — 中奖概率
+ *   is_guarantee — 是否保底触发（⚠️ 非 guarantee_triggered）
+ *   draw_time — 抽奖时间（⚠️ 非 created_at）
  */
 async function getLotteryHistory(page: number = 1, page_size: number = 20) {
   const qs = buildQueryString({ page, page_size })
@@ -88,7 +93,7 @@ async function getLotteryHistory(page: number = 1, page_size: number = 20) {
  * 后端实际返回字段（100%出奖系统，无传统"中奖率"概念）:
  *   total_draws — 总抽奖次数
  *   total_high_tier_wins — 高档奖励次数（reward_tier = 'high'）
- *   high_tier_rate — 高档奖励率（小数，如 0.15 表示 15%）
+ *   high_tier_rate — 高档奖励率（百分比数值，如 2.65 表示 2.65%，前端展示直接拼 % 后缀即可）
  *   today_draws — 今日抽奖次数
  *   reward_tier_distribution — 各档位分布 { high, mid, low, fallback }
  */

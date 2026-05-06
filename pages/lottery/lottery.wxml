@@ -2,10 +2,22 @@
   抽奖核心UI已迁移到 lottery-activity 万能组件
   本模板仅保留：页面壳、用户信息、二维码、管理员功能条、审核弹窗、弹窗横幅
 -->
-<custom-navbar title="🎰 幸运抽奖" bgColor="#F5F0E8" textColor="#4A3728" />
 
 <view class="lottery-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 🎨 顶部沉浸式横幅区域（图片延伸到状态栏后面） -->
+    <view class="immersive-top-banner">
+      <image
+        class="top-banner-image"
+        src="{{topBannerUrl || ''}}"
+        mode="aspectFill"
+        wx:if="{{topBannerUrl}}"
+      />
+      <view class="top-banner-placeholder" wx:else>
+        <text class="placeholder-text">顶部横幅图片位置</text>
+      </view>
+    </view>
+
     <!-- 首次加载遮罩：覆盖整个页面，数据+弹窗图片全部就绪后才消失 -->
     <view class="first-load-mask" wx:if="{{loading}}">
       <t-loading loading="{{true}}" text="正在加载..." theme="spinner" size="48rpx" />
@@ -87,9 +99,15 @@
         <view class="qrcode-section-inline">
           <view class="qrcode-container" bindtap="enlargeQRCode">
             <!-- 加载中状态 -->
-            <view class="qrcode-loading" wx:if="{{!qrCodeImage && !qrExpired}}">
+            <view class="qrcode-loading" wx:if="{{!qrCodeImage && !qrExpired && !qrDevToolsUnavailable}}">
               <text class="loading-icon">⏳</text>
               <text class="loading-text">生成中...</text>
+            </view>
+
+            <!-- 开发者工具Canvas不可用提示 -->
+            <view class="qrcode-loading" wx:elif="{{qrDevToolsUnavailable}}">
+              <text class="loading-icon">🖥️</text>
+              <text class="loading-text">请真机预览</text>
             </view>
 
             <!-- 二维码图片（未过期时显示） -->
@@ -259,13 +277,6 @@
       </view>
     </block>
 
-    <!-- 🆕 隐藏的Canvas用于生成正方形高分辨率二维码（方案B：428×428正方形） -->
-    <canvas
-      id="qrcodeCanvas"
-      type="2d"
-      style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px"
-    />
-
     <!-- 🆕 放大的二维码弹窗 -->
     <view class="qrcode-enlarged-modal" wx:if="{{qrCodeEnlarged}}" bindtap="closeEnlargedQRCode">
       <view class="qrcode-enlarged-container" catchtap="stopTap">
@@ -381,4 +392,11 @@
     <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
   </scroll-view>
+
+  <!-- 🆕 隐藏的Canvas用于生成正方形高分辨率二维码（方案B：428×428正方形） -->
+  <canvas
+    id="qrcodeCanvas"
+    type="2d"
+    style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px"
+  />
 </view>

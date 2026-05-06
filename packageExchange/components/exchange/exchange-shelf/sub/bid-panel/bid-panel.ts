@@ -18,7 +18,7 @@ const {
   Logger: bidLogger,
   Utils: bidUtils,
   ImageHelper: bidImageHelper
-} = require('/utils/index')
+} = require('../../../../../../utils/index')
 const bidLog = bidLogger.createLogger('bid-panel')
 const {
   getBidProducts: bidGetBidProducts,

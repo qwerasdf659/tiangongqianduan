@@ -12,7 +12,7 @@
 const {
   ImageHelper: confirmImageHelper,
   AssetCodes: confirmAssetCodes
-} = require('../../../../utils/index')
+} = require('../../../../../utils/index')
 
 Component({
   properties: {

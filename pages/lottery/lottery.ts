@@ -85,6 +85,8 @@ Page({
     /* ===== V2动态二维码 ===== */
     qrCodeImage: '',
     qrCodeEnlarged: false,
+    /** 开发者工具中Canvas不可用标记 */
+    qrDevToolsUnavailable: false,
     qrCountdown: 300,
     qrExpired: false,
     qrCountdownText: '5:00',
@@ -225,14 +227,20 @@ Page({
       onShowPatch.userInfo = userInfo
     }
 
-    /* V2动态码：从后台恢复时检查二维码是否过期（合并到同一次 setData） */
+    /* V2动态码：从后台恢复时检查二维码是否过期 → 自动刷新 */
     if (this.data.qrExpiresAt && Date.now() >= this.data.qrExpiresAt) {
       if (this._qrTimer) {
         clearInterval(this._qrTimer)
+        this._qrTimer = null
       }
       onShowPatch.qrCountdown = 0
-      onShowPatch.qrExpired = true
-      onShowPatch.qrCountdownText = '已过期'
+      onShowPatch.qrExpired = false
+      onShowPatch.qrCodeImage = ''
+      onShowPatch.qrCountdownText = '刷新中...'
+      // 延迟触发自动刷新（等 setData 完成后）
+      setTimeout(() => {
+        this.generateUserQRCode()
+      }, 500)
     }
 
     if (Object.keys(onShowPatch).length > 0) {
@@ -797,7 +805,29 @@ Page({
         })
         .catch((err: any) => {
           log.error('[lottery] 二维码转图片失败:', err)
-          showToast('二维码生成失败', 'none', 2000)
+          /* Skyline 开发者工具不支持 Canvas，降级处理 */
+          if (qrCodeData.qrcode_url || qrCodeData.image_url) {
+            /* 后端返回了图片URL，直接使用 */
+            const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+            const minutes = Math.floor(remaining / 60)
+            const seconds = remaining % 60
+            this.setData({
+              qrCodeImage: qrCodeData.qrcode_url || qrCodeData.image_url,
+              qrCountdown: remaining,
+              qrExpired: false,
+              qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
+              qrExpiresAt: expiresTimestamp
+            })
+            this.startQrCountdown()
+            log.info('[lottery] Canvas不可用，降级使用后端图片URL')
+          } else {
+            /* 开发者工具中 Canvas 不可用，标记为开发环境限制 */
+            log.warn('[lottery] Skyline开发者工具不支持Canvas，二维码需在真机预览')
+            this.setData({
+              qrCodeImage: '',
+              qrDevToolsUnavailable: true
+            })
+          }
         })
     } catch (error: any) {
       log.error('[lottery] 生成V2二维码异常:', error)

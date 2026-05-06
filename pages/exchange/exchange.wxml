@@ -1,7 +1,6 @@
 <!-- pages/exchange/exchange.wxml — 兑换中心页面壳 -->
 <!-- 组件化架构: exchange-shelf（商品兑换Tab）+ exchange-market（交易市场Tab）+ asset-conversion（资产转换Tab，后端tab key仍为exchange-rate） -->
 <!-- D13决策: 使用 hidden 替代 wx:if，保留组件状态（筛选/分页/搜索/滚动位置） -->
-<custom-navbar title="积分商城" bgColor="#5B7A5E" textColor="#ffffff" />
 <view class="exchange-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载中..." theme="spinner" />

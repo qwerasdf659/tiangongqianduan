@@ -7,12 +7,47 @@
 /* 发现页面样式 - V3.0 Sass版本 */
 @import '../../styles/mixins';
 
+/* 🎨 页面级背景 — 统一色调 */
+page {
+  background-color: var(--tg-page-bg);
+}
+
 .discover-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--tg-page-bg);
   padding-bottom: 80rpx;
+}
+
+/* 🎨 沉浸式顶部横幅 — 图片延伸到状态栏后面 */
+.immersive-top-banner {
+  width: 100%;
+  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 280rpx);
+  position: relative;
+  overflow: hidden;
+}
+
+.top-banner-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.top-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #F5F0E8 0%, #EDE5D8 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40rpx;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: var(--tg-text-tertiary);
+  opacity: 0.6;
 }
 
 /* ========== 顶部搜索栏 ========== */

@@ -9,6 +9,11 @@
 /* 商品/市场/卡片样式已迁入 packageExchange/ 各组件 SCSS */
 @import '../../styles/mixins';
 
+/* 🎨 页面级背景 — 统一色调，去掉标题后背景贯穿状态栏 */
+page {
+  background-color: var(--tg-page-bg);
+}
+
 .exchange-container {
   flex: 1;
   display: flex;
@@ -16,6 +21,7 @@
   min-height: 0;
   background: var(--tg-page-bg);
   padding: 8rpx 12rpx 0;
+  padding-top: calc(env(safe-area-inset-top, 20px) + 88rpx);
   position: relative;
   box-sizing: border-box;
 }

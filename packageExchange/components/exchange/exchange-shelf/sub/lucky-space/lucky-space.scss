@@ -1,6 +1,7 @@
 ﻿/* lucky-space 幸运空间子组件样式 */
 /* 从 _exchange-shop.scss 第190-647行搬入 + var() 卡片规则 */
 @import '../../../../../../styles/mixins';
+@import '../../exchange-shelf-cards';
 
 .lucky-space-content {
   padding: 20rpx 16rpx;

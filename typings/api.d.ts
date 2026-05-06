@@ -266,24 +266,30 @@ declare namespace API {
   interface LotteryHistoryRecord {
     /** 抽奖记录主键（VARCHAR(50)，非BIGINT） */
     lottery_draw_id: string
-    /** 抽奖单号（LT前缀16位编号） */
-    order_no: string
-    /** 奖品名称 */
-    prize_name: string
-    /** 奖品类型: points/physical/virtual/coupon/service */
-    prize_type: string
-    /** 奖品数值 */
-    prize_value: number
+    /** 活动ID */
+    lottery_campaign_id: number
+    /** 活动编码 */
+    campaign_code?: string
+    /** 活动名称 */
+    campaign_name?: string
     /** 奖励档位: high/mid/low/fallback（所有值均代表中奖） */
     reward_tier: string
-    /** 稀有度代码 */
-    rarity_code: string
-    /** 活动编码（⚠️ 需后端 JOIN lottery_campaigns 表确认是否返回） */
-    campaign_code?: string
-    /** 活动名称（⚠️ 需后端 JOIN lottery_campaigns 表确认是否返回） */
-    campaign_name?: string
-    /** 抽奖时间 */
-    created_at: string
+    /** 奖品信息（后端 Service 层重映射后的嵌套对象） */
+    prize: {
+      id: number
+      name: string
+      type: string
+      value: number
+      primary_media_id: number | null
+    }
+    /** 消耗积分（后端字段名 points_cost，非 cost_points） */
+    points_cost: number
+    /** 中奖概率 */
+    probability: number
+    /** 是否保底触发（后端字段名 is_guarantee，非 guarantee_triggered） */
+    is_guarantee: boolean
+    /** 抽奖时间（后端字段名 draw_time，非 created_at） */
+    draw_time: string
   }
 
   /**
@@ -298,7 +304,7 @@ declare namespace API {
     total_draws: number
     /** 高档奖励次数（reward_tier = 'high'） */
     total_high_tier_wins: number
-    /** 高档奖励率（小数，如 0.15 表示 15%） */
+    /** 高档奖励率（百分比数值，如 2.65 表示 2.65%，前端展示直接拼 % 后缀） */
     high_tier_rate: number
     /** 今日抽奖次数 */
     today_draws: number

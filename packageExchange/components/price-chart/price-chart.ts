@@ -13,7 +13,7 @@
  * @since 2026-02-24
  */
 
-const { API: ChartAPI, Logger: ChartLogger } = require('/utils/index')
+const { API: ChartAPI, Logger: ChartLogger } = require('../../../utils/index')
 const chartLog = ChartLogger.createLogger('price-chart')
 
 /** 折线图颜色配置（与项目渐变色系保持一致） */

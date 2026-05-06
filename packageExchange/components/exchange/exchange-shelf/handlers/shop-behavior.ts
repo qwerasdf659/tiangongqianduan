@@ -12,7 +12,7 @@
  * @since 2026-02-21
  */
 
-const { API: shopAPI, Wechat: shopWechat, Logger: shopLogger } = require('/utils/index')
+const { API: shopAPI, Wechat: shopWechat, Logger: shopLogger } = require('../../../../../utils/index')
 const shopLog = shopLogger.createLogger('shop-behavior')
 const { showToast: shopShowToast } = shopWechat
 

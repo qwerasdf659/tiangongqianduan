@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 资产转换组件 统一资产转换规则（合分解/兑换 *
  * 职责 *   1. 展示所有可用转换规则（asset_conversion_rules 表活跃规则）
  *   2. 用户选择规则后输入数量，实时预览转换结果
@@ -18,7 +18,7 @@ const {
   API,
   Logger: AssetConversionLogger,
   ImageHelper: AssetConversionImageHelper
-} = require('/utils/index')
+} = require('../../../../utils/index')
 const assetConversionLog = AssetConversionLogger.createLogger('asset-conversion')
 
 Component({

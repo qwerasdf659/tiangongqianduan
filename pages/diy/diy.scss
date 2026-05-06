@@ -6,6 +6,11 @@
 
 @import '../../styles/mixins.scss';
 
+/* 🎨 页面级背景 — 统一色调 */
+page {
+  background-color: var(--tg-page-bg);
+}
+
 /**
  * DIY tab 入口页样式
  * 底部预留 tabBar 高度 + 安全区域，避免内容被遮挡
@@ -15,8 +20,40 @@
   display: flex;
   flex-direction: column;
   background: var(--tg-page-bg);
-  padding: var(--tg-spacing-xl) var(--tg-spacing-md);
+  padding: 0 var(--tg-spacing-md);
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+}
+
+/* 🎨 沉浸式顶部横幅 — 图片延伸到状态栏后面 */
+.immersive-top-banner {
+  width: calc(100% + var(--tg-spacing-md) * 2);
+  margin-left: calc(var(--tg-spacing-md) * -1);
+  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 280rpx);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--tg-spacing-xl);
+}
+
+.top-banner-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.top-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #F5F0E8 0%, #EDE5D8 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40rpx;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: var(--tg-text-tertiary);
+  opacity: 0.6;
 }
 
 /* ===== 页面标题区域 ===== */

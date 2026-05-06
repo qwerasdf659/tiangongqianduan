@@ -8,18 +8,57 @@
 /* 从2721行拆分为6个文件: 公共样式 + 5个模块partial */
 @import '../../styles/mixins';
 
-/* 🎨 整体容器 — 一体化设计 */
+/* 🎨 页面级背景 — 纯白背景 */
+page {
+  background-color: #FFFFFF;
+}
+
+/* 🎨 整体容器 — 一体化设计（内容延伸至状态栏，与蜜雪/霸王茶姬同风格） */
 .lottery-container {
   /* Skyline flex 布局：占满 page 剩余高度 */
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--tg-color-bg-accent-soft);
+  min-height: 0;
+  overflow: hidden;
+  background: #FFFFFF;
   padding: 0 20rpx 20rpx 20rpx;
   position: relative;
 }
 
 /* 装饰性径向渐变已移除（去塑料感） */
+
+/* 🎨 沉浸式顶部横幅 — 图片延伸到状态栏后面（蜜雪冰城/霸王茶姬风格） */
+.immersive-top-banner {
+  width: calc(100% + 40rpx);
+  margin-left: -20rpx;
+  margin-top: -20rpx;
+  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 280rpx);
+  position: relative;
+  overflow: hidden;
+}
+
+.top-banner-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.top-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #FFFFFF;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40rpx;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: var(--tg-text-tertiary);
+  opacity: 0.6;
+}
 
 /* 🎨 页面头部 - 与页面背景一体化（无圆角、无边框、无阴影） */
 .header {
@@ -31,7 +70,7 @@
   border: none;
   box-shadow: none;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   z-index: 1;
 }
 

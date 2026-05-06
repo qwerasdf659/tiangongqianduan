@@ -21,7 +21,7 @@ const {
   Utils,
   ImageHelper,
   ProductDisplay: marketProductDisplay
-} = require('/utils/index')
+} = require('../../../../../utils/index')
 const marketLog = Logger.createLogger('market-behavior')
 const {
   getMarketProducts,
@@ -40,7 +40,7 @@ const EXCHANGE_FEED_AD_INTERVAL = 5
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = marketProductDisplay
-const { userStore: marketUserStore } = require('/store/user')
+const { userStore: marketUserStore } = require('../../../../../store/user')
 
 /**
  * 前端排序后端 sort 参数映射
