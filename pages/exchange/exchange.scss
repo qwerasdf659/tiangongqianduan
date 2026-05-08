@@ -2,6 +2,7 @@
 .page-scroll-view {
   flex: 1;
   min-height: 0;
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom, 0px));
 }
 
 /* 兑换页面样式 — 薄壳 Page Shell */

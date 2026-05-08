@@ -15,6 +15,12 @@
       </view>
     </view>
 
+    <!-- 页面标题（视觉锚点） -->
+    <view class="page-header">
+      <text class="page-title">发现好活动</text>
+      <text class="page-subtitle">今日抽奖·限时福利·新鲜上线</text>
+    </view>
+
     <!-- 顶部搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrapper">

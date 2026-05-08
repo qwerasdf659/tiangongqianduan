@@ -116,8 +116,8 @@
   },
   "tabBar": {
     "custom": true,
-    "color": "#666",
-    "selectedColor": "#8B7355",
+    "color": "#BFBFBF",
+    "selectedColor": "#A0724A",
     "backgroundColor": "#fff",
     "borderStyle": "black",
     "position": "bottom",
@@ -125,32 +125,32 @@
       {
         "pagePath": "pages/lottery/lottery",
         "text": "抽奖",
-        "iconPath": "images/icons/lottery.png",
-        "selectedIconPath": "images/icons/lottery-active.png"
+        "iconPath": "images/icons/transparent.png",
+        "selectedIconPath": "images/icons/transparent.png"
       },
       {
         "pagePath": "pages/camera/camera",
         "text": "发现",
-        "iconPath": "images/icons/home.png",
-        "selectedIconPath": "images/icons/home-active.png"
+        "iconPath": "images/icons/transparent.png",
+        "selectedIconPath": "images/icons/transparent.png"
       },
       {
         "pagePath": "pages/exchange/exchange",
         "text": "商城",
-        "iconPath": "images/icons/exchange.png",
-        "selectedIconPath": "images/icons/exchange-active.png"
+        "iconPath": "images/icons/transparent.png",
+        "selectedIconPath": "images/icons/transparent.png"
       },
       {
         "pagePath": "pages/diy/diy",
         "text": "DIY",
-        "iconPath": "images/icons/exchange.png",
-        "selectedIconPath": "images/icons/exchange-active.png"
+        "iconPath": "images/icons/transparent.png",
+        "selectedIconPath": "images/icons/transparent.png"
       },
       {
         "pagePath": "pages/user/user",
         "text": "我的",
-        "iconPath": "images/icons/profile.png",
-        "selectedIconPath": "images/icons/profile-active.png"
+        "iconPath": "images/icons/transparent.png",
+        "selectedIconPath": "images/icons/transparent.png"
       }
     ]
   },

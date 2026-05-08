@@ -6,13 +6,13 @@
 
 /* ============================================================
    Iconfont 字体图标系统 — tiangong-icons
-   14 个图标：10 个菜单 + 4 个 Tab
-   由 SVG → svgicons2svgfont → svg2ttf → ttf2woff2 管线生成
+   19 个图标：14 个菜单 + 5 个 Tab/徽章
+   由 SVG → svgtofont → woff2 管线生成
    ============================================================ */
 
 @font-face {
   font-family: 'tiangong-icons';
-  src: url('data:font/woff2;charset=utf-8;base64,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')
+  src: url('data:font/woff2;charset=utf-8;base64,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')
     format('woff2');
   font-weight: normal;
   font-style: normal;
@@ -27,47 +27,62 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-coin::before {
-  content: '\e600';
+.icon-bell::before {
+  content: '\ea01';
 }
 .icon-box::before {
-  content: '\e601';
+  content: '\ea02';
 }
-.icon-shopping-bag::before {
-  content: '\e602';
-}
-.icon-tag::before {
-  content: '\e603';
+.icon-camera::before {
+  content: '\ea03';
 }
 .icon-chart::before {
-  content: '\e604';
-}
-.icon-receipt::before {
-  content: '\e605';
-}
-.icon-megaphone::before {
-  content: '\e606';
+  content: '\ea04';
 }
 .icon-chat::before {
-  content: '\e607';
+  content: '\ea05';
 }
-.icon-headset::before {
-  content: '\e608';
+.icon-clipboard::before {
+  content: '\ea06';
 }
-.icon-logout::before {
-  content: '\e609';
-}
-.icon-wheel::before {
-  content: '\e60a';
+.icon-coin::before {
+  content: '\ea07';
 }
 .icon-compass::before {
-  content: '\e60b';
+  content: '\ea08';
+}
+.icon-edit::before {
+  content: '\ea09';
+}
+.icon-headset::before {
+  content: '\ea0a';
+}
+.icon-lock::before {
+  content: '\ea0b';
+}
+.icon-logout::before {
+  content: '\ea0c';
+}
+.icon-megaphone::before {
+  content: '\ea0d';
+}
+.icon-receipt::before {
+  content: '\ea0e';
+}
+.icon-shopping-bag::before {
+  content: '\ea0f';
 }
 .icon-store::before {
-  content: '\e60c';
+  content: '\ea10';
+}
+.icon-tag::before {
+  content: '\ea11';
 }
 .icon-user::before {
-  content: '\e60d';
+  content: '\ea12';
+}
+.icon-wheel::before {
+  content: '\ea13';
 }
 
 /* 页面基础样式 */
@@ -81,7 +96,7 @@ page {
     'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;
   font-size: var(--td-font-size-m);
   color: var(--tg-text-primary);
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 /* 通用容器样式 */
@@ -117,6 +132,30 @@ page {
 /* 通用文本样式 */
 .text-center {
   text-align: center;
+}
+
+/* 页面主标题（视觉锚点） — 统一 44rpx 粗体 + 贴近顶部横幅 */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  padding: 24rpx 32rpx 16rpx;
+}
+
+.page-title {
+  display: block;
+  font-size: var(--tg-font-size-display);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--tg-text-primary);
+  letter-spacing: 0.5rpx;
+}
+
+.page-subtitle {
+  display: block;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  line-height: 1.4;
 }
 
 .text-left {

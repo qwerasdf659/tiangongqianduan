@@ -2,11 +2,14 @@
 .page-scroll-view {
   flex: 1;
   min-height: 0;
+  /* 为 custom-tab-bar 预留底部空间，防止内容被遮挡或误触 */
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom, 0px));
 }
 
 /* 抽奖页面样式 - V5.1 Sass模块化版本 */
 /* 从2721行拆分为6个文件: 公共样式 + 5个模块partial */
 @import '../../styles/mixins';
+@import '../../styles/iconfont';
 
 /* 🎨 页面级背景 — 纯白背景 */
 page {
@@ -33,7 +36,7 @@ page {
   width: calc(100% + 40rpx);
   margin-left: -20rpx;
   margin-top: -20rpx;
-  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 280rpx);
+  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 750rpx);
   position: relative;
   overflow: hidden;
 }
@@ -157,7 +160,7 @@ page {
   border-radius: 6rpx;
   font-size: var(--tg-font-size-xs);
   color: var(--tg-color-white);
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 .announcement-tag--system {

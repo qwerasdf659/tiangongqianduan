@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- 多色 SVG 示例：礼物盒 -->
+  <!-- 盒子主体 -->
+  <rect x="3" y="11" width="18" height="10" rx="1" fill="#A0724A"/>
+  <!-- 盒盖 -->
+  <rect x="2" y="8" width="20" height="4" rx="1" fill="#C5A572"/>
+  <!-- 竖向丝带 -->
+  <rect x="11" y="8" width="2" height="13" fill="#E8D5B7"/>
+  <!-- 蝴蝶结左 -->
+  <path d="M12 8C12 8 9 6 7 6C5 6 5 8 7 8C9 8 12 8 12 8Z" fill="#D4463A"/>
+  <!-- 蝴蝶结右 -->
+  <path d="M12 8C12 8 15 6 17 6C19 6 19 8 17 8C15 8 12 8 12 8Z" fill="#D4463A"/>
+  <!-- 蝴蝶结中心 -->
+  <circle cx="12" cy="8" r="1.5" fill="#B8352D"/>
+</svg>

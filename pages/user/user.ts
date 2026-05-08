@@ -235,7 +235,10 @@ Page({
    */
   onShow() {
     if (typeof this.getTabBar === 'function') {
-      this.getTabBar().setData({ selected: 4 })
+      const tabBar = this.getTabBar()
+      if (tabBar) {
+        tabBar.setData({ selected: 4 })
+      }
     }
     if (this._skipNextShow) {
       this._skipNextShow = false

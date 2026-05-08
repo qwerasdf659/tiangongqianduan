@@ -27,7 +27,10 @@ Page({
   onShow() {
     /* 同步 tabBar 选中态 */
     if (typeof this.getTabBar === 'function') {
-      this.getTabBar().setData({ selected: 3 })
+      const tabBar = this.getTabBar()
+      if (tabBar) {
+        tabBar.setData({ selected: 3 })
+      }
     }
     /* 每次回到 tab 页时清除上次未完成的设计状态 */
     if (diyStore.currentTemplate) {

@@ -15,7 +15,7 @@
     var(--tg-lottery-primary-dark, #a93226) 70%,
     var(--tg-lottery-bg-darker, #7b241c) 100%
   );
-  border-radius: var(--td-radius-default);
+  border-radius: var(--td-radius-default) var(--td-radius-default) 0 0;
   overflow: hidden;
   position: relative;
 }

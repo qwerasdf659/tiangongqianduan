@@ -1,15 +1,13 @@
 ﻿/* 连抽按钮组 共享组件样式 */
 
 .draw-buttons-container {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 25rpx;
-  padding: 35rpx 30rpx;
-  margin-bottom: 30rpx;
-  box-shadow:
-    0 8rpx 30rpx rgba(0, 0, 0, 0.12),
-    0 4rpx 15rpx rgba(0, 0, 0, 0.08);
-  -webkit-backdrop-filter: blur(15rpx);
-  backdrop-filter: blur(15rpx);
+  padding: 24rpx 30rpx 30rpx;
+  margin: 0;
+  background: var(--tg-lottery-bg-darker, #7b241c);
+  border-radius: 0 0 var(--td-radius-default) var(--td-radius-default);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .multi-draw-grid {

@@ -1,0 +1,60 @@
+@font-face {
+  font-family: "tiangong-icons";
+  src: url('tiangong-icons.eot?t=1778187740551'); /* IE9*/
+  src: url('tiangong-icons.eot?t=1778187740551#iefix') format('embedded-opentype') /* IE6-IE8 */,
+  url('tiangong-icons.woff2?t=1778187740551') format('woff2'),
+  url('tiangong-icons.woff?t=1778187740551') format('woff'),
+  url('tiangong-icons.ttf?t=1778187740551') format('truetype'),
+  url('tiangong-icons.svg?t=1778187740551') format('svg');
+}
+
+[class^="tiangong-icons-"], [class*=" tiangong-icons-"] {
+  font-family: 'tiangong-icons' !important;
+  font-style:normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+
+.tiangong-icons-icon-bell::before { content: "\ea01"; }
+.tiangong-icons-icon-box::before { content: "\ea02"; }
+.tiangong-icons-icon-camera::before { content: "\ea03"; }
+.tiangong-icons-icon-chart::before { content: "\ea04"; }
+.tiangong-icons-icon-chat::before { content: "\ea05"; }
+.tiangong-icons-icon-clipboard::before { content: "\ea06"; }
+.tiangong-icons-icon-coin::before { content: "\ea07"; }
+.tiangong-icons-icon-compass::before { content: "\ea08"; }
+.tiangong-icons-icon-edit::before { content: "\ea09"; }
+.tiangong-icons-icon-headset::before { content: "\ea0a"; }
+.tiangong-icons-icon-lock::before { content: "\ea0b"; }
+.tiangong-icons-icon-logout::before { content: "\ea0c"; }
+.tiangong-icons-icon-megaphone::before { content: "\ea0d"; }
+.tiangong-icons-icon-receipt::before { content: "\ea0e"; }
+.tiangong-icons-icon-shopping-bag::before { content: "\ea0f"; }
+.tiangong-icons-icon-store::before { content: "\ea10"; }
+.tiangong-icons-icon-tag::before { content: "\ea11"; }
+.tiangong-icons-icon-user::before { content: "\ea12"; }
+.tiangong-icons-icon-wheel::before { content: "\ea13"; }
+
+
+$tiangong-icons-icon-bell: '\ea01';
+$tiangong-icons-icon-box: '\ea02';
+$tiangong-icons-icon-camera: '\ea03';
+$tiangong-icons-icon-chart: '\ea04';
+$tiangong-icons-icon-chat: '\ea05';
+$tiangong-icons-icon-clipboard: '\ea06';
+$tiangong-icons-icon-coin: '\ea07';
+$tiangong-icons-icon-compass: '\ea08';
+$tiangong-icons-icon-edit: '\ea09';
+$tiangong-icons-icon-headset: '\ea0a';
+$tiangong-icons-icon-lock: '\ea0b';
+$tiangong-icons-icon-logout: '\ea0c';
+$tiangong-icons-icon-megaphone: '\ea0d';
+$tiangong-icons-icon-receipt: '\ea0e';
+$tiangong-icons-icon-shopping-bag: '\ea0f';
+$tiangong-icons-icon-store: '\ea10';
+$tiangong-icons-icon-tag: '\ea11';
+$tiangong-icons-icon-user: '\ea12';
+$tiangong-icons-icon-wheel: '\ea13';

@@ -1,0 +1,30 @@
+{
+  "inputDir": "./src-icons",
+  "outputDir": "./src-icons/output",
+  "fontTypes": ["woff2"],
+  "assetTypes": ["css"],
+  "name": "tiangong-icons",
+  "prefix": "icon",
+  "fontsUrl": ".",
+  "codepoints": {
+    "icon-coin": 57856,
+    "icon-box": 57857,
+    "icon-shopping-bag": 57858,
+    "icon-tag": 57859,
+    "icon-chart": 57860,
+    "icon-receipt": 57861,
+    "icon-megaphone": 57862,
+    "icon-chat": 57863,
+    "icon-headset": 57864,
+    "icon-logout": 57865,
+    "icon-wheel": 57866,
+    "icon-compass": 57867,
+    "icon-store": 57868,
+    "icon-user": 57869,
+    "icon-bell": 57870,
+    "icon-clipboard": 57871,
+    "icon-lock": 57872,
+    "icon-camera": 57873,
+    "icon-edit": 57874
+  }
+}

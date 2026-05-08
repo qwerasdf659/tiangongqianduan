@@ -1,14 +1,19 @@
-<t-tab-bar
-  value="{{selected}}"
-  bind:change="onTabChange"
-  fixed="{{true}}"
-  bordered="{{true}}"
-  safeAreaInsetBottom="{{true}}"
->
-  <t-tab-bar-item wx:for="{{list}}" wx:key="pagePath" value="{{index}}">
-    <view slot="icon" class="tab-bar-icon-wrap">
-      <text class="iconfont {{item.iconClass}}"></text>
+<!-- custom-tab-bar/index.wxml - 纯自定义底部导航栏 -->
+<view class="tabbar-wrap">
+  <view class="tabbar">
+    <view
+      class="tab-item {{selected === index ? 'tab-item--active' : ''}}"
+      wx:for="{{list}}"
+      wx:key="pagePath"
+      data-index="{{index}}"
+      catchtap="onTabTap"
+      hover-class="none"
+    >
+      <view class="tab-icon-wrap">
+        <text class="iconfont {{item.iconClass}} tab-icon"></text>
+      </view>
+      <text class="tab-label">{{item.text}}</text>
     </view>
-    {{item.text}}
-  </t-tab-bar-item>
-</t-tab-bar>
+  </view>
+  <view class="tabbar-safe-area"></view>
+</view>

@@ -2,6 +2,7 @@
 .page-scroll-view {
   flex: 1;
   min-height: 0;
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom, 0px));
 }
 
 /* 发现页面样式 - V3.0 Sass版本 */
@@ -172,7 +173,7 @@ page {
   font-size: 26rpx;
   color: var(--tg-text-tertiary);
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 /* ========== 错误状态 ========== */

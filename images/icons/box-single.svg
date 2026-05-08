@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- 单色仓库/箱子图标 -->
+  <!-- 箱子主体 -->
+  <path d="M20 4H4C2.9 4 2 4.9 2 6V8H22V6C22 4.9 21.1 4 20 4Z" fill="#A0724A"/>
+  <path d="M2 9V19C2 20.1 2.9 21 4 21H20C21.1 21 22 20.1 22 19V9H2ZM14 14H10V12H14V14Z" fill="#A0724A"/>
+</svg>

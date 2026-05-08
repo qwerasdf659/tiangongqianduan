@@ -94,7 +94,8 @@
 
 /* 积分图标 */
 .points-icon {
-  font-size: var(--td-font-size-s);
+  font-size: 28rpx;
+  color: #C5A572;
   opacity: 0.9;
 }
 
@@ -129,10 +130,7 @@
   padding: 0 20rpx;
   border-radius: 27rpx;
   background: rgba(197, 165, 114, 0.75);
-  box-shadow:
-    0 4rpx 16rpx rgba(197, 165, 114, 0.35),
-    0 2rpx 8rpx rgba(168, 136, 74, 0.25),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2rpx 8rpx rgba(197, 165, 114, 0.25);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   animation: inventoryPulse 3s ease-in-out infinite;
@@ -427,4 +425,11 @@
     opacity: 1;
     transform: scale(1.1);
   }
+}
+
+/* SVG 图标样式（替代 emoji） */
+.badge-icon-svg {
+  width: 40rpx;
+  height: 40rpx;
+  display: block;
 }

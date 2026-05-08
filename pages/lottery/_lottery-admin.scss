@@ -41,6 +41,7 @@
 .scan-icon {
   font-size: var(--td-font-size-m);
   line-height: 1;
+  color: var(--tg-gradient-primary-start);
 }
 
 /* 🔴 扫码核销文字 */
@@ -71,6 +72,7 @@
 .consume-icon {
   font-size: var(--td-font-size-m);
   line-height: 1;
+  color: var(--tg-gradient-primary-start);
 }
 
 /* 🔴 消费录入文字 */
@@ -181,6 +183,7 @@
 .badge-icon {
   font-size: 24rpx;
   line-height: 1;
+  color: #ffffff;
   filter: drop-shadow(0 1rpx 2rpx rgba(0, 0, 0, 0.2));
 }
 
@@ -484,6 +487,7 @@
 .row-icon {
   font-size: var(--td-font-size-base);
   margin-right: 12rpx;
+  color: #8B7355;
 }
 
 .row-label {

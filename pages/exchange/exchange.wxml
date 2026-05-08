@@ -10,6 +10,12 @@
       <view slot="action" class="exchange-empty-action" bindtap="onPullDownRefresh">重新加载</view>
     </t-empty>
 
+    <!-- 页面标题（视觉锚点） -->
+    <view class="page-header" wx:if="{{!loading && !hasConfigError}}">
+      <text class="page-title">积分商城</text>
+      <text class="page-subtitle">积分兑换·交易市场·资产转换</text>
+    </view>
+
     <view class="nav-module horizontal" hover-class="none" wx:if="{{!loading && !hasConfigError}}">
       <t-tabs
         value="{{currentTab}}"

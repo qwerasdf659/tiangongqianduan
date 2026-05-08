@@ -65,7 +65,10 @@ Page({
 
   onShow() {
     if (typeof this.getTabBar === 'function') {
-      this.getTabBar().setData({ selected: 1 })
+      const tabBar = this.getTabBar()
+      if (tabBar) {
+        tabBar.setData({ selected: 1 })
+      }
     }
     log.info('发现页面（活动聚合）显示')
 

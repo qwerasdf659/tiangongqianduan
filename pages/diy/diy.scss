@@ -2,9 +2,11 @@
 .page-scroll-view {
   flex: 1;
   min-height: 0;
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom, 0px));
 }
 
 @import '../../styles/mixins.scss';
+@import '../../styles/iconfont';
 
 /* 🎨 页面级背景 — 统一色调 */
 page {
@@ -63,7 +65,7 @@ page {
 }
 
 .page-main-title {
-  font-size: 40rpx;
+  font-size: var(--tg-font-size-display);
   font-weight: 700;
   color: var(--tg-text-primary);
   line-height: 1.2;
@@ -161,6 +163,6 @@ page {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.4;
   padding: 0 var(--tg-spacing-md);
 }

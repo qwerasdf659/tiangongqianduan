@@ -1,0 +1,4 @@
+import React from 'react';
+export const IconBell = props => (
+  <svg viewBox="0 0 20 20"  {...props} className={`tiangong-icons ${props.className ? props.className : ''}`}><path d="M512 64c-35.3 0-64 28.7-64 64v18.8C310.8 183.6 204.8 310.4 204.8 460.8v256L128 793.6V844.8h768v-51.2l-76.8-76.8v-256c0-150.4-106-277.2-243.2-313.9V128c0-35.3-28.7-64-64-64zM512 960c44.2 0 80-35.8 80-64H432c0 28.2 35.8 64 80 64z" fillRule="evenodd" /></svg>
+);

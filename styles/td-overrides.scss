@@ -24,10 +24,11 @@ page {
   --tg-font-size-xs: 20rpx;
   --tg-font-size-xl: 40rpx;
   --tg-font-size-xxl: 48rpx;
+  --tg-font-size-display: 44rpx;
 
   --tg-line-height-tight: 1.2;
-  --tg-line-height-base: 1.6;
-  --tg-line-height-loose: 2;
+  --tg-line-height-base: 1.4;
+  --tg-line-height-loose: 1.6;
 
   --tg-spacing-xs: 8rpx;
   --tg-spacing-sm: 16rpx;
@@ -102,9 +103,9 @@ page {
   --tg-text-disabled: #cccccc;
   --tg-border-color: #eeeeee;
 
-  --tg-gradient-primary-start: #F5F0E8;
-  --tg-gradient-primary-end: #EDE6D8;
-  --tg-gradient-primary: linear-gradient(135deg, #F5F0E8 0%, #EDE6D8 100%);
+  --tg-gradient-primary-start: #FFF9ED;
+  --tg-gradient-primary-end: #E5D4B2;
+  --tg-gradient-primary: linear-gradient(135deg, #FFF9ED 0%, #E5D4B2 100%);
   --tg-brand-bg-soft: #F5F0E8;
 
   --tg-accent-gold: #C5A572;
@@ -112,13 +113,10 @@ page {
   --tg-accent-gold-light: #F5EFE0;
   --tg-accent-gold-rgb: 197, 165, 114;
 
-  --tg-shadow-sm: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.06);
-  --tg-shadow-md:
-    0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
-  --tg-shadow-lg:
-    0 12rpx 32rpx rgba(var(--td-brand-color-rgb), 0.12), 0 4rpx 10rpx rgba(0, 0, 0, 0.06);
-  --tg-shadow-card:
-    0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+  --tg-shadow-sm: 0 1rpx 4rpx rgba(0, 0, 0, 0.03);
+  --tg-shadow-md: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  --tg-shadow-lg: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  --tg-shadow-card: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 
   --tg-transition-fast: 0.15s ease;
   --tg-transition-base: 0.2s ease;
@@ -129,7 +127,7 @@ page {
   --tg-icon-size-lg: 70rpx;
   --tg-avatar-size: 120rpx;
 
-  --tg-lottery-bg: linear-gradient(135deg, #F5F0E8, #ffffff);
+  --tg-lottery-bg: linear-gradient(180deg, #FFF5E0 0%, #FFFFFF 60%);
   --tg-trade-accent: #8B7355;
   --tg-diy-canvas-bg: #f5f5f5;
   --tg-price-up: #e74c3c;
