@@ -18,8 +18,8 @@ export const IconHeadset = defineComponent({
         ...attrs
       },
       [
-        h('path', {"d": "M512 128c-141.4 0-256 114.6-256 256 0 100.4 57.8 187.2 142 229v155l114-76 114 76V613c84.2-41.8 142-128.6 142-229 0-141.4-114.6-256-256-256z", "fillRule": "evenodd"}),
-        h('path', {"d": "M384 768h256v64H384zM416 896h192v64H416z", "fillRule": "evenodd"})
+        h('path', {"d": "M192 576V448c0-176 144-320 320-320s320 144 320 320v128", "fillRule": "evenodd"}),
+        h('path', {"d": "M832 800v48c0 80-64 144-144 144H512", "fillRule": "evenodd"})
       ]
     );
   }

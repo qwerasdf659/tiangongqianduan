@@ -10,7 +10,11 @@
       hover-class="none"
     >
       <view class="tab-icon-wrap">
-        <text class="iconfont {{item.iconClass}} tab-icon"></text>
+        <image
+          class="tab-icon"
+          src="{{selected === index ? item.iconActive : item.icon}}"
+          mode="aspectFit"
+        />
       </view>
       <text class="tab-label">{{item.text}}</text>
     </view>

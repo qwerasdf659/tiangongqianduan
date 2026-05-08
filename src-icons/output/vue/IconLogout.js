@@ -18,7 +18,7 @@ export const IconLogout = defineComponent({
         ...attrs
       },
       [
-        h('path', {"d": "M192 512h192V320L512 192l128 128v192h192v64H640v192l-128 128-128-128V576H192v-64z", "fillRule": "evenodd"})
+        h('path', {"d": "M640 160H256c-36 0-64 28-64 64v576c0 36 28 64 64 64h384", "fillRule": "evenodd"})
       ]
     );
   }

@@ -1,11 +1,10 @@
 /**
- * 自定义 tabBar 组件 — 纯 view 实现（不依赖 t-tab-bar）
- * 原因：TDesign t-tab-bar 在 Skyline + shadow DOM 下 slot="icon" 被 :empty 规则隐藏，
- *      且 --td-tab-bar-active-color 无法穿透，导致图标丢失 + 激活色退化为默认蓝。
+ * 自定义 tabBar 组件 — 纯 view + image 实现
+ * 使用本地 SVG 图标文件替代 iconfont，确保图标清晰精致
  *
  * @file custom-tab-bar/index.ts
- * @version 3.0.0
- * @since 2026-05-07
+ * @version 4.0.0
+ * @since 2026-05-09
  */
 Component({
   options: {
@@ -18,27 +17,32 @@ Component({
       {
         pagePath: '/pages/lottery/lottery',
         text: '抽奖',
-        iconClass: 'icon-wheel'
+        icon: '/custom-tab-bar/icons/wheel.svg',
+        iconActive: '/custom-tab-bar/icons/wheel-active.svg'
       },
       {
         pagePath: '/pages/camera/camera',
         text: '发现',
-        iconClass: 'icon-compass'
+        icon: '/custom-tab-bar/icons/compass.svg',
+        iconActive: '/custom-tab-bar/icons/compass-active.svg'
       },
       {
         pagePath: '/pages/exchange/exchange',
         text: '商城',
-        iconClass: 'icon-store'
+        icon: '/custom-tab-bar/icons/store.svg',
+        iconActive: '/custom-tab-bar/icons/store-active.svg'
       },
       {
         pagePath: '/pages/diy/diy',
         text: 'DIY',
-        iconClass: 'icon-tag'
+        icon: '/custom-tab-bar/icons/tag.svg',
+        iconActive: '/custom-tab-bar/icons/tag-active.svg'
       },
       {
         pagePath: '/pages/user/user',
         text: '我的',
-        iconClass: 'icon-user'
+        icon: '/custom-tab-bar/icons/user.svg',
+        iconActive: '/custom-tab-bar/icons/user-active.svg'
       }
     ] as any[]
   },
@@ -49,7 +53,6 @@ Component({
       this._switchTo(index)
     },
 
-    /** 兼容旧 wxml 缓存：如果编译器还在用旧 t-tab-bar 的 bind:change="onTabChange" */
     onTabChange(e: WechatMiniprogram.CustomEvent) {
       const index = Number(e.detail.value)
       this._switchTo(index)

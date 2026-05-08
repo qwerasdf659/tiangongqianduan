@@ -18,8 +18,7 @@ export const IconChat = defineComponent({
         ...attrs
       },
       [
-        h('path', {"d": "M832 384c0-176.7-143.3-320-320-320S192 207.3 192 384v128l-64 64v64h768v-64l-64-64V384zm-320 512c53 0 96-43 96-96H416c0 53 43 96 96 96z", "fillRule": "evenodd"}),
-        h('path', {"d": "M448 384h128v192H448z", "fillRule": "evenodd"})
+        h('path', {"d": "M512 128C288 128 128 288 128 480c0 96 48 184 128 248l-48 192 192-96c36 12 72 16 112 16 224 0 384-160 384-352S736 128 512 128z", "fillRule": "evenodd"})
       ]
     );
   }

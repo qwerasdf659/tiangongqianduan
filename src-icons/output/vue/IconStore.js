@@ -18,7 +18,13 @@ export const IconStore = defineComponent({
         ...attrs
       },
       [
-        h('path', {"d": "M832 192H192c-35.3 0-64 28.7-64 64v512c0 35.3 28.7 64 64 64h640c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64zm-192 384H384V448h256v128zM192 320h640v64H192v-64z", "fillRule": "evenodd"})
+        h('path', {"d": "M192 448v384h640V448", "fillRule": "evenodd"}),
+        h('path', {"d": "M128 448l64-256h640l64 256", "fillRule": "evenodd"}),
+        h('path', {"d": "M128 448c0 64 48 112 112 112s112-48 112-112", "fillRule": "evenodd"}),
+        h('path', {"d": "M352 448c0 64 48 112 112 112s112-48 112-112", "fillRule": "evenodd"}),
+        h('path', {"d": "M576 448c0 64 48 112 112 112s112-48 112-112", "fillRule": "evenodd"}),
+        h('path', {"d": "M800 448c0 64 48 112 112 112", "fillRule": "evenodd"}),
+        h('path', {"d": "M128 448c0 64-48 112-16 112", "fillRule": "evenodd"})
       ]
     );
   }

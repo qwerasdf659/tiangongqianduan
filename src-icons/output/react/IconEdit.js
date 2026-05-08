@@ -1,4 +1,5 @@
 import React from 'react';
 export const IconEdit = props => (
-  <svg viewBox="0 0 20 20"  {...props} className={`tiangong-icons ${props.className ? props.className : ''}`}><path d="M832 128L256 704l-64 192 192-64L960 256c0-70.7-57.3-128-128-128zM256 832l-64 64h128l-64-64zm576-576l-64 64-128-128 64-64c35.3-35.3 92.7-35.3 128 0s35.3 92.7 0 128z" fillRule="evenodd" /></svg>
+  <svg viewBox="0 0 20 20"  {...props} className={`tiangong-icons ${props.className ? props.className : ''}`}><path d="M576 224l224 224-448 448H128V672L576 224z" fillRule="evenodd" />,
+<path d="M640 160l224 224" fillRule="evenodd" /></svg>
 );
