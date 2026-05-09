@@ -1,0 +1,94 @@
+---
+description: 天工积分小程序 Typography Token 体系规则
+globs: ["**/*.scss", "**/*.wxss"]
+---
+
+# Typography Token 使用规则
+
+本项目使用 Design Token 体系管理字体样式。所有新增或修改的样式必须引用 Token 变量，禁止写死具体数值。
+
+## 字体族
+
+- 中文/正文：不需要显式声明，全局已设置系统字体栈
+- 数字（积分、价格、倒计时）：`font-family: var(--tg-font-number);`
+
+## 字号层级（从大到小）
+
+| Token | 值 | 用途 |
+|-------|------|------|
+| `--tg-font-size-display` | 40rpx | 活动大标题 |
+| `--tg-font-size-headline` | 32rpx | 区域标题 |
+| `--tg-font-size-title` | 28rpx | 小标题、按钮主文字 |
+| `--tg-font-size-body` | 26rpx | 正文、描述 |
+| `--tg-font-size-caption` | 24rpx | 标签（"可用积分"） |
+| `--tg-font-size-small` | 22rpx | 奖品名称、角标 |
+| `--tg-font-size-mini` | 20rpx | tab文字、时间戳 |
+
+数字专用字号：
+| Token | 值 | 用途 |
+|-------|------|------|
+| `--tg-font-size-number-lg` | 36rpx | 大数字（积分余额） |
+| `--tg-font-size-number-md` | 28rpx | 中数字（按钮积分） |
+| `--tg-font-size-number-sm` | 24rpx | 小数字（角标数量） |
+
+## 字重
+
+只用两个值，不用中间值：
+- `var(--tg-font-weight-bold)` = 700 — 标题、数字、按钮
+- `var(--tg-font-weight-regular)` = 400 — 正文、标签、说明
+
+## 颜色
+
+三级文字颜色：
+- `var(--tg-text-primary)` #1A1A1A — 标题、数字、重要信息
+- `var(--tg-text-secondary)` #666666 — 标签、说明文字
+- `var(--tg-text-tertiary)` #999999 — 辅助信息、禁用态
+
+## 禁止事项
+
+- ❌ 禁止写死 `font-size: 28rpx`，用 `var(--tg-font-size-title)` 代替
+- ❌ 禁止写死 `color: #333`，用 `var(--tg-text-primary)` 代替
+- ❌ 禁止写死 `font-weight: 700`，用 `var(--tg-font-weight-bold)` 代替
+- ❌ 禁止对数字使用系统字体，必须加 `font-family: var(--tg-font-number)`
+
+## 正确示例
+
+```scss
+// 区域标题
+.section-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+// 积分数字
+.points-value {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+// 辅助标签
+.label {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-regular);
+  color: var(--tg-text-secondary);
+}
+```
+
+## Mixin 快捷方式（需要 @import 'styles/typography'）
+
+```scss
+@include tg-number(36rpx);   // 数字
+@include tg-heading(32rpx);  // 标题
+@include tg-body(26rpx);     // 正文
+@include tg-caption(24rpx);  // 辅助
+@include tg-small(22rpx);    // 小字
+```
+
+## Token 定义位置
+
+- 变量声明：`styles/td-overrides.scss`
+- 字体文件 + Mixin：`styles/_typography.scss`
