@@ -2,11 +2,11 @@
 // 单主题设计令牌入口：统一输出 TDesign 变量和项目业务变量。
 
 page {
-  --td-brand-color: #8B7355;
-  --td-brand-color-light: #F5F0E8;
-  --td-brand-color-focus: #A08B6E;
-  --td-brand-color-active: #6B5B45;
-  --td-brand-color-disabled: #C8BBAA;
+  --td-brand-color: #8b7355;
+  --td-brand-color-light: #f5f0e8;
+  --td-brand-color-focus: #a08b6e;
+  --td-brand-color-active: #6b5b45;
+  --td-brand-color-disabled: #c8bbaa;
   --td-brand-color-rgb: 139, 115, 85;
 
   --td-radius-default: 16rpx;
@@ -48,7 +48,7 @@ page {
   --tg-color-success-strong-rgb: 39, 174, 96;
   --tg-color-success: var(--tg-color-success-strong);
   --tg-color-success-rgb: var(--tg-color-success-strong-rgb);
-  --tg-color-warning-strong: #C5A572;
+  --tg-color-warning-strong: #c5a572;
   --tg-color-warning-strong-rgb: 197, 165, 114;
   --tg-color-warning: var(--tg-color-warning-strong);
   --tg-color-warning-rgb: var(--tg-color-warning-strong-rgb);
@@ -73,7 +73,7 @@ page {
   --tg-color-bg-muted-rgb: 248, 250, 252;
   --tg-color-bg-grey: #f5f5f5;
   --tg-color-bg-grey-rgb: 245, 245, 245;
-  --tg-color-bg-accent-soft: #F5F0E8;
+  --tg-color-bg-accent-soft: #f5f0e8;
   --tg-color-bg-accent-soft-rgb: 245, 240, 232;
   --tg-color-border: #e8e8e8;
   --tg-color-border-rgb: 232, 232, 232;
@@ -84,13 +84,13 @@ page {
   --tg-color-divider: #eeeeee;
   --tg-color-divider-rgb: 238, 238, 238;
 
-  --tg-page-bg: #FFFFFF;
+  --tg-page-bg: #ffffff;
   --tg-card-bg: #ffffff;
-  --tg-card-bg-muted: #FAFAF7;
-  --tg-text-primary: #333333;
-  --tg-text-primary-rgb: 51, 51, 51;
-  --tg-text-primary-strong: #2c3e50;
-  --tg-text-primary-strong-rgb: 44, 62, 80;
+  --tg-card-bg-muted: #fafaf7;
+  --tg-text-primary: #1A1A1A;
+  --tg-text-primary-rgb: 26, 26, 26;
+  --tg-text-primary-strong: #1A1A1A;
+  --tg-text-primary-strong-rgb: 26, 26, 26;
   --tg-text-secondary: #666666;
   --tg-text-secondary-rgb: 102, 102, 102;
   --tg-text-secondary-muted: #6c757d;
@@ -103,14 +103,42 @@ page {
   --tg-text-disabled: #cccccc;
   --tg-border-color: #eeeeee;
 
-  --tg-gradient-primary-start: #FFF9ED;
-  --tg-gradient-primary-end: #E5D4B2;
-  --tg-gradient-primary: linear-gradient(135deg, #FFF9ED 0%, #E5D4B2 100%);
-  --tg-brand-bg-soft: #F5F0E8;
+  /* === Typography Token 体系 === */
+  /* 字体族 */
+  --tg-font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;
+  --tg-font-number: 'TG Num', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
 
-  --tg-accent-gold: #C5A572;
-  --tg-accent-gold-active: #A8884A;
-  --tg-accent-gold-light: #F5EFE0;
+  /* 字号层级 */
+  --tg-font-size-display: 40rpx;
+  --tg-font-size-headline: 32rpx;
+  --tg-font-size-title: 28rpx;
+  --tg-font-size-body: 26rpx;
+  --tg-font-size-caption: 24rpx;
+  --tg-font-size-small: 22rpx;
+  --tg-font-size-mini: 20rpx;
+
+  /* 数字字号 */
+  --tg-font-size-number-lg: 36rpx;
+  --tg-font-size-number-md: 28rpx;
+  --tg-font-size-number-sm: 24rpx;
+
+  /* 字重 */
+  --tg-font-weight-regular: 400;
+  --tg-font-weight-bold: 700;
+
+  /* 行高 */
+  --tg-line-height-tight: 1.2;
+  --tg-line-height-normal: 1.4;
+  --tg-line-height-relaxed: 1.6;
+
+  --tg-gradient-primary-start: #fff9ed;
+  --tg-gradient-primary-end: #e5d4b2;
+  --tg-gradient-primary: linear-gradient(135deg, #fff9ed 0%, #e5d4b2 100%);
+  --tg-brand-bg-soft: #f5f0e8;
+
+  --tg-accent-gold: #c5a572;
+  --tg-accent-gold-active: #a8884a;
+  --tg-accent-gold-light: #f5efe0;
   --tg-accent-gold-rgb: 197, 165, 114;
 
   --tg-shadow-sm: 0 1rpx 4rpx rgba(0, 0, 0, 0.03);
@@ -127,10 +155,10 @@ page {
   --tg-icon-size-lg: 70rpx;
   --tg-avatar-size: 120rpx;
 
-  --tg-lottery-bg: linear-gradient(180deg, #FFF5E0 0%, #FFFFFF 60%);
-  --tg-trade-accent: #8B7355;
+  --tg-lottery-bg: linear-gradient(180deg, #fff5e0 0%, #ffffff 60%);
+  --tg-trade-accent: #8b7355;
   --tg-diy-canvas-bg: #f5f5f5;
   --tg-price-up: #e74c3c;
   --tg-price-down: #27ae60;
-  --tg-auction-highlight: #C5A572;
+  --tg-auction-highlight: #c5a572;
 }

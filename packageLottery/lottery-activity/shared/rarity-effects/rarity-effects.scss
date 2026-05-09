@@ -76,7 +76,7 @@
 
 /* ===== legendary: 金色旋转光环 + 星星 ===== */
 .rarity--legendary {
-  border: 2rpx solid var(--rarity-legendary, #C5A572);
+  border: 2rpx solid var(--rarity-legendary, #c5a572);
   box-shadow: 0 0 20rpx var(--rarity-legendary-glow, rgba(255, 152, 0, 0.5));
   animation: rarity-legendary-glow 2s ease-in-out infinite;
 }
@@ -132,7 +132,7 @@
   position: absolute;
   width: 8rpx;
   height: 8rpx;
-  background: var(--rarity-legendary, #C5A572);
+  background: var(--rarity-legendary, #c5a572);
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;

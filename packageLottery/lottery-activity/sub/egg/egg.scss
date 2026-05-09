@@ -1,21 +1,38 @@
 @import '../../../../styles/mixins';
 @import '../../shared/common-animations';
 
-/* ===== 砸金蛋 - 精装版样式 ===== */
+/* ===== 砸金蛋 - 浅色优雅风格 ===== */
 
+/* 主题变量 — 浅米色/奶油色系 */
 .egg-container {
+  --tg-lottery-bg-dark: #FDF8F0;
+  --tg-lottery-primary: #F8F2E8;
+  --tg-lottery-primary-dark: #F5EDE0;
+  --tg-lottery-bg-darker: #F0E8DA;
+  --tg-lottery-accent: #C8A06A;
+  --tg-lottery-accent-light: #E8D5B0;
+  --tg-lottery-accent-dark: #A0724A;
+  --tg-lottery-accent-darker: #7a5530;
+  --tg-lottery-text: #4A3728;
+  --tg-lottery-text-light: #8B7355;
+  --tg-lottery-text-dark: #3d2b1f;
+  --tg-lottery-accent-dim: rgba(200, 160, 106, 0.8);
+  --tg-lottery-border: rgba(200, 160, 106, 0.3);
+  --tg-lottery-bg-light: #FFFFFF;
+  --tg-lottery-shadow-medium: rgba(160, 114, 74, 0.12);
+  --tg-lottery-shadow-soft: rgba(160, 114, 74, 0.08);
+
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-bg-dark, #8b1a1a) 0%,
-    var(--tg-lottery-primary, #c0392b) 30%,
-    var(--tg-lottery-primary-dark, #a93226) 70%,
-    var(--tg-lottery-bg-darker, #7b241c) 100%
+    var(--tg-lottery-bg-dark) 0%,
+    var(--tg-lottery-primary) 40%,
+    var(--tg-lottery-primary-dark) 100%
   );
-  border-radius: var(--td-radius-default) var(--td-radius-default) 0 0;
+  border-radius: 24rpx 24rpx 0 0;
   overflow: hidden;
   position: relative;
 }
@@ -43,15 +60,15 @@
   &__ribbon {
     width: 48rpx;
     height: 4rpx;
-    background: linear-gradient(90deg, transparent, var(--tg-lottery-accent, #C5A572), transparent);
+    background: linear-gradient(90deg, transparent, var(--tg-lottery-accent, #c5a572), transparent);
     border-radius: 2rpx;
   }
 
   &__text {
-    font-size: 30rpx;
-    font-weight: bold;
-    color: var(--tg-lottery-accent, #C5A572);
-    text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
+    font-size: var(--tg-font-size-headline);
+    font-weight: var(--tg-font-weight-bold);
+    color: var(--tg-text-primary);
+    text-shadow: none;
     letter-spacing: 2rpx;
   }
 }
@@ -168,8 +185,8 @@
   background: linear-gradient(
     160deg,
     #fff6d5 0%,
-    #D4C4A0 15%,
-    #C5A572 30%,
+    #d4c4a0 15%,
+    #c5a572 30%,
     #daa520 50%,
     #b8860b 70%,
     #996515 85%,
@@ -251,7 +268,7 @@
   height: 40rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #C5A572),
+    var(--tg-lottery-accent, #c5a572),
     var(--tg-lottery-accent-light, #daa520)
   );
   border-radius: 50%;
@@ -262,7 +279,7 @@
   .count-text {
     font-size: 22rpx;
     font-weight: bold;
-    color: var(--tg-lottery-text-dark, #7b241c);
+    color: var(--tg-lottery-text-dark, #3d2b1f);
   }
 }
 
@@ -277,8 +294,8 @@
 
   .hint-text {
     font-size: var(--tg-font-size-xs);
-    color: var(--tg-lottery-accent-dim, rgba(197, 165, 114, 0.9));
-    text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.4);
+    color: var(--tg-lottery-accent-dim, rgba(160, 114, 74, 0.8));
+    text-shadow: none;
   }
 }
 
@@ -330,7 +347,7 @@
   height: 30rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #C5A572),
+    var(--tg-lottery-accent, #c5a572),
     var(--tg-lottery-accent-light, #daa520),
     var(--tg-lottery-accent-dark, #b8860b)
   );
@@ -400,7 +417,7 @@
     background: radial-gradient(
       circle,
       #fff 0%,
-      var(--tg-lottery-accent, #C5A572) 40%,
+      var(--tg-lottery-accent, #c5a572) 40%,
       transparent 70%
     );
     border-radius: 50%;
@@ -427,7 +444,7 @@
     height: 40rpx;
     background: linear-gradient(
       160deg,
-      var(--tg-lottery-accent-lighter, #D4C4A0),
+      var(--tg-lottery-accent-lighter, #d4c4a0),
       var(--tg-lottery-accent-light, #daa520),
       var(--tg-lottery-accent-dark, #b8860b)
     );
@@ -453,15 +470,16 @@
   gap: 8rpx;
   margin-top: 20rpx;
   padding: 8rpx 28rpx;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(200, 160, 106, 0.1);
   border-radius: var(--td-radius-large);
+  border: 1rpx solid rgba(200, 160, 106, 0.2);
 
   &__icon {
     width: 20rpx;
     height: 20rpx;
     background: radial-gradient(
       circle,
-      var(--tg-lottery-accent, #C5A572),
+      var(--tg-lottery-accent, #c5a572),
       var(--tg-lottery-accent-light, #daa520)
     );
     border-radius: 50%;
@@ -470,7 +488,7 @@
 
   &__text {
     font-size: var(--td-font-size-s);
-    color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.85));
+    color: var(--tg-lottery-text-light, #8B7355);
   }
 }
 
@@ -639,7 +657,7 @@
 
   &__name {
     font-size: var(--tg-font-size-xs);
-    color: var(--tg-lottery-accent, #C5A572);
+    color: var(--tg-lottery-accent, #c5a572);
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
     margin-top: 4rpx;
     max-width: 120rpx;
@@ -661,8 +679,8 @@
   padding: 14rpx 48rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #C5A572),
-    var(--tg-lottery-accent-bright, #C5A572)
+    var(--tg-lottery-accent, #c5a572),
+    var(--tg-lottery-accent-bright, #c5a572)
   );
   border-radius: 40rpx;
   box-shadow: 0 4rpx 16rpx var(--tg-lottery-accent-shadow, rgba(255, 140, 0, 0.4));
@@ -850,9 +868,8 @@
 
 /* ===== 奖品池预览（is_fallback / is_sold_out 视觉指示） ===== */
 .egg-prizes {
-  margin-top: 24rpx;
-  padding: 0 16rpx;
-  /* 创建独立层叠上下文，隔离父组件 WXML diff 对预览区渲染的波及 */
+  margin-top: 32rpx;
+  padding: 0 24rpx;
   position: relative;
   z-index: 0;
 }
@@ -874,18 +891,18 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #7c4dff);
+  background: var(--tg-lottery-accent, #C8A06A);
 }
 
 .egg-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: var(--tg-lottery-text, #333);
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
 }
 
 .egg-prizes__count {
-  font-size: 22rpx;
-  color: var(--tg-lottery-text-light, #999);
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-secondary);
 }
 
 .egg-prizes__scroll {
@@ -940,8 +957,9 @@
   width: 88rpx;
   height: 88rpx;
   border-radius: 16rpx;
-  background: var(--tg-lottery-bg-light, #fff);
-  border: 2rpx solid var(--tg-lottery-border, #eee);
+  background: #FFFFFF;
+  border: 1rpx solid rgba(200, 160, 106, 0.2);
+  box-shadow: 0 2rpx 12rpx rgba(160, 114, 74, 0.06);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -962,8 +980,8 @@
 
 .egg-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
-  color: var(--tg-lottery-text-light, #666);
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-secondary);
   max-width: 120rpx;
   overflow: hidden;
   text-overflow: ellipsis;

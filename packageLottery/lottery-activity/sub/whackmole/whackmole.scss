@@ -1,7 +1,7 @@
 @import '../../shared/common-animations';
 
 /* ================================
-   打地鼠容器 - 草地游戏厅风格
+   打地鼠容器 - 浅色优雅风格
    ================================ */
 .whackmole-container {
   display: flex;
@@ -12,13 +12,13 @@
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-bg-light, #87ceeb) 0%,
-    var(--tg-lottery-bg-mid, #98d8c8) 30%,
-    var(--tg-lottery-bg-dark, #4caf50) 60%,
-    var(--tg-lottery-bg-darker, #2e7d32) 100%
+    #FDF8F0 0%,
+    #F8F2E8 30%,
+    #F5EDE0 60%,
+    #F0E8DA 100%
   );
 
-  /* 草地纹理 */
+  /* 浅色纹理 */
   &::before {
     content: '';
     position: absolute;
@@ -225,7 +225,7 @@
 
 .score-value {
   font-size: 30rpx;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   font-weight: bold;
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
@@ -245,7 +245,7 @@
   animation: urgentPulse 0.4s ease-in-out infinite;
 
   .time-value {
-    color: var(--tg-lottery-danger, #7A9E7E);
+    color: var(--tg-lottery-danger, #7a9e7e);
   }
 }
 
@@ -296,7 +296,7 @@
       90deg,
       var(--tg-lottery-danger, #f44336),
       var(--tg-lottery-danger-light, #ff5722),
-      var(--tg-lottery-warning, #C5A572)
+      var(--tg-lottery-warning, #c5a572)
     );
     animation: timerFlash 0.3s ease-in-out infinite;
     box-shadow: 0 0 15rpx rgba(244, 67, 54, 0.8);
@@ -305,9 +305,9 @@
   &.carnival {
     background: linear-gradient(
       90deg,
-      #C5A572,
-      #C5A572,
-      #C5A572,
+      #c5a572,
+      #c5a572,
+      #c5a572,
       #00ff00,
       #00ced1,
       #0080ff,
@@ -339,7 +339,7 @@
   padding: 8rpx 20rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-primary, #C5A572),
+    var(--tg-lottery-primary, #c5a572),
     var(--tg-lottery-secondary, #8b00ff)
   );
   border-radius: var(--td-radius-large);
@@ -435,7 +435,7 @@
 .combo-text {
   font-size: var(--tg-font-size-xl);
   font-weight: bold;
-  color: var(--tg-lottery-primary, #7A9E7E);
+  color: var(--tg-lottery-primary, #7a9e7e);
   text-shadow:
     3rpx 3rpx 0 #000,
     -3rpx -3rpx 0 #000,
@@ -998,7 +998,8 @@
 /* 金色地鼠增强 */
 .golden-body {
   .mole-icon {
-    filter: drop-shadow(0 0 16rpx rgba(197, 165, 114, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 16rpx rgba(197, 165, 114, 1))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
     animation: goldenGlow 0.6s ease-in-out infinite;
   }
 }
@@ -1072,8 +1073,8 @@
   }
 
   50% {
-    filter: drop-shadow(0 0 30rpx rgba(197, 165, 114, 1)) drop-shadow(0 0 30rpx rgba(0, 255, 255, 1))
-      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 30rpx rgba(197, 165, 114, 1))
+      drop-shadow(0 0 30rpx rgba(0, 255, 255, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 }
 
@@ -1185,7 +1186,8 @@
   }
 
   50% {
-    filter: drop-shadow(0 0 24rpx rgba(197, 165, 114, 1)) drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 24rpx rgba(197, 165, 114, 1))
+      drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.5));
   }
 }
 
@@ -1536,7 +1538,7 @@
   transform: translate(-50%, -50%);
   font-size: 56rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     3rpx 3rpx 0 #000,
     -3rpx -3rpx 0 #000,
@@ -1671,7 +1673,7 @@
   padding: 24rpx 80rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-primary, #7A9E7E) 0%,
+    var(--tg-lottery-primary, #7a9e7e) 0%,
     var(--tg-lottery-primary-dark, #ee5a24) 100%
   );
   border-radius: 60rpx;
@@ -1857,7 +1859,7 @@
 
 .result-title {
   font-size: 42rpx;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   font-weight: bold;
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
@@ -1920,7 +1922,7 @@
 .result-score__value {
   font-size: 72rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 0 30rpx rgba(197, 165, 114, 0.8),
     0 4rpx 8rpx rgba(0, 0, 0, 0.5);
@@ -1984,7 +1986,7 @@
 .stat-value {
   font-size: var(--tg-font-size-xl);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -2041,7 +2043,7 @@
 .cost-text {
   font-size: var(--td-font-size-base);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -2114,7 +2116,7 @@
   .stat-value {
     font-size: var(--td-font-size-m);
     font-weight: bold;
-    color: var(--tg-lottery-accent, #C5A572);
+    color: var(--tg-lottery-accent, #c5a572);
     text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
   }
 
@@ -2143,7 +2145,7 @@
 
 .waiting-text {
   font-size: 26rpx;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   font-weight: bold;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }

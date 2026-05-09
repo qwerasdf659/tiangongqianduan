@@ -14,11 +14,6 @@
       />
     </view>
 
-    <!-- 页面标题（视觉锚点） -->
-    <view class="page-header" wx:if="{{isLoggedIn}}">
-      <text class="page-subtitle">欢迎，{{userInfo.mobile || userInfo.nickname || '用户'}}</text>
-    </view>
-
     <!-- 首次加载遮罩：覆盖整个页面，数据+弹窗图片全部就绪后才消失 -->
     <view class="first-load-mask" wx:if="{{loading}}">
       <t-loading loading="{{true}}" text="正在加载..." theme="spinner" size="48rpx" />
@@ -28,8 +23,9 @@
     <view class="header" wx:if="{{isLoggedIn}}">
       <view class="header-content">
         <view class="user-info-section">
-          <!-- 通知铃铛 + 审核记录徽章 -->
+          <!-- 欢迎文字 + 通知铃铛 + 审核记录徽章 同一行 -->
           <view class="welcome-text">
+            <text class="page-subtitle">欢迎，{{userInfo.mobile || userInfo.nickname || '用户'}}</text>
             <!-- 🔔 通知铃铛入口（方案B通知系统独立化 — 首页右上角铃铛，带未读数角标） -->
             <view class="notification-bell-container" bindtap="goToNotifications">
               <view class="notification-bell-btn">
@@ -98,7 +94,10 @@
         <view class="qrcode-section-inline">
           <view class="qrcode-container" bindtap="enlargeQRCode">
             <!-- 加载中状态 -->
-            <view class="qrcode-loading" wx:if="{{!qrCodeImage && !qrExpired && !qrDevToolsUnavailable}}">
+            <view
+              class="qrcode-loading"
+              wx:if="{{!qrCodeImage && !qrExpired && !qrDevToolsUnavailable}}"
+            >
               <text class="loading-icon">⏳</text>
               <text class="loading-text">生成中...</text>
             </view>

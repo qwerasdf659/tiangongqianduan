@@ -233,7 +233,7 @@ Component({
           const rawItems = exchangeResponse.data.items || []
           const pagination = exchangeResponse.data.pagination || {}
 
-          const items = rawItems.filter((item: any, idx: number) => {
+          const items = rawItems.filter((item: any, _idx: number) => {
             if (!item || typeof item !== 'object') {
               return false
             }

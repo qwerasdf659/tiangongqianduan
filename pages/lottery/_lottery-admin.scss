@@ -25,10 +25,10 @@
 .admin-scan-button {
   @include flex-center;
   gap: 8rpx;
-  background-color: var(--tg-color-white);
+  background: linear-gradient(135deg, #C8A06A, #A0724A);
   padding: 16rpx 28rpx;
   border-radius: 60rpx;
-  box-shadow: 0 4rpx 12rpx rgba(var(--tg-color-black-rgb), 0.1);
+  box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
   transition: all 0.3s ease;
 }
 
@@ -39,16 +39,16 @@
 
 /* 🔴 扫码核销图标 */
 .scan-icon {
-  font-size: var(--td-font-size-m);
+  font-size: 34rpx;
   line-height: 1;
-  color: var(--tg-gradient-primary-start);
+  color: #FFFFFF;
 }
 
 /* 🔴 扫码核销文字 */
 .scan-text {
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--tg-gradient-primary-start);
+  color: #FFFFFF;
   letter-spacing: 1rpx;
 }
 
@@ -56,10 +56,10 @@
 .admin-consume-button {
   @include flex-center;
   gap: 8rpx;
-  background-color: var(--tg-color-white);
+  background: linear-gradient(135deg, #C8A06A, #A0724A);
   padding: 16rpx 28rpx;
   border-radius: 60rpx;
-  box-shadow: 0 4rpx 12rpx rgba(var(--tg-color-black-rgb), 0.1);
+  box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
   transition: all 0.3s ease;
 }
 
@@ -70,16 +70,16 @@
 
 /* 🔴 消费录入图标 */
 .consume-icon {
-  font-size: var(--td-font-size-m);
+  font-size: 34rpx;
   line-height: 1;
-  color: var(--tg-gradient-primary-start);
+  color: #FFFFFF;
 }
 
 /* 🔴 消费录入文字 */
 .consume-text {
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--tg-gradient-primary-start);
+  color: #FFFFFF;
   letter-spacing: 1rpx;
 }
 
@@ -205,7 +205,7 @@
   transform: translateX(-50%);
   min-width: 32rpx;
   height: 32rpx;
-  background: #C5A572;
+  background: #c5a572;
   border-radius: 16rpx;
   border: 2rpx solid #ffffff;
   font-size: 20rpx;
@@ -433,11 +433,11 @@
 }
 
 .audit-record-card.pending {
-  border-left-color: #C5A572;
+  border-left-color: #c5a572;
 }
 
 .audit-record-card.pending::before {
-  background: #C5A572;
+  background: #c5a572;
 }
 
 /* 记录头部（编号+状态） */
@@ -487,7 +487,7 @@
 .row-icon {
   font-size: var(--td-font-size-base);
   margin-right: 12rpx;
-  color: #8B7355;
+  color: #8b7355;
 }
 
 .row-label {
@@ -503,7 +503,7 @@
 }
 
 .row-value.amount {
-  color: #C5A572;
+  color: #c5a572;
   font-weight: bold;
   font-size: var(--td-font-size-m);
 }
@@ -571,7 +571,7 @@
 /* 精选活动高亮边框 */
 .featured-activity {
   position: relative;
-  border: 3rpx solid #5B7A5E;
+  border: 3rpx solid #5b7a5e;
   border-radius: 16rpx;
   overflow: hidden;
 }
@@ -581,7 +581,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: #5B7A5E;
+  background: #5b7a5e;
   color: #ffffff;
   font-size: 20rpx;
   font-weight: 700;
@@ -612,7 +612,7 @@
 
 /* 预热倒计时条 */
 .preview-countdown-bar {
-  background: #C5A572;
+  background: #c5a572;
   padding: 12rpx 20rpx;
   border-radius: 8rpx;
   margin-bottom: 8rpx;

@@ -24,9 +24,8 @@
 
 <view class="draw-buttons-container">
   <view class="multi-draw-grid">
-    <!-- 第一行：三连刮 + 五连刮 -->
     <view class="grid-row">
-      <block wx:for="{{buttons}}" wx:key="index" wx:if="{{!item.fullWidth}}">
+      <block wx:for="{{buttons}}" wx:key="index">
         <button
           class="grid-draw-btn {{item.btnClass}}"
           bindtap="onDraw"
@@ -35,37 +34,11 @@
         >
           <view class="btn-content">
             <text class="btn-main-text">{{labelHelper.getLabel(item, displayMode)}}</text>
-            <!-- 有折扣时：划线原价 + 实付价 -->
             <view class="btn-price-row" wx:if="{{labelHelper.hasDiscount(item)}}">
               <text class="btn-original-cost">{{labelHelper.getOriginalCost(item)}}</text>
               <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
             </view>
-            <!-- 无折扣时：仅显示价格 -->
             <text class="btn-sub-text" wx:else>{{labelHelper.getCost(item)}}积分</text>
-          </view>
-        </button>
-      </block>
-    </view>
-    <!-- 第二行：十连刮（占满整行） -->
-    <view class="grid-row">
-      <block wx:for="{{buttons}}" wx:key="index" wx:if="{{item.fullWidth}}">
-        <button
-          class="grid-draw-btn {{item.btnClass}}"
-          bindtap="onDraw"
-          data-count="{{labelHelper.getCount(item)}}"
-          disabled="{{isInProgress}}"
-        >
-          <view class="btn-content">
-            <text class="btn-main-text">{{labelHelper.getLabel(item, displayMode)}}</text>
-            <!-- 有折扣时：划线原价 + 实付价 + 省多少 -->
-            <view class="btn-price-row" wx:if="{{labelHelper.hasDiscount(item)}}">
-              <text class="btn-original-cost">{{labelHelper.getOriginalCost(item)}}</text>
-              <text class="btn-sub-text">{{labelHelper.getCost(item)}}积分</text>
-              <text class="btn-saved">省{{labelHelper.getSavedPoints(item)}}</text>
-            </view>
-            <!-- 无折扣时：仅显示价格 -->
-            <text class="btn-sub-text" wx:else>{{labelHelper.getCost(item)}}积分</text>
-            <text class="btn-guarantee" wx:if="{{item.showGuarantee}}">{{item.guaranteeText}}</text>
           </view>
         </button>
       </block>

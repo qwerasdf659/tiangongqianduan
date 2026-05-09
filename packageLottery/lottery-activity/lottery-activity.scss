@@ -11,24 +11,24 @@
 /* 子组件的 var(--xxx, fallback) 中的 fallback 是各组件独立的保底色 */
 .lottery-activity {
   /* 主色调 */
-  --tg-lottery-primary: #4A6B4D;
+  --tg-lottery-primary: #4a6b4d;
   --tg-lottery-primary-dark: #d35400;
   --tg-lottery-primary-light: #f39c12;
   --tg-lottery-primary-lighter: #f5b041;
   /* 次色调 */
-  --tg-lottery-secondary: #7A9E7E;
+  --tg-lottery-secondary: #7a9e7e;
   --tg-lottery-secondary-dark: #e07830;
   --tg-lottery-secondary-light: #ffab70;
   /* 强调色 */
-  --tg-lottery-accent: #C5A572;
+  --tg-lottery-accent: #c5a572;
   --tg-lottery-accent-dark: #ccac00;
   --tg-lottery-accent-darker: #b8860b;
   --tg-lottery-accent-light: #ffe44d;
-  --tg-lottery-accent-lighter: #E5D9C0;
-  --tg-lottery-accent-bright: #C5A572;
+  --tg-lottery-accent-lighter: #e5d9c0;
+  --tg-lottery-accent-bright: #c5a572;
   --tg-lottery-accent-bg: #ffecb3;
-  --tg-lottery-accent-bg-light: #F5EFE0;
-  --tg-lottery-accent-border: #C5A572;
+  --tg-lottery-accent-bg-light: #f5efe0;
+  --tg-lottery-accent-border: #c5a572;
   --tg-lottery-accent-dim: rgba(197, 165, 114, 0.9);
   --tg-lottery-accent-glow: rgba(197, 165, 114, 0.5);
   --tg-lottery-accent-shadow: rgba(255, 140, 0, 0.4);
@@ -45,8 +45,8 @@
   --tg-lottery-bg-dark: #2c1810;
   --tg-lottery-bg-darkest: #1a0e08;
   --tg-lottery-bg-darker: #1a0e08;
-  --tg-lottery-bg-light: #F5EFE0;
-  --tg-lottery-bg-lighter: #F5EFE0;
+  --tg-lottery-bg-light: #f5efe0;
+  --tg-lottery-bg-lighter: #f5efe0;
   /* 阴影 / 光效 */
   --tg-lottery-shadow-strong: rgba(230, 126, 34, 0.4);
   --tg-lottery-shadow-medium: rgba(230, 126, 34, 0.25);
@@ -76,10 +76,10 @@
   --tg-lottery-success: #27ae60;
   --tg-lottery-success-light: #8bc34a;
   --tg-lottery-danger: #e74c3c;
-  --tg-lottery-danger-light: #7A9E7E;
+  --tg-lottery-danger-light: #7a9e7e;
   --tg-lottery-warning: #f39c12;
   --tg-lottery-warning-light: #cddc39;
-  --tg-lottery-warning-dark: #3D5940;
+  --tg-lottery-warning-dark: #3d5940;
 
   position: relative;
   width: 100%;
@@ -454,7 +454,7 @@
 
   &__badge-num {
     font-size: var(--td-font-size-l);
-    color: #C5A572;
+    color: #c5a572;
     font-weight: 700;
     text-shadow: 0 0 12rpx rgba(197, 165, 114, 0.4);
   }

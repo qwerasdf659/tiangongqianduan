@@ -26,15 +26,24 @@
 }
 
 /* 欢迎语 */
+/* 欢迎语 */
 .welcome-text {
   display: flex;
   align-items: center;
   gap: 12rpx;
-  font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   text-shadow: none;
   margin-bottom: 8rpx;
+
+  .page-subtitle {
+    font-size: var(--tg-font-size-title);
+    font-weight: 600;
+    color: var(--tg-text-primary);
+    letter-spacing: 1rpx;
+    margin-right: auto;
+  }
 }
 
 /* 积分横向容器 */
@@ -55,9 +64,10 @@
 
 /* 积分标签 */
 .points-label {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-secondary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
+  letter-spacing: 1rpx;
   text-shadow: none;
 }
 
@@ -70,11 +80,14 @@
 
 /* 积分数字 - 多级响应式字体（支持超长数字） */
 .points-number {
-  font-size: var(--td-font-size-m);
-  font-weight: 800;
-  color: #C5A572;
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  font-variant-numeric: tabular-nums;
   text-shadow: none;
   transition: font-size 0.2s ease;
+  letter-spacing: 1rpx;
 }
 
 /* 🎎 8-10位数字楋細涓瓑缂╁皬 */
@@ -84,18 +97,18 @@
 
 /* 🎎 11-13位数字：较大缩小 */
 .points-number.small-number {
-  font-size: 22rpx;
+  font-size: 24rpx;
 }
 
 /* 🎎 14位及以上：最小字体 */
 .points-number.tiny-number {
-  font-size: 18rpx;
+  font-size: 20rpx;
 }
 
 /* 积分图标 */
 .points-icon {
-  font-size: 28rpx;
-  color: #C5A572;
+  font-size: 34rpx;
+  color: #c5a572;
   opacity: 0.9;
 }
 
@@ -138,7 +151,7 @@
 
 /* 仓库内图标文字放大 */
 .inventory-badge-btn .badge-icon {
-  font-size: 28rpx;
+  font-size: 32rpx;
 }
 
 .inventory-badge-btn .badge-label {
@@ -153,7 +166,7 @@
   transform: translateX(-50%);
   min-width: 38rpx;
   height: 38rpx;
-  background: #C5A572;
+  background: #c5a572;
   border-radius: 19rpx;
   border: 2rpx solid #ffffff;
   font-size: 22rpx;
@@ -233,7 +246,7 @@
 }
 
 .notification-bell-btn .badge-icon {
-  font-size: 26rpx;
+  font-size: 32rpx;
 }
 
 .notification-bell-btn .badge-label {
@@ -249,7 +262,7 @@
   transform: translateX(-50%);
   min-width: 34rpx;
   height: 34rpx;
-  background: #C5A572;
+  background: #c5a572;
   border-radius: 17rpx;
   border: 2rpx solid #ffffff;
   font-size: 20rpx;
@@ -334,7 +347,7 @@
 
 .expired-text-small {
   font-size: var(--tg-font-size-xs);
-  color: #C5A572;
+  color: #c5a572;
   font-weight: bold;
 }
 

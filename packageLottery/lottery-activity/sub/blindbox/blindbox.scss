@@ -83,7 +83,7 @@
   border-radius: 40rpx 40rpx 0 0;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-primary, #7A9E7E),
+    var(--tg-lottery-primary, #7a9e7e),
     var(--tg-lottery-primary-dark, #ee5a24)
   );
   box-shadow: 0 -4rpx 12rpx rgba(238, 90, 36, 0.3);
@@ -488,14 +488,14 @@
 
 .hint-shaking {
   font-size: var(--td-font-size-base);
-  color: var(--tg-lottery-warning, #C5A572);
+  color: var(--tg-lottery-warning, #c5a572);
   animation: textPulse 0.4s ease-in-out infinite;
 }
 
 .hint-exploding {
   font-size: var(--td-font-size-m);
   font-weight: bold;
-  color: var(--tg-lottery-danger, #3D5940);
+  color: var(--tg-lottery-danger, #3d5940);
   animation: textPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -635,7 +635,7 @@
     flex-shrink: 0;
 
     &.legendary .bb-prizes__icon-wrap {
-      border-color: var(--rarity-legendary, #C5A572);
+      border-color: var(--rarity-legendary, #c5a572);
       box-shadow: 0 0 12rpx var(--rarity-legendary-shadow, rgba(197, 165, 114, 0.4));
     }
 

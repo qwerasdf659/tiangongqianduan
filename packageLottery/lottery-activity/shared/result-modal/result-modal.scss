@@ -50,7 +50,7 @@
   height: 64rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-danger-light, #7A9E7E),
+    var(--tg-lottery-danger-light, #7a9e7e),
     var(--tg-lottery-danger, #c44569)
   );
   border-radius: 50%;
@@ -100,7 +100,7 @@
 .error-card {
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-danger-light, #7A9E7E) 0%,
+    var(--tg-lottery-danger-light, #7a9e7e) 0%,
     var(--tg-lottery-danger, #c44569) 100%
   );
   box-shadow: 0 16rpx 32rpx rgba(91, 122, 94, 0.25);
@@ -404,7 +404,7 @@
   background: linear-gradient(
     135deg,
     var(--tg-lottery-primary, var(--td-brand-color)),
-    var(--tg-lottery-secondary, #7A9E7E)
+    var(--tg-lottery-secondary, #7a9e7e)
   ) !important;
   color: var(--tg-lottery-text-inverse, white) !important;
   border: none !important;
@@ -531,7 +531,7 @@
 .error-card-bg {
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-danger-light, #7A9E7E) 0%,
+    var(--tg-lottery-danger-light, #7a9e7e) 0%,
     var(--tg-lottery-danger, #c44569) 100%
   );
   border-radius: var(--td-radius-large);
@@ -901,7 +901,7 @@
 }
 
 .fp-2 {
-  background: #4A6B4D;
+  background: #4a6b4d;
   animation: fw-burst 1.2s 0.15s ease-out forwards;
 }
 
@@ -926,7 +926,7 @@
 }
 
 .fp-7 {
-  background: #4A6B4D;
+  background: #4a6b4d;
   animation: fw-burst 1.2s 0.08s ease-out forwards;
 }
 
@@ -956,7 +956,7 @@
 }
 
 .fp-13 {
-  background: #4A6B4D;
+  background: #4a6b4d;
   animation: fw-burst 1.2s 0.09s ease-out forwards;
 }
 
@@ -981,7 +981,7 @@
 }
 
 .fp-18 {
-  background: #4A6B4D;
+  background: #4a6b4d;
   animation: fw-burst 1.2s 0.11s ease-out forwards;
 }
 

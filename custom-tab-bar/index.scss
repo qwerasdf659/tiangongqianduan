@@ -1,4 +1,4 @@
-/* 自定义底部导航栏 — 品牌棕 + SVG图标 */
+/* 自定义底部导航栏 — 霸王茶姬风格：细线图标 + 暖金选中色 */
 
 .tabbar-wrap {
   position: fixed;
@@ -7,7 +7,7 @@
   bottom: 0;
   z-index: 999;
   background: #ffffff;
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -1rpx 8rpx rgba(0, 0, 0, 0.03);
   pointer-events: auto;
   transform: none !important;
   animation: none !important;
@@ -33,7 +33,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rpx;
+  gap: 6rpx;
   height: 100%;
   -webkit-tap-highlight-color: transparent;
   transform: none !important;
@@ -50,26 +50,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48rpx;
-  height: 48rpx;
+  width: 44rpx;
+  height: 44rpx;
 }
 
 .tab-icon {
-  width: 48rpx;
-  height: 48rpx;
+  width: 44rpx;
+  height: 44rpx;
 }
 
 .tab-label {
-  font-size: 22rpx;
+  font-size: 20rpx;
   line-height: 1.2;
-  color: #BFBFBF;
+  color: #cccccc;
   font-weight: 400;
-  letter-spacing: 1rpx;
-  transition: color 0.2s ease;
+  letter-spacing: 2rpx;
 }
 
 /* 选中态 */
 .tab-item--active .tab-label {
-  color: #A0724A;
-  font-weight: 600;
+  color: #333333;
+  font-weight: 500;
 }

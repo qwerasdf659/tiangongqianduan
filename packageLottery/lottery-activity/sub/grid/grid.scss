@@ -73,10 +73,10 @@
   background: linear-gradient(
     145deg,
     var(--tg-lottery-primary, var(--td-brand-color)) 0%,
-    var(--tg-lottery-primary-light, #7A9E7E) 50%,
-    var(--tg-lottery-primary-lighter, #B8CDB9) 100%
+    var(--tg-lottery-primary-light, #7a9e7e) 50%,
+    var(--tg-lottery-primary-lighter, #b8cdb9) 100%
   );
-  border: 3rpx solid var(--tg-lottery-primary, #3D5940);
+  border: 3rpx solid var(--tg-lottery-primary, #3d5940);
   box-shadow:
     0 0 40rpx var(--tg-lottery-glow-intense, rgba(91, 122, 94, 0.9)),
     0 0 80rpx var(--tg-lottery-glow-medium, rgba(91, 122, 94, 0.6)),
@@ -93,10 +93,10 @@
 .prize-area.winning {
   background: linear-gradient(
     145deg,
-    var(--tg-lottery-accent, #C5A572) 0%,
-    var(--tg-lottery-accent-light, #D4C4A0) 30%,
-    var(--tg-lottery-accent-lighter, #E5D9C0) 70%,
-    var(--tg-lottery-accent, #C5A572) 100%
+    var(--tg-lottery-accent, #c5a572) 0%,
+    var(--tg-lottery-accent-light, #d4c4a0) 30%,
+    var(--tg-lottery-accent-lighter, #e5d9c0) 70%,
+    var(--tg-lottery-accent, #c5a572) 100%
   );
   border: 4rpx solid var(--tg-lottery-accent-border, #f59e0b);
   box-shadow:
@@ -167,7 +167,7 @@
   background: linear-gradient(
     145deg,
     var(--tg-lottery-primary, var(--td-brand-color)) 0%,
-    var(--tg-lottery-secondary, #7A9E7E) 50%,
+    var(--tg-lottery-secondary, #7a9e7e) 50%,
     var(--tg-lottery-primary, var(--td-brand-color)) 100%
   );
   color: var(--tg-lottery-text-inverse, white);
@@ -372,7 +372,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #5B7A5E);
+  background: var(--tg-lottery-primary, #5b7a5e);
 }
 
 .grid-prizes__title {
@@ -448,8 +448,8 @@
   margin-top: 2rpx;
   padding: 0 6rpx;
   font-size: 18rpx;
-  color: #C5A572;
-  border: 1rpx solid #C5A572;
+  color: #c5a572;
+  border: 1rpx solid #c5a572;
   border-radius: 4rpx;
 }
 

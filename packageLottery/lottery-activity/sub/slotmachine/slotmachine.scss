@@ -2,7 +2,7 @@
 @import '../../shared/common-animations';
 
 /* ================================================================
-   老虎机容器 - 拉斯维加斯赌场风格
+   老虎机容器 - 浅色优雅风格
    ================================================================ */
 .slotmachine-container {
   display: flex;
@@ -13,13 +13,13 @@
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-bg-dark, #1a0a2e) 0%,
-    var(--tg-lottery-bg-darker, #2d1b4e) 30%,
-    var(--tg-lottery-bg-dark, #1a0a2e) 60%,
-    var(--tg-lottery-bg-darkest, #0d0520) 100%
+    #FDF8F0 0%,
+    #F8F2E8 30%,
+    #F5EDE0 60%,
+    #F0E8DA 100%
   );
 
-  /* 星光纹理背景 */
+  /* 浅色纹理背景 */
   &::before {
     content: '';
     position: absolute;
@@ -134,7 +134,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-accent, #C5A572);
+  background: var(--tg-lottery-accent, #c5a572);
   box-shadow:
     0 0 8rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 1)),
     0 0 16rpx var(--tg-lottery-accent-glow-mid, rgba(197, 165, 114, 0.7)),
@@ -157,7 +157,7 @@
 @keyframes ledChaseEnhanced {
   0%,
   100% {
-    background: #C5A572;
+    background: #c5a572;
     box-shadow:
       0 0 8rpx rgba(197, 165, 114, 1),
       0 0 16rpx rgba(197, 165, 114, 0.7),
@@ -166,7 +166,7 @@
   }
 
   25% {
-    background: #C5A572;
+    background: #c5a572;
     box-shadow:
       0 0 8rpx rgba(255, 0, 128, 1),
       0 0 16rpx rgba(255, 0, 128, 0.7),
@@ -281,7 +281,7 @@
 .title-text {
   font-size: var(--tg-font-size-xl);
   font-weight: 900;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   /* 多层霓虹光晕 - 更深、更广、更亮 */
   text-shadow:
     /* 核心发光层 */
@@ -825,11 +825,11 @@
     .payline-line {
       background: linear-gradient(
         90deg,
-        #C5A572 0%,
-        #A8884A 25%,
-        #C5A572 50%,
-        #A8884A 75%,
-        #C5A572 100%
+        #c5a572 0%,
+        #a8884a 25%,
+        #c5a572 50%,
+        #a8884a 75%,
+        #c5a572 100%
       );
       background-size: 200% 100%;
       height: 6rpx;
@@ -869,11 +869,11 @@
       animation: arrowPulse 0.5s ease-in-out infinite;
 
       &.payline-left {
-        border-right-color: var(--tg-lottery-accent, #C5A572);
+        border-right-color: var(--tg-lottery-accent, #c5a572);
       }
 
       &.payline-right {
-        border-left-color: var(--tg-lottery-accent, #C5A572);
+        border-left-color: var(--tg-lottery-accent, #c5a572);
       }
     }
   }
@@ -1044,7 +1044,7 @@
 .label-text {
   font-size: 22rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   letter-spacing: 4rpx;
   text-shadow: 0 0 6rpx rgba(197, 165, 114, 0.5);
   font-family: 'Georgia', serif;
@@ -1337,7 +1337,7 @@
   margin-top: 32rpx;
   font-size: var(--td-font-size-base);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 0 8rpx rgba(197, 165, 114, 0.6),
     0 0 16rpx rgba(197, 165, 114, 0.3),
@@ -1373,7 +1373,7 @@
   border-radius: var(--td-radius-small);
   font-size: var(--td-font-size-s);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   border: 2rpx solid rgba(197, 165, 114, 0.25);
   box-shadow:
     0 4rpx 12rpx rgba(0, 0, 0, 0.5),
@@ -1560,7 +1560,7 @@
   left: 50%;
   font-size: var(--tg-font-size-xxl);
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 0 15rpx rgba(197, 165, 114, 1),
     0 0 30rpx rgba(168, 136, 74, 0.8),
@@ -1690,7 +1690,7 @@
   top: -20%;
   font-size: 52rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 3rpx 6rpx rgba(0, 0, 0, 0.6),
     0 0 15rpx rgba(197, 165, 114, 0.8);
@@ -1806,7 +1806,7 @@
 
 .tip-hand {
   font-size: var(--td-font-size-base);
-  color: var(--tg-lottery-accent, #C5A572);
+  color: var(--tg-lottery-accent, #c5a572);
   animation: tipArrowSlide 1s ease-in-out infinite;
   font-weight: bold;
   text-shadow: 0 0 8rpx rgba(197, 165, 114, 0.6);

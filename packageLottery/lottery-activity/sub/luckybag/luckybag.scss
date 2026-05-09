@@ -63,14 +63,14 @@
   &__ribbon {
     width: 48rpx;
     height: 4rpx;
-    background: linear-gradient(90deg, transparent, var(--tg-lottery-accent, #C5A572), transparent);
+    background: linear-gradient(90deg, transparent, var(--tg-lottery-accent, #c5a572), transparent);
     border-radius: 2rpx;
   }
 
   &__text {
     font-size: 30rpx;
     font-weight: bold;
-    color: var(--tg-lottery-accent, #C5A572);
+    color: var(--tg-lottery-accent, #c5a572);
     text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
     letter-spacing: 2rpx;
   }
@@ -197,8 +197,8 @@
       border-radius: 50%;
       background: linear-gradient(
         135deg,
-        var(--tg-lottery-accent, #C5A572),
-        var(--tg-lottery-accent-light, #A8884A)
+        var(--tg-lottery-accent, #c5a572),
+        var(--tg-lottery-accent-light, #a8884a)
       );
       margin: 0 auto;
       box-shadow: 0 2rpx 6rpx var(--tg-lottery-accent-shadow, rgba(197, 165, 114, 0.5));
@@ -215,8 +215,8 @@
         left: -28rpx;
         background: linear-gradient(
           90deg,
-          var(--tg-lottery-primary, #7A9E7E),
-          var(--tg-lottery-accent, #C5A572)
+          var(--tg-lottery-primary, #7a9e7e),
+          var(--tg-lottery-accent, #c5a572)
         );
         transform: rotate(-20deg);
       }
@@ -225,8 +225,8 @@
         right: -28rpx;
         background: linear-gradient(
           90deg,
-          var(--tg-lottery-accent, #C5A572),
-          var(--tg-lottery-primary, #7A9E7E)
+          var(--tg-lottery-accent, #c5a572),
+          var(--tg-lottery-primary, #7a9e7e)
         );
         transform: rotate(20deg);
       }
@@ -297,8 +297,8 @@
     height: 70rpx;
     background: linear-gradient(
       135deg,
-      var(--tg-lottery-accent, #C5A572),
-      var(--tg-lottery-accent-light, #A8884A)
+      var(--tg-lottery-accent, #c5a572),
+      var(--tg-lottery-accent-light, #a8884a)
     );
     border-radius: 10rpx;
     @include flex-center;
@@ -346,7 +346,7 @@
   height: 36rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-accent, #C5A572),
+    var(--tg-lottery-accent, #c5a572),
     var(--tg-lottery-accent-light, #daa520)
   );
   border-radius: 50%;
@@ -414,7 +414,7 @@
     background: radial-gradient(
       circle,
       #fff 0%,
-      var(--tg-lottery-accent, #C5A572) 40%,
+      var(--tg-lottery-accent, #c5a572) 40%,
       transparent 70%
     );
     border-radius: 50%;
@@ -441,7 +441,7 @@
     height: 20rpx;
     background: radial-gradient(
       circle,
-      var(--tg-lottery-accent, #C5A572),
+      var(--tg-lottery-accent, #c5a572),
       var(--tg-lottery-accent-dark, #daa520)
     );
     border-radius: 50%;
@@ -691,7 +691,7 @@
 
   &__name {
     font-size: var(--tg-font-size-xs);
-    color: var(--tg-lottery-accent, #C5A572);
+    color: var(--tg-lottery-accent, #c5a572);
     text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.5);
     margin-top: 4rpx;
     max-width: 120rpx;
@@ -722,7 +722,7 @@
   .btn-text {
     font-size: var(--td-font-size-base);
     font-weight: bold;
-    color: var(--tg-lottery-accent, #C5A572);
+    color: var(--tg-lottery-accent, #c5a572);
     letter-spacing: 2rpx;
   }
 
@@ -819,7 +819,7 @@
     width: 8rpx;
     height: 8rpx;
     border-radius: 50%;
-    background: var(--tg-lottery-accent, #C5A572);
+    background: var(--tg-lottery-accent, #c5a572);
   }
 
   &__title {

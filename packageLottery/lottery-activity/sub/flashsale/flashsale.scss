@@ -194,7 +194,7 @@
   position: absolute;
   inset: -2rpx;
   border-radius: 22rpx;
-  background: linear-gradient(135deg, #ff3b30, #5B7A5E, #C5A572, #ff3b30);
+  background: linear-gradient(135deg, #ff3b30, #5b7a5e, #c5a572, #ff3b30);
   background-size: 300% 300%;
   animation: neonBorder 4s ease-in-out infinite;
   opacity: 0.6;
@@ -213,7 +213,7 @@
 .banner-badge {
   @include flex-align-center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #ff3b30, #5B7A5E);
+  background: linear-gradient(135deg, #ff3b30, #5b7a5e);
   padding: 10rpx 22rpx;
   border-radius: 28rpx;
   box-shadow: 0 4rpx 20rpx rgba(255, 59, 48, 0.5);
@@ -261,7 +261,7 @@
   .cd-num {
     font-size: 30rpx;
     font-weight: bold;
-    color: #7A9E7E;
+    color: #7a9e7e;
     font-variant-numeric: tabular-nums;
     text-shadow: 0 0 14rpx rgba(255, 68, 68, 0.6);
   }
@@ -283,7 +283,7 @@
 
 /* 紧急态倒计时 */
 .urgency-urgent .cd-num {
-  color: #3D5940;
+  color: #3d5940;
   text-shadow: 0 0 18rpx rgba(255, 68, 68, 0.7);
 }
 
@@ -459,7 +459,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, #5B7A5E, #ff3b30);
+  background: linear-gradient(135deg, #5b7a5e, #ff3b30);
   padding: 6rpx 18rpx;
   border-radius: 0 28rpx 0 16rpx;
   box-shadow: 0 4rpx 12rpx rgba(255, 59, 48, 0.5);
@@ -572,7 +572,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff3b30, #5B7A5E);
+  background: linear-gradient(135deg, #ff3b30, #5b7a5e);
   @include flex-column-center;
   box-shadow: 0 4rpx 16rpx rgba(255, 59, 48, 0.45);
   flex-shrink: 0;
@@ -649,7 +649,7 @@
 .stock-bar-fill {
   position: relative;
   height: 100%;
-  background: linear-gradient(90deg, #5B7A5E, #ff3b30, #5B7A5E);
+  background: linear-gradient(90deg, #5b7a5e, #ff3b30, #5b7a5e);
   background-size: 200% 100%;
   border-radius: 12rpx;
   transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -683,7 +683,7 @@
 /* 库存紧急态 */
 .stock-critical {
   .stock-label {
-    color: #3D5940;
+    color: #3d5940;
   }
 
   .stock-pct-badge {
@@ -698,7 +698,7 @@
 }
 
 .stock-low .stock-label {
-  color: #C5A572;
+  color: #c5a572;
 }
 
 /* ============================================================
@@ -749,7 +749,7 @@
 .grab-btn-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #ff3b30, #5B7A5E, #C5A572, #ff3b30);
+  background: linear-gradient(135deg, #ff3b30, #5b7a5e, #c5a572, #ff3b30);
   background-size: 300% 300%;
   animation: grabBgFlow 5s ease-in-out infinite;
   border-radius: 52rpx;
@@ -852,7 +852,7 @@
 }
 
 .cost-val {
-  color: #C5A572;
+  color: #c5a572;
   font-weight: bold;
 }
 
@@ -917,7 +917,7 @@
 .sp1 {
   width: 12rpx;
   height: 12rpx;
-  background: #C5A572;
+  background: #c5a572;
   --sx: -120rpx;
   --sy: -180rpx;
 }
@@ -925,7 +925,7 @@
 .sp2 {
   width: 10rpx;
   height: 10rpx;
-  background: #7A9E7E;
+  background: #7a9e7e;
   animation-delay: 0.04s;
   --sx: 140rpx;
   --sy: -160rpx;
@@ -934,7 +934,7 @@
 .sp3 {
   width: 11rpx;
   height: 11rpx;
-  background: #C5A572;
+  background: #c5a572;
   animation-delay: 0.08s;
   --sx: -160rpx;
   --sy: 40rpx;
@@ -952,7 +952,7 @@
 .sp5 {
   width: 8rpx;
   height: 8rpx;
-  background: #C5A572;
+  background: #c5a572;
   animation-delay: 0.16s;
   --sx: -80rpx;
   --sy: 200rpx;
@@ -979,7 +979,7 @@
 .sp8 {
   width: 8rpx;
   height: 8rpx;
-  background: #5B7A5E;
+  background: #5b7a5e;
   animation-delay: 0.14s;
   --sx: -200rpx;
   --sy: -100rpx;
@@ -997,7 +997,7 @@
 .sp10 {
   width: 10rpx;
   height: 10rpx;
-  background: #C5A572;
+  background: #c5a572;
   animation-delay: 0.05s;
   --sx: -50rpx;
   --sy: -250rpx;
@@ -1015,7 +1015,7 @@
 .sp12 {
   width: 9rpx;
   height: 9rpx;
-  background: #3D5940;
+  background: #3d5940;
   animation-delay: 0.09s;
   --sx: -180rpx;
   --sy: 160rpx;
@@ -1101,7 +1101,7 @@
 .sc-title {
   font-size: 36rpx;
   font-weight: bold;
-  color: #C5A572;
+  color: #c5a572;
   text-shadow: 0 2rpx 12rpx rgba(197, 165, 114, 0.5);
   z-index: 1;
   animation: scTextFade 0.5s ease 0.6s both;
@@ -1569,7 +1569,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #5B7A5E);
+  background: var(--tg-lottery-primary, #5b7a5e);
 }
 
 .fs-preview__title {
@@ -1641,8 +1641,8 @@
   margin-top: 2rpx;
   padding: 0 6rpx;
   font-size: 18rpx;
-  color: #C5A572;
-  border: 1rpx solid #C5A572;
+  color: #c5a572;
+  border: 1rpx solid #c5a572;
   border-radius: 4rpx;
 }
 

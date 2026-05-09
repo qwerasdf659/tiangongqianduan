@@ -13,14 +13,14 @@
   height: 600rpx;
 }
 
-/* 外圈装饰灯 - 使用主题色 */
+/* 外圈装饰灯 - 浅色优雅风格 */
 .wheel-outer-ring {
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2c3e50, var(--tg-lottery-bg-darker, #34495e));
-  box-shadow: 0 8rpx 30rpx var(--tg-lottery-shadow-strong, rgba(0, 0, 0, 0.3));
+  background: linear-gradient(135deg, #F5EDE0, #E8D5B0);
+  box-shadow: 0 8rpx 30rpx rgba(160, 114, 74, 0.12);
 }
 
 .wheel-light {
@@ -28,13 +28,13 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-accent, #C5A572);
+  background: var(--tg-lottery-accent, #c5a572);
   top: 50%;
   left: 50%;
   margin-left: -8rpx;
   margin-top: -8rpx;
   transform-origin: center center;
-  box-shadow: 0 0 8rpx var(--tg-lottery-accent, #C5A572);
+  box-shadow: 0 0 8rpx var(--tg-lottery-accent, #c5a572);
   animation: lightBlink 1s ease-in-out infinite alternate;
 }
 
@@ -116,7 +116,7 @@
   height: 0;
   border-left: 20rpx solid transparent;
   border-right: 20rpx solid transparent;
-  border-top: 40rpx solid var(--tg-lottery-primary, #3D5940);
+  border-top: 40rpx solid var(--tg-lottery-primary, #3d5940);
   filter: drop-shadow(0 2rpx 4rpx var(--tg-lottery-shadow-soft, rgba(0, 0, 0, 0.3)));
 }
 
@@ -131,7 +131,7 @@
   border-radius: 50%;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-primary, #7A9E7E),
+    var(--tg-lottery-primary, #7a9e7e),
     var(--tg-lottery-primary-dark, #ee5a24)
   );
   @include flex-column-center;
@@ -189,7 +189,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #5B7A5E);
+  background: var(--tg-lottery-primary, #5b7a5e);
 }
 
 .wheel-prizes__title {
@@ -264,8 +264,8 @@
   margin-top: 2rpx;
   padding: 0 6rpx;
   font-size: 18rpx;
-  color: #C5A572;
-  border: 1rpx solid #C5A572;
+  color: #c5a572;
+  border: 1rpx solid #c5a572;
   border-radius: 4rpx;
 }
 
@@ -288,7 +288,7 @@
 
 /* 转盘扇区稀有度颜色 */
 .wheel-prize.legendary .wheel-prize__name {
-  color: #C5A572;
+  color: #c5a572;
   font-weight: bold;
 }
 

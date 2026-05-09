@@ -163,7 +163,7 @@ Component({
           pageLoading: false
         })
         assetConversionLog.info(
-        `转换规则加载成功: ${enrichedRules.length} 条规则, ${tabs.length} 种类型`
+          `转换规则加载成功: ${enrichedRules.length} 条规则, ${tabs.length} 种类型`
         )
 
         /* 外部传入指定币对时，自动定位并展开对应转换面板 */

@@ -11,8 +11,8 @@
 .card-title {
   margin-bottom: 30rpx;
   font-size: 30rpx;
-  color: #fff;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  color: #4A3728;
+  text-shadow: none;
   transition: opacity 0.3s ease;
 }
 
@@ -155,10 +155,10 @@
 .card-back {
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-primary, #5B7A5E),
-    var(--tg-lottery-primary-dark, #4A6B4D)
+    #C8A06A,
+    #A0724A
   );
-  border: 3rpx solid rgba(255, 255, 255, 0.3);
+  border: 3rpx solid rgba(200, 160, 106, 0.4);
 }
 
 /* 卡背流光 */
@@ -188,8 +188,8 @@
 .card-front {
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-bg-light, #F5EFE0),
-    var(--tg-lottery-bg-lighter, #F5EFE0),
+    var(--tg-lottery-bg-light, #f5efe0),
+    var(--tg-lottery-bg-lighter, #f5efe0),
     var(--tg-lottery-bg-lightest, #fff)
   );
   transform: rotateY(180deg);
@@ -406,8 +406,8 @@
   padding: 16rpx 48rpx;
   background: linear-gradient(
     135deg,
-    var(--tg-lottery-primary, #5B7A5E),
-    var(--tg-lottery-primary-dark, #4A6B4D)
+    var(--tg-lottery-primary, #5b7a5e),
+    var(--tg-lottery-primary-dark, #4a6b4d)
   );
   border-radius: 40rpx;
   color: #fff;

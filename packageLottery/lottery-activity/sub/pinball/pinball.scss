@@ -2,8 +2,7 @@
 @import '../../shared/common-animations';
 
 /* ================================================================
-   弹珠机容器 - 豪华街机风格 v6.0
-   全面优化：更丰富的动效、更精致的质感、更流畅的交互
+   弹珠机容器 - 浅色优雅风格
    ================================================================ */
 .pinball-container {
   display: flex;
@@ -14,13 +13,13 @@
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-bg-dark, #070b1e) 0%,
-    var(--tg-lottery-bg-darker, #0e1438) 30%,
-    var(--tg-lottery-bg-dark, #0a0e27) 60%,
-    var(--tg-lottery-bg-darkest, #04060f) 100%
+    #FDF8F0 0%,
+    #F8F2E8 30%,
+    #F5EDE0 60%,
+    #F0E8DA 100%
   );
 
-  /* 深空星云纹理 */
+  /* 浅色纹理 */
   &::before {
     content: '';
     position: absolute;
@@ -259,7 +258,7 @@
 
   48%,
   92% {
-    background: var(--tg-lottery-accent, #C5A572);
+    background: var(--tg-lottery-accent, #c5a572);
     box-shadow:
       0 0 14rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.9)),
       0 0 28rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.4));
@@ -270,7 +269,7 @@
   0%,
   48%,
   100% {
-    background: var(--tg-lottery-accent, #C5A572);
+    background: var(--tg-lottery-accent, #c5a572);
     box-shadow:
       0 0 14rpx var(--tg-lottery-accent-glow, rgba(197, 165, 114, 0.9)),
       0 0 28rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.4));
@@ -293,7 +292,7 @@
 
   48%,
   92% {
-    background: #5B7A5E;
+    background: #5b7a5e;
     box-shadow:
       0 0 14rpx rgba(91, 122, 94, 0.9),
       0 0 28rpx rgba(91, 122, 94, 0.4);
@@ -325,10 +324,10 @@
   color: transparent;
   background: linear-gradient(
     180deg,
-    #F5EFE0 0%,
-    var(--tg-lottery-accent-light, #D4C4A0) 20%,
-    var(--tg-lottery-accent, #C5A572) 50%,
-    var(--tg-lottery-accent-bright, #A8884A) 80%,
+    #f5efe0 0%,
+    var(--tg-lottery-accent-light, #d4c4a0) 20%,
+    var(--tg-lottery-accent, #c5a572) 50%,
+    var(--tg-lottery-accent-bright, #a8884a) 80%,
     #cc7700 100%
   );
   text-shadow: none;
@@ -495,8 +494,8 @@
   height: 10rpx;
   background: linear-gradient(
     180deg,
-    #D4C4A0 0%,
-    var(--tg-lottery-accent, #C5A572) 40%,
+    #d4c4a0 0%,
+    var(--tg-lottery-accent, #c5a572) 40%,
     var(--tg-lottery-accent-dark, #cc9900) 100%
   );
   border-radius: 5rpx;
@@ -781,13 +780,13 @@
   /* 金色金属弹珠 - 更醒目的配色 */
   background: radial-gradient(
     circle at 28% 28%,
-    #F5EFE0 0%,
-    #D4C4A0 15%,
-    #C5A572 30%,
-    #C5A572 50%,
-    #A8884A 70%,
-    #A8884A 90%,
-    #3D5940 100%
+    #f5efe0 0%,
+    #d4c4a0 15%,
+    #c5a572 30%,
+    #c5a572 50%,
+    #a8884a 70%,
+    #a8884a 90%,
+    #3d5940 100%
   );
   box-shadow:
     0 4rpx 14rpx rgba(0, 0, 0, 0.5),
@@ -1099,7 +1098,7 @@
 
   .active &,
   .winner & {
-    color: var(--tg-lottery-accent, #C5A572);
+    color: var(--tg-lottery-accent, #c5a572);
     font-weight: bold;
     text-shadow: 0 0 10rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.5));
   }
@@ -1550,9 +1549,9 @@
   padding: 22rpx 60rpx;
   background: linear-gradient(
     135deg,
-    #C5A572 0%,
-    var(--tg-lottery-primary, #C5A572) 30%,
-    var(--tg-lottery-primary-dark, #4A6B4D) 60%,
+    #c5a572 0%,
+    var(--tg-lottery-primary, #c5a572) 30%,
+    var(--tg-lottery-primary-dark, #4a6b4d) 60%,
     #f57c00 100%
   );
   border-radius: 50rpx;
@@ -1585,10 +1584,10 @@
   &.winner-btn {
     background: linear-gradient(
       135deg,
-      #D4C4A0 0%,
-      var(--tg-lottery-accent, #C5A572) 30%,
-      var(--tg-lottery-accent-bright, #A8884A) 60%,
-      var(--tg-lottery-accent, #C5A572) 100%
+      #d4c4a0 0%,
+      var(--tg-lottery-accent, #c5a572) 30%,
+      var(--tg-lottery-accent-bright, #a8884a) 60%,
+      var(--tg-lottery-accent, #c5a572) 100%
     );
     box-shadow:
       0 8rpx 28rpx rgba(197, 165, 114, 0.6),

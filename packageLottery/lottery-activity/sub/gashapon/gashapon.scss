@@ -2,7 +2,7 @@
 @import '../../shared/common-animations';
 
 /* ================================
-   扭蛋机容器 - 复古怀旧版
+   扭蛋机容器 - 浅色优雅版
    ================================ */
 .gashapon-container {
   display: flex;
@@ -13,12 +13,12 @@
   overflow: hidden;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-bg-dark, #2c1810) 0%,
-    var(--tg-lottery-bg-darker, #3d2415) 50%,
-    var(--tg-lottery-bg-dark, #2c1810) 100%
+    #FDF8F0 0%,
+    #F8F2E8 50%,
+    #F5EDE0 100%
   );
 
-  /* 复古纹理背景 */
+  /* 浅色纹理背景 */
   &::before {
     content: '';
     position: absolute;
@@ -454,7 +454,7 @@
   margin-top: 35rpx;
   font-size: 30rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent-light, #C5A572);
+  color: var(--tg-lottery-accent-light, #c5a572);
   text-shadow:
     2rpx 2rpx 0 #000,
     -2rpx -2rpx 0 #000,
@@ -477,7 +477,7 @@
   border-radius: var(--td-radius-small);
   font-size: 26rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent-light, #C5A572);
+  color: var(--tg-lottery-accent-light, #c5a572);
   border: 4rpx solid var(--tg-lottery-frame, #8b4513);
   box-shadow:
     0 6rpx 12rpx rgba(0, 0, 0, 0.6),
@@ -713,7 +713,7 @@
 .tip-text {
   font-size: 26rpx;
   font-weight: bold;
-  color: var(--tg-lottery-accent-light, #C5A572);
+  color: var(--tg-lottery-accent-light, #c5a572);
   text-align: center;
   padding: 14rpx 30rpx;
   background: linear-gradient(
