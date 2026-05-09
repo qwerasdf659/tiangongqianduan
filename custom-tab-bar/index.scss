@@ -60,15 +60,15 @@
 }
 
 .tab-label {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   line-height: 1.2;
-  color: #cccccc;
-  font-weight: 400;
+  color: var(--tg-text-tertiary);
+  font-weight: var(--tg-font-weight-regular);
   letter-spacing: 2rpx;
 }
 
 /* 选中态 */
 .tab-item--active .tab-label {
-  color: #333333;
-  font-weight: 500;
+  color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-bold);
 }
