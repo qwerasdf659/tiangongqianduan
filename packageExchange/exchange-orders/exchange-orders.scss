@@ -53,7 +53,7 @@
 
 .stat-number {
   font-size: var(--td-font-size-xxl);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1.2;
 }
@@ -101,12 +101,12 @@
 .filter-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-secondary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .filter-tab.active .filter-text {
   color: var(--tg-color-white);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .filter-indicator {
@@ -146,7 +146,7 @@
 
 .guide-title {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
 }
@@ -169,7 +169,7 @@
   height: 56rpx;
   border-radius: var(--td-radius-default);
   @include flex-center;
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-color-white);
   box-shadow: 0 4rpx 12rpx rgba(var(--tg-color-black-rgb), 0.15);
 }
@@ -191,18 +191,18 @@
 }
 
 .guide-step-text {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-secondary);
 }
 
 .guide-arrow {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-tertiary);
   margin-top: -24rpx;
 }
 
 .guide-hint {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-tertiary);
   text-align: center;
   display: block;
@@ -251,7 +251,7 @@
 .empty-action-text {
   font-size: var(--td-font-size-base);
   color: var(--tg-color-white);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ===== 订单卡片 ===== */
@@ -329,7 +329,7 @@
   display: block;
   font-size: var(--td-font-size-m);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   margin-bottom: 6rpx;
 }
 
@@ -337,7 +337,7 @@
   display: block;
   font-size: var(--td-font-size-s);
   color: var(--td-brand-color);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 时间线 */
@@ -402,7 +402,7 @@
 }
 
 .auto-tip-icon {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
 }
 
 .auto-tip-text {
@@ -477,8 +477,8 @@
 }
 
 .rating-modal-title {
-  font-size: 34rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -548,5 +548,5 @@
 .rating-submit-text {
   font-size: var(--td-font-size-m);
   color: var(--tg-color-white);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }

@@ -47,7 +47,7 @@
 
 .payment-title {
   font-size: var(--td-font-size-l);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -176,7 +176,7 @@
 
 .payment-asset-name {
   font-size: var(--td-font-size-m);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-primary);
 }
 
@@ -207,7 +207,7 @@
 
 .payment-cost-amount {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
@@ -222,7 +222,7 @@
 
 .payment-balance-amount.insufficient-text {
   color: var(--tg-color-error);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 余额不足警告 */
@@ -280,7 +280,7 @@
   background: var(--td-brand-color);
   border-radius: var(--td-radius-default);
   font-size: var(--td-font-size-m);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-color-white);
 }
 

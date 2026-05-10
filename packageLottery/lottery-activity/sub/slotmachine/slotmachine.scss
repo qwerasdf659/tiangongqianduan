@@ -280,7 +280,7 @@
 
 .title-text {
   font-size: var(--tg-font-size-xl);
-  font-weight: 900;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   /* 多层霓虹光晕 - 更深、更广、更亮 */
   text-shadow:
@@ -430,9 +430,9 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1rpx solid rgba(255, 255, 255, 0.15);
   @include flex-center;
-  font-size: 16rpx;
+  font-size: var(--tg-font-size-micro);
   color: var(--tg-lottery-text-lightest, rgba(255, 255, 255, 0.3));
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 
   &.center {
     background: var(--tg-lottery-primary-bg, rgba(147, 51, 234, 0.2));
@@ -1042,8 +1042,8 @@
 }
 
 .label-text {
-  font-size: 22rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   letter-spacing: 4rpx;
   text-shadow: 0 0 6rpx rgba(197, 165, 114, 0.5);
@@ -1336,7 +1336,7 @@
 .status-hint {
   margin-top: 32rpx;
   font-size: var(--td-font-size-base);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 0 8rpx rgba(197, 165, 114, 0.6),
@@ -1372,7 +1372,7 @@
   );
   border-radius: var(--td-radius-small);
   font-size: var(--td-font-size-s);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   border: 2rpx solid rgba(197, 165, 114, 0.25);
   box-shadow:
@@ -1395,7 +1395,7 @@
   font-size: var(--td-font-size-base);
   animation: particleFloat3D linear infinite;
   opacity: 0.4;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 
   .particle-text {
     display: inline-block;
@@ -1559,7 +1559,7 @@
   top: 50%;
   left: 50%;
   font-size: var(--tg-font-size-xxl);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 0 15rpx rgba(197, 165, 114, 1),
@@ -1689,7 +1689,7 @@
   position: absolute;
   top: -20%;
   font-size: 52rpx;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 3rpx 6rpx rgba(0, 0, 0, 0.6),
@@ -1808,12 +1808,12 @@
   font-size: var(--td-font-size-base);
   color: var(--tg-lottery-accent, #c5a572);
   animation: tipArrowSlide 1s ease-in-out infinite;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   text-shadow: 0 0 8rpx rgba(197, 165, 114, 0.6);
 }
 
 .tip-text {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-accent-text, rgba(197, 165, 114, 0.7));
   padding: 8rpx 20rpx;
   background: var(--tg-lottery-primary-bg, rgba(74, 21, 165, 0.5));
@@ -1876,13 +1876,13 @@
 }
 
 .sm-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, #333);
 }
 
 .sm-prizes__count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #999);
 }
 
@@ -1931,7 +1931,7 @@
 
 .sm-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #666);
   max-width: 120rpx;
   overflow: hidden;
@@ -1948,8 +1948,8 @@
 .sm-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
-  color: #999;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
   background: rgba(153, 153, 153, 0.15);
   border-radius: 4rpx;
 }
@@ -1963,8 +1963,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.6);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;

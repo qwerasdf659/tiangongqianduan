@@ -172,7 +172,7 @@
 .nav-item-horizontal.active .nav-text {
   color: var(--tg-color-white) !important;
   text-shadow: 0 2rpx 4rpx rgba(var(--tg-color-black-rgb), 0.2);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .nav-item-horizontal.trade-market-nav {
@@ -249,9 +249,9 @@
 }
 
 .nav-text {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   /* 🔧 极致压缩：减小字体 */
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary-strong);
   transition: all 0.3s ease;
   letter-spacing: 0.5rpx;
@@ -274,8 +274,8 @@
     var(--tg-color-success-strong) 100%
   );
   color: var(--tg-color-white);
-  font-size: 16rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-nano);
+  font-weight: var(--tg-font-weight-bold);
   padding: 6rpx 10rpx;
   border-radius: 12rpx;
   box-shadow:
@@ -313,7 +313,7 @@
 /* 响应式优化 */
 @media (max-width: 400px) {
   .nav-text {
-    font-size: 26rpx;
+    font-size: var(--tg-font-size-body);
   }
 
   .nav-item-horizontal {
@@ -333,7 +333,7 @@
   }
 
   .filter-btn {
-    font-size: 20rpx;
+    font-size: var(--tg-font-size-mini);
     padding: 0 4rpx;
     height: 44rpx;
     /* 🔧 极致压缩：小屏幕也保持紧凑 */
@@ -341,7 +341,7 @@
   }
 
   .advanced-filter-btn {
-    font-size: 18rpx;
+    font-size: var(--tg-font-size-micro);
     padding: 0 8rpx;
     height: 44rpx;
     /* 🔧 极致压缩：小屏幕也保持紧凑 */
@@ -349,7 +349,7 @@
   }
 
   .advanced-filter-btn::before {
-    font-size: 15rpx;
+    font-size: var(--tg-font-size-nano);
     /* 调整图标大小：14rpx → 15rpx */
     margin-right: 4rpx;
     /* 调整间距 */
@@ -364,7 +364,7 @@
   }
 
   .action-btn {
-    font-size: 22rpx;
+    font-size: var(--tg-font-size-small);
     /* 小屏幕字体：23rpx → 22rpx */
     height: 64rpx;
     /* 小屏幕恢复原高度 */

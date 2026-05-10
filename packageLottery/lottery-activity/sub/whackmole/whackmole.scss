@@ -133,8 +133,8 @@
 
 .whack-title {
   font-size: var(--td-font-size-l);
-  color: #fff;
-  font-weight: bold;
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
     0 0 20rpx rgba(197, 165, 114, 0.3);
@@ -220,22 +220,22 @@
 
 .score-icon,
 .time-icon {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
 }
 
 .score-value {
-  font-size: 30rpx;
+  font-size: var(--tg-font-size-headline);
   color: var(--tg-lottery-accent, #c5a572);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
     0 0 10rpx rgba(197, 165, 114, 0.5);
 }
 
 .time-value {
-  font-size: 30rpx;
-  color: #fff;
-  font-weight: bold;
+  font-size: var(--tg-font-size-headline);
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -355,8 +355,8 @@
 
 .carnival-text {
   font-size: var(--td-font-size-s);
-  font-weight: bold;
-  color: #fff;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -434,7 +434,7 @@
 
 .combo-text {
   font-size: var(--tg-font-size-xl);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-primary, #7a9e7e);
   text-shadow:
     3rpx 3rpx 0 #000,
@@ -659,8 +659,8 @@
 }
 
 .miss-text {
-  font-size: 44rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-danger, #ff5252);
   text-shadow:
     2rpx 2rpx 0 #000,
@@ -672,7 +672,7 @@
 
 .miss-penalty {
   font-size: var(--td-font-size-m);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-warning, #ffa726);
   text-shadow:
     1rpx 1rpx 0 #000,
@@ -1363,7 +1363,7 @@
 
 .whack-score {
   font-size: var(--td-font-size-m);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-success, #4caf50);
   text-shadow:
     2rpx 2rpx 0 #000,
@@ -1536,8 +1536,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 56rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     3rpx 3rpx 0 #000,
@@ -1636,8 +1636,8 @@
 
 .intro-title {
   font-size: var(--tg-font-size-xl);
-  font-weight: bold;
-  color: #fff;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
     0 0 20rpx rgba(197, 165, 114, 0.4);
@@ -1677,9 +1677,9 @@
     var(--tg-lottery-primary-dark, #ee5a24) 100%
   );
   border-radius: 60rpx;
-  color: #fff;
+  color: var(--tg-color-white);
   font-size: var(--td-font-size-l);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   box-shadow:
     0 12rpx 32rpx rgba(238, 90, 36, 0.5),
     inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3),
@@ -1774,7 +1774,7 @@
 .rule-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.9));
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ================================
@@ -1858,9 +1858,9 @@
 }
 
 .result-title {
-  font-size: 42rpx;
+  font-size: var(--tg-font-size-display);
   color: var(--tg-lottery-accent, #c5a572);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   text-shadow:
     0 2rpx 4rpx rgba(0, 0, 0, 0.5),
     0 0 30rpx rgba(197, 165, 114, 0.6);
@@ -1914,14 +1914,14 @@
 }
 
 .result-score__label {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-lottery-text-light, rgba(255, 255, 255, 0.8));
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .result-score__value {
-  font-size: 72rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   text-shadow:
     0 0 30rpx rgba(197, 165, 114, 0.8),
@@ -1985,13 +1985,13 @@
 
 .stat-value {
   font-size: var(--tg-font-size-xl);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
 .stat-label {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, rgba(255, 255, 255, 0.7));
 }
 
@@ -2042,7 +2042,7 @@
 
 .cost-text {
   font-size: var(--td-font-size-base);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
@@ -2061,9 +2061,9 @@
 }
 
 .funny-text {
-  font-size: 26rpx;
-  color: #fff;
-  font-weight: bold;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
   text-align: center;
   display: block;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
@@ -2115,7 +2115,7 @@
 
   .stat-value {
     font-size: var(--td-font-size-m);
-    font-weight: bold;
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-accent, #c5a572);
     text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
   }
@@ -2144,9 +2144,9 @@
 }
 
 .waiting-text {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-lottery-accent, #c5a572);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
 }
 
@@ -2214,13 +2214,13 @@
 }
 
 .wm-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, #333);
 }
 
 .wm-prizes__count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #999);
 }
 
@@ -2269,7 +2269,7 @@
 
 .wm-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #666);
   max-width: 120rpx;
   overflow: hidden;
@@ -2286,8 +2286,8 @@
 .wm-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
-  color: #999;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
   background: rgba(153, 153, 153, 0.15);
   border-radius: 4rpx;
 }
@@ -2301,8 +2301,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.6);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;

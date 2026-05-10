@@ -76,7 +76,7 @@
   border-radius: 50%;
   @include flex-center;
   margin-bottom: 8rpx;
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   transition: var(--tg-transition-base);
 }
 
@@ -94,7 +94,7 @@
 
 .stat-number {
   font-size: var(--tg-font-size-xxl);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1.2;
 }
@@ -110,7 +110,7 @@
 .stat-label {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .stat-divider {
@@ -153,7 +153,7 @@
 
 .tab-label {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
 }
 
@@ -163,7 +163,7 @@
 
 .tab-count {
   font-size: var(--tg-font-size-xs);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   background: rgba(255, 107, 53, 0.7);
   min-width: 32rpx;
@@ -282,7 +282,7 @@
 
 .kind-tag {
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.12), rgba(229, 90, 43, 0.08));
@@ -297,7 +297,7 @@
 /* 状态标签 - 根据不同状态着色 */
 .status-tag {
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
 }
@@ -341,7 +341,7 @@
 
 .item-name {
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   @include text-ellipsis;
   display: block;
@@ -392,7 +392,7 @@
 
 .price-amount {
   font-size: var(--td-font-size-l);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   background: linear-gradient(
     135deg,
     var(--tg-gradient-primary-start),
@@ -424,7 +424,7 @@
 
 .withdraw-btn {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-error);
   background: rgba(255, 77, 79, 0.08);
   border: 2rpx solid rgba(255, 77, 79, 0.3);
@@ -456,7 +456,7 @@
 .locked-label {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-warning);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .sold-hint {
@@ -482,13 +482,13 @@
 .sold-label {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-info);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .withdrawn-label {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ===== 加载更多 ===== */
@@ -563,7 +563,7 @@
 
 .empty-title {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 12rpx;
 }
@@ -585,7 +585,7 @@
   height: 72rpx;
   line-height: 72rpx;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   border-radius: 36rpx;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
 }
@@ -595,7 +595,7 @@
   height: 72rpx;
   line-height: 68rpx;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   border-radius: 36rpx;
   color: var(--tg-text-primary);
   background: transparent;
@@ -612,8 +612,8 @@
   padding: 0 24rpx;
   height: 56rpx;
   line-height: 56rpx;
-  font-size: 24rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-regular);
   border-radius: 28rpx;
   color: var(--tg-color-white);
   background: var(--tg-gradient-primary);

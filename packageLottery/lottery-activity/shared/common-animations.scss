@@ -62,8 +62,8 @@
   margin-bottom: 16rpx;
 
   &__text {
-    font-size: 26rpx;
-    font-weight: bold;
+    font-size: var(--tg-font-size-body);
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-accent, #c5a572);
     white-space: nowrap;
   }

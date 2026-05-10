@@ -23,6 +23,8 @@ globs: ["**/*.scss", "**/*.wxss"]
 | `--tg-font-size-caption` | 24rpx | 标签（"可用积分"） |
 | `--tg-font-size-small` | 22rpx | 奖品名称、角标 |
 | `--tg-font-size-mini` | 20rpx | tab文字、时间戳 |
+| `--tg-font-size-micro` | 18rpx | 角标、折扣标签 |
+| `--tg-font-size-nano` | 16rpx | 极小装饰文字、缩略编号 |
 
 数字专用字号：
 | Token | 值 | 用途 |

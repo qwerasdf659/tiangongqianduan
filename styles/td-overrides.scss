@@ -116,6 +116,8 @@ page {
   --tg-font-size-caption: 24rpx;
   --tg-font-size-small: 22rpx;
   --tg-font-size-mini: 20rpx;
+  --tg-font-size-micro: 18rpx;
+  --tg-font-size-nano: 16rpx;
 
   /* 数字字号 */
   --tg-font-size-number-lg: 36rpx;
@@ -131,15 +133,16 @@ page {
   --tg-line-height-normal: 1.4;
   --tg-line-height-relaxed: 1.6;
 
-  --tg-gradient-primary-start: #fff9ed;
-  --tg-gradient-primary-end: #e5d4b2;
-  --tg-gradient-primary: linear-gradient(135deg, #fff9ed 0%, #e5d4b2 100%);
-  --tg-brand-bg-soft: #f5f0e8;
+  --tg-gradient-primary-start: #FDF8F0;
+  --tg-gradient-primary-end: #F5EDE0;
+  --tg-gradient-primary: linear-gradient(135deg, #FDF8F0 0%, #F5EDE0 100%);
+  --tg-brand-bg-soft: #F5F0E8;
 
-  --tg-accent-gold: #c5a572;
-  --tg-accent-gold-active: #a8884a;
-  --tg-accent-gold-light: #f5efe0;
-  --tg-accent-gold-rgb: 197, 165, 114;
+  /* 品牌强调色 — 暖金 */
+  --tg-accent-gold: #C8A06A;
+  --tg-accent-gold-active: #A0724A;
+  --tg-accent-gold-light: #FDF8F0;
+  --tg-accent-gold-rgb: 200, 160, 106;
 
   --tg-shadow-sm: 0 1rpx 4rpx rgba(0, 0, 0, 0.03);
   --tg-shadow-md: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);

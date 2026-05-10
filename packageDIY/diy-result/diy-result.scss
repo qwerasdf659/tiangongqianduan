@@ -35,12 +35,12 @@
 .success-icon {
   font-size: 56rpx;
   color: var(--tg-color-white);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .success-title {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -75,13 +75,13 @@
 
 .price-value {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
 .work-id {
   font-size: var(--td-font-size-s);
-  font-weight: 400;
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-secondary);
   font-family: monospace;
 }
@@ -109,7 +109,7 @@
 
 .cost-preview-amount {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
@@ -136,7 +136,7 @@
 
 .step-title {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   display: block;
   margin-bottom: var(--tg-spacing-xs);
@@ -164,7 +164,7 @@
   text-align: center;
   border-radius: var(--td-radius-large);
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   transition: opacity 0.2s ease;
 
   &:active {

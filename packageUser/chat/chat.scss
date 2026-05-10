@@ -49,8 +49,8 @@
 }
 
 .search-icon {
-  font-size: 28rpx;
-  color: #9aa0a6;
+  font-size: var(--tg-font-size-title);
+  color: var(--tg-text-tertiary);
   margin-right: 16rpx;
   transition: color 0.2s ease;
 }
@@ -58,18 +58,18 @@
 .search-input {
   flex: 1;
   font-size: var(--td-font-size-base);
-  color: #202124;
+  color: var(--tg-text-primary);
   border: none;
   background: transparent;
 }
 
 .search-placeholder {
-  color: #bdc1c6;
+  color: var(--tg-text-tertiary);
 }
 
 .clear-search {
   font-size: var(--td-font-size-m);
-  color: #9aa0a6;
+  color: var(--tg-text-tertiary);
   padding: 8rpx 12rpx;
   margin-left: 8rpx;
   border-radius: 50%;
@@ -107,7 +107,7 @@
 .new-chat-icon {
   font-size: var(--td-font-size-m);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ============================================================================ */
@@ -166,8 +166,8 @@
 
 /* 有未读消息的会话项 — 名称加粗（对标微信未读消息效果） */
 .session-item.has-unread .session-name {
-  font-weight: 700;
-  color: #000;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
 }
 
 /* ============================================================================ */
@@ -236,7 +236,7 @@
   right: -2rpx;
   width: 24rpx;
   height: 24rpx;
-  background: #4caf50;
+  background: var(--tg-color-success);
   border: 4rpx solid var(--tg-color-white);
   border-radius: 50%;
   box-shadow: 0 0 0 3rpx rgba(76, 175, 80, 0.2);
@@ -255,7 +255,7 @@
 
 /* 已结束的会话 — 在线指示器显示灰色（无脉冲动画） */
 .online-indicator.indicator-offline {
-  background: #bdc1c6;
+  background: var(--tg-text-tertiary);
   box-shadow: none;
   animation: none;
 }
@@ -292,8 +292,8 @@
 
 .session-name {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
-  color: #1a1a2e;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
   letter-spacing: 0.5rpx;
 }
 
@@ -316,7 +316,7 @@
 }
 
 .status-tag-text {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   white-space: nowrap;
 }
 
@@ -328,7 +328,7 @@
   background: #ff9800;
 }
 .status-waiting .status-tag-text {
-  color: #e68900;
+  color: var(--tg-color-warning);
 }
 
 /* 已分配 — 蓝色 */
@@ -339,7 +339,7 @@
   background: #2196f3;
 }
 .status-assigned .status-tag-text {
-  color: #1976d2;
+  color: var(--tg-color-info);
 }
 
 /* 对话中 — 绿色 */
@@ -351,7 +351,7 @@
   animation: statusDotPulse 1.5s ease-in-out infinite;
 }
 .status-active .status-tag-text {
-  color: #388e3c;
+  color: var(--tg-color-success);
 }
 
 @keyframes statusDotPulse {
@@ -372,12 +372,12 @@
   background: #9e9e9e;
 }
 .status-closed .status-tag-text {
-  color: #757575;
+  color: var(--tg-text-secondary);
 }
 
 .session-time {
   font-size: var(--tg-font-size-xs);
-  color: #b0b8c1;
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
   margin-left: 8rpx;
 }
@@ -391,7 +391,7 @@
 .last-message {
   flex: 1;
   font-size: var(--td-font-size-s);
-  color: #8c939a;
+  color: var(--tg-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -407,8 +407,8 @@
   color: var(--tg-color-white);
   border-radius: 18rpx;
   @include flex-center;
-  font-size: 22rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
   padding: 0 10rpx;
   box-shadow: 0 3rpx 10rpx rgba(255, 68, 68, 0.3);
   animation: unreadPop 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -440,7 +440,7 @@
 
 .search-loading-text {
   font-size: var(--td-font-size-s);
-  color: #9aa0a6;
+  color: var(--tg-text-tertiary);
 }
 
 /* 搜索无结果 */
@@ -465,14 +465,14 @@
 
 .search-empty-title {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
-  color: #1a1a2e;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
 
 .search-empty-desc {
   font-size: var(--td-font-size-s);
-  color: #9aa0a6;
+  color: var(--tg-text-tertiary);
 }
 
 /* 搜索结果头部 */
@@ -486,13 +486,13 @@
 
 .search-results-label {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
-  color: #5f6368;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-secondary);
 }
 
 .search-results-count {
   font-size: var(--tg-font-size-xs);
-  color: #9aa0a6;
+  color: var(--tg-text-tertiary);
 }
 
 /* 搜索结果项 */
@@ -556,7 +556,7 @@
 /* 发送者标签 */
 .result-sender-tag {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   padding: 2rpx 12rpx;
   border-radius: 8rpx;
 }
@@ -569,13 +569,13 @@
 
 /* "客服"标签 — 青色 */
 .sender-admin {
-  color: #00a0a0;
+  color: var(--tg-color-success);
   background: rgba(0, 160, 160, 0.08);
 }
 
 .result-time {
   font-size: var(--tg-font-size-xs);
-  color: #b0b8c1;
+  color: var(--tg-text-tertiary);
   flex-shrink: 0;
 }
 
@@ -586,7 +586,7 @@
 
 .result-message-text {
   font-size: var(--td-font-size-base);
-  color: #202124;
+  color: var(--tg-text-primary);
   line-height: 1.5;
   /* rich-text 内容自动渲染，关键词高亮通过内联样式实现 */
 }
@@ -599,7 +599,7 @@
 
 .result-source-text {
   font-size: var(--tg-font-size-xs);
-  color: #b0b8c1;
+  color: var(--tg-text-tertiary);
 }
 
 /* ============================================================================ */
@@ -714,14 +714,14 @@
 
 .error-title {
   font-size: var(--td-font-size-l);
-  font-weight: 600;
-  color: #1a1a2e;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
   margin-bottom: 12rpx;
 }
 
 .error-desc {
   font-size: var(--td-font-size-s);
-  color: #8c939a;
+  color: var(--tg-text-tertiary);
   margin-bottom: 48rpx;
 }
 
@@ -745,12 +745,12 @@
 .retry-btn-text {
   color: var(--tg-color-white);
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .loading-text {
   font-size: var(--td-font-size-s);
-  color: #9aa0a6;
+  color: var(--tg-text-tertiary);
 }
 
 /* ============================================================================ */
@@ -855,8 +855,8 @@
 
 .back-btn {
   font-size: var(--tg-font-size-xl);
-  font-weight: bold;
-  color: white;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
 }
 
 .current-session-avatar {
@@ -888,7 +888,7 @@
 }
 
 .header-online-dot.online {
-  background: #4caf50;
+  background: var(--tg-color-success);
   box-shadow: 0 0 8rpx rgba(76, 175, 80, 0.5);
 }
 
@@ -915,8 +915,8 @@
 }
 
 .session-detail .session-name {
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   margin-bottom: 4rpx;
 }
@@ -958,7 +958,7 @@
 }
 
 .session-status-text {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.8);
   letter-spacing: 0.5rpx;
 }
@@ -983,8 +983,8 @@
 
 .more-btn {
   font-size: var(--tg-font-size-xl);
-  font-weight: bold;
-  color: white;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
 }
 
 /* ============================================================================ */
@@ -1025,9 +1025,9 @@
 }
 
 .banner-text {
-  font-size: 24rpx;
-  color: white;
-  font-weight: 500;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ============================================================================ */
@@ -1111,15 +1111,15 @@
 }
 
 .welcome-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #1a1a2e;
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
 
 .welcome-subtitle {
-  font-size: 26rpx;
-  color: #8c939a;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-tertiary);
   margin-bottom: 32rpx;
 }
 
@@ -1147,8 +1147,8 @@
 }
 
 .tip-text {
-  font-size: 24rpx;
-  color: #5f6368;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-secondary);
   line-height: 1.5;
 }
 
@@ -1161,7 +1161,7 @@
 }
 
 .quick-reply-unavailable-text {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-gradient-primary-start);
   line-height: 1.4;
   text-align: center;
@@ -1182,14 +1182,14 @@
 
 .chat-error-text {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
-  color: #1a1a2e;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
 
 .chat-error-desc {
   font-size: var(--td-font-size-s);
-  color: #8c939a;
+  color: var(--tg-text-tertiary);
 }
 
 /* ============================================================================ */
@@ -1201,8 +1201,8 @@
 }
 
 .time-text {
-  font-size: 22rpx;
-  color: #9aa0a6;
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
   background: rgba(0, 0, 0, 0.04);
   padding: 6rpx 20rpx;
   border-radius: 20rpx;
@@ -1219,8 +1219,8 @@
 }
 
 .system-message-text {
-  font-size: 22rpx;
-  color: #9aa0a6;
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
   background: rgba(0, 0, 0, 0.04);
   padding: 8rpx 24rpx;
   border-radius: 20rpx;
@@ -1339,8 +1339,8 @@
 }
 
 .status-label {
-  font-size: 20rpx;
-  color: #b0b8c1;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
 }
 
 .status-label.sending {
@@ -1358,12 +1358,12 @@
 }
 
 .status-label.read {
-  color: #4caf50;
+  color: var(--tg-color-success);
 }
 
 .status-label.failed {
-  color: #f44336;
-  font-weight: 500;
+  color: var(--tg-color-error);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ============================================================================ */
@@ -1464,9 +1464,9 @@
 }
 
 .fab-arrow {
-  font-size: 32rpx;
+  font-size: var(--tg-font-size-headline);
   color: var(--tg-gradient-primary-start);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .fab-badge {
@@ -1476,13 +1476,13 @@
   min-width: 32rpx;
   height: 32rpx;
   background: linear-gradient(135deg, #ff4444, #ff6b6b);
-  color: white;
+  color: var(--tg-color-white);
   border-radius: 16rpx;
   @include flex-center;
-  font-size: 20rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-bold);
   padding: 0 8rpx;
-  border: 3rpx solid white;
+  border: 3rpx solid var(--tg-color-white);
 }
 
 /* ============================================================================ */
@@ -1543,8 +1543,8 @@
 }
 
 .quick-reply-chip .quick-reply-chip-text {
-  font-size: 24rpx;
-  color: #5f6368;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-secondary);
   white-space: nowrap;
 }
 
@@ -1554,8 +1554,8 @@
 }
 
 .toggle-icon {
-  font-size: 24rpx;
-  color: #9aa0a6;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
 }
 
 /* ============================================================================ */
@@ -1601,9 +1601,9 @@
 }
 
 .expand-icon {
-  font-size: 36rpx;
-  color: #5f6368;
-  font-weight: 300;
+  font-size: var(--tg-font-size-number-lg);
+  color: var(--tg-text-secondary);
+  font-weight: var(--tg-font-weight-regular);
   transition: color 0.2s ease;
 }
 
@@ -1637,7 +1637,7 @@
   border: none;
   background: transparent;
   font-size: var(--td-font-size-base);
-  color: #202124;
+  color: var(--tg-text-primary);
   resize: none;
   outline: none;
   max-height: 160rpx;
@@ -1646,7 +1646,7 @@
 }
 
 .input-placeholder {
-  color: #bdc1c6;
+  color: var(--tg-text-tertiary);
 }
 
 /* 发送按钮 */
@@ -1678,15 +1678,15 @@
 }
 
 .send-btn-icon {
-  font-size: 32rpx;
+  font-size: var(--tg-font-size-headline);
 }
 
 .send-btn.inactive .send-btn-icon {
-  color: #9aa0a6;
+  color: var(--tg-text-tertiary);
 }
 
 .send-btn.active .send-btn-icon {
-  color: white;
+  color: var(--tg-color-white);
 }
 
 /* ============================================================================ */
@@ -1740,8 +1740,8 @@
 }
 
 .toolbar-item-label {
-  font-size: 22rpx;
-  color: #5f6368;
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-secondary);
 }
 
 /* ============================================================================ */
@@ -1755,8 +1755,8 @@
 }
 
 .loading-history .loading-text {
-  font-size: 26rpx;
-  color: #9aa0a6;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-tertiary);
 }
 
 /* ============================================================================ */
@@ -1779,9 +1779,9 @@
 }
 
 .satisfaction-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #5d4e00;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-warning);
 }
 
 .satisfaction-dismiss {
@@ -1789,8 +1789,8 @@
 }
 
 .dismiss-icon {
-  font-size: 28rpx;
-  color: #999;
+  font-size: var(--tg-font-size-title);
+  color: var(--tg-text-tertiary);
 }
 
 .satisfaction-stars {
@@ -1812,12 +1812,12 @@
 }
 
 .star-active {
-  color: #ffc107;
+  color: var(--tg-color-warning);
   transform: scale(1.15);
 }
 
 .star-inactive {
-  color: #d4d4d4;
+  color: var(--tg-text-tertiary);
 }
 
 .satisfaction-labels {
@@ -1826,8 +1826,8 @@
 }
 
 .satisfaction-label {
-  font-size: 24rpx;
-  color: #8a7600;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-color-warning);
 }
 
 .satisfaction-actions {
@@ -1839,8 +1839,8 @@
   min-width: 240rpx;
   height: 68rpx;
   border-radius: 34rpx;
-  font-size: 26rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
   border: none;
   display: flex;
   align-items: center;
@@ -1850,13 +1850,13 @@
 
 .satisfaction-submit-btn.active {
   background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: #fff;
+  color: var(--tg-color-white);
   box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
 }
 
 .satisfaction-submit-btn.disabled {
   background: #e0e0e0;
-  color: #999;
+  color: var(--tg-text-tertiary);
 }
 
 .satisfaction-done {
@@ -1875,9 +1875,9 @@
 }
 
 .satisfaction-done-text {
-  font-size: 26rpx;
-  color: #2e7d32;
-  font-weight: 500;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-color-success);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ============================================================================ */

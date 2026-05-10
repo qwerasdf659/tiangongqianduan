@@ -23,8 +23,8 @@
 }
 
 .escrow-dialog-title {
-  font-size: 34rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -34,12 +34,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-tertiary);
 }
 
 .escrow-dialog-hint {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
   display: block;
   margin-bottom: 24rpx;
@@ -53,7 +53,7 @@
   border-radius: 16rpx;
   text-align: center;
   font-size: 48rpx;
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   letter-spacing: 16rpx;
   color: var(--tg-text-primary);
   font-family: monospace;
@@ -72,7 +72,7 @@
   height: 100rpx;
   text-align: center;
   font-size: var(--tg-font-size-xxl);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   letter-spacing: 16rpx;
   padding: 20rpx 0;
   border: none;
@@ -116,7 +116,7 @@
   text-align: center;
   border: 2rpx solid var(--tg-color-border);
   border-radius: 40rpx;
-  font-size: 30rpx;
+  font-size: var(--tg-font-size-headline);
   color: var(--tg-text-secondary);
 }
 
@@ -126,9 +126,9 @@
   text-align: center;
   background: var(--tg-exchange-cta-bg, var(--td-brand-color));
   border-radius: 40rpx;
-  font-size: 30rpx;
-  color: #fff;
-  font-weight: 500;
+  font-size: var(--tg-font-size-headline);
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .escrow-dialog-submit--disabled {

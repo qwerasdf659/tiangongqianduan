@@ -41,14 +41,14 @@
 .scan-icon {
   font-size: 34rpx;
   line-height: 1;
-  color: #FFFFFF;
+  color: var(--tg-color-white);
 }
 
 /* 🔴 扫码核销文字 */
 .scan-text {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #FFFFFF;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   letter-spacing: 1rpx;
 }
 
@@ -72,14 +72,14 @@
 .consume-icon {
   font-size: 34rpx;
   line-height: 1;
-  color: #FFFFFF;
+  color: var(--tg-color-white);
 }
 
 /* 🔴 消费录入文字 */
 .consume-text {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #FFFFFF;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   letter-spacing: 1rpx;
 }
 
@@ -101,8 +101,8 @@
 
 /* 🔴 审核详情文字 */
 .audit-text {
-  font-size: 26rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-color-white);
   letter-spacing: 1rpx;
 }
@@ -111,7 +111,7 @@
 .arrow-icon {
   font-size: var(--td-font-size-base);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ========================================
@@ -181,17 +181,17 @@
 
 /* 徽章图标 */
 .badge-icon {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   line-height: 1;
-  color: #ffffff;
+  color: var(--tg-color-white);
   filter: drop-shadow(0 1rpx 2rpx rgba(0, 0, 0, 0.2));
 }
 
 /* 按钮文字标签 */
 .badge-label {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-color-white);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   line-height: 1;
   white-space: nowrap;
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.15);
@@ -208,9 +208,9 @@
   background: #c5a572;
   border-radius: 16rpx;
   border: 2rpx solid #ffffff;
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   @include flex-center;
   padding: 0 6rpx;
   box-shadow:
@@ -278,11 +278,11 @@
   }
 
   .badge-icon {
-    font-size: 20rpx;
+    font-size: var(--tg-font-size-mini);
   }
 
   .badge-label {
-    font-size: 20rpx;
+    font-size: var(--tg-font-size-mini);
   }
 
   .badge-number {
@@ -365,7 +365,7 @@
 .close-icon {
   font-size: var(--td-font-size-m);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.2);
 }
 
@@ -379,7 +379,7 @@
 
 .modal-title {
   font-size: var(--td-font-size-l);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
@@ -452,7 +452,7 @@
 
 .record-number {
   font-size: var(--td-font-size-base);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -470,7 +470,7 @@
 
 .status-text {
   font-size: var(--td-font-size-s);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 记录行?*/
@@ -491,7 +491,7 @@
 }
 
 .row-label {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
   margin-right: 8rpx;
 }
@@ -504,13 +504,13 @@
 
 .row-value.amount {
   color: #c5a572;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   font-size: var(--td-font-size-m);
 }
 
 .row-value.points {
   color: #4caf50;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .row-value.time {
@@ -534,7 +534,7 @@
   );
   color: var(--tg-color-white);
   font-size: var(--td-font-size-m);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   border-radius: 44rpx;
   border: none;
 }
@@ -582,9 +582,9 @@
   top: 0;
   right: 0;
   background: #5b7a5e;
-  color: #ffffff;
-  font-size: 20rpx;
-  font-weight: 700;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-bold);
   padding: 6rpx 16rpx 6rpx 10rpx;
   border-radius: 0 0 0 14rpx;
   z-index: 5;
@@ -602,9 +602,9 @@
 .display-tag {
   display: inline-block;
   background: #c44569;
-  color: #ffffff;
-  font-size: 20rpx;
-  font-weight: 600;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-bold);
   padding: 4rpx 14rpx;
   border-radius: 16rpx;
   letter-spacing: 1rpx;
@@ -620,9 +620,9 @@
 }
 
 .preview-text {
-  color: #ffffff;
-  font-size: 24rpx;
-  font-weight: 700;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 已结束活动遮罩 */
@@ -644,7 +644,7 @@
 }
 
 .ended-text {
-  color: #ffffff;
-  font-size: 24rpx;
-  font-weight: 600;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-bold);
 }

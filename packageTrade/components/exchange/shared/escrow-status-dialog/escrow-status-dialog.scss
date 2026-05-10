@@ -24,7 +24,7 @@
 
 .escrow-status-title {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -37,7 +37,7 @@
 }
 
 .escrow-status-close-icon {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
 }
 
@@ -70,7 +70,7 @@
 .escrow-status-value {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .escrow-status-value--copyable {
@@ -88,7 +88,7 @@
 }
 
 .escrow-status-notice-icon {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 .escrow-status-notice-text {
@@ -125,5 +125,5 @@
   align-items: center;
   justify-content: center;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }

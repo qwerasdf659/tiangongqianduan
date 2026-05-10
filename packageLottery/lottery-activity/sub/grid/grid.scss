@@ -141,7 +141,7 @@
 
 .prize-name {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, var(--tg-text-primary));
   line-height: 1.2;
   text-align: center;
@@ -174,7 +174,7 @@
   border: 4rpx solid white;
   border-radius: 90rpx;
   font-size: var(--td-font-size-s);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   box-shadow:
     0 8rpx 25rpx rgba(var(--td-brand-color-rgb), 0.4),
     0 4rpx 15rpx var(--tg-lottery-shadow-medium, rgba(91, 122, 94, 0.2)),
@@ -205,8 +205,8 @@
 }
 
 .btn-text {
-  font-size: 22rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
   text-align: center;
   line-height: 1.2;
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
@@ -314,9 +314,9 @@
   top: 4rpx;
   right: 4rpx;
   padding: 2rpx 8rpx;
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   line-height: 1.4;
-  color: #fff;
+  color: var(--tg-color-white);
   background: rgba(153, 153, 153, 0.7);
   border-radius: 4rpx;
 }
@@ -334,9 +334,9 @@
   z-index: 2;
 
   .sold-out-text {
-    color: #fff;
+    color: var(--tg-color-white);
     font-size: var(--td-font-size-s);
-    font-weight: 700;
+    font-weight: var(--tg-font-weight-bold);
     letter-spacing: 2rpx;
   }
 }
@@ -376,13 +376,13 @@
 }
 
 .grid-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, #333);
 }
 
 .grid-prizes__count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #999);
 }
 
@@ -430,7 +430,7 @@
 
 .grid-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text, #333);
   text-align: center;
   overflow: hidden;
@@ -447,7 +447,7 @@
 .grid-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: #c5a572;
   border: 1rpx solid #c5a572;
   border-radius: 4rpx;
@@ -462,8 +462,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.5);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;

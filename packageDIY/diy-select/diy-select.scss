@@ -22,8 +22,8 @@
 }
 
 .page-main-title {
-  font-size: 40rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1.2;
 }
@@ -53,7 +53,7 @@
 
 .my-design-title {
   font-size: var(--td-font-size-l);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
 }
 
@@ -111,7 +111,7 @@
 
 .mode-title {
   font-size: var(--td-font-size-l);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: var(--tg-spacing-sm);
 }

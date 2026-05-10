@@ -41,7 +41,7 @@
 
 .tab-text {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
   transition: color 0.3s ease;
 }
@@ -82,9 +82,9 @@
 }
 
 .tab-badge .tab-badge-text {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: var(--tg-color-white);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   line-height: 1;
 }
 
@@ -108,7 +108,7 @@
 
 .stats-number {
   font-size: 72rpx;
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1;
   letter-spacing: -2rpx;
@@ -117,7 +117,7 @@
 .stats-unit {
   font-size: var(--td-font-size-l);
   color: var(--tg-text-secondary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   align-self: flex-end;
   padding-bottom: 8rpx;
 }
@@ -125,7 +125,7 @@
 .stats-label {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .stats-hint {
@@ -143,7 +143,7 @@
 .stats-hint-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-secondary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ===== 操作工具栏（置顶） ===== */
@@ -168,7 +168,7 @@
 .toolbar-label {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-secondary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .toolbar-right {
@@ -200,9 +200,9 @@
 }
 
 .check-mark {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   line-height: 1;
 }
 
@@ -211,7 +211,7 @@
   padding: 10rpx 20rpx;
   border-radius: 24rpx;
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   @include flex-center;
 }
 
@@ -296,7 +296,7 @@
 .avatar-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .user-info {
@@ -309,7 +309,7 @@
 .user-name {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   @include text-ellipsis;
 }
 
@@ -334,7 +334,7 @@
 .status-tag.pending .status-tag-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-color-warning-strong);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .status-dot {
@@ -377,7 +377,7 @@
 .amount-label {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .amount-value {
@@ -388,12 +388,12 @@
 .currency {
   font-size: var(--td-font-size-base);
   color: var(--td-brand-color);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .number {
   font-size: var(--tg-font-size-xl);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   line-height: 1.2;
 }
 
@@ -412,7 +412,7 @@
 .unit {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   align-self: flex-end;
   padding-bottom: 4rpx;
 }
@@ -468,7 +468,7 @@
   border-radius: 36rpx;
   border: none;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   @include flex-center;
   transition: all 0.2s ease;
   line-height: 72rpx;
@@ -530,7 +530,7 @@
 .loading-text {
   display: block;
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
 }
 
@@ -583,12 +583,12 @@
 .modal-header-icon .modal-header-icon-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-error);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .modal-title {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -621,7 +621,7 @@
 .modal-summary-val {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .modal-summary-divider {
@@ -632,7 +632,7 @@
 .modal-summary-amount {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-error);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .modal-summary.batch {
@@ -642,7 +642,7 @@
 .modal-summary-batch {
   font-size: var(--td-font-size-s);
   color: var(--tg-gradient-primary-start);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .modal-body {
@@ -653,7 +653,7 @@
   display: block;
   font-size: var(--td-font-size-base);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   margin-bottom: var(--tg-spacing-md);
 }
 
@@ -706,7 +706,7 @@
   border-radius: 38rpx;
   border: none;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   transition: all 0.2s ease;
   line-height: 76rpx;
 }
@@ -738,7 +738,7 @@
 
 .progress-title {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -762,7 +762,7 @@
 .chain-type-badge .chain-type-badge-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-gradient-primary-start);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .chain-meta {
@@ -773,7 +773,7 @@
 .chain-step-label {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .chain-step-progress {
@@ -807,7 +807,7 @@
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-tertiary);
   flex-shrink: 0;
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 超时截止标红 */
@@ -823,7 +823,7 @@
   border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.2);
   background: rgba(var(--td-brand-color-rgb), 0.04);
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-gradient-primary-start);
   @include flex-center;
   line-height: 72rpx;
@@ -857,17 +857,17 @@
 
 .chain-status-in_progress {
   color: var(--tg-color-warning);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .chain-status-completed {
   color: var(--tg-color-success);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .chain-status-rejected {
   color: var(--tg-color-error);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ===== 审核链时间线 ===== */
@@ -877,7 +877,7 @@
 
 .timeline-title {
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 16rpx;
   display: block;
@@ -945,12 +945,12 @@
 .timeline-step-name {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .timeline-step-status {
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   padding: 2rpx 12rpx;
   border-radius: 12rpx;
 }
@@ -998,7 +998,7 @@
 .timeline-auto {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-gradient-primary-start);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .detail-icon {

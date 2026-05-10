@@ -11,8 +11,12 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  /* 🔴 改为center，实现上下居中对齐 */
   gap: 24rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  margin: 0 24rpx 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 /* 宸︿晶锛氱敤鎴蜂俊鎭尯鍩?*/
@@ -39,7 +43,7 @@
 
   .page-subtitle {
     font-size: var(--tg-font-size-title);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-text-primary);
     letter-spacing: 1rpx;
     margin-right: auto;
@@ -92,22 +96,22 @@
 
 /* 🎎 8-10位数字楋細涓瓑缂╁皬 */
 .points-number.medium-number {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
 }
 
 /* 🎎 11-13位数字：较大缩小 */
 .points-number.small-number {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
 }
 
 /* 🎎 14位及以上：最小字体 */
 .points-number.tiny-number {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
 }
 
 /* 积分图标 */
 .points-icon {
-  font-size: 34rpx;
+  font-size: var(--tg-font-size-number-lg);
   color: #c5a572;
   opacity: 0.9;
 }
@@ -151,11 +155,11 @@
 
 /* 仓库内图标文字放大 */
 .inventory-badge-btn .badge-icon {
-  font-size: 32rpx;
+  font-size: var(--tg-font-size-headline);
 }
 
 .inventory-badge-btn .badge-label {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
 }
 
 /* 仓库数字角标 - 放大版 */
@@ -169,9 +173,9 @@
   background: #c5a572;
   border-radius: 19rpx;
   border: 2rpx solid #ffffff;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   @include flex-center;
   padding: 0 6rpx;
   box-shadow:
@@ -246,13 +250,13 @@
 }
 
 .notification-bell-btn .badge-icon {
-  font-size: 32rpx;
+  font-size: var(--tg-font-size-headline);
 }
 
 .notification-bell-btn .badge-label {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-color-white);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .notification-badge-number {
@@ -265,9 +269,9 @@
   background: #c5a572;
   border-radius: 17rpx;
   border: 2rpx solid #ffffff;
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-color-white);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   @include flex-center;
   padding: 0 6rpx;
   box-shadow:
@@ -347,13 +351,13 @@
 
 .expired-text-small {
   font-size: var(--tg-font-size-xs);
-  color: #c5a572;
-  font-weight: bold;
+  color: var(--tg-accent-gold);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .refresh-text-small {
-  font-size: 18rpx;
-  color: #409eff;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-color-info);
   text-decoration: underline;
 }
 
@@ -365,7 +369,7 @@
 
 .countdown-text-small {
   font-size: var(--tg-font-size-xs);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
 }
 
@@ -394,7 +398,7 @@
 .loading-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 @keyframes rotate {
@@ -423,7 +427,7 @@
 }
 
 .hint-icon {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   line-height: 1;
 }
 

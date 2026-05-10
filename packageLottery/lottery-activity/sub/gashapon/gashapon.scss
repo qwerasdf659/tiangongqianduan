@@ -452,8 +452,8 @@
    ================================ */
 .gashapon-hint {
   margin-top: 35rpx;
-  font-size: 30rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent-light, #c5a572);
   text-shadow:
     2rpx 2rpx 0 #000,
@@ -475,8 +475,8 @@
     var(--tg-lottery-bg-darkest, #1a0f08) 100%
   );
   border-radius: var(--td-radius-small);
-  font-size: 26rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent-light, #c5a572);
   border: 4rpx solid var(--tg-lottery-frame, #8b4513);
   box-shadow:
@@ -711,8 +711,8 @@
 }
 
 .tip-text {
-  font-size: 26rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent-light, #c5a572);
   text-align: center;
   padding: 14rpx 30rpx;
@@ -853,13 +853,13 @@
 }
 
 .gp-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, #333);
 }
 
 .gp-prizes__count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #999);
 }
 
@@ -908,7 +908,7 @@
 
 .gp-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #666);
   max-width: 120rpx;
   overflow: hidden;
@@ -925,8 +925,8 @@
 .gp-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
-  color: #999;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
   background: rgba(153, 153, 153, 0.15);
   border-radius: 4rpx;
 }
@@ -940,8 +940,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.6);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;

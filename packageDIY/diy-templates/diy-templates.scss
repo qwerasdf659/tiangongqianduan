@@ -39,7 +39,7 @@
     color: var(--td-brand-color);
     border-color: var(--td-brand-color);
     background: rgba(var(--td-brand-color-rgb), 0.08);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 
@@ -76,7 +76,7 @@
 
 .template-name {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   @include text-ellipsis;
 }

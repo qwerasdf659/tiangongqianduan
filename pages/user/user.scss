@@ -9,7 +9,7 @@
 @import '../../styles/iconfont';
 
 page {
-  background-color: #ffffff;
+  background-color: var(--tg-color-white);
 }
 
 .user-container {
@@ -17,7 +17,7 @@ page {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: #ffffff;
+  background: var(--tg-color-white);
   padding: 0 24rpx;
 }
 
@@ -40,7 +40,7 @@ page {
 .top-banner-placeholder {
   width: 100%;
   height: 100%;
-  background: #ffffff;
+  background: var(--tg-color-white);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -48,14 +48,14 @@ page {
 }
 
 .placeholder-text {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
   opacity: 0.6;
 }
 
 /* ===== 积分卡片 ===== */
 .points-card {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 24rpx;
   padding: 36rpx 40rpx;
   margin-bottom: 32rpx;
@@ -69,9 +69,9 @@ page {
 }
 
 .points-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
 }
 
 .points-detail-btn {
@@ -84,13 +84,13 @@ page {
 }
 
 .points-detail-icon {
-  font-size: 28rpx;
-  color: #8b7355;
+  font-size: var(--tg-font-size-title);
+  color: var(--td-brand-color);
 }
 
 .points-detail-text {
-  font-size: 24rpx;
-  color: #8b7355;
+  font-size: var(--tg-font-size-caption);
+  color: var(--td-brand-color);
 }
 
 .points-amount {
@@ -101,14 +101,14 @@ page {
 
 .points-number {
   font-size: 72rpx;
-  font-weight: 700;
-  color: #8b7355;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--td-brand-color);
   line-height: 1.1;
 }
 
 .points-unit {
-  font-size: 28rpx;
-  color: #8b7355;
+  font-size: var(--tg-font-size-title);
+  color: var(--td-brand-color);
   margin-left: 8rpx;
 }
 
@@ -126,29 +126,29 @@ page {
 }
 
 .trend-label {
-  font-size: 24rpx;
-  color: #999;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: 8rpx;
 }
 
 .trend-value {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
 }
 
 .trend-value.earned {
-  color: #8b7355;
+  color: var(--td-brand-color);
 }
 
 .trend-value.consumed {
-  color: #333;
+  color: var(--tg-text-primary);
 }
 
 /* ===== 未登录卡片 ===== */
 .login-prompt-card {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 24rpx;
   padding: 60rpx 40rpx;
   margin-bottom: 32rpx;
@@ -168,26 +168,26 @@ page {
 
 .login-avatar .iconfont {
   font-size: 80rpx;
-  color: #8b7355;
+  color: var(--td-brand-color);
 }
 
 .login-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
 
 .login-desc {
-  font-size: 24rpx;
-  color: #999;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 功能菜单网格 ===== */
 .menu-grid {
   display: flex;
   flex-wrap: wrap;
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 24rpx;
   padding: 32rpx 16rpx;
   margin-bottom: 32rpx;
@@ -212,12 +212,12 @@ page {
 
 .menu-grid-icon .iconfont {
   font-size: 52rpx;
-  color: #555;
+  color: var(--tg-text-secondary);
 }
 
 .menu-grid-name {
-  font-size: 24rpx;
-  color: #333;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-primary);
   text-align: center;
 }
 
@@ -247,13 +247,13 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #8b7355;
+  background: var(--td-brand-color);
   border-radius: 12rpx;
 }
 
 .mw-header-icon .iconfont {
-  font-size: 32rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-headline);
+  color: var(--tg-color-white);
 }
 
 .mw-header-info {
@@ -262,14 +262,14 @@ page {
 }
 
 .mw-header-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
 }
 
 .mw-header-role {
-  font-size: 22rpx;
-  color: #999;
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
 }
 
 .mw-cards {
@@ -279,7 +279,7 @@ page {
 }
 
 .mw-card {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 20rpx;
   padding: 28rpx 32rpx;
   display: flex;
@@ -291,15 +291,15 @@ page {
 }
 
 .mw-card-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
 
 .mw-card-desc {
-  font-size: 24rpx;
-  color: #999;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
   margin-bottom: 12rpx;
 }
 
@@ -311,16 +311,16 @@ page {
 }
 
 .mw-step {
-  font-size: 20rpx;
-  color: #8b7355;
+  font-size: var(--tg-font-size-mini);
+  color: var(--td-brand-color);
   background: #f5f0e8;
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
 
 .mw-step-arrow {
-  font-size: 20rpx;
-  color: #ccc;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
 }
 
 .mw-card-go {
@@ -328,8 +328,8 @@ page {
 }
 
 .mw-go-icon {
-  font-size: 36rpx;
-  color: #ccc;
+  font-size: var(--tg-font-size-number-lg);
+  color: var(--tg-text-tertiary);
 }
 
 /* ===== 退出登录按钮 ===== */
@@ -338,7 +338,7 @@ page {
   align-items: center;
   justify-content: center;
   gap: 12rpx;
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 48rpx;
   padding: 28rpx 0;
   margin: 20rpx 40rpx 60rpx;
@@ -346,13 +346,13 @@ page {
 }
 
 .logout-icon {
-  font-size: 32rpx;
-  color: #999;
+  font-size: var(--tg-font-size-headline);
+  color: var(--tg-text-tertiary);
 }
 
 .logout-text {
-  font-size: 28rpx;
-  color: #666;
+  font-size: var(--tg-font-size-title);
+  color: var(--tg-text-secondary);
 }
 
 /* ===== 加载遮罩 ===== */

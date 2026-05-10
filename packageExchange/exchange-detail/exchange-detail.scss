@@ -154,7 +154,7 @@
 .ed-swiper-dot.ed-dot-active {
   width: 28rpx;
   border-radius: 6rpx;
-  background: #ffffff;
+  background: var(--tg-color-white);
 }
 
 .ed-hero-fallback {
@@ -186,18 +186,18 @@
 .ed-fallback-name {
   font-size: var(--td-font-size-m);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .ed-rarity-badge {
   position: absolute;
   top: 24rpx;
   right: 24rpx;
-  color: #ffffff;
+  color: var(--tg-color-white);
   font-size: var(--td-font-size-xs);
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   letter-spacing: 2rpx;
   z-index: 5;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
@@ -220,7 +220,7 @@
   padding: 6rpx 16rpx;
   border-radius: 20rpx;
   font-size: var(--td-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 
   .ed-tag-text {
     display: block;
@@ -231,17 +231,17 @@
 /* game 风格标签 */
 .ed-tag-hot {
   background: rgba(255, 77, 79, 0.1);
-  color: #ff4d4f;
+  color: var(--tg-color-error);
 }
 
 .ed-tag-limited {
   background: rgba(255, 152, 0, 0.1);
-  color: #f57c00;
+  color: var(--tg-color-warning);
 }
 
 .ed-tag-new {
   background: rgba(33, 150, 243, 0.1);
-  color: #1890ff;
+  color: var(--tg-color-info);
 }
 
 .ed-tag-pinned {
@@ -251,12 +251,12 @@
 
 .ed-tag-recommended {
   background: rgba(30, 136, 229, 0.1);
-  color: #1e88e5;
+  color: var(--tg-color-info);
 }
 
 .ed-tag-warranty {
   background: rgba(76, 175, 80, 0.1);
-  color: #52c41a;
+  color: var(--tg-color-success);
 }
 
 .ed-tag-shipping {
@@ -274,7 +274,7 @@
 .ed-tag-plain {
   background: var(--tg-page-bg);
   color: var(--tg-text-secondary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ========== 信息卡片（名称 + ③ 价格） ========== */
@@ -295,14 +295,14 @@
   .ed-space-label-text {
     font-size: var(--td-font-size-xs);
     color: var(--td-brand-color-focus);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 
 .ed-product-name {
   display: block;
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1.4;
   margin-bottom: 20rpx;
@@ -316,7 +316,7 @@
 
 .ed-price-amount {
   font-size: 56rpx;
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   background: linear-gradient(135deg, var(--td-brand-color), #6b8f6e);
   color: var(--td-brand-color);
   line-height: 1;
@@ -325,7 +325,7 @@
 .ed-price-unit {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-secondary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   margin-top: 8rpx;
 }
 
@@ -343,12 +343,12 @@
 }
 
 .ed-discount-tag {
-  font-size: 20rpx;
-  color: #ff4d4f;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-error);
   background: rgba(255, 77, 79, 0.08);
   padding: 2rpx 10rpx;
   border-radius: 6rpx;
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ========== Phase 4: 优惠券 / 满减 / 到手价 ========== */
@@ -378,8 +378,8 @@
 
 .ed-coupon-text {
   font-size: var(--td-font-size-xs);
-  color: #ff4d4f;
-  font-weight: 600;
+  color: var(--tg-color-error);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .ed-promotion-row {
@@ -424,7 +424,7 @@
 
 .ed-estimated-num {
   font-size: var(--td-font-size-l);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
   line-height: 1;
 }
@@ -432,7 +432,7 @@
 .ed-estimated-unit {
   font-size: var(--td-font-size-xs);
   color: var(--td-brand-color)-light;
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ========== ④ 属性区（grid + list） ========== */
@@ -446,7 +446,7 @@
 .ed-section-title {
   display: block;
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   padding-left: 16rpx;
@@ -471,7 +471,7 @@
 
 .ed-attr-value {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 6rpx;
 }
@@ -505,7 +505,7 @@
 .ed-attr-row-value {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 库存进度条 */
@@ -525,7 +525,7 @@
 .ed-stock-bar-fill {
   height: 100%;
   border-radius: 6rpx;
-  background: #52c41a;
+  background: var(--tg-color-success);
   transition: width 0.6s ease;
 }
 
@@ -559,8 +559,8 @@
 
 .ed-sell-point-text {
   font-size: var(--td-font-size-s);
-  color: #bf6c00;
-  font-weight: 600;
+  color: var(--tg-color-warning);
+  font-weight: var(--tg-font-weight-bold);
   line-height: 1.5;
 }
 
@@ -681,9 +681,9 @@
   height: 36rpx;
   border-radius: 50%;
   background: var(--td-brand-color-focus);
-  color: #ffffff;
-  font-size: 20rpx;
-  font-weight: 700;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-bold);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -743,7 +743,7 @@
 .ed-related-name {
   display: block;
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -758,7 +758,7 @@
 
 .ed-related-price-num {
   font-size: var(--td-font-size-m);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
@@ -790,7 +790,7 @@
   .ed-cloud-tag-text {
     font-size: var(--td-font-size-xs);
     color: var(--tg-text-secondary);
-    font-weight: 500;
+    font-weight: var(--tg-font-weight-regular);
   }
 }
 
@@ -809,7 +809,7 @@
   bottom: 0;
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: var(--tg-color-white);
   padding: 16rpx 32rpx;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
   z-index: 100;
@@ -829,7 +829,7 @@
 
 .ed-balance-value {
   font-size: var(--td-font-size-l);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -890,8 +890,8 @@
 
   .ed-exchange-btn-text {
     font-size: var(--td-font-size-base);
-    font-weight: 700;
-    color: #ffffff;
+    font-weight: var(--tg-font-weight-bold);
+    color: var(--tg-color-white);
     letter-spacing: 2rpx;
   }
 }
@@ -919,7 +919,7 @@
 
 /* SKU 规格选择区 */
 .ed-sku-card {
-  background: #ffffff;
+  background: var(--tg-color-white);
   margin: var(--tg-spacing-sm) var(--tg-spacing-md) 0;
   border-radius: var(--td-radius-default);
   padding: var(--tg-spacing-lg) var(--tg-spacing-md);
@@ -956,7 +956,7 @@
 .ed-sku-label {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .ed-sku-price {
@@ -967,7 +967,7 @@
 
 .ed-sku-stock {
   font-size: var(--td-font-size-xs);
-  color: #ff6b00;
+  color: var(--tg-color-warning);
   margin-top: 4rpx;
 }
 
@@ -995,8 +995,8 @@
 
 .ed-mint-text {
   font-size: var(--td-font-size-s);
-  color: #3498db;
-  font-weight: 500;
+  color: var(--tg-color-info);
+  font-weight: var(--tg-font-weight-regular);
   line-height: 1.5;
 }
 

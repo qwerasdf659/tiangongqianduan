@@ -9,7 +9,7 @@
 
 /* ========== 组件容器 — 渐变背景卡片 ========== */
 .price-chart-wrap {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: var(--td-radius-large);
   padding: 28rpx 24rpx;
   margin-bottom: 20rpx;
@@ -46,8 +46,8 @@
 }
 
 .chart-title {
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   letter-spacing: 1rpx;
 }
@@ -61,7 +61,7 @@
 }
 
 .period-tab {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
   padding: 8rpx 18rpx;
   border-radius: 16rpx;
@@ -71,7 +71,7 @@
     color: var(--tg-color-white);
     background: var(--tg-gradient-primary-start);
     box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.35);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 
@@ -102,7 +102,7 @@
 .chart-tab {
   flex: 1;
   text-align: center;
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-secondary);
   padding: 12rpx 0;
   border-radius: 16rpx;
@@ -114,17 +114,17 @@
 
   &--active {
     color: var(--tg-color-white);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 
 .tab-icon {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
 }
 
 /* ========== Canvas 绘图区域 ========== */
 .chart-canvas-wrap {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: var(--td-radius-default);
   padding: 12rpx 8rpx;
   margin-bottom: 4rpx;
@@ -176,15 +176,15 @@
 }
 
 .summary-card-label {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-tertiary);
   margin-bottom: 6rpx;
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .summary-card-value {
-  font-size: 28rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 
   .summary-card--low & {
@@ -205,8 +205,8 @@
 }
 
 .summary-unit {
-  font-size: 20rpx;
-  font-weight: 400;
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-tertiary);
   margin-left: 2rpx;
 }
@@ -218,14 +218,14 @@
 }
 
 .chart-empty-title {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   margin-bottom: 8rpx;
 }
 
 .chart-empty-desc {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
 }
 
@@ -272,6 +272,6 @@
 }
 
 .chart-loading-text {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
 }

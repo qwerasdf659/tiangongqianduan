@@ -28,13 +28,13 @@
 
 .header-title .title {
   font-size: var(--td-font-size-l);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   display: block;
   margin-bottom: 8rpx;
 }
 
 .header-title .subtitle {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
   display: block;
 }
@@ -72,24 +72,24 @@
 }
 
 .section-title .title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #2c3e50;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
 }
 
 .section-title .required {
-  color: #e74c3c;
+  color: var(--tg-color-error);
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .section-title .optional {
-  color: #95a5a6;
+  color: var(--tg-text-tertiary);
   font-size: var(--td-font-size-s);
 }
 
 .section-title .more {
-  color: #3498db;
+  color: var(--tg-color-info);
   font-size: var(--td-font-size-s);
   margin-left: auto;
   /* Skyline 不支持 cursor 属性 */
@@ -127,7 +127,7 @@
 
 .category-item .label {
   font-size: var(--td-font-size-s);
-  color: #2c3e50;
+  color: var(--tg-text-primary);
   text-align: center;
   display: block;
 }
@@ -163,11 +163,11 @@
 
 .char-count {
   font-size: var(--td-font-size-s);
-  color: #95a5a6;
+  color: var(--tg-text-tertiary);
 }
 
 .char-count.limit {
-  color: #e74c3c;
+  color: var(--tg-color-error);
 }
 
 /* 📷 图片上传 */
@@ -196,12 +196,12 @@
   right: -8rpx;
   width: 40rpx;
   height: 40rpx;
-  background-color: #e74c3c;
+  background-color: var(--tg-color-error);
   border-radius: 50%;
   @include flex-center;
-  color: white;
+  color: var(--tg-color-white);
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   /* Skyline 不支持 cursor 属性 */
 }
 
@@ -224,14 +224,14 @@
 
 .add-image-btn .icon {
   font-size: var(--tg-font-size-xxl);
-  color: #bdc3c7;
+  color: var(--tg-text-tertiary);
   margin-bottom: 8rpx;
   display: block;
 }
 
 .add-image-btn .text {
   font-size: var(--td-font-size-s);
-  color: #7f8c8d;
+  color: var(--tg-text-secondary);
   display: block;
 }
 
@@ -246,19 +246,19 @@
   height: 88rpx;
   border-radius: 44rpx;
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   border: none;
   transition: all 0.3s ease;
 }
 
 .submit-btn.enabled {
   background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-  color: white;
+  color: var(--tg-color-white);
 }
 
 .submit-btn.disabled {
   background-color: #bdc3c7;
-  color: #95a5a6;
+  color: var(--tg-text-tertiary);
 }
 
 .submit-tips {
@@ -267,7 +267,7 @@
 
 .submit-tips .tip {
   font-size: var(--td-font-size-s);
-  color: #7f8c8d;
+  color: var(--tg-text-secondary);
 }
 
 /* 📋 历史记录预览 */
@@ -300,34 +300,34 @@
 
 .item-header .category {
   font-size: var(--td-font-size-s);
-  color: #7f8c8d;
+  color: var(--tg-text-secondary);
 }
 
 .item-header .status {
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
   font-size: var(--tg-font-size-xs);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .status.pending {
   background-color: #fff3cd;
-  color: #856404;
+  color: var(--tg-color-warning);
 }
 
 .status.replied {
   background-color: #d1ecf1;
-  color: #0c5460;
+  color: var(--tg-color-info);
 }
 
 .status.closed {
   background-color: #d4edda;
-  color: #155724;
+  color: var(--tg-color-success);
 }
 
 .history-item .content {
-  font-size: 26rpx;
-  color: #2c3e50;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
   line-height: 1.4;
   display: block;
   margin-bottom: 8rpx;
@@ -337,8 +337,8 @@
 }
 
 .history-item .time {
-  font-size: 22rpx;
-  color: #95a5a6;
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
   display: block;
 }
 
@@ -388,8 +388,8 @@
 
 .modal-title {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
-  color: #2c3e50;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
 }
 
 .close-btn {
@@ -397,7 +397,7 @@
   height: 48rpx;
   @include flex-center;
   font-size: var(--tg-font-size-xl);
-  color: #95a5a6;
+  color: var(--tg-text-tertiary);
   /* Skyline 不支持 cursor 属性 */
   border-radius: 50%;
   transition: all 0.3s ease;
@@ -418,7 +418,7 @@
 .empty-state {
   @include flex-column-center;
   padding: 60rpx 20rpx;
-  color: #95a5a6;
+  color: var(--tg-text-tertiary);
 }
 
 .empty-state .icon {
@@ -459,7 +459,7 @@
   padding: 6rpx 16rpx;
   border-radius: var(--td-radius-default);
   font-size: var(--tg-font-size-xs);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   white-space: nowrap;
 }
 
@@ -469,8 +469,8 @@
 }
 
 .item-content .content {
-  font-size: 26rpx;
-  color: #2c3e50;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
   line-height: 1.4;
   display: block;
   margin-bottom: 6rpx;
@@ -480,15 +480,15 @@
 }
 
 .item-content .time {
-  font-size: 22rpx;
-  color: #95a5a6;
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
   display: block;
 }
 
 .item-arrow {
-  color: #bdc3c7;
+  color: var(--tg-text-tertiary);
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .modal-footer {
@@ -500,11 +500,11 @@
   width: 100%;
   height: 76rpx;
   background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-  color: white;
+  color: var(--tg-color-white);
   border: none;
   border-radius: 38rpx;
   font-size: var(--td-font-size-base);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 🎯 响应式设计 */

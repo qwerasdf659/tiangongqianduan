@@ -90,7 +90,7 @@
   color: var(--tg-color-white);
   padding: 6rpx 16rpx;
   border-radius: 12rpx;
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .detail-kind-tag.asset-tag {
@@ -109,7 +109,7 @@
   font-size: var(--tg-font-size-xs);
   padding: 6rpx 16rpx;
   border-radius: 12rpx;
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ========== 商品信息卡片 ========== */
@@ -128,7 +128,7 @@
 
 .detail-title {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   flex: 1;
   line-height: 1.4;
@@ -155,7 +155,7 @@
 
 .detail-price-value {
   font-size: 56rpx;
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   background: linear-gradient(135deg, var(--td-brand-color), #6b8f6e);
   color: var(--td-brand-color);
   line-height: 1;
@@ -164,7 +164,7 @@
 .detail-price-unit {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-secondary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   margin-top: 8rpx;
 }
 
@@ -183,7 +183,7 @@
 
 .amount-value {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
@@ -201,7 +201,7 @@
 
 .section-title {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   display: block;
@@ -239,7 +239,7 @@
 
 .seller-nickname {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -270,7 +270,7 @@
 
 .summary-value {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -295,7 +295,7 @@
   .chart-toggle-text {
     font-size: var(--td-font-size-s);
     color: var(--tg-gradient-primary-start);
-    font-weight: 500;
+    font-weight: var(--tg-font-weight-regular);
   }
 }
 
@@ -317,7 +317,7 @@
   align-items: center;
   padding: 12rpx 0;
   border-bottom: 2rpx solid var(--tg-color-border-light);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .history-data-row {
@@ -341,7 +341,7 @@
   flex: 1.5;
   font-size: var(--tg-font-size-xs);
   color: var(--td-brand-color);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   text-align: center;
 }
 
@@ -380,7 +380,7 @@
 
 .bottom-price {
   font-size: var(--tg-font-size-xl);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
@@ -403,7 +403,7 @@
   height: 80rpx !important;
   line-height: 80rpx !important;
   font-size: var(--td-font-size-base) !important;
-  font-weight: 600 !important;
+  font-weight: var(--tg-font-weight-bold) !important;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3) !important;
 }
 
@@ -419,7 +419,7 @@
 .sold-text {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ========== 弹窗公共样式 ========== */
@@ -450,7 +450,7 @@
 
 .modal-title {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 24rpx;
 }
@@ -474,7 +474,7 @@
 .row-value {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .modal-btn {
@@ -490,7 +490,7 @@
   height: 80rpx !important;
   line-height: 80rpx !important;
   font-size: var(--td-font-size-base) !important;
-  font-weight: 600 !important;
+  font-weight: var(--tg-font-weight-bold) !important;
   margin-top: 8rpx;
 }
 
@@ -523,7 +523,7 @@
   background: var(--tg-gradient-primary-start);
   color: var(--tg-color-white);
   font-size: var(--td-font-size-s);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   @include flex-center;
   flex-shrink: 0;
 }
@@ -591,7 +591,7 @@
 
 .quality-grade-badge {
   font-size: var(--td-font-size-s);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   padding: 2rpx 12rpx;
   border: 1rpx solid;
   border-radius: 6rpx;
@@ -599,7 +599,7 @@
 
 .quality-score-value {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .quality-value {
@@ -609,7 +609,7 @@
 }
 
 .edition-highlight {
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   font-size: var(--td-font-size-base);
   letter-spacing: 2rpx;
 }
@@ -626,11 +626,11 @@
 }
 
 .cooldown-notice-icon {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 .cooldown-notice-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-warning);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }

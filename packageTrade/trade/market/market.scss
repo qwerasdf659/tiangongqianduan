@@ -23,7 +23,7 @@
 }
 
 .chart-asset-tag {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   padding: 8rpx 20rpx;
   border-radius: 20rpx;
   background: var(--tg-color-brand-soft);
@@ -66,13 +66,13 @@
 }
 
 .toggle-text {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-gradient-primary-start);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .toggle-arrow {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-gradient-primary-start);
   transition: transform 0.3s ease;
 }
@@ -112,8 +112,8 @@
 }
 
 .stat-value {
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -131,7 +131,7 @@
 
 .ranking-title {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
@@ -145,7 +145,7 @@
 .ranking-index {
   width: 40rpx;
   font-size: var(--td-font-size-s);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
   text-align: center;
 }
@@ -195,7 +195,7 @@
 
 .trade-name {
   font-size: var(--td-font-size-s);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -217,8 +217,8 @@
 }
 
 .trade-price {
-  font-size: 28rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-number-md);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
@@ -281,7 +281,7 @@
   &.active {
     color: var(--tg-color-white);
     background: var(--tg-gradient-primary-start);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 
@@ -305,19 +305,19 @@
 
   &.active {
     color: var(--tg-gradient-primary-start);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
     background: rgba(255, 107, 53, 0.1);
   }
 }
 
 .filter-toggle-btn {
   padding: 6rpx 12rpx;
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 .my-orders-entry {
   padding: 6rpx 12rpx;
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 /* ========== 高级筛选面板 ========== */
@@ -337,7 +337,7 @@
   display: block;
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-secondary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   margin-bottom: 12rpx;
 }
 
@@ -379,7 +379,7 @@
   &.active {
     color: var(--tg-color-white);
     background: var(--tg-gradient-primary-start);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 
@@ -430,7 +430,7 @@
   .filter-apply-btn-text {
     font-size: var(--td-font-size-s);
     color: var(--tg-color-white);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 
@@ -503,7 +503,7 @@
   color: var(--tg-color-white);
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   z-index: 2;
 }
 
@@ -531,7 +531,7 @@
 }
 
 .amount-text {
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ✨ 稀有度标签 */
@@ -543,13 +543,13 @@
   font-size: var(--tg-font-size-xs);
   padding: 4rpx 12rpx;
   border-radius: 12rpx;
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   z-index: 2;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
 }
 
 .rarity-text {
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 🖼️ 图片降级占位 */
@@ -593,8 +593,8 @@
 }
 
 .product-title {
-  font-size: 26rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1.4;
   display: -webkit-box;
@@ -618,8 +618,8 @@
 }
 
 .current-price {
-  font-size: 34rpx;
-  font-weight: 800;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   background: linear-gradient(
     135deg,
     var(--td-brand-color) 0%,
@@ -633,7 +633,7 @@
 .price-unit {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-secondary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   margin-left: 4rpx;
 }
 
@@ -647,7 +647,7 @@
 }
 
 .seller-name {
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -727,7 +727,7 @@
 .no-more-text {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .no-more-subtitle {
@@ -759,11 +759,11 @@
 .empty-title {
   font-size: var(--td-font-size-m);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .empty-subtitle {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-tertiary);
   margin-bottom: 20rpx;
 }
@@ -777,8 +777,8 @@
   color: var(--tg-color-white) !important;
   border-radius: var(--td-radius-large) !important;
   padding: 16rpx 32rpx !important;
-  font-size: 26rpx !important;
-  font-weight: 600 !important;
+  font-size: var(--tg-font-size-body) !important;
+  font-weight: var(--tg-font-weight-bold) !important;
   border: none !important;
   box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3) !important;
 }
@@ -830,7 +830,7 @@
 .btn-icon {
   font-size: var(--td-font-size-m);
   color: var(--tg-color-white);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 🎨 ========== 响应式设计 ========== */
@@ -944,7 +944,7 @@
 
 /* 筛选标签聚合计数 */
 .filter-count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   opacity: 0.7;
 }
 
@@ -953,7 +953,7 @@
 .kind-tab.filter-disabled {
   opacity: 0.4;
   pointer-events: none;
-  color: #999;
+  color: var(--tg-text-tertiary);
   border-color: rgba(0, 0, 0, 0.06);
 }
 
@@ -963,9 +963,9 @@
   top: 0;
   left: 0;
   padding: 6rpx 16rpx 6rpx 10rpx;
-  font-size: 20rpx;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   border-radius: 0 0 14rpx 0;
   z-index: 3;
   letter-spacing: 1rpx;
@@ -992,9 +992,9 @@
 }
 
 .ad-action-text {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-gradient-primary-start);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 // ===== 品质等级 + 限量编号（市场瀑布流卡片内） =====
@@ -1017,8 +1017,8 @@
 
 .quality-mini-badge {
   display: inline-block;
-  font-size: 18rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-micro);
+  font-weight: var(--tg-font-weight-bold);
   padding: 1rpx 8rpx;
   border: 1rpx solid;
   border-radius: 4rpx;
@@ -1026,13 +1026,13 @@
 }
 
 .quality-mini-score {
-  font-size: 18rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-micro);
+  font-weight: var(--tg-font-weight-regular);
   opacity: 0.85;
 }
 
 .pattern-mini-tag {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: var(--tg-text-tertiary);
   font-family: 'Courier New', monospace;
 }

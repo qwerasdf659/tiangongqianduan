@@ -43,12 +43,12 @@
 }
 
 .action-icon {
-  font-size: 36rpx;
+  font-size: var(--tg-font-size-number-lg);
   margin-bottom: 4rpx;
 }
 
 .action-text {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-secondary);
 }
 
@@ -64,14 +64,14 @@
   flex: 1;
   text-align: center;
   padding: 12rpx 0;
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-secondary);
   border-bottom: 4rpx solid transparent;
   transition: all 0.3s;
 
   &--active {
     color: var(--td-brand-color);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
     border-bottom-color: var(--td-brand-color);
   }
 }
@@ -90,18 +90,18 @@
 }
 
 .sort-label {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-tertiary);
 }
 
 .sort-value {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-primary);
   margin-left: 8rpx;
 }
 
 .sort-arrow {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-tertiary);
   margin-left: 8rpx;
 }
@@ -122,13 +122,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 32rpx;
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-primary);
   border-bottom: 1rpx solid var(--tg-color-divider);
 
   &--active {
     color: var(--td-brand-color);
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 
   &:last-child {
@@ -138,7 +138,7 @@
 
 .sort-check {
   color: var(--td-brand-color);
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 /* 加载/空/错误状态 */
@@ -165,7 +165,7 @@
 }
 
 .error-text {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-tertiary);
   margin-bottom: 32rpx;
 }
@@ -174,9 +174,9 @@
 .empty-create-btn {
   padding: 16rpx 48rpx;
   background-color: var(--td-brand-color);
-  color: #ffffff;
+  color: var(--tg-color-white);
   border-radius: var(--td-radius-default);
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 /* 拍卖列表 */
@@ -212,8 +212,8 @@
   left: 0;
   padding: 4rpx 16rpx;
   border-radius: 0 var(--td-radius-small) var(--td-radius-small) 0;
-  font-size: 20rpx;
-  color: #ffffff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
 }
 
 .buyout-badge {
@@ -223,8 +223,8 @@
   padding: 4rpx 12rpx;
   background-color: rgba(255, 107, 53, 0.9);
   border-radius: var(--td-radius-small);
-  font-size: 20rpx;
-  color: #ffffff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
 }
 
 /* 卡片信息区 */
@@ -237,8 +237,8 @@
 }
 
 .auction-item-name {
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -246,7 +246,7 @@
 }
 
 .auction-item-rarity {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
   margin-top: 4rpx;
 }
@@ -258,19 +258,19 @@
 }
 
 .price-label {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
   margin-right: 8rpx;
 }
 
 .price-value {
-  font-size: 36rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-error);
 }
 
 .price-asset {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
   margin-left: 6rpx;
 }
@@ -282,19 +282,19 @@
 }
 
 .buyout-label {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--td-brand-color);
   margin-right: 8rpx;
 }
 
 .buyout-value {
-  font-size: 28rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
 }
 
 .buyout-asset {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-tertiary);
   margin-left: 4rpx;
 }
@@ -308,7 +308,7 @@
 
 .meta-bids,
 .meta-bidders {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
 }
 
@@ -317,9 +317,9 @@
 }
 
 .countdown-text {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-color-warning);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .auction-seller-row {
@@ -329,12 +329,12 @@
 }
 
 .seller-label {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
 }
 
 .seller-name {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-secondary);
 }
 
@@ -343,6 +343,6 @@
 .auction-no-more {
   text-align: center;
   padding: 32rpx 0;
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
 }

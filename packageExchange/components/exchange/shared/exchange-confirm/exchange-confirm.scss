@@ -53,8 +53,8 @@
 }
 
 .confirm-title {
-  font-size: 36rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   letter-spacing: 1rpx;
 }
@@ -73,9 +73,9 @@
 }
 
 .close-icon {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .confirm-body {
@@ -116,15 +116,15 @@
 }
 
 .confirm-product-name {
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1.4;
   @include text-ellipsis-multi(2);
 }
 
 .confirm-product-sku {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-secondary);
   line-height: 1.4;
 }
@@ -137,14 +137,14 @@
 
 .confirm-price-amount {
   font-size: 40rpx;
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
   line-height: 1;
 }
 
 .confirm-price-unit {
-  font-size: 24rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-regular);
   color: var(--td-brand-color-focus);
 }
 
@@ -159,7 +159,7 @@
 }
 
 .confirm-row-label {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-secondary);
 }
 
@@ -193,8 +193,8 @@
 }
 
 .qty-btn-text {
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1;
 }
@@ -205,8 +205,8 @@
 }
 
 .qty-value {
-  font-size: 32rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -227,22 +227,22 @@
 
 .confirm-total-amount {
   font-size: 44rpx;
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color);
   line-height: 1;
 }
 
 .confirm-total-unit {
-  font-size: 24rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--td-brand-color-focus);
 }
 
 /* 当前余额 */
 .confirm-balance-value {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 底部按钮 */
@@ -257,8 +257,8 @@
   height: 92rpx;
   @include flex-center;
   border-radius: 20rpx;
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
   background: var(--tg-color-bg-grey);
   transition: all 0.2s;
@@ -273,8 +273,8 @@
   height: 92rpx;
   @include flex-center;
   border-radius: 20rpx;
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   background: linear-gradient(
     135deg,

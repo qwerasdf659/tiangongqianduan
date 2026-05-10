@@ -83,7 +83,7 @@
   padding: 0 var(--tg-spacing-sm);
   border-radius: 4rpx;
   font-size: var(--tg-font-size-xs);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 
   /* 默认灰色标签 */
   color: var(--tg-text-secondary);
@@ -103,8 +103,8 @@
 
   /* 中奖-金色 */
   &.tag-lottery {
-    color: #d4a017;
-    background: rgba(#d4a017, 0.1);
+    color: var(--tg-color-warning);
+    background: rgba(var(--tg-color-warning-rgb), 0.1);
   }
 
   /* 兑换-橙色 */
@@ -163,7 +163,7 @@
   line-height: var(--tg-line-height-tight);
 
   &.title-unread {
-    font-weight: 600;
+    font-weight: var(--tg-font-weight-bold);
   }
 }
 

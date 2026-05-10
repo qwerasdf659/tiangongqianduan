@@ -22,21 +22,21 @@
 }
 
 .step-title {
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   display: block;
 }
 
 .step-hint {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
   margin-top: 8rpx;
   display: block;
 }
 
 .back-btn {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--td-brand-color);
   margin-bottom: 12rpx;
 }
@@ -78,8 +78,8 @@
 }
 
 .item-card .item-name {
-  font-size: 26rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-primary);
   display: block;
   overflow: hidden;
@@ -88,7 +88,7 @@
 }
 
 .item-card .item-rarity {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
   margin-top: 4rpx;
   display: block;
@@ -115,13 +115,13 @@
   flex: 1;
 }
 .preview-name {
-  font-size: 28rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   display: block;
 }
 .preview-rarity {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
   margin-top: 4rpx;
   display: block;
@@ -139,9 +139,9 @@
 }
 
 .form-label {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   display: block;
   margin-bottom: 16rpx;
 }
@@ -154,7 +154,7 @@
 }
 
 .required {
-  color: #ff4d4f;
+  color: var(--tg-color-error);
 }
 
 .form-input {
@@ -163,7 +163,7 @@
   padding: 0 20rpx;
   border: 2rpx solid var(--tg-color-divider);
   border-radius: var(--td-radius-small);
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-primary);
   box-sizing: border-box;
 }
@@ -176,17 +176,17 @@
   padding: 0 20rpx;
   border: 2rpx solid var(--tg-color-divider);
   border-radius: var(--td-radius-small);
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-primary);
 }
 
 .picker-arrow {
   color: var(--tg-text-tertiary);
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
 }
 
 .form-hint {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
   margin-top: 12rpx;
   display: block;
@@ -205,7 +205,7 @@
   padding: 16rpx 0;
   border: 2rpx solid var(--tg-color-divider);
   border-radius: var(--td-radius-small);
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
 
   &.active {
@@ -228,7 +228,7 @@
   text-align: center;
   border: 2rpx solid var(--tg-color-divider);
   border-radius: var(--td-radius-small);
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
 }
 
@@ -241,10 +241,10 @@
   text-align: center;
   padding: 24rpx 0;
   background-color: var(--td-brand-color);
-  color: #fff;
+  color: var(--tg-color-white);
   border-radius: var(--td-radius-default);
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
 
   &.disabled {
     opacity: 0.6;

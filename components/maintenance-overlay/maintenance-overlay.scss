@@ -25,14 +25,14 @@
 }
 
 .maintenance-title {
-  font-size: 40rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
 }
 
 .maintenance-message {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   color: var(--tg-text-secondary);
   line-height: 1.4;
   margin-bottom: 50rpx;
@@ -42,7 +42,7 @@
   width: 360rpx;
   height: 80rpx;
   line-height: 80rpx;
-  font-size: 30rpx;
+  font-size: var(--tg-font-size-headline);
   color: var(--tg-color-white);
   background: var(--td-brand-color);
   border-radius: 40rpx;
@@ -56,6 +56,6 @@
 
 .maintenance-hint {
   margin-top: 20rpx;
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
 }

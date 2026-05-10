@@ -134,10 +134,10 @@
 }
 
 .book-title {
-  font-size: 30rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   letter-spacing: 6rpx;
-  color: #fff;
+  color: var(--tg-color-white);
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
 }
 
@@ -187,8 +187,8 @@
 }
 
 .ring-text {
-  font-size: 24rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-bold);
   color: #c5a572;
   text-shadow: 0 0 8rpx rgba(197, 165, 114, 0.5);
 }
@@ -199,12 +199,12 @@
 }
 
 .pl-main {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.7);
 }
 
 .pl-sub {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: rgba(255, 255, 255, 0.4);
   margin-top: 2rpx;
 }
@@ -286,9 +286,9 @@
 }
 
 .gc-label {
-  font-size: 22rpx;
-  font-weight: 600;
-  color: #fff;
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   text-align: center;
   margin-top: 8rpx;
   max-width: 90%;
@@ -320,9 +320,9 @@
   position: absolute;
   bottom: 6rpx;
   right: 8rpx;
-  font-size: 16rpx;
+  font-size: var(--tg-font-size-micro);
   color: rgba(255, 255, 255, 0.18);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 新卡获得 → 金色边框 + 光晕 */
@@ -380,15 +380,15 @@
 }
 
 .gc-q {
-  font-size: 52rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
   color: rgba(255, 255, 255, 0.28);
   text-shadow: 0 2rpx 8rpx rgba(255, 255, 255, 0.08);
   z-index: 1;
 }
 
 .gc-back-no {
-  font-size: 16rpx;
+  font-size: var(--tg-font-size-micro);
   color: rgba(255, 255, 255, 0.18);
   margin-top: 6rpx;
   z-index: 1;
@@ -411,9 +411,9 @@
   top: -2rpx;
   right: -2rpx;
   background: linear-gradient(135deg, #3d5940, #7a9e7e);
-  color: #fff;
-  font-size: 16rpx;
-  font-weight: bold;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-micro);
+  font-weight: var(--tg-font-weight-bold);
   padding: 3rpx 12rpx;
   border-radius: 0 16rpx 0 10rpx;
   z-index: 10;
@@ -635,9 +635,9 @@
 }
 
 .rc-name {
-  font-size: 34rpx;
-  font-weight: bold;
-  color: #fff;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   margin-top: 20rpx;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.5);
   z-index: 1;
@@ -666,9 +666,9 @@
   position: absolute;
   bottom: 16rpx;
   right: 20rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.25);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 揭晓提示文字 */
@@ -690,14 +690,14 @@
 }
 
 .rh-main {
-  font-size: 34rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: #c5a572;
   text-shadow: 0 2rpx 12rpx rgba(197, 165, 114, 0.4);
 }
 
 .rh-sub {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.5);
   margin-top: 10rpx;
 }
@@ -740,13 +740,13 @@
 }
 
 .draw-btn-icon {
-  font-size: 30rpx;
+  font-size: var(--tg-font-size-headline);
 }
 
 .draw-btn-text {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #fff;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
@@ -775,13 +775,13 @@
 }
 
 .cc-cost {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.55);
 }
 
 .cost-val {
   color: #c5a572;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ==================== 集齐彩蛋 ==================== */
@@ -813,8 +813,8 @@
 }
 
 .done-text {
-  font-size: 26rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
   color: #c5a572;
 }
 
@@ -1081,13 +1081,13 @@
 }
 
 .ccl-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, #333);
 }
 
 .ccl-prizes__count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #999);
 }
 
@@ -1136,7 +1136,7 @@
 
 .ccl-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #666);
   max-width: 120rpx;
   overflow: hidden;
@@ -1153,8 +1153,8 @@
 .ccl-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
-  color: #999;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
   background: rgba(153, 153, 153, 0.15);
   border-radius: 4rpx;
 }
@@ -1168,8 +1168,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.6);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;

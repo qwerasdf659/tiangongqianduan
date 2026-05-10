@@ -49,8 +49,8 @@
 
   &__title {
     display: block;
-    font-size: 38rpx;
-    font-weight: bold;
+    font-size: var(--tg-font-size-display);
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-text, #333);
     letter-spacing: 6rpx;
   }
@@ -494,7 +494,7 @@
 
 .hint-exploding {
   font-size: var(--td-font-size-m);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-danger, #3d5940);
   animation: textPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -551,7 +551,7 @@
 
   &__value {
     font-size: var(--td-font-size-m);
-    font-weight: bold;
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-primary, #7c4dff);
   }
 
@@ -567,7 +567,7 @@
   }
 
   &__balance {
-    font-size: 22rpx;
+    font-size: var(--tg-font-size-small);
     color: var(--tg-lottery-text-light, #bbb);
   }
 }
@@ -603,12 +603,12 @@
 
   &__title {
     font-size: var(--td-font-size-base);
-    font-weight: bold;
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-text, #333);
   }
 
   &__count {
-    font-size: 22rpx;
+    font-size: var(--tg-font-size-small);
     color: var(--tg-lottery-text-light, #999);
   }
 
@@ -714,8 +714,8 @@
 .bb-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
-  color: #999;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
   background: rgba(153, 153, 153, 0.15);
   border-radius: 4rpx;
 }
@@ -730,8 +730,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.6);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;

@@ -68,8 +68,8 @@
   }
 
   &__text {
-    font-size: 30rpx;
-    font-weight: bold;
+    font-size: var(--tg-font-size-headline);
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-accent, #c5a572);
     text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
     letter-spacing: 2rpx;
@@ -306,8 +306,8 @@
     animation: fuShine 3s ease-in-out infinite;
 
     .fu-text {
-      font-size: 42rpx;
-      font-weight: 900;
+      font-size: var(--tg-font-size-display);
+      font-weight: var(--tg-font-weight-bold);
       color: var(--tg-lottery-primary-dark, #a8071a);
       text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.1);
     }
@@ -356,7 +356,7 @@
 
   .count-text {
     font-size: var(--tg-font-size-xs);
-    font-weight: bold;
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-primary-dark, #a8071a);
   }
 }
@@ -510,7 +510,7 @@
   }
 
   .bag-shape__fu .bag-shape__fu-text {
-    font-size: 42rpx;
+    font-size: var(--tg-font-size-display);
   }
 
   .bag-pedestal {
@@ -584,7 +584,7 @@
   }
 
   .bag-number .bag-number-text {
-    font-size: 18rpx;
+    font-size: var(--tg-font-size-micro);
   }
 
   .multi-row {
@@ -632,7 +632,7 @@
   }
 
   .bag-shape__fu .bag-shape__fu-text {
-    font-size: 26rpx;
+    font-size: var(--tg-font-size-body);
   }
 
   .bag-shape__pattern {
@@ -649,7 +649,7 @@
   }
 
   .bag-number .bag-number-text {
-    font-size: 16rpx;
+    font-size: var(--tg-font-size-micro);
   }
 
   .multi-row {
@@ -665,7 +665,7 @@
   }
 
   .multi-bag-prize__name {
-    font-size: 18rpx;
+    font-size: var(--tg-font-size-micro);
     max-width: 100rpx;
   }
 }
@@ -721,7 +721,7 @@
 
   .btn-text {
     font-size: var(--td-font-size-base);
-    font-weight: bold;
+    font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-accent, #c5a572);
     letter-spacing: 2rpx;
   }
@@ -824,12 +824,12 @@
 
   &__title {
     font-size: var(--td-font-size-base);
-    color: #fff;
-    font-weight: bold;
+    color: var(--tg-color-white);
+    font-weight: var(--tg-font-weight-bold);
   }
 
   &__count {
-    font-size: 22rpx;
+    font-size: var(--tg-font-size-small);
     color: var(--tg-lottery-text-light, rgba(255, 255, 255, 0.5));
   }
 
@@ -889,7 +889,7 @@
   &__fallback-tag {
     margin-top: 2rpx;
     padding: 0 6rpx;
-    font-size: 18rpx;
+    font-size: var(--tg-font-size-micro);
     color: rgba(255, 255, 255, 0.5);
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4rpx;
@@ -909,8 +909,8 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 20rpx;
-    color: #fff;
+    font-size: var(--tg-font-size-mini);
+    color: var(--tg-color-white);
     background: rgba(0, 0, 0, 0.6);
     padding: 2rpx 8rpx;
     border-radius: 4rpx;

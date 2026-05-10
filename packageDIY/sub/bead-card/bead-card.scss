@@ -59,7 +59,7 @@
 .bead-name {
   font-size: calc(var(--td-font-size-s) - 2rpx);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -67,7 +67,7 @@
 }
 
 .bead-spec {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: var(--tg-text-tertiary);
   margin-top: 2rpx;
 }
@@ -81,11 +81,11 @@
 .bead-price {
   font-size: var(--td-font-size-s);
   color: var(--td-brand-color);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .bead-unit {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   margin-left: 4rpx;
 }
 
@@ -104,6 +104,6 @@
   .bead-sold-out-text {
     font-size: var(--td-font-size-s);
     color: var(--tg-text-tertiary);
-    font-weight: 500;
+    font-weight: var(--tg-font-weight-regular);
   }
 }

@@ -31,7 +31,7 @@
 .loading-text {
   font-size: var(--td-font-size-m);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 🔧 错误提示样式 */
@@ -65,8 +65,8 @@
 .error-title {
   display: block;
   font-size: var(--td-font-size-l);
-  font-weight: 600;
-  color: #f44336;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-error);
   margin-bottom: 20rpx;
 }
 
@@ -90,7 +90,7 @@
   border-radius: 20rpx;
   padding: 20rpx 40rpx;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   transition: all 0.3s ease;
 }
 
@@ -110,7 +110,7 @@
   padding: 30rpx;
   background: rgba(244, 67, 54, 0.05);
   border-radius: 20rpx;
-  border-left: 6rpx solid #f44336;
+  border-left: 6rpx solid var(--tg-color-error);
 }
 
 .error-details-text {
@@ -255,7 +255,7 @@
 
 .title {
   font-size: var(--tg-font-size-xxl);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   display: block;
@@ -287,13 +287,13 @@
 
 .label-text {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
 .required {
   font-size: var(--td-font-size-m);
-  color: #f44336;
+  color: var(--tg-color-error);
   margin-left: 8rpx;
 }
 
@@ -317,7 +317,7 @@
 }
 
 .input-wrapper.error {
-  border-color: #f44336;
+  border-color: var(--tg-color-error);
   background: rgba(244, 67, 54, 0.05);
 }
 
@@ -338,12 +338,12 @@
 
 .code-btn {
   background: var(--td-brand-color) !important;
-  color: white !important;
+  color: var(--tg-color-white) !important;
   border: none !important;
   border-radius: var(--td-radius-default) !important;
   padding: 20rpx 4rpx !important;
   font-size: var(--td-font-size-base) !important;
-  font-weight: 600 !important;
+  font-weight: var(--tg-font-weight-bold) !important;
   width: 150rpx !important;
   height: 90rpx !important;
   transition: all 0.3s ease !important;
@@ -369,7 +369,7 @@
 
 .error-tip {
   font-size: var(--td-font-size-s);
-  color: #f44336;
+  color: var(--tg-color-error);
   margin-top: 12rpx;
   margin-left: 20rpx;
   display: block;
@@ -387,7 +387,7 @@
 }
 
 .agreement-text {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-tertiary);
   line-height: 1.5;
   flex: 1;
@@ -402,12 +402,12 @@
 .submit-btn {
   width: 100%;
   background: var(--td-brand-color);
-  color: white;
+  color: var(--tg-color-white);
   border: none;
   border-radius: var(--td-radius-large);
   padding: 36rpx;
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   margin-bottom: 30rpx;
   transition: all 0.3s ease;
   position: relative;
@@ -448,7 +448,7 @@
   border-radius: 20rpx;
   padding: 28rpx;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 底部说明 */
@@ -476,8 +476,8 @@
   color: var(--td-brand-color);
   padding: 12rpx 20rpx;
   border-radius: 50rpx;
-  font-size: 22rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 用户协议弹窗 */
@@ -505,7 +505,7 @@
   width: 90%;
   max-width: 700rpx;
   max-height: 80vh;
-  background: white;
+  background: var(--tg-color-white);
   border-radius: var(--td-radius-large);
   overflow: hidden;
   animation: modalSlideIn 0.3s ease-out;
@@ -525,7 +525,7 @@
 
 .modal-header {
   background: var(--td-brand-color);
-  color: white;
+  color: var(--tg-color-white);
   padding: 40rpx;
   text-align: center;
   position: relative;
@@ -533,7 +533,7 @@
 
 .modal-title {
   font-size: var(--td-font-size-l);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .close-btn {
@@ -562,7 +562,7 @@
 
 .section-title {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   display: block;
@@ -584,12 +584,12 @@
 .modal-btn {
   width: 100%;
   background: var(--td-brand-color);
-  color: white;
+  color: var(--tg-color-white);
   border: none;
   border-radius: var(--td-radius-default);
   padding: 28rpx;
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 响应式适配 */

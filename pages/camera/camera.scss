@@ -46,7 +46,7 @@ page {
 }
 
 .placeholder-text {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
   opacity: 0.6;
 }
@@ -133,14 +133,14 @@ page {
 }
 
 .tab-name {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .tab-item.active .tab-name {
   color: var(--tg-color-white);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ========== 活动列表 ========== */
@@ -170,7 +170,7 @@ page {
 }
 
 .empty-hint {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-tertiary);
   text-align: center;
   line-height: 1.4;
@@ -191,8 +191,8 @@ page {
 
 .error-text {
   font-size: var(--td-font-size-base);
-  color: #e74c3c;
-  font-weight: 500;
+  color: var(--tg-color-error);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .retry-btn {
@@ -202,7 +202,7 @@ page {
   border-radius: 50rpx;
   padding: 20rpx 60rpx;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ========== 活动卡片 ========== */
@@ -249,11 +249,11 @@ page {
   border-radius: 50rpx;
   font-size: var(--td-font-size-s);
   color: var(--tg-color-white);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .status-badge.status-ongoing {
-  background: #27ae60;
+  background: var(--tg-color-success);
 }
 
 .status-badge.status-upcoming {
@@ -273,7 +273,7 @@ page {
   border-radius: 50rpx;
   font-size: var(--td-font-size-s);
   color: var(--tg-color-white);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   background: var(--td-brand-color);
   box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.4);
 }
@@ -305,7 +305,7 @@ page {
 }
 
 .card-subtitle {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
   line-height: 1.5;
 }
@@ -333,7 +333,7 @@ page {
 .data-text {
   font-size: var(--td-font-size-s);
   color: var(--td-brand-color);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 标签 */
@@ -347,7 +347,7 @@ page {
   padding: 6rpx 16rpx;
   background: rgba(var(--td-brand-color-rgb), 0.1);
   border-radius: 20rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--td-brand-color);
   border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.3);
 }
@@ -363,7 +363,7 @@ page {
   border-radius: 50rpx;
   padding: 24rpx 0;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   border: none;
   transition: all 0.3s ease;
 }
@@ -415,9 +415,9 @@ page {
 }
 
 .bottom-tip .tip-text {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--td-brand-color);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ========== 响应式适配 ========== */
@@ -427,7 +427,7 @@ page {
   }
 
   .card-title {
-    font-size: 30rpx;
+    font-size: var(--tg-font-size-headline);
   }
 
   .card-subtitle {

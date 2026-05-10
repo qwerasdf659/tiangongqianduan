@@ -56,7 +56,7 @@
 
 .balance-title {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
 }
 
@@ -89,7 +89,7 @@
 
 .balance-number {
   font-size: 96rpx;
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   margin-right: 12rpx;
   background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
   filter: drop-shadow(0 2rpx 4rpx rgba(var(--tg-color-black-rgb), 0.08));
@@ -109,7 +109,7 @@
 
 .balance-unit {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-tertiary);
 }
 
@@ -150,7 +150,7 @@
 .badge-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-color-white);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ========== 筛选功能区域 ========== */
@@ -202,13 +202,13 @@
 
 .filter-tab-text {
   font-size: var(--td-font-size-s);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-secondary);
 }
 
 .filter-tab.active .filter-tab-text {
   color: var(--tg-color-white);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 选中指示器 */
@@ -251,7 +251,7 @@
 
 .records-title {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -261,7 +261,7 @@
   background: rgba(var(--td-brand-color-rgb), 0.08);
   padding: 6rpx 16rpx;
   border-radius: var(--td-radius-circle);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 记录列表 */
@@ -342,7 +342,7 @@
 .icon-symbol {
   color: var(--tg-color-white);
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* 记录详情 */
@@ -359,7 +359,7 @@
 
 .record-title {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   flex: 1;
   margin-right: var(--tg-spacing-sm);
@@ -369,7 +369,7 @@
 /* 积分数字 */
 .record-points {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   min-width: 80rpx;
   text-align: right;
   white-space: nowrap;
@@ -426,7 +426,7 @@
   padding: var(--tg-spacing-sm) var(--tg-spacing-xl);
   border-radius: var(--td-radius-circle);
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.3);
   transition: var(--tg-transition-base);
 }
@@ -452,7 +452,7 @@
   padding: var(--tg-spacing-sm) var(--tg-spacing-lg);
   border-radius: var(--td-radius-circle);
   font-size: var(--td-font-size-s);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   transition: var(--tg-transition-base);
   display: inline-flex;
 }
@@ -507,7 +507,7 @@
 .no-more-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-disabled);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   white-space: nowrap;
 }
 
@@ -520,7 +520,7 @@
 .update-time {
   font-size: var(--tg-font-size-xs);
   color: rgba(var(--tg-color-white-rgb), 0.6);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ========== 全屏加载状态 ========== */

@@ -25,7 +25,7 @@
 
 .result-title {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 16rpx;
 }
@@ -64,7 +64,7 @@
 .result-value {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .result-footer {
@@ -79,7 +79,7 @@
   @include flex-center;
   border-radius: var(--td-radius-default);
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .result-btn-secondary {
@@ -103,7 +103,7 @@
 }
 
 .result-quality-tag {
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .result-mint-tip {

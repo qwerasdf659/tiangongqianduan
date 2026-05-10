@@ -54,7 +54,7 @@
   background: rgba(255, 255, 255, 0.95);
   border-radius: var(--td-radius-default);
   font-size: var(--td-font-size-base);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-secondary);
   border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.15);
   transition: all 0.3s;
@@ -64,7 +64,7 @@
 .filter-btn.active,
 .advanced-filter-btn.active {
   background: var(linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active)));
-  color: #ffffff;
+  color: var(--tg-color-white);
   border-color: transparent;
   box-shadow: 0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.35);
 }
@@ -85,7 +85,7 @@
 .filter-label {
   display: block;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
 }
@@ -127,7 +127,7 @@
 
 .category-cascader-popup__title {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -148,7 +148,7 @@
   padding: 0 28rpx;
   background: rgba(248, 250, 252, 0.95);
   border-radius: 12rpx;
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
   border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.12);
   transition: all 0.3s;
@@ -156,7 +156,7 @@
 
 .option-btn.active {
   background: var(linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active)));
-  color: #ffffff;
+  color: var(--tg-color-white);
   border-color: transparent;
 }
 
@@ -173,16 +173,16 @@
   line-height: 76rpx;
   text-align: center;
   background: #ff6b6b;
-  color: #ffffff;
+  color: var(--tg-color-white);
   border-radius: var(--td-radius-default);
   font-size: var(--td-font-size-base);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   box-shadow: 0 6rpx 16rpx rgba(255, 107, 107, 0.35);
 }
 
 /* 筛选标签聚合计数 */
 .filter-count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   opacity: 0.7;
 }
 
@@ -243,7 +243,7 @@
   padding: 16rpx 32rpx;
   border-radius: 999px;
   background: var(--td-brand-color, #5b7a5e);
-  color: #ffffff;
-  font-size: 24rpx;
-  font-weight: 500;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-regular);
 }

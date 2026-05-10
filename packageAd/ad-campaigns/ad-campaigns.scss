@@ -29,8 +29,8 @@
 
 .header-count {
   font-size: 56rpx;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
   margin-right: 8rpx;
   line-height: 1.2;
 }
@@ -44,23 +44,23 @@
 .header-create-btn {
   @include flex-align-center;
   background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  color: var(--tg-color-white);
   padding: 12rpx 28rpx;
   border-radius: 32rpx;
   font-size: var(--td-font-size-s);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   border: 2rpx solid rgba(255, 255, 255, 0.3);
 }
 
 .header-create-icon {
   font-size: var(--td-font-size-base);
   margin-right: 6rpx;
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ===== 状态筛选Tab ===== */
 .status-tab-bar {
-  background: #ffffff;
+  background: var(--tg-color-white);
   white-space: nowrap;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
   position: relative;
@@ -88,7 +88,7 @@
 .status-tab-item.active {
   color: var(--td-brand-color);
   background: rgba(var(--td-brand-color-rgb), 0.1);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ===== 运营提示栏 ===== */
@@ -162,7 +162,7 @@
 
 .campaign-name {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   flex: 1;
   @include text-ellipsis;
@@ -174,7 +174,7 @@
   border-radius: 6rpx;
   font-size: var(--td-font-size-xs);
   flex-shrink: 0;
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ===== 卡片信息区 ===== */
@@ -196,12 +196,12 @@
 .info-value {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .info-value.highlight {
   color: var(--td-brand-color);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .billing-tag {
@@ -212,7 +212,7 @@
   font-size: var(--td-font-size-xs);
   background: rgba(var(--td-brand-color-rgb), 0.08);
   color: var(--td-brand-color);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .billing-tag.free {
@@ -238,7 +238,7 @@
   padding: 10rpx 28rpx;
   border-radius: var(--td-radius-small);
   font-size: var(--td-font-size-s);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   transition: opacity 0.15s ease;
 
   &:active {
@@ -253,7 +253,7 @@
 
 .edit-btn {
   background: var(--td-brand-color);
-  color: #ffffff;
+  color: var(--tg-color-white);
 }
 
 .submit-btn {
@@ -287,7 +287,7 @@
 .empty-title {
   font-size: var(--td-font-size-l);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   margin-bottom: var(--tg-spacing-sm);
 }
 
@@ -378,7 +378,7 @@
   bottom: 100rpx;
   @include flex-center;
   background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
-  color: #ffffff;
+  color: var(--tg-color-white);
   padding: 20rpx 36rpx;
   border-radius: 44rpx;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35);
@@ -393,10 +393,10 @@
 .fab-icon {
   font-size: var(--td-font-size-m);
   margin-right: var(--tg-spacing-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .fab-text {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }

@@ -43,8 +43,8 @@
 }
 .form-title {
   display: block;
-  font-size: 40rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 8rpx;
 }
@@ -64,7 +64,7 @@
 .section-title {
   display: block;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
 }
@@ -89,7 +89,7 @@
 .type-label {
   display: block;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 .type-desc {
@@ -146,10 +146,10 @@
   width: 40rpx;
   height: 40rpx;
   background: rgba(0, 0, 0, 0.5);
-  color: #fff;
+  color: var(--tg-color-white);
   @include flex-center;
   border-radius: 50%;
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
 }
 .evidence-add {
   width: 180rpx;
@@ -184,7 +184,7 @@
   background: var(--td-brand-color);
   color: var(--tg-color-white);
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   border-radius: var(--td-radius-circle);
   text-align: center;
 
@@ -212,8 +212,8 @@
 }
 .status-label {
   display: block;
-  font-size: 36rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
 }
 .status-desc {
   display: block;
@@ -236,12 +236,12 @@
 }
 .result-title {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 .result-badge {
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
 }
 .result-note {
   display: block;
@@ -261,7 +261,7 @@
 .card-title {
   display: block;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-bottom: 16rpx;
 }

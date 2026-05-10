@@ -13,7 +13,7 @@
 
 /* 🎨 页面级背景 — 纯白背景 */
 page {
-  background-color: #ffffff;
+  background-color: #F8F8F8;
 }
 
 /* 🎨 整体容器 — 一体化设计（内容延伸至状态栏，与蜜雪/霸王茶姬同风格） */
@@ -58,7 +58,7 @@ page {
 }
 
 .placeholder-text {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
   opacity: 0.6;
 }

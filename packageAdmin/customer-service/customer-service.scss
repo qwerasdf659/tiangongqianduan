@@ -50,19 +50,19 @@
 }
 
 .status-text {
-  font-size: 26rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .status-badge {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   padding: 6rpx 12rpx;
   border-radius: var(--td-radius-default);
   background: rgba(var(--tg-color-white-rgb), 0.85);
 }
 
 .connection-info .ws-status {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   padding: 6rpx 12rpx;
   border-radius: var(--td-radius-default);
 }
@@ -109,13 +109,13 @@
 }
 
 .panel-title {
-  font-size: 30rpx;
-  font-weight: 700;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary-strong);
 }
 
 .session-count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-secondary-muted);
   background: var(--tg-color-border-muted);
   padding: 4rpx 12rpx;
@@ -130,7 +130,7 @@
 }
 
 .empty-text {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-tertiary-muted);
 }
 
@@ -191,8 +191,8 @@
 
 .avatar-text {
   color: var(--tg-color-white);
-  font-size: 22rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .session-info {
@@ -209,7 +209,7 @@
 
 .user-name {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary-strong);
   max-width: 160rpx;
   overflow: hidden;
@@ -242,7 +242,7 @@
 .unread-badge {
   background: linear-gradient(135deg, var(--tg-color-error), #c44569 100%);
   color: var(--tg-color-white);
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   padding: 4rpx 10rpx;
   border-radius: 12rpx;
   min-width: 28rpx;
@@ -255,11 +255,11 @@
 }
 
 .status-tag {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   padding: 4rpx 10rpx;
   border-radius: 10rpx;
   color: var(--tg-color-white);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .status-tag.waiting {
@@ -416,12 +416,12 @@
 
 .back-icon {
   font-size: var(--td-font-size-s);
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .back-text {
-  font-size: 22rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .chat-user-info {
@@ -432,7 +432,7 @@
 
 .chat-user-name {
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary-strong);
 }
 
@@ -446,7 +446,7 @@
   color: var(--tg-color-white);
   padding: 12rpx 24rpx;
   border-radius: 20rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   border: none;
   box-shadow: 0 4rpx 12rpx rgba(231, 76, 60, 0.3);
 }
@@ -501,7 +501,7 @@
 .message-avatar .avatar-text {
   color: var(--tg-color-white);
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .message-content {
@@ -542,7 +542,7 @@
 }
 
 .message-text {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   line-height: 1.5;
   margin: 0;
 }
@@ -551,7 +551,7 @@
   display: flex;
   gap: 12rpx;
   margin-top: 6rpx;
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: var(--tg-text-tertiary-muted);
 }
 
@@ -564,15 +564,15 @@
 }
 
 .message-status {
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .message-status.sending {
-  color: #f39c12;
+  color: var(--tg-color-warning);
 }
 
 .message-status.sent {
-  color: #27ae60;
+  color: var(--tg-color-success);
 }
 
 .message-status.failed {
@@ -633,7 +633,7 @@
   color: var(--tg-color-white);
   padding: 10rpx 20rpx;
   border-radius: var(--td-radius-default);
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   border: none;
   box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
 }
@@ -654,7 +654,7 @@
   padding: 16rpx 20rpx;
   border: 2rpx solid var(--tg-color-border-muted);
   border-radius: var(--td-radius-large);
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   background: var(--tg-color-bg);
   resize: none;
   transition: all 0.3s ease;
@@ -706,14 +706,14 @@
 }
 
 .send-text {
-  font-size: 26rpx;
-  font-weight: 500;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .typing-indicator {
   padding: 12rpx 30rpx;
   text-align: center;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary-muted);
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   border-top: 1rpx solid var(--tg-color-border-light);
@@ -736,7 +736,7 @@
 
 .stats-title {
   font-size: var(--td-font-size-base);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary-strong);
 }
 
@@ -764,7 +764,7 @@
 
 .stat-card .stat-number {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   background: linear-gradient(
     135deg,
     var(--tg-gradient-primary-start) 0%,
@@ -776,7 +776,7 @@
 }
 
 .stat-card .stat-label {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary-muted);
   display: block;
 }
@@ -833,7 +833,7 @@
 
 .debug-panel-title {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
 }
 
@@ -883,7 +883,7 @@
 }
 
 .debug-quick-btn .btn-text {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -902,7 +902,7 @@
 
 .debug-section-title-compact {
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 8rpx;
   display: block;
@@ -915,7 +915,7 @@
 }
 
 .debug-btn-compact {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   padding: 8rpx 12rpx;
   background: rgba(255, 255, 255, 0.2);
   color: var(--tg-color-white);
@@ -940,7 +940,7 @@
 
 .debug-info-title-compact {
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   margin-bottom: 8rpx;
   display: block;
@@ -953,7 +953,7 @@
 }
 
 .debug-info-item-compact {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: rgba(255, 255, 255, 0.8);
   padding: 6rpx 8rpx;
   background: rgba(255, 255, 255, 0.15);

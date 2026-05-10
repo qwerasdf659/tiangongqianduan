@@ -306,7 +306,7 @@
 }
 
 .title-icon {
-  font-size: 34rpx;
+  font-size: var(--tg-font-size-headline);
 
   &.left-icon {
     animation: titleBounceL 2.5s ease-in-out infinite;
@@ -318,8 +318,8 @@
 }
 
 .title-text {
-  font-size: 38rpx;
-  font-weight: 900;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
   letter-spacing: 10rpx;
   color: transparent;
   background: linear-gradient(
@@ -1087,7 +1087,7 @@
 }
 
 .slot-name {
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: var(--tg-lottery-text-lighter, rgba(255, 255, 255, 0.55));
   max-width: 95%;
   overflow: hidden;
@@ -1099,7 +1099,7 @@
   .active &,
   .winner & {
     color: var(--tg-lottery-accent, #c5a572);
-    font-weight: bold;
+    font-weight: var(--tg-font-weight-bold);
     text-shadow: 0 0 10rpx var(--tg-lottery-accent-glow-soft, rgba(197, 165, 114, 0.5));
   }
 }
@@ -1555,7 +1555,7 @@
     #f57c00 100%
   );
   border-radius: 50rpx;
-  color: #fff;
+  color: var(--tg-color-white);
   overflow: hidden;
   box-shadow:
     0 8rpx 28rpx rgba(255, 140, 0, 0.5),
@@ -1656,8 +1656,8 @@
 }
 
 .btn-text {
-  font-size: 30rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   letter-spacing: 2rpx;
 }
 
@@ -1680,7 +1680,7 @@
 }
 
 .cost-badge-text {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.5);
   letter-spacing: 1rpx;
 }
@@ -1726,13 +1726,13 @@
 }
 
 .pb-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, #333);
 }
 
 .pb-prizes__count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #999);
 }
 
@@ -1781,7 +1781,7 @@
 
 .pb-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #666);
   max-width: 120rpx;
   overflow: hidden;
@@ -1798,8 +1798,8 @@
 .pb-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
-  color: #999;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
   background: rgba(153, 153, 153, 0.15);
   border-radius: 4rpx;
 }
@@ -1813,8 +1813,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.6);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;

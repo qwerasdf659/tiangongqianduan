@@ -37,12 +37,12 @@
 }
 
 .back-icon {
-  font-size: 36rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .home-icon {
-  font-size: 32rpx;
+  font-size: var(--tg-font-size-headline);
 }
 
 .navbar-title {
@@ -52,8 +52,8 @@
 }
 
 .title-text {
-  font-size: 34rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

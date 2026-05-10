@@ -69,18 +69,18 @@
 }
 
 .tab-icon {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 .tab-name {
-  font-size: 26rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
   transition: color 0.3s ease;
 }
 
 .tab-item.active .tab-name {
-  color: white;
+  color: var(--tg-color-white);
   text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
@@ -119,7 +119,7 @@
 .loading-text {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ============================================================================ */
@@ -202,7 +202,7 @@
 }
 
 .stat-icon {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 .stat-body {
@@ -218,7 +218,7 @@
 
 .stat-value {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   display: block;
 }
 
@@ -281,12 +281,12 @@
 
 .chip-text {
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
 }
 
 .filter-chip.active .chip-text {
-  color: white;
+  color: var(--tg-color-white);
 }
 
 .filter-actions {
@@ -303,7 +303,7 @@
   @include flex-center;
   gap: 8rpx;
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-gradient-primary-start);
   transition: all 0.3s ease;
 }
@@ -341,7 +341,7 @@
 }
 
 .search-icon {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
   opacity: 0.6;
 }
 
@@ -364,7 +364,7 @@
 }
 
 .clear-icon {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
 }
 
@@ -376,7 +376,7 @@
 .count-text {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-tertiary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ============================================================================ */
@@ -459,7 +459,7 @@
 }
 
 .transaction-icon {
-  font-size: 36rpx;
+  font-size: var(--tg-font-size-number-lg);
 }
 
 .transaction-info {
@@ -469,7 +469,7 @@
 
 .transaction-title {
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   display: block;
   margin-bottom: 6rpx;
@@ -506,7 +506,7 @@
 
 .amount-value {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   display: block;
   line-height: 1.4;
 }
@@ -537,7 +537,7 @@
   border-radius: 12rpx;
   border: none;
   font-size: var(--td-font-size-s);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   @include flex-center;
   gap: 8rpx;
   transition: all 0.3s ease;
@@ -559,7 +559,7 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  color: white;
+  color: var(--tg-color-white);
 }
 
 .action-btn.primary:active {
@@ -569,7 +569,7 @@
 
 .action-btn.warning {
   background: rgba(var(--tg-color-warning-rgb), 0.12);
-  color: #f59e0b;
+  color: var(--tg-color-warning);
 }
 
 .action-btn.danger {
@@ -617,17 +617,17 @@
 }
 
 .filter-icon {
-  font-size: 24rpx;
+  font-size: var(--tg-font-size-caption);
 }
 
 .filter-name {
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
 }
 
 .filter-tab.active .filter-name {
-  color: white;
+  color: var(--tg-color-white);
 }
 
 /* ============================================================================ */
@@ -681,7 +681,7 @@
 
 .status-text {
   font-size: var(--tg-font-size-xs);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .record-status.approved .status-text {
@@ -693,7 +693,7 @@
 }
 
 .record-status.pending .status-text {
-  color: #f59e0b;
+  color: var(--tg-color-warning);
 }
 
 .record-content {
@@ -714,7 +714,7 @@
 
 .consumption-value {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -742,7 +742,7 @@
 
 .points-earned {
   font-size: var(--td-font-size-s);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-success);
 }
 
@@ -786,7 +786,7 @@
 .chain-progress-value {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-color-warning);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ============================================================================ */
@@ -830,7 +830,7 @@
 
 .empty-title {
   font-size: var(--td-font-size-l);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   display: block;
   margin-bottom: 12rpx;
@@ -852,7 +852,7 @@
   border-radius: 48rpx;
   padding: 24rpx 56rpx;
   font-size: var(--td-font-size-base);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
   display: inline-flex;
   align-items: center;
@@ -880,7 +880,7 @@
 }
 
 .load-more-text {
-  font-size: 26rpx;
+  font-size: var(--tg-font-size-body);
   color: var(--tg-text-tertiary);
 }
 
@@ -945,9 +945,9 @@
 }
 
 .refresh-text {
-  font-size: 26rpx;
-  color: white;
-  font-weight: 600;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ============================================================================ */

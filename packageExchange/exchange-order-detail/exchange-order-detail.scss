@@ -54,8 +54,8 @@
 
 .error-retry-text {
   font-size: var(--td-font-size-base);
-  color: #ffffff;
-  font-weight: 600;
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .error-back {
@@ -93,9 +93,9 @@
 }
 
 .status-label {
-  font-size: 36rpx;
-  color: #ffffff;
-  font-weight: 700;
+  font-size: var(--tg-font-size-number-lg);
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .status-desc {
@@ -114,8 +114,8 @@
 }
 
 .source-tag-text {
-  font-size: 20rpx;
-  color: #ffffff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
 }
 
 /* ===== 通用信息卡片 ===== */
@@ -138,7 +138,7 @@
 
 .card-title {
   font-size: var(--td-font-size-m);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -165,7 +165,7 @@
   display: block;
   font-size: var(--td-font-size-m);
   color: var(--tg-text-primary);
-  font-weight: 600;
+  font-weight: var(--tg-font-weight-bold);
   margin-bottom: 8rpx;
 }
 
@@ -181,7 +181,7 @@
   display: block;
   font-size: var(--td-font-size-s);
   color: var(--td-brand-color);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* ===== 订单信息行 ===== */
@@ -217,7 +217,7 @@
 }
 
 .copy-btn {
-  font-size: 20rpx;
+  font-size: var(--tg-font-size-mini);
   color: var(--td-brand-color);
   padding: 2rpx 10rpx;
   border: 1rpx solid var(--td-brand-color);
@@ -260,11 +260,11 @@
 }
 
 .dot-blue {
-  background: #1890ff;
+  background: var(--tg-color-info);
 }
 
 .dot-green {
-  background: #52c41a;
+  background: var(--tg-color-success);
 }
 
 .dot-cyan {
@@ -276,7 +276,7 @@
 }
 
 .dot-red {
-  background: #ff4d4f;
+  background: var(--tg-color-error);
 }
 
 .dot-grey {
@@ -299,7 +299,7 @@
   display: block;
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .timeline-time {
@@ -316,7 +316,7 @@
 
 .auto-confirm-text {
   font-size: var(--td-font-size-s);
-  color: #1890ff;
+  color: var(--tg-color-info);
 }
 
 /* ===== 已评价 ===== */
@@ -327,7 +327,7 @@
 
 .rating-show-stars {
   font-size: 48rpx;
-  color: #ffb300;
+  color: var(--tg-color-warning);
 }
 
 /* ===== 底部操作栏 ===== */
@@ -340,7 +340,7 @@
   gap: var(--tg-spacing-md);
   padding: var(--tg-spacing-lg) var(--tg-spacing-xl);
   padding-bottom: calc(var(--tg-spacing-lg) + env(safe-area-inset-bottom));
-  background: #ffffff;
+  background: var(--tg-color-white);
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
@@ -357,7 +357,7 @@
 }
 
 .btn-cancel-detail {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border: 1rpx solid var(--tg-text-tertiary);
 }
 
@@ -377,8 +377,8 @@
 
 .action-btn-text {
   font-size: var(--td-font-size-m);
-  color: #ffffff;
-  font-weight: 600;
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .safe-bottom {
@@ -413,8 +413,8 @@
 }
 
 .rating-modal-title {
-  font-size: 34rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
 }
 
@@ -451,12 +451,12 @@
 
 .star-icon {
   font-size: 56rpx;
-  color: #ddd;
+  color: var(--tg-text-tertiary);
   transition: color 0.15s ease;
 }
 
 .rating-star.selected .star-icon {
-  color: #ffb300;
+  color: var(--tg-color-warning);
 }
 
 .rating-hint {
@@ -483,8 +483,8 @@
 
 .rating-submit-text {
   font-size: var(--td-font-size-m);
-  color: #ffffff;
-  font-weight: 500;
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-regular);
 }
 
 /* 物流信息样式 */
@@ -496,7 +496,7 @@
 
 .shipping-query-text {
   font-size: var(--td-font-size-s);
-  color: #2196f3;
+  color: var(--tg-color-info);
 }
 
 .shipping-track-list {
@@ -522,7 +522,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #ddd;
+  background: var(--tg-text-tertiary);
 }
 
 .track-dot-active {

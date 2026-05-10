@@ -43,7 +43,7 @@
 
 .status-tab.active {
   color: var(--td-brand-color);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
 }
 
 .status-tab.active::after {
@@ -104,7 +104,7 @@
 
 .work-name {
   font-size: var(--td-font-size-m);
-  font-weight: 500;
+  font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-primary);
   flex: 1;
   overflow: hidden;

@@ -68,9 +68,9 @@
   }
 
   &__name {
-    font-size: 22rpx;
-    color: #fff;
-    font-weight: 600;
+    font-size: var(--tg-font-size-small);
+    color: var(--tg-color-white);
+    font-weight: var(--tg-font-weight-bold);
     text-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.6);
     white-space: nowrap;
     overflow: hidden;
@@ -82,8 +82,8 @@
 
   /* 保底奖品角标（转盘扇区内小标签） */
   &__badge {
-    font-size: 16rpx;
-    color: #fff;
+    font-size: var(--tg-font-size-micro);
+    color: var(--tg-color-white);
     background: rgba(153, 153, 153, 0.7);
     padding: 0 6rpx;
     border-radius: 4rpx;
@@ -145,14 +145,14 @@
 }
 
 .center-btn-text {
-  color: #fff;
-  font-size: 30rpx;
-  font-weight: bold;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .center-btn-cost {
   color: var(--tg-lottery-text-inverse-light, rgba(255, 255, 255, 0.8));
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   margin-top: 2rpx;
 }
 
@@ -193,13 +193,13 @@
 }
 
 .wheel-prizes__title {
-  font-size: 28rpx;
-  font-weight: bold;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, #333);
 }
 
 .wheel-prizes__count {
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text-light, #999);
 }
 
@@ -246,7 +246,7 @@
 
 .wheel-prizes__name {
   margin-top: 8rpx;
-  font-size: 22rpx;
+  font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-text, #333);
   text-align: center;
   overflow: hidden;
@@ -263,7 +263,7 @@
 .wheel-prizes__fallback-tag {
   margin-top: 2rpx;
   padding: 0 6rpx;
-  font-size: 18rpx;
+  font-size: var(--tg-font-size-micro);
   color: #c5a572;
   border: 1rpx solid #c5a572;
   border-radius: 4rpx;
@@ -278,8 +278,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 20rpx;
-  color: #fff;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-color-white);
   background: rgba(0, 0, 0, 0.5);
   padding: 2rpx 8rpx;
   border-radius: 4rpx;
@@ -289,12 +289,12 @@
 /* 转盘扇区稀有度颜色 */
 .wheel-prize.legendary .wheel-prize__name {
   color: #c5a572;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .wheel-prize.epic .wheel-prize__name {
   color: #9c27b0;
-  font-weight: bold;
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .wheel-prize.rare .wheel-prize__name {
@@ -306,5 +306,5 @@
 }
 
 .wheel-prize.common .wheel-prize__name {
-  color: #666;
+  color: var(--tg-text-secondary);
 }
