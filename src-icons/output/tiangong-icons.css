@@ -1,7 +1,6 @@
 @font-face {
     font-family: "tiangong-icons";
-    src: url("./tiangong-icons.woff2?603e4b352043c4cf693f18ebcc5e8083") format("woff2"),
-url("./tiangong-icons.ttf?603e4b352043c4cf693f18ebcc5e8083") format("truetype");
+    src: url("./tiangong-icons.woff2?c379675664980278263febcbdc9a4b90") format("woff2");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -71,4 +70,115 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 }
 .icon-icon-wheel:before {
     content: "\ea13";
+}
+.icon-icon-package:before {
+    content: "\ea14";
+}
+.icon-icon-diamond:before {
+    content: "\ea15";
+}
+.icon-icon-gold-coin:before {
+    content: "\ea16";
+}
+.icon-icon-hammer:before {
+    content: "\ea17";
+}
+.icon-icon-craft:before {
+    content: "\ea18";
+}
+.icon-icon-gift:before {
+    content: "\ea19";
+}
+.icon-icon-fire:before {
+    content: "\ea1a";
+}
+.icon-icon-warning:before {
+    content: "\ea1b";
+}
+.icon-icon-success:before {
+    content: "\ea1c";
+}
+.icon-icon-error:before {
+    content: "\ea1d";
+}
+.icon-icon-question:before {
+    content: "\ea1e";
+}
+.icon-icon-star:before {
+    content: "\ea1f";
+}
+.icon-icon-trophy:before {
+    content: "\ea20";
+}
+.icon-icon-slot-machine:before {
+    content: "\ea21";
+}
+.icon-icon-celebrate:before {
+    content: "\ea22";
+}
+.icon-icon-target:before {
+    content: "\ea23";
+}
+.icon-icon-link:before {
+    content: "\ea24";
+}
+.icon-icon-dice:before {
+    content: "\ea25";
+}
+.icon-icon-lightning:before {
+    content: "\ea26";
+}
+.icon-icon-clover:before {
+    content: "\ea27";
+}
+.icon-icon-sparkle:before {
+    content: "\ea28";
+}
+.icon-icon-ribbon:before {
+    content: "\ea29";
+}
+.icon-icon-golden-egg:before {
+    content: "\ea2a";
+}
+.icon-icon-red-packet:before {
+    content: "\ea2b";
+}
+.icon-icon-playing-card:before {
+    content: "\ea2c";
+}
+.icon-icon-mole:before {
+    content: "\ea2d";
+}
+.icon-icon-circus-tent:before {
+    content: "\ea2e";
+}
+.icon-icon-bulb:before {
+    content: "\ea2f";
+}
+.icon-icon-lock-closed:before {
+    content: "\ea30";
+}
+.icon-icon-refresh:before {
+    content: "\ea31";
+}
+.icon-icon-hourglass:before {
+    content: "\ea32";
+}
+.icon-icon-gamepad:before {
+    content: "\ea33";
+}
+.icon-icon-gear:before {
+    content: "\ea34";
+}
+.icon-icon-shield:before {
+    content: "\ea35";
+}
+.icon-icon-bomb:before {
+    content: "\ea36";
+}
+.icon-icon-crown:before {
+    content: "\ea37";
+}
+.icon-icon-info:before {
+    content: "\ea38";
 }

@@ -321,7 +321,7 @@ Page({
       if (errorCode === ERROR_NOT_FOUND || errorMsg.includes('404')) {
         log.warn(' 收到404错误 - 可能是API路径问题或服务未启动')
         wx.showModal({
-          title: '⚠️ 服务暂时不可用',
+          title: '服务暂时不可用',
           content:
             '积分记录服务暂时不可用。\n\n请联系技术支持处理：\n• API端点可能未部署\n• 服务器可能重启中',
           showCancel: true,

@@ -50,7 +50,7 @@
                   '轮播广告' : item.slot_type === 'announcement' ? '公告广告' : item.slot_type ===
                   'feed' ? '信息流广告' : item.slot_type}}</text
                 >
-                <text class="slot-price">日价 {{item.daily_price_star_stone}} 💎</text>
+                <text class="slot-price">日价 {{item.daily_price_star_stone}} <text class="iconfont icon-diamond"></text></text>
               </view>
               <view class="slot-meta" wx:if="{{item.description}}">
                 <text>{{item.description}}</text>
@@ -96,15 +96,15 @@
             <block wx:elif="{{pricingPreview && estimatedTotalStarStone > 0}}">
               <view class="cost-main-row">
                 <text class="cost-label">总费用:</text>
-                <text class="cost-value">{{estimatedTotalStarStone}} 💎</text>
+                <text class="cost-value">{{estimatedTotalStarStone}} <text class="iconfont icon-diamond"></text></text>
               </view>
               <text class="cost-detail"
-                >({{pricingPreview.effective_daily_price}} 💎/天 × {{fixedDays}}
+                >({{pricingPreview.effective_daily_price}} <text class="iconfont icon-diamond"></text>/天 × {{fixedDays}}
                 天{{pricingPreview.discount < 1 ? ' × ' + pricingPreview.discount_label : ''
                 }})</text
               >
               <text class="cost-saved" wx:if="{{pricingPreview.saved > 0}}"
-                >已省 {{pricingPreview.saved}} 💎</text
+                >已省 {{pricingPreview.saved}} <text class="iconfont icon-diamond"></text></text
               >
             </block>
             <view

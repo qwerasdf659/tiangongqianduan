@@ -1,7 +1,7 @@
 <!-- 兑换结果弹窗组件 -->
 <view class="result-overlay" wx:if="{{visible}}" bindtap="onClose">
   <view class="result-modal" catchtap="">
-    <view class="result-icon">{{success ? (_hasMinted ? '⚒️' : '✅') : '❌'}}</view>
+    <view class="result-icon iconfont {{success ? (_hasMinted ? 'icon-craft' : 'icon-success') : 'icon-error'}}"></view>
     <text class="result-title"
       >{{success ? (_hasMinted ? '铸造成功' : '兑换成功') : '兑换失败'}}</text
     >

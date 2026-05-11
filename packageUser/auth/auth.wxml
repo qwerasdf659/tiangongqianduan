@@ -12,7 +12,7 @@
     <!-- 🔧 初始化错误提示 -->
     <view class="error-container" wx:if="{{pageLoaded && initError}}">
       <view class="error-content">
-        <view class="error-icon">⚠️</view>
+        <view class="error-icon"><text class="iconfont icon-warning"></text></view>
         <text class="error-title">页面初始化异常</text>
         <text class="error-message">{{initError}}</text>
         <view class="error-actions">
@@ -53,7 +53,7 @@
       <view class="auth-form">
         <!-- Logo和标题 -->
         <view class="header">
-          <view class="logo">🎰</view>
+          <view class="logo"><text class="iconfont icon-slot-machine"></text></view>
           <text class="title">餐厅积分抽奖</text>
           <text class="subtitle">欢迎使用积分抽奖系统</text>
         </view>
@@ -152,9 +152,9 @@
         <view class="footer">
           <text class="tips">首次登录即为注册，登录即可开始赚积分</text>
           <view class="features">
-            <view class="feature-tag">🎮 趣味抽奖</view>
-            <view class="feature-tag">🎁 丰厚奖品</view>
-            <view class="feature-tag">💰 积分兑换</view>
+            <view class="feature-tag"><text class="iconfont icon-gamepad"></text> 趣味抽奖</view>
+            <view class="feature-tag"><text class="iconfont icon-gift"></text> 丰厚奖品</view>
+            <view class="feature-tag"><text class="iconfont icon-gold-coin"></text> 积分兑换</view>
           </view>
         </view>
       </view>

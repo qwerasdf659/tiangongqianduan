@@ -146,7 +146,7 @@
               <text class="bid-asset-text">{{priceAssetLabel}}</text>
             </view>
             <view class="bid-winning-badge" wx:if="{{item.is_winning}}">
-              <text>👑</text>
+              <text class="iconfont icon-crown"></text>
             </view>
           </view>
         </view>
@@ -180,10 +180,10 @@
         <!--竞拍中 → 出价按钮（非卖方）-->
         <view class="bottom-bar-inner" wx:if="{{auction.status === 'active' && !isSeller}}">
           <view class="bid-action-btn" bindtap="onShowBidInput">
-            <text>💰 出价</text>
+            <text><text class="iconfont icon-gold-coin"></text> 出价</text>
           </view>
           <view class="buyout-action-btn" wx:if="{{auction.buyout_price}}" bindtap="onBuyoutBid">
-            <text>💎 一口价 {{auction.buyout_price}}</text>
+            <text><text class="iconfont icon-diamond"></text> 一口价 {{auction.buyout_price}}</text>
           </view>
         </view>
 
@@ -197,7 +197,7 @@
         <!--已结算且中标者 → 争议入口-->
         <view class="bottom-bar-inner" wx:elif="{{auction.status === 'settled' && isWinner}}">
           <view class="dispute-btn" bindtap="onCreateDispute">
-            <text>⚠️ 发起争议</text>
+            <text><text class="iconfont icon-warning"></text> 发起争议</text>
           </view>
         </view>
       </view>
@@ -244,7 +244,7 @@
 
           <!--一口价提示-->
           <view class="buyout-hint" wx:if="{{auction.buyout_price}}">
-            <text>💡 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
+            <text><text class="iconfont icon-bulb"></text> 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
           </view>
 
           <view class="popup-submit-btn {{bidding ? 'disabled' : ''}}" bindtap="onSubmitBid">

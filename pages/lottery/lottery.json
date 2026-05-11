@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "🎰 幸运抽奖",
+  "navigationBarTitleText": "幸运抽奖",
   "navigationBarBackgroundColor": "#F5F0E8",
   "navigationBarTextStyle": "black",
   "enablePullDownRefresh": true,
@@ -11,6 +11,7 @@
     "lottery-activity": "/packageLottery/lottery-activity/lottery-activity",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "componentPlaceholder": {

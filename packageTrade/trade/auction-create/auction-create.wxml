@@ -169,7 +169,8 @@
       <!--提交按钮-->
       <view class="submit-section">
         <view class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmitAuction">
-          <text>{{submitting ? '创建中...' : '🔨 发起拍卖'}}</text>
+          <text wx:if="{{submitting}}">创建中...</text>
+          <text wx:else><text class="iconfont icon-hammer"></text> 发起拍卖</text>
         </view>
       </view>
     </block>

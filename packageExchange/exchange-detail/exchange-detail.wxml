@@ -18,7 +18,7 @@
 
   <!-- 错误状态 -->
   <view class="ed-error" wx:elif="{{hasError}}">
-    <text class="ed-error-icon">⚠️</text>
+    <text class="ed-error-icon iconfont icon-warning"></text>
     <text class="ed-error-msg">{{errorMessage}}</text>
     <button class="ed-retry-btn" size="mini" bindtap="onGoBack">返回</button>
   </view>
@@ -78,7 +78,7 @@
 
       <!-- emoji占位（无图片） -->
       <view wx:else class="ed-hero-fallback">
-        <text class="ed-fallback-emoji">🎁</text>
+        <text class="ed-fallback-emoji iconfont icon-gift"></text>
         <text class="ed-fallback-name">{{product.item_name}}</text>
       </view>
 
@@ -163,7 +163,7 @@
 
     <!-- 铸造标识（后端 mint_instance=true 时展示，表示兑换后将铸造物品实例进入背包） -->
     <view class="ed-mint-badge" wx:if="{{product._mintInstance}}">
-      <text class="ed-mint-icon">⚒️</text>
+      <text class="ed-mint-icon iconfont icon-craft"></text>
       <text class="ed-mint-text">兑换后将铸造专属物品实例 · 可在交易市场挂牌</text>
     </view>
 
@@ -192,11 +192,11 @@
           <text class="ed-attr-label">品质</text>
         </view>
         <view class="ed-attr-item" wx:if="{{product.has_warranty}}">
-          <text class="ed-attr-value">🛡️</text>
+          <text class="ed-attr-value iconfont icon-shield"></text>
           <text class="ed-attr-label">含保修</text>
         </view>
         <view class="ed-attr-item" wx:if="{{product.free_shipping}}">
-          <text class="ed-attr-value">📦</text>
+          <text class="ed-attr-value iconfont icon-package"></text>
           <text class="ed-attr-label">包邮</text>
         </view>
       </view>
@@ -223,11 +223,11 @@
         </view>
         <view class="ed-attr-row" wx:if="{{product.has_warranty}}">
           <text class="ed-attr-row-label">保修</text>
-          <text class="ed-attr-row-value">🛡️ 含保修</text>
+          <text class="ed-attr-row-value"><text class="iconfont icon-shield"></text> 含保修</text>
         </view>
         <view class="ed-attr-row" wx:if="{{product.free_shipping}}">
           <text class="ed-attr-row-label">物流</text>
-          <text class="ed-attr-row-value">📦 包邮</text>
+          <text class="ed-attr-row-value"><text class="iconfont icon-package"></text> 包邮</text>
         </view>
       </view>
 
@@ -276,7 +276,7 @@
 
       <!-- 卖点高亮（金底卡片） -->
       <view class="ed-sell-point" wx:if="{{product.sell_point}}">
-        <text class="ed-sell-point-icon">✨</text>
+        <text class="ed-sell-point-icon iconfont icon-sparkle"></text>
         <text class="ed-sell-point-text">{{product.sell_point}}</text>
       </view>
 
@@ -382,7 +382,7 @@
             mode="aspectFill"
           />
           <view wx:else class="ed-related-img-fallback">
-            <text class="ed-related-img-fallback-text">🎁</text>
+            <text class="ed-related-img-fallback-text iconfont icon-gift"></text>
           </view>
           <view class="ed-related-info">
             <text class="ed-related-name">{{item.item_name}}</text>

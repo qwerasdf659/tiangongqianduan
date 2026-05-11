@@ -105,7 +105,7 @@
       </button>
 
       <view class="submit-tips">
-        <text class="tip">💡 提交后您将收到实时回复通知</text>
+        <text class="tip"><text class="iconfont icon-bulb"></text> 提交后您将收到实时回复通知</text>
       </view>
     </view>
 

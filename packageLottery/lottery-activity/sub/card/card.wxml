@@ -22,16 +22,21 @@
           <!-- 卡背 -->
           <view class="card-face card-back">
             <view class="card-back-shimmer" />
-            <text class="card-back-icon">🎴</text>
+            <text class="card-back-icon iconfont icon-playing-card"></text>
             <text class="card-back-text">?</text>
           </view>
 
           <!-- 卡正面 -->
           <view class="card-face card-front">
             <text
+              wx:if="{{item.prize_icon}}"
               class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}"
-              >{{item.prize_icon || '🎁'}}</text
+              >{{item.prize_icon}}</text
             >
+            <text
+              wx:else
+              class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}} iconfont icon-gift"
+            ></text>
             <text class="card-prize-name">{{item.prize_name || ''}}</text>
           </view>
         </view>
@@ -76,15 +81,16 @@
             <!-- 卡背 -->
             <view class="card-face card-back">
               <view class="card-back-shimmer" />
-              <text class="card-back-icon">🎴</text>
+              <text class="card-back-icon iconfont icon-playing-card"></text>
               <text class="card-back-text">?</text>
             </view>
 
             <!-- 卡正面 -->
             <view class="card-face card-front">
-              <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
-                >{{item.prize_icon || '🎁'}}</text
+              <text wx:if="{{item.prize_icon}}" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+                >{{item.prize_icon}}</text
               >
+              <text wx:else class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}} iconfont icon-gift"></text>
               <text class="card-prize-name">{{item.prize_name || ''}}</text>
             </view>
           </view>
@@ -125,9 +131,10 @@
           </view>
           <!-- 卡正面 -->
           <view class="card-face card-front">
-            <text class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
-              >{{item.prize.prize_icon || '🎁'}}</text
+            <text wx:if="{{item.prize.prize_icon}}" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+              >{{item.prize.prize_icon}}</text
             >
+            <text wx:else class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}} iconfont icon-gift"></text>
             <text class="card-prize-name">{{(item.prize && item.prize.prize_name) || ''}}</text>
           </view>
         </view>

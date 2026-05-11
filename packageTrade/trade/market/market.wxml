@@ -84,7 +84,8 @@
 
     <!--最近成交列表（可折叠）-->
     <view class="market-section-toggle" bindtap="onToggleRecentTrades">
-      <text class="toggle-text">{{showRecentTrades ? '收起成交' : '🔥 最近成交'}}</text>
+      <text class="toggle-text" wx:if="{{showRecentTrades}}">收起成交</text>
+      <text class="toggle-text" wx:else><text class="iconfont icon-fire"></text> 最近成交</text>
     </view>
     <view class="recent-trades-panel" wx:if="{{showRecentTrades}}">
       <view class="overview-loading" wx:if="{{recentTradesLoading}}">
@@ -357,7 +358,7 @@
               binderror="onImageError"
             />
             <view wx:else class="image-fallback">
-              <text class="fallback-icon">{{item._isFungibleAsset ? '💎' : '📦'}}</text>
+              <text class="fallback-icon iconfont {{item._isFungibleAsset ? 'icon-diamond' : 'icon-package'}}"></text>
               <text class="fallback-name">{{item._displayName}}</text>
             </view>
 
@@ -452,7 +453,7 @@
 
     <!-- 错误状态 -->
     <t-empty wx:if="{{hasError}}" description="{{errorMessage || '加载失败'}}">
-      <view slot="image">⚠️</view>
+      <view slot="image"><text class="iconfont icon-warning"></text></view>
       <view slot="action" class="empty-retry-btn" bindtap="onPullDownRefresh">重试</view>
     </t-empty>
 

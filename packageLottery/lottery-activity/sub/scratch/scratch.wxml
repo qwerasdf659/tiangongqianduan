@@ -24,8 +24,10 @@
         >
           <!-- 底层：奖品内容 -->
           <view class="cell-prize">
-            <text class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
-              {{item.prize.prize_icon || '🎁'}}
+            <text wx:if="{{item.prize.prize_icon}}" class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
+              {{item.prize.prize_icon}}
+            </text>
+            <text wx:else class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}} iconfont icon-gift">
             </text>
             <text
               class="cell-prize-name"
@@ -84,9 +86,9 @@
       wx:for="{{cells}}"
       wx:key="index"
     >
-      <text class="report-icon"
-        >{{item.state === 'revealed' ? (item.prize.prize_icon || '🎁') : '❓'}}</text
-      >
+      <text wx:if="{{item.state === 'revealed' && item.prize.prize_icon}}" class="report-icon">{{item.prize.prize_icon}}</text>
+      <text wx:elif="{{item.state === 'revealed'}}" class="report-icon iconfont icon-gift"></text>
+      <text wx:else class="report-icon iconfont icon-question"></text>
     </view>
   </scroll-view>
 

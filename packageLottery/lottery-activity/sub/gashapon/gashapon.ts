@@ -95,7 +95,11 @@ Component({
     /** 初始化粒子特效 - 复古简化版 */
     _initParticles() {
       const particles = []
-      const icons = ['⭐', '✨', '💫'] // 简化图标
+      const icons = [
+        '/assets/icons/particles/star-1.svg',
+        '/assets/icons/particles/sparkle-1.svg',
+        '/assets/icons/particles/sparkle-2.svg'
+      ]
 
       // 生成8个粒子（减少数量）
       for (let i = 0; i < 8; i++) {

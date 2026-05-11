@@ -22,7 +22,7 @@
     <view class="banner-glow-border" />
     <view class="banner-inner">
       <view class="banner-badge">
-        <text class="badge-icon">⚡</text>
+        <text class="badge-icon iconfont icon-lightning"></text>
         <text class="badge-text">限时秒杀</text>
       </view>
       <view class="banner-countdown">
@@ -67,7 +67,8 @@
           src="{{spotlightPrize.prize_image_url}}"
           mode="aspectFit"
         />
-        <text wx:else class="spot-emoji">{{spotlightPrize.prize_icon || '🎁'}}</text>
+        <text wx:if="{{spotlightPrize.prize_icon}}" class="spot-emoji">{{spotlightPrize.prize_icon}}</text>
+        <text wx:else class="spot-emoji iconfont icon-gift"></text>
         <text class="spot-name"
           >{{spotlightPrize && spotlightPrize.prize_name ? spotlightPrize.prize_name : ''}}</text
         >
@@ -100,7 +101,8 @@
             src="{{item.prize_image_url}}"
             mode="aspectFit"
           />
-          <text wx:else class="ti-emoji">{{item.prize_icon || '🎁'}}</text>
+          <text wx:if="{{item.prize_icon}}" class="ti-emoji">{{item.prize_icon}}</text>
+          <text wx:else class="ti-emoji iconfont icon-gift"></text>
           <text class="ti-name">{{item.is_sold_out ? '已抢光' : item.prize_name}}</text>
           <text wx:if="{{item.is_fallback}}" class="ti-fallback-tag">保底</text>
         </view>
@@ -118,7 +120,7 @@
       </view>
       <view class="stock-detail">
         <view class="stock-status-row">
-          <text class="stock-fire" wx:if="{{stockUrgency !== 'normal'}}">🔥</text>
+          <text class="stock-fire iconfont icon-fire" wx:if="{{stockUrgency !== 'normal'}}"></text>
           <text class="stock-label">
             {{stockUrgency === 'critical' ? '即将售罄' : stockUrgency === 'low' ? '库存紧张' :
             '火热进行中'}}
@@ -149,10 +151,10 @@
       >
         <view class="grab-btn-bg" />
         <view class="grab-btn-inner">
-          <text class="grab-btn-icon" wx:if="{{stockRemaining <= 0}}">😢</text>
-          <text class="grab-btn-icon" wx:elif="{{state === 'grabbing'}}">⏳</text>
-          <text class="grab-btn-icon" wx:elif="{{state === 'grabbed'}}">🎉</text>
-          <text class="grab-btn-icon" wx:else>🔥</text>
+          <text class="grab-btn-icon iconfont icon-error" wx:if="{{stockRemaining <= 0}}"></text>
+          <text class="grab-btn-icon iconfont icon-hourglass" wx:elif="{{state === 'grabbing'}}"></text>
+          <text class="grab-btn-icon iconfont icon-celebrate" wx:elif="{{state === 'grabbed'}}"></text>
+          <text class="grab-btn-icon iconfont icon-fire" wx:else></text>
           <text class="grab-btn-text">
             {{stockRemaining <= 0 ? '已抢光' : state === 'idle' ? '立即抢购' : state === 'grabbing'
             ? '抢购中...' : '抢购成功!'}}
@@ -188,7 +190,7 @@
       <view class="sc-glow" />
       <view class="sc-inner">
         <view class="sc-holo" />
-        <text class="sc-emoji">🎉</text>
+        <text class="sc-emoji iconfont icon-celebrate"></text>
         <view class="sc-divider" />
         <text class="sc-title">抢购成功</text>
         <text class="sc-sub">奖品已放入背包</text>

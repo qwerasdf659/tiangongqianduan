@@ -11,7 +11,7 @@
           <text class="balance-title">可用积分</text>
         </view>
         <view class="balance-refresh" bindtap="handleManualRefresh">
-          <text class="refresh-icon">🔄</text>
+          <text class="refresh-icon iconfont icon-refresh"></text>
         </view>
       </view>
       <view class="balance-amount">

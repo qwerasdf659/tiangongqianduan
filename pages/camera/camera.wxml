@@ -62,7 +62,7 @@
 
       <!-- 错误提示 -->
       <view class="error-state" wx:if="{{!loading && errorMessage}}">
-        <text class="error-icon">❌</text>
+        <text class="error-icon iconfont icon-error"></text>
         <text class="error-text">{{errorMessage}}</text>
         <button class="retry-btn" bindtap="initializePage">重新加载</button>
       </view>
@@ -94,7 +94,7 @@
 
             <!-- 精选标签 -->
             <view class="hot-badge" wx:if="{{item.is_featured}}">
-              <text>🔥 精选</text>
+              <text><text class="iconfont icon-fire"></text> 精选</text>
             </view>
 
             <!-- 展示标签 -->
@@ -132,7 +132,7 @@
 
     <!-- 底部提示 -->
     <view class="bottom-tip" wx:if="{{!loading && filteredCampaigns.length > 0}}">
-      <text class="tip-icon">💡</text>
+      <text class="tip-icon iconfont icon-bulb"></text>
       <text class="tip-text">点击活动卡片进入抽奖</text>
     </view>
 

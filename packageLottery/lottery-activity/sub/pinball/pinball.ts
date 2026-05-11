@@ -202,7 +202,13 @@ Component({
 
     /** 初始化背景装饰粒子 */
     _initParticles() {
-      const decorIcons = ['✨', '⭐', '💫', '🌟', '·', '°', '✦']
+      const decorIcons = [
+        '/assets/icons/particles/sparkle-1.svg',
+        '/assets/icons/particles/star-1.svg',
+        '/assets/icons/particles/sparkle-2.svg',
+        '/assets/icons/particles/star-2.svg',
+        '·', '°', '✦'
+      ]
       const generatedParticles = Array.from({ length: 20 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,

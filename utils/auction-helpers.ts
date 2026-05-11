@@ -23,17 +23,17 @@ const AUCTION_STATUS_CONFIG: Record<string, { label: string; color: string; icon
   /** 待开始 — 定时任务在 start_time 到达时激活 */
   pending: { label: '即将开始', color: '#faad14', icon: '⏳' },
   /** 竞拍中 — 用户可出价 */
-  active: { label: '竞拍中', color: '#52c41a', icon: '🔥' },
+  active: { label: '竞拍中', color: '#52c41a', icon: 'icon-fire' },
   /** 已结束 — 等待结算 */
   ended: { label: '已结束', color: '#999999', icon: '⏰' },
   /** 已成交 — 结算完成，物品已转移 */
-  settled: { label: '已成交', color: '#1890ff', icon: '✅' },
+  settled: { label: '已成交', color: '#1890ff', icon: 'icon-success' },
   /** 流拍 — 无人出价，物品已释放回卖方背包 */
   no_bid: { label: '流拍', color: '#999999', icon: '😞' },
   /** 已取消 — 卖方取消或管理员强制取消 */
-  cancelled: { label: '已取消', color: '#999999', icon: '❌' },
+  cancelled: { label: '已取消', color: '#999999', icon: 'icon-error' },
   /** 结算异常 — 最多重试3次后等待管理员处理 */
-  settlement_failed: { label: '结算异常', color: '#ff4d4f', icon: '⚠️' }
+  settlement_failed: { label: '结算异常', color: '#ff4d4f', icon: 'icon-warning' }
 }
 
 /**
@@ -46,7 +46,7 @@ const BID_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   /** 已被超越 — 有更高出价 */
   outbid: { label: '已被超越', color: '#faad14' },
   /** 已中标 — is_final_winner=true */
-  won: { label: '已中标 🎉', color: '#1890ff' },
+  won: { label: '已中标', color: '#1890ff' },
   /** 未中标 — 拍卖已结算但不是中标者 */
   lost: { label: '未中标', color: '#999999' }
 }

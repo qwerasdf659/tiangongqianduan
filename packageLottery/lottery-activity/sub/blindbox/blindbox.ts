@@ -41,7 +41,14 @@ function generateEggs(count: number): any[] {
 
 /** 生成浮动装饰粒子 */
 function generateParticles(): any[] {
-  const icons = ['✨', '⭐', '🎁', '🎀', '💫', '🌟']
+  const icons = [
+    '/assets/icons/particles/sparkle-1.svg',
+    '/assets/icons/particles/star-1.svg',
+    '/assets/icons/particles/gift.svg',
+    '/assets/icons/particles/bow.svg',
+    '/assets/icons/particles/sparkle-2.svg',
+    '/assets/icons/particles/star-2.svg'
+  ]
   const particles: any[] = []
   for (let i = 0; i < 8; i++) {
     particles.push({
@@ -208,7 +215,14 @@ Component({
     /** 生成爆炸粒子 */
     _generateBurst(): any[] {
       const items = []
-      const emojis = ['✨', '⭐', '💫', '🌟', '🎉', '🎊']
+      const emojis = [
+        '/assets/icons/particles/sparkle-1.svg',
+        '/assets/icons/particles/star-1.svg',
+        '/assets/icons/particles/sparkle-2.svg',
+        '/assets/icons/particles/star-2.svg',
+        '/assets/icons/particles/confetti.svg',
+        '/assets/icons/particles/ribbon.svg'
+      ]
       for (let i = 0; i < 12; i++) {
         const angle = (i / 12) * 360
         const distance = 80 + Math.random() * 60

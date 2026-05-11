@@ -1,5 +1,6 @@
 {
   "component": true,
+  "styleIsolation": "apply-shared",
   "usingComponents": {
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",

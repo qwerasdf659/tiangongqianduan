@@ -50,9 +50,9 @@ const ISSUE_TYPE_MAP: Record<string, string> = {
  * 工单类型图标映射
  */
 const ISSUE_TYPE_ICON_MAP: Record<string, string> = {
-  asset: '💎',
+  asset: 'icon-diamond',
   trade: '🔄',
-  lottery: '🎰',
+  lottery: 'icon-slot-machine',
   item: '🎒',
   account: '👤',
   consumption: '💳',

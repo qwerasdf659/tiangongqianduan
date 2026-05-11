@@ -10,7 +10,7 @@
 
   <!-- 错误状态 -->
   <view class="detail-error" wx:elif="{{hasError}}">
-    <text class="error-icon">⚠️</text>
+    <text class="error-icon iconfont icon-warning"></text>
     <text class="error-msg">{{errorMessage}}</text>
     <button class="retry-btn" size="mini" bindtap="onGoBack">返回</button>
   </view>
@@ -27,7 +27,7 @@
         binderror="onImageError"
       />
       <view wx:else class="image-fallback-large">
-        <text class="fallback-icon-lg">{{isFungibleAsset ? '💎' : '📦'}}</text>
+        <text class="fallback-icon-lg iconfont {{isFungibleAsset ? 'icon-diamond' : 'icon-package'}}"></text>
         <text class="fallback-name-lg">{{displayName}}</text>
       </view>
 
@@ -118,7 +118,7 @@
 
       <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
       <view class="detail-cooldown-notice" wx:if="{{hasCooldown}}">
-        <text class="cooldown-notice-icon">🔒</text>
+        <text class="cooldown-notice-icon iconfont icon-lock-closed"></text>
         <text class="cooldown-notice-text">交易冷却中 · 剩余 {{cooldownRemaining}}</text>
       </view>
     </view>
@@ -236,7 +236,7 @@
   <!-- 购买成功弹窗（资产交易 — 自动完成） -->
   <view class="modal-overlay" wx:if="{{showPurchaseResult}}" bindtap="onClosePurchaseResult">
     <view class="modal-content" catchtap="">
-      <text class="modal-icon">🎉</text>
+      <text class="modal-icon iconfont icon-celebrate"></text>
       <text class="modal-title">购买成功</text>
       <view class="modal-detail-rows" wx:if="{{purchaseResult}}">
         <view class="modal-row" wx:if="{{purchaseResult.order_no}}">

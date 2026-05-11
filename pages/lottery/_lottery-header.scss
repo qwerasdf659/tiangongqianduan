@@ -109,11 +109,16 @@
   font-size: var(--tg-font-size-mini);
 }
 
-/* 积分图标 */
+/* 积分图标 - 圆形金色背景衬托 */
 .points-icon {
-  font-size: var(--tg-font-size-number-lg);
-  color: #c5a572;
-  opacity: 0.9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  box-shadow: 0 2rpx 6rpx rgba(160, 114, 74, 0.3);
 }
 
 /* ========================================
@@ -155,7 +160,9 @@
 
 /* 仓库内图标文字放大 */
 .inventory-badge-btn .badge-icon {
-  font-size: var(--tg-font-size-headline);
+  font-size: 32rpx;
+  color: #ffffff;
+  text-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.15);
 }
 
 .inventory-badge-btn .badge-label {
@@ -251,6 +258,7 @@
 
 .notification-bell-btn .badge-icon {
   font-size: var(--tg-font-size-headline);
+  color: var(--tg-icon-color-white);
 }
 
 .notification-bell-btn .badge-label {

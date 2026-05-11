@@ -8,7 +8,7 @@
     <view class="auction-hall-header">
       <view class="header-actions">
         <view class="header-action-btn" bindtap="onGoMyAuctions">
-          <text class="action-icon">📦</text>
+          <text class="action-icon iconfont icon-package"></text>
           <text class="action-text">我的拍卖</text>
         </view>
         <view class="header-action-btn" bindtap="onGoMyBids">
@@ -16,7 +16,7 @@
           <text class="action-text">我的出价</text>
         </view>
         <view class="header-action-btn header-action-btn--primary" bindtap="onCreateAuction">
-          <text class="action-icon">🔨</text>
+          <text class="action-icon iconfont icon-hammer"></text>
           <text class="action-text">发起拍卖</text>
         </view>
       </view>
@@ -101,7 +101,7 @@
           </view>
           <!--一口价角标-->
           <view class="buyout-badge" wx:if="{{item._hasBuyout}}">
-            <text>💎 一口价</text>
+            <text><text class="iconfont icon-diamond"></text> 一口价</text>
           </view>
         </view>
 

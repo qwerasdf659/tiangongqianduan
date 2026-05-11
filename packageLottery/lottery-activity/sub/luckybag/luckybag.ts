@@ -16,7 +16,16 @@ const DEFAULT_BAG_COUNT = 3
 
 /** 生成浮动装饰粒子 */
 function generateParticles(): any[] {
-  const icons = ['✨', '🧧', '🎁', '💰', '🎀', '🌟', '💫', '🪙']
+  const icons = [
+    '/assets/icons/particles/sparkle-1.svg',
+    '/assets/icons/particles/red-packet.svg',
+    '/assets/icons/particles/gift.svg',
+    '/assets/icons/particles/coin.svg',
+    '/assets/icons/particles/bow.svg',
+    '/assets/icons/particles/star-2.svg',
+    '/assets/icons/particles/sparkle-2.svg',
+    '/assets/icons/particles/coin.svg'
+  ]
   const particles: any[] = []
   for (let i = 0; i < 8; i++) {
     particles.push({

@@ -21,7 +21,8 @@
         wx:key="lottery_prize_id"
         style="{{prizePositions[index]}}"
       >
-        <text class="wheel-prize__icon">{{item.prize_icon || '🎁'}}</text>
+        <text wx:if="{{item.prize_icon}}" class="wheel-prize__icon">{{item.prize_icon}}</text>
+        <text wx:else class="wheel-prize__icon iconfont icon-gift"></text>
         <text class="wheel-prize__name"
           >{{item.is_sold_out ? '已抢光' : (item.prize_name || '')}}</text
         >

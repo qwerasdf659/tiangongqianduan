@@ -138,7 +138,8 @@ page {
 .announcement-icon {
   flex-shrink: 0;
   margin-right: 12rpx;
-  font-size: var(--td-font-size-m);
+  font-size: var(--tg-icon-size-sm);
+  color: var(--tg-icon-color-primary);
   line-height: 1;
 }
 

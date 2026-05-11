@@ -1,0 +1,47 @@
+/* SVG 图标组件样式 — 用于多色/复杂图标（游戏玩法、品牌特色） */
+
+.svg-icon {
+  display: inline-block;
+  vertical-align: middle;
+
+  &--sm {
+    width: 32rpx;
+    height: 32rpx;
+  }
+  &--md {
+    width: 48rpx;
+    height: 48rpx;
+  }
+  &--lg {
+    width: 64rpx;
+    height: 64rpx;
+  }
+  &--xl {
+    width: 80rpx;
+    height: 80rpx;
+  }
+}
+
+/* 粒子动画基础样式 */
+.particle {
+  display: inline-block;
+  position: absolute;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 8rpx;
+    height: 8rpx;
+    border-radius: 50%;
+    background: var(--td-brand-color);
+  }
+
+  &--star::before {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+
+  &--diamond::before {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  }
+}

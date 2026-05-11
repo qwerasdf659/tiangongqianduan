@@ -10,7 +10,7 @@
     <view class="result-header gradient-header-card">
       <!-- 中奖状态标题卡片（业务规则：每次抽奖100%中奖，所有档位都是奖品） -->
       <view class="title-card success-card" wx:if="{{!drawResult.isError}}">
-        <view class="title-icon">🎉</view>
+        <view class="title-icon"><text class="iconfont icon-celebrate"></text></view>
         <view class="title-content">
           <!--
             积分/虚拟奖品直接到账（决策3）：prize_type = points/virtual 不进背包
@@ -41,7 +41,7 @@
 
       <!-- 错误状态标题卡片 -->
       <view class="title-card error-card" wx:if="{{drawResult.isError}}">
-        <view class="title-icon error-icon">❌</view>
+        <view class="title-icon error-icon iconfont icon-error"></view>
         <view class="title-content">
           <text class="result-title error-title">{{drawResult.errorTitle}}</text>
           <text class="result-subtitle error-subtitle">{{drawResult.errorDescription}}</text>
@@ -96,7 +96,7 @@
             <view class="card-flip-back">
               <view class="card-back-pattern">
                 <view class="card-back-border"></view>
-                <text class="card-back-icon">❓</text>
+                <text class="card-back-icon iconfont icon-question"></text>
                 <text class="card-back-hint">点击翻转</text>
               </view>
             </view>
@@ -111,7 +111,8 @@
                     mode="aspectFit"
                     binderror="onResultImageError"
                   />
-                  <text wx:else class="winning-icon">{{drawResult.prize.prize_icon || '🎁'}}</text>
+                  <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
+                  <text wx:else class="winning-icon iconfont icon-gift"></text>
                   <view class="icon-glow"></view>
                 </view>
                 <view class="winning-info">
@@ -150,7 +151,8 @@
                   mode="aspectFit"
                   binderror="onResultImageError"
                 />
-                <text wx:else class="winning-icon">{{drawResult.prize.prize_icon || '🎁'}}</text>
+                <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
+                <text wx:else class="winning-icon iconfont icon-gift"></text>
                 <view class="icon-glow"></view>
               </view>
               <view class="winning-info">
@@ -197,7 +199,7 @@
               <view class="card-flip-back">
                 <view class="card-back-pattern">
                   <view class="card-back-border"></view>
-                  <text class="card-back-icon">❓</text>
+                  <text class="card-back-icon iconfont icon-question"></text>
                 </view>
               </view>
               <view class="card-flip-front">
@@ -211,9 +213,8 @@
                       data-reveal-idx="{{multiDrawCurrentIndex}}"
                       binderror="onMultiResultImageError"
                     />
-                    <text wx:else class="reveal-prize-icon"
-                      >{{drawResult.prizes[multiDrawCurrentIndex].prize_icon || '🎁'}}</text
-                    >
+                    <text wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}" class="reveal-prize-icon">{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}</text>
+                    <text wx:else class="reveal-prize-icon iconfont icon-gift"></text>
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -249,9 +250,8 @@
                       data-reveal-idx="{{multiDrawCurrentIndex}}"
                       binderror="onMultiResultImageError"
                     />
-                    <text wx:else class="reveal-prize-icon"
-                      >{{drawResult.prizes[multiDrawCurrentIndex].prize_icon || '🎁'}}</text
-                    >
+                    <text wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}" class="reveal-prize-icon">{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}</text>
+                    <text wx:else class="reveal-prize-icon iconfont icon-gift"></text>
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -275,13 +275,13 @@
             wx:if="{{multiDrawCurrentIndex < drawResult.prizes.length - 1}}"
             bindtap="revealNextPrize"
           >
-            <text class="reveal-next-text">🎲 揭晓下一个</text>
+            <text class="reveal-next-text"><text class="iconfont icon-dice"></text> 揭晓下一个</text>
           </button>
           <view
             class="reveal-complete-hint"
             wx:if="{{multiDrawCurrentIndex >= drawResult.prizes.length - 1}}"
           >
-            <text class="reveal-complete-text">🎉 全部揭晓完成！</text>
+            <text class="reveal-complete-text"><text class="iconfont icon-celebrate"></text> 全部揭晓完成！</text>
           </view>
         </view>
 
@@ -305,7 +305,8 @@
                 data-reveal-idx="{{index}}"
                 binderror="onMultiResultImageError"
               />
-              <text wx:else class="mini-card-icon">{{item.prize_icon || '🎁'}}</text>
+              <text wx:if="{{item.prize_icon}}" class="mini-card-icon">{{item.prize_icon}}</text>
+              <text wx:else class="mini-card-icon iconfont icon-gift"></text>
               <text class="mini-card-name">{{item.prize_name}}</text>
             </view>
           </view>
@@ -326,7 +327,7 @@
       <view class="error-info-card" wx:if="{{drawResult.isError}}">
         <view class="error-card-bg">
           <view class="error-icon-container">
-            <text class="error-icon">⚠️</text>
+            <text class="error-icon iconfont icon-warning"></text>
           </view>
           <view class="error-content">
             <text class="error-message">{{drawResult.errorMessage}}</text>
@@ -346,7 +347,7 @@
             >确定</text
           >
           <text class="btn-text" wx:else>确认收下</text>
-          <text class="btn-icon">✨</text>
+          <text class="btn-icon iconfont icon-sparkle"></text>
         </view>
       </button>
     </view>

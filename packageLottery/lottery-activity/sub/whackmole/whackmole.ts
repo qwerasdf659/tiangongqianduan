@@ -173,7 +173,13 @@ Component({
     /** 初始化背景粒子 */
     _initParticles() {
       const particles = []
-      const icons = ['🌿', '🍃', '☘️', '🌱', '✨']
+      const icons = [
+        '/assets/icons/particles/leaf-1.svg',
+        '/assets/icons/particles/leaf-2.svg',
+        '/assets/icons/particles/clover.svg',
+        '/assets/icons/particles/sprout.svg',
+        '/assets/icons/particles/sparkle-1.svg'
+      ]
       for (let i = 0; i < 10; i++) {
         particles.push({
           id: i,
@@ -716,17 +722,17 @@ Component({
 
       // 根据命中率和连击数给出评价
       if (hitRate >= 90 && maxCombo >= 10) {
-        return '🏆 地鼠克星！传说中的打地鼠大师！'
+        return '<i class="iconfont icon-trophy"></i> 地鼠克星！传说中的打地鼠大师！'
       } else if (hitRate >= 80 && maxCombo >= 8) {
-        return '⭐ 手速如飞！地鼠都害怕你了！'
+        return '<i class="iconfont icon-star"></i> 手速如飞！地鼠都害怕你了！'
       } else if (hitRate >= 70 || maxCombo >= 5) {
-        return '👍 表现不错！再练练就是高手！'
+        return '<i class="iconfont icon-thumbsup"></i> 表现不错！再练练就是高手！'
       } else if (hitRate >= 50) {
-        return '😊 手速一般，但贵在坚持！'
+        return '<i class="iconfont icon-smile"></i> 手速一般，但贵在坚持！'
       } else if (totalHits >= 5) {
-        return '💪 虽然手抖，但精神可嘉！'
+        return '<i class="iconfont icon-strong"></i> 虽然手抖，但精神可嘉！'
       } else {
-        return '🎯 下次加油！地鼠不会跑的！'
+        return '<i class="iconfont icon-target"></i> 下次加油！地鼠不会跑的！'
       }
     },
 

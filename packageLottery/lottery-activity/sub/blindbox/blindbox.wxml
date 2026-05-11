@@ -67,7 +67,7 @@
         <view class="egg__band" style="background:{{dispensedEgg.bandColor}};"></view>
         <!-- 开蛋后显示奖品 -->
         <view class="gashapon__prize-reveal" wx:if="{{dispensedState === 'opened'}}">
-          <text class="reveal-sparkle">🎉</text>
+          <text class="reveal-sparkle iconfont icon-celebrate"></text>
         </view>
       </view>
     </view>

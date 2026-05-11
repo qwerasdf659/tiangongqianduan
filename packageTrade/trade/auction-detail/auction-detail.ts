@@ -140,7 +140,7 @@ Page({
   onShareAppMessage() {
     const { auction, displayName } = this.data
     return {
-      title: `🔨 ${displayName} — C2C竞拍`,
+      title: `${displayName} — C2C竞拍`,
       path: `/packageTrade/trade/auction-detail/auction-detail?auction_listing_id=${auction?.auction_listing_id || ''}`
     }
   },
@@ -414,7 +414,7 @@ Page({
           this._loadDetail(this.data.auctionListingId)
           break
         case 'auction_won':
-          AuctionDetailWechat.showToast('恭喜你中标了！🎉', 'success')
+          AuctionDetailWechat.showToast('恭喜你中标了！', 'success')
           this._loadDetail(this.data.auctionListingId)
           break
         case 'auction_lost':

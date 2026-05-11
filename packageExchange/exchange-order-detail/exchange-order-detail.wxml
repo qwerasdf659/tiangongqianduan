@@ -12,7 +12,7 @@
 
     <!-- 错误状态 -->
     <view class="error-wrapper" wx:if="{{!loading && hasError}}">
-      <text class="error-icon">⚠️</text>
+      <text class="error-icon iconfont icon-warning"></text>
       <text class="error-text">{{errorMessage}}</text>
       <view class="error-retry" bindtap="onRetry">
         <text class="error-retry-text">重试</text>

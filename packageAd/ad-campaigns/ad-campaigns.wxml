@@ -46,7 +46,7 @@
 
       <!-- 运营操作提示（可关闭） -->
       <view class="tips-bar" wx:if="{{showTips}}">
-        <text class="tips-icon">💡</text>
+        <text class="tips-icon iconfont icon-bulb"></text>
         <text class="tips-text">流程：创建广告 → 编辑素材 → 提交审核 → 审核通过后自动投放</text>
         <view class="tips-close" bindtap="onCloseTips">
           <text>×</text>
@@ -115,7 +115,7 @@
                 </view>
                 <view class="info-row">
                   <text class="info-label">总费用</text>
-                  <text class="info-value highlight">{{item.fixed_total_star_stone}} 💎</text>
+                  <text class="info-value highlight">{{item.fixed_total_star_stone}} <text class="iconfont icon-diamond"></text></text>
                 </view>
               </block>
 
@@ -123,12 +123,12 @@
               <block wx:if="{{item.billing_mode === 'bidding'}}">
                 <view class="info-row">
                   <text class="info-label">日出价</text>
-                  <text class="info-value highlight">{{item.daily_bid_star_stone}} 💎/天</text>
+                  <text class="info-value highlight">{{item.daily_bid_star_stone}} <text class="iconfont icon-diamond"></text>/天</text>
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
-                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} 💎</text
+                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} <text class="iconfont icon-diamond"></text></text
                   >
                 </view>
               </block>
@@ -137,12 +137,12 @@
               <block wx:if="{{item.billing_mode === 'cpm'}}">
                 <view class="info-row">
                   <text class="info-label">CPM单价</text>
-                  <text class="info-value highlight">{{item.cpm_price_star_stone}} 💎/千次</text>
+                  <text class="info-value highlight">{{item.cpm_price_star_stone}} <text class="iconfont icon-diamond"></text>/千次</text>
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
-                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} 💎</text
+                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} <text class="iconfont icon-diamond"></text></text
                   >
                 </view>
               </block>

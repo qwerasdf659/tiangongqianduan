@@ -153,10 +153,17 @@ page {
   --tg-transition-base: 0.2s ease;
   --tg-transition-slow: 0.3s ease;
 
-  --tg-icon-size-sm: 40rpx;
-  --tg-icon-size-md: 48rpx;
-  --tg-icon-size-lg: 70rpx;
+  --tg-icon-size-sm: 36rpx;
+  --tg-icon-size-md: 44rpx;
+  --tg-icon-size-lg: 56rpx;
+  --tg-icon-size-xl: 72rpx;
   --tg-avatar-size: 120rpx;
+
+  --tg-icon-color-primary: #C8A06A;
+  --tg-icon-color-secondary: #8B7355;
+  --tg-icon-color-muted: #D4C4A8;
+  --tg-icon-color-on-dark: #F5E6C8;
+  --tg-icon-color-white: #ffffff;
 
   --tg-lottery-bg: linear-gradient(180deg, #fff5e0 0%, #ffffff 60%);
   --tg-trade-accent: #8b7355;

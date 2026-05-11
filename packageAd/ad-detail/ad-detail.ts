@@ -37,11 +37,11 @@ const STATUS_STYLE_MAP: Record<
 > = {
   draft: { text: '草稿', color: '#9E9E9E', bgColor: '#F5F5F5', icon: '📝' },
   pending_review: { text: '待审核', color: '#FF9800', bgColor: '#FFF3E0', icon: '⏳' },
-  approved: { text: '已通过', color: '#2196F3', bgColor: '#E3F2FD', icon: '✅' },
+  approved: { text: '已通过', color: '#2196F3', bgColor: '#E3F2FD', icon: 'icon-success' },
   active: { text: '投放中', color: '#4CAF50', bgColor: '#E8F5E9', icon: '🟢' },
   paused: { text: '已暂停', color: '#FF5722', bgColor: '#FBE9E7', icon: '⏸️' },
   completed: { text: '已完成', color: '#607D8B', bgColor: '#ECEFF1', icon: '🏁' },
-  rejected: { text: '已拒绝', color: '#F44336', bgColor: '#FFEBEE', icon: '❌' },
+  rejected: { text: '已拒绝', color: '#F44336', bgColor: '#FFEBEE', icon: 'icon-error' },
   cancelled: { text: '已取消', color: '#795548', bgColor: '#EFEBE9', icon: '🚫' }
 }
 

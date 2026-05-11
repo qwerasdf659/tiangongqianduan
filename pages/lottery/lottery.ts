@@ -1189,8 +1189,8 @@ Page({
     }
     const statusMap: Record<string, any> = {
       pending: { text: '待审核', icon: '⏳', color: '#FF9800', bgColor: '#FFF3E0' },
-      approved: { text: '已通过', icon: '✅', color: '#4CAF50', bgColor: '#E8F5E9' },
-      rejected: { text: '已拒绝', icon: '❌', color: '#F44336', bgColor: '#FFEBEE' }
+      approved: { text: '已通过', icon: 'icon-success', color: '#4CAF50', bgColor: '#E8F5E9' },
+      rejected: { text: '已拒绝', icon: 'icon-error', color: '#F44336', bgColor: '#FFEBEE' }
     }
 
     return records.map(record => {

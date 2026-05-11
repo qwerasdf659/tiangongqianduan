@@ -27,7 +27,7 @@ Page({
       { value: 'account', label: '账户问题', icon: '👤' },
       { value: 'payment', label: '支付问题', icon: '💳' },
       { value: 'suggestion', label: '建议意见', icon: '💡' },
-      { value: 'complaint', label: '投诉举报', icon: '⚠️' }
+      { value: 'complaint', label: '投诉举报', icon: 'icon-warning' }
     ],
 
     // 页面状态

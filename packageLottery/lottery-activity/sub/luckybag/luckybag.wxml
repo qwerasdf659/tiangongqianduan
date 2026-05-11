@@ -156,7 +156,8 @@
               <view class="bag-burst__star"></view>
             </view>
             <view class="multi-bag-prize__info">
-              <text class="multi-bag-prize__icon">{{bag.prize_icon || '🎁'}}</text>
+              <text wx:if="{{bag.prize_icon}}" class="multi-bag-prize__icon">{{bag.prize_icon}}</text>
+              <text wx:else class="multi-bag-prize__icon iconfont icon-gift"></text>
               <text class="multi-bag-prize__name">{{bag.prize_name || ''}}</text>
             </view>
           </view>

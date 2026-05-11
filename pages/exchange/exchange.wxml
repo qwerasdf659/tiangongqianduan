@@ -6,7 +6,7 @@
     <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载中..." theme="spinner" />
 
     <t-empty wx:if="{{!loading && hasConfigError}}" description="{{configErrorMessage}}">
-      <view slot="image">⚠️</view>
+      <view slot="image"><text class="iconfont icon-warning"></text></view>
       <view slot="action" class="exchange-empty-action" bindtap="onPullDownRefresh">重新加载</view>
     </t-empty>
 

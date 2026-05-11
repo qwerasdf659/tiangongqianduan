@@ -123,7 +123,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '🔨 C2C拍卖大厅 — 价高者得',
+      title: 'C2C拍卖大厅 — 价高者得',
       path: '/packageTrade/trade/auction-hall/auction-hall'
     }
   },

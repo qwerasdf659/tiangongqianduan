@@ -19,7 +19,7 @@
         </view>
         <view class="stat-divider"></view>
         <view class="stat-item">
-          <view class="stat-icon-wrap sold-icon"><text>🎉</text></view>
+          <view class="stat-icon-wrap sold-icon"><text class="iconfont icon-celebrate"></text></view>
           <text class="stat-number stat-sold">{{statusTabs[2].count || 0}}</text>
           <text class="stat-label">已成交</text>
         </view>
@@ -42,7 +42,7 @@
 
     <!-- 操作指引提示 -->
     <view class="guide-tip" wx:if="{{!isEmpty && listings.length > 0}}">
-      <text class="guide-icon">💡</text>
+      <text class="guide-icon iconfont icon-bulb"></text>
       <text class="guide-text">在售挂单可撤回 · 交易中请等待买家完成 · 已成交不可操作</text>
     </view>
 
@@ -63,7 +63,7 @@
           <!-- 卡片头部：类型标签 + 状态标签 -->
           <view class="card-header">
             <view class="kind-tag {{item.listing_kind}}">
-              <text>{{item.listing_kind === 'fungible_asset' ? '💎 资产' : '📦 物品'}}</text>
+              <text><text class="iconfont {{item.listing_kind === 'fungible_asset' ? 'icon-diamond' : 'icon-package'}}"></text> {{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</text>
             </view>
             <view class="status-tag status-tag-{{item.status}}">
               <text>{{item.status_display}}</text>
@@ -97,7 +97,7 @@
               <view class="price-value-row">
                 <text class="price-amount">{{item.price_amount}}</text>
                 <text class="price-unit"
-                  >{{item._priceAssetLabel === '星石' ? '💎' : item._priceAssetLabel}}</text
+                  ><text class="iconfont icon-diamond" wx:if="{{item._priceAssetLabel === '星石'}}"></text>{{item._priceAssetLabel === '星石' ? '' : item._priceAssetLabel}}</text
                 >
               </view>
             </view>
@@ -118,7 +118,7 @@
               </button>
               <view class="status-hint sold-hint" wx:elif="{{item.status === 'sold'}}">
                 <view class="sold-info">
-                  <text class="sold-label">✅ 交易完成</text>
+                  <text class="sold-label"><text class="iconfont icon-success"></text> 交易完成</text>
                   <text
                     class="sold-order-no"
                     wx:if="{{item.order_no}}"
@@ -167,7 +167,7 @@
           >{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</view
         >
         <view slot="action" class="empty-actions">
-          <button class="action-btn-primary" bindtap="goToInventory">📦 去上架</button>
+          <button class="action-btn-primary" bindtap="goToInventory"><text class="iconfont icon-package"></text> 去上架</button>
           <button class="action-btn-outline" bindtap="goToMarket">🏪 逛市场</button>
         </view>
       </t-empty>

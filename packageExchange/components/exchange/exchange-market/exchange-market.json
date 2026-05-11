@@ -1,5 +1,6 @@
 {
   "component": true,
+  "styleIsolation": "apply-shared",
   "usingComponents": {
     "price-chart": "/packageExchange/components/price-chart/price-chart",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",

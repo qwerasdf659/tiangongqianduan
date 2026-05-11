@@ -369,8 +369,7 @@
               wx:else
               class="image-fallback {{item.listing_kind === 'fungible_asset' ? 'asset-type' : 'item-type'}}"
             >
-              <text class="fallback-icon"
-                >{{item.listing_kind === 'fungible_asset' ? '🪙' : '🎁'}}</text
+              <text class="fallback-icon iconfont {{item.listing_kind === 'fungible_asset' ? 'icon-gold-coin' : 'icon-gift'}}"></text>
               >
               <text class="fallback-name">{{item.item_name}}</text>
             </view>
@@ -416,7 +415,7 @@
     </view>
 
     <t-empty wx:if="{{!loading && filteredProducts.length === 0}}" description="暂无可购买的商品">
-      <view slot="image">🛍️</view>
+      <view slot="image"><text class="iconfont icon-shopping-bag"></text></view>
       <t-button
         slot="action"
         theme="primary"
@@ -444,7 +443,7 @@
       </view>
       <view class="manage-bar-divider"></view>
       <view class="manage-bar-right" bindtap="onGoToInventory">
-        <text class="manage-bar-icon">📦</text>
+        <text class="manage-bar-icon iconfont icon-package"></text>
         <text class="manage-bar-text">去上架</text>
       </view>
     </view>

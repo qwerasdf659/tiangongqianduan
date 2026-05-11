@@ -282,15 +282,15 @@
         bindtap="onGuaranteeEggTap"
       >
         <view class="guarantee-egg__whole" wx:if="{{guaranteeEggState !== 'cracked'}}">
-          <text class="guarantee-egg__icon">🥚</text>
+          <text class="guarantee-egg__icon iconfont icon-golden-egg"></text>
           <view class="guarantee-egg__hammer" wx:if="{{guaranteeEggState === 'shaking'}}">
-            <text>🔨</text>
+            <text class="iconfont icon-hammer"></text>
           </view>
         </view>
         <view class="guarantee-egg__broken" wx:else>
-          <view class="guarantee-egg__shell-left">🥚</view>
-          <view class="guarantee-egg__shell-right">🥚</view>
-          <view class="guarantee-egg__light">✨</view>
+          <view class="guarantee-egg__shell-left"><text class="iconfont icon-golden-egg"></text></view>
+          <view class="guarantee-egg__shell-right"><text class="iconfont icon-golden-egg"></text></view>
+          <view class="guarantee-egg__light"><text class="iconfont icon-sparkle"></text></view>
         </view>
       </view>
     </view>
@@ -315,7 +315,7 @@
   >
     <view class="pity-progress__header">
       <view class="pity-progress__shield">
-        <text class="pity-progress__shield-icon">🛡️</text>
+        <text class="pity-progress__shield-icon iconfont icon-shield"></text>
       </view>
       <view class="pity-progress__title-group">
         <text class="pity-progress__title">保底进度</text>

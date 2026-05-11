@@ -42,7 +42,7 @@
           <view class="main-stats-grid">
             <view class="main-stat-card available">
               <view class="stat-icon-bg available">
-                <text class="stat-icon">💰</text>
+                <text class="stat-icon iconfont icon-gold-coin"></text>
               </view>
               <view class="stat-body">
                 <text class="stat-label">可用积分</text>
@@ -52,7 +52,7 @@
 
             <view class="main-stat-card frozen">
               <view class="stat-icon-bg frozen">
-                <text class="stat-icon">🔒</text>
+                <text class="stat-icon iconfont icon-lock-closed"></text>
               </view>
               <view class="stat-body">
                 <text class="stat-label">冻结积分</text>
@@ -62,7 +62,7 @@
 
             <view class="main-stat-card total">
               <view class="stat-icon-bg total">
-                <text class="stat-icon">💎</text>
+                <text class="stat-icon iconfont icon-diamond"></text>
               </view>
               <view class="stat-body">
                 <text class="stat-label">总积分资产</text>
@@ -112,7 +112,7 @@
                 <text class="btn-text">筛选</text>
               </button>
               <button class="filter-btn secondary" bind:tap="onResetFilters">
-                <text class="btn-icon">🔄</text>
+                <text class="btn-icon iconfont icon-refresh"></text>
                 <text class="btn-text">重置</text>
               </button>
             </view>
@@ -196,7 +196,7 @@
                   </t-empty>
                 </view>
                 <button class="activity-action-btn" bind:tap="goToActivity">
-                  <text class="btn-icon">🎉</text>
+                  <text class="btn-icon iconfont icon-celebrate"></text>
                   <text class="btn-text">开始赚取积分</text>
                 </button>
               </view>
@@ -241,10 +241,10 @@
                     <text class="record-order-no" wx:if="{{item.order_no}}">{{item.order_no}}</text>
                   </view>
                   <view class="record-status {{item.status}}">
-                    <text class="status-icon"
-                      >{{item.status === 'approved' ? '✅' : item.status === 'rejected' ? '❌' :
-                      item.status === 'expired' ? '⌛' : '⏳'}}</text
-                    >
+                    <text class="status-icon iconfont icon-success" wx:if="{{item.status === 'approved'}}"></text>
+                    <text class="status-icon iconfont icon-error" wx:elif="{{item.status === 'rejected'}}"></text>
+                    <text class="status-icon" wx:elif="{{item.status === 'expired'}}">⌛</text>
+                    <text class="status-icon iconfont icon-hourglass" wx:else></text>
                     <text class="status-text"
                       >{{item.status === 'approved' ? '已通过' : item.status === 'rejected' ?
                       '已拒绝' : item.status === 'expired' ? '已过期' : '待审核'}}</text
@@ -262,7 +262,7 @@
                     wx:if="{{item.points_to_award && item.status === 'approved'}}"
                   >
                     <view class="points-badge">
-                      <text class="points-icon">💰</text>
+                      <text class="points-icon iconfont icon-gold-coin"></text>
                       <text class="points-earned">+{{item.points_to_award}}积分</text>
                     </view>
                   </view>
@@ -303,7 +303,7 @@
                   <text slot="description">在商家消费后，记录将显示在这里</text>
                 </t-empty>
                 <button class="upload-action-btn" bind:tap="goToActivity">
-                  <text class="btn-icon">🎉</text>
+                  <text class="btn-icon iconfont icon-celebrate"></text>
                   <text class="btn-text">去参与活动</text>
                 </button>
               </view>

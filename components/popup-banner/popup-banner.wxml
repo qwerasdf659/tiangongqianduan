@@ -158,7 +158,7 @@
       <view class="decor-circle decor-circle-1"></view>
       <view class="decor-circle decor-circle-2"></view>
       <view class="decor-circle decor-circle-3"></view>
-      <text class="decor-emoji">🎉</text>
+      <text class="decor-emoji iconfont icon-celebrate"></text>
     </view>
 
     <!-- 📝 内容区域（纯文字创意 text_content 有值时显示） -->

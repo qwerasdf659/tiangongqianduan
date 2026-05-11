@@ -1,5 +1,6 @@
 {
   "component": true,
+  "styleIsolation": "apply-shared",
   "usingComponents": {
     "lucky-space": "./sub/lucky-space/lucky-space",
     "premium-space": "./sub/premium-space/premium-space",

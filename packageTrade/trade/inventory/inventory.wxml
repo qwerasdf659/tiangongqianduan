@@ -73,7 +73,7 @@
             bind:tap="onCategoryChange"
             data-category="all"
           >
-            <text class="tab-pill-icon">📦</text>
+            <text class="tab-pill-icon iconfont icon-package"></text>
             <text class="tab-pill-label">全部</text>
             <text class="tab-pill-count">{{categoryStats.all}}</text>
           </view>
@@ -82,7 +82,7 @@
             bind:tap="onCategoryChange"
             data-category="prize"
           >
-            <text class="tab-pill-icon">🏆</text>
+            <text class="tab-pill-icon iconfont icon-trophy"></text>
             <text class="tab-pill-label">奖品</text>
             <text class="tab-pill-count">{{categoryStats.prize}}</text>
           </view>
@@ -109,7 +109,7 @@
             bind:tap="onCategoryChange"
             data-category="tradable_item"
           >
-            <text class="tab-pill-icon">🔄</text>
+            <text class="tab-pill-icon iconfont icon-refresh"></text>
             <text class="tab-pill-label">可交易</text>
             <text class="tab-pill-count">{{categoryStats.tradable_item}}</text>
           </view>
@@ -118,7 +118,7 @@
             bind:tap="onCategoryChange"
             data-category="service"
           >
-            <text class="tab-pill-icon">🎁</text>
+            <text class="tab-pill-icon iconfont icon-gift"></text>
             <text class="tab-pill-label">服务</text>
             <text class="tab-pill-count">{{categoryStats.service}}</text>
           </view>
@@ -138,7 +138,7 @@
         />
       </view>
       <view class="sort-btn" bind:tap="onShowFilter">
-        <text class="sort-btn-icon">⚙️</text>
+        <text class="sort-btn-icon iconfont icon-gear"></text>
         <text class="sort-btn-text">排序</text>
       </view>
     </view>
@@ -253,7 +253,7 @@
 
             <!-- 交易冷却期倒计时（后端 item_holds hold_type='trade_cooldown'） -->
             <view class="item-cooldown-row" wx:if="{{item._hasCooldown}}">
-              <text class="cooldown-icon">🔒</text>
+              <text class="cooldown-icon iconfont icon-lock-closed"></text>
               <text class="cooldown-text">交易冷却中 · 剩余 {{item._cooldownRemaining}}</text>
             </view>
 
@@ -277,7 +277,7 @@
                 catchtap="onUseItem"
                 data-item="{{item}}"
               >
-                <text>✨ 使用</text>
+                <text><text class="iconfont icon-sparkle"></text> 使用</text>
               </button>
               <button
                 class="item-action-btn action-code"
@@ -326,9 +326,9 @@
             <view class="chest-body">
               <view class="chest-lid"></view>
               <view class="chest-box"></view>
-              <view class="chest-sparkle s1">✨</view>
-              <view class="chest-sparkle s2">⭐</view>
-              <view class="chest-sparkle s3">💫</view>
+              <view class="chest-sparkle s1"><text class="iconfont icon-sparkle"></text></view>
+              <view class="chest-sparkle s2"><text class="iconfont icon-star"></text></view>
+              <view class="chest-sparkle s3"><text class="iconfont icon-sparkle"></text></view>
             </view>
           </view>
           <text class="empty-title-text">仓库还是空的呢</text>
@@ -336,12 +336,12 @@
 
           <view class="empty-guide-flow">
             <view class="guide-step">
-              <view class="guide-step-circle">🎰</view>
+              <view class="guide-step-circle"><text class="iconfont icon-slot-machine"></text></view>
               <text class="guide-step-label">参与抽奖</text>
             </view>
             <text class="guide-arrow">→</text>
             <view class="guide-step">
-              <view class="guide-step-circle">🏆</view>
+              <view class="guide-step-circle"><text class="iconfont icon-trophy"></text></view>
               <text class="guide-step-label">赢取奖品</text>
             </view>
             <text class="guide-arrow">→</text>
@@ -352,7 +352,7 @@
           </view>
 
           <button class="go-lottery-btn" bind:tap="goToLottery">
-            <text>🎉 立即抽奖</text>
+            <text><text class="iconfont icon-celebrate"></text> 立即抽奖</text>
           </button>
         </view>
       </view>
@@ -361,7 +361,7 @@
     <!-- ====== 底部使用小贴士 ====== -->
     <view class="tips-bar" wx:if="{{!loading && filteredItems.length > 0}}">
       <view class="tips-bar-inner">
-        <text class="tips-bar-icon">💡</text>
+        <text class="tips-bar-icon iconfont icon-bulb"></text>
         <text class="tips-bar-text">点击物品查看详情 · 注意查看有效期 · 核销码仅显示一次</text>
       </view>
     </view>
@@ -370,7 +370,7 @@
     <view class="detail-overlay" wx:if="{{showItemDetail}}" catchtap="closeItemDetail">
       <view class="detail-sheet" catchtap="">
         <view class="detail-loading" wx:if="{{itemDetailLoading}}">
-          <text class="detail-loading-icon">⏳</text>
+          <text class="detail-loading-icon iconfont icon-hourglass"></text>
           <text class="detail-loading-text">加载物品详情...</text>
         </view>
         <block wx:elif="{{itemDetail}}">
@@ -438,7 +438,7 @@
 
           <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
           <view class="detail-cooldown-bar" wx:if="{{itemDetail._hasCooldown}}">
-            <text class="detail-cooldown-icon">🔒</text>
+            <text class="detail-cooldown-icon iconfont icon-lock-closed"></text>
             <text class="detail-cooldown-text"
               >交易冷却中 · 剩余 {{itemDetail._cooldownRemaining}}</text
             >
@@ -546,8 +546,8 @@
 
           <!-- QR码过期/刷新中占位 -->
           <view class="rqr-image-wrapper rqr-expired" wx:elif="{{qrExpired || qrRefreshing}}">
-            <text class="rqr-expired-icon" wx:if="{{qrRefreshing}}">⏳</text>
-            <text class="rqr-expired-icon" wx:else>🔄</text>
+            <text class="rqr-expired-icon iconfont icon-hourglass" wx:if="{{qrRefreshing}}"></text>
+            <text class="rqr-expired-icon iconfont icon-refresh" wx:else></text>
             <text class="rqr-expired-text" wx:if="{{qrRefreshing}}">刷新中...</text>
             <text class="rqr-expired-text" wx:else>QR码已过期</text>
             <view class="rqr-refresh-btn" wx:if="{{!qrRefreshing}}" bindtap="onRefreshRedemptionQR">
@@ -560,7 +560,7 @@
             class="rqr-image-wrapper rqr-loading"
             wx:elif="{{!redemptionQRImage && !qrExpired}}"
           >
-            <text class="rqr-loading-icon">⏳</text>
+            <text class="rqr-loading-icon iconfont icon-hourglass"></text>
             <text class="rqr-loading-text">生成中...</text>
           </view>
 
@@ -594,7 +594,7 @@
 
         <!-- 注意事项 -->
         <view class="rqr-notice">
-          <text class="rqr-notice-icon">⚠️</text>
+          <text class="rqr-notice-icon iconfont icon-warning"></text>
           <text class="rqr-notice-text">核销码仅可使用一次，QR码每5分钟自动刷新</text>
         </view>
       </view>
@@ -616,7 +616,7 @@
         </view>
 
         <view class="timeline-loading" wx:if="{{timelineLoading}}">
-          <text class="timeline-loading-icon">⏳</text>
+          <text class="timeline-loading-icon iconfont icon-hourglass"></text>
           <text class="timeline-loading-text">加载追踪信息...</text>
         </view>
 
@@ -661,7 +661,7 @@
           </scroll-view>
 
           <view class="timeline-ledger-check" wx:if="{{timelineLedgerStatus}}">
-            <text class="ledger-icon">{{timelineLedgerStatus === 'balanced' ? '✅' : '⚠️'}}</text>
+            <text class="ledger-icon iconfont {{timelineLedgerStatus === 'balanced' ? 'icon-success' : 'icon-warning'}}"></text>
             <text class="ledger-text"
               >{{timelineLedgerStatus === 'balanced' ? '账本守恒验证通过' : '账本数据异常'}}</text
             >

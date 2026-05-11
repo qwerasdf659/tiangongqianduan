@@ -318,7 +318,7 @@ Page({
           processedDisplayTags.push({ text: '推荐', style_type: 'recommended', emoji: '👍' })
         }
         if (productData.is_hot) {
-          processedDisplayTags.push({ text: '热门', style_type: 'hot', emoji: '🔥' })
+          processedDisplayTags.push({ text: '热门', style_type: 'hot', emoji: 'icon-fire' })
         }
         if (productData.is_limited) {
           processedDisplayTags.push({ text: '限量', style_type: 'limited', emoji: '⏰' })
@@ -330,7 +330,7 @@ Page({
           processedDisplayTags.push({ text: '保修', style_type: 'warranty', emoji: '🛡️' })
         }
         if (productData.free_shipping) {
-          processedDisplayTags.push({ text: '包邮', style_type: 'shipping', emoji: '📦' })
+          processedDisplayTags.push({ text: '包邮', style_type: 'shipping', emoji: 'icon-package' })
         }
       }
 
@@ -748,7 +748,7 @@ Page({
           }
 
           wx.showModal({
-            title: '🎉 铸造成功',
+            title: '铸造成功',
             content: mintedContent,
             showCancel: false,
             confirmText: '查看背包',

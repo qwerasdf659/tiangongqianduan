@@ -493,7 +493,7 @@ Page({
     })
 
     wx.showModal({
-      title: '⚠️ 页面初始化异常',
+      title: '页面初始化异常',
       content: `认证页面初始化遇到问题：\n\n${error.message || '未知错误'}\n\n您可以尝试：\n• 重新进入页面\n• 重启小程序\n• 检查网络连接`,
       showCancel: true,
       cancelText: '重新加载',

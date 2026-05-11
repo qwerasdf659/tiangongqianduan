@@ -37,11 +37,12 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
-/* 🔴 扫码核销图标 */
+/* 扫码核销图标 */
 .scan-icon {
-  font-size: 34rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  color: var(--tg-color-white);
 }
 
 /* 🔴 扫码核销文字 */
@@ -68,11 +69,12 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
-/* 🔴 消费录入图标 */
+/* 消费录入图标 */
 .consume-icon {
-  font-size: 34rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  color: var(--tg-color-white);
 }
 
 /* 🔴 消费录入文字 */

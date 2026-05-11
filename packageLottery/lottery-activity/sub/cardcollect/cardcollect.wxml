@@ -54,7 +54,8 @@
           <!-- 已收集：正面 -->
           <view class="gc-face gc-front" wx:if="{{item.collected}}">
             <view class="gc-holo" />
-            <text class="gc-emoji">{{item.prize.prize_icon || '🃏'}}</text>
+            <text class="gc-emoji" wx:if="{{item.prize.prize_icon}}">{{item.prize.prize_icon}}</text>
+            <text class="gc-emoji iconfont icon-playing-card" wx:else></text>
             <text class="gc-label"
               >{{item.prize && item.prize.prize_name ? item.prize.prize_name : ''}}</text
             >
@@ -103,7 +104,8 @@
       <view class="reveal-glow" />
       <view class="rc-inner">
         <view class="rc-holo" />
-        <text class="rc-emoji">{{revealPrize.prize_icon || '🃏'}}</text>
+        <text class="rc-emoji" wx:if="{{revealPrize.prize_icon}}">{{revealPrize.prize_icon}}</text>
+        <text class="rc-emoji iconfont icon-playing-card" wx:else></text>
         <text class="rc-name"
           >{{revealPrize && revealPrize.prize_name ? revealPrize.prize_name : ''}}</text
         >
@@ -132,7 +134,7 @@
     >
       <view class="draw-btn-bg" />
       <view class="draw-btn-inner">
-        <text class="draw-btn-icon">{{state === 'flipping' ? '✨' : '🎴'}}</text>
+        <text class="draw-btn-icon iconfont {{state === 'flipping' ? 'icon-sparkle' : 'icon-playing-card'}}"></text>
         <text class="draw-btn-text">{{state === 'flipping' ? '抽卡中...' : '抽取卡片'}}</text>
       </view>
     </view>
@@ -143,7 +145,7 @@
 
   <!-- ===== 集齐彩蛋 ===== -->
   <view class="cc-done {{allCollected ? 'cc-done-show' : ''}}">
-    <text class="done-emoji">🎊</text>
+    <text class="done-emoji iconfont icon-ribbon"></text>
     <text class="done-text">恭喜集齐全套!</text>
   </view>
 

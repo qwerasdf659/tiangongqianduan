@@ -56,7 +56,7 @@
     <!-- 使用引导（首次进入或无订单时展示） -->
     <view class="guide-banner" wx:if="{{showGuide && !loading}}">
       <view class="guide-close" bindtap="onCloseGuide">✕</view>
-      <view class="guide-title">📦 订单流程说明</view>
+      <view class="guide-title"><text class="iconfont icon-package"></text> 订单流程说明</view>
       <view class="guide-steps">
         <view class="guide-step">
           <view class="guide-step-icon guide-step-icon--pending">🛒</view>
@@ -74,7 +74,7 @@
         </view>
         <view class="guide-arrow">→</view>
         <view class="guide-step">
-          <view class="guide-step-icon guide-step-icon--rated">⭐</view>
+          <view class="guide-step-icon guide-step-icon--rated iconfont icon-star"></view>
           <text class="guide-step-text">确认评价</text>
         </view>
       </view>
@@ -173,7 +173,7 @@
 
           <!-- 自动确认提示 -->
           <view class="auto-tip" wx:if="{{item._isAutoConfirmed}}">
-            <text class="auto-tip-icon">ℹ️</text>
+            <text class="auto-tip-icon iconfont icon-info"></text>
             <text class="auto-tip-text">系统已自动确认收货（发货满7天）</text>
           </view>
 
