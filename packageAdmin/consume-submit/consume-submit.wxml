@@ -6,7 +6,7 @@
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 操作引导（帮助首次使用的商家理解流程） -->
     <view class="guide-tip">
-      <text class="guide-icon iconfont icon-bulb"></text>
+      <t-icon name="tips-filled" size="28rpx" class="guide-icon" />
       <text class="guide-text">先填写消费金额 → 扫描顾客二维码 → 确认提交</text>
     </view>
 
@@ -211,7 +211,7 @@
           class="tip-box error-tip"
           wx:if="{{qrCode && !userInfoLoading && !userInfo && storeList.length <= 1}}"
         >
-          <text class="tip-emoji iconfont icon-warning"></text>
+          <t-icon name="error-triangle-filled" size="28rpx" class="tip-emoji" />
           <text class="tip-msg">顾客信息加载失败，请检查二维码是否有效</text>
         </view>
       </view>

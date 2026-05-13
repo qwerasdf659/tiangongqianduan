@@ -7,6 +7,7 @@
     "bid-panel": "./sub/bid-panel/bid-panel",
     "exchange-confirm": "/packageExchange/components/exchange/shared/exchange-confirm/exchange-confirm",
     "exchange-result": "/packageExchange/components/exchange/shared/exchange-result/exchange-result",
-    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading"
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
   }
 }

@@ -102,8 +102,8 @@ Page({
     consumptionFilterOptions: [
       { key: 'all', name: '全部', icon: '📋' },
       { key: 'pending', name: '待审核', icon: '⏳' },
-      { key: 'approved', name: '已通过', icon: 'icon-success' },
-      { key: 'rejected', name: '已拒绝', icon: 'icon-error' }
+      { key: 'approved', name: '已通过', icon: '✅' },
+      { key: 'rejected', name: '已拒绝', icon: '❌' }
     ],
     consumptionPage: 1,
     consumptionPageSize: 20,
@@ -631,11 +631,11 @@ Page({
     /* 后端 consumption_records 表有4种状态: pending/approved/rejected/expired */
     const statusMap: Record<string, { text: string; color: string; icon: string }> = {
       pending: { text: '待审核', color: '#FFC107', icon: '⏳' },
-      approved: { text: '已通过', color: '#4CAF50', icon: 'icon-success' },
-      rejected: { text: '已拒绝', color: '#F44336', icon: 'icon-error' },
+      approved: { text: '已通过', color: '#4CAF50', icon: '✅' },
+      rejected: { text: '已拒绝', color: '#F44336', icon: '❌' },
       expired: { text: '已过期', color: '#9E9E9E', icon: '⌛' }
     }
-    return statusMap[status] || { text: status, color: '#666', icon: 'icon-question' }
+    return statusMap[status] || { text: status, color: '#666', icon: '❓' }
   },
 
   /**

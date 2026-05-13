@@ -10,7 +10,7 @@
 
   <!-- 错误状态 -->
   <view class="detail-error" wx:elif="{{hasError}}">
-    <text class="error-icon iconfont icon-warning"></text>
+    <t-icon name="error-triangle-filled" size="48rpx" class="error-icon" />
     <text class="error-msg">{{errorMessage}}</text>
     <button class="retry-btn" size="mini" bindtap="onGoBack">返回</button>
   </view>
@@ -118,7 +118,7 @@
 
       <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
       <view class="detail-cooldown-notice" wx:if="{{hasCooldown}}">
-        <text class="cooldown-notice-icon iconfont icon-lock-closed"></text>
+        <t-icon name="lock-on-filled" size="28rpx" class="cooldown-notice-icon" />
         <text class="cooldown-notice-text">交易冷却中 · 剩余 {{cooldownRemaining}}</text>
       </view>
     </view>

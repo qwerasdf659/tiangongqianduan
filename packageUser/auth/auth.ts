@@ -142,7 +142,7 @@ Page({
 
     // 页面状态
     submitting: false,
-    logging: false,
+    loggingType: '' as '' | 'sms' | 'wechat',
 
     // 🔧 登录状态控制标志
     // 登录是否已完成（成功或失败）
@@ -554,7 +554,7 @@ Page({
 
     this.setData({
       submitting: false,
-      logging: false,
+      loggingType: '',
       sending: false
     })
   },
@@ -829,7 +829,7 @@ Page({
 
     this.setData({
       submitting: true,
-      logging: true,
+      loggingType: 'sms',
       loginCompleted: false
     })
 
@@ -870,7 +870,7 @@ Page({
 
     this.setData({
       submitting: true,
-      logging: true,
+      loggingType: 'wechat',
       loginCompleted: false
     })
 
@@ -879,7 +879,7 @@ Page({
     const loginTimeout = setTimeout(() => {
       if (!this.data.loginCompleted) {
         log.warn('微信一键登录超时')
-        this.setData({ submitting: false, logging: false })
+        this.setData({ submitting: false, loggingType: '' })
         wx.showModal({
           title: '登录超时',
           content: '请检查网络后重试',
@@ -947,7 +947,7 @@ Page({
 
     this.setData({
       submitting: true,
-      logging: true,
+      loggingType: 'wechat',
       loginCompleted: false
     })
 
@@ -967,7 +967,7 @@ Page({
         log.warn('微信静默登录超时，强制结束')
         this.setData({
           submitting: false,
-          logging: false,
+          loggingType: '',
           loginTimeoutTriggered: true
         })
 
@@ -1078,7 +1078,7 @@ Page({
         log.warn(' 登录请求超时，强制结束')
         this.setData({
           submitting: false,
-          logging: false,
+          loggingType: '',
           loginTimeoutTriggered: true
         })
 
@@ -1161,7 +1161,7 @@ Page({
         /* 保存 openid 供后续绑定手机号接口使用 */
         this.setData({
           submitting: false,
-          logging: false,
+          loggingType: '',
           needBindMobile: true,
           wxOpenId: responseData.openid || ''
         })
@@ -1407,7 +1407,7 @@ Page({
 
     this.setData({
       submitting: false,
-      logging: false
+      loggingType: ''
     })
 
     const modalConfig: any = {
@@ -1493,7 +1493,7 @@ Page({
 
       this.setData({
         submitting: false,
-        logging: false,
+        loggingType: '',
         loginCompleted: false,
         loginTimeoutTriggered: false
       })
@@ -1544,7 +1544,7 @@ Page({
 
     this.setData({
       submitting: true,
-      logging: true,
+      loggingType: 'sms',
       loginCompleted: false
     })
 

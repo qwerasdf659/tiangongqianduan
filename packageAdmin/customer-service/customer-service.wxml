@@ -19,7 +19,7 @@
         </view>
         <view class="connection-info">
           <text class="ws-status {{wsConnected ? 'connected' : 'disconnected'}}">
-            <text wx:if="{{wsConnected}}" class="iconfont icon-link"></text><text wx:else class="iconfont icon-error"></text> {{wsConnected ? '已连接' : '未连接'}}
+            <t-icon wx:if="{{wsConnected}}" name="link" size="28rpx" color="currentColor" /><t-icon wx:else name="close-circle-filled" size="28rpx" color="currentColor" /> {{wsConnected ? '已连接' : '未连接'}}
           </text>
         </view>
       </view>

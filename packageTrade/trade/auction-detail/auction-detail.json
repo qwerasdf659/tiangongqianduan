@@ -3,6 +3,7 @@
   "enablePullDownRefresh": true,
   "usingComponents": {
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "navigationStyle": "custom",

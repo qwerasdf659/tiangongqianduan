@@ -41,7 +41,7 @@
 
       <!-- 错误状态标题卡片 -->
       <view class="title-card error-card" wx:if="{{drawResult.isError}}">
-        <view class="title-icon error-icon iconfont icon-error"></view>
+        <view class="title-icon error-icon"><t-icon name="close-circle-filled" size="48rpx" color="#ff6b6b" /></view>
         <view class="title-content">
           <text class="result-title error-title">{{drawResult.errorTitle}}</text>
           <text class="result-subtitle error-subtitle">{{drawResult.errorDescription}}</text>
@@ -327,7 +327,7 @@
       <view class="error-info-card" wx:if="{{drawResult.isError}}">
         <view class="error-card-bg">
           <view class="error-icon-container">
-            <text class="error-icon iconfont icon-warning"></text>
+            <t-icon name="error-triangle-filled" size="48rpx" class="error-icon" color="#ff6b6b" />
           </view>
           <view class="error-content">
             <text class="error-message">{{drawResult.errorMessage}}</text>

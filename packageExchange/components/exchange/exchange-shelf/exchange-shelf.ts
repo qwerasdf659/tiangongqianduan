@@ -44,7 +44,9 @@ Component({
     /** 刷新令牌（WebSocket 事件驱动，值变化触发子组件刷新*/
     refreshToken: { type: Number, value: 0 },
     /** 组件是否激活（hidden 模式下判断当Tab*/
-    active: { type: Boolean, value: true }
+    active: { type: Boolean, value: true },
+    /** 是否已登录 */
+    isLoggedIn: { type: Boolean, value: false }
   },
 
   data: {
@@ -408,6 +410,11 @@ Component({
       wx.navigateTo({
         url: '/packageExchange/exchange-orders/exchange-orders'
       })
+    },
+
+    /** 未登录时点击"请登录"按钮，通知父页面弹出登录弹窗 */
+    onNeedLogin() {
+      this.triggerEvent('needlogin')
     },
 
     /**

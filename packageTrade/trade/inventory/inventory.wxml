@@ -109,7 +109,7 @@
             bind:tap="onCategoryChange"
             data-category="tradable_item"
           >
-            <text class="tab-pill-icon iconfont icon-refresh"></text>
+            <t-icon name="refresh" size="28rpx" class="tab-pill-icon" />
             <text class="tab-pill-label">可交易</text>
             <text class="tab-pill-count">{{categoryStats.tradable_item}}</text>
           </view>
@@ -253,7 +253,7 @@
 
             <!-- 交易冷却期倒计时（后端 item_holds hold_type='trade_cooldown'） -->
             <view class="item-cooldown-row" wx:if="{{item._hasCooldown}}">
-              <text class="cooldown-icon iconfont icon-lock-closed"></text>
+              <t-icon name="lock-on-filled" size="24rpx" class="cooldown-icon" />
               <text class="cooldown-text">交易冷却中 · 剩余 {{item._cooldownRemaining}}</text>
             </view>
 
@@ -361,7 +361,7 @@
     <!-- ====== 底部使用小贴士 ====== -->
     <view class="tips-bar" wx:if="{{!loading && filteredItems.length > 0}}">
       <view class="tips-bar-inner">
-        <text class="tips-bar-icon iconfont icon-bulb"></text>
+        <t-icon name="tips-filled" size="28rpx" class="tips-bar-icon" />
         <text class="tips-bar-text">点击物品查看详情 · 注意查看有效期 · 核销码仅显示一次</text>
       </view>
     </view>
@@ -438,7 +438,7 @@
 
           <!-- 冷却期提示（后端 holds 中 trade_cooldown） -->
           <view class="detail-cooldown-bar" wx:if="{{itemDetail._hasCooldown}}">
-            <text class="detail-cooldown-icon iconfont icon-lock-closed"></text>
+            <t-icon name="lock-on-filled" size="28rpx" class="detail-cooldown-icon" />
             <text class="detail-cooldown-text"
               >交易冷却中 · 剩余 {{itemDetail._cooldownRemaining}}</text
             >
@@ -547,7 +547,7 @@
           <!-- QR码过期/刷新中占位 -->
           <view class="rqr-image-wrapper rqr-expired" wx:elif="{{qrExpired || qrRefreshing}}">
             <text class="rqr-expired-icon iconfont icon-hourglass" wx:if="{{qrRefreshing}}"></text>
-            <text class="rqr-expired-icon iconfont icon-refresh" wx:else></text>
+            <t-icon name="refresh" size="28rpx" class="rqr-expired-icon" wx:else />
             <text class="rqr-expired-text" wx:if="{{qrRefreshing}}">刷新中...</text>
             <text class="rqr-expired-text" wx:else>QR码已过期</text>
             <view class="rqr-refresh-btn" wx:if="{{!qrRefreshing}}" bindtap="onRefreshRedemptionQR">
@@ -594,7 +594,7 @@
 
         <!-- 注意事项 -->
         <view class="rqr-notice">
-          <text class="rqr-notice-icon iconfont icon-warning"></text>
+          <t-icon name="error-triangle-filled" size="28rpx" class="rqr-notice-icon" />
           <text class="rqr-notice-text">核销码仅可使用一次，QR码每5分钟自动刷新</text>
         </view>
       </view>
@@ -661,7 +661,7 @@
           </scroll-view>
 
           <view class="timeline-ledger-check" wx:if="{{timelineLedgerStatus}}">
-            <text class="ledger-icon iconfont {{timelineLedgerStatus === 'balanced' ? 'icon-success' : 'icon-warning'}}"></text>
+            <t-icon name="{{timelineLedgerStatus === 'balanced' ? 'check-circle-filled' : 'error-triangle-filled'}}" size="28rpx" class="ledger-icon" />
             <text class="ledger-text"
               >{{timelineLedgerStatus === 'balanced' ? '账本守恒验证通过' : '账本数据异常'}}</text
             >

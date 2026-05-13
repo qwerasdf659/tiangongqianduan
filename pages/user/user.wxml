@@ -20,7 +20,7 @@
       <view class="points-header">
         <text class="points-title">我的积分</text>
         <view class="points-detail-btn" bindtap="onPointsTap">
-          <text class="iconfont icon-coin points-detail-icon"></text>
+                    <t-icon name="wallet-filled" size="28rpx" color="currentColor" />
           <text class="points-detail-text">积分明细</text>
         </view>
       </view>
@@ -42,7 +42,7 @@
 
     <!-- 未登录状态 -->
     <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
-      <view class="login-avatar"><text class="iconfont icon-user"></text></view>
+      <view class="login-avatar"><t-icon name="user-filled" size="48rpx" color="#999" /></view>
       <text class="login-text">点击登录</text>
       <text class="login-desc">登录后查看完整功能</text>
     </view>
@@ -58,7 +58,7 @@
         data-item="{{item}}"
       >
         <view class="menu-grid-icon">
-          <text class="iconfont {{item.iconClass}}"></text>
+          <t-icon name="{{item.tdIcon}}" size="52rpx" color="{{item.color}}" />
         </view>
         <text class="menu-grid-name">{{item.name}}</text>
       </view>
@@ -68,7 +68,7 @@
     <view class="mw-section" wx:if="{{isLoggedIn && isMerchant}}">
       <view class="mw-header">
         <view class="mw-header-left">
-          <view class="mw-header-icon"><text class="iconfont icon-store"></text></view>
+          <view class="mw-header-icon"><t-icon name="store-filled" size="36rpx" color="currentColor" /></view>
           <view class="mw-header-info">
             <text class="mw-header-title">商家工作台</text>
             <text class="mw-header-role"
@@ -134,7 +134,7 @@
 
     <!-- 退出登录按钮 -->
     <view class="logout-btn" wx:if="{{isLoggedIn}}" bindtap="logout">
-      <text class="iconfont icon-logout logout-icon"></text>
+            <t-icon name="logout" size="32rpx" color="currentColor" />
       <text class="logout-text">退出登录</text>
     </view>
 
@@ -154,4 +154,11 @@
 
     <maintenance-overlay />
   </scroll-view>
+
+  <!-- 登录弹窗 -->
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>

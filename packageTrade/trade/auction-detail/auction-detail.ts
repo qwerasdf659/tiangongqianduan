@@ -267,7 +267,7 @@ Page({
     }
 
     if (!(this.data as any).isLoggedIn) {
-      wx.navigateTo({ url: '/packageUser/auth/auth' })
+      this.setData({ loginPopupVisible: true })
       return
     }
 
@@ -370,7 +370,7 @@ Page({
     }
 
     if (!(this.data as any).isLoggedIn) {
-      wx.navigateTo({ url: '/packageUser/auth/auth' })
+      this.setData({ loginPopupVisible: true })
       return
     }
 

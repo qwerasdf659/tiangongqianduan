@@ -415,7 +415,7 @@
     </view>
 
     <t-empty wx:if="{{!loading && filteredProducts.length === 0}}" description="暂无可购买的商品">
-      <view slot="image"><text class="iconfont icon-shopping-bag"></text></view>
+      <view slot="image"><t-icon name="shop-filled" size="48rpx" color="#999" /></view>
       <t-button
         slot="action"
         theme="primary"

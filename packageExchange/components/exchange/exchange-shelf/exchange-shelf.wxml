@@ -18,7 +18,7 @@
           <view class="tab-inner">
             <view class="tab-icon-row">
               <text class="tab-emoji iconfont {{item.id === 'lucky' ? 'icon-clover' : 'icon-diamond'}}"></text>
-              <text class="iconfont icon-lock-closed" wx:if="{{item.id === 'premium' && !premiumUnlocked}}"></text>
+              <t-icon name="lock-on-filled" size="24rpx" color="#999" wx:if="{{item.id === 'premium' && !premiumUnlocked}}" />
               <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}"
                 >{{item.name}}</text
               >
@@ -62,9 +62,13 @@
             </view>
           </scroll-view>
         </view>
+        <!-- 未登录时在快捷操作栏前显示登录按钮 -->
+        <view class="header-login-inline" wx:if="{{!isLoggedIn}}" bindtap="onNeedLogin">
+          <text>请登录</text>
+        </view>
         <view class="header-quick-actions">
           <view class="header-action-btn" bindtap="onGoToMyOrders">🛒 我的订单</view>
-          <view class="header-action-btn" bindtap="onRefreshProducts"><text class="iconfont icon-refresh"></text> 刷新</view>
+          <view class="header-action-btn" bindtap="onRefreshProducts"><t-icon name="refresh" size="28rpx" color="currentColor" /> 刷新</view>
           <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
           <view class="view-toggle">
             <view

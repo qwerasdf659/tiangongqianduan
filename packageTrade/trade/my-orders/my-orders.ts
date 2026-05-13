@@ -124,11 +124,7 @@ Page({
   async _loadOrders() {
     if (!userStore.isLoggedIn) {
       orderLog.info('用户未登录')
-      this.setData({ loading: false })
-      OrderWechat.showToast('请先登录')
-      setTimeout(() => {
-        wx.navigateTo({ url: '/packageUser/auth/auth' })
-      }, 1500)
+      this.setData({ loading: false, loginPopupVisible: true })
       return
     }
 

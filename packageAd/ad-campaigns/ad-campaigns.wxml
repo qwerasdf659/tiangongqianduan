@@ -46,7 +46,7 @@
 
       <!-- 运营操作提示（可关闭） -->
       <view class="tips-bar" wx:if="{{showTips}}">
-        <text class="tips-icon iconfont icon-bulb"></text>
+        <t-icon name="tips-filled" size="28rpx" class="tips-icon" />
         <text class="tips-text">流程：创建广告 → 编辑素材 → 提交审核 → 审核通过后自动投放</text>
         <view class="tips-close" bindtap="onCloseTips">
           <text>×</text>

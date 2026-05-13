@@ -39,7 +39,7 @@
           <text class="stats-label">待审核消费记录</text>
         </view>
         <view class="stats-hint">
-          <text class="stats-hint-icon iconfont icon-bulb"></text>
+          <t-icon name="tips-filled" size="28rpx" class="stats-hint-icon" />
           <text class="stats-hint-text">审核通过后积分自动发放</text>
         </view>
       </view>
@@ -82,7 +82,7 @@
             wx:if="{{!loading && records.length === 0}}"
             description="所有消费记录已审核完成，下拉刷新检查新记录"
           >
-            <view slot="image"><text class="iconfont icon-success"></text></view>
+            <view slot="image"><t-icon name="check-circle-filled" size="48rpx" color="#4CAF50" /></view>
           </t-empty>
 
           <!-- 记录卡片列表 -->
@@ -210,7 +210,7 @@
           wx:if="{{!pendingLoading && pendingSteps.length === 0}}"
           description="您没有需要审核的步骤，下拉刷新检查新任务"
         >
-          <view slot="image"><text class="iconfont icon-success"></text></view>
+          <view slot="image"><t-icon name="check-circle-filled" size="48rpx" color="#4CAF50" /></view>
         </t-empty>
 
         <!-- 审核链步骤卡片 -->

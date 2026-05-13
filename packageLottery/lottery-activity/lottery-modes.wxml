@@ -315,7 +315,7 @@
   >
     <view class="pity-progress__header">
       <view class="pity-progress__shield">
-        <text class="pity-progress__shield-icon iconfont icon-shield"></text>
+        <t-icon name="secured-filled" size="36rpx" class="pity-progress__shield-icon" />
       </view>
       <view class="pity-progress__title-group">
         <text class="pity-progress__title">保底进度</text>

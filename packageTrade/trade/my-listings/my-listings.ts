@@ -155,12 +155,8 @@ Page({
    */
   async loadMyListings() {
     if (!userStore.isLoggedIn) {
-      log.info('用户未登录，跳转登录页')
-      this.setData({ loading: false })
-      wx.showToast({ title: '请先登录', icon: 'none' })
-      setTimeout(() => {
-        wx.navigateTo({ url: '/packageUser/auth/auth' })
-      }, 1500)
+      log.info('用户未登录，弹出登录弹窗')
+      this.setData({ loading: false, loginPopupVisible: true })
       return
     }
 
@@ -257,9 +253,7 @@ Page({
 
       if (error.statusCode === 401) {
         wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
-        setTimeout(() => {
-          wx.navigateTo({ url: '/packageUser/auth/auth' })
-        }, 1500)
+        this.setData({ loginPopupVisible: true })
         return
       }
 

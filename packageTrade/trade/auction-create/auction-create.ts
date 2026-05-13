@@ -81,10 +81,7 @@ Page({
     })
 
     if (!(this.data as any).isLoggedIn) {
-      AuctionCreateWechat.showToast('请先登录', 'none')
-      setTimeout(() => {
-        wx.navigateTo({ url: '/packageUser/auth/auth' })
-      }, 1500)
+      this.setData({ loginPopupVisible: true })
       return
     }
 

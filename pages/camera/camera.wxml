@@ -62,7 +62,7 @@
 
       <!-- 错误提示 -->
       <view class="error-state" wx:if="{{!loading && errorMessage}}">
-        <text class="error-icon iconfont icon-error"></text>
+        <t-icon name="close-circle-filled" size="48rpx" class="error-icon" />
         <text class="error-text">{{errorMessage}}</text>
         <button class="retry-btn" bindtap="initializePage">重新加载</button>
       </view>
@@ -132,11 +132,18 @@
 
     <!-- 底部提示 -->
     <view class="bottom-tip" wx:if="{{!loading && filteredCampaigns.length > 0}}">
-      <text class="tip-icon iconfont icon-bulb"></text>
+      <t-icon name="tips-filled" size="28rpx" class="tip-icon" />
       <text class="tip-text">点击活动卡片进入抽奖</text>
     </view>
 
     <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
   </scroll-view>
+
+  <!-- 登录弹窗 -->
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>

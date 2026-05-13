@@ -242,7 +242,11 @@ App({
             success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
               if (res.confirm) {
                 this.clearAuthData()
-                wx.redirectTo({ url: '/packageUser/auth/auth' })
+                const pages = getCurrentPages()
+                const currentPage: any = pages[pages.length - 1]
+                if (currentPage && currentPage.onShowLoginPopup) {
+                  currentPage.onShowLoginPopup()
+                }
               }
             }
           })

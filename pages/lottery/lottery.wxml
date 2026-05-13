@@ -19,9 +19,41 @@
       <t-loading loading="{{true}}" text="正在加载..." theme="spinner" size="48rpx" />
     </view>
 
-    <!-- 页面头部（仅登录后渲染，防止未认证时闪现空数据UI） -->
-    <view class="header" wx:if="{{isLoggedIn}}">
-      <view class="header-content">
+    <!-- 页面头部 -->
+    <view class="header">
+      <!-- 未登录态：欢迎 + 立即登录 + 脱敏数据 -->
+      <view class="header-guest" wx:if="{{!isLoggedIn}}">
+        <view class="guest-info-section">
+          <view class="guest-welcome-row">
+            <text class="guest-welcome-text">欢迎光临</text>
+            <view class="guest-login-link" bindtap="onShowLoginPopup">
+              <text>立即登录</text>
+            </view>
+          </view>
+          <view class="guest-points-row">
+            <view class="points-item">
+              <text class="points-label">可用积分</text>
+              <view class="points-value">
+                <text class="points-number">***</text>
+                <view class="points-icon"><t-icon name="money-filled" size="28rpx" color="#ffffff" /></view>
+              </view>
+            </view>
+            <view class="guest-login-btn" bindtap="onShowLoginPopup">
+              <text>请登录</text>
+            </view>
+            <view class="points-item">
+              <text class="points-label">冻结积分</text>
+              <view class="points-value">
+                <text class="points-number">***</text>
+                <view class="points-icon"><t-icon name="lock-on-filled" size="28rpx" color="#ffffff" /></view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 已登录态（原有内容） -->
+      <view class="header-content" wx:else>
         <view class="user-info-section">
           <!-- 欢迎文字 + 通知铃铛 + 审核记录徽章 同一行 -->
           <view class="welcome-text">
@@ -123,7 +155,7 @@
 
             <!-- 已过期状态 -->
             <view class="qrcode-expired-inline" wx:elif="{{qrExpired}}" catchtap="onRefreshQRCode">
-              <text class="expired-icon-small iconfont icon-warning"></text>
+              <t-icon name="error-triangle-filled" size="24rpx" class="expired-icon-small" />
               <text class="expired-text-small">已过期</text>
               <text class="refresh-text-small">点击刷新</text>
             </view>
@@ -225,14 +257,15 @@
       </swiper>
     </view>
 
-    <!-- 抽奖万能组件 - 仅登录后渲染（防止未认证时组件发起API请求） -->
-    <block wx:if="{{isLoggedIn}}">
+    <!-- 抽奖万能组件 - 所有用户可见（未登录时点击抽奖会触发登录弹窗） -->
+    <block>
       <!-- 主活动（动态加载，位置配置驱动） -->
       <lottery-activity
         wx:if="{{mainCampaign}}"
         campaignCode="{{mainCampaign.campaign_code}}"
         size="{{mainCampaign.placement.size || 'full'}}"
         bind:pointsupdate="onPointsUpdate"
+        bind:needlogin="onShowLoginPopup"
       />
       <!-- 降级兜底：活动列表加载完成但无匹配活动时显示空状态 -->
       <view wx:elif="{{!loading}}" class="no-campaign-placeholder">
@@ -242,8 +275,8 @@
       </view>
     </block>
 
-    <!-- 其他活动（secondary/floating等位置，仅登录后渲染） -->
-    <block wx:if="{{isLoggedIn}}" wx:for="{{extraCampaigns}}" wx:key="campaign_code">
+    <!-- 其他活动（secondary/floating等位置） -->
+    <block wx:for="{{extraCampaigns}}" wx:key="campaign_code">
       <view
         class="extra-activity-slot {{item._isFeatured ? 'featured-activity' : ''}} {{item._displayPhase === 'ended' ? 'ended-activity' : ''}}"
       >
@@ -271,6 +304,7 @@
           campaignCode="{{item.campaign_code}}"
           size="{{item.placement.size || 'medium'}}"
           bind:pointsupdate="onPointsUpdate"
+          bind:needlogin="onShowLoginPopup"
         />
       </view>
     </block>
@@ -335,14 +369,14 @@
 
             <!-- 消费金额 -->
             <view class="record-row">
-              <text class="row-icon iconfont icon-coin"></text>
+              <t-icon name="money-filled" size="28rpx" class="row-icon" />
               <text class="row-label">消费金额：</text>
               <text class="row-value amount">¥{{item.formattedAmount}}</text>
             </view>
 
             <!-- 预计积分 -->
             <view class="record-row">
-              <text class="row-icon iconfont icon-coin"></text>
+              <t-icon name="money-filled" size="28rpx" class="row-icon" />
               <text class="row-label">
                 {{item.status === 'approved' ? '已奖励：' : '预计奖励：'}}
               </text>
@@ -351,7 +385,7 @@
 
             <!-- 商家信息 -->
             <view class="record-row" wx:if="{{item.merchant_info}}">
-              <text class="row-icon iconfont icon-store"></text>
+              <t-icon name="store-filled" size="28rpx" class="row-icon" />
               <text class="row-label">商家：</text>
               <text class="row-value">{{item.merchant_info.name || '天工餐厅'}}</text>
             </view>
@@ -396,5 +430,12 @@
     id="qrcodeCanvas"
     type="2d"
     style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px"
+  />
+
+  <!-- 登录弹窗 -->
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
   />
 </view>

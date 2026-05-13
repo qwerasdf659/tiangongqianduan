@@ -1,5 +1,5 @@
 {
   "component": true,
   "styleIsolation": "apply-shared",
-  "usingComponents": { "rarity-effects": "../../shared/rarity-effects/rarity-effects" }
+  "usingComponents": { "rarity-effects": "../../shared/rarity-effects/rarity-effects", "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon" }
 }

@@ -52,7 +52,7 @@
 
             <view class="main-stat-card frozen">
               <view class="stat-icon-bg frozen">
-                <text class="stat-icon iconfont icon-lock-closed"></text>
+                <t-icon name="lock-on-filled" size="36rpx" class="stat-icon" />
               </view>
               <view class="stat-body">
                 <text class="stat-label">冻结积分</text>
@@ -112,7 +112,7 @@
                 <text class="btn-text">筛选</text>
               </button>
               <button class="filter-btn secondary" bind:tap="onResetFilters">
-                <text class="btn-icon iconfont icon-refresh"></text>
+                <t-icon name="refresh" size="28rpx" class="btn-icon" />
                 <text class="btn-text">重置</text>
               </button>
             </view>
@@ -241,8 +241,8 @@
                     <text class="record-order-no" wx:if="{{item.order_no}}">{{item.order_no}}</text>
                   </view>
                   <view class="record-status {{item.status}}">
-                    <text class="status-icon iconfont icon-success" wx:if="{{item.status === 'approved'}}"></text>
-                    <text class="status-icon iconfont icon-error" wx:elif="{{item.status === 'rejected'}}"></text>
+                    <t-icon name="check-circle-filled" size="28rpx" class="status-icon" wx:if="{{item.status === 'approved'}}" />
+                    <t-icon name="close-circle-filled" size="28rpx" class="status-icon" wx:elif="{{item.status === 'rejected'}}" />
                     <text class="status-icon" wx:elif="{{item.status === 'expired'}}">⌛</text>
                     <text class="status-icon iconfont icon-hourglass" wx:else></text>
                     <text class="status-text"

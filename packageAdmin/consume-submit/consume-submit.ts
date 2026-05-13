@@ -377,7 +377,11 @@ Page({
     const content = errorMap[code] || submitError.message || '提交失败，请重试'
 
     if (code === 'UNAUTHENTICATED') {
-      wx.redirectTo({ url: '/packageUser/auth/auth' })
+      const pages = getCurrentPages()
+      const currentPage: any = pages[pages.length - 1]
+      if (currentPage && currentPage.onShowLoginPopup) {
+        currentPage.onShowLoginPopup()
+      }
       return
     }
 

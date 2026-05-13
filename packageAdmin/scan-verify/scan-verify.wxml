@@ -96,7 +96,7 @@
       <!-- 温馨提示 -->
       <view class="tips-card">
         <view class="tips-header">
-          <text class="tips-icon iconfont icon-bulb"></text>
+          <t-icon name="tips-filled" size="28rpx" class="tips-icon" />
           <text class="tips-title">温馨提示</text>
         </view>
         <view class="tips-list">
@@ -185,7 +185,7 @@
     <view class="main-content" wx:if="{{currentStep === 3 && verifySuccess && !loading}}">
       <view class="result-card success">
         <view class="result-icon-box success-bg">
-          <text class="result-icon iconfont icon-success"></text>
+          <t-icon name="check-circle-filled" size="48rpx" class="result-icon" />
         </view>
         <text class="result-main-title success-text">核销成功</text>
         <text class="result-desc">商品已成功核销，用户物品状态已更新</text>
@@ -233,7 +233,7 @@
     >
       <view class="result-card fail">
         <view class="result-icon-box fail-bg">
-          <text class="result-icon iconfont icon-error"></text>
+          <t-icon name="close-circle-filled" size="48rpx" class="result-icon" />
         </view>
         <text class="result-main-title fail-text">核销失败</text>
         <text class="result-desc"

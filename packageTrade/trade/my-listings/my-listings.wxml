@@ -42,7 +42,7 @@
 
     <!-- 操作指引提示 -->
     <view class="guide-tip" wx:if="{{!isEmpty && listings.length > 0}}">
-      <text class="guide-icon iconfont icon-bulb"></text>
+      <t-icon name="tips-filled" size="28rpx" class="guide-icon" />
       <text class="guide-text">在售挂单可撤回 · 交易中请等待买家完成 · 已成交不可操作</text>
     </view>
 
@@ -118,7 +118,7 @@
               </button>
               <view class="status-hint sold-hint" wx:elif="{{item.status === 'sold'}}">
                 <view class="sold-info">
-                  <text class="sold-label"><text class="iconfont icon-success"></text> 交易完成</text>
+                  <text class="sold-label"><t-icon name="check-circle-filled" size="24rpx" color="#4CAF50" /> 交易完成</text>
                   <text
                     class="sold-order-no"
                     wx:if="{{item.order_no}}"

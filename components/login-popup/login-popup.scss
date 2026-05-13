@@ -1,0 +1,190 @@
+/* components/login-popup/login-popup.scss - 登录弹窗样式（紧凑半屏） */
+
+.login-popup-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: 9999;
+  pointer-events: none;
+  transition: background 0.3s ease;
+
+  &.show {
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+  }
+}
+
+.login-popup-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 48rpx 48rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+
+  &.show {
+    transform: translateY(0);
+  }
+}
+
+/* 标题 */
+.popup-header {
+  text-align: center;
+  margin-bottom: 36rpx;
+}
+
+.popup-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.popup-subtitle {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 协议区域 */
+.agreement-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 28rpx;
+}
+
+.agreement-checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12rpx;
+  transition: all 0.2s;
+
+  &.checked {
+    background: #5B7A5E;
+    border-color: #5B7A5E;
+  }
+}
+
+.agreement-text {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.agreement-link {
+  font-size: 24rpx;
+  color: #5B7A5E;
+}
+
+/* 登录按钮 */
+.login-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 500;
+  border: none;
+  margin-bottom: 20rpx;
+  transition: opacity 0.2s;
+
+  &::after {
+    border: none;
+  }
+
+  &[disabled] {
+    opacity: 0.6;
+  }
+
+  &.loading {
+    opacity: 0.7;
+  }
+}
+
+.wechat-btn {
+  background: #5B7A5E;
+  color: #fff;
+}
+
+.sms-btn {
+  background: linear-gradient(135deg, #C5A572, #A08B6E);
+  color: #fff;
+}
+
+/* 切换登录方式 */
+.switch-mode {
+  text-align: center;
+  padding: 8rpx 0;
+}
+
+.switch-text {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 输入框 */
+.input-group {
+  margin-bottom: 24rpx;
+}
+
+.input-label {
+  display: block;
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  background: #f8f8f8;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+}
+
+.input-field {
+  flex: 1;
+  height: 88rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.code-row {
+  padding-right: 12rpx;
+}
+
+.code-input {
+  flex: 1;
+}
+
+.send-code-btn {
+  flex-shrink: 0;
+  padding: 12rpx 24rpx;
+  background: #5B7A5E;
+  color: #fff;
+  font-size: 24rpx;
+  border-radius: 24rpx;
+  white-space: nowrap;
+
+  &.disabled {
+    background: #ccc;
+    color: #999;
+  }
+}

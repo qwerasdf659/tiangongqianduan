@@ -18,7 +18,7 @@
 
   <!-- 错误状态 -->
   <view class="ed-error" wx:elif="{{hasError}}">
-    <text class="ed-error-icon iconfont icon-warning"></text>
+    <t-icon name="error-triangle-filled" size="48rpx" class="ed-error-icon" />
     <text class="ed-error-msg">{{errorMessage}}</text>
     <button class="ed-retry-btn" size="mini" bindtap="onGoBack">返回</button>
   </view>
@@ -192,7 +192,7 @@
           <text class="ed-attr-label">品质</text>
         </view>
         <view class="ed-attr-item" wx:if="{{product.has_warranty}}">
-          <text class="ed-attr-value iconfont icon-shield"></text>
+          <t-icon name="secured-filled" size="28rpx" class="ed-attr-value" />
           <text class="ed-attr-label">含保修</text>
         </view>
         <view class="ed-attr-item" wx:if="{{product.free_shipping}}">
@@ -223,7 +223,7 @@
         </view>
         <view class="ed-attr-row" wx:if="{{product.has_warranty}}">
           <text class="ed-attr-row-label">保修</text>
-          <text class="ed-attr-row-value"><text class="iconfont icon-shield"></text> 含保修</text>
+          <text class="ed-attr-row-value"><t-icon name="secured-filled" size="28rpx" color="#4CAF50" /> 含保修</text>
         </view>
         <view class="ed-attr-row" wx:if="{{product.free_shipping}}">
           <text class="ed-attr-row-label">物流</text>

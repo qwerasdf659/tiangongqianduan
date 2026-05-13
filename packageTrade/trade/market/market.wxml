@@ -453,7 +453,7 @@
 
     <!-- 错误状态 -->
     <t-empty wx:if="{{hasError}}" description="{{errorMessage || '加载失败'}}">
-      <view slot="image"><text class="iconfont icon-warning"></text></view>
+      <view slot="image"><t-icon name="error-triangle-filled" size="48rpx" color="#999" /></view>
       <view slot="action" class="empty-retry-btn" bindtap="onPullDownRefresh">重试</view>
     </t-empty>
 

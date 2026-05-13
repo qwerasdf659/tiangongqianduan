@@ -151,7 +151,7 @@
       >
         <view class="grab-btn-bg" />
         <view class="grab-btn-inner">
-          <text class="grab-btn-icon iconfont icon-error" wx:if="{{stockRemaining <= 0}}"></text>
+          <t-icon name="close-circle-filled" size="36rpx" class="grab-btn-icon" wx:if="{{stockRemaining <= 0}}" />
           <text class="grab-btn-icon iconfont icon-hourglass" wx:elif="{{state === 'grabbing'}}"></text>
           <text class="grab-btn-icon iconfont icon-celebrate" wx:elif="{{state === 'grabbed'}}"></text>
           <text class="grab-btn-icon iconfont icon-fire" wx:else></text>

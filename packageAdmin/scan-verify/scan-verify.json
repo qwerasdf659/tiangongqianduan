@@ -6,6 +6,7 @@
   "usingComponents": {
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "navigationStyle": "custom",

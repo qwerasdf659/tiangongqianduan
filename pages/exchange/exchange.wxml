@@ -6,7 +6,7 @@
     <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载中..." theme="spinner" />
 
     <t-empty wx:if="{{!loading && hasConfigError}}" description="{{configErrorMessage}}">
-      <view slot="image"><text class="iconfont icon-warning"></text></view>
+      <view slot="image"><t-icon name="error-triangle-filled" size="48rpx" color="#999" /></view>
       <view slot="action" class="exchange-empty-action" bindtap="onPullDownRefresh">重新加载</view>
     </t-empty>
 
@@ -48,10 +48,12 @@
         viewMode="{{viewMode}}"
         spaceId="{{currentSpace}}"
         refreshToken="{{_shelfRefreshToken}}"
+        isLoggedIn="{{isLoggedIn}}"
         bind:exchange="onExchangeSuccess"
         bind:pointsupdate="onPointsUpdate"
         bind:viewmodechange="onViewModeChange"
         bind:autherror="onAuthError"
+        bind:needlogin="onShowLoginPopup"
       />
     </view>
 
@@ -90,4 +92,11 @@
 
     <maintenance-overlay />
   </scroll-view>
+
+  <!-- 登录弹窗 -->
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>

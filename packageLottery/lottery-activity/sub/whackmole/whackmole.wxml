@@ -117,7 +117,7 @@
                 <text class="eye left">👁️</text>
                 <text class="eye right">👁️</text>
               </view>
-              <view class="mole-alert-icon" wx:if="{{moleAlertIndex === index}}"><text class="iconfont icon-warning"></text></view>
+              <view class="mole-alert-icon" wx:if="{{moleAlertIndex === index}}"><t-icon name="error-triangle-filled" size="28rpx" color="#ff6b6b" /></view>
             </view>
 
             <!-- 金色地鼠 -->
@@ -234,7 +234,7 @@
         <text class="rule-text">连击有加成！</text>
       </view>
       <view class="rule-item miss">
-        <text class="rule-icon iconfont icon-error"></text>
+        <t-icon name="close-circle-filled" size="28rpx" class="rule-icon" />
         <text class="rule-text">点空地 -1秒</text>
       </view>
     </view>
@@ -287,7 +287,7 @@
             </view>
           </view>
           <view class="stat-item">
-            <text class="stat-icon iconfont icon-error"></text>
+            <t-icon name="close-circle-filled" size="28rpx" class="stat-icon" />
             <view class="stat-info">
               <text class="stat-value">{{missCount}}</text>
               <text class="stat-label">Miss次数</text>

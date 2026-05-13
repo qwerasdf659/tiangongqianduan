@@ -173,7 +173,7 @@
 
           <!-- 自动确认提示 -->
           <view class="auto-tip" wx:if="{{item._isAutoConfirmed}}">
-            <text class="auto-tip-icon iconfont icon-info"></text>
+            <t-icon name="info-circle-filled" size="24rpx" class="auto-tip-icon" />
             <text class="auto-tip-text">系统已自动确认收货（发货满7天）</text>
           </view>
 

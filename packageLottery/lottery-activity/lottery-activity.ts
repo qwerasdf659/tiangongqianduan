@@ -293,7 +293,7 @@ Component({
 
     /**
      * 初始化活动 - 加载配置和奖品
-     * 前置校验: 认证状态检查，未登录时显示友好提示而非触发API报错
+     * 未登录时也允许加载活动展示（奖品可见），但抽奖时拦截
      *
      * 并发守卫: _isInitializing 标记防止多次并发初始化（Tab快速切换场景）
      * 超时保护: 30秒未完成自动恢复，避免 loading 永久卡住
@@ -301,8 +301,10 @@ Component({
      * @param campaignCode 活动标识
      */
     async initActivity(campaignCode: string) {
+      /* 未登录时跳过需要认证的API调用，显示空状态让用户点击抽奖时触发登录 */
       if (!checkAuth({ redirect: false, showToast: false })) {
-        this.setData({ loading: false, loadError: '请先登录后查看活动' })
+        this.setData({ loading: false, loadError: '' })
+        log.info('[lottery-activity] 未登录，跳过活动初始化，等待用户登录后刷新')
         return
       }
 
@@ -542,6 +544,12 @@ Component({
      */
     async onChildDraw(e: any) {
       const count = e?.detail?.count || 1
+
+      /* 未登录拦截：通知父页面弹出登录弹窗 */
+      if (!checkAuth({ redirect: false })) {
+        this.triggerEvent('needlogin')
+        return
+      }
 
       /* 打地鼠模式：特殊处理，抽奖成功后需要通知子组件开始游戏 */
       if (this.data.displayMode === 'whack_mole') {

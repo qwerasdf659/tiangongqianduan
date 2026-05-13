@@ -1,7 +1,11 @@
 <!-- 兑换结果弹窗组件 -->
 <view class="result-overlay" wx:if="{{visible}}" bindtap="onClose">
   <view class="result-modal" catchtap="">
-    <view class="result-icon iconfont {{success ? (_hasMinted ? 'icon-craft' : 'icon-success') : 'icon-error'}}"></view>
+    <view class="result-icon-wrap">
+      <text wx:if="{{success && _hasMinted}}" class="result-icon iconfont icon-craft"></text>
+      <t-icon wx:elif="{{success}}" name="check-circle-filled" size="64rpx" color="#4CAF50" class="result-icon" />
+      <t-icon wx:else name="close-circle-filled" size="64rpx" color="#ff6b6b" class="result-icon" />
+    </view>
     <text class="result-title"
       >{{success ? (_hasMinted ? '铸造成功' : '兑换成功') : '兑换失败'}}</text
     >

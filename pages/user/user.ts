@@ -30,6 +30,8 @@ interface MenuItem {
   description: string
   /** Iconfont CSS class（如 'icon-coin'），app.scss 中定义 ::before 伪元素渲染字形 */
   iconClass: string
+  /** TDesign 图标名（用于 <t-icon name="xxx"> 渲染） */
+  tdIcon: string
   /** 菜单项主题色（用于快捷入口圆形底色） */
   color: string
   /** 类型: page=页面跳转, action=执行方法 */
@@ -52,6 +54,8 @@ Page({
     // 用户基础信息
     isLoggedIn: false,
     userInfo: null as API.UserProfile | null,
+    // 登录弹窗
+    loginPopupVisible: false,
 
     // 多角色权限标识（从JWT Token中的role_level判断）
     // isMerchant = role_level >= 20（商家店员及以上，可访问消费录入、扫码核销）
@@ -84,6 +88,7 @@ Page({
         name: '积分明细',
         description: '查看积分获得和消费记录',
         iconClass: 'icon-coin',
+        tdIcon: 'wallet-filled',
         color: '#C5A572',
         type: 'page',
         url: '/packageUser/points-detail/points-detail'
@@ -93,6 +98,7 @@ Page({
         name: '我的仓库',
         description: '管理我的所有物品',
         iconClass: 'icon-box',
+        tdIcon: 'layers-filled',
         color: '#8B7355',
         type: 'page',
         url: '/packageTrade/trade/inventory/inventory'
@@ -102,6 +108,7 @@ Page({
         name: '我的订单',
         description: '查看兑换订单和物流进度',
         iconClass: 'icon-shopping-bag',
+        tdIcon: 'task-filled',
         color: '#A08B6E',
         type: 'page',
         url: '/packageExchange/exchange-orders/exchange-orders'
@@ -111,6 +118,7 @@ Page({
         name: '我的挂单',
         description: '查看和管理市场挂单',
         iconClass: 'icon-tag',
+        tdIcon: 'tag-filled',
         color: '#C5A572',
         type: 'page',
         url: '/packageTrade/trade/my-listings/my-listings'
@@ -120,6 +128,7 @@ Page({
         name: '交易记录',
         description: '查看完整交易历史记录',
         iconClass: 'icon-chart',
+        tdIcon: 'chart-filled',
         color: '#8B7355',
         type: 'page',
         url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=0'
@@ -129,6 +138,7 @@ Page({
         name: '消费记录',
         description: '查看消费积分记录',
         iconClass: 'icon-receipt',
+        tdIcon: 'file-paste-filled',
         color: '#A08B6E',
         type: 'page',
         url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=1'
@@ -138,6 +148,7 @@ Page({
         name: '我的广告',
         description: '管理广告投放活动',
         iconClass: 'icon-megaphone',
+        tdIcon: 'notification-filled',
         color: '#C5A572',
         type: 'page',
         url: '/packageAd/ad-campaigns/ad-campaigns'
@@ -147,6 +158,7 @@ Page({
         name: '我的工单',
         description: '查看客服工单处理进度',
         iconClass: 'icon-chat',
+        tdIcon: 'chat-bubble-filled',
         color: '#8B7355',
         type: 'page',
         url: '/packageUser/issues/issues'
@@ -156,6 +168,7 @@ Page({
         name: '联系客服',
         description: '在线客服服务支持',
         iconClass: 'icon-headset',
+        tdIcon: 'service-filled',
         color: '#A08B6E',
         type: 'action',
         action: 'onContactService'
@@ -165,6 +178,7 @@ Page({
         name: '退出登录',
         description: '安全退出当前账号',
         iconClass: 'icon-logout',
+        tdIcon: 'logout',
         color: '#c44569',
         type: 'action',
         action: 'logout'
@@ -642,8 +656,9 @@ Page({
 
           app.clearAuthData()
 
+          // 退出后回到抽奖首页（未登录态）
           wx.reLaunch({
-            url: '/packageUser/auth/auth'
+            url: '/pages/lottery/lottery'
           })
 
           log.info('用户已退出登录')
@@ -652,11 +667,22 @@ Page({
     })
   },
 
-  /** 跳转到登录页面 */
+  /** 显示登录弹窗 */
   redirectToAuth() {
-    wx.navigateTo({
-      url: '/packageUser/auth/auth'
-    })
+    this.setData({ loginPopupVisible: true })
+  },
+
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+    await this.initializePage()
   },
 
   /** 下拉刷新 */

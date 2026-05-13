@@ -318,7 +318,7 @@ Page({
           processedDisplayTags.push({ text: '推荐', style_type: 'recommended', emoji: '👍' })
         }
         if (productData.is_hot) {
-          processedDisplayTags.push({ text: '热门', style_type: 'hot', emoji: 'icon-fire' })
+          processedDisplayTags.push({ text: '热门', style_type: 'hot', emoji: '🔥' })
         }
         if (productData.is_limited) {
           processedDisplayTags.push({ text: '限量', style_type: 'limited', emoji: '⏰' })

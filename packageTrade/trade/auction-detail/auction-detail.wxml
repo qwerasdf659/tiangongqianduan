@@ -197,7 +197,7 @@
         <!--已结算且中标者 → 争议入口-->
         <view class="bottom-bar-inner" wx:elif="{{auction.status === 'settled' && isWinner}}">
           <view class="dispute-btn" bindtap="onCreateDispute">
-            <text><text class="iconfont icon-warning"></text> 发起争议</text>
+            <text><t-icon name="error-triangle-filled" size="28rpx" color="currentColor" /> 发起争议</text>
           </view>
         </view>
       </view>
@@ -244,7 +244,7 @@
 
           <!--一口价提示-->
           <view class="buyout-hint" wx:if="{{auction.buyout_price}}">
-            <text><text class="iconfont icon-bulb"></text> 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
+            <text><t-icon name="tips-filled" size="28rpx" color="currentColor" /> 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
           </view>
 
           <view class="popup-submit-btn {{bidding ? 'disabled' : ''}}" bindtap="onSubmitBid">

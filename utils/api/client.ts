@@ -589,26 +589,13 @@ class APIClient {
   }
 
   /**
-   * 处理Token缺失 - 引导用户登录
-   * 使用静态标志防止并发请求导致多次弹窗
+   * 处理Token缺失 - 静默抛出认证错误
+   * 不再弹窗和跳转（未登录是正常状态，由页面级逻辑处理登录引导）
    */
   handleTokenMissing(): never {
-    const error: ApiError = new Error('请先登录后再进行操作') as ApiError
+    const error: ApiError = new Error('用户未登录') as ApiError
     error.isAuthError = true
     error.code = 'MISSING_TOKEN'
-
-    if (!APIClient._tokenMissingModalShown) {
-      APIClient._tokenMissingModalShown = true
-      wx.showModal({
-        title: '未登录',
-        content: '请先登录后再进行操作',
-        showCancel: false,
-        success: () => {
-          APIClient._tokenMissingModalShown = false
-          wx.redirectTo({ url: '/packageUser/auth/auth' })
-        }
-      })
-    }
     throw error
   }
 
@@ -643,7 +630,11 @@ class APIClient {
           showCancel: false,
           success: () => {
             APIClient._tokenMissingModalShown = false
-            wx.redirectTo({ url: '/packageUser/auth/auth' })
+            // 通知当前页面弹出登录弹窗
+            const currentPage: any = pages[pages.length - 1]
+            if (currentPage && currentPage.onShowLoginPopup) {
+              currentPage.onShowLoginPopup()
+            }
           }
         })
       }
@@ -678,7 +669,10 @@ class APIClient {
           showCancel: false,
           success: () => {
             APIClient._tokenMissingModalShown = false
-            wx.redirectTo({ url: '/packageUser/auth/auth' })
+            const currentPage: any = pages[pages.length - 1]
+            if (currentPage && currentPage.onShowLoginPopup) {
+              currentPage.onShowLoginPopup()
+            }
           }
         })
       }

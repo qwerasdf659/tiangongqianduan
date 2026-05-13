@@ -135,7 +135,7 @@
 
       <!-- 提示条 -->
       <view wx:if="{{showMaterialTip}}" class="material-tip">
-        <text class="tip-icon iconfont icon-bulb"></text>
+        <t-icon name="tips-filled" size="28rpx" class="tip-icon" />
         <text class="tip-text">长按材料可查看实拍图</text>
         <view class="tip-close" bind:tap="onCloseMaterialTip">
           <text>×</text>

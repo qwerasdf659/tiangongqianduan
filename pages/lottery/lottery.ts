@@ -74,6 +74,9 @@ Page({
     frozenPoints: 0,
     userInfo: {},
 
+    /* 登录弹窗 */
+    loginPopupVisible: false,
+
     /* 响应式字体类 */
     pointsClass: '',
     frozenClass: '',
@@ -187,7 +190,8 @@ Page({
       return
     }
 
-    if (!checkAuth()) {
+    if (!checkAuth({ redirect: false })) {
+      // 未登录时不做数据刷新，保持未登录态
       return
     }
 
@@ -364,6 +368,45 @@ Page({
     }
   },
 
+  // ========== 登录弹窗控制 ==========
+
+  /** 显示登录弹窗 */
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+
+  /** 关闭登录弹窗 */
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+
+  /** 登录成功回调 - 刷新页面数据 */
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+
+    // 恢复用户信息并刷新页面
+    const restoredUserInfo = restoreUserInfo()
+    if (restoredUserInfo) {
+      this.setData({ isLoggedIn: true, userInfo: restoredUserInfo })
+      this.checkAdminRole()
+
+      // 并行加载登录后才需要的数据
+      await Promise.all([
+        this._refreshPoints(),
+        this._loadCampaigns().catch((err: any) => {
+          log.error('[lottery] 活动列表刷新失败:', err)
+        }),
+        this.loadNotificationUnreadCount().catch(() => {}),
+        this.loadInventoryCount().catch(() => {})
+      ])
+
+      // 生成二维码
+      if (restoredUserInfo.user_id) {
+        this.generateQRCode()
+      }
+    }
+  },
+
   /**
    * 将微信原生导航栏、TabBar 颜色同步为当前主题色
    * CSS 变量只能控制 WXML 内元素，导航栏和 TabBar 属于框架层需通过 JS API 设置
@@ -385,7 +428,11 @@ Page({
 
   async initializePage() {
     try {
-      if (!checkAuth()) {
+      const isAuthenticated = checkAuth({ redirect: false })
+
+      if (!isAuthenticated) {
+        // 未登录：正常渲染页面（显示未登录态），不调用需要认证的API
+        this.setData({ isLoggedIn: false, loading: false })
         this._isFirstLoad = false
         return
       }
@@ -434,8 +481,8 @@ Page({
     } finally {
       const finalData: any = {}
 
-      /* 仅认证通过时才移除加载遮罩 */
-      if (this.data.isLoggedIn) {
+      /* 移除加载遮罩 */
+      if (this.data.isLoggedIn || !this.data.loading) {
         finalData.loading = false
       }
 
@@ -550,17 +597,22 @@ Page({
           extraCount: processedResult.extraCampaigns.length
         })
       }
-    } catch (loadError) {
+    } catch (loadError: any) {
       log.error('[lottery] 加载活动列表失败:', loadError)
 
       /*
        * 容错保护：已有有效活动时不清空 mainCampaign，避免摧毁正在运行的抽奖组件
        * 仅在首次加载（mainCampaign 为空）时才设为 null，显示"暂无活动"占位
+       * 未登录导致的失败不弹 toast（属于正常状态）
        */
       if (!this.data.mainCampaign) {
         this.setData({ mainCampaign: null, extraCampaigns: [] })
       }
-      wx.showToast({ title: '活动刷新失败，当前展示缓存数据', icon: 'none', duration: 2500 })
+      if (loadError?.isAuthError || loadError?.message === '用户未登录') {
+        log.info('[lottery] 未登录，跳过活动加载提示')
+      } else {
+        wx.showToast({ title: '活动刷新失败，当前展示缓存数据', icon: 'none', duration: 2500 })
+      }
     }
   },
 
@@ -845,7 +897,7 @@ Page({
           success: () => {
             const appInstance = getApp()
             appInstance.clearAuthData()
-            wx.redirectTo({ url: '/packageUser/auth/auth' })
+            this.setData({ isLoggedIn: false, loginPopupVisible: true })
           }
         })
         return
@@ -1131,17 +1183,8 @@ Page({
 
   /** 查看消费记录弹窗 */
   async viewRecentAudits() {
-    if (!checkAuth()) {
-      wx.showModal({
-        title: '未登录',
-        content: '请先登录后查看消费记录',
-        confirmText: '去登录',
-        success: res => {
-          if (res.confirm) {
-            wx.navigateTo({ url: '/packageUser/auth/auth' })
-          }
-        }
-      })
+    if (!checkAuth({ redirect: false })) {
+      this.onShowLoginPopup()
       return
     }
 
@@ -1189,8 +1232,8 @@ Page({
     }
     const statusMap: Record<string, any> = {
       pending: { text: '待审核', icon: '⏳', color: '#FF9800', bgColor: '#FFF3E0' },
-      approved: { text: '已通过', icon: 'icon-success', color: '#4CAF50', bgColor: '#E8F5E9' },
-      rejected: { text: '已拒绝', icon: 'icon-error', color: '#F44336', bgColor: '#FFEBEE' }
+      approved: { text: '已通过', icon: '✅', color: '#4CAF50', bgColor: '#E8F5E9' },
+      rejected: { text: '已拒绝', icon: '❌', color: '#F44336', bgColor: '#FFEBEE' }
     }
 
     return records.map(record => {

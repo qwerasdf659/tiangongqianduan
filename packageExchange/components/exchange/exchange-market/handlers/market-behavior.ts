@@ -116,7 +116,7 @@ module.exports = Behavior({
           showCancel: false,
           confirmText: '立即登录',
           success: () => {
-            wx.reLaunch({ url: '/packageUser/auth/auth' })
+            this.triggerEvent('needlogin')
           }
         })
         return

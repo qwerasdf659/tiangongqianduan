@@ -24,6 +24,8 @@ Page({
     // 用户信息
     isLoggedIn: false,
     userInfo: {},
+    // 登录弹窗
+    loginPopupVisible: false,
 
     // 搜索关键词
     searchKeyword: '',
@@ -240,9 +242,22 @@ Page({
     return statusMap[status] || '未知'
   },
 
-  /** 跳转登录页 */
+  /** 显示登录弹窗 */
   goLogin() {
-    wx.navigateTo({ url: '/packageUser/auth/auth' })
+    this.setData({ loginPopupVisible: true })
+  },
+
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false, isLoggedIn: true })
+    await this.initializePage()
   },
 
   /**

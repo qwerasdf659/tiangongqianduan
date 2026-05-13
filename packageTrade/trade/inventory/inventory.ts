@@ -1228,9 +1228,9 @@ Page({
           origin && sourceLabels[origin.source] ? sourceLabels[origin.source] : ''
 
         const eventIcons: Record<string, string> = {
-          mint: 'icon-gift',
+          mint: '🎁',
           transfer: '🔄',
-          use: 'icon-success',
+          use: '✅',
           hold: '🔒',
           release: '🔓',
           expire: '⏰',

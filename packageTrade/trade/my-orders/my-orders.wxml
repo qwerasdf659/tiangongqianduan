@@ -158,7 +158,7 @@
 
     <!--错误状态-->
     <t-empty wx:if="{{!loading && hasError}}" description="{{errorMessage}}">
-      <view slot="image" class="empty-slot-icon"><text class="iconfont icon-warning"></text></view>
+      <view slot="image" class="empty-slot-icon"><t-icon name="error-triangle-filled" size="48rpx" color="#999" /></view>
       <view slot="action">
         <button class="retry-btn" size="mini" bindtap="onPullDownRefresh">重试</button>
       </view>

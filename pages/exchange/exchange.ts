@@ -38,6 +38,8 @@ Page({
     userInfo: {} as any,
     /** 可用积分（MobX + API 双源，保留用于兑换/购买余额校验） */
     totalPoints: 0,
+    /** 登录弹窗 */
+    loginPopupVisible: false,
     /** 冻结积分 */
     frozenPoints: 0,
     /** 星石和源晶类资产余额列表（后端 GET /api/v4/assets/balances，过滤 star_stone + core_shard + core_gem） */
@@ -94,16 +96,15 @@ Page({
       actions: ['setBalance']
     })
 
-    if (!checkAuth()) {
-      return
-    }
-
-    Utils.restoreUserInfo()
-    try {
-      await this._loadExchangePageConfig()
-      this._restoreThemePreferences()
-    } catch (configError) {
-      log.error('兑换页面配置加载异常，页面将显示错误提示:', configError)
+    // 未登录也允许浏览，不强制跳转
+    if (checkAuth({ redirect: false })) {
+      Utils.restoreUserInfo()
+      try {
+        await this._loadExchangePageConfig()
+        this._restoreThemePreferences()
+      } catch (configError) {
+        log.error('兑换页面配置加载异常，页面将显示错误提示:', configError)
+      }
     }
     this.setData({ loading: false })
   },
@@ -118,7 +119,9 @@ Page({
     }
     log.info('兑换页面显示')
 
-    if (!checkAuth()) {
+    // 未登录允许浏览，不强制跳转
+    if (!checkAuth({ redirect: false })) {
+      this.applyNativeThemeColors()
       return
     }
 
@@ -306,6 +309,28 @@ Page({
     }
   },
 
+  // ========== 登录弹窗 ==========
+
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+    Utils.restoreUserInfo()
+    try {
+      await this._loadExchangePageConfig()
+      this._restoreThemePreferences()
+    } catch (e) {
+      log.error('登录后配置加载失败:', e)
+    }
+    await this._refreshAllBalances(userStore.ensureUserInfo())
+  },
+
   /** Tab 切换入口 */
   onTabChange(e: any) {
     const tabKey = e.detail?.value || e.currentTarget?.dataset?.tab
@@ -371,9 +396,9 @@ Page({
 
   /** 认证错误事件（组件遇401时触发） */
   onAuthError() {
-    log.info('收到认证错误事件，清理Token并跳转登录')
+    log.info('收到认证错误事件，清理Token并弹出登录弹窗')
     app.clearAuthData()
-    wx.reLaunch({ url: '/packageUser/auth/auth' })
+    this.setData({ isLoggedIn: false, loginPopupVisible: true })
   },
 
   /** 视图模式切换事件（组件内联按钮触发） */

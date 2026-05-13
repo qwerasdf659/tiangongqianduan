@@ -100,13 +100,12 @@ function checkAuth(options: CheckAuthOptions = {}): boolean {
     }
 
     if (redirect) {
-      log.info('跳转到登录页:', redirectUrl)
-      wx.redirectTo({
-        url: redirectUrl,
-        fail: () => {
-          wx.reLaunch({ url: redirectUrl })
-        }
-      })
+      // 弹出当前页面的登录弹窗（不再跳转到独立登录页）
+      const pages = getCurrentPages()
+      const currentPage: any = pages.length > 0 ? pages[pages.length - 1] : null
+      if (currentPage && currentPage.onShowLoginPopup) {
+        currentPage.onShowLoginPopup()
+      }
     }
 
     return false
@@ -388,12 +387,16 @@ function checkTokenValidity(): {
   }
 }
 
-/** 跳转登录页（内部方法） */
+/** 弹出登录弹窗（内部方法） */
 function _redirectToLogin(message: string) {
   wx.showToast({ title: message, icon: 'none', duration: 2000 })
   setTimeout(() => {
-    wx.redirectTo({ url: '/packageUser/auth/auth' })
-  }, 2000)
+    const pages = getCurrentPages()
+    const currentPage: any = pages[pages.length - 1]
+    if (currentPage && currentPage.onShowLoginPopup) {
+      currentPage.onShowLoginPopup()
+    }
+  }, 500)
 }
 
 // ===== 导出模块 =====

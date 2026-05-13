@@ -10,7 +10,7 @@
 
     <!-- 错误状态 -->
     <view class="error-wrapper" wx:if="{{!loading && hasError}}">
-      <text class="error-icon iconfont icon-warning"></text>
+      <t-icon name="error-triangle-filled" size="48rpx" class="error-icon" />
       <text class="error-text">{{errorMessage}}</text>
       <view class="error-back" bindtap="onGoBack">
         <text>返回</text>

@@ -377,8 +377,12 @@ Page({
     }
   },
 
-  /** 跳转登录页 */
+  /** 弹出登录弹窗 */
   goToLogin(): void {
-    wx.navigateTo({ url: '/packageUser/auth/auth' })
+    const pages = getCurrentPages()
+    const currentPage: any = pages[pages.length - 1]
+    if (currentPage && currentPage.onShowLoginPopup) {
+      currentPage.onShowLoginPopup()
+    }
   }
 })

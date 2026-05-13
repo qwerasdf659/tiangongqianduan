@@ -18,7 +18,8 @@
     "result-modal": "./shared/result-modal/result-modal",
     "draw-buttons": "./shared/draw-buttons/draw-buttons",
     "prize-detail-modal": "/components/prize-detail-modal/prize-detail-modal",
-    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading"
+    "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
   },
   "componentPlaceholder": {
     "grid": "view",

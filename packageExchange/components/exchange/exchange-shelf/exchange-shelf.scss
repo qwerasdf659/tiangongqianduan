@@ -239,6 +239,23 @@
   padding: 6rpx 16rpx;
 }
 
+.header-login-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 24rpx;
+  background: linear-gradient(135deg, #C5A572, #A08B6E);
+  border-radius: 24rpx;
+  margin-right: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(197, 165, 114, 0.3);
+
+  text {
+    font-size: 22rpx;
+    color: #fff;
+    font-weight: 500;
+  }
+}
+
 .header-quick-actions {
   @include flex-align-center;
   gap: 12rpx;

@@ -54,3 +54,31 @@ page {
 
 /* Tab 导航模块 */
 @import 'exchange-nav';
+
+/* 页面标题区 + 登录按钮 */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 16rpx 0 12rpx;
+}
+
+.header-login-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 28rpx;
+  background: linear-gradient(135deg, #5B7A5E, #4a6b4d);
+  border-radius: 28rpx;
+  box-shadow: 0 4rpx 12rpx rgba(91, 122, 94, 0.3);
+
+  text {
+    font-size: 24rpx;
+    color: #fff;
+    font-weight: 500;
+  }
+}

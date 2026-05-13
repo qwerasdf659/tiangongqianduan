@@ -8,6 +8,7 @@
   "usingComponents": {
     "exchange-confirm": "/packageExchange/components/exchange/shared/exchange-confirm/exchange-confirm",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
   "navigationStyle": "custom",
