@@ -145,6 +145,18 @@ Page({
     }
   },
 
+  // ========== 登录弹窗 ==========
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+    await this._loadAuctionDetail()
+  },
+
   /** 加载拍卖详情 */
   async _loadDetail(auctionListingId: number) {
     this.setData({ loading: true, hasError: false })

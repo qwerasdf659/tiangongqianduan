@@ -112,6 +112,17 @@ page {
   margin-left: 8rpx;
 }
 
+.points-hidden {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.points-hidden-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
 .points-trend {
   display: flex;
   gap: 24rpx;

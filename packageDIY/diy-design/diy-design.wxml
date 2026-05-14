@@ -193,4 +193,11 @@
     <!-- 飞入动画 -->
     <fly-animation id="flyAnim" bind:complete="onFlyComplete" />
   </block>
+
+  <!-- 登录弹窗 -->
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>

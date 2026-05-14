@@ -86,7 +86,8 @@ Page({
 
     this.setData({
       isLoggedIn,
-      userInfo: isLoggedIn ? userStore.userInfo || {} : {}
+      userInfo: isLoggedIn ? userStore.userInfo || {} : {},
+      ...(isLoggedIn && this.data.loginPopupVisible ? { loginPopupVisible: false } : {})
     })
   },
 
@@ -103,12 +104,6 @@ Page({
       animation: { duration: 300, timingFunc: 'easeIn' }
     })
     wx.setTabBarStyle({ selectedColor: '#5B7A5E' })
-
-    // 未登录时不请求需认证的接口，仅显示空状态引导登录
-    if (!checkAuth({ redirect: false })) {
-      this.setData({ campaigns: [], filteredCampaigns: [], isEmpty: true, loading: false })
-      return
-    }
 
     this.setData({ loading: true, campaigns: [] })
 
@@ -132,8 +127,7 @@ Page({
       }
     } catch (error: any) {
       log.error('初始化失败:', error)
-      this.setData({ loading: false, errorMessage: '加载失败，请重试' })
-      showToast('加载失败，请重试')
+      this.setData({ loading: false, campaigns: [], isEmpty: true })
     }
   },
 
@@ -212,8 +206,13 @@ Page({
     }
   },
 
-  /** 活动卡片点击 — 跳转到抽奖页面 */
+  /** 活动卡片点击 — 未登录弹登录弹窗，已登录跳转到抽奖页面 */
   onActivityTap(e: any) {
+    if (!checkAuth({ redirect: false })) {
+      this.setData({ loginPopupVisible: true })
+      return
+    }
+
     const campaign = e.currentTarget.dataset.campaign
 
     if (!campaign || !campaign.campaign_code) {

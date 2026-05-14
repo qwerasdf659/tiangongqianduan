@@ -28,7 +28,7 @@ const log = createLogger('auth-helper')
 interface CheckAuthOptions {
   /** 未登录时是否自动跳转到登录页（默认true） */
   redirect?: boolean
-  /** 自定义跳转URL（默认'/packageUser/auth/auth'） */
+  /** 自定义跳转URL（已废弃，保留兼容） */
   redirectUrl?: string
   /** 未登录时是否显示提示（默认false） */
   showToast?: boolean
@@ -70,7 +70,7 @@ function getPointsStore() {
  * if (!checkAuth({ redirect: false, showToast: true })) return;
  */
 function checkAuth(options: CheckAuthOptions = {}): boolean {
-  const { redirect = true, redirectUrl = '/packageUser/auth/auth', showToast = false } = options
+  const { redirect = false, redirectUrl = '', showToast = false } = options
   const store = getUserStore()
 
   // Store 校验登录状态（Store 是运行时唯一数据源）
@@ -274,7 +274,7 @@ function restoreUserInfo(): any {
  * @example
  * const status = checkTokenValidity()
  * if (!status.isValid) {
- *   if (status.needsRelogin) wx.redirectTo({ url: '/packageUser/auth/auth' })
+ *   if (status.needsRelogin) { // 弹出登录弹窗 }
  * }
  */
 function checkTokenValidity(): {

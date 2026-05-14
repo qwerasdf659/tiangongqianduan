@@ -1,7 +1,8 @@
 {
   "navigationBarTitleText": "DIY 设计",
   "usingComponents": {
-    "custom-navbar": "/components/custom-navbar/custom-navbar"
+    "custom-navbar": "/components/custom-navbar/custom-navbar",
+    "login-popup": "/components/login-popup/login-popup"
   },
   "navigationStyle": "custom",
   "disableScroll": true

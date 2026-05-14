@@ -130,6 +130,18 @@ Page({
     }
   },
 
+  // ========== 登录弹窗 ==========
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+    await this._loadMyListings()
+  },
+
   /** 启动loading安全超时定时器 */
   startLoadingSafetyTimer() {
     this.clearLoadingSafetyTimer()

@@ -16,45 +16,46 @@
     </view>
 
     <!-- 积分余额卡片 -->
-    <view class="points-card" wx:if="{{isLoggedIn}}">
+    <view class="points-card">
       <view class="points-header">
         <text class="points-title">我的积分</text>
-        <view class="points-detail-btn" bindtap="onPointsTap">
-                    <t-icon name="wallet-filled" size="28rpx" color="currentColor" />
+        <view class="points-detail-btn" bindtap="{{isLoggedIn ? 'onPointsTap' : 'redirectToAuth'}}">
+          <t-icon name="wallet-filled" size="28rpx" color="currentColor" />
           <text class="points-detail-text">积分明细</text>
         </view>
       </view>
       <view class="points-amount">
-        <text class="points-number">{{totalPoints}}</text>
-        <text class="points-unit">分</text>
+        <block wx:if="{{isLoggedIn}}">
+          <text class="points-number">{{totalPoints}}</text>
+          <text class="points-unit">分</text>
+        </block>
+        <view wx:else class="points-hidden" bindtap="redirectToAuth">
+          <t-icon name="browse-off" size="40rpx" color="#999" />
+          <text class="points-hidden-text">登录查看</text>
+        </view>
       </view>
       <view class="points-trend">
-        <view class="trend-item">
+        <view class="trend-item" bindtap="{{isLoggedIn ? '' : 'redirectToAuth'}}">
           <text class="trend-label">今日获得积分</text>
-          <text class="trend-value earned">+{{todayEarned || 0}}</text>
+          <text class="trend-value earned" wx:if="{{isLoggedIn}}">+{{todayEarned || 0}}</text>
+          <t-icon wx:else name="browse-off" size="32rpx" color="#ccc" />
         </view>
-        <view class="trend-item">
+        <view class="trend-item" bindtap="{{isLoggedIn ? '' : 'redirectToAuth'}}">
           <text class="trend-label">今日消费积分</text>
-          <text class="trend-value consumed">{{todayConsumed || 0}}</text>
+          <text class="trend-value consumed" wx:if="{{isLoggedIn}}">{{todayConsumed || 0}}</text>
+          <t-icon wx:else name="browse-off" size="32rpx" color="#ccc" />
         </view>
       </view>
-    </view>
-
-    <!-- 未登录状态 -->
-    <view class="login-prompt-card" wx:if="{{!isLoggedIn}}" bindtap="redirectToAuth">
-      <view class="login-avatar"><t-icon name="user-filled" size="48rpx" color="#999" /></view>
-      <text class="login-text">点击登录</text>
-      <text class="login-desc">登录后查看完整功能</text>
     </view>
 
     <!-- 功能菜单网格（4列2行） -->
-    <view class="menu-grid" wx:if="{{isLoggedIn}}">
+    <view class="menu-grid">
       <view
         class="menu-grid-item"
         wx:for="{{menuItems}}"
         wx:key="id"
         wx:if="{{item.id !== 'logout'}}"
-        bindtap="onMenuItemTap"
+        bindtap="{{isLoggedIn ? 'onMenuItemTap' : 'redirectToAuth'}}"
         data-item="{{item}}"
       >
         <view class="menu-grid-icon">

@@ -66,4 +66,11 @@
       <text class="mode-desc">汲取灵感，查看来自世界各地的珠宝设计，选择一款作为您的蓝图</text>
     </view>
   </scroll-view>
+
+  <!-- 登录弹窗 -->
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>

@@ -77,6 +77,9 @@ Component({
     // 阻止滚动穿透
     preventScroll() {},
 
+    // 阻止事件冒泡到遮罩层
+    preventBubble() {},
+
     // 点击遮罩关闭
     onMaskTap() {
       if (!this.data.loggingType) {
@@ -257,7 +260,7 @@ Component({
         }
       }, 15000)
 
-      API.userLogin({ mobile, verification_code: verificationCode })
+      API.userLogin(mobile, verificationCode)
         .then((result: any) => {
           clearTimeout(loginTimeout)
           if (this.data.loginCompleted) return

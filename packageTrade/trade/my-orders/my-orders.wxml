@@ -164,6 +164,12 @@
       </view>
     </t-empty>
   </scroll-view>
+
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>
 
 <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->

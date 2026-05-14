@@ -45,7 +45,6 @@
       "root": "packageUser",
       "name": "user-services",
       "pages": [
-        "auth/auth",
         "chat/chat",
         "points-detail/points-detail",
         "feedback/feedback",

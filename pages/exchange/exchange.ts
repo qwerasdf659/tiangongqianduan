@@ -96,15 +96,15 @@ Page({
       actions: ['setBalance']
     })
 
-    // 未登录也允许浏览，不强制跳转
+    // 未登录也允许浏览，加载页面配置
     if (checkAuth({ redirect: false })) {
       Utils.restoreUserInfo()
-      try {
-        await this._loadExchangePageConfig()
-        this._restoreThemePreferences()
-      } catch (configError) {
-        log.error('兑换页面配置加载异常，页面将显示错误提示:', configError)
-      }
+    }
+    try {
+      await this._loadExchangePageConfig()
+      this._restoreThemePreferences()
+    } catch (configError) {
+      log.error('兑换页面配置加载异常，页面将显示错误提示:', configError)
     }
     this.setData({ loading: false })
   },
@@ -123,6 +123,10 @@ Page({
     if (!checkAuth({ redirect: false })) {
       this.applyNativeThemeColors()
       return
+    }
+
+    if (this.data.loginPopupVisible) {
+      this.setData({ loginPopupVisible: false })
     }
 
     this.applyNativeThemeColors()

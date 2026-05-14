@@ -415,6 +415,18 @@ Page({
     }
   },
 
+  // ========== 登录弹窗 ==========
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+    await this._loadOrders()
+  },
+
   /** 下拉刷新 — 重置分页并重新加载 */
   onPullDownRefresh() {
     this.setData({ page: 1, orders: [] })

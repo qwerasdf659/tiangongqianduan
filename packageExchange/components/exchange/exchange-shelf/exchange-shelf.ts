@@ -206,6 +206,11 @@ Component({
       const product = e.detail ? e.detail.product : e.currentTarget.dataset.product
       shelfLog.info('点击商品:', product)
 
+      if (!this.data.isLoggedIn) {
+        this.triggerEvent('needlogin')
+        return
+      }
+
       if (!product || !product.exchange_item_id) {
         shelfLog.error('商品数据缺少 exchange_item_id（主键），无法跳')
         wx.showToast({ title: '商品数据异常，请刷新页面重试', icon: 'none' })

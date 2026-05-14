@@ -18,7 +18,8 @@
  */
 
 /* 统一工具函数导入 */
-const { API } = require('../../utils/index')
+const { API, Utils } = require('../../utils/index')
+const { checkAuth } = Utils
 const { diyStore } = require('../../store/diy')
 
 /** 颜色分组 → 中文名映射（UI常量，用于分组Tab展示） */
@@ -35,6 +36,8 @@ Page({
   data: {
     /** 是否加载中 */
     loading: true,
+    /** 登录弹窗 */
+    loginPopupVisible: false,
     /** 模板主键 */
     templateId: 0,
 
@@ -649,6 +652,10 @@ Page({
    * 后端API: POST /api/v4/diy/works
    */
   async onSubmit() {
+    if (!checkAuth({ redirect: false })) {
+      this.setData({ loginPopupVisible: true })
+      return
+    }
     if (!diyStore.canSubmit) {
       return
     }
@@ -705,6 +712,10 @@ Page({
    * 后端API: POST /api/v4/diy/works
    */
   async onSaveDraft() {
+    if (!checkAuth({ redirect: false })) {
+      this.setData({ loginPopupVisible: true })
+      return
+    }
     if (!diyStore.canSubmit) {
       wx.showToast({ title: '请先添加素材', icon: 'none' })
       return
@@ -781,5 +792,13 @@ Page({
       title: `DIY ${this.data.templateName}`,
       path: '/packageDIY/diy-select/diy-select'
     }
+  },
+
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+
+  onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
   }
 })

@@ -36,7 +36,7 @@ page {
   width: calc(100% + 40rpx);
   margin-left: -20rpx;
   margin-top: -20rpx;
-  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 750rpx);
+  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 680rpx);
   position: relative;
   overflow: hidden;
 }
@@ -79,13 +79,13 @@ page {
 
 /* 未登录态 header */
 .header-guest {
-  padding: 24rpx 0;
+  padding: 16rpx 0 0;
 }
 
 .guest-info-section {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 8rpx;
 }
 
 .guest-welcome-row {
@@ -131,6 +131,22 @@ page {
     color: #fff;
     font-weight: 500;
   }
+
+  &--large {
+    transform: none;
+    padding: 14rpx 40rpx;
+    border-radius: 32rpx;
+    align-self: flex-start;
+
+    text {
+      font-size: 28rpx;
+    }
+  }
+}
+
+.guest-login-row {
+  display: flex;
+  margin-bottom: 8rpx;
 }
 
 /* 装饰线已移除 — 一体化设计不需要顶部分割线 */

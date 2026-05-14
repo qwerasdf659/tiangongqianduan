@@ -18,7 +18,7 @@ async function getLotteryCampaigns(status: string = 'active') {
 
 /** 获取进行中的活动列表（专用端点） - GET /api/v4/lottery/campaigns/active */
 async function getActiveCampaigns() {
-  return apiClient.request('/lottery/campaigns/active', { method: 'GET', needAuth: true })
+  return apiClient.request('/lottery/campaigns/active', { method: 'GET', needAuth: false })
 }
 
 /** 获取抽奖奖品列表 - GET /api/v4/lottery/campaigns/:campaign_code/prizes */

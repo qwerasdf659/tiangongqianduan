@@ -217,6 +217,9 @@ Page({
     if (!this.data.isLoggedIn) {
       onShowPatch.isLoggedIn = true
     }
+    if (this.data.loginPopupVisible) {
+      onShowPatch.loginPopupVisible = false
+    }
 
     const currentBalance = pointsStore.availableAmount || 0
     const currentFrozen = pointsStore.frozenAmount || 0
@@ -248,6 +251,16 @@ Page({
       setTimeout(() => {
         this.generateUserQRCode()
       }, 500)
+    } else if (this.data.qrCodeImage && !this._qrTimer) {
+      // 二维码未过期但定时器已被 onHide 清除，重新计算剩余时间并重启倒计时
+      const remaining = Math.max(0, Math.floor((this.data.qrExpiresAt - Date.now()) / 1000))
+      const minutes = Math.floor(remaining / 60)
+      const seconds = remaining % 60
+      onShowPatch.qrCountdown = remaining
+      onShowPatch.qrCountdownText = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`
+      setTimeout(() => {
+        this.startQrCountdown()
+      }, 100)
     }
 
     if (Object.keys(onShowPatch).length > 0) {

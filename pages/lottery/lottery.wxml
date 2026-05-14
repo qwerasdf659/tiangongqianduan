@@ -24,10 +24,9 @@
       <!-- 未登录态：欢迎 + 立即登录 + 脱敏数据 -->
       <view class="header-guest" wx:if="{{!isLoggedIn}}">
         <view class="guest-info-section">
-          <view class="guest-welcome-row">
-            <text class="guest-welcome-text">欢迎光临</text>
-            <view class="guest-login-link" bindtap="onShowLoginPopup">
-              <text>立即登录</text>
+          <view class="guest-login-row">
+            <view class="guest-login-btn guest-login-btn--large" bindtap="onShowLoginPopup">
+              <text>请登录</text>
             </view>
           </view>
           <view class="guest-points-row">
@@ -37,9 +36,6 @@
                 <text class="points-number">***</text>
                 <view class="points-icon"><t-icon name="money-filled" size="28rpx" color="#ffffff" /></view>
               </view>
-            </view>
-            <view class="guest-login-btn" bindtap="onShowLoginPopup">
-              <text>请登录</text>
             </view>
             <view class="points-item">
               <text class="points-label">冻结积分</text>

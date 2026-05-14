@@ -621,23 +621,19 @@ class APIClient {
 
     if (!APIClient._tokenMissingModalShown) {
       const pages = getCurrentPages()
-      const currentRoute: string = pages.length > 0 ? pages[pages.length - 1].route || '' : ''
-      if (currentRoute !== 'packageUser/auth/auth') {
-        APIClient._tokenMissingModalShown = true
-        wx.showModal({
-          title: '登录已失效',
-          content: errorMessage,
-          showCancel: false,
-          success: () => {
-            APIClient._tokenMissingModalShown = false
-            // 通知当前页面弹出登录弹窗
-            const currentPage: any = pages[pages.length - 1]
-            if (currentPage && currentPage.onShowLoginPopup) {
-              currentPage.onShowLoginPopup()
-            }
+      APIClient._tokenMissingModalShown = true
+      wx.showModal({
+        title: '登录已失效',
+        content: errorMessage,
+        showCancel: false,
+        success: () => {
+          APIClient._tokenMissingModalShown = false
+          const currentPage: any = pages.length > 0 ? pages[pages.length - 1] : null
+          if (currentPage && currentPage.onShowLoginPopup) {
+            currentPage.onShowLoginPopup()
           }
-        })
-      }
+        }
+      })
     }
 
     throw error
@@ -660,22 +656,19 @@ class APIClient {
 
     if (!APIClient._tokenMissingModalShown) {
       const pages = getCurrentPages()
-      const currentRoute: string = pages.length > 0 ? pages[pages.length - 1].route || '' : ''
-      if (currentRoute !== 'packageUser/auth/auth') {
-        APIClient._tokenMissingModalShown = true
-        wx.showModal({
-          title: '账号已在其他设备登录',
-          content: displayMessage,
-          showCancel: false,
-          success: () => {
-            APIClient._tokenMissingModalShown = false
-            const currentPage: any = pages[pages.length - 1]
-            if (currentPage && currentPage.onShowLoginPopup) {
-              currentPage.onShowLoginPopup()
-            }
+      APIClient._tokenMissingModalShown = true
+      wx.showModal({
+        title: '账号已在其他设备登录',
+        content: displayMessage,
+        showCancel: false,
+        success: () => {
+          APIClient._tokenMissingModalShown = false
+          const currentPage: any = pages.length > 0 ? pages[pages.length - 1] : null
+          if (currentPage && currentPage.onShowLoginPopup) {
+            currentPage.onShowLoginPopup()
           }
-        })
-      }
+        }
+      })
     }
 
     const error: ApiError = new Error(displayMessage) as ApiError

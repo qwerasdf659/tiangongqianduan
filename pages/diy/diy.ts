@@ -9,59 +9,72 @@
  *   2. 自由定制饰品 → /packageDIY/diy-design/diy-design
  *   3. 设计广场 → 待上线
  *
- * 引入 diyStore 确保主包包含对 store/diy 的引用
- * （消除编译器"主包未使用JS"警告）
- *
  * @file pages/diy/diy.ts
  */
 const { diyStore } = require('../../store/diy')
+const { Utils } = require('../../utils/index')
+const { checkAuth } = Utils
 
 Page({
   data: {
-    /** 自由定制饰品图标URL（后端提供时替换） */
     freeDesignIcon: '',
-    /** 设计广场图标URL（后端提供时替换） */
-    designPlazaIcon: ''
+    designPlazaIcon: '',
+    loginPopupVisible: false
   },
 
   onShow() {
-    /* 同步 tabBar 选中态 */
     if (typeof this.getTabBar === 'function') {
       const tabBar = this.getTabBar()
       if (tabBar) {
         tabBar.setData({ selected: 3 })
       }
     }
-    /* 每次回到 tab 页时清除上次未完成的设计状态 */
     if (diyStore.currentTemplate) {
       diyStore.clearDesign()
     }
+    if (checkAuth({ redirect: false }) && this.data.loginPopupVisible) {
+      this.setData({ loginPopupVisible: false })
+    }
   },
 
-  /** 跳转到我的设计作品列表页 */
   onGoToMyWorks() {
+    if (!checkAuth({ redirect: false })) {
+      this.setData({ loginPopupVisible: true })
+      return
+    }
     wx.navigateTo({
       url: '/packageDIY/diy-works/diy-works'
     })
   },
 
-  /** 自由定制饰品 — 进入工作台 */
   onFreeDesign() {
     wx.navigateTo({
       url: '/packageDIY/diy-design/diy-design'
     })
   },
 
-  /**
-   * 设计广场 — 浏览模板列表
-   * ⚠️ 需要后端提供模板列表API后创建 diy-plaza 页面
-   */
   onDesignPlaza() {
+    if (!checkAuth({ redirect: false })) {
+      this.setData({ loginPopupVisible: true })
+      return
+    }
     wx.showToast({
       title: '设计广场即将上线',
       icon: 'none',
       duration: 2000
     })
+  },
+
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+
+  onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
   },
 
   onShareAppMessage() {

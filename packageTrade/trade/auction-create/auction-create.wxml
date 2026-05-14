@@ -175,4 +175,10 @@
       </view>
     </block>
   </scroll-view>
+
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>

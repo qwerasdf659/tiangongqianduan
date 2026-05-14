@@ -264,6 +264,9 @@ Page({
 
     this.updateUserStatus()
     if (this.data.isLoggedIn) {
+      if (this.data.loginPopupVisible) {
+        this.setData({ loginPopupVisible: false })
+      }
       this.refreshUserData()
       this.loadProfilePopup()
     }

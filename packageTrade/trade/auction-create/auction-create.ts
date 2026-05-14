@@ -95,6 +95,18 @@ Page({
     }
   },
 
+  // ========== 登录弹窗 ==========
+  onShowLoginPopup() {
+    this.setData({ loginPopupVisible: true })
+  },
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+  async onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+    this._loadBackpackItems()
+  },
+
   /** 加载背包物品（仅可拍卖） */
   async _loadBackpackItems() {
     this.setData({ itemsLoading: true })
