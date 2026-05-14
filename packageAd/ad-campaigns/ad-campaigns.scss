@@ -32,7 +32,7 @@
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   margin-right: 8rpx;
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
 }
 
 .header-unit {
@@ -62,7 +62,7 @@
 .status-tab-bar {
   background: var(--tg-color-white);
   white-space: nowrap;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.03);
   position: relative;
   z-index: 10;
 }
@@ -111,7 +111,7 @@
   font-size: var(--td-font-size-xs);
   color: var(--td-brand-color);
   flex: 1;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .tips-close {
@@ -296,7 +296,7 @@
   color: var(--tg-text-tertiary);
   text-align: center;
   margin-bottom: var(--tg-spacing-xs);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .empty-sub-desc {

@@ -1,4 +1,7 @@
+@import '../../styles/mixins';
+
 .maintenance-overlay {
+  @include tg-tokens;
   position: fixed;
   top: 0;
   left: 0;
@@ -34,7 +37,7 @@
 .maintenance-message {
   font-size: var(--tg-font-size-title);
   color: var(--tg-text-secondary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   margin-bottom: 50rpx;
 }
 

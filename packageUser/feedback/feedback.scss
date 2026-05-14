@@ -61,7 +61,7 @@
   border-radius: var(--td-radius-default);
   padding: 30rpx 24rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
 .section-title {
@@ -144,7 +144,7 @@
   border: 2rpx solid #ecf0f1;
   border-radius: 12rpx;
   font-size: var(--td-font-size-base);
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
   background-color: #fafbfc;
   box-sizing: border-box;
 }
@@ -328,7 +328,7 @@
 .history-item .content {
   font-size: var(--tg-font-size-body);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   display: block;
   margin-bottom: 8rpx;
   overflow: hidden;
@@ -471,7 +471,7 @@
 .item-content .content {
   font-size: var(--tg-font-size-body);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   display: block;
   margin-bottom: 6rpx;
   overflow: hidden;

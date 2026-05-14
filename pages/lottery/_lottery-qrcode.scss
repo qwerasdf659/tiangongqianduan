@@ -89,7 +89,7 @@
 .qrcode-close-btn .close-icon {
   font-size: var(--td-font-size-m);
   color: var(--tg-color-white);
-  font-weight: 300;
+  font-weight: var(--tg-font-weight-regular);
   line-height: 1;
 }
 
@@ -148,7 +148,7 @@
   text-align: center;
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
   /* 增强文字阴影 */
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
   /* 澧炲姞瀛楅棿璺濓紝鏇翠紭闆?*/
 }
 

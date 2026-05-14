@@ -173,8 +173,8 @@
   display: block;
   font-size: var(--td-font-size-s);
   color: var(--tg-text-secondary);
+  line-height: var(--tg-line-height-relaxed);
   margin-bottom: 8rpx;
-  line-height: 1.5;
 }
 
 .product-pay {
@@ -256,7 +256,7 @@
 .timeline-dot.dot-active {
   width: 20rpx;
   height: 20rpx;
-  box-shadow: 0 0 0 4rpx rgba(76, 175, 80, 0.2);
+  box-shadow: 0 0 0 4rpx rgba(76, 175, 80, 0.04);
 }
 
 .dot-blue {
@@ -367,12 +367,12 @@
 
 .btn-confirm-detail {
   background: #4caf50;
-  box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(76, 175, 80, 0.04);
 }
 
 .btn-rate-detail {
   background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(255, 107, 53, 0.04);
 }
 
 .action-btn-text {
@@ -473,7 +473,7 @@
   text-align: center;
   background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
   border-radius: var(--td-radius-round);
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(255, 107, 53, 0.04);
 }
 
 .rating-submit-btn.disabled {
@@ -527,7 +527,7 @@
 
 .track-dot-active {
   background: #4caf50;
-  box-shadow: 0 0 8rpx rgba(76, 175, 80, 0.4);
+  box-shadow: 0 0 8rpx rgba(76, 175, 80, 0.04);
 }
 
 .track-line {
@@ -546,7 +546,7 @@
   display: block;
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
 }
 
 .track-time {

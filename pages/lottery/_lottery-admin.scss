@@ -50,7 +50,7 @@
   font-size: var(--tg-font-size-body);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* 🔴 中间：消费录入按钮（直接进入消费录入页面，手动填写） */
@@ -82,7 +82,7 @@
   font-size: var(--tg-font-size-body);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* 🔴 右侧：审核详情按钮 */
@@ -106,7 +106,7 @@
   font-size: var(--tg-font-size-body);
   font-weight: var(--tg-font-weight-regular);
   color: var(--tg-color-white);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* 🔴 箭头图标 */
@@ -590,7 +590,7 @@
   padding: 6rpx 16rpx 6rpx 10rpx;
   border-radius: 0 0 0 14rpx;
   z-index: 5;
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* 展示标签行（display_tags 数组） */
@@ -609,7 +609,7 @@
   font-weight: var(--tg-font-weight-bold);
   padding: 4rpx 14rpx;
   border-radius: 16rpx;
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* 预热倒计时条 */

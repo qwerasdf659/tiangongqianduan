@@ -1083,7 +1083,7 @@
 
 .slot-icon {
   font-size: 28rpx;
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
 }
 
 .slot-name {
@@ -1094,7 +1094,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 
   .active &,
   .winner & {
@@ -1658,7 +1658,7 @@
 .btn-text {
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
-  letter-spacing: 2rpx;
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .launch-btn-shadow {
@@ -1682,7 +1682,7 @@
 .cost-badge-text {
   font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 @keyframes winnerBtnPulse {

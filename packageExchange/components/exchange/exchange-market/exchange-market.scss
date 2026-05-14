@@ -12,6 +12,7 @@
 }
 
 .exchange-content {
+  @include tg-tokens;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -68,7 +69,7 @@
 
 .asset-amount {
   font-size: var(--td-font-size-m);
-  font-weight: 800;
+  font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
 }
 
@@ -329,7 +330,7 @@
   font-size: var(--tg-font-size-caption);
   color: var(--tg-color-warning);
   text-align: center;
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
 }
 
 .escrow-confirm-btn {
@@ -511,7 +512,7 @@
   font-size: var(--tg-font-size-micro);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .quality-score {

@@ -16,7 +16,7 @@
   border-radius: 24rpx;
   padding: 24rpx;
   margin: 0 24rpx 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.03);
 }
 
 /* 宸︿晶锛氱敤鎴蜂俊鎭尯鍩?*/
@@ -36,16 +36,16 @@
   align-items: center;
   gap: 12rpx;
   font-size: var(--tg-font-size-body);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-text-primary);
   text-shadow: none;
   margin-bottom: 8rpx;
 
   .page-subtitle {
     font-size: var(--tg-font-size-title);
-    font-weight: var(--tg-font-weight-bold);
+    font-weight: var(--tg-font-weight-semibold);
     color: var(--tg-text-primary);
-    letter-spacing: 1rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
     margin-right: auto;
   }
 }
@@ -68,10 +68,10 @@
 
 /* 积分标签 */
 .points-label {
-  font-size: var(--tg-font-size-caption);
-  color: var(--tg-text-secondary);
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
   font-weight: var(--tg-font-weight-regular);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-normal);
   text-shadow: none;
 }
 
@@ -91,7 +91,7 @@
   font-variant-numeric: tabular-nums;
   text-shadow: none;
   transition: font-size 0.2s ease;
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* 🎎 8-10位数字楋細涓瓑缂╁皬 */

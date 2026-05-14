@@ -3,7 +3,7 @@
   position: fixed;
   z-index: 9999;
   border-radius: var(--td-radius-round);
-  box-shadow: 0 4rpx 12rpx rgba(var(--tg-color-black-rgb), 0.2);
+  box-shadow: 0 1rpx 6rpx rgba(var(--tg-color-black-rgb), 0.04);
   pointer-events: none;
   animation:
     flyX 350ms linear forwards,

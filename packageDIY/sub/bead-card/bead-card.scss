@@ -1,6 +1,7 @@
 @import '../../../styles/mixins.scss';
 
 .bead-card {
+  @include tg-tokens;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,7 +16,7 @@
 
   &:active {
     transform: scale(0.96);
-    box-shadow: 0 1rpx 4rpx rgba(var(--tg-color-black-rgb), 0.1);
+    box-shadow: 0 1rpx 4rpx rgba(var(--tg-color-black-rgb), 0.04);
   }
 }
 
@@ -45,8 +46,8 @@
   border-radius: var(--td-radius-round);
   background: var(--tg-text-tertiary);
   box-shadow:
-    inset 0 -4rpx 8rpx rgba(var(--tg-color-black-rgb), 0.2),
-    0 2rpx 6rpx rgba(var(--tg-color-black-rgb), 0.15);
+    inset 0 -4rpx 8rpx rgba(var(--tg-color-black-rgb), 0.04),
+    0 1rpx 6rpx rgba(var(--tg-color-black-rgb), 0.03);
 }
 
 .bead-info {

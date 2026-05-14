@@ -24,6 +24,8 @@ const DEFAULT_THEME_NAME = 'default'
 
 /** 引入积分Store - 抽奖后同步更新全局积分状态，确保页面头部实时刷新 */
 const { pointsStore } = require('../../store/points')
+/** MobX绑定 - 解决组件积分余额与Store不同步的竞态条件 */
+const { createStoreBindings } = require('mobx-miniprogram-bindings')
 
 /**
  * 稀有度排序权重（降序：大奖前置，利用锚定效应）
@@ -245,12 +247,33 @@ Component({
   /** 生命周期 */
   lifetimes: {
     attached() {
+      /**
+       * MobX Store 绑定 — 解决积分余额竞态条件
+       *
+       * 问题根因：页面 _refreshPoints() 和 _loadCampaigns() 并行执行，
+       * 组件 attached 时 pointsStore.availableAmount 可能仍为 0（API未返回），
+       * 导致组件内部 pointsBalance=0，用户点击抽奖时误判"积分不足"。
+       *
+       * 修复：通过 MobX 响应式绑定，当 pointsStore.availableAmount 变化时
+       * 自动同步到组件 data.pointsBalance，消除竞态窗口。
+       */
+      this._pointsStoreBindings = createStoreBindings(this, {
+        store: pointsStore,
+        fields: {
+          pointsBalance: () => pointsStore.availableAmount
+        },
+        actions: []
+      })
+
       if (this.properties.campaignCode) {
         this._initFromLifecycle(this.properties.campaignCode)
       }
     },
 
     detached() {
+      if (this._pointsStoreBindings) {
+        this._pointsStoreBindings.destroyStoreBindings()
+      }
       this._currentCampaign = null
       this._isInitializing = false
     }
@@ -258,13 +281,11 @@ Component({
 
   /**
    * 页面生命周期钩子 — 处理Tab切换回前台场景
-   * 组件不会被销毁重建，仅在页面重新显示时同步积分余额
+   * MobX绑定已自动同步积分，此处无需额外操作
    */
   pageLifetimes: {
     show() {
-      if (this._currentCampaign && !this.data.loading) {
-        this._syncPointsBalance()
-      }
+      /* MobX绑定已自动同步 pointsStore.availableAmount → data.pointsBalance */
     }
   },
 
@@ -301,13 +322,6 @@ Component({
      * @param campaignCode 活动标识
      */
     async initActivity(campaignCode: string) {
-      /* 未登录时跳过需要认证的API调用，显示空状态让用户点击抽奖时触发登录 */
-      if (!checkAuth({ redirect: false, showToast: false })) {
-        this.setData({ loading: false, loadError: '' })
-        log.info('[lottery-activity] 未登录，跳过活动初始化，等待用户登录后刷新')
-        return
-      }
-
       /* 并发初始化守卫：上一次 initActivity 还在执行中，跳过本次 */
       if (this._isInitializing) {
         log.warn('[lottery-activity] initActivity 正在执行中，跳过重复调用:', campaignCode)
@@ -437,8 +451,7 @@ Component({
         })
         this.setData({ loading: false })
 
-        /* 读取用户积分余额（从pointsStore） */
-        this._syncPointsBalance()
+        /* MobX绑定已自动同步积分余额，无需手动调用 _syncPointsBalance() */
       } catch (err) {
         log.error('[lottery-activity] 初始化失败:', err)
         this.setData({ loading: false, loadError: '网络异常，请重试' })
@@ -480,12 +493,7 @@ Component({
      * @param remainingBalance 后端返回的 remaining_balance（扣除后的可用积分）
      */
     _updateBalanceAfterDraw(remainingBalance: number) {
-      /* 仅值变化时更新组件内部积分，减少不必要的子组件重渲染 */
-      if (remainingBalance !== this.data.pointsBalance) {
-        this.setData({ pointsBalance: remainingBalance })
-      }
-
-      /* 同步更新全局积分Store */
+      /* 更新全局积分Store — MobX绑定会自动同步到组件 data.pointsBalance */
       const currentFrozen = pointsStore.frozenAmount || 0
       pointsStore.setBalance(remainingBalance, currentFrozen)
     },
@@ -506,12 +514,9 @@ Component({
     },
 
     /**
-     * 同步用户积分余额（从全局pointsStore读取）
-     * 用于组件初始化和动画结束后同步最新余额
-     *
-     * 防闪烁优化：仅当值真正变化时才调用 setData，
-     * 避免触发子组件（egg/wheel 等）不必要的 diff 重渲染，
-     * 消除奖品预览区 marquee 动画中断和 <image> 白闪问题
+     * 手动同步积分余额（安全网）
+     * MobX绑定已自动同步 pointsStore → data.pointsBalance，
+     * 此方法仅在特殊场景（如动画结束合并setData）中作为补充调用
      */
     _syncPointsBalance() {
       try {
@@ -641,6 +646,13 @@ Component({
      */
     async onMultiDraw(e: any) {
       const count = e?.detail?.count || 1
+
+      /* 未登录拦截：通知父页面弹出登录弹窗 */
+      if (!checkAuth({ redirect: false })) {
+        this.triggerEvent('needlogin')
+        return
+      }
+
       /* 刮刮卡模式：先更新格子数，等用户刮卡时由 scratch 子组件触发 draw 事件 */
       if (this.data.displayMode === 'scratch_card') {
         this.setData({ scratchDrawCount: count })

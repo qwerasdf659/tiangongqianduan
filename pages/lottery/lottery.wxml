@@ -126,7 +126,7 @@
               class="qrcode-loading"
               wx:if="{{!qrCodeImage && !qrExpired && !qrDevToolsUnavailable}}"
             >
-              <text class="loading-icon iconfont icon-hourglass"></text>
+              <t-icon name="hourglass" size="28rpx" color="var(--tg-text-tertiary)" />
               <text class="loading-text">生成中...</text>
             </view>
 
@@ -256,13 +256,14 @@
     <!-- 抽奖万能组件 - 所有用户可见（未登录时点击抽奖会触发登录弹窗） -->
     <block>
       <!-- 主活动（动态加载，位置配置驱动） -->
-      <lottery-activity
-        wx:if="{{mainCampaign}}"
-        campaignCode="{{mainCampaign.campaign_code}}"
-        size="{{mainCampaign.placement.size || 'full'}}"
-        bind:pointsupdate="onPointsUpdate"
-        bind:needlogin="onShowLoginPopup"
-      />
+      <view class="lottery-activity-wrapper" wx:if="{{mainCampaign}}">
+        <lottery-activity
+          campaignCode="{{mainCampaign.campaign_code}}"
+          size="{{mainCampaign.placement.size || 'full'}}"
+          bind:pointsupdate="onPointsUpdate"
+          bind:needlogin="onShowLoginPopup"
+        />
+      </view>
       <!-- 降级兜底：活动列表加载完成但无匹配活动时显示空状态 -->
       <view wx:elif="{{!loading}}" class="no-campaign-placeholder">
         <t-empty description="暂无进行中的活动">
@@ -388,14 +389,14 @@
 
             <!-- 商家备注 -->
             <view class="record-row" wx:if="{{item.merchant_notes}}">
-              <text class="row-icon iconfont icon-edit"></text>
+              <t-icon name="edit" size="24rpx" color="var(--tg-text-tertiary)" />
               <text class="row-label">备注：</text>
               <text class="row-value">{{item.merchant_notes}}</text>
             </view>
 
             <!-- 提交时间 -->
             <view class="record-row">
-              <text class="row-icon iconfont icon-bell"></text>
+              <t-icon name="time-filled" size="24rpx" color="var(--tg-text-tertiary)" />
               <text class="row-label">提交时间：</text>
               <text class="row-value time">{{item.formattedTime}}</text>
             </view>
@@ -419,6 +420,9 @@
 
     <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
+
+    <!-- 底部留白：跟随内容滚动，确保抽奖区域不紧贴 tab bar -->
+    <view style="height: 60rpx; width: 100%;"></view>
   </scroll-view>
 
   <!-- 🆕 隐藏的Canvas用于生成正方形高分辨率二维码（方案B：428×428正方形） -->

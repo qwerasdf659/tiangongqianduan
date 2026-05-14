@@ -3,6 +3,7 @@
 @import '../../../../../../styles/mixins';
 
 .bid-panel-container {
+  @include tg-tokens;
   padding: 20rpx 16rpx;
 }
 
@@ -284,7 +285,7 @@
   display: block;
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-tertiary);
-  line-height: 1.8;
+  line-height: var(--tg-line-height-relaxed);
 }
 
 .bid-modal-footer {
@@ -314,7 +315,7 @@
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
-  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 1rpx 8rpx rgba(255, 107, 53, 0.04);
 }
 
 .bid-confirm-btn.disabled {

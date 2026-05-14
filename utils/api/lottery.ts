@@ -25,7 +25,7 @@ async function getActiveCampaigns() {
 async function getLotteryPrizes(campaign_code: string) {
   return apiClient.request(`/lottery/campaigns/${campaign_code}/prizes`, {
     method: 'GET',
-    needAuth: true
+    needAuth: false
   })
 }
 
@@ -33,7 +33,7 @@ async function getLotteryPrizes(campaign_code: string) {
 async function getLotteryConfig(campaign_code: string) {
   return apiClient.request(`/lottery/campaigns/${campaign_code}/config`, {
     method: 'GET',
-    needAuth: true
+    needAuth: false
   })
 }
 

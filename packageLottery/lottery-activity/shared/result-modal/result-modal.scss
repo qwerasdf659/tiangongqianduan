@@ -228,7 +228,7 @@
 .winning-desc {
   font-size: var(--td-font-size-base);
   color: var(--tg-lottery-text-secondary, #7f8c8d);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .prize-card-decoration {
@@ -390,7 +390,7 @@
 .reveal-prize-desc {
   font-size: var(--td-font-size-base);
   color: var(--tg-lottery-text-secondary, #7f8c8d);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 /* 底部操作按钮 */
@@ -518,7 +518,7 @@
 .multi-order-no-item {
   display: block;
   font-size: var(--tg-font-size-small);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   color: var(--tg-lottery-text-dark, #2c3e50);
   word-break: break-all;
 }

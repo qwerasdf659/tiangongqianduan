@@ -72,7 +72,7 @@
     font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-accent, #c5a572);
     text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.4);
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 }
 
@@ -723,7 +723,7 @@
     font-size: var(--td-font-size-base);
     font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-accent, #c5a572);
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 
   &:active {

@@ -545,7 +545,7 @@
   border-radius: 12rpx;
   font-weight: var(--tg-font-weight-bold);
   z-index: 2;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .rarity-text {
@@ -596,7 +596,7 @@
   font-size: var(--tg-font-size-body);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -813,7 +813,7 @@
   height: 96rpx;
   border-radius: 48rpx;
   @include flex-center;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -968,7 +968,7 @@
   color: var(--tg-color-white);
   border-radius: 0 0 14rpx 0;
   z-index: 3;
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 .badge-tag.pinned {
   background: #5b7a5e;
@@ -1022,7 +1022,7 @@
   padding: 1rpx 8rpx;
   border: 1rpx solid;
   border-radius: 4rpx;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .quality-mini-score {

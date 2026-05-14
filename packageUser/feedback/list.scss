@@ -91,7 +91,7 @@
   display: block;
   font-size: var(--tg-font-size-title);
   color: var(--tg-text-primary);
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;

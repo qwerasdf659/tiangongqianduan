@@ -96,7 +96,7 @@
   font-size: var(--tg-font-size-xxl);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
 }
 
 .stat-number.stat-on-sale {

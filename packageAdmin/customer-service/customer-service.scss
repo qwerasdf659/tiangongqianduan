@@ -345,7 +345,7 @@
   padding: 0 20rpx;
   font-size: var(--td-font-size-base);
   transition: all 0.3s ease;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
 }
 
@@ -483,7 +483,7 @@
   @include flex-center;
   margin: 0 16rpx;
   flex-shrink: 0;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.04);
 }
 
 .message-item.user .message-avatar {
@@ -520,7 +520,7 @@
   border-radius: 20rpx;
   word-wrap: break-word;
   position: relative;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.04);
   background: #ffffff;
 }
 
@@ -543,7 +543,7 @@
 
 .message-text {
   font-size: var(--tg-font-size-body);
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
   margin: 0;
 }
 
@@ -678,7 +678,7 @@
   padding: 0 20rpx;
   font-size: var(--td-font-size-base);
   transition: all 0.3s ease;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.04);
   background: var(--tg-color-border-muted);
   color: var(--tg-text-tertiary-muted);
 }
@@ -698,7 +698,7 @@
   background: var(--tg-color-border-muted);
   color: var(--tg-text-tertiary-muted);
   transform: scale(1);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.03);
 }
 
 .send-icon {

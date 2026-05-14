@@ -35,7 +35,9 @@ Component({
     /** 交易市场筛选项（后端下发） */
     marketTypeFilters: { type: Array, value: [] },
     marketCategoryFilters: { type: Array, value: [] },
-    marketSortOptions: { type: Array, value: [] }
+    marketSortOptions: { type: Array, value: [] },
+    /** 登录状态（父组件下传） */
+    isLoggedIn: { type: Boolean, value: false }
   },
 
   data: {

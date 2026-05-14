@@ -20,7 +20,7 @@
   overflow: hidden;
   position: relative;
   margin: 16rpx 20rpx;
-  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.03);
 }
 
 /* ===== 碎裂白闪遮罩 ===== */
@@ -52,10 +52,10 @@
 
   &__text {
     font-size: var(--tg-font-size-headline);
-    font-weight: var(--tg-font-weight-bold);
+    font-weight: var(--tg-font-weight-semibold);
     color: var(--tg-text-primary);
     text-shadow: none;
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 }
 
@@ -675,7 +675,7 @@
     font-size: var(--td-font-size-base);
     font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-text-dark, #7b241c);
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 
   &:active {

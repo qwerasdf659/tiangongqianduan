@@ -1045,7 +1045,7 @@
   font-size: var(--tg-font-size-small);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-accent, #c5a572);
-  letter-spacing: 4rpx;
+  letter-spacing: var(--tg-letter-spacing-wide);
   text-shadow: 0 0 6rpx rgba(197, 165, 114, 0.5);
   font-family: 'Georgia', serif;
 }
@@ -1342,7 +1342,7 @@
     0 0 8rpx rgba(197, 165, 114, 0.6),
     0 0 16rpx rgba(197, 165, 114, 0.3),
     2rpx 2rpx 0 rgba(0, 0, 0, 0.7);
-  letter-spacing: 4rpx;
+  letter-spacing: var(--tg-letter-spacing-wide);
   z-index: 2;
   font-family: 'Georgia', 'Times New Roman', serif;
   animation: hintPulse 2.5s ease-in-out infinite;
@@ -1379,7 +1379,7 @@
     0 4rpx 12rpx rgba(0, 0, 0, 0.5),
     inset 0 1rpx 3rpx rgba(197, 165, 114, 0.15);
   z-index: 2;
-  letter-spacing: 3rpx;
+  letter-spacing: var(--tg-letter-spacing-wide);
   font-family: 'Georgia', serif;
 }
 
@@ -1819,7 +1819,7 @@
   background: var(--tg-lottery-primary-bg, rgba(74, 21, 165, 0.5));
   border-radius: 6rpx;
   border: 1rpx solid var(--tg-lottery-accent-border, rgba(197, 165, 114, 0.15));
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
   font-family: 'Georgia', serif;
 }
 

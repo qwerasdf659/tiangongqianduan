@@ -239,3 +239,32 @@
   -webkit-backdrop-filter: $value;
   backdrop-filter: $value;
 }
+
+/// Typography Token 本地声明（分包组件无法继承 page 变量时使用）
+/// 用法：在组件顶层容器选择器中 @include tg-tokens;
+@mixin tg-tokens {
+  --tg-font-size-display: 44rpx;
+  --tg-font-size-display-lg: 52rpx;
+  --tg-font-size-headline: 36rpx;
+  --tg-font-size-title: 28rpx;
+  --tg-font-size-body: 26rpx;
+  --tg-font-size-caption: 24rpx;
+  --tg-font-size-small: 22rpx;
+  --tg-font-size-mini: 20rpx;
+  --tg-font-size-number-lg: 36rpx;
+  --tg-font-size-number-md: 28rpx;
+  --tg-font-size-number-sm: 24rpx;
+  --tg-font-weight-regular: 400;
+  --tg-font-weight-medium: 500;
+  --tg-font-weight-semibold: 600;
+  --tg-font-weight-bold: 700;
+  --tg-letter-spacing-tight: 1rpx;
+  --tg-letter-spacing-normal: 2rpx;
+  --tg-letter-spacing-wide: 4rpx;
+  --tg-line-height-tight: 1.2;
+  --tg-line-height-normal: 1.4;
+  --tg-line-height-relaxed: 1.6;
+  --tg-text-primary: #1A1A1A;
+  --tg-text-secondary: #666;
+  --tg-text-tertiary: #999;
+}

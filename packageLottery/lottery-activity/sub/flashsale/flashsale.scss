@@ -228,7 +228,7 @@
   font-size: var(--tg-font-size-body);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
-  letter-spacing: 3rpx;
+  letter-spacing: var(--tg-letter-spacing-wide);
 }
 
 .banner-countdown {
@@ -468,7 +468,7 @@
     font-size: var(--tg-font-size-mini);
     font-weight: var(--tg-font-weight-bold);
     color: var(--tg-color-white);
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 }
 
@@ -547,7 +547,7 @@
   background: rgba(153, 153, 153, 0.7);
   padding: 0 8rpx;
   border-radius: 4rpx;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 /* ============================================================
@@ -771,7 +771,7 @@
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.25);
-  letter-spacing: 3rpx;
+  letter-spacing: var(--tg-letter-spacing-wide);
 }
 
 /* 表面扫光 */

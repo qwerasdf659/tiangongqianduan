@@ -150,7 +150,7 @@
           binderror="onImageError"
         />
         <view wx:else class="image-fallback asset-type">
-          <text class="fallback-icon iconfont icon-diamond"></text>
+          <t-icon name="verified-filled" size="64rpx" color="var(--td-brand-color)" />
           <text class="fallback-name">{{item.item_name}}</text>
         </view>
         <!-- 标签（优先级: 置顶 > 推荐 > 热销 > 新品 > 限量） -->
@@ -166,7 +166,7 @@
         <text class="product-desc" wx:if="{{item.sell_point}}">{{item.sell_point}}</text>
         <!-- 铸造标识（mint_instance=true 时展示） -->
         <view class="mint-mini-tag" wx:if="{{item._mintInstance}}">
-          <text class="mint-mini-icon iconfont icon-craft"></text>
+          <t-icon name="tools-filled" size="20rpx" color="var(--td-brand-color)" />
           <text class="mint-mini-text">可铸造</text>
         </view>
         <view class="price-row">
@@ -194,7 +194,9 @@
   </view>
 
   <t-empty wx:if="{{!loading && filteredProducts.length === 0}}" description="暂无可兑换商品">
-    <view slot="image"><text class="iconfont icon-gift"></text></view>
+    <view slot="image"
+      ><t-icon name="gift-filled" size="96rpx" color="var(--td-brand-color)"
+    /></view>
     <view slot="action" class="empty-action-btn" bindtap="onResetFilters">重置筛选</view>
   </t-empty>
 

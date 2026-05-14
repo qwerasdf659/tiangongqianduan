@@ -2,7 +2,7 @@
 <view class="exchange-shelf">
   <!-- 🔒 固定头部：空间切换导航 -->
   <view class="shop-sticky-header">
-    <!-- 🎯 增强版胶囊式空间切换器 -->
+    <!-- 🎯 精简版胶囊式空间切换器（参考抽奖页面美学风格） -->
     <view class="space-selector-enhanced">
       <view class="selector-track">
         <view
@@ -16,22 +16,17 @@
           bindtap="onSpaceChange"
         >
           <view class="tab-inner">
-            <view class="tab-icon-row">
-              <text class="tab-emoji iconfont {{item.id === 'lucky' ? 'icon-clover' : 'icon-diamond'}}"></text>
-              <t-icon name="lock-on-filled" size="24rpx" color="#999" wx:if="{{item.id === 'premium' && !premiumUnlocked}}" />
-              <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}"
-                >{{item.name}}</text
-              >
-            </view>
-            <text class="tab-desc {{item.id === currentSpace ? 'active-desc' : ''}}"
-              >{{item.id === 'premium' && !premiumUnlocked ? '达标可解锁' : item.subtitle}}</text
+            <t-icon
+              name="{{item.id === 'lucky' ? 'star-filled' : 'verified-filled'}}"
+              size="32rpx"
+              color="{{item.id === currentSpace ? '#ffffff' : (item.id === 'premium' && !premiumUnlocked ? '#999' : 'var(--td-brand-color)')}}"
+            />
+            <text class="tab-label {{item.id === currentSpace ? 'active-label' : ''}}"
+              >{{item.name}}</text
             >
           </view>
-          <view
-            wx:if="{{item.id === 'premium'}}"
-            class="unlock-badge {{premiumUnlocked ? 'unlocked' : 'locked'}}"
-          >
-            <text>{{premiumUnlocked ? '已解锁' : (premiumCanUnlock ? '可解锁' : '未解锁')}}</text>
+          <view wx:if="{{item.id === 'premium' && !premiumUnlocked}}" class="unlock-badge locked">
+            <text>{{premiumCanUnlock ? '可解锁' : '未解锁'}}</text>
           </view>
         </view>
       </view>
@@ -68,7 +63,9 @@
         </view>
         <view class="header-quick-actions">
           <view class="header-action-btn" bindtap="onGoToMyOrders">🛒 我的订单</view>
-          <view class="header-action-btn" bindtap="onRefreshProducts"><t-icon name="refresh" size="28rpx" color="currentColor" /> 刷新</view>
+          <view class="header-action-btn" bindtap="onRefreshProducts"
+            ><t-icon name="refresh" size="28rpx" color="currentColor" /> 刷新</view
+          >
           <view class="header-action-btn" bindtap="onShopSortByPoints">📊 按售价排序</view>
           <view class="view-toggle">
             <view

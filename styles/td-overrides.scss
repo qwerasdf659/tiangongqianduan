@@ -109,8 +109,9 @@ page {
   --tg-font-number: 'TG Num', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
 
   /* 字号层级 */
-  --tg-font-size-display: 40rpx;
-  --tg-font-size-headline: 32rpx;
+  --tg-font-size-display: 44rpx;
+  --tg-font-size-display-lg: 52rpx;
+  --tg-font-size-headline: 36rpx;
   --tg-font-size-title: 28rpx;
   --tg-font-size-body: 26rpx;
   --tg-font-size-caption: 24rpx;
@@ -126,7 +127,14 @@ page {
 
   /* 字重 */
   --tg-font-weight-regular: 400;
+  --tg-font-weight-medium: 500;
+  --tg-font-weight-semibold: 600;
   --tg-font-weight-bold: 700;
+
+  /* 字间距 */
+  --tg-letter-spacing-tight: 1rpx;
+  --tg-letter-spacing-normal: 2rpx;
+  --tg-letter-spacing-wide: 4rpx;
 
   /* 行高 */
   --tg-line-height-tight: 1.2;

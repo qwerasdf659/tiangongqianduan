@@ -8,7 +8,7 @@
         <text class="back-icon" style="color: {{textColor}};">←</text>
       </view>
       <view class="home-btn" wx:elif="{{showHome}}" bindtap="onHome" hover-class="back-btn-hover">
-        <text class="home-icon" style="color: {{textColor}};">🏠</text>
+        <t-icon name="home" size="36rpx" color="{{textColor}}" />
       </view>
     </view>
     <view class="navbar-title">

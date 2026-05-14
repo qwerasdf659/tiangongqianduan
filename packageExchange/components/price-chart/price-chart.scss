@@ -9,6 +9,7 @@
 
 /* ========== 组件容器 — 渐变背景卡片 ========== */
 .price-chart-wrap {
+  @include tg-tokens;
   background: var(--tg-color-white);
   border-radius: var(--td-radius-large);
   padding: 28rpx 24rpx;
@@ -49,7 +50,7 @@
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 .period-tabs {
@@ -70,7 +71,7 @@
   &--active {
     color: var(--tg-color-white);
     background: var(--tg-gradient-primary-start);
-    box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.35);
+    box-shadow: 0 1rpx 8rpx rgba(255, 107, 53, 0.04);
     font-weight: var(--tg-font-weight-bold);
   }
 }
@@ -95,7 +96,7 @@
   background: var(--td-brand-color);
   border-radius: 16rpx;
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(255, 107, 53, 0.04);
   z-index: 0;
 }
 

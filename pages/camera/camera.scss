@@ -1,4 +1,4 @@
-/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
+/* Skyline 页面级滚动容�?�?flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
 .page-scroll-view {
   flex: 1;
   min-height: 0;
@@ -8,7 +8,7 @@
 /* 发现页面样式 - V3.0 Sass版本 */
 @import '../../styles/mixins';
 
-/* 🎨 页面级背景 — 统一色调 */
+/* 🎨 页面级背�?�?统一色调 */
 page {
   background-color: var(--tg-page-bg);
 }
@@ -21,7 +21,7 @@ page {
   padding-bottom: 80rpx;
 }
 
-/* 🎨 沉浸式顶部横幅 — 图片延伸到状态栏后面 */
+/* 🎨 沉浸式顶部横�?�?图片延伸到状态栏后面 */
 .immersive-top-banner {
   width: 100%;
   height: calc(env(safe-area-inset-top, 20px) + 88rpx + 280rpx);
@@ -38,7 +38,7 @@ page {
 .top-banner-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f5f0e8 0%, #ede5d8 100%);
+  background: #ffffff;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -51,10 +51,10 @@ page {
   opacity: 0.6;
 }
 
-/* ========== 顶部搜索栏 ========== */
+/* ========== 顶部搜索�?========== */
 .search-bar {
   padding: 20rpx;
-  /* 发现页顶栏：实色白底，无毛玻璃 */
+  /* 发现页顶栏：实色白底，无毛玻�?*/
   background: var(--tg-color-white);
 }
 
@@ -65,7 +65,7 @@ page {
   border-radius: 50rpx;
   padding: 0 30rpx;
   height: 80rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .search-icon {
@@ -114,7 +114,7 @@ page {
   background: rgba(var(--tg-color-white-rgb), 0.9);
   border-radius: var(--td-radius-default);
   transition: all 0.3s ease;
-  box-shadow: 0 4rpx 12rpx rgba(var(--tg-color-black-rgb), 0.08);
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.04);
 }
 
 .tab-item.active {
@@ -124,7 +124,7 @@ page {
     var(--tg-gradient-primary-end) 100%
   );
   transform: scale(1.05);
-  box-shadow: 0 6rpx 20rpx rgba(var(--td-brand-color-rgb), 0.4);
+  box-shadow: 0 2rpx 12rpx rgba(var(--td-brand-color-rgb), 0.2);
 }
 
 .tab-icon {
@@ -136,11 +136,12 @@ page {
   font-size: var(--tg-font-size-body);
   color: var(--tg-text-primary);
   font-weight: var(--tg-font-weight-regular);
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 .tab-item.active .tab-name {
   color: var(--tg-color-white);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
 }
 
 /* ========== 活动列表 ========== */
@@ -148,7 +149,7 @@ page {
   padding: 20rpx;
 }
 
-/* ========== 加载状态 ========== */
+/* ========== 加载状�?========== */
 .loading-container {
   @include flex-column-center;
   padding: 100rpx 0;
@@ -160,12 +161,12 @@ page {
   color: var(--tg-text-secondary);
 }
 
-/* ========== 空状态 ========== */
+/* ========== 空状�?========== */
 .empty-state {
   @include flex-column-center;
   padding: 120rpx 40rpx;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
+  border-radius: var(--td-radius-large);
   gap: 20rpx;
 }
 
@@ -173,15 +174,15 @@ page {
   font-size: var(--tg-font-size-body);
   color: var(--tg-text-tertiary);
   text-align: center;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
-/* ========== 错误状态 ========== */
+/* ========== 错误状�?========== */
 .error-state {
   @include flex-column-center;
   padding: 120rpx 40rpx;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
+  border-radius: var(--td-radius-large);
   gap: 30rpx;
 }
 
@@ -214,9 +215,9 @@ page {
 
 .activity-card {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
+  border-radius: var(--td-radius-large);
   overflow: hidden;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.03);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
@@ -224,7 +225,7 @@ page {
 
 .activity-card:active {
   transform: scale(0.98);
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 
 /* 活动封面 */
@@ -240,7 +241,7 @@ page {
   height: 100%;
 }
 
-/* 状态标签 */
+/* 状态标�?*/
 .status-badge {
   position: absolute;
   top: 20rpx;
@@ -295,9 +296,10 @@ page {
 
 .card-title {
   font-size: var(--td-font-size-m);
-  font-weight: 700;
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  letter-spacing: var(--tg-letter-spacing-normal);
+  line-height: var(--tg-line-height-normal);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -307,7 +309,8 @@ page {
 .card-subtitle {
   font-size: var(--tg-font-size-body);
   color: var(--tg-text-secondary);
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* 活动数据 */
@@ -323,7 +326,7 @@ page {
   gap: 8rpx;
   padding: 8rpx 16rpx;
   background: rgba(var(--td-brand-color-rgb), 0.1);
-  border-radius: 20rpx;
+  border-radius: var(--td-radius-large);
 }
 
 .data-icon {
@@ -346,7 +349,7 @@ page {
 .tag {
   padding: 6rpx 16rpx;
   background: rgba(var(--td-brand-color-rgb), 0.1);
-  border-radius: 20rpx;
+  border-radius: var(--td-radius-large);
   font-size: var(--tg-font-size-small);
   color: var(--td-brand-color);
   border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.3);
@@ -402,12 +405,12 @@ page {
 /* ========== 底部提示 ========== */
 .bottom-tip {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20rpx;
+  border-radius: var(--td-radius-large);
   padding: 30rpx;
   margin: 20rpx;
   @include flex-center;
   gap: 15rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.03);
 }
 
 .bottom-tip .tip-icon {

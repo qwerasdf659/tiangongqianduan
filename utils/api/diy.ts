@@ -44,7 +44,7 @@ async function getDiyTemplates(categoryId?: number): Promise<API.ApiResponse<API
   if (categoryId) {
     url += `?category_id=${categoryId}`
   }
-  return apiClient.request(url, { method: 'GET' })
+  return apiClient.request(url, { method: 'GET', needAuth: false })
 }
 
 /**
@@ -57,7 +57,7 @@ async function getDiyTemplates(categoryId?: number): Promise<API.ApiResponse<API
  * @param templateId - 模板主键 diy_template_id
  */
 async function getDiyTemplateById(templateId: number): Promise<API.ApiResponse<API.DiyTemplate>> {
-  return apiClient.request(`/diy/templates/${templateId}`, { method: 'GET' })
+  return apiClient.request(`/diy/templates/${templateId}`, { method: 'GET', needAuth: false })
 }
 
 // ========== 材料相关 ==========
@@ -120,7 +120,7 @@ async function getDiyTemplateBeads(
       url += `?${queryParts.join('&')}`
     }
   }
-  return apiClient.request(url, { method: 'GET' })
+  return apiClient.request(url, { method: 'GET', needAuth: false })
 }
 
 /**
@@ -140,7 +140,7 @@ async function getDiyTemplateBeads(
  *    前端 diy-design.ts 从珠子数据自行聚合生成 sample_name 作为备用方案
  */
 async function getDiyMaterialGroups(): Promise<API.ApiResponse<API.DiyMaterialGroup[]>> {
-  return apiClient.request('/diy/material-groups', { method: 'GET' })
+  return apiClient.request('/diy/material-groups', { method: 'GET', needAuth: false })
 }
 
 // ========== 作品相关 ==========

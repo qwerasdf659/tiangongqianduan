@@ -444,9 +444,13 @@ Page({
       const isAuthenticated = checkAuth({ redirect: false })
 
       if (!isAuthenticated) {
-        // 未登录：正常渲染页面（显示未登录态），不调用需要认证的API
         this.setData({ isLoggedIn: false, loading: false })
         this._isFirstLoad = false
+        this.applyNativeThemeColors()
+        /* 未登录也加载活动列表（后端已公开） */
+        await this._loadCampaigns().catch((campaignErr: any) => {
+          log.error('[lottery] 活动列表加载失败:', campaignErr)
+        })
         return
       }
 

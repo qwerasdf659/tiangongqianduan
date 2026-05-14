@@ -2,6 +2,7 @@
   "component": true,
   "styleIsolation": "apply-shared",
   "usingComponents": {
-    "t-popup": "/miniprogram_npm/tdesign-miniprogram/popup/popup"
+    "t-popup": "/miniprogram_npm/tdesign-miniprogram/popup/popup",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
   }
 }

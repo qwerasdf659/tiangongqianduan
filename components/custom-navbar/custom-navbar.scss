@@ -1,6 +1,9 @@
+@import '../../styles/mixins';
+
 /* 通用自定义导航栏样式（Skyline 渲染模式必需） */
 
 .custom-navbar {
+  @include tg-tokens;
   position: fixed;
   top: 0;
   left: 0;

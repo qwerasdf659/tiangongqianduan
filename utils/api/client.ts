@@ -384,6 +384,19 @@ class APIClient {
       log.error('认证失败(401):', { serverErrorCode, serverMessage })
 
       /**
+       * needAuth: false 的请求收到 401 时，不触发全局登录失效逻辑
+       * 这类请求本身不要求认证，后端返回 401 说明该接口尚未改为 optionalAuth
+       * 只抛出错误让调用方 catch 处理，不弹窗不清 Token
+       */
+      if (requestOptions && requestOptions.needAuth === false) {
+        throw this._createApiError(
+          serverMessage || '认证失败',
+          serverErrorCode || 'AUTH_FAILED',
+          statusCode
+        )
+      }
+
+      /**
        * 401 错误码分类处理（对齐后端 middleware/auth.js 细分错误码）
        *
        * TOKEN_EXPIRED    → JWT 过期，自动刷新 Token

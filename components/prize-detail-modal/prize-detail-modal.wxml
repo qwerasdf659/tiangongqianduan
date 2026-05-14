@@ -19,7 +19,7 @@
           mode="aspectFit"
         />
         <text wx:elif="{{prize.prize_icon}}" class="prize-modal__emoji">{{prize.prize_icon}}</text>
-        <text wx:else class="prize-modal__emoji iconfont icon-gift"></text>
+        <t-icon wx:else name="gift-filled" size="80rpx" color="var(--td-brand-color)" />
       </view>
 
       <view class="prize-modal__rarity rarity-{{prize.rarity_code || 'common'}}">

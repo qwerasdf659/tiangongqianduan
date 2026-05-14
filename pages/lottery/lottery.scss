@@ -95,8 +95,8 @@ page {
 }
 
 .guest-welcome-text {
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-semibold);
   color: #fff;
 }
 
@@ -127,9 +127,9 @@ page {
   box-shadow: 0 4rpx 12rpx rgba(197, 165, 114, 0.3);
 
   text {
-    font-size: 24rpx;
+    font-size: var(--tg-font-size-caption);
     color: #fff;
-    font-weight: 500;
+    font-weight: var(--tg-font-weight-medium);
   }
 
   &--large {
@@ -233,7 +233,7 @@ page {
   border-radius: 6rpx;
   font-size: var(--tg-font-size-xs);
   color: var(--tg-color-white);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .announcement-tag--system {

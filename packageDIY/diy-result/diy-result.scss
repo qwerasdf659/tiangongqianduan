@@ -28,7 +28,7 @@
   background: linear-gradient(135deg, var(--tg-color-success), var(--tg-color-success-strong));
   border-radius: var(--td-radius-circle);
   @include flex-center;
-  box-shadow: 0 8rpx 24rpx rgba(var(--tg-color-success-rgb), 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(var(--tg-color-success-rgb), 0.04);
   margin-bottom: var(--tg-spacing-md);
 }
 
@@ -40,8 +40,9 @@
 
 .success-title {
   font-size: var(--td-font-size-l);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .success-subtitle {
@@ -136,8 +137,9 @@
 
 .step-title {
   font-size: var(--td-font-size-base);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
   display: block;
   margin-bottom: var(--tg-spacing-xs);
 }
@@ -147,7 +149,7 @@
   color: var(--tg-text-tertiary);
   display: block;
   margin-bottom: var(--tg-spacing-md);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 /* ===== 操作按钮 ===== */
@@ -180,13 +182,13 @@
 .action-btn.primary {
   background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
   color: var(--tg-color-white);
-  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .action-btn.secondary {
   background: linear-gradient(135deg, var(--tg-color-success), var(--tg-color-success-strong));
   color: var(--tg-color-white);
-  box-shadow: 0 4rpx 16rpx rgba(var(--tg-color-success-rgb), 0.2);
+  box-shadow: 0 1rpx 8rpx rgba(var(--tg-color-success-rgb), 0.03);
 }
 
 .action-btn.outline {

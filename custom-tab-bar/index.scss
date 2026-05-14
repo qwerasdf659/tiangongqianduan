@@ -1,13 +1,9 @@
+@import '../styles/mixins';
+
 /* 自定义底部导航栏 — 霸王茶姬风格：细线图标 + 克制选中态 */
 
 .tabbar-wrap {
-  /* 组件内 Token（样式隔离，无法继承全局变量） */
-  --tg-font-size-mini: 20rpx;
-  --tg-font-weight-regular: 400;
-  --tg-font-weight-bold: 700;
-  --tg-text-primary: #1A1A1A;
-  --tg-text-tertiary: #999999;
-  --tg-line-height-tight: 1.2;
+  @include tg-tokens;
 
   position: fixed;
   left: 0;
@@ -15,7 +11,7 @@
   bottom: 0;
   z-index: 999;
   background: #ffffff;
-  box-shadow: 0 -1rpx 6rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -1rpx 4rpx rgba(0, 0, 0, 0.03);
   pointer-events: auto;
   transform: none !important;
   animation: none !important;
@@ -72,11 +68,11 @@
   line-height: var(--tg-line-height-tight, 1.2);
   color: var(--tg-text-tertiary, #999999);
   font-weight: var(--tg-font-weight-regular, 400);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight, 1rpx);
 }
 
-/* 选中态 — 克制：只变色，不加粗 */
+/* 选中态 — 克制：变黑色，微加粗 */
 .tab-item--active .tab-label {
   color: var(--tg-text-primary, #1A1A1A);
-  font-weight: var(--tg-font-weight-regular, 400);
+  font-weight: var(--tg-font-weight-medium, 500);
 }

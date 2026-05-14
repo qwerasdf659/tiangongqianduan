@@ -23,9 +23,9 @@
 
 .scratch-title {
   font-size: var(--tg-font-size-headline);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-lottery-text, var(--tg-text-primary));
-  letter-spacing: 2rpx;
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .scratch-badge {
@@ -47,6 +47,8 @@
 .scratch-subtitle {
   font-size: var(--td-font-size-s);
   color: var(--tg-lottery-text-light, var(--tg-text-tertiary));
+  letter-spacing: var(--tg-letter-spacing-tight);
+  font-weight: var(--tg-font-weight-medium);
 }
 
 /* ===== 刮卡长条主体 ===== */

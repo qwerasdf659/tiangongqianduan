@@ -508,7 +508,7 @@
   font-size: var(--td-font-size-m);
   font-weight: var(--tg-font-weight-bold);
   display: block;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .amount-value.income {
@@ -853,7 +853,7 @@
   padding: 24rpx 56rpx;
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
   display: inline-flex;
   align-items: center;
   gap: 12rpx;
@@ -863,7 +863,7 @@
 .activity-action-btn:active,
 .upload-action-btn:active {
   transform: scale(0.96);
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 /* ============================================================================ */

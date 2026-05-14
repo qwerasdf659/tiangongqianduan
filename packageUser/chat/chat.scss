@@ -185,7 +185,7 @@
   border-radius: 26rpx;
   @include flex-center;
   position: relative;
-  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -294,7 +294,7 @@
   font-size: var(--td-font-size-m);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  letter-spacing: 0.5rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 /* ============================================================================ */
@@ -396,7 +396,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin-right: 16rpx;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 /* 未读消息数量 */
@@ -587,7 +587,7 @@
 .result-message-text {
   font-size: var(--td-font-size-base);
   color: var(--tg-text-primary);
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
   /* rich-text 内容自动渲染，关键词高亮通过内联样式实现 */
 }
 
@@ -960,7 +960,7 @@
 .session-status-text {
   font-size: var(--tg-font-size-small);
   color: rgba(255, 255, 255, 0.8);
-  letter-spacing: 0.5rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 .header-right {
@@ -1051,7 +1051,7 @@
   margin: 20rpx 24rpx;
   background: white;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.04);
   animation: welcomeFadeIn 0.6s ease;
 }
 
@@ -1149,7 +1149,7 @@
 .tip-text {
   font-size: var(--tg-font-size-caption);
   color: var(--tg-text-secondary);
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
 }
 
 .quick-reply-unavailable-card {
@@ -1163,7 +1163,7 @@
 .quick-reply-unavailable-text {
   font-size: var(--tg-font-size-caption);
   color: var(--tg-gradient-primary-start);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   text-align: center;
 }
 
@@ -1225,7 +1225,7 @@
   padding: 8rpx 24rpx;
   border-radius: 20rpx;
   text-align: center;
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
 }
 
 /* ============================================================================ */
@@ -1262,7 +1262,7 @@
   width: 68rpx;
   height: 68rpx;
   border-radius: 50%;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
 }
 
@@ -1302,7 +1302,7 @@
 .other-bubble {
   background: var(--tg-color-white);
   border-top-left-radius: 6rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .own-bubble {
@@ -1318,7 +1318,7 @@
 
 .message-text {
   font-size: var(--td-font-size-base);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .own-bubble .message-text {
@@ -1391,7 +1391,7 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .typing-animation {
@@ -1440,7 +1440,7 @@
   height: 72rpx;
   border-radius: 50%;
   background: white;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
   @include flex-center;
   z-index: 100;
   transition: all 0.3s ease;
@@ -1460,7 +1460,7 @@
 
 .scroll-bottom-fab:active {
   transform: scale(0.9);
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .fab-arrow {
@@ -1642,7 +1642,7 @@
   outline: none;
   max-height: 160rpx;
   min-height: 36rpx;
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
 }
 
 .input-placeholder {

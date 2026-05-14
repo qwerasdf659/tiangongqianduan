@@ -1,4 +1,4 @@
-﻿/* exchange-shelf 组件样式 — 对标 lottery-activity.scss */
+/* exchange-shelf 组件样式 — 对标 lottery-activity.scss */
 /* Exchange 主链统一消费 --td-* / --tg-* 设计令牌 */
 @import '../../../../styles/mixins';
 
@@ -12,6 +12,7 @@
 
 /* ① Exchange 设计令牌默认值声明 */
 .exchange-shelf {
+  @include tg-tokens;
   --tg-exchange-card-bg: var(--tg-color-white);
   --tg-exchange-card-radius: 20rpx;
   --tg-exchange-card-shadow: var(--tg-shadow-card);
@@ -104,13 +105,13 @@
     --tg-exchange-nav-slider-left,
     linear-gradient(135deg, var(--td-brand-color) 0%, var(--td-brand-color-focus) 100%)
   );
-  box-shadow: 0 6rpx 24rpx rgba(var(--td-brand-color-rgb), 0.4);
+  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .selector-slider.slide-right {
   left: calc(50%);
   background: var(--tg-exchange-nav-slider-right, var(--td-brand-color-active));
-  box-shadow: 0 6rpx 24rpx rgba(var(--td-brand-color-rgb), 0.4);
+  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .space-tab-enhanced {
@@ -127,25 +128,13 @@
   font-weight: var(--tg-font-weight-bold);
 }
 
-.space-tab-enhanced.active .tab-desc {
-  color: rgba(255, 255, 255, 0.85);
-}
-
 .space-tab-enhanced.locked {
   opacity: 0.6;
 }
 
 .tab-inner {
-  @include flex-column-center;
-}
-
-.tab-icon-row {
   @include flex-align-center;
-  gap: 6rpx;
-}
-
-.tab-emoji {
-  font-size: var(--td-font-size-base);
+  gap: 8rpx;
 }
 
 .tab-label {
@@ -153,12 +142,6 @@
   font-weight: var(--tg-font-weight-regular);
   color: var(--tg-text-secondary);
   transition: all 0.3s ease;
-}
-
-.tab-desc {
-  font-size: var(--td-font-size-xs);
-  color: var(--tg-text-tertiary);
-  margin-top: 2rpx;
 }
 
 .unlock-badge {
@@ -243,16 +226,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8rpx 24rpx;
-  background: linear-gradient(135deg, #C5A572, #A08B6E);
-  border-radius: 24rpx;
+  padding: 14rpx 36rpx;
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
+  border-radius: 28rpx;
   margin-right: 12rpx;
-  box-shadow: 0 2rpx 8rpx rgba(197, 165, 114, 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(200, 160, 106, 0.04);
 
   text {
-    font-size: 22rpx;
+    font-size: var(--tg-font-size-caption, 24rpx);
     color: #fff;
-    font-weight: 500;
+    font-weight: var(--tg-font-weight-semibold, 600);
+    letter-spacing: var(--tg-letter-spacing-normal, 2rpx);
   }
 }
 

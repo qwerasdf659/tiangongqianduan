@@ -170,7 +170,9 @@
           wx:else
           class="image-fallback {{item.cost_asset_code === 'points' ? 'asset-type' : 'item-type'}}"
         >
-          <text class="fallback-icon iconfont {{item.cost_asset_code === 'points' ? 'icon-gold-coin' : 'icon-gift'}}"></text>
+          <text
+            class="fallback-icon iconfont {{item.cost_asset_code === 'points' ? 'icon-gold-coin' : 'icon-gift'}}"
+          ></text>
           <text class="fallback-name">{{item.item_name}}</text>
         </view>
         <!-- 标签（优先级: 置顶 > 推荐 > 热销 > 新品 > 限量） -->
@@ -187,7 +189,7 @@
         <text class="product-desc" wx:if="{{item.sell_point}}">{{item.sell_point}}</text>
         <!-- 铸造标识（mint_instance=true 时展示，表示兑换后铸造物品实例） -->
         <view class="mint-mini-tag" wx:if="{{item._mintInstance}}">
-          <text class="mint-mini-icon iconfont icon-craft"></text>
+          <t-icon name="tools-filled" size="20rpx" color="var(--td-brand-color)" />
           <text class="mint-mini-text">可铸造</text>
         </view>
 
@@ -223,7 +225,9 @@
 
   <!-- 空状态（非加载中且无数据时显示） -->
   <t-empty wx:if="{{!loading && filteredProducts.length === 0}}" description="暂无可兑换商品">
-    <view slot="image"><text class="iconfont icon-clover"></text></view>
+    <view slot="image"
+      ><t-icon name="star-filled" size="96rpx" color="var(--td-brand-color)"
+    /></view>
     <view slot="action" class="empty-action-btn" bindtap="onResetFilters">重置筛选</view>
   </t-empty>
 

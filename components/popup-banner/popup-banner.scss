@@ -17,6 +17,7 @@
    🌫️ 遮罩层 - 毛玻璃半透明背景
    ======================================== */
 .popup-banner-overlay {
+  @include tg-tokens;
   position: fixed;
   top: 0;
   left: 0;
@@ -366,7 +367,7 @@
   font-size: var(--td-font-size-l);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   margin-bottom: 16rpx;
 }
 
@@ -374,7 +375,7 @@
   display: block;
   font-size: var(--td-font-size-base);
   color: var(--tg-text-secondary);
-  line-height: 1.7;
+  line-height: var(--tg-line-height-relaxed);
   word-break: break-all;
 }
 
@@ -435,7 +436,7 @@
   border-radius: 44rpx;
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
-  letter-spacing: 2rpx;
+  letter-spacing: var(--tg-letter-spacing-normal);
   border: none;
   @include flex-center;
   transition: all 0.2s ease;

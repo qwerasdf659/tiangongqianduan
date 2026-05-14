@@ -23,9 +23,10 @@
 
 .page-main-title {
   font-size: var(--tg-font-size-display);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-text-primary);
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .page-sub-title {
@@ -53,8 +54,9 @@
 
 .my-design-title {
   font-size: var(--td-font-size-l);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-color-white);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .my-design-desc {
@@ -111,8 +113,9 @@
 
 .mode-title {
   font-size: var(--td-font-size-l);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
   margin-bottom: var(--tg-spacing-sm);
 }
 
@@ -120,6 +123,6 @@
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
   text-align: center;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   padding: 0 var(--tg-spacing-md);
 }

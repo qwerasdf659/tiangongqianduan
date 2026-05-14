@@ -94,7 +94,7 @@
   background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
   filter: drop-shadow(0 2rpx 4rpx rgba(var(--tg-color-black-rgb), 0.08));
   animation: pulseGlow 3s ease-in-out infinite;
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
 }
 
 @keyframes pulseGlow {

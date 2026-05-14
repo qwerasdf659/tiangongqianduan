@@ -26,7 +26,7 @@
   font-weight: var(--tg-font-weight-bold);
   color: #4A3728;
   text-shadow: none;
-  letter-spacing: 2rpx;
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 /* ===== 单拆模式 - 3个红包排一行 ===== */
@@ -118,7 +118,7 @@
   font-size: var(--tg-font-size-small);
   color: var(--tg-lottery-accent, #c5a572);
   font-weight: var(--tg-font-weight-bold);
-  letter-spacing: 4rpx;
+  letter-spacing: var(--tg-letter-spacing-wide);
 }
 
 /* 编号 */
@@ -283,7 +283,7 @@
 
   .deco-text {
     font-size: var(--tg-font-size-micro);
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 
   .packet-number {
@@ -321,7 +321,7 @@
 
   .deco-text {
     font-size: var(--tg-font-size-nano);
-    letter-spacing: 1rpx;
+    letter-spacing: var(--tg-letter-spacing-tight);
   }
 
   .packet-number {
@@ -405,7 +405,7 @@
     font-size: var(--td-font-size-base);
     font-weight: var(--tg-font-weight-bold);
     color: var(--tg-lottery-text-dark, #7b241c);
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 
   &:active {

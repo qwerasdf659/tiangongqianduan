@@ -90,7 +90,7 @@
 
             <!-- 精选标签 -->
             <view class="hot-badge" wx:if="{{item.is_featured}}">
-              <text><text class="iconfont icon-fire"></text> 精选</text>
+              <text><t-icon name="star-filled" size="22rpx" /> 精选</text>
             </view>
 
             <!-- 展示标签 -->

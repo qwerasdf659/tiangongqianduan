@@ -369,7 +369,9 @@
               wx:else
               class="image-fallback {{item.listing_kind === 'fungible_asset' ? 'asset-type' : 'item-type'}}"
             >
-              <text class="fallback-icon iconfont {{item.listing_kind === 'fungible_asset' ? 'icon-gold-coin' : 'icon-gift'}}"></text>
+              <text
+                class="fallback-icon iconfont {{item.listing_kind === 'fungible_asset' ? 'icon-gold-coin' : 'icon-gift'}}"
+              ></text>
               >
               <text class="fallback-name">{{item.item_name}}</text>
             </view>
@@ -443,7 +445,7 @@
       </view>
       <view class="manage-bar-divider"></view>
       <view class="manage-bar-right" bindtap="onGoToInventory">
-        <text class="manage-bar-icon iconfont icon-package"></text>
+        <t-icon name="outbox-filled" size="28rpx" color="var(--td-brand-color)" />
         <text class="manage-bar-text">去上架</text>
       </view>
     </view>

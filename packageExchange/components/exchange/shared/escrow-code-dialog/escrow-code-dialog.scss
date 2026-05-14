@@ -1,4 +1,7 @@
+@import '../../../../../styles/mixins';
+
 .escrow-dialog-overlay {
+  @include tg-tokens;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -43,7 +46,7 @@
   color: var(--tg-text-secondary);
   display: block;
   margin-bottom: 24rpx;
-  line-height: 1.5;
+  line-height: var(--tg-line-height-relaxed);
 }
 
 .escrow-dialog-input {

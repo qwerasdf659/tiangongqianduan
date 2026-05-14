@@ -100,28 +100,6 @@ module.exports = Behavior({
         await this._feedAdsReady.catch(() => {})
       }
 
-      let token = marketUserStore.accessToken
-      if (!token) {
-        token = wx.getStorageSync('access_token')
-        if (token) {
-          marketUserStore.updateAccessToken(token)
-        }
-      }
-
-      if (!token) {
-        this.setData({ loading: false, loadingMore: false })
-        wx.showModal({
-          title: '未登录',
-          content: '请先登录后再查看交易市场',
-          showCancel: false,
-          confirmText: '立即登录',
-          success: () => {
-            this.triggerEvent('needlogin')
-          }
-        })
-        return
-      }
-
       try {
         const page = this.data.currentPage || 1
         const pageSize = this.data.pageSize || 20
@@ -450,6 +428,13 @@ module.exports = Behavior({
         return
       }
 
+      /* 购买操作需要登录 */
+      if (!this.data.isLoggedIn) {
+        this.setData({ showConfirm: false })
+        this.triggerEvent('needlogin')
+        return
+      }
+
       try {
         this.setData({ purchasing: true })
         const response = await purchaseMarketProduct(selectedProduct.market_listing_id)
@@ -602,6 +587,8 @@ module.exports = Behavior({
      * 响应: { current, limit, remaining, percentage }
      */
     async loadMyListingStatus() {
+      /* 未登录时跳过（个人挂单状态需要认证） */
+      if (!this.data.isLoggedIn) return
       try {
         const result = await getMyListingStatus()
         if (result && result.success && result.data) {

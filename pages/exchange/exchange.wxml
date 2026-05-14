@@ -71,10 +71,12 @@
         marketTypeFilters="{{marketTypeFilters}}"
         marketCategoryFilters="{{marketCategoryFilters}}"
         marketSortOptions="{{marketSortOptions}}"
+        isLoggedIn="{{isLoggedIn}}"
         bind:purchase="onPurchaseSuccess"
         bind:pointsupdate="onPointsUpdate"
         bind:viewmodechange="onViewModeChange"
         bind:autherror="onAuthError"
+        bind:needlogin="onShowLoginPopup"
       />
     </view>
 

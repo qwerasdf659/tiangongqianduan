@@ -111,7 +111,7 @@
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   line-height: 1;
-  letter-spacing: -2rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 .stats-unit {
@@ -394,7 +394,7 @@
 .number {
   font-size: var(--tg-font-size-xl);
   font-weight: var(--tg-font-weight-bold);
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
 }
 
 .number.money {

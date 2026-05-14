@@ -143,7 +143,7 @@
   font-size: var(--td-font-size-s);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-lottery-text, var(--tg-text-primary));
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
   text-align: center;
   max-width: 95%;
   word-break: keep-all;
@@ -208,7 +208,7 @@
   font-size: var(--tg-font-size-small);
   font-weight: var(--tg-font-weight-bold);
   text-align: center;
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
   text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
   max-width: 100%;
   word-break: keep-all;
@@ -315,7 +315,7 @@
   right: 4rpx;
   padding: 2rpx 8rpx;
   font-size: var(--tg-font-size-micro);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   color: var(--tg-color-white);
   background: rgba(153, 153, 153, 0.7);
   border-radius: 4rpx;
@@ -337,7 +337,7 @@
     color: var(--tg-color-white);
     font-size: var(--td-font-size-s);
     font-weight: var(--tg-font-weight-bold);
-    letter-spacing: 2rpx;
+    letter-spacing: var(--tg-letter-spacing-normal);
   }
 }
 

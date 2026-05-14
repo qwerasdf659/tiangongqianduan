@@ -160,7 +160,12 @@ Component({
         this.setData({
           spaceList: config.spaces
             .filter((s: any) => s.enabled)
-            .sort((a: any, b: any) => a.sort_order - b.sort_order),
+            .sort((a: any, b: any) => a.sort_order - b.sort_order)
+            .map((s: any) => ({
+              ...s,
+              /* 去除 name 中的 emoji 前缀，只保留纯文字（图标由 t-icon 统一提供） */
+              name: (s.name || '').replace(/^[^\u4e00-\u9fa5a-zA-Z0-9]+/, '')
+            })),
           luckyBasicFilters: filterConfig.basic_filters || [],
           categoryOptions: filterConfig.categories || [],
           categoryTree: Array.isArray(treeCategories) ? treeCategories : [],

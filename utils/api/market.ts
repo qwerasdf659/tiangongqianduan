@@ -121,7 +121,7 @@ async function getMarketProducts(
     quality_grade,
     with_counts: with_counts ? 'true' : null
   })
-  return apiClient.request(`/marketplace/listings?${qs}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/marketplace/listings?${qs}`, { method: 'GET', needAuth: false })
 }
 
 /**
@@ -136,7 +136,7 @@ async function getMarketProductDetail(market_listing_id: number) {
   }
   return apiClient.request(`/marketplace/listings/${market_listing_id}`, {
     method: 'GET',
-    needAuth: true
+    needAuth: false
   })
 }
 
@@ -346,7 +346,7 @@ async function getSettlementCurrencies() {
 
 /** 获取市场分类筛选数据 - GET /api/v4/marketplace/listings/facets（后端已确认实现） */
 async function getMarketFacets() {
-  return apiClient.request('/marketplace/listings/facets', { method: 'GET', needAuth: true })
+  return apiClient.request('/marketplace/listings/facets', { method: 'GET', needAuth: false })
 }
 
 /**

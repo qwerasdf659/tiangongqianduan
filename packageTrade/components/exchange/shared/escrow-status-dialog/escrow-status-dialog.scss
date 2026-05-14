@@ -1,4 +1,7 @@
+@import '../../../../../styles/mixins';
+
 .escrow-status-overlay {
+  @include tg-tokens;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -95,7 +98,7 @@
   flex: 1;
   font-size: var(--td-font-size-s);
   color: var(--tg-text-secondary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .escrow-status-error {

@@ -1,6 +1,7 @@
 @import '../../../../../styles/mixins';
 
 .result-overlay {
+  @include tg-tokens;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -15,7 +16,7 @@
   border-radius: var(--td-radius-large);
   padding: 48rpx 40rpx;
   @include flex-column-center;
-  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .result-icon {
@@ -94,7 +95,7 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 1rpx 8rpx rgba(255, 107, 53, 0.04);
 }
 
 .result-mint-detail {

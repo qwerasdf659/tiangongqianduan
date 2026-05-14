@@ -192,7 +192,7 @@ async function getExchangeProducts(
     exclude_id,
     with_counts: with_counts ? 'true' : null
   })
-  return apiClient.request(`/exchange/items?${qs}`, { method: 'GET', needAuth: true })
+  return apiClient.request(`/exchange/items?${qs}`, { method: 'GET', needAuth: false })
 }
 
 /**
@@ -316,7 +316,7 @@ async function getExchangeItemDetail(exchange_item_id: number | string) {
   }
   return apiClient.request(`/exchange/items/${exchange_item_id}`, {
     method: 'GET',
-    needAuth: true
+    needAuth: false
   })
 }
 
@@ -472,7 +472,7 @@ async function getExchangeSpaceStats(space: string) {
   const qs = buildQueryString({ space })
   return apiClient.request(`/exchange/space-stats?${qs}`, {
     method: 'GET',
-    needAuth: true,
+    needAuth: false,
     showLoading: false,
     showError: false
   })

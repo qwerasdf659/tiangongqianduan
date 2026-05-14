@@ -108,7 +108,7 @@
   min-height: 200rpx;
   font-size: var(--td-font-size-base);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   padding: 16rpx;
   box-sizing: border-box;
   background: var(--tg-color-bg-grey);
@@ -248,7 +248,7 @@
   font-size: var(--td-font-size-s);
   color: var(--tg-text-secondary);
   margin-top: 12rpx;
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 /* 信息卡片 */
@@ -282,7 +282,7 @@
   display: block;
   font-size: var(--td-font-size-s);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 /* 返回按钮 */

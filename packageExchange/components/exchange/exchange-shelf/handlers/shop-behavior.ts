@@ -60,6 +60,8 @@ module.exports = Behavior({
      * 检查臻选空间解锁状     * 后端API: GET /api/v4/exchange/premium-status
      */
     async checkPremiumUnlockStatus() {
+      /* 未登录时跳过（个人解锁状态需要认证） */
+      if (!this.data.isLoggedIn) return
       try {
         const result = await shopAPI.getPremiumStatus()
         if (result && result.success && result.data) {

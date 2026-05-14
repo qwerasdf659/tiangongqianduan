@@ -1,6 +1,7 @@
 @import '../../styles/mixins';
 
 .prize-modal-content {
+  @include tg-tokens;
   width: 560rpx;
   max-width: calc(100vw - 64rpx);
   max-height: 80vh;
@@ -111,7 +112,7 @@
   .desc-text {
     font-size: var(--tg-font-size-body);
     color: var(--tg-text-secondary);
-    line-height: 1.4;
+    line-height: var(--tg-line-height-normal);
   }
 }
 

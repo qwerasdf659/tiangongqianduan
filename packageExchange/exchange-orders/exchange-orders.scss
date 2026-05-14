@@ -55,7 +55,7 @@
   font-size: var(--td-font-size-xxl);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  line-height: 1.2;
+  line-height: var(--tg-line-height-tight);
 }
 
 .stat-highlight {
@@ -95,7 +95,7 @@
 
 .filter-tab.active {
   background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
-  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.35);
+  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .filter-text {
@@ -171,7 +171,7 @@
   @include flex-center;
   font-size: var(--tg-font-size-caption);
   color: var(--tg-color-white);
-  box-shadow: 0 4rpx 12rpx rgba(var(--tg-color-black-rgb), 0.15);
+  box-shadow: 0 1rpx 6rpx rgba(var(--tg-color-black-rgb), 0.03);
 }
 
 .guide-step-icon--pending {
@@ -241,7 +241,7 @@
   padding: 16rpx 48rpx;
   background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
   border-radius: var(--td-radius-large);
-  box-shadow: 0 6rpx 20rpx rgba(var(--td-brand-color-rgb), 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .empty-action:active {
@@ -537,7 +537,7 @@
   text-align: center;
   background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
   border-radius: var(--tg-spacing-xxl);
-  box-shadow: 0 6rpx 20rpx rgba(var(--td-brand-color-rgb), 0.3);
+  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .rating-submit-btn.disabled {

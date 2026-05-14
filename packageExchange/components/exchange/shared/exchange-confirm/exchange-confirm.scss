@@ -1,6 +1,7 @@
 @import '../../../../../styles/mixins';
 
 .confirm-overlay {
+  @include tg-tokens;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
@@ -56,7 +57,7 @@
   font-size: var(--tg-font-size-number-lg);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  letter-spacing: 1rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 .confirm-close {
@@ -99,7 +100,7 @@
   border-radius: 16rpx;
   overflow: hidden;
   flex-shrink: 0;
-  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .confirm-product-image {
@@ -119,14 +120,14 @@
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
   @include text-ellipsis-multi(2);
 }
 
 .confirm-product-sku {
   font-size: var(--tg-font-size-small);
   color: var(--tg-text-secondary);
-  line-height: 1.4;
+  line-height: var(--tg-line-height-normal);
 }
 
 .confirm-product-price-wrap {
@@ -281,13 +282,13 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  box-shadow: 0 8rpx 28rpx rgba(255, 107, 53, 0.4);
+  box-shadow: 0 1rpx 8rpx rgba(255, 107, 53, 0.04);
   transition: all 0.2s;
 }
 
 .confirm-submit-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 1rpx 6rpx rgba(255, 107, 53, 0.03);
 }
 
 .confirm-submit-btn.disabled {

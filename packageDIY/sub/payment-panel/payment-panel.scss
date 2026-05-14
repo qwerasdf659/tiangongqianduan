@@ -7,6 +7,7 @@
 
 /* ===== 遮罩层 ===== */
 .payment-overlay {
+  @include tg-tokens;
   position: fixed;
   top: 0;
   left: 0;
@@ -47,8 +48,9 @@
 
 .payment-title {
   font-size: var(--td-font-size-l);
-  font-weight: var(--tg-font-weight-bold);
+  font-weight: var(--tg-font-weight-semibold);
   color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .payment-close {

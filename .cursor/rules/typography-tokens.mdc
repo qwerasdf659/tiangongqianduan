@@ -16,8 +16,9 @@ globs: ["**/*.scss", "**/*.wxss"]
 
 | Token | 值 | 用途 |
 |-------|------|------|
-| `--tg-font-size-display` | 40rpx | 活动大标题 |
-| `--tg-font-size-headline` | 32rpx | 区域标题 |
+| `--tg-font-size-display-lg` | 52rpx | 活动超大标题、营销数字 |
+| `--tg-font-size-display` | 44rpx | 活动大标题 |
+| `--tg-font-size-headline` | 36rpx | 区域标题（砸金蛋标题等） |
 | `--tg-font-size-title` | 28rpx | 小标题、按钮主文字 |
 | `--tg-font-size-body` | 26rpx | 正文、描述 |
 | `--tg-font-size-caption` | 24rpx | 标签（"可用积分"） |
@@ -35,9 +36,30 @@ globs: ["**/*.scss", "**/*.wxss"]
 
 ## 字重
 
-只用两个值，不用中间值：
-- `var(--tg-font-weight-bold)` = 700 — 标题、数字、按钮
-- `var(--tg-font-weight-regular)` = 400 — 正文、标签、说明
+四级字重，按需使用：
+- `var(--tg-font-weight-regular)` = 400 — 正文、辅助标签、说明文字
+- `var(--tg-font-weight-medium)` = 500 — 副标题、卡片标题、按钮副文字、描述
+- `var(--tg-font-weight-semibold)` = 600 — 区域标题、按钮主文字、强调文字
+- `var(--tg-font-weight-bold)` = 700 — 大标题、核心数字、核心CTA按钮
+
+字重选择原则：
+- 标题和正文之间必须有至少一级字重差（如标题 600，正文 400）
+- 同一卡片内避免出现两个 700，用 600 + 500 制造层次
+- 数字始终用 700（视觉锚点）
+
+## 字间距（letter-spacing）
+
+| Token | 值 | 用途 |
+|-------|------|------|
+| `--tg-letter-spacing-tight` | 1rpx | 正文、数字、小字 |
+| `--tg-letter-spacing-normal` | 2rpx | 区域标题、欢迎语、标签 |
+| `--tg-letter-spacing-wide` | 4rpx | 大标题、按钮主文字（如"三连敲"） |
+
+字间距使用原则：
+- 中文标题必须加字间距（至少 `--tg-letter-spacing-normal`），让文字从容大气
+- 按钮文字用 `--tg-letter-spacing-wide`，提升高级感
+- 数字用 `--tg-letter-spacing-tight` 或 0，保持紧凑可读
+- 英文/数字不宜过大字间距
 
 ## 颜色
 
@@ -48,19 +70,45 @@ globs: ["**/*.scss", "**/*.wxss"]
 
 ## 禁止事项
 
-- ❌ 禁止写死 `font-size: 28rpx`，用 `var(--tg-font-size-title)` 代替
-- ❌ 禁止写死 `color: #333`，用 `var(--tg-text-primary)` 代替
-- ❌ 禁止写死 `font-weight: 700`，用 `var(--tg-font-weight-bold)` 代替
-- ❌ 禁止对数字使用系统字体，必须加 `font-family: var(--tg-font-number)`
+- 禁止写死 `font-size: 28rpx`，用 `var(--tg-font-size-title)` 代替
+- 禁止写死 `color: #333`，用 `var(--tg-text-primary)` 代替
+- 禁止写死 `font-weight: 700`，用 `var(--tg-font-weight-bold)` 代替
+- 禁止写死 `font-weight: 600`，用 `var(--tg-font-weight-semibold)` 代替
+- 禁止写死 `letter-spacing: 2rpx`，用 `var(--tg-letter-spacing-normal)` 代替
+- 禁止对数字使用系统字体，必须加 `font-family: var(--tg-font-number)`
 
-## 正确示例
+## 各场景推荐搭配
 
 ```scss
-// 区域标题
-.section-title {
-  font-size: var(--tg-font-size-headline);
+// 活动大标题（如 banner 文字）
+.activity-title {
+  font-size: var(--tg-font-size-display);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-wide);
+}
+
+// 区域标题（如"选一个金蛋砸开试试手气"）
+.section-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+// 按钮主文字（如"三连敲"）
+.btn-label {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  letter-spacing: var(--tg-letter-spacing-wide);
+}
+
+// 按钮副文字（如"90积分"）
+.btn-sub {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-medium);
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 // 积分数字
@@ -70,13 +118,31 @@ globs: ["**/*.scss", "**/*.wxss"]
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
-// 辅助标签
+// 辅助标签（如"可用积分"）
 .label {
-  font-size: var(--tg-font-size-caption);
+  font-size: var(--tg-font-size-small);
   font-weight: var(--tg-font-weight-regular);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+// 欢迎语/用户名
+.welcome {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+// 消耗提示（如"消耗 30 积分/次"）
+.cost-hint {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
   color: var(--tg-text-secondary);
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 ```
 
