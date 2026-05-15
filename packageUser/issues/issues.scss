@@ -17,27 +17,50 @@
 
 /* 页面标题 */
 .page-header {
-  padding: 24rpx 16rpx 32rpx;
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, #ffffff 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  margin: 0 -20rpx;
+  margin-bottom: var(--tg-spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-text {
+  flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .header-title {
-  font-size: var(--td-font-size-l);
-  font-weight: var(--tg-font-weight-bold);
+  font-size: 48rpx;
+  font-weight: 700;
   color: var(--tg-text-primary);
   display: block;
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
+  letter-spacing: -0.5rpx;
 }
 
 .header-desc {
-  font-size: var(--td-font-size-s);
-  color: var(--tg-text-tertiary);
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+  line-height: 1.5;
+}
+
+.header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
 }
 
 /* 骨架屏 */
 .issue-skeleton {
   display: flex;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  padding: var(--tg-spacing-md);
+  margin-bottom: var(--tg-spacing-sm);
   background: var(--tg-color-white);
   border-radius: var(--td-radius-large);
 }
@@ -89,12 +112,12 @@
 /* 空状态 */
 .empty-state {
   @include flex-column-center;
-  padding: 120rpx 40rpx;
+  padding: 120rpx var(--tg-spacing-xl);
 }
 
 .empty-icon {
   font-size: 96rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: var(--tg-spacing-md);
   opacity: 0.6;
 }
 
@@ -108,11 +131,11 @@
 .empty-desc {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  margin-bottom: 32rpx;
+  margin-bottom: var(--tg-spacing-lg);
 }
 
 .retry-btn {
-  padding: 16rpx 48rpx;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-xxl);
   background: var(--td-brand-color);
   color: var(--tg-color-white);
   border-radius: var(--td-radius-large);
@@ -121,7 +144,7 @@
 
 /* 工单总览 */
 .issues-summary {
-  padding: 0 16rpx 16rpx;
+  padding: 0 var(--tg-spacing-sm) var(--tg-spacing-sm);
 }
 
 .summary-text {
@@ -132,31 +155,36 @@
 /* 工单卡片 */
 .issue-card {
   background: var(--tg-color-white);
-  border-radius: var(--td-radius-large);
-  padding: 28rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 /* 工单头部 */
 .issue-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: 24rpx;
 }
 
 .issue-type-badge {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--td-brand-color-focus) 0%, var(--td-brand-color) 100%);
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #f5f0e8 0%, #ebe4d8 100%);
   @include flex-center;
-  margin-right: 16rpx;
+  margin-right: var(--tg-spacing-sm);
   flex-shrink: 0;
+  box-shadow: 0 2rpx 8rpx rgba(139, 115, 85, 0.12);
 }
 
 .type-icon {
-  font-size: var(--tg-font-size-title);
+  font-size: 36rpx;
 }
 
 .issue-title-area {
@@ -183,7 +211,7 @@
 
 /* 工单状态标签 */
 .issue-status-badge {
-  padding: 6rpx 16rpx;
+  padding: 6rpx var(--tg-spacing-sm);
   border-radius: 20rpx;
   font-size: var(--tg-font-size-xs);
   font-weight: var(--tg-font-weight-regular);
@@ -213,7 +241,7 @@
 
 /* 工单详情 */
 .issue-details {
-  padding: 16rpx 0;
+  padding: var(--tg-spacing-sm) 0;
   border-top: 1rpx solid var(--tg-color-border-light);
   border-bottom: 1rpx solid var(--tg-color-border-light);
   margin-bottom: 20rpx;
@@ -223,7 +251,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8rpx 0;
+  padding: var(--tg-spacing-xs) 0;
 }
 
 .detail-label {
@@ -295,8 +323,8 @@
   flex: 1;
   height: 4rpx;
   background: var(--tg-color-border);
-  margin: 0 8rpx;
-  margin-bottom: 32rpx;
+  margin: 0 var(--tg-spacing-xs);
+  margin-bottom: var(--tg-spacing-lg);
   transition: background 0.3s;
 }
 
@@ -308,7 +336,7 @@
 .load-more,
 .no-more {
   text-align: center;
-  padding: 32rpx;
+  padding: var(--tg-spacing-lg);
 }
 
 .load-more-text,

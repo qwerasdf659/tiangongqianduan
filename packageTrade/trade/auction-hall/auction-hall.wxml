@@ -12,7 +12,7 @@
           <text class="action-text">我的拍卖</text>
         </view>
         <view class="header-action-btn" bindtap="onGoMyBids">
-          <text class="action-icon">🏷️</text>
+          <t-icon name="discount" size="28rpx" class="action-icon" />
           <text class="action-text">我的出价</text>
         </view>
         <view class="header-action-btn header-action-btn--primary" bindtap="onCreateAuction">
@@ -134,7 +134,7 @@
 
           <!--倒计时-->
           <view class="auction-countdown" wx:if="{{item._isActive && item._countdownText}}">
-            <text class="countdown-text">⏰ {{item._countdownText}}</text>
+            <view class="countdown-text"><t-icon name="time" size="28rpx" /> {{item._countdownText}}</view>
           </view>
 
           <!--卖方信息-->

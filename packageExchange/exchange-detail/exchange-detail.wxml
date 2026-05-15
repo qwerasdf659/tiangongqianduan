@@ -143,7 +143,7 @@
       <!-- Phase 4: 满减/活动信息（后端 promotions 数组有值时渲染） -->
       <view class="ed-promotion-row" wx:if="{{promotions.length > 0}}">
         <view wx:for="{{promotions}}" wx:key="promotion_id" class="ed-promotion-item">
-          <text class="ed-promotion-icon">🏷️</text>
+          <t-icon name="discount" size="28rpx" class="ed-promotion-icon" />
           <text class="ed-promotion-text">{{item.text || item.display_name}}</text>
         </view>
       </view>
@@ -419,13 +419,13 @@
 
   <!-- 微信客服按钮（open-type="contact" 拉起微信客服） -->
   <button class="ed-service-btn" open-type="contact" plain="{{true}}">
-    <text class="ed-service-icon">💬</text>
+    <t-icon name="chat" size="28rpx" class="ed-service-icon" />
     <text class="ed-service-text">客服</text>
   </button>
 
   <!-- Phase 4: 购物车按钮（配置驱动，暂隐藏，启用后改为 wx:if="{{showCartButton}}"） -->
   <view class="ed-cart-btn" wx:if="{{false}}">
-    <text class="ed-cart-icon">🛒</text>
+    <t-icon name="shop" size="28rpx" class="ed-cart-icon" />
     <text class="ed-cart-text">购物车</text>
   </view>
 

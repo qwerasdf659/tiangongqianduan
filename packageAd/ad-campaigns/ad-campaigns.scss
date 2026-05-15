@@ -13,10 +13,19 @@
   @include flex-column;
 }
 
-/* ===== 页面头部概览（紫蓝渐变，对齐全项目 linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active))） ===== */
+/* ===== 页面头部概览（浅米色渐变，对齐 Tab 页面视觉风格） ===== */
 .page-header {
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
-  padding: 24rpx 32rpx 36rpx;
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, #ffffff 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
 }
 
 .header-content {
@@ -30,26 +39,27 @@
 .header-count {
   font-size: 56rpx;
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-color-white);
+  color: var(--tg-text-primary);
   margin-right: 8rpx;
   line-height: var(--tg-line-height-tight);
+  font-family: var(--tg-font-number);
 }
 
 .header-unit {
-  font-size: var(--td-font-size-s);
-  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
   margin-top: 12rpx;
 }
 
 .header-create-btn {
   @include flex-align-center;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--tg-color-border-strong, #333333);
   color: var(--tg-color-white);
-  padding: 12rpx 28rpx;
+  padding: 14rpx 32rpx;
   border-radius: 32rpx;
   font-size: var(--td-font-size-s);
-  font-weight: var(--tg-font-weight-regular);
-  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  font-weight: var(--tg-font-weight-semibold);
+  border: none;
 }
 
 .header-create-icon {
@@ -76,19 +86,22 @@
 .status-tab-item {
   display: inline-flex;
   align-items: center;
-  padding: 12rpx 24rpx;
+  padding: 14rpx 28rpx;
   font-size: var(--td-font-size-s);
   color: var(--tg-text-secondary);
-  border-radius: var(--td-radius-large);
+  border-radius: 999rpx;
   background: transparent;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   flex-shrink: 0;
+  border: 1rpx solid transparent;
 }
 
 .status-tab-item.active {
-  color: var(--td-brand-color);
-  background: rgba(var(--td-brand-color-rgb), 0.1);
+  color: var(--tg-color-white);
+  background: #4a4a4a;
   font-weight: var(--tg-font-weight-bold);
+  border-color: #4a4a4a;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.12);
 }
 
 /* ===== 运营提示栏 ===== */
@@ -131,15 +144,14 @@
   padding-bottom: 180rpx;
 }
 
-/* 毛玻璃卡片（对齐项目 var(--tg-card-bg) + 0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08), 0 2rpx 6rpx rgba(0, 0, 0, 0.04)） */
+/* 毛玻璃卡片 */
 .campaign-card {
   background: var(--tg-card-bg);
-  border-radius: var(--td-radius-large);
+  border-radius: 20rpx;
   margin-bottom: var(--tg-spacing-lg);
   overflow: hidden;
-  box-shadow:
-    0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08),
-    0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: row;
 }
@@ -313,7 +325,7 @@
   height: 88rpx;
   line-height: 88rpx;
   font-size: var(--td-font-size-base);
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.25);
+  box-shadow: 0 6rpx 20rpx rgba(74, 74, 74, 0.2);
 }
 
 /* ===== 加载状态 ===== */

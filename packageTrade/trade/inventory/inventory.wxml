@@ -100,7 +100,7 @@
             bind:tap="onCategoryChange"
             data-category="product"
           >
-            <text class="tab-pill-icon">📱</text>
+            <t-icon name="mobile" size="28rpx" class="tab-pill-icon" />
             <text class="tab-pill-label">商品</text>
             <text class="tab-pill-count">{{categoryStats.product}}</text>
           </view>
@@ -129,7 +129,7 @@
     <!-- ====== 搜索 + 排序工具栏 ====== -->
     <view class="search-toolbar">
       <view class="search-pill">
-        <text class="search-pill-icon">🔍</text>
+        <t-icon name="search" size="28rpx" class="search-pill-icon" />
         <input
           class="search-pill-input"
           placeholder="搜索物品名称..."
@@ -259,7 +259,7 @@
 
             <!-- 过期/时间提示 -->
             <view class="item-meta-row" wx:if="{{item.expires_at}}">
-              <text class="meta-clock">⏰</text>
+              <t-icon name="time" size="28rpx" class="meta-clock" />
               <text class="meta-text {{helper.isExpiringSoon(item.expires_at) ? 'expiring' : ''}}">
                 {{helper.isExpiringSoon(item.expires_at) ? '即将过期 · ' :
                 ''}}{{helper.formatTime(item.expires_at)}}
@@ -295,7 +295,7 @@
                 catchtap="onViewExistingCode"
                 data-item="{{item}}"
               >
-                <text>📱 查看兑换码</text>
+                <view><t-icon name="mobile" size="28rpx" /> 查看兑换码</view>
               </button>
               <button
                 class="item-action-btn action-sell"
@@ -688,7 +688,7 @@
             bind:tap="onSortChange"
             data-sort="newest"
           >
-            <text class="sort-option-icon">🕐</text>
+            <t-icon name="time" size="28rpx" class="sort-option-icon" />
             <text>最新获得</text>
           </view>
           <view
@@ -696,7 +696,7 @@
             bind:tap="onSortChange"
             data-sort="oldest"
           >
-            <text class="sort-option-icon">📅</text>
+            <t-icon name="calendar" size="28rpx" class="sort-option-icon" />
             <text>最早获得</text>
           </view>
           <view
@@ -704,7 +704,7 @@
             bind:tap="onSortChange"
             data-sort="expire_soon"
           >
-            <text class="sort-option-icon">⏰</text>
+            <t-icon name="time" size="28rpx" class="sort-option-icon" />
             <text>即将过期</text>
           </view>
         </view>

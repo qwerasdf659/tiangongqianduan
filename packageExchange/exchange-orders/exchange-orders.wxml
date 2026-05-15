@@ -59,7 +59,7 @@
       <view class="guide-title"><text class="iconfont icon-package"></text> 订单流程说明</view>
       <view class="guide-steps">
         <view class="guide-step">
-          <view class="guide-step-icon guide-step-icon--pending">🛒</view>
+          <view class="guide-step-icon guide-step-icon--pending"><t-icon name="shop" size="28rpx" /></view>
           <text class="guide-step-text">兑换商品</text>
         </view>
         <view class="guide-arrow">→</view>

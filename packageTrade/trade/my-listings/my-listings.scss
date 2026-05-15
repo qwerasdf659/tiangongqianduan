@@ -21,7 +21,7 @@
   /* 统计卡片：纯白实底，无毛玻璃 */
   background: var(--tg-color-white);
   border-radius: var(--tg-radius-xl);
-  padding: 40rpx 30rpx;
+  padding: var(--tg-spacing-xl) 30rpx;
   margin-bottom: var(--tg-spacing-lg);
   box-shadow: var(--tg-shadow-card);
   border: 1rpx solid rgba(255, 255, 255, 0.4);
@@ -75,7 +75,7 @@
   height: 56rpx;
   border-radius: 50%;
   @include flex-center;
-  margin-bottom: 8rpx;
+  margin-bottom: var(--tg-spacing-xs);
   font-size: var(--tg-font-size-title);
   transition: var(--tg-transition-base);
 }
@@ -125,7 +125,7 @@
   display: flex;
   background: var(--tg-color-white);
   border-radius: var(--tg-radius-xl);
-  padding: 8rpx;
+  padding: var(--tg-spacing-xs);
   margin-bottom: var(--tg-spacing-md);
   box-shadow: var(--tg-shadow-sm);
   gap: 6rpx;
@@ -171,7 +171,7 @@
   line-height: 32rpx;
   text-align: center;
   border-radius: 16rpx;
-  padding: 0 8rpx;
+  padding: 0 var(--tg-spacing-xs);
 }
 
 .tab-item.active .tab-count {
@@ -184,7 +184,7 @@
   gap: var(--tg-spacing-xs);
   background: rgba(139, 115, 85, 0.06);
   border-radius: var(--td-radius-large);
-  padding: 16rpx 24rpx;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
   margin-bottom: var(--tg-spacing-lg);
   border: 1rpx solid rgba(139, 115, 85, 0.1);
 }
@@ -277,13 +277,13 @@
 .card-header {
   @include flex-between;
   margin-bottom: 20rpx;
-  padding-left: 16rpx;
+  padding-left: var(--tg-spacing-sm);
 }
 
 .kind-tag {
   font-size: var(--tg-font-size-xs);
   font-weight: var(--tg-font-weight-bold);
-  padding: 6rpx 16rpx;
+  padding: 6rpx var(--tg-spacing-sm);
   border-radius: 20rpx;
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.12), rgba(229, 90, 43, 0.08));
   color: var(--tg-gradient-primary-start);
@@ -298,7 +298,7 @@
 .status-tag {
   font-size: var(--tg-font-size-xs);
   font-weight: var(--tg-font-weight-bold);
-  padding: 6rpx 16rpx;
+  padding: 6rpx var(--tg-spacing-sm);
   border-radius: 20rpx;
 }
 
@@ -329,7 +329,7 @@
 /* 卡片主体 */
 .card-body {
   @include flex-between;
-  padding-left: 16rpx;
+  padding-left: var(--tg-spacing-sm);
   margin-bottom: 20rpx;
   gap: 20rpx;
 }
@@ -345,7 +345,7 @@
   color: var(--tg-text-primary);
   @include text-ellipsis;
   display: block;
-  margin-bottom: 8rpx;
+  margin-bottom: var(--tg-spacing-xs);
 }
 
 .item-meta {
@@ -374,7 +374,7 @@
   @include flex-column-center;
   flex-shrink: 0;
   background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(229, 90, 43, 0.06));
-  padding: 16rpx 24rpx;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
   border-radius: var(--td-radius-default);
   min-width: 140rpx;
 }
@@ -409,7 +409,7 @@
 .card-footer {
   @include flex-between;
   padding-top: 20rpx;
-  padding-left: 16rpx;
+  padding-left: var(--tg-spacing-sm);
   border-top: 2rpx solid var(--tg-color-border-light);
 }
 
@@ -519,7 +519,7 @@
 /* ===== 空状态 ===== */
 .empty-state {
   @include flex-column-center;
-  padding: 100rpx 40rpx;
+  padding: 100rpx var(--tg-spacing-xl);
 }
 
 .empty-illustration {
@@ -571,17 +571,17 @@
 .empty-desc {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  margin-bottom: 40rpx;
+  margin-bottom: var(--tg-spacing-xl);
 }
 
 .empty-actions {
   display: flex;
-  gap: 24rpx;
+  gap: var(--tg-spacing-md);
 }
 
 .action-btn-primary {
   @include btn-primary;
-  padding: 0 40rpx;
+  padding: 0 var(--tg-spacing-xl);
   height: 72rpx;
   line-height: 72rpx;
   font-size: var(--td-font-size-base);
@@ -591,7 +591,7 @@
 }
 
 .action-btn-outline {
-  padding: 0 40rpx;
+  padding: 0 var(--tg-spacing-xl);
   height: 72rpx;
   line-height: 68rpx;
   font-size: var(--td-font-size-base);
@@ -609,7 +609,7 @@
 
 /* ===== 担保码按钮（Phase 4） ===== */
 .escrow-btn {
-  padding: 0 24rpx;
+  padding: 0 var(--tg-spacing-md);
   height: 56rpx;
   line-height: 56rpx;
   font-size: var(--tg-font-size-caption);

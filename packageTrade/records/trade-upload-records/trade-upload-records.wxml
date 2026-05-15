@@ -108,7 +108,7 @@
 
             <view class="filter-actions">
               <button class="filter-btn" bind:tap="onToggleFilter">
-                <text class="btn-icon">🔍</text>
+                <t-icon name="search" size="28rpx" class="btn-icon" />
                 <text class="btn-text">筛选</text>
               </button>
               <button class="filter-btn secondary" bind:tap="onResetFilters">
@@ -123,7 +123,7 @@
         <view class="search-section">
           <view class="search-container">
             <view class="search-box">
-              <text class="search-icon">🔍</text>
+              <t-icon name="search" size="28rpx" class="search-icon" />
               <input
                 class="search-input"
                 placeholder="搜索交易ID、描述..."
@@ -180,7 +180,7 @@
                 <!-- 操作按钮 -->
                 <view class="transaction-actions">
                   <button class="action-btn detail" bind:tap="onViewDetail" data-record="{{item}}">
-                    <text class="btn-icon">📋</text>
+                    <t-icon name="file-paste" size="28rpx" class="btn-icon" />
                     <text class="btn-text">详情</text>
                   </button>
                 </view>
@@ -243,7 +243,7 @@
                   <view class="record-status {{item.status}}">
                     <t-icon name="check-circle-filled" size="28rpx" class="status-icon" wx:if="{{item.status === 'approved'}}" />
                     <t-icon name="close-circle-filled" size="28rpx" class="status-icon" wx:elif="{{item.status === 'rejected'}}" />
-                    <text class="status-icon" wx:elif="{{item.status === 'expired'}}">⌛</text>
+                    <t-icon name="hourglass" size="28rpx" class="status-icon" wx:elif="{{item.status === 'expired'}}" />
                     <text class="status-icon iconfont icon-hourglass" wx:else></text>
                     <text class="status-text"
                       >{{item.status === 'approved' ? '已通过' : item.status === 'rejected' ?
@@ -289,7 +289,7 @@
                     bind:tap="viewReviewDetail"
                     data-record="{{item}}"
                   >
-                    <text class="btn-icon">📝</text>
+                    <t-icon name="edit" size="28rpx" class="btn-icon" />
                     <text class="btn-text">查看详情</text>
                   </button>
                 </view>

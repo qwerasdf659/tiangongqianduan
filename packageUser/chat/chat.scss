@@ -537,7 +537,7 @@
 }
 
 .avatar-icon-sm {
-  font-size: 28rpx !important;
+  font-size: var(--tg-font-size-title) !important;
 }
 
 /* 搜索结果内容区域 */
@@ -1143,7 +1143,7 @@
 }
 
 .tip-icon {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 .tip-text {
@@ -1267,7 +1267,7 @@
 }
 
 .message-avatar .avatar-icon {
-  font-size: 28rpx;
+  font-size: var(--tg-font-size-title);
 }
 
 /* 消息气泡区域 */

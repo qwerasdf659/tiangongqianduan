@@ -30,7 +30,7 @@
       </view>
 
       <view class="escrow-status-notice" wx:if="{{notice}}">
-        <text class="escrow-status-notice-icon">🔑</text>
+        <t-icon name="secured" size="28rpx" class="escrow-status-notice-icon" />
         <text class="escrow-status-notice-text">{{notice}}</text>
       </view>
     </view>

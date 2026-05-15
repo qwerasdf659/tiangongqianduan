@@ -1,4 +1,4 @@
-﻿/* premium-space 臻选空间子组件样式 */
+/* premium-space 臻选空间子组件样式 */
 @import '../../../../../../styles/mixins';
 @import '../../exchange-shelf-cards';
 
@@ -21,10 +21,8 @@
   border-radius: 20rpx;
   padding: 24rpx 32rpx;
   margin-bottom: 24rpx;
-  box-shadow:
-    0 8rpx 24rpx rgba(0, 0, 0, 0.08),
-    0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.15);
+  box-shadow: none;
+  border: 1rpx solid var(--tg-color-border-strong);
 }
 
 .search-input {

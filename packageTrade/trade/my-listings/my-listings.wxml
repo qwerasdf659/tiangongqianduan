@@ -7,13 +7,13 @@
     <view class="stats-card">
       <view class="stats-row">
         <view class="stat-item">
-          <view class="stat-icon-wrap total-icon"><text>📋</text></view>
+          <view class="stat-icon-wrap total-icon"><t-icon name="file-paste" size="28rpx" /></view>
           <text class="stat-number">{{totalCount}}</text>
           <text class="stat-label">全部挂单</text>
         </view>
         <view class="stat-divider"></view>
         <view class="stat-item">
-          <view class="stat-icon-wrap onsale-icon"><text>🏷️</text></view>
+          <view class="stat-icon-wrap onsale-icon"><t-icon name="discount" size="28rpx" /></view>
           <text class="stat-number stat-on-sale">{{statusTabs[1].count || 0}}</text>
           <text class="stat-label">在售中</text>
         </view>
@@ -162,7 +162,7 @@
 
       <!-- 空状态 -->
       <t-empty wx:if="{{!loading && isEmpty}}" description="去仓库上架您的物品或资产，赚取收益吧">
-        <view slot="image">📋</view>
+        <view slot="image"><t-icon name="file-paste" size="28rpx" /></view>
         <view slot="description" class="empty-title"
           >{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</view
         >

@@ -148,7 +148,7 @@
       wx:if="{{!loading && isEmpty}}"
       description="{{currentStatus === 'all' ? '去交易市场看看有什么好物' : '当前筛选状态下还没有订单'}}"
     >
-      <view slot="image" class="empty-slot-icon">📋</view>
+      <view slot="image" class="empty-slot-icon"><t-icon name="file-paste" size="28rpx" /></view>
       <view slot="action">
         <navigator url="/packageTrade/trade/market/market" class="empty-link">
           <text class="empty-link-text">逛逛市场</text>

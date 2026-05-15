@@ -3,7 +3,7 @@
   <!-- 搜索筛选区域 -->
   <view class="search-filter-section">
     <view class="search-box">
-      <text class="search-icon">🔍</text>
+      <t-icon name="search" size="28rpx" class="search-icon" />
       <input
         class="search-input"
         placeholder="搜索商品名称..."

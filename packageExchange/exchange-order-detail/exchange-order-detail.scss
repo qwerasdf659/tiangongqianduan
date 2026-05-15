@@ -11,15 +11,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(
-    --tg-page-gradient,
-    linear-gradient(
-      135deg,
-      rgba(255, 107, 53, 0.08) 0%,
-      rgba(229, 90, 43, 0.12) 50%,
-      rgba(76, 205, 196, 0.08) 100%
-    )
-  );
+  background: #ffffff;
   padding-bottom: env(safe-area-inset-bottom);
 }
 

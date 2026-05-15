@@ -35,7 +35,7 @@
       <!-- 操作指引卡片 -->
       <view class="guide-card">
         <view class="guide-header">
-          <text class="guide-icon">📋</text>
+          <text class="guide-icon"><t-icon name="file-paste" size="28rpx" /></text>
           <text class="guide-title">核销准备</text>
         </view>
         <text class="guide-desc">请确认以下事项，准备就绪后进入扫码核销</text>
@@ -131,7 +131,7 @@
           <view class="scan-ring outer"></view>
           <view class="scan-ring inner"></view>
           <view class="scan-center-icon">
-            <text class="center-icon-text">📷</text>
+            <text class="center-icon-text"><t-icon name="camera" size="28rpx" /></text>
           </view>
         </view>
         <t-button theme="primary" shape="round" size="large" bind:tap="startScan"

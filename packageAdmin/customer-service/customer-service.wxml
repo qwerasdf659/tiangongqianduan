@@ -80,7 +80,7 @@
         <!-- 聊天区域 -->
         <view class="chat-panel {{chatExpanded ? 'expanded' : ''}}">
           <view wx:if="{{!currentSessionId}}" class="no-session-selected">
-            <text class="no-session-icon">💬</text>
+            <text class="no-session-icon"><t-icon name="chat" size="28rpx" /></text>
             <text class="no-session-text">请选择一个会话开始聊天</text>
           </view>
 

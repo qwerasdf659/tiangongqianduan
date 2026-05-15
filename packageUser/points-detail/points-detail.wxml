@@ -53,7 +53,7 @@
     <view class="records-section">
       <view class="records-header">
         <view class="records-title-row">
-          <view class="records-title-icon">📋</view>
+          <view class="records-title-icon"><t-icon name="file-paste" size="28rpx" /></view>
           <text class="records-title">积分明细</text>
         </view>
         <view class="records-count">共 {{filteredPointsRecords.length || 0}} 条</view>
@@ -110,7 +110,7 @@
         wx:if="{{filteredPointsRecords.length === 0 && !loading}}"
         description="{{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ? '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}"
       >
-        <view slot="image" class="empty-slot-icon">💳</view>
+        <view slot="image" class="empty-slot-icon"><t-icon name="creditcard" size="28rpx" /></view>
         <t-button slot="action" theme="primary" shape="round" size="small" bind:tap="onBackTap"
           >返回用户中心</t-button
         >

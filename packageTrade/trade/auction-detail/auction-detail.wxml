@@ -63,7 +63,7 @@
 
         <!--倒计时-->
         <view class="countdown-row" wx:if="{{countdownText}}">
-          <text class="countdown-icon">⏰</text>
+          <t-icon name="time" size="28rpx" class="countdown-icon" />
           <text class="countdown-label"
             >{{auction.status === 'pending' ? '距开始' : '距结束'}}</text
           >

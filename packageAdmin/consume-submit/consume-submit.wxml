@@ -76,7 +76,7 @@
       <view class="card-header">
         <view class="header-left">
           <view class="header-icon note-icon">
-            <text class="note-icon-text">📝</text>
+            <text class="note-icon-text"><t-icon name="edit" size="28rpx" /></text>
           </view>
           <text class="header-title">商家备注</text>
         </view>
@@ -168,7 +168,7 @@
             <view class="scan-ring-pulse"></view>
             <view class="scan-ring-pulse delay"></view>
             <view class="scan-btn-core">
-              <text class="scan-camera-emoji">📷</text>
+              <text class="scan-camera-emoji"><t-icon name="camera" size="28rpx" /></text>
             </view>
           </view>
           <text class="scan-cta">点击扫描顾客二维码</text>
@@ -222,7 +222,7 @@
       <view class="card-header">
         <view class="header-left">
           <view class="header-icon summary-icon">
-            <text class="summary-icon-text">📋</text>
+            <text class="summary-icon-text"><t-icon name="file-paste" size="28rpx" /></text>
           </view>
           <text class="header-title">提交预览</text>
         </view>

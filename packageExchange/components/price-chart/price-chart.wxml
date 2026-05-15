@@ -31,7 +31,7 @@
       data-tab="price"
       bindtap="onChartTabChange"
     >
-      <text class="tab-icon">📈</text>
+      <t-icon name="trending-up" size="28rpx" class="tab-icon" />
       <text>价格走势</text>
     </view>
     <view
@@ -39,7 +39,7 @@
       data-tab="volume"
       bindtap="onChartTabChange"
     >
-      <text class="tab-icon">📊</text>
+      <t-icon name="chart-bar" size="28rpx" class="tab-icon" />
       <text>成交量</text>
     </view>
   </view>

@@ -79,10 +79,10 @@ page {
   letter-spacing: var(--tg-letter-spacing-tight);
 }
 
-/* ===== 我的设计入口卡片（橙色背景） ===== */
+/* ===== 我的设计入口卡片 ===== */
 .my-design-card {
   @include flex-between;
-  background: var(--td-brand-color);
+  background: #6b6b6b;
   border-radius: var(--td-radius-default);
   padding: var(--tg-spacing-lg) var(--tg-spacing-md);
   margin-bottom: var(--tg-spacing-xl);

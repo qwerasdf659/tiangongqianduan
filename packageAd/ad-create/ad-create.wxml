@@ -1,5 +1,5 @@
 <!--
-  📝 创建广告活动
+  创建广告活动
   后端API: POST /api/v4/user/ad-campaigns
 -->
 <custom-navbar title="创建广告活动" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
@@ -37,11 +37,11 @@
               bindtap="onSlotSelect"
             >
               <view class="slot-header">
-                <text class="slot-icon"
-                  >{{item.slot_type === 'popup' ? '💬' : item.slot_type === 'carousel' ? '🎠' :
-                  item.slot_type === 'announcement' ? '📢' : item.slot_type === 'feed' ? '📰' :
-                  '📋'}}</text
-                >
+                <t-icon wx:if="{{item.slot_type === 'popup'}}" name="chat" size="28rpx" class="slot-icon" />
+                <t-icon wx:elif="{{item.slot_type === 'carousel'}}" name="image" size="28rpx" class="slot-icon" />
+                <t-icon wx:elif="{{item.slot_type === 'announcement'}}" name="sound" size="28rpx" class="slot-icon" />
+                <t-icon wx:elif="{{item.slot_type === 'feed'}}" name="file" size="28rpx" class="slot-icon" />
+                <t-icon wx:else name="file-paste" size="28rpx" class="slot-icon" />
                 <text class="slot-name">{{item.slot_name}}</text>
               </view>
               <view class="slot-info">

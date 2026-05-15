@@ -14,7 +14,7 @@
   display: flex;
   flex-direction: column;
   background: var(--tg-gradient-primary);
-  padding: 20rpx 24rpx 160rpx;
+  padding: 20rpx var(--tg-spacing-md) 160rpx;
 }
 
 /* ===== 操作引导条 ===== */
@@ -45,7 +45,7 @@
   align-items: center;
   justify-content: center;
   padding: 20rpx 30rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: var(--tg-spacing-md);
 }
 
 .step {
@@ -109,7 +109,7 @@
   height: 3rpx;
   background: rgba(139, 115, 85, 0.15);
   margin: 0 12rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: var(--tg-spacing-md);
   border-radius: 2rpx;
   transition: all 0.3s;
 }
@@ -131,7 +131,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 24rpx;
+  padding: 20rpx var(--tg-spacing-md);
   border-bottom: 2rpx solid rgba(255, 107, 53, 0.06);
 }
 
@@ -214,7 +214,7 @@
 }
 
 .card-body {
-  padding: 20rpx 24rpx;
+  padding: 20rpx var(--tg-spacing-md);
 }
 
 /* ===== 金额输入 ===== */
@@ -223,7 +223,7 @@
   align-items: center;
   background: var(--tg-color-bg-grey);
   border-radius: var(--td-radius-default);
-  padding: 20rpx 24rpx;
+  padding: 20rpx var(--tg-spacing-md);
   border: 2rpx solid transparent;
   transition: all 0.3s;
 }
@@ -232,7 +232,7 @@
   font-size: 44rpx;
   color: var(--td-brand-color);
   font-weight: var(--tg-font-weight-bold);
-  margin-right: 16rpx;
+  margin-right: var(--tg-spacing-sm);
 }
 
 .amount-input {
@@ -268,7 +268,7 @@
   max-height: 280rpx;
   background: var(--tg-color-bg-grey);
   border-radius: var(--td-radius-default);
-  padding: 20rpx 24rpx;
+  padding: 20rpx var(--tg-spacing-md);
   font-size: var(--td-font-size-base);
   color: var(--tg-text-primary);
   line-height: var(--tg-line-height-base);
@@ -285,7 +285,7 @@
 
 .notes-footer {
   text-align: right;
-  margin-top: 8rpx;
+  margin-top: var(--tg-spacing-xs);
 }
 
 .char-counter {
@@ -296,7 +296,7 @@
 /* ===== 门店选择器 ===== */
 .store-picker {
   @include flex-between;
-  padding: 20rpx 24rpx;
+  padding: 20rpx var(--tg-spacing-md);
   background: var(--tg-color-bg-grey);
   border-radius: var(--td-radius-default);
   border: 2rpx solid transparent;
@@ -326,7 +326,7 @@
 /* 单门店自动显示 */
 .store-auto-row {
   @include flex-between;
-  padding: 16rpx 20rpx;
+  padding: var(--tg-spacing-sm) 20rpx;
   background: rgba(82, 196, 26, 0.06);
   border-radius: var(--td-radius-default);
 }
@@ -352,7 +352,7 @@
 .scan-guide {
   @include flex-column-center;
   padding: 30rpx 0 20rpx;
-  gap: 16rpx;
+  gap: var(--tg-spacing-sm);
 }
 
 .scan-ring-wrapper {
@@ -360,7 +360,7 @@
   width: 160rpx;
   height: 160rpx;
   @include flex-center;
-  margin-bottom: 8rpx;
+  margin-bottom: var(--tg-spacing-xs);
 }
 
 .scan-ring-pulse {
@@ -421,7 +421,7 @@
 
 /* 重新扫码标签 */
 .rescan-tag {
-  padding: 6rpx 16rpx;
+  padding: 6rpx var(--tg-spacing-sm);
   background: rgba(255, 107, 53, 0.08);
   border-radius: 20rpx;
 
@@ -435,8 +435,8 @@
 /* ===== 用户加载状态 ===== */
 .user-loading-state {
   @include flex-column-center;
-  padding: 40rpx 0;
-  gap: 16rpx;
+  padding: var(--tg-spacing-xl) 0;
+  gap: var(--tg-spacing-sm);
 }
 
 .loading-ring {
@@ -461,8 +461,8 @@
 .user-avatar-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 16rpx 20rpx;
+  gap: var(--tg-spacing-sm);
+  padding: var(--tg-spacing-sm) 20rpx;
   background: rgba(255, 107, 53, 0.04);
   border-radius: var(--td-radius-default);
 }
@@ -585,7 +585,7 @@
 
 .summary-notice {
   margin-top: 12rpx;
-  padding: 12rpx 16rpx;
+  padding: 12rpx var(--tg-spacing-sm);
   background: rgba(250, 173, 20, 0.06);
   border-radius: var(--td-radius-small);
 
@@ -649,5 +649,5 @@
 
 .loading-panel {
   @include flex-column-center;
-  gap: 24rpx;
+  gap: var(--tg-spacing-md);
 }

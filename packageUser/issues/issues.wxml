@@ -1,11 +1,16 @@
 <!--packageUser/issues/issues.wxml - 用户工单进度查看页面-->
-<custom-navbar title="我的工单" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="我的工单" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 <view class="issues-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 页面标题 -->
     <view class="page-header">
-      <text class="header-title">我的工单</text>
-      <text class="header-desc">查看客服工单处理进度</text>
+      <view class="header-text">
+        <text class="header-title">我的工单</text>
+        <text class="header-desc">查看客服工单处理进度</text>
+      </view>
+      <view class="header-decor-icon">
+        <t-icon name="file-paste" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
     </view>
 
     <!-- 加载中骨架屏 -->
@@ -21,13 +26,15 @@
 
     <!-- 加载失败 -->
     <t-empty wx:elif="{{loadStatus === 'error'}}" description="请检查网络连接后重试">
-      <view slot="image">📡</view>
+      <view slot="image"><t-icon name="wifi" size="120rpx" color="var(--td-brand-color)" /></view>
       <view slot="action" class="retry-btn" bindtap="retryLoad">重新加载</view>
     </t-empty>
 
     <!-- 空状态 -->
     <t-empty wx:elif="{{loadStatus === 'empty'}}" description="您还没有客服工单记录">
-      <view slot="image">📋</view>
+      <view slot="image"
+        ><t-icon name="file-paste" size="120rpx" color="var(--td-brand-color)"
+      /></view>
     </t-empty>
 
     <!-- 工单列表 -->

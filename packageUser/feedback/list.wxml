@@ -6,7 +6,7 @@
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 空状态 -->
     <t-empty wx:if="{{!loading && feedbacks.length === 0}}" description="暂无反馈记录">
-      <view slot="image">📝</view>
+      <view slot="image"><t-icon name="edit" size="28rpx" /></view>
       <view slot="action" class="new-feedback-btn" bindtap="onNewFeedback">提交反馈</view>
     </t-empty>
 

@@ -1,5 +1,5 @@
 <!--
-  📊 广告活动详情
+  广告活动详情
   后端API: GET /api/v4/user/ad-campaigns/:id
 -->
 <custom-navbar title="广告活动详情" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
@@ -164,7 +164,7 @@
           </view>
         </block>
         <t-empty wx:else description="暂无报表数据">
-          <view slot="image">📊</view>
+          <view slot="image"><t-icon name="chart-bar" size="28rpx" /></view>
         </t-empty>
       </view>
 

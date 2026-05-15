@@ -69,7 +69,7 @@
         wx:if="{{isLoggedIn && !loading && notifications.length === 0}}"
         description="交易、中奖等消息将在这里显示"
       >
-        <view slot="image" class="empty-slot-icon">🔔</view>
+        <view slot="image" class="empty-slot-icon"><t-icon name="notification" size="28rpx" /></view>
       </t-empty>
 
       <!-- 未登录状态 -->

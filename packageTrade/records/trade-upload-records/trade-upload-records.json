@@ -1,10 +1,10 @@
 {
   "navigationBarTitleText": "积分活动记录",
-  "navigationBarBackgroundColor": "#667eea",
-  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#F5F0E8",
+  "navigationBarTextStyle": "black",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "light",
-  "backgroundColor": "#667eea",
+  "backgroundColor": "#F5F0E8",
   "onReachBottomDistance": 50,
   "usingComponents": {
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",

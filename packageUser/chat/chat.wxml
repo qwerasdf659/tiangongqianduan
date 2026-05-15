@@ -5,7 +5,7 @@
     <!-- 顶部搜索栏 -->
     <view class="search-header">
       <view class="search-bar">
-        <view class="search-icon">🔍</view>
+        <view class="search-icon"><t-icon name="search" size="28rpx" /></view>
         <input
           class="search-input"
           placeholder="搜索聊天记录"
@@ -50,7 +50,7 @@
       <!-- ===== 状态2：加载失败 - 错误+重试（非搜索模式下显示） ===== -->
       <view wx:elif="{{sessionLoadStatus === 'error' && !isSearching}}" class="error-state">
         <view class="error-icon-wrapper">
-          <text class="error-icon-text">📡</text>
+          <text class="error-icon-text"><t-icon name="wifi" size="28rpx" /></text>
         </view>
         <text class="error-title">会话加载失败</text>
         <text class="error-desc">请检查网络连接后重试</text>
@@ -69,7 +69,7 @@
         <!-- 搜索无结果 -->
         <view wx:elif="{{searchResults.length === 0}}" class="search-empty-state">
           <view class="search-empty-icon-wrapper">
-            <text class="search-empty-icon">🔍</text>
+            <text class="search-empty-icon"><t-icon name="search" size="28rpx" /></text>
           </view>
           <text class="search-empty-title">未找到相关消息</text>
           <text class="search-empty-desc">换个关键词试试</text>
@@ -479,25 +479,25 @@
         <view class="toolbar-grid">
           <view class="toolbar-item" bindtap="sendImage">
             <view class="toolbar-item-icon-wrapper">
-              <text class="toolbar-item-icon">📷</text>
+              <text class="toolbar-item-icon"><t-icon name="camera" size="28rpx" /></text>
             </view>
             <text class="toolbar-item-label">相册</text>
           </view>
           <view class="toolbar-item" bindtap="sendImage">
             <view class="toolbar-item-icon-wrapper">
-              <text class="toolbar-item-icon">📸</text>
+              <text class="toolbar-item-icon"><t-icon name="image" size="28rpx" /></text>
             </view>
             <text class="toolbar-item-label">拍照</text>
           </view>
           <view class="toolbar-item" bindtap="sendLocation">
             <view class="toolbar-item-icon-wrapper">
-              <text class="toolbar-item-icon">📍</text>
+              <text class="toolbar-item-icon"><t-icon name="location" size="28rpx" /></text>
             </view>
             <text class="toolbar-item-label">位置</text>
           </view>
           <view class="toolbar-item" bindtap="sendFile">
             <view class="toolbar-item-icon-wrapper">
-              <text class="toolbar-item-icon">📎</text>
+              <text class="toolbar-item-icon"><t-icon name="attach" size="28rpx" /></text>
             </view>
             <text class="toolbar-item-label">文件</text>
           </view>

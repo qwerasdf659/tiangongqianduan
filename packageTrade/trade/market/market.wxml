@@ -26,14 +26,16 @@
       bindtap="onTogglePriceChart"
     >
       <view class="toggle-inner">
-        <text class="toggle-text">{{showPriceChart ? '收起行情' : '📈 查看市场行情'}}</text>
+        <text class="toggle-text" wx:if="{{showPriceChart}}">收起行情</text>
+        <view class="toggle-text" wx:else><t-icon name="trending-up" size="28rpx" /> 查看市场行情</view>
         <text class="toggle-arrow">{{showPriceChart ? '︿' : '﹀'}}</text>
       </view>
     </view>
 
     <!--市场总览面板（可折叠）-->
     <view class="market-section-toggle" bindtap="onToggleMarketOverview">
-      <text class="toggle-text">{{showMarketOverview ? '收起总览' : '📊 市场总览'}}</text>
+      <text class="toggle-text" wx:if="{{showMarketOverview}}">收起总览</text>
+      <view class="toggle-text" wx:else><t-icon name="chart-bar" size="28rpx" /> 市场总览</view>
     </view>
     <view class="market-overview-panel" wx:if="{{showMarketOverview}}">
       <view class="overview-loading" wx:if="{{marketOverviewLoading}}">
@@ -140,10 +142,10 @@
           </view>
         </view>
         <view class="filter-toggle-btn" bindtap="onToggleAdvancedFilter">
-          <text>🔍</text>
+          <t-icon name="search" size="28rpx" />
         </view>
         <view class="my-orders-entry" bindtap="onGoToMyOrders">
-          <text>📋</text>
+          <t-icon name="file-paste" size="28rpx" />
         </view>
       </view>
     </view>
@@ -324,7 +326,7 @@
               lazy-load="{{true}}"
             />
             <view wx:else class="image-fallback">
-              <text class="fallback-icon">📢</text>
+              <t-icon name="sound" size="28rpx" class="fallback-icon" />
               <text class="fallback-name">{{item._displayName}}</text>
             </view>
             <view class="badge-tag ad-tag">广告</view>
@@ -446,7 +448,7 @@
       wx:if="{{!loading && products.length === 0 && !hasError}}"
       description="市场暂时没有商品，稍后再来看看"
     >
-      <view slot="image">🛒</view>
+      <view slot="image"><t-icon name="shop" size="28rpx" /></view>
       <view slot="description" class="empty-title">暂无挂单</view>
       <view slot="action" class="empty-retry-btn" bindtap="onPullDownRefresh">重新加载</view>
     </t-empty>

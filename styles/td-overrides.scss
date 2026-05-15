@@ -64,7 +64,7 @@ page {
   --tg-color-error-rgb: var(--tg-color-danger-strong-rgb);
   --tg-color-brand-soft: rgba(var(--td-brand-color-rgb), 0.06);
   --tg-color-brand-soft-strong: rgba(var(--td-brand-color-rgb), 0.12);
-  --tg-color-bg: #f8f9fa;
+  --tg-color-bg: #ffffff;
   --tg-color-bg-rgb: 248, 249, 250;
   --tg-color-bg-card: #ffffff;
   --tg-color-bg-panel: #f5f6fa;
@@ -87,9 +87,9 @@ page {
   --tg-page-bg: #ffffff;
   --tg-card-bg: #ffffff;
   --tg-card-bg-muted: #fafaf7;
-  --tg-text-primary: #1A1A1A;
+  --tg-text-primary: #1a1a1a;
   --tg-text-primary-rgb: 26, 26, 26;
-  --tg-text-primary-strong: #1A1A1A;
+  --tg-text-primary-strong: #1a1a1a;
   --tg-text-primary-strong-rgb: 26, 26, 26;
   --tg-text-secondary: #666666;
   --tg-text-secondary-rgb: 102, 102, 102;
@@ -102,10 +102,13 @@ page {
   --tg-text-placeholder: #c0c0c0;
   --tg-text-disabled: #cccccc;
   --tg-border-color: #eeeeee;
+  --tg-color-border-strong: #333333;
 
   /* === Typography Token 体系 === */
   /* 字体族 */
-  --tg-font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;
+  --tg-font-family:
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;
   --tg-font-number: 'TG Num', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
 
   /* 字号层级 */
@@ -141,15 +144,15 @@ page {
   --tg-line-height-normal: 1.4;
   --tg-line-height-relaxed: 1.6;
 
-  --tg-gradient-primary-start: #FDF8F0;
-  --tg-gradient-primary-end: #F5EDE0;
-  --tg-gradient-primary: linear-gradient(135deg, #FDF8F0 0%, #F5EDE0 100%);
-  --tg-brand-bg-soft: #F5F0E8;
+  --tg-gradient-primary-start: #ffffff;
+  --tg-gradient-primary-end: #ffffff;
+  --tg-gradient-primary: #ffffff;
+  --tg-brand-bg-soft: #f5f0e8;
 
   /* 品牌强调色 — 暖金 */
-  --tg-accent-gold: #C8A06A;
-  --tg-accent-gold-active: #A0724A;
-  --tg-accent-gold-light: #FDF8F0;
+  --tg-accent-gold: #c8a06a;
+  --tg-accent-gold-active: #a0724a;
+  --tg-accent-gold-light: #fdf8f0;
   --tg-accent-gold-rgb: 200, 160, 106;
 
   --tg-shadow-sm: 0 1rpx 4rpx rgba(0, 0, 0, 0.03);
@@ -167,13 +170,13 @@ page {
   --tg-icon-size-xl: 72rpx;
   --tg-avatar-size: 120rpx;
 
-  --tg-icon-color-primary: #C8A06A;
-  --tg-icon-color-secondary: #8B7355;
-  --tg-icon-color-muted: #D4C4A8;
-  --tg-icon-color-on-dark: #F5E6C8;
+  --tg-icon-color-primary: #c8a06a;
+  --tg-icon-color-secondary: #8b7355;
+  --tg-icon-color-muted: #d4c4a8;
+  --tg-icon-color-on-dark: #f5e6c8;
   --tg-icon-color-white: #ffffff;
 
-  --tg-lottery-bg: linear-gradient(180deg, #fff5e0 0%, #ffffff 60%);
+  --tg-lottery-bg: #ffffff;
   --tg-trade-accent: #8b7355;
   --tg-diy-canvas-bg: #f5f5f5;
   --tg-price-up: #e74c3c;

@@ -169,7 +169,8 @@
     <!-- 价格走势图（可折叠） -->
     <view class="detail-chart-section">
       <view class="chart-toggle" bindtap="onTogglePriceChart">
-        <text class="chart-toggle-text">{{showPriceChart ? '收起走势图' : '📈 查看价格走势'}}</text>
+        <text class="chart-toggle-text" wx:if="{{showPriceChart}}">收起走势图</text>
+        <view class="chart-toggle-text" wx:else><t-icon name="trending-up" size="28rpx" /> 查看价格走势</view>
       </view>
       <view wx:if="{{showPriceChart}}">
         <price-chart
@@ -184,9 +185,8 @@
     <!--价格历史面板（可折叠，后端 GET /api/v4/marketplace/analytics/history）-->
     <view class="detail-history-section" wx:if="{{priceHistoryList.length > 0}}">
       <view class="chart-toggle" bindtap="onTogglePriceHistory">
-        <text class="chart-toggle-text"
-          >{{showPriceHistory ? '收起价格历史' : '📊 近30天价格历史'}}</text
-        >
+        <text class="chart-toggle-text" wx:if="{{showPriceHistory}}">收起价格历史</text>
+        <view class="chart-toggle-text" wx:else><t-icon name="chart-bar" size="28rpx" /> 近30天价格历史</view>
       </view>
       <view class="price-history-panel" wx:if="{{showPriceHistory}}">
         <view class="history-header-row">
@@ -263,7 +263,7 @@
   <!-- 担保码说明弹窗（实物交易 — 需确认收货） -->
   <view class="modal-overlay" wx:if="{{showEscrowGuide}}" bindtap="onCloseEscrowGuide">
     <view class="modal-content escrow-guide" catchtap="">
-      <text class="modal-icon">🔐</text>
+      <t-icon name="lock-on" size="28rpx" class="modal-icon" />
       <text class="modal-title">购买成功 — 需确认收货</text>
       <view class="escrow-steps">
         <view class="step-item">
@@ -280,8 +280,8 @@
         </view>
       </view>
       <view class="escrow-expire-tip" wx:if="{{escrowExpiresAt}}">
-        <text class="escrow-expire-tip-text"
-          >⏰ 请在 {{escrowExpiresAt}} 前完成确认，超时将自动取消</text
+        <view class="escrow-expire-tip-text"
+          ><t-icon name="time" size="28rpx" /> 请在 {{escrowExpiresAt}} 前完成确认，超时将自动取消</view
         >
       </view>
       <view class="escrow-fee-info" wx:if="{{purchaseResult}}">

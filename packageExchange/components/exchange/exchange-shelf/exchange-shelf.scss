@@ -24,15 +24,11 @@
   --tg-exchange-price-row-bg: transparent;
   --tg-exchange-cta-bg: var(--td-brand-color);
   --tg-exchange-cta-text: var(--tg-color-white);
-  --tg-exchange-header-bg: var(--td-brand-color-active);
-  --tg-exchange-nav-slider-left: linear-gradient(
-    135deg,
-    var(--td-brand-color) 0%,
-    var(--td-brand-color-focus) 100%
-  );
-  --tg-exchange-nav-slider-right: var(--td-brand-color-active);
-  --tg-exchange-accent: var(--td-brand-color-active);
-  --tg-exchange-accent-light: rgba(var(--td-brand-color-rgb), 0.15);
+  --tg-exchange-header-bg: #f5f5f5;
+  --tg-exchange-nav-slider-left: linear-gradient(135deg, #4a4a4a 0%, #666666 100%);
+  --tg-exchange-nav-slider-right: #555555;
+  --tg-exchange-accent: #4a4a4a;
+  --tg-exchange-accent-light: rgba(74, 74, 74, 0.1);
   --tg-exchange-name-color: var(--tg-text-primary);
   --tg-exchange-desc-color: var(--tg-text-tertiary);
   --tg-exchange-stock-normal: var(--tg-color-success);
@@ -59,8 +55,11 @@
   flex-shrink: 0;
   z-index: 10;
   position: relative;
-  background: var(--tg-exchange-header-bg, var(--td-brand-color-active));
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  background: var(--tg-exchange-header-bg, #f5f5f5);
+  box-shadow: none;
+  border: 1rpx solid var(--tg-color-border-strong);
+  border-radius: var(--td-radius-default);
+  margin: 8rpx 12rpx;
   padding-bottom: 0;
 }
 
@@ -83,9 +82,8 @@
   border-radius: 22rpx;
   padding: 4rpx;
   position: relative;
-  box-shadow:
-    0 4rpx 16rpx rgba(var(--tg-color-black-rgb), 0.06),
-    inset 0 1rpx 0 rgba(var(--tg-color-white-rgb), 0.8);
+  border: 1rpx solid var(--tg-color-border-strong);
+  box-shadow: none;
   border: 1rpx solid rgba(var(--tg-color-white-rgb), 0.6);
 }
 
@@ -101,17 +99,14 @@
 
 .selector-slider.slide-left {
   left: 8rpx;
-  background: var(
-    --tg-exchange-nav-slider-left,
-    linear-gradient(135deg, var(--td-brand-color) 0%, var(--td-brand-color-focus) 100%)
-  );
-  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
+  background: linear-gradient(135deg, #4a4a4a 0%, #666666 100%);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.08);
 }
 
 .selector-slider.slide-right {
   left: calc(50%);
-  background: var(--tg-exchange-nav-slider-right, var(--td-brand-color-active));
-  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
+  background: linear-gradient(135deg, #555555 0%, #4a4a4a 100%);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.08);
 }
 
 .space-tab-enhanced {
@@ -198,22 +193,23 @@
 .asset-balance-item {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--tg-color-white);
   border-radius: var(--td-radius-default);
   padding: 6rpx 16rpx;
   white-space: nowrap;
+  border: 1rpx solid #e0e0e0;
 }
 
 .asset-name {
   font-size: var(--td-font-size-xs);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--tg-text-tertiary);
   margin-right: 8rpx;
 }
 
 .asset-amount {
   font-size: var(--td-font-size-m);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-color-white);
+  color: var(--tg-text-primary);
 }
 
 .asset-balance-empty {
@@ -226,14 +222,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 14rpx 36rpx;
-  background: linear-gradient(135deg, #c8a06a, #a0724a);
-  border-radius: 28rpx;
+  padding: 18rpx 48rpx;
+  background: #4a4a4a;
+  border-radius: 32rpx;
   margin-right: 12rpx;
-  box-shadow: 0 1rpx 8rpx rgba(200, 160, 106, 0.04);
+  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.08);
 
   text {
-    font-size: var(--tg-font-size-caption, 24rpx);
+    font-size: var(--td-font-size-base, 28rpx);
     color: #fff;
     font-weight: var(--tg-font-weight-semibold, 600);
     letter-spacing: var(--tg-letter-spacing-normal, 2rpx);
@@ -247,8 +243,9 @@
 
 .header-action-btn {
   padding: 8rpx 16rpx;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--tg-color-white);
+  border: 1rpx solid #e0e0e0;
   border-radius: 20rpx;
   font-size: var(--td-font-size-xs);
-  color: var(--tg-color-white);
+  color: var(--tg-text-secondary);
 }

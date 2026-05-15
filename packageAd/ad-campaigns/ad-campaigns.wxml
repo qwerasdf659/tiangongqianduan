@@ -1,9 +1,9 @@
 <!--
-  📢 我的广告活动列表
+  我的广告活动列表
   数据来源: GET /api/v4/user/ad-campaigns
   业务流程: 创建(draft) → 提交审核(pending_review) → 通过/拒绝 → 投放(active) → 完成/取消
 -->
-<custom-navbar title="我的广告活动" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="我的广告活动" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 <view class="ad-campaigns-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 页面头部概览 -->
@@ -17,6 +17,9 @@
           <text class="header-create-icon">+</text>
           <text>创建广告</text>
         </view>
+      </view>
+      <view class="header-decor-icon">
+        <t-icon name="sound" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
       </view>
     </view>
 
@@ -60,7 +63,9 @@
 
       <!-- 空状态 -->
       <t-empty wx:if="{{isEmpty && !loading}}" description="投放广告让更多用户看到你的推广内容">
-        <view slot="image">📢</view>
+        <view slot="image"
+          ><t-icon name="sound" size="120rpx" color="var(--td-brand-color)"
+        /></view>
         <view slot="action" class="create-btn-empty" bindtap="goToCreate">创建广告活动</view>
       </t-empty>
 
@@ -115,7 +120,9 @@
                 </view>
                 <view class="info-row">
                   <text class="info-label">总费用</text>
-                  <text class="info-value highlight">{{item.fixed_total_star_stone}} <text class="iconfont icon-diamond"></text></text>
+                  <text class="info-value highlight"
+                    >{{item.fixed_total_star_stone}} <text class="iconfont icon-diamond"></text
+                  ></text>
                 </view>
               </block>
 
@@ -123,13 +130,17 @@
               <block wx:if="{{item.billing_mode === 'bidding'}}">
                 <view class="info-row">
                   <text class="info-label">日出价</text>
-                  <text class="info-value highlight">{{item.daily_bid_star_stone}} <text class="iconfont icon-diamond"></text>/天</text>
+                  <text class="info-value highlight"
+                    >{{item.daily_bid_star_stone}}
+                    <text class="iconfont icon-diamond"></text>/天</text
+                  >
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
-                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} <text class="iconfont icon-diamond"></text></text
-                  >
+                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}}
+                    <text class="iconfont icon-diamond"></text
+                  ></text>
                 </view>
               </block>
 
@@ -137,13 +148,17 @@
               <block wx:if="{{item.billing_mode === 'cpm'}}">
                 <view class="info-row">
                   <text class="info-label">CPM单价</text>
-                  <text class="info-value highlight">{{item.cpm_price_star_stone}} <text class="iconfont icon-diamond"></text>/千次</text>
+                  <text class="info-value highlight"
+                    >{{item.cpm_price_star_stone}}
+                    <text class="iconfont icon-diamond"></text>/千次</text
+                  >
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
-                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}} <text class="iconfont icon-diamond"></text></text
-                  >
+                    >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}}
+                    <text class="iconfont icon-diamond"></text
+                  ></text>
                 </view>
               </block>
 

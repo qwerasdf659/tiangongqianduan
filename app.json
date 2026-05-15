@@ -106,9 +106,9 @@
   "window": {
     "navigationStyle": "custom",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#8B7355",
+    "navigationBarBackgroundColor": "#F5F0E8",
     "navigationBarTitleText": "餐厅积分系统",
-    "navigationBarTextStyle": "white",
+    "navigationBarTextStyle": "black",
     "backgroundColor": "#FFFFFF",
     "enablePullDownRefresh": true,
     "onReachBottomDistance": 50
