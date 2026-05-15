@@ -26,7 +26,8 @@
             data-grid-idx="0"
             binderror="onGridPrizeImageError"
           />
-          <text wx:else class="prize-icon">{{prizes[0].prize_icon || '🎫'}}</text>
+          <t-icon wx:elif="{{!prizes[0].prize_icon}}" name="gift" size="48rpx" class="prize-icon" />
+          <text wx:else class="prize-icon">{{prizes[0].prize_icon}}</text>
           <text class="prize-name">{{prizes[0].prize_name || ''}}</text>
           <text wx:if="{{prizes[0].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[0].is_sold_out}}" class="prize-sold-out-mask">
@@ -53,7 +54,7 @@
             binderror="onGridPrizeImageError"
           />
           <text wx:if="{{prizes[1].prize_icon}}" class="prize-icon">{{prizes[1].prize_icon}}</text>
-          <text wx:else class="prize-icon iconfont icon-gift"></text>
+          <t-icon wx:else name="gift" size="48rpx" class="prize-icon" />
           <text class="prize-name">{{prizes[1].prize_name || ''}}</text>
           <text wx:if="{{prizes[1].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[1].is_sold_out}}" class="prize-sold-out-mask">
@@ -80,7 +81,7 @@
             binderror="onGridPrizeImageError"
           />
           <text wx:elif="{{prizes[2].prize_icon}}" class="prize-icon">{{prizes[2].prize_icon}}</text>
-          <text wx:else class="prize-icon iconfont icon-trophy"></text>
+          <t-icon wx:else name="cup" size="48rpx" class="prize-icon" />
           <text class="prize-name">{{prizes[2].prize_name || ''}}</text>
           <text wx:if="{{prizes[2].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[2].is_sold_out}}" class="prize-sold-out-mask">
@@ -107,7 +108,7 @@
             binderror="onGridPrizeImageError"
           />
           <text wx:if="{{prizes[7].prize_icon}}" class="prize-icon">{{prizes[7].prize_icon}}</text>
-          <text wx:else class="prize-icon iconfont icon-diamond"></text>
+          <t-icon wx:else name="diamond" size="48rpx" class="prize-icon" />
           <text class="prize-name">{{prizes[7].prize_name || ''}}</text>
           <text wx:if="{{prizes[7].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[7].is_sold_out}}" class="prize-sold-out-mask">
@@ -145,7 +146,7 @@
             binderror="onGridPrizeImageError"
           />
           <text wx:elif="{{prizes[3].prize_icon}}" class="prize-icon">{{prizes[3].prize_icon}}</text>
-          <text wx:else class="prize-icon iconfont icon-circus-tent"></text>
+          <t-icon wx:else name="home" size="48rpx" class="prize-icon" />
           <text class="prize-name">{{prizes[3].prize_name || ''}}</text>
           <text wx:if="{{prizes[3].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[3].is_sold_out}}" class="prize-sold-out-mask">
@@ -172,7 +173,7 @@
             binderror="onGridPrizeImageError"
           />
           <text wx:elif="{{prizes[6].prize_icon}}" class="prize-icon">{{prizes[6].prize_icon}}</text>
-          <text wx:else class="prize-icon iconfont icon-ribbon"></text>
+          <t-icon wx:else name="gift" size="48rpx" class="prize-icon" />
           <text class="prize-name">{{prizes[6].prize_name || ''}}</text>
           <text wx:if="{{prizes[6].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[6].is_sold_out}}" class="prize-sold-out-mask">
@@ -199,7 +200,7 @@
             binderror="onGridPrizeImageError"
           />
           <text wx:elif="{{prizes[5].prize_icon}}" class="prize-icon">{{prizes[5].prize_icon}}</text>
-          <text wx:else class="prize-icon iconfont icon-celebrate"></text>
+          <t-icon wx:else name="thumb-up" size="48rpx" class="prize-icon" />
           <text class="prize-name">{{prizes[5].prize_name || ''}}</text>
           <text wx:if="{{prizes[5].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[5].is_sold_out}}" class="prize-sold-out-mask">
@@ -225,7 +226,8 @@
             data-grid-idx="4"
             binderror="onGridPrizeImageError"
           />
-          <text wx:else class="prize-icon">{{prizes[4].prize_icon || '🎈'}}</text>
+          <t-icon wx:elif="{{!prizes[4].prize_icon}}" name="gift" size="48rpx" class="prize-icon" />
+          <text wx:else class="prize-icon">{{prizes[4].prize_icon}}</text>
           <text class="prize-name">{{prizes[4].prize_name || ''}}</text>
           <text wx:if="{{prizes[4].is_fallback}}" class="prize-badge--fallback">保底</text>
           <view wx:if="{{prizes[4].is_sold_out}}" class="prize-sold-out-mask">

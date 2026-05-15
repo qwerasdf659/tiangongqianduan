@@ -1,3 +1,5 @@
+@import '../../styles/mixins';
+
 /* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
 .page-scroll-view {
   flex: 1;
@@ -6,6 +8,7 @@
 
 /* 反馈详情页样式 */
 .feedback-detail-page {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -35,7 +38,7 @@
 
 .retry-btn {
   margin-top: 30rpx;
-  background: #5b7a5e;
+  background: var(--td-brand-color);
   color: var(--tg-color-white);
   font-size: var(--tg-font-size-title);
   padding: 16rpx 60rpx;
@@ -65,7 +68,7 @@
 }
 
 .status-closed {
-  background: #f5f5f5;
+  background: var(--tg-color-bg-grey);
 }
 
 .status-label {
@@ -94,12 +97,12 @@
   color: var(--tg-text-primary);
   margin-bottom: 20rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid var(--tg-color-border-light);
 }
 
 .category-tag {
   display: inline-block;
-  background: #5b7a5e;
+  background: var(--td-brand-color);
   color: var(--tg-color-white);
   font-size: var(--tg-font-size-small);
   padding: 4rpx 16rpx;
@@ -128,10 +131,10 @@
 }
 
 .reply-body {
-  background: #f8f9fa;
+  background: var(--tg-color-bg-muted);
   padding: 24rpx;
   border-radius: 12rpx;
-  border-left: 6rpx solid #5b7a5e;
+  border-left: 6rpx solid var(--td-brand-color);
 }
 
 .reply-content-text {

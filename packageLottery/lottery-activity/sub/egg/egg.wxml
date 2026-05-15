@@ -53,20 +53,69 @@
 
           <!-- 碎裂状态 -->
           <view class="egg-cracked" wx:else>
+            <!-- 蛋壳碎片（大块，不规则形状飞散） -->
             <view class="egg-shard egg-shard--1"></view>
             <view class="egg-shard egg-shard--2"></view>
             <view class="egg-shard egg-shard--3"></view>
             <view class="egg-shard egg-shard--4"></view>
             <view class="egg-shard egg-shard--5"></view>
             <view class="egg-shard egg-shard--6"></view>
+            <!-- 小碎片（更细碎的蛋壳颗粒） -->
+            <view class="egg-chip egg-chip--1"></view>
+            <view class="egg-chip egg-chip--2"></view>
+            <view class="egg-chip egg-chip--3"></view>
+            <view class="egg-chip egg-chip--4"></view>
+            <view class="egg-chip egg-chip--5"></view>
+            <view class="egg-chip egg-chip--6"></view>
+            <view class="egg-chip egg-chip--7"></view>
+            <view class="egg-chip egg-chip--8"></view>
+            <view class="egg-chip egg-chip--9"></view>
+            <view class="egg-chip egg-chip--10"></view>
+            <!-- 裂纹扩散 -->
+            <view class="egg-crack-lines">
+              <view class="egg-crack-lines__line egg-crack-lines__line--1"></view>
+              <view class="egg-crack-lines__line egg-crack-lines__line--2"></view>
+              <view class="egg-crack-lines__line egg-crack-lines__line--3"></view>
+              <view class="egg-crack-lines__line egg-crack-lines__line--4"></view>
+              <view class="egg-crack-lines__line egg-crack-lines__line--5"></view>
+              <view class="egg-crack-lines__line egg-crack-lines__line--6"></view>
+            </view>
+            <!-- 爆发光效 -->
             <view class="egg-burst">
               <view class="egg-burst__ring"></view>
               <view class="egg-burst__ring egg-burst__ring--delay"></view>
-              <view class="egg-burst__star"></view>
+              <view class="egg-burst__ring egg-burst__ring--third"></view>
+              <view class="egg-burst__rays"></view>
+              <view class="egg-burst__particle egg-burst__particle--1"></view>
+              <view class="egg-burst__particle egg-burst__particle--2"></view>
+              <view class="egg-burst__particle egg-burst__particle--3"></view>
+              <view class="egg-burst__particle egg-burst__particle--4"></view>
+              <view class="egg-burst__particle egg-burst__particle--5"></view>
+              <view class="egg-burst__particle egg-burst__particle--6"></view>
+              <view class="egg-burst__particle egg-burst__particle--7"></view>
+              <view class="egg-burst__particle egg-burst__particle--8"></view>
+              <view class="egg-burst__core"></view>
             </view>
+            <!-- 金色粉尘 -->
+            <view class="egg-dust">
+              <view class="egg-dust__dot egg-dust__dot--1"></view>
+              <view class="egg-dust__dot egg-dust__dot--2"></view>
+              <view class="egg-dust__dot egg-dust__dot--3"></view>
+              <view class="egg-dust__dot egg-dust__dot--4"></view>
+              <view class="egg-dust__dot egg-dust__dot--5"></view>
+              <view class="egg-dust__dot egg-dust__dot--6"></view>
+              <view class="egg-dust__dot egg-dust__dot--7"></view>
+              <view class="egg-dust__dot egg-dust__dot--8"></view>
+              <view class="egg-dust__dot egg-dust__dot--9"></view>
+              <view class="egg-dust__dot egg-dust__dot--10"></view>
+              <view class="egg-dust__dot egg-dust__dot--11"></view>
+              <view class="egg-dust__dot egg-dust__dot--12"></view>
+            </view>
+            <!-- 蛋壳残留 -->
             <view class="egg-shell-remain">
               <view class="egg-shell-remain__left"></view>
               <view class="egg-shell-remain__right"></view>
+              <view class="egg-shell-remain__center"></view>
             </view>
           </view>
 
@@ -143,7 +192,13 @@
           <view class="multi-egg-prize" wx:else>
             <view class="egg-burst">
               <view class="egg-burst__ring"></view>
-              <view class="egg-burst__star"></view>
+              <view class="egg-burst__ring egg-burst__ring--delay"></view>
+              <view class="egg-burst__rays"></view>
+              <view class="egg-burst__particle egg-burst__particle--1"></view>
+              <view class="egg-burst__particle egg-burst__particle--2"></view>
+              <view class="egg-burst__particle egg-burst__particle--3"></view>
+              <view class="egg-burst__particle egg-burst__particle--4"></view>
+              <view class="egg-burst__core"></view>
             </view>
             <view class="egg-shell-remain">
               <view class="egg-shell-remain__left"></view>

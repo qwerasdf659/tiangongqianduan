@@ -33,7 +33,7 @@
         wx:if="{{machineState === 'dropping' || machineState === 'done'}}"
         style="background: {{currentCapsuleColor}};"
       >
-        <text class="capsule-shine iconfont icon-sparkle"></text>
+        <t-icon name="star" size="28rpx" class="capsule-shine" />
       </view>
     </view>
 
@@ -58,27 +58,27 @@
         wx:key="*this"
         style="animation-delay: {{index * 0.05}}s;"
       >
-        <text class="iconfont {{index % 2 === 0 ? 'icon-celebrate' : 'icon-sparkle'}}"></text>
+        <t-icon name="star" size="28rpx" />
       </text>
     </view>
   </view>
 
   <!-- 状态提示文字 -->
   <view class="gashapon-hint">
-    <text wx:if="{{machineState === 'idle'}}"><text class="iconfont icon-gamepad"></text> 转动手柄 获取扭蛋</text>
-    <text wx:elif="{{machineState === 'turning'}}"><text class="iconfont icon-gear"></text> 扭动中...</text>
-    <text wx:elif="{{machineState === 'dropping'}}"><text class="iconfont icon-sparkle"></text> 扭蛋掉落中...</text>
-    <text wx:else><text class="iconfont icon-gift"></text> 扭蛋已获得！</text>
+    <text wx:if="{{machineState === 'idle'}}"><t-icon name="play-circle" size="28rpx" /> 转动手柄 获取扭蛋</text>
+    <text wx:elif="{{machineState === 'turning'}}"><t-icon name="setting" size="28rpx" /> 扭动中...</text>
+    <text wx:elif="{{machineState === 'dropping'}}"><t-icon name="star" size="28rpx" /> 扭蛋掉落中...</text>
+    <text wx:else><t-icon name="gift" size="28rpx" /> 扭蛋已获得！</text>
   </view>
 
   <!-- 消耗积分提示 -->
   <view class="gashapon-cost" wx:if="{{costPoints > 0}}">
-    <text><text class="iconfont icon-gold-coin"></text> 消耗 {{costPoints}} 积分</text>
+    <text><t-icon name="money" size="28rpx" /> 消耗 {{costPoints}} 积分</text>
   </view>
 
   <!-- 操作提示（仅在idle状态显示） -->
   <view class="operation-tip" wx:if="{{machineState === 'idle'}}">
-    <view class="tip-arrow">👆</view>
+    <view class="tip-arrow"><t-icon name="gesture-up" size="48rpx" /></view>
     <text class="tip-text">点击红色手柄开始抽奖</text>
   </view>
 

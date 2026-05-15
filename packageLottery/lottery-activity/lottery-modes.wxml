@@ -282,15 +282,15 @@
         bindtap="onGuaranteeEggTap"
       >
         <view class="guarantee-egg__whole" wx:if="{{guaranteeEggState !== 'cracked'}}">
-          <text class="guarantee-egg__icon iconfont icon-golden-egg"></text>
+          <t-icon name="gift" size="32rpx" class="guarantee-egg__icon" />
           <view class="guarantee-egg__hammer" wx:if="{{guaranteeEggState === 'shaking'}}">
-            <text class="iconfont icon-hammer"></text>
+            <t-icon name="tools" size="28rpx" />
           </view>
         </view>
         <view class="guarantee-egg__broken" wx:else>
-          <view class="guarantee-egg__shell-left"><text class="iconfont icon-golden-egg"></text></view>
-          <view class="guarantee-egg__shell-right"><text class="iconfont icon-golden-egg"></text></view>
-          <view class="guarantee-egg__light"><text class="iconfont icon-sparkle"></text></view>
+          <view class="guarantee-egg__shell-left"><t-icon name="gift" size="28rpx" /></view>
+          <view class="guarantee-egg__shell-right"><t-icon name="gift" size="28rpx" /></view>
+          <view class="guarantee-egg__light"><t-icon name="star" size="28rpx" /></view>
         </view>
       </view>
     </view>

@@ -11,6 +11,7 @@
 /* 整体容器 */
 /* ============================================================================ */
 .chat-sessions-container {
+  @include tg-tokens;
   width: 100%;
   flex: 1;
   background: var(--tg-color-bg);
@@ -20,6 +21,37 @@
 /* ============================================================================ */
 /* 顶部搜索栏 */
 /* ============================================================================ */
+
+/* 页面标题渐变区域 */
+.page-header {
+  position: relative;
+  overflow: hidden;
+  padding: 40rpx 32rpx 32rpx;
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+}
+
+.page-header__title {
+  display: block;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  margin-bottom: 8rpx;
+}
+
+.page-header__subtitle {
+  display: block;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+}
+
+.page-header__decor {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  line-height: 1;
+}
+
 .search-header {
   @include flex-align-center;
   padding: var(--tg-spacing-lg) 30rpx;
@@ -33,7 +65,7 @@
   flex: 1;
   display: flex;
   align-items: center;
-  background: #f4f6f8;
+  background: var(--tg-color-bg-muted);
   border-radius: 48rpx;
   padding: 0 24rpx;
   height: 76rpx;
@@ -44,8 +76,8 @@
 /* Skyline: 使用 JS class 替代 :focus-within */
 .search-bar-focused {
   background: var(--tg-color-white);
-  border-color: rgba(255, 107, 53, 0.3);
-  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.08);
+  border-color: rgba(var(--td-brand-color-rgb), 0.3);
+  box-shadow: 0 0 0 4rpx rgba(var(--td-brand-color-rgb), 0.08);
 }
 
 .search-icon {
@@ -95,13 +127,13 @@
   );
   border-radius: 50%;
   @include flex-center;
-  box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 8rpx 20rpx rgba(var(--td-brand-color-rgb), 0.35);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .new-chat-btn:active {
   transform: scale(0.9);
-  box-shadow: 0 4rpx 10rpx rgba(255, 107, 53, 0.25);
+  box-shadow: 0 4rpx 10rpx rgba(var(--td-brand-color-rgb), 0.25);
 }
 
 .new-chat-icon {
@@ -156,11 +188,11 @@
 }
 
 .session-item.active-session {
-  background: linear-gradient(135deg, rgba(79, 172, 254, 0.04) 0%, rgba(118, 75, 226, 0.02) 100%);
+  background: linear-gradient(135deg, rgba(var(--td-brand-color-rgb), 0.04) 0%, rgba(var(--td-brand-color-rgb), 0.02) 100%);
 }
 
 .session-item:active {
-  background: rgba(255, 107, 53, 0.06);
+  background: rgba(var(--td-brand-color-rgb), 0.06);
   transform: scale(0.98);
 }
 
@@ -195,15 +227,15 @@
 
 /* 不同类型的头像背景渐变 */
 .customer-service-bg {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, var(--td-brand-color) 0%, var(--td-brand-color-focus) 100%);
 }
 
 .system-bg {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: linear-gradient(135deg, var(--tg-color-error) 0%, var(--tg-color-warning) 100%);
 }
 
 .ai-bg {
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  background: linear-gradient(135deg, var(--td-brand-color-light) 0%, var(--td-brand-color) 100%);
 }
 
 .tech-bg {
@@ -215,11 +247,11 @@
 }
 
 .activity-bg {
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  background: linear-gradient(135deg, var(--tg-color-warning) 0%, var(--td-brand-color) 100%);
 }
 
 .feedback-bg {
-  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  background: linear-gradient(135deg, var(--td-brand-color-focus) 0%, var(--td-brand-color-light) 100%);
 }
 
 /* 头像图标 */
@@ -325,7 +357,7 @@
   background: rgba(255, 152, 0, 0.08);
 }
 .status-waiting .status-tag-dot {
-  background: #ff9800;
+  background: var(--tg-color-warning);
 }
 .status-waiting .status-tag-text {
   color: var(--tg-color-warning);
@@ -336,7 +368,7 @@
   background: rgba(33, 150, 243, 0.08);
 }
 .status-assigned .status-tag-dot {
-  background: #2196f3;
+  background: var(--tg-color-info);
 }
 .status-assigned .status-tag-text {
   color: var(--tg-color-info);
@@ -347,7 +379,7 @@
   background: rgba(76, 175, 80, 0.08);
 }
 .status-active .status-tag-dot {
-  background: #4caf50;
+  background: var(--tg-color-success);
   animation: statusDotPulse 1.5s ease-in-out infinite;
 }
 .status-active .status-tag-text {
@@ -369,7 +401,7 @@
   background: rgba(158, 158, 158, 0.08);
 }
 .status-closed .status-tag-dot {
-  background: #9e9e9e;
+  background: var(--tg-text-tertiary);
 }
 .status-closed .status-tag-text {
   color: var(--tg-text-secondary);
@@ -403,14 +435,14 @@
 .unread-count {
   min-width: 36rpx;
   height: 36rpx;
-  background: linear-gradient(135deg, #ff4444, #ff6b6b);
+  background: var(--tg-color-error);
   color: var(--tg-color-white);
   border-radius: 18rpx;
   @include flex-center;
   font-size: var(--tg-font-size-small);
   font-weight: var(--tg-font-weight-bold);
   padding: 0 10rpx;
-  box-shadow: 0 3rpx 10rpx rgba(255, 68, 68, 0.3);
+  box-shadow: var(--tg-shadow-md);
   animation: unreadPop 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
@@ -459,7 +491,7 @@
 }
 
 .search-empty-icon {
-  font-size: 48rpx;
+  font-size: var(--tg-font-size-display);
   opacity: 0.6;
 }
 
@@ -520,7 +552,7 @@
 }
 
 .search-result-item:active {
-  background: rgba(255, 107, 53, 0.04);
+  background: rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 /* 搜索结果头像 */
@@ -564,7 +596,7 @@
 /* "我"标签 — 蓝色 */
 .sender-self {
   color: var(--tg-gradient-primary-start);
-  background: rgba(255, 107, 53, 0.08);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
 }
 
 /* "客服"标签 — 青色 */
@@ -625,7 +657,7 @@
   width: 100rpx;
   height: 100rpx;
   border-radius: 26rpx;
-  background: #e8ecef;
+  background: var(--tg-color-border);
   flex-shrink: 0;
   margin-right: 24rpx;
 }
@@ -637,7 +669,7 @@
 .skeleton-line {
   height: 24rpx;
   border-radius: 12rpx;
-  background: #e8ecef;
+  background: var(--tg-color-border);
   margin-bottom: 16rpx;
 }
 
@@ -658,14 +690,14 @@
   width: 60rpx;
   height: 20rpx;
   border-radius: 10rpx;
-  background: #e8ecef;
+  background: var(--tg-color-border);
   margin-left: 16rpx;
   flex-shrink: 0;
 }
 
 /* 骨架屏闪光动画 */
 .shimmer {
-  background: linear-gradient(90deg, #e8ecef 0%, #f4f6f8 40%, #e8ecef 80%);
+  background: linear-gradient(90deg, var(--tg-color-border) 0%, var(--tg-color-bg-muted) 40%, var(--tg-color-border) 80%);
   background-size: 400% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
@@ -703,7 +735,7 @@
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
-  background: rgba(255, 77, 79, 0.06);
+  background: rgba(196, 69, 105, 0.06);
   @include flex-center;
   margin-bottom: 32rpx;
 }
@@ -733,13 +765,13 @@
   );
   border-radius: 48rpx;
   padding: 24rpx 64rpx;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.3);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .retry-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.2);
 }
 
 .retry-btn-text {
@@ -828,7 +860,7 @@
   flex: 0 0 auto;
   flex-shrink: 0;
   min-height: 80rpx;
-  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.2);
+  box-shadow: 0 4rpx 20rpx rgba(var(--td-brand-color-rgb), 0.2);
 }
 
 .header-left {
@@ -893,7 +925,7 @@
 }
 
 .header-online-dot.offline {
-  background: #ff9800;
+  background: var(--tg-color-warning);
   animation: offlineBlink 1.5s ease-in-out infinite;
 }
 
@@ -936,12 +968,12 @@
 }
 
 .dot-online {
-  background: #69f0ae;
-  box-shadow: 0 0 6rpx rgba(105, 240, 174, 0.6);
+  background: var(--tg-color-success);
+  box-shadow: 0 0 6rpx rgba(39, 174, 96, 0.6);
 }
 
 .dot-offline {
-  background: #ffab40;
+  background: var(--tg-color-warning);
   animation: dotPulse 1.5s ease infinite;
 }
 
@@ -991,7 +1023,7 @@
 /* 连接状态横幅 */
 /* ============================================================================ */
 .connection-banner {
-  background: linear-gradient(90deg, #ff9800, #ffa726);
+  background: linear-gradient(90deg, var(--tg-color-warning), var(--tg-color-warning));
   padding: 12rpx 24rpx;
   flex-shrink: 0;
   animation: bannerSlideDown 0.3s ease;
@@ -1019,7 +1051,7 @@
   width: 24rpx;
   height: 24rpx;
   border: 2rpx solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border-top-color: var(--tg-color-white);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -1037,7 +1069,7 @@
   flex: 1;
   min-height: 0;
   padding: 20rpx 24rpx;
-  background: linear-gradient(180deg, #f0f2f5 0%, #e8eaed 100%);
+  background: var(--tg-color-bg-panel);
   overflow-y: auto;
   padding-bottom: 24rpx;
 }
@@ -1049,9 +1081,9 @@
   @include flex-column-center;
   padding: 60rpx 40rpx 40rpx;
   margin: 20rpx 24rpx;
-  background: white;
+  background: var(--tg-color-white);
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.04);
+  box-shadow: var(--tg-shadow-card);
   animation: welcomeFadeIn 0.6s ease;
 }
 
@@ -1075,9 +1107,9 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, var(--td-brand-color) 0%, var(--td-brand-color-focus) 100%);
   @include flex-center;
-  box-shadow: 0 8rpx 24rpx rgba(79, 172, 254, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.3);
   position: relative;
   z-index: 2;
 }
@@ -1093,7 +1125,7 @@
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  background: rgba(79, 172, 254, 0.15);
+  background: rgba(var(--td-brand-color-rgb), 0.15);
   transform: translate(-50%, -50%);
   animation: welcomePulse 2s ease-in-out infinite;
   z-index: 1;
@@ -1125,7 +1157,7 @@
 
 .welcome-tips {
   width: 100%;
-  background: #f8f9fc;
+  background: var(--tg-color-bg-panel);
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 28rpx;
@@ -1313,7 +1345,7 @@
   );
   color: var(--tg-color-white);
   border-top-right-radius: 6rpx;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.25);
+  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.25);
 }
 
 .message-text {
@@ -1403,7 +1435,7 @@
 .typing-dot {
   width: 12rpx;
   height: 12rpx;
-  background: #b0b8c1;
+  background: var(--tg-text-placeholder);
   border-radius: 50%;
   animation: typing 1.4s infinite ease-in-out;
 }
@@ -1439,8 +1471,8 @@
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: white;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  background: var(--tg-color-white);
+  box-shadow: var(--tg-shadow-md);
   @include flex-center;
   z-index: 100;
   transition: all 0.3s ease;
@@ -1475,7 +1507,7 @@
   right: -6rpx;
   min-width: 32rpx;
   height: 32rpx;
-  background: linear-gradient(135deg, #ff4444, #ff6b6b);
+  background: var(--tg-color-error);
   color: var(--tg-color-white);
   border-radius: 16rpx;
   @include flex-center;
@@ -1529,7 +1561,7 @@
   display: inline-flex;
   align-items: center;
   padding: 12rpx 24rpx;
-  background: #f4f6f8;
+  background: var(--tg-color-bg-muted);
   border-radius: 28rpx;
   border: 2rpx solid rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
@@ -1537,8 +1569,8 @@
 }
 
 .quick-reply-chip:active {
-  background: rgba(255, 107, 53, 0.1);
-  border-color: rgba(255, 107, 53, 0.2);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
+  border-color: rgba(var(--td-brand-color-rgb), 0.2);
   transform: scale(0.95);
 }
 
@@ -1585,7 +1617,7 @@
   width: 68rpx;
   height: 68rpx;
   border-radius: 50%;
-  background: #f4f6f8;
+  background: var(--tg-color-bg-muted);
   @include flex-center;
   flex-shrink: 0;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1596,7 +1628,7 @@
 }
 
 .expand-btn.active {
-  background: rgba(255, 107, 53, 0.1);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
   transform: rotate(45deg);
 }
 
@@ -1614,7 +1646,7 @@
 /* 输入框容器 */
 .input-wrapper {
   flex: 1;
-  background: #f4f6f8;
+  background: var(--tg-color-bg-muted);
   border-radius: 32rpx;
   padding: 16rpx 24rpx;
   min-height: 68rpx;
@@ -1628,8 +1660,8 @@
 /* Skyline: 使用 JS class 替代 :focus-within */
 .input-wrapper-focused {
   background: var(--tg-color-white);
-  border-color: rgba(255, 107, 53, 0.25);
-  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.06);
+  border-color: rgba(var(--td-brand-color-rgb), 0.25);
+  box-shadow: 0 0 0 4rpx rgba(var(--td-brand-color-rgb), 0.06);
 }
 
 .message-input {
@@ -1660,7 +1692,7 @@
 }
 
 .send-btn.inactive {
-  background: #f4f6f8;
+  background: var(--tg-color-bg-muted);
 }
 
 .send-btn.active {
@@ -1669,12 +1701,12 @@
     var(--tg-gradient-primary-start) 0%,
     var(--tg-gradient-primary-end) 100%
   );
-  box-shadow: 0 4rpx 14rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 4rpx 14rpx rgba(var(--td-brand-color-rgb), 0.35);
 }
 
 .send-btn.active:active {
   transform: scale(0.88);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(var(--td-brand-color-rgb), 0.2);
 }
 
 .send-btn-icon {
@@ -1724,19 +1756,19 @@
   width: 96rpx;
   height: 96rpx;
   border-radius: 24rpx;
-  background: #f4f6f8;
+  background: var(--tg-color-bg-muted);
   @include flex-center;
   transition: all 0.25s ease;
   border: 2rpx solid rgba(0, 0, 0, 0.03);
 }
 
 .toolbar-item:active .toolbar-item-icon-wrapper {
-  background: rgba(255, 107, 53, 0.08);
-  border-color: rgba(255, 107, 53, 0.12);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
+  border-color: rgba(var(--td-brand-color-rgb), 0.12);
 }
 
 .toolbar-item-icon {
-  font-size: 40rpx;
+  font-size: var(--tg-font-size-xl);
 }
 
 .toolbar-item-label {
@@ -1764,11 +1796,11 @@
 /* ============================================================================ */
 .satisfaction-card {
   margin: 24rpx 32rpx;
-  background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);
+  background: linear-gradient(135deg, rgba(197, 165, 114, 0.08) 0%, rgba(197, 165, 114, 0.15) 100%);
   border-radius: 20rpx;
   padding: 28rpx;
-  box-shadow: 0 4rpx 16rpx rgba(255, 193, 7, 0.15);
-  border: 2rpx solid rgba(255, 193, 7, 0.2);
+  box-shadow: var(--tg-shadow-md);
+  border: 2rpx solid rgba(197, 165, 114, 0.2);
 }
 
 .satisfaction-header {
@@ -1805,7 +1837,7 @@
 }
 
 .star-icon {
-  font-size: 48rpx;
+  font-size: var(--tg-font-size-display);
   transition:
     transform 0.2s ease,
     color 0.2s ease;
@@ -1849,13 +1881,13 @@
 }
 
 .satisfaction-submit-btn.active {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  background: linear-gradient(135deg, var(--tg-color-warning) 0%, var(--td-brand-color) 100%);
   color: var(--tg-color-white);
-  box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
+  box-shadow: var(--tg-shadow-md);
 }
 
 .satisfaction-submit-btn.disabled {
-  background: #e0e0e0;
+  background: var(--tg-color-border);
   color: var(--tg-text-tertiary);
 }
 
@@ -1863,13 +1895,13 @@
   margin: 24rpx 32rpx;
   text-align: center;
   padding: 28rpx;
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  background: linear-gradient(135deg, rgba(39, 174, 96, 0.06) 0%, rgba(39, 174, 96, 0.12) 100%);
   border-radius: 20rpx;
-  border: 2rpx solid rgba(76, 175, 80, 0.2);
+  border: 2rpx solid rgba(39, 174, 96, 0.2);
 }
 
 .satisfaction-done-icon {
-  font-size: 40rpx;
+  font-size: var(--tg-font-size-xl);
   display: block;
   margin-bottom: 8rpx;
 }

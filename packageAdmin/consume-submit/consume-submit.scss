@@ -10,6 +10,7 @@
 
 /* ===== 页面容器（紫蓝渐变背景） ===== */
 .consume-page {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -17,12 +18,48 @@
   padding: 20rpx var(--tg-spacing-md) 160rpx;
 }
 
+/* ===== 页面标题区（渐变背景 + 装饰图标） ===== */
+.page-header {
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--tg-spacing-lg);
+  border-radius: var(--tg-radius-xl);
+}
+
+.header-text {
+  position: relative;
+  z-index: 1;
+}
+
+.header-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+  letter-spacing: -0.5rpx;
+}
+
+.header-desc {
+  font-size: var(--tg-font-size-body, 26rpx);
+  color: var(--tg-text-secondary);
+}
+
+.header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+}
+
 /* ===== 操作引导条 ===== */
 .guide-tip {
   display: flex;
   align-items: center;
   padding: 14rpx 20rpx;
-  background: rgba(139, 115, 85, 0.08);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
   border-radius: var(--td-radius-default);
   margin-bottom: 20rpx;
   gap: 8rpx;
@@ -58,13 +95,13 @@
   height: 52rpx;
   @include flex-center;
   border-radius: 50%;
-  background: rgba(139, 115, 85, 0.1);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
   transition: all 0.3s;
 }
 
 .step.active .step-circle {
   background: var(--tg-color-white);
-  box-shadow: 0 4rpx 16rpx rgba(139, 115, 85, 0.2);
+  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.2);
 }
 
 .step.done .step-circle {
@@ -107,7 +144,7 @@
 .step-connector {
   width: 60rpx;
   height: 3rpx;
-  background: rgba(139, 115, 85, 0.15);
+  background: rgba(var(--td-brand-color-rgb), 0.15);
   margin: 0 12rpx;
   margin-bottom: var(--tg-spacing-md);
   border-radius: 2rpx;
@@ -132,7 +169,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20rpx var(--tg-spacing-md);
-  border-bottom: 2rpx solid rgba(255, 107, 53, 0.06);
+  border-bottom: 2rpx solid rgba(var(--td-brand-color-rgb), 0.06);
 }
 
 .header-left {
@@ -229,7 +266,7 @@
 }
 
 .amount-symbol {
-  font-size: 44rpx;
+  font-size: var(--tg-font-size-display);
   color: var(--td-brand-color);
   font-weight: var(--tg-font-weight-bold);
   margin-right: var(--tg-spacing-sm);
@@ -255,7 +292,7 @@
 .points-tag {
   font-size: var(--tg-font-size-xs);
   color: var(--td-brand-color);
-  background: rgba(255, 107, 53, 0.08);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
   padding: 4rpx 14rpx;
   border-radius: 20rpx;
   font-weight: var(--tg-font-weight-regular);
@@ -368,7 +405,7 @@
   width: 140rpx;
   height: 140rpx;
   border-radius: 50%;
-  border: 3rpx solid rgba(255, 107, 53, 0.25);
+  border: 3rpx solid rgba(var(--td-brand-color-rgb), 0.25);
   animation: ringExpand 2s ease-out infinite;
 }
 
@@ -392,9 +429,9 @@
   width: 100rpx;
   height: 100rpx;
   @include flex-center;
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
+  background: var(--td-brand-color);
   border-radius: 50%;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.35);
   position: relative;
   z-index: 1;
 }
@@ -422,7 +459,7 @@
 /* 重新扫码标签 */
 .rescan-tag {
   padding: 6rpx var(--tg-spacing-sm);
-  background: rgba(255, 107, 53, 0.08);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
   border-radius: 20rpx;
 
   .rescan-tag-text {
@@ -463,7 +500,7 @@
   align-items: center;
   gap: var(--tg-spacing-sm);
   padding: var(--tg-spacing-sm) 20rpx;
-  background: rgba(255, 107, 53, 0.04);
+  background: rgba(var(--td-brand-color-rgb), 0.04);
   border-radius: var(--td-radius-default);
 }
 
@@ -473,7 +510,7 @@
   @include flex-center;
   background: var(--tg-gradient-primary-start);
   border-radius: 50%;
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.25);
   flex-shrink: 0;
 }
 
@@ -560,7 +597,7 @@
 }
 
 .summary-row + .summary-row {
-  border-top: 1rpx solid rgba(255, 107, 53, 0.06);
+  border-top: 1rpx solid rgba(var(--td-brand-color-rgb), 0.06);
 }
 
 .summary-label {
@@ -611,17 +648,17 @@
 .submit-main-btn {
   width: 100%;
   height: 96rpx;
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-focus));
+  background: var(--td-brand-color);
   color: var(--tg-color-white);
   border-radius: 48rpx;
   border: none;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.4);
   transition: all 0.3s;
 }
 
 .submit-main-btn:active {
   transform: translateY(2rpx);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .submit-main-btn.disabled {
@@ -642,7 +679,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(139, 115, 85, 0.85);
+  background: rgba(var(--td-brand-color-rgb), 0.85);
   @include flex-center;
   z-index: 9999;
 }

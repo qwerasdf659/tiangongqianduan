@@ -170,9 +170,11 @@
           wx:else
           class="image-fallback {{item.cost_asset_code === 'points' ? 'asset-type' : 'item-type'}}"
         >
-          <text
-            class="fallback-icon iconfont {{item.cost_asset_code === 'points' ? 'icon-gold-coin' : 'icon-gift'}}"
-          ></text>
+          <t-icon
+            name="{{item.cost_asset_code === 'points' ? 'money' : 'gift'}}"
+            size="32rpx"
+            class="fallback-icon"
+          />
           <text class="fallback-name">{{item.item_name}}</text>
         </view>
         <!-- 标签（优先级: 置顶 > 推荐 > 热销 > 新品 > 限量） -->

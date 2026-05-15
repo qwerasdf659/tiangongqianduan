@@ -9,6 +9,9 @@
       <view class="step-header">
         <text class="step-title">选择拍卖物品</text>
         <text class="step-hint">从背包中选择一个可交易的物品</text>
+        <view class="header-decor-icon">
+          <t-icon name="add-circle" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+        </view>
       </view>
 
       <!--加载中-->
@@ -170,7 +173,7 @@
       <view class="submit-section">
         <view class="submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmitAuction">
           <text wx:if="{{submitting}}">创建中...</text>
-          <text wx:else><text class="iconfont icon-hammer"></text> 发起拍卖</text>
+          <text wx:else><t-icon name="tools" size="28rpx" /> 发起拍卖</text>
         </view>
       </view>
     </block>

@@ -25,9 +25,9 @@
         ></view>
       </view>
       <view class="top-title">
-        <text class="title-icon left-icon">🎱</text>
+        <t-icon name="star" size="28rpx" class="title-icon left-icon" />
         <text class="title-text">P L I N K O</text>
-        <text class="title-icon right-icon">🎱</text>
+        <t-icon name="star" size="28rpx" class="title-icon right-icon" />
       </view>
       <view class="top-lights bottom-row">
         <view
@@ -115,7 +115,7 @@
           <view class="slot-body">
             <view class="slot-icon-wrap {{item.winner ? 'bounce' : ''}}">
               <text wx:if="{{item.prize && item.prize.prize_icon}}" class="slot-icon">{{item.prize.prize_icon}}</text>
-              <text wx:else class="slot-icon iconfont icon-gift"></text>
+              <t-icon name="gift" size="32rpx" class="slot-icon" wx:else />
             </view>
             <text class="slot-name">{{(item.prize && item.prize.prize_name) || '奖品'}}</text>
           </view>
@@ -162,12 +162,14 @@
   <view class="celebration-effect" wx:if="{{showCelebration}}">
     <!-- 光芒爆发 -->
     <view class="celebration-burst">
-      <text
-        class="burst-item iconfont {{index % 4 === 0 ? 'icon-celebrate' : index % 4 === 1 ? 'icon-star' : 'icon-sparkle'}}"
+      <t-icon
+        name="{{index % 4 === 0 ? 'star' : index % 4 === 1 ? 'star' : 'star'}}"
+        size="28rpx"
+        class="burst-item"
         wx:for="{{16}}"
         wx:key="*this"
         style="animation-delay: {{index * 0.04}}s;"
-      ></text>
+      />
     </view>
     <!-- 扩散光环 -->
     <view class="celebration-ring ring-1"></view>
@@ -175,12 +177,14 @@
     <view class="celebration-ring ring-3"></view>
     <!-- 金币雨 -->
     <view class="celebration-coins">
-      <text
-        class="coin-item iconfont icon-gold-coin"
+      <t-icon
+        name="money"
+        size="28rpx"
+        class="coin-item"
         wx:for="{{10}}"
         wx:key="*this"
         style="animation-delay: {{index * 0.08}}s; left: {{5 + index * 9.5}}%;"
-      ></text>
+      />
     </view>
     <!-- 闪光点 -->
     <view class="celebration-sparkles">
@@ -206,7 +210,7 @@
       >
         <view class="btn-shine"></view>
         <view class="btn-content">
-          <text class="btn-icon">🎱</text>
+          <t-icon name="star" size="32rpx" class="btn-icon" />
           <text class="btn-text">发射弹珠</text>
         </view>
       </view>
@@ -223,7 +227,7 @@
       <view class="launch-btn in-progress">
         <view class="btn-progress-ring"></view>
         <view class="btn-content">
-          <text class="btn-icon pulse-icon iconfont icon-lightning"></text>
+          <t-icon name="flash" size="32rpx" class="btn-icon pulse-icon" />
           <text class="btn-text">弹珠跳跃中...</text>
         </view>
       </view>
@@ -232,7 +236,7 @@
       <view class="launch-btn winner-btn">
         <view class="btn-shine"></view>
         <view class="btn-content">
-          <text class="btn-icon iconfont icon-celebrate"></text>
+          <t-icon name="star" size="32rpx" class="btn-icon" />
           <text class="btn-text">恭喜中奖！</text>
         </view>
       </view>

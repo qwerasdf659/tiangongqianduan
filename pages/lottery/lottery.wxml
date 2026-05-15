@@ -145,7 +145,7 @@
                 show-menu-by-longpress="{{true}}"
               />
               <view class="qrcode-hint" wx:if="{{qrCodeImage}}">
-                <text class="hint-icon">🔍</text>
+                <t-icon name="search" size="28rpx" class="hint-icon" />
               </view>
             </block>
 

@@ -8,6 +8,7 @@
 @import '../../styles/mixins.scss';
 
 .ad-campaigns-page {
+  @include tg-tokens;
   flex: 1;
   background: var(--tg-page-bg);
   @include flex-column;
@@ -37,7 +38,7 @@
 }
 
 .header-count {
-  font-size: 56rpx;
+  font-size: var(--tg-font-size-display-lg);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   margin-right: 8rpx;

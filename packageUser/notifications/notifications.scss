@@ -7,11 +7,42 @@
 @import '../../styles/mixins';
 
 .notifications-page {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
   background-color: var(--tg-page-bg);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ===== 页面标题渐变区域 ===== */
+.page-header {
+  position: relative;
+  overflow: hidden;
+  padding: 40rpx 32rpx 32rpx;
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+}
+
+.page-header__title {
+  display: block;
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  margin-bottom: 8rpx;
+}
+
+.page-header__subtitle {
+  display: block;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+}
+
+.page-header__decor {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  line-height: 1;
 }
 
 /* ===== 顶部操作栏 ===== */
@@ -199,7 +230,7 @@
 }
 
 .arrow-icon {
-  font-size: 36rpx;
+  font-size: var(--td-font-size-l);
   color: var(--tg-text-disabled);
 }
 
@@ -213,7 +244,7 @@
 
 /* ===== 空状态 / Loading 插槽 ===== */
 .empty-slot-icon {
-  font-size: 100rpx;
+  font-size: 120rpx;
   margin-bottom: var(--tg-spacing-lg);
 }
 

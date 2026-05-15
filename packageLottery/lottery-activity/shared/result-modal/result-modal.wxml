@@ -10,7 +10,7 @@
     <view class="result-header gradient-header-card">
       <!-- 中奖状态标题卡片（业务规则：每次抽奖100%中奖，所有档位都是奖品） -->
       <view class="title-card success-card" wx:if="{{!drawResult.isError}}">
-        <view class="title-icon"><text class="iconfont icon-celebrate"></text></view>
+        <view class="title-icon"><t-icon name="thumb-up" size="48rpx" /></view>
         <view class="title-content">
           <!--
             积分/虚拟奖品直接到账（决策3）：prize_type = points/virtual 不进背包
@@ -96,7 +96,7 @@
             <view class="card-flip-back">
               <view class="card-back-pattern">
                 <view class="card-back-border"></view>
-                <text class="card-back-icon iconfont icon-question"></text>
+                <text class="card-back-icon"><t-icon name="help-circle" size="48rpx" /></text>
                 <text class="card-back-hint">点击翻转</text>
               </view>
             </view>
@@ -112,7 +112,7 @@
                     binderror="onResultImageError"
                   />
                   <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
-                  <text wx:else class="winning-icon iconfont icon-gift"></text>
+                  <t-icon wx:else name="gift" size="48rpx" class="winning-icon" />
                   <view class="icon-glow"></view>
                 </view>
                 <view class="winning-info">
@@ -152,7 +152,7 @@
                   binderror="onResultImageError"
                 />
                 <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
-                <text wx:else class="winning-icon iconfont icon-gift"></text>
+                <t-icon wx:else name="gift" size="48rpx" class="winning-icon" />
                 <view class="icon-glow"></view>
               </view>
               <view class="winning-info">
@@ -199,7 +199,7 @@
               <view class="card-flip-back">
                 <view class="card-back-pattern">
                   <view class="card-back-border"></view>
-                  <text class="card-back-icon iconfont icon-question"></text>
+                  <text class="card-back-icon"><t-icon name="help-circle" size="48rpx" /></text>
                 </view>
               </view>
               <view class="card-flip-front">
@@ -214,7 +214,7 @@
                       binderror="onMultiResultImageError"
                     />
                     <text wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}" class="reveal-prize-icon">{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}</text>
-                    <text wx:else class="reveal-prize-icon iconfont icon-gift"></text>
+                    <t-icon wx:else name="gift" size="48rpx" class="reveal-prize-icon" />
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -251,7 +251,7 @@
                       binderror="onMultiResultImageError"
                     />
                     <text wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}" class="reveal-prize-icon">{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}</text>
-                    <text wx:else class="reveal-prize-icon iconfont icon-gift"></text>
+                    <t-icon wx:else name="gift" size="48rpx" class="reveal-prize-icon" />
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -275,13 +275,13 @@
             wx:if="{{multiDrawCurrentIndex < drawResult.prizes.length - 1}}"
             bindtap="revealNextPrize"
           >
-            <text class="reveal-next-text"><text class="iconfont icon-dice"></text> 揭晓下一个</text>
+            <text class="reveal-next-text"><t-icon name="play-circle" size="28rpx" /> 揭晓下一个</text>
           </button>
           <view
             class="reveal-complete-hint"
             wx:if="{{multiDrawCurrentIndex >= drawResult.prizes.length - 1}}"
           >
-            <text class="reveal-complete-text"><text class="iconfont icon-celebrate"></text> 全部揭晓完成！</text>
+            <text class="reveal-complete-text"><t-icon name="thumb-up" size="28rpx" /> 全部揭晓完成！</text>
           </view>
         </view>
 
@@ -306,7 +306,7 @@
                 binderror="onMultiResultImageError"
               />
               <text wx:if="{{item.prize_icon}}" class="mini-card-icon">{{item.prize_icon}}</text>
-              <text wx:else class="mini-card-icon iconfont icon-gift"></text>
+              <t-icon wx:else name="gift" size="32rpx" class="mini-card-icon" />
               <text class="mini-card-name">{{item.prize_name}}</text>
             </view>
           </view>
@@ -347,7 +347,7 @@
             >确定</text
           >
           <text class="btn-text" wx:else>确认收下</text>
-          <text class="btn-icon iconfont icon-sparkle"></text>
+          <t-icon name="star" size="28rpx" class="btn-icon" />
         </view>
       </button>
     </view>

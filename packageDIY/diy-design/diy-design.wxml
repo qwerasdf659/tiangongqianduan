@@ -65,11 +65,11 @@
         bind:tap="onSizeChange"
         wx:if="{{!isSlotMode && sizeOptions.length > 0}}"
       >
-        <text class="side-tool-icon">⊕</text>
+        <t-icon name="adjustment" size="32rpx" class="side-tool-icon" />
         <text class="side-tool-label">手围设置</text>
       </view>
       <view class="side-tool-item" bind:tap="onToggleToolbox">
-        <text class="side-tool-icon">⊞</text>
+        <t-icon name="app" size="32rpx" class="side-tool-icon" />
         <text class="side-tool-label">工具箱</text>
       </view>
     </view>
@@ -77,13 +77,13 @@
     <!-- 工具箱弹出面板 -->
     <view wx:if="{{showToolbox}}" class="toolbox-panel">
       <view class="toolbox-item {{canUndo ? '' : 'disabled'}}" bind:tap="onUndo">
-        <text>↩ 撤销</text>
+        <t-icon name="undo" size="32rpx" /><text>撤销</text>
       </view>
       <view class="toolbox-item {{canRedo ? '' : 'disabled'}}" bind:tap="onRedo">
-        <text>↪ 重做</text>
+        <t-icon name="redo" size="32rpx" /><text>重做</text>
       </view>
       <view class="toolbox-item" bind:tap="onClearDesign">
-        <text>🗑 清空</text>
+        <t-icon name="delete" size="32rpx" /><text>清空</text>
       </view>
       <view wx:if="{{highlightedCount > 0}}" class="toolbox-item" bind:tap="onDeleteSelected">
         <text>✕ 删除选中({{highlightedCount}})</text>
@@ -116,10 +116,10 @@
           <text>吊坠</text>
         </view>
         <view class="material-type-tab" bind:tap="onToggleSearch">
-          <text>🔍</text>
+          <t-icon name="search" size="36rpx" />
         </view>
         <view class="material-type-tab" bind:tap="onShowCart">
-          <text>🛒</text>
+          <t-icon name="cart" size="36rpx" />
         </view>
       </view>
 

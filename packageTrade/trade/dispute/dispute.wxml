@@ -22,6 +22,9 @@
       <view class="form-header">
         <text class="form-title">发起交易申诉</text>
         <text class="form-subtitle">请如实描述问题，平台将在24小时内处理</text>
+        <view class="header-decor-icon">
+          <t-icon name="error-circle" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+        </view>
       </view>
 
       <!-- 申诉类型选择 -->

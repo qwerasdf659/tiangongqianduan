@@ -8,6 +8,28 @@
 @import '../../../styles/mixins';
 
 /* ========== 市场行情概览 ========== */
+.market-page-header {
+  position: relative;
+  overflow: hidden;
+  padding: 32rpx;
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  border-radius: var(--td-radius-large);
+  margin-bottom: 16rpx;
+}
+
+.market-page-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.market-page-header .header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+}
+
 .market-overview-section {
   margin-bottom: 16rpx;
 }
@@ -179,7 +201,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1rpx solid var(--tg-color-border-light);
 
   &:last-child {
     border-bottom: none;
@@ -244,6 +266,7 @@
 
 /* 🌊 ========== 主容器样式 - 方案1优化版本 ========== */
 .waterfall-market-container {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -306,7 +329,7 @@
   &.active {
     color: var(--tg-gradient-primary-start);
     font-weight: var(--tg-font-weight-bold);
-    background: rgba(255, 107, 53, 0.1);
+    background: rgba(var(--td-brand-color-rgb), 0.1);
   }
 }
 
@@ -456,7 +479,7 @@
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   will-change: transform, box-shadow;
   backface-visibility: hidden;
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  border: 1rpx solid rgba(var(--tg-color-white-rgb), 0.3);
   animation: cardFadeIn 0.6s ease-out backwards;
 }
 
@@ -545,7 +568,7 @@
   border-radius: 12rpx;
   font-weight: var(--tg-font-weight-bold);
   z-index: 2;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .rarity-text {
@@ -665,13 +688,13 @@
   width: calc(50% - 10rpx);
   border-radius: 16rpx;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--tg-color-white);
 }
 
 .skeleton-image {
   width: 100%;
   height: 280rpx;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--tg-color-border-light) 25%, var(--tg-color-border) 50%, var(--tg-color-border-light) 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
@@ -683,7 +706,7 @@
 .skeleton-line {
   height: 24rpx;
   border-radius: 6rpx;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--tg-color-border-light) 25%, var(--tg-color-border) 50%, var(--tg-color-border-light) 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
   margin-bottom: 16rpx;
@@ -780,7 +803,7 @@
   font-size: var(--tg-font-size-body) !important;
   font-weight: var(--tg-font-weight-bold) !important;
   border: none !important;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3) !important;
+  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3) !important;
 }
 
 /* 🔄 刷新提示 */
@@ -813,7 +836,7 @@
   height: 96rpx;
   border-radius: 48rpx;
   @include flex-center;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
+  box-shadow: var(--tg-shadow-card);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -823,8 +846,7 @@
 
 .back-to-top-btn {
   background: var(--tg-gradient-primary-start);
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .btn-icon {
@@ -877,7 +899,7 @@
 /* 🌙 深色模式支持 */
 @media (prefers-color-scheme: dark) {
   .waterfall-market-container {
-    background: #1a1a1a;
+    background: var(--tg-text-primary);
   }
 
   .waterfall-card {
@@ -954,7 +976,7 @@
   opacity: 0.4;
   pointer-events: none;
   color: var(--tg-text-tertiary);
-  border-color: rgba(0, 0, 0, 0.06);
+  border-color: var(--tg-color-border-light);
 }
 
 /* 推荐/置顶角标（后端 is_pinned / is_recommended 字段驱动） */
@@ -971,16 +993,16 @@
   letter-spacing: var(--tg-letter-spacing-tight);
 }
 .badge-tag.pinned {
-  background: #5b7a5e;
+  background: var(--tg-color-success);
 }
 .badge-tag.recommended {
-  background: #1e88e5;
+  background: var(--tg-color-info);
 }
 
 /* Feed 广告卡片 — 穿插在商品列表中，与普通商品卡片区分 */
 .feed-ad-card {
-  border: 2rpx solid rgba(255, 107, 53, 0.2);
-  background: #f8f9ff;
+  border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.2);
+  background: var(--tg-color-bg-panel);
 }
 
 .badge-tag.ad-tag {

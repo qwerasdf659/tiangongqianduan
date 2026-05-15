@@ -1,7 +1,7 @@
 <!-- 全屏维护遮罩 — 503 SYSTEM_MAINTENANCE 时阻断所有用户交互 -->
 <view class="maintenance-overlay" wx:if="{{visible}}" catch:touchmove="preventTouchMove">
   <view class="maintenance-content">
-    <view class="maintenance-icon">🔧</view>
+    <view class="maintenance-icon"><t-icon name="tools" size="64rpx" /></view>
     <view class="maintenance-title">系统维护中</view>
     <view class="maintenance-message">{{message}}</view>
     <button

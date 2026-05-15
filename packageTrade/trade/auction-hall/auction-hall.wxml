@@ -6,9 +6,12 @@
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!--顶部操作栏：我的拍卖/我的出价/发起拍卖-->
     <view class="auction-hall-header">
+      <view class="header-decor-icon">
+        <t-icon name="time" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
       <view class="header-actions">
         <view class="header-action-btn" bindtap="onGoMyAuctions">
-          <text class="action-icon iconfont icon-package"></text>
+          <t-icon name="shop" size="28rpx" class="action-icon" />
           <text class="action-text">我的拍卖</text>
         </view>
         <view class="header-action-btn" bindtap="onGoMyBids">
@@ -16,7 +19,7 @@
           <text class="action-text">我的出价</text>
         </view>
         <view class="header-action-btn header-action-btn--primary" bindtap="onCreateAuction">
-          <text class="action-icon iconfont icon-hammer"></text>
+          <t-icon name="tools" size="28rpx" class="action-icon" />
           <text class="action-text">发起拍卖</text>
         </view>
       </view>
@@ -65,7 +68,7 @@
     <!--错误状态-->
     <view class="auction-error" wx:elif="{{hasError}}">
       <view class="error-content">
-        <text class="error-icon">😵</text>
+        <t-icon name="error-circle" size="48rpx" class="error-icon" />
         <text class="error-text">{{errorMessage}}</text>
         <view class="error-retry-btn" bindtap="onRetry">
           <text>重新加载</text>
@@ -101,7 +104,7 @@
           </view>
           <!--一口价角标-->
           <view class="buyout-badge" wx:if="{{item._hasBuyout}}">
-            <text><text class="iconfont icon-diamond"></text> 一口价</text>
+            <text><t-icon name="diamond" size="28rpx" /> 一口价</text>
           </view>
         </view>
 
@@ -134,7 +137,9 @@
 
           <!--倒计时-->
           <view class="auction-countdown" wx:if="{{item._isActive && item._countdownText}}">
-            <view class="countdown-text"><t-icon name="time" size="28rpx" /> {{item._countdownText}}</view>
+            <view class="countdown-text"
+              ><t-icon name="time" size="28rpx" /> {{item._countdownText}}</view
+            >
           </view>
 
           <!--卖方信息-->

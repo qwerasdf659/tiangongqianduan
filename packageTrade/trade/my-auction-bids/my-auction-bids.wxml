@@ -4,6 +4,14 @@
 
 <view class="my-bids-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面头部 -->
+    <view class="bids-page-header">
+      <text class="bids-page-title">我的出价</text>
+      <view class="header-decor-icon">
+        <t-icon name="money-circle" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
     <!--加载中-->
     <view class="page-loading" wx:if="{{loading && bids.length === 0}}">
       <t-loading loading="{{true}}" text="加载出价记录..." theme="spinner" />

@@ -9,7 +9,7 @@
     wx:if="{{!pageLoading && rateList.length === 0}}"
     description="{{errorMessage || '当前没有开放的转换规则'}}"
   >
-      <view slot="image"><t-icon name="info-circle-filled" size="48rpx" color="#999" /></view>
+    <view slot="image"><t-icon name="info-circle-filled" size="48rpx" color="#999" /></view>
     <t-button slot="action" theme="primary" shape="round" size="small" bind:tap="onRefreshRates"
       >刷新</t-button
     >

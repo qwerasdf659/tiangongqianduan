@@ -49,7 +49,7 @@
           class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}"
           bindtap="onToggleViewMode"
           data-mode="grid"
-          >⊞
+          ><t-icon name="app" size="28rpx" />
         </view>
         <view
           class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}"
@@ -274,7 +274,10 @@
   </view>
   <view class="market-chart-toggle" bindtap="onTogglePriceChart">
     <view class="chart-toggle-inner">
-      <text class="chart-toggle-text" wx:if="{{showPriceChart}}">收起行情</text><view class="chart-toggle-text" wx:else><t-icon name="trending-up" size="28rpx" /> 查看市场行情</view>
+      <text class="chart-toggle-text" wx:if="{{showPriceChart}}">收起行情</text
+      ><view class="chart-toggle-text" wx:else
+        ><t-icon name="trending-up" size="28rpx" /> 查看市场行情</view
+      >
       <text class="chart-toggle-arrow">{{showPriceChart ? '︿' : '﹀'}}</text>
     </view>
   </view>
@@ -369,10 +372,11 @@
               wx:else
               class="image-fallback {{item.listing_kind === 'fungible_asset' ? 'asset-type' : 'item-type'}}"
             >
-              <text
-                class="fallback-icon iconfont {{item.listing_kind === 'fungible_asset' ? 'icon-gold-coin' : 'icon-gift'}}"
-              ></text>
-              >
+              <t-icon
+                name="{{item.listing_kind === 'fungible_asset' ? 'money' : 'gift'}}"
+                size="32rpx"
+                class="fallback-icon"
+              />
               <text class="fallback-name">{{item.item_name}}</text>
             </view>
             <!-- 角标（优先级: 置顶 > 推荐 > 稀有度） -->

@@ -1,6 +1,7 @@
 @import '../../styles/mixins.scss';
 
 .diy-design-page {
+  @include tg-tokens;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -111,7 +112,7 @@
 }
 
 .side-tool-icon {
-  font-size: 48rpx;
+  font-size: var(--tg-font-size-display);
   color: var(--tg-text-primary);
 }
 

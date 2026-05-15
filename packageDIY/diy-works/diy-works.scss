@@ -13,6 +13,7 @@
 @import '../../styles/td-overrides';
 
 .diy-works-page {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;

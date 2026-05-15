@@ -11,7 +11,7 @@
 
     <!-- 加载失败 -->
     <t-empty wx:elif="{{loadError}}" description="加载失败">
-      <view slot="image">😞</view>
+      <view slot="image"><t-icon name="dissatisfaction" size="64rpx" color="#999" /></view>
       <view slot="action" class="retry-btn" bindtap="onRetry">重新加载</view>
     </t-empty>
 

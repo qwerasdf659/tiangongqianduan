@@ -8,11 +8,32 @@
 @import '../../../styles/mixins';
 
 .trade-upload-records-container {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
   background: var(--tg-gradient-primary);
   padding-bottom: 40rpx;
+}
+
+.records-page-header {
+  position: relative;
+  overflow: hidden;
+  padding: 32rpx;
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+}
+
+.records-page-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.records-page-header .header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
 }
 
 /* 🔴 Tab切换栏 */
@@ -24,7 +45,7 @@
 
 .tab-list {
   display: flex;
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 24rpx;
   padding: 8rpx;
   box-shadow: var(--tg-shadow-card);
@@ -45,7 +66,7 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.35);
+  box-shadow: 0 6rpx 20rpx rgba(var(--td-brand-color-rgb), 0.35);
   transform: scale(1.02);
 }
 
@@ -57,7 +78,7 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: rgba(255, 107, 53, 0.1);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
   @include flex-center;
   margin-bottom: 8rpx;
   transition: all 0.3s ease;
@@ -136,10 +157,10 @@
 }
 
 .main-stat-card {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 20rpx;
   padding: 24rpx 16rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
+  box-shadow: var(--tg-shadow-card);
   @include flex-column-center;
   transition:
     transform 0.3s ease,
@@ -198,7 +219,7 @@
 }
 
 .stat-icon-bg.total {
-  background: rgba(255, 107, 53, 0.12);
+  background: rgba(var(--td-brand-color-rgb), 0.12);
 }
 
 .stat-icon {
@@ -242,17 +263,17 @@
 }
 
 .filter-content {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 20rpx;
   padding: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  box-shadow: var(--tg-shadow-card);
 }
 
 .time-filters {
   display: flex;
   gap: 10rpx;
   margin-bottom: 16rpx;
-  background: rgba(255, 107, 53, 0.06);
+  background: rgba(var(--td-brand-color-rgb), 0.06);
   border-radius: 16rpx;
   padding: 6rpx;
 }
@@ -272,7 +293,7 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
 .filter-chip:active {
@@ -297,7 +318,7 @@
 .filter-btn {
   flex: 1;
   background: transparent;
-  border: 2rpx solid rgba(255, 107, 53, 0.4);
+  border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.4);
   border-radius: 12rpx;
   padding: 14rpx;
   @include flex-center;
@@ -309,17 +330,17 @@
 }
 
 .filter-btn:active {
-  background: rgba(255, 107, 53, 0.08);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
   transform: scale(0.97);
 }
 
 .filter-btn.secondary {
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: var(--tg-color-border);
   color: var(--tg-text-tertiary);
 }
 
 .filter-btn.secondary:active {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--tg-color-bg-grey);
 }
 
 /* ============================================================================ */
@@ -333,10 +354,10 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 48rpx;
   padding: 16rpx 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  box-shadow: var(--tg-shadow-card);
   transition: box-shadow 0.3s ease;
 }
 
@@ -359,7 +380,7 @@
   width: 40rpx;
   height: 40rpx;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--tg-color-bg-grey);
   @include flex-center;
 }
 
@@ -388,11 +409,11 @@
 
 .transaction-card,
 .record-card {
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
+  box-shadow: var(--tg-shadow-card);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
@@ -455,7 +476,7 @@
 
 /* 默认图标背景 */
 .transaction-icon-wrapper:not(.income):not(.expense) {
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(229, 90, 43, 0.05));
+  background: linear-gradient(135deg, rgba(var(--td-brand-color-rgb), 0.15), rgba(var(--td-brand-color-rgb), 0.05));
 }
 
 .transaction-icon {
@@ -528,7 +549,7 @@
   gap: 12rpx;
   margin-top: 16rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-top: 1rpx solid var(--tg-color-border-light);
 }
 
 .action-btn {
@@ -544,12 +565,12 @@
 }
 
 .action-btn.detail {
-  background: rgba(255, 107, 53, 0.1);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
   color: var(--tg-gradient-primary-start);
 }
 
 .action-btn.detail:active {
-  background: rgba(255, 107, 53, 0.2);
+  background: rgba(var(--td-brand-color-rgb), 0.2);
   transform: scale(0.97);
 }
 
@@ -563,7 +584,7 @@
 }
 
 .action-btn.primary:active {
-  background: linear-gradient(135deg, #5a6fd6, #6a4292);
+  background: var(--td-brand-color-active);
   transform: scale(0.97);
 }
 
@@ -583,10 +604,10 @@
 .filter-tabs {
   display: flex;
   gap: 10rpx;
-  background: #ffffff;
+  background: var(--tg-color-white);
   border-radius: 20rpx;
   padding: 8rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  box-shadow: var(--tg-shadow-card);
 }
 
 .filter-tab {
@@ -608,7 +629,7 @@
     var(--tg-gradient-primary-start),
     var(--tg-gradient-primary-end)
   );
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3);
   transform: scale(1.02);
 }
 
@@ -805,7 +826,7 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background: rgba(139, 115, 85, 0.06);
+  background: rgba(var(--td-brand-color-rgb), 0.06);
   @include flex-center;
   margin-bottom: 32rpx;
   animation: emptyPulse 3s ease-in-out infinite;
@@ -815,12 +836,12 @@
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(139, 115, 85, 0.1);
+    box-shadow: 0 0 0 0 rgba(var(--td-brand-color-rgb), 0.1);
   }
 
   50% {
     transform: scale(1.05);
-    box-shadow: 0 0 0 20rpx rgba(139, 115, 85, 0);
+    box-shadow: 0 0 0 20rpx rgba(var(--td-brand-color-rgb), 0);
   }
 }
 
@@ -846,14 +867,14 @@
 
 .activity-action-btn,
 .upload-action-btn {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
+  background: linear-gradient(135deg, var(--tg-color-white) 0%, var(--tg-color-bg-grey) 100%);
   color: var(--tg-gradient-primary-start);
   border: none;
   border-radius: 48rpx;
   padding: 24rpx 56rpx;
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
+  box-shadow: var(--tg-shadow-card);
   display: inline-flex;
   align-items: center;
   gap: 12rpx;
@@ -863,7 +884,7 @@
 .activity-action-btn:active,
 .upload-action-btn:active {
   transform: scale(0.96);
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
+  box-shadow: var(--tg-shadow-sm);
 }
 
 /* ============================================================================ */
@@ -894,7 +915,7 @@
 .no-more-line {
   flex: 1;
   height: 1rpx;
-  background: linear-gradient(90deg, transparent, rgba(139, 115, 85, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--td-brand-color-rgb), 0.15), transparent);
 }
 
 .no-more-text {

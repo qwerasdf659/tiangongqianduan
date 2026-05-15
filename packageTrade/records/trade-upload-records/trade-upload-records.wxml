@@ -1,10 +1,18 @@
 <!--packageTrade/records/trade-upload-records/trade-upload-records.wxml - 积分活动记录页面（交易+消费合并）-->
 <!-- 引入WXS模板辅助函数（用于模板中的数据格式化） -->
-<custom-navbar title="积分活动记录" bgColor="#667eea" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="积分活动记录" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 <wxs src="./trade-upload-records.wxs" module="helpers" />
 <view class="trade-upload-records-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <sticky-section>
+      <!-- 页面头部 -->
+      <view class="records-page-header">
+        <text class="records-page-title">积分活动记录</text>
+        <view class="header-decor-icon">
+          <t-icon name="file-paste" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+        </view>
+      </view>
+
       <!-- 🔴 Tab切换栏 -->
       <sticky-header>
         <view class="tab-section">
@@ -42,7 +50,7 @@
           <view class="main-stats-grid">
             <view class="main-stat-card available">
               <view class="stat-icon-bg available">
-                <text class="stat-icon iconfont icon-gold-coin"></text>
+                <t-icon name="money" size="40rpx" class="stat-icon" />
               </view>
               <view class="stat-body">
                 <text class="stat-label">可用积分</text>
@@ -62,7 +70,7 @@
 
             <view class="main-stat-card total">
               <view class="stat-icon-bg total">
-                <text class="stat-icon iconfont icon-diamond"></text>
+                <t-icon name="diamond" size="40rpx" class="stat-icon" />
               </view>
               <view class="stat-body">
                 <text class="stat-label">总积分资产</text>
@@ -196,7 +204,7 @@
                   </t-empty>
                 </view>
                 <button class="activity-action-btn" bind:tap="goToActivity">
-                  <text class="btn-icon iconfont icon-celebrate"></text>
+                  <t-icon name="thumb-up" size="28rpx" class="btn-icon" />
                   <text class="btn-text">开始赚取积分</text>
                 </button>
               </view>
@@ -241,10 +249,25 @@
                     <text class="record-order-no" wx:if="{{item.order_no}}">{{item.order_no}}</text>
                   </view>
                   <view class="record-status {{item.status}}">
-                    <t-icon name="check-circle-filled" size="28rpx" class="status-icon" wx:if="{{item.status === 'approved'}}" />
-                    <t-icon name="close-circle-filled" size="28rpx" class="status-icon" wx:elif="{{item.status === 'rejected'}}" />
-                    <t-icon name="hourglass" size="28rpx" class="status-icon" wx:elif="{{item.status === 'expired'}}" />
-                    <text class="status-icon iconfont icon-hourglass" wx:else></text>
+                    <t-icon
+                      name="check-circle-filled"
+                      size="28rpx"
+                      class="status-icon"
+                      wx:if="{{item.status === 'approved'}}"
+                    />
+                    <t-icon
+                      name="close-circle-filled"
+                      size="28rpx"
+                      class="status-icon"
+                      wx:elif="{{item.status === 'rejected'}}"
+                    />
+                    <t-icon
+                      name="hourglass"
+                      size="28rpx"
+                      class="status-icon"
+                      wx:elif="{{item.status === 'expired'}}"
+                    />
+                    <t-icon name="time" size="24rpx" class="status-icon" wx:else />
                     <text class="status-text"
                       >{{item.status === 'approved' ? '已通过' : item.status === 'rejected' ?
                       '已拒绝' : item.status === 'expired' ? '已过期' : '待审核'}}</text
@@ -262,7 +285,7 @@
                     wx:if="{{item.points_to_award && item.status === 'approved'}}"
                   >
                     <view class="points-badge">
-                      <text class="points-icon iconfont icon-gold-coin"></text>
+                      <t-icon name="money" size="24rpx" class="points-icon" />
                       <text class="points-earned">+{{item.points_to_award}}积分</text>
                     </view>
                   </view>
@@ -303,7 +326,7 @@
                   <text slot="description">在商家消费后，记录将显示在这里</text>
                 </t-empty>
                 <button class="upload-action-btn" bind:tap="goToActivity">
-                  <text class="btn-icon iconfont icon-celebrate"></text>
+                  <t-icon name="thumb-up" size="28rpx" class="btn-icon" />
                   <text class="btn-text">去参与活动</text>
                 </button>
               </view>

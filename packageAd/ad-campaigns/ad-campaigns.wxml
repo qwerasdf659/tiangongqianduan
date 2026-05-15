@@ -121,8 +121,7 @@
                 <view class="info-row">
                   <text class="info-label">总费用</text>
                   <text class="info-value highlight"
-                    >{{item.fixed_total_star_stone}} <text class="iconfont icon-diamond"></text
-                  ></text>
+                    >{{item.fixed_total_star_stone}} <t-icon name="diamond" size="28rpx" /></text>
                 </view>
               </block>
 
@@ -132,15 +131,14 @@
                   <text class="info-label">日出价</text>
                   <text class="info-value highlight"
                     >{{item.daily_bid_star_stone}}
-                    <text class="iconfont icon-diamond"></text>/天</text
+                    <t-icon name="diamond" size="28rpx" />/天</text
                   >
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
                     >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}}
-                    <text class="iconfont icon-diamond"></text
-                  ></text>
+                    <t-icon name="diamond" size="28rpx" /></text>
                 </view>
               </block>
 
@@ -150,15 +148,14 @@
                   <text class="info-label">CPM单价</text>
                   <text class="info-value highlight"
                     >{{item.cpm_price_star_stone}}
-                    <text class="iconfont icon-diamond"></text>/千次</text
+                    <t-icon name="diamond" size="28rpx" />/千次</text
                   >
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
                     >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}}
-                    <text class="iconfont icon-diamond"></text
-                  ></text>
+                    <t-icon name="diamond" size="28rpx" /></text>
                 </view>
               </block>
 

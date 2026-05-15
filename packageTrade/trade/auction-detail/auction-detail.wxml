@@ -11,7 +11,7 @@
 
     <!--错误状态-->
     <view class="detail-error" wx:elif="{{hasError}}">
-      <text class="error-icon">😵</text>
+      <t-icon name="error-circle" size="48rpx" class="error-icon" />
       <text class="error-text">{{errorMessage}}</text>
       <view class="error-retry-btn" bindtap="onRetry">
         <text>重新加载</text>
@@ -30,6 +30,9 @@
 
       <!--物品信息-->
       <view class="detail-info-section">
+        <view class="header-decor-icon">
+          <t-icon name="time" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+        </view>
         <text class="detail-item-name">{{displayName}}</text>
         <text class="detail-item-rarity" wx:if="{{rarityLabel}}">{{rarityLabel}}</text>
         <view class="detail-seller-info">
@@ -146,7 +149,7 @@
               <text class="bid-asset-text">{{priceAssetLabel}}</text>
             </view>
             <view class="bid-winning-badge" wx:if="{{item.is_winning}}">
-              <text class="iconfont icon-crown"></text>
+              <t-icon name="star" size="28rpx" />
             </view>
           </view>
         </view>
@@ -180,10 +183,10 @@
         <!--竞拍中 → 出价按钮（非卖方）-->
         <view class="bottom-bar-inner" wx:if="{{auction.status === 'active' && !isSeller}}">
           <view class="bid-action-btn" bindtap="onShowBidInput">
-            <text><text class="iconfont icon-gold-coin"></text> 出价</text>
+            <text><t-icon name="money" size="28rpx" /> 出价</text>
           </view>
           <view class="buyout-action-btn" wx:if="{{auction.buyout_price}}" bindtap="onBuyoutBid">
-            <text><text class="iconfont icon-diamond"></text> 一口价 {{auction.buyout_price}}</text>
+            <text><t-icon name="diamond" size="28rpx" /> 一口价 {{auction.buyout_price}}</text>
           </view>
         </view>
 
@@ -197,7 +200,10 @@
         <!--已结算且中标者 → 争议入口-->
         <view class="bottom-bar-inner" wx:elif="{{auction.status === 'settled' && isWinner}}">
           <view class="dispute-btn" bindtap="onCreateDispute">
-            <text><t-icon name="error-triangle-filled" size="28rpx" color="currentColor" /> 发起争议</text>
+            <text
+              ><t-icon name="error-triangle-filled" size="28rpx" color="currentColor" />
+              发起争议</text
+            >
           </view>
         </view>
       </view>
@@ -244,7 +250,10 @@
 
           <!--一口价提示-->
           <view class="buyout-hint" wx:if="{{auction.buyout_price}}">
-            <text><t-icon name="tips-filled" size="28rpx" color="currentColor" /> 一口价 {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text>
+            <text
+              ><t-icon name="tips-filled" size="28rpx" color="currentColor" /> 一口价
+              {{auction.buyout_price}} {{priceAssetLabel}} 可立即成交</text
+            >
           </view>
 
           <view class="popup-submit-btn {{bidding ? 'disabled' : ''}}" bindtap="onSubmitBid">

@@ -7,6 +7,7 @@
 @import '../../styles/mixins.scss';
 
 .diy-templates-page {
+  @include tg-tokens;
   display: flex;
   flex-direction: column;
   flex: 1;

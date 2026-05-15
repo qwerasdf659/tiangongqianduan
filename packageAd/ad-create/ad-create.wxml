@@ -11,6 +11,15 @@
     </view>
 
     <block wx:if="{{!loading}}">
+      <!-- 页面头部区域 -->
+      <view class="page-header">
+        <text class="page-header-title">创建广告活动</text>
+        <text class="page-header-subtitle">选择广告位并配置投放参数</text>
+        <view class="header-decor-icon">
+          <t-icon name="add-circle" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+        </view>
+      </view>
+
       <!-- 表单区域 -->
       <view class="form-section">
         <!-- 活动名称 -->
@@ -37,10 +46,30 @@
               bindtap="onSlotSelect"
             >
               <view class="slot-header">
-                <t-icon wx:if="{{item.slot_type === 'popup'}}" name="chat" size="28rpx" class="slot-icon" />
-                <t-icon wx:elif="{{item.slot_type === 'carousel'}}" name="image" size="28rpx" class="slot-icon" />
-                <t-icon wx:elif="{{item.slot_type === 'announcement'}}" name="sound" size="28rpx" class="slot-icon" />
-                <t-icon wx:elif="{{item.slot_type === 'feed'}}" name="file" size="28rpx" class="slot-icon" />
+                <t-icon
+                  wx:if="{{item.slot_type === 'popup'}}"
+                  name="chat"
+                  size="28rpx"
+                  class="slot-icon"
+                />
+                <t-icon
+                  wx:elif="{{item.slot_type === 'carousel'}}"
+                  name="image"
+                  size="28rpx"
+                  class="slot-icon"
+                />
+                <t-icon
+                  wx:elif="{{item.slot_type === 'announcement'}}"
+                  name="sound"
+                  size="28rpx"
+                  class="slot-icon"
+                />
+                <t-icon
+                  wx:elif="{{item.slot_type === 'feed'}}"
+                  name="file"
+                  size="28rpx"
+                  class="slot-icon"
+                />
                 <t-icon wx:else name="file-paste" size="28rpx" class="slot-icon" />
                 <text class="slot-name">{{item.slot_name}}</text>
               </view>
@@ -50,7 +79,8 @@
                   '轮播广告' : item.slot_type === 'announcement' ? '公告广告' : item.slot_type ===
                   'feed' ? '信息流广告' : item.slot_type}}</text
                 >
-                <text class="slot-price">日价 {{item.daily_price_star_stone}} <text class="iconfont icon-diamond"></text></text>
+                <text class="slot-price"
+                  >日价 {{item.daily_price_star_stone}} <t-icon name="diamond" size="28rpx" /></text>
               </view>
               <view class="slot-meta" wx:if="{{item.description}}">
                 <text>{{item.description}}</text>
@@ -96,16 +126,17 @@
             <block wx:elif="{{pricingPreview && estimatedTotalStarStone > 0}}">
               <view class="cost-main-row">
                 <text class="cost-label">总费用:</text>
-                <text class="cost-value">{{estimatedTotalStarStone}} <text class="iconfont icon-diamond"></text></text>
+                <text class="cost-value"
+                  >{{estimatedTotalStarStone}} <t-icon name="diamond" size="28rpx" /></text>
               </view>
               <text class="cost-detail"
-                >({{pricingPreview.effective_daily_price}} <text class="iconfont icon-diamond"></text>/天 × {{fixedDays}}
+                >({{pricingPreview.effective_daily_price}}
+                <t-icon name="diamond" size="28rpx" />/天 × {{fixedDays}}
                 天{{pricingPreview.discount < 1 ? ' × ' + pricingPreview.discount_label : ''
                 }})</text
               >
               <text class="cost-saved" wx:if="{{pricingPreview.saved > 0}}"
-                >已省 {{pricingPreview.saved}} <text class="iconfont icon-diamond"></text></text
-              >
+                >已省 {{pricingPreview.saved}} <t-icon name="diamond" size="28rpx" /></text>
             </block>
             <view
               wx:elif="{{!pricingLoading && !pricingPreview && fixedDays > 0}}"

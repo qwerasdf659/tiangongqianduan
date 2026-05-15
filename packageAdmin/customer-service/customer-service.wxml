@@ -1,10 +1,21 @@
-<!--pages/admin/customer-service/customer-service.wxml - 管理员客服管理页面-->
-<custom-navbar title="客服管理" bgColor="#4CAF50" textColor="#ffffff" showBack="{{true}}" />
+<!--pages/admin/customer-service/customer-service.wxml - 管理员客服管理页�?->
+<custom-navbar title="客服管理" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 <view class="customer-service-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面标题�?-->
+    <view class="page-header">
+      <view class="header-text">
+        <text class="header-title">客服管理</text>
+        <text class="header-desc">实时聊天，高效服�?/text>
+      </view>
+      <view class="header-decor-icon">
+        <t-icon name="chat" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
     <!-- 🔴 实时聊天模式 -->
     <view class="chat-mode-container">
-      <!-- 管理员状态栏（状态可切换: online / busy / offline） -->
+      <!-- 管理员状态栏（状态可切换: online / busy / offline�?-->
       <view class="admin-status-bar">
         <view class="status-info">
           <text class="status-text">当前状态：</text>
@@ -13,13 +24,19 @@
             bindtap="onToggleAdminStatus"
             data-status="{{adminStatus === 'online' ? 'busy' : 'online'}}"
           >
-            {{adminStatus === 'online' ? '🟢 在线' : adminStatus === 'busy' ? '🟡 忙碌' : '🔴
-            离线'}}
+            <view class="status-dot status-dot--{{adminStatus}}"></view>
+            {{adminStatus === 'online' ? '在线' : adminStatus === 'busy' ? '忙碌' : '离线'}}
           </text>
         </view>
         <view class="connection-info">
           <text class="ws-status {{wsConnected ? 'connected' : 'disconnected'}}">
-            <t-icon wx:if="{{wsConnected}}" name="link" size="28rpx" color="currentColor" /><t-icon wx:else name="close-circle-filled" size="28rpx" color="currentColor" /> {{wsConnected ? '已连接' : '未连接'}}
+            <t-icon wx:if="{{wsConnected}}" name="link" size="28rpx" color="currentColor" /><t-icon
+              wx:else
+              name="close-circle-filled"
+              size="28rpx"
+              color="currentColor"
+            />
+            {{wsConnected ? '已连�? : '未连�?}}
           </text>
         </view>
       </view>
@@ -34,7 +51,7 @@
           </view>
 
           <view wx:if="{{loadingSessions}}" class="loading-sessions">
-            <text>加载会话中...</text>
+            <text>加载会话�?..</text>
           </view>
 
           <view wx:elif="{{sessions.length === 0}}" class="empty-sessions">
@@ -52,7 +69,7 @@
             >
               <view class="session-avatar">
                 <text class="avatar-text"
-                  >{{item.userInfo.nickname ? item.userInfo.nickname.charAt(0) : '用'}}</text
+                  >{{item.userInfo.nickname ? item.userInfo.nickname.charAt(0) : '�?}}</text
                 >
               </view>
               <view class="session-info">
@@ -68,8 +85,8 @@
                 </view>
                 <view class="session-status">
                   <text class="status-tag {{item.status}}">
-                    {{item.status === 'waiting' ? '等待回复' : item.status === 'active' ? '进行中' :
-                    '已结束'}}
+                    {{item.status === 'waiting' ? '等待回复' : item.status === 'active' ? '进行�? :
+                    '已结�?}}
                   </text>
                 </view>
               </view>
@@ -81,7 +98,7 @@
         <view class="chat-panel {{chatExpanded ? 'expanded' : ''}}">
           <view wx:if="{{!currentSessionId}}" class="no-session-selected">
             <text class="no-session-icon"><t-icon name="chat" size="28rpx" /></text>
-            <text class="no-session-text">请选择一个会话开始聊天</text>
+            <text class="no-session-text">请选择一个会话开始聊�?/text>
           </view>
 
           <view wx:else class="chat-container">
@@ -93,7 +110,7 @@
                 hover-class="back-btn-hover"
                 bindtap="onCloseChatExpanded"
               >
-                <text class="back-icon">←</text>
+                <text class="back-icon">�?/text>
                 <text class="back-text">返回列表</text>
               </view>
               <view class="chat-user-info">
@@ -114,7 +131,7 @@
               scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
             >
               <view wx:if="{{currentMessages.length === 0}}" class="empty-messages">
-                <text class="empty-text">会话开始，请礼貌回复用户</text>
+                <text class="empty-text">会话开始，请礼貌回复用�?/text>
               </view>
 
               <view wx:else class="messages-list">
@@ -124,7 +141,7 @@
                   class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}"
                 >
                   <view class="message-avatar">
-                    <text class="avatar-text">{{item.senderType === 'admin' ? '客' : '用'}}</text>
+                    <text class="avatar-text">{{item.senderType === 'admin' ? '�? : '�?}}</text>
                   </view>
                   <view class="message-content">
                     <view class="message-bubble">
@@ -136,8 +153,8 @@
                         wx:if="{{item.senderType === 'admin'}}"
                         class="message-status {{item.status}}"
                       >
-                        {{item.status === 'sending' ? '发送中' : item.status === 'sent' ? '已发送' :
-                        item.status === 'failed' ? '发送失败' : ''}}
+                        {{item.status === 'sending' ? '发送中' : item.status === 'sent' ? '已发�? :
+                        item.status === 'failed' ? '发送失�? : ''}}
                       </text>
                     </view>
                   </view>
@@ -148,7 +165,7 @@
 
             <!-- 聊天输入区域 -->
             <view class="chat-input-container">
-              <!-- 输入框和发送按钮 -->
+              <!-- 输入框和发送按�?-->
               <view class="input-area">
                 <textarea
                   class="message-input"
@@ -166,12 +183,12 @@
                   disabled="{{!sendButtonEnabled}}"
                   bindtap="sendChatMessage"
                 >
-                  <text class="send-icon">📤</text>
-                  <text class="send-text">发送</text>
+                  <t-icon name="send" size="36rpx" class="send-icon" />
+                  <text class="send-text">发�?/text>
                 </button>
               </view>
 
-              <!-- 输入状态提示 -->
+              <!-- 输入状态提�?-->
               <view wx:if="{{isTyping}}" class="typing-indicator">
                 <text>正在输入...</text>
               </view>
@@ -192,7 +209,7 @@
           </view>
           <view class="stat-card">
             <text class="stat-number">{{todayStats.completedSessions}}</text>
-            <text class="stat-label">已完成</text>
+            <text class="stat-label">已完�?/text>
           </view>
           <view class="stat-card">
             <text class="stat-number">{{todayStats.avgResponseTime}}</text>
@@ -200,13 +217,13 @@
           </view>
           <view class="stat-card">
             <text class="stat-number">{{todayStats.customerSatisfaction}}%</text>
-            <text class="stat-label">满意度</text>
+            <text class="stat-label">满意�?/text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <!-- 🔧 全屏维护遮罩�?03 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
   </scroll-view>
 </view>

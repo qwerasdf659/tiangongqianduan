@@ -24,8 +24,11 @@
       <view class="overview-card">
         <!-- 仓库等级徽标 -->
         <view class="warehouse-badge">
-          <text class="badge-icon">🏰</text>
+          <text class="badge-icon"><t-icon name="castle" size="28rpx" /></text>
           <text class="badge-label">我的仓库</text>
+        </view>
+        <view class="header-decor-icon">
+          <t-icon name="archive" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
         </view>
       </view>
     </view>
@@ -73,7 +76,7 @@
             bind:tap="onCategoryChange"
             data-category="all"
           >
-            <text class="tab-pill-icon iconfont icon-package"></text>
+            <t-icon name="shop" size="28rpx" class="tab-pill-icon" />
             <text class="tab-pill-label">全部</text>
             <text class="tab-pill-count">{{categoryStats.all}}</text>
           </view>
@@ -82,7 +85,7 @@
             bind:tap="onCategoryChange"
             data-category="prize"
           >
-            <text class="tab-pill-icon iconfont icon-trophy"></text>
+            <t-icon name="cup" size="28rpx" class="tab-pill-icon" />
             <text class="tab-pill-label">奖品</text>
             <text class="tab-pill-count">{{categoryStats.prize}}</text>
           </view>
@@ -91,7 +94,7 @@
             bind:tap="onCategoryChange"
             data-category="voucher"
           >
-            <text class="tab-pill-icon">🎫</text>
+            <t-icon name="discount" size="28rpx" class="tab-pill-icon" />
             <text class="tab-pill-label">兑换券</text>
             <text class="tab-pill-count">{{categoryStats.voucher}}</text>
           </view>
@@ -118,7 +121,7 @@
             bind:tap="onCategoryChange"
             data-category="service"
           >
-            <text class="tab-pill-icon iconfont icon-gift"></text>
+            <t-icon name="gift" size="28rpx" class="tab-pill-icon" />
             <text class="tab-pill-label">服务</text>
             <text class="tab-pill-count">{{categoryStats.service}}</text>
           </view>
@@ -138,7 +141,7 @@
         />
       </view>
       <view class="sort-btn" bind:tap="onShowFilter">
-        <text class="sort-btn-icon iconfont icon-gear"></text>
+        <t-icon name="setting" size="28rpx" class="sort-btn-icon" />
         <text class="sort-btn-text">排序</text>
       </view>
     </view>
@@ -158,7 +161,7 @@
 
       <!-- 错误状态 -->
       <view class="error-card" wx:elif="{{hasError}}">
-        <text class="error-emoji">😵</text>
+        <t-icon name="error-circle" size="48rpx" class="error-emoji" />
         <text class="error-msg">{{errorMessage}}</text>
         <text class="error-sub">{{errorDetail}}</text>
         <button class="retry-action-btn" bind:tap="initPage">重新加载</button>
@@ -227,7 +230,7 @@
                     catchtap="onViewTimeline"
                     data-item="{{item}}"
                   >
-                    <text class="tracking-timeline-btn-icon">📜</text>
+                    <t-icon name="file-paste" size="28rpx" class="tracking-timeline-btn-icon" />
                     <text class="tracking-timeline-btn-text">流转</text>
                   </view>
                 </view>
@@ -235,7 +238,7 @@
                   >{{item.item_type_display}}</text
                 >
                 <view class="item-merchant-tag" wx:if="{{item.merchant_name}}">
-                  <text class="merchant-tag-icon">🏪</text>
+                  <t-icon name="shop" size="24rpx" class="merchant-tag-icon" />
                   <text class="merchant-tag-text">来自：{{item.merchant_name}}</text>
                 </view>
                 <text class="item-brief" wx:if="{{item.item_description}}"
@@ -277,7 +280,7 @@
                 catchtap="onUseItem"
                 data-item="{{item}}"
               >
-                <text><text class="iconfont icon-sparkle"></text> 使用</text>
+                <text><t-icon name="star" size="24rpx" /> 使用</text>
               </button>
               <button
                 class="item-action-btn action-code"
@@ -285,9 +288,9 @@
                 catchtap="onGenerateCode"
                 data-item="{{item}}"
               >
-                <text wx:if="{{item.item_type === 'product'}}">🎫 到店领取</text>
-                <text wx:elif="{{item.item_type === 'voucher'}}">🎫 到店使用</text>
-                <text wx:else>🎫 核销码</text>
+                <text wx:if="{{item.item_type === 'product'}}"><t-icon name="discount" size="24rpx" /> 到店领取</text>
+                <text wx:elif="{{item.item_type === 'voucher'}}"><t-icon name="discount" size="24rpx" /> 到店使用</text>
+                <text wx:else><t-icon name="discount" size="24rpx" /> 核销码</text>
               </button>
               <button
                 class="item-action-btn action-code"
@@ -303,7 +306,7 @@
                 catchtap="onSellItem"
                 data-item="{{item}}"
               >
-                <text>🏪 上架</text>
+                <text><t-icon name="shop" size="28rpx" /> 上架</text>
               </button>
             </view>
           </view>
@@ -326,9 +329,9 @@
             <view class="chest-body">
               <view class="chest-lid"></view>
               <view class="chest-box"></view>
-              <view class="chest-sparkle s1"><text class="iconfont icon-sparkle"></text></view>
-              <view class="chest-sparkle s2"><text class="iconfont icon-star"></text></view>
-              <view class="chest-sparkle s3"><text class="iconfont icon-sparkle"></text></view>
+              <view class="chest-sparkle s1"><t-icon name="star" size="28rpx" /></view>
+              <view class="chest-sparkle s2"><t-icon name="star" size="28rpx" /></view>
+              <view class="chest-sparkle s3"><t-icon name="star" size="28rpx" /></view>
             </view>
           </view>
           <text class="empty-title-text">仓库还是空的呢</text>
@@ -336,23 +339,24 @@
 
           <view class="empty-guide-flow">
             <view class="guide-step">
-              <view class="guide-step-circle"><text class="iconfont icon-slot-machine"></text></view>
+              <view class="guide-step-circle"
+                ><t-icon name="play-circle" size="28rpx" /></view>
               <text class="guide-step-label">参与抽奖</text>
             </view>
             <text class="guide-arrow">→</text>
             <view class="guide-step">
-              <view class="guide-step-circle"><text class="iconfont icon-trophy"></text></view>
+              <view class="guide-step-circle"><t-icon name="cup" size="28rpx" /></view>
               <text class="guide-step-label">赢取奖品</text>
             </view>
             <text class="guide-arrow">→</text>
             <view class="guide-step">
-              <view class="guide-step-circle">🏰</view>
+              <view class="guide-step-circle"><t-icon name="home" size="28rpx" /></view>
               <text class="guide-step-label">收入仓库</text>
             </view>
           </view>
 
           <button class="go-lottery-btn" bind:tap="goToLottery">
-            <text><text class="iconfont icon-celebrate"></text> 立即抽奖</text>
+            <text><t-icon name="thumb-up" size="28rpx" /> 立即抽奖</text>
           </button>
         </view>
       </view>
@@ -370,7 +374,7 @@
     <view class="detail-overlay" wx:if="{{showItemDetail}}" catchtap="closeItemDetail">
       <view class="detail-sheet" catchtap="">
         <view class="detail-loading" wx:if="{{itemDetailLoading}}">
-          <text class="detail-loading-icon iconfont icon-hourglass"></text>
+          <t-icon name="time" size="32rpx" class="detail-loading-icon" />
           <text class="detail-loading-text">加载物品详情...</text>
         </view>
         <block wx:elif="{{itemDetail}}">
@@ -472,7 +476,7 @@
               <text class="grid-label">商家来源</text>
               <view class="grid-value-row">
                 <view class="merchant-source-badge">
-                  <text class="merchant-source-icon">🏪</text>
+                  <t-icon name="shop" size="24rpx" class="merchant-source-icon" />
                   <text class="merchant-source-name">{{itemDetail.merchant_name}}</text>
                 </view>
               </view>
@@ -494,7 +498,7 @@
           </view>
           <view class="detail-actions" wx:if="{{itemDetail.tracking_code}}">
             <view class="detail-timeline-btn" bindtap="onViewTimelineFromDetail">
-              <text class="timeline-btn-icon">📜</text>
+              <t-icon name="file-paste" size="32rpx" class="timeline-btn-icon" />
               <text class="timeline-btn-text">查看流转记录</text>
               <text class="timeline-btn-arrow">›</text>
             </view>
@@ -546,7 +550,7 @@
 
           <!-- QR码过期/刷新中占位 -->
           <view class="rqr-image-wrapper rqr-expired" wx:elif="{{qrExpired || qrRefreshing}}">
-            <text class="rqr-expired-icon iconfont icon-hourglass" wx:if="{{qrRefreshing}}"></text>
+            <t-icon name="time" size="28rpx" class="rqr-expired-icon" wx:if="{{qrRefreshing}}" />
             <t-icon name="refresh" size="28rpx" class="rqr-expired-icon" wx:else />
             <text class="rqr-expired-text" wx:if="{{qrRefreshing}}">刷新中...</text>
             <text class="rqr-expired-text" wx:else>QR码已过期</text>
@@ -560,7 +564,7 @@
             class="rqr-image-wrapper rqr-loading"
             wx:elif="{{!redemptionQRImage && !qrExpired}}"
           >
-            <text class="rqr-loading-icon iconfont icon-hourglass"></text>
+            <t-icon name="time" size="28rpx" class="rqr-loading-icon" />
             <text class="rqr-loading-text">生成中...</text>
           </view>
 
@@ -616,7 +620,7 @@
         </view>
 
         <view class="timeline-loading" wx:if="{{timelineLoading}}">
-          <text class="timeline-loading-icon iconfont icon-hourglass"></text>
+          <t-icon name="time" size="28rpx" class="timeline-loading-icon" />
           <text class="timeline-loading-text">加载追踪信息...</text>
         </view>
 
@@ -661,7 +665,11 @@
           </scroll-view>
 
           <view class="timeline-ledger-check" wx:if="{{timelineLedgerStatus}}">
-            <t-icon name="{{timelineLedgerStatus === 'balanced' ? 'check-circle-filled' : 'error-triangle-filled'}}" size="28rpx" class="ledger-icon" />
+            <t-icon
+              name="{{timelineLedgerStatus === 'balanced' ? 'check-circle-filled' : 'error-triangle-filled'}}"
+              size="28rpx"
+              class="ledger-icon"
+            />
             <text class="ledger-text"
               >{{timelineLedgerStatus === 'balanced' ? '账本守恒验证通过' : '账本数据异常'}}</text
             >

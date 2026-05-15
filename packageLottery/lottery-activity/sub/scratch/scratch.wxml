@@ -27,8 +27,7 @@
             <text wx:if="{{item.prize.prize_icon}}" class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
               {{item.prize.prize_icon}}
             </text>
-            <text wx:else class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}} iconfont icon-gift">
-            </text>
+            <t-icon wx:else name="gift" size="32rpx" class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}" />
             <text
               class="cell-prize-name"
               wx:if="{{item.state === 'revealed' && cells.length <= 5}}"
@@ -51,7 +50,7 @@
 
         <!-- 引导手势 -->
         <view class="guide-finger" wx:if="{{showGuide && !scratching}}">
-          <text class="guide-icon">👆</text>
+          <t-icon name="gesture-up" size="48rpx" class="guide-icon" />
         </view>
       </view>
     </pan-gesture-handler>
@@ -87,8 +86,8 @@
       wx:key="index"
     >
       <text wx:if="{{item.state === 'revealed' && item.prize.prize_icon}}" class="report-icon">{{item.prize.prize_icon}}</text>
-      <text wx:elif="{{item.state === 'revealed'}}" class="report-icon iconfont icon-gift"></text>
-      <text wx:else class="report-icon iconfont icon-question"></text>
+      <t-icon wx:elif="{{item.state === 'revealed'}}" name="gift" size="28rpx" class="report-icon" />
+      <t-icon wx:else name="help-circle" size="28rpx" class="report-icon" />
     </view>
   </scroll-view>
 

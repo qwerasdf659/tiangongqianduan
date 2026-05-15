@@ -22,7 +22,7 @@
         style="{{prizePositions[index]}}"
       >
         <text wx:if="{{item.prize_icon}}" class="wheel-prize__icon">{{item.prize_icon}}</text>
-        <text wx:else class="wheel-prize__icon iconfont icon-gift"></text>
+        <t-icon wx:else name="gift" size="32rpx" class="wheel-prize__icon" />
         <text class="wheel-prize__name"
           >{{item.is_sold_out ? '已抢光' : (item.prize_name || '')}}</text
         >

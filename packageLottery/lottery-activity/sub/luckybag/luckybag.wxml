@@ -66,10 +66,37 @@
 
           <!-- 拆开状态 -->
           <view class="bag-opened-effect" wx:else>
+            <!-- 布料碎片飞散 -->
+            <view class="bag-scrap bag-scrap--1"></view>
+            <view class="bag-scrap bag-scrap--2"></view>
+            <view class="bag-scrap bag-scrap--3"></view>
+            <view class="bag-scrap bag-scrap--4"></view>
+            <view class="bag-scrap bag-scrap--5"></view>
+            <view class="bag-scrap bag-scrap--6"></view>
+            <!-- 爆发光效 -->
             <view class="bag-burst">
               <view class="bag-burst__ring"></view>
               <view class="bag-burst__ring bag-burst__ring--delay"></view>
-              <view class="bag-burst__star"></view>
+              <view class="bag-burst__ring bag-burst__ring--third"></view>
+              <view class="bag-burst__rays"></view>
+              <view class="bag-burst__particle bag-burst__particle--1"></view>
+              <view class="bag-burst__particle bag-burst__particle--2"></view>
+              <view class="bag-burst__particle bag-burst__particle--3"></view>
+              <view class="bag-burst__particle bag-burst__particle--4"></view>
+              <view class="bag-burst__particle bag-burst__particle--5"></view>
+              <view class="bag-burst__particle bag-burst__particle--6"></view>
+              <view class="bag-burst__core"></view>
+            </view>
+            <!-- 金色粉尘 -->
+            <view class="bag-dust">
+              <view class="bag-dust__dot bag-dust__dot--1"></view>
+              <view class="bag-dust__dot bag-dust__dot--2"></view>
+              <view class="bag-dust__dot bag-dust__dot--3"></view>
+              <view class="bag-dust__dot bag-dust__dot--4"></view>
+              <view class="bag-dust__dot bag-dust__dot--5"></view>
+              <view class="bag-dust__dot bag-dust__dot--6"></view>
+              <view class="bag-dust__dot bag-dust__dot--7"></view>
+              <view class="bag-dust__dot bag-dust__dot--8"></view>
             </view>
           </view>
 
@@ -153,11 +180,17 @@
           <view class="multi-bag-prize" wx:else>
             <view class="bag-burst">
               <view class="bag-burst__ring"></view>
-              <view class="bag-burst__star"></view>
+              <view class="bag-burst__ring bag-burst__ring--delay"></view>
+              <view class="bag-burst__rays"></view>
+              <view class="bag-burst__particle bag-burst__particle--1"></view>
+              <view class="bag-burst__particle bag-burst__particle--2"></view>
+              <view class="bag-burst__particle bag-burst__particle--3"></view>
+              <view class="bag-burst__particle bag-burst__particle--4"></view>
+              <view class="bag-burst__core"></view>
             </view>
             <view class="multi-bag-prize__info">
               <text wx:if="{{bag.prize_icon}}" class="multi-bag-prize__icon">{{bag.prize_icon}}</text>
-              <text wx:else class="multi-bag-prize__icon iconfont icon-gift"></text>
+              <t-icon wx:else name="gift" size="32rpx" class="multi-bag-prize__icon" />
               <text class="multi-bag-prize__name">{{bag.prize_name || ''}}</text>
             </view>
           </view>

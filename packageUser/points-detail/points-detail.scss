@@ -9,23 +9,32 @@
 
 /* 页面容器 */
 .points-detail-container {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: var(--tg-color-white);
   padding: var(--tg-spacing-md);
   padding-bottom: calc(var(--tg-spacing-xl) + env(safe-area-inset-bottom));
 }
 
 /* ========== 积分余额卡片 ========== */
 .points-balance-card {
-  background: var(--tg-card-bg);
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
   border-radius: var(--tg-radius-xl);
   padding: var(--tg-spacing-xxl) var(--tg-spacing-xl);
   margin-bottom: var(--tg-spacing-lg);
   position: relative;
   box-shadow: var(--tg-shadow-card);
   overflow: hidden;
+}
+
+.card-decor {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  line-height: 1;
 }
 
 /* 卡片装饰性光效已关闭 */
@@ -417,7 +426,7 @@
 
 /* ========== 空状态 ========== */
 .empty-slot-icon {
-  font-size: 72rpx;
+  font-size: 120rpx;
 }
 
 .primary-btn {

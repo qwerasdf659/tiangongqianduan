@@ -43,6 +43,7 @@
 
 /* ========== 详情主体容器 ========== */
 .detail-container {
+  @include tg-tokens;
   background: var(--tg-color-bg);
   flex: 1;
   display: flex;
@@ -55,7 +56,7 @@
   position: relative;
   width: 100%;
   height: 560rpx;
-  background: #f0f0f5;
+  background: var(--tg-color-bg-panel);
 }
 
 .detail-main-image {
@@ -69,7 +70,7 @@
   height: 100%;
   @include flex-column-center;
   gap: 16rpx;
-  background: #f0f0f5;
+  background: var(--tg-color-bg-panel);
 }
 
 .fallback-icon-lg {
@@ -119,6 +120,14 @@
   padding: 32rpx;
   position: relative;
   z-index: 10;
+  overflow: hidden;
+}
+
+.detail-info-card .header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
 }
 
 .detail-title-row {
@@ -156,7 +165,6 @@
 .detail-price-value {
   font-size: 56rpx;
   font-weight: var(--tg-font-weight-bold);
-  background: linear-gradient(135deg, var(--td-brand-color), #6b8f6e);
   color: var(--td-brand-color);
   line-height: 1;
 }
@@ -228,7 +236,7 @@
   flex-shrink: 0;
 
   .seller-avatar-placeholder-text {
-    font-size: 40rpx;
+    font-size: var(--tg-font-size-headline);
   }
 }
 
@@ -324,7 +332,7 @@
   display: flex;
   align-items: center;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1rpx solid var(--tg-color-border-light);
 
   &:last-child {
     border-bottom: none;
@@ -368,7 +376,7 @@
   @include flex-between;
   background: var(--tg-color-white);
   padding: 16rpx 32rpx;
-  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+  box-shadow: var(--tg-shadow-card);
   z-index: 100;
   @include safe-area-bottom;
 }
@@ -404,7 +412,7 @@
   line-height: 80rpx !important;
   font-size: var(--td-font-size-base) !important;
   font-weight: var(--tg-font-weight-bold) !important;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3) !important;
+  box-shadow: var(--tg-shadow-card) !important;
 }
 
 .purchase-btn.btn-disabled {
@@ -536,7 +544,7 @@
 
 .escrow-expire-tip {
   width: 100%;
-  background: rgba(250, 173, 20, 0.1);
+  background: rgba(var(--td-brand-color-rgb), 0.1);
   border-radius: var(--td-radius-small);
   padding: 16rpx;
   margin-bottom: 16rpx;
@@ -620,9 +628,9 @@
   gap: 8rpx;
   margin-top: var(--tg-spacing-sm);
   padding: 12rpx 16rpx;
-  background: rgba(250, 173, 20, 0.06);
+  background: rgba(var(--td-brand-color-rgb), 0.06);
   border-radius: var(--td-radius-small);
-  border: 1rpx solid rgba(250, 173, 20, 0.12);
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.12);
 }
 
 .cooldown-notice-icon {

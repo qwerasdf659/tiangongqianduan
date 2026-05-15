@@ -30,7 +30,7 @@
 
       <!-- 空状态 -->
       <t-empty wx:elif="{{isEmpty}}" description="去设计你的第一件专属饰品吧">
-        <view slot="image">🎨</view>
+        <view slot="image"><t-icon name="palette" size="64rpx" color="#999" /></view>
         <view slot="description">暂无设计作品</view>
       </t-empty>
 

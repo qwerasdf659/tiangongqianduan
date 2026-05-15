@@ -5,6 +5,9 @@
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 顶部统计卡片 -->
     <view class="stats-card">
+      <view class="header-decor-icon">
+        <t-icon name="file-paste" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
       <view class="stats-row">
         <view class="stat-item">
           <view class="stat-icon-wrap total-icon"><t-icon name="file-paste" size="28rpx" /></view>
@@ -19,7 +22,9 @@
         </view>
         <view class="stat-divider"></view>
         <view class="stat-item">
-          <view class="stat-icon-wrap sold-icon"><text class="iconfont icon-celebrate"></text></view>
+          <view class="stat-icon-wrap sold-icon"
+            ><t-icon name="thumb-up" size="28rpx" />
+          </view>
           <text class="stat-number stat-sold">{{statusTabs[2].count || 0}}</text>
           <text class="stat-label">已成交</text>
         </view>
@@ -63,7 +68,10 @@
           <!-- 卡片头部：类型标签 + 状态标签 -->
           <view class="card-header">
             <view class="kind-tag {{item.listing_kind}}">
-              <text><text class="iconfont {{item.listing_kind === 'fungible_asset' ? 'icon-diamond' : 'icon-package'}}"></text> {{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</text>
+              <text
+                ><t-icon name="{{item.listing_kind === 'fungible_asset' ? 'diamond' : 'shop'}}" size="24rpx" />
+                {{item.listing_kind === 'fungible_asset' ? '资产' : '物品'}}</text
+              >
             </view>
             <view class="status-tag status-tag-{{item.status}}">
               <text>{{item.status_display}}</text>
@@ -97,7 +105,12 @@
               <view class="price-value-row">
                 <text class="price-amount">{{item.price_amount}}</text>
                 <text class="price-unit"
-                  ><text class="iconfont icon-diamond" wx:if="{{item._priceAssetLabel === '星石'}}"></text>{{item._priceAssetLabel === '星石' ? '' : item._priceAssetLabel}}</text
+                  ><t-icon
+                    name="diamond"
+                    size="28rpx"
+                    wx:if="{{item._priceAssetLabel === '星石'}}"
+                  />
+                  >{{item._priceAssetLabel === '星石' ? '' : item._priceAssetLabel}}</text
                 >
               </view>
             </view>
@@ -118,7 +131,10 @@
               </button>
               <view class="status-hint sold-hint" wx:elif="{{item.status === 'sold'}}">
                 <view class="sold-info">
-                  <text class="sold-label"><t-icon name="check-circle-filled" size="24rpx" color="#4CAF50" /> 交易完成</text>
+                  <text class="sold-label"
+                    ><t-icon name="check-circle-filled" size="24rpx" color="#4CAF50" />
+                    交易完成</text
+                  >
                   <text
                     class="sold-order-no"
                     wx:if="{{item.order_no}}"
@@ -162,13 +178,17 @@
 
       <!-- 空状态 -->
       <t-empty wx:if="{{!loading && isEmpty}}" description="去仓库上架您的物品或资产，赚取收益吧">
-        <view slot="image"><t-icon name="file-paste" size="28rpx" /></view>
+        <view slot="image"
+          ><t-icon name="file-paste" size="120rpx" color="var(--td-brand-color)"
+        /></view>
         <view slot="description" class="empty-title"
           >{{currentStatus === 'all' ? '暂无挂单记录' : '该状态下暂无挂单'}}</view
         >
         <view slot="action" class="empty-actions">
-          <button class="action-btn-primary" bindtap="goToInventory"><text class="iconfont icon-package"></text> 去上架</button>
-          <button class="action-btn-outline" bindtap="goToMarket">🏪 逛市场</button>
+          <button class="action-btn-primary" bindtap="goToInventory">
+            <t-icon name="shop" size="28rpx" /> 去上架
+          </button>
+          <button class="action-btn-outline" bindtap="goToMarket"><t-icon name="shop" size="32rpx" /> 逛市场</button>
         </view>
       </t-empty>
     </view>

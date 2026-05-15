@@ -30,6 +30,10 @@
           <text class="badge-text">{{filteredPointsRecords.length}}条记录</text>
         </view>
       </view>
+      <!-- 装饰图标 -->
+      <view class="card-decor">
+        <t-icon name="chart-bar" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
     </view>
 
     <!-- 筛选功能区域 -->
@@ -110,7 +114,9 @@
         wx:if="{{filteredPointsRecords.length === 0 && !loading}}"
         description="{{pointsFilter === 'all' ? '参与活动即可获得积分奖励' : (pointsFilter === 'earn' ? '参与抽奖、签到等活动获得积分' : '使用积分兑换精彩好礼')}}"
       >
-        <view slot="image" class="empty-slot-icon"><t-icon name="creditcard" size="28rpx" /></view>
+        <view slot="image" class="empty-slot-icon"
+          ><t-icon name="creditcard" size="120rpx" color="var(--td-brand-color)"
+        /></view>
         <t-button slot="action" theme="primary" shape="round" size="small" bind:tap="onBackTap"
           >返回用户中心</t-button
         >

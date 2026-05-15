@@ -59,7 +59,7 @@
       <view class="decor-circle decor-circle-1"></view>
       <view class="decor-circle decor-circle-2"></view>
       <view class="decor-circle decor-circle-3"></view>
-      <text class="decor-emoji">🖼️</text>
+      <t-icon name="image" size="48rpx" class="decor-emoji" />
       <text class="decor-fail-text">图片加载失败</text>
     </view>
 

@@ -22,7 +22,7 @@
           <!-- 卡背 -->
           <view class="card-face card-back">
             <view class="card-back-shimmer" />
-            <text class="card-back-icon iconfont icon-playing-card"></text>
+            <t-icon name="rectangle" size="32rpx" class="card-back-icon" />
             <text class="card-back-text">?</text>
           </view>
 
@@ -33,10 +33,12 @@
               class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}"
               >{{item.prize_icon}}</text
             >
-            <text
+            <t-icon
               wx:else
-              class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}} iconfont icon-gift"
-            ></text>
+              name="gift"
+              size="32rpx"
+              class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}"
+            />
             <text class="card-prize-name">{{item.prize_name || ''}}</text>
           </view>
         </view>
@@ -81,7 +83,7 @@
             <!-- 卡背 -->
             <view class="card-face card-back">
               <view class="card-back-shimmer" />
-              <text class="card-back-icon iconfont icon-playing-card"></text>
+              <t-icon name="rectangle" size="32rpx" class="card-back-icon" />
               <text class="card-back-text">?</text>
             </view>
 
@@ -90,7 +92,7 @@
               <text wx:if="{{item.prize_icon}}" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
                 >{{item.prize_icon}}</text
               >
-              <text wx:else class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}} iconfont icon-gift"></text>
+              <t-icon wx:else name="gift" size="32rpx" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}" />
               <text class="card-prize-name">{{item.prize_name || ''}}</text>
             </view>
           </view>
@@ -134,7 +136,7 @@
             <text wx:if="{{item.prize.prize_icon}}" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
               >{{item.prize.prize_icon}}</text
             >
-            <text wx:else class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}} iconfont icon-gift"></text>
+            <t-icon wx:else name="gift" size="32rpx" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}" />
             <text class="card-prize-name">{{(item.prize && item.prize.prize_name) || ''}}</text>
           </view>
         </view>

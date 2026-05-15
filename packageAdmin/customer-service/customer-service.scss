@@ -9,11 +9,48 @@
 
 /* 🎨 全局容器 */
 .customer-service-container {
+  @include tg-tokens;
   padding: 20rpx;
   background-color: var(--tg-color-bg);
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+/* ===== 页面标题区（渐变背景 + 装饰图标） ===== */
+.page-header {
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--tg-spacing-lg);
+  border-radius: var(--td-radius-large);
+}
+
+.header-text {
+  position: relative;
+  z-index: 1;
+}
+
+.header-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+  letter-spacing: -0.5rpx;
+}
+
+.header-desc {
+  font-size: var(--tg-font-size-body, 26rpx);
+  color: var(--tg-text-secondary);
+}
+
+.header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
 }
 
 /* 🔴 实时聊天模式样式 */
@@ -31,16 +68,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  color: var(--tg-color-white);
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  color: var(--tg-text-primary);
   padding: 20rpx 30rpx;
   border-radius: 12rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(var(--td-brand-color-rgb), 0.3);
+  box-shadow: 0 4rpx 20rpx rgba(139, 115, 85, 0.1);
 }
 
 .status-info {
@@ -59,6 +92,27 @@
   padding: 6rpx 12rpx;
   border-radius: var(--td-radius-default);
   background: rgba(var(--tg-color-white-rgb), 0.85);
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.status-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+}
+
+.status-dot--online {
+  background: #52c41a;
+}
+
+.status-dot--busy {
+  background: #faad14;
+}
+
+.status-dot--offline {
+  background: #ff4d4f;
 }
 
 .connection-info .ws-status {
@@ -156,7 +210,7 @@
 }
 
 .session-item.active {
-  background: linear-gradient(135deg, var(--tg-color-bg-accent-soft) 0%, #f3e5f5 100%);
+  background: linear-gradient(135deg, var(--tg-color-bg-accent-soft) 0%, var(--tg-color-bg-accent-soft) 100%);
   border-left: 4rpx solid var(--tg-gradient-primary-start);
 }
 
@@ -240,7 +294,7 @@
 }
 
 .unread-badge {
-  background: linear-gradient(135deg, var(--tg-color-error), #c44569 100%);
+  background: linear-gradient(135deg, var(--tg-color-error), var(--tg-color-error) 100%);
   color: var(--tg-color-white);
   font-size: var(--tg-font-size-micro);
   padding: 4rpx 10rpx;
@@ -263,11 +317,11 @@
 }
 
 .status-tag.waiting {
-  background: linear-gradient(135deg, var(--tg-color-warning), #4a6b4d 100%);
+  background: var(--tg-color-warning);
 }
 
 .status-tag.active {
-  background: linear-gradient(135deg, var(--tg-color-success), #73d13d 100%);
+  background: var(--tg-color-success);
 }
 
 .status-tag.ended {
@@ -442,7 +496,7 @@
 }
 
 .chat-actions .action-btn {
-  background: linear-gradient(135deg, var(--tg-color-error), #c44569 100%);
+  background: linear-gradient(135deg, var(--tg-color-error), var(--tg-color-error) 100%);
   color: var(--tg-color-white);
   padding: 12rpx 24rpx;
   border-radius: 20rpx;
@@ -456,7 +510,7 @@
   flex: 1;
   padding: 20rpx 30rpx;
   overflow-y: auto;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
 }
 
 .empty-messages {
@@ -487,7 +541,7 @@
 }
 
 .message-item.user .message-avatar {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  background: linear-gradient(135deg, var(--tg-color-info) 0%, var(--tg-color-info) 100%);
 }
 
 .message-item.admin .message-avatar {
@@ -521,11 +575,11 @@
   word-wrap: break-word;
   position: relative;
   box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.04);
-  background: #ffffff;
+  background: var(--tg-color-white);
 }
 
 .message-item.user .message-bubble {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: linear-gradient(135deg, var(--tg-color-white) 0%, var(--tg-color-bg-muted) 100%);
   color: var(--tg-text-primary-strong);
   border-bottom-left-radius: 6rpx;
   border: 1rpx solid var(--tg-color-border-muted);
@@ -588,7 +642,7 @@
 .quick-replies-panel {
   padding: 20rpx 30rpx;
   border-bottom: 1rpx solid var(--tg-color-border-light);
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
 }
 
 .quick-reply-item {
@@ -598,7 +652,7 @@
   border-radius: 20rpx;
   /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s ease;
-  border: 1rpx solid #dee2e6;
+  border: 1rpx solid var(--tg-color-border-muted);
 }
 
 /* Skyline: 使用 hover-class 替代 :hover */
@@ -621,7 +675,7 @@
 .input-toolbar {
   padding: 16rpx 30rpx;
   border-bottom: 1rpx solid var(--tg-color-border-light);
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
 }
 
 .toolbar-btn {
@@ -715,7 +769,7 @@
   text-align: center;
   font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary-muted);
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
   border-top: 1rpx solid var(--tg-color-border-light);
 }
 
@@ -785,13 +839,13 @@
 
 /* 工具栏调试按钮 */
 .debug-toggle-btn {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  background: linear-gradient(135deg, var(--tg-color-error) 0%, var(--tg-color-error) 100%);
   color: var(--tg-color-white);
-  border: 2rpx solid #ff4757;
+  border: 2rpx solid var(--tg-color-error);
 }
 
 .debug-toggle-btn:active {
-  background: linear-gradient(135deg, #ee5a52 0%, #c44569 100%);
+  background: linear-gradient(135deg, var(--tg-color-error) 0%, var(--tg-color-error) 100%);
   transform: scale(0.95);
 }
 
@@ -805,7 +859,7 @@
   );
   border-radius: 12rpx;
   overflow: hidden;
-  border: 2rpx solid #5f6caf;
+  border: 2rpx solid var(--tg-color-info);
   animation: slideInUp 0.3s ease-out;
 }
 

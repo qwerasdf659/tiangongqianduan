@@ -3,20 +3,27 @@
  * 各子组件通过 @import 引入，避免跨文件重复
  */
 
-/* ── 爆裂环动画（中奖爆发效果外圈） ── */
+/* ── 爆裂环动画（中奖爆发效果外圈 — 带光晕扩散） ── */
 @keyframes burstRing {
   0% {
     transform: translate(-50%, -50%) scale(0);
     opacity: 1;
+    border-width: 4rpx;
+  }
+
+  60% {
+    opacity: 0.7;
+    border-width: 3rpx;
   }
 
   100% {
-    transform: translate(-50%, -50%) scale(2);
+    transform: translate(-50%, -50%) scale(2.2);
     opacity: 0;
+    border-width: 1rpx;
   }
 }
 
-/* ── 爆裂星动画（中奖爆发效果星星闪烁） ── */
+/* ── 爆裂星动画（保留兼容，已由 burstCore 替代） ── */
 @keyframes burstStar {
   0%,
   100% {

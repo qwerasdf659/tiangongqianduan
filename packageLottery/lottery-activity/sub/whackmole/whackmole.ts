@@ -722,17 +722,17 @@ Component({
 
       // 根据命中率和连击数给出评价
       if (hitRate >= 90 && maxCombo >= 10) {
-        return '<i class="iconfont icon-trophy"></i> 地鼠克星！传说中的打地鼠大师！'
+        return '🏆 地鼠克星！传说中的打地鼠大师！'
       } else if (hitRate >= 80 && maxCombo >= 8) {
-        return '<i class="iconfont icon-star"></i> 手速如飞！地鼠都害怕你了！'
+        return '⭐ 手速如飞！地鼠都害怕你了！'
       } else if (hitRate >= 70 || maxCombo >= 5) {
-        return '<i class="iconfont icon-thumbsup"></i> 表现不错！再练练就是高手！'
+        return '👍 表现不错！再练练就是高手！'
       } else if (hitRate >= 50) {
-        return '<i class="iconfont icon-smile"></i> 手速一般，但贵在坚持！'
+        return '😊 手速一般，但贵在坚持！'
       } else if (totalHits >= 5) {
-        return '<i class="iconfont icon-strong"></i> 虽然手抖，但精神可嘉！'
+        return '💪 虽然手抖，但精神可嘉！'
       } else {
-        return '<i class="iconfont icon-target"></i> 下次加油！地鼠不会跑的！'
+        return '🎯 下次加油！地鼠不会跑的！'
       }
     },
 

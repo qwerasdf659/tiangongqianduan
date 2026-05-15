@@ -1,14 +1,17 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+﻿@import '../../../styles/mixins';
+
+/* Skyline ??????????????flex-column ?????????? */
 .page-scroll-view {
   flex: 1;
   overflow: hidden;
 }
 
-/* C2C拍卖详情页样式 */
+/* C2C????????*/
 
-/* 竞拍模块专用补充变量 */
+/* ?????????? */
 
 .auction-detail-container {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -43,7 +46,7 @@
   font-size: var(--tg-font-size-title);
 }
 
-/* 物品图片区 */
+/* ??????*/
 .detail-image-section {
   position: relative;
   width: 100%;
@@ -67,11 +70,20 @@
   font-weight: var(--tg-font-weight-bold);
 }
 
-/* 物品信息 */
+/* ???? */
 .detail-info-section {
-  background-color: var(--tg-color-bg-card);
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
   padding: 24rpx 32rpx;
   border-bottom: 1rpx solid var(--tg-color-divider);
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-info-section .header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
 }
 
 .detail-item-name {
@@ -103,7 +115,7 @@
   color: var(--tg-text-secondary);
 }
 
-/* 价格区 */
+/* ????*/
 .detail-price-section {
   background-color: var(--tg-color-bg-card);
   padding: 24rpx 32rpx;
@@ -132,7 +144,7 @@
 }
 
 .price-value {
-  font-size: 48rpx;
+  font-size: var(--tg-font-size-display);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-error);
 }
@@ -206,11 +218,11 @@
   color: var(--tg-text-tertiary);
 }
 
-/* 结算信息 */
+/* ???? */
 .settlement-info {
   margin-top: 24rpx;
   padding: 20rpx;
-  background-color: #f0f7ff;
+  background-color: rgba(var(--td-brand-color-rgb), 0.04);
   border-radius: var(--tg-radius-auction-md);
 }
 
@@ -234,7 +246,7 @@
   font-weight: var(--tg-font-weight-bold);
 }
 
-/* 我的出价 */
+/* ???? */
 .my-bid-section,
 .top-bids-section,
 .snapshot-section {
@@ -311,7 +323,7 @@
   color: var(--tg-color-success);
 }
 
-/* 出价排行 */
+/* ???? */
 .top-bid-item {
   display: flex;
   align-items: center;
@@ -363,7 +375,7 @@
   font-size: var(--tg-font-size-title);
 }
 
-/* 物品快照 */
+/* ???? */
 .snapshot-row {
   display: flex;
   justify-content: space-between;
@@ -384,7 +396,7 @@
   color: var(--tg-text-primary);
 }
 
-/* 底部操作栏 */
+/* ??????*/
 .detail-bottom-bar {
   position: fixed;
   bottom: 0;
@@ -443,7 +455,7 @@
   font-weight: var(--tg-font-weight-bold);
 }
 
-/* 出价弹窗 */
+/* ???? */
 .bid-input-mask {
   position: fixed;
   top: 0;

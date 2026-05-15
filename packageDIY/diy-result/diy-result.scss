@@ -7,6 +7,7 @@
 @import '../../styles/mixins.scss';
 
 .diy-result-page {
+  @include tg-tokens;
   flex: 1;
   background: var(--tg-diy-canvas-bg);
   display: flex;

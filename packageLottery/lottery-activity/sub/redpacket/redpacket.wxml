@@ -38,9 +38,9 @@
         <!-- 拆开状态 -->
         <view class="packet-opened" wx:else>
           <view class="packet-opened__burst"></view>
-          <text class="packet-opened__icon iconfont icon-red-packet"></text>
+          <t-icon name="wallet" size="32rpx" class="packet-opened__icon" />
           <text class="packet-opened__text">恭喜获得!</text>
-          <text class="packet-opened__sparkle iconfont icon-sparkle"></text>
+          <t-icon name="star" size="24rpx" class="packet-opened__sparkle" />
         </view>
       </view>
     </view>
@@ -101,7 +101,7 @@
           <view class="multi-packet-prize" wx:else>
             <view class="multi-packet-prize__info">
               <text wx:if="{{packet.prize_icon}}" class="multi-packet-prize__icon">{{packet.prize_icon}}</text>
-              <text wx:else class="multi-packet-prize__icon iconfont icon-gift"></text>
+              <t-icon name="gift" size="32rpx" class="multi-packet-prize__icon" wx:else />
               <text class="multi-packet-prize__name">{{packet.prize_name || ''}}</text>
             </view>
           </view>

@@ -1,4 +1,6 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+﻿@import '../../../styles/mixins';
+
+/* Skyline 页面级滚动容�?�?必须�?flex-column 父容器中占满剩余高度 */
 .page-scroll-view {
   flex: 1;
   overflow: hidden;
@@ -6,9 +8,10 @@
 
 /* C2C拍卖大厅样式 */
 
-/* 竞拍模块专用补充变量（公共变量文件中未覆盖的） */
+/* 竞拍模块专用补充变量（公共变量文件中未覆盖的�?*/
 
 .auction-hall-container {
+  @include tg-tokens;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -16,11 +19,20 @@
   padding-bottom: 40rpx;
 }
 
-/* 顶部操作栏 */
+/* 顶部操作�?*/
 .auction-hall-header {
-  background-color: var(--tg-color-bg-card);
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
   padding: 20rpx 24rpx;
   border-bottom: 1rpx solid var(--tg-color-divider);
+  position: relative;
+  overflow: hidden;
+}
+
+.auction-hall-header .header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
 }
 
 .header-actions {
@@ -52,7 +64,7 @@
   color: var(--tg-text-secondary);
 }
 
-/* 状态筛选标签 */
+/* 状态筛选标�?*/
 .auction-status-tabs {
   display: flex;
   background-color: var(--tg-color-bg-card);
@@ -76,7 +88,7 @@
   }
 }
 
-/* 排序栏 */
+/* 排序�?*/
 .auction-sort-bar {
   background-color: var(--tg-color-bg-card);
   padding: 16rpx 24rpx;
@@ -141,7 +153,7 @@
   font-size: var(--tg-font-size-title);
 }
 
-/* 加载/空/错误状态 */
+/* 加载/�?错误状�?*/
 .auction-loading,
 .auction-error,
 .auction-empty {
@@ -227,7 +239,7 @@
   color: var(--tg-color-white);
 }
 
-/* 卡片信息区 */
+/* 卡片信息�?*/
 .auction-card-info {
   flex: 1;
   padding: 20rpx 24rpx;
@@ -338,7 +350,7 @@
   color: var(--tg-text-secondary);
 }
 
-/* 底部加载/无更多 */
+/* 底部加载/无更�?*/
 .auction-load-more,
 .auction-no-more {
   text-align: center;

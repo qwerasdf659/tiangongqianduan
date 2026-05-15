@@ -4,6 +4,14 @@
 
 <view class="my-auctions-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面头部 -->
+    <view class="auctions-page-header">
+      <text class="auctions-page-title">我的拍卖</text>
+      <view class="header-decor-icon">
+        <t-icon name="time" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
     <!--状态筛选-->
     <scroll-view type="custom" class="status-tabs-scroll" scroll-x enable-flex>
       <view
