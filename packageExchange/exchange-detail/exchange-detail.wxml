@@ -1,28 +1,22 @@
 <!--
-  兑换商品详情�?�?B+C混合方案（白底密�?+ 游戏化视觉）
+  兑换商品详情页 — B+C混合方案（白底密排 + 游戏化视觉）
   后端API: GET /api/v4/exchange/items/:exchange_item_id
   响应层级: res.data.item（APIClient 统一解包后）
 
   十大区块:
-    �?图片�? �?标签�? �?价格�? �?属性区
-    �?介绍�? �?展示�? �?使用说明  �?相关推荐
-    �?标签�? �?吸底操作�?-->
+    ① 图片区  ② 标签区  ③ 价格区  ④ 属性区
+    ⑤ 介绍区  ⑥ 展示图  ⑦ 使用说明  ⑧ 相关推荐
+    ⑨ 标签云  ⑩ 吸底操作栏
+-->
 <custom-navbar title="商品详情" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 
 <scroll-view type="list" scroll-y class="page-scroll-view">
-  <!-- 页面标题�?-->
-  <view class="ed-page-header">
-    <text class="ed-page-header-title">商品详情</text>
-    <view class="header-decor-icon">
-      <t-icon name="shop" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
-    </view>
-  </view>
-  <!-- 加载状�?-->
+  <!-- 加载状态 -->
   <view class="ed-loading" wx:if="{{loading}}">
-    <t-loading loading="{{true}}" text="加载�?.." theme="spinner" size="48rpx" />
+    <t-loading loading="{{true}}" text="加载中..." theme="spinner" size="48rpx" />
   </view>
 
-  <!-- 错误状�?-->
+  <!-- 错误状态 -->
   <view class="ed-error" wx:elif="{{hasError}}">
     <t-icon name="error-triangle-filled" size="48rpx" class="ed-error-icon" />
     <text class="ed-error-msg">{{errorMessage}}</text>
@@ -31,7 +25,7 @@
 
   <!-- 详情主体 -->
   <view class="ed-container" wx:elif="{{product}}">
-    <!-- �?图片�? 多图轮播 / 单图展示 / emoji占位 -->
+    <!-- ① 图片区: 多图轮播 / 单图展示 / emoji占位 -->
     <view class="ed-hero-section {{product._rarityClass || ''}}">
       <!-- 稀有度氛围光效: epic=紫色脉冲 legendary=金色脉冲 -->
       <view
@@ -82,9 +76,9 @@
         />
       </block>
 
-      <!-- emoji占位（无图片�?-->
+      <!-- emoji占位（无图片） -->
       <view wx:else class="ed-hero-fallback">
-        <t-icon name="gift" size="32rpx" class="ed-fallback-emoji" />
+        <text class="ed-fallback-emoji iconfont icon-gift"></text>
         <text class="ed-fallback-name">{{product.item_name}}</text>
       </view>
 
@@ -98,7 +92,7 @@
       </view>
     </view>
 
-    <!-- �?标签�? game�?彩色圆角+emoji) / plain�?灰底黑字)，数据源: displayTags 统一数组 -->
+    <!-- ② 标签区: game风(彩色圆角+emoji) / plain风(灰底黑字)，数据源: displayTags 统一数组 -->
     <view class="ed-tags-row" wx:if="{{displayTags.length > 0}}">
       <block wx:if="{{tagStyleType === 'game'}}">
         <view wx:for="{{displayTags}}" wx:key="text" class="ed-tag ed-tag-{{item.style_type}}">
@@ -112,20 +106,20 @@
       </block>
     </view>
 
-    <!-- 商品信息卡片（空�?+ 名称 + �?价格区） -->
+    <!-- 商品信息卡片（空间 + 名称 + ③ 价格区） -->
     <view class="ed-info-card">
       <view class="ed-space-label">
         <text
           class="ed-space-label-text"
           wx:if="{{rarityStyle && product.rarity_code !== 'common'}}"
-          >�?{{rarityStyle.displayName}} · {{product._spaceLabel}}</text
+          >★ {{rarityStyle.displayName}} · {{product._spaceLabel}}</text
         >
         <text class="ed-space-label-text" wx:else>{{product._spaceLabel}}</text>
       </view>
 
       <text class="ed-product-name">{{product.item_name}}</text>
 
-      <!-- �?价格�? 大号渐变数字 + 划线原价 + 省XX标签 -->
+      <!-- ③ 价格区: 大号渐变数字 + 划线原价 + 省XX标签 -->
       <view class="ed-price-section">
         <text class="ed-price-amount">{{product.cost_amount}}</text>
         <text class="ed-price-unit">{{product._priceLabel || '积分'}}</text>
@@ -138,7 +132,7 @@
         </view>
       </view>
 
-      <!-- Phase 4: 优惠券行（后�?coupons 数组有值时渲染�?-->
+      <!-- Phase 4: 优惠券行（后端 coupons 数组有值时渲染） -->
       <view class="ed-coupon-row" wx:if="{{coupons.length > 0}}">
         <view wx:for="{{coupons}}" wx:key="coupon_id" class="ed-coupon-item">
           <t-icon name="discount" size="28rpx" class="ed-coupon-icon" />
@@ -146,10 +140,10 @@
         </view>
       </view>
 
-      <!-- Phase 4: 满减/活动信息（后�?promotions 数组有值时渲染�?-->
+      <!-- Phase 4: 满减/活动信息（后端 promotions 数组有值时渲染） -->
       <view class="ed-promotion-row" wx:if="{{promotions.length > 0}}">
         <view wx:for="{{promotions}}" wx:key="promotion_id" class="ed-promotion-item">
-          <t-icon name="discount" size="28rpx" class="ed-promotion-icon" />
+          <text class="ed-promotion-icon">🏷️</text>
           <text class="ed-promotion-text">{{item.text || item.display_name}}</text>
         </view>
       </view>
@@ -159,7 +153,7 @@
         class="ed-estimated-row"
         wx:if="{{estimatedPrice > 0 && estimatedPrice < product.cost_amount}}"
       >
-        <text class="ed-estimated-label">预计到手�?/text>
+        <text class="ed-estimated-label">预计到手价</text>
         <view class="ed-estimated-value">
           <text class="ed-estimated-num">{{estimatedPrice}}</text>
           <text class="ed-estimated-unit">{{product._priceLabel || '积分'}}</text>
@@ -169,11 +163,11 @@
 
     <!-- 铸造标识（后端 mint_instance=true 时展示，表示兑换后将铸造物品实例进入背包） -->
     <view class="ed-mint-badge" wx:if="{{product._mintInstance}}">
-      <t-icon name="edit" size="32rpx" class="ed-mint-icon" />
-      <text class="ed-mint-text">兑换后将铸造专属物品实�?· 可在交易市场挂牌</text>
+      <text class="ed-mint-icon iconfont icon-craft"></text>
+      <text class="ed-mint-text">兑换后将铸造专属物品实例 · 可在交易市场挂牌</text>
     </view>
 
-    <!-- �?属性区: grid网格卡片模式 / list文字列表模式 -->
+    <!-- ④ 属性区: grid网格卡片模式 / list文字列表模式 -->
     <view class="ed-attrs-card">
       <text class="ed-section-title">商品信息</text>
 
@@ -199,10 +193,10 @@
         </view>
         <view class="ed-attr-item" wx:if="{{product.has_warranty}}">
           <t-icon name="secured-filled" size="28rpx" class="ed-attr-value" />
-          <text class="ed-attr-label">含保�?/text>
+          <text class="ed-attr-label">含保修</text>
         </view>
         <view class="ed-attr-item" wx:if="{{product.free_shipping}}">
-          <t-icon name="shop" size="32rpx" class="ed-attr-value" />
+          <text class="ed-attr-value iconfont icon-package"></text>
           <text class="ed-attr-label">包邮</text>
         </view>
       </view>
@@ -211,11 +205,11 @@
       <view class="ed-attrs-list" wx:else>
         <view class="ed-attr-row">
           <text class="ed-attr-row-label">库存</text>
-          <text class="ed-attr-row-value">{{product.stock}} �?/text>
+          <text class="ed-attr-row-value">{{product.stock}} 件</text>
         </view>
         <view class="ed-attr-row" wx:if="{{showSoldCount}}">
           <text class="ed-attr-row-label">已售</text>
-          <text class="ed-attr-row-value">{{product.sold_count}} �?/text>
+          <text class="ed-attr-row-value">{{product.sold_count}} 件</text>
         </view>
         <view class="ed-attr-row" wx:if="{{product._categoryDisplayName}}">
           <text class="ed-attr-row-label">分类</text>
@@ -229,17 +223,15 @@
         </view>
         <view class="ed-attr-row" wx:if="{{product.has_warranty}}">
           <text class="ed-attr-row-label">保修</text>
-          <text class="ed-attr-row-value"
-            ><t-icon name="secured-filled" size="28rpx" color="#4CAF50" /> 含保�?/text
-          >
+          <text class="ed-attr-row-value"><t-icon name="secured-filled" size="28rpx" color="#4CAF50" /> 含保修</text>
         </view>
         <view class="ed-attr-row" wx:if="{{product.free_shipping}}">
           <text class="ed-attr-row-label">物流</text>
-          <text class="ed-attr-row-value"><t-icon name="shop" size="28rpx" /> 包邮</text>
+          <text class="ed-attr-row-value"><text class="iconfont icon-package"></text> 包邮</text>
         </view>
       </view>
 
-      <!-- 库存进度条（stock > 0 �?sold_count > 0 时显示） -->
+      <!-- 库存进度条（stock > 0 且 sold_count > 0 时显示） -->
       <view class="ed-stock-bar-wrap" wx:if="{{product.stock > 0 && product.sold_count > 0}}">
         <view class="ed-stock-bar-bg">
           <view class="ed-stock-bar-fill" style="width: {{stockPercent}}%;"></view>
@@ -248,7 +240,7 @@
       </view>
     </view>
 
-    <!-- SKU 规格选择区（多规格商品显示，单品商品自动隐藏�?-->
+    <!-- SKU 规格选择区（多规格商品显示，单品商品自动隐藏） -->
     <view class="ed-sku-card" wx:if="{{hasMultiSku && skuList.length > 1}}">
       <text class="ed-section-title">规格选择</text>
       <view class="ed-sku-options">
@@ -262,20 +254,20 @@
           <text class="ed-sku-label">{{item._specLabel || '默认'}}</text>
           <text class="ed-sku-price">{{item.cost_amount}} {{product._priceLabel || '积分'}}</text>
           <text class="ed-sku-stock" wx:if="{{item.stock <= 5 && item.stock > 0}}"
-            >仅剩{{item.stock}}�?/text
+            >仅剩{{item.stock}}件</text
           >
-          <text class="ed-sku-stock ed-sku-soldout" wx:if="{{item.stock <= 0}}">已售�?/text>
+          <text class="ed-sku-stock ed-sku-soldout" wx:if="{{item.stock <= 0}}">已售罄</text>
         </view>
       </view>
       <view class="ed-sku-selected-info" wx:if="{{selectedSkuInfo}}">
         <text class="ed-sku-selected-text"
-          >已�? {{selectedSkuInfo._specLabel || '默认'}} | {{selectedSkuInfo.cost_amount}}
+          >已选: {{selectedSkuInfo._specLabel || '默认'}} | {{selectedSkuInfo.cost_amount}}
           {{product._priceLabel || '积分'}}</text
         >
       </view>
     </view>
 
-    <!-- �?商品介绍�? 卖点高亮 + 纯文�?/ 长图 / 混排 -->
+    <!-- ⑤ 商品介绍区: 卖点高亮 + 纯文字 / 长图 / 混排 -->
     <view
       class="ed-desc-card"
       wx:if="{{product.sell_point || product.description || detailImages.length > 0}}"
@@ -284,14 +276,14 @@
 
       <!-- 卖点高亮（金底卡片） -->
       <view class="ed-sell-point" wx:if="{{product.sell_point}}">
-        <t-icon name="star" size="32rpx" class="ed-sell-point-icon" />
+        <text class="ed-sell-point-icon iconfont icon-sparkle"></text>
         <text class="ed-sell-point-text">{{product.sell_point}}</text>
       </view>
 
       <!-- 文字描述 -->
       <text class="ed-description" wx:if="{{product.description}}">{{product.description}}</text>
 
-      <!-- 详情长图（detail_images，含可�?caption 说明文字�?-->
+      <!-- 详情长图（detail_images，含可选 caption 说明文字） -->
       <view class="ed-detail-images" wx:if="{{detailImages.length > 0}}">
         <view wx:for="{{detailImages}}" wx:key="media_id" class="ed-detail-img-wrap">
           <image
@@ -307,7 +299,7 @@
       </view>
     </view>
 
-    <!-- �?展示图区: 0张隐�?/ 1张单�?/ 2-4张网�?/ 5+张横�?-->
+    <!-- ⑥ 展示图区: 0张隐藏 / 1张单图 / 2-4张网格 / 5+张横滚 -->
     <view class="ed-showcase-card" wx:if="{{showcaseImages.length > 0}}">
       <text class="ed-section-title">商品展示</text>
 
@@ -323,7 +315,7 @@
         />
       </view>
 
-      <!-- 2-4�? 两列网格 -->
+      <!-- 2-4张: 两列网格 -->
       <view class="ed-showcase-grid" wx:elif="{{showcaseImages.length <= 4}}">
         <image
           wx:for="{{showcaseImages}}"
@@ -337,7 +329,7 @@
         />
       </view>
 
-      <!-- 5+�? 横向可滚�?-->
+      <!-- 5+张: 横向可滚动 -->
       <scroll-view
         type="custom"
         wx:else
@@ -361,7 +353,7 @@
       </scroll-view>
     </view>
 
-    <!-- �?使用说明区（仅后端提�?usage_rules 时展示） -->
+    <!-- ⑦ 使用说明区（仅后端提供 usage_rules 时展示） -->
     <view class="ed-rules-card" wx:if="{{usageRules.length > 0}}">
       <text class="ed-section-title">使用说明</text>
       <view class="ed-rules-list">
@@ -372,7 +364,7 @@
       </view>
     </view>
 
-    <!-- �?相关推荐区（同分类商品，无结果时整个区块不渲染） -->
+    <!-- ⑧ 相关推荐区（同分类商品，无结果时整个区块不渲染） -->
     <view class="ed-related-card" wx:if="{{relatedProducts.length > 0}}">
       <text class="ed-section-title">相关推荐</text>
       <view class="ed-related-grid">
@@ -390,7 +382,7 @@
             mode="aspectFill"
           />
           <view wx:else class="ed-related-img-fallback">
-            <t-icon name="gift" size="32rpx" class="ed-related-img-fallback-text" />
+            <text class="ed-related-img-fallback-text iconfont icon-gift"></text>
           </view>
           <view class="ed-related-info">
             <text class="ed-related-name">{{item.item_name}}</text>
@@ -403,7 +395,7 @@
       </view>
     </view>
 
-    <!-- �?标签云（后端 tags 字段，无标签时不渲染�?-->
+    <!-- ⑨ 标签云（后端 tags 字段，无标签时不渲染） -->
     <view class="ed-tags-card" wx:if="{{product.tags && product.tags.length > 0}}">
       <text class="ed-section-title">商品标签</text>
       <view class="ed-tag-cloud">
@@ -418,30 +410,30 @@
   </view>
 </scroll-view>
 
-<!-- �?吸底操作�? 余额 + 客服 + 兑换按钮 -->
+<!-- ⑩ 吸底操作栏: 余额 + 客服 + 兑换按钮 -->
 <view class="ed-bottom-bar" wx:if="{{product && !loading && !hasError}}">
   <view class="ed-balance-info">
     <text class="ed-balance-label">{{product._priceLabel || '余额'}}</text>
     <text class="ed-balance-value">{{currentBalance}}</text>
   </view>
 
-  <!-- 微信客服按钮（open-type="contact" 拉起微信客服�?-->
+  <!-- 微信客服按钮（open-type="contact" 拉起微信客服） -->
   <button class="ed-service-btn" open-type="contact" plain="{{true}}">
-    <t-icon name="chat" size="28rpx" class="ed-service-icon" />
+    <text class="ed-service-icon">💬</text>
     <text class="ed-service-text">客服</text>
   </button>
 
-  <!-- Phase 4: 购物车按钮（配置驱动，暂隐藏，启用后改为 wx:if="{{showCartButton}}"�?-->
+  <!-- Phase 4: 购物车按钮（配置驱动，暂隐藏，启用后改为 wx:if="{{showCartButton}}"） -->
   <view class="ed-cart-btn" wx:if="{{false}}">
-    <t-icon name="shop" size="28rpx" class="ed-cart-icon" />
-    <text class="ed-cart-text">购物�?/text>
+    <text class="ed-cart-icon">🛒</text>
+    <text class="ed-cart-text">购物车</text>
   </view>
 
   <view
     class="ed-exchange-btn {{product.stock <= 0 ? 'ed-btn-soldout' : (balanceInsufficient ? 'ed-btn-disabled' : '')}}"
     bindtap="onExchange"
   >
-    <text wx:if="{{product.stock <= 0}}">已售�?/text>
+    <text wx:if="{{product.stock <= 0}}">已售罄</text>
     <text wx:elif="{{balanceInsufficient}}">余额不足</text>
     <text wx:else>立即兑换</text>
   </view>

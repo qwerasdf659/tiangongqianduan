@@ -1,20 +1,13 @@
 <!--packageTrade/trade/market/market.wxml - C2C交易市场瀑布流布局-->
 <!--后端API: GET /api/v4/marketplace/listings-->
-<!--字段直接使用后端响应 + �?_ 为前缀的计算展示字�?->
+<!--字段直接使用后端响应 + 以 _ 为前缀的计算展示字段-->
 <custom-navbar title="发现好物" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
 
 <view class="waterfall-market-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
-    <!-- 页面头部 -->
-    <view class="market-page-header">
-      <text class="market-page-title">发现好物</text>
-      <view class="header-decor-icon">
-        <t-icon name="shop" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
-      </view>
-    </view>
     <!--市场行情概览（可折叠，默认收起）-->
     <view class="market-overview-section" wx:if="{{showPriceChart}}">
-      <!--资产选择器（�?settlement-currencies 加载可选资产）-->
+      <!--资产选择器（从 settlement-currencies 加载可选资产）-->
       <view class="chart-asset-selector" wx:if="{{chartAssetOptions.length > 0}}">
         <view
           class="chart-asset-tag {{chartAssetCode === item.asset_code ? 'active' : ''}}"
@@ -33,22 +26,18 @@
       bindtap="onTogglePriceChart"
     >
       <view class="toggle-inner">
-        <text class="toggle-text" wx:if="{{showPriceChart}}">收起行情</text>
-        <view class="toggle-text" wx:else
-          ><t-icon name="trending-up" size="28rpx" /> 查看市场行情</view
-        >
-        <text class="toggle-arrow">{{showPriceChart ? '�? : '﹀'}}</text>
+        <text class="toggle-text">{{showPriceChart ? '收起行情' : '📈 查看市场行情'}}</text>
+        <text class="toggle-arrow">{{showPriceChart ? '︿' : '﹀'}}</text>
       </view>
     </view>
 
-    <!--市场总览面板（可折叠�?->
+    <!--市场总览面板（可折叠）-->
     <view class="market-section-toggle" bindtap="onToggleMarketOverview">
-      <text class="toggle-text" wx:if="{{showMarketOverview}}">收起总览</text>
-      <view class="toggle-text" wx:else><t-icon name="chart-bar" size="28rpx" /> 市场总览</view>
+      <text class="toggle-text">{{showMarketOverview ? '收起总览' : '📊 市场总览'}}</text>
     </view>
     <view class="market-overview-panel" wx:if="{{showMarketOverview}}">
       <view class="overview-loading" wx:if="{{marketOverviewLoading}}">
-        <text class="overview-loading-text">加载�?..</text>
+        <text class="overview-loading-text">加载中...</text>
       </view>
       <view wx:elif="{{marketOverview}}" class="overview-content">
         <view class="overview-stats-row">
@@ -66,10 +55,10 @@
           </view>
           <view class="overview-stat-card">
             <text class="stat-value">{{marketOverview.volume_24h || 0}}</text>
-            <text class="stat-label">24h交易�?/text>
+            <text class="stat-label">24h交易额</text>
           </view>
         </view>
-        <!--资产成交量排�?->
+        <!--资产成交量排行-->
         <view
           class="ranking-section"
           wx:if="{{marketOverview.asset_rankings && marketOverview.asset_rankings.length > 0}}"
@@ -83,7 +72,7 @@
             >
               <text class="ranking-index">{{index + 1}}</text>
               <text class="ranking-name">{{item.display_name || item.asset_code}}</text>
-              <text class="ranking-volume">{{item.trade_count}}�?/ {{item.total_volume}}</text>
+              <text class="ranking-volume">{{item.trade_count}}笔 / {{item.total_volume}}</text>
             </view>
           </view>
         </view>
@@ -96,17 +85,17 @@
     <!--最近成交列表（可折叠）-->
     <view class="market-section-toggle" bindtap="onToggleRecentTrades">
       <text class="toggle-text" wx:if="{{showRecentTrades}}">收起成交</text>
-      <text class="toggle-text" wx:else><t-icon name="tips" size="28rpx" /> 最近成�?/text>
+      <text class="toggle-text" wx:else><text class="iconfont icon-fire"></text> 最近成交</text>
     </view>
     <view class="recent-trades-panel" wx:if="{{showRecentTrades}}">
       <view class="overview-loading" wx:if="{{recentTradesLoading}}">
-        <text class="overview-loading-text">加载�?..</text>
+        <text class="overview-loading-text">加载中...</text>
       </view>
       <view wx:elif="{{recentTrades.length > 0}}" class="trades-list">
         <view class="trade-row" wx:for="{{recentTrades}}" wx:key="trade_order_id">
           <view class="trade-info">
             <text class="trade-name">{{item.display_name || '商品'}}</text>
-            <text class="trade-parties">{{item.seller_nickname}} �?{{item.buyer_nickname}}</text>
+            <text class="trade-parties">{{item.seller_nickname}} → {{item.buyer_nickname}}</text>
           </view>
           <view class="trade-price-col">
             <text class="trade-price">{{item.price_amount}}</text>
@@ -119,7 +108,7 @@
       </view>
     </view>
 
-    <!-- 筛选栏：类型标�?+ 排序 + 筛选按�?+ 我的订单入口 -->
+    <!-- 筛选栏：类型标签 + 排序 + 筛选按钮 + 我的订单入口 -->
     <view class="filter-bar">
       <view class="kind-tabs">
         <view
@@ -151,10 +140,10 @@
           </view>
         </view>
         <view class="filter-toggle-btn" bindtap="onToggleAdvancedFilter">
-          <t-icon name="search" size="28rpx" />
+          <text>🔍</text>
         </view>
         <view class="my-orders-entry" bindtap="onGoToMyOrders">
-          <t-icon name="file-paste" size="28rpx" />
+          <text>📋</text>
         </view>
       </view>
     </view>
@@ -172,7 +161,7 @@
             value="{{filterMinPrice}}"
             bindinput="onMinPriceInput"
           />
-          <text class="price-separator">�?/text>
+          <text class="price-separator">—</text>
           <input
             class="price-input"
             type="number"
@@ -183,7 +172,7 @@
         </view>
       </view>
 
-      <!-- 分类筛选（来自 facets�?-->
+      <!-- 分类筛选（来自 facets） -->
       <view
         class="filter-section"
         wx:if="{{facetsData && facetsData.categories && facetsData.categories.length > 0}}"
@@ -208,7 +197,7 @@
         </view>
       </view>
 
-      <!-- 稀有度筛选（来自 facets�?-->
+      <!-- 稀有度筛选（来自 facets） -->
       <view
         class="filter-section"
         wx:if="{{facetsData && facetsData.rarities && facetsData.rarities.length > 0}}"
@@ -233,7 +222,7 @@
         </view>
       </view>
 
-      <!--资产分组筛选（对齐文档 asset_group_code 查询参数，数据来�?facets�?->
+      <!--资产分组筛选（对齐文档 asset_group_code 查询参数，数据来自 facets）-->
       <view
         class="filter-section"
         wx:if="{{facetsData && facetsData.asset_groups && facetsData.asset_groups.length > 0}}"
@@ -258,7 +247,7 @@
         </view>
       </view>
 
-      <!--资产代码筛选（对齐文档 asset_code 查询参数，仅 fungible_asset 类型有效，数据来�?facets�?->
+      <!--资产代码筛选（对齐文档 asset_code 查询参数，仅 fungible_asset 类型有效，数据来自 facets）-->
       <view
         class="filter-section"
         wx:if="{{facetsData && facetsData.asset_codes && facetsData.asset_codes.length > 0}}"
@@ -283,7 +272,7 @@
         </view>
       </view>
 
-      <!-- 品质等级筛选（后端 quality_grade 参数�?档品质等级） -->
+      <!-- 品质等级筛选（后端 quality_grade 参数，5档品质等级） -->
       <view class="filter-section">
         <text class="filter-section-label">品质等级</text>
         <view class="filter-tags">
@@ -304,13 +293,13 @@
         </view>
       </view>
 
-      <!-- 筛选操作按�?-->
+      <!-- 筛选操作按钮 -->
       <view class="filter-actions">
         <view class="filter-reset-btn" bindtap="onResetAdvancedFilter">
           <text class="filter-reset-btn-text">重置</text>
         </view>
         <view class="filter-apply-btn" bindtap="onApplyAdvancedFilter">
-          <text class="filter-apply-btn-text">应用筛�?/text>
+          <text class="filter-apply-btn-text">应用筛选</text>
         </view>
       </view>
     </view>
@@ -318,7 +307,7 @@
     <!--瀑布流主容器-->
     <view class="waterfall-container" style="height: {{containerHeight}}px;">
       <block wx:for="{{products}}" wx:key="market_listing_id">
-        <!-- Feed 广告卡片（穿插在商品列表中，_isAdItem=true 区分�?-->
+        <!-- Feed 广告卡片（穿插在商品列表中，_isAdItem=true 区分） -->
         <view
           wx:if="{{item._isAdItem}}"
           class="product-card waterfall-card feed-ad-card"
@@ -335,7 +324,7 @@
               lazy-load="{{true}}"
             />
             <view wx:else class="image-fallback">
-              <t-icon name="sound" size="28rpx" class="fallback-icon" />
+              <text class="fallback-icon">📢</text>
               <text class="fallback-name">{{item._displayName}}</text>
             </view>
             <view class="badge-tag ad-tag">广告</view>
@@ -345,12 +334,12 @@
               <text class="product-title">{{item._displayName}}</text>
             </view>
             <view class="ad-action-hint" wx:if="{{item._adData.link_url}}">
-              <text class="ad-action-text">查看详情 �?/text>
+              <text class="ad-action-text">查看详情 ›</text>
             </view>
           </view>
         </view>
 
-        <!-- 普通商品卡�?-->
+        <!-- 普通商品卡片 -->
         <view
           wx:else
           class="product-card waterfall-card {{item._rarityStyle.cssClass || ''}}"
@@ -369,7 +358,7 @@
               binderror="onImageError"
             />
             <view wx:else class="image-fallback">
-              <t-icon name="{{item._isFungibleAsset ? 'diamond' : 'shop'}}" size="48rpx" class="fallback-icon" />
+              <text class="fallback-icon iconfont {{item._isFungibleAsset ? 'icon-diamond' : 'icon-package'}}"></text>
               <text class="fallback-name">{{item._displayName}}</text>
             </view>
 
@@ -401,7 +390,7 @@
               >
             </view>
 
-            <!-- 品质等级标签（后�?instance_attributes.quality_grade�?-->
+            <!-- 品质等级标签（后端 instance_attributes.quality_grade） -->
             <view class="quality-mini-row" wx:if="{{item._qualityGrade}}">
               <text
                 class="quality-mini-badge"
@@ -432,7 +421,7 @@
       </block>
     </view>
 
-    <!-- 骨架屏加载态（对齐 exchange-market / lucky-space / premium-space�?-->
+    <!-- 骨架屏加载态（对齐 exchange-market / lucky-space / premium-space） -->
     <view class="skeleton-grid" wx:if="{{loading}}">
       <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
         <view class="skeleton-image"></view>
@@ -444,25 +433,25 @@
       </view>
     </view>
 
-    <!-- 无更多数�?-->
+    <!-- 无更多数据 -->
     <view class="no-more-data" wx:if="{{!hasMore && products.length > 0}}">
       <view class="no-more-content">
-        <text class="no-more-text">已加载全部挂�?/text>
-        <text class="no-more-subtitle">共{{products.length}}件商�?/text>
+        <text class="no-more-text">已加载全部挂单</text>
+        <text class="no-more-subtitle">共{{products.length}}件商品</text>
       </view>
     </view>
 
-    <!-- 空状�?-->
+    <!-- 空状态 -->
     <t-empty
       wx:if="{{!loading && products.length === 0 && !hasError}}"
-      description="市场暂时没有商品，稍后再来看�?
+      description="市场暂时没有商品，稍后再来看看"
     >
-      <view slot="image"><t-icon name="shop" size="120rpx" color="var(--td-brand-color)" /></view>
+      <view slot="image">🛒</view>
       <view slot="description" class="empty-title">暂无挂单</view>
       <view slot="action" class="empty-retry-btn" bindtap="onPullDownRefresh">重新加载</view>
     </t-empty>
 
-    <!-- 错误状�?-->
+    <!-- 错误状态 -->
     <t-empty wx:if="{{hasError}}" description="{{errorMessage || '加载失败'}}">
       <view slot="image"><t-icon name="error-triangle-filled" size="48rpx" color="#999" /></view>
       <view slot="action" class="empty-retry-btn" bindtap="onPullDownRefresh">重试</view>
@@ -475,11 +464,11 @@
         bindtap="scrollToTop"
         wx:if="{{products.length > 10}}"
       >
-        <text class="btn-icon">�?/text>
+        <text class="btn-icon">↑</text>
       </view>
     </view>
 
-    <!-- 🔧 全屏维护遮罩�?03 SYSTEM_MAINTENANCE 时激活） -->
+    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
   </scroll-view>
 </view>
