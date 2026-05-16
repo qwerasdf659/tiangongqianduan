@@ -16,13 +16,18 @@ Component({
 
   methods: {
     /** 点击选择珠子 */
-    onTap() {
+    onTap(e: WechatMiniprogram.TouchEvent) {
       const bead = this.properties.bead as any
       /* 库存为0时不可选（stock=-1表示无限库存） */
       if (this.properties.disabled || bead.stock === 0) {
         return
       }
-      this.triggerEvent('select', { bead: this.properties.bead })
+      // 传递点击坐标，用于飞入动画起点
+      const touch = e.touches?.[0] || e.changedTouches?.[0]
+      this.triggerEvent('select', {
+        bead: this.properties.bead,
+        touch: touch ? { clientX: touch.clientX, clientY: touch.clientY } : null
+      })
     }
   }
 })

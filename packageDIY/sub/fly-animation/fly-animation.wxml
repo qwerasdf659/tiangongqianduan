@@ -1,7 +1,19 @@
-<!-- 飞入动画浮动层 -->
+<!-- 飞入动画浮动层 — 支持图片/色块 -->
 <view
   wx:if="{{show}}"
   class="fly-element"
-  style="left: {{startX}}px; top: {{startY}}px; --end-x: {{endX - startX}}px; --end-y: {{endY - startY}}px; width: {{size}}px; height: {{size}}px; background: {{color}};"
+  style="left: {{startX}}px; top: {{startY}}px; width: {{size}}px; height: {{size}}px;"
   animation="{{animData}}"
-/>
+>
+  <image
+    wx:if="{{imageUrl}}"
+    class="fly-image"
+    src="{{imageUrl}}"
+    mode="aspectFill"
+  />
+  <view
+    wx:else
+    class="fly-color"
+    style="background: {{color}};"
+  />
+</view>

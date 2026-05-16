@@ -526,19 +526,37 @@ Page({
     diyStore.saveToCache()
   },
 
-  /** 触发飞入动画 */
+  /** 触发飞入动画 — 材料图片从卡片位置飞入工作台锚点 */
   _triggerFlyAnimation(e: WechatMiniprogram.CustomEvent) {
     const flyAnim = this.selectComponent('#flyAnim') as any
     if (!flyAnim) {
       this._triggerRender()
       return
     }
+
+    const bead = e.detail?.bead as any
     const touch = e.detail?.touch
+
+    // 起点：材料卡片的点击位置（如果有 touch 坐标就用，否则用屏幕底部中间）
     const startX = touch?.clientX ?? this.data.canvasWidth / 2
-    const startY = touch?.clientY ?? this.data.canvasHeight
+    const startY = touch?.clientY ?? (this.data.canvasHeight - 100)
+
+    // 终点：工作台画布中心（锚点位置）
     const endX = this.data.canvasWidth / 2
-    const endY = this.data.canvasHeight / 2 + 60
-    flyAnim.fly({ startX, startY, endX, endY, color: '#5B7A5E', size: 24 })
+    const endY = 200  // 工作台预览区的大致中心 Y 坐标
+
+    // 获取材料图片 URL
+    const imageUrl = bead?.image_media?.public_url || ''
+
+    flyAnim.fly({
+      startX,
+      startY,
+      endX,
+      endY,
+      imageUrl,
+      color: bead?.color_hex || '#d4a853',
+      size: 44
+    })
   },
 
   /** Canvas珠子点击（串珠模式 - 切换选中状态） */
