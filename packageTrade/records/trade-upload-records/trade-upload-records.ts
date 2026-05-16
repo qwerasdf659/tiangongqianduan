@@ -69,8 +69,8 @@ Page({
     // 🔴 Tab切换状态
     activeTab: 0,
     tabs: [
-      { id: 0, name: '交易记录', icon: 'icon-gold-coin' },
-      { id: 1, name: '消费记录', icon: '🧾' }
+      { id: 0, name: '交易记录', icon: 'icon-gold-coin', tIcon: 'money' },
+      { id: 1, name: '消费记录', icon: '🧾', tIcon: 'file-paste' }
     ],
 
     // 🔴 用户信息
@@ -100,10 +100,10 @@ Page({
     // all, pending, approved, rejected
     consumptionFilter: 'all',
     consumptionFilterOptions: [
-      { key: 'all', name: '全部', icon: '📋' },
-      { key: 'pending', name: '待审核', icon: '⏳' },
-      { key: 'approved', name: '已通过', icon: '✅' },
-      { key: 'rejected', name: '已拒绝', icon: '❌' }
+      { key: 'all', name: '全部', icon: '📋', tIcon: 'view-list' },
+      { key: 'pending', name: '待审核', icon: '⏳', tIcon: 'time' },
+      { key: 'approved', name: '已通过', icon: '✅', tIcon: 'check-circle' },
+      { key: 'rejected', name: '已拒绝', icon: '❌', tIcon: 'close-circle' }
     ],
     consumptionPage: 1,
     consumptionPageSize: 20,

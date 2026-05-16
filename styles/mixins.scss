@@ -243,30 +243,114 @@
 /// Typography Token 本地声明（分包组件无法继承 page 变量时使用）
 /// 用法：在组件顶层容器选择器中 @include tg-tokens;
 @mixin tg-tokens {
-  --tg-font-size-display: 44rpx;
+  /* 品牌色 */
+  --td-brand-color: #8b7355;
+  --td-brand-color-light: #f5f0e8;
+  --td-brand-color-focus: #a08b6e;
+  --td-brand-color-active: #6b5b45;
+  --td-brand-color-disabled: #c8bbaa;
+  --td-brand-color-rgb: 139, 115, 85;
+
+  /* 渐变 */
+  --tg-gradient-primary-start: #8b7355;
+  --tg-gradient-primary-end: #a08b6e;
+  --tg-gradient-primary: #ffffff;
+
+  /* 字号层级 */
   --tg-font-size-display-lg: 52rpx;
+  --tg-font-size-display: 44rpx;
   --tg-font-size-headline: 36rpx;
   --tg-font-size-title: 28rpx;
   --tg-font-size-body: 26rpx;
   --tg-font-size-caption: 24rpx;
   --tg-font-size-small: 22rpx;
   --tg-font-size-mini: 20rpx;
+  --tg-font-size-xs: 20rpx;
   --tg-font-size-number-lg: 36rpx;
   --tg-font-size-number-md: 28rpx;
   --tg-font-size-number-sm: 24rpx;
+
+  /* 字重 */
   --tg-font-weight-regular: 400;
   --tg-font-weight-medium: 500;
   --tg-font-weight-semibold: 600;
   --tg-font-weight-bold: 700;
+
+  /* 字间距 */
   --tg-letter-spacing-tight: 1rpx;
   --tg-letter-spacing-normal: 2rpx;
   --tg-letter-spacing-wide: 4rpx;
+
+  /* 行高 */
   --tg-line-height-tight: 1.2;
   --tg-line-height-normal: 1.4;
   --tg-line-height-relaxed: 1.6;
+
+  /* 文字颜色 */
   --tg-text-primary: #1a1a1a;
-  --tg-text-secondary: #666;
-  --tg-text-tertiary: #999;
+  --tg-text-primary-rgb: 26, 26, 26;
+  --tg-text-secondary: #666666;
+  --tg-text-secondary-rgb: 102, 102, 102;
+  --tg-text-tertiary: #999999;
+  --tg-text-tertiary-rgb: 153, 153, 153;
+  --tg-text-disabled: #cccccc;
+
+  /* 语义色 */
+  --tg-color-success: #27ae60;
+  --tg-color-success-rgb: 39, 174, 96;
+  --tg-color-success-strong-rgb: 39, 174, 96;
+  --tg-color-warning: #c5a572;
+  --tg-color-warning-rgb: 197, 165, 114;
+  --tg-color-info: #3498db;
+  --tg-color-info-rgb: 52, 152, 219;
+  --tg-color-error: #c44569;
+  --tg-color-error-rgb: 196, 69, 105;
+  --tg-color-danger-strong-rgb: 196, 69, 105;
+
+  /* 背景色 */
+  --tg-color-white: #ffffff;
+  --tg-color-white-rgb: 255, 255, 255;
+  --tg-color-black-rgb: 0, 0, 0;
+  --tg-color-bg: #ffffff;
+  --tg-color-bg-grey: #f5f5f5;
+  --tg-color-bg-grey-rgb: 245, 245, 245;
+  --tg-color-bg-panel: #f5f6fa;
+  --tg-page-bg: #ffffff;
+  --tg-card-bg: #ffffff;
+
+  /* 边框 */
   --tg-color-border: #e8e8e8;
+  --tg-color-border-light: #f0f0f0;
+  --tg-color-border-muted: #e9ecef;
   --tg-color-border-strong: #333333;
+
+  /* 间距 */
+  --tg-spacing-xs: 8rpx;
+  --tg-spacing-sm: 16rpx;
+  --tg-spacing-md: 24rpx;
+  --tg-spacing-lg: 32rpx;
+  --tg-spacing-xl: 40rpx;
+  --tg-spacing-xxl: 48rpx;
+
+  /* 圆角 */
+  --tg-radius-xl: 32rpx;
+  --td-radius-default: 16rpx;
+  --td-radius-small: 8rpx;
+  --td-radius-large: 24rpx;
+  --td-radius-circle: 50%;
+
+  /* 阴影 */
+  --tg-shadow-sm: 0 1rpx 4rpx rgba(0, 0, 0, 0.03);
+  --tg-shadow-md: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  --tg-shadow-card: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+
+  /* 过渡 */
+  --tg-transition-base: 0.2s ease;
+
+  /* TDesign 字号兼容 */
+  --td-font-size-xs: 20rpx;
+  --td-font-size-s: 24rpx;
+  --td-font-size-base: 28rpx;
+  --td-font-size-m: 32rpx;
+  --td-font-size-l: 36rpx;
 }

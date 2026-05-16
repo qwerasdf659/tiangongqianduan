@@ -1,6 +1,6 @@
 <!--packageTrade/records/trade-upload-records/trade-upload-records.wxml - 积分活动记录页面（交易+消费合并）-->
 <!-- 引入WXS模板辅助函数（用于模板中的数据格式化） -->
-<custom-navbar title="积分活动记录" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="积分活动记录" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 <wxs src="./trade-upload-records.wxs" module="helpers" />
 <view class="trade-upload-records-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
@@ -24,7 +24,7 @@
                 data-id="{{item.id}}"
               >
                 <view class="tab-icon-wrapper {{activeTab === item.id ? 'active' : ''}}">
-                  <text class="tab-icon">{{item.icon}}</text>
+                  <t-icon name="{{item.tIcon}}" size="36rpx" />
                 </view>
                 <text class="tab-name">{{item.name}}</text>
                 <view class="tab-indicator" wx:if="{{activeTab === item.id}}"></view>
@@ -140,7 +140,7 @@
                 bind:input="onSearchInput"
               />
               <view class="search-clear" wx:if="{{searchKeyword}}" bind:tap="onResetFilters">
-                <text class="clear-icon">✕</text>
+                <t-icon name="close-circle-filled" size="28rpx" />
               </view>
             </view>
           </view>
@@ -163,9 +163,7 @@
                 <view class="transaction-header">
                   <view class="transaction-left">
                     <view class="transaction-icon-wrapper {{item.category}}">
-                      <text class="transaction-icon"
-                        >{{helpers.getTypeIcon(item.business_type)}}</text
-                      >
+                      <t-icon name="{{helpers.getTypeIcon(item.business_type)}}" size="40rpx" />
                     </view>
                     <view class="transaction-info">
                       <text class="transaction-title">{{item.displayTitle || '积分记录'}}</text>
@@ -226,7 +224,7 @@
                 bind:tap="switchConsumptionFilter"
                 data-filter="{{item.key}}"
               >
-                <text class="filter-icon">{{item.icon}}</text>
+                <t-icon name="{{item.tIcon}}" size="28rpx" class="filter-icon" />
                 <text class="filter-name">{{item.name}}</text>
               </button>
             </block>

@@ -4,7 +4,7 @@
   业务流: pending → approved → shipped → received → rated
 -->
 <wxs src="./exchange-orders.wxs" module="ordersHelper" />
-<custom-navbar title="我的订单" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="我的订单" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 <view class="orders-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 页面顶部统计卡片 -->

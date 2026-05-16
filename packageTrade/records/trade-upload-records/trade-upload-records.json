@@ -4,7 +4,7 @@
   "navigationBarTextStyle": "black",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "light",
-  "backgroundColor": "#F5F0E8",
+  "backgroundColor": "#ffffff",
   "onReachBottomDistance": 50,
   "usingComponents": {
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",

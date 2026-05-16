@@ -1,7 +1,7 @@
 <!--packageAdmin/audit-list/audit-list.wxml - 审核管理页面（V6.0 审核链对接版）-->
 <!--双模式: 「消费审核」传统审核 + 「我的待办」审核链步骤-->
 <wxs src="./audit-list.wxs" module="auditHelper" />
-<custom-navbar title="审批管理" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="审批管理" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 
 <view class="audit-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">
@@ -93,7 +93,7 @@
             wx:if="{{!loading && records.length === 0}}"
             description="所有消费记录已审核完成，下拉刷新检查新记录"
           >
-            <view slot="image"><text class="iconfont icon-success"></text></view>
+            <view slot="image"><t-icon name="check-circle" size="120rpx" color="var(--td-brand-color)" /></view>
           </t-empty>
 
           <!-- 记录卡片列表 -->
@@ -209,7 +209,7 @@
           <text class="stats-label">待我审核的步骤</text>
         </view>
         <view class="stats-hint">
-          <text class="stats-hint-icon iconfont icon-hourglass"></text>
+          <t-icon name="hourglass" size="24rpx" class="stats-hint-icon" />
           <text class="stats-hint-text">超时12小时自动升级</text>
         </view>
       </view>
@@ -221,7 +221,7 @@
           wx:if="{{!pendingLoading && pendingSteps.length === 0}}"
           description="您没有需要审核的步骤，下拉刷新检查新任务"
         >
-          <view slot="image"><text class="iconfont icon-success"></text></view>
+          <view slot="image"><t-icon name="check-circle" size="120rpx" color="var(--td-brand-color)" /></view>
         </t-empty>
 
         <!-- 审核链步骤卡片 -->

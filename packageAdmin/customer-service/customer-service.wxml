@@ -1,5 +1,5 @@
 <!--pages/admin/customer-service/customer-service.wxml - 管理员客服管理页面-->
-<custom-navbar title="客服管理" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="客服管理" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 <view class="customer-service-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 页面标题 -->

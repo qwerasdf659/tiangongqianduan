@@ -1,7 +1,7 @@
 <!--packageTrade/trade/market/market.wxml - C2C交易市场瀑布流布局-->
 <!--后端API: GET /api/v4/marketplace/listings-->
 <!--字段直接使用后端响应 + 以 _ 为前缀的计算展示字段-->
-<custom-navbar title="发现好物" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="发现好物" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 
 <view class="waterfall-market-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">

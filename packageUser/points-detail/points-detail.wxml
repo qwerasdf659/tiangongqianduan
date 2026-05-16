@@ -1,5 +1,5 @@
 <!--packageUser/points-detail/points-detail.wxml - 积分详情页面模板-->
-<custom-navbar title="积分明细" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="积分明细" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 
 <view class="points-detail-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
@@ -79,7 +79,7 @@
           <!-- 记录图标 -->
           <view class="record-icon">
             <view class="icon-bg {{item.transaction_type === 'earn' ? 'earn-bg' : 'consume-bg'}}">
-              <text class="icon-symbol">{{item.transaction_type === 'earn' ? '↑' : '↓'}}</text>
+              <t-icon name="{{item.transaction_type === 'earn' ? 'arrow-up' : 'arrow-down'}}" size="32rpx" color="{{item.transaction_type === 'earn' ? '#27ae60' : '#c44569'}}" />
             </view>
           </view>
 

@@ -8,7 +8,7 @@
     ⑤ 介绍区  ⑥ 展示图  ⑦ 使用说明  ⑧ 相关推荐
     ⑨ 标签云  ⑩ 吸底操作栏
 -->
-<custom-navbar title="商品详情" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="商品详情" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 
 <scroll-view type="list" scroll-y class="page-scroll-view">
   <!-- 加载状态 -->

@@ -3,14 +3,27 @@
   <view class="modal-content gradient-card-container">
     <!-- 右上角关闭按钮 -->
     <view class="close-btn gradient-close" bindtap="onClose">
-      <text class="close-icon">✕</text>
+      <t-icon name="close" size="28rpx" color="#999999" />
+    </view>
+
+    <!-- 顶部装饰彩带 -->
+    <view class="modal-ribbon">
+      <view class="ribbon-left">
+        <t-icon name="star-filled" size="24rpx" color="#d4a853" />
+      </view>
+      <view class="ribbon-center">
+        <t-icon name="gift" size="40rpx" color="#d4a853" />
+      </view>
+      <view class="ribbon-right">
+        <t-icon name="star-filled" size="24rpx" color="#d4a853" />
+      </view>
     </view>
 
     <!-- 弹窗头部 - 卡片式设计 -->
     <view class="result-header gradient-header-card">
       <!-- 中奖状态标题卡片（业务规则：每次抽奖100%中奖，所有档位都是奖品） -->
       <view class="title-card success-card" wx:if="{{!drawResult.isError}}">
-        <view class="title-icon"><t-icon name="thumb-up" size="48rpx" /></view>
+        <view class="title-icon"><t-icon name="thumb-up" size="48rpx" color="#d4a853" /></view>
         <view class="title-content">
           <!--
             积分/虚拟奖品直接到账（决策3）：prize_type = points/virtual 不进背包
@@ -119,51 +132,55 @@
                   <text class="winning-name">{{drawResult.prize.prize_name}}</text>
                   <text class="winning-desc">{{drawResult.prize.prize_description}}</text>
                 </view>
-                <view class="prize-card-decoration">
-                  <view class="decoration-dot"></view>
-                  <view class="decoration-dot"></view>
-                  <view class="decoration-dot"></view>
-                </view>
+              <view class="prize-card-decoration">
+                <t-icon name="star-filled" size="20rpx" color="#d4a853" class="deco-star deco-1" />
+                <t-icon name="heart-filled" size="16rpx" color="#f0d9a0" class="deco-star deco-2" />
+                <t-icon name="star-filled" size="14rpx" color="#c49340" class="deco-star deco-3" />
+                <t-icon name="star-filled" size="18rpx" color="#f7e8c8" class="deco-star deco-4" />
+                <t-icon name="heart-filled" size="14rpx" color="#d4a853" class="deco-star deco-5" />
               </view>
             </view>
           </view>
-        </rarity-effects>
-      </view>
+        </view>
+      </rarity-effects>
+    </view>
 
-      <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
-      <view
-        class="winning-prize-card single-prize-card"
-        wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError}}"
+    <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
+    <view
+      class="winning-prize-card single-prize-card"
+      wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError}}"
+    >
+      <!-- 🌟 稀有度光效包裹 -->
+      <rarity-effects
+        rarity="{{drawResult.prize.rarity_code || 'common'}}"
+        enabled="{{rarityEffects}}"
       >
-        <!-- 🌟 稀有度光效包裹 -->
-        <rarity-effects
-          rarity="{{drawResult.prize.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-        >
-          <view class="prize-card-bg">
-            <view class="prize-card-shine"></view>
-            <view class="prize-card-content">
-              <view class="winning-icon-container">
-                <image
-                  wx:if="{{drawResult.prize.prize_image_url}}"
-                  class="winning-image"
-                  src="{{drawResult.prize.prize_image_url}}"
-                  mode="aspectFit"
-                  binderror="onResultImageError"
-                />
-                <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
-                <t-icon wx:else name="gift" size="48rpx" class="winning-icon" />
-                <view class="icon-glow"></view>
-              </view>
-              <view class="winning-info">
-                <text class="winning-name">{{drawResult.prize.prize_name}}</text>
-                <text class="winning-desc">{{drawResult.prize.prize_description}}</text>
-              </view>
-              <view class="prize-card-decoration">
-                <view class="decoration-dot"></view>
-                <view class="decoration-dot"></view>
-                <view class="decoration-dot"></view>
-              </view>
+        <view class="prize-card-bg">
+          <view class="prize-card-shine"></view>
+          <view class="prize-card-content">
+            <view class="winning-icon-container">
+              <image
+                wx:if="{{drawResult.prize.prize_image_url}}"
+                class="winning-image"
+                src="{{drawResult.prize.prize_image_url}}"
+                mode="aspectFit"
+                binderror="onResultImageError"
+              />
+              <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
+              <t-icon wx:else name="gift" size="48rpx" class="winning-icon" color="#d4a853" />
+              <view class="icon-glow"></view>
+            </view>
+            <view class="winning-info">
+              <text class="winning-name">{{drawResult.prize.prize_name}}</text>
+              <text class="winning-desc">{{drawResult.prize.prize_description}}</text>
+            </view>
+            <view class="prize-card-decoration">
+              <t-icon name="star-filled" size="20rpx" color="#d4a853" class="deco-star deco-1" />
+              <t-icon name="heart-filled" size="16rpx" color="#f0d9a0" class="deco-star deco-2" />
+              <t-icon name="star-filled" size="14rpx" color="#c49340" class="deco-star deco-3" />
+              <t-icon name="star-filled" size="18rpx" color="#f7e8c8" class="deco-star deco-4" />
+              <t-icon name="heart-filled" size="14rpx" color="#d4a853" class="deco-star deco-5" />
+            </view>
             </view>
           </view>
         </rarity-effects>

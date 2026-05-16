@@ -38,7 +38,7 @@
   color: var(--tg-text-primary);
   display: block;
   margin-bottom: 12rpx;
-  letter-spacing: -0.5rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 .header-desc {

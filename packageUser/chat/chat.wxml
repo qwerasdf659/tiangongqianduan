@@ -1,5 +1,5 @@
 <!--packageUser/chat/chat.wxml - 用户端聊天会话列表界面 V6.0 UI优化版-->
-<custom-navbar title="在线客服" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="在线客服" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 <view class="chat-sessions-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
     <!-- 顶部搜索栏 -->

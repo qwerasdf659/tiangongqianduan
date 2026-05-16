@@ -8,12 +8,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.15) 0%,
-    rgba(118, 75, 162, 0.15) 50%,
-    rgba(91, 122, 94, 0.15) 100%
-  );
+  background: rgba(0, 0, 0, 0.5);
   -webkit-backdrop-filter: blur(20rpx);
   backdrop-filter: blur(20rpx);
   @include flex-center;
@@ -23,22 +18,57 @@
 
 /* 弹窗容器 */
 .gradient-card-container {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  border-radius: var(--tg-radius-xl);
+  background: #ffffff;
+  border-radius: 32rpx;
   width: 92%;
   max-width: 540rpx;
   max-height: 85vh;
   position: relative;
   animation: cardSlideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
-  box-shadow:
-    0 32rpx 64rpx rgba(0, 0, 0, 0.12),
-    0 16rpx 32rpx rgba(0, 0, 0, 0.08),
-    0 8rpx 16rpx rgba(0, 0, 0, 0.04),
-    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.6);
-  border: 2rpx solid rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(40rpx);
-  backdrop-filter: blur(40rpx);
+  box-shadow: 0 32rpx 64rpx rgba(0, 0, 0, 0.15);
+}
+
+/* 顶部装饰彩带 */
+.modal-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  padding: 32rpx 0 0;
+  animation: ribbonBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+
+.ribbon-left,
+.ribbon-right {
+  animation: starSpin 3s linear infinite;
+}
+
+.ribbon-center {
+  width: 72rpx;
+  height: 72rpx;
+  background: linear-gradient(135deg, #f7e8c8, #f0d9a0);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(212, 168, 83, 0.3);
+  animation: giftPulse 2s ease-in-out infinite;
+}
+
+@keyframes ribbonBounce {
+  from { opacity: 0; transform: translateY(-20rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes starSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes giftPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 /* 关闭按钮 */
@@ -46,30 +76,25 @@
   position: absolute;
   top: 24rpx;
   right: 24rpx;
-  width: 64rpx;
-  height: 64rpx;
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-danger-light, #7a9e7e),
-    var(--tg-lottery-danger, #c44569)
-  );
+  width: 56rpx;
+  height: 56rpx;
+  background: #f0f0f0;
   border-radius: 50%;
   @include flex-center;
   z-index: 100;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 8rpx 24rpx rgba(196, 69, 105, 0.3);
+  transition: all 0.2s ease;
 }
 
 .close-icon {
-  color: var(--tg-lottery-text-inverse, white);
-  font-size: var(--td-font-size-base);
-  font-weight: var(--tg-font-weight-bold);
+  color: #666666;
+  font-size: 28rpx;
+  font-weight: bold;
   line-height: 1;
 }
 
 .gradient-close:active {
   transform: scale(0.9);
-  box-shadow: 0 4rpx 12rpx rgba(196, 69, 105, 0.4);
+  background: #e0e0e0;
 }
 
 /* 弹窗头部 */
@@ -89,21 +114,13 @@
 }
 
 .success-card {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.25);
+  background: linear-gradient(135deg, #f7e8c8 0%, #f0d9a0 100%);
+  box-shadow: 0 8rpx 24rpx rgba(200, 170, 100, 0.2);
 }
 
 .error-card {
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-danger-light, #7a9e7e) 0%,
-    var(--tg-lottery-danger, #c44569) 100%
-  );
-  box-shadow: 0 16rpx 32rpx rgba(91, 122, 94, 0.25);
+  background: linear-gradient(135deg, #ff8a80 0%, #c44569 100%);
+  box-shadow: 0 8rpx 24rpx rgba(196, 69, 105, 0.25);
 }
 
 .title-icon {
@@ -120,16 +137,14 @@
 }
 
 .result-title {
-  font-size: var(--td-font-size-l);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-lottery-text-inverse, white);
-  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #5a4520;
 }
 
 .result-subtitle {
-  font-size: var(--tg-font-size-body);
-  color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.9));
-  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
+  font-size: 26rpx;
+  color: #8b7355;
 }
 
 .result-order-no {
@@ -152,14 +167,10 @@
 
 .prize-card-bg {
   position: relative;
-  background: linear-gradient(
-    145deg,
-    var(--tg-gradient-primary-start),
-    var(--tg-gradient-primary-end)
-  );
+  background: linear-gradient(145deg, #f7e8c8, #e8d5a8);
   border-radius: 28rpx;
   padding: 4rpx;
-  box-shadow: 0 20rpx 40rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 12rpx 32rpx rgba(200, 170, 100, 0.2);
 }
 
 .prize-card-shine {
@@ -174,9 +185,9 @@
 }
 
 .prize-card-content {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--td-radius-large);
-  padding: 40rpx 32rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 48rpx 32rpx;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -188,10 +199,16 @@
 .winning-icon-container {
   position: relative;
   @include flex-center;
+  width: 140rpx;
+  height: 140rpx;
+  background: linear-gradient(135deg, #fef9ef, #f7e8c8);
+  border-radius: 50%;
+  border: 3rpx solid rgba(212, 168, 83, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(212, 168, 83, 0.15);
 }
 
 .winning-icon {
-  font-size: 80rpx;
+  font-size: 64rpx;
   animation: prizeFloat 3s ease-in-out infinite;
 }
 
@@ -206,7 +223,7 @@
   position: absolute;
   width: 120rpx;
   height: 120rpx;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(212, 168, 83, 0.25) 0%, transparent 70%);
   border-radius: 50%;
   animation: glowPulse 2s ease-in-out infinite;
 }
@@ -219,16 +236,15 @@
 }
 
 .winning-name {
-  font-size: var(--tg-font-size-xl);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-lottery-text-dark, #2c3e50);
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 
 .winning-desc {
-  font-size: var(--td-font-size-base);
-  color: var(--tg-lottery-text-secondary, #7f8c8d);
-  line-height: var(--tg-line-height-normal);
+  font-size: 28rpx;
+  color: #666666;
+  line-height: 1.4;
 }
 
 .prize-card-decoration {
@@ -238,15 +254,67 @@
 }
 
 .decoration-dot {
-  width: 12rpx;
-  height: 12rpx;
-  background: linear-gradient(
-    45deg,
-    var(--tg-gradient-primary-start),
-    var(--tg-gradient-primary-end)
-  );
+  width: 8rpx;
+  height: 8rpx;
+  background: #d4a853;
   border-radius: 50%;
   animation: dotBounce 1.5s ease-in-out infinite;
+}
+
+/* 散落装饰星星 */
+.prize-card-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.deco-star {
+  position: absolute;
+  animation: decoFloat 3s ease-in-out infinite;
+}
+
+.deco-1 {
+  top: 16rpx;
+  right: 24rpx;
+  animation-delay: 0s;
+}
+
+.deco-2 {
+  top: 40rpx;
+  left: 20rpx;
+  animation-delay: 0.5s;
+}
+
+.deco-3 {
+  bottom: 32rpx;
+  right: 40rpx;
+  animation-delay: 1s;
+}
+
+.deco-4 {
+  bottom: 20rpx;
+  left: 32rpx;
+  animation-delay: 1.5s;
+}
+
+.deco-5 {
+  top: 50%;
+  right: 16rpx;
+  animation-delay: 0.8s;
+}
+
+@keyframes decoFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-8rpx) rotate(15deg);
+    opacity: 1;
+  }
 }
 
 .decoration-dot:nth-child(2) {
@@ -401,42 +469,38 @@
 }
 
 .reveal-next-btn {
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-primary, var(--td-brand-color)),
-    var(--tg-lottery-secondary, #7a9e7e)
-  ) !important;
-  color: var(--tg-lottery-text-inverse, white) !important;
+  background: linear-gradient(135deg, #d4a853, #c49340) !important;
+  color: #ffffff !important;
   border: none !important;
   border-radius: 48rpx !important;
   padding: 20rpx 60rpx !important;
-  font-size: var(--tg-font-size-headline);
-  font-weight: var(--tg-font-weight-bold);
-  box-shadow: 0 12rpx 24rpx rgba(91, 122, 94, 0.35);
+  font-size: 36rpx;
+  font-weight: 700;
+  box-shadow: 0 8rpx 24rpx rgba(212, 168, 83, 0.35);
   animation: nextBtnPulse 2s ease-in-out infinite;
 }
 
 .reveal-next-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 6rpx 12rpx rgba(91, 122, 94, 0.4);
+  box-shadow: 0 4rpx 12rpx rgba(212, 168, 83, 0.4);
 }
 
 .reveal-next-text {
-  font-size: var(--tg-font-size-headline);
-  color: var(--tg-lottery-text-inverse, white);
+  font-size: 36rpx;
+  color: #ffffff;
 }
 
 .reveal-complete-hint {
   text-align: center;
   padding: 16rpx 32rpx;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border-radius: var(--td-radius-large);
+  background: linear-gradient(135deg, rgba(212, 168, 83, 0.1), rgba(196, 147, 64, 0.1));
+  border-radius: 24rpx;
 }
 
 .reveal-complete-text {
-  font-size: var(--td-font-size-base);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-lottery-primary, var(--tg-gradient-primary-start));
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #d4a853;
 }
 
 /* 已揭晓奖品缩略列表 */
@@ -529,17 +593,13 @@
 }
 
 .error-card-bg {
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-danger-light, #7a9e7e) 0%,
-    var(--tg-lottery-danger, #c44569) 100%
-  );
-  border-radius: var(--td-radius-large);
+  background: linear-gradient(135deg, #ff8a80 0%, #c44569 100%);
+  border-radius: 24rpx;
   padding: 32rpx;
   display: flex;
   align-items: center;
   gap: 24rpx;
-  box-shadow: 0 16rpx 32rpx rgba(91, 122, 94, 0.25);
+  box-shadow: 0 8rpx 24rpx rgba(196, 69, 105, 0.25);
 }
 
 .error-icon-container {
@@ -575,23 +635,30 @@
 .gradient-footer {
   padding: 24rpx 32rpx 40rpx;
   background: transparent;
+  position: relative;
+}
+
+.gradient-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 32rpx;
+  right: 32rpx;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent, rgba(212, 168, 83, 0.3), transparent);
 }
 
 .gradient-confirm-btn {
   width: 100%;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  color: var(--tg-lottery-text-inverse, white);
+  background: linear-gradient(135deg, #d4a853 0%, #c49340 100%);
+  color: #ffffff;
   border: none;
   border-radius: 20rpx;
   padding: 0;
-  font-size: var(--td-font-size-m);
-  font-weight: var(--tg-font-weight-bold);
-  box-shadow: 0 16rpx 32rpx rgba(102, 126, 234, 0.3);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  font-size: 32rpx;
+  font-weight: 700;
+  box-shadow: 0 8rpx 24rpx rgba(200, 150, 60, 0.3);
+  transition: all 0.2s ease;
 }
 
 .gradient-confirm-btn .btn-content {
@@ -601,18 +668,18 @@
 }
 
 .gradient-confirm-btn .btn-text {
-  font-size: var(--td-font-size-m);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-lottery-text-inverse, white);
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .gradient-confirm-btn .btn-icon {
-  font-size: var(--td-font-size-base);
+  font-size: 28rpx;
 }
 
 .gradient-confirm-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 8rpx 16rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4rpx 12rpx rgba(200, 150, 60, 0.4);
 }
 
 /* 动画关键帧 */
@@ -704,11 +771,11 @@
 @keyframes nextBtnPulse {
   0%,
   100% {
-    box-shadow: 0 12rpx 24rpx rgba(91, 122, 94, 0.35);
+    box-shadow: 0 8rpx 24rpx rgba(212, 168, 83, 0.35);
   }
 
   50% {
-    box-shadow: 0 16rpx 32rpx rgba(91, 122, 94, 0.5);
+    box-shadow: 0 12rpx 32rpx rgba(212, 168, 83, 0.5);
   }
 }
 

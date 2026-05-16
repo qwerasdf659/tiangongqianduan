@@ -2,6 +2,11 @@
 .page-scroll-view {
   flex: 1;
   overflow: hidden;
+  background: #ffffff;
+}
+
+sticky-section {
+  background: #ffffff;
 }
 
 /* 积分活动记录页面样式 - V6.0 紫蓝主题统一版（与 points-detail 风格一致） */
@@ -12,15 +17,16 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--tg-gradient-primary);
+  background: #ffffff;
   padding-bottom: 40rpx;
+  min-height: 100vh;
 }
 
 .records-page-header {
   position: relative;
   overflow: hidden;
   padding: 32rpx;
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: #ffffff;
 }
 
 .records-page-title {
@@ -36,38 +42,35 @@
   transform: translateY(-50%) rotate(-8deg);
 }
 
-/* 🔴 Tab切换栏 */
+/* 🔴 Tab切换栏 — 简约胶囊风格（对齐广告页面标杆） */
 .tab-section {
-  padding: 20rpx;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
   position: relative;
   z-index: 100;
+  background: var(--tg-color-white);
 }
 
 .tab-list {
-  display: flex;
-  background: var(--tg-color-white);
-  border-radius: 24rpx;
-  padding: 8rpx;
-  box-shadow: var(--tg-shadow-card);
+  display: inline-flex;
+  gap: var(--tg-spacing-xs);
 }
 
 .tab-item {
-  flex: 1;
-  @include flex-column-center;
-  padding: 20rpx 10rpx;
-  border-radius: var(--td-radius-default);
-  position: relative;
-  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: inline-flex;
+  align-items: center;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: transparent;
+  border: 1rpx solid var(--tg-color-border);
+  transition: all 0.2s ease;
+  gap: 8rpx;
 }
 
 .tab-item.active {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start),
-    var(--tg-gradient-primary-end)
-  );
-  box-shadow: 0 6rpx 20rpx rgba(var(--td-brand-color-rgb), 0.35);
-  transform: scale(1.02);
+  color: var(--tg-text-primary);
+  background: #ffffff;
+  border-color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .tab-item:active {
@@ -75,34 +78,26 @@
 }
 
 .tab-icon-wrapper {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background: rgba(var(--td-brand-color-rgb), 0.1);
-  @include flex-center;
-  margin-bottom: 8rpx;
-  transition: all 0.3s ease;
+  display: none;
 }
 
 .tab-icon-wrapper.active {
-  background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 2rpx 8rpx rgba(255, 255, 255, 0.3);
-}
-
-.tab-icon {
-  font-size: var(--tg-font-size-title);
+  display: none;
 }
 
 .tab-name {
-  font-size: var(--tg-font-size-body);
+  font-size: var(--td-font-size-s);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
-  transition: color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
 .tab-item.active .tab-name {
-  color: var(--tg-color-white);
-  text-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
+  color: var(--tg-text-primary);
+}
+
+.tab-indicator {
+  display: none;
 }
 
 .tab-indicator {
@@ -270,30 +265,24 @@
 }
 
 .time-filters {
-  display: flex;
-  gap: 10rpx;
+  display: inline-flex;
+  gap: var(--tg-spacing-xs);
   margin-bottom: 16rpx;
-  background: rgba(var(--td-brand-color-rgb), 0.06);
-  border-radius: 16rpx;
-  padding: 6rpx;
 }
 
 .filter-chip {
-  flex: 1;
-  padding: 14rpx 8rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 14rpx 28rpx;
   background: transparent;
-  border-radius: 12rpx;
-  text-align: center;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 999rpx;
+  border: 1rpx solid transparent;
+  transition: all 0.2s ease;
 }
 
 .filter-chip.active {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start),
-    var(--tg-gradient-primary-end)
-  );
-  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
+  background: #ffffff;
+  border-color: var(--tg-text-primary);
 }
 
 .filter-chip:active {
@@ -307,7 +296,8 @@
 }
 
 .filter-chip.active .chip-text {
-  color: var(--tg-color-white);
+  color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 .filter-actions {
@@ -318,19 +308,19 @@
 .filter-btn {
   flex: 1;
   background: transparent;
-  border: 2rpx solid rgba(var(--td-brand-color-rgb), 0.4);
-  border-radius: 12rpx;
+  border: 1rpx solid var(--tg-color-border);
+  border-radius: 999rpx;
   padding: 14rpx;
   @include flex-center;
   gap: 8rpx;
   font-size: var(--td-font-size-s);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-gradient-primary-start);
-  transition: all 0.3s ease;
+  color: var(--tg-text-primary);
+  transition: all 0.2s ease;
 }
 
 .filter-btn:active {
-  background: rgba(var(--td-brand-color-rgb), 0.08);
+  background: var(--tg-color-bg-grey);
   transform: scale(0.97);
 }
 
@@ -555,36 +545,33 @@
 .action-btn {
   flex: 1;
   padding: 14rpx;
-  border-radius: 12rpx;
+  border-radius: 999rpx;
   border: none;
   font-size: var(--td-font-size-s);
   font-weight: var(--tg-font-weight-bold);
   @include flex-center;
   gap: 8rpx;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .action-btn.detail {
-  background: rgba(var(--td-brand-color-rgb), 0.1);
-  color: var(--tg-gradient-primary-start);
+  background: var(--tg-color-bg-grey);
+  color: var(--tg-text-primary);
 }
 
 .action-btn.detail:active {
-  background: rgba(var(--td-brand-color-rgb), 0.2);
+  background: var(--tg-color-border);
   transform: scale(0.97);
 }
 
 .action-btn.primary {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start),
-    var(--tg-gradient-primary-end)
-  );
-  color: var(--tg-color-white);
+  background: #ffffff;
+  color: var(--tg-text-primary);
+  border: 1rpx solid var(--tg-text-primary);
 }
 
 .action-btn.primary:active {
-  background: var(--td-brand-color-active);
+  background: var(--tg-color-bg-grey);
   transform: scale(0.97);
 }
 
@@ -603,34 +590,27 @@
 /* ============================================================================ */
 .filter-tabs {
   display: flex;
-  gap: 10rpx;
-  background: var(--tg-color-white);
-  border-radius: 20rpx;
-  padding: 8rpx;
-  box-shadow: var(--tg-shadow-card);
+  flex-wrap: wrap;
+  gap: var(--tg-spacing-xs);
+  padding: var(--tg-spacing-sm) 0;
 }
 
 .filter-tab {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 18rpx 8rpx;
-  border-radius: 14rpx;
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: transparent;
+  border: 1rpx solid var(--tg-color-border);
   gap: 6rpx;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.2s ease;
+  width: auto;
+  min-width: 0;
 }
 
 .filter-tab.active {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start),
-    var(--tg-gradient-primary-end)
-  );
-  box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.3);
-  transform: scale(1.02);
+  background: #ffffff;
+  border-color: var(--tg-text-primary);
 }
 
 .filter-tab:active {
@@ -642,13 +622,14 @@
 }
 
 .filter-name {
-  font-size: var(--tg-font-size-xs);
+  font-size: var(--td-font-size-s);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-secondary);
 }
 
 .filter-tab.active .filter-name {
-  color: var(--tg-color-white);
+  color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-bold);
 }
 
 /* ============================================================================ */
@@ -867,24 +848,24 @@
 
 .activity-action-btn,
 .upload-action-btn {
-  background: linear-gradient(135deg, var(--tg-color-white) 0%, var(--tg-color-bg-grey) 100%);
-  color: var(--tg-gradient-primary-start);
-  border: none;
-  border-radius: 48rpx;
+  background: #ffffff;
+  color: var(--tg-text-primary);
+  border: 1rpx solid var(--tg-color-border);
+  border-radius: 999rpx;
   padding: 24rpx 56rpx;
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
-  box-shadow: var(--tg-shadow-card);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
   display: inline-flex;
   align-items: center;
   gap: 12rpx;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .activity-action-btn:active,
 .upload-action-btn:active {
   transform: scale(0.96);
-  box-shadow: var(--tg-shadow-sm);
+  background: var(--tg-color-bg-grey);
 }
 
 /* ============================================================================ */

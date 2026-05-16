@@ -1,6 +1,6 @@
 <!--packageAdmin/scan-verify/scan-verify.wxml - 商家扫码核销页面（表单优先模式）-->
 <!--业务流程: 核销准备(门店选择+操作确认) → 扫码核销 → POST /api/v4/shop/redemption/fulfill → 核销结果-->
-<custom-navbar title="扫码核销" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="扫码核销" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 
 <view class="scan-verify-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">

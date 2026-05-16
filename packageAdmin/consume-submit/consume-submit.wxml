@@ -1,6 +1,6 @@
 <!--packageAdmin/consume-submit/consume-submit.wxml - 商家消费录入页面-->
 <!--业务流程: 商家先填写消费金额/备注 → 扫描用户V2动态二维码 → 获取用户信息 → 确认提交-->
-<custom-navbar title="消费录入" bgColor="#5B7A5E" textColor="#ffffff" showBack="{{true}}" />
+<custom-navbar title="消费录入" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 
 <view class="consume-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">

@@ -22,25 +22,17 @@
  * @returns {string} 对应的emoji图标
  */
 function getTypeIcon(businessType) {
-  if (!businessType) return '📄'
-  // 抽奖相关（lottery_consume / lottery_reward / lottery_budget_deduct）
-  if (businessType.indexOf('lottery') === 0) return '🎰'
-  // 兑换扣减（exchange_debit）
-  if (businessType.indexOf('exchange') === 0) return '🛒'
-  // 消费奖励（consumption_reward / consumption_budget_allocation）
-  if (businessType.indexOf('consumption') === 0) return '💰'
-  // 管理员调整（admin_adjustment）
-  if (businessType === 'admin_adjustment') return '⚙️'
-  // 材料转换（material_convert_debit / material_convert_credit）
-  if (businessType.indexOf('material_convert') === 0) return '🔄'
-  // 商户积分奖励（merchant_points_reward）
-  if (businessType === 'merchant_points_reward') return '🏪'
-  // 开账（opening_balance）
-  if (businessType === 'opening_balance') return '📋'
-  // 交易市场相关（order_freeze_buyer / order_settle_* / market_listing_*）
-  if (businessType.indexOf('order_') === 0) return '🏪'
-  if (businessType.indexOf('market_') === 0) return '🏪'
-  return '📄'
+  if (!businessType) return 'file'
+  if (businessType.indexOf('lottery') === 0) return 'gift'
+  if (businessType.indexOf('exchange') === 0) return 'shop'
+  if (businessType.indexOf('consumption') === 0) return 'money'
+  if (businessType === 'admin_adjustment') return 'setting'
+  if (businessType.indexOf('material_convert') === 0) return 'swap'
+  if (businessType === 'merchant_points_reward') return 'home'
+  if (businessType === 'opening_balance') return 'file-paste'
+  if (businessType.indexOf('order_') === 0) return 'cart'
+  if (businessType.indexOf('market_') === 0) return 'cart'
+  return 'file'
 }
 
 /**
