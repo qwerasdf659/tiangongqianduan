@@ -1,6 +1,6 @@
 <!-- 抽奖结果弹窗 共享组件 -->
-<view class="result-modal gradient-card-modal" wx:if="{{visible}}">
-  <view class="modal-content gradient-card-container">
+<view class="result-modal gradient-card-modal" wx:if="{{visible}}" bindtap="onMaskTap">
+  <view class="modal-content gradient-card-container" catchtap="onContentTap">
     <!-- 右上角关闭按钮 -->
     <view class="close-btn gradient-close" bindtap="onClose">
       <t-icon name="close" size="28rpx" color="#999999" />

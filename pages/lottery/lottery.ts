@@ -172,8 +172,11 @@ Page({
   },
 
   onReady() {
+    /* 标记 Canvas 已就绪 */
+    this._canvasReady = true
+
     /* Canvas就绪后生成用户身份二维码 */
-    if (this.data.userInfo && this.data.userInfo.user_id && checkAuth({ redirect: false })) {
+    if (this.data.userInfo?.user_id && checkAuth({ redirect: false }) && !this.data.qrCodeImage) {
       this.generateUserQRCode()
     }
   },
@@ -403,20 +406,20 @@ Page({
       this.setData({ isLoggedIn: true, userInfo: restoredUserInfo })
       this.checkAdminRole()
 
-      // 并行加载登录后才需要的数据
+      // 并行加载登录后才需要的数据（二维码生成也并行，不阻塞其他数据加载）
       await Promise.all([
         this._refreshPoints(),
         this._loadCampaigns().catch((err: any) => {
           log.error('[lottery] 活动列表刷新失败:', err)
         }),
         this.loadNotificationUnreadCount().catch(() => {}),
-        this.loadInventoryCount().catch(() => {})
+        this.loadInventoryCount().catch(() => {}),
+        restoredUserInfo.user_id
+          ? this.generateUserQRCode().catch((err: any) => {
+              log.error('[lottery] 登录后二维码生成失败:', err)
+            })
+          : Promise.resolve()
       ])
-
-      // 生成二维码
-      if (restoredUserInfo.user_id) {
-        this.generateQRCode()
-      }
     }
   },
 
@@ -440,6 +443,7 @@ Page({
   // ========================================
 
   async initializePage() {
+    let restoredUserInfo: any = null
     try {
       const isAuthenticated = checkAuth({ redirect: false })
 
@@ -455,7 +459,7 @@ Page({
       }
 
       /* 首次加载时恢复用户信息（onShow 因 _isFirstLoad=true 会跳过） */
-      const restoredUserInfo = restoreUserInfo()
+      restoredUserInfo = restoreUserInfo()
       if (restoredUserInfo) {
         this.setData({ isLoggedIn: true, userInfo: restoredUserInfo })
       }
@@ -521,8 +525,15 @@ Page({
         this._setupWebSocketNotification()
       }
 
-      /* 安全网：若 onReady 时 userInfo 尚未就绪导致二维码未生成，此处补偿触发 */
-      if (this.data.isLoggedIn && !this.data.qrCodeImage && this.data.userInfo?.user_id) {
+      /**
+       * 安全网：若 onReady 时 userInfo 尚未就绪导致二维码未生成，此处补偿触发
+       *
+       * 修复竞态：setData 是异步的，this.data.userInfo 可能尚未反映最新值，
+       * 因此同时检查局部变量 restoredUserInfo（initializePage 作用域内）
+       * 确保首次加载时二维码一定能被触发生成
+       */
+      const hasUserId = this.data.userInfo?.user_id || restoredUserInfo?.user_id
+      if (this.data.isLoggedIn && !this.data.qrCodeImage && hasUserId && !this._qrGenerating) {
         this.generateUserQRCode()
       }
     }
@@ -834,6 +845,28 @@ Page({
         return
       }
 
+      /* 等待 Canvas 就绪（onReady 触发后 _canvasReady = true） */
+      if (!this._canvasReady) {
+        let waitCount = 0
+        const maxWait = 20
+        await new Promise<void>((resolve) => {
+          const checkInterval = setInterval(() => {
+            waitCount++
+            if (this._canvasReady || waitCount >= maxWait) {
+              clearInterval(checkInterval)
+              resolve()
+            }
+          }, 100)
+        })
+        if (!this._canvasReady) {
+          log.warn('[lottery] Canvas 等待超时，尝试直接生成')
+        }
+      }
+
+      /* 防重入：避免多处同时触发导致重复请求 */
+      if (this._qrGenerating) { return }
+      this._qrGenerating = true
+
       const qrCodeResult = await API.getUserQRCode()
       if (!qrCodeResult?.success) {
         showToast(qrCodeResult?.message || '生成二维码失败', 'none', 2000)
@@ -921,6 +954,8 @@ Page({
       }
 
       showToast('二维码生成异常', 'none', 2000)
+    } finally {
+      this._qrGenerating = false
     }
   },
 
