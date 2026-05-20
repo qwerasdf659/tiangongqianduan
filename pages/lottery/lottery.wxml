@@ -124,16 +124,10 @@
             <!-- 加载中状态 -->
             <view
               class="qrcode-loading"
-              wx:if="{{!qrCodeImage && !qrExpired && !qrDevToolsUnavailable}}"
+              wx:if="{{!qrCodeImage && !qrExpired}}"
             >
               <t-icon name="hourglass" size="28rpx" color="var(--tg-text-tertiary)" />
               <text class="loading-text">生成中...</text>
-            </view>
-
-            <!-- 开发者工具Canvas不可用提示 -->
-            <view class="qrcode-loading" wx:elif="{{qrDevToolsUnavailable}}">
-              <text class="loading-icon">🖥️</text>
-              <text class="loading-text">请真机预览</text>
             </view>
 
             <!-- 二维码图片（未过期时显示） -->
@@ -424,13 +418,6 @@
     <!-- 底部留白：跟随内容滚动，确保抽奖区域不紧贴 tab bar -->
     <view style="height: 60rpx; width: 100%;"></view>
   </scroll-view>
-
-  <!-- 🆕 隐藏的Canvas用于生成正方形高分辨率二维码（方案B：428×428正方形） -->
-  <canvas
-    id="qrcodeCanvas"
-    type="2d"
-    style="width: 428px; height: 428px; position: fixed; left: -9999px; top: -9999px"
-  />
 
   <!-- 登录弹窗 -->
   <login-popup

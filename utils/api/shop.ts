@@ -25,8 +25,7 @@ async function getUserQRCode() {
   return apiClient.request('/user/consumption/qrcode', {
     method: 'GET',
     needAuth: true,
-    showLoading: true,
-    loadingText: '生成二维码中...',
+    showLoading: false,
     showError: true,
     errorPrefix: '二维码生成失败：'
   })
