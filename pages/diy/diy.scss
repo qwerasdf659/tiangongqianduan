@@ -82,13 +82,14 @@ page {
 /* ===== 我的设计入口卡片 ===== */
 .my-design-card {
   @include flex-between;
-  background: #6b6b6b;
+  background: linear-gradient(135deg, #C5A572 0%, #A08B6E 100%);
   border-radius: var(--td-radius-default);
   padding: var(--tg-spacing-lg) var(--tg-spacing-md);
   margin-bottom: var(--tg-spacing-xl);
+  box-shadow: 0 4rpx 16rpx rgba(197, 165, 114, 0.3);
 
   &:active {
-    background: var(--td-brand-color-active);
+    background: linear-gradient(135deg, #B8956A 0%, #8F7A5E 100%);
   }
 }
 

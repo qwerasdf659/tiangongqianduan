@@ -10,6 +10,9 @@
     <view class="workspace-area">
       <!-- 右上角操作按钮 -->
       <view class="action-buttons">
+        <view class="action-btn action-btn-3d" bind:tap="onOpen3DPreview">
+          <text>3D预览</text>
+        </view>
         <view class="action-btn action-btn-dark" bind:tap="onSubmit">
           <text>完成</text>
         </view>

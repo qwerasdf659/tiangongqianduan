@@ -55,6 +55,11 @@
     background: var(--td-brand-color);
     color: var(--tg-color-white);
   }
+
+  &-3d {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+  }
 }
 
 /* 预览画布区域 */

@@ -124,8 +124,10 @@
                     mode="aspectFit"
                     binderror="onResultImageError"
                   />
-                  <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
-                  <t-icon wx:else name="gift" size="48rpx" class="winning-icon" />
+                  <view wx:else class="winning-image-missing">
+                    <t-icon name="error-circle" size="32rpx" color="#e74c3c" />
+                    <text class="winning-image-missing__text">奖品图片缺失</text>
+                  </view>
                   <view class="icon-glow"></view>
                 </view>
                 <view class="winning-info">
@@ -166,8 +168,10 @@
                 mode="aspectFit"
                 binderror="onResultImageError"
               />
-              <text wx:if="{{drawResult.prize.prize_icon}}" class="winning-icon">{{drawResult.prize.prize_icon}}</text>
-              <t-icon wx:else name="gift" size="48rpx" class="winning-icon" color="#d4a853" />
+              <view wx:else class="winning-image-missing">
+                <t-icon name="error-circle" size="32rpx" color="#e74c3c" />
+                <text class="winning-image-missing__text">奖品图片缺失</text>
+              </view>
               <view class="icon-glow"></view>
             </view>
             <view class="winning-info">
@@ -230,8 +234,10 @@
                       data-reveal-idx="{{multiDrawCurrentIndex}}"
                       binderror="onMultiResultImageError"
                     />
-                    <text wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}" class="reveal-prize-icon">{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}</text>
-                    <t-icon wx:else name="gift" size="48rpx" class="reveal-prize-icon" />
+                    <view wx:else class="reveal-image-missing">
+                      <t-icon name="error-circle" size="28rpx" color="#e74c3c" />
+                      <text class="reveal-image-missing__text">图片缺失</text>
+                    </view>
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -267,8 +273,10 @@
                       data-reveal-idx="{{multiDrawCurrentIndex}}"
                       binderror="onMultiResultImageError"
                     />
-                    <text wx:if="{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}" class="reveal-prize-icon">{{drawResult.prizes[multiDrawCurrentIndex].prize_icon}}</text>
-                    <t-icon wx:else name="gift" size="48rpx" class="reveal-prize-icon" />
+                    <view wx:else class="reveal-image-missing">
+                      <t-icon name="error-circle" size="28rpx" color="#e74c3c" />
+                      <text class="reveal-image-missing__text">图片缺失</text>
+                    </view>
                     <view class="reveal-icon-glow"></view>
                   </view>
                   <view class="reveal-prize-info">
@@ -322,8 +330,9 @@
                 data-reveal-idx="{{index}}"
                 binderror="onMultiResultImageError"
               />
-              <text wx:if="{{item.prize_icon}}" class="mini-card-icon">{{item.prize_icon}}</text>
-              <t-icon wx:else name="gift" size="32rpx" class="mini-card-icon" />
+              <view wx:else class="mini-card-missing">
+                <t-icon name="error-circle" size="20rpx" color="#e74c3c" />
+              </view>
               <text class="mini-card-name">{{item.prize_name}}</text>
             </view>
           </view>

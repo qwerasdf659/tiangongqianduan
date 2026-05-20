@@ -812,6 +812,13 @@ Page({
     }
   },
 
+  /** 打开3D预览页面 */
+  onOpen3DPreview() {
+    wx.navigateTo({
+      url: '/packageDIY/diy-3d-preview/diy-3d-preview'
+    })
+  },
+
   onLoginPopupClose() {
     this.setData({ loginPopupVisible: false })
   },

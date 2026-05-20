@@ -43,15 +43,14 @@ const RARITY_WEIGHT: Record<string, number> = {
  * 为奖品数据添加 UI 展示字段
  *
  * 后端实际返回字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code,
- *              sort_order, reward_tier, primary_media, is_fallback, prize_description
- * - primary_media: 有图片时为 { media_id, public_url, mime_type, thumbnails, source }，无图片时为 null
- *   source 值: 'material_icon'（材料资产图标）/ 'uploaded'（用户上传）/ 'placeholder'（占位图）
+ *              sort_order, reward_tier, image, is_fallback, prize_description
+ * - image: 有图片时为 { url, thumbnail_url, source }，无图片时为 null
+ *   source 值: 'material_icon'（材料资产图标）/ 'media'（自定义上传）/ 'placeholder'（占位图）
  * - stock_quantity / is_sold_out: 后端不透传（Decision 6/9: 不展示售罄状态）
  *   is_sold_out 计算逻辑保留但不会触发（后端不返回 stock_quantity 字段）
  * - 前端补充:
- *   prize_icon      — emoji 兜底图标
- *   prize_image_url — 图片优先展示 URL
- *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标，依赖 B1 完成）
+ *   prize_image_url — 图片优先展示 URL（取自 image.url）
+ *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标）
  */
 /**
  * 批量预下载奖品图片到本地临时路径（在 setData 之前一次性完成）
@@ -66,7 +65,7 @@ const RARITY_WEIGHT: Record<string, number> = {
  *
  * @param allPrizeItems 奖品数组（prizes 和 prizesForPreview 共享对象引用，修改一处两处生效）
  */
-async function predownloadPrizeImages(allPrizeItems: any[]): Promise<void> {
+async function predownloadPrizeImages(allPrizeItems: any[]): Promise<Map<string, string>> {
   const PER_IMAGE_TIMEOUT = 5000
 
   const uniqueUrlMap = new Map<string, string>()
@@ -78,7 +77,7 @@ async function predownloadPrizeImages(allPrizeItems: any[]): Promise<void> {
   })
 
   if (uniqueUrlMap.size === 0) {
-    return
+    return uniqueUrlMap
   }
 
   const downloadTasks = [...uniqueUrlMap.keys()].map((networkUrl: string) => {
@@ -109,17 +108,81 @@ async function predownloadPrizeImages(allPrizeItems: any[]): Promise<void> {
       prizeItem.prize_image_url = localPath
     }
   })
+
+  return uniqueUrlMap
+}
+
+/**
+ * 使用已缓存的 URL→本地路径映射表，将奖品图片 URL 替换为本地临时路径
+ * 缓存未命中的 URL 会即时下载（确保 draw 结果中新增的图片也能正常显示）
+ */
+async function applyLocalImageCache(
+  prizes: any[],
+  imageCache: Map<string, string> | undefined
+): Promise<void> {
+  const needDownload: any[] = []
+
+  prizes.forEach((prize: any) => {
+    if (!prize.prize_image_url || !prize.prize_image_url.startsWith('http')) {
+      return
+    }
+    const localPath = imageCache?.get(prize.prize_image_url)
+    if (localPath) {
+      prize.prize_image_url = localPath
+    } else {
+      needDownload.push(prize)
+    }
+  })
+
+  if (needDownload.length === 0) {
+    return
+  }
+
+  /* 即时下载缓存未命中的图片 */
+  const tasks = needDownload.map((prize: any) => {
+    return new Promise<void>(resolve => {
+      const timer = setTimeout(resolve, 3000)
+      wx.downloadFile({
+        url: prize.prize_image_url,
+        success(res) {
+          clearTimeout(timer)
+          if (res.statusCode === 200 && res.tempFilePath) {
+            if (imageCache) {
+              imageCache.set(prize.prize_image_url, res.tempFilePath)
+            }
+            prize.prize_image_url = res.tempFilePath
+          }
+          resolve()
+        },
+        fail() {
+          clearTimeout(timer)
+          resolve()
+        }
+      })
+    })
+  })
+
+  await Promise.all(tasks)
 }
 
 function addPrizeIcon(prize: any): any {
-  /* 直接使用后端 primary_media.public_url，不做本地降级 */
-  const imageUrl = (prize.primary_media && prize.primary_media.public_url) || ''
-  const thumbnailUrl =
-    (prize.primary_media &&
-      prize.primary_media.thumbnails &&
-      prize.primary_media.thumbnails.medium) ||
-    ''
+  /**
+   * 直接使用后端 image.url 字段（后端已根据 material_asset_code 返回对应图标URL）
+   * 字段结构: { url, thumbnail_url, source }
+   * 前端不做本地图标映射，运营换图只需后端替换文件
+   */
+  const imageData = prize.image || {}
+  const imageUrl = imageData.url || ''
+  const thumbnailUrl = imageData.thumbnail_url || ''
   prize.prize_image_url = thumbnailUrl || imageUrl || ''
+
+  /* 奖品图片缺失 — 明确报错，不做兜底降级 */
+  if (!prize.prize_image_url) {
+    log.error(
+      `[addPrizeIcon] 奖品图片缺失！lottery_prize_id=${prize.lottery_prize_id}, prize_name="${prize.prize_name}", image=${JSON.stringify(prize.image)}。请后端检查该奖品的 image 配置。`
+    )
+    prize._image_missing = true
+  }
 
   /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */
   prize.is_fallback = !!prize.is_fallback
@@ -381,8 +444,24 @@ Component({
           .map(addPrizeIcon)
           .sort((a: any, b: any) => a.sort_order - b.sort_order)
 
+        /* 检查奖品图片完整性 — 缺失时明确报错，不静默降级 */
+        const missingImagePrizes = allPrizes.filter((p: any) => p._image_missing)
+        if (missingImagePrizes.length > 0) {
+          const missingNames = missingImagePrizes.map((p: any) => p.prize_name).join('、')
+          log.error(
+            `[lottery-activity] ${missingImagePrizes.length}个奖品缺少图片: ${missingNames}`
+          )
+          wx.showToast({
+            title: `${missingImagePrizes.length}个奖品缺少图片，请联系管理员`,
+            icon: 'none',
+            duration: 3000
+          })
+        }
+
         /* 预下载所有奖品图片到本地临时路径（去重，全部完成后一次性渲染，消除闪烁） */
-        await predownloadPrizeImages(allPrizes)
+        const imageCache = await predownloadPrizeImages(allPrizes)
+        /* 缓存 URL→本地路径映射表，供 draw 结果复用 */
+        this._imageCache = imageCache
 
         /* grid 固定8格需要截取，wheel等模式动态渲染全部奖品 */
         const prizes = display.mode === 'grid_3x3' ? allPrizes.slice(0, 8) : allPrizes
@@ -615,6 +694,7 @@ Component({
 
         /* 缓存奖品数据（添加 prize_icon UI展示字段） */
         const whackmolePrize = addPrizeIcon(result.data.prizes?.[0] || {})
+        await applyLocalImageCache([whackmolePrize], this._imageCache)
         this.setData({
           drawResult: {
             prize: whackmolePrize,
@@ -708,6 +788,8 @@ Component({
         }
 
         const prizes = (result.data.prizes || []).map(addPrizeIcon)
+        /* 复用已预下载的本地图片路径，避免 <image> 组件直接加载网络 URL 失败 */
+        await applyLocalImageCache(prizes, this._imageCache)
 
         this.setData({
           drawResult: {
@@ -789,6 +871,8 @@ Component({
          * 字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
          */
         const prizes = (result.data.prizes || []).map(addPrizeIcon)
+        /* 复用已预下载的本地图片路径，避免 <image> 组件直接加载网络 URL 失败 */
+        await applyLocalImageCache(prizes, this._imageCache)
 
         if (count === 1) {
           const item = prizes[0] || {}
@@ -1032,6 +1116,7 @@ Component({
           }
 
           const prizes = (result.data.prizes || []).map(addPrizeIcon)
+          await applyLocalImageCache(prizes, this._imageCache)
           const item = prizes[0] || {}
 
           /* 播放碎裂动画 */
