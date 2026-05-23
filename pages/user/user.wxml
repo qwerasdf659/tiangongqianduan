@@ -6,13 +6,9 @@
     <view class="immersive-top-banner">
       <image
         class="top-banner-image"
-        src="{{topBannerUrl || ''}}"
+        src="{{topBannerUrl || '/images/我的页面-banner.jpg'}}"
         mode="aspectFill"
-        wx:if="{{topBannerUrl}}"
       />
-      <view class="top-banner-placeholder" wx:else>
-        <text class="placeholder-text">顶部横幅图片位置</text>
-      </view>
     </view>
 
     <!-- 积分余额卡片 -->

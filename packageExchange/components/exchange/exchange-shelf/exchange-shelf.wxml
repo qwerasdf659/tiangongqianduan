@@ -45,6 +45,12 @@
           >
             <view class="asset-balances-row">
               <view class="asset-balance-item" wx:for="{{assetBalances}}" wx:key="asset_code">
+                <image
+                  wx:if="{{item.icon_url}}"
+                  class="asset-icon"
+                  src="{{item.icon_url}}"
+                  mode="aspectFit"
+                />
                 <text class="asset-name">{{item.display_name}}</text>
                 <text class="asset-amount">{{item.available_amount}}</text>
               </view>

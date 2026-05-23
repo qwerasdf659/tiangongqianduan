@@ -61,7 +61,9 @@ module.exports = Behavior({
      */
     async checkPremiumUnlockStatus() {
       /* 未登录时跳过（个人解锁状态需要认证） */
-      if (!this.data.isLoggedIn) return
+      if (!this.data.isLoggedIn) {
+        return
+      }
       try {
         const result = await shopAPI.getPremiumStatus()
         if (result && result.success && result.data) {

@@ -5,5 +5,5 @@
  */
 
 export { QRCode, ErrorCorrectLevel } from './qr-encoder'
-export { drawQrcode, drawQrcodeToImage, drawQrcodeOffscreen, generateQrcodeBase64 } from './qr-renderer'
+export { drawQrcode, drawQrcodeToImage } from './qr-renderer'
 export type { QRCodeOptions } from './qr-renderer'

@@ -249,10 +249,13 @@ Page({
           })
           .map((asset: any) => ({
             asset_code: asset.asset_code,
+            /** 后端 display_name 为权威数据源，本地映射仅作兜底 */
             display_name:
               asset.display_name ||
               ImageHelper.getAssetDisplayName(asset.asset_code) ||
               asset.asset_code,
+            /** 后端返回的图标完整 URL（走图片代理路由） */
+            icon_url: asset.icon_url || null,
             available_amount: asset.available_amount || 0,
             frozen_amount: asset.frozen_amount || 0,
             total_amount: asset.total_amount || 0

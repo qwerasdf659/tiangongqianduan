@@ -25,9 +25,9 @@
   --tg-exchange-cta-bg: var(--td-brand-color);
   --tg-exchange-cta-text: var(--tg-color-white);
   --tg-exchange-header-bg: #faf8f5;
-  --tg-exchange-nav-slider-left: linear-gradient(135deg, #C5A572 0%, #A08B6E 100%);
-  --tg-exchange-nav-slider-right: linear-gradient(135deg, #B8956A 0%, #9A7D5E 100%);
-  --tg-exchange-accent: #C5A572;
+  --tg-exchange-nav-slider-left: linear-gradient(135deg, #c5a572 0%, #a08b6e 100%);
+  --tg-exchange-nav-slider-right: linear-gradient(135deg, #b8956a 0%, #9a7d5e 100%);
+  --tg-exchange-accent: #c5a572;
   --tg-exchange-accent-light: rgba(197, 165, 114, 0.12);
   --tg-exchange-name-color: var(--tg-text-primary);
   --tg-exchange-desc-color: var(--tg-text-tertiary);
@@ -98,13 +98,13 @@
 
 .selector-slider.slide-left {
   left: 8rpx;
-  background: linear-gradient(135deg, #C5A572 0%, #A08B6E 100%);
+  background: linear-gradient(135deg, #c5a572 0%, #a08b6e 100%);
   box-shadow: 0 2rpx 10rpx rgba(197, 165, 114, 0.3);
 }
 
 .selector-slider.slide-right {
   left: calc(50%);
-  background: linear-gradient(135deg, #B8956A 0%, #9A7D5E 100%);
+  background: linear-gradient(135deg, #b8956a 0%, #9a7d5e 100%);
   box-shadow: 0 2rpx 10rpx rgba(197, 165, 114, 0.3);
 }
 
@@ -172,8 +172,8 @@
 /* ===== 星石和源晶类资产余额展示（替代原 "可用积分" 显示） ===== */
 
 .asset-balances-area {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 0;
+  min-width: 180rpx;
   overflow: hidden;
 }
 
@@ -199,6 +199,14 @@
   border: 1rpx solid rgba(197, 165, 114, 0.2);
 }
 
+.asset-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 6rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
 .asset-name {
   font-size: var(--td-font-size-xs);
   color: var(--tg-text-tertiary);
@@ -222,7 +230,7 @@
   align-items: center;
   justify-content: center;
   padding: 18rpx 48rpx;
-  background: linear-gradient(135deg, #C5A572, #A08B6E);
+  background: linear-gradient(135deg, #c5a572, #a08b6e);
   border-radius: 32rpx;
   margin-right: 12rpx;
   box-shadow: 0 4rpx 12rpx rgba(197, 165, 114, 0.3);
@@ -238,6 +246,8 @@
 .header-quick-actions {
   @include flex-align-center;
   gap: 12rpx;
+  flex-shrink: 1;
+  flex-wrap: wrap;
 }
 
 .header-action-btn {

@@ -72,12 +72,10 @@ const Waterfall = { ...waterfallFunctions }
 /** 弹窗横幅频率控制 - 服务端驱动客户端执行的频率判断 */
 const PopupFrequency = { ...popupFrequencyFunctions }
 
-/** 二维码生成工具 - 纯 JS base64 方案（Skyline 首选）+ Canvas 2D 备选 */
+/** 二维码生成工具 - Canvas 2D 新接口（兼容 WebView + Skyline） */
 const QRCode = {
   drawQrcode: drawQrcodeFunction.drawQrcode,
-  drawQrcodeToImage: drawQrcodeFunction.drawQrcodeToImage,
-  drawQrcodeOffscreen: drawQrcodeFunction.drawQrcodeOffscreen,
-  generateQrcodeBase64: drawQrcodeFunction.generateQrcodeBase64
+  drawQrcodeToImage: drawQrcodeFunction.drawQrcodeToImage
 }
 
 /** API调用包装器 - 统一 try/catch + 响应检查 + 错误处理 */

@@ -50,7 +50,16 @@
             bind:tap="onSellAsset"
             data-asset="{{item}}"
           >
-            <image class="asset-chip-icon-img" src="{{item.icon_path}}" mode="aspectFit" />
+            <image
+              wx:if="{{item.icon_url}}"
+              class="asset-chip-icon-img"
+              src="{{item.icon_url}}"
+              mode="aspectFit"
+              binderror="onAssetIconLoadError"
+              bindload="onAssetIconLoaded"
+              data-code="{{item.asset_code}}"
+              data-url="{{item.icon_url}}"
+            />
             <text class="asset-chip-name">{{item.display_name}}</text>
             <text class="asset-chip-num">{{item.available_amount}}</text>
             <text class="asset-chip-frozen" wx:if="{{item.frozen_amount > 0}}"
@@ -182,9 +191,10 @@
 
             <!-- 卡片主体 -->
             <view class="item-card-body">
-              <!-- 左侧：图标 -->
+              <!-- 左侧：图标（优先使用后端 image_url，无图时降级为类型文字图标） -->
               <view class="item-avatar rarity-bg-{{item.rarity_code || 'common'}}">
-                <text class="item-avatar-icon">{{helper.getItemIcon(item.item_type)}}</text>
+                <image wx:if="{{item.image_url}}" class="item-avatar-img" src="{{item.image_url}}" mode="aspectFit" />
+                <text wx:else class="item-avatar-icon">{{helper.getItemIcon(item.item_type)}}</text>
               </view>
 
               <!-- 中间：信息 -->

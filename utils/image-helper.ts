@@ -399,10 +399,19 @@ function getListingDisplayImage(listing: any): string {
     return DEFAULT_PRODUCT_IMAGE
   }
 
+  /** 资产类挂牌：优先使用后端 asset_info.icon_url */
   if (listing.listing_kind === 'fungible_asset') {
+    if (listing.asset_info && listing.asset_info.icon_url) {
+      return listing.asset_info.icon_url
+    }
     const assetCode =
       (listing.asset_info && listing.asset_info.asset_code) || listing.offer_asset_code
     return getMaterialIconPath(assetCode)
+  }
+
+  /** 物品类挂牌：优先使用后端 item_info.image_url */
+  if (listing.item_info && listing.item_info.image_url) {
+    return listing.item_info.image_url
   }
 
   const primaryMediaUrl =

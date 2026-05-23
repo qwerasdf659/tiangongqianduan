@@ -172,7 +172,10 @@ Page({
   },
 
   onReady() {
-    /* 纯 JS base64 方案不依赖 Canvas，onReady 仅作为补偿触发点 */
+    /* 标记 Canvas 已就绪 */
+    this._canvasReady = true
+
+    /* Canvas就绪后生成用户身份二维码 */
     if (this.data.userInfo?.user_id && checkAuth({ redirect: false }) && !this.data.qrCodeImage) {
       this.generateUserQRCode()
     }
@@ -842,6 +845,24 @@ Page({
         return
       }
 
+      /* 等待 Canvas 就绪（onReady 触发后 _canvasReady = true） */
+      if (!this._canvasReady) {
+        let waitCount = 0
+        const maxWait = 20
+        await new Promise<void>((resolve) => {
+          const checkInterval = setInterval(() => {
+            waitCount++
+            if (this._canvasReady || waitCount >= maxWait) {
+              clearInterval(checkInterval)
+              resolve()
+            }
+          }, 100)
+        })
+        if (!this._canvasReady) {
+          log.warn('[lottery] Canvas 等待超时，尝试直接生成')
+        }
+      }
+
       const qrCodeResult = await API.getUserQRCode()
       if (!qrCodeResult?.success) {
         showToast(qrCodeResult?.message || '生成二维码失败', 'none', 2000)
@@ -861,11 +882,7 @@ Page({
         ).getTime()
       }
 
-      /*
-       * 纯 JS 生成二维码图片文件（不依赖 Canvas）
-       * 解决 Skyline 渲染引擎下 Canvas 节点时序不稳定导致首次加载失败的问题
-       */
-      const qrImageSrc = await QRCode.generateQrcodeBase64({
+      QRCode.drawQrcodeToImage(this, '#qrcodeCanvas', {
         text: qrContent,
         width: 428,
         height: 428,
@@ -873,31 +890,40 @@ Page({
         correctLevel: 2,
         background: '#ffffff',
         foreground: '#000000'
+      }).then((tempFilePath: string) => {
+        const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+        const minutes = Math.floor(remaining / 60)
+        const seconds = remaining % 60
+        this.setData({
+          qrCodeImage: tempFilePath,
+          qrCountdown: remaining,
+          qrExpired: false,
+          qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
+          qrExpiresAt: expiresTimestamp
+        })
+        this.startQrCountdown()
+      }).catch((canvasErr: any) => {
+        log.warn('[lottery] Canvas生成失败，尝试使用后端图片URL:', canvasErr?.message)
+        if (qrCodeData.qrcode_url || qrCodeData.image_url) {
+          const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+          const minutes = Math.floor(remaining / 60)
+          const seconds = remaining % 60
+          this.setData({
+            qrCodeImage: qrCodeData.qrcode_url || qrCodeData.image_url,
+            qrCountdown: remaining,
+            qrExpired: false,
+            qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
+            qrExpiresAt: expiresTimestamp
+          })
+          this.startQrCountdown()
+        } else {
+          log.error('[lottery] 所有二维码生成方式均失败')
+          this.setData({ qrDevToolsUnavailable: true })
+        }
       })
-
-      if (!qrImageSrc) {
-        log.error('[lottery] 二维码图片生成失败')
-        showToast('二维码生成失败', 'none', 2000)
-        return
-      }
-
-      const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
-      const minutes = Math.floor(remaining / 60)
-      const seconds = remaining % 60
-
-      this.setData({
-        qrCodeImage: qrImageSrc,
-        qrCountdown: remaining,
-        qrExpired: false,
-        qrDevToolsUnavailable: false,
-        qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
-        qrExpiresAt: expiresTimestamp
-      })
-      this.startQrCountdown()
     } catch (error: any) {
       log.error('[lottery] 生成V2二维码异常:', error)
 
-      // USER_UUID_MISSING：后端用户记录异常，引导重新登录触发认证中间件重新查询用户信息
       if (error.code === 'USER_UUID_MISSING') {
         wx.showModal({
           title: '身份信息异常',

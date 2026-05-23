@@ -49,7 +49,7 @@ const log = Logger.createLogger('inventory')
 const { showToast } = Wechat
 const { checkAuth } = Utils
 const { safeApiCall } = ApiWrapper
-const { getMaterialIconPath, getQualityGradeStyle, formatEdition, getTradeCooldown } = ImageHelper
+const { getQualityGradeStyle, formatEdition, getTradeCooldown } = ImageHelper
 
 // MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
@@ -296,12 +296,10 @@ Page({
          * 后端已返回 is_tradable 字段（boolean），精确控制"上架到市场"按钮显示
          * is_tradable=true 的资产才能上架到交易市场
          *
-         * icon_path: 由前端 image-helper.ts 根据 asset_code 映射本地 WebP 图标路径
-         * 图标规格：256×256 WebP（quality 90），存放于 images/icons/materials/
+         * icon_url: 后端 GET /api/v4/backpack 返回的资产图标完整 URL（走图片代理路由）
          */
         const backpackAssets = assets.map((asset: any) => ({
-          ...asset,
-          icon_path: getMaterialIconPath(asset.asset_code)
+          ...asset
         }))
 
         /**
@@ -1035,6 +1033,19 @@ Page({
     }
 
     this._selectCurrencyThenSellItem(item)
+  },
+
+  /** 资产图标加载失败回调（用于定位图片 URL 问题） */
+  onAssetIconLoadError(e: any) {
+    const { code, url } = e.currentTarget.dataset
+    log.warn('资产图标加载失败:', code, 'url:', url, 'errMsg:', e.detail?.errMsg)
+  },
+
+  /** 资产图标加载成功回调（调试用，确认图片尺寸） */
+  onAssetIconLoaded(e: any) {
+    const { code } = e.currentTarget.dataset
+    const { width, height } = e.detail || {}
+    log.info('资产图标加载成功:', code, `${width}x${height}`)
   },
 
   /**
