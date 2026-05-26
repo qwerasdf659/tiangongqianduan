@@ -1,7 +1,7 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
 .page-scroll-view {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
 }
 
 /* 客服管理页面样式 - V3.0 Sass版本 */
@@ -10,16 +10,21 @@
 /* 🎨 全局容器 */
 .customer-service-container {
   @include tg-tokens;
-  padding: 20rpx;
   background-color: var(--tg-color-bg);
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ===== 页面标题区（渐变背景 + 装饰图标） ===== */
 .page-header {
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
   padding: 48rpx var(--tg-spacing-lg) 40rpx;
   position: relative;
   overflow: hidden;
@@ -68,7 +73,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
   color: var(--tg-text-primary);
   padding: 20rpx 30rpx;
   border-radius: 12rpx;
@@ -210,7 +219,11 @@
 }
 
 .session-item.active {
-  background: linear-gradient(135deg, var(--tg-color-bg-accent-soft) 0%, var(--tg-color-bg-accent-soft) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--tg-color-bg-accent-soft) 0%,
+    var(--tg-color-bg-accent-soft) 100%
+  );
   border-left: 4rpx solid var(--tg-gradient-primary-start);
 }
 

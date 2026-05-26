@@ -93,7 +93,7 @@
             <!-- 头像 -->
             <view class="result-avatar">
               <view class="avatar-bg customer-service-bg avatar-sm">
-                <text class="avatar-icon avatar-icon-sm"><t-icon name="service" size="28rpx" /></text>
+                <t-icon name="service-filled" size="28rpx" color="#ffffff" />
               </view>
             </view>
 
@@ -189,7 +189,7 @@
         </view>
         <view class="current-session-avatar">
           <view class="avatar-bg customer-service-bg">
-            <text class="avatar-icon">{{currentChatIcon}}</text>
+            <t-icon name="service-filled" size="32rpx" color="#ffffff" />
           </view>
           <!-- 在线状态点 -->
           <view class="header-online-dot {{wsConnected ? 'online' : 'offline'}}"></view>
@@ -213,13 +213,7 @@
       </view>
     </view>
 
-    <!-- 连接状态横幅（断线时显示） -->
-    <view wx:if="{{!wsConnected && showChatModal}}" class="connection-banner">
-      <view class="banner-content">
-        <view class="banner-spinner"></view>
-        <text class="banner-text">正在重新连接...</text>
-      </view>
-    </view>
+    <!-- 连接状态横幅（断线重连由前端内部处理，不展示给用户） -->
 
     <!-- 消息列表 -->
     <scroll-view
@@ -245,7 +239,7 @@
       >
         <view class="welcome-avatar-wrapper">
           <view class="welcome-avatar">
-            <text class="welcome-avatar-icon"><t-icon name="service" size="48rpx" /></text>
+            <t-icon name="service-filled" size="48rpx" color="#ffffff" />
           </view>
           <view class="welcome-pulse"></view>
         </view>
@@ -294,11 +288,20 @@
 
         <!-- 普通消息内容 -->
         <view wx:else class="message-content">
-          <!-- 对方头像 -->
+          <!-- 对方头像（客服） -->
           <view wx:if="{{!item.isOwn}}" class="message-avatar">
             <view class="avatar-bg customer-service-bg">
-              <text class="avatar-icon">{{currentChatIcon}}</text>
+              <t-icon name="service-filled" size="32rpx" color="#ffffff" />
             </view>
+            <text class="avatar-label">客服</text>
+          </view>
+
+          <!-- 自己头像（用户） -->
+          <view wx:if="{{item.isOwn}}" class="message-avatar">
+            <view class="avatar-bg user-avatar-bg">
+              <t-icon name="user-circle-filled" size="32rpx" color="#ffffff" />
+            </view>
+            <text class="avatar-label">我</text>
           </view>
 
           <!-- 消息气泡区域 -->
@@ -348,7 +351,7 @@
       <view wx:if="{{showTypingIndicator}}" class="typing-indicator">
         <view class="typing-avatar">
           <view class="avatar-bg customer-service-bg">
-            <text class="avatar-icon">{{currentChatIcon}}</text>
+            <t-icon name="service-filled" size="32rpx" color="#ffffff" />
           </view>
         </view>
         <view class="typing-bubble">
@@ -438,7 +441,7 @@
     </view>
 
     <!-- 输入区域 - 重新设计 -->
-    <view class="chat-input-area" catchtap="onInputAreaTap">
+    <view class="chat-input-area {{keyboardHeight > 0 ? 'keyboard-up' : ''}}" style="{{keyboardHeight > 0 ? 'padding-bottom:' + keyboardHeight + 'px' : ''}}" catchtap="onInputAreaTap">
       <view class="input-main-row" catchtap="onInputToolbarTap">
         <!-- 附件按钮（展开/折叠工具栏） -->
         <view class="expand-btn {{showToolbar ? 'active' : ''}}" catchtap="toggleToolbar">
@@ -456,9 +459,13 @@
             bindfocus="onInputFocus"
             bindblur="onInputBlur"
             bindconfirm="onInlineSendTap"
+            bindkeyboardheightchange="onKeyboardHeightChange"
             confirm-type="send"
             auto-height="{{true}}"
             show-confirm-bar="{{false}}"
+            adjust-position="{{false}}"
+            cursor-spacing="20"
+            hold-keyboard="{{true}}"
             maxlength="500"
             catchtap="onTextareaTap"
           >

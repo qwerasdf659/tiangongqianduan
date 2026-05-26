@@ -50,7 +50,7 @@
           <view class="main-stats-grid">
             <view class="main-stat-card available">
               <view class="stat-icon-bg available">
-                <t-icon name="money" size="40rpx" class="stat-icon" />
+                <t-icon name="money" size="40rpx" color="#27ae60" class="stat-icon" />
               </view>
               <view class="stat-body">
                 <text class="stat-label">可用积分</text>
@@ -60,7 +60,7 @@
 
             <view class="main-stat-card frozen">
               <view class="stat-icon-bg frozen">
-                <t-icon name="lock-on-filled" size="36rpx" class="stat-icon" />
+                <t-icon name="lock-on-filled" size="36rpx" color="#666666" class="stat-icon" />
               </view>
               <view class="stat-body">
                 <text class="stat-label">冻结积分</text>
@@ -70,7 +70,7 @@
 
             <view class="main-stat-card total">
               <view class="stat-icon-bg total">
-                <t-icon name="diamond" size="40rpx" class="stat-icon" />
+                <t-icon name="wallet" size="40rpx" color="#8b7355" class="stat-icon" />
               </view>
               <view class="stat-body">
                 <text class="stat-label">总积分资产</text>

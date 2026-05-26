@@ -65,6 +65,14 @@
   border: 1rpx solid rgba(197, 165, 114, 0.2);
 }
 
+.asset-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 6rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
 .asset-name {
   font-size: var(--td-font-size-xs);
   color: var(--tg-text-tertiary);
@@ -144,10 +152,10 @@
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #C5A572, #A08B6E);
+  background: linear-gradient(135deg, #c5a572, #a08b6e);
   color: var(--tg-color-white);
   font-weight: var(--tg-font-weight-bold);
-  border-color: #C5A572;
+  border-color: #c5a572;
 }
 
 .advanced-filter-btn {
@@ -164,7 +172,7 @@
 }
 
 .advanced-filter-btn.active {
-  background: linear-gradient(135deg, #C5A572, #A08B6E);
+  background: linear-gradient(135deg, #c5a572, #a08b6e);
   color: var(--tg-color-white);
 }
 

@@ -1,5 +1,5 @@
 <!--packageUser/points-detail/points-detail.wxml - 积分详情页面模板-->
-<custom-navbar title="积分明细" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<custom-navbar title="积分明细" bgColor="#ffffff" textColor="#333333" showBack="{{true}}" />
 
 <view class="points-detail-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">

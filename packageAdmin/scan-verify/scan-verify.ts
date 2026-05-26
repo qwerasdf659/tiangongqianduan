@@ -42,6 +42,9 @@ Page({
     // 扫码结果
     scannedCode: '',
 
+    // 手动输入核销码
+    manualCode: '',
+
     // 核销结果（来自后端 POST /api/v4/shop/redemption/fulfill 响应）
     verifyResult: null,
     verifySuccess: false,
@@ -173,7 +176,31 @@ Page({
   },
 
   /**
-   * 手动输入文本码核销入口
+   * 手动输入核销码 — 实时更新输入值
+   */
+  onManualCodeInput(e: any) {
+    this.setData({ manualCode: (e.detail?.value || '').trim().toUpperCase() })
+  },
+
+  /**
+   * 手动输入核销码 — 确认提交
+   *
+   * 用户在输入框中输入核销码后点击"核销"按钮或键盘确认，
+   * 直接调用 dispatchRedemption 进行核销。
+   */
+  onManualCodeConfirm() {
+    const inputCode = (this.data.manualCode || '').trim().toUpperCase()
+    if (!inputCode || inputCode.length < 4) {
+      showToast('请输入有效的核销码')
+      return
+    }
+    log.info('手动输入核销码确认:', inputCode)
+    this.setData({ scannedCode: inputCode, manualCode: '' })
+    this.dispatchRedemption(inputCode)
+  },
+
+  /**
+   * 手动输入文本码核销入口（弹窗模式，保留作为备用）
    *
    * 扫码失败或用户无法出示QR码时的备用方案，
    * 让商家手动输入用户口述的12位Base32文本码（格式 XXXX-YYYY-ZZZZ）。

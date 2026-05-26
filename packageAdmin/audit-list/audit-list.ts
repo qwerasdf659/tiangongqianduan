@@ -150,7 +150,9 @@ Page({
     /** 当前用户角色等级 */
     currentRoleLevel: 0,
     /** 是否为admin（role_level>=100），admin可使用批量审核和传统消费审核 */
-    isAdminUser: false
+    isAdminUser: false,
+    /** Tab切换中标记（防止切换时闪现loading遮罩） */
+    tabSwitching: false
   },
 
   /** WebSocket 订阅页面ID（用于 app.subscribeWebSocketMessages / unsubscribe） */
@@ -226,7 +228,7 @@ Page({
     }
 
     auditLog.info('切换标签页:', targetTab)
-    this.setData({ activeTab: targetTab })
+    this.setData({ activeTab: targetTab, tabSwitching: true })
 
     if (targetTab === 'consumption') {
       if (this.data.records.length === 0) {
@@ -237,6 +239,11 @@ Page({
         this.loadMyPendingSteps(1)
       }
     }
+
+    /* 延迟清除tabSwitching标记，确保视图切换完成后再允许loading显示 */
+    setTimeout(() => {
+      this.setData({ tabSwitching: false })
+    }, 300)
   },
 
   // ==================== 消费审核（原有功能，保持不变） ====================

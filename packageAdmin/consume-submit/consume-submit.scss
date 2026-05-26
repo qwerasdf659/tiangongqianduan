@@ -1,7 +1,7 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
 .page-scroll-view {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
 }
 
 /* packageAdmin/consume-submit/consume-submit.scss - 商家消费录入页面样式 */
@@ -14,13 +14,18 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   background: var(--tg-gradient-primary);
-  padding: 20rpx var(--tg-spacing-md) 160rpx;
 }
 
 /* ===== 页面标题区（渐变背景 + 装饰图标） ===== */
 .page-header {
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
   padding: 48rpx var(--tg-spacing-lg) 40rpx;
   position: relative;
   overflow: hidden;
@@ -635,24 +640,20 @@
 
 /* ===== 底部提交栏（渐变底部遮罩） ===== */
 .submit-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20rpx 30rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(245, 240, 232, 0.95);
-  z-index: 10;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
 .submit-main-btn {
   width: 100%;
   height: 96rpx;
-  background: var(--td-brand-color);
+  background: linear-gradient(135deg, var(--tg-gradient-primary-start), var(--tg-gradient-primary-end));
   color: var(--tg-color-white);
   border-radius: 48rpx;
   border: none;
-  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(var(--td-brand-color-rgb), 0.35);
   transition: all 0.3s;
 }
 
@@ -662,9 +663,9 @@
 }
 
 .submit-main-btn.disabled {
-  background: rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, #e8e4df, #d9d5d0);
   box-shadow: none;
-  color: var(--tg-text-disabled);
+  color: rgba(0, 0, 0, 0.3);
 }
 
 .submit-btn-text {

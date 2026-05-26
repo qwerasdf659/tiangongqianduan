@@ -1,7 +1,7 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
 .page-scroll-view {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
 }
 
 /* 我的挂单页面样式 - 增强UI美感 */
@@ -12,7 +12,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--tg-gradient-primary);
+  min-height: 0;
+  overflow: hidden;
+  background: var(--tg-color-white);
   padding: var(--tg-spacing-md);
   padding-bottom: calc(var(--tg-spacing-xxl) + env(safe-area-inset-bottom));
 }
@@ -89,15 +91,27 @@
 }
 
 .total-icon {
-  background: linear-gradient(135deg, rgba(var(--td-brand-color-rgb), 0.15), rgba(var(--td-brand-color-rgb), 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--td-brand-color-rgb), 0.15),
+    rgba(var(--td-brand-color-rgb), 0.1)
+  );
 }
 
 .onsale-icon {
-  background: linear-gradient(135deg, rgba(var(--tg-color-success-rgb), 0.15), rgba(var(--tg-color-success-rgb), 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-success-rgb), 0.15),
+    rgba(var(--tg-color-success-rgb), 0.08)
+  );
 }
 
 .sold-icon {
-  background: linear-gradient(135deg, rgba(var(--tg-color-info-rgb), 0.15), rgba(var(--tg-color-info-rgb), 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-info-rgb), 0.15),
+    rgba(var(--tg-color-info-rgb), 0.08)
+  );
 }
 
 .stat-number {
@@ -293,12 +307,20 @@
   font-weight: var(--tg-font-weight-bold);
   padding: 6rpx var(--tg-spacing-sm);
   border-radius: 20rpx;
-  background: linear-gradient(135deg, rgba(var(--td-brand-color-rgb), 0.12), rgba(var(--td-brand-color-rgb), 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--td-brand-color-rgb), 0.12),
+    rgba(var(--td-brand-color-rgb), 0.08)
+  );
   color: var(--tg-gradient-primary-start);
 }
 
 .kind-tag.fungible_asset {
-  background: linear-gradient(135deg, rgba(var(--tg-color-success-rgb), 0.12), rgba(var(--tg-color-success-rgb), 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--tg-color-success-rgb), 0.12),
+    rgba(var(--tg-color-success-rgb), 0.08)
+  );
   color: var(--tg-color-success);
 }
 
@@ -381,10 +403,11 @@
 .price-info {
   @include flex-column-center;
   flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(var(--td-brand-color-rgb), 0.08), rgba(var(--td-brand-color-rgb), 0.06));
-  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
-  border-radius: var(--td-radius-default);
+  background: var(--tg-color-bg-grey);
+  padding: var(--tg-spacing-md) var(--tg-spacing-lg);
+  border-radius: var(--td-radius-large);
   min-width: 140rpx;
+  border: 1rpx solid var(--tg-color-border-light);
 }
 
 .price-label {
@@ -401,11 +424,7 @@
 .price-amount {
   font-size: var(--td-font-size-l);
   font-weight: var(--tg-font-weight-bold);
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start),
-    var(--tg-gradient-primary-end)
-  );
+  color: var(--tg-text-primary);
 }
 
 .price-unit {
@@ -509,7 +528,12 @@
 .no-more-line {
   flex: 1;
   height: 1rpx;
-  background: linear-gradient(90deg, transparent, rgba(var(--td-brand-color-rgb), 0.15), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--td-brand-color-rgb), 0.15),
+    transparent
+  );
   max-width: 120rpx;
 }
 
@@ -544,7 +568,11 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(var(--td-brand-color-rgb), 0.08), rgba(var(--td-brand-color-rgb), 0.03));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--td-brand-color-rgb), 0.08),
+    rgba(var(--td-brand-color-rgb), 0.03)
+  );
   animation: emptyPulse 3s ease-in-out infinite;
 }
 

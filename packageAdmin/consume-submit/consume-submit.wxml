@@ -259,18 +259,8 @@
       </view>
     </view>
 
-    <!-- 底部提交区域 -->
-    <view class="submit-bar">
-      <button
-        class="submit-main-btn {{(loading || submitted || !userInfo || !consumeAmount) ? 'disabled' : ''}}"
-        bindtap="onSubmit"
-        disabled="{{loading || submitted || !userInfo || !consumeAmount}}"
-      >
-        <text class="submit-btn-text"
-          >{{loading ? '提交中...' : (submitted ? '✓ 已提交' : '确认提交')}}</text
-        >
-      </button>
-    </view>
+    <!-- 底部安全区留白（为固定提交栏预留空间） -->
+    <view style="height: calc(136rpx + env(safe-area-inset-bottom, 0px)); width: 100%"></view>
 
     <!-- 加载遮罩 -->
     <view class="loading-overlay" wx:if="{{loading}}">
@@ -282,4 +272,17 @@
     <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
   </scroll-view>
+
+  <!-- 底部提交区域（固定在底部，不随内容滚动） -->
+  <view class="submit-bar">
+    <button
+      class="submit-main-btn {{(loading || submitted || !userInfo || !consumeAmount) ? 'disabled' : ''}}"
+      bindtap="onSubmit"
+      disabled="{{loading || submitted || !userInfo || !consumeAmount}}"
+    >
+      <text class="submit-btn-text"
+        >{{loading ? '提交中...' : (submitted ? '✓ 已提交' : '确认提交')}}</text
+      >
+    </button>
+  </view>
 </view>

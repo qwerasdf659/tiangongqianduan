@@ -69,7 +69,9 @@
         </view>
         <view class="guide-arrow">→</view>
         <view class="guide-step">
-          <view class="guide-step-icon guide-step-icon--shipped"><t-icon name="deliver" size="32rpx" /></view>
+          <view class="guide-step-icon guide-step-icon--shipped"
+            ><t-icon name="undertake-delivery" size="32rpx"
+          /></view>
           <text class="guide-step-text">商家发货</text>
         </view>
         <view class="guide-arrow">→</view>
@@ -177,11 +179,7 @@
             <text class="auto-tip-text">系统已自动确认收货（发货满7天）</text>
           </view>
 
-          <!-- 已评价展示 -->
-          <view class="rating-display" wx:if="{{item.status === 'rated' && item._ratingStars}}">
-            <text class="rating-label">我的评价</text>
-            <text class="rating-stars">{{item._ratingStars}}</text>
-          </view>
+          <!-- 已评价展示（仅在确认收货后的订单详情页显示，列表页不展示避免视觉干扰） -->
 
           <!-- 操作按钮区域 -->
           <view
@@ -236,8 +234,9 @@
   </scroll-view>
 </view>
 
-<!-- 评价弹窗 -->
+<!-- 评价弹窗（仅确认收货后点击"去评价"按钮时渲染） -->
 <t-dialog
+  wx:if="{{showRatingModal}}"
   visible="{{showRatingModal}}"
   title="评价商品"
   closeBtn="{{true}}"

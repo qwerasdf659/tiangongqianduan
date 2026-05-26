@@ -559,6 +559,12 @@ const chatMessageHandlers = {
     this.setData({ inputFocused: false })
   },
 
+  /** 键盘高度变化 — Skyline 模式下手动适配键盘 */
+  onKeyboardHeightChange(e: WechatMiniprogram.CustomEvent<{ height: number; duration: number }>) {
+    const keyboardHeight = e.detail.height || 0
+    this.setData({ keyboardHeight, scrollToBottom: keyboardHeight > 0 })
+  },
+
   /**
    * 发送消息
    *

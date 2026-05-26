@@ -151,22 +151,35 @@
         <text class="scan-hint">请对准用户手机上的核销二维码</text>
       </view>
 
-      <!-- 手动输入文本码（备用入口） -->
+      <!-- 手动输入核销码区域 -->
       <view class="manual-input-card">
         <view class="manual-divider">
           <view class="divider-line"></view>
-          <text class="divider-text">或</text>
+          <text class="divider-text">或手动输入</text>
           <view class="divider-line"></view>
         </view>
-        <t-button
-          theme="default"
-          variant="outline"
-          shape="round"
-          size="medium"
-          bind:tap="onManualInput"
-          >手动输入核销码</t-button
-        >
-        <text class="manual-hint">扫码不便时，可手动输入用户的12位文本核销码</text>
+        <view class="manual-input-area">
+          <input
+            class="manual-code-input"
+            type="text"
+            placeholder="请输入核销码"
+            value="{{manualCode}}"
+            bindinput="onManualCodeInput"
+            maxlength="14"
+            confirm-type="done"
+            bindconfirm="onManualCodeConfirm"
+          />
+          <t-button
+            theme="primary"
+            shape="round"
+            size="large"
+            block="{{true}}"
+            bind:tap="onManualCodeConfirm"
+            disabled="{{!manualCode || manualCode.length < 4}}"
+            >确认核销</t-button
+          >
+        </view>
+        <text class="manual-hint">格式示例：ABCD-1234-EFGH（扫码不便时使用）</text>
       </view>
 
       <!-- 返回准备步骤 -->

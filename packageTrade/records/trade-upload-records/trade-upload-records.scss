@@ -1,7 +1,7 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
 .page-scroll-view {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
   background: #ffffff;
 }
 
@@ -17,9 +17,10 @@ sticky-section {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   background: #ffffff;
   padding-bottom: 40rpx;
-  min-height: 100vh;
 }
 
 .records-page-header {
@@ -179,9 +180,9 @@ sticky-section {
   background: linear-gradient(90deg, var(--tg-color-success), #66bb6a);
 }
 
-/* 冻结积分 - 橙色 */
+/* 冻结积分 - 中性灰（表示不可用/锁定状态） */
 .main-stat-card.frozen::before {
-  background: linear-gradient(90deg, var(--tg-color-warning), #ffb74d);
+  background: linear-gradient(90deg, var(--tg-text-secondary), #999999);
 }
 
 /* 总积分资产 - 紫蓝主题色 */
@@ -198,11 +199,11 @@ sticky-section {
 }
 
 .stat-icon-bg {
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   @include flex-center;
-  margin-bottom: 12rpx;
+  margin-bottom: 16rpx;
 }
 
 .stat-icon-bg.available {
@@ -210,7 +211,7 @@ sticky-section {
 }
 
 .stat-icon-bg.frozen {
-  background: rgba(var(--tg-color-warning-rgb), 0.12);
+  background: rgba(102, 102, 102, 0.12);
 }
 
 .stat-icon-bg.total {
@@ -243,11 +244,11 @@ sticky-section {
 }
 
 .stat-value.frozen {
-  color: var(--tg-color-warning);
+  color: var(--tg-text-secondary);
 }
 
 .stat-value.total {
-  color: var(--tg-gradient-primary-start);
+  color: var(--tg-text-primary);
 }
 
 /* ============================================================================ */
@@ -466,7 +467,11 @@ sticky-section {
 
 /* 默认图标背景 */
 .transaction-icon-wrapper:not(.income):not(.expense) {
-  background: linear-gradient(135deg, rgba(var(--td-brand-color-rgb), 0.15), rgba(var(--td-brand-color-rgb), 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(var(--td-brand-color-rgb), 0.15),
+    rgba(var(--td-brand-color-rgb), 0.05)
+  );
 }
 
 .transaction-icon {
@@ -896,7 +901,12 @@ sticky-section {
 .no-more-line {
   flex: 1;
   height: 1rpx;
-  background: linear-gradient(90deg, transparent, rgba(var(--td-brand-color-rgb), 0.15), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--td-brand-color-rgb), 0.15),
+    transparent
+  );
 }
 
 .no-more-text {

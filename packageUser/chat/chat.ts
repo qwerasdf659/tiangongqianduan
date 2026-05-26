@@ -64,6 +64,7 @@ Page({
     messages: [] as API.ChatMessage[],
     inputContent: '',
     inputFocused: false,
+    keyboardHeight: 0,
     isLoadingHistory: false,
     scrollToBottom: false,
     showTypingIndicator: false,
