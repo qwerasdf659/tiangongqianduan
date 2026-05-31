@@ -34,14 +34,18 @@
               <text class="points-label">可用积分</text>
               <view class="points-value">
                 <text class="points-number">***</text>
-                <view class="points-icon"><t-icon name="money-filled" size="28rpx" color="#ffffff" /></view>
+                <view class="points-icon"
+                  ><t-icon name="money-filled" size="28rpx" color="#ffffff"
+                /></view>
               </view>
             </view>
             <view class="points-item">
               <text class="points-label">冻结积分</text>
               <view class="points-value">
                 <text class="points-number">***</text>
-                <view class="points-icon"><t-icon name="lock-on-filled" size="28rpx" color="#ffffff" /></view>
+                <view class="points-icon"
+                  ><t-icon name="lock-on-filled" size="28rpx" color="#ffffff"
+                /></view>
               </view>
             </view>
           </view>
@@ -53,7 +57,9 @@
         <view class="user-info-section">
           <!-- 欢迎文字 + 通知铃铛 + 审核记录徽章 同一行 -->
           <view class="welcome-text">
-            <text class="page-subtitle">欢迎，{{userInfo.mobile || userInfo.nickname || '用户'}}</text>
+            <text class="page-subtitle"
+              >欢迎，{{userInfo.mobile || userInfo.nickname || '用户'}}</text
+            >
             <!-- 🔔 通知铃铛入口（方案B通知系统独立化 — 首页右上角铃铛，带未读数角标） -->
             <view class="notification-bell-container" bindtap="goToNotifications">
               <view class="notification-bell-btn">
@@ -80,6 +86,17 @@
                 <text>{{auditRecordsCount > 99 ? '99+' : auditRecordsCount}}</text>
               </view>
             </view>
+
+            <!-- 🆕 仓库入口按钮 - 与通知/审核同一行 -->
+            <view class="inventory-badge-container" bindtap="goToInventory">
+              <view class="inventory-badge-btn">
+                <t-icon name="shop-filled" size="32rpx" color="#ffffff" />
+                <text class="badge-label">仓库</text>
+              </view>
+              <view class="inventory-badge-number" wx:if="{{inventoryItemCount > 0}}">
+                <text>{{inventoryItemCount > 99 ? '99+' : inventoryItemCount}}</text>
+              </view>
+            </view>
           </view>
 
           <!-- 积分横向容器 -->
@@ -89,7 +106,9 @@
               <text class="points-label">可用积分</text>
               <view class="points-value">
                 <text class="points-number {{pointsClass}}">{{pointsBalanceFormatted}}</text>
-                <view class="points-icon"><t-icon name="money-filled" size="28rpx" color="#ffffff" /></view>
+                <view class="points-icon"
+                  ><t-icon name="money-filled" size="28rpx" color="#ffffff"
+                /></view>
               </view>
             </view>
 
@@ -97,22 +116,10 @@
             <view class="points-item">
               <text class="points-label">冻结积分</text>
               <view class="points-value">
-                <text class="points-number {{frozenClass}}">{{frozenPointsFormatted}}</text>
-                <view class="points-icon"><t-icon name="lock-on-filled" size="28rpx" color="#ffffff" /></view>
-              </view>
-            </view>
-
-            <!-- 🆕 仓库入口按钮 - 与审核按钮同风格布局 -->
-            <view class="inventory-badge-container" bindtap="goToInventory">
-              <!-- 按钮主体：图标 + 文字（与审核按钮一致） -->
-              <view class="inventory-badge-btn">
-                <t-icon name="shop-filled" size="32rpx" color="#ffffff" />
-                <text class="badge-label">仓库</text>
-              </view>
-
-              <!-- 数字角标（物品数量，仅有物品时显示） -->
-              <view class="inventory-badge-number" wx:if="{{inventoryItemCount > 0}}">
-                <text>{{inventoryItemCount > 99 ? '99+' : inventoryItemCount}}</text>
+                <text class="points-number {{pointsClass}}">{{frozenPointsFormatted}}</text>
+                <view class="points-icon"
+                  ><t-icon name="lock-on-filled" size="28rpx" color="#ffffff"
+                /></view>
               </view>
             </view>
           </view>
@@ -422,14 +429,15 @@
     <maintenance-overlay />
 
     <!-- 底部留白：跟随内容滚动，确保抽奖区域不紧贴 tab bar -->
-    <view style="height: 60rpx; width: 100%;"></view>
+    <view style="height: 60rpx; width: 100%"></view>
   </scroll-view>
 
   <!-- 隐藏的Canvas用于生成正方形高分辨率二维码（方案B：428×428正方形） -->
+  <!-- prettier-ignore -->
   <canvas
     id="qrcodeCanvas"
     type="2d"
-    style="width: 428px; height: 428px; position: fixed; top: 0; left: 0; opacity: 0; pointer-events: none; z-index: -1"
+    style="width: 428px; height: 428px; position: fixed; top: 0; left: 0; opacity: 0; pointer-events: none; z-index: -1;"
   />
 
   <!-- 登录弹窗 -->

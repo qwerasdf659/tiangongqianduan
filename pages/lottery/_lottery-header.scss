@@ -12,7 +12,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 24rpx;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 24rpx;
   padding: 24rpx;
   margin: 0 24rpx 16rpx;
@@ -34,6 +34,7 @@
 .welcome-text {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12rpx;
   font-size: var(--tg-font-size-body);
   font-weight: var(--tg-font-weight-semibold);
@@ -117,7 +118,7 @@
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   box-shadow: 0 2rpx 6rpx rgba(160, 114, 74, 0.3);
 }
 
@@ -131,7 +132,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-left: 12rpx;
+  margin-left: 0;
   padding: 0;
   /* Skyline 不支持 cursor 属性 */
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -142,20 +143,19 @@
   transform: scale(0.92);
 }
 
-/* 仓库胶囊按钮 - 放大版 */
+/* 仓库胶囊按钮 — 与通知/审核同一行，高度对齐 48rpx */
 .inventory-badge-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6rpx;
-  height: 54rpx;
-  padding: 0 20rpx;
-  border-radius: 27rpx;
-  background: rgba(197, 165, 114, 0.75);
-  box-shadow: 0 2rpx 8rpx rgba(197, 165, 114, 0.25);
+  gap: 4rpx;
+  height: 48rpx;
+  padding: 0 16rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
+  box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
-  animation: inventoryPulse 3s ease-in-out infinite;
 }
 
 /* 仓库内图标文字放大 */
@@ -166,21 +166,21 @@
 }
 
 .inventory-badge-btn .badge-label {
-  font-size: var(--tg-font-size-body);
+  font-size: var(--tg-font-size-small);
 }
 
-/* 仓库数字角标 - 放大版 */
+/* 仓库数字角标 - 与通知角标对齐 */
 .inventory-badge-number {
   position: absolute;
-  top: -24rpx;
+  top: -18rpx;
   left: 50%;
   transform: translateX(-50%);
-  min-width: 38rpx;
-  height: 38rpx;
+  min-width: 34rpx;
+  height: 34rpx;
   background: #c5a572;
-  border-radius: 19rpx;
+  border-radius: 17rpx;
   border: 2rpx solid #ffffff;
-  font-size: var(--tg-font-size-small);
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-color-white);
   font-weight: var(--tg-font-weight-bold);
   @include flex-center;
@@ -189,23 +189,6 @@
     0 4rpx 12rpx rgba(139, 115, 85, 0.4),
     0 2rpx 4rpx rgba(0, 0, 0, 0.2);
   animation: inventoryBadgeBounce 2.5s ease-in-out infinite;
-}
-
-/* 仓库呼吸动画 */
-@keyframes inventoryPulse {
-  0%,
-  100% {
-    box-shadow:
-      0 4rpx 16rpx rgba(197, 165, 114, 0.35),
-      0 2rpx 8rpx rgba(168, 136, 74, 0.25),
-      inset 0 1rpx 0 rgba(255, 255, 255, 0.25);
-  }
-  50% {
-    box-shadow:
-      0 6rpx 24rpx rgba(197, 165, 114, 0.5),
-      0 3rpx 12rpx rgba(168, 136, 74, 0.35),
-      inset 0 1rpx 0 rgba(255, 255, 255, 0.3);
-  }
 }
 
 /* 仓库角标弹跳动画 */
@@ -250,10 +233,8 @@
   height: 48rpx;
   padding: 0 16rpx;
   border-radius: 24rpx;
-  background: rgba(139, 115, 85, 0.75);
-  box-shadow:
-    0 3rpx 12rpx rgba(139, 115, 85, 0.3),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
+  box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
 }
 
 .notification-bell-btn .badge-icon {

@@ -25,7 +25,7 @@
 .admin-scan-button {
   @include flex-center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   padding: 16rpx 28rpx;
   border-radius: 60rpx;
   box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
@@ -57,7 +57,7 @@
 .admin-consume-button {
   @include flex-center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   padding: 16rpx 28rpx;
   border-radius: 60rpx;
   box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
@@ -85,20 +85,21 @@
   letter-spacing: var(--tg-letter-spacing-tight);
 }
 
-/* 🔴 右侧：审核详情按钮 */
+/* 🔴 右侧：审核详情按钮 — 与消费录入按钮同色 */
 .admin-audit-button {
   @include flex-center;
   gap: 8rpx;
   padding: 16rpx 28rpx;
-  background-color: rgba(var(--tg-color-white-rgb), 0.2);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   border-radius: 60rpx;
-  border: 2rpx solid rgba(var(--tg-color-white-rgb), 0.5);
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
   transition: all 0.3s ease;
 }
 
 .admin-audit-button:active {
-  background-color: rgba(255, 255, 255, 0.3);
   transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
 /* 🔴 审核详情文字 */
@@ -159,10 +160,10 @@
   animation: auditPulse 2.5s ease-in-out infinite;
 }
 
-/* 无记录状态 - 浅色实底，融入背景 */
+/* 无记录状态 — 与消费录入按钮同色 */
 .audit-badge-btn.no-records {
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
+  box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
 }
 
 /* 徽章光晕效果（仅有记录时） */

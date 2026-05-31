@@ -9,6 +9,15 @@
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
+  "componentPlaceholder": {
+    "t-dialog": "view",
+    "t-tabs": "view",
+    "t-tab-panel": "view",
+    "t-button": "view",
+    "t-loading": "view",
+    "t-empty": "view",
+    "t-icon": "view"
+  },
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 200,
   "navigationBarTitleText": "我的仓库",

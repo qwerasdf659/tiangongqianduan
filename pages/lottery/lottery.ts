@@ -46,18 +46,24 @@ const formatPointsDisplay = Utils.formatPoints
  * 根据积分位数返回响应式字体CSS类名（独立函数，供MobX绑定的computed使用）
  * 位数 ≤7: 默认字号  |  ≤10: medium-number  |  ≤13: small-number  |  >13: tiny-number
  */
-function getPointsDisplayClass(num: number): string {
-  if (!num) {
+/**
+ * 统一计算可用积分/冻结积分的响应式字号档位
+ *
+ * 方案A：取两个数字中位数最多者计算同一档字号，确保左右两个数字字号一致，
+ * 避免「可用积分变小、冻结积分仍为大字」的视觉割裂。
+ *
+ * @param nums 参与比较的积分数值（可用积分、冻结积分）
+ * @returns 字号档位 CSS 类名（''=大字 / medium-number / small-number / tiny-number）
+ */
+function getPointsDisplayClass(...nums: number[]): string {
+  const maxLen = Math.max(0, ...nums.map(n => (n ? n.toString().length : 0)))
+  if (maxLen <= 7) {
     return ''
   }
-  const len = num.toString().length
-  if (len <= 7) {
-    return ''
-  }
-  if (len <= 10) {
+  if (maxLen <= 10) {
     return 'medium-number'
   }
-  if (len <= 13) {
+  if (maxLen <= 13) {
     return 'small-number'
   }
   return 'tiny-number'
@@ -77,9 +83,8 @@ Page({
     /* 登录弹窗 */
     loginPopupVisible: false,
 
-    /* 响应式字体类 */
+    /* 响应式字体类（可用/冻结积分共用同一档字号，确保大小一致） */
     pointsClass: '',
-    frozenClass: '',
 
     /* 格式化显示的积分（带千分位） */
     pointsBalanceFormatted: '0',
@@ -156,9 +161,9 @@ Page({
         /* 格式化积分显示（带千分位分隔符） - 当Store变化时自动重新计算 */
         pointsBalanceFormatted: () => formatPointsDisplay(pointsStore.availableAmount),
         frozenPointsFormatted: () => formatPointsDisplay(pointsStore.frozenAmount),
-        /* 响应式字体CSS类 - 根据积分位数自动切换字号 */
-        pointsClass: () => getPointsDisplayClass(pointsStore.availableAmount),
-        frozenClass: () => getPointsDisplayClass(pointsStore.frozenAmount)
+        /* 响应式字体CSS类 - 取可用/冻结积分位数最多者，两数字共用同一档字号 */
+        pointsClass: () =>
+          getPointsDisplayClass(pointsStore.availableAmount, pointsStore.frozenAmount)
       },
       actions: ['setBalance']
     })
@@ -227,13 +232,15 @@ Page({
     const currentFrozen = pointsStore.frozenAmount || 0
     if (currentBalance !== this.data.pointsBalance) {
       onShowPatch.pointsBalance = currentBalance
-      onShowPatch.pointsClass = getPointsDisplayClass(currentBalance)
       onShowPatch.pointsBalanceFormatted = Utils.formatPoints(currentBalance)
     }
     if (currentFrozen !== this.data.frozenPoints) {
       onShowPatch.frozenPoints = currentFrozen
-      onShowPatch.frozenClass = getPointsDisplayClass(currentFrozen)
       onShowPatch.frozenPointsFormatted = Utils.formatPoints(currentFrozen)
+    }
+    /* 可用/冻结任一变化都需重算共用字号（取两者位数最多者） */
+    if (currentBalance !== this.data.pointsBalance || currentFrozen !== this.data.frozenPoints) {
+      onShowPatch.pointsClass = getPointsDisplayClass(currentBalance, currentFrozen)
     }
     if (userInfo !== this.data.userInfo) {
       onShowPatch.userInfo = userInfo
@@ -807,13 +814,15 @@ Page({
     const patch: Record<string, any> = {}
     if (points !== this.data.pointsBalance) {
       patch.pointsBalance = points
-      patch.pointsClass = getPointsDisplayClass(points)
       patch.pointsBalanceFormatted = Utils.formatPoints(points)
     }
     if (frozen !== this.data.frozenPoints) {
       patch.frozenPoints = frozen
-      patch.frozenClass = getPointsDisplayClass(frozen)
       patch.frozenPointsFormatted = Utils.formatPoints(frozen)
+    }
+    /* 可用/冻结任一变化都需重算共用字号（取两者位数最多者） */
+    if (points !== this.data.pointsBalance || frozen !== this.data.frozenPoints) {
+      patch.pointsClass = getPointsDisplayClass(points, frozen)
     }
     if (Object.keys(patch).length > 0) {
       this.setData(patch)
@@ -835,7 +844,9 @@ Page({
    */
   async generateUserQRCode() {
     /* 防重入：避免多处同时触发导致重复请求 */
-    if (this._qrGenerating) { return }
+    if (this._qrGenerating) {
+      return
+    }
     this._qrGenerating = true
 
     try {
@@ -849,7 +860,7 @@ Page({
       if (!this._canvasReady) {
         let waitCount = 0
         const maxWait = 20
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           const checkInterval = setInterval(() => {
             waitCount++
             if (this._canvasReady || waitCount >= maxWait) {
@@ -890,37 +901,39 @@ Page({
         correctLevel: 2,
         background: '#ffffff',
         foreground: '#000000'
-      }).then((tempFilePath: string) => {
-        const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
-        const minutes = Math.floor(remaining / 60)
-        const seconds = remaining % 60
-        this.setData({
-          qrCodeImage: tempFilePath,
-          qrCountdown: remaining,
-          qrExpired: false,
-          qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
-          qrExpiresAt: expiresTimestamp
-        })
-        this.startQrCountdown()
-      }).catch((canvasErr: any) => {
-        log.warn('[lottery] Canvas生成失败，尝试使用后端图片URL:', canvasErr?.message)
-        if (qrCodeData.qrcode_url || qrCodeData.image_url) {
+      })
+        .then((tempFilePath: string) => {
           const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
           const minutes = Math.floor(remaining / 60)
           const seconds = remaining % 60
           this.setData({
-            qrCodeImage: qrCodeData.qrcode_url || qrCodeData.image_url,
+            qrCodeImage: tempFilePath,
             qrCountdown: remaining,
             qrExpired: false,
             qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
             qrExpiresAt: expiresTimestamp
           })
           this.startQrCountdown()
-        } else {
-          log.error('[lottery] 所有二维码生成方式均失败')
-          this.setData({ qrDevToolsUnavailable: true })
-        }
-      })
+        })
+        .catch((canvasErr: any) => {
+          log.warn('[lottery] Canvas生成失败，尝试使用后端图片URL:', canvasErr?.message)
+          if (qrCodeData.qrcode_url || qrCodeData.image_url) {
+            const remaining = Math.max(0, Math.floor((expiresTimestamp - Date.now()) / 1000))
+            const minutes = Math.floor(remaining / 60)
+            const seconds = remaining % 60
+            this.setData({
+              qrCodeImage: qrCodeData.qrcode_url || qrCodeData.image_url,
+              qrCountdown: remaining,
+              qrExpired: false,
+              qrCountdownText: `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`,
+              qrExpiresAt: expiresTimestamp
+            })
+            this.startQrCountdown()
+          } else {
+            log.error('[lottery] 所有二维码生成方式均失败')
+            this.setData({ qrDevToolsUnavailable: true })
+          }
+        })
     } catch (error: any) {
       log.error('[lottery] 生成V2二维码异常:', error)
 

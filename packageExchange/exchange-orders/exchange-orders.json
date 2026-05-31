@@ -14,6 +14,16 @@
     "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
     "custom-navbar": "/components/custom-navbar/custom-navbar"
   },
+  "componentPlaceholder": {
+    "t-tag": "view",
+    "t-dialog": "view",
+    "t-tabs": "view",
+    "t-tab-panel": "view",
+    "t-button": "view",
+    "t-loading": "view",
+    "t-empty": "view",
+    "t-icon": "view"
+  },
   "navigationStyle": "custom",
   "disableScroll": true
 }
