@@ -1,0 +1,25 @@
+/* 视图切换按钮（网格/列表）— 交易市场与商品兑换共用，单一来源维护 */
+/* 注意：本控件位于两个组件（exchange-market / exchange-shelf）的头部模板中， */
+/* 微信小程序组件样式隔离，须由各自组件样式表分别 @import 才能生效 */
+.view-toggle {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8rpx;
+}
+.view-toggle .toggle-btn {
+  flex-shrink: 0;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--tg-color-white-rgb), 0.9);
+  border: 1rpx solid var(--tg-exchange-accent-light, rgba(255, 107, 53, 0.2));
+  font-size: var(--tg-font-size-caption);
+}
+.view-toggle .toggle-btn.active {
+  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
+  border-color: var(--tg-exchange-accent, var(--td-brand-color-active));
+  color: var(--tg-color-white);
+}

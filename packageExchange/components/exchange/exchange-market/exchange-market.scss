@@ -66,23 +66,27 @@
 }
 
 .asset-icon {
-  width: 32rpx;
-  height: 32rpx;
-  margin-right: 6rpx;
+  width: 55rpx;
+  height: 55rpx;
+  margin-right: 10rpx;
   flex-shrink: 0;
   border-radius: 50%;
 }
 
 .asset-name {
-  font-size: var(--td-font-size-xs);
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-tertiary);
   margin-right: 8rpx;
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .asset-amount {
-  font-size: var(--td-font-size-m);
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-number-md);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tg-letter-spacing-tight);
 }
 
 .asset-balance-empty {
@@ -93,22 +97,57 @@
 
 .header-search-box {
   display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: center;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 20rpx;
-  padding: 12rpx 20rpx;
-  margin-bottom: 8rpx;
+  background: var(--tg-color-white);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(197, 165, 114, 0.2);
+  padding: 0 20rpx;
+  height: 64rpx;
+  box-sizing: border-box;
 }
 
 .header-search-input {
   flex: 1;
-  font-size: var(--td-font-size-s);
-  color: var(--tg-color-white);
+  min-width: 0;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.header-search-placeholder {
+  color: var(--tg-text-tertiary);
 }
 
 .header-search-icon {
-  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
   margin-right: 10rpx;
+}
+
+/* 操作按钮（刷新 / 按售价排序）— 与筛选行"全部"按钮字体、尺寸完全一致 */
+.market-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 64rpx;
+  background: var(--tg-color-white);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(197, 165, 114, 0.2);
+  padding: 0 20rpx;
+}
+
+.market-action-btn:active {
+  opacity: 0.7;
+}
+
+.market-action-btn-text {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-secondary);
+  white-space: nowrap;
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .header-quick-actions {
@@ -118,14 +157,6 @@
   margin-bottom: 8rpx;
 }
 
-.header-action-btn {
-  padding: 8rpx 16rpx;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 20rpx;
-  font-size: var(--tg-font-size-mini);
-  color: var(--tg-color-white);
-}
-
 /* 筛选区域 */
 .search-filter {
   margin-top: 12rpx;
@@ -133,46 +164,67 @@
 
 .filter-buttons {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 12rpx;
 }
 
 .filter-btn {
-  flex: 1;
-  min-width: 100rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 64rpx;
   background: var(--tg-color-white);
-  border-radius: 20rpx;
-  font-size: var(--td-font-size-s);
-  color: var(--tg-text-secondary);
+  border-radius: 16rpx;
   border: 1rpx solid rgba(197, 165, 114, 0.2);
-  padding: 0 16rpx;
+  padding: 0 20rpx;
+}
+
+.filter-btn-text {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-secondary);
+  white-space: nowrap;
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .filter-btn.active {
   background: linear-gradient(135deg, #c5a572, #a08b6e);
-  color: var(--tg-color-white);
-  font-weight: var(--tg-font-weight-bold);
   border-color: #c5a572;
 }
 
+.filter-btn.active .filter-btn-text {
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-bold);
+}
+
 .advanced-filter-btn {
-  min-width: 120rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 64rpx;
   background: var(--tg-color-white);
-  border-radius: 20rpx;
-  font-size: var(--td-font-size-s);
-  color: var(--tg-text-secondary);
+  border-radius: 16rpx;
   border: 1rpx solid rgba(197, 165, 114, 0.2);
-  padding: 0 16rpx;
+  padding: 0 20rpx;
+}
+
+.advanced-filter-btn-text {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-secondary);
+  white-space: nowrap;
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .advanced-filter-btn.active {
   background: linear-gradient(135deg, #c5a572, #a08b6e);
+  border-color: #c5a572;
+}
+
+.advanced-filter-btn.active .advanced-filter-btn-text {
   color: var(--tg-color-white);
 }
 
@@ -259,7 +311,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 107, 53, 0.08);
+  background: rgba(197, 165, 114, 0.1);
   border-radius: var(--td-radius-default);
   padding: 16rpx 0;
 }
@@ -364,38 +416,35 @@
   margin-bottom: 16rpx;
 }
 
-.market-chart-toggle {
-  display: flex;
+/* 行情入口按钮 — 置于筛选标签行最后，风格对齐 advanced-filter-btn */
+.chart-toggle-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 16rpx 0;
-  margin-bottom: 12rpx;
-}
-
-.chart-toggle-inner {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 10rpx 28rpx;
-  background: rgba(255, 107, 53, 0.06);
-  border-radius: 24rpx;
-  border: 1rpx solid rgba(255, 107, 53, 0.1);
+  flex-shrink: 0;
+  gap: 6rpx;
+  height: 64rpx;
+  padding: 0 20rpx;
+  background: var(--tg-color-white);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(197, 165, 114, 0.2);
   transition: all 0.3s ease;
-
-  &:active {
-    background: rgba(255, 107, 53, 0.12);
-  }
 }
 
-.chart-toggle-text {
+.chart-toggle-btn.active {
+  background: linear-gradient(135deg, #c5a572, #a08b6e);
+  border-color: #c5a572;
+}
+
+.chart-toggle-btn.active .chart-toggle-btn-text {
+  color: var(--tg-color-white);
+}
+
+.chart-toggle-btn-text {
   font-size: var(--tg-font-size-caption);
-  color: var(--tg-text-primary);
-  font-weight: var(--tg-font-weight-regular);
-}
-
-.chart-toggle-arrow {
-  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-medium);
   color: var(--tg-text-secondary);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 /* ========== 高级筛选面板扩展样式 ========== */
@@ -430,7 +479,7 @@
   background: rgba(248, 250, 252, 0.95);
   border-radius: 12rpx;
   font-size: var(--tg-font-size-body);
-  border: 2rpx solid rgba(255, 107, 53, 0.12);
+  border: 2rpx solid rgba(197, 165, 114, 0.2);
   text-align: center;
 }
 

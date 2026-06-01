@@ -40,7 +40,6 @@ const EXCHANGE_FEED_AD_INTERVAL = 5
 const { showToast } = Wechat
 const { debounce } = Utils
 const { enrichProductDisplayFields } = marketProductDisplay
-const { userStore: marketUserStore } = require('../../../../../store/user')
 
 /**
  * 前端排序后端 sort 参数映射
@@ -106,6 +105,7 @@ module.exports = Behavior({
         const {
           categoryFilter,
           sortBy,
+          searchKeyword,
           filterCategoryCode,
           filterRarityCode,
           filterAssetGroupCode,
@@ -159,6 +159,10 @@ module.exports = Behavior({
         }
         if (filterQualityGrade) {
           apiParams.quality_grade = filterQualityGrade
+        }
+        /* 关键词检索：交后端 GET /marketplace/listings 的 keyword 参数处理（前端不做本地过滤） */
+        if (searchKeyword) {
+          apiParams.keyword = searchKeyword
         }
 
         const response = await getMarketProducts(apiParams)
@@ -257,7 +261,7 @@ module.exports = Behavior({
       }
     },
 
-    /** 搜索输入处理00ms防抖）→ 重新加载 */
+    /** 搜索输入处理（500ms 防抖）→ 重新加载 */
     onSearchInput: debounce(function (this: any, e: any) {
       this.setData({ searchKeyword: e.detail.value.trim(), currentPage: 1 })
       this.loadProducts()
@@ -583,12 +587,15 @@ module.exports = Behavior({
     // ===== 我的交易管理 =====
 
     /**
-     * 加载当前用户的挂单状态统     * 后端API: GET /api/v4/marketplace/listing-status
+     * 加载当前用户的挂单状态统计
+     * 后端API: GET /api/v4/marketplace/listing-status
      * 响应: { current, limit, remaining, percentage }
      */
     async loadMyListingStatus() {
       /* 未登录时跳过（个人挂单状态需要认证） */
-      if (!this.data.isLoggedIn) return
+      if (!this.data.isLoggedIn) {
+        return
+      }
       try {
         const result = await getMyListingStatus()
         if (result && result.success && result.data) {

@@ -69,21 +69,21 @@
         </view>
         <view class="header-quick-actions">
           <view class="header-action-btn" bindtap="onGoToMyOrders"
-            ><t-icon name="shop" size="28rpx" /> 我的订单</view
+            ><t-icon name="shop" size="28rpx" /><text>我的订单</text></view
           >
           <view class="header-action-btn" bindtap="onRefreshProducts"
-            ><t-icon name="refresh" size="28rpx" color="currentColor" /> 刷新</view
+            ><t-icon name="refresh" size="28rpx" color="currentColor" /><text>刷新</text></view
           >
           <view class="header-action-btn" bindtap="onShopSortByPoints"
-            ><t-icon name="chart-bar" size="28rpx" /> 按售价排序</view
+            ><t-icon name="chart-bar" size="28rpx" /><text>按售价排序</text></view
           >
           <view class="view-toggle">
             <view
               class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}"
               bindtap="onToggleViewMode"
               data-mode="grid"
-              ><t-icon name="app" size="28rpx" /></view
-            >
+              ><t-icon name="app" size="28rpx"
+            /></view>
             <view
               class="toggle-btn {{viewMode === 'list' ? 'active' : ''}}"
               bindtap="onToggleViewMode"

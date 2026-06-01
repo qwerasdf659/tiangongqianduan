@@ -13,7 +13,12 @@
       >
         <view class="asset-balances-row">
           <view class="asset-balance-item" wx:for="{{assetBalances}}" wx:key="asset_code">
-            <image wx:if="{{item.icon_url}}" class="asset-icon" src="{{item.icon_url}}" mode="aspectFit" />
+            <image
+              wx:if="{{item.icon_url}}"
+              class="asset-icon"
+              src="{{item.icon_url}}"
+              mode="aspectFit"
+            />
             <text class="asset-name">{{item.display_name}}</text>
             <text class="asset-amount">{{item.available_amount}}</text>
           </view>
@@ -27,24 +32,26 @@
       </scroll-view>
     </view>
 
-    <!-- 操作按钮独占一行 -->
+    <!-- 操作行：搜索框置于最左，其后依次为刷新 / 按售价排序 / 视图切换 -->
     <view class="header-quick-actions">
-      <t-button
-        theme="default"
-        variant="outline"
-        size="small"
-        shape="round"
-        bind:tap="onRefreshProducts"
-        >刷新</t-button
-      >
-      <t-button
-        theme="default"
-        variant="outline"
-        size="small"
-        shape="round"
-        bind:tap="onSortByPoints"
-        >按售价排序</t-button
-      >
+      <!-- 搜索框（最左，可输入；关键词经 GET /marketplace/listings 的 keyword 参数交后端检索） -->
+      <view class="header-search-box">
+        <t-icon name="search" size="32rpx" class="header-search-icon" />
+        <input
+          class="header-search-input"
+          placeholder="搜索商品名称"
+          placeholder-class="header-search-placeholder"
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+          confirm-type="search"
+        />
+      </view>
+      <view class="market-action-btn" bindtap="onRefreshProducts">
+        <text class="market-action-btn-text">刷新</text>
+      </view>
+      <view class="market-action-btn" bindtap="onSortByPoints">
+        <text class="market-action-btn-text">按售价排序</text>
+      </view>
       <view class="view-toggle">
         <view
           class="toggle-btn {{viewMode === 'grid' ? 'active' : ''}}"
@@ -61,40 +68,39 @@
       </view>
     </view>
 
-    <!-- 搜索框独占一行（后端未提供 keyword 查询能力前禁用，避免误导用户） -->
-    <view class="header-search-box">
-      <t-icon name="search" size="28rpx" class="header-search-icon" />
-      <input
-        class="header-search-input"
-        placeholder="交易市场搜索待后端提供接口"
-        value="{{searchKeyword}}"
-        disabled="{{true}}"
-      />
-    </view>
-
     <!-- 筛选功能 -->
     <view class="search-filter">
       <view class="filter-buttons">
-        <button
+        <view
           wx:for="{{marketTypeFilters}}"
           wx:key="value"
           class="filter-btn {{currentFilter === item.value ? 'active' : ''}} {{filtersCount && filtersCount.listing_kinds && item.value !== 'all' && filtersCount.listing_kinds[item.value] === 0 ? 'filter-disabled' : ''}}"
           bindtap="onFilterChange"
           data-filter="{{item.value}}"
         >
-          {{item.label}}<text
-            wx:if="{{filtersCount && filtersCount.listing_kinds && filtersCount.listing_kinds[item.value] !== undefined}}"
-            class="filter-count"
+          <text class="filter-btn-text"
+            >{{item.label}}<text
+              wx:if="{{filtersCount && filtersCount.listing_kinds && filtersCount.listing_kinds[item.value] !== undefined}}"
+              class="filter-count"
+            >
+              ({{filtersCount.listing_kinds[item.value]}})</text
+            ></text
           >
-            ({{filtersCount.listing_kinds[item.value]}})</text
-          >
-        </button>
-        <button
+        </view>
+        <view
           class="advanced-filter-btn {{showAdvancedFilter ? 'active' : ''}}"
           bindtap="onToggleAdvancedFilter"
         >
-          高级筛选 {{showAdvancedFilter ? '▲' : '▼'}}
-        </button>
+          <text class="advanced-filter-btn-text">筛选 {{showAdvancedFilter ? '▲' : '▼'}}</text>
+        </view>
+        <!-- 市场行情入口：与筛选标签同行，置于最后 -->
+        <view
+          class="chart-toggle-btn {{showPriceChart ? 'active' : ''}}"
+          bindtap="onTogglePriceChart"
+        >
+          <t-icon name="trending-up" size="24rpx" />
+          <text class="chart-toggle-btn-text">{{showPriceChart ? '收起行情' : '查看行情'}}</text>
+        </view>
       </view>
 
       <view class="advanced-filter-panel" wx:if="{{showAdvancedFilter}}">
@@ -269,18 +275,9 @@
     </view>
   </view>
 
-  <!--市场行情概览（可折叠，默认收起）-->
+  <!--市场行情概览（可折叠，默认收起，由筛选行的"查看行情"按钮控制）-->
   <view class="market-chart-section" wx:if="{{showPriceChart}}">
     <price-chart asset-code="{{chartAssetCode}}" title="市场行情" canvas-height="{{160}}" />
-  </view>
-  <view class="market-chart-toggle" bindtap="onTogglePriceChart">
-    <view class="chart-toggle-inner">
-      <text class="chart-toggle-text" wx:if="{{showPriceChart}}">收起行情</text
-      ><view class="chart-toggle-text" wx:else
-        ><t-icon name="trending-up" size="28rpx" /> 查看市场行情</view
-      >
-      <text class="chart-toggle-arrow">{{showPriceChart ? '︿' : '﹀'}}</text>
-    </view>
   </view>
 
   <!--可滚动商品列表-->

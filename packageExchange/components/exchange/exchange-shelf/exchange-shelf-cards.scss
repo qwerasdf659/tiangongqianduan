@@ -41,7 +41,7 @@
 }
 
 .type-bar.lucky {
-  background: linear-gradient(135deg, #C5A572, #A08B6E);
+  background: linear-gradient(135deg, #c5a572, #a08b6e);
 }
 
 /* 图片区域 */
@@ -310,9 +310,16 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 180rpx;
+  justify-content: center;
+  gap: 4rpx;
+  min-height: 180rpx;
+  height: auto;
   padding: 0;
+}
+.unified-card.list-mode .price-row {
+  padding: 0;
+  margin: 4rpx 0;
+  background: transparent;
 }
 .unified-card.list-mode .cta-btn {
   align-self: flex-end;
@@ -321,7 +328,7 @@
   height: 60rpx;
   border-radius: 30rpx;
   font-size: var(--tg-font-size-caption);
-  margin: 0;
+  margin: 4rpx 0 0;
 }
 
 /* 进场动画 */
@@ -437,27 +444,36 @@
   color: var(--tg-color-warning);
 }
 
-/* 视图切换按钮 */
-.view-toggle {
-  display: flex;
-  gap: 8rpx;
+/* 列表视图下禁用"全图叠字"效果：全图铺满只适合网格竖卡，列表横排须回归左图右文 */
+.unified-card.list-mode.fullbleed-mode .card-image-area {
+  position: relative;
+  inset: auto;
+  width: 180rpx;
+  height: 180rpx;
+  z-index: auto;
 }
-.view-toggle .toggle-btn {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 12rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(var(--tg-color-white-rgb), 0.9);
-  border: 1rpx solid var(--tg-exchange-accent-light, rgba(255, 107, 53, 0.2));
-  font-size: var(--tg-font-size-caption);
+.unified-card.list-mode.fullbleed-mode .card-image-area::after {
+  display: none;
 }
-.view-toggle .toggle-btn.active {
-  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
-  border-color: var(--tg-exchange-accent, var(--td-brand-color-active));
-  color: var(--tg-color-white);
+.unified-card.list-mode.fullbleed-mode .card-body {
+  position: relative;
+  z-index: auto;
+  padding: 0;
 }
+.unified-card.list-mode.fullbleed-mode .product-name {
+  color: var(--tg-exchange-name-color, var(--tg-text-primary-strong));
+  text-shadow: none;
+}
+.unified-card.list-mode.fullbleed-mode .product-desc {
+  color: var(--tg-exchange-desc-color, var(--tg-text-tertiary-muted));
+}
+.unified-card.list-mode.fullbleed-mode .price-current,
+.unified-card.list-mode.fullbleed-mode .price-unit {
+  color: var(--tg-exchange-price-color, var(--td-brand-color));
+}
+
+/* 视图切换按钮样式已抽离为独立 partial，单一来源维护 */
+@import './view-toggle';
 
 /* 铸造标识（mint_instance=true 时展示，表示兑换后铸造物品实例进入背包） */
 .mint-mini-tag {

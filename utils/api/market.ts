@@ -88,6 +88,8 @@ async function getMarketProducts(
     sort?: string | null
     /** 品质等级筛选（后端 instance_attributes.quality_grade） */
     quality_grade?: string | null
+    /** 关键词检索（后端按商品名称等字段模糊匹配，待后端实现） */
+    keyword?: string | null
     /** 是否返回筛选维度聚合计数（C+++联动计数），后端交叉排除逻辑 */
     with_counts?: boolean
   } = {}
@@ -104,6 +106,7 @@ async function getMarketProducts(
     max_price = null,
     sort = null,
     quality_grade = null,
+    keyword = null,
     with_counts = false
   } = params
 
@@ -119,6 +122,7 @@ async function getMarketProducts(
     max_price,
     sort,
     quality_grade,
+    keyword,
     with_counts: with_counts ? 'true' : null
   })
   return apiClient.request(`/marketplace/listings?${qs}`, { method: 'GET', needAuth: false })

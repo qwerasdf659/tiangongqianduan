@@ -64,14 +64,14 @@
 }
 
 .filter-btn.active {
-  background: var(linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active)));
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
   color: var(--tg-color-white);
   border-color: transparent;
   box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
 }
 
 .advanced-filter-btn.active {
-  background: var(linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active)));
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
   color: var(--tg-color-white);
   border-color: transparent;
 }
@@ -162,7 +162,7 @@
 }
 
 .option-btn.active {
-  background: var(linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active)));
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
   color: var(--tg-color-white);
   border-color: transparent;
 }
