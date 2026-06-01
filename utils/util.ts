@@ -786,6 +786,37 @@ const buildQueryString = (params: Record<string, any>): string => {
 }
 
 /**
+ * 比较两个语义化版本号（如 "5.2.0" vs "5.3.1"）
+ *
+ * 用于前端强制更新闸门：将本地 app 版本与后端返回的最低可用版本比较。
+ * 缺失的段按 0 补齐（"5.2" 视为 "5.2.0"），非数字段按 0 处理。
+ *
+ * @param v1 - 版本号A
+ * @param v2 - 版本号B
+ * @returns v1<v2 返回 -1；v1>v2 返回 1；相等返回 0
+ *
+ * @example
+ * compareVersion('5.2.0', '5.3.0') // -1
+ * compareVersion('5.3.0', '5.3')   //  0
+ */
+function compareVersion(v1: string, v2: string): number {
+  const a = String(v1 || '0').split('.')
+  const b = String(v2 || '0').split('.')
+  const len = Math.max(a.length, b.length)
+  for (let i = 0; i < len; i++) {
+    const n1 = parseInt(a[i], 10) || 0
+    const n2 = parseInt(b[i], 10) || 0
+    if (n1 > n2) {
+      return 1
+    }
+    if (n1 < n2) {
+      return -1
+    }
+  }
+  return 0
+}
+
+/**
  * 格式化倒计时文案（距离目标时间的剩余时长）
  * @param endTime - 结束时间戳（毫秒）
  * @returns 可读的倒计时文案，如 "3天12小时" / "2小时30分钟" / "15分钟" / "已结束"
@@ -812,6 +843,7 @@ module.exports = {
   formatTime,
   formatNumber,
   formatCountdown,
+  compareVersion,
   safeParseDateString,
   base64Decode,
   validateJWTTokenIntegrity,

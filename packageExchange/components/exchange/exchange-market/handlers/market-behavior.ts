@@ -405,6 +405,12 @@ module.exports = Behavior({
       const product = e.currentTarget.dataset.product
       marketLog.info('点击市场商品:', product)
 
+      /* 购买前置校验：未登录先引导登录（与确认购买、查看行情保持一致） */
+      if (!this.data.isLoggedIn) {
+        this.triggerEvent('needlogin')
+        return
+      }
+
       if (!product || !product.market_listing_id) {
         marketLog.error('商品缺少 market_listing_id，无法发起购', {
           listing_kind: product?.listing_kind,

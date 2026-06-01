@@ -28,6 +28,10 @@ interface IAppOption {
     network_status: string
     /** 当前页面路径 */
     current_page: string
+    /** 强制更新模式标志（版本闸门命中时写入，maintenance-overlay 读取） */
+    isForceUpdateMode?: boolean
+    /** 强制更新提示文案 */
+    forceUpdateMessage?: string
 
     // ===== WebSocket配置 =====
     /** WebSocket地址 */
@@ -79,6 +83,10 @@ interface IAppOption {
   subscribeWebSocketMessages(pageId: string, callback: Function): void
   /** 取消订阅 Socket.IO 消息（页面卸载时调用） */
   unsubscribeWebSocketMessages(pageId: string): void
+  /** 进入强制更新模式（版本闸门命中时调用，通知遮罩组件显示更新拦截层） */
+  enterForceUpdateMode(serverMessage?: string): void
+  /** 套用已下载的新版本（强制更新遮罩点击"立即更新"时调用） */
+  applyPendingUpdate(): void
 }
 
 /** App命名空间 - 项目级类型 */

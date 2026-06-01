@@ -25,8 +25,12 @@
           <view
             wx:if="{{!assetBalances || assetBalances.length === 0}}"
             class="asset-balance-empty"
+            bindtap="onNeedLogin"
           >
             <text class="asset-name">暂无资产数据</text>
+            <view wx:if="{{!isLoggedIn}}" class="header-login-inline">
+              <text>请登录</text>
+            </view>
           </view>
         </view>
       </scroll-view>

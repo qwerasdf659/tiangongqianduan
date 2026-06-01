@@ -151,6 +151,34 @@ async function getSystemStatus() {
 }
 
 /**
+ * 获取小程序版本闸门配置（公开接口，无需登录）
+ * GET /api/v4/system/app-version
+ *
+ * 用于前端强制更新：小程序冷启动时调用，将本地版本与返回的
+ * min_version 比较，低于 min_version 则强制拦截，引导用户更新。
+ *
+ * 前端约束: 此接口必须 needAuth:false / showError:false，
+ * 不能因为它失败而阻塞启动（接口异常时前端放行，不拦截用户）。
+ *
+ * 响应格式:
+ *   { success, data: {
+ *       latest_version,   // 当前线上最新版本，如 "5.3.0"
+ *       min_version,      // 最低可用版本，低于此版本强制更新，如 "5.2.0"
+ *       force_update,     // 是否开启强制更新闸门（总开关）
+ *       update_message,   // 强制更新提示文案（可选）
+ *       platform          // 平台标识（可选）: miniprogram
+ *   } }
+ */
+async function getAppVersionGate() {
+  return apiClient.request('/system/app-version', {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
  * 获取所有字典类型列表 - GET /api/v4/system/dictionaries/types
  *
  * 后端无 /system/dictionaries 根路径列表接口
@@ -484,6 +512,7 @@ module.exports = {
   getMyFeedbacks,
   getFeedbackDetail,
   getSystemStatus,
+  getAppVersionGate,
   getDictionaryTypes,
   getDictionaryByType,
   getNotifications,

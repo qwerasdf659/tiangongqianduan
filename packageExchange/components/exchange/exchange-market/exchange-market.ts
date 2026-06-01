@@ -130,7 +130,15 @@ Component({
   },
 
   methods: {
-    /** 切换价格走势图显隐藏 */
+    /** 未登录时点击资产区域/"请登录"按钮，通知父页面弹出登录半页；已登录则不响应 */
+    onNeedLogin() {
+      if (this.properties.isLoggedIn) {
+        return
+      }
+      this.triggerEvent('needlogin')
+    },
+
+    /** 切换价格走势图显隐藏（行情对未登录用户开放，无需登录） */
     onTogglePriceChart() {
       this.setData({ showPriceChart: !this.data.showPriceChart })
     },

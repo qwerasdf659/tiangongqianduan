@@ -19,7 +19,11 @@ Component({
     visible: false as boolean,
     message: '系统正在进行数据维护，请稍后再试' as string,
     retrying: false as boolean,
-    retryCount: 0 as number
+    retryCount: 0 as number,
+    /** 强制更新模式：true=显示"立即更新"按钮，false=显示"重试"按钮 */
+    forceUpdate: false as boolean,
+    /** 强制更新提示文案 */
+    updateMessage: '检测到新版本，请更新后继续使用' as string
   },
 
   lifetimes: {
@@ -27,7 +31,9 @@ Component({
       const appInstance = getApp()
       if (appInstance) {
         appInstance.registerMaintenanceOverlay(this)
-        if (appInstance.globalData.isMaintenanceMode) {
+        if (appInstance.globalData.isForceUpdateMode) {
+          this.showForceUpdate(appInstance.globalData.forceUpdateMessage)
+        } else if (appInstance.globalData.isMaintenanceMode) {
           this.show(appInstance.globalData.maintenanceMessage)
         }
       }
@@ -57,6 +63,29 @@ Component({
         retrying: false,
         retryCount: 0
       })
+    },
+
+    /**
+     * App.enterForceUpdateMode() 调用，显示全屏强制更新遮罩
+     * 与维护遮罩复用同一全屏层，但按钮变为"立即更新"，不可重试绕过
+     */
+    showForceUpdate(updateMessage?: string): void {
+      this.setData({
+        visible: true,
+        forceUpdate: true,
+        updateMessage: updateMessage || '检测到新版本，请更新后继续使用'
+      })
+    },
+
+    /**
+     * 用户点击"立即更新"
+     * 已下载好新版本时由微信 applyUpdate 重启；否则提示用户彻底关闭后重进
+     */
+    onUpdateConfirm(): void {
+      const appInstance = getApp()
+      if (appInstance && typeof appInstance.applyPendingUpdate === 'function') {
+        appInstance.applyPendingUpdate()
+      }
     },
 
     /**

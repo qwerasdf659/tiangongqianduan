@@ -70,6 +70,10 @@ App({
     isMaintenanceMode: false as boolean,
     maintenanceMessage: '' as string,
 
+    /** 强制更新模式标志（版本闸门命中时写入，maintenance-overlay 组件读取并显示更新遮罩） */
+    isForceUpdateMode: false as boolean,
+    forceUpdateMessage: '' as string,
+
     // Socket.IO 配置
     ws_url: null as string | null,
     ws_connected: false as boolean,
@@ -102,6 +106,9 @@ App({
 
     /* 强制更新机制：检测到新版本时提示用户重启 */
     this.checkForUpdate()
+
+    /* 后端版本闸门：本地版本低于后端 min_version 时全屏强制更新（不阻塞启动） */
+    this.checkVersionGate()
 
     try {
       await this.initializeSystem()
@@ -140,34 +147,73 @@ App({
   },
 
   /**
-   * 小程序强制更新机制
-   * 检测到新版本时弹窗提示用户重启，确保线上用户使用最新代码
+   * 小程序强制更新机制（彻底强制版）
+   * 冷启动检测到新版本时下载，下载完成后弹出不可取消的弹窗，
+   * 用户点击即 applyUpdate() 重启应用并套用最新代码，确保线上用户无法停留在旧版本。
+   * 下载失败时引导用户删除小程序后重进。
    */
   checkForUpdate(): void {
     if (!wx.canIUse('getUpdateManager')) {
       return
     }
     const updateManager = wx.getUpdateManager()
+    this._updateManager = updateManager
     updateManager.onCheckForUpdate((res: any) => {
       if (res.hasUpdate) {
         log.info('检测到新版本')
       }
     })
     updateManager.onUpdateReady(() => {
+      this._updateReady = true
       wx.showModal({
-        title: '更新提示',
-        content: '新版本已准备好，是否重启应用？',
-        confirmText: '立即重启',
-        success(modalRes: any) {
-          if (modalRes.confirm) {
-            updateManager.applyUpdate()
-          }
+        title: '发现新版本',
+        content: '新版本已准备就绪，需更新后才能继续使用',
+        showCancel: false,
+        confirmText: '立即更新',
+        success: () => {
+          updateManager.applyUpdate()
         }
       })
     })
     updateManager.onUpdateFailed(() => {
       log.error('新版本下载失败')
+      wx.showModal({
+        title: '更新失败',
+        content: '新版本下载失败，请删除当前小程序后重新进入',
+        showCancel: false,
+        confirmText: '我知道了'
+      })
     })
+  },
+
+  /**
+   * 后端版本闸门检查（业务层强制更新）
+   *
+   * 微信 getUpdateManager 只能在冷启动检查、且无法拦住"还没更新就用旧版"的用户。
+   * 此方法请求后端 GET /system/app-version，将本地版本与 min_version 比较，
+   * 低于最低可用版本时进入强制更新模式，用全屏遮罩拦住用户，连首页都进不去。
+   *
+   * 容错原则：接口异常/超时一律放行（不拦截用户），避免后端抖动导致全员打不开。
+   */
+  async checkVersionGate(): Promise<void> {
+    try {
+      const result = await API.getAppVersionGate()
+      if (!result || !result.success || !result.data) {
+        return
+      }
+      const { min_version, force_update, update_message } = result.data
+      if (!force_update || !min_version) {
+        return
+      }
+      const { Utils } = require('./utils/index')
+      const localVersion = this.globalData.version
+      if (Utils.compareVersion(localVersion, min_version) < 0) {
+        log.warn('版本闸门命中，进入强制更新模式', { localVersion, min_version })
+        this.enterForceUpdateMode(update_message)
+      }
+    } catch (gateError: any) {
+      log.info('版本闸门检查跳过（接口异常，放行）:', gateError.message)
+    }
   },
 
   /** 初始化系统环境 */
@@ -494,6 +540,12 @@ App({
 
   /** 全屏维护遮罩组件实例注册表（组件 attached 注册 / detached 注销） */
   _maintenanceOverlays: new Set() as Set<any>,
+
+  /** 微信更新管理器引用（checkForUpdate 写入，强制更新遮罩点击"立即更新"时使用） */
+  _updateManager: null as any,
+
+  /** 新版本是否已下载就绪（onUpdateReady 触发后置 true，决定 applyUpdate 能否立即生效） */
+  _updateReady: false as boolean,
 
   /**
    * 统一 Socket.IO 连接管理
@@ -915,6 +967,56 @@ App({
       } catch (overlayError) {
         log.warn('隐藏维护遮罩失败:', overlayError)
       }
+    })
+  },
+
+  /**
+   * 进入强制更新模式（业务层版本闸门命中时调用）
+   * 通知所有已注册的遮罩组件显示全屏"立即更新"遮罩，阻断一切交互。
+   * 无已注册 overlay 时降级为不可取消的 wx.showModal。
+   */
+  enterForceUpdateMode(serverMessage?: string): void {
+    const displayMessage = serverMessage || '检测到新版本，请更新后继续使用'
+    this.globalData.isForceUpdateMode = true
+    this.globalData.forceUpdateMessage = displayMessage
+    log.warn('进入强制更新模式:', displayMessage)
+
+    if (this._maintenanceOverlays.size > 0) {
+      this._maintenanceOverlays.forEach((overlay: any) => {
+        try {
+          overlay.showForceUpdate(displayMessage)
+        } catch (overlayError) {
+          log.warn('通知强制更新遮罩组件失败:', overlayError)
+        }
+      })
+    } else {
+      wx.showModal({
+        title: '发现新版本',
+        content: displayMessage,
+        showCancel: false,
+        confirmText: '立即更新',
+        success: () => {
+          this.applyPendingUpdate()
+        }
+      })
+    }
+  },
+
+  /**
+   * 套用已下载的新版本（强制更新遮罩点击"立即更新"时调用）
+   * 新版本已就绪则 applyUpdate 重启；否则提示用户彻底关闭小程序后重进，
+   * 让微信在下次冷启动拉取最新代码。
+   */
+  applyPendingUpdate(): void {
+    if (this._updateReady && this._updateManager) {
+      this._updateManager.applyUpdate()
+      return
+    }
+    wx.showModal({
+      title: '请重启小程序',
+      content: '请彻底关闭当前小程序后重新进入，以加载最新版本',
+      showCancel: false,
+      confirmText: '我知道了'
     })
   },
 

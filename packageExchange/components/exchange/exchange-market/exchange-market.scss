@@ -92,7 +92,30 @@
 .asset-balance-empty {
   display: inline-flex;
   align-items: center;
+  gap: 16rpx;
   padding: 6rpx 16rpx;
+}
+
+/* 未登录引导按钮（参考 exchange-shelf 的 .header-login-inline 设计；放大尺寸提升点击区域与可见度） */
+.header-login-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14rpx 48rpx;
+  background: linear-gradient(135deg, #c5a572, #a08b6e);
+  border-radius: 36rpx;
+  box-shadow: 0 4rpx 12rpx rgba(197, 165, 114, 0.3);
+
+  text {
+    font-size: var(--tg-font-size-title);
+    color: var(--tg-color-white);
+    font-weight: var(--tg-font-weight-semibold);
+    letter-spacing: var(--tg-letter-spacing-wide);
+  }
+}
+
+.header-login-inline:active {
+  opacity: 0.85;
 }
 
 .header-search-box {
