@@ -1,0 +1,132 @@
+<!--packageUser/disputes/disputes.wxml - 我的售后申诉列表页面-->
+<custom-navbar title="我的售后" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<view class="disputes-container">
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面标题 -->
+    <view class="page-header">
+      <view class="header-text">
+        <text class="header-title">我的售后</text>
+        <text class="header-desc">查看订单售后申诉进度</text>
+      </view>
+      <view class="header-decor-icon">
+        <t-icon name="service" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
+    <!-- 加载中骨架屏 -->
+    <block wx:if="{{loadStatus === 'loading'}}">
+      <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="dispute-skeleton">
+        <view class="skeleton-icon shimmer"></view>
+        <view class="skeleton-body">
+          <view class="skeleton-line skeleton-title shimmer"></view>
+          <view class="skeleton-line skeleton-info shimmer"></view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 加载失败 -->
+    <t-empty wx:elif="{{loadStatus === 'error'}}" description="请检查网络连接后重试">
+      <view slot="image"><t-icon name="wifi" size="120rpx" color="var(--td-brand-color)" /></view>
+      <view slot="action" class="retry-btn" bindtap="retryLoad">重新加载</view>
+    </t-empty>
+
+    <!-- 空状态 -->
+    <t-empty wx:elif="{{loadStatus === 'empty'}}" description="您还没有售后申诉记录">
+      <view slot="image"
+        ><t-icon name="service" size="120rpx" color="var(--td-brand-color)"
+      /></view>
+    </t-empty>
+
+    <!-- 申诉列表 -->
+    <block wx:else>
+      <view class="disputes-summary">
+        <text class="summary-text">共 {{totalCount}} 条售后申诉</text>
+      </view>
+
+      <view
+        wx:for="{{disputes}}"
+        wx:key="tradeDisputeId"
+        class="dispute-card"
+        data-id="{{item.tradeDisputeId}}"
+        bindtap="onDisputeTap"
+      >
+        <!-- 申诉头部: 标题 + 状态 -->
+        <view class="dispute-header">
+          <view class="dispute-title-area">
+            <text class="dispute-title">{{item.title}}</text>
+            <text class="dispute-type-label"
+              >{{item.orderTypeText}} · {{item.disputeTypeText}}</text
+            >
+          </view>
+          <view class="dispute-status-badge status-{{item.status}}">
+            <text class="status-text">{{item.statusText}}</text>
+          </view>
+        </view>
+
+        <!-- 申诉详情 -->
+        <view class="dispute-details">
+          <view class="detail-row">
+            <text class="detail-label">申诉编号</text>
+            <text class="detail-value">#{{item.tradeDisputeId}}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">提交时间</text>
+            <text class="detail-value">{{item.createdAt}}</text>
+          </view>
+          <view wx:if="{{item.resolvedAt}}" class="detail-row">
+            <text class="detail-label">处理时间</text>
+            <text class="detail-value">{{item.resolvedAt}}</text>
+          </view>
+        </view>
+
+        <!-- 处理结果摘要（已解决/已驳回时由后端下发） -->
+        <view wx:if="{{item.resolution}}" class="dispute-resolution">
+          <text class="resolution-label">处理结果</text>
+          <text class="resolution-text">{{item.resolution}}</text>
+        </view>
+
+        <!-- 申诉进度条 -->
+        <view class="dispute-progress">
+          <view
+            class="progress-step {{item.status === 'open' || item.status === 'reviewing' || item.status === 'arbitrating' || item.status === 'resolved' || item.status === 'rejected' ? 'step-active' : ''}}"
+          >
+            <view class="step-dot"></view>
+            <text class="step-text">已提交</text>
+          </view>
+          <view
+            class="progress-line {{item.status === 'reviewing' || item.status === 'arbitrating' || item.status === 'resolved' || item.status === 'rejected' ? 'line-active' : ''}}"
+          >
+          </view>
+          <view
+            class="progress-step {{item.status === 'reviewing' || item.status === 'arbitrating' || item.status === 'resolved' || item.status === 'rejected' ? 'step-active' : ''}}"
+          >
+            <view class="step-dot"></view>
+            <text class="step-text">处理中</text>
+          </view>
+          <view
+            class="progress-line {{item.status === 'resolved' || item.status === 'rejected' ? 'line-active' : ''}}"
+          >
+          </view>
+          <view
+            class="progress-step {{item.status === 'resolved' || item.status === 'rejected' ? 'step-active' : ''}}"
+          >
+            <view class="step-dot"></view>
+            <text class="step-text">已处理</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{hasMore}}" class="load-more">
+        <text class="load-more-text">上拉加载更多</text>
+      </view>
+
+      <view wx:else class="no-more">
+        <text class="no-more-text">— 没有更多了 —</text>
+      </view>
+    </block>
+
+    <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
+</view>

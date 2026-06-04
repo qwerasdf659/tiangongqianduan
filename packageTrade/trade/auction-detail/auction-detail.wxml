@@ -208,6 +208,11 @@
         </view>
       </view>
 
+      <!--售后申诉入口（非卖方常驻，order_type=auction，不分拍卖状态）-->
+      <view class="aftersale-bar" wx:if="{{!isSeller}}">
+        <text class="aftersale-link" bindtap="onApplyAfterSale">对该拍卖申请售后</text>
+      </view>
+
       <!--出价输入弹窗-->
       <view class="bid-input-mask" wx:if="{{showBidInput}}" catchtap="onCloseBidInput">
         <view class="bid-input-popup" catchtap="">

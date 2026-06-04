@@ -569,6 +569,18 @@ sticky-section {
   transform: scale(0.97);
 }
 
+/* 售后申诉按钮（品牌色描边） */
+.action-btn.aftersale {
+  background: #ffffff;
+  color: var(--td-brand-color);
+  border: 1rpx solid var(--td-brand-color);
+}
+
+.action-btn.aftersale:active {
+  background: var(--tg-color-bg-grey);
+  transform: scale(0.97);
+}
+
 .action-btn.primary {
   background: #ffffff;
   color: var(--tg-text-primary);

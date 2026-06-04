@@ -761,6 +761,22 @@ Page({
   },
 
   /**
+   * 申请售后（消费记录自助发起售后申诉，统一走 POST /system/disputes）
+   * order_type=consumption，order_id=consumption_record_id（消费记录主键）
+   */
+  onApplyAfterSale(e: WechatMiniprogram.BaseEvent) {
+    const recordId = e.currentTarget.dataset.recordId
+    const orderTitle = e.currentTarget.dataset.orderTitle || ''
+    if (!recordId) {
+      return
+    }
+    const titleParam = orderTitle ? `&order_title=${encodeURIComponent(orderTitle)}` : ''
+    wx.navigateTo({
+      url: `/packageUser/disputes/create?order_type=consumption&order_id=${recordId}${titleParam}`
+    })
+  },
+
+  /**
    * 🔴 重新上传
    */
   reuploadImage(_e: WechatMiniprogram.BaseEvent) {

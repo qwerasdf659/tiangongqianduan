@@ -347,25 +347,30 @@ Page({
   /**
    * 加载最近成交列表
    * 后端API: GET /api/v4/marketplace/price/recent-trades
-   * 响应: { data: [ { trade_order_id, price_amount, display_name, buyer_nickname, ... } ] }
+   *
+   * ⚠️ 后端 data 直接是数组（非 data.trades / data.records 包装）
+   * ⚠️ 单条字段（无对手方身份）: trade_order_id / gross_amount / fee_amount /
+   *    net_amount / settlement_asset / completed_at / listing_kind /
+   *    offer_asset_code / offer_amount / offer_item_template_id
+   *    其中金额为原生 SQL 聚合返回的字符串，前端需 Number() 转换
    */
   async loadRecentTrades() {
     this.setData({ recentTradesLoading: true })
     try {
-      const tradesResponse = await API.getRecentTrades({ limit: 15 })
-      if (tradesResponse && tradesResponse.success && tradesResponse.data) {
-        const tradesList = Array.isArray(tradesResponse.data)
-          ? tradesResponse.data
-          : tradesResponse.data.trades || []
-        /** 为最近成交记录补充结算资产中文名 */
+      const tradesResponse = await API.getRecentTrades({ page_size: 15 })
+      if (tradesResponse && tradesResponse.success && Array.isArray(tradesResponse.data)) {
+        const tradesList = tradesResponse.data
+        /** 补充展示辅助字段：结算资产中文名 + 成交额数值化（与后端业务字段以 _ 前缀区分） */
         const enrichedTrades = tradesList.map((trade: any) => ({
           ...trade,
-          _priceAssetLabel: imageHelper.getAssetDisplayName(trade.price_asset_code || '')
+          _grossAmount: Number(trade.gross_amount) || 0,
+          _settlementAssetLabel: imageHelper.getAssetDisplayName(trade.settlement_asset || ''),
+          _offerAssetLabel: imageHelper.getAssetDisplayName(trade.offer_asset_code || '')
         }))
         this.setData({ recentTrades: enrichedTrades, recentTradesLoading: false })
         marketLog.info(`最近成交加载完成: ${tradesList.length}笔`)
       } else {
-        this.setData({ recentTradesLoading: false })
+        this.setData({ recentTrades: [], recentTradesLoading: false })
       }
     } catch (tradesError) {
       marketLog.error('加载最近成交失败:', tradesError)

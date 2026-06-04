@@ -1,0 +1,268 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 自助发起售后申诉提交页样式 */
+@import '../../styles/mixins';
+
+.create-page {
+  @include tg-tokens;
+  padding: 20rpx;
+  background-color: var(--tg-color-bg);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 参数错误 */
+.param-error {
+  @include flex-column-center;
+  padding: 120rpx var(--tg-spacing-xl);
+}
+
+.error-icon {
+  color: var(--tg-color-error);
+  margin-bottom: var(--tg-spacing-md);
+}
+
+.error-text {
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
+  margin-bottom: var(--tg-spacing-lg);
+}
+
+.error-back {
+  padding: var(--tg-spacing-sm) var(--tg-spacing-xxl);
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  font-size: var(--td-font-size-base);
+}
+
+/* 表单头部 */
+.form-header {
+  padding: 32rpx var(--tg-spacing-sm) var(--tg-spacing-md);
+}
+
+.form-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.form-subtitle {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+}
+
+/* 申诉对象卡片 */
+.order-card {
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  padding: 28rpx 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--tg-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.order-label {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
+.order-value {
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.order-title {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+}
+
+/* 表单分区 */
+.form-section {
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--tg-shadow-card);
+}
+
+.section-title {
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+/* 类型选项 */
+.type-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.type-option {
+  padding: 24rpx;
+  border: 2rpx solid var(--tg-color-border-light);
+  border-radius: var(--td-radius-default);
+  transition: all 0.2s;
+}
+
+.type-option.active {
+  border-color: var(--td-brand-color);
+  background: var(--td-brand-color-light, #f5f0e8);
+}
+
+.type-label {
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.type-desc {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
+/* 标题输入 */
+.title-input {
+  height: 80rpx;
+  padding: 0 24rpx;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
+}
+
+/* 描述输入 */
+.desc-input-wrap {
+  position: relative;
+}
+
+.desc-textarea {
+  width: 100%;
+  height: 200rpx;
+  padding: 24rpx;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
+  box-sizing: border-box;
+}
+
+.desc-counter {
+  position: absolute;
+  right: 20rpx;
+  bottom: 16rpx;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
+/* 证据图片 */
+.evidence-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.evidence-item {
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: var(--td-radius-default);
+  overflow: hidden;
+}
+
+.evidence-image {
+  width: 100%;
+  height: 100%;
+}
+
+.evidence-uploading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  @include flex-center;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+}
+
+.evidence-delete {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 36rpx;
+  height: 36rpx;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  @include flex-center;
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+}
+
+.evidence-add {
+  width: 160rpx;
+  height: 160rpx;
+  border: 2rpx dashed var(--tg-color-border);
+  border-radius: var(--td-radius-default);
+  @include flex-column-center;
+  gap: 8rpx;
+}
+
+.add-icon {
+  font-size: 56rpx;
+  color: var(--tg-text-tertiary);
+  line-height: 1;
+}
+
+.add-text {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
+/* 提交 */
+.submit-section {
+  padding: var(--tg-spacing-lg) 0 60rpx;
+}
+
+.submit-btn {
+  @include flex-center;
+  height: 88rpx;
+  background: var(--td-brand-color);
+  border-radius: var(--td-radius-large);
+  margin-bottom: var(--tg-spacing-sm);
+}
+
+.submit-btn.disabled {
+  background: var(--tg-color-border);
+}
+
+.submit-text {
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-color-white);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.submit-tip {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+  text-align: center;
+  display: block;
+}

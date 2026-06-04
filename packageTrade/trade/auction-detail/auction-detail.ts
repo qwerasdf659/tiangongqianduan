@@ -407,6 +407,21 @@ Page({
     })
   },
 
+  /**
+   * 申请售后（自助发起售后申诉，统一走 POST /system/disputes）
+   * order_type=auction，order_id=auction_listing_id（拍卖主键）
+   */
+  onApplyAfterSale() {
+    const { auctionListingId, displayName } = this.data
+    if (!auctionListingId) {
+      return
+    }
+    const titleParam = displayName ? `&order_title=${encodeURIComponent(displayName)}` : ''
+    wx.navigateTo({
+      url: `/packageUser/disputes/create?order_type=auction&order_id=${auctionListingId}${titleParam}`
+    })
+  },
+
   // ==================== WebSocket实时推送 ====================
 
   _subscribeWebSocket() {

@@ -351,6 +351,22 @@ Page({
   },
 
   /**
+   * 申请售后（自助发起售后申诉，统一走 POST /system/disputes）
+   * order_type=trade，order_id=trade_order_id（交易订单主键）
+   */
+  onApplyAfterSale(e: any) {
+    const tradeOrderId = e.currentTarget.dataset.orderId
+    const orderTitle = e.currentTarget.dataset.orderTitle || ''
+    if (!tradeOrderId) {
+      return
+    }
+    const titleParam = orderTitle ? `&order_title=${encodeURIComponent(orderTitle)}` : ''
+    wx.navigateTo({
+      url: `/packageUser/disputes/create?order_type=trade&order_id=${tradeOrderId}${titleParam}`
+    })
+  },
+
+  /**
    * 取消交易
    * 后端: POST /api/v4/marketplace/trade-orders/:trade_order_id/cancel
    */

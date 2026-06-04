@@ -313,6 +313,15 @@
                     <t-icon name="edit" size="28rpx" class="btn-icon" />
                     <text class="btn-text">查看详情</text>
                   </button>
+                  <button
+                    class="action-btn aftersale"
+                    bind:tap="onApplyAfterSale"
+                    data-record-id="{{item.consumption_record_id}}"
+                    data-order-title="消费 ¥{{item.consumption_amount || 0}}"
+                  >
+                    <t-icon name="service" size="28rpx" class="btn-icon" />
+                    <text class="btn-text">申请售后</text>
+                  </button>
                 </view>
               </view>
             </block>

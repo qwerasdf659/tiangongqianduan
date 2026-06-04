@@ -172,7 +172,9 @@ Page({
         productImage: imageUrl || '/images/default-product.png',
         productDescription: itemSnapshot.description || '',
         hasProductImage: !!imageUrl,
-        payInfo: order.pay_amount ? `${order.pay_amount} ${order.pay_asset_code || ''}` : '',
+        payInfo: order.pay_amount
+          ? `${order.pay_amount} ${order.pay_asset_name || order.pay_asset_code || ''}`
+          : '',
         sourceLabel: DETAIL_SOURCE_LABELS[order.source] || '',
         timeline,
         canCancel: order.status === 'pending',

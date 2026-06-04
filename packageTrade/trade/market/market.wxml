@@ -94,17 +94,17 @@
       <view wx:elif="{{recentTrades.length > 0}}" class="trades-list">
         <view class="trade-row" wx:for="{{recentTrades}}" wx:key="trade_order_id">
           <view class="trade-info">
-            <text class="trade-name">{{item.display_name || '商品'}}</text>
-            <text class="trade-parties">{{item.seller_nickname}} → {{item.buyer_nickname}}</text>
+            <text class="trade-name">{{item._offerAssetLabel || '成交'}}</text>
+            <text class="trade-parties">{{item.completed_at}}</text>
           </view>
           <view class="trade-price-col">
-            <text class="trade-price">{{item.price_amount}}</text>
-            <text class="trade-currency">{{item._priceAssetLabel}}</text>
+            <text class="trade-price">{{item._grossAmount}}</text>
+            <text class="trade-currency">{{item._settlementAssetLabel}}</text>
           </view>
         </view>
       </view>
       <view wx:else class="overview-empty">
-        <text class="overview-empty-text">暂无成交记录</text>
+        <text class="overview-empty-text">暂无成交数据</text>
       </view>
     </view>
 
@@ -358,7 +358,9 @@
               binderror="onImageError"
             />
             <view wx:else class="image-fallback">
-              <text class="fallback-icon iconfont {{item._isFungibleAsset ? 'icon-diamond' : 'icon-package'}}"></text>
+              <text
+                class="fallback-icon iconfont {{item._isFungibleAsset ? 'icon-diamond' : 'icon-package'}}"
+              ></text>
               <text class="fallback-name">{{item._displayName}}</text>
             </view>
 

@@ -50,7 +50,9 @@
         "feedback/feedback",
         "feedback/detail",
         "feedback/list",
-        "issues/issues",
+        "disputes/disputes",
+        "disputes/detail",
+        "disputes/create",
         "notifications/notifications"
       ]
     },

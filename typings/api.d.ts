@@ -725,6 +725,8 @@ declare namespace API {
     exchange_item_id: number
     /** 支付资产代码 */
     pay_asset_code: string
+    /** 支付资产中文名（后端服务层 JOIN material_asset_types 注入，非存储列；无匹配时不返回，前端 fallback 到 pay_asset_code） */
+    pay_asset_name?: string
     /** 支付金额 */
     pay_amount: number
     /** 兑换数量 */
@@ -1023,33 +1025,33 @@ declare namespace API {
    * 后端按时间聚合 trade_orders JOIN market_listings 计算
    */
   interface PriceTrendPoint {
-    /** 时间标签（如 '2026-02-16'） */
-    time: string
-    /** 均价 */
-    avg_price: number
-    /** 最低价 */
-    min_price: number
-    /** 最高价 */
-    max_price: number
-    /** 成交笔数 */
-    trade_count: number
-    /** 总成交量 */
-    total_volume: number
+    /** 时间分桶标签（后端真实字段名，如 '2026-02-16'；数值字段为原生聚合字符串，前端 Number() 转换） */
+    time_bucket: string
+    /** 均价（字符串） */
+    avg_price: string
+    /** 最低价（字符串） */
+    min_price: string
+    /** 最高价（字符串） */
+    max_price: string
+    /** 成交笔数（字符串） */
+    trade_count: string
+    /** 总成交量（字符串） */
+    total_volume: string
   }
 
   /**
    * 成交量走势数据点（GET /api/v4/marketplace/price/volume 响应中 data_points 数组项）
-   * 与 PriceTrendPoint 结构类似，侧重成交量维度
+   * 后端原生 SQL 聚合，数值字段为字符串，前端需 Number() 转换
    */
   interface VolumeTrendPoint {
-    /** 时间标签 */
-    time: string
-    /** 成交笔数 */
-    trade_count: number
-    /** 总成交量 */
-    total_volume: number
-    /** 总成交额 */
-    total_value: number
+    /** 时间分桶标签（后端真实字段名，非 time） */
+    time_bucket: string
+    /** 成交笔数（字符串） */
+    trade_count: string
+    /** 星石计价成交量（字符串，成交量柱按此字段取） */
+    total_star_stone_volume: string
+    /** 物品成交量（字符串，成交量柱按此字段取） */
+    total_item_volume: string
   }
 
   /**
@@ -1073,26 +1075,29 @@ declare namespace API {
 
   /**
    * 最近成交记录（GET /api/v4/marketplace/price/recent-trades 响应中数组项）
-   * 展示实时成交流
+   * ⚠️ 后端 data 直接是数组（非包装对象）；数值字段为原生 SQL 聚合返回的字符串，前端需 Number() 转换
+   * ⚠️ 不含对手方身份（无昵称/user_id/订单详情），匿名开放无脱敏顾虑
    */
   interface RecentTrade {
     /** 交易订单ID */
     trade_order_id: number
-    /** 成交价格 */
-    price_amount: number
-    /** 定价币种 */
-    price_asset_code: string
+    /** 成交总额（字符串，如 "500"） */
+    gross_amount: string
+    /** 手续费（字符串） */
+    fee_amount: string
+    /** 卖家实收（字符串） */
+    net_amount: string
+    /** 结算币种代码（如 star_stone） */
+    settlement_asset: string
     /** 挂牌类型: item / fungible_asset */
     listing_kind: string
-    /** 商品显示名称 */
-    display_name: string
-    /** 成交数量（fungible_asset 类型使用） */
-    amount: number | null
-    /** 买家昵称 */
-    buyer_nickname: string
-    /** 卖家昵称 */
-    seller_nickname: string
-    /** 成交时间（ISO 8601） */
+    /** 出售资产代码（fungible_asset 类型） */
+    offer_asset_code: string | null
+    /** 出售数量（字符串，fungible_asset 类型） */
+    offer_amount: string | null
+    /** 出售物品模板ID（item 类型） */
+    offer_item_template_id: number | null
+    /** 成交时间（北京时间 YYYY-MM-DD HH:mm:ss） */
     completed_at: string
   }
 
@@ -1341,21 +1346,30 @@ declare namespace API {
     created_at: string
   }
 
-  /** 用户工单（对齐后端 GET /api/v4/system/chat/issues 返回格式，已脱敏） */
-  interface CustomerServiceIssue {
-    /** 工单主键 */
-    issue_id: number
-    /** 问题类型: asset | trade | lottery | item | account | consumption | feedback | other */
-    issue_type: string
-    /** 优先级: low | medium | high | urgent */
-    priority: string
-    /** 工单状态: open | processing | resolved | closed */
-    status: string
-    /** 问题标题 */
+  /**
+   * 交易售后申诉（对齐后端 trade_disputes 表 + GET /api/v4/system/disputes/my|:id 脱敏返回格式）
+   *
+   * 字段直接采用后端 snake_case，前端不做映射。public 级脱敏后不含
+   * assigned_to（处理客服）/ approval_chain_instance_id（仲裁审批链）等内部字段。
+   */
+  interface TradeDispute {
+    /** 申诉主键（后端字段: trade_dispute_id） */
+    trade_dispute_id: number
+    /** 关联订单类型: trade | redemption | consumption | auction */
+    order_type: string
+    /** 关联订单ID（多态值，兼容 BIGINT/UUID 的字符串） */
+    order_id: string
+    /** 纠纷类型: item_not_received | item_mismatch | quality_issue | fraud | other */
+    dispute_type: string
+    /** 申诉标题 */
     title: string
+    /** 申诉状态: open | reviewing | arbitrating | resolved | rejected */
+    status: string
+    /** 处理结果摘要（resolved/rejected 时由后端下发，否则为 null） */
+    resolution: string | null
     /** 创建时间（ISO 8601） */
     created_at: string
-    /** 解决时间（ISO 8601，未解决时为null） */
+    /** 处理完成时间（ISO 8601，未完成时为 null） */
     resolved_at: string | null
   }
 

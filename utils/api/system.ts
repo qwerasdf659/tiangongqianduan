@@ -8,7 +8,7 @@
  */
 
 const { apiClient } = require('./client')
-const { buildQueryString } = require('../util')
+const { buildQueryString, generateIdempotencyKey } = require('../util')
 
 // ==================== 🌐 系统配置 ====================
 
@@ -404,28 +404,130 @@ async function rateSession(session_id: number, score: number) {
   })
 }
 
-// ==================== 📋 用户工单 ====================
+/**
+ * 上传售后申诉证据图片
+ * 后端API: POST /api/v4/user/images/upload（通用用户图片上传，multer + MediaService）
+ *
+ * 业务语义: 自助发起售后申诉时上传证据截图，取返回的 public_url 放入申诉的 evidence 数组。
+ * 限制: 单图 2MB，jpg/png/gif/webp（与后端 MediaService 一致）。
+ *
+ * @param filePath - 微信本地文件路径（wx.chooseMedia 返回的 tempFilePath）
+ * @returns { success, data: { media_id, object_key, public_url, ... } }
+ */
+async function uploadDisputeEvidence(filePath: string) {
+  if (!filePath) {
+    throw new Error('图片文件路径不能为空')
+  }
+  return apiClient.uploadFile('/user/images/upload', filePath, {
+    name: 'image',
+    needAuth: true,
+    showError: false,
+    errorPrefix: '证据图片上传失败：'
+  })
+}
+
+// ==================== 🛡️ 售后申诉（交易纠纷）====================
 
 /**
- * 用户查看自己的工单进度
- * 后端API: GET /api/v4/system/chat/issues
+ * 用户自助发起售后申诉
+ * 后端API: POST /api/v4/system/disputes
  *
- * 数据隔离: 后端根据JWT解码user_id，只返回该用户的工单（已脱敏）
- * 脱敏规则: 不含 description / resolution / compensation_log / 内部备注
+ * 业务语义: 用户对自己的订单（交易/兑换/消费/拍卖）发起售后申诉，
+ *           客服受理后进入处理流程，可升级仲裁、解决或驳回。
+ *
+ * 字段以后端为准（直接使用后端字段名，不做映射）:
+ *   - order_type   关联订单类型: trade / redemption / consumption / auction
+ *   - order_id     关联订单ID（字符串，兼容 BIGINT/UUID）
+ *   - dispute_type 纠纷类型: item_not_received / item_mismatch / quality_issue / fraud / other
+ *   - title        申诉标题（必填）
+ *   - description  申诉描述（可选）
+ *   - evidence     证据图片URL数组（可选）
+ *
+ * 幂等键: 按 RESTful 惯例放入请求头 Idempotency-Key（元数据与业务数据分离）
+ *
+ * @param disputeData - 申诉表单数据
+ * @returns { success, data: { trade_dispute_id, order_type, order_id, dispute_type, status, deadline } }
+ */
+async function createSelfServiceDispute(disputeData: {
+  order_type: string
+  order_id: string
+  dispute_type: string
+  title: string
+  description?: string
+  evidence?: string[]
+}) {
+  if (!disputeData.order_type) {
+    throw new Error('请选择关联订单类型')
+  }
+  if (!disputeData.order_id) {
+    throw new Error('关联订单ID不能为空')
+  }
+  if (!disputeData.dispute_type) {
+    throw new Error('请选择申诉类型')
+  }
+  if (!disputeData.title) {
+    throw new Error('申诉标题不能为空')
+  }
+
+  const idempotencyKey = await generateIdempotencyKey(
+    'system_dispute_self_create',
+    disputeData.order_id
+  )
+  return apiClient.request('/system/disputes', {
+    method: 'POST',
+    data: disputeData,
+    header: { 'Idempotency-Key': idempotencyKey },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '提交申诉...',
+    showError: true,
+    errorPrefix: '申诉提交失败：'
+  })
+}
+
+/**
+ * 我的售后申诉列表（已脱敏，仅本人）
+ * 后端API: GET /api/v4/system/disputes/my
+ *
+ * 数据隔离: 后端根据JWT中的user_id，只返回该用户的申诉。
+ * 脱敏规则(public): 不含 assigned_to(处理客服) / approval_chain_instance_id(仲裁审批链) 等内部字段。
  *
  * @param page - 页码，默认1
  * @param page_size - 每页数量，默认10
- * @returns { success, data: { rows: Issue[], count, page, page_size } }
+ * @returns { success, data: { rows: TradeDispute[], count, page, page_size } }
  */
-async function getUserIssues(page: number = 1, page_size: number = 10) {
+async function getMyDisputes(page: number = 1, page_size: number = 10) {
   const qs = buildQueryString({ page, page_size })
-  return apiClient.request(`/system/chat/issues?${qs}`, {
+  return apiClient.request(`/system/disputes/my?${qs}`, {
     method: 'GET',
     needAuth: true,
     showLoading: true,
-    loadingText: '加载工单...',
+    loadingText: '加载售后...',
     showError: true,
-    errorPrefix: '工单加载失败：'
+    errorPrefix: '售后列表加载失败：'
+  })
+}
+
+/**
+ * 售后申诉详情（已脱敏，仅本人可见）
+ * 后端API: GET /api/v4/system/disputes/:id
+ *
+ * 权限控制: 仅申诉本人可见，非本人返回 403；不存在返回 404。
+ *
+ * @param trade_dispute_id - 申诉记录ID（trade_disputes.trade_dispute_id）
+ * @returns { success, data: TradeDispute }
+ */
+async function getDisputeDetail(trade_dispute_id: number) {
+  if (!trade_dispute_id) {
+    throw new Error('申诉ID不能为空')
+  }
+  return apiClient.request(`/system/disputes/${trade_dispute_id}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载详情...',
+    showError: true,
+    errorPrefix: '售后详情加载失败：'
   })
 }
 
@@ -523,7 +625,10 @@ module.exports = {
   uploadChatImage,
   searchChatMessages,
   rateSession,
-  getUserIssues,
+  uploadDisputeEvidence,
+  createSelfServiceDispute,
+  getMyDisputes,
+  getDisputeDetail,
   getExchangePageConfig,
   getFeedbackConfig,
   getActivities,

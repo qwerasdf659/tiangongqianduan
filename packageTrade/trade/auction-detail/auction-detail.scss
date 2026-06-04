@@ -72,7 +72,11 @@
 
 /* ???? */
 .detail-info-section {
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
   padding: 24rpx 32rpx;
   border-bottom: 1rpx solid var(--tg-color-divider);
   position: relative;
@@ -453,6 +457,18 @@
   border-radius: var(--td-radius-default);
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
+}
+
+/* 售后申诉入口（非卖方常驻，不分拍卖状态） */
+.aftersale-bar {
+  padding: 16rpx var(--tg-spacing-md) 24rpx;
+  text-align: center;
+}
+
+.aftersale-bar .aftersale-link {
+  font-size: var(--tg-font-size-caption);
+  color: var(--td-brand-color);
+  padding: 8rpx;
 }
 
 /* ???? */

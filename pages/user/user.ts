@@ -154,14 +154,14 @@ Page({
         url: '/packageAd/ad-campaigns/ad-campaigns'
       },
       {
-        id: 'my-issues',
-        name: '我的工单',
-        description: '查看客服工单处理进度',
+        id: 'my-disputes',
+        name: '我的售后',
+        description: '查看订单售后申诉进度',
         iconClass: 'icon-chat',
-        tdIcon: 'chat-bubble-filled',
+        tdIcon: 'service-filled',
         color: '#8B7355',
         type: 'page',
-        url: '/packageUser/issues/issues'
+        url: '/packageUser/disputes/disputes'
       },
       {
         id: 'contact-service',

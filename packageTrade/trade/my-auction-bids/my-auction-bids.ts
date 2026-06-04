@@ -215,6 +215,22 @@ Page({
     })
   },
 
+  /**
+   * 申请售后（自助发起售后申诉，统一走 POST /system/disputes）
+   * order_type=auction，order_id=auction_listing_id（拍卖主键）
+   */
+  onApplyAfterSale(e: WechatMiniprogram.TouchEvent) {
+    const auctionListingId = e.currentTarget.dataset.auctionId
+    const orderTitle = e.currentTarget.dataset.orderTitle || ''
+    if (!auctionListingId) {
+      return
+    }
+    const titleParam = orderTitle ? `&order_title=${encodeURIComponent(orderTitle)}` : ''
+    wx.navigateTo({
+      url: `/packageUser/disputes/create?order_type=auction&order_id=${auctionListingId}${titleParam}`
+    })
+  },
+
   onRetry() {
     this._loadMyBids()
   }

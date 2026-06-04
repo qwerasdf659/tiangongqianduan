@@ -22,7 +22,11 @@
   position: relative;
   overflow: hidden;
   padding: 32rpx;
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
 }
 
 .bids-page-title {
@@ -144,6 +148,21 @@
 .seller-text {
   font-size: var(--tg-font-size-small);
   color: var(--tg-text-tertiary);
+}
+
+/* 售后申诉入口（常驻每条出价记录） */
+.bid-aftersale {
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid var(--tg-color-border-light);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bid-aftersale .aftersale-link {
+  font-size: var(--tg-font-size-small);
+  color: var(--td-brand-color);
+  padding: 8rpx 4rpx;
 }
 
 .list-footer {

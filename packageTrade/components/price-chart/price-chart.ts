@@ -219,7 +219,7 @@ Component({
         return
       }
 
-      const prices = points.map((p: any) => p.avg_price || 0)
+      const prices = points.map((p: any) => Number(p.avg_price) || 0)
       const minPrice = Math.min(...prices)
       const maxPrice = Math.max(...prices)
       const priceRange = maxPrice - minPrice || 1
@@ -301,7 +301,7 @@ Component({
       const labelCount = Math.min(5, points.length)
       const labelStep = Math.max(1, Math.floor((points.length - 1) / (labelCount - 1)))
       for (let labelIdx = 0; labelIdx < points.length; labelIdx += labelStep) {
-        const timeStr = points[labelIdx].time || ''
+        const timeStr = points[labelIdx].time_bucket || ''
         const shortLabel = timeStr.length > 5 ? timeStr.slice(5) : timeStr
         ctx.fillText(shortLabel, pointX(labelIdx), chartHeight - 4)
       }
@@ -351,7 +351,13 @@ Component({
         return
       }
 
-      const volumes = points.map((p: any) => p.total_volume || p.trade_count || 0)
+      const volumes = points.map(
+        (p: any) =>
+          Number(p.total_star_stone_volume) ||
+          Number(p.total_item_volume) ||
+          Number(p.trade_count) ||
+          0
+      )
       const maxVolume = Math.max(...volumes) || 1
 
       /* 绘制水平网格统一品牌色系 */
@@ -405,7 +411,7 @@ Component({
       const volumeLabelCount = Math.min(5, points.length)
       const volumeLabelStep = Math.max(1, Math.floor((points.length - 1) / (volumeLabelCount - 1)))
       for (let volLblIdx = 0; volLblIdx < points.length; volLblIdx += volumeLabelStep) {
-        const timeStr = points[volLblIdx].time || ''
+        const timeStr = points[volLblIdx].time_bucket || ''
         const shortLabel = timeStr.length > 5 ? timeStr.slice(5) : timeStr
         const labelX = padding.left + totalBarWidth * volLblIdx + totalBarWidth / 2
         ctx.fillText(shortLabel, labelX, chartHeight - 4)

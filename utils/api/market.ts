@@ -513,13 +513,13 @@ async function confirmDelivery(trade_order_id: number, escrow_code: string) {
  * 后端服务: PriceDiscoveryService.getPriceTrend()
  * 数据来源: trade_orders JOIN market_listings（按时间聚合）
  *
- * 响应 data.data_points 数组每项包含:
- *   time        - 时间标签（如 '2026-02-16'）
- *   avg_price   - 均价
- *   min_price   - 最低价
- *   max_price   - 最高价
- *   trade_count - 成交笔数
- *   total_volume - 总成交量
+ * 响应 data.data_points 数组每项包含（后端原生 SQL 聚合，数值字段为字符串，前端需 Number() 转换）:
+ *   time_bucket  - 时间分桶标签（如 '2026-02-16'，后端真实字段名，非 time）
+ *   avg_price    - 均价（字符串，如 "500"）
+ *   min_price    - 最低价（字符串）
+ *   max_price    - 最高价（字符串）
+ *   trade_count  - 成交笔数（字符串）
+ *   total_volume - 总成交量（字符串）
  *
  * @param params.asset_code - 资产代码（与 template_id 二选一）
  * @param params.template_id - 物品模板ID（与 asset_code 二选一）
@@ -540,7 +540,7 @@ async function getPriceTrend(params: {
   })
   return apiClient.request(`/marketplace/price/trend?${qs}`, {
     method: 'GET',
-    needAuth: true,
+    needAuth: false,
     showLoading: false,
     showError: false
   })
@@ -551,6 +551,12 @@ async function getPriceTrend(params: {
  * GET /api/v4/marketplace/price/volume
  *
  * 后端服务: PriceDiscoveryService.getVolumeTrend()
+ *
+ * 响应 data.data_points 数组每项包含（后端原生 SQL 聚合，数值字段为字符串，前端需 Number() 转换）:
+ *   time_bucket               - 时间分桶标签（后端真实字段名，非 time）
+ *   trade_count               - 成交笔数
+ *   total_star_stone_volume   - 星石计价成交量（成交量柱按此字段取，非 total_volume）
+ *   total_item_volume         - 物品成交量（成交量柱按此字段取）
  *
  * @param params.asset_code - 资产代码（与 template_id 二选一）
  * @param params.template_id - 物品模板ID（与 asset_code 二选一）
@@ -571,7 +577,7 @@ async function getVolumeTrend(params: {
   })
   return apiClient.request(`/marketplace/price/volume?${qs}`, {
     method: 'GET',
-    needAuth: true,
+    needAuth: false,
     showLoading: false,
     showError: false
   })
@@ -601,7 +607,7 @@ async function getPriceSummary(params: { asset_code?: string; template_id?: numb
   })
   return apiClient.request(`/marketplace/price/summary?${qs}`, {
     method: 'GET',
-    needAuth: true,
+    needAuth: false,
     showLoading: false,
     showError: false
   })
@@ -613,23 +619,28 @@ async function getPriceSummary(params: { asset_code?: string; template_id?: numb
  *
  * 后端服务: PriceDiscoveryService.getLatestTrades()
  *
+ * ⚠️ 响应结构: data 直接是数组（apiSuccess(rows)），不是 data.records / data.trades 包装
+ * ⚠️ 单条字段（无对手方身份，匿名开放无脱敏顾虑）:
+ *   trade_order_id / gross_amount / fee_amount / net_amount / settlement_asset /
+ *   completed_at / listing_kind / offer_asset_code / offer_amount / offer_item_template_id
+ *
  * @param params.asset_code - 资产代码（与 template_id 二选一）
  * @param params.template_id - 物品模板ID（与 asset_code 二选一）
- * @param params.limit - 返回条数（默认10）
+ * @param params.page_size - 返回条数（后端真实入参名，默认10、上限50）
  */
 async function getRecentTrades(params: {
   asset_code?: string
   template_id?: number
-  limit?: number
+  page_size?: number
 }) {
   const qs = buildQueryString({
     asset_code: params.asset_code || null,
     template_id: params.template_id || null,
-    limit: params.limit || 10
+    page_size: params.page_size || 10
   })
   return apiClient.request(`/marketplace/price/recent-trades?${qs}`, {
     method: 'GET',
-    needAuth: true,
+    needAuth: false,
     showLoading: false,
     showError: false
   })
@@ -703,7 +714,7 @@ async function getPriceHistory(params: { asset_code: string; days?: number }) {
   })
   return apiClient.request(`/marketplace/analytics/history?${qs}`, {
     method: 'GET',
-    needAuth: true,
+    needAuth: false,
     showLoading: false,
     showError: false
   })

@@ -4,10 +4,10 @@
   overflow: hidden;
 }
 
-/* 用户工单列表页面样式 */
+/* 我的售后申诉列表页面样式 */
 @import '../../styles/mixins';
 
-.issues-container {
+.disputes-container {
   @include tg-tokens;
   padding: 20rpx;
   background-color: var(--tg-color-bg);
@@ -58,7 +58,7 @@
 }
 
 /* 骨架屏 */
-.issue-skeleton {
+.dispute-skeleton {
   display: flex;
   padding: var(--tg-spacing-md);
   margin-bottom: var(--tg-spacing-sm);
@@ -110,31 +110,6 @@
   animation: shimmer 1.5s infinite;
 }
 
-/* 空状态 */
-.empty-state {
-  @include flex-column-center;
-  padding: 120rpx var(--tg-spacing-xl);
-}
-
-.empty-icon {
-  font-size: 96rpx;
-  margin-bottom: var(--tg-spacing-md);
-  opacity: 0.6;
-}
-
-.empty-title {
-  font-size: var(--td-font-size-m);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-text-primary);
-  margin-bottom: 12rpx;
-}
-
-.empty-desc {
-  font-size: var(--td-font-size-s);
-  color: var(--tg-text-tertiary);
-  margin-bottom: var(--tg-spacing-lg);
-}
-
 .retry-btn {
   padding: var(--tg-spacing-sm) var(--tg-spacing-xxl);
   background: var(--td-brand-color);
@@ -143,8 +118,8 @@
   font-size: var(--td-font-size-base);
 }
 
-/* 工单总览 */
-.issues-summary {
+/* 申诉总览 */
+.disputes-summary {
   padding: 0 var(--tg-spacing-sm) var(--tg-spacing-sm);
 }
 
@@ -153,8 +128,8 @@
   color: var(--tg-text-tertiary);
 }
 
-/* 工单卡片 */
-.issue-card {
+/* 申诉卡片 */
+.dispute-card {
   background: var(--tg-color-white);
   border-radius: var(--td-radius-large);
   padding: 32rpx;
@@ -166,34 +141,19 @@
     box-shadow 0.2s ease;
 }
 
-/* 工单头部 */
-.issue-header {
+/* 申诉头部 */
+.dispute-header {
   display: flex;
   align-items: center;
   margin-bottom: 24rpx;
 }
 
-.issue-type-badge {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 20rpx;
-  background: linear-gradient(135deg, var(--td-brand-color-light) 0%, rgba(var(--td-brand-color-rgb), 0.08) 100%);
-  @include flex-center;
-  margin-right: var(--tg-spacing-sm);
-  flex-shrink: 0;
-  box-shadow: var(--tg-shadow-sm);
-}
-
-.type-icon {
-  font-size: var(--tg-font-size-headline);
-}
-
-.issue-title-area {
+.dispute-title-area {
   flex: 1;
   min-width: 0;
 }
 
-.issue-title {
+.dispute-title {
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
@@ -203,15 +163,15 @@
   white-space: nowrap;
 }
 
-.issue-type-label {
+.dispute-type-label {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-tertiary);
   margin-top: 4rpx;
   display: block;
 }
 
-/* 工单状态标签 */
-.issue-status-badge {
+/* 申诉状态标签 */
+.dispute-status-badge {
   padding: 6rpx var(--tg-spacing-sm);
   border-radius: 20rpx;
   font-size: var(--tg-font-size-mini);
@@ -225,9 +185,14 @@
   color: var(--tg-color-warning);
 }
 
-.status-processing {
+.status-reviewing {
   background: #e3f2fd;
   color: var(--tg-color-info);
+}
+
+.status-arbitrating {
+  background: #ede7f6;
+  color: #7e57c2;
 }
 
 .status-resolved {
@@ -235,13 +200,13 @@
   color: var(--tg-color-success);
 }
 
-.status-closed {
+.status-rejected {
   background: var(--tg-color-bg-grey);
   color: var(--tg-text-tertiary);
 }
 
-/* 工单详情 */
-.issue-details {
+/* 申诉详情 */
+.dispute-details {
   padding: var(--tg-spacing-sm) 0;
   border-top: 1rpx solid var(--tg-color-border-light);
   border-bottom: 1rpx solid var(--tg-color-border-light);
@@ -266,26 +231,29 @@
   font-weight: var(--tg-font-weight-regular);
 }
 
-/* 优先级颜色 */
-.priority-low {
+/* 处理结果摘要 */
+.dispute-resolution {
+  padding: var(--tg-spacing-sm);
+  margin-bottom: 20rpx;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default);
+}
+
+.resolution-label {
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-tertiary);
+  display: block;
+  margin-bottom: 8rpx;
 }
 
-.priority-medium {
-  color: var(--tg-color-info);
+.resolution-text {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  line-height: 1.5;
 }
 
-.priority-high {
-  color: var(--tg-color-warning);
-}
-
-.priority-urgent {
-  color: var(--tg-color-error);
-  font-weight: var(--tg-font-weight-bold);
-}
-
-/* 工单进度条 */
-.issue-progress {
+/* 申诉进度条 */
+.dispute-progress {
   display: flex;
   align-items: center;
   justify-content: space-between;

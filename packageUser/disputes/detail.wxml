@@ -1,0 +1,70 @@
+<!--packageUser/disputes/detail.wxml - 售后申诉详情页面-->
+<custom-navbar title="售后详情" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<view class="detail-page">
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 加载中 -->
+    <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载中..." theme="spinner" />
+
+    <!-- 错误状态 -->
+    <view class="error-wrapper" wx:if="{{!loading && hasError}}">
+      <t-icon name="error-triangle-filled" size="48rpx" class="error-icon" />
+      <text class="error-text">{{errorMessage}}</text>
+      <view class="error-actions">
+        <view class="error-retry" bindtap="retryLoad"><text>重新加载</text></view>
+        <view class="error-back" bindtap="onGoBack"><text>返回</text></view>
+      </view>
+    </view>
+
+    <!-- 申诉详情 -->
+    <block wx:if="{{!loading && !hasError && dispute}}">
+      <!-- 状态卡片 -->
+      <view class="status-card" style="background: {{statusColor}}">
+        <text class="status-label">{{statusLabel}}</text>
+        <text class="status-desc">{{statusDesc}}</text>
+      </view>
+
+      <!-- 处理结果（已解决/已驳回时由后端下发 resolution） -->
+      <view class="info-card" wx:if="{{dispute.resolution}}">
+        <text class="card-title">处理结果</text>
+        <text class="resolution-content">{{dispute.resolution}}</text>
+      </view>
+
+      <!-- 申诉信息 -->
+      <view class="info-card">
+        <text class="card-title">申诉信息</text>
+        <view class="info-row">
+          <text class="info-label">申诉标题</text>
+          <text class="info-value">{{dispute.title}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">申诉编号</text>
+          <text class="info-value">#{{dispute.trade_dispute_id}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">关联订单</text>
+          <text class="info-value">{{orderTypeText}} #{{dispute.order_id}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">申诉类型</text>
+          <text class="info-value">{{disputeTypeText}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">提交时间</text>
+          <text class="info-value">{{createdAtText}}</text>
+        </view>
+        <view class="info-row" wx:if="{{resolvedAtText}}">
+          <text class="info-label">处理时间</text>
+          <text class="info-value">{{resolvedAtText}}</text>
+        </view>
+      </view>
+
+      <!-- 返回按钮 -->
+      <view class="back-section">
+        <view class="back-btn" bindtap="onGoBack"><text>返回列表</text></view>
+      </view>
+    </block>
+
+    <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
+</view>

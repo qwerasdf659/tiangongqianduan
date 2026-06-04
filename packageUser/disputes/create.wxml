@@ -1,0 +1,108 @@
+<!--packageUser/disputes/create.wxml - 自助发起售后申诉提交页-->
+<custom-navbar title="申请售后" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<view class="create-page">
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 参数错误 -->
+    <view class="param-error" wx:if="{{!paramValid}}">
+      <t-icon name="error-triangle-filled" size="48rpx" class="error-icon" />
+      <text class="error-text">{{paramErrorText}}</text>
+      <view class="error-back" bindtap="onGoBack"><text>返回</text></view>
+    </view>
+
+    <block wx:if="{{paramValid}}">
+      <!-- 申诉对象 -->
+      <view class="form-header">
+        <text class="form-title">申请售后</text>
+        <text class="form-subtitle">请如实描述问题，客服会尽快受理</text>
+      </view>
+
+      <view class="order-card">
+        <text class="order-label">申诉对象</text>
+        <text class="order-value">{{orderTypeText}} #{{orderId}}</text>
+        <text class="order-title" wx:if="{{orderTitle}}">{{orderTitle}}</text>
+      </view>
+
+      <!-- 申诉类型 -->
+      <view class="form-section">
+        <text class="section-title">申诉类型</text>
+        <view class="type-options">
+          <view
+            wx:for="{{disputeTypes}}"
+            wx:key="value"
+            class="type-option {{selectedType === item.value ? 'active' : ''}}"
+            data-type="{{item.value}}"
+            bindtap="onSelectType"
+          >
+            <text class="type-label">{{item.label}}</text>
+            <text class="type-desc">{{item.desc}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 申诉标题 -->
+      <view class="form-section">
+        <text class="section-title">申诉标题</text>
+        <input
+          class="title-input"
+          placeholder="一句话概括问题（必填）"
+          maxlength="200"
+          value="{{title}}"
+          bindinput="onTitleInput"
+        />
+      </view>
+
+      <!-- 问题描述 -->
+      <view class="form-section">
+        <text class="section-title">问题描述</text>
+        <view class="desc-input-wrap">
+          <textarea
+            class="desc-textarea"
+            placeholder="请详细描述您遇到的问题（至少20字）"
+            maxlength="500"
+            value="{{description}}"
+            bindinput="onDescInput"
+          />
+          <text class="desc-counter">{{descLength}}/500</text>
+        </view>
+      </view>
+
+      <!-- 证据图片 -->
+      <view class="form-section">
+        <text class="section-title">证据图片（可选，最多5张）</text>
+        <view class="evidence-grid">
+          <view
+            wx:for="{{evidenceImages}}"
+            wx:key="localPath"
+            class="evidence-item"
+            data-index="{{index}}"
+            bindtap="onPreviewImage"
+          >
+            <image class="evidence-image" src="{{item.localPath}}" mode="aspectFill" />
+            <view class="evidence-uploading" wx:if="{{item.uploading}}"><text>上传中</text></view>
+            <view class="evidence-delete" data-index="{{index}}" catchtap="onRemoveImage">
+              <text>✕</text>
+            </view>
+          </view>
+          <view wx:if="{{evidenceImages.length < 5}}" class="evidence-add" bindtap="onChooseImage">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加图片</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 提交 -->
+      <view class="submit-section">
+        <view
+          class="submit-btn {{!selectedType || !title || descLength < 20 || submitting ? 'disabled' : ''}}"
+          bindtap="onSubmit"
+        >
+          <text class="submit-text">{{submitting ? '提交中...' : '提交申诉'}}</text>
+        </view>
+        <text class="submit-tip">提交后客服将尽快受理，请确保信息真实有效</text>
+      </view>
+    </block>
+
+    <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
+</view>

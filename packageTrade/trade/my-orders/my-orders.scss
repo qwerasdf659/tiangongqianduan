@@ -70,7 +70,11 @@
 
 /* ========== 页面头部 ========== */
 .page-header {
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
   padding: var(--tg-spacing-md) var(--tg-spacing-lg);
   border-bottom: 1rpx solid var(--tg-color-border-light);
   position: relative;
@@ -255,6 +259,21 @@
 .order-id-label {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-disabled);
+}
+
+/* 售后申诉入口（常驻每张订单卡片） */
+.order-aftersale {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--tg-color-border-light);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aftersale-link {
+  font-size: var(--td-font-size-s);
+  color: var(--td-brand-color);
+  padding: 8rpx 4rpx;
 }
 
 .empty-slot-icon {
