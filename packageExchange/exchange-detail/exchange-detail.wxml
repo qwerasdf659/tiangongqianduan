@@ -164,7 +164,7 @@
     <!-- 铸造标识（后端 mint_instance=true 时展示，表示兑换后将铸造物品实例进入背包） -->
     <view class="ed-mint-badge" wx:if="{{product._mintInstance}}">
       <text class="ed-mint-icon iconfont icon-craft"></text>
-      <text class="ed-mint-text">兑换后将铸造专属物品实例 · 可在交易市场挂牌</text>
+      <text class="ed-mint-text">兑换后将铸造专属物品实例 · 收入我的仓库</text>
     </view>
 
     <!-- ④ 属性区: grid网格卡片模式 / list文字列表模式 -->
@@ -223,7 +223,9 @@
         </view>
         <view class="ed-attr-row" wx:if="{{product.has_warranty}}">
           <text class="ed-attr-row-label">保修</text>
-          <text class="ed-attr-row-value"><t-icon name="secured-filled" size="28rpx" color="#4CAF50" /> 含保修</text>
+          <text class="ed-attr-row-value"
+            ><t-icon name="secured-filled" size="28rpx" color="#4CAF50" /> 含保修</text
+          >
         </view>
         <view class="ed-attr-row" wx:if="{{product.free_shipping}}">
           <text class="ed-attr-row-label">物流</text>

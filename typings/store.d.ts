@@ -84,21 +84,13 @@ declare namespace Store {
     clearExchange(): void
   }
 
-  /** 交易Store状态 */
-  interface TradeStore {
-    marketListings: API.MarketListing[]
+  /** 背包Store状态 */
+  interface BackpackStore {
     inventoryItems: API.BackpackItem[]
-    myListings: API.MyListing[]
-    marketPagination: PaginationState
-    marketLoading: boolean
     inventoryLoading: boolean
-    setMarketListings(listings: API.MarketListing[], pagination: PaginationParam): void
-    appendMarketListings(listings: API.MarketListing[], pagination: PaginationParam): void
     setInventoryItems(items: API.BackpackItem[]): void
-    setMyListings(listings: API.MyListing[]): void
-    setMarketLoading(loading: boolean): void
     setInventoryLoading(loading: boolean): void
-    clearTrade(): void
+    clearBackpack(): void
   }
 
   /** 通用分页状态 */

@@ -1890,6 +1890,6 @@ Page({
 
   /** 跳转到道具仓库/背包页面 */
   goToInventory() {
-    wx.navigateTo({ url: '/packageTrade/trade/inventory/inventory' })
+    wx.navigateTo({ url: '/packageUser/backpack/inventory/inventory' })
   }
 })

@@ -24,24 +24,6 @@
       ]
     },
     {
-      "root": "packageTrade",
-      "name": "trade",
-      "pages": [
-        "trade/market/market",
-        "trade/listing-detail/listing-detail",
-        "trade/my-orders/my-orders",
-        "trade/inventory/inventory",
-        "trade/my-listings/my-listings",
-        "records/trade-upload-records/trade-upload-records",
-        "trade/dispute/dispute",
-        "trade/auction-hall/auction-hall",
-        "trade/auction-detail/auction-detail",
-        "trade/auction-create/auction-create",
-        "trade/my-auctions/my-auctions",
-        "trade/my-auction-bids/my-auction-bids"
-      ]
-    },
-    {
       "root": "packageUser",
       "name": "user-services",
       "pages": [
@@ -53,7 +35,9 @@
         "disputes/disputes",
         "disputes/detail",
         "disputes/create",
-        "notifications/notifications"
+        "notifications/notifications",
+        "backpack/inventory/inventory",
+        "records/trade-upload-records/trade-upload-records"
       ]
     },
     {
@@ -87,11 +71,11 @@
   "preloadRule": {
     "pages/lottery/lottery": {
       "network": "all",
-      "packages": ["trade", "lottery"]
+      "packages": ["lottery"]
     },
     "pages/exchange/exchange": {
       "network": "all",
-      "packages": ["trade", "lottery", "exchange", "diy"]
+      "packages": ["lottery", "exchange", "diy"]
     },
     "pages/diy/diy": {
       "network": "all",
@@ -103,7 +87,7 @@
     },
     "pages/user/user": {
       "network": "all",
-      "packages": ["user-services", "trade", "admin", "lottery", "exchange", "ad"]
+      "packages": ["user-services", "admin", "lottery", "exchange", "ad"]
     }
   },
   "window": {

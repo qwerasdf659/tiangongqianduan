@@ -73,7 +73,7 @@ async function performLottery(campaign_code: string, draw_count: number = 1) {
  *   campaign_name — 活动名称（已通过 JOIN 返回）
  *   campaign_code — 活动编码（已通过 JOIN 返回）
  *   reward_tier — 奖品档位: high/mid/low/fallback
- *   prize — 奖品对象 { id, name, type, value, primary_media_id }
+ *   prize — 奖品对象 { id, name, type, value }（对接契约 §2.3 口径）
  *   points_cost — 消耗积分（⚠️ 非 cost_points）
  *   probability — 中奖概率
  *   is_guarantee — 是否保底触发（⚠️ 非 guarantee_triggered）

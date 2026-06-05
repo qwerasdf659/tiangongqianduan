@@ -27,7 +27,7 @@ const io = require('weapp.socket.io')
 // MobX Store - 业务数据唯一来源
 const { userStore } = require('./store/user')
 const { pointsStore } = require('./store/points')
-const { tradeStore } = require('./store/trade')
+const { backpackStore } = require('./store/backpack')
 const { auditStore } = require('./store/audit')
 const log = Logger.createLogger('app')
 
@@ -405,7 +405,7 @@ App({
     this.disconnectWebSocket()
     userStore.clearLoginState()
     pointsStore.clearPoints()
-    tradeStore.clearTrade()
+    backpackStore.clearBackpack()
     auditStore.clearAudit()
   },
 
@@ -798,32 +798,6 @@ App({
           log.info('收到审核链新步骤分配:', data)
           auditStore.refreshPendingCount(true)
           this.notifyPageSubscribers('approval_step_assigned', data)
-        })
-
-        // ===== C2C竞拍事件（对齐后端 ChatWebSocketService 拍卖推送方法） =====
-
-        // 出价被超越（后端 pushAuctionOutbid → 推送给被超越的用户）
-        socket.on('auction_outbid', (data: any) => {
-          log.info('收到拍卖出价被超越通知:', data)
-          this.notifyPageSubscribers('auction_outbid', data)
-        })
-
-        // 中标通知（后端 pushAuctionWon → 推送给中标用户）
-        socket.on('auction_won', (data: any) => {
-          log.info('收到拍卖中标通知:', data)
-          this.notifyPageSubscribers('auction_won', data)
-        })
-
-        // 落选通知（后端 pushAuctionLost → 推送给落选用户，冻结已自动解冻）
-        socket.on('auction_lost', (data: any) => {
-          log.info('收到拍卖落选通知:', data)
-          this.notifyPageSubscribers('auction_lost', data)
-        })
-
-        // 新出价通知（后端 pushAuctionNewBid → 推送给拍卖卖方）
-        socket.on('auction_new_bid', (data: any) => {
-          log.info('收到拍卖新出价通知:', data)
-          this.notifyPageSubscribers('auction_new_bid', data)
         })
       } catch (error: any) {
         log.error('Socket.IO 初始化失败', error)

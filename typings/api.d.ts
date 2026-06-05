@@ -131,14 +131,17 @@ declare namespace API {
   /**
    * 奖品信息（后端抽奖活动奖品列表与抽奖结果统一字段）
    *
-   * 字段对齐后端真实返回格式：
-   * - lottery_prize_id: 抽奖奖品主键（数据库主键 lottery_prize_id）
-   * - primary_media: 有图片时为 MediaObject 对象，无图片时为 null（emoji兜底）
-   * - icon 字段已移除（后端不再返回，前端根据 prize_type 自行生成 emoji）
+   * 字段对齐《微信小程序抽奖对接契约》：
+   * - id: 奖品对外通用标识。后端内部主键为 lottery_campaign_prize_id，
+   *   经 DataSanitizer 脱敏后对小程序一律下发通用 `id`（防抓包暴露内部表结构）。
+   *   ⚠️ 不要再读 lottery_prize_id（旧假名，已废弃）/ lottery_campaign_prize_id（内部字段，不下发）。
+   * - image: 奖品图片对象 { url, thumbnail_url, source }，无图片时为 null。
+   * - reward_tier: 仅"抽奖结果"奖品含此字段（价值档位 low/mid/high/fallback，均代表中奖）；
+   *   "奖品列表"接口已脱敏不含该字段。
    */
   interface Prize {
-    /** 奖品ID（后端真实主键字段 lottery_prize_id） */
-    lottery_prize_id: number
+    /** 奖品ID（对外通用标识，抽奖/展示统一用它，后端脱敏后字段名为 id） */
+    id: number
     /** 抽奖单号（lottery_draws.order_no，LT前缀16位编号） */
     order_no?: string
     /** 奖品名称 */
@@ -147,36 +150,45 @@ declare namespace API {
     prize_type: string
     /** 奖品数值（积分数/面值等） */
     prize_value: number
-    /** 稀有度代码（5级: common/uncommon/rare/epic/legendary） */
+    /** 稀有度代码（5级: common/uncommon/rare/epic/legendary，前端按此显示颜色光效） */
     rarity_code: string
-    /** 展示排序权重 */
+    /** 展示排序权重（九宫格/转盘位置编号） */
     sort_order: number
-    /** 奖励层级: low/mid/high/fallback（对齐数据库 lottery_prizes.reward_tier 实际枚举值，所有值均代表中奖） */
-    reward_tier: string
-    /** 状态: active / inactive */
-    status: string
-    /** 主图媒体ID（关联 media_files 表，可为 null） */
-    primary_media_id: number | null
     /**
-     * 奖品图片对象（后端通过 media_files 表 JOIN 生成完整URL）
-     * 有图片时: { media_id, public_url, mime_type, thumbnails }
-     * 无图片时: null（前端使用 PRIZE_ICON_MAP[prize_type] emoji 兜底）
+     * 奖励层级: low/mid/high/fallback（所有值均代表中奖，不存在"未中奖"语义）
+     * ⚠️ 仅"抽奖结果"奖品对象含此字段；"奖品列表"接口已脱敏不下发。
      */
-    primary_media: MediaObject | null
-    /** 材料资产代码（如 red_core_gem、star_stone） */
-    material_asset_code: string
-    /** 材料数量 */
-    material_amount: number
+    reward_tier?: string
+    /** 奖励层级中文文案（如"中档"，仅抽奖结果含） */
+    reward_tier_text?: string
+    /**
+     * 奖品图片对象（后端已拼接完整URL，前端直接使用）
+     * 有图片时: { url, thumbnail_url, source }，无图片时: null
+     * source: 'material_icon'（材料资产图标）/ 'media'（自定义上传）/ 'placeholder'（占位图）
+     */
+    image: PrizeImage | null
+    /** 材料资产代码（如 red_core_gem、star_stone，仅抽奖结果含） */
+    material_asset_code?: string
+    /** 材料数量（仅抽奖结果含） */
+    material_amount?: number
     /**
      * 是否为兜底奖品（保底奖品标记）
      * true 时前端用降低饱和度 + "保底"角标区分展示
      */
     is_fallback?: boolean
-    /**
-     * 剩余库存数量
-     * 0 时前端显示"已抢光"遮罩
-     */
-    stock_quantity?: number
+  }
+
+  /**
+   * 奖品图片对象（对齐契约 prize.image 结构）
+   * 后端已根据 material_asset_code / 自定义上传拼接好完整 URL，前端直接使用。
+   */
+  interface PrizeImage {
+    /** 图片完整公网URL */
+    url: string
+    /** 缩略图完整URL */
+    thumbnail_url: string
+    /** 图片来源: material_icon / media / placeholder */
+    source?: string
   }
 
   /**
@@ -274,13 +286,16 @@ declare namespace API {
     campaign_name?: string
     /** 奖励档位: high/mid/low/fallback（所有值均代表中奖） */
     reward_tier: string
-    /** 奖品信息（后端 Service 层重映射后的嵌套对象） */
+    /** 奖品信息（后端 Service 层重映射后的嵌套对象，对接契约 §2.3 口径） */
     prize: {
+      /** 奖品对外通用标识 */
       id: number
+      /** 奖品名称 */
       name: string
+      /** 奖品类型 */
       type: string
+      /** 奖品数值 */
       value: number
-      primary_media_id: number | null
     }
     /** 消耗积分（后端字段名 points_cost，非 cost_points） */
     points_cost: number
@@ -408,7 +423,7 @@ declare namespace API {
     rarity_display: string
     /** 稀有度颜色（可为null） */
     rarity_color: string | null
-    /** 是否可在交易市场上架（true=可交易，false=不可交易） */
+    /** 后端资产可交易标记（C2C 已下线，前端不再据此渲染上架入口，仅透传保留） */
     is_tradable: boolean
   }
 
@@ -464,13 +479,14 @@ declare namespace API {
     has_redemption_code: boolean
     /**
      * 后端根据 item_type 和 system_configs(item_type_action_rules) 计算的允许操作列表
-     * 可能值: 'use'(直接使用) / 'redeem'(生成核销码) / 'sell'(上架交易市场)
+     * 前端消费的值: 'use'(直接使用) / 'redeem'(生成核销码)
+     * ⚠️ C2C 已下线：后端可能仍下发 'sell'，但前端不再渲染"上架"入口（忽略该值）
      * 业务规则（后端权威）:
-     *   product   → ["redeem", "sell"]   实物商品需到店核销
-     *   voucher   → ["redeem", "sell"]   兑换券需到店核销
-     *   prize     → ["redeem"]           奖品不可交易（防刷号倒卖）
-     *   service   → ["use"]             线上权益直接激活
-     *   tradable_item → ["use", "sell"]  虚拟道具可用可交易
+     *   product   → 含 "redeem"   实物商品需到店核销
+     *   voucher   → 含 "redeem"   兑换券需到店核销
+     *   prize     → ["redeem"]    奖品不可交易（防刷号倒卖）
+     *   service   → ["use"]       线上权益直接激活
+     *   tradable_item → 含 "use"   虚拟道具可用
      */
     allowed_actions: string[]
     /**
@@ -784,24 +800,6 @@ declare namespace API {
   }
 
   /**
-   * C2C交易担保码信息（Phase 4：担保交易码）
-   * 仅 listing_kind = 'item' 的实物交易使用
-   * fungible_asset 交易自动完成，不需要担保码
-   */
-  interface EscrowCodeInfo {
-    /** 6位数字担保码（如 582917） */
-    escrow_code: string
-    /** 交易订单号（trade_orders.order_no，TO前缀16位编号） */
-    order_no?: string
-    /** 担保码过期时间（ISO8601，Redis存储30分钟有效） */
-    expires_at: string
-    /** 关联的交易订单ID */
-    trade_order_id: number
-    /** 交易订单状态 */
-    status: string
-  }
-
-  /**
    * 兑换空间统计数据（后端 GET /api/v4/exchange/space-stats 响应）
    * 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
    * ⚠️ 统计数据由后端计算返回，前端不自行统计
@@ -1016,239 +1014,6 @@ declare namespace API {
     net_amount: number
     /** 幂等键 */
     idempotency_key: string
-  }
-
-  // ===== 价格发现系统 =====
-
-  /**
-   * 价格走势数据点（GET /api/v4/marketplace/price/trend 响应中 data_points 数组项）
-   * 后端按时间聚合 trade_orders JOIN market_listings 计算
-   */
-  interface PriceTrendPoint {
-    /** 时间分桶标签（后端真实字段名，如 '2026-02-16'；数值字段为原生聚合字符串，前端 Number() 转换） */
-    time_bucket: string
-    /** 均价（字符串） */
-    avg_price: string
-    /** 最低价（字符串） */
-    min_price: string
-    /** 最高价（字符串） */
-    max_price: string
-    /** 成交笔数（字符串） */
-    trade_count: string
-    /** 总成交量（字符串） */
-    total_volume: string
-  }
-
-  /**
-   * 成交量走势数据点（GET /api/v4/marketplace/price/volume 响应中 data_points 数组项）
-   * 后端原生 SQL 聚合，数值字段为字符串，前端需 Number() 转换
-   */
-  interface VolumeTrendPoint {
-    /** 时间分桶标签（后端真实字段名，非 time） */
-    time_bucket: string
-    /** 成交笔数（字符串） */
-    trade_count: string
-    /** 星石计价成交量（字符串，成交量柱按此字段取） */
-    total_star_stone_volume: string
-    /** 物品成交量（字符串，成交量柱按此字段取） */
-    total_item_volume: string
-  }
-
-  /**
-   * 价格摘要统计（GET /api/v4/marketplace/price/summary 响应）
-   * 综合统计某资产/物品的历史成交数据
-   */
-  interface PriceSummary {
-    /** 总成交笔数 */
-    total_trades: number
-    /** 历史最低价 */
-    lowest_ever: number
-    /** 历史最高价 */
-    highest_ever: number
-    /** 中位数价 */
-    median_price: number
-    /** 近7天均价 */
-    avg_price_7d: number
-    /** 近7天成交笔数 */
-    trades_7d: number
-  }
-
-  /**
-   * 最近成交记录（GET /api/v4/marketplace/price/recent-trades 响应中数组项）
-   * ⚠️ 后端 data 直接是数组（非包装对象）；数值字段为原生 SQL 聚合返回的字符串，前端需 Number() 转换
-   * ⚠️ 不含对手方身份（无昵称/user_id/订单详情），匿名开放无脱敏顾虑
-   */
-  interface RecentTrade {
-    /** 交易订单ID */
-    trade_order_id: number
-    /** 成交总额（字符串，如 "500"） */
-    gross_amount: string
-    /** 手续费（字符串） */
-    fee_amount: string
-    /** 卖家实收（字符串） */
-    net_amount: string
-    /** 结算币种代码（如 star_stone） */
-    settlement_asset: string
-    /** 挂牌类型: item / fungible_asset */
-    listing_kind: string
-    /** 出售资产代码（fungible_asset 类型） */
-    offer_asset_code: string | null
-    /** 出售数量（字符串，fungible_asset 类型） */
-    offer_amount: string | null
-    /** 出售物品模板ID（item 类型） */
-    offer_item_template_id: number | null
-    /** 成交时间（北京时间 YYYY-MM-DD HH:mm:ss） */
-    completed_at: string
-  }
-
-  // ===== 市场数据分析 =====
-
-  /**
-   * 定价建议（GET /api/v4/marketplace/analytics/pricing-advice 响应）
-   * 算法: 建议最低价 = 近7天均价×0.8, 建议参考价 = 近7天均价, 建议最高价 = 近7天均价×1.5
-   */
-  interface PricingAdvice {
-    /** 是否有成交数据（无成交数据时其他字段无意义） */
-    has_trade_data: boolean
-    /** 建议最低价 */
-    suggested_min_price: number
-    /** 建议参考价 */
-    suggested_price: number
-    /** 建议最高价 */
-    suggested_max_price: number
-    /** 当前在售最低价 */
-    lowest_on_sale: number
-    /** 定价建议文本 */
-    advice_text: string
-  }
-
-  /**
-   * 市场总览数据（GET /api/v4/marketplace/analytics/overview 响应）
-   * 各资产成交量排行、总交易额等宏观数据
-   */
-  interface MarketOverview {
-    /** 总挂单数 */
-    total_listings: number
-    /** 在售挂单数 */
-    active_listings: number
-    /** 总成交笔数 */
-    total_trades: number
-    /** 总成交额（star_stone计） */
-    total_volume: number
-    /** 24小时成交笔数 */
-    trades_24h: number
-    /** 24小时成交额 */
-    volume_24h: number
-    /** 资产成交量排行（按成交额降序） */
-    asset_rankings: AssetRanking[]
-  }
-
-  /** 市场总览中的资产排行项 */
-  interface AssetRanking {
-    /** 资产代码或分类标识 */
-    asset_code: string
-    /** 资产显示名称 */
-    display_name: string
-    /** 成交笔数 */
-    trade_count: number
-    /** 成交总额 */
-    total_volume: number
-  }
-
-  /**
-   * 价格历史数据（GET /api/v4/marketplace/analytics/history 响应中数组项）
-   * 卖家视角的价格历史，用于定价参考
-   */
-  interface PriceHistoryPoint {
-    /** 日期（YYYY-MM-DD） */
-    date: string
-    /** 均价 */
-    avg_price: number
-    /** 最低价 */
-    min_price: number
-    /** 最高价 */
-    max_price: number
-    /** 成交笔数 */
-    trade_count: number
-  }
-
-  // ===== 交易市场 =====
-
-  /**
-   * 市场挂单（对齐后端 market_listings 表 + GET /api/v4/marketplace/listings 响应）
-   * 双模式表: listing_kind 区分不可叠加物品(item)和可叠加资产(fungible_asset)
-   * 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn
-   *
-   * 三表模型迁移（2026-02-22）:
-   *   listing_kind 枚举: item_instance → item
-   *   FK列名: offer_item_instance_id → offer_item_id
-   */
-  interface MarketListing {
-    /** 挂单ID（BIGINT PK，后端API返回字段名为 market_listing_id） */
-    market_listing_id: number
-    /** 挂牌类型: item(不可叠加物品) / fungible_asset(可叠加资产) */
-    listing_kind: string
-    /** 卖家用户ID */
-    seller_user_id: number
-    /** 物品ID（item类型使用，关联items表，可为null） */
-    offer_item_id: number | null
-    /** 物品模板ID（可为null） */
-    offer_item_template_id: number | null
-    /** 物品显示名称 */
-    offer_item_display_name: string | null
-    /** 物品分类ID（关联 categories.category_id，整数FK） */
-    offer_category_id: number | null
-    /** 物品稀有度编码 */
-    offer_item_rarity: string | null
-    /** 资产代码（fungible_asset类型使用，可为null） */
-    offer_asset_code: string | null
-    /** 资产分组代码 */
-    offer_asset_group_code: string | null
-    /** 资产显示名称 */
-    offer_asset_display_name: string | null
-    /** 上架数量（fungible_asset类型使用，可为null） */
-    offer_amount: number | null
-    /** 定价币种（默认 star_stone） */
-    price_asset_code: string
-    /** 售价（BIGINT） */
-    price_amount: number
-    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
-    status: string
-    /** 创建时间 */
-    created_at: string
-  }
-
-  /**
-   * 我的挂单（对齐后端 GET /api/v4/marketplace/my-listings 响应）
-   * 与 MarketListing 共享核心字段，但字段更精简
-   */
-  interface MyListing {
-    /** 挂单ID（BIGINT PK，后端API返回字段名为 market_listing_id） */
-    market_listing_id: number
-    /** 交易订单号（trade_orders.order_no，TO前缀16位编号） */
-    order_no?: string
-    /** 挂牌类型: item / fungible_asset */
-    listing_kind: string
-    /** 商品显示名称 */
-    display_name: string
-    /** 物品稀有度编码（仅 item 类型） */
-    offer_item_rarity?: string
-    /** 资产代码（仅 fungible_asset 类型，如 star_stone） */
-    offer_asset_code?: string
-    /** 上架数量（仅 fungible_asset 类型） */
-    offer_amount?: number
-    /** 定价币种（默认 star_stone） */
-    price_asset_code: string
-    /** 售价（BIGINT） */
-    price_amount: number
-    /** 挂单状态: on_sale / locked / sold / withdrawn / admin_withdrawn */
-    status: string
-    /** 挂单状态中文显示（后端返回） */
-    status_display?: string
-    /** 创建时间 */
-    created_at: string
-    /** 关联交易订单ID（locked/sold状态时后端返回，用于担保码查询） */
-    trade_order_id?: number | null
   }
 
   // ===== 消费系统 =====
@@ -1991,13 +1756,13 @@ declare namespace API {
   interface UserNotification {
     /** 通知ID（BIGINT主键） */
     notification_id: string
-    /** 通知类型（listing_created / purchase_completed / lottery_win 等） */
+    /** 通知类型（lottery_win / exchange_approved / points_change 等） */
     type: string
-    /** 通知标题（可直接展示，如 "📦 挂牌成功"） */
+    /** 通知标题（可直接展示，如 "🎁 中奖通知"） */
     title: string
     /** 通知正文 */
     content: string
-    /** 附加业务数据（用于跳转对应页面，如 market_listing_id、offer_asset_code） */
+    /** 附加业务数据（用于跳转对应页面，如 exchange_item_id、order_no） */
     metadata: Record<string, any> | null
     /** 已读标记: 0=未读, 1=已读 */
     is_read: number
@@ -2012,13 +1777,6 @@ declare namespace API {
    * 来源: 后端 NotificationService 的 30 个 notifyXxx() 方法
    */
   type NotificationType =
-    | 'listing_created'
-    | 'listing_sold'
-    | 'listing_withdrawn'
-    | 'listing_expired'
-    | 'purchase_completed'
-    | 'trade_complete_seller'
-    | 'trade_complete_buyer'
     | 'lottery_win'
     | 'lottery_result'
     | 'exchange_pending'
@@ -2027,184 +1785,6 @@ declare namespace API {
     | 'points_change'
     | 'announcement'
     | 'security_event'
-    | 'auction_outbid'
-    | 'auction_won'
-    | 'auction_lost'
-    | 'auction_new_bid'
-
-  // ===== C2C竞拍系统（auction_listings + auction_bids） =====
-
-  /**
-   * C2C拍卖状态枚举（对齐后端 auction_listings.status 7态状态机）
-   * 与 bid_products 完全相同的 ENUM 顺序
-   */
-  type AuctionStatus =
-    | 'pending'
-    | 'active'
-    | 'ended'
-    | 'cancelled'
-    | 'settled'
-    | 'settlement_failed'
-    | 'no_bid'
-
-  /**
-   * 拍卖物品快照（创建拍卖时冻结的物品状态，用于争议举证）
-   * 数据来源: auction_listings.item_snapshot JSON字段
-   */
-  interface AuctionItemSnapshot {
-    /** 物品名称（items.item_name） */
-    item_name: string
-    /** 物品类型 */
-    item_type: string
-    /** 稀有度编码 */
-    rarity_code: string | null
-    /** 物品价值 */
-    item_value: number
-    /** 物品模板ID */
-    item_template_id: number | null
-    /** 实例属性（品质等级等） */
-    instance_attributes: Record<string, any> | null
-  }
-
-  /**
-   * C2C拍卖挂牌信息（auction_listings表）
-   * 后端API: GET /api/v4/marketplace/auctions
-   */
-  interface AuctionListing {
-    /** 拍卖ID（PK） */
-    auction_listing_id: number
-    /** 卖方用户ID */
-    seller_user_id: number
-    /** 卖方昵称（JOIN users） */
-    seller_nickname?: string
-    /** 拍卖物品ID（items表FK） */
-    item_id: number
-    /** 物品快照JSON */
-    item_snapshot: AuctionItemSnapshot | null
-    /** 出价资产类型（默认star_stone） */
-    price_asset_code: string
-    /** 起拍价 */
-    start_price: number
-    /** 当前最高出价（无人出价时为0） */
-    current_price: number
-    /** 最小加价幅度 */
-    min_bid_increment: number
-    /** 一口价（null=不支持） */
-    buyout_price: number | null
-    /** 拍卖开始时间（北京时间ISO8601） */
-    start_time: string
-    /** 拍卖结束时间（北京时间ISO8601） */
-    end_time: string
-    /** 中标者用户ID（仅settled状态有值） */
-    winner_user_id: number | null
-    /** 中标出价记录ID */
-    winner_bid_id: number | null
-    /** 拍卖状态 */
-    status: AuctionStatus
-    /** 手续费率（默认0.0500 = 5%） */
-    fee_rate: number
-    /** 成交总额（=中标价，仅settled有值） */
-    gross_amount: number | null
-    /** 手续费（仅settled有值） */
-    fee_amount: number | null
-    /** 卖方实收（仅settled有值） */
-    net_amount: number | null
-    /** 出价次数 */
-    bid_count: number
-    /** 独立出价人数 */
-    unique_bidders: number
-    /** 创建时间 */
-    created_at: string
-    /** 更新时间 */
-    updated_at: string
-  }
-
-  /**
-   * C2C拍卖出价记录（auction_bids表）
-   * 后端API: GET /api/v4/marketplace/auctions/my-bids
-   */
-  interface AuctionBid {
-    /** 出价记录ID（PK） */
-    auction_bid_id: number
-    /** 关联拍卖ID */
-    auction_listing_id: number
-    /** 出价用户ID */
-    user_id: number
-    /** 出价用户昵称 */
-    nickname?: string
-    /** 出价金额 */
-    bid_amount: number
-    /** 出价前最高价 */
-    previous_highest: number
-    /** 当前是否领先 */
-    is_winning: boolean
-    /** 是否最终中标 */
-    is_final_winner: boolean
-    /** 出价时间 */
-    created_at: string
-  }
-
-  /** 我的出价记录（含关联拍卖摘要信息） */
-  interface MyAuctionBidRecord extends AuctionBid {
-    /** 关联拍卖摘要（后端JOIN查询） */
-    auction_info: {
-      item_snapshot: AuctionItemSnapshot | null
-      status: AuctionStatus
-      current_price: number
-      end_time: string
-      price_asset_code: string
-      seller_nickname: string
-    }
-  }
-
-  /**
-   * 拍卖详情响应（含出价排行和我的出价）
-   * 后端API: GET /api/v4/marketplace/auctions/:auction_listing_id
-   */
-  interface AuctionDetailResponse {
-    /** 拍卖主信息 */
-    auction: AuctionListing
-    /** 出价排行前10 */
-    top_bids: AuctionBid[]
-    /** 当前用户在此拍卖的出价记录（仅登录用户） */
-    my_bids: AuctionBid[]
-  }
-
-  // ===== C2C竞拍WebSocket事件数据 =====
-
-  /** WebSocket: auction_outbid — 你的出价被超越 */
-  interface AuctionOutbidEvent {
-    auction_listing_id: number
-    item_name: string
-    new_highest: number
-    price_asset_code: string
-  }
-
-  /** WebSocket: auction_won — 你中标了 */
-  interface AuctionWonEvent {
-    auction_listing_id: number
-    item_name: string
-    winning_amount: number
-    price_asset_code: string
-  }
-
-  /** WebSocket: auction_lost — 你落选了（冻结已解冻） */
-  interface AuctionLostEvent {
-    auction_listing_id: number
-    item_name: string
-    my_bid_amount: number
-    winning_amount: number
-    price_asset_code: string
-  }
-
-  /** WebSocket: auction_new_bid — 你的拍卖有新出价（卖方收） */
-  interface AuctionNewBidEvent {
-    auction_listing_id: number
-    item_name: string
-    bid_amount: number
-    bidder_user_id: number
-    price_asset_code: string
-  }
 
   // ===== DIY饰品设计引擎（对齐后端数据库真实状态 2026-04-02） =====
 

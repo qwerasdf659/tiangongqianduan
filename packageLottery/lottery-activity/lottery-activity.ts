@@ -42,14 +42,13 @@ const RARITY_WEIGHT: Record<string, number> = {
 /**
  * 为奖品数据添加 UI 展示字段
  *
- * 后端实际返回字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code,
- *              sort_order, reward_tier, image, is_fallback, prize_description
+ * 后端实际返回字段（对接契约）: id, prize_name, prize_type, prize_value, rarity_code,
+ *              sort_order, reward_tier, image, is_fallback
+ * - id: 奖品对外通用标识（后端脱敏后字段名，抽奖/展示统一用它）
  * - image: 有图片时为 { url, thumbnail_url, source }，无图片时为 null
  *   source 值: 'material_icon'（材料资产图标）/ 'media'（自定义上传）/ 'placeholder'（占位图）
- * - stock_quantity / is_sold_out: 后端不透传（Decision 6/9: 不展示售罄状态）
- *   is_sold_out 计算逻辑保留但不会触发（后端不返回 stock_quantity 字段）
  * - 前端补充:
- *   prize_image_url — 图片优先展示 URL（取自 image.url）
+ *   prize_image_url — 图片优先展示 URL（取自 image.thumbnail_url 或 image.url）
  *   is_fallback     — 标准化为 boolean（兜底奖品显示"保底"角标）
  */
 /**
@@ -179,7 +178,7 @@ function addPrizeIcon(prize: any): any {
   /* 奖品图片缺失 — 明确报错，不做兜底降级 */
   if (!prize.prize_image_url) {
     log.error(
-      `[addPrizeIcon] 奖品图片缺失！lottery_prize_id=${prize.lottery_prize_id}, prize_name="${prize.prize_name}", image=${JSON.stringify(prize.image)}。请后端检查该奖品的 image 配置。`
+      `[addPrizeIcon] 奖品图片缺失！id=${prize.id}, prize_name="${prize.prize_name}", image=${JSON.stringify(prize.image)}。请后端检查该奖品的 image 配置。`
     )
     prize._image_missing = true
   }
@@ -187,7 +186,7 @@ function addPrizeIcon(prize: any): any {
   /* 兜底奖品标记 — 标准化为 boolean（MySQL TINYINT(1) 可能返回 0/1 而非 true/false） */
   prize.is_fallback = !!prize.is_fallback
 
-  /* 库存耗尽标记 — 后端当前不透传 stock_quantity（Decision 6/9），此逻辑不会触发 */
+  /* 库存耗尽标记 — 后端当前不透传 stock_quantity（契约已脱敏移除），此逻辑不会触发 */
   prize.is_sold_out = typeof prize.stock_quantity === 'number' && prize.stock_quantity === 0
 
   return prize
@@ -432,7 +431,7 @@ Component({
 
         /**
          * 奖品列表: ApiResponse 标准信封，data 直接是数组
-         * 后端字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+         * 后端字段（对接契约）: id, prize_name, prize_type, prize_value, rarity_code, sort_order, image
          */
         const prizesRaw: any[] = prizesRes.data
 
@@ -868,7 +867,7 @@ Component({
 
         /**
          * 后端统一返回 data.prizes 数组（单抽 length=1，连抽 length=N）
-         * 字段: lottery_prize_id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
+         * 字段（对接契约）: id, prize_name, prize_type, prize_value, rarity_code, sort_order, reward_tier, image
          */
         const prizes = (result.data.prizes || []).map(addPrizeIcon)
         /* 复用已预下载的本地图片路径，避免 <image> 组件直接加载网络 URL 失败 */

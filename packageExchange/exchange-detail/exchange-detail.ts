@@ -753,7 +753,7 @@ Page({
             showCancel: false,
             confirmText: '查看背包',
             success: () => {
-              wx.navigateTo({ url: '/packageTrade/trade/inventory/inventory' })
+              wx.navigateTo({ url: '/packageUser/backpack/inventory/inventory' })
             }
           })
         } else {

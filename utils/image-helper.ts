@@ -15,7 +15,6 @@
  *   - 材料图标采用前端静态映射（游戏公司做法，零网络请求）
  *   - 分类图标采用前端静态映射（数量固定9个）
  *   - 稀有度视觉用纯CSS实现（后端 rarity_defs.color_hex 驱动）
- *   - C2C交易市场只显示系统资产图标，不支持用户上传图片（决策5）
  *
  * @file 天工餐厅积分系统 - 图片资源助手
  * @version 5.2.0
@@ -207,72 +206,6 @@ function formatEdition(serialNumber: number | null, editionTotal: number | null)
   return `#${String(serialNumber).padStart(digits, '0')} / ${String(editionTotal).padStart(digits, '0')}`
 }
 
-/**
- * 计算冷却期剩余时间文本
- *
- * 后端字段: item_holds[].expires_at（ISO8601，hold_type='trade_cooldown'）
- * 前端计算倒计时，展示"X天Y小时"或"已结束"
- *
- * @param expiresAt - 冷却期结束时间（ISO8601 字符串）
- * @returns { remaining: string, isActive: boolean }
- */
-function formatCooldownRemaining(expiresAt: string): {
-  remaining: string
-  isActive: boolean
-} {
-  if (!expiresAt) {
-    return { remaining: '', isActive: false }
-  }
-
-  const now = Date.now()
-  const expiresTime = new Date(expiresAt).getTime()
-  if (isNaN(expiresTime)) {
-    return { remaining: '', isActive: false }
-  }
-
-  const diffMs = expiresTime - now
-  if (diffMs <= 0) {
-    return { remaining: '已结束', isActive: false }
-  }
-
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-
-  if (days > 0) {
-    return { remaining: `${days}天${hours}小时`, isActive: true }
-  }
-  if (hours > 0) {
-    return { remaining: `${hours}小时${minutes}分钟`, isActive: true }
-  }
-  return { remaining: `${minutes}分钟`, isActive: true }
-}
-
-/**
- * 从物品数据中提取交易冷却期信息
- *
- * 后端返回物品详情时，holds 数组中包含 hold_type='trade_cooldown' 的记录
- * 冷却期内物品可见可用但不可上架交易
- *
- * @param holds - 后端返回的 holds 数组
- * @returns 活跃的冷却期信息，无冷却时返回 null
- */
-function getTradeCooldown(
-  holds: any[]
-): { remaining: string; isActive: boolean; expiresAt: string } | null {
-  if (!Array.isArray(holds)) {
-    return null
-  }
-  const cooldownHold = holds.find(
-    (h: any) => h.hold_type === 'trade_cooldown' && h.status === 'active'
-  )
-  if (!cooldownHold || !cooldownHold.expires_at) {
-    return null
-  }
-  const { remaining, isActive } = formatCooldownRemaining(cooldownHold.expires_at)
-  return { remaining, isActive, expiresAt: cooldownHold.expires_at }
-}
-
 // ===== 工具函数 =====
 
 /**
@@ -384,80 +317,6 @@ function getAssetDisplayName(assetCode: string, backendDisplayName?: string): st
   return ASSET_DISPLAY_NAMES[assetCode] || assetCode
 }
 
-/**
- * 为交易市场挂单计算展示图片路径
- *
- * 降级链：
- *   item 类型 → item_info.primary_media.public_url（后端完整URL）→ 分类图标 → 占位图
- *   fungible_asset 类型 → 本地材料图标（按 asset_code 映射）→ 占位图
- *
- * @param listing - 后端返回的 market_listing 对象
- * @returns 可直接绑定到 <image src> 的路径
- */
-function getListingDisplayImage(listing: any): string {
-  if (!listing) {
-    return DEFAULT_PRODUCT_IMAGE
-  }
-
-  /** 资产类挂牌：优先使用后端 asset_info.icon_url */
-  if (listing.listing_kind === 'fungible_asset') {
-    if (listing.asset_info && listing.asset_info.icon_url) {
-      return listing.asset_info.icon_url
-    }
-    const assetCode =
-      (listing.asset_info && listing.asset_info.asset_code) || listing.offer_asset_code
-    return getMaterialIconPath(assetCode)
-  }
-
-  /** 物品类挂牌：优先使用后端 item_info.image_url */
-  if (listing.item_info && listing.item_info.image_url) {
-    return listing.item_info.image_url
-  }
-
-  const primaryMediaUrl =
-    listing.item_info?.primary_media?.public_url ||
-    listing.item_info?.primary_media?.thumbnails?.medium
-  if (primaryMediaUrl) {
-    return primaryMediaUrl
-  }
-
-  const categoryCode = listing.item_info && listing.item_info.category_code
-  if (categoryCode) {
-    return getCategoryIconPath(categoryCode)
-  }
-
-  return DEFAULT_PRODUCT_IMAGE
-}
-
-/**
- * 为交易市场挂单计算展示名称
- *
- * @param listing - 后端返回的 market_listing 对象
- * @returns 商品/资产展示名称
- */
-function getListingDisplayName(listing: any): string {
-  if (!listing) {
-    return '未知商品'
-  }
-
-  if (listing.listing_kind === 'fungible_asset') {
-    return (
-      (listing.asset_info && listing.asset_info.display_name) ||
-      listing.offer_asset_display_name ||
-      getAssetDisplayName(
-        (listing.asset_info && listing.asset_info.asset_code) || listing.offer_asset_code || ''
-      ) ||
-      '未知资产'
-    )
-  }
-
-  return (
-    (listing.item_info && listing.item_info.display_name) ||
-    listing.offer_item_display_name ||
-    '未知物品'
-  )
-}
-
 module.exports = {
   MATERIAL_ICONS,
   CATEGORY_ICONS,
@@ -471,10 +330,6 @@ module.exports = {
   getRarityStyle,
   getQualityGradeStyle,
   getAssetDisplayName,
-  getListingDisplayImage,
-  getListingDisplayName,
   getLocalIconFromMaterialUrl,
-  formatEdition,
-  formatCooldownRemaining,
-  getTradeCooldown
+  formatEdition
 }

@@ -43,12 +43,10 @@ const DISPUTE_TYPE_MAP: Record<string, string> = {
   other: '其他'
 }
 
-/** 关联订单类型文案映射（对齐后端 trade_disputes.order_type 枚举） */
+/** 关联订单类型文案映射（对齐后端 trade_disputes.order_type 枚举：redemption/consumption） */
 const ORDER_TYPE_MAP: Record<string, string> = {
-  trade: '交易订单',
   redemption: '兑换订单',
-  consumption: '消费订单',
-  auction: '拍卖订单'
+  consumption: '消费订单'
 }
 
 Page({
@@ -168,7 +166,7 @@ Page({
   processDisputeItem(dispute: any) {
     const status = dispute.status || 'open'
     const disputeType = dispute.dispute_type || 'other'
-    const orderType = dispute.order_type || 'trade'
+    const orderType = dispute.order_type || 'consumption'
 
     return {
       tradeDisputeId: dispute.trade_dispute_id,

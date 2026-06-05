@@ -93,7 +93,6 @@ interface CardDisplayConfig {
     listView: boolean
   }
   shop_cta_text: string
-  market_cta_text: string
   show_stock_bar: boolean
   stock_display_mode: 'bar' | 'text' | 'badge'
   show_sold_count: boolean
@@ -140,11 +139,6 @@ interface ExchangePageConfig {
     cost_ranges: CostRangeOption[]
     basic_filters: FilterOption[]
     stock_statuses: FilterOption[]
-    sort_options: FilterOption[]
-  }
-  market_filters: {
-    type_filters: FilterOption[]
-    category_filters: FilterOption[]
     sort_options: FilterOption[]
   }
   card_display: CardDisplayConfig

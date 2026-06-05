@@ -224,7 +224,7 @@ Component({
 
       const cards = this.data.cards.map((c: any) => ({ ...c, isNew: false }))
       let targetIndex = cards.findIndex(
-        (card: any) => card.prize && card.prize.lottery_prize_id === drawResult.lottery_prize_id
+        (card: any) => card.prize && card.prize.id === drawResult.id
       )
 
       if (targetIndex < 0) {

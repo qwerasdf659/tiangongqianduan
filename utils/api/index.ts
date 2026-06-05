@@ -20,13 +20,11 @@ const authModule = require('./auth')
 const lotteryModule = require('./lottery')
 const assetsModule = require('./assets')
 const backpackModule = require('./backpack')
-const marketModule = require('./market')
 const shopModule = require('./shop')
 const systemModule = require('./system')
 const consoleModule = require('./console')
 const adCampaignsModule = require('./ad-campaigns')
 const userNotificationsModule = require('./user-notifications')
-const auctionModule = require('./auction')
 const diyModule = require('./diy')
 
 /**
@@ -52,9 +50,6 @@ module.exports = {
   /** 背包+B2C兑换+竞价: getUserInventory / getBackpackStats / getExchangeProducts / exchangeProduct / getBidProducts / placeBid 等 */
   ...backpackModule,
 
-  /** C2C交易市场: getMarketProducts / purchaseMarketProduct / sellToMarket / getMarketFacets / sellFungibleAssets / confirmDelivery / cancelTradeOrder 等 */
-  ...marketModule,
-
   /** 消费积分系统（用户端+商家端）: getUserQRCode / submitConsumption / createRedemptionOrder 等 */
   ...shopModule,
 
@@ -69,9 +64,6 @@ module.exports = {
 
   /** 用户通知系统（方案B独立化）: getUserNotifications / getUserNotificationUnreadCount / markNotificationsAsRead / markSingleNotificationAsRead */
   ...userNotificationsModule,
-
-  /** C2C竞拍系统: getAuctionListings / getAuctionDetail / createAuction / placeAuctionBid / getMyAuctions / cancelAuction / getMyAuctionBids / createAuctionDispute */
-  ...auctionModule,
 
   /** DIY饰品设计引擎: getDiyTemplates / getDiyTemplateById / getDiyPaymentAssets / getDiyTemplateBeads / getDiyMaterialGroups / getDiyWorks / getDiyWorkById / saveDiyWork / deleteDiyWork / confirmDiyWork / completeDiyWork / cancelDiyWork */
   ...diyModule

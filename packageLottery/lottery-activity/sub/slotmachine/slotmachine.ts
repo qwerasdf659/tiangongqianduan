@@ -203,7 +203,7 @@ Component({
                 if (!resultPrize || !prize || typeof prize !== 'object') {
                   return true
                 }
-                return prize.lottery_prize_id !== resultPrize.lottery_prize_id
+                return prize.id !== resultPrize.id
               })
               const filler = fillerPool.length > 0 ? fillerPool : prizes
               const leadItems = [] as any[]

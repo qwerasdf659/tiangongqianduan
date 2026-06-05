@@ -432,11 +432,11 @@ async function uploadDisputeEvidence(filePath: string) {
  * 用户自助发起售后申诉
  * 后端API: POST /api/v4/system/disputes
  *
- * 业务语义: 用户对自己的订单（交易/兑换/消费/拍卖）发起售后申诉，
+ * 业务语义: 用户对自己的订单（兑换/消费）发起售后申诉，
  *           客服受理后进入处理流程，可升级仲裁、解决或驳回。
  *
  * 字段以后端为准（直接使用后端字段名，不做映射）:
- *   - order_type   关联订单类型: trade / redemption / consumption / auction
+ *   - order_type   关联订单类型: redemption / consumption（后端已收窄，C2C 下线后 trade/auction 已废除）
  *   - order_id     关联订单ID（字符串，兼容 BIGINT/UUID）
  *   - dispute_type 纠纷类型: item_not_received / item_mismatch / quality_issue / fraud / other
  *   - title        申诉标题（必填）

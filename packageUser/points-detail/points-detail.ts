@@ -524,14 +524,7 @@ Page({
       // 资产转换（后端统一 asset_conversion_rules 表，business_type: asset_convert_*）
       asset_convert_debit: '资产转换扣减',
       asset_convert_credit: '资产转换获得',
-      asset_convert_fee: '资产转换手续费',
-      // 交易市场
-      order_freeze_buyer: '交易冻结',
-      order_settle_seller: '交易收款',
-      order_settle_buyer: '交易扣款',
-      order_cancel_unfreeze: '交易取消退回',
-      market_listing_freeze: '挂单冻结',
-      market_listing_cancel: '挂单取消退回'
+      asset_convert_fee: '资产转换手续费'
     }
 
     return labelMap[businessType] || '积分记录'

@@ -3,7 +3,7 @@
  *
  * 组件化架构（对标 lottery 系统）：
  *   - exchange-shelf（packageExchange/）: 商品兑换 Tab（幸运空间/臻选空间/竞价）
- *   - exchange-market（packageExchange/）: 交易市场 Tab（C2C 挂单搜索/筛选/购买）
+ *   - asset-conversion（packageExchange/）: 资产转换 Tab（后端tab key仍为exchange-rate）
  *
  * Page 壳职责：
  *   1. 生命周期管理（onLoad/onShow/onHide/onUnload）
@@ -45,7 +45,7 @@ Page({
     /** 星石和源晶类资产余额列表（后端 GET /api/v4/assets/balances，过滤 star_stone + core_shard + core_gem） */
     assetBalances: [] as any[],
 
-    /** 当前 Tab 标识 'exchange' | 'market' */
+    /** 当前 Tab 标识 'exchange' | 'exchange-rate' */
     currentTab: 'exchange',
     /** 当前空间标识 'lucky' | 'premium'（传给 exchange-shelf） */
     currentSpace: 'lucky',
@@ -70,14 +70,8 @@ Page({
     } as any,
     viewMode: 'grid',
 
-    /** 交易市场筛选配置（后端下发，传给 exchange-market） */
-    marketTypeFilters: [] as any[],
-    marketCategoryFilters: [] as any[],
-    marketSortOptions: [] as any[],
-
     /** WebSocket 驱动的刷新令牌（值变化触发子组件 observer） */
     _shelfRefreshToken: 0,
-    _marketRefreshToken: 0,
     _exchangeRateRefreshToken: 0
   },
 
@@ -189,17 +183,12 @@ Page({
 
       log.info('兑换页面配置加载成功:', exchangeConfig.updated_at)
 
-      const marketFilters = exchangeConfig.market_filters
-
       this.setData({
         hasConfigError: false,
         configErrorMessage: '',
         tabs: exchangeConfig.tabs
-          .filter((t: any) => t.enabled)
+          .filter((t: any) => t.enabled && t.key !== 'market')
           .sort((a: any, b: any) => a.sort_order - b.sort_order),
-        marketTypeFilters: marketFilters.type_filters,
-        marketCategoryFilters: marketFilters.category_filters,
-        marketSortOptions: marketFilters.sort_options,
         effects: exchangeConfig.card_display.effects,
         viewMode: exchangeConfig.card_display.default_view_mode || 'grid'
       })
@@ -209,10 +198,7 @@ Page({
       this.setData({
         hasConfigError: true,
         configErrorMessage: error.message || '兑换页面配置加载失败，请后端检查真实配置是否已提供',
-        tabs: [],
-        marketTypeFilters: [],
-        marketCategoryFilters: [],
-        marketSortOptions: []
+        tabs: []
       })
       throw error
     }
@@ -289,8 +275,7 @@ Page({
             if (eventName === 'product_updated' || eventName === 'exchange_stock_changed') {
               log.info('收到商品更新通知')
               this.setData({
-                _shelfRefreshToken: this.data._shelfRefreshToken + 1,
-                _marketRefreshToken: this.data._marketRefreshToken + 1
+                _shelfRefreshToken: this.data._shelfRefreshToken + 1
               })
             }
             if (eventName === 'bid_outbid' || eventName === 'bid_won' || eventName === 'bid_lost') {
@@ -363,8 +348,6 @@ Page({
 
       if (this.data.currentTab === 'exchange') {
         this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
-      } else if (this.data.currentTab === 'market') {
-        this.setData({ _marketRefreshToken: this.data._marketRefreshToken + 1 })
       } else if (this.data.currentTab === 'exchange-rate') {
         this.setData({ _exchangeRateRefreshToken: this.data._exchangeRateRefreshToken + 1 })
       }
@@ -381,12 +364,6 @@ Page({
   /** 兑换成功事件（exchange-shelf 触发） */
   async onExchangeSuccess(_e: any) {
     log.info('兑换成功，刷新余额')
-    await this._refreshAllBalances()
-  },
-
-  /** 购买成功事件（exchange-market 触发） */
-  async onPurchaseSuccess(_e: any) {
-    log.info('购买成功，刷新余额')
     await this._refreshAllBalances()
   },
 

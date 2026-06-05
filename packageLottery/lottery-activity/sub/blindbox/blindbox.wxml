@@ -134,7 +134,7 @@
             rarity="{{item.rarity_code || 'common'}}"
             enabled="{{rarityEffects}}"
             wx:for="{{prizesForPreview}}"
-            wx:key="lottery_prize_id"
+            wx:key="id"
             bindtap="onPrizeTap"
             data-prize="{{item}}"
           >

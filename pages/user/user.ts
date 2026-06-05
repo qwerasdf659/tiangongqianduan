@@ -101,7 +101,7 @@ Page({
         tdIcon: 'layers-filled',
         color: '#8B7355',
         type: 'page',
-        url: '/packageTrade/trade/inventory/inventory'
+        url: '/packageUser/backpack/inventory/inventory'
       },
       {
         id: 'my-orders',
@@ -114,24 +114,14 @@ Page({
         url: '/packageExchange/exchange-orders/exchange-orders'
       },
       {
-        id: 'my-listings',
-        name: '我的挂单',
-        description: '查看和管理市场挂单',
-        iconClass: 'icon-tag',
-        tdIcon: 'tag-filled',
-        color: '#C5A572',
-        type: 'page',
-        url: '/packageTrade/trade/my-listings/my-listings'
-      },
-      {
         id: 'trade-records',
-        name: '交易记录',
-        description: '查看完整交易历史记录',
+        name: '积分记录',
+        description: '查看积分流水与消费记录',
         iconClass: 'icon-chart',
         tdIcon: 'chart-filled',
         color: '#8B7355',
         type: 'page',
-        url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=0'
+        url: '/packageUser/records/trade-upload-records/trade-upload-records?tab=0'
       },
       {
         id: 'consumption-records',
@@ -141,7 +131,7 @@ Page({
         tdIcon: 'file-paste-filled',
         color: '#A08B6E',
         type: 'page',
-        url: '/packageTrade/records/trade-upload-records/trade-upload-records?tab=1'
+        url: '/packageUser/records/trade-upload-records/trade-upload-records?tab=1'
       },
       {
         id: 'my-ads',

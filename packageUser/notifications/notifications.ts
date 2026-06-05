@@ -32,13 +32,6 @@ const { userStore } = require('../../store/user')
  * type值来自后端 user_notifications.type 字段，不做二次映射
  */
 const NOTIFICATION_TYPE_MAP: Record<string, { text: string; tagClass: string }> = {
-  listing_created: { text: '交易', tagClass: 'tag-trade' },
-  listing_sold: { text: '交易', tagClass: 'tag-trade' },
-  listing_withdrawn: { text: '交易', tagClass: 'tag-inactive' },
-  listing_expired: { text: '交易', tagClass: 'tag-inactive' },
-  purchase_completed: { text: '交易', tagClass: 'tag-purchase' },
-  trade_complete_seller: { text: '交易', tagClass: 'tag-trade' },
-  trade_complete_buyer: { text: '交易', tagClass: 'tag-purchase' },
   lottery_win: { text: '中奖', tagClass: 'tag-lottery' },
   lottery_result: { text: '中奖', tagClass: 'tag-lottery' },
   exchange_pending: { text: '兑换', tagClass: 'tag-exchange' },
@@ -61,13 +54,6 @@ const NOTIFICATION_TYPE_MAP: Record<string, { text: string; tagClass: string }> 
  * 使用 metadata 中的业务数据辅助构建跳转参数
  */
 const NOTIFICATION_LINK_MAP: Record<string, string> = {
-  listing_created: '/packageTrade/trade/my-listings/my-listings',
-  listing_sold: '/packageTrade/trade/my-orders/my-orders',
-  listing_withdrawn: '/packageTrade/trade/my-listings/my-listings',
-  listing_expired: '/packageTrade/trade/market/market',
-  purchase_completed: '/packageTrade/trade/inventory/inventory',
-  trade_complete_seller: '/packageTrade/trade/my-orders/my-orders',
-  trade_complete_buyer: '/packageTrade/trade/inventory/inventory',
   lottery_win: '/pages/lottery/lottery',
   lottery_result: '/pages/lottery/lottery',
   exchange_pending: '/pages/exchange/exchange',

@@ -9,7 +9,6 @@
   "backgroundTextStyle": "dark",
   "usingComponents": {
     "exchange-shelf": "/packageExchange/components/exchange/exchange-shelf/exchange-shelf",
-    "exchange-market": "/packageExchange/components/exchange/exchange-market/exchange-market",
     "asset-conversion": "/packageExchange/components/exchange/asset-conversion/asset-conversion",
     "login-popup": "/components/login-popup/login-popup",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
@@ -21,7 +20,6 @@
   },
   "componentPlaceholder": {
     "exchange-shelf": "view",
-    "exchange-market": "view",
     "asset-conversion": "view"
   },
   "navigationStyle": "custom"

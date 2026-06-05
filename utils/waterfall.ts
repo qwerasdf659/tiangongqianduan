@@ -175,17 +175,15 @@ function calculateWaterfallLayout(
 /**
  * 计算商品卡片内容区域高度（不含图片）
  *
- * 适配两种数据源:
+ * 适配兑换商品数据源:
  *   兑换商品（exchange_items）: name, cost_amount, original_price, rarity
- *   市场挂单（market_listings）: _displayName, seller_nickname, price_amount, _rarityCode
  *
  * 高度构成：
  * - 基础高度：70px
  * - 长标题（>20字）：+10px
  * - 原价（划线价）显示：+8px
- * - 卖家信息（市场挂单）：+10px
  *
- * @param product - 商品对象（兑换商品或市场挂单）
+ * @param product - 商品对象（兑换商品）
  * @returns 内容区域高度（px）
  */
 function calculateContentHeight(product: any): number {
@@ -196,17 +194,13 @@ function calculateContentHeight(product: any): number {
   try {
     let baseHeight = 70
 
-    const title: string = product.item_name || product._displayName || ''
+    const title: string = product.item_name || product.name || ''
     if (title.length > 20) {
       baseHeight += 10
     }
 
     if (product.original_price && product.original_price !== product.cost_amount) {
       baseHeight += 8
-    }
-
-    if (product.seller_nickname) {
-      baseHeight += 10
     }
 
     return baseHeight

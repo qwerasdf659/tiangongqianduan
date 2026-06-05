@@ -603,7 +603,7 @@ async function getBidProductDetail(bid_product_id: number) {
  *
  * 后端服务: bid（BidService.placeBid）
  * 业务流程:
- *   1. 资产白名单校验（material_asset_types.is_tradable = true）
+ *   1. 资产白名单校验（material_asset_types.is_biddable = true，决策13；去交易化后用 is_biddable 解耦，仅 star_stone 可竞价）
  *   2. 悲观锁定竞价商品
  *   3. 金额校验: bid_amount >= current_price + min_bid_increment
  *   4. 旧冻结解冻（用户之前出过价，先解冻旧金额）

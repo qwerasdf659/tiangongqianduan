@@ -1,7 +1,7 @@
 /**
  * 自助发起售后申诉提交页面（统一入口）
  *
- * 业务语义: 用户对自己的订单（交易/拍卖/消费）自助发起售后申诉，
+ * 业务语义: 用户对自己的订单（消费订单等）自助发起售后申诉，
  *           填写纠纷类型 + 标题 + 描述 + 证据图片后提交，无需先找客服。
  *
  * 后端API:
@@ -9,7 +9,9 @@
  * - POST /api/v4/system/disputes    — 提交售后申诉（自助发起）
  *
  * 路由参数（由各订单页传入，字段以后端为准）:
- *   order_type  关联订单类型: trade / consumption / auction（兑换订单 exchange 待后端确认 order_type 后再开）
+ *   order_type  关联订单类型: consumption（消费订单，当前唯一已接通入口）
+ *               后端 trade_disputes.order_type 已收窄为 ('redemption','consumption')（C2C 下线，trade/auction 已废除）；
+ *               redemption（兑换订单）售后入口待后端确认 order_id 主键口径与可申诉状态后再开（见求证清单）
  *   order_id    关联订单ID（字符串，兼容 BIGINT/UUID）
  *   order_title 订单标题（可选，仅用于页面展示当前申诉对象，不提交后端）
  *
@@ -35,15 +37,18 @@ const DISPUTE_TYPES = [
   { value: 'other', label: '其他问题', desc: '其他订单相关问题' }
 ]
 
-/** 关联订单类型文案映射（对齐后端 order_type 枚举，用于展示当前申诉对象） */
+/** 关联订单类型文案映射（对齐后端 trade_disputes.order_type 枚举：redemption/consumption） */
 const ORDER_TYPE_MAP: Record<string, string> = {
-  trade: '交易订单',
-  consumption: '消费订单',
-  auction: '拍卖订单'
+  redemption: '兑换订单',
+  consumption: '消费订单'
 }
 
-/** 允许自助发起的订单类型白名单（兑换订单 exchange 待后端确认 order_type 后再纳入） */
-const ALLOWED_ORDER_TYPES = ['trade', 'consumption', 'auction']
+/**
+ * 允许自助发起的订单类型白名单
+ * 当前仅 consumption 在小程序有实际入口（积分活动记录页"申请售后"）；
+ * redemption 待后端确认 order_id 主键与可申诉状态后再纳入（见求证清单 Q-P2-2）
+ */
+const ALLOWED_ORDER_TYPES = ['consumption']
 
 /** 证据图片上限 */
 const MAX_EVIDENCE = 5

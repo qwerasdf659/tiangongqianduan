@@ -434,10 +434,10 @@ Component({
       })
     },
 
-    /** 跳转到交易记录页面（查看转换历史*/
+    /** 跳转到积分记录页面（查看转换历史） */
     onViewExchangeHistory() {
       wx.navigateTo({
-        url: '/packageTrade/records/trade-upload-records/trade-upload-records?source=asset_convert'
+        url: '/packageUser/records/trade-upload-records/trade-upload-records?source=asset_convert'
       })
     }
   }
