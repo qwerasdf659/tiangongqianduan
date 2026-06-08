@@ -8,7 +8,7 @@
  *           exchange_items / exchange_records / bid_products / bid_records
  *           account_asset_balances
  *
- * @file 天工餐厅积分系统 - 背包与兑换与竞价API模块
+ * @file 天工平台 - 背包与兑换与竞价API模块
  * @version 6.0.0
  * @since 2026-03-25（Phase 3 路径迁移: /backpack/bid/ → /exchange/bid/）
  */

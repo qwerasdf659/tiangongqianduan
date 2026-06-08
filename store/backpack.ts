@@ -7,7 +7,7 @@
  * 类型定义统一引用 typings/api.d.ts API.BackpackItem
  * 禁止在此重复定义与后端对齐的接口
  *
- * @file 天工餐厅积分系统 - 背包Store
+ * @file 天工平台 - 背包Store
  * @version 5.2.0
  * @since 2026-02-15
  */

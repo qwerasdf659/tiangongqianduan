@@ -18,7 +18,7 @@
     <!-- 顶部横幅 -->
     <view class="lb-banner">
       <view class="lb-banner__ribbon"></view>
-      <text class="lb-banner__text">选一个福袋开启试手气</text>
+      <text class="lb-banner__text">选一个福袋开启领回馈</text>
       <view class="lb-banner__ribbon"></view>
     </view>
 

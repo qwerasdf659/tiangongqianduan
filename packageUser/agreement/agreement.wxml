@@ -1,0 +1,35 @@
+<!-- 协议页（用户协议 / 隐私政策）共用页面，通过 type 参数区分 -->
+<view class="agreement-page">
+  <custom-navbar title="{{pageTitle}}" showBack="{{true}}" />
+
+  <view class="agreement-body" style="padding-top: {{navbarHeight}}px">
+    <!-- 协议头部：标题 + 品牌 + 运营主体 -->
+    <view class="agreement-header">
+      <text class="agreement-title">{{pageTitle}}</text>
+      <text class="agreement-brand">天工平台</text>
+      <text class="agreement-operator">运营主体：东莞市墨珩数字科技有限公司</text>
+      <text class="agreement-update" wx:if="{{updatedAt}}">更新日期：{{updatedAt}}</text>
+    </view>
+
+    <!-- 加载中 -->
+    <view class="agreement-loading" wx:if="{{loading}}">
+      <t-loading theme="circular" size="40rpx" text="加载中..." />
+    </view>
+
+    <!-- 协议正文（后端 content 驱动，富文本/段落数组） -->
+    <view class="agreement-content" wx:elif="{{!loadError && sections.length > 0}}">
+      <view class="agreement-section" wx:for="{{sections}}" wx:key="index">
+        <text class="section-heading" wx:if="{{item.heading}}">{{item.heading}}</text>
+        <text class="section-text">{{item.text}}</text>
+      </view>
+    </view>
+
+    <!-- 加载失败 / 后端协议数据缺失：明确报错，不静默降级 -->
+    <view class="agreement-error" wx:elif="{{loadError}}">
+      <t-icon name="error-circle" size="64rpx" color="#999999" />
+      <text class="error-title">{{errorTitle}}</text>
+      <text class="error-desc">{{errorDesc}}</text>
+      <button class="error-retry-btn" bindtap="loadAgreement">重新加载</button>
+    </view>
+  </view>
+</view>

@@ -1,13 +1,6 @@
 // components/login-popup/login-popup.ts - 登录弹窗组件
 
-const {
-  API,
-  Validation,
-  Wechat,
-  Utils,
-  Logger,
-  ImageHelper
-} = require('../../utils/index')
+const { API, Wechat, Utils, Logger, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('login-popup')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
@@ -38,7 +31,9 @@ function parseAndValidateJWT(accessToken: string) {
 
 // 构建用户信息对象
 function buildUserInfoObject(rawUserInfo: any, jwtData: any) {
-  if (!rawUserInfo) throw new Error('用户信息为空')
+  if (!rawUserInfo) {
+    throw new Error('用户信息为空')
+  }
   return {
     user_id: rawUserInfo.user_id,
     mobile: rawUserInfo.mobile,
@@ -112,9 +107,10 @@ Component({
       this.setData({ agreementChecked: !this.data.agreementChecked })
     },
 
-    // 查看用户协议
-    onViewAgreement() {
-      wx.navigateTo({ url: '/packageUser/agreement/agreement' })
+    // 查看协议（type: user_agreement 用户协议 / privacy_policy 隐私政策）
+    onViewAgreement(e: any) {
+      const type = e?.currentTarget?.dataset?.type || 'user_agreement'
+      wx.navigateTo({ url: `/packageUser/agreement/agreement?type=${type}` })
     },
 
     // 手机号输入
@@ -138,7 +134,9 @@ Component({
         Wechat.showToast('请输入正确的手机号')
         return
       }
-      if (sending || countdown > 0) return
+      if (sending || countdown > 0) {
+        return
+      }
 
       this.setData({ sending: true })
 
@@ -178,7 +176,9 @@ Component({
         Wechat.showToast('需要授权手机号才能登录')
         return
       }
-      if (this.data.loggingType || this.data.loginCompleted) return
+      if (this.data.loggingType || this.data.loginCompleted) {
+        return
+      }
       if (!this.data.agreementChecked) {
         Wechat.showToast('请同意用户协议')
         return
@@ -209,7 +209,9 @@ Component({
           API.wxCodeLogin(res.code, phoneCode)
             .then((result: any) => {
               clearTimeout(loginTimeout)
-              if (this.data.loginCompleted) return
+              if (this.data.loginCompleted) {
+                return
+              }
               if (result && result.success === true) {
                 this.handleLoginSuccess(result)
               } else {
@@ -218,7 +220,9 @@ Component({
             })
             .catch((error: any) => {
               clearTimeout(loginTimeout)
-              if (this.data.loginCompleted) return
+              if (this.data.loginCompleted) {
+                return
+              }
               log.error('微信一键登录失败:', error)
               this.handleLoginFailure('登录失败，请重试')
             })
@@ -249,7 +253,9 @@ Component({
         Wechat.showToast('请同意用户协议')
         return
       }
-      if (this.data.loggingType || this.data.loginCompleted) return
+      if (this.data.loggingType || this.data.loginCompleted) {
+        return
+      }
 
       this.setData({ loggingType: 'sms', loginCompleted: false })
 
@@ -263,7 +269,9 @@ Component({
       API.userLogin(mobile, verificationCode)
         .then((result: any) => {
           clearTimeout(loginTimeout)
-          if (this.data.loginCompleted) return
+          if (this.data.loginCompleted) {
+            return
+          }
           if (result && result.success === true) {
             this.handleLoginSuccess(result)
           } else {
@@ -272,7 +280,9 @@ Component({
         })
         .catch((error: any) => {
           clearTimeout(loginTimeout)
-          if (this.data.loginCompleted) return
+          if (this.data.loginCompleted) {
+            return
+          }
           log.error('验证码登录失败:', error)
           this.handleLoginFailure('登录失败，请重试')
         })
@@ -319,7 +329,7 @@ Component({
             const frozenPoints = balanceResult.data.frozen_amount || 0
             pointsStore.setBalance(availablePoints, frozenPoints)
           }
-        } catch (e) {
+        } catch (_e) {
           log.warn('积分获取失败，不影响登录')
         }
 

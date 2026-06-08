@@ -3,7 +3,7 @@
  *
  * 定义MobX Store的类型接口，用于页面绑定时的类型推导
  *
- * @file 天工餐厅积分系统 - Store类型定义
+ * @file 天工平台 - Store类型定义
  * @version 5.2.0
  * @since 2026-02-10
  */

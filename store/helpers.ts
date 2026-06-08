@@ -9,7 +9,7 @@
  * 工厂函数通过参数化 listKey / paginationKey 生成对应的 action，
  * 消除 Store 之间的代码重复。
  *
- * @file 天工餐厅积分系统 - Store分页工具
+ * @file 天工平台 - Store分页工具
  * @version 5.2.0
  * @since 2026-02-10
  */

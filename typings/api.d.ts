@@ -4,7 +4,7 @@
  * 定义后端API统一响应格式和各业务模块的响应数据类型
  * 所有API交互字段使用snake_case命名（与后端一致）
  *
- * @file 天工餐厅积分系统 - API类型定义
+ * @file 天工平台 - API类型定义
  * @version 5.2.0
  * @since 2026-02-10
  */
@@ -229,6 +229,8 @@ declare namespace API {
     draw_buttons: DrawButton[]
     /** 保底（Pity）信息 — 后端 config 接口 pity_info 字段 */
     pity_info: PityInfo | null
+    /** 回馈规则说明（后端 lottery_campaigns.rules_text，含档位说明 + 未成年监护提示，可能为空） */
+    rules_text?: string
   }
 
   /** 抽奖按钮配置 */

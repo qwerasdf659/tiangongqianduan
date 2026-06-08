@@ -333,17 +333,17 @@
             </view>
           </view>
           <text class="empty-title-text">仓库还是空的呢</text>
-          <text class="empty-subtitle-text">参与活动赢取奖品，填满你的仓库吧！</text>
+          <text class="empty-subtitle-text">参与活动领取回馈好礼，填满你的仓库吧！</text>
 
           <view class="empty-guide-flow">
             <view class="guide-step">
               <view class="guide-step-circle"><t-icon name="play-circle" size="28rpx" /></view>
-              <text class="guide-step-label">参与抽奖</text>
+              <text class="guide-step-label">参与回馈</text>
             </view>
             <text class="guide-arrow">→</text>
             <view class="guide-step">
               <view class="guide-step-circle"><t-icon name="cup" size="28rpx" /></view>
-              <text class="guide-step-label">赢取奖品</text>
+              <text class="guide-step-label">领取好礼</text>
             </view>
             <text class="guide-arrow">→</text>
             <view class="guide-step">
@@ -353,7 +353,7 @@
           </view>
 
           <button class="go-lottery-btn" bind:tap="goToLottery">
-            <text><t-icon name="thumb-up" size="28rpx" /> 立即抽奖</text>
+            <text><t-icon name="thumb-up" size="28rpx" /> 立即领回馈</text>
           </button>
         </view>
       </view>

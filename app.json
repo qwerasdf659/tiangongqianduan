@@ -37,7 +37,8 @@
         "disputes/create",
         "notifications/notifications",
         "backpack/inventory/inventory",
-        "records/trade-upload-records/trade-upload-records"
+        "records/trade-upload-records/trade-upload-records",
+        "agreement/agreement"
       ]
     },
     {
@@ -94,7 +95,7 @@
     "navigationStyle": "custom",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "餐厅积分系统",
+    "navigationBarTitleText": "天工平台",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#ffffff",
     "enablePullDownRefresh": true,
@@ -110,7 +111,7 @@
     "list": [
       {
         "pagePath": "pages/lottery/lottery",
-        "text": "抽奖",
+        "text": "回馈",
         "iconPath": "images/icons/transparent.png",
         "selectedIconPath": "images/icons/transparent.png"
       },

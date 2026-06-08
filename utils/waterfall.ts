@@ -13,7 +13,7 @@
  *     containerHeight: result.containerHeight
  *   })
  *
- * @file 天工餐厅积分系统 - 瀑布流布局工具
+ * @file 天工平台 - 瀑布流布局工具
  * @version 5.2.0
  * @since 2026-02-15
  */

@@ -8,7 +8,7 @@
  * 状态流转: draft → pending_review → approved/rejected → active → completed/cancelled
  * 计费模式: fixed_daily（固定包天） / bidding（竞价排名） / cpm（CPM曝光计费）
  *
- * @file 天工餐厅积分系统 - 广告系统API模块
+ * @file 天工平台 - 广告系统API模块
  * @version 5.2.0
  * @since 2026-02-19
  */

@@ -125,7 +125,7 @@
         disabled="{{isInProgress}}"
         bindtap="onDraw"
       >
-        <text class="btn-text">{{isInProgress ? '抽奖中...' : '开始抽奖'}}</text>
+        <text class="btn-text">{{isInProgress ? '回馈中...' : '开启回馈'}}</text>
       </button>
     </view>
 

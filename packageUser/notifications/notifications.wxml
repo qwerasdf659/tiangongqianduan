@@ -10,7 +10,7 @@
       <!-- 页面标题渐变区域 -->
       <view class="page-header">
         <text class="page-header__title">消息通知</text>
-        <text class="page-header__subtitle">交易、中奖等消息将在这里显示</text>
+        <text class="page-header__subtitle">交易、回馈等消息将在这里显示</text>
         <view class="page-header__decor">
           <t-icon name="notification" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
         </view>
@@ -76,7 +76,7 @@
       <!-- 空状态 -->
       <t-empty
         wx:if="{{isLoggedIn && !loading && notifications.length === 0}}"
-        description="交易、中奖等消息将在这里显示"
+        description="交易、回馈等消息将在这里显示"
       >
         <view slot="image" class="empty-slot-icon"
           ><t-icon name="notification" size="120rpx" color="var(--td-brand-color)"

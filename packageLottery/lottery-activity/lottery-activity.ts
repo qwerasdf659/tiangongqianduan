@@ -283,6 +283,12 @@ Component({
     campaignName: '',
 
     /**
+     * 回馈规则说明（后端 config.rules_text，含档位说明 + 未成年监护提示）
+     * 由运营在后台 lottery_campaigns.rules_text 维护，前端只读展示，不在前端硬编码规则
+     */
+    rulesText: '' as string,
+
+    /**
      * 保底UI总开关 — 暂时关闭，隐藏所有保底相关UI元素
      * 后端保底引擎继续静默运行，不受此开关影响
      * 恢复时改为读取: pity_info.pity_enabled（后端 config 接口已返回）
@@ -515,7 +521,8 @@ Component({
           showDrawButtons:
             drawButtons.length > 0 &&
             (currentSize === 'full' || currentSize === 'small' || currentSize === 'mini'),
-          campaignName: config.campaign_name || '',
+          campaignName: config.campaign_name || '消费回馈',
+          rulesText: config.rules_text || '',
           coverImage: config.cover_image || display.background_image_url || '',
           pityInfo: pityData,
           showGuaranteeEgg: this._checkGuaranteeReady(pityData)
@@ -669,7 +676,7 @@ Component({
         const result = await this._performDraw(campaignCode, count)
 
         if (!result.success) {
-          wx.showToast({ title: result.message || '抽奖失败', icon: 'none' })
+          wx.showToast({ title: result.message || '回馈失败', icon: 'none' })
           this.setData({ isDrawing: false })
           this._resetSubComponent()
           return
@@ -780,7 +787,7 @@ Component({
         const result = await this._performDraw(campaignCode, count)
 
         if (!result.success) {
-          wx.showToast({ title: result.message || '抽奖失败', icon: 'none' })
+          wx.showToast({ title: result.message || '回馈失败', icon: 'none' })
           this.setData({ isDrawing: false })
           this._resetSubComponent()
           return
@@ -860,7 +867,7 @@ Component({
         const result = await this._performDraw(campaignCode, count)
 
         if (!result.success) {
-          wx.showToast({ title: result.message || '抽奖失败', icon: 'none' })
+          wx.showToast({ title: result.message || '回馈失败', icon: 'none' })
           this._resetSubComponent()
           return
         }
@@ -1109,7 +1116,7 @@ Component({
           const result = await this._performDraw(campaignCode, 1)
 
           if (!result.success) {
-            wx.showToast({ title: result.message || '保底抽奖失败', icon: 'none' })
+            wx.showToast({ title: result.message || '回馈失败', icon: 'none' })
             this.setData({ guaranteeEggState: 'idle' })
             return
           }

@@ -16,7 +16,7 @@ Component({
     list: [
       {
         pagePath: '/pages/lottery/lottery',
-        text: '抽奖',
+        text: '回馈',
         icon: '/custom-tab-bar/icons/wheel.svg',
         iconActive: '/custom-tab-bar/icons/wheel-active.svg'
       },

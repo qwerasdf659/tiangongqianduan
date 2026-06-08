@@ -93,7 +93,7 @@
     <view class="machine-panel">
       <view class="panel-deco left"></view>
       <view class="panel-label">
-        <text class="label-text">{{machineState === 'result' ? '中奖!' : '拉杆'}}</text>
+        <text class="label-text">{{machineState === 'result' ? '已获得!' : '拉杆'}}</text>
       </view>
       <view class="panel-deco right"></view>
     </view>
@@ -151,7 +151,7 @@
     <text wx:elif="{{machineState === 'pulling'}}">开始了...</text>
     <text wx:elif="{{machineState === 'spinning'}}">转动中...</text>
     <text wx:elif="{{machineState === 'stopping'}}">减速中...</text>
-    <text wx:else>恭喜中奖！</text>
+    <text wx:else>恭喜获得！</text>
   </view>
 
   <!-- 消耗积分 -->

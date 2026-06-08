@@ -4,7 +4,7 @@
  * 使用场景: 轮播图广告跳转外部URL (link_type = 'webview')
  * 接收参数: url（经 encodeURIComponent 编码的完整URL）
  *
- * @file 天工餐厅积分系统 - WebView页面
+ * @file 天工平台 - WebView页面
  * @version 5.2.0
  * @since 2026-02-19
  */

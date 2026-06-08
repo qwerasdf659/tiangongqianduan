@@ -10,7 +10,7 @@
  * { "15": { lastSeen: 1740000000000, seenCount: 3, dismissed: true } }
  * 其中 key 为 ad_campaign_id 字符串
  *
- * @file 天工餐厅积分系统 - 内容投放频率控制工具
+ * @file 天工平台 - 内容投放频率控制工具
  * @version 6.0.0
  * @since 2026-02-23
  */

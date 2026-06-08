@@ -12,7 +12,7 @@
  * - clearAuthData() - 清理认证数据
  * - restoreUserInfo() - 三级恢复用户信息
  *
- * @file 天工餐厅积分系统 - 认证助手
+ * @file 天工平台 - 认证助手
  * @version 5.2.0
  * @since 2026-02-15
  */
@@ -26,10 +26,8 @@ const log = createLogger('auth-helper')
 
 /** checkAuth 配置选项 */
 interface CheckAuthOptions {
-  /** 未登录时是否自动跳转到登录页（默认true） */
+  /** 未登录时是否自动弹出登录弹窗（默认true） */
   redirect?: boolean
-  /** 自定义跳转URL（已废弃，保留兼容） */
-  redirectUrl?: string
   /** 未登录时是否显示提示（默认false） */
   showToast?: boolean
 }
@@ -70,7 +68,7 @@ function getPointsStore() {
  * if (!checkAuth({ redirect: false, showToast: true })) return;
  */
 function checkAuth(options: CheckAuthOptions = {}): boolean {
-  const { redirect = false, redirectUrl = '', showToast = false } = options
+  const { redirect = false, showToast = false } = options
   const store = getUserStore()
 
   // Store 校验登录状态（Store 是运行时唯一数据源）

@@ -8,7 +8,7 @@
     <!-- 顶部装饰横幅 -->
     <view class="egg-banner">
       <view class="egg-banner__ribbon"></view>
-      <text class="egg-banner__text">选一个金蛋砸开试试手气</text>
+      <text class="egg-banner__text">选一个金蛋砸开领回馈</text>
       <view class="egg-banner__ribbon"></view>
     </view>
 

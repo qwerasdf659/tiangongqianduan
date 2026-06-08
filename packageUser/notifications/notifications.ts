@@ -32,8 +32,8 @@ const { userStore } = require('../../store/user')
  * type值来自后端 user_notifications.type 字段，不做二次映射
  */
 const NOTIFICATION_TYPE_MAP: Record<string, { text: string; tagClass: string }> = {
-  lottery_win: { text: '中奖', tagClass: 'tag-lottery' },
-  lottery_result: { text: '中奖', tagClass: 'tag-lottery' },
+  lottery_win: { text: '回馈', tagClass: 'tag-lottery' },
+  lottery_result: { text: '回馈', tagClass: 'tag-lottery' },
   exchange_pending: { text: '兑换', tagClass: 'tag-exchange' },
   exchange_approved: { text: '兑换', tagClass: 'tag-purchase' },
   exchange_rejected: { text: '兑换', tagClass: 'tag-rejected' },

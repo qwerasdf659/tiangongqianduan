@@ -10,7 +10,7 @@ const { pointsStore } = require('../../store/points')
 // userStore 由 restoreUserInfo() 内部访问，页面无需直接引用
 
 /**
- * 积分详情页面 - 餐厅积分抽奖系统
+ * 积分详情页面 - 天工平台
  *
  * 功能清单：
  * - 可用积分余额展示（MobX Store响应式同步）
@@ -110,7 +110,7 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '我的积分明细 - 餐厅积分系统',
+      title: '我的积分明细 - 天工平台',
       path: '/packageUser/points-detail/points-detail'
     }
   },
@@ -506,10 +506,10 @@ Page({
 
     /** 后端 business_type 枚举 → 中文标签映射 */
     const labelMap: Record<string, string> = {
-      // 抽奖系统
-      lottery_consume: '抽奖消耗',
-      lottery_reward: '抽奖奖励',
-      lottery_budget_deduct: '抽奖预算扣减',
+      // 回馈系统
+      lottery_consume: '回馈消耗',
+      lottery_reward: '回馈奖励',
+      lottery_budget_deduct: '回馈预算扣减',
       // 消费奖励
       consumption_reward: '消费奖励',
       consumption_budget_allocation: '消费预算分配',
@@ -580,7 +580,10 @@ Page({
       const businessType = (record.business_type || '').toLowerCase()
       const desc = (record.description || record.title || '').toLowerCase()
       const isLottery =
-        businessType === 'lottery_consume' || desc.includes('抽奖') || desc.includes('lottery')
+        businessType === 'lottery_consume' ||
+        desc.includes('回馈') ||
+        desc.includes('抽奖') ||
+        desc.includes('lottery')
       // 使用 delta_amount 字段判断消费方向（delta_amount < 0 表示消费）
       const isConsume = (record.delta_amount || 0) < 0
 

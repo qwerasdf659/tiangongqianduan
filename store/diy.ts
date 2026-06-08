@@ -13,7 +13,7 @@
  *   珠子 → diy_materials 表（diy_material_id, material_code, display_name, group_code, diameter, shape, price）
  *   材料分组 → asset_group_defs 表（group_code: red/orange/yellow/green/blue/purple）
  *
- * @file 天工餐厅积分系统 - DIY Store
+ * @file 天工平台 - DIY Store
  * @version 2.0.0
  * @since 2026-04-03
  */

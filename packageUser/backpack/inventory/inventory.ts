@@ -1152,7 +1152,7 @@ Page({
         } = result.data
 
         const sourceLabels: Record<string, string> = {
-          lottery: '抽奖获得',
+          lottery: '回馈获得',
           bid_settlement: '竞价获得',
           exchange: '兑换获得',
           admin: '管理员赠送'

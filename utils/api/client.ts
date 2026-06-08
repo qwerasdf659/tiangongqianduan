@@ -4,7 +4,7 @@
  * 职责: APIClient类、请求响应处理、Token管理、错误处理
  * 各业务API子模块通过 apiClient 单例发起请求
  *
- * @file 天工餐厅积分系统 - API客户端核心
+ * @file 天工平台 - API客户端核心
  * @version 5.2.0
  * @since 2026-02-15
  */

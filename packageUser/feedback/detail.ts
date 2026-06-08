@@ -5,7 +5,7 @@
  * 参数: id（feedback_id）
  * 数据来源: GET /api/v4/system/feedback/:id（后端直接返回单条记录）
  *
- * @file 天工餐厅积分系统 - 反馈详情页
+ * @file 天工平台 - 反馈详情页
  * @version 5.2.0
  * @since 2026-02-19
  */
@@ -121,7 +121,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '餐厅积分系统 - 反馈详情',
+      title: '天工平台 - 反馈详情',
       path: '/packageUser/feedback/feedback'
     }
   }

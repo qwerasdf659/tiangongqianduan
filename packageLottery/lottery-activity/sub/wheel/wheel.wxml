@@ -37,7 +37,7 @@
 
     <!-- 中心按钮 -->
     <view class="wheel-center-btn {{spinning ? 'disabled' : ''}}" bindtap="onDraw">
-      <text class="center-btn-text">{{spinning ? '...' : '抽奖'}}</text>
+      <text class="center-btn-text">{{spinning ? '...' : '回馈'}}</text>
       <text class="center-btn-cost" wx:if="{{costPoints > 0 && !spinning}}"
         >{{costPoints}}积分</text
       >

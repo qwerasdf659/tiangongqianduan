@@ -3,7 +3,7 @@
   <!-- ===== 单拆模式（3选1） ===== -->
   <block wx:if="{{!isMultiOpen}}">
     <view class="redpacket-title">
-      <text>选一个红包拆开试试手气</text>
+      <text>选一个红包拆开领回馈</text>
     </view>
 
     <view class="packets-row">

@@ -31,29 +31,29 @@ const GROUP_MATERIAL_MAP: Record<string, MatParams> = {
   yellow: { baseColor: '0.85 0.75 0.2 1.0', metallic: 0.08, roughness: 0.28 },
   green: { baseColor: '0.15 0.55 0.3 1.0', metallic: 0.05, roughness: 0.3 },
   blue: { baseColor: '0.1 0.2 0.6 1.0', metallic: 0.08, roughness: 0.22 },
-  purple: { baseColor: '0.4 0.15 0.55 1.0', metallic: 0.06, roughness: 0.25 },
+  purple: { baseColor: '0.4 0.15 0.55 1.0', metallic: 0.06, roughness: 0.25 }
 }
 
 /** 特殊材质名称匹配（优先级高于 group_code） */
 const NAME_MATERIAL_MAP: Record<string, MatParams> = {
-  '冰曜石': { baseColor: '0.12 0.08 0.06 1.0', metallic: 0.05, roughness: 0.2 },
-  '银曜石': { baseColor: '0.2 0.2 0.22 1.0', metallic: 0.15, roughness: 0.18 },
-  '金曜石': { baseColor: '0.35 0.25 0.08 1.0', metallic: 0.3, roughness: 0.22 },
-  '白水晶': { baseColor: '0.92 0.92 0.95 0.6', metallic: 0.0, roughness: 0.12 },
-  '粉水晶': { baseColor: '0.85 0.6 0.65 0.8', metallic: 0.0, roughness: 0.2 },
-  '紫水晶': { baseColor: '0.45 0.2 0.55 0.75', metallic: 0.0, roughness: 0.18 },
-  '黄水晶': { baseColor: '0.8 0.65 0.15 0.8', metallic: 0.0, roughness: 0.2 },
-  '月光石': { baseColor: '0.8 0.82 0.88 0.7', metallic: 0.1, roughness: 0.15 },
-  '奶白晶': { baseColor: '0.9 0.88 0.85 0.9', metallic: 0.0, roughness: 0.35 },
-  '茶水晶': { baseColor: '0.4 0.28 0.15 0.85', metallic: 0.0, roughness: 0.25 },
-  '黑曜石': { baseColor: '0.05 0.04 0.04 1.0', metallic: 0.02, roughness: 0.15 },
+  冰曜石: { baseColor: '0.12 0.08 0.06 1.0', metallic: 0.05, roughness: 0.2 },
+  银曜石: { baseColor: '0.2 0.2 0.22 1.0', metallic: 0.15, roughness: 0.18 },
+  金曜石: { baseColor: '0.35 0.25 0.08 1.0', metallic: 0.3, roughness: 0.22 },
+  白水晶: { baseColor: '0.92 0.92 0.95 0.6', metallic: 0.0, roughness: 0.12 },
+  粉水晶: { baseColor: '0.85 0.6 0.65 0.8', metallic: 0.0, roughness: 0.2 },
+  紫水晶: { baseColor: '0.45 0.2 0.55 0.75', metallic: 0.0, roughness: 0.18 },
+  黄水晶: { baseColor: '0.8 0.65 0.15 0.8', metallic: 0.0, roughness: 0.2 },
+  月光石: { baseColor: '0.8 0.82 0.88 0.7', metallic: 0.1, roughness: 0.15 },
+  奶白晶: { baseColor: '0.9 0.88 0.85 0.9', metallic: 0.0, roughness: 0.35 },
+  茶水晶: { baseColor: '0.4 0.28 0.15 0.85', metallic: 0.0, roughness: 0.25 },
+  黑曜石: { baseColor: '0.05 0.04 0.04 1.0', metallic: 0.02, roughness: 0.15 }
 }
 
 /** 默认材质（未匹配时使用） */
 const DEFAULT_MATERIAL: MatParams = {
   baseColor: '0.5 0.5 0.5 1.0',
   metallic: 0.05,
-  roughness: 0.3,
+  roughness: 0.3
 }
 
 /** 根据珠子数据获取材质参数 */
@@ -77,11 +77,11 @@ function getBeadMaterial(bead: any): MatParams {
 function calcRingPositions(count: number, ringRadius: number) {
   const positions: Array<{ x: number; y: number; z: number }> = []
   for (let i = 0; i < count; i++) {
-    const angle = (2 * Math.PI / count) * i - Math.PI / 2
+    const angle = ((2 * Math.PI) / count) * i - Math.PI / 2
     positions.push({
       x: ringRadius * Math.cos(angle),
       y: ringRadius * Math.sin(angle),
-      z: 0,
+      z: 0
     })
   }
   return positions
@@ -90,7 +90,7 @@ function calcRingPositions(count: number, ringRadius: number) {
 Component({
   properties: {
     width: { type: Number, value: 300 },
-    height: { type: Number, value: 300 },
+    height: { type: Number, value: 300 }
   },
 
   data: {
@@ -117,13 +117,13 @@ Component({
     materials: [] as Array<{
       assetId: string
       uniforms: string
-    }>,
+    }>
   },
 
   lifetimes: {
     attached() {
       this._buildScene()
-    },
+    }
   },
 
   methods: {
@@ -160,7 +160,7 @@ Component({
         if (!materialMap.has(matKey)) {
           materialMap.set(matKey, {
             assetId: matId,
-            uniforms: `u_baseColorFactor:${mat.baseColor},u_metallicFactor:${mat.metallic},u_roughnessFactor:${mat.roughness}`,
+            uniforms: `u_baseColorFactor:${mat.baseColor},u_metallicFactor:${mat.metallic},u_roughnessFactor:${mat.roughness}`
           })
         }
 
@@ -172,7 +172,7 @@ Component({
           position: `${pos.x.toFixed(4)} ${pos.y.toFixed(4)} ${pos.z.toFixed(4)}`,
           scale: `${scale.toFixed(4)} ${scale.toFixed(4)} ${scale.toFixed(4)}`,
           uniforms: '',
-          matId: actualMatId,
+          matId: actualMatId
         })
       }
 
@@ -183,7 +183,7 @@ Component({
         beadNodes,
         materials: Array.from(materialMap.values()),
         cameraPosition: `0 0.3 ${cameraZ.toFixed(3)}`,
-        ropeSegments,
+        ropeSegments
       })
     },
 
@@ -194,32 +194,34 @@ Component({
       const beadRadius = 0.2
       const positions = calcRingPositions(count, ringRadius)
 
-      const beadNodes = positions.map((pos) => ({
+      const beadNodes = positions.map(pos => ({
         position: `${pos.x.toFixed(4)} ${pos.y.toFixed(4)} ${pos.z.toFixed(4)}`,
         scale: `${beadRadius} ${beadRadius} ${beadRadius}`,
         uniforms: '',
-        matId: 'mat-default',
+        matId: 'mat-default'
       }))
 
       this.setData({
         beadNodes,
-        materials: [{
-          assetId: 'mat-default',
-          uniforms: 'u_baseColorFactor:0.75 0.75 0.78 0.5,u_metallicFactor:0.0,u_roughnessFactor:0.15',
-        }],
+        materials: [
+          {
+            assetId: 'mat-default',
+            uniforms:
+              'u_baseColorFactor:0.75 0.75 0.78 0.5,u_metallicFactor:0.0,u_roughnessFactor:0.15'
+          }
+        ],
         cameraPosition: '0 0.3 3.8',
-        ropeSegments: this._buildRopeSegments(positions, beadRadius * 0.15),
+        ropeSegments: this._buildRopeSegments(positions, beadRadius * 0.15)
       })
     },
 
     /** 构建绳子段数据（连接相邻珠子的细圆柱） */
-    _buildRopeSegments(
-      positions: Array<{ x: number; y: number; z: number }>,
-      ropeRadius: number
-    ) {
+    _buildRopeSegments(positions: Array<{ x: number; y: number; z: number }>, ropeRadius: number) {
       const segments: any[] = []
       const count = positions.length
-      if (count < 2) return segments
+      if (count < 2) {
+        return segments
+      }
 
       for (let i = 0; i < count; i++) {
         const curr = positions[i]
@@ -235,7 +237,7 @@ Component({
         segments.push({
           position: `${midX.toFixed(4)} ${midY.toFixed(4)} ${midZ.toFixed(4)}`,
           scale: `${(length / 2).toFixed(4)} ${ropeRadius.toFixed(4)} ${ropeRadius.toFixed(4)}`,
-          rotation: `0 0 ${angle.toFixed(2)}`,
+          rotation: `0 0 ${angle.toFixed(2)}`
         })
       }
       return segments
@@ -255,6 +257,6 @@ Component({
     /** 外部调用：刷新场景（珠子数据变化后调用） */
     refresh() {
       this._buildScene()
-    },
-  },
+    }
+  }
 })

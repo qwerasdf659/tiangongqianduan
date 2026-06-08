@@ -3,9 +3,9 @@
  *
  * 核心交互：
  *   1. 光束 + 火焰粒子双层氛围，紧急度越高氛围越强
- *   2. 霓虹横幅 + 翻牌倒计时 + 滚动播报"XX刚刚抢到"
+ *   2. 霓虹横幅 + 翻牌倒计时（后端下发 countdown_seconds 时启用）+ 滚动播报（仅展示后端真实文案）
  *   3. 聚光灯主奖品（全息光效 + 呼吸光晕）+ 缩略奖品横排
- *   4. "已抢XX%" 百分比徽章 + 波浪进度条 + 分级紧急提示
+ *   4. "已抢XX%" 百分比徽章 + 波浪进度条 + 分级紧急提示（后端下发 stock_total/stock_remaining 时展示）
  *   5. 脉冲环抢购按钮 + 按下涟漪 + 震动反馈
  *   6. 成功卡片弹层（全息揭晓 + 12粒子 + 文字动画）
  *
@@ -52,24 +52,36 @@ Component({
      */
     state: 'idle' as string,
 
-    /** 库存数据 */
-    stockTotal: 50,
-    stockRemaining: 23,
-    stockPercent: 46,
-    /** 已抢百分比（用于进度条和徽章） */
-    grabbedPercent: 54,
+    /**
+     * 库存数据 — 业务数据，必须由后端权威提供（决策C）
+     * 后端通过 config 下发 stock_total / stock_remaining 时才展示库存区，
+     * 未下发则 hasStock=false，前端不显示、不伪造、不在前端计算扣减
+     */
+    hasStock: false,
+    stockTotal: 0,
+    stockRemaining: 0,
+    stockPercent: 0,
+    /** 已抢百分比（用于进度条和徽章，仅 hasStock 时有效） */
+    grabbedPercent: 0,
+    /** 是否售罄（仅 hasStock 且 stockRemaining<=0 时为真） */
+    isSoldOut: false,
 
-    /** 倒计时显示 */
-    countdown: { hours: '00', minutes: '15', seconds: '00' },
-    totalSeconds: 900,
-    initialSeconds: 900,
+    /** 倒计时显示（仅后端下发 countdown_seconds 时启用，hasCountdown 控制） */
+    hasCountdown: false,
+    countdown: { hours: '00', minutes: '00', seconds: '00' },
+    totalSeconds: 0,
+    initialSeconds: 0,
 
     /** 聚光灯主奖品（第一个奖品，大卡展示） */
     spotlightPrize: null as any,
     /** 缩略奖品横排（其余奖品，小卡展示） */
     thumbnailPrizes: [] as any[],
 
-    /** 滚动播报消息列表 */
+    /**
+     * 滚动播报消息列表 — 真实他人获得记录，必须由后端权威提供（决策C）
+     * 后端通过 config 下发 broadcast_messages（已格式化的展示文案数组）时才滚动播报，
+     * 未下发则为空、不显示，前端绝不伪造"XX刚刚抢到"等虚假社会证明
+     */
     rollingMessages: [] as any[],
     /** 当前播报索引 */
     currentMsgIndex: 0,
@@ -180,9 +192,6 @@ Component({
     /** 初始化秒杀所有数据 */
     _initSale() {
       const cfg = this.properties.displayConfig as any
-      const total = cfg?.stock_total || 50
-      const remaining = cfg?.stock_remaining || 23
-      const initialSec = cfg?.countdown_seconds || 900
       const prizes = this.properties.prizes as any[]
 
       /* 聚光灯 = 第一个奖品，大卡展示 */
@@ -194,48 +203,59 @@ Component({
         index: i
       }))
 
-      const stockPct = Math.round((remaining / total) * 100)
-      const grabbedPct = 100 - stockPct
+      /**
+       * 库存：仅当后端同时下发 stock_total 与 stock_remaining（均为数字）才展示
+       * 不下发则 hasStock=false，前端不显示库存区、不伪造数字
+       */
+      const total = cfg?.stock_total
+      const remaining = cfg?.stock_remaining
+      const hasStock = typeof total === 'number' && typeof remaining === 'number' && total > 0
+      const stockPct = hasStock ? Math.round((remaining / total) * 100) : 0
+      const grabbedPct = hasStock ? 100 - stockPct : 0
+      const isSoldOut = hasStock && remaining <= 0
 
-      /* 生成滚动播报 */
-      const rollingMessages = this._generateMessages(prizes)
+      /**
+       * 倒计时：仅当后端下发 countdown_seconds（数字）才启用
+       */
+      const initialSec = cfg?.countdown_seconds
+      const hasCountdown = typeof initialSec === 'number' && initialSec > 0
+
+      /**
+       * 滚动播报：仅使用后端下发的 broadcast_messages（已格式化文案数组）
+       * 后端字段格式约定：[{ text: '展示文案' }, ...]，前端不生成、不伪造
+       */
+      const backendMessages = Array.isArray(cfg?.broadcast_messages) ? cfg.broadcast_messages : []
 
       this.setData({
-        stockTotal: total,
-        stockRemaining: remaining,
+        hasStock,
+        stockTotal: hasStock ? total : 0,
+        stockRemaining: hasStock ? remaining : 0,
         stockPercent: stockPct,
         grabbedPercent: grabbedPct,
+        isSoldOut,
         spotlightPrize,
         thumbnailPrizes,
-        rollingMessages,
+        rollingMessages: backendMessages,
         currentMsgIndex: 0,
         msgSliding: false,
-        totalSeconds: initialSec,
-        initialSeconds: initialSec,
-        state: remaining <= 0 ? 'sold_out' : 'idle',
-        stockUrgency: this._calcStockUrgency(stockPct),
+        hasCountdown,
+        totalSeconds: hasCountdown ? initialSec : 0,
+        initialSeconds: hasCountdown ? initialSec : 0,
+        state: isSoldOut ? 'sold_out' : 'idle',
+        stockUrgency: hasStock ? this._calcStockUrgency(stockPct) : 'normal',
         showSuccess: false,
         showRipple: false
       })
 
-      this._startCountdown()
+      if (hasCountdown) {
+        this._startCountdown()
+      }
       this._startBroadcast()
     },
 
     // ================================
-    // 滚动播报
+    // 滚动播报（仅展示后端下发的真实文案，前端不生成）
     // ================================
-
-    /** 生成播报消息列表 */
-    _generateMessages(prizes: any[]): any[] {
-      const suffixes = ['8', '3', '6', '1', '9', '5', '7', '2']
-      const verbs = ['刚刚抢到了', '成功秒杀', '幸运获得', '火速抢到']
-      const prizeLen = Math.max(prizes.length, 1)
-
-      return suffixes.map((s, i) => ({
-        text: `用户***${s} ${verbs[i % verbs.length]} ${prizes[i % prizeLen]?.prize_name || ''}`
-      }))
-    },
 
     /** 启动播报轮播 */
     _startBroadcast() {
@@ -312,7 +332,8 @@ Component({
       if (this.data.state !== 'idle') {
         return
       }
-      if (this.data.stockRemaining <= 0) {
+      /* 仅当后端下发库存且已售罄时拦截；无库存概念（hasStock=false）正常放行 */
+      if (this.data.isSoldOut) {
         return
       }
 
@@ -346,15 +367,13 @@ Component({
     },
 
     _showGrabResult() {
-      const remaining = Math.max(0, this.data.stockRemaining - 1)
-      const stockPct = Math.round((remaining / this.data.stockTotal) * 100)
-
+      /**
+       * 不在前端伪造库存扣减（业务数据以后端为准）。
+       * 库存数字由后端在下次 config 下发时刷新（hasStock 时展示），
+       * 这里仅切换到成功态并弹出结果，等待后端真实播报/库存接口接入。
+       */
       this.setData({
         state: 'grabbed',
-        stockRemaining: remaining,
-        stockPercent: stockPct,
-        grabbedPercent: 100 - stockPct,
-        stockUrgency: this._calcStockUrgency(stockPct),
         showSuccess: true
       })
 

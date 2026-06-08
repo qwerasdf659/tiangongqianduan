@@ -385,7 +385,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '我在抽奖，一起来试试手气！',
+      title: '我在领消费回馈，一起来看看好礼！',
       path: '/pages/lottery/lottery'
     }
   },

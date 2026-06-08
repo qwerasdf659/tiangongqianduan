@@ -12,7 +12,7 @@
  *   旧 /assets/rates/* 路径已废弃，统一迁移到 /assets/conversion/*
  *   旧 exchange_rate_id 字段已更名为 conversion_rule_id
  *
- * @file 天工餐厅积分系统 - 资产API模块
+ * @file 天工平台 - 资产API模块
  * @version 7.0.0
  * @since 2026-04-07（资产转换规则统一: /assets/rates → /assets/conversion）
  */

@@ -4,7 +4,7 @@
  * 入口: packageUser/feedback/feedback.ts → onViewHistory()
  * 数据来源: GET /api/v4/system/feedback/my（分页）
  *
- * @file 天工餐厅积分系统 - 反馈列表页
+ * @file 天工平台 - 反馈列表页
  * @version 5.2.0
  * @since 2026-02-19
  */
@@ -136,7 +136,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '餐厅积分系统 - 我的反馈',
+      title: '天工平台 - 我的反馈',
       path: '/packageUser/feedback/feedback'
     }
   }

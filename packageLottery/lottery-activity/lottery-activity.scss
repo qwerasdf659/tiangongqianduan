@@ -579,3 +579,40 @@
     transform: scale(1.3);
   }
 }
+
+/* ===== 回馈规则说明（rules_text 驱动，含档位说明 + 未成年监护提示） ===== */
+.feedback-rules {
+  margin: 24rpx 16rpx 8rpx;
+  padding: 24rpx 28rpx;
+  background: var(--tg-lottery-accent-bg-light, #f5efe0);
+  border-radius: 16rpx;
+  border: 1rpx solid var(--tg-lottery-accent-border, #c5a572);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12rpx;
+  }
+
+  &__icon {
+    margin-right: 10rpx;
+    color: var(--tg-lottery-accent-dark, #b8860b);
+  }
+
+  &__title {
+    font-size: var(--tg-font-size-title);
+    font-weight: var(--tg-font-weight-semibold);
+    color: var(--tg-text-primary);
+    letter-spacing: var(--tg-letter-spacing-normal);
+  }
+
+  &__text {
+    display: block;
+    font-size: var(--tg-font-size-caption);
+    font-weight: var(--tg-font-weight-regular);
+    color: var(--tg-text-secondary);
+    line-height: 1.6;
+    letter-spacing: var(--tg-letter-spacing-tight);
+    white-space: pre-wrap;
+  }
+}

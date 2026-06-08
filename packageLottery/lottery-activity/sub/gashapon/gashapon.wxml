@@ -79,7 +79,7 @@
   <!-- 操作提示（仅在idle状态显示） -->
   <view class="operation-tip" wx:if="{{machineState === 'idle'}}">
     <view class="tip-arrow"><t-icon name="gesture-up" size="48rpx" /></view>
-    <text class="tip-text">点击红色手柄开始抽奖</text>
+    <text class="tip-text">点击红色手柄开启回馈</text>
   </view>
 
   <!-- 奖品池预览（is_fallback / is_sold_out 视觉指示） -->

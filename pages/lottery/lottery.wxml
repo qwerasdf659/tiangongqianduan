@@ -391,7 +391,7 @@
             <view class="record-row" wx:if="{{item.merchant_info}}">
               <t-icon name="store-filled" size="28rpx" class="row-icon" />
               <text class="row-label">商家：</text>
-              <text class="row-value">{{item.merchant_info.name || '天工餐厅'}}</text>
+              <text class="row-value">{{item.merchant_info.name || '商户'}}</text>
             </view>
 
             <!-- 商家备注 -->

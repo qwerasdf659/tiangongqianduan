@@ -237,7 +237,7 @@
         <view class="btn-shine"></view>
         <view class="btn-content">
           <t-icon name="star" size="32rpx" class="btn-icon" />
-          <text class="btn-text">恭喜中奖！</text>
+          <text class="btn-text">恭喜获得！</text>
         </view>
       </view>
     </view>

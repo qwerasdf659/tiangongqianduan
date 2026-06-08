@@ -12,7 +12,7 @@
  *   API交互 100% snake_case（请求参数、响应字段）
  *   工具类名: PascalCase（APIClient等）
  *
- * @file 天工餐厅积分系统 - 工具函数统一入口
+ * @file 天工平台 - 工具函数统一入口
  * @version 5.2.0
  * @since 2026-02-15
  */

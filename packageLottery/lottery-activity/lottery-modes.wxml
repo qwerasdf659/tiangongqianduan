@@ -348,6 +348,15 @@
     </view>
   </view>
 
+  <!-- 回馈规则说明（后端 rules_text 驱动，含档位说明 + 未成年监护提示，运营后台维护） -->
+  <view class="feedback-rules" wx:if="{{rulesText}}">
+    <view class="feedback-rules__header">
+      <t-icon name="tips-filled" size="32rpx" class="feedback-rules__icon" />
+      <text class="feedback-rules__title">回馈规则说明</text>
+    </view>
+    <text class="feedback-rules__text">{{rulesText}}</text>
+  </view>
+
   <!-- 结果弹窗（所有玩法共用） -->
   <result-modal
     wx:if="{{showResult}}"

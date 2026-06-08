@@ -483,7 +483,7 @@ Page({
   // 分享功能
   onShareAppMessage() {
     return {
-      title: '餐厅积分系统 - 客服反馈',
+      title: '天工平台 - 客服反馈',
       path: '/packageUser/feedback/feedback'
     }
   }

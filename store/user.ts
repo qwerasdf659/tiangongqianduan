@@ -7,7 +7,7 @@
  * 用户信息类型统一使用 API.UserProfile（typings/api.d.ts）
  * 角色判断统一使用 determineUserRole()（utils/util.ts）
  *
- * @file 天工餐厅积分系统 - 用户Store
+ * @file 天工平台 - 用户Store
  * @version 5.2.0
  * @since 2026-02-10
  */

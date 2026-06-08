@@ -18,7 +18,7 @@
     <!-- 页面标题（视觉锚点） -->
     <view class="page-header">
       <text class="page-title">发现好活动</text>
-      <text class="page-subtitle">今日抽奖·限时福利·新鲜上线</text>
+      <text class="page-subtitle">今日回馈·限时福利·新鲜上线</text>
     </view>
 
     <!-- 顶部搜索栏 -->
@@ -114,7 +114,7 @@
 
             <!-- 操作按钮 -->
             <view class="card-footer">
-              <button class="cta-btn primary">去抽奖</button>
+              <button class="cta-btn primary">去领回馈</button>
             </view>
           </view>
         </view>
@@ -129,7 +129,7 @@
     <!-- 底部提示 -->
     <view class="bottom-tip" wx:if="{{!loading && filteredCampaigns.length > 0}}">
       <t-icon name="tips-filled" size="28rpx" class="tip-icon" />
-      <text class="tip-text">点击活动卡片进入抽奖</text>
+      <text class="tip-text">点击活动卡片进入回馈</text>
     </view>
 
     <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->

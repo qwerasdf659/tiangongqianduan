@@ -1,10 +1,14 @@
 <!-- 登录弹窗组件 - 底部半屏弹窗 -->
-<view class="login-popup-mask {{visible ? 'show' : ''}}" bindtap="onMaskTap" catchtouchmove="preventScroll">
+<view
+  class="login-popup-mask {{visible ? 'show' : ''}}"
+  bindtap="onMaskTap"
+  catchtouchmove="preventScroll"
+>
   <view class="login-popup-container {{visible ? 'show' : ''}}" catchtap="preventBubble">
     <!-- 标题区域 -->
     <view class="popup-header">
       <text class="popup-title">登录</text>
-      <text class="popup-subtitle">登录后即可参与抽奖赚积分</text>
+      <text class="popup-subtitle">登录后即可参与回馈赚积分</text>
     </view>
 
     <!-- 微信一键登录视图（默认） -->
@@ -15,7 +19,13 @@
           <t-icon wx:if="{{agreementChecked}}" name="check" size="24rpx" color="#fff" />
         </view>
         <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link" catchtap="onViewAgreement">《用户协议》</text>
+        <text class="agreement-link" catchtap="onViewAgreement" data-type="user_agreement"
+          >《用户协议》</text
+        >
+        <text class="agreement-text">和</text>
+        <text class="agreement-link" catchtap="onViewAgreement" data-type="privacy_policy"
+          >《隐私政策》</text
+        >
       </view>
 
       <!-- 微信一键登录按钮 -->
@@ -79,7 +89,13 @@
           <t-icon wx:if="{{agreementChecked}}" name="check" size="24rpx" color="#fff" />
         </view>
         <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link" catchtap="onViewAgreement">《用户协议》</text>
+        <text class="agreement-link" catchtap="onViewAgreement" data-type="user_agreement"
+          >《用户协议》</text
+        >
+        <text class="agreement-text">和</text>
+        <text class="agreement-link" catchtap="onViewAgreement" data-type="privacy_policy"
+          >《隐私政策》</text
+        >
       </view>
 
       <!-- 验证码登录按钮 -->

@@ -13,7 +13,7 @@
  *   只有 role_level >= 60 (business_manager 及以上) 的用户才会调用审核链API，
  *   普通用户调用 refreshPendingCount 时静默跳过。
  *
- * @file 天工餐厅积分系统 - 审核链Store
+ * @file 天工平台 - 审核链Store
  * @version 6.0.0
  * @since 2026-03-15
  */

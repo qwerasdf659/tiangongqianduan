@@ -5,7 +5,7 @@
  * v5.1优化: 提取 BASE_BUSINESS_CONFIG / BASE_SECURITY_CONFIG / BASE_DEVELOPMENT_CONFIG
  * 消除4个环境80%重复配置，各环境仅覆盖有差异的部分
  *
- * @file 天工餐厅积分系统 - 环境配置
+ * @file 天工平台 - 环境配置
  * @version 5.2.0
  * @since 2026-02-10
  */

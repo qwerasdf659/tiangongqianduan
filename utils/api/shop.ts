@@ -4,7 +4,7 @@
  * 商家端路由: routes/v4/shop/consumption/（扫码获取用户信息、提交消费）
  * 核销路由: routes/v4/shop/redemption/
  *
- * @file 天工餐厅积分系统 - 消费与核销API模块
+ * @file 天工平台 - 消费与核销API模块
  * @version 5.2.0
  * @since 2026-02-15
  */

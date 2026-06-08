@@ -7,7 +7,7 @@
  *   attached → 注册到 App._maintenanceOverlays（如果 App 已处于维护模式则立即显示）
  *   detached → 从 App._maintenanceOverlays 注销
  *
- * @file 天工餐厅积分系统 - 系统维护全屏遮罩
+ * @file 天工平台 - 系统维护全屏遮罩
  * @version 5.2.0
  */
 

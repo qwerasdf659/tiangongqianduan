@@ -1,5 +1,5 @@
 /**
- * 餐厅积分抽奖系统V5.2主入口 - TypeScript版
+ * 天工平台V5.2主入口 - TypeScript版
  * 基于V4.0统一引擎架构，JWT双Token机制，Socket.IO实时通信
  *
  * globalData只保留系统配置
@@ -7,7 +7,7 @@
  * WebSocket 使用 weapp.socket.io@3.0.0（心跳重连/事件路由全部由Socket.IO内建管理）
  * weapp.socket.io 内部用WebSocket传输适配wx.connectSocket()，微信小程序专用
  *
- * @file 天工餐厅积分系统 - 应用主入口
+ * @file 天工平台 - 应用主入口
  * @version 5.2.0
  * @since 2026-02-15
  */
@@ -60,7 +60,7 @@ App({
   globalData: {
     // 系统基础信息
     version: '5.2.0' as string,
-    systemName: '餐厅积分抽奖系统' as string,
+    systemName: '天工平台' as string,
     buildTime: new Date().toISOString(),
 
     // 系统状态
@@ -98,7 +98,7 @@ App({
 
   /** 应用启动初始化 */
   async onLaunch(options: WechatMiniprogram.App.LaunchShowOption): Promise<void> {
-    log.info('餐厅积分抽奖系统v5.2.0启动中...')
+    log.info('天工平台v5.2.0启动中...')
     log.info('启动参数:', options)
 
     /* 全局加载 iconfont 字体（Skyline 模式下 @font-face 在页面级不可靠，需通过 API 加载） */

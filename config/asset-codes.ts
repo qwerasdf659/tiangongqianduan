@@ -17,7 +17,7 @@
  *   - red_shard → red_core_shard（红源晶碎片），red_crystal → red_core_gem（红源晶）
  *   - 其余5色同理：orange/yellow/green/blue/purple
  *
- * @file 天工餐厅积分系统 - 虚拟资产代码常量
+ * @file 天工平台 - 虚拟资产代码常量
  * @version 1.0.0
  * @since 2026-04-07
  */

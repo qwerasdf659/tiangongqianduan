@@ -13,7 +13,7 @@
  * 响应格式: ApiResponse { success, code, message, data, timestamp, version, request_id }
  * 字段命名: 100% snake_case（直接使用后端返回字段，不做映射）
  *
- * @file 天工餐厅积分系统 - 用户通知API
+ * @file 天工平台 - 用户通知API
  * @version 5.2.0
  * @since 2026-02-25
  */

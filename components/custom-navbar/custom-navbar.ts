@@ -4,7 +4,7 @@
  * Skyline 不支持原生导航栏，所有页面需设置 navigationStyle: custom
  * 本组件自动获取状态栏高度和胶囊按钮位置，确保导航栏与系统UI对齐
  *
- * @file 天工餐厅积分系统 - 自定义导航栏
+ * @file 天工平台 - 自定义导航栏
  * @version 5.2.0
  */
 

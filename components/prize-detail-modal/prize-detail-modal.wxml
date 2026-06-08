@@ -35,7 +35,7 @@
 
       <view class="prize-modal__fallback" wx:if="{{prize.is_fallback}}">
         <text class="prize-modal__fallback-badge">保底奖品</text>
-        <text class="prize-modal__fallback-hint">连续抽奖达到保底次数时必得</text>
+        <text class="prize-modal__fallback-hint">连续参与达到保底次数时必得</text>
       </view>
     </view>
   </view>

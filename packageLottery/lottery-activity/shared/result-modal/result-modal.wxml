@@ -35,9 +35,9 @@
           <text class="result-title" wx:elif="{{drawResult.prize.prize_type === 'virtual'}}"
             >恭喜获得！</text
           >
-          <text class="result-title" wx:else>恭喜中奖！</text>
+          <text class="result-title" wx:else>恭喜获得！</text>
           <text class="result-subtitle" wx:if="{{drawResult.isMultiDraw}}">
-            {{drawResult.drawCount}}连抽获得以下奖品
+            {{drawResult.drawCount}}次回馈，获得以下好礼
           </text>
           <text class="result-subtitle" wx:elif="{{drawResult.prize.prize_type === 'points'}}"
             >{{drawResult.prize.prize_name}} 已自动到账</text
@@ -45,16 +45,18 @@
           <text class="result-subtitle" wx:elif="{{drawResult.prize.prize_type === 'virtual'}}"
             >{{drawResult.prize.prize_description || '已自动生效'}}</text
           >
-          <text class="result-subtitle" wx:else>单次抽奖获得精美奖品</text>
+          <text class="result-subtitle" wx:else>本次回馈获得精美好礼</text>
           <text class="result-order-no" wx:if="{{drawResult.order_no}}"
-            >抽奖单号: {{drawResult.order_no}}</text
+            >回馈单号: {{drawResult.order_no}}</text
           >
         </view>
       </view>
 
       <!-- 错误状态标题卡片 -->
       <view class="title-card error-card" wx:if="{{drawResult.isError}}">
-        <view class="title-icon error-icon"><t-icon name="close-circle-filled" size="48rpx" color="#ff6b6b" /></view>
+        <view class="title-icon error-icon"
+          ><t-icon name="close-circle-filled" size="48rpx" color="#ff6b6b"
+        /></view>
         <view class="title-content">
           <text class="result-title error-title">{{drawResult.errorTitle}}</text>
           <text class="result-subtitle error-subtitle">{{drawResult.errorDescription}}</text>
@@ -134,6 +136,75 @@
                   <text class="winning-name">{{drawResult.prize.prize_name}}</text>
                   <text class="winning-desc">{{drawResult.prize.prize_description}}</text>
                 </view>
+                <view class="prize-card-decoration">
+                  <t-icon
+                    name="star-filled"
+                    size="20rpx"
+                    color="#d4a853"
+                    class="deco-star deco-1"
+                  />
+                  <t-icon
+                    name="heart-filled"
+                    size="16rpx"
+                    color="#f0d9a0"
+                    class="deco-star deco-2"
+                  />
+                  <t-icon
+                    name="star-filled"
+                    size="14rpx"
+                    color="#c49340"
+                    class="deco-star deco-3"
+                  />
+                  <t-icon
+                    name="star-filled"
+                    size="18rpx"
+                    color="#f7e8c8"
+                    class="deco-star deco-4"
+                  />
+                  <t-icon
+                    name="heart-filled"
+                    size="14rpx"
+                    color="#d4a853"
+                    class="deco-star deco-5"
+                  />
+                </view>
+              </view>
+            </view>
+          </view>
+        </rarity-effects>
+      </view>
+
+      <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
+      <view
+        class="winning-prize-card single-prize-card"
+        wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError}}"
+      >
+        <!-- 🌟 稀有度光效包裹 -->
+        <rarity-effects
+          rarity="{{drawResult.prize.rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+        >
+          <view class="prize-card-bg">
+            <view class="prize-card-shine"></view>
+            <view class="prize-card-content">
+              <view class="winning-icon-container">
+                <image
+                  wx:if="{{drawResult.prize.prize_image_url}}"
+                  class="winning-image"
+                  src="{{drawResult.prize.prize_image_url}}"
+                  mode="aspectFit"
+                  binderror="onResultImageError"
+                />
+                <view wx:else class="winning-image-missing">
+                  <t-icon name="error-circle" size="32rpx" color="#e74c3c" />
+                  <text class="winning-image-missing__text">奖品图片缺失</text>
+                </view>
+                <view class="icon-glow"></view>
+              </view>
+              <view class="winning-info">
+                <text class="winning-name">{{drawResult.prize.prize_name}}</text>
+                <text class="winning-desc">{{drawResult.prize.prize_description}}</text>
+              </view>
               <view class="prize-card-decoration">
                 <t-icon name="star-filled" size="20rpx" color="#d4a853" class="deco-star deco-1" />
                 <t-icon name="heart-filled" size="16rpx" color="#f0d9a0" class="deco-star deco-2" />
@@ -141,50 +212,6 @@
                 <t-icon name="star-filled" size="18rpx" color="#f7e8c8" class="deco-star deco-4" />
                 <t-icon name="heart-filled" size="14rpx" color="#d4a853" class="deco-star deco-5" />
               </view>
-            </view>
-          </view>
-        </view>
-      </rarity-effects>
-    </view>
-
-    <!-- ===== 单次抽奖：simple 默认模式（原有逻辑） ===== -->
-    <view
-      class="winning-prize-card single-prize-card"
-      wx:if="{{winAnimation !== 'card_flip' && !drawResult.isMultiDraw && !drawResult.isError}}"
-    >
-      <!-- 🌟 稀有度光效包裹 -->
-      <rarity-effects
-        rarity="{{drawResult.prize.rarity_code || 'common'}}"
-        enabled="{{rarityEffects}}"
-      >
-        <view class="prize-card-bg">
-          <view class="prize-card-shine"></view>
-          <view class="prize-card-content">
-            <view class="winning-icon-container">
-              <image
-                wx:if="{{drawResult.prize.prize_image_url}}"
-                class="winning-image"
-                src="{{drawResult.prize.prize_image_url}}"
-                mode="aspectFit"
-                binderror="onResultImageError"
-              />
-              <view wx:else class="winning-image-missing">
-                <t-icon name="error-circle" size="32rpx" color="#e74c3c" />
-                <text class="winning-image-missing__text">奖品图片缺失</text>
-              </view>
-              <view class="icon-glow"></view>
-            </view>
-            <view class="winning-info">
-              <text class="winning-name">{{drawResult.prize.prize_name}}</text>
-              <text class="winning-desc">{{drawResult.prize.prize_description}}</text>
-            </view>
-            <view class="prize-card-decoration">
-              <t-icon name="star-filled" size="20rpx" color="#d4a853" class="deco-star deco-1" />
-              <t-icon name="heart-filled" size="16rpx" color="#f0d9a0" class="deco-star deco-2" />
-              <t-icon name="star-filled" size="14rpx" color="#c49340" class="deco-star deco-3" />
-              <t-icon name="star-filled" size="18rpx" color="#f7e8c8" class="deco-star deco-4" />
-              <t-icon name="heart-filled" size="14rpx" color="#d4a853" class="deco-star deco-5" />
-            </view>
             </view>
           </view>
         </rarity-effects>
@@ -300,13 +327,17 @@
             wx:if="{{multiDrawCurrentIndex < drawResult.prizes.length - 1}}"
             bindtap="revealNextPrize"
           >
-            <text class="reveal-next-text"><t-icon name="play-circle" size="28rpx" /> 揭晓下一个</text>
+            <text class="reveal-next-text"
+              ><t-icon name="play-circle" size="28rpx" /> 揭晓下一个</text
+            >
           </button>
           <view
             class="reveal-complete-hint"
             wx:if="{{multiDrawCurrentIndex >= drawResult.prizes.length - 1}}"
           >
-            <text class="reveal-complete-text"><t-icon name="thumb-up" size="28rpx" /> 全部揭晓完成！</text>
+            <text class="reveal-complete-text"
+              ><t-icon name="thumb-up" size="28rpx" /> 全部揭晓完成！</text
+            >
           </view>
         </view>
 
@@ -342,7 +373,7 @@
           class="multi-order-no-list"
           wx:if="{{drawResult.order_nos && drawResult.order_nos.length > 0}}"
         >
-          <text class="multi-order-no-title">抽奖单号</text>
+          <text class="multi-order-no-title">回馈单号</text>
           <text class="multi-order-no-item" wx:for="{{drawResult.order_nos}}" wx:key="*this"
             >{{item}}</text
           >

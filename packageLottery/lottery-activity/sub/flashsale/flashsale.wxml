@@ -25,7 +25,7 @@
         <t-icon name="flash" size="32rpx" class="badge-icon" />
         <text class="badge-text">限时秒杀</text>
       </view>
-      <view class="banner-countdown">
+      <view class="banner-countdown" wx:if="{{hasCountdown}}">
         <text class="cd-label">距结束</text>
         <view class="cd-digits">
           <view class="cd-block {{countdownFlip ? 'flip-a' : 'flip-b'}}">
@@ -110,8 +110,8 @@
     </scroll-view>
   </view>
 
-  <!-- ===== 库存进度区（百分比徽章 + 波浪进度条） ===== -->
-  <view class="fs-stock stock-{{stockUrgency}}">
+  <!-- ===== 库存进度区（百分比徽章 + 波浪进度条）— 仅后端下发真实库存时展示 ===== -->
+  <view class="fs-stock stock-{{stockUrgency}}" wx:if="{{hasStock}}">
     <view class="stock-header">
       <view class="stock-pct-badge">
         <text class="spb-num">{{grabbedPercent}}</text>
@@ -142,26 +142,26 @@
   <view class="fs-action">
     <view class="grab-wrap">
       <!-- 外围脉冲环 -->
-      <view class="grab-ring ring1" wx:if="{{state === 'idle' && stockRemaining > 0}}" />
-      <view class="grab-ring ring2" wx:if="{{state === 'idle' && stockRemaining > 0}}" />
+      <view class="grab-ring ring1" wx:if="{{state === 'idle' && !isSoldOut}}" />
+      <view class="grab-ring ring2" wx:if="{{state === 'idle' && !isSoldOut}}" />
       <!-- 按钮主体 -->
       <view
-        class="grab-btn {{state !== 'idle' ? 'grab-btn-busy' : ''}} {{stockRemaining <= 0 ? 'grab-btn-sold' : ''}}"
+        class="grab-btn {{state !== 'idle' ? 'grab-btn-busy' : ''}} {{isSoldOut ? 'grab-btn-sold' : ''}}"
         bindtap="onGrab"
       >
         <view class="grab-btn-bg" />
         <view class="grab-btn-inner">
-          <t-icon name="close-circle-filled" size="36rpx" class="grab-btn-icon" wx:if="{{stockRemaining <= 0}}" />
+          <t-icon name="close-circle-filled" size="36rpx" class="grab-btn-icon" wx:if="{{isSoldOut}}" />
           <t-icon name="time" size="36rpx" class="grab-btn-icon" wx:elif="{{state === 'grabbing'}}" />
           <t-icon name="thumb-up" size="36rpx" class="grab-btn-icon" wx:elif="{{state === 'grabbed'}}" />
           <t-icon name="tips" size="36rpx" class="grab-btn-icon" wx:else />
           <text class="grab-btn-text">
-            {{stockRemaining <= 0 ? '已抢光' : state === 'idle' ? '立即抢购' : state === 'grabbing'
-            ? '抢购中...' : '抢购成功!'}}
+            {{isSoldOut ? '已抢光' : state === 'idle' ? '立即抢购' : state === 'grabbing' ? '抢购中...'
+            : '抢购成功!'}}
           </text>
         </view>
         <!-- 表面扫光 -->
-        <view class="grab-btn-shine" wx:if="{{state === 'idle' && stockRemaining > 0}}" />
+        <view class="grab-btn-shine" wx:if="{{state === 'idle' && !isSoldOut}}" />
         <!-- 点击涟漪 — Worklet 驱动缩放和透明度 -->
         <view class="grab-ripple" />
       </view>

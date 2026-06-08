@@ -2,7 +2,7 @@
  * 认证系统API
  * 后端路由: routes/v4/auth/
  *
- * @file 天工餐厅积分系统 - 认证API模块
+ * @file 天工平台 - 认证API模块
  * @version 5.2.0
  * @since 2026-02-15
  */

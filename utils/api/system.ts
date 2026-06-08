@@ -2,7 +2,7 @@
  * 🌐 系统通用API + 💬 用户客服会话API + 👤 用户API + 🔔 活动API
  * 后端路由: routes/v4/system/、routes/v4/user/、routes/v4/activities
  *
- * @file 天工餐厅积分系统 - 系统通用API模块
+ * @file 天工平台 - 系统通用API模块
  * @version 5.2.0
  * @since 2026-02-15
  */
@@ -605,6 +605,29 @@ async function getCategoryTree() {
   })
 }
 
+/**
+ * 获取法律协议文档内容（用户协议 / 隐私政策）
+ * GET /api/v4/system/agreement/:doc_type
+ *
+ * ⚠️ 该接口需后端提供（当前后端尚未实现，调用会返回 404/失败，前端页面据此明确报错提示）
+ * doc_type 取值: user_agreement（用户协议）/ privacy_policy（隐私政策）
+ *
+ * 期望响应 data 结构（前端按此渲染，字段名 snake_case 照后端原样）:
+ *   title         — 文档标题（如"用户协议"）
+ *   updated_at    — 更新日期（北京时间字符串）
+ *   sections[]    — 协议正文段落数组: { heading?: string, text: string }
+ *
+ * 法务正文由后端/运营在后台维护，前端不硬编码任何协议条款文本。
+ */
+async function getAgreementDocument(doc_type: string) {
+  return apiClient.request(`/system/agreement/${doc_type}`, {
+    method: 'GET',
+    needAuth: false,
+    showLoading: false,
+    showError: false
+  })
+}
+
 module.exports = {
   getSystemGlobalConfig,
   getPlacementConfig,
@@ -633,5 +656,6 @@ module.exports = {
   getFeedbackConfig,
   getActivities,
   getProductFilterConfig,
-  getCategoryTree
+  getCategoryTree,
+  getAgreementDocument
 }
