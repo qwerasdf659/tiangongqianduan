@@ -46,7 +46,7 @@ interface MenuItem {
  * 用户中心页面 - 餐厅积分抽奖系统
  * 功能说明：
  * - 我的积分（完整的积分展示和趋势）
- * - 功能菜单（积分明细、我的库存、交易记录、消费记录、联系客服、退出登录）
+ * - 功能菜单（积分明细、我的库存、交易记录、消费记录、我的售后、意见反馈、联系客服、退出登录）
  * - 多角色权限（普通用户/商家店员/商家店长/超级管理员）
  */
 Page({
@@ -152,6 +152,16 @@ Page({
         color: '#8B7355',
         type: 'page',
         url: '/packageUser/disputes/disputes'
+      },
+      {
+        id: 'my-feedback',
+        name: '意见反馈',
+        description: '提交建议与问题反馈',
+        iconClass: 'icon-edit',
+        tdIcon: 'edit-1-filled',
+        color: '#C5A572',
+        type: 'page',
+        url: '/packageUser/feedback/feedback'
       },
       {
         id: 'contact-service',
