@@ -1,7 +1,7 @@
 /**
  * 商品展示字段增强 — 纯函数（无 this 依赖）
  *
- * 为后端返回的商品/挂单数据附加前端展示用计算字段：
+ * 为后端返回的商品数据附加前端展示用计算字段：
  *   _priceLabel:   资产代码中文化（star_stone→星石）
  *   _rarityClass:  稀有度 CSS class（对齐 rarity-effects 组件）
  *   _isLegendary:  是否触发全息光效

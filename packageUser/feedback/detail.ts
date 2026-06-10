@@ -34,6 +34,16 @@ Page({
       processing: '处理中',
       replied: '已回复',
       closed: '已关闭'
+    } as Record<string, string>,
+
+    /** 反馈分类中文映射（对齐后端 feedbacks.category 枚举） */
+    categoryMap: {
+      technical: '技术问题',
+      feature: '功能建议',
+      bug: '功能异常',
+      complaint: '投诉举报',
+      suggestion: '建议意见',
+      other: '其他问题'
     } as Record<string, string>
   },
 

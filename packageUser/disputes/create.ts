@@ -44,11 +44,14 @@ const ORDER_TYPE_MAP: Record<string, string> = {
 }
 
 /**
- * 允许自助发起的订单类型白名单
- * 当前仅 consumption 在小程序有实际入口（积分活动记录页"申请售后"）；
- * redemption 待后端确认 order_id 主键与可申诉状态后再纳入（见求证清单 Q-P2-2）
+ * 允许自助发起的订单类型白名单（对齐后端 trade_disputes.order_type 枚举：redemption/consumption）
+ *
+ * - consumption：消费订单，小程序"积分活动记录页"已接通"申请售后"入口
+ * - redemption：兑换/核销订单，后端已确认 order_id 用 redemption_orders 的 UUID 主键、
+ *   仅 fulfilled（已核销）可申诉（见求证清单 O-2 / §12 BE 落地）。本页已可受理 redemption，
+ *   入口按钮需挂在展示该 UUID 的页面（核销订单/仓库物品详情），由调用页传入 order_type=redemption&order_id=<uuid>
  */
-const ALLOWED_ORDER_TYPES = ['consumption']
+const ALLOWED_ORDER_TYPES = ['consumption', 'redemption']
 
 /** 证据图片上限 */
 const MAX_EVIDENCE = 5

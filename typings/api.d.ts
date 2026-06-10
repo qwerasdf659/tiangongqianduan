@@ -1122,7 +1122,7 @@ declare namespace API {
   interface TradeDispute {
     /** 申诉主键（后端字段: trade_dispute_id） */
     trade_dispute_id: number
-    /** 关联订单类型: trade | redemption | consumption | auction */
+    /** 关联订单类型: redemption | consumption（后端已收窄，C2C 下线后 trade/auction 已废除） */
     order_type: string
     /** 关联订单ID（多态值，兼容 BIGINT/UUID 的字符串） */
     order_id: string

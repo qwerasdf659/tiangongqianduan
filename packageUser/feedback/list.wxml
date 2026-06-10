@@ -26,7 +26,7 @@
           <text class="item-time">{{item.created_at}}</text>
         </view>
         <view class="item-content">
-          <text class="category-label">{{item.category}}</text>
+          <text class="category-label">{{categoryMap[item.category] || item.category}}</text>
           <text class="content-preview">{{item.content}}</text>
         </view>
         <view wx:if="{{item.reply_content}}" class="reply-indicator">

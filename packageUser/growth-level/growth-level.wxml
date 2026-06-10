@@ -1,0 +1,81 @@
+<!--packageUser/growth-level/growth-level.wxml - 成长等级页面-->
+<custom-navbar title="成长等级" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<view class="growth-container">
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面标题 -->
+    <view class="page-header">
+      <view class="header-text">
+        <text class="header-title">成长等级</text>
+        <text class="header-desc">累计积分越多，等级越高，解锁更多权益</text>
+      </view>
+      <view class="header-decor-icon">
+        <t-icon name="chart-bar" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
+    <!-- 加载中骨架屏 -->
+    <block wx:if="{{loadStatus === 'loading'}}">
+      <view class="level-skeleton">
+        <view class="skeleton-badge shimmer"></view>
+        <view class="skeleton-line skeleton-title shimmer"></view>
+        <view class="skeleton-line skeleton-info shimmer"></view>
+      </view>
+    </block>
+
+    <!-- 加载失败 -->
+    <t-empty wx:elif="{{loadStatus === 'error'}}" description="请检查网络连接后重试">
+      <view slot="image"><t-icon name="wifi" size="120rpx" color="var(--td-brand-color)" /></view>
+      <view slot="action" class="retry-btn" bindtap="retryLoad">重新加载</view>
+    </t-empty>
+
+    <!-- 成长等级内容 -->
+    <block wx:else>
+      <!-- 当前等级卡片 -->
+      <view class="current-card">
+        <view class="current-badge">
+          <t-icon name="star-filled" size="64rpx" color="#C5A572" />
+        </view>
+        <text class="current-level-name">{{currentLevelName || '暂无等级'}}</text>
+        <view class="current-points">
+          <text class="current-points-num">{{historyTotalPoints}}</text>
+          <text class="current-points-unit">累计积分</text>
+        </view>
+      </view>
+
+      <!-- 等级阶梯 -->
+      <view class="ladder-section" wx:if="{{levels.length > 0}}">
+        <text class="section-title">等级阶梯</text>
+        <view class="ladder-list">
+          <view
+            class="ladder-item {{item.isCurrent ? 'ladder-current' : ''}} {{item.isReached ? 'ladder-reached' : ''}}"
+            wx:for="{{levels}}"
+            wx:key="levelKey"
+          >
+            <view class="ladder-dot-wrap">
+              <view class="ladder-dot"></view>
+              <view class="ladder-line" wx:if="{{index < levels.length - 1}}"></view>
+            </view>
+            <view class="ladder-body">
+              <view class="ladder-name-row">
+                <text class="ladder-name">{{item.levelName}}</text>
+                <text class="ladder-current-tag" wx:if="{{item.isCurrent}}">当前等级</text>
+              </view>
+              <text class="ladder-threshold" wx:if="{{item.thresholdText}}"
+                >{{item.thresholdText}}</text
+              >
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 占位提示：阈值未定稿时说明门槛数字为何不显示 -->
+      <view class="threshold-hint" wx:if="{{!thresholdsConfirmed}}">
+        <t-icon name="info-circle-filled" size="28rpx" color="var(--tg-text-tertiary)" />
+        <text class="threshold-hint-text">各等级积分门槛正在确认中，敬请期待</text>
+      </view>
+    </block>
+
+    <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
+</view>

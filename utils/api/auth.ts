@@ -152,11 +152,37 @@ async function logout() {
   })
 }
 
+/**
+ * 获取当前用户成长等级（脱敏，需登录）- GET /api/v4/user/growth-level
+ *
+ * 后端 BE-4 新增只读接口，服务 V-4"会员解锁"展示与成长等级公示。
+ * 倍数/权重等运营策略字段永不下发（商业机密）。
+ *
+ * 响应 data 字段（snake_case 原名，前端不做映射层）:
+ *   current_level_key      当前等级 key（如 silver）
+ *   current_level_name     当前等级中文名（如 白银）
+ *   history_total_points   累计积分（成长等级单一派生源）
+ *   thresholds_confirmed   阈值是否已定稿（false=占位阶段）
+ *   levels[]               等级阶梯（升序）: { level_key, level_name, min_history_points }
+ *
+ * ⚠️ 占位保护（拍板点⑨）：thresholds_confirmed=false 时，后端将每个
+ *    min_history_points 下发为 null，前端只显示等级名、不显示"需达 Y 积分"。
+ */
+async function getUserGrowthLevel() {
+  return apiClient.request('/user/growth-level', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
 module.exports = {
   userLogin,
   quickLogin,
   wxCodeLogin,
   getUserInfo,
+  getUserGrowthLevel,
   sendVerificationCode,
   verifyToken,
   refreshAccessToken,

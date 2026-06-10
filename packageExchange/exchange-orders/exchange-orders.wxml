@@ -120,6 +120,9 @@
               <t-tag wx:if="{{item._sourceLabel}}" theme="default" variant="light" size="small">
                 {{item._sourceLabel}}
               </t-tag>
+              <t-tag wx:if="{{item._isProp}}" theme="primary" variant="light" size="small">
+                虚拟道具
+              </t-tag>
             </view>
             <text class="order-no" catchtap="onCopyOrderNo" data-no="{{item.order_no}}"
               >{{item._shortOrderNo}}</text

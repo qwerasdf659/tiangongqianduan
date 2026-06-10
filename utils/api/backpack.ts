@@ -693,6 +693,78 @@ async function refreshRedemptionQR(item_id: number) {
   })
 }
 
+// ==================== 以物易物（B2C 官方合成，barter域） ====================
+
+/**
+ * 获取以物易物配方列表
+ * GET /api/v4/exchange/barter/recipes
+ *
+ * 后端服务: BarterService.getRecipes（配方存 system_settings(category='exchange', key='barter_recipes')）
+ * 仅返回 is_enabled !== false 的配方
+ *
+ * 响应: { recipes: BarterRecipe[] }
+ * BarterRecipe 字段（snake_case 原名，前端直接渲染不做映射）:
+ *   recipe_code                 配方编码（提交时用此字段，非 recipe_id）
+ *   name                        配方名称
+ *   required_item_template_id   所需旧物的物品模板ID
+ *   required_quantity           所需旧物数量
+ *   output_exchange_item_id     产出兑换商品ID
+ *   is_enabled                  是否启用
+ */
+async function getBarterRecipes() {
+  return apiClient.request('/exchange/barter/recipes', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载配方...',
+    showError: true,
+    errorPrefix: '配方加载失败：'
+  })
+}
+
+/**
+ * 提交以物易物（用持有的旧物合成产出物）
+ * POST /api/v4/exchange/barter
+ *
+ * 后端服务: BarterService.executeBarter
+ * 幂等键: 按 RESTful 惯例放入请求头 Idempotency-Key（元数据与业务数据分离，不入 body）
+ *
+ * 请求体（snake_case 原名）:
+ *   recipe_code   配方编码（string，非 recipe_id）
+ *   old_item_ids  用于合成的旧物 item_id 数组（number[]）
+ *
+ * 成功响应 data: { order_no, recipe_code, consumed_item_ids, minted_item: { item_id, item_name, tracking_code }, source: 'barter' }
+ *
+ * 错误码（前端透传后端中文 message、按 code 决定提示）:
+ *   BARTER_RECIPE_NOT_FOUND / BARTER_QUANTITY_MISMATCH / BARTER_ITEM_NOT_FOUND /
+ *   BARTER_ITEM_NOT_OWNED / BARTER_ITEM_NOT_AVAILABLE / BARTER_ITEM_TEMPLATE_MISMATCH /
+ *   BARTER_DIRECTION_UPWARD_FORBIDDEN / BARTER_OUTPUT_NOT_FOUND
+ *
+ * @param recipe_code - 配方编码
+ * @param old_item_ids - 用于合成的旧物 item_id 数组
+ */
+async function submitBarter(recipe_code: string, old_item_ids: number[]) {
+  if (!recipe_code) {
+    throw new Error('配方编码不能为空')
+  }
+  if (!Array.isArray(old_item_ids) || old_item_ids.length === 0) {
+    throw new Error('请选择用于兑换的旧物')
+  }
+
+  const idempotencyKey = await generateIdempotencyKey('barter', recipe_code)
+
+  return apiClient.request('/exchange/barter', {
+    method: 'POST',
+    data: { recipe_code, old_item_ids },
+    header: { 'Idempotency-Key': idempotencyKey },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '合成中...',
+    showError: true,
+    errorPrefix: '合成失败：'
+  })
+}
+
 module.exports = {
   getUserInventory,
   getBackpackStats,
@@ -716,5 +788,7 @@ module.exports = {
   getBidProducts,
   getBidProductDetail,
   placeBid,
-  getBidHistory
+  getBidHistory,
+  getBarterRecipes,
+  submitBarter
 }

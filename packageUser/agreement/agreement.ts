@@ -3,10 +3,11 @@
  *
  * 入口: components/login-popup → onViewAgreement(type)
  * 参数: type — user_agreement（用户协议，默认）/ privacy_policy（隐私政策）
- * 数据来源: GET /api/v4/system/agreement/:doc_type（后端待提供）
+ * 数据来源: GET /api/v4/system/agreement/:doc_type（后端 BE-6 接口已上线，正文待运营录入）
  *
  * 设计原则: 协议正文为法务文本，前端不硬编码，统一由后端接口下发；
- *   接口缺失或失败时明确报错提示，不静默降级、不展示假内容。
+ *   正文未录入时后端返 404（AGREEMENT_NOT_CONFIGURED），前端明确报错提示，
+ *   不静默降级、不展示假内容。
  *   品牌名"天工平台"、运营主体"东莞市墨珩数字科技有限公司"为前端已知展示元素，写在模板中。
  *
  * @file 天工平台 - 协议页

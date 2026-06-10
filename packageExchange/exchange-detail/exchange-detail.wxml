@@ -167,6 +167,23 @@
       <text class="ed-mint-text">兑换后将铸造专属物品实例 · 收入我的仓库</text>
     </view>
 
+    <!-- 会员尊享标识（后端 value_tier=high 时展示，高价值实物会员解锁权益） -->
+    <view class="ed-member-badge" wx:if="{{isHighValue}}">
+      <text class="ed-member-icon">👑</text>
+      <text class="ed-member-text">会员尊享 · 高价值权益，满足解锁条件后可兑换</text>
+    </view>
+
+    <!-- 解锁条件清单（后端 redeem_requirement 非空时展示，仅清单不含敏感数值） -->
+    <view class="ed-requirement-card" wx:if="{{redeemRequirementList.length > 0}}">
+      <text class="ed-section-title">解锁条件</text>
+      <view class="ed-requirement-list">
+        <view class="ed-requirement-item" wx:for="{{redeemRequirementList}}" wx:key="*this">
+          <text class="ed-requirement-dot">•</text>
+          <text class="ed-requirement-text">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
     <!-- ④ 属性区: grid网格卡片模式 / list文字列表模式 -->
     <view class="ed-attrs-card">
       <text class="ed-section-title">商品信息</text>

@@ -609,15 +609,17 @@ async function getCategoryTree() {
  * 获取法律协议文档内容（用户协议 / 隐私政策）
  * GET /api/v4/system/agreement/:doc_type
  *
- * ⚠️ 该接口需后端提供（当前后端尚未实现，调用会返回 404/失败，前端页面据此明确报错提示）
- * doc_type 取值: user_agreement（用户协议）/ privacy_policy（隐私政策）
+ * 后端 BE-6 接口已上线（公开只读，无需登录）。doc_type 取值: user_agreement / privacy_policy
+ * 正文未录入时后端返 404（AGREEMENT_NOT_CONFIGURED），doc_type 非法返 400（AGREEMENT_DOC_TYPE_INVALID），
+ * 前端据此明确报错提示，不展示假内容。
  *
- * 期望响应 data 结构（前端按此渲染，字段名 snake_case 照后端原样）:
+ * 响应 data 结构（字段 snake_case 照后端原样）:
  *   title         — 文档标题（如"用户协议"）
  *   updated_at    — 更新日期（北京时间字符串）
+ *   version       — 版本号（可空）
  *   sections[]    — 协议正文段落数组: { heading?: string, text: string }
  *
- * 法务正文由后端/运营在后台维护，前端不硬编码任何协议条款文本。
+ * 法务正文由后端/运营在后台「协议管理」维护，前端不硬编码任何协议条款文本。
  */
 async function getAgreementDocument(doc_type: string) {
   return apiClient.request(`/system/agreement/${doc_type}`, {

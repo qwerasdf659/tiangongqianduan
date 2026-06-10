@@ -38,7 +38,9 @@
         "notifications/notifications",
         "backpack/inventory/inventory",
         "records/trade-upload-records/trade-upload-records",
-        "agreement/agreement"
+        "agreement/agreement",
+        "barter/barter",
+        "growth-level/growth-level"
       ]
     },
     {

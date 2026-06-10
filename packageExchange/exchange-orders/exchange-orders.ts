@@ -277,7 +277,12 @@ Page({
         orderNo.length > 16 ? `${orderNo.slice(0, 8)}...${orderNo.slice(-4)}` : orderNo,
       _canConfirmReceipt: order.status === 'shipped',
       _canRate: order.status === 'received',
-      _canCancel: order.status === 'pending',
+      /**
+       * 取消/退款按钮显隐：以后端权威派生字段 refundable 为准（BE-1）
+       * 道具单 refundable 恒 false；实物单 pending 才可退，前端不自行用 status 推断
+       */
+      _canCancel: order.refundable === true && order.status === 'pending',
+      _isProp: order.is_prop === true,
       _isAutoConfirmed: order.auto_confirmed === true,
       _statusTheme: ORDER_STATUS_THEME_MAP[order.status] || 'default',
       _statusDisplayName: order.status_display_name || statusInfo.label

@@ -93,6 +93,9 @@ Page({
     canConfirmReceipt: false,
     canRate: false,
 
+    /** 是否虚拟道具单（后端 BE-1 派生字段 is_prop，道具单即时到账禁退款） */
+    isProp: false,
+
     /** 自动确认标识 */
     isAutoConfirmed: false,
     /** 已评价展示 */
@@ -177,7 +180,13 @@ Page({
           : '',
         sourceLabel: DETAIL_SOURCE_LABELS[order.source] || '',
         timeline,
-        canCancel: order.status === 'pending',
+        /**
+         * 取消按钮显隐：以后端权威派生字段 refundable 为准（BE-1）
+         * 道具单 refundable 恒 false（即时到账禁退）；实物单 pending 才可退
+         * 前端不再用 status 自行推断"是否可退"，避免与后端规则脱节
+         */
+        canCancel: order.refundable === true && order.status === 'pending',
+        isProp: order.is_prop === true,
         canConfirmReceipt: order.status === 'shipped',
         canRate: order.status === 'received',
         isAutoConfirmed: order.auto_confirmed === true,

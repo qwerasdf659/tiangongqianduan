@@ -110,6 +110,19 @@ Page({
     /** sold_count >= 10 时才展示"已售X件"文字 */
     showSoldCount: false,
 
+    /**
+     * 是否高价值档（后端 BE-2 字段 value_tier === 'high'），驱动"会员尊享"视觉
+     * high 档做差异化展示，不按价格自行猜测档位
+     */
+    isHighValue: false,
+
+    /**
+     * 解锁条件清单（后端 BE-3 字段 redeem_requirement 展平后的可读项数组）
+     * redeem_requirement 无门槛时后端返回 null → 清单为空数组，不渲染
+     * 仅做"解锁条件清单"展示，不下发任何商业敏感数值
+     */
+    redeemRequirementList: [] as string[],
+
     /** 页面状态 */
     loading: true,
     hasError: false,
@@ -385,6 +398,16 @@ Page({
       const showSoldCount: boolean = (productData.sold_count || 0) >= SOLD_COUNT_DISPLAY_THRESHOLD
 
       /**
+       * 价值档位与解锁条件（后端 BE-2/BE-3 字段）
+       *   value_tier: 'low' | 'mid' | 'high'，high 档展示"会员尊享"
+       *   redeem_requirement: 无门槛时后端返回 null
+       */
+      const isHighValue: boolean = (productData.value_tier || 'low') === 'high'
+      const redeemRequirementList: string[] = this._buildRequirementList(
+        productData.redeem_requirement || null
+      )
+
+      /**
        * SKU 规格数据处理（全量SKU模式）
        * 后端 GET /exchange/items/:id 返回 skus 数组:
        *   [{ sku_id, spec_values, cost_amount, stock, status }]
@@ -472,6 +495,8 @@ Page({
         attrDisplayMode: itemAttrMode,
         tagStyleType: itemTagStyle,
         showSoldCount,
+        isHighValue,
+        redeemRequirementList,
         skuList: activeSkus,
         selectedSkuId,
         selectedSkuInfo,
@@ -495,6 +520,49 @@ Page({
         errorMessage: error.message || '加载失败，请重试'
       })
     }
+  },
+
+  /**
+   * 构建"解锁条件清单"可读数组（后端 redeem_requirement → 前端展示文案）
+   *
+   * 后端字段（snake_case 原名，前端不做映射层）:
+   *   min_growth_level_key      最低成长等级 key（如 silver），null=不限
+   *   extra_cost_assets[]       额外消耗资产 [{asset_code, amount}]
+   *   required_consume_items[]  需消耗指定道具 [{item_template_id, quantity}]
+   *
+   * 成长等级名优先用后端可能下发的 min_growth_level_name；
+   * 资产/道具仅展示后端给的标识与数量，不下发任何敏感数值，不前端计算。
+   */
+  _buildRequirementList(requirement: any): string[] {
+    if (!requirement) {
+      return []
+    }
+    const list: string[] = []
+
+    const levelName = requirement.min_growth_level_name || requirement.min_growth_level_key
+    if (levelName) {
+      list.push(`需达成长等级：${levelName}`)
+    }
+
+    if (Array.isArray(requirement.extra_cost_assets)) {
+      requirement.extra_cost_assets.forEach((asset: any) => {
+        const assetLabel = formatAssetLabel(asset.asset_code) || asset.asset_code
+        if (asset.amount !== null && asset.amount !== undefined) {
+          list.push(`需额外消耗：${asset.amount} ${assetLabel}`)
+        }
+      })
+    }
+
+    if (Array.isArray(requirement.required_consume_items)) {
+      requirement.required_consume_items.forEach((reqItem: any) => {
+        const itemLabel = reqItem.item_name || `道具#${reqItem.item_template_id}`
+        if (reqItem.quantity !== null && reqItem.quantity !== undefined) {
+          list.push(`需消耗道具：${itemLabel} ×${reqItem.quantity}`)
+        }
+      })
+    }
+
+    return list
   },
 
   /**

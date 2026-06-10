@@ -29,7 +29,9 @@
       <view class="content-section">
         <view class="section-title">反馈内容</view>
         <view class="section-body">
-          <text class="category-tag">{{feedbackDetail.category}}</text>
+          <text class="category-tag"
+            >{{categoryMap[feedbackDetail.category] || feedbackDetail.category}}</text
+          >
           <text class="feedback-content">{{feedbackDetail.content}}</text>
         </view>
       </view>

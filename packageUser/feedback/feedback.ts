@@ -17,17 +17,20 @@ Page({
   data: {
     // 表单数据
     feedbackContent: '',
-    selectedCategory: 'general',
+    // 默认分类：对齐后端 feedbacks.category 枚举默认值 other（其他）
+    selectedCategory: 'other',
     attachedImages: [],
 
-    // 反馈分类
+    // 反馈分类（value 严格对齐后端 feedbacks.category 枚举：
+    // technical / feature / bug / complaint / suggestion / other）
+    // label/icon 为纯前端 UI 展示，前端可自主决定
     categories: [
-      { value: 'general', label: '一般咨询', icon: '💬' },
       { value: 'technical', label: '技术问题', icon: '🔧' },
-      { value: 'account', label: '账户问题', icon: '👤' },
-      { value: 'payment', label: '支付问题', icon: '💳' },
-      { value: 'suggestion', label: '建议意见', icon: '💡' },
-      { value: 'complaint', label: '投诉举报', icon: '⚠️' }
+      { value: 'feature', label: '功能建议', icon: '💡' },
+      { value: 'bug', label: '功能异常', icon: '🐞' },
+      { value: 'suggestion', label: '建议意见', icon: '📝' },
+      { value: 'complaint', label: '投诉举报', icon: '⚠️' },
+      { value: 'other', label: '其他问题', icon: '💬' }
     ],
 
     // 页面状态
@@ -90,7 +93,7 @@ Page({
       const result = await API.getFeedbackConfig()
       if (result && result.success && result.data) {
         const config = result.data
-        this.setData({
+        const nextData: Record<string, any> = {
           feedbackConfig: {
             maxLength: config.max_length || config.max_content_length || 500,
             minLength: config.min_length || config.min_content_length || 10,
@@ -98,7 +101,34 @@ Page({
             pollingInterval: config.polling_interval || 5000
           },
           maxLength: config.max_length || config.max_content_length || 500
-        })
+        }
+
+        /**
+         * 分类选项以后端配置为权威来源（feedback_config.categories）
+         * 后端项可能是字符串数组（仅枚举值）或对象数组（含 label）
+         * 字符串场景用本地已声明的同枚举中文 label 兜底，避免展示英文枚举值
+         * 仅当后端返回有效分类时覆盖本地列表，否则保留与后端枚举对齐的本地默认
+         */
+        if (Array.isArray(config.categories) && config.categories.length > 0) {
+          const localLabelMap: Record<string, { label: string; icon: string }> = {}
+          this.data.categories.forEach((localCat: any) => {
+            localLabelMap[localCat.value] = { label: localCat.label, icon: localCat.icon }
+          })
+          nextData.categories = config.categories.map((cat: any) => {
+            const catValue = typeof cat === 'string' ? cat : cat.value || cat.code
+            const localMatch = localLabelMap[catValue]
+            return {
+              value: catValue,
+              label:
+                (typeof cat === 'object' && cat.label) ||
+                (localMatch && localMatch.label) ||
+                catValue,
+              icon: (typeof cat === 'object' && cat.icon) || (localMatch && localMatch.icon) || '💬'
+            }
+          })
+        }
+
+        this.setData(nextData)
         log.info('反馈配置加载成功:', config)
         return
       }
@@ -437,7 +467,7 @@ Page({
   resetForm() {
     this.setData({
       feedbackContent: '',
-      selectedCategory: 'general',
+      selectedCategory: 'other',
       attachedImages: [],
       currentLength: 0,
       canSubmit: false

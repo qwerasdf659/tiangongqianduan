@@ -174,6 +174,26 @@ Page({
         action: 'onContactService'
       },
       {
+        id: 'barter',
+        name: '以物易物',
+        description: '用旧物按官方配方合成新物',
+        iconClass: 'icon-gift',
+        tdIcon: 'gift',
+        color: '#C5A572',
+        type: 'page',
+        url: '/packageUser/barter/barter'
+      },
+      {
+        id: 'growth-level',
+        name: '成长等级',
+        description: '查看成长等级与累计积分',
+        iconClass: 'icon-chart',
+        tdIcon: 'chart-bar',
+        color: '#8B7355',
+        type: 'page',
+        url: '/packageUser/growth-level/growth-level'
+      },
+      {
         id: 'logout',
         name: '退出登录',
         description: '安全退出当前账号',

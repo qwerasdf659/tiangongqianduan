@@ -71,6 +71,10 @@
           <text class="info-label">订单来源</text>
           <text class="info-value">{{sourceLabel}}</text>
         </view>
+        <view class="info-row" wx:if="{{isProp}}">
+          <text class="info-label">商品类型</text>
+          <text class="info-value">虚拟道具 · 即时到账（不支持退款）</text>
+        </view>
       </view>
 
       <!-- 时间线卡片 -->

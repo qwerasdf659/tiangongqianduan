@@ -29,7 +29,7 @@ const { buildQueryString } = require('../util')
  *
  * @param params.page      - 页码，默认1
  * @param params.page_size - 每页数量，默认20，最大50
- * @param params.type      - 按通知类型筛选（如 listing_created, purchase_completed, lottery_win）
+ * @param params.type      - 按通知类型筛选（如 lottery_win, lottery_result, premium_expiring_soon）
  * @param params.is_read   - 筛选已读状态: '0'=未读, '1'=已读
  *
  * @returns {
