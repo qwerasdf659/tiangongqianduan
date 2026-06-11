@@ -95,7 +95,9 @@ function handleError(error: ErrorLike | Error | string, context: string = 'Êìç‰Ω
     errorObj.code === 'TOKEN_EXPIRED' ||
     errorObj.code === 'INVALID_TOKEN' ||
     errorObj.code === 'MISSING_TOKEN' ||
-    errorObj.code === 'SESSION_EXPIRED'
+    errorObj.code === 'SESSION_EXPIRED' ||
+    errorObj.code === 'SESSION_REVOKED' ||
+    errorObj.code === 'SESSION_NOT_FOUND'
   ) {
     return handleJWTExpired()
   }

@@ -204,6 +204,26 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+// ===== 回到顶部浮动按钮 =====
+
+/// 长列表「回到顶部」浮动按钮 — 幸运/臻选/道具三处共用，单一来源
+@mixin back-to-top-fab {
+  position: absolute;
+  right: 24rpx;
+  bottom: calc(48rpx + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  background: var(--tg-color-white);
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.2);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  color: var(--td-brand-color);
+}
+
 // ===== 滚动条隐藏 =====
 
 /* Skyline: 不支持 ::-webkit-scrollbar，已删除 */

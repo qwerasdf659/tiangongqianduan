@@ -102,12 +102,17 @@ Component({
       try {
         const { getApiConfig } = require('../../config/env')
         const apiConfig = getApiConfig()
+        const { getDeviceId } = require('../../utils/device')
 
         await new Promise<void>((resolve, reject) => {
           wx.request({
             url: `${apiConfig.fullUrl}/system/status`,
             method: 'GET',
             timeout: 10000,
+            header: {
+              'x-platform': 'wechat_mp',
+              'X-Device-Id': getDeviceId()
+            },
             success: (res: WechatMiniprogram.RequestSuccessCallbackResult) => {
               const responseData = res.data as Record<string, any>
               if (res.statusCode === 200 && responseData && responseData.success) {

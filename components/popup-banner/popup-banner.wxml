@@ -42,6 +42,9 @@
       <text class="close-icon">✕</text>
     </view>
 
+    <!-- 📛 广告标识（《广告法》第14条：商业广告须显著标明"广告"，commercial 类型必显示） -->
+    <view class="popup-ad-badge" wx:if="{{currentBannerType === 'commercial'}}">广告</view>
+
     <!-- 🖼️ 纯图模式图片（宽度自适应，高度按原图比例）
          🔴 移除lazy-load：图片已在父页面预加载到缓存，无需懒加载 -->
     <image
@@ -133,6 +136,9 @@
     <view class="popup-close-btn" bindtap="handleClose" wx:if="{{!isForceShow}}">
       <text class="close-icon">✕</text>
     </view>
+
+    <!-- 📛 广告标识（《广告法》第14条：商业广告须显著标明"广告"，commercial 类型必显示） -->
+    <view class="popup-ad-badge" wx:if="{{currentBannerType === 'commercial'}}">广告</view>
 
     <!-- 🖼️ 横幅图片区域 -->
     <view

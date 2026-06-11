@@ -7,6 +7,7 @@
 /* 卡片基础结构 */
 .unified-card {
   @include tg-tokens;
+  box-sizing: border-box;
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -266,7 +267,11 @@
   box-shadow: none;
 }
 
-/* 卡片网格 */
+/* 卡片网格 — 两列布局
+ * Skyline 渲染器对 flex 行内溢出零容忍：当「两张卡片宽度 + 列间距」rpx→px
+ * 取整后总和超过容器 1px，第二张卡片会被强制换行，整列塌缩成单列。
+ * 因此卡片宽度必须比理论值（calc(50% - 8rpx)）再收窄 2rpx，预留 4rpx 容差，
+ * 保证所有机型（不同屏宽/DPR 的 rpx 取整结果）下都能稳定排成两列。 */
 .unified-cards-grid {
   display: flex;
   flex-wrap: wrap;
@@ -275,7 +280,7 @@
 }
 
 .unified-cards-grid .unified-card {
-  width: calc(50% - 8rpx);
+  width: calc(50% - 10rpx);
 }
 
 .unified-cards-grid.grid-list-mode {
@@ -474,6 +479,17 @@
 
 /* 视图切换按钮样式已抽离为独立 partial，单一来源维护 */
 @import './view-toggle';
+
+/* 列表到底提示（无限滚动滑到末页时显示，与页码栏互补） */
+.list-no-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0 32rpx;
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
 
 /* 铸造标识（mint_instance=true 时展示，表示兑换后铸造物品实例进入背包） */
 .mint-mini-tag {

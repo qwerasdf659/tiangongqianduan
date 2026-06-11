@@ -13,7 +13,7 @@
 
 /* 🎨 页面级背景 — 纯白背景 */
 page {
-  background-color: #F8F8F8;
+  background-color: #f8f8f8;
 }
 
 /* 🎨 整体容器 — 一体化设计（内容延伸至状态栏，与蜜雪/霸王茶姬同风格） */
@@ -122,7 +122,7 @@ page {
   align-items: center;
   justify-content: center;
   padding: 12rpx 32rpx;
-  background: linear-gradient(135deg, #C5A572, #A08B6E);
+  background: linear-gradient(135deg, #c5a572, #a08b6e);
   border-radius: 28rpx;
   box-shadow: 0 4rpx 12rpx rgba(197, 165, 114, 0.3);
 
@@ -188,6 +188,21 @@ page {
   border-radius: 0 0 var(--td-radius-default) var(--td-radius-default);
 }
 
+/* 📛 轮播图广告标识（《广告法》第14条，commercial 类型左上角显著标明） */
+.carousel-ad-badge {
+  position: absolute;
+  top: 16rpx;
+  left: 16rpx;
+  z-index: 5;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-medium);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
 .carousel-title-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-color-white);
@@ -238,6 +253,11 @@ page {
 
 .announcement-tag--system {
   background: var(--tg-color-info);
+}
+
+/* 📛 公告条商业广告标识（《广告法》第14条，commercial 类型显著标明"广告"） */
+.announcement-tag--commercial {
+  background: var(--tg-text-secondary);
 }
 
 .announcement-tag--activity {

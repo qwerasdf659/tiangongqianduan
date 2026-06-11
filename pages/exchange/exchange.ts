@@ -45,7 +45,7 @@ Page({
     /** 星石和源晶类资产余额列表（后端 GET /api/v4/assets/balances，过滤 star_stone + core_shard + core_gem） */
     assetBalances: [] as any[],
 
-    /** 当前 Tab 标识 'exchange' | 'exchange-rate' */
+    /** 当前 Tab 标识 'exchange'(商品兑换) | 'exchange-rate'(资产转换) | 'prop'(道具商城·星石轨) */
     currentTab: 'exchange',
     /** 当前空间标识 'lucky' | 'premium'（传给 exchange-shelf） */
     currentSpace: 'lucky',
@@ -72,7 +72,13 @@ Page({
 
     /** WebSocket 驱动的刷新令牌（值变化触发子组件 observer） */
     _shelfRefreshToken: 0,
-    _exchangeRateRefreshToken: 0
+    _exchangeRateRefreshToken: 0,
+    /** 道具商城（星石轨）刷新令牌 */
+    _propsMallRefreshToken: 0,
+
+    /** 回到顶部：道具商城 Tab 滚动超阈值时显示按钮；scrollIntoView 锚点驱动归零 */
+    showBackToTop: false,
+    pageScrollIntoView: ''
   },
 
   /** 页面加载 */
@@ -141,7 +147,10 @@ Page({
     const appInstance = getApp()
     if (appInstance && appInstance.globalData && appInstance.globalData._exchangeOccurred) {
       appInstance.globalData._exchangeOccurred = false
-      this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
+      this.setData({
+        _shelfRefreshToken: this.data._shelfRefreshToken + 1,
+        _propsMallRefreshToken: this.data._propsMallRefreshToken + 1
+      })
       log.info('检测到兑换详情页返回，刷新商品列表')
     }
 
@@ -187,7 +196,7 @@ Page({
         hasConfigError: false,
         configErrorMessage: '',
         tabs: exchangeConfig.tabs
-          .filter((t: any) => t.enabled && t.key !== 'market')
+          .filter((t: any) => t.enabled)
           .sort((a: any, b: any) => a.sort_order - b.sort_order),
         effects: exchangeConfig.card_display.effects,
         viewMode: exchangeConfig.card_display.default_view_mode || 'grid'
@@ -275,7 +284,8 @@ Page({
             if (eventName === 'product_updated' || eventName === 'exchange_stock_changed') {
               log.info('收到商品更新通知')
               this.setData({
-                _shelfRefreshToken: this.data._shelfRefreshToken + 1
+                _shelfRefreshToken: this.data._shelfRefreshToken + 1,
+                _propsMallRefreshToken: this.data._propsMallRefreshToken + 1
               })
             }
             if (eventName === 'bid_outbid' || eventName === 'bid_won' || eventName === 'bid_lost') {
@@ -333,6 +343,41 @@ Page({
     log.info('切换到Tab:', tabKey)
   },
 
+  /**
+   * 页面级滚动触底 — 仅道具商城（prop Tab）走页面滚动容器加载更多。
+   * 商品兑换（exchange）/资产转换（exchange-rate）由 exchange-shelf 内部
+   * 自带 scroll-view 处理触底，无需页面壳转发。
+   */
+  onPageScrollToLower() {
+    if (this.data.currentTab !== 'prop') {
+      return
+    }
+    const propsMall = this.selectComponent('#props-mall')
+    if (propsMall && typeof propsMall.loadMore === 'function') {
+      propsMall.loadMore()
+    }
+  },
+
+  /**
+   * 页面级滚动监听：道具商城 Tab 下滚动超阈值（300px）时显示「回到顶部」按钮。
+   * 仅在跨阈值时 setData，避免每帧刷新。
+   */
+  onPageScroll(e: any) {
+    const top = (e.detail && e.detail.scrollTop) || 0
+    const shouldShow = top > 300
+    if (shouldShow !== this.data.showBackToTop) {
+      this.setData({ showBackToTop: shouldShow })
+    }
+  },
+
+  /** 点击「回到顶部」：scroll-into-view 锚点滚回顶部，随后清空以便下次复用 */
+  onPageBackToTop() {
+    this.setData({ pageScrollIntoView: 'page-top' })
+    setTimeout(() => {
+      this.setData({ pageScrollIntoView: '', showBackToTop: false })
+    }, 300)
+  },
+
   /** 下拉刷新 — 配置缺失时优先重拉后端配置，其余场景刷新子组件与余额 */
   async onPullDownRefresh() {
     log.info('页面级下拉刷新')
@@ -350,6 +395,8 @@ Page({
         this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
       } else if (this.data.currentTab === 'exchange-rate') {
         this.setData({ _exchangeRateRefreshToken: this.data._exchangeRateRefreshToken + 1 })
+      } else if (this.data.currentTab === 'prop') {
+        this.setData({ _propsMallRefreshToken: this.data._propsMallRefreshToken + 1 })
       }
 
       await this._refreshAllBalances(this.data.userInfo)

@@ -1,0 +1,38 @@
+<!-- exchange-pager 通用页码翻页栏 — 上一页/页码/下一页 + 跳转输入框
+     单一来源：幸运空间、臻选空间、道具商城三处共用本组件。
+     仅在 totalPages > 1 时渲染，避免单页时占用版面。 -->
+<view class="exchange-pager" wx:if="{{totalPages > 1}}">
+  <!-- 上一页：第一页时禁用 -->
+  <view class="pager-btn {{currentPage <= 1 ? 'pager-btn--disabled' : ''}}" bindtap="onPrev">
+    <t-icon name="chevron-left" size="28rpx" />
+  </view>
+
+  <!-- 当前页 / 总页数 -->
+  <view class="pager-status">
+    <text class="pager-current">{{currentPage}}</text>
+    <text class="pager-divider">/</text>
+    <text class="pager-total">{{totalPages}}</text>
+  </view>
+
+  <!-- 下一页：末页时禁用 -->
+  <view
+    class="pager-btn {{currentPage >= totalPages ? 'pager-btn--disabled' : ''}}"
+    bindtap="onNext"
+  >
+    <t-icon name="chevron-right" size="28rpx" />
+  </view>
+
+  <!-- 跳转输入框：输入目标页码后点「跳转」 -->
+  <view class="pager-jump">
+    <input
+      class="pager-jump__input"
+      type="number"
+      placeholder="页码"
+      value="{{jumpValue}}"
+      bindinput="onJumpInput"
+      confirm-type="go"
+      bindconfirm="onJumpConfirm"
+    />
+    <view class="pager-jump__btn" bindtap="onJumpConfirm">跳转</view>
+  </view>
+</view>

@@ -3,10 +3,10 @@
   "styleIsolation": "apply-shared",
   "usingComponents": {
     "exchange-pager": "/packageExchange/components/exchange/shared/exchange-pager/exchange-pager",
+    "exchange-confirm": "/packageExchange/components/exchange/shared/exchange-confirm/exchange-confirm",
+    "exchange-result": "/packageExchange/components/exchange/shared/exchange-result/exchange-result",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
-    "t-popup": "/miniprogram_npm/tdesign-miniprogram/popup/popup",
-    "t-cascader": "/miniprogram_npm/tdesign-miniprogram/cascader/cascader",
     "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
   }
 }

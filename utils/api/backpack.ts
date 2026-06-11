@@ -127,6 +127,9 @@ async function getItemTimeline(item_id: number) {
  *
  * @param params - 查询参数对象
  * @param params.space - 空间类型: 'lucky'(幸运空间) / 'premium'(臻选空间)
+ * @param params.item_type - 物品类型白名单筛选（道具商城星石轨用 'prop'，对接文档第8.3节方案A）
+ *   ⚠️ 后端依赖：需后端为 GET /api/v4/exchange/items 增加 item_type 白名单筛选（当前 where 暂不支持）
+ *   商品兑换（源晶轨）用 space 区分，道具商城（星石轨）用 item_type=prop 区分，双轨契约
  * @param params.category_id - 商品分类ID（整数，对应 categories.category_id）
  * @param params.keyword - 模糊搜索（匹配 item_name）
  * @param params.status - 商品状态 'active' / 'inactive'，默认 'active'
@@ -142,6 +145,8 @@ async function getItemTimeline(item_id: number) {
 async function getExchangeProducts(
   params: {
     space?: string | null
+    /** 物品类型白名单（道具商城星石轨传 'prop'，对接文档第8.3节方案A，需后端支持） */
+    item_type?: string | null
     category_id?: number | null
     keyword?: string | null
     status?: string | null
@@ -161,6 +166,7 @@ async function getExchangeProducts(
 ) {
   const {
     space = null,
+    item_type = null,
     category_id = null,
     keyword = null,
     status = 'active',
@@ -178,6 +184,7 @@ async function getExchangeProducts(
 
   const qs = buildQueryString({
     space,
+    item_type,
     category_id,
     keyword,
     status,

@@ -166,6 +166,10 @@
   "permission": {
     "scope.userLocation": {
       "desc": "您的位置信息将用于小程序位置接口的效果展示"
+    },
+    "scope.writePhotosAlbum": {
+      "desc": "用于将你生成的 DIY 作品海报保存到相册"
     }
-  }
+  },
+  "__usePrivacyCheck__": true
 }

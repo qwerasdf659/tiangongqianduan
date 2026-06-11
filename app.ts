@@ -370,6 +370,7 @@ App({
 
         const authErrorCodes: string[] = [
           'SESSION_REPLACED',
+          'SESSION_REVOKED',
           'SESSION_EXPIRED',
           'SESSION_NOT_FOUND',
           'TOKEN_EXPIRED',

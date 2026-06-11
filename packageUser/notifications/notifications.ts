@@ -155,8 +155,8 @@ Page({
     })
 
     if (userStore.isLoggedIn) {
-      this.loadNotifications()
-      this.loadUnreadCount()
+      /* 方案A：进入通知页先拉列表展示，再一次性把全部未读标记已读并清零角标 */
+      this.loadNotifications().then(() => this.markAllReadOnEnter())
     } else {
       this.setData({ loading: false })
     }
@@ -347,6 +347,28 @@ Page({
       }))
       this.setData({ notifications: allReadList, unreadCount: 0 })
       wx.showToast({ title: '已全部标记为已读', icon: 'success', duration: 1500 })
+    }
+  },
+
+  /**
+   * 方案A：进入通知页即"全部标记已读"（静默执行，不弹 toast）
+   *
+   * 调用不带 notification_ids 的 mark-read（= 该用户全部未读一次性已读），
+   * 成功后把本地列表全部置为已读并将角标清零。
+   * 返回首页时，首页 onShow 会重新拉取 unread-count，角标随之从 99+ 回落到 0。
+   */
+  async markAllReadOnEnter(): Promise<void> {
+    const markResult = await safeApiCall(() => API.markNotificationsAsRead([]), {
+      context: '进入通知页全部已读',
+      silent: true
+    })
+
+    if (markResult) {
+      const allReadList = this.data.notifications.map((item: any) => ({
+        ...item,
+        is_read: 1
+      }))
+      this.setData({ notifications: allReadList, unreadCount: 0 })
     }
   },
 

@@ -104,8 +104,12 @@
     enhanced="{{true}}"
     show-scrollbar="{{false}}"
     lower-threshold="120"
+    scroll-into-view="{{shopScrollIntoView}}"
+    bindscroll="onShopScroll"
     bindscrolltolower="onShopScrollToLower"
   >
+    <!-- 回到顶部锚点 -->
+    <view id="shop-top"></view>
     <!-- 🍀 幸运空间子组件 -->
     <lucky-space
       id="lucky-space"
@@ -152,6 +156,11 @@
     <!-- 加载状态 -->
     <t-loading wx:if="{{loading}}" loading="{{true}}" text="加载中..." theme="spinner" />
   </scroll-view>
+
+  <!-- 回到顶部浮动按钮：滚动超过阈值时显示 -->
+  <view class="shop-back-to-top" wx:if="{{showBackToTop}}" bindtap="onShopBackToTop">
+    <t-icon name="backtop" size="40rpx" />
+  </view>
 
   <!-- 兑换确认弹窗 -->
   <exchange-confirm

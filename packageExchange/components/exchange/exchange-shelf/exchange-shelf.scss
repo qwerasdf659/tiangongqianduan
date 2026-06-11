@@ -272,3 +272,8 @@
   letter-spacing: var(--tg-letter-spacing-normal);
   white-space: nowrap;
 }
+
+/* 回到顶部浮动按钮（幸运/臻选空间共用 mixin） */
+.shop-back-to-top {
+  @include back-to-top-fab;
+}

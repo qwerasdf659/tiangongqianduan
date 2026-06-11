@@ -93,7 +93,11 @@ Component({
 
     /** 布局参数 */
     containerWidth: 375,
-    columnWidth: 0
+    columnWidth: 0,
+
+    /** 回到顶部：滚动超阈值时显示按钮；scrollIntoView 锚点驱动归零 */
+    showBackToTop: false,
+    shopScrollIntoView: ''
   },
 
   lifetimes: {

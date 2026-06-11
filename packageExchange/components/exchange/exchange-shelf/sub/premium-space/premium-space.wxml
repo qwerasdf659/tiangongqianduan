@@ -12,6 +12,13 @@
       />
     </view>
 
+    <!-- 页码翻页栏（搜索框下方，仅多页时显示） -->
+    <exchange-pager
+      current-page="{{currentPage}}"
+      total-pages="{{totalPages}}"
+      bind:pagechange="onPagerChange"
+    />
+
     <view
       class="filter-buttons"
       wx:if="{{categoryOptions.length > 0 || costRangeOptions.length > 0}}"
@@ -203,4 +210,11 @@
   <view class="loading-more" wx:if="{{loadingMore}}">
     <t-loading loading="{{true}}" text="加载更多商品..." theme="spinner" size="40rpx" />
   </view>
+
+  <!-- 到底提示：非加载中、有商品、且已在末页时显示 -->
+  <view
+    class="list-no-more"
+    wx:if="{{!loading && !loadingMore && filteredProducts.length > 0 && currentPage >= totalPages}}"
+    >没有更多了</view
+  >
 </view>

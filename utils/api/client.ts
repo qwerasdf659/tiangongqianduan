@@ -38,6 +38,8 @@ interface RequestOptions {
   _retried?: boolean
   /** 内部使用：Token刷新后重试标记（防止 401→刷新→重试→401 无限循环） */
   _tokenRefreshed?: boolean
+  /** 内部使用：429限流退避重试次数（仅幂等GET，防止无限重试） */
+  _rateLimitRetryCount?: number
 }
 
 /** 文件上传选项 */
@@ -133,6 +135,7 @@ const { getApiConfig, getDevelopmentConfig, getSecurityConfig } = require('../..
 /* 内部直接引用，避免循环依赖 */
 const { validateJWTTokenIntegrity } = require('../util')
 const wechatUtils = require('../wechat')
+const { getDeviceId } = require('../device')
 
 // ===== V4.0 API客户端类 =====
 
@@ -153,6 +156,18 @@ class APIClient {
   private isRefreshing: boolean
   /** 等待Token刷新的请求队列（并发请求等待Token刷新后统一resolve） */
   private refreshSubscribers: Array<(_value: any) => void>
+  /**
+   * in-flight 请求去重表（治理项4）：仅幂等 GET 参与去重
+   * key = method+url+序列化data；相同请求在途时后来者复用同一 Promise，避免冷启动重复并发
+   */
+  private inFlightRequests: Map<string, Promise<ApiResponse>>
+
+  /** 429限流退避重试上限（仅幂等GET，超过则抛错，防止自伤洪峰） */
+  private static readonly RATE_LIMIT_MAX_RETRY: number = 2
+  /** 429退避基数（毫秒）：实际延迟 = base * 2^n + 抖动 */
+  private static readonly RATE_LIMIT_BASE_DELAY: number = 500
+  /** 429退避抖动上限（毫秒）：随机抖动避免一批客户端同步重试形成二次洪峰 */
+  private static readonly RATE_LIMIT_JITTER: number = 300
 
   constructor() {
     this.config = getApiConfig()
@@ -160,6 +175,7 @@ class APIClient {
     this.securityConfig = getSecurityConfig()
     this.isRefreshing = false
     this.refreshSubscribers = []
+    this.inFlightRequests = new Map()
 
     log.info('V4.0 API Client初始化完成', {
       baseURL: this.config.fullUrl,
@@ -168,8 +184,38 @@ class APIClient {
     })
   }
 
-  /** 统一请求方法（集成自动loading和错误提示） */
+  /**
+   * 统一请求入口（治理项4：in-flight 去重层）
+   *
+   * 仅对幂等 GET 且非内部重试的请求做去重：相同 method+url+data 在途时，
+   * 后来者复用同一个 Promise，避免冷启动多个组件同时请求同一份配置造成重复并发。
+   * 写操作（POST/PUT/DELETE）与内部重试（携带 _retried/_tokenRefreshed/_rateLimitRetryCount）不去重，
+   * 直接走 _performRequest，保证每次写都是独立业务意图、重试链路不被去重干扰。
+   */
   async request(url: string, options: RequestOptions = {}): Promise<ApiResponse> {
+    const method = options.method || 'GET'
+    const isInternalRetry =
+      options._retried || options._tokenRefreshed || options._rateLimitRetryCount !== undefined
+    if (method !== 'GET' || isInternalRetry) {
+      return this._performRequest(url, options)
+    }
+
+    const dedupKey = `${method} ${url} ${JSON.stringify(options.data || {})}`
+    const pending = this.inFlightRequests.get(dedupKey)
+    if (pending) {
+      log.info('[dedup] 复用在途请求，不重复发送:', dedupKey)
+      return pending
+    }
+
+    const requestPromise = this._performRequest(url, options).finally(() => {
+      this.inFlightRequests.delete(dedupKey)
+    })
+    this.inFlightRequests.set(dedupKey, requestPromise)
+    return requestPromise
+  }
+
+  /** 统一请求方法（集成自动loading和错误提示） */
+  async _performRequest(url: string, options: RequestOptions = {}): Promise<ApiResponse> {
     // 维护模式拦截（健康检查通过 wx.request 直接调用，不走此方法）
     if (APIClient._isMaintenanceMode && url !== '/system/status') {
       this._showMaintenanceModal()
@@ -197,6 +243,9 @@ class APIClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-platform': 'wechat_mp',
+      // 设备会话标识：仅认证请求携带（"同设备重登自动替换旧会话"只对已登录会话有意义）；
+      // 公开接口遵循《个人信息保护法》第6条最小必要原则，不携带设备标识
+      ...(needAuth ? { 'X-Device-Id': getDeviceId() } : {}),
       ...customHeaders
     }
 
@@ -302,6 +351,8 @@ class APIClient {
     const fullUrl: string = `${this.config.fullUrl}${url}`
     const headers: Record<string, string> = {
       'x-platform': 'wechat_mp',
+      // 设备会话标识：仅认证请求携带（与 request 一致，遵循最小必要原则）
+      ...(needAuth ? { 'X-Device-Id': getDeviceId() } : {}),
       ...customHeaders
     }
 
@@ -402,7 +453,7 @@ class APIClient {
        * TOKEN_EXPIRED    → JWT 过期，自动刷新 Token
        * SESSION_EXPIRED  → 会话超时（7天未使用），尝试刷新（后端会创建新会话）
        * SESSION_REPLACED → 同平台其他设备登录导致当前会话被替换（方案B平台隔离：跨平台不互踢）
-       * SESSION_NOT_FOUND / MISSING_TOKEN / INVALID_TOKEN → 清除Token，跳登录页
+       * SESSION_REVOKED / SESSION_NOT_FOUND / MISSING_TOKEN / INVALID_TOKEN → 清除Token，跳登录页
        */
       if (serverErrorCode === 'TOKEN_EXPIRED' || serverErrorCode === 'SESSION_EXPIRED') {
         if (requestOptions?._tokenRefreshed) {
@@ -462,6 +513,35 @@ class APIClient {
 
     if (statusCode === 429) {
       log.error('频率限制(429)')
+
+      /**
+       * 治理项1：仅对幂等 GET 做指数退避+抖动重试（写操作绝不自动重试，防重复下单）
+       * 退避延迟 = base * 2^n + 随机抖动；最多重试 RATE_LIMIT_MAX_RETRY 次，超过则抛错。
+       * 优先采用后端 Retry-After 头 / data.retry_after_seconds（若提供），否则用退避公式。
+       */
+      const isGet = !requestOptions || (requestOptions.method || 'GET') === 'GET'
+      const retryCount = requestOptions?._rateLimitRetryCount || 0
+      if (isGet && requestUrl && retryCount < APIClient.RATE_LIMIT_MAX_RETRY) {
+        const serverRetrySeconds =
+          Number(response.header?.['Retry-After'] || safeData.retry_after_seconds) || 0
+        const backoffDelay =
+          serverRetrySeconds > 0
+            ? serverRetrySeconds * 1000
+            : APIClient.RATE_LIMIT_BASE_DELAY * Math.pow(2, retryCount) +
+              Math.floor(Math.random() * APIClient.RATE_LIMIT_JITTER)
+        log.info(`限流退避重试: 第${retryCount + 1}次，延迟${backoffDelay}ms`)
+        return new Promise<ApiResponse>(resolve => {
+          setTimeout(() => {
+            resolve(
+              this.request(requestUrl, {
+                ...requestOptions,
+                _rateLimitRetryCount: retryCount + 1
+              })
+            )
+          }, backoffDelay)
+        })
+      }
+
       throw this._createApiError(
         safeData.message || '操作过于频繁，请稍后再试',
         safeData.code || 'RATE_LIMIT_EXCEEDED',
@@ -757,6 +837,7 @@ class APIClient {
         timeout: 5000,
         header: {
           'x-platform': 'wechat_mp'
+          // 健康检查为未认证的系统探活请求，不携带设备标识（最小必要原则）
         },
         success: (res: any) => {
           if (res.statusCode === 200) {

@@ -10,6 +10,11 @@
 /* 商品/市场/卡片样式已迁入 packageExchange/ 各组件 SCSS */
 @import '../../styles/mixins';
 
+/* 回到顶部浮动按钮（道具商城 Tab 共用 mixin） */
+.page-back-to-top {
+  @include back-to-top-fab;
+}
+
 /* 🎨 页面级背景 — 统一色调，去掉标题后背景贯穿状态栏 */
 page {
   background-color: var(--tg-page-bg);
@@ -72,7 +77,7 @@ page {
   align-items: center;
   gap: 8rpx;
   padding: 14rpx 32rpx;
-  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   border-radius: 28rpx;
   box-shadow: 0 4rpx 12rpx rgba(200, 160, 106, 0.3);
 

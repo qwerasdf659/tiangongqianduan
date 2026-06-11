@@ -16,7 +16,8 @@ const DELAY = {
   DEBOUNCE: 500, // 防抖延迟（搜索、输入）
   THROTTLE: 300, // 节流延迟（滚动、点击）
   RETRY: 3000, // 重试延迟
-  ANIMATION: 800 // 动画持续时间
+  ANIMATION: 800, // 动画持续时间
+  ONSHOW_REFRESH_THROTTLE: 15000 // onShow 非关键刷新节流窗口（15秒内重复 onShow 跳过活动/公告/角标刷新，削峰）
 } as const
 
 /** 🌐 API请求相关常量 - 用于网络请求配置和超时设置 */

@@ -1,0 +1,92 @@
+/* exchange-pager 通用页码翻页栏样式 — 引用 Typography Token，禁止写死数值 */
+@import '../../../../../styles/mixins';
+
+.exchange-pager {
+  @include tg-tokens;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 4rpx 0;
+}
+
+/* 上一页 / 下一页按钮 */
+.pager-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 10rpx;
+  background: var(--tg-color-white);
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.2);
+  color: var(--tg-text-secondary);
+}
+
+.pager-btn--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* 当前页 / 总页数 */
+.pager-status {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
+  min-width: 72rpx;
+  justify-content: center;
+}
+
+.pager-current {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-number-md);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--td-brand-color);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.pager-divider {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
+}
+
+.pager-total {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* 跳转输入区 */
+.pager-jump {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.pager-jump__input {
+  width: 72rpx;
+  height: 44rpx;
+  padding: 0 8rpx;
+  text-align: center;
+  border-radius: 10rpx;
+  background: var(--tg-color-white);
+  border: 1rpx solid rgba(var(--td-brand-color-rgb), 0.2);
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-primary);
+}
+
+.pager-jump__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44rpx;
+  padding: 0 16rpx;
+  border-radius: 10rpx;
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-medium);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}

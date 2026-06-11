@@ -42,7 +42,6 @@ interface WebSocketConfig {
 /** 开发阶段配置 */
 interface DevelopmentConfig {
   enableUnifiedAuth: boolean
-  devVerificationCode: string | null
   skipSmsVerification: boolean
   enableAdminAutoDetection: boolean
   disableSmsService: boolean
@@ -162,7 +161,6 @@ const BASE_SECURITY_CONFIG: SecurityConfig = {
 /** 开发阶段基础配置 — dev/mobile/testing共享，production 独立覆盖 */
 const BASE_DEVELOPMENT_CONFIG: DevelopmentConfig = {
   enableUnifiedAuth: true,
-  devVerificationCode: '123456', // 后端控制的开发验证码，非mock数据
   skipSmsVerification: true,
   enableAdminAutoDetection: true,
   disableSmsService: true,
@@ -267,7 +265,6 @@ const ENV_CONFIG: AllEnvironmentConfig = {
     },
     development: {
       enableUnifiedAuth: false, // 🚨 生产环境禁用万能验证码
-      devVerificationCode: null, // 🚨 生产环境无开发验证码
       skipSmsVerification: false,
       enableAdminAutoDetection: true,
       disableSmsService: false,

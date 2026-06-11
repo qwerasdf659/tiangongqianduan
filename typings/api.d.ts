@@ -1212,6 +1212,17 @@ declare namespace API {
     campaign_name: string
     /** 计划分类: commercial=商业广告 / operational=运营内容 / system=系统通知 */
     campaign_category: string
+    /**
+     * 公告类型 code（仅 slot_type=announcement 槽位有值，对齐后端字典 announcement_type）
+     * 取值: system=系统公告 / activity=活动公告 / maintenance=维护公告 / notice=通知
+     * 用途: 公告条标签的差异化样式（announcement-tag--{type}）；非公告槽位为 null
+     */
+    announcement_type: string | null
+    /**
+     * 公告类型中文文案（后端 displayNameHelper 直接下发，前端零映射直接展示）
+     * 业务场景: 公告条左侧分类标签文案；null 时前端兜底显示"公告"
+     */
+    announcement_type_display: string | null
     /** 广告创意主键（ad_creatives.ad_creative_id） */
     ad_creative_id: number
     /** 创意标题（面向用户展示的标题） */

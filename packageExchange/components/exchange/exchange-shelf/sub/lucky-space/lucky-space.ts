@@ -601,6 +601,19 @@ Component({
       this._loadFilteredProducts(this.data.currentPage + 1, true)
     },
 
+    /**
+     * 页码翻页栏跳转（exchange-pager 派发）。
+     * 翻页为「替换式」加载（append=false），只展示目标页，区别于无限滚动的追加。
+     * 复用 _loadFilteredProducts，沿用当前筛选/搜索/排序条件，仅切换页码。
+     */
+    onPagerChange(e: any) {
+      const page = e.detail && e.detail.page
+      if (!page || this.data.loading || this.data.loadingMore) {
+        return
+      }
+      this._loadFilteredProducts(page, false)
+    },
+
     /** 涟漪效果（由父组件调用） */
     applyRipple(cardIndex: number, rippleX: number, rippleY: number) {
       const productList = [...(this.data.filteredProducts || [])]

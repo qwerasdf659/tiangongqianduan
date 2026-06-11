@@ -59,7 +59,8 @@ Component({
 
   data: {
     mode: 'wechat' as 'wechat' | 'sms',
-    agreementChecked: true,
+    /** 隐私协议勾选态：默认 false，用户须主动勾选才能登录（《个人信息保护法》第14条：自愿、明确同意） */
+    agreementChecked: false,
     mobile: '',
     verificationCode: '',
     loggingType: '' as '' | 'sms' | 'wechat',
@@ -87,7 +88,8 @@ Component({
       this.setData({
         mode: 'wechat',
         loggingType: '',
-        loginCompleted: false
+        loginCompleted: false,
+        agreementChecked: false
       })
       this.triggerEvent('close')
     },

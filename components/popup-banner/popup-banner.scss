@@ -107,6 +107,21 @@
   height: 64rpx;
 }
 
+/* 📛 广告标识角标（《广告法》第14条，commercial 类型左上角显著标明"广告"） */
+.popup-ad-badge {
+  position: absolute;
+  top: 16rpx;
+  left: 16rpx;
+  z-index: 10;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-medium);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
 .close-icon {
   font-size: var(--td-font-size-base);
   color: var(--tg-color-white);

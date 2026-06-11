@@ -10,6 +10,7 @@
   "usingComponents": {
     "exchange-shelf": "/packageExchange/components/exchange/exchange-shelf/exchange-shelf",
     "asset-conversion": "/packageExchange/components/exchange/asset-conversion/asset-conversion",
+    "props-mall": "/packageExchange/components/exchange/props-mall/props-mall",
     "login-popup": "/components/login-popup/login-popup",
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
@@ -20,7 +21,8 @@
   },
   "componentPlaceholder": {
     "exchange-shelf": "view",
-    "asset-conversion": "view"
+    "asset-conversion": "view",
+    "props-mall": "view"
   },
   "navigationStyle": "custom"
 }

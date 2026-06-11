@@ -277,25 +277,43 @@ Page({
     }
     this.applyNativeThemeColors()
 
-    /* 非首次加载时刷新弹窗横幅和系统公告 */
-    if (!this._isFirstLoad) {
-      this.loadPopupBanners()
-      this.loadHomeAnnouncements()
-    }
+    /**
+     * 治理项3：onShow 非关键刷新时间窗节流（削峰，避免频繁切 Tab 反复打接口）
+     * 距上次刷新 < ONSHOW_REFRESH_THROTTLE 则跳过活动/公告/角标刷新；
+     * 仅控刷新频率，业务数据仍以后端为准（下拉刷新 onPullDownRefresh 不受此节流限制）。
+     */
+    const nowTs = Date.now()
+    const refreshThrottle = Constants.DELAY.ONSHOW_REFRESH_THROTTLE
+    const shouldRefreshNonCritical =
+      this._isFirstLoad ||
+      !this._lastOnShowRefresh ||
+      nowTs - this._lastOnShowRefresh >= refreshThrottle
 
-    /* 并行加载角标计数（消费记录/仓库物品/通知未读），合并为单次 setData */
-    this._refreshBadgeCounts()
+    if (shouldRefreshNonCritical) {
+      this._lastOnShowRefresh = nowTs
+
+      /* 非首次加载时刷新弹窗横幅和系统公告 */
+      if (!this._isFirstLoad) {
+        this.loadPopupBanners()
+        this.loadHomeAnnouncements()
+      }
+
+      /* 并行加载角标计数（消费记录/仓库物品/通知未读），合并为单次 setData */
+      this._refreshBadgeCounts()
+
+      /* 加载当前页面活动列表（任务27） */
+      this._loadCampaigns()
+    } else {
+      log.info('[lottery] onShow 距上次刷新过近，跳过活动/公告/角标刷新（节流削峰）')
+    }
 
     /* 首次显示且尚未生成二维码时生成 */
     if (!this.data.qrCodeImage && this.data.userInfo?.user_id) {
       this.generateUserQRCode()
     }
 
-    /* 刷新积分数据 */
+    /* 刷新积分数据（关键数据，不受节流限制） */
     this._refreshPoints()
-
-    /* 加载当前页面活动列表（任务27） */
-    this._loadCampaigns()
 
     /* Tab回前台时重新连接WebSocket并订阅通知事件 */
     this._setupWebSocketNotification()

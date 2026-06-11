@@ -15,10 +15,12 @@
 const {
   API: shopAPI,
   Wechat: shopWechat,
-  Logger: shopLogger
+  Logger: shopLogger,
+  Utils: shopUtils
 } = require('../../../../../utils/index')
 const shopLog = shopLogger.createLogger('shop-behavior')
 const { showToast: shopShowToast } = shopWechat
+const { formatPoints: shopFormatPoints } = shopUtils
 
 module.exports = Behavior({
   methods: {
@@ -79,11 +81,42 @@ module.exports = Behavior({
             premiumUnlockCost: status.unlock_cost || 0,
             premiumValidityHours: status.validity_hours || 24
           })
-          shopLog.info('臻选空间解锁状', status)
+          shopLog.info('臻选空间解锁状态', status)
         }
       } catch (error) {
-        shopLog.error('查询臻选空间解锁状态失', error)
+        shopLog.error('查询臻选空间解锁状态失败', error)
       }
+    },
+
+    /**
+     * 构建臻选空间"条件未满足"弹窗文案
+     *
+     * 直接使用后端权威 conditions 数据逐条渲染，前端不拼业务文案、不硬编码门槛值：
+     *   - description: 后端下发的完整条件说明（可读文案）
+     *   - current / required: 当前值 / 要求值（千分位格式化）
+     *   - shortage: 还差多少（>0 时展示）
+     *   - satisfied: 是否满足（✅ / ❌）
+     *
+     * @param conditions - premium-status 返回的 data.conditions（condition_1 / condition_2）
+     * @returns 多行可读文案，conditions 缺失时返回安全兜底文案
+     */
+    _buildPremiumConditionText(conditions: any): string {
+      if (!conditions || typeof conditions !== 'object') {
+        return '解锁条件未满足'
+      }
+      const lines: string[] = ['解锁臻选空间需同时满足：']
+      Object.keys(conditions).forEach((key: string) => {
+        const condition = conditions[key]
+        if (!condition || typeof condition !== 'object') {
+          return
+        }
+        const mark = condition.satisfied ? '✅' : '❌'
+        const detail = condition.satisfied
+          ? `（当前 ${shopFormatPoints(condition.current)}）`
+          : `（当前 ${shopFormatPoints(condition.current)}，还差 ${shopFormatPoints(condition.shortage)}）`
+        lines.push(`· ${condition.description}${detail} ${mark}`)
+      })
+      return lines.join('\n')
     },
 
     /**
@@ -98,11 +131,9 @@ module.exports = Behavior({
       }
 
       if (this.data.premiumCanUnlock === false) {
-        const conditions = this.data.premiumConditions
-        const conditionText = conditions ? '解锁条件未满足，请查看详情' : '解锁条件未满足'
         wx.showModal({
           title: '暂时无法解锁',
-          content: conditionText,
+          content: this._buildPremiumConditionText(this.data.premiumConditions),
           showCancel: false,
           confirmText: '我知道了'
         })
@@ -111,10 +142,10 @@ module.exports = Behavior({
 
       const validityHours = this.data.premiumValidityHours || 24
       wx.showModal({
-        title: '解锁臻选空',
-        content: `解锁需消{this.data.premiumUnlockCost}积分，有效期${validityHours}小时，是否确认？`,
+        title: '解锁臻选空间',
+        content: `解锁需消耗 ${this.data.premiumUnlockCost} 积分，有效期 ${validityHours} 小时，是否确认？`,
         confirmText: '确认解锁',
-        cancelText: '再想',
+        cancelText: '再想想',
         success: async (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
           if (res.confirm) {
             await this.unlockPremiumSpace()
@@ -130,19 +161,17 @@ module.exports = Behavior({
       try {
         const result = await shopAPI.unlockPremium()
         if (result && result.success && result.data) {
-          this.setData({
-            premiumUnlocked: true,
-            premiumRemainingHours: result.data.remaining_hours || 0
-          })
-          shopShowToast('臻选空间解锁成')
-          shopLog.info('臻选空间解锁成', result.data)
+          shopShowToast('臻选空间解锁成功')
+          shopLog.info('臻选空间解锁成功', result.data)
+          /* 解锁成功后重新拉取权威状态（剩余有效期等以 premium-status 为准） */
+          await this.checkPremiumUnlockStatus()
           const premiumSpace = this.selectComponent('#premium-space')
           if (premiumSpace) {
             premiumSpace.initData()
           }
         }
       } catch (error: any) {
-        shopLog.error('臻选空间解锁失', error)
+        shopLog.error('臻选空间解锁失败', error)
         shopShowToast(error.message || '解锁失败，请稍后重试')
       }
     },
@@ -199,6 +228,26 @@ module.exports = Behavior({
           premiumSpace.loadMore()
         }
       }
+    },
+
+    /**
+     * 货架滚动监听：滚动超过一屏阈值（300px）时显示「回到顶部」按钮。
+     * 仅在跨阈值时 setData，避免每帧刷新。
+     */
+    onShopScroll(e: any) {
+      const top = (e.detail && e.detail.scrollTop) || 0
+      const shouldShow = top > 300
+      if (shouldShow !== this.data.showBackToTop) {
+        this.setData({ showBackToTop: shouldShow })
+      }
+    },
+
+    /** 点击「回到顶部」：scroll-into-view 锚点滚回顶部锚点，随后清空以便下次复用 */
+    onShopBackToTop() {
+      this.setData({ shopScrollIntoView: 'shop-top' })
+      setTimeout(() => {
+        this.setData({ shopScrollIntoView: '', showBackToTop: false })
+      }, 300)
     },
 
     /**

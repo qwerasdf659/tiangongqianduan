@@ -1,0 +1,183 @@
+<!-- props-mall 道具商城组件（星石轨）— 双列网格展示零价值道具 -->
+<view class="props-mall">
+  <!-- 固定头部：资产余额 + 快捷操作 -->
+  <view class="props-sticky-header">
+    <view class="props-brand-row">
+      <view class="props-brand-inner">
+        <t-icon name="star-filled" size="32rpx" color="#c5a572" />
+        <text class="props-brand-title">道具商城</text>
+        <text class="props-brand-subtitle">星石专享 · 娱乐道具</text>
+      </view>
+    </view>
+
+    <view class="props-header-info">
+      <view class="asset-balances-area">
+        <scroll-view
+          type="custom"
+          class="asset-balances-scroll"
+          scroll-x="{{true}}"
+          enhanced="{{true}}"
+          show-scrollbar="{{false}}"
+        >
+          <view class="asset-balances-row">
+            <view class="asset-balance-item" wx:for="{{assetBalances}}" wx:key="asset_code">
+              <image
+                wx:if="{{item.icon_url}}"
+                class="asset-icon"
+                src="{{item.icon_url}}"
+                mode="aspectFit"
+              />
+              <text class="asset-name">{{item.display_name}}</text>
+              <text class="asset-amount">{{item.available_amount}}</text>
+            </view>
+            <view
+              wx:if="{{!assetBalances || assetBalances.length === 0}}"
+              class="asset-balance-empty"
+            >
+              <text class="asset-name">暂无资产数据</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      <view class="props-header-login" wx:if="{{!isLoggedIn}}" bindtap="onNeedLogin">
+        <text>请登录</text>
+      </view>
+      <view class="props-header-actions">
+        <view class="props-action-btn" bindtap="onGoToMyOrders">
+          <t-icon name="shop" size="28rpx" /><text>我的订单</text>
+        </view>
+        <view class="props-action-btn" bindtap="onRefreshProps">
+          <t-icon name="refresh" size="28rpx" color="currentColor" /><text>刷新</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 搜索框 -->
+    <view class="props-search-box">
+      <t-icon name="search" size="28rpx" class="search-icon" />
+      <input
+        class="props-search-input"
+        placeholder="搜索道具名称..."
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+    </view>
+
+    <!-- 页码翻页栏（搜索框下方，仅多页时显示） -->
+    <exchange-pager
+      current-page="{{currentPage}}"
+      total-pages="{{totalPages}}"
+      bind:pagechange="onPagerChange"
+    />
+  </view>
+
+  <!-- 骨架屏加载态 -->
+  <view class="skeleton-grid" wx:if="{{loading}}">
+    <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+      <view class="skeleton-image"></view>
+      <view class="skeleton-body">
+        <view class="skeleton-line medium"></view>
+        <view class="skeleton-line short"></view>
+        <view class="skeleton-line short"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 道具网格 -->
+  <view
+    wx:if="{{!loading}}"
+    class="unified-cards-grid {{viewMode === 'list' ? 'grid-list-mode' : ''}}"
+  >
+    <view
+      wx:for="{{propsList}}"
+      wx:key="exchange_item_id"
+      class="unified-card {{effects.grain ? 'grain-overlay' : ''}} {{viewMode === 'list' ? 'list-mode' : ''}} animate-in"
+      data-prop="{{item}}"
+      data-card-index="{{index}}"
+      bindtap="onPropTap"
+    >
+      <view class="type-bar item"></view>
+
+      <view class="card-image-area">
+        <image
+          class="card-image-area-image"
+          wx:if="{{item._hasImage}}"
+          src="{{item.image}}"
+          mode="aspectFill"
+          lazy-load="{{true}}"
+          data-index="{{index}}"
+          binderror="onImageError"
+        />
+        <view wx:else class="image-fallback item-type">
+          <t-icon name="gift" size="64rpx" color="#c5a572" />
+          <text class="fallback-name">{{item.item_name}}</text>
+        </view>
+        <!-- 标签（优先级: 推荐 > 热销 > 新品 > 限量） -->
+        <view wx:if="{{item.is_recommended}}" class="badge-tag recommended">推荐</view>
+        <view wx:elif="{{item.is_hot}}" class="badge-tag hot">热销</view>
+        <view wx:elif="{{item.is_new}}" class="badge-tag new">新品</view>
+        <view wx:elif="{{item.is_limited}}" class="badge-tag limited">限量</view>
+      </view>
+
+      <view class="card-body">
+        <text class="product-name">{{item.item_name}}</text>
+        <text class="product-desc" wx:if="{{item.sell_point}}">{{item.sell_point}}</text>
+        <view class="price-row">
+          <text class="price-unit">{{item._priceLabel || '星石'}}</text>
+          <text class="price-current">{{item.cost_amount}}</text>
+        </view>
+        <view class="stock-bar" wx:if="{{item.stock !== undefined}}">
+          <view
+            class="stock-fill {{item.stock > 50 ? 'fill-high' : (item.stock > 10 ? 'fill-medium' : 'fill-low')}}"
+            style="width:{{item.stock > 0 ? (item.stock > 100 ? 100 : item.stock) : 0}}%"
+          ></view>
+        </view>
+        <text
+          class="stock-text {{item.stock > 50 ? 'stock-high' : (item.stock > 10 ? 'stock-medium' : (item.stock > 0 ? 'stock-low' : 'stock-out'))}}"
+          >{{item.stock > 0 ? ('库存 ' + item.stock) : '已售罄'}}</text
+        >
+        <view class="cta-btn {{item.stock <= 0 ? 'btn-disabled' : ''}}"
+          >{{item.stock > 0 ? '立即兑换' : '已售罄'}}</view
+        >
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <t-empty wx:if="{{!loading && propsList.length === 0}}" description="暂无道具，敬请期待">
+    <view slot="image"><t-icon name="gift" size="96rpx" color="#c5a572" /></view>
+  </t-empty>
+
+  <view class="loading-more" wx:if="{{loadingMore}}">
+    <t-loading loading="{{true}}" text="加载更多道具..." theme="spinner" size="40rpx" />
+  </view>
+
+  <!-- 到底提示：非加载中、有道具、且已在末页时显示 -->
+  <view
+    class="list-no-more"
+    wx:if="{{!loading && !loadingMore && propsList.length > 0 && currentPage >= totalPages}}"
+    >没有更多了</view
+  >
+
+  <!-- 兑换确认弹窗（详情页跳转失败时降级使用） -->
+  <exchange-confirm
+    visible="{{showPropConfirm}}"
+    product="{{selectedProp}}"
+    quantity="{{propExchangeQuantity}}"
+    pointsBalance="{{pointsBalance}}"
+    assetBalances="{{assetBalances}}"
+    submitting="{{propExchanging}}"
+    bind:confirm="onConfirmPropExchange"
+    bind:close="onCancelPropExchange"
+    bind:quantitychange="onPropQuantityChange"
+  />
+
+  <!-- 兑换结果弹窗 -->
+  <exchange-result
+    visible="{{showPropResult}}"
+    success="{{true}}"
+    orderData="{{propResultData}}"
+    bind:close="onClosePropResult"
+    bind:vieworder="onViewPropOrder"
+  />
+</view>

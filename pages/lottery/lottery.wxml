@@ -218,6 +218,10 @@
               data-index="{{index}}"
               binderror="onCarouselImageError"
             />
+            <!-- 📛 广告标识（《广告法》第14条：commercial 类型须显著标明"广告"） -->
+            <view class="carousel-ad-badge" wx:if="{{item.campaign_category === 'commercial'}}"
+              >广告</view
+            >
             <view class="carousel-title-bar" wx:if="{{item.title}}">
               <text class="carousel-title-text">{{item.title}}</text>
             </view>
@@ -243,11 +247,18 @@
       >
         <swiper-item wx:for="{{announcements}}" wx:key="ad_campaign_id">
           <view class="announcement-item" data-index="{{index}}" bindtap="onAnnouncementTap">
-            <view class="announcement-tag announcement-tag--{{item.campaign_category || 'system'}}">
-              <text
-                >{{item.campaign_category === 'maintenance' ? '维护' : item.campaign_category ===
-                'activity' ? '活动' : item.campaign_category === 'notice' ? '通知' : '公告'}}</text
-              >
+            <!-- 📛 商业广告标识（《广告法》第14条：commercial 类型显著标明"广告"） -->
+            <view
+              class="announcement-tag announcement-tag--commercial"
+              wx:if="{{item.campaign_category === 'commercial'}}"
+            >
+              <text>广告</text>
+            </view>
+            <view
+              class="announcement-tag announcement-tag--{{item.announcement_type || 'system'}}"
+              wx:else
+            >
+              <text>{{item.announcement_type_display || '公告'}}</text>
             </view>
             <text class="announcement-title">{{item.title}}</text>
             <text
