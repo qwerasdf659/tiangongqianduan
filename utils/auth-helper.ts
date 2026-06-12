@@ -223,39 +223,42 @@ function restoreUserInfo(): any {
     return cachedUserInfo
   }
 
-  // 第三级：JWT Token 解码恢复
+  // 第三级：仅凭 Token 身份 → 调后端 /auth/profile 权威获取资料
+  // （B1：Token 已不含 mobile/role_level 等资料，禁止从 Token 解码重建 userInfo）
   const token = store.accessToken || wx.getStorageSync('access_token')
   if (!token) {
     _redirectToLogin('未登录，请先登录')
     return null
   }
 
-  try {
-    const utilFunctions = require('./util')
-    const jwtPayload = utilFunctions.decodeJWTPayload(token)
-
-    if (jwtPayload && jwtPayload.user_id) {
-      userInfo = {
-        user_id: jwtPayload.user_id,
-        mobile: jwtPayload.mobile,
-        nickname: jwtPayload.nickname || '用户',
-        status: jwtPayload.status || 'active',
-        user_role: jwtPayload.user_role || 'user',
-        role_level: jwtPayload.role_level || 0,
-        created_at: jwtPayload.created_at || ''
-      }
-      wx.setStorageSync('user_info', userInfo)
-      store.updateUserInfo(userInfo)
-      return userInfo
-    }
-
-    _redirectToLogin('登录信息异常，请重新登录')
-    return null
-  } catch (error) {
-    log.error('从JWT Token恢复userInfo失败:', error)
+  // 校验 Token 仍可用（完整性 + 未过期），不可用则跳登录
+  const integrityCheck = validateJWTTokenIntegrity(token)
+  if (!integrityCheck.isValid || isTokenExpired(token)) {
     _redirectToLogin('登录信息异常，请重新登录')
     return null
   }
+
+  /**
+   * 此处为同步函数（页面 onLoad 同步调用），无法等待异步 /auth/profile。
+   * 触发一次后台权威拉取，拉到后写回 Store；本次先返回 null，
+   * 由页面的认证流程或下次进入时读取到已恢复的 userInfo。
+   * app.ts checkAuthStatus 启动时已调用 /auth/profile 兜底，正常不会走到这里。
+   * 内部模块直接 require 子模块，不通过 utils/index.ts（避免循环依赖）。
+   */
+  const { getUserInfo: fetchProfile } = require('./api/auth')
+  fetchProfile()
+    .then((profileResult: any) => {
+      if (profileResult && profileResult.success && profileResult.data) {
+        const apiUserInfo = profileResult.data.user || profileResult.data
+        store.updateUserInfo(apiUserInfo)
+      }
+    })
+    .catch((profileError: any) => {
+      log.warn('restoreUserInfo: /auth/profile 拉取失败:', profileError?.message)
+    })
+
+  _redirectToLogin('正在恢复登录信息，请稍候重试')
+  return null
 }
 
 /**
@@ -366,9 +369,6 @@ function checkTokenValidity(): {
       message: 'Token有效',
       info: {
         userId: payload.user_id,
-        mobile: payload.mobile,
-        roleLevel: payload.role_level || 0,
-        roles: payload.roles || ['user'],
         expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null
       },
       isNormalUnauth: false

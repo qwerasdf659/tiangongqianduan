@@ -56,9 +56,7 @@
       </view>
       <view class="result-row" wx:if="{{orderData.payAmount}}">
         <text class="result-label">消耗</text>
-        <text class="result-value"
-          >{{orderData.payAmount}} {{orderData.payAssetCode || '积分'}}</text
-        >
+        <text class="result-value">{{orderData.payAmount}} {{_payAssetLabel}}</text>
       </view>
     </view>
 

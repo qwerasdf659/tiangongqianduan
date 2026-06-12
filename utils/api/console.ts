@@ -11,135 +11,14 @@
 const { apiClient } = require('./client')
 const { buildQueryString } = require('../util')
 
-// ==================== 📋 消费审核 ====================
-
-/** 获取待审核消费记录列表 - GET /api/v4/console/consumption/pending */
-async function getPendingConsumption(params: { page?: number; page_size?: number } = {}) {
-  const { page = 1, page_size = 20 } = params
-  const qs = buildQueryString({ page, page_size })
-  return apiClient.request(`/console/consumption/pending?${qs}`, {
-    method: 'GET',
-    needAuth: true,
-    showLoading: true,
-    loadingText: '加载中...',
-    showError: true
-  })
-}
-
-/** 审核通过消费记录 - POST /api/v4/console/consumption/approve/:id */
-async function approveConsumption(record_id: number, params: { admin_notes?: string } = {}) {
-  if (!record_id) {
-    throw new Error('消费记录ID不能为空')
-  }
-  return apiClient.request(`/console/consumption/approve/${record_id}`, {
-    method: 'POST',
-    data: { admin_notes: params.admin_notes || undefined },
-    needAuth: true,
-    showLoading: true,
-    loadingText: '审核中...',
-    showError: true,
-    errorPrefix: '审核失败：'
-  })
-}
-
-/** 审核拒绝消费记录 - POST /api/v4/console/consumption/reject/:id */
-async function rejectConsumption(record_id: number, params: { admin_notes: string }) {
-  if (!record_id) {
-    throw new Error('消费记录ID不能为空')
-  }
-  if (!params || !params.admin_notes) {
-    throw new Error('拒绝原因不能为空')
-  }
-  if (params.admin_notes.length < 5) {
-    throw new Error('拒绝原因至少5个字符')
-  }
-
-  return apiClient.request(`/console/consumption/reject/${record_id}`, {
-    method: 'POST',
-    data: { admin_notes: params.admin_notes },
-    needAuth: true,
-    showLoading: true,
-    loadingText: '处理中...',
-    showError: true,
-    errorPrefix: '拒绝失败：'
-  })
-}
-
-// ==================== 📦 批量审核 ====================
-
-/** 批量审核请求参数 */
-interface BatchReviewParams {
-  /** 消费记录ID数组，最多100条 */
-  record_ids: number[]
-  /** 审核动作：approve=通过 reject=拒绝 */
-  action: 'approve' | 'reject'
-  /** 拒绝原因（action=reject时必填，5-500字符） */
-  reason?: string
-  /** 幂等键（防止重复提交，可选） */
-  idempotency_key?: string
-}
+// ==================== 📋 消费记录查询（审核链进度展示用） ====================
 
 /**
- * 批量审核消费记录 - POST /api/v4/console/consumption/batch-review
- *
- * 后端路由: routes/v4/console/consumption.js (第244行)
- * 服务: ConsumptionBatchService.batchReview()
- * 权限: admin (role_level >= 100)
- *
- * 特性:
- *   - 每条记录独立事务，单条失败不影响其他
- *   - 支持幂等键防止重复提交
- *   - approve 时自动发放积分
- *   - 自动记录审计日志
- *
- * 响应格式:
- *   data.stats: { total, success_count, failed_count, skipped_count }
- *   data.processed: { success[], failed[], skipped[] }
- *   data.operation_id: 操作批次ID
+ * 按业务记录查询审核链实例（消费记录查进度/金额详情）
+ * 见下方"审核链"区块的 getInstanceByAuditable —— 审批列表统一以审核链步骤为数据源，
+ * 不再有"消费记录待审列表"旧接口（后端方案①已删除 /consumption/pending 审批入口，
+ * 审批面向"我的待办步骤"my-pending）。
  */
-async function batchReviewConsumption(params: BatchReviewParams) {
-  if (!params || !params.record_ids || params.record_ids.length === 0) {
-    throw new Error('请选择要审核的记录')
-  }
-  if (params.record_ids.length > 100) {
-    throw new Error('批量审核最多100条记录')
-  }
-  if (!params.action || !['approve', 'reject'].includes(params.action)) {
-    throw new Error('审核动作必须是 approve 或 reject')
-  }
-  if (params.action === 'reject') {
-    if (!params.reason || params.reason.trim().length < 5) {
-      throw new Error('拒绝原因至少5个字符')
-    }
-    if (params.reason.length > 500) {
-      throw new Error('拒绝原因不能超过500字')
-    }
-  }
-
-  const requestData: Record<string, any> = {
-    record_ids: params.record_ids,
-    action: params.action
-  }
-  if (params.reason) {
-    requestData.reason = params.reason
-  }
-
-  const headers: Record<string, string> = {}
-  if (params.idempotency_key) {
-    headers['Idempotency-Key'] = params.idempotency_key
-  }
-
-  return apiClient.request('/console/consumption/batch-review', {
-    method: 'POST',
-    data: requestData,
-    header: Object.keys(headers).length > 0 ? headers : undefined,
-    needAuth: true,
-    showLoading: true,
-    loadingText: params.action === 'approve' ? '批量审核通过中...' : '批量拒绝中...',
-    showError: true,
-    errorPrefix: '批量审核失败：'
-  })
-}
 
 // ==================== 👨‍💼 管理员客服 ====================
 
@@ -518,11 +397,64 @@ async function rejectApprovalStep(stepId: number, params: { reason: string }) {
   })
 }
 
+/** 批量审核步骤请求参数 */
+interface BatchApprovalStepsParams {
+  /** 待审步骤ID数组（来自 my-pending），最多100条 */
+  step_ids: number[]
+  /** 审核动作：approve=通过 reject=拒绝 */
+  action: 'approve' | 'reject'
+  /** 拒绝原因（action=reject时必填，至少5字符） */
+  reason?: string
+}
+
+/**
+ * 批量审核步骤 — POST /api/v4/console/approval-chain/steps/batch
+ *
+ * 后端逐条复用 processStep（每条独立事务、独立鉴权、单条失败不影响其它），
+ * 仅推进"当前轮到当前登录人的步骤"，不绕过审核链流程，终审条会发积分。
+ *
+ * 响应 data:
+ *   results[]: 逐条结果 { step_id, success, is_chain_completed?, final_result?, error_code?, message? }
+ *   stats:     { total, success_count, failed_count }
+ *
+ * @param params.step_ids - 待审步骤ID数组
+ * @param params.action - approve | reject
+ * @param params.reason - 拒绝原因（reject 必填，≥5字符）
+ */
+async function batchApprovalSteps(params: BatchApprovalStepsParams) {
+  if (!params || !params.step_ids || params.step_ids.length === 0) {
+    throw new Error('请选择要审核的步骤')
+  }
+  if (params.step_ids.length > 100) {
+    throw new Error('批量审核最多100条')
+  }
+  if (!params.action || !['approve', 'reject'].includes(params.action)) {
+    throw new Error('审核动作必须是 approve 或 reject')
+  }
+  if (params.action === 'reject' && (!params.reason || params.reason.trim().length < 5)) {
+    throw new Error('拒绝原因至少5个字符')
+  }
+
+  const requestData: Record<string, any> = {
+    step_ids: params.step_ids,
+    action: params.action
+  }
+  if (params.reason) {
+    requestData.reason = params.reason
+  }
+
+  return apiClient.request('/console/approval-chain/steps/batch', {
+    method: 'POST',
+    data: requestData,
+    needAuth: true,
+    showLoading: true,
+    loadingText: params.action === 'approve' ? '批量审核通过中...' : '批量拒绝中...',
+    showError: true,
+    errorPrefix: '批量审核失败：'
+  })
+}
+
 module.exports = {
-  getPendingConsumption,
-  approveConsumption,
-  rejectConsumption,
-  batchReviewConsumption,
   getAdminChatSessions,
   getAdminChatHistory,
   closeAdminChatSession,
@@ -539,5 +471,6 @@ module.exports = {
   getInstanceByAuditable,
   getMyPendingApprovalSteps,
   approveApprovalStep,
-  rejectApprovalStep
+  rejectApprovalStep,
+  batchApprovalSteps
 }

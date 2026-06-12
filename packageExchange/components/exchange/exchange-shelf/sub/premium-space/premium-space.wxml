@@ -177,7 +177,7 @@
           <text class="mint-mini-text">可铸造</text>
         </view>
         <view class="price-row">
-          <text class="price-unit">{{item._priceLabel || '积分'}}</text>
+          <text class="price-unit">{{item._priceLabel || '—'}}</text>
           <text class="price-current">{{item.cost_amount}}</text>
           <text class="price-original" wx:if="{{item.original_price}}"
             >{{item.original_price}}</text

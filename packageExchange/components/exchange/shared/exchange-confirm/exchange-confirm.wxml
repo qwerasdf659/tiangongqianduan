@@ -29,10 +29,8 @@
             >{{selectedSkuInfo._specLabel}}</text
           >
           <view class="confirm-product-price-wrap">
-            <text class="confirm-price-amount"
-              >{{(selectedSkuInfo && selectedSkuInfo.cost_amount) || product.cost_amount}}</text
-            >
-            <text class="confirm-price-unit">{{product._priceLabel || '积分'}}</text>
+            <text class="confirm-price-amount">{{displayUnitCost}}</text>
+            <text class="confirm-price-unit">{{product._priceLabel || '—'}}</text>
           </view>
         </view>
       </view>
@@ -61,11 +59,8 @@
       <view class="confirm-row confirm-total-row">
         <text class="confirm-row-label">合计消耗</text>
         <view class="confirm-total-value-wrap">
-          <text class="confirm-total-amount"
-            >{{((selectedSkuInfo && selectedSkuInfo.cost_amount) || product.cost_amount) *
-            quantity}}</text
-          >
-          <text class="confirm-total-unit">{{product._priceLabel || '积分'}}</text>
+          <text class="confirm-total-amount">{{displayTotalCost}}</text>
+          <text class="confirm-total-unit">{{product._priceLabel || '—'}}</text>
         </view>
       </view>
 

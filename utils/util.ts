@@ -23,19 +23,24 @@ interface JWTIntegrityResult {
  * JWT Payload 结构（对齐后端 JWT 签发逻辑）
  *
  * ⚠️ 后端 JWT Payload 不包含 is_admin、user_uuid 字段
- * 管理员判断统一使用 role_level >= 100（与后端 authenticateToken 中间件一致）
+ * ⚠️ B1 精简后（2026-06-12）：JWT payload 仅承载"身份"，不再含任何敏感资料。
+ *   后端 generateTokens 已移除 mobile/nickname/status/role_level/user_role，
+ *   只保留 user_id(+session_token/device_id/iat/exp)。
+ *   手机号、角色等一律由后端接口（/auth/profile、/auth/verify、登录响应 user{}）权威下发，
+ *   前端禁止再从 Token 解码这些字段（既泄密又有权限漂移）。故此处接口同步收窄，
+ *   且不保留 [key: string]: any 索引签名 —— 让 TS 在编译期拦截对已移除字段的读取。
  */
 interface JWTPayload {
+  /** 用户ID（唯一身份标识，鉴权用） */
   user_id?: number
-  mobile?: string
-  nickname?: string
-  user_role?: string
-  role_level?: number
-  status?: string
+  /** 会话票据（后端 Redis 会话校验用，可踢设备） */
   session_token?: string
+  /** 设备标识（多端会话隔离用） */
+  device_id?: string
+  /** 过期时间（Unix 秒） */
   exp?: number
+  /** 签发时间（Unix 秒） */
   iat?: number
-  [key: string]: any
 }
 
 // ===== 日期时间处理 =====
@@ -307,7 +312,8 @@ const validateJWTTokenIntegrity = (token: string): JWTIntegrityResult => {
  * 解码JWT Token的Payload部分，获取用户信息和Token元数据
  * 解码流程: 完整性验证 → Base64 URL解码 → JSON解析
  *
- * Token内容: user_id、mobile、role_level、user_role、exp、iat 等（不含 is_admin）
+ * Token内容（B1 精简后）: user_id、session_token、device_id、exp、iat
+ *   不再含 mobile/nickname/status/role_level/user_role —— 这些由后端接口权威下发
  */
 const decodeJWTPayload = (token: string): JWTPayload | null => {
   try {
@@ -381,9 +387,7 @@ const decodeJWTPayload = (token: string): JWTPayload | null => {
       log.info('JWT解码成功', {
         exp: parsedPayload.exp,
         iat: parsedPayload.iat,
-        userId: parsedPayload.user_id,
-        mobile: parsedPayload.mobile,
-        roleLevel: parsedPayload.role_level
+        userId: parsedPayload.user_id
       })
     }
 
@@ -733,36 +737,6 @@ const determineUserRole = (userInfo: { user_role?: string; role_level?: number }
   return 'user'
 }
 
-// ===== JWT Payload → UserProfile 映射 =====
-
-/**
- * 将JWT Payload映射为API.UserProfile结构
- *
- * 场景: Token存在但userInfo缺失时（如缓存被清理），从JWT中恢复基本用户信息。
- * 恢复的信息仅作为临时数据使用，下次API调用会获取后端完整数据覆盖。
- *
- * ⚠️ JWT Payload字段有限，部分字段使用安全默认值（如 login_count: 0）
- *
- * @param jwtPayload - decodeJWTPayload() 解码后的JWT载荷
- * @returns API.UserProfile 格式的用户信息对象
- */
-const mapJWTPayloadToUserProfile = (jwtPayload: JWTPayload): Record<string, any> => {
-  return {
-    user_id: jwtPayload.user_id,
-    mobile: jwtPayload.mobile,
-    nickname: jwtPayload.nickname || '用户',
-    status: jwtPayload.status,
-    user_role: jwtPayload.user_role || 'user',
-    role_level: jwtPayload.role_level || 0,
-    created_at: jwtPayload.created_at || '',
-    roles: jwtPayload.roles || [],
-    consecutive_fail_count: jwtPayload.consecutive_fail_count || 0,
-    history_total_points: jwtPayload.history_total_points || 0,
-    last_login: jwtPayload.last_login || '',
-    login_count: jwtPayload.login_count || 0
-  }
-}
-
 // ===== URL查询参数构建 =====
 
 /**
@@ -862,6 +836,5 @@ module.exports = {
   formatPhoneNumber,
   formatDateMessage,
   determineUserRole,
-  buildQueryString,
-  mapJWTPayloadToUserProfile
+  buildQueryString
 }

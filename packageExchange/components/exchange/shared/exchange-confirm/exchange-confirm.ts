@@ -38,7 +38,13 @@ Component({
     /** 当前商品对应的资产余额（根据 cost_asset_code 从 assetBalances 中匹配） */
     currentAssetBalance: 0,
     /** 当前商品对应的资产名称 */
-    currentAssetLabel: '积分'
+    currentAssetLabel: '积分',
+    /**
+     * 预计算单价/合计（避免 WXML 对可能为 undefined 的 cost_amount 做乘法 → NaN）
+     * 单价权威来源：选中 SKU 的 _unitCost（页面用 channelPrices[0].cost_amount 算好），回退 SPU cost_amount
+     */
+    displayUnitCost: 0,
+    displayTotalCost: 0
   },
 
   observers: {
@@ -55,12 +61,13 @@ Component({
       ) {
         this.setData({
           currentAssetBalance: this.properties.currentBalance,
-          currentAssetLabel: this.properties.currentBalanceLabel || product._priceLabel || '积分'
+          currentAssetLabel: this.properties.currentBalanceLabel || product._priceLabel || '—'
         })
         return
       }
 
-      const costCode = product.cost_asset_code || confirmAssetCodes.POINTS
+      /** 直读后端 cost_asset_code，不再默认积分（符合"前端不设业务默认值"规则） */
+      const costCode = product.cost_asset_code || ''
       const balances = this.data.assetBalances || []
 
       const match = (balances as any[]).find((a: any) => a.asset_code === costCode)
@@ -70,16 +77,38 @@ Component({
           currentAssetLabel: match.display_name
         })
       } else if (costCode === confirmAssetCodes.POINTS) {
+        /** 真实积分类商品：积分余额由 pointsBalance 单独下发（不在 assetBalances 内） */
         this.setData({
           currentAssetBalance: this.data.pointsBalance,
           currentAssetLabel: '积分'
         })
       } else {
+        /** 缺资产码或未匹配到余额：如实展示，不假定为积分 */
         this.setData({
           currentAssetBalance: 0,
-          currentAssetLabel: product._priceLabel || costCode
+          currentAssetLabel: product._priceLabel || costCode || '—'
         })
       }
+    },
+
+    /**
+     * 单价/数量/选中SKU 任一变化时，重算单价与合计（统一在 JS 计算，WXML 只读数值）
+     * 后端金额已归一为 number（对接文档 16.1），单价优先取选中 SKU 的 _unitCost
+     * （页面用 channelPrices 算好），回退 SPU cost_amount
+     */
+    'product, selectedSkuInfo, quantity'() {
+      const product = this.data.product
+      if (!product) {
+        return
+      }
+      const sku = this.properties.selectedSkuInfo
+      const pickNum = (v: any): number | null => (typeof v === 'number' && !isNaN(v) ? v : null)
+      const unitCost = pickNum(sku && sku._unitCost) ?? pickNum(product.cost_amount) ?? 0
+      const qty = this.properties.quantity || 1
+      this.setData({
+        displayUnitCost: unitCost,
+        displayTotalCost: unitCost * qty
+      })
     }
   },
 

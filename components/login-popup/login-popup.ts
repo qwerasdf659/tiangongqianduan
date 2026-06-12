@@ -5,7 +5,7 @@ const log = Logger.createLogger('login-popup')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
 
-// JWT解析
+// JWT解析（B1：Token 仅承载身份，只校验有效性 + 取 user_id/iat/exp，不再读 mobile/role_level）
 function parseAndValidateJWT(accessToken: string) {
   if (!accessToken || typeof accessToken !== 'string') {
     throw new Error('Token格式错误')
@@ -21,8 +21,6 @@ function parseAndValidateJWT(accessToken: string) {
     throw new Error('Token已过期')
   }
   return {
-    user_role: payload.user_role || 'user',
-    role_level: payload.role_level || 0,
     iat: payload.iat,
     exp: payload.exp,
     user_id: payload.user_id
@@ -30,6 +28,7 @@ function parseAndValidateJWT(accessToken: string) {
 }
 
 // 构建用户信息对象
+// 角色/状态/资料一律取自登录响应体 user{}（后端权威下发），不从 JWT 解码（B1）
 function buildUserInfoObject(rawUserInfo: any, jwtData: any) {
   if (!rawUserInfo) {
     throw new Error('用户信息为空')
@@ -39,8 +38,8 @@ function buildUserInfoObject(rawUserInfo: any, jwtData: any) {
     mobile: rawUserInfo.mobile,
     nickname: rawUserInfo.nickname,
     status: rawUserInfo.status || 'active',
-    user_role: jwtData.user_role,
-    role_level: jwtData.role_level,
+    user_role: rawUserInfo.user_role || 'user',
+    role_level: rawUserInfo.role_level || 0,
     iat: jwtData.iat,
     exp: jwtData.exp,
     avatar_url: rawUserInfo.avatar_url || ImageHelper.DEFAULT_AVATAR,

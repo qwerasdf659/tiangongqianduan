@@ -19,7 +19,6 @@ const {
   Constants: premiumConstants,
   Utils: premiumUtils,
   ImageHelper: premiumImageHelper,
-  AssetCodes: premiumAssetCodes,
   ProductDisplay: premiumProductDisplay
 } = require('../../../../../../utils/index')
 const premiumLog = premiumLogger.createLogger('premium-space')
@@ -302,9 +301,9 @@ Component({
                 (item.primary_media.public_url ||
                   (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
               premiumImageHelper.DEFAULT_PRODUCT_IMAGE,
-            cost_amount: Number(item.cost_amount) || 0,
-            cost_asset_code: item.cost_asset_code || premiumAssetCodes.POINTS,
-            original_price: item.original_price ? Number(item.original_price) : null,
+            cost_amount: item.cost_amount || 0,
+            cost_asset_code: item.cost_asset_code || '',
+            original_price: item.original_price || null,
             stock: item.stock || 0,
             sold_count: item.sold_count || 0,
             tags: item.tags || [],
@@ -318,7 +317,9 @@ Component({
             free_shipping: item.free_shipping || false,
             rarity_code: item.rarity_code || 'common',
             category_id: item.category_id || null,
-            category_code: (item.category && item.category.category_code) || null
+            category_code: (item.category && item.category.category_code) || null,
+            /** 一键兑换需要：列表接口下发的默认 SKU（单 active SKU 给值；多 SKU 为 null） */
+            default_sku_id: item.default_sku_id === undefined ? null : item.default_sku_id
           }
         })
         .filter(Boolean)

@@ -64,6 +64,26 @@ async function getConsumptionDetail(record_id: number) {
 // ==================== 商家端消费 ====================
 
 /**
+ * 获取"我的门店"列表（门店选择器数据源）- GET /api/v4/shop/my-stores
+ *
+ * 用于消费录入/核销等需要落具体门店的场景：
+ * - 普通员工：返回其 active 在职门店（后端复用 getUserStores）
+ * - 管理员（role_level>=100）：返回全部 active 门店（跨店特权）
+ *
+ * 响应 data（snake_case 原名，前端不做映射）:
+ *   is_admin_scope: 是否管理员全量范围
+ *   stores[]: { store_id, store_name, store_code, role_in_store }
+ */
+async function getMyStores() {
+  return apiClient.request('/shop/my-stores', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
  * 根据V2动态二维码获取用户信息（商家扫码后调用）
  * GET /api/v4/shop/consumption/user-info?qr_code=xxx&store_id=xxx
  */
@@ -258,6 +278,7 @@ module.exports = {
   getUserQRCode,
   getMyConsumptionRecords,
   getConsumptionDetail,
+  getMyStores,
   getUserInfoByQRCode,
   submitConsumption,
   getMerchantConsumptions,

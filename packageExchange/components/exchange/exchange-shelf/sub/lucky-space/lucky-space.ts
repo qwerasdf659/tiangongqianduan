@@ -20,7 +20,6 @@ const {
   Waterfall: luckyWaterfall,
   Utils: luckyUtils,
   ImageHelper: luckyImageHelper,
-  AssetCodes: luckyAssetCodes,
   ProductDisplay: luckyProductDisplay
 } = require('../../../../../../utils/index')
 const luckyLog = luckyLogger.createLogger('lucky-space')
@@ -355,9 +354,9 @@ Component({
               item_name: item.item_name || '',
               image: imageUrl,
               primary_media_id: item.primary_media_id || null,
-              cost_amount: Number(item.cost_amount) || 0,
-              cost_asset_code: item.cost_asset_code || luckyAssetCodes.POINTS,
-              original_price: item.original_price ? Number(item.original_price) : null,
+              cost_amount: item.cost_amount || 0,
+              cost_asset_code: item.cost_asset_code || '',
+              original_price: item.original_price || null,
               sold_count: item.sold_count || 0,
               tags: item.tags || [],
               is_lucky: item.is_lucky || false,
@@ -374,7 +373,9 @@ Component({
               free_shipping: item.free_shipping || false,
               rarity_code: item.rarity_code || 'common',
               category_id: item.category_id || null,
-              category_code: (item.category && item.category.category_code) || null
+              category_code: (item.category && item.category.category_code) || null,
+              /** 一键兑换需要：列表接口下发的默认 SKU（单 active SKU 给值；多 SKU 为 null） */
+              default_sku_id: item.default_sku_id === undefined ? null : item.default_sku_id
             }
           })
           .filter(Boolean)

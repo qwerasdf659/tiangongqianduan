@@ -16,6 +16,15 @@
 const { apiClient } = require('./client')
 const { buildQueryString, generateIdempotencyKey } = require('../util')
 
+/**
+ * 单次兑换数量的契约硬上限（对接文档 16.2：quantity 1-10）。
+ *
+ * 业务规则的权威来源是后端：商品详情接口下发 max_quantity_per_order 时，
+ * 页面层按该商品值约束数量选择器；此常量仅作为"后端未下发该字段时"的接口契约回退上限，
+ * 同时用于 exchangeProduct 入口的契约边界前置校验，守住后端硬约束。
+ */
+const EXCHANGE_QUANTITY_CONTRACT_MAX = 10
+
 // ==================== 背包 ====================
 
 /**
@@ -220,14 +229,27 @@ async function getExchangeProducts(
  *
  * @param exchange_item_id - 兑换商品ID（BIGINT，exchange_items 表主键）
  * @param quantity - 兑换数量，默认 1
- * @param sku_id - SKU ID（BIGINT，exchange_item_skus 表主键），单品商品传默认SKU的ID
+ * @param sku_id - SKU ID（exchange_item_skus 表主键），单品商品传默认SKU的ID。
+ *                 后端 ID 可能以字符串形式下发（如 "6"），此处统一转数字再判断，避免漏传。
  */
-async function exchangeProduct(exchange_item_id: number, quantity: number = 1, sku_id?: number) {
+async function exchangeProduct(
+  exchange_item_id: number,
+  quantity: number = 1,
+  sku_id?: number | string
+) {
   if (!exchange_item_id) {
     throw new Error('兑换商品ID不能为空')
   }
   if (quantity < 1) {
     throw new Error('兑换数量必须大于0')
+  }
+  /**
+   * 兑换数量上限契约校验（对接文档 16.2：quantity 1-10）。
+   * 这是后端接口的硬性契约边界，前端按契约前置拦截，避免无效请求往返。
+   * 商品若下发 max_quantity_per_order，由页面层按该值约束选择器；此处守住契约硬上限。
+   */
+  if (quantity > EXCHANGE_QUANTITY_CONTRACT_MAX) {
+    throw new Error(`单次兑换数量不能超过${EXCHANGE_QUANTITY_CONTRACT_MAX}件`)
   }
 
   const idempotencyKey = await generateIdempotencyKey('exchange', exchange_item_id)
@@ -238,11 +260,14 @@ async function exchangeProduct(exchange_item_id: number, quantity: number = 1, s
   }
 
   /**
-   * 全量 SKU 模式: 请求体须带 sku_id（单品为唯一默认 SKU 的 id）
+   * 全量 SKU 模式: 请求体须带 sku_id（单品为详情下发的 default_sku_id）
+   * ⚠️ 后端主键 sku_id 以字符串下发（BIGINT 防溢出，对接文档 16.1），提交前归一为数字再校验，
+   *    确保 body 一定带上 sku_id，否则后端报 EXCHANGE_NOT_ALLOWED「sku_id 参数不能为空」
    * 幂等键仅放在 Header（Idempotency-Key），不得放入 body
    */
-  if (typeof sku_id === 'number' && sku_id > 0) {
-    requestData.sku_id = sku_id
+  const skuIdNum = typeof sku_id === 'string' ? parseInt(sku_id, 10) : sku_id
+  if (typeof skuIdNum === 'number' && !isNaN(skuIdNum) && skuIdNum > 0) {
+    requestData.sku_id = skuIdNum
   }
 
   return apiClient.request('/exchange', {
@@ -773,6 +798,7 @@ async function submitBarter(recipe_code: string, old_item_ids: number[]) {
 }
 
 module.exports = {
+  EXCHANGE_QUANTITY_CONTRACT_MAX,
   getUserInventory,
   getBackpackStats,
   getInventoryItem,

@@ -271,8 +271,8 @@ Component({
       }
 
       const shopProductId = selectedShopProduct.exchange_item_id
-      const costAmount = Number(selectedShopProduct.cost_amount) || 0
-      const costAssetCode = selectedShopProduct.cost_asset_code || shelfAssetCodes.POINTS
+      const costAmount = selectedShopProduct.cost_amount || 0
+      const costAssetCode = selectedShopProduct.cost_asset_code || ''
 
       if (!shopProductId) {
         shelfLog.error('商品ID无效:', selectedShopProduct)
@@ -390,8 +390,22 @@ Component({
     onShopQuantityChange(e: any) {
       const action = e.currentTarget.dataset.action
       let { shopExchangeQuantity } = this.data
+      /**
+       * 每单上限：优先读后端商品级 max_quantity_per_order，未下发时回退接口契约上限
+       * （对接文档 16.2），再与库存取 Math.min。
+       */
+      const shopProduct = this.data.selectedShopProduct || {}
+      const perOrderMax =
+        typeof shopProduct.max_quantity_per_order === 'number' &&
+        shopProduct.max_quantity_per_order > 0
+          ? shopProduct.max_quantity_per_order
+          : shelfAPI.EXCHANGE_QUANTITY_CONTRACT_MAX
+      const maxQty = Math.min(
+        typeof shopProduct.stock === 'number' ? shopProduct.stock : 0,
+        perOrderMax
+      )
       if (action === 'increase') {
-        shopExchangeQuantity = Math.min(shopExchangeQuantity + 1, 99)
+        shopExchangeQuantity = Math.min(shopExchangeQuantity + 1, maxQty)
       } else if (action === 'decrease') {
         shopExchangeQuantity = Math.max(shopExchangeQuantity - 1, 1)
       }

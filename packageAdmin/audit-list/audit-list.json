@@ -7,8 +7,6 @@
     "t-loading": "/miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
     "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
-    "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
-    "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
     "t-dialog": "/miniprogram_npm/tdesign-miniprogram/dialog/dialog",
     "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
     "t-textarea": "/miniprogram_npm/tdesign-miniprogram/textarea/textarea",
@@ -17,8 +15,6 @@
   "componentPlaceholder": {
     "t-dialog": "view",
     "t-textarea": "view",
-    "t-tabs": "view",
-    "t-tab-panel": "view",
     "t-loading": "view",
     "t-empty": "view",
     "t-icon": "view",

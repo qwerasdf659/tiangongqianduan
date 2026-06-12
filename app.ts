@@ -272,7 +272,7 @@ App({
       }
 
       const { Utils } = require('./utils/index')
-      const { decodeJWTPayload, validateJWTTokenIntegrity, mapJWTPayloadToUserProfile } = Utils
+      const { decodeJWTPayload, validateJWTTokenIntegrity } = Utils
 
       // 统一完整性校验（仅此一次，后续不再重复调用 validateJWTTokenIntegrity）
       const integrityCheck = validateJWTTokenIntegrity(token)
@@ -321,12 +321,21 @@ App({
         }
       }
 
-      // 无userInfo时从JWT Payload恢复临时用户信息
-      if (!userInfo && jwtPayload) {
-        log.info('检测到Token存在但userInfo缺失，从JWT Token中恢复')
-        userInfo = mapJWTPayloadToUserProfile(jwtPayload) as API.UserProfile
-        wx.setStorageSync('user_info', userInfo)
-        log.info('从JWT Token恢复userInfo成功')
+      // 无userInfo时从后端权威接口获取（B1：不再从 JWT 解码资料，Token 只承载身份）
+      if (!userInfo) {
+        log.info('检测到Token存在但userInfo缺失，调用 /auth/profile 权威获取用户资料')
+        try {
+          const { API: ProfileAPI } = require('./utils/index')
+          const profileResult = await ProfileAPI.getUserInfo()
+          if (profileResult && profileResult.success && profileResult.data) {
+            // /auth/profile 返回 { user: {...} } 或直接资料对象
+            userInfo = (profileResult.data.user || profileResult.data) as API.UserProfile
+            wx.setStorageSync('user_info', userInfo)
+            log.info('从 /auth/profile 恢复 userInfo 成功')
+          }
+        } catch (profileError: any) {
+          log.warn('获取用户资料失败，清除认证数据:', profileError.message)
+        }
       }
 
       if (!userInfo) {

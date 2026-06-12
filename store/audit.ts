@@ -95,8 +95,15 @@ export const auditStore = observable({
         showLoading: false
       })
 
-      if (pendingResult?.success && pendingResult.data?.pagination) {
-        this.pendingCount = pendingResult.data.pagination.total || 0
+      if (pendingResult?.success) {
+        /**
+         * 后端契约（文档 6.1）：pagination 是与 data 平级的顶层字段。
+         * 优先读顶层 pagination.total；兼容包装差异时回退到 data.pagination。
+         */
+        const pagination = pendingResult.pagination || pendingResult.data?.pagination
+        if (pagination) {
+          this.pendingCount = pagination.total || 0
+        }
       }
     } catch (_refreshError) {
       /* 静默失败，保留上次缓存的数量 */

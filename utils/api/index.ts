@@ -56,7 +56,7 @@ module.exports = {
   /** 系统通用+客服+活动: getPlacementConfig / getAdDelivery / reportInteractionLog / createChatSession / getActivities / getDictionaryTypes / getDictionaryByType 等 */
   ...systemModule,
 
-  /** 管理员: getPendingConsumption / approveConsumption / getAdminChatSessions / updateAdminOnlineStatus 等 */
+  /** 管理员: getMyPendingApprovalSteps / approveApprovalStep / rejectApprovalStep / batchApprovalSteps / getAdminChatSessions / updateAdminOnlineStatus 等 */
   ...consoleModule,
 
   /** 广告系统(P2+P3): getMyAdCampaigns / createAdCampaign / submitAdCampaign / cancelAdCampaign / reportAdImpression / reportAdClick 等 */

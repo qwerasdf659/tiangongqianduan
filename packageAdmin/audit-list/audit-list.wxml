@@ -1,5 +1,5 @@
-<!--packageAdmin/audit-list/audit-list.wxml - 审核管理页面（V6.0 审核链对接版）-->
-<!--双模式: 「消费审核」传统审核 + 「我的待办」审核链步骤-->
+<!--packageAdmin/audit-list/audit-list.wxml - 审核管理页面（审核链单一路径版）-->
+<!--单一视图: 「我的待办」审核链步骤（通过/拒绝/批量 均走审核链 steps 接口）-->
 <wxs src="./audit-list.wxs" module="auditHelper" />
 <custom-navbar title="审批管理" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 
@@ -16,53 +16,31 @@
       </view>
     </view>
 
-    <!-- 顶部标签页切换 -->
-    <view class="tab-bar">
-      <t-tabs
-        value="{{activeTab}}"
-        bind:change="onTabSwitch"
-        theme="line"
-        split="{{false}}"
-        spaceEvenly="{{true}}"
-        sticky="{{false}}"
-        swipeable="{{false}}"
-      >
-        <t-tab-panel
-          wx:for="{{auditTabs}}"
-          wx:key="key"
-          value="{{item.key}}"
-          label="{{item.label}}"
-          badgeProps="{{item.badgeProps}}"
-        >
-        </t-tab-panel>
-      </t-tabs>
-    </view>
-
-    <!-- ===== 标签页一：消费审核（原有功能） ===== -->
-    <block wx:if="{{activeTab === 'consumption'}}">
+    <!-- ===== 我的待办（审核链步骤，唯一视图） ===== -->
+    <block>
       <!-- 顶部统计面板 -->
       <view class="stats-panel">
         <view class="stats-main">
           <view class="stats-number-wrap">
-            <text class="stats-number">{{total}}</text>
+            <text class="stats-number">{{pendingTotal}}</text>
             <text class="stats-unit">条</text>
           </view>
-          <text class="stats-label">待审核消费记录</text>
+          <text class="stats-label">待我审核的步骤</text>
         </view>
         <view class="stats-hint">
-          <t-icon name="tips-filled" size="24rpx" class="stats-hint-icon" />
-          <text class="stats-hint-text">审核通过后积分自动发放</text>
+          <t-icon name="hourglass" size="24rpx" class="stats-hint-icon" />
+          <text class="stats-hint-text">超时12小时自动升级</text>
         </view>
       </view>
 
-      <!-- 操作工具栏（仅admin可批量操作）+ 列表区域，用 sticky-section 包裹 -->
+      <!-- 批量操作工具栏（仅admin可批量操作）+ 列表区域 -->
       <sticky-section>
-        <sticky-header wx:if="{{isAdminUser}}">
+        <sticky-header wx:if="{{canBatchReview}}">
           <view class="toolbar">
             <view class="toolbar-left">
               <view
                 class="custom-checkbox {{allSelected ? 'checked' : ''}}"
-                bindtap="toggleSelectAll"
+                bindtap="toggleSelectAllSteps"
               >
                 <t-icon
                   name="check-circle-filled"
@@ -84,38 +62,39 @@
               >
                 <text>通过 ({{selectedCount}})</text>
               </view>
-              <text class="toolbar-tip" wx:if="{{selectedCount === 0 && records.length > 0}}"
-                >勾选记录可批量操作</text
+              <text class="toolbar-tip" wx:if="{{selectedCount === 0 && pendingSteps.length > 0}}"
+                >勾选步骤可批量操作</text
               >
             </view>
           </view>
         </sticky-header>
 
-        <!-- 列表区域 -->
+        <!-- 待办列表 -->
         <view class="list-section">
           <!-- 空状态 -->
           <t-empty
-            wx:if="{{!loading && records.length === 0}}"
-            description="所有消费记录已审核完成，下拉刷新检查新记录"
+            wx:if="{{!pendingLoading && pendingSteps.length === 0}}"
+            description="您没有需要审核的步骤，下拉刷新检查新任务"
           >
             <view slot="image"
               ><t-icon name="check-circle" size="120rpx" color="var(--td-brand-color)"
             /></view>
           </t-empty>
 
-          <!-- 记录卡片列表 -->
+          <!-- 审核链步骤卡片 -->
           <view
-            class="record-card {{item.selected ? 'selected' : ''}}"
-            wx:for="{{records}}"
-            wx:key="record_id"
+            class="record-card chain-card {{item.selected ? 'selected' : ''}}"
+            wx:for="{{pendingSteps}}"
+            wx:key="step_id"
           >
+            <!-- 卡片头部 -->
             <view class="card-header">
               <view class="header-left">
                 <view
                   class="custom-checkbox {{item.selected ? 'checked' : ''}}"
-                  catchtap="toggleSelect"
+                  catchtap="toggleStepSelect"
                   data-index="{{index}}"
-                  wx:if="{{isAdminUser}}"
+                  wx:if="{{canBatchReview}}"
                 >
                   <t-icon
                     name="check-circle-filled"
@@ -124,60 +103,100 @@
                     wx:if="{{item.selected}}"
                   />
                 </view>
-                <view class="user-avatar">
-                  <text class="avatar-text"
-                    >{{item.user_nickname ? item.user_nickname[0] : '用'}}</text
-                  >
+                <view class="chain-type-badge">
+                  <text class="chain-type-badge-text">{{item.auditable_type_text}}</text>
                 </view>
-                <view class="user-info">
-                  <text class="user-name">{{item.user_nickname || '未知用户'}}</text>
-                  <text class="user-phone">{{item.user_mobile_display || item.user_mobile}}</text>
+                <view class="chain-meta">
+                  <text class="chain-step-label">{{item.is_final_text}}</text>
+                  <text class="chain-step-progress">{{item.step_progress}}</text>
                 </view>
               </view>
               <view class="status-tag pending">
                 <view class="status-dot"></view>
-                <text class="status-tag-text">待审核</text>
+                <text class="status-tag-text">{{item.status_text}}</text>
               </view>
             </view>
 
-            <view class="card-amounts">
-              <view class="amount-item">
+            <!-- 审核链进度条（TS 层已预计算 progress_*，避免 WXML 内联除法出现 NaN） -->
+            <view class="chain-progress-bar" wx:if="{{item.has_progress}}">
+              <view class="progress-track">
+                <view class="progress-fill" style="width: {{item.progress_percent}}%"></view>
+              </view>
+              <text class="progress-text"
+                >进度 {{item.progress_current}}/{{item.progress_total}}</text
+              >
+            </view>
+
+            <!-- 业务快照信息（TS层已预计算 snapshot_* 字段，避免WXML中复杂OR表达式） -->
+            <view class="card-amounts" wx:if="{{item.has_snapshot}}">
+              <view class="amount-item" wx:if="{{item.snapshot_consumption_amount}}">
                 <text class="amount-label">消费金额</text>
                 <view class="amount-value">
                   <text class="currency">¥</text>
-                  <text class="number money">{{item.consumption_amount}}</text>
+                  <text class="number money">{{item.snapshot_consumption_amount}}</text>
                 </view>
               </view>
-              <view class="amount-divider"></view>
-              <view class="amount-item">
+              <view
+                class="amount-divider"
+                wx:if="{{item.snapshot_consumption_amount && item.snapshot_points_to_award}}"
+              >
+              </view>
+              <view class="amount-item" wx:if="{{item.snapshot_points_to_award}}">
                 <text class="amount-label">预计积分</text>
                 <view class="amount-value">
-                  <text class="number points">{{item.points_to_award}}</text>
+                  <text class="number points">{{item.snapshot_points_to_award}}</text>
                   <text class="unit">分</text>
                 </view>
               </view>
             </view>
 
+            <!-- 快照缺失时的优雅降级：引导点"详情"看完整业务信息（后端 my-pending 未下发 snapshot 时） -->
+            <view class="snapshot-fallback" wx:if="{{!item.has_snapshot}}">
+              <text class="snapshot-fallback-text">点击「详情」查看完整审核进度与业务信息</text>
+            </view>
+
+            <!-- 详情信息 -->
             <view class="card-details">
-              <view class="detail-item" wx:if="{{item.merchant_notes}}">
-                <text class="detail-key">商家备注</text>
-                <text class="detail-val">{{item.merchant_notes}}</text>
+              <view
+                class="detail-item"
+                wx:if="{{item.instance && item.instance.submitted_by_name}}"
+              >
+                <text class="detail-key">提交人</text>
+                <text class="detail-val">{{item.instance.submitted_by_name}}</text>
               </view>
               <view class="detail-item">
-                <text class="detail-key">提交时间</text>
+                <text class="detail-key">创建时间</text>
                 <text class="detail-val muted">{{item.created_at_formatted}}</text>
+              </view>
+              <view class="detail-item" wx:if="{{item.timeout_at_formatted}}">
+                <text class="detail-key">超时截止</text>
+                <text class="detail-val muted timeout">{{item.timeout_at_formatted}}</text>
               </view>
             </view>
 
+            <!-- 操作按钮 -->
             <view class="card-actions">
+              <t-button
+                wx:if="{{item.instance_id || item.auditable_id}}"
+                theme="default"
+                variant="outline"
+                size="small"
+                shape="round"
+                data-instance-id="{{item.instance_id}}"
+                data-auditable-type="{{item.auditable_type}}"
+                data-auditable-id="{{item.auditable_id}}"
+                bind:tap="onViewChainDetail"
+              >
+                详情
+              </t-button>
               <t-button
                 theme="danger"
                 variant="outline"
                 size="small"
                 shape="round"
-                data-record="{{item}}"
-                bind:tap="onReject"
-                disabled="{{submitting}}"
+                data-step="{{item}}"
+                bind:tap="onChainReject"
+                disabled="{{chainSubmitting}}"
               >
                 拒绝
               </t-button>
@@ -185,186 +204,32 @@
                 theme="primary"
                 size="small"
                 shape="round"
-                data-record="{{item}}"
-                bind:tap="onApprove"
-                disabled="{{submitting}}"
+                data-step="{{item}}"
+                bind:tap="onChainApprove"
+                disabled="{{chainSubmitting}}"
               >
                 通过
               </t-button>
             </view>
           </view>
 
-          <view class="list-footer" wx:if="{{records.length > 0}}">
-            <text class="footer-text" wx:if="{{loadingMore}}">加载更多审核记录...</text>
-            <text class="footer-text" wx:elif="{{noMore}}">— 已展示全部审核记录 —</text>
+          <view class="list-footer" wx:if="{{pendingSteps.length > 0}}">
+            <text class="footer-text" wx:if="{{pendingLoadingMore}}">加载更多待办步骤...</text>
+            <text class="footer-text" wx:elif="{{pendingNoMore}}">— 已展示全部待办步骤 —</text>
           </view>
         </view>
 
         <view
           class="list-footer"
-          wx:if="{{!loading && records.length > 0 && total > records.length}}"
+          wx:if="{{!pendingLoading && pendingSteps.length > 0 && pendingTotal > pendingSteps.length}}"
         >
-          <text class="footer-text">当前已加载 {{records.length}} / {{total}} 条</text>
+          <text class="footer-text">当前已加载 {{pendingSteps.length}} / {{pendingTotal}} 条</text>
         </view>
       </sticky-section>
     </block>
 
-    <!-- ===== 标签页二：我的待办（审核链步骤） ===== -->
-    <block wx:if="{{activeTab === 'myPending'}}">
-      <!-- 顶部统计面板 -->
-      <view class="stats-panel">
-        <view class="stats-main">
-          <view class="stats-number-wrap">
-            <text class="stats-number">{{pendingTotal}}</text>
-            <text class="stats-unit">条</text>
-          </view>
-          <text class="stats-label">待我审核的步骤</text>
-        </view>
-        <view class="stats-hint">
-          <t-icon name="hourglass" size="24rpx" class="stats-hint-icon" />
-          <text class="stats-hint-text">超时12小时自动升级</text>
-        </view>
-      </view>
-
-      <!-- 待办列表 -->
-      <view class="list-section">
-        <!-- 空状态 -->
-        <t-empty
-          wx:if="{{!pendingLoading && pendingSteps.length === 0}}"
-          description="您没有需要审核的步骤，下拉刷新检查新任务"
-        >
-          <view slot="image"
-            ><t-icon name="check-circle" size="120rpx" color="var(--td-brand-color)"
-          /></view>
-        </t-empty>
-
-        <!-- 审核链步骤卡片 -->
-        <view class="record-card chain-card" wx:for="{{pendingSteps}}" wx:key="step_id">
-          <!-- 卡片头部 -->
-          <view class="card-header">
-            <view class="header-left">
-              <view class="chain-type-badge">
-                <text class="chain-type-badge-text">{{item.auditable_type_text}}</text>
-              </view>
-              <view class="chain-meta">
-                <text class="chain-step-label">{{item.is_final_text}}</text>
-                <text class="chain-step-progress">{{item.step_progress}}</text>
-              </view>
-            </view>
-            <view class="status-tag pending">
-              <view class="status-dot"></view>
-              <text class="status-tag-text">{{item.status_text}}</text>
-            </view>
-          </view>
-
-          <!-- 审核链进度条 -->
-          <view class="chain-progress-bar" wx:if="{{item.instance}}">
-            <view class="progress-track">
-              <view
-                class="progress-fill"
-                style="width: {{(item.instance.current_step / item.instance.total_steps) * 100}}%"
-              ></view>
-            </view>
-            <text class="progress-text"
-              >进度 {{item.instance.current_step}}/{{item.instance.total_steps}}</text
-            >
-          </view>
-
-          <!-- 业务快照信息（TS层已预计算 snapshot_* 字段，避免WXML中复杂OR表达式） -->
-          <view class="card-amounts" wx:if="{{item.has_snapshot}}">
-            <view class="amount-item" wx:if="{{item.snapshot_consumption_amount}}">
-              <text class="amount-label">消费金额</text>
-              <view class="amount-value">
-                <text class="currency">¥</text>
-                <text class="number money">{{item.snapshot_consumption_amount}}</text>
-              </view>
-            </view>
-            <view
-              class="amount-divider"
-              wx:if="{{item.snapshot_consumption_amount && item.snapshot_points_to_award}}"
-            >
-            </view>
-            <view class="amount-item" wx:if="{{item.snapshot_points_to_award}}">
-              <text class="amount-label">预计积分</text>
-              <view class="amount-value">
-                <text class="number points">{{item.snapshot_points_to_award}}</text>
-                <text class="unit">分</text>
-              </view>
-            </view>
-          </view>
-
-          <!-- 详情信息 -->
-          <view class="card-details">
-            <view class="detail-item" wx:if="{{item.instance && item.instance.submitted_by_name}}">
-              <text class="detail-key">提交人</text>
-              <text class="detail-val">{{item.instance.submitted_by_name}}</text>
-            </view>
-            <view class="detail-item">
-              <text class="detail-key">创建时间</text>
-              <text class="detail-val muted">{{item.created_at_formatted}}</text>
-            </view>
-            <view class="detail-item" wx:if="{{item.timeout_at_formatted}}">
-              <text class="detail-key">超时截止</text>
-              <text class="detail-val muted timeout">{{item.timeout_at_formatted}}</text>
-            </view>
-          </view>
-
-          <!-- 操作按钮 -->
-          <view class="card-actions">
-            <t-button
-              wx:if="{{item.instance_id}}"
-              theme="default"
-              variant="outline"
-              size="small"
-              shape="round"
-              data-instance-id="{{item.instance_id}}"
-              bind:tap="onViewChainDetail"
-            >
-              详情
-            </t-button>
-            <t-button
-              theme="danger"
-              variant="outline"
-              size="small"
-              shape="round"
-              data-step="{{item}}"
-              bind:tap="onChainReject"
-              disabled="{{chainSubmitting}}"
-            >
-              拒绝
-            </t-button>
-            <t-button
-              theme="primary"
-              size="small"
-              shape="round"
-              data-step="{{item}}"
-              bind:tap="onChainApprove"
-              disabled="{{chainSubmitting}}"
-            >
-              通过
-            </t-button>
-          </view>
-        </view>
-
-        <view class="list-footer" wx:if="{{pendingSteps.length > 0}}">
-          <text class="footer-text" wx:if="{{pendingLoadingMore}}">加载更多待办步骤...</text>
-          <text class="footer-text" wx:elif="{{pendingNoMore}}">— 已展示全部待办步骤 —</text>
-        </view>
-      </view>
-
-      <view
-        class="list-footer"
-        wx:if="{{!pendingLoading && pendingSteps.length > 0 && pendingTotal > pendingSteps.length}}"
-      >
-        <text class="footer-text">当前已加载 {{pendingSteps.length}} / {{pendingTotal}} 条</text>
-      </view>
-    </block>
-
     <!-- ===== 首次加载 ===== -->
-    <view
-      class="loading-overlay"
-      wx:if="{{(loading && records.length === 0 && activeTab === 'consumption' && !tabSwitching) || (pendingLoading && pendingSteps.length === 0 && activeTab === 'myPending' && !tabSwitching)}}"
-    >
+    <view class="loading-overlay" wx:if="{{pendingLoading && pendingSteps.length === 0}}">
       <view class="loading-box">
         <t-loading loading="{{true}}" text="正在加载..." theme="spinner" />
       </view>
@@ -377,54 +242,11 @@
     <maintenance-overlay />
   </scroll-view>
 
-  <!-- ===== 消费审核拒绝弹窗（单条/批量共用） ===== -->
-  <t-dialog
-    wx:if="{{showRejectModal}}"
-    visible="{{showRejectModal}}"
-    title="{{batchRejectMode ? '批量拒绝' : '审核拒绝'}}"
-    closeBtn="{{true}}"
-    closeOnOverlayClick="{{true}}"
-    confirmBtn="{{auditHelper.rejectBtn(submitting, batchRejectMode)}}"
-    cancelBtn="取消"
-    bind:confirm="confirmReject"
-    bind:close="cancelReject"
-    bind:cancel="cancelReject"
-  >
-    <view slot="content" class="dialog-content">
-      <view class="modal-summary" wx:if="{{!batchRejectMode && selectedRecord}}">
-        <text class="modal-summary-label">用户</text>
-        <text class="modal-summary-val"
-          >{{selectedRecord.user_nickname || selectedRecord.user_mobile}}</text
-        >
-        <text class="modal-summary-divider">|</text>
-        <text class="modal-summary-amount">¥{{selectedRecord.consumption_amount}}</text>
-      </view>
-      <view class="modal-summary batch" wx:if="{{batchRejectMode}}">
-        <text class="modal-summary-batch">已选中 {{selectedCount}} 条记录，将统一拒绝</text>
-      </view>
-
-      <view class="modal-body">
-        <text class="input-label">拒绝原因（必填，至少5个字符）</text>
-        <t-textarea
-          value="{{rejectReason}}"
-          placeholder="请输入拒绝原因，如：消费金额与实际不符"
-          maxlength="200"
-          indicator="{{true}}"
-          autosize="{{autosizeSmall}}"
-          bind:change="onRejectReasonInput"
-        />
-        <view class="input-meta">
-          <text class="warning-text">拒绝后用户将收到通知</text>
-        </view>
-      </view>
-    </view>
-  </t-dialog>
-
-  <!-- ===== 审核链步骤拒绝弹窗 ===== -->
+  <!-- ===== 审核链步骤拒绝弹窗（单条/批量共用） ===== -->
   <t-dialog
     wx:if="{{showChainRejectModal}}"
     visible="{{showChainRejectModal}}"
-    title="审核链拒绝"
+    title="{{batchRejectMode ? '批量拒绝' : '审核链拒绝'}}"
     closeBtn="{{true}}"
     closeOnOverlayClick="{{true}}"
     confirmBtn="{{auditHelper.chainRejectBtn(chainSubmitting)}}"
@@ -434,7 +256,10 @@
     bind:cancel="cancelChainReject"
   >
     <view slot="content" class="dialog-content">
-      <view class="modal-summary" wx:if="{{selectedStep}}">
+      <view class="modal-summary batch" wx:if="{{batchRejectMode}}">
+        <text class="modal-summary-batch">已选中 {{selectedCount}} 个步骤，将统一拒绝</text>
+      </view>
+      <view class="modal-summary" wx:elif="{{selectedStep}}">
         <text class="modal-summary-label">{{selectedStep.auditable_type_text}}</text>
         <text class="modal-summary-divider">|</text>
         <text class="modal-summary-val"

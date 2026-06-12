@@ -19,7 +19,6 @@
  */
 
 const imageHelperModule = require('./image-helper')
-const displayAssetCodes = require('../config/asset-codes')
 const { DEFAULT_PRODUCT_IMAGE, RARITY_STYLES, getAssetDisplayName } = imageHelperModule
 
 /** 触发全息光效的稀有度等级（epic + legendary） */
@@ -53,7 +52,7 @@ function enrichProductDisplayFields(productList: any[]): any[] {
   }
 
   return productList.map(function (productItem) {
-    const priceCode = productItem.cost_asset_code || displayAssetCodes.POINTS
+    const priceCode = productItem.cost_asset_code || ''
     const rarityValue = productItem.rarity_code || ''
     const imgSrc = productItem.image || ''
     const validImage = imgSrc && imgSrc !== DEFAULT_PRODUCT_IMAGE && !productItem._imageError
@@ -83,14 +82,39 @@ function isEmptySkuSpecValues(specValues: any): boolean {
 }
 
 /**
+ * 解析多规格 SKU 的选中单价（权威取 channelPrices[0].cost_amount，回退到 SPU 展示价）
+ *
+ * 后端契约（兑换对接文档 16.1）：每个 SKU 的真实单价在 channelPrices[].cost_amount，
+ * 已由后端 DataSanitizer 出口归一为 number；多规格时 SPU 级 cost_amount 仅为"最低价"，
+ * 不等于选中规格价，故选中规格的单价以该 SKU 的 channelPrices 为准。
+ *
+ * @param sku - 选中的 SKU 对象（含 channelPrices）
+ * @param fallbackCost - SKU 无渠道价时的回退（通常传 SPU 的 cost_amount，已是 number）
+ * @returns 数值单价（无法解析时返回 0）
+ */
+function resolveSkuUnitCost(sku: any, fallbackCost?: number): number {
+  if (sku && Array.isArray(sku.channelPrices) && sku.channelPrices.length > 0) {
+    const enabled = sku.channelPrices.find((p: any) => p && p.is_enabled !== false)
+    const picked = enabled || sku.channelPrices[0]
+    if (picked && typeof picked.cost_amount === 'number' && !isNaN(picked.cost_amount)) {
+      return picked.cost_amount
+    }
+  }
+  if (typeof fallbackCost === 'number' && !isNaN(fallbackCost)) {
+    return fallbackCost
+  }
+  return 0
+}
+
+/**
  * 全量 SKU 模式下，从列表/货架卡片上的商品对象解析「一键兑换」是否可直接传 sku_id
  *
- * 业务规则（与兑换详情页一致，以后端下发的 skus[] 为唯一依据）：
- * - 无任何有效 SKU：不可兑换，需后端在列表/详情接口补齐 skus
- * - 仅 1 条上架 SKU 且 spec 为空：视为单品默认 SKU，可在货架直接传 sku_id
- * - 多条 SKU，或单条但带规格维度：必须到商品详情由用户选规格后再兑换
+ * 取值优先级（对齐兑换对接文档：列表接口给 default_sku_id，详情接口给 skus[]）：
+ * 1. default_sku_id 不为 null → 单 active SKU 商品，直接用它（列表/货架首选，轻量）
+ * 2. 退而求其次：商品对象带完整 skus[] 时，按 active+单默认规格 解析
+ * 3. 多规格（default_sku_id 为 null 或 skus 多条/带规格）→ 必须进详情选规格
  *
- * @param productItem - GET /exchange/items 列表项或详情 item（须含 skus 数组时才可直兑）
+ * @param productItem - GET /exchange/items 列表项（含 default_sku_id）或详情 item（含 skus）
  */
 function resolveQuickExchangeSkuId(productItem: any): {
   ok: boolean
@@ -103,11 +127,29 @@ function resolveQuickExchangeSkuId(productItem: any): {
     return { ok: false, reason: 'no_skus', message: '商品数据异常，请稍后重试' }
   }
 
+  // ① 列表接口权威字段：default_sku_id（单 active SKU 给值；多 SKU 为 null）
+  const rawDefaultSkuId = productItem.default_sku_id
+  if (rawDefaultSkuId !== null && rawDefaultSkuId !== undefined) {
+    const defaultSid = parseInt(String(rawDefaultSkuId), 10)
+    if (defaultSid > 0) {
+      return { ok: true, sku_id: defaultSid }
+    }
+  }
+
+  // ② 详情/含 skus[] 的对象：按 active + 单默认规格 解析
   const rawSkus: any[] = Array.isArray(productItem.skus) ? productItem.skus : []
   /** 与兑换详情页一致：仅 status === 'active' 的 SKU 参与售卖（缺省 status 视为非上架，由后端保证字段完整） */
   const activeSkus = rawSkus.filter((sku: any) => sku && sku.status === 'active')
 
   if (activeSkus.length === 0) {
+    // default_sku_id 显式为 null 表示"多规格需进详情"，比"无 SKU"更准确
+    if (rawDefaultSkuId === null) {
+      return {
+        ok: false,
+        reason: 'need_detail',
+        message: '该商品有多规格，请进入商品详情选择规格后再兑换'
+      }
+    }
     return {
       ok: false,
       reason: 'no_skus',
@@ -146,5 +188,6 @@ module.exports = {
   formatAssetLabel,
   HOLO_RARITIES,
   isEmptySkuSpecValues,
-  resolveQuickExchangeSkuId
+  resolveQuickExchangeSkuId,
+  resolveSkuUnitCost
 }

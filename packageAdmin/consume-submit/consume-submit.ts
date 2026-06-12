@@ -90,6 +90,36 @@ Page({
       this.setData({ qrCode: decodedQrCode })
       this.loadUserInfo()
     }
+
+    // 预拉"我的门店"列表：管理员/多门店员工扫码前先选门店，避免扫码后才报 store_id 必填
+    this.loadMyStores()
+  },
+
+  /**
+   * 加载"我的门店"列表（门店选择器数据源）
+   *
+   * 后端接口：GET /api/v4/shop/my-stores
+   * - 单门店：自动选中（storeId 直接填充）
+   * - 多门店/管理员：展示选择器，由用户选择
+   */
+  async loadMyStores() {
+    try {
+      const storesResult = await API.getMyStores()
+      if (storesResult && storesResult.success && storesResult.data) {
+        const apiStores = storesResult.data.stores || []
+        const storePatch: Record<string, any> = { storeList: apiStores }
+        // 仅单门店时自动选中，多门店保持未选中状态等待用户选择
+        if (apiStores.length === 1) {
+          storePatch.storeId = apiStores[0].store_id
+          storePatch.storeIndex = 0
+        }
+        this.setData(storePatch)
+        consumeLog.info('我的门店列表加载成功，数量:', apiStores.length)
+      }
+    } catch (storesError: any) {
+      // 拉取失败不阻断主流程：扫码时后端仍会按需返回门店要求错误码兜底
+      consumeLog.warn('加载我的门店列表失败:', storesError?.message)
+    }
   },
 
   /**
@@ -103,12 +133,10 @@ Page({
       scanType: ['qrCode'] as any,
       success: (res: any) => {
         consumeLog.info('扫码成功:', res.result)
+        // 保留已加载的门店列表与已选门店（重新扫的是顾客，不是门店）
         this.setData({
           qrCode: res.result,
-          userInfo: null,
-          storeId: null,
-          storeList: [],
-          storeIndex: 0
+          userInfo: null
         })
         this.loadUserInfo()
       },
@@ -123,14 +151,12 @@ Page({
    */
   onRescanCode() {
     consumeLog.info('商家点击重新扫码')
+    // 保留门店列表与已选门店，仅清空顾客与提交态
     this.setData({
       qrCode: '',
       userInfo: null,
       userInfoLoading: false,
       submitted: false,
-      storeId: null,
-      storeList: [],
-      storeIndex: 0,
       loading: false
     })
   },
@@ -147,6 +173,13 @@ Page({
    *   前端弹出门店选择器，选择后重新请求
    */
   async loadUserInfo() {
+    // 多门店/管理员：必须先选门店再请求，避免后端返回 store_id 必填错误
+    if (this.data.storeList.length > 1 && !this.data.storeId) {
+      consumeLog.info('存在多个可选门店但未选择，提示先选门店')
+      showToast('请先选择门店')
+      return
+    }
+
     this.setData({ userInfoLoading: true })
 
     try {
@@ -172,9 +205,15 @@ Page({
     } catch (loadError: any) {
       consumeLog.error('加载用户信息失败:', loadError)
 
-      if (loadError.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
-        const availableStores = (loadError.data && loadError.data.available_stores) || []
-        consumeLog.info('多门店员工，需要选择门店:', availableStores)
+      if (
+        loadError.code === 'MULTIPLE_STORES_REQUIRE_STORE_ID' ||
+        loadError.code === 'ADMIN_STORE_ID_REQUIRED'
+      ) {
+        // 多门店员工：后端在 data.available_stores 带候选门店
+        // 管理员：后端不带候选，沿用 onLoad 预拉的 my-stores 列表
+        const availableStores =
+          (loadError.data && loadError.data.available_stores) || this.data.storeList || []
+        consumeLog.info('需要选择门店:', { code: loadError.code, count: availableStores.length })
 
         this.setData({
           storeList: availableStores,
@@ -365,6 +404,7 @@ Page({
       MISSING_IDEMPOTENCY_KEY: '系统异常（缺少幂等键），请重试',
       NO_STORE_BINDING: '您未绑定门店，请联系管理员',
       MULTIPLE_STORES_REQUIRE_STORE_ID: '请选择门店后重新提交',
+      ADMIN_STORE_ID_REQUIRED: '请选择门店后重新提交',
       RATE_LIMIT_EXCEEDED: '操作过于频繁，请稍后再试',
       SERVICE_UNAVAILABLE: '服务暂时不可用，请稍后重试',
       CONCURRENT_CONFLICT: '数据冲突，请重试',
@@ -385,8 +425,9 @@ Page({
       return
     }
 
-    if (code === 'MULTIPLE_STORES_REQUIRE_STORE_ID') {
-      const availableStores = (submitError.data && submitError.data.available_stores) || []
+    if (code === 'MULTIPLE_STORES_REQUIRE_STORE_ID' || code === 'ADMIN_STORE_ID_REQUIRED') {
+      const availableStores =
+        (submitError.data && submitError.data.available_stores) || this.data.storeList || []
       if (availableStores.length > 0) {
         this.setData({ storeList: availableStores })
       }

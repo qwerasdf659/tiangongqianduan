@@ -661,6 +661,12 @@ declare namespace API {
     /** 关联物品模板ID（指定用哪个模板铸造，可为 null 表示运营未配置） */
     item_template_id: number | null
     /**
+     * 默认 SKU ID（列表接口 GET /api/v4/exchange/items 下发）
+     * - 单 active SKU 商品：给出该 SKU 的 sku_id（货架"立即兑换"可直接提交）
+     * - 多 SKU 商品：为 null（需进详情页让用户选规格）
+     */
+    default_sku_id?: number | null
+    /**
      * SKU 规格列表（对齐后端 exchange_item_skus 表）
      * 多规格商品包含多条，单规格商品包含一条默认 SKU
      */
@@ -675,7 +681,11 @@ declare namespace API {
     sku_code: string
     /** 上架状态: active / inactive（列表与详情筛选可售 SKU 时依赖此字段） */
     status?: string
-    /** SPU 展示用单价回退；多规格时以本字段为权威单价（与 cost_asset_code 对应） */
+    /**
+     * SKU 单价（展示/计算回退值）。
+     * ⚠️ 权威单价以 channelPrices[0].cost_amount 为准（与 cost_asset_code 对应）；
+     * 本字段仅在 channelPrices 缺失时作为回退，避免合计为 NaN。
+     */
     cost_amount?: number
     /** 规格维度键值（如 { 颜色: '红', 尺码: 'L' }），单品默认 SKU 常为空对象 */
     spec_values?: Record<string, string>
@@ -1052,6 +1062,29 @@ declare namespace API {
     reviewed_at?: string | null
     /** 创建时间 */
     created_at: string
+  }
+
+  /**
+   * "我的门店"列表项（GET /api/v4/shop/my-stores）
+   * 门店选择器数据源，字段为后端 snake_case 原名，前端不做映射
+   */
+  interface MyStore {
+    /** 门店ID（主键） */
+    store_id: number
+    /** 门店名称 */
+    store_name: string
+    /** 门店编码 */
+    store_code?: string
+    /** 当前用户在该门店的角色（管理员全量范围时可能为空） */
+    role_in_store?: string
+  }
+
+  /** "我的门店"接口响应 data */
+  interface MyStoresData {
+    /** 是否为管理员全量范围（true=全部 active 门店；false=员工在职门店） */
+    is_admin_scope?: boolean
+    /** 门店列表 */
+    stores: MyStore[]
   }
 
   /** 二维码数据 */

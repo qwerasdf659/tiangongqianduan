@@ -23,21 +23,7 @@ function buildConfirmBtn(content, loading, disabled) {
 }
 
 /**
- * 消费审核拒绝弹窗确认按钮
- * @param {boolean} submitting - 提交中
- * @param {boolean} batchMode - 批量模式
- */
-function rejectBtn(submitting, batchMode) {
-  if (submitting) {
-    var text = batchMode ? '批量提交中...' : '提交中...'
-    return buildConfirmBtn(text, true, true)
-  }
-  var label = batchMode ? '确认批量拒绝' : '确认拒绝'
-  return buildConfirmBtn(label, false, false)
-}
-
-/**
- * 审核链拒绝弹窗确认按钮
+ * 审核链拒绝弹窗确认按钮（单条/批量共用）
  * @param {boolean} chainSubmitting - 提交中
  */
 function chainRejectBtn(chainSubmitting) {
@@ -49,6 +35,5 @@ function chainRejectBtn(chainSubmitting) {
 
 module.exports = {
   buildConfirmBtn: buildConfirmBtn,
-  rejectBtn: rejectBtn,
   chainRejectBtn: chainRejectBtn
 }

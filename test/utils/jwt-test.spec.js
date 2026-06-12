@@ -143,15 +143,14 @@ describe('JWT Token处理 - 完整测试套件', () => {
   // ====== 第二组：JWT解码测试 ======
 
   describe('decodeJWTPayload - JWT Token解码', () => {
-    test('✅ 应该成功解码有效的JWT Token', () => {
-      // 这个Token的payload是: {"user_id":123,"mobile":"13812345678","user_role":"user","role_level":0,"exp":1730459400,"iat":1730373000}
+    test('✅ 应该成功解码有效的JWT Token（仅校验身份字段，B1 精简后 Token 不再承载敏感资料）', () => {
+      // B1（2026-06-12）后端 generateTokens 已精简 payload，仅保留 user_id(+session_token/device_id/iat/exp)。
+      // 解码函数本身只负责 Base64URL+JSON 解析，此处只断言身份字段，
+      // 不再断言 mobile/role_level（这些已不在 Token 中，由后端 /auth/profile 等接口权威下发）。
       const payload = decodeJWTPayload(VALID_JWT_TOKENS.standard)
 
       expect(payload).not.toBeNull()
       expect(payload.user_id).toBe(123)
-      expect(payload.mobile).toBe('13812345678')
-      expect(payload.user_role).toBe('user')
-      expect(payload.role_level).toBe(0)
       expect(payload.exp).toBeDefined()
       expect(payload.iat).toBeDefined()
     })

@@ -841,6 +841,16 @@
   font-weight: var(--tg-font-weight-regular);
 }
 
+/* 业务快照缺失时的降级提示（引导查看详情） */
+.snapshot-fallback {
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+}
+
+.snapshot-fallback-text {
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
+}
+
 /* 超时截止标红 */
 .detail-val.timeout {
   color: var(--tg-color-error);

@@ -28,7 +28,6 @@ const {
   Constants: propsConstants,
   Utils: propsUtils,
   ImageHelper: propsImageHelper,
-  AssetCodes: propsAssetCodes,
   ProductDisplay: propsProductDisplay
 } = require('../../../../utils/index')
 
@@ -129,8 +128,8 @@ Component({
             item_name: item.item_name || '',
             image: imageUrl,
             primary_media_id: item.primary_media_id || null,
-            cost_amount: Number(item.cost_amount) || 0,
-            cost_asset_code: item.cost_asset_code || propsAssetCodes.STAR_STONE,
+            cost_amount: item.cost_amount || 0,
+            cost_asset_code: item.cost_asset_code || '',
             sold_count: item.sold_count || 0,
             tags: item.tags || [],
             is_hot: item.is_hot || false,
@@ -142,7 +141,9 @@ Component({
             stock: item.stock || 0,
             sort_order: item.sort_order || 0,
             rarity_code: item.rarity_code || 'common',
-            skus: Array.isArray(item.skus) ? item.skus : []
+            skus: Array.isArray(item.skus) ? item.skus : [],
+            /** 一键兑换需要：列表接口下发的默认 SKU（单 active SKU 给值；多 SKU 为 null） */
+            default_sku_id: item.default_sku_id === undefined ? null : item.default_sku_id
           }
         })
         .filter(Boolean)
@@ -305,8 +306,18 @@ Component({
     onPropQuantityChange(e: any) {
       const action = e.currentTarget.dataset.action
       let { propExchangeQuantity } = this.data
+      /**
+       * 每单上限：优先读后端商品级 max_quantity_per_order，未下发时回退接口契约上限
+       * （对接文档 16.2），再与库存取 Math.min。
+       */
+      const prop = this.data.selectedProp || {}
+      const perOrderMax =
+        typeof prop.max_quantity_per_order === 'number' && prop.max_quantity_per_order > 0
+          ? prop.max_quantity_per_order
+          : propsAPI.EXCHANGE_QUANTITY_CONTRACT_MAX
+      const maxQty = Math.min(typeof prop.stock === 'number' ? prop.stock : 0, perOrderMax)
       if (action === 'increase') {
-        propExchangeQuantity = Math.min(propExchangeQuantity + 1, 99)
+        propExchangeQuantity = Math.min(propExchangeQuantity + 1, maxQty)
       } else if (action === 'decrease') {
         propExchangeQuantity = Math.max(propExchangeQuantity - 1, 1)
       }

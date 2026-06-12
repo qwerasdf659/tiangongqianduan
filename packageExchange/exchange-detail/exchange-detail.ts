@@ -32,10 +32,9 @@ const {
   Logger: DetailPageLogger,
   ImageHelper: detailPageImageHelper,
   ExchangeConfig: DetailPageExchangeConfig,
-  AssetCodes: detailAssetCodes,
   ProductDisplay: detailProductDisplay
 } = require('../../utils/index')
-const { formatAssetLabel } = detailProductDisplay
+const { formatAssetLabel, resolveSkuUnitCost } = detailProductDisplay
 
 const edLog = DetailPageLogger.createLogger('exchange-detail')
 
@@ -134,6 +133,14 @@ Page({
     exchanging: false,
 
     /**
+     * 确认弹窗合计计算（预计算数值，避免 WXML 对可能为 undefined 的 cost_amount 做乘法→NaN）
+     * confirmUnitCost: 当前选中 SKU 的权威单价（channelPrices[0].cost_amount 优先）
+     * confirmTotalCost: 单价 × 数量
+     */
+    confirmUnitCost: 0,
+    confirmTotalCost: 0,
+
+    /**
      * SKU 规格选择（全量SKU模式，v4.0 Phase 0）
      * 所有商品统一走 exchange_item_skus 表
      * - 单品（1个SKU，spec_values={}）: 自动选中，不显示选择器
@@ -211,7 +218,12 @@ Page({
         throw new Error('商品数据格式异常：缺少 data.item 或 exchange_item_id')
       }
 
-      const priceCode: string = productData.cost_asset_code || detailAssetCodes.POINTS
+      /**
+       * 计价资产码：后端详情接口已在顶层下发 cost_asset_code（对接文档 16.1/16.3），
+       * 前端直读，不再顺 SKU channelPrices 兜底、不再 || 'points' 误兜底。
+       * 无价商品后端返回 null，formatAssetLabel('') 返回空字符串，由展示层处理。
+       */
+      const priceCode: string = productData.cost_asset_code || ''
 
       /**
        * 稀有度视觉配置优先级:
@@ -409,10 +421,10 @@ Page({
 
       /**
        * SKU 规格数据处理（全量SKU模式）
-       * 后端 GET /exchange/items/:id 返回 skus 数组:
-       *   [{ sku_id, spec_values, cost_amount, stock, status }]
+       * 后端 GET /exchange/items/:exchange_item_id 返回 skus 数组（对接文档 16.1）:
+       *   [{ sku_id, spec_values, stock, status, channelPrices: [{ cost_amount, cost_asset_code }] }]
        * 单品商品: skus.length === 1 且 spec_values 为 {}
-       * 多规格商品: skus.length > 1，每个 SKU 有独立价格和库存
+       * 多规格商品: skus.length > 1，每个 SKU 的价格在各自 channelPrices 内
        */
       const rawSkus: any[] = Array.isArray(productData.skus) ? productData.skus : []
       const activeSkus = rawSkus
@@ -422,7 +434,14 @@ Page({
             sku.spec_values && Object.keys(sku.spec_values).length > 0
               ? Object.values(sku.spec_values).join(' / ')
               : '默认'
-          return Object.assign({}, sku, { _specLabel: specLabel })
+          /** 权威单价：channelPrices[0].cost_amount 优先，回退 SKU/SPU cost_amount，绝不为 NaN */
+          const unitCost = resolveSkuUnitCost(sku, productData.cost_amount)
+          /** sku_id 归一为数字（后端可能以字符串下发），确保提交、比较、高亮全链路类型一致 */
+          return Object.assign({}, sku, {
+            sku_id: Number(sku.sku_id),
+            _specLabel: specLabel,
+            _unitCost: unitCost
+          })
         })
       const isEmptySpec = (sv: any) => !sv || Object.keys(sv).length === 0
       const hasMultiSku =
@@ -435,7 +454,7 @@ Page({
       let specMatrix: Record<string, string[]> = {}
 
       if (activeSkus.length === 1 && isEmptySpec(activeSkus[0].spec_values)) {
-        selectedSkuId = activeSkus[0].sku_id
+        selectedSkuId = Number(activeSkus[0].sku_id)
         selectedSkuInfo = activeSkus[0]
       }
 
@@ -465,17 +484,23 @@ Page({
       if (hasMultiSku) {
         const inStockSkus = activeSkus.filter((s: any) => (s.stock || 0) > 0)
         const costs = inStockSkus
-          .map((s: any) => (typeof s.cost_amount === 'number' ? s.cost_amount : null))
+          .map((s: any) => (typeof s._unitCost === 'number' ? s._unitCost : null))
           .filter((c: number | null) => c !== null) as number[]
         if (costs.length > 0) {
           referenceUnitCost = Math.min(...costs)
         }
-      } else if (selectedSkuInfo && typeof selectedSkuInfo.cost_amount === 'number') {
-        referenceUnitCost = selectedSkuInfo.cost_amount
-      } else if (activeSkus[0] && typeof activeSkus[0].cost_amount === 'number') {
-        referenceUnitCost = activeSkus[0].cost_amount
+      } else if (selectedSkuInfo && typeof selectedSkuInfo._unitCost === 'number') {
+        referenceUnitCost = selectedSkuInfo._unitCost
+      } else if (activeSkus[0] && typeof activeSkus[0]._unitCost === 'number') {
+        referenceUnitCost = activeSkus[0]._unitCost
       }
       const insufficient: boolean = assetBalance < referenceUnitCost
+
+      /** 初始合计：单默认 SKU 时已选中，预算单价×数量(1)；多规格未选时为 0，选规格后再更新 */
+      const initialUnitCost =
+        selectedSkuInfo && typeof selectedSkuInfo._unitCost === 'number'
+          ? selectedSkuInfo._unitCost
+          : 0
 
       this.setData({
         product: enrichedProduct,
@@ -503,6 +528,8 @@ Page({
         hasMultiSku,
         specNames,
         specMatrix,
+        confirmUnitCost: initialUnitCost,
+        confirmTotalCost: initialUnitCost,
         loading: false
       })
 
@@ -594,7 +621,7 @@ Page({
                   (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
               ''
             return Object.assign({}, item, {
-              _priceLabel: formatAssetLabel(item.cost_asset_code || detailAssetCodes.POINTS),
+              _priceLabel: formatAssetLabel(item.cost_asset_code || ''),
               _hasImage: !!imgSrc,
               _mainImage: imgSrc
             })
@@ -697,7 +724,17 @@ Page({
       this.data.selectedSkuInfo && typeof this.data.selectedSkuInfo.stock === 'number'
         ? this.data.selectedSkuInfo.stock
         : this.data.product.stock
-    const maxQty = Math.min(skuStock || 0, 99)
+    /**
+     * 每单上限：优先读后端商品级 max_quantity_per_order（业务规则权威来源），
+     * 后端未下发时回退接口契约硬上限（对接文档 16.2），再与库存取 Math.min。
+     */
+    const productData = this.data.product || {}
+    const perOrderMax =
+      typeof productData.max_quantity_per_order === 'number' &&
+      productData.max_quantity_per_order > 0
+        ? productData.max_quantity_per_order
+        : DetailPageAPI.EXCHANGE_QUANTITY_CONTRACT_MAX
+    const maxQty = Math.min(skuStock || 0, perOrderMax)
 
     if (action === 'increase') {
       exchangeQuantity = Math.min(exchangeQuantity + 1, maxQty)
@@ -705,7 +742,16 @@ Page({
       exchangeQuantity = Math.max(exchangeQuantity - 1, 1)
     }
 
-    this.setData({ exchangeQuantity })
+    /** 同步合计：单价取选中 SKU 的权威单价（_unitCost），无则回退 SPU 价 */
+    const unitCost =
+      this.data.selectedSkuInfo && typeof this.data.selectedSkuInfo._unitCost === 'number'
+        ? this.data.selectedSkuInfo._unitCost
+        : this.data.product.cost_amount || 0
+    this.setData({
+      exchangeQuantity,
+      confirmUnitCost: unitCost,
+      confirmTotalCost: unitCost * exchangeQuantity
+    })
   },
 
   /**
@@ -719,14 +765,21 @@ Page({
     if (!skuId) {
       return
     }
-    const matchedSku = this.data.skuList.find((sku: any) => sku.sku_id === skuId)
+    /** 后端 sku_id 可能为字符串，用 Number() 归一后比较，避免 string===number 永远不等 */
+    const matchedSku = this.data.skuList.find((sku: any) => Number(sku.sku_id) === skuId)
     if (matchedSku) {
-      const skuCost = matchedSku.cost_amount || this.data.product.cost_amount
+      /** 权威单价：channelPrices 已算入 matchedSku._unitCost，回退 SPU 展示价 */
+      const skuCost =
+        typeof matchedSku._unitCost === 'number'
+          ? matchedSku._unitCost
+          : this.data.product.cost_amount || 0
       const insufficient = this.data.currentBalance < skuCost
       this.setData({
         selectedSkuId: skuId,
         selectedSkuInfo: matchedSku,
-        balanceInsufficient: insufficient
+        balanceInsufficient: insufficient,
+        confirmUnitCost: skuCost,
+        confirmTotalCost: skuCost * this.data.exchangeQuantity
       })
     }
   },
@@ -752,8 +805,11 @@ Page({
       return
     }
 
-    /** SKU价格优先于SPU价格（多规格商品每个SKU独立价格） */
-    const unitCost = (selectedSkuInfo && selectedSkuInfo.cost_amount) || product.cost_amount
+    /** SKU 权威单价（channelPrices 已算入 _unitCost），回退 SPU 展示价 */
+    const unitCost =
+      (selectedSkuInfo && typeof selectedSkuInfo._unitCost === 'number'
+        ? selectedSkuInfo._unitCost
+        : product.cost_amount) || 0
     const totalCost = unitCost * exchangeQuantity
     if (currentBalance < totalCost) {
       wx.showToast({ title: '余额不足', icon: 'none' })

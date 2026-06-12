@@ -13,7 +13,7 @@
  */
 
 const { ImageHelper: resultImageHelper } = require('../../../../../utils/index')
-const { getQualityGradeStyle, formatEdition } = resultImageHelper
+const { getQualityGradeStyle, formatEdition, getAssetDisplayName } = resultImageHelper
 
 Component({
   properties: {
@@ -26,6 +26,14 @@ Component({
   },
 
   observers: {
+    /** 订单数据变更时，把 payAssetCode（如 star_stone）转中文名（星石），避免界面显示原始资产码或写死"积分" */
+    orderData(data: any) {
+      const assetCode = data && data.payAssetCode
+      this.setData({
+        _payAssetLabel: assetCode ? getAssetDisplayName(assetCode) : '积分'
+      })
+    },
+
     /** 铸造物品变更时计算展示字段 */
     mintedItem(item: any) {
       if (!item) {
@@ -57,7 +65,9 @@ Component({
     _qualityColorHex: '',
     _qualityGlowClass: '',
     _patternId: null as number | null,
-    _editionText: ''
+    _editionText: '',
+    /** 消耗资产中文名（由 payAssetCode 经资产字典映射，避免界面显示原始码/写死积分） */
+    _payAssetLabel: '积分'
   },
 
   methods: {
