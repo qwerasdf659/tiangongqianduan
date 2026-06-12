@@ -148,6 +148,13 @@
       </view>
     </view>
 
+    <!-- 页码翻页栏（仓库前端分页，仅多页时显示） -->
+    <exchange-pager
+      current-page="{{currentPage}}"
+      total-pages="{{totalPages}}"
+      bind:pagechange="onPagerChange"
+    />
+
     <!-- ====== 物品列表区域 ====== -->
     <view class="items-area">
       <!-- 加载骨架屏 -->

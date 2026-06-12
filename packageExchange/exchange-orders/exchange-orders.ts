@@ -93,8 +93,10 @@ Page({
     loadingMore: false,
     /** 是否无更多数据 */
     noMore: false,
-    /** 当前页码 */
+    /** 当前页码（1 基，以后端 pagination.page 为权威） */
     currentPage: 1,
+    /** 总页数（以后端 pagination.total_pages 为权威，供页码翻页栏使用） */
+    totalPages: 1,
     /** 每页数量 */
     pageSize: 10,
 
@@ -134,7 +136,7 @@ Page({
       this.setData({ showGuide: true })
     }
 
-    this.loadOrders(true)
+    this.loadOrders(1, false)
   },
 
   onShow() {
@@ -143,60 +145,78 @@ Page({
 
   /** 下拉刷新 */
   onPullDownRefresh() {
-    this.loadOrders(true).finally(() => {
+    this.loadOrders(1, false).finally(() => {
       wx.stopPullDownRefresh()
     })
   },
 
-  /** 触底加载更多 */
+  /** 触底加载更多（无限滚动，追加下一页） */
   onReachBottom() {
     if (this.data.loadingMore || this.data.noMore) {
       return
     }
-    this.loadOrders(false)
+    if (this.data.currentPage >= this.data.totalPages) {
+      return
+    }
+    this.loadOrders(this.data.currentPage + 1, true)
+  },
+
+  /**
+   * 页码翻页栏跳转（exchange-pager 派发）。
+   * 翻页为「替换式」加载（append=false），只展示目标页，区别于无限滚动的追加。
+   * 沿用当前筛选 Tab，仅切换页码。
+   */
+  onPagerChange(e: any) {
+    const page = e.detail && e.detail.page
+    if (!page || this.data.loading || this.data.loadingMore) {
+      return
+    }
+    this.loadOrders(page, false)
   },
 
   /**
    * 加载兑换订单列表
    * GET /api/v4/exchange/orders
    *
-   * @param reset - 是否重置列表（切换Tab或下拉刷新时为true）
+   * @param page - 目标页码（1 基），默认第 1 页
+   * @param append - true=追加（触底无限滚动），false=替换（切Tab/下拉/页码跳转）
    */
-  async loadOrders(reset: boolean = false) {
-    if (reset) {
-      this.setData({ loading: true, orders: [], currentPage: 1, noMore: false })
-    } else {
+  async loadOrders(page: number = 1, append: boolean = false) {
+    if (append) {
       this.setData({ loadingMore: true })
+    } else {
+      this.setData({ loading: true, orders: [], noMore: false })
     }
 
-    const targetPage = reset ? 1 : this.data.currentPage
     const statusFilter = this.data.currentTab === 'all' ? null : this.data.currentTab
 
     try {
-      const result = await API.getExchangeRecords(targetPage, this.data.pageSize, statusFilter)
+      const result = await API.getExchangeRecords(page, this.data.pageSize, statusFilter)
 
       if (result.success && result.data) {
         /** 后端 QueryService.getUserOrders() 返回字段名为 orders（M1 适配） */
         const rawOrders = result.data.orders || []
         const enrichedOrders = rawOrders.map((order: any) => this.enrichOrderDisplay(order))
 
-        const mergedOrders = reset ? enrichedOrders : [...this.data.orders, ...enrichedOrders]
+        const mergedOrders = append ? [...this.data.orders, ...enrichedOrders] : enrichedOrders
         const pagination = result.data.pagination || {}
-        const hasMore = targetPage < (pagination.total_pages || 1)
+        const totalPages = pagination.total_pages || 1
+        const hasMore = page < totalPages
 
         this.setData({
           orders: mergedOrders,
-          currentPage: targetPage + 1,
+          currentPage: page,
+          totalPages,
           noMore: !hasMore,
           loading: false,
           loadingMore: false
         })
 
-        if (reset) {
+        if (!append) {
           this.updateOrderStats(result.data)
         }
 
-        exchangeOrdersLog.info('兑换订单加载成功:', mergedOrders.length, '条')
+        exchangeOrdersLog.info('兑换订单加载成功:', mergedOrders.length, '条，第', page, '页')
       } else {
         throw new Error(result.message || '加载订单失败')
       }
@@ -319,7 +339,7 @@ Page({
       currentTab: tab,
       emptyText: EMPTY_TEXT_MAP[tab] || EMPTY_TEXT_MAP.all
     })
-    this.loadOrders(true)
+    this.loadOrders(1, false)
   },
 
   /** 点击订单卡片 → 跳转订单详情页 */
@@ -390,7 +410,7 @@ Page({
       if (result.success) {
         exchangeOrdersLog.info('确认收货成功:', targetOrderNo)
         showToast('确认收货成功', 'success')
-        this.loadOrders(true)
+        this.loadOrders(1, false)
       } else {
         throw new Error(result.message || '确认收货失败')
       }
@@ -436,7 +456,7 @@ Page({
       if (cancelResult.success) {
         exchangeOrdersLog.info('取消订单成功:', targetOrderNo)
         showToast('订单已取消，资产已退还', 'success')
-        this.loadOrders(true)
+        this.loadOrders(1, false)
       } else {
         throw new Error(cancelResult.message || '取消订单失败')
       }
@@ -504,7 +524,7 @@ Page({
         exchangeOrdersLog.info('评价提交成功:', ratingOrderNo, ratingScore)
         showToast('评价成功', 'success')
         this.onCloseRatingModal()
-        this.loadOrders(true)
+        this.loadOrders(1, false)
       } else {
         throw new Error(result.message || '评价失败')
       }

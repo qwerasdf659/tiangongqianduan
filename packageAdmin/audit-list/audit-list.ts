@@ -47,13 +47,6 @@ const STEP_STATUS_MAP: Record<string, string> = {
   timeout: '已超时'
 }
 
-/** 业务类型中文映射 */
-const AUDITABLE_TYPE_MAP: Record<string, string> = {
-  consumption: '消费审核',
-  merchant_points: '商家积分审核',
-  exchange: '兑换审核'
-}
-
 /**
  * 从日期字符串中直接提取年月日时分秒（不依赖 new Date() 解析）
  *
@@ -279,6 +272,17 @@ Page({
             (stepItem.instance && stepItem.instance.auditable_id) || stepItem.auditable_id || null
 
           /**
+           * 业务类型中文：直读后端字典下发的 auditable_type_display（如「交易纠纷」），
+           * 后端已统一中文化（system_dictionaries），前端零映射、不硬编码翻译表。
+           * 后端缺该字段时回退原始英文码，明确暴露后端未下发，不静默造假中文。
+           */
+          const auditableTypeDisplay =
+            (stepItem.instance && stepItem.instance.auditable_type_display) ||
+            stepItem.auditable_type_display ||
+            auditableType ||
+            '未知类型'
+
+          /**
            * 进度条数据预计算（避免 WXML 内联除法在 total_steps 缺失/为0时算出 NaN）：
            *   current/total 任一非正数则视为无有效进度，进度条不渲染。
            */
@@ -298,7 +302,7 @@ Page({
             auditable_id: auditableId,
             created_at_formatted: this.formatBeijingTime(stepItem.created_at),
             timeout_at_formatted: this.formatBeijingTime(stepItem.timeout_at),
-            auditable_type_text: AUDITABLE_TYPE_MAP[auditableType] || auditableType || '未知类型',
+            auditable_type_text: auditableTypeDisplay,
             status_text: STEP_STATUS_MAP[stepItem.status] || stepItem.status || '未知',
             chain_status_text: stepItem.instance
               ? CHAIN_STATUS_MAP[stepItem.instance.status] || stepItem.instance.status
@@ -363,7 +367,7 @@ Page({
     auditLog.info('审核链步骤通过，步骤:', approveStep)
 
     const stepDetail = approveStep.instance
-      ? `\n业务类型：${AUDITABLE_TYPE_MAP[approveStep.auditable_type] || approveStep.auditable_type}`
+      ? `\n业务类型：${approveStep.auditable_type_text || approveStep.auditable_type}`
       : ''
 
     const finalWarning = approveStep.is_final
@@ -718,8 +722,8 @@ Page({
         ? this.formatBeijingTime(detailData.completed_at)
         : null,
       status_text: CHAIN_STATUS_MAP[detailData.status] || detailData.status,
-      auditable_type_text:
-        AUDITABLE_TYPE_MAP[detailData.auditable_type] || detailData.auditable_type,
+      /** 业务类型中文：直读后端字典下发的 auditable_type_display，前端零映射；缺失回退英文码 */
+      auditable_type_text: detailData.auditable_type_display || detailData.auditable_type,
       steps: (detailData.steps || []).map((stepItem: any) => ({
         ...stepItem,
         status_text: STEP_STATUS_MAP[stepItem.status] || stepItem.status,

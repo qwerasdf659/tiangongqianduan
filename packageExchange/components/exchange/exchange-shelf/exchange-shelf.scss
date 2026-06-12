@@ -21,10 +21,11 @@
   --tg-exchange-card-hover-shadow: var(--tg-shadow-lg);
   --tg-exchange-card-hover-translate: -4rpx;
   --tg-exchange-card-image-bg: var(--tg-color-bg-panel);
-  --tg-exchange-price-color: var(--td-brand-color);
+  --tg-exchange-price-color: var(--tg-text-primary);
+  --tg-exchange-price-label: var(--tg-text-secondary);
   --tg-exchange-price-original: var(--tg-text-placeholder);
-  --tg-exchange-price-row-bg: transparent;
-  --tg-exchange-cta-bg: var(--td-brand-color);
+  --tg-exchange-price-row-bg: var(--tg-color-bg-accent-soft);
+  --tg-exchange-cta-bg: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
   --tg-exchange-cta-text: var(--tg-color-white);
   --tg-exchange-header-bg: #faf8f5;
   --tg-exchange-nav-slider-left: linear-gradient(135deg, #c5a572 0%, #a08b6e 100%);

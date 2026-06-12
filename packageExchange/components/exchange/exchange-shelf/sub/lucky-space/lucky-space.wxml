@@ -204,6 +204,12 @@
 
         <!-- 价格行 -->
         <view class="price-row">
+          <image
+            wx:if="{{item._priceIcon}}"
+            class="price-asset-icon"
+            src="{{item._priceIcon}}"
+            mode="aspectFit"
+          />
           <text class="price-unit">{{item._priceLabel || '—'}}</text>
           <text class="price-current">{{item.cost_amount}}</text>
           <text class="price-original" wx:if="{{item.original_price}}"

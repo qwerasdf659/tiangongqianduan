@@ -35,6 +35,13 @@
 
     <!-- 配方列表 -->
     <block wx:else>
+      <!-- 页码翻页栏（配方前端分页，仅多页时显示） -->
+      <exchange-pager
+        current-page="{{currentPage}}"
+        total-pages="{{totalPages}}"
+        bind:pagechange="onPagerChange"
+      />
+
       <view class="recipe-card" wx:for="{{recipes}}" wx:key="recipe_code">
         <view class="recipe-header">
           <text class="recipe-name">{{item.name}}</text>

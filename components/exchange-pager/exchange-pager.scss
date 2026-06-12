@@ -1,5 +1,5 @@
 /* exchange-pager 通用页码翻页栏样式 — 引用 Typography Token，禁止写死数值 */
-@import '../../../../../styles/mixins';
+@import '../../styles/mixins';
 
 .exchange-pager {
   @include tg-tokens;

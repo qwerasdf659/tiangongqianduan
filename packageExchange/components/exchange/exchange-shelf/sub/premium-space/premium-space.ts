@@ -297,12 +297,14 @@ Component({
             item_name: item.item_name || '',
             description: item.description || '',
             image:
-              (item.primary_media &&
-                (item.primary_media.public_url ||
-                  (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
+              (item.primary_image &&
+                (item.primary_image.thumbnail_url || item.primary_image.url)) ||
               premiumImageHelper.DEFAULT_PRODUCT_IMAGE,
             cost_amount: item.cost_amount || 0,
             cost_asset_code: item.cost_asset_code || '',
+            /** 计价资产中文名 + 图标（后端 GET /exchange/items 新增下发，前端零映射直读） */
+            cost_asset_name: item.cost_asset_name || '',
+            cost_asset_icon_url: item.cost_asset_icon_url || null,
             original_price: item.original_price || null,
             stock: item.stock || 0,
             sold_count: item.sold_count || 0,

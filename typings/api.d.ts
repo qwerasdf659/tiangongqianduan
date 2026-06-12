@@ -589,6 +589,21 @@ declare namespace API {
   // ===== 兑换系统 =====
 
   /**
+   * 兑换商品主图对象（C 端 GET /api/v4/exchange/items 与详情接口下发）
+   * 前端取图: thumbnail_url 优先（缩略图省流），回退 url（原图）
+   */
+  interface ExchangeItemPrimaryImage {
+    /** 主图媒体ID（关联 media_files 表，BIGINT 字符串下发） */
+    primary_media_id: string | number
+    /** 原图完整公网URL（后端已拼接，前端直接使用） */
+    url: string
+    /** 缩略图完整公网URL（列表优先使用，更省流更快） */
+    thumbnail_url: string
+    /** MIME 类型（如 image/png） */
+    mime: string
+  }
+
+  /**
    * 兑换商品（对齐后端 exchange_items 表 + GET /api/v4/exchange/items 响应）
    * 后端使用多币种支付模型: cost_asset_code + cost_amount
    * 图片通过 primary_media_id 关联 media_files 表（media_attachments 多态关联）
@@ -604,6 +619,16 @@ declare namespace API {
     cost_asset_code: string
     /** 支付资产数量（BIGINT） */
     cost_amount: number
+    /**
+     * 计价资产中文名（后端 material_asset_types.display_name 下发，如「红源晶碎片」「星石」）
+     * 前端直读展示，不再自维护资产码→中文映射表
+     */
+    cost_asset_name?: string
+    /**
+     * 计价资产图标完整 URL（后端下发，带内容哈希可长期缓存）；未配置图标时为 null
+     * 前端读取渲染，为 null 时兜底纯文字
+     */
+    cost_asset_icon_url?: string | null
     /** 原价（用于展示折扣，可为null） */
     original_price: number | null
     /** 库存数量 */
@@ -628,6 +653,12 @@ declare namespace API {
     primary_media_id: number | null
     /** 主图媒体对象（后端联查返回，可为null） */
     primary_media: MediaObject | null
+    /**
+     * 主图（C 端兑换列表/详情接口下发，前端取图权威字段）
+     * 列表与详情统一读 thumbnail_url 优先、回退 url；缺失或 url 均空时才显示占位图
+     * 注意: 与资产余额接口的 icon_url（资产图标）不同，商品主图固定读 primary_image
+     */
+    primary_image: ExchangeItemPrimaryImage | null
     /** 标签数组（JSON） */
     tags: string[]
     /** 是否热销 */

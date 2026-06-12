@@ -119,9 +119,7 @@ Component({
             return null
           }
           const imageUrl =
-            (item.primary_media &&
-              (item.primary_media.public_url ||
-                (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
+            (item.primary_image && (item.primary_image.thumbnail_url || item.primary_image.url)) ||
             propsImageHelper.DEFAULT_PRODUCT_IMAGE
           return {
             exchange_item_id: item.exchange_item_id,
@@ -130,6 +128,9 @@ Component({
             primary_media_id: item.primary_media_id || null,
             cost_amount: item.cost_amount || 0,
             cost_asset_code: item.cost_asset_code || '',
+            /** 计价资产中文名 + 图标（后端 GET /exchange/items 新增下发，前端零映射直读） */
+            cost_asset_name: item.cost_asset_name || '',
+            cost_asset_icon_url: item.cost_asset_icon_url || null,
             sold_count: item.sold_count || 0,
             tags: item.tags || [],
             is_hot: item.is_hot || false,

@@ -342,6 +342,14 @@
   gap: 8rpx;
 }
 
+/* 计价资产图标（后端 cost_asset_icon_url，与价格数字同排展示；为空时不渲染由纯文字兜底） */
+.ed-price-asset-icon {
+  width: 44rpx;
+  height: 44rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
 .ed-price-amount {
   font-size: var(--tg-font-size-display-lg);
   font-weight: var(--tg-font-weight-bold);

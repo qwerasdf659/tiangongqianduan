@@ -1,5 +1,5 @@
 <!-- exchange-pager 通用页码翻页栏 — 上一页/页码/下一页 + 跳转输入框
-     单一来源：幸运空间、臻选空间、道具商城三处共用本组件。
+     单一来源：主包 components/exchange-pager，全分包共用本组件。
      仅在 totalPages > 1 时渲染，避免单页时占用版面。 -->
 <view class="exchange-pager" wx:if="{{totalPages > 1}}">
   <!-- 上一页：第一页时禁用 -->

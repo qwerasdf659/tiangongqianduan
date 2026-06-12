@@ -43,6 +43,13 @@
         <text class="summary-text">共 {{totalCount}} 条售后申诉</text>
       </view>
 
+      <!-- 页码翻页栏（列表上方，仅多页时显示） -->
+      <exchange-pager
+        current-page="{{currentPage}}"
+        total-pages="{{totalPages}}"
+        bind:pagechange="onPagerChange"
+      />
+
       <view
         wx:for="{{disputes}}"
         wx:key="tradeDisputeId"

@@ -37,6 +37,8 @@ Page({
     pointsFilter: 'all',
     hasMoreRecords: false,
     currentPage: 1,
+    /** 总页数（以后端 pagination.total_pages 为权威，供页码翻页栏使用） */
+    totalPages: 1,
     pageSize: 20,
     lastUpdateTime: '',
 
@@ -185,13 +187,13 @@ Page({
    *   delta_amount > 0  → earn（积分获得）
    *   delta_amount < 0  → consume（积分消费）
    */
-  async loadPointsRecords() {
+  async loadPointsRecords(page = this.data.currentPage, append = page > 1) {
     if (this.data.loading) {
       log.info('正在加载中，跳过重复请求')
       return
     }
 
-    log.info('开始加载积分记录...')
+    log.info('开始加载积分记录...', { page, append })
     this.setData({ loading: true, hasError: false })
 
     try {
@@ -206,7 +208,7 @@ Page({
 
       // API请求（通过JWT Token识别用户，不传asset_code和business_type加载全部交易记录）
       // 筛选（全部/获得/消费）在前端客户端通过 filterPointsRecords() 完成
-      const result = await API.getPointsTransactions(this.data.currentPage, this.data.pageSize)
+      const result = await API.getPointsTransactions(page, this.data.pageSize)
 
       log.info('API响应详情:', {
         success: result.success,
@@ -271,9 +273,8 @@ Page({
           }
         })
 
-        // 加载更多时追加记录，首页加载时替换记录
-        const isLoadMore = this.data.currentPage > 1
-        const allRecords = isLoadMore
+        // 加载更多时追加记录，页码跳转/首页时替换记录
+        const allRecords = append
           ? [...this.data.pointsRecords, ...formattedRecords]
           : formattedRecords
 
@@ -281,15 +282,18 @@ Page({
           原始记录数: transactions?.length || 0,
           本次格式化: formattedRecords.length,
           累计记录数: allRecords.length,
-          是否追加: isLoadMore
+          是否追加: append
         })
 
         // 🔴 后端分页字段: total, page, page_size, total_pages（不含 hasMore / has_more）
         // 根据 page < total_pages 计算是否还有更多数据
+        const totalPages = pagination ? pagination.total_pages || 1 : 1
         const hasMore = pagination ? pagination.page < pagination.total_pages : false
 
         this.setData({
           pointsRecords: allRecords,
+          currentPage: page,
+          totalPages,
           hasMoreRecords: hasMore,
           lastUpdateTime: new Date().toLocaleString(),
           loading: false,
@@ -354,7 +358,7 @@ Page({
             if (res.confirm) {
               wx.navigateBack()
             } else {
-              this.loadPointsRecords()
+              this.loadPointsRecords(this.data.currentPage, false)
             }
           }
         })
@@ -373,7 +377,7 @@ Page({
           if (res.confirm) {
             wx.navigateBack()
           } else {
-            this.loadPointsRecords()
+            this.loadPointsRecords(this.data.currentPage, false)
           }
         }
       })
@@ -413,16 +417,25 @@ Page({
       return
     }
 
+    const nextPage = this.data.currentPage + 1
     log.info('加载更多积分记录...', {
       currentPage: this.data.currentPage,
-      nextPage: this.data.currentPage + 1
+      nextPage
     })
 
-    this.setData({
-      currentPage: this.data.currentPage + 1
-    })
+    this.loadPointsRecords(nextPage, true)
+  },
 
-    this.loadPointsRecords()
+  /**
+   * 页码翻页栏跳转（exchange-pager 派发）。
+   * 后端真分页，翻页为替换式加载，只展示目标页（连抽聚合按当前页生效）。
+   */
+  onPagerChange(e: any) {
+    const page = e.detail && e.detail.page
+    if (!page || this.data.loading) {
+      return
+    }
+    this.loadPointsRecords(page, false)
   },
 
   /**

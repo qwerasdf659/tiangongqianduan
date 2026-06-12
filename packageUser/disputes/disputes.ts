@@ -56,7 +56,11 @@ Page({
     currentPage: 1,
     pageSize: 10,
     totalCount: 0,
+    /** 总页数（由 count / pageSize 向上取整，供页码翻页栏使用） */
+    totalPages: 1,
     hasMore: false,
+    /** 触底加载更多中（防止重复触发） */
+    loadingMore: false,
     /* MobX Store绑定字段 */
     isLoggedIn: false
   },
@@ -78,7 +82,7 @@ Page({
       return
     }
 
-    this.loadDisputes()
+    this.loadDisputes(1, false)
   },
 
   onUnload() {
@@ -89,71 +93,81 @@ Page({
 
   async onPullDownRefresh() {
     disputesListLog.info('下拉刷新售后申诉列表')
-    this.setData({ currentPage: 1 })
-    await this.loadDisputes()
+    await this.loadDisputes(1, false)
     wx.stopPullDownRefresh()
   },
 
   onReachBottom() {
-    if (this.data.hasMore) {
-      this.loadMoreDisputes()
+    if (this.data.hasMore && !this.data.loadingMore) {
+      this.loadDisputes(this.data.currentPage + 1, true)
     }
   },
 
-  /** 加载售后申诉列表（后端按JWT中的user_id做数据隔离，只返回本人申诉） */
-  async loadDisputes() {
-    this.setData({ loadStatus: 'loading' })
+  /**
+   * 页码翻页栏跳转（exchange-pager 派发）。
+   * 翻页为「替换式」加载（append=false），只展示目标页。
+   */
+  onPagerChange(e: any) {
+    const page = e.detail && e.detail.page
+    if (!page || this.data.loadingMore) {
+      return
+    }
+    this.loadDisputes(page, false)
+  },
+
+  /**
+   * 加载售后申诉列表（后端按JWT中的user_id做数据隔离，只返回本人申诉）
+   *
+   * @param page - 目标页码（1 基），默认第 1 页
+   * @param append - true=追加（触底加载），false=替换（首屏/下拉/页码跳转）
+   */
+  async loadDisputes(page: number = 1, append: boolean = false) {
+    if (append) {
+      this.setData({ loadingMore: true })
+    } else {
+      this.setData({ loadStatus: 'loading' })
+    }
 
     try {
-      const result = await API.getMyDisputes(this.data.currentPage, this.data.pageSize)
+      const result = await API.getMyDisputes(page, this.data.pageSize)
 
       if (result.success && result.data) {
         const rawDisputes = result.data.rows || []
         const totalCount = result.data.count || 0
+        const totalPages = Math.max(1, Math.ceil(totalCount / this.data.pageSize))
 
         const processedDisputes = rawDisputes.map((dispute: any) =>
           this.processDisputeItem(dispute)
         )
 
+        const mergedDisputes = append
+          ? [...this.data.disputes, ...processedDisputes]
+          : processedDisputes
+
         this.setData({
-          disputes: processedDisputes,
+          disputes: mergedDisputes,
+          currentPage: page,
           totalCount,
-          hasMore: processedDisputes.length < totalCount,
-          loadStatus: processedDisputes.length > 0 ? 'success' : 'empty'
+          totalPages,
+          hasMore: mergedDisputes.length < totalCount,
+          loadingMore: false,
+          loadStatus: mergedDisputes.length > 0 ? 'success' : 'empty'
         })
 
-        disputesListLog.info('售后申诉列表加载成功:', processedDisputes.length, '条')
+        disputesListLog.info('售后申诉列表加载成功:', mergedDisputes.length, '条，第', page, '页')
       } else {
-        this.setData({ disputes: [], loadStatus: 'empty' })
+        if (!append) {
+          this.setData({ disputes: [], loadStatus: 'empty' })
+        }
+        this.setData({ loadingMore: false })
       }
     } catch (error) {
       disputesListLog.error('加载售后申诉列表失败:', error)
-      this.setData({ loadStatus: 'error' })
-      showToast('加载售后申诉失败')
-    }
-  },
-
-  /** 加载更多售后申诉（触底分页） */
-  async loadMoreDisputes() {
-    const nextPage = this.data.currentPage + 1
-
-    try {
-      const result = await API.getMyDisputes(nextPage, this.data.pageSize)
-
-      if (result.success && result.data) {
-        const moreDisputes = (result.data.rows || []).map((dispute: any) =>
-          this.processDisputeItem(dispute)
-        )
-
-        this.setData({
-          disputes: [...this.data.disputes, ...moreDisputes],
-          currentPage: nextPage,
-          hasMore: this.data.disputes.length + moreDisputes.length < (result.data.count || 0)
-        })
+      this.setData({ loadingMore: false })
+      if (!append) {
+        this.setData({ loadStatus: 'error' })
       }
-    } catch (error) {
-      disputesListLog.error('加载更多售后申诉失败:', error)
-      showToast('加载更多失败')
+      showToast('加载售后申诉失败')
     }
   },
 
@@ -196,7 +210,6 @@ Page({
 
   /** 重试加载 */
   retryLoad() {
-    this.setData({ currentPage: 1 })
-    this.loadDisputes()
+    this.loadDisputes(1, false)
   }
 })

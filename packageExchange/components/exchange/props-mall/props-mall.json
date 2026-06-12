@@ -2,7 +2,7 @@
   "component": true,
   "styleIsolation": "apply-shared",
   "usingComponents": {
-    "exchange-pager": "/packageExchange/components/exchange/shared/exchange-pager/exchange-pager",
+    "exchange-pager": "/components/exchange-pager/exchange-pager",
     "exchange-confirm": "/packageExchange/components/exchange/shared/exchange-confirm/exchange-confirm",
     "exchange-result": "/packageExchange/components/exchange/shared/exchange-result/exchange-result",
     "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",

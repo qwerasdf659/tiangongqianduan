@@ -63,6 +63,13 @@
         <view class="records-count">共 {{filteredPointsRecords.length || 0}} 条</view>
       </view>
 
+      <!-- 页码翻页栏（后端真分页，仅多页时显示） -->
+      <exchange-pager
+        current-page="{{currentPage}}"
+        total-pages="{{totalPages}}"
+        bind:pagechange="onPagerChange"
+      />
+
       <!-- 记录列表 -->
       <view class="records-list" wx:if="{{filteredPointsRecords.length > 0}}">
         <view
@@ -79,7 +86,11 @@
           <!-- 记录图标 -->
           <view class="record-icon">
             <view class="icon-bg {{item.transaction_type === 'earn' ? 'earn-bg' : 'consume-bg'}}">
-              <t-icon name="{{item.transaction_type === 'earn' ? 'arrow-up' : 'arrow-down'}}" size="32rpx" color="{{item.transaction_type === 'earn' ? '#27ae60' : '#c44569'}}" />
+              <t-icon
+                name="{{item.transaction_type === 'earn' ? 'arrow-up' : 'arrow-down'}}"
+                size="32rpx"
+                color="{{item.transaction_type === 'earn' ? '#27ae60' : '#c44569'}}"
+              />
             </view>
           </view>
 

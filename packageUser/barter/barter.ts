@@ -29,8 +29,12 @@ Page({
   data: {
     /** 页面加载状态机 */
     loadStatus: 'loading' as 'loading' | 'success' | 'empty' | 'error',
-    /** 配方列表（附加前端展示字段 _ownedCount / _canMake） */
+    /** 配方列表（当前页，附加前端展示字段 _ownedCount / _canMake） */
     recipes: [] as any[],
+    /** 当前页码（前端分页，1 基，供页码翻页栏展示） */
+    currentPage: 1,
+    /** 总页数（按配方总数 / 每页数计算，供页码翻页栏使用） */
+    totalPages: 1,
     /** 用户可用旧物（status=available 的背包物品，用于按模板匹配） */
     availableItems: [] as any[],
 
@@ -51,6 +55,11 @@ Page({
 
   /** MobX Store 绑定实例（onUnload 时销毁） */
   userBindings: null as any,
+
+  /** 全量配方（前端分页数据源，不直接渲染，分页截取后写入 recipes） */
+  _allRecipes: [] as any[],
+  /** 配方每页条数（前端分页，UI 常量） */
+  _recipePageSize: 10,
 
   onLoad() {
     barterLog.info('以物易物页面加载')
@@ -100,8 +109,14 @@ Page({
         this.enrichRecipe(recipe, availableItems)
       )
 
+      /** 配方使用前端分页（后端一次返回全部配方），缓存全量后截取第 1 页 */
+      this._allRecipes = processedRecipes
+      const totalPages = Math.max(1, Math.ceil(processedRecipes.length / this._recipePageSize))
+
       this.setData({
-        recipes: processedRecipes,
+        recipes: processedRecipes.slice(0, this._recipePageSize),
+        currentPage: 1,
+        totalPages,
         availableItems,
         loadStatus: processedRecipes.length > 0 ? 'success' : 'empty'
       })
@@ -112,6 +127,22 @@ Page({
       this.setData({ loadStatus: 'error' })
       showToast(error.message || '加载失败，请重试')
     }
+  },
+
+  /**
+   * 页码翻页栏跳转（exchange-pager 派发）。
+   * 配方为前端分页，翻页为「替换式」：从 _allRecipes 截取目标页写入 recipes。
+   */
+  onPagerChange(e: any) {
+    const page = e.detail && e.detail.page
+    if (!page) {
+      return
+    }
+    const start = (page - 1) * this._recipePageSize
+    this.setData({
+      currentPage: page,
+      recipes: this._allRecipes.slice(start, start + this._recipePageSize)
+    })
   },
 
   /**

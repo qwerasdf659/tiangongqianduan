@@ -85,7 +85,16 @@ Page({
 
     // 🔴 交易记录相关数据（来自 GET /api/v4/assets/transactions）
     transactionRecords: [] as any[],
+    /** 交易记录-当前页展示数据（前端分页截取后） */
     filteredRecords: [] as any[],
+    /** 交易记录-筛选后的完整结果（前端分页数据源，不直接渲染） */
+    tradeAllFiltered: [] as any[],
+    /** 交易记录-当前页码（前端分页，1 基） */
+    tradePage: 1,
+    /** 交易记录-总页数（按筛选后结果数 / 每页数计算，供页码翻页栏使用） */
+    tradeTotalPages: 1,
+    /** 交易记录-每页条数（前端分页，UI 常量） */
+    tradePageSize: 20,
     // 筛选条件
     currentTimeFilter: 'all',
     currentTypeFilter: 'all',
@@ -108,6 +117,10 @@ Page({
     consumptionPage: 1,
     consumptionPageSize: 20,
     consumptionHasMore: true,
+    /** 消费记录-总页数（以后端 pagination.total_pages 为权威，供页码翻页栏使用） */
+    consumptionTotalPages: 1,
+    /** 消费记录-当前页码（1 基，供页码翻页栏展示） */
+    consumptionCurrentPage: 1,
 
     // 🔴 页面状态
     loading: true,
@@ -221,7 +234,7 @@ Page({
       await this.loadTransactionData()
     } else {
       // 🧾 消费记录Tab
-      await this.loadConsumptionRecords(true)
+      await this.loadConsumptionRecords(1, false)
     }
   },
 
@@ -406,7 +419,37 @@ Page({
         (Utils.safeParseDateString(a.created_at) || new Date(0)).getTime()
     )
 
-    this.setData({ filteredRecords })
+    /**
+     * 交易记录使用前端分页：后端只支持 asset_code/business_type 筛选，
+     * 时间/方向/关键词为前端筛选，故按筛选后的完整结果做前端分页（首页回到第 1 页）。
+     */
+    const tradeTotalPages = Math.max(1, Math.ceil(filteredRecords.length / this.data.tradePageSize))
+    this.setData({ tradeAllFiltered: filteredRecords, tradeTotalPages })
+    this._applyTradePage(1)
+  },
+
+  /**
+   * 交易记录前端分页：从 tradeAllFiltered 截取目标页写入 filteredRecords。
+   *
+   * @param page - 目标页码（1 基）
+   */
+  _applyTradePage(page: number) {
+    const pageSize = this.data.tradePageSize
+    const start = (page - 1) * pageSize
+    const pageRecords = this.data.tradeAllFiltered.slice(start, start + pageSize)
+    this.setData({ tradePage: page, filteredRecords: pageRecords })
+  },
+
+  /**
+   * 交易记录页码翻页栏跳转（exchange-pager 派发）。
+   * 前端分页：仅切换展示页，不重新请求后端。
+   */
+  onTradePagerChange(e: any) {
+    const page = e.detail && e.detail.page
+    if (!page) {
+      return
+    }
+    this._applyTradePage(page)
   },
 
   /**
@@ -538,6 +581,8 @@ Page({
   /**
    * 🧾 加载消费记录
    *
+   * 后端真分页（status 为服务端筛选），支持页码跳转（替换式）与触底加载（追加式）。
+   *
    * 后端返回字段（基于consumption_records 表，对齐v2.0文档）：
    *   - consumption_record_id: BIGINT PK 记录主键
    *   - user_id: INT FK 用户ID
@@ -551,27 +596,23 @@ Page({
    *   - store_id: INT FK 门店ID
    *   - created_at: DATETIME 创建时间 ⚠️ 后端可能返回非字符串类型，需安全转换
    *
-   * @param refresh - 是否刷新（重置分页）
+   * @param page - 目标页码（1 基），默认第 1 页
+   * @param append - true=追加（触底加载），false=替换（首屏/切筛选/页码跳转）
    */
-  async loadConsumptionRecords(refresh = false) {
+  async loadConsumptionRecords(page: number = 1, append: boolean = false) {
     if (!this.data.isLoggedIn) {
       return
     }
 
-    if (refresh) {
-      this.setData({
-        consumptionPage: 1,
-        consumptionHasMore: true,
-        consumptionRecords: []
-      })
+    if (!append) {
+      this.setData({ consumptionRecords: [] })
     }
 
-    const currentPage = this.data.consumptionPage
     const statusFilter = this.data.consumptionFilter === 'all' ? null : this.data.consumptionFilter
 
     try {
       const result = await API.getMyConsumptionRecords({
-        page: currentPage,
+        page,
         page_size: this.data.consumptionPageSize,
         status: statusFilter
       })
@@ -579,6 +620,10 @@ Page({
 
       if (success && data) {
         const rawRecords = data.records || []
+        const pagination = data.pagination || {}
+        const totalPages =
+          pagination.total_pages ||
+          (rawRecords.length === this.data.consumptionPageSize ? page + 1 : page)
 
         // 🔴 处理消费记录 - 安全转换时间字段（防止[object Object]）
         const processedRecords = rawRecords.map((record: any) => ({
@@ -587,22 +632,36 @@ Page({
           created_at: safeTimeString(record.created_at)
         }))
 
-        const allRecords = refresh
-          ? processedRecords
-          : [...this.data.consumptionRecords, ...processedRecords]
+        const allRecords = append
+          ? [...this.data.consumptionRecords, ...processedRecords]
+          : processedRecords
 
         this.setData({
           consumptionRecords: allRecords,
-          consumptionHasMore: rawRecords.length === this.data.consumptionPageSize,
-          consumptionPage: currentPage + 1
+          consumptionHasMore: page < totalPages,
+          consumptionPage: page + 1,
+          consumptionCurrentPage: page,
+          consumptionTotalPages: totalPages
         })
 
-        log.info(` 消费记录加载完成，共${allRecords.length}条`)
+        log.info(` 消费记录加载完成，共${allRecords.length}条，第${page}页`)
       }
     } catch (error) {
       log.error('加载消费记录失败:', error)
       showToast('消费记录加载失败')
     }
+  },
+
+  /**
+   * 🧾 消费记录页码翻页栏跳转（exchange-pager 派发）。
+   * 后端真分页，翻页为替换式加载，只展示目标页。
+   */
+  onConsumptionPagerChange(e: any) {
+    const page = e.detail && e.detail.page
+    if (!page || this.data.loadingMore) {
+      return
+    }
+    this.loadConsumptionRecords(page, false)
   },
 
   /**
@@ -620,7 +679,7 @@ Page({
       consumptionRecords: []
     })
 
-    this.loadConsumptionRecords(true)
+    this.loadConsumptionRecords(1, false)
   },
 
   /**
@@ -831,7 +890,7 @@ Page({
     if (this.data.activeTab === 1) {
       if (this.data.consumptionHasMore && !this.data.loadingMore) {
         this.setData({ loadingMore: true })
-        await this.loadConsumptionRecords()
+        await this.loadConsumptionRecords(this.data.consumptionPage, true)
         this.setData({ loadingMore: false })
       }
     }

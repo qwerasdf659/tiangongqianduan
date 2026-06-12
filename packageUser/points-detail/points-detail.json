@@ -13,7 +13,8 @@
     "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
     "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
     "t-button": "/miniprogram_npm/tdesign-miniprogram/button/button",
-    "custom-navbar": "/components/custom-navbar/custom-navbar"
+    "custom-navbar": "/components/custom-navbar/custom-navbar",
+    "exchange-pager": "/components/exchange-pager/exchange-pager"
   },
   "navigationStyle": "custom",
   "disableScroll": true

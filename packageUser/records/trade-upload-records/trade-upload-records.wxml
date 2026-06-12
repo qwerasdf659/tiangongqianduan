@@ -147,9 +147,16 @@
         </view>
 
         <!-- 记录数量提示 -->
-        <view class="records-count" wx:if="{{filteredRecords.length > 0}}">
-          <text class="count-text">共 {{filteredRecords.length}} 条记录</text>
+        <view class="records-count" wx:if="{{tradeAllFiltered.length > 0}}">
+          <text class="count-text">共 {{tradeAllFiltered.length}} 条记录</text>
         </view>
+
+        <!-- 页码翻页栏（交易记录前端分页，仅多页时显示） -->
+        <exchange-pager
+          current-page="{{tradePage}}"
+          total-pages="{{tradeTotalPages}}"
+          bind:pagechange="onTradePagerChange"
+        />
 
         <!-- 交易记录列表（后端字段: asset_transaction_id / delta_amount / business_type / description / title / created_at） -->
         <view class="records-section">
@@ -233,6 +240,13 @@
 
         <!-- 消费记录列表 -->
         <view class="records-section">
+          <!-- 页码翻页栏（消费记录后端分页，仅多页时显示） -->
+          <exchange-pager
+            current-page="{{consumptionCurrentPage}}"
+            total-pages="{{consumptionTotalPages}}"
+            bind:pagechange="onConsumptionPagerChange"
+          />
+
           <view class="records-list">
             <block
               wx:if="{{consumptionRecords.length > 0}}"

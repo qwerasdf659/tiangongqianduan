@@ -1,19 +1,20 @@
 /**
- * exchange-pager 通用页码翻页栏组件
+ * exchange-pager 通用页码翻页栏组件（主包共享，全分包可引用）
  *
- * 业务定位：在商品流（无限滚动）之上，额外提供「页码翻页 + 跳转指定页」能力，
- *           满足用户精确定位某一页的需求（对标虚拟物品交易平台的专业翻页）。
+ * 业务定位：在列表（无限滚动）之上，额外提供「页码翻页 + 跳转指定页」能力，
+ *           满足用户精确定位某一页的需求。
  *
  * 设计要点：
- *   - 单一来源：幸运空间 / 臻选空间 / 道具商城三处共用，避免三份重复实现。
+ *   - 单一来源：放在主包 components/，商品兑换 / 道具商城 / 我的订单 / 我的售后 /
+ *               积分明细 / 积分活动记录 / 我的仓库 / 以物易物 等全分包共用，避免重复实现。
  *   - 受控组件：currentPage / totalPages 由父组件下传（以后端 pagination 为权威），
  *               本组件不自行计算业务分页，只负责交互与边界校验。
  *   - 事件契约：用户点上一页/下一页/跳转时，triggerEvent('pagechange', { page })，
  *               由父组件调用各自的「替换式加载」拉取目标页。
  *
- * @file packageExchange/components/exchange/shared/exchange-pager/exchange-pager.ts
- * @version 1.0.0
- * @since 2026-06-11
+ * @file components/exchange-pager/exchange-pager.ts
+ * @version 2.0.0
+ * @since 2026-06-13（从 packageExchange 迁移至主包，供全分包共享）
  */
 
 Component({

@@ -72,6 +72,10 @@ Page({
     filteredItems: [] as API.BackpackItem[],
     /** 是否还有更多物品可加载（触底加载更多） */
     hasMoreItems: false,
+    /** 当前页码（前端分页，1 基，供页码翻页栏展示） */
+    currentPage: 1,
+    /** 总页数（按筛选后结果数 / 每页数计算，供页码翻页栏使用） */
+    totalPages: 1,
 
     // ===== 统计数据（来GET /api/v4/backpack/stats====
     /** 资产种类数量 */
@@ -421,6 +425,8 @@ Page({
       backpackAssets: [],
       filteredItems: [],
       hasMoreItems: false,
+      currentPage: 1,
+      totalPages: 1,
       totalAssets: 0,
       totalItems: 0,
       totalAssetValue: 0,
@@ -509,7 +515,29 @@ Page({
 
     this.setData({
       filteredItems: firstPage,
-      hasMoreItems: filteredItems.length > this._pageSize
+      hasMoreItems: filteredItems.length > this._pageSize,
+      currentPage: 1,
+      totalPages: Math.max(1, Math.ceil(filteredItems.length / this._pageSize))
+    })
+  },
+
+  /**
+   * 页码翻页栏跳转（exchange-pager 派发）。
+   * 仓库为前端分页（后端一次返回全部物品），翻页为「替换式」：
+   * 从 _filteredAllItems 截取目标页写入 filteredItems，只展示该页。
+   */
+  onPagerChange(e: any) {
+    const page = e.detail && e.detail.page
+    if (!page) {
+      return
+    }
+    this._displayPage = page
+    const start = (page - 1) * this._pageSize
+    const pageItems = this._filteredAllItems.slice(start, start + this._pageSize)
+    this.setData({
+      currentPage: page,
+      filteredItems: pageItems,
+      hasMoreItems: start + this._pageSize < this._filteredAllItems.length
     })
   },
 
@@ -538,6 +566,7 @@ Page({
     const currentItems = this.data.filteredItems
     this.setData({
       filteredItems: currentItems.concat(nextPage),
+      currentPage: this._displayPage,
       hasMoreItems: endIndex < this._filteredAllItems.length
     })
   },

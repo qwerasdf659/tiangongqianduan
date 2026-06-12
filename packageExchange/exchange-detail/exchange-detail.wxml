@@ -121,6 +121,12 @@
 
       <!-- ③ 价格区: 大号渐变数字 + 划线原价 + 省XX标签 -->
       <view class="ed-price-section">
+        <image
+          wx:if="{{product._priceIcon}}"
+          class="ed-price-asset-icon"
+          src="{{product._priceIcon}}"
+          mode="aspectFit"
+        />
         <text class="ed-price-amount">{{product.cost_amount}}</text>
         <text class="ed-price-unit">{{product._priceLabel || '—'}}</text>
         <view

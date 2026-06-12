@@ -34,11 +34,11 @@
 }
 
 .type-bar.asset {
-  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
+  background: var(--tg-exchange-cta-bg, linear-gradient(135deg, #c8a06a 0%, #a0724a 100%));
 }
 
 .type-bar.item {
-  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
+  background: var(--tg-exchange-cta-bg, linear-gradient(135deg, #c8a06a 0%, #a0724a 100%));
 }
 
 .type-bar.lucky {
@@ -169,23 +169,34 @@
 /* 价格行 */
 .unified-card .price-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6rpx;
   padding: 8rpx 14rpx;
   border-radius: 12rpx;
   margin: 8rpx 0;
-  background: var(--tg-exchange-price-row-bg, transparent);
+  background: var(--tg-exchange-price-row-bg, var(--tg-color-bg-accent-soft));
+}
+
+/* 计价资产图标（星石/源晶等，价格数字前展示） */
+.unified-card .price-asset-icon {
+  width: 36rpx;
+  height: 36rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .unified-card .price-unit {
   font-size: var(--tg-font-size-mini);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-exchange-price-color, var(--td-brand-color));
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-exchange-price-label, var(--tg-text-secondary));
 }
 .unified-card .price-current {
+  font-family: var(--tg-font-number);
   font-size: var(--tg-font-size-number-lg);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-exchange-price-color, var(--td-brand-color));
+  color: var(--tg-exchange-price-color, var(--tg-text-primary));
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tg-letter-spacing-tight);
   line-height: 1;
 }
 .unified-card .price-original {
@@ -250,15 +261,15 @@
   align-items: center;
   justify-content: center;
   border: none;
-  background: var(--tg-exchange-cta-bg, var(--td-brand-color));
-  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
-  letter-spacing: var(--tg-letter-spacing-normal);
+  background: var(--tg-exchange-cta-bg, linear-gradient(135deg, #c8a06a 0%, #a0724a 100%));
+  box-shadow: 0 4rpx 12rpx rgba(200, 160, 106, 0.28);
+  letter-spacing: var(--tg-letter-spacing-wide);
   transition: all 0.2s;
 }
 
 .unified-card .cta-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 1rpx 6rpx rgba(var(--td-brand-color-rgb), 0.03);
+  box-shadow: 0 2rpx 6rpx rgba(200, 160, 106, 0.2);
 }
 
 .unified-card .cta-btn.btn-disabled {
@@ -426,27 +437,45 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 65%;
-  background: linear-gradient(transparent, rgba(var(--tg-color-black-rgb), 0.75));
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.55) 30%,
+    rgba(0, 0, 0, 0.1) 60%,
+    transparent 100%
+  );
   z-index: 1;
 }
 .unified-card.fullbleed-mode .card-body {
   position: relative;
   z-index: 2;
-  padding-top: 200rpx;
+  padding-top: 180rpx;
 }
 .unified-card.fullbleed-mode .product-name {
-  color: var(--tg-color-white);
-  text-shadow: 0 2rpx 8rpx rgba(var(--tg-color-black-rgb), 0.3);
+  color: #ffffff;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.85);
 }
 .unified-card.fullbleed-mode .product-desc {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.8);
+}
+/* 整图叠字模式价格行：去掉浅色底盒，文字直接叠在深色遮罩上 */
+.unified-card.fullbleed-mode .price-row {
+  background: transparent;
+  padding: 8rpx 0;
 }
 .unified-card.fullbleed-mode .price-current {
-  color: var(--tg-color-warning);
+  color: #ffe2a8;
+  text-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.8);
 }
 .unified-card.fullbleed-mode .price-unit {
-  color: var(--tg-color-warning);
+  color: #ffe2a8;
+  text-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.8);
+}
+.unified-card.fullbleed-mode .stock-text {
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.8);
 }
 
 /* 列表视图下禁用"全图叠字"效果：全图铺满只适合网格竖卡，列表横排须回归左图右文 */
@@ -471,10 +500,15 @@
 }
 .unified-card.list-mode.fullbleed-mode .product-desc {
   color: var(--tg-exchange-desc-color, var(--tg-text-tertiary-muted));
+  text-shadow: none;
 }
 .unified-card.list-mode.fullbleed-mode .price-current,
 .unified-card.list-mode.fullbleed-mode .price-unit {
-  color: var(--tg-exchange-price-color, var(--td-brand-color));
+  color: var(--tg-exchange-price-color, var(--tg-text-primary));
+  text-shadow: none;
+}
+.unified-card.list-mode.fullbleed-mode .stock-text {
+  text-shadow: none;
 }
 
 /* 视图切换按钮样式已抽离为独立 partial，单一来源维护 */

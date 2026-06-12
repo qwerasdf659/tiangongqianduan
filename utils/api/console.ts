@@ -255,17 +255,16 @@ async function getApprovalChainInstances(
  *
  * 返回数据包含: 实例信息 + 所有步骤(steps) + 每步的审核人和操作记录
  *
- * @param instanceId - 审核链实例ID（instance_id）
+ * @param instanceId - 审核链实例ID（instance_id；后端 BIGINT 以字符串下发，请求前数值归一）
  */
-async function getApprovalChainInstanceDetail(instanceId: number) {
-  if (!instanceId) {
-    throw new Error('审核链实例ID不能为空')
-  }
-  if (!Number.isInteger(instanceId) || instanceId <= 0) {
+async function getApprovalChainInstanceDetail(instanceId: number | string) {
+  /** 主键值保持字符串语义，请求时数值归一（后端 instance_id 为 BIGINT，下发为字符串） */
+  const instanceIdNum = typeof instanceId === 'string' ? parseInt(instanceId, 10) : instanceId
+  if (!Number.isInteger(instanceIdNum) || instanceIdNum <= 0) {
     throw new Error('审核链实例ID必须是正整数')
   }
 
-  return apiClient.request(`/console/approval-chain/instances/${instanceId}`, {
+  return apiClient.request(`/console/approval-chain/instances/${instanceIdNum}`, {
     method: 'GET',
     needAuth: true,
     showLoading: true,
@@ -309,19 +308,22 @@ async function getMyPendingApprovalSteps(
  * 某条业务记录所关联的审核链实例，获取 current_step / total_steps / status 等进度信息
  *
  * @param auditableType - 业务类型（consumption / merchant_points）
- * @param auditableId - 业务记录ID（如 consumption_record_id）
+ * @param auditableType - 业务类型（consumption / merchant_points / trade_dispute）
+ * @param auditableId - 业务记录ID（后端 BIGINT 以字符串下发，请求前数值归一）
  */
-async function getInstanceByAuditable(auditableType: string, auditableId: number) {
+async function getInstanceByAuditable(auditableType: string, auditableId: number | string) {
   if (!auditableType) {
     throw new Error('业务类型不能为空')
   }
-  if (!auditableId || !Number.isInteger(auditableId) || auditableId <= 0) {
+  /** 主键值保持字符串语义，请求时数值归一（后端 auditable_id 为 BIGINT，下发为字符串） */
+  const auditableIdNum = typeof auditableId === 'string' ? parseInt(auditableId, 10) : auditableId
+  if (!Number.isInteger(auditableIdNum) || auditableIdNum <= 0) {
     throw new Error('业务记录ID必须是正整数')
   }
 
   const qs = buildQueryString({
     auditable_type: auditableType,
-    auditable_id: auditableId
+    auditable_id: auditableIdNum
   })
   return apiClient.request(`/console/approval-chain/instances/by-auditable?${qs}`, {
     method: 'GET',
@@ -340,25 +342,28 @@ async function getInstanceByAuditable(auditableType: string, auditableId: number
  *   - 如果是终审(is_final=true): 整个审核链完成 → 触发业务回调（如积分发放）
  *   - 如果不是终审: 推进到下一步审核人
  *
- * @param stepId - 审核步骤ID（step_id）
+ * @param stepId - 审核步骤ID（step_id；后端 BIGINT 以字符串下发，提交前数值归一）
  * @param params.reason - 审核意见（可选）
  */
-async function approveApprovalStep(stepId: number, params: { reason?: string } = {}) {
-  if (!stepId) {
-    throw new Error('审核步骤ID不能为空')
-  }
-  if (!Number.isInteger(stepId) || stepId <= 0) {
+async function approveApprovalStep(stepId: number | string, params: { reason?: string } = {}) {
+  /** 主键值保持字符串语义，提交时数值归一（后端 step_id 为 BIGINT，下发为字符串如 "414"） */
+  const stepIdNum = typeof stepId === 'string' ? parseInt(stepId, 10) : stepId
+  if (!Number.isInteger(stepIdNum) || stepIdNum <= 0) {
     throw new Error('审核步骤ID必须是正整数')
   }
 
-  return apiClient.request(`/console/approval-chain/steps/${stepId}/approve`, {
+  return apiClient.request(`/console/approval-chain/steps/${stepIdNum}/approve`, {
     method: 'POST',
     data: { reason: params.reason || undefined },
     needAuth: true,
     showLoading: true,
     loadingText: '审核中...',
-    showError: true,
-    errorPrefix: '审核通过失败：'
+    /**
+     * 失败提示交由页面层统一处理：审批失败（含「当事人回避」等后端 message）
+     * 由 audit-list 的 catch 如实弹出后端原始 message，避免 apiClient 再弹一次（双 Toast），
+     * 也避免 errorPrefix 前缀稀释回避提示的清晰度。
+     */
+    showError: false
   })
 }
 
@@ -369,14 +374,13 @@ async function approveApprovalStep(stepId: number, params: { reason?: string } =
  *
  * 拒绝后: 整个审核链标记为 rejected → 触发拒绝回调
  *
- * @param stepId - 审核步骤ID（step_id）
+ * @param stepId - 审核步骤ID（step_id；后端 BIGINT 以字符串下发，提交前数值归一）
  * @param params.reason - 拒绝原因（必填，至少5个字符）
  */
-async function rejectApprovalStep(stepId: number, params: { reason: string }) {
-  if (!stepId) {
-    throw new Error('审核步骤ID不能为空')
-  }
-  if (!Number.isInteger(stepId) || stepId <= 0) {
+async function rejectApprovalStep(stepId: number | string, params: { reason: string }) {
+  /** 主键值保持字符串语义，提交时数值归一（后端 step_id 为 BIGINT，下发为字符串如 "414"） */
+  const stepIdNum = typeof stepId === 'string' ? parseInt(stepId, 10) : stepId
+  if (!Number.isInteger(stepIdNum) || stepIdNum <= 0) {
     throw new Error('审核步骤ID必须是正整数')
   }
   if (!params || !params.reason) {
@@ -386,21 +390,21 @@ async function rejectApprovalStep(stepId: number, params: { reason: string }) {
     throw new Error('拒绝原因至少5个字符')
   }
 
-  return apiClient.request(`/console/approval-chain/steps/${stepId}/reject`, {
+  return apiClient.request(`/console/approval-chain/steps/${stepIdNum}/reject`, {
     method: 'POST',
     data: { reason: params.reason },
     needAuth: true,
     showLoading: true,
     loadingText: '处理中...',
-    showError: true,
-    errorPrefix: '审核拒绝失败：'
+    /** 失败提示交由页面层统一如实弹出后端原始 message（含回避提示），避免双 Toast + 前缀稀释 */
+    showError: false
   })
 }
 
 /** 批量审核步骤请求参数 */
 interface BatchApprovalStepsParams {
-  /** 待审步骤ID数组（来自 my-pending），最多100条 */
-  step_ids: number[]
+  /** 待审步骤ID数组（来自 my-pending；后端 BIGINT 以字符串下发，提交前数值归一），最多100条 */
+  step_ids: (number | string)[]
   /** 审核动作：approve=通过 reject=拒绝 */
   action: 'approve' | 'reject'
   /** 拒绝原因（action=reject时必填，至少5字符） */
@@ -435,8 +439,16 @@ async function batchApprovalSteps(params: BatchApprovalStepsParams) {
     throw new Error('拒绝原因至少5个字符')
   }
 
+  /** 主键值保持字符串语义，提交时数值归一（后端 step_id 为 BIGINT，下发为字符串） */
+  const normalizedStepIds = params.step_ids.map(id =>
+    typeof id === 'string' ? parseInt(id, 10) : id
+  )
+  if (normalizedStepIds.some(id => !Number.isInteger(id) || id <= 0)) {
+    throw new Error('审核步骤ID必须是正整数')
+  }
+
   const requestData: Record<string, any> = {
-    step_ids: params.step_ids,
+    step_ids: normalizedStepIds,
     action: params.action
   }
   if (params.reason) {

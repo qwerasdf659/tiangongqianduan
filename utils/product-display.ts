@@ -19,7 +19,8 @@
  */
 
 const imageHelperModule = require('./image-helper')
-const { DEFAULT_PRODUCT_IMAGE, RARITY_STYLES, getAssetDisplayName } = imageHelperModule
+const { DEFAULT_PRODUCT_IMAGE, RARITY_STYLES, getAssetDisplayName, MATERIAL_ICONS } =
+  imageHelperModule
 
 /** 触发全息光效的稀有度等级（epic + legendary） */
 const HOLO_RARITIES = ['legendary', 'epic']
@@ -61,7 +62,16 @@ function enrichProductDisplayFields(productList: any[]): any[] {
     const rarityClass = rarityConfig ? rarityConfig.cssClass : ''
 
     return Object.assign({}, productItem, {
-      _priceLabel: formatAssetLabel(priceCode),
+      /**
+       * 计价资产中文名：优先读后端字典下发的 cost_asset_name（material_asset_types.display_name），
+       * 后端未下发时回退本地映射（兼容旧接口），前端不再单独维护资产码→中文映射表。
+       */
+      _priceLabel: formatAssetLabel(priceCode, productItem.cost_asset_name),
+      /**
+       * 计价资产图标：优先用后端下发的完整 URL cost_asset_icon_url（带内容哈希、可直接 <image> 加载），
+       * 后端未下发（null/空）时回退本地静态图标；都没有则为空字符串，由 WXML 兜底为纯文字。
+       */
+      _priceIcon: productItem.cost_asset_icon_url || MATERIAL_ICONS[priceCode] || '',
       _rarityClass: rarityClass,
       _isLegendary: HOLO_RARITIES.includes(rarityValue),
       _isLimited: productItem.is_limited === true,

@@ -85,6 +85,13 @@
 
     <!-- 订单列表 -->
     <view class="orders-content">
+      <!-- 页码翻页栏（订单列表上方，仅多页时显示） -->
+      <exchange-pager
+        current-page="{{currentPage}}"
+        total-pages="{{totalPages}}"
+        bind:pagechange="onPagerChange"
+      />
+
       <!-- 页面级加载 -->
       <view class="page-loading" wx:if="{{loading && orders.length === 0}}">
         <t-loading loading="{{true}}" text="加载订单中..." theme="spinner" />

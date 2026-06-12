@@ -62,7 +62,7 @@ Page({
     /**
      * 轮播图数组
      * 数据源: product.images → 每项含 media_id / public_url / thumbnails
-     * 无 images 时降级到 primary_media 单图
+     * 无 images 时降级到 primary_image 单图（含 url / thumbnail_url）
      */
     swiperImages: [] as any[],
     swiperCurrent: 0,
@@ -268,7 +268,7 @@ Page({
       /**
        * 轮播图处理:
        *   images 数组有值 → 多图轮播（后端通过 media_attachments 返回）
-       *   无 images → 降级到 primary_media 单图
+       *   无 images → 降级到 primary_image 单图（含 url / thumbnail_url）
        *   都无 → emoji 占位
        */
       const swiperImages: any[] = []
@@ -280,18 +280,12 @@ Page({
             thumbnailUrl: (img.thumbnails && img.thumbnails.medium) || img.public_url || ''
           })
         })
-      } else if (productData.primary_media) {
-        const primaryMedia = productData.primary_media
+      } else if (productData.primary_image) {
+        const primaryImage = productData.primary_image
         swiperImages.push({
-          media_id: primaryMedia.media_id,
-          url:
-            primaryMedia.public_url ||
-            (primaryMedia.thumbnails && primaryMedia.thumbnails.large) ||
-            '',
-          thumbnailUrl:
-            (primaryMedia.thumbnails && primaryMedia.thumbnails.medium) ||
-            primaryMedia.public_url ||
-            ''
+          media_id: primaryImage.primary_media_id || productData.primary_media_id,
+          url: primaryImage.url || primaryImage.thumbnail_url || '',
+          thumbnailUrl: primaryImage.thumbnail_url || primaryImage.url || ''
         })
       }
 
@@ -375,7 +369,10 @@ Page({
 
       /** 附加前端展示计算字段（下划线前缀，区分后端原始字段） */
       const enrichedProduct = Object.assign({}, productData, {
-        _priceLabel: formatAssetLabel(priceCode),
+        /** 计价资产中文名：优先后端 cost_asset_name，回退本地映射；前端不自维护资产码→中文表 */
+        _priceLabel: formatAssetLabel(priceCode, productData.cost_asset_name),
+        /** 计价资产图标：优先后端 cost_asset_icon_url（完整URL），空则由展示层兜底纯文字 */
+        _priceIcon: productData.cost_asset_icon_url || '',
         _rarityClass: rarityConfig.cssClass || '',
         _isLegendary: HOLO_RARITY_LIST.includes(productData.rarity_code),
         _glowType: glowType,
@@ -616,12 +613,12 @@ Page({
         if (items.length > 0) {
           const enrichedItems = items.map((item: any) => {
             const imgSrc =
-              (item.primary_media &&
-                (item.primary_media.public_url ||
-                  (item.primary_media.thumbnails && item.primary_media.thumbnails.medium))) ||
+              (item.primary_image &&
+                (item.primary_image.thumbnail_url || item.primary_image.url)) ||
               ''
             return Object.assign({}, item, {
-              _priceLabel: formatAssetLabel(item.cost_asset_code || ''),
+              _priceLabel: formatAssetLabel(item.cost_asset_code || '', item.cost_asset_name),
+              _priceIcon: item.cost_asset_icon_url || '',
               _hasImage: !!imgSrc,
               _mainImage: imgSrc
             })
