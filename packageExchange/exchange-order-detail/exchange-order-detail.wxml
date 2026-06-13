@@ -77,6 +77,34 @@
         </view>
       </view>
 
+      <!-- 收货地址卡片（实物订单） -->
+      <view class="info-card" wx:if="{{hasAddress || canEditAddress}}">
+        <view class="card-title-row">
+          <text class="card-title">收货地址</text>
+          <view class="address-edit-btn" wx:if="{{canEditAddress}}" bindtap="onEditOrderAddress">
+            <text class="address-edit-text">{{hasAddress ? '修改' : '补填地址'}}</text>
+          </view>
+        </view>
+
+        <!-- 已有地址 -->
+        <view wx:if="{{hasAddress}}" class="address-box">
+          <view class="address-top-row">
+            <text class="address-name">{{addressReceiverName}}</text>
+            <text class="address-phone">{{showFullPhone ? fullPhone : addressReceiverPhone}}</text>
+            <view wx:if="{{!showFullPhone}}" class="address-show-full" bindtap="onShowFullContact">
+              <text class="address-show-full-text">显示完整</text>
+            </view>
+          </view>
+          <text class="address-detail-text">{{addressRegion}}{{addressDetail}}</text>
+        </view>
+
+        <!-- 缺地址提示（实物订单未填地址，引导补填） -->
+        <view wx:elif="{{addressMissing}}" class="address-missing" bindtap="onEditOrderAddress">
+          <t-icon name="error-circle" size="32rpx" color="#FF9800" />
+          <text class="address-missing-text">该订单为实物商品，请补填收货地址以便发货</text>
+        </view>
+      </view>
+
       <!-- 时间线卡片 -->
       <view class="info-card" wx:if="{{timeline.length > 0}}">
         <view class="card-title-row">
@@ -119,14 +147,14 @@
         </view>
         <!-- 物流轨迹时间线 -->
         <view class="shipping-track-list" wx:if="{{shippingTracks.length > 0}}">
-          <view class="shipping-track-item" wx:for="{{shippingTracks}}" wx:key="time">
+          <view class="shipping-track-item" wx:for="{{shippingTracks}}" wx:key="_time">
             <view class="track-dot-wrap">
               <view class="track-dot {{index === 0 ? 'track-dot-active' : ''}}"></view>
               <view class="track-line" wx:if="{{index < shippingTracks.length - 1}}"></view>
             </view>
             <view class="track-body">
-              <text class="track-detail">{{item.detail}}</text>
-              <text class="track-time">{{item.time}}</text>
+              <text class="track-detail">{{item._detail}}</text>
+              <text class="track-time">{{item._time}}</text>
             </view>
           </view>
         </view>

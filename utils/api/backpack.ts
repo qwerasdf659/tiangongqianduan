@@ -231,11 +231,14 @@ async function getExchangeProducts(
  * @param quantity - 兑换数量，默认 1
  * @param sku_id - SKU ID（exchange_item_skus 表主键），单品商品传默认SKU的ID。
  *                 后端 ID 可能以字符串形式下发（如 "6"），此处统一转数字再判断，避免漏传。
+ * @param address_id - 收货地址主键（user_addresses.address_id）。实物商品（fulfillment_type='physical'）
+ *                 必填，否则后端返回 EXCHANGE_ADDRESS_REQUIRED；虚拟/卡券类不需要。
  */
 async function exchangeProduct(
   exchange_item_id: number,
   quantity: number = 1,
-  sku_id?: number | string
+  sku_id?: number | string,
+  address_id?: number
 ) {
   if (!exchange_item_id) {
     throw new Error('兑换商品ID不能为空')
@@ -268,6 +271,14 @@ async function exchangeProduct(
   const skuIdNum = typeof sku_id === 'string' ? parseInt(sku_id, 10) : sku_id
   if (typeof skuIdNum === 'number' && !isNaN(skuIdNum) && skuIdNum > 0) {
     requestData.sku_id = skuIdNum
+  }
+
+  /**
+   * 实物商品下单须带 address_id（fulfillment_type='physical'，对接文档第三节）。
+   * 后端据此读地址生成 address_snapshot；虚拟/卡券类不传。
+   */
+  if (typeof address_id === 'number' && address_id > 0) {
+    requestData.address_id = address_id
   }
 
   return apiClient.request('/exchange', {
@@ -483,6 +494,63 @@ async function getExchangeOrderTrack(order_no: string) {
     loadingText: '查询物流中...',
     showError: true,
     errorPrefix: '物流查询失败：'
+  })
+}
+
+/**
+ * 补录/修改订单收货地址（实物兑换发货链路，拍板A）
+ * PUT /api/v4/exchange/orders/:order_no/address
+ *
+ * 业务场景:
+ *   - 竞价中标的实物订单（中标时用户不在场，无地址）需用户补录地址
+ *   - 普通实物订单发货前（pending/approved）改地址
+ * 仅 pending/approved（未发货）阶段可补/改地址；地址须属本人
+ *
+ * @param order_no - 订单号（exchange_records.order_no）
+ * @param address_id - 收货地址主键（user_addresses.address_id，须属本人）
+ */
+async function updateExchangeOrderAddress(order_no: string, address_id: number) {
+  if (!order_no) {
+    throw new Error('订单号不能为空')
+  }
+  if (!address_id) {
+    throw new Error('收货地址不能为空')
+  }
+  return apiClient.request(`/exchange/orders/${order_no}/address`, {
+    method: 'PUT',
+    data: { address_id },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '保存地址中...',
+    showError: true,
+    errorPrefix: '保存地址失败：'
+  })
+}
+
+/**
+ * 获取本人订单收货联系人完整明文（拍板⑤：按需明文，仅本人本单）
+ * GET /api/v4/exchange/orders/:order_no/contact
+ *
+ * 业务场景: 订单详情页手机号默认掩码展示，用户点击「显示完整」时调此接口
+ * 后端: 校验订单归属本人后只返回完整明文，写审计日志、不进列表/缓存
+ *
+ * 响应: { contact: { receiver_name, receiver_phone, province, city, district, detail_address } }
+ *
+ * ⚠️ 数据安全: 完整手机号仅本人本单按需返回，前端不得缓存、不得在列表页批量请求
+ *
+ * @param order_no - 订单号（exchange_records.order_no）
+ */
+async function getExchangeOrderContact(order_no: string) {
+  if (!order_no) {
+    throw new Error('订单号不能为空')
+  }
+  return apiClient.request(`/exchange/orders/${order_no}/contact`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: true,
+    loadingText: '获取中...',
+    showError: true,
+    errorPrefix: '获取联系人失败：'
   })
 }
 
@@ -813,6 +881,8 @@ module.exports = {
   getExchangeItemDetail,
   getExchangeOrderDetail,
   getExchangeOrderTrack,
+  updateExchangeOrderAddress,
+  getExchangeOrderContact,
   confirmExchangeReceipt,
   rateExchangeOrder,
   getExchangeSpaceStats,

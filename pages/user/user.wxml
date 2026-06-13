@@ -65,7 +65,9 @@
     <view class="mw-section" wx:if="{{isLoggedIn && isMerchant}}">
       <view class="mw-header">
         <view class="mw-header-left">
-          <view class="mw-header-icon"><t-icon name="store-filled" size="36rpx" color="currentColor" /></view>
+          <view class="mw-header-icon"
+            ><t-icon name="store-filled" size="36rpx" color="currentColor"
+          /></view>
           <view class="mw-header-info">
             <text class="mw-header-title">商家工作台</text>
             <text class="mw-header-role"
@@ -129,9 +131,43 @@
       </view>
     </view>
 
+    <!-- 客服回复台（座席端，仅在岗座席可见；座席身份由后端 cs-agent 接口探测得出） -->
+    <view class="mw-section" wx:if="{{isLoggedIn && isCsAgent}}">
+      <view class="mw-header">
+        <view class="mw-header-left">
+          <view class="mw-header-icon"
+            ><t-icon name="service-filled" size="36rpx" color="currentColor"
+          /></view>
+          <view class="mw-header-info">
+            <text class="mw-header-title">客服工作台</text>
+            <text class="mw-header-role">在岗座席</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="mw-cards">
+        <view class="mw-card" bindtap="goToCsAgent">
+          <view class="mw-card-body">
+            <text class="mw-card-title">客服回复台 ›</text>
+            <text class="mw-card-desc">查看待回复会话，给用户发送文字 / 图片消息</text>
+            <view class="mw-card-steps">
+              <text class="mw-step">看会话列表</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">看聊天记录</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">回复用户</text>
+            </view>
+          </view>
+          <view class="mw-card-go">
+            <text class="mw-go-icon">›</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- 退出登录按钮 -->
     <view class="logout-btn" wx:if="{{isLoggedIn}}" bindtap="logout">
-            <t-icon name="logout" size="32rpx" color="currentColor" />
+      <t-icon name="logout" size="32rpx" color="currentColor" />
       <text class="logout-text">退出登录</text>
     </view>
 

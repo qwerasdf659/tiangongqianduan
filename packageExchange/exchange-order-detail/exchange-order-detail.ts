@@ -109,6 +109,21 @@ Page({
     shippingState: '',
     shippingLoading: false,
 
+    /** 收货地址快照（实物订单，后端 address_snapshot，默认脱敏手机号） */
+    hasAddress: false,
+    addressReceiverName: '',
+    addressReceiverPhone: '',
+    addressRegion: '',
+    addressDetail: '',
+    /** 是否已展开完整手机号（点击「显示完整」后置 true，仅本人本单按需取） */
+    showFullPhone: false,
+    /** 完整手机号（按需从 contact 端点取，不缓存到列表） */
+    fullPhone: '',
+    /** 是否实物订单且可补录/改地址（pending/approved 且地址为空时引导补填） */
+    canEditAddress: false,
+    /** 是否实物订单缺地址（提示补填） */
+    addressMissing: false,
+
     /** 评价弹窗 */
     showRatingModal: false,
     ratingScore: 0,
@@ -165,6 +180,15 @@ Page({
       /** 提取物流快递信息（后端 exchange_records 新增字段: shipping_company / shipping_company_name / shipping_no） */
       const hasShipping = !!(order.shipping_no && order.shipping_company_name)
 
+      /**
+       * 收货地址快照（实物订单 address_snapshot，后端默认脱敏手机号）。
+       * 实物订单未发货（pending/approved）且无地址时，引导用户补填（拍板A：竞价中标实物单）。
+       */
+      const addr = order.address_snapshot || null
+      const hasAddress = !!(addr && (addr.receiver_name || addr.detail_address))
+      const isPhysicalOrder = !order.is_prop && order.source !== 'diy'
+      const beforeShipped = order.status === 'pending' || order.status === 'approved'
+
       this.setData({
         order,
         statusLabel: statusInfo.label,
@@ -194,6 +218,17 @@ Page({
         hasShipping,
         shippingCompanyName: order.shipping_company_name || '',
         shippingNo: order.shipping_no || '',
+        hasAddress,
+        addressReceiverName: hasAddress ? addr.receiver_name || '' : '',
+        addressReceiverPhone: hasAddress ? addr.receiver_phone || '' : '',
+        addressRegion: hasAddress
+          ? `${addr.province || ''}${addr.city || ''}${addr.district || ''}`
+          : '',
+        addressDetail: hasAddress ? addr.detail_address || '' : '',
+        showFullPhone: false,
+        fullPhone: '',
+        canEditAddress: isPhysicalOrder && beforeShipped,
+        addressMissing: isPhysicalOrder && beforeShipped && !hasAddress,
         loading: false
       })
 
@@ -460,7 +495,20 @@ Page({
 
       if (trackResult && trackResult.success && trackResult.data) {
         const trackData = trackResult.data
-        const tracks = (trackData.track && trackData.track.tracks) || []
+        const rawTracks = (trackData.track && trackData.track.tracks) || []
+
+        /**
+         * 兼容后端两种轨迹字段：
+         *   - 自有轨迹表（source='local'）：track_status / track_detail / track_time
+         *   - 第三方实时查降级：status / detail / time
+         * 统一归一为展示字段 _detail / _time，前端零散映射收口在此。
+         */
+        const tracks = rawTracks.map((node: any) => ({
+          ...node,
+          _detail: node.track_detail || node.detail || '',
+          _time: node.track_time || node.time || '',
+          _status: node.track_status || node.status || ''
+        }))
 
         this.setData({
           shippingTracks: tracks,
@@ -477,6 +525,69 @@ Page({
       this.setData({ shippingLoading: false })
       detailShowToast(trackError.message || '物流查询失败')
     }
+  },
+
+  /**
+   * 显示完整手机号（拍板⑤：按需明文，仅本人本单）
+   * GET /api/v4/exchange/orders/:order_no/contact
+   * ⚠️ 不缓存、点击触发，避免列表批量拉取
+   */
+  async onShowFullContact() {
+    const { orderNo, showFullPhone } = this.data
+    if (!orderNo || showFullPhone) {
+      return
+    }
+    try {
+      const result = await OrderDetailAPI.getExchangeOrderContact(orderNo)
+      if (result && result.success && result.data) {
+        const contact = result.data.contact || result.data
+        this.setData({
+          showFullPhone: true,
+          fullPhone: contact.receiver_phone || ''
+        })
+      } else {
+        throw new Error(result?.message || '获取联系人失败')
+      }
+    } catch (error: any) {
+      detailLog.error('获取完整手机号失败:', error)
+      detailShowToast(error.message || '获取失败，请重试')
+    }
+  },
+
+  /**
+   * 补录/修改收货地址（实物订单未发货阶段，拍板A）
+   * 跳地址页选择模式 → 回传 → PUT /api/v4/exchange/orders/:order_no/address
+   */
+  onEditOrderAddress() {
+    const { orderNo } = this.data
+    if (!orderNo) {
+      return
+    }
+    wx.navigateTo({
+      url: '/packageUser/addresses/addresses?select=1',
+      events: {
+        selectAddress: async (payload: { address: API.UserAddress }) => {
+          if (!payload || !payload.address) {
+            return
+          }
+          try {
+            const result = await OrderDetailAPI.updateExchangeOrderAddress(
+              orderNo,
+              payload.address.address_id
+            )
+            if (result && result.success) {
+              detailShowToast('收货地址已更新', 'success')
+              this._loadOrderDetail(orderNo)
+            } else {
+              throw new Error(result?.message || '保存地址失败')
+            }
+          } catch (error: any) {
+            detailLog.error('补录订单地址失败:', error)
+            detailShowToast(error.message || '保存地址失败，请重试')
+          }
+        }
+      }
+    })
   },
 
   /** 复制快递单号 */

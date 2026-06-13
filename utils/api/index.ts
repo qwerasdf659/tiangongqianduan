@@ -26,6 +26,7 @@ const consoleModule = require('./console')
 const adCampaignsModule = require('./ad-campaigns')
 const userNotificationsModule = require('./user-notifications')
 const diyModule = require('./diy')
+const userModule = require('./user')
 
 /**
  * 展开运算符自动同步所有子模块导出
@@ -53,10 +54,10 @@ module.exports = {
   /** 消费积分系统（用户端+商家端）: getUserQRCode / submitConsumption / createRedemptionOrder 等 */
   ...shopModule,
 
-  /** 系统通用+客服+活动: getPlacementConfig / getAdDelivery / reportInteractionLog / createChatSession / getActivities / getDictionaryTypes / getDictionaryByType 等 */
+  /** 系统通用+客服+活动: getPlacementConfig / getAdDelivery / reportInteractionLog / createChatSession / getCsAgentSessions / getCsAgentMessages / sendCsAgentMessage / getActivities / getDictionaryTypes / getDictionaryByType 等 */
   ...systemModule,
 
-  /** 管理员: getMyPendingApprovalSteps / approveApprovalStep / rejectApprovalStep / batchApprovalSteps / getAdminChatSessions / updateAdminOnlineStatus 等 */
+  /** 管理员: getMyPendingApprovalSteps / approveApprovalStep / rejectApprovalStep / batchApprovalSteps / getAdminUserQRCode / getAdminLotteryHistory 等 */
   ...consoleModule,
 
   /** 广告系统(P2+P3): getMyAdCampaigns / createAdCampaign / submitAdCampaign / cancelAdCampaign / reportAdImpression / reportAdClick 等 */
@@ -66,5 +67,8 @@ module.exports = {
   ...userNotificationsModule,
 
   /** DIY饰品设计引擎: getDiyTemplates / getDiyTemplateById / getDiyPaymentAssets / getDiyTemplateBeads / getDiyMaterialGroups / getDiyWorks / getDiyWorkById / saveDiyWork / deleteDiyWork / confirmDiyWork / completeDiyWork / cancelDiyWork */
-  ...diyModule
+  ...diyModule,
+
+  /** 用户域-收货地址: getUserAddresses / createUserAddress / updateUserAddress / deleteUserAddress / setDefaultUserAddress */
+  ...userModule
 }

@@ -1,224 +1,143 @@
-<!--pages/admin/customer-service/customer-service.wxml - 管理员客服管理页面-->
-<custom-navbar title="客服管理" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
-<view class="customer-service-container">
-  <scroll-view type="list" scroll-y class="page-scroll-view">
-    <!-- 页面标题 -->
-    <view class="page-header">
-      <view class="header-text">
-        <text class="header-title">客服管理</text>
-        <text class="header-desc">实时聊天，高效服务</text>
+<!--packageAdmin/customer-service/customer-service.wxml — 简版客服座席回复端-->
+<custom-navbar title="客服回复" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<view class="cs-agent-container">
+  <!-- 座席校验失败（后端 403）：整页提示 -->
+  <view wx:if="{{forbidden}}" class="cs-forbidden">
+    <t-icon name="lock-on" size="96rpx" color="var(--td-brand-color)" />
+    <text class="cs-forbidden-title">仅客服座席可访问</text>
+    <text class="cs-forbidden-desc">请联系管理员在后台「客服座席管理」中将本账号设为在岗座席</text>
+  </view>
+
+  <!-- ===== 会话列表视图 ===== -->
+  <view wx:elif="{{!chatExpanded}}" class="cs-list-view">
+    <view class="cs-list-header">
+      <text class="cs-list-title">待回复会话</text>
+      <text class="cs-list-count">{{sessions.length}}</text>
+    </view>
+
+    <view wx:if="{{loadingSessions && sessions.length === 0}}" class="cs-loading">
+      <t-loading loading="{{true}}" text="加载会话中..." theme="spinner" size="40rpx" />
+    </view>
+
+    <view wx:elif="{{sessions.length === 0}}" class="cs-empty">
+      <t-empty description="暂无待回复会话" />
+    </view>
+
+    <scroll-view wx:else type="list" class="cs-sessions-scroll" scroll-y="{{true}}">
+      <view
+        wx:for="{{sessions}}"
+        wx:key="sessionId"
+        class="cs-session-item"
+        hover-class="cs-session-item-hover"
+        data-session-id="{{item.sessionId}}"
+        bindtap="onSelectSession"
+      >
+        <view class="cs-session-avatar">
+          <text class="cs-avatar-text">{{item.avatarText}}</text>
+        </view>
+        <view class="cs-session-info">
+          <view class="cs-session-row">
+            <text class="cs-user-name">{{item.userName}}</text>
+            <text class="cs-session-time">{{item.lastMessageTime}}</text>
+          </view>
+          <view class="cs-session-row">
+            <text class="cs-last-message">{{item.lastMessage}}</text>
+            <view wx:if="{{item.unreadCount > 0}}" class="cs-unread-badge">
+              {{item.unreadCount > 99 ? '99+' : item.unreadCount}}
+            </view>
+          </view>
+          <view class="cs-status-tag cs-status-{{item.status}}">
+            <text class="cs-status-text">{{item.statusText}}</text>
+          </view>
+        </view>
       </view>
-      <view class="header-decor-icon">
-        <t-icon name="chat" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+    </scroll-view>
+  </view>
+
+  <!-- ===== 聊天视图 ===== -->
+  <view wx:else class="cs-chat-view">
+    <view class="cs-chat-header">
+      <view class="cs-back-btn" hover-class="cs-back-btn-hover" bindtap="onBackToList">
+        <t-icon name="chevron-left" size="40rpx" color="var(--td-brand-color)" />
+        <text class="cs-back-text">会话</text>
+      </view>
+      <view class="cs-chat-title">
+        <text class="cs-chat-user">{{currentSessionUserName}}</text>
+        <text class="cs-chat-session-id">会话 {{currentSessionId}}</text>
+      </view>
+      <view class="cs-refresh-btn" hover-class="cs-back-btn-hover" bindtap="onRefreshMessages">
+        <t-icon name="refresh" size="36rpx" color="var(--td-brand-color)" />
       </view>
     </view>
 
-    <!-- 🔴 实时聊天模式 -->
-    <view class="chat-mode-container">
-      <!-- 管理员状态栏（状态可切换: online / busy / offline） -->
-      <view class="admin-status-bar">
-        <view class="status-info">
-          <text class="status-text">当前状态：</text>
-          <text
-            class="status-badge {{adminStatus}}"
-            bindtap="onToggleAdminStatus"
-            data-status="{{adminStatus === 'online' ? 'busy' : 'online'}}"
-          >
-            <view class="status-dot status-dot--{{adminStatus}}"></view>
-            {{adminStatus === 'online' ? '在线' : adminStatus === 'busy' ? '忙碌' : '
-离线'}}
-          </text>
-        </view>
-        <view class="connection-info">
-          <text class="ws-status {{wsConnected ? 'connected' : 'disconnected'}}">
-            <t-icon wx:if="{{wsConnected}}" name="link" size="28rpx" color="currentColor" /><t-icon wx:else name="close-circle-filled" size="28rpx" color="currentColor" /> {{wsConnected ? '已连接' : '未连接'}}
-          </text>
-        </view>
+    <scroll-view
+      type="list"
+      class="cs-messages"
+      scroll-y="{{true}}"
+      scroll-into-view="{{scrollToBottom ? 'cs-msg-bottom' : ''}}"
+      scroll-with-animation="{{true}}"
+      enhanced="{{true}}"
+      show-scrollbar="{{false}}"
+    >
+      <view wx:if="{{loadingMessages && currentMessages.length === 0}}" class="cs-loading">
+        <t-loading loading="{{true}}" text="加载聊天记录..." theme="spinner" size="40rpx" />
       </view>
 
-      <!-- 聊天工作台主区域 -->
-      <view class="chat-workspace {{chatExpanded ? 'expanded' : ''}}">
-        <!-- 会话列表 -->
-        <view wx:if="{{!chatExpanded}}" class="sessions-panel">
-          <view class="panel-header">
-            <text class="panel-title">活跃会话</text>
-            <text class="session-count">({{sessions.length}})</text>
-          </view>
-
-          <view wx:if="{{loadingSessions}}" class="loading-sessions">
-            <text>加载会话中...</text>
-          </view>
-
-          <view wx:elif="{{sessions.length === 0}}" class="empty-sessions">
-            <t-empty description="暂无活跃会话" />
-          </view>
-
-          <view wx:else class="sessions-list">
-            <view
-              wx:for="{{sessions}}"
-              wx:key="sessionId"
-              class="session-item {{currentSessionId === item.sessionId ? 'active' : ''}}"
-              hover-class="session-item-hover"
-              data-session-id="{{item.sessionId}}"
-              bindtap="onSelectSession"
-            >
-              <view class="session-avatar">
-                <text class="avatar-text"
-                  >{{item.userInfo.nickname ? item.userInfo.nickname.charAt(0) : '用'}}</text
-                >
-              </view>
-              <view class="session-info">
-                <view class="session-header">
-                  <text class="user-name">{{item.userInfo.nickname || '用户' + item.userId}}</text>
-                  <text class="session-time">{{item.lastMessageTime}}</text>
-                </view>
-                <view class="session-preview">
-                  <text class="last-message">{{item.lastMessage || '等待客服回复...'}}</text>
-                  <view wx:if="{{item.unreadCount > 0}}" class="unread-badge"
-                    >{{item.unreadCount}}</view
-                  >
-                </view>
-                <view class="session-status">
-                  <text class="status-tag {{item.status}}">
-                    {{item.status === 'waiting' ? '等待回复' : item.status === 'active' ? '进行中' :
-                    '已结束'}}
-                  </text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <!-- 聊天区域 -->
-        <view class="chat-panel {{chatExpanded ? 'expanded' : ''}}">
-          <view wx:if="{{!currentSessionId}}" class="no-session-selected">
-            <text class="no-session-icon">💬</text>
-            <text class="no-session-text">请选择一个会话开始聊天</text>
-          </view>
-
-          <view wx:else class="chat-container">
-            <!-- 聊天头部 -->
-            <view class="chat-header">
-              <view
-                wx:if="{{chatExpanded}}"
-                class="back-btn"
-                hover-class="back-btn-hover"
-                bindtap="onCloseChatExpanded"
-              >
-                <text class="back-icon">←</text>
-                <text class="back-text">返回列表</text>
-              </view>
-              <view class="chat-user-info">
-                <text class="chat-user-name">{{currentSessionUserName || '用户'}}</text>
-                <text class="chat-session-id">会话ID: {{currentSessionId}}</text>
-              </view>
-              <view class="chat-actions">
-                <button class="action-btn" bindtap="onEndSession">结束会话</button>
-              </view>
-            </view>
-
-            <!-- 聊天消息区域 -->
-            <scroll-view
-              type="list"
-              class="messages-container"
-              scroll-y
-              scroll-top="{{scrollToBottom ? 99999 : 0}}"
-              scroll-into-view="{{scrollToBottom ? 'message-bottom' : ''}}"
-            >
-              <view wx:if="{{currentMessages.length === 0}}" class="empty-messages">
-                <text class="empty-text">会话开始，请礼貌回复用户</text>
-              </view>
-
-              <view wx:else class="messages-list">
-                <view
-                  wx:for="{{currentMessages}}"
-                  wx:key="id"
-                  class="message-item {{item.senderType === 'admin' ? 'admin' : 'user'}}"
-                >
-                  <view class="message-avatar">
-                    <text class="avatar-text">{{item.senderType === 'admin' ? '客' : '用'}}</text>
-                  </view>
-                  <view class="message-content">
-                    <view class="message-bubble">
-                      <text class="message-text">{{item.content}}</text>
-                    </view>
-                    <view class="message-meta">
-                      <text class="message-time">{{item.createdAt}}</text>
-                      <text
-                        wx:if="{{item.senderType === 'admin'}}"
-                        class="message-status {{item.status}}"
-                      >
-                        {{item.status === 'sending' ? '发送中' : item.status === 'sent' ? '已发送' :
-                        item.status === 'failed' ? '发送失败' : ''}}
-                      </text>
-                    </view>
-                  </view>
-                </view>
-              </view>
-              <view id="message-bottom"></view>
-            </scroll-view>
-
-            <!-- 聊天输入区域 -->
-            <view class="chat-input-container">
-              <!-- 输入框和发送按钮 -->
-              <view class="input-area">
-                <textarea
-                  class="message-input"
-                  placeholder="输入回复内容..."
-                  value="{{inputContent}}"
-                  bindinput="onChatInputChange"
-                  bindfocus="onChatInputFocus"
-                  bindblur="onChatInputBlur"
-                  maxlength="500"
-                  auto-height
-                  show-confirm-bar="{{false}}"
-                ></textarea>
-                <button
-                  class="send-btn {{sendButtonEnabled ? 'active' : 'disabled'}}"
-                  disabled="{{!sendButtonEnabled}}"
-                  bindtap="sendChatMessage"
-                >
-                  <t-icon name="send" size="36rpx" class="send-icon" />
-                  <text class="send-text">发送</text>
-                </button>
-              </view>
-
-              <!-- 输入状态提示 -->
-              <view wx:if="{{isTyping}}" class="typing-indicator">
-                <text>正在输入...</text>
-              </view>
-            </view>
-          </view>
-        </view>
+      <view wx:elif="{{currentMessages.length === 0}}" class="cs-msg-empty">
+        <text class="cs-msg-empty-text">暂无消息，请礼貌回复用户</text>
       </view>
 
-      <!-- 今日统计 -->
-      <view class="today-stats">
-        <view class="stats-header">
-          <text class="stats-title">今日统计</text>
+      <view
+        wx:for="{{currentMessages}}"
+        wx:key="id"
+        class="cs-msg-item {{item.isOwn ? 'cs-msg-own' : 'cs-msg-other'}}"
+      >
+        <view class="cs-msg-avatar">
+          <text class="cs-msg-avatar-text">{{item.isOwn ? '客' : '用'}}</text>
         </view>
-        <view class="stats-grid">
-          <view class="stat-card">
-            <text class="stat-number">{{todayStats.totalSessions}}</text>
-            <text class="stat-label">总会话数</text>
+        <view class="cs-msg-body">
+          <view class="cs-msg-bubble {{item.isOwn ? 'cs-bubble-own' : 'cs-bubble-other'}}">
+            <text wx:if="{{item.messageType === 'text'}}" class="cs-msg-text" user-select="{{true}}"
+              >{{item.content}}</text
+            >
+            <image
+              wx:elif="{{item.messageType === 'image'}}"
+              class="cs-msg-image"
+              src="{{item.content}}"
+              mode="widthFix"
+              data-url="{{item.content}}"
+              bindtap="onPreviewImage"
+            />
           </view>
-          <view class="stat-card">
-            <text class="stat-number">{{todayStats.completedSessions}}</text>
-            <text class="stat-label">已完成</text>
-          </view>
-          <view class="stat-card">
-            <text class="stat-number">{{todayStats.avgResponseTime}}</text>
-            <text class="stat-label">平均响应</text>
-          </view>
-          <view class="stat-card">
-            <text class="stat-number">{{todayStats.customerSatisfaction}}%</text>
-            <text class="stat-label">满意度</text>
-          </view>
+          <text class="cs-msg-time">{{item.createdAt}}</text>
         </view>
+      </view>
+      <view id="cs-msg-bottom"></view>
+    </scroll-view>
+
+    <!-- 输入区 -->
+    <view class="cs-input-bar">
+      <view class="cs-image-btn" hover-class="cs-image-btn-hover" bindtap="onSendImage">
+        <t-icon name="image" size="44rpx" color="var(--td-brand-color)" />
+      </view>
+      <textarea
+        class="cs-input"
+        placeholder="输入回复内容..."
+        value="{{inputContent}}"
+        bindinput="onInputChange"
+        maxlength="500"
+        auto-height
+        show-confirm-bar="{{false}}"
+      ></textarea>
+      <view
+        class="cs-send-btn {{inputContent ? 'cs-send-active' : 'cs-send-disabled'}}"
+        bindtap="onSendText"
+      >
+        <text class="cs-send-text">{{sending ? '发送中' : '发送'}}</text>
       </view>
     </view>
+  </view>
 
-    <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
-    <maintenance-overlay />
-  </scroll-view>
+  <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+  <maintenance-overlay />
 </view>

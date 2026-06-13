@@ -127,6 +127,14 @@ Page({
     hasError: false,
     errorMessage: '',
 
+    /**
+     * 履约类型（后端 exchange_items.fulfillment_type）:
+     *   physical=实物邮寄（下单前必选地址）/ virtual=虚拟即时 / voucher=卡券核销（后两者无需地址）
+     */
+    needAddress: false,
+    /** 已选收货地址（实物商品下单用，来自地址页选择回传或默认地址） */
+    selectedAddress: null as API.UserAddress | null,
+
     /** 兑换确认弹窗 */
     showConfirm: false,
     exchangeQuantity: 1,
@@ -533,6 +541,17 @@ Page({
       wx.setNavigationBarTitle({ title: productData.item_name || '商品详情' })
       edLog.info('商品详情加载成功:', productData.item_name)
 
+      /**
+       * 实物商品（fulfillment_type='physical'）下单前必须选收货地址：
+       * 加载默认地址作为初始选择（用户可在确认弹窗点击切换）。
+       * 虚拟/卡券类（virtual/voucher）无需地址。
+       */
+      const needAddress = productData.fulfillment_type === 'physical'
+      this.setData({ needAddress })
+      if (needAddress) {
+        this._loadDefaultAddress()
+      }
+
       /** 异步加载相关推荐（不阻塞主渲染，使用 category_id 整数查询） */
       const relatedCategoryId = productData.category_id || null
       this._loadRelatedProducts(relatedCategoryId, itemId)
@@ -681,6 +700,41 @@ Page({
     }
   },
 
+  /**
+   * 加载默认收货地址（实物商品初始选择）
+   * GET /api/v4/user/addresses → 取 is_default 的地址；无默认则取第一条
+   */
+  async _loadDefaultAddress() {
+    try {
+      const result = await DetailPageAPI.getUserAddresses()
+      if (result && result.success && result.data) {
+        const addresses = result.data.addresses || []
+        if (addresses.length > 0) {
+          const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0]
+          this.setData({ selectedAddress: defaultAddr })
+        }
+      }
+    } catch (error) {
+      edLog.warn('加载默认地址失败（不阻断下单，用户可手动选）:', error)
+    }
+  },
+
+  /**
+   * 点击收货地址行 → 跳转地址页选择模式，通过 eventChannel 回传所选地址
+   */
+  onChooseAddress() {
+    wx.navigateTo({
+      url: '/packageUser/addresses/addresses?select=1',
+      events: {
+        selectAddress: (payload: { address: API.UserAddress }) => {
+          if (payload && payload.address) {
+            this.setData({ selectedAddress: payload.address })
+          }
+        }
+      }
+    })
+  },
+
   /** ⑩ 点击立即兑换 → 打开确认弹窗 */
   onExchange() {
     const { product, hasMultiSku, selectedSkuInfo, skuList } = this.data
@@ -825,13 +879,27 @@ Page({
       return
     }
 
+    /**
+     * 实物商品（needAddress）下单前必须选收货地址（对接文档第三节）。
+     * 未选地址时拦截并引导去选，避免后端返回 EXCHANGE_ADDRESS_REQUIRED。
+     */
+    if (this.data.needAddress && !this.data.selectedAddress) {
+      wx.showToast({ title: '请先选择收货地址', icon: 'none' })
+      return
+    }
+
     this.setData({ exchanging: true })
 
     try {
+      const addressId =
+        this.data.needAddress && this.data.selectedAddress
+          ? this.data.selectedAddress.address_id
+          : undefined
       const response = await DetailPageAPI.exchangeProduct(
         product.exchange_item_id,
         exchangeQuantity,
-        selectedSkuId
+        selectedSkuId,
+        addressId
       )
 
       if (response && response.success) {

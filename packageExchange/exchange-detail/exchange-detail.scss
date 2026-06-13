@@ -351,10 +351,12 @@
 }
 
 .ed-price-amount {
+  font-family: var(--tg-font-number);
   font-size: var(--tg-font-size-display-lg);
   font-weight: var(--tg-font-weight-bold);
-  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
-  color: var(--td-brand-color);
+  color: var(--tg-text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tg-letter-spacing-tight);
   line-height: 1;
 }
 
@@ -919,8 +921,8 @@
   min-width: 240rpx;
   height: 88rpx;
   border-radius: 44rpx;
-  background: linear-gradient(135deg, var(--td-brand-color-focus), var(--td-brand-color-active));
-  box-shadow: 0 1rpx 8rpx rgba(var(--td-brand-color-rgb), 0.04);
+  background: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
+  box-shadow: 0 4rpx 12rpx rgba(200, 160, 106, 0.28);
   transition: all 0.2s;
   flex-shrink: 0;
 
@@ -1104,4 +1106,55 @@
   color: var(--tg-text-secondary);
   margin-top: 4rpx;
   display: block;
+}
+
+/* 确认弹窗内的收货地址行（实物商品，slot=extra 注入） */
+.confirm-address-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border-radius: var(--tg-radius-xl);
+  background: var(--tg-color-bg-grey);
+}
+
+.confirm-address-icon {
+  flex-shrink: 0;
+}
+
+.confirm-address-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  overflow: hidden;
+}
+
+.confirm-address-top {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.confirm-address-name {
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.confirm-address-phone {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-secondary);
+}
+
+.confirm-address-detail {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-secondary);
+  line-height: 1.4;
+}
+
+.confirm-address-empty {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-tertiary);
 }

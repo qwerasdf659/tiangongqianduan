@@ -1178,6 +1178,74 @@ declare namespace API {
   }
 
   /**
+   * 收货地址（对齐后端 user_addresses 表 + GET /api/v4/user/addresses 返回格式）
+   *
+   * 后端 AES-256-GCM 加密存储姓名/手机号/详址；列表/详情默认脱敏下发
+   * （receiver_name=王**、receiver_phone=138****8888，省市区+详址保留）。
+   * 完整明文仅通过 GET /api/v4/exchange/orders/:order_no/contact 按需返回（本人本单）。
+   */
+  interface UserAddress {
+    /** 地址主键（user_addresses.address_id） */
+    address_id: number
+    /** 收货人姓名（默认脱敏，如 王**） */
+    receiver_name: string
+    /** 收货人手机号（默认脱敏，如 138****8888） */
+    receiver_phone: string
+    /** 省（明文） */
+    province: string
+    /** 市（明文） */
+    city: string
+    /** 区/县（明文） */
+    district: string
+    /** 详细地址（明文，门牌等） */
+    detail_address: string
+    /** 是否默认地址 */
+    is_default: boolean
+  }
+
+  /**
+   * 订单收货地址快照（exchange_records.address_snapshot JSON 列）
+   * 下单时由后端从 user_addresses 读取生成；列表/详情默认脱敏。
+   */
+  interface OrderAddressSnapshot {
+    address_id?: number
+    /** 收货人姓名（默认脱敏） */
+    receiver_name: string
+    /** 收货人手机号（默认脱敏，点击「显示完整」走 contact 端点取明文） */
+    receiver_phone: string
+    province: string
+    city: string
+    district: string
+    detail_address: string
+  }
+
+  /**
+   * 订单收货联系人完整明文（GET /api/v4/exchange/orders/:order_no/contact 的 contact 字段）
+   * ⚠️ 仅本人本单按需返回，前端不得缓存、不得列表页批量请求
+   */
+  interface OrderContact {
+    receiver_name: string
+    receiver_phone: string
+    province: string
+    city: string
+    district: string
+    detail_address: string
+  }
+
+  /**
+   * 物流轨迹节点（GET /api/v4/exchange/orders/:order_no/track 的 track.tracks[] 项）
+   * source='local' 时来自后端 shipping_tracks 表（一节点一行）
+   */
+  interface ShippingTrackNode {
+    /** 节点状态: picked_up揽收 / in_transit运输中 / delivering派送中 / delivered已签收 / returned退回 / exception异常 */
+    track_status: string
+    /** 轨迹详情文本 */
+    track_detail: string
+    /** 节点时间（YYYY-MM-DD HH:mm:ss 北京时间） */
+    track_time: string
+  }
+
+  /**
    * 交易售后申诉（对齐后端 trade_disputes 表 + GET /api/v4/system/disputes/my|:id 脱敏返回格式）
    *
    * 字段直接采用后端 snake_case，前端不做映射。public 级脱敏后不含

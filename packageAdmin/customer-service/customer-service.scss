@@ -1,1055 +1,403 @@
-/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
-.page-scroll-view {
-  flex: 1;
-  min-height: 0;
-}
-
-/* 客服管理页面样式 - V3.0 Sass版本 */
+/* 简版客服座席回复端样式 — 统一消费品牌色 / Typography Token，对齐项目设计美学 */
 @import '../../styles/mixins';
 
-/* 🎨 全局容器 */
-.customer-service-container {
+/* 页面根容器：flex 纵向占满，子视图自管理滚动（Skyline 高度约束） */
+.cs-agent-container {
   @include tg-tokens;
-  background-color: var(--tg-color-bg);
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  display: flex;
-  flex-direction: column;
   min-height: 0;
-  overflow: hidden;
-}
-
-/* ===== 页面标题区（渐变背景 + 装饰图标） ===== */
-.page-header {
-  background: linear-gradient(
-    180deg,
-    var(--td-brand-color-light, #f5f0e8) 0%,
-    var(--tg-color-white) 100%
-  );
-  padding: 48rpx var(--tg-spacing-lg) 40rpx;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: var(--tg-spacing-lg);
-  border-radius: var(--td-radius-large);
-}
-
-.header-text {
-  position: relative;
-  z-index: 1;
-}
-
-.header-title {
-  font-size: var(--tg-font-size-display);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-text-primary);
-  display: block;
-  margin-bottom: 12rpx;
-  letter-spacing: -0.5rpx;
-}
-
-.header-desc {
-  font-size: var(--tg-font-size-body, 26rpx);
-  color: var(--tg-text-secondary);
-}
-
-.header-decor-icon {
-  position: absolute;
-  right: 32rpx;
-  top: 50%;
-  transform: translateY(-50%) rotate(-8deg);
-}
-
-/* 🔴 实时聊天模式样式 */
-
-/* 聊天模式容器 */
-.chat-mode-container {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 180rpx);
   background: var(--tg-color-bg-panel);
-}
-
-/* 管理员状态栏 */
-.admin-status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(
-    180deg,
-    var(--td-brand-color-light, #f5f0e8) 0%,
-    var(--tg-color-white) 100%
-  );
-  color: var(--tg-text-primary);
-  padding: 20rpx 30rpx;
-  border-radius: 12rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(139, 115, 85, 0.1);
-}
-
-.status-info {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-}
-
-.status-text {
-  font-size: var(--tg-font-size-body);
-  font-weight: var(--tg-font-weight-regular);
-}
-
-.status-badge {
-  font-size: var(--tg-font-size-small);
-  padding: 6rpx 12rpx;
-  border-radius: var(--td-radius-default);
-  background: rgba(var(--tg-color-white-rgb), 0.85);
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-}
-
-.status-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-}
-
-.status-dot--online {
-  background: #52c41a;
-}
-
-.status-dot--busy {
-  background: #faad14;
-}
-
-.status-dot--offline {
-  background: #ff4d4f;
-}
-
-.connection-info .ws-status {
-  font-size: var(--tg-font-size-small);
-  padding: 6rpx 12rpx;
-  border-radius: var(--td-radius-default);
-}
-
-.ws-status.connected {
-  background: rgba(var(--tg-color-success-rgb), 0.25);
-  color: var(--tg-color-success);
-}
-
-.ws-status.disconnected {
-  background: rgba(var(--tg-color-error-rgb), 0.25);
-  color: var(--tg-color-error);
-}
-
-/* 聊天工作台 */
-.chat-workspace {
-  display: flex;
-  flex: 1;
-  gap: 20rpx;
-  min-height: 0;
-  transition: all 0.3s ease;
-}
-
-.chat-workspace.expanded {
-  gap: 0;
-}
-
-/* 会话列表面板 */
-.sessions-panel {
-  width: 420rpx;
-  background: var(--tg-color-white);
-  border-radius: var(--td-radius-default);
-  box-shadow: 0 2rpx 20rpx rgba(var(--tg-color-black-rgb), 0.06);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
-.panel-header {
-  padding: 24rpx 30rpx;
-  border-bottom: 2rpx solid var(--tg-color-border-light);
-  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
-  @include flex-between;
+/* ===== 座席校验失败整页提示 ===== */
+.cs-forbidden {
+  flex: 1;
+  @include flex-column-center;
+  padding: 0 64rpx;
+  text-align: center;
+  gap: 20rpx;
 }
 
-.panel-title {
+.cs-forbidden-title {
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-text-primary-strong);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
-.session-count {
-  font-size: var(--tg-font-size-small);
-  color: var(--tg-text-secondary-muted);
-  background: var(--tg-color-border-muted);
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
-}
-
-.loading-sessions,
-.empty-sessions {
-  padding: 60rpx 20rpx;
-  text-align: center;
-  color: var(--tg-text-tertiary-muted);
-}
-
-.empty-text {
+.cs-forbidden-desc {
   font-size: var(--tg-font-size-body);
-  color: var(--tg-text-tertiary-muted);
+  color: var(--tg-text-tertiary);
+  line-height: var(--tg-line-height-relaxed);
 }
 
-.sessions-list {
+/* ===== 会话列表视图 ===== */
+.cs-list-view {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+}
+
+.cs-list-header {
+  @include flex-between;
+  padding: 24rpx 32rpx;
+  background: var(--tg-color-white);
+  border-bottom: 1rpx solid var(--tg-color-border-light);
+}
+
+.cs-list-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.cs-list-count {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-secondary);
+  background: var(--tg-color-bg-accent-soft);
+  padding: 4rpx 16rpx;
+  border-radius: var(--td-radius-round);
+}
+
+.cs-loading,
+.cs-empty {
+  padding: 80rpx 32rpx;
+  @include flex-center;
+}
+
+.cs-sessions-scroll {
+  flex: 1;
+  min-height: 0;
 }
 
 /* 会话项 */
-.session-item {
+.cs-session-item {
   display: flex;
   align-items: center;
-  padding: 16rpx 24rpx;
+  gap: 20rpx;
+  padding: 24rpx 32rpx;
+  background: var(--tg-color-white);
   border-bottom: 1rpx solid var(--tg-color-border-light);
-  /* Skyline 不支持 cursor 属性 */
-  transition: all 0.3s ease;
-  position: relative;
 }
 
-/* Skyline: 使用 hover-class 替代 :hover */
-.session-item-hover {
-  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
+.cs-session-item-hover {
+  background: var(--tg-color-bg-accent-soft);
 }
 
-.session-item.active {
-  background: linear-gradient(
-    135deg,
-    var(--tg-color-bg-accent-soft) 0%,
-    var(--tg-color-bg-accent-soft) 100%
-  );
-  border-left: 4rpx solid var(--tg-gradient-primary-start);
-}
-
-.session-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4rpx;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-}
-
-.session-avatar {
-  width: 60rpx;
-  height: 60rpx;
+.cs-session-avatar {
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  @include flex-center;
-  margin-right: 16rpx;
   flex-shrink: 0;
-  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
+  @include flex-center;
+  background: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
 }
 
-.avatar-text {
-  color: var(--tg-color-white);
-  font-size: var(--tg-font-size-small);
+.cs-avatar-text {
+  font-size: var(--tg-font-size-title);
   font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
 }
 
-.session-info {
+.cs-session-info {
   flex: 1;
   min-width: 0;
 }
 
-.session-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.cs-session-row {
+  @include flex-between;
   margin-bottom: 8rpx;
 }
 
-.user-name {
-  font-size: var(--td-font-size-s);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-text-primary-strong);
-  max-width: 160rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.cs-user-name {
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  max-width: 320rpx;
+  @include text-ellipsis;
 }
 
-.session-time {
-  font-size: var(--tg-font-size-xs);
-  color: var(--tg-text-tertiary-muted);
+.cs-session-time {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+  flex-shrink: 0;
 }
 
-.session-preview {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8rpx;
-}
-
-.last-message {
-  font-size: var(--tg-font-size-xs);
+.cs-last-message {
+  flex: 1;
+  font-size: var(--tg-font-size-caption);
   color: var(--tg-text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-  max-width: 180rpx;
+  @include text-ellipsis;
 }
 
-.unread-badge {
-  background: linear-gradient(135deg, var(--tg-color-error), var(--tg-color-error) 100%);
+.cs-unread-badge {
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 16rpx;
+  background: var(--tg-color-error);
   color: var(--tg-color-white);
-  font-size: var(--tg-font-size-micro);
-  padding: 4rpx 10rpx;
-  border-radius: 12rpx;
-  min-width: 28rpx;
-  text-align: center;
-  box-shadow: 0 2rpx 8rpx rgba(231, 76, 60, 0.3);
+  font-size: var(--tg-font-size-mini);
+  @include flex-center;
 }
 
-.session-status {
-  margin-top: 4rpx;
-}
-
-.status-tag {
-  font-size: var(--tg-font-size-micro);
-  padding: 4rpx 10rpx;
-  border-radius: 10rpx;
-  color: var(--tg-color-white);
-  font-weight: var(--tg-font-weight-regular);
-}
-
-.status-tag.waiting {
-  background: var(--tg-color-warning);
-}
-
-.status-tag.active {
-  background: var(--tg-color-success);
-}
-
-.status-tag.ended {
-  background: linear-gradient(
-    135deg,
-    var(--tg-text-tertiary-muted) 0%,
-    var(--tg-text-secondary) 100%
-  );
-}
-
-/* 聊天面板 */
-.chat-panel {
-  flex: 1;
-  background: var(--tg-color-white);
-  border-radius: var(--td-radius-default);
-  box-shadow: 0 2rpx 20rpx rgba(var(--tg-color-black-rgb), 0.06);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-/* 展开模式的聊天面板 */
-.chat-panel.expanded {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  border-radius: 0;
-  margin: 0;
-  padding: 0;
-  box-shadow: none;
-  background: var(--tg-color-bg-panel);
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-panel.expanded .chat-container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-panel.expanded .messages-container {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.chat-panel.expanded .chat-input-container {
-  position: relative;
-  background: var(--tg-color-white);
-  border-top: 2rpx solid var(--tg-color-border-light);
-  padding: 20rpx;
-}
-
-.chat-panel.expanded .input-area {
-  display: flex;
-  padding: 20rpx;
-  gap: 16rpx;
-  align-items: flex-end;
-  background: var(--tg-color-white);
-}
-
-.chat-panel.expanded .send-btn {
-  min-width: 120rpx;
-  height: 72rpx;
-  border-radius: 36rpx;
-  border: none;
-  display: flex !important;
+/* 状态标签 */
+.cs-status-tag {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  padding: 0 20rpx;
-  font-size: var(--td-font-size-base);
-  transition: all 0.3s ease;
-  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.04);
-  flex-shrink: 0;
+  padding: 2rpx 14rpx;
+  border-radius: var(--td-radius-round);
 }
 
-.chat-panel.expanded .chat-header {
-  position: relative;
+.cs-status-text {
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.cs-status-waiting {
+  background: var(--tg-color-warning-soft);
+}
+.cs-status-waiting .cs-status-text {
+  color: var(--tg-color-warning);
+}
+
+.cs-status-assigned,
+.cs-status-active {
+  background: rgba(var(--tg-color-success-rgb), 0.12);
+}
+.cs-status-assigned .cs-status-text,
+.cs-status-active .cs-status-text {
+  color: var(--tg-color-success);
+}
+
+.cs-status-closed {
+  background: var(--tg-color-bg-grey);
+}
+.cs-status-closed .cs-status-text {
+  color: var(--tg-text-tertiary);
+}
+
+/* ===== 聊天视图 ===== */
+.cs-chat-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.cs-chat-header {
+  @include flex-between;
+  padding: 16rpx 24rpx;
   background: var(--tg-color-white);
-  border-bottom: 2rpx solid var(--tg-color-border-light);
-  padding: 20rpx;
+  border-bottom: 1rpx solid var(--tg-color-border-light);
   flex-shrink: 0;
 }
 
-.no-session-selected {
+.cs-back-btn,
+.cs-refresh-btn {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 12rpx;
+  border-radius: var(--td-radius-default);
+}
+
+.cs-back-btn-hover {
+  background: var(--tg-color-bg-accent-soft);
+}
+
+.cs-back-text {
+  font-size: var(--tg-font-size-caption);
+  color: var(--td-brand-color);
+}
+
+.cs-chat-title {
   flex: 1;
   @include flex-column-center;
-  color: var(--tg-text-tertiary-muted);
-  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
+  gap: 4rpx;
 }
 
-.no-session-icon {
-  font-size: 96rpx;
-  margin-bottom: 24rpx;
-  opacity: 0.6;
+.cs-chat-user {
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
 }
 
-.no-session-text {
-  font-size: var(--td-font-size-base);
-  color: var(--tg-text-tertiary-muted);
+.cs-chat-session-id {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
 }
 
-.chat-container {
+/* 消息区 */
+.cs-messages {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  min-height: 0;
+  padding: 24rpx;
+  background: var(--tg-color-bg-panel);
 }
 
-/* 聊天头部 */
-.chat-header {
-  padding: 24rpx 30rpx;
-  border-bottom: 2rpx solid var(--tg-color-border-light);
-  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  padding: 12rpx 20rpx;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  color: var(--tg-color-white);
-  border-radius: 20rpx;
-  /* Skyline 不支持 cursor 属性 */
-  transition: all 0.3s ease;
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
-}
-
-/* Skyline: 使用 hover-class 替代 :hover */
-.back-btn-hover {
-  transform: translateX(-4rpx);
-  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.4);
-}
-
-.back-icon {
-  font-size: var(--td-font-size-s);
-  font-weight: var(--tg-font-weight-bold);
-}
-
-.back-text {
-  font-size: var(--tg-font-size-small);
-  font-weight: var(--tg-font-weight-regular);
-}
-
-.chat-user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
-.chat-user-name {
-  font-size: var(--td-font-size-base);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-text-primary-strong);
-}
-
-.chat-session-id {
-  font-size: var(--tg-font-size-xs);
-  color: var(--tg-text-tertiary-muted);
-}
-
-.chat-actions .action-btn {
-  background: linear-gradient(135deg, var(--tg-color-error), var(--tg-color-error) 100%);
-  color: var(--tg-color-white);
-  padding: 12rpx 24rpx;
-  border-radius: 20rpx;
-  font-size: var(--tg-font-size-small);
-  border: none;
-  box-shadow: 0 4rpx 12rpx rgba(231, 76, 60, 0.3);
-}
-
-/* 消息容器 */
-.messages-container {
-  flex: 1;
-  padding: 20rpx 30rpx;
-  overflow-y: auto;
-  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
-}
-
-.empty-messages {
+.cs-msg-empty {
+  padding: 80rpx 32rpx;
   text-align: center;
-  padding: 60rpx 20rpx;
-  color: var(--tg-text-tertiary-muted);
 }
 
-/* 消息项 */
-.message-item {
+.cs-msg-empty-text {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
+}
+
+/* 消息项：用户靠左，座席靠右 */
+.cs-msg-item {
   display: flex;
-  margin-bottom: 24rpx;
   align-items: flex-end;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
 }
 
-.message-item.admin {
+.cs-msg-own {
   flex-direction: row-reverse;
 }
 
-.message-avatar {
-  width: 56rpx;
-  height: 56rpx;
+.cs-msg-avatar {
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
-  @include flex-center;
-  margin: 0 16rpx;
   flex-shrink: 0;
-  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.04);
+  @include flex-center;
 }
 
-.message-item.user .message-avatar {
-  background: linear-gradient(135deg, var(--tg-color-info) 0%, var(--tg-color-info) 100%);
+.cs-msg-other .cs-msg-avatar {
+  background: var(--tg-color-info);
 }
 
-.message-item.admin .message-avatar {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
+.cs-msg-own .cs-msg-avatar {
+  background: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
 }
 
-.message-avatar .avatar-text {
-  color: var(--tg-color-white);
-  font-size: var(--tg-font-size-xs);
+.cs-msg-avatar-text {
+  font-size: var(--tg-font-size-mini);
   font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
 }
 
-.message-content {
+.cs-msg-body {
   max-width: 70%;
   display: flex;
   flex-direction: column;
 }
 
-.message-item.admin .message-content {
+.cs-msg-own .cs-msg-body {
   align-items: flex-end;
 }
 
-/* 消息气泡 */
-.message-bubble {
-  padding: 16rpx 20rpx;
+.cs-msg-bubble {
+  padding: 18rpx 24rpx;
   border-radius: 20rpx;
-  word-wrap: break-word;
-  position: relative;
-  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.04);
+  box-shadow: var(--tg-shadow-sm);
+}
+
+.cs-bubble-other {
   background: var(--tg-color-white);
-}
-
-.message-item.user .message-bubble {
-  background: linear-gradient(135deg, var(--tg-color-white) 0%, var(--tg-color-bg-muted) 100%);
-  color: var(--tg-text-primary-strong);
   border-bottom-left-radius: 6rpx;
-  border: 1rpx solid var(--tg-color-border-muted);
 }
 
-.message-item.admin .message-bubble {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  color: var(--tg-color-white);
+.cs-bubble-own {
+  background: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
   border-bottom-right-radius: 6rpx;
 }
 
-.message-text {
+.cs-msg-text {
   font-size: var(--tg-font-size-body);
   line-height: var(--tg-line-height-relaxed);
-  margin: 0;
 }
 
-.message-meta {
-  display: flex;
-  gap: 12rpx;
-  margin-top: 6rpx;
-  font-size: var(--tg-font-size-micro);
-  color: var(--tg-text-tertiary-muted);
+.cs-bubble-other .cs-msg-text {
+  color: var(--tg-text-primary);
 }
 
-.message-item.admin .message-meta {
-  justify-content: flex-end;
-}
-
-.message-time {
-  opacity: 0.8;
-}
-
-.message-status {
-  font-weight: var(--tg-font-weight-regular);
-}
-
-.message-status.sending {
-  color: var(--tg-color-warning);
-}
-
-.message-status.sent {
-  color: var(--tg-color-success);
-}
-
-.message-status.failed {
-  color: var(--tg-color-error);
-}
-
-/* 聊天输入区域 */
-.chat-input-container {
-  border-top: 2rpx solid var(--tg-color-border-light);
-  background: var(--tg-color-white);
-}
-
-.quick-replies-panel {
-  padding: 20rpx 30rpx;
-  border-bottom: 1rpx solid var(--tg-color-border-light);
-  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
-}
-
-.quick-reply-item {
-  padding: 12rpx 20rpx;
-  margin: 6rpx 0;
-  background: linear-gradient(135deg, var(--tg-color-border-muted) 0%, var(--tg-color-bg) 100%);
-  border-radius: 20rpx;
-  /* Skyline 不支持 cursor 属性 */
-  transition: all 0.3s ease;
-  border: 1rpx solid var(--tg-color-border-muted);
-}
-
-/* Skyline: 使用 hover-class 替代 :hover */
-.quick-reply-item-hover {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
+.cs-bubble-own .cs-msg-text {
   color: var(--tg-color-white);
-  transform: translateY(-2rpx);
-  box-shadow: 0 4rpx 12rpx rgba(var(--td-brand-color-rgb), 0.3);
 }
 
-.quick-reply-item .quick-reply-item-text {
-  font-size: var(--td-font-size-s);
-  color: inherit;
+.cs-msg-image {
+  width: 320rpx;
+  border-radius: 12rpx;
+  display: block;
 }
 
-.input-toolbar {
-  padding: 16rpx 30rpx;
-  border-bottom: 1rpx solid var(--tg-color-border-light);
-  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
+.cs-msg-time {
+  margin-top: 8rpx;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
 }
 
-.toolbar-btn {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  color: var(--tg-color-white);
-  padding: 10rpx 20rpx;
-  border-radius: var(--td-radius-default);
-  font-size: var(--tg-font-size-small);
-  border: none;
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.3);
-}
-
-/* 输入区域 */
-.input-area {
+/* 输入区 */
+.cs-input-bar {
   display: flex;
-  padding: 20rpx 30rpx;
-  gap: 16rpx;
   align-items: flex-end;
+  gap: 16rpx;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
   background: var(--tg-color-white);
+  border-top: 1rpx solid var(--tg-color-border-light);
+  flex-shrink: 0;
 }
 
-.message-input {
+.cs-image-btn {
+  width: 72rpx;
+  height: 72rpx;
+  flex-shrink: 0;
+  @include flex-center;
+  border-radius: var(--td-radius-default);
+}
+
+.cs-image-btn-hover {
+  background: var(--tg-color-bg-accent-soft);
+}
+
+.cs-input {
   flex: 1;
   min-height: 72rpx;
-  max-height: 160rpx;
-  padding: 16rpx 20rpx;
-  border: 2rpx solid var(--tg-color-border-muted);
-  border-radius: var(--td-radius-large);
+  max-height: 200rpx;
+  padding: 18rpx 24rpx;
+  border-radius: 20rpx;
+  background: var(--tg-color-bg-muted);
   font-size: var(--tg-font-size-body);
-  background: var(--tg-color-bg);
-  resize: none;
-  transition: all 0.3s ease;
+  color: var(--tg-text-primary);
 }
 
-/* Skyline: 使用 JS class 替代 :focus */
-.message-input-focused {
-  border-color: var(--tg-gradient-primary-start);
-  background: var(--tg-color-white);
-  box-shadow: 0 0 0 4rpx rgba(255, 107, 53, 0.1);
-}
-
-/* 发送按钮 */
-.send-btn {
+.cs-send-btn {
+  flex-shrink: 0;
   min-width: 120rpx;
   height: 72rpx;
   border-radius: 36rpx;
-  border: none;
   @include flex-center;
-  gap: 8rpx;
-  padding: 0 20rpx;
-  font-size: var(--td-font-size-base);
-  transition: all 0.3s ease;
-  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.cs-send-active {
+  background: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
+  box-shadow: 0 4rpx 12rpx rgba(200, 160, 106, 0.28);
+}
+
+.cs-send-disabled {
   background: var(--tg-color-border-muted);
-  color: var(--tg-text-tertiary-muted);
 }
 
-.send-btn.active {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  color: var(--tg-color-white);
-  transform: scale(1.05);
-  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.4);
-}
-
-.send-btn.disabled {
-  background: var(--tg-color-border-muted);
-  color: var(--tg-text-tertiary-muted);
-  transform: scale(1);
-  box-shadow: 0 1rpx 6rpx rgba(0, 0, 0, 0.03);
-}
-
-.send-icon {
-  font-size: var(--td-font-size-s);
-}
-
-.send-text {
+.cs-send-text {
   font-size: var(--tg-font-size-body);
-  font-weight: var(--tg-font-weight-regular);
-}
-
-.typing-indicator {
-  padding: 12rpx 30rpx;
-  text-align: center;
-  font-size: var(--tg-font-size-small);
-  color: var(--tg-text-tertiary-muted);
-  background: linear-gradient(135deg, var(--tg-color-bg-muted) 0%, var(--tg-color-white) 100%);
-  border-top: 1rpx solid var(--tg-color-border-light);
-}
-
-/* 今日统计 */
-.today-stats {
-  margin-top: 20rpx;
-  background: var(--tg-color-white);
-  border-radius: var(--td-radius-default);
-  box-shadow: 0 2rpx 20rpx rgba(var(--tg-color-black-rgb), 0.06);
-  overflow: hidden;
-}
-
-.stats-header {
-  padding: 24rpx 30rpx;
-  border-bottom: 2rpx solid var(--tg-color-border-light);
-  background: linear-gradient(135deg, var(--tg-color-bg) 0%, var(--tg-color-border-muted) 100%);
-}
-
-.stats-title {
-  font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-text-primary-strong);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
-.stats-grid {
-  display: flex;
-  padding: 24rpx 0;
-}
-
-.stat-card {
-  flex: 1;
-  text-align: center;
-  padding: 0 20rpx;
-  position: relative;
-}
-
-.stat-card:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 20%;
-  bottom: 20%;
-  width: 1rpx;
-  background: linear-gradient(to bottom, transparent, var(--tg-color-border-muted), transparent);
-}
-
-.stat-card .stat-number {
-  font-size: var(--td-font-size-m);
-  font-weight: var(--tg-font-weight-bold);
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  color: transparent;
-  display: block;
-  margin-bottom: 8rpx;
-}
-
-.stat-card .stat-label {
-  font-size: var(--tg-font-size-small);
-  color: var(--tg-text-tertiary-muted);
-  display: block;
-}
-
-/* 🔧 聊天面板调试工具样式 */
-
-/* 工具栏调试按钮 */
-.debug-toggle-btn {
-  background: linear-gradient(135deg, var(--tg-color-error) 0%, var(--tg-color-error) 100%);
-  color: var(--tg-color-white);
-  border: 2rpx solid var(--tg-color-error);
-}
-
-.debug-toggle-btn:active {
-  background: linear-gradient(135deg, var(--tg-color-error) 0%, var(--tg-color-error) 100%);
-  transform: scale(0.95);
-}
-
-/* 聊天调试面板 */
-.chat-debug-panel {
-  margin-top: 16rpx;
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  border-radius: 12rpx;
-  overflow: hidden;
-  border: 2rpx solid var(--tg-color-info);
-  animation: slideInUp 0.3s ease-out;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30rpx);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 调试面板头部 */
-.debug-panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16rpx 20rpx;
-  background: rgba(255, 255, 255, 0.1);
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.2);
-}
-
-.debug-panel-title {
-  font-size: var(--td-font-size-s);
-  font-weight: var(--tg-font-weight-bold);
+.cs-send-active .cs-send-text {
   color: var(--tg-color-white);
 }
 
-.debug-status-bar {
-  display: flex;
-  gap: 12rpx;
-}
-
-.status-item {
-  font-size: var(--tg-font-size-xs);
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4rpx 8rpx;
-  border-radius: var(--td-radius-small);
-}
-
-/* 快速操作按钮区域 */
-.debug-quick-actions {
-  display: flex;
-  justify-content: space-around;
-  padding: 16rpx;
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 1rpx solid rgba(255, 255, 255, 0.1);
-}
-
-.debug-quick-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12rpx 8rpx;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var(--td-radius-small);
-  border: none;
-  color: var(--tg-color-white);
-  min-width: 80rpx;
-  transition: all 0.3s ease;
-}
-
-.debug-quick-btn:active {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(0.95);
-}
-
-.debug-quick-btn .btn-icon {
-  font-size: var(--td-font-size-s);
-  margin-bottom: 4rpx;
-}
-
-.debug-quick-btn .btn-text {
-  font-size: var(--tg-font-size-micro);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* 详细调试面板 */
-.debug-detailed-panel {
-  padding: 16rpx;
-}
-
-.debug-section-compact {
-  margin-bottom: 16rpx;
-}
-
-.debug-section-compact:last-child {
-  margin-bottom: 0;
-}
-
-.debug-section-title-compact {
-  font-size: var(--tg-font-size-xs);
-  font-weight: var(--tg-font-weight-bold);
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 8rpx;
-  display: block;
-}
-
-.debug-buttons-compact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8rpx;
-}
-
-.debug-btn-compact {
-  font-size: var(--tg-font-size-micro);
-  padding: 8rpx 12rpx;
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--tg-color-white);
-  border-radius: 6rpx;
-  border: none;
-  min-width: 80rpx;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.debug-btn-compact:active {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(0.95);
-}
-
-/* 紧凑的调试信息显示 */
-.debug-info-compact {
-  padding: 16rpx;
-  background: rgba(255, 255, 255, 0.1);
-  border-top: 1rpx solid rgba(255, 255, 255, 0.2);
-}
-
-.debug-info-title-compact {
-  font-size: var(--tg-font-size-xs);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-color-white);
-  margin-bottom: 8rpx;
-  display: block;
-}
-
-.debug-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8rpx;
-}
-
-.debug-info-item-compact {
-  font-size: var(--tg-font-size-micro);
-  color: rgba(255, 255, 255, 0.8);
-  padding: 6rpx 8rpx;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4rpx;
-  display: block;
-  text-align: center;
-}
-
-/* 响应式调整 */
-@media (max-width: 500px) {
-  .debug-quick-actions {
-    flex-wrap: wrap;
-    gap: 8rpx;
-  }
-
-  .debug-quick-btn {
-    flex: 1;
-    min-width: 60rpx;
-  }
-
-  .debug-buttons-compact {
-    flex-direction: column;
-  }
-
-  .debug-btn-compact {
-    width: 100%;
-  }
-
-  .debug-info-grid {
-    grid-template-columns: 1fr;
-  }
+.cs-send-disabled .cs-send-text {
+  color: var(--tg-text-tertiary);
 }

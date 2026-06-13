@@ -40,7 +40,8 @@
         "records/trade-upload-records/trade-upload-records",
         "agreement/agreement",
         "barter/barter",
-        "growth-level/growth-level"
+        "growth-level/growth-level",
+        "addresses/addresses"
       ]
     },
     {
@@ -171,5 +172,6 @@
       "desc": "用于将你生成的 DIY 作品海报保存到相册"
     }
   },
+  "requiredPrivateInfos": ["chooseLocation"],
   "__usePrivacyCheck__": true
 }

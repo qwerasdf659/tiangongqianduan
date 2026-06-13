@@ -300,6 +300,106 @@ async function uploadChatImage(session_id: number, filePath: string) {
   })
 }
 
+// ==================== 🎧 简版客服座席回复端（cs-agent） ====================
+//
+// 准入基于「客服座席」身份（customer_service_agents 表 status=active），而非管理员等级。
+// 非座席账号调用返回 HTTP 403 / code: FORBIDDEN。座席名单由 Web 后台维护、每次请求现查。
+// 与 Web 后台客服工作台共用同一套 customer_service_sessions / chat_messages 表，天然数据互通。
+// 本端只做三件事：看会话列表、看聊天记录、发文字/图片消息（不含统计/分配/工单/关闭等管理能力）。
+
+/**
+ * 获取待回复会话列表（座席端）
+ * 后端API: GET /api/v4/system/cs-agent/sessions
+ *
+ * @param params.page - 页码（默认 1）
+ * @param params.page_size - 每页数量（默认 20）
+ * @param params.status - 会话状态筛选（可选: waiting/assigned/active/closed）
+ * @param params.sort_by - 排序字段（可选）
+ * @param params.sort_order - 排序方向（可选）
+ * @returns { success, data: { sessions: [...], pagination: {...} } }
+ */
+async function getCsAgentSessions(
+  params: {
+    page?: number
+    page_size?: number
+    status?: string
+    sort_by?: string
+    sort_order?: string
+  } = {}
+) {
+  const qs = buildQueryString({
+    page: params.page || 1,
+    page_size: params.page_size || 20,
+    status: params.status || null,
+    sort_by: params.sort_by || null,
+    sort_order: params.sort_order || null
+  })
+  return apiClient.request(`/system/cs-agent/sessions?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 获取某会话聊天记录（座席端）
+ * 后端API: GET /api/v4/system/cs-agent/sessions/:id/messages
+ *
+ * @param session_id - 会话ID（取自列表的 customer_service_session_id）
+ * @param params.page_size - 每页数量（默认 50）
+ * @param params.before_message_id - 向上翻历史的游标（可选）
+ * @returns { success, data: { messages: [...] } }
+ */
+async function getCsAgentMessages(
+  session_id: number,
+  params: { page_size?: number; before_message_id?: number } = {}
+) {
+  if (!session_id) {
+    throw new Error('会话ID不能为空')
+  }
+  const qs = buildQueryString({
+    page_size: params.page_size || 50,
+    before_message_id: params.before_message_id || null
+  })
+  return apiClient.request(`/system/cs-agent/sessions/${session_id}/messages?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 座席发送文字/图片消息
+ * 后端API: POST /api/v4/system/cs-agent/sessions/:id/send
+ *
+ * @param session_id - 会话ID
+ * @param params.content - 文字内容；message_type='image' 时填图片 URL（必填、不可为空）
+ * @param params.message_type - 'text'（默认）或 'image'（本端仅这两种）
+ * @returns { success, data: { chat_message_id, content, message_type, created_at } }（已通过 WebSocket 实时推给用户）
+ */
+async function sendCsAgentMessage(
+  session_id: number,
+  params: { content: string; message_type?: string }
+) {
+  if (!session_id) {
+    throw new Error('会话ID不能为空')
+  }
+  if (!params || !params.content) {
+    throw new Error('消息内容不能为空')
+  }
+  return apiClient.request(`/system/cs-agent/sessions/${session_id}/send`, {
+    method: 'POST',
+    data: {
+      content: params.content,
+      message_type: params.message_type || 'text'
+    },
+    needAuth: true,
+    showError: false
+  })
+}
+
 // ==================== 📋 系统配置查询 ====================
 
 /**
@@ -648,6 +748,9 @@ module.exports = {
   getChatHistory,
   sendChatMessage,
   uploadChatImage,
+  getCsAgentSessions,
+  getCsAgentMessages,
+  sendCsAgentMessage,
   searchChatMessages,
   rateSession,
   uploadDisputeEvidence,

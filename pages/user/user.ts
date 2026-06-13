@@ -66,6 +66,11 @@ Page({
     isManager: false,
     isReviewer: false,
     isAdmin: false,
+    /**
+     * 是否客服座席（与 role_level 解耦，由后端 customer_service_agents 表权威判定）
+     * 前端无座席字段，进页静默探测 cs-agent 接口：非 403 即为在岗座席，据此显示「客服回复台」入口
+     */
+    isCsAgent: false,
     roleLevel: 0,
 
     // 积分信息
@@ -527,6 +532,13 @@ Page({
       isAdmin,
       userId: userInfo?.user_id
     })
+
+    /* 登录后静默探测座席身份（后端权威），决定是否展示「客服回复台」入口 */
+    if (isLoggedIn) {
+      this.probeCsAgent()
+    } else if (this.data.isCsAgent) {
+      this.setData({ isCsAgent: false })
+    }
   },
 
   /**
@@ -991,6 +1003,34 @@ Page({
 
     wx.navigateTo({
       url: '/packageAdmin/consume-submit/consume-submit'
+    })
+  },
+
+  /**
+   * 静默探测客服座席身份
+   * 座席与 role_level 解耦，由后端 customer_service_agents 表权威判定（每次请求现查）。
+   * 前端无座席字段，故轻量调一次 cs-agent 会话列表：非 403 视为在岗座席 → 显示入口；403 → 隐藏。
+   * 该接口 showLoading/showError 均为 false，探测过程对用户无感。
+   */
+  async probeCsAgent() {
+    try {
+      const result = await API.getCsAgentSessions({ page: 1, page_size: 1 })
+      const ok = !!(result && result.success)
+      if (this.data.isCsAgent !== ok) {
+        this.setData({ isCsAgent: ok })
+      }
+    } catch (_error: any) {
+      /* 403/FORBIDDEN 或任何失败都按"非座席"处理，不展示入口 */
+      if (this.data.isCsAgent) {
+        this.setData({ isCsAgent: false })
+      }
+    }
+  },
+
+  /** 跳转到客服回复台（座席端，后端按座席身份 403 兜底校验） */
+  goToCsAgent() {
+    wx.navigateTo({
+      url: '/packageAdmin/customer-service/customer-service'
     })
   },
 

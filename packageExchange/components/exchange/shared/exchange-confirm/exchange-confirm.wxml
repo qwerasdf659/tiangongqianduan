@@ -30,6 +30,12 @@
           >
           <view class="confirm-product-price-wrap">
             <text class="confirm-price-amount">{{displayUnitCost}}</text>
+            <image
+              wx:if="{{product._priceIcon}}"
+              class="confirm-asset-icon"
+              src="{{product._priceIcon}}"
+              mode="aspectFit"
+            />
             <text class="confirm-price-unit">{{product._priceLabel || '—'}}</text>
           </view>
         </view>
@@ -60,6 +66,12 @@
         <text class="confirm-row-label">合计消耗</text>
         <view class="confirm-total-value-wrap">
           <text class="confirm-total-amount">{{displayTotalCost}}</text>
+          <image
+            wx:if="{{product._priceIcon}}"
+            class="confirm-asset-icon"
+            src="{{product._priceIcon}}"
+            mode="aspectFit"
+          />
           <text class="confirm-total-unit">{{product._priceLabel || '—'}}</text>
         </view>
       </view>
@@ -69,6 +81,9 @@
         <text class="confirm-row-label">当前余额</text>
         <text class="confirm-balance-value">{{currentAssetBalance}} {{currentAssetLabel}}</text>
       </view>
+
+      <!-- 额外内容插槽（实物商品收货地址等，由页面注入） -->
+      <slot name="extra"></slot>
     </view>
 
     <view class="confirm-footer">

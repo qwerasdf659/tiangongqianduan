@@ -121,13 +121,13 @@
 
       <!-- ③ 价格区: 大号渐变数字 + 划线原价 + 省XX标签 -->
       <view class="ed-price-section">
+        <text class="ed-price-amount">{{product.cost_amount}}</text>
         <image
           wx:if="{{product._priceIcon}}"
           class="ed-price-asset-icon"
           src="{{product._priceIcon}}"
           mode="aspectFit"
         />
-        <text class="ed-price-amount">{{product.cost_amount}}</text>
         <text class="ed-price-unit">{{product._priceLabel || '—'}}</text>
         <view
           class="ed-original-price"
@@ -476,4 +476,24 @@
   bind:confirm="onConfirmExchange"
   bind:close="onCloseConfirm"
   bind:quantitychange="onQuantityChange"
-/>
+>
+  <!-- 实物商品收货地址（fulfillment_type='physical' 时展示，下单前必选） -->
+  <view wx:if="{{needAddress}}" slot="extra" class="confirm-address-row" bindtap="onChooseAddress">
+    <view class="confirm-address-icon">
+      <t-icon name="location" size="36rpx" color="var(--td-brand-color)" />
+    </view>
+    <view class="confirm-address-body" wx:if="{{selectedAddress}}">
+      <view class="confirm-address-top">
+        <text class="confirm-address-name">{{selectedAddress.receiver_name}}</text>
+        <text class="confirm-address-phone">{{selectedAddress.receiver_phone}}</text>
+      </view>
+      <text class="confirm-address-detail"
+        >{{selectedAddress.province}}{{selectedAddress.city}}{{selectedAddress.district}}{{selectedAddress.detail_address}}</text
+      >
+    </view>
+    <view class="confirm-address-body" wx:else>
+      <text class="confirm-address-empty">请选择收货地址</text>
+    </view>
+    <t-icon name="chevron-right" size="32rpx" color="var(--tg-text-tertiary)" />
+  </view>
+</exchange-confirm>

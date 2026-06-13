@@ -1,0 +1,302 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 收货地址管理页样式 */
+@import '../../styles/mixins';
+
+.addresses-container {
+  @include tg-tokens;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background-color: var(--tg-color-bg-grey);
+}
+
+/* ===== 地址卡片 ===== */
+.addr-card {
+  margin: 20rpx;
+  padding: 28rpx;
+  background: var(--tg-color-white);
+  border-radius: var(--tg-radius-xl);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.addr-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.addr-top-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.addr-name {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.addr-phone {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+}
+
+.addr-default-tag {
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-mini);
+}
+
+.addr-detail {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+  line-height: 1.5;
+}
+
+/* ===== 操作行 ===== */
+.addr-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 32rpx;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--tg-color-bg-grey);
+}
+
+.addr-action-item {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  color: var(--tg-text-secondary);
+}
+
+.addr-action-text {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-secondary);
+}
+
+.addr-action-delete {
+  color: #f44336;
+}
+
+.addr-action-delete .addr-action-text {
+  color: #f44336;
+}
+
+/* ===== 骨架屏 ===== */
+.addr-skeleton {
+  margin: 20rpx;
+  padding: 28rpx;
+  background: var(--tg-color-white);
+  border-radius: var(--tg-radius-xl);
+}
+
+.skeleton-line {
+  height: 28rpx;
+  border-radius: 8rpx;
+  background: var(--tg-color-bg-grey);
+  margin-bottom: 16rpx;
+}
+
+.skeleton-title {
+  width: 40%;
+}
+
+.skeleton-info {
+  width: 80%;
+}
+
+.shimmer {
+  animation: addr-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes addr-shimmer {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.retry-btn {
+  padding: 12rpx 40rpx;
+  border-radius: var(--tg-radius-xl);
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-body);
+}
+
+/* ===== 底部新增按钮 ===== */
+.addr-footer {
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: var(--tg-color-white);
+}
+
+.addr-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  height: 88rpx;
+  border-radius: var(--tg-radius-xl);
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+}
+
+.addr-add-text {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-color-white);
+}
+
+/* ===== 表单半屏面板 ===== */
+.form-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.form-panel {
+  background: var(--tg-color-white);
+  border-radius: var(--tg-radius-xl) var(--tg-radius-xl) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  max-height: 85%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid var(--tg-color-bg-grey);
+}
+
+.form-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.form-body {
+  padding: 16rpx 32rpx;
+  overflow-y: auto;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--tg-color-bg-grey);
+}
+
+.form-label {
+  width: 160rpx;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
+}
+
+.form-input {
+  flex: 1;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
+}
+
+.form-picker {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-picker-value {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
+}
+
+.form-picker-placeholder {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-tertiary);
+}
+
+.form-row-textarea {
+  align-items: flex-start;
+}
+
+.form-textarea {
+  flex: 1;
+  min-height: 80rpx;
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
+}
+
+.form-row-switch {
+  justify-content: space-between;
+}
+
+.form-switch {
+  width: 88rpx;
+  height: 48rpx;
+  border-radius: 24rpx;
+  background: var(--tg-color-bg-grey);
+  position: relative;
+  transition: background 0.2s;
+}
+
+.form-switch.switch-on {
+  background: var(--td-brand-color);
+}
+
+.form-switch-dot {
+  position: absolute;
+  top: 4rpx;
+  left: 4rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: var(--tg-color-white);
+  transition: transform 0.2s;
+}
+
+.form-switch.switch-on .form-switch-dot {
+  transform: translateX(40rpx);
+}
+
+.form-footer {
+  padding: 24rpx 32rpx;
+}
+
+.form-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  border-radius: var(--tg-radius-xl);
+  background: linear-gradient(135deg, var(--td-brand-color), var(--td-brand-color-active));
+  color: var(--tg-color-white);
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.form-submit-btn.disabled {
+  opacity: 0.6;
+}

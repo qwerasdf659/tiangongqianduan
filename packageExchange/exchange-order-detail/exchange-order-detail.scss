@@ -65,7 +65,11 @@
   position: relative;
   overflow: hidden;
   padding: 32rpx;
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
 }
 
 .eod-page-header-title {
@@ -564,4 +568,69 @@
   font-size: var(--td-font-size-xs);
   color: var(--tg-text-tertiary);
   margin-top: 4rpx;
+}
+
+/* ===== 收货地址卡片 ===== */
+.address-edit-btn {
+  padding: 4rpx 20rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid var(--td-brand-color);
+}
+
+.address-edit-text {
+  font-size: var(--tg-font-size-caption);
+  color: var(--td-brand-color);
+}
+
+.address-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding-top: 12rpx;
+}
+
+.address-top-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.address-name {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.address-phone {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+}
+
+.address-show-full {
+  padding: 2rpx 16rpx;
+  border-radius: 20rpx;
+  background: var(--tg-color-bg-grey);
+}
+
+.address-show-full-text {
+  font-size: var(--tg-font-size-small);
+  color: var(--td-brand-color);
+}
+
+.address-detail-text {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+  line-height: 1.5;
+}
+
+.address-missing {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 0;
+}
+
+.address-missing-text {
+  font-size: var(--tg-font-size-caption);
+  color: #ff9800;
 }

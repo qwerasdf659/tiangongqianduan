@@ -132,21 +132,32 @@
 
 .confirm-product-price-wrap {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6rpx;
 }
 
+/* 计价资产图标（后端 cost_asset_icon_url，与价格同排展示；为空时不渲染由纯文字兜底） */
+.confirm-asset-icon {
+  width: 36rpx;
+  height: 36rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
 .confirm-price-amount {
+  font-family: var(--tg-font-number);
   font-size: 40rpx;
   font-weight: var(--tg-font-weight-bold);
-  color: var(--td-brand-color);
+  color: var(--tg-text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tg-letter-spacing-tight);
   line-height: 1;
 }
 
 .confirm-price-unit {
   font-size: var(--tg-font-size-caption);
   font-weight: var(--tg-font-weight-regular);
-  color: var(--td-brand-color-focus);
+  color: var(--tg-text-secondary);
 }
 
 /* 行项 */
@@ -222,21 +233,24 @@
 
 .confirm-total-value-wrap {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8rpx;
 }
 
 .confirm-total-amount {
+  font-family: var(--tg-font-number);
   font-size: 44rpx;
   font-weight: var(--tg-font-weight-bold);
-  color: var(--td-brand-color);
+  color: var(--tg-text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tg-letter-spacing-tight);
   line-height: 1;
 }
 
 .confirm-total-unit {
   font-size: var(--tg-font-size-caption);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--td-brand-color-focus);
+  color: var(--tg-text-secondary);
 }
 
 /* 当前余额 */

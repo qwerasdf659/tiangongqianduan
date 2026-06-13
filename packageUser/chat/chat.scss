@@ -1,6 +1,9 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级容器 — flex-column 占满剩余高度，内部 sessions-list 自管理滚动 */
 .page-scroll-view {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -14,6 +17,7 @@
   @include tg-tokens;
   width: 100%;
   flex: 1;
+  min-height: 0;
   background: var(--tg-color-bg);
   @include flex-column;
 }
@@ -151,6 +155,7 @@
 /* ============================================================================ */
 .sessions-list {
   flex: 1;
+  min-height: 0;
   background: var(--tg-color-white);
 }
 
@@ -1671,11 +1676,12 @@
   color: var(--tg-text-tertiary);
 }
 
-/* 发送按钮 */
+/* 发送按钮：客服场景纯文字「发送」胶囊按钮 */
 .send-btn {
-  width: 68rpx;
+  min-width: 112rpx;
   height: 68rpx;
-  border-radius: 50%;
+  padding: 0 28rpx;
+  border-radius: 34rpx;
   @include flex-center;
   flex-shrink: 0;
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1686,28 +1692,26 @@
 }
 
 .send-btn.active {
-  background: linear-gradient(
-    135deg,
-    var(--tg-gradient-primary-start) 0%,
-    var(--tg-gradient-primary-end) 100%
-  );
-  box-shadow: 0 4rpx 14rpx rgba(var(--td-brand-color-rgb), 0.35);
+  background: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
+  box-shadow: 0 4rpx 12rpx rgba(200, 160, 106, 0.28);
 }
 
 .send-btn.active:active {
-  transform: scale(0.88);
-  box-shadow: 0 2rpx 8rpx rgba(var(--td-brand-color-rgb), 0.2);
+  transform: scale(0.96);
+  box-shadow: 0 2rpx 8rpx rgba(200, 160, 106, 0.2);
 }
 
-.send-btn-icon {
-  font-size: var(--tg-font-size-headline);
+.send-btn-text {
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-bold);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
-.send-btn.inactive .send-btn-icon {
+.send-btn.inactive .send-btn-text {
   color: var(--tg-text-tertiary);
 }
 
-.send-btn.active .send-btn-icon {
+.send-btn.active .send-btn-text {
   color: var(--tg-color-white);
 }
 

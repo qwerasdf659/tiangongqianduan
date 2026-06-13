@@ -1,7 +1,7 @@
 <!--packageUser/chat/chat.wxml - 用户端聊天会话列表界面 V6.0 UI优化版-->
 <custom-navbar title="在线客服" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
 <view class="chat-sessions-container">
-  <scroll-view type="list" scroll-y class="page-scroll-view">
+  <view class="page-scroll-view">
     <!-- 顶部搜索栏 -->
     <view class="search-header">
       <view class="search-bar">
@@ -175,7 +175,7 @@
         </view>
       </block>
     </scroll-view>
-  </scroll-view>
+  </view>
 </view>
 
 <!-- ===== 聊天弹窗（全屏覆盖） ===== -->
@@ -441,7 +441,11 @@
     </view>
 
     <!-- 输入区域 - 重新设计 -->
-    <view class="chat-input-area {{keyboardHeight > 0 ? 'keyboard-up' : ''}}" style="{{keyboardHeight > 0 ? 'padding-bottom:' + keyboardHeight + 'px' : ''}}" catchtap="onInputAreaTap">
+    <view
+      class="chat-input-area {{keyboardHeight > 0 ? 'keyboard-up' : ''}}"
+      style="{{keyboardHeight > 0 ? 'padding-bottom:' + keyboardHeight + 'px' : ''}}"
+      catchtap="onInputAreaTap"
+    >
       <view class="input-main-row" catchtap="onInputToolbarTap">
         <!-- 附件按钮（展开/折叠工具栏） -->
         <view class="expand-btn {{showToolbar ? 'active' : ''}}" catchtap="toggleToolbar">
@@ -472,13 +476,12 @@
           </textarea>
         </view>
 
-        <!-- 发送按钮 -->
+        <!-- 发送按钮：客服场景纯文字「发送」，有内容可点、无内容置灰（不做语音） -->
         <view
-          class="send-btn {{inputContent.trim() ? 'active' : 'inactive'}}"
+          class="send-btn {{inputContent && inputContent.trim() ? 'active' : 'inactive'}}"
           catchtap="onInlineSendTap"
         >
-          <text class="send-btn-icon" wx:if="{{inputContent.trim()}}"><t-icon name="send" size="36rpx" /></text>
-          <text class="send-btn-icon" wx:else><t-icon name="microphone" size="36rpx" /></text>
+          <text class="send-btn-text">发送</text>
         </view>
       </view>
 
