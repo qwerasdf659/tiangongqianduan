@@ -1,7 +1,8 @@
 <!--
-  九宫格抽奖 子组件
-  布局顺序（顺时针）: [0][1][2] / [7][BTN][3] / [6][5][4]
-  对应 sort_order:    [1][2][3] / [8][🎰][4] / [7][6][5]
+  网格抽奖 子组件（动态格位：3×3 八格环形 / 4×3 十二格 / 4×4 十六格）
+  布局来源: 后端 display.mode + display.grid_cols
+    - centerButton=true（grid_3x3）: 经典九宫格 [0][1][2]/[7][BTN][3]/[6][5][4]，中央嵌按钮
+    - centerButton=false（grid_4x3/grid_4x4）: 4 列线性格位，按钮独立在网格下方
   奖品数据来源: 后端 GET /api/v4/lottery/campaigns/:code/prizes
   后端返回字段（对接契约）: { id, prize_name, prize_type, prize_value, sort_order, rarity_code, image, is_fallback }
   稀有度光效: rarity_code → rarity-effects组件（5级: common/uncommon/rare/epic/legendary）
@@ -9,114 +10,38 @@
   库存耗尽: is_sold_out=true → "已抢光"遮罩
 -->
 <view class="grid-container">
-  <view class="prize-grid">
-    <!-- 奖品区域0 - 左上角（sort_order=1） -->
-    <view
-      id="prize-cell-0"
-      class="prize-area {{prizes[0].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[0].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="0"
-    >
-      <rarity-effects rarity="{{prizes[0].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[0].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[0].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="0"
-            binderror="onGridPrizeImageError"
-          />
-          <t-icon wx:elif="{{!prizes[0].prize_icon}}" name="gift" size="48rpx" class="prize-icon" />
-          <text wx:else class="prize-icon">{{prizes[0].prize_icon}}</text>
-          <text class="prize-name">{{prizes[0].prize_name || ''}}</text>
-          <text wx:if="{{prizes[0].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[0].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
+  <!-- ===== 经典九宫格（3×3，中央嵌抽奖按钮，环形 8 格） ===== -->
+  <view wx:if="{{centerButton}}" class="prize-grid prize-grid--3x3">
+    <!-- 渲染顺序与视觉位置对应: 0,1,2 / 7,BTN,3 / 6,5,4 -->
+    <block wx:for="{{[0, 1, 2, 7]}}" wx:key="*this" wx:for-item="cellIdx">
+      <view
+        id="prize-cell-{{cellIdx}}"
+        class="prize-area {{prizes[cellIdx].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[cellIdx].is_sold_out ? 'prize-area--sold-out' : ''}}"
+        data-index="{{cellIdx}}"
+      >
+        <rarity-effects
+          rarity="{{prizes[cellIdx].rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+        >
+          <view class="prize-content">
+            <image
+              wx:if="{{prizes[cellIdx].prize_image_url}}"
+              class="prize-img"
+              src="{{prizes[cellIdx].prize_image_url}}"
+              mode="aspectFit"
+              data-grid-idx="{{cellIdx}}"
+              binderror="onGridPrizeImageError"
+            />
+            <t-icon wx:else name="gift" size="48rpx" class="prize-icon" />
+            <text class="prize-name">{{prizes[cellIdx].prize_name || ''}}</text>
+            <text wx:if="{{prizes[cellIdx].is_fallback}}" class="prize-badge--fallback">保底</text>
+            <view wx:if="{{prizes[cellIdx].is_sold_out}}" class="prize-sold-out-mask">
+              <text class="sold-out-text">已抢光</text>
+            </view>
           </view>
-        </view>
-      </rarity-effects>
-    </view>
-
-    <!-- 奖品区域1 - 中上（sort_order=2） -->
-    <view
-      id="prize-cell-1"
-      class="prize-area {{prizes[1].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[1].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="1"
-    >
-      <rarity-effects rarity="{{prizes[1].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[1].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[1].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="1"
-            binderror="onGridPrizeImageError"
-          />
-          <text wx:if="{{prizes[1].prize_icon}}" class="prize-icon">{{prizes[1].prize_icon}}</text>
-          <t-icon wx:else name="gift" size="48rpx" class="prize-icon" />
-          <text class="prize-name">{{prizes[1].prize_name || ''}}</text>
-          <text wx:if="{{prizes[1].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[1].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
-          </view>
-        </view>
-      </rarity-effects>
-    </view>
-
-    <!-- 奖品区域2 - 右上角（sort_order=3） -->
-    <view
-      id="prize-cell-2"
-      class="prize-area {{prizes[2].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[2].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="2"
-    >
-      <rarity-effects rarity="{{prizes[2].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[2].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[2].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="2"
-            binderror="onGridPrizeImageError"
-          />
-          <text wx:elif="{{prizes[2].prize_icon}}" class="prize-icon">{{prizes[2].prize_icon}}</text>
-          <t-icon wx:else name="cup" size="48rpx" class="prize-icon" />
-          <text class="prize-name">{{prizes[2].prize_name || ''}}</text>
-          <text wx:if="{{prizes[2].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[2].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
-          </view>
-        </view>
-      </rarity-effects>
-    </view>
-
-    <!-- 奖品区域7 - 左中（sort_order=8） -->
-    <view
-      id="prize-cell-7"
-      class="prize-area {{prizes[7].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[7].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="7"
-    >
-      <rarity-effects rarity="{{prizes[7].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[7].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[7].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="7"
-            binderror="onGridPrizeImageError"
-          />
-          <text wx:if="{{prizes[7].prize_icon}}" class="prize-icon">{{prizes[7].prize_icon}}</text>
-          <t-icon wx:else name="diamond" size="48rpx" class="prize-icon" />
-          <text class="prize-name">{{prizes[7].prize_name || ''}}</text>
-          <text wx:if="{{prizes[7].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[7].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
-          </view>
-        </view>
-      </rarity-effects>
-    </view>
+        </rarity-effects>
+      </view>
+    </block>
 
     <!-- 中央抽奖按钮 -->
     <view class="lottery-center-button">
@@ -129,114 +54,83 @@
       </button>
     </view>
 
-    <!-- 奖品区域3 - 右中（sort_order=4） -->
-    <view
-      id="prize-cell-3"
-      class="prize-area {{prizes[3].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[3].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="3"
-    >
-      <rarity-effects rarity="{{prizes[3].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[3].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[3].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="3"
-            binderror="onGridPrizeImageError"
-          />
-          <text wx:elif="{{prizes[3].prize_icon}}" class="prize-icon">{{prizes[3].prize_icon}}</text>
-          <t-icon wx:else name="home" size="48rpx" class="prize-icon" />
-          <text class="prize-name">{{prizes[3].prize_name || ''}}</text>
-          <text wx:if="{{prizes[3].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[3].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
+    <block wx:for="{{[3, 4, 5, 6]}}" wx:key="*this" wx:for-item="cellIdx">
+      <view
+        id="prize-cell-{{cellIdx}}"
+        class="prize-area {{prizes[cellIdx].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[cellIdx].is_sold_out ? 'prize-area--sold-out' : ''}}"
+        data-index="{{cellIdx}}"
+      >
+        <rarity-effects
+          rarity="{{prizes[cellIdx].rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+        >
+          <view class="prize-content">
+            <image
+              wx:if="{{prizes[cellIdx].prize_image_url}}"
+              class="prize-img"
+              src="{{prizes[cellIdx].prize_image_url}}"
+              mode="aspectFit"
+              data-grid-idx="{{cellIdx}}"
+              binderror="onGridPrizeImageError"
+            />
+            <t-icon wx:else name="gift" size="48rpx" class="prize-icon" />
+            <text class="prize-name">{{prizes[cellIdx].prize_name || ''}}</text>
+            <text wx:if="{{prizes[cellIdx].is_fallback}}" class="prize-badge--fallback">保底</text>
+            <view wx:if="{{prizes[cellIdx].is_sold_out}}" class="prize-sold-out-mask">
+              <text class="sold-out-text">已抢光</text>
+            </view>
           </view>
-        </view>
-      </rarity-effects>
-    </view>
-
-    <!-- 奖品区域6 - 左下角（sort_order=7） -->
-    <view
-      id="prize-cell-6"
-      class="prize-area {{prizes[6].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[6].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="6"
-    >
-      <rarity-effects rarity="{{prizes[6].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[6].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[6].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="6"
-            binderror="onGridPrizeImageError"
-          />
-          <text wx:elif="{{prizes[6].prize_icon}}" class="prize-icon">{{prizes[6].prize_icon}}</text>
-          <t-icon wx:else name="gift" size="48rpx" class="prize-icon" />
-          <text class="prize-name">{{prizes[6].prize_name || ''}}</text>
-          <text wx:if="{{prizes[6].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[6].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
-          </view>
-        </view>
-      </rarity-effects>
-    </view>
-
-    <!-- 奖品区域5 - 中下（sort_order=6） -->
-    <view
-      id="prize-cell-5"
-      class="prize-area {{prizes[5].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[5].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="5"
-    >
-      <rarity-effects rarity="{{prizes[5].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[5].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[5].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="5"
-            binderror="onGridPrizeImageError"
-          />
-          <text wx:elif="{{prizes[5].prize_icon}}" class="prize-icon">{{prizes[5].prize_icon}}</text>
-          <t-icon wx:else name="thumb-up" size="48rpx" class="prize-icon" />
-          <text class="prize-name">{{prizes[5].prize_name || ''}}</text>
-          <text wx:if="{{prizes[5].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[5].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
-          </view>
-        </view>
-      </rarity-effects>
-    </view>
-
-    <!-- 奖品区域4 - 右下角（sort_order=5） -->
-    <view
-      id="prize-cell-4"
-      class="prize-area {{prizes[4].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[4].is_sold_out ? 'prize-area--sold-out' : ''}}"
-      data-index="4"
-    >
-      <rarity-effects rarity="{{prizes[4].rarity_code || 'common'}}" enabled="{{rarityEffects}}">
-        <view class="prize-content">
-          <image
-            wx:if="{{prizes[4].prize_image_url}}"
-            class="prize-img"
-            src="{{prizes[4].prize_image_url}}"
-            mode="aspectFit"
-            data-grid-idx="4"
-            binderror="onGridPrizeImageError"
-          />
-          <t-icon wx:elif="{{!prizes[4].prize_icon}}" name="gift" size="48rpx" class="prize-icon" />
-          <text wx:else class="prize-icon">{{prizes[4].prize_icon}}</text>
-          <text class="prize-name">{{prizes[4].prize_name || ''}}</text>
-          <text wx:if="{{prizes[4].is_fallback}}" class="prize-badge--fallback">保底</text>
-          <view wx:if="{{prizes[4].is_sold_out}}" class="prize-sold-out-mask">
-            <text class="sold-out-text">已抢光</text>
-          </view>
-        </view>
-      </rarity-effects>
-    </view>
+        </rarity-effects>
+      </view>
+    </block>
   </view>
+
+  <!-- ===== 4 列网格（grid_4x3 / grid_4x4，线性格位 + 下方按钮） ===== -->
+  <block wx:else>
+    <view class="prize-grid prize-grid--4col">
+      <view
+        wx:for="{{cellIndexes}}"
+        wx:key="*this"
+        wx:for-item="cellIdx"
+        id="prize-cell-{{cellIdx}}"
+        class="prize-area prize-area--4col {{prizes[cellIdx].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[cellIdx].is_sold_out ? 'prize-area--sold-out' : ''}}"
+        data-index="{{cellIdx}}"
+      >
+        <rarity-effects
+          rarity="{{prizes[cellIdx].rarity_code || 'common'}}"
+          enabled="{{rarityEffects}}"
+        >
+          <view class="prize-content">
+            <image
+              wx:if="{{prizes[cellIdx].prize_image_url}}"
+              class="prize-img"
+              src="{{prizes[cellIdx].prize_image_url}}"
+              mode="aspectFit"
+              data-grid-idx="{{cellIdx}}"
+              binderror="onGridPrizeImageError"
+            />
+            <t-icon wx:else name="gift" size="40rpx" class="prize-icon" />
+            <text class="prize-name">{{prizes[cellIdx].prize_name || ''}}</text>
+            <text wx:if="{{prizes[cellIdx].is_fallback}}" class="prize-badge--fallback">保底</text>
+            <view wx:if="{{prizes[cellIdx].is_sold_out}}" class="prize-sold-out-mask">
+              <text class="sold-out-text">已抢光</text>
+            </view>
+          </view>
+        </rarity-effects>
+      </view>
+    </view>
+
+    <!-- 4 列网格的抽奖按钮（独立于网格，置于下方整行） -->
+    <view class="grid-draw-bar">
+      <button
+        class="grid-draw-btn {{isInProgress ? 'drawing' : ''}}"
+        disabled="{{isInProgress}}"
+        bindtap="onDraw"
+      >
+        <text class="btn-text">{{isInProgress ? '回馈中...' : '开启回馈'}}</text>
+      </button>
+    </view>
+  </block>
 
   <!-- 奖品池预览（按稀有度降序，大奖前置） -->
   <view class="grid-prizes" wx:if="{{prizesForPreview.length > 0}}">

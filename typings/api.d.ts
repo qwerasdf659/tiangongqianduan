@@ -531,6 +531,14 @@ declare namespace API {
      * 冷却期内物品可见可用但不可上架交易
      */
     holds?: ItemHold[]
+    /**
+     * 关联兑换订单号（后端 BackpackService 查询层按需解析下发，2026-06-14）
+     * - 兑换来源物品（source='exchange'）：为该物品对应兑换订单号（如 EM260613001231F2）
+     * - 其它来源（抽奖/DIY/历史等）：为 null
+     * 用途：仓库实物物品据此显示「查看订单/查看物流」入口，跳 exchange-order-detail。
+     * ⚠️ 严格用后端字段名 order_no，前端零映射直读。
+     */
+    order_no: string | null
   }
 
   /** 物品持有锁（对齐后端 item_holds 表） */

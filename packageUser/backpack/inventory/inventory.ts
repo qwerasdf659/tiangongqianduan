@@ -1280,6 +1280,31 @@ Page({
   },
 
   /**
+   * 查看兑换订单/物流（仅兑换来源物品 order_no 非空时显示入口）
+   *
+   * 数据来源：后端 GET /api/v4/backpack/ 的 items[] 与物品详情已下发 order_no
+   *   - 兑换来源物品（source='exchange'）：order_no 为对应兑换订单号
+   *   - 其它来源（抽奖/DIY/历史）：order_no 为 null（前端不显示本入口）
+   * 跳转目标 exchange-order-detail 页可在订单详情内查看发货信息与物流轨迹。
+   *
+   * WXML 绑定: <view catchtap="goToExchangeOrder" data-order-no="{{item.order_no}}">
+   */
+  goToExchangeOrder(e: any) {
+    const orderNo = e.currentTarget.dataset.orderNo
+    if (!orderNo) {
+      showToast('该物品暂无关联订单')
+      return
+    }
+    wx.navigateTo({
+      url: `/packageExchange/exchange-order-detail/exchange-order-detail?order_no=${orderNo}`,
+      fail: (error: any) => {
+        log.error('跳转兑换订单详情失败:', error)
+        showToast('页面跳转失败，请重试')
+      }
+    })
+  },
+
+  /**
    * 跳转到抽奖页面
    */
   goToLottery() {

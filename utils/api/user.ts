@@ -18,8 +18,8 @@ const { apiClient } = require('./client')
  * 获取当前用户收货地址列表
  * GET /api/v4/user/addresses
  *
- * 响应: { addresses: UserAddress[] }（姓名/手机号默认脱敏，省市区+详址保留）
- * 后端按 JWT 中的 user_id 做数据隔离，仅返回本人地址
+ * 响应契约: data 本身即 UserAddress[] 数组（无 addresses/list/pagination 包裹，已线上实测确认）
+ * 姓名/手机号默认脱敏，省市区+详址保留；后端按 JWT 中的 user_id 做数据隔离，仅返回本人地址
  */
 async function getUserAddresses() {
   return apiClient.request('/user/addresses', {

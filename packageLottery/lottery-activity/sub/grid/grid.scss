@@ -28,6 +28,55 @@
   box-sizing: border-box;
 }
 
+/* ===== 4 列网格布局（grid_4x3 / grid_4x4） ===== */
+.prize-grid--4col {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-content: flex-start;
+  gap: 12rpx;
+  height: auto;
+}
+
+/* 4 列格位：宽度按 4 列均分（含 gap 折算），正方形 */
+.prize-area--4col {
+  width: 158rpx;
+  height: 158rpx;
+  margin-bottom: 0;
+}
+
+/* 4 列网格的抽奖按钮（独立整行，置于网格下方） */
+.grid-draw-bar {
+  width: 100%;
+  padding: 24rpx 20rpx 8rpx;
+  box-sizing: border-box;
+  @include flex-center;
+}
+
+.grid-draw-btn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(
+    145deg,
+    var(--tg-lottery-primary, var(--td-brand-color)) 0%,
+    var(--tg-lottery-secondary, #7a9e7e) 50%,
+    var(--tg-lottery-primary, var(--td-brand-color)) 100%
+  );
+  color: var(--tg-lottery-text-inverse, white);
+  border: none;
+  border-radius: var(--tg-radius-xl, 44rpx);
+  @include flex-center;
+  box-shadow: 0 8rpx 25rpx rgba(var(--td-brand-color-rgb), 0.4);
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  outline: none !important;
+  box-sizing: border-box;
+}
+
+.grid-draw-btn.drawing {
+  background: linear-gradient(145deg, #ccc 0%, #999 50%, #ccc 100%);
+}
+
 /* 奖品格子尺寸 */
 .prize-area:nth-child(1),
 .prize-area:nth-child(2),

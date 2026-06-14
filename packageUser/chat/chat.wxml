@@ -325,6 +325,20 @@
                 bindtap="previewImage"
                 data-src="{{item.attachments[0].url || item.content}}"
               ></image>
+
+              <!-- 文件消息（图标 + 文件名 + 大小，点击下载打开） -->
+              <view
+                wx:if="{{item.messageType === 'file'}}"
+                class="message-file"
+                bindtap="openFile"
+                data-url="{{item.content}}"
+              >
+                <t-icon name="file" size="48rpx" color="#5B7A5E" />
+                <view class="message-file-info">
+                  <text class="message-file-name">{{item.fileName || '文件'}}</text>
+                  <text wx:if="{{item.fileSize}}" class="message-file-size">{{item.fileSize}}</text>
+                </view>
+              </view>
             </view>
 
             <!-- 消息状态（自己发送的消息） -->

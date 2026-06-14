@@ -381,6 +381,32 @@ Component({
     },
 
     /**
+     * 强制重新拉取活动配置（玩法热更新入口）
+     *
+     * 背景：运营在后台改玩法后 campaign_code 不变，attached/observer 的去重 guard
+     * （_currentCampaign 相同）会跳过重拉，导致 display.mode 停在旧值、"必须重新编译才生效"。
+     * 页面在 onShow / 下拉刷新拉到活动后调用本方法，绕过去重 guard 重新拉 config + prizes，
+     * 使运营改的新玩法在「下次进活动页」即时生效（无需重新编译、无需重登）。
+     *
+     * 复用 initActivity（其内部已有 _isInitializing 并发守卫 + 30s 超时保护），
+     * 不销毁重建组件、不重置 _currentCampaign，避免闪烁。
+     *
+     * @param campaignCode 活动标识（页面传入，通常与当前一致）
+     */
+    refreshActivity(campaignCode: string) {
+      const targetCode = campaignCode || this._currentCampaign
+      if (!targetCode) {
+        return
+      }
+      /* 抽奖动画进行中不打断（避免重置奖品数据导致动画错乱）；初始化中也跳过 */
+      if (this.data.isDrawing || this._isInitializing) {
+        return
+      }
+      this._currentCampaign = targetCode
+      this.initActivity(targetCode)
+    },
+
+    /**
      * 初始化活动 - 加载配置和奖品
      * 未登录时也允许加载活动展示（奖品可见），但抽奖时拦截
      *
@@ -468,8 +494,18 @@ Component({
         /* 缓存 URL→本地路径映射表，供 draw 结果复用 */
         this._imageCache = imageCache
 
-        /* grid 固定8格需要截取，wheel等模式动态渲染全部奖品 */
-        const prizes = display.mode === 'grid_3x3' ? allPrizes.slice(0, 8) : allPrizes
+        /**
+         * grid 系玩法按格位数截取奖品（其余玩法动态渲染全部奖品）：
+         *   grid_3x3 → 8 格、grid_4x3 → 12 格、grid_4x4 → 16 格。
+         * 截取数不足时由子组件按现有奖品渲染，多余的进奖品池预览。
+         */
+        const GRID_CELL_COUNT: Record<string, number> = {
+          grid_3x3: 8,
+          grid_4x3: 12,
+          grid_4x4: 16
+        }
+        const gridCellCount = GRID_CELL_COUNT[display.mode]
+        const prizes = gridCellCount ? allPrizes.slice(0, gridCellCount) : allPrizes
 
         /**
          * 预览区专用数组：按稀有度降序排列（大奖前置，利用锚定效应）

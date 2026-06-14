@@ -343,7 +343,7 @@
             <view class="timeline-content">
               <view class="timeline-header">
                 <text class="timeline-step-name"
-                  >{{stepItem.node_name || ('第' + stepItem.step_number + '步')}}</text
+                  >{{stepItem.node_name || ('第' + (index + 1) + '步')}}</text
                 >
                 <text class="timeline-step-status {{stepItem.status}}"
                   >{{stepItem.status_text}}</text

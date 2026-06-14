@@ -283,6 +283,8 @@ Page({
       _payInfo: order.pay_amount
         ? `${order.pay_amount} ${order.pay_asset_name || order.pay_asset_code || ''}`
         : '',
+      /* 消耗资产图标（后端新增 pay_asset_icon_url，完整URL带?h=哈希，直接渲染；null 时不显示图标） */
+      _payAssetIconUrl: order.pay_asset_icon_url || '',
       _createTime: order.created_at ? this.formatTime(order.created_at) : '',
       _shippedTime: order.shipped_at ? this.formatTime(order.shipped_at) : '',
       _receivedTime: order.received_at ? this.formatTime(order.received_at) : '',

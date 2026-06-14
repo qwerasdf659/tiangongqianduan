@@ -360,6 +360,19 @@
   font-weight: var(--tg-font-weight-regular);
 }
 
+/* 消耗资产行（图标 + 文案，图标来自后端 pay_asset_icon_url） */
+.product-cost-row {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.product-cost-icon {
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
+}
+
 /* 时间线 */
 .timeline {
   display: flex;

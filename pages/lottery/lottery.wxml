@@ -276,6 +276,7 @@
       <!-- 主活动（动态加载，位置配置驱动） -->
       <view class="lottery-activity-wrapper" wx:if="{{mainCampaign}}">
         <lottery-activity
+          id="main-lottery-activity"
           campaignCode="{{mainCampaign.campaign_code}}"
           size="{{mainCampaign.placement.size || 'full'}}"
           bind:pointsupdate="onPointsUpdate"

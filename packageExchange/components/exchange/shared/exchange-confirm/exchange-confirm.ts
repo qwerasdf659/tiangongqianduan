@@ -15,6 +15,15 @@ const {
 } = require('../../../../../utils/index')
 
 Component({
+  /**
+   * 开启多 slot 支持（微信小程序硬性要求）：
+   * 本组件用到具名 slot <slot name="extra">（实物商品收货地址行由页面注入），
+   * 必须显式声明 multipleSlots:true，否则具名 slot 不渲染 → 地址选择行不显示。
+   */
+  options: {
+    multipleSlots: true
+  },
+
   properties: {
     visible: { type: Boolean, value: false },
     product: { type: Object, value: null },

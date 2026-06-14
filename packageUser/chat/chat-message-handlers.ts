@@ -20,9 +20,12 @@
 
 const { Utils, Wechat, API, Constants, Logger } = require('../../utils/index')
 const msgLog = Logger.createLogger('chat-msg')
-const { formatDateMessage } = Utils
+const { formatDateMessage, formatFileSize } = Utils
 const { showToast: msgShowToast } = Wechat
 const { DELAY: MSG_DELAY } = Constants
+
+/** 文件上传大小上限（20MB，与后端 upload-file 限制一致，前端预检） */
+const FILE_MAX_SIZE = 20 * 1024 * 1024
 
 // MobX Store — 直接引用 userStore 作为认证数据权威来源
 const { userStore } = require('../../store/user')
@@ -89,6 +92,8 @@ const chatMessageHandlers = {
             chat_message_id: msg.chat_message_id,
             content: msg.content || '',
             messageType: msg.message_type || 'text',
+            fileName: msg.file_name || '',
+            fileSize: msg.file_size ? this.formatFileSizeText(msg.file_size) : '',
             isOwn,
             status: isOwn ? 'sent' : 'read',
             timestamp: new Date(msg.created_at).getTime(),
@@ -140,6 +145,15 @@ const chatMessageHandlers = {
       msgLog.warn('时间格式化失败', error)
       return ''
     }
+  },
+
+  /** 格式化文件大小（字节 → 人类可读，委托 Utils.formatFileSize，容错非数字） */
+  formatFileSizeText(bytes: number) {
+    const size = Number(bytes)
+    if (!size || isNaN(size)) {
+      return ''
+    }
+    return formatFileSize(size)
   },
 
   // ============================================================================
@@ -339,6 +353,8 @@ const chatMessageHandlers = {
       chat_message_id: messageData.chat_message_id || null,
       content: messageData.content,
       messageType: messageData.message_type || 'text',
+      fileName: messageData.file_name || '',
+      fileSize: messageData.file_size ? this.formatFileSizeText(messageData.file_size) : '',
       senderId: messageData.sender_id,
       senderType: 'admin',
       messageSource: messageData.message_source || 'admin_client',
@@ -454,6 +470,10 @@ const chatMessageHandlers = {
       chat_message_id: serverMsgId,
       content: messageData.content || '',
       messageType: messageData.messageType || messageData.message_type || 'text',
+      fileName: messageData.fileName || messageData.file_name || '',
+      fileSize:
+        messageData.fileSize ||
+        (messageData.file_size ? this.formatFileSizeText(messageData.file_size) : ''),
       isOwn,
       status: messageData.status || (isOwn ? 'sent' : 'read'),
       timestamp,
@@ -767,9 +787,9 @@ const chatMessageHandlers = {
             this.data.sessionId,
             tempFile.tempFilePath
           )
-          const imageUrl: string = uploadResult?.data?.public_url || ''
+          const imageUrl: string = uploadResult?.data?.image_url || ''
           if (!imageUrl) {
-            throw new Error('聊天图片上传接口未返回 public_url')
+            throw new Error('聊天图片上传接口未返回 image_url')
           }
 
           /* 第2步: 发送image类型消息（content填图片URL） */
@@ -832,16 +852,147 @@ const chatMessageHandlers = {
     })
   },
 
-  /** 发送文件（功能开发中） */
+  /**
+   * 发送文件 — 上传到后端对象存储后以 file 消息发送
+   * 上传: POST /api/v4/system/chat/sessions/:id/upload-file（form-data 字段名 file，限 20MB）
+   * 发送: POST /api/v4/system/chat/sessions/:id/messages（message_type='file' + content=file_url + file_name/file_size）
+   * 类型白名单（后端）：pdf/doc/docx/xls/xlsx/ppt/pptx/txt/zip/rar
+   */
   sendFile() {
-    msgLog.info('📎 发送文件')
-    msgShowToast('文件发送功能开发中')
+    if (!this.data.sessionId) {
+      msgShowToast('会话连接中，请稍后重试')
+      return
+    }
+
+    wx.chooseMessageFile({
+      count: 1,
+      type: 'file',
+      success: async (res: WechatMiniprogram.ChooseMessageFileSuccessCallbackResult) => {
+        const chosenFile = res.tempFiles && res.tempFiles[0]
+        if (!chosenFile || !chosenFile.path) {
+          return
+        }
+
+        /* 前端预检: 20MB大小限制（与后端一致） */
+        if (chosenFile.size > FILE_MAX_SIZE) {
+          msgShowToast('文件不能超过20MB')
+          return
+        }
+
+        msgLog.info('📎 开始上传聊天文件:', {
+          size: chosenFile.size,
+          name: chosenFile.name
+        })
+
+        /* 本地乐观消息（先展示文件卡片，上传成功后补 URL） */
+        const localFileMsg = {
+          messageId: `file_${Date.now()}`,
+          chat_message_id: null,
+          content: '',
+          messageType: 'file',
+          fileName: chosenFile.name,
+          fileSize: chosenFile.size ? formatFileSize(chosenFile.size) : '',
+          isOwn: true,
+          status: 'sending',
+          timestamp: Date.now(),
+          timeText: formatDateMessage(Date.now()),
+          showTime: this.shouldShowTime(Date.now())
+        }
+        this.setData({
+          messages: [...this.data.messages, localFileMsg],
+          scrollToBottom: true
+        })
+
+        try {
+          /* 第1步: 上传文件到后端 */
+          const uploadResult: any = await API.uploadChatFile(this.data.sessionId, chosenFile.path)
+          const uploadData = (uploadResult && uploadResult.data) || {}
+          const fileUrl: string = uploadData.file_url || ''
+          if (!fileUrl) {
+            throw new Error('聊天文件上传接口未返回 file_url')
+          }
+
+          /* 第2步: 发送 file 类型消息（content 填文件URL，带文件名/大小） */
+          const sendResult = await API.sendChatMessage(this.data.sessionId, {
+            content: fileUrl,
+            message_type: 'file',
+            sender_type: 'user',
+            file_name: uploadData.file_name || chosenFile.name,
+            file_size: uploadData.file_size || chosenFile.size
+          })
+
+          if (sendResult.success) {
+            msgLog.info('文件消息发送成功')
+            const updatedMessages = this.data.messages.map((msg: any) =>
+              msg.messageId === localFileMsg.messageId
+                ? {
+                    ...msg,
+                    content: fileUrl,
+                    fileName: uploadData.file_name || chosenFile.name,
+                    fileSize: formatFileSize(uploadData.file_size || chosenFile.size),
+                    status: 'sent',
+                    chat_message_id: sendResult.data?.chat_message_id || null,
+                    messageId: sendResult.data?.chat_message_id
+                      ? `server_${sendResult.data.chat_message_id}`
+                      : msg.messageId
+                  }
+                : msg
+            )
+            this.setData({ messages: updatedMessages })
+          }
+        } catch (error: any) {
+          msgLog.error('文件发送失败:', error)
+          msgShowToast(error.message || '文件发送失败')
+          const failedMessages = this.data.messages.map((msg: any) =>
+            msg.messageId === localFileMsg.messageId ? { ...msg, status: 'failed' } : msg
+          )
+          this.setData({ messages: failedMessages })
+        }
+      }
+    })
   },
 
   /** 预览图片（全屏预览） */
   previewImage(e: WechatMiniprogram.BaseEvent) {
     const src = e.currentTarget.dataset.src
     wx.previewImage({ urls: [src], current: src })
+  },
+
+  /**
+   * 打开文件消息（下载到本地后用系统能力打开文档）
+   * 微信小程序无法直接预览任意远程文件，需先 downloadFile 再 openDocument
+   * openDocument 支持 pdf/doc/docx/xls/xlsx/ppt/pptx/txt；zip/rar 微信端无法预览会提示
+   */
+  openFile(e: WechatMiniprogram.BaseEvent) {
+    const url = e.currentTarget.dataset.url
+    if (!url) {
+      return
+    }
+    wx.showLoading({ title: '加载文件中...', mask: true })
+    wx.downloadFile({
+      url,
+      success: (downloadRes: WechatMiniprogram.DownloadFileSuccessCallbackResult) => {
+        if (downloadRes.statusCode === 200) {
+          wx.openDocument({
+            filePath: downloadRes.tempFilePath,
+            showMenu: true,
+            fail: (openError: any) => {
+              msgLog.error('打开文件失败:', openError)
+              msgShowToast('该文件类型暂不支持预览')
+            }
+          })
+        } else {
+          msgShowToast('文件下载失败')
+        }
+      },
+      fail: (downloadError: any) => {
+        msgLog.error('下载文件失败:', downloadError)
+        msgShowToast('文件下载失败')
+      },
+      complete: () => {
+        wx.hideLoading()
+      }
+    })
   },
 
   /** 显示聊天菜单（清空记录、查看信息、举报） */

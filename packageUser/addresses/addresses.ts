@@ -50,7 +50,12 @@ Page({
     formDetailAddress: '',
     formIsDefault: false,
     /** 提交中 */
-    submitting: false
+    submitting: false,
+    /**
+     * 键盘高度（px）。Skyline 下底部 fixed 弹窗输入聚焦会被框架顶飞导致"漏空"，
+     * 故关闭 input/textarea 的 adjust-position，改用本字段手动把面板上移键盘高度。
+     */
+    keyboardHeight: 0
   },
 
   onLoad(options: Record<string, string | undefined>) {
@@ -75,8 +80,9 @@ Page({
     this.setData({ loadStatus: 'loading' })
     try {
       const result = await API.getUserAddresses()
-      if (result.success && result.data) {
-        const addresses = result.data.addresses || []
+      // 该接口 data 本身即地址数组（无 list/addresses/pagination 包裹），直接判定数组
+      const addresses = Array.isArray(result.data) ? result.data : []
+      if (result.success) {
         this.setData({
           addresses,
           loadStatus: addresses.length > 0 ? 'success' : 'empty'
@@ -152,12 +158,37 @@ Page({
     })
   },
 
-  /** 关闭表单 */
+  /** 关闭表单（关闭按钮 / 点击遮罩空白处触发） */
   onCloseForm() {
     if (this.data.submitting) {
       return
     }
-    this.setData({ showForm: false })
+    this.setData({ showForm: false, keyboardHeight: 0 })
+  },
+
+  /**
+   * 遮罩层点击 → 仅当点击遮罩本身（非内容区冒泡）才关闭。
+   * 照搬聊天页 onModalMaskTap：用 e.target===e.currentTarget 判断，
+   * 避免点击 input 时事件冒泡到遮罩误关弹窗（导致"无法输入"）。
+   */
+  onModalMaskTap(e: WechatMiniprogram.BaseEvent) {
+    if (e.target === e.currentTarget) {
+      this.onCloseForm()
+    }
+  },
+
+  /** 内容区点击：catchtap 绑真实方法以阻止冒泡到遮罩（Skyline 下 catchtap="" 空串不可靠） */
+  onModalContentTap() {
+    /* 仅用于 catchtap 阻止冒泡，无需逻辑 */
+  },
+
+  /**
+   * 键盘高度变化 → 手动把底部弹窗上移键盘高度（Skyline 已关闭框架自动避让）
+   * 收起键盘时 height=0，面板复位；避免整页 fixed 容器被顶飞导致面板"漏空"。
+   */
+  onKeyboardHeightChange(e: WechatMiniprogram.CustomEvent<{ height: number; duration: number }>) {
+    const keyboardHeight = (e.detail && e.detail.height) || 0
+    this.setData({ keyboardHeight })
   },
 
   /** 表单输入绑定（通过 data-field 区分字段） */
@@ -233,7 +264,7 @@ Page({
 
       if (result.success) {
         showToast(this.data.editingAddressId > 0 ? '修改成功' : '保存成功', 'success')
-        this.setData({ showForm: false, submitting: false })
+        this.setData({ showForm: false, submitting: false, keyboardHeight: 0 })
         this.loadAddresses()
       } else {
         throw new Error(result.message || '保存失败')

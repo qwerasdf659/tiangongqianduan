@@ -142,7 +142,16 @@
               <image class="product-thumb" src="{{item._productImage}}" mode="aspectFill" />
               <view class="product-info">
                 <text class="product-name">{{item._productName}}</text>
-                <text class="product-cost" wx:if="{{item._payInfo}}">消耗: {{item._payInfo}}</text>
+                <view class="product-cost-row" wx:if="{{item._payInfo}}">
+                  <text class="product-cost">消耗: </text>
+                  <image
+                    wx:if="{{item._payAssetIconUrl}}"
+                    class="product-cost-icon"
+                    src="{{item._payAssetIconUrl}}"
+                    mode="aspectFit"
+                  />
+                  <text class="product-cost">{{item._payInfo}}</text>
+                </view>
               </view>
             </view>
 

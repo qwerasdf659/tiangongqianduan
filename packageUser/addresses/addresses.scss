@@ -161,26 +161,37 @@
 }
 
 /* ===== 表单半屏面板 ===== */
-.form-overlay {
+.form-modal {
   position: fixed;
+  top: 0;
   left: 0;
   right: 0;
-  top: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease;
 }
 
-.form-panel {
+.form-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 内容区：铺满视口的全屏 flex 纵向容器（与聊天页 modal-content 一致）。
+ * Skyline 下 input/textarea 关闭了框架键盘避让（adjust-position=false），
+ * 容器必须铺满视口（top:0 + bottom:0），否则输入渲染层会被撕裂、内容飘到屏幕中部。 */
+.form-modal-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: var(--tg-color-white);
-  border-radius: var(--tg-radius-xl) var(--tg-radius-xl) 0 0;
-  padding-bottom: env(safe-area-inset-bottom);
-  max-height: 85%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .form-header {
@@ -188,7 +199,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 32rpx;
+  padding-top: calc(32rpx + env(safe-area-inset-top));
   border-bottom: 1rpx solid var(--tg-color-bg-grey);
+  flex-shrink: 0;
 }
 
 .form-title {
@@ -198,8 +211,9 @@
 }
 
 .form-body {
+  flex: 1;
+  min-height: 0;
   padding: 16rpx 32rpx;
-  overflow-y: auto;
 }
 
 .form-row {
@@ -282,7 +296,10 @@
 }
 
 .form-footer {
-  padding: 24rpx 32rpx;
+  padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  /* 键盘弹起时 JS 注入 padding-bottom = 键盘高度，把保存按钮顶到键盘上方 */
+  transition: padding-bottom 0.2s ease-out;
 }
 
 .form-submit-btn {

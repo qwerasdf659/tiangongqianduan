@@ -91,9 +91,9 @@
   </view>
 </view>
 
-<!-- 地址表单半屏面板 -->
-<view class="form-overlay" wx:if="{{showForm}}" catchtap="onCloseForm">
-  <view class="form-panel" catchtap="">
+<!-- 地址表单全屏模态（照搬聊天页 chat-modal 结构：全屏 fixed + flex 纵向，输入区在正常流，Skyline 可正常输入） -->
+<view class="form-modal {{showForm ? 'show' : ''}}" bindtap="onModalMaskTap">
+  <view class="form-modal-content" catchtap="onModalContentTap">
     <view class="form-header">
       <text class="form-title">{{formTitle}}</text>
       <view class="form-close" catchtap="onCloseForm">
@@ -101,7 +101,7 @@
       </view>
     </view>
 
-    <view class="form-body">
+    <scroll-view type="list" scroll-y class="form-body">
       <view class="form-row">
         <text class="form-label">收货人</text>
         <input
@@ -110,6 +110,9 @@
           value="{{formReceiverName}}"
           data-field="formReceiverName"
           bindinput="onFormInput"
+          adjust-position="{{false}}"
+          cursor-spacing="20"
+          bindkeyboardheightchange="onKeyboardHeightChange"
         />
       </view>
       <view class="form-row">
@@ -122,6 +125,9 @@
           value="{{formReceiverPhone}}"
           data-field="formReceiverPhone"
           bindinput="onFormInput"
+          adjust-position="{{false}}"
+          cursor-spacing="20"
+          bindkeyboardheightchange="onKeyboardHeightChange"
         />
       </view>
       <view class="form-row">
@@ -150,6 +156,9 @@
           bindinput="onFormInput"
           maxlength="120"
           auto-height
+          adjust-position="{{false}}"
+          cursor-spacing="20"
+          bindkeyboardheightchange="onKeyboardHeightChange"
         ></textarea>
       </view>
       <view class="form-row form-row-switch" bindtap="onToggleDefault">
@@ -158,9 +167,9 @@
           <view class="form-switch-dot"></view>
         </view>
       </view>
-    </view>
+    </scroll-view>
 
-    <view class="form-footer">
+    <view class="form-footer" style="padding-bottom: {{keyboardHeight > 0 ? keyboardHeight : 0}}px">
       <view class="form-submit-btn {{submitting ? 'disabled' : ''}}" bindtap="onSubmitForm">
         <text>{{submitting ? '保存中...' : '保存'}}</text>
       </view>

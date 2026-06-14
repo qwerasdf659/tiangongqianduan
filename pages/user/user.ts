@@ -68,7 +68,7 @@ Page({
     isAdmin: false,
     /**
      * 是否客服座席（与 role_level 解耦，由后端 customer_service_agents 表权威判定）
-     * 前端无座席字段，进页静默探测 cs-agent 接口：非 403 即为在岗座席，据此显示「客服回复台」入口
+     * 进页调一次轻量身份接口 GET /api/v4/system/cs-agent/me，data.is_agent===true 显示「客服回复台」入口
      */
     isCsAgent: false,
     roleLevel: 0,
@@ -1007,20 +1007,22 @@ Page({
   },
 
   /**
-   * 静默探测客服座席身份
-   * 座席与 role_level 解耦，由后端 customer_service_agents 表权威判定（每次请求现查）。
-   * 前端无座席字段，故轻量调一次 cs-agent 会话列表：非 403 视为在岗座席 → 显示入口；403 → 隐藏。
-   * 该接口 showLoading/showError 均为 false，探测过程对用户无感。
+   * 查询客服座席身份（后端权威，决定是否展示「客服回复台」入口）
+   *
+   * 座席与 role_level 解耦，由后端 customer_service_agents 表权威判定。
+   * 调用轻量身份接口 GET /api/v4/system/cs-agent/me（仅登录鉴权、非座席不会 403）：
+   *   data.is_agent===true → 在岗座席，显示入口；否则隐藏。
+   * 比"拿会话列表当探针"更干净省流量（只读一行座席状态，不拉会话列表）。
    */
   async probeCsAgent() {
     try {
-      const result = await API.getCsAgentSessions({ page: 1, page_size: 1 })
-      const ok = !!(result && result.success)
-      if (this.data.isCsAgent !== ok) {
-        this.setData({ isCsAgent: ok })
+      const result = await API.getCsAgentMe()
+      const isAgent = !!(result && result.success && result.data && result.data.is_agent)
+      if (this.data.isCsAgent !== isAgent) {
+        this.setData({ isCsAgent: isAgent })
       }
     } catch (_error: any) {
-      /* 403/FORBIDDEN 或任何失败都按"非座席"处理，不展示入口 */
+      /* 任何失败都按"非座席"处理，不展示入口 */
       if (this.data.isCsAgent) {
         this.setData({ isCsAgent: false })
       }

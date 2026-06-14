@@ -233,12 +233,13 @@ async function getExchangeProducts(
  *                 后端 ID 可能以字符串形式下发（如 "6"），此处统一转数字再判断，避免漏传。
  * @param address_id - 收货地址主键（user_addresses.address_id）。实物商品（fulfillment_type='physical'）
  *                 必填，否则后端返回 EXCHANGE_ADDRESS_REQUIRED；虚拟/卡券类不需要。
+ *                 后端 ID 可能以字符串形式下发（如 "26"），此处统一转数字再判断，避免漏传。
  */
 async function exchangeProduct(
   exchange_item_id: number,
   quantity: number = 1,
   sku_id?: number | string,
-  address_id?: number
+  address_id?: number | string
 ) {
   if (!exchange_item_id) {
     throw new Error('兑换商品ID不能为空')
@@ -276,9 +277,12 @@ async function exchangeProduct(
   /**
    * 实物商品下单须带 address_id（fulfillment_type='physical'，对接文档第三节）。
    * 后端据此读地址生成 address_snapshot；虚拟/卡券类不传。
+   * ⚠️ address_id 与 sku_id 同源，后端主键可能以字符串下发（如 "26"），
+   *    必须先归一为数字再判断，否则 typeof 'string' 检查会把已选地址漏传，导致 EXCHANGE_ADDRESS_REQUIRED。
    */
-  if (typeof address_id === 'number' && address_id > 0) {
-    requestData.address_id = address_id
+  const addressIdNum = typeof address_id === 'string' ? parseInt(address_id, 10) : address_id
+  if (typeof addressIdNum === 'number' && !isNaN(addressIdNum) && addressIdNum > 0) {
+    requestData.address_id = addressIdNum
   }
 
   return apiClient.request('/exchange', {

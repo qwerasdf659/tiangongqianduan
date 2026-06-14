@@ -111,8 +111,12 @@ Component({
               current_price: item.current_price || 0,
               min_bid_increment: item.min_bid_increment || 1,
               price_asset_code: item.price_asset_code,
-              /** 结算资产中文名（用于UI展示，如"星石"*/
-              _priceAssetLabel: bidImageHelper.getAssetDisplayName(item.price_asset_code || ''),
+              /** 结算资产中文名：优先后端 price_asset_name，降级 ImageHelper 本地映射 */
+              _priceAssetLabel:
+                item.price_asset_name ||
+                bidImageHelper.getAssetDisplayName(item.price_asset_code || ''),
+              /** 结算资产图标（后端 price_asset_icon_url，完整URL，null 时为空不显示） */
+              _priceAssetIconUrl: item.price_asset_icon_url || '',
               status: item.status,
               start_time: item.start_time,
               end_time: item.end_time,
@@ -181,8 +185,12 @@ Component({
               current_price: detail.current_price || 0,
               min_bid_increment: detail.min_bid_increment || 1,
               price_asset_code: detail.price_asset_code,
-              /** 结算资产中文名（用于UI展示*/
-              _priceAssetLabel: bidImageHelper.getAssetDisplayName(detail.price_asset_code || ''),
+              /** 结算资产中文名：优先后端 price_asset_name，降级本地映射 */
+              _priceAssetLabel:
+                detail.price_asset_name ||
+                bidImageHelper.getAssetDisplayName(detail.price_asset_code || ''),
+              /** 结算资产图标（后端 price_asset_icon_url，完整URL，null 时为空不显示） */
+              _priceAssetIconUrl: detail.price_asset_icon_url || '',
               status: detail.status,
               end_time: detail.end_time,
               bid_count: detail.bid_count || 0

@@ -636,6 +636,16 @@ Page({
           this.setData({ extraCampaigns: processedResult.extraCampaigns })
         }
         log.info('[lottery] 活动未变化，跳过 mainCampaign 更新:', existingCode)
+
+        /**
+         * 玩法热更新：campaign_code 不变时不会触发组件 observer 重拉 config，
+         * 而运营可能只改了玩法（display_mode），故主动通知组件重新拉取，
+         * 使新玩法在「下次进页/下拉刷新」即时生效（无需重新编译、无需重登）。
+         */
+        const activityComp = this.selectComponent('#main-lottery-activity')
+        if (activityComp && typeof activityComp.refreshActivity === 'function') {
+          activityComp.refreshActivity(newCode)
+        }
       } else {
         this.setData({
           mainCampaign: processedResult.mainCampaign,

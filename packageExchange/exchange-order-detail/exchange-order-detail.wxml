@@ -24,9 +24,10 @@
 
     <!-- 订单详情内容 -->
     <view class="detail-content" wx:if="{{!loading && !hasError && order}}">
-      <!-- 状态卡片 -->
-      <view class="status-card" style="background: {{statusColor}}">
+      <!-- 状态卡片（统一品牌暖棕渐变，状态差异用小色点标识，保证全状态视觉一致） -->
+      <view class="status-card">
         <view class="status-main">
+          <view class="status-dot" style="background: {{statusColor}}"></view>
           <text class="status-icon">{{statusIcon}}</text>
           <text class="status-label">{{statusLabel}}</text>
         </view>
@@ -46,7 +47,16 @@
           <view class="product-detail">
             <text class="product-name">{{productName}}</text>
             <text class="product-desc" wx:if="{{productDescription}}">{{productDescription}}</text>
-            <text class="product-pay" wx:if="{{payInfo}}">消耗: {{payInfo}}</text>
+            <view class="product-pay-row" wx:if="{{payInfo}}">
+              <text class="product-pay">消耗: </text>
+              <image
+                wx:if="{{payAssetIconUrl}}"
+                class="product-pay-icon"
+                src="{{payAssetIconUrl}}"
+                mode="aspectFit"
+              />
+              <text class="product-pay">{{payInfo}}</text>
+            </view>
           </view>
         </view>
       </view>

@@ -1354,6 +1354,35 @@
   border-radius: 16rpx;
 }
 
+/* 文件消息卡片（图标 + 文件名 + 大小） */
+.message-file {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 320rpx;
+  max-width: 440rpx;
+}
+
+.message-file-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.message-file-name {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-primary);
+  @include text-ellipsis;
+}
+
+.message-file-size {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
 /* 消息状态行 */
 .message-status-row {
   margin-top: 6rpx;

@@ -809,6 +809,14 @@
   box-shadow: 0 4rpx 16rpx rgba(var(--td-brand-color-rgb), 0.2);
 }
 
+/* 兑换来源物品「查看订单/物流」入口：描边品牌色，区别于核销码（中性描边） */
+.action-order {
+  background: var(--tg-color-white);
+  border: 1rpx solid var(--td-brand-color);
+  color: var(--td-brand-color);
+  box-shadow: none;
+}
+
 /* ===== ??????===== */
 .empty-warehouse {
   display: flex;

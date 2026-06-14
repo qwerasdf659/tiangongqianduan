@@ -32,15 +32,15 @@ const DETAIL_STATUS_MAP: Record<
   string,
   { label: string; color: string; icon: string; desc: string }
 > = {
-  pending: { label: '待审核', color: '#FF9800', icon: '⏳', desc: '您的订单正在等待管理员审核' },
-  approved: { label: '审核通过', color: '#2196F3', icon: '✓', desc: '订单已通过审核，等待发货' },
-  shipped: { label: '已发货', color: '#4CAF50', icon: '🚚', desc: '商品已发出，请注意查收' },
-  received: { label: '已收货', color: '#00BCD4', icon: 'icon-package', desc: '您已确认收到商品' },
-  rated: { label: '已评价', color: '#9C27B0', icon: 'icon-star', desc: '感谢您的评价' },
-  rejected: { label: '审核拒绝', color: '#F44336', icon: '✕', desc: '很抱歉，您的订单未通过审核' },
-  refunded: { label: '已退款', color: '#607D8B', icon: '↩', desc: '已退款，资产已退还至您的账户' },
-  cancelled: { label: '已取消', color: '#9E9E9E', icon: '—', desc: '订单已取消，资产已退还' },
-  completed: { label: '已完成', color: '#4CAF50', icon: '✓', desc: '订单已完成' }
+  pending: { label: '待审核', color: '#C5A572', icon: '⏳', desc: '您的订单正在等待管理员审核' },
+  approved: { label: '审核通过', color: '#5B8DB8', icon: '✓', desc: '订单已通过审核，等待发货' },
+  shipped: { label: '已发货', color: '#5BA877', icon: '🚚', desc: '商品已发出，请注意查收' },
+  received: { label: '已收货', color: '#4FA8B5', icon: 'icon-package', desc: '您已确认收到商品' },
+  rated: { label: '已评价', color: '#9B7BB0', icon: 'icon-star', desc: '感谢您的评价' },
+  rejected: { label: '审核拒绝', color: '#C46B5E', icon: '✕', desc: '很抱歉，您的订单未通过审核' },
+  refunded: { label: '已退款', color: '#7A8A95', icon: '↩', desc: '已退款，资产已退还至您的账户' },
+  cancelled: { label: '已取消', color: '#A89F94', icon: '—', desc: '订单已取消，资产已退还' },
+  completed: { label: '已完成', color: '#5BA877', icon: '✓', desc: '订单已完成' }
 }
 
 /** 订单来源标签映射 */
@@ -81,6 +81,8 @@ Page({
 
     /** 支付信息 */
     payInfo: '',
+    /** 消耗资产图标 URL（后端 pay_asset_icon_url） */
+    payAssetIconUrl: '',
 
     /** 来源标签 */
     sourceLabel: '',
@@ -202,6 +204,8 @@ Page({
         payInfo: order.pay_amount
           ? `${order.pay_amount} ${order.pay_asset_name || order.pay_asset_code || ''}`
           : '',
+        /* 消耗资产图标（后端 pay_asset_icon_url，完整URL，null 时不显示） */
+        payAssetIconUrl: order.pay_asset_icon_url || '',
         sourceLabel: DETAIL_SOURCE_LABELS[order.source] || '',
         timeline,
         /**

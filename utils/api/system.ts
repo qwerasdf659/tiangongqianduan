@@ -244,11 +244,18 @@ async function getChatHistory(session_id: number, page: number = 1, page_size: n
 /**
  * 发送消息 - POST /api/v4/system/chat/sessions/:id/messages
  * @param session_id - 会话ID
- * @param params - { content: 消息内容, message_type?: 消息类型, sender_type?: 发送者类型 }
+ * @param params - { content: 消息内容, message_type?: text/image/file, sender_type?: 发送者类型,
+ *                   file_name?: 文件名(file必填), file_size?: 文件字节数(file随消息落库) }
  */
 async function sendChatMessage(
   session_id: number,
-  params: { content: string; message_type?: string; sender_type?: string }
+  params: {
+    content: string
+    message_type?: string
+    sender_type?: string
+    file_name?: string
+    file_size?: number
+  }
 ) {
   if (!session_id) {
     throw new Error('会话ID不能为空')
@@ -257,13 +264,21 @@ async function sendChatMessage(
     throw new Error('消息内容不能为空')
   }
 
+  const messageType = params.message_type || 'text'
+  const requestData: Record<string, any> = {
+    content: params.content,
+    message_type: messageType,
+    sender_type: params.sender_type || undefined
+  }
+  /* 文件消息：随消息上送文件名/大小，后端落库并在历史接口回显 */
+  if (messageType === 'file') {
+    requestData.file_name = params.file_name
+    requestData.file_size = params.file_size
+  }
+
   return apiClient.request(`/system/chat/sessions/${session_id}/messages`, {
     method: 'POST',
-    data: {
-      content: params.content,
-      message_type: params.message_type || 'text',
-      sender_type: params.sender_type || undefined
-    },
+    data: requestData,
     needAuth: true
   })
 }
@@ -281,8 +296,8 @@ async function sendChatMessage(
  *
  * @param session_id - 会话ID
  * @param filePath - 微信小程序本地文件路径（wx.chooseMedia 返回tempFilePath）
- * @returns { success: true, data: { public_url: "https://...", object_key: "...", media_id?: number } }
- * 前端约束：聊天图片URL权威字段固定为 public_url，未返回该字段视为接口契约不完整
+ * @returns { success: true, data: { image_url: "https://...", object_key: "..." } }
+ * 前端约束：聊天图片URL权威字段为 data.image_url（后端已是完整代理URL，前端直接用，勿二次拼接）
  */
 async function uploadChatImage(session_id: number, filePath: string) {
   if (!session_id) {
@@ -371,17 +386,19 @@ async function getCsAgentMessages(
 }
 
 /**
- * 座席发送文字/图片消息
+ * 座席发送文字/图片/文件消息
  * 后端API: POST /api/v4/system/cs-agent/sessions/:id/send
  *
  * @param session_id - 会话ID
- * @param params.content - 文字内容；message_type='image' 时填图片 URL（必填、不可为空）
- * @param params.message_type - 'text'（默认）或 'image'（本端仅这两种）
- * @returns { success, data: { chat_message_id, content, message_type, created_at } }（已通过 WebSocket 实时推给用户）
+ * @param params.content - 文字内容；message_type='image'/'file' 时填对应 URL（必填、不可为空）
+ * @param params.message_type - 'text'（默认）/ 'image' / 'file'
+ * @param params.file_name - 文件原始名（message_type='file' 时必填，后端缺失返回 400）
+ * @param params.file_size - 文件字节数（message_type='file' 时随消息落库，供历史回显文件卡片）
+ * @returns { success, data: { chat_message_id, content, message_type, created_at, created_at_beijing } }
  */
 async function sendCsAgentMessage(
   session_id: number,
-  params: { content: string; message_type?: string }
+  params: { content: string; message_type?: string; file_name?: string; file_size?: number }
 ) {
   if (!session_id) {
     throw new Error('会话ID不能为空')
@@ -389,14 +406,87 @@ async function sendCsAgentMessage(
   if (!params || !params.content) {
     throw new Error('消息内容不能为空')
   }
+  const messageType = params.message_type || 'text'
+  const requestData: Record<string, any> = {
+    content: params.content,
+    message_type: messageType
+  }
+  /* 文件消息：随消息上送文件名/大小，后端落库并在历史接口回显（避免前端事后篡改） */
+  if (messageType === 'file') {
+    requestData.file_name = params.file_name
+    requestData.file_size = params.file_size
+  }
   return apiClient.request(`/system/cs-agent/sessions/${session_id}/send`, {
     method: 'POST',
-    data: {
-      content: params.content,
-      message_type: params.message_type || 'text'
-    },
+    data: requestData,
     needAuth: true,
     showError: false
+  })
+}
+
+/**
+ * 查询当前登录用户是否为客服座席（轻量身份接口）
+ * 后端API: GET /api/v4/system/cs-agent/me
+ *
+ * 仅需登录鉴权，不被 requireCsAgent 拦截：非座席返回 HTTP 200 + is_agent:false（不会 403）。
+ * 前端用法：进「我的」页调一次，data.is_agent===true 显示「客服回复台」入口，否则隐藏。
+ *
+ * @returns { success, data: { is_agent: boolean, status: string|null } }
+ */
+async function getCsAgentMe() {
+  return apiClient.request('/system/cs-agent/me', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 座席打开会话时标记该会话用户消息已读（红点清零）
+ * 后端API: POST /api/v4/system/cs-agent/sessions/:id/read
+ *
+ * 复用后端 markSessionAsRead：把该会话 sender_type='user' 的 sent/delivered 消息置 read。
+ * 前端时机：座席打开会话时主动调一次，列表 unread_count 即清零。
+ *
+ * @param session_id - 会话ID
+ * @returns { success, data: { updated_count: number } }
+ */
+async function markCsAgentSessionRead(session_id: number) {
+  if (!session_id) {
+    throw new Error('会话ID不能为空')
+  }
+  return apiClient.request(`/system/cs-agent/sessions/${session_id}/read`, {
+    method: 'POST',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 上传聊天文件（文档/压缩包等非图片附件）
+ * 后端API: POST /api/v4/system/chat/sessions/:id/upload-file（form-data 字段名 file）
+ *
+ * 限制：最大 20MB；扩展名+MIME 双重白名单 pdf/doc/docx/xls/xlsx/ppt/pptx/txt/zip/rar。
+ * 上传成功后，再调 send 接口发 message_type='file'、content=file_url，并带 file_name/file_size。
+ *
+ * @param session_id - 会话ID
+ * @param filePath - 微信小程序本地文件路径（wx.chooseMessageFile 返回 path）
+ * @returns { success, data: { file_url, file_name, file_size, object_key } }
+ */
+async function uploadChatFile(session_id: number, filePath: string) {
+  if (!session_id) {
+    throw new Error('会话ID不能为空')
+  }
+  if (!filePath) {
+    throw new Error('文件路径不能为空')
+  }
+  return apiClient.uploadFile(`/system/chat/sessions/${session_id}/upload-file`, filePath, {
+    name: 'file',
+    needAuth: true,
+    showError: false,
+    errorPrefix: '聊天文件上传失败：'
   })
 }
 
@@ -748,9 +838,12 @@ module.exports = {
   getChatHistory,
   sendChatMessage,
   uploadChatImage,
+  uploadChatFile,
   getCsAgentSessions,
   getCsAgentMessages,
   sendCsAgentMessage,
+  getCsAgentMe,
+  markCsAgentSessionRead,
   searchChatMessages,
   rateSession,
   uploadDisputeEvidence,

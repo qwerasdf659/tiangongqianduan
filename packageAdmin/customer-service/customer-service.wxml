@@ -23,7 +23,14 @@
       <t-empty description="暂无待回复会话" />
     </view>
 
-    <scroll-view wx:else type="list" class="cs-sessions-scroll" scroll-y="{{true}}">
+    <scroll-view
+      wx:else
+      type="list"
+      class="cs-sessions-scroll"
+      scroll-y="{{true}}"
+      bindscrolltolower="loadMoreSessions"
+      lower-threshold="100"
+    >
       <view
         wx:for="{{sessions}}"
         wx:key="sessionId"
@@ -51,6 +58,14 @@
           </view>
         </view>
       </view>
+
+      <!-- 上拉加载更多状态提示 -->
+      <view wx:if="{{loadingMoreSessions}}" class="cs-loadmore">
+        <t-loading loading="{{true}}" text="加载更多..." theme="spinner" size="32rpx" />
+      </view>
+      <view wx:elif="{{!sessionHasMore && sessions.length > 0}}" class="cs-loadmore">
+        <text class="cs-loadmore-text">没有更多会话了</text>
+      </view>
     </scroll-view>
   </view>
 
@@ -63,7 +78,12 @@
       </view>
       <view class="cs-chat-title">
         <text class="cs-chat-user">{{currentSessionUserName}}</text>
-        <text class="cs-chat-session-id">会话 {{currentSessionId}}</text>
+        <view class="cs-chat-status">
+          <view class="cs-ws-dot {{wsConnected ? 'cs-ws-on' : 'cs-ws-off'}}"></view>
+          <text class="cs-chat-session-id"
+            >{{wsConnected ? '实时' : '需手动刷新'}} · 会话 {{currentSessionId}}</text
+          >
+        </view>
       </view>
       <view class="cs-refresh-btn" hover-class="cs-back-btn-hover" bindtap="onRefreshMessages">
         <t-icon name="refresh" size="36rpx" color="var(--td-brand-color)" />
@@ -108,6 +128,18 @@
               data-url="{{item.content}}"
               bindtap="onPreviewImage"
             />
+            <view
+              wx:elif="{{item.messageType === 'file'}}"
+              class="cs-msg-file"
+              data-url="{{item.content}}"
+              bindtap="onOpenFile"
+            >
+              <t-icon name="file" size="48rpx" color="var(--td-brand-color)" />
+              <view class="cs-msg-file-info">
+                <text class="cs-msg-file-name">{{item.fileName || '文件'}}</text>
+                <text wx:if="{{item.fileSize}}" class="cs-msg-file-size">{{item.fileSize}}</text>
+              </view>
+            </view>
           </view>
           <text class="cs-msg-time">{{item.createdAt}}</text>
         </view>
@@ -119,6 +151,9 @@
     <view class="cs-input-bar">
       <view class="cs-image-btn" hover-class="cs-image-btn-hover" bindtap="onSendImage">
         <t-icon name="image" size="44rpx" color="var(--td-brand-color)" />
+      </view>
+      <view class="cs-image-btn" hover-class="cs-image-btn-hover" bindtap="onSendFile">
+        <t-icon name="folder" size="44rpx" color="var(--td-brand-color)" />
       </view>
       <textarea
         class="cs-input"

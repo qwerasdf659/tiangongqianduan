@@ -29,12 +29,13 @@
 <!-- 游戏内容（displayMode 确定后即渲染，可能在加载遮罩背后预渲染） -->
 <block wx:if="{{displayMode && !loadError}}">
   <grid
-    wx:if="{{displayMode === 'grid_3x3' || displayMode === 'grid_4x4'}}"
+    wx:if="{{displayMode === 'grid_3x3' || displayMode === 'grid_4x3' || displayMode === 'grid_4x4'}}"
     id="lottery-sub"
     prizes="{{prizes}}"
     prizesForPreview="{{prizesForPreview}}"
     costPoints="{{costPerDraw}}"
     isInProgress="{{isDrawing}}"
+    targetPrizeIndex="{{targetPrizeIndex}}"
     effectTheme="{{effectTheme}}"
     rarityEffects="{{rarityEffectsEnabled}}"
     winAnimation="{{winAnimation}}"

@@ -281,7 +281,7 @@
             <!-- 操作按钮组 -->
             <view
               class="item-action-bar"
-              wx:if="{{item.can_use || item.can_generate_code || item.can_view_code}}"
+              wx:if="{{item.can_use || item.can_generate_code || item.can_view_code || item.order_no}}"
             >
               <button
                 class="item-action-btn action-use"
@@ -312,6 +312,15 @@
                 data-item="{{item}}"
               >
                 <view><t-icon name="mobile" size="28rpx" /> 查看兑换码</view>
+              </button>
+              <!-- 兑换来源物品（后端下发 order_no 非空）：查看订单/物流入口 -->
+              <button
+                class="item-action-btn action-order"
+                wx:if="{{item.order_no}}"
+                catchtap="goToExchangeOrder"
+                data-order-no="{{item.order_no}}"
+              >
+                <text><t-icon name="undertake-delivery" size="24rpx" /> 查看订单/物流</text>
               </button>
             </view>
           </view>
@@ -494,8 +503,23 @@
             <text class="detail-desc-label">物品描述</text>
             <text class="detail-desc-content">{{itemDetail.item_description}}</text>
           </view>
-          <view class="detail-actions" wx:if="{{itemDetail.tracking_code}}">
-            <view class="detail-timeline-btn" bindtap="onViewTimelineFromDetail">
+          <view class="detail-actions" wx:if="{{itemDetail.tracking_code || itemDetail.order_no}}">
+            <!-- 兑换来源物品（后端下发 order_no 非空）：查看订单/物流入口 -->
+            <view
+              class="detail-timeline-btn"
+              wx:if="{{itemDetail.order_no}}"
+              catchtap="goToExchangeOrder"
+              data-order-no="{{itemDetail.order_no}}"
+            >
+              <t-icon name="undertake-delivery" size="32rpx" class="timeline-btn-icon" />
+              <text class="timeline-btn-text">查看订单/物流</text>
+              <text class="timeline-btn-arrow">›</text>
+            </view>
+            <view
+              class="detail-timeline-btn"
+              wx:if="{{itemDetail.tracking_code}}"
+              bindtap="onViewTimelineFromDetail"
+            >
               <t-icon name="file-paste" size="32rpx" class="timeline-btn-icon" />
               <text class="timeline-btn-text">查看流转记录</text>
               <text class="timeline-btn-arrow">›</text>

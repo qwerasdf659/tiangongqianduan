@@ -75,6 +75,18 @@
   min-height: 0;
 }
 
+/* 上拉加载更多 / 到底提示 */
+.cs-loadmore {
+  padding: 24rpx 0;
+  @include flex-center;
+}
+
+.cs-loadmore-text {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
 /* 会话项 */
 .cs-session-item {
   display: flex;
@@ -234,6 +246,28 @@
   color: var(--tg-text-tertiary);
 }
 
+/* 实时连接状态指示（绿点=WebSocket已连实时收消息，灰点=未连需手动刷新） */
+.cs-chat-status {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.cs-ws-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cs-ws-on {
+  background: var(--tg-color-success);
+}
+
+.cs-ws-off {
+  background: var(--tg-text-tertiary);
+}
+
 /* 消息区 */
 .cs-messages {
   flex: 1;
@@ -329,6 +363,46 @@
   width: 320rpx;
   border-radius: 12rpx;
   display: block;
+}
+
+/* 文件消息卡片（图标 + 文件名 + 大小） */
+.cs-msg-file {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 320rpx;
+  max-width: 440rpx;
+}
+
+.cs-msg-file-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.cs-msg-file-name {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  @include text-ellipsis;
+}
+
+.cs-bubble-other .cs-msg-file-name {
+  color: var(--tg-text-primary);
+}
+
+.cs-bubble-own .cs-msg-file-name {
+  color: var(--tg-color-white);
+}
+
+.cs-msg-file-size {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
+.cs-bubble-own .cs-msg-file-size {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .cs-msg-time {

@@ -707,12 +707,11 @@ Page({
   async _loadDefaultAddress() {
     try {
       const result = await DetailPageAPI.getUserAddresses()
-      if (result && result.success && result.data) {
-        const addresses = result.data.addresses || []
-        if (addresses.length > 0) {
-          const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0]
-          this.setData({ selectedAddress: defaultAddr })
-        }
+      // 该接口 data 本身即地址数组（无 addresses/list 包裹），直接判定数组
+      const addresses = Array.isArray(result.data) ? result.data : []
+      if (result && result.success && addresses.length > 0) {
+        const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0]
+        this.setData({ selectedAddress: defaultAddr })
       }
     } catch (error) {
       edLog.warn('加载默认地址失败（不阻断下单，用户可手动选）:', error)
@@ -957,6 +956,19 @@ Page({
     } catch (error: any) {
       edLog.error('兑换失败:', error)
       this.setData({ exchanging: false })
+
+      // 实物商品缺收货地址：后端返回 EXCHANGE_ADDRESS_REQUIRED 时，置 needAddress 并引导用户补选地址后重试
+      if (error.code === 'EXCHANGE_ADDRESS_REQUIRED') {
+        this.setData({ needAddress: true })
+        wx.showModal({
+          title: '需要收货地址',
+          content: '该商品为实物商品，请先选择收货地址再兑换',
+          showCancel: false,
+          confirmText: '去选择',
+          success: () => this.onChooseAddress()
+        })
+        return
+      }
 
       let exchangeErrorMsg = '兑换失败，请重试'
       if (error.statusCode === 400) {

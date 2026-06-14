@@ -87,6 +87,20 @@
   margin-bottom: 12rpx;
 }
 
+/* 当前价（图标 + 文案，图标来自后端 price_asset_icon_url） */
+.bid-current-price-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.bid-price-icon {
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
+}
+
 .bid-current-price {
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);

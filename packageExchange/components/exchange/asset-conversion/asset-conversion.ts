@@ -122,9 +122,14 @@ Component({
           daily_user_limit: rule.daily_user_limit ? Number(rule.daily_user_limit) : null,
           fee_rate: Number(rule.fee_rate),
           fee_min_amount: Number(rule.fee_min_amount),
-          /* 前端展示字段 */
-          fromIcon: AssetConversionImageHelper.getMaterialIconPath(rule.from_asset_code),
-          toIcon: AssetConversionImageHelper.getMaterialIconPath(rule.to_asset_code),
+          /* 前端展示字段 — 图标优先用后端权威字段 from/to_asset_icon_url（完整URL带?h=，跨页同源同图），
+             后端未配图标(null)时降级 ImageHelper 本地映射，避免裂图 */
+          fromIcon:
+            rule.from_asset_icon_url ||
+            AssetConversionImageHelper.getMaterialIconPath(rule.from_asset_code),
+          toIcon:
+            rule.to_asset_icon_url ||
+            AssetConversionImageHelper.getMaterialIconPath(rule.to_asset_code),
           /* 优先使用后端返回的中文名，降级到 ImageHelper 本地映射 */
           fromDisplayName:
             rule.from_display_name ||

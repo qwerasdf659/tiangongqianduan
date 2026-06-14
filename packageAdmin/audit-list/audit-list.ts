@@ -284,10 +284,19 @@ Page({
 
           /**
            * 进度条数据预计算（避免 WXML 内联除法在 total_steps 缺失/为0时算出 NaN）：
-           *   current/total 任一非正数则视为无有效进度，进度条不渲染。
+           *   优先读后端已下发的零歧义进度字段 progress_current_step / progress_total_steps
+           *   （数据源 = 已修正的 instance.current_step，1-based 真实序位），
+           *   缺失时回退 instance.current_step / total_steps。
+           *   ⚠️ 禁止使用 step_number（节点稀疏排序号，非进度序位，会算出"第9步"）。
            */
-          const curStep = Number(stepItem.instance && stepItem.instance.current_step) || 0
-          const totalStep = Number(stepItem.instance && stepItem.instance.total_steps) || 0
+          const curStep =
+            Number(stepItem.progress_current_step) ||
+            Number(stepItem.instance && stepItem.instance.current_step) ||
+            0
+          const totalStep =
+            Number(stepItem.progress_total_steps) ||
+            Number(stepItem.instance && stepItem.instance.total_steps) ||
+            0
           const hasProgress = curStep > 0 && totalStep > 0
           const progressPercent = hasProgress
             ? Math.min(100, Math.round((curStep / totalStep) * 100))
@@ -307,9 +316,13 @@ Page({
             chain_status_text: stepItem.instance
               ? CHAIN_STATUS_MAP[stepItem.instance.status] || stepItem.instance.status
               : '',
-            step_progress: stepItem.instance
-              ? `第${stepItem.step_number || stepItem.instance?.current_step || '?'}步 / 共${stepItem.instance?.total_steps || '?'}步`
-              : '',
+            /**
+             * 审核链进度文案：优先直读后端零歧义字段 progress_text（如"第2步/共2步"，零拼接），
+             * 缺失时用已修正的 curStep/totalStep 回退拼接。
+             * ⚠️ 禁止用 step_number（稀疏序号），否则会显示"第9步/共2步"。
+             */
+            step_progress:
+              stepItem.progress_text || (hasProgress ? `第${curStep}步 / 共${totalStep}步` : ''),
             /** 进度条预计算字段（WXML 只读，杜绝 NaN） */
             has_progress: hasProgress,
             progress_percent: progressPercent,

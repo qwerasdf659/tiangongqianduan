@@ -29,7 +29,15 @@
       <view class="bid-card-body">
         <text class="bid-product-name">{{item.item_name}}</text>
         <view class="bid-price-row">
-          <text class="bid-current-price">{{item.current_price}} {{item._priceAssetLabel}}</text>
+          <view class="bid-current-price-wrap">
+            <image
+              wx:if="{{item._priceAssetIconUrl}}"
+              class="bid-price-icon"
+              src="{{item._priceAssetIconUrl}}"
+              mode="aspectFit"
+            />
+            <text class="bid-current-price">{{item.current_price}} {{item._priceAssetLabel}}</text>
+          </view>
           <text class="bid-count">{{item.bid_count}}次出价</text>
         </view>
         <view class="bid-action-btn {{item.status !== 'active' ? 'disabled' : ''}}"
