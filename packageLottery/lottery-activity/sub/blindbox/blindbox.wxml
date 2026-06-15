@@ -1,104 +1,70 @@
-<!-- 扭蛋机抽奖组件 - 完整扭蛋机交互 -->
+<!--packageLottery/lottery-activity/sub/blindbox/blindbox.wxml - 虚拟盲盒（神秘礼盒开箱）-->
 <view class="blindbox-wrap">
-  <!-- 浮动装饰粒子 -->
+  <!-- 漂浮装饰星点 -->
   <view
     class="float-particle"
     wx:for="{{particles}}"
     wx:key="id"
-    style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; font-size:{{item.size}}rpx;"
-  >
-    <text>{{item.prize_icon}}</text>
-  </view>
+    style="left:{{item.left}}%; animation-delay:{{item.delay}}s; animation-duration:{{item.duration}}s; width:{{item.size}}rpx; height:{{item.size}}rpx;"
+  ></view>
 
   <!-- 标题 -->
   <view class="bb-header">
-    <text class="bb-header__title">扭蛋机</text>
-    <text class="bb-header__sub">转动手柄，收获惊喜</text>
+    <text class="bb-header__title">神秘盲盒</text>
+    <text class="bb-header__sub">轻点礼盒，开启惊喜</text>
   </view>
 
-  <!-- ====== 扭蛋机主体 ====== -->
-  <view class="gashapon">
-    <!-- 顶部装饰 -->
-    <view class="gashapon__top-cap"></view>
+  <!-- ====== 盲盒礼盒主体 ====== -->
+  <view class="mystery-box" bindtap="onOpenBox">
+    <!-- 光环底座 -->
+    <view class="mystery-box__halo"></view>
 
-    <!-- 透明球形罩 - 里面堆满扭蛋 -->
-    <view class="gashapon__dome">
-      <view class="gashapon__dome-shine"></view>
-      <view class="gashapon__eggs">
-        <view
-          class="egg {{item.dropping ? 'egg--dropping' : ''}} {{item.selected ? 'egg--selected' : ''}}"
-          wx:for="{{eggs}}"
-          wx:key="id"
-          style="left:{{item.x}}%; top:{{item.y}}%; background:{{item.gradient}}; width:{{item.size}}rpx; height:{{item.size}}rpx; animation-delay:{{item.wobbleDelay}}s; z-index:{{item.z}};"
-        >
-          <view class="egg__shine"></view>
-          <view class="egg__band" style="background:{{item.bandColor}};"></view>
-        </view>
+    <!-- 盒盖（开箱时向上掀开） -->
+    <view class="mystery-box__lid {{boxState}}">
+      <view class="mystery-box__lid-top"></view>
+      <view class="mystery-box__lid-bow">
+        <view class="bow-left"></view>
+        <view class="bow-right"></view>
+        <view class="bow-knot"></view>
       </view>
     </view>
 
-    <!-- 机身中段 -->
-    <view class="gashapon__body">
-      <!-- 投币口装饰 -->
-      <view class="gashapon__coin-slot">
-        <view class="gashapon__coin-slit"></view>
+    <!-- 盒身 -->
+    <view class="mystery-box__body {{boxState}}">
+      <!-- 竖向丝带 -->
+      <view class="mystery-box__ribbon-v"></view>
+      <!-- 横向丝带 -->
+      <view class="mystery-box__ribbon-h"></view>
+      <!-- 问号徽记（待开状态） -->
+      <view class="mystery-box__mark" wx:if="{{boxState === 'idle' || boxState === 'shaking'}}">
+        <text class="mark-text">?</text>
       </view>
-
-      <!-- 手柄 -->
-      <view class="gashapon__handle-wrap" bindtap="onCrank">
-        <view class="gashapon__handle {{crankState}}">
-          <view class="gashapon__handle-arm"></view>
-          <view class="gashapon__handle-knob"></view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 出蛋口 -->
-    <view class="gashapon__chute">
-      <view class="gashapon__chute-door"></view>
-      <!-- 掉出来的扭蛋 -->
+      <!-- 开箱光束（开盖时从盒内射出） -->
       <view
-        class="gashapon__dispensed {{dispensedState}}"
-        wx:if="{{dispensedEgg}}"
-        style="background:{{dispensedEgg.gradient}};"
-        bindtap="onTapDispensed"
+        class="mystery-box__beam"
+        wx:if="{{boxState === 'opening' || boxState === 'opened'}}"
+      ></view>
+    </view>
+
+    <!-- 开箱迸发粒子 -->
+    <view class="burst-layer" wx:if="{{boxState === 'opening' || boxState === 'opened'}}">
+      <view
+        class="burst-particle"
+        wx:for="{{burstParticles}}"
+        wx:key="id"
+        style="--bx:{{item.x}}rpx; --by:{{item.y}}rpx; --bd:{{item.delay}}s; --bs:{{item.scale}};"
       >
-        <view class="egg__shine"></view>
-        <view class="egg__band" style="background:{{dispensedEgg.bandColor}};"></view>
-        <!-- 开蛋后显示奖品 -->
-        <view class="gashapon__prize-reveal" wx:if="{{dispensedState === 'opened'}}">
-          <t-icon name="thumb-up" size="32rpx" class="reveal-sparkle" />
-        </view>
+        <image class="burst-img" src="{{item.emoji}}" mode="aspectFit" />
       </view>
-    </view>
-
-    <!-- 底座 -->
-    <view class="gashapon__base">
-      <view class="gashapon__base-stripe"></view>
-    </view>
-  </view>
-
-  <!-- 爆炸粒子层 -->
-  <view
-    class="burst-layer"
-    wx:if="{{dispensedState === 'cracking' || dispensedState === 'opened'}}"
-  >
-    <view
-      class="burst-particle"
-      wx:for="{{burstParticles}}"
-      wx:key="id"
-      style="--bx:{{item.x}}rpx; --by:{{item.y}}rpx; --bd:{{item.delay}}s; --bs:{{item.scale}};"
-    >
-      <text>{{item.emoji}}</text>
     </view>
   </view>
 
   <!-- 操作提示 -->
   <view class="stage-hint">
-    <text wx:if="{{crankState === 'idle'}}" class="hint-tap">转动手柄抽取扭蛋</text>
-    <text wx:elif="{{crankState === 'cranking'}}" class="hint-shaking">扭蛋掉落中...</text>
-    <text wx:elif="{{dispensedState === 'landed'}}" class="hint-tap">点击扭蛋打开</text>
-    <text wx:elif="{{dispensedState === 'cracking'}}" class="hint-exploding">惊喜来了!</text>
+    <text wx:if="{{boxState === 'idle'}}" class="hint-tap">轻点盲盒开启惊喜</text>
+    <text wx:elif="{{boxState === 'shaking'}}" class="hint-shaking">盲盒开启中...</text>
+    <text wx:elif="{{boxState === 'opening'}}" class="hint-exploding">惊喜来了!</text>
+    <text wx:else class="hint-tap">恭喜获得奖品</text>
   </view>
 
   <!-- 积分消耗 -->
@@ -110,24 +76,20 @@
     <text class="bb-cost__balance">余额 {{pointsBalance}}</text>
   </view>
 
-  <!-- 奖品池 -->
+  <!-- 奖品池（跑马灯，与其它玩法一致） -->
   <view class="bb-prizes" wx:if="{{prizesForPreview.length > 0}}">
     <view class="bb-prizes__header">
       <view class="bb-prizes__title-wrap">
         <text class="bb-prizes__dot"></text>
-        <text class="bb-prizes__title">奖品池</text>
+        <text class="bb-prizes__title">盲盒奖品</text>
         <text class="bb-prizes__dot"></text>
       </view>
       <text class="bb-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <view class="bb-prizes__scroll-wrap">
-      <scroll-view
-        type="custom"
-        class="bb-prizes__scroll"
-        scroll-x="{{true}}"
-        enhanced="{{true}}"
-        show-scrollbar="{{false}}"
-        bindscroll="onPrizesScroll"
+    <view class="bb-prizes__scroll">
+      <view
+        class="bb-prizes__track {{previewMarquee ? 'bb-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
       >
         <view class="bb-prizes__list">
           <rarity-effects
@@ -157,12 +119,33 @@
             </view>
           </rarity-effects>
         </view>
-      </scroll-view>
-      <view
-        class="bb-prizes__scroll-hint"
-        wx:if="{{showScrollHint && prizesForPreview.length > 4}}"
-      >
-        <text>← 滑动查看 →</text>
+        <!-- 复制一份奖品列表，实现无缝循环滚动（与其它玩法一致） -->
+        <view class="bb-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="bb-prizes__item {{item.is_fallback ? 'bb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'bb-prizes__item--sold-out' : ''}}"
+            >
+              <view class="bb-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="bb-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                /><text wx:else class="bb-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="bb-prizes__sold-out">抢光</text>
+              </view>
+              <text class="bb-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="bb-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
     </view>
   </view>

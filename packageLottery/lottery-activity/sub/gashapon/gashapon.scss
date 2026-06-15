@@ -11,12 +11,7 @@
   padding: 40rpx 0 80rpx;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    #FDF8F0 0%,
-    #F8F2E8 50%,
-    #F5EDE0 100%
-  );
+  background: linear-gradient(180deg, #fdf8f0 0%, #f8f2e8 50%, #f5ede0 100%);
 
   /* 浅色纹理背景 */
   &::before {
@@ -151,10 +146,10 @@
   margin: 0 auto;
   background: linear-gradient(
     180deg,
-    rgba(197, 165, 114, 0.6) 0%,
-    rgba(245, 222, 179, 0.5) 30%,
-    rgba(222, 184, 135, 0.4) 60%,
-    rgba(210, 180, 140, 0.3) 100%
+    rgba(245, 222, 179, 0.55) 0%,
+    rgba(251, 237, 192, 0.45) 30%,
+    rgba(239, 206, 114, 0.35) 60%,
+    rgba(217, 175, 72, 0.28) 100%
   );
   border-radius: 170rpx 170rpx 35rpx 35rpx;
   border: 12rpx solid var(--tg-lottery-frame, #8b4513);
@@ -209,41 +204,48 @@
   height: 70rpx;
   border-radius: 50%;
   box-shadow:
-    inset -6rpx -6rpx 12rpx rgba(0, 0, 0, 0.3),
-    inset 4rpx 4rpx 8rpx rgba(255, 255, 255, 0.3),
-    0 4rpx 10rpx rgba(0, 0, 0, 0.3);
+    inset -8rpx -10rpx 16rpx rgba(120, 80, 20, 0.35),
+    inset 6rpx 8rpx 14rpx rgba(255, 255, 255, 0.55),
+    0 6rpx 14rpx rgba(90, 60, 15, 0.3),
+    0 0 12rpx rgba(255, 240, 200, 0.25);
   animation: capsuleBobRetro 4s ease-in-out infinite;
-  border: 2rpx solid rgba(0, 0, 0, 0.15);
+  border: none;
 
-  /* 复古高光 - 柔和暖光 */
+  /* 顶部主高光 - 玻璃球通透反光（玻璃感关键） */
   &::before {
     content: '';
     position: absolute;
-    top: 15%;
-    left: 25%;
-    width: 18rpx;
-    height: 18rpx;
+    top: 8%;
+    left: 18%;
+    width: 44%;
+    height: 34%;
     background: radial-gradient(
-      circle,
-      rgba(245, 239, 224, 0.7) 0%,
-      rgba(245, 239, 224, 0.4) 50%,
-      transparent 100%
+      ellipse at 40% 35%,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 252, 240, 0.6) 40%,
+      transparent 80%
     );
     border-radius: 50%;
-    filter: blur(2rpx);
+    filter: blur(1rpx);
+    pointer-events: none;
   }
 
-  /* 中部反光带 - 磨砂质感 */
+  /* 底部环境反光弧 - 玻璃球透光感 */
   &::after {
     content: '';
     position: absolute;
-    top: 40%;
-    left: 15%;
-    right: 15%;
-    height: 6rpx;
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 3rpx;
-    filter: blur(2rpx);
+    bottom: 12%;
+    left: 22%;
+    right: 22%;
+    height: 26%;
+    background: radial-gradient(
+      ellipse at center bottom,
+      rgba(255, 245, 215, 0.5) 0%,
+      transparent 75%
+    );
+    border-radius: 50%;
+    filter: blur(3rpx);
+    pointer-events: none;
   }
 }
 
@@ -254,15 +256,15 @@
   width: 140rpx;
   height: 120rpx;
   margin: -15rpx auto 0;
-  background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 40%, #c0c0c0 100%);
+  background: linear-gradient(180deg, #e8c878 0%, #cf9f44 40%, #b8862f 100%);
   border-radius: 0 0 30rpx 30rpx;
-  border: 4rpx solid var(--tg-lottery-frame-light, #b8b8b8);
+  border: 4rpx solid var(--tg-lottery-frame, #8b4513);
   border-top: none;
   @include flex-center;
   position: relative;
   overflow: hidden;
   box-shadow:
-    inset 0 4rpx 8rpx rgba(0, 0, 0, 0.1),
+    inset 0 4rpx 8rpx rgba(90, 60, 10, 0.25),
     0 8rpx 16rpx rgba(0, 0, 0, 0.15);
 
   /* 金属纹理 */
@@ -304,9 +306,10 @@
   border-radius: 50%;
   @include flex-center;
   box-shadow:
-    0 8rpx 20rpx rgba(0, 0, 0, 0.25),
-    inset -4rpx -4rpx 8rpx rgba(0, 0, 0, 0.15),
-    inset 3rpx 3rpx 6rpx rgba(255, 255, 255, 0.4);
+    0 8rpx 20rpx rgba(90, 60, 15, 0.3),
+    inset -6rpx -8rpx 14rpx rgba(120, 80, 20, 0.35),
+    inset 5rpx 6rpx 12rpx rgba(255, 255, 255, 0.55),
+    0 0 14rpx rgba(255, 240, 200, 0.3);
   position: relative;
 
   &.animate {
@@ -865,16 +868,40 @@
 
 .gp-prizes__scroll {
   width: 100%;
-  white-space: nowrap;
   overflow: hidden;
   isolation: isolate;
   contain: paint;
+}
+
+/* 滚动轨道：承载两份奖品列表，无缝循环（与其它玩法一致） */
+.gp-prizes__track {
+  display: inline-flex;
+  white-space: nowrap;
+
+  &--animate {
+    /* 默认 30s 兜底，实际时长由 inline animation-duration 覆盖（防 duration 缺失导致不动） */
+    animation: gpPrizeMarquee 30s linear infinite;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+@keyframes gpPrizeMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .gp-prizes__list {
   display: inline-flex;
   gap: 16rpx;
   padding: 8rpx 4rpx 16rpx;
+  flex-shrink: 0;
 }
 
 .gp-prizes__item {

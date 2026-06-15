@@ -1,7 +1,8 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
+/* min-height:0 是关键：Skyline flex 子项默认 min-height:auto，缺失会导致容器撑满内容高度而无法滚动 */
 .page-scroll-view {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
 }
 
 @import '../../styles/mixins';
@@ -11,6 +12,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   background-color: var(--tg-page-bg);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -20,7 +23,11 @@
   position: relative;
   overflow: hidden;
   padding: 40rpx 32rpx 32rpx;
-  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, var(--tg-color-white) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--td-brand-color-light, #f5f0e8) 0%,
+    var(--tg-color-white) 100%
+  );
 }
 
 .page-header__title {

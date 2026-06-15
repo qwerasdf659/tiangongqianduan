@@ -15,6 +15,10 @@ Component({
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
+    /** 跑马灯启用（父组件预计算，与其它玩法一致） */
+    previewMarquee: { type: Boolean, value: false },
+    /** 跑马灯滚动一圈时长（秒） */
+    previewMarqueeSpeed: { type: Number, value: 10 },
     costPoints: { type: Number, value: 0 },
     pointsBalance: { type: Number, value: 0 },
     isInProgress: { type: Boolean, value: false },

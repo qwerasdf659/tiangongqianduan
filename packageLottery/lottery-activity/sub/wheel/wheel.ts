@@ -8,22 +8,13 @@ const { Logger } = require('../../../../utils/index')
 const log = Logger.createLogger('wheel')
 
 /** 转盘盘面半径（rpx），对应 scss 中 wheel-plate 的 width/2 */
-const PLATE_RADIUS = 280
+const PLATE_RADIUS = 312
 
 /** 奖品文字距圆心的距离比例（0~1，越大越靠外） */
-const TEXT_RADIUS_RATIO = 0.65
+const TEXT_RADIUS_RATIO = 0.66
 
-/** 扇区配色（循环使用） */
-const SECTOR_COLORS = [
-  '#7A9E7E',
-  '#4ECDC4',
-  '#FFD93D',
-  '#9775FA',
-  '#FF8A5C',
-  '#45B7D1',
-  '#96CEB4',
-  '#FFEAA7'
-]
+/** 扇区配色（柔和暖金双色：浅档奶油金、深档温润金，亮而不刺眼、不发土） */
+const SECTOR_COLORS = ['#FBEDC0', '#EFCE78']
 
 const prizeImageBehavior = require('../../shared/prize-image-behavior')
 
@@ -35,6 +26,10 @@ Component({
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
+    /** 跑马灯启用（父组件预计算，与 prizesForPreview 同帧下发，与砸金蛋一致） */
+    previewMarquee: { type: Boolean, value: false },
+    /** 跑马灯滚动一圈时长（秒） */
+    previewMarqueeSpeed: { type: Number, value: 10 },
     costPoints: { type: Number, value: 0 },
     pointsBalance: { type: Number, value: 0 },
     isInProgress: { type: Boolean, value: false },
@@ -109,7 +104,9 @@ Component({
       /* 生成 conic-gradient 扇区背景 */
       const gradientParts: string[] = []
       for (let i = 0; i < count; i++) {
-        const color = SECTOR_COLORS[i % SECTOR_COLORS.length]
+        /* 奇数个扇区时，末扇区与首扇区会相邻同色，用第三档金色避免撞色 */
+        const isOddSeam = count % 2 === 1 && i === count - 1
+        const color = isOddSeam ? '#F5DE9C' : SECTOR_COLORS[i % SECTOR_COLORS.length]
         const startDeg = sectorAngle * i
         const endDeg = sectorAngle * (i + 1)
         gradientParts.push(`${color} ${startDeg}deg ${endDeg}deg`)
@@ -133,10 +130,10 @@ Component({
         /* 文字旋转角度：让文字沿径向朝外 */
         const textRotate = sectorAngle * i + sectorAngle / 2
 
-        /* 偏移量对齐 .wheel-prize 容器尺寸 width:120rpx / height:90rpx 的一半 */
+        /* 偏移量对齐 .wheel-prize 容器尺寸 width:120rpx / height:104rpx 的一半 */
         prizePositions.push(
           `left: calc(50% + ${Math.round(offsetX)}rpx - 60rpx); ` +
-            `top: calc(50% + ${Math.round(offsetY)}rpx - 45rpx); ` +
+            `top: calc(50% + ${Math.round(offsetY)}rpx - 52rpx); ` +
             `transform: rotate(${textRotate}deg);`
         )
       }

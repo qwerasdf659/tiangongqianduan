@@ -383,10 +383,13 @@ page {
   color: var(--tg-color-error);
 }
 
-/* 记录元信息 */
+/* 记录元信息：允许换行，避免时间/流水号/描述/余额挤在单行时描述被省略号截断 */
 .record-meta {
-  @include flex-align-center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--tg-spacing-xs);
+  row-gap: 4rpx;
 }
 
 .record-time {
@@ -401,11 +404,12 @@ page {
   font-family: 'Menlo', 'Courier New', monospace;
 }
 
+/* 描述文本：占满整行（flex-wrap 下独立成行），完整展示后端 description，不再被裁切 */
 .record-desc {
   font-size: var(--tg-font-size-xs);
   color: var(--tg-text-tertiary);
-  @include text-ellipsis;
-  max-width: 300rpx;
+  width: 100%;
+  word-break: break-all;
 }
 
 /* 余额变动快照（后端 balance_before → balance_after，审计追踪用） */

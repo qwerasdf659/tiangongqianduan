@@ -5,17 +5,17 @@
 
 /* 主题变量 — 浅米色/奶油色系 */
 .egg-container {
-  --tg-lottery-accent: #C8A06A;
-  --tg-lottery-accent-light: #E8D5B0;
-  --tg-lottery-accent-dark: #A0724A;
+  --tg-lottery-accent: #c8a06a;
+  --tg-lottery-accent-light: #e8d5b0;
+  --tg-lottery-accent-dark: #a0724a;
   --tg-lottery-border: rgba(0, 0, 0, 0.06);
-  --tg-lottery-bg-light: #FFFFFF;
+  --tg-lottery-bg-light: #ffffff;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20rpx 24rpx 32rpx;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 24rpx;
   overflow: hidden;
   position: relative;
@@ -74,8 +74,87 @@
     transform: translateX(-50%);
     width: 80%;
     height: 60rpx;
-    background: radial-gradient(ellipse at center, rgba(197, 165, 114, 0.25) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(255, 200, 80, 0.4) 0%, transparent 70%);
     border-radius: 50%;
+    /* 底部光晕呼吸，增强金蛋"发光"氛围 */
+    animation: eggStageGlow 2.8s ease-in-out infinite;
+  }
+
+  /* 舞台飘浮金色光斑（纯 CSS 装饰，缓慢上浮 + 闪烁） */
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 10rpx;
+    height: 10rpx;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 235, 160, 0.95), rgba(255, 215, 0, 0.2));
+    box-shadow: 0 0 12rpx 3rpx rgba(255, 215, 0, 0.5);
+    pointer-events: none;
+  }
+
+  &::before {
+    top: 30%;
+    left: 18%;
+    animation: eggFloatDust 3.6s ease-in-out infinite;
+  }
+
+  &::after {
+    top: 24%;
+    right: 20%;
+    animation: eggFloatDust 4.4s ease-in-out 1.2s infinite;
+  }
+}
+
+@keyframes eggStageGlow {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translateX(-50%) scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+@keyframes eggFloatDust {
+  0% {
+    opacity: 0;
+    transform: translateY(10rpx) scale(0.6);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60rpx) scale(1.1);
+  }
+}
+
+/* 待选金蛋金色光晕脉冲 */
+@keyframes eggIdleGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6rpx rgba(255, 210, 80, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 18rpx rgba(255, 210, 80, 0.75));
+  }
+}
+
+/* 选中金蛋：强光爆发脉冲（多层金色光晕 + 轻微缩放） */
+@keyframes eggSelectedBurst {
+  0%,
+  100% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 16rpx rgba(255, 215, 0, 0.7))
+      drop-shadow(0 0 30rpx rgba(255, 180, 40, 0.5));
+  }
+  50% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 30rpx rgba(255, 235, 130, 1))
+      drop-shadow(0 0 60rpx rgba(255, 200, 60, 0.8));
   }
 }
 
@@ -85,6 +164,32 @@
   gap: 24rpx;
   position: relative;
   z-index: 1;
+}
+
+/* 更多飘浮金色光斑（挂在 eggs-row 上，与 stage 的两颗错位飘动，更热闹） */
+.eggs-row::before,
+.eggs-row::after {
+  content: '';
+  position: absolute;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 240, 170, 0.95), rgba(255, 215, 0, 0.15));
+  box-shadow: 0 0 10rpx 2rpx rgba(255, 215, 0, 0.55);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.eggs-row::before {
+  top: 50%;
+  left: 8%;
+  animation: eggFloatDust 4s ease-in-out 0.6s infinite;
+}
+
+.eggs-row::after {
+  top: 60%;
+  right: 10%;
+  animation: eggFloatDust 3.2s ease-in-out 1.8s infinite;
 }
 
 /* ===== 单个蛋槽位 ===== */
@@ -118,16 +223,35 @@
   margin-top: -16rpx;
   z-index: 0;
 
+  /* 暖金落地光晕：让蛋"立"在台子上更有立体感 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 2rpx;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120%;
+    height: 28rpx;
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      rgba(255, 215, 0, 0.45) 0%,
+      rgba(218, 165, 32, 0.2) 45%,
+      transparent 75%
+    );
+    filter: blur(2rpx);
+    z-index: -1;
+  }
+
   &__top {
     width: 100%;
     height: 16rpx;
     background: linear-gradient(
       180deg,
       var(--tg-lottery-accent-light, #daa520),
-      var(--tg-lottery-accent-dark, #b8860b)
+      var(--tg-lottery-accent-dark, #8b6914)
     );
     border-radius: 50%;
-    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3rpx 8rpx rgba(0, 0, 0, 0.4);
   }
 
   &__body {
@@ -149,14 +273,17 @@
   z-index: 1;
   transition: transform 0.2s ease;
 
-  /* 待选状态：微妙浮动呼吸感 */
+  /* 待选状态：微妙浮动呼吸感 + 金色光晕脉冲 */
   &.is-idle {
-    animation: eggFloat 2.5s ease-in-out infinite;
+    animation:
+      eggFloat 2.5s ease-in-out infinite,
+      eggIdleGlow 2.5s ease-in-out infinite;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   }
 
   &.is-selected {
     transform: scale(1.05);
-    animation: none;
+    animation: eggSelectedBurst 1s ease-in-out infinite;
   }
 
   &.is-shaking {
@@ -170,65 +297,69 @@
   height: 210rpx;
   background: linear-gradient(
     160deg,
-    #fff6d5 0%,
-    #d4c4a0 15%,
-    #c5a572 30%,
-    #daa520 50%,
-    #b8860b 70%,
-    #996515 85%,
+    #fffef5 0%,
+    #fff0b0 12%,
+    #ffd700 28%,
+    #f5c518 45%,
+    #daa520 64%,
+    #b8860b 82%,
     #8b6914 100%
   );
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   position: relative;
   box-shadow:
-    0 8rpx 24rpx rgba(0, 0, 0, 0.35),
-    inset 0 -8rpx 16rpx rgba(139, 105, 20, 0.4),
-    inset 0 4rpx 12rpx rgba(255, 246, 213, 0.5);
+    0 10rpx 28rpx rgba(139, 105, 20, 0.45),
+    0 0 24rpx rgba(255, 215, 0, 0.35),
+    inset 0 -10rpx 18rpx rgba(139, 105, 20, 0.5),
+    inset 0 6rpx 16rpx rgba(255, 255, 255, 0.85);
   overflow: hidden;
 
-  /* 高光 */
+  /* 高光：沿蛋顶铺一道大面积弧形反光，让蛋面发亮而非哑光 */
   &__highlight {
     position: absolute;
-    top: 18rpx;
-    left: 22rpx;
-    width: 50rpx;
-    height: 70rpx;
+    top: 10rpx;
+    left: 16rpx;
+    width: 96rpx;
+    height: 130rpx;
     background: radial-gradient(
-      ellipse at 40% 30%,
-      rgba(255, 255, 255, 0.7) 0%,
-      rgba(255, 255, 255, 0.2) 40%,
-      transparent 70%
+      ellipse at 38% 26%,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.5) 28%,
+      rgba(255, 255, 255, 0.12) 52%,
+      transparent 72%
     );
     border-radius: 50%;
-    transform: rotate(-15deg);
+    transform: rotate(-18deg);
   }
 
-  /* 金色腰带装饰 */
+  /* 金色腰带装饰（反光增强） */
   &__band {
     position: absolute;
     top: 50%;
     left: 0;
     right: 0;
-    height: 20rpx;
+    height: 24rpx;
     transform: translateY(-50%);
     background: linear-gradient(
       180deg,
       transparent 0%,
-      rgba(197, 165, 114, 0.4) 30%,
-      rgba(218, 165, 32, 0.6) 50%,
-      rgba(197, 165, 114, 0.4) 70%,
+      rgba(255, 246, 200, 0.55) 28%,
+      rgba(255, 223, 70, 0.85) 50%,
+      rgba(255, 246, 200, 0.55) 72%,
       transparent 100%
     );
   }
 
-  /* 闪烁星点 */
+  /* 闪烁星点（加金色辉光） */
   &__sparkle {
     position: absolute;
     width: 8rpx;
     height: 8rpx;
     background: #fff;
     border-radius: 50%;
-    box-shadow: 0 0 6rpx 2rpx rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 0 8rpx 3rpx rgba(255, 255, 255, 0.9),
+      0 0 14rpx 5rpx rgba(255, 215, 0, 0.6);
 
     &--1 {
       top: 30rpx;
@@ -394,16 +525,56 @@
   border-radius: 2rpx;
   box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.15);
 
-  &--1 { width: 8rpx; height: 10rpx; animation: chipFly1 0.6s ease-out 0.02s forwards; }
-  &--2 { width: 6rpx; height: 8rpx; animation: chipFly2 0.55s ease-out 0.05s forwards; }
-  &--3 { width: 10rpx; height: 6rpx; animation: chipFly3 0.65s ease-out 0.03s forwards; }
-  &--4 { width: 7rpx; height: 9rpx; animation: chipFly4 0.6s ease-out 0.07s forwards; }
-  &--5 { width: 5rpx; height: 7rpx; animation: chipFly5 0.5s ease-out 0.04s forwards; }
-  &--6 { width: 9rpx; height: 5rpx; animation: chipFly6 0.55s ease-out 0.06s forwards; }
-  &--7 { width: 6rpx; height: 6rpx; animation: chipFly7 0.6s ease-out 0.08s forwards; }
-  &--8 { width: 8rpx; height: 5rpx; animation: chipFly8 0.5s ease-out 0.02s forwards; }
-  &--9 { width: 5rpx; height: 8rpx; animation: chipFly9 0.55s ease-out 0.09s forwards; }
-  &--10 { width: 7rpx; height: 6rpx; animation: chipFly10 0.6s ease-out 0.01s forwards; }
+  &--1 {
+    width: 8rpx;
+    height: 10rpx;
+    animation: chipFly1 0.6s ease-out 0.02s forwards;
+  }
+  &--2 {
+    width: 6rpx;
+    height: 8rpx;
+    animation: chipFly2 0.55s ease-out 0.05s forwards;
+  }
+  &--3 {
+    width: 10rpx;
+    height: 6rpx;
+    animation: chipFly3 0.65s ease-out 0.03s forwards;
+  }
+  &--4 {
+    width: 7rpx;
+    height: 9rpx;
+    animation: chipFly4 0.6s ease-out 0.07s forwards;
+  }
+  &--5 {
+    width: 5rpx;
+    height: 7rpx;
+    animation: chipFly5 0.5s ease-out 0.04s forwards;
+  }
+  &--6 {
+    width: 9rpx;
+    height: 5rpx;
+    animation: chipFly6 0.55s ease-out 0.06s forwards;
+  }
+  &--7 {
+    width: 6rpx;
+    height: 6rpx;
+    animation: chipFly7 0.6s ease-out 0.08s forwards;
+  }
+  &--8 {
+    width: 8rpx;
+    height: 5rpx;
+    animation: chipFly8 0.5s ease-out 0.02s forwards;
+  }
+  &--9 {
+    width: 5rpx;
+    height: 8rpx;
+    animation: chipFly9 0.55s ease-out 0.09s forwards;
+  }
+  &--10 {
+    width: 7rpx;
+    height: 6rpx;
+    animation: chipFly10 0.6s ease-out 0.01s forwards;
+  }
 }
 
 /* ===== 裂纹扩散线 ===== */
@@ -430,12 +601,36 @@
     opacity: 0;
     animation: crackExpand 0.4s ease-out forwards;
 
-    &--1 { width: 60rpx; transform: rotate(0deg); animation-delay: 0s; }
-    &--2 { width: 55rpx; transform: rotate(60deg); animation-delay: 0.03s; }
-    &--3 { width: 50rpx; transform: rotate(120deg); animation-delay: 0.06s; }
-    &--4 { width: 58rpx; transform: rotate(180deg); animation-delay: 0.02s; }
-    &--5 { width: 52rpx; transform: rotate(240deg); animation-delay: 0.05s; }
-    &--6 { width: 56rpx; transform: rotate(300deg); animation-delay: 0.04s; }
+    &--1 {
+      width: 60rpx;
+      transform: rotate(0deg);
+      animation-delay: 0s;
+    }
+    &--2 {
+      width: 55rpx;
+      transform: rotate(60deg);
+      animation-delay: 0.03s;
+    }
+    &--3 {
+      width: 50rpx;
+      transform: rotate(120deg);
+      animation-delay: 0.06s;
+    }
+    &--4 {
+      width: 58rpx;
+      transform: rotate(180deg);
+      animation-delay: 0.02s;
+    }
+    &--5 {
+      width: 52rpx;
+      transform: rotate(240deg);
+      animation-delay: 0.05s;
+    }
+    &--6 {
+      width: 56rpx;
+      transform: rotate(300deg);
+      animation-delay: 0.04s;
+    }
   }
 }
 
@@ -456,22 +651,58 @@
     width: 4rpx;
     height: 4rpx;
     border-radius: 50%;
-    background: #FFD700;
+    background: #ffd700;
     box-shadow: 0 0 4rpx rgba(255, 215, 0, 0.6);
     opacity: 0;
 
-    &--1 { animation: dustFloat1 1.2s ease-out 0.1s forwards; }
-    &--2 { animation: dustFloat2 1.3s ease-out 0.15s forwards; }
-    &--3 { animation: dustFloat3 1.1s ease-out 0.2s forwards; }
-    &--4 { animation: dustFloat4 1.4s ease-out 0.12s forwards; }
-    &--5 { animation: dustFloat5 1.2s ease-out 0.18s forwards; }
-    &--6 { animation: dustFloat6 1.3s ease-out 0.22s forwards; }
-    &--7 { animation: dustFloat7 1.1s ease-out 0.08s forwards; width: 3rpx; height: 3rpx; }
-    &--8 { animation: dustFloat8 1.4s ease-out 0.25s forwards; width: 3rpx; height: 3rpx; }
-    &--9 { animation: dustFloat9 1.2s ease-out 0.14s forwards; width: 5rpx; height: 5rpx; }
-    &--10 { animation: dustFloat10 1.3s ease-out 0.16s forwards; width: 3rpx; height: 3rpx; }
-    &--11 { animation: dustFloat11 1.1s ease-out 0.2s forwards; width: 5rpx; height: 5rpx; }
-    &--12 { animation: dustFloat12 1.4s ease-out 0.1s forwards; width: 4rpx; height: 4rpx; }
+    &--1 {
+      animation: dustFloat1 1.2s ease-out 0.1s forwards;
+    }
+    &--2 {
+      animation: dustFloat2 1.3s ease-out 0.15s forwards;
+    }
+    &--3 {
+      animation: dustFloat3 1.1s ease-out 0.2s forwards;
+    }
+    &--4 {
+      animation: dustFloat4 1.4s ease-out 0.12s forwards;
+    }
+    &--5 {
+      animation: dustFloat5 1.2s ease-out 0.18s forwards;
+    }
+    &--6 {
+      animation: dustFloat6 1.3s ease-out 0.22s forwards;
+    }
+    &--7 {
+      animation: dustFloat7 1.1s ease-out 0.08s forwards;
+      width: 3rpx;
+      height: 3rpx;
+    }
+    &--8 {
+      animation: dustFloat8 1.4s ease-out 0.25s forwards;
+      width: 3rpx;
+      height: 3rpx;
+    }
+    &--9 {
+      animation: dustFloat9 1.2s ease-out 0.14s forwards;
+      width: 5rpx;
+      height: 5rpx;
+    }
+    &--10 {
+      animation: dustFloat10 1.3s ease-out 0.16s forwards;
+      width: 3rpx;
+      height: 3rpx;
+    }
+    &--11 {
+      animation: dustFloat11 1.1s ease-out 0.2s forwards;
+      width: 5rpx;
+      height: 5rpx;
+    }
+    &--12 {
+      animation: dustFloat12 1.4s ease-out 0.1s forwards;
+      width: 4rpx;
+      height: 4rpx;
+    }
   }
 }
 
@@ -566,20 +797,36 @@
     position: absolute;
     width: 10rpx;
     height: 10rpx;
-    background: #FFD700;
+    background: #ffd700;
     border-radius: 50%;
     top: 50%;
     left: 50%;
     box-shadow: 0 0 8rpx rgba(255, 215, 0, 0.8);
 
-    &--1 { animation: particleBurst 0.7s ease-out 0.05s forwards; }
-    &--2 { animation: particleBurst2 0.7s ease-out 0.08s forwards; }
-    &--3 { animation: particleBurst3 0.7s ease-out 0.03s forwards; }
-    &--4 { animation: particleBurst4 0.7s ease-out 0.1s forwards; }
-    &--5 { animation: particleBurst5 0.65s ease-out 0.06s forwards; }
-    &--6 { animation: particleBurst6 0.65s ease-out 0.12s forwards; }
-    &--7 { animation: particleBurst7 0.6s ease-out 0.04s forwards; }
-    &--8 { animation: particleBurst8 0.6s ease-out 0.09s forwards; }
+    &--1 {
+      animation: particleBurst 0.7s ease-out 0.05s forwards;
+    }
+    &--2 {
+      animation: particleBurst2 0.7s ease-out 0.08s forwards;
+    }
+    &--3 {
+      animation: particleBurst3 0.7s ease-out 0.03s forwards;
+    }
+    &--4 {
+      animation: particleBurst4 0.7s ease-out 0.1s forwards;
+    }
+    &--5 {
+      animation: particleBurst5 0.65s ease-out 0.06s forwards;
+    }
+    &--6 {
+      animation: particleBurst6 0.65s ease-out 0.12s forwards;
+    }
+    &--7 {
+      animation: particleBurst7 0.6s ease-out 0.04s forwards;
+    }
+    &--8 {
+      animation: particleBurst8 0.6s ease-out 0.09s forwards;
+    }
   }
 
   &__core {
@@ -673,7 +920,7 @@
 
   &__text {
     font-size: var(--td-font-size-s);
-    color: var(--tg-lottery-text-light, #8B7355);
+    color: var(--tg-lottery-text-light, #8b7355);
   }
 }
 
@@ -1098,78 +1345,186 @@
 
 /* ===== 粒子飞散动画（8方向） ===== */
 @keyframes particleBurst {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(50rpx, -70rpx) scale(0.3); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(50rpx, -70rpx) scale(0.3);
+    opacity: 0;
+  }
 }
 @keyframes particleBurst2 {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-55rpx, -60rpx) scale(0.2); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-55rpx, -60rpx) scale(0.2);
+    opacity: 0;
+  }
 }
 @keyframes particleBurst3 {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(70rpx, -20rpx) scale(0.3); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(70rpx, -20rpx) scale(0.3);
+    opacity: 0;
+  }
 }
 @keyframes particleBurst4 {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-65rpx, 10rpx) scale(0.2); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-65rpx, 10rpx) scale(0.2);
+    opacity: 0;
+  }
 }
 @keyframes particleBurst5 {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(35rpx, 55rpx) scale(0.3); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(35rpx, 55rpx) scale(0.3);
+    opacity: 0;
+  }
 }
 @keyframes particleBurst6 {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-40rpx, 50rpx) scale(0.2); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-40rpx, 50rpx) scale(0.2);
+    opacity: 0;
+  }
 }
 @keyframes particleBurst7 {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(20rpx, -80rpx) scale(0.4); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(20rpx, -80rpx) scale(0.4);
+    opacity: 0;
+  }
 }
 @keyframes particleBurst8 {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-25rpx, -75rpx) scale(0.3); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-25rpx, -75rpx) scale(0.3);
+    opacity: 0;
+  }
 }
 
 /* ===== 小碎片飞散动画（10方向，带重力弧线） ===== */
 @keyframes chipFly1 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-45rpx, -85rpx) rotate(-200deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-45rpx, -85rpx) rotate(-200deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly2 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(50rpx, -75rpx) rotate(180deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(50rpx, -75rpx) rotate(180deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly3 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-70rpx, -40rpx) rotate(-150deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-70rpx, -40rpx) rotate(-150deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly4 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(65rpx, -55rpx) rotate(220deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(65rpx, -55rpx) rotate(220deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly5 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-30rpx, -100rpx) rotate(-260deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-30rpx, -100rpx) rotate(-260deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly6 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(40rpx, -95rpx) rotate(170deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(40rpx, -95rpx) rotate(170deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly7 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-55rpx, -65rpx) rotate(-130deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-55rpx, -65rpx) rotate(-130deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly8 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(75rpx, -30rpx) rotate(240deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(75rpx, -30rpx) rotate(240deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly9 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(-20rpx, -110rpx) rotate(-190deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-20rpx, -110rpx) rotate(-190deg);
+    opacity: 0;
+  }
 }
 @keyframes chipFly10 {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate(25rpx, -105rpx) rotate(160deg); opacity: 0; }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(25rpx, -105rpx) rotate(160deg);
+    opacity: 0;
+  }
 }
 
 /* ===== 裂纹扩散动画 ===== */
@@ -1188,64 +1543,160 @@
 
 /* ===== 金色粉尘飘散动画（慢速上浮+摇摆） ===== */
 @keyframes dustFloat1 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translate(30rpx, -90rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(30rpx, -90rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat2 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.9; }
-  100% { transform: translate(-35rpx, -80rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-35rpx, -80rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat3 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translate(45rpx, -60rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(45rpx, -60rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat4 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.8; }
-  100% { transform: translate(-50rpx, -70rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50rpx, -70rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat5 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translate(20rpx, -100rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(20rpx, -100rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat6 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.9; }
-  100% { transform: translate(-25rpx, -95rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-25rpx, -95rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat7 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.8; }
-  100% { transform: translate(55rpx, -45rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(55rpx, -45rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat8 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translate(-60rpx, -50rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-60rpx, -50rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat9 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.9; }
-  100% { transform: translate(15rpx, -110rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(15rpx, -110rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat10 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.8; }
-  100% { transform: translate(-40rpx, -85rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-40rpx, -85rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat11 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translate(35rpx, -75rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(35rpx, -75rpx);
+    opacity: 0;
+  }
 }
 @keyframes dustFloat12 {
-  0% { transform: translate(0, 0); opacity: 0; }
-  15% { opacity: 0.9; }
-  100% { transform: translate(-15rpx, -105rpx); opacity: 0; }
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-15rpx, -105rpx);
+    opacity: 0;
+  }
 }
 
 /* ===== 蛋壳残留落地动画 ===== */
@@ -1292,7 +1743,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-accent, #C8A06A);
+  background: var(--tg-lottery-accent, #c8a06a);
 }
 
 .egg-prizes__title {
@@ -1358,7 +1809,7 @@
   width: 88rpx;
   height: 88rpx;
   border-radius: 16rpx;
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1rpx solid rgba(200, 160, 106, 0.2);
   box-shadow: 0 2rpx 12rpx rgba(160, 114, 74, 0.06);
   display: flex;
@@ -1399,11 +1850,15 @@
   margin-top: 8rpx;
   font-size: var(--tg-font-size-small);
   color: var(--tg-text-secondary);
-  max-width: 120rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  width: 120rpx;
   text-align: center;
+  /* 自然换行最多两行（不依赖 Skyline 支持不稳的 line-clamp）：
+     允许换行 + 固定两行高度 + 超出裁剪 */
+  white-space: normal;
+  word-break: break-all;
+  line-height: 1.3;
+  height: calc(var(--tg-font-size-small) * 1.3 * 2);
+  overflow: hidden;
 }
 
 .egg-prizes__item--fallback {

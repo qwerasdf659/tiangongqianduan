@@ -23,6 +23,8 @@ Component({
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
+    previewMarquee: { type: Boolean, value: false },
+    previewMarqueeSpeed: { type: Number, value: 10 },
     costPoints: { type: Number, value: 0 },
     pointsBalance: { type: Number, value: 0 },
     isInProgress: { type: Boolean, value: false },
@@ -35,19 +37,19 @@ Component({
   data: {
     /** 状态: idle / turning / dropping / done */
     machineState: 'idle',
-    /** 胶囊颜色列表 - 更丰富的配色 */
+    /** 胶囊颜色列表 - 暖金体系（呼应转盘/金蛋/刮卡，深浅冷暖错落避免死板） */
     capsuleColors: [
-      '#7A9E7E', // 红色
-      '#4ECDC4', // 青色
-      '#FFD93D', // 金色
-      '#9775FA', // 紫色
-      '#7A9E7E', // 橙色
-      '#6BCF7F', // 绿色
-      '#FF6AC1', // 粉色
-      '#5DADE2' // 蓝色
+      '#F0CE72', // 亮金
+      '#E0A938', // 琥珀金
+      '#F5DEA0', // 浅香槟
+      '#C8902F', // 深金
+      '#EBB94E', // 蜜糖金
+      '#D9A878', // 玫瑰金
+      '#B8763A', // 暖棕金
+      '#C57A3D' // 古铜
     ],
-    /** 当前掉落胶囊颜色 */
-    currentCapsuleColor: '#7A9E7E',
+    /** 当前掉落胶囊颜色（默认琥珀金，后端/抽中结果可覆盖） */
+    currentCapsuleColor: '#E0A938',
     /** 粒子特效数组 - 多层粒子 */
     particles: [] as any[],
     /** 显示庆祝特效 */

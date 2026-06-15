@@ -89,6 +89,10 @@ Component({
       value: []
     },
     prizesForPreview: { type: Array, value: [] },
+    /** 跑马灯启用（父组件预计算，与转盘/砸金蛋一致） */
+    previewMarquee: { type: Boolean, value: false },
+    /** 跑马灯滚动一圈时长（秒） */
+    previewMarqueeSpeed: { type: Number, value: 10 },
     /** 单次抽奖消耗积分 */
     costPoints: {
       type: Number,
@@ -113,7 +117,9 @@ Component({
     /** 中奖动画类型 */
     winAnimation: { type: String, value: 'simple' },
     /** 网格列数（3 或 4），决定布局规格 */
-    gridCols: { type: Number, value: 3 }
+    gridCols: { type: Number, value: 3 },
+    /** 展示模式（grid_3x3/grid_4x3/grid_4x4），布局权威来源，优先于 gridCols 推导 */
+    displayMode: { type: String, value: '' }
   },
 
   data: {
@@ -128,8 +134,8 @@ Component({
   },
 
   observers: {
-    /** gridCols 或奖品数变化时，重算布局规格并重绑动画样式 */
-    'gridCols, prizes'() {
+    /** displayMode/gridCols 或奖品数变化时，重算布局规格并重绑动画样式 */
+    'displayMode, gridCols, prizes'() {
       this._resolveLayout()
     },
     /** 监听抽奖开始（对齐 wheel）：父组件设 isInProgress=true 时自动启动轮转 */
@@ -156,30 +162,42 @@ Component({
      * 生成 cellIndexes 供 WXML 动态渲染，并重绑每格的 worklet 动画样式。
      */
     _resolveLayout() {
+      const mode = String(this.properties.displayMode || '')
       const cols = Number(this.properties.gridCols) || 3
       const prizeCount = (this.properties.prizes || []).length
 
-      /* 3 列 = 经典 8 格环形；4 列按奖品数选 12 或 16（默认 16，不足按 12） */
+      /**
+       * 布局权威来源：优先按后端 display.mode 精确匹配（grid_3x3/grid_4x3/grid_4x4），
+       * 缺失时回退按 gridCols + 奖品数推导，避免 grid_3x3 被误判成 4 列布局而出现空格 + 底部按钮。
+       */
       let layout: { cols: number; cellCount: number; centerButton: boolean }
-      if (cols >= 4) {
+      if (mode === 'grid_3x3' || mode === 'grid_4x3' || mode === 'grid_4x4') {
+        layout = GRID_LAYOUT[mode]
+      } else if (cols >= 4) {
         layout = prizeCount > 12 ? GRID_LAYOUT.grid_4x4 : GRID_LAYOUT.grid_4x3
       } else {
         layout = GRID_LAYOUT.grid_3x3
       }
 
+      /**
+       * 实际渲染格位数 = 布局上限与实际奖品数的较小值，
+       * 避免奖品不足布局格位（如 4×4 仅 12 个奖品）时渲染出多余空白格。
+       */
+      const effectiveCellCount = Math.min(layout.cellCount, prizeCount)
+
       const cellIndexes: number[] = []
-      for (let i = 0; i < layout.cellCount; i++) {
+      for (let i = 0; i < effectiveCellCount; i++) {
         cellIndexes.push(i)
       }
 
       this.setData(
         {
-          cellCount: layout.cellCount,
+          cellCount: effectiveCellCount,
           centerButton: layout.centerButton,
           cellIndexes
         },
         () => {
-          this._bindCellAnimatedStyles(layout.cellCount)
+          this._bindCellAnimatedStyles(effectiveCellCount)
         }
       )
     },

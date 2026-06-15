@@ -1,63 +1,26 @@
 /**
- * 扭蛋机组件 - 完整扭蛋机交互
+ * 虚拟盲盒组件 - 神秘礼盒开箱交互
  * @file sub/blindbox/blindbox.ts
- * @version 6.0.0 — Skyline Worklet 动画驱动
+ * @version 7.0.0 — 与扭蛋机(gashapon)区分，重做为真正的盲盒外观
+ *
+ * 业务语义：虚拟盲盒（blind_box 模式），用户点击神秘礼盒 → 礼盒抖动蓄力 →
+ *           盒盖弹开 + 光束迸发 → 揭晓奖品。区别于扭蛋机的"转手柄出蛋"交互。
+ *
+ * 交互状态机：idle（待开）→ shaking（抖动蓄力）→ opening（开盖）→ opened（揭晓）
  */
 
 const { shared, timing, runOnJS } = wx.worklet
 
-/** 扭蛋配色方案 */
-const EGG_COLORS = [
-  { gradient: 'linear-gradient(135deg, #7A9E7E, #ee5a24)', bandColor: 'rgba(255,255,255,0.4)' },
-  { gradient: 'linear-gradient(135deg, #ffd93d, #f0932b)', bandColor: 'rgba(255,255,255,0.4)' },
-  { gradient: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', bandColor: 'rgba(255,255,255,0.35)' },
-  { gradient: 'linear-gradient(135deg, #00cec9, #81ecec)', bandColor: 'rgba(255,255,255,0.4)' },
-  { gradient: 'linear-gradient(135deg, #fd79a8, #e84393)', bandColor: 'rgba(255,255,255,0.35)' },
-  { gradient: 'linear-gradient(135deg, #55efc4, #00b894)', bandColor: 'rgba(255,255,255,0.4)' },
-  { gradient: 'linear-gradient(135deg, #74b9ff, #0984e3)', bandColor: 'rgba(255,255,255,0.35)' },
-  { gradient: 'linear-gradient(135deg, #fdcb6e, #e17055)', bandColor: 'rgba(255,255,255,0.4)' }
-]
-
-/** 生成扭蛋机内的扭蛋堆 */
-function generateEggs(count: number): any[] {
-  const eggs: any[] = []
-  for (let i = 0; i < count; i++) {
-    const colorSet = EGG_COLORS[i % EGG_COLORS.length]
-    const size = 52 + Math.floor(Math.random() * 20)
-    eggs.push({
-      id: i,
-      ...colorSet,
-      x: 8 + Math.floor(Math.random() * 68),
-      y: 8 + Math.floor(Math.random() * 70),
-      z: Math.floor(Math.random() * 10),
-      size,
-      wobbleDelay: (Math.random() * 3).toFixed(1),
-      dropping: false,
-      selected: false
-    })
-  }
-  return eggs
-}
-
-/** 生成浮动装饰粒子 */
+/** 生成漂浮装饰星点（盲盒四周的微光氛围） */
 function generateParticles(): any[] {
-  const icons = [
-    '/assets/icons/particles/sparkle-1.svg',
-    '/assets/icons/particles/star-1.svg',
-    '/assets/icons/particles/gift.svg',
-    '/assets/icons/particles/bow.svg',
-    '/assets/icons/particles/sparkle-2.svg',
-    '/assets/icons/particles/star-2.svg'
-  ]
   const particles: any[] = []
   for (let i = 0; i < 8; i++) {
     particles.push({
       id: i,
-      icon: icons[i % icons.length],
       left: Math.floor(Math.random() * 90) + 5,
       delay: (Math.random() * 4).toFixed(1),
       duration: (3 + Math.random() * 3).toFixed(1),
-      size: Math.floor(20 + Math.random() * 20)
+      size: Math.floor(18 + Math.random() * 18)
     })
   }
   return particles
@@ -71,6 +34,8 @@ Component({
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
+    previewMarquee: { type: Boolean, value: false },
+    previewMarqueeSpeed: { type: Number, value: 10 },
     costPoints: { type: Number, value: 0 },
     pointsBalance: { type: Number, value: 0 },
     isInProgress: { type: Boolean, value: false },
@@ -81,23 +46,16 @@ Component({
   },
 
   data: {
-    eggs: [] as any[],
     particles: [] as any[],
-    /** idle / cranking */
-    crankState: 'idle' as string,
-    /** null / dispensing / landed / cracking / opened */
-    dispensedState: '' as string,
-    dispensedEgg: null as any,
-    burstParticles: [] as any[],
-    showScrollHint: true
+    /** idle / shaking / opening / opened */
+    boxState: 'idle' as string,
+    /** 揭晓奖品（开箱完成后冒泡由父层弹窗，本组件仅做视觉） */
+    burstParticles: [] as any[]
   },
 
   lifetimes: {
     attached() {
-      this.setData({
-        eggs: generateEggs(15),
-        particles: generateParticles()
-      })
+      this.setData({ particles: generateParticles() })
     },
     detached() {
       this._clearTimers()
@@ -106,8 +64,8 @@ Component({
 
   observers: {
     isInProgress(val: boolean) {
-      if (val && this.data.crankState === 'cranking') {
-        this._dispenseEgg()
+      if (val && this.data.boxState === 'shaking') {
+        this._openBox()
       }
     }
   },
@@ -121,85 +79,32 @@ Component({
       }
     },
 
-    /** 转动手柄 */
-    onCrank() {
-      if (this.data.crankState !== 'idle') {
+    /** 点击盲盒开箱 */
+    onOpenBox() {
+      if (this.data.boxState !== 'idle') {
         return
       }
-      if (this.data.dispensedState === 'landed' || this.data.dispensedState === 'opened') {
-        return
-      }
-
-      this.setData({ crankState: 'cranking' })
-
-      // 扭蛋机内蛋晃动
-      this._shakeEggs()
-
-      // 触发抽奖
+      this.setData({ boxState: 'shaking' })
       this.triggerEvent('draw', { count: 1 })
     },
 
-    /** 让蛋堆晃动 */
-    _shakeEggs() {
-      const eggs = this.data.eggs.map((egg: any) => ({
-        ...egg,
-        x: 8 + Math.floor(Math.random() * 68),
-        y: 8 + Math.floor(Math.random() * 70)
-      }))
-      this.setData({ eggs })
-    },
-
-    /** 出蛋动画 — Worklet timing 驱动多阶段编排 */
-    _dispenseEgg() {
-      const idx = Math.floor(Math.random() * this.data.eggs.length)
-      const chosen = { ...this.data.eggs[idx] }
-      const eggs = this.data.eggs.filter((_: any, i: number) => i !== idx)
-
+    /** 开盖动画 — Worklet timing 驱动多阶段编排 */
+    _openBox() {
       this.setData({
-        eggs,
-        dispensedEgg: chosen,
-        dispensedState: 'dispensing'
-      })
-
-      // Worklet timing 驱动掉落阶段（替代 setTimeout 800ms）
-      this._dispenseProgress = shared(0)
-      this._dispenseProgress.value = timing(1, { duration: 800 }, () => {
-        'worklet'
-        runOnJS(this._onEggLanded.bind(this))()
-      })
-    },
-
-    /** 扭蛋落地回调 */
-    _onEggLanded() {
-      this.setData({
-        crankState: 'idle',
-        dispensedState: 'landed'
-      })
-    },
-
-    /** 点击掉出来的蛋 - 打开 — Worklet timing 编排开蛋序列 */
-    onTapDispensed() {
-      if (this.data.dispensedState !== 'landed') {
-        return
-      }
-
-      this.setData({
-        dispensedState: 'cracking',
+        boxState: 'opening',
         burstParticles: this._generateBurst()
       })
 
-      // Worklet 驱动：cracking → opened（替代 setTimeout 800ms）
-      this._crackProgress = shared(0)
-      this._crackProgress.value = timing(1, { duration: 800 }, () => {
+      this._openProgress = shared(0)
+      this._openProgress.value = timing(1, { duration: 700 }, () => {
         'worklet'
-        runOnJS(this._onEggOpened.bind(this))()
+        runOnJS(this._onBoxOpened.bind(this))()
       })
     },
 
-    /** 扭蛋打开回调 */
-    _onEggOpened() {
-      this.setData({ dispensedState: 'opened' })
-      // Worklet 驱动动画结束通知（替代 setTimeout 600ms）
+    /** 开盖完成回调 */
+    _onBoxOpened() {
+      this.setData({ boxState: 'opened' })
       this._openDoneProgress = shared(0)
       this._openDoneProgress.value = timing(1, { duration: 600 }, () => {
         'worklet'
@@ -207,12 +112,12 @@ Component({
       })
     },
 
-    /** 开蛋动画结束回调 */
+    /** 开箱动画结束，通知父层揭晓奖品 */
     _onOpenAnimationEnd() {
       this.triggerEvent('animationEnd')
     },
 
-    /** 生成爆炸粒子 */
+    /** 生成开箱迸发粒子（环形向外飞散） */
     _generateBurst(): any[] {
       const items = []
       const emojis = [
@@ -239,36 +144,18 @@ Component({
       return items
     },
 
-    onPrizesScroll() {
-      if (this.data.showScrollHint) {
-        this.setData({ showScrollHint: false })
-      }
-    },
-
-    /** 重置（供父组件调用） */
-    resetBox() {
+    /** 统一重置接口（父组件调用） */
+    reset() {
       this._clearTimers()
       this.setData({
-        eggs: generateEggs(15),
-        crankState: 'idle',
-        dispensedState: '',
-        dispensedEgg: null,
+        boxState: 'idle',
         burstParticles: []
       })
     },
 
-    /** 统一重置接口（父组件调用） */
-    reset() {
-      this.resetBox()
-    },
-
     _clearTimers() {
-      // Worklet 共享变量重置（替代 clearTimeout）
-      if (this._dispenseProgress) {
-        this._dispenseProgress.value = 0
-      }
-      if (this._crackProgress) {
-        this._crackProgress.value = 0
+      if (this._openProgress) {
+        this._openProgress.value = 0
       }
       if (this._openDoneProgress) {
         this._openDoneProgress.value = 0

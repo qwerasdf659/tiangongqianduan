@@ -92,6 +92,7 @@
         wx:for="{{cellIndexes}}"
         wx:key="*this"
         wx:for-item="cellIdx"
+        wx:if="{{prizes[cellIdx]}}"
         id="prize-cell-{{cellIdx}}"
         class="prize-area prize-area--4col {{prizes[cellIdx].is_fallback ? 'prize-area--fallback' : ''}} {{prizes[cellIdx].is_sold_out ? 'prize-area--sold-out' : ''}}"
         data-index="{{cellIdx}}"
@@ -142,40 +143,67 @@
       </view>
       <text class="grid-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="grid-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="grid-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="grid-prizes__item {{item.is_fallback ? 'grid-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'grid-prizes__item--sold-out' : ''}}"
+    <view class="grid-prizes__scroll">
+      <view
+        class="grid-prizes__track {{previewMarquee ? 'grid-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="grid-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="grid-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="grid-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-              />
-              <text wx:else class="grid-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="grid-prizes__sold-out">抢光</text>
+            <view
+              class="grid-prizes__item {{item.is_fallback ? 'grid-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'grid-prizes__item--sold-out' : ''}}"
+            >
+              <view class="grid-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="grid-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                />
+                <text wx:else class="grid-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="grid-prizes__sold-out">抢光</text>
+              </view>
+              <text class="grid-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="grid-prizes__fallback-tag">保底</text>
             </view>
-            <text class="grid-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="grid-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <!-- 复制一份奖品列表，实现无缝循环滚动（与转盘/砸金蛋一致） -->
+        <view class="grid-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="grid-prizes__item {{item.is_fallback ? 'grid-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'grid-prizes__item--sold-out' : ''}}"
+            >
+              <view class="grid-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="grid-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                />
+                <text wx:else class="grid-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="grid-prizes__sold-out">抢光</text>
+              </view>
+              <text class="grid-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="grid-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

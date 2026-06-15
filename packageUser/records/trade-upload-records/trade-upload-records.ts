@@ -826,12 +826,19 @@ Page({
   onApplyAfterSale(e: WechatMiniprogram.BaseEvent) {
     const recordId = e.currentTarget.dataset.recordId
     const orderTitle = e.currentTarget.dataset.orderTitle || ''
-    if (!recordId) {
+    // 缺失主键时明确报错（不静默降级），便于定位后端是否返回 consumption_record_id 字段
+    if (recordId === undefined || recordId === null || recordId === '') {
+      log.error('申请售后失败：消费记录缺少 consumption_record_id 字段', e.currentTarget.dataset)
+      showToast('订单信息缺失，无法发起售后')
       return
     }
     const titleParam = orderTitle ? `&order_title=${encodeURIComponent(orderTitle)}` : ''
     wx.navigateTo({
-      url: `/packageUser/disputes/create?order_type=consumption&order_id=${recordId}${titleParam}`
+      url: `/packageUser/disputes/create?order_type=consumption&order_id=${recordId}${titleParam}`,
+      fail: err => {
+        log.error('跳转售后申诉页失败:', err)
+        showToast('页面跳转失败，请重试')
+      }
     })
   },
 

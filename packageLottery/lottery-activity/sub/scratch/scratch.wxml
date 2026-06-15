@@ -24,10 +24,24 @@
         >
           <!-- 底层：奖品内容 -->
           <view class="cell-prize">
-            <text wx:if="{{item.prize.prize_icon}}" class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}">
+            <image
+              wx:if="{{item.prize.prize_image_url}}"
+              class="cell-prize-img {{item.state === 'revealed' ? 'pop-in' : ''}}"
+              src="{{item.prize.prize_image_url}}"
+              mode="aspectFit"
+            />
+            <text
+              wx:elif="{{item.prize.prize_icon}}"
+              class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}"
+            >
               {{item.prize.prize_icon}}
             </text>
-            <t-icon wx:else name="gift" size="32rpx" class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}" />
+            <t-icon
+              wx:else
+              name="gift"
+              size="32rpx"
+              class="cell-prize-icon {{item.state === 'revealed' ? 'pop-in' : ''}}"
+            />
             <text
               class="cell-prize-name"
               wx:if="{{item.state === 'revealed' && cells.length <= 5}}"
@@ -41,7 +55,18 @@
             class="cell-cover {{item.state === 'dissolving' ? 'dissolving' : ''}} {{item.state === 'revealed' ? 'gone' : ''}}"
           >
             <view class="cell-cover-texture"></view>
-            <text class="cell-number">{{item.index + 1}}</text>
+            <!-- 装饰内描金虚线框（彩票质感） -->
+            <view class="cover-frame"></view>
+            <!-- 漂浮闪烁星点（仅宽格显示，由 CSS 控制可见性） -->
+            <view class="cover-spark cover-spark--1"></view>
+            <view class="cover-spark cover-spark--2"></view>
+            <view class="cover-spark cover-spark--3"></view>
+            <!-- 中心徽记：礼物图标 + 编号 + 提示语 -->
+            <view class="cover-emblem">
+              <t-icon name="gift" size="44rpx" class="cover-emblem-icon" />
+              <text class="cell-number">{{item.index + 1}}</text>
+              <text class="cover-hint">刮开有奖</text>
+            </view>
           </view>
 
           <!-- 格子分割线 -->
@@ -85,8 +110,15 @@
       wx:for="{{cells}}"
       wx:key="index"
     >
-      <text wx:if="{{item.state === 'revealed' && item.prize.prize_icon}}" class="report-icon">{{item.prize.prize_icon}}</text>
-      <t-icon wx:elif="{{item.state === 'revealed'}}" name="gift" size="28rpx" class="report-icon" />
+      <text wx:if="{{item.state === 'revealed' && item.prize.prize_icon}}" class="report-icon"
+        >{{item.prize.prize_icon}}</text
+      >
+      <t-icon
+        wx:elif="{{item.state === 'revealed'}}"
+        name="gift"
+        size="28rpx"
+        class="report-icon"
+      />
       <t-icon wx:else name="help-circle" size="28rpx" class="report-icon" />
     </view>
   </scroll-view>
@@ -112,41 +144,67 @@
       </view>
       <text class="sc-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="sc-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="sc-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="sc-prizes__item {{item.is_fallback ? 'sc-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'sc-prizes__item--sold-out' : ''}}"
+    <view class="sc-prizes__scroll">
+      <view
+        class="sc-prizes__track {{previewMarquee ? 'sc-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="sc-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="sc-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="sc-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="sc-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="sc-prizes__sold-out">抢光</text>
+            <view
+              class="sc-prizes__item {{item.is_fallback ? 'sc-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'sc-prizes__item--sold-out' : ''}}"
+            >
+              <view class="sc-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="sc-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="sc-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="sc-prizes__sold-out">抢光</text>
+              </view>
+              <text class="sc-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="sc-prizes__fallback-tag">保底</text>
             </view>
-            <text class="sc-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="sc-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <!-- 复制一份奖品列表，实现无缝循环滚动（与其它玩法一致） -->
+        <view class="sc-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="sc-prizes__item {{item.is_fallback ? 'sc-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'sc-prizes__item--sold-out' : ''}}"
+            >
+              <view class="sc-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="sc-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                /><text wx:else class="sc-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="sc-prizes__sold-out">抢光</text>
+              </view>
+              <text class="sc-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="sc-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

@@ -8,7 +8,7 @@
         class="wheel-light"
         wx:for="{{16}}"
         wx:key="*this"
-        style="transform: rotate({{index * 22.5}}deg) translateY(-292rpx);"
+        style="transform: rotate({{index * 22.5}}deg) translateY(-326rpx);"
       ></view>
     </view>
 
@@ -21,11 +21,15 @@
         wx:key="id"
         style="{{prizePositions[index]}}"
       >
-        <text wx:if="{{item.prize_icon}}" class="wheel-prize__icon">{{item.prize_icon}}</text>
+        <image
+          wx:if="{{item.prize_image_url}}"
+          class="wheel-prize__image"
+          src="{{item.prize_image_url}}"
+          mode="aspectFit"
+        />
+        <text wx:elif="{{item.prize_icon}}" class="wheel-prize__icon">{{item.prize_icon}}</text>
         <t-icon wx:else name="gift" size="32rpx" class="wheel-prize__icon" />
-        <text class="wheel-prize__name"
-          >{{item.is_sold_out ? '已抢光' : (item.prize_name || '')}}</text
-        >
+        <text class="wheel-prize__label">{{item.is_sold_out ? '已抢光' : item._wheelLabel}}</text>
         <text wx:if="{{item.is_fallback}}" class="wheel-prize__badge">保底</text>
       </view>
     </view>
@@ -54,41 +58,67 @@
       </view>
       <text class="wheel-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="wheel-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="wheel-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="wheel-prizes__item {{item.is_fallback ? 'wheel-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wheel-prizes__item--sold-out' : ''}}"
+    <view class="wheel-prizes__scroll">
+      <view
+        class="wheel-prizes__track {{previewMarquee ? 'wheel-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="wheel-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="wheel-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="wheel-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="wheel-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="wheel-prizes__sold-out">抢光</text>
+            <view
+              class="wheel-prizes__item {{item.is_fallback ? 'wheel-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wheel-prizes__item--sold-out' : ''}}"
+            >
+              <view class="wheel-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="wheel-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="wheel-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="wheel-prizes__sold-out">抢光</text>
+              </view>
+              <text class="wheel-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="wheel-prizes__fallback-tag">保底</text>
             </view>
-            <text class="wheel-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="wheel-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <!-- 复制一份奖品列表，实现无缝循环滚动（与砸金蛋一致） -->
+        <view class="wheel-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="wheel-prizes__item {{item.is_fallback ? 'wheel-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wheel-prizes__item--sold-out' : ''}}"
+            >
+              <view class="wheel-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="wheel-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                /><text wx:else class="wheel-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="wheel-prizes__sold-out">抢光</text>
+              </view>
+              <text class="wheel-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="wheel-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

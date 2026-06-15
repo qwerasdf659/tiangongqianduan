@@ -189,6 +189,20 @@ function addPrizeIcon(prize: any): any {
   /* 库存耗尽标记 — 后端当前不透传 stock_quantity（契约已脱敏移除），此逻辑不会触发 */
   prize.is_sold_out = typeof prize.stock_quantity === 'number' && prize.stock_quantity === 0
 
+  /**
+   * 转盘扇区精简标签（_wheelLabel）：
+   *   - 积分类奖品（prize_type==='points'）：显示完整奖品名（如「积分 +10」）
+   *   - 其它奖品（星石/红源晶碎片等）：仅显示数量后缀（如「星石 ×500」→「×500」）
+   * 数量后缀通过正则提取 ×/x/* 后的数字；无数量后缀则回退完整名。
+   */
+  const rawName = prize.prize_name || ''
+  if (prize.prize_type === 'points') {
+    prize._wheelLabel = rawName
+  } else {
+    const qtyMatch = rawName.match(/[×x*]\s*([\d,]+)/i)
+    prize._wheelLabel = qtyMatch ? `×${qtyMatch[1]}` : rawName
+  }
+
   return prize
 }
 /**

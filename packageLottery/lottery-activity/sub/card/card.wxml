@@ -22,14 +22,24 @@
           <!-- 卡背 -->
           <view class="card-face card-back">
             <view class="card-back-shimmer" />
+            <view class="card-corner card-corner--tl" />
+            <view class="card-corner card-corner--tr" />
+            <view class="card-corner card-corner--bl" />
+            <view class="card-corner card-corner--br" />
             <t-icon name="rectangle" size="32rpx" class="card-back-icon" />
             <text class="card-back-text">?</text>
           </view>
 
           <!-- 卡正面 -->
           <view class="card-face card-front">
+            <image
+              wx:if="{{item.prize_image_url}}"
+              class="card-prize-img {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}"
+              src="{{item.prize_image_url}}"
+              mode="aspectFit"
+            />
             <text
-              wx:if="{{item.prize_icon}}"
+              wx:elif="{{item.prize_icon}}"
               class="card-prize-icon {{showGlow && selectedIndex === index ? 'icon-bounce' : ''}}"
               >{{item.prize_icon}}</text
             >
@@ -83,16 +93,33 @@
             <!-- 卡背 -->
             <view class="card-face card-back">
               <view class="card-back-shimmer" />
+              <view class="card-corner card-corner--tl" />
+              <view class="card-corner card-corner--tr" />
+              <view class="card-corner card-corner--bl" />
+              <view class="card-corner card-corner--br" />
               <t-icon name="rectangle" size="32rpx" class="card-back-icon" />
               <text class="card-back-text">?</text>
             </view>
 
             <!-- 卡正面 -->
             <view class="card-face card-front">
-              <text wx:if="{{item.prize_icon}}" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+              <image
+                wx:if="{{item.prize_image_url}}"
+                class="card-prize-img {{item.flipped ? 'icon-bounce' : ''}}"
+                src="{{item.prize_image_url}}"
+                mode="aspectFit"
+              />
+              <text
+                wx:elif="{{item.prize_icon}}"
+                class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
                 >{{item.prize_icon}}</text
               >
-              <t-icon wx:else name="gift" size="32rpx" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}" />
+              <t-icon
+                wx:else
+                name="gift"
+                size="32rpx"
+                class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+              />
               <text class="card-prize-name">{{item.prize_name || ''}}</text>
             </view>
           </view>
@@ -129,14 +156,31 @@
         <view class="card-inner">
           <!-- 卡背 -->
           <view class="card-face card-back">
+            <view class="card-corner card-corner--tl" />
+            <view class="card-corner card-corner--tr" />
+            <view class="card-corner card-corner--bl" />
+            <view class="card-corner card-corner--br" />
             <text class="card-back-num">{{item.index + 1}}</text>
           </view>
           <!-- 卡正面 -->
           <view class="card-face card-front">
-            <text wx:if="{{item.prize.prize_icon}}" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+            <image
+              wx:if="{{item.prize.prize_image_url}}"
+              class="card-prize-img {{item.flipped ? 'icon-bounce' : ''}}"
+              src="{{item.prize.prize_image_url}}"
+              mode="aspectFit"
+            />
+            <text
+              wx:elif="{{item.prize.prize_icon}}"
+              class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
               >{{item.prize.prize_icon}}</text
             >
-            <t-icon wx:else name="gift" size="32rpx" class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}" />
+            <t-icon
+              wx:else
+              name="gift"
+              size="32rpx"
+              class="card-prize-icon {{item.flipped ? 'icon-bounce' : ''}}"
+            />
             <text class="card-prize-name">{{(item.prize && item.prize.prize_name) || ''}}</text>
           </view>
         </view>
@@ -158,41 +202,67 @@
       </view>
       <text class="cd-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="cd-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="cd-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="cd-prizes__item {{item.is_fallback ? 'cd-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'cd-prizes__item--sold-out' : ''}}"
+    <view class="cd-prizes__scroll">
+      <view
+        class="cd-prizes__track {{previewMarquee ? 'cd-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="cd-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="cd-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="cd-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="cd-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="cd-prizes__sold-out">抢光</text>
+            <view
+              class="cd-prizes__item {{item.is_fallback ? 'cd-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'cd-prizes__item--sold-out' : ''}}"
+            >
+              <view class="cd-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="cd-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="cd-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="cd-prizes__sold-out">抢光</text>
+              </view>
+              <text class="cd-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="cd-prizes__fallback-tag">保底</text>
             </view>
-            <text class="cd-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="cd-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <!-- 复制一份奖品列表，实现无缝循环滚动（与其它玩法一致） -->
+        <view class="cd-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="cd-prizes__item {{item.is_fallback ? 'cd-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'cd-prizes__item--sold-out' : ''}}"
+            >
+              <view class="cd-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="cd-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                /><text wx:else class="cd-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="cd-prizes__sold-out">抢光</text>
+              </view>
+              <text class="cd-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="cd-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>
