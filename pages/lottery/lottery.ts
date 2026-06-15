@@ -100,8 +100,8 @@ Page({
     qrCountdownText: '5:00',
     qrExpiresAt: 0,
 
-    /* ===== 仓库/背包物品数量（后端 GET /api/v4/backpack/stats 返回） ===== */
-    inventoryItemCount: 0,
+    /* ===== 仓库/背包未读物品数（后端 GET /api/v4/backpack/stats 的 unviewed_items，首页角标=未读提醒） ===== */
+    inventoryUnviewedCount: 0,
 
     /* ===== 通知未读数（后端 GET /api/v4/user/notifications/unread-count 返回） ===== */
     notificationUnreadCount: 0,
@@ -1195,10 +1195,10 @@ Page({
       }
 
       const latestInventoryCount = statsResult?.success
-        ? statsResult.data?.total_items || 0
-        : this.data.inventoryItemCount
-      if (latestInventoryCount !== this.data.inventoryItemCount) {
-        badgePatch.inventoryItemCount = latestInventoryCount
+        ? statsResult.data?.unviewed_items || 0
+        : this.data.inventoryUnviewedCount
+      if (latestInventoryCount !== this.data.inventoryUnviewedCount) {
+        badgePatch.inventoryUnviewedCount = latestInventoryCount
       }
 
       const latestUnreadCount = notifyResult?.success
@@ -1216,16 +1216,16 @@ Page({
     }
   },
 
-  /** 加载仓库物品数量（徽章显示） */
+  /** 加载仓库未读物品数（首页角标=未读提醒，数据源 GET /api/v4/backpack/stats 的 unviewed_items） */
   async loadInventoryItemCount() {
     try {
       const statsResult = await API.getBackpackStats()
       if (statsResult?.success && statsResult.data) {
-        const totalItems = statsResult.data.total_items || 0
-        this.setData({ inventoryItemCount: totalItems })
+        const unviewedItems = statsResult.data.unviewed_items || 0
+        this.setData({ inventoryUnviewedCount: unviewedItems })
       }
     } catch (inventoryError) {
-      log.warn('仓库物品数量加载失败（不影响主流程）:', inventoryError)
+      log.warn('仓库未读物品数加载失败（不影响主流程）:', inventoryError)
     }
   },
 

@@ -119,6 +119,16 @@ Page({
         url: '/packageExchange/exchange-orders/exchange-orders'
       },
       {
+        id: 'my-redemption-orders',
+        name: '核销订单',
+        description: '查看核销记录与申请售后',
+        iconClass: 'icon-qrcode',
+        tdIcon: 'qrcode',
+        color: '#C5A572',
+        type: 'page',
+        url: '/packageUser/redemption-orders/redemption-orders'
+      },
+      {
         id: 'trade-records',
         name: '积分记录',
         description: '查看积分流水与消费记录',

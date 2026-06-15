@@ -114,10 +114,20 @@
           <!-- 槽位内容 -->
           <view class="slot-body">
             <view class="slot-icon-wrap {{item.winner ? 'bounce' : ''}}">
-              <text wx:if="{{item.prize && item.prize.prize_icon}}" class="slot-icon">{{item.prize.prize_icon}}</text>
+              <image
+                wx:if="{{item.prize && item.prize.prize_image_url}}"
+                class="slot-image"
+                src="{{item.prize.prize_image_url}}"
+                mode="aspectFit"
+              />
+              <text wx:elif="{{item.prize && item.prize.prize_icon}}" class="slot-icon"
+                >{{item.prize.prize_icon}}</text
+              >
               <t-icon name="gift" size="32rpx" class="slot-icon" wx:else />
             </view>
-            <text class="slot-name">{{(item.prize && item.prize.prize_name) || '奖品'}}</text>
+            <text class="slot-name"
+              >{{(item.prize && (item.prize._wheelLabel || item.prize.prize_name)) || '奖品'}}</text
+            >
           </view>
           <!-- 中奖发光效果 -->
           <view class="slot-winner-glow" wx:if="{{item.winner}}"></view>
@@ -253,41 +263,68 @@
       </view>
       <text class="pb-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="pb-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="pb-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="pb-prizes__item {{item.is_fallback ? 'pb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'pb-prizes__item--sold-out' : ''}}"
+    <view class="pb-prizes__scroll">
+      <view
+        class="pb-prizes__track {{previewMarquee ? 'pb-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="pb-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="pb-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="pb-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="pb-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="pb-prizes__sold-out">抢光</text>
+            <view
+              class="pb-prizes__item {{item.is_fallback ? 'pb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'pb-prizes__item--sold-out' : ''}}"
+            >
+              <view class="pb-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="pb-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="pb-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="pb-prizes__sold-out">抢光</text>
+              </view>
+              <text class="pb-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="pb-prizes__fallback-tag">保底</text>
             </view>
-            <text class="pb-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="pb-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <view class="pb-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="pb-prizes__item {{item.is_fallback ? 'pb-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'pb-prizes__item--sold-out' : ''}}"
+            >
+              <view class="pb-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="pb-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="pb-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="pb-prizes__sold-out">抢光</text>
+              </view>
+              <text class="pb-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="pb-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

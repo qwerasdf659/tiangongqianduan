@@ -223,6 +223,8 @@ Page({
     }
     if (this.data.isLoggedIn) {
       this.loadInventoryData(true)
+      // 再次进入仓库列表页也算「已查看」，标记已读清零首页角标
+      this.markInventoryViewed()
     }
   },
 
@@ -254,11 +256,33 @@ Page({
       })
 
       await this.loadInventoryData(false)
+      // 进入仓库列表页即视为「已查看」，标记未读物品为已读（决策4：看过即清零）
+      this.markInventoryViewed()
     } catch (error: any) {
       log.error('初始化失败', error)
       showToast('初始化失败，请重试')
     } finally {
       this._isFirstLoad = false
+    }
+  },
+
+  /**
+   * 标记仓库物品为已读
+   *
+   * 后端API: POST /api/v4/backpack/mark-viewed（全量，无请求体）
+   * 业务语义：用户进入仓库列表页即视为查看过新物品，后端把 status='available' 且 is_viewed=0
+   * 的物品批量置为已读，首页「仓库」未读角标随之清零（决策4=进入列表页即全部标记已读）。
+   *
+   * 失败不阻断页面（角标下次进首页仍会按真实未读数刷新），仅记录日志。
+   */
+  async markInventoryViewed() {
+    try {
+      const result = await API.markItemsViewed()
+      if (result?.success) {
+        log.info('仓库物品已标记为已读', { marked_count: result.data?.marked_count })
+      }
+    } catch (markError) {
+      log.warn('标记仓库物品已读失败（不影响主流程）:', markError)
     }
   },
 

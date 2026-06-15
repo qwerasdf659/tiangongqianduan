@@ -93,8 +93,8 @@
                 <t-icon name="shop-filled" size="32rpx" color="#ffffff" />
                 <text class="badge-label">仓库</text>
               </view>
-              <view class="inventory-badge-number" wx:if="{{inventoryItemCount > 0}}">
-                <text>{{inventoryItemCount > 99 ? '99+' : inventoryItemCount}}</text>
+              <view class="inventory-badge-number" wx:if="{{inventoryUnviewedCount > 0}}">
+                <text>{{inventoryUnviewedCount > 99 ? '99+' : inventoryUnviewedCount}}</text>
               </view>
             </view>
           </view>

@@ -169,6 +169,28 @@ async function getMerchantConsumptionStats() {
   return apiClient.request('/shop/consumption/merchant/stats', { method: 'GET', needAuth: true })
 }
 
+/**
+ * 获取当前用户的核销订单列表 - GET /api/v4/shop/redemption/me
+ *
+ * 业务语义: 用户查看自己的兑换/核销订单（按 redeemer_user_id 过滤，仅本人）。
+ * 「我的核销订单」页数据源；对 status==='fulfilled'（已核销）项可发起售后申诉。
+ *
+ * 响应 data（snake_case 原名，前端不做映射）:
+ *   records[]: { redemption_order_id(UUID), order_no, status, fulfilled_at, created_at, item:{ item_id, item_name } }
+ *   pagination: { total, page, page_size, total_pages }
+ *
+ * @param params.status     可选状态过滤（取 'fulfilled' 即可申诉的已核销订单）
+ * @param params.page       页码（默认1）
+ * @param params.page_size  每页数量（默认20）
+ */
+async function getMyRedemptionOrders(
+  params: { status?: string | null; page?: number; page_size?: number } = {}
+) {
+  const { status = null, page = 1, page_size = 20 } = params
+  const qs = buildQueryString({ status, page, page_size })
+  return apiClient.request(`/shop/redemption/me?${qs}`, { method: 'GET', needAuth: true })
+}
+
 // ==================== 商家核销 ====================
 
 /**
@@ -285,5 +307,6 @@ module.exports = {
   getMerchantConsumptionStats,
   createRedemptionOrder,
   fulfillRedemption,
-  scanRedemptionQR
+  scanRedemptionQR,
+  getMyRedemptionOrders
 }

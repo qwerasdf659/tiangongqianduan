@@ -1,0 +1,117 @@
+<!--packageUser/redemption-orders/redemption-orders.wxml - 我的核销订单列表页面-->
+<custom-navbar title="我的核销订单" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<view class="redemption-container">
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面标题 -->
+    <view class="page-header">
+      <view class="header-text">
+        <text class="header-title">我的核销订单</text>
+        <text class="header-desc">查看兑换核销记录，已核销订单可申请售后</text>
+      </view>
+      <view class="header-decor-icon">
+        <t-icon name="qrcode" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
+    <!-- 筛选Tab -->
+    <view class="status-tabs">
+      <view
+        wx:for="{{statusTabs}}"
+        wx:key="key"
+        class="tab-item {{currentTab === item.key ? 'tab-active' : ''}}"
+        data-tab="{{item.key}}"
+        bindtap="onTabChange"
+      >
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+
+    <!-- 加载中骨架屏 -->
+    <block wx:if="{{loadStatus === 'loading'}}">
+      <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="order-skeleton">
+        <view class="skeleton-icon shimmer"></view>
+        <view class="skeleton-body">
+          <view class="skeleton-line skeleton-title shimmer"></view>
+          <view class="skeleton-line skeleton-info shimmer"></view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 加载失败 -->
+    <t-empty wx:elif="{{loadStatus === 'error'}}" description="请检查网络连接后重试">
+      <view slot="image"><t-icon name="wifi" size="120rpx" color="var(--td-brand-color)" /></view>
+      <view slot="action" class="retry-btn" bindtap="retryLoad">重新加载</view>
+    </t-empty>
+
+    <!-- 空状态 -->
+    <t-empty wx:elif="{{loadStatus === 'empty'}}" description="{{emptyText}}">
+      <view slot="image"><t-icon name="qrcode" size="120rpx" color="var(--td-brand-color)" /></view>
+    </t-empty>
+
+    <!-- 订单列表 -->
+    <block wx:else>
+      <view class="orders-summary">
+        <text class="summary-text">共 {{totalCount}} 条核销订单</text>
+      </view>
+
+      <!-- 页码翻页栏（列表上方，仅多页时显示） -->
+      <exchange-pager
+        current-page="{{currentPage}}"
+        total-pages="{{totalPages}}"
+        bind:pagechange="onPagerChange"
+      />
+
+      <view wx:for="{{orders}}" wx:key="redemption_order_id" class="order-card">
+        <!-- 订单头部: 物品名 + 状态 -->
+        <view class="order-header">
+          <view class="order-title-area">
+            <text class="order-title">{{item._itemName}}</text>
+            <view class="order-no-row" data-no="{{item.order_no}}" bindtap="onCopyOrderNo">
+              <text class="order-no">订单号 {{item._shortOrderNo}}</text>
+              <t-icon name="file-copy" size="28rpx" color="var(--tg-text-tertiary)" />
+            </view>
+          </view>
+          <view class="order-status-badge status-{{item.status}}">
+            <text class="status-text">{{item._statusLabel}}</text>
+          </view>
+        </view>
+
+        <!-- 订单详情 -->
+        <view class="order-details">
+          <view class="detail-row">
+            <text class="detail-label">创建时间</text>
+            <text class="detail-value">{{item._createdAt}}</text>
+          </view>
+          <view wx:if="{{item._fulfilledAt}}" class="detail-row">
+            <text class="detail-label">核销时间</text>
+            <text class="detail-value">{{item._fulfilledAt}}</text>
+          </view>
+        </view>
+
+        <!-- 操作区: 已核销订单可申请售后 -->
+        <view wx:if="{{item._canApplyAfterSale}}" class="order-actions">
+          <button
+            class="action-btn aftersale"
+            data-order-id="{{item.redemption_order_id}}"
+            data-order-title="核销 {{item._itemName}}"
+            bindtap="onApplyAfterSale"
+          >
+            <t-icon name="service" size="28rpx" class="btn-icon" />
+            <text class="btn-text">申请售后</text>
+          </button>
+        </view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view wx:if="{{hasMore}}" class="load-more">
+        <text class="load-more-text">上拉加载更多</text>
+      </view>
+      <view wx:else class="no-more">
+        <text class="no-more-text">— 没有更多了 —</text>
+      </view>
+    </block>
+
+    <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+    <maintenance-overlay />
+  </scroll-view>
+</view>

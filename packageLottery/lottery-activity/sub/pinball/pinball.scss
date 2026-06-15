@@ -1,6 +1,15 @@
 @import '../../../../styles/mixins';
 @import '../../shared/common-animations';
 
+@keyframes pbPrizeMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 /* ================================================================
    弹珠机容器 - 浅色优雅风格
    ================================================================ */
@@ -11,13 +20,7 @@
   padding: 24rpx 0 40rpx;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    #FDF8F0 0%,
-    #F8F2E8 30%,
-    #F5EDE0 60%,
-    #F0E8DA 100%
-  );
+  background: linear-gradient(180deg, #fdf8f0 0%, #f8f2e8 30%, #f5ede0 60%, #f0e8da 100%);
 
   /* 浅色纹理 */
   &::before {
@@ -28,9 +31,9 @@
     right: 0;
     bottom: 0;
     background:
-      radial-gradient(circle at 20% 20%, rgba(0, 200, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 20% 20%, rgba(217, 175, 72, 0.08) 0%, transparent 40%),
       radial-gradient(circle at 80% 55%, rgba(197, 165, 114, 0.06) 0%, transparent 40%),
-      radial-gradient(circle at 50% 80%, rgba(120, 80, 255, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(189, 148, 51, 0.05) 0%, transparent 50%),
       radial-gradient(circle at 50% 10%, rgba(197, 165, 114, 0.04) 0%, transparent 35%);
     pointer-events: none;
     z-index: 0;
@@ -47,8 +50,8 @@
     height: 450rpx;
     background: radial-gradient(
       ellipse,
-      rgba(0, 200, 255, 0.14) 0%,
-      rgba(0, 150, 255, 0.06) 35%,
+      rgba(245, 197, 24, 0.14) 0%,
+      rgba(217, 175, 72, 0.06) 35%,
       transparent 65%
     );
     filter: blur(50rpx);
@@ -165,9 +168,9 @@
   position: relative;
   width: 620rpx;
   z-index: 2;
-  filter: drop-shadow(0 24rpx 60rpx rgba(0, 0, 0, 0.7));
+  filter: drop-shadow(0 16rpx 40rpx rgba(180, 140, 50, 0.28));
 
-  /* 外壳 - 深蓝金属质感 */
+  /* 外壳 - 浅米金优雅质感（对齐转盘外圈，去深蓝赌场风） */
   &::before {
     content: '';
     position: absolute;
@@ -177,21 +180,20 @@
     bottom: -20rpx;
     background: linear-gradient(
       180deg,
-      var(--tg-lottery-shell-top, #1c2d50) 0%,
-      var(--tg-lottery-shell-mid1, #162440) 20%,
-      var(--tg-lottery-shell-mid2, #111d38) 50%,
-      var(--tg-lottery-shell-mid3, #0d1730) 80%,
-      var(--tg-lottery-shell-bottom, #091224) 100%
+      var(--tg-lottery-shell-top, #fdf3d6) 0%,
+      var(--tg-lottery-shell-mid1, #f5e3b0) 20%,
+      var(--tg-lottery-shell-mid2, #efd79a) 50%,
+      var(--tg-lottery-shell-mid3, #ead08c) 80%,
+      var(--tg-lottery-shell-bottom, #e3c578) 100%
     );
     border-radius: 28rpx 28rpx 18rpx 18rpx;
     box-shadow:
-      inset 0 4rpx 16rpx var(--tg-lottery-shell-inner-glow, rgba(100, 180, 255, 0.15)),
-      inset 0 -8rpx 24rpx rgba(0, 0, 0, 0.6),
-      0 20rpx 60rpx var(--tg-lottery-shadow-strong, rgba(5, 15, 50, 0.5)),
-      0 8rpx 40rpx var(--tg-lottery-glow-soft, rgba(0, 100, 255, 0.12)),
-      0 0 120rpx rgba(0, 100, 255, 0.06);
+      inset 0 4rpx 16rpx var(--tg-lottery-shell-inner-glow, rgba(255, 255, 255, 0.7)),
+      inset 0 -8rpx 24rpx rgba(180, 140, 50, 0.22),
+      0 20rpx 60rpx var(--tg-lottery-shadow-strong, rgba(180, 140, 50, 0.3)),
+      0 8rpx 40rpx var(--tg-lottery-glow-soft, rgba(217, 175, 72, 0.18));
     z-index: -1;
-    border: 3rpx solid var(--tg-lottery-shell-border, rgba(80, 160, 255, 0.25));
+    border: 3rpx solid var(--tg-lottery-shell-border, rgba(189, 148, 51, 0.35));
   }
 
   /* 金色内框装饰线 */
@@ -292,10 +294,10 @@
 
   48%,
   92% {
-    background: #5b7a5e;
+    background: #e6bd5e;
     box-shadow:
-      0 0 14rpx rgba(91, 122, 94, 0.9),
-      0 0 28rpx rgba(91, 122, 94, 0.4);
+      0 0 14rpx rgba(230, 189, 94, 0.9),
+      0 0 28rpx rgba(230, 189, 94, 0.4);
   }
 }
 
@@ -365,11 +367,11 @@
   height: 700rpx;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-board-top, #0a1630) 0%,
-    var(--tg-lottery-board-mid1, #0c1938) 12%,
-    var(--tg-lottery-board-mid2, #0e1c40) 40%,
-    var(--tg-lottery-board-mid3, #0c1838) 65%,
-    var(--tg-lottery-board-bottom, #081228) 100%
+    var(--tg-lottery-board-top, #fdf3d6) 0%,
+    var(--tg-lottery-board-mid1, #f9edca) 12%,
+    var(--tg-lottery-board-mid2, #f4e3b2) 40%,
+    var(--tg-lottery-board-mid3, #f0dca6) 65%,
+    var(--tg-lottery-board-bottom, #ebd293) 100%
   );
   border-radius: var(--td-radius-small);
   overflow: hidden;
@@ -385,8 +387,8 @@
     bottom: 0;
     border-radius: var(--td-radius-small);
     box-shadow:
-      inset 0 3rpx 24rpx var(--tg-lottery-glow-soft, rgba(0, 150, 255, 0.12)),
-      inset 0 -3rpx 24rpx rgba(0, 60, 180, 0.08);
+      inset 0 3rpx 24rpx var(--tg-lottery-glow-soft, rgba(217, 175, 72, 0.18)),
+      inset 0 -3rpx 24rpx rgba(180, 140, 50, 0.12);
     pointer-events: none;
     z-index: 15;
   }
@@ -404,15 +406,15 @@
         0deg,
         transparent,
         transparent 39rpx,
-        rgba(100, 180, 255, 0.015) 39rpx,
-        rgba(100, 180, 255, 0.015) 40rpx
+        rgba(189, 148, 51, 0.04) 39rpx,
+        rgba(189, 148, 51, 0.04) 40rpx
       ),
       repeating-linear-gradient(
         90deg,
         transparent,
         transparent 39rpx,
-        rgba(100, 180, 255, 0.015) 39rpx,
-        rgba(100, 180, 255, 0.015) 40rpx
+        rgba(189, 148, 51, 0.04) 39rpx,
+        rgba(189, 148, 51, 0.04) 40rpx
       );
     pointer-events: none;
     z-index: 1;
@@ -429,12 +431,12 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(0, 200, 255, 0.6) 20%,
-    rgba(0, 200, 255, 0.9) 50%,
-    rgba(0, 200, 255, 0.6) 80%,
+    rgba(217, 175, 72, 0.6) 20%,
+    rgba(245, 197, 24, 0.9) 50%,
+    rgba(217, 175, 72, 0.6) 80%,
     transparent
   );
-  box-shadow: 0 0 16rpx rgba(0, 200, 255, 0.4);
+  box-shadow: 0 0 16rpx rgba(217, 175, 72, 0.4);
   z-index: 16;
   animation: topGlowPulse 3s ease-in-out infinite alternate;
 }
@@ -456,7 +458,7 @@
   left: 0;
   right: 0;
   height: 40rpx;
-  background: linear-gradient(180deg, transparent, rgba(8, 18, 40, 0.5));
+  background: linear-gradient(180deg, transparent, rgba(235, 210, 147, 0.5));
   pointer-events: none;
   z-index: 7;
 }
@@ -480,8 +482,8 @@
   height: 22rpx;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-primary-light, #5a7fbb) 0%,
-    var(--tg-lottery-primary-dark, #2e5088) 100%
+    var(--tg-lottery-primary-light, #f0ce72) 0%,
+    var(--tg-lottery-primary-dark, #bd9433) 100%
   );
   border-radius: 0 0 10rpx 10rpx;
   box-shadow:
@@ -513,7 +515,12 @@
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 220, 255, 0.9), rgba(0, 150, 255, 0.3), transparent);
+  background: radial-gradient(
+    circle,
+    rgba(245, 197, 24, 0.9),
+    rgba(217, 175, 72, 0.3),
+    transparent
+  );
   animation: launchGlow 0.5s ease-out;
 }
 
@@ -526,7 +533,7 @@
   width: 20rpx;
   height: 20rpx;
   border-radius: 50%;
-  background: rgba(0, 200, 255, 0.6);
+  background: rgba(245, 197, 24, 0.6);
   animation: launcherPulse 2s ease-in-out infinite;
 }
 
@@ -535,22 +542,22 @@
   100% {
     opacity: 0.3;
     transform: translate(-50%, -50%) scale(0.8);
-    box-shadow: 0 0 8rpx rgba(0, 200, 255, 0.3);
+    box-shadow: 0 0 8rpx rgba(245, 197, 24, 0.3);
   }
 
   50% {
     opacity: 0.8;
     transform: translate(-50%, -50%) scale(1.4);
-    box-shadow: 0 0 20rpx rgba(0, 200, 255, 0.6);
+    box-shadow: 0 0 20rpx rgba(245, 197, 24, 0.6);
   }
 }
 
 .launcher.is-active {
   .launcher-tube {
-    background: linear-gradient(180deg, #7ab5e0, #4a8fc5);
+    background: linear-gradient(180deg, #fdf2cf, #d9af48);
     box-shadow:
-      inset 0 3rpx 8rpx rgba(255, 255, 255, 0.35),
-      0 0 24rpx var(--tg-lottery-glow-medium, rgba(0, 200, 255, 0.6));
+      inset 0 3rpx 8rpx rgba(255, 255, 255, 0.5),
+      0 0 24rpx var(--tg-lottery-glow-medium, rgba(245, 197, 24, 0.6));
   }
 
   .launcher-ring {
@@ -599,17 +606,17 @@
   border-radius: 50%;
   background: radial-gradient(
     circle at 30% 30%,
-    #88ccff 0%,
-    var(--tg-lottery-peg-highlight, #5eaae8) 20%,
-    var(--tg-lottery-peg-mid, #3888cc) 50%,
-    var(--tg-lottery-peg-dark, #2266aa) 75%,
-    var(--tg-lottery-peg-darkest, #1a5090) 100%
+    #fdf2cf 0%,
+    var(--tg-lottery-peg-highlight, #f0ce72) 20%,
+    var(--tg-lottery-peg-mid, #d9af48) 50%,
+    var(--tg-lottery-peg-dark, #bd9433) 75%,
+    var(--tg-lottery-peg-darkest, #9c7820) 100%
   );
   box-shadow:
-    0 0 8rpx var(--tg-lottery-glow-soft, rgba(80, 160, 255, 0.5)),
-    0 2rpx 4rpx rgba(0, 0, 0, 0.4),
-    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.35),
-    inset 0 -1rpx 3rpx rgba(0, 0, 50, 0.3);
+    0 0 8rpx var(--tg-lottery-glow-soft, rgba(217, 175, 72, 0.5)),
+    0 2rpx 4rpx rgba(120, 90, 30, 0.4),
+    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.5),
+    inset 0 -1rpx 3rpx rgba(120, 90, 30, 0.3);
   transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -618,15 +625,15 @@
   background: radial-gradient(
     circle at 30% 30%,
     #ffffff 0%,
-    #ccf0ff 15%,
-    var(--tg-lottery-peg-lit-mid, #66ddff) 35%,
-    var(--tg-lottery-peg-lit-bright, #00ccff) 60%,
-    var(--tg-lottery-peg-lit-dark, #0099dd) 100%
+    #fff5d0 15%,
+    var(--tg-lottery-peg-lit-mid, #ffe082) 35%,
+    var(--tg-lottery-peg-lit-bright, #f5c518) 60%,
+    var(--tg-lottery-peg-lit-dark, #d9a200) 100%
   );
   box-shadow:
-    0 0 20rpx var(--tg-lottery-glow-intense, rgba(0, 210, 255, 0.95)),
-    0 0 40rpx var(--tg-lottery-glow-medium, rgba(0, 200, 255, 0.5)),
-    0 0 60rpx var(--tg-lottery-glow-soft, rgba(0, 200, 255, 0.25)),
+    0 0 20rpx var(--tg-lottery-glow-intense, rgba(245, 197, 24, 0.95)),
+    0 0 40rpx var(--tg-lottery-glow-medium, rgba(245, 197, 24, 0.5)),
+    0 0 60rpx var(--tg-lottery-glow-soft, rgba(245, 197, 24, 0.25)),
     inset 0 2rpx 6rpx rgba(255, 255, 255, 0.5);
   transform: scale(1.5);
 }
@@ -637,7 +644,7 @@
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  border: 2rpx solid rgba(0, 220, 255, 0.8);
+  border: 2rpx solid rgba(245, 197, 24, 0.8);
   animation: pegRingExpand 0.4s ease-out forwards;
 }
 
@@ -659,7 +666,7 @@
   width: 48rpx;
   height: 48rpx;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 220, 255, 0.7), transparent 65%);
+  background: radial-gradient(circle, rgba(245, 197, 24, 0.7), transparent 65%);
   animation: pegGlowPulse 0.35s ease-out forwards;
 }
 
@@ -691,7 +698,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 2rpx solid rgba(0, 220, 255, 0.6);
+  border: 2rpx solid rgba(245, 197, 24, 0.6);
 
   &.r1 {
     animation: rippleExpand 0.5s ease-out forwards;
@@ -786,7 +793,7 @@
     #c5a572 50%,
     #a8884a 70%,
     #a8884a 90%,
-    #3d5940 100%
+    #d9af52 100%
   );
   box-shadow:
     0 4rpx 14rpx rgba(0, 0, 0, 0.5),
@@ -995,22 +1002,22 @@
   padding-bottom: 12rpx;
   background: linear-gradient(
     180deg,
-    rgba(12, 22, 50, 0.2) 0%,
-    rgba(10, 18, 45, 0.7) 30%,
-    rgba(8, 15, 38, 0.92) 100%
+    rgba(253, 243, 214, 0.15) 0%,
+    rgba(240, 220, 166, 0.45) 30%,
+    rgba(230, 206, 120, 0.7) 100%
   );
-  border-top: 2rpx solid var(--tg-lottery-border-light, rgba(80, 160, 255, 0.2));
+  border-top: 2rpx solid var(--tg-lottery-border-light, rgba(189, 148, 51, 0.3));
   transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
   /* 中奖高亮 */
   &.active {
     background: linear-gradient(
       180deg,
-      rgba(197, 165, 114, 0.12) 0%,
-      rgba(197, 165, 114, 0.22) 30%,
-      rgba(197, 165, 114, 0.32) 100%
+      rgba(245, 197, 24, 0.18) 0%,
+      rgba(217, 175, 72, 0.32) 30%,
+      rgba(197, 165, 114, 0.45) 100%
     );
-    border-top-color: rgba(197, 165, 114, 0.7);
+    border-top-color: rgba(217, 175, 72, 0.8);
   }
 
   /* 中奖闪烁 */
@@ -1035,7 +1042,7 @@
   top: 0;
   width: 3rpx;
   height: 14rpx;
-  background: linear-gradient(180deg, rgba(80, 160, 255, 0.5), rgba(80, 160, 255, 0.15));
+  background: linear-gradient(180deg, rgba(217, 175, 72, 0.5), rgba(217, 175, 72, 0.15));
   border-radius: 2rpx;
 }
 
@@ -1062,9 +1069,9 @@
   width: 48rpx;
   height: 48rpx;
   @include flex-center;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 12rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  border: 1rpx solid rgba(189, 148, 51, 0.25);
 
   &.bounce {
     animation: iconBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
@@ -1086,9 +1093,15 @@
   line-height: var(--tg-line-height-tight);
 }
 
+.slot-image {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+}
+
 .slot-name {
   font-size: var(--tg-font-size-micro);
-  color: var(--tg-lottery-text-lighter, rgba(255, 255, 255, 0.55));
+  color: #6b4a12;
   max-width: 95%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1157,9 +1170,9 @@
   height: 100%;
   background: linear-gradient(
     180deg,
-    rgba(80, 160, 255, 0.35) 0%,
-    rgba(80, 160, 255, 0.08) 50%,
-    rgba(80, 160, 255, 0.25) 100%
+    rgba(217, 175, 72, 0.35) 0%,
+    rgba(217, 175, 72, 0.08) 50%,
+    rgba(217, 175, 72, 0.25) 100%
   );
 }
 
@@ -1240,7 +1253,7 @@
   width: 10rpx;
   height: 10rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-side-bulb-dim, rgba(0, 200, 255, 0.25));
+  background: var(--tg-lottery-side-bulb-dim, rgba(245, 197, 24, 0.25));
   animation: sideBulbGlow 1.8s ease-in-out infinite;
 }
 
@@ -1248,13 +1261,13 @@
   0%,
   35%,
   100% {
-    background: var(--tg-lottery-side-bulb-dim, rgba(0, 200, 255, 0.15));
+    background: var(--tg-lottery-side-bulb-dim, rgba(245, 197, 24, 0.15));
     box-shadow: none;
   }
 
   45%,
   85% {
-    background: var(--tg-lottery-primary-light, #00e5ff);
+    background: var(--tg-lottery-primary-light, #f0ce72);
     box-shadow:
       0 0 10rpx rgba(0, 229, 255, 0.9),
       0 0 22rpx rgba(0, 229, 255, 0.4),
@@ -1274,13 +1287,13 @@
   height: 18rpx;
   background: linear-gradient(
     180deg,
-    var(--tg-lottery-base-light, #2a3d60) 0%,
-    var(--tg-lottery-base-dark, #1a2a44) 100%
+    var(--tg-lottery-base-light, #e6bd5e) 0%,
+    var(--tg-lottery-base-dark, #c79a3c) 100%
   );
   border-radius: 0 0 14rpx 14rpx;
   box-shadow:
-    inset 0 2rpx 8rpx rgba(255, 255, 255, 0.06),
-    0 8rpx 24rpx rgba(0, 0, 0, 0.5);
+    inset 0 2rpx 8rpx rgba(255, 255, 255, 0.5),
+    0 8rpx 24rpx rgba(180, 140, 50, 0.3);
 }
 
 /* ================================================================
@@ -1405,12 +1418,12 @@
 
   &.ring-2 {
     animation-delay: 0.15s;
-    border-color: rgba(0, 200, 255, 0.6);
+    border-color: rgba(245, 197, 24, 0.6);
   }
 
   &.ring-3 {
     animation-delay: 0.3s;
-    border-color: rgba(91, 122, 94, 0.5);
+    border-color: rgba(197, 165, 114, 0.5);
   }
 }
 
@@ -1549,35 +1562,35 @@
   padding: 22rpx 60rpx;
   background: linear-gradient(
     135deg,
-    #c5a572 0%,
-    var(--tg-lottery-primary, #c5a572) 30%,
-    var(--tg-lottery-primary-dark, #4a6b4d) 60%,
-    #f57c00 100%
+    #fdf2cf 0%,
+    var(--tg-lottery-primary-light, #f0ce72) 35%,
+    var(--tg-lottery-primary, #d9af48) 70%,
+    var(--tg-lottery-primary-dark, #bd9433) 100%
   );
   border-radius: 50rpx;
-  color: var(--tg-color-white);
+  color: #6b4a12;
   overflow: hidden;
   box-shadow:
-    0 8rpx 28rpx rgba(255, 140, 0, 0.5),
+    0 8rpx 28rpx rgba(217, 175, 72, 0.5),
     0 3rpx 10rpx rgba(168, 136, 74, 0.35),
-    inset 0 3rpx 8rpx rgba(255, 255, 255, 0.25),
-    inset 0 -3rpx 8rpx rgba(200, 80, 0, 0.3);
+    inset 0 3rpx 8rpx rgba(255, 255, 255, 0.6),
+    inset 0 -3rpx 8rpx rgba(180, 140, 50, 0.25);
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 2rpx solid rgba(197, 165, 114, 0.3);
+  border: 2rpx solid rgba(189, 148, 51, 0.4);
 
   &--active {
     transform: scale(0.93);
     box-shadow:
-      0 4rpx 14rpx rgba(255, 140, 0, 0.4),
+      0 4rpx 14rpx rgba(217, 175, 72, 0.4),
       0 1rpx 5rpx rgba(168, 136, 74, 0.25);
   }
 
   /* 进行中态 */
   &.in-progress {
-    background: linear-gradient(135deg, #37474f, #263238);
-    box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, #e8d5a8, #d4bb7e);
+    box-shadow: 0 6rpx 20rpx rgba(180, 140, 50, 0.3);
     pointer-events: none;
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(189, 148, 51, 0.3);
   }
 
   /* 中奖态 */
@@ -1640,8 +1653,8 @@
   bottom: -4rpx;
   border-radius: 54rpx;
   border: 3rpx solid transparent;
-  border-top-color: rgba(0, 200, 255, 0.8);
-  border-right-color: rgba(0, 200, 255, 0.3);
+  border-top-color: rgba(245, 197, 24, 0.8);
+  border-right-color: rgba(245, 197, 24, 0.3);
   animation: progressSpin 1.2s linear infinite;
 }
 
@@ -1681,7 +1694,7 @@
 
 .cost-badge-text {
   font-size: var(--tg-font-size-small);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--tg-text-secondary, #8b7355);
   letter-spacing: var(--tg-letter-spacing-tight);
 }
 
@@ -1722,7 +1735,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #7c4dff);
+  background: var(--tg-lottery-primary, #c5a572);
 }
 
 .pb-prizes__title {
@@ -1738,16 +1751,28 @@
 
 .pb-prizes__scroll {
   width: 100%;
-  white-space: nowrap;
   overflow: hidden;
   isolation: isolate;
   contain: paint;
+}
+
+.pb-prizes__track {
+  display: inline-flex;
+  white-space: nowrap;
+
+  &--animate {
+    animation: pbPrizeMarquee 30s linear infinite;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
 }
 
 .pb-prizes__list {
   display: inline-flex;
   gap: 16rpx;
   padding: 8rpx 4rpx 16rpx;
+  flex-shrink: 0;
 }
 
 .pb-prizes__item {

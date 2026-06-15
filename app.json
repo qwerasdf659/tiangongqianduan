@@ -35,6 +35,7 @@
         "disputes/disputes",
         "disputes/detail",
         "disputes/create",
+        "redemption-orders/redemption-orders",
         "notifications/notifications",
         "backpack/inventory/inventory",
         "records/trade-upload-records/trade-upload-records",

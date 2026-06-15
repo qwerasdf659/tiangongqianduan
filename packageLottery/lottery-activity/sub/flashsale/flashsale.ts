@@ -23,6 +23,8 @@ Component({
     /** 奖品列表 */
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
+    previewMarquee: { type: Boolean, value: false },
+    previewMarqueeSpeed: { type: Number, value: 10 },
     /** 单次抢购消耗积分 */
     costPoints: { type: Number, value: 0 },
     /** 用户当前积分余额 */

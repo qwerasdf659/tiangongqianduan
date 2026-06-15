@@ -53,7 +53,7 @@
   position: absolute;
   width: 200rpx;
   height: 600rpx;
-  background: linear-gradient(180deg, rgba(91, 122, 94, 0.06) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(197, 165, 114, 0.06) 0%, transparent 100%);
   transform-origin: top center;
   opacity: 0.5;
 
@@ -101,7 +101,7 @@
     left: 4%;
     width: 5rpx;
     height: 5rpx;
-    background: rgba(91, 122, 94, 0.5);
+    background: rgba(197, 165, 114, 0.5);
     animation-delay: 1.2s;
   }
 
@@ -137,7 +137,7 @@
     left: 25%;
     width: 7rpx;
     height: 7rpx;
-    background: rgba(91, 122, 94, 0.4);
+    background: rgba(197, 165, 114, 0.4);
     animation-delay: 3.6s;
   }
 
@@ -194,7 +194,7 @@
   position: absolute;
   inset: -2rpx;
   border-radius: 22rpx;
-  background: linear-gradient(135deg, #ff3b30, #5b7a5e, #c5a572, #ff3b30);
+  background: linear-gradient(135deg, #ff3b30, #e6a23c, #c5a572, #ff3b30);
   background-size: 300% 300%;
   animation: neonBorder 4s ease-in-out infinite;
   opacity: 0.6;
@@ -203,9 +203,10 @@
 .banner-inner {
   position: relative;
   @include flex-between;
-  background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(253, 243, 214, 0.95) 0%, rgba(240, 220, 166, 0.95) 100%);
   border-radius: 20rpx;
   padding: 20rpx 24rpx;
+  border: 2rpx solid rgba(189, 148, 51, 0.25);
   -webkit-backdrop-filter: blur(12rpx);
   backdrop-filter: blur(12rpx);
 }
@@ -213,7 +214,7 @@
 .banner-badge {
   @include flex-align-center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #ff3b30, #5b7a5e);
+  background: linear-gradient(135deg, #ff3b30, #e6a23c);
   padding: 10rpx 22rpx;
   border-radius: 28rpx;
   box-shadow: 0 4rpx 20rpx rgba(255, 59, 48, 0.5);
@@ -238,7 +239,7 @@
 
 .cd-label {
   font-size: var(--tg-font-size-small);
-  color: rgba(255, 255, 255, 0.55);
+  color: #8b6f3a;
 }
 
 .cd-digits {
@@ -247,23 +248,23 @@
 }
 
 .cd-block {
-  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
-  border: 2rpx solid rgba(255, 68, 68, 0.35);
+  background: linear-gradient(180deg, #c0392b 0%, #9e2818 100%);
+  border: 2rpx solid rgba(255, 200, 120, 0.45);
   border-radius: 10rpx;
   padding: 8rpx 12rpx;
   min-width: 56rpx;
   text-align: center;
   box-shadow:
-    0 4rpx 14rpx rgba(0, 0, 0, 0.35),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.06),
-    0 0 12rpx rgba(255, 68, 68, 0.15);
+    0 4rpx 14rpx rgba(158, 40, 24, 0.35),
+    inset 0 1rpx 0 rgba(255, 235, 170, 0.2),
+    0 0 12rpx rgba(255, 68, 48, 0.15);
 
   .cd-num {
     font-size: var(--tg-font-size-headline);
     font-weight: var(--tg-font-weight-bold);
-    color: #7a9e7e;
+    color: #ffe8a8;
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 14rpx rgba(255, 68, 68, 0.6);
+    text-shadow: 0 0 14rpx rgba(255, 230, 150, 0.6);
   }
 
   &.flip-a {
@@ -281,9 +282,9 @@
   color: rgba(255, 68, 68, 0.75);
 }
 
-/* 紧急态倒计时 */
+/* 紧急态倒计时（琥珀金告警色，替代旧墨绿残留 #3d5940） */
 .urgency-urgent .cd-num {
-  color: #3d5940;
+  color: #d98e04;
   text-shadow: 0 0 18rpx rgba(255, 68, 68, 0.7);
 }
 
@@ -306,8 +307,8 @@
   width: 660rpx;
   @include flex-align-center;
   gap: 10rpx;
-  background: rgba(91, 122, 94, 0.08);
-  border: 1rpx solid rgba(91, 122, 94, 0.15);
+  background: rgba(197, 165, 114, 0.08);
+  border: 1rpx solid rgba(197, 165, 114, 0.15);
   border-radius: 28rpx;
   padding: 10rpx 20rpx;
   margin-bottom: 18rpx;
@@ -333,7 +334,7 @@
 
   .bc-msg-text {
     font-size: var(--tg-font-size-small);
-    color: rgba(255, 255, 255, 0.65);
+    color: #6b4a12;
   }
 
   &.bc-in {
@@ -372,7 +373,7 @@
   right: -30rpx;
   bottom: -30rpx;
   border-radius: 36rpx;
-  background: radial-gradient(ellipse at center, rgba(91, 122, 94, 0.25) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(197, 165, 114, 0.25) 0%, transparent 70%);
   animation: spotGlow 3s ease-in-out infinite;
   pointer-events: none;
 }
@@ -382,14 +383,14 @@
   width: 280rpx;
   height: 320rpx;
   border-radius: 28rpx;
-  background: linear-gradient(155deg, #2a1024 0%, #4a1830 40%, #6a2040 70%, #2a1024 100%);
-  border: 3rpx solid rgba(91, 122, 94, 0.35);
+  background: linear-gradient(155deg, #ff6b4a 0%, #f5454a 40%, #e63950 70%, #d62f4a 100%);
+  border: 3rpx solid rgba(255, 235, 170, 0.7);
   @include flex-column-center;
   overflow: hidden;
   box-shadow:
-    0 12rpx 40rpx rgba(0, 0, 0, 0.35),
-    0 0 32rpx rgba(91, 122, 94, 0.15),
-    inset 0 2rpx 0 rgba(255, 255, 255, 0.08);
+    0 12rpx 40rpx rgba(214, 47, 74, 0.35),
+    0 0 32rpx rgba(245, 197, 24, 0.2),
+    inset 0 2rpx 0 rgba(255, 245, 210, 0.3);
 }
 
 /* 全息彩虹光效 */
@@ -398,12 +399,12 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(91, 122, 94, 0) 0%,
-    rgba(91, 122, 94, 0.1) 20%,
+    rgba(197, 165, 114, 0) 0%,
+    rgba(197, 165, 114, 0.1) 20%,
     rgba(197, 165, 114, 0.12) 40%,
-    rgba(91, 122, 94, 0.06) 60%,
+    rgba(197, 165, 114, 0.06) 60%,
     rgba(197, 165, 114, 0.1) 80%,
-    rgba(91, 122, 94, 0) 100%
+    rgba(197, 165, 114, 0) 100%
   );
   animation: holoShift 4s ease-in-out infinite;
   pointer-events: none;
@@ -459,7 +460,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, #5b7a5e, #ff3b30);
+  background: linear-gradient(135deg, #e6a23c, #ff3b30);
   padding: 6rpx 18rpx;
   border-radius: 0 28rpx 0 16rpx;
   box-shadow: 0 4rpx 12rpx rgba(255, 59, 48, 0.5);
@@ -501,8 +502,8 @@
   position: absolute;
   inset: 0;
   border-radius: 16rpx;
-  border: 2rpx solid rgba(91, 122, 94, 0.18);
-  background: rgba(255, 255, 255, 0.04);
+  border: 2rpx solid rgba(189, 148, 51, 0.25);
+  background: rgba(255, 255, 255, 0.7);
   pointer-events: none;
 }
 
@@ -519,10 +520,12 @@
 
 .ti-name {
   font-size: var(--tg-font-size-micro);
-  color: rgba(255, 255, 255, 0.65);
+  color: #6b4a12;
   @include text-ellipsis;
   max-width: 100rpx;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 /* 保底奖品缩略项 — 降饱和度提示 */
@@ -572,7 +575,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff3b30, #5b7a5e);
+  background: linear-gradient(135deg, #ff3b30, #e6a23c);
   @include flex-column-center;
   box-shadow: 0 4rpx 16rpx rgba(255, 59, 48, 0.45);
   flex-shrink: 0;
@@ -621,12 +624,12 @@
 .stock-label {
   font-size: var(--tg-font-size-body);
   font-weight: var(--tg-font-weight-bold);
-  color: rgba(255, 255, 255, 0.85);
+  color: #4a3728;
 }
 
 .stock-count {
   font-size: var(--tg-font-size-small);
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--tg-text-secondary, #8b7355);
   font-variant-numeric: tabular-nums;
 }
 
@@ -642,14 +645,14 @@
 .stock-bar-bg {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(189, 148, 51, 0.15);
   border-radius: 12rpx;
 }
 
 .stock-bar-fill {
   position: relative;
   height: 100%;
-  background: linear-gradient(90deg, #5b7a5e, #ff3b30, #5b7a5e);
+  background: linear-gradient(90deg, #e6a23c, #ff3b30, #e6a23c);
   background-size: 200% 100%;
   border-radius: 12rpx;
   transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -676,14 +679,14 @@
   top: -6rpx;
   bottom: -6rpx;
   width: 30rpx;
-  background: radial-gradient(ellipse at right, rgba(91, 122, 94, 0.7), transparent);
+  background: radial-gradient(ellipse at right, rgba(197, 165, 114, 0.7), transparent);
   border-radius: 0 12rpx 12rpx 0;
 }
 
 /* 库存紧急态 */
 .stock-critical {
   .stock-label {
-    color: #3d5940;
+    color: #e74c3c;
   }
 
   .stock-pct-badge {
@@ -749,7 +752,7 @@
 .grab-btn-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #ff3b30, #5b7a5e, #c5a572, #ff3b30);
+  background: linear-gradient(135deg, #ff3b30, #e6a23c, #c5a572, #ff3b30);
   background-size: 300% 300%;
   animation: grabBgFlow 5s ease-in-out infinite;
   border-radius: 52rpx;
@@ -848,21 +851,21 @@
 .fs-cost,
 .fs-balance {
   font-size: var(--tg-font-size-small);
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--tg-text-secondary, #8b7355);
 }
 
 .cost-val {
-  color: #c5a572;
+  color: #bd9433;
   font-weight: var(--tg-font-weight-bold);
 }
 
 .balance-val {
-  color: rgba(255, 255, 255, 0.7);
+  color: #6b4a12;
   font-weight: var(--tg-font-weight-bold);
 }
 
 .fs-sep {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(139, 111, 58, 0.4);
   font-size: var(--tg-font-size-mini);
 }
 
@@ -925,7 +928,7 @@
 .sp2 {
   width: 10rpx;
   height: 10rpx;
-  background: #7a9e7e;
+  background: #e6bd5e;
   animation-delay: 0.04s;
   --sx: 140rpx;
   --sy: -160rpx;
@@ -979,7 +982,7 @@
 .sp8 {
   width: 8rpx;
   height: 8rpx;
-  background: #5b7a5e;
+  background: #e6a23c;
   animation-delay: 0.14s;
   --sx: -200rpx;
   --sy: -100rpx;
@@ -1015,7 +1018,7 @@
 .sp12 {
   width: 9rpx;
   height: 9rpx;
-  background: #3d5940;
+  background: #c79a3c;
   animation-delay: 0.09s;
   --sx: -180rpx;
   --sy: 160rpx;
@@ -1046,7 +1049,7 @@
   right: -40rpx;
   bottom: -40rpx;
   border-radius: 36rpx;
-  background: radial-gradient(ellipse at center, rgba(91, 122, 94, 0.35) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(197, 165, 114, 0.35) 0%, transparent 70%);
   animation: scGlow 2s ease-in-out infinite;
   pointer-events: none;
 }
@@ -1055,14 +1058,14 @@
   width: 100%;
   height: 100%;
   border-radius: 28rpx;
-  background: linear-gradient(155deg, #2a1024 0%, #4a1830 40%, #6a2848 70%, #2a1024 100%);
-  border: 3rpx solid rgba(91, 122, 94, 0.4);
+  background: linear-gradient(155deg, #ff6b4a 0%, #f5454a 40%, #e63950 70%, #d62f4a 100%);
+  border: 3rpx solid rgba(197, 165, 114, 0.4);
   @include flex-column-center;
   position: relative;
   overflow: hidden;
   box-shadow:
     0 16rpx 48rpx rgba(0, 0, 0, 0.45),
-    0 0 40rpx rgba(91, 122, 94, 0.2),
+    0 0 40rpx rgba(197, 165, 114, 0.2),
     inset 0 2rpx 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -1072,12 +1075,12 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(91, 122, 94, 0) 0%,
-    rgba(91, 122, 94, 0.1) 20%,
+    rgba(197, 165, 114, 0) 0%,
+    rgba(197, 165, 114, 0.1) 20%,
     rgba(197, 165, 114, 0.12) 40%,
-    rgba(91, 122, 94, 0.06) 60%,
+    rgba(197, 165, 114, 0.06) 60%,
     rgba(197, 165, 114, 0.1) 80%,
-    rgba(91, 122, 94, 0) 100%
+    rgba(197, 165, 114, 0) 100%
   );
   animation: holoShift 3s ease-in-out infinite;
   pointer-events: none;
@@ -1093,7 +1096,7 @@
 .sc-divider {
   width: 120rpx;
   height: 3rpx;
-  background: linear-gradient(90deg, transparent, rgba(91, 122, 94, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(197, 165, 114, 0.5), transparent);
   margin: 16rpx 0;
   z-index: 1;
 }
@@ -1569,7 +1572,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #5b7a5e);
+  background: var(--tg-lottery-primary, #c5a572);
 }
 
 .fs-preview__title {
@@ -1585,13 +1588,39 @@
 
 .fs-preview__scroll {
   width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  contain: paint;
+}
+
+/* 滚动轨道：承载两份奖品列表，无缝循环（与其它玩法一致） */
+.fs-preview__track {
+  display: inline-flex;
   white-space: nowrap;
+
+  &--animate {
+    /* 默认 30s 兜底，实际时长由 inline animation-duration 覆盖 */
+    animation: fsPrizeMarquee 30s linear infinite;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+@keyframes fsPrizeMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .fs-preview__list {
   display: inline-flex;
   gap: 16rpx;
   padding: 8rpx 0;
+  flex-shrink: 0;
 }
 
 .fs-preview__item {

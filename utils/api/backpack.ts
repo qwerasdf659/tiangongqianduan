@@ -42,9 +42,25 @@ async function getUserInventory() {
 /**
  * 获取背包统计
  * GET /api/v4/backpack/stats
+ *
+ * 返回 BackpackStats：total_items（可用物品总数）、unviewed_items（未查看物品数，首页角标数据源）等
  */
 async function getBackpackStats() {
   return apiClient.request('/backpack/stats', { method: 'GET', needAuth: true })
+}
+
+/**
+ * 标记当前用户所有未读物品为已读（全量）
+ * POST /api/v4/backpack/mark-viewed
+ *
+ * 用户进入仓库列表页时调用一次，后端把 status='available' 且 is_viewed=0 的物品批量置为已读，
+ * 首页「仓库」未读角标随之清零。无请求体，后端通过 JWT Token 识别用户。
+ * 后端自然幂等（is_viewed=0 过滤 + first_viewed_at COALESCE），不走 Idempotency-Key 流程。
+ *
+ * 返回：{ marked_count: number } 本次标记为已读的物品数
+ */
+async function markItemsViewed() {
+  return apiClient.request('/backpack/mark-viewed', { method: 'POST', needAuth: true })
 }
 
 /**
@@ -873,6 +889,7 @@ module.exports = {
   EXCHANGE_QUANTITY_CONTRACT_MAX,
   getUserInventory,
   getBackpackStats,
+  markItemsViewed,
   getInventoryItem,
   useInventoryItem,
   redeemInventoryItem,

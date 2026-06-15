@@ -1,0 +1,290 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 我的核销订单列表页面样式 */
+@import '../../styles/mixins';
+
+.redemption-container {
+  @include tg-tokens;
+  padding: 20rpx;
+  background-color: var(--tg-color-bg);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页面标题 */
+.page-header {
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, #ffffff 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  margin: 0 -20rpx var(--tg-spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-text {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.header-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.header-desc {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+  line-height: 1.5;
+}
+
+.header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+}
+
+/* 筛选Tab */
+.status-tabs {
+  display: flex;
+  gap: var(--tg-spacing-sm);
+  padding: 0 var(--tg-spacing-xs) var(--tg-spacing-md);
+}
+
+.tab-item {
+  padding: 12rpx 32rpx;
+  border-radius: 32rpx;
+  background: var(--tg-color-white);
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  border: 1rpx solid var(--tg-color-border-light);
+}
+
+.tab-active {
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  border-color: var(--td-brand-color);
+}
+
+/* 骨架屏 */
+.order-skeleton {
+  display: flex;
+  padding: var(--tg-spacing-md);
+  margin-bottom: var(--tg-spacing-sm);
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+}
+
+.skeleton-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: var(--tg-color-bg-grey);
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.skeleton-body {
+  flex: 1;
+}
+
+.skeleton-line {
+  height: 24rpx;
+  background: var(--tg-color-bg-grey);
+  border-radius: 4rpx;
+  margin-bottom: 12rpx;
+}
+
+.skeleton-title {
+  width: 60%;
+}
+
+.skeleton-info {
+  width: 40%;
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+.retry-btn {
+  padding: var(--tg-spacing-sm) var(--tg-spacing-xxl);
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  font-size: var(--td-font-size-base);
+}
+
+/* 订单总览 */
+.orders-summary {
+  padding: 0 var(--tg-spacing-sm) var(--tg-spacing-sm);
+}
+
+.summary-text {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+}
+
+/* 订单卡片 */
+.order-card {
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--tg-shadow-card);
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+/* 订单头部 */
+.order-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24rpx;
+}
+
+.order-title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-title {
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-no-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 8rpx;
+}
+
+.order-no {
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
+}
+
+/* 订单状态标签 */
+.order-status-badge {
+  padding: 6rpx var(--tg-spacing-sm);
+  border-radius: 20rpx;
+  font-size: var(--tg-font-size-mini);
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+.status-pending {
+  background: #fff3e0;
+  color: var(--tg-color-warning);
+}
+
+.status-fulfilled {
+  background: #e8f5e9;
+  color: var(--tg-color-success);
+}
+
+.status-cancelled,
+.status-expired {
+  background: var(--tg-color-bg-grey);
+  color: var(--tg-text-tertiary);
+}
+
+/* 订单详情 */
+.order-details {
+  padding: var(--tg-spacing-sm) 0;
+  border-top: 1rpx solid var(--tg-color-border-light);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--tg-spacing-xs) 0;
+}
+
+.detail-label {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+}
+
+.detail-value {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+}
+
+/* 操作区 */
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--tg-spacing-md);
+  border-top: 1rpx solid var(--tg-color-border-light);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin: 0;
+  padding: 0 var(--tg-spacing-lg);
+  height: 60rpx;
+  line-height: 60rpx;
+  border-radius: 30rpx;
+  font-size: var(--td-font-size-s);
+  background: transparent;
+
+  &::after {
+    border: none;
+  }
+}
+
+.action-btn.aftersale {
+  color: var(--td-brand-color);
+  border: 1rpx solid var(--td-brand-color);
+}
+
+.btn-icon {
+  display: inline-flex;
+}
+
+/* 加载更多/没有更多 */
+.load-more,
+.no-more {
+  text-align: center;
+  padding: var(--tg-spacing-lg);
+}
+
+.load-more-text,
+.no-more-text {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+}

@@ -217,41 +217,67 @@
       </view>
       <text class="fs-preview__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="fs-preview__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="fs-preview__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="fs-preview__item {{item.is_fallback ? 'fs-preview__item--fallback' : ''}} {{item.is_sold_out ? 'fs-preview__item--sold-out' : ''}}"
+    <view class="fs-preview__scroll">
+      <view
+        class="fs-preview__track {{previewMarquee ? 'fs-preview__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="fs-preview__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="fs-preview__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="fs-preview__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="fs-preview__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="fs-preview__sold-out">抢光</text>
+            <view
+              class="fs-preview__item {{item.is_fallback ? 'fs-preview__item--fallback' : ''}} {{item.is_sold_out ? 'fs-preview__item--sold-out' : ''}}"
+            >
+              <view class="fs-preview__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="fs-preview__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="fs-preview__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="fs-preview__sold-out">抢光</text>
+              </view>
+              <text class="fs-preview__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="fs-preview__fallback-tag">保底</text>
             </view>
-            <text class="fs-preview__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="fs-preview__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <!-- 复制一份奖品列表，实现无缝循环滚动（与其它玩法一致） -->
+        <view class="fs-preview__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="fs-preview__item {{item.is_fallback ? 'fs-preview__item--fallback' : ''}} {{item.is_sold_out ? 'fs-preview__item--sold-out' : ''}}"
+            >
+              <view class="fs-preview__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="fs-preview__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                /><text wx:else class="fs-preview__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="fs-preview__sold-out">抢光</text>
+              </view>
+              <text class="fs-preview__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="fs-preview__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

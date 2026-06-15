@@ -1284,12 +1284,20 @@ declare namespace API {
   interface BackpackStats {
     /** 资产种类数量 */
     total_assets: number
-    /** 可用物品数量 */
+    /** 可用物品数量（status=available） */
     total_items: number
+    /** 未查看物品数量（status=available 且 is_viewed=0），首页「仓库」未读角标数据源 */
+    unviewed_items: number
     /** 所有资产可用余额总和 */
     total_asset_value: number
     /** 按item_type分组的物品数量 */
     items_by_type: Record<string, number>
+  }
+
+  /** 标记物品已读响应（对齐后端 POST /api/v4/backpack/mark-viewed） */
+  interface MarkItemsViewedResult {
+    /** 本次标记为已读的物品数 */
+    marked_count: number
   }
 
   // ===== 活动位置配置 =====
@@ -1804,6 +1812,52 @@ declare namespace API {
   }
 
   // ===== 核销码系统（模型A：O2O动态码 — 到店核销） =====
+
+  /**
+   * 后端 BeijingTimeHelper.formatForAPI 输出的时间对象（北京时间展示 + UTC 原值）
+   * 实际字段以后端为准，前端优先取 .beijing 展示。
+   */
+  interface BeijingTimeField {
+    /** 北京时间字符串（如 2026/02/20 12:40:12），前端直接展示 */
+    beijing?: string
+    /** UTC 原值（ISO8601） */
+    utc?: string
+    /** Unix 时间戳（毫秒，可选） */
+    timestamp?: number
+  }
+
+  /**
+   * 我的核销订单列表项（GET /api/v4/shop/redemption/me 的 records[]）
+   *
+   * 用户视角的兑换/核销订单。status==='fulfilled'（已核销）项可发起售后申诉，
+   * 售后入口跳 disputes/create?order_type=redemption&order_id=<redemption_order_id>。
+   * 字段以后端为准，前端不做映射。
+   */
+  interface MyRedemptionOrder {
+    /** 核销订单主键（UUID, CHAR(36)），售后申诉的 order_id 直读此字段 */
+    redemption_order_id: string
+    /** 订单号（业务展示用） */
+    order_no: string
+    /** 订单状态: pending（待核销）/ fulfilled（已核销）/ cancelled / expired */
+    status: RedemptionOrderStatus
+    /** 核销完成时间（北京时间对象，未核销为 null） */
+    fulfilled_at: BeijingTimeField | null
+    /** 创建时间（北京时间对象） */
+    created_at: BeijingTimeField | string
+    /** 关联物品摘要 */
+    item: { item_id: number; item_name: string } | null
+  }
+
+  /** 我的核销订单列表响应（GET /api/v4/shop/redemption/me 的 data） */
+  interface MyRedemptionOrdersData {
+    records: MyRedemptionOrder[]
+    pagination: {
+      total: number
+      page: number
+      page_size: number
+      total_pages: number
+    }
+  }
 
   /**
    * 核销码生成响应（POST /api/v4/backpack/items/:item_id/redeem）

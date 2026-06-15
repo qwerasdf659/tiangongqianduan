@@ -64,8 +64,12 @@
     wx:if="{{gameState === 'playing' || isCarnival}}"
   >
     <t-icon name="tools" size="32rpx" class="hammer-icon" wx:if="{{hammerType === 'normal'}}" />
-    <text class="hammer-icon fire-hammer" wx:elif="{{hammerType === 'fire'}}"><t-icon name="tips" size="28rpx" /><t-icon name="tools" size="28rpx" /></text>
-    <text class="hammer-icon thunder-hammer" wx:elif="{{hammerType === 'thunder'}}"><t-icon name="flash" size="28rpx" /><t-icon name="tools" size="28rpx" /></text>
+    <text class="hammer-icon fire-hammer" wx:elif="{{hammerType === 'fire'}}"
+      ><t-icon name="tips" size="28rpx" /><t-icon name="tools" size="28rpx"
+    /></text>
+    <text class="hammer-icon thunder-hammer" wx:elif="{{hammerType === 'thunder'}}"
+      ><t-icon name="flash" size="28rpx" /><t-icon name="tools" size="28rpx"
+    /></text>
     <view class="hammer-glow {{hammerType}}"></view>
   </view>
 
@@ -117,7 +121,9 @@
                 <t-icon name="browse" size="20rpx" class="eye left" />
                 <t-icon name="browse" size="20rpx" class="eye right" />
               </view>
-              <view class="mole-alert-icon" wx:if="{{moleAlertIndex === index}}"><t-icon name="error-triangle-filled" size="28rpx" color="#ff6b6b" /></view>
+              <view class="mole-alert-icon" wx:if="{{moleAlertIndex === index}}"
+                ><t-icon name="error-triangle-filled" size="28rpx" color="#ff6b6b"
+              /></view>
             </view>
 
             <!-- 金色地鼠 -->
@@ -182,8 +188,8 @@
         wx:for="{{12}}"
         wx:key="*this"
         style="animation-delay: {{index * 0.05}}s;"
-        ><t-icon name="star" size="28rpx" /></text
-      >
+        ><t-icon name="star" size="28rpx"
+      /></text>
     </view>
     <view class="celebration-ring ring-1"></view>
     <view class="celebration-ring ring-2"></view>
@@ -218,11 +224,15 @@
         <text class="rule-text">普通地鼠 +1分</text>
       </view>
       <view class="rule-item golden">
-        <text class="rule-icon"><t-icon name="user" size="24rpx" /><t-icon name="star" size="20rpx" /></text>
+        <text class="rule-icon"
+          ><t-icon name="user" size="24rpx" /><t-icon name="star" size="20rpx"
+        /></text>
         <text class="rule-text">金色地鼠 +3分</text>
       </view>
       <view class="rule-item rainbow">
-        <text class="rule-icon"><t-icon name="user" size="24rpx" /><t-icon name="star" size="20rpx" /></text>
+        <text class="rule-icon"
+          ><t-icon name="user" size="24rpx" /><t-icon name="star" size="20rpx"
+        /></text>
         <text class="rule-text">彩虹地鼠 狂欢3秒</text>
       </view>
       <view class="rule-item bomb">
@@ -320,41 +330,68 @@
       </view>
       <text class="wm-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="wm-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="wm-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="wm-prizes__item {{item.is_fallback ? 'wm-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wm-prizes__item--sold-out' : ''}}"
+    <view class="wm-prizes__scroll">
+      <view
+        class="wm-prizes__track {{previewMarquee ? 'wm-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="wm-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="wm-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="wm-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="wm-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="wm-prizes__sold-out">抢光</text>
+            <view
+              class="wm-prizes__item {{item.is_fallback ? 'wm-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wm-prizes__item--sold-out' : ''}}"
+            >
+              <view class="wm-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="wm-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="wm-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="wm-prizes__sold-out">抢光</text>
+              </view>
+              <text class="wm-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="wm-prizes__fallback-tag">保底</text>
             </view>
-            <text class="wm-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="wm-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <view class="wm-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="wm-prizes__item {{item.is_fallback ? 'wm-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'wm-prizes__item--sold-out' : ''}}"
+            >
+              <view class="wm-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="wm-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="wm-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="wm-prizes__sold-out">抢光</text>
+              </view>
+              <text class="wm-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="wm-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

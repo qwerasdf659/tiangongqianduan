@@ -8,12 +8,7 @@
   flex-direction: column;
   align-items: center;
   padding: 20rpx 0 30rpx;
-  background: linear-gradient(
-    180deg,
-    #FDF8F0 0%,
-    #F8F2E8 40%,
-    #F5EDE0 100%
-  );
+  background: linear-gradient(180deg, #fdf8f0 0%, #f8f2e8 40%, #f5ede0 100%);
   border-radius: 24rpx;
   overflow: hidden;
   position: relative;
@@ -24,7 +19,7 @@
   margin-bottom: 24rpx;
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
-  color: #4A3728;
+  color: #4a3728;
   text-shadow: none;
   letter-spacing: var(--tg-letter-spacing-normal);
 }
@@ -63,17 +58,33 @@
 .red-packet {
   width: 180rpx;
   height: 260rpx;
-  background: linear-gradient(
-    180deg,
-    var(--tg-lottery-primary, #3d5940),
-    var(--tg-lottery-primary-dark, #cc0000)
-  );
+  /* 暖喜庆红：上半部柔化（降高光+降饱和，不再刺眼），下半部提亮（提亮收口色+减弱暗角内阴影，不再发暗） */
+  background:
+    radial-gradient(ellipse at 34% 20%, rgba(255, 224, 206, 0.3) 0%, transparent 60%),
+    linear-gradient(168deg, #e8604c 0%, #e25841 50%, #de5440 100%);
   border-radius: var(--td-radius-default);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8rpx 24rpx var(--tg-lottery-shadow-medium, rgba(204, 0, 0, 0.4));
+  box-shadow:
+    0 10rpx 26rpx rgba(170, 55, 40, 0.26),
+    inset 0 12rpx 20rpx rgba(255, 222, 208, 0.2),
+    inset 0 -10rpx 18rpx rgba(165, 58, 44, 0.1);
   @include flex-column-center;
   transition: transform 0.2s ease;
+
+  /* 绸缎流光斜扫，消除塑料平涂感 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: -60%;
+    width: 45%;
+    height: 180%;
+    background: linear-gradient(90deg, transparent, rgba(255, 235, 220, 0.45), transparent);
+    transform: rotate(18deg);
+    animation: rpSheen 3.6s ease-in-out infinite;
+    pointer-events: none;
+  }
 
   &.is-idle {
     animation: packetFloat 2.5s ease-in-out infinite;
@@ -90,23 +101,42 @@
   }
 }
 
+@keyframes rpSheen {
+  0% {
+    left: -60%;
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  70% {
+    left: 130%;
+    opacity: 0;
+  }
+  100% {
+    left: 130%;
+    opacity: 0;
+  }
+}
+
 .packet-gold-circle {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-accent, #c5a572),
-    var(--tg-lottery-accent-light, #a8884a)
-  );
+  background:
+    radial-gradient(ellipse at 32% 28%, rgba(255, 252, 235, 0.8) 0%, transparent 55%),
+    linear-gradient(135deg, #f7e2a8 0%, #e6bd5e 50%, #c79a3c 100%);
   @include flex-center;
-  box-shadow: 0 4rpx 16rpx var(--tg-lottery-accent-shadow, rgba(197, 165, 114, 0.5));
+  box-shadow:
+    inset 0 0 0 2rpx rgba(255, 250, 225, 0.9),
+    inset 0 0 0 4rpx rgba(180, 135, 50, 0.5),
+    0 4rpx 14rpx rgba(120, 30, 20, 0.4);
   margin-bottom: 12rpx;
 }
 
 .packet-text {
   font-size: var(--td-font-size-l);
-  color: var(--tg-lottery-primary-dark, #cc0000);
+  color: #b81f16;
   font-weight: var(--tg-font-weight-bold);
 }
 
@@ -514,7 +544,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #7c4dff);
+  background: var(--tg-lottery-accent, #c5a572);
 }
 
 .rp-prizes__title {
@@ -530,16 +560,39 @@
 
 .rp-prizes__scroll {
   width: 100%;
-  white-space: nowrap;
   overflow: hidden;
   isolation: isolate;
   contain: paint;
+}
+
+/* 滚动轨道：承载两份奖品列表，无缝循环（与其它玩法一致） */
+.rp-prizes__track {
+  display: inline-flex;
+  white-space: nowrap;
+
+  &--animate {
+    /* 默认 30s 兜底，实际时长由 inline animation-duration 覆盖 */
+    animation: rpPrizeMarquee 30s linear infinite;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+@keyframes rpPrizeMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .rp-prizes__list {
   display: inline-flex;
   gap: 16rpx;
   padding: 8rpx 4rpx 16rpx;
+  flex-shrink: 0;
 }
 
 .rp-prizes__item {

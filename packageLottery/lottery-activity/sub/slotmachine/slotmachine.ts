@@ -23,6 +23,8 @@ Component({
   properties: {
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
+    previewMarquee: { type: Boolean, value: false },
+    previewMarqueeSpeed: { type: Number, value: 10 },
     costPoints: { type: Number, value: 0 },
     pointsBalance: { type: Number, value: 0 },
     isInProgress: { type: Boolean, value: false },

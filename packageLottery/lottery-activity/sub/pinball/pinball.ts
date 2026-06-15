@@ -25,6 +25,8 @@ Component({
     /** 奖品列表 */
     prizes: { type: Array, value: [] },
     prizesForPreview: { type: Array, value: [] },
+    previewMarquee: { type: Boolean, value: false },
+    previewMarqueeSpeed: { type: Number, value: 10 },
     /** 单次消耗积分 */
     costPoints: { type: Number, value: 0 },
     /** 用户积分余额 */
@@ -207,7 +209,9 @@ Component({
         '/assets/icons/particles/star-1.svg',
         '/assets/icons/particles/sparkle-2.svg',
         '/assets/icons/particles/star-2.svg',
-        '·', '°', '✦'
+        '·',
+        '°',
+        '✦'
       ]
       const generatedParticles = Array.from({ length: 20 }, (_, i) => ({
         id: i,

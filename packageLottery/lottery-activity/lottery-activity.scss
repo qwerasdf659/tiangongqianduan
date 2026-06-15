@@ -6,24 +6,25 @@
  */
 @import '../../styles/mixins';
 
-/* ===== 主题CSS变量默认值（被 themeStyle 内联覆盖） ===== */
-/* 当后端未返回主题配置时，这里的默认值生效（default主题色） */
-/* 子组件的 var(--xxx, fallback) 中的 fallback 是各组件独立的保底色 */
+/* ===== 抽奖玩法主题 CSS 变量（暖金体系，全项目统一） ===== */
+/* 这是各抽奖玩法子组件共享的主题色挂载点，定义在 .lottery-activity 容器上，子组件通过继承读取。 */
+/* 注意：本套变量即为实际生效的最终值（项目当前无运行时主题下发覆盖机制）。 */
+/* 子组件 var(--xxx, fallback) 中的 fallback 仅在此处未定义该变量时生效；此处已定义则以此处为准。 */
 .lottery-activity {
   /* Typography Token（分包组件无法继承 page 变量，需本地声明） */
   @include tg-tokens;
   --tg-text-secondary: #666666;
   --tg-text-tertiary: #999999;
 
-  /* 主色调 */
-  --tg-lottery-primary: #4a6b4d;
-  --tg-lottery-primary-dark: #d35400;
-  --tg-lottery-primary-light: #f39c12;
-  --tg-lottery-primary-lighter: #f5b041;
-  /* 次色调 */
-  --tg-lottery-secondary: #7a9e7e;
-  --tg-lottery-secondary-dark: #e07830;
-  --tg-lottery-secondary-light: #ffab70;
+  /* 主色调（暖金体系：对齐转盘/砸金蛋金色，替代旧墨绿+橙主题色） */
+  --tg-lottery-primary: #d9af48;
+  --tg-lottery-primary-dark: #bd9433;
+  --tg-lottery-primary-light: #f0ce72;
+  --tg-lottery-primary-lighter: #fdf2cf;
+  /* 次色调（琥珀金，替代旧墨绿+橙） */
+  --tg-lottery-secondary: #e6bd5e;
+  --tg-lottery-secondary-dark: #c79a3c;
+  --tg-lottery-secondary-light: #f7e2a8;
   /* 强调色 */
   --tg-lottery-accent: #c5a572;
   --tg-lottery-accent-dark: #ccac00;
@@ -36,7 +37,7 @@
   --tg-lottery-accent-border: #c5a572;
   --tg-lottery-accent-dim: rgba(197, 165, 114, 0.9);
   --tg-lottery-accent-glow: rgba(197, 165, 114, 0.5);
-  --tg-lottery-accent-shadow: rgba(255, 140, 0, 0.4);
+  --tg-lottery-accent-shadow: rgba(217, 175, 72, 0.4);
   /* 文字颜色 */
   --tg-lottery-text: #333333;
   --tg-lottery-text-light: #666666;
@@ -52,39 +53,39 @@
   --tg-lottery-bg-darker: #1a0e08;
   --tg-lottery-bg-light: #f5efe0;
   --tg-lottery-bg-lighter: #f5efe0;
-  /* 阴影 / 光效 */
-  --tg-lottery-shadow-strong: rgba(230, 126, 34, 0.4);
-  --tg-lottery-shadow-medium: rgba(230, 126, 34, 0.25);
-  --tg-lottery-shadow-soft: rgba(230, 126, 34, 0.15);
-  --tg-lottery-shadow-intense: rgba(91, 122, 94, 0.6);
-  --tg-lottery-shadow-bright: rgba(91, 122, 94, 0.3);
-  --tg-lottery-shadow-glow: rgba(91, 122, 94, 0.2);
-  --tg-lottery-glow-intense: rgba(230, 126, 34, 0.9);
-  --tg-lottery-glow-medium: rgba(230, 126, 34, 0.6);
-  --tg-lottery-glow-soft: rgba(230, 126, 34, 0.35);
+  /* 阴影 / 光效（暖金，替代旧橙 rgba(230,126,34) + 墨绿 rgba(91,122,94)） */
+  --tg-lottery-shadow-strong: rgba(217, 175, 72, 0.4);
+  --tg-lottery-shadow-medium: rgba(217, 175, 72, 0.25);
+  --tg-lottery-shadow-soft: rgba(217, 175, 72, 0.15);
+  --tg-lottery-shadow-intense: rgba(189, 148, 51, 0.6);
+  --tg-lottery-shadow-bright: rgba(189, 148, 51, 0.3);
+  --tg-lottery-shadow-glow: rgba(189, 148, 51, 0.2);
+  --tg-lottery-glow-intense: rgba(217, 175, 72, 0.9);
+  --tg-lottery-glow-medium: rgba(217, 175, 72, 0.6);
+  --tg-lottery-glow-soft: rgba(217, 175, 72, 0.35);
   --tg-lottery-accent-glow-intense: rgba(197, 165, 114, 1);
   --tg-lottery-accent-glow-strong: rgba(197, 165, 114, 0.8);
   --tg-lottery-accent-glow-soft: rgba(197, 165, 114, 0.5);
   --tg-lottery-accent-glow-max: rgba(197, 165, 114, 1);
   --tg-lottery-accent-glow-bright: rgba(197, 165, 114, 0.9);
   --tg-lottery-accent-glow-medium: rgba(197, 165, 114, 0.6);
-  /* 边框 */
+  /* 边框（暖金，替代旧橙 rgba(230,126,34)） */
   --tg-lottery-border: var(--tg-color-divider);
-  --tg-lottery-border-light: rgba(230, 126, 34, 0.2);
-  --tg-lottery-highlight: rgba(230, 126, 34, 0.3);
+  --tg-lottery-border-light: rgba(217, 175, 72, 0.2);
+  --tg-lottery-highlight: rgba(217, 175, 72, 0.3);
   --tg-lottery-frame: #8b4513;
   --tg-lottery-frame-light: #b8b8b8;
   --tg-lottery-frame-dark: #6f3609;
   --tg-lottery-frame-darker: #5c2e08;
   --tg-lottery-frame-darkest: #4a2507;
-  /* 状态色 */
+  /* 状态色（success 绿 / danger 红 / warning 金，修正旧版误设为墨绿的 danger-light、warning-dark） */
   --tg-lottery-success: #27ae60;
   --tg-lottery-success-light: #8bc34a;
   --tg-lottery-danger: #e74c3c;
-  --tg-lottery-danger-light: #7a9e7e;
+  --tg-lottery-danger-light: #ff7a6b;
   --tg-lottery-warning: #f39c12;
-  --tg-lottery-warning-light: #cddc39;
-  --tg-lottery-warning-dark: #3d5940;
+  --tg-lottery-warning-light: #ffd54f;
+  --tg-lottery-warning-dark: #c77f12;
 
   position: relative;
   width: 100%;

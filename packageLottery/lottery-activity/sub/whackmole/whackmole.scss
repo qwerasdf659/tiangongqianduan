@@ -1,5 +1,14 @@
 @import '../../shared/common-animations';
 
+@keyframes wmPrizeMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 /* ================================
    打地鼠容器 - 浅色优雅风格
    ================================ */
@@ -10,13 +19,7 @@
   padding: 30rpx 0 60rpx;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    #FDF8F0 0%,
-    #F8F2E8 30%,
-    #F5EDE0 60%,
-    #F0E8DA 100%
-  );
+  background: linear-gradient(180deg, #fdf8f0 0%, #f8f2e8 30%, #f5ede0 60%, #f0e8da 100%);
 
   /* 浅色纹理 */
   &::before {
@@ -110,14 +113,14 @@
   width: 620rpx;
   margin-bottom: 16rpx;
   padding: 16rpx 24rpx;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.4) 100%);
+  background: linear-gradient(135deg, rgba(253, 243, 214, 0.95) 0%, rgba(240, 220, 166, 0.9) 100%);
   border-radius: 20rpx;
-  border: 3rpx solid rgba(255, 255, 255, 0.2);
+  border: 3rpx solid rgba(189, 148, 51, 0.3);
   -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
   position: relative;
   z-index: 2;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(180, 140, 50, 0.2);
 }
 
 .header-left {
@@ -133,11 +136,9 @@
 
 .whack-title {
   font-size: var(--td-font-size-l);
-  color: var(--tg-color-white);
+  color: #6b4a12;
   font-weight: var(--tg-font-weight-bold);
-  text-shadow:
-    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
-    0 0 20rpx rgba(197, 165, 114, 0.3);
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.6);
   letter-spacing: var(--tg-letter-spacing-normal);
   position: relative;
   z-index: 1;
@@ -177,8 +178,8 @@
   gap: 8rpx;
   padding: 8rpx 20rpx;
   border-radius: var(--td-radius-large);
-  background: rgba(0, 0, 0, 0.4);
-  border: 2rpx solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.6);
+  border: 2rpx solid rgba(189, 148, 51, 0.3);
   position: relative;
   transition: all 0.3s ease;
 
@@ -221,22 +222,21 @@
 .score-icon,
 .time-icon {
   font-size: var(--tg-font-size-body);
+  color: #bd9433;
 }
 
 .score-value {
   font-size: var(--tg-font-size-headline);
-  color: var(--tg-lottery-accent, #c5a572);
+  color: #bd9433;
   font-weight: var(--tg-font-weight-bold);
-  text-shadow:
-    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
-    0 0 10rpx rgba(197, 165, 114, 0.5);
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.6);
 }
 
 .time-value {
   font-size: var(--tg-font-size-headline);
-  color: var(--tg-color-white);
+  color: #6b4a12;
   font-weight: var(--tg-font-weight-bold);
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.6);
 }
 
 .time-badge.urgent {
@@ -245,7 +245,7 @@
   animation: urgentPulse 0.4s ease-in-out infinite;
 
   .time-value {
-    color: var(--tg-lottery-danger, #7a9e7e);
+    color: var(--tg-lottery-danger, #e6bd5e);
   }
 }
 
@@ -280,16 +280,11 @@
 
 .timer-bar-fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--tg-lottery-success, #4caf50),
-    var(--tg-lottery-success-light, #8bc34a),
-    var(--tg-lottery-warning-light, #cddc39)
-  );
+  background: linear-gradient(90deg, #f0ce72, #e6bd5e, #d9af48);
   border-radius: 6rpx;
   transition: width 1s linear;
   position: relative;
-  box-shadow: 0 0 10rpx rgba(76, 175, 80, 0.5);
+  box-shadow: 0 0 10rpx rgba(217, 175, 72, 0.5);
 
   &.urgent {
     background: linear-gradient(
@@ -337,14 +332,10 @@
   align-items: center;
   gap: 8rpx;
   padding: 8rpx 20rpx;
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-primary, #c5a572),
-    var(--tg-lottery-secondary, #8b00ff)
-  );
+  background: linear-gradient(135deg, #f0ce72, #d9af48);
   border-radius: var(--td-radius-large);
-  border: 2rpx solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4rpx 12rpx var(--tg-lottery-secondary-glow, rgba(139, 0, 255, 0.4));
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4rpx 12rpx rgba(217, 175, 72, 0.4);
   animation: carnivalPulse 0.5s ease-in-out infinite;
 }
 
@@ -435,13 +426,13 @@
 .combo-text {
   font-size: var(--tg-font-size-xl);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-lottery-primary, #7a9e7e);
+  color: #f0ce72;
   text-shadow:
     3rpx 3rpx 0 #000,
     -3rpx -3rpx 0 #000,
     3rpx -3rpx 0 #000,
     -3rpx 3rpx 0 #000,
-    0 6rpx 12rpx rgba(91, 122, 94, 0.8);
+    0 6rpx 12rpx rgba(197, 165, 114, 0.8);
   letter-spacing: var(--tg-letter-spacing-wide);
   animation: comboShake 0.5s ease-in-out infinite;
 }
@@ -458,7 +449,7 @@
   transform: translate(-50%, -50%);
   width: 120rpx;
   height: 120rpx;
-  border: 4rpx solid rgba(91, 122, 94, 0.6);
+  border: 4rpx solid rgba(197, 165, 114, 0.6);
   border-radius: 50%;
   animation: comboRing 1s ease-out infinite;
 }
@@ -832,13 +823,13 @@
   }
 }
 
-/* 土堆效果 */
+/* 土堆效果（暖金陶土质感，去黑棕泥土） */
 .dirt-pile {
   position: absolute;
   bottom: 20rpx;
   width: 40rpx;
   height: 30rpx;
-  background: radial-gradient(ellipse, #8d6e63 0%, #6d4c41 60%, transparent 100%);
+  background: radial-gradient(ellipse, #e8c878 0%, #d9af48 60%, transparent 100%);
   border-radius: 50%;
   z-index: 4;
   /* 提高层级，让土堆显示在地鼠上方（营造土堆在洞口边缘的效果） */
@@ -861,20 +852,20 @@
   transform: translateX(-50%);
   width: 150rpx;
   height: 28rpx;
-  background: linear-gradient(180deg, #8d6e63 0%, #6d4c41 50%, #5d4037 100%);
+  background: linear-gradient(180deg, #f0ce72 0%, #d9af48 50%, #c79a3c 100%);
   border-radius: 50%;
   z-index: -1;
-  /* 降低层级到-1，让圆形土壤边缘显示在黑色洞口下方 */
+  /* 降低层级到-1，让圆形土壤边缘显示在洞口下方 */
   box-shadow:
-    0 4rpx 8rpx rgba(0, 0, 0, 0.4),
-    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.1),
-    inset 0 -2rpx 4rpx rgba(0, 0, 0, 0.3);
+    0 4rpx 8rpx rgba(180, 140, 50, 0.3),
+    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.5),
+    inset 0 -2rpx 4rpx rgba(180, 140, 50, 0.3);
 }
 
 .hole-rim-inner {
   position: absolute;
   inset: 4rpx;
-  background: radial-gradient(ellipse, rgba(93, 64, 55, 0.8) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(199, 154, 60, 0.6) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -885,17 +876,17 @@
   transform: translateX(-50%);
   width: 130rpx;
   height: 55rpx;
-  background: radial-gradient(ellipse, #2c1810 0%, #1a0f08 60%, #0a0504 100%);
+  background: radial-gradient(ellipse, #a67c3d 0%, #8a6630 60%, #6b4a12 100%);
   border-radius: 50%;
   z-index: 1;
-  /* 提高层级到1，让黑色洞口显示在圆形土壤边缘上方 */
-  box-shadow: inset 0 8rpx 16rpx rgba(0, 0, 0, 0.8);
+  /* 提高层级到1，让洞口显示在圆形土壤边缘上方 */
+  box-shadow: inset 0 8rpx 16rpx rgba(80, 55, 15, 0.55);
 }
 
 .hole-shadow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(107, 74, 18, 0.45) 0%, transparent 70%);
   border-radius: 50%;
   animation: shadowPulse 2s ease-in-out infinite;
 }
@@ -1380,7 +1371,7 @@
       -2rpx -2rpx 0 #000,
       2rpx -2rpx 0 #000,
       -2rpx 2rpx 0 #000,
-      0 0 15rpx rgba(91, 122, 94, 0.8);
+      0 0 15rpx rgba(197, 165, 114, 0.8);
   }
 }
 
@@ -1619,7 +1610,8 @@
 
 .intro-icon {
   font-size: 80rpx;
-  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3));
+  color: #bd9433;
+  filter: drop-shadow(0 4rpx 8rpx rgba(180, 140, 50, 0.3));
   animation: introIconSpin 3s ease-in-out infinite;
 }
 
@@ -1637,17 +1629,15 @@
 .intro-title {
   font-size: var(--tg-font-size-xl);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-color-white);
-  text-shadow:
-    0 2rpx 4rpx rgba(0, 0, 0, 0.5),
-    0 0 20rpx rgba(197, 165, 114, 0.4);
+  color: #4a3728;
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.6);
 }
 
 .intro-desc {
   font-size: var(--td-font-size-base);
-  color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.85));
+  color: var(--tg-text-secondary, #8b7355);
   text-align: center;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+  text-shadow: none;
 }
 
 @keyframes introFloat {
@@ -1671,19 +1661,15 @@
   align-items: center;
   gap: 16rpx;
   padding: 24rpx 80rpx;
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-primary, #7a9e7e) 0%,
-    var(--tg-lottery-primary-dark, #ee5a24) 100%
-  );
+  background: linear-gradient(135deg, #fdf2cf 0%, #f0ce72 45%, #d9af48 100%);
   border-radius: 60rpx;
-  color: var(--tg-color-white);
+  color: #6b4a12;
   font-size: var(--td-font-size-l);
   font-weight: var(--tg-font-weight-bold);
   box-shadow:
-    0 12rpx 32rpx rgba(238, 90, 36, 0.5),
-    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.3),
-    inset 0 -2rpx 4rpx rgba(0, 0, 0, 0.2);
+    0 12rpx 32rpx rgba(217, 175, 72, 0.5),
+    inset 0 2rpx 4rpx rgba(255, 255, 255, 0.6),
+    inset 0 -2rpx 4rpx rgba(180, 140, 50, 0.2);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -1691,7 +1677,7 @@
 
   &--active {
     transform: scale(0.92);
-    box-shadow: 0 6rpx 16rpx rgba(238, 90, 36, 0.4);
+    box-shadow: 0 6rpx 16rpx rgba(217, 175, 72, 0.4);
   }
 }
 
@@ -1706,7 +1692,7 @@
   transform: translateX(-50%);
   width: 90%;
   height: 20rpx;
-  background: radial-gradient(ellipse, rgba(238, 90, 36, 0.4), transparent);
+  background: radial-gradient(ellipse, rgba(217, 175, 72, 0.4), transparent);
   border-radius: 50%;
   filter: blur(8rpx);
 }
@@ -1745,35 +1731,36 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 20rpx;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(253, 243, 214, 0.85);
   border-radius: var(--td-radius-large);
-  border: 2rpx solid rgba(255, 255, 255, 0.15);
+  border: 2rpx solid rgba(189, 148, 51, 0.25);
   -webkit-backdrop-filter: blur(10rpx);
   backdrop-filter: blur(10rpx);
 
   &.golden {
-    border-color: rgba(197, 165, 114, 0.4);
-    background: rgba(197, 165, 114, 0.1);
+    border-color: rgba(217, 175, 72, 0.45);
+    background: rgba(240, 206, 114, 0.25);
   }
 
   &.bomb {
-    border-color: rgba(255, 0, 0, 0.4);
-    background: rgba(255, 0, 0, 0.1);
+    border-color: rgba(231, 76, 60, 0.35);
+    background: rgba(231, 76, 60, 0.1);
   }
 
   &.combo {
-    border-color: rgba(91, 122, 94, 0.4);
-    background: rgba(91, 122, 94, 0.1);
+    border-color: rgba(217, 175, 72, 0.45);
+    background: rgba(240, 206, 114, 0.18);
   }
 }
 
 .rule-icon {
   font-size: var(--td-font-size-base);
+  color: #bd9433;
 }
 
 .rule-text {
   font-size: var(--td-font-size-s);
-  color: var(--tg-lottery-text-inverse-dim, rgba(255, 255, 255, 0.9));
+  color: #6b4a12;
   font-weight: var(--tg-font-weight-regular);
 }
 
@@ -2001,14 +1988,14 @@
 .whack-cost {
   margin-top: 24rpx;
   padding: 14rpx 32rpx;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(253, 243, 214, 0.95) 0%, rgba(240, 220, 166, 0.9) 100%);
   border-radius: var(--td-radius-large);
   display: flex;
   align-items: center;
   gap: 8rpx;
-  border: 2rpx solid rgba(197, 165, 114, 0.3);
+  border: 2rpx solid rgba(189, 148, 51, 0.3);
   z-index: 2;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(180, 140, 50, 0.2);
   animation: costBlink 2s ease-in-out infinite;
 }
 
@@ -2026,6 +2013,7 @@
 
 .cost-icon {
   font-size: var(--td-font-size-base);
+  color: #bd9433;
   animation: costIconSpin 3s ease-in-out infinite;
 }
 
@@ -2043,8 +2031,8 @@
 .cost-text {
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-lottery-accent, #c5a572);
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+  color: #6b4a12;
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.6);
 }
 
 /* ================================
@@ -2178,13 +2166,13 @@
    游戏规则 - 新增样式
    ================================ */
 .rule-item.rainbow {
-  border-color: rgba(255, 0, 128, 0.4);
-  background: rgba(255, 0, 128, 0.1);
+  border-color: rgba(214, 51, 132, 0.35);
+  background: rgba(214, 51, 132, 0.08);
 }
 
 .rule-item.miss {
-  border-color: rgba(91, 122, 94, 0.4);
-  background: rgba(91, 122, 94, 0.1);
+  border-color: rgba(217, 175, 72, 0.45);
+  background: rgba(240, 206, 114, 0.18);
 }
 
 /* ===== 奖品池预览（is_fallback / is_sold_out 视觉指示） ===== */
@@ -2210,7 +2198,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #7c4dff);
+  background: #d9af48;
 }
 
 .wm-prizes__title {
@@ -2226,16 +2214,28 @@
 
 .wm-prizes__scroll {
   width: 100%;
-  white-space: nowrap;
   overflow: hidden;
   isolation: isolate;
   contain: paint;
+}
+
+.wm-prizes__track {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.wm-prizes__track--animate {
+  animation: wmPrizeMarquee 30s linear infinite;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .wm-prizes__list {
   display: inline-flex;
   gap: 16rpx;
   padding: 8rpx 4rpx 16rpx;
+  flex-shrink: 0;
 }
 
 .wm-prizes__item {

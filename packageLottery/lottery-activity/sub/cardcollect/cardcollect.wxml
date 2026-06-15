@@ -54,7 +54,9 @@
           <!-- 已收集：正面 -->
           <view class="gc-face gc-front" wx:if="{{item.collected}}">
             <view class="gc-holo" />
-            <text class="gc-emoji" wx:if="{{item.prize.prize_icon}}">{{item.prize.prize_icon}}</text>
+            <text class="gc-emoji" wx:if="{{item.prize.prize_icon}}"
+              >{{item.prize.prize_icon}}</text
+            >
             <t-icon name="card" size="32rpx" class="gc-emoji" wx:else />
             <text class="gc-label"
               >{{item.prize && item.prize.prize_name ? item.prize.prize_name : ''}}</text
@@ -62,9 +64,13 @@
             <view class="gc-shine" />
             <text class="gc-no">{{item.index + 1}}</text>
           </view>
-          <!-- 未收集：背面 -->
+          <!-- 未收集：背面（华丽描金卡背，对齐卡牌玩法标准） -->
           <view class="gc-face gc-back" wx:else>
             <view class="gc-back-deco" />
+            <view class="gc-corner gc-corner--tl" />
+            <view class="gc-corner gc-corner--tr" />
+            <view class="gc-corner gc-corner--bl" />
+            <view class="gc-corner gc-corner--br" />
             <text class="gc-q">?</text>
             <text class="gc-back-no">No.{{item.index + 1}}</text>
             <view class="gc-back-shine" />
@@ -134,7 +140,11 @@
     >
       <view class="draw-btn-bg" />
       <view class="draw-btn-inner">
-        <t-icon name="{{state === 'flipping' ? 'star' : 'card'}}" size="32rpx" class="draw-btn-icon" />
+        <t-icon
+          name="{{state === 'flipping' ? 'star' : 'card'}}"
+          size="32rpx"
+          class="draw-btn-icon"
+        />
         <text class="draw-btn-text">{{state === 'flipping' ? '抽卡中...' : '抽取卡片'}}</text>
       </view>
     </view>
@@ -159,41 +169,68 @@
       </view>
       <text class="ccl-prizes__count">{{prizesForPreview.length}}种奖品</text>
     </view>
-    <scroll-view
-      type="custom"
-      class="ccl-prizes__scroll"
-      scroll-x="{{true}}"
-      enhanced="{{true}}"
-      show-scrollbar="{{false}}"
-    >
-      <view class="ccl-prizes__list">
-        <rarity-effects
-          rarity="{{item.rarity_code || 'common'}}"
-          enabled="{{rarityEffects}}"
-          wx:for="{{prizesForPreview}}"
-          wx:key="id"
-          bindtap="onPrizeTap"
-          data-prize="{{item}}"
-        >
-          <view
-            class="ccl-prizes__item {{item.is_fallback ? 'ccl-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'ccl-prizes__item--sold-out' : ''}}"
+    <view class="ccl-prizes__scroll">
+      <view
+        class="ccl-prizes__track {{previewMarquee ? 'ccl-prizes__track--animate' : ''}}"
+        style="{{previewMarquee ? 'animation-duration:' + previewMarqueeSpeed + 's' : ''}}"
+      >
+        <view class="ccl-prizes__list">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
           >
-            <view class="ccl-prizes__icon-wrap">
-              <image
-                wx:if="{{item.prize_image_url}}"
-                class="ccl-prizes__image"
-                src="{{item.prize_image_url}}"
-                mode="aspectFit"
-                data-prize-idx="{{index}}"
-                binderror="onPrizeImageError"
-              /><text wx:else class="ccl-prizes__icon">{{item.prize_icon}}</text>
-              <text wx:if="{{item.is_sold_out}}" class="ccl-prizes__sold-out">抢光</text>
+            <view
+              class="ccl-prizes__item {{item.is_fallback ? 'ccl-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'ccl-prizes__item--sold-out' : ''}}"
+            >
+              <view class="ccl-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="ccl-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="ccl-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="ccl-prizes__sold-out">抢光</text>
+              </view>
+              <text class="ccl-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="ccl-prizes__fallback-tag">保底</text>
             </view>
-            <text class="ccl-prizes__name">{{item.prize_name}}</text>
-            <text wx:if="{{item.is_fallback}}" class="ccl-prizes__fallback-tag">保底</text>
-          </view>
-        </rarity-effects>
+          </rarity-effects>
+        </view>
+        <view class="ccl-prizes__list" wx:if="{{previewMarquee}}">
+          <rarity-effects
+            rarity="{{item.rarity_code || 'common'}}"
+            enabled="{{rarityEffects}}"
+            wx:for="{{prizesForPreview}}"
+            wx:key="id"
+            bindtap="onPrizeTap"
+            data-prize="{{item}}"
+          >
+            <view
+              class="ccl-prizes__item {{item.is_fallback ? 'ccl-prizes__item--fallback' : ''}} {{item.is_sold_out ? 'ccl-prizes__item--sold-out' : ''}}"
+            >
+              <view class="ccl-prizes__icon-wrap">
+                <image
+                  wx:if="{{item.prize_image_url}}"
+                  class="ccl-prizes__image"
+                  src="{{item.prize_image_url}}"
+                  mode="aspectFit"
+                  data-prize-idx="{{index}}"
+                  binderror="onPrizeImageError"
+                /><text wx:else class="ccl-prizes__icon">{{item.prize_icon}}</text>
+                <text wx:if="{{item.is_sold_out}}" class="ccl-prizes__sold-out">抢光</text>
+              </view>
+              <text class="ccl-prizes__name">{{item.prize_name}}</text>
+              <text wx:if="{{item.is_fallback}}" class="ccl-prizes__fallback-tag">保底</text>
+            </view>
+          </rarity-effects>
+        </view>
       </view>
-    </scroll-view>
+    </view>
   </view>
 </view>

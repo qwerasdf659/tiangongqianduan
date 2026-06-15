@@ -1,5 +1,14 @@
 @import '../../../../styles/mixins';
 
+@keyframes ccPrizeMarquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 /* ============================================================
  * 集卡组件 V2 — 魔法卡册
  * ============================================================ */
@@ -69,7 +78,7 @@
     animation-delay: 2.4s;
     width: 5rpx;
     height: 5rpx;
-    background: rgba(186, 147, 255, 0.5);
+    background: rgba(245, 197, 24, 0.5);
   }
 
   &.a5 {
@@ -110,8 +119,8 @@
   position: relative;
   z-index: 1;
   width: 660rpx;
-  background: rgba(255, 255, 255, 0.06);
-  border: 2rpx solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.6);
+  border: 2rpx solid rgba(189, 148, 51, 0.25);
   border-radius: 28rpx;
   padding: 24rpx 20rpx 28rpx;
   -webkit-backdrop-filter: blur(12rpx);
@@ -131,21 +140,22 @@
 
 .book-icon {
   font-size: 36rpx;
+  color: #bd9433;
 }
 
 .book-title {
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
   letter-spacing: 6rpx;
-  color: var(--tg-color-white);
-  text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
+  color: #4a3728;
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.5);
 }
 
 /* ----- 环形进度 ----- */
 .book-progress-pill {
   @include flex-align-center;
   gap: 12rpx;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(240, 220, 166, 0.5);
   padding: 8rpx 18rpx 8rpx 8rpx;
   border-radius: 40rpx;
 }
@@ -166,7 +176,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(189, 148, 51, 0.2);
 }
 
 .ring-fill {
@@ -182,15 +192,15 @@
   position: absolute;
   inset: 6rpx;
   border-radius: 50%;
-  background: rgba(30, 15, 74, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   @include flex-center;
 }
 
 .ring-text {
   font-size: var(--tg-font-size-caption);
   font-weight: var(--tg-font-weight-bold);
-  color: #c5a572;
-  text-shadow: 0 0 8rpx rgba(197, 165, 114, 0.5);
+  color: #bd9433;
+  text-shadow: none;
 }
 
 .progress-label {
@@ -200,12 +210,12 @@
 
 .pl-main {
   font-size: var(--tg-font-size-small);
-  color: rgba(255, 255, 255, 0.7);
+  color: #6b4a12;
 }
 
 .pl-sub {
   font-size: var(--tg-font-size-micro);
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--tg-text-secondary, #8b7355);
   margin-top: 2rpx;
 }
 
@@ -254,13 +264,13 @@
 .gc-front {
   width: 100%;
   height: 100%;
-  background: linear-gradient(155deg, #2a1a5e 0%, #4a2c8a 50%, #1e0f4a 100%);
-  border: 2rpx solid rgba(197, 165, 114, 0.25);
+  background: linear-gradient(155deg, #6b4a12 0%, #8a6320 50%, #5c3f10 100%);
+  border: 2rpx solid rgba(197, 165, 114, 0.4);
   @include flex-column-center;
   position: relative;
   box-shadow:
-    0 6rpx 24rpx rgba(0, 0, 0, 0.25),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.1);
+    0 6rpx 24rpx rgba(120, 90, 30, 0.25),
+    inset 0 1rpx 0 rgba(255, 245, 210, 0.2);
 }
 
 /* 全息光效 */
@@ -271,7 +281,7 @@
     135deg,
     rgba(197, 165, 114, 0) 0%,
     rgba(197, 165, 114, 0.08) 25%,
-    rgba(186, 147, 255, 0.1) 50%,
+    rgba(255, 235, 170, 0.12) 50%,
     rgba(197, 165, 114, 0.08) 75%,
     rgba(197, 165, 114, 0) 100%
   );
@@ -340,22 +350,97 @@
 
 /* 收集态hover辉光 */
 .gc-got .gc-wrap {
-  box-shadow: 0 4rpx 16rpx rgba(74, 44, 138, 0.3);
+  box-shadow: 0 4rpx 16rpx rgba(180, 140, 50, 0.3);
 }
 
 /* ---- 未收集卡面（背面） ---- */
 .gc-back {
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    135deg,
-    var(--tg-lottery-primary, #5b7a5e),
-    var(--tg-lottery-primary-dark, #4a6b4d)
-  );
-  border: 2rpx solid rgba(255, 255, 255, 0.15);
+  /* 亮金质感卡背（对齐卡牌玩法 §2.7：顶部高光 + 立体描金） */
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 248, 220, 0.45) 0%, transparent 56%),
+    linear-gradient(135deg, #f0d292 0%, #dcb368 40%, #c89a4e 72%, #ad7f38 100%);
+  border: 2rpx solid rgba(255, 244, 205, 0.85);
   @include flex-column-center;
   position: relative;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 2rpx rgba(173, 127, 56, 0.45),
+    inset 0 4rpx 14rpx rgba(255, 252, 235, 0.5),
+    inset 0 -8rpx 18rpx rgba(140, 98, 40, 0.4),
+    0 4rpx 16rpx rgba(180, 140, 50, 0.25);
+
+  /* 内嵌描金内框 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 12rpx;
+    left: 12rpx;
+    right: 12rpx;
+    bottom: 12rpx;
+    border: 1rpx solid rgba(255, 248, 220, 0.7);
+    border-radius: 10rpx;
+    pointer-events: none;
+  }
+
+  /* 旋转 45° 菱形花纹 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 88rpx;
+    height: 88rpx;
+    transform: translate(-50%, -50%) rotate(45deg);
+    border: 2rpx solid rgba(255, 248, 220, 0.5);
+    border-radius: 12rpx;
+    box-shadow: inset 0 0 10rpx rgba(255, 248, 220, 0.35);
+    pointer-events: none;
+  }
+}
+
+/* 四角烫金角花（L 形描金，对齐卡牌玩法） */
+.gc-corner {
+  position: absolute;
+  width: 22rpx;
+  height: 22rpx;
+  z-index: 2;
+  pointer-events: none;
+  border-color: rgba(255, 248, 220, 0.9);
+  box-shadow: 0 0 6rpx rgba(255, 235, 170, 0.6);
+}
+
+.gc-corner--tl {
+  top: 8rpx;
+  left: 8rpx;
+  border-top: 3rpx solid;
+  border-left: 3rpx solid;
+  border-top-left-radius: 8rpx;
+}
+
+.gc-corner--tr {
+  top: 8rpx;
+  right: 8rpx;
+  border-top: 3rpx solid;
+  border-right: 3rpx solid;
+  border-top-right-radius: 8rpx;
+}
+
+.gc-corner--bl {
+  bottom: 8rpx;
+  left: 8rpx;
+  border-bottom: 3rpx solid;
+  border-left: 3rpx solid;
+  border-bottom-left-radius: 8rpx;
+}
+
+.gc-corner--br {
+  bottom: 8rpx;
+  right: 8rpx;
+  border-bottom: 3rpx solid;
+  border-right: 3rpx solid;
+  border-bottom-right-radius: 8rpx;
 }
 
 .gc-back-deco {
@@ -366,15 +451,15 @@
       45deg,
       transparent,
       transparent 16rpx,
-      rgba(255, 255, 255, 0.03) 16rpx,
-      rgba(255, 255, 255, 0.03) 18rpx
+      rgba(255, 255, 255, 0.06) 16rpx,
+      rgba(255, 255, 255, 0.06) 18rpx
     ),
     repeating-linear-gradient(
       -45deg,
       transparent,
       transparent 16rpx,
-      rgba(255, 255, 255, 0.03) 16rpx,
-      rgba(255, 255, 255, 0.03) 18rpx
+      rgba(255, 255, 255, 0.06) 16rpx,
+      rgba(255, 255, 255, 0.06) 18rpx
     );
   pointer-events: none;
 }
@@ -382,16 +467,18 @@
 .gc-q {
   font-size: var(--tg-font-size-display);
   font-weight: var(--tg-font-weight-bold);
-  color: rgba(255, 255, 255, 0.28);
-  text-shadow: 0 2rpx 8rpx rgba(255, 255, 255, 0.08);
-  z-index: 1;
+  color: #fff8e1;
+  text-shadow:
+    0 2rpx 6rpx rgba(140, 98, 40, 0.6),
+    0 0 18rpx rgba(255, 235, 170, 0.8);
+  z-index: 2;
 }
 
 .gc-back-no {
   font-size: var(--tg-font-size-micro);
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 248, 220, 0.7);
   margin-top: 6rpx;
-  z-index: 1;
+  z-index: 2;
 }
 
 .gc-back-shine {
@@ -400,9 +487,10 @@
   left: -100%;
   width: 60%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 252, 235, 0.45), transparent);
   animation: gcBackShine 4s ease-in-out infinite;
   pointer-events: none;
+  z-index: 3;
 }
 
 /* ---- NEW 徽章 ---- */
@@ -410,7 +498,7 @@
   position: absolute;
   top: -2rpx;
   right: -2rpx;
-  background: linear-gradient(135deg, #3d5940, #7a9e7e);
+  background: linear-gradient(135deg, #d9af52, #e6bd5e);
   color: var(--tg-color-white);
   font-size: var(--tg-font-size-micro);
   font-weight: var(--tg-font-weight-bold);
@@ -478,14 +566,14 @@
 }
 
 .rp2 {
-  background: #7a9e7e;
+  background: #e6bd5e;
   animation-delay: 0.05s;
   --rx: 140rpx;
   --ry: -160rpx;
 }
 
 .rp3 {
-  background: #7b68ee;
+  background: #f5a623;
   animation-delay: 0.1s;
   --rx: -160rpx;
   --ry: 40rpx;
@@ -513,7 +601,7 @@
 }
 
 .rp7 {
-  background: #00bcd4;
+  background: #ffb300;
   animation-delay: 0.08s;
   --rx: 200rpx;
   --ry: -40rpx;
@@ -531,7 +619,7 @@
 }
 
 .rp9 {
-  background: #7a9e7e;
+  background: #d9af52;
   animation-delay: 0.18s;
   --rx: 100rpx;
   --ry: 180rpx;
@@ -540,7 +628,7 @@
 }
 
 .rp10 {
-  background: #ba93ff;
+  background: #ffd54f;
   animation-delay: 0.22s;
   --rx: -50rpx;
   --ry: -250rpx;
@@ -600,15 +688,15 @@
   width: 100%;
   height: 100%;
   border-radius: 24rpx;
-  background: linear-gradient(155deg, #2a1a5e 0%, #4a2c8a 40%, #6a3cba 70%, #2a1a5e 100%);
-  border: 3rpx solid rgba(197, 165, 114, 0.4);
+  background: linear-gradient(155deg, #6b4a12 0%, #8a6320 40%, #a87a28 70%, #6b4a12 100%);
+  border: 3rpx solid rgba(255, 235, 170, 0.6);
   @include flex-column-center;
   position: relative;
   overflow: hidden;
   box-shadow:
-    0 16rpx 48rpx rgba(0, 0, 0, 0.4),
-    0 0 40rpx rgba(197, 165, 114, 0.15),
-    inset 0 2rpx 0 rgba(255, 255, 255, 0.15);
+    0 16rpx 48rpx rgba(80, 55, 15, 0.4),
+    0 0 40rpx rgba(217, 175, 72, 0.25),
+    inset 0 2rpx 0 rgba(255, 245, 210, 0.25);
 }
 
 .rc-holo {
@@ -617,10 +705,10 @@
   background: linear-gradient(
     135deg,
     rgba(197, 165, 114, 0) 0%,
-    rgba(197, 165, 114, 0.1) 20%,
-    rgba(186, 147, 255, 0.15) 40%,
+    rgba(255, 235, 170, 0.12) 20%,
+    rgba(255, 245, 210, 0.18) 40%,
     rgba(197, 165, 114, 0.05) 60%,
-    rgba(186, 147, 255, 0.1) 80%,
+    rgba(255, 235, 170, 0.12) 80%,
     rgba(197, 165, 114, 0) 100%
   );
   animation: holoShift 3s ease-in-out infinite;
@@ -726,7 +814,7 @@
 .draw-btn-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #7b68ee, #6a5acd, #9370db);
+  background: linear-gradient(135deg, #fdf2cf, #f0ce72, #d9af48, #bd9433);
   background-size: 200% 200%;
   animation: btnBgShift 4s ease-in-out infinite;
   border-radius: 48rpx;
@@ -741,13 +829,14 @@
 
 .draw-btn-icon {
   font-size: var(--tg-font-size-headline);
+  color: #6b4a12;
 }
 
 .draw-btn-text {
   font-size: var(--tg-font-size-headline);
   font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-color-white);
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  color: #6b4a12;
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.5);
 }
 
 /* 按钮忙碌 */
@@ -770,13 +859,13 @@
 
 /* 闲置脉冲 */
 .draw-btn:not(.draw-btn-busy):not(.draw-btn-done) {
-  box-shadow: 0 8rpx 28rpx rgba(123, 104, 238, 0.45);
+  box-shadow: 0 8rpx 28rpx rgba(217, 175, 72, 0.45);
   animation: btnPulse 2.5s ease-in-out infinite;
 }
 
 .cc-cost {
   font-size: var(--tg-font-size-small);
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--tg-text-secondary, #8b7355);
 }
 
 .cost-val {
@@ -995,11 +1084,11 @@
 @keyframes btnPulse {
   0%,
   100% {
-    box-shadow: 0 8rpx 28rpx rgba(123, 104, 238, 0.45);
+    box-shadow: 0 8rpx 28rpx rgba(217, 175, 72, 0.45);
   }
 
   50% {
-    box-shadow: 0 12rpx 40rpx rgba(123, 104, 238, 0.65);
+    box-shadow: 0 12rpx 40rpx rgba(217, 175, 72, 0.65);
     transform: translateY(-2rpx);
   }
 }
@@ -1077,7 +1166,7 @@
   width: 8rpx;
   height: 8rpx;
   border-radius: 50%;
-  background: var(--tg-lottery-primary, #7c4dff);
+  background: var(--tg-lottery-primary, #c5a572);
 }
 
 .ccl-prizes__title {
@@ -1093,14 +1182,26 @@
 
 .ccl-prizes__scroll {
   width: 100%;
-  white-space: nowrap;
   overflow: hidden;
   isolation: isolate;
   contain: paint;
 }
 
+.ccl-prizes__track {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.ccl-prizes__track--animate {
+  animation: ccPrizeMarquee 30s linear infinite;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
 .ccl-prizes__list {
   display: inline-flex;
+  flex-shrink: 0;
   gap: 16rpx;
   padding: 8rpx 4rpx 16rpx;
 }
