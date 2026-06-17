@@ -8,6 +8,7 @@
  */
 
 const { apiClient } = require('./client')
+const { getDeviceId } = require('../device')
 
 /**
  * 用户登录 - POST /api/v4/auth/login
@@ -26,16 +27,22 @@ async function userLogin(mobile: string, verification_code: string, openid?: str
   return apiClient.request('/auth/login', {
     method: 'POST',
     data,
-    needAuth: false
+    needAuth: false,
+    header: { 'X-Device-Id': getDeviceId() }
   })
 }
 
 /** 快速登录- POST /api/v4/auth/quick-login */
-async function quickLogin(mobile: string) {
+async function quickLogin(mobile: string, wx_openid?: string) {
+  const data: Record<string, string> = { mobile }
+  if (wx_openid) {
+    data.wx_openid = wx_openid
+  }
   return apiClient.request('/auth/quick-login', {
     method: 'POST',
-    data: { mobile },
-    needAuth: false
+    data,
+    needAuth: false,
+    header: { 'X-Device-Id': getDeviceId() }
   })
 }
 
@@ -59,7 +66,8 @@ async function wxCodeLogin(code: string, phoneCode?: string) {
     data,
     needAuth: false,
     showLoading: false,
-    showError: false
+    showError: false,
+    header: { 'X-Device-Id': getDeviceId() }
   })
 }
 

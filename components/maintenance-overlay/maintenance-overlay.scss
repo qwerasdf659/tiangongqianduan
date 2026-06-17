@@ -15,46 +15,126 @@
 }
 
 .maintenance-content {
-  width: 580rpx;
-  padding: 80rpx 60rpx;
+  position: relative;
+  width: 600rpx;
+  padding: 64rpx 48rpx 48rpx;
   background: var(--tg-color-white);
-  border-radius: var(--td-radius-large);
+  border-radius: 32rpx;
   text-align: center;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* 顶部品牌金渐变彩带 */
+.maintenance-content--update::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 12rpx;
+  background: linear-gradient(90deg, #e6c178, #d4a94e, #b8893a);
+}
+
+/* 角落柔光装饰图案 */
+.deco-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(20rpx);
+  opacity: 0.5;
+}
+
+.deco-blob--1 {
+  top: -40rpx;
+  right: -30rpx;
+  width: 180rpx;
+  height: 180rpx;
+  background: radial-gradient(circle, rgba(212, 169, 78, 0.35), transparent 70%);
+}
+
+.deco-blob--2 {
+  bottom: -50rpx;
+  left: -40rpx;
+  width: 200rpx;
+  height: 200rpx;
+  background: radial-gradient(circle, rgba(230, 193, 120, 0.3), transparent 70%);
 }
 
 .maintenance-icon {
-  font-size: 120rpx;
-  margin-bottom: 30rpx;
+  position: relative;
+  width: 128rpx;
+  height: 128rpx;
+  margin: 0 auto 32rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.maintenance-icon--update {
+  background: linear-gradient(135deg, #e6c178, #d4a94e 55%, #b8893a);
+  box-shadow: 0 12rpx 28rpx rgba(212, 169, 78, 0.4);
+}
+
+/* 图标外圈光环 */
+.icon-ring {
+  position: absolute;
+  top: -12rpx;
+  left: -12rpx;
+  right: -12rpx;
+  bottom: -12rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(212, 169, 78, 0.3);
 }
 
 .maintenance-title {
-  font-size: var(--tg-font-size-display);
+  position: relative;
+  font-size: 38rpx;
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  margin-bottom: 20rpx;
+  margin-bottom: 16rpx;
 }
 
 .maintenance-message {
-  font-size: var(--tg-font-size-title);
+  position: relative;
+  font-size: 28rpx;
   color: var(--tg-text-secondary);
-  line-height: var(--tg-line-height-normal);
-  margin-bottom: 50rpx;
+  line-height: 1.6;
+  margin-bottom: 48rpx;
+  padding: 0 12rpx;
 }
 
 .maintenance-retry-btn {
-  width: 360rpx;
-  height: 80rpx;
-  line-height: 80rpx;
-  font-size: var(--tg-font-size-headline);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 88rpx;
+  font-size: 32rpx;
+  font-weight: var(--tg-font-weight-medium);
   color: var(--tg-color-white);
   background: var(--td-brand-color);
-  border-radius: 40rpx;
+  border-radius: 44rpx;
   border: none;
+
+  &::after {
+    border: none;
+  }
 
   &.is-disabled {
     background: var(--tg-text-disabled);
     color: var(--tg-text-tertiary);
   }
+
+  .btn-text {
+    margin-left: 10rpx;
+  }
+}
+
+.maintenance-retry-btn--update {
+  background: linear-gradient(135deg, #e6c178, #d4a94e 55%, #b8893a);
+  box-shadow: 0 10rpx 24rpx rgba(212, 169, 78, 0.38);
 }
 
 .maintenance-hint {

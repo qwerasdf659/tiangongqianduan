@@ -25,7 +25,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #FFFEFC;
+  background: #fffefc;
   border-radius: 40rpx 40rpx 0 0;
   padding: 56rpx 48rpx;
   padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
@@ -42,15 +42,28 @@
 
 /* 标题 */
 .popup-header {
+  position: relative;
   text-align: center;
   margin-bottom: 36rpx;
+}
+
+/* 后退按钮：绝对定位在头部左侧，垂直对齐标题，不影响标题居中 */
+.popup-back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .popup-title {
   display: block;
   font-size: var(--tg-font-size-headline, 36rpx);
   font-weight: var(--tg-font-weight-semibold, 600);
-  color: var(--tg-text-primary, #1A1A1A);
+  color: var(--tg-text-primary, #1a1a1a);
   margin-bottom: 12rpx;
   letter-spacing: var(--tg-letter-spacing-normal, 2rpx);
 }
@@ -70,20 +83,54 @@
   margin-bottom: 32rpx;
 }
 
+/* 文字整体块：与勾选圈并排，宽度由内容决定，不被压缩换行 */
+.agreement-texts {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+/* 勾选圈容器：固定 36rpx 尺寸，决定布局占位；按钮绝对定位覆盖其上只负责点击授权，
+   不再参与 flex 排版宽度，从而彻底消除 Skyline 下原生 button 撑出的空位。 */
+.agreement-check-wrap {
+  position: relative;
+  flex: 0 0 36rpx;
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 10rpx;
+}
+
+.agreement-agree-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 36rpx;
+  height: 36rpx;
+  min-height: 36rpx;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  line-height: normal;
+  opacity: 0;
+
+  &::after {
+    border: none;
+  }
+}
+
 .agreement-checkbox {
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
-  border: 2rpx solid #E0D0BC;
+  border: 2rpx solid #e0d0bc;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12rpx;
+  margin-right: 0;
   transition: all 0.2s;
 
   &.checked {
-    background: linear-gradient(135deg, #C8A06A, #A0724A);
-    border-color: #C8A06A;
+    background: linear-gradient(135deg, #c8a06a, #a0724a);
+    border-color: #c8a06a;
   }
 }
 
@@ -94,7 +141,7 @@
 
 .agreement-link {
   font-size: var(--tg-font-size-caption, 24rpx);
-  color: #C8A06A;
+  color: #c8a06a;
   font-weight: var(--tg-font-weight-medium, 500);
 }
 
@@ -127,13 +174,13 @@
 }
 
 .wechat-btn {
-  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   color: #fff;
   box-shadow: 0 8rpx 24rpx rgba(200, 160, 106, 0.3);
 }
 
 .sms-btn {
-  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   color: #fff;
   box-shadow: 0 8rpx 24rpx rgba(200, 160, 106, 0.3);
 }
@@ -158,7 +205,7 @@
 .input-label {
   display: block;
   font-size: var(--tg-font-size-body, 26rpx);
-  color: var(--tg-text-primary, #1A1A1A);
+  color: var(--tg-text-primary, #1a1a1a);
   font-weight: var(--tg-font-weight-medium, 500);
   margin-bottom: 12rpx;
   letter-spacing: var(--tg-letter-spacing-tight, 1rpx);
@@ -168,7 +215,7 @@
   display: flex;
   align-items: center;
   height: 96rpx;
-  background: #F8F5F0;
+  background: #f8f5f0;
   border-radius: 20rpx;
   padding: 0 28rpx;
   border: 2rpx solid transparent;
@@ -179,7 +226,7 @@
   flex: 1;
   height: 96rpx;
   font-size: var(--tg-font-size-title, 28rpx);
-  color: var(--tg-text-primary, #1A1A1A);
+  color: var(--tg-text-primary, #1a1a1a);
 }
 
 .code-row {
@@ -193,7 +240,7 @@
 .send-code-btn {
   flex-shrink: 0;
   padding: 14rpx 28rpx;
-  background: linear-gradient(135deg, #C8A06A, #A0724A);
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
   color: #fff;
   font-size: var(--tg-font-size-small, 22rpx);
   font-weight: var(--tg-font-weight-medium, 500);
@@ -202,7 +249,7 @@
   letter-spacing: var(--tg-letter-spacing-tight, 1rpx);
 
   &.disabled {
-    background: #E8E0D8;
-    color: #B0A898;
+    background: #e8e0d8;
+    color: #b0a898;
   }
 }

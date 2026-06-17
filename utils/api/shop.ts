@@ -44,20 +44,31 @@ async function getMyConsumptionRecords(
 /**
  * 获取单条消费记录详情 - GET /api/v4/shop/consumption/detail/:id
  *
- * 后端路由: routes/v4/shop/consumption/query.js 第86行
+ * 后端路由: routes/v4/shop/consumption/query.js GET /detail/:id
  * 服务层: ConsumptionQueryService.getConsumptionDetailWithAuth(recordId, userId, isAdmin, options)
- * 数据库: consumption_records 表（当前48条真实数据）
+ * 数据库: consumption_records 表
  *
  * 注意: 路径参数名是 :id（不是 :record_id）
  * 权限: 支持三种身份 — 记录所有者(user_owner)、关联商家(merchant_owner)、管理员(admin_privilege)
  *
- * ⚠️ 需后端确认: Service 层是否通过 store_id JOIN stores 表返回 store_name
- *    前端详情页需要展示门店名称
+ * 响应 data（snake_case 原名，前端零映射直读）相比列表接口多出的详情字段:
+ *   store_name              门店名称（后端已 JOIN store 返回）
+ *   reward_points           奖励到账积分数（= 积分流水 delta_amount，仅 approved 记录有值；pending/拒绝为 null）
+ *   reward_transaction_no   奖励积分流水单号（便于对账展示，仅 approved 记录有值；pending/拒绝为 null）
+ *
+ * ⚠️ 数据安全: 后端仅下发上述非敏感字段，不下发 balance_before/balance_after 等账户余额快照（防抓包泄露）。
+ *    前端不得自行计算或补全余额类字段，所有数据以后端返回为准。
+ *
+ * @param record_id 消费记录主键 consumption_record_id（BIGINT）
  */
 async function getConsumptionDetail(record_id: number) {
   return apiClient.request(`/shop/consumption/detail/${record_id}`, {
     method: 'GET',
-    needAuth: true
+    needAuth: true,
+    showLoading: true,
+    loadingText: '加载详情中...',
+    showError: true,
+    errorPrefix: '加载消费详情失败：'
   })
 }
 

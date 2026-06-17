@@ -7,25 +7,39 @@
   <view class="login-popup-container {{visible ? 'show' : ''}}" catchtap="preventBubble">
     <!-- 标题区域 -->
     <view class="popup-header">
+      <!-- 后退按钮：仅验证码登录视图显示，点击返回微信一键登录选择界面 -->
+      <view wx:if="{{mode === 'sms'}}" class="popup-back" bindtap="onSwitchToWechat">
+        <t-icon name="chevron-left" size="44rpx" color="#1A1A1A" />
+      </view>
       <text class="popup-title">登录</text>
       <text class="popup-subtitle">登录后即可参与回馈赚积分</text>
     </view>
 
     <!-- 微信一键登录视图（默认） -->
     <view class="login-view" wx:if="{{mode === 'wechat'}}">
-      <!-- 协议勾选 -->
-      <view class="agreement-row" bindtap="onToggleAgreement">
-        <view class="agreement-checkbox {{agreementChecked ? 'checked' : ''}}">
-          <t-icon wx:if="{{agreementChecked}}" name="check" size="24rpx" color="#fff" />
+      <!-- 协议勾选（点勾选圈=完成微信隐私授权，合并在弹窗内，无需微信官方隐私弹窗） -->
+      <view class="agreement-row">
+        <view class="agreement-check-wrap">
+          <view class="agreement-checkbox {{agreementChecked ? 'checked' : ''}}">
+            <t-icon wx:if="{{agreementChecked}}" name="check" size="24rpx" color="#fff" />
+          </view>
+          <button
+            id="agree-privacy-btn-wechat"
+            class="agreement-agree-btn"
+            open-type="agreePrivacyAuthorization"
+            bindagreeprivacyauthorization="onAgreePrivacy"
+          ></button>
         </view>
-        <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link" catchtap="onViewAgreement" data-type="user_agreement"
-          >《用户协议》</text
-        >
-        <text class="agreement-text">和</text>
-        <text class="agreement-link" catchtap="onViewAgreement" data-type="privacy_policy"
-          >《隐私政策》</text
-        >
+        <view class="agreement-texts">
+          <text class="agreement-text">我已阅读并同意</text>
+          <text class="agreement-link" catchtap="onViewAgreement" data-type="user_agreement"
+            >《用户协议》</text
+          >
+          <text class="agreement-text">和</text>
+          <text class="agreement-link" catchtap="onViewAgreement" data-type="privacy_policy"
+            >《隐私政策》</text
+          >
+        </view>
       </view>
 
       <!-- 微信一键登录按钮 -->
@@ -83,19 +97,29 @@
         </view>
       </view>
 
-      <!-- 协议勾选 -->
-      <view class="agreement-row" bindtap="onToggleAgreement">
-        <view class="agreement-checkbox {{agreementChecked ? 'checked' : ''}}">
-          <t-icon wx:if="{{agreementChecked}}" name="check" size="24rpx" color="#fff" />
+      <!-- 协议勾选（点勾选圈=完成微信隐私授权，合并在弹窗内） -->
+      <view class="agreement-row">
+        <view class="agreement-check-wrap">
+          <view class="agreement-checkbox {{agreementChecked ? 'checked' : ''}}">
+            <t-icon wx:if="{{agreementChecked}}" name="check" size="24rpx" color="#fff" />
+          </view>
+          <button
+            id="agree-privacy-btn-sms"
+            class="agreement-agree-btn"
+            open-type="agreePrivacyAuthorization"
+            bindagreeprivacyauthorization="onAgreePrivacy"
+          ></button>
         </view>
-        <text class="agreement-text">我已阅读并同意</text>
-        <text class="agreement-link" catchtap="onViewAgreement" data-type="user_agreement"
-          >《用户协议》</text
-        >
-        <text class="agreement-text">和</text>
-        <text class="agreement-link" catchtap="onViewAgreement" data-type="privacy_policy"
-          >《隐私政策》</text
-        >
+        <view class="agreement-texts">
+          <text class="agreement-text">我已阅读并同意</text>
+          <text class="agreement-link" catchtap="onViewAgreement" data-type="user_agreement"
+            >《用户协议》</text
+          >
+          <text class="agreement-text">和</text>
+          <text class="agreement-link" catchtap="onViewAgreement" data-type="privacy_policy"
+            >《隐私政策》</text
+          >
+        </view>
       </view>
 
       <!-- 验证码登录按钮 -->
@@ -107,11 +131,6 @@
         <text wx:if="{{loggingType !== 'sms'}}">验证码登录</text>
         <text wx:else>登录中...</text>
       </button>
-
-      <!-- 切换回微信登录 -->
-      <view class="switch-mode" bindtap="onSwitchToWechat">
-        <text class="switch-text">返回微信一键登录</text>
-      </view>
     </view>
   </view>
 </view>

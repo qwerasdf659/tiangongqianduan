@@ -190,25 +190,44 @@ App({
    * 后端版本闸门检查（业务层强制更新）
    *
    * 微信 getUpdateManager 只能在冷启动检查、且无法拦住"还没更新就用旧版"的用户。
-   * 此方法请求后端 GET /system/app-version，将本地版本与 min_version 比较，
-   * 低于最低可用版本时进入强制更新模式，用全屏遮罩拦住用户，连首页都进不去。
+   * 此方法请求后端 GET /system/app-version，将「真实小程序版本」与 min_version 比较，
+   * 低于最低可用版本且开启强更时进入强制更新模式，用全屏遮罩拦住用户，连首页都进不去。
    *
-   * 容错原则：接口异常/超时一律放行（不拦截用户），避免后端抖动导致全员打不开。
+   * 绝不误拦原则（接口异常/超时/未开强更/缺 min_version/开发版/平台不匹配）一律放行，
+   * 避免后端抖动或开发态导致用户被锁在门外。版本号取自 wx.getAccountInfoSync()，
+   * 而非硬编码常量，确保与微信线上实际发布版本一致。
    */
   async checkVersionGate(): Promise<void> {
+    let curVersion = ''
+    try {
+      curVersion = wx.getAccountInfoSync().miniProgram.version || ''
+    } catch (accountError: any) {
+      log.info('版本闸门跳过（取小程序版本失败，放行）:', accountError.message)
+      return
+    }
+    // 开发版/体验版无正式版本号（'develop' 或空）→ 不参与比对，直接放行
+    if (!curVersion || curVersion === 'develop') {
+      log.info('版本闸门跳过（开发版/无版本号，放行）:', curVersion)
+      return
+    }
+
     try {
       const result = await API.getAppVersionGate()
       if (!result || !result.success || !result.data) {
         return
       }
-      const { min_version, force_update, update_message } = result.data
-      if (!force_update || !min_version) {
+      const { min_version, force_update, update_message, platform } = result.data
+      // 绝不误拦：未开强更 / 缺 min_version / 平台不匹配 → 放行
+      if (force_update !== true || !min_version) {
+        return
+      }
+      if (platform && platform !== 'miniprogram') {
         return
       }
       const { Utils } = require('./utils/index')
-      const localVersion = this.globalData.version
-      if (Utils.compareVersion(localVersion, min_version) < 0) {
-        log.warn('版本闸门命中，进入强制更新模式', { localVersion, min_version })
+      // 逐段语义化比较，仅当「当前版本 < min_version」才拦
+      if (Utils.compareVersion(curVersion, min_version) < 0) {
+        log.warn('版本闸门命中，进入强制更新模式', { curVersion, min_version })
         this.enterForceUpdateMode(update_message)
       }
     } catch (gateError: any) {

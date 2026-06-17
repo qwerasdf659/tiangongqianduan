@@ -714,38 +714,74 @@ Page({
   },
 
   /**
-   * 🧾 查看消费记录详情（含审核链进度）
+   * 🧾 查看消费记录详情（调用详情接口 + 审核链进度）
    *
-   * 字段来源：后端API GET /api/v4/shop/consumption/me 返回的记录
-   * 审核链进度：
-   *   - 优先使用后端在记录中附带的 chain_info 字段（需后端 JOIN approval_chain_instances）
-   *   - 当 chain_info 不存在且当前用户 role_level>=60 时，回退调用审核链实例API查询
+   * 数据来源：GET /api/v4/shop/consumption/detail/:id（后端已修复 500，并 JOIN store、积分流水）
+   *   - store_name             门店名称
+   *   - reward_points          奖励到账积分（仅 approved 有值）
+   *   - reward_transaction_no  奖励积分流水单号（仅 approved 有值，便于对账）
+   * 审核链进度：pending 状态下优先用记录附带 chain_info，回退调用审核链实例API（role_level>=60）
+   *
+   * 所有展示字段以后端详情接口返回为准，前端不自行计算、不静默补全。
    */
   async viewReviewDetail(e: WechatMiniprogram.BaseEvent) {
-    const record = e.currentTarget.dataset.record
+    const listRecord = e.currentTarget.dataset.record
 
-    if (!record) {
+    if (!listRecord) {
       return
     }
 
-    const statusInfo = this.formatReviewStatus(record.status)
-    let content = `消费时间：${record.created_at || '未知'}\n审核状态：${statusInfo.text}\n消费金额：${record.consumption_amount || 0}元`
-
-    if (record.status === 'approved' && record.points_to_award) {
-      content += `\n获得积分：${formatPoints(record.points_to_award)}`
+    // 详情接口以主键 consumption_record_id 查询，缺失则明确报错（不静默降级）
+    const recordId = listRecord.consumption_record_id
+    if (recordId === undefined || recordId === null || recordId === '') {
+      log.error('查看详情失败：消费记录缺少 consumption_record_id 字段', listRecord)
+      showToast('记录信息缺失，无法查看详情')
+      return
     }
 
-    if (record.status === 'rejected' && record.admin_notes) {
-      content += `\n拒绝原因：${record.admin_notes}`
+    let detail: any
+    try {
+      const result = await API.getConsumptionDetail(recordId)
+      if (!result || !result.success || !result.data) {
+        log.error('消费详情接口返回异常（success/data 缺失）', result)
+        showToast('消费详情加载失败')
+        return
+      }
+      detail = result.data
+    } catch (error) {
+      // 接口层已弹出错误 Toast，这里仅记录日志并中断（不回退用列表数据冒充详情）
+      log.error('加载消费详情失败:', error)
+      return
     }
 
-    if (record.merchant_notes) {
-      content += `\n商家备注：${record.merchant_notes}`
+    const statusInfo = this.formatReviewStatus(detail.status)
+    let content = `消费时间：${safeTimeString(detail.created_at) || '未知'}\n审核状态：${statusInfo.text}\n消费金额：${detail.consumption_amount || 0}元`
+
+    if (detail.store_name) {
+      content += `\n消费门店：${detail.store_name}`
+    }
+
+    /* 已通过记录展示后端下发的奖励积分与流水单号（pending/拒绝时后端返回 null，不展示） */
+    if (detail.status === 'approved') {
+      if (detail.reward_points !== null && detail.reward_points !== undefined) {
+        content += `\n到账积分：${formatPoints(detail.reward_points)}`
+      }
+      if (detail.reward_transaction_no) {
+        content += `\n流水单号：${detail.reward_transaction_no}`
+      }
+    }
+
+    if (detail.status === 'rejected' && detail.admin_notes) {
+      content += `\n拒绝原因：${detail.admin_notes}`
+    }
+
+    if (detail.merchant_notes) {
+      content += `\n商家备注：${detail.merchant_notes}`
     }
 
     /* 审核链进度展示（pending 状态下尝试获取链路信息） */
-    if (record.status === 'pending') {
-      const chainProgress = await this.fetchChainProgressForRecord(record)
+    if (detail.status === 'pending') {
+      const chainProgress = await this.fetchChainProgressForRecord(detail)
       if (chainProgress) {
         content += `\n\n── 审核链进度 ──\n当前进度：第${chainProgress.current_step}步 / 共${chainProgress.total_steps}步\n审核状态：${chainProgress.status_text}`
         if (chainProgress.current_node_name) {

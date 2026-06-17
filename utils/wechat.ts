@@ -55,7 +55,7 @@ class WechatUtils {
 
     log.info('微信环境初始化v5.0', {
       isDevelopment: devConfig.enableUnifiedAuth
-      // 万能验证码123456完全由后端控制，前端不记录
+      //
     })
 
     return {

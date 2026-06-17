@@ -56,6 +56,22 @@ Component({
     }
   },
 
+  lifetimes: {
+    // 组件挂载时注册隐私授权监听：隐私接口触发授权需求时改由本弹窗内的「同意」按钮处理，
+    // 不再弹出微信官方「用户隐私保护提示」独立弹窗，实现隐私授权与登录弹窗合并（对齐主流小程序体验）
+    attached(this: any) {
+      if (wx.onNeedPrivacyAuthorization) {
+        wx.onNeedPrivacyAuthorization((resolve: any) => {
+          // 暂存 resolve，等用户在本弹窗点「同意」(open-type=agreePrivacyAuthorization) 后再放行
+          this._privacyResolve = resolve
+        })
+      }
+    },
+    detached(this: any) {
+      this._privacyResolve = null
+    }
+  },
+
   data: {
     mode: 'wechat' as 'wechat' | 'sms',
     /** 隐私协议勾选态：默认 false，用户须主动勾选才能登录（《个人信息保护法》第14条：自愿、明确同意） */
@@ -103,9 +119,16 @@ Component({
       this.setData({ mode: 'wechat' })
     },
 
-    // 勾选协议
-    onToggleAgreement() {
-      this.setData({ agreementChecked: !this.data.agreementChecked })
+    // 同意协议并完成微信隐私授权（绑定在 open-type=agreePrivacyAuthorization 的按钮上）
+    // 微信会先校验该按钮被真实点击，再触发本回调；此处同步勾选态并放行 pending 中的隐私接口
+    onAgreePrivacy(this: any, e: any) {
+      this.setData({ agreementChecked: true })
+      if (this._privacyResolve) {
+        // buttonId 取实际被点击的按钮 id（区分微信/验证码两个视图），event:'agree' 放行原隐私接口继续执行
+        const buttonId = e?.currentTarget?.id || 'agree-privacy-btn-wechat'
+        this._privacyResolve({ buttonId, event: 'agree' })
+        this._privacyResolve = null
+      }
     },
 
     // 查看协议（type: user_agreement 用户协议 / privacy_policy 隐私政策）
@@ -173,8 +196,27 @@ Component({
 
     // ========== 微信一键登录 ==========
     onGetPhoneNumber(e: any) {
-      if (e.detail.errMsg !== 'getPhoneNumber:ok') {
-        Wechat.showToast('需要授权手机号才能登录')
+      const { errMsg, errno } = e.detail || {}
+      if (errMsg !== 'getPhoneNumber:ok') {
+        // errno=112：手机号未在《用户隐私保护指引》中声明，组件被微信直接禁用（平台后台配置问题）
+        // errno=104：用户在隐私授权弹窗中拒绝同意隐私协议
+        // errno=103：用户在隐私授权弹窗中点击「拒绝」
+        // 这三类均为隐私授权链路问题，记录真实 errno 便于真机 vConsole 定位
+        if (errno === 112) {
+          log.error('手机号未在隐私保护指引中声明(errno=112)，需在微信公众平台补充声明', e.detail)
+          Wechat.showToast('一键登录暂不可用，请用验证码登录')
+          this.setData({ mode: 'sms' })
+          return
+        }
+        // 用户主动拒绝（授权弹窗 user deny / 隐私协议 errno=103/104）
+        if ((errMsg && errMsg.indexOf('user deny') !== -1) || errno === 103 || errno === 104) {
+          Wechat.showToast('需要授权手机号才能登录')
+          return
+        }
+        // 其他失败：完整记录真实 errMsg/errno，降级到验证码登录保证业务可用
+        log.error('获取手机号授权失败', { errMsg, errno })
+        Wechat.showToast('获取手机号失败，请用验证码登录')
+        this.setData({ mode: 'sms' })
         return
       }
       if (this.data.loggingType || this.data.loginCompleted) {

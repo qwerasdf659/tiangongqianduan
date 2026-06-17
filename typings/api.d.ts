@@ -1095,8 +1095,19 @@ declare namespace API {
     admin_notes?: string
     /** 门店ID */
     store_id: number
-    /** 门店名称（⚠️ 需后端 JOIN stores 表确认是否返回） */
+    /** 门店名称（详情接口 GET /shop/consumption/detail/:id 已 JOIN store 返回；列表接口可能不含） */
     store_name?: string
+    /**
+     * 奖励到账积分数（= 后端积分流水 delta_amount）
+     * ⚠️ 详情接口 GET /shop/consumption/detail/:id 专有字段，列表接口不返回
+     * 仅 approved（已通过）记录有值；pending/rejected 记录为 null（reward_transaction_id 为 NULL）
+     */
+    reward_points?: number | null
+    /**
+     * 奖励积分流水单号（= 后端积分流水 transaction_no，用于对账展示）
+     * ⚠️ 详情接口专有字段，列表接口不返回；仅 approved 记录有值，pending/rejected 为 null
+     */
+    reward_transaction_no?: string | null
     /** 审核时间（后端字段名 reviewed_at，非 approved_at） */
     reviewed_at?: string | null
     /** 创建时间 */
