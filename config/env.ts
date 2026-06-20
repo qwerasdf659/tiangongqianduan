@@ -94,6 +94,12 @@ interface SecurityConfig {
   enableDataValidation: boolean
   enableSafetyChecks: boolean
   apiVersion: string
+  /**
+   * 腾讯云天御验证码 CaptchaAppId（小程序发码前人机验证用）
+   * ⚠️ 待填真实数据：须与后端 .env 的 CAPTCHA_APP_ID 完全一致（同一个天御应用）
+   * 留空时：非生产环境后端放行可正常联调；生产环境天御控件无法初始化，须填入真实值
+   */
+  captchaAppId: string
 }
 
 /** 单个环境完整配置 */
@@ -155,7 +161,9 @@ const BASE_BUSINESS_CONFIG: BusinessConfig = {
 const BASE_SECURITY_CONFIG: SecurityConfig = {
   enableDataValidation: true,
   enableSafetyChecks: true,
-  apiVersion: 'v4.0'
+  apiVersion: 'v4.0',
+  // 腾讯云天御验证码 CaptchaAppId（须与后端 .env 的 CAPTCHA_APP_ID 一致）
+  captchaAppId: '199729942'
 }
 
 /** 开发阶段基础配置 — dev/mobile/testing共享，production 独立覆盖 */

@@ -1,0 +1,166 @@
+/* packageAdmin/staff-redemption-perm/staff-redemption-perm.scss
+ * 员工核销权限管理页样式。分包页面必须 @include tg-tokens 获取 Design Token，
+ * 沿用项目设计美学：米色头部渐变 + 品牌金棕 #8b7355 + 白卡列表 + Typography Token。
+ */
+@import '../../styles/mixins';
+
+/* Skyline 页面级滚动容器 */
+.perm-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.perm-page {
+  @include tg-tokens;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--tg-color-bg);
+}
+
+/* ===== 页面说明头部（米色渐变 + 装饰图标） ===== */
+.perm-header {
+  background: linear-gradient(180deg, #f5f0e8 0%, var(--tg-color-white) 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--tg-spacing-md);
+}
+
+.perm-header-text {
+  position: relative;
+  z-index: 1;
+  @include flex-column;
+  gap: 10rpx;
+}
+
+.perm-header-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-wide);
+}
+
+.perm-header-desc {
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-regular);
+  color: var(--tg-text-secondary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.perm-header-icon {
+  position: absolute;
+  right: var(--tg-spacing-md);
+  bottom: 0;
+  z-index: 0;
+}
+
+/* ===== 门店切换器 / 单门店展示 ===== */
+.store-picker,
+.store-single {
+  margin: 0 var(--tg-spacing-lg) var(--tg-spacing-md);
+}
+
+.store-picker-inner,
+.store-single {
+  @include flex-align-center;
+  gap: 12rpx;
+  padding: var(--tg-spacing-md);
+  background: var(--tg-color-white);
+  border-radius: 16rpx;
+  box-shadow: var(--tg-shadow-card);
+}
+
+.store-picker-name,
+.store-single-name {
+  flex: 1;
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+/* ===== 加载 / 空态 ===== */
+.perm-loading {
+  @include flex-column-center;
+  padding: 80rpx 0;
+}
+
+.perm-empty {
+  padding: 80rpx 0;
+}
+
+/* ===== 员工列表 ===== */
+.staff-list {
+  padding: 0 var(--tg-spacing-lg) var(--tg-spacing-lg);
+  @include flex-column;
+  gap: var(--tg-spacing-sm);
+}
+
+.staff-item {
+  @include flex-align-center;
+  justify-content: space-between;
+  padding: var(--tg-spacing-md);
+  background: var(--tg-color-white);
+  border-radius: 16rpx;
+  box-shadow: var(--tg-shadow-card);
+}
+
+.staff-info {
+  @include flex-column;
+  gap: 8rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.staff-name-row {
+  @include flex-align-center;
+  gap: 12rpx;
+}
+
+.staff-name {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.staff-role-tag {
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: var(--tg-font-size-micro);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.staff-role-tag.manager {
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--tg-color-success);
+}
+
+.staff-role-tag.staff {
+  background: rgba(139, 115, 85, 0.1);
+  color: #8b7355;
+}
+
+.staff-mobile {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-regular);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.staff-manager-hint {
+  @include flex-align-center;
+  gap: 6rpx;
+  flex-shrink: 0;
+}
+
+.staff-manager-hint-text {
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-regular);
+  color: var(--tg-color-success);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}

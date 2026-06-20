@@ -13,7 +13,7 @@
  */
 
 // 统一工具函数导入
-const { Wechat, API, Logger, Utils } = require('../../utils/index')
+const { Wechat, API, Logger, Utils, TopBanner } = require('../../utils/index')
 const log = Logger.createLogger('camera')
 const { showToast } = Wechat
 const { checkAuth } = Utils
@@ -26,6 +26,16 @@ Page({
     userInfo: {},
     // 登录弹窗
     loginPopupVisible: false,
+
+    // 顶部沉浸式横幅（运营可配，后端 ad-delivery?slot_type=top_banner&position=camera）
+    /** 顶部 Banner 投放项（空则显示占位框） */
+    topBannerItems: [] as API.AdDeliveryItem[],
+    /** 顶部 Banner 是否轮播（后端槽位级 is_carousel） */
+    topBannerCarousel: false,
+    /** 顶部 Banner 轮播间隔毫秒（后端槽位级 slide_interval_ms） */
+    topBannerInterval: 3000,
+    /** 是否有运营配置的顶部 Banner 图（false 时显示占位框） */
+    topBannerReady: false,
 
     // 搜索关键词
     searchKeyword: '',
@@ -52,6 +62,27 @@ Page({
     })
 
     this.initializePage()
+  },
+
+  /** 加载顶部 Banner（复用 TopBanner 共享逻辑，失败/空则保持占位） */
+  async loadTopBanner() {
+    const result = await TopBanner.loadTopBanner('camera')
+    this.setData(result)
+  },
+
+  /** 顶部 Banner 点击（复用 TopBanner 跳转 + 上报） */
+  onTopBannerTap(e: any) {
+    if (!this.data.topBannerReady) {
+      return
+    }
+    const tapIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    TopBanner.handleTopBannerTap(this.data.topBannerItems[tapIndex], 'camera')
+  },
+
+  /** 顶部 Banner 轮播切换（swiper bindchange）：对切入的当前张补报曝光 */
+  onTopBannerChange(e: any) {
+    const currentIndex = Number(e?.detail?.current) || 0
+    TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'camera')
   },
 
   /** 页面卸载时清理定时器 + 销毁Store绑定 */
@@ -106,6 +137,9 @@ Page({
     wx.setTabBarStyle({ selectedColor: '#5B7A5E' })
 
     this.setData({ loading: true, campaigns: [] })
+
+    /* 顶部 Banner 运营投放（独立加载，失败不影响活动列表） */
+    this.loadTopBanner()
 
     try {
       const result = await API.getActiveCampaigns()

@@ -28,6 +28,7 @@ async function userLogin(mobile: string, verification_code: string, openid?: str
     method: 'POST',
     data,
     needAuth: false,
+    showError: false,
     header: { 'X-Device-Id': getDeviceId() }
   })
 }
@@ -99,20 +100,34 @@ async function getUserInfo() {
 
 /**
  * 发送短信验证码 - POST /api/v4/auth/send-code
- * 开发测试环境：后端支持万能验证码123456，无需实际发送短信
+ *
+ * 人机验证（腾讯云天御）契约：
+ *   - 生产环境：后端强制校验，前端须先弹天御小程序插件 t-captcha 拿到 ticket，随发码请求提交 captcha_ticket。
+ *   - 非生产环境：后端默认放行，可不传 captcha_ticket，方便联调短信链路。
+ *   - ⚠️ 小程序插件回调只返回 ticket、不返回 randstr，故前端只传 captcha_ticket，不传 captcha_randstr
+ *     （后端按是否带 randstr 自动分派小程序/Web 校验接口）。
+ *   - 校验失败后端返回 CAPTCHA_FAILED(400)，前端需重置验证码后让用户重试。
+ *
+ * 非生产环境后端仍支持万能验证码 123456，无需实际下发短信。
+ *
+ * @param mobile         11 位中国大陆手机号（裸号，不带 +86）
+ * @param captcha_ticket 天御验证码票据（生产必传；非生产可省略）
  */
-async function sendVerificationCode(mobile: string) {
+async function sendVerificationCode(mobile: string, captcha_ticket?: string) {
   if (!mobile || !/^1[3-9]\d{9}$/.test(mobile)) {
     throw new Error('请输入正确的11位手机号')
   }
+  const data: Record<string, string> = { mobile }
+  if (captcha_ticket) {
+    data.captcha_ticket = captcha_ticket
+  }
   return apiClient.request('/auth/send-code', {
     method: 'POST',
-    data: { mobile },
+    data,
     needAuth: false,
     showLoading: true,
     loadingText: '发送中...',
-    showError: true,
-    errorPrefix: '验证码发送失败：'
+    showError: false
   })
 }
 

@@ -1163,11 +1163,13 @@ declare namespace API {
     created_at: string
     /** 最后更新时间（ISO 8601） */
     updated_at: string
-    /** 最后消息对象（含 chat_message_id, content, sender_type, created_at） */
+    /** 最后消息对象（含 chat_message_id, content, sender_type, message_type, created_at） */
     last_message: {
       chat_message_id: number
       content: string
       sender_type: string
+      /** 消息类型: text / image / file / location（与单条消息接口同源同名，用于列表预览区分） */
+      message_type: string
       created_at: string
     } | null
     /** 未读消息数 */
@@ -1391,11 +1393,16 @@ declare namespace API {
     /** 主图媒体ID（关联 media_files 表，content_type='text' 时为 null） */
     primary_media_id: number | null
     /**
-     * 主图媒体对象（后端通过 media_files 表 JOIN 生成完整URL）
-     * content_type='image' 时: { media_id, public_url, width, height, thumbnails }
-     * content_type='text' 时: null
+     * 主图媒体对象（旧字段，后端 ad-delivery 实际不下发此嵌套对象，保留仅为兼容历史类型引用）
+     * @deprecated ad-delivery 统一下发扁平 image_url，前端图片一律取 image_url
      */
     primary_media: MediaObject | null
+    /**
+     * 图片完整代理 URL（后端 JOIN media_files 拼好，形如 {PUBLIC_BASE_URL}/api/v4/images/{object_key}）
+     * 这是 ad-delivery 接口（popup/carousel/announcement/feed/top_banner）的权威图片字段，
+     * content_type='image' 时有值，'text'（纯文字公告）时为 null。前端直接用、不自行拼接。
+     */
+    image_url: string | null
     /** 文字内容（content_type='text' 时有值，系统公告正文） */
     text_content: string | null
     /** 跳转链接（可为 null） */
@@ -1428,6 +1435,35 @@ declare namespace API {
   }
 
   /**
+   * ad-delivery 接口响应体（data 层）
+   *
+   * 后端接口: GET /api/v4/system/ad-delivery?slot_type=xxx&position=xxx
+   * 完整响应: ApiResponse<AdDeliveryData>，即 { success, data: AdDeliveryData }
+   * 字段全部 snake_case，与后端扁平结构一一对应，前端零映射直读。
+   */
+  interface AdDeliveryData {
+    /** 投放项列表（空数组表示该位无运营配置内容，前端据此不渲染/占位） */
+    items: AdDeliveryItem[]
+    /** 广告位类型: popup / carousel / announcement / feed / top_banner */
+    slot_type: string
+    /** 页面位置: home / lottery / profile / diy / camera / exchange 等 */
+    position: string
+    /**
+     * 是否轮播（槽位级展示形态，来自 ad_slots.is_carousel）
+     * true=多张轮播；false=单张（后端仅下发 priority 最高的 1 条）
+     * 仅 top_banner 等支持轮播开关的槽位下发，旧槽位可能为 undefined
+     */
+    is_carousel?: boolean
+    /**
+     * 轮播间隔毫秒（槽位级，来自 ad_slots.slide_interval_ms，默认 3000）
+     * 仅轮播场景使用；旧槽位可能为 undefined
+     */
+    slide_interval_ms?: number
+    /** 返回的投放项总数 */
+    total: number
+  }
+
+  /**
    * 统一交互日志上报参数
    *
    * 后端API: POST /api/v4/system/ad-events/interaction-log
@@ -1440,8 +1476,10 @@ declare namespace API {
     interaction_type: string
     /** 扩展数据（按场景携带不同的交互详情，JSON 格式存储） */
     extra_data?: {
-      /** 广告位类型: popup / carousel / announcement（区分不同投放场景） */
+      /** 广告位类型: popup / carousel / announcement / feed / top_banner（区分不同投放场景） */
       slot_type?: string
+      /** 顶部 Banner 场景：页面位置标识 lottery / profile / diy / camera / exchange（便于运营按位分析） */
+      position?: string
       /** 弹窗场景：展示时长毫秒（弹出到关闭的时间差） */
       show_duration_ms?: number
       /** 弹窗场景：关闭方式 close_btn / overlay / confirm_btn / auto_timeout */
@@ -1961,6 +1999,86 @@ declare namespace API {
    * redemption_orders.status 数据库ENUM
    */
   type RedemptionOrderStatus = 'pending' | 'fulfilled' | 'cancelled' | 'expired'
+
+  /**
+   * 本店核销概况数据（GET /api/v4/shop/redemption/store-stats?store_id=:id）
+   *
+   * 业务语义：门店专属兑换券业务线的"本店核销概况"看板数据。
+   *   - fulfilled_count：本店已核销数（按 redemption_orders.fulfilled_store_id = 本店聚合）
+   *   - pending_count：门店专属券待核销数（scoped_store_id_list 含本店），通用券不计入
+   * 数据按登录身份门店隔离，后端不下发兑换用户 PII。
+   *
+   * 鉴权：manager 放行；staff 须被授权（store_staff.can_view_redemption_stats=1），
+   *   否则后端返回 403 + code='REDEMPTION_STATS_FORBIDDEN'（前端静默降级，不展示该卡）。
+   *
+   * 字段 100% snake_case，前端零映射直读后端字段（以后端为准）。
+   */
+  interface RedemptionStoreStatsData {
+    /** 门店ID（回显请求的 store_id） */
+    store_id: number
+    /** 本店待核销数（门店专属券，scoped_store_id_list 含本店且 status=pending） */
+    pending_count: number
+    /** 本店已核销数（fulfilled_store_id=本店且 status=fulfilled） */
+    fulfilled_count: number
+  }
+
+  /**
+   * 店员核销概况查看授权结果
+   * （PUT /api/v4/shop/redemption/staff/:store_staff_id/stats-permission）
+   *
+   * 业务语义：店长（manager）授权/取消本店店员（staff）查看本店核销概况。
+   *   操作人须为该门店 active manager 或平台 admin；只能授权 role_in_store='staff' 记录。
+   * 字段 100% snake_case，前端零映射直读。
+   */
+  interface RedemptionStatsPermissionData {
+    /** 被授权的门店员工记录ID（store_staff 主键） */
+    store_staff_id: number
+    /** 授权后的查看权限标志（true=可查看本店核销概况） */
+    can_view_redemption_stats: boolean
+  }
+
+  /**
+   * 门店员工记录（GET /api/v4/shop/staff/list 的 staff[] 单项）
+   *
+   * 用途：员工核销权限管理页渲染列表 + 调授权接口（接口2）所需字段。
+   *   本接口属"门店管理"范畴（非 C 端核销概况），后端下发基本员工信息供店长识别。
+   * 字段 100% snake_case，前端零映射直读。
+   */
+  interface StoreStaffItem {
+    /** 门店员工记录ID（store_staff 主键，授权接口2的路径参数） */
+    store_staff_id: number
+    /** 员工用户ID */
+    user_id: number
+    /** 员工昵称 */
+    user_nickname: string
+    /** 员工手机号（门店管理可见，用于店长识别员工） */
+    user_mobile: string
+    /** 门店内角色：manager=店长（天然可看，不显示开关）/ staff=店员（显示授权开关） */
+    role_in_store: 'manager' | 'staff'
+    /** 当前是否已被授权查看本店核销概况（staff 开关初始状态） */
+    can_view_redemption_stats: boolean
+    /** 在职状态：active=在职 / inactive=离职 */
+    status: 'active' | 'inactive'
+  }
+
+  /**
+   * 门店员工列表响应数据（GET /api/v4/shop/staff/list?store_id=:id&status=active）
+   *
+   * 鉴权：登录 + staff:read 能力 + 门店上下文隔离（店长查本店；单店员工自动填充
+   *   store_id，多店须带）。分页字段与项目其它列表接口一致。
+   * 字段 100% snake_case，前端零映射直读。
+   */
+  interface StoreStaffListData {
+    /** 门店员工列表 */
+    staff: StoreStaffItem[]
+    /** 分页信息 */
+    pagination?: {
+      total: number
+      page: number
+      page_size: number
+      total_pages: number
+    }
+  }
 
   // ===== 用户通知系统（方案B独立化） =====
 

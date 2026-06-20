@@ -68,6 +68,22 @@ page {
   padding: 16rpx 0 12rpx;
 }
 
+/* 🎨 顶部 Banner（运营可配，position=exchange）— 圆角卡片式，融入商城页留白布局，非全宽沉浸式 */
+.exchange-top-banner {
+  width: 100%;
+  height: 280rpx;
+  margin-bottom: var(--tg-spacing-md);
+  border-radius: var(--td-radius-large);
+  overflow: hidden;
+  box-shadow: var(--tg-shadow-card);
+}
+
+.exchange-top-banner-media {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .header-login-btn {
   position: absolute;
   right: 0;

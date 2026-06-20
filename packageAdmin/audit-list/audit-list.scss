@@ -125,6 +125,261 @@
   line-height: 1;
 }
 
+/* ===== 顶部汇总条（§12.5 B 简洁看板：未审/已审/总数 + 超时预警） ===== */
+.summary-section {
+  padding: 0 var(--tg-spacing-lg) var(--tg-spacing-sm);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tg-spacing-sm);
+}
+
+.summary-card {
+  background: var(--tg-color-white);
+  border-radius: 20rpx;
+  padding: var(--tg-spacing-md) var(--tg-spacing-sm);
+  box-shadow: var(--tg-shadow-card);
+  @include flex-column-center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部 4rpx 主题色条（与积分页 main-stat-card 同款视觉语言） */
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  border-radius: 20rpx 20rpx 0 0;
+}
+
+.summary-card.pending::before {
+  background: linear-gradient(90deg, var(--tg-color-warning), #d4b886);
+}
+
+.summary-card.approved::before {
+  background: linear-gradient(90deg, var(--tg-color-success), #66bb6a);
+}
+
+.summary-card.total::before {
+  background: linear-gradient(
+    90deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
+}
+
+.summary-icon-bg {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  @include flex-center;
+  margin-bottom: 12rpx;
+}
+
+.summary-icon-bg.pending {
+  background: rgba(var(--tg-color-warning-rgb), 0.12);
+}
+
+.summary-icon-bg.approved {
+  background: rgba(var(--tg-color-success-rgb), 0.12);
+}
+
+.summary-icon-bg.total {
+  background: rgba(var(--td-brand-color-rgb), 0.12);
+}
+
+.summary-body {
+  text-align: center;
+}
+
+.summary-label {
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-tertiary);
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.summary-value {
+  font-size: var(--td-font-size-l);
+  font-weight: var(--tg-font-weight-bold);
+  display: block;
+  line-height: 1.2;
+}
+
+.summary-value.pending {
+  color: var(--tg-color-warning);
+}
+
+.summary-value.approved {
+  color: var(--tg-color-success);
+}
+
+.summary-value.total {
+  color: var(--tg-text-primary);
+}
+
+/* 超时预警条：error 主题浅底，仅有超时/临近超时时出现 */
+.summary-timeout-bar {
+  @include flex-align-center;
+  gap: 8rpx;
+  margin-top: var(--tg-spacing-sm);
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  background: rgba(var(--tg-color-error-rgb), 0.08);
+  border-radius: 16rpx;
+}
+
+.summary-timeout-icon {
+  flex-shrink: 0;
+}
+
+.summary-timeout-text {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-color-error);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.summary-timeout-text.near {
+  color: var(--tg-text-secondary);
+}
+
+.summary-timeout-divider {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
+}
+
+/* ===== 本店核销概况卡（门店专属兑换券业务线）=====
+ * 设计沿用项目美学：白底卡片 + 品牌金棕色系 + 顶部渐变描边，与汇总三卡同一视觉语言。
+ * 待核销用品牌金（warning 同族），已核销用成功绿，与汇总卡 pending/approved 配色呼应。
+ */
+.redemption-stats {
+  margin-top: var(--tg-spacing-sm);
+  background: var(--tg-color-white);
+  border-radius: 20rpx;
+  padding: var(--tg-spacing-md);
+  box-shadow: var(--tg-shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+
+.redemption-stats::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  border-radius: 20rpx 20rpx 0 0;
+  background: linear-gradient(
+    90deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
+}
+
+.redemption-stats-header {
+  @include flex-align-center;
+  gap: 8rpx;
+  margin-bottom: var(--tg-spacing-sm);
+}
+
+/* 权限管理入口（仅店长可见）：推到卡片标题行最右侧 */
+.redemption-stats-manage {
+  margin-left: auto;
+  @include flex-align-center;
+  gap: 2rpx;
+}
+
+.redemption-stats-manage-text {
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-medium);
+  color: #8b7355;
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.redemption-stats-icon {
+  flex-shrink: 0;
+}
+
+.redemption-stats-title {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.redemption-stats-grid {
+  @include flex-align-center;
+  justify-content: space-around;
+}
+
+/* 切店加载中：数字半透明，提示正在更新，避免误读上一门店旧数 */
+.redemption-stats-grid.loading {
+  opacity: 0.4;
+}
+
+/* 核销概况卡门店切换器（多门店店长）：轻量胶囊，与卡片同色系 */
+.redemption-store-picker {
+  margin-bottom: var(--tg-spacing-sm);
+}
+
+.redemption-store-picker-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  background: rgba(139, 115, 85, 0.08);
+  border-radius: 24rpx;
+}
+
+.redemption-store-picker-name {
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-medium);
+  color: #8b7355;
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.redemption-stat-item {
+  @include flex-column-center;
+  flex: 1;
+  gap: 6rpx;
+}
+
+.redemption-stat-value {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
+  line-height: 1.2;
+  letter-spacing: var(--tg-letter-spacing-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.redemption-stat-item.pending .redemption-stat-value {
+  color: var(--tg-color-warning);
+}
+
+.redemption-stat-item.fulfilled .redemption-stat-value {
+  color: var(--tg-color-success);
+}
+
+.redemption-stat-label {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
+  font-weight: var(--tg-font-weight-regular);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.redemption-stat-divider {
+  width: 1rpx;
+  height: 56rpx;
+  background: var(--tg-border-color);
+  flex-shrink: 0;
+}
+
 /* ===== 顶部统计面板 ===== */
 .stats-panel {
   padding: var(--tg-spacing-lg) var(--tg-spacing-lg) var(--tg-spacing-md);

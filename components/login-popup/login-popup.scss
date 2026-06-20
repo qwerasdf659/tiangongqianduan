@@ -233,6 +233,15 @@
   padding-right: 16rpx;
 }
 
+/* 验证码有效期提示（O4，弱化展示） */
+.code-tip {
+  display: block;
+  margin-top: 10rpx;
+  font-size: var(--tg-font-size-small, 22rpx);
+  color: var(--tg-text-tertiary, #999);
+  letter-spacing: var(--tg-letter-spacing-tight, 1rpx);
+}
+
 .code-input {
   flex: 1;
 }

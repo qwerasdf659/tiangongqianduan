@@ -10,8 +10,9 @@
  *   - Socket.IO 审核链事件驱动自动刷新
  *
  * 权限:
- *   只有 role_level >= 60 (business_manager 及以上) 的用户才会调用审核链API，
- *   普通用户调用 refreshPendingCount 时静默跳过。
+ *   审核接口门槛已由后端降至 role_level >= 20（店员及以上，对齐后端审核链升级）。
+ *   低于 lv20 的普通用户调用 refreshPendingCount 时静默跳过。
+ *   "能审哪些步骤"由后端按节点角色 + 门店/区域隔离精校，前端只做粗过滤。
  *
  * @file 天工平台 - 审核链Store
  * @version 6.0.0
@@ -56,7 +57,7 @@ export const auditStore = observable({
    * 从后端刷新待审核数量（唯一入口）
    *
    * 流程:
-   *   1. 检查用户角色是否有权限（role_level >= 60）
+   *   1. 检查用户角色是否有权限（role_level >= 20，店员及以上）
    *   2. 检查冷却时间（5秒内不重复请求）
    *   3. 调用 GET /api/v4/console/approval-chain/my-pending?page=1&page_size=1
    *   4. 从 pagination.total 提取待办数量
@@ -70,7 +71,7 @@ export const auditStore = observable({
       return
     }
     const localRoleLevel = cachedUserInfo.role_level || 0
-    if (localRoleLevel < 60) {
+    if (localRoleLevel < 20) {
       return
     }
 

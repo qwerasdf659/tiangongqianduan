@@ -4,8 +4,8 @@
  * 单一视图：面向「我的待办步骤」——审核链分配给当前登录人的待审核步骤。
  * 消费审核完全收口到审核链：审批 = 操作审核链步骤（step），终审通过自动发积分。
  *
- * 权限：business_manager(role_level>=60) 及以上可访问；
- *   具体能否审某一步由后端 ApprovalChainService.processStep() 精确鉴权。
+ * 权限：role_level>=20（店员及以上）可访问，对齐后端审核链门槛 lv60→lv20；
+ *   具体能否审某一步由后端 ApprovalChainService.processStep() 按节点角色 + 门店/区域隔离精确鉴权。
  *
  * 接口（不做字段映射，直接用后端字段名）：
  *   列表  GET  /api/v4/console/approval-chain/my-pending
@@ -81,6 +81,52 @@ Page({
     autosizeSmall: { minRows: 4, maxRows: 6 },
     autosizeLarge: { minRows: 4, maxRows: 8 },
 
+    // ===== 顶部汇总条（GET /shop/consumption/merchant/stats，§12.5 B 简洁看板） =====
+    /** 汇总数据已就绪标志（加载成功后展示，失败/无数据则不显示，不静默造假） */
+    summaryReady: false,
+    /** 未审核数（by_status.pending.count，范围内待审消费记录） */
+    summaryPendingCount: 0,
+    /** 已审核数（by_status.approved.count，范围内已通过消费记录） */
+    summaryApprovedCount: 0,
+    /** 审核总数（total.count，范围内全部消费记录 = 待审+已审结，口径见文档 8.6.4） */
+    summaryTotalCount: 0,
+    /** 已超时待审数（timeout.overdue，超时预警高亮用） */
+    summaryOverdueCount: 0,
+    /** 临近超时数（timeout.near_due，2小时内将超时） */
+    summaryNearDueCount: 0,
+
+    // ===== 本店核销概况卡（GET /shop/redemption/store-stats，门店专属券业务线） =====
+    /**
+     * 核销概况已就绪标志（加载成功后展示该卡）。
+     * 加载失败 / 无门店 / 无权限（staff 未授权 403）时保持 false → 静默不显示该卡，
+     * 不报错、不留白、不造假数字（符合文档 §5.3 / §11.2 静默降级要求）。
+     */
+    redemptionStatsReady: false,
+    /** 本店待核销数（门店专属券，pending_count，后端按门店隔离直读） */
+    redemptionPendingCount: 0,
+    /** 本店已核销数（fulfilled_count，后端按 fulfilled_store_id 聚合直读） */
+    redemptionFulfilledCount: 0,
+    /**
+     * 当前用户在本店是否为店长（role_in_store==='manager'）。
+     * 仅店长显示"员工核销权限"管理入口（店员即使被授权查看概况，也无权管理他人权限）。
+     */
+    canManageStaffPerm: false,
+    /** 员工权限管理页所需的门店ID（取核销概况当前选中门店） */
+    redemptionStoreId: null as number | null,
+    /**
+     * 核销概况门店列表（GET /shop/my-stores 返回，含 role_in_store）。
+     * 多门店店长可在卡片上切换门店查看各店核销概况，与授权页口径一致（文档 §11.2 门店隔离）。
+     */
+    redemptionStoreList: [] as any[],
+    /** 当前选中门店在 redemptionStoreList 中的索引（picker 用） */
+    redemptionStoreIndex: 0,
+    /** 当前选中门店名称（卡片切换器展示用） */
+    redemptionStoreName: '',
+    /** 是否多门店（决定核销概况卡是否显示门店切换器） */
+    redemptionIsMultiStore: false,
+    /** 核销概况数字加载中标志（切店时显示，避免展示上一门店的旧数字） */
+    redemptionStatsLoading: false,
+
     // ===== 审核链待办（唯一数据源：my-pending） =====
     /** 我的待审核步骤列表 */
     pendingSteps: [] as any[],
@@ -120,9 +166,9 @@ Page({
     /** 当前用户角色等级 */
     currentRoleLevel: 0,
     /**
-     * 是否可批量审核（role_level>=60，与后端 steps/batch 准入一致）
+     * 是否可批量审核（role_level>=20，与后端 steps/batch 准入一致）
      * 后端批量逐条 processStep 精确鉴权，仅推进"轮到本人的步骤"，
-     * 故 business_manager(60) 及以上均可使用批量，不收窄到 admin(100)。
+     * 故店员(20)及以上均可使用批量，由后端按门店/区域隔离决定能审哪些。
      */
     canBatchReview: false
   },
@@ -150,15 +196,15 @@ Page({
     const localRoleLevel = localUserInfo?.role_level || 0
 
     /**
-     * 权限准入线: role_level >= 60 (business_manager及以上)
-     * 与后端路由 requireRoleLevel(60) 对齐
-     * 具体审核权限由 ApprovalChainService.processStep() 精确校验
+     * 权限准入线: role_level >= 20 (店员及以上)
+     * 与后端路由 requireRoleLevel(20) 对齐（审核链升级：lv60→lv20）
+     * 具体审核权限由 ApprovalChainService.processStep() 按节点角色 + 门店/区域隔离精校
      */
-    if (localRoleLevel < 60) {
+    if (localRoleLevel < 20) {
       auditLog.error('用户无审核权限，role_level:', localRoleLevel)
       wx.showModal({
         title: '权限不足',
-        content: '您没有权限访问此页面，仅业务经理及以上角色可查看和审核消费记录。',
+        content: '您没有权限访问此页面，仅店员及以上角色可查看和审核消费记录。',
         showCancel: false,
         success: () => {
           wx.navigateBack()
@@ -169,12 +215,18 @@ Page({
 
     this.setData({
       currentRoleLevel: localRoleLevel,
-      /* 批量审核门槛与后端 steps/batch 一致（>=60）；能进本页即 >=60，故批量对所有审核人开放 */
-      canBatchReview: localRoleLevel >= 60
+      /* 批量审核门槛与后端 steps/batch 一致（>=20）；能进本页即 >=20，故批量对所有审核人开放 */
+      canBatchReview: localRoleLevel >= 20
     })
 
     /* 单一审核链视图：所有有权限的审核人都加载"我的待办步骤" */
     this.loadMyPendingSteps(1)
+
+    /* 顶部汇总条：加载范围内消费审核统计（未审/已审/总数 + 超时预警） */
+    this.loadMerchantSummary()
+
+    /* 本店核销概况卡：加载门店专属兑换券核销数据（无门店/无权限静默降级） */
+    this.loadRedemptionStats()
   },
 
   // ==================== 时间格式化（审核链卡片复用） ====================
@@ -205,6 +257,160 @@ Page({
       auditLog.error('时间格式化失败:', formatError, '原始值:', dateTimeValue)
       return typeof dateTimeValue === 'string' ? dateTimeValue : '时间未知'
     }
+  },
+
+  // ==================== 顶部汇总条 ====================
+
+  /**
+   * 加载范围内消费审核统计（顶部汇总条）
+   * 调用后端API: GET /api/v4/shop/consumption/merchant/stats
+   *
+   * 数据按"当前登录人范围"由后端隔离（店员=自己/店长=本店/区域=管辖门店），
+   * 前端只展示后端返回的汇总数字，不在前端做任何业务计算或范围过滤。
+   * 加载失败静默处理（汇总条不显示），不影响主审核列表使用。
+   */
+  async loadMerchantSummary() {
+    try {
+      const statsResult = await API.getMerchantConsumptionStats()
+      if (!statsResult?.success || !statsResult.data) {
+        return
+      }
+      const statsData = statsResult.data
+      const byStatus = statsData.by_status || {}
+      const timeout = statsData.timeout || {}
+
+      this.setData({
+        summaryReady: true,
+        summaryPendingCount: (byStatus.pending && byStatus.pending.count) || 0,
+        summaryApprovedCount: (byStatus.approved && byStatus.approved.count) || 0,
+        summaryTotalCount: (statsData.total && statsData.total.count) || 0,
+        summaryOverdueCount: timeout.overdue || 0,
+        summaryNearDueCount: timeout.near_due || 0
+      })
+    } catch (summaryError: any) {
+      auditLog.warn('加载消费审核汇总失败（不影响审核列表）:', summaryError.message)
+    }
+  },
+
+  /**
+   * 加载本店核销概况卡（门店专属兑换券业务线）
+   * 调用后端API: GET /api/v4/shop/redemption/store-stats?store_id=:id
+   *
+   * 流程：先取"我的门店"（GET /shop/my-stores）确定 store_id，再查该门店核销概况。
+   *   - 多门店场景取首个在职门店（看板为概览性质，与汇总条同口径；后续如需切店可扩展选择器）
+   *   - 后端按登录身份隔离：manager 放行；staff 未授权返回 403 REDEMPTION_STATS_FORBIDDEN
+   *
+   * 静默降级（符合文档 §5.3 / §11.2）：无门店 / 无权限 / 加载失败时不显示该卡，
+   *   不报错、不留白、不造假数字；不影响主审核列表与汇总条使用。
+   */
+  async loadRedemptionStats() {
+    try {
+      /* 第一步：取"我的门店"列表（与消费录入页同一数据源 /shop/my-stores） */
+      const storesResult = await API.getMyStores()
+      const myStores =
+        (storesResult && storesResult.success && storesResult.data && storesResult.data.stores) ||
+        []
+      if (!myStores.length) {
+        /* 无在职门店：静默不显示核销概况卡 */
+        return
+      }
+
+      /* 记录门店列表 + 是否多门店；默认选中首个门店（多门店店长可在卡片上切店） */
+      this.setData({
+        redemptionStoreList: myStores,
+        redemptionIsMultiStore: myStores.length > 1,
+        redemptionStoreIndex: 0
+      })
+
+      /* 第二步：按默认门店（索引0）加载核销概况 */
+      await this.loadRedemptionStatsByIndex(0)
+    } catch (redemptionError: any) {
+      /**
+       * 静默降级：无门店、网络异常等一律不显示该卡，仅记录日志，
+       * 不影响审核列表与汇总条。
+       */
+      auditLog.warn(
+        '加载本店核销概况门店列表失败（静默降级，不影响审核列表）:',
+        redemptionError?.code || '',
+        redemptionError?.message || ''
+      )
+    }
+  },
+
+  /**
+   * 按门店列表索引加载该门店核销概况（支持多门店店长切店查看）
+   * 调用后端API: GET /api/v4/shop/redemption/store-stats?store_id=:id
+   *
+   * 与授权页 staff-redemption-perm 的多门店切换口径一致：每个门店独立查询、独立隔离。
+   * staff 未授权某店返回 403 REDEMPTION_STATS_FORBIDDEN 时静默降级（该卡不显示/不更新）。
+   *
+   * @param targetIndex redemptionStoreList 中的门店索引
+   */
+  async loadRedemptionStatsByIndex(targetIndex: number) {
+    const targetStore = this.data.redemptionStoreList[targetIndex]
+    if (!targetStore || !targetStore.store_id) {
+      return
+    }
+
+    this.setData({ redemptionStatsLoading: true })
+    try {
+      const statsResult = await API.getStoreRedemptionStats(targetStore.store_id)
+      if (!statsResult?.success || !statsResult.data) {
+        this.setData({ redemptionStatsLoading: false })
+        return
+      }
+      const redemptionData = statsResult.data
+
+      this.setData({
+        redemptionStatsReady: true,
+        redemptionStatsLoading: false,
+        redemptionStoreIndex: targetIndex,
+        redemptionStoreId: targetStore.store_id,
+        redemptionStoreName: targetStore.store_name || '',
+        redemptionPendingCount: redemptionData.pending_count || 0,
+        redemptionFulfilledCount: redemptionData.fulfilled_count || 0,
+        /* 仅店长显示"员工核销权限"管理入口（按当前门店的角色判定） */
+        canManageStaffPerm: targetStore.role_in_store === 'manager'
+      })
+    } catch (statsError: any) {
+      /**
+       * 静默降级：staff 未授权该店（403 REDEMPTION_STATS_FORBIDDEN）、网络异常等。
+       * 首次加载失败则不显示该卡；切店失败则保留上一门店数据并提示。
+       */
+      this.setData({ redemptionStatsLoading: false })
+      auditLog.warn(
+        '加载该门店核销概况失败（静默降级）:',
+        statsError?.code || '',
+        statsError?.message || ''
+      )
+      if (this.data.redemptionStatsReady) {
+        /* 已展示过（切店场景）：明确提示该店无权限/加载失败，不静默吞掉用户操作 */
+        showToast(statsError?.message || '该门店核销概况加载失败')
+      }
+    }
+  },
+
+  /**
+   * 核销概况卡门店切换（多门店店长）
+   * picker 绑定 bindchange，value 为门店在 redemptionStoreList 中的索引
+   */
+  onRedemptionStoreChange(e: any) {
+    const selectedIndex = Number(e.detail.value)
+    if (selectedIndex === this.data.redemptionStoreIndex) {
+      return
+    }
+    this.loadRedemptionStatsByIndex(selectedIndex)
+  },
+
+  /**
+   * 跳转到员工核销权限管理页（仅店长可见入口）
+   * 店长在此管理本店店员能否查看"本店核销概况"。
+   */
+  goStaffRedemptionPerm() {
+    auditLog.info('跳转员工核销权限管理页')
+    wx.navigateTo({
+      url: '/packageAdmin/staff-redemption-perm/staff-redemption-perm'
+    })
   },
 
   // ==================== 审核链：我的待办 ====================
@@ -304,7 +510,7 @@ Page({
 
           return {
             ...stepItem,
-            /** 批量选择态（role_level>=60 可用） */
+            /** 批量选择态（role_level>=20 可用） */
             selected: false,
             /** 归一后的业务类型/记录ID（供卡片与详情查询复用） */
             auditable_type: auditableType,
@@ -411,13 +617,18 @@ Page({
       auditLog.info('审核链步骤通过成功:', approvalResult)
 
       /**
-       * 按后端返回的链状态区分提示（契约 6.3）：
+       * 按后端返回的链状态区分提示（契约 12.5 A）：
+       *   countersign_pending=true → 会签未凑够人数，提示"会签 M/N 已通过"，步骤仍在本人/同角色待办
        *   is_chain_completed=false → 推进到下一步审核人
        *   is_chain_completed=true && final_result='approved' → 终审通过，积分已自动发放
        */
       const resultData = approvalResult.data || {}
       let successMsg = approvalResult.message || '审核通过'
-      if (resultData.is_chain_completed && resultData.final_result === 'approved') {
+      if (resultData.countersign_pending === true) {
+        const approvedCount = resultData.approved_count || 0
+        const requiredApprovals = resultData.required_approvals || 0
+        successMsg = `会签进度 ${approvedCount}/${requiredApprovals}，已记录你的通过`
+      } else if (resultData.is_chain_completed && resultData.final_result === 'approved') {
         successMsg = '终审通过，积分已自动发放'
       } else if (resultData.is_chain_completed === false) {
         successMsg = '已通过，进入下一步审核'
@@ -792,6 +1003,13 @@ Page({
 
   onPullDownRefresh() {
     auditLog.info('下拉刷新待办列表')
+    this.loadMerchantSummary()
+    /* 核销概况：已加载过门店列表则只刷新当前选中门店（保留切店选择），否则重新拉列表 */
+    if (this.data.redemptionStoreList.length > 0) {
+      this.loadRedemptionStatsByIndex(this.data.redemptionStoreIndex)
+    } else {
+      this.loadRedemptionStats()
+    }
     this.loadMyPendingSteps(1).finally(() => {
       wx.stopPullDownRefresh()
     })

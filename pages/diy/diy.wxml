@@ -4,14 +4,40 @@
 -->
 <view class="diy-select-page">
   <scroll-view type="list" scroll-y class="page-scroll-view">
-    <!-- 🎨 顶部沉浸式横幅区域（图片延伸到状态栏后面） -->
+    <!-- 🎨 顶部沉浸式横幅区域（运营可配，后端 ad-delivery?slot_type=top_banner&position=diy） -->
     <view class="immersive-top-banner">
-      <image
+      <!-- 运营轮播多图 -->
+      <swiper
+        wx:if="{{topBannerReady && topBannerCarousel}}"
         class="top-banner-image"
-        src="{{topBannerUrl || ''}}"
+        autoplay="{{true}}"
+        circular="{{true}}"
+        interval="{{topBannerInterval}}"
+        indicator-dots="{{topBannerItems.length > 1}}"
+        indicator-color="rgba(255,255,255,0.4)"
+        indicator-active-color="#ffffff"
+        bindchange="onTopBannerChange"
+      >
+        <swiper-item wx:for="{{topBannerItems}}" wx:key="ad_campaign_id">
+          <image
+            class="top-banner-image"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            bindtap="onTopBannerTap"
+          />
+        </swiper-item>
+      </swiper>
+      <!-- 运营单图 -->
+      <image
+        wx:elif="{{topBannerReady}}"
+        class="top-banner-image"
+        src="{{topBannerItems[0].image_url}}"
         mode="aspectFill"
-        wx:if="{{topBannerUrl}}"
+        data-index="0"
+        bindtap="onTopBannerTap"
       />
+      <!-- 无运营配置：占位框 -->
       <view class="top-banner-placeholder" wx:else>
         <text class="placeholder-text">顶部横幅图片位置</text>
       </view>
@@ -73,4 +99,20 @@
     bind:close="onLoginPopupClose"
     bind:loginsuccess="onLoginSuccess"
   />
+
+  <!-- 功能后续开放蒙版：遮挡整页并拦截所有交互 -->
+  <view
+    class="coming-soon-mask"
+    wx:if="{{comingSoonVisible}}"
+    catchtap="onComingSoonMaskTap"
+    catchtouchmove="onComingSoonMaskTap"
+  >
+    <view class="coming-soon-card">
+      <view class="coming-soon-icon">
+        <t-icon name="tools-filled" size="80rpx" color="#C5A572" />
+      </view>
+      <text class="coming-soon-title">功能即将开放</text>
+      <text class="coming-soon-desc">DIY 饰品工坊正在精心打磨，敬请期待</text>
+    </view>
+  </view>
 </view>

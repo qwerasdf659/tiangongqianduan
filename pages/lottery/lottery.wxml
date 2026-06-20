@@ -5,13 +5,43 @@
 
 <view class="lottery-container">
   <scroll-view type="list" scroll-y class="page-scroll-view">
-    <!-- 🎨 顶部沉浸式横幅区域（图片延伸到状态栏后面） -->
+    <!-- 🎨 顶部沉浸式横幅区域（运营可配，后端 ad-delivery?slot_type=top_banner&position=lottery） -->
     <view class="immersive-top-banner">
-      <image
+      <!-- 运营轮播多图 -->
+      <swiper
+        wx:if="{{topBannerReady && topBannerCarousel}}"
         class="top-banner-image"
-        src="{{topBannerUrl || '/images/抽奖页面图-banner.jpg'}}"
+        autoplay="{{true}}"
+        circular="{{true}}"
+        interval="{{topBannerInterval}}"
+        indicator-dots="{{topBannerItems.length > 1}}"
+        indicator-color="rgba(255,255,255,0.4)"
+        indicator-active-color="#ffffff"
+        bindchange="onTopBannerChange"
+      >
+        <swiper-item wx:for="{{topBannerItems}}" wx:key="ad_campaign_id">
+          <image
+            class="top-banner-image"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            bindtap="onTopBannerTap"
+          />
+        </swiper-item>
+      </swiper>
+      <!-- 运营单图 -->
+      <image
+        wx:elif="{{topBannerReady}}"
+        class="top-banner-image"
+        src="{{topBannerItems[0].image_url}}"
         mode="aspectFill"
+        data-index="0"
+        bindtap="onTopBannerTap"
       />
+      <!-- 无运营配置：占位框（不使用本地兜底图） -->
+      <view class="top-banner-placeholder" wx:else>
+        <text class="placeholder-text">顶部横幅图片位置</text>
+      </view>
     </view>
 
     <!-- 首次加载遮罩：覆盖整个页面，数据+弹窗图片全部就绪后才消失 -->
@@ -188,7 +218,7 @@
         <text class="consume-text">消费录入</text>
       </view>
 
-      <!-- 右侧：审核详情跳转（业务经理 role_level>=60 及以上可用） -->
+      <!-- 右侧：审核详情跳转（店员 role_level>=20 及以上可用） -->
       <view class="admin-audit-button" bindtap="onAuditTap">
         <text class="audit-text">审核详情</text>
         <text class="arrow-icon">→</text>
@@ -212,7 +242,7 @@
           <view class="carousel-item" data-index="{{index}}" bindtap="onCarouselItemTap">
             <image
               class="carousel-image"
-              src="{{item.primary_media.public_url}}"
+              src="{{item.image_url}}"
               mode="aspectFill"
               lazy-load="{{true}}"
               data-index="{{index}}"

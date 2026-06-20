@@ -16,6 +16,104 @@
       </view>
     </view>
 
+    <!-- ===== 顶部汇总条（§12.5 B 简洁看板：未审/已审/总数 + 超时预警） ===== -->
+    <view class="summary-section" wx:if="{{summaryReady}}">
+      <view class="summary-grid">
+        <view class="summary-card pending">
+          <view class="summary-icon-bg pending">
+            <t-icon name="time" size="36rpx" color="#c5a572" />
+          </view>
+          <view class="summary-body">
+            <text class="summary-label">未审核</text>
+            <text class="summary-value pending">{{summaryPendingCount}}</text>
+          </view>
+        </view>
+
+        <view class="summary-card approved">
+          <view class="summary-icon-bg approved">
+            <t-icon name="check-circle" size="36rpx" color="#27ae60" />
+          </view>
+          <view class="summary-body">
+            <text class="summary-label">已审核</text>
+            <text class="summary-value approved">{{summaryApprovedCount}}</text>
+          </view>
+        </view>
+
+        <view class="summary-card total">
+          <view class="summary-icon-bg total">
+            <t-icon name="file-paste" size="36rpx" color="#8b7355" />
+          </view>
+          <view class="summary-body">
+            <text class="summary-label">审核总数</text>
+            <text class="summary-value total">{{summaryTotalCount}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 超时预警条（仅在有超时/临近超时时显示） -->
+      <view
+        class="summary-timeout-bar"
+        wx:if="{{summaryOverdueCount > 0 || summaryNearDueCount > 0}}"
+      >
+        <t-icon name="error-circle" size="28rpx" color="#c44569" class="summary-timeout-icon" />
+        <text class="summary-timeout-text" wx:if="{{summaryOverdueCount > 0}}"
+          >已超时 {{summaryOverdueCount}} 单</text
+        >
+        <text
+          class="summary-timeout-divider"
+          wx:if="{{summaryOverdueCount > 0 && summaryNearDueCount > 0}}"
+          >·</text
+        >
+        <text class="summary-timeout-text near" wx:if="{{summaryNearDueCount > 0}}"
+          >临近超时 {{summaryNearDueCount}} 单</text
+        >
+      </view>
+
+      <!-- ===== 本店核销概况卡（门店专属兑换券业务线，store-stats；无门店/无权限静默不显示） ===== -->
+      <view class="redemption-stats" wx:if="{{redemptionStatsReady}}">
+        <view class="redemption-stats-header">
+          <t-icon name="shop" size="32rpx" color="#8b7355" class="redemption-stats-icon" />
+          <text class="redemption-stats-title">本店核销概况</text>
+          <view
+            wx:if="{{canManageStaffPerm}}"
+            class="redemption-stats-manage"
+            bindtap="goStaffRedemptionPerm"
+          >
+            <text class="redemption-stats-manage-text">权限管理</text>
+            <t-icon name="chevron-right" size="28rpx" color="#8b7355" />
+          </view>
+        </view>
+
+        <!-- 多门店店长：门店切换器（与授权页口径一致，可查看各店核销概况） -->
+        <picker
+          wx:if="{{redemptionIsMultiStore}}"
+          class="redemption-store-picker"
+          mode="selector"
+          range="{{redemptionStoreList}}"
+          range-key="store_name"
+          value="{{redemptionStoreIndex}}"
+          bindchange="onRedemptionStoreChange"
+        >
+          <view class="redemption-store-picker-inner">
+            <text class="redemption-store-picker-name">{{redemptionStoreName}}</text>
+            <t-icon name="chevron-down" size="28rpx" color="#999999" />
+          </view>
+        </picker>
+
+        <view class="redemption-stats-grid {{redemptionStatsLoading ? 'loading' : ''}}">
+          <view class="redemption-stat-item pending">
+            <text class="redemption-stat-value">{{redemptionPendingCount}}</text>
+            <text class="redemption-stat-label">待核销</text>
+          </view>
+          <view class="redemption-stat-divider"></view>
+          <view class="redemption-stat-item fulfilled">
+            <text class="redemption-stat-value">{{redemptionFulfilledCount}}</text>
+            <text class="redemption-stat-label">已核销</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- ===== 我的待办（审核链步骤，唯一视图） ===== -->
     <block>
       <!-- 顶部统计面板 -->

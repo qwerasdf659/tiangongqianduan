@@ -27,11 +27,7 @@
  *   banners[].ad_campaign_id    {Number} 广告计划主键ID
  *   banners[].title             {String} 创意标题
  *   banners[].text_content      {String} 文字内容（content_type='text' 时有值）
- *   banners[].primary_media      {Object|null} 主图媒体对象（content_type='text' 时为 null）
- *     .public_url               {String} 图片完整公网URL（后端已拼接，前端直接使用）
- *     .width                    {Number} 原图宽度px
- *     .height                   {Number} 原图高度px
- *     .thumbnails               {Object|null} 缩略图 { small, medium, large }
+ *   banners[].image_url          {String|null} 图片完整代理URL（后端 ad-delivery 拼好，content_type='text' 时为 null）
  *   banners[].link_url          {String} 点击跳转链接（可选）
  *   banners[].display_mode      {String} 显示模式
  *   banners[].campaign_category {String} 分类: system=系统通知 / operational=运营内容 / commercial=商业广告
@@ -258,7 +254,7 @@ Component({
       this._imageRetryCount++
 
       let currentBanner = this.data.banners[this.data.currentIndex]
-      let mediaUrl = currentBanner?.primary_media?.public_url || ''
+      let mediaUrl = currentBanner?.image_url || ''
 
       if (this._imageRetryCount <= MAX_RETRY) {
         log.warn('弹窗横幅图片加载失败，第' + this._imageRetryCount + '次重试...', mediaUrl)
@@ -270,12 +266,9 @@ Component({
         }
 
         let banners = this.data.banners.slice()
-        if (banners[this.data.currentIndex] && banners[this.data.currentIndex].primary_media) {
-          let updatedMedia = Object.assign({}, banners[this.data.currentIndex].primary_media, {
-            public_url: retryUrl
-          })
+        if (banners[this.data.currentIndex]) {
           banners[this.data.currentIndex] = Object.assign({}, banners[this.data.currentIndex], {
-            primary_media: updatedMedia
+            image_url: retryUrl
           })
           this.setData({ banners })
         }

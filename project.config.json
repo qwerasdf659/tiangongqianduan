@@ -510,6 +510,10 @@
       {
         "value": ".d.ts",
         "type": "suffix"
+      },
+      {
+        "value": "src-icons",
+        "type": "folder"
       }
     ],
     "include": []
@@ -528,7 +532,9 @@
       }
     ],
     "babelSetting": {
-      "ignore": [],
+      "ignore": [
+        "src-icons/**"
+      ],
       "disablePlugins": [],
       "outputPath": ""
     },

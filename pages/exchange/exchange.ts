@@ -23,7 +23,15 @@
 
 const app = getApp()
 
-const { Utils, Logger, ExchangeConfig, API, ImageHelper, AssetCodes } = require('../../utils/index')
+const {
+  Utils,
+  Logger,
+  ExchangeConfig,
+  API,
+  ImageHelper,
+  AssetCodes,
+  TopBanner
+} = require('../../utils/index')
 const log = Logger.createLogger('exchange')
 const { checkAuth } = Utils
 /** 资产分类辅助函数 — 判断 asset_code 是否为可兑换资产 */
@@ -42,6 +50,17 @@ Page({
     loginPopupVisible: false,
     /** 冻结积分 */
     frozenPoints: 0,
+
+    // 顶部沉浸式横幅（运营可配，后端 ad-delivery?slot_type=top_banner&position=exchange）
+    // 仅当运营配置了内容时才显示，无配置则不占位、商城页布局保持原样（零布局冲击）
+    /** 顶部 Banner 投放项 */
+    topBannerItems: [] as API.AdDeliveryItem[],
+    /** 顶部 Banner 是否轮播（后端槽位级 is_carousel） */
+    topBannerCarousel: false,
+    /** 顶部 Banner 轮播间隔毫秒（后端槽位级 slide_interval_ms） */
+    topBannerInterval: 3000,
+    /** 是否有运营配置的顶部 Banner 图（false 时不渲染该区域） */
+    topBannerReady: false,
     /** 星石和源晶类资产余额列表（后端 GET /api/v4/assets/balances，过滤 star_stone + core_shard + core_gem） */
     assetBalances: [] as any[],
 
@@ -107,6 +126,30 @@ Page({
       log.error('兑换页面配置加载异常，页面将显示错误提示:', configError)
     }
     this.setData({ loading: false })
+
+    /* 顶部 Banner 运营投放（独立加载，失败/空不影响商城主功能与布局） */
+    this.loadTopBanner()
+  },
+
+  /** 加载顶部 Banner（复用 TopBanner 共享逻辑，无配置则不渲染该区域） */
+  async loadTopBanner() {
+    const result = await TopBanner.loadTopBanner('exchange')
+    this.setData(result)
+  },
+
+  /** 顶部 Banner 点击（复用 TopBanner 跳转 + 上报） */
+  onTopBannerTap(e: any) {
+    if (!this.data.topBannerReady) {
+      return
+    }
+    const tapIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    TopBanner.handleTopBannerTap(this.data.topBannerItems[tapIndex], 'exchange')
+  },
+
+  /** 顶部 Banner 轮播切换（swiper bindchange）：对切入的当前张补报曝光 */
+  onTopBannerChange(e: any) {
+    const currentIndex = Number(e?.detail?.current) || 0
+    TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'exchange')
   },
 
   /** 页面显示（恢复积分 + WebSocket 连接 + 刷新样式配置） */

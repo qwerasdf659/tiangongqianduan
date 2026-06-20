@@ -77,7 +77,7 @@ async function getAdminLotteryUserStatistics(user_id: number) {
 /**
  * 查询审核链实例列表
  * 后端路由: GET /api/v4/console/approval-chain/instances
- * 权限: business_manager(role_level>=60) 及以上
+ * 权限: business_manager(role_level>=60) 及以上（注：本接口未随审核链升级降门槛，仍 lv60）
  *
  * 支持按 auditable_type（消费/商家积分）和 status（进行中/已完成/已拒绝）筛选
  * 支持按 auditable_id 精确查询某条业务记录的审核链实例
@@ -117,7 +117,7 @@ async function getApprovalChainInstances(
 /**
  * 查询审核链实例详情（含完整步骤和审核历史）
  * 后端路由: GET /api/v4/console/approval-chain/instances/:id
- * 权限: business_manager(role_level>=60) 及以上
+ * 权限: business_manager(role_level>=60) 及以上（注：本接口未随审核链升级降门槛，仍 lv60）
  *
  * 返回数据包含: 实例信息 + 所有步骤(steps) + 每步的审核人和操作记录
  *
@@ -142,7 +142,7 @@ async function getApprovalChainInstanceDetail(instanceId: number | string) {
 /**
  * 查询当前登录人的待审核步骤
  * 后端路由: GET /api/v4/console/approval-chain/my-pending
- * 权限: business_manager(role_level>=60) 及以上
+ * 权限: role_level>=20（店员及以上，审核链升级 lv60→lv20）
  *
  * 后端按当前用户的 user_id 和 role_id 匹配待处理的审核步骤
  * 返回: 步骤列表 + 关联的审核链实例和业务数据
@@ -168,7 +168,7 @@ async function getMyPendingApprovalSteps(
 /**
  * 按业务记录查询审核链实例
  * 后端路由: GET /api/v4/console/approval-chain/instances/by-auditable
- * 权限: business_manager(role_level>=60) 及以上
+ * 权限: business_manager(role_level>=60) 及以上（注：本接口未随审核链升级降门槛，仍 lv60）
  *
  * 用于「消费记录列表」等场景：根据 auditable_type + auditable_id 精确查询
  * 某条业务记录所关联的审核链实例，获取 current_step / total_steps / status 等进度信息
@@ -202,9 +202,10 @@ async function getInstanceByAuditable(auditableType: string, auditableId: number
 /**
  * 审核链步骤 — 审核通过
  * 后端路由: POST /api/v4/console/approval-chain/steps/:id/approve
- * 权限: business_manager(role_level>=60) 及以上（Service层精确鉴权：验证是否为该步骤的合法审核人）
+ * 权限: role_level>=20（店员及以上，审核链升级 lv60→lv20；Service层精确鉴权：验证是否为该步骤的合法审核人 + 门店/区域隔离）
  *
  * 通过后:
+ *   - 会签节点未凑够人数(countersign_pending=true): 记录本人通过，步骤保持待审
  *   - 如果是终审(is_final=true): 整个审核链完成 → 触发业务回调（如积分发放）
  *   - 如果不是终审: 推进到下一步审核人
  *
@@ -236,7 +237,7 @@ async function approveApprovalStep(stepId: number | string, params: { reason?: s
 /**
  * 审核链步骤 — 审核拒绝
  * 后端路由: POST /api/v4/console/approval-chain/steps/:id/reject
- * 权限: business_manager(role_level>=60) 及以上（Service层精确鉴权）
+ * 权限: role_level>=20（店员及以上，审核链升级 lv60→lv20；Service层精确鉴权 + 门店/区域隔离）
  *
  * 拒绝后: 整个审核链标记为 rejected → 触发拒绝回调
  *

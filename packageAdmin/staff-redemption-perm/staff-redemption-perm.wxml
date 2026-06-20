@@ -1,0 +1,81 @@
+<!--packageAdmin/staff-redemption-perm/staff-redemption-perm.wxml-->
+<!--员工核销权限管理：店长授权本店店员查看"本店核销概况"-->
+<custom-navbar title="员工核销权限" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+
+<view class="perm-page">
+  <scroll-view type="list" scroll-y class="perm-scroll">
+    <!-- 页面说明 -->
+    <view class="perm-header">
+      <view class="perm-header-text">
+        <text class="perm-header-title">员工核销权限</text>
+        <text class="perm-header-desc">店长可授权本店店员查看「本店核销概况」</text>
+      </view>
+      <view class="perm-header-icon">
+        <t-icon name="user-circle-filled" size="120rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
+    <!-- 门店切换器（仅多门店店长显示） -->
+    <picker
+      wx:if="{{isMultiStore}}"
+      class="store-picker"
+      mode="selector"
+      range="{{storeList}}"
+      range-key="store_name"
+      value="{{storeIndex}}"
+      bindchange="onStoreChange"
+    >
+      <view class="store-picker-inner">
+        <t-icon name="shop" size="32rpx" color="#8b7355" />
+        <text class="store-picker-name">{{currentStoreName}}</text>
+        <t-icon name="chevron-down" size="32rpx" color="#999999" />
+      </view>
+    </picker>
+
+    <!-- 单门店：仅展示门店名 -->
+    <view wx:elif="{{currentStoreName}}" class="store-single">
+      <t-icon name="shop" size="32rpx" color="#8b7355" />
+      <text class="store-single-name">{{currentStoreName}}</text>
+    </view>
+
+    <!-- 加载态 -->
+    <view wx:if="{{loading}}" class="perm-loading">
+      <t-loading theme="circular" size="48rpx" text="加载中..." />
+    </view>
+
+    <!-- 员工列表 -->
+    <view wx:elif="{{staffList.length > 0}}" class="staff-list">
+      <view class="staff-item" wx:for="{{staffList}}" wx:key="store_staff_id">
+        <view class="staff-info">
+          <view class="staff-name-row">
+            <text class="staff-name">{{item.user_nickname}}</text>
+            <view class="staff-role-tag {{item.role_in_store}}">
+              <text>{{item.role_in_store === 'manager' ? '店长' : '店员'}}</text>
+            </view>
+          </view>
+          <text class="staff-mobile">{{item.user_mobile}}</text>
+        </view>
+
+        <!-- 店长：天然可看，不显示开关，仅文字标识 -->
+        <view wx:if="{{item.role_in_store === 'manager'}}" class="staff-manager-hint">
+          <t-icon name="check-circle" size="28rpx" color="#27ae60" />
+          <text class="staff-manager-hint-text">默认可看</text>
+        </view>
+
+        <!-- 店员：显示授权开关 -->
+        <t-switch
+          wx:else
+          value="{{item.can_view_redemption_stats}}"
+          loading="{{togglingStaffId === item.store_staff_id}}"
+          data-staff-id="{{item.store_staff_id}}"
+          bindchange="onTogglePermission"
+        />
+      </view>
+    </view>
+
+    <!-- 空态 -->
+    <view wx:else class="perm-empty">
+      <t-empty description="本店暂无在职员工" />
+    </view>
+  </scroll-view>
+</view>

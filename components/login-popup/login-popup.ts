@@ -4,6 +4,7 @@ const { API, Wechat, Utils, Logger, ImageHelper } = require('../../utils/index')
 const log = Logger.createLogger('login-popup')
 const { userStore } = require('../../store/user')
 const { pointsStore } = require('../../store/points')
+const { getSecurityConfig, getCurrentEnv } = require('../../config/env')
 
 // JWT解析（B1：Token 仅承载身份，只校验有效性 + 取 user_id/iat/exp，不再读 mobile/role_level）
 function parseAndValidateJWT(accessToken: string) {
@@ -81,7 +82,9 @@ Component({
     loggingType: '' as '' | 'sms' | 'wechat',
     loginCompleted: false,
     sending: false,
-    countdown: 0
+    countdown: 0,
+    /** 腾讯云天御验证码 CaptchaAppId（取自 config/env，须与后端 CAPTCHA_APP_ID 一致） */
+    captchaAppId: getSecurityConfig().captchaAppId
   },
 
   methods: {
@@ -147,7 +150,7 @@ Component({
       this.setData({ verificationCode: e.detail.value })
     },
 
-    // 发送验证码
+    // 发送验证码（生产环境先过腾讯云天御人机验证，非生产直接发码）
     onSendCode() {
       const { mobile, sending, countdown } = this.data
       if (!mobile) {
@@ -162,28 +165,103 @@ Component({
         return
       }
 
-      this.setData({ sending: true })
+      // 生产环境：先弹天御验证码，回调拿 ticket 后再发码；非生产：后端放行，直接发码
+      if (getCurrentEnv() === 'production') {
+        const captcha = this.selectComponent('#captcha')
+        if (!captcha) {
+          log.error('天御验证码组件未就绪，无法发起人机验证')
+          Wechat.showToast('验证码组件加载失败，请重试')
+          return
+        }
+        this.setData({ sending: true })
+        captcha.show()
+        return
+      }
 
-      API.sendVerificationCode(mobile)
+      this._doSendCode()
+    },
+
+    // 天御验证成功回调（小程序插件仅返回 ticket，无 randstr）
+    onCaptchaVerify(e: any) {
+      const detail = e?.detail || (e?.mp && e.mp.detail) || {}
+      if (detail.ret === 0 && detail.ticket) {
+        this._doSendCode(detail.ticket)
+      } else {
+        this.setData({ sending: false })
+        log.warn('天御验证未通过', detail)
+        Wechat.showToast('请完成人机验证')
+      }
+    },
+
+    // 天御验证组件异常回调
+    onCaptchaError(e: any) {
+      this.setData({ sending: false })
+      log.error('天御验证码加载失败:', e?.detail)
+      Wechat.showToast('人机验证加载失败，请重试')
+    },
+
+    // 实际调用发码接口（captchaTicket 仅生产环境从天御回调获得）
+    _doSendCode(captchaTicket?: string) {
+      this.setData({ sending: true })
+      API.sendVerificationCode(this.data.mobile, captchaTicket)
         .then((result: any) => {
           this.setData({ sending: false })
+          const data = result.data || {}
+          // 后端如实下发短信发送结果：sms_sent=false 表示验证码已生成但短信未真正发出
+          if (result.success && data.sms_sent === false) {
+            Wechat.showToast(result.message || '短信下发失败，请稍后重试')
+            // 短信未发出，不启动倒计时，允许用户立即重试
+            return
+          }
           if (result.success) {
             wx.showToast({ title: '验证码已发送', icon: 'success' })
-            this.startCountdown()
+            // 倒计时秒数以后端 cooldown_seconds 为准，缺省回退 60（不写死业务值）
+            this.startCountdown(data.cooldown_seconds)
           } else {
             Wechat.showToast(result.message || '发送失败')
           }
         })
         .catch((error: any) => {
           this.setData({ sending: false })
-          log.error('发送验证码失败:', error)
-          Wechat.showToast('发送失败，请重试')
+          this._handleSendCodeError(error)
         })
     },
 
-    // 倒计时
-    startCountdown() {
-      this.setData({ countdown: 60 })
+    // 发码错误按后端业务码精细提示
+    _handleSendCodeError(error: any) {
+      log.error('发送验证码失败:', error)
+      const code = error && error.code
+      const errData = (error && error.data) || {}
+      // 天御票据校验失败：重置验证码，引导用户重新完成人机验证
+      if (code === 'CAPTCHA_FAILED') {
+        const captcha = this.selectComponent('#captcha')
+        if (captcha) {
+          captcha.refresh()
+        }
+        Wechat.showToast('人机验证失败，请重新完成验证')
+        return
+      }
+      // 60s 冷却内重复发码：按后端剩余秒数提示
+      if (code === 'SMS_RATE_LIMIT') {
+        const remain = errData.remaining_seconds
+        Wechat.showToast(
+          remain ? `请 ${remain} 秒后再获取验证码` : '验证码发送过于频繁，请稍后再试'
+        )
+        return
+      }
+      // 当日发送达上限
+      if (code === 'SMS_DAILY_LIMIT') {
+        Wechat.showToast('今日验证码发送次数已达上限，请明天再试')
+        return
+      }
+      Wechat.showToast(error?.message || '发送失败，请重试')
+    },
+
+    // 倒计时（秒数以后端 cooldown_seconds 为准，缺省 60）
+    startCountdown(cooldownSeconds?: number) {
+      const seconds =
+        typeof cooldownSeconds === 'number' && cooldownSeconds > 0 ? cooldownSeconds : 60
+      this.setData({ countdown: seconds })
       const timer = setInterval(() => {
         if (this.data.countdown <= 1) {
           clearInterval(timer)
@@ -327,7 +405,14 @@ Component({
             return
           }
           log.error('验证码登录失败:', error)
-          this.handleLoginFailure('登录失败，请重试')
+          // 按后端业务码区分文案：过期 vs 输错（O3）
+          if (error && error.code === 'VERIFICATION_CODE_EXPIRED') {
+            this.handleLoginFailure('验证码已过期，请重新获取')
+          } else if (error && error.code === 'INVALID_VERIFICATION_CODE') {
+            this.handleLoginFailure('验证码错误，请重新输入')
+          } else {
+            this.handleLoginFailure(error?.message || '登录失败，请重试')
+          }
         })
     },
 

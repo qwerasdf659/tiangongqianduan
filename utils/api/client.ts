@@ -545,7 +545,8 @@ class APIClient {
       throw this._createApiError(
         safeData.message || '操作过于频繁，请稍后再试',
         safeData.code || 'RATE_LIMIT_EXCEEDED',
-        statusCode
+        statusCode,
+        safeData.data || null
       )
     }
 

@@ -5,6 +5,15 @@
   catchtouchmove="preventScroll"
 >
   <view class="login-popup-container {{visible ? 'show' : ''}}" catchtap="preventBubble">
+    <!-- 腾讯云天御人机验证（发送验证码前置校验，生产环境强制；非生产后端放行可不弹）
+         app-id 为天御 CaptchaAppId，需与后端 .env 的 CAPTCHA_APP_ID 一致 -->
+    <t-captcha
+      id="captcha"
+      app-id="{{captchaAppId}}"
+      bindverify="onCaptchaVerify"
+      binderror="onCaptchaError"
+    />
+
     <!-- 标题区域 -->
     <view class="popup-header">
       <!-- 后退按钮：仅验证码登录视图显示，点击返回微信一键登录选择界面 -->
@@ -95,6 +104,8 @@
             <text>{{countdown > 0 ? countdown + 's' : '获取验证码'}}</text>
           </view>
         </view>
+        <!-- 验证码有效期静态提示（O4） -->
+        <text class="code-tip">验证码 5 分钟内有效</text>
       </view>
 
       <!-- 协议勾选（点勾选圈=完成微信隐私授权，合并在弹窗内） -->

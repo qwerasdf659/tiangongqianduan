@@ -175,9 +175,24 @@ async function getMerchantConsumptions(params: { page?: number; page_size?: numb
   })
 }
 
-/** 商家门店消费统计 - GET /api/v4/shop/consumption/merchant/stats */
+/**
+ * 商家门店消费统计 - GET /api/v4/shop/consumption/merchant/stats
+ *
+ * 权限: role_level>=20（店员及以上）。按"当前登录人范围"隔离：
+ *   店员=自己录入口径，店长=本店口径，区域负责人=管辖门店集合（后端控制，前端只展示）。
+ *
+ * 响应 data（snake_case 原名，前端不做映射）:
+ *   by_status: { pending:{count,amount,points}, approved:{...}, rejected:{...} }  按审核状态分组
+ *   total:     { count, amount, approved_points }                                范围内全部消费记录
+ *   timeout:   { pending_total, overdue, near_due }                              超时预警（2小时内临近/已超时）
+ */
 async function getMerchantConsumptionStats() {
-  return apiClient.request('/shop/consumption/merchant/stats', { method: 'GET', needAuth: true })
+  return apiClient.request('/shop/consumption/merchant/stats', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
 }
 
 /**
@@ -307,6 +322,106 @@ async function scanRedemptionQR(params: { qr_content: string; store_id?: number 
   })
 }
 
+/**
+ * 本店核销概况 - GET /api/v4/shop/redemption/store-stats?store_id=:id
+ *
+ * 门店专属兑换券业务线看板数据。返回本店待核销数 / 已核销数（按门店隔离，无 PII）。
+ * 口径（以后端为准，前端零映射直读）：
+ *   - fulfilled_count：本店已核销（redemption_orders.fulfilled_store_id = 本店）
+ *   - pending_count：门店专属券待核销（scoped_store_id_list 含本店），通用券不计入
+ *
+ * 鉴权：登录 + 在职校验。manager 放行；staff 须被授权（can_view_redemption_stats=1），
+ *   否则后端返回 403 + code='REDEMPTION_STATS_FORBIDDEN'。调用方应静默降级（不显示该卡），
+ *   故此处 showLoading/showError 均关闭，由页面 try/catch 兜底，不打扰用户。
+ *
+ * @param store_id 门店ID（必填，多门店场景由调用方从 getMyStores 选定）
+ */
+async function getStoreRedemptionStats(store_id: number) {
+  if (!store_id || store_id <= 0 || !Number.isInteger(store_id)) {
+    throw new Error('门店ID必须是正整数')
+  }
+
+  const qs = buildQueryString({ store_id })
+  return apiClient.request(`/shop/redemption/store-stats?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 查询本店员工列表（含核销概况查看授权状态）
+ * GET /api/v4/shop/staff/list?store_id=:store_id&status=active
+ *
+ * 用途：员工核销权限管理页数据源。店长据此渲染员工列表 + 授权开关。
+ *   复用后端现有门店员工管理接口（非新增），按门店上下文隔离：
+ *   店长查本店；单店员工自动填充 store_id，多店须带 store_id。
+ *
+ * 鉴权（后端校验）：登录 + staff:read 能力 + 门店上下文隔离。
+ *
+ * 响应 data（snake_case，零映射直读）：
+ *   staff[]: { store_staff_id, user_id, user_nickname, user_mobile,
+ *              role_in_store('manager'|'staff'), can_view_redemption_stats, status }
+ *   pagination: { total, page, page_size, total_pages }
+ *
+ * @param params.store_id   门店ID（多门店店长必填；单店可省略由后端填充）
+ * @param params.status     在职状态过滤（默认 'active' 只看在职员工）
+ * @param params.page       页码（默认1）
+ * @param params.page_size  每页数量（默认20）
+ */
+async function getStoreStaffList(
+  params: {
+    store_id?: number
+    status?: string
+    page?: number
+    page_size?: number
+  } = {}
+) {
+  const { store_id, status = 'active', page = 1, page_size = 20 } = params
+  const qs = buildQueryString({ store_id, status, page, page_size })
+  return apiClient.request(`/shop/staff/list?${qs}`, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
+ * 店长授权店员查看本店核销概况
+ * PUT /api/v4/shop/redemption/staff/:store_staff_id/stats-permission
+ *
+ * 业务语义：店长（manager）开关本店店员（staff）查看"本店核销概况"的权限。
+ *   写 store_staff.can_view_redemption_stats。小程序 + Web 后台共用此后端接口。
+ *
+ * 鉴权（后端校验）：操作人须为该门店 active manager 或平台 admin；
+ *   只能授权 role_in_store='staff'（对 manager 授权返回 REDEMPTION_NOT_ALLOWED）。
+ *
+ * 员工列表数据源：GET /shop/staff/list（getStoreStaffList，复用门店员工管理接口）。
+ *
+ * @param store_staff_id            门店员工记录ID（store_staff 主键，非 user_id）
+ * @param can_view_redemption_stats true=授权查看 / false=取消授权
+ */
+async function setStaffRedemptionStatsPermission(
+  store_staff_id: number,
+  can_view_redemption_stats: boolean
+) {
+  if (!store_staff_id || store_staff_id <= 0 || !Number.isInteger(store_staff_id)) {
+    throw new Error('门店员工ID必须是正整数')
+  }
+
+  return apiClient.request(`/shop/redemption/staff/${store_staff_id}/stats-permission`, {
+    method: 'PUT',
+    data: { can_view_redemption_stats: !!can_view_redemption_stats },
+    needAuth: true,
+    showLoading: true,
+    loadingText: '处理中...',
+    showError: true,
+    errorPrefix: '授权操作失败：'
+  })
+}
+
 module.exports = {
   getUserQRCode,
   getMyConsumptionRecords,
@@ -319,5 +434,8 @@ module.exports = {
   createRedemptionOrder,
   fulfillRedemption,
   scanRedemptionQR,
-  getMyRedemptionOrders
+  getMyRedemptionOrders,
+  getStoreRedemptionStats,
+  getStoreStaffList,
+  setStaffRedemptionStatsPermission
 }

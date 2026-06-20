@@ -502,7 +502,7 @@ App({
     this.globalData.current_page =
       pages.length > 0 && pages[pages.length - 1] ? pages[pages.length - 1].route || '' : ''
 
-    /* 应用回到前台时，刷新审核链待办数量（role_level<60 时 Store 内部静默跳过） */
+    /* 应用回到前台时，刷新审核链待办数量（role_level<20 时 Store 内部静默跳过） */
     if (userStore.isLoggedIn) {
       auditStore.refreshPendingCount()
     }

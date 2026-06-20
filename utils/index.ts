@@ -34,6 +34,7 @@ const apiWrapperFunctions = require('./api-wrapper')
 const imageHelperFunctions = require('./image-helper')
 const subscribeMessageFunctions = require('./subscribe-message')
 const productDisplayFunctions = require('./product-display')
+const topBannerFunctions = require('./top-banner')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -89,6 +90,9 @@ const SubscribeMessage = { ...subscribeMessageFunctions }
 /** 商品展示字段增强 - 资产中文化/稀有度CSS/全息光效/SKU快捷兑换判断 */
 const ProductDisplay = { ...productDisplayFunctions }
 
+/** 顶部 Banner 运营可配 - 5 个 Tab 页顶部横幅的投放加载/兜底/单图轮播/点击跳转/曝光上报 */
+const TopBanner = { ...topBannerFunctions }
+
 // WebSocket重连工具已移至 Socket.IO 内建心跳 + 重连，无需手动管理
 
 /** 项目核心常量 */
@@ -120,5 +124,6 @@ module.exports = {
   ApiWrapper,
   ImageHelper,
   SubscribeMessage,
-  ProductDisplay
+  ProductDisplay,
+  TopBanner
 }

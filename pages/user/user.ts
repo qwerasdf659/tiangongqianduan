@@ -1,7 +1,7 @@
 // pages/user/user.ts - 用户中心页面 + MobX响应式状态
 const app = getApp()
 // 统一工具函数导入（从utils/index.ts）
-const { API, Wechat, Logger, ApiWrapper, PopupFrequency } = require('../../utils/index')
+const { API, Wechat, Logger, ApiWrapper, PopupFrequency, TopBanner } = require('../../utils/index')
 const log = Logger.createLogger('user')
 const { showToast } = Wechat
 const { safeApiCall } = ApiWrapper
@@ -57,10 +57,21 @@ Page({
     // 登录弹窗
     loginPopupVisible: false,
 
+    // 顶部沉浸式横幅（运营可配，后端 ad-delivery?slot_type=top_banner&position=profile）
+    /** 顶部 Banner 投放项（空则回退本地兜底图） */
+    topBannerItems: [] as API.AdDeliveryItem[],
+    /** 顶部 Banner 是否轮播（后端槽位级 is_carousel） */
+    topBannerCarousel: false,
+    /** 顶部 Banner 轮播间隔毫秒（后端槽位级 slide_interval_ms） */
+    topBannerInterval: 3000,
+    /** 是否有运营配置的顶部 Banner 图（false 时用本地兜底图） */
+    topBannerReady: false,
+
     // 多角色权限标识（从JWT Token中的role_level判断）
     // isMerchant = role_level >= 20（商家店员及以上，可访问消费录入、扫码核销）
     // isManager  = role_level >= 40（商家店长及以上）
-    // isReviewer = role_level >= 60（业务经理及以上，可访问审批管理 - 审核链多级审核人）
+    // isReviewer = role_level >= 20（店员及以上即可进审批管理；后端审核链门槛已降 lv60→lv20，
+    //              "能审哪些"由后端按节点角色 + 门店/区域隔离精校，前端只控入口可见）
     // isAdmin    = role_level >= 100（超级管理员，可批量审核 + 审核链配置）
     isMerchant: false,
     isManager: false,
@@ -80,7 +91,7 @@ Page({
     todayEarned: 0,
     todayConsumed: 0,
 
-    /** 审核链待办数量（MobX绑定自 auditStore.pendingCount，role_level>=60 时加载） */
+    /** 审核链待办数量（MobX绑定自 auditStore.pendingCount，role_level>=20 时加载） */
     approvalPendingCount: 0,
 
     // 系统配置（从 GET /api/v4/system/config 动态获取）
@@ -207,6 +218,16 @@ Page({
         color: '#8B7355',
         type: 'page',
         url: '/packageUser/growth-level/growth-level'
+      },
+      {
+        id: 'my-addresses',
+        name: '地址管理',
+        description: '管理我的收货地址',
+        iconClass: 'icon-location',
+        tdIcon: 'location-filled',
+        color: '#A08B6E',
+        type: 'page',
+        url: '/packageUser/addresses/addresses'
       },
       {
         id: 'logout',
@@ -382,16 +403,17 @@ Page({
 
       log.info('用户已登录，开始加载用户数据')
 
-      // 并行加载用户信息、积分趋势、系统配置、审核待办、弹窗横幅（Promise.allSettled保证部分失败不影响整体）
+      // 并行加载用户信息、积分趋势、系统配置、审核待办、弹窗横幅、顶部Banner（Promise.allSettled保证部分失败不影响整体）
       const results = await Promise.allSettled([
         this.safeLoadUserInfo(),
         this.safeLoadPointsTrend(),
         this.safeLoadSystemConfig(),
         this.loadApprovalPendingCount(),
-        this.loadProfilePopup()
+        this.loadProfilePopup(),
+        this.loadTopBanner()
       ])
 
-      const taskNames = ['用户信息', '积分趋势', '系统配置', '审核待办', '弹窗广告']
+      const taskNames = ['用户信息', '积分趋势', '系统配置', '审核待办', '弹窗广告', '顶部Banner']
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
           log.warn(`${taskNames[index]}加载失败:`, result.reason)
@@ -520,7 +542,7 @@ Page({
     const roleLevel = userInfo?.role_level || 0
     const isMerchant = roleLevel >= 20
     const isManager = roleLevel >= 40
-    const isReviewer = roleLevel >= 60
+    const isReviewer = roleLevel >= 20
     const isAdmin = roleLevel >= 100
 
     this.setData({
@@ -617,6 +639,28 @@ Page({
       return
     }
     await auditStore.refreshPendingCount()
+  },
+
+  /** 加载顶部 Banner（复用 TopBanner 共享逻辑，失败/空回退本地兜底图，position=profile 对齐后端口径） */
+  async loadTopBanner() {
+    const result = await TopBanner.loadTopBanner('profile')
+    this.setData(result)
+  },
+
+  /** 顶部 Banner 点击（复用 TopBanner 跳转 + 上报） */
+  onTopBannerTap(e: any) {
+    if (!this.data.topBannerReady) {
+      return
+    }
+    const tapIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    const tappedItem = this.data.topBannerItems[tapIndex]
+    TopBanner.handleTopBannerTap(tappedItem, 'profile')
+  },
+
+  /** 顶部 Banner 轮播切换（swiper bindchange）：对切入的当前张补报曝光 */
+  onTopBannerChange(e: any) {
+    const currentIndex = Number(e?.detail?.current) || 0
+    TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'profile')
   },
 
   /** 点击积分区域，跳转到积分明细页面 */
@@ -1046,10 +1090,10 @@ Page({
     })
   },
 
-  /** 跳转到审批管理页面（业务经理 role_level>=60 及以上可用，后端路由 requireRoleLevel(60)） */
+  /** 跳转到审批管理页面（店员 role_level>=20 及以上可用，后端路由 requireRoleLevel(20)） */
   goToAuditList() {
     if (!this.data.isReviewer) {
-      showToast('需要业务经理及以上权限')
+      showToast('需要店员及以上权限')
       return
     }
 

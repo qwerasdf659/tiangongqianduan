@@ -25,6 +25,39 @@
       <text class="page-subtitle">积分兑换·官方竞价·资产转换</text>
     </view>
 
+    <!-- 🎨 顶部 Banner（运营可配，position=exchange；仅有运营配置时渲染，无则不占位不留白） -->
+    <view class="exchange-top-banner" wx:if="{{!loading && !hasConfigError && topBannerReady}}">
+      <swiper
+        wx:if="{{topBannerCarousel}}"
+        class="exchange-top-banner-media"
+        autoplay="{{true}}"
+        circular="{{true}}"
+        interval="{{topBannerInterval}}"
+        indicator-dots="{{topBannerItems.length > 1}}"
+        indicator-color="rgba(255,255,255,0.4)"
+        indicator-active-color="#ffffff"
+        bindchange="onTopBannerChange"
+      >
+        <swiper-item wx:for="{{topBannerItems}}" wx:key="ad_campaign_id">
+          <image
+            class="exchange-top-banner-media"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            bindtap="onTopBannerTap"
+          />
+        </swiper-item>
+      </swiper>
+      <image
+        wx:else
+        class="exchange-top-banner-media"
+        src="{{topBannerItems[0].image_url}}"
+        mode="aspectFill"
+        data-index="0"
+        bindtap="onTopBannerTap"
+      />
+    </view>
+
     <view class="nav-module horizontal" hover-class="none" wx:if="{{!loading && !hasConfigError}}">
       <t-tabs
         value="{{currentTab}}"

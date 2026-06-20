@@ -24,7 +24,8 @@ const {
   ConfigCache,
   Logger,
   PopupFrequency,
-  QRCode
+  QRCode,
+  TopBanner
 } = require('../../utils/index')
 const log = Logger.createLogger('lottery')
 const { showToast } = Wechat
@@ -74,7 +75,7 @@ Page({
     /* ===== 用户状态 ===== */
     isLoggedIn: false,
     isAdmin: false,
-    /** 业务经理及以上(role_level>=60)，可访问审批管理 */
+    /** 店员及以上(role_level>=20)，可访问审批管理（后端审核链门槛 lv60→lv20） */
     isReviewer: false,
     pointsBalance: 0,
     frozenPoints: 0,
@@ -121,6 +122,16 @@ Page({
     /* ===== 弹窗横幅（后端 GET /api/v4/system/ad-delivery?slot_type=popup 返回） ===== */
     showPopupBanner: false,
     popupBanners: [] as API.AdDeliveryItem[],
+
+    /* ===== 顶部沉浸式横幅（运营可配，后端 ad-delivery?slot_type=top_banner&position=lottery） ===== */
+    /** 顶部 Banner 投放项（空则回退本地兜底图） */
+    topBannerItems: [] as API.AdDeliveryItem[],
+    /** 顶部 Banner 是否轮播（后端槽位级 is_carousel） */
+    topBannerCarousel: false,
+    /** 顶部 Banner 轮播间隔毫秒（后端槽位级 slide_interval_ms） */
+    topBannerInterval: 3000,
+    /** 是否有运营配置的顶部 Banner 图（false 时用本地兜底图） */
+    topBannerReady: false,
 
     /* ===== 轮播图（后端 GET /api/v4/system/ad-delivery?slot_type=carousel 返回） ===== */
     carouselItems: [] as API.AdDeliveryItem[],
@@ -505,6 +516,9 @@ Page({
         }),
         this.loadCarouselItems().catch((err: any) => {
           log.error('[lottery] 轮播图加载失败（不影响主功能）:', err)
+        }),
+        this.loadTopBanner().catch((err: any) => {
+          log.error('[lottery] 顶部Banner加载失败（不影响主功能）:', err)
         }),
         this.loadNotificationUnreadCount().catch((err: any) => {
           log.warn('[lottery] 通知未读数加载失败（不影响主功能）:', err)
@@ -1086,7 +1100,7 @@ Page({
       const userInfo = userStore.userInfo
       const roleLevel = typeof userInfo?.role_level === 'number' ? userInfo.role_level : 0
       const isAdmin = roleLevel >= 100
-      const isReviewer = roleLevel >= 60
+      const isReviewer = roleLevel >= 20
 
       this.setData({ isAdmin, isReviewer })
     } catch (error) {
@@ -1147,10 +1161,10 @@ Page({
     })
   },
 
-  /** 跳转到审核详情页（业务经理 role_level>=60 及以上） */
+  /** 跳转到审核详情页（店员 role_level>=20 及以上） */
   onAuditTap() {
     if (!this.data.isReviewer) {
-      showToast('需要业务经理及以上权限', 'none', 2000)
+      showToast('需要店员及以上权限', 'none', 2000)
       return
     }
     wx.navigateTo({
@@ -1636,7 +1650,7 @@ Page({
   async _preloadBannerImages(banners: any[]) {
     const TIMEOUT = Constants.LOTTERY.IMAGE_PRELOAD_TIMEOUT
     const promises = banners.map((banner, i) => {
-      const mediaUrl = banner.primary_media?.public_url
+      const mediaUrl = banner.image_url
       if (!mediaUrl || typeof mediaUrl !== 'string') {
         return Promise.resolve()
       }
@@ -1646,8 +1660,8 @@ Page({
           src: mediaUrl,
           success: res => {
             clearTimeout(timer)
-            if (banners[i].primary_media) {
-              banners[i].primary_media.public_url = res.path
+            if (banners[i]) {
+              banners[i].image_url = res.path
             }
             resolve()
           },
@@ -1739,13 +1753,37 @@ Page({
   },
 
   // ========================================
+  // 顶部沉浸式横幅（运营可配，slot_type=top_banner&position=lottery）
+  // ========================================
+
+  /** 加载顶部 Banner（复用 TopBanner 共享逻辑，失败/空回退本地兜底图） */
+  async loadTopBanner() {
+    const result = await TopBanner.loadTopBanner('lottery')
+    this.setData(result)
+  },
+
+  /** 顶部 Banner 点击（复用 TopBanner 跳转 + 上报） */
+  onTopBannerTap(e: any) {
+    if (!this.data.topBannerReady) {
+      return
+    }
+    const tapIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    const tappedItem = this.data.topBannerItems[tapIndex]
+    TopBanner.handleTopBannerTap(tappedItem, 'lottery')
+  },
+
+  /** 顶部 Banner 轮播切换（swiper bindchange）：对切入的当前张补报曝光 */
+  onTopBannerChange(e: any) {
+    const currentIndex = Number(e?.detail?.current) || 0
+    TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'lottery')
+  },
+
+  // ========================================
   // 轮播图（后端 GET /api/v4/system/ad-delivery?slot_type=carousel）
   // ========================================
 
   /**
    * 加载轮播图数据
-   *
-   * 数据流:
    * API获取统一投放内容(slot_type=carousel) → 空数组则隐藏区域 → 有数据则渲染swiper
    * 轮播间隔由后端 slide_interval_ms 字段配置
    */
@@ -1835,7 +1873,7 @@ Page({
     log.warn(`[lottery] 轮播图[${index}]图片加载失败`)
     const carouselItems = [...this.data.carouselItems]
     if (carouselItems[index]) {
-      carouselItems[index] = { ...carouselItems[index], primary_media: null }
+      carouselItems[index] = { ...carouselItems[index], image_url: null }
       this.setData({ carouselItems })
     }
   },

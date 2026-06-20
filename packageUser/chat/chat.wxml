@@ -182,7 +182,7 @@
 <view class="chat-modal {{showChatModal ? 'show' : ''}}" bindtap="onModalMaskTap">
   <view class="modal-content" catchtap="onModalContentTap">
     <!-- 聊天头部 - 优化版 -->
-    <view class="chat-header">
+    <view class="chat-header" style="padding-top: {{chatHeaderTop}}px;">
       <view class="header-left">
         <view class="back-btn-wrapper" bindtap="closeChatModal">
           <text class="back-btn">←</text>

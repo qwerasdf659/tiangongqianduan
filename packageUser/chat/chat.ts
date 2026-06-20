@@ -39,6 +39,9 @@ const SESSION_STATUS_MAP: Record<string, string> = {
 
 Page({
   data: {
+    // 聊天弹窗头部顶部安全区高度（px）= 状态栏高度 + 胶囊额外间距，避免标题被微信胶囊遮挡
+    chatHeaderTop: 20,
+
     // 搜索相关
     searchKeyword: '',
     isSearching: false, // 是否处于搜索结果模式
@@ -110,6 +113,8 @@ Page({
   onLoad(_options: Record<string, string | undefined>) {
     log.info('聊天会话列表页面加载')
 
+    this._calcChatHeaderTop()
+
     // MobX Store绑定 - 仅同步 isLoggedIn 用于页面响应式更新
     // 认证数据（token/userId）统一从 userStore 直接读取，不通过 data 中转
     this.userBindings = createStoreBindings(this, {
@@ -128,6 +133,25 @@ Page({
     // 🔴 标记首次加载，避免onShow中重复调用
     this._isFirstLoad = true
     this.loadSessionData()
+  },
+
+  /**
+   * 计算聊天弹窗头部的顶部安全区高度
+   * 全屏弹窗不经过 custom-navbar 组件，需自行预留状态栏 + 胶囊高度，
+   * 否则标题会顶到屏幕最上方被微信胶囊遮挡、点不到。
+   * 与 custom-navbar 同源：top = 胶囊底部 + 8px 视觉间距。
+   */
+  _calcChatHeaderTop() {
+    try {
+      const windowInfo = wx.getWindowInfo()
+      const statusBarHeight = windowInfo.statusBarHeight || 20
+      const menuRect = wx.getMenuButtonBoundingClientRect()
+      // 头部内容顶部对齐到胶囊底部（含状态栏），再留 8px 让标题与胶囊垂直居中协调
+      const chatHeaderTop = (menuRect.bottom || statusBarHeight + 32) + 8
+      this.setData({ chatHeaderTop })
+    } catch (_error) {
+      this.setData({ chatHeaderTop: 60 })
+    }
   },
 
   onShow() {
@@ -260,9 +284,11 @@ Page({
         const contentText =
           msgType === 'image'
             ? '[图片]'
-            : msgType === 'location'
-              ? '[位置]'
-              : session.last_message.content
+            : msgType === 'file'
+              ? '[文件]'
+              : msgType === 'location'
+                ? '[位置]'
+                : session.last_message.content
         preview = senderPrefix + contentText
       }
 

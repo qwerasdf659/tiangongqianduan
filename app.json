@@ -52,7 +52,8 @@
         "consume-submit/consume-submit",
         "audit-list/audit-list",
         "scan-verify/scan-verify",
-        "customer-service/customer-service"
+        "customer-service/customer-service",
+        "staff-redemption-perm/staff-redemption-perm"
       ]
     },
     {
@@ -155,6 +156,12 @@
   },
   "debug": false,
   "sitemapLocation": "sitemap.json",
+  "plugins": {
+    "t-captcha": {
+      "version": "1.0.4",
+      "provider": "wxb302e0fc8ab232b4"
+    }
+  },
   "style": "v2",
   "renderer": "skyline",
   "rendererOptions": {
