@@ -28,7 +28,8 @@
   background: #fffefc;
   border-radius: 40rpx 40rpx 0 0;
   padding: 56rpx 48rpx;
-  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+  /* 底部留出自定义 tabBar 高度(120rpx) + 安全区，避免最底部「验证码登录」按钮被 tabBar 遮挡 */
+  padding-bottom: calc(120rpx + 48rpx + env(safe-area-inset-bottom));
   min-height: 580rpx;
   transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
@@ -59,6 +60,18 @@
   justify-content: center;
 }
 
+/* 关闭按钮：绝对定位在头部右侧，显著可点（48rpx 图标 + 加大可点区域），合规「可取消」入口 */
+.popup-close {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .popup-title {
   display: block;
   font-size: var(--tg-font-size-headline, 36rpx);
@@ -83,10 +96,13 @@
   margin-bottom: 32rpx;
 }
 
-/* 文字整体块：与勾选圈并排，宽度由内容决定，不被压缩换行 */
+/* 文字整体块：与勾选圈并排，宽度由内容决定，不被压缩换行；
+   置于授权按钮之上，确保《用户协议》《隐私政策》链接点击不被透明授权按钮拦截 */
 .agreement-texts {
   flex: 0 1 auto;
   white-space: nowrap;
+  position: relative;
+  z-index: 2;
 }
 
 /* 勾选圈容器：固定 36rpx 尺寸，决定布局占位；按钮绝对定位覆盖其上只负责点击授权，
@@ -105,12 +121,15 @@
   left: 0;
   width: 36rpx;
   height: 36rpx;
+  min-width: 36rpx;
+  max-width: 36rpx;
   min-height: 36rpx;
   margin: 0;
   padding: 0;
   background: transparent;
   line-height: normal;
   opacity: 0;
+  overflow: hidden;
 
   &::after {
     border: none;

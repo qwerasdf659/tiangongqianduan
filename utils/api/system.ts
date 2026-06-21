@@ -44,10 +44,13 @@ async function getPlacementConfig() {
  * 合并原 popup-banners / carousel-items / announcements 三套独立接口
  * 后端通过 Ad System 统一管理弹窗、轮播、公告内容
  *
- * 认证方式: JWT Bearer Token（后端 authenticateToken 中间件）
+ * 认证方式: optionalAuth（可选登录，后端 2026-06-21 改造）
+ *   - 未登录匿名：返回 operational/system 公开内容（不含 commercial）
+ *   - 已登录：额外含 commercial（计费/定向）。前端用 optionalAuth:true，
+ *     有 token 自动携带、无 token 也照常请求，故未登录也能看见运营图片位。
  * 响应格式: { success, data: { items: AdDeliveryItem[], slot_type, position, total } }
  *
- * @param params.slot_type - 广告位类型（必填）: popup / carousel / announcement / feed
+ * @param params.slot_type - 广告位类型（必填）: popup / carousel / announcement / feed / top_banner
  * @param params.position  - 位置（可选，默认 home）: home / lottery / profile / market_list / exchange_list
  */
 async function getAdDelivery(params: { slot_type: string; position?: string }) {
@@ -60,7 +63,7 @@ async function getAdDelivery(params: { slot_type: string; position?: string }) {
   })
   return apiClient.request(`/system/ad-delivery?${qs}`, {
     method: 'GET',
-    needAuth: true,
+    optionalAuth: true,
     showLoading: false,
     showError: false
   })

@@ -3,7 +3,7 @@
   <!-- 标题区 -->
   <view class="scratch-header">
     <view class="scratch-title-row">
-      <text class="scratch-title">一刮到底 赢取大奖</text>
+      <text class="scratch-title">刮一刮 领取回馈好礼</text>
       <view class="scratch-badge" wx:if="{{costPoints > 0}}">
         <text class="badge-text">{{costPoints}} 积分/次</text>
       </view>
@@ -55,7 +55,7 @@
             class="cell-cover {{item.state === 'dissolving' ? 'dissolving' : ''}} {{item.state === 'revealed' ? 'gone' : ''}}"
           >
             <view class="cell-cover-texture"></view>
-            <!-- 装饰内描金虚线框（彩票质感） -->
+            <!-- 装饰内描金虚线框（增强涂层质感） -->
             <view class="cover-frame"></view>
             <!-- 漂浮闪烁星点（仅宽格显示，由 CSS 控制可见性） -->
             <view class="cover-spark cover-spark--1"></view>

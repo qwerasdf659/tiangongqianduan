@@ -70,6 +70,9 @@ Page({
     /** 稀有度样式（优先 API rarity_def.color_hex，降级到本地 RARITY_STYLES） */
     rarityStyle: null as any,
 
+    /** 是否显示「品质」属性行（暂按业务要求隐藏，后续需要时置 true 即可恢复） */
+    showQuality: false,
+
     /** 库存剩余百分比（进度条宽度） */
     stockPercent: 100,
 
@@ -936,7 +939,7 @@ Page({
           }
 
           wx.showModal({
-            title: '铸造成功',
+            title: '',
             content: mintedContent,
             showCancel: false,
             confirmText: '查看背包',

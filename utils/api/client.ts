@@ -22,6 +22,13 @@ interface RequestOptions {
   data?: Record<string, any>
   /** 是否需要认证（默认true） */
   needAuth?: boolean
+  /**
+   * 可选认证（默认false）：用于后端 optionalAuth 中间件的公开接口。
+   * 为 true 时：有 token 则携带 Authorization（登录态拿个性化/计费内容），
+   * 无 token 也照常发请求（匿名拿公开内容），不像 needAuth 那样无 token 即早退。
+   * 与 needAuth 互斥：optionalAuth=true 时 needAuth 视为 false。
+   */
+  optionalAuth?: boolean
   /** 超时时间ms（默认15000） */
   timeout?: number
   /** 是否自动显示loading（默认true） */
@@ -226,6 +233,7 @@ class APIClient {
       method = 'GET',
       data = {},
       needAuth = true,
+      optionalAuth = false,
       timeout = 15000,
       showLoading = true,
       loadingText = '加载中...',
@@ -233,6 +241,13 @@ class APIClient {
       errorPrefix = '',
       header: customHeaders = {}
     } = options
+
+    /**
+     * optionalAuth 与 needAuth 互斥：声明可选认证时，强制关闭强制认证分支，
+     * 否则 needAuth 默认 true 会先进入"无 token 即抛错"分支，optionalAuth 永远轮不到。
+     * 调用方只需写 optionalAuth:true，无需再显式传 needAuth:false。
+     */
+    const effectiveNeedAuth = optionalAuth ? false : needAuth
 
     const fullUrl: string = `${this.config.fullUrl}${url}`
 
@@ -245,12 +260,12 @@ class APIClient {
       'x-platform': 'wechat_mp',
       // 设备会话标识：仅认证请求携带（"同设备重登自动替换旧会话"只对已登录会话有意义）；
       // 公开接口遵循《个人信息保护法》第6条最小必要原则，不携带设备标识
-      ...(needAuth ? { 'X-Device-Id': getDeviceId() } : {}),
+      ...(effectiveNeedAuth ? { 'X-Device-Id': getDeviceId() } : {}),
       ...customHeaders
     }
 
     // 认证处理 - JWT Token（Store优先，Storage降级）
-    if (needAuth) {
+    if (effectiveNeedAuth) {
       const token: string = getAccessToken()
       if (token) {
         const integrityCheck = validateJWTTokenIntegrity(token)
@@ -262,6 +277,16 @@ class APIClient {
       } else {
         log.error('未找到access_token')
         return this.handleTokenMissing()
+      }
+    } else if (optionalAuth) {
+      /**
+       * 可选认证（对应后端 optionalAuth 中间件）：有 token 则带上（拿个性化/计费内容），
+       * 无 token 也不早退、照常匿名请求（拿公开内容）。token 损坏时静默不带，按匿名处理，
+       * 不走 handleTokenInvalid（公开接口不应因本地脏 token 触发全局登出）。
+       */
+      const optToken: string = getAccessToken()
+      if (optToken && validateJWTTokenIntegrity(optToken).isValid) {
+        headers.Authorization = `Bearer ${optToken}`
       }
     }
 
@@ -435,11 +460,14 @@ class APIClient {
       log.error('认证失败(401):', { serverErrorCode, serverMessage })
 
       /**
-       * needAuth: false 的请求收到 401 时，不触发全局登录失效逻辑
-       * 这类请求本身不要求认证，后端返回 401 说明该接口尚未改为 optionalAuth
-       * 只抛出错误让调用方 catch 处理，不弹窗不清 Token
+       * needAuth:false 或 optionalAuth:true 的请求收到 401 时，不触发全局登录失效逻辑。
+       * 这类请求本身不强制认证（公开/可选登录接口），后端返回 401 说明该接口尚未改为 optionalAuth
+       * 或 token 已失效；只抛出错误让调用方 catch 处理，不弹窗不清 Token、不强制登出。
        */
-      if (requestOptions && requestOptions.needAuth === false) {
+      if (
+        requestOptions &&
+        (requestOptions.needAuth === false || requestOptions.optionalAuth === true)
+      ) {
         throw this._createApiError(
           serverMessage || '认证失败',
           serverErrorCode || 'AUTH_FAILED',

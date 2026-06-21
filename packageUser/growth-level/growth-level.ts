@@ -28,6 +28,8 @@ const { userStore } = require('../../store/user')
 
 Page({
   data: {
+    /** 功能后续开放蒙版（暂屏蔽成长等级功能，后续开放时置 false 即可恢复） */
+    comingSoonVisible: true,
     /** 页面加载状态机 */
     loadStatus: 'loading' as 'loading' | 'success' | 'error',
     /** 当前等级 key（后端 current_level_key） */
@@ -46,6 +48,18 @@ Page({
 
   /** MobX Store 绑定实例（onUnload 时销毁） */
   userBindings: null as any,
+
+  /** 蒙版拦截所有点击/滑动（功能未开放期间阻止穿透到下层页面） */
+  onComingSoonMaskTap() {},
+
+  /** 蒙版「返回上一页」：功能未开放期间提供退出入口 */
+  onComingSoonBack() {
+    wx.navigateBack({
+      fail: () => {
+        wx.switchTab({ url: '/pages/user/user' })
+      }
+    })
+  },
 
   onLoad() {
     growthLog.info('成长等级页面加载')

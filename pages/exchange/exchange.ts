@@ -374,6 +374,8 @@ Page({
       log.error('登录后配置加载失败:', e)
     }
     await this._refreshAllBalances(userStore.ensureUserInfo())
+    /* 登录后补拉顶部 Banner：ad-delivery 需登录态，登出态进页面取不到 */
+    this.loadTopBanner()
   },
 
   /** Tab 切换入口 */

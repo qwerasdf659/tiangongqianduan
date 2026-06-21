@@ -685,8 +685,9 @@ Component({
     async onChildDraw(e: any) {
       const count = e?.detail?.count || 1
 
-      /* 未登录拦截：通知父页面弹出登录弹窗 */
+      /* 未登录拦截：先复位子组件（避免金蛋停在选中/敲击态），再通知父页面弹出登录弹窗 */
       if (!checkAuth({ redirect: false })) {
+        this._resetSubComponent()
         this.triggerEvent('needlogin')
         return
       }
@@ -783,8 +784,9 @@ Component({
     async onMultiDraw(e: any) {
       const count = e?.detail?.count || 1
 
-      /* 未登录拦截：通知父页面弹出登录弹窗 */
+      /* 未登录拦截：先复位子组件（避免金蛋停在选中/敲击态），再通知父页面弹出登录弹窗 */
       if (!checkAuth({ redirect: false })) {
+        this._resetSubComponent()
         this.triggerEvent('needlogin')
         return
       }

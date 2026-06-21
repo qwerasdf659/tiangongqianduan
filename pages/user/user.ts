@@ -393,9 +393,10 @@ Page({
     try {
       this.updateUserStatus()
 
-      // 用户未登录，直接关闭loading，显示未登录UI
+      // 用户未登录：跳过需登录数据，但仍加载公开的顶部 Banner（ad-delivery 已 optionalAuth，匿名可见运营图）
       if (!this.data.isLoggedIn) {
-        log.info('用户未登录，跳过数据加载')
+        log.info('用户未登录，仅加载公开顶部 Banner')
+        this.loadTopBanner().catch(() => {})
         this.setData({ loading: false })
         this.clearLoadingSafetyTimer()
         return

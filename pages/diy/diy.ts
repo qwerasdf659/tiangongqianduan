@@ -117,6 +117,8 @@ Page({
 
   onLoginSuccess() {
     this.setData({ loginPopupVisible: false })
+    /* 登录后补拉顶部 Banner：ad-delivery 需登录态，登出态进页面取不到 */
+    this.loadTopBanner()
   },
 
   onShareAppMessage() {

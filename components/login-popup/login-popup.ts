@@ -101,6 +101,17 @@ Component({
       }
     },
 
+    /**
+     * 点击右上角关闭按钮 — 显著有效的「取消登录」入口（微信审核合规：登录环节须提供
+     * 可取消/拒绝/返回按钮，不得强制用户必须登录）。登录请求进行中时不可关闭，避免中断登录态写入。
+     */
+    onCloseTap() {
+      if (this.data.loggingType) {
+        return
+      }
+      this.onClose()
+    },
+
     // 关闭弹窗
     onClose() {
       this.setData({
@@ -324,7 +335,7 @@ Component({
         success: res => {
           if (!res.code) {
             clearTimeout(loginTimeout)
-            this.handleLoginFailure('微信登录凭证获取失败')
+            this.handleLoginFailure('登录凭证获取失败')
             return
           }
           API.wxCodeLogin(res.code, phoneCode)
@@ -350,7 +361,7 @@ Component({
         },
         fail: () => {
           clearTimeout(loginTimeout)
-          this.handleLoginFailure('微信登录失败')
+          this.handleLoginFailure('登录失败')
         }
       })
     },

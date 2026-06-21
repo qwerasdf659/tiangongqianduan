@@ -302,3 +302,70 @@
   background: var(--tg-color-bg-grey);
   color: var(--tg-text-tertiary);
 }
+
+/* ===== 功能后续开放蒙版（遮挡内容，不遮顶部导航返回区，保证可返回） ===== */
+.coming-soon-mask {
+  position: fixed;
+  /* 顶部留出状态栏 + 自定义导航栏高度，露出返回按钮 */
+  top: calc(env(safe-area-inset-top, 0px) + 88rpx);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.coming-soon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--tg-spacing-xl);
+}
+
+.coming-soon-icon {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: var(--td-radius-circle);
+  background: #f7f1e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--tg-spacing-lg);
+}
+
+.coming-soon-title {
+  font-size: var(--td-font-size-l);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  margin-bottom: var(--tg-spacing-sm);
+}
+
+.coming-soon-desc {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  text-align: center;
+  line-height: var(--tg-line-height-normal);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* 蒙版内「返回上一页」按钮 */
+.coming-soon-back-btn {
+  margin-top: var(--tg-spacing-xl);
+  padding: 0 var(--tg-spacing-xl);
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--td-brand-color);
+  border-radius: 36rpx;
+
+  text {
+    font-size: var(--td-font-size-base);
+    font-weight: var(--tg-font-weight-medium);
+    color: var(--tg-color-white);
+    letter-spacing: var(--tg-letter-spacing-normal);
+  }
+}

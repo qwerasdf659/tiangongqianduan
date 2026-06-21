@@ -27,6 +27,8 @@ const { userStore } = require('../../store/user')
 
 Page({
   data: {
+    /** 功能后续开放蒙版（暂屏蔽以物易物功能，后续开放时置 false 即可恢复） */
+    comingSoonVisible: true,
     /** 页面加载状态机 */
     loadStatus: 'loading' as 'loading' | 'success' | 'empty' | 'error',
     /** 配方列表（当前页，附加前端展示字段 _ownedCount / _canMake） */
@@ -61,6 +63,18 @@ Page({
   /** 配方每页条数（前端分页，UI 常量） */
   _recipePageSize: 10,
 
+  /** 蒙版拦截所有点击/滑动（功能未开放期间阻止穿透到下层页面） */
+  onComingSoonMaskTap() {},
+
+  /** 蒙版「返回上一页」：功能未开放期间提供退出入口 */
+  onComingSoonBack() {
+    wx.navigateBack({
+      fail: () => {
+        wx.switchTab({ url: '/pages/user/user' })
+      }
+    })
+  },
+
   onLoad() {
     barterLog.info('以物易物页面加载')
 
@@ -69,7 +83,6 @@ Page({
       fields: ['isLoggedIn'],
       actions: []
     })
-
     this.loadData()
   },
 

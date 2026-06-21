@@ -48,6 +48,8 @@ const BILLING_MODE_TEXT: Record<string, string> = {
 
 Page({
   data: {
+    /** 功能后续开放蒙版（暂屏蔽我的广告功能，后续开放时置 false 即可恢复） */
+    comingSoonVisible: true,
     /* ===== 列表数据 ===== */
     campaigns: [] as any[],
     loading: true,
@@ -75,6 +77,18 @@ Page({
   userBindings: null as any,
   /** 从其他页面返回时是否需要刷新列表 */
   _needRefresh: false,
+
+  /** 蒙版拦截所有点击/滑动（功能未开放期间阻止穿透到下层页面） */
+  onComingSoonMaskTap() {},
+
+  /** 蒙版「返回上一页」：功能未开放期间提供退出入口 */
+  onComingSoonBack() {
+    wx.navigateBack({
+      fail: () => {
+        wx.switchTab({ url: '/pages/user/user' })
+      }
+    })
+  },
 
   onLoad() {
     this.userBindings = createStoreBindings(this, {

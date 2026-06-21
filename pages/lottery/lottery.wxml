@@ -310,7 +310,7 @@
           campaignCode="{{mainCampaign.campaign_code}}"
           size="{{mainCampaign.placement.size || 'full'}}"
           bind:pointsupdate="onPointsUpdate"
-          bind:needlogin="onShowLoginPopup"
+          bind:needlogin="onGuestDraw"
         />
       </view>
       <!-- 降级兜底：活动列表加载完成但无匹配活动时显示空状态 -->
@@ -350,7 +350,7 @@
           campaignCode="{{item.campaign_code}}"
           size="{{item.placement.size || 'medium'}}"
           bind:pointsupdate="onPointsUpdate"
-          bind:needlogin="onShowLoginPopup"
+          bind:needlogin="onGuestDraw"
         />
       </view>
     </block>

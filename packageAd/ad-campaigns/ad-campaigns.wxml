@@ -121,7 +121,8 @@
                 <view class="info-row">
                   <text class="info-label">总费用</text>
                   <text class="info-value highlight"
-                    >{{item.fixed_total_star_stone}} <t-icon name="diamond" size="28rpx" /></text>
+                    >{{item.fixed_total_star_stone}} <t-icon name="diamond" size="28rpx"
+                  /></text>
                 </view>
               </block>
 
@@ -130,15 +131,15 @@
                 <view class="info-row">
                   <text class="info-label">日出价</text>
                   <text class="info-value highlight"
-                    >{{item.daily_bid_star_stone}}
-                    <t-icon name="diamond" size="28rpx" />/天</text
+                    >{{item.daily_bid_star_stone}} <t-icon name="diamond" size="28rpx" />/天</text
                   >
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
                     >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}}
-                    <t-icon name="diamond" size="28rpx" /></text>
+                    <t-icon name="diamond" size="28rpx"
+                  /></text>
                 </view>
               </block>
 
@@ -147,15 +148,15 @@
                 <view class="info-row">
                   <text class="info-label">CPM单价</text>
                   <text class="info-value highlight"
-                    >{{item.cpm_price_star_stone}}
-                    <t-icon name="diamond" size="28rpx" />/千次</text
+                    >{{item.cpm_price_star_stone}} <t-icon name="diamond" size="28rpx" />/千次</text
                   >
                 </view>
                 <view class="info-row">
                   <text class="info-label">预算 / 已消耗</text>
                   <text class="info-value"
                     >{{item.budget_spent_star_stone}} / {{item.budget_total_star_stone}}
-                    <t-icon name="diamond" size="28rpx" /></text>
+                    <t-icon name="diamond" size="28rpx"
+                  /></text>
                 </view>
               </block>
 
@@ -224,4 +225,23 @@
       <maintenance-overlay />
     </sticky-section>
   </scroll-view>
+
+  <!-- 功能后续开放蒙版：遮挡页面内容（不遮顶部导航返回按钮，保证可返回） -->
+  <view
+    class="coming-soon-mask"
+    wx:if="{{comingSoonVisible}}"
+    catchtap="onComingSoonMaskTap"
+    catchtouchmove="onComingSoonMaskTap"
+  >
+    <view class="coming-soon-card">
+      <view class="coming-soon-icon">
+        <t-icon name="notification-filled" size="80rpx" color="#C5A572" />
+      </view>
+      <text class="coming-soon-title">功能即将开放</text>
+      <text class="coming-soon-desc">广告投放正在精心打磨，敬请期待</text>
+      <view class="coming-soon-back-btn" catchtap="onComingSoonBack">
+        <text>返回上一页</text>
+      </view>
+    </view>
+  </view>
 </view>

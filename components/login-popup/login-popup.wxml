@@ -20,6 +20,10 @@
       <view wx:if="{{mode === 'sms'}}" class="popup-back" bindtap="onSwitchToWechat">
         <t-icon name="chevron-left" size="44rpx" color="#1A1A1A" />
       </view>
+      <!-- 关闭按钮：显著有效的「取消/不登录」入口，用户可随时关闭弹窗继续浏览（微信审核合规要求） -->
+      <view class="popup-close" bindtap="onCloseTap" aria-role="button" aria-label="关闭登录">
+        <t-icon name="close" size="44rpx" color="#999999" />
+      </view>
       <text class="popup-title">登录</text>
       <text class="popup-subtitle">登录后即可参与回馈赚积分</text>
     </view>
@@ -58,7 +62,7 @@
         bindgetphonenumber="onGetPhoneNumber"
         disabled="{{!!loggingType}}"
       >
-        <text wx:if="{{loggingType !== 'wechat'}}">微信一键登录</text>
+        <text wx:if="{{loggingType !== 'wechat'}}">手机号快捷登录</text>
         <text wx:else>登录中...</text>
       </button>
 

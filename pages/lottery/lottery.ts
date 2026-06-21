@@ -421,9 +421,20 @@ Page({
 
   // ========== 登录弹窗控制 ==========
 
-  /** 显示登录弹窗 */
+  /** 显示登录弹窗（用户主动点击页面「请登录」按钮时调用） */
   onShowLoginPopup() {
     this.setData({ loginPopupVisible: true })
+  },
+
+  /**
+   * 游客点抽奖时的引导（lottery-activity 的 needlogin 事件）
+   *
+   * 合规要求：首页未完整体验前不得强制弹授权登录（微信审核规范）。
+   * 故游客点抽奖不再自动弹登录弹窗，仅轻提示引导，由用户自主点击页面顶部
+   * 「请登录」按钮再登录，把"是否登录"的选择权交还用户。
+   */
+  onGuestDraw() {
+    showToast('登录后即可参与抽奖赚积分', 'none', 2000)
   },
 
   /** 关闭登录弹窗 */
@@ -448,7 +459,15 @@ Page({
           log.error('[lottery] 活动列表刷新失败:', err)
         }),
         this.loadNotificationUnreadCount().catch(() => {}),
-        this.loadInventoryItemCount().catch(() => {})
+        this.loadInventoryItemCount().catch(() => {}),
+        /**
+         * 登录后补拉所有 ad-delivery 图片位：这些接口均需登录态，
+         * 登出态进页面时被首屏的未登录早退分支跳过，登录成功后统一补拉，避免漏图。
+         */
+        this.loadTopBanner().catch(() => {}),
+        this.loadCarouselItems().catch(() => {}),
+        this.loadPopupBanners().catch(() => {}),
+        this.loadHomeAnnouncements().catch(() => {})
       ])
 
       // 二维码单独生成（不放入 Promise.all，确保在数据加载完成后独立执行）
@@ -487,10 +506,19 @@ Page({
         this.setData({ isLoggedIn: false, loading: false })
         this._isFirstLoad = false
         this.applyNativeThemeColors()
-        /* 未登录也加载活动列表（后端已公开） */
-        await this._loadCampaigns().catch((campaignErr: any) => {
-          log.error('[lottery] 活动列表加载失败:', campaignErr)
-        })
+        /**
+         * 未登录也加载公开内容：活动列表 + 运营图片位（ad-delivery 已改 optionalAuth，
+         * 匿名可拿 operational/system 内容），实现"未登录也能看见运营图"。
+         * 各 loader 已自带 try/catch 兜底，失败回退本地兜底图，不阻塞页面。
+         */
+        await Promise.all([
+          this._loadCampaigns().catch((campaignErr: any) => {
+            log.error('[lottery] 活动列表加载失败:', campaignErr)
+          }),
+          this.loadTopBanner().catch(() => {}),
+          this.loadCarouselItems().catch(() => {}),
+          this.loadHomeAnnouncements().catch(() => {})
+        ])
         return
       }
 
