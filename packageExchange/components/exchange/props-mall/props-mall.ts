@@ -113,13 +113,26 @@ Component({
       if (!items || !Array.isArray(items)) {
         return []
       }
+      /**
+       * 方式二（§12.3）：道具商城 2 列网格（unified-card width calc(50% - 10rpx)），
+       * 估算卡片显示宽 px ≈ (窗口宽 - 页边距48rpx - 列间距16rpx) / 2，按 DPR 裁剪。
+       * 在 map 外算一次，避免每条都调 getWindowInfo。
+       */
+      let propCardWidthPx = 165
+      try {
+        const winWidth = wx.getWindowInfo().windowWidth || 375
+        const gapsPx = ((48 + 16) * winWidth) / 750
+        propCardWidthPx = Math.max(0, Math.floor((winWidth - gapsPx) / 2))
+      } catch (_e) {
+        propCardWidthPx = 165
+      }
       return items
         .map((item: any) => {
           if (!item || !item.exchange_item_id) {
             return null
           }
           const imageUrl =
-            (item.primary_image && (item.primary_image.thumbnail_url || item.primary_image.url)) ||
+            propsImageHelper.pickListImageUrl(item.primary_image, propCardWidthPx) ||
             propsImageHelper.DEFAULT_PRODUCT_IMAGE
           return {
             exchange_item_id: item.exchange_item_id,

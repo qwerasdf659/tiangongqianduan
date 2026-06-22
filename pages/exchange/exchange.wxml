@@ -82,6 +82,7 @@
       hidden="{{loading || hasConfigError || currentTab !== 'exchange'}}"
     >
       <exchange-shelf
+        id="exchange-shelf"
         active="{{currentTab === 'exchange'}}"
         pointsBalance="{{totalPoints}}"
         frozenPoints="{{frozenPoints}}"

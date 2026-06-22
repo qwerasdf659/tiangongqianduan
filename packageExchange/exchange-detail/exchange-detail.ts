@@ -67,6 +67,16 @@ Page({
     swiperImages: [] as any[],
     swiperCurrent: 0,
 
+    /**
+     * 主图轮播自动播放间隔（毫秒）
+     * 数据源: 后端详情 item.gallery_autoplay_interval_ms（运营全局配置，§8.7/§9.3）
+     * 后端未下发时用前端默认 4000ms 兜底（不写死业务值到 WXML）
+     */
+    galleryInterval: 4000,
+
+    /** SPU 主图轮播组（用户未选 SKU 或所选 SKU 无图时回退展示） */
+    spuSwiperImages: [] as any[],
+
     /** 稀有度样式（优先 API rarity_def.color_hex，降级到本地 RARITY_STYLES） */
     rarityStyle: null as any,
 
@@ -230,6 +240,17 @@ Page({
       }
 
       /**
+       * 方案二（已下架优雅处理）：记录仍在库（含 inactive）时详情接口返回 success=true，
+       * status==='inactive' 表示已下架。提示「该商品已下架」并通知列表移除后返回，
+       * 不展示无法兑换的下架商品。物理删除走 catch 的 EXCHANGE_ITEM_NOT_FOUND 分支。
+       */
+      if (productData.status === 'inactive') {
+        edLog.info('商品已下架(inactive)，提示并返回:', itemId)
+        this._handleItemUnavailable(itemId)
+        return
+      }
+
+      /**
        * 计价资产码：后端详情接口已在顶层下发 cost_asset_code（对接文档 16.1/16.3），
        * 前端直读，不再顺 SKU channelPrices 兜底、不再 || 'points' 误兜底。
        * 无价商品后端返回 null，formatAssetLabel('') 返回空字符串，由展示层处理。
@@ -302,6 +323,16 @@ Page({
 
       /** 主图URL（确认弹窗和分享封面使用） */
       const mainImageUrl: string = swiperImages.length > 0 ? swiperImages[0].url : ''
+
+      /**
+       * 主图轮播自动播放间隔（运营全局配置 §8.7/§9.3）
+       * 后端详情 item.gallery_autoplay_interval_ms 有值则用，否则前端默认 4000ms 兜底
+       */
+      const galleryInterval: number =
+        typeof productData.gallery_autoplay_interval_ms === 'number' &&
+        productData.gallery_autoplay_interval_ms > 0
+          ? productData.gallery_autoplay_interval_ms
+          : 4000
 
       /** ⑤ 详情长图（后端 detail_images，role='detail'，含可选 caption 图片说明） */
       const detailImages: any[] = Array.isArray(productData.detail_images)
@@ -444,11 +475,24 @@ Page({
               : '默认'
           /** 权威单价：channelPrices[0].cost_amount 优先，回退 SKU/SPU cost_amount，绝不为 NaN */
           const unitCost = resolveSkuUnitCost(sku, productData.cost_amount)
+          /**
+           * SKU 子图多图（§8.7 方案二）：后端 sku.images[] 按 sort_order 排序，
+           * 归一为与主图轮播一致的 { media_id, url, thumbnailUrl } 结构，供选规格时切换轮播。
+           */
+          const skuImages: any[] = Array.isArray(sku.images)
+            ? sku.images.map((img: any) => ({
+                media_id: img.media_id,
+                url: img.url || img.public_url || (img.thumbnails && img.thumbnails.large) || '',
+                thumbnailUrl:
+                  img.thumbnail_url || (img.thumbnails && img.thumbnails.medium) || img.url || ''
+              }))
+            : []
           /** sku_id 归一为数字（后端可能以字符串下发），确保提交、比较、高亮全链路类型一致 */
           return Object.assign({}, sku, {
             sku_id: Number(sku.sku_id),
             _specLabel: specLabel,
-            _unitCost: unitCost
+            _unitCost: unitCost,
+            _images: skuImages
           })
         })
       const isEmptySpec = (sv: any) => !sv || Object.keys(sv).length === 0
@@ -481,7 +525,7 @@ Page({
 
       /** 全量 SKU：无可用上架规格则不可兑换（避免前端假装有库存） */
       if (activeSkus.length === 0) {
-        throw new Error('该商品暂无可售规格（SKU），请稍后再试或联系客服')
+        throw new Error('商品信息加载异常，请返回重试')
       }
 
       /**
@@ -510,9 +554,22 @@ Page({
           ? selectedSkuInfo._unitCost
           : 0
 
+      /**
+       * 初始主图轮播：单默认 SKU 若自带子图则优先展示该 SKU 子图，否则用 SPU 主图组（§8.7）。
+       * spuSwiperImages 始终保存 SPU 主图组，供"所选 SKU 无图"时回退。
+       */
+      const initialSwiperImages: any[] =
+        selectedSkuInfo &&
+        Array.isArray(selectedSkuInfo._images) &&
+        selectedSkuInfo._images.length > 0
+          ? selectedSkuInfo._images
+          : swiperImages
+
       this.setData({
         product: enrichedProduct,
-        swiperImages,
+        swiperImages: initialSwiperImages,
+        spuSwiperImages: swiperImages,
+        galleryInterval,
         swiperCurrent: 0,
         rarityStyle: rarityConfig,
         stockPercent: remainPercent,
@@ -560,12 +617,41 @@ Page({
       this._loadRelatedProducts(relatedCategoryId, itemId)
     } catch (error: any) {
       edLog.error('商品详情加载失败:', error)
+      /**
+       * 方案二（已删除优雅处理）：商品被物理删除时后端返回 404 EXCHANGE_ITEM_NOT_FOUND，
+       * 与 inactive 同样提示「该商品已下架」并通知列表移除后返回，不停留在报错页。
+       */
+      if (error && error.code === 'EXCHANGE_ITEM_NOT_FOUND') {
+        edLog.info('商品已删除(EXCHANGE_ITEM_NOT_FOUND)，提示并返回:', itemId)
+        this._handleItemUnavailable(itemId)
+        return
+      }
       this.setData({
         loading: false,
         hasError: true,
         errorMessage: error.message || '加载失败，请重试'
       })
     }
+  },
+
+  /**
+   * 方案二统一兜底：商品已下架(inactive)或已删除(404) → 提示「该商品已下架」，
+   * 通过 globalData 标记让列表页 onShow 刷新移除该项，随后返回上一页。
+   */
+  _handleItemUnavailable(itemId: number) {
+    const appInstance = getApp()
+    if (appInstance && appInstance.globalData) {
+      /* 标记需刷新列表：列表页 onShow 消费此标志重拉，已下架/删除商品自然消失 */
+      appInstance.globalData._exchangeItemUnavailableId = itemId
+    }
+    wx.showToast({ title: '该商品已下架', icon: 'none', duration: 1500 })
+    setTimeout(() => {
+      wx.navigateBack({
+        fail: () => {
+          wx.switchTab({ url: '/pages/exchange/exchange' })
+        }
+      })
+    }, 1500)
   },
 
   /**
@@ -633,11 +719,21 @@ Page({
       if (response && response.success && response.data) {
         const items = response.data.items || []
         if (items.length > 0) {
+          /**
+           * 方式二（§12.3）：相关推荐 2 列卡片，估算显示宽 ≈ (窗口宽 - 页边距 - 间距) / 2，按 DPR 裁剪。
+           */
+          let relatedCardWidthPx = 165
+          try {
+            const winWidth = wx.getWindowInfo().windowWidth || 375
+            const gapsPx = ((48 + 16) * winWidth) / 750
+            relatedCardWidthPx = Math.max(0, Math.floor((winWidth - gapsPx) / 2))
+          } catch (_e) {
+            relatedCardWidthPx = 165
+          }
           const enrichedItems = items.map((item: any) => {
-            const imgSrc =
-              (item.primary_image &&
-                (item.primary_image.thumbnail_url || item.primary_image.url)) ||
-              ''
+            const imgSrc = item.primary_image
+              ? detailPageImageHelper.pickListImageUrl(item.primary_image, relatedCardWidthPx)
+              : ''
             return Object.assign({}, item, {
               _priceLabel: formatAssetLabel(item.cost_asset_code || '', item.cost_asset_name),
               _priceIcon: item.cost_asset_icon_url || '',
@@ -827,10 +923,20 @@ Page({
           ? matchedSku._unitCost
           : this.data.product.cost_amount || 0
       const insufficient = this.data.currentBalance < skuCost
+      /**
+       * SKU 子图多图轮播切换（§8.7）：所选 SKU 有子图则切换为该 SKU 图组，
+       * 无子图回退 SPU 主图组（与天猫"选规格换该规格图组、无则用商品主图"一致）。
+       */
+      const skuImages =
+        Array.isArray(matchedSku._images) && matchedSku._images.length > 0
+          ? matchedSku._images
+          : this.data.spuSwiperImages
       this.setData({
         selectedSkuId: skuId,
         selectedSkuInfo: matchedSku,
         balanceInsufficient: insufficient,
+        swiperImages: skuImages,
+        swiperCurrent: 0,
         confirmUnitCost: skuCost,
         confirmTotalCost: skuCost * this.data.exchangeQuantity
       })

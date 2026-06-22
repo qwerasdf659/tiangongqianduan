@@ -224,7 +224,7 @@ Component({
 
     /**
      * 初始化幸运空间数     * 并行请求商品列表和空间统     */
-    async initData() {
+    async initData(force?: boolean) {
       luckyLog.info('初始化幸运空间数..')
 
       try {
@@ -238,7 +238,8 @@ Component({
             space: 'lucky',
             page: 1,
             page_size: waterfallPageSize,
-            with_counts: true
+            with_counts: true,
+            refresh: force === true
           }),
           luckyGetExchangeSpaceStats('lucky')
         ])
@@ -344,9 +345,16 @@ Component({
             if (!item || !item.exchange_item_id) {
               return null
             }
+            /**
+             * 方式二（§12.3）：传卡片显示宽 → pickListImageUrl 按 DPR 拼 ?width= 动态裁剪 WebP。
+             * 瀑布流 2 列：列宽 = (容器宽 - 列间距15) / 2。
+             */
+            const cardWidthPx = Math.max(
+              0,
+              Math.floor(((this.data.containerWidth || 327) - 15) / 2)
+            )
             const imageUrl =
-              (item.primary_image &&
-                (item.primary_image.thumbnail_url || item.primary_image.url)) ||
+              luckyImageHelper.pickListImageUrl(item.primary_image, cardWidthPx) ||
               luckyImageHelper.DEFAULT_PRODUCT_IMAGE
             return {
               exchange_item_id: item.exchange_item_id,
@@ -672,8 +680,8 @@ Component({
     },
 
     /** 对外暴露的刷新方*/
-    refresh() {
-      this.initData()
+    refresh(force?: boolean) {
+      this.initData(force === true)
     }
   }
 })

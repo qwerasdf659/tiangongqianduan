@@ -190,15 +190,15 @@ Component({
     },
 
     /** 刷新当前空间子组件（WebSocket 事件驱动*/
-    _refreshCurrentSpace() {
+    _refreshCurrentSpace(force?: boolean) {
       const luckySpace = this.selectComponent('#lucky-space')
       const premiumSpace = this.selectComponent('#premium-space')
       const bidPanel = this.selectComponent('#bid-panel')
       if (this.data.currentSpace === 'lucky' && luckySpace) {
-        luckySpace.refresh()
+        luckySpace.refresh(force === true)
       }
       if (this.data.currentSpace === 'premium' && premiumSpace) {
-        premiumSpace.refresh()
+        premiumSpace.refresh(force === true)
       }
       if (bidPanel) {
         bidPanel.refresh()
@@ -508,6 +508,11 @@ Component({
     /** 对外暴露的刷新方*/
     refresh() {
       this._refreshCurrentSpace()
+    },
+
+    /** 对外暴露的强制刷新（下拉刷新用，传透 refresh=true 跳过后端 60s 缓存，对接文档方案一） */
+    forceRefresh() {
+      this._refreshCurrentSpace(true)
     }
   }
 })

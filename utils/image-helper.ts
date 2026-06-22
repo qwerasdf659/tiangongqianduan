@@ -317,6 +317,80 @@ function getAssetDisplayName(assetCode: string, backendDisplayName?: string): st
   return ASSET_DISPLAY_NAMES[assetCode] || assetCode
 }
 
+/**
+ * 选取「列表卡片」用的清晰图 URL（对齐《兑换商城图片清晰度优化方案》§12.3 方式二，按 DPR 动态裁剪）
+ *
+ * 后端 primary_image / prize image 现已下发：
+ *   - url：原图（走 /api/v4/images 代理，支持 ?width= 动态裁剪输出 WebP，§12.2）
+ *   - thumbnails.{small=150, medium=300, large=800}：预生成多档
+ *   - thumbnail_url：small(150)，过小、仅兜底
+ *
+ * 取图策略：
+ *   1. 传入 displayWidthPx（卡片 CSS 显示宽，rpx 或 px 皆可按比例）→ 走方式二：
+ *      对原图 url 追加 ?width=（= 显示宽 × 设备 DPR），后端按离散档 {375,560,750,1080} 向上取整、
+ *      >1080 钳制 1200，返回 WebP（更清晰更省流）。保留原 url 上的 ?h= content_hash 不动。
+ *   2. 未传 displayWidthPx 或无原图 url → 走方式一兜底：thumbnails.large(800) → medium → thumbnail_url → url。
+ *   3. 全缺 → 默认占位图。
+ *
+ * 详情页主图请直接用 image.url（原图）或 image.url?width=1080，不要用本函数。
+ *
+ * @param imageObj       后端 primary_image / prize.image 对象
+ * @param displayWidthPx 卡片显示宽度（px；传 0/省略则走方式一 large 档兜底）
+ * @returns 列表卡片用图 URL，缺失时返回默认商品占位图
+ */
+function pickListImageUrl(imageObj: any, displayWidthPx?: number): string {
+  if (!imageObj) {
+    return DEFAULT_PRODUCT_IMAGE
+  }
+  const thumbnails = imageObj.thumbnails || {}
+  const originUrl: string = imageObj.url || ''
+
+  /* 方式二：原图代理 URL + ?width=（按 DPR），后端动态裁剪输出 WebP */
+  if (displayWidthPx && displayWidthPx > 0 && originUrl) {
+    const targetWidth = computeDprWidth(displayWidthPx)
+    return appendQueryParam(originUrl, 'width', String(targetWidth))
+  }
+
+  /* 方式一兜底：large(800) 档 */
+  return (
+    thumbnails.large ||
+    thumbnails.medium ||
+    imageObj.thumbnail_url ||
+    originUrl ||
+    DEFAULT_PRODUCT_IMAGE
+  )
+}
+
+/**
+ * 按设备 DPR 计算请求像素宽（displayWidthPx × pixelRatio，上限 1200 与后端钳制一致）
+ * DPR 获取失败时按 2 兜底；上限 1200 避免无意义超大请求（后端同样钳制 1200）
+ */
+function computeDprWidth(displayWidthPx: number): number {
+  let dpr = 2
+  try {
+    dpr = wx.getWindowInfo().pixelRatio || 2
+  } catch (_e) {
+    dpr = 2
+  }
+  const width = Math.ceil(displayWidthPx * dpr)
+  return Math.min(width, 1200)
+}
+
+/**
+ * 安全地往 URL 追加/覆盖一个 query 参数（保留已有 ?h= 等参数）
+ * 已存在同名参数时覆盖其值，否则按 ? / & 规则拼接
+ */
+function appendQueryParam(url: string, key: string, value: string): string {
+  if (!url) {
+    return url
+  }
+  const re = new RegExp(`([?&])${key}=[^&]*`)
+  if (re.test(url)) {
+    return url.replace(re, `$1${key}=${value}`)
+  }
+  return url + (url.indexOf('?') === -1 ? '?' : '&') + `${key}=${value}`
+}
+
 module.exports = {
   MATERIAL_ICONS,
   CATEGORY_ICONS,
@@ -331,5 +405,6 @@ module.exports = {
   getQualityGradeStyle,
   getAssetDisplayName,
   getLocalIconFromMaterialUrl,
-  formatEdition
+  formatEdition,
+  pickListImageUrl
 }

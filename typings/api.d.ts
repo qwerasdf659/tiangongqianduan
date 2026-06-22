@@ -598,15 +598,25 @@ declare namespace API {
 
   /**
    * 兑换商品主图对象（C 端 GET /api/v4/exchange/items 与详情接口下发）
-   * 前端取图: thumbnail_url 优先（缩略图省流），回退 url（原图）
+   * 列表取图: thumbnails.large(800,清晰) 优先；详情主图用 url（原图）
+   * 旧 thumbnail_url=small(150) 仅作兜底
    */
   interface ExchangeItemPrimaryImage {
     /** 主图媒体ID（关联 media_files 表，BIGINT 字符串下发） */
     primary_media_id: string | number
     /** 原图完整公网URL（后端已拼接，前端直接使用） */
     url: string
-    /** 缩略图完整公网URL（列表优先使用，更省流更快） */
+    /** 缩略图完整公网URL（small=150，仅兜底；列表优先用 thumbnails.large） */
     thumbnail_url: string
+    /**
+     * 三档缩略图完整公网URL（后端《图片清晰度优化方案》§12.3 下发）
+     * small=150 / medium=300 / large=800；列表卡片优先用 large
+     */
+    thumbnails?: {
+      small?: string
+      medium?: string
+      large?: string
+    }
     /** MIME 类型（如 image/png） */
     mime: string
   }

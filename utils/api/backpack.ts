@@ -187,6 +187,8 @@ async function getExchangeProducts(
     exclude_id?: number | null
     /** 是否返回筛选维度聚合计数（C+++联动计数），后端交叉排除逻辑 */
     with_counts?: boolean
+    /** 强制跳过后端 60s 缓存读库（下拉刷新时传 true，确保拿到最新，对接文档 2.2） */
+    refresh?: boolean
   } = {}
 ) {
   const {
@@ -204,7 +206,8 @@ async function getExchangeProducts(
     sort_by = null,
     sort_order = null,
     exclude_id = null,
-    with_counts = false
+    with_counts = false,
+    refresh = false
   } = params
 
   const qs = buildQueryString({
@@ -222,7 +225,8 @@ async function getExchangeProducts(
     sort_by,
     sort_order,
     exclude_id,
-    with_counts: with_counts ? 'true' : null
+    with_counts: with_counts ? 'true' : null,
+    refresh: refresh ? 'true' : null
   })
   return apiClient.request(`/exchange/items?${qs}`, { method: 'GET', needAuth: false })
 }

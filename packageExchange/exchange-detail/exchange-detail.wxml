@@ -39,7 +39,7 @@
           class="ed-swiper"
           indicator-dots="{{false}}"
           autoplay="{{true}}"
-          interval="{{4000}}"
+          interval="{{galleryInterval}}"
           circular="{{true}}"
           bindchange="onSwiperChange"
         >

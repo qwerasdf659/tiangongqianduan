@@ -210,7 +210,7 @@ Component({
     /**
      * 初始化臻选空间数据（服务端分+ with_counts     * 后端API: GET /api/v4/exchange/items?space=premium
      */
-    async initData() {
+    async initData(force?: boolean) {
       premiumLog.info('初始化臻选空间数..')
 
       try {
@@ -223,7 +223,8 @@ Component({
             space: 'premium',
             page: 1,
             page_size: pageSize,
-            with_counts: true
+            with_counts: true,
+            refresh: force === true
           }),
           premiumGetExchangeSpaceStats('premium')
         ])
@@ -287,6 +288,19 @@ Component({
       if (!items || !Array.isArray(items)) {
         return []
       }
+      /**
+       * 方式二（§12.3）：臻选 2 列网格（卡片 calc(50% - 10rpx)），
+       * 估算卡片显示宽 px ≈ (窗口宽 - 页边距48rpx - 列间距20rpx) / 2，传给 pickListImageUrl 按 DPR 裁剪。
+       * rpx→px：以 750rpx 设计基准换算（px = rpx × 窗口宽 / 750）。
+       */
+      let premiumCardWidthPx = 0
+      try {
+        const winWidth = wx.getWindowInfo().windowWidth || 375
+        const gapsPx = ((48 + 20) * winWidth) / 750
+        premiumCardWidthPx = Math.max(0, Math.floor((winWidth - gapsPx) / 2))
+      } catch (_e) {
+        premiumCardWidthPx = 165
+      }
       return items
         .map((item: any) => {
           if (!item || !item.exchange_item_id) {
@@ -297,8 +311,7 @@ Component({
             item_name: item.item_name || '',
             description: item.description || '',
             image:
-              (item.primary_image &&
-                (item.primary_image.thumbnail_url || item.primary_image.url)) ||
+              premiumImageHelper.pickListImageUrl(item.primary_image, premiumCardWidthPx) ||
               premiumImageHelper.DEFAULT_PRODUCT_IMAGE,
             cost_amount: item.cost_amount || 0,
             cost_asset_code: item.cost_asset_code || '',
@@ -562,8 +575,8 @@ Component({
     },
 
     /** 对外暴露的刷新方*/
-    refresh() {
-      this.initData()
+    refresh(force?: boolean) {
+      this.initData(force === true)
     }
   }
 })

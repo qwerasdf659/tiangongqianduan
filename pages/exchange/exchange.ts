@@ -194,7 +194,37 @@ Page({
         _shelfRefreshToken: this.data._shelfRefreshToken + 1,
         _propsMallRefreshToken: this.data._propsMallRefreshToken + 1
       })
+      this._lastListRefreshAt = Date.now()
       log.info('检测到兑换详情页返回，刷新商品列表')
+    } else if (
+      appInstance &&
+      appInstance.globalData &&
+      appInstance.globalData._exchangeItemUnavailableId
+    ) {
+      /**
+       * 方案二：详情页发现商品已下架/删除时设置 _exchangeItemUnavailableId，
+       * 返回列表后强制刷新（refresh=true 跳后端缓存），该商品自然从列表消失。
+       */
+      appInstance.globalData._exchangeItemUnavailableId = 0
+      const shelf = this.selectComponent('#exchange-shelf')
+      if (shelf && typeof shelf.forceRefresh === 'function') {
+        shelf.forceRefresh()
+      } else {
+        this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
+      }
+      this._lastListRefreshAt = Date.now()
+      log.info('检测到商品已下架/删除，强制刷新列表移除该项')
+    } else {
+      /**
+       * 方案一：每次回到列表页自动拉最新（已下架/删除商品自动消失）。
+       * 节流 10s：onShow 距上次刷新很近则跳过，避免频繁请求；走后端 60s 缓存即可。
+       */
+      const now = Date.now()
+      if (!this._lastListRefreshAt || now - this._lastListRefreshAt >= 10000) {
+        this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
+        this._lastListRefreshAt = now
+        log.info('返回兑换列表，自动刷新最新商品')
+      }
     }
 
     this._connectWebSocket()
@@ -437,7 +467,14 @@ Page({
       }
 
       if (this.data.currentTab === 'exchange') {
-        this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
+        /* 方案一：下拉刷新强制跳后端 60s 缓存（refresh=true），确保拿到最新商品 */
+        const shelf = this.selectComponent('#exchange-shelf')
+        if (shelf && typeof shelf.forceRefresh === 'function') {
+          shelf.forceRefresh()
+        } else {
+          this.setData({ _shelfRefreshToken: this.data._shelfRefreshToken + 1 })
+        }
+        this._lastListRefreshAt = Date.now()
       } else if (this.data.currentTab === 'exchange-rate') {
         this.setData({ _exchangeRateRefreshToken: this.data._exchangeRateRefreshToken + 1 })
       } else if (this.data.currentTab === 'prop') {
