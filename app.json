@@ -3,7 +3,6 @@
     "pages/lottery/lottery",
     "pages/exchange/exchange",
     "pages/user/user",
-    "pages/diy/diy",
     "pages/camera/camera",
     "pages/webview/webview"
   ],
@@ -40,8 +39,6 @@
         "backpack/inventory/inventory",
         "records/trade-upload-records/trade-upload-records",
         "agreement/agreement",
-        "barter/barter",
-        "growth-level/growth-level",
         "addresses/addresses"
       ]
     },
@@ -55,23 +52,6 @@
         "customer-service/customer-service",
         "staff-redemption-perm/staff-redemption-perm"
       ]
-    },
-    {
-      "root": "packageAd",
-      "name": "ad",
-      "pages": ["ad-campaigns/ad-campaigns", "ad-create/ad-create", "ad-detail/ad-detail"]
-    },
-    {
-      "root": "packageDIY",
-      "name": "diy",
-      "pages": [
-        "diy-select/diy-select",
-        "diy-templates/diy-templates",
-        "diy-design/diy-design",
-        "diy-result/diy-result",
-        "diy-works/diy-works",
-        "diy-3d-preview/diy-3d-preview"
-      ]
     }
   ],
   "preloadRule": {
@@ -81,11 +61,7 @@
     },
     "pages/exchange/exchange": {
       "network": "all",
-      "packages": ["lottery", "exchange", "diy"]
-    },
-    "pages/diy/diy": {
-      "network": "all",
-      "packages": ["diy"]
+      "packages": ["lottery", "exchange"]
     },
     "pages/camera/camera": {
       "network": "all",
@@ -93,7 +69,7 @@
     },
     "pages/user/user": {
       "network": "all",
-      "packages": ["user-services", "admin", "lottery", "exchange", "ad"]
+      "packages": ["user-services", "admin", "lottery", "exchange"]
     }
   },
   "window": {
@@ -129,12 +105,6 @@
       {
         "pagePath": "pages/exchange/exchange",
         "text": "商城",
-        "iconPath": "images/icons/transparent.png",
-        "selectedIconPath": "images/icons/transparent.png"
-      },
-      {
-        "pagePath": "pages/diy/diy",
-        "text": "DIY",
         "iconPath": "images/icons/transparent.png",
         "selectedIconPath": "images/icons/transparent.png"
       },

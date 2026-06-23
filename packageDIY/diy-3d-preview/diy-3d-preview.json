@@ -1,9 +1,0 @@
-{
-  "navigationBarTitleText": "3D预览",
-  "navigationStyle": "custom",
-  "disableScroll": true,
-  "usingComponents": {
-    "xr-bead-scene": "../sub/xr-bead-scene/xr-bead-scene",
-    "custom-navbar": "/components/custom-navbar/custom-navbar"
-  }
-}

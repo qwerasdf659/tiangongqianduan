@@ -287,17 +287,38 @@
   margin-bottom: var(--tg-spacing-sm);
 }
 
-/* 权限管理入口（仅店长可见）：推到卡片标题行最右侧 */
-.redemption-stats-manage {
-  margin-left: auto;
+/* ===== 员工核销权限管理入口（独立卡片，店长/管理员可见） ===== */
+.staff-perm-entry {
   @include flex-align-center;
-  gap: 2rpx;
+  justify-content: space-between;
+  margin-top: var(--tg-spacing-sm);
+  padding: var(--tg-spacing-md);
+  background: var(--tg-color-white);
+  border-radius: 20rpx;
+  box-shadow: var(--tg-shadow-card);
 }
 
-.redemption-stats-manage-text {
+.staff-perm-entry-left {
+  @include flex-align-center;
+  gap: 16rpx;
+}
+
+.staff-perm-entry-text {
+  @include flex-column;
+  gap: 4rpx;
+}
+
+.staff-perm-entry-title {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.staff-perm-entry-desc {
   font-size: var(--tg-font-size-small);
-  font-weight: var(--tg-font-weight-medium);
-  color: #8b7355;
+  font-weight: var(--tg-font-weight-regular);
+  color: var(--tg-text-tertiary);
   letter-spacing: var(--tg-letter-spacing-normal);
 }
 
@@ -1130,6 +1151,47 @@
   width: 92%;
   max-width: 680rpx;
   max-height: 80vh;
+}
+
+/* ===== 审核链详情自定义遮罩弹窗（替代 t-dialog，Skyline 下稳定可关闭） ===== */
+.chain-detail-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.chain-detail-panel {
+  background: var(--tg-color-white);
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chain-detail-head {
+  @include flex-between;
+  align-items: center;
+  padding: 28rpx;
+  border-bottom: 1rpx solid var(--tg-color-border-light);
+}
+
+.chain-detail-head-title {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.chain-detail-close {
+  padding: 4rpx;
 }
 
 .chain-detail-scroll {

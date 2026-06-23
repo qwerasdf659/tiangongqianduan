@@ -1189,12 +1189,14 @@ Page({
     })
   },
 
-  /** 跳转到审核详情页（店员 role_level>=20 及以上） */
+  /**
+   * 跳转到审核详情页
+   *
+   * 权限判定全部交给后端（方案B，对接文档2026-06-24）：不做本地"是否门店店员"前置拦截，
+   * 点击即跳转。审核页与后端接口按 role_level 统一判定——管理员/超管(role_level>=100)
+   * 后端无条件放行，避免前端本地规则与后端漂移误伤管理员账号。
+   */
   onAuditTap() {
-    if (!this.data.isReviewer) {
-      showToast('需要店员及以上权限', 'none', 2000)
-      return
-    }
     wx.navigateTo({
       url: '/packageAdmin/audit-list/audit-list',
       fail: err => {

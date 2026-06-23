@@ -311,7 +311,13 @@ Page({
         (storesResult && storesResult.success && storesResult.data && storesResult.data.stores) ||
         []
       if (!myStores.length) {
-        /* 无在职门店：静默不显示核销概况卡 */
+        /**
+         * 无在职门店：核销概况卡不显示。但平台管理员（role_level>=100）有跨店管理特权，
+         * 即使未挂门店也应能进入员工权限管理页，故单独放行入口（授权页内部再取门店）。
+         */
+        if (this.data.currentRoleLevel >= 100) {
+          this.setData({ canManageStaffPerm: true })
+        }
         return
       }
 
@@ -322,13 +328,29 @@ Page({
         redemptionStoreIndex: 0
       })
 
+      /**
+       * 员工权限管理入口可见性：与核销概况卡解耦，取到门店即判定。
+       * 条件：当前用户是某门店店长（role_in_store==='manager'）或平台管理员（role_level>=100，
+       *   跨店管理特权）。这样即使本店暂无核销数据（store-stats 无数据/失败导致概况卡不显示），
+       *   店长/管理员仍能进入授权页管理店员权限。实际授权动作仍由后端按 manager 身份精校。
+       */
+      const hasManagerStore = myStores.some((s: any) => s.role_in_store === 'manager')
+      const isAdminLevel = this.data.currentRoleLevel >= 100
+      this.setData({
+        canManageStaffPerm: hasManagerStore || isAdminLevel,
+        redemptionStoreId: myStores[0].store_id
+      })
+
       /* 第二步：按默认门店（索引0）加载核销概况 */
       await this.loadRedemptionStatsByIndex(0)
     } catch (redemptionError: any) {
       /**
        * 静默降级：无门店、网络异常等一律不显示该卡，仅记录日志，
-       * 不影响审核列表与汇总条。
+       * 不影响审核列表与汇总条。但管理员（role_level>=100）仍放行权限管理入口。
        */
+      if (this.data.currentRoleLevel >= 100) {
+        this.setData({ canManageStaffPerm: true })
+      }
       auditLog.warn(
         '加载本店核销概况门店列表失败（静默降级，不影响审核列表）:',
         redemptionError?.code || '',
@@ -369,8 +391,9 @@ Page({
         redemptionStoreName: targetStore.store_name || '',
         redemptionPendingCount: redemptionData.pending_count || 0,
         redemptionFulfilledCount: redemptionData.fulfilled_count || 0,
-        /* 仅店长显示"员工核销权限"管理入口（按当前门店的角色判定） */
-        canManageStaffPerm: targetStore.role_in_store === 'manager'
+        /* 入口可见性：当前门店店长 或 平台管理员（与 loadRedemptionStats 同口径，切店时同步更新） */
+        canManageStaffPerm:
+          targetStore.role_in_store === 'manager' || this.data.currentRoleLevel >= 100
       })
     } catch (statsError: any) {
       /**

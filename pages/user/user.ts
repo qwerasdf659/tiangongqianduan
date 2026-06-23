@@ -160,16 +160,6 @@ Page({
         url: '/packageUser/records/trade-upload-records/trade-upload-records?tab=1'
       },
       {
-        id: 'my-ads',
-        name: '我的广告',
-        description: '管理广告投放活动',
-        iconClass: 'icon-megaphone',
-        tdIcon: 'notification-filled',
-        color: '#C5A572',
-        type: 'page',
-        url: '/packageAd/ad-campaigns/ad-campaigns'
-      },
-      {
         id: 'my-disputes',
         name: '我的售后',
         description: '查看订单售后申诉进度',
@@ -198,26 +188,6 @@ Page({
         color: '#A08B6E',
         type: 'action',
         action: 'onContactService'
-      },
-      {
-        id: 'barter',
-        name: '以物易物',
-        description: '用旧物按官方配方合成新物',
-        iconClass: 'icon-gift',
-        tdIcon: 'gift',
-        color: '#C5A572',
-        type: 'page',
-        url: '/packageUser/barter/barter'
-      },
-      {
-        id: 'growth-level',
-        name: '成长等级',
-        description: '查看成长等级与累计积分',
-        iconClass: 'icon-chart',
-        tdIcon: 'chart-bar',
-        color: '#8B7355',
-        type: 'page',
-        url: '/packageUser/growth-level/growth-level'
       },
       {
         id: 'my-addresses',
@@ -307,7 +277,7 @@ Page({
     if (typeof this.getTabBar === 'function') {
       const tabBar = this.getTabBar()
       if (tabBar) {
-        tabBar.setData({ selected: 4 })
+        tabBar.setData({ selected: 3 })
       }
     }
     if (this._skipNextShow) {
@@ -1091,13 +1061,14 @@ Page({
     })
   },
 
-  /** 跳转到审批管理页面（店员 role_level>=20 及以上可用，后端路由 requireRoleLevel(20)） */
+  /**
+   * 跳转到审批管理页面
+   *
+   * 权限判定全部交给后端（方案B，对接文档2026-06-24）：不做本地"是否门店店员"前置拦截，
+   * 点击即跳转。审核页与后端接口按 role_level 统一判定——管理员/超管(role_level>=100)
+   * 后端无条件放行，避免前端本地规则与后端漂移误伤管理员账号。
+   */
   goToAuditList() {
-    if (!this.data.isReviewer) {
-      showToast('需要店员及以上权限')
-      return
-    }
-
     wx.navigateTo({
       url: '/packageAdmin/audit-list/audit-list'
     })

@@ -68,48 +68,52 @@
           >临近超时 {{summaryNearDueCount}} 单</text
         >
       </view>
+    </view>
 
-      <!-- ===== 本店核销概况卡（门店专属兑换券业务线，store-stats；无门店/无权限静默不显示） ===== -->
-      <view class="redemption-stats" wx:if="{{redemptionStatsReady}}">
-        <view class="redemption-stats-header">
-          <t-icon name="shop" size="32rpx" color="#8b7355" class="redemption-stats-icon" />
-          <text class="redemption-stats-title">本店核销概况</text>
-          <view
-            wx:if="{{canManageStaffPerm}}"
-            class="redemption-stats-manage"
-            bindtap="goStaffRedemptionPerm"
-          >
-            <text class="redemption-stats-manage-text">权限管理</text>
-            <t-icon name="chevron-right" size="28rpx" color="#8b7355" />
-          </view>
+    <!-- ===== 员工核销权限管理入口（店长/管理员可见，独立区块，不受消费统计/核销数据加载影响） ===== -->
+    <view wx:if="{{canManageStaffPerm}}" class="staff-perm-entry" bindtap="goStaffRedemptionPerm">
+      <view class="staff-perm-entry-left">
+        <t-icon name="user-circle-filled" size="36rpx" color="#8b7355" />
+        <view class="staff-perm-entry-text">
+          <text class="staff-perm-entry-title">员工核销权限</text>
+          <text class="staff-perm-entry-desc">授权本店店员查看核销概况</text>
         </view>
+      </view>
+      <t-icon name="chevron-right" size="32rpx" color="#999999" />
+    </view>
 
-        <!-- 多门店店长：门店切换器（与授权页口径一致，可查看各店核销概况） -->
-        <picker
-          wx:if="{{redemptionIsMultiStore}}"
-          class="redemption-store-picker"
-          mode="selector"
-          range="{{redemptionStoreList}}"
-          range-key="store_name"
-          value="{{redemptionStoreIndex}}"
-          bindchange="onRedemptionStoreChange"
-        >
-          <view class="redemption-store-picker-inner">
-            <text class="redemption-store-picker-name">{{redemptionStoreName}}</text>
-            <t-icon name="chevron-down" size="28rpx" color="#999999" />
-          </view>
-        </picker>
+    <!-- ===== 本店核销概况卡（门店专属兑换券业务线，store-stats；无门店/无权限静默不显示） ===== -->
+    <view class="redemption-stats" wx:if="{{redemptionStatsReady}}">
+      <view class="redemption-stats-header">
+        <t-icon name="shop" size="32rpx" color="#8b7355" class="redemption-stats-icon" />
+        <text class="redemption-stats-title">本店核销概况</text>
+      </view>
 
-        <view class="redemption-stats-grid {{redemptionStatsLoading ? 'loading' : ''}}">
-          <view class="redemption-stat-item pending">
-            <text class="redemption-stat-value">{{redemptionPendingCount}}</text>
-            <text class="redemption-stat-label">待核销</text>
-          </view>
-          <view class="redemption-stat-divider"></view>
-          <view class="redemption-stat-item fulfilled">
-            <text class="redemption-stat-value">{{redemptionFulfilledCount}}</text>
-            <text class="redemption-stat-label">已核销</text>
-          </view>
+      <!-- 多门店店长：门店切换器（与授权页口径一致，可查看各店核销概况） -->
+      <picker
+        wx:if="{{redemptionIsMultiStore}}"
+        class="redemption-store-picker"
+        mode="selector"
+        range="{{redemptionStoreList}}"
+        range-key="store_name"
+        value="{{redemptionStoreIndex}}"
+        bindchange="onRedemptionStoreChange"
+      >
+        <view class="redemption-store-picker-inner">
+          <text class="redemption-store-picker-name">{{redemptionStoreName}}</text>
+          <t-icon name="chevron-down" size="28rpx" color="#999999" />
+        </view>
+      </picker>
+
+      <view class="redemption-stats-grid {{redemptionStatsLoading ? 'loading' : ''}}">
+        <view class="redemption-stat-item pending">
+          <text class="redemption-stat-value">{{redemptionPendingCount}}</text>
+          <text class="redemption-stat-label">待核销</text>
+        </view>
+        <view class="redemption-stat-divider"></view>
+        <view class="redemption-stat-item fulfilled">
+          <text class="redemption-stat-value">{{redemptionFulfilledCount}}</text>
+          <text class="redemption-stat-label">已核销</text>
         </view>
       </view>
     </view>
@@ -382,86 +386,85 @@
     </view>
   </t-dialog>
 
-  <!-- ===== 审核链详情弹窗（时间线） ===== -->
-  <t-dialog
+  <!-- ===== 审核链详情弹窗（自定义遮罩，Skyline 下稳定可关闭） ===== -->
+  <!-- 改用自定义遮罩：t-dialog 在 Skyline 下浮层/遮罩点击关闭不稳定，导致详情收不回。 -->
+  <view
+    class="chain-detail-mask"
     wx:if="{{showChainDetailModal}}"
-    visible="{{showChainDetailModal}}"
-    title="审核链详情"
-    closeBtn="{{true}}"
-    closeOnOverlayClick="{{true}}"
-    confirmBtn="{{auditHelper.buildConfirmBtn('关闭', false, false)}}"
-    bind:confirm="closeChainDetailModal"
-    bind:close="closeChainDetailModal"
+    bindtap="closeChainDetailModal"
+    catch:touchmove="stopPropagation"
   >
-    <scroll-view
-      type="list"
-      slot="content"
-      scroll-y
-      class="chain-detail-scroll"
-      wx:if="{{chainDetail}}"
-    >
-      <!-- 审核链基本信息 -->
-      <view class="chain-detail-info">
-        <view class="detail-row">
-          <text class="detail-key">业务类型</text>
-          <text class="detail-val">{{chainDetail.auditable_type_text}}</text>
-        </view>
-        <view class="detail-row">
-          <text class="detail-key">整体状态</text>
-          <text class="detail-val chain-status-{{chainDetail.status}}"
-            >{{chainDetail.status_text}}</text
-          >
-        </view>
-        <view class="detail-row">
-          <text class="detail-key">提交时间</text>
-          <text class="detail-val muted">{{chainDetail.submitted_at_formatted}}</text>
-        </view>
-        <view class="detail-row" wx:if="{{chainDetail.completed_at_formatted}}">
-          <text class="detail-key">完成时间</text>
-          <text class="detail-val muted">{{chainDetail.completed_at_formatted}}</text>
-        </view>
-        <view class="detail-row" wx:if="{{chainDetail.final_reason}}">
-          <text class="detail-key">审批意见</text>
-          <text class="detail-val">{{chainDetail.final_reason}}</text>
+    <view class="chain-detail-panel" catchtap="stopPropagation">
+      <view class="chain-detail-head">
+        <text class="chain-detail-head-title">审核链详情</text>
+        <view class="chain-detail-close" bindtap="closeChainDetailModal">
+          <t-icon name="close" size="40rpx" color="#999999" />
         </view>
       </view>
+      <scroll-view type="list" scroll-y class="chain-detail-scroll" wx:if="{{chainDetail}}">
+        <!-- 审核链基本信息 -->
+        <view class="chain-detail-info">
+          <view class="detail-row">
+            <text class="detail-key">业务类型</text>
+            <text class="detail-val">{{chainDetail.auditable_type_text}}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-key">整体状态</text>
+            <text class="detail-val chain-status-{{chainDetail.status}}"
+              >{{chainDetail.status_text}}</text
+            >
+          </view>
+          <view class="detail-row">
+            <text class="detail-key">提交时间</text>
+            <text class="detail-val muted">{{chainDetail.submitted_at_formatted}}</text>
+          </view>
+          <view class="detail-row" wx:if="{{chainDetail.completed_at_formatted}}">
+            <text class="detail-key">完成时间</text>
+            <text class="detail-val muted">{{chainDetail.completed_at_formatted}}</text>
+          </view>
+          <view class="detail-row" wx:if="{{chainDetail.final_reason}}">
+            <text class="detail-key">审批意见</text>
+            <text class="detail-val">{{chainDetail.final_reason}}</text>
+          </view>
+        </view>
 
-      <!-- 审核链步骤时间线 -->
-      <view class="chain-timeline">
-        <text class="timeline-title">审核步骤</text>
-        <view class="timeline-list">
-          <view
-            class="timeline-item {{stepItem.status}}"
-            wx:for="{{chainDetail.steps}}"
-            wx:for-item="stepItem"
-            wx:key="step_id"
-          >
-            <view class="timeline-dot {{stepItem.status}}"></view>
-            <view class="timeline-line" wx:if="{{index < chainDetail.steps.length - 1}}"></view>
-            <view class="timeline-content">
-              <view class="timeline-header">
-                <text class="timeline-step-name"
-                  >{{stepItem.node_name || ('第' + (index + 1) + '步')}}</text
-                >
-                <text class="timeline-step-status {{stepItem.status}}"
-                  >{{stepItem.status_text}}</text
-                >
-              </view>
-              <view class="timeline-detail" wx:if="{{stepItem.actioned_at_formatted}}">
-                <text class="timeline-time">{{stepItem.actioned_at_formatted}}</text>
-              </view>
-              <view class="timeline-detail" wx:if="{{stepItem.action_reason}}">
-                <text class="timeline-reason">{{stepItem.action_reason}}</text>
-              </view>
-              <view class="timeline-detail" wx:if="{{stepItem.auto_approved}}">
-                <text class="timeline-auto">自动审批</text>
+        <!-- 审核链步骤时间线 -->
+        <view class="chain-timeline">
+          <text class="timeline-title">审核步骤</text>
+          <view class="timeline-list">
+            <view
+              class="timeline-item {{stepItem.status}}"
+              wx:for="{{chainDetail.steps}}"
+              wx:for-item="stepItem"
+              wx:key="step_id"
+            >
+              <view class="timeline-dot {{stepItem.status}}"></view>
+              <view class="timeline-line" wx:if="{{index < chainDetail.steps.length - 1}}"></view>
+              <view class="timeline-content">
+                <view class="timeline-header">
+                  <text class="timeline-step-name"
+                    >{{stepItem.node_name || ('第' + (index + 1) + '步')}}</text
+                  >
+                  <text class="timeline-step-status {{stepItem.status}}"
+                    >{{stepItem.status_text}}</text
+                  >
+                </view>
+                <view class="timeline-detail" wx:if="{{stepItem.actioned_at_formatted}}">
+                  <text class="timeline-time">{{stepItem.actioned_at_formatted}}</text>
+                </view>
+                <view class="timeline-detail" wx:if="{{stepItem.action_reason}}">
+                  <text class="timeline-reason">{{stepItem.action_reason}}</text>
+                </view>
+                <view class="timeline-detail" wx:if="{{stepItem.auto_approved}}">
+                  <text class="timeline-auto">自动审批</text>
+                </view>
               </view>
             </view>
           </view>
         </view>
-      </view>
-    </scroll-view>
-  </t-dialog>
+      </scroll-view>
+    </view>
+  </view>
 
   <!-- ===== 批量操作进度弹窗 ===== -->
   <t-dialog
