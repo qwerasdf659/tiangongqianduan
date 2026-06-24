@@ -84,14 +84,6 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
-/* 消费录入图标 */
-.consume-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
 /* 🔴 消费录入文字 */
 .consume-text {
   font-size: var(--tg-font-size-small);
@@ -114,14 +106,6 @@
 .admin-submissions-button:active {
   transform: scale(0.95);
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
-}
-
-/* 我的提交图标 */
-.submissions-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
 }
 
 /* 🔴 我的提交文字 */
@@ -156,14 +140,6 @@
   color: var(--tg-color-white);
   letter-spacing: var(--tg-letter-spacing-tight);
   white-space: nowrap;
-}
-
-/* 审核详情图标 */
-.audit-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
 }
 
 /* ========================================
