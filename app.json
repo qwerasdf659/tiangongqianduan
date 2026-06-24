@@ -48,6 +48,7 @@
       "pages": [
         "consume-submit/consume-submit",
         "audit-list/audit-list",
+        "my-submissions/my-submissions",
         "scan-verify/scan-verify",
         "customer-service/customer-service",
         "staff-redemption-perm/staff-redemption-perm"

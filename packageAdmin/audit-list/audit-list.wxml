@@ -287,6 +287,7 @@
                 data-instance-id="{{item.instance_id}}"
                 data-auditable-type="{{item.auditable_type}}"
                 data-auditable-id="{{item.auditable_id}}"
+                data-step="{{item}}"
                 bind:tap="onViewChainDetail"
               >
                 详情
@@ -418,9 +419,24 @@
             <text class="detail-key">提交时间</text>
             <text class="detail-val muted">{{chainDetail.submitted_at_formatted}}</text>
           </view>
-          <view class="detail-row" wx:if="{{chainDetail.completed_at_formatted}}">
+          <!-- 完成时间：未完成时后端下发 null，显示"未完成"占位（不再出现 1970） -->
+          <view class="detail-row">
             <text class="detail-key">完成时间</text>
-            <text class="detail-val muted">{{chainDetail.completed_at_formatted}}</text>
+            <text class="detail-val muted">{{chainDetail.completed_at_formatted || '未完成'}}</text>
+          </view>
+          <!-- 提交人（审批发起人；消费审核场景=录入店员）。手机号后端已脱敏，直接展示 -->
+          <view class="detail-row" wx:if="{{chainDetail.submitter_info}}">
+            <text class="detail-key">提交人</text>
+            <text class="detail-val"
+              >{{chainDetail.submitter_info.nickname}}（{{chainDetail.submitter_info.mobile}}）</text
+            >
+          </view>
+          <!-- 被审核人（仅消费审核有：消费顾客）。非 consumption 或无当事人时后端为 null，整行不显示 -->
+          <view class="detail-row" wx:if="{{chainDetail.target_user_info}}">
+            <text class="detail-key">被审核人</text>
+            <text class="detail-val"
+              >{{chainDetail.target_user_info.nickname}}（{{chainDetail.target_user_info.mobile}}）</text
+            >
           </view>
           <view class="detail-row" wx:if="{{chainDetail.final_reason}}">
             <text class="detail-key">审批意见</text>

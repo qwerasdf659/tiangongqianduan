@@ -19,7 +19,7 @@
  * @since 2026-06-12
  */
 
-const { API, Utils, Wechat, Logger } = require('../../utils/index')
+const { API, Utils, Wechat, Logger, Permission } = require('../../utils/index')
 const auditLog = Logger.createLogger('audit-list')
 const { checkAuth } = Utils
 const { showToast } = Wechat
@@ -200,7 +200,7 @@ Page({
      * 与后端路由 requireRoleLevel(20) 对齐（审核链升级：lv60→lv20）
      * 具体审核权限由 ApprovalChainService.processStep() 按节点角色 + 门店/区域隔离精校
      */
-    if (localRoleLevel < 20) {
+    if (!Permission.canReviewChain(localRoleLevel)) {
       auditLog.error('用户无审核权限，role_level:', localRoleLevel)
       wx.showModal({
         title: '权限不足',
@@ -216,7 +216,7 @@ Page({
     this.setData({
       currentRoleLevel: localRoleLevel,
       /* 批量审核门槛与后端 steps/batch 一致（>=20）；能进本页即 >=20，故批量对所有审核人开放 */
-      canBatchReview: localRoleLevel >= 20
+      canBatchReview: Permission.canReviewChain(localRoleLevel)
     })
 
     /* 单一审核链视图：所有有权限的审核人都加载"我的待办步骤" */
@@ -315,7 +315,7 @@ Page({
          * 无在职门店：核销概况卡不显示。但平台管理员（role_level>=100）有跨店管理特权，
          * 即使未挂门店也应能进入员工权限管理页，故单独放行入口（授权页内部再取门店）。
          */
-        if (this.data.currentRoleLevel >= 100) {
+        if (Permission.isAdmin({ role_level: this.data.currentRoleLevel })) {
           this.setData({ canManageStaffPerm: true })
         }
         return
@@ -335,7 +335,7 @@ Page({
        *   店长/管理员仍能进入授权页管理店员权限。实际授权动作仍由后端按 manager 身份精校。
        */
       const hasManagerStore = myStores.some((s: any) => s.role_in_store === 'manager')
-      const isAdminLevel = this.data.currentRoleLevel >= 100
+      const isAdminLevel = Permission.isAdmin({ role_level: this.data.currentRoleLevel })
       this.setData({
         canManageStaffPerm: hasManagerStore || isAdminLevel,
         redemptionStoreId: myStores[0].store_id
@@ -348,7 +348,7 @@ Page({
        * 静默降级：无门店、网络异常等一律不显示该卡，仅记录日志，
        * 不影响审核列表与汇总条。但管理员（role_level>=100）仍放行权限管理入口。
        */
-      if (this.data.currentRoleLevel >= 100) {
+      if (Permission.isAdmin({ role_level: this.data.currentRoleLevel })) {
         this.setData({ canManageStaffPerm: true })
       }
       auditLog.warn(
@@ -393,7 +393,8 @@ Page({
         redemptionFulfilledCount: redemptionData.fulfilled_count || 0,
         /* 入口可见性：当前门店店长 或 平台管理员（与 loadRedemptionStats 同口径，切店时同步更新） */
         canManageStaffPerm:
-          targetStore.role_in_store === 'manager' || this.data.currentRoleLevel >= 100
+          targetStore.role_in_store === 'manager' ||
+          Permission.isAdmin({ role_level: this.data.currentRoleLevel })
       })
     } catch (statsError: any) {
       /**
@@ -931,6 +932,11 @@ Page({
     const instanceId = dataset.instanceId
     const auditableType = dataset.auditableType
     const auditableId = dataset.auditableId
+    /**
+     * 提交人/被审核人来自 /my-pending 列表项（submitter_info/target_user_info，后端2026-06-24新增），
+     * 详情接口 instances/:id 不保证下发，故从被点击的列表项带入，确保详情可展示这两组人员信息。
+     */
+    const stepRow = dataset.step || {}
 
     try {
       let detailResult: any = null
@@ -948,7 +954,7 @@ Page({
 
       if (detailResult?.success && detailResult.data) {
         this.setData({
-          chainDetail: this._formatChainDetail(detailResult.data),
+          chainDetail: this._formatChainDetail(detailResult.data, stepRow),
           showChainDetailModal: true
         })
       } else {
@@ -960,14 +966,29 @@ Page({
     }
   },
 
-  /** 格式化审核链实例详情（instances/:id 与 by-auditable 返回结构一致，统一处理） */
-  _formatChainDetail(detailData: any) {
+  /** 格式化审核链实例详情（instances/:id 与 by-auditable 返回结构一致，统一处理）
+   *
+   * @param detailData 详情接口返回数据
+   * @param stepRow    被点击的 /my-pending 列表项（带 submitter_info/target_user_info，详情接口缺失时回退用）
+   */
+  _formatChainDetail(detailData: any, stepRow: any = {}) {
+    /**
+     * 提交人/被审核人（后端2026-06-24新增，my-pending 下发；脱敏手机号直接展示，前端不再处理）：
+     * 优先用详情接口自身字段，缺失则回退被点击列表项带入的字段，保证详情页可展示人员信息。
+     */
+    const submitterInfo = detailData.submitter_info || stepRow.submitter_info || null
+    const targetUserInfo = detailData.target_user_info || stepRow.target_user_info || null
+
     return {
       ...detailData,
       submitted_at_formatted: this.formatBeijingTime(detailData.submitted_at),
+      /** 完成时间未发生时后端下发 null（不再是 1970），渲染层判空显示"未完成"占位，不传 new Date(null) */
       completed_at_formatted: detailData.completed_at
         ? this.formatBeijingTime(detailData.completed_at)
         : null,
+      /** 提交人/被审核人（零映射直读 nickname + 已脱敏 mobile；为 null 时 wxml 按占位处理） */
+      submitter_info: submitterInfo,
+      target_user_info: targetUserInfo,
       status_text: CHAIN_STATUS_MAP[detailData.status] || detailData.status,
       /** 业务类型中文：直读后端字典下发的 auditable_type_display，前端零映射；缺失回退英文码 */
       auditable_type_text: detailData.auditable_type_display || detailData.auditable_type,

@@ -7,26 +7,37 @@
  * 说明：
  * - 设计风格：现代简洁、操作明确、视觉层次清晰
 
-/* 🔴 管理员功能条容器 — 透明背景，与页面一体化 */
+/* 🔴 管理员功能条容器 — 透明背景，四个按钮等分排成一行（不换行） */
 .admin-scan-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-evenly;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12rpx;
   width: 100%;
-  height: 120rpx;
-  padding: 0 20rpx;
+  min-height: 96rpx;
+  padding: 16rpx 20rpx;
   background: transparent;
   box-shadow: none;
   position: relative;
   margin-bottom: 0;
 }
 
+/* 四个商家功能按钮等分一行：flex:1 均分宽度，min-width:0 允许收缩防溢出，横向内边距收紧 */
+.admin-scan-button,
+.admin-consume-button,
+.admin-submissions-button,
+.admin-audit-button {
+  flex: 1;
+  min-width: 0;
+  padding: 16rpx 8rpx;
+}
+
 /* 🔴 左侧：扫码核销按钮（扫描用户V2二维码 → 跳转消费录入页面） */
 .admin-scan-button {
   @include flex-center;
-  gap: 8rpx;
+  gap: 4rpx;
   background: linear-gradient(135deg, #c8a06a, #a0724a);
-  padding: 16rpx 28rpx;
   border-radius: 60rpx;
   box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
   transition: all 0.3s ease;
@@ -37,28 +48,32 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
-/* 扫码核销图标 */
-.scan-icon {
+/* 四个按钮图标统一：不收缩，避免窄屏挤压变形 */
+.scan-icon,
+.consume-icon,
+.submissions-icon,
+.audit-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 /* 🔴 扫码核销文字 */
 .scan-text {
-  font-size: var(--tg-font-size-body);
+  font-size: var(--tg-font-size-small);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   letter-spacing: var(--tg-letter-spacing-tight);
+  white-space: nowrap;
 }
 
 /* 🔴 中间：消费录入按钮（直接进入消费录入页面，手动填写） */
 .admin-consume-button {
   @include flex-center;
-  gap: 8rpx;
+  gap: 4rpx;
   background: linear-gradient(135deg, #c8a06a, #a0724a);
-  padding: 16rpx 28rpx;
   border-radius: 60rpx;
   box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
   transition: all 0.3s ease;
@@ -79,17 +94,49 @@
 
 /* 🔴 消费录入文字 */
 .consume-text {
-  font-size: var(--tg-font-size-body);
+  font-size: var(--tg-font-size-small);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-color-white);
   letter-spacing: var(--tg-letter-spacing-tight);
+  white-space: nowrap;
+}
+
+/* 🔴 我的提交按钮（店员查看本人提交记录及审核状态） — 与其他按钮同色系 */
+.admin-submissions-button {
+  @include flex-center;
+  gap: 4rpx;
+  background: linear-gradient(135deg, #c8a06a, #a0724a);
+  border-radius: 60rpx;
+  box-shadow: 0 4rpx 12rpx rgba(160, 114, 74, 0.25);
+  transition: all 0.3s ease;
+}
+
+.admin-submissions-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+}
+
+/* 我的提交图标 */
+.submissions-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* 🔴 我的提交文字 */
+.submissions-text {
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
+  letter-spacing: var(--tg-letter-spacing-tight);
+  white-space: nowrap;
 }
 
 /* 🔴 右侧：审核详情按钮 — 与消费录入按钮同色 */
 .admin-audit-button {
   @include flex-center;
-  gap: 8rpx;
-  padding: 16rpx 28rpx;
+  gap: 4rpx;
   background: linear-gradient(135deg, #c8a06a, #a0724a);
   border-radius: 60rpx;
   border: none;
@@ -104,17 +151,19 @@
 
 /* 🔴 审核详情文字 */
 .audit-text {
-  font-size: var(--tg-font-size-body);
+  font-size: var(--tg-font-size-small);
   font-weight: var(--tg-font-weight-regular);
   color: var(--tg-color-white);
   letter-spacing: var(--tg-letter-spacing-tight);
+  white-space: nowrap;
 }
 
-/* 🔴 箭头图标 */
-.arrow-icon {
-  font-size: var(--td-font-size-base);
-  color: var(--tg-color-white);
-  font-weight: var(--tg-font-weight-bold);
+/* 审核详情图标 */
+.audit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* ========================================
@@ -308,6 +357,8 @@
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: flex-end;
+  /* 底部预留自定义 tab bar 高度(120rpx)+安全区，避免底部弹窗的「关闭」按钮被 tab bar 遮挡 */
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom, 0px));
   z-index: 9999;
   animation: fadeIn 0.3s ease;
 }
@@ -521,7 +572,7 @@
   font-size: var(--td-font-size-s);
 }
 
-/* 弹窗底部 */
+/* 弹窗底部（容器 .audit-modal 已预留 tab bar + 安全区高度，此处仅需常规内边距） */
 .audit-modal-footer {
   padding: 20rpx 30rpx 40rpx 30rpx;
   border-top: 2rpx solid var(--tg-color-border-light);

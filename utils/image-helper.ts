@@ -318,24 +318,33 @@ function getAssetDisplayName(assetCode: string, backendDisplayName?: string): st
 }
 
 /**
- * 选取「列表卡片」用的清晰图 URL（对齐《兑换商城图片清晰度优化方案》§12.3 方式二，按 DPR 动态裁剪）
+ * 预生成衍生图档位（对齐后端媒体级联删除方案 §6.1：废除按需 ?width= 裁剪，改上传时预生成 3 档 WebP）
+ * 数值为各档真实像素宽，用于按"显示宽 × DPR"就近选档。
+ */
+const DERIVATIVE_WIDTH_TIERS: { key: 'w375' | 'w750' | 'w1080'; width: number }[] = [
+  { key: 'w375', width: 375 },
+  { key: 'w750', width: 750 },
+  { key: 'w1080', width: 1080 }
+]
+
+/**
+ * 选取「列表卡片」用的清晰图 URL（对齐后端媒体级联删除方案 §15.4：档位名 w375/w750/w1080）
  *
- * 后端 primary_image / prize image 现已下发：
- *   - url：原图（走 /api/v4/images 代理，支持 ?width= 动态裁剪输出 WebP，§12.2）
- *   - thumbnails.{small=150, medium=300, large=800}：预生成多档
- *   - thumbnail_url：small(150)，过小、仅兜底
+ * 后端 primary_image / prize image 现下发（archived 旧档位名 small/medium/large 已废除）：
+ *   - url：原图（走 /api/v4/images 代理，按 key 原样取，?width= 动态裁剪已废除）
+ *   - thumbnails.{w375, w750, w1080}：上传时预生成的 3 档 WebP（覆盖 1/2/3 倍屏）
+ *   - thumbnail_url：默认档（w375），仅兜底
  *
- * 取图策略：
- *   1. 传入 displayWidthPx（卡片 CSS 显示宽，rpx 或 px 皆可按比例）→ 走方式二：
- *      对原图 url 追加 ?width=（= 显示宽 × 设备 DPR），后端按离散档 {375,560,750,1080} 向上取整、
- *      >1080 钳制 1200，返回 WebP（更清晰更省流）。保留原 url 上的 ?h= content_hash 不动。
- *   2. 未传 displayWidthPx 或无原图 url → 走方式一兜底：thumbnails.large(800) → medium → thumbnail_url → url。
+ * 取图策略（不再拼 ?width=，改为按显示宽就近选预生成档）：
+ *   1. 传入 displayWidthPx → 按「显示宽 × 设备 DPR」就近选 w375/w750/w1080 中"≥目标的最小档"，
+ *      命中的档若缺再依次回退更大/更小档，最终回退原图。
+ *   2. 未传 displayWidthPx → 走兜底链：w750 → w375 → w1080 → thumbnail_url → url。
  *   3. 全缺 → 默认占位图。
  *
- * 详情页主图请直接用 image.url（原图）或 image.url?width=1080，不要用本函数。
+ * 详情页主图请直接用 image.thumbnails.w1080 或 image.url（原图），不要用本函数。
  *
  * @param imageObj       后端 primary_image / prize.image 对象
- * @param displayWidthPx 卡片显示宽度（px；传 0/省略则走方式一 large 档兜底）
+ * @param displayWidthPx 卡片显示宽度（px；传 0/省略则走 w750 档兜底）
  * @returns 列表卡片用图 URL，缺失时返回默认商品占位图
  */
 function pickListImageUrl(imageObj: any, displayWidthPx?: number): string {
@@ -345,16 +354,22 @@ function pickListImageUrl(imageObj: any, displayWidthPx?: number): string {
   const thumbnails = imageObj.thumbnails || {}
   const originUrl: string = imageObj.url || ''
 
-  /* 方式二：原图代理 URL + ?width=（按 DPR），后端动态裁剪输出 WebP */
-  if (displayWidthPx && displayWidthPx > 0 && originUrl) {
+  /* 方式一：按显示宽 × DPR 就近选预生成档（≥目标的最小档，缺则回退其它档） */
+  if (displayWidthPx && displayWidthPx > 0) {
     const targetWidth = computeDprWidth(displayWidthPx)
-    return appendQueryParam(originUrl, 'width', String(targetWidth))
+    const orderedTiers = pickTierOrder(targetWidth)
+    for (const tier of orderedTiers) {
+      if (thumbnails[tier]) {
+        return thumbnails[tier]
+      }
+    }
   }
 
-  /* 方式一兜底：large(800) 档 */
+  /* 方式二兜底：w750 → w375 → w1080 → thumbnail_url → 原图 */
   return (
-    thumbnails.large ||
-    thumbnails.medium ||
+    thumbnails.w750 ||
+    thumbnails.w375 ||
+    thumbnails.w1080 ||
     imageObj.thumbnail_url ||
     originUrl ||
     DEFAULT_PRODUCT_IMAGE
@@ -362,8 +377,25 @@ function pickListImageUrl(imageObj: any, displayWidthPx?: number): string {
 }
 
 /**
- * 按设备 DPR 计算请求像素宽（displayWidthPx × pixelRatio，上限 1200 与后端钳制一致）
- * DPR 获取失败时按 2 兜底；上限 1200 避免无意义超大请求（后端同样钳制 1200）
+ * 按目标像素宽返回档位 key 的优先取用顺序
+ *
+ * 优先取「≥目标宽的最小档」（保清晰度），其后按宽度差升序回退其余档，
+ * 保证某档缺失时仍能就近选到可用档。
+ *
+ * @param targetWidth 目标像素宽（显示宽 × DPR）
+ * @returns 档位 key 数组（如 ['w750','w1080','w375']）
+ */
+function pickTierOrder(targetWidth: number): ('w375' | 'w750' | 'w1080')[] {
+  const upper = DERIVATIVE_WIDTH_TIERS.filter(t => t.width >= targetWidth).map(t => t.key)
+  const lower = DERIVATIVE_WIDTH_TIERS.filter(t => t.width < targetWidth)
+    .sort((a, b) => b.width - a.width)
+    .map(t => t.key)
+  return [...upper, ...lower]
+}
+
+/**
+ * 按设备 DPR 计算目标像素宽（displayWidthPx × pixelRatio，上限 1080 与最大预生成档一致）
+ * DPR 获取失败时按 2 兜底；上限 1080 避免请求超出最大预生成档
  */
 function computeDprWidth(displayWidthPx: number): number {
   let dpr = 2
@@ -373,22 +405,7 @@ function computeDprWidth(displayWidthPx: number): number {
     dpr = 2
   }
   const width = Math.ceil(displayWidthPx * dpr)
-  return Math.min(width, 1200)
-}
-
-/**
- * 安全地往 URL 追加/覆盖一个 query 参数（保留已有 ?h= 等参数）
- * 已存在同名参数时覆盖其值，否则按 ? / & 规则拼接
- */
-function appendQueryParam(url: string, key: string, value: string): string {
-  if (!url) {
-    return url
-  }
-  const re = new RegExp(`([?&])${key}=[^&]*`)
-  if (re.test(url)) {
-    return url.replace(re, `$1${key}=${value}`)
-  }
-  return url + (url.indexOf('?') === -1 ? '?' : '&') + `${key}=${value}`
+  return Math.min(width, 1080)
 }
 
 module.exports = {

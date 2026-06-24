@@ -25,7 +25,8 @@ const {
   Logger,
   PopupFrequency,
   QRCode,
-  TopBanner
+  TopBanner,
+  Permission
 } = require('../../utils/index')
 const log = Logger.createLogger('lottery')
 const { showToast } = Wechat
@@ -74,9 +75,18 @@ Page({
   data: {
     /* ===== 用户状态 ===== */
     isLoggedIn: false,
-    isAdmin: false,
-    /** 店员及以上(role_level>=20)，可访问审批管理（后端审核链门槛 lv60→lv20） */
-    isReviewer: false,
+    /**
+     * 首页商家功能区三个按钮显隐 — 统一以后端 GET /api/v4/permissions/me 下发的
+     * role_level / permissions 为唯一权威数据源（对接文档 2026-06-24），零映射直读。
+     */
+    /** 扫码核销：role_level >= 20（与后端 redemption/scan 口径一致，店员即可用） */
+    showScan: false,
+    /** 消费录入：拥有 consumption:create 权限（店员/管理员均下发） */
+    showConsumptionSubmit: false,
+    /** 审核详情：仅管理员（role_level >= 100，console 域审核功能） */
+    showAudit: false,
+    /** 我的提交：拥有 consumption:create 权限者可查看本人提交的消费记录及审核状态 */
+    showMySubmissions: false,
     pointsBalance: 0,
     frozenPoints: 0,
     userInfo: {},
@@ -160,7 +170,7 @@ Page({
     /* MobX Store绑定 - 用户/积分状态自动同步 */
     this.userStoreBindings = createStoreBindings(this, {
       store: userStore,
-      fields: ['isLoggedIn', 'isAdmin'],
+      fields: ['isLoggedIn'],
       actions: []
     })
     this.pointsStoreBindings = createStoreBindings(this, {
@@ -1122,24 +1132,49 @@ Page({
   // 管理员功能
   // ========================================
 
-  /** 检查用户角色等级 */
-  checkAdminRole() {
+  /**
+   * 检查用户商家功能权限（首页三个按钮显隐的唯一入口）
+   *
+   * 统一以后端 GET /api/v4/permissions/me 下发的 permissions 为权威数据源
+   * （对接文档 2026-06-24 §10.7），三个商家按钮用同一份扁平权限数组判定，杜绝口径不一致：
+   *   - 扫码核销 showScan：拥有 consumption:scan_user 权限
+   *   - 消费录入 showConsumptionSubmit：拥有 consumption:create 权限
+   *   - 审核详情 showAudit：仅管理员 role_level >= 100（console 域审核功能）
+   *   - 我的提交 showMySubmissions：拥有 consumption:read 权限
+   */
+  async checkAdminRole() {
     try {
-      const userInfo = userStore.userInfo
-      const roleLevel = typeof userInfo?.role_level === 'number' ? userInfo.role_level : 0
-      const isAdmin = roleLevel >= 100
-      const isReviewer = roleLevel >= 20
+      const apiResult = await API.getMyPermissions()
+      if (!apiResult?.success || !apiResult.data) {
+        throw new Error(apiResult?.message || '权限接口未返回有效数据')
+      }
 
-      this.setData({ isAdmin, isReviewer })
+      const permissionData: API.PermissionsMeData = apiResult.data
+      const rawPermissions = permissionData.permissions
+
+      /* 统一权限判定（utils/permission.ts）：三个商家按钮全部走 hasPermission(权限码)，
+         与后端 requireMerchantPermission 同构（支持通配 *:*），页面不再写裸 role_level>=X */
+      this.setData({
+        showScan: Permission.canScan(rawPermissions),
+        showConsumptionSubmit: Permission.canSubmitConsumption(rawPermissions),
+        showAudit: Permission.isAdmin(permissionData),
+        showMySubmissions: Permission.canViewMySubmissions(rawPermissions)
+      })
     } catch (error) {
-      log.error('[lottery] 权限检查失败:', error)
-      this.setData({ isAdmin: false, isReviewer: false })
+      /* 权限拉取失败一律按最小权限处理：所有按钮隐藏，避免无权限误显示 */
+      log.error('[lottery] 商家功能权限检查失败:', error)
+      this.setData({
+        showScan: false,
+        showConsumptionSubmit: false,
+        showAudit: false,
+        showMySubmissions: false
+      })
     }
   },
 
   /** 扫码核销 — 扫描用户V2动态二维码后跳转消费录入页面（管理员/商家店员） */
   onScanTap() {
-    if (!this.data.isAdmin) {
+    if (!this.data.showScan) {
       showToast('无权限访问', 'none', 2000)
       return
     }
@@ -1157,7 +1192,7 @@ Page({
 
   /** 消费录入 — 直接进入消费录入页面，手动填写消费信息后再扫码识别顾客 */
   onConsumeEntryTap() {
-    if (!this.data.isAdmin) {
+    if (!this.data.showConsumptionSubmit) {
       showToast('无权限访问', 'none', 2000)
       return
     }
@@ -1201,6 +1236,26 @@ Page({
       url: '/packageAdmin/audit-list/audit-list',
       fail: err => {
         log.error('[lottery] 跳转失败:', err)
+        showToast('页面跳转失败', 'none', 2000)
+      }
+    })
+  },
+
+  /**
+   * 跳转到「我的提交」页（店员查看本人提交的消费记录及审核状态）
+   *
+   * 与「审核详情」区分（对接文档 §四）：本页走商家域只读接口（merchant/list + merchant/stats），
+   * 仅展示提交者自己范围内的记录审核进度，不涉及 console 域审核操作。
+   */
+  onMySubmissionsTap() {
+    if (!this.data.showMySubmissions) {
+      showToast('无权限访问', 'none', 2000)
+      return
+    }
+    wx.navigateTo({
+      url: '/packageAdmin/my-submissions/my-submissions',
+      fail: err => {
+        log.error('[lottery] 跳转我的提交页失败:', err)
         showToast('页面跳转失败', 'none', 2000)
       }
     })

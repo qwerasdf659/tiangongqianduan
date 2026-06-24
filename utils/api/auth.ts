@@ -137,6 +137,29 @@ async function verifyToken() {
 }
 
 /**
+ * 获取当前登录用户的权限清单 - GET /api/v4/permissions/me
+ *
+ * 后端路由: routes/v4/auth/permissions.js（调 UserRoleService.getUserPermissions）
+ * 后端会合并该用户所有 active 角色的权限位统一下发，是按钮显隐的唯一权威数据源。
+ *
+ * 响应 data 字段（snake_case 原名，前端零映射直读）:
+ *   role_level: INT 最高角色等级（>=100 管理员，>=20 商家店员）
+ *   roles: Array<{ role_name: string; role_level: number }> 角色列表
+ *   permissions: string[] 权限位数组，如 consumption:create / consumption:scan_user
+ *
+ * ⚠️ 权限 key 必须与后端完全一致（冒号、下划线、大小写），前端不得自造或映射。
+ * 用于首页商家功能区三个按钮（扫码核销/消费录入/审核详情）的统一显隐判定。
+ */
+async function getMyPermissions() {
+  return apiClient.request('/permissions/me', {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
+/**
  * 刷新 access_token - POST /api/v4/auth/refresh
  *
  * 携带旧 access_token（即使已过期）在 Authorization 头中，
@@ -206,6 +229,7 @@ module.exports = {
   wxCodeLogin,
   getUserInfo,
   getUserGrowthLevel,
+  getMyPermissions,
   sendVerificationCode,
   verifyToken,
   refreshAccessToken,

@@ -71,7 +71,8 @@ export const auditStore = observable({
       return
     }
     const localRoleLevel = cachedUserInfo.role_level || 0
-    if (localRoleLevel < 20) {
+    const { Permission } = require('../utils/index')
+    if (!Permission.canReviewChain(localRoleLevel)) {
       return
     }
 

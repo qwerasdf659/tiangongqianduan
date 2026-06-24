@@ -346,7 +346,7 @@ Component({
               return null
             }
             /**
-             * 方式二（§12.3）：传卡片显示宽 → pickListImageUrl 按 DPR 拼 ?width= 动态裁剪 WebP。
+             * 传卡片显示宽 → pickListImageUrl 按 DPR 就近选预生成档（w375/w750/w1080）。
              * 瀑布流 2 列：列宽 = (容器宽 - 列间距15) / 2。
              */
             const cardWidthPx = Math.max(
@@ -374,7 +374,16 @@ Component({
               is_new: item.is_new || false,
               sell_point: item.sell_point || '',
               description: item.description || '',
-              stock: item.stock || 0,
+              /**
+               * 库存口径与详情页统一：列表接口若下发 skus 明细，用 active SKU 库存之和作为商品总库存
+               * （兑换扣减的是 SKU 库存，SPU 级 stock 不随兑换变动）；未下发 skus 时回退 SPU item.stock。
+               * 配合下拉刷新/onShow 重拉，兑换后列表库存可同步收缩。
+               */
+              stock: Array.isArray(item.skus)
+                ? item.skus
+                    .filter((sku: any) => sku.status === 'active')
+                    .reduce((sum: number, sku: any) => sum + (Number(sku.stock) || 0), 0)
+                : item.stock || 0,
               sort_order: item.sort_order || 0,
               is_limited: item.is_limited || false,
               is_pinned: item.is_pinned || false,

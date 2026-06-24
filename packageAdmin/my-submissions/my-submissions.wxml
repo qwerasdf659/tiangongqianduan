@@ -1,0 +1,112 @@
+<!--packageAdmin/my-submissions/my-submissions.wxml - 我的提交（店员查看本人/本店提交的消费记录及审核状态）-->
+<custom-navbar title="我的提交" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+
+<view class="submissions-page">
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <!-- 页面标题 -->
+    <view class="page-header">
+      <view class="header-text">
+        <text class="header-title">我的提交</text>
+        <text class="header-desc">查看你提交的消费记录及审核进度</text>
+      </view>
+      <view class="header-decor-icon">
+        <t-icon name="upload" size="120rpx" color="rgba(139, 115, 85, 0.12)" />
+      </view>
+    </view>
+
+    <!-- 状态概况（直读后端 merchant/stats 的 by_status 计数） -->
+    <view class="summary-section" wx:if="{{summaryReady}}">
+      <view class="summary-grid">
+        <view class="summary-card pending">
+          <text class="summary-value pending">{{pendingCount}}</text>
+          <text class="summary-label">待审核</text>
+        </view>
+        <view class="summary-card approved">
+          <text class="summary-value approved">{{approvedCount}}</text>
+          <text class="summary-label">已通过</text>
+        </view>
+        <view class="summary-card rejected">
+          <text class="summary-value rejected">{{rejectedCount}}</text>
+          <text class="summary-label">已拒绝</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提交记录列表 -->
+    <view class="list-section">
+      <t-empty
+        wx:if="{{!loading && submissionRecords.length === 0}}"
+        description="你还没有提交过消费记录，下拉刷新检查"
+      >
+        <view slot="image"
+          ><t-icon name="file-paste" size="120rpx" color="var(--td-brand-color)"
+        /></view>
+      </t-empty>
+
+      <view
+        class="record-card {{item.status}}"
+        wx:for="{{submissionRecords}}"
+        wx:key="consumption_record_id"
+      >
+        <!-- 卡片头部：记录编号 + 审核状态 -->
+        <view class="record-header">
+          <text class="record-number">记录 #{{item.consumption_record_id}}</text>
+          <view class="record-status" style="background: {{item.statusDisplay.bgColor}}">
+            <text class="status-text" style="color: {{item.statusDisplay.color}}"
+              >{{item.statusDisplay.text}}</text
+            >
+          </view>
+        </view>
+
+        <!-- 消费金额 -->
+        <view class="record-row">
+          <t-icon name="money" size="28rpx" class="row-icon" />
+          <text class="row-label">消费金额</text>
+          <text class="row-value amount">¥{{item.amountText}}</text>
+        </view>
+
+        <!-- 预计/已发放积分（status=approved 表示已发放） -->
+        <view class="record-row">
+          <t-icon name="gift" size="28rpx" class="row-icon" />
+          <text class="row-label">{{item.status === 'approved' ? '已奖励' : '预计奖励'}}</text>
+          <text class="row-value points">+{{item.points_to_award}} 积分</text>
+        </view>
+
+        <!-- 门店（列表接口含 store_name 时展示） -->
+        <view class="record-row" wx:if="{{item.store_name}}">
+          <t-icon name="shop" size="28rpx" class="row-icon" />
+          <text class="row-label">门店</text>
+          <text class="row-value">{{item.store_name}}</text>
+        </view>
+
+        <!-- 拒绝原因（已拒绝且后端下发 admin_notes 时展示） -->
+        <view class="record-row" wx:if="{{item.status === 'rejected' && item.admin_notes}}">
+          <t-icon name="error-circle" size="28rpx" class="row-icon" />
+          <text class="row-label">拒绝原因</text>
+          <text class="row-value reject">{{item.admin_notes}}</text>
+        </view>
+
+        <!-- 提交时间 -->
+        <view class="record-row">
+          <t-icon name="time" size="28rpx" class="row-icon" />
+          <text class="row-label">提交时间</text>
+          <text class="row-value time">{{item.createdAtText}}</text>
+        </view>
+      </view>
+
+      <!-- 列表底部加载提示 -->
+      <view class="list-footer" wx:if="{{submissionRecords.length > 0}}">
+        <text class="footer-text" wx:if="{{loadingMore}}">加载更多记录...</text>
+        <text class="footer-text" wx:elif="{{!hasMore}}">— 已展示全部提交记录 —</text>
+      </view>
+    </view>
+
+    <!-- 首次加载遮罩 -->
+    <view class="loading-overlay" wx:if="{{loading && submissionRecords.length === 0}}">
+      <t-loading loading="{{true}}" text="正在加载..." theme="spinner" />
+    </view>
+
+    <!-- 底部安全区留白 -->
+    <view style="height: calc(60rpx + env(safe-area-inset-bottom, 0px)); width: 100%"></view>
+  </scroll-view>
+</view>

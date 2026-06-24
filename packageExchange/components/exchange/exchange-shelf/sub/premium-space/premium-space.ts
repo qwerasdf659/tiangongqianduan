@@ -289,8 +289,8 @@ Component({
         return []
       }
       /**
-       * 方式二（§12.3）：臻选 2 列网格（卡片 calc(50% - 10rpx)），
-       * 估算卡片显示宽 px ≈ (窗口宽 - 页边距48rpx - 列间距20rpx) / 2，传给 pickListImageUrl 按 DPR 裁剪。
+       * 臻选 2 列网格（卡片 calc(50% - 10rpx)），估算卡片显示宽 px
+       * ≈ (窗口宽 - 页边距48rpx - 列间距20rpx) / 2，传给 pickListImageUrl 按 DPR 就近选预生成档。
        * rpx→px：以 750rpx 设计基准换算（px = rpx × 窗口宽 / 750）。
        */
       let premiumCardWidthPx = 0

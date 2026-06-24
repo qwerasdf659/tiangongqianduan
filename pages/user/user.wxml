@@ -91,8 +91,11 @@
       </view>
     </view>
 
-    <!-- 商家工作台 -->
-    <view class="mw-section" wx:if="{{isLoggedIn && isMerchant}}">
+    <!-- 商家工作台：三张商家卡片按权限码独立显隐，审核管理仅管理员；任一可见即显示区块 -->
+    <view
+      class="mw-section"
+      wx:if="{{isLoggedIn && (showScan || showConsumptionSubmit || showMySubmissions || isAdmin)}}"
+    >
       <view class="mw-header">
         <view class="mw-header-left">
           <view class="mw-header-icon"
@@ -108,7 +111,7 @@
       </view>
 
       <view class="mw-cards">
-        <view class="mw-card" bindtap="goToScanVerify">
+        <view class="mw-card" wx:if="{{showScan}}" bindtap="goToScanVerify">
           <view class="mw-card-body">
             <text class="mw-card-title">扫码核销 ›</text>
             <text class="mw-card-desc">扫描用户核销码，完成商品兑换核销</text>
@@ -125,7 +128,7 @@
           </view>
         </view>
 
-        <view class="mw-card" bindtap="goToConsumeSubmit">
+        <view class="mw-card" wx:if="{{showConsumptionSubmit}}" bindtap="goToConsumeSubmit">
           <view class="mw-card-body">
             <text class="mw-card-title">消费录入 ›</text>
             <text class="mw-card-desc">录入顾客本次消费金额，赚取积分</text>
@@ -142,7 +145,24 @@
           </view>
         </view>
 
-        <view class="mw-card" wx:if="{{isReviewer}}" bindtap="goToAuditList">
+        <view class="mw-card" wx:if="{{showMySubmissions}}" bindtap="goToMySubmissions">
+          <view class="mw-card-body">
+            <text class="mw-card-title">我的提交 ›</text>
+            <text class="mw-card-desc">查看你提交的消费记录及审核进度</text>
+            <view class="mw-card-steps">
+              <text class="mw-step">提交记录</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">审核进度</text>
+              <text class="mw-step-arrow">→</text>
+              <text class="mw-step">积分到账</text>
+            </view>
+          </view>
+          <view class="mw-card-go">
+            <text class="mw-go-icon">›</text>
+          </view>
+        </view>
+
+        <view class="mw-card" wx:if="{{isAdmin}}" bindtap="goToAuditList">
           <view class="mw-card-body">
             <text class="mw-card-title">审核管理 ›</text>
             <text class="mw-card-desc">审核店员提交的消费记录，通过后自动发放积分</text>

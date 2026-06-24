@@ -1,7 +1,15 @@
 // pages/user/user.ts - 用户中心页面 + MobX响应式状态
 const app = getApp()
 // 统一工具函数导入（从utils/index.ts）
-const { API, Wechat, Logger, ApiWrapper, PopupFrequency, TopBanner } = require('../../utils/index')
+const {
+  API,
+  Wechat,
+  Logger,
+  ApiWrapper,
+  PopupFrequency,
+  TopBanner,
+  Permission
+} = require('../../utils/index')
 const log = Logger.createLogger('user')
 const { showToast } = Wechat
 const { safeApiCall } = ApiWrapper
@@ -68,15 +76,24 @@ Page({
     topBannerReady: false,
 
     // 多角色权限标识（从JWT Token中的role_level判断）
-    // isMerchant = role_level >= 20（商家店员及以上，可访问消费录入、扫码核销）
     // isManager  = role_level >= 40（商家店长及以上）
     // isReviewer = role_level >= 20（店员及以上即可进审批管理；后端审核链门槛已降 lv60→lv20，
     //              "能审哪些"由后端按节点角色 + 门店/区域隔离精校，前端只控入口可见）
     // isAdmin    = role_level >= 100（超级管理员，可批量审核 + 审核链配置）
-    isMerchant: false,
+    // 注：商家工作台三个按钮（扫码核销/消费录入/我的提交）显隐已改用权限码（showScan 等），
+    //     不再用 role_level 判断，与金蛋页同口径（§10.7）。
     isManager: false,
     isReviewer: false,
     isAdmin: false,
+
+    // 商家工作台三个按钮显隐：以后端 GET /api/v4/permissions/me 下发的 permissions 权限码判定，
+    // 与金蛋页(lottery.ts)完全同口径（§10.7），不再用 role_level 整段显隐，杜绝口径漂移。
+    /** 扫码核销卡片显隐：拥有 consumption:scan_user 权限 */
+    showScan: false,
+    /** 消费录入卡片显隐：拥有 consumption:create 权限 */
+    showConsumptionSubmit: false,
+    /** 我的提交卡片显隐：拥有 consumption:read 权限 */
+    showMySubmissions: false,
     /**
      * 是否客服座席（与 role_level 解耦，由后端 customer_service_agents 表权威判定）
      * 进页调一次轻量身份接口 GET /api/v4/system/cs-agent/me，data.is_agent===true 显示「客服回复台」入口
@@ -509,18 +526,18 @@ Page({
 
     const isLoggedIn = userStore.isLoggedIn && !!userStore.accessToken
 
-    // 四级角色判断（基于JWT Token中的role_level字段）
+    // 四级角色判断统一走 utils/permission.ts（门槛集中维护，不再页面内裸写 role_level>=X）
+    // 注：商家工作台三个按钮显隐已改由 loadMerchantPermissions 按权限码判定（§10.7），
+    //     此处仅保留店长/审核链待办/管理员等仍按 role_level 的角色标识。
     const roleLevel = userInfo?.role_level || 0
-    const isMerchant = roleLevel >= 20
-    const isManager = roleLevel >= 40
-    const isReviewer = roleLevel >= 20
-    const isAdmin = roleLevel >= 100
+    const isManager = Permission.isManager(roleLevel)
+    const isReviewer = Permission.canReviewChain(roleLevel)
+    const isAdmin = Permission.isAdmin(userInfo)
 
     this.setData({
       isLoggedIn,
       userInfo,
       roleLevel,
-      isMerchant,
       isManager,
       isReviewer,
       isAdmin
@@ -529,7 +546,6 @@ Page({
     log.info('用户状态更新:', {
       isLoggedIn,
       roleLevel,
-      isMerchant,
       isManager,
       isReviewer,
       isAdmin,
@@ -541,6 +557,42 @@ Page({
       this.probeCsAgent()
     } else if (this.data.isCsAgent) {
       this.setData({ isCsAgent: false })
+    }
+
+    /* 登录后拉取权限码，决定商家工作台三个按钮显隐（与金蛋页同口径） */
+    if (isLoggedIn) {
+      this.loadMerchantPermissions()
+    } else {
+      this.setData({ showScan: false, showConsumptionSubmit: false, showMySubmissions: false })
+    }
+  },
+
+  /**
+   * 加载商家功能权限（工作台三个按钮显隐的唯一入口）
+   *
+   * 统一以后端 GET /api/v4/permissions/me 下发的 permissions 为权威数据源（§10.7），
+   * 三张卡片用同一份扁平权限数组按权限码独立显隐，与金蛋页(lottery.ts)完全同口径：
+   *   - 扫码核销 showScan：拥有 consumption:scan_user 权限
+   *   - 消费录入 showConsumptionSubmit：拥有 consumption:create 权限
+   *   - 我的提交 showMySubmissions：拥有 consumption:read 权限
+   * 与后端 requireMerchantPermission 同构（支持通配 *:*），管理员据此自动放行。
+   * 拉取失败一律按无权限处理（隐藏全部），真正鉴权由后端兜底。
+   */
+  async loadMerchantPermissions() {
+    try {
+      const apiResult = await API.getMyPermissions()
+      if (!apiResult?.success || !apiResult.data) {
+        throw new Error(apiResult?.message || '权限接口未返回有效数据')
+      }
+      const rawPermissions = (apiResult.data as API.PermissionsMeData).permissions
+      this.setData({
+        showScan: Permission.canScan(rawPermissions),
+        showConsumptionSubmit: Permission.canSubmitConsumption(rawPermissions),
+        showMySubmissions: Permission.canViewMySubmissions(rawPermissions)
+      })
+    } catch (error) {
+      log.error('[user] 商家功能权限检查失败:', error)
+      this.setData({ showScan: false, showConsumptionSubmit: false, showMySubmissions: false })
     }
   },
 
@@ -1007,9 +1059,9 @@ Page({
     }
   },
 
-  /** 跳转到扫码核销页面（商家店员 level>=20 可用） */
+  /** 跳转到扫码核销页面（拥有 consumption:scan_user 权限可用） */
   goToScanVerify() {
-    if (!this.data.isMerchant) {
+    if (!this.data.showScan) {
       showToast('需要商家权限')
       return
     }
@@ -1019,15 +1071,31 @@ Page({
     })
   },
 
-  /** 跳转到消费录入页面（商家店员 level>=20 可用） */
+  /** 跳转到消费录入页面（拥有 consumption:create 权限可用） */
   goToConsumeSubmit() {
-    if (!this.data.isMerchant) {
+    if (!this.data.showConsumptionSubmit) {
       showToast('需要商家权限')
       return
     }
 
     wx.navigateTo({
       url: '/packageAdmin/consume-submit/consume-submit'
+    })
+  },
+
+  /**
+   * 跳转到「我的提交」页（拥有 consumption:read 权限可用）
+   *
+   * 店员查看本人提交的消费记录及审核状态，走商家域只读接口，与管理员审核区分。
+   */
+  goToMySubmissions() {
+    if (!this.data.showMySubmissions) {
+      showToast('需要商家权限')
+      return
+    }
+
+    wx.navigateTo({
+      url: '/packageAdmin/my-submissions/my-submissions'
     })
   },
 

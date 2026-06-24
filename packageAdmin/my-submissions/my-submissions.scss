@@ -1,0 +1,246 @@
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
+.page-scroll-view {
+  flex: 1;
+  min-height: 0;
+}
+
+/* packageAdmin/my-submissions/my-submissions.scss - 我的提交页面样式 */
+/* 设计风格：与审批管理页一致，金棕色系 + 白底卡片 + 顶部渐变描边 */
+@import '../../styles/mixins';
+
+/* ===== 页面容器 ===== */
+.submissions-page {
+  @include tg-tokens;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--tg-gradient-primary);
+}
+
+/* ===== 页面标题区 ===== */
+.page-header {
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, #ffffff 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--tg-spacing-lg);
+}
+
+.header-text {
+  position: relative;
+  z-index: 1;
+}
+
+.header-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.header-desc {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+}
+
+.header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+}
+
+/* ===== 状态概况三卡 ===== */
+.summary-section {
+  padding: 0 var(--tg-spacing-lg) var(--tg-spacing-sm);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tg-spacing-sm);
+}
+
+.summary-card {
+  background: var(--tg-color-white);
+  border-radius: 20rpx;
+  padding: var(--tg-spacing-md) var(--tg-spacing-sm);
+  box-shadow: var(--tg-shadow-card);
+  @include flex-column-center;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  border-radius: 20rpx 20rpx 0 0;
+}
+
+.summary-card.pending::before {
+  background: linear-gradient(90deg, var(--tg-color-warning), #d4b886);
+}
+
+.summary-card.approved::before {
+  background: linear-gradient(90deg, var(--tg-color-success), #66bb6a);
+}
+
+.summary-card.rejected::before {
+  background: linear-gradient(90deg, var(--tg-color-error), #e57373);
+}
+
+.summary-value {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-number-lg);
+  font-weight: var(--tg-font-weight-bold);
+  line-height: 1.2;
+  letter-spacing: var(--tg-letter-spacing-tight);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6rpx;
+}
+
+.summary-value.pending {
+  color: var(--tg-color-warning);
+}
+
+.summary-value.approved {
+  color: var(--tg-color-success);
+}
+
+.summary-value.rejected {
+  color: var(--tg-color-error);
+}
+
+.summary-label {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
+  font-weight: var(--tg-font-weight-regular);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+/* ===== 列表区域 ===== */
+.list-section {
+  padding: 0 var(--tg-spacing-md);
+}
+
+/* ===== 记录卡片 ===== */
+.record-card {
+  background: var(--tg-color-white);
+  border-radius: 20rpx;
+  padding: var(--tg-spacing-md);
+  margin-bottom: var(--tg-spacing-sm);
+  border-left: 6rpx solid var(--tg-color-warning);
+  box-shadow: 0 4rpx 20rpx rgba(var(--td-brand-color-rgb), 0.08);
+}
+
+.record-card.approved {
+  border-left-color: var(--tg-color-success);
+}
+
+.record-card.rejected {
+  border-left-color: var(--tg-color-error);
+}
+
+.record-card.expired {
+  border-left-color: var(--tg-text-disabled);
+}
+
+/* 卡片头部 */
+.record-header {
+  @include flex-between;
+  align-items: center;
+  margin-bottom: var(--tg-spacing-sm);
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx dashed var(--tg-color-border-light);
+}
+
+.record-number {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.record-status {
+  padding: 6rpx var(--tg-spacing-sm);
+  border-radius: 20rpx;
+}
+
+.status-text {
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-bold);
+}
+
+/* 记录行 */
+.record-row {
+  @include flex-align-center;
+  margin-bottom: 16rpx;
+}
+
+.record-row:last-child {
+  margin-bottom: 0;
+}
+
+.row-icon {
+  margin-right: 12rpx;
+  color: #8b7355;
+  flex-shrink: 0;
+}
+
+.row-label {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+  margin-right: var(--tg-spacing-sm);
+  flex-shrink: 0;
+}
+
+.row-value {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
+  flex: 1;
+  text-align: right;
+}
+
+.row-value.amount {
+  color: #c5a572;
+  font-weight: var(--tg-font-weight-bold);
+}
+
+.row-value.points {
+  color: var(--tg-color-success);
+  font-weight: var(--tg-font-weight-bold);
+}
+
+.row-value.reject {
+  color: var(--tg-color-error);
+}
+
+.row-value.time {
+  color: var(--tg-text-tertiary);
+  font-size: var(--tg-font-size-small);
+}
+
+/* ===== 列表底部 ===== */
+.list-footer {
+  text-align: center;
+  padding: 28rpx 0 20rpx;
+}
+
+.footer-text {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
+}
+
+/* ===== 加载状态 ===== */
+.loading-overlay {
+  @include flex-center;
+  padding: 120rpx 0;
+}

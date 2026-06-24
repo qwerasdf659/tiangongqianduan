@@ -189,6 +189,23 @@ Page({
   },
 
   /**
+   * 首次 onShow 跳过标志：onLoad 已加载一次，避免首次进入时 onLoad + onShow 重复请求。
+   * 从下单/支付/地址页返回、切后台再回前台等后续 onShow 才静默重拉，保证库存最新（对接文档 §4.2）。
+   */
+  _isFirstShow: true,
+
+  onShow() {
+    if (this._isFirstShow) {
+      this._isFirstShow = false
+      return
+    }
+    /* 返回该页时静默重拉商品详情，纠正库存（兑换后离开再回来、切后台回前台等场景） */
+    if (this.data.exchangeItemId) {
+      this._loadProductDetail(this.data.exchangeItemId, true)
+    }
+  },
+
+  /**
    * 加载页面配置（标签样式 + 属性展示模式）
    *
    * 数据源: exchange_page_config.detail_page（system_configs 表 key='exchange_page'）
@@ -216,9 +233,13 @@ Page({
    * 数据流:
    *   GET /api/v4/exchange/items/:id → res.data.item（后端 ApiResponse 包装）
    *   GET /api/v4/assets/balances → 用户多资产余额
+   *
+   * @param itemId 商品ID（exchange_item_id）
+   * @param silent 静默刷新（true 时不显示整页 loading）。用于兑换成功后/onShow 重拉库存，
+   *               后台静默更新库存数字与进度条，避免页面闪整屏 loading 打断用户。
    */
-  async _loadProductDetail(itemId: number) {
-    this.setData({ loading: true, hasError: false })
+  async _loadProductDetail(itemId: number, silent: boolean = false) {
+    this.setData(silent ? { hasError: false } : { loading: true, hasError: false })
 
     try {
       const [detailResponse, balanceResponse] = await Promise.all([
@@ -308,8 +329,8 @@ Page({
         productData.images.forEach((img: any) => {
           swiperImages.push({
             media_id: img.media_id,
-            url: img.public_url || (img.thumbnails && img.thumbnails.large) || '',
-            thumbnailUrl: (img.thumbnails && img.thumbnails.medium) || img.public_url || ''
+            url: img.public_url || (img.thumbnails && img.thumbnails.w1080) || '',
+            thumbnailUrl: (img.thumbnails && img.thumbnails.w750) || img.public_url || ''
           })
         })
       } else if (productData.primary_image) {
@@ -338,7 +359,7 @@ Page({
       const detailImages: any[] = Array.isArray(productData.detail_images)
         ? productData.detail_images.map((img: any) => ({
             media_id: img.media_id,
-            url: img.public_url || (img.thumbnails && img.thumbnails.large) || '',
+            url: img.public_url || (img.thumbnails && img.thumbnails.w1080) || '',
             caption: img.caption || ''
           }))
         : []
@@ -347,7 +368,7 @@ Page({
       const showcaseImages: any[] = Array.isArray(productData.showcase_images)
         ? productData.showcase_images.map((img: any) => ({
             media_id: img.media_id,
-            url: img.public_url || (img.thumbnails && img.thumbnails.large) || ''
+            url: img.public_url || (img.thumbnails && img.thumbnails.w1080) || ''
           }))
         : []
 
@@ -429,11 +450,6 @@ Page({
         _hasItemTemplate: !!productData.item_template_id
       })
 
-      /** 库存进度条: 剩余百分比 = stock / (stock + sold_count) */
-      const totalSupply: number = (productData.stock || 0) + (productData.sold_count || 0)
-      const remainPercent: number =
-        totalSupply > 0 ? Math.round(((productData.stock || 0) / totalSupply) * 100) : 100
-
       /** 从余额API提取 cost_asset_code 对应的可用余额 */
       let assetBalance = 0
       if (balanceResponse && balanceResponse.success && balanceResponse.data) {
@@ -482,9 +498,9 @@ Page({
           const skuImages: any[] = Array.isArray(sku.images)
             ? sku.images.map((img: any) => ({
                 media_id: img.media_id,
-                url: img.url || img.public_url || (img.thumbnails && img.thumbnails.large) || '',
+                url: img.url || img.public_url || (img.thumbnails && img.thumbnails.w1080) || '',
                 thumbnailUrl:
-                  img.thumbnail_url || (img.thumbnails && img.thumbnails.medium) || img.url || ''
+                  img.thumbnail_url || (img.thumbnails && img.thumbnails.w750) || img.url || ''
               }))
             : []
           /** sku_id 归一为数字（后端可能以字符串下发），确保提交、比较、高亮全链路类型一致 */
@@ -499,6 +515,25 @@ Page({
       const hasMultiSku =
         activeSkus.length > 1 ||
         (activeSkus.length === 1 && !isEmptySpec(activeSkus[0].spec_values))
+
+      /**
+       * 商品总库存以 active SKU 的 stock 之和为准（库存权威在 SKU 维度）。
+       * 兑换扣减的是所选 SKU 的库存（后端 productSkuRecord.stock），SPU 级 stock 字段不随兑换变动；
+       * 故有 SKU 时用 SKU 汇总，确保兑换成功后重拉详情能正确反映库存减少（对接文档 §8 二次修复）。
+       * 无 SKU（理论极少）时回退 SPU productData.stock。
+       */
+      const skuStockSum = activeSkus.reduce(
+        (sum: number, sku: any) => sum + (Number(sku.stock) || 0),
+        0
+      )
+      const effectiveStock = activeSkus.length > 0 ? skuStockSum : productData.stock || 0
+      /** 用 SKU 汇总库存覆盖展示用 stock（库存数字、售罄判断 product.stock<=0 均据此） */
+      enrichedProduct.stock = effectiveStock
+      /** 进度条剩余百分比改用 effectiveStock 重算，兑换后重拉能同步收缩 */
+      const stockRemainPercent: number =
+        effectiveStock + (productData.sold_count || 0) > 0
+          ? Math.round((effectiveStock / (effectiveStock + (productData.sold_count || 0))) * 100)
+          : 100
 
       let selectedSkuId = 0
       let selectedSkuInfo: any = null
@@ -572,7 +607,7 @@ Page({
         galleryInterval,
         swiperCurrent: 0,
         rarityStyle: rarityConfig,
-        stockPercent: remainPercent,
+        stockPercent: stockRemainPercent,
         currentBalance: assetBalance,
         balanceInsufficient: insufficient,
         detailImages,
@@ -624,6 +659,14 @@ Page({
       if (error && error.code === 'EXCHANGE_ITEM_NOT_FOUND') {
         edLog.info('商品已删除(EXCHANGE_ITEM_NOT_FOUND)，提示并返回:', itemId)
         this._handleItemUnavailable(itemId)
+        return
+      }
+      /**
+       * 静默刷新（兑换成功后/onShow 重拉）失败时不切错误页：
+       * 保留当前已展示内容，仅记录日志，下次 onShow 自动纠正，避免打断用户。
+       */
+      if (silent) {
+        edLog.warn('静默刷新商品详情失败（保留当前展示，下次进入自动纠正）:', error?.message)
         return
       }
       this.setData({
@@ -1018,6 +1061,16 @@ Page({
         const appInstance = getApp()
         if (appInstance && appInstance.globalData) {
           appInstance.globalData._exchangeOccurred = true
+        }
+
+        /**
+         * 兑换成功后立即重拉商品详情，刷新库存数字 + 进度条（对接文档2026-06-24）。
+         * 后端兑换响应不含最新库存，需重新调详情接口取 SKU 汇总库存。
+         * 静默刷新（silent=true）：后台更新不闪整屏 loading；失败则保留当前展示、不报错，
+         * 下次 onShow 自动纠正（不把旧库存当成功结果，符合自测清单第5项）。
+         */
+        if (this.data.exchangeItemId) {
+          this._loadProductDetail(this.data.exchangeItemId, true)
         }
 
         /**

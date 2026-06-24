@@ -2,7 +2,7 @@
 // 后端路由: POST /api/v4/shop/redemption/fulfill（商家域，需role_level>=20）
 
 // 统一工具函数导入
-const { API, Utils, Wechat, Logger } = require('../../utils/index')
+const { API, Utils, Wechat, Logger, Permission } = require('../../utils/index')
 const log = Logger.createLogger('scan-verify')
 const { checkAuth } = Utils
 const { showToast } = Wechat
@@ -23,7 +23,7 @@ const { userStore } = require('../../store/user')
  * 2. 扫码核销 → 扫描用户在"我的背包"中生成的核销二维码
  * 3. 核销完成 → 调用 POST /api/v4/shop/redemption/fulfill，展示核销结果
  *
- * 权限要求: 商家店员(role_level>=20)及以上
+ * 权限要求: 拥有 consumption:scan_user 权限（商家店员/店长本就具备，管理员通配放行）
  *
  * @file packageAdmin/scan-verify/scan-verify.ts
  * @version 5.2.0
@@ -73,26 +73,49 @@ Page({
       return
     }
 
-    // 权限检查：商家店员(role_level>=20)及以上（从MobX Store获取）
-    const userInfo = userStore.userInfo || wx.getStorageSync('user_info')
-    const roleLevel = userInfo?.role_level || 0
-    const hasAccess = roleLevel >= 20
+    // 权限检查：扫码核销准入 = 拥有 consumption:scan_user 权限（§10.7 统一权限码口径）
+    // 以后端 GET /api/v4/permissions/me 下发的 permissions 为唯一权威，与后端
+    // requireMerchantPermission('consumption:scan_user') 同口径；前端只做体验拦截，真正鉴权在后端。
+    this.checkScanAccess()
+  },
 
-    if (!hasAccess) {
-      log.error('用户无商家权限，role_level:', roleLevel)
+  /**
+   * 扫码核销准入校验（拉取 /me 权限，按 consumption:scan_user 判定）
+   *
+   * 拉取失败一律按无权限处理，避免误放行（真正鉴权由后端兜底）。
+   */
+  async checkScanAccess() {
+    try {
+      const apiResult = await API.getMyPermissions()
+      const permissions = apiResult?.success && apiResult.data ? apiResult.data.permissions : null
+      const hasAccess = Permission.canScan(permissions)
+
+      if (!hasAccess) {
+        log.error('用户无扫码核销权限（缺 consumption:scan_user）')
+        wx.showModal({
+          title: '权限不足',
+          content: '您没有权限访问此页面，仅商家员工和管理员可使用扫码核销功能。',
+          showCancel: false,
+          success: () => {
+            wx.navigateBack()
+          }
+        })
+        return
+      }
+
+      // 尝试从本地缓存加载门店列表
+      this.loadCachedStoreList()
+    } catch (error) {
+      log.error('扫码核销权限校验失败:', error)
       wx.showModal({
-        title: '权限不足',
-        content: '您没有权限访问此页面，仅商家员工和管理员可使用扫码核销功能。',
+        title: '权限校验失败',
+        content: '无法确认您的核销权限，请稍后重试。',
         showCancel: false,
         success: () => {
           wx.navigateBack()
         }
       })
-      return
     }
-
-    // 尝试从本地缓存加载门店列表
-    this.loadCachedStoreList()
   },
 
   /**

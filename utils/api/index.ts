@@ -39,7 +39,7 @@ module.exports = {
   /** APIClient 核心类（单独具名导出，确保不被展开覆盖） */
   APIClient: clientModule.APIClient,
 
-  /** 认证系统: userLogin / quickLogin / sendVerificationCode / getUserInfo / verifyToken */
+  /** 认证系统: userLogin / quickLogin / sendVerificationCode / getUserInfo / getMyPermissions / verifyToken */
   ...authModule,
 
   /** 抽奖系统: getLotteryCampaigns / getActiveCampaigns / getLotteryPrizes / getLotteryConfig / performLottery / getLotteryHistory / getLotteryUserStatistics */

@@ -35,6 +35,7 @@ const imageHelperFunctions = require('./image-helper')
 const subscribeMessageFunctions = require('./subscribe-message')
 const productDisplayFunctions = require('./product-display')
 const topBannerFunctions = require('./top-banner')
+const permissionModule = require('./permission')
 
 // ===== 功能模块分类导出（展开运算符自动同步，新增函数无需手动维护） =====
 
@@ -53,6 +54,9 @@ const API = { ...apiFunctions }
 
 /** 微信小程序工具函数 - 微信API封装、用户交互、导航 */
 const Wechat = { ...wechatFunctions }
+
+/** 权限判定统一模块 - 商家/管理类能力的单一事实源（门槛常量 + 语义化能力判定） */
+const Permission = permissionModule.Permission
 
 /** 错误处理工具（极简方案） - 错误提示、成功提示、JWT过期处理 */
 const ErrorHandler = { ...errorFunctions }
@@ -112,6 +116,7 @@ module.exports = {
   Validation,
   API,
   Wechat,
+  Permission,
   ErrorHandler,
   Constants,
   AssetCodes,

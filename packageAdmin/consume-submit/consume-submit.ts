@@ -17,7 +17,7 @@
  * @since 2026-02-20
  */
 
-const { API, Utils, Wechat, Logger } = require('../../utils/index')
+const { API, Utils, Wechat, Logger, Permission } = require('../../utils/index')
 const consumeLog = Logger.createLogger('consume-submit')
 const { checkAuth, formatPhoneNumber } = Utils
 const { showToast } = Wechat
@@ -68,7 +68,7 @@ Page({
     // 权限检查：商家店员(role_level>=20)及以上可访问
     const currentUserInfo = userStore.userInfo || wx.getStorageSync('user_info')
     const roleLevel = currentUserInfo?.role_level || 0
-    const hasAccess = roleLevel >= 20
+    const hasAccess = Permission.isMerchant(roleLevel)
 
     if (!hasAccess) {
       consumeLog.error('用户无商家权限，role_level:', roleLevel)

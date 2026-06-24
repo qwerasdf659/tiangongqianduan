@@ -126,6 +126,35 @@ declare namespace API {
     user: UserProfile
   }
 
+  /** 用户角色项（GET /api/v4/permissions/me 的 roles 数组元素） */
+  interface PermissionRole {
+    /** 角色名（如 user / merchant_staff / admin） */
+    role_name: string
+    /** 角色等级 */
+    role_level: number
+  }
+
+  /**
+   * 当前用户权限清单响应（GET /api/v4/permissions/me）
+   *
+   * 后端合并所有 active 角色权限位统一下发，是首页商家功能按钮显隐的唯一权威数据源。
+   * 权限 key 与后端完全一致（snake_case + 冒号分隔），前端零映射直读。
+   *
+   * ⚠️ permissions 已由后端 /me 拍平为「扁平字符串数组」单一形态（对接文档 §9.4.1）：
+   *   ["points:read", "consumption:create", "consumption:read", "consumption:scan_user"]
+   *   - admin/super_admin 下发通配 ["*:*"]，前端 Permission.hasPermission 与后端
+   *     requireMerchantPermission 同构支持 "*:*" / "resource:*" / 精确码（§14.1）。
+   *   - 不再有 permissions.permissions 嵌套、不再 role_level/roles 内外层重复。
+   */
+  interface PermissionsMeData {
+    /** 最高角色等级（>=100 管理员，>=20 商家店员） */
+    role_level: number
+    /** 角色列表 */
+    roles: PermissionRole[]
+    /** 权限位：扁平字符串数组（domain:action，admin 为通配 ["*:*"]） */
+    permissions: string[]
+  }
+
   // ===== 抽奖系统 =====
 
   /**
@@ -208,11 +237,11 @@ declare namespace API {
     width: number | null
     /** 图片高度px（可为 null） */
     height: number | null
-    /** 缩略图完整URL（后端已拼接，三种尺寸 150/300/600px） */
+    /** 缩略图完整URL（后端预生成三档宽度档 WebP：w375/w750/w1080，对齐媒体级联删除方案 §15.4） */
     thumbnails: {
-      small: string
-      medium: string
-      large: string
+      w375: string
+      w750: string
+      w1080: string
     } | null
   }
 
@@ -598,24 +627,24 @@ declare namespace API {
 
   /**
    * 兑换商品主图对象（C 端 GET /api/v4/exchange/items 与详情接口下发）
-   * 列表取图: thumbnails.large(800,清晰) 优先；详情主图用 url（原图）
-   * 旧 thumbnail_url=small(150) 仅作兜底
+   * 列表取图: thumbnails.w750/w1080（清晰）优先；详情主图用 url（原图）
+   * thumbnail_url=默认档(w375) 仅作兜底
    */
   interface ExchangeItemPrimaryImage {
     /** 主图媒体ID（关联 media_files 表，BIGINT 字符串下发） */
     primary_media_id: string | number
     /** 原图完整公网URL（后端已拼接，前端直接使用） */
     url: string
-    /** 缩略图完整公网URL（small=150，仅兜底；列表优先用 thumbnails.large） */
+    /** 缩略图完整公网URL（默认档 w375，仅兜底；列表优先用 thumbnails.w750） */
     thumbnail_url: string
     /**
-     * 三档缩略图完整公网URL（后端《图片清晰度优化方案》§12.3 下发）
-     * small=150 / medium=300 / large=800；列表卡片优先用 large
+     * 三档预生成缩略图完整公网URL（对齐后端媒体级联删除方案 §6.1/§15.4 下发的宽度档 WebP）
+     * w375 / w750 / w1080，覆盖 1/2/3 倍屏；列表卡片优先用 w750，详情/大图用 w1080
      */
     thumbnails?: {
-      small?: string
-      medium?: string
-      large?: string
+      w375?: string
+      w750?: string
+      w1080?: string
     }
     /** MIME 类型（如 image/png） */
     mime: string

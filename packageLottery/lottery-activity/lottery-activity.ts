@@ -167,18 +167,18 @@ async function applyLocalImageCache(
 function addPrizeIcon(prize: any): any {
   /**
    * 直接使用后端 image 字段（后端已根据 material_asset_code 返回对应图标URL）
-   * 字段结构: { url, thumbnail_url, thumbnails:{small,medium,large}, source }
+   * 字段结构: { url, thumbnail_url, thumbnails:{w375,w750,w1080}, source }
    * 前端不做本地图标映射，运营换图只需后端替换文件
    *
-   * 取图优先级（《兑换商城图片清晰度优化方案》§13.1）：
-   *   thumbnails.large(800,清晰) → thumbnail_url(small=150,兜底) → url(原图)
-   * 奖品图在结果弹窗等场景会放大展示，优先用 large 档避免模糊。
+   * 取图优先级（对齐后端媒体级联删除方案 §15.4：档位名 w375/w750/w1080）：
+   *   thumbnails.w1080(清晰) → w750 → thumbnail_url(默认档,兜底) → url(原图)
+   * 奖品图在结果弹窗等场景会放大展示，优先用 w1080 档避免模糊。
    */
   const imageData = prize.image || {}
   const thumbnails = imageData.thumbnails || {}
   const imageUrl = imageData.url || ''
   const thumbnailUrl = imageData.thumbnail_url || ''
-  prize.prize_image_url = thumbnails.large || thumbnails.medium || thumbnailUrl || imageUrl || ''
+  prize.prize_image_url = thumbnails.w1080 || thumbnails.w750 || thumbnailUrl || imageUrl || ''
 
   /* 奖品图片缺失 — 明确报错，不做兜底降级 */
   if (!prize.prize_image_url) {
