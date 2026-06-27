@@ -255,8 +255,8 @@ Page({
               ? record.description
               : this.getBusinessTypeLabel(record.business_type)
 
-          // 使用后端返回的 created_at 字段（ISO 8601 格式）
-          const displayTime = record.created_at || ''
+          // 提交时间：后端 B-2 单一 UTC ISO，格式化为北京时间展示（不直显原始 Z 串）
+          const displayTime = Utils.formatBeijing(record.created_at, true)
 
           // 格式化金额显示（带符号）
           const displayAmount = rawAmount > 0 ? `+${absAmount}` : `-${absAmount}`
@@ -295,7 +295,7 @@ Page({
           currentPage: page,
           totalPages,
           hasMoreRecords: hasMore,
-          lastUpdateTime: new Date().toLocaleString(),
+          lastUpdateTime: Utils.formatBeijing(Date.now(), true),
           loading: false,
           hasError: false
         })

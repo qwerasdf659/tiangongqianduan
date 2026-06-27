@@ -390,3 +390,16 @@ page {
   padding: 60rpx 80rpx;
   text-align: center;
 }
+
+/* ===== 版本号 ===== */
+.app-version {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 0 48rpx;
+}
+
+.app-version-text {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-placeholder);
+}

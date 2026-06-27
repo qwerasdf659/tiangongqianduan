@@ -47,34 +47,6 @@ const STEP_STATUS_MAP: Record<string, string> = {
   timeout: '已超时'
 }
 
-/**
- * 从日期字符串中直接提取年月日时分秒（不依赖 new Date() 解析）
- *
- * 微信小程序的JS引擎对 ISO 8601 带时区偏移的字符串解析不可靠，
- * 使用正则直接提取数字分量，确保100%兼容所有运行环境。
- */
-function extractDateParts(dateStr: string): string {
-  if (!dateStr) {
-    return '时间未知'
-  }
-
-  const fullMatch = dateStr.match(
-    /(\d{4})[/-](\d{1,2})[/-](\d{1,2})[T\s](\d{1,2}):(\d{1,2}):(\d{1,2})/
-  )
-  if (fullMatch) {
-    const [, yr, mo, dy, hr, mi, sc] = fullMatch
-    return `${yr}年${mo.padStart(2, '0')}月${dy.padStart(2, '0')}日 ${hr.padStart(2, '0')}:${mi.padStart(2, '0')}:${sc.padStart(2, '0')}`
-  }
-
-  const dateOnlyMatch = dateStr.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/)
-  if (dateOnlyMatch) {
-    const [, yr, mo, dy] = dateOnlyMatch
-    return `${yr}年${mo.padStart(2, '0')}月${dy.padStart(2, '0')}日`
-  }
-
-  return dateStr
-}
-
 Page({
   data: {
     // ===== textarea autosize 配置（WXML 不支持对象字面量） =====
@@ -235,28 +207,8 @@ Page({
     if (!dateTimeValue) {
       return '时间未知'
     }
-
-    try {
-      if (typeof dateTimeValue === 'object' && dateTimeValue !== null) {
-        if (dateTimeValue.display) {
-          return String(dateTimeValue.display)
-        }
-        if (dateTimeValue.iso) {
-          return extractDateParts(String(dateTimeValue.iso))
-        }
-        return '时间未知'
-      }
-
-      if (typeof dateTimeValue === 'number') {
-        const dateObj = new Date(dateTimeValue)
-        return isNaN(dateObj.getTime()) ? '时间未知' : extractDateParts(dateObj.toISOString())
-      }
-
-      return extractDateParts(String(dateTimeValue))
-    } catch (formatError: any) {
-      auditLog.error('时间格式化失败:', formatError, '原始值:', dateTimeValue)
-      return typeof dateTimeValue === 'string' ? dateTimeValue : '时间未知'
-    }
+    // 后端 B-2：时间统一为单一 UTC ISO 字符串，按北京时区展示（对接文档 2026-06-25）
+    return Utils.formatBeijing(dateTimeValue, true) || '时间未知'
   },
 
   // ==================== 顶部汇总条 ====================

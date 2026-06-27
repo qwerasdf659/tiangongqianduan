@@ -1147,9 +1147,9 @@ declare namespace API {
      * ⚠️ 详情接口专有字段，列表接口不返回；仅 approved 记录有值，pending/rejected 为 null
      */
     reward_transaction_no?: string | null
-    /** 审核时间（后端字段名 reviewed_at，非 approved_at） */
+    /** 审核时间（后端字段名 reviewed_at，非 approved_at；单一 UTC ISO 带 Z，未审核为 null） */
     reviewed_at?: string | null
-    /** 创建时间 */
+    /** 创建时间 = 提交时间（单一 UTC ISO 带 Z，前端按北京时区展示，对接文档 2026-06-25 B-2） */
     created_at: string
   }
 
@@ -1176,14 +1176,34 @@ declare namespace API {
     stores: MyStore[]
   }
 
-  /** 二维码数据 */
+  /**
+   * 用户消费身份二维码数据（GET /api/v4/user/consumption/qrcode 的 data）
+   *
+   * 后端 V2 动态码：5 分钟过期 + 一次性 nonce（对接文档 2026-06-25）。
+   * 字段以后端为准、前端零映射直读；倒计时优先用 validity_seconds（数值秒），
+   * 时间字段已统一为单一 UTC ISO（B-2），前端 new Date 解析后按北京时区展示。
+   */
   interface QRCodeData {
+    /** 二维码内容 QRV2_{payload}_{signature}（每次刷新全新） */
     qr_code: string
+    /** 用户ID */
     user_id: number
-    generated_at: string
-    validity: number
-    note: string
-    usage: string
+    /** 用户UUID（后端身份标识） */
+    user_uuid?: string
+    /** 一次性随机串（每次刷新全新，提交时被 Redis 消耗，防重放） */
+    nonce?: string
+    /** 有效期秒数（数值，前端倒计时直用；后端定稿字段，替代已删除的 validity） */
+    validity_seconds: number
+    /** 过期时间（单一 UTC ISO8601 带 Z，前端 new Date 解析后按北京时区展示/倒计时） */
+    expires_at: string
+    /** 生成时间（单一 UTC ISO8601 带 Z） */
+    generated_at?: string
+    /** 签名算法（如 sha256） */
+    algorithm?: string
+    /** 提示文案 */
+    note?: string
+    /** 使用说明 */
+    usage?: string
   }
 
   // ===== 客服系统 =====
@@ -1202,11 +1222,13 @@ declare namespace API {
     created_at: string
     /** 最后更新时间（ISO 8601） */
     updated_at: string
-    /** 最后消息对象（含 chat_message_id, content, sender_type, message_type, created_at） */
+    /** 最后消息对象（含 chat_message_id, content, sender_type, message_source, message_type, created_at） */
     last_message: {
       chat_message_id: number
       content: string
       sender_type: string
+      /** 消息来源: user_client | admin_client | system（列表预览判定系统消息用） */
+      message_source?: string
       /** 消息类型: text / image / file / location（与单条消息接口同源同名，用于列表预览区分） */
       message_type: string
       created_at: string
@@ -1221,19 +1243,37 @@ declare namespace API {
     }
   }
 
-  /** 聊天消息（对齐后端消息字段格式） */
+  /** 聊天消息（对齐后端富消息建模，对接文档 2026-06-25） */
   interface ChatMessage {
     /** 消息主键（后端字段: chat_message_id） */
     chat_message_id: number
     /** 所属会话ID */
     customer_service_session_id: number
-    /** 发送者类型: user | admin | system */
+    /** 发送者类型: user | admin（系统消息 sender_type 仍为 admin，身份由 message_source 标识） */
     sender_type: string
-    /** 消息内容 */
+    /** 消息来源: user_client | admin_client | system（系统消息判定用此字段） */
+    message_source?: string
+    /** 消息内容（永远人类可读文本：正文 / [图片] / 文件名 / 地址） */
     content: string
-    /** 消息类型: text | image | system */
+    /** 消息类型: text | image | file | location（不再含 system） */
     message_type: string
-    /** 创建时间（ISO 8601） */
+    /**
+     * 富消息结构化负载（按 message_type 取字段）：
+     *   image: { image_url }
+     *   file: { file_url, file_name, file_size }
+     *   location: { latitude, longitude, name, address }
+     */
+    metadata?: {
+      image_url?: string
+      file_url?: string
+      file_name?: string
+      file_size?: number
+      latitude?: number
+      longitude?: number
+      name?: string
+      address?: string
+    }
+    /** 创建时间（单一 UTC ISO8601 带 Z，前端按北京时区展示） */
     created_at: string
   }
 
@@ -1902,16 +1942,16 @@ declare namespace API {
   // ===== 核销码系统（模型A：O2O动态码 — 到店核销） =====
 
   /**
-   * 后端 BeijingTimeHelper.formatForAPI 输出的时间对象（北京时间展示 + UTC 原值）
-   * 实际字段以后端为准，前端优先取 .beijing 展示。
+   * ⚠️ 已废弃：后端 B-2 时间统一后，所有时间字段改为单一 UTC ISO8601 字符串（带 Z），
+   * 不再下发 {iso,beijing,timestamp,relative} 对象（对接文档 2026-06-25）。
+   * 保留此类型仅为兼容历史引用，新代码一律用 string 类型 + Utils.formatBeijing 展示。
    */
   interface BeijingTimeField {
-    /** 北京时间字符串（如 2026/02/20 12:40:12），前端直接展示 */
+    iso?: string
     beijing?: string
-    /** UTC 原值（ISO8601） */
-    utc?: string
-    /** Unix 时间戳（毫秒，可选） */
     timestamp?: number
+    relative?: string
+    utc?: string
   }
 
   /**
@@ -1928,10 +1968,10 @@ declare namespace API {
     order_no: string
     /** 订单状态: pending（待核销）/ fulfilled（已核销）/ cancelled / expired */
     status: RedemptionOrderStatus
-    /** 核销完成时间（北京时间对象，未核销为 null） */
-    fulfilled_at: BeijingTimeField | null
-    /** 创建时间（北京时间对象） */
-    created_at: BeijingTimeField | string
+    /** 核销完成时间（单一 UTC ISO 带 Z，未核销为 null；前端按北京时区展示） */
+    fulfilled_at: string | null
+    /** 创建时间（单一 UTC ISO 带 Z，对接文档 2026-06-25 B-2） */
+    created_at: string
     /** 关联物品摘要 */
     item: { item_id: number; item_name: string } | null
   }

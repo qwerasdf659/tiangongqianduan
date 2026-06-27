@@ -22,7 +22,7 @@
         <text class="status-label"
           >{{statusMap[feedbackDetail.status] || feedbackDetail.status}}</text
         >
-        <text class="feedback-time">{{feedbackDetail.created_at}}</text>
+        <text class="feedback-time">{{feedbackDetail._createdAtText}}</text>
       </view>
 
       <!-- 反馈内容 -->
@@ -60,7 +60,7 @@
         <view class="section-title">客服回复</view>
         <view class="reply-body">
           <text class="reply-content-text">{{feedbackDetail.reply_content}}</text>
-          <text class="reply-time">回复时间: {{feedbackDetail.replied_at}}</text>
+          <text class="reply-time">回复时间: {{feedbackDetail._repliedAtText}}</text>
         </view>
       </view>
 

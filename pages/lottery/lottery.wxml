@@ -26,6 +26,7 @@
             mode="aspectFill"
             data-index="{{index}}"
             bindtap="onTopBannerTap"
+            binderror="onTopBannerImageError"
           />
         </swiper-item>
       </swiper>
@@ -37,6 +38,7 @@
         mode="aspectFill"
         data-index="0"
         bindtap="onTopBannerTap"
+        binderror="onTopBannerImageError"
       />
       <!-- 无运营配置：占位框（不使用本地兜底图） -->
       <view class="top-banner-placeholder" wx:else>

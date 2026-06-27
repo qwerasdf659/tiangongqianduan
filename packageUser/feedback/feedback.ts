@@ -159,7 +159,10 @@ Page({
 
       if (result.success) {
         this.setData({
-          myFeedbacks: result.data.feedbacks
+          myFeedbacks: (result.data.feedbacks || []).map((fb: any) => ({
+            ...fb,
+            _timeText: Utils.formatBeijing(fb.created_at, false)
+          }))
         })
       }
     } catch (error: any) {

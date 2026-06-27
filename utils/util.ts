@@ -74,6 +74,17 @@ const safeParseDateString = (dateStr: string | number | null | undefined): Date 
   }
 
   const str = String(dateStr)
+
+  // 带时区标识（UTC `Z` 或 ±HH:MM 偏移）的 ISO 串：直接原生解析，得到正确绝对时刻。
+  // 后端已统一下发 UTC ISO（如 2026-06-24T19:14:09.000Z），必须保留时区信息按绝对时刻解析，
+  // 不能再用正则剥掉 `Z` 重组（那会被当本地时间、差 8 小时）。
+  if (/T\d{2}:\d{2}:\d{2}.*(Z|[+-]\d{2}:?\d{2})$/.test(str)) {
+    const native = new Date(str)
+    if (!isNaN(native.getTime())) {
+      return native
+    }
+  }
+
   const match = str.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})[\sT](\d{1,2}):(\d{1,2}):(\d{1,2})/)
   if (match) {
     const [, yr, mo, dy, hr, mi, sc] = match
@@ -92,19 +103,56 @@ const safeParseDateString = (dateStr: string | number | null | undefined): Date 
   return null
 }
 
-/**
- * 格式化日期时间（YYYY-MM-DD HH:mm:ss格式）
- * 业务场景: 积分记录时间、兑换记录时间、抽奖记录时间、聊天消息时间戳
- */
-const formatTime = (date: Date): string => {
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  const hour = date.getHours()
-  const minute = date.getMinutes()
-  const second = date.getSeconds()
+/** 北京时区相对 UTC 的固定偏移（+08:00，毫秒）。中国不使用夏令时，偏移恒定。 */
+const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000
 
-  return `${[year, month, day].map(formatNumber).join('-')} ${[hour, minute, second].map(formatNumber).join(':')}`
+/**
+ * 将后端时间统一格式化为北京时间展示串（设备时区无关）
+ *
+ * 后端已统一下发 UTC ISO8601 带 `Z`（如 `2026-06-24T19:14:09.000Z`，对接文档 2026-06-25 B-2）。
+ * 前端必须先按绝对时刻解析，再强制按北京时区（+08:00）渲染——绝不能直接截取串里的数字
+ * （那是 UTC 数字，会比北京时间少 8 小时）。
+ *
+ * 实现采用「绝对时刻 + 8h 偏移后取 UTC 分量」，而非 toLocaleString({timeZone})——
+ * 后者在部分 Android 微信环境 ICU 不全时会被忽略；偏移法保证任意设备时区下都得到正确北京时间。
+ *
+ * @param value - 后端时间字段（UTC ISO 字符串 / 毫秒时间戳 / Date）
+ * @param withSeconds - 是否包含秒（默认 true）
+ * @returns 北京时间串 `YYYY-MM-DD HH:mm(:ss)`，无效输入返回空串
+ */
+const formatBeijing = (
+  value: string | number | Date | null | undefined,
+  withSeconds = true
+): string => {
+  if (value === null || value === undefined || value === '') {
+    return ''
+  }
+  const parsed = value instanceof Date ? value : safeParseDateString(value as string | number)
+  if (!parsed || isNaN(parsed.getTime())) {
+    return ''
+  }
+  // 偏移到北京时刻后用 UTC 分量取值，规避设备本地时区影响
+  const bj = new Date(parsed.getTime() + BEIJING_OFFSET_MS)
+  const year = bj.getUTCFullYear()
+  const month = formatNumber(bj.getUTCMonth() + 1)
+  const day = formatNumber(bj.getUTCDate())
+  const hour = formatNumber(bj.getUTCHours())
+  const minute = formatNumber(bj.getUTCMinutes())
+  const second = formatNumber(bj.getUTCSeconds())
+  return withSeconds
+    ? `${year}-${month}-${day} ${hour}:${minute}:${second}`
+    : `${year}-${month}-${day} ${hour}:${minute}`
+}
+
+/**
+ * 格式化日期时间（YYYY-MM-DD HH:mm:ss格式，按北京时区）
+ * 业务场景: 积分记录时间、兑换记录时间、抽奖记录时间、聊天消息时间戳
+ *
+ * ⚠️ 入参可为 Date / UTC ISO 字符串 / 毫秒时间戳；统一按北京时区（+08:00）展示，
+ * 与后端 B-2（UTC ISO 下发）契约一致，设备时区无关。
+ */
+const formatTime = (date: Date | string | number): string => {
+  return formatBeijing(date, true)
 }
 
 // ===== Base64编解码 =====
@@ -663,9 +711,12 @@ const formatPhoneNumber = (phone: string): string => {
  */
 const formatDateMessage = (timestamp: number | string | Date): string => {
   try {
-    const date = new Date(timestamp)
+    const parsed = timestamp instanceof Date ? timestamp : safeParseDateString(timestamp)
+    if (!parsed || isNaN(parsed.getTime())) {
+      return '未知时间'
+    }
     const now = new Date()
-    const diffMs: number = now.getTime() - date.getTime()
+    const diffMs: number = now.getTime() - parsed.getTime()
     const diffSeconds: number = Math.floor(diffMs / 1000)
     const diffMinutes: number = Math.floor(diffSeconds / 60)
     const diffHours: number = Math.floor(diffMinutes / 60)
@@ -686,28 +737,59 @@ const formatDateMessage = (timestamp: number | string | Date): string => {
       return `${diffHours}小时前`
     }
 
+    // 绝对时间分支统一按北京时区取分量（设备时区无关，与后端 UTC ISO 契约一致）
+    const bj = new Date(parsed.getTime() + BEIJING_OFFSET_MS)
+    const bjNow = new Date(now.getTime() + BEIJING_OFFSET_MS)
+
     // 昨天
     if (diffDays === 1) {
-      return `昨天 ${formatNumber(date.getHours())}:${formatNumber(date.getMinutes())}`
+      return `昨天 ${formatNumber(bj.getUTCHours())}:${formatNumber(bj.getUTCMinutes())}`
     }
 
     // 本周内
     if (diffDays < 7) {
       const weekdays: string[] = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-      return `${weekdays[date.getDay()]} ${formatNumber(date.getHours())}:${formatNumber(date.getMinutes())}`
+      return `${weekdays[bj.getUTCDay()]} ${formatNumber(bj.getUTCHours())}:${formatNumber(bj.getUTCMinutes())}`
     }
 
     // 本年内
-    if (now.getFullYear() === date.getFullYear()) {
-      return `${formatNumber(date.getMonth() + 1)}-${formatNumber(date.getDate())} ${formatNumber(date.getHours())}:${formatNumber(date.getMinutes())}`
+    if (bjNow.getUTCFullYear() === bj.getUTCFullYear()) {
+      return `${formatNumber(bj.getUTCMonth() + 1)}-${formatNumber(bj.getUTCDate())} ${formatNumber(bj.getUTCHours())}:${formatNumber(bj.getUTCMinutes())}`
     }
 
     // 跨年显示
-    return `${date.getFullYear()}-${formatNumber(date.getMonth() + 1)}-${formatNumber(date.getDate())} ${formatNumber(date.getHours())}:${formatNumber(date.getMinutes())}`
+    return `${bj.getUTCFullYear()}-${formatNumber(bj.getUTCMonth() + 1)}-${formatNumber(bj.getUTCDate())} ${formatNumber(bj.getUTCHours())}:${formatNumber(bj.getUTCMinutes())}`
   } catch (error) {
     log.error('格式化消息时间失败:', error)
     return '未知时间'
   }
+}
+
+/**
+ * 格式化后端时间字段为展示串（后端 B-2：统一单一 UTC ISO 字符串）
+ *
+ * 对接文档 2026-06-25：后端所有时间字段统一为单一 UTC ISO8601 带 `Z`（如
+ * `2026-06-24T19:14:09.000Z`），不再是 `{iso,beijing,timestamp,relative}` 对象，
+ * 也不再有 `xxx_beijing` 伴随字段。本函数按北京时区展示，相对时间前端实时算。
+ *
+ * @param value - 后端时间字段（UTC ISO 字符串 / 毫秒时间戳；null/空表示无时间）
+ * @param mode - 'relative' 列表/卡片首选相对时间（如"2天前"）；'beijing' 精确北京时间
+ * @param fallback - 取不到时的兜底文案
+ * @returns 可直接展示的时间字符串
+ */
+const formatBeijingTimeField = (
+  value: string | number | null | undefined,
+  mode: 'relative' | 'beijing' = 'relative',
+  fallback: string = '时间未知'
+): string => {
+  if (value === null || value === undefined || value === '') {
+    return fallback
+  }
+  if (mode === 'beijing') {
+    return formatBeijing(value, true) || fallback
+  }
+  const parsedDate = safeParseDateString(value)
+  return parsedDate ? formatDateMessage(parsedDate.getTime()) : fallback
 }
 
 // ===== 用户角色判断 =====
@@ -835,6 +917,8 @@ module.exports = {
   formatPoints,
   formatPhoneNumber,
   formatDateMessage,
+  formatBeijing,
+  formatBeijingTimeField,
   determineUserRole,
   buildQueryString
 }

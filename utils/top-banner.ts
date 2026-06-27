@@ -203,6 +203,31 @@ function handleTopBannerTap(item: API.AdDeliveryItem, position: string): void {
 }
 
 /**
+ * 顶部 Banner 图片加载失败处理 — <image> binderror 触发
+ *
+ * 背景: 真机 <image> 加载网络图失败是「静默」的（不报错、只留白），
+ * 导致「接口正常拿到 image_url、却看不见图」这类问题极难定位。
+ * 此处把失败的 image_url 与微信错误详情打到日志，便于一眼定位真因
+ * （downloadFile 域名未加白 / 代理鉴权 403 / 图片本身不可达 / 解码失败等）。
+ *
+ * @param item 加载失败的投放项（含 image_url）
+ * @param position 页面位置（lottery/profile/camera/exchange）
+ * @param errDetail 微信 image binderror 的 e.detail（含 errMsg）
+ */
+function handleTopBannerImageError(
+  item: API.AdDeliveryItem,
+  position: string,
+  errDetail: any
+): void {
+  log.error('顶部Banner图片加载失败（真机<image>未渲染出图）', {
+    position,
+    ad_campaign_id: item?.ad_campaign_id,
+    image_url: item?.image_url,
+    errMsg: errDetail?.errMsg || errDetail
+  })
+}
+
+/**
  * 顶部 Banner 轮播切换上报 — swiper bindchange 触发，对新切入的当前张上报曝光
  *
  * 背景: loadTopBanner 仅对首张（finalItems[0]）上报了首屏曝光，轮播切换到第 2…N 张时
@@ -228,5 +253,6 @@ module.exports = {
   loadTopBanner,
   handleTopBannerTap,
   handleTopBannerChange,
+  handleTopBannerImageError,
   reportTopBannerEvent
 }

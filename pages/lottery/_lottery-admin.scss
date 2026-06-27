@@ -7,16 +7,17 @@
  * 说明：
  * - 设计风格：现代简洁、操作明确、视觉层次清晰
 
-/* 🔴 管理员功能条容器 — 透明背景，四个按钮等分排成一行（不换行） */
+/* 🔴 管理员功能条容器 — 透明背景，四个按钮等分排成一行（不换行）
+ * 横向内边距设为 0：外层 .lottery-container 已有左右 20rpx，避免双重内边距导致整行偏宽、最右按钮被 overflow 裁切 */
 .admin-scan-bar {
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
   justify-content: space-between;
-  gap: 12rpx;
+  gap: 10rpx;
   width: 100%;
   min-height: 96rpx;
-  padding: 16rpx 20rpx;
+  padding: 16rpx 0;
   background: transparent;
   box-shadow: none;
   position: relative;
@@ -30,7 +31,7 @@
 .admin-audit-button {
   flex: 1;
   min-width: 0;
-  padding: 16rpx 8rpx;
+  padding: 16rpx 6rpx;
 }
 
 /* 🔴 左侧：扫码核销按钮（扫描用户V2二维码 → 跳转消费录入页面） */

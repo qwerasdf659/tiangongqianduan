@@ -314,6 +314,23 @@ function detectEnv(): string {
 
 let CURRENT_ENV: string = detectEnv()
 
+/**
+ * 获取小程序真实运行版本号（动态读取，避免硬编码与微信线上版本脱节）
+ *
+ * 取自 wx.getAccountInfoSync().miniProgram.version：
+ *   - 正式版(release) 返回真实发布版本号，如 "0.0.3"
+ *   - 开发版/体验版 version 为空 → 降级返回 fallback
+ *
+ * @param fallback 取不到真实版本时的兜底文案（默认 'dev'）
+ */
+function getAppVersion(fallback: string = 'dev'): string {
+  try {
+    return wx.getAccountInfoSync().miniProgram.version || fallback
+  } catch (_err) {
+    return fallback
+  }
+}
+
 // ===== 配置获取函数 =====
 
 /** 获取当前环境的完整配置（无效环境自动降级到development） */
@@ -435,6 +452,7 @@ module.exports = {
   switchToDevTools,
   switchToMobile,
   isMobileDebug,
-  version: '5.2.0',
+  getAppVersion,
+  version: getAppVersion('5.2.0'),
   lastUpdated: '2026-02-16T00:00:00+08:00'
 }

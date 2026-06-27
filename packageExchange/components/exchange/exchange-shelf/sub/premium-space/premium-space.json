@@ -8,5 +8,8 @@
     "t-popup": "/miniprogram_npm/tdesign-miniprogram/popup/popup",
     "t-cascader": "/miniprogram_npm/tdesign-miniprogram/cascader/cascader",
     "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
+  },
+  "componentPlaceholder": {
+    "t-cascader": "view"
   }
 }

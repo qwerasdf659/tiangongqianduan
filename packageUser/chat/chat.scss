@@ -1382,6 +1382,35 @@
   color: var(--tg-text-tertiary);
 }
 
+/* 位置消息卡片（地址 + 坐标在 metadata） */
+.message-location {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 320rpx;
+  max-width: 440rpx;
+}
+
+.message-location-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.message-location-name {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-primary);
+  @include text-ellipsis;
+}
+
+.message-location-addr {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
 /* 消息状态行 */
 .message-status-row {
   margin-top: 6rpx;

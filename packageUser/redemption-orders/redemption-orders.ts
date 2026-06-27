@@ -178,40 +178,13 @@ Page({
       _itemName: itemName,
       _statusLabel: statusInfo.label,
       _statusTheme: statusInfo.theme,
-      _fulfilledAt: this.formatBeijingTime(order.fulfilled_at),
-      _createdAt: this.formatBeijingTime(order.created_at),
+      _fulfilledAt: Utils.formatBeijing(order.fulfilled_at, false),
+      _createdAt: Utils.formatBeijing(order.created_at, false),
       _shortOrderNo:
         orderNo.length > 16 ? `${orderNo.slice(0, 8)}...${orderNo.slice(-4)}` : orderNo,
       /* 仅已核销订单可发起售后（对齐后端 TradeDisputeService 按 fulfilled 校验） */
       _canApplyAfterSale: status === 'fulfilled'
     }
-  },
-
-  /**
-   * 格式化后端北京时间字段（formatForAPI 输出对象 { beijing, utc } 或字符串）
-   * 优先取 .beijing 直显，降级用 safeParseDateString 解析。
-   */
-  formatBeijingTime(value: any): string {
-    if (!value) {
-      return ''
-    }
-    if (typeof value === 'object' && value.beijing) {
-      return value.beijing
-    }
-    const raw = typeof value === 'object' ? value.utc || '' : value
-    if (!raw) {
-      return ''
-    }
-    const date = Utils.safeParseDateString ? Utils.safeParseDateString(raw) : new Date(raw)
-    if (!date || isNaN(date.getTime())) {
-      return String(raw)
-    }
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, '0')
-    const d = String(date.getDate()).padStart(2, '0')
-    const h = String(date.getHours()).padStart(2, '0')
-    const min = String(date.getMinutes()).padStart(2, '0')
-    return `${y}-${m}-${d} ${h}:${min}`
   },
 
   /**

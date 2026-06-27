@@ -18,8 +18,14 @@ const { buildQueryString, generateIdempotencyKey } = require('../util')
  * 获取当前用户消费积分二维码 - GET /api/v4/user/consumption/qrcode
  *
  * DB-3修复后路径变更：/shop/consumption/qrcode → /user/consumption/qrcode
- * 所有已登录用户（含普通用户、商家员工、管理员）统一使用此端点
- * 响应字段: qr_code, user_id, user_uuid, nonce, expires_at, generated_at, validity, algorithm
+ * 所有已登录用户（含普通用户、商家员工、管理员）统一使用此端点。
+ *
+ * 后端 V2 动态码：5 分钟过期 + 一次性 nonce（提交时消耗，防重放）。
+ * 响应字段（对接文档 2026-06-25 定稿，前端零映射直读）:
+ *   qr_code（每次刷新全新）、user_id、user_uuid、nonce（全新）、
+ *   validity_seconds（数值秒，倒计时直用；已替代废弃的 validity 死字段）、
+ *   expires_at（北京时间对象 {iso,beijing,timestamp,relative}，取 .timestamp 抗时钟漂移）、
+ *   generated_at、algorithm、note、usage
  */
 async function getUserQRCode() {
   return apiClient.request('/user/consumption/qrcode', {

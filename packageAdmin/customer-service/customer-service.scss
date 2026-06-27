@@ -411,6 +411,53 @@
   color: var(--tg-text-tertiary);
 }
 
+/* 系统消息（转接/关闭会话等，message_source==='system'）：居中淡色提示 */
+.cs-msg-system {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 12rpx 0;
+}
+
+.cs-msg-system-text {
+  max-width: 80%;
+  padding: 8rpx 20rpx;
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+  background: var(--tg-color-bg-light, rgba(0, 0, 0, 0.04));
+  border-radius: 16rpx;
+  text-align: center;
+}
+
+/* 位置消息卡片 */
+.cs-msg-location {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  max-width: 440rpx;
+}
+
+.cs-msg-location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.cs-msg-location-name {
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.cs-msg-location-addr {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+}
+
+.cs-bubble-own .cs-msg-location-addr {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* 输入区 */
 .cs-input-bar {
   display: flex;

@@ -86,20 +86,27 @@ const chatMessageHandlers = {
         const apiMessages = historyResult.data.messages.map((msg: any) => {
           /* 判断消息方向: sender_type='user' → 自己发的(右侧)，其余 → 对方发的(左侧) */
           const isOwn = msg.sender_type === 'user'
+          const metadata = msg.metadata || {}
 
           return {
             messageId: `server_${msg.chat_message_id}`,
             chat_message_id: msg.chat_message_id,
             content: msg.content || '',
             messageType: msg.message_type || 'text',
-            fileName: msg.file_name || '',
-            fileSize: msg.file_size ? this.formatFileSizeText(msg.file_size) : '',
+            /* 系统消息由 message_source 判定（富消息重构，不再用 message_type==='system'） */
+            isSystem: msg.message_source === 'system',
+            /* 富消息负载统一从 metadata 取（对接文档 2026-06-25） */
+            imageUrl: metadata.image_url || '',
+            fileUrl: metadata.file_url || '',
+            fileName: metadata.file_name || '',
+            fileSize: metadata.file_size ? this.formatFileSizeText(metadata.file_size) : '',
+            locationName: metadata.name || '',
+            locationAddress: metadata.address || '',
             isOwn,
             status: isOwn ? 'sent' : 'read',
             timestamp: new Date(msg.created_at).getTime(),
             timeText: this.formatMessageTime(msg.created_at),
-            showTime: true,
-            attachments: msg.attachments || []
+            showTime: true
           }
         })
 
@@ -346,6 +353,7 @@ const chatMessageHandlers = {
     msgLog.info('👨‍💼 处理管理员消息')
 
     msgLog.info('admin消息字段:', Object.keys(messageData))
+    const metadata = messageData.metadata || {}
     const adminMessage = {
       messageId: messageData.chat_message_id
         ? `server_${messageData.chat_message_id}`
@@ -353,14 +361,20 @@ const chatMessageHandlers = {
       chat_message_id: messageData.chat_message_id || null,
       content: messageData.content,
       messageType: messageData.message_type || 'text',
-      fileName: messageData.file_name || '',
-      fileSize: messageData.file_size ? this.formatFileSizeText(messageData.file_size) : '',
+      /* 系统消息由 message_source 判定（富消息重构，不再用 message_type==='system'） */
+      isSystem: messageData.message_source === 'system',
+      /* 富消息负载统一从 metadata 取 */
+      imageUrl: metadata.image_url || '',
+      fileUrl: metadata.file_url || '',
+      fileName: metadata.file_name || '',
+      fileSize: metadata.file_size ? this.formatFileSizeText(metadata.file_size) : '',
+      locationName: metadata.name || '',
+      locationAddress: metadata.address || '',
       senderId: messageData.sender_id,
       senderType: 'admin',
       messageSource: messageData.message_source || 'admin_client',
       timestamp: messageData.created_at ? new Date(messageData.created_at).getTime() : Date.now(),
-      createdAt: messageData.created_at || new Date().toISOString(),
-      attachments: messageData.attachments || []
+      createdAt: messageData.created_at || new Date().toISOString()
     }
 
     this.addMessage(adminMessage)
@@ -463,6 +477,7 @@ const chatMessageHandlers = {
       messageData.timestamp ||
       (messageData.created_at ? new Date(messageData.created_at).getTime() : Date.now())
 
+    const metadata = messageData.metadata || {}
     const newMessage = {
       messageId: serverMsgId
         ? `server_${serverMsgId}`
@@ -470,10 +485,20 @@ const chatMessageHandlers = {
       chat_message_id: serverMsgId,
       content: messageData.content || '',
       messageType: messageData.messageType || messageData.message_type || 'text',
-      fileName: messageData.fileName || messageData.file_name || '',
+      /* 系统消息由 message_source 判定（富消息重构）；上游 handleAdminMessage 已算好 isSystem 时直用 */
+      isSystem:
+        messageData.isSystem !== undefined
+          ? messageData.isSystem
+          : messageData.message_source === 'system',
+      /* 富消息负载：优先用上游已映射字段，否则从 metadata 取（原始 socket payload） */
+      imageUrl: messageData.imageUrl || metadata.image_url || '',
+      fileUrl: messageData.fileUrl || metadata.file_url || '',
+      fileName: messageData.fileName || metadata.file_name || '',
       fileSize:
         messageData.fileSize ||
-        (messageData.file_size ? this.formatFileSizeText(messageData.file_size) : ''),
+        (metadata.file_size ? this.formatFileSizeText(metadata.file_size) : ''),
+      locationName: messageData.locationName || metadata.name || '',
+      locationAddress: messageData.locationAddress || metadata.address || '',
       isOwn,
       status: messageData.status || (isOwn ? 'sent' : 'read'),
       timestamp,
@@ -484,8 +509,7 @@ const chatMessageHandlers = {
           : formatDateMessage(timestamp)),
       showTime:
         messageData.showTime !== undefined ? messageData.showTime : this.shouldShowTime(timestamp),
-      senderType: messageData.senderType || messageData.sender_type || 'user',
-      attachments: messageData.attachments || []
+      senderType: messageData.senderType || messageData.sender_type || 'user'
     }
 
     const messages = [...this.data.messages, newMessage]
@@ -764,11 +788,12 @@ const chatMessageHandlers = {
           tempFilePath: tempFile.tempFilePath
         })
 
-        /* 本地乐观消息 */
+        /* 本地乐观消息（图片：imageUrl 先用临时路径即时预览，content 占位[图片]） */
         const localMsg = {
           messageId: `img_${Date.now()}`,
           chat_message_id: null,
-          content: tempFile.tempFilePath,
+          content: '[图片]',
+          imageUrl: tempFile.tempFilePath,
           messageType: 'image',
           isOwn: true,
           status: 'sending',
@@ -792,11 +817,12 @@ const chatMessageHandlers = {
             throw new Error('聊天图片上传接口未返回 image_url')
           }
 
-          /* 第2步: 发送image类型消息（content填图片URL） */
+          /* 第2步: 发送image类型消息（content占位[图片]，URL进metadata，对接文档2026-06-25富消息重构） */
           const sendResult = await API.sendChatMessage(this.data.sessionId, {
-            content: imageUrl,
+            content: '[图片]',
             message_type: 'image',
-            sender_type: 'user'
+            sender_type: 'user',
+            metadata: { image_url: imageUrl }
           })
 
           if (sendResult.success) {
@@ -805,7 +831,7 @@ const chatMessageHandlers = {
               msg.messageId === localMsg.messageId
                 ? {
                     ...msg,
-                    content: imageUrl,
+                    imageUrl,
                     status: 'sent',
                     chat_message_id: sendResult.data?.chat_message_id || null,
                     messageId: sendResult.data?.chat_message_id
@@ -828,26 +854,74 @@ const chatMessageHandlers = {
     })
   },
 
-  /** 发送位置（使用微信地图选择） */
+  /** 发送位置（使用微信地图选择，按富消息契约组装 metadata 并真正提交后端） */
   sendLocation() {
     msgLog.info('发送位置')
+    if (!this.data.sessionId) {
+      msgShowToast('会话连接中，请稍后重试')
+      return
+    }
     wx.chooseLocation({
-      success: (res: WechatMiniprogram.ChooseLocationSuccessCallbackResult) => {
-        const locMessage = {
+      success: async (res: WechatMiniprogram.ChooseLocationSuccessCallbackResult) => {
+        const address = res.address || res.name
+        /* 本地乐观消息 */
+        const localMsg = {
           messageId: `loc_${Date.now()}`,
           chat_message_id: null,
-          content: `[位置] ${res.name}`,
+          content: address,
           messageType: 'location',
+          locationName: res.name,
+          locationAddress: res.address,
+          latitude: res.latitude,
+          longitude: res.longitude,
           isOwn: true,
-          status: 'sent',
+          status: 'sending',
           timestamp: Date.now(),
           timeText: formatDateMessage(Date.now()),
-          showTime: this.shouldShowTime(Date.now()),
-          location: res
+          showTime: this.shouldShowTime(Date.now())
         }
+        this.setData({
+          messages: [...this.data.messages, localMsg],
+          scrollToBottom: true,
+          chatLoadStatus: 'success'
+        })
 
-        const messages = [...this.data.messages, locMessage]
-        this.setData({ messages, scrollToBottom: true, chatLoadStatus: 'success' })
+        try {
+          /* content 填可读地址，坐标/名称/地址进 metadata（对接文档 2026-06-25 富消息契约） */
+          const sendResult = await API.sendChatMessage(this.data.sessionId, {
+            content: address,
+            message_type: 'location',
+            sender_type: 'user',
+            metadata: {
+              latitude: res.latitude,
+              longitude: res.longitude,
+              name: res.name,
+              address: res.address
+            }
+          })
+          if (sendResult.success) {
+            const updatedMessages = this.data.messages.map((msg: any) =>
+              msg.messageId === localMsg.messageId
+                ? {
+                    ...msg,
+                    status: 'sent',
+                    chat_message_id: sendResult.data?.chat_message_id || null,
+                    messageId: sendResult.data?.chat_message_id
+                      ? `server_${sendResult.data.chat_message_id}`
+                      : msg.messageId
+                  }
+                : msg
+            )
+            this.setData({ messages: updatedMessages })
+          }
+        } catch (error: any) {
+          msgLog.error('位置发送失败:', error)
+          msgShowToast(error.message || '位置发送失败')
+          const failedMessages = this.data.messages.map((msg: any) =>
+            msg.messageId === localMsg.messageId ? { ...msg, status: 'failed' } : msg
+          )
+          this.setData({ messages: failedMessages })
+        }
       }
     })
   },
@@ -884,11 +958,12 @@ const chatMessageHandlers = {
           name: chosenFile.name
         })
 
-        /* 本地乐观消息（先展示文件卡片，上传成功后补 URL） */
+        /* 本地乐观消息（先展示文件卡片，上传成功后补 URL；content=真实文件名） */
         const localFileMsg = {
           messageId: `file_${Date.now()}`,
           chat_message_id: null,
-          content: '',
+          content: chosenFile.name,
+          fileUrl: '',
           messageType: 'file',
           fileName: chosenFile.name,
           fileSize: chosenFile.size ? formatFileSize(chosenFile.size) : '',
@@ -912,13 +987,14 @@ const chatMessageHandlers = {
             throw new Error('聊天文件上传接口未返回 file_url')
           }
 
-          /* 第2步: 发送 file 类型消息（content 填文件URL，带文件名/大小） */
+          /* 第2步: 发送 file 消息（content=真实文件名，URL/名/大小进 metadata，对接文档2026-06-25富消息重构） */
+          const realName = uploadData.file_name || chosenFile.name
+          const realSize = uploadData.file_size || chosenFile.size
           const sendResult = await API.sendChatMessage(this.data.sessionId, {
-            content: fileUrl,
+            content: realName,
             message_type: 'file',
             sender_type: 'user',
-            file_name: uploadData.file_name || chosenFile.name,
-            file_size: uploadData.file_size || chosenFile.size
+            metadata: { file_url: fileUrl, file_name: realName, file_size: realSize }
           })
 
           if (sendResult.success) {
@@ -927,9 +1003,10 @@ const chatMessageHandlers = {
               msg.messageId === localFileMsg.messageId
                 ? {
                     ...msg,
-                    content: fileUrl,
-                    fileName: uploadData.file_name || chosenFile.name,
-                    fileSize: formatFileSize(uploadData.file_size || chosenFile.size),
+                    content: realName,
+                    fileUrl,
+                    fileName: realName,
+                    fileSize: formatFileSize(realSize),
                     status: 'sent',
                     chat_message_id: sendResult.data?.chat_message_id || null,
                     messageId: sendResult.data?.chat_message_id

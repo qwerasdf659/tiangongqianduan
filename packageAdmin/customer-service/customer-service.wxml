@@ -112,37 +112,56 @@
         wx:key="id"
         class="cs-msg-item {{item.isOwn ? 'cs-msg-own' : 'cs-msg-other'}}"
       >
-        <view class="cs-msg-avatar">
-          <text class="cs-msg-avatar-text">{{item.isOwn ? '客' : '用'}}</text>
+        <!-- 系统消息：独立居中展示，不走气泡 -->
+        <view wx:if="{{item.isSystem}}" class="cs-msg-system">
+          <text class="cs-msg-system-text">{{item.content}}</text>
         </view>
-        <view class="cs-msg-body">
-          <view class="cs-msg-bubble {{item.isOwn ? 'cs-bubble-own' : 'cs-bubble-other'}}">
-            <text wx:if="{{item.messageType === 'text'}}" class="cs-msg-text" user-select="{{true}}"
-              >{{item.content}}</text
-            >
-            <image
-              wx:elif="{{item.messageType === 'image'}}"
-              class="cs-msg-image"
-              src="{{item.content}}"
-              mode="widthFix"
-              data-url="{{item.content}}"
-              bindtap="onPreviewImage"
-            />
-            <view
-              wx:elif="{{item.messageType === 'file'}}"
-              class="cs-msg-file"
-              data-url="{{item.content}}"
-              bindtap="onOpenFile"
-            >
-              <t-icon name="file" size="48rpx" color="var(--td-brand-color)" />
-              <view class="cs-msg-file-info">
-                <text class="cs-msg-file-name">{{item.fileName || '文件'}}</text>
-                <text wx:if="{{item.fileSize}}" class="cs-msg-file-size">{{item.fileSize}}</text>
-              </view>
-            </view>
+        <block wx:else>
+          <view class="cs-msg-avatar">
+            <text class="cs-msg-avatar-text">{{item.isOwn ? '客' : '用'}}</text>
           </view>
-          <text class="cs-msg-time">{{item.createdAt}}</text>
-        </view>
+          <view class="cs-msg-body">
+            <view class="cs-msg-bubble {{item.isOwn ? 'cs-bubble-own' : 'cs-bubble-other'}}">
+              <text
+                wx:if="{{item.messageType === 'text'}}"
+                class="cs-msg-text"
+                user-select="{{true}}"
+                >{{item.content}}</text
+              >
+              <image
+                wx:elif="{{item.messageType === 'image'}}"
+                class="cs-msg-image"
+                src="{{item.imageUrl}}"
+                mode="widthFix"
+                data-url="{{item.imageUrl}}"
+                bindtap="onPreviewImage"
+              />
+              <view
+                wx:elif="{{item.messageType === 'file'}}"
+                class="cs-msg-file"
+                data-url="{{item.fileUrl}}"
+                bindtap="onOpenFile"
+              >
+                <t-icon name="file" size="48rpx" color="var(--td-brand-color)" />
+                <view class="cs-msg-file-info">
+                  <text class="cs-msg-file-name">{{item.fileName || '文件'}}</text>
+                  <text wx:if="{{item.fileSize}}" class="cs-msg-file-size">{{item.fileSize}}</text>
+                </view>
+              </view>
+              <view wx:elif="{{item.messageType === 'location'}}" class="cs-msg-location">
+                <t-icon name="location" size="40rpx" color="var(--td-brand-color)" />
+                <view class="cs-msg-location-info">
+                  <text class="cs-msg-location-name">{{item.locationName || '位置'}}</text>
+                  <text wx:if="{{item.locationAddress}}" class="cs-msg-location-addr"
+                    >{{item.locationAddress}}</text
+                  >
+                </view>
+              </view>
+              <text wx:else class="cs-msg-text" user-select="{{true}}">{{item.content}}</text>
+            </view>
+            <text class="cs-msg-time">{{item.createdAt}}</text>
+          </view>
+        </block>
       </view>
       <view id="cs-msg-bottom"></view>
     </scroll-view>

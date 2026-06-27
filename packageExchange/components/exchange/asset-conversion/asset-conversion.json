@@ -8,5 +8,8 @@
     "t-tabs": "/miniprogram_npm/tdesign-miniprogram/tabs/tabs",
     "t-tab-panel": "/miniprogram_npm/tdesign-miniprogram/tab-panel/tab-panel",
     "t-dialog": "/miniprogram_npm/tdesign-miniprogram/dialog/dialog"
+  },
+  "componentPlaceholder": {
+    "t-dialog": "view"
   }
 }

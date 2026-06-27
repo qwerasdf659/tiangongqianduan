@@ -307,7 +307,7 @@ Page({
         const flatResult = {
           order_no: orderData.order_no,
           redemption_order_id: orderData.redemption_order_id,
-          fulfilled_at: orderData.fulfilled_at,
+          fulfilled_at: Utils.formatBeijing(orderData.fulfilled_at, true),
           item_name: itemData.item_name,
           redeemer_nickname: redeemerData.nickname,
           store_name: storeData.store_name

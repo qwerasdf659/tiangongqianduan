@@ -62,6 +62,8 @@ Page({
     // 用户基础信息
     isLoggedIn: false,
     userInfo: null as API.UserProfile | null,
+    /** 当前小程序版本号（动态取自 wx.getAccountInfoSync，展示于页面底部） */
+    appVersion: '',
     // 登录弹窗
     loginPopupVisible: false,
 
@@ -259,6 +261,15 @@ Page({
    */
   onLoad() {
     log.info('用户中心页面加载')
+
+    // 展示当前小程序版本号（开发版/体验版 version 为空，降级显示"开发版"）
+    try {
+      this.setData({
+        appVersion: wx.getAccountInfoSync().miniProgram.version || '开发版'
+      })
+    } catch (_err) {
+      this.setData({ appVersion: '开发版' })
+    }
 
     // MobX Store绑定 - 用户状态和积分余额自动同步
     this.userStoreBindings = createStoreBindings(this, {
@@ -684,6 +695,12 @@ Page({
   onTopBannerChange(e: any) {
     const currentIndex = Number(e?.detail?.current) || 0
     TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'profile')
+  },
+
+  /** 顶部 Banner 图片加载失败（<image> binderror）：打印失败 URL 与错误详情，便于定位 */
+  onTopBannerImageError(e: any) {
+    const errIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    TopBanner.handleTopBannerImageError(this.data.topBannerItems[errIndex], 'profile', e?.detail)
   },
 
   /** 点击积分区域，跳转到积分明细页面 */

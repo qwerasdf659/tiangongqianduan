@@ -23,6 +23,7 @@
             mode="aspectFill"
             data-index="{{index}}"
             bindtap="onTopBannerTap"
+            binderror="onTopBannerImageError"
           />
         </swiper-item>
       </swiper>
@@ -34,6 +35,7 @@
         mode="aspectFill"
         data-index="0"
         bindtap="onTopBannerTap"
+        binderror="onTopBannerImageError"
       />
       <!-- 无运营配置：占位框（不使用本地兜底图） -->
       <view class="top-banner-placeholder" wx:else>
@@ -91,10 +93,10 @@
       </view>
     </view>
 
-    <!-- 商家工作台：三张商家卡片按权限码独立显隐，审核管理仅管理员；任一可见即显示区块 -->
+    <!-- 商家工作台：三张商家卡片按权限码独立显隐，审核管理按审核链参与者（店员/店长/管理员）显隐；任一可见即显示区块 -->
     <view
       class="mw-section"
-      wx:if="{{isLoggedIn && (showScan || showConsumptionSubmit || showMySubmissions || isAdmin)}}"
+      wx:if="{{isLoggedIn && (showScan || showConsumptionSubmit || showMySubmissions || isReviewer)}}"
     >
       <view class="mw-header">
         <view class="mw-header-left">
@@ -162,7 +164,7 @@
           </view>
         </view>
 
-        <view class="mw-card" wx:if="{{isAdmin}}" bindtap="goToAuditList">
+        <view class="mw-card" wx:if="{{isReviewer}}" bindtap="goToAuditList">
           <view class="mw-card-body">
             <text class="mw-card-title">审核管理 ›</text>
             <text class="mw-card-desc">审核店员提交的消费记录，通过后自动发放积分</text>
@@ -219,6 +221,11 @@
     <view class="logout-btn" wx:if="{{isLoggedIn}}" bindtap="logout">
       <t-icon name="logout" size="32rpx" color="currentColor" />
       <text class="logout-text">退出登录</text>
+    </view>
+
+    <!-- 版本号（动态取自微信线上发布版本） -->
+    <view class="app-version">
+      <text class="app-version-text">当前版本 v{{appVersion}}</text>
     </view>
 
     <!-- 加载遮罩层 -->

@@ -77,7 +77,11 @@ Page({
 
       const result = await API.getMyFeedbacks(targetPage, this.data.pageSize)
       if (result.success && result.data) {
-        const newFeedbacks = result.data.feedbacks || []
+        // 反馈时间后端 B-2 为单一 UTC ISO，附加北京时区展示字段（WXML 不直接渲染原始 Z 串）
+        const newFeedbacks = (result.data.feedbacks || []).map((fb: any) => ({
+          ...fb,
+          _timeText: Utils.formatBeijing(fb.created_at, false)
+        }))
         const totalCount = result.data.total || 0
 
         if (isRefresh) {

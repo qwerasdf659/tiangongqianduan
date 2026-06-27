@@ -105,7 +105,10 @@
       </button>
 
       <view class="submit-tips">
-        <text class="tip"><t-icon name="tips-filled" size="28rpx" color="currentColor" /> 提交后您将收到实时回复通知</text>
+        <text class="tip"
+          ><t-icon name="tips-filled" size="28rpx" color="currentColor" />
+          提交后您将收到实时回复通知</text
+        >
       </view>
     </view>
 
@@ -132,7 +135,7 @@
             </text>
           </view>
           <text class="content">{{item.content}}</text>
-          <text class="time">{{item.created_at}}</text>
+          <text class="time">{{item._timeText}}</text>
         </view>
       </view>
     </view>
@@ -173,7 +176,7 @@
           </view>
           <view class="item-content">
             <text class="content">{{item.content}}</text>
-            <text class="time">{{item.created_at}}</text>
+            <text class="time">{{item._timeText}}</text>
           </view>
           <view class="item-arrow">></view>
         </view>

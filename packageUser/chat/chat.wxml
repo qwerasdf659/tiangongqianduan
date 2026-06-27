@@ -281,8 +281,8 @@
           <text class="time-text">{{item.timeText}}</text>
         </view>
 
-        <!-- 系统消息（独立展示，不走气泡布局） -->
-        <view wx:if="{{item.messageType === 'system'}}" class="system-message-wrapper">
+        <!-- 系统消息（独立展示，不走气泡布局；message_source==='system' 判定） -->
+        <view wx:if="{{item.isSystem}}" class="system-message-wrapper">
           <text class="system-message-text">{{item.content}}</text>
         </view>
 
@@ -316,27 +316,38 @@
                 >{{item.content}}</text
               >
 
-              <!-- 图片消息 -->
+              <!-- 图片消息（URL 从 metadata.image_url，本地乐观消息用 imageUrl） -->
               <image
                 wx:if="{{item.messageType === 'image'}}"
                 class="message-image"
-                src="{{item.attachments[0].url || item.content}}"
+                src="{{item.imageUrl}}"
                 mode="widthFix"
                 bindtap="previewImage"
-                data-src="{{item.attachments[0].url || item.content}}"
+                data-src="{{item.imageUrl}}"
               ></image>
 
-              <!-- 文件消息（图标 + 文件名 + 大小，点击下载打开） -->
+              <!-- 文件消息（图标 + 文件名 + 大小，点击下载打开；URL 从 metadata.file_url） -->
               <view
                 wx:if="{{item.messageType === 'file'}}"
                 class="message-file"
                 bindtap="openFile"
-                data-url="{{item.content}}"
+                data-url="{{item.fileUrl}}"
               >
                 <t-icon name="file" size="48rpx" color="#5B7A5E" />
                 <view class="message-file-info">
                   <text class="message-file-name">{{item.fileName || '文件'}}</text>
                   <text wx:if="{{item.fileSize}}" class="message-file-size">{{item.fileSize}}</text>
+                </view>
+              </view>
+
+              <!-- 位置消息（地址卡片，坐标在 metadata） -->
+              <view wx:if="{{item.messageType === 'location'}}" class="message-location">
+                <t-icon name="location" size="44rpx" color="#5B7A5E" />
+                <view class="message-location-info">
+                  <text class="message-location-name">{{item.locationName || '位置'}}</text>
+                  <text wx:if="{{item.locationAddress}}" class="message-location-addr"
+                    >{{item.locationAddress}}</text
+                  >
                 </view>
               </view>
             </view>

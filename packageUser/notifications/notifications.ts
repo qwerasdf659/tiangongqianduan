@@ -79,19 +79,25 @@ function hasNotificationLink(notificationType: string): boolean {
   return notificationType in NOTIFICATION_LINK_MAP
 }
 
-/** 格式化时间显示（今天显示时分，昨天显示"昨天 HH:mm"，更早显示日期） */
+/** 格式化时间显示（今天显示时分，昨天显示"昨天 HH:mm"，更早显示日期；按北京时区） */
 function formatNotificationTime(createdAt: string): string {
   if (!createdAt) {
     return ''
   }
   try {
-    const date = new Date(createdAt.replace(/-/g, '/'))
+    // 后端 B-2：created_at 为单一 UTC ISO（带 Z），按绝对时刻解析，不能用 -→/ 替换破坏 Z
+    const date = Utils.safeParseDateString(createdAt)
+    if (!date || isNaN(date.getTime())) {
+      return createdAt
+    }
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-    const hours = date.getHours().toString().padStart(2, '0')
-    const minutes = date.getMinutes().toString().padStart(2, '0')
+    // 偏移到北京时刻后取 UTC 分量（设备时区无关，与后端 UTC ISO 契约一致）
+    const bj = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+    const hours = bj.getUTCHours().toString().padStart(2, '0')
+    const minutes = bj.getUTCMinutes().toString().padStart(2, '0')
 
     if (diffDays === 0) {
       return `${hours}:${minutes}`
@@ -100,8 +106,8 @@ function formatNotificationTime(createdAt: string): string {
     } else if (diffDays < 7) {
       return `${diffDays}天前`
     } else {
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const day = date.getDate().toString().padStart(2, '0')
+      const month = (bj.getUTCMonth() + 1).toString().padStart(2, '0')
+      const day = bj.getUTCDate().toString().padStart(2, '0')
       return `${month}-${day} ${hours}:${minutes}`
     }
   } catch (_formatError) {

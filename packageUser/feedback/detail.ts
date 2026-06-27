@@ -81,7 +81,13 @@ Page({
 
       const result = await API.getFeedbackDetail(feedbackId)
       if (result.success && result.data) {
-        this.setData({ feedbackDetail: result.data })
+        // 时间后端 B-2 为单一 UTC ISO，附加北京时区展示字段
+        const detail = {
+          ...result.data,
+          _createdAtText: Utils.formatBeijing(result.data.created_at, true),
+          _repliedAtText: Utils.formatBeijing(result.data.replied_at, true)
+        }
+        this.setData({ feedbackDetail: detail })
         wx.setNavigationBarTitle({ title: `反馈 #${feedbackId}` })
         detailLog.info('反馈详情加载成功:', feedbackId)
       } else {

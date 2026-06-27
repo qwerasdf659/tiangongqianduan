@@ -85,6 +85,12 @@ Page({
     TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'camera')
   },
 
+  /** 顶部 Banner 图片加载失败（<image> binderror）：打印失败 URL 与错误详情，便于定位 */
+  onTopBannerImageError(e: any) {
+    const errIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    TopBanner.handleTopBannerImageError(this.data.topBannerItems[errIndex], 'camera', e?.detail)
+  },
+
   /** 页面卸载时清理定时器 + 销毁Store绑定 */
   onUnload() {
     if (this.searchTimer) {
@@ -145,7 +151,13 @@ Page({
       const result = await API.getActiveCampaigns()
 
       if (result && result.success && result.data) {
-        const campaignList = Array.isArray(result.data) ? result.data : []
+        const rawList = Array.isArray(result.data) ? result.data : []
+        // 活动起止时间后端 B-2 为单一 UTC ISO，附加北京时区展示字段
+        const campaignList = rawList.map((c: any) => ({
+          ...c,
+          start_time: Utils.formatBeijing(c.start_time, false),
+          end_time: Utils.formatBeijing(c.end_time, false)
+        }))
 
         this.setData({
           campaigns: campaignList,

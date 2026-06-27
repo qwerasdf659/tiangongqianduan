@@ -23,7 +23,7 @@
           <text class="status-tag status-{{item.status}}"
             >{{statusMap[item.status] || item.status}}</text
           >
-          <text class="item-time">{{item.created_at}}</text>
+          <text class="item-time">{{item._timeText}}</text>
         </view>
         <view class="item-content">
           <text class="category-label">{{categoryMap[item.category] || item.category}}</text>

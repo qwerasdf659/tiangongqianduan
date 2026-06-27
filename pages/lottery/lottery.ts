@@ -76,16 +76,16 @@ Page({
     /* ===== 用户状态 ===== */
     isLoggedIn: false,
     /**
-     * 首页商家功能区三个按钮显隐 — 统一以后端 GET /api/v4/permissions/me 下发的
-     * role_level / permissions 为唯一权威数据源（对接文档 2026-06-24），零映射直读。
+     * 首页商家功能区四个按钮显隐 — 统一以后端 GET /api/v4/permissions/me 下发的
+     * role_level / permissions 为唯一权威数据源（对接文档 2026-06-24 / 06-25），零映射直读。
      */
-    /** 扫码核销：role_level >= 20（与后端 redemption/scan 口径一致，店员即可用） */
+    /** 扫码核销：拥有 consumption:scan_user 权限（与后端 redemption/scan 同口径） */
     showScan: false,
     /** 消费录入：拥有 consumption:create 权限（店员/管理员均下发） */
     showConsumptionSubmit: false,
-    /** 审核详情：仅管理员（role_level >= 100，console 域审核功能） */
+    /** 审核详情：审核链待办参与者（role_level>=20，店员/店长/管理员），与后端 my-pending 同口径 */
     showAudit: false,
-    /** 我的提交：拥有 consumption:create 权限者可查看本人提交的消费记录及审核状态 */
+    /** 我的提交：拥有 consumption:read 权限者可查看本人提交的消费记录及审核状态 */
     showMySubmissions: false,
     pointsBalance: 0,
     frozenPoints: 0,
@@ -963,10 +963,12 @@ Page({
       const qrCodeData = qrCodeResult.data
       const qrContent = qrCodeData.qr_code
 
-      /* 计算过期时间戳 */
+      /* 计算过期时间戳（倒计时数据源，对接文档 2026-06-25 §9.2 + B-2）：
+         优先用后端 validity_seconds（数值秒）换算绝对过期时刻；
+         缺失时回退解析 expires_at（已统一为单一 UTC ISO 字符串）。 */
       let expiresTimestamp = 0
-      if (qrCodeData.expires_at && typeof qrCodeData.expires_at === 'object') {
-        expiresTimestamp = qrCodeData.expires_at.timestamp
+      if (typeof qrCodeData.validity_seconds === 'number' && qrCodeData.validity_seconds > 0) {
+        expiresTimestamp = Date.now() + qrCodeData.validity_seconds * 1000
       } else {
         expiresTimestamp = (
           Utils.safeParseDateString(qrCodeData.expires_at) || new Date()
@@ -1038,18 +1040,28 @@ Page({
     }
   },
 
-  /** V2二维码倒计时（到期后自动刷新，无需手动点击） */
+  /**
+   * V2二维码倒计时（临近过期自动预刷新，无需手动点击，也无需等到过期）
+   *
+   * 对接文档 2026-06-25 §9.1：后端有效期 5 分钟，前端刷新必须"早于过期"。
+   * 取阈值 60 秒——5 分钟(300s)码在剩余 ≤60s（即第 4 分钟）时即自动换新码，
+   * 既满足"每 4 分钟刷新"，又满足"早于 5 分钟过期"的硬约束，避免商家扫到即将
+   * 过期的码导致提交时 QRCODE_EXPIRED。阈值随后端有效期自适应（基于真实剩余秒数判断）。
+   */
   startQrCountdown() {
+    /** 临近过期预刷新阈值（秒）：剩余 ≤ 此值即换新码。须 < 后端 5 分钟有效期，60s=第4分钟刷新 */
+    const QR_PRE_REFRESH_SECONDS = 60
+
     if (this._qrTimer) {
       clearInterval(this._qrTimer)
     }
 
     this._qrTimer = setInterval(() => {
       const remaining = this.data.qrCountdown - 1
-      if (remaining <= 0) {
+      if (remaining <= QR_PRE_REFRESH_SECONDS) {
         clearInterval(this._qrTimer)
         this._qrTimer = null
-        // 倒计时归零，触发自动刷新
+        // 第4分钟（剩60秒）即预刷新，早于后端5分钟过期，避免商家扫到过期码
         this._autoRefreshQR()
         return
       }
@@ -1063,8 +1075,9 @@ Page({
   },
 
   /**
-   * 自动刷新二维码（过期后自动触发）
-   * 安全机制：最多自动刷新50次（约4小时），超出后需手动刷新
+   * 自动刷新二维码（临近过期预刷新触发，对接文档 2026-06-25 §9.1）
+   * 在码仍有效（剩约60秒）时换新码，使下一笔消费用全新 nonce 提交，避免商家扫到过期码。
+   * 安全机制：最多自动刷新50次（约4小时持续展示），超出后需手动刷新。
    */
   _autoRefreshQR() {
     const MAX_AUTO_REFRESH = 50
@@ -1076,7 +1089,7 @@ Page({
       return
     }
 
-    log.info('二维码过期，2秒后自动刷新（第' + (count + 1) + '次）')
+    log.info('二维码临近过期，预刷新换新码（第' + (count + 1) + '次）')
     this._qrAutoRefreshCount = count + 1
 
     // 先显示"刷新中"状态
@@ -1133,14 +1146,17 @@ Page({
   // ========================================
 
   /**
-   * 检查用户商家功能权限（首页三个按钮显隐的唯一入口）
+   * 检查用户商家功能权限（首页四个按钮显隐的唯一入口）
    *
-   * 统一以后端 GET /api/v4/permissions/me 下发的 permissions 为权威数据源
-   * （对接文档 2026-06-24 §10.7），三个商家按钮用同一份扁平权限数组判定，杜绝口径不一致：
+   * 统一以后端 GET /api/v4/permissions/me 下发的 permissions / role_level 为权威数据源
+   * （对接文档 2026-06-24 §10.7、2026-06-25 §8.2），杜绝口径不一致：
    *   - 扫码核销 showScan：拥有 consumption:scan_user 权限
    *   - 消费录入 showConsumptionSubmit：拥有 consumption:create 权限
-   *   - 审核详情 showAudit：仅管理员 role_level >= 100（console 域审核功能）
    *   - 我的提交 showMySubmissions：拥有 consumption:read 权限
+   *   - 审核详情 showAudit：审核链待办参与者（role_level>=20，店员/店长/管理员）。
+   *     审核链改为"店长审→管理员终审"两级后，店长(lv40)也是审核人，入口须对其可见；
+   *     与后端 my-pending（requireRoleLevel(20)）+ audit-list 页准入(canReviewChain)同口径，
+   *     具体能审哪一步由后端按节点角色 + 门店/区域隔离精校（前端只控入口可见）。
    */
   async checkAdminRole() {
     try {
@@ -1151,13 +1167,15 @@ Page({
 
       const permissionData: API.PermissionsMeData = apiResult.data
       const rawPermissions = permissionData.permissions
+      const roleLevel =
+        typeof permissionData.role_level === 'number' ? permissionData.role_level : 0
 
-      /* 统一权限判定（utils/permission.ts）：三个商家按钮全部走 hasPermission(权限码)，
-         与后端 requireMerchantPermission 同构（支持通配 *:*），页面不再写裸 role_level>=X */
+      /* 统一权限判定（utils/permission.ts）：消费类按钮走 hasPermission(权限码)，
+         审核详情走 canReviewChain(role_level>=20)，与后端审核链待办门槛同口径 */
       this.setData({
         showScan: Permission.canScan(rawPermissions),
         showConsumptionSubmit: Permission.canSubmitConsumption(rawPermissions),
-        showAudit: Permission.isAdmin(permissionData),
+        showAudit: Permission.canReviewChain(roleLevel),
         showMySubmissions: Permission.canViewMySubmissions(rawPermissions)
       })
     } catch (error) {
@@ -1418,26 +1436,11 @@ Page({
       const amount = parseFloat(record.consumption_amount)
       return {
         ...record,
-        formattedTime: this._formatRelativeTime(record.created_at),
+        formattedTime: Utils.formatBeijingTimeField(record.created_at, 'relative'),
         statusInfo: statusMap[record.status] || statusMap.pending,
         formattedAmount: isNaN(amount) ? '0.00' : amount.toFixed(2)
       }
     })
-  },
-
-  /**
-   * 格式化相对时间（统一委托 Utils.formatDateMessage，消除重复逻辑）
-   * 增加空值保护：timestamp 为空或解析失败时返回 '时间未知'
-   */
-  _formatRelativeTime(timestamp: any) {
-    if (!timestamp) {
-      return '时间未知'
-    }
-    const parsedDate = Utils.safeParseDateString(timestamp)
-    if (!parsedDate) {
-      return '时间未知'
-    }
-    return Utils.formatDateMessage(parsedDate.getTime())
   },
 
   /** 关闭审核记录弹窗 */
@@ -1861,6 +1864,12 @@ Page({
   onTopBannerChange(e: any) {
     const currentIndex = Number(e?.detail?.current) || 0
     TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'lottery')
+  },
+
+  /** 顶部 Banner 图片加载失败（<image> binderror）：打印失败 URL 与错误详情，便于定位 */
+  onTopBannerImageError(e: any) {
+    const errIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    TopBanner.handleTopBannerImageError(this.data.topBannerItems[errIndex], 'lottery', e?.detail)
   },
 
   // ========================================

@@ -152,6 +152,12 @@ Page({
     TopBanner.handleTopBannerChange(this.data.topBannerItems, currentIndex, 'exchange')
   },
 
+  /** 顶部 Banner 图片加载失败（<image> binderror）：打印失败 URL 与错误详情，便于定位 */
+  onTopBannerImageError(e: any) {
+    const errIndex = Number(e?.currentTarget?.dataset?.index) || 0
+    TopBanner.handleTopBannerImageError(this.data.topBannerItems[errIndex], 'exchange', e?.detail)
+  },
+
   /** 页面显示（恢复积分 + WebSocket 连接 + 刷新样式配置） */
   async onShow() {
     if (typeof this.getTabBar === 'function') {

@@ -246,9 +246,11 @@ async function getChatHistory(session_id: number, page: number = 1, page_size: n
 
 /**
  * 发送消息 - POST /api/v4/system/chat/sessions/:id/messages
+ *
+ * 富消息建模重构（对接文档 2026-06-25）：content 永远人类可读文本，URL/坐标/文件名进 metadata。
  * @param session_id - 会话ID
- * @param params - { content: 消息内容, message_type?: text/image/file, sender_type?: 发送者类型,
- *                   file_name?: 文件名(file必填), file_size?: 文件字节数(file随消息落库) }
+ * @param params - { content: 人类可读文本, message_type?: text/image/file/location,
+ *                   sender_type?: 发送者类型, metadata?: 富消息负载对象 }
  */
 async function sendChatMessage(
   session_id: number,
@@ -256,8 +258,7 @@ async function sendChatMessage(
     content: string
     message_type?: string
     sender_type?: string
-    file_name?: string
-    file_size?: number
+    metadata?: Record<string, any>
   }
 ) {
   if (!session_id) {
@@ -273,10 +274,9 @@ async function sendChatMessage(
     message_type: messageType,
     sender_type: params.sender_type || undefined
   }
-  /* 文件消息：随消息上送文件名/大小，后端落库并在历史接口回显 */
-  if (messageType === 'file') {
-    requestData.file_name = params.file_name
-    requestData.file_size = params.file_size
+  /* 富消息（image/file/location）：URL/坐标/文件名统一进 metadata，后端按 type 校验落库 */
+  if (params.metadata && typeof params.metadata === 'object') {
+    requestData.metadata = params.metadata
   }
 
   return apiClient.request(`/system/chat/sessions/${session_id}/messages`, {
@@ -393,15 +393,14 @@ async function getCsAgentMessages(
  * 后端API: POST /api/v4/system/cs-agent/sessions/:id/send
  *
  * @param session_id - 会话ID
- * @param params.content - 文字内容；message_type='image'/'file' 时填对应 URL（必填、不可为空）
- * @param params.message_type - 'text'（默认）/ 'image' / 'file'
- * @param params.file_name - 文件原始名（message_type='file' 时必填，后端缺失返回 400）
- * @param params.file_size - 文件字节数（message_type='file' 时随消息落库，供历史回显文件卡片）
- * @returns { success, data: { chat_message_id, content, message_type, created_at, created_at_beijing } }
+ * @param params.content - 人类可读文本（text 正文 / image '[图片]' / file 文件名 / location 地址）
+ * @param params.message_type - 'text'（默认）/ 'image' / 'file' / 'location'
+ * @param params.metadata - 富消息负载（image_url / file_url+file_name+file_size / 坐标），后端按 type 校验
+ * @returns { success, data: { chat_message_id, content, message_type, created_at } }
  */
 async function sendCsAgentMessage(
   session_id: number,
-  params: { content: string; message_type?: string; file_name?: string; file_size?: number }
+  params: { content: string; message_type?: string; metadata?: Record<string, any> }
 ) {
   if (!session_id) {
     throw new Error('会话ID不能为空')
@@ -414,10 +413,9 @@ async function sendCsAgentMessage(
     content: params.content,
     message_type: messageType
   }
-  /* 文件消息：随消息上送文件名/大小，后端落库并在历史接口回显（避免前端事后篡改） */
-  if (messageType === 'file') {
-    requestData.file_name = params.file_name
-    requestData.file_size = params.file_size
+  /* 富消息（image/file/location）：URL/坐标/文件名统一进 metadata，后端按 type 校验落库 */
+  if (params.metadata && typeof params.metadata === 'object') {
+    requestData.metadata = params.metadata
   }
   return apiClient.request(`/system/cs-agent/sessions/${session_id}/send`, {
     method: 'POST',

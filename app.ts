@@ -16,7 +16,8 @@ const {
   getApiConfig,
   getDevelopmentConfig,
   getWebSocketConfig,
-  getCurrentEnv
+  getCurrentEnv,
+  getAppVersion
 } = require('./config/env')
 const { API, Logger, PopupFrequency, Wechat } = require('./utils/index')
 const { initializeWechatEnvironment } = Wechat
@@ -58,8 +59,8 @@ App({
    * 页面通过 createStoreBindings 自动同步，不再读取 globalData 业务字段
    */
   globalData: {
-    // 系统基础信息
-    version: '5.2.0' as string,
+    // 系统基础信息（version 动态取自微信线上发布版本，避免硬编码脱节）
+    version: getAppVersion('5.2.0') as string,
     systemName: '天工平台' as string,
     buildTime: new Date().toISOString(),
 

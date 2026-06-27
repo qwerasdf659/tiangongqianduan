@@ -157,8 +157,8 @@ Page({
    * 刷新待回复会话列表（重置到第 1 页）
    * 后端API: GET /api/v4/system/cs-agent/sessions?page=&page_size=
    * 返回: data.sessions[]（含 customer_service_session_id / user / status /
-   *       last_message{content,sender_type,created_at,created_at_beijing} / unread_count /
-   *       last_message_at_beijing 等）+ data.pagination{page,page_size,total,total_pages}
+   *       last_message{content,sender_type,message_source,message_type,created_at} / unread_count /
+   *       last_message_at 等）+ data.pagination{page,page_size,total,total_pages}
    */
   async refreshSessions() {
     if (this.data.loadingSessions) {
@@ -240,10 +240,10 @@ Page({
   /**
    * 将后端单条会话映射为列表展示对象（前端零字段映射，直读后端 snake_case）
    *
-   * 关键字段对齐后端实测返回（文档第12.1节）：
-   * - last_message: 对象 { content, sender_type, created_at, created_at_beijing }，null 仅当无消息
+   * 关键字段对齐后端实测返回：
+   * - last_message: 对象 { content, sender_type, message_source, message_type, created_at }，null 仅当无消息
    * - unread_count: 座席未读的用户消息条数（红点）
-   * - 时间优先用后端下发的北京时间字段（xxx_beijing，零转换直显），无则降级 formatDateMessage
+   * - 时间为单一 UTC ISO（B-2），经 formatDateMessage 按北京时区友好化
    */
   _mapSession(session: any) {
     const user = session.user || {}
@@ -252,19 +252,19 @@ Page({
     let lastMessage = '暂无消息'
     if (session.last_message && session.last_message.content) {
       const msgType = session.last_message.message_type
-      if (msgType === 'image') {
-        lastMessage = '[图片]'
+      // 富消息重构后 content 已是人类可读文本（image='[图片]'、file=文件名、location=地址）
+      if (msgType === 'location') {
+        lastMessage = `[位置] ${session.last_message.content}`
       } else if (msgType === 'file') {
-        lastMessage = '[文件]'
+        lastMessage = `[文件] ${session.last_message.content}`
       } else {
         lastMessage = String(session.last_message.content)
       }
     }
 
-    /* 列表时间：优先后端北京时间字段（无需 +8h），其次 UTC 字段经 formatDateMessage 友好化 */
-    const beijingTime = session.last_message_at_beijing || session.updated_at_beijing
+    /* 列表时间：后端 B-2 统一单一 UTC ISO，经 formatDateMessage 友好化（按北京时区） */
     const utcTime = session.last_message_at || session.updated_at || session.created_at || ''
-    const lastMessageTime = beijingTime || (utcTime ? formatDateMessage(utcTime) : '')
+    const lastMessageTime = utcTime ? formatDateMessage(utcTime) : ''
 
     const status = session.status || 'waiting'
     return {
@@ -314,8 +314,8 @@ Page({
   /**
    * 加载某会话聊天记录
    * 后端API: GET /api/v4/system/cs-agent/sessions/:id/messages
-   * 返回: data.messages[]（含 chat_message_id / sender_type=user/admin / content /
-   *       message_type=text/image/file / file_name / file_size / created_at / created_at_beijing）
+   * 返回: data.messages[]（含 chat_message_id / sender_type=user/admin / message_source / content /
+   *       message_type=text/image/file/location / metadata / created_at[UTC ISO]）
    */
   async loadMessages(sessionId: number) {
     this.setData({ loadingMessages: true })
@@ -347,22 +347,29 @@ Page({
    * 将后端单条消息映射为展示对象（前端零字段映射，直读后端 snake_case）
    *
    * - 座席端视角：sender_type='admin'（含本座席）发的为"自己"，靠右展示
-   * - 时间优先用后端北京时间字段 created_at_beijing（零转换），无则降级 formatDateMessage
-   * - file 类型：带 fileName/fileSize（后端 file_name/file_size），渲染文件卡片
+   * - 系统消息由 message_source==='system' 判定（后端 B-2/富消息重构，不再用 message_type==='system'）
+   * - 时间统一单一 UTC ISO，经 formatDateMessage 按北京时区友好化
+   * - file/image/location：URL/坐标/文件名从 metadata 取（富消息建模重构）
    */
   _mapMessage(msg: any) {
     const senderType = msg.sender_type || 'user'
     const messageType = msg.message_type || 'text'
+    const metadata = msg.metadata || {}
     return {
       id: msg.chat_message_id,
       senderType,
       isOwn: senderType === 'admin',
+      isSystem: msg.message_source === 'system',
       content: msg.content || '',
       messageType,
-      fileName: msg.file_name || '',
-      fileSize: msg.file_size ? formatFileSize(msg.file_size) : '',
-      createdAt:
-        msg.created_at_beijing || (msg.created_at ? formatDateMessage(msg.created_at) : ''),
+      /* 富消息负载统一从 metadata 取（image_url/file_url/file_name/file_size/坐标） */
+      imageUrl: metadata.image_url || '',
+      fileUrl: metadata.file_url || '',
+      fileName: metadata.file_name || '',
+      fileSize: metadata.file_size ? formatFileSize(metadata.file_size) : '',
+      locationName: metadata.name || '',
+      locationAddress: metadata.address || '',
+      createdAt: msg.created_at ? formatDateMessage(msg.created_at) : '',
       status: 'sent'
     }
   },
@@ -453,7 +460,11 @@ Page({
           if (!imageUrl) {
             throw new Error('图片上传未返回 image_url')
           }
-          await this._send({ content: imageUrl, message_type: 'image' })
+          await this._send({
+            content: '[图片]',
+            message_type: 'image',
+            metadata: { image_url: imageUrl }
+          })
         } catch (error: any) {
           log.error('发送图片失败:', error)
           showToast(resolveCsErrorMessage(error, '图片发送失败'))
@@ -466,17 +477,15 @@ Page({
 
   /**
    * 统一发送：调用 cs-agent send 接口，成功后追加到消息流（乐观更新）
-   * @param params.content - 文字内容 / 图片URL / 文件URL
-   * @param params.message_type - text / image / file
-   * @param params.file_name - 文件名（message_type='file' 时必填）
-   * @param params.file_size - 文件字节数（message_type='file' 时随消息落库）
+   *
+   * 富消息建模重构（对接文档 2026-06-25）：content 永远是人类可读文本（正文/[图片]/文件名/地址），
+   * URL/坐标/文件名/尺寸进 metadata。后端按 message_type 校验 metadata 字段。
+   *
+   * @param params.content - 人类可读文本（text 正文 / image '[图片]' / file 文件名 / location 地址）
+   * @param params.message_type - text / image / file / location
+   * @param params.metadata - 富消息负载（image_url / file_url+file_name+file_size / 坐标）
    */
-  async _send(params: {
-    content: string
-    message_type: string
-    file_name?: string
-    file_size?: number
-  }) {
+  async _send(params: { content: string; message_type: string; metadata?: Record<string, any> }) {
     const sessionId = this.data.currentSessionId
     if (!sessionId) {
       return
@@ -485,18 +494,22 @@ Page({
     try {
       const result = await API.sendCsAgentMessage(sessionId, params)
       if (result && result.success && result.data) {
+        const meta = params.metadata || {}
         const appended = {
           id: result.data.chat_message_id,
           senderType: 'admin',
           isOwn: true,
+          isSystem: false,
           content: result.data.content || params.content,
           messageType: result.data.message_type || params.message_type,
-          fileName: params.file_name || '',
-          fileSize: params.file_size ? formatFileSize(params.file_size) : '',
-          /* 时间优先用后端北京时间字段（零转换），无则降级本地格式化 */
-          createdAt:
-            result.data.created_at_beijing ||
-            (result.data.created_at ? formatDateMessage(result.data.created_at) : ''),
+          imageUrl: meta.image_url || '',
+          fileUrl: meta.file_url || '',
+          fileName: meta.file_name || '',
+          fileSize: meta.file_size ? formatFileSize(meta.file_size) : '',
+          locationName: meta.name || '',
+          locationAddress: meta.address || '',
+          /* 时间统一单一 UTC ISO，按北京时区友好化 */
+          createdAt: result.data.created_at ? formatDateMessage(result.data.created_at) : '',
           status: 'sent'
         }
         this.setData({
@@ -553,11 +566,15 @@ Page({
           if (!fileUrl) {
             throw new Error('文件上传未返回 file_url')
           }
+          const realName = uploadData.file_name || file.name
           await this._send({
-            content: fileUrl,
+            content: realName,
             message_type: 'file',
-            file_name: uploadData.file_name || file.name,
-            file_size: uploadData.file_size || file.size
+            metadata: {
+              file_url: fileUrl,
+              file_name: realName,
+              file_size: uploadData.file_size || file.size
+            }
           })
         } catch (error: any) {
           log.error('发送文件失败:', error)

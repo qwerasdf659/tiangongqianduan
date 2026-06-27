@@ -314,24 +314,9 @@ Page({
     return nodes
   },
 
-  /** 格式化时间（后端返回 YYYY-MM-DD HH:mm:ss 北京时间） */
+  /** 格式化时间（后端 B-2 单一 UTC ISO → 北京时间 YYYY-MM-DD HH:mm） */
   _formatTime(dateStr: string): string {
-    try {
-      const date = OrderDetailUtils.safeParseDateString
-        ? OrderDetailUtils.safeParseDateString(dateStr)
-        : new Date(dateStr)
-      if (!date || isNaN(date.getTime())) {
-        return dateStr
-      }
-      const y = date.getFullYear()
-      const m = String(date.getMonth() + 1).padStart(2, '0')
-      const d = String(date.getDate()).padStart(2, '0')
-      const h = String(date.getHours()).padStart(2, '0')
-      const min = String(date.getMinutes()).padStart(2, '0')
-      return `${y}-${m}-${d} ${h}:${min}`
-    } catch {
-      return dateStr
-    }
+    return OrderDetailUtils.formatBeijing(dateStr, false) || dateStr
   },
 
   /** 复制订单号 */

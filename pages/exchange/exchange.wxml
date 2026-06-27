@@ -45,6 +45,7 @@
             mode="aspectFill"
             data-index="{{index}}"
             bindtap="onTopBannerTap"
+            binderror="onTopBannerImageError"
           />
         </swiper-item>
       </swiper>
@@ -55,6 +56,7 @@
         mode="aspectFill"
         data-index="0"
         bindtap="onTopBannerTap"
+        binderror="onTopBannerImageError"
       />
     </view>
 

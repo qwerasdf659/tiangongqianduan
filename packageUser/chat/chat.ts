@@ -274,21 +274,21 @@ Page({
     const processed = rawSessions.map((session: any) => {
       let preview = ''
       if (session.last_message && session.last_message.content) {
+        /* 系统消息由 message_source 判定（富消息重构）；否则按发送方 */
         const senderPrefix =
-          session.last_message.sender_type === 'user'
-            ? '[我] '
-            : session.last_message.sender_type === 'admin'
-              ? '[客服] '
-              : '[系统] '
+          session.last_message.message_source === 'system'
+            ? '[系统] '
+            : session.last_message.sender_type === 'user'
+              ? '[我] '
+              : '[客服] '
         const msgType = session.last_message.message_type
+        // content 已是人类可读文本（image='[图片]'、file=文件名、location=地址）
         const contentText =
-          msgType === 'image'
-            ? '[图片]'
+          msgType === 'location'
+            ? `[位置] ${session.last_message.content}`
             : msgType === 'file'
-              ? '[文件]'
-              : msgType === 'location'
-                ? '[位置]'
-                : session.last_message.content
+              ? `[文件] ${session.last_message.content}`
+              : session.last_message.content
         preview = senderPrefix + contentText
       }
 
@@ -467,10 +467,10 @@ Page({
           content: msg.content || '',
           // 关键词高亮后的HTML内容（供 rich-text 组件渲染）
           highlightContent: this.highlightKeyword(msg.content || '', keyword.trim()),
-          // 发送者类型和标签
+          // 发送者类型和标签（系统消息由 message_source 判定）
           senderType: msg.sender_type || 'user',
           senderLabel:
-            msg.sender_type === 'user' ? '我' : msg.sender_type === 'admin' ? '客服' : '系统',
+            msg.message_source === 'system' ? '系统' : msg.sender_type === 'user' ? '我' : '客服',
           // 格式化时间
           time: msg.created_at ? formatDateMessage(msg.created_at) : '',
           // 消息类型

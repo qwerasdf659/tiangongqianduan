@@ -163,9 +163,7 @@ Page({
       ...record,
       statusDisplay: STATUS_DISPLAY[record.status] || STATUS_DISPLAY.pending,
       amountText: isNaN(amount) ? '0.00' : amount.toFixed(2),
-      createdAtText: Utils.formatDateMessage(
-        (Utils.safeParseDateString(record.created_at) || new Date(0)).getTime()
-      )
+      createdAtText: Utils.formatBeijingTimeField(record.created_at, 'relative')
     }
   },
 

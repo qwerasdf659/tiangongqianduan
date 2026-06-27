@@ -311,7 +311,7 @@ Page({
     }
   },
 
-  /** 格式化时间（后端返回 YYYY-MM-DD HH:mm:ss 北京时间 → MM-DD HH:mm） */
+  /** 格式化时间（后端 B-2 单一 UTC ISO → 北京时间 MM-DD HH:mm） */
   formatTime(isoString: string): string {
     try {
       const date = Utils.safeParseDateString
@@ -320,10 +320,12 @@ Page({
       if (!date || isNaN(date.getTime())) {
         return isoString
       }
-      const m = String(date.getMonth() + 1).padStart(2, '0')
-      const d = String(date.getDate()).padStart(2, '0')
-      const h = String(date.getHours()).padStart(2, '0')
-      const min = String(date.getMinutes()).padStart(2, '0')
+      // 偏移到北京时刻后取 UTC 分量（设备时区无关，与后端 UTC ISO 契约一致）
+      const bj = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+      const m = String(bj.getUTCMonth() + 1).padStart(2, '0')
+      const d = String(bj.getUTCDate()).padStart(2, '0')
+      const h = String(bj.getUTCHours()).padStart(2, '0')
+      const min = String(bj.getUTCMinutes()).padStart(2, '0')
       return `${m}-${d} ${h}:${min}`
     } catch {
       return isoString

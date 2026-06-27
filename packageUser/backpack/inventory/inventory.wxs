@@ -41,20 +41,25 @@ function getItemIcon(item_type) {
 }
 
 /**
- * 格式化时间为可读的日期字符串（UI辅助逻辑）
+ * 格式化时间为可读的日期字符串（按北京时区，UI辅助逻辑）
  *
- * @param {string} timestamp - 时间字符串（后端返回格式 YYYY-MM-DD HH:mm:ss）
- * @returns {string} 格式化后的时间（YYYY-MM-DD HH:mm）
+ * 后端统一下发 UTC ISO8601 带 Z（对接文档 2026-06-25 B-2）。WXS 无 Intl，
+ * 用「绝对时刻 + 8h 偏移取 UTC 分量」得到北京时间，不直接截串里数字。
+ *
+ * @param {string} timestamp - UTC ISO 时间字符串
+ * @returns {string} 格式化后的北京时间（YYYY-MM-DD HH:mm）
  */
 function formatTime(timestamp) {
   if (!timestamp) return ''
 
   var date = getDate(timestamp)
-  var year = date.getFullYear()
-  var month = date.getMonth() + 1
-  var day = date.getDate()
-  var hours = date.getHours()
-  var minutes = date.getMinutes()
+  if (isNaN(date.getTime())) return ''
+  var bj = getDate(date.getTime() + 8 * 60 * 60 * 1000)
+  var year = bj.getUTCFullYear()
+  var month = bj.getUTCMonth() + 1
+  var day = bj.getUTCDate()
+  var hours = bj.getUTCHours()
+  var minutes = bj.getUTCMinutes()
 
   var monthStr = month < 10 ? '0' + month : '' + month
   var dayStr = day < 10 ? '0' + day : '' + day
