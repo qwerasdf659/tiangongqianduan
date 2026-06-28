@@ -92,7 +92,6 @@
 .ed-hero-section {
   position: relative;
   width: 100%;
-  height: 520rpx;
   background: rgba(var(--td-brand-color-rgb), 0.06);
   overflow: hidden;
 }
@@ -146,15 +145,12 @@
 
 .ed-swiper {
   width: 100%;
-  height: 520rpx;
   position: relative;
   z-index: 2;
 }
 
 .ed-hero-image {
   width: 100%;
-  height: 520rpx;
-  object-fit: contain;
   position: relative;
   z-index: 2;
 }
@@ -187,7 +183,7 @@
 
 .ed-hero-fallback {
   width: 100%;
-  height: 100%;
+  height: 520rpx;
   @include flex-column-center;
   gap: 16rpx;
   position: relative;
@@ -871,22 +867,27 @@
   color: var(--tg-text-primary);
 }
 
-/* 微信客服按钮（覆盖微信默认 button 样式） */
+/* 余额数字 + 资产图标同行 */
+.ed-balance-value-row {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.ed-balance-asset-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+}
+
+/* 客服按钮（跳转自建在线客服，view + flex 布局） */
 
 .ed-service-btn {
   @include flex-column-center;
   gap: 2rpx;
   min-width: 80rpx;
   margin: 0 24rpx;
-  padding: 0;
-  border: none !important;
-  background: none !important;
   line-height: normal;
-  font-size: inherit;
-
-  &::after {
-    display: none;
-  }
 }
 
 .ed-service-icon {

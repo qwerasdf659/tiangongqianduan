@@ -274,18 +274,29 @@ Page({
 
     return {
       ...order,
-      _statusLabel: statusInfo.label,
-      _statusColor: statusInfo.color,
+      /* 状态中文：优先后端 status_display（字典中文，区分待处理/已通过/已发货等），回退本地映射 */
+      _statusLabel: order.status_display || statusInfo.label,
+      _statusColor: order.status_color || statusInfo.color,
       _statusIcon: statusInfo.icon,
-      _productName: itemSnapshot.name || '兑换商品',
-      _productImage: itemSnapshot.primary_media?.public_url || '/images/default-product.png',
-      _hasProductImage: !!itemSnapshot.primary_media?.public_url,
+      /* 商品名：读后端快照 item_snapshot.item_name（零映射），回退旧 name 字段，再兜底占位 */
+      _productName: itemSnapshot.item_name || itemSnapshot.name || '商品已下架',
+      /* 商品图：读 item_snapshot.image_url（零映射），回退旧 primary_media.public_url，再兜底占位图 */
+      _productImage:
+        itemSnapshot.image_url ||
+        itemSnapshot.primary_media?.public_url ||
+        '/images/default-product.png',
+      _hasProductImage: !!(itemSnapshot.image_url || itemSnapshot.primary_media?.public_url),
       _payInfo: order.pay_amount
         ? `${order.pay_amount} ${order.pay_asset_name || order.pay_asset_code || ''}`
         : '',
       /* 消耗资产图标（后端新增 pay_asset_icon_url，完整URL带?h=哈希，直接渲染；null 时不显示图标） */
       _payAssetIconUrl: order.pay_asset_icon_url || '',
-      _createTime: order.created_at ? this.formatTime(order.created_at) : '',
+      /* 下单时间：优先后端 exchange_time（本次契约字段），回退旧 created_at */
+      _createTime: order.exchange_time
+        ? this.formatTime(order.exchange_time)
+        : order.created_at
+          ? this.formatTime(order.created_at)
+          : '',
       _shippedTime: order.shipped_at ? this.formatTime(order.shipped_at) : '',
       _receivedTime: order.received_at ? this.formatTime(order.received_at) : '',
       _approvedTime: order.approved_at ? this.formatTime(order.approved_at) : '',

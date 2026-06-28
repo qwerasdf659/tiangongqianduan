@@ -171,10 +171,39 @@ async function submitConsumption(params: SubmitConsumptionParams) {
   })
 }
 
-/** 商家查询门店消费记录 - GET /api/v4/shop/consumption/merchant/list */
-async function getMerchantConsumptions(params: { page?: number; page_size?: number } = {}) {
-  const { page = 1, page_size = 20 } = params
-  const qs = buildQueryString({ page, page_size })
+/**
+ * 商家查询门店消费记录 - GET /api/v4/shop/consumption/merchant/list
+ *
+ * 多视角分层查询（对接文档《消费提交记录-多视角查询》§16.3 契约，零映射直传同名参数）：
+ *   - view：self/store/staff/all，不传则后端按角色取缺省（店员 self / 店长 store / 管理员 all）；
+ *     视角准入与数据范围由后端 DataScopeService 强制，前端越不过；
+ *   - store_id：view=staff 必传；view=store 选传（不传=聚合可见门店全部）；
+ *   - target_user_id：view=staff 必传，目标员工 user_id（可查其离职后历史）；
+ *   - status：列表选传（pending/approved/rejected/expired）。
+ *
+ * 响应 data（snake_case 原名，前端零映射直读）:
+ *   records[]、pagination{page,page_size,total,total_pages}、view、view_note。
+ * 越权时后端返回 4xx + code（VIEW_NOT_ALLOWED/STORE_OUT_OF_SCOPE/STAFF_NOT_IN_STORE/TARGET_USER_REQUIRED）。
+ *
+ * @param params.view            视角枚举（可选，缺省由后端按角色解析）
+ * @param params.store_id        目标门店ID（staff 必传 / store 选传）
+ * @param params.target_user_id  目标员工ID（staff 必传）
+ * @param params.status          审核状态过滤（可选）
+ * @param params.page            页码（默认1）
+ * @param params.page_size       每页数量（默认20，上限50）
+ */
+async function getMerchantConsumptions(
+  params: {
+    view?: string
+    store_id?: number
+    target_user_id?: number
+    status?: string
+    page?: number
+    page_size?: number
+  } = {}
+) {
+  const { view, store_id, target_user_id, status, page = 1, page_size = 20 } = params
+  const qs = buildQueryString({ view, store_id, target_user_id, status, page, page_size })
   return apiClient.request(`/shop/consumption/merchant/list?${qs}`, {
     method: 'GET',
     needAuth: true
@@ -192,8 +221,31 @@ async function getMerchantConsumptions(params: { page?: number; page_size?: numb
  *   total:     { count, amount, approved_points }                                范围内全部消费记录
  *   timeout:   { pending_total, overdue, near_due }                              超时预警（2小时内临近/已超时）
  */
-async function getMerchantConsumptionStats() {
-  return apiClient.request('/shop/consumption/merchant/stats', {
+/**
+ * 商家门店消费统计 - GET /api/v4/shop/consumption/merchant/stats
+ *
+ * 权限: role_level>=20（店员及以上）。支持多视角分层（对接文档 §16.3，与列表口径统一）：
+ *   传 view/store_id/target_user_id 同名参数，后端按视角强制数据范围，列表与统计口径一致。
+ *   - view：self/store/staff/all，不传则后端按角色取缺省；
+ *   - store_id：view=staff 必传 / view=store 选传（不传=聚合可见门店全部）；
+ *   - target_user_id：view=staff 必传。
+ *
+ * 响应 data（snake_case 原名，前端不做映射）:
+ *   view: 当前生效视角
+ *   by_status: { pending:{count,amount,points}, approved:{...}, rejected:{...}, expired:{...} }  按审核状态分组
+ *   total:     { count, amount, approved_points }                                范围内全部消费记录
+ *   timeout:   { pending_total, overdue, near_due }                              超时预警（2小时内临近/已超时）
+ *
+ * @param params.view            视角枚举（可选，缺省由后端按角色解析）
+ * @param params.store_id        目标门店ID（staff 必传 / store 选传）
+ * @param params.target_user_id  目标员工ID（staff 必传）
+ */
+async function getMerchantConsumptionStats(
+  params: { view?: string; store_id?: number; target_user_id?: number } = {}
+) {
+  const { view, store_id, target_user_id } = params
+  const qs = buildQueryString({ view, store_id, target_user_id })
+  return apiClient.request(`/shop/consumption/merchant/stats?${qs}`, {
     method: 'GET',
     needAuth: true,
     showLoading: false,
@@ -376,16 +428,55 @@ async function getStoreRedemptionStats(store_id: number) {
  * @param params.page       页码（默认1）
  * @param params.page_size  每页数量（默认20）
  */
+/**
+ * 查询本店员工列表（含核销概况查看授权状态）
+ * GET /api/v4/shop/staff/list?store_id=:store_id&status=active
+ *
+ * 用途：员工核销权限管理页 + 「我的提交」员工视角选择器数据源。
+ *   复用后端现有门店员工管理接口（非新增），按门店上下文隔离：
+ *   店长查本店；单店员工自动填充 store_id，多店须带 store_id。
+ *   后端已修复分页 bug（对接文档 §16.1）：page/page_size/include_deleted/role_in_store 均生效。
+ *
+ * 鉴权（后端校验）：登录 + staff:read 能力 + 门店上下文隔离。
+ *
+ * 响应 data（snake_case，零映射直读）：
+ *   staff[]: { store_staff_id, user_id, user_nickname, user_mobile,
+ *              role_in_store('manager'|'staff'), can_view_redemption_stats, status }
+ *   pagination: { total, page, page_size, total_pages }
+ *
+ * @param params.store_id        门店ID（多门店店长必填；单店可省略由后端填充）
+ * @param params.status          在职状态过滤（默认 'active' 只看在职员工）
+ * @param params.role_in_store   角色过滤（'manager'/'staff'，可选）
+ * @param params.include_deleted 是否含离职员工（true 查历史，员工视角查离职历史用，默认 false）
+ * @param params.page            页码（默认1）
+ * @param params.page_size       每页数量（默认20）
+ */
 async function getStoreStaffList(
   params: {
     store_id?: number
     status?: string
+    role_in_store?: string
+    include_deleted?: boolean
     page?: number
     page_size?: number
   } = {}
 ) {
-  const { store_id, status = 'active', page = 1, page_size = 20 } = params
-  const qs = buildQueryString({ store_id, status, page, page_size })
+  const {
+    store_id,
+    status = 'active',
+    role_in_store,
+    include_deleted,
+    page = 1,
+    page_size = 20
+  } = params
+  const qs = buildQueryString({
+    store_id,
+    status,
+    role_in_store,
+    include_deleted,
+    page,
+    page_size
+  })
   return apiClient.request(`/shop/staff/list?${qs}`, {
     method: 'GET',
     needAuth: true,

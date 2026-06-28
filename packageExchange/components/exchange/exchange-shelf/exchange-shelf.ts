@@ -31,8 +31,6 @@ Component({
   properties: {
     /** 可用积分余额（保留用于兑换余额校验） */
     pointsBalance: { type: Number, value: 0 },
-    /** 冻结积分 */
-    frozenPoints: { type: Number, value: 0 },
     /** 星石和源晶类资产余额列表（Page 壳从 API.getAssetBalances 获取后下传） */
     assetBalances: { type: Array, value: [] },
     /** 增强效果开关配*/

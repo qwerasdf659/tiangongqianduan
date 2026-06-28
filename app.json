@@ -38,6 +38,7 @@
         "notifications/notifications",
         "backpack/inventory/inventory",
         "records/trade-upload-records/trade-upload-records",
+        "records/consumption-records/consumption-records",
         "agreement/agreement",
         "addresses/addresses"
       ]

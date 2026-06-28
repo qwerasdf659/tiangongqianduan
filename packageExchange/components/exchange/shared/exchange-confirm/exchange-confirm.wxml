@@ -79,7 +79,16 @@
       <!-- 当前余额 -->
       <view class="confirm-row confirm-balance-row">
         <text class="confirm-row-label">当前余额</text>
-        <text class="confirm-balance-value">{{currentAssetBalance}} {{currentAssetLabel}}</text>
+        <view class="confirm-balance-value-wrap">
+          <!-- 余额资产图标（后端 cost_asset_icon_url → product._priceIcon，空则不渲染） -->
+          <image
+            wx:if="{{product._priceIcon}}"
+            class="confirm-asset-icon"
+            src="{{product._priceIcon}}"
+            mode="aspectFit"
+          />
+          <text class="confirm-balance-value">{{currentAssetBalance}} {{currentAssetLabel}}</text>
+        </view>
       </view>
 
       <!-- 额外内容插槽（实物商品收货地址等，由页面注入） -->

@@ -1,0 +1,191 @@
+<!--packageUser/records/consumption-records/consumption-records.wxml - 消费记录页面（独立页）-->
+<custom-navbar title="消费记录" bgColor="#F5F0E8" textColor="#333333" showBack="{{true}}" />
+<wxs src="./consumption-records.wxs" module="helpers" />
+<view class="consumption-records-container">
+  <scroll-view type="list" scroll-y class="page-scroll-view">
+    <sticky-section>
+      <!-- 页面头部 -->
+      <view class="records-page-header">
+        <text class="records-page-title">消费记录</text>
+        <view class="header-decor-icon">
+          <t-icon name="file-paste" size="128rpx" color="rgba(139, 115, 85, 0.12)" />
+        </view>
+      </view>
+
+      <!-- 加载状态 -->
+      <view class="loading-container" wx:if="{{loading}}">
+        <view class="loading-content">
+          <t-loading loading="{{true}}" text="加载中..." theme="spinner" />
+        </view>
+      </view>
+
+      <view class="upload-tab-content" wx:if="{{!loading}}">
+        <!-- 筛选标签 - 胶囊组 -->
+        <view class="filter-section">
+          <view class="filter-tabs">
+            <block wx:for="{{consumptionFilterOptions}}" wx:key="key">
+              <button
+                class="filter-tab {{consumptionFilter === item.key ? 'active' : ''}}"
+                bind:tap="switchConsumptionFilter"
+                data-filter="{{item.key}}"
+              >
+                <t-icon name="{{item.tIcon}}" size="28rpx" class="filter-icon" />
+                <text class="filter-name">{{item.name}}</text>
+              </button>
+            </block>
+          </view>
+        </view>
+
+        <!-- 消费记录列表 -->
+        <view class="records-section">
+          <!-- 页码翻页栏（消费记录后端分页，仅多页时显示） -->
+          <exchange-pager
+            current-page="{{consumptionCurrentPage}}"
+            total-pages="{{consumptionTotalPages}}"
+            bind:pagechange="onConsumptionPagerChange"
+          />
+
+          <view class="records-list">
+            <block
+              wx:if="{{consumptionRecords.length > 0}}"
+              wx:for="{{consumptionRecords}}"
+              wx:key="consumption_record_id"
+            >
+              <view class="record-card" style="animation-delay: {{index * 60}}ms;">
+                <view class="record-header">
+                  <view class="record-meta">
+                    <text class="record-time">{{helpers.formatTime(item.created_at)}}</text>
+                    <text class="record-order-no" wx:if="{{item.order_no}}">{{item.order_no}}</text>
+                  </view>
+                  <view class="record-status {{item.status}}">
+                    <t-icon
+                      name="check-circle-filled"
+                      size="28rpx"
+                      class="status-icon"
+                      wx:if="{{item.status === 'approved'}}"
+                    />
+                    <t-icon
+                      name="close-circle-filled"
+                      size="28rpx"
+                      class="status-icon"
+                      wx:elif="{{item.status === 'rejected'}}"
+                    />
+                    <t-icon
+                      name="hourglass"
+                      size="28rpx"
+                      class="status-icon"
+                      wx:elif="{{item.status === 'expired'}}"
+                    />
+                    <t-icon name="time" size="24rpx" class="status-icon" wx:else />
+                    <text class="status-text"
+                      >{{item.status === 'approved' ? '已通过' : item.status === 'rejected' ?
+                      '已拒绝' : item.status === 'expired' ? '已过期' : '待审核'}}</text
+                    >
+                  </view>
+                </view>
+
+                <view class="record-content">
+                  <view class="consumption-amount-row">
+                    <text class="consumption-label">消费金额</text>
+                    <text class="consumption-value">¥{{item.consumption_amount || 0}}</text>
+                  </view>
+                  <view
+                    class="points-info"
+                    wx:if="{{item.points_to_award && item.status === 'approved'}}"
+                  >
+                    <view class="points-badge">
+                      <t-icon name="money" size="24rpx" class="points-icon" />
+                      <text class="points-earned">+{{item.points_to_award}}积分</text>
+                    </view>
+                  </view>
+                  <view class="merchant-notes" wx:if="{{item.merchant_notes}}">
+                    <text class="notes-label">商家备注：</text>
+                    <text class="notes-content">{{item.merchant_notes}}</text>
+                  </view>
+                  <!-- 审核链进度（后端在记录中附带 chain_info 时显示） -->
+                  <view
+                    class="chain-progress-row"
+                    wx:if="{{item.status === 'pending' && item.chain_info}}"
+                  >
+                    <text class="chain-progress-label">审核进度：</text>
+                    <text class="chain-progress-value"
+                      >第{{item.chain_info.current_step}}步 /
+                      共{{item.chain_info.total_steps}}步</text
+                    >
+                  </view>
+                </view>
+
+                <view class="record-actions">
+                  <button
+                    class="action-btn detail"
+                    bind:tap="viewReviewDetail"
+                    data-record="{{item}}"
+                  >
+                    <t-icon name="edit" size="28rpx" class="btn-icon" />
+                    <text class="btn-text">查看详情</text>
+                  </button>
+                  <button
+                    class="action-btn aftersale"
+                    bind:tap="onApplyAfterSale"
+                    data-record-id="{{item.consumption_record_id}}"
+                    data-order-title="消费 ¥{{item.consumption_amount || 0}}"
+                  >
+                    <t-icon name="service" size="28rpx" class="btn-icon" />
+                    <text class="btn-text">申请售后</text>
+                  </button>
+                </view>
+              </view>
+            </block>
+
+            <!-- 空状态 -->
+            <view class="empty-state" wx:if="{{consumptionRecords.length === 0}}">
+              <view class="empty-content">
+                <t-empty description="还没有消费记录">
+                  <text slot="description">在商家消费后，记录将显示在这里</text>
+                </t-empty>
+                <button class="upload-action-btn" bind:tap="goToActivity">
+                  <t-icon name="thumb-up" size="28rpx" class="btn-icon" />
+                  <text class="btn-text">去参与活动</text>
+                </button>
+              </view>
+            </view>
+
+            <!-- 加载更多 -->
+            <view
+              class="load-more-section"
+              wx:if="{{consumptionHasMore && consumptionRecords.length > 0}}"
+            >
+              <view class="load-more-content" wx:if="{{loadingMore}}">
+                <t-loading loading="{{true}}" text="加载更多..." theme="spinner" size="40rpx" />
+              </view>
+              <view class="load-more-content" wx:else>
+                <text class="load-more-text">上拉加载更多</text>
+              </view>
+            </view>
+
+            <!-- 没有更多 -->
+            <view
+              class="no-more-section"
+              wx:if="{{!consumptionHasMore && consumptionRecords.length > 0}}"
+            >
+              <view class="no-more-line"></view>
+              <text class="no-more-text">已显示全部记录</text>
+              <view class="no-more-line"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 刷新提示 -->
+      <view class="refresh-hint" wx:if="{{refreshing}}">
+        <view class="refresh-content">
+          <view class="refresh-spinner"></view>
+          <text class="refresh-text">刷新中...</text>
+        </view>
+      </view>
+
+      <!-- 🔧 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
+      <maintenance-overlay />
+    </sticky-section>
+  </scroll-view>
+</view>

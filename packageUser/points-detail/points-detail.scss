@@ -99,10 +99,29 @@ page {
 
 /* 积分数字展示 */
 .balance-amount {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
   margin-bottom: var(--tg-spacing-lg);
   position: relative;
   z-index: 2;
+}
+
+/* 余额资产图标 */
+.balance-asset-icon {
+  width: 44rpx;
+  height: 44rpx;
+  flex-shrink: 0;
+}
+
+/* 资产 Tab 区（顶部切积分/星石/红源晶碎片） */
+.asset-tabs-section {
+  background: var(--tg-card-bg);
+  border-radius: var(--tg-radius-xl);
+  margin-bottom: var(--tg-spacing-md);
+  box-shadow: var(--tg-shadow-md);
+  overflow: hidden;
 }
 
 .balance-number {

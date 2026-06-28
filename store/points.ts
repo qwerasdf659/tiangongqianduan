@@ -1,7 +1,7 @@
 /**
  * 💰 资产状态管理 - MobX Store
  *
- * 管理内容: 可用积分、冻结积分、积分交易记录
+ * 管理内容: 可用积分、待审核消费积分、积分交易记录
  * 数据来源: 后端 GET /api/v4/assets/balance、GET /api/v4/assets/transactions
  *
  * 类型定义统一引用 typings/api.d.ts → API.AssetTransaction
@@ -26,8 +26,14 @@ export const pointsStore = observable({
   /** 可用积分余额（后端字段: available_amount） */
   availableAmount: 0 as number,
 
-  /** 冻结积分余额（后端字段: frozen_amount，审核中的积分） */
-  frozenAmount: 0 as number,
+  /**
+   * 待审核消费积分（后端字段: pending_consumption_points）
+   *
+   * 单一事实源 = 该用户 status='pending' 且未删除的消费记录 points_to_award 之和。
+   * 注意：消费审核不走资产冻结，POINTS 资产已不再下发 frozen_amount；
+   * 审核通过后该笔自动移出本聚合、积分进 available_amount（前端重拉余额即可）。
+   */
+  pendingConsumptionPoints: 0 as number,
 
   /** 积分交易记录列表（后端 GET /api/v4/assets/transactions 返回） */
   transactions: [] as API.AssetTransaction[],
@@ -43,9 +49,9 @@ export const pointsStore = observable({
 
   // ===== 计算属性 =====
 
-  /** 总积分余额 = 可用 + 冻结 */
+  /** 总积分余额 = 可用 + 待审核消费积分（与后端 total_amount 口径一致） */
   get totalAmount(): number {
-    return this.availableAmount + this.frozenAmount
+    return this.availableAmount + this.pendingConsumptionPoints
   },
 
   /** 积分格式化显示 — 千分位完整数字（统一调用 utils/util.ts formatPoints） */
@@ -56,9 +62,13 @@ export const pointsStore = observable({
   // ===== 操作方法 =====
 
   /** 设置积分余额（从后端获取余额后调用） */
-  setBalance: action(function (this: any, availableAmount: number, frozenAmount: number) {
+  setBalance: action(function (
+    this: any,
+    availableAmount: number,
+    pendingConsumptionPoints: number
+  ) {
     this.availableAmount = availableAmount
-    this.frozenAmount = frozenAmount
+    this.pendingConsumptionPoints = pendingConsumptionPoints
   }),
 
   /** 设置余额加载状态 */
@@ -89,16 +99,16 @@ export const pointsStore = observable({
    * 收敛 user.ts / lottery.ts / exchange.ts 三处重复的积分刷新逻辑：
    *   调用 API.getPointsBalance()
    *   → 校验 success && data
-   *   → 提取 available_amount / frozen_amount
+   *   → 提取 available_amount / pending_consumption_points
    *   → 更新 pointsStore.setBalance()
    *   → catch 中降级读取 pointsStore 缓存值
    *
    * 后端路由: GET /api/v4/assets/balance
-   * @returns {{ available: number, frozen: number }} 余额数据
+   * @returns {{ available: number, pendingConsumptionPoints: number }} 余额数据
    */
   refreshFromAPI: action(async function (
     this: any
-  ): Promise<{ available: number; frozen: number }> {
+  ): Promise<{ available: number; pendingConsumptionPoints: number }> {
     this.balanceLoading = true
     try {
       const { API: pointsApi } = require('../utils/index')
@@ -106,26 +116,33 @@ export const pointsStore = observable({
 
       if (balanceResult?.success && balanceResult.data) {
         const available = balanceResult.data.available_amount ?? 0
-        const frozen = balanceResult.data.frozen_amount ?? 0
+        // POINTS 已不再下发 frozen_amount，改读 pending_consumption_points（待审核消费积分）
+        const pendingConsumptionPoints = balanceResult.data.pending_consumption_points ?? 0
         // 使用已定义的同步 action 更新值，确保 MobX 响应式更新
-        pointsStore.setBalance(available, frozen)
+        pointsStore.setBalance(available, pendingConsumptionPoints)
         pointsStore.setBalanceLoading(false)
-        return { available, frozen }
+        return { available, pendingConsumptionPoints }
       }
 
       pointsStore.setBalanceLoading(false)
-      return { available: this.availableAmount, frozen: this.frozenAmount }
+      return {
+        available: this.availableAmount,
+        pendingConsumptionPoints: this.pendingConsumptionPoints
+      }
     } catch (refreshError) {
       log.error('refreshFromAPI 异常:', refreshError)
       pointsStore.setBalanceLoading(false)
-      return { available: this.availableAmount, frozen: this.frozenAmount }
+      return {
+        available: this.availableAmount,
+        pendingConsumptionPoints: this.pendingConsumptionPoints
+      }
     }
   }),
 
   /** 清空资产数据（退出登录时调用） */
   clearPoints: action(function (this: any) {
     this.availableAmount = 0
-    this.frozenAmount = 0
+    this.pendingConsumptionPoints = 0
     this.transactions = []
     this.transactionPagination = createPaginationState(20)
   })

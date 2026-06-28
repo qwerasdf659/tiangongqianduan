@@ -62,8 +62,9 @@
   margin-bottom: 12rpx;
 }
 
+/* 资产余额区独占整行（flex-basis:100%），把"我的订单/刷新"挤到下一行单独排，与商品兑换页一致 */
 .asset-balances-area {
-  flex: 1 1 0;
+  flex: 1 1 100%;
   min-width: 180rpx;
   overflow: hidden;
 }
@@ -138,10 +139,12 @@
   }
 }
 
+/* 快捷操作（我的订单/刷新）换到资产下方单独一行，左对齐排列 */
 .props-header-actions {
   @include flex-align-center;
+  justify-content: flex-start;
   gap: 12rpx;
-  flex-shrink: 1;
+  flex: 1 1 100%;
   flex-wrap: wrap;
 }
 

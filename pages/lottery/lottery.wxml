@@ -72,11 +72,11 @@
               </view>
             </view>
             <view class="points-item">
-              <text class="points-label">冻结积分</text>
+              <text class="points-label">待审核消费积分</text>
               <view class="points-value">
                 <text class="points-number">***</text>
                 <view class="points-icon"
-                  ><t-icon name="lock-on-filled" size="28rpx" color="#ffffff"
+                  ><t-icon name="time-filled" size="28rpx" color="#ffffff"
                 /></view>
               </view>
             </view>
@@ -144,13 +144,15 @@
               </view>
             </view>
 
-            <!-- 冻结积分 - ✅ 响应式字体 + 千分位分隔符 -->
+            <!-- 待审核消费积分 - ✅ 响应式字体 + 千分位分隔符 -->
             <view class="points-item">
-              <text class="points-label">冻结积分</text>
+              <text class="points-label">待审核消费积分</text>
               <view class="points-value">
-                <text class="points-number {{pointsClass}}">{{frozenPointsFormatted}}</text>
+                <text class="points-number {{pointsClass}}"
+                  >{{pendingConsumptionPointsFormatted}}</text
+                >
                 <view class="points-icon"
-                  ><t-icon name="lock-on-filled" size="28rpx" color="#ffffff"
+                  ><t-icon name="time-filled" size="28rpx" color="#ffffff"
                 /></view>
               </view>
             </view>

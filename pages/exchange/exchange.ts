@@ -48,8 +48,6 @@ Page({
     totalPoints: 0,
     /** 登录弹窗 */
     loginPopupVisible: false,
-    /** 冻结积分 */
-    frozenPoints: 0,
 
     // 顶部沉浸式横幅（运营可配，后端 ad-delivery?slot_type=top_banner&position=exchange）
     // 仅当运营配置了内容时才显示，无配置则不占位、商城页布局保持原样（零布局冲击）
@@ -295,8 +293,8 @@ Page({
   /** 从后端 API 获取最新积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑） */
   async _refreshPointsBalance(localUserInfo: any) {
     try {
-      const { available, frozen } = await pointsStore.refreshFromAPI()
-      this.setData({ userInfo: localUserInfo, totalPoints: available, frozenPoints: frozen })
+      const { available } = await pointsStore.refreshFromAPI()
+      this.setData({ userInfo: localUserInfo, totalPoints: available })
     } catch (error) {
       log.error('获取积分余额异常:', error)
       this.setData({ userInfo: localUserInfo, totalPoints: pointsStore.availableAmount || 0 })

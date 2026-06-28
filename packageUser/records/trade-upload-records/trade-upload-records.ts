@@ -1,36 +1,37 @@
 /**
- * 📊 trade-upload-records.ts - 积分活动记录页面（交易+消费合并 MobX响应式状态）
- * @description
- * 将交易记录和消费记录合并到一个页面，使用Tab切换
- * Tab0 = 交易记录（资产流水），Tab1 = 消费记录（商家消费积分）
+ * 📊 trade-upload-records.ts - 资产明细页面（多资产流水，按资产 Tab 切换）
  *
- * @version 5.2.0
- * @author Restaurant Lottery Team
- * @since 2026-02-07
+ * 业务定位（资产/积分/消费三页分家后）：
+ *   本页只管「非积分资产」流水（星石 / 红源晶碎片 / 各色源晶等），按资产 Tab 切换，
+ *   每个 Tab 调 GET /assets/transactions?asset_code=xxx 只显示该资产流水。
+ *   - 积分流水 → 「积分明细」页（points-detail）
+ *   - 消费记录 → 「消费记录」页（consumption-records）
+ *
+ * 资产名/图标读后端字典 display_name/icon_url（对接文档《资产明细页-资产区分》§4.3，零映射）。
  *
  * API依赖:
- *   - API.getPointsTransactions() GET /api/v4/assets/transactions（交易流水）
- *   - API.getPointsBalance()     GET /api/v4/assets/balance（积分余额汇总）
- *   - API.getMyConsumptionRecords() GET /api/v4/shop/consumption/me（消费记录）
+ *   - API.getAssetBalances()      GET /api/v4/assets/balances（资产 Tab 数据源 + 余额）
+ *   - API.getPointsTransactions() GET /api/v4/assets/transactions?asset_code=xxx（资产流水）
+ *
+ * @since 2026-06-29（资产/积分/消费三页分家）
  */
 
-// 🔴 统一工具函数导入
 const { API, Utils, Wechat, Logger } = require('../../../utils/index')
-const log = Logger.createLogger('trade-records')
-// 🆕 MobX Store绑定
+const log = Logger.createLogger('asset-detail')
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../../store/user')
-// 从Utils中解构认证助手和格式化函数
-const { checkAuth, formatPoints } = Utils
-// 从Wechat中解构Toast函数
+const { checkAuth } = Utils
 const { showToast } = Wechat
 
 /**
- * 安全转换时间字段为字符串
- * 防止后端返回Sequelize Date对象等非字符串类型导致显示[object Object]
- *
- * @param value - 需要转换的时间值
- * @returns 时间字符串
+ * 内部记账资产 + 积分黑名单（资产明细页只展示非积分用户资产）：
+ *   budget_points / star_stone_quota 为系统内部记账资产，禁止前端展示；
+ *   points（积分）有独立「积分明细」页，本页不重复展示。
+ */
+const EXCLUDED_ASSET_CODES = ['budget_points', 'star_stone_quota', 'points']
+
+/**
+ * 安全转换时间字段为字符串（防止 Sequelize Date 对象导致 [object Object]）
  */
 function safeTimeString(value: any): string {
   if (!value) {
@@ -42,7 +43,6 @@ function safeTimeString(value: any): string {
   if (typeof value === 'number') {
     return String(value)
   }
-  // 处理对象类型（如Sequelize Date对象）
   if (typeof value === 'object') {
     if (typeof value.toISOString === 'function') {
       return value.toISOString()
@@ -50,7 +50,6 @@ function safeTimeString(value: any): string {
     if (typeof value.toString === 'function' && value.toString() !== '[object Object]') {
       return value.toString()
     }
-    // 尝试取常见日期字段
     if (value.val) {
       return String(value.val)
     }
@@ -62,100 +61,59 @@ function safeTimeString(value: any): string {
 }
 
 Page({
-  /**
-   * 页面的初始数据
-   */
   data: {
-    // 🔴 Tab切换状态
-    activeTab: 0,
-    tabs: [
-      { id: 0, name: '交易记录', icon: 'icon-gold-coin', tIcon: 'money' },
-      { id: 1, name: '消费记录', icon: '🧾', tIcon: 'file-paste' }
-    ],
-
-    // 🔴 用户信息
     isLoggedIn: false,
 
-    // 🔴 积分余额汇总（来自 GET /api/v4/assets/balance）
-    balanceSummary: {
-      availableAmount: 0,
-      frozenAmount: 0,
-      totalAmount: 0
-    },
+    // ===== 资产 Tab（来自 /balances，过滤内部记账资产 + 积分）=====
+    /** 资产 Tab 列表（元素含 asset_code/display_name/icon_url/available_amount） */
+    assetTabs: [] as any[],
+    /** 当前选中资产代码（小写，如 star_stone/red_core_shard） */
+    currentAssetCode: '',
+    /** 当前资产中文名（金额后缀/余额卡用，读 display_name） */
+    currentAssetName: '',
+    /** 当前资产图标 URL（余额卡展示，空则不渲染） */
+    currentAssetIconUrl: '',
+    /** 当前资产可用余额（按 Tab 对应资产） */
+    currentAssetBalance: 0,
 
-    // 🔴 交易记录相关数据（来自 GET /api/v4/assets/transactions）
+    // ===== 交易记录（按当前资产 asset_code 过滤）=====
     transactionRecords: [] as any[],
     /** 交易记录-当前页展示数据（前端分页截取后） */
     filteredRecords: [] as any[],
-    /** 交易记录-筛选后的完整结果（前端分页数据源，不直接渲染） */
+    /** 交易记录-筛选后的完整结果（前端分页数据源） */
     tradeAllFiltered: [] as any[],
     /** 交易记录-当前页码（前端分页，1 基） */
     tradePage: 1,
-    /** 交易记录-总页数（按筛选后结果数 / 每页数计算，供页码翻页栏使用） */
+    /** 交易记录-总页数 */
     tradeTotalPages: 1,
-    /** 交易记录-每页条数（前端分页，UI 常量） */
+    /** 交易记录-每页条数 */
     tradePageSize: 20,
     // 筛选条件
     currentTimeFilter: 'all',
     currentTypeFilter: 'all',
     searchKeyword: '',
-    showFilterPanel: false,
 
     /** 来源页面筛选（如 asset_convert → 仅显示资产转换相关流水） */
     sourceFilter: '' as string,
 
-    // 🧾 消费记录相关数据（来自 GET /api/v4/shop/consumption/me）
-    consumptionRecords: [] as any[],
-    // all, pending, approved, rejected
-    consumptionFilter: 'all',
-    consumptionFilterOptions: [
-      { key: 'all', name: '全部', icon: '📋', tIcon: 'view-list' },
-      { key: 'pending', name: '待审核', icon: '⏳', tIcon: 'time' },
-      { key: 'approved', name: '已通过', icon: '✅', tIcon: 'check-circle' },
-      { key: 'rejected', name: '已拒绝', icon: '❌', tIcon: 'close-circle' }
-    ],
-    consumptionPage: 1,
-    consumptionPageSize: 20,
-    consumptionHasMore: true,
-    /** 消费记录-总页数（以后端 pagination.total_pages 为权威，供页码翻页栏使用） */
-    consumptionTotalPages: 1,
-    /** 消费记录-当前页码（1 基，供页码翻页栏展示） */
-    consumptionCurrentPage: 1,
-
-    // 🔴 页面状态
+    // 页面状态
     loading: true,
     refreshing: false,
-    loadingMore: false,
-    // 是否已完成首次初始化（防止onLoad+onShow双重加载）
     initialized: false
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   * 仅负责初始化绑定和UI配置，不加载数据（数据加载在onShow中）
-   */
   onLoad(options: Record<string, string>) {
-    log.info('积分活动记录页面加载')
+    log.info('资产明细页面加载')
 
-    // 🆕 MobX Store绑定 - 用户登录状态自动同步
     this.userBindings = createStoreBindings(this, {
       store: userStore,
       fields: ['isLoggedIn', 'userId'],
       actions: []
     })
 
-    // 从URL参数获取初始Tab
-    if (options.tab) {
-      const tabId = parseInt(options.tab)
-      if (tabId === 0 || tabId === 1) {
-        this.setData({ activeTab: tabId })
-      }
-    }
-
     /**
      * 来源筛选: source=asset_convert 时仅显示资产转换相关的交易流水
      * 对应后端 business_type: asset_convert_debit / asset_convert_credit
-     * （后端已将旧 exchange_rate_* / material_convert_* 统一迁移为 asset_convert_*）
      */
     if (options.source) {
       this.setData({ sourceFilter: options.source })
@@ -165,244 +123,199 @@ Page({
       asset_convert: '转换记录'
     }
     wx.setNavigationBarTitle({
-      title: titleMap[options.source || ''] || '积分活动记录'
+      title: titleMap[options.source || ''] || '资产明细'
     })
   },
 
-  /**
-   * 生命周期函数--监听页面显示
-   * 首次进入执行初始化，后续返回本页时执行刷新
-   */
   onShow() {
-    log.info('积分活动记录页面显示')
-    // 使用helper：检查登录状态
+    log.info('资产明细页面显示')
     if (!checkAuth()) {
       return
     }
     this.setData({ isLoggedIn: true })
 
     if (!this.data.initialized) {
-      // 首次进入：初始化（含loading状态）
       this.initializePage()
     } else {
-      // 非首次：静默刷新当前Tab
-      this.refreshCurrentTab()
+      this.refreshCurrentAsset()
     }
   },
 
-  /**
-   * 🔴 初始化页面（首次进入时调用）
-   */
+  onUnload() {
+    if (this.userBindings) {
+      this.userBindings.destroyStoreBindings()
+    }
+  },
+
+  /** 首次进入：加载资产 Tab → 加载当前资产流水 */
   async initializePage() {
     try {
-      // 并行加载：余额汇总 + 当前Tab数据
-      await Promise.all([this.loadBalanceSummary(), this.loadCurrentTabData()])
+      await this.loadAssetTabs()
+      await this.loadTransactionData()
     } catch (error) {
-      log.error('积分活动记录页面初始化失败', error)
+      log.error('资产明细页面初始化失败', error)
       showToast('页面加载失败')
     } finally {
       this.setData({ loading: false, initialized: true })
     }
   },
 
-  /**
-   * 🔴 Tab切换事件
-   */
-  onTabChange(e: WechatMiniprogram.BaseEvent) {
-    const tabId = e.currentTarget.dataset.id
-    if (tabId === this.data.activeTab) {
-      return
-    }
-
-    log.info(`切换到Tab${tabId}`)
-    this.setData({
-      activeTab: tabId,
-      loading: true
-    })
-
-    this.loadCurrentTabData().finally(() => {
-      this.setData({ loading: false })
-    })
-  },
-
-  /**
-   * 🔴 加载当前Tab的数据
-   */
-  async loadCurrentTabData() {
-    if (this.data.activeTab === 0) {
-      // 交易记录Tab
-      await this.loadTransactionData()
-    } else {
-      // 🧾 消费记录Tab
-      await this.loadConsumptionRecords(1, false)
-    }
-  },
-
-  /**
-   * 🔴 刷新当前Tab的数据
-   */
-  async refreshCurrentTab() {
+  /** 静默刷新当前资产（返回本页/下拉刷新时调用） */
+  async refreshCurrentAsset() {
     this.setData({ refreshing: true })
     try {
-      await Promise.all([this.loadBalanceSummary(), this.loadCurrentTabData()])
+      await this.loadAssetTabs()
+      await this.loadTransactionData()
     } finally {
       this.setData({ refreshing: false })
     }
   },
 
-  // ============================================================================
-  // 💰 余额汇总相关方法
-  // ============================================================================
-
   /**
-   * 💰 加载积分余额汇总
-   * API: GET /api/v4/assets/balance?asset_code=points
+   * 加载资产 Tab 数据源 - GET /api/v4/assets/balances
    *
-   * 返回字段: available_amount（可用余额）、frozen_amount（冻结余额）、total_amount（总积分资产）
+   * 过滤内部记账资产 + 积分，资产名/图标读后端 display_name/icon_url（零映射）。
+   * 默认选第一个可展示资产；刷新时保留当前已选资产。
    */
-  async loadBalanceSummary() {
+  async loadAssetTabs() {
     try {
-      const result = await API.getPointsBalance()
-      const { success, data } = result
-
-      if (success && data) {
-        this.setData({
-          balanceSummary: {
-            availableAmount: data.available_amount || 0,
-            frozenAmount: data.frozen_amount || 0,
-            totalAmount: data.total_amount || 0
-          }
-        })
-        log.info('余额汇总加载成功', this.data.balanceSummary)
+      const result = await API.getAssetBalances()
+      if (!result?.success || !result.data) {
+        return
       }
-    } catch (error) {
-      log.error('余额汇总加载失败', error)
-      // 余额加载失败不阻断页面，保持默认值
+      const apiBalances = result.data.balances || []
+      const visibleTabs = apiBalances
+        .filter((asset: any) => !EXCLUDED_ASSET_CODES.includes(asset.asset_code))
+        .map((asset: any) => ({
+          asset_code: asset.asset_code,
+          display_name: asset.display_name || asset.asset_code,
+          icon_url: asset.icon_url || '',
+          available_amount: asset.available_amount || 0
+        }))
+
+      if (visibleTabs.length === 0) {
+        this.setData({ assetTabs: [] })
+        return
+      }
+
+      // 保留当前已选资产（刷新场景）；首次进入默认第一个
+      const keepCode = this.data.currentAssetCode
+      const selectedTab = visibleTabs.find((t: any) => t.asset_code === keepCode) || visibleTabs[0]
+
+      this.setData({
+        assetTabs: visibleTabs,
+        currentAssetCode: selectedTab.asset_code,
+        currentAssetName: selectedTab.display_name,
+        currentAssetIconUrl: selectedTab.icon_url,
+        currentAssetBalance: selectedTab.available_amount
+      })
+    } catch (tabError: any) {
+      log.warn('加载资产 Tab 失败:', tabError?.message)
     }
   },
 
-  // ============================================================================
-  // 💰 交易记录相关方法
-  // ============================================================================
+  /**
+   * 资产 Tab 切换（顶部「星石/红源晶碎片...」）
+   * 切换后更新当前资产信息 → 重置筛选/分页 → 重拉该资产流水。
+   */
+  onAssetTabChange(e: any) {
+    const nextAssetCode = e.detail?.value ?? e.currentTarget?.dataset?.code
+    if (!nextAssetCode || nextAssetCode === this.data.currentAssetCode) {
+      return
+    }
+    const matchedTab = this.data.assetTabs.find((t: any) => t.asset_code === nextAssetCode)
+    if (!matchedTab) {
+      return
+    }
+    this.setData({
+      currentAssetCode: matchedTab.asset_code,
+      currentAssetName: matchedTab.display_name,
+      currentAssetIconUrl: matchedTab.icon_url,
+      currentAssetBalance: matchedTab.available_amount,
+      currentTimeFilter: 'all',
+      currentTypeFilter: 'all',
+      searchKeyword: '',
+      tradePage: 1,
+      transactionRecords: [],
+      filteredRecords: []
+    })
+    this.loadTransactionData()
+  },
 
   /**
-   * 加载交易数据
-   *
-   * API: GET /api/v4/assets/transactions
-   *
-   * 后端实际返回字段（对应typings/api.d.ts AssetTransaction）：
-   *   asset_transaction_id - 交易流水ID（BIGINT PK）
-   *   asset_code           - 资产代码（points / star_stone / red_core_shard）
-   *   delta_amount         - 变动金额（正=获得/earn，负=消费/consume）
-   *   balance_before       - 变动前余额
-   *   balance_after        - 变动后余额
-   *   business_type        - 业务类型枚举（lottery_consume / lottery_reward / exchange_debit 等）
-   *   description          - 交易描述（约44%有值，可为null）
-   *   title                - 交易标题（约33%有值，可为null）
-   *   created_at           - 创建时间
-   *
-   * 前端处理：将后端 snake_case 字段映射为WXML 模板所需的显示字段
+   * 加载交易数据 - GET /api/v4/assets/transactions?asset_code=xxx
+   * 按当前资产 Tab 的 asset_code 过滤，只返回该资产流水。
    */
   async loadTransactionData() {
+    if (!this.data.currentAssetCode) {
+      // 无可展示资产时清空
+      this.setData({ transactionRecords: [], filteredRecords: [], tradeAllFiltered: [] })
+      return
+    }
     try {
-      /**
-       * source=asset_convert 时向后端传 business_type 筛选资产转换流水
-       * asset_convert_debit = 转出（消耗）, asset_convert_credit = 转入（获得）
-       * （后端已将旧 exchange_rate_* / material_convert_* 统一迁移为 asset_convert_*）
-       */
       const sourceBusinessTypeMap: Record<string, string> = {
         asset_convert: 'asset_convert_debit,asset_convert_credit'
       }
       const businessTypeParam = sourceBusinessTypeMap[this.data.sourceFilter] || null
-      const result = await API.getPointsTransactions(1, 200, null, businessTypeParam)
+      // 按当前资产 asset_code 过滤（对接文档：传 asset_code 只返回该资产流水）
+      const result = await API.getPointsTransactions(
+        1,
+        200,
+        this.data.currentAssetCode,
+        businessTypeParam
+      )
       const { success, data } = result
 
       if (success && data) {
-        // 后端返回字段名是 transactions
         const { transactions = [] } = data
 
-        log.info('成功获取交易记录原始数据:', {
-          transactionsCount: transactions.length
-        })
-
-        // 🔍 诊断日志：打印第一条原始记录字段
-        if (transactions.length > 0) {
-          log.info('[诊断] 第一条原始交易记录', {
-            keys: Object.keys(transactions[0]),
-            sample: transactions[0]
-          })
-        }
-
-        // 处理交易记录：保留后端原始字段，仅新增前端计算的显示字段
         const processedRecords = transactions.map((record: any) => {
-          // 🔴 使用后端实际字段 delta_amount（对齐后端路由层 transactions.js 1-76行）
           const rawDeltaAmount = record.delta_amount || 0
-
           return {
-            // 保留后端原始字段（asset_transaction_id / delta_amount / business_type 等直接使用）
             ...record,
-            // === 前端计算的显示辅助字段 ===
-            // 标题显示：优先 title → description → 硬编码回退
-            displayTitle: record.title || record.description || '积分记录',
-            // 交易方向分类：根据 delta_amount 正负号判断（income=获得 / expense=消费）
+            displayTitle: record.title || record.description || '交易记录',
+            // 资产中文名直接用当前 Tab 资产名（本页已按 asset_code 过滤，同资产同名）
+            displayAssetName: this.data.currentAssetName || record.asset_code || '',
             category: rawDeltaAmount > 0 ? 'income' : 'expense',
-            // 时间：安全转换为字符串（防止 Sequelize Date 对象导致 [object Object]）
             created_at: safeTimeString(record.created_at)
           }
         })
 
         this.setData({ transactionRecords: processedRecords })
-
-        log.info('交易记录处理完成:', {
-          processedCount: processedRecords.length
-        })
-
-        // 应用筛选
         this.applyFilters()
       } else {
-        this.setData({
-          transactionRecords: [],
-          filteredRecords: []
-        })
+        this.setData({ transactionRecords: [], filteredRecords: [], tradeAllFiltered: [] })
         showToast('交易记录加载失败')
       }
     } catch (error) {
       log.error('加载交易记录失败:', error)
-      this.setData({
-        transactionRecords: [],
-        filteredRecords: []
-      })
+      this.setData({ transactionRecords: [], filteredRecords: [], tradeAllFiltered: [] })
       showToast('交易记录加载失败')
     }
   },
 
   /**
-   * 🔴 应用筛选条件
-   * 使用处理后的字段名（category/title/description/asset_transaction_id）
+   * 🔴 应用筛选条件（时间 / 方向 / 关键词，前端筛选）
    */
   applyFilters() {
     let filteredRecords = [...this.data.transactionRecords]
 
-    // 时间筛选
     if (this.data.currentTimeFilter !== 'all') {
       filteredRecords = this.filterByTime(filteredRecords, this.data.currentTimeFilter)
     }
 
-    // 类型筛选（使用处理后的 category 字段：income/expense）
     if (this.data.currentTypeFilter !== 'all') {
       if (this.data.currentTypeFilter === 'income') {
         filteredRecords = filteredRecords.filter((record: any) => record.category === 'income')
       } else if (this.data.currentTypeFilter === 'expense') {
         filteredRecords = filteredRecords.filter((record: any) => record.category === 'expense')
       } else {
-        // 按后端 business_type 筛选（lottery_consume / exchange_debit 等）
         filteredRecords = filteredRecords.filter(
           (record: any) => record.business_type === this.data.currentTypeFilter
         )
       }
     }
 
-    // 关键词搜索（直接使用后端字段名）
     if (this.data.searchKeyword) {
       const keyword = this.data.searchKeyword.toLowerCase()
       filteredRecords = filteredRecords.filter(
@@ -419,20 +332,12 @@ Page({
         (Utils.safeParseDateString(a.created_at) || new Date(0)).getTime()
     )
 
-    /**
-     * 交易记录使用前端分页：后端只支持 asset_code/business_type 筛选，
-     * 时间/方向/关键词为前端筛选，故按筛选后的完整结果做前端分页（首页回到第 1 页）。
-     */
     const tradeTotalPages = Math.max(1, Math.ceil(filteredRecords.length / this.data.tradePageSize))
     this.setData({ tradeAllFiltered: filteredRecords, tradeTotalPages })
     this._applyTradePage(1)
   },
 
-  /**
-   * 交易记录前端分页：从 tradeAllFiltered 截取目标页写入 filteredRecords。
-   *
-   * @param page - 目标页码（1 基）
-   */
+  /** 交易记录前端分页：从 tradeAllFiltered 截取目标页写入 filteredRecords */
   _applyTradePage(page: number) {
     const pageSize = this.data.tradePageSize
     const start = (page - 1) * pageSize
@@ -440,10 +345,7 @@ Page({
     this.setData({ tradePage: page, filteredRecords: pageRecords })
   },
 
-  /**
-   * 交易记录页码翻页栏跳转（exchange-pager 派发）。
-   * 前端分页：仅切换展示页，不重新请求后端。
-   */
+  /** 交易记录页码翻页栏跳转（前端分页，仅切换展示页） */
   onTradePagerChange(e: any) {
     const page = e.detail && e.detail.page
     if (!page) {
@@ -452,9 +354,7 @@ Page({
     this._applyTradePage(page)
   },
 
-  /**
-   * 🔴 按时间筛选
-   */
+  /** 🔴 按时间筛选 */
   filterByTime(records: any[], timeFilter: string) {
     const now = new Date()
     let startDate: Date | null = null
@@ -478,483 +378,65 @@ Page({
     )
   },
 
-  /**
-   * 🔴 时间筛选事件
-   */
+  /** 🔴 时间筛选事件 */
   onTimeFilter(e: WechatMiniprogram.BaseEvent) {
     const timeFilter = e.currentTarget.dataset.filter
     this.setData({ currentTimeFilter: timeFilter })
     this.applyFilters()
   },
 
-  /**
-   * 🔴 类型筛选事件
-   */
-  onTypeFilter(e: WechatMiniprogram.BaseEvent) {
-    const typeFilter = e.currentTarget.dataset.filter
-    this.setData({ currentTypeFilter: typeFilter })
-    this.applyFilters()
-  },
-
-  /**
-   * 🔴 搜索输入（防抖500ms）
-   */
+  /** 🔴 搜索输入（防抖500ms） */
   onSearchInput(e: WechatMiniprogram.Input) {
     const keyword = e.detail.value
     this.setData({ searchKeyword: keyword })
-
-    // 防抖搜索
     clearTimeout(this.searchTimer)
     this.searchTimer = setTimeout(() => {
       this.applyFilters()
     }, 500)
   },
 
-  /**
-   * 🔴 重置筛选条件
-   */
+  /** 🔴 重置筛选条件 */
   onResetFilters() {
     this.setData({
       currentTimeFilter: 'all',
       currentTypeFilter: 'all',
-      searchKeyword: '',
-      showFilterPanel: false
+      searchKeyword: ''
     })
     this.applyFilters()
   },
 
-  /**
-   * 🔴 显示/隐藏筛选面板
-   */
-  onToggleFilter() {
-    this.setData({
-      showFilterPanel: !this.data.showFilterPanel
-    })
-  },
-
-  /**
-   * 🔴 查看交易详情
-   * 使用处理后的字段
-   */
+  /** 🔴 查看交易详情 */
   onViewDetail(e: WechatMiniprogram.BaseEvent) {
     const record = e.currentTarget.dataset.record
-
     if (!record) {
       return
     }
-
-    // 使用后端 delta_amount 字段格式化金额显示
     const deltaAmount = record.delta_amount || 0
     const amountDisplay = deltaAmount > 0 ? `+${deltaAmount}` : `${deltaAmount}`
+    const assetName = record.displayAssetName || record.asset_code || ''
 
     wx.showModal({
       title: '交易详情',
-      content: `交易类型：${record.displayTitle || '积分记录'}\n交易金额：${amountDisplay}积分\n交易时间：${record.created_at || '未知'}\n交易ID：${record.asset_transaction_id || '无'}`,
+      content: `交易类型：${record.displayTitle || '交易记录'}\n交易金额：${amountDisplay} ${assetName}\n交易时间：${record.created_at || '未知'}\n交易ID：${record.asset_transaction_id || '无'}`,
       showCancel: false,
       confirmText: '知道了'
     })
   },
 
-  /**
-   * 🔴 复制交易ID
-   */
-  onCopyTxnId(e: WechatMiniprogram.BaseEvent) {
-    const txnId = e.currentTarget.dataset.txnId
-    if (!txnId) {
-      showToast('无交易ID')
-      return
-    }
-
-    wx.setClipboardData({
-      data: txnId,
-      success: () => {
-        showToast('交易ID已复制')
-      }
-    })
-  },
-
-  // ============================================================================
-  // 🧾 消费记录相关方法
-  // 后端API: GET /api/v4/shop/consumption/me（支持分页 + status筛选）
-  // ============================================================================
-
-  /**
-   * 🧾 加载消费记录
-   *
-   * 后端真分页（status 为服务端筛选），支持页码跳转（替换式）与触底加载（追加式）。
-   *
-   * 后端返回字段（基于consumption_records 表，对齐v2.0文档）：
-   *   - consumption_record_id: BIGINT PK 记录主键
-   *   - user_id: INT FK 用户ID
-   *   - merchant_id: INT FK 商家ID
-   *   - consumption_amount: DECIMAL(10,2) 消费金额（元）
-   *   - points_to_award: INT 待发放积分数（⚠不是 points_awarded）
-   *   - status: ENUM pending/approved/rejected/expired 审核状态，含expired
-   *   - final_status: ENUM pending_review/approved/rejected（双重状态）
-   *   - merchant_notes: TEXT 商家备注
-   *   - admin_notes: TEXT 管理员备注
-   *   - store_id: INT FK 门店ID
-   *   - created_at: DATETIME 创建时间 ⚠️ 后端可能返回非字符串类型，需安全转换
-   *
-   * @param page - 目标页码（1 基），默认第 1 页
-   * @param append - true=追加（触底加载），false=替换（首屏/切筛选/页码跳转）
-   */
-  async loadConsumptionRecords(page: number = 1, append: boolean = false) {
-    if (!this.data.isLoggedIn) {
-      return
-    }
-
-    if (!append) {
-      this.setData({ consumptionRecords: [] })
-    }
-
-    const statusFilter = this.data.consumptionFilter === 'all' ? null : this.data.consumptionFilter
-
-    try {
-      const result = await API.getMyConsumptionRecords({
-        page,
-        page_size: this.data.consumptionPageSize,
-        status: statusFilter
-      })
-      const { success, data } = result
-
-      if (success && data) {
-        const rawRecords = data.records || []
-        const pagination = data.pagination || {}
-        const totalPages =
-          pagination.total_pages ||
-          (rawRecords.length === this.data.consumptionPageSize ? page + 1 : page)
-
-        // 🔴 处理消费记录 - 安全转换时间字段（防止[object Object]）
-        const processedRecords = rawRecords.map((record: any) => ({
-          ...record,
-          // 安全转换 created_at 为字符串
-          created_at: safeTimeString(record.created_at)
-        }))
-
-        const allRecords = append
-          ? [...this.data.consumptionRecords, ...processedRecords]
-          : processedRecords
-
-        this.setData({
-          consumptionRecords: allRecords,
-          consumptionHasMore: page < totalPages,
-          consumptionPage: page + 1,
-          consumptionCurrentPage: page,
-          consumptionTotalPages: totalPages
-        })
-
-        log.info(` 消费记录加载完成，共${allRecords.length}条，第${page}页`)
-      }
-    } catch (error) {
-      log.error('加载消费记录失败:', error)
-      showToast('消费记录加载失败')
-    }
-  },
-
-  /**
-   * 🧾 消费记录页码翻页栏跳转（exchange-pager 派发）。
-   * 后端真分页，翻页为替换式加载，只展示目标页。
-   */
-  onConsumptionPagerChange(e: any) {
-    const page = e.detail && e.detail.page
-    if (!page || this.data.loadingMore) {
-      return
-    }
-    this.loadConsumptionRecords(page, false)
-  },
-
-  /**
-   * 🧾 切换消费记录筛选条件
-   */
-  switchConsumptionFilter(e: WechatMiniprogram.BaseEvent) {
-    const filter = e.currentTarget.dataset.filter
-    if (filter === this.data.consumptionFilter) {
-      return
-    }
-
-    this.setData({
-      consumptionFilter: filter,
-      consumptionPage: 1,
-      consumptionRecords: []
-    })
-
-    this.loadConsumptionRecords(1, false)
-  },
-
-  /**
-   * 🔴 格式化审核状态
-   * @param status - 状态值
-   */
-  formatReviewStatus(status: string) {
-    /* 后端 consumption_records 表有4种状态: pending/approved/rejected/expired */
-    const statusMap: Record<string, { text: string; color: string; icon: string }> = {
-      pending: { text: '待审核', color: '#FFC107', icon: '⏳' },
-      approved: { text: '已通过', color: '#4CAF50', icon: '✅' },
-      rejected: { text: '已拒绝', color: '#F44336', icon: '❌' },
-      expired: { text: '已过期', color: '#9E9E9E', icon: '⌛' }
-    }
-    return statusMap[status] || { text: status, color: '#666', icon: '❓' }
-  },
-
-  /**
-   * 🔴 预览图片
-   */
-  previewImage(e: WechatMiniprogram.BaseEvent) {
-    const imageUrl = e.currentTarget.dataset.url
-
-    if (!imageUrl) {
-      return
-    }
-
-    wx.previewImage({
-      current: imageUrl,
-      urls: [imageUrl]
-    })
-  },
-
-  /**
-   * 🧾 查看消费记录详情（调用详情接口 + 审核链进度）
-   *
-   * 数据来源：GET /api/v4/shop/consumption/detail/:id（后端已修复 500，并 JOIN store、积分流水）
-   *   - store_name             门店名称
-   *   - reward_points          奖励到账积分（仅 approved 有值）
-   *   - reward_transaction_no  奖励积分流水单号（仅 approved 有值，便于对账）
-   * 审核链进度：pending 状态下优先用记录附带 chain_info，回退调用审核链实例API（role_level>=60）
-   *
-   * 所有展示字段以后端详情接口返回为准，前端不自行计算、不静默补全。
-   */
-  async viewReviewDetail(e: WechatMiniprogram.BaseEvent) {
-    const listRecord = e.currentTarget.dataset.record
-
-    if (!listRecord) {
-      return
-    }
-
-    // 详情接口以主键 consumption_record_id 查询，缺失则明确报错（不静默降级）
-    const recordId = listRecord.consumption_record_id
-    if (recordId === undefined || recordId === null || recordId === '') {
-      log.error('查看详情失败：消费记录缺少 consumption_record_id 字段', listRecord)
-      showToast('记录信息缺失，无法查看详情')
-      return
-    }
-
-    let detail: any
-    try {
-      const result = await API.getConsumptionDetail(recordId)
-      if (!result || !result.success || !result.data) {
-        log.error('消费详情接口返回异常（success/data 缺失）', result)
-        showToast('消费详情加载失败')
-        return
-      }
-      detail = result.data
-    } catch (error) {
-      // 接口层已弹出错误 Toast，这里仅记录日志并中断（不回退用列表数据冒充详情）
-      log.error('加载消费详情失败:', error)
-      return
-    }
-
-    const statusInfo = this.formatReviewStatus(detail.status)
-    let content = `消费时间：${safeTimeString(detail.created_at) || '未知'}\n审核状态：${statusInfo.text}\n消费金额：${detail.consumption_amount || 0}元`
-
-    if (detail.store_name) {
-      content += `\n消费门店：${detail.store_name}`
-    }
-
-    /* 已通过记录展示后端下发的奖励积分与流水单号（pending/拒绝时后端返回 null，不展示） */
-    if (detail.status === 'approved') {
-      if (detail.reward_points !== null && detail.reward_points !== undefined) {
-        content += `\n到账积分：${formatPoints(detail.reward_points)}`
-      }
-      if (detail.reward_transaction_no) {
-        content += `\n流水单号：${detail.reward_transaction_no}`
-      }
-    }
-
-    if (detail.status === 'rejected' && detail.admin_notes) {
-      content += `\n拒绝原因：${detail.admin_notes}`
-    }
-
-    if (detail.merchant_notes) {
-      content += `\n商家备注：${detail.merchant_notes}`
-    }
-
-    /* 审核链进度展示（pending 状态下尝试获取链路信息） */
-    if (detail.status === 'pending') {
-      const chainProgress = await this.fetchChainProgressForRecord(detail)
-      if (chainProgress) {
-        content += `\n\n── 审核链进度 ──\n当前进度：第${chainProgress.current_step}步 / 共${chainProgress.total_steps}步\n审核状态：${chainProgress.status_text}`
-        if (chainProgress.current_node_name) {
-          content += `\n当前节点：${chainProgress.current_node_name}`
-        }
-      }
-    }
-
-    wx.showModal({
-      title: '消费记录详情',
-      content,
-      showCancel: false,
-      confirmText: '知道了'
-    })
-  },
-
-  /**
-   * 获取某条消费记录的审核链进度
-   *
-   * 数据来源优先级:
-   *   1. 后端在记录中附带的 chain_info（需后端支持，目前标记为待后端实现）
-   *   2. 当前用户 role_level>=60 时，调用 GET /console/approval-chain/instances 查询
-   *   3. 都不可用时返回 null
-   */
-  async fetchChainProgressForRecord(record: any): Promise<{
-    current_step: number
-    total_steps: number
-    status_text: string
-    current_node_name?: string
-  } | null> {
-    /* 优先使用后端附带的 chain_info（需后端在 GET /shop/consumption/me 中 JOIN 审核链实例） */
-    if (record.chain_info) {
-      const localChainInfo = record.chain_info
-      return {
-        current_step: localChainInfo.current_step || 1,
-        total_steps: localChainInfo.total_steps || 1,
-        status_text:
-          localChainInfo.status === 'in_progress' ? '审核中' : localChainInfo.status || '未知',
-        current_node_name: localChainInfo.current_node_name
-      }
-    }
-
-    /* 回退: 当前用户有审核权限(>=60)时，调用审核链实例API查询 */
-    const localUserInfo = userStore.userInfo || wx.getStorageSync('user_info')
-    const localRoleLevel = localUserInfo?.role_level || 0
-
-    if (localRoleLevel >= 60 && record.consumption_record_id) {
-      try {
-        const chainResult = await API.getApprovalChainInstances({
-          auditable_type: 'consumption',
-          auditable_id: record.consumption_record_id,
-          page: 1,
-          page_size: 1
-        })
-
-        if (chainResult?.success && chainResult.data?.items?.length > 0) {
-          const chainInstance = chainResult.data.items[0]
-          return {
-            current_step: chainInstance.current_step || 1,
-            total_steps: chainInstance.total_steps || 1,
-            status_text:
-              chainInstance.status === 'in_progress' ? '审核中' : chainInstance.status || '未知',
-            current_node_name: chainInstance.current_node_name
-          }
-        }
-      } catch (chainQueryError) {
-        log.warn('查询审核链进度失败（非阻断）:', chainQueryError)
-      }
-    }
-
-    return null
-  },
-
-  /**
-   * 申请售后（消费记录自助发起售后申诉，统一走 POST /system/disputes）
-   * order_type=consumption，order_id=consumption_record_id（消费记录主键）
-   */
-  onApplyAfterSale(e: WechatMiniprogram.BaseEvent) {
-    const recordId = e.currentTarget.dataset.recordId
-    const orderTitle = e.currentTarget.dataset.orderTitle || ''
-    // 缺失主键时明确报错（不静默降级），便于定位后端是否返回 consumption_record_id 字段
-    if (recordId === undefined || recordId === null || recordId === '') {
-      log.error('申请售后失败：消费记录缺少 consumption_record_id 字段', e.currentTarget.dataset)
-      showToast('订单信息缺失，无法发起售后')
-      return
-    }
-    const titleParam = orderTitle ? `&order_title=${encodeURIComponent(orderTitle)}` : ''
-    wx.navigateTo({
-      url: `/packageUser/disputes/create?order_type=consumption&order_id=${recordId}${titleParam}`,
-      fail: err => {
-        log.error('跳转售后申诉页失败:', err)
-        showToast('页面跳转失败，请重试')
-      }
-    })
-  },
-
-  /**
-   * 🔴 重新上传
-   */
-  reuploadImage(_e: WechatMiniprogram.BaseEvent) {
-    wx.showModal({
-      title: '重新上传',
-      content: '是否要重新上传照片？',
-      success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
-        if (res.confirm) {
-          wx.navigateTo({
-            url: '/pages/camera/camera'
-          })
-        }
-      }
-    })
-  },
-
-  /**
-   * 🔴 跳转到拍照页面
-   */
-  goToCamera() {
-    wx.navigateTo({
-      url: '/pages/camera/camera'
-    })
-  },
-
-  /**
-   * 🔴 跳转到活动页面
-   */
+  /** 跳转到活动页面（空状态引导） */
   goToActivity() {
-    wx.switchTab({
-      url: '/pages/lottery/lottery'
-    })
+    wx.switchTab({ url: '/pages/lottery/lottery' })
   },
 
-  // ============================================================================
-  // 🔄 生命周期和事件处理
-  // ============================================================================
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
+  /** 下拉刷新 */
   async onPullDownRefresh() {
-    await this.refreshCurrentTab()
+    await this.refreshCurrentAsset()
     wx.stopPullDownRefresh()
   },
 
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  async onReachBottom() {
-    // 消费记录Tab支持分页加载更多
-    if (this.data.activeTab === 1) {
-      if (this.data.consumptionHasMore && !this.data.loadingMore) {
-        this.setData({ loadingMore: true })
-        await this.loadConsumptionRecords(this.data.consumptionPage, true)
-        this.setData({ loadingMore: false })
-      }
-    }
-  },
-
-  /**
-   * 生命周期函数 - 页面卸载
-   */
-  onUnload() {
-    // 🆕 销毁MobX Store绑定
-    if (this.userBindings) {
-      this.userBindings.destroyStoreBindings()
-    }
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
   onShareAppMessage() {
     return {
-      title: '我的积分活动记录',
+      title: '我的资产明细',
       path: '/packageUser/records/trade-upload-records/trade-upload-records'
     }
   }

@@ -465,8 +465,9 @@ Component({
           const balanceResult = await API.getPointsBalance()
           if (balanceResult?.success) {
             const availablePoints = balanceResult.data.available_amount || 0
-            const frozenPoints = balanceResult.data.frozen_amount || 0
-            pointsStore.setBalance(availablePoints, frozenPoints)
+            // POINTS 已不下发 frozen_amount，改读 pending_consumption_points（待审核消费积分）
+            const pendingConsumptionPoints = balanceResult.data.pending_consumption_points || 0
+            pointsStore.setBalance(availablePoints, pendingConsumptionPoints)
           }
         } catch (_e) {
           log.warn('积分获取失败，不影响登录')

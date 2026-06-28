@@ -369,11 +369,21 @@ declare namespace API {
 
   // ===== 资产系统 =====
 
-  /** 资产余额（对齐后端 GET /api/v4/assets/balance 响应） */
+  /**
+   * 资产余额（对齐后端 GET /api/v4/assets/balance 响应）
+   *
+   * ⚠️ POINTS 与其他资产的字段差异（对接文档《待审核消费积分》§二）：
+   *   - POINTS：含 pending_consumption_points（待审核消费积分）、不再下发 frozen_amount；
+   *   - 其他资产（star_stone 等）：保留 frozen_amount（真实的兑换/竞价/DIY 资产锁定）。
+   *   故 frozen_amount 与 pending_consumption_points 均按资产类型可选下发。
+   */
   interface AssetBalance {
     asset_code: string
     available_amount: number
-    frozen_amount: number
+    /** 冻结数量（仅 star_stone 等真实锁定资产下发；POINTS 不下发） */
+    frozen_amount?: number
+    /** 待审核消费积分（仅 POINTS 下发，单一事实源=待审核消费记录聚合） */
+    pending_consumption_points?: number
     total_amount: number
   }
 

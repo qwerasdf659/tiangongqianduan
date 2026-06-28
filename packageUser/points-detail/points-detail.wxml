@@ -1,4 +1,4 @@
-<!--packageUser/points-detail/points-detail.wxml - 积分详情页面模板-->
+<!--packageUser/points-detail/points-detail.wxml - 积分明细页面模板-->
 <custom-navbar title="积分明细" bgColor="#ffffff" textColor="#333333" showBack="{{true}}" />
 
 <view class="points-detail-container">
@@ -23,7 +23,8 @@
         <view class="balance-stat">
           <view class="stat-dot earn-dot"></view>
           <text class="stat-text"
-            >获得：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length : 0}}笔</text
+            >当前展示：{{filteredPointsRecords.length > 0 ? filteredPointsRecords.length :
+            0}}笔</text
           >
         </view>
         <view class="balance-badge" wx:if="{{filteredPointsRecords.length > 0}}">
@@ -36,7 +37,7 @@
       </view>
     </view>
 
-    <!-- 筛选功能区域 -->
+    <!-- 次级筛选功能区域（获得/消费，客户端按金额正负筛选） -->
     <view class="filter-section">
       <t-tabs
         value="{{pointsFilter}}"
@@ -101,7 +102,7 @@
               <view
                 class="record-points {{item.transaction_type === 'earn' ? 'earn-points' : 'consume-points'}}"
               >
-                {{item.displayAmount}}
+                {{item.displayAmount}} 积分
               </view>
             </view>
             <view class="record-meta">

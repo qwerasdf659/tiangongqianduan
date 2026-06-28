@@ -31,14 +31,15 @@ declare namespace Store {
   /** 积分Store状态 */
   interface PointsStore {
     availableAmount: number
-    frozenAmount: number
+    /** 待审核消费积分（后端 pending_consumption_points，替代旧 frozenAmount） */
+    pendingConsumptionPoints: number
     transactions: API.AssetTransaction[]
     transactionPagination: PaginationState
     balanceLoading: boolean
     transactionsLoading: boolean
     readonly totalAmount: number
     readonly formattedBalance: string
-    setBalance(availableAmount: number, frozenAmount: number): void
+    setBalance(availableAmount: number, pendingConsumptionPoints: number): void
     setBalanceLoading(loading: boolean): void
     setTransactions(transactions: API.AssetTransaction[], pagination: PaginationParam): void
     appendTransactions(transactions: API.AssetTransaction[], pagination: PaginationParam): void

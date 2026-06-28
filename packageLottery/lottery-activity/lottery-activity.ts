@@ -634,8 +634,9 @@ Component({
      */
     _updateBalanceAfterDraw(remainingBalance: number) {
       /* 更新全局积分Store — MobX绑定会自动同步到组件 data.pointsBalance */
-      const currentFrozen = pointsStore.frozenAmount || 0
-      pointsStore.setBalance(remainingBalance, currentFrozen)
+      // 抽奖只影响可用积分，待审核消费积分原样保留（两者互不相干）
+      const currentPending = pointsStore.pendingConsumptionPoints || 0
+      pointsStore.setBalance(remainingBalance, currentPending)
     },
 
     /**

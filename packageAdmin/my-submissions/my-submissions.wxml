@@ -14,6 +14,50 @@
       </view>
     </view>
 
+    <!-- 视角切换条（店长及以上可切：门店/员工/全部；店员仅本人不展示） -->
+    <view class="view-switch-section" wx:if="{{showViewSwitch}}">
+      <view class="view-tabs">
+        <view
+          class="view-tab {{currentView === item.key ? 'active' : ''}}"
+          wx:for="{{viewTabs}}"
+          wx:key="key"
+          data-view="{{item.key}}"
+          bindtap="onViewTabTap"
+        >
+          <text class="view-tab-text">{{item.label}}</text>
+        </view>
+      </view>
+
+      <!-- 门店选择行（store/staff 视角展示） -->
+      <view
+        class="view-filter-row"
+        wx:if="{{currentView === 'store' || currentView === 'staff'}}"
+        bindtap="openStorePicker"
+      >
+        <t-icon name="shop" size="32rpx" class="filter-icon" />
+        <text class="filter-label">门店</text>
+        <text class="filter-value {{selectedStoreName ? 'selected' : ''}}"
+          >{{selectedStoreName || (currentView === 'store' ? '全部可见门店' : '请选择门店')}}</text
+        >
+        <t-icon name="chevron-right" size="32rpx" class="filter-arrow" />
+      </view>
+
+      <!-- 员工选择行（仅 staff 视角展示） -->
+      <view class="view-filter-row" wx:if="{{currentView === 'staff'}}" bindtap="openStaffPicker">
+        <t-icon name="user" size="32rpx" class="filter-icon" />
+        <text class="filter-label">员工</text>
+        <text class="filter-value {{selectedStaffName ? 'selected' : ''}}"
+          >{{selectedStaffName || '请选择员工'}}</text
+        >
+        <t-icon name="chevron-right" size="32rpx" class="filter-arrow" />
+      </view>
+
+      <!-- 后端回显的视角说明文案（零计算直读 view_note） -->
+      <view class="view-note" wx:if="{{viewNote}}">
+        <text class="view-note-text">{{viewNote}}</text>
+      </view>
+    </view>
+
     <!-- 状态概况（直读后端 merchant/stats 的 by_status 计数） -->
     <view class="summary-section" wx:if="{{summaryReady}}">
       <view class="summary-grid">
@@ -34,8 +78,18 @@
 
     <!-- 提交记录列表 -->
     <view class="list-section">
+      <!-- staff 视角未选齐门店+员工时的引导态（优先于空数据态） -->
       <t-empty
-        wx:if="{{!loading && submissionRecords.length === 0}}"
+        wx:if="{{currentView === 'staff' && (!selectedStoreId || !selectedTargetUserId)}}"
+        description="请先在上方选择门店和员工后查看其提交记录"
+      >
+        <view slot="image"
+          ><t-icon name="user-circle" size="120rpx" color="var(--td-brand-color)"
+        /></view>
+      </t-empty>
+
+      <t-empty
+        wx:elif="{{!loading && submissionRecords.length === 0}}"
         description="你还没有提交过消费记录，下拉刷新检查"
       >
         <view slot="image"
@@ -109,4 +163,85 @@
     <!-- 底部安全区留白 -->
     <view style="height: calc(60rpx + env(safe-area-inset-bottom, 0px)); width: 100%"></view>
   </scroll-view>
+
+  <!-- 门店选择器弹层（store/staff 视角） -->
+  <t-popup
+    visible="{{storePickerVisible}}"
+    placement="bottom"
+    bind:visible-change="onStorePickerClose"
+  >
+    <view class="picker-panel">
+      <view class="picker-header">
+        <text class="picker-title">选择门店</text>
+        <t-icon name="close" size="40rpx" bindtap="onStorePickerClose" />
+      </view>
+      <scroll-view scroll-y class="picker-list">
+        <view
+          class="picker-item {{selectedStoreId === item.store_id ? 'selected' : ''}}"
+          wx:for="{{storeList}}"
+          wx:key="store_id"
+          data-store-id="{{item.store_id}}"
+          bindtap="onStoreSelect"
+        >
+          <view class="picker-item-main">
+            <text class="picker-item-name">{{item.store_name}}</text>
+            <text class="picker-item-sub" wx:if="{{item.role_in_store}}"
+              >{{item.role_in_store === 'manager' ? '店长' : '店员'}}</text
+            >
+          </view>
+          <t-icon
+            wx:if="{{selectedStoreId === item.store_id}}"
+            name="check"
+            size="36rpx"
+            class="picker-item-check"
+          />
+        </view>
+      </scroll-view>
+    </view>
+  </t-popup>
+
+  <!-- 员工选择器弹层（仅 staff 视角） -->
+  <t-popup
+    visible="{{staffPickerVisible}}"
+    placement="bottom"
+    bind:visible-change="onStaffPickerClose"
+  >
+    <view class="picker-panel">
+      <view class="picker-header">
+        <text class="picker-title">选择员工</text>
+        <t-icon name="close" size="40rpx" bindtap="onStaffPickerClose" />
+      </view>
+      <!-- 含离职开关（C1：默认仅在职，勾选查含离职历史员工） -->
+      <view class="picker-toolbar">
+        <text class="toolbar-label">含离职员工</text>
+        <t-switch value="{{staffIncludeDeleted}}" bindchange="onToggleIncludeDeleted" />
+      </view>
+      <scroll-view scroll-y class="picker-list">
+        <t-empty wx:if="{{staffList.length === 0}}" description="该门店暂无员工" />
+        <view
+          class="picker-item {{selectedTargetUserId === item.user_id ? 'selected' : ''}}"
+          wx:for="{{staffList}}"
+          wx:key="user_id"
+          data-user-id="{{item.user_id}}"
+          bindtap="onStaffSelect"
+        >
+          <view class="picker-item-main">
+            <text class="picker-item-name">{{item.user_nickname || ('员工' + item.user_id)}}</text>
+            <view class="picker-item-tags">
+              <text class="picker-tag role"
+                >{{item.role_in_store === 'manager' ? '店长' : '店员'}}</text
+              >
+              <text class="picker-tag left" wx:if="{{item.status !== 'active'}}">已离职</text>
+            </view>
+          </view>
+          <t-icon
+            wx:if="{{selectedTargetUserId === item.user_id}}"
+            name="check"
+            size="36rpx"
+            class="picker-item-check"
+          />
+        </view>
+      </scroll-view>
+    </view>
+  </t-popup>
 </view>

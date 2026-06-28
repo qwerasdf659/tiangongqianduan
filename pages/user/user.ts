@@ -105,8 +105,10 @@ Page({
 
     // 积分信息
     // totalPoints: GET /api/v4/assets/balance?asset_code=points → available_amount
+    // pendingConsumptionPoints: 同接口 → pending_consumption_points（待审核消费积分）
     // todayEarned/todayConsumed: GET /api/v4/assets/today-summary?asset_code=points → today_earned / today_consumed
     totalPoints: 0,
+    pendingConsumptionPoints: 0,
     todayEarned: 0,
     todayConsumed: 0,
 
@@ -160,13 +162,13 @@ Page({
       },
       {
         id: 'trade-records',
-        name: '积分记录',
-        description: '查看积分流水与消费记录',
+        name: '资产明细',
+        description: '查看星石、源晶等资产流水',
         iconClass: 'icon-chart',
         tdIcon: 'chart-filled',
         color: '#8B7355',
         type: 'page',
-        url: '/packageUser/records/trade-upload-records/trade-upload-records?tab=0'
+        url: '/packageUser/records/trade-upload-records/trade-upload-records'
       },
       {
         id: 'consumption-records',
@@ -176,7 +178,7 @@ Page({
         tdIcon: 'file-paste-filled',
         color: '#A08B6E',
         type: 'page',
-        url: '/packageUser/records/trade-upload-records/trade-upload-records?tab=1'
+        url: '/packageUser/records/consumption-records/consumption-records'
       },
       {
         id: 'my-disputes',
@@ -281,7 +283,7 @@ Page({
       store: pointsStore,
       fields: {
         totalPoints: () => pointsStore.availableAmount,
-        frozenPoints: () => pointsStore.frozenAmount
+        pendingConsumptionPoints: () => pointsStore.pendingConsumptionPoints
       },
       actions: ['setBalance']
     })
@@ -626,11 +628,11 @@ Page({
 
       // 第2步：获取用户积分余额（委托 pointsStore.refreshFromAPI）
       try {
-        const { available, frozen } = await pointsStore.refreshFromAPI()
+        const { available, pendingConsumptionPoints } = await pointsStore.refreshFromAPI()
         // 双保险：MobX绑定 + 手动setData，确保页面一定能更新
         this.setData({
           totalPoints: available,
-          frozenPoints: frozen
+          pendingConsumptionPoints
         })
       } catch (pointsError) {
         log.error('获取积分余额异常:', pointsError)

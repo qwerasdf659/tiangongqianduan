@@ -49,12 +49,12 @@ const formatPointsDisplay = Utils.formatPoints
  * 位数 ≤7: 默认字号  |  ≤10: medium-number  |  ≤13: small-number  |  >13: tiny-number
  */
 /**
- * 统一计算可用积分/冻结积分的响应式字号档位
+ * 统一计算可用积分/待审核消费积分的响应式字号档位
  *
  * 方案A：取两个数字中位数最多者计算同一档字号，确保左右两个数字字号一致，
- * 避免「可用积分变小、冻结积分仍为大字」的视觉割裂。
+ * 避免「可用积分变小、待审核消费积分仍为大字」的视觉割裂。
  *
- * @param nums 参与比较的积分数值（可用积分、冻结积分）
+ * @param nums 参与比较的积分数值（可用积分、待审核消费积分）
  * @returns 字号档位 CSS 类名（''=大字 / medium-number / small-number / tiny-number）
  */
 function getPointsDisplayClass(...nums: number[]): string {
@@ -88,18 +88,18 @@ Page({
     /** 我的提交：拥有 consumption:read 权限者可查看本人提交的消费记录及审核状态 */
     showMySubmissions: false,
     pointsBalance: 0,
-    frozenPoints: 0,
+    pendingConsumptionPoints: 0,
     userInfo: {},
 
     /* 登录弹窗 */
     loginPopupVisible: false,
 
-    /* 响应式字体类（可用/冻结积分共用同一档字号，确保大小一致） */
+    /* 响应式字体类（可用/待审核消费积分共用同一档字号，确保大小一致） */
     pointsClass: '',
 
     /* 格式化显示的积分（带千分位） */
     pointsBalanceFormatted: '0',
-    frozenPointsFormatted: '0',
+    pendingConsumptionPointsFormatted: '0',
 
     /* ===== V2动态二维码 ===== */
     qrCodeImage: '',
@@ -178,13 +178,14 @@ Page({
       fields: {
         /* 原始积分值 */
         pointsBalance: () => pointsStore.availableAmount,
-        frozenPoints: () => pointsStore.frozenAmount,
+        pendingConsumptionPoints: () => pointsStore.pendingConsumptionPoints,
         /* 格式化积分显示（带千分位分隔符） - 当Store变化时自动重新计算 */
         pointsBalanceFormatted: () => formatPointsDisplay(pointsStore.availableAmount),
-        frozenPointsFormatted: () => formatPointsDisplay(pointsStore.frozenAmount),
-        /* 响应式字体CSS类 - 取可用/冻结积分位数最多者，两数字共用同一档字号 */
+        pendingConsumptionPointsFormatted: () =>
+          formatPointsDisplay(pointsStore.pendingConsumptionPoints),
+        /* 响应式字体CSS类 - 取可用/待审核消费积分位数最多者，两数字共用同一档字号 */
         pointsClass: () =>
-          getPointsDisplayClass(pointsStore.availableAmount, pointsStore.frozenAmount)
+          getPointsDisplayClass(pointsStore.availableAmount, pointsStore.pendingConsumptionPoints)
       },
       actions: ['setBalance']
     })
@@ -250,18 +251,21 @@ Page({
     }
 
     const currentBalance = pointsStore.availableAmount || 0
-    const currentFrozen = pointsStore.frozenAmount || 0
+    const currentPending = pointsStore.pendingConsumptionPoints || 0
     if (currentBalance !== this.data.pointsBalance) {
       onShowPatch.pointsBalance = currentBalance
       onShowPatch.pointsBalanceFormatted = Utils.formatPoints(currentBalance)
     }
-    if (currentFrozen !== this.data.frozenPoints) {
-      onShowPatch.frozenPoints = currentFrozen
-      onShowPatch.frozenPointsFormatted = Utils.formatPoints(currentFrozen)
+    if (currentPending !== this.data.pendingConsumptionPoints) {
+      onShowPatch.pendingConsumptionPoints = currentPending
+      onShowPatch.pendingConsumptionPointsFormatted = Utils.formatPoints(currentPending)
     }
-    /* 可用/冻结任一变化都需重算共用字号（取两者位数最多者） */
-    if (currentBalance !== this.data.pointsBalance || currentFrozen !== this.data.frozenPoints) {
-      onShowPatch.pointsClass = getPointsDisplayClass(currentBalance, currentFrozen)
+    /* 可用/待审核任一变化都需重算共用字号（取两者位数最多者） */
+    if (
+      currentBalance !== this.data.pointsBalance ||
+      currentPending !== this.data.pendingConsumptionPoints
+    ) {
+      onShowPatch.pointsClass = getPointsDisplayClass(currentBalance, currentPending)
     }
     if (userInfo !== this.data.userInfo) {
       onShowPatch.userInfo = userInfo
@@ -860,7 +864,7 @@ Page({
   /** 刷新积分余额（委托 pointsStore.refreshFromAPI，消除重复逻辑）
    *
    * 防闪烁优化：refreshFromAPI 更新 store 后，MobX binding（onLoad 中配置）
-   * 会自动同步 pointsBalance/frozenPoints/pointsBalanceFormatted/pointsClass 等全部字段，
+   * 会自动同步 pointsBalance/pendingConsumptionPoints/pointsBalanceFormatted/pointsClass 等全部字段，
    * 无需再手动调用 updatePointsDisplay()，避免同一帧内双重 setData
    * 导致 lottery-activity → egg 子组件级联 diff → 奖品预览区 marquee 动画中断
    */
@@ -869,12 +873,12 @@ Page({
       return
     }
     try {
-      const { available, frozen } = await pointsStore.refreshFromAPI()
+      const { available, pendingConsumptionPoints } = await pointsStore.refreshFromAPI()
       this.setData({
         pointsBalance: available,
-        frozenPoints: frozen,
+        pendingConsumptionPoints,
         pointsBalanceFormatted: Utils.formatPoints(available),
-        frozenPointsFormatted: Utils.formatPoints(frozen)
+        pendingConsumptionPointsFormatted: Utils.formatPoints(pendingConsumptionPoints)
       })
     } catch (err) {
       log.error('[lottery] 刷新积分失败:', err)
@@ -890,19 +894,22 @@ Page({
    * 防闪烁优化：仅当值真正变化时才 setData，避免页面级 WXML 重新求值
    * 导致 lottery-activity → egg 子组件级联 diff → 奖品预览区 marquee 动画中断
    */
-  updatePointsDisplay(points: number, frozen: number) {
+  updatePointsDisplay(points: number, pendingConsumptionPoints: number) {
     const patch: Record<string, any> = {}
     if (points !== this.data.pointsBalance) {
       patch.pointsBalance = points
       patch.pointsBalanceFormatted = Utils.formatPoints(points)
     }
-    if (frozen !== this.data.frozenPoints) {
-      patch.frozenPoints = frozen
-      patch.frozenPointsFormatted = Utils.formatPoints(frozen)
+    if (pendingConsumptionPoints !== this.data.pendingConsumptionPoints) {
+      patch.pendingConsumptionPoints = pendingConsumptionPoints
+      patch.pendingConsumptionPointsFormatted = Utils.formatPoints(pendingConsumptionPoints)
     }
-    /* 可用/冻结任一变化都需重算共用字号（取两者位数最多者） */
-    if (points !== this.data.pointsBalance || frozen !== this.data.frozenPoints) {
-      patch.pointsClass = getPointsDisplayClass(points, frozen)
+    /* 可用/待审核任一变化都需重算共用字号（取两者位数最多者） */
+    if (
+      points !== this.data.pointsBalance ||
+      pendingConsumptionPoints !== this.data.pendingConsumptionPoints
+    ) {
+      patch.pointsClass = getPointsDisplayClass(points, pendingConsumptionPoints)
     }
     if (Object.keys(patch).length > 0) {
       this.setData(patch)

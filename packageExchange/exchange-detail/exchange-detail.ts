@@ -51,6 +51,29 @@ const SPACE_LABELS: Record<string, string> = {
   both: '全空间'
 }
 
+/** 详情头图默认高度（px）—— 无原图尺寸时按近似 1:1 兜底（与原 520rpx 视觉接近） */
+const HERO_FALLBACK_HEIGHT_PX = 260
+
+/**
+ * 按原图宽高比计算头图容器高度（px）
+ *
+ * 用后端下发的 width/height（对接文档《商品图片按原图尺寸动态排版》§四）在渲染前预算高度，
+ * 避免 wx.getImageInfo 异步测量导致首屏跳动；竖图不再被固定高度 + aspectFill 裁切。
+ *
+ * @param width   原图像素宽（后端 primary_image.width / images[].width）
+ * @param height  原图像素高
+ * @returns 容器高度 px；无有效尺寸时返回兜底高度
+ */
+function calcHeroHeight(width: number, height: number): number {
+  const sysInfo =
+    typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : wx.getSystemInfoSync()
+  const screenW = sysInfo.windowWidth || 375
+  if (width > 0 && height > 0) {
+    return Math.round(screenW * (height / width))
+  }
+  return HERO_FALLBACK_HEIGHT_PX
+}
+
 Page({
   data: {
     /** 路由参数: exchange_items.exchange_item_id */
@@ -66,6 +89,12 @@ Page({
      */
     swiperImages: [] as any[],
     swiperCurrent: 0,
+
+    /**
+     * 详情头图容器高度（px）—— 按当前展示首图的原图宽高比动态算出（对接文档 §四）
+     * 渲染前确定，竖图完整显示不裁切、首屏无跳动；无尺寸时兜底 HERO_FALLBACK_HEIGHT_PX。
+     */
+    heroHeight: HERO_FALLBACK_HEIGHT_PX,
 
     /**
      * 主图轮播自动播放间隔（毫秒）
@@ -330,7 +359,10 @@ Page({
           swiperImages.push({
             media_id: img.media_id,
             url: img.public_url || (img.thumbnails && img.thumbnails.w1080) || '',
-            thumbnailUrl: (img.thumbnails && img.thumbnails.w750) || img.public_url || ''
+            thumbnailUrl: (img.thumbnails && img.thumbnails.w750) || img.public_url || '',
+            // 原图像素宽高（后端直发，零映射），用于头图按比例动态排版
+            width: img.width || 0,
+            height: img.height || 0
           })
         })
       } else if (productData.primary_image) {
@@ -338,12 +370,20 @@ Page({
         swiperImages.push({
           media_id: primaryImage.primary_media_id || productData.primary_media_id,
           url: primaryImage.url || primaryImage.thumbnail_url || '',
-          thumbnailUrl: primaryImage.thumbnail_url || primaryImage.url || ''
+          thumbnailUrl: primaryImage.thumbnail_url || primaryImage.url || '',
+          width: primaryImage.width || 0,
+          height: primaryImage.height || 0
         })
       }
 
       /** 主图URL（确认弹窗和分享封面使用） */
       const mainImageUrl: string = swiperImages.length > 0 ? swiperImages[0].url : ''
+
+      /** 头图容器高度：按首图原图宽高比预算，竖图不裁切、首屏不跳动（对接文档 §四） */
+      const heroHeight: number =
+        swiperImages.length > 0
+          ? calcHeroHeight(swiperImages[0].width, swiperImages[0].height)
+          : HERO_FALLBACK_HEIGHT_PX
 
       /**
        * 主图轮播自动播放间隔（运营全局配置 §8.7/§9.3）
@@ -442,6 +482,12 @@ Page({
         _isLimited: productData.is_limited === true,
         _hasImage: swiperImages.length > 0,
         _mainImage: mainImageUrl,
+        /**
+         * 确认兑换弹窗商品主图字段（exchange-confirm 组件统一读 product.image）
+         * 复用已算好的 mainImageUrl（images 多图首图 / 无多图时回退 primary_image），
+         * 与货架列表卡片的 image 字段命名对齐，避免弹窗读不到图而空白。
+         */
+        image: mainImageUrl,
         _spaceLabel: spaceLabel,
         _categoryDisplayName: categoryDisplayName,
         /** 铸造开关标识（后端 mint_instance 字段，true=兑换后自动铸造物品实例进入背包） */
@@ -500,7 +546,9 @@ Page({
                 media_id: img.media_id,
                 url: img.url || img.public_url || (img.thumbnails && img.thumbnails.w1080) || '',
                 thumbnailUrl:
-                  img.thumbnail_url || (img.thumbnails && img.thumbnails.w750) || img.url || ''
+                  img.thumbnail_url || (img.thumbnails && img.thumbnails.w750) || img.url || '',
+                width: img.width || 0,
+                height: img.height || 0
               }))
             : []
           /** sku_id 归一为数字（后端可能以字符串下发），确保提交、比较、高亮全链路类型一致 */
@@ -600,10 +648,26 @@ Page({
           ? selectedSkuInfo._images
           : swiperImages
 
+      /** 头图高度按「实际首图」（SKU 子图优先，否则 SPU 主图）原图比例算，与展示一致 */
+      const initialHeroHeight: number =
+        initialSwiperImages.length > 0
+          ? calcHeroHeight(initialSwiperImages[0].width, initialSwiperImages[0].height)
+          : heroHeight
+
+      /**
+       * 确认弹窗主图初值与「实际展示首图」对齐（对接文档 §三）：
+       * 默认选中 SKU 若自带图，弹窗主图用该 SKU 图；否则用 SPU 主图（mainImageUrl）。
+       * 后续切规格由 onSelectSku 同步更新 product.image，弹窗组件零改动。
+       */
+      if (initialSwiperImages.length > 0) {
+        enrichedProduct.image = initialSwiperImages[0].url
+      }
+
       this.setData({
         product: enrichedProduct,
         swiperImages: initialSwiperImages,
         spuSwiperImages: swiperImages,
+        heroHeight: initialHeroHeight,
         galleryInterval,
         swiperCurrent: 0,
         rarityStyle: rarityConfig,
@@ -832,6 +896,23 @@ Page({
     }
   },
 
+  /**
+   * 点击客服 → 跳转自建在线客服会话页（与个人中心「联系客服」统一口径）
+   *
+   * 走自建客服系统（packageUser/chat + 后端 cs-agent + Socket.IO），消息进自有数据库、
+   * 座席在 packageAdmin/customer-service 统一回复，不再使用微信原生 open-type="contact"
+   * （微信客服消息不进本系统、无法关联积分/订单业务上下文）。
+   */
+  onContactService() {
+    wx.navigateTo({
+      url: '/packageUser/chat/chat',
+      fail: (navError: any) => {
+        edLog.error('跳转在线客服失败:', navError)
+        wx.showToast({ title: '客服页面打开失败', icon: 'none' })
+      }
+    })
+  },
+
   /** ⑧ 点击相关推荐商品 → 跳转详情（redirectTo 替换当前页，避免页面栈溢出） */
   onTapRelatedProduct(e: any) {
     const itemId = e.currentTarget.dataset.itemId
@@ -974,11 +1055,25 @@ Page({
         Array.isArray(matchedSku._images) && matchedSku._images.length > 0
           ? matchedSku._images
           : this.data.spuSwiperImages
+      /** 切换 SKU 图组后，按新首图原图比例重算头图高度，保持完整显示不裁切 */
+      const skuHeroHeight =
+        skuImages.length > 0
+          ? calcHeroHeight(skuImages[0].width, skuImages[0].height)
+          : this.data.heroHeight
+      /**
+       * 确认弹窗主图跟随选中 SKU（对接文档《确认兑换弹窗主图跟随 SKU 切换》§三）：
+       * 选中 SKU 图首图 → 无则回退 SPU 主图组首图 → 再无弹窗 wxml 的 || defaultProductImage 兜底。
+       * skuImages 已含「SKU 无图回退 spuSwiperImages」逻辑，故其首图 url 即三级回退结果。
+       * 弹窗组件零改动，仍读 product.image，由此处让 product.image 随 SKU 变化。
+       */
+      const skuMainImage = skuImages.length > 0 ? skuImages[0].url : this.data.product.image
       this.setData({
         selectedSkuId: skuId,
         selectedSkuInfo: matchedSku,
         balanceInsufficient: insufficient,
         swiperImages: skuImages,
+        heroHeight: skuHeroHeight,
+        'product.image': skuMainImage,
         swiperCurrent: 0,
         confirmUnitCost: skuCost,
         confirmTotalCost: skuCost * this.data.exchangeQuantity

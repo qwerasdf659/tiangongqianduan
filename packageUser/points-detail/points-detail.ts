@@ -1,4 +1,4 @@
-// packageUser/points-detail/points-detail.ts - 积分详情页面 + MobX响应式状态
+// packageUser/points-detail/points-detail.ts - 积分明细页面 + MobX响应式状态
 
 // 🔴 统一工具函数导入
 const { API, Utils, Logger } = require('../../utils/index')
@@ -7,21 +7,19 @@ const { checkAuth, restoreUserInfo } = Utils
 // 🆕 MobX Store绑定
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { pointsStore } = require('../../store/points')
-// userStore 由 restoreUserInfo() 内部访问，页面无需直接引用
 
 /**
- * 积分详情页面 - 天工平台
+ * 积分明细页面 - 天工平台（只管积分 points，资产/消费各有独立页）
  *
  * 功能清单：
- * - 可用积分余额展示（MobX Store响应式同步）
- * - 筛选功能（全部记录 / 积分获得 / 积分消费）— 客户端筛选
- * - 积分交易记录列表（分页加载，上拉加载更多）
- * - 统计信息（记录总数、当前筛选状态）
- * - 抽奖记录智能聚合（同分钟内的连抽合并为一条）
+ * - 可用积分余额展示（MobX Store 响应式同步）
+ * - 筛选功能（全部 / 获得 / 消费）— 客户端按 delta_amount 正负筛选
+ * - 积分交易记录列表（后端真分页 + 上拉加载更多，固定 asset_code=points）
+ * - 抽奖记录智能聚合（同分钟内的连抽合并为一条，措辞用「连抽N次」不加「聚合记录」）
  *
  * API依赖：
- * - GET /api/v4/assets/transactions — 获取积分交易流水
- * - GET /api/v4/assets/balance — 获取积分余额
+ * - GET /api/v4/assets/transactions?asset_code=points — 积分流水
+ * - GET /api/v4/assets/balance — 积分余额（pointsStore.refreshFromAPI）
  */
 Page({
   data: {
@@ -50,14 +48,13 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(_options) {
-    log.info('积分明细页面加载 - v2.0实现')
+    log.info('积分明细页面加载')
 
-    // MobX Store绑定 - 积分余额自动同步（字段名与WXML模板 {{totalPoints}} 对齐）
+    // MobX Store 绑定 - 积分余额自动同步（字段名与 WXML 模板 {{totalPoints}} 对齐）
     this.pointsBindings = createStoreBindings(this, {
       store: pointsStore,
       fields: {
-        totalPoints: () => pointsStore.availableAmount,
-        frozenPoints: () => pointsStore.frozenAmount
+        totalPoints: () => pointsStore.availableAmount
       },
       actions: ['setBalance']
     })
@@ -65,7 +62,7 @@ Page({
     this.initPage()
   },
 
-  /** 🆕 页面卸载时销毁Store绑定 */
+  /** 🆕 页面卸载时销毁 Store 绑定 */
   onUnload() {
     if (this.pointsBindings) {
       this.pointsBindings.destroyStoreBindings()
@@ -137,15 +134,10 @@ Page({
       return
     }
 
-    // 积分余额使用MobX Store（由资产余额API更新），不依赖globalData
     const totalPoints = pointsStore.availableAmount || 0
+    this.setData({ userInfo, totalPoints })
 
-    this.setData({
-      userInfo,
-      totalPoints
-    })
-
-    // 主动刷新积分余额（确保从后端获取最新数据，而非仅依赖Store缓存）
+    // 主动刷新积分余额（确保从后端获取最新数据，而非仅依赖 Store 缓存）
     pointsStore
       .refreshFromAPI()
       .then((result: { available: number }) => {
@@ -206,9 +198,9 @@ Page({
 
       log.info('认证检查通过，继续API请求')
 
-      // API请求（通过JWT Token识别用户，不传asset_code和business_type加载全部交易记录）
-      // 筛选（全部/获得/消费）在前端客户端通过 filterPointsRecords() 完成
-      const result = await API.getPointsTransactions(page, this.data.pageSize)
+      // 固定按积分过滤（asset_code=points），只显示积分流水；资产/消费各有独立页
+      // 次级筛选（全部/获得/消费）在前端 filterPointsRecords() 按 delta_amount 正负完成
+      const result = await API.getPointsTransactions(page, this.data.pageSize, 'points')
 
       log.info('API响应详情:', {
         success: result.success,
@@ -394,13 +386,11 @@ Page({
       pointsRecords: []
     })
 
-    // 同时更新用户积分余额
+    // 刷新积分余额
     try {
       const result = await API.getPointsBalance()
       if (result.success && result.data) {
-        this.setData({
-          totalPoints: result.data.available_amount ?? 0
-        })
+        this.setData({ totalPoints: result.data.available_amount ?? 0 })
       }
     } catch (error: any) {
       log.error('刷新积分余额失败:', error)
@@ -439,9 +429,8 @@ Page({
   },
 
   /**
-   * 🔴 积分明细筛选切换
-   * 筛选逻辑在前端客户端执行，不需要重新请求API
-   * 后端API的asset_code参数用于资产类型筛选（如POINTS），不是交易方向筛选
+   * 🔴 次级筛选切换（全部/获得/消费）
+   * 筛选逻辑在前端客户端执行（按 delta_amount 正负），不重新请求API
    */
   onPointsFilterChange(e: any) {
     const filter = e.detail?.value || e.currentTarget?.dataset?.filter
@@ -514,7 +503,7 @@ Page({
    */
   getBusinessTypeLabel(businessType: string): string {
     if (!businessType) {
-      return '积分记录'
+      return '交易记录'
     }
 
     /** 后端 business_type 枚举 → 中文标签映射 */
@@ -540,7 +529,7 @@ Page({
       asset_convert_fee: '资产转换手续费'
     }
 
-    return labelMap[businessType] || '积分记录'
+    return labelMap[businessType] || '交易记录'
   },
 
   /** 返回上一页 */
@@ -679,7 +668,8 @@ Page({
           // 聚合记录使用首条记录的 asset_transaction_id 加后缀区分
           asset_transaction_id: `aggregated_${groupRecords[0].asset_transaction_id}_${drawCount}`,
           delta_amount: totalDeltaAmount,
-          description: `连抽${drawCount}次（聚合记录）`,
+          // 措辞去掉「聚合记录」（对接文档 §三/§4.3），用「连抽N次」中性表述
+          description: `连抽${drawCount}次`,
           title: `连抽${drawCount}次`,
           created_at: groupRecords[0].created_at,
           isAggregated: true,

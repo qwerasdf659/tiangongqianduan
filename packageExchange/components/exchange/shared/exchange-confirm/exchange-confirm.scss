@@ -260,6 +260,13 @@
   font-weight: var(--tg-font-weight-regular);
 }
 
+/* 当前余额：图标 + 数字同行 */
+.confirm-balance-value-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
 /* 底部按钮 */
 .confirm-footer {
   display: flex;

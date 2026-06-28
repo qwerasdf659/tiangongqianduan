@@ -37,6 +37,7 @@
       <block wx:if="{{swiperImages.length > 1}}">
         <swiper
           class="ed-swiper"
+          style="height:{{heroHeight}}px;"
           indicator-dots="{{false}}"
           autoplay="{{true}}"
           interval="{{galleryInterval}}"
@@ -46,6 +47,7 @@
           <swiper-item wx:for="{{swiperImages}}" wx:key="media_id">
             <image
               class="ed-hero-image"
+              style="height:{{heroHeight}}px;"
               src="{{item.url}}"
               mode="aspectFill"
               data-index="{{index}}"
@@ -68,6 +70,7 @@
       <block wx:elif="{{swiperImages.length === 1}}">
         <image
           class="ed-hero-image"
+          style="height:{{heroHeight}}px;"
           src="{{swiperImages[0].url}}"
           mode="aspectFill"
           data-index="0"
@@ -439,14 +442,23 @@
 <view class="ed-bottom-bar" wx:if="{{product && !loading && !hasError}}">
   <view class="ed-balance-info">
     <text class="ed-balance-label">{{product._priceLabel || '余额'}}</text>
-    <text class="ed-balance-value">{{currentBalance}}</text>
+    <view class="ed-balance-value-row">
+      <!-- 余额资产图标（后端 cost_asset_icon_url，空则不渲染，不影响数字展示） -->
+      <image
+        wx:if="{{product._priceIcon}}"
+        class="ed-balance-asset-icon"
+        src="{{product._priceIcon}}"
+        mode="aspectFit"
+      />
+      <text class="ed-balance-value">{{currentBalance}}</text>
+    </view>
   </view>
 
-  <!-- 微信客服按钮（open-type="contact" 拉起微信客服） -->
-  <button class="ed-service-btn" open-type="contact" plain="{{true}}">
+  <!-- 客服按钮（跳转自建在线客服会话页，与个人中心「联系客服」同一系统） -->
+  <view class="ed-service-btn" bindtap="onContactService">
     <text class="ed-service-icon">💬</text>
     <text class="ed-service-text">客服</text>
-  </button>
+  </view>
 
   <!-- Phase 4: 购物车按钮（配置驱动，暂隐藏，启用后改为 wx:if="{{showCartButton}}"） -->
   <view class="ed-cart-btn" wx:if="{{false}}">

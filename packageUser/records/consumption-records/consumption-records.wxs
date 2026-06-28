@@ -1,0 +1,63 @@
+/**
+ * 🧾 consumption-records.wxs - 消费记录页面模板辅助函数
+ *
+ * WXS语法与标准JavaScript有差异：
+ *   - 不支持ES6+语法（箭头函数、const/let、模板字符串等）
+ *   - 不支持Date构造函数，使用getDate()代替
+ */
+
+/**
+ * 格式化时间为友好的相对时间（按北京时区展示）
+ *
+ * 后端统一下发 UTC ISO8601 带 Z（如 2026-06-24T19:14:09.000Z）。
+ * WXS 不支持 Intl/toLocaleString，故用「绝对时刻 + 8h 偏移后取 UTC 分量」得到北京时间，
+ * 绝不直接截取串里数字（那是 UTC 数字，差 8 小时）。
+ *
+ * @param {string|number} timestamp - UTC ISO 时间字符串或毫秒时间戳
+ * @returns {string} 友好的时间描述（如"刚刚"、"5分钟前"、"3小时前"、"2月7日 14:30"）
+ */
+function formatTime(timestamp) {
+  if (!timestamp) return ''
+
+  // 安全检查：如果是对象类型，尝试转换为字符串
+  if (typeof timestamp === 'object') {
+    if (timestamp.val) {
+      timestamp = timestamp.val
+    } else if (timestamp.date) {
+      timestamp = timestamp.date
+    } else {
+      return ''
+    }
+  }
+
+  var date = getDate(timestamp)
+  var now = getDate()
+  var diff = now.getTime() - date.getTime()
+
+  if (isNaN(diff)) return ''
+
+  if (diff < 60000) {
+    return '刚刚'
+  }
+  if (diff < 3600000) {
+    return Math.floor(diff / 60000) + '分钟前'
+  }
+  if (diff < 86400000) {
+    return Math.floor(diff / 3600000) + '小时前'
+  }
+
+  // 超过1天，显示具体日期（北京时间：绝对时刻 + 8h 偏移后取 UTC 分量）
+  var bj = getDate(date.getTime() + 8 * 60 * 60 * 1000)
+  var month = bj.getUTCMonth() + 1
+  var day = bj.getUTCDate()
+  var hours = bj.getUTCHours()
+  var minutes = bj.getUTCMinutes()
+  var minuteStr = minutes < 10 ? '0' + minutes : '' + minutes
+  var hourStr = hours < 10 ? '0' + hours : '' + hours
+
+  return month + '月' + day + '日 ' + hourStr + ':' + minuteStr
+}
+
+module.exports = {
+  formatTime: formatTime
+}

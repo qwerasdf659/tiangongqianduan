@@ -87,7 +87,6 @@
         id="exchange-shelf"
         active="{{currentTab === 'exchange'}}"
         pointsBalance="{{totalPoints}}"
-        frozenPoints="{{frozenPoints}}"
         assetBalances="{{assetBalances}}"
         effects="{{effects}}"
         viewMode="{{viewMode}}"
