@@ -36,14 +36,25 @@ async function getPointsBalance(asset_code: string = 'points') {
   })
 }
 
-/** 获取用户资产流水 - GET /api/v4/assets/transactions */
+/**
+ * 获取用户资产流水 - GET /api/v4/assets/transactions
+ *
+ * @param page         页码（默认 1）
+ * @param page_size    每页条数（默认 20，后端最大 100）
+ * @param asset_code   资产代码筛选（如 red_core_shard / star_stone；null=不筛选）
+ * @param business_type 业务类型枚举筛选（null=不筛选）
+ * @param start_date   起始时间 UTC ISO8601 带 Z（如 2026-06-27T16:00:00.000Z；null=不限）
+ * @param end_date     结束时间 UTC ISO8601 带 Z（null=不限）。后端在 DB 层按 created_at 范围+分页筛选
+ */
 async function getPointsTransactions(
   page: number = 1,
   page_size: number = 20,
   asset_code: string | null = null,
-  business_type: string | null = null
+  business_type: string | null = null,
+  start_date: string | null = null,
+  end_date: string | null = null
 ) {
-  const qs = buildQueryString({ page, page_size, asset_code, business_type })
+  const qs = buildQueryString({ page, page_size, asset_code, business_type, start_date, end_date })
   return apiClient.request(`/assets/transactions?${qs}`, { method: 'GET', needAuth: true })
 }
 

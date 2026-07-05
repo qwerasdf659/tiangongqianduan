@@ -425,6 +425,11 @@ declare namespace API {
     balance_after: number
     /** 业务类型枚举（lottery_consume / lottery_reward / exchange_debit / consumption_reward 等） */
     business_type: string
+    /**
+     * 业务类型中文名（后端 DataSanitizer.getPublicSource 已映射，必有值）
+     * 列表项主标题优先读此字段，前端不再自维护机器码→中文映射表（避免与后端漂移）
+     */
+    business_type_display: string
     /** 交易描述（来自后端 meta.description，约91.2%覆盖率，可为null） */
     description: string | null
     /** 交易标题（来自后端 meta.title，约79.2%覆盖率，可为null） */
@@ -668,6 +673,24 @@ declare namespace API {
   interface ExchangeProduct {
     /** 商品主键（exchange_items.exchange_item_id） */
     exchange_item_id: number
+    /**
+     * 平台商品展示码（SPU 随机无意义码，规范形如 SPAFBF8URGS4CY）
+     * 「编码只进不出」：C 端仅供搜索命中后回显，禁止作为商品信息字段渲染在卡片/详情（对标淘宝隐藏 item_id，防枚举）
+     * 后端 DataSanitizer C 端出口保留此字段供搜索回显；展示回显请转带连字符展示形 SP-XXXX-XXXX-XXXX
+     */
+    item_code?: string
+    /**
+     * 所属产品系列（可空，后端联查下发）。需展示系列可读号时从此对象拼装 series_code + series_seq（如 SLNB-001）
+     * 不展示系列则忽略；系列归属为空（自营/未归系列）时为 null
+     */
+    series?: {
+      /** 可读系列码（全大写，如 SLNB） */
+      series_code: string
+      /** 系列名称 */
+      series_name: string
+      /** 系列内连续序号（展示时按 series 补零，如 1 → 001） */
+      series_seq: number
+    } | null
     /** 商品名称（DataSanitizer 输出 name，数据库字段 item_name） */
     name: string
     /** 商品描述（TEXT） */

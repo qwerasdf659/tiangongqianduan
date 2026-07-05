@@ -115,12 +115,12 @@
           </view>
         </view>
 
-        <!-- 记录数量提示 -->
-        <view class="records-count" wx:if="{{tradeAllFiltered.length > 0}}">
-          <text class="count-text">共 {{tradeAllFiltered.length}} 条记录</text>
+        <!-- 记录数量提示（共 N 条以后端分页 total 为准，反映当前时间范围真实总数） -->
+        <view class="records-count" wx:if="{{tradeTotal > 0}}">
+          <text class="count-text">共 {{tradeTotal}} 条记录</text>
         </view>
 
-        <!-- 页码翻页栏（交易记录前端分页，仅多页时显示） -->
+        <!-- 页码翻页栏（后端分页，仅多页时显示） -->
         <exchange-pager
           current-page="{{tradePage}}"
           total-pages="{{tradeTotalPages}}"

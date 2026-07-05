@@ -20,7 +20,7 @@ const { API, Utils, Wechat, Logger } = require('../../../utils/index')
 const log = Logger.createLogger('asset-detail')
 const { createStoreBindings } = require('mobx-miniprogram-bindings')
 const { userStore } = require('../../../store/user')
-const { checkAuth } = Utils
+const { checkAuth, getBeijingDateRange } = Utils
 const { showToast } = Wechat
 
 /**
@@ -76,16 +76,16 @@ Page({
     /** 当前资产可用余额（按 Tab 对应资产） */
     currentAssetBalance: 0,
 
-    // ===== 交易记录（按当前资产 asset_code 过滤）=====
+    // ===== 交易记录（按当前资产 asset_code 过滤，后端分页 + 后端日期筛选）=====
     transactionRecords: [] as any[],
-    /** 交易记录-当前页展示数据（前端分页截取后） */
+    /** 交易记录-当前页展示数据（后端分页 + 本页内方向/关键词本地过滤后） */
     filteredRecords: [] as any[],
-    /** 交易记录-筛选后的完整结果（前端分页数据源） */
-    tradeAllFiltered: [] as any[],
-    /** 交易记录-当前页码（前端分页，1 基） */
+    /** 交易记录-当前页码（后端分页，1 基） */
     tradePage: 1,
-    /** 交易记录-总页数 */
+    /** 交易记录-总页数（以后端 pagination.total_pages 为准） */
     tradeTotalPages: 1,
+    /** 交易记录-总条数（以后端 pagination.total 为准，渲染「共 N 条」） */
+    tradeTotal: 0,
     /** 交易记录-每页条数 */
     tradePageSize: 20,
     // 筛选条件
@@ -239,17 +239,26 @@ Page({
       transactionRecords: [],
       filteredRecords: []
     })
-    this.loadTransactionData()
+    this.loadTransactionData(1)
   },
 
   /**
    * 加载交易数据 - GET /api/v4/assets/transactions?asset_code=xxx
-   * 按当前资产 Tab 的 asset_code 过滤，只返回该资产流水。
+   *
+   * 按当前资产 asset_code + 时间区间（北京时区换算的 UTC start_date/end_date）筛选，
+   * 由后端在 DB 层范围筛选 + 分页（跨页准确）。日期/分页完全交给后端，前端不再本地日期过滤。
+   *
+   * @param page 目标页码（默认 1；翻页时传入）
    */
-  async loadTransactionData() {
+  async loadTransactionData(page: number = 1) {
     if (!this.data.currentAssetCode) {
       // 无可展示资产时清空
-      this.setData({ transactionRecords: [], filteredRecords: [], tradeAllFiltered: [] })
+      this.setData({
+        transactionRecords: [],
+        filteredRecords: [],
+        tradeTotal: 0,
+        tradeTotalPages: 1
+      })
       return
     }
     try {
@@ -257,23 +266,34 @@ Page({
         asset_convert: 'asset_convert_debit,asset_convert_credit'
       }
       const businessTypeParam = sourceBusinessTypeMap[this.data.sourceFilter] || null
-      // 按当前资产 asset_code 过滤（对接文档：传 asset_code 只返回该资产流水）
+      /* 当前时间 Tab 换算成北京时区的 UTC 区间（'all' 返回 {}，不传日期=全部） */
+      const { start_date = null, end_date = null } = getBeijingDateRange(
+        this.data.currentTimeFilter
+      )
+      // 按资产 + 时间区间 + 页码请求（后端 DB 层筛选 + 分页）
       const result = await API.getPointsTransactions(
-        1,
-        200,
+        page,
+        this.data.tradePageSize,
         this.data.currentAssetCode,
-        businessTypeParam
+        businessTypeParam,
+        start_date,
+        end_date
       )
       const { success, data } = result
 
       if (success && data) {
-        const { transactions = [] } = data
+        const { transactions = [], pagination = {} } = data
 
         const processedRecords = transactions.map((record: any) => {
           const rawDeltaAmount = record.delta_amount || 0
           return {
             ...record,
-            displayTitle: record.title || record.description || '交易记录',
+            /**
+             * 列表项标题：优先后端中文业务类型 business_type_display（后端已映射、必有值），
+             * 回退 description（meta 描述，大量为 null 不可作主依赖），最终兜底「交易记录」。
+             * snake_case 零映射，直读后端字段，前端不再自维护机器码→中文表（避免与后端漂移）。
+             */
+            displayTitle: record.business_type_display || record.description || '交易记录',
             // 资产中文名直接用当前 Tab 资产名（本页已按 asset_code 过滤，同资产同名）
             displayAssetName: this.data.currentAssetName || record.asset_code || '',
             category: rawDeltaAmount > 0 ? 'income' : 'expense',
@@ -281,28 +301,44 @@ Page({
           }
         })
 
-        this.setData({ transactionRecords: processedRecords })
+        /* 分页信息以后端 pagination 为准（该时间范围内的真实总数/页数） */
+        this.setData({
+          transactionRecords: processedRecords,
+          tradePage: pagination.page || page,
+          tradeTotal: pagination.total || 0,
+          tradeTotalPages: pagination.total_pages || 1
+        })
         this.applyFilters()
       } else {
-        this.setData({ transactionRecords: [], filteredRecords: [], tradeAllFiltered: [] })
+        this.setData({
+          transactionRecords: [],
+          filteredRecords: [],
+          tradeTotal: 0,
+          tradeTotalPages: 1
+        })
         showToast('交易记录加载失败')
       }
     } catch (error) {
       log.error('加载交易记录失败:', error)
-      this.setData({ transactionRecords: [], filteredRecords: [], tradeAllFiltered: [] })
+      this.setData({
+        transactionRecords: [],
+        filteredRecords: [],
+        tradeTotal: 0,
+        tradeTotalPages: 1
+      })
       showToast('交易记录加载失败')
     }
   },
 
   /**
-   * 🔴 应用筛选条件（时间 / 方向 / 关键词，前端筛选）
+   * 应用「当前页内」的本地辅助过滤（方向 / 关键词）
+   *
+   * ⚠️ 时间筛选与分页已完全交给后端（start_date/end_date + DB 层分页），此处不再做任何本地日期过滤。
+   * 方向(income/expense)与关键词后端接口暂无对应参数，仅对「后端返回的当前页」做展示层过滤，
+   * 不改变后端分页 total（共 N 条仍以后端为准）。
    */
   applyFilters() {
     let filteredRecords = [...this.data.transactionRecords]
-
-    if (this.data.currentTimeFilter !== 'all') {
-      filteredRecords = this.filterByTime(filteredRecords, this.data.currentTimeFilter)
-    }
 
     if (this.data.currentTypeFilter !== 'all') {
       if (this.data.currentTypeFilter === 'income') {
@@ -326,63 +362,26 @@ Page({
       )
     }
 
-    filteredRecords.sort(
-      (a: any, b: any) =>
-        (Utils.safeParseDateString(b.created_at) || new Date(0)).getTime() -
-        (Utils.safeParseDateString(a.created_at) || new Date(0)).getTime()
-    )
-
-    const tradeTotalPages = Math.max(1, Math.ceil(filteredRecords.length / this.data.tradePageSize))
-    this.setData({ tradeAllFiltered: filteredRecords, tradeTotalPages })
-    this._applyTradePage(1)
+    this.setData({ filteredRecords })
   },
 
-  /** 交易记录前端分页：从 tradeAllFiltered 截取目标页写入 filteredRecords */
-  _applyTradePage(page: number) {
-    const pageSize = this.data.tradePageSize
-    const start = (page - 1) * pageSize
-    const pageRecords = this.data.tradeAllFiltered.slice(start, start + pageSize)
-    this.setData({ tradePage: page, filteredRecords: pageRecords })
-  },
-
-  /** 交易记录页码翻页栏跳转（前端分页，仅切换展示页） */
+  /** 交易记录翻页（后端分页）：带当前时间区间请求目标页 */
   onTradePagerChange(e: any) {
     const page = e.detail && e.detail.page
     if (!page) {
       return
     }
-    this._applyTradePage(page)
+    this.loadTransactionData(page)
   },
 
-  /** 🔴 按时间筛选 */
-  filterByTime(records: any[], timeFilter: string) {
-    const now = new Date()
-    let startDate: Date | null = null
-
-    switch (timeFilter) {
-      case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        break
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        break
-      case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-        break
-      default:
-        return records
-    }
-
-    return records.filter(
-      (record: any) => (Utils.safeParseDateString(record.created_at) || new Date(0)) >= startDate!
-    )
-  },
-
-  /** 🔴 时间筛选事件 */
+  /** 时间筛选事件：切「全部/今天/本周/本月」→ 回到第 1 页、带新时间区间重新请求后端 */
   onTimeFilter(e: WechatMiniprogram.BaseEvent) {
     const timeFilter = e.currentTarget.dataset.filter
-    this.setData({ currentTimeFilter: timeFilter })
-    this.applyFilters()
+    if (timeFilter === this.data.currentTimeFilter) {
+      return
+    }
+    this.setData({ currentTimeFilter: timeFilter, tradePage: 1 })
+    this.loadTransactionData(1)
   },
 
   /** 🔴 搜索输入（防抖500ms） */
@@ -395,14 +394,20 @@ Page({
     }, 500)
   },
 
-  /** 🔴 重置筛选条件 */
+  /** 🔴 重置筛选条件：时间回「全部」需重新请求后端，方向/关键词本地清除 */
   onResetFilters() {
+    const needReload = this.data.currentTimeFilter !== 'all'
     this.setData({
       currentTimeFilter: 'all',
       currentTypeFilter: 'all',
-      searchKeyword: ''
+      searchKeyword: '',
+      tradePage: 1
     })
-    this.applyFilters()
+    if (needReload) {
+      this.loadTransactionData(1)
+    } else {
+      this.applyFilters()
+    }
   },
 
   /** 🔴 查看交易详情 */

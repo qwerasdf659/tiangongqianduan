@@ -792,6 +792,60 @@ const formatBeijingTimeField = (
   return parsedDate ? formatDateMessage(parsedDate.getTime()) : fallback
 }
 
+/**
+ * 计算「今天 / 本周 / 本月」在北京时区下的 UTC ISO8601 起止区间（带 Z）
+ *
+ * 背景（资产明细日期筛选对接文档 2026-06-29）：流水 created_at 存 UTC，
+ * 后端按 created_at 范围在 DB 层筛选+分页。前端必须先在北京时区确定日期边界，
+ * 再换算成 UTC 传 start_date/end_date，否则直接按 UTC 截断会差 8 小时、夜间记录归错天。
+ *
+ * 铁律：北京 00:00 = 前一日 UTC 16:00（北京时刻对应的 UTC = 北京时刻 - 8 小时）。
+ * 本周口径：周一为一周起点（北京周一 00:00 ~ 今天 23:59:59.999）。
+ *
+ * @param tab - 时间筛选项：'today' | 'week' | 'month'（其它值如 'all' 返回空对象=不筛选）
+ * @returns { start_date, end_date } UTC ISO8601 字符串；'all'/未知返回 {} 表示不传日期
+ */
+const getBeijingDateRange = (tab: string): { start_date?: string; end_date?: string } => {
+  /* 把「北京时区的 Y-M-D H:m:s」换算成 UTC ISO8601：先按 UTC 拼毫秒再减 8h */
+  const beijingToUtcIso = (
+    year: number,
+    monthZeroBased: number,
+    day: number,
+    hh: number,
+    mm: number,
+    ss: number,
+    ms: number
+  ): string =>
+    new Date(Date.UTC(year, monthZeroBased, day, hh, mm, ss, ms) - 8 * 3600 * 1000).toISOString()
+
+  /* 取「此刻的北京日期」：偏移到北京后用 getUTC* 读，避免依赖设备本地时区 */
+  const bj = new Date(Date.now() + 8 * 3600 * 1000)
+  const y = bj.getUTCFullYear()
+  const m = bj.getUTCMonth()
+  const d = bj.getUTCDate()
+  const wd = bj.getUTCDay()
+
+  /* 今天结束时刻（北京 23:59:59.999）三档共用 */
+  const endOfToday = beijingToUtcIso(y, m, d, 23, 59, 59, 999)
+
+  if (tab === 'today') {
+    return { start_date: beijingToUtcIso(y, m, d, 0, 0, 0, 0), end_date: endOfToday }
+  }
+  if (tab === 'week') {
+    /* 周日(0)→6，周一(1)→0…，定位到本周一；Date 自动处理跨月跨年进位 */
+    const offsetToMonday = (wd + 6) % 7
+    return {
+      start_date: beijingToUtcIso(y, m, d - offsetToMonday, 0, 0, 0, 0),
+      end_date: endOfToday
+    }
+  }
+  if (tab === 'month') {
+    return { start_date: beijingToUtcIso(y, m, 1, 0, 0, 0, 0), end_date: endOfToday }
+  }
+  /* 'all' 或未知：不传日期，由后端返回全部 */
+  return {}
+}
+
 // ===== 用户角色判断 =====
 
 /**
@@ -919,6 +973,7 @@ module.exports = {
   formatDateMessage,
   formatBeijing,
   formatBeijingTimeField,
+  getBeijingDateRange,
   determineUserRole,
   buildQueryString
 }
