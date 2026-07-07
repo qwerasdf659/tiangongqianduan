@@ -33,6 +33,12 @@ Component({
         iconActive: '/custom-tab-bar/icons/store-active.svg'
       },
       {
+        pagePath: '/pages/diy/diy',
+        text: 'DIY',
+        icon: '/custom-tab-bar/icons/tag.svg',
+        iconActive: '/custom-tab-bar/icons/tag-active.svg'
+      },
+      {
         pagePath: '/pages/user/user',
         text: '我的',
         icon: '/custom-tab-bar/icons/user.svg',

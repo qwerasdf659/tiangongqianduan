@@ -1,0 +1,371 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 以物易物页面样式 */
+@import '../../styles/mixins';
+
+.barter-container {
+  @include tg-tokens;
+  padding: 20rpx;
+  background-color: var(--tg-color-bg);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页面标题 */
+.page-header {
+  background: linear-gradient(180deg, var(--td-brand-color-light, #f5f0e8) 0%, #ffffff 100%);
+  padding: 48rpx var(--tg-spacing-lg) 40rpx;
+  margin: 0 -20rpx var(--tg-spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-text {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.header-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 12rpx;
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.header-desc {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+  line-height: 1.5;
+}
+
+.header-decor-icon {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+}
+
+/* 骨架屏 */
+.recipe-skeleton {
+  padding: var(--tg-spacing-md);
+  margin-bottom: var(--tg-spacing-sm);
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+}
+
+.skeleton-line {
+  height: 24rpx;
+  background: var(--tg-color-bg-grey);
+  border-radius: 4rpx;
+  margin-bottom: 12rpx;
+}
+
+.skeleton-title {
+  width: 50%;
+}
+
+.skeleton-info {
+  width: 30%;
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+.retry-btn {
+  padding: var(--tg-spacing-sm) var(--tg-spacing-xxl);
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  font-size: var(--td-font-size-base);
+}
+
+/* 配方卡片 */
+.recipe-card {
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--tg-shadow-card);
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.recipe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.recipe-name {
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-code {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
+
+.recipe-require,
+.recipe-owned {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--tg-spacing-xs) 0;
+}
+
+.require-label,
+.owned-label {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+}
+
+.require-value {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.owned-enough {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-success);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.owned-short {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-warning);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.recipe-btn {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  text-align: center;
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+.recipe-btn-disabled {
+  background: var(--tg-color-bg-grey);
+  color: var(--tg-text-tertiary);
+}
+
+/* 选择旧物弹窗（底部抽屉） */
+.select-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.select-panel {
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large) var(--td-radius-large) 0 0;
+  padding: 32rpx;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.select-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.select-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+}
+
+.select-tip {
+  margin-bottom: 20rpx;
+}
+
+.select-tip-text {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  line-height: 1.5;
+}
+
+.candidate-scroll {
+  flex: 1;
+  max-height: 600rpx;
+  margin-bottom: 24rpx;
+}
+
+.candidate-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  background: var(--tg-color-bg);
+  border-radius: var(--td-radius-default);
+  border: 1rpx solid transparent;
+}
+
+.candidate-selected {
+  background: rgba(160, 114, 74, 0.08);
+  border-color: var(--td-brand-color);
+}
+
+.candidate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.candidate-name {
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-medium);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidate-code {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+  margin-top: 4rpx;
+  display: block;
+}
+
+.candidate-check {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.candidate-uncheck {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--tg-color-border);
+}
+
+.submit-btn {
+  padding: 24rpx;
+  background: var(--td-brand-color);
+  color: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  text-align: center;
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-bold);
+}
+
+.submit-btn-disabled {
+  background: var(--tg-color-bg-grey);
+  color: var(--tg-text-tertiary);
+}
+
+/* ===== 功能后续开放蒙版（遮挡内容，不遮顶部导航返回区，保证可返回） ===== */
+.coming-soon-mask {
+  position: fixed;
+  /* 顶部留出状态栏 + 自定义导航栏高度，露出返回按钮 */
+  top: calc(env(safe-area-inset-top, 0px) + 88rpx);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.coming-soon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--tg-spacing-xl);
+}
+
+.coming-soon-icon {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: var(--td-radius-circle);
+  background: #f7f1e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--tg-spacing-lg);
+}
+
+.coming-soon-title {
+  font-size: var(--td-font-size-l);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  margin-bottom: var(--tg-spacing-sm);
+}
+
+.coming-soon-desc {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  text-align: center;
+  line-height: var(--tg-line-height-normal);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* 蒙版内「返回上一页」按钮 */
+.coming-soon-back-btn {
+  margin-top: var(--tg-spacing-xl);
+  padding: 0 var(--tg-spacing-xl);
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--td-brand-color);
+  border-radius: 36rpx;
+
+  text {
+    font-size: var(--td-font-size-base);
+    font-weight: var(--tg-font-weight-medium);
+    color: var(--tg-color-white);
+    letter-spacing: var(--tg-letter-spacing-normal);
+  }
+}

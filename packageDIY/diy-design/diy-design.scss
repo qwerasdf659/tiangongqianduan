@@ -1,0 +1,294 @@
+@import '../../styles/mixins.scss';
+
+.diy-design-page {
+  @include tg-tokens;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: var(--tg-page-bg);
+  overflow: hidden;
+}
+
+/* ===== 加载态 ===== */
+.loading-full {
+  @include flex-column-center;
+  height: 100vh;
+
+  .loading-full-text {
+    font-size: var(--td-font-size-base);
+    color: var(--tg-text-tertiary);
+    margin-top: var(--tg-spacing-sm);
+  }
+}
+
+/* ===== 上半部分：工作区（预览+参数） ===== */
+.workspace-area {
+  position: relative;
+  flex-shrink: 0;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  background: var(--tg-card-bg);
+}
+
+/* 右上角操作按钮组 */
+.action-buttons {
+  position: absolute;
+  top: var(--tg-spacing-sm);
+  right: var(--tg-spacing-md);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tg-spacing-xs);
+}
+
+.action-btn {
+  padding: var(--tg-spacing-xs) var(--tg-spacing-lg);
+  border-radius: var(--td-radius-large);
+  font-size: var(--td-font-size-s);
+  text-align: center;
+
+  &-dark {
+    background: var(--tg-text-primary);
+    color: var(--tg-color-white);
+  }
+
+  &-primary {
+    background: var(--td-brand-color);
+    color: var(--tg-color-white);
+  }
+
+  &-3d {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+  }
+}
+
+/* 预览画布区域 */
+.preview-section {
+  @include flex-center;
+  padding: var(--tg-spacing-lg) 0;
+  min-height: 400rpx;
+}
+
+/* 右侧参数面板 */
+.params-panel {
+  position: absolute;
+  right: var(--tg-spacing-md);
+  top: 180rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.param-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--tg-spacing-xs);
+}
+
+.param-label {
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
+}
+
+.param-value {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-bold);
+}
+
+.price-highlight {
+  color: var(--td-brand-color);
+}
+
+/* ===== 左侧浮动工具栏 ===== */
+.side-tools {
+  position: absolute;
+  left: var(--tg-spacing-md);
+  bottom: var(--tg-spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tg-spacing-md);
+  z-index: 10;
+}
+
+.side-tool-item {
+  @include flex-column-center;
+}
+
+.side-tool-icon {
+  font-size: var(--tg-font-size-display);
+  color: var(--tg-text-primary);
+}
+
+.side-tool-label {
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-tertiary);
+  margin-top: 4rpx;
+}
+
+/* 工具箱弹出面板 */
+.toolbox-panel {
+  position: absolute;
+  left: 100rpx;
+  bottom: var(--tg-spacing-lg);
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
+  box-shadow: 0 1rpx 8rpx rgba(var(--tg-color-black-rgb), 0.04);
+  padding: var(--tg-spacing-sm);
+  z-index: 20;
+}
+
+.toolbox-item {
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
+  white-space: nowrap;
+
+  &.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  &:active {
+    background: var(--tg-diy-canvas-bg);
+    border-radius: var(--td-radius-small);
+  }
+}
+
+/* ===== 下半部分：素材选择面板 ===== */
+.material-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--tg-card-bg);
+  border-top: 1rpx solid var(--tg-border-color);
+  overflow: hidden;
+}
+
+/* 素材类型Tab栏 */
+.material-type-tabs {
+  display: flex;
+  align-items: center;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  border-bottom: 1rpx solid var(--tg-border-color);
+  flex-shrink: 0;
+}
+
+.material-type-tab {
+  flex: 1;
+  text-align: center;
+  font-size: var(--td-font-size-base);
+  color: var(--tg-text-secondary);
+  padding-bottom: var(--tg-spacing-xs);
+  position: relative;
+
+  &.active {
+    color: var(--tg-text-primary);
+    font-weight: var(--tg-font-weight-bold);
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 25%;
+      width: 50%;
+      height: 4rpx;
+      background: var(--tg-text-primary);
+      border-radius: 2rpx;
+    }
+  }
+}
+
+/* 搜索栏 */
+.search-bar {
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  flex-shrink: 0;
+}
+
+.search-input {
+  background: var(--tg-diy-canvas-bg);
+  border-radius: var(--td-radius-large);
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  font-size: var(--td-font-size-s);
+}
+
+/* 提示条 */
+.material-tip {
+  @include flex-align-center;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  background: var(--tg-color-warning-soft);
+  flex-shrink: 0;
+}
+
+.tip-icon {
+  margin-right: var(--tg-spacing-xs);
+}
+
+.tip-text {
+  flex: 1;
+  font-size: var(--td-font-size-xs);
+  color: var(--tg-text-secondary);
+}
+
+.tip-close {
+  font-size: var(--td-font-size-l);
+  color: var(--tg-text-tertiary);
+  padding: 0 var(--tg-spacing-xs);
+}
+
+/* 素材内容区：左侧分类 + 右侧网格 */
+.material-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 左侧分类列表 */
+.material-groups {
+  width: 140rpx;
+  flex-shrink: 0;
+  border-right: 1rpx solid var(--tg-border-color);
+  background: var(--tg-page-bg);
+}
+
+.group-item {
+  padding: var(--tg-spacing-sm) 0;
+  text-align: center;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+
+  &.active {
+    color: var(--td-brand-color);
+    font-weight: var(--tg-font-weight-bold);
+    background: var(--tg-card-bg);
+    border-left: 4rpx solid var(--td-brand-color);
+  }
+}
+
+/* 右侧素材网格 */
+.material-grid-wrap {
+  flex: 1;
+  padding: var(--tg-spacing-xs);
+}
+
+.material-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tg-spacing-sm);
+}
+
+.material-item {
+  width: calc(33.33% - 16rpx);
+}
+
+.material-empty {
+  @include flex-center;
+  padding: 48rpx 0;
+  width: 100%;
+
+  .material-empty-text {
+    font-size: var(--td-font-size-s);
+    color: var(--tg-text-tertiary);
+  }
+}

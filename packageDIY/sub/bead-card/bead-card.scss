@@ -1,0 +1,110 @@
+@import '../../../styles/mixins.scss';
+
+.bead-card {
+  @include tg-tokens;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--tg-spacing-sm) 12rpx;
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
+  box-shadow: 0 2rpx 8rpx rgba(var(--tg-color-black-rgb), 0.06);
+  position: relative;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:active {
+    transform: scale(0.96);
+    box-shadow: 0 1rpx 4rpx rgba(var(--tg-color-black-rgb), 0.04);
+  }
+}
+
+.bead-card.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.bead-preview {
+  width: 100rpx;
+  height: 100rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--tg-spacing-xs);
+}
+
+/* 后端真实珠子图片 */
+.bead-image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: var(--td-radius-round);
+}
+
+/* 无图时的颜色占位圆 */
+.bead-color-preview {
+  border-radius: var(--td-radius-round);
+  background: var(--tg-text-tertiary);
+  box-shadow:
+    inset 0 -4rpx 8rpx rgba(var(--tg-color-black-rgb), 0.04),
+    0 1rpx 6rpx rgba(var(--tg-color-black-rgb), 0.03);
+}
+
+.bead-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.bead-name {
+  font-size: calc(var(--td-font-size-s) - 2rpx);
+  color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-regular);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.bead-spec {
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
+  margin-top: 2rpx;
+}
+
+.bead-price-row {
+  display: flex;
+  align-items: center;
+  margin-top: 6rpx;
+}
+
+.bead-price {
+  font-size: var(--td-font-size-s);
+  color: var(--td-brand-color);
+  font-weight: var(--tg-font-weight-bold);
+}
+
+.bead-unit {
+  font-size: var(--tg-font-size-micro);
+  margin-left: 4rpx;
+}
+
+.bead-sold-out {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(var(--tg-color-white-rgb), 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--td-radius-default);
+
+  .bead-sold-out-text {
+    font-size: var(--td-font-size-s);
+    color: var(--tg-text-tertiary);
+    font-weight: var(--tg-font-weight-regular);
+  }
+}

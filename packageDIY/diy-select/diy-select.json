@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "DIY 设计",
+  "usingComponents": {
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom",
+  "disableScroll": true
+}

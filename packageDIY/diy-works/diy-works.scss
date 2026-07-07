@@ -1,0 +1,196 @@
+/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+.page-scroll-view {
+  flex: 1;
+  overflow: hidden;
+}
+
+/**
+ * DIY 我的作品列表页样式
+ * 对齐 my-orders 页面的视觉规范
+ */
+
+@import '../../styles/mixins';
+@import '../../styles/td-overrides';
+
+.diy-works-page {
+  @include tg-tokens;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--tg-page-bg);
+  padding-bottom: calc(var(--tg-spacing-xl) + env(safe-area-inset-bottom));
+}
+
+/* ===== 状态筛选 Tab ===== */
+.status-tabs {
+  display: flex;
+  background: var(--tg-card-bg);
+  padding: 0 var(--tg-spacing-sm);
+  border-bottom: 1rpx solid var(--tg-border-color);
+  position: relative;
+  z-index: 10;
+}
+
+.status-tab {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+  position: relative;
+}
+
+.status-tab.active {
+  color: var(--td-brand-color);
+  font-weight: var(--tg-font-weight-regular);
+}
+
+.status-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background: var(--td-brand-color);
+  border-radius: 2rpx;
+}
+
+/* ===== 错误状态 ===== */
+.error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx var(--tg-spacing-lg);
+}
+
+.error-text {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-color-error);
+  margin-bottom: var(--tg-spacing-md);
+}
+
+.retry-btn {
+  padding: var(--tg-spacing-xs) var(--tg-spacing-lg);
+  border: 1rpx solid var(--td-brand-color);
+  border-radius: var(--td-radius-small);
+  color: var(--td-brand-color);
+  font-size: var(--td-font-size-s);
+}
+
+/* ===== 作品列表 ===== */
+.works-list {
+  padding: var(--tg-spacing-md);
+}
+
+/* ===== 作品卡片 ===== */
+.work-card {
+  background: var(--tg-card-bg);
+  border-radius: var(--td-radius-default);
+  margin-bottom: var(--tg-spacing-md);
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(var(--tg-color-black-rgb), 0.04);
+}
+
+.work-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--tg-spacing-md) var(--tg-spacing-lg);
+  border-bottom: 1rpx solid var(--tg-color-divider);
+}
+
+.work-name {
+  font-size: var(--td-font-size-m);
+  font-weight: var(--tg-font-weight-regular);
+  color: var(--tg-text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.work-status {
+  font-size: var(--tg-font-size-xs);
+  padding: 4rpx 16rpx;
+  border-radius: var(--td-radius-small);
+  flex-shrink: 0;
+  margin-left: var(--tg-spacing-sm);
+}
+
+.work-status.status-draft {
+  background: rgba(var(--tg-color-info-rgb), 0.1);
+  color: var(--tg-color-info);
+}
+
+.work-status.status-frozen {
+  background: rgba(var(--tg-color-warning-rgb), 0.1);
+  color: var(--tg-color-warning);
+}
+
+.work-status.status-completed {
+  background: rgba(var(--tg-color-success-rgb), 0.1);
+  color: var(--tg-color-success);
+}
+
+.work-status.status-cancelled {
+  background: rgba(var(--tg-text-placeholder-rgb), 0.1);
+  color: var(--tg-text-placeholder);
+}
+
+.work-card-body {
+  padding: var(--tg-spacing-sm) var(--tg-spacing-lg);
+}
+
+.work-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.work-info-label {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-secondary);
+}
+
+.work-info-value {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-primary);
+}
+
+.work-cost-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  justify-content: flex-end;
+}
+
+.work-cost-item {
+  font-size: var(--tg-font-size-xs);
+  color: var(--td-brand-color);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
+  padding: 2rpx 12rpx;
+  border-radius: 4rpx;
+}
+
+.work-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--tg-spacing-sm) var(--tg-spacing-lg);
+  border-top: 1rpx solid var(--tg-color-divider);
+}
+
+.work-action-hint {
+  font-size: var(--tg-font-size-xs);
+  color: var(--tg-text-placeholder);
+}
+
+.work-arrow {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-placeholder);
+}

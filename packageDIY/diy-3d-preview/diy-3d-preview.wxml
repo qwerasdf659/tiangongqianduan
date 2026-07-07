@@ -1,0 +1,35 @@
+<custom-navbar title="3D预览" bgColor="#f8f6f3" textColor="#000000" showBack="{{true}}" />
+<view class="preview-page">
+  <!-- 3D 渲染区域 -->
+  <view class="scene-container">
+    <xr-bead-scene
+      disable-scroll
+      id="bead-scene"
+      width="{{renderWidth}}"
+      height="{{renderHeight}}"
+      style="width:{{width}}px;height:{{height}}px;"
+      bind:ready="onSceneReady"
+    />
+  </view>
+
+  <!-- 底部信息栏 -->
+  <view class="info-bar">
+    <view class="info-item">
+      <text class="info-label">款式</text>
+      <text class="info-value">{{templateName}}</text>
+    </view>
+    <view class="info-item">
+      <text class="info-label">珠子</text>
+      <text class="info-value">{{beadCount}}颗</text>
+    </view>
+    <view class="info-item">
+      <text class="info-label">总价</text>
+      <text class="info-value price">¥{{totalPrice}}</text>
+    </view>
+  </view>
+
+  <!-- 操作提示 -->
+  <view class="hint-text">
+    <text>触摸旋转查看 · 双指缩放</text>
+  </view>
+</view>

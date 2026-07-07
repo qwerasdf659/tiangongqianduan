@@ -1,0 +1,40 @@
+<!-- XR-Frame 3D珠子查看器组件 -->
+<xr-scene
+  id="xr-bead-scene"
+  bind:ready="onSceneReady"
+  bind:tick="onTick"
+>
+  <!-- 环境与光照 -->
+  <xr-assets>
+    <xr-asset-material
+      asset-id="bead-mat"
+      effect="standard"
+      uniforms="{{materialUniforms}}"
+    />
+  </xr-assets>
+
+  <xr-env env-data="xr-frame-team-workspace-day" />
+
+  <xr-camera
+    id="main-camera"
+    position="0 0 {{cameraDistance}}"
+    target="0 0 0"
+    background="skybox"
+    camera-orbit-control=""
+  />
+
+  <!-- 光照设置 -->
+  <xr-light type="ambient" color="1 1 1" intensity="0.4" />
+  <xr-light type="directional" rotation="40 70 0" color="1 1 1" intensity="0.8" />
+  <xr-light type="point" position="2 2 2" color="1 0.95 0.9" intensity="0.3" range="10" />
+
+  <!-- 珠子节点容器 -->
+  <xr-node wx:for="{{beadPositions}}" wx:key="index">
+    <xr-mesh
+      geometry="sphere"
+      material="bead-mat"
+      position="{{item.x}} {{item.y}} {{item.z}}"
+      scale="{{beadScale}} {{beadScale}} {{beadScale}}"
+    />
+  </xr-node>
+</xr-scene>

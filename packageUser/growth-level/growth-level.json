@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "成长等级",
+  "navigationBarBackgroundColor": "#F5F0E8",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#f8f9fa",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "t-empty": "/miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon",
+    "custom-navbar": "/components/custom-navbar/custom-navbar"
+  },
+  "navigationStyle": "custom",
+  "disableScroll": true
+}

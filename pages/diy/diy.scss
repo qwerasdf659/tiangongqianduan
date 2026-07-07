@@ -1,0 +1,223 @@
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
+.page-scroll-view {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom, 0px));
+}
+
+@import '../../styles/mixins.scss';
+@import '../../styles/iconfont';
+
+/* 🎨 页面级背景 — 统一色调 */
+page {
+  background-color: var(--tg-page-bg);
+}
+
+/**
+ * DIY tab 入口页样式
+ * 底部预留 tabBar 高度 + 安全区域，避免内容被遮挡
+ */
+.diy-select-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--tg-page-bg);
+  padding: 0 var(--tg-spacing-md);
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+}
+
+/* 🎨 沉浸式顶部横幅 — 图片延伸到状态栏后面 */
+.immersive-top-banner {
+  width: calc(100% + var(--tg-spacing-md) * 2);
+  margin-left: calc(var(--tg-spacing-md) * -1);
+  height: calc(env(safe-area-inset-top, 20px) + 88rpx + 280rpx);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--tg-spacing-xl);
+}
+
+.top-banner-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.top-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40rpx;
+}
+
+.placeholder-text {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
+  opacity: 0.6;
+}
+
+/* ===== 页面标题区域 ===== */
+.page-title-section {
+  @include flex-column;
+  margin-bottom: var(--tg-spacing-xl);
+}
+
+.page-main-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  line-height: var(--tg-line-height-tight);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.page-sub-title {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  margin-top: var(--tg-spacing-xs);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* ===== 我的设计入口卡片 ===== */
+.my-design-card {
+  @include flex-between;
+  background: linear-gradient(135deg, #c5a572 0%, #a08b6e 100%);
+  border-radius: var(--td-radius-default);
+  padding: var(--tg-spacing-lg) var(--tg-spacing-md);
+  margin-bottom: var(--tg-spacing-xl);
+  box-shadow: 0 4rpx 16rpx rgba(197, 165, 114, 0.3);
+
+  &:active {
+    background: linear-gradient(135deg, #b8956a 0%, #8f7a5e 100%);
+  }
+}
+
+.my-design-info {
+  @include flex-column;
+}
+
+.my-design-title {
+  font-size: var(--td-font-size-l);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
+}
+
+.my-design-desc {
+  font-size: var(--td-font-size-s);
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 6rpx;
+}
+
+.my-design-arrow .arrow-icon {
+  font-size: 40rpx;
+  color: var(--tg-color-white);
+}
+
+/* ===== 设计模式卡片 ===== */
+.design-mode-card {
+  @include flex-column-center;
+  @include card-base;
+  padding: 48rpx var(--tg-spacing-lg);
+  margin-bottom: var(--tg-spacing-lg);
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.mode-icon-wrap {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: var(--tg-spacing-lg);
+  @include flex-center;
+}
+
+.mode-icon-img {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+/* 占位图标（后端未提供真实图片时） */
+.mode-icon-placeholder {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--td-radius-circle);
+  background: var(--tg-diy-canvas-bg);
+}
+
+.mode-icon-free {
+  background: linear-gradient(135deg, #ffecd2, #fcb69f);
+}
+
+.mode-icon-plaza {
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+}
+
+.mode-title {
+  font-size: var(--td-font-size-l);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+  margin-bottom: var(--tg-spacing-sm);
+}
+
+.mode-desc {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  text-align: center;
+  line-height: var(--tg-line-height-normal);
+  padding: 0 var(--tg-spacing-md);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* ===== 功能后续开放蒙版（遮挡页面内容，但不遮底部 tabBar，保证可切走） ===== */
+.coming-soon-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* 底部抬高到 tabBar 之上（tabbar 120rpx + 安全区），露出 5 个 tab 可正常切换 */
+  bottom: calc(120rpx + env(safe-area-inset-bottom, 0px));
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.coming-soon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--tg-spacing-xl);
+}
+
+.coming-soon-icon {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: var(--td-radius-circle);
+  background: var(--tg-diy-canvas-bg, #f7f1e6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--tg-spacing-lg);
+}
+
+.coming-soon-title {
+  font-size: var(--tg-font-size-display);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+  margin-bottom: var(--tg-spacing-sm);
+}
+
+.coming-soon-desc {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  text-align: center;
+  line-height: var(--tg-line-height-normal);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
