@@ -113,6 +113,10 @@
       </view>
       <text class="coming-soon-title">功能即将开放</text>
       <text class="coming-soon-desc">DIY 饰品工坊正在精心打磨，敬请期待</text>
+      <!-- 离线演示入口：正式功能未开放前，先体验本地手串设计 Demo -->
+      <view class="coming-soon-lite-btn" catchtap="onGoToLite">
+        <text class="coming-soon-lite-text">先试玩离线演示</text>
+      </view>
     </view>
   </view>
 </view>

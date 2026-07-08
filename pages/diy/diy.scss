@@ -221,3 +221,18 @@ page {
   line-height: var(--tg-line-height-normal);
   letter-spacing: var(--tg-letter-spacing-tight);
 }
+
+/* 离线演示入口按钮（蒙版内唯一可交互区域） */
+.coming-soon-lite-btn {
+  margin-top: var(--tg-spacing-lg);
+  padding: var(--tg-spacing-sm) var(--tg-spacing-xl);
+  border-radius: var(--td-radius-large);
+  background: var(--td-brand-color);
+}
+
+.coming-soon-lite-text {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-color-white);
+  letter-spacing: var(--tg-letter-spacing-wide);
+}

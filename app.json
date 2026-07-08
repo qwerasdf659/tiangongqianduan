@@ -67,7 +67,8 @@
         "diy-design/diy-design",
         "diy-result/diy-result",
         "diy-works/diy-works",
-        "diy-3d-preview/diy-3d-preview"
+        "diy-3d-preview/diy-3d-preview",
+        "diy-lite/diy-lite"
       ]
     }
   ],
@@ -78,7 +79,7 @@
     },
     "pages/exchange/exchange": {
       "network": "all",
-      "packages": ["lottery", "exchange", "diy"]
+      "packages": ["lottery", "exchange"]
     },
     "pages/diy/diy": {
       "network": "all",

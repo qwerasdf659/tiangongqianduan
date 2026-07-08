@@ -1,0 +1,29 @@
+@import '../../../styles/mixins.scss';
+
+.tray-root {
+  @include tg-tokens;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  @include flex-center;
+}
+
+.tray-canvas {
+  width: 660rpx;
+  height: 660rpx;
+}
+
+.tray-empty {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.tray-empty-text {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}

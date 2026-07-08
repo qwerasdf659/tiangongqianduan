@@ -111,6 +111,16 @@ Page({
   /** 拦截"功能后续开放"蒙版上的所有触摸，阻止穿透到下层页面（catch 绑定，无需逻辑） */
   onComingSoonMaskTap() {},
 
+  /**
+   * 进入 DIY 手串离线演示页（diy-lite）
+   * ⚠️ 该页为离线演示，珠子价格为前端写死数据，正式版接后端接口
+   */
+  onGoToLite() {
+    wx.navigateTo({
+      url: '/packageDIY/diy-lite/diy-lite'
+    })
+  },
+
   onLoginPopupClose() {
     this.setData({ loginPopupVisible: false })
   },

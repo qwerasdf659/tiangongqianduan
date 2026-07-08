@@ -1,0 +1,18 @@
+<!--
+  bracelet-tray 手串渲染组件
+  Canvas 2D 绘制手串：立体珠子 + 等弦长布局 + 触摸交互 + 伪3D
+-->
+<view class="tray-root">
+  <canvas
+    type="2d"
+    id="braceletCanvas"
+    class="tray-canvas"
+    catchtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    catchtouchend="onTouchEnd"
+    catchtouchcancel="onTouchEnd"
+  ></canvas>
+  <view class="tray-empty" wx:if="{{isEmpty}}">
+    <text class="tray-empty-text">从下方素材栏添加第一颗珠子</text>
+  </view>
+</view>
