@@ -156,6 +156,10 @@ page {
   background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
 }
 
+.mode-icon-lite {
+  background: linear-gradient(135deg, #d4a5c8, #b78bd4);
+}
+
 .mode-title {
   font-size: var(--td-font-size-l);
   font-weight: var(--tg-font-weight-semibold);
@@ -171,68 +175,4 @@ page {
   line-height: var(--tg-line-height-normal);
   padding: 0 var(--tg-spacing-md);
   letter-spacing: var(--tg-letter-spacing-tight);
-}
-
-/* ===== 功能后续开放蒙版（遮挡页面内容，但不遮底部 tabBar，保证可切走） ===== */
-.coming-soon-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  /* 底部抬高到 tabBar 之上（tabbar 120rpx + 安全区），露出 5 个 tab 可正常切换 */
-  bottom: calc(120rpx + env(safe-area-inset-bottom, 0px));
-  z-index: 99999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.coming-soon-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 var(--tg-spacing-xl);
-}
-
-.coming-soon-icon {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: var(--td-radius-circle);
-  background: var(--tg-diy-canvas-bg, #f7f1e6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--tg-spacing-lg);
-}
-
-.coming-soon-title {
-  font-size: var(--tg-font-size-display);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--tg-text-primary);
-  letter-spacing: var(--tg-letter-spacing-normal);
-  margin-bottom: var(--tg-spacing-sm);
-}
-
-.coming-soon-desc {
-  font-size: var(--td-font-size-s);
-  color: var(--tg-text-tertiary);
-  text-align: center;
-  line-height: var(--tg-line-height-normal);
-  letter-spacing: var(--tg-letter-spacing-tight);
-}
-
-/* 离线演示入口按钮（蒙版内唯一可交互区域） */
-.coming-soon-lite-btn {
-  margin-top: var(--tg-spacing-lg);
-  padding: var(--tg-spacing-sm) var(--tg-spacing-xl);
-  border-radius: var(--td-radius-large);
-  background: var(--td-brand-color);
-}
-
-.coming-soon-lite-text {
-  font-size: var(--tg-font-size-title);
-  font-weight: var(--tg-font-weight-semibold);
-  color: var(--tg-color-white);
-  letter-spacing: var(--tg-letter-spacing-wide);
 }

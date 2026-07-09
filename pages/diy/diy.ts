@@ -4,10 +4,11 @@
  * 直接在 tabBar 页面内展示 DIY 设计入口内容，
  * 保持底部 5 个 tab 始终可见。
  *
- * 三个入口:
+ * 四个入口:
  *   1. 我的设计 → /packageDIY/diy-works/diy-works
- *   2. 自由定制饰品 → /packageDIY/diy-design/diy-design
- *   3. 设计广场 → 待上线
+ *   2. 自由定制饰品 → /packageDIY/diy-design/diy-design（工作台）
+ *   3. 手串设计台（离线演示）→ /packageDIY/diy-lite/diy-lite
+ *   4. 设计广场 → 待上线
  *
  * @file pages/diy/diy.ts
  */
@@ -29,10 +30,7 @@ Page({
     /** 顶部 Banner 轮播间隔毫秒（后端槽位级 slide_interval_ms） */
     topBannerInterval: 3000,
     /** 是否有运营配置的顶部 Banner 图（false 时显示占位框） */
-    topBannerReady: false,
-
-    /** 功能后续开放蒙版：true 时整页遮挡，拦截所有交互（后续开放后改为 false 或接后端开关） */
-    comingSoonVisible: true
+    topBannerReady: false
   },
 
   onLoad() {
@@ -86,9 +84,20 @@ Page({
     })
   },
 
+  /** 自由定制饰品 → 工作台（diy-design，进入后自动加载默认模板） */
   onFreeDesign() {
     wx.navigateTo({
       url: '/packageDIY/diy-design/diy-design'
+    })
+  },
+
+  /**
+   * 手串设计台（离线演示）→ diy-lite
+   * ⚠️ 该页为离线演示，珠子价格/材质等为前端写死数据，正式版接后端 /api/v4/diy/ 接口
+   */
+  onGoToLite() {
+    wx.navigateTo({
+      url: '/packageDIY/diy-lite/diy-lite'
     })
   },
 
@@ -106,19 +115,6 @@ Page({
 
   onShowLoginPopup() {
     this.setData({ loginPopupVisible: true })
-  },
-
-  /** 拦截"功能后续开放"蒙版上的所有触摸，阻止穿透到下层页面（catch 绑定，无需逻辑） */
-  onComingSoonMaskTap() {},
-
-  /**
-   * 进入 DIY 手串离线演示页（diy-lite）
-   * ⚠️ 该页为离线演示，珠子价格为前端写死数据，正式版接后端接口
-   */
-  onGoToLite() {
-    wx.navigateTo({
-      url: '/packageDIY/diy-lite/diy-lite'
-    })
   },
 
   onLoginPopupClose() {

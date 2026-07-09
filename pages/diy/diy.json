@@ -2,8 +2,7 @@
   "navigationBarTitleText": "DIY 设计",
   "usingComponents": {
     "custom-navbar": "/components/custom-navbar/custom-navbar",
-    "login-popup": "/components/login-popup/login-popup",
-    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
+    "login-popup": "/components/login-popup/login-popup"
   },
   "navigationStyle": "custom",
   "disableScroll": true

@@ -110,7 +110,13 @@ Component({
 
   data: {
     /** 是否空态（无珠子） */
-    isEmpty: true
+    isEmpty: true,
+    /**
+     * DOM 飞入动画项（借鉴 diy3 useBeadAnimation）：
+     * 每项 { uid, image, x, y, size, opacity, scale, rotate, moving }，
+     * moving=false 为起点态(无过渡)，setData 后下一 tick 置 true 触发 CSS 回弹过渡。
+     */
+    flyingBeads: [] as any[]
   },
 
   lifetimes: {
@@ -123,6 +129,19 @@ Component({
       this._stopPhysics()
       // @ts-ignore
       this._stop3dSpin()
+      // @ts-ignore
+      this._stopRotateInertia()
+      // @ts-ignore 清理 DOM 飞入定时器(对齐 diy3 onUnmounted)，防止组件销毁后回调报错
+      if (this._flyTimers) {
+        // @ts-ignore
+        this._flyTimers.forEach((t: any) => clearTimeout(t))
+        // @ts-ignore
+        this._flyTimers = []
+      }
+      // @ts-ignore
+      if (this._spinOnceRafId && this._canvas) {
+        this._canvas.cancelAnimationFrame(this._spinOnceRafId)
+      }
       // @ts-ignore
       if (this._xFadeRafId && this._canvas) {
         this._canvas.cancelAnimationFrame(this._xFadeRafId)
@@ -222,11 +241,122 @@ Component({
         } as TrayBead
       })
       this._layout()
-      /** 平面态用补间动画归位；3D/散珠态直接渲染（各自有循环） */
+      /**
+       * 平面态：新增珠子走 DOM 飞入层(diy3 方案)，其余老珠仍用 canvas 补间归位；
+       * 3D/散珠态直接渲染（各自有循环，且飞入无意义）。
+       */
       if (!this.properties.preview3d && !this.properties.scattered) {
+        this._launchDomFlyForNewBeads()
         this._animateToLayout()
       } else {
         this._render()
+      }
+    },
+
+    /**
+     * 为本次新增的珠子(appear=0)启动 DOM 飞入动画：
+     *   ① 该珠 canvas 端 appear 保持 0(_drawBead 跳过不画)；
+     *   ② 往 flyingBeads push 一条起点态(底部中央)动画项；
+     *   ③ setData 触发 DOM 渲染；
+     *   ④ 双 setTimeout：20ms 后设终点(tx/ty)+moving 触发 CSS 过渡，
+     *      520ms 后移除该项并把 canvas 端 appear=1 重绘(对齐 diy3 双 setTimeout)。
+     */
+    _launchDomFlyForNewBeads() {
+      const beads = (this._trayBeads || []) as TrayBead[]
+      const cx = this._cssWidth / 2
+      const newItems: any[] = []
+      beads.forEach(bead => {
+        /** appear<1 即本次新增；已在飞行中的(uid 已登记)跳过 */
+        if ((bead.appear === undefined ? 1 : bead.appear) >= 1) {
+          return
+        }
+        if (this._flyingUidSet && this._flyingUidSet[bead.uid]) {
+          return
+        }
+        const size = (bead.imgLongMm || bead.diameter) * this._pixelPerMm
+        if (!this._flyingUidSet) {
+          this._flyingUidSet = {}
+        }
+        this._flyingUidSet[bead.uid] = true
+        newItems.push({
+          uid: bead.uid,
+          image: bead.image,
+          /** 起点：画布底部中央(素材栏在下方)，与原 canvas 飞入起点一致 */
+          x: cx,
+          y: this._cssHeight + 20,
+          tx: bead.tx || cx,
+          ty: bead.ty || this._cssHeight / 2,
+          size: size || 40,
+          opacity: 0.2,
+          scale: 0.4,
+          rotate: -30,
+          moving: false
+        })
+      })
+      if (newItems.length === 0) {
+        return
+      }
+      const flyingBeads = (this.data.flyingBeads || []).concat(newItems)
+      this.setData({ flyingBeads })
+      /** 双 setTimeout：先触发过渡到终点，再在过渡结束后落位 */
+      newItems.forEach(item => {
+        const enterTimer = setTimeout(() => {
+          const list = (this.data.flyingBeads || []).map((f: any) =>
+            f.uid === item.uid
+              ? { ...f, x: item.tx, y: item.ty, opacity: 1, scale: 1, rotate: 0, moving: true }
+              : f
+          )
+          this.setData({ flyingBeads: list })
+        }, 20)
+        const settleTimer = setTimeout(() => {
+          this._settleFlyingBead(item.uid)
+        }, 520)
+        if (!this._flyTimers) {
+          this._flyTimers = []
+        }
+        this._flyTimers.push(enterTimer, settleTimer)
+      })
+    },
+
+    /**
+     * 落位单颗飞入珠：从 flyingBeads 移除，并把 canvas 端该珠 appear 置 1 后重绘，
+     * 实现“DOM 飞入 → canvas 接管”的无缝交接。
+     */
+    _settleFlyingBead(uid: string) {
+      const beads = (this._trayBeads || []) as TrayBead[]
+      const bead = beads.find(b => b.uid === uid)
+      if (bead) {
+        bead.appear = 1
+        /** 确保落到布局终点(飞行期间可能有其它重排) */
+        bead.x = bead.tx || bead.x
+        bead.y = bead.ty || bead.y
+      }
+      if (this._flyingUidSet) {
+        delete this._flyingUidSet[uid]
+      }
+      const list = (this.data.flyingBeads || []).filter((f: any) => f.uid !== uid)
+      this.setData({ flyingBeads: list })
+      this._render()
+    },
+
+    /**
+     * 立即清空所有进行中的 DOM 飞入(切 3D/散珠/销毁时调用)：
+     * 清定时器、把仍在飞的珠子 canvas 端 appear 置 1 直接落位、清空 flyingBeads。
+     */
+    _flushDomFly() {
+      if (this._flyTimers) {
+        this._flyTimers.forEach((t: any) => clearTimeout(t))
+        this._flyTimers = []
+      }
+      const beads = (this._trayBeads || []) as TrayBead[]
+      beads.forEach(bead => {
+        if ((bead.appear === undefined ? 1 : bead.appear) < 1) {
+          bead.appear = 1
+        }
+      })
+      this._flyingUidSet = {}
+      if ((this.data.flyingBeads || []).length > 0) {
+        this.setData({ flyingBeads: [] })
       }
     },
 
@@ -247,19 +377,37 @@ Component({
       const start = Date.now()
       const dur = 260
       const from = beads.map(b => ({ x: b.x, y: b.y, appear: b.appear || 0 }))
+      /** easeOutBack 过冲回弹(终点附近略微越过再弹回)，s 控制过冲幅度 */
+      const easeOutBack = (x: number): number => {
+        const s = 1.7
+        const p = x - 1
+        return 1 + (s + 1) * p * p * p + s * p * p
+      }
       const tick = () => {
         const t = Math.min(1, (Date.now() - start) / dur)
+        /** 老珠平滑归位用 easeOutCubic(不过冲，避免整串抖动) */
         const e = 1 - Math.pow(1 - t, 3)
+        /** 新珠入场用 easeOutBack 过冲回弹，落位更有弹性 */
+        const eBack = easeOutBack(t)
         beads.forEach((b, i) => {
+          /** 正在 DOM 飞入的珠子：canvas 端不参与补间(保持隐藏在终点)，由 DOM 层负责 */
+          if (this._flyingUidSet && this._flyingUidSet[b.uid]) {
+            b.x = b.tx || b.x
+            b.y = b.ty || b.y
+            b.appear = 0
+            return
+          }
           const fx = from[i].x
           const fy = from[i].y
           const tx = b.tx || 0
           const ty = b.ty || 0
-          b.x = fx + (tx - fx) * e
-          b.y = fy + (ty - fy) * e
-          /** 新珠(入场appear<1)加抛物线弧度：中途抬高，形成飞入曲线 */
-          if (from[i].appear < 1) {
-            b.y -= Math.sin(e * Math.PI) * 60
+          const isNew = from[i].appear < 1
+          const ease = isNew ? eBack : e
+          b.x = fx + (tx - fx) * ease
+          b.y = fy + (ty - fy) * ease
+          /** 新珠加抛物线弧度：中途抬高，形成飞入曲线（仅非 DOM 飞入的兜底路径） */
+          if (isNew) {
+            b.y -= Math.sin(Math.min(1, t) * Math.PI) * 60
           }
           b.appear = from[i].appear + (1 - from[i].appear) * e
         })
@@ -332,12 +480,21 @@ Component({
       this._pixelPerMm = pixelPerMm
       this._ringRadius = ringRadius
 
-      /** 每颗珠子占角 = 自身沿绳mm / 容量 × 2π；从正上方开始顺时针填弧 */
+      /**
+       * 角度分配基数：正常按容量(周长)分配，保证首尾相切排满一圈。
+       * 兜底缩放：当珠子沿绳总长超过容量(理论上父页已拦截，此处双保险)，
+       * 改用“总长”作分母，使全部珠子仍均匀挤在一圈内而不溢出重叠，
+       * 借鉴 H5 ymBuildNonOccupyingItems 的 scale=周长/总长 思路。
+       */
+      const totalAlongMm = beads.reduce((sum, b) => sum + b.alongCordMm, 0)
+      const angleBaseMm = totalAlongMm > capacityMm ? totalAlongMm : capacityMm
+
+      /** 每颗珠子占角 = 自身沿绳mm / 分配基数 × 2π；从正上方开始顺时针填弧 */
       let accMm = 0
       const baseOffset = -Math.PI / 2 + (this._globalRot || 0)
       beads.forEach(bead => {
         const midMm = accMm + bead.alongCordMm / 2
-        const a = (midMm / capacityMm) * 2 * Math.PI + baseOffset
+        const a = (midMm / angleBaseMm) * 2 * Math.PI + baseOffset
         bead.angle = a
         /** 目标位置(补间终点) */
         bead.tx = centerX + ringRadius * Math.cos(a)
@@ -498,18 +655,248 @@ Component({
      */
     _drawBeadShadow(ctx: any, bead: TrayBead) {
       const r = (bead.imgLongMm * this._pixelPerMm) / 2
-      const offset = r * 0.28
-      ctx.save()
-      ctx.fillStyle = 'rgba(0,0,0,0.16)'
-      ctx.beginPath()
-      if (typeof ctx.ellipse === 'function') {
-        ctx.ellipse(bead.x + offset, bead.y + offset, r * 0.92, r * 0.78, 0, 0, Math.PI * 2)
-      } else {
-        /** 降级：平移+纵向压扁+圆，等效椭圆 */
-        ctx.translate(bead.x + offset, bead.y + offset)
-        ctx.scale(1, 0.82)
-        ctx.arc(0, 0, r * 0.9, 0, Math.PI * 2)
+      /** 异形珠(药片/跑环)用带朝向的轮廓阴影，而非圆形阴影 */
+      if (bead.shape === 'special') {
+        this._drawSpecialShadow(ctx, bead)
+        return
       }
+      /**
+       * 设备分级降质(借鉴 diy2 renderQualityMode)：
+       *   运动中(拖拽/惯性/散珠/3D自转) 或 低端机 → 只画单层接触阴影，省去扩散层的
+       *   大半径径向渐变(最耗填充率的一步)，保证运动流畅；静止满帧后自动恢复双层高质量。
+       */
+      const lowQuality = this._motionMode || this._tier === 'low'
+      if (lowQuality) {
+        this._drawContactShadow(ctx, bead, r)
+        return
+      }
+      /**
+       * 静止高质量态：优先用离屏模板 blit(借鉴 diy2 getBeadShadowTemplate)，
+       *   把“扩散+接触”双层渐变预渲染到固定尺寸离屏 canvas，主图一次 drawImage 即可，
+       *   省去每帧两次 createRadialGradient(珠子多时静止帧开销显著下降)。
+       *   模板不可用(离屏创建失败)时回退实时双层绘制。
+       */
+      const tpl = this._getRoundShadowTemplate()
+      if (tpl) {
+        /**
+         * 模板内单位半径 _shadowTplUnitR(CSS) 对应珠半径 1，模板总 CSS 边长
+         * = 2×_shadowTplHalfCss。要让 blit 后阴影有效半径 = 真实 r，则整张模板
+         * 目标 CSS 边长 w = r / unitR × 模板CSS边长；模板珠心在正中，故居中对齐珠心。
+         */
+        const boxCss = this._shadowTplHalfCss * 2
+        const w = (r / this._shadowTplUnitR) * boxCss
+        ctx.save()
+        ctx.drawImage(tpl, bead.x - w / 2, bead.y - w / 2, w, w)
+        ctx.restore()
+        return
+      }
+      /** 回退·第1层扩散软阴影 */
+      ctx.save()
+      ctx.translate(bead.x + r * 0.16, bead.y + r * 0.34)
+      ctx.scale(1, 0.66)
+      const diffuse = ctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 1.25)
+      diffuse.addColorStop(0, 'rgba(0,0,0,0.2)')
+      diffuse.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = diffuse
+      ctx.beginPath()
+      ctx.arc(0, 0, r * 1.25, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      /** 回退·第2层接触硬阴影 */
+      this._drawContactShadow(ctx, bead, r)
+    },
+
+    /**
+     * 圆珠“扩散+接触”双层阴影离屏模板(缓存)。
+     * 以固定单位半径 _shadowTplUnitR 预渲染，绘制时按 (真实半径/单位半径) 缩放 blit。
+     * 圆珠阴影与材质无关(只是黑色渐变)，故全体共用一张模板，key 固定。
+     * @returns 离屏 canvas 或 null
+     */
+    _getRoundShadowTemplate(): any {
+      if (this._roundShadowTpl) {
+        return this._roundShadowTpl
+      }
+      /** 单位珠半径(模板坐标)，取 60；模板总尺寸需容纳扩散层(半径1.25+偏移)与纵向压扁 */
+      const unitR = 60
+      const dpr = this._dpr || 1
+      /** 阴影向右下偏移，需右/下留更多余量；用 3.4×unitR 见方够放 */
+      const box = Math.ceil(unitR * 3.4 * dpr)
+      let off: any
+      try {
+        off = wx.createOffscreenCanvas({ type: '2d', width: box, height: box })
+      } catch (_e) {
+        return null
+      }
+      const octx = off.getContext('2d')
+      octx.scale(dpr, dpr)
+      const boxCss = box / dpr
+      /** 模板内“珠心”放在正中 */
+      const cx = boxCss / 2
+      const cy = boxCss / 2
+      const r = unitR
+      /** 第1层·扩散软阴影 */
+      octx.save()
+      octx.translate(cx + r * 0.16, cy + r * 0.34)
+      octx.scale(1, 0.66)
+      const diffuse = octx.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 1.25)
+      diffuse.addColorStop(0, 'rgba(0,0,0,0.2)')
+      diffuse.addColorStop(1, 'rgba(0,0,0,0)')
+      octx.fillStyle = diffuse
+      octx.beginPath()
+      octx.arc(0, 0, r * 1.25, 0, Math.PI * 2)
+      octx.fill()
+      octx.restore()
+      /** 第2层·接触硬阴影 */
+      octx.save()
+      octx.translate(cx + r * 0.1, cy + r * 0.32)
+      octx.scale(1, 0.5)
+      const contact = octx.createRadialGradient(0, 0, 0, 0, 0, r * 0.72)
+      contact.addColorStop(0, 'rgba(0,0,0,0.28)')
+      contact.addColorStop(1, 'rgba(0,0,0,0)')
+      octx.fillStyle = contact
+      octx.beginPath()
+      octx.arc(0, 0, r * 0.72, 0, Math.PI * 2)
+      octx.fill()
+      octx.restore()
+      /** 记录模板“珠心到边”的 CSS 半径(=boxCss/2)，绘制时 scale = 真实r / unitR */
+      this._shadowTplUnitR = unitR
+      this._shadowTplHalfCss = boxCss / 2
+      this._roundShadowTpl = off
+      return off
+    },
+
+    /**
+     * 异形珠轮廓阴影：按珠子真实长/短边(imgLongMm × 视觉短边比例)绘制带朝向的
+     * 圆角矩形阴影，随珠子 rotateMode 旋转，比圆形阴影更贴合药片/跑环的真实外形。
+     */
+    _drawSpecialShadow(ctx: any, bead: TrayBead) {
+      const longPx = bead.imgLongMm * this._pixelPerMm
+      const ratioKey = bead.id.indexOf('paohuan') >= 0 ? 'paohuan' : 'yaopian'
+      const shortPx = longPx * (SPECIAL_IMG_RATIO[ratioKey] || 0.5)
+      let rotation = 0
+      if (bead.rotateMode === 'radialLong') {
+        rotation = bead.angle + Math.PI / 2
+      } else if (bead.rotateMode === 'tangentLong') {
+        rotation = bead.angle + Math.PI
+      }
+      /**
+       * 优先用实拍图算出的“模糊轮廓剪影”当阴影(借鉴 diy2 soft-contour)，
+       * 比圆角矩形更贴合药片/跑环真实外形；图未加载完成则回退圆角矩形近似。
+       */
+      const contour = this._getContourShadow(bead)
+      if (contour) {
+        ctx.save()
+        /** 阴影相对珠体向右下偏移，模拟光从左上来 */
+        ctx.translate(bead.x + longPx * 0.08, bead.y + longPx * 0.12)
+        if (rotation !== 0) {
+          ctx.rotate(rotation)
+        }
+        ctx.globalAlpha = 0.28
+        ctx.drawImage(contour, -shortPx / 2, -longPx / 2, shortPx, longPx)
+        ctx.restore()
+        return
+      }
+      const halfLong = longPx / 2
+      const halfShort = shortPx / 2
+      const radius = Math.min(halfShort, halfLong) * 0.9
+      ctx.save()
+      /** 回退：圆角矩形近似阴影，向右下偏移 */
+      ctx.translate(bead.x + longPx * 0.08, bead.y + longPx * 0.12)
+      if (rotation !== 0) {
+        ctx.rotate(rotation)
+      }
+      ctx.fillStyle = 'rgba(0,0,0,0.22)'
+      this._roundRectPath(ctx, -halfShort, -halfLong, shortPx, longPx, radius)
+      ctx.fill()
+      ctx.restore()
+    },
+
+    /**
+     * 异形珠轮廓剪影阴影模板(离屏缓存)：
+     *   1. 把实拍图画到离屏 canvas
+     *   2. globalCompositeOperation='source-in' 用黑色填充 → 得到珠子形状的纯黑剪影
+     *   3. 小程序 Canvas 无 filter:blur，用多次半透明偏移叠加模拟模糊边缘
+     * 缓存 key = 图片 url，与 _tplCache 同生命周期(组件销毁即回收)，图未加载返回 null。
+     * @returns 离屏 canvas 或 null
+     */
+    _getContourShadow(bead: TrayBead): any {
+      const image = this._loadImage(bead.image)
+      if (!image) {
+        return null
+      }
+      if (!this._contourCache) {
+        this._contourCache = {}
+      }
+      const key = bead.image
+      if (this._contourCache[key]) {
+        return this._contourCache[key]
+      }
+      /** 模板分辨率固定 120px × dpr，短边按 SPECIAL_IMG_RATIO 收窄贴合实拍图比例 */
+      const ratioKey = bead.id.indexOf('paohuan') >= 0 ? 'paohuan' : 'yaopian'
+      const ratio = SPECIAL_IMG_RATIO[ratioKey] || 0.5
+      const H = 120 * (this._dpr || 1)
+      const W = Math.max(2, Math.round(H * ratio))
+      let off: any
+      try {
+        off = wx.createOffscreenCanvas({ type: '2d', width: W, height: H })
+      } catch (_e) {
+        return null
+      }
+      const octx = off.getContext('2d')
+      /**
+       * 阶段1·累积柔化边缘：把实拍图按 9 个方向微小偏移、低透明各画一遍，
+       *   非透明区域的 alpha 在中心累积到最高、边缘渐弱，形成“模糊边”的 alpha 分布。
+       */
+      const OFFSETS = [
+        [0, 0],
+        [2, 0],
+        [-2, 0],
+        [0, 2],
+        [0, -2],
+        [1.5, 1.5],
+        [-1.5, 1.5],
+        [1.5, -1.5],
+        [-1.5, -1.5]
+      ]
+      octx.globalAlpha = 0.2
+      OFFSETS.forEach(([dx, dy]) => {
+        octx.drawImage(image, dx, dy, W, H)
+      })
+      /**
+       * 阶段2·染黑成剪影：source-in 只在已绘制(非透明)区域填充黑色，
+       *   保留阶段1 累积的 alpha 作为剪影浓淡，得到贴合外形的柔边黑色剪影。
+       */
+      octx.globalAlpha = 1
+      octx.globalCompositeOperation = 'source-in'
+      octx.fillStyle = '#000000'
+      octx.fillRect(0, 0, W, H)
+      this._contourCache[key] = off
+      return off
+    },
+
+    /** 圆角矩形路径(异形阴影用)：兼容无 roundRect 的旧 Canvas 实现 */
+    _roundRectPath(ctx: any, x: number, y: number, w: number, h: number, r: number) {
+      const rr = Math.min(r, w / 2, h / 2)
+      ctx.beginPath()
+      ctx.moveTo(x + rr, y)
+      ctx.arcTo(x + w, y, x + w, y + h, rr)
+      ctx.arcTo(x + w, y + h, x, y + h, rr)
+      ctx.arcTo(x, y + h, x, y, rr)
+      ctx.arcTo(x, y, x + w, y, rr)
+      ctx.closePath()
+    },
+
+    /** 接触阴影(多层阴影第2层)：珠子正下方偏深的小椭圆径向渐变 */
+    _drawContactShadow(ctx: any, bead: TrayBead, r: number) {
+      ctx.save()
+      ctx.translate(bead.x + r * 0.1, bead.y + r * 0.32)
+      ctx.scale(1, 0.5)
+      const contact = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.72)
+      contact.addColorStop(0, 'rgba(0,0,0,0.28)')
+      contact.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = contact
+      ctx.beginPath()
+      ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2)
       ctx.fill()
       ctx.restore()
     },
@@ -865,9 +1252,13 @@ Component({
       this._downX = point.x
       this._downY = point.y
       if (this._rotating) {
+        /** 按下即停止上一轮惯性旋转，避免手指与飞轮抢方向 */
+        this._stopRotateInertia()
         const cx = this._cssWidth / 2
         const cy = this._cssHeight / 2
         this._lastAngle = Math.atan2(point.y - cy, point.x - cx)
+        /** 重置角速度采样（惯性飞轮的初速度来源） */
+        this._angVel = 0
       }
     },
 
@@ -899,13 +1290,22 @@ Component({
       if (this._dragIndex >= 0 && beads[this._dragIndex]) {
         beads[this._dragIndex].x = point.x
         beads[this._dragIndex].y = point.y
+        /** 拖拽中降阴影质量保跟手流畅 */
+        this._motionMode = true
+        /** 让位散开：其余珠子朝拖拽落点腾出的插入位平滑靠拢，营造“让路”感 */
+        this._applyMakeWaySpread(point)
         this._render()
       } else if (this._rotating) {
         const cx = this._cssWidth / 2
         const cy = this._cssHeight / 2
         const ang = Math.atan2(point.y - cy, point.x - cx)
-        this._globalRot = (this._globalRot || 0) + (ang - this._lastAngle)
+        const delta = this._angleDiff(ang, this._lastAngle)
+        this._globalRot = (this._globalRot || 0) + delta
+        /** 记录本帧角速度(弧度/帧)，抬手后作为惯性飞轮初速度 */
+        this._angVel = delta
         this._lastAngle = ang
+        /** 旋转拖动中降阴影质量 */
+        this._motionMode = true
         this._layout()
         this._render()
       }
@@ -933,8 +1333,20 @@ Component({
       const dragIndex = this._dragIndex
       const duration = Date.now() - (this._touchStartTs || 0)
       this._dragIndex = -1
+      /** 珠子拖拽结束：退出运动态(旋转分支下方另行处理飞轮) */
+      if (dragIndex >= 0) {
+        this._motionMode = false
+      }
 
       if (dragIndex < 0) {
+        /** 空白处旋转抬手：角速度足够则启动惯性飞轮(飞轮内部维持 motionMode)，
+         *  否则立即退出运动态并重绘一帧高质量阴影。 */
+        if (this._rotating && Math.abs(this._angVel || 0) >= 0.004) {
+          this._startRotateInertia()
+        } else {
+          this._motionMode = false
+          this._render()
+        }
         this._rotating = false
         return
       }
@@ -1000,6 +1412,61 @@ Component({
         this._render()
       }
     },
+    /**
+     * 让位散开：拖拽某颗珠子时，其余珠子按“拖拽落点角度”重新分布到环上，
+     * 空出被拖珠原本的位置(其他珠依次让路)，并用缓动朝新目标位靠拢。
+     * 仅平面态生效；被拖珠本身不参与重排(跟随手指)。
+     * @param point 当前手指落点(CSS 像素)
+     */
+    _applyMakeWaySpread(point: { x: number; y: number }) {
+      const beads = (this._trayBeads || []) as TrayBead[]
+      const dragIndex = this._dragIndex
+      if (dragIndex < 0 || beads.length <= 1) {
+        return
+      }
+      const centerX = this._cssWidth / 2
+      const centerY = this._cssHeight / 2
+      const capacityMm = this.properties.capacityMm || 150
+      const totalAlongMm = beads.reduce((sum, b) => sum + b.alongCordMm, 0)
+      const angleBaseMm = totalAlongMm > capacityMm ? totalAlongMm : capacityMm
+      /** 拖拽落点的角度，决定被拖珠“想插入”的位置 */
+      const dropAngle = Math.atan2(point.y - centerY, point.x - centerX)
+      const baseOffset = -Math.PI / 2 + (this._globalRot || 0)
+      /** 其余珠子按原顺序重新累加角度，遇到拖珠目标插入点则跳过一个身位 */
+      const others = beads.filter((_b, i) => i !== dragIndex)
+      const dragMm = beads[dragIndex].alongCordMm
+      let accMm = 0
+      /** 先估算被拖珠应插入到 others 的哪个位置(按落点角度最近) */
+      let insertAt = others.length
+      let minDiff = Infinity
+      others.forEach((b, i) => {
+        const midMm = accMm + b.alongCordMm / 2
+        const a = (midMm / angleBaseMm) * 2 * Math.PI + baseOffset
+        const diff = Math.abs(this._angleDiff(dropAngle, a))
+        if (diff < minDiff) {
+          minDiff = diff
+          insertAt = i
+        }
+        accMm += b.alongCordMm
+      })
+      /** 再按“插入点前后留出被拖珠身位”重排其余珠目标角度并缓动靠拢 */
+      accMm = 0
+      const lerp = 0.25
+      others.forEach((b, i) => {
+        if (i === insertAt) {
+          accMm += dragMm
+        }
+        const midMm = accMm + b.alongCordMm / 2
+        const a = (midMm / angleBaseMm) * 2 * Math.PI + baseOffset
+        b.angle = a
+        const tx = centerX + this._ringRadius * Math.cos(a)
+        const ty = centerY + this._ringRadius * Math.sin(a)
+        b.x += (tx - b.x) * lerp
+        b.y += (ty - b.y) * lerp
+        accMm += b.alongCordMm
+      })
+    },
+
     /** 取触摸点相对画布的 CSS 像素坐标 */
     _touchPoint(e: any) {
       const t = e.touches && e.touches[0] ? e.touches[0] : e.changedTouches && e.changedTouches[0]
@@ -1055,6 +1522,89 @@ Component({
       return d
     },
 
+    /**
+     * 启动整串惯性旋转(飞轮手感)：抬手后按最后角速度 _angVel 逐帧衰减(×0.95)继续转，
+     * 角速度衰减到极小(<0.0005 rad/帧)即停止并复位循环句柄，避免空转耗电。
+     * 仅平面态生效(3D/散珠有各自循环)。
+     */
+    _startRotateInertia() {
+      if (!this._canvas) {
+        return
+      }
+      const initialVel = this._angVel || 0
+      /** 初速度太小视为“慢慢松手”，不触发飞轮，避免误转 */
+      if (Math.abs(initialVel) < 0.004) {
+        return
+      }
+      this._stopRotateInertia()
+      /** 进入运动态：降阴影质量保流畅 */
+      this._motionMode = true
+      const decay = 0.95
+      const minVel = 0.0005
+      const spin = () => {
+        this._angVel = (this._angVel || 0) * decay
+        this._globalRot = (this._globalRot || 0) + this._angVel
+        this._layout()
+        this._render()
+        if (Math.abs(this._angVel) > minVel) {
+          this._inertiaRafId = this._canvas.requestAnimationFrame(spin)
+        } else {
+          this._inertiaRafId = 0
+          /** 飞轮停下：恢复高质量并重绘一帧精致阴影 */
+          this._motionMode = false
+          this._render()
+        }
+      }
+      this._inertiaRafId = this._canvas.requestAnimationFrame(spin)
+    },
+
+    /** 停止惯性旋转飞轮 */
+    _stopRotateInertia() {
+      if (this._inertiaRafId && this._canvas) {
+        this._canvas.cancelAnimationFrame(this._inertiaRafId)
+      }
+      this._inertiaRafId = 0
+    },
+
+    /**
+     * 供父页调用：整串平滑转一圈展示(借鉴 diy3 spinBracelet)。
+     * 平面态下从当前角度缓动 +2π 回到原位，约 900ms，easeInOutCubic。
+     * 3D/散珠态忽略(各有自己的展示动画)。拍照前给用户一个“转一圈欣赏”的动作。
+     */
+    spinOnce() {
+      if (!this._canvas || this.properties.preview3d || this.properties.scattered) {
+        return
+      }
+      /** 已在转一圈则忽略重复触发 */
+      if (this._spinOnceRafId) {
+        return
+      }
+      this._stopRotateInertia()
+      this._motionMode = true
+      const startRot = this._globalRot || 0
+      const start = Date.now()
+      const dur = 900
+      const easeInOutCubic = (x: number): number =>
+        x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2
+      const step = () => {
+        const t = Math.min(1, (Date.now() - start) / dur)
+        this._globalRot = startRot + easeInOutCubic(t) * 2 * Math.PI
+        this._layout()
+        this._render()
+        if (t < 1) {
+          this._spinOnceRafId = this._canvas.requestAnimationFrame(step)
+        } else {
+          /** 归一到起点角度，收尾恢复高质量阴影 */
+          this._globalRot = startRot
+          this._spinOnceRafId = 0
+          this._motionMode = false
+          this._layout()
+          this._render()
+        }
+      }
+      this._spinOnceRafId = this._canvas.requestAnimationFrame(step)
+    },
+
     /** 通知父页：移除某颗（伴随删除音效） */
     _emitRemove(index: number) {
       this._playSound('remove')
@@ -1072,6 +1622,9 @@ Component({
      *   关闭 → 回到平面布局。
      */
     _onPreviewChange() {
+      /** 切到 3D 前先停平面惯性飞轮，并 flush 进行中的 DOM 飞入(避免状态错乱) */
+      this._stopRotateInertia()
+      this._flushDomFly()
       if (this.properties.preview3d) {
         if (this._pitch === undefined || this._pitch === 0) {
           this._pitch = (55 * Math.PI) / 180
@@ -1117,32 +1670,67 @@ Component({
     },
 
     /**
-     * 播放音效（加珠/删除/碰撞）。
-     * ⚠️ 需在 assets/sounds/ 放入音频文件（add.mp3 / remove.mp3 / click.mp3）。
-     * 文件缺失时静默不报错（onError 忽略），不影响其它功能。音效资源须由用户/设计提供。
+     * 播放音效（加珠/删除/换位）——WebAudio 实时合成，零音频文件依赖。
+     * 用振荡器 + 增益包络 + 低通滤波实时合成三种短音：
+     *   add    加珠：明亮上扬(三角波 660→990Hz)
+     *   remove 删除：低沉下降(正弦波 440→220Hz)
+     *   click  换位：清脆短促(方波 880Hz 极短)
+     * WebAudio 不可用时静默降级，不影响主流程。音效属 UI 反馈，前端自主决定。
      */
     _playSound(key: string) {
-      if (!this._audioPool) {
-        this._audioPool = {}
+      const audioCtx = this._ensureAudioContext()
+      if (!audioCtx) {
+        return
       }
-      const url = `/packageDIY/diy-lite/assets/sounds/${key}.mp3`
+      /** 三种音效的合成参数(UI 常量，非业务数据) */
+      const PRESETS: Record<string, any> = {
+        add: { type: 'triangle', freq: 660, toFreq: 990, dur: 0.12, gain: 0.18, cutoff: 3200 },
+        remove: { type: 'sine', freq: 440, toFreq: 220, dur: 0.16, gain: 0.16, cutoff: 1600 },
+        click: { type: 'square', freq: 880, toFreq: 880, dur: 0.05, gain: 0.1, cutoff: 2600 }
+      }
+      const preset = PRESETS[key] || PRESETS.click
       try {
-        let audio = this._audioPool[key]
-        if (!audio) {
-          audio = wx.createInnerAudioContext()
-          audio.src = url
-          audio.onError(() => {})
-          this._audioPool[key] = audio
-        }
-        audio.stop()
-        audio.play()
+        const now = audioCtx.currentTime
+        const osc = audioCtx.createOscillator()
+        const gain = audioCtx.createGain()
+        const filter = audioCtx.createBiquadFilter()
+        osc.type = preset.type
+        osc.frequency.setValueAtTime(preset.freq, now)
+        osc.frequency.linearRampToValueAtTime(preset.toFreq, now + preset.dur)
+        filter.type = 'lowpass'
+        filter.frequency.setValueAtTime(preset.cutoff, now)
+        /** 增益包络：瞬起 + 指数衰减，模拟敲击音尾 */
+        gain.gain.setValueAtTime(0.0001, now)
+        gain.gain.exponentialRampToValueAtTime(preset.gain, now + 0.008)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + preset.dur)
+        osc.connect(filter)
+        filter.connect(gain)
+        gain.connect(audioCtx.destination)
+        osc.start(now)
+        osc.stop(now + preset.dur + 0.02)
       } catch (_e) {
-        /* 音效不可用时静默降级 */
+        /* 合成失败时静默降级 */
       }
+    },
+
+    /** 惰性创建并缓存 WebAudioContext(小程序 wx.createWebAudioContext) */
+    _ensureAudioContext(): any {
+      if (this._audioCtx !== undefined) {
+        return this._audioCtx
+      }
+      try {
+        this._audioCtx = wx.createWebAudioContext ? wx.createWebAudioContext() : null
+      } catch (_e) {
+        this._audioCtx = null
+      }
+      return this._audioCtx
     },
 
     /** 散珠/收拢切换：进入散珠启动物理循环，收拢则平滑飞回圆环 */
     _onScatterChange() {
+      /** 切散珠前先停平面惯性飞轮，并 flush 进行中的 DOM 飞入 */
+      this._stopRotateInertia()
+      this._flushDomFly()
       if (this.properties.scattered) {
         this._initPhysics()
         this._startPhysics()
@@ -1163,14 +1751,34 @@ Component({
       })
     },
 
-    /** 启动散珠物理循环 */
+    /**
+     * 启动散珠物理循环。
+     * 静止停帧省电：当整体动能连续多帧低于阈值(珠子基本不动)时，暂停 rAF 循环，
+     * 直到下次交互(抖一抖/拖拽/加删珠)再唤醒，避免散珠稳定后仍空转耗电。
+     */
     _startPhysics() {
       if (this._physicsRafId || !this._canvas) {
         return
       }
+      this._settleFrames = 0
+      /** 散珠运动中降阴影质量 */
+      this._motionMode = true
       const loop = () => {
-        this._stepPhysics()
+        const energy = this._stepPhysics()
         this._render()
+        /** 累计低能量帧数：连续 30 帧近静止则停循环 */
+        if (energy < 0.08) {
+          this._settleFrames = (this._settleFrames || 0) + 1
+        } else {
+          this._settleFrames = 0
+        }
+        if (this._settleFrames >= 30) {
+          this._physicsRafId = 0
+          /** 散珠稳定：恢复高质量并重绘一帧精致阴影 */
+          this._motionMode = false
+          this._render()
+          return
+        }
         this._physicsRafId = this._canvas.requestAnimationFrame(loop)
       }
       this._physicsRafId = this._canvas.requestAnimationFrame(loop)
@@ -1197,6 +1805,10 @@ Component({
         bead.py = bead.y + (Math.random() - 0.5) * 24
       })
       wx.vibrateShort({ type: 'light' })
+      /** 若物理循环已因静止停帧而暂停，抖一抖后重新唤醒 */
+      if (this.properties.scattered && !this._physicsRafId) {
+        this._startPhysics()
+      }
     },
     /**
      * 单步散珠物理（Verlet 积分）：
@@ -1206,21 +1818,24 @@ Component({
      *   4. 珠子间碰撞（两两推开，避免重叠）
      * 低端机减少碰撞迭代次数保流畅。
      */
-    _stepPhysics() {
+    _stepPhysics(): number {
       const beads = (this._trayBeads || []) as TrayBead[]
       if (beads.length === 0) {
-        return
+        return 0
       }
       const cx = this._cssWidth / 2
       const cy = this._cssHeight / 2
       const trayR = Math.min(cx, cy) - 8
       const friction = 0.92
       const gravity = 0.12
+      /** 累计整体动能(各珠速度平方和)，供静止停帧判定 */
+      let totalEnergy = 0
 
       beads.forEach(bead => {
         const r = (bead.imgLongMm * this._pixelPerMm) / 2
         const vx = (bead.x - (bead.px || bead.x)) * friction
         const vy = (bead.y - (bead.py || bead.y)) * friction
+        totalEnergy += vx * vx + vy * vy
         /** 指向中心的弱重力 + 微小随机抖动(让散珠更“活”) */
         const gx = (cx - bead.x) * 0.002 + (Math.random() - 0.5) * 0.3
         const gy = (cy - bead.y) * 0.002 + gravity + (Math.random() - 0.5) * 0.3
@@ -1263,6 +1878,7 @@ Component({
           }
         }
       }
+      return totalEnergy
     },
 
     /**
@@ -1287,22 +1903,58 @@ Component({
       this._layout()
       this._render()
 
+      /** 导出完成后统一恢复原渲染状态(3D自转/散珠物理) */
+      const restore = () => {
+        this._photoMode = false
+        this._layout()
+        this._render()
+        if (was3d) {
+          this._start3dSpin()
+        } else if (wasScattered) {
+          this._startPhysics()
+        }
+      }
+
       /** 等一帧确保绘制完成再截图 */
       this._canvas.requestAnimationFrame(() => {
         wx.canvasToTempFilePath({
           canvas: this._canvas,
-          success: (res: any) => callback(res.tempFilePath),
-          fail: () => callback(''),
-          complete: () => {
-            /** 恢复原状态 */
-            this._photoMode = false
-            this._layout()
-            this._render()
-            if (was3d) {
-              this._start3dSpin()
-            } else if (wasScattered) {
-              this._startPhysics()
-            }
+          success: (res: any) => {
+            callback(res.tempFilePath)
+            restore()
+          },
+          /** 主方案失败：降级重绘后二次导出(双保险)，仍失败才回调空串 */
+          fail: () => this._exportFallback(callback, restore)
+        })
+      })
+    },
+
+    /**
+     * 导出兜底方案：主导出失败时(常见于高 DPR 大画布内存不足)，
+     * 缩小采样倍率重绘一帧再导出，牺牲清晰度换取成功率。
+     * @param callback 回调 tempFilePath，兜底仍失败回调空串
+     * @param restore 恢复原渲染状态的清理函数
+     */
+    _exportFallback(callback: (_path: string) => void, restore: () => void) {
+      if (!this._canvas) {
+        callback('')
+        restore()
+        return
+      }
+      this._render()
+      this._canvas.requestAnimationFrame(() => {
+        wx.canvasToTempFilePath({
+          canvas: this._canvas,
+          /** 兜底降采样到 0.6，减小导出尺寸提升成功率 */
+          destWidth: Math.round(this._cssWidth * 0.6),
+          destHeight: Math.round(this._cssHeight * 0.6),
+          success: (res: any) => {
+            callback(res.tempFilePath)
+            restore()
+          },
+          fail: () => {
+            callback('')
+            restore()
           }
         })
       })

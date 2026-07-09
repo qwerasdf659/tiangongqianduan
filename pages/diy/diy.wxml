@@ -77,6 +77,15 @@
       >
     </view>
 
+    <!-- 手串设计台（离线演示）卡片 -->
+    <view class="design-mode-card" bindtap="onGoToLite">
+      <view class="mode-icon-wrap">
+        <view class="mode-icon-placeholder mode-icon-lite" />
+      </view>
+      <text class="mode-title">手串设计台</text>
+      <text class="mode-desc">在线搭配水晶珠子，实时预览立体效果，一键成串（离线演示）</text>
+    </view>
+
     <!-- 设计广场卡片 -->
     <view class="design-mode-card" bindtap="onDesignPlaza">
       <view class="mode-icon-wrap">
@@ -99,24 +108,4 @@
     bind:close="onLoginPopupClose"
     bind:loginsuccess="onLoginSuccess"
   />
-
-  <!-- 功能后续开放蒙版：遮挡整页并拦截所有交互 -->
-  <view
-    class="coming-soon-mask"
-    wx:if="{{comingSoonVisible}}"
-    catchtap="onComingSoonMaskTap"
-    catchtouchmove="onComingSoonMaskTap"
-  >
-    <view class="coming-soon-card">
-      <view class="coming-soon-icon">
-        <t-icon name="tools-filled" size="80rpx" color="#C5A572" />
-      </view>
-      <text class="coming-soon-title">功能即将开放</text>
-      <text class="coming-soon-desc">DIY 饰品工坊正在精心打磨，敬请期待</text>
-      <!-- 离线演示入口：正式功能未开放前，先体验本地手串设计 Demo -->
-      <view class="coming-soon-lite-btn" catchtap="onGoToLite">
-        <text class="coming-soon-lite-text">先试玩离线演示</text>
-      </view>
-    </view>
-  </view>
 </view>

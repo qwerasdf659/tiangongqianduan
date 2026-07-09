@@ -80,6 +80,8 @@ Page({
     capacityPercent: 0,
     /** 容量提示文案 */
     capacityTip: '',
+    /** 实时数量引导文案（还需N颗/✓合适，借鉴 diy3；离线兜底，正式版按后端珠数范围） */
+    fillHint: '从下方挑一颗珠子开始吧',
     /** 是否已满（满则禁止添加） */
     isFull: false,
     /** 是否快满（≥85%，容量条警示色） */
@@ -108,8 +110,61 @@ Page({
     /** 绳长/容量（mm）= 手围×10×圈数，珠子沿绳总长的硬上限 */
     capacityMm: 150,
 
+    /** 五行雷达图弹窗（借鉴 diy3 玩法；数据依赖后端 five_elements，缺失显示空态） */
+    wuxingVisible: false,
+    /** 五行数据是否就绪（已选珠子中存在 five_elements 字段才为 true） */
+    wuxingHasData: false,
+    /** 五行统计结果文本（各元素占比，供无障碍/降级展示） */
+    wuxingSummary: '',
+
     /** 教程引导弹窗 */
     guideVisible: false,
+    /** 使用指南当前 Tab 下标（0玩法/1量手围/2珠子尺寸/3天然瑕疵，借鉴 H5 四 Tab 指南） */
+    guideTabIndex: 0,
+    /** 使用指南四 Tab 定义（纯 UI 文案，前端自主决定；不含任何后端业务数据） */
+    guideTabs: [
+      {
+        key: 'howto',
+        title: '怎么玩',
+        items: [
+          '1. 先点右上角设置手围，决定绳长上限',
+          '2. 下方选分类、用 +/- 切尺寸，点珠子加入手串',
+          '3. 手串上拖动珠子可换位，拖出圈外或轻点可删除',
+          '4. 空白处拖动可旋转手串，松手有惯性；点 3D 看立体预览',
+          '5. 满意后拍照保存，或加入购物车'
+        ]
+      },
+      {
+        key: 'measure',
+        title: '量手围',
+        items: [
+          '用软尺贴合手腕最细处绕一圈，读取周长即手围',
+          '没有软尺可用细绳绕一圈，再用直尺量绳长',
+          '手围决定绳长上限与可放珠子数，量准更贴合',
+          '偏好宽松可 +0.5~1cm，偏好贴合按实测值'
+        ]
+      },
+      {
+        key: 'size',
+        title: '珠子尺寸',
+        items: [
+          '珠子直径以毫米(mm)标注，如 8mm、10mm、12mm',
+          '同款珠子可用卡片上的 +/- 切换不同尺寸',
+          '大珠更显眼、小珠更秀气，可混搭出层次',
+          '异形珠(药片/跑环)按实物长短边比例摆放'
+        ]
+      },
+      {
+        key: 'natural',
+        title: '天然瑕疵',
+        items: [
+          '天然水晶含棉絮、冰裂、色带属正常现象，非质量问题',
+          '每颗天然珠子纹理独一无二，实物与展示图会有差异',
+          '通透度、颜色深浅因产地批次略有不同',
+          '介意瑕疵者建议选净体或刻面款'
+        ]
+      }
+    ],
 
     /** 购物车已加入数量（演示，正式版对接后端购物车） */
     cartCount: 0
@@ -338,14 +393,187 @@ Page({
     this.setData({ bgColor: e.currentTarget.dataset.color })
   },
 
-  /** 打开教程引导 */
+  /** 打开教程引导（默认回到第一个 Tab） */
   onOpenGuide() {
-    this.setData({ guideVisible: true })
+    this.setData({ guideVisible: true, guideTabIndex: 0 })
   },
 
   /** 关闭教程引导 */
   onCloseGuide() {
     this.setData({ guideVisible: false })
+  },
+
+  /** 切换使用指南 Tab */
+  onSwitchGuideTab(e: any) {
+    this.setData({ guideTabIndex: Number(e.currentTarget.dataset.index) })
+  },
+
+  /**
+   * 打开五行雷达图（借鉴 diy3）：统计已选珠子的金木水火土占比并绘制雷达图。
+   * ⚠️ 五行属性是命理业务数据，仅来自后端 `five_elements`；离线演示无此数据时
+   *   显示空态提示「五行数据待后端提供」，绝不用假数据填充。
+   */
+  onOpenWuxing() {
+    const stats = this._computeWuxingStats(this.data.selectedBeads)
+    const hasData = stats.total > 0
+    this.setData(
+      {
+        wuxingVisible: true,
+        wuxingHasData: hasData,
+        wuxingSummary: hasData ? this._buildWuxingSummary(stats) : ''
+      },
+      () => {
+        if (hasData) {
+          this._drawWuxingRadar(stats)
+        }
+      }
+    )
+  },
+
+  /** 关闭五行雷达图 */
+  onCloseWuxing() {
+    this.setData({ wuxingVisible: false })
+  },
+
+  /**
+   * 统计已选珠子的五行分布（仅统计后端下发了 five_elements 的珠子）。
+   * @param beads 已选珠子
+   * @returns { counts: {金木水火土计数}, total: 有效珠子五行计数总和 }
+   */
+  _computeWuxingStats(beads: any[]): { counts: Record<string, number>; total: number } {
+    const counts: Record<string, number> = { metal: 0, wood: 0, water: 0, fire: 0, earth: 0 }
+    let total = 0
+    beads.forEach(bead => {
+      if (!bead.five_elements) {
+        return
+      }
+      String(bead.five_elements)
+        .split(',')
+        .map((s: string) => s.trim())
+        .forEach((el: string) => {
+          if (counts[el] !== undefined) {
+            counts[el] += 1
+            total += 1
+          }
+        })
+    })
+    return { counts, total }
+  },
+
+  /** 生成五行占比文本摘要（如「金2 木1 水3」，无障碍与降级展示用） */
+  _buildWuxingSummary(stats: { counts: Record<string, number>; total: number }): string {
+    const LABELS: Record<string, string> = {
+      metal: '金',
+      wood: '木',
+      water: '水',
+      fire: '火',
+      earth: '土'
+    }
+    return ['metal', 'wood', 'water', 'fire', 'earth']
+      .map(el => `${LABELS[el]}${stats.counts[el]}`)
+      .join('  ')
+  },
+
+  /**
+   * Canvas 手绘五行雷达图（不引第三方图表库）：五边形网格 + 数据多边形填充。
+   * 五轴顺序按相生：木→火→土→金→水。半径按各元素计数占最大计数的比例。
+   * @param stats 五行统计结果
+   */
+  _drawWuxingRadar(stats: { counts: Record<string, number>; total: number }) {
+    const query = this.createSelectorQuery()
+    query
+      .select('#wuxingCanvas')
+      .fields({ node: true, size: true })
+      .exec((res: any) => {
+        if (!res || !res[0] || !res[0].node) {
+          return
+        }
+        const canvasNode = res[0].node
+        const ctx = canvasNode.getContext('2d')
+        const dpr = wx.getWindowInfo().pixelRatio || 1
+        const size = res[0].width
+        canvasNode.width = size * dpr
+        canvasNode.height = size * dpr
+        ctx.scale(dpr, dpr)
+        ctx.clearRect(0, 0, size, size)
+
+        const cx = size / 2
+        const cy = size / 2
+        const radius = size * 0.36
+        /** 五行按相生顺序排轴（木火土金水），从正上方起顺时针 */
+        const axes = ['wood', 'fire', 'earth', 'metal', 'water']
+        const labels: Record<string, string> = {
+          wood: '木',
+          fire: '火',
+          earth: '土',
+          metal: '金',
+          water: '水'
+        }
+        const maxCount = Math.max(1, ...axes.map(el => stats.counts[el]))
+        const angleOf = (i: number) => -Math.PI / 2 + (i / axes.length) * 2 * Math.PI
+
+        /** 背景网格：3 层五边形 */
+        for (let layer = 1; layer <= 3; layer++) {
+          const rr = (radius * layer) / 3
+          ctx.beginPath()
+          axes.forEach((_el, i) => {
+            const a = angleOf(i)
+            const x = cx + rr * Math.cos(a)
+            const y = cy + rr * Math.sin(a)
+            if (i === 0) {
+              ctx.moveTo(x, y)
+            } else {
+              ctx.lineTo(x, y)
+            }
+          })
+          ctx.closePath()
+          ctx.strokeStyle = 'rgba(139,115,85,0.25)'
+          ctx.lineWidth = 1
+          ctx.stroke()
+        }
+
+        /** 轴线 + 轴标签 */
+        axes.forEach((el, i) => {
+          const a = angleOf(i)
+          const x = cx + radius * Math.cos(a)
+          const y = cy + radius * Math.sin(a)
+          ctx.beginPath()
+          ctx.moveTo(cx, cy)
+          ctx.lineTo(x, y)
+          ctx.strokeStyle = 'rgba(139,115,85,0.2)'
+          ctx.stroke()
+          ctx.fillStyle = '#8b7355'
+          ctx.font = '14px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(
+            labels[el],
+            cx + (radius + 16) * Math.cos(a),
+            cy + (radius + 16) * Math.sin(a)
+          )
+        })
+
+        /** 数据多边形 */
+        ctx.beginPath()
+        axes.forEach((el, i) => {
+          const ratio = stats.counts[el] / maxCount
+          const rr = radius * ratio
+          const a = angleOf(i)
+          const x = cx + rr * Math.cos(a)
+          const y = cy + rr * Math.sin(a)
+          if (i === 0) {
+            ctx.moveTo(x, y)
+          } else {
+            ctx.lineTo(x, y)
+          }
+        })
+        ctx.closePath()
+        ctx.fillStyle = 'rgba(139,115,85,0.35)'
+        ctx.fill()
+        ctx.strokeStyle = '#8b7355'
+        ctx.lineWidth = 2
+        ctx.stroke()
+      })
   },
 
   /** 加入购物车（演示：仅计数并提示；正式版对接后端购物车） */
@@ -381,6 +609,18 @@ Page({
       })
     })
   },
+  /** 转一圈展示：让 bracelet-tray 平滑转一圈欣赏（拍照前的展示动作，借鉴 diy3） */
+  onSpinShow() {
+    if (this.data.beadCount === 0) {
+      return
+    }
+    const tray = this.selectComponent('#braceletTray')
+    if (tray) {
+      tray.spinOnce()
+      wx.vibrateShort({ type: 'light' })
+    }
+  },
+
   /** 打开手围设置 */
   onOpenWrist() {
     this.setData({ wristVisible: true })
@@ -451,9 +691,51 @@ Page({
       isFull,
       nearFull,
       usedCountMap: countMap,
-      capacityTip: isFull ? '已达绳长上限，删除珠子可继续添加' : ''
+      capacityTip: isFull ? '已达绳长上限，删除珠子可继续添加' : '',
+      fillHint: this._buildFillHint(nextSelected, usedMm, capacityMm, isFull, percent)
     })
     this._refreshGroupCounts(countMap)
+  },
+
+  /**
+   * 生成实时数量反馈文案（借鉴 diy3「还需 N 颗 / ✓ 合适」引导）。
+   *
+   * ⚠️ 口径说明：此处仅基于【已存在的离线容量模型】(capacityMm=手围×10×圈数，
+   *   已知违规、用户同意的离线演示值) 与已选珠子的平均沿绳尺寸做「剩余可添加颗数」的
+   *   粗略引导，不引入任何新的业务规则默认值。正式版「建议珠数范围」应由后端
+   *   capacity_rules.min_beads/max_beads 下发，前端据此替换本兜底文案。
+   *
+   * @param beads 已选珠子
+   * @param usedMm 已用绳长(mm)
+   * @param capacityMm 绳长容量(mm)
+   * @param isFull 是否已满
+   * @param percent 容量占用百分比
+   * @returns 引导文案(空态/快满/已满各不同)
+   */
+  _buildFillHint(
+    beads: any[],
+    usedMm: number,
+    capacityMm: number,
+    isFull: boolean,
+    percent: number
+  ): string {
+    if (beads.length === 0) {
+      return '从下方挑一颗珠子开始吧'
+    }
+    if (isFull) {
+      return '✓ 已排满一圈，可以完成了'
+    }
+    const remainMm = capacityMm - usedMm
+    /** 用已选珠子平均沿绳尺寸估算还能放几颗(纯展示引导，非业务定量) */
+    const avgMm = usedMm / beads.length || 10
+    const remainCount = Math.floor(remainMm / avgMm)
+    if (percent >= 85) {
+      return '就快满了，再加一两颗即可'
+    }
+    if (remainCount <= 0) {
+      return '✓ 数量差不多了'
+    }
+    return `约还能再加 ${remainCount} 颗`
   },
 
   /** 把已选数量写回当前 groups（供网格卡角标显示） */

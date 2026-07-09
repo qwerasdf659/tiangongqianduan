@@ -31,6 +31,8 @@
     <text class="capacity-text"
       >绳长 {{lengthText}}/{{capacityMm}}mm{{capacityTip ? ' · ' + capacityTip : ''}}</text
     >
+    <!-- 实时数量引导文案（还需N颗/✓合适，借鉴 diy3；离线兜底，正式版按后端珠数范围） -->
+    <text class="fill-hint {{isFull || nearFull ? 'fill-hint-highlight' : ''}}">{{fillHint}}</text>
   </view>
 
   <!-- 中央手串渲染舞台 -->
@@ -59,8 +61,14 @@
       >
         <text class="tool-btn-text">{{scattered ? '收拢' : '散开'}}</text>
       </view>
+      <view class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}" bindtap="onSpinShow">
+        <text class="tool-btn-text">转一圈</text>
+      </view>
       <view class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}" bindtap="onExportPhoto">
         <text class="tool-btn-text">拍照</text>
+      </view>
+      <view class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}" bindtap="onOpenWuxing">
+        <text class="tool-btn-text">五行</text>
       </view>
       <view class="tool-btn" bindtap="onOpenGuide">
         <text class="tool-btn-text">教程</text>
@@ -256,6 +264,32 @@
     </view>
   </view>
 
+  <!-- 五行雷达图弹窗（借鉴 diy3；数据依赖后端 five_elements，缺失显示空态） -->
+  <view
+    class="modal-mask"
+    wx:if="{{wuxingVisible}}"
+    catchtap="onCloseWuxing"
+    catchtouchmove="onCloseWuxing"
+  >
+    <view class="wuxing-card" catchtap="">
+      <text class="wuxing-title">五行分析</text>
+      <!-- 有数据：绘制雷达图 + 占比摘要 -->
+      <view wx:if="{{wuxingHasData}}" class="wuxing-body">
+        <canvas type="2d" id="wuxingCanvas" class="wuxing-canvas"></canvas>
+        <text class="wuxing-summary">{{wuxingSummary}}</text>
+        <text class="wuxing-note">五行相生：木生火 · 火生土 · 土生金 · 金生水 · 水生木</text>
+      </view>
+      <!-- 无数据：空态提示（绝不用假数据） -->
+      <view wx:else class="wuxing-empty">
+        <text class="wuxing-empty-title">暂无五行数据</text>
+        <text class="wuxing-empty-desc">五行属性需由后端下发，正式版接入后自动显示分布雷达图</text>
+      </view>
+      <view class="wuxing-confirm" catchtap="onCloseWuxing">
+        <text class="wuxing-confirm-text">知道了</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 教程引导弹窗 -->
   <view
     class="modal-mask"
@@ -264,13 +298,22 @@
     catchtouchmove="onCloseGuide"
   >
     <view class="guide-card" catchtap="">
-      <text class="guide-title">怎么玩</text>
+      <!-- 四 Tab 使用指南（借鉴 H5：玩法/量手围/珠子尺寸/天然瑕疵） -->
+      <view class="guide-tabs">
+        <view
+          wx:for="{{guideTabs}}"
+          wx:key="key"
+          class="guide-tab {{guideTabIndex === index ? 'guide-tab-active' : ''}}"
+          data-index="{{index}}"
+          bindtap="onSwitchGuideTab"
+        >
+          <text class="guide-tab-text">{{item.title}}</text>
+        </view>
+      </view>
       <view class="guide-list">
-        <text class="guide-item">1. 先点右上角设置手围，决定绳长上限</text>
-        <text class="guide-item">2. 下方选分类、用 +/- 切尺寸，点珠子加入手串</text>
-        <text class="guide-item">3. 手串上拖动珠子可换位，拖出圈外或轻点可删除</text>
-        <text class="guide-item">4. 空白处拖动可旋转手串，点 3D 看立体预览</text>
-        <text class="guide-item">5. 满意后拍照保存，或加入购物车</text>
+        <text wx:for="{{guideTabs[guideTabIndex].items}}" wx:key="*this" class="guide-item"
+          >{{item}}</text
+        >
       </view>
       <view class="guide-confirm" catchtap="onCloseGuide">
         <text class="guide-confirm-text">开始设计</text>

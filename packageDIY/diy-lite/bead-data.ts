@@ -60,6 +60,12 @@ export interface LiteBead {
   energy: string
   /** 搭配建议文案（详情展示）—— ⚠️ 演示写死，正式版由后端提供 */
   pairing: string
+  /**
+   * 五行属性（金木水火土）—— ⚠️ 命理业务数据，仅由后端 `five_elements` 下发。
+   * 取值：metal/wood/water/fire/earth，多值用逗号分隔（如 'water,wood'）。
+   * 离线演示不写死此字段（前端无权威依据），故为可选；缺失时「五行雷达图」显示空态。
+   */
+  five_elements?: string
 }
 
 /** 分类清单（用于底部分类切换 Tab） */

@@ -12,6 +12,21 @@
     catchtouchend="onTouchEnd"
     catchtouchcancel="onTouchEnd"
   ></canvas>
+  <!--
+    DOM 飞入层(借鉴 diy3 useBeadAnimation)：新加珠子用独立 <image> + CSS transition
+    回弹曲线飞入，飞行期间 canvas 端该珠 appear=0 不画，落位后从此层移除、canvas 显示。
+    覆盖层与 canvas 同尺寸同定位，坐标用 CSS 像素与 canvas 一致，避免落位跳动。
+  -->
+  <view class="tray-fly-layer">
+    <image
+      wx:for="{{flyingBeads}}"
+      wx:key="uid"
+      class="fly-bead {{item.moving ? 'fly-bead-moving' : ''}}"
+      src="{{item.image}}"
+      mode="aspectFit"
+      style="left:{{item.x}}px;top:{{item.y}}px;width:{{item.size}}px;height:{{item.size}}px;opacity:{{item.opacity}};transform:translate(-50%,-50%) scale({{item.scale}}) rotate({{item.rotate}}deg)"
+    />
+  </view>
   <view class="tray-empty" wx:if="{{isEmpty}}">
     <text class="tray-empty-text">从下方素材栏添加第一颗珠子</text>
   </view>

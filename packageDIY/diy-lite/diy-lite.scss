@@ -85,6 +85,21 @@
   color: var(--tg-text-tertiary);
 }
 
+/* 实时数量引导文案（还需N颗/✓合适，借鉴 diy3） */
+.fill-hint {
+  margin-top: 2rpx;
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-secondary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* 快满/已满时高亮引导（用品牌色强调，提示用户临界状态） */
+.fill-hint-highlight {
+  color: var(--td-brand-color);
+  font-weight: var(--tg-font-weight-semibold);
+}
+
 .stage {
   position: relative;
   flex: 1;
@@ -511,6 +526,88 @@
   letter-spacing: var(--tg-letter-spacing-wide);
 }
 
+/* 五行雷达图弹窗（借鉴 diy3） */
+.wuxing-card {
+  width: 600rpx;
+  padding: var(--tg-spacing-lg);
+  border-radius: var(--td-radius-large);
+  background: var(--tg-card-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wuxing-title {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.wuxing-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: var(--tg-spacing-md);
+}
+
+.wuxing-canvas {
+  width: 420rpx;
+  height: 420rpx;
+}
+
+.wuxing-summary {
+  margin-top: var(--tg-spacing-sm);
+  font-size: var(--tg-font-size-body);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.wuxing-note {
+  margin-top: var(--tg-spacing-xs);
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.wuxing-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--tg-spacing-xxl) 0;
+}
+
+.wuxing-empty-title {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-secondary);
+}
+
+.wuxing-empty-desc {
+  margin-top: var(--tg-spacing-sm);
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
+  text-align: center;
+  line-height: var(--tg-line-height-normal);
+}
+
+.wuxing-confirm {
+  margin-top: var(--tg-spacing-lg);
+  width: 100%;
+  @include flex-center;
+  padding: var(--tg-spacing-sm) 0;
+  border-radius: var(--td-radius-large);
+  background: var(--td-brand-color);
+}
+
+.wuxing-confirm-text {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-color-white);
+  letter-spacing: var(--tg-letter-spacing-wide);
+}
+
 .guide-card {
   width: 600rpx;
   padding: var(--tg-spacing-lg);
@@ -520,12 +617,35 @@
   flex-direction: column;
 }
 
-.guide-title {
-  font-size: var(--tg-font-size-headline);
+/* 使用指南四 Tab 头（玩法/量手围/珠子尺寸/天然瑕疵） */
+.guide-tabs {
+  display: flex;
+  gap: var(--tg-spacing-xs);
+  border-bottom: 2rpx solid var(--tg-color-border-light);
+  padding-bottom: var(--tg-spacing-sm);
+}
+
+.guide-tab {
+  flex: 1;
+  @include flex-center;
+  padding: var(--tg-spacing-xs) 0;
+  border-radius: var(--td-radius-medium);
+}
+
+.guide-tab-active {
+  background: var(--td-brand-color-light, rgba(139, 115, 85, 0.12));
+}
+
+.guide-tab-text {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-secondary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.guide-tab-active .guide-tab-text {
+  color: var(--td-brand-color);
   font-weight: var(--tg-font-weight-semibold);
-  color: var(--tg-text-primary);
-  letter-spacing: var(--tg-letter-spacing-normal);
-  text-align: center;
 }
 
 .guide-list {
