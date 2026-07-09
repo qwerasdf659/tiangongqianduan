@@ -27,8 +27,9 @@ const diyAssetCodes = require('../config/asset-codes')
  * asset_code → 中文名称映射（UI展示用）
  * 后端 material_asset_types.display_name 是权威来源
  * 此处用于 costBreakdown 的本地展示（不依赖额外接口请求）
+ * 供 diy-design（经 diyStore getter）与 diy-lite（直接引用）共用
  */
-const ASSET_DISPLAY_NAME: Record<string, string> = {
+export const ASSET_DISPLAY_NAME: Record<string, string> = {
   star_stone: '星石',
   red_core_shard: '红源晶碎片',
   red_core_gem: '红源晶',
@@ -42,6 +43,35 @@ const ASSET_DISPLAY_NAME: Record<string, string> = {
   blue_core_gem: '蓝源晶',
   purple_core_shard: '紫源晶碎片',
   purple_core_gem: '紫源晶'
+}
+
+/**
+ * 从珠子数组计算按 price_asset_code 分组的费用明细（支付面板/结果页展示用）
+ * diyStore.costBreakdown 与 diy-lite 页面共用此纯函数，避免两处口径漂移。
+ * @param beads 参与计费的珠子列表（需含 price / price_asset_code 字段）
+ * @returns 按资产代码汇总的费用明细数组
+ */
+export function buildCostBreakdown(beads: API.DiyBead[]): API.DiyCostBreakdownItem[] {
+  if (!beads || beads.length === 0) {
+    return []
+  }
+  const groupMap = new Map<string, { amount: number; bead_count: number }>()
+  for (const b of beads) {
+    const code = b.price_asset_code
+    const existing = groupMap.get(code)
+    if (existing) {
+      existing.amount += b.price
+      existing.bead_count += 1
+    } else {
+      groupMap.set(code, { amount: b.price, bead_count: 1 })
+    }
+  }
+  return Array.from(groupMap.entries()).map(([asset_code, info]) => ({
+    asset_code,
+    amount: info.amount,
+    bead_count: info.bead_count,
+    asset_name: ASSET_DISPLAY_NAME[asset_code] || asset_code
+  }))
 }
 
 /** 撤销/重做快照（按模式区分） */
@@ -292,27 +322,7 @@ export const diyStore = observable({
     const beads: API.DiyBead[] = this.isSlotMode
       ? (Object.values(this.slotFillings) as API.DiyBead[])
       : this.selectedBeads
-    if (beads.length === 0) {
-      return []
-    }
-    /** 按 price_asset_code 分组汇总 */
-    const groupMap = new Map<string, { amount: number; bead_count: number }>()
-    for (const b of beads) {
-      const code = b.price_asset_code
-      const existing = groupMap.get(code)
-      if (existing) {
-        existing.amount += b.price
-        existing.bead_count += 1
-      } else {
-        groupMap.set(code, { amount: b.price, bead_count: 1 })
-      }
-    }
-    return Array.from(groupMap.entries()).map(([asset_code, info]) => ({
-      asset_code,
-      amount: info.amount,
-      bead_count: info.bead_count,
-      asset_name: ASSET_DISPLAY_NAME[asset_code] || asset_code
-    }))
+    return buildCostBreakdown(beads)
   },
 
   /**

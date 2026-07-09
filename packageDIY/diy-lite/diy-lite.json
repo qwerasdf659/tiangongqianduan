@@ -2,7 +2,8 @@
   "navigationBarTitleText": "DIY 手串（离线演示）",
   "usingComponents": {
     "custom-navbar": "/components/custom-navbar/custom-navbar",
-    "bracelet-tray": "./bracelet-tray/index"
+    "bracelet-tray": "./bracelet-tray/index",
+    "login-popup": "/components/login-popup/login-popup"
   },
   "navigationStyle": "custom",
   "disableScroll": true

@@ -9,7 +9,7 @@
  *
  * 与父页通信：
  *   properties.beads 变化 → 重新布局重绘
- *   triggerEvent('reorder'/'remove'/'tap') 通知父页更新数据源
+ *   triggerEvent('reorder'/'remove'/'beadtap'/'selectionchange') 通知父页更新数据源与多选状态
  *
  * @file packageDIY/diy-lite/bracelet-tray/index.ts
  */
@@ -181,7 +181,7 @@ Component({
           this._dpr = dpr
           this._cssWidth = res[0].width
           this._cssHeight = res[0].height
-          this._selectedIndex = -1
+          this._selectedIndices = []
           this._syncAndRender()
         })
     },
@@ -212,8 +212,8 @@ Component({
       }
       const source = (this.properties.beads || []) as any[]
       this.setData({ isEmpty: source.length === 0 })
-      /** 数据变化时清除选中态，避免 × 指向错位的珠子 */
-      this._selectedIndex = -1
+      /** 数据变化时清除选中态，避免选中下标指向错位的珠子 */
+      this._clearSelection()
 
       /** 为每颗生成/复用 uid（用于拖拽命中与换位） */
       const prev = (this._trayBeads || []) as TrayBead[]
@@ -539,10 +539,58 @@ Component({
       /** 先整体画一层投影（珠子落影），再画珠子，营造悬浮实物感 */
       order.forEach(i => this._drawBeadShadow(ctx, beads[i]))
       order.forEach(i => this._drawBead(ctx, beads[i]))
-      /** 选中珠子头顶画 × 删除按钮（可发现性：拖出圈外不易发现，这里给明确入口） */
-      if (this._selectedIndex >= 0 && beads[this._selectedIndex] && !this._photoMode) {
-        this._drawDeleteButton(ctx, beads[this._selectedIndex])
+      if (!this._photoMode) {
+        /** 多选高亮：每颗选中珠画品牌色描边圈（对齐 diy-design 的多选删除交互） */
+        const selected = this._selectedIndices || []
+        selected.forEach((idx: number) => {
+          if (beads[idx]) {
+            this._drawSelectionRing(ctx, beads[idx])
+          }
+        })
+        /** 恰好选中一颗时，头顶画 × 快捷删除按钮（多选时走页面批量删除栏） */
+        if (selected.length === 1 && beads[selected[0]]) {
+          this._drawDeleteButton(ctx, beads[selected[0]])
+        }
       }
+    },
+
+    /** 画选中珠子的高亮描边圈（多选删除的视觉反馈） */
+    _drawSelectionRing(ctx: any, bead: TrayBead) {
+      const r = (bead.imgLongMm * this._pixelPerMm) / 2
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(bead.x, bead.y, r + 5, 0, Math.PI * 2)
+      ctx.strokeStyle = '#C44569'
+      ctx.lineWidth = 3
+      ctx.setLineDash([6, 4])
+      ctx.stroke()
+      ctx.restore()
+    },
+
+    /** 当前单选下标（恰好选中一颗时返回该下标，否则 -1；供 × 按钮逻辑复用） */
+    _singleSelectedIndex(): number {
+      const selected = this._selectedIndices || []
+      return selected.length === 1 ? selected[0] : -1
+    },
+
+    /** 清空选中态并通知父页（selectioncount 归零，父页隐藏批量删除栏） */
+    _clearSelection() {
+      const had = (this._selectedIndices || []).length > 0
+      this._selectedIndices = []
+      if (had) {
+        this.triggerEvent('selectionchange', { indices: [] })
+      }
+    },
+
+    /** 供父页调用：清空选中并重绘（批量删除完成后复位） */
+    clearSelection() {
+      this._clearSelection()
+      this._render()
+    },
+
+    /** 供父页调用：读取当前选中下标数组（批量删除用） */
+    getSelectedIndices(): number[] {
+      return (this._selectedIndices || []).slice()
     },
 
     /** 计算选中珠子的 × 按钮中心坐标（珠子右上方） */
@@ -601,10 +649,10 @@ Component({
       this._xFadeRafId = this._canvas.requestAnimationFrame(step)
     },
 
-    /** 判断点是否落在选中珠子的 × 按钮上 */
+    /** 判断点是否落在（单选）选中珠子的 × 按钮上 */
     _hitDeleteButton(x: number, y: number): boolean {
       const beads = (this._trayBeads || []) as TrayBead[]
-      const bead = beads[this._selectedIndex]
+      const bead = beads[this._singleSelectedIndex()]
       if (!bead) {
         return false
       }
@@ -1234,11 +1282,11 @@ Component({
         this._shakeBeads()
         return
       }
-      /** 若已选中某珠且点中了它头顶的 × 按钮：直接删除 */
-      if (this._selectedIndex >= 0 && this._hitDeleteButton(point.x, point.y)) {
-        const delIdx = this._selectedIndex
-        this._selectedIndex = -1
-        this._emitRemove(delIdx)
+      /** 若恰好选中一颗珠且点中了它头顶的 × 按钮：直接删除 */
+      const singleIdx = this._singleSelectedIndex()
+      if (singleIdx >= 0 && this._hitDeleteButton(point.x, point.y)) {
+        this._clearSelection()
+        this._emitRemove(singleIdx)
         wx.vibrateShort({ type: 'medium' })
         this._dragIndex = -1
         this._rotating = false
@@ -1366,20 +1414,30 @@ Component({
         bead.y - (this._downY || bead.y)
       )
       if (duration < 200 && movedDist < 12) {
-        /** 轻点：选中该珠(头顶浮出 × 删除按钮)，再点一次同颗则取消选中 */
-        this._selectedIndex = this._selectedIndex === dragIndex ? -1 : dragIndex
+        /**
+         * 轻点：切换该珠的选中态（支持多选，对齐 diy-design 的多选批量删除）。
+         * 单选时头顶浮出 × 快捷删除按钮；多选时由父页批量删除栏统一操作。
+         */
+        const selected = (this._selectedIndices || []).slice()
+        const pos = selected.indexOf(dragIndex)
+        if (pos >= 0) {
+          selected.splice(pos, 1)
+        } else {
+          selected.push(dragIndex)
+        }
+        this._selectedIndices = selected
+        this.triggerEvent('selectionchange', { indices: selected.slice() })
         this._layout()
-        if (this._selectedIndex >= 0) {
+        if (selected.length === 1) {
           this._xAlpha = 0
           this._animateDeleteButton()
         } else {
           this._render()
         }
-        this.triggerEvent('beadtap', { index: dragIndex, id: bead.id })
         return
       }
       /** 拖动后取消选中态 */
-      this._selectedIndex = -1
+      this._clearSelection()
 
       /** 拖出绳圈外一定距离：删除 */
       const dist = Math.hypot(bead.x - cx, bead.y - cy)
@@ -1622,9 +1680,10 @@ Component({
      *   关闭 → 回到平面布局。
      */
     _onPreviewChange() {
-      /** 切到 3D 前先停平面惯性飞轮，并 flush 进行中的 DOM 飞入(避免状态错乱) */
+      /** 切到 3D 前先停平面惯性飞轮，flush 进行中的 DOM 飞入，并清多选(3D 态无高亮圈，避免不可见选中被误删) */
       this._stopRotateInertia()
       this._flushDomFly()
+      this._clearSelection()
       if (this.properties.preview3d) {
         if (this._pitch === undefined || this._pitch === 0) {
           this._pitch = (55 * Math.PI) / 180
@@ -1728,9 +1787,10 @@ Component({
 
     /** 散珠/收拢切换：进入散珠启动物理循环，收拢则平滑飞回圆环 */
     _onScatterChange() {
-      /** 切散珠前先停平面惯性飞轮，并 flush 进行中的 DOM 飞入 */
+      /** 切散珠前先停平面惯性飞轮，flush 进行中的 DOM 飞入，并清多选(散珠位置随物理变化，选中圈会错位) */
       this._stopRotateInertia()
       this._flushDomFly()
+      this._clearSelection()
       if (this.properties.scattered) {
         this._initPhysics()
         this._startPhysics()

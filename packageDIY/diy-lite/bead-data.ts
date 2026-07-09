@@ -66,6 +66,18 @@ export interface LiteBead {
    * 离线演示不写死此字段（前端无权威依据），故为可选；缺失时「五行雷达图」显示空态。
    */
   five_elements?: string
+  /**
+   * 库存数量 —— ⚠️ 业务数据，仅由后端 `stock` 下发（对齐 diy-design 的 stock===0 禁用逻辑）。
+   * 离线演示不写死库存（前端无权威依据），故为可选；缺失时视为可选购，
+   * stock === 0 时网格卡显示「售罄」并禁止加入手串。
+   */
+  stock?: number
+  /**
+   * 素材大类 —— ⚠️ 业务数据，仅由后端 `item_type` 下发（beads 珠子 / accessories 配饰 / pendants 吊坠）。
+   * 注意与 `material`（材质光影档位 crystal/stone/metal/matte，对应后端 material_type）是两个不同概念。
+   * 离线演示素材全部为珠子，故为可选；缺失时归入「饰品」Tab。
+   */
+  item_type?: string
 }
 
 /** 分类清单（用于底部分类切换 Tab） */

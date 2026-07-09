@@ -1,8 +1,9 @@
 /**
  * diy-lite 手串设计台（离线演示页）
  *
- * 职责：选珠面板（左侧竖分类 + 右侧网格 + 搜索 + 尺码切换）、珠子详情、
- *       手围绳长与容量限制、伪3D预览、背景切换、教程引导、加入购物车（演示）。
+ * 职责：选珠面板（素材类型Tab + 左侧竖分类 + 右侧网格 + 搜索 + 尺码切换）、珠子详情、
+ *       手围绳长与容量限制、伪3D预览、背景切换、教程引导、加入购物车（演示+登录鉴权）、
+ *       撤销/重做30步历史栈、手串珠子多选批量删除、分享链接还原设计、售罄禁购(stock)。
  *       Canvas 渲染与触摸交互委托给 bracelet-tray 组件。
  *
  * 容量模型：用户选手围(cm) → 绳长/容量 = 手围×10×圈数(mm)。珠子按实际沿绳尺寸累加，
@@ -16,6 +17,19 @@
  */
 
 const { LITE_BEADS, LITE_CATEGORIES } = require('./bead-data')
+/* 统一工具函数导入（登录鉴权，对齐 diy-design 的 checkAuth + 登录弹窗） */
+const { Utils } = require('../../utils/index')
+const { checkAuth } = Utils
+
+/** 撤销/重做历史栈上限（对齐 diy-design/diyStore 的 30 步，UI 常量前端自主决定） */
+const HISTORY_LIMIT = 30
+
+/** 素材类型 Tab（对齐 diy-design 的 饰品/配饰/吊坠；配饰与吊坠素材待后端提供，显示空态） */
+const MATERIAL_TYPE_TABS = [
+  { key: 'beads', label: '饰品' },
+  { key: 'accessories', label: '配饰' },
+  { key: 'pendants', label: '吊坠' }
+]
 
 /** 戴法选项（演示写死，正式版由后端手围规则下发） */
 const WEAR_OPTIONS = [
@@ -59,6 +73,10 @@ function buildBeadGroups(beads: any[]): any[] {
 
 Page({
   data: {
+    /** 素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design） */
+    materialTypeTabs: MATERIAL_TYPE_TABS,
+    /** 当前素材类型（beads 有本地素材；accessories/pendants 待后端提供，显示空态） */
+    activeMaterialType: 'beads',
     /** 分类清单（左侧竖分类） */
     categories: LITE_CATEGORIES,
     /** 当前选中分类键 */
@@ -67,6 +85,8 @@ Page({
     keyword: '',
     /** 当前展示的款式组（按分类+搜索过滤，含尺码切换） */
     groups: [] as any[],
+    /** 网格空态文案（TS 预计算，避免 WXML 内跨行三元表达式） */
+    gridEmptyText: '没有匹配的珠子',
 
     /** 已选珠子（传给 bracelet-tray 渲染） */
     selectedBeads: [] as any[],
@@ -88,6 +108,15 @@ Page({
     nearFull: false,
     /** 每个珠子 id 的已选数量（网格角标用） */
     usedCountMap: {} as Record<string, number>,
+
+    /** 撤销/重做可用态（30 步历史栈，对齐 diy-design） */
+    canUndo: false,
+    canRedo: false,
+    /** 手串上已多选的珠子数（>0 时显示批量删除栏，对齐 diy-design 多选删除） */
+    selectedCount: 0,
+
+    /** 登录弹窗（加入购物车前鉴权，对齐 diy-design checkAuth） */
+    loginPopupVisible: false,
 
     /** 伪3D预览开关 */
     preview3d: false,
@@ -170,10 +199,23 @@ Page({
     cartCount: 0
   },
 
-  onLoad() {
+  /** 撤销/重做历史栈（每项为一份已选珠子快照；上限 HISTORY_LIMIT） */
+  _history: [[]] as any[][],
+  /** 历史栈当前位置 */
+  _histIndex: 0,
+
+  onLoad(options: Record<string, string | undefined>) {
     this._refreshGroups()
     this._recalcCapacity()
-    this._restoreDraft()
+    /**
+     * 分享还原优先：链接携带 beads 参数（珠子 id 列表）时还原分享的设计。
+     * ⚠️ 离线演示用 id 列表还原（本地数据可查）；正式版应带 workId 走后端
+     *   GET /api/v4/diy/works/:id 还原（对齐 diy-design 的 _initFromWork）。
+     */
+    const restoredFromShare = options.beads ? this._restoreFromShare(options) : false
+    if (!restoredFromShare) {
+      this._restoreDraft()
+    }
     /** 开启分享菜单（右上角 ... 可转发给好友） */
     if (wx.showShareMenu) {
       wx.showShareMenu({ menus: ['shareAppMessage'] })
@@ -195,6 +237,19 @@ Page({
   },
   onUnload() {
     this._saveDraft()
+  },
+
+  /**
+   * 切换素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design）
+   * ⚠️ 离线演示仅「饰品(珠子)」有本地素材；配饰/吊坠素材属后端业务数据，
+   *   未接入前显示空态提示，绝不用假素材填充。
+   */
+  onMaterialTypeChange(e: any) {
+    const materialType = e.currentTarget.dataset.type as string
+    if (materialType === this.data.activeMaterialType) {
+      return
+    }
+    this.setData({ activeMaterialType: materialType }, () => this._refreshGroups())
   },
 
   /** 切换主分类 */
@@ -270,6 +325,11 @@ Page({
    * @returns 是否添加成功
    */
   _tryAddBead(sku: any): boolean {
+    /** 库存校验（对齐 diy-design 的 stock===0 禁用）：库存字段由后端下发，离线数据无此字段不拦截 */
+    if (sku.stock === 0) {
+      wx.showToast({ title: '该珠子已售罄', icon: 'none' })
+      return false
+    }
     const used = this._usedLengthMm(this.data.selectedBeads)
     const next = used + this._alongCordMm(sku)
     if (next > this.data.capacityMm) {
@@ -307,7 +367,10 @@ Page({
     }
   },
 
-  /** bracelet-tray 事件：轻点手串上的珠子 → 查看详情（不删除） */
+  /**
+   * bracelet-tray 事件：3D 态轻点手串上的珠子 → 查看详情。
+   * （平面态轻点为多选选中，由组件 selectionchange 事件走 onTraySelectionChange，不触发本方法）
+   */
   onTrayBeadTap(e: any) {
     const bead = this.data.selectedBeads[e.detail.index]
     if (bead) {
@@ -327,12 +390,24 @@ Page({
     this._applySelection(nextSelected)
   },
 
-  /** 撤销最后一颗 */
-  onRemoveLast() {
-    if (this.data.selectedBeads.length === 0) {
+  /** 撤销（30 步历史栈回退，对齐 diy-design 的 diyStore.undo） */
+  onUndo() {
+    if (this._histIndex <= 0) {
       return
     }
-    this._applySelection(this.data.selectedBeads.slice(0, -1))
+    this._histIndex -= 1
+    const snapshot = this._history[this._histIndex].map((b: any) => ({ ...b }))
+    this._applySelection(snapshot, false)
+  },
+
+  /** 重做（历史栈前进，对齐 diy-design 的 diyStore.redo） */
+  onRedo() {
+    if (this._histIndex >= this._history.length - 1) {
+      return
+    }
+    this._histIndex += 1
+    const snapshot = this._history[this._histIndex].map((b: any) => ({ ...b }))
+    this._applySelection(snapshot, false)
   },
 
   /** 清空 */
@@ -341,6 +416,38 @@ Page({
       return
     }
     this._applySelection([])
+  },
+
+  /** bracelet-tray 事件：手串上多选珠子数变化（>0 显示批量删除栏） */
+  onTraySelectionChange(e: any) {
+    const indices = (e.detail && e.detail.indices) || []
+    this.setData({ selectedCount: indices.length })
+  },
+
+  /** 批量删除选中的珠子（对齐 diy-design 的多选删除） */
+  onDeleteSelected() {
+    const tray = this.selectComponent('#braceletTray')
+    if (!tray) {
+      return
+    }
+    const indices: number[] = tray.getSelectedIndices()
+    if (indices.length === 0) {
+      return
+    }
+    const nextSelected = this.data.selectedBeads.filter(
+      (_b: any, i: number) => indices.indexOf(i) < 0
+    )
+    tray.clearSelection()
+    this._applySelection(nextSelected)
+    wx.vibrateShort({ type: 'medium' })
+  },
+
+  /** 取消手串上的多选 */
+  onClearSelection() {
+    const tray = this.selectComponent('#braceletTray')
+    if (tray) {
+      tray.clearSelection()
+    }
   },
 
   /**
@@ -576,15 +683,33 @@ Page({
       })
   },
 
-  /** 加入购物车（演示：仅计数并提示；正式版对接后端购物车） */
+  /**
+   * 加入购物车（演示：仅计数并提示；正式版对接后端购物车/下单接口）
+   * 登录鉴权对齐 diy-design：未登录先弹登录弹窗，不打断设计流程。
+   */
   onAddToCart() {
     if (this.data.beadCount === 0) {
       wx.showToast({ title: '请先设计手串', icon: 'none' })
       return
     }
+    if (!checkAuth({ redirect: false })) {
+      this.setData({ loginPopupVisible: true })
+      return
+    }
     this.setData({ cartCount: this.data.cartCount + 1 })
     wx.showToast({ title: '已加入购物车（演示）', icon: 'success' })
     wx.vibrateShort({ type: 'medium' })
+  },
+
+  /** 关闭登录弹窗 */
+  onLoginPopupClose() {
+    this.setData({ loginPopupVisible: false })
+  },
+
+  /** 登录成功：关闭弹窗（用户可重新点击加购继续） */
+  onLoginSuccess() {
+    this.setData({ loginPopupVisible: false })
+    wx.showToast({ title: '登录成功，请继续操作', icon: 'none' })
   },
 
   /** 拍照导出：让 bracelet-tray 生成图片并保存相册 */
@@ -640,15 +765,21 @@ Page({
   onSelectWear(e: any) {
     this.setData({ wearIndex: Number(e.currentTarget.dataset.index) }, () => this._recalcCapacity())
   },
-  /** 刷新款式组：按当前分类 + 搜索关键词过滤，再按名称聚合 */
+  /** 刷新款式组：按素材类型 + 当前分类 + 搜索关键词过滤，再按名称聚合 */
   _refreshGroups() {
+    /** 配饰/吊坠：素材待后端提供，直接空列表并给出对应空态文案 */
+    if (this.data.activeMaterialType !== 'beads') {
+      const typeLabel = this.data.activeMaterialType === 'accessories' ? '配饰' : '吊坠'
+      this.setData({ groups: [], gridEmptyText: `${typeLabel}素材待后端提供，敬请期待` })
+      return
+    }
     const kw = this.data.keyword.trim()
     let list = LITE_BEADS.filter((b: any) => b.category === this.data.activeCategory)
     if (kw) {
       /** 搜索跨分类：关键词匹配名称 */
       list = LITE_BEADS.filter((b: any) => b.name.indexOf(kw) >= 0)
     }
-    this.setData({ groups: buildBeadGroups(list) }, () =>
+    this.setData({ groups: buildBeadGroups(list), gridEmptyText: '没有匹配的珠子' }, () =>
       this._refreshGroupCounts(this.data.usedCountMap)
     )
   },
@@ -660,14 +791,34 @@ Page({
   _recalcCapacity() {
     const loops = WEAR_OPTIONS[this.data.wearIndex].loops
     const capacityMm = Math.round(this.data.wristSize * 10 * loops)
-    this.setData({ capacityMm }, () => this._applySelection(this.data.selectedBeads))
+    /** 手围/戴法变化只重算容量展示，珠子未变不记入撤销历史 */
+    this.setData({ capacityMm }, () => this._applySelection(this.data.selectedBeads, false))
+  },
+
+  /**
+   * 把一份已选珠子快照写入撤销历史栈（截断前进分支 + 上限裁剪，对齐 diyStore 30 步）
+   * @param beads 当前已选珠子
+   */
+  _pushHistory(beads: any[]) {
+    /** 在历史中间撤销后再操作：丢弃"重做"分支 */
+    this._history = this._history.slice(0, this._histIndex + 1)
+    this._history.push(beads.map((b: any) => ({ ...b })))
+    if (this._history.length > HISTORY_LIMIT + 1) {
+      this._history.shift()
+    }
+    this._histIndex = this._history.length - 1
   },
 
   /**
    * 统一应用选择变更：更新总价/颗数/串长/容量占用/是否满
    * selectedBeads 通过属性下发给 bracelet-tray，由组件负责布局与重绘
+   * @param nextSelected 新的已选珠子
+   * @param recordHistory 是否记入撤销历史（撤销/重做本身与手围重算不记，默认记）
    */
-  _applySelection(nextSelected: any[]) {
+  _applySelection(nextSelected: any[], recordHistory: boolean = true) {
+    if (recordHistory) {
+      this._pushHistory(nextSelected)
+    }
     const totalPrice = nextSelected.reduce((sum, b) => sum + b.price, 0)
     const usedMm = this._usedLengthMm(nextSelected)
     const capacityMm = this.data.capacityMm
@@ -692,7 +843,11 @@ Page({
       nearFull,
       usedCountMap: countMap,
       capacityTip: isFull ? '已达绳长上限，删除珠子可继续添加' : '',
-      fillHint: this._buildFillHint(nextSelected, usedMm, capacityMm, isFull, percent)
+      fillHint: this._buildFillHint(nextSelected, usedMm, capacityMm, isFull, percent),
+      canUndo: this._histIndex > 0,
+      canRedo: this._histIndex < this._history.length - 1,
+      /** 数据源变化时组件会清空多选，这里同步复位批量删除栏 */
+      selectedCount: 0
     })
     this._refreshGroupCounts(countMap)
   },
@@ -784,19 +939,69 @@ Page({
       const wearIndex = typeof draft.wearIndex === 'number' ? draft.wearIndex : this.data.wearIndex
       this.setData({ wristSize: draft.wristSize || this.data.wristSize, wearIndex }, () => {
         this._recalcCapacity()
-        this._applySelection(restored)
+        this._applyRestoredBeads(restored)
       })
     } catch (_e) {
       /* 还原失败不影响进入 */
     }
   },
 
-  /** 分享给好友（带上珠子数与总价；正式版应带 workId 还原真实作品） */
+  /**
+   * 从分享链接还原设计（对齐 diy-design 的 workId 还原能力）
+   * ⚠️ 离线演示：链接携带珠子 id 列表 + 手围/戴法，按本地数据重建；
+   *   正式版应改为携带 workId 走后端 GET /api/v4/diy/works/:id 还原。
+   * @param options 页面启动参数（beads=逗号分隔id, wrist=手围cm, wear=戴法下标）
+   * @returns 是否成功还原（无有效珠子视为失败，回落草稿还原）
+   */
+  _restoreFromShare(options: Record<string, string | undefined>): boolean {
+    const restored = String(options.beads || '')
+      .split(',')
+      .map((id: string) => LITE_BEADS.find((b: any) => b.id === id))
+      .filter((b: any) => !!b)
+      .map((b: any) => ({ ...b }))
+    if (restored.length === 0) {
+      return false
+    }
+    const wristSize = Number(options.wrist)
+    const wearIndex = Number(options.wear)
+    this.setData(
+      {
+        wristSize: wristSize >= 10 && wristSize <= 22 ? wristSize : this.data.wristSize,
+        wearIndex: wearIndex >= 0 && wearIndex < WEAR_OPTIONS.length ? wearIndex : 0
+      },
+      () => {
+        this._recalcCapacity()
+        this._applyRestoredBeads(restored)
+        wx.showToast({ title: '已还原分享的设计', icon: 'none', duration: 2000 })
+      }
+    )
+    return true
+  },
+
+  /** 应用还原的珠子并把历史栈重置为「还原态为起点」（还原本身不可撤销成空串） */
+  _applyRestoredBeads(restored: any[]) {
+    this._applySelection(restored, false)
+    this._history = [restored.map((b: any) => ({ ...b }))]
+    this._histIndex = 0
+  },
+
+  /**
+   * 分享给好友：链接携带珠子 id 清单 + 手围/戴法，好友打开即还原同款设计。
+   * ⚠️ 正式版应带 workId（后端作品主键）还原，见 _restoreFromShare 说明。
+   * 兜底：微信分享 path 过长会导致卡片打不开，超长（多圈超多珠）时降级为不带还原参数的普通分享。
+   */
   onShareAppMessage() {
     const count = this.data.beadCount
+    const ids = this.data.selectedBeads.map((b: any) => b.id).join(',')
+    let query =
+      count > 0 ? `?beads=${ids}&wrist=${this.data.wristSize}&wear=${this.data.wearIndex}` : ''
+    /** path 安全长度上限（UI 常量）：超出则放弃还原参数，保证分享卡片可打开 */
+    if (query.length > 900) {
+      query = ''
+    }
     return {
       title: count > 0 ? `我设计了一串 ${count} 颗的手串，快来看看` : 'DIY 手串设计台',
-      path: '/packageDIY/diy-lite/diy-lite'
+      path: `/packageDIY/diy-lite/diy-lite${query}`
     }
   },
 

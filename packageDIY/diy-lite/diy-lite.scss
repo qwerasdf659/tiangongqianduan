@@ -168,6 +168,44 @@
   color: var(--tg-color-white);
 }
 
+/* 多选批量删除栏（悬浮在舞台底部，selectedCount>0 时显示） */
+.selection-bar {
+  position: absolute;
+  left: 50%;
+  bottom: var(--tg-spacing-md);
+  transform: translateX(-50%);
+  @include flex-center;
+  gap: var(--tg-spacing-sm);
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  border-radius: var(--td-radius-large);
+  background: var(--tg-card-bg);
+  box-shadow: var(--tg-shadow-card);
+  z-index: 10;
+}
+
+.selection-bar-count {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-secondary);
+}
+
+.selection-bar-btn {
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
+  border-radius: var(--td-radius-large);
+}
+
+.selection-bar-delete {
+  background: var(--tg-color-error);
+}
+
+.selection-bar-btn-text {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-color-white);
+}
+
+.selection-bar-cancel-text {
+  color: var(--tg-text-secondary);
+}
+
 .panel {
   flex-shrink: 0;
   height: 460rpx;
@@ -175,6 +213,33 @@
   flex-direction: column;
   background: var(--tg-card-bg);
   border-top: 2rpx solid var(--tg-color-border-light);
+}
+
+/* 素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design） */
+.mtype-tabs {
+  display: flex;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md) 0;
+  gap: var(--tg-spacing-lg);
+  flex-shrink: 0;
+}
+
+.mtype-tab {
+  padding: var(--tg-spacing-xs) 0;
+  border-bottom: 4rpx solid transparent;
+}
+
+.mtype-tab-active {
+  border-bottom-color: var(--td-brand-color);
+}
+
+.mtype-tab-text {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+}
+
+.mtype-tab-active .mtype-tab-text {
+  color: var(--tg-text-primary);
+  font-weight: var(--tg-font-weight-semibold);
 }
 
 .search-bar {
@@ -739,6 +804,24 @@
   font-size: var(--tg-font-size-mini);
   color: var(--tg-color-white);
   font-weight: var(--tg-font-weight-bold);
+}
+
+/* 售罄遮罩（stock===0 时覆盖珠子缩略图，库存由后端下发） */
+.bead-card-soldout {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--td-radius-default);
+  background: rgba(0, 0, 0, 0.45);
+  @include flex-center;
+}
+
+.bead-card-soldout-text {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-color-white);
+  font-weight: var(--tg-font-weight-semibold);
 }
 
 /* ===== 详情：能量属性 + 搭配建议 ===== */

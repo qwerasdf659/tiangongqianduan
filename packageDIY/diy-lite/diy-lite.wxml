@@ -46,11 +46,15 @@
       bind:remove="onTrayRemove"
       bind:reorder="onTrayReorder"
       bind:beadtap="onTrayBeadTap"
+      bind:selectionchange="onTraySelectionChange"
     />
     <!-- 悬浮操作钮 -->
     <view class="stage-tools">
-      <view class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}" bindtap="onRemoveLast">
+      <view class="tool-btn {{canUndo ? '' : 'tool-btn-disabled'}}" bindtap="onUndo">
         <text class="tool-btn-text">撤销</text>
+      </view>
+      <view class="tool-btn {{canRedo ? '' : 'tool-btn-disabled'}}" bindtap="onRedo">
+        <text class="tool-btn-text">重做</text>
       </view>
       <view class="tool-btn {{preview3d ? 'tool-btn-active' : ''}}" bindtap="onToggle3d">
         <text class="tool-btn-text">3D</text>
@@ -85,6 +89,17 @@
       <text class="empty-guide-text">✨ 一键成串 · 随机搭配</text>
     </view>
 
+    <!-- 多选批量删除栏（轻点手串珠子可多选，对齐 diy-design 多选删除） -->
+    <view class="selection-bar" wx:if="{{selectedCount > 0}}">
+      <text class="selection-bar-count">已选 {{selectedCount}} 颗</text>
+      <view class="selection-bar-btn selection-bar-delete" bindtap="onDeleteSelected">
+        <text class="selection-bar-btn-text">删除选中</text>
+      </view>
+      <view class="selection-bar-btn" bindtap="onClearSelection">
+        <text class="selection-bar-btn-text selection-bar-cancel-text">取消</text>
+      </view>
+    </view>
+
     <!-- 背景切换 -->
     <view class="bg-switch">
       <view
@@ -98,9 +113,21 @@
     </view>
   </view>
 
-  <!-- 底部选珠区：搜索 + 左竖分类 + 右网格 -->
+  <!-- 底部选珠区：素材类型Tab + 搜索 + 左竖分类 + 右网格 -->
   <view class="panel">
-    <view class="search-bar">
+    <!-- 素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design；配饰/吊坠素材待后端提供） -->
+    <view class="mtype-tabs">
+      <view
+        wx:for="{{materialTypeTabs}}"
+        wx:key="key"
+        class="mtype-tab {{activeMaterialType === item.key ? 'mtype-tab-active' : ''}}"
+        data-type="{{item.key}}"
+        bindtap="onMaterialTypeChange"
+      >
+        <text class="mtype-tab-text">{{item.label}}</text>
+      </view>
+    </view>
+    <view class="search-bar" wx:if="{{activeMaterialType === 'beads'}}">
       <input
         class="search-input"
         placeholder="搜索珠子名称"
@@ -114,8 +141,14 @@
     </view>
 
     <view class="panel-body">
-      <!-- 左侧竖分类 -->
-      <scroll-view class="cat-side" scroll-y enhanced show-scrollbar="{{false}}">
+      <!-- 左侧竖分类（仅饰品Tab有本地分类） -->
+      <scroll-view
+        class="cat-side"
+        scroll-y
+        enhanced
+        show-scrollbar="{{false}}"
+        wx:if="{{activeMaterialType === 'beads'}}"
+      >
         <view
           wx:for="{{categories}}"
           wx:key="key"
@@ -149,6 +182,10 @@
               <view class="bead-card-badge" wx:if="{{group.usedCount > 0}}">
                 <text class="bead-card-badge-text">{{group.usedCount}}</text>
               </view>
+              <!-- 售罄遮罩（库存由后端 stock 下发，stock===0 时显示；离线数据无库存字段不显示） -->
+              <view class="bead-card-soldout" wx:if="{{group.skus[group.sizeIndex].stock === 0}}">
+                <text class="bead-card-soldout-text">售罄</text>
+              </view>
             </view>
             <text class="bead-card-name">{{group.name}}</text>
             <!-- 尺码 +/- 切换 -->
@@ -164,7 +201,8 @@
             <text class="bead-card-price">¥{{group.skus[group.sizeIndex].price}}</text>
           </view>
           <view class="grid-empty" wx:if="{{groups.length === 0}}">
-            <text class="grid-empty-text">没有匹配的珠子</text>
+            <!-- 空态文案由 TS 预计算（gridEmptyText）：配饰/吊坠素材属后端业务数据，未接入前如实显示空态 -->
+            <text class="grid-empty-text">{{gridEmptyText}}</text>
           </view>
         </view>
       </scroll-view>
@@ -320,4 +358,11 @@
       </view>
     </view>
   </view>
+
+  <!-- 登录弹窗（加入购物车前鉴权，对齐 diy-design） -->
+  <login-popup
+    visible="{{loginPopupVisible}}"
+    bind:close="onLoginPopupClose"
+    bind:loginsuccess="onLoginSuccess"
+  />
 </view>
